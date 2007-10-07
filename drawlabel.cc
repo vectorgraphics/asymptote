@@ -208,7 +208,7 @@ void drawLabel::checkbounds()
     reportError("drawLabel::write called before bounds");
 }
 
-bool drawLabel::write(texfile *out)
+bool drawLabel::write(texfile *out, const bbox&)
 {
   checkbounds();
   if(suppress || pentype.invisible() || !enabled) return true;
@@ -262,7 +262,7 @@ void drawLabelPath::bounds(bbox& b, iopipestream& tex, boxvector&, bboxlist&)
   Box=b;
 }
   
-bool drawLabelPath::write(texfile *out)
+bool drawLabelPath::write(texfile *out, const bbox&)
 {
   bbox b=Box;
   double Hoffset=getSetting<bool>("inlinetex") ? b.right : b.left;

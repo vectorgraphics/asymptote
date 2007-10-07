@@ -16,7 +16,6 @@ namespace camp {
 
 class drawClipBegin : public drawSuperPathPenBase {
   bool gsave;
-  bbox bpath;
 public:
   void noncyclic() {
       reportError("cannot clip to non-cyclic path");
@@ -33,6 +32,7 @@ public:
   void bounds(bbox& b, iopipestream& iopipe, boxvector& vbox,
 	      bboxlist& bboxstack) {
     bboxstack.push_back(b);
+    bbox bpath;
     drawSuperPathPenBase::bounds(bpath,iopipe,vbox,bboxstack);
     bboxstack.push_back(bpath);
   }
@@ -52,7 +52,7 @@ public:
     return true;
   }
 
-  bool write(texfile *out) {
+  bool write(texfile *out, const bbox& bpath) {
     if(gsave) out->gsave();
     if(empty()) return true;
     

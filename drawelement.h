@@ -118,7 +118,7 @@ public:
   }
 
   // Handles its output in a TeX file
-  virtual bool write(texfile *) {
+  virtual bool write(texfile *, const bbox&) {
     return true;
   }
 

@@ -16,7 +16,6 @@ namespace camp {
 class drawClipEnd : public drawElement {
   bool grestore;  
   drawClipBegin *partner;
-  bbox bpath;
 public:
   drawClipEnd(bool grestore=true, drawClipBegin *partner=NULL) : 
     grestore(grestore), partner(partner) {}
@@ -29,8 +28,7 @@ public:
     if(bboxstack.size() < 2) {
       reportError("endclip without matching beginclip");
     }
-    bpath=bboxstack.back();
-    b.clip(bpath);
+    b.clip(bboxstack.back());
     bboxstack.pop_back();
     b += bboxstack.back();
     bboxstack.pop_back();
@@ -48,7 +46,7 @@ public:
     return true;
   }
 
-  bool write(texfile *out) {
+  bool write(texfile *out, const bbox& bpath) {
     out->verbatimline("\\end{picture}%");
     out->verbatim("\\kern");
     double width=bpath.right-bpath.left;

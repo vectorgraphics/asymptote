@@ -55,7 +55,7 @@ public:
     return true;
   }
 
-  bool write(texfile *out);
+  bool write(texfile *out, const bbox&);
 
   drawElement *transformed(const transform& t);
   
@@ -76,7 +76,7 @@ public:
 
   void bounds(bbox& b, iopipestream& tex, boxvector&, bboxlist&);
   
-  bool write(texfile *out);
+  bool write(texfile *out, const bbox&);
   
   drawElement *transformed(const transform& t);
 };

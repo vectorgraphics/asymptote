@@ -524,7 +524,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 	      break;
 	    }
 	    assert(*p);
-	    if(!(*p)->write(tex))
+	    if(!(*p)->write(tex,b))
 	      status = false;
 	  }
 	}
