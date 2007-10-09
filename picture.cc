@@ -512,8 +512,10 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     if(Labels) {
       tex->resetpen();
       if(status) {
-	if(pdf && !b.empty)
+	if(pdf && !b.empty) {
 	  status=(epstopdf(psname,pdfname) == 0);
+	  if(!getSetting<bool>("keep")) unlink(psname.c_str());
+	}
 	
 	if(status) {
 	  for (p=layerp; p != nodes.end(); ++p) {
