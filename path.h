@@ -110,7 +110,7 @@ public:
     return p.cycles == q.cycles && p.nodes == q.nodes;
   }
 
-private:
+public:
   path(solvedKnot n1, solvedKnot n2)
     : cycles(false), n(2), nodes(2), cached_length(-1)
   {
@@ -119,8 +119,7 @@ private:
     nodes[0].pre = nodes[0].point;
     nodes[1].post = nodes[1].point;
   }
-public:
-
+  
   // Copy constructor
   path(const path& p)
     : cycles(p.cycles), n(p.n), nodes(p.nodes), cached_length(p.cached_length),
@@ -252,7 +251,10 @@ public:
   path subpath(Int start, Int end) const;
   path subpath(double start, double end) const;
 
-  // Used by picture to determine bounding box
+  // Special case of subpath used by intersect.
+  void halve(path &first, path &second) const;
+  
+  // Used by picture to determine bounding box.
   bbox bounds() const;
   
   // Return bounding box accounting for padding perpendicular to path.
@@ -300,8 +302,12 @@ public:
 };
 
 extern path nullpath;
-  
-bool intersect(pair& t, path& p1, path& p2, double fuzz);
+extern const unsigned maxdepth; 
+ 
+bool intersect(double& s, double& t, path& p, path& q, double fuzz,
+	       unsigned depth=maxdepth);
+void intersections(std::vector<double>& S, std::vector<double>& T, path& p,
+		   path& q, double fuzz, unsigned depth=maxdepth);
   
 // Concatenates two paths into a new one.
 path concat(const path& p1, const path& p2);

@@ -1432,7 +1432,6 @@ struct path3 {
     checkEmpty(n);
     return bounds().min;
   }
-  
 }
 
 bool cyclic(path3 p) {return p.cyclic();}
@@ -1846,36 +1845,92 @@ path3 subpath(explicit guide3 g, real a, real b)
   return ((path3) g).subpath(a,b);
 }
 
-real[] intersect(path3 p1, path3 p2, real fuzz=0)
+int maxdepth=round(1-log(realEpsilon)/log(2));
+int mindepth=maxdepth-12;
+
+real[] intersect(path3 p, path3 q, real fuzz, int depth)
 {
-  int L1=p1.length();
-  int L2=p2.length();
+  triple maxp=p.max();
+  triple minp=p.min();
+  triple maxq=q.max();
+  triple minq=q.min();
   
-  node[] n1=p1.nodes;
-  node[] n2=p2.nodes;
+  if(maxp.x+fuzz >= minq.x &&
+     maxp.y+fuzz >= minq.y && 
+     maxp.z+fuzz >= minq.z && 
+     maxq.x+fuzz >= minp.x &&
+     maxq.y+fuzz >= minp.y &&
+     maxq.z+fuzz >= minp.z) {
+    // Overlapping bounding boxes
+
+    --depth;
+    if(abs(maxp-minp)+abs(maxq-minq) <= fuzz || depth == 0) {
+      return new real[] {0,0};
+    }
     
-  triple[] pre1=new triple[L1+1];
-  triple[] point1=new triple[L1+1];
-  triple[] post1=new triple[L1+1];
+    int lp=p.length();
+    path3 p1,p2;
+    real pscale,poffset;
     
-  triple[] pre2=new triple[L2+1];
-  triple[] point2=new triple[L2+1];
-  triple[] post2=new triple[L2+1];
+    if(lp == 1) {
+      node[] sn=nodes(3);
+      splitCubic(sn,0.5,p.nodes[0],p.nodes[1]);
+      p1=path3.path3(new node[] {sn[0],sn[1]});
+      p2=path3.path3(new node[] {sn[1],sn[2]});
+      pscale=poffset=0.5;
+    } else {
+      int tp=quotient(lp,2);
+      p1=p.subpath(0,tp);
+      p2=p.subpath(tp,lp);
+      poffset=tp;
+      pscale=1.0;
+    }
+      
+    int lq=q.length();
+    path3 q1,q2;
+    real qscale,qoffset;
     
-  for(int i=0; i <= L1; ++i) {
-    pre1[i]=n1[i].pre;
-    point1[i]=n1[i].point;
-    post1[i]=n1[i].post;
+    if(lq == 1) {
+      node[] sn=nodes(3);
+      splitCubic(sn,0.5,q.nodes[0],q.nodes[1]);
+      q1=path3.path3(new node[] {sn[0],sn[1]});
+      q2=path3.path3(new node[] {sn[1],sn[2]});
+      qscale=qoffset=0.5;
+    } else {
+      int tq=quotient(lq,2);
+      q1=q.subpath(0,tq);
+      q2=q.subpath(tq,lq);
+      qoffset=tq;
+      qscale=1.0;
+    }
+      
+    real[] T;
+
+    T=intersect(p1,q1,fuzz,depth);
+    if(T.length > 0)
+      return new real[] {pscale*T[0],qscale*T[1]};
+
+    T=intersect(p1,q2,fuzz,depth);
+    if(T.length > 0)
+      return new real[] {pscale*T[0],qscale*T[1]+qoffset};
+
+    T=intersect(p2,q1,fuzz,depth);
+    if(T.length > 0)
+      return new real[] {pscale*T[0]+poffset,qscale*T[1]};
+
+    T=intersect(p2,q2,fuzz,depth);
+    if(T.length > 0)
+      return new real[] {pscale*T[0]+poffset,qscale*T[1]+qoffset};
   }
-  for(int i=0; i <= L2; ++i) {
-    pre2[i]=n2[i].pre;
-    point2[i]=n2[i].point;
-    post2[i]=n2[i].post;
-  }
-  
-  fuzz=max(fuzz,Fuzz*max(max(length(p1.max()),length(p1.min())),
-                         max(length(p2.max()),length(p2.min()))));
-  return intersect(pre1,point1,post1,pre2,point2,post2,fuzz);
+
+  return new real[];
+}
+
+real[] intersect(path3 p, path3 q, real fuzz=0)
+{
+  fuzz=max(fuzz,Fuzz*max(max(length(p.max()),length(p.min())),
+                         max(length(q.max()),length(q.min()))));
+  return intersect(p,q,fuzz,maxdepth);
 }
 
 real[] intersect(explicit guide3 p, explicit guide3 q, real fuzz=0)
@@ -1895,38 +1950,120 @@ triple intersectionpoint(explicit guide3 p, explicit guide3 q, real fuzz=0)
   return intersectionpoint((path3) p,(path3) q,fuzz);
 }
 
-// return an array containing all intersection points of the paths p and q
-triple[] intersectionpoints(path3 p, path3 q)
+// return an array containing all intersection times of p and q
+real[][] intersections(path3 p, path3 q, real fuzz, int depth)
 {
-  static real epsilon=sqrt(realEpsilon);
-  triple[] z;
-  real[] t=intersect(p,q);
-  if(t.length > 0) {
-    real s=t[0];
-    z.push(point(p,s));
-    if(cyclic(q)) {
-      real s=t[1];
-      real sm=s-epsilon+length(q);
-      real sp=s+epsilon;
-      if(sp < sm)
-        z.append(intersectionpoints(p,subpath(q,sp,sm)));
+  triple maxp=max(p);
+  triple minp=min(p);
+  triple maxq=max(q);
+  triple minq=min(q);
+
+  if(maxp.x+fuzz >= minq.x &&
+     maxp.y+fuzz >= minq.y && 
+     maxp.z+fuzz >= minq.z && 
+     maxq.x+fuzz >= minp.x &&
+     maxq.y+fuzz >= minp.y &&
+     maxq.z+fuzz >= minp.z) {
+    // Overlapping bounding boxes
+
+    --depth;
+    if(abs(maxp-minp)+abs(maxq-minq) <= fuzz || depth == 0) {
+      return new real[][] {{0,0}};
+    }
+    
+    int lp=p.length();
+    path3 p1,p2;
+    real pscale,poffset;
+    
+    if(lp == 1) {
+      node[] sn=nodes(3);
+      splitCubic(sn,0.5,p.nodes[0],p.nodes[1]);
+      p1=path3.path3(new node[] {sn[0],sn[1]});
+      p2=path3.path3(new node[] {sn[1],sn[2]});
+      pscale=poffset=0.5;
     } else {
-      real sm=s-epsilon;
-      real sp=s+epsilon;
-      int L=length(p);
-      if(cyclic(p)) {
-        sm += L;
-        if(sp < sm)
-          z.append(intersectionpoints(subpath(p,sp,sm),q));
-      } else  {
-        if(sm > 0)
-          z.append(intersectionpoints(subpath(p,0,sm),q));
-        if(sp < L) 
-          z.append(intersectionpoints(subpath(p,sp,L),q));
+      int tp=quotient(lp,2);
+      p1=p.subpath(0,tp);
+      p2=p.subpath(tp,lp);
+      poffset=tp;
+      pscale=1.0;
+    }
+      
+    int lq=q.length();
+    path3 q1,q2;
+    real qscale,qoffset;
+    
+    if(lq == 1) {
+      node[] sn=nodes(3);
+      splitCubic(sn,0.5,q.nodes[0],q.nodes[1]);
+      q1=path3.path3(new node[] {sn[0],sn[1]});
+      q2=path3.path3(new node[] {sn[1],sn[2]});
+      qscale=qoffset=0.5;
+    } else {
+      int tq=quotient(lq,2);
+      q1=q.subpath(0,tq);
+      q2=q.subpath(tq,lq);
+      qoffset=tq;
+      qscale=1.0;
+    }
+      
+    real[][] S=new real[][];
+    real[][] T;
+
+    void add(real s, real t) {
+      real fuzz=2*fuzz;
+      for(int i=0; i < S.length; ++i) {
+	real[] Si=S[i];
+	if(abs(p.point(Si[0])-p.point(s)) <= fuzz &&
+	   abs(q.point(Si[1])-q.point(t)) <= fuzz) return;
+      }
+      S.push(new real[] {s,t});
+    }
+  
+    void add(real pscale, real qscale, real poffset, real qoffset) {
+      for(int j=0; j < T.length; ++j) {
+	real[] Tj=T[j];
+	add(pscale*Tj[0]+poffset,qscale*Tj[1]+qoffset);
       }
     }
+
+    T=intersections(p1,q1,fuzz,depth);
+    add(pscale,qscale,0,0);
+    if(depth <= mindepth && T.length > 0)
+      return S;
+
+    T=intersections(p1,q2,fuzz,depth);
+    add(pscale,qscale,0,qoffset);
+    if(depth <= mindepth && T.length > 0)
+      return S;
+
+    T=intersections(p2,q1,fuzz,depth);
+    add(pscale,qscale,poffset,0);
+    if(depth <= mindepth && T.length > 0)
+      return S;
+
+    T=intersections(p2,q2,fuzz,depth);
+    add(pscale,qscale,poffset,qoffset);
+    return S;
   }
-  return z;
+  return new real[][];
+}
+
+real[][] intersections(path3 p, path3 q)
+{
+  real fuzz=100.0*Fuzz*max(max(length(p.max()),length(p.min())),
+			   max(length(q.max()),length(q.min())));
+  return intersections(p,q,fuzz,maxdepth);
+}
+
+// return an array containing all intersection points of p and q
+triple[] intersectionpoints(path3 p, path3 q)
+{
+  real[][] t=intersections(p,q);
+  triple[] v=new triple[t.length];
+  for(int i=0; i < t.length; ++i)
+    v[i]=point(p,t[i][0]);
+  return v;
 }
 
 triple[] intersectionpoints(explicit guide3 p, explicit guide3 q)
@@ -2250,7 +2387,7 @@ struct line {
   triple dir;
 }
 
-line intersection(face a, face b) 
+private line intersection(face a, face b) 
 {
   line L;
   L.point=intersectionpoint(a.normal,a.point,b.normal,b.point);

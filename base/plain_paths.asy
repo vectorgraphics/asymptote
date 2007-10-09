@@ -138,34 +138,10 @@ pair intersectionpoint(path p, path q, real fuzz=0)
 // return an array containing all intersection points of the paths p and q
 pair[] intersectionpoints(path p, path q)
 {
-  static real epsilon=sqrt(realEpsilon);
-  pair[] z;
-  real[] t=intersect(p,q);
-  if(t.length > 0) {
-    real s=t[0];
-    z.push(point(p,s));
-    if(cyclic(q)) {
-      real s=t[1];
-      real sm=s-epsilon+length(q);
-      real sp=s+epsilon;
-      if(sp < sm)
-        z.append(intersectionpoints(p,subpath(q,sp,sm)));
-    } else {
-      real sm=s-epsilon;
-      real sp=s+epsilon;
-      int L=length(p);
-      if(cyclic(p)) {
-        sm += L;
-        if(sp < sm)
-          z.append(intersectionpoints(subpath(p,sp,sm),q));
-      } else  {
-        if(sm > 0)
-          z.append(intersectionpoints(subpath(p,0,sm),q));
-        if(sp < L) 
-          z.append(intersectionpoints(subpath(p,sp,L),q));
-      }
-    }
-  }
+  real[][] t=intersections(p,q);
+  pair[] z=new pair[t.length];
+  for(int i=0; i < t.length; ++i)
+    z[i]=point(p,t[i][0]);
   return z;
 }
 

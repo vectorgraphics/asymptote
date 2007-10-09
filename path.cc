@@ -426,6 +426,15 @@ path path::subpath(double a, double b) const
   return p;
 }
 
+// Special case of subpath used by intersect.
+void path::halve(path &first, path &second) const
+{
+  solvedKnot sn[3];
+  splitCubic(sn,0.5,nodes[0],nodes[1]);
+  first=path(sn[0],sn[1]);
+  second=path(sn[1],sn[2]);
+}
+  
 // Calculate coefficients of Bezier derivative.
 static inline void derivative(pair& a, pair& b, pair& c,
 			      const pair& z0, const pair& z0p,
@@ -745,83 +754,189 @@ double path::directiontime(const pair& dir) const {
 
 // {{{ Path Intersection Calculation
 
-static unsigned count;  
-unsigned maxIntersectCount=100000;
+const unsigned maxdepth=DBL_MANT_DIG;
+const unsigned mindepth=maxdepth-16;
 
-// Algorithm derived from Knuth's MetaFont
-bool intersectcubics(pair &t, const solvedKnot& left1, const solvedKnot& right1,
-                     const solvedKnot& left2, const solvedKnot& right2,
-		     double fuzz, unsigned depth=DBL_MANT_DIG)
+bool intersect(double& S, double& T, path& p, path& q, double fuzz,
+	       unsigned depth)
 {
-  bbox box1, box2;
-  box1 += left1.point; box1 += left1.post;
-  box1 += right1.pre;  box1 += right1.point;
-  box2 += left2.point; box2 += left2.post;
-  box2 += right2.pre;  box2 += right2.point;
+  if(errorstream::interrupt) throw interrupted();
   
-  double lambda=box1.diameter()+box2.diameter();
+  pair maxp=p.max();
+  pair minp=p.min();
+  pair maxq=q.max();
+  pair minq=q.min();
   
-  if(box1.Max().getx()+fuzz >= box2.Min().getx() &&
-     box1.Max().gety()+fuzz >= box2.Min().gety() &&
-     box2.Max().getx()+fuzz >= box1.Min().getx() &&
-     box2.Max().gety()+fuzz >= box1.Min().gety()) {
-    if(lambda <= fuzz || depth == 0 || count == 0) {
-      t=pair(0,0);
-      return true;
-    }
+  if(maxp.getx()+fuzz >= minq.getx() &&
+     maxp.gety()+fuzz >= minq.gety() && 
+     maxq.getx()+fuzz >= minp.getx() &&
+     maxq.gety()+fuzz >= minp.gety()) {
+    // Overlapping bounding boxes
+
     --depth;
-    --count;
-    solvedKnot sn1[3], sn2[3];
-    splitCubic(sn1,0.5,left1,right1);
-    splitCubic(sn2,0.5,left2,right2);
-    pair T;
-    if(intersectcubics(T,sn1[0],sn1[1],sn2[0],sn2[1],fuzz,depth)) {
-      t=T*0.5;
+    if((maxp-minp).length()+(maxq-minq).length() <= fuzz || depth == 0) {
+      S=0;
+      T=0;
       return true;
     }
-    if(intersectcubics(T,sn1[0],sn1[1],sn2[1],sn2[2],fuzz,depth)) {
-      t=T*0.5+pair(0,1);
+    
+    Int lp=p.length();
+    path p1,p2;
+    double pscale,poffset;
+    
+    if(lp == 1) {
+      p.halve(p1,p2);
+      pscale=poffset=0.5;
+    } else {
+      Int tp=lp/2;
+      p1=p.subpath(0,tp);
+      p2=p.subpath(tp,lp);
+      poffset=tp;
+      pscale=1.0;
+    }
+      
+    Int lq=q.length();
+    path q1,q2;
+    double qscale,qoffset;
+    
+    if(lq == 1) {
+      q.halve(q1,q2);
+      qscale=qoffset=0.5;
+    } else {
+      Int tq=lq/2;
+      q1=q.subpath(0,tq);
+      q2=q.subpath(tq,lq);
+      qoffset=tq;
+      qscale=1.0;
+    }
+      
+    if(intersect(S,T,p1,q1,fuzz,depth)) {
+      S=S*pscale;
+      T=T*qscale;
       return true;
     }
-    if(intersectcubics(T,sn1[1],sn1[2],sn2[0],sn2[1],fuzz,depth)) {
-      t=T*0.5+pair(1,0);
+    if(intersect(S,T,p1,q2,fuzz,depth)) {
+      S=S*pscale;
+      T=T*qscale+qoffset;
       return true;
     }
-    if(intersectcubics(T,sn1[1],sn1[2],sn2[1],sn2[2],fuzz,depth)) {
-      t=T*0.5+pair(1,1);
+    if(intersect(S,T,p2,q1,fuzz,depth)) {
+      S=S*pscale+poffset;
+      T=T*qscale;
+      return true;
+    }
+    if(intersect(S,T,p2,q2,fuzz,depth)) {
+      S=S*pscale+poffset;
+      T=T*qscale+qoffset;
       return true;
     }
   }
   return false;
 }
 
-bool intersect(pair &t, path& p1, path& p2, double fuzz=0.0)
+void add(std::vector<double>& S, std::vector<double>& T, double s, double t,
+	 const path& p, const path& q, double fuzz)
 {
-  fuzz=max(fuzz,Fuzz*max(max(length(p1.max()),length(p1.min())),
-			 max(length(p2.max()),length(p2.min()))));
-  mem::vector<solvedKnot> n1=p1.Nodes();
-  mem::vector<solvedKnot> n2=p2.Nodes();
-  Int L1=p1.length();
-  Int L2=p2.length();
-  Int icycle=p1.cyclic() ? p1.size()-1 : -1;
-  Int jcycle=p2.cyclic() ? p2.size()-1 : -1;
-  if(p1.size() == 1) {L1=1; icycle=0;}
-  if(p2.size() == 1) {L2=1; jcycle=0;}
-  for(Int i=0; i < L1; ++i) {
-    const solvedKnot& left1=n1[i];
-    const solvedKnot& right1=(i == icycle) ? n1[0] : n1[i+1];
-    for(Int j=0; j < L2; ++j) {
-      count=maxIntersectCount;
-      pair T;
-      if(intersectcubics(T,left1,right1,
-			 n2[j],(j == jcycle) ? n2[0] : n2[j+1],fuzz)) {
-	t=T*0.5+pair(i,j);
-	return true;
-      }
-    }
-  }
-  return false;  
+  for(unsigned i=0; i < S.size(); ++i)
+    if((p.point(S[i])-p.point(s)).length() <= fuzz &&
+       (p.point(T[i])-p.point(t)).length() <= fuzz) return;
+  S.push_back(s);
+  T.push_back(t);
 }
+  
+void add(std::vector<double>& S, std::vector<double>& T,
+	 std::vector<double>& S1, std::vector<double>& T1,
+	 double pscale, double qscale, double poffset, double qoffset,
+	 const path& p, const path& q, double fuzz)
+{
+  fuzz *= 2.0;
+  for(unsigned i=0; i < S1.size(); ++i)
+    add(S,T,pscale*S1[i]+poffset,qscale*T1[i]+qoffset,p,q,fuzz);
+}
+
+void intersections(std::vector<double>& S, std::vector<double>& T,
+		   path& p, path& q, double fuzz, unsigned depth)
+{
+  if(errorstream::interrupt) throw interrupted();
+  
+  pair maxp=p.max();
+  pair minp=p.min();
+  pair maxq=q.max();
+  pair minq=q.min();
+  
+  if(maxp.getx()+fuzz >= minq.getx() &&
+     maxp.gety()+fuzz >= minq.gety() && 
+     maxq.getx()+fuzz >= minp.getx() &&
+     maxq.gety()+fuzz >= minp.gety()) {
+    // Overlapping bounding boxes
+
+    --depth;
+    if((maxp-minp).length()+(maxq-minq).length() <= fuzz || depth == 0) {
+      S.push_back(0.0);
+      T.push_back(0.0);
+      return;
+    }
+    
+    Int lp=p.length();
+    path p1,p2;
+    double pscale,poffset;
+    
+    if(lp <= 1) {
+      p.halve(p1,p2);
+      pscale=poffset=0.5;
+    } else {
+      Int tp=lp/2;
+      p1=p.subpath(0,tp);
+      p2=p.subpath(tp,lp);
+      poffset=tp;
+      pscale=1.0;
+    }
+      
+    Int lq=q.length();
+    path q1,q2;
+    double qscale,qoffset;
+    
+    if(lq <= 1) {
+      q.halve(q1,q2);
+      qscale=qoffset=0.5;
+    } else {
+      Int tq=lq/2;
+      q1=q.subpath(0,tq);
+      q2=q.subpath(tq,lq);
+      qoffset=tq;
+      qscale=1.0;
+    }
+      
+    std::vector<double> S1,T1;
+    intersections(S1,T1,p1,q1,fuzz,depth);
+    add(S,T,S1,T1,pscale,qscale,0.0,0.0,p,q,fuzz);
+
+    if(depth <= mindepth && S1.size() > 0)
+      return;
+    
+    S1.clear();
+    T1.clear();
+    intersections(S1,T1,p1,q2,fuzz,depth);
+    add(S,T,S1,T1,pscale,qscale,0.0,qoffset,p,q,fuzz);
+    
+    if(depth <= mindepth && S1.size() > 0)
+      return;
+    
+    S1.clear();
+    T1.clear();
+    intersections(S1,T1,p2,q1,fuzz,depth);
+    add(S,T,S1,T1,pscale,qscale,poffset,0.0,p,q,fuzz);
+    
+    if(depth <= mindepth && S1.size() > 0)
+      return;
+    
+    S1.clear();
+    T1.clear();
+    intersections(S1,T1,p2,q2,fuzz,depth);
+    add(S,T,S1,T1,pscale,qscale,poffset,qoffset,p,q,fuzz);
+  }
+}
+
 // }}}
 
 ostream& operator<< (ostream& out, const path& p)

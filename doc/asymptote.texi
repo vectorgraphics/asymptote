@@ -2118,6 +2118,11 @@ Perform the computations to the absolute error specified by @code{fuzz},
 or, if @code{fuzz} is 0, to machine precision. If the paths do not 
 intersect, return a real array of length 0.
 
+@cindex @code{intersections}
+@item real[][] intersections(path p, path q);
+Return all intersection times of paths @code{p} and @code{q} as an array
+of real arrays of length 2.
+
 @cindex @code{intersectionpoint}
 @item pair intersectionpoint(path p, path q, real fuzz=0);
 returns the intersection point @code{point(p,intersect(p,q,fuzz)[0])}.
@@ -6810,9 +6815,9 @@ reflects about the plane through @code{u}, @code{v}, and @code{w}.
 @cindex @code{inside}
 Three-dimensional versions of the path functions @code{length},
 @code{size}, @code{point}, @code{dir}, @code{precontrol}, @code{postcontrol}, @code{arclength}, @code{arctime}, @code{reverse}, @code{subpath},
-@code{intersect}, @code{intersectionpoint},
-@code{min}, @code{max}, @code{cyclic}, and @code{straight} are also
-defined in the module @code{three}.
+@code{intersect}, @code{intersections}, @code{intersectionpoint},
+@code{intersectionpoints}, @code{min}, @code{max}, @code{cyclic}, and
+@code{straight} are also defined in the module @code{three}.
 
 @cindex hidden surface removal
 @cindex @code{face}

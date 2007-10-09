@@ -1506,6 +1506,11 @@ void assert(bool b, string s=emptystring)
   }
 }
 
+void usleep(Int microseconds)
+{
+  usleep((unsigned long) microseconds); 
+}
+
 void _eval(string *s, bool embedded)
 {
   if (embedded) {
@@ -1679,14 +1684,33 @@ real dirtime(path p, pair z)
 
 realarray* intersect(path p, path q, real fuzz=0)
 {
-  pair t;
-  if(intersect(t,p,q,fuzz)) {
+  real s,t;
+  fuzz=::max(fuzz,Fuzz*::max(::max(length(p.max()),length(p.min())),
+			     ::max(length(q.max()),length(q.min()))));
+  if(intersect(s,t,p,q,fuzz)) {
     array *T=new array(2);
-    (*T)[0]=t.getx();
-    (*T)[1]=t.gety();
+    (*T)[0]=s;
+    (*T)[1]=t;
     return T;
   } else
     return new array(0);
+}
+
+realarray2* intersections(path p, path q)
+{
+  real fuzz=100.0*Fuzz*::max(::max(length(p.max()),length(p.min())),
+			    ::max(length(q.max()),length(q.min())));
+  std::vector<real> S,T;
+  intersections(S,T,p,q,fuzz);
+  unsigned n=S.size();
+  array *V=new array(n);
+  for(unsigned i=0; i < n; ++i) {
+    array *Vi=new array(2);
+    (*V)[i]=Vi;
+    (*Vi)[0]=S[i];
+    (*Vi)[1]=T[i];
+  }
+  return V;
 }
 
 Int size(path p)
@@ -2805,46 +2829,6 @@ real cubiclength(triple z0, triple z0p, triple z1m, triple z1, real goal)
   return cubiclength(z0,z0p,z1m,z1,goal);
 }
 
-realarray* intersect(triplearray* pre1, triplearray* point1, triplearray* post1,
-		     triplearray* pre2, triplearray* point2, triplearray* post2,
-		     real fuzz)
-{
-  size_t size1=checkArrays(pre1,point1);
-  size_t size2=checkArrays(pre2,point2);
-      
-  if(checkArray(post1) != size1 || checkArray(post2) != size2)
-    error(arraymismatch);
-  
-  bool single1=(size1 == 1);
-  bool single2=(size2 == 1);
-  
-  size_t Size1=size1+single1;
-  size_t Size2=size2+single2;
-  
-  mem::vector<node> n1(Size1);
-  mem::vector<node> n2(Size2);
-      
-  for(size_t i=0; i < size1; ++i)
-    n1[i]=node(read<triple>(pre1,i),read<triple>(point1,i),
-	       read<triple>(post1,i));
-
-  for(size_t i=0; i < size2; ++i)
-    n2[i]=node(read<triple>(pre2,i),read<triple>(point2,i),
-	       read<triple>(post2,i));
-
-  if(single1) n1[1]=n1[0];
-  if(single2) n2[1]=n2[0];
-  
-  pair t;
-  if(intersect(t,(Int) Size1-1,(Int) Size2-1,n1,n2,fuzz)) {
-    array *T=new array(2);
-    (*T)[0]=t.getx();
-    (*T)[1]=t.gety();
-    return T;
-  } else
-    return new array(0);
-}
-
 
 // System routines
 
@@ -3861,7 +3845,7 @@ realarray *tridiagonal(realarray *a, realarray *b, realarray *c, realarray *f)
 real newton(Int iterations=100, callableReal *f, callableReal *fprime, real x,
 	    bool verbose=false)
 {
-  static const double fuzz=1000.0*DBL_EPSILON;
+  static const real fuzz=1000.0*DBL_EPSILON;
   Int i=0;
   size_t oldPrec=cout.precision(DBL_DIG);
 
@@ -3905,7 +3889,7 @@ real newton(Int iterations=100, callableReal *f, callableReal *fprime, real x,
 real newton(Int iterations=100, callableReal *f, callableReal *fprime, real x1,
 	    real x2, bool verbose=false)
 {
-  static const double fuzz=1000.0*DBL_EPSILON;
+  static const real fuzz=1000.0*DBL_EPSILON;
   size_t oldPrec=cout.precision(DBL_DIG);
 
   Stack->push(x1);
