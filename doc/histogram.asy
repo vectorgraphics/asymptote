@@ -12,5 +12,5 @@ draw(graph(Gaussian,min(a),max(a)),blue);
 histogram(a,min(a),max(a),n=100,normalize=true,low=0,lightred,black,bars=false);
 
 xaxis("$x$",BottomTop,LeftTicks);
-yaxis("$dP/dx$",LeftRight,RightTicks);
+yaxis("$dP/dx$",LeftRight,RightTicks(trailingzero));
 

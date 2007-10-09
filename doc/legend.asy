@@ -10,6 +10,6 @@ for(int i=1; i < 5; ++i)
   draw(graph(F(i*pi),0,1),Pen(i),
        "$\sin("+(i == 1 ? "" : (string) i)+"\pi x)$"); 
 xaxis("$x$",BottomTop,LeftTicks); 
-yaxis("$y$",LeftRight,RightTicks); 
+yaxis("$y$",LeftRight,RightTicks(trailingzero)); 
  
 attach(legend(2),(point(S).x,truepoint(S).y),10S,UnFill); 
