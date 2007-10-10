@@ -8,7 +8,7 @@ xaxis("$x$",LeftTicks,Arrow);
 yaxis("$y$",RightTicks,Arrow);
 
 draw("$y=1+x^2$",graph(f1,-2,1)); 
-opendot((1,f1(1)));
+dot((1,f1(1)),UnFill);
 
 draw("$y=4-x$",graph(f2,1,5),LeftSide,red,Arrow);
 dot((1,f2(1)),red);

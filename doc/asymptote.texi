@@ -1121,7 +1121,7 @@ The use of arrows, bars, and margins is illustrated by the examples
 @code{Pythagoras.asy}, @code{sqrtx01.asy}, and @code{triads.asy}.
 
 The legend for a picture @code{pic} can be fit and aligned to a frame
-with the routine (@pxref{filltype}):
+with the routine:
 @verbatim
 frame legend(picture pic=currentpicture, int perline=1,
              real xmargin=legendmargin, real ymargin=xmargin,
@@ -1145,14 +1145,19 @@ then be added and aligned about a point on a picture @code{dest} using
 To draw a dot, simply draw a path containing a single point.
 The @code{dot} command defined in the module @code{plain} draws a
 dot having a diameter equal to an explicit pen linewidth or the
-default linewidth magnified by @code{dotfactor} (6 by default):
+default linewidth magnified by @code{dotfactor} (6 by default),
+using the specified filltype (@pxref{filltype}):
 @verbatim
-void dot(picture pic=currentpicture, pair z, pen p=currentpen);
-void dot(picture pic=currentpicture, pair[] z, pen p=currentpen);
-void dot(picture pic=currentpicture, pair[] x, pair[] y, pen p=currentpen);
+void dot(picture pic=currentpicture, pair z, pen p=currentpen,
+        filltype filltype=Fill);
+void dot(picture pic=currentpicture, pair[] z, pen p=currentpen
+        filltype filltype=Fill);
+void dot(picture pic=currentpicture, pair[] x, pair[] y, pen p=currentpen
+        filltype filltype=Fill);
 void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
-         string format=defaultformat, pen p=currentpen)
-void dot(picture pic=currentpicture, Label L, pen p=currentpen)
+         string format=defaultformat, pen p=currentpen, filltype filltype=Fill);
+void dot(picture pic=currentpicture, Label L, pen p=currentpen
+        filltype filltype=Fill);
 @end verbatim
 
 @cindex @code{Label}

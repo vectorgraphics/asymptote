@@ -239,39 +239,57 @@ frame legend(picture pic=currentpicture, int perline=1,
   return F;
 }
 
-void dot(frame f, pair z, pen p=currentpen)
+void dot(frame f, pair z, pen p=currentpen, filltype filltype=Fill)
 {
-  draw(f,z,dotsize(p)+p);
+  if(filltype == Fill)
+    draw(f,z,dotsize(p)+p);
+  else {
+    transform t=shift(z);
+    path gout=t*scale(0.5*(dotsize(p)-linewidth(p)))*unitcircle;
+    path gin=t*scale(0.5*dotsize(p))*unitcircle;
+    begingroup(f);
+    filltype(f,gin,p);
+    draw(f,gout,p);
+    endgroup(f);
+  }
 }
 
-void dot(picture pic=currentpicture, pair z, pen p=currentpen)
+void dot(picture pic=currentpicture, pair z, pen p=currentpen,
+	 filltype filltype=Fill)
 {
-  Draw(pic,z,dotsize(p)+p);
+  pic.add(new void(frame f, transform t) {
+      dot(f,t*z,p,filltype);
+    },true);
+  pic.addPoint(z,dotsize(p)+p);
 }
 
-void dot(picture pic=currentpicture, pair[] z, pen p=currentpen)
+void dot(picture pic=currentpicture, pair[] z, pen p=currentpen,
+	 filltype filltype=Fill)
 {
-  for(int i=0; i < z.length; ++i) dot(pic,z[i],p);
+  for(int i=0; i < z.length; ++i) dot(pic,z[i],p,filltype);
 }
 
-void dot(picture pic=currentpicture, real[] x, real[] y, pen p=currentpen)
+void dot(picture pic=currentpicture, real[] x, real[] y, pen p=currentpen,
+	 filltype filltype=Fill)
 {
   if(x.length != y.length) abort("arrays have different lengths");
-  for(int i=0; i < x.length; ++i) dot(pic,(x[i],y[i]),p);
+  for(int i=0; i < x.length; ++i) dot(pic,(x[i],y[i]),p,filltype);
 }
 
-void dot(picture pic=currentpicture, explicit path g, pen p=currentpen)
+void dot(picture pic=currentpicture, explicit path g, pen p=currentpen,
+	 filltype filltype=Fill)
 {
-  for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p);
+  for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p,filltype);
 }
 
-void dot(picture pic=currentpicture, path[] g, pen p=currentpen)
+void dot(picture pic=currentpicture, path[] g, pen p=currentpen,
+	 filltype filltype=Fill)
 {
-  for(int i=0; i < g.length; ++i) dot(pic,g[i],p);
+  for(int i=0; i < g.length; ++i) dot(pic,g[i],p,Fill);
 }
 
 void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
-         string format=defaultformat, pen p=currentpen)
+         string format=defaultformat, pen p=currentpen, filltype filltype=Fill)
 {
   Label L=L.copy();
   L.position(z);
@@ -281,26 +299,12 @@ void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
   }
   L.align(align,E);
   L.p(p);
-  dot(pic,z,p);
+  dot(pic,z,p,filltype);
   add(pic,L);
 }
 
-void dot(picture pic=currentpicture, Label L, pen p=currentpen)
+void dot(picture pic=currentpicture, Label L, pen p=currentpen,
+	 filltype filltype=Fill)
 {
-  dot(pic,L,L.position,p);
-}
-
-void opendot(frame f, pair z, pen p=currentpen)
-{
-  transform t=shift(z);
-  unfill(f,t*scale(0.5*dotsize(p))*unitcircle);
-  draw(f,t*scale(0.5*(dotsize(p)-linewidth(p)))*unitcircle,p);
-}
-  
-void opendot(picture pic=currentpicture, pair z, pen p=currentpen)
-{
-  pic.add(new void(frame f, transform t) {
-      opendot(f,t*z,p);
-    },true);
-  pic.addPoint(z,p);
+  dot(pic,L,L.position,p,filltype);
 }
