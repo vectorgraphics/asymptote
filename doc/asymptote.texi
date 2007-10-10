@@ -7533,9 +7533,9 @@ g.label("\"$O$\", (0,0), SW")
 @cindex @code{xasy}
 
 In the event that adjustments to the final figure are required, the
-Graphical User Interface (@acronym{GUI}) @code{xasy} included with
-@code{Asymptote}
-allows you to move graphical objects around with mouse @code{Button-1}. 
+preliminary Graphical User Interface (@acronym{GUI}) @code{xasy} included with
+@code{Asymptote} allows you to move graphical objects and draw new ones.
+The modified figure can then be saved as an normal @code{Asymptote} file.
 
 @menu
 * GUI Installation::            Installing @code{xasy}
@@ -7558,9 +7558,11 @@ yum install tkinter
 or manually install the @code{tkinter}, @code{tix}, and @code{tk} packages.
 
 By default, @code{xasy} uses the @acronym{GIF} image format
-with white as the transparent color. To overcome certain side-effects, support 
-for an alternative transparent image format, @acronym{PNG}, is also available.
+with white as the transparent color. This requires that the
+@code{ImageMagick} (@pxref{convert}) program be installed.
 
+To overcome side-effects of making white the transparent color, support
+for a true transparent image format, @acronym{PNG}, is also available.
 To enable full alpha channel support for @acronym{PNG} images in the
 Python Imaging Library (@acronym{PIL}) used by @code{xasy}, on
 @code{UNIX} systems place
@@ -7572,10 +7574,14 @@ cd Imaging-1.1.6
 patch -p1 < ../patches/TkAlpha-Imaging-1.1.6.patch
 python setup.py install
 @end verbatim
+Microsoft Windows users should install the package
+@code{PIL-1.1.6.win32-py2.5.exe}
+for @code{Python 2.5} (or @code{PIL-1.1.6.win32-py2.4.exe} for
+@code{Python 2.4}) posted at @url{http://sourceforge.net/project/platformdownload.php?group_id=120000}.
 
-To configure @code{Asymptote} to use @acronym{PNG} files for picture 
-deconstruction, these lines need to be in the @code{Asymptote} configuration 
-file (@pxref{configuration file}):
+To configure @code{Asymptote} to use the preferred @acronym{PNG} format
+for picture  deconstruction, these lines need to be in the
+@code{Asymptote} configuration file (@pxref{configuration file}):
 @verbatim
 import settings;
 xformat="png";
@@ -7585,42 +7591,11 @@ xformat="png";
 @section GUI Usage
 @cindex GUI usage
 @cindex @code{deconstruct}
-To use @code{xasy}, one must first deconstruct @code{Asymptote}
-pictures into transparent @acronym{GIF} (or @acronym{PNG}) images with the 
-command @code{asy -xN}, where @code{N} denotes the magnification (a positive
-real number, say 2). The command @code{asy -VxN} automatically invokes
-@code{xasy} once deconstruction is complete. Alternatively, one may
-turn on the @code{-xN} option in interactive mode or from within a module
-by setting @code{settings.deconsruct=N}. One can turn GUI
-mode off again with @code{settings.deconstruct=0}.
-Deconstruction using transparent @acronym{GIF} files requires that 
-@code{ImageMagick} (@pxref{convert})
-be installed.
 
-The modified layout can be written to disk with the @code{w} key in a form
-readable to @code{Asymptote}.
-A wheel mouse is convenient for raising and lowering objects, to expose
-the object to be moved. If a wheel mouse is not available, mouse
-@code{Button-2} (lower) can be used repeatedly instead. Here are the
-currently defined key mappings: 
-
-@table @code
-@item z
-undo
-@item r
-redo
-@item <Delete>
-delete
-@item w
-write
-@item q
-quit
-@end table
-
-One can also draw connected line segments by holding down the shift key
-and pressing mouse @code{Button-1} at each desired node.  Releasing the shift
-key ends the definition of the path. More features will be added to
-this preliminary @acronym{GUI} soon.
+A wheel mouse is convenient for raising and lowering objects within
+@code{xasy}, to expose the object to be moved. If a wheel mouse is not
+available, mouse @code{Button-2} can be used to repeatedly lower an
+object instead.
 
 Deconstruction of compound objects (such as arrows) can be prevented 
 by enclosing them within the commands
