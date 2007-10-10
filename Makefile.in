@@ -23,7 +23,7 @@ DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc keywords.cc \
 	asy-keywords.el base/asy-keywords.el
 CLEAN = camp.output asy.list
 NAME = asy
-EXTRABIN = x$(NAME)
+XNAME = x$(NAME)
 EXTRA = asy-mode.el asy-keywords.el asy-init.el asy.vim asymptote.py
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
 LATEXFILES = asymptote.sty asycolors.sty
@@ -48,6 +48,7 @@ mandir = $(DESTDIR)@mandir@
 infodir = $(DESTDIR)@infodir@
 datadir = $(DESTDIR)@datadir@
 asydir = $(datadir)/asymptote
+GUIdir = $(asydir)/GUI
 docdir = $(DESTDIR)@docdir@
 exampledir = $(docdir)/examples
 animationsdir = $(exampledir)/animations
@@ -119,11 +120,14 @@ install: install-asy install-man
 install-all: install-asy install-doc
 
 install-asy: asy asy-keywords.el
-	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
+	${INSTALL} -d $(bindir) $(asydir) $(GUIdir) $(exampledir) \
+          $(animationsdir)
 	-${INSTALL} -d $(latexdir)
-	${INSTALL} -p -m 755 $(NAME) $(EXTRABIN) $(bindir)
+	${INSTALL} -p -m 755 $(NAME) $(bindir)
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) $(asydir)
-	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps doc/*.asy \
+	${INSTALL} -p -m 755 GUI/*.py $(GUIdir)
+	ln -sf $(GUIdir)/xasy.py $(bindir)/$(XNAME)
+	${INSTALL} -p -m 644 examples/*.asy examploes/piicon.eps doc/*.asy \
 	  doc/extra/*.asy doc/*.csv doc/*.dat doc/latexusage.tex $(exampledir)
 	${INSTALL} -p -m 644 examples/animations/*.asy $(animationsdir)
 	-${INSTALL} -p -m 644 $(addprefix doc/,$(LATEXFILES)) $(latexdir)
@@ -148,11 +152,13 @@ uninstall-asy:
 		latexusage.tex
 	-rmdir $(exampledir)
 	-rmdir $(docdir)
+	-cd $(GUIdir); rm -f *.py
+	-rmdir $(GUIdir)
 	-cd $(asydir); rm -f *.asy $(EXTRA)
 	-rmdir $(asydir)
 	-cd $(latexdir); rm -f $(LATEXFILES)
 	-rmdir $(latexdir)
-	-cd $(bindir); rm -f $(NAME) $(EXTRABIN)
+	-cd $(bindir); rm -f $(NAME) $(XNAME)
 
 uninstall-man: 
 	cd doc; $(MAKE) uninstall
