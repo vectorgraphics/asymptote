@@ -46,7 +46,7 @@ public:
     return true;
   }
 
-  bool write(texfile *out) {
+  bool write(texfile *out, const bbox&) {
     if(language == TeX) out->verbatimline(stripblanklines(text));
     return true;
   }
