@@ -34,7 +34,7 @@ double PatternLength(double arclength, const std::vector<double>& pat,
       
   double terminator=((p.cyclic() && arclength >= 0.5*sum) ? 0.0 : 
 		     pat[0]*penwidth);
-  Int ncycle=(Int)((arclength-terminator)/sum+0.5);
+  int ncycle=(int)((arclength-terminator)/sum+0.5);
 
   return (ncycle >= 1 || terminator >= 0.75*arclength) ? 
     ncycle*sum+terminator : 0.0;
@@ -70,7 +70,10 @@ void drawPath::adjustdash(pen& pen0)
       }
     }
     
+    factor=max(factor,0.1);
+    
     ostringstream buf;
+    buf.setf(std::ios::fixed);
     for(unsigned i=0; i < n; i++)
       buf << pat[i]*factor << " ";
     pen0.setstroke(buf.str());

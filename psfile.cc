@@ -154,8 +154,10 @@ void psfile::setpen(pen p)
   }
     
   if(p.stroke() != lastpen.stroke()) {
+    out->setf(std::ios::fixed);
     *out << "[" << p.stroke() << "] " << std::setprecision(6) 
 	 << p.linetype().offset << " setdash" << newl;
+    out->unsetf(std::ios::fixed);
   }
     
   lastpen=p;
