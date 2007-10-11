@@ -7,9 +7,11 @@ import graph3;
 // Try to find a bounding tangent line between two paths.
 real[] tangent(path p, path q, bool side) 
 {
+  static real fuzz=1.0e-5;
+  
   if((cyclic(p) && inside(p,point(q,0)) || 
       cyclic(q) && inside(q,point(p,0))) &&
-     intersect(p,q).length == 0) return new real[];
+     intersect(p,q,fuzz).length == 0) return new real[];
 
   real time(path p) {
     pair m=min(p);
