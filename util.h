@@ -53,7 +53,7 @@ int System(const ostringstream& command, int quiet=0, bool wait=true,
 	   int *pid=NULL); 
   
 #if defined(__DECCXX_LIBCXX_RH70)
-extern "C" Int kill(pid_t pid, Int sig) throw();
+extern "C" int kill(pid_t pid, Int sig) throw();
 extern "C" char *strsignal(Int sig);
 extern "C" double asinh(double x);
 extern "C" double acosh(double x);
@@ -73,8 +73,8 @@ extern "C" double tgamma(double x);
 #endif
 
 #if defined(__DECCXX_LIBCXX_RH70) || defined(__CYGWIN__)
-extern "C" Int snprintf(char *str, size_t size, const char *format,...);
-extern "C" Int fileno(FILE *);
+extern "C" int snprintf(char *str, size_t size, const char *format,...);
+extern "C" int fileno(FILE *);
 extern "C" char *strptime(const char *s, const char *format, struct tm *tm);
 #endif
 

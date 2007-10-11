@@ -27,7 +27,14 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
 #include <sys/types.h>
 #include <rpc/types.h>
+  
 #define quad_t long long
+  
+#ifdef __CYGWIN__  
+extern "C" int fseeko(FILE *, off_t, int);
+extern "C" off_t ftello(FILE *);
+#define xdr_longlong_t xdr_int64_t
+#endif  
 
 #ifdef _POSIX_SOURCE
 #undef _POSIX_SOURCE

@@ -7547,9 +7547,11 @@ The modified figure can then be saved as an normal @code{Asymptote} file.
 @cindex GUI installation
 
 As @code{xasy} is written in the interactive scripting language
-@code{Python/TK}, it requires that both @code{Python} and the
-@code{tkinter} package (included with @code{Python} under
-@code{MSDOS}) be installed. @code{Fedora Core} users can either install
+@code{Python/TK}, it requires @code{Python}
+(@url{http://www.python.org}), the Python Imaging Library
+(@url{http://www.pythonware.com/products/pil/}), and the @code{tkinter} package (included with 
+@code{Python} under @code{MSDOS}) be installed. @code{Fedora Core Linux} users
+can either install
 @code{tkinter} with the command
 @verbatim
 yum install tkinter
@@ -7562,11 +7564,11 @@ with white as the transparent color. This requires that the
 @code{ImageMagick} (@pxref{convert}) program be installed.
 
 To overcome side-effects of making white the transparent color, support
-for a true transparent image format, @acronym{PNG}, is also available.
-To enable full alpha channel support for @acronym{PNG} images in the
-Python Imaging Library (@acronym{PIL}) used by @code{xasy}, on
-@code{UNIX} systems place
-@url{http://effbot.org/downloads/Imaging-1.1.6.tar.gz} in the 
+for a true transparent image format, @acronym{PNG}, is available
+for the @code{UNIX} version (it will also become available for Microsoft
+Windows users with the upcoming release of the @acronym{PIL} library).
+To enable full alpha channel support for @acronym{PNG} images, place
+@url{http://effbot.org/downloads/Imaging-1.1.6.tar.gz} in the
 @code{Asymptote} source directory, and type (as the root user):
 @verbatim
 tar -zxf Imaging-1.1.6.tar.gz
@@ -7574,11 +7576,6 @@ cd Imaging-1.1.6
 patch -p1 < ../patches/TkAlpha-Imaging-1.1.6.patch
 python setup.py install
 @end verbatim
-Microsoft Windows users should install the package
-@code{PIL-1.1.6.win32-py2.5.exe}
-for @code{Python 2.5} (or @code{PIL-1.1.6.win32-py2.4.exe} for
-@code{Python 2.4}) posted at @url{http://sourceforge.net/project/platformdownload.php?group_id=120000}.
-
 To configure @code{Asymptote} to use the preferred @acronym{PNG} format
 for picture  deconstruction, these lines need to be in the
 @code{Asymptote} configuration file (@pxref{configuration file}):

@@ -159,17 +159,14 @@ inline void Negate<Int>(vm::stack *s)
   s->push(Negate(vm::pop<Int>(s)));
 }
 
-#ifndef HAVE_POW
 inline double pow(double x, double y)
 {
+#ifndef HAVE_POW
   return exp(y*log(x));
-}
+#else
+  return ::pow(x,y);
 #endif
-
-template <typename T>
-struct power {
-  T operator() (T x, T y, size_t=0) {return pow(x,y);}
-};
+}
 
 template<class T>
 T pow(T x, Int y)
@@ -186,6 +183,11 @@ T pow(T x, Int y)
   }
 }
   
+template <typename T>
+struct power {
+  T operator() (T x, T y, size_t=0) {return pow(x,y);}
+};
+
 template <>
 struct power<Int> {
   Int operator() (Int x, Int p,  size_t i=0) {

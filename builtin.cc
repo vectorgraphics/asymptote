@@ -654,7 +654,7 @@ dummyRecord *createDummyRecord(venv &ve, const char *name)
 }
 
 double identity(double x) {return x;}
-double pow10(double x) {return pow(10.0,x);}
+double pow10(double x) {return run::pow(10.0,x);}
 
 // NOTE: We should move all of these into a "builtin" module.
 void base_venv(venv &ve)
