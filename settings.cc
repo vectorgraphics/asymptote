@@ -159,7 +159,7 @@ void queryRegistry()
     defaultPDFViewer;
   defaultPSViewer=getEntry("Ghostgum/GSview/*")+"\\gsview\\"+defaultPSViewer;
   defaultPython=getEntry("Python/PythonCore/*/InstallPath/@")+defaultPython;
-  asyInstallDir=getEntry("Microsoft/Windows/CurrentVersion/Uninstall/Asymptote/InstallLocation");
+  asyInstallDir=getEntry("Microsoft/Windows/CurrentVersion/App Paths/Asymptote");
   defaultXasy=asyInstallDir+"\\"+defaultXasy;
 }
   
