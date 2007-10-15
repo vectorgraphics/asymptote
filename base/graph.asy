@@ -586,9 +586,12 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
           N=divisor[d];
           Step=len/N;
 	  if(b > a && !autoscale) {
+	    int N0=N;
+	    int m=2;
 	    while(Step > 0.5*(b-a)) {
-	      N *= 2;
+	      N=m*N0;
 	      Step=len/N;
+	      ++m;
 	    }
 	  }
           if(axiscoverage(N,T,g,locate,Step,side,sign,Size,F,ticklabel,norm,
