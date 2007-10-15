@@ -564,6 +564,8 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
     if(ticklabel == null) ticklabel=Format(format);
 
     if(a > b) {real temp=a; a=b; b=temp;}
+
+    if(b-a < 100.0*epsilon*norm) b=a;
       
     real tickmin=finite(locate.S.tickMin) && (Step == 0 || locate.S.automin) ? 
       locate.S.Tinv(locate.S.tickMin) : a;
@@ -578,14 +580,20 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
     real len=tickmax-tickmin;
     if(Step == 0 && N == 0) {
       if(divisor.length > 0) {
+	bool autoscale=locate.S.automin && locate.S.automax;
         real limit=axiscoverage*arclength(G);
         for(int d=divisor.length-1; d >= 0; --d) {
           N=divisor[d];
           Step=len/N;
+	  if(b > a && !autoscale) {
+	    while(Step > 0.5*(b-a)) {
+	      N *= 2;
+	      Step=len/N;
+	    }
+	  }
           if(axiscoverage(N,T,g,locate,Step,side,sign,Size,F,ticklabel,norm,
                           limit) <= limit) {
-            if(N == 1 && !(locate.S.automin && locate.S.automax) 
-               && d < divisor.length-1) {
+            if(N == 1 && !autoscale && d < divisor.length-1) {
               // Try using 2 ticks (otherwise 1);
               int div=divisor[d+1];
               Step=quotient(div,2)*len/div;
