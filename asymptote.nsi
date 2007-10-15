@@ -40,7 +40,7 @@ var ICONS_GROUP
 ; Finish page
 !define MUI_FINISHPAGE_RUN "$INSTDIR\asy.exe"
 !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\asymptote.pdf"
-!define MUI_FINISHPAGE_LINK "http://asymptote.sourceforce.net"
+!define MUI_FINISHPAGE_LINK ${PRODUCT_WEB_SITE}
 !define MUI_FINISHPAGE_LINK_LOCATION ${PRODUCT_WEB_SITE}
 !insertmacro MUI_PAGE_FINISH
 
@@ -122,6 +122,7 @@ Section Uninstall
   Delete "$SMPROGRAMS\$ICONS_GROUP\Website.lnk"
   Delete "$DESKTOP\Asymptote.lnk"
   Delete "$SMPROGRAMS\$ICONS_GROUP\Asymptote.lnk"
+  Delete "$SMPROGRAMS\$ICONS_GROUP\Xasy.lnk"
   RMDir "$SMPROGRAMS\$ICONS_GROUP"
 
 
