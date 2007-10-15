@@ -241,7 +241,7 @@ void title(string s, pair position=N, pair align=titlealign,
   if(newslide) newslide();
   checkposition();
   frame f;
-  label(f,minipage("\center "+s,minipagewidth),(0,0),align,p);
+  if(s != "") label(f,minipage("\center "+s,minipagewidth),(0,0),align,p);
   add(f,position,labelmargin(p)*align);
   currentposition=(currentposition.x,position.y+
                    (tinv*(min(f)-titleskip*I*lineskip(p)*pt)).y);
