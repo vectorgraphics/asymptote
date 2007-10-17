@@ -94,6 +94,13 @@ void init_interactive()
 #endif  
 }
   
+// Add a semi-colon terminator, if one is not there.
+string terminateLine(const string& line)
+{
+  return (line.empty() || *(line.rbegin()) == ';' || 
+	  getSetting<bool>("multiline")) ? line : (line+";");
+}
+
 string simpleline(string prompt) {
   // Rebind tab key, as the setting tabcompletion may be changed at runtime.
   pre_readline();
@@ -105,7 +112,7 @@ string simpleline(string prompt) {
   errorstream::interrupt=false;
 
   if(line) {
-    string s=line;
+    string s=terminateLine(line);
     free(line);
     return s;
   } else {

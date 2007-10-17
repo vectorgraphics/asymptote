@@ -3368,12 +3368,13 @@ pair getpair(string name="", pair default=0, string prompt="",
 defined in the module @code{plain} may be used to prompt for a value from
 @code{stdin} using the @acronym{GNU} @code{readline} library.
 If @code{store=true}, the history of values for @code{name} is
-stored in the file @code{".asy_history"+name} (@pxref{history}). The most
+stored in the file @code{".asy_history_"+name} (@pxref{history}). The most
 recent value in the history will be used to provide a default value
 for subsequent runs.  The default value (initially @code{default}) is
 displayed after @code{prompt}. These functions are based on the internal
 routines
 @cindex @code{readline}
+@cindex @code{saveline}
 @verbatim
 string readline(string prompt="", string name="", bool tabcompletion=false);
 void saveline(string name, string value, bool store=true);
@@ -3384,9 +3385,17 @@ is used to save the string @code{value} in a local history named
 @code{name}, optionally storing the local history in a file
 @code{".asy_history_"+name}. 
 
+@cindex @code{history}
 The routine @code{history(string name, int n=1)} can be used to look up
 the @code{n} most recent values (or all values up to @code{historylines}
 if @code{n=0}) entered for string @code{name}.
+The routine @code{history(int n=1)} returns the interactive history.
+For example,
+@verbatim
+write(output("transcript.asy"),history(0));
+@end verbatim
+@noindent
+outputs the interactive history to the file @code{transcript.asy}.
 
 @node Variable initializers
 @section Variable initializers

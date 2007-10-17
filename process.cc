@@ -358,12 +358,6 @@ void printGreeting() {
 	 << " (to view the manual, type help)" << endl;
 }
 
-
-// Add a semi-colon terminator, if one is not there.
-string terminateLine(const string line) {
-  return (!line.empty() && *(line.rbegin())!=';') ? (line+";") : line;
-}
-
 // cleanLine changes a C++ style comment (//) into a C-style comment (/* */) so
 // that comments don't absorb subsequent lines of code when multiline input is
 // collapsed to a single line in the history.
@@ -738,7 +732,7 @@ class iprompt : public icore {
         i.run(e,s,TRANS_INTERACTIVE);
       }
       else {
-        istring i(terminateLine(line), "-");
+        istring i(line, "-");
         i.run(e,s,TRANS_INTERACTIVE);
       }
 

@@ -489,6 +489,21 @@ void store_history(HISTORY_STATE *dest)
   }
 }
 
+stringarray* get_history(Int n) 
+{
+  int N=intcast(n);
+  if(N <= 0) N=history_length;
+  else N=Min(N,history_length);
+  array *a=new array((size_t) N);
+  int offset=history_length-N+1;
+  for(int i=0; i < N; ++i) {
+    HIST_ENTRY *last=history_get(offset+i);
+    string s=last ? last-> line : "";
+    (*a)[i]=s;
+  }	
+  return a;
+}
+
 string historyfilename(const string &name) 
 {
   return historyname+"_"+name;
@@ -4259,7 +4274,7 @@ file* read3(file *File)
   return File;
 }
 
-// Look up name in history.
+// Return the last n lines of the history named name.
 stringarray* history(string name, Int n=1)
 {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
@@ -4279,22 +4294,24 @@ stringarray* history(string name, Int n=1)
   
   if(newhistory)
     read_history(filename.c_str());
-  
-  int N=intcast(n);
-  if(N <= 0) N=history_length;
-  else N=Min(N,history_length);
-  array *a=new array((size_t) N);
-  int offset=history_length-N+1;
-  for(int i=0; i < N; ++i) {
-    HIST_ENTRY *last=history_get(offset+i);
-    string s=last ? last-> line : "";
-    (*a)[i]=s;
-  }	
+
+  array *a=get_history(n);
   
   store_history(&history);
   history_set_history_state(&history_save);
   
   return a;
+#else
+  unused(&n);
+  return new array(0);
+#endif
+}
+
+// Return the last n lines of the interactive history.
+stringarray* history(Int n=1)
+{
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+  return get_history(n);
 #else
   unused(&n);
   return new array(0);
