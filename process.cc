@@ -358,6 +358,12 @@ void printGreeting() {
 	 << " (to view the manual, type help)" << endl;
 }
 
+
+// Add a semi-colon terminator, if one is not there.
+string terminateLine(const string line) {
+  return (!line.empty() && *(line.rbegin())!=';') ? (line+";") : line;
+}
+
 // cleanLine changes a C++ style comment (//) into a C-style comment (/* */) so
 // that comments don't absorb subsequent lines of code when multiline input is
 // collapsed to a single line in the history.
@@ -691,6 +697,11 @@ class iprompt : public icore {
     interact::setLastHistoryLine(cleanLine(last)+line);
   }
 
+  void terminateLastHistoryLine() {
+    string last=interact::getLastHistoryLine();
+    interact::setLastHistoryLine(terminateLine(last));
+  }
+
   // Get input from the interactive prompt.  Such input may be over several
   // user-typed lines if he/she ends a line a with backslash to continue input
   // on the next line.  If continuation is true, the input started on a previous
@@ -732,7 +743,15 @@ class iprompt : public icore {
         i.run(e,s,TRANS_INTERACTIVE);
       }
       else {
-        istring i(line, "-");
+        // Add a semi-colon to the end of the line if one is not there.  Do this
+        // to the history as well, so the transcript can be run as regular asy
+        // code.  This also makes the history work correctly if the multiline
+        // setting is changed within an interactive session.
+        // It is added to the history at the last possible moment to avoid
+        // tampering with other features, such as using a slash to extend a
+        // line.
+        terminateLastHistoryLine();
+        istring i(terminateLine(line), "-");
         i.run(e,s,TRANS_INTERACTIVE);
       }
 
