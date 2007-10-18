@@ -4308,7 +4308,7 @@ stringarray* history(string name, Int n=1)
 }
 
 // Return the last n lines of the interactive history.
-stringarray* history(Int n=1)
+stringarray* history(Int n=0)
 {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   return get_history(n);

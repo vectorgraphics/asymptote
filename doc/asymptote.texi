@@ -3389,10 +3389,10 @@ is used to save the string @code{value} in a local history named
 The routine @code{history(string name, int n=1)} can be used to look up
 the @code{n} most recent values (or all values up to @code{historylines}
 if @code{n=0}) entered for string @code{name}.
-The routine @code{history(int n=1)} returns the interactive history.
+The routine @code{history(int n=0)} returns the interactive history.
 For example,
 @verbatim
-write(output("transcript.asy"),history(0));
+write(output("transcript.asy"),history());
 @end verbatim
 @noindent
 outputs the interactive history to the file @code{transcript.asy}.
