@@ -1,0 +1,21 @@
+*** gc_hdrs.h.orig	Tue Jun  5 14:01:25 2007
+--- gc_hdrs.h	Thu Oct 18 14:32:03 2007
+***************
+*** 112,119 ****
+  	    hhdr = hce -> hce_hdr; \
+  	  } else { \
+  	    hhdr = HEADER_CACHE_MISS(p, hce, source); \
+- 	    if (0 == hhdr) goto exit_label; \
+  	  } \
+  	}
+  
+  typedef struct bi {
+--- 112,119 ----
+  	    hhdr = hce -> hce_hdr; \
+  	  } else { \
+  	    hhdr = HEADER_CACHE_MISS(p, hce, source); \
+  	  } \
++ 	  if (0 == hhdr) goto exit_label; \
+  	}
+  
+  typedef struct bi {

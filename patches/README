@@ -12,5 +12,8 @@ IRIX systems.
 The file gc6.8_AIX.patch fixes an incorrect Boehm garbage collector
 prototype in the file gc6.8/include/gc.h (version 6.8).
 
+The file gc-7.0nomem.patch avoids segmentation faults with gc-7.0 on
+out-of-memory errors.
+
 The file TkAlpha-Imaging-1.1.6.patch fixes transparency support in the PIL for
 improved functionality in xasy. It is based on Con Radchenko's post at http://www.nabble.com/Patch:-alpha-channel-support-for-ImageTk-t3302615.html.
