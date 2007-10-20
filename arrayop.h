@@ -63,7 +63,7 @@ void opArray(vm::stack *s)
 }
 
 template<class T>
-void arrayNegate(vm::stack *s)
+inline void arrayNegate(vm::stack *s)
 {
   array *a=pop<array*>(s);
   size_t size=checkArray(a);
@@ -74,7 +74,7 @@ void arrayNegate(vm::stack *s)
 }
 
 template<>
-void arrayNegate<Int>(vm::stack *s)
+inline void arrayNegate<Int>(vm::stack *s)
 {
   array *a=pop<array*>(s);
   size_t size=checkArray(a);

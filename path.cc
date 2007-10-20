@@ -849,7 +849,7 @@ void add(std::vector<double>& S, std::vector<double>& T,
 	 double pscale, double qscale, double poffset, double qoffset,
 	 const path& p, const path& q, double fuzz)
 {
-  fuzz *= 2.0;
+  fuzz *= 10.0;
   for(unsigned i=0; i < S1.size(); ++i)
     add(S,T,pscale*S1[i]+poffset,qscale*T1[i]+qoffset,p,q,fuzz);
 }

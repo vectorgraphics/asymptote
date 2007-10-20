@@ -2125,8 +2125,8 @@ intersect, return a real array of length 0.
 
 @cindex @code{intersections}
 @item real[][] intersections(path p, path q);
-Return all intersection times of paths @code{p} and @code{q} as an array
-of real arrays of length 2.
+Return all intersection times of paths @code{p} and @code{q} as a sorted array
+of real arrays of length 2 (@pxref{sort}).
 
 @cindex @code{intersectionpoint}
 @item pair intersectionpoint(path p, path q, real fuzz=0);
@@ -2137,30 +2137,31 @@ returns the intersection point @code{point(p,intersect(p,q,fuzz)[0])}.
 returns an array containing all intersection points of the paths
 @code{p} and @code{q}.
 
-@cindex @code{firstcut}
+@cindex @code{cut}
 @cindex @code{slice}
-@item slice firstcut(path p, path q);
-returns the portions of path @code{p} before and after the first intersection
-of @code{p} with path @code{q} as a structure @code{slice} (if no such
-intersection exists, the entire path is considered to be `before' the
-intersection):
+@item slice cut(path p, path knife, int n);
+returns the portions of path @code{p} before and after the @code{n}th
+intersection of @code{p} with path @code{knife} as a structure
+@code{slice} (if no intersection exist is found, the entire path is
+considered to be `before' the intersection):
 @verbatim
 struct slice {
   path before,after;
 }
 @end verbatim
+The argument @code{n} is treated as modulo the number of intersections.
 
+@cindex @code{firstcut}
+@cindex @code{slice}
+@item slice firstcut(path p, path knife);
+equivalent to @code{cut(p,knife,0);}
 @cindex @code{MetaPost cutbefore}
-Note that @code{firstcut.after} plays the role of the 
-@code{MetaPost cutbefore} command.
+Note that @code{firstcut.after} plays the role of the @code{MetaPost
+cutbefore} command.
 
 @cindex @code{lastcut}
-@item slice lastcut(path p, path q);
-Return the portions of path @code{p} before and after the last intersection
-of @code{p} with path @code{q} as a @code{slice} (if no such
-intersection exists, the entire path is considered to be `after' the
-intersection).
-
+@item slice lastcut(path p, path knife);
+equivalent to @code{cut(p,knife,-1);}
 @cindex @code{MetaPost cutafter}
 Note that @code{lastcut.before} plays the role of the 
 @code{MetaPost cutafter} command.
@@ -4603,6 +4604,7 @@ returns @code{true} if the arrays @code{a} and @code{b} are identical;
 For built-in ordered types @code{T}, returns a copy of @code{a} sorted in
 ascending order;
 
+@anchor{sort}
 @item T[][] sort(T[][] a)
 For built-in ordered types @code{T}, returns a copy of @code{a} with the rows
 sorted by the first column, breaking ties with successively higher

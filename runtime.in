@@ -96,6 +96,7 @@ stringarray2* => stringArray2()
 #include "lexical.h"
 #include "Delaunay.h"
 #include "process.h"
+#include "arrayop.h"
   
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
@@ -1725,6 +1726,7 @@ realarray2* intersections(path p, path q)
     (*Vi)[0]=S[i];
     (*Vi)[1]=T[i];
   }
+  stable_sort(V->begin(),V->end(),compare2<double>());
   return V;
 }
 

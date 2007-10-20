@@ -158,26 +158,26 @@ struct slice {
   path before,after;
 }
   
-slice firstcut(path p, path knife) 
+slice cut(path p, path knife, int n) 
 {
   slice s;
-  real[] t=intersect(p,knife);
-  if(t.length == 0) {s.before=p; s.after=nullpath; return s;}
-  real[] r=intersect(p,reverse(knife));
-  if(r.length == 0) {s.before=p; s.after=nullpath; return s;}
-  real t=min(t[0],r[0]);
+  real[][] T=intersections(p,knife);
+  T.cyclic(true);
+  if(T.length == 0) {s.before=p; s.after=nullpath; return s;}
+  real t=T[n][0];
   s.before=subpath(p,0,t);
   s.after=subpath(p,t,length(p));
   return s;
 }
 
-slice lastcut(path p, path knife) 
+slice firstcut(path p, path knife) 
 {
-  slice s=firstcut(reverse(p),knife);
-  path before=reverse(s.after);
-  s.after=reverse(s.before);
-  s.before=before;
-  return s;
+  return cut(p,knife,0);
+}
+
+slice lastcut(path p, path knife)
+{
+  return cut(p,knife,-1);
 }
 
 pair dir(path p)
