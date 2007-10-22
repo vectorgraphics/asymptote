@@ -6040,10 +6040,10 @@ include the first label;
 include the last label;
 @item int N
 when automatic scaling is enabled (the default; @pxref{automatic scaling}),
-divide the values evenly into this many intervals, separated by major ticks;
+divide a linear axis evenly into this many intervals, separated by major ticks;
+for a logarithmic axis, this is the number of decades between labelled ticks;
 @item int n
-divide each value interval into this many subintervals, separated by
-minor ticks;
+divide each interval into this many subintervals, separated by minor ticks;
 @item real Step
 the tick value spacing between major ticks
 (if @code{N}=@code{0});

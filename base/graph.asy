@@ -493,6 +493,7 @@ real logaxiscoverage(int N, transform T, path g, ticklocate locate, pair side,
 struct tickvalues {
   real[] major;
   real[] minor;
+  int N; // For logarithmic axes: number of decades between tick labels.
 }
 
 // Determine a format that distinguishes adjacent pairs of ticks, optionally
@@ -629,13 +630,10 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
     b += epsilon*norm;
       
     if(Size > 0) {
-      int c=0;
       for(int i=0; i <= N; ++i) {
         real val=tickmin+i*Step;
-        if(val >= a && val <= b) {
-          ++c;
+        if(val >= a && val <= b)
           tickvalues.major.push(val);
-        }
         if(size > 0 && step > 0) {
           real iStep=i*Step;
           real jstop=(len-iStep)/step;
@@ -674,14 +672,12 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
     }
       
     if(N <= 2 && n == 0) n=base;
+    tickvalues.N=N;
       
     if(N > 0) {
-      int c=0;
       for(int i=first-1; i <= last+1; ++i) {
-        if(i >= a && i <= b) {
-          ++c;
+        if(i >= a && i <= b)
           tickvalues.major.push(locate.S.scale.Tinv(i));
-        }
         if(n > 0) {
           for(int j=2; j < n; ++j) {
             real val=(i+1+locate.S.scale.T(j/n));
@@ -702,7 +698,7 @@ typedef void ticks(frame, transform, Label, pair, path, path, pen, arrowbar,
 // Tick construction routine for a user-specified array of tick values.
 ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
             bool beginlabel=true, bool endlabel=true,
-            real[] Ticks=new real[], real[] ticks=new real[],
+            real[] Ticks=new real[], real[] ticks=new real[], int N=1,
             bool begin=true, bool end=true,
             real Size=0, real size=0, bool extend=false,
             pen pTick=nullpen, pen ptick=nullpen)
@@ -777,9 +773,10 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     }
     endgroup(f);
     
+    if(N == 0) N=1;
     if(Size > 0 && !opposite) {
       for(int i=(beginlabel ? 0 : 1);
-          i < (endlabel ? Ticks.length : Ticks.length-1); ++i) {
+          i < (endlabel ? Ticks.length : Ticks.length-1); i += N) {
         real val=T(Ticks[i]);
         if(val >= a && val <= b) {
           ticklabels=true;
@@ -837,7 +834,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
                                            opposite));
 
     Ticks(sign,F,ticklabel,beginlabel,endlabel,values.major,values.minor,
-          begin,end,Size,size,extend,pTick,ptick)
+	  values.N,begin,end,Size,size,extend,pTick,ptick)
       (f,T,L,side,g,g2,p,arrow,locate,divisor,opposite);
   };
 }
