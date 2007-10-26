@@ -98,13 +98,17 @@ void ifile::csv()
 void ifile::Read(string& val)
 {
   string s;
-  if(csvmode) {
+  if(wordmode) {
+    whitespace="";
+    while(isspace(stream->peek())) stream->ignore();
+  }
+  if(csvmode || wordmode) {
     bool quote=false;
     while(stream->good()) {
       int c=stream->peek();
       if(c == '"') {quote=!quote; stream->ignore(); continue;}
       if(!quote) {
-	if(c == comment) {
+	if(comment && c == comment) {
 	  while((c=stream->peek()) != '\n' && c != EOF)
 	    stream->ignore();
 	  if(s.empty() && c == '\n') {
@@ -112,15 +116,13 @@ void ifile::Read(string& val)
 	    continue;
 	  }
        }
-	if(c == ',' || c == '\n')
+	if(csvmode && (c == ',' || c == '\n'))
+	  break;
+	if(wordmode && isspace(c))
 	  break;
       }
       s += (char) stream->get();
     }
-  } else if(wordmode) {
-    s=string(); 
-    *stream >> s;
-    whitespace="";
   } else
     getline(*stream,s);
   
@@ -135,8 +137,8 @@ void ifile::Read(string& val)
 	break;
       }
     }
-    val=whitespace+s;
   }
+  val=whitespace+s;
 }
   
 void ofile::writeline() 
