@@ -173,6 +173,10 @@ void formals::trans(coenv &e)
   }
 
   if (rest) {
+    if (rest->getDefaultValue()) {
+      em.error(rest->getPos());
+      em << "rest parameters cannot have default values";
+    }
     rest->transAsVar(e, index);
     ++index;
   }
