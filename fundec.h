@@ -43,18 +43,6 @@ public:
     return defval;
   }
 
-  // Report an error if there is a default value.
-  // Used by newFunctionExp.
-  bool reportDefault() {
-    if (defval) {
-      em.error(getPos());
-      em << "default value in anonymous function";
-      return true;
-    }
-    else 
-      return false;
-  }
-
   symbol *getName() {
     return start ? start->getName() : 0;
   }
@@ -106,10 +94,6 @@ public:
   // Add the formal parameters to the environment to prepare for the
   // function body's translation.
   virtual void trans(coenv &e);
-
-  // Report an error if there are default values.
-  // Used by newFunctionExp.
-  void reportDefaults();
 };
 
 class fundef : public exp {

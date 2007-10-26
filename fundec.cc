@@ -178,16 +178,6 @@ void formals::trans(coenv &e)
   }
 }
 
-void formals::reportDefaults()
-{
-  for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
-    if ((*p)->reportDefault())
-      return;
-  
-  if (rest)
-    rest->reportDefault();
-}
-
 void fundef::prettyprint(ostream &out, Int indent)
 {
   result->prettyprint(out, indent+1);
