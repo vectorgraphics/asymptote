@@ -789,18 +789,32 @@ real[] theta(triple[] v, real[] alpha, real[] beta,
 
 triple reference(triple[] v, int n, triple d0, triple d1)
 {
-  triple reference;
-  void add(triple v) {
-    triple u=unit(v);
-    reference += dot(reference,u) < 0 ? -u : u;
+  triple[] V;
+  
+  for(int i=1; i < n; ++i)
+    V.push(cross(v[i]-v[i-1],v[i+1]-v[i])); 
+  if(n > 0) {
+    V.push(cross(d0,v[1]-v[0]));
+    V.push(cross(v[n]-v[n-1],d1));
   }
 
-  for(int i=1; i < n; ++i)
-    add(cross(v[i]-v[i-1],v[i+1]-v[i])); 
-  if(n > 0) {
-    add(cross(d0,v[1]-v[0]));
-    add(cross(v[n]-v[n-1],d1));
+  triple max=V[0];
+  real M=abs(max);
+  for(int i=1; i < V.length; ++i) {
+    triple vi=V[i];
+    real a=abs(vi);
+    if(a > M) {
+      M=a;
+      max=vi;
+    }
   }
+
+  triple reference;
+  for(int i=0; i < V.length; ++i) {
+    triple u=unit(V[i]);
+    reference += dot(u,max) < 0 ? -u : u;
+  }
+
   return reference;
 }
 
