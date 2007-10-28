@@ -787,6 +787,23 @@ real[] theta(triple[] v, real[] alpha, real[] beta,
   return tridiagonal(a,b,c,f);
 }
 
+triple reference(triple[] v, int n, triple d0, triple d1)
+{
+  triple reference;
+  void add(triple v) {
+    triple u=unit(v);
+    reference += dot(reference,u) < 0 ? -u : u;
+  }
+
+  for(int i=1; i < n; ++i)
+    add(cross(v[i]-v[i-1],v[i+1]-v[i])); 
+  if(n > 0) {
+    add(cross(d0,v[1]-v[0]));
+    add(cross(v[n]-v[n-1],d1));
+  }
+  return reference;
+}
+
 // Fill in missing directions for n cyclic nodes.
 void aim(flatguide3 g, int N) 
 {
@@ -819,12 +836,13 @@ void aim(flatguide3 g, int N)
   } else v[n]=g.nodes[(start+n) % N];
   int final=(end-1) % N;
 
-  triple reference;
-  for(int i=1; i < n; ++i)
-    reference += unit(cross(v[i]-v[i-1],v[i+1]-v[i]));
+  triple d0=g.out[start].dir;
+  triple d1=g.in[final].dir;
 
-  real[] theta=theta(v,alpha,beta,g.out[start].dir,g.in[final].dir,
-                     g.out[start].gamma,g.in[final].gamma,reference);
+  triple reference=reference(v,n,d0,d1);
+
+  real[] theta=theta(v,alpha,beta,d0,d1,g.out[start].gamma,g.in[final].gamma,
+		     reference);
 
   v.cyclic(true);
   theta.cyclic(true);
@@ -857,12 +875,13 @@ void aim(flatguide3 g, int i, int n)
     }
     v[j]=g.nodes[n];
     
-    triple reference;
-    for(int k=1; k < j; ++k)
-      reference += unit(cross(v[k]-v[k-1],v[k+1]-v[k]));
+    triple d0=g.out[i].dir;
+    triple d1=g.in[n-1].dir;
 
-    real[] theta=theta(v,alpha,beta,g.out[i].dir,g.in[n-1].dir,
-                       g.out[i].gamma,g.in[n-1].gamma,reference);
+    triple reference=reference(v,j,d0,d1);
+
+    real[] theta=theta(v,alpha,beta,d0,d1,g.out[i].gamma,g.in[n-1].gamma,
+		       reference);
     
     for(int k=1; k < j; ++k) {
       triple w=dir(theta[k],v[k]-v[k-1],v[k+1]-v[k],reference);

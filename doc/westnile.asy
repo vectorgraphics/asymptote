@@ -17,7 +17,7 @@ draw(g);
 xaxis("Initial no.\ of mosquitoes per bird ($S_{M_0}/N_{B_0}$)",
       Bottom,LeftTicks);
 xaxis(Top);
-yaxis("Susceptible bird survival",Left,RightTicks);
+yaxis("Susceptible bird survival",Left,RightTicks(trailingzero));
 yaxis(Right);
 
 real a=number[0];
