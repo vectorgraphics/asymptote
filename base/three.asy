@@ -711,6 +711,7 @@ private triple cross(triple d0, triple d1, triple reference)
 private triple dir(real theta, triple d0, triple d1, triple reference)
 {
   triple normal=cross(d0,d1,reference);
+  if(normal == O) return d1;
   return rotate(degrees(theta),dot(normal,reference) >= 0 ? normal : -normal)*
     d1;
 }
