@@ -613,6 +613,12 @@ class xasyMainWin:
 
   def fileOpenCmd(self):
     #print "Open a file"
+    if self.undoRedoStack.changesMade():
+      result = tkMessageBox._show("xasy","File has been modified.\nSave changes?",icon=tkMessageBox.QUESTION,type=tkMessageBox.YESNOCANCEL)
+      if str(result) == tkMessageBox.CANCEL:
+        return
+      elif result == tkMessageBox.YES:
+        self.fileSaveCmd()
     filename=tkFileDialog.askopenfilename(filetypes=[("asy GUI files","*.asy"),("All files","*")],title="Open File",parent=self.parent)
     if type(filename) != type((0,)) and filename != None and filename != '':
       self.filename = filename
