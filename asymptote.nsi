@@ -2,11 +2,10 @@
 !include AsymptoteInstallInfo.nsi
 !define PRODUCT_WEB_SITE "http://asymptote.sourceforge.net/"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Asymptote"
-!define PRODUCT_FILE_TYPE_REGKEY "Software\Classes\Asymptote"
+!define PRODUCT_FILE_TYPE_REGKEY "Software\Classes"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 !define PRODUCT_STARTMENU_REGVAL "NSIS:StartMenuDir"
-!define ASYFile "ASYFile"
 
 SetCompressor lzma
 XPStyle On
@@ -77,7 +76,7 @@ Section "Asymptote" SEC01
   CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Asymptote.lnk" "$INSTDIR\asy.exe"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Xasy.lnk" "$INSTDIR\xasy.py"
-  CreateShortCut "$DESKTOP\Asymptote.lnk" "$INSTDIR\asyconsole.bat"
+  CreateShortCut "$DESKTOP\Asymptote.lnk" "$INSTDIR\asyconsole.bat" "" "$INSTDIR\asy.ico"
   CreateShortCut "$DESKTOP\Xasy.lnk" "$INSTDIR\xasy.py"
   !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
@@ -99,8 +98,8 @@ Section -Post
   ;create registry keys with information needed to run asymptote
   WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\asy.exe"
   WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "Path" "$INSTDIR"
-  WriteRegStr HKLM "${PRODUCT_FILE_TYPE_REGKEY}" ".asy" "$ASYFile"
-  WriteRegStr HKLM "${PRODUCT_FILE_TYPE_REGKEY}" "$ASYFile/shell/open/command" "$INSTDIR\asyconsole.bat" "%1"
+  WriteRegStr HKLM "${PRODUCT_FILE_TYPE_REGKEY}\.asy" "" "ASYFile"
+  WriteRegStr HKLM "${PRODUCT_FILE_TYPE_REGKEY}\ASYFile\shell\open\command" "" '"$INSTDIR\asyconsole.bat" "%1"'
   
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
@@ -132,7 +131,6 @@ Section Uninstall
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
-  DeleteRegKey HKLM "${PRODUCT_FILE_TYPE_REGKEY}" ".asy"
-  DeleteRegKey HKLM "${PRODUCT_FILE_TYPE_REGKEY}" "$ASYFile/shell/open/command"
+  DeleteRegKey HKLM "${PRODUCT_FILE_TYPE_REGKEY}"
   SetAutoClose true
 SectionEnd

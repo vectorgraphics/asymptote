@@ -1,7 +1,7 @@
 %{!?_texmf: %define _texmf %(eval "echo `kpsewhich -expand-var '$TEXMFMAIN'`")}
 
 Name:           asymptote
-Version:        
+Version:        1.37
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 
