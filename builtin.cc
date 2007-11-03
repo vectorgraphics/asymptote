@@ -135,7 +135,8 @@ template<double (*fcn)(double)>
 void addRealFunc(venv &ve, const char* name)
 {
   addFunc(ve, realReal<fcn>, primReal(), name, formal(primReal(),"x"));
-  addFunc(ve, realArrayFunc<fcn>, realArray(), name, formal(realArray(),"a"));
+  addFunc(ve, arrayFunc<double,double,fcn>, realArray(), name,
+	  formal(realArray(),"a"));
 }
 
 #define addRealFunc(fcn) addRealFunc<fcn>(ve, #fcn);
@@ -491,6 +492,10 @@ struct maxbound {
   }
 };
 
+inline double abs(pair z) {
+    return z.length();
+}
+
 template<class T, template <class S> class op>
 void addBinOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, const char *name)
 {
@@ -626,6 +631,11 @@ void addOperators(venv &ve)
 			     tripleArray3(),"minbound");
   addBinOps<triple,maxbound>(ve,primTriple(),tripleArray(),tripleArray2(),
 			     tripleArray3(),"maxbound");
+  
+  addFunc(ve,arrayFunc<double,pair,abs>,realArray(),"abs",
+	  formal(pairArray(),"a"));
+  addFunc(ve,arrayFunc<double,triple,abs>,realArray(),"abs",
+	  formal(tripleArray(),"a"));
   
   addFunc(ve,binaryOp<Int,divide>,primReal(),"/",
 	  formal(primInt(),"a"),formal(primInt(),"b"));

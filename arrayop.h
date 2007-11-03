@@ -372,16 +372,14 @@ void writeArray3(vm::stack *s)
   f->flush();
 }
 
-template <double (*func)(double)>
-void realArrayFunc(vm::stack *s) 
+template <class T, class S, T (*func)(S)>
+void arrayFunc(vm::stack *s) 
 {
   array *a=pop<array*>(s);
   size_t size=checkArray(a);
   array *c=new array(size);
-  for(size_t i=0; i < size; i++) {
-    double x=read<double>(a,i);
-    (*c)[i]=func(x);
-  }
+  for(size_t i=0; i < size; i++)
+    (*c)[i]=func(read<S>(a,i));
   s->push(c);
 }
 
