@@ -55,7 +55,7 @@ draw(z--z2,Arrow,Margin(0,m));
 } endScript();
 
 
-xformStack.push((4.0, 41.0, 1, 0, 0, 1));
+xformStack.push((-28.0, 7.0, 1, 0, 0, 1));
 label(Label("A Venn Diagram",(-79.0, 91.0),rgb(0,0,0)+0.5,align=SE));
 
 // This is the end of the file
