@@ -2,7 +2,8 @@
 !include AsymptoteInstallInfo.nsi
 !define PRODUCT_WEB_SITE "http://asymptote.sourceforge.net/"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Asymptote"
-!define PRODUCT_FILE_TYPE_REGKEY "Software\Classes"
+!define PRODUCT_FILE_TYPE_REGKEY1 "Software\Classes\.asy"
+!define PRODUCT_FILE_TYPE_REGKEY2 "Software\Classes\ASYFile\shell\open\command"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 !define PRODUCT_STARTMENU_REGVAL "NSIS:StartMenuDir"
@@ -98,8 +99,8 @@ Section -Post
   ;create registry keys with information needed to run asymptote
   WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\asy.exe"
   WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "Path" "$INSTDIR"
-  WriteRegStr HKLM "${PRODUCT_FILE_TYPE_REGKEY}\.asy" "" "ASYFile"
-  WriteRegStr HKLM "${PRODUCT_FILE_TYPE_REGKEY}\ASYFile\shell\open\command" "" '"$INSTDIR\asyconsole.bat" "%1"'
+  WriteRegStr HKLM "${PRODUCT_FILE_TYPE_REGKEY1}" "" "ASYFile"
+  WriteRegStr HKLM "${PRODUCT_FILE_TYPE_REGKEY2}" "" '"$INSTDIR\asyconsole.bat" "%1"'
   
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
@@ -131,6 +132,7 @@ Section Uninstall
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
-  DeleteRegKey HKLM "${PRODUCT_FILE_TYPE_REGKEY}"
+  DeleteRegKey HKLM "${PRODUCT_FILE_TYPE_REGKEY1}"
+  DeleteRegKey HKLM "${PRODUCT_FILE_TYPE_REGKEY2}"
   SetAutoClose true
 SectionEnd
