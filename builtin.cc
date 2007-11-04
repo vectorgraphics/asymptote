@@ -496,6 +496,10 @@ inline double abs(pair z) {
     return z.length();
 }
 
+inline double abs(triple v) {
+    return v.length();
+}
+
 template<class T, template <class S> class op>
 void addBinOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, const char *name)
 {
