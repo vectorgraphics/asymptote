@@ -134,5 +134,5 @@ int main(int argc, char *argv[])
     while(wait(&status) > 0);
   }
   
-  return em.processStatus() ? 0 : 1;
+  return em.processStatus() || interact::interactive ? 0 : 1;
 }
