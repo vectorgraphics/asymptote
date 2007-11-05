@@ -31,8 +31,9 @@ namespace run {
 
 namespace interact {
 
-Int interactive=false;
+bool interactive=false;
 bool uptodate=true;
+bool tty=isatty(STDIN_FILENO);  
 
 completer *currentCompleter=0;
 
@@ -79,19 +80,22 @@ char *verbatimreadline(const char *prompt)
 void pre_readline()
 {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-  run::init_readline(getSetting<bool>("tabcompletion"));
-  Readline=isatty(STDIN_FILENO) ? readline : verbatimreadline;
-#else
+  if(tty) {
+    run::init_readline(getSetting<bool>("tabcompletion"));
+    Readline=readline;
+  } else
+#endif
   Readline=verbatimreadline;
-#endif  
 }
 
 void init_interactive()
 {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-  init_completion();
-  read_history(historyname.c_str());
-#endif  
+  if(tty) {
+    init_completion();
+    read_history(historyname.c_str());
+  }
+#endif
 }
   
 string simpleline(string prompt) {
@@ -110,7 +114,7 @@ string simpleline(string prompt) {
     return s;
   } else {
     cout << endl;
-    if(!isatty(STDIN_FILENO))
+    if(!tty)
       throw eof();
     return "\n";
   }
@@ -118,52 +122,56 @@ string simpleline(string prompt) {
 
 void addToHistory(string line) {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-    // Only add it if it has something other than newlines.
-    if (line.find_first_not_of('\n') != string::npos) {
-      add_history(line.c_str());
-    }
+  // Only add it if it has something other than newlines.
+  if(tty && line.find_first_not_of('\n') != string::npos) {
+    add_history(line.c_str());
+  }
 #endif    
 }
 
 string getLastHistoryLine() {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-  HIST_ENTRY *entry=history_list()[history_length-1];
-  if(!entry) {
-    em.compiler();
-    em << "cannot access last history line";
-    return "";
-  } else {
-    return entry->line;
-  }
-#else
-  return "";
+  if(tty) {
+    HIST_ENTRY *entry=history_list()[history_length-1];
+    if(!entry) {
+      em.compiler();
+      em << "cannot access last history line";
+      return "";
+    } else 
+      return entry->line;
+  } else
 #endif
+  return "";
 }
 
 void setLastHistoryLine(string line) {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-  HIST_ENTRY *entry=remove_history(history_length-1);
-  if(!entry) {
-    em.compiler();
-    em << "cannot modify last history line";
-  } else {
-    addToHistory(line);
+  if(tty) {
+    HIST_ENTRY *entry=remove_history(history_length-1);
+    if(!entry) {
+      em.compiler();
+      em << "cannot modify last history line";
+    } else {
+      addToHistory(line);
 
-    free(entry->line);
-    free(entry);
+      free(entry->line);
+      free(entry);
+    }
   }
 #endif
 }
 
 void deleteLastLine() {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-  HIST_ENTRY *entry=remove_history(history_length-1);
-  if(!entry) {
-    em.compiler();
-    em << "cannot delete last history line";
-  } else {
-    free(entry->line);
-    free(entry);
+  if(tty) {
+    HIST_ENTRY *entry=remove_history(history_length-1);
+    if(!entry) {
+      em.compiler();
+      em << "cannot delete last history line";
+    } else {
+      free(entry->line);
+      free(entry);
+    }
   }
 #endif
 }
@@ -171,8 +179,10 @@ void deleteLastLine() {
 void cleanup_interactive() {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   // Write the history file.
-  stifle_history(intcast(getSetting<Int>("historylines")));
-  write_history(historyname.c_str());
+  if(tty) {
+    stifle_history(intcast(getSetting<Int>("historylines")));
+    write_history(historyname.c_str());
+  }
 #endif
 }
 

@@ -4325,6 +4325,8 @@ stringarray* history(Int n=0)
 string readline(string prompt=emptystring, string name=emptystring,
 		bool tabcompletion=false)
 {
+ if(!isatty(STDIN_FILENO)) 
+   return emptystring;
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   init_readline(tabcompletion);
   

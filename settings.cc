@@ -986,7 +986,7 @@ void initSettings() {
 			    "Wait for child processes to finish before exiting"));
   // Signal parent process at completion of each shipout
   addOption(new boolSetting("signal", 0, ""));
-  //be interactive even in a pipe
+  // Be interactive even in a pipe
   addOption(new boolSetting("interactive", 0, ""));
 			    
   addOption(new boolSetting("localhistory", 0,
