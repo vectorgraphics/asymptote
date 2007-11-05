@@ -404,11 +404,10 @@ Configuration variables are most easily set as @code{Asymptote}
 variables in the configuration file (by default, @code{.asy/config.asy} in the 
 user's home directory or @code{%USERPROFILE%\.asy\config.asy} under
 @code{MSDOS}); @pxref{configuration file}. Here are the default values
-of several important configuration variables:
+of several important configuration variables under @code{UNIX}:
 
 @cindex @code{python}
 @noindent
-Under @code{UNIX:}
 @verbatim
 import settings;
 psviewer="gv";
@@ -418,14 +417,9 @@ python="";
 @end verbatim
 
 @noindent
-Under @code{MSDOS:}
-@verbatim
-import settings;
-psviewer="gsview32.exe";
-pdfviewer="AcroRd32.exe";
-gs="gswin32c.exe";
-python="python.exe";
-@end verbatim
+The (installation-dependent) default values of these configuration
+variables under @code{MSDOS} are determined automatically from the
+@code{MSWindows} registry.
 
 For @acronym{PDF} format output, the @code{gs} setting specifies the
 location of the @code{PostScript}-to-@acronym{PDF} processor @code{Ghostscript},
