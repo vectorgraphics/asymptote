@@ -80,6 +80,24 @@ string verbatim(string s)
   return space ? "\ "+s : s;
 }
 
+// Split a string into an array of substrings delimited by delimiter
+string[] split(string s, string delimiter)
+{
+  string[] S;
+  int last=0;
+  int i;
+  int N=length(delimiter);
+  while((i=find(s,delimiter,last)) >= 0) {
+    if(i > last)
+      S.push(substr(s,last,i-last));
+    last=i+N;
+  }
+  int n=length(s);
+  if(n > last)
+    S.push(substr(s,last,n-last));
+  return S;
+}
+
 // Read contents of file as a string.
 string file(string s)
 {

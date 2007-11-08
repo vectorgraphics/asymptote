@@ -1854,6 +1854,11 @@ occurrences of the string @code{before} in an array @code{table} of
 string pairs @{@code{before},@code{after}@} to the corresponding
 string @code{after};
 
+@cindex @code{split}
+@item string[] split(string s, string delimiter)
+returns an array of strings obtained by splitting @code{s} into substrings
+delimited by @code{delimiter};
+
 @anchor{format}
 @item string format(string s, int n)
 @cindex @code{format}
