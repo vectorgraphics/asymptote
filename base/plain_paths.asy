@@ -136,21 +136,21 @@ pair intersectionpoint(path p, path q, real fuzz=0)
 }
 
 // return an array containing all intersection points of the paths p and q
-pair[] intersectionpoints(path p, path q)
+pair[] intersectionpoints(path p, path q, real fuzz=0)
 {
-  real[][] t=intersections(p,q);
+  real[][] t=intersections(p,q,fuzz);
   pair[] z=new pair[t.length];
   for(int i=0; i < t.length; ++i)
     z[i]=point(p,t[i][0]);
   return z;
 }
 
-pair[] intersectionpoints(explicit path[] p, explicit path[] q)
+pair[] intersectionpoints(explicit path[] p, explicit path[] q, real fuzz=0)
 {
   pair[] z;
   for(int i=0; i < p.length; ++i)
     for(int j=0; j < q.length; ++j)
-      z.append(intersectionpoints(p[i],q[j]));
+      z.append(intersectionpoints(p[i],q[j],fuzz));
   return z;
 }
 
