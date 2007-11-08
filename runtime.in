@@ -1700,9 +1700,9 @@ real dirtime(path p, pair z)
 
 realarray* intersect(path p, path q, real fuzz=0)
 {
-  real s,t;
   fuzz=::max(fuzz,Fuzz*::max(::max(length(p.max()),length(p.min())),
 			     ::max(length(q.max()),length(q.min()))));
+  real s,t;
   if(intersect(s,t,p,q,fuzz)) {
     array *T=new array(2);
     (*T)[0]=s;
@@ -1712,10 +1712,10 @@ realarray* intersect(path p, path q, real fuzz=0)
     return new array(0);
 }
 
-realarray2* intersections(path p, path q)
+realarray2* intersections(path p, path q, real fuzz=0)
 {
-  real fuzz=100.0*Fuzz*::max(::max(length(p.max()),length(p.min())),
-			    ::max(length(q.max()),length(q.min())));
+  fuzz=::max(fuzz,Fuzz*::max(::max(length(p.max()),length(p.min())),
+			     ::max(length(q.max()),length(q.min()))));
   std::vector<real> S,T;
   intersections(S,T,p,q,fuzz);
   unsigned n=S.size();

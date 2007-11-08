@@ -839,7 +839,7 @@ void add(std::vector<double>& S, std::vector<double>& T, double s, double t,
 {
   for(unsigned i=0; i < S.size(); ++i)
     if((p.point(S[i])-p.point(s)).length() <= fuzz &&
-       (p.point(T[i])-p.point(t)).length() <= fuzz) return;
+       (q.point(T[i])-q.point(t)).length() <= fuzz) return;
   S.push_back(s);
   T.push_back(t);
 }
@@ -849,7 +849,7 @@ void add(std::vector<double>& S, std::vector<double>& T,
 	 double pscale, double qscale, double poffset, double qoffset,
 	 const path& p, const path& q, double fuzz)
 {
-  fuzz *= 10.0;
+  fuzz *= 2.0;
   for(unsigned i=0; i < S1.size(); ++i)
     add(S,T,pscale*S1[i]+poffset,qscale*T1[i]+qoffset,p,q,fuzz);
 }

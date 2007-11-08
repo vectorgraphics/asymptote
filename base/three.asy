@@ -1960,10 +1960,14 @@ real[] intersect(path3 p, path3 q, real fuzz, int depth)
   return new real[];
 }
 
+private real computefuzz(path3 p, path3 q, real fuzz) {
+  return max(fuzz,Fuzz*max(max(length(p.max()),length(p.min())),
+			   max(length(q.max()),length(q.min()))));
+}
+
 real[] intersect(path3 p, path3 q, real fuzz=0)
 {
-  fuzz=max(fuzz,Fuzz*max(max(length(p.max()),length(p.min())),
-                         max(length(q.max()),length(q.min()))));
+  fuzz=computefuzz(p,q,fuzz);
   return intersect(p,q,fuzz,maxdepth);
 }
 
@@ -2083,26 +2087,25 @@ real[][] intersections(path3 p, path3 q, real fuzz, int depth)
   return new real[][];
 }
 
-real[][] intersections(path3 p, path3 q)
+real[][] intersections(path3 p, path3 q, real fuzz=0)
 {
-  real fuzz=100.0*Fuzz*max(max(length(p.max()),length(p.min())),
-			   max(length(q.max()),length(q.min())));
+  fuzz=computefuzz(p,q,fuzz);
   return intersections(p,q,fuzz,maxdepth);
 }
 
 // return an array containing all intersection points of p and q
-triple[] intersectionpoints(path3 p, path3 q)
+triple[] intersectionpoints(path3 p, path3 q, real fuzz=0)
 {
-  real[][] t=intersections(p,q);
+  real[][] t=intersections(p,q,fuzz);
   triple[] v=new triple[t.length];
   for(int i=0; i < t.length; ++i)
     v[i]=point(p,t[i][0]);
   return v;
 }
 
-triple[] intersectionpoints(explicit guide3 p, explicit guide3 q)
+triple[] intersectionpoints(explicit guide3 p, explicit guide3 q, real fuzz=0)
 {
-  return intersectionpoints((path3) p,(path3) q);
+  return intersectionpoints((path3) p,(path3) q, fuzz);
 }
 
 path3 operator & (path3 p, path3 q) {return p.concat(p,q);}
