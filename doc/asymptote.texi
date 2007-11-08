@@ -2118,14 +2118,16 @@ real array of length 2 containing the times representing the respective
 path times along @code{p} and @code{q}, in the sense of 
 @code{point(path, real)}, for one such intersection point (as chosen by
 the algorithm described on page 137 of @code{The MetaFontbook}). 
-Perform the computations to the absolute error specified by @code{fuzz}, 
+The computations are performed to the absolute error specified by @code{fuzz}, 
 or, if @code{fuzz} is 0, to machine precision. If the paths do not 
 intersect, return a real array of length 0.
 
 @cindex @code{intersections}
-@item real[][] intersections(path p, path q);
+@item real[][] intersections(path p, path q, real fuzz=0);
 Return all intersection times of paths @code{p} and @code{q} as a sorted array
 of real arrays of length 2 (@pxref{sort}).
+The computations are performed to the absolute error specified by @code{fuzz}, 
+or, if @code{fuzz} is 0, to machine precision. 
 
 @cindex @code{intersectionpoint}
 @item pair intersectionpoint(path p, path q, real fuzz=0);
