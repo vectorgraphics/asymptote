@@ -212,7 +212,6 @@ class deleteScriptItemAction(UndoRedoStack.action):
     self.indices = indices[:]
     self.oldTransforms = oldTransforms[:]
     UndoRedoStack.action.__init__(self,self.delI,self.unDelI)
-    print self
   def delI(self):
     for index in self.indices:
       self.script.transform[index] = xasy2asy.asyTransform((0,0,0,0,0,0))
