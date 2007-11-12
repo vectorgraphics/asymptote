@@ -893,7 +893,7 @@ void initSettings() {
 			    "View output in interactive mode", true));
   addOption(view);
   addOption(new stringSetting("xformat", 0, "format", 
-			      "GUI deconstruction format [\"gif\"]","gif"));
+			      "GUI deconstruction format [\"png\"]","png"));
   addOption(new stringSetting("outformat", 'f', "format",
 			      "Convert each output file to specified format",
 			      ""));

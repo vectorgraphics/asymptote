@@ -7571,15 +7571,9 @@ yum install tkinter
 @noindent
 or manually install the @code{tkinter}, @code{tix}, and @code{tk} packages.
 
-By default, @code{xasy} uses the @acronym{GIF} image format
-with white as the transparent color. This requires that the
-@code{ImageMagick} (@pxref{convert}) program be installed.
-
-To overcome side-effects of making white the transparent color, support
-for a true transparent image format, @acronym{PNG}, is available
-for the @code{UNIX} version (it will also become available for Microsoft
-Windows users with the upcoming release of the @acronym{PIL} library).
-To enable full alpha channel support for @acronym{PNG} images, place
+Pictures are deconstructed into the @acronym{PNG} image format, which
+supports true transparency. To enable full alpha channel support for
+@acronym{PNG} images on @code{UNIX} systems, place the @acronym{PIL} library
 @url{http://effbot.org/downloads/Imaging-1.1.6.tar.gz} in the
 @code{Asymptote} source directory, and type (as the root user):
 @verbatim
@@ -7588,13 +7582,16 @@ cd Imaging-1.1.6
 patch -p1 < ../patches/TkAlpha-Imaging-1.1.6.patch
 python setup.py install
 @end verbatim
-To configure @code{Asymptote} to use the preferred @acronym{PNG} format
-for picture  deconstruction, these lines need to be in the
-@code{Asymptote} configuration file (@pxref{configuration file}):
+
+Alternatively, @code{xasy} can deconstruct pictures into the @acronym{GIF}
+image format (although much more slowly), using white as the transparent
+color. This requires the lines
 @verbatim
 import settings;
-xformat="png";
+xformat="gif";
 @end verbatim
+in the @code{Asymptote} configuration file (@pxref{configuration file}),
+along with the @code{ImageMagick} (@pxref{convert}) program.
 
 @node GUI Usage
 @section GUI Usage

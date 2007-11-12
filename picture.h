@@ -22,6 +22,7 @@ private:
   size_t lastnumber;
   transform T; // Keep track of accumulative picture transform
   bbox b;
+  bbox b_cached;   // Cached bounding box
   boxvector labelbounds;
   bboxlist bboxstack;
   
@@ -31,7 +32,6 @@ private:
 public:
   typedef mem::list<drawElement*> nodelist;
   nodelist nodes;
-  static std::ofstream bboxout;
   
   picture() : labels(false), lastnumber(0), T(identity) {}
   
@@ -68,8 +68,7 @@ public:
   // Ship the picture out to PostScript & TeX files.
   bool shipout(picture* preamble, const string& prefix,
 	       const string& format, double magnification=0.0,
-	       bool wait=false, bool view=true,
-	       bool Delete=false);
+	       bool wait=false, bool view=true);
  
   picture *transformed(const transform& t);
   

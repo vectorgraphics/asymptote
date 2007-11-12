@@ -1127,23 +1127,51 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 
 void deconstruct(string prefix=emptystring, picture *f,
 		 picture *preamble=NULL, real magnification=1, 
-		 callableTransform *xform, bool countonly=false)
+		 callableTransform *xform)
 {
-  picture *result = new picture;
   unsigned level=0;
-  unsigned i=0;
+  unsigned n=0;
   picture::nodelist::iterator p;
+
+  if(prefix.empty()) prefix=outname();
+  
+  string xformat=getSetting<string>("xformat");
+  cout << magnification << newl;
+  cout << xformat << newl;
+  
+  string preformat=nativeformat();
+  
+  ostringstream cmd;
+  double res=magnification*72.0;
+  
+  const char *converter,*hint;
+  
+  bool png=xformat == "png";
+  string outname="."+buildname(prefix+"%d",xformat);
+  
+  if(png) {
+    cmd << "'" << getSetting<string>("gs")
+	<< "' -q -dNOPAUSE -dBATCH -sDEVICE=pngalpha -dEPSCrop"
+	<< " -r" << res << "x" << res
+	<< " -sOutputFile='" << outname << "'";
+    converter="gs";
+    hint="Ghostscript";
+  } else {
+      cmd << "'" << getSetting<string>("convert") 
+	  << "' -density " << res << "x" << res
+	  << " -transparent white";
+    hint=converter="convert";
+  }
+  
   if(magnification > 0.0) {
     for(p = f->nodes.begin(); p != f->nodes.end(); ++p) {
+      picture *group=new picture;
       bool Delete=false;
       transform t;
       static transform Zero=transform(0.0,0.0,0.0,0.0,0.0,0.0);
-      if(!countonly) {
-	xform->call(Stack);
-	t=pop<transform>(Stack);
-	Delete=(t == Zero);
-      }
-      picture *group=new picture;
+      xform->call(Stack);
+      t=pop<transform>(Stack);
+      Delete=(t == Zero);
 // Ignore unclosed begingroups but not spurious endgroups.
       const char *nobegin="endgroup without matching begingroup";
       assert(*p);
@@ -1151,8 +1179,10 @@ void deconstruct(string prefix=emptystring, picture *f,
       if((*p)->begingroup()) {
 	++level;
 	while(p != f->nodes.end() && level) {
-	  drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
-	  group->append(e);
+	  if(!Delete) {
+	    drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
+	    group->append(e);
+	  }
 	  ++p;
 	  if(p == f->nodes.end()) break;
 	  assert(*p);
@@ -1163,24 +1193,44 @@ void deconstruct(string prefix=emptystring, picture *f,
       }
       if(p == f->nodes.end()) break;
       assert(*p);
-      drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
-      group->append(e);
-      if(!group->null()) {
-	if(!countonly) {
-	  ostringstream buf;
-	  buf << prefix << "_" << i;
-	  group->shipout(preamble,buf.str(),"<x>",magnification,false,false,
-			 Delete);
-	  cout << buf.str() << (Delete ? " Deleted" : "") << endl;
-	}
-	++i;
+      if(!Delete) {
+	drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
+	group->append(e);
       }
-      if(!Delete) result->add(*group);
+      bbox b;
+      ostringstream buf;
+      buf << prefix << "_" << n;
+      string name=buildname(buf.str(),preformat);
+      cmd << " '";
+      if(!png) cmd << preformat+":";
+      cmd << name << "'";
+      group->shipout(preamble,buf.str(),preformat,magnification,false,false);
+      if(!Delete) {
+	b=group->bounds();
+	b *= magnification;
+      }
+      
+      cout << b << newl;
+      ++n;
     }
+    cout.flush();
+    
+    if(!png) 
+      cmd << " -scene 1 '" << xformat << ":" << outname << "'";
+    
+    int status=System(cmd,0,true,converter,hint);
+    if(status) reportError("deconstruct failed");
+    
+    if(!getSetting<bool>("keep")) {
+      for(unsigned i=0; i < n; ++i) {
+	ostringstream buf;
+	buf << prefix << "_" << i;
+	unlink(buildname(buf.str(),preformat).c_str());
+      }
+    }
+    
+    cout << "Done" << endl;
   }
-  cout << i << endl;
-  if(!countonly)
-    picture::bboxout.close();
 }
 
 void purge()

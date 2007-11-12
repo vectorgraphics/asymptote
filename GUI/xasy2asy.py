@@ -437,31 +437,22 @@ class xasyItem:
     for line in self.getCode().splitlines():
       quickAsy.stdin.write(line+"\n");
     quickAsy.stdin.flush()
-    syncQuickAsyOutput()
-    try:
-      os.remove(".out_0.box")
-    except:
-      pass
-    quickAsy.stdin.write("deconstruct(countonly=true);\n")
+    syncQuickAsyOutput();
     quickAsy.stdin.write("deconstruct();\n")
     quickAsy.stdin.flush()
-    numpics = quickAsy.stdout.readline()
-    numpics = int(numpics[2:])
-    #print "Expecting",numpics
-    for i in range(numpics):
-      #print "waiting for",i,
+    magnification = split(quickAsy.stdout.readline())[1]
+    format = split(quickAsy.stdout.readline())[0]
+    text = quickAsy.stdout.readline()
+    n=0
+    boxes=[]
+    while text!="Done\n":
+      boxes.append(text)
+      n += 1
       text = quickAsy.stdout.readline()
-      #print " got it"
-      boxfile = open(".out_0.box","rt")
-      boxlines = boxfile.readlines()
-      magnification,format = split(boxlines[0])
-      l,b,r,t = [float(a) for a in split(boxlines[i+1])]
-      self.handleImageReception(".out_%d.%s"%(i,format),format,(l,b,r,t),i)
-      boxfile.close()
-    try:
-      os.remove(".out_0.box")
-    except:
-      pass
+    for i in range(1,n+1):
+      # Maybe add _ to filename
+      l,b,r,t = [float(a) for a in split(boxes[i-1])]
+      self.handleImageReception(".out%d.%s"%(i,format),format,(l,b,r,t),i)
     self.asyfied = True
   def drawOnCanvas(self,canvas):
     pass
