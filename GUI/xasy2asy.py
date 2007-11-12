@@ -340,23 +340,6 @@ class asyPath(asyObj):
     #print "controls",self.controlSet
     self.computed = True
 
-unitcircle = asyPath()
-#(1,0).. controls (1,0.552285) and (0.552285,1)
-# ..(0,1).. controls (-0.552285,1) and (-1,0.552285)
-# ..(-1,0).. controls (-1,-0.552285) and (-0.552285,-1)
-# ..(0,-1).. controls (0.552285,-1) and (1,-0.552285)
-# ..cycle
-gamma=(sqrt(2.0)-1.0)*4.0/3.0
-unitcircle.initFromControls([(1,0),(0,1),(-1,0),(0,-1),'cycle'],[[(1,gamma),(gamma,1)],[(-gamma,1),(-1,gamma)],[(-1,-gamma),(-gamma,-1)],[(gamma,-1),(1,-gamma)]])
-
-unitsquare = asyPath()
-#(0,0).. controls (0.333333,0) and (0.666667,0)
-# ..(1,0).. controls (1,0.333333) and (1,0.666667)
-# ..(1,1).. controls (0.666667,1) and (0.333333,1)
-# ..(0,1).. controls (0,0.666667) and (0,0.333333)
-# ..cycle
-unitsquare.initFromControls([(0,0),(1,0),(1,1),(0,1),'cycle'],[[(1.0/3.0,0),(2.0/3.0,0)],[(1,1.0/3.0),(1,2.0/3.0)],[(2.0/3.0,1),(1.0/3.0,1)],[(0,2.0/3.0),(0,1.0/3.0)]])
-
 class asyLabel(asyObj):
   """A python wrapper for an asy label"""
   def __init__(self,text="",location=(0,0),pen=asyPen()):
@@ -697,7 +680,7 @@ class xasyScript(xasyItem):
   def setScript(self,script):
     """Sets the content of the script item."""
     self.script = script
-    self.updateCode(mag)
+    self.updateCode()
 
   def removeFromCanvas(self):
     """Removes the script's images from a tk canvas"""
@@ -714,7 +697,7 @@ class xasyScript(xasyItem):
       self.transform.append(identity)
     while len(self.imageList) < len(self.transform):
       self.transform.pop()
-    self.updateCode(mag)
+    self.updateCode()
 
   def drawOnCanvas(self,canvas,mag,asyFy=True,forceAddition=False):
     """Adds the script's images to a tk canvas"""
