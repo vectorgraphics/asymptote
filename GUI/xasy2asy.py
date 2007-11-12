@@ -13,6 +13,7 @@ from subprocess import *
 from string import *
 import xasyOptions
 from Tkinter import *
+from math import sqrt
 
 #PIL support is now mandatory due to rotations
 try:
@@ -339,14 +340,14 @@ class asyPath(asyObj):
     #print "controls",self.controlSet
     self.computed = True
 
-
 unitcircle = asyPath()
 #(1,0).. controls (1,0.552285) and (0.552285,1)
 # ..(0,1).. controls (-0.552285,1) and (-1,0.552285)
 # ..(-1,0).. controls (-1,-0.552285) and (-0.552285,-1)
 # ..(0,-1).. controls (0.552285,-1) and (1,-0.552285)
 # ..cycle
-unitcircle.initFromControls([(1,0),(0,1),(-1,0),(0,-1),'cycle'],[[(1,0.552285),(0.552285,1)],[(-0.552285,1),(-1,0.552285)],[(-1,-0.552285),(-0.552285,-1)],[(0.552285,-1),(1,-0.552285)]])
+gamma=(sqrt(2.0)-1.0)*4.0/3.0
+unitcircle.initFromControls([(1,0),(0,1),(-1,0),(0,-1),'cycle'],[[(1,gamma),(gamma,1)],[(-gamma,1),(-1,gamma)],[(-1,-gamma),(-gamma,-1)],[(gamma,-1),(1,-gamma)]])
 
 unitsquare = asyPath()
 #(0,0).. controls (0.333333,0) and (0.666667,0)
@@ -354,7 +355,7 @@ unitsquare = asyPath()
 # ..(1,1).. controls (0.666667,1) and (0.333333,1)
 # ..(0,1).. controls (0,0.666667) and (0,0.333333)
 # ..cycle
-unitsquare.initFromControls([(0,0),(1,0),(1,1),(0,1),'cycle'],[[(0.333333,0),(0.666667,0)],[(1,0.333333),(1,0.666667)],[(0.666667,1),(0.333333,1)],[(0,0.666667),(0,0.333333)]])
+unitsquare.initFromControls([(0,0),(1,0),(1,1),(0,1),'cycle'],[[(1.0/3.0,0),(2.0/3.0,0)],[(1,1.0/3.0),(1,2.0/3.0)],[(2.0/3.0,1),(1.0/3.0,1)],[(0,2.0/3.0),(0,1.0/3.0)]])
 
 class asyLabel(asyObj):
   """A python wrapper for an asy label"""
