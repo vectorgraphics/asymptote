@@ -10,6 +10,7 @@
 #include "drawlabel.h"
 #include "settings.h"
 #include "util.h"
+#include "lexical.h"
 
 using namespace settings;
 
@@ -67,7 +68,7 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, const char **abort,
   tex << "\\showthe\\wd\\ASYbox\n";
   tex >> texbuf;
   if(texbuf[0] == '>' && texbuf[1] == ' ')
-    width=atof(texbuf.c_str()+2)*tex2ps;
+    width=lexical::cast<double>(texbuf.c_str()+2,true)*tex2ps;
   else reportError("Cannot read label width");
   tex << "\n";
   wait(tex,"\n*",abort);
@@ -75,7 +76,7 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, const char **abort,
   tex << "\\showthe\\ht\\ASYbox\n";
   tex >> texbuf;
   if(texbuf[0] == '>' && texbuf[1] == ' ')
-    height=atof(texbuf.c_str()+2)*tex2ps;
+    height=lexical::cast<double>(texbuf.c_str()+2,true)*tex2ps;
   else reportError("Cannot read label height");
   tex << "\n";
   wait(tex,"\n*",abort);
@@ -83,7 +84,7 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, const char **abort,
   tex << "\\showthe\\dp\\ASYbox\n";
   tex >> texbuf;
   if(texbuf[0] == '>' && texbuf[1] == ' ')
-    depth=atof(texbuf.c_str()+2)*tex2ps;
+    depth=lexical::cast<double>(texbuf.c_str()+2,true)*tex2ps;
   else reportError("Cannot read label depth");
   tex << "\n";
   wait(tex,"\n*",abort);
