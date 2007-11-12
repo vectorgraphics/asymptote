@@ -61,7 +61,7 @@ class rotationAction(UndoRedoStack.action):
       for index in self.indexList[i]:
         self.owner.rotateSomething(-1,self.angle,self.origin,self.itemList[i],index)
     for item in self.itemList:
-      item.drawOnCanvas(self.owner.mainCanvas)
+      item.drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
       self.owner.bindItemEvents(item)
     self.owner.updateSelection()
     self.owner.updateCanvasSize()
@@ -71,7 +71,7 @@ class rotationAction(UndoRedoStack.action):
       for index in self.indexList[i]:
         self.owner.rotateSomething(-1,-self.angle,self.origin,self.itemList[i],index)
     for item in self.itemList:
-      item.drawOnCanvas(self.owner.mainCanvas)
+      item.drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
       self.owner.bindItemEvents(item)
     self.owner.updateSelection()
     self.owner.updateCanvasSize()
@@ -87,7 +87,7 @@ class addLabelAction(UndoRedoStack.action):
 
   def addF(self):
     self.owner.addItemToFile(self.label)
-    self.label.drawOnCanvas(self.owner.mainCanvas)
+    self.label.drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
     self.owner.bindItemEvents(self.label)
 
   def unAddF(self):
@@ -113,7 +113,7 @@ class deleteLabelAction(UndoRedoStack.action):
 
   def unDelF(self):
     self.owner.fileItems.insert(self.index,self.label)
-    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas)
+    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
     self.owner.propList.insert(len(self.owner.fileItems)-self.index-1,self.owner.describeItem(self.label))
     self.owner.bindItemEvents(self.label)
 
@@ -130,12 +130,12 @@ class editLabelTextAction(UndoRedoStack.action):
 
   def modT(self):
     self.label.label.setText(self.newText)
-    self.label.drawOnCanvas(self.owner.mainCanvas)
+    self.label.drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
     self.owner.bindItemEvents(self.label)
 
   def unModT(self):
     self.label.label.setText(self.oldText)
-    self.label.drawOnCanvas(self.owner.mainCanvas)
+    self.label.drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
     self.owner.bindItemEvents(self.label)
 
   def __str__(self):
@@ -152,13 +152,13 @@ class editLabelPenAction(UndoRedoStack.action):
   def editF(self):
     self.owner.fileItems[self.index].removeFromCanvas()
     self.owner.fileItems[self.index].label.pen = self.newPen
-    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas)
+    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
     self.owner.bindItemEvents(self.owner.fileItems[self.index])
 
   def unEditF(self):
     self.owner.fileItems[self.index].removeFromCanvas()
     self.owner.fileItems[self.index].label.pen = self.oldPen
-    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas)
+    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
     self.owner.bindItemEvents(self.owner.fileItems[self.index])
 
   def __str__(self):
@@ -172,7 +172,7 @@ class addScriptAction(UndoRedoStack.action):
 
   def addF(self):
     self.owner.addItemToFile(self.script)
-    self.script.drawOnCanvas(self.owner.mainCanvas)
+    self.script.drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
     self.owner.bindItemEvents(self.script)
 
   def unAddF(self):
@@ -198,7 +198,7 @@ class deleteScriptAction(UndoRedoStack.action):
 
   def unDelF(self):
     self.owner.fileItems.insert(self.index,self.script)
-    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas)
+    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
     self.owner.propList.insert(len(self.owner.fileItems)-self.index-1,self.owner.describeItem(self.script))
     self.owner.bindItemEvents(self.script)
   
@@ -220,7 +220,7 @@ class deleteScriptItemAction(UndoRedoStack.action):
   def unDelI(self):
     for i in range(len(self.indices)):
       self.script.transform[self.indices[i]] = self.oldTransforms[i]
-    self.script.drawOnCanvas(self.owner.mainCanvas)
+    self.script.drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
 
   def __str__(self):
     return "Deletion of item "+str(self.indices)+" in "+str(self.script)
@@ -235,12 +235,12 @@ class editScriptAction(UndoRedoStack.action):
 
   def modS(self):
     self.script.setScript(self.newText)
-    self.script.drawOnCanvas(self.owner.mainCanvas)
+    self.script.drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
     self.owner.bindItemEvents(self.script)
 
   def unModS(self):
     self.script.setScript(self.oldText)
-    self.script.drawOnCanvas(self.owner.mainCanvas)
+    self.script.drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
     self.owner.bindItemEvents(self.script)
 
   def __str__(self):
@@ -254,20 +254,14 @@ class clearItemTransformsAction(UndoRedoStack.action):
     UndoRedoStack.action.__init__(self,self.clearF,self.unClearF)
 
   def clearF(self):
-    try:
-      for i in range(len(self.oldTransforms)):
-        self.item.transform[i] = xasy2asy.identity
-    except:
-      self.item.transform = xasy2asy.identity
-    self.item.drawOnCanvas(self.owner.mainCanvas)
+    for i in range(len(self.oldTransforms)):
+      self.item.transform[i] = xasy2asy.identity
+    self.item.drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
 
   def unClearF(self):
-    try:
-      for i in range(len(self.oldTransforms)):
-        self.item.transform[i] = self.oldTransforms[i]
-    except:
-      self.item.transform = self.oldTransforms
-    self.item.drawOnCanvas(self.owner.mainCanvas)
+    for i in range(len(self.oldTransforms)):
+      self.item.transform[i] = self.oldTransforms[i]
+    self.item.drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
 
   def __str__(self):
     return "Clear the transforms of "+str(self.item)+" from "+str(self.oldTransforms)
@@ -324,7 +318,7 @@ class addDrawnItemAction(UndoRedoStack.action):
 
   def drawF(self):
     self.owner.addItemToFile(self.item)
-    self.item.drawOnCanvas(self.owner.mainCanvas,forceAddition=True)
+    self.item.drawOnCanvas(self.owner.mainCanvas,self.owner.magnification,forceAddition=True)
     self.owner.bindItemEvents(self.item)
 
   def unDrawF(self):
@@ -350,7 +344,7 @@ class deleteDrawnItemAction(UndoRedoStack.action):
 
   def unDelF(self):
     self.owner.fileItems.insert(self.index,self.item)
-    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas,forceAddition=True)
+    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas,self.owner.magnification,forceAddition=True)
     self.owner.propList.insert(len(self.owner.fileItems)-self.index-1,self.owner.describeItem(self.item))
     self.owner.bindItemEvents(self.item)
 
@@ -371,7 +365,7 @@ class editDrawnItemAction(UndoRedoStack.action):
     self.owner.fileItems[self.index].pen = self.newItem.pen
     self.owner.fileItems[self.index].transform = self.newItem.transform
     self.owner.fileItems[self.index].IDTag = self.newItem.IDTag
-    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas,forceAddition=True)
+    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas,self.owner.magnification,forceAddition=True)
     self.owner.bindItemEvents(self.owner.fileItems[self.index])
 
   def unEditF(self):
@@ -380,7 +374,7 @@ class editDrawnItemAction(UndoRedoStack.action):
     self.owner.fileItems[self.index].pen = self.oldItem.pen
     self.owner.fileItems[self.index].transform = self.oldItem.transform
     self.owner.fileItems[self.index].IDTag = self.oldItem.IDTag
-    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas,forceAddition=True)
+    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas,self.owner.magnification,forceAddition=True)
     self.owner.bindItemEvents(self.owner.fileItems[self.index])
 
   def __str__(self):

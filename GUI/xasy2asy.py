@@ -44,6 +44,7 @@ def startQuickAsy():
   try:
     quickAsyFailed = False
     quickAsy = Popen([xasyOptions.options['asyPath']]+split("-noV -multiline -interactive"),stdin=PIPE,stdout=PIPE,stderr=STDOUT)
+    quickAsy.stdin.write("settings.xformat;\n")
     if quickAsy.returncode != None:
       quickAsyFailed = True
   except:
@@ -85,6 +86,10 @@ class asyTransform:
     """Obtain the asy code that represents this transform"""
     return str(self.t)
 
+  def scale(self,s):
+    #return asyTransform((s*self.t[0],s*self.t[1],s*self.t[2],s*self.t[3],s*self.t[4],s*self.t[5]))
+    return asyTransform((0,0,s,0,0,s))*self
+
   def __str__(self):
     """Equivalent functionality to getCode(). It allows the expression str(asyTransform) to be meaningful."""
     return self.getCode()
@@ -119,7 +124,7 @@ class asyObj:
     """Initialize the object"""
     self.asyCode = ""
 
-  def updateCode(self):
+  def updateCode(self,mag=1.0):
     """Update the object's code: should be overriden."""
     pass
 
@@ -140,7 +145,7 @@ class asyPen(asyObj):
     if options != "":
       self.computeColor()
 
-  def updateCode(self):
+  def updateCode(self,mag=1.0):
     """Generate the pen's code"""
     self.asyCode = "rgb(%g,%g,%g)"%self.color+"+"+str(self.width)
     if len(self.options) > 0:
@@ -238,7 +243,7 @@ class asyPath(asyObj):
     else:
       return "("+str(node[0])+","+str(node[1])+")"
 
-  def updateCode(self):
+  def updateCode(self,mag=1.0):
     """Generate the code describing the path"""
     if not self.computed:
       count = 0
@@ -360,7 +365,7 @@ class asyLabel(asyObj):
     self.location = location
     self.pen = pen
 
-  def updateCode(self):
+  def updateCode(self,mag=1.0):
     """Generate the code describing the label"""
     self.asyCode = "Label(\""+self.text+"\","+str((self.location[0],self.location[1]))+","+self.pen.getCode()+",align=SE)"
 
@@ -390,14 +395,14 @@ class xasyItem:
   """A base class for items in the xasy GUI"""
   def __init__(self,canvas=None):
     """Initialize the item to an empty item"""
-    self.transform = identity
+    self.transform = [identity]
     self.asyCode = ""
     self.imageList = []
     self.IDTag = None
     self.asyfied = False
     self.onCanvas = canvas
 
-  def updateCode(self):
+  def updateCode(self,mag=1.0):
     """Update the item's code: to be overriden"""
     pass
 
@@ -426,7 +431,7 @@ class xasyItem:
       self.imageList[-1].IDTag = self.onCanvas.create_image(bbox[0],-bbox[3],anchor=NW,tags=("image"),image=self.imageList[-1].itk)
       self.onCanvas.update()
 
-  def asyfy(self):
+  def asyfy(self,mag=1.0):
     """Convert the item to a list of images by deconstructing this item's code"""
     self.removeFromCanvas()
     self.imageList = []
@@ -438,7 +443,7 @@ class xasyItem:
       quickAsy.stdin.write(line+"\n");
     quickAsy.stdin.flush()
     syncQuickAsyOutput();
-    quickAsy.stdin.write("deconstruct();\n")
+    quickAsy.stdin.write("deconstruct(%f);\n"%mag)
     quickAsy.stdin.flush()
     magnification = split(quickAsy.stdout.readline())[1]
     format = split(quickAsy.stdout.readline())[0]
@@ -454,7 +459,8 @@ class xasyItem:
       l,b,r,t = [float(a) for a in split(boxes[i-1])]
       self.handleImageReception(".out%d.%s"%(i,format),format,(l,b,r,t),i)
     self.asyfied = True
-  def drawOnCanvas(self,canvas):
+
+  def drawOnCanvas(self,canvas,mag,forceAddition=False):
     pass
   def removeFromCanvas(self):
     pass
@@ -466,7 +472,7 @@ class xasyDrawnItem(xasyItem):
     xasyItem.__init__(self)
     self.path = path
     self.pen = pen
-    self.transform = transform
+    self.transform = [transform]
 
   def appendPoint(self,point,link=None):
     """Append a point to the path. If the path is cyclic, add this point before the 'cycle' node."""
@@ -481,7 +487,7 @@ class xasyDrawnItem(xasyItem):
 
   def clearTransform(self):
     """Reset the item's transform"""
-    self.transform = identity
+    self.transform = [identity]
 
   def removeLastPoint(self):
     """Remove the last point in the path. If the path is cyclic, remove the node before the 'cycle' node."""
@@ -506,9 +512,9 @@ class xasyShape(xasyDrawnItem):
     """Initialize the shape with a path, pen, and transform"""
     xasyDrawnItem.__init__(self,path,pen,transform)
 
-  def updateCode(self):
+  def updateCode(self,mag=1.0):
     """Generate the code to describe this shape"""
-    self.asyCode = "xformStack.push("+self.transform.getCode()+");\n"
+    self.asyCode = "xformStack.push("+self.transform[0].scale(mag).getCode()+");\n"
     self.asyCode += "draw("+self.path.getCode()+","+self.pen.getCode()+");"
 
   def removeFromCanvas(self,canvas):
@@ -516,14 +522,14 @@ class xasyShape(xasyDrawnItem):
     if self.IDTag != None:
       canvas.delete(self.IDTag)
 
-  def drawOnCanvas(self,canvas,asyFy=False,forceAddition=False):
+  def drawOnCanvas(self,canvas,mag,asyFy=False,forceAddition=False):
     """Add this shape to a tk canvas"""
     if not asyFy:
       if self.IDTag == None or forceAddition:
         #add ourselves to the canvas
         self.path.computeControls()
-        self.IDTag = canvas.create_line(0,0,0,0,tags=("drawn","xasyShape"),fill=self.pen.tkColor(),width=self.pen.width)
-        self.drawOnCanvas(canvas)
+        self.IDTag = canvas.create_line(0,0,0,0,tags=("drawn","xasyShape"),fill=self.pen.tkColor(),width=self.pen.width*mag)
+        self.drawOnCanvas(canvas,mag)
       else:
         self.path.computeControls()
         pointSet = []
@@ -533,7 +539,7 @@ class xasyShape(xasyDrawnItem):
           pointSet = [0,0,0,0]
         elif len(self.path.nodeSet) == 1:
           if self.path.nodeSet[-1] != 'cycle':
-            p = self.transform*(self.path.nodeSet[0][0],self.path.nodeSet[0][1])
+            p = self.transform[0]*(self.path.nodeSet[0][0],self.path.nodeSet[0][1])
             pointSet = [p[0],-p[1],p[0],-p[1],p[0],-p[1]]
           else:
             pointSet = [0,0,0,0]
@@ -541,13 +547,14 @@ class xasyShape(xasyDrawnItem):
           for node in self.path.nodeSet[1:]:
             if node == 'cycle':
               node = self.path.nodeSet[0]
-            points = CubicBezier.makeBezier(self.transform*previousNode,self.transform*self.path.controlSet[nodeCount][0],self.transform*self.path.controlSet[nodeCount][1],self.transform*node)
+            transform = self.transform[0].scale(mag)
+            points = CubicBezier.makeBezier(transform*previousNode,transform*self.path.controlSet[nodeCount][0],transform*self.path.controlSet[nodeCount][1],transform*node)
             for point in points:
               pointSet += [point[0],-point[1]]
             nodeCount += 1
             previousNode = node
         canvas.coords(self.IDTag,*pointSet)
-        canvas.itemconfigure(self.IDTag,fill=self.pen.tkColor(),width=self.pen.width)
+        canvas.itemconfigure(self.IDTag,fill=self.pen.tkColor(),width=self.pen.width*mag)
     else:
       #first asyfy then add an image list
       pass
@@ -564,9 +571,9 @@ class xasyFilledShape(xasyShape):
       raise Exception,"Filled paths must be cyclic"
     xasyShape.__init__(self,path,pen,transform)
 
-  def updateCode(self):
+  def updateCode(self,mag=1.0):
     """Generate the code describing this shape"""
-    self.asyCode = "xformStack.push("+self.transform.getCode()+");\n"
+    self.asyCode = "xformStack.push("+self.transform[0].scale(mag).getCode()+");\n"
     self.asyCode += "fill("+self.path.getCode()+","+self.pen.getCode()+");"
 
   def removeFromCanvas(self,canvas):
@@ -574,14 +581,14 @@ class xasyFilledShape(xasyShape):
     if self.IDTag != None:
       canvas.delete(self.IDTag)
 
-  def drawOnCanvas(self,canvas,asyFy=False,forceAddition=False):
+  def drawOnCanvas(self,canvas,mag,asyFy=False,forceAddition=False):
     """Add this shape to a tk canvas"""
     if not asyFy:
       if self.IDTag == None or forceAddition:
         #add ourselves to the canvas
         self.path.computeControls()
-        self.IDTag = canvas.create_polygon(0,0,0,0,0,0,tags=("drawn","xasyFilledShape"),fill=self.pen.tkColor(),outline=self.pen.tkColor(),width=1)
-        self.drawOnCanvas(canvas)
+        self.IDTag = canvas.create_polygon(0,0,0,0,0,0,tags=("drawn","xasyFilledShape"),fill=self.pen.tkColor(),outline=self.pen.tkColor(),width=1*mag)
+        self.drawOnCanvas(canvas,mag)
       else:
         self.path.computeControls()
         pointSet = []
@@ -591,14 +598,14 @@ class xasyFilledShape(xasyShape):
           pointSet = [0,0,0,0,0,0]
         elif len(self.path.nodeSet) == 1:
           if self.path.nodeSet[-1] != 'cycle':
-            p = self.transform*(self.path.nodeSet[0][0],self.path.nodeSet[0][1])
+            p = self.transform[0]*(self.path.nodeSet[0][0],self.path.nodeSet[0][1])
             pointSet = [p[0],-p[1],p[0],-p[1],p[0],-p[1]]
           else:
             pointSet = [0,0,0,0,0,0]
         elif len(self.path.nodeSet) == 2:
           if self.path.nodeSet[-1] != 'cycle':
-            p = self.transform*(self.path.nodeSet[0][0],self.path.nodeSet[0][1])
-            p2 = self.transform*(self.path.nodeSet[1][0],self.path.nodeSet[1][1])
+            p = self.transform[0].scale(mag)*(self.path.nodeSet[0][0],self.path.nodeSet[0][1])
+            p2 = self.transform[0].scale(mag)*(self.path.nodeSet[1][0],self.path.nodeSet[1][1])
             pointSet = [p[0],-p[1],p2[0],-p2[1],p[0],-p[1]]
           else:
             pointSet = [0,0,0,0,0,0]
@@ -606,13 +613,14 @@ class xasyFilledShape(xasyShape):
           for node in self.path.nodeSet[1:]:
             if node == 'cycle':
               node = self.path.nodeSet[0]
-            points = CubicBezier.makeBezier(self.transform*previousNode,self.transform*self.path.controlSet[nodeCount][0],self.transform*self.path.controlSet[nodeCount][1],self.transform*node)
+            transform = self.transform[0].scale(mag)
+            points = CubicBezier.makeBezier(transform*previousNode,transform*self.path.controlSet[nodeCount][0],transform*self.path.controlSet[nodeCount][1],transform*node)
             for point in points:
               pointSet += [point[0],-point[1]]
             nodeCount += 1
             previousNode = node
         canvas.coords(self.IDTag,*pointSet)
-        canvas.itemconfigure(self.IDTag,fill=self.pen.tkColor(),outline=self.pen.tkColor(),width=1)
+        canvas.itemconfigure(self.IDTag,fill=self.pen.tkColor(),outline=self.pen.tkColor(),width=1*mag)
     else:
       #first asyfy then add an image list
       pass
@@ -630,9 +638,9 @@ class xasyText(xasyItem):
     self.transform = [transform]
     self.onCanvas = None
 
-  def updateCode(self):
+  def updateCode(self,mag=1.0):
     """Generate the code describing this object"""
-    self.asyCode = "xformStack.push("+self.transform[0].getCode()+");\n"
+    self.asyCode = "xformStack.push("+self.transform[0].scale(mag).getCode()+");\n"
     self.asyCode += "label("+self.label.getCode()+");"
 
   def removeFromCanvas(self):
@@ -643,13 +651,13 @@ class xasyText(xasyItem):
       if image.IDTag != None:
         self.onCanvas.delete(image.IDTag)
 
-  def drawOnCanvas(self,canvas,asyFy = True):
+  def drawOnCanvas(self,canvas,mag,asyFy=True,forceAddition=False):
     """Adds the label's images to a tk canvas"""
     if self.onCanvas == None:
       self.onCanvas = canvas
     elif self.onCanvas != canvas:
       raise Exception,"Error: item cannot be added to more than one canvas"
-    self.asyfy()
+    self.asyfy(mag)
 
   def __str__(self):
     return "xasyText code:%s"%("\n\t".join(self.getCode().splitlines()))
@@ -666,7 +674,7 @@ class xasyScript(xasyItem):
     """Reset the transforms for each of the deconstructed images""" 
     self.transform = [identity for im in self.imageList]
 
-  def updateCode(self):
+  def updateCode(self,mag=1.0):
     """Generate the code describing this script"""
     self.asyCode = "";
     if len(self.transform) > 0:
@@ -676,7 +684,7 @@ class xasyScript(xasyItem):
       for xform in self.transform:
         if not isFirst:
           self.asyCode+=",\n"
-        self.asyCode += "indexedTransform(%d,%s)"%(count,str(xform))
+        self.asyCode += "indexedTransform(%d,%s)"%(count,str(xform.scale(mag)))
         isFirst = False
         count += 1
       self.asyCode += ");\n"
@@ -686,9 +694,9 @@ class xasyScript(xasyItem):
     self.asyCode += "\n} endScript();\n"
 
   def setScript(self,script):
-    """Sets the content of the script item. If the imageList is enlarged, identities are added; if the list is shrunk, transforms are removed."""
+    """Sets the content of the script item."""
     self.script = script
-    self.updateCode()
+    self.updateCode(mag)
 
   def removeFromCanvas(self):
     """Removes the script's images from a tk canvas"""
@@ -698,21 +706,22 @@ class xasyScript(xasyItem):
       if image.IDTag != None:
         self.onCanvas.delete(image.IDTag)
 
-  def asyfy(self):
-    xasyItem.asyfy(self)
+  def asyfy(self,mag):
+    """Generate the list of images described by this object and adjust the length of the transform list."""
+    xasyItem.asyfy(self,mag)
     while len(self.imageList) > len(self.transform):
       self.transform.append(identity)
     while len(self.imageList) < len(self.transform):
       self.transform.pop()
-    self.updateCode()
+    self.updateCode(mag)
 
-  def drawOnCanvas(self,canvas,asyFy = True):
+  def drawOnCanvas(self,canvas,mag,asyFy=True,forceAddition=False):
     """Adds the script's images to a tk canvas"""
     if self.onCanvas == None:
       self.onCanvas = canvas
     elif self.onCanvas != canvas:
       raise Exception,"Error: item cannot be added to more than one canvas"
-    self.asyfy()
+    self.asyfy(mag)
 
   def __str__(self):
     """Return a string describing this script"""

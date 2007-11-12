@@ -9,13 +9,25 @@
 #
 ############################################################################
 
-import sys
+import getopt,sys
 from Tkinter import *
 import xasyMainWin
 
 root = Tk()
-if len(sys.argv)>1:
-  app = xasyMainWin.xasyMainWin(root,sys.argv[1])
+mag = 1.0
+try:
+  opts,args = getopt.getopt(sys.argv[1:],"x:")
+  if(len(opts)>=1):
+    mag = float(opts[0][1])
+except:
+  print "Invalid arguments."
+  print "Usage: xasy.py [-x magnification] [filename]"
+  sys.exit(1)
+if(mag <= 0.0):
+  print "Magnification must be positive."
+  sys.exit(1)
+if(len(args)>=1):
+  app = xasyMainWin.xasyMainWin(root,args[0],mag)
 else:
-  app = xasyMainWin.xasyMainWin(root)
+  app = xasyMainWin.xasyMainWin(root,magnification=mag)
 root.mainloop()

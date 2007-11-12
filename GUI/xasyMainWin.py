@@ -15,6 +15,7 @@ from string import *
 import subprocess
 import math
 import copy
+import threading
 
 from Tkinter import *
 import tkMessageBox
@@ -45,8 +46,11 @@ except:
   PILAvailable = False
 
 class xasyMainWin:
-  def __init__(self,master,file=None):
+  def __init__(self,master,file=None,magnification=1.0):
+    self.opLock = threading.Lock()
     self.parent = master
+    self.magnification = magnification
+    self.magList = [0.1,0.25,1.0/3,0.5,1,2,3,4,5,10]
     self.bindGlobalEvents()
     self.createWidgets()
     self.resetGUI()
@@ -59,11 +63,32 @@ class xasyMainWin:
     self.ticker = threading.Thread(target=self.tickHandler)
     self.ticker.start()
 
+  def testOrAcquireLock(self):
+    val = self.opLock.acquire(False)
+    if val:
+      self.closeDisplayLock()
+    return val
+
+  def acquireLock(self):
+    self.closeDisplayLock()
+    self.opLock.acquire()
+
+  def releaseLock(self):
+    self.opLock.release()
+    self.openDisplayLock()
+
   def tickHandler(self):
     while not(self.quitting):
       self.tickCount += 1
       self.mainCanvas.itemconfigure("outlineBox",dashoffset=self.tickCount%9)
       time.sleep(0.1)
+
+  def closeDisplayLock(self):
+    self.status.config(text="Busy")
+    self.parent.update_idletasks()
+
+  def openDisplayLock(self):
+    self.status.config(text="Ready")
 
   def bindGlobalEvents(self):
     #global bindings
@@ -149,15 +174,17 @@ class xasyMainWin:
     #status bar
     self.statusBar = Frame(self.parent,relief=FLAT)
 
-    #Label(self.statusBar,text="+").pack(side=RIGHT)
-    #self.zoomBar = Scale(self.statusBar,orient=HORIZONTAL,length=150,width=10,from_=-5,to=5,command=self.zoomViewCmd,showvalue=False,state=DISABLED,relief=FLAT)
-    #self.zoomBar.pack(side=RIGHT,fill=X)
-    #Label(self.statusBar,text="Zoom: - ").pack(side=RIGHT)
+    Label(self.statusBar,text="+").pack(side=RIGHT)
+    self.zoomBar = Scale(self.statusBar,orient=HORIZONTAL,length=150,width=10,from_=0,to=len(self.magList)-1,command=self.zoomViewCmd,showvalue=False,relief=FLAT)
+    diffs = [abs(i-self.magnification) for i in self.magList]
+    self.zoomBar.set(diffs.index(min(diffs)))
+    self.zoomBar.pack(side=RIGHT,fill=X)
+    self.zoomLabel = Label(self.statusBar,text="Zoom:%d%% - "%int(self.magnification*100))
+    self.zoomLabel.pack(side=RIGHT)
     self.coords = Label(self.statusBar,text="(0,0)",relief=SUNKEN,anchor=W)
     self.coords.pack(side=RIGHT)
     self.status = Label(self.statusBar,text="Ready",relief=SUNKEN,anchor=W)
     self.status.pack(side=RIGHT,fill=X,expand=1)
-
     self.statusBar.pack(side=BOTTOM,fill=X)
 
     #toolbar for transformation, drawing, and adjustment commands
@@ -379,8 +406,6 @@ class xasyMainWin:
     self.quitting = False
     self.tickCount = 0
 
-    self.magnification = 1
-
     #setup undo/redo!
     self.undoRedoStack = actionStack()
     self.amDragging = False
@@ -425,14 +450,17 @@ class xasyMainWin:
     if not self.gridVisible:
       return
     left,top,right,bottom = map(int,self.mainCanvas.cget("scrollregion").split())
-    for i in range(0,right,self.gridxspace):
-      self.mainCanvas.create_line(i,top,i,bottom,tags=("grid","vertical"),fill=self.gridcolor)
-    for i in range(-self.gridxspace,left,-self.gridxspace):
-      self.mainCanvas.create_line(i,top,i,bottom,tags=("grid","vertical"),fill=self.gridcolor)
-    for i in range(-self.gridyspace,top,-self.gridyspace):
-      self.mainCanvas.create_line(left,i,right,i,tags=("grid","horizontal"),fill=self.gridcolor)
-    for i in range(0,bottom,self.gridyspace):
-      self.mainCanvas.create_line(left,i,right,i,tags=("grid","horizontal"),fill=self.gridcolor)
+    gridyspace = int(self.magnification*self.gridyspace)
+    gridxspace = int(self.magnification*self.gridxspace)
+    if gridxspace >= 3 and gridyspace >= 3:
+      for i in range(0,right,gridxspace):
+        self.mainCanvas.create_line(i,top,i,bottom,tags=("grid","vertical"),fill=self.gridcolor)
+      for i in range(-gridxspace,left,-gridxspace):
+        self.mainCanvas.create_line(i,top,i,bottom,tags=("grid","vertical"),fill=self.gridcolor)
+      for i in range(-gridyspace,top,-gridyspace):
+        self.mainCanvas.create_line(left,i,right,i,tags=("grid","horizontal"),fill=self.gridcolor)
+      for i in range(0,bottom,gridyspace):
+        self.mainCanvas.create_line(left,i,right,i,tags=("grid","horizontal"),fill=self.gridcolor)
     self.mainCanvas.tag_lower("grid")
 
   def drawAxes(self):
@@ -442,14 +470,17 @@ class xasyMainWin:
     left,top,right,bottom = map(int,self.mainCanvas.cget("scrollregion").split())
     self.mainCanvas.create_line(0,top,0,bottom,tags=("axes","yaxis"),fill=self.axiscolor)
     self.mainCanvas.create_line(left,0,right,0,tags=("axes","xaxis"),fill=self.axiscolor)
-    for i in range(10,right,10):
-      self.mainCanvas.create_line(i,-5,i,5,tags=("axes","xaxis-ticks"),fill=self.tickcolor)
-    for i in range(-10,left,-10):
-      self.mainCanvas.create_line(i,-5,i,5,tags=("axes","xaxis-ticks"),fill=self.tickcolor)
-    for i in range(-10,top,-10):
-      self.mainCanvas.create_line(-5,i,5,i,tags=("axes","yaxis-ticks"),fill=self.tickcolor)
-    for i in range(10,bottom,10):
-      self.mainCanvas.create_line(-5,i,5,i,tags=("axes","yaxis-ticks"),fill=self.tickcolor)
+    axisxspace = int(self.magnification*self.axisxspace)
+    axisyspace = int(self.magnification*self.axisyspace)
+    if axisxspace >= 3 and axisyspace >= 3:
+      for i in range(axisxspace,right,axisxspace):
+        self.mainCanvas.create_line(i,-5,i,5,tags=("axes","xaxis-ticks"),fill=self.tickcolor)
+      for i in range(-axisxspace,left,-axisxspace):
+        self.mainCanvas.create_line(i,-5,i,5,tags=("axes","xaxis-ticks"),fill=self.tickcolor)
+      for i in range(-axisyspace,top,-axisyspace):
+        self.mainCanvas.create_line(-5,i,5,i,tags=("axes","yaxis-ticks"),fill=self.tickcolor)
+      for i in range(axisyspace,bottom,axisyspace):
+        self.mainCanvas.create_line(-5,i,5,i,tags=("axes","yaxis-ticks"),fill=self.tickcolor)
     self.mainCanvas.tag_lower("axes")
 
   def updateCanvasSize(self,left=-200,top=-200,right=200,bottom=200):
@@ -562,11 +593,14 @@ class xasyMainWin:
     self.updateCanvasSize()
 
   def populateCanvasWithItems(self):
+    if(not self.testOrAcquireLock()):
+      return
     self.mainCanvas.delete("drawn || image")
     self.itemCount = 0
     for item in self.fileItems:
-      item.drawOnCanvas(self.mainCanvas);
+      item.drawOnCanvas(self.mainCanvas,self.magnification,forceAddition=True)
       self.bindItemEvents(item)
+    self.releaseLock()
 
   def propListCountItem(self,item):
     plist = self.propList.get(0,END)
@@ -693,9 +727,6 @@ class xasyMainWin:
   def editRedoCmd(self):
     self.redoOperation()
 
-  def toolsOptionsCmd(self):
-    print "Display options dialog"
-
   def helpHelpCmd(self):
     print "Get help on xasy"
 
@@ -762,7 +793,7 @@ class xasyMainWin:
     self.bindGlobalEvents()
     self.undoRedoStack.add(addScriptAction(self,self.fileItems[-1]))
     self.fileItems[-1].setScript(text)
-    self.fileItems[-1].drawOnCanvas(self.mainCanvas)
+    self.fileItems[-1].drawOnCanvas(self.mainCanvas,self.magnification)
     self.bindItemEvents(self.fileItems[-1])
   def toolRaiseCmd(self):
     if not self.inDrawingMode and self.editor == None:
@@ -835,8 +866,18 @@ class xasyMainWin:
 
   #event handlers
   def zoomViewCmd(self,where):
-    pass
     #print "Zooming the view!"
+    ###temporarily disabled until lock is implemented
+    #self.zoomBar.set(5)
+    #return
+    ###temporary
+    self.magnification = self.magList[int(where)]
+    self.zoomLabel.config(text="Zoom:%d%% - "%int(self.magnification*100))
+    self.populateCanvasWithItems()
+    self.updateCanvasSize()
+    self.updateSelection()
+    self.drawAxes()
+    self.drawGrid()
 
   def selectItem(self,item):
     self.clearSelection()
@@ -933,7 +974,7 @@ class xasyMainWin:
       bbox = item.imageList[index].originalImage.bbox
       item.imageList[index].originalImage.bbox = bbox[0]+translation[0],bbox[1]+translation[1],bbox[2]+translation[0],bbox[3]+translation[1]
     else:
-      item.transform = transform*item.transform
+      item.transform = [transform*item.transform[0]]
 
   def makeRotationMatrix(self,theta,origin):
     rotMat = (math.cos(theta),-math.sin(theta),math.sin(theta),math.cos(theta))
@@ -989,15 +1030,15 @@ class xasyMainWin:
       self.mainCanvas.coords(ID,oldBbox[0]+shift[0],oldBbox[3]+shift[1])
     else:
       #transform each point of the object
-      xform = rotMat*item.transform
-      item.transform = identity
+      xform = rotMat*item.transform[0]
+      item.transform = [identity]
       for i in range(len(item.path.nodeSet)):
         if item.path.nodeSet[i] != 'cycle':
           item.path.nodeSet[i] = xform*item.path.nodeSet[i]
       for i in range(len(item.path.controlSet)):
         item.path.controlSet[i][0] = xform*item.path.controlSet[i][0]
         item.path.controlSet[i][1] = xform*item.path.controlSet[i][1]
-      item.drawOnCanvas(self.mainCanvas)
+      item.drawOnCanvas(self.mainCanvas,self.magnification)
 
   def deleteItem(self,item):
     if isinstance(item,xasyScript) or isinstance(item,xasyText):
@@ -1046,14 +1087,14 @@ class xasyMainWin:
       if newText != oldText:
         self.undoRedoStack.add(editScriptAction(self,item,newText,oldText))
         item.setScript(newText)
-        item.drawOnCanvas(self.mainCanvas)
+        item.drawOnCanvas(self.mainCanvas,self.magnification)
         self.bindItemEvents(item)
     elif isinstance(item,xasyText):
       theText = tkSimpleDialog.askstring(title="Xasy - Text",prompt="Enter text to display:",initialvalue=item.label.text,parent=self.parent)
       if theText != None and theText != "":
         self.undoRedoStack.add(editLabelTextAction(self,item,theText,item.label.text))
         item.label.text = theText
-        item.drawOnCanvas(self.mainCanvas) 
+        item.drawOnCanvas(self.mainCanvas,self.magnification)
         self.bindItemEvents(item)
     elif isinstance(item,xasyShape):
       self.clearSelection()
@@ -1069,7 +1110,9 @@ class xasyMainWin:
       self.itemEdit(item)
 
   def itemDrag(self,event):
-    x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+    x0,y0 = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+    x = x0/self.magnification
+    y = y0/self.magnification
     if self.selectedButton not in [self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton]:
       return
     if "selectedItem" in self.mainCanvas.gettags(CURRENT):
@@ -1077,17 +1120,17 @@ class xasyMainWin:
       for ID in self.mainCanvas.find_withtag("selectedItem"):
         transform = identity
         if self.selectedButton == self.toolMoveButton:
-          translation = (x-self.dragStartx,-(y-self.dragStarty))
+          translation = (x0-self.dragStartx,-(y0-self.dragStarty))
         elif self.selectedButton == self.toolVertiMoveButton:
-          translation = (0,-(y-self.dragStarty))
+          translation = (0,-(y0-self.dragStarty))
         elif self.selectedButton == self.toolHorizMoveButton:
-          translation = (x-self.dragStartx,0)
-        self.translateSomething(ID,translation)
+          translation = (x0-self.dragStartx,0)
+        self.translateSomething(ID,(translation[0]/self.magnification,translation[1]/self.magnification))
         self.mainCanvas.move(ID,translation[0],-translation[1])
         self.updateSelection()
         self.updateCanvasSize()
       self.distanceDragged = (self.distanceDragged[0]+translation[0],self.distanceDragged[1]-translation[1])
-    self.dragStartx,self.dragStarty = x,y
+    self.dragStartx,self.dragStarty = x0,y0
 
   def itemMouseUp(self,event):
     self.freeMouseDown = True
@@ -1109,8 +1152,10 @@ class xasyMainWin:
       self.amDragging = False
 
   def itemSelect(self,event):
-    x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
-    self.dragStartx,self.dragStarty = x,y
+    x0,y0 = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+    x = x0/self.magnification
+    y = y0/self.magnification
+    self.dragStartx,self.dragStarty = x0,y0
     self.distanceDragged = (0,0)
     if self.selectedButton in [self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton,self.toolRotateButton]:
       self.freeMouseDown = False
@@ -1120,10 +1165,12 @@ class xasyMainWin:
 
   def itemToggleSelect(self,event):
     #print "control click"
-    x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+    x0,y0 = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+    x = x0/self.magnification
+    y = y0/self.magnification
     if self.selectedButton in [self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton,self.toolRotateButton]:
       self.freeMouseDown = False
-      self.dragStartx,self.dragStarty = x,y
+      self.dragStartx,self.dragStarty = x0,y0
       if "selectedItem" in self.mainCanvas.gettags(CURRENT):
         self.unSelect(CURRENT)
       else:
@@ -1184,7 +1231,9 @@ class xasyMainWin:
     pass
 
   def canvMotion(self,event):
-    self.coords.config(text=str((self.mainCanvas.canvasx(event.x),-self.mainCanvas.canvasy(event.y))))
+    self.coords.config(
+    text="(%.3f,%.3f)"%(self.mainCanvas.canvasx(event.x)/self.magnification,-self.mainCanvas.canvasy(event.y)/self.magnification)
+    )
 
   def addItemToFile(self,item):
     self.fileItems.append(item)
@@ -1192,7 +1241,9 @@ class xasyMainWin:
     self.updateCanvasSize()
 
   def startDraw(self,event):
-    x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+    x0,y0 = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+    x = x0/self.magnification
+    y = y0/self.magnification
     #self.mainCanvas.create_oval(x,y,x,y,width=5)
     if self.selectedButton == self.toolDrawEllipButton:
       pass
@@ -1202,7 +1253,7 @@ class xasyMainWin:
       theText = tkSimpleDialog.askstring(title="Xasy - Text",prompt="Enter text to display:",initialvalue="",parent=self.parent)
       if theText != None and theText != "":
         theItem = xasyText(theText,(x,-y),asyPen(self.penColor,self.penWidth,self.penOptions))
-        theItem.drawOnCanvas(self.mainCanvas)
+        theItem.drawOnCanvas(self.mainCanvas,self.magnification)
         self.bindItemEvents(theItem)
         self.addItemToFile(theItem)
         self.undoRedoStack.add(addLabelAction(self,theItem))
@@ -1235,22 +1286,26 @@ class xasyMainWin:
           else:
             options = "evenodd"
           self.itemBeingDrawn = xasyFilledShape(path,pen=asyPen(self.penColor,self.penWidth,options))
-        self.itemBeingDrawn.drawOnCanvas(self.mainCanvas)
+        self.itemBeingDrawn.drawOnCanvas(self.mainCanvas,self.magnification)
         self.bindItemEvents(self.itemBeingDrawn)
         self.mainCanvas.bind("<Motion>",self.extendDraw)
-      self.itemBeingDrawn.drawOnCanvas(self.mainCanvas)
+      self.itemBeingDrawn.drawOnCanvas(self.mainCanvas,self.magnification)
 
   def extendDraw(self,event):
-    x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+    x0,y0 = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+    x = x0/self.magnification
+    y = y0/self.magnification
     tags = self.mainCanvas.gettags("itemBeingDrawn")
     self.itemBeingDrawn.setLastPoint((x,-y))
-    self.itemBeingDrawn.drawOnCanvas(self.mainCanvas)
+    self.itemBeingDrawn.drawOnCanvas(self.mainCanvas,self.magnification)
     self.canvMotion(event)
 
   def endDraw(self,event):
     if not self.inDrawingMode or self.itemBeingDrawn == None:
       return
-    x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+    x0,y0 = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+    x = x0/self.magnification
+    y = y0/self.magnification
     #if self.selectedButton in [self.toolDrawLinesButton,self.toolDrawPolyButton,self.toolFillPolyButton]:
       #self.itemBeingDrawn.appendPoint((x,-y),'--')
     #else:
@@ -1260,7 +1315,7 @@ class xasyMainWin:
     #e.g.: single click: startDraw, double click: endDraw
     self.itemBeingDrawn.removeLastPoint()
     self.itemBeingDrawn.setLastPoint((x,-y))
-    self.itemBeingDrawn.drawOnCanvas(self.mainCanvas)
+    self.itemBeingDrawn.drawOnCanvas(self.mainCanvas,self.magnification)
     self.addItemToFile(self.itemBeingDrawn)
     self.undoRedoStack.add(addDrawnItemAction(self,self.itemBeingDrawn))
     self.itemBeingDrawn = None
@@ -1269,7 +1324,6 @@ class xasyMainWin:
     self.inDrawingMode = False
 
   def canvLeftDown(self,event):
-    x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
     #print "Left Mouse Down"
     self.selectDragStart = (self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y))
     theBbox = self.mainCanvas.bbox("selectedItem")
@@ -1292,7 +1346,7 @@ class xasyMainWin:
     self.freeMouseDown = True
     if self.inRotatingMode:
       for item in self.itemsBeingRotated:
-        item.drawOnCanvas(self.mainCanvas)
+        item.drawOnCanvas(self.mainCanvas,self.magnification)
         self.bindItemEvents(item)
       self.updateSelection()
       self.itemsBeingRotated = []
@@ -1312,9 +1366,11 @@ class xasyMainWin:
       self.updateSelection()
 
   def canvDrag(self,event):
-    x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+    x0,y0 = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+    x = x0/self.magnification
+    y = y0/self.magnification
     if self.selectedButton == self.toolSelectButton and self.editor == None:
-      self.mainCanvas.coords("outlineBox",self.selectDragStart[0],self.selectDragStart[1],x,y)
+      self.mainCanvas.coords("outlineBox",self.selectDragStart[0],self.selectDragStart[1],x0,y0)
       self.showSelectionBox()
       self.dragSelecting = True
     elif self.selectedButton == self.toolRotateButton and self.editor == None:
@@ -1322,7 +1378,7 @@ class xasyMainWin:
       if bbox != None:
         p1 = self.selectDragStart[0]-self.selectBboxMidpoint[0],-self.selectDragStart[1]-self.selectBboxMidpoint[1]
         mp1 = math.sqrt(p1[0]**2+p1[1]**2)
-        p2 = x-self.selectBboxMidpoint[0],-y-self.selectBboxMidpoint[1]
+        p2 = x0-self.selectBboxMidpoint[0],-y0-self.selectBboxMidpoint[1]
         mp2 = math.sqrt(p2[0]**2+p2[1]**2)
         if mp1 != 0:
           t1 = math.acos(p1[0]/mp1)
@@ -1337,7 +1393,7 @@ class xasyMainWin:
         else:
           t2 = 0
         theta = t2-t1
-        self.selectDragStart = x,y
+        self.selectDragStart = x0,y0
         self.itemsBeingRotated = []
         for ID in self.mainCanvas.find_withtag("selectedItem"):
           self.rotateSomething(ID,theta,self.selectBboxMidpoint)
@@ -1414,13 +1470,13 @@ class xasyMainWin:
       for i in range(len(self.itemPopupMenu.item.transform)):
         self.itemPopupMenu.item.transform[i] = identity
     else:
-      self.itemPopupMenu.item.transform = identity
+      self.itemPopupMenu.item.transform = [identity]
     self.popupRedrawItem()
 
   def popupRedrawItem(self):
     self.clearSelection()
     self.clearHighlight()
-    self.itemPopupMenu.item.drawOnCanvas(self.mainCanvas)
+    self.itemPopupMenu.item.drawOnCanvas(self.mainCanvas,self.magnification)
     self.bindItemEvents(self.itemPopupMenu.item)
     self.updateCanvasSize()
 
@@ -1508,14 +1564,14 @@ class xasyMainWin:
         if isinstance(item,xasyText):
           temp = item.label.pen
           item.label.pen = asyPen(self.penColor,self.penWidth,self.penOptions)
-          item.drawOnCanvas(self.mainCanvas)
+          item.drawOnCanvas(self.mainCanvas,self.magnification)
           self.bindItemEvents(item)
           self.setSelection(item.imageList[0].IDTag)
           self.undoRedoStack.add(editLabelPenAction(self,temp,asyPen(self.penColor,self.penWidth,self.penOptions),self.fileItems.index(item)))
         else:
           temp = copy.deepcopy(item)
           item.pen = asyPen(self.penColor,self.penWidth,self.penOptions)
-          item.drawOnCanvas(self.mainCanvas)
+          item.drawOnCanvas(self.mainCanvas,self.magnification)
           self.undoRedoStack.add(editDrawnItemAction(self,temp,copy.deepcopy(item),self.fileItems.index(item)))
     if madeAChange:
       self.undoRedoStack.add(beginActionGroup)
