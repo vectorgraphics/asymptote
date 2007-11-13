@@ -498,7 +498,7 @@ class xasyShape(xasyDrawnItem):
 
   def updateCode(self,mag=1.0):
     """Generate the code to describe this shape"""
-    self.asyCode = "xformStack.push("+self.transform[0].scale(mag).getCode()+");\n"
+    self.asyCode = "xformStack.push("+self.transform[0].getCode()+");\n"
     self.asyCode += "draw("+self.path.getCode()+","+self.pen.getCode()+");"
 
   def removeFromCanvas(self,canvas):
@@ -557,7 +557,7 @@ class xasyFilledShape(xasyShape):
 
   def updateCode(self,mag=1.0):
     """Generate the code describing this shape"""
-    self.asyCode = "xformStack.push("+self.transform[0].scale(mag).getCode()+");\n"
+    self.asyCode = "xformStack.push("+self.transform[0].getCode()+");\n"
     self.asyCode += "fill("+self.path.getCode()+","+self.pen.getCode()+");"
 
   def removeFromCanvas(self,canvas):
@@ -624,7 +624,7 @@ class xasyText(xasyItem):
 
   def updateCode(self,mag=1.0):
     """Generate the code describing this object"""
-    self.asyCode = "xformStack.push("+self.transform[0].scale(mag).getCode()+");\n"
+    self.asyCode = "xformStack.push("+self.transform[0].getCode()+");\n"
     self.asyCode += "label("+self.label.getCode()+");"
 
   def removeFromCanvas(self):
@@ -668,7 +668,7 @@ class xasyScript(xasyItem):
       for xform in self.transform:
         if not isFirst:
           self.asyCode+=",\n"
-        self.asyCode += "indexedTransform(%d,%s)"%(count,str(xform.scale(mag)))
+        self.asyCode += "indexedTransform(%d,%s)"%(count,str(xform))
         isFirst = False
         count += 1
       self.asyCode += ");\n"

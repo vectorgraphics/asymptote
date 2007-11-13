@@ -983,7 +983,7 @@ class xasyMainWin:
 
   def rotateSomething(self,ID,theta,origin,specificItem=None,specificIndex=None):
     #print "Rotating by",theta*180.0/math.pi,"around",origin
-    rotMat = self.makeRotationMatrix(theta,origin)
+    rotMat = self.makeRotationMatrix(theta,(origin[0]/self.magnification,origin[1]/self.magnification))
     #print rotMat
     if ID == -1:
       item = specificItem
