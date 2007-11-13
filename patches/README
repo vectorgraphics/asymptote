@@ -15,5 +15,7 @@ prototype in the file gc6.8/include/gc.h (version 6.8).
 The file gc-7.0nomem.patch avoids segmentation faults with gc-7.0 on
 out-of-memory errors.
 
-The file TkAlpha-Imaging-1.1.6.patch fixes transparency support in the PIL for
-improved functionality in xasy. It is based on Con Radchenko's post at http://www.nabble.com/Patch:-alpha-channel-support-for-ImageTk-t3302615.html.
+The file TkAlpha-Imaging-1.1.6.patch is a revised patch that fixes
+transparency support in PIL for xasy (this supercedes an obsolete patch
+of the same name included in Asymptote 1.36, which resulted in very slow
+rendering). Application of this patch is strongly recommended.
