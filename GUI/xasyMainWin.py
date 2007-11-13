@@ -50,6 +50,7 @@ class xasyMainWin:
     self.opLock = threading.Lock()
     self.parent = master
     self.magnification = magnification
+    self.previousZoom = self.magnification
     self.magList = [0.1,0.25,1.0/3,0.5,1,2,3,4,5,10]
     self.bindGlobalEvents()
     self.createWidgets()
@@ -873,11 +874,13 @@ class xasyMainWin:
     ###temporary
     self.magnification = self.magList[int(where)]
     self.zoomLabel.config(text="Zoom:%d%% - "%int(self.magnification*100))
-    self.populateCanvasWithItems()
-    self.updateCanvasSize()
-    self.updateSelection()
-    self.drawAxes()
-    self.drawGrid()
+    if self.magnification != self.previousZoom:
+      self.populateCanvasWithItems()
+      self.updateCanvasSize()
+      self.updateSelection()
+      self.drawAxes()
+      self.drawGrid()
+      self.previousZoom = self.magnification
 
   def selectItem(self,item):
     self.clearSelection()
