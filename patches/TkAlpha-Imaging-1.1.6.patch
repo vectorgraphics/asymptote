@@ -1,6 +1,6 @@
 diff -ru Imaging-1.1.6/Tk/tkImaging.c Imaging-1.1.6J/Tk/tkImaging.c
 --- Imaging-1.1.6/Tk/tkImaging.c	2006-12-03 04:37:29.000000000 -0700
-+++ Imaging-1.1.6J/Tk/tkImaging.c	2007-11-13 00:56:48.000000000 -0700
++++ Imaging-1.1.6J/Tk/tkImaging.c	2007-11-13 19:58:17.000000000 -0700
 @@ -48,6 +48,9 @@
     for the Tcl_CreateCommand command. */
  #define USE_COMPAT_CONST
@@ -11,28 +11,64 @@ diff -ru Imaging-1.1.6/Tk/tkImaging.c Imaging-1.1.6J/Tk/tkImaging.c
  #include "tk.h"
  
  #include "Imaging.h"
-@@ -146,9 +149,6 @@
+@@ -117,6 +120,12 @@
+ 
+     /* Mode */
+ 
++#ifndef MAX_DEALIAS_AREA    
++#define MAX_DEALIAS_AREA 10000;
++#endif      
++    
++    int renderalpha=im->xsize*im->ysize < MAX_DEALIAS_AREA;
++    
+     if (strcmp(im->mode, "1") == 0 || strcmp(im->mode, "L") == 0) {
+ 	block.pixelSize = 1;
+ 	block.offset[0] = block.offset[1] = block.offset[2] = 0;
+@@ -125,7 +134,10 @@
+ 	block.offset[0] = 0;
+ 	block.offset[1] = 1;
+ 	block.offset[2] = 2;
+-	block.offset[3] = 0; /* no alpha (or reserved, under 8.2) */
++	if(renderalpha && strcmp(im->mode,"RGBA") == 0)
++	block.offset[3] = 3; /* alpha (or reserved, under 8.2) */
++	else
++	block.offset[3] = 0; /* no alpha */
+     } else {
+         Tcl_AppendResult(interp, "Bad mode", (char*) NULL);
+ 	return TCL_ERROR;
+@@ -140,8 +152,7 @@
+ 	             src_yoffset * im->linesize +
+ 	             src_xoffset * im->pixelsize;
+ #endif
+-
+-    if (strcmp(im->mode, "RGBA") == 0) {
++    if(!renderalpha && strcmp(im->mode, "RGBA") == 0) {
+         /* Copy non-transparent pixels to photo image */
          int x, y;
          Tk_PhotoImageBlock run;
+@@ -188,10 +199,15 @@
+           }
+         }
  
--        /* Clear current contents */
--        Tk_PhotoBlank(photo);
+-    } else
 -
-         /* Setup run descriptor */
-         run.height = 1;
-         run.pitch = block.pitch;
-@@ -156,7 +156,7 @@
-         run.offset[0] = 0;
-         run.offset[1] = 1;
-         run.offset[2] = 2;
--	run.offset[3] = 0; /* no alpha (or reserved, under 8.2) */
-+	run.offset[3] = 3; /* alpha (or reserved, under 8.2) */
+-        /* Copy opaque block to photo image, and leave the rest to TK */
++    } else {
++        /* Copy block to photo image, and leave the rest to TK */
+         Tk_PhotoPutBlock(photo, &block, 0, 0, block.width, block.height);
++    
++	if (strcmp(im->mode, "RGBA") == 0)
++	    /* Tk workaround: we need apply ToggleComplexAlphaIfNeeded */
++	    /* (fixed in Tk 8.5a3) */
++	    Tk_PhotoSetSize(photo, block.width, block.height);
++    }
  
-         /* Copy opaque runs to photo image */
-         for (y = 0; y < block.height; y++) {
+     return TCL_OK;
+ }
+Only in Imaging-1.1.6J/Tk: tkImaging.c~
 diff -ru Imaging-1.1.6/_imagingtk.c Imaging-1.1.6J/_imagingtk.c
 --- Imaging-1.1.6/_imagingtk.c	2006-12-03 04:51:25.000000000 -0700
-+++ Imaging-1.1.6J/_imagingtk.c	2007-11-13 00:56:02.000000000 -0700
++++ Imaging-1.1.6J/_imagingtk.c	2007-11-13 16:50:57.000000000 -0700
 @@ -17,6 +17,9 @@
  #include "Python.h"
  #include "Imaging.h"
