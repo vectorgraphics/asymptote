@@ -15,13 +15,9 @@ import xasyOptions
 from Tkinter import *
 from math import sqrt
 
-#PIL support is now mandatory due to rotations
-try:
-  from PIL import ImageTk
-  import Image
-  PILAvailable = True
-except:
-  PILAvailable = False
+# PIL support is now mandatory due to rotations
+import ImageTk
+import Image
 
 import CubicBezier
 
@@ -429,19 +425,30 @@ class xasyItem:
     syncQuickAsyOutput();
     quickAsy.stdin.write("deconstruct(%f);\n"%mag)
     quickAsy.stdin.flush()
-    magnification = split(quickAsy.stdout.readline())[1]
+    magnification = float(split(quickAsy.stdout.readline())[1])
     format = split(quickAsy.stdout.readline())[0]
-    text = quickAsy.stdout.readline()
-    n=0
+    maxargs = int(split(quickAsy.stdout.readline())[0])
+
     boxes=[]
-    while text!="Done\n":
+    batch=0
+    n=0
+    text = quickAsy.stdout.readline()
+    def render():
+        for i in range(len(boxes)):
+          l,b,r,t = [float(a) for a in split(boxes[i])]
+          self.handleImageReception(".out_%d_%d.%s"%(batch,i+1,format),format,
+                                    (l,b,r,t),i)
+    while text != "Done\n":
       boxes.append(text)
-      n += 1
       text = quickAsy.stdout.readline()
-    for i in range(1,n+1):
-      # Maybe add _ to filename
-      l,b,r,t = [float(a) for a in split(boxes[i-1])]
-      self.handleImageReception(".out%d.%s"%(i,format),format,(l,b,r,t),i)
+      n += 1
+      if n >= maxargs:
+        render()
+        boxes=[]
+        batch += 1
+        n=0
+    render()
+
     self.asyfied = True
 
   def drawOnCanvas(self,canvas,mag,forceAddition=False):

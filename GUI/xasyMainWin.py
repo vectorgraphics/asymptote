@@ -39,7 +39,7 @@ from UndoRedoStack import *
 from xasyActions import *
 
 try:
-  from PIL import ImageTk
+  import ImageTk
   import Image
   PILAvailable = True
 except:
@@ -656,7 +656,7 @@ class xasyMainWin:
         return
       elif result == tkMessageBox.YES:
         self.fileSaveCmd()
-    filename=tkFileDialog.askopenfilename(filetypes=[("asy GUI files","*.asy"),("All files","*")],title="Open File",parent=self.parent)
+    filename=tkFileDialog.askopenfilename(filetypes=[("asy files","*.asy"),("All files","*")],title="Open File",parent=self.parent)
     if type(filename) != type((0,)) and filename != None and filename != '':
       self.filename = filename
       self.openFile(self.filename)
@@ -664,7 +664,7 @@ class xasyMainWin:
   def fileSaveCmd(self):
     #print "Save current file"
     if self.filename == None:
-      filename=tkFileDialog.asksaveasfilename(defaultextension=".asy",filetypes=[("asy GUI files","*.asy")],initialfile="newDrawing.asy",parent=self.parent,title="Save File")
+      filename=tkFileDialog.asksaveasfilename(defaultextension=".asy",filetypes=[("asy files","*.asy")],initialfile="newDrawing.asy",parent=self.parent,title="Save File")
       if type(filename) != type((0,)) and filename != None and filename != '':
         self.filename = filename
     if self.filename != None:
@@ -672,7 +672,7 @@ class xasyMainWin:
 
   def fileSaveAsCmd(self):
     #print "Save current file as"
-    filename=tkFileDialog.asksaveasfilename(defaultextension=".asy",filetypes=[("asy GUI files","*.asy")],initialfile="newDrawing.asy",parent=self.parent,title="Save File")
+    filename=tkFileDialog.asksaveasfilename(defaultextension=".asy",filetypes=[("asy files","*.asy")],initialfile="newDrawing.asy",parent=self.parent,title="Save File")
     if type(filename) != type((0,)) and filename != None and filename != '':
       self.filename = filename
       self.saveFile(self.filename)
