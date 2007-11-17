@@ -555,24 +555,18 @@ class xasyMainWin:
 
   def loadFile(self,name):
     self.status.config(text="Loading "+name)
-    fullName = os.path.abspath(name)
-    self.filename = fullName
-    fileName = os.path.basename(fullName)
-    fileDir = os.path.dirname(fullName)
-    os.chdir(fileDir)
+    self.filename = os.path.abspath(name)
     startQuickAsy()
-    self.filePrefix,ext = os.path.splitext(fileName)
-    #print "opening: full:" + fullName + " file:"+fileName+" dir:"+fileDir+" pref:"+self.filePrefix
     self.retitle()
     try:
       try:
-        f = open(fullName,'rt')
+        f = open(self.filename,'rt')
       except:
-        if fullName[-4:] == ".asy":
+        if self.filename[-4:] == ".asy":
           raise
         else:
-          f = open(fullName+".asy",'rt')
-          self.filename = fullName+".asy"
+          f = open(self.filename+".asy",'rt')
+          self.filename += ".asy"
           self.retitle()
       self.fileItems = xasyFile.parseFile(f)
       f.close()
