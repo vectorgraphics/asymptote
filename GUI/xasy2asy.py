@@ -436,8 +436,14 @@ class xasyItem:
     def render():
         for i in range(len(boxes)):
           l,b,r,t = [float(a) for a in split(boxes[i])]
-          self.handleImageReception(".out_%d_%d.%s"%(batch,i+1,format),format,
+          name=".out_%d_%d.%s"%(batch,i+1,format)
+          self.handleImageReception(name,format,
                                     (l,b,r,t),i)
+          try:
+            pass
+            os.remove(name)
+          except:
+            pass
     while text != "Done\n":
       boxes.append(text)
       text = quickAsy.stdout.readline()
