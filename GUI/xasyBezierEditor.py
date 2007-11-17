@@ -98,7 +98,7 @@ class xasyBezierEditor:
   def __init__(self,parent,shape,canvas):
     self.parent = parent
     self.shape = shape
-    self.transform = self.shape.transform
+    self.transform = self.shape.transform[0]
     self.path = self.shape.path
     self.canvas = canvas
     self.modified = False
@@ -174,7 +174,7 @@ class xasyBezierEditor:
     self.startx,self.starty = event.x,event.y
     self.applyChanges()
     self.showControls()
-    self.shape.drawOnCanvas(self.canvas)
+    self.shape.drawOnCanvas(self.canvas,self.parent.magnification)
 
   def controlDrag(self,event):
     self.parent.freeMouseDown = False
@@ -190,11 +190,11 @@ class xasyBezierEditor:
     self.startx,self.starty = event.x,event.y
     self.applyChanges()
     self.showControls()
-    self.shape.drawOnCanvas(self.canvas)
+    self.shape.drawOnCanvas(self.canvas,self.parent.magnification)
 
   def applyChanges(self):
     self.modified = True
-    self.shape.transform = xasy2asy.asyTransform((0,0,1,0,0,1))
+    self.shape.transform[0] = xasy2asy.asyTransform((0,0,1,0,0,1))
     for i in range(len(self.nodeList)):
       self.path.nodeSet[i] = self.nodeList[i].node
       if self.nodeList[i].postcontrol != None:

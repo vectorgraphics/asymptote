@@ -11,6 +11,7 @@
 import math
 import UndoRedoStack
 import xasy2asy
+from Tkinter import *
 
 class translationAction(UndoRedoStack.action):
   def __init__(self,owner,itemList,indexList,translation):
@@ -219,8 +220,11 @@ class deleteScriptItemAction(UndoRedoStack.action):
 
   def unDelI(self):
     for i in range(len(self.indices)):
-      self.script.transform[self.indices[i]] = self.oldTransforms[i]
-    self.script.drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
+      index = self.indices[i]
+      self.script.transform[index] = self.oldTransforms[i]
+      bbox = self.script.imageList[index].originalImage.bbox
+      self.script.imageList[index].IDTag = self.owner.mainCanvas.create_image(bbox[0],-bbox[3],anchor=NW,tags=("image"),image=self.script.imageList[index].itk)
+      self.owner.bindItemEvents(self.script)
 
   def __str__(self):
     return "Deletion of item "+str(self.indices)+" in "+str(self.script)
