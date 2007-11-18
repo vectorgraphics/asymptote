@@ -1704,6 +1704,7 @@ picture secondaryX(picture primary=currentpicture, void f(picture))
 {
   if(!primary.scale.set) abort(noprimary);
   picture pic;
+  if(primary.userMax.x == primary.userMin.x) return pic;
   f(pic);
   if(!pic.userSetx) abort("empty secondaryX picture");
   bounds a=autoscale(pic.userMin.x,pic.userMax.x,pic.scale.x.scale);
@@ -1711,15 +1712,15 @@ picture secondaryX(picture primary=currentpicture, void f(picture))
   real bmax=pic.scale.x.automax() ? a.max : pic.userMax.x;
   
   real denom=bmax-bmin;
-  if(denom != 0.0) {
+  if(denom != 0) {
     pic.erase();
     real m=(primary.userMax.x-primary.userMin.x)/denom;
     pic.scale.x.postscale=Linear(m,bmin-primary.userMin.x/m);
     pic.scale.set=true;
     pic.scale.x.tickMin=pic.scale.x.postscale.T(a.min);
     pic.scale.x.tickMax=pic.scale.x.postscale.T(a.max);
-    pic.scale.y.tickMin=primary.scale.y.tickMin;
-    pic.scale.y.tickMax=primary.scale.y.tickMax;
+    pic.scale.y.tickMin=primary.userMin.y;
+    pic.scale.y.tickMax=primary.userMax.y;
     axis.xdivisor=a.divisor;
     f(pic);
   }
@@ -1732,6 +1733,7 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
 {
   if(!primary.scale.set) abort(noprimary);
   picture pic;
+  if(primary.userMax.y == primary.userMin.y) return pic;
   f(pic);
   if(!pic.userSety) abort("empty secondaryY picture");
   bounds a=autoscale(pic.userMin.y,pic.userMax.y,pic.scale.y.scale);
@@ -1739,13 +1741,13 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
   real bmax=pic.scale.y.automax() ? a.max : pic.userMax.y;
 
   real denom=bmax-bmin;
-  if(denom != 0.0) {
+  if(denom != 0) {
     pic.erase();
     real m=(primary.userMax.y-primary.userMin.y)/denom;
     pic.scale.y.postscale=Linear(m,bmin-primary.userMin.y/m);
     pic.scale.set=true;
-    pic.scale.x.tickMin=primary.scale.x.tickMin;
-    pic.scale.x.tickMax=primary.scale.x.tickMax;
+    pic.scale.x.tickMin=primary.userMin.x;
+    pic.scale.x.tickMax=primary.userMax.x;
     pic.scale.y.tickMin=pic.scale.y.postscale.T(a.min);
     pic.scale.y.tickMax=pic.scale.y.postscale.T(a.max);
     axis.ydivisor=a.divisor;
