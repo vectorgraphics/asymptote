@@ -1125,19 +1125,17 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
   result->shipout(preamble,prefix,format,0.0,wait,view);
 }
 
-void deconstruct(string prefix=emptystring, picture *f,
-		 picture *preamble=NULL, real magnification=1, 
+void deconstruct(picture *f, picture *preamble=NULL, real magnification=1, 
 		 callableTransform *xform)
 {
   unsigned level=0;
   unsigned n=0;
 
-  if(prefix.empty()) prefix=outname();
+  string prefix=outname();
   string xformat=getSetting<string>("xformat");
 
   const unsigned maxargs=::min(ARG_MAX/(prefix.size()+xformat.size()+25),256u);
   
-  cout << magnification << newl;
   cout << xformat << newl;
   cout << maxargs << newl;
   
@@ -1155,11 +1153,13 @@ void deconstruct(string prefix=emptystring, picture *f,
     unsigned arg=0;
     unsigned batch=0;
     for(picture::nodelist::iterator p=f->nodes.begin();;) {
+      if(p == f->nodes.end()) break;
       if(arg == 0) {
 	cmd.str("");
 	ostringstream buf;
-	buf << "_" << batch << "_";
-	outname="."+buildname(prefix+buf.str()+"%d",xformat);
+	buf << batch << "_";
+	outname=buildname(prefix+buf.str()+"%d",xformat,"",
+			  prefix != settings::outname() && !globalwrite());
 	if(png) {
 	  cmd << "'" << getSetting<string>("gs")
 	      << "' -q -dNOPAUSE -dBATCH -sDEVICE=pngalpha -dEPSCrop"
@@ -1235,10 +1235,7 @@ void deconstruct(string prefix=emptystring, picture *f,
 	int status=System(cmd,0,true,converter,hint);
 	if(status) reportError("deconstruct failed");
       }
-	
-      if(p == f->nodes.end()) break;
     }
-
     
     if(!getSetting<bool>("keep")) {
       for(unsigned i=0; i < n; ++i) {

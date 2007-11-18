@@ -14,6 +14,7 @@ from string import *
 import xasyOptions
 from Tkinter import *
 from math import sqrt
+from tempfile import mkdtemp
 
 # PIL support is now mandatory due to rotations
 import ImageTk
@@ -33,6 +34,7 @@ quickAsyFailed = True
 def startQuickAsy():
   global quickAsy
   global quickAsyFailed
+  global AsyTempDir
   try:
     quickAsy.stdin.close()
     quickAsy.wait()
@@ -40,7 +42,10 @@ def startQuickAsy():
     pass
   try:
     quickAsyFailed = False
-    quickAsy = Popen([xasyOptions.options['asyPath']]+split("-noV -multiline -interactive"),stdin=PIPE,stdout=PIPE,stderr=STDOUT)
+    AsyTempDir=mkdtemp(prefix="asy_")+os.sep
+    quickAsy = Popen([xasyOptions.options['asyPath']]+
+                     split("-noV -multiline -interactive -o"+AsyTempDir),
+                     stdin=PIPE,stdout=PIPE,stderr=STDOUT)
     quickAsy.stdin.write("settings.xformat;\n")
     if quickAsy.returncode != None:
       quickAsyFailed = True
@@ -425,20 +430,19 @@ class xasyItem:
     syncQuickAsyOutput();
     quickAsy.stdin.write("deconstruct(%f);\n"%mag)
     quickAsy.stdin.flush()
-    magnification = float(split(quickAsy.stdout.readline())[1])
-    format = split(quickAsy.stdout.readline())[0]
+    format = split(quickAsy.stdout.readline())[1]
     maxargs = int(split(quickAsy.stdout.readline())[0])
 
     boxes=[]
     batch=0
     n=0
     text = quickAsy.stdout.readline()
+    template=AsyTempDir+"%d_%d.%s"
     def render():
         for i in range(len(boxes)):
           l,b,r,t = [float(a) for a in split(boxes[i])]
-          name=".out_%d_%d.%s"%(batch,i+1,format)
-          self.handleImageReception(name,format,
-                                    (l,b,r,t),i)
+          name=template%(batch,i+1,format)
+          self.handleImageReception(name,format,(l,b,r,t),i)
           try:
             pass
             os.remove(name)
