@@ -35,11 +35,6 @@
 #ifdef HAVE_LIBCURSES
 extern "C" {
 
-// Workaround broken curses.h files:
-#ifdef clear
-#undef clear
-#endif
-
 #ifdef HAVE_NCURSES_CURSES_H
 #include <ncurses/curses.h>
 #include <ncurses/term.h>
@@ -51,6 +46,11 @@ extern "C" {
 #include <term.h>
 #endif
 }
+#endif
+
+// Workaround broken curses.h files:
+#ifdef clear
+#undef clear
 #endif
 
 using vm::item;
