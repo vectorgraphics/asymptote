@@ -13,7 +13,7 @@ import getopt,sys,signal
 from Tkinter import *
 import xasyMainWin
 
-signal.signal(signal.SIGINT,lambda a,b: sys.exit())
+signal.signal(signal.SIGINT,signal.SIG_DFL)
 
 root = Tk()
 mag = 1.0
