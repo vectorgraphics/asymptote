@@ -85,7 +85,8 @@ GCVERSION=gc-7.0
 
 AC_CHECK_FILE($GCVERSION.tar.gz,
 ac_cv_use_gc=$GCVERSION,
-ac_cv_use_gc="system")
+[GC_SYSTEM="$GCVERSION.tar.gz not found: using system Boehm garbage collector"
+ac_cv_use_gc="system"])
 AC_ARG_ENABLE(gc,
 	[  --enable-gc[[=VERSION]]   enable Boehm garbage collector]
 	[     [[=system]]    force use of system Boehm garbage collector]
@@ -93,6 +94,7 @@ AC_ARG_ENABLE(gc,
 			[
 			if test "x$enableval" != "xyes"; then
 			   ac_cv_use_gc=$enableval
+			   GC_SYSTEM=""
 			fi
 			])
 
@@ -233,4 +235,8 @@ if test "x$GCDIR" != "x" ; then
    echo wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/$GCDIR.tar.gz
    exit 1
    ])
+else
+  if test "x$GC_SYSTEM" != "x" ; then
+   AC_MSG_NOTICE(*** $GC_SYSTEM ***)
+  fi
 fi
