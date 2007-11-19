@@ -1103,7 +1103,7 @@ Alternatively, @code{BeginPenMargin}, @code{EndPenMargin}
 @code{PenMargin(real begin, real end)} specify a margin in units of
 the pen linewidth, taking account of the pen linewidth when drawing
 the path or arrow. For example, use @code{DotMargin}, an
-abbreviation for @code{PenMargin(-0.5,0.5*dotfactor)},
+abbreviation for @code{PenMargin(-0.5*dotfactor,0.5*dotfactor)},
 to draw from the usual beginning point just up to the boundary of an
 end dot of width @code{dotfactor*linewidth(p)}.  The qualifiers
 @code{BeginDotMargin}, @code{EndDotMargin}, and @code{DotMargins} work
