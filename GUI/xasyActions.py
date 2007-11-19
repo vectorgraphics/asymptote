@@ -224,7 +224,8 @@ class deleteScriptItemAction(UndoRedoStack.action):
       self.script.transform[index] = self.oldTransforms[i]
       bbox = self.script.imageList[index].originalImage.bbox
       self.script.imageList[index].IDTag = self.owner.mainCanvas.create_image(bbox[0],-bbox[3],anchor=NW,tags=("image"),image=self.script.imageList[index].itk)
-      self.owner.bindItemEvents(self.script)
+      self.owner.bindEvents(self.script.imageList[index].IDTag)
+    self.owner.resetStacking()
 
   def __str__(self):
     return "Deletion of item "+str(self.indices)+" in "+str(self.script)

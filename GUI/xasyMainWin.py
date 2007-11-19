@@ -61,8 +61,7 @@ class xasyMainWin:
       sys.exit(1)
     if file != None:
       self.loadFile(file)
-    self.ticker = threading.Thread(target=self.tickHandler)
-    self.ticker.start()
+    self.parent.after(100,self.tickHandler)
 
   def testOrAcquireLock(self):
     val = self.opLock.acquire(False)
@@ -79,10 +78,9 @@ class xasyMainWin:
     self.openDisplayLock()
 
   def tickHandler(self):
-    while not(self.quitting):
-      self.tickCount += 1
-      self.mainCanvas.itemconfigure("outlineBox",dashoffset=self.tickCount%9)
-      time.sleep(0.1)
+    self.tickCount += 1
+    self.mainCanvas.itemconfigure("outlineBox",dashoffset=self.tickCount%9)
+    self.parent.after(100,self.tickHandler)
 
   def closeDisplayLock(self):
     self.status.config(text="Busy")
@@ -406,7 +404,6 @@ class xasyMainWin:
     self.updateCanvasSize()
 
     #setup timer
-    self.quitting = False
     self.tickCount = 0
 
     #setup undo/redo!
@@ -534,22 +531,26 @@ class xasyMainWin:
     else:
       self.bindEvents(item.IDTag)
 
-  def canQuit(self):
+  def canQuit(self,force=False):
     #print "Quitting"
+    if not force and not self.testOrAcquireLock():
+      return
     if self.undoRedoStack.changesMade():
       result = tkMessageBox._show("xasy","File has been modified.\nSave changes?",icon=tkMessageBox.QUESTION,type=tkMessageBox.YESNOCANCEL)
       if str(result) == tkMessageBox.CANCEL:
         return
       elif result == tkMessageBox.YES:
         self.fileSaveCmd()
-    self.quitting = True
     try:
-      self.ticker.join()
+      self.releaseLock()
     except:
       pass
     self.parent.destroy()
 
   def openFile(self,name):
+    if(not self.testOrAcquireLock()):
+      return
+    self.releaseLock() #release the lock for loadFile
     self.resetGUI()
     self.loadFile(name)
 
@@ -625,14 +626,20 @@ class xasyMainWin:
       self.propList.insert(0,self.describeItem(item))
 
   def saveFile(self,name):
+    if(not self.testOrAcquireLock()):
+      return
     f = open(name,"wt")
     xasyFile.saveFile(f,self.fileItems)
     f.close()
     self.undoRedoStack.setCommitLevel()
     self.retitle()
+    self.releaseLock()
 
   #menu commands
   def fileNewCmd(self):
+    if(not self.testOrAcquireLock()):
+      return
+    self.releaseLock()
     #print "Create New File"
     if self.undoRedoStack.changesMade():
       result = tkMessageBox._show("xasy","File has been modified.\nSave changes?",icon=tkMessageBox.QUESTION,type=tkMessageBox.YESNOCANCEL)
@@ -643,6 +650,9 @@ class xasyMainWin:
     self.resetGUI()
 
   def fileOpenCmd(self):
+    if(not self.testOrAcquireLock()):
+      return
+    self.releaseLock()
     #print "Open a file"
     if self.undoRedoStack.changesMade():
       result = tkMessageBox._show("xasy","File has been modified.\nSave changes?",icon=tkMessageBox.QUESTION,type=tkMessageBox.YESNOCANCEL)
@@ -657,6 +667,9 @@ class xasyMainWin:
 
   def fileSaveCmd(self):
     #print "Save current file"
+    if(not self.testOrAcquireLock()):
+      return
+    self.releaseLock()
     if self.filename == None:
       filename=tkFileDialog.asksaveasfilename(defaultextension=".asy",filetypes=[("asy files","*.asy")],initialfile="newDrawing.asy",parent=self.parent,title="Save File")
       if type(filename) != type((0,)) and filename != None and filename != '':
@@ -665,6 +678,9 @@ class xasyMainWin:
       self.saveFile(self.filename)
 
   def fileSaveAsCmd(self):
+    if(not self.testOrAcquireLock()):
+      return
+    self.releaseLock()
     #print "Save current file as"
     filename=tkFileDialog.asksaveasfilename(defaultextension=".asy",filetypes=[("asy files","*.asy")],initialfile="newDrawing.asy",parent=self.parent,title="Save File")
     if type(filename) != type((0,)) and filename != None and filename != '':
@@ -685,6 +701,9 @@ class xasyMainWin:
     self.exportFile(self.filename,"png")
 
   def exportFile(self,inFile, outFormat):
+    if(not self.testOrAcquireLock()):
+      return
+    self.releaseLock()
     if inFile == None:
       if tkMessageBox.askyesno("xasy","File has not been saved.\nSave?"):
         self.fileSaveAsCmd()
@@ -719,10 +738,16 @@ class xasyMainWin:
     self.canQuit()
 
   def editUndoCmd(self):
+    if(not self.testOrAcquireLock()):
+      return
     self.undoOperation()
+    self.releaseLock()
 
   def editRedoCmd(self):
+    if(not self.testOrAcquireLock()):
+      return
     self.redoOperation()
+    self.releaseLock()
 
   def helpHelpCmd(self):
     print "Get help on xasy"
@@ -735,6 +760,9 @@ class xasyMainWin:
     tkMessageBox.showinfo("About xasy","A graphical interface for Asymptote "+xasyVersion)
 
   def updateSelectedButton(self,newB):
+    if(not self.testOrAcquireLock()):
+      return
+    self.releaseLock()
     #disable switching modes during an incomplete drawing operation
     if self.inDrawingMode:
       return
@@ -781,6 +809,9 @@ class xasyMainWin:
   def toolTextCmd(self):
     self.updateSelectedButton(self.toolTextButton)
   def toolAsyCmd(self):
+    # ignore the command if we are too busy to process it
+    if not self.testOrAcquireLock():
+      return
     self.updateSelectedButton(self.toolSelectButton)
     self.clearSelection()
     self.clearHighlight()
@@ -792,7 +823,11 @@ class xasyMainWin:
     self.fileItems[-1].setScript(text)
     self.fileItems[-1].drawOnCanvas(self.mainCanvas,self.magnification)
     self.bindItemEvents(self.fileItems[-1])
+    self.releaseLock()
   def toolRaiseCmd(self):
+    if(not self.testOrAcquireLock()):
+      return
+    self.releaseLock()
     if not self.inDrawingMode and self.editor == None:
       itemList = []
       indexList = []
@@ -804,6 +839,9 @@ class xasyMainWin:
           self.raiseSomething(item)
       self.undoRedoStack.add(itemRaiseAction(self,itemList,indexList))
   def toolLowerCmd(self):
+    if(not self.testOrAcquireLock()):
+      return
+    self.releaseLock()
     if not self.inDrawingMode and self.editor == None:
       itemList = []
       indexList = []
@@ -821,12 +859,15 @@ class xasyMainWin:
 
   #options bar commands
   def setPenColCmd(self):
+    if not self.acquireLock():
+      return
     old = self.penColor
     self.penColor = xasyColorDlg(self.parent).getColor(self.penColor)
     if self.penColor != old:
       self.tkPenColor = RGB255hex(RGBreal255(self.penColor))
       self.penColButton.config(activebackground=self.tkPenColor)
       self.showCurrentPen()
+    self.releaseLock()
 
   def clearSelection(self):
     self.hideSelectionBox()
@@ -923,8 +964,8 @@ class xasyMainWin:
     raise Exception,"Illegal operation: Image with matching ID could not be found."
     return None
 
-  def raiseSomething(self,item):
-    if self.fileItems[-1] != item:
+  def raiseSomething(self,item,force=False):
+    if self.fileItems[-1] != item or force:
       index = len(self.fileItems)-self.fileItems.index(item)-1
       text = self.propList.get(index)
       self.propList.delete(index)
@@ -1085,6 +1126,9 @@ class xasyMainWin:
     self.populatePropertyList()
 
   def itemEdit(self,item):
+    # are we too busy?
+    if not self.testOrAcquireLock():
+      return
     self.updateSelectedButton(self.toolSelectButton)
     if isinstance(item,xasyScript):
       oldText = item.script
@@ -1109,6 +1153,7 @@ class xasyMainWin:
       self.itemBeingEdited = copy.deepcopy(item)
       self.editor = xasyBezierEditor(self,item,self.mainCanvas)
     self.updateSelection()
+    self.releaseLock()
 
   def itemEditEvt(self,event):
     if not self.inDrawingMode:
@@ -1184,6 +1229,8 @@ class xasyMainWin:
         self.setSelection(CURRENT)
 
   def itemDelete(self,event):
+    if(not self.testOrAcquireLock()):
+      return
     itemList = []
     self.undoRedoStack.add(endActionGroup)
     for ID in self.mainCanvas.find_withtag("selectedItem"):
@@ -1204,6 +1251,7 @@ class xasyMainWin:
       self.undoRedoStack.add(deleteScriptItemAction(self,entry[0],entry[1],entry[2]))
     self.undoRedoStack.add(beginActionGroup)
     self.clearSelection()
+    self.releaseLock()
 
   def itemMotion(self,event):
     pass
@@ -1248,6 +1296,9 @@ class xasyMainWin:
     self.updateCanvasSize()
 
   def startDraw(self,event):
+    # don't start if we can't finish
+    if not self.testOrAcquireLock() and not self.inDrawingMode:
+      return
     x0,y0 = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
     x = x0/self.magnification
     y = y0/self.magnification
@@ -1265,6 +1316,7 @@ class xasyMainWin:
         self.addItemToFile(theItem)
         self.undoRedoStack.add(addLabelAction(self,theItem))
         self.updateSelectedButton(self.toolSelectButton)
+        self.releaseLock()
     elif self.selectedButton in [self.toolDrawLinesButton,self.toolDrawBeziButton,self.toolDrawPolyButton,self.toolDrawShapeButton,self.toolFillPolyButton,self.toolFillShapeButton]:
       self.inDrawingMode = True
       try:
@@ -1296,7 +1348,6 @@ class xasyMainWin:
         self.itemBeingDrawn.drawOnCanvas(self.mainCanvas,self.magnification)
         self.bindItemEvents(self.itemBeingDrawn)
         self.mainCanvas.bind("<Motion>",self.extendDraw)
-      self.itemBeingDrawn.drawOnCanvas(self.mainCanvas,self.magnification)
 
   def extendDraw(self,event):
     x0,y0 = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
@@ -1329,6 +1380,7 @@ class xasyMainWin:
     self.mainCanvas.dtag("itemBeingDrawn","itemBeingDrawn")
     self.mainCanvas.bind("<Motion>",self.canvMotion)
     self.inDrawingMode = False
+    self.releaseLock()
 
   def canvLeftDown(self,event):
     #print "Left Mouse Down"
@@ -1350,6 +1402,9 @@ class xasyMainWin:
 
   def canvLeftUp(self,event):
     #print "Left Mouse Up"
+    # if we're busy, ignore it
+    if not self.testOrAcquireLock():
+      return
     self.freeMouseDown = True
     if self.inRotatingMode:
       for item in self.itemsBeingRotated:
@@ -1371,6 +1426,7 @@ class xasyMainWin:
       if self.selectedButton == self.toolSelectButton and len(self.mainCanvas.find_withtag("selectedItem")) > 0:
         self.updateSelectedButton(self.toolMoveButton)
       self.updateSelection()
+    self.releaseLock()
 
   def canvDrag(self,event):
     x0,y0 = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
@@ -1481,11 +1537,14 @@ class xasyMainWin:
     self.popupRedrawItem()
 
   def popupRedrawItem(self):
+    if not self.testOrAcquireLock():
+      return
     self.clearSelection()
     self.clearHighlight()
     self.itemPopupMenu.item.drawOnCanvas(self.mainCanvas,self.magnification)
     self.bindItemEvents(self.itemPopupMenu.item)
     self.updateCanvasSize()
+    self.releaseLock()
 
   def hidePopupMenu(self):
     try:
@@ -1524,6 +1583,9 @@ class xasyMainWin:
         self.itemMenuPopup(self.mainCanvas,item,event.x_root,event.y_root)
 
   def editOptions(self):
+    if(not self.testOrAcquireLock()):
+      return
+    self.releaseLock()
     xasyOptionsDialog.xasyOptionsDlg(self.parent)
     self.applyOptions()
 
@@ -1584,7 +1646,10 @@ class xasyMainWin:
       self.undoRedoStack.add(beginActionGroup)
 
   def applyPenWidthEvt(self,event):
+    if not self.testOrAcquireLock():
+      return
     self.applyPenWidth()
+    self.releaseLock()
 
   def penWidthChanged(self,event):
     if self.pendingPenWidthChange is not None:
@@ -1592,7 +1657,10 @@ class xasyMainWin:
     self.pendingPenWidthChange = self.penWidthEntry.after(1000,self.applyPenWidth)
 
   def applyPenOptEvt(self,event):
+    if not self.testOrAcquireLock():
+      return
     self.applyPenOpt()
+    self.releaseLock()
 
   def validatePenOpt(self):
     try:
@@ -1622,3 +1690,7 @@ class xasyMainWin:
 
   def redoOperation(self):
     self.undoRedoStack.redo()
+
+  def resetStacking(self):
+    for item in self.fileItems:
+      self.raiseSomething(item,force=True)

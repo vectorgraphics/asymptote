@@ -12,6 +12,7 @@ import sys,os,signal,threading
 from subprocess import *
 from string import *
 import xasyOptions
+import Queue
 from Tkinter import *
 from math import sqrt
 from tempfile import mkdtemp
@@ -318,13 +319,10 @@ class asyPath(asyObj):
     quickAsy.stdin.write("write(p);write(\"\");\n")
     quickAsy.stdin.flush()
     lengthStr = quickAsy.stdout.readline()
-    #print "length",lengthStr
     pathSegments = eval(lengthStr.split()[-1])
     pathStrLines = []
     for i in range(pathSegments+1):
-      #print text
       pathStrLines.append(quickAsy.stdout.readline())
-    #print "path",pathStrLines
     oneLiner = "".join(split(join(pathStrLines)))
     oneLiner = oneLiner.replace(">","")
     splitList = oneLiner.split("..")
@@ -337,8 +335,6 @@ class asyPath(asyObj):
         self.nodeSet.append(eval(a))
     controls = [a.replace("controls","").split("and") for a in splitList if a.find("controls") != -1]
     self.controlSet = [[eval(a[0]),eval(a[1])] for a in controls]
-    #print "nodes",self.nodeSet
-    #print "controls",self.controlSet
     self.computed = True
 
 class asyLabel(asyObj):
@@ -402,11 +398,7 @@ class xasyItem:
       image = None
     else:
       image = Image.open(file)
-      #os.remove(file)
-      #if format == "gif":
-        #image = PhotoImage(file=file)#os.path.join(asy.startDir,file))
-      #else:
-        #image = ImageTk.PhotoImage(file=file)#os.path.join(asy.startDir,file))
+      os.remove(file)
     self.imageList.append(asyImage(image,format,bbox))
     if self.onCanvas != None and image != None:
       self.imageList[-1].itk = ImageTk.PhotoImage(image)
@@ -417,12 +409,24 @@ class xasyItem:
       self.onCanvas.update()
 
   def asyfy(self,mag=1.0):
-    """Convert the item to a list of images by deconstructing this item's code"""
     self.removeFromCanvas()
     self.imageList = []
+    self.imageHandleQueue = Queue.Queue()
+    worker = threading.Thread(target=self.asyfyThread,args=(mag,))
+    worker.start()
+    item = self.imageHandleQueue.get()
+    while item != (None,):
+      self.handleImageReception(*item)
+      item = self.imageHandleQueue.get()
+    #self.imageHandleQueue.task_done()
+    worker.join()
+
+  def asyfyThread(self,mag=1.0):
+    """Convert the item to a list of images by deconstructing this item's code"""
     quickAsy.stdin.write("\nreset;\n")
     quickAsy.stdin.write("initXasyMode();\n")
     quickAsy.stdin.write("atexit(null);\n")
+
     syncQuickAsyOutput()
     for line in self.getCode().splitlines():
       quickAsy.stdin.write(line+"\n");
@@ -442,12 +446,7 @@ class xasyItem:
         for i in range(len(boxes)):
           l,b,r,t = [float(a) for a in split(boxes[i])]
           name=template%(batch,i+1,format)
-          self.handleImageReception(name,format,(l,b,r,t),i)
-          try:
-            pass
-            os.remove(name)
-          except:
-            pass
+          self.imageHandleQueue.put((name,format,(l,b,r,t),i))
     while text != "Done\n":
       boxes.append(text)
       text = quickAsy.stdout.readline()
@@ -458,7 +457,7 @@ class xasyItem:
         batch += 1
         n=0
     render()
-
+    self.imageHandleQueue.put((None,))
     self.asyfied = True
 
   def drawOnCanvas(self,canvas,mag,forceAddition=False):
