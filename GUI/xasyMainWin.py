@@ -545,6 +545,10 @@ class xasyMainWin:
       self.releaseLock()
     except:
       pass
+    try:
+      os.rmdir(getAsyTempDir())
+    except:
+      pass
     self.parent.destroy()
 
   def openFile(self,name):

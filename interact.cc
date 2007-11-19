@@ -184,9 +184,6 @@ void cleanup_interactive() {
     write_history(historyname.c_str());
   }
 #endif
-  // For xasy: attempt to remove temporary output directory (if empty)
-  string outname=getSetting<string>("outname");
-  if(!outname.empty()) rmdir(outname.c_str());
 }
 
 } // namespace interact

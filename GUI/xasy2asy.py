@@ -31,11 +31,14 @@ idCounter = 0;
 randString = 'wGd3I26kOcu4ZI4arZZMqoJufO2h1QE2D728f1Lai3aqeTQC9'
 
 quickAsyFailed = True
+global AsyTempDir
 
 def startQuickAsy():
   global quickAsy
   global quickAsyFailed
   global AsyTempDir
+  if quickAsyRunning():
+    return
   try:
     quickAsy.stdin.close()
     quickAsy.wait()
@@ -52,6 +55,9 @@ def startQuickAsy():
       quickAsyFailed = True
   except:
     quickAsyFailed = True
+  
+def getAsyTempDir():
+  return AsyTempDir
 
 def quickAsyRunning():
   if quickAsyFailed or quickAsy.returncode != None:
@@ -398,7 +404,6 @@ class xasyItem:
       image = None
     else:
       image = Image.open(file)
-      os.remove(file)
     self.imageList.append(asyImage(image,format,bbox))
     if self.onCanvas != None and image != None:
       self.imageList[-1].itk = ImageTk.PhotoImage(image)
@@ -417,6 +422,10 @@ class xasyItem:
     item = self.imageHandleQueue.get()
     while item != (None,):
       self.handleImageReception(*item)
+      try:
+        os.remove(item[0])
+      except:
+        pass
       item = self.imageHandleQueue.get()
     #self.imageHandleQueue.task_done()
     worker.join()
