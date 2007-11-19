@@ -83,23 +83,24 @@ AC_CHECK_HEADER(fftw3.h,
 
 GCVERSION=gc-7.0
 
+AC_CHECK_FILE($GCVERSION.tar.gz,
+ac_cv_use_gc=$GCVERSION,
+ac_cv_use_gc="system")
 AC_ARG_ENABLE(gc,
-	[  --enable-gc[[=VERSION]]   use single-threaded Boehm garbage collector (default)]
-	[     [[=PREFIX]]    use (typically slower) system Boehm garbage collector]
-	[                  installed in PREFIX ("system" uses $prefix/include/gc)],
+	[  --enable-gc[[=VERSION]]   enable Boehm garbage collector]
+	[     [[=system]]    force use of system Boehm garbage collector]
+	[     [[=PREFIX]]    use Boehm garbage collector installed in PREFIX],
 			[
-			if test "x$enableval" = "xyes"; then
-			   ac_cv_use_gc=$GCVERSION
-			else 
+			if test "x$enableval" != "xyes"; then
 			   ac_cv_use_gc=$enableval
 			fi
-			],[ac_cv_use_gc=$GCVERSION])
+			])
 
 OPTIONS="-D_FILE_OFFSET_BITS=64 "
 GCLIB=
 GCPPLIB=
 GCNAME="Boehm Garbage Collector"
-GCOPTIONS="--disable-threads --disable-shared "
+GCOPTIONS=""
 if test "x$ac_cv_use_gc" != "xno" ; then
    OPTIONS=$OPTIONS"-DUSEGC "
    case $ac_cv_use_gc in
@@ -111,21 +112,21 @@ if test "x$ac_cv_use_gc" != "xno" ; then
       AC_CHECK_HEADER(gc.h,
 	AC_CHECK_LIB([gc],[GC_malloc],[
 	  LIBS=$LIBS"-lgc "
-#	  LIBS=$LIBS"-lgccpp -lgc "
 	  AC_MSG_NOTICE([enabling system $GCNAME])],[
-	AC_MSG_ERROR($GCNAME library not found)]),
-      AC_MSG_ERROR($GCNAME header file not found))
+        GCDIR=$GCVERSION
+	AC_MSG_NOTICE($GCNAME library not found)]),
+      GCDIR=$GCVERSION
+      AC_MSG_NOTICE($GCNAME header file not found))
       ;;
    *)
       GCDIR=$ac_cv_use_gc
-      AC_MSG_NOTICE([enabling the $GCNAME $GCDIR])
+      GCOPTIONS="--disable-threads --disable-shared "
+      AC_MSG_NOTICE([enabling local $GCNAME $GCDIR])
       GCLIB="\$(GC)/.libs/libgc.a"
-#      GCPPLIB="\$(GC)/.libs/libgccpp.a"
       INCL="-I\$(GC)/include"
       ;;
    esac
 else
-   GCDIR=
    AC_MSG_NOTICE([disabling the $GCNAME])
 fi
 
@@ -230,9 +231,6 @@ if test "x$GCDIR" != "x" ; then
    echo FOR EXAMPLE, USE THE COMMAND:
    echo
    echo wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/$GCDIR.tar.gz
-   echo
-   echo Or, to use a slower system version of gc:
-   echo ./configure --enable-gc=system
    exit 1
    ])
 fi
