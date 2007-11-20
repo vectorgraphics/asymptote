@@ -22,26 +22,28 @@ class translationAction(UndoRedoStack.action):
     UndoRedoStack.action.__init__(self,self.transF,self.unTransF)
 
   def transF(self):
+    mag = self.owner.magnification
     for i in range(len(self.itemList)):
       for index in self.indexList[i]:
-        self.owner.translateSomething(-1,(self.translation[0],self.translation[1]),self.itemList[i],index)
+        self.owner.translateSomething(-1,(self.translation[0]/mag,self.translation[1]/mag),self.itemList[i],index)
         if index==None:
           index = 0
         try:
-          self.owner.mainCanvas.move(self.itemList[i].imageList[index].IDTag,self.translation[0],-self.translation[1])
+          self.owner.mainCanvas.move(self.itemList[i].imageList[index].IDTag,self.translation[0]*mag,-self.translation[1]*mag)
         except:
-          self.owner.mainCanvas.move(self.itemList[i].IDTag,self.translation[0],-self.translation[1])
+          self.owner.mainCanvas.move(self.itemList[i].IDTag,self.translation[0]*mag,-self.translation[1]*mag)
     self.owner.updateSelection()
     self.owner.updateCanvasSize()
 
   def unTransF(self):
+    mag = self.owner.magnification
     for i in range(len(self.itemList)):
       for index in self.indexList[i]:
-        self.owner.translateSomething(-1,(-self.translation[0],-self.translation[1]),self.itemList[i],index)
+        self.owner.translateSomething(-1,(-self.translation[0]/mag,-self.translation[1]/mag),self.itemList[i],index)
         try:
-          self.owner.mainCanvas.move(self.itemList[i].imageList[index].IDTag,-self.translation[0],self.translation[1])
+          self.owner.mainCanvas.move(self.itemList[i].imageList[index].IDTag,-self.translation[0]*mag,self.translation[1]*mag)
         except:
-          self.owner.mainCanvas.move(self.itemList[i].IDTag,-self.translation[0],self.translation[1])
+          self.owner.mainCanvas.move(self.itemList[i].IDTag,-self.translation[0]*mag,self.translation[1]*mag)
     self.owner.updateSelection()
     self.owner.updateCanvasSize()
 
