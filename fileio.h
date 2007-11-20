@@ -246,6 +246,7 @@ public:
     } else {
       stream=fstream=new std::fstream(name.c_str(),mode);
       if(mode & std::ios::out) {
+	checkLocal(name);
 	if(error()) {
 	  delete fstream;
 	  std::ofstream f(name.c_str());
@@ -347,12 +348,12 @@ public:
   ~ofile() {close();}
   
   void open() {
-    checkLocal(name);
     if(standard) {
       if(mode & std::ios::binary) 
 	reportError("Cannot open standard output in binary mode");
       stream=&cout;
     } else {
+      checkLocal(name);
       stream=fstream=new std::ofstream(name.c_str(),mode | std::ios::trunc);
       index=processData().ofile.add(fstream);
       Check();
