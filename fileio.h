@@ -48,7 +48,7 @@ protected:
   bool singlereal; // Read/write single-precision XDR/binary reals.
   bool singleint;  // Read/write single-precision XDR/binary ints.
   bool closed;     // File has been closed.
-  bool checkerase; // Check input for errors/erase output.
+  bool check;      // Check whether input file exists.
   bool standard;   // Standard input/output
   bool binary;     // Read in binary mode.
   Int lines;       // Number of scrolled lines
@@ -91,11 +91,11 @@ public:
   
   void dimension(Int Nx=-1, Int Ny=-1, Int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
   
-  file(const string& name, bool checkerase=true, bool binary=false,
+  file(const string& name, bool check=true, bool binary=false,
        bool closed=false) : 
     name(name), linemode(false), csvmode(false),
     singlereal(false), singleint(true),
-    closed(closed), checkerase(checkerase), standard(name.empty()),
+    closed(closed), check(check), standard(name.empty()),
     binary(binary), lines(0), nullfield(false), whitespace("") {dimension();}
   
   virtual void open() {}
@@ -220,27 +220,41 @@ protected:
   istream *stream;
   std::fstream *fstream;
   char comment;
+  std::ios::openmode mode;
   bool comma;
   
 public:
-  ifile(const string& name, char comment, bool check=true) :
-    file(name,check), stream(NULL), fstream(NULL), comment(comment),
+  ifile(const string& name, char comment, bool check=true,
+	std::ios::openmode mode=std::ios::in) :
+    file(name,check), stream(NULL), fstream(NULL), comment(comment), mode(mode),
     comma(false) {
     stream=&cin;
   }
   
   // Binary file
-  ifile(const string& name, bool check=true) : file(name,check,true) {}
+  ifile(const string& name, bool check=true,
+	std::ios::openmode mode=std::ios::in) :
+    file(name,check,true), mode(mode) {}
   
   ~ifile() {close();}
   
   void open() {
     if(standard) {
+      if(mode & std::ios::binary) 
+	reportError("Cannot open standard input in binary mode");
       stream=&cin;
     } else {
-      stream=fstream=new std::fstream(name.c_str(),std::ios::in);
+      stream=fstream=new std::fstream(name.c_str(),mode);
+      if(mode & std::ios::out) {
+	if(error()) {
+	  delete fstream;
+	  std::ofstream f(name.c_str());
+	  f.close();
+	}
+	stream=fstream=new std::fstream(name.c_str(),mode);
+      }
       index=processData().ifile.add(fstream);
-      if(checkerase) Check();
+      if(check) Check();
     }
   }
   
@@ -272,7 +286,12 @@ public:
     }
   }
   
-  size_t tell() {return fstream->tellg();}
+  size_t tell() {
+    if(fstream) 
+      return fstream->tellg();
+    else
+      return 0;
+  }
   
   void csv();
   
@@ -292,10 +311,11 @@ public:
   
 class iofile : public ifile {
 public:
-  iofile(const string& name, char comment=0) : ifile(name,true,comment) {}
+  iofile(const string& name, char comment=0) : 
+    ifile(name,true,comment,std::ios::in | std::ios::out) {}
 
   void precision(Int p) {stream->precision(p);}
-  void flush() {fstream->flush();}
+  void flush() {if(fstream) fstream->flush();}
   
   void write(bool val) {*fstream << (val ? "true " : "false ");}
   void write(Int val) {*fstream << val;}
@@ -317,8 +337,10 @@ class ofile : public file {
 protected:
   ostream *stream;
   std::ofstream *fstream;
+  std::ios::openmode mode;
 public:
-  ofile(const string& name) : file(name), stream(NULL), fstream(NULL) {
+  ofile(const string& name, std::ios::openmode mode=std::ios::trunc) :
+    file(name), stream(NULL), fstream(NULL), mode(mode) {
     stream=&cout;
   }
   
@@ -327,9 +349,11 @@ public:
   void open() {
     checkLocal(name);
     if(standard) {
+      if(mode & std::ios::binary) 
+	reportError("Cannot open standard output in binary mode");
       stream=&cout;
     } else {
-      stream=fstream=new std::ofstream(name.c_str(),std::ios::trunc);
+      stream=fstream=new std::ofstream(name.c_str(),mode | std::ios::trunc);
       index=processData().ofile.add(fstream);
       Check();
     }
@@ -361,7 +385,12 @@ public:
     }
   }
   
-  size_t tell() {return fstream->tellp();}
+  size_t tell() {
+    if(fstream) 
+      return fstream->tellp();
+    else
+      return 0;
+  }
   
   void write(bool val) {*stream << (val ? "true " : "false ");}
   void write(Int val) {*stream << val;}
@@ -378,18 +407,9 @@ public:
 
 class ibfile : public ifile {
 public:
-  ibfile(const string& name, bool check=true) : ifile(name,check) {}
-
-  void open() {
-    if(standard) {
-      reportError("Cannot open standard input in binary mode");
-    } else {
-      stream=fstream=new std::fstream(name.c_str(),std::ios::binary |
-				      std::ios::in | std::ios::out);
-      if(checkerase) Check();
-    }
-  }
-  
+  ibfile(const string& name, bool check=true,
+	 std::ios::openmode mode=std::ios::in) : 
+    ifile(name,check,mode | std::ios::binary) {}
   template<class T>
   void iread(T& val) {
     val=T();
@@ -412,9 +432,10 @@ public:
   
 class iobfile : public ibfile {
 public:
-  iobfile(const string& name) : ibfile(name,true) {}
+  iobfile(const string& name) : ibfile(name,true,std::ios::in | std::ios::out)
+  {}
 
-  void flush() {fstream->flush();}
+  void flush() {if(fstream) fstream->flush();}
   
   template<class T>
   void iwrite(T val) {
@@ -448,19 +469,8 @@ public:
   
 class obfile : public ofile {
 public:
-  obfile(const string& name) : ofile(name) {}
+  obfile(const string& name) : ofile(name,std::ios::binary) {}
 
-  void open() {
-    checkLocal(name);
-    if(standard) {
-      reportError("Cannot open standard output in binary mode");
-    } else {
-      stream=fstream=new std::ofstream(name.c_str(),
-				       std::ios::binary | std::ios::trunc);
-      Check();
-    }
-  }
-  
   template<class T>
   void iwrite(T val) {
     fstream->write((char *) &val,sizeof(T));
@@ -506,7 +516,7 @@ public:
   void open() {
     fstream=new xdr::ioxstream(name.c_str(),mode);
     index=processData().ixfile.add(fstream);
-    if(checkerase) Check();
+    if(check) Check();
   }
     
   void close() {
@@ -523,10 +533,10 @@ public:
   
   const char* Mode() {return "xinput";}
   
-  bool eof() {return fstream->eof();}
-  bool error() {return fstream->fail();}
+  bool eof() {return fstream ? fstream->eof() : true;}
+  bool error() {return fstream ? fstream->fail() : true;}
 
-  void clear() {fstream->clear();}
+  void clear() {if(fstream) fstream->clear();}
   
   void seek(Int pos, bool begin=true) {
     if(!standard && fstream) {
@@ -535,7 +545,12 @@ public:
     }
   }
   
-  size_t tell() {return fstream->tell();}
+  size_t tell() {
+    if(fstream) 
+      return fstream->tell();
+    else
+      return 0;
+  }
   
   void Read(Int& val) {
     if(singleint) {int ival=0; *fstream >> ival; val=ival;}
@@ -570,7 +585,7 @@ class ioxfile : public ixfile {
 public:
   ioxfile(const string& name) : ixfile(name,true,xdr::xios::out) {}
 
-  void flush() {fstream->flush();}
+  void flush() {if(fstream) fstream->flush();}
   
   void write(Int val) {
     if(singleint) *fstream << intcast(val);
@@ -616,10 +631,10 @@ public:
   
   const char* Mode() {return "xoutput";}
   
-  bool eof() {return fstream->eof();}
-  bool error() {return fstream->fail();}
-  void clear() {fstream->clear();}
-  void flush() {fstream->flush();}
+  bool eof() {return fstream ? fstream->eof() : true;}
+  bool error() {return fstream ? fstream->fail() : true;}
+  void clear() {if(fstream) fstream->clear();}
+  void flush() {if(fstream) fstream->flush();}
   
   void seek(Int pos, bool begin=true) {
     if(!standard && fstream) {
@@ -628,7 +643,12 @@ public:
     }
   }
   
-  size_t tell() {return fstream->tell();}
+  size_t tell() {
+    if(fstream) 
+      return fstream->tell();
+    else
+      return 0;
+  }
   
   void write(Int val) {
     if(singleint) *fstream << intcast(val);
