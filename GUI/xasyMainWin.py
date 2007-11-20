@@ -173,19 +173,22 @@ class xasyMainWin:
     #status bar
     self.statusBar = Frame(self.parent,relief=FLAT)
 
-    self.zoomLabel1 = Label(self.statusBar,text="+")
-    self.zoomLabel1.pack(side=RIGHT)
-    self.zoomBar = Scale(self.statusBar,orient=HORIZONTAL,length=150,width=10,from_=0,to=len(self.magList)-1,command=self.zoomViewCmd,showvalue=False,relief=FLAT)
-    self.zoomBar.bind("<ButtonRelease-1>",self.applyZoom)
-    diffs = [abs(i-self.magnification) for i in self.magList]
-    self.zoomBar.set(diffs.index(min(diffs)))
-    self.zoomBar.pack(side=RIGHT,fill=X)
-    self.zoomLabel = Label(self.statusBar,text="Zoom:%d%% - "%int(self.magnification*100),width=13)
-    self.zoomLabel.pack(side=RIGHT)
+    self.magVal = DoubleVar()
+    self.magVal.set(round(100*self.magnification,1))
+    self.magVal.trace('w',self.zoomViewCmd)
+    zoomList = self.magList
+    if self.magnification not in zoomList:
+      zoomList.append(self.magnification)
+    zoomList.sort()
+    zoomList = [round(100*i,1) for i in zoomList]
+    self.zoomMenu = OptionMenu(self.statusBar,self.magVal,*zoomList)
+    self.zoomMenu.pack(side=RIGHT)
+    Label(self.statusBar,text="Zoom:",anchor=E,width=7).pack(side=RIGHT)
+
     self.coords = Label(self.statusBar,text="(0,0)",relief=SUNKEN,anchor=W)
-    self.coords.pack(side=RIGHT)
+    self.coords.pack(side=RIGHT,anchor=S)
     self.status = Label(self.statusBar,text="Ready",relief=SUNKEN,anchor=W)
-    self.status.pack(side=RIGHT,fill=X,expand=1)
+    self.status.pack(side=RIGHT,fill=X,expand=1,anchor=SW)
     self.statusBar.pack(side=BOTTOM,fill=X)
 
     #toolbar for transformation, drawing, and adjustment commands
@@ -908,11 +911,8 @@ class xasyMainWin:
 
   #event handlers
   def updateZoom(self):
-    self.zoomBar.config(state=DISABLED)
-    self.zoomLabel1.config(state=DISABLED)
-    self.zoomLabel.config(state=DISABLED)
-    self.magnification = self.magList[int(self.zoomBar.get())]
-    self.zoomLabel.config(text="Zoom:%d%% - "%int(self.magnification*100))
+    self.zoomMenu.config(state=DISABLED)
+    self.magnification = self.magVal.get()/100.0
     if self.magnification != self.previousZoom:
       self.populateCanvasWithItems()
       self.updateCanvasSize()
@@ -920,16 +920,11 @@ class xasyMainWin:
       self.drawAxes()
       self.drawGrid()
       self.previousZoom = self.magnification
-    self.zoomBar.config(state=NORMAL)
-    self.zoomLabel1.config(state=NORMAL)
-    self.zoomLabel.config(state=NORMAL)
+    self.zoomMenu.config(state=NORMAL)
 
-  def applyZoom(self,event):
-    self.updateZoom()
-
-  def zoomViewCmd(self,where):
-    magnification = self.magList[int(self.zoomBar.get())]
-    self.zoomLabel.config(text="Zoom:%d%% - "%int(magnification*100))
+  def zoomViewCmd(self,*args):
+    magnification = self.magVal.get()/100.0
+    self.updateZoom();
 
   def selectItem(self,item):
     self.clearSelection()
