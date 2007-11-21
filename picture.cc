@@ -381,12 +381,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   if((b.empty && !Labels)) { // Output a null file
     bbox b;
     b.left=b.bottom=0;
-    b.right=b.top=1;
+    b.right=b.top=xobject ? 18 : 1;
     psfile out(epsname,false);
     out.prologue(b);
     out.epilogue();
     out.close();
-    return postprocess(epsname,outname,outputformat,magnification,wait,view);
+    return postprocess(epsname,outname,outputformat,1.0,wait,view);
   }
   
   if(xobject && getSetting<string>("xformat") == "png") {

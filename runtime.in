@@ -1142,7 +1142,10 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
   string preformat=nativeformat();
   
   ostringstream cmd;
-  double res=magnification*72.0;
+  
+  // Enforce ghostscript limitations.
+  magnification=::max(magnification,0.0001);
+  double res=::min(::max(magnification*72.0,2.0),8192.0);
   
   const char *converter=NULL,*hint=NULL;
   
@@ -1176,12 +1179,10 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
       }
       
       picture *group=new picture;
-      bool Delete=false;
-      transform t;
-      static transform Zero=transform(0.0,0.0,0.0,0.0,0.0,0.0);
       xform->call(Stack);
-      t=pop<transform>(Stack);
-      Delete=(t == Zero);
+      transform t=pop<transform>(Stack);
+      static transform Zero=transform(0.0,0.0,0.0,0.0,0.0,0.0);
+      bool Delete=(t == Zero);
 // Ignore unclosed begingroups but not spurious endgroups.
       const char *nobegin="endgroup without matching begingroup";
       assert(*p);
