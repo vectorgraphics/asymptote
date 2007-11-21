@@ -400,12 +400,9 @@ class xasyItem:
 
   def handleImageReception(self,file,format,bbox,count):
     """Receive an image from an asy deconstruction. It replaces the default in asyProcess."""
-    if bbox[0] == 0 and bbox[1] == 0 and bbox[2] == 0 and bbox[3] == 0:
-      image = None
-    else:
-      image = Image.open(file)
+    image = Image.open(file)
     self.imageList.append(asyImage(image,format,bbox))
-    if self.onCanvas != None and image != None:
+    if self.onCanvas != None:
       self.imageList[-1].itk = ImageTk.PhotoImage(image)
       self.imageList[-1].originalImage = image.copy()
       self.imageList[-1].originalImage.theta = 0.0
