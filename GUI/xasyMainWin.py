@@ -816,6 +816,7 @@ class xasyMainWin:
   def toolTextCmd(self):
     self.updateSelectedButton(self.toolTextButton)
   def toolAsyCmd(self):
+    self.updateSelectedButton(self.toolSelectButton)
     # ignore the command if we are too busy to process it
     if not self.testOrAcquireLock():
       return
