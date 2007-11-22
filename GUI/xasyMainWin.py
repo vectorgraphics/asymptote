@@ -538,17 +538,16 @@ class xasyMainWin:
     #print "Quitting"
     if not force and not self.testOrAcquireLock():
       return
-    self.releaseLock()
+    try:
+      self.releaseLock()
+    except:
+      pass
     if self.undoRedoStack.changesMade():
       result = tkMessageBox._show("xasy","File has been modified.\nSave changes?",icon=tkMessageBox.QUESTION,type=tkMessageBox.YESNOCANCEL)
       if str(result) == tkMessageBox.CANCEL:
         return
       elif result == tkMessageBox.YES:
         self.fileSaveCmd()
-    try:
-      self.releaseLock()
-    except:
-      pass
     try:
       os.rmdir(getAsyTempDir())
     except:
