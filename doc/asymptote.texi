@@ -1872,6 +1872,10 @@ the C-function @code{fprintf}), except that only one data field is
 allowed, trailing zeros are removed by default (unless @code{#} is
 specified) and @TeX{} is used to typeset scientific notation;
 
+@cindex @code{string}
+@item string string(real x, int digits=realDigits)
+casts @code{x} using precision @code{digits} to a string, using the C locale;
+
 @item string time(string format="%a %b %d %T %Z %Y")
 @cindex @code{time}
 @cindex @code{date}
@@ -1886,7 +1890,7 @@ time("%a %b %d %H:%M:%S %Z %Y");
 
 @noindent
 are equivalent ways of returning the current time in the default
-format used by the UNIX @code{date} command.
+format used by the UNIX @code{date} command;
 
 @cindex @code{seconds}
 @cindex @code{strptime}
@@ -1918,14 +1922,18 @@ locale. For example, to return the date corresponding to 24 hours ago:
 time(seconds()-24*60*60);
 @end verbatim
 
-@cindex @code{string}
-@item string string(real x, int digits=realDigits)
-casts @code{x} using precision @code{digits} to a string, using the C locale.
-
 @cindex @code{abort}
-@item abort(string s);
-Aborts execution. If string @code{s} is nonempty, a diagnostic message
-constructed from the source file, line number, and @code{s} is printed.
+@item abort(string s)
+aborts execution; if string @code{s} is nonempty, a diagnostic message
+constructed from the source file, line number, and @code{s} is printed;
+
+@cindex @code{sleep}
+@item void sleep(int microseconds)
+pauses for the given number of seconds;
+
+@cindex @code{usleep}
+@item void usleep(int microseconds)
+pauses for the given number of microseconds.
 
 @end table
 
@@ -1990,7 +1998,7 @@ An ellipse can be drawn with the routine
 @verbatim
 path ellipse(pair c, real a, real b)
 {
-  return shift(c)*xscale(a)*yscale(b)*unitcircle;
+  return shift(c)*scale(a,b)*unitcircle;
 }
 @end verbatim
 
@@ -2771,6 +2779,10 @@ scales by @code{y} in the @math{y} direction;
 @item transform scale(real s);
 @cindex @code{scale}
 scale by @code{s} in both @math{x} and @math{y} directions;
+@item transform scale(real x, real y);
+@cindex @code{scale}
+scale by @code{x} in the @math{x} direction and by @code{y} in the
+@math{y} direction;
 @item transform slant(real s);
 @cindex @code{slant}
 maps @code{(x,y)} --> @code{(x+s*y,y)};
@@ -3254,7 +3266,7 @@ file output(string name, bool update=false);
 @noindent
 If @code{update=false}, any existing data in the file will be erased
 and only write operations can be used on the file.
-If @code{update=true}, existing data will be preserved, the position
+If @code{update=true}, any existing data will be preserved, the position
 will be set to the end-of-file, and both reading and writing operations
 will be enabled. For security reasons, writing to files in directories
 other than the current directory is allowed only if the @code{-globalwrite}
@@ -3281,13 +3293,15 @@ write(file file, suffix suffix=none);
 @cindex @code{none}
 @cindex @code{endl}
 @cindex @code{tab}
+@cindex @code{comma}
 If @code{file} is not specified, @code{stdout} is used and
 terminated by default with a newline. If specified, the optional
 identifying string @code{s} is written before the data @code{x}.
 An arbitrary number of data values may be listed when writing scalars
 or one-dimensional arrays. The @code{suffix} may be one of the following:
-@code{none} (do nothing), @code{endl} (terminate with a newline), or
-@code{tab} (terminate with a tab). Here are some simple examples of
+@code{none} (do nothing), @code{endl} (terminate with a newline),
+@code{tab} (terminate with a tab), or @code{comma} (terminate with a
+comma). Here are some simple examples of
 data output:
 @verbatim
 file fout=output("test.txt");
@@ -3398,6 +3412,17 @@ write(output("transcript.asy"),history());
 @end verbatim
 @noindent
 outputs the interactive history to the file @code{transcript.asy}.
+
+@cindex @code{delete}
+The function @code{int delete(string s)} deletes the file named by the
+string @code{s}. Unless the @code{-globalwrite} (or @code{-unsafe})
+option is enabled, the file must reside in the current directory.
+
+@cindex @code{rename}
+The function @code{int rename(string from, string to)} may be used to
+rename file @code{from} to file @code{to}.
+Unless the @code{-globalwrite} (or @code{-unsafe}) option is enabled,
+this operation is restricted to the current directory.
 
 @node Variable initializers
 @section Variable initializers
@@ -6805,6 +6830,11 @@ scales by @code{z} in the @math{z} direction;
 @item scale3(real s)
 @cindex @code{scale3}
 scales by @code{s} in the @math{x}, @math{y}, and @math{z} directions;
+@item scale(real x, real y, real z)
+@cindex @code{scale}
+scales by @code{x} in the @math{x} direction, 
+by @code{y} in the @math{y} direction, and by @code{z} in the @math{z}
+direction;
 @item rotate(real angle, triple v)
 rotates by @code{angle} in degrees about an axis @code{v} through the origin;
 @item rotate(real angle, triple u, triple v)

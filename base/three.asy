@@ -47,26 +47,35 @@ transform3 scale3(real s)
 }
 
 // A scaling in the x direction in 3D space.
-transform3 xscale3(real s)
+transform3 xscale3(real x)
 {
   transform3 t=identity(4);
-  t[0][0]=s;
+  t[0][0]=x;
   return t;
 }
 
 // A scaling in the y direction in 3D space.
-transform3 yscale3(real s)
+transform3 yscale3(real y)
 {
   transform3 t=identity(4);
-  t[1][1]=s;
+  t[1][1]=y;
   return t;
 }
 
 // A scaling in the z direction in 3D space.
-transform3 zscale3(real s)
+transform3 zscale3(real z)
 {
   transform3 t=identity(4);
-  t[2][2]=s;
+  t[2][2]=z;
+  return t;
+}
+
+transform3 scale(real x, real y, real z)
+{
+  transform3 t=identity(4);
+  t[0][0]=x;
+  t[1][1]=y;
+  t[2][2]=z;
   return t;
 }
 

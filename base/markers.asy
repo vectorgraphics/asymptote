@@ -52,15 +52,6 @@ frame tildeframe(int n=1, real size=0, pair space=0,
 
 frame tildeframe=tildeframe();
 
-// A dot in a frame.
-frame dotframe(pen p=currentpen) {
-  frame f;
-  dot(f,(0,0),p);
-  return f;
-}
-
-frame dotframe=dotframe();
-
 real stickmarkspacefactor=4;
 real stickmarksizefactor=10;
 real stickmarksize(pen p=currentpen)

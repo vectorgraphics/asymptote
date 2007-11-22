@@ -1589,6 +1589,11 @@ void assert(bool b, string s=emptystring)
   }
 }
 
+void sleep(Int seconds)
+{
+  sleep(seconds);
+}
+
 void usleep(Int microseconds)
 {
   usleep((unsigned long) microseconds); 
@@ -2646,6 +2651,11 @@ transform scale(real x)
   return scale(x);
 }
 
+transform scale(real x, real y)
+{
+  return xscale(x)*yscale(y);
+}
+
 transform slant(real s)
 {
   return slant(s);
@@ -3000,13 +3010,24 @@ Int convert(string *args, string output=emptystring,
   return ret;
 }
 
-// Delete file named s in current directory.
+// Delete file named s.
 Int delete(string *s) 
 {
   checkLocal(*s);
   Int rc=unlink(s->c_str());
   if(rc == 0 && verbose > 0) 
     cout << "Deleted " << *s << endl;
+  return rc;
+}
+
+// Rename file "from" to file "to".
+Int rename(string *from, string *to) 
+{
+  checkLocal(*from);
+  checkLocal(*to);
+  Int rc=rename(from->c_str(),to->c_str());
+  if(rc == 0 && verbose > 0) 
+    cout << "Renamed " << *from << " to " << *to << endl;
   return rc;
 }
 

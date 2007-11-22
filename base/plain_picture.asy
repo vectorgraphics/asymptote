@@ -690,7 +690,7 @@ struct picture {
     if(keepAspect && (xunitsize == 0 || yunitsize == 0))
       return scale(min(sx,sy));
     else
-      return xscale(sx)*yscale(sy);
+      return scale(sx,sy);
   }
 
   transform scaling(bool warn=true) {
@@ -735,7 +735,7 @@ struct picture {
     real ygrow=ysize == 0 || height == 0 ? 1 : ysize/height;
     return keepAspect ? 
       scale(min(xsize > 0 ? xgrow : ygrow, ysize > 0 ? ygrow : xgrow)) :
-      xscale(xgrow)*yscale(ygrow);
+      scale(xgrow,ygrow);
   }
 
   // Return the transform that would be used to fit the picture to a frame

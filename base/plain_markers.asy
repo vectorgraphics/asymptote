@@ -245,11 +245,10 @@ void dot(frame f, pair z, pen p=currentpen, filltype filltype=Fill)
     draw(f,z,dotsize(p)+p);
   else {
     transform t=shift(z);
-    path gout=t*scale(0.5*(dotsize(p)-linewidth(p)))*unitcircle;
-    path gin=t*scale(0.5*dotsize(p))*unitcircle;
+    path g=t*scale(0.5*(dotsize(p)-linewidth(p)))*unitcircle;
     begingroup(f);
-    filltype(f,gin,p);
-    draw(f,gout,p);
+    filltype(f,g,p);
+    draw(f,g,p);
     endgroup(f);
   }
 }
@@ -308,3 +307,20 @@ void dot(picture pic=currentpicture, Label L, pen p=currentpen,
 {
   dot(pic,L,L.position,p,filltype);
 }
+
+// A dot in a frame.
+frame dotframe(pen p=currentpen, filltype filltype=Fill)
+{
+  frame f;
+  dot(f,(0,0),p,filltype);
+  return f;
+}
+
+frame dotframe=dotframe();
+
+marker dot(pen p=currentpen, filltype filltype=Fill)
+{
+  return marker(dotframe(p,filltype));
+}
+
+marker dot=dot();

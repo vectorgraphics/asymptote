@@ -8,7 +8,7 @@ path circle(pair c, real r)
 
 path ellipse(pair c, real a, real b)
 {
-  return shift(c)*xscale(a)*yscale(b)*unitcircle;
+  return shift(c)*scale(a,b)*unitcircle;
 }
 
 // return an arc centered at c with radius r from angle1 to angle2 in degrees,
