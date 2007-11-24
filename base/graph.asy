@@ -1706,7 +1706,7 @@ picture secondaryX(picture primary=currentpicture, void f(picture))
   picture pic;
   if(primary.userMax.x == primary.userMin.x) return pic;
   f(pic);
-  if(!pic.userSetx) abort("empty secondaryX picture");
+  if(!pic.userSetx) return pic;
   bounds a=autoscale(pic.userMin.x,pic.userMax.x,pic.scale.x.scale);
   real bmin=pic.scale.x.automin() ? a.min : pic.userMin.x;
   real bmax=pic.scale.x.automax() ? a.max : pic.userMax.x;
@@ -1735,7 +1735,7 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
   picture pic;
   if(primary.userMax.y == primary.userMin.y) return pic;
   f(pic);
-  if(!pic.userSety) abort("empty secondaryY picture");
+  if(!pic.userSety) return pic;
   bounds a=autoscale(pic.userMin.y,pic.userMax.y,pic.scale.y.scale);
   real bmin=pic.scale.y.automin() ? a.min : pic.userMin.y;
   real bmax=pic.scale.y.automax() ? a.max : pic.userMax.y;
