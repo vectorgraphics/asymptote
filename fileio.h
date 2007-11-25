@@ -51,15 +51,12 @@ protected:
   bool check;      // Check whether input file exists.
   bool standard;   // Standard input/output
   bool binary;     // Read in binary mode.
-  Int lines;       // Number of scrolled lines
   
   bool nullfield;  // Used to detect a final null field in csv+line mode.
   string whitespace;
   size_t index;	   // Terminator index.
 public: 
 
-  void resetlines() {lines=0;}
-  
   bool Standard() {return standard;}
   
   void standardEOF() {
@@ -96,7 +93,7 @@ public:
     name(name), linemode(false), csvmode(false),
     singlereal(false), singleint(true),
     closed(closed), check(check), standard(name.empty()),
-    binary(binary), lines(0), nullfield(false), whitespace("") {dimension();}
+    binary(binary), nullfield(false), whitespace("") {dimension();}
   
   virtual void open() {}
   

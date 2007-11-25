@@ -13,6 +13,7 @@ namespace interact {
 
 extern bool interactive;
 extern bool uptodate;
+extern int lines; // Interactive scroll count
 
 void init_interactive();
   

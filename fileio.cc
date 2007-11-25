@@ -145,7 +145,7 @@ void ofile::writeline()
 {
   if(standard && interact::interactive && !vm::indebugger) {
     Int scroll=settings::getScroll();
-    if(scroll && lines > 0 && lines % scroll == 0) {
+    if(scroll && interact::lines > 0 && interact::lines % scroll == 0) {
       for(;;) {
 	if(!cin.good()) {
 	  *stream << newline;
@@ -156,12 +156,12 @@ void ofile::writeline()
 	if(c == '\n') break;
 	// Discard any additional characters
 	while(cin.good() && cin.get() != '\n');
-	if(c == 'q') {lines=0; throw quit();}
+	if(c == 'q') {interact::lines=0; throw quit();}
       }
     } else *stream << newline;
-    ++lines;
+    ++interact::lines;
   } else *stream << newline;
-  if(errorstream::interrupt) {lines=0; throw interrupted();}
+  if(errorstream::interrupt) {interact::lines=0; throw interrupted();}
 }
   
 } // namespace camp

@@ -276,7 +276,7 @@ void writeArray(vm::stack *s)
   
   size_t asize=checkArray(a);
   size_t Asize=checkArray(A);
-  if(f->Standard()) camp::Stdout.resetlines();
+  if(f->Standard()) interact::lines=0;
   else if(!f->isOpen()) return;
   try {
     if(S != "") {f->write(S); f->writeline();}
@@ -323,7 +323,7 @@ void writeArray2(vm::stack *s)
   camp::file *f=pop<camp::file*>(s,&camp::Stdout);
   
   size_t size=checkArray(a);
-  if(f->Standard()) camp::Stdout.resetlines();
+  if(f->Standard()) interact::lines=0;
   else if(!f->isOpen()) return;
   
   try {
@@ -348,7 +348,7 @@ void writeArray3(vm::stack *s)
   camp::file *f=pop<camp::file*>(s,&camp::Stdout);
   
   size_t size=checkArray(a);
-  if(f->Standard()) camp::Stdout.resetlines();
+  if(f->Standard()) interact::lines=0;
   else if(!f->isOpen()) return;
   
   try {

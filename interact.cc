@@ -33,8 +33,9 @@ namespace interact {
 
 bool interactive=false;
 bool uptodate=true;
-bool tty=isatty(STDIN_FILENO);  
+int lines=0;  
 
+bool tty=isatty(STDIN_FILENO);  
 completer *currentCompleter=0;
 
 void setCompleter(completer *c) {
@@ -102,10 +103,13 @@ string simpleline(string prompt) {
   // Rebind tab key, as the setting tabcompletion may be changed at runtime.
   pre_readline();
   
-  /* Get a line from the user. */
+  // Get a line from the user.
   char *line=Readline(prompt.c_str());
 
-  /* Ignore keyboard interrupts while taking input. */
+  // Reset scroll count.
+  interact::lines=0;
+  
+  // Ignore keyboard interrupts while taking input.
   errorstream::interrupt=false;
 
   if(line) {
