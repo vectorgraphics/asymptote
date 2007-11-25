@@ -85,12 +85,18 @@ void axis(picture pic=currentpicture, Label L="", path3 G, pen p=currentpen,
   }
 }
 
+private triple defaultdir(triple X, triple Y, triple Z, projection P) {
+  triple u=cross(P.camera-P.target,Z);
+  return abs(dot(u,X)) > abs(dot(u,Y)) ? X : Y;
+}
+
 // Draw an x axis in three dimensions.
 void xaxis(picture pic=currentpicture, Label L="", triple min, triple max,
            pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
            arrowbar arrow=None, bool put=Above,
            projection P=currentprojection, bool opposite=false) 
 {
+  if(dir == O) dir=defaultdir(Y,Z,X,P);
   bounds m=autoscale(min.x,max.x,pic.scale.x.scale);
   path3 G=min--max;
   valuetime t=linear(pic,G,pic.scale.x.T(),min.x,max.x,P);
@@ -113,6 +119,7 @@ void yaxis(picture pic=currentpicture, Label L="", triple min, triple max,
            arrowbar arrow=None, bool put=Above, 
            projection P=currentprojection, bool opposite=false) 
 {
+  if(dir == O) dir=defaultdir(Z,X,Y,P);
   bounds m=autoscale(min.y,max.y,pic.scale.y.scale);
   path3 G=min--max;
   valuetime t=linear(pic,G,pic.scale.y.T(),min.y,max.y,P);
@@ -131,10 +138,11 @@ void yaxis(picture pic=currentpicture, Label L="", triple min, real max,
 
 // Draw a z axis in three dimensions.
 void zaxis(picture pic=currentpicture, Label L="", triple min, triple max,
-           pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
+           pen p=currentpen, ticks ticks=NoTicks, triple dir=O,
            arrowbar arrow=None, bool put=Above,
            projection P=currentprojection, bool opposite=false) 
 {
+  if(dir == O) dir=defaultdir(X,Y,Z,P);
   bounds m=autoscale(min.z,max.z,pic.scale.z.scale);
   path3 G=min--max;
   valuetime t=linear(pic,G,pic.scale.z.T(),min.z,max.z,P);
@@ -144,7 +152,7 @@ void zaxis(picture pic=currentpicture, Label L="", triple min, triple max,
 }
 
 void zaxis(picture pic=currentpicture, Label L="", triple min, real max,
-           pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
+           pen p=currentpen, ticks ticks=NoTicks, triple dir=O,
            arrowbar arrow=None, bool put=Above,
            projection P=currentprojection, bool opposite=false) 
 {
@@ -158,18 +166,23 @@ void xaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
            arrowbar arrow=None, bool put=Above,
            projection P=currentprojection) 
 {
+  if(dir == O) dir=defaultdir(Y,Z,X,P);
+
   if(all) {
+    bool swap=(abs(dot(dir,Z)) > abs(dot(dir,Y)));
     bounds m=autoscale(b.min.x,b.max.x,pic.scale.x.scale);
   
     void axis(Label L, triple min, triple max, bool opposite=false,
               int sign=1) {
       xaxis(pic,L,min,max,p,ticks,sign*dir,arrow,put,P,opposite);
     }
-    bool back=dot(b.Y()-b.O(),P.camera)*P.camera.z > 0;
+    bool back=dot(b.Y()-b.O(),P.camera)*sgn(P.camera.z) > 0;
     int sign=back ? -1 : 1;
     axis(L,b.min,b.X(),back,sign);
-    axis(L,(b.min.x,b.max.y,b.min.z),(b.max.x,b.max.y,b.min.z),!back,sign);
-    axis(L,(b.min.x,b.min.y,b.max.z),(b.max.x,b.min.y,b.max.z),true,-1);
+    axis(L,(b.min.x,b.max.y,b.min.z),(b.max.x,b.max.y,b.min.z),!back,
+	 swap ? 1 : sign);
+    axis(L,(b.min.x,b.min.y,b.max.z),(b.max.x,b.min.y,b.max.z),true,
+	 swap ? 1 : -1);
     axis(L,(b.min.x,b.max.y,b.max.z),b.max,true);
   } else xaxis(pic,L,b.O(),b.X(),p,ticks,dir,arrow,put,P);
 }
@@ -181,18 +194,23 @@ void yaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
            arrowbar arrow=None, bool put=Above,
            projection P=currentprojection) 
 {
+  if(dir == O) dir=defaultdir(Z,X,Y,P);
+
   if(all) {
+    bool swap=(abs(dot(dir,Z)) > abs(dot(dir,X)));
     bounds m=autoscale(b.min.y,b.max.y,pic.scale.y.scale);
   
     void axis(Label L, triple min, triple max, bool opposite=false,
               int sign=1) {
       yaxis(pic,L,min,max,p,ticks,sign*dir,arrow,put,P,opposite);
     }
-    bool back=dot(b.X()-b.min,P.camera)*P.camera.z > 0;
+    bool back=dot(b.X()-b.O(),P.camera)*sgn(P.camera.z) > 0;
     int sign=back ? -1 : 1;
     axis(L,b.min,b.Y(),back,sign);
-    axis(L,(b.max.x,b.min.y,b.min.z),(b.max.x,b.max.y,b.min.z),!back,sign);
-    axis(L,(b.min.x,b.min.y,b.max.z),(b.min.x,b.max.y,b.max.z),true,-1);
+    axis(L,(b.max.x,b.min.y,b.min.z),(b.max.x,b.max.y,b.min.z),!back,
+	 swap ? 1 : sign);
+    axis(L,(b.min.x,b.min.y,b.max.z),(b.min.x,b.max.y,b.max.z),true,
+	 swap ? 1 : -1);
     axis(L,(b.max.x,b.min.y,b.max.z),b.max,true);
   } else yaxis(pic,L,b.O(),b.Y(),p,ticks,dir,arrow,put,P);
 }
@@ -200,22 +218,27 @@ void yaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
 // Draw a z axis.
 // If all=true, also draw opposing edges of the three-dimensional bounding box.
 void zaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
-           pen p=currentpen, ticks ticks=NoTicks, triple dir=X,
+           pen p=currentpen, ticks ticks=NoTicks, triple dir=O,
            arrowbar arrow=None, bool put=Above,
            projection P=currentprojection) 
 {
+  if(dir == O) dir=defaultdir(X,Y,Z,P);
+
   if(all) {
+    bool swap=(abs(dot(dir,Y)) > abs(dot(dir,X)));
     bounds m=autoscale(b.min.z,b.max.z,pic.scale.z.scale);
   
     void axis(Label L, triple min, triple max, bool opposite=false,
               int sign=1) {
       zaxis(pic,L,min,max,p,ticks,sign*dir,arrow,put,P,opposite);
     }
-    bool back=dot(b.X()-b.min,P.camera)*P.camera.z > 0;
+    bool back=dot(b.X()-b.O(),P.camera)*sgn(P.camera.y) > 0;
     int sign=back ? -1 : 1;
     axis(L,b.min,b.Z(),back,sign);
-    axis(L,(b.max.x,b.min.y,b.min.z),(b.max.x,b.min.y,b.max.z),!back,sign);
-    axis(L,(b.min.x,b.max.y,b.min.z),(b.min.x,b.max.y,b.max.z),true,-1);
+    axis(L,(b.max.x,b.min.y,b.min.z),(b.max.x,b.min.y,b.max.z),!back,
+	 swap ? 1 : sign);
+    axis(L,(b.min.x,b.max.y,b.min.z),(b.min.x,b.max.y,b.max.z),true,
+	 swap ? 1 : -1);
     axis(L,(b.max.x,b.max.y,b.min.z),b.max,true);
   } else zaxis(pic,L,b.O(),b.Z(),p,ticks,dir,arrow,put,P);
 }

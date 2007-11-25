@@ -10,7 +10,7 @@ real z(real t) {return t;}
 
 defaultpen(overwrite(SuppressQuiet));
 
-path3 p=graph(x,y,z,0,2.7,Spline);
+path3 p=graph(x,y,z,0,2.7,operator ..);
 bbox3 b=autolimits(min(p),max(p));
 aspect(b,1,1,1);
 
