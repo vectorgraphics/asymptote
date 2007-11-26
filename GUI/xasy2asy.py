@@ -71,7 +71,7 @@ def asyExecute(command):
   syncQuickAsyOutput()
   quickAsy.stdin.write(command)
 
-def syncQuickAsyOutput():
+def syncQuickAsyOutput(verbose=False):
   global idCounter
   idStr = randString+"-id "+str(idCounter)
   idCounter += 1
@@ -79,21 +79,28 @@ def syncQuickAsyOutput():
   quickAsy.stdin.flush()
   line = quickAsy.stdout.readline()
   while not line.endswith(idStr+'\n'):
+    if verbose:
+      print line
     line = quickAsy.stdout.readline()
+    quickAsy.stdin.flush()
 
 class asyTransform:
   """A python implementation of an asy transform"""
-  def __init__(self,initTuple):
+  def __init__(self,initTuple,delete=False):
     """Initialize the transform with a 6 entry tuple"""
     if type(initTuple) == type((0,)) and len(initTuple) == 6:
       self.t = initTuple
       self.x,self.y,self.xx,self.xy,self.yx,self.yy = initTuple
+      self.deleted = delete
     else:
       raise Exception,"Illegal initializer for asyTransform"
 
   def getCode(self):
     """Obtain the asy code that represents this transform"""
-    return str(self.t)
+    if self.deleted:
+      return str(self.t) + ", false"
+    else:
+      return str(self.t)
 
   def scale(self,s):
     #return asyTransform((s*self.t[0],s*self.t[1],s*self.t[2],s*self.t[3],s*self.t[4],s*self.t[5]))
@@ -125,7 +132,8 @@ class asyTransform:
     else:
       raise Exception, "Illegal multiplier of %s"%str(type(other))
 
-identity = asyTransform((0,0,1,0,0,1))
+def identity():
+  return asyTransform((0,0,1,0,0,1))
 
 class asyObj:
   """A base class for asy objects: an item represented by asymptote code."""
@@ -382,7 +390,7 @@ class xasyItem:
   """A base class for items in the xasy GUI"""
   def __init__(self,canvas=None):
     """Initialize the item to an empty item"""
-    self.transform = [identity]
+    self.transform = [identity()]
     self.asyCode = ""
     self.imageList = []
     self.IDTag = None
@@ -407,7 +415,8 @@ class xasyItem:
       self.imageList[-1].originalImage = image.copy()
       self.imageList[-1].originalImage.theta = 0.0
       self.imageList[-1].originalImage.bbox = bbox
-      self.imageList[-1].IDTag = self.onCanvas.create_image(bbox[0],-bbox[3],anchor=NW,tags=("image"),image=self.imageList[-1].itk)
+      if count >= len(self.transform) or self.transform[count].deleted == False:
+        self.imageList[-1].IDTag = self.onCanvas.create_image(bbox[0],-bbox[3],anchor=NW,tags=("image"),image=self.imageList[-1].itk)
       self.onCanvas.update()
 
   def asyfy(self,mag=1.0):
@@ -437,7 +446,7 @@ class xasyItem:
     for line in self.getCode().splitlines():
       quickAsy.stdin.write(line+"\n");
     quickAsy.stdin.flush()
-    syncQuickAsyOutput();
+    syncQuickAsyOutput(verbose=True);
     quickAsy.stdin.write("deconstruct(%f);\n"%mag)
     quickAsy.stdin.flush()
     format = split(quickAsy.stdout.readline())[1]
@@ -453,7 +462,7 @@ class xasyItem:
           l,b,r,t = [float(a) for a in split(boxes[i])]
           name=template%(batch,i+1,format)
           self.imageHandleQueue.put((name,format,(l,b,r,t),i))
-    while text != "Done\n":
+    while text != "Done\n" and text != "Error\n":
       boxes.append(text)
       text = quickAsy.stdout.readline()
       n += 1
@@ -462,7 +471,10 @@ class xasyItem:
         boxes=[]
         batch += 1
         n=0
-    render()
+    if text == "Error\n":
+      print quickAsy.stdout.readline()
+    else:
+      render()
     self.imageHandleQueue.put((None,))
     self.asyfied = True
 
@@ -473,7 +485,7 @@ class xasyItem:
 
 class xasyDrawnItem(xasyItem):
   """A base class for GUI items was drawn by the user. It combines a path, a pen, and a transform."""
-  def __init__(self,path,pen = asyPen(),transform = identity):
+  def __init__(self,path,pen = asyPen(),transform = identity()):
     """Initialize the item with a path, pen, and transform"""
     xasyItem.__init__(self)
     self.path = path
@@ -493,7 +505,7 @@ class xasyDrawnItem(xasyItem):
 
   def clearTransform(self):
     """Reset the item's transform"""
-    self.transform = [identity]
+    self.transform = [identity()]
 
   def removeLastPoint(self):
     """Remove the last point in the path. If the path is cyclic, remove the node before the 'cycle' node."""
@@ -514,7 +526,7 @@ class xasyDrawnItem(xasyItem):
 
 class xasyShape(xasyDrawnItem):
   """An outlined shape drawn on the GUI"""
-  def __init__(self,path,pen=asyPen(),transform=identity):
+  def __init__(self,path,pen=asyPen(),transform=identity()):
     """Initialize the shape with a path, pen, and transform"""
     xasyDrawnItem.__init__(self,path,pen,transform)
 
@@ -571,7 +583,7 @@ class xasyShape(xasyDrawnItem):
 
 class xasyFilledShape(xasyShape):
   """A filled shape drawn on the GUI"""
-  def __init__(self,path,pen=asyPen(),transform=identity):
+  def __init__(self,path,pen=asyPen(),transform=identity()):
     """Initialize this shape with a path, pen, and transform"""
     if path.nodeSet[-1] != 'cycle':
       raise Exception,"Filled paths must be cyclic"
@@ -637,7 +649,7 @@ class xasyFilledShape(xasyShape):
 
 class xasyText(xasyItem):
   """Text created by the GUI"""
-  def __init__(self,text,location,pen=asyPen(),transform=identity):
+  def __init__(self,text,location,pen=asyPen(),transform=identity()):
     """Initialize this item with text, a location, pen, and transform"""
     xasyItem.__init__(self)
     self.label=asyLabel(text,location,pen)
@@ -678,7 +690,7 @@ class xasyScript(xasyItem):
 
   def clearTransform(self):
     """Reset the transforms for each of the deconstructed images""" 
-    self.transform = [identity for im in self.imageList]
+    self.transform = [identity() for im in self.imageList]
 
   def updateCode(self,mag=1.0):
     """Generate the code describing this script"""
@@ -716,7 +728,7 @@ class xasyScript(xasyItem):
     """Generate the list of images described by this object and adjust the length of the transform list."""
     xasyItem.asyfy(self,mag)
     while len(self.imageList) > len(self.transform):
-      self.transform.append(identity)
+      self.transform.append(identity())
     while len(self.imageList) < len(self.transform):
       self.transform.pop()
     self.updateCode()

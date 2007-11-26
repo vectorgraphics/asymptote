@@ -48,22 +48,39 @@ void endScript()
 struct indexedTransform {
   int index;
   transform t;
-  void operator init(int index, transform t) {
+  bool active;
+  void operator init(int index, transform t, bool active=true) {
     this.index=index;
     this.t=t;
+    this.active=active;
   }
 }
 
 struct framedTransformStack {
-  private transform[] stack;
+  struct transact {
+    transform t;
+    bool active;
+    void operator init(transform t, bool active=true) {
+      this.t=t;
+      this.active=active;
+    }
+    void operator init(indexedTransform i){
+      this.t=i.t;
+      this.active=i.active;
+    }
+    void operator init() {
+      this.t=identity();
+      this.active=true;
+    }
+  }
+  private transact[] stack;
   private int[] frames;
   private int stackBase=0;
   transform pop() {
     if(stack.length == 0)
       return identity();
-    else
-    {
-      transform popped = stack[0];
+    else {
+      transform popped = stack[0].t;
       stack.delete(0);
       report("Popped");
       report(popped);
@@ -71,19 +88,32 @@ struct framedTransformStack {
     }
   }
 
-  void push(transform t) {
+  transform pop0() {
+    if(stack.length == 0)
+      return identity();
+    else {
+      static transform zerotransform=(0,0,0,0,0,0);
+      transform popped = stack[0].active ? stack[0].t : zerotransform;
+      stack.delete(0);
+      report("Popped");
+      report(popped);
+      return popped;
+    }
+  }
+
+  void push(transform t, bool Active=true) {
     report("Pushed");
     report(t);
-    stack.push(t);
+    stack.push(transact(t,Active));
   }
 
   void add(... indexedTransform[] tList) {
-    transform[] toPush;
+    transact[] toPush;
     for(int a=0; a < tList.length; ++a)
-      toPush[tList[a].index]=tList[a].t;
+      toPush[tList[a].index]=transact(tList[a]);
     for(int a=0; a < toPush.length; ++a)
       if(!toPush.initialized(a))
-	toPush[a]=identity();
+	toPush[a]=transact();
     report("Added");
     report(toPush.length);
     stack.append(toPush);

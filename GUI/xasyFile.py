@@ -76,20 +76,22 @@ def extractScript(lines):
 
 pendingTransforms = []
 pendingTransformsD = []
-def addTransform(index,t):
+def addTransform(index,t,active=1):
   """Place a transform in the list of transforms, expanding the list as needed"""
   while len(pendingTransformsD) < index+1:
-    pendingTransformsD.append(identity)
-  pendingTransformsD[index]=t
+    pendingTransformsD.append(identity())
+  deleted = int(active==0)
+  pendingTransformsD[index]=asyTransform(t,deleted)
 
 def parseIndexedTransforms(args):
   """Parse a list of indexedTransforms, adding them to the current list of transforms"""
   global pendingTransformsD
   pendingTransformsD = []
   args = args.replace("indexedTransform","")
+  false = 0
   tList = [eval(a) for a in ")?(".join(args.split("),(")).split("?")]
   for a in tList:
-    addTransform(a[0],asyTransform(a[1]))
+    addTransform(*a)
 
 def parseTransformExpression(line):
   """Parse statements related to the xformStack

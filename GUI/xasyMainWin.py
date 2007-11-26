@@ -1017,7 +1017,7 @@ class xasyMainWin:
       try:
         original = item.transform[index]
       except:
-        original = identity
+        original = identity()
       item.transform[index] = transform*original
       bbox = item.imageList[index].originalImage.bbox
       item.imageList[index].originalImage.bbox = bbox[0]+translation[0],bbox[1]+translation[1],bbox[2]+translation[0],bbox[3]+translation[1]
@@ -1046,7 +1046,7 @@ class xasyMainWin:
       try:
         original = item.transform[index]
       except:
-        original = identity
+        original = identity()
       oldBbox = item.imageList[index].originalImage.bbox
       oldBbox = (oldBbox[0],-oldBbox[1],oldBbox[2],-oldBbox[3])
       item.transform[index] = rotMat*item.transform[index]
@@ -1079,7 +1079,7 @@ class xasyMainWin:
     else:
       #transform each point of the object
       xform = rotMat*item.transform[0]
-      item.transform = [identity]
+      item.transform = [identity()]
       for i in range(len(item.path.nodeSet)):
         if item.path.nodeSet[i] != 'cycle':
           item.path.nodeSet[i] = xform*item.path.nodeSet[i]
@@ -1115,7 +1115,7 @@ class xasyMainWin:
     #save an event on the undoredo stack
     if isinstance(item,xasyScript):
       index = self.findItemImageIndex(item,ID)
-      item.transform[index] = asyTransform((0,0,0,0,0,0))
+      item.transform[index].deleted = True
     else:
       if isinstance(item,xasyText):
         self.undoRedoStack.add(deleteLabelAction(self,item,self.fileItems.index(item)))
@@ -1170,7 +1170,7 @@ class xasyMainWin:
     if "selectedItem" in self.mainCanvas.gettags(CURRENT):
       self.amDragging = True
       for ID in self.mainCanvas.find_withtag("selectedItem"):
-        transform = identity
+        transform = identity()
         if self.selectedButton == self.toolMoveButton:
           translation = (x0-self.dragStartx,-(y0-self.dragStarty))
         elif self.selectedButton == self.toolVertiMoveButton:
@@ -1531,9 +1531,9 @@ class xasyMainWin:
     self.undoRedoStack.add(clearItemTransformsAction(self,self.itemPopupMenu.item,copy.deepcopy(self.itemPopupMenu.item.transform)))
     if isinstance(self.itemPopupMenu.item,xasyScript) or isinstance(self.itemPopupMenu.item,xasyText):
       for i in range(len(self.itemPopupMenu.item.transform)):
-        self.itemPopupMenu.item.transform[i] = identity
+        self.itemPopupMenu.item.transform[i] = identity()
     else:
-      self.itemPopupMenu.item.transform = [identity]
+      self.itemPopupMenu.item.transform = [identity()]
     self.popupRedrawItem()
 
   def popupRedrawItem(self):

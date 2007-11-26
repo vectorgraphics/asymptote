@@ -36,7 +36,7 @@ void shipout(string prefix=defaultfilename, frame f,
   if(abs(m.x) > limit || abs(m.y) > limit) f=shift(-m)*f;
 
   uptodate(true);
-  shipout(prefix,f,currentpatterns,format,wait,view,xformStack.pop);
+  shipout(prefix,f,currentpatterns,format,wait,view,xformStack.pop0);
   shipped=true;
 }
 

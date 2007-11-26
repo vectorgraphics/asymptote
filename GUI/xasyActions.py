@@ -213,17 +213,16 @@ class deleteScriptItemAction(UndoRedoStack.action):
     self.owner = owner
     self.script = script
     self.indices = indices[:]
-    self.oldTransforms = oldTransforms[:]
     UndoRedoStack.action.__init__(self,self.delI,self.unDelI)
   def delI(self):
     for index in self.indices:
-      self.script.transform[index] = xasy2asy.asyTransform((0,0,0,0,0,0))
+      self.script.transform[index].deleted = True
       self.owner.mainCanvas.delete(self.script.imageList[index].IDTag)
 
   def unDelI(self):
     for i in range(len(self.indices)):
       index = self.indices[i]
-      self.script.transform[index] = self.oldTransforms[i]
+      self.script.transform[index].deleted = False
       bbox = self.script.imageList[index].originalImage.bbox
       self.script.imageList[index].IDTag = self.owner.mainCanvas.create_image(bbox[0],-bbox[3],anchor=NW,tags=("image"),image=self.script.imageList[index].itk)
       self.owner.bindEvents(self.script.imageList[index].IDTag)
@@ -262,7 +261,7 @@ class clearItemTransformsAction(UndoRedoStack.action):
 
   def clearF(self):
     for i in range(len(self.oldTransforms)):
-      self.item.transform[i] = xasy2asy.identity
+      self.item.transform[i] = xasy2asy.identity()
     self.item.drawOnCanvas(self.owner.mainCanvas,self.owner.magnification)
 
   def unClearF(self):
