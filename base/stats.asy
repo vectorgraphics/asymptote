@@ -58,7 +58,7 @@ real Gaussian(real x)
   return exp(-0.5*x^2)*invsqrt2pi;
 }
 
-// Return frequency count of data in [bins[i],bins[i+1]) for i=0,...n-1.
+// Return frequency count of data in [bins[i],bins[i+1]) for i=0,...,n-1.
 int[] frequency(real[] data, real[] bins)
 {
   int n=bins.length-1;
@@ -68,12 +68,13 @@ int[] frequency(real[] data, real[] bins)
   return freq;
 }
 
-// Return frequency count in n intervals from a to b
+// Return frequency count in n uniform bins from a to b
+// (faster than the above more general algorithm).
 int[] frequency(real[] data, real a, real b, int n)
 {
   int[] freq=sequence(new int(int x) {return 0;},n);
   real h=n/(b-a);
-  for (int i=0; i < data.length; ++i) {
+  for(int i=0; i < data.length; ++i) {
     int I=Floor((data[i]-a)*h);
     if(I >= 0 && I < n)
       ++freq[I];
@@ -99,8 +100,7 @@ int[][] frequency(real[] x, real[] y, real[] xbins, real[] ybins)
   return freq;
 }
 
-// Return frequency count in nx by ny bins in box(a,b).
-// Faster than above algorithm, but only allows for regularly spaced bins.
+// Return frequency count in nx by ny uniform bins in box(a,b).
 int[][] frequency(real[] x, real[] y, pair a, pair b, int nx, int ny=nx)
 {
   int[][] freq=new int[nx][];
@@ -110,10 +110,10 @@ int[][] frequency(real[] x, real[] y, pair a, pair b, int nx, int ny=nx)
   real hy=ny/(b.y-a.y);
   real ax=a.x;
   real ay=a.y;
-  for (int i=0; i < x.length; ++i) {
+  for(int i=0; i < x.length; ++i) {
     int I=Floor((x[i]-ax)*hx);
     int J=Floor((y[i]-ay)*hy);
-    if(I >= 0 && I < nx && J >= 0 && J < ny)
+    if(I >= 0 && I <= nx && J >= 0 && J <= ny)
       ++freq[I][J];
   }
   return freq;
@@ -128,7 +128,7 @@ int[][] frequency(pair[] z, pair a, pair b, int nx, int ny=nx)
   real hy=ny/(b.y-a.y);
   real ax=a.x;
   real ay=a.y;
-  for (int i=0; i < z.length; ++i) {
+  for(int i=0; i < z.length; ++i) {
     int I=Floor((z[i].x-ax)*hx);
     int J=Floor((z[i].y-ay)*hy);
     if(I >= 0 && I < nx && J >= 0 && J < ny)
@@ -210,6 +210,28 @@ void histogram(picture pic=currentpicture, real[] data, real a, real b, int n,
   if(normalize) freq /= dx*sum(freq);
   histogram(pic,a+sequence(n+1)*dx,freq,low,fillpen,drawpen,bars,legend,
 	    markersize);
+}
+
+// Method of Shimazaki and Shinomoto for selecting the optimal number of bins.
+// Shimazaki H. and Shinomoto S., A method for selecting the bin size of a
+// time histogram, Neural Computation (2007), Vol. 19(6), 1503-1527.
+// cf. http://www.ton.scphys.kyoto-u.ac.jp/~hideaki/res/histogram.html
+int bins(real[] data, int max=100)
+{
+  real m=min(data);
+  real M=max(data)*(1+epsilon);
+  real n=data.length;
+  int bins=1;
+  real minC=2n-n^2; // Cost function for N=1.
+  for(int N=2; N <= max; ++N) {
+    real C=N*(2n-sum(frequency(data,m,M,N)^2));
+    if(C < minC) {
+      minC=C;
+      bins=N;
+    }
+  }
+
+  return bins;
 }
 
 // return a random number uniformly distributed in the unit interval [0,1]
