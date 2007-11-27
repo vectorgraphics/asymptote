@@ -3362,10 +3362,12 @@ The command @code{seekeof(file)} sets the position to the end of the file.
 @anchor{scroll}
 Assigning @code{settings.scroll=n} for a positive integer @code{n}
 requests a pause after every @code{n} output lines to @code{stdout}.
-One may then press @code{Enter} to continue or @code{q} followed by @code{Enter}
-to quit. If @code{n} is negative, the output scrolls a page at a time
-(i.e. by one less than the current number of display lines). The
-default value, @code{settings.scroll=0}, specifies continuous scrolling.
+One may then press @code{Enter} to continue to the next @code{n} output lines,
+@code{s} followed by @code{Enter} to scroll without further interruption,
+or @code{q} followed by @code{Enter} to quit the current output
+operation. If @code{n} is negative, the output scrolls a page at a time
+(i.e. by one less than the current number of display lines). The default
+value, @code{settings.scroll=0}, specifies continuous scrolling.
 
 The routines
 @cindex @code{getstring}

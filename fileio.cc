@@ -143,8 +143,7 @@ void ifile::Read(string& val)
   
 void ofile::writeline() 
 {
-  if(standard && interact::interactive && !vm::indebugger &&
-     isatty(STDIN_FILENO)) {
+  if(standard && interact::query && !vm::indebugger) {
     Int scroll=settings::getScroll();
     if(scroll && interact::lines > 0 && interact::lines % scroll == 0) {
       for(;;) {
@@ -157,7 +156,8 @@ void ofile::writeline()
 	if(c == '\n') break;
 	// Discard any additional characters
 	while(cin.good() && cin.get() != '\n');
-	if(c == 'q') {interact::lines=0; throw quit();}
+	if(c == 's') {interact::query=false; break;}
+	if(c == 'q') {interact::query=false; interact::lines=0; throw quit();}
       }
     } else *stream << newline;
     ++interact::lines;

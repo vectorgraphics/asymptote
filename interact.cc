@@ -34,6 +34,7 @@ namespace interact {
 bool interactive=false;
 bool uptodate=true;
 int lines=0;  
+bool query=false;
 
 bool tty=isatty(STDIN_FILENO);  
 completer *currentCompleter=0;
@@ -108,6 +109,7 @@ string simpleline(string prompt) {
 
   // Reset scroll count.
   interact::lines=0;
+  interact::query=tty;
   
   // Ignore keyboard interrupts while taking input.
   errorstream::interrupt=false;
