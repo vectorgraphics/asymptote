@@ -223,7 +223,7 @@ AC_FUNC_FSEEKO
 
 AC_CONFIG_HEADERS(config.h)
 
-AC_CONFIG_FILES([Makefile doc/Makefile doc/version.texi base/version.asy])
+AC_CONFIG_FILES([Makefile doc/Makefile doc/version.texi base/version.asy GUI/xasyVersion.py])
 AC_OUTPUT
 
 if test "x$GCDIR" != "x" ; then
