@@ -143,7 +143,8 @@ void ifile::Read(string& val)
   
 void ofile::writeline() 
 {
-  if(standard && interact::interactive && !vm::indebugger) {
+  if(standard && interact::interactive && !vm::indebugger &&
+     isatty(STDIN_FILENO)) {
     Int scroll=settings::getScroll();
     if(scroll && interact::lines > 0 && interact::lines % scroll == 0) {
       for(;;) {
