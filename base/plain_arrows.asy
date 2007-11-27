@@ -35,15 +35,21 @@ path arrowhead(path g, position position=EndPoint, pen p=currentpen,
   real t=arctime(r,size);
   pair y=point(r,t);
   path base=y+2*size*I*dir(r,t)--y-2*size*I*dir(r,t);
-  path left=rotate(-angle,x)*r, right=rotate(angle,x)*r;
-  real[] tl=intersect(left,base), tr=intersect(right,base);
-  pair denom=point(right,tr[0])-y;
-  real factor=denom != 0 ? length((point(left,tl[0])-y)/denom) : 1;
-  left=rotate(-angle,x)*r; right=rotate(angle*factor,x)*r;
-  tl=intersect(left,base); tr=intersect(right,base);
-  return subpath(left,0,tl.length > 0 ? tl[0] : 0)--
-    subpath(right,tr.length > 0 ? tr[0] : 0,0)
-    ..cycle;
+  real[] basepoints(path left, path right) {
+    real[][] Tl=transpose(intersections(left,base));
+    real[][] Tr=transpose(intersections(right,base));
+    return new real[] {Tl.length > 0 ? min(Tl[0]) : 0,
+		       Tr.length > 0 ? min(Tr[0]) : 0};
+  }
+  path left=rotate(-angle,x)*r;
+  path right=rotate(angle,x)*r;
+  real[] T=basepoints(left,right);
+  pair denom=point(right,T[1])-y;
+  real factor=denom != 0 ? length((point(left,T[0])-y)/denom) : 1;
+  path left=rotate(-angle,x)*r;
+  path right=rotate(angle*factor,x)*r;
+  real[] T=basepoints(left,right);
+  return subpath(left,0,T[0])--subpath(right,T[1],0)..cycle;
 }
 
 void arrowheadbbox(picture pic=currentpicture, path g,
