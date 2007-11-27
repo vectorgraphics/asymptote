@@ -1,4 +1,5 @@
 import annotate;
+settings.outformat="pdf";
 
 size(200);
 
