@@ -345,6 +345,14 @@ class xasyMainWin:
     self.mainCanvas.bind("<Configure>",self.configEvt)
 
 
+  def foregroundPenColor(self,hex):
+    hex = hex[1:]
+    rgb = max(hex[0:2], hex[2:4], hex[4:6])
+    if(rgb >= "80"):
+      return "black"
+    else:
+      return "white"
+
   def resetGUI(self):
     #set up the main window
     self.filename = None
@@ -362,7 +370,8 @@ class xasyMainWin:
     xasyOptions.load()
     self.tkPenColor = xasyOptions.options['defPenColor']
     self.penColor = makeRGBfromTkColor(self.tkPenColor)
-    self.penColButton.config(activebackground=self.tkPenColor)
+    self.penColButton.config(activebackground=self.tkPenColor,
+                             activeforeground=self.foregroundPenColor(self.tkPenColor))
     self.penWidth = xasyOptions.options['defPenWidth']
     self.penWidthEntry.select_range(0,END)
     self.penWidthEntry.delete(0,END)
@@ -873,7 +882,8 @@ class xasyMainWin:
     self.penColor = xasyColorDlg(self.parent).getColor(self.penColor)
     if self.penColor != old:
       self.tkPenColor = RGB255hex(RGBreal255(self.penColor))
-      self.penColButton.config(activebackground=self.tkPenColor)
+      self.penColButton.config(activebackground=self.tkPenColor,
+                               activeforeground=self.foregroundPenColor(self.tkPenColor))
       self.showCurrentPen()
     self.releaseLock()
 
