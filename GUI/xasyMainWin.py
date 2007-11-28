@@ -65,7 +65,7 @@ class xasyMainWin:
         sys.exit(1)
     else:
       site="http://effbot.org/downloads/Imaging-1.1.6.tar.gz after applying the patch http://asymptote.svn.sourceforge.net/viewvc/asymptote/trunk/asymptote/patches/TkAlpha-Imaging-1.1.6.patch" 
-    if PILAvailable:
+    if not PILAvailable:
       tkMessageBox.showerror("Failed Dependencies","An error occurred loading the required PIL library. Please install "+site)
       self.parent.destroy()
       sys.exit(1)
