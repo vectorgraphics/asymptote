@@ -419,7 +419,7 @@ python="";
 @noindent
 The (installation-dependent) default values of these configuration
 variables under @code{MSDOS} are determined automatically from the
-@code{MSWindows} registry.
+@code{Microsoft Windows} registry.
 
 For @acronym{PDF} format output, the @code{gs} setting specifies the
 location of the @code{PostScript}-to-@acronym{PDF} processor @code{Ghostscript},
@@ -7593,9 +7593,9 @@ The modified figure can then be saved as an normal @code{Asymptote} file.
 As @code{xasy} is written in the interactive scripting language
 @code{Python/TK}, it requires @code{Python}
 (@url{http://www.python.org}), the Python Imaging Library
-(@url{http://www.pythonware.com/products/pil/}), and the @code{tkinter} package (included with 
-@code{Python} under @code{MSDOS}) be installed. @code{Fedora Core Linux} users
-can either install
+(@url{http://www.pythonware.com/products/pil/}), and the @code{tkinter}
+package (included with s@code{Python} under @code{Microsoft Windows}) be
+installed. @code{Fedora Core Linux} users can either install
 @code{tkinter} with the command
 @verbatim
 yum install tkinter
@@ -7604,8 +7604,17 @@ yum install tkinter
 or manually install the @code{tkinter}, @code{tix}, and @code{tk} packages.
 
 Pictures are deconstructed into the @acronym{PNG} image format, which
-supports true transparency. To enable full alpha channel support for
-@acronym{PNG} images on @code{UNIX} systems, place the @acronym{PIL} library
+supports full alpha channel transparency. Under @code{Microsoft
+Windows}, this requires installation of both @code{Python 2.5} and the
+@code{Python Imaging Library}:
+@quotation
+@url{http://www.python.org/ftp/python/2.5/python-2.5.msi}
+@end quotation
+@quotation
+@url{http://effbot.org/downloads/PIL-1.1.6.win32-py2.5.exe}.
+@end quotation
+@noindent
+On @code{UNIX} systems, place
 @url{http://effbot.org/downloads/Imaging-1.1.6.tar.gz} in the
 @code{Asymptote} source directory, and type (as the root user):
 @verbatim
@@ -7616,12 +7625,13 @@ python setup.py install
 @end verbatim
 
 Alternatively, @code{xasy} can deconstruct pictures into the @acronym{GIF}
-image format (although much more slowly), using white as the transparent
-color. This requires the lines
+image format (not recommended as this is very slow), using white as the
+transparent color. This requires the lines
 @verbatim
 import settings;
 xformat="gif";
 @end verbatim
+@noindent
 in the @code{Asymptote} configuration file (@pxref{configuration file}),
 along with the @code{ImageMagick} (@pxref{convert}) program.
 
@@ -7971,4 +7981,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  curlSpecifier cputimeformat initializers arbitary redeclaring
 @c  LocalWords:  firstname lastname multdiagonal Raphson OmitTick OmitFormat
 @c  LocalWords:  NoZero NoZeroFormat abbrevation gsOptions namespace redeclared
-@c  LocalWords:  atLeast intMin globalwrite quarticroots deconsruct
+@c  LocalWords:  atLeast intMin globalwrite quarticroots deconsruct substrings
+@c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt
