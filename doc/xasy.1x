@@ -1,23 +1,22 @@
 .\"                                      Hey, EMACS: -*- nroff -*-
-.TH XASY 1x "1 Dec 2004"
+.TH XASY 1x "27 Nov 2007"
 .SH NAME
 asy \- script-based vector graphics language
 .SH SYNOPSIS
 .B xasy
-.RI " prefix [filenum] [outname]"
+.RI " [-x magnification] [filename]"
 .SH DESCRIPTION
-\fBAsymptote\fP is a powerful script-based vector graphics language for
-technical drawings, inspired by MetaPost but with an improved C++\-like syntax.
+\fBAsymptote\fP is a powerful descriptive vector graphics language for
+technical drawing, inspired by MetaPost but with an improved C++\-like syntax.
 Asymptote provides for figures the same high\-quality level of typesetting that
 LaTeX does for scientific text.
 .PP
 \fBxasy\fP is a GUI for Asymptote that allows for final figure adjustments.
-After deconstructing an Asymptote file into transparent GIF objects, using the
--xN option (where N is the magnification factor), one can run \fBxasy\fP to
-make final adjustments.  One can also use the command "\fIasy -VxN\fP" to
-automatically invoke xasy.
+
 .SH OPTIONS
-xasy takes no options.
+.TP
+.B \-x magnification
+Initial zoom.
 
 .SH SEE ALSO
 Asymptote and xasy are documented fully in the Asymptote Info page.

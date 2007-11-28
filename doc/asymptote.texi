@@ -7643,7 +7643,9 @@ along with the @code{ImageMagick} (@pxref{convert}) program.
 A wheel mouse is convenient for raising and lowering objects within
 @code{xasy}, to expose the object to be moved. If a wheel mouse is not
 available, mouse @code{Button-2} can be used to repeatedly lower an
-object instead.
+object instead. When run from the command line, @code{xasy} accepts
+a command line option @code{-x n}, which sets the initial magnfication
+to @code{n}.
 
 Deconstruction of compound objects (such as arrows) can be prevented 
 by enclosing them within the commands
