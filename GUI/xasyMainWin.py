@@ -867,7 +867,7 @@ class xasyMainWin:
 
   #options bar commands
   def setPenColCmd(self):
-    if not self.acquireLock():
+    if not self.testOrAcquireLock():
       return
     old = self.penColor
     self.penColor = xasyColorDlg(self.parent).getColor(self.penColor)
