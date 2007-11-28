@@ -38,6 +38,8 @@ from xasyColorPicker import *
 from UndoRedoStack import *
 from xasyActions import *
 
+import string
+
 try:
   import ImageTk
   import Image
@@ -55,8 +57,16 @@ class xasyMainWin:
     self.bindGlobalEvents()
     self.createWidgets()
     self.resetGUI()
-    if not PILAvailable:
-      tkMessageBox.showerror("Failed Dependencies","An error occurred loading a required library, PIL. Please check your installation.")
+    if sys.platform[:3] == "win":
+      site="http://effbot.org/downloads/PIL-1.1.6.win32-py2.5.exe"
+      if sys.version_info[0] != "2" or sys.version_info[1] != "5":
+        tkMessageBox.showerror("Failed Dependencies","Xasy requires Python 2.5. Please install http://www.python.org/ftp/python/2.5/python-2.5.msi")
+        self.parent.destroy()
+        sys.exit(1)
+    else:
+      site="http://effbot.org/downloads/Imaging-1.1.6.tar.gz after applying the patch http://asymptote.svn.sourceforge.net/viewvc/asymptote/trunk/asymptote/patches/TkAlpha-Imaging-1.1.6.patch" 
+    if PILAvailable:
+      tkMessageBox.showerror("Failed Dependencies","An error occurred loading the required PIL library. Please install "+site)
       self.parent.destroy()
       sys.exit(1)
     if file != None:
