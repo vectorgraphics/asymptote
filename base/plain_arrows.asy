@@ -38,8 +38,8 @@ path arrowhead(path g, position position=EndPoint, pen p=currentpen,
   real[] basepoints(path left, path right) {
     real[][] Tl=transpose(intersections(left,base));
     real[][] Tr=transpose(intersections(right,base));
-    return new real[] {Tl.length > 0 ? min(Tl[0]) : 0,
-		       Tr.length > 0 ? min(Tr[0]) : 0};
+    return new real[] {Tl.length > 0 ? Tl[0][0] : 0,
+		       Tr.length > 0 ? Tr[0][0] : 0};
   }
   path left=rotate(-angle,x)*r;
   path right=rotate(angle,x)*r;
