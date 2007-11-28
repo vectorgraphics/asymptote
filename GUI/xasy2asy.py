@@ -33,6 +33,8 @@ randString = 'wGd3I26kOcu4ZI4arZZMqoJufO2h1QE2D728f1Lai3aqeTQC9'
 quickAsyFailed = True
 global AsyTempDir
 
+console=None
+
 def startQuickAsy():
   global quickAsy
   global quickAsyFailed
@@ -80,7 +82,16 @@ def syncQuickAsyOutput(verbose=False):
   line = quickAsy.stdout.readline()
   while not line.endswith(idStr+'\n'):
     if verbose:
-      print line
+      global console
+      if console == None:
+        root=Toplevel()
+        root.title("Asymptote Console")
+        yscrollbar=Scrollbar(root)
+        yscrollbar.pack(side=RIGHT,fill=Y)
+        console=Text(root,yscrollcommand=yscrollbar.set)
+        yscrollbar.config(command=console.yview)
+      console.insert(END,line)
+      console.pack();
     line = quickAsy.stdout.readline()
     quickAsy.stdin.flush()
 
@@ -443,6 +454,8 @@ class xasyItem:
     quickAsy.stdin.write("atexit(null);\n")
 
     syncQuickAsyOutput()
+    if console != None:
+      console.delete(1.0,END)
     for line in self.getCode().splitlines():
       quickAsy.stdin.write(line+"\n");
     quickAsy.stdin.flush()
