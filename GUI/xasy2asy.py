@@ -18,8 +18,11 @@ from math import sqrt
 from tempfile import mkdtemp
 
 # PIL support is now mandatory due to rotations
-import ImageTk
-import Image
+try:
+  import ImageTk
+  import Image
+except:
+   pass
 
 import CubicBezier
 

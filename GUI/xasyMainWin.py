@@ -59,8 +59,8 @@ class xasyMainWin:
     self.resetGUI()
     if sys.platform[:3] == "win":
       site="http://effbot.org/downloads/PIL-1.1.6.win32-py2.5.exe"
-      if sys.version_info[0] != "2" or sys.version_info[1] != "5":
-        tkMessageBox.showerror("Failed Dependencies","Xasy requires Python 2.5. Please install http://www.python.org/ftp/python/2.5/python-2.5.msi")
+      if sys.version_info[0] != 2 or sys.version_info[1] != 5:
+        tkMessageBox.showerror("Failed Dependencies","Xasy requires Python 2.5 or 2.5.1. Please install http://www.python.org/ftp/python/2.5.1/python-2.5.1.msi")
         self.parent.destroy()
         sys.exit(1)
     else:

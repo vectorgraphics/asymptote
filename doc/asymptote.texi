@@ -7605,10 +7605,10 @@ or manually install the @code{tkinter}, @code{tix}, and @code{tk} packages.
 
 Pictures are deconstructed into the @acronym{PNG} image format, which
 supports full alpha channel transparency. Under @code{Microsoft
-Windows}, this requires installation of both @code{Python 2.5} and the
+Windows}, this requires @code{Python 2.5 (or 2.5.1)} and the
 @code{Python Imaging Library}:
 @quotation
-@url{http://www.python.org/ftp/python/2.5/python-2.5.msi}
+@url{http://www.python.org/ftp/python/2.5.1/python-2.5.1.msi}
 @end quotation
 @quotation
 @url{http://effbot.org/downloads/PIL-1.1.6.win32-py2.5.exe}.

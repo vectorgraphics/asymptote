@@ -150,6 +150,7 @@ Section Uninstall
   Delete "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk"
   Delete "$SMPROGRAMS\$ICONS_GROUP\Website.lnk"
   Delete "$DESKTOP\Asymptote.lnk"
+  Delete "$DESKTOP\Xasy.lnk"
   Delete "$SMPROGRAMS\$ICONS_GROUP\Asymptote.lnk"
   Delete "$SMPROGRAMS\$ICONS_GROUP\Xasy.lnk"
   RMDir "$SMPROGRAMS\$ICONS_GROUP"
