@@ -70,7 +70,7 @@ struct block {
 };
 
 // Construct a rectangular block with header and body objects.
-block rectangle(object header, object body, pair center,
+block rectangle(object header, object body, pair center=(0,0),
                 pen headerpen=mediumgray, pen bodypen=invisible,
 		pen drawpen=currentpen,
                 real dx=3, real minheaderwidth=0, real minheaderheight=0,
@@ -117,7 +117,7 @@ block rectangle(object header, object body, pair center,
 }
 
 // As above, but without the header.
-block rectangle(object body, pair center, pen fillpen=invisible,
+block rectangle(object body, pair center=(0,0), pen fillpen=invisible,
 		pen drawpen=currentpen, real dx=3, real minwidth=0,
 		real minheight=0)
 {
@@ -151,7 +151,7 @@ block rectangle(object body, pair center, pen fillpen=invisible,
   return block;
 }
 
-block diamond(object body, pair center,
+block diamond(object body, pair center=(0,0),
 	      pen fillpen=invisible, pen drawpen=currentpen,
 	      real ds=5, real dw=1,
               real height=20, real minwidth=0, real minheight=0)
@@ -197,7 +197,7 @@ block diamond(object body, pair center,
   return block;
 }
 
-block circle(object body, pair center, pen fillpen=invisible,
+block circle(object body, pair center=(0,0), pen fillpen=invisible,
 	     pen drawpen=currentpen, real dr=3, real mindiameter=0)
 {
   frame f=body.fit();
@@ -231,7 +231,7 @@ block circle(object body, pair center, pen fillpen=invisible,
   return block;
 }
 
-block roundrectangle(object body, pair center,
+block roundrectangle(object body, pair center=(0,0),
 		     pen fillpen=invisible, pen drawpen=currentpen,
 		     real ds=5, real dw=0, real minwidth=0,
 		     real minheight=0)
@@ -273,7 +273,7 @@ block roundrectangle(object body, pair center,
   return block;
 }
 
-block bevel(object body, pair center, pen fillpen=invisible,
+block bevel(object body, pair center=(0,0), pen fillpen=invisible,
 	    pen drawpen=currentpen, real dh=5,
 	    real dw=5, real minwidth=0, real minheight=0)
 {

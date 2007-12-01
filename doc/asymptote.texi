@@ -7174,12 +7174,12 @@ frame for their object argument:
 @item rectangular block with an optional header (and padding @code{dx} around header and body): 
 @cindex @code{rectangle}
 @verbatim
-block rectangle(object header, object body, pair center,
+block rectangle(object header, object body, pair center=(0,0),
                 pen headerpen=mediumgray, pen bodypen=invisible,
                 pen drawpen=currentpen,
                 real dx=3, real minheaderwidth=0, real minheaderheight=0,
                 real minbodywidth=0, real minbodyheight=0);
-block rectangle(object body, pair center, pen fillpen=invisible,
+block rectangle(object body, pair center=(0,0), pen fillpen=invisible,
                 pen drawpen=currentpen, real dx=3, real minwidth=0,
                 real minheight=0);
 @end verbatim
@@ -7187,7 +7187,7 @@ block rectangle(object body, pair center, pen fillpen=invisible,
 @item diamond-shaped flowchart block:
 @cindex @code{diamond}
 @verbatim
-block diamond(object body, pair center,
+block diamond(object body, pair center=(0,0),
               pen fillpen=invisible, pen drawpen=currentpen,
               real ds=5, real dw=1,
               real height=20, real minwidth=0, real minheight=0);
@@ -7196,14 +7196,14 @@ block diamond(object body, pair center,
 @item circular flowchart block:
 @cindex @code{circle}
 @verbatim
-block circle(object body, pair center, pen fillpen=invisible,
+block circle(object body, pair center=(0,0), pen fillpen=invisible,
              pen drawpen=currentpen, real dr=3, real mindiameter=0);
 @end verbatim
 
 @item rectangular flowchart block with rounded corners:
 @cindex @code{roundrectangle}
 @verbatim
-block roundrectangle(object body, pair center,
+block roundrectangle(object body, pair center=(0,0),
                      pen fillpen=invisible, pen drawpen=currentpen,
                      real ds=5, real dw=0, real minwidth=0,
                      real minheight=0);
@@ -7212,7 +7212,7 @@ block roundrectangle(object body, pair center,
 @item rectangular flowchart block with beveled edges:
 @cindex @code{bevel}
 @verbatim
-block bevel(object body, pair center, pen fillpen=invisible,
+block bevel(object body, pair center=(0,0), pen fillpen=invisible,
             pen drawpen=currentpen, real dh=5,
             real dw=5, real minwidth=0, real minheight=0);
 @end verbatim 
