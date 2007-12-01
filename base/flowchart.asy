@@ -70,10 +70,10 @@ struct block {
 };
 
 // Construct a rectangular block with header and body objects.
-block rectangle(object header, object body,
-                pen headerpen=mediumgray, pen bodypen=currentpen, 
-                pair center=(0,0), real dx=3,
-                real minheaderwidth=0, real minheaderheight=0,
+block rectangle(object header, object body, pair center,
+                pen headerpen=mediumgray, pen bodypen=invisible,
+		pen drawpen=currentpen,
+                real dx=3, real minheaderwidth=0, real minheaderheight=0,
                 real minbodywidth=0, real minbodyheight=0)
 {
   frame fbody=body.fit();
@@ -93,9 +93,9 @@ block rectangle(object header, object body,
   block block;
   block.draw=new frame(pen p) {
     frame block;
-    filldraw(block,shift(0,z1.y)*box((0,0),z0),headerpen);
+    filldraw(block,shift(0,z1.y)*box((0,0),z0),headerpen,drawpen);
     add(block,shift(-0.5*(Mheader+mheader))*fheader,(0,z1.y)+0.5z0);
-    draw(block,box((0,0),z1));
+    filldraw(block,box((0,0),z1),bodypen,drawpen);
     add(block,shift(-0.5*(Mbody+mbody))*fbody,0.5z1);
     return block;
   };
@@ -117,8 +117,9 @@ block rectangle(object header, object body,
 }
 
 // As above, but without the header.
-block rectangle(object body, pen bodypen=currentpen, pair center=(0,0),
-                real dx=3, real minwidth=0, real minheight=0)
+block rectangle(object body, pair center, pen fillpen=invisible,
+		pen drawpen=currentpen, real dx=3, real minwidth=0,
+		real minheight=0)
 {
   frame f=body.fit();
   pair m=min(f);
@@ -129,7 +130,7 @@ block rectangle(object body, pen bodypen=currentpen, pair center=(0,0),
   block block;
   block.draw=new frame(pen p) {
     frame block;
-    draw(block,shape,bodypen);
+    filldraw(block,shape,fillpen,drawpen);
     add(block,shift(-0.5*(M+m))*f,0.5z);
     return block;
   };
@@ -150,7 +151,9 @@ block rectangle(object body, pen bodypen=currentpen, pair center=(0,0),
   return block;
 }
 
-block diamond(object body, pair center=(0,0), real ds=5, real dw=1,
+block diamond(object body, pair center,
+	      pen fillpen=invisible, pen drawpen=currentpen,
+	      real ds=5, real dw=1,
               real height=20, real minwidth=0, real minheight=0)
 {
   frame f=body.fit();
@@ -173,7 +176,7 @@ block diamond(object body, pair center=(0,0), real ds=5, real dw=1,
   block block;
   block.draw=new frame(pen p) {
     frame block;
-    draw(block,shape);
+    filldraw(block,shape,fillpen,drawpen);
     add(block,shift(-0.5*(M+m))*f,(d,c));
     return block;
   };
@@ -194,7 +197,8 @@ block diamond(object body, pair center=(0,0), real ds=5, real dw=1,
   return block;
 }
 
-block circle(object body, pair center=(0,0), real dr=3, real mindiameter=0)
+block circle(object body, pair center, pen fillpen=invisible,
+	     pen drawpen=currentpen, real dr=3, real mindiameter=0)
 {
   frame f=body.fit();
   pair m=min(f);
@@ -206,7 +210,7 @@ block circle(object body, pair center=(0,0), real dr=3, real mindiameter=0)
   block block;
   block.draw=new frame(pen p) {
     frame block;
-    draw(block,shape);
+    filldraw(block,shape,fillpen,drawpen);
     add(block,shift(-0.5*(M+m))*f,(r,r));
     return block;
   };
@@ -227,8 +231,10 @@ block circle(object body, pair center=(0,0), real dr=3, real mindiameter=0)
   return block;
 }
 
-block roundrectangle(object body, pair center=(0,0), real ds=5, real dw=0,
-                     real minwidth=0, real minheight=0)
+block roundrectangle(object body, pair center,
+		     pen fillpen=invisible, pen drawpen=currentpen,
+		     real ds=5, real dw=0, real minwidth=0,
+		     real minheight=0)
 {
   frame f=body.fit();
   pair m=min(f);
@@ -246,7 +252,7 @@ block roundrectangle(object body, pair center=(0,0), real ds=5, real dw=0,
   block block;
   block.draw=new frame(pen p) {
     frame block;
-    draw(block,shape);
+    filldraw(block,shape,fillpen,drawpen);
     add(block,shift(-0.5*(M+m))*f,(ds,ds)+0.5bound);
     return block;
   };
@@ -267,8 +273,9 @@ block roundrectangle(object body, pair center=(0,0), real ds=5, real dw=0,
   return block;
 }
 
-block bevel(object body, pair center=(0,0), real dh=5, real dw=5,
-            real minwidth=0, real minheight=0)
+block bevel(object body, pair center, pen fillpen=invisible,
+	    pen drawpen=currentpen, real dh=5,
+	    real dw=5, real minwidth=0, real minheight=0)
 {
   frame f=body.fit();
   pair m=min(f);
@@ -283,7 +290,7 @@ block bevel(object body, pair center=(0,0), real dh=5, real dw=5,
   block block;
   block.draw=new frame(pen p) {
     frame block;
-    draw(block,shape);
+    filldraw(block,shape,fillpen,drawpen);
     add(block,shift(-0.5*(M+m))*f,(0.5bound+(dw,dh)));
     return block;
   };

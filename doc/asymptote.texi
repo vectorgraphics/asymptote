@@ -7174,44 +7174,47 @@ frame for their object argument:
 @item rectangular block with an optional header (and padding @code{dx} around header and body): 
 @cindex @code{rectangle}
 @verbatim
-block rectangle(object header, object body,
-                pen headerpen=mediumgray, pen bodypen=currentpen,
-                pair center=(0,0), real dx=3,
-                real minheaderwidth=0, real minheaderheight=0,
+block rectangle(object header, object body, pair center,
+                pen headerpen=mediumgray, pen bodypen=invisible,
+                pen drawpen=currentpen,
+                real dx=3, real minheaderwidth=0, real minheaderheight=0,
                 real minbodywidth=0, real minbodyheight=0);
-block rectangle(object body, pen bodypen=currentpen,
-                pair center=(0,0), real dx=3,
-                real minwidth=0, real minheight=0);
+block rectangle(object body, pair center, pen fillpen=invisible,
+                pen drawpen=currentpen, real dx=3, real minwidth=0,
+                real minheight=0);
 @end verbatim
 
 @item diamond-shaped flowchart block:
 @cindex @code{diamond}
 @verbatim
-block diamond(object body, pair center=(0,0), real ds=5,
-              real dw=1, real height=20,
-              real minwidth=0, real minheight=0);
+block diamond(object body, pair center,
+              pen fillpen=invisible, pen drawpen=currentpen,
+              real ds=5, real dw=1,
+              real height=20, real minwidth=0, real minheight=0);
 @end verbatim
 
 @item circular flowchart block:
 @cindex @code{circle}
 @verbatim
-block circle(object body, pair center=(0,0), real dr=3,
-             real mindiameter=0);
+block circle(object body, pair center, pen fillpen=invisible,
+             pen drawpen=currentpen, real dr=3, real mindiameter=0);
 @end verbatim
 
 @item rectangular flowchart block with rounded corners:
 @cindex @code{roundrectangle}
 @verbatim
-block roundrectangle(object body, pair center=(0,0),
-                     real ds=5, real dw=0,
-                     real minwidth=0, real minheight=0);
+block roundrectangle(object body, pair center,
+                     pen fillpen=invisible, pen drawpen=currentpen,
+                     real ds=5, real dw=0, real minwidth=0,
+                     real minheight=0);
 @end verbatim
 
 @item rectangular flowchart block with beveled edges:
 @cindex @code{bevel}
 @verbatim
-block bevel(object body, pair center=(0,0), real dh=5, real dw=5,
-            real minwidth=0, real minheight=0);
+block bevel(object body, pair center, pen fillpen=invisible,
+            pen drawpen=currentpen, real dh=5,
+            real dw=5, real minwidth=0, real minheight=0);
 @end verbatim 
 
 @end table
@@ -7644,7 +7647,7 @@ A wheel mouse is convenient for raising and lowering objects within
 @code{xasy}, to expose the object to be moved. If a wheel mouse is not
 available, mouse @code{Button-2} can be used to repeatedly lower an
 object instead. When run from the command line, @code{xasy} accepts
-a command line option @code{-x n}, which sets the initial magnfication
+a command line option @code{-x n}, which sets the initial magnification
 to @code{n}.
 
 Deconstruction of compound objects (such as arrows) can be prevented 
