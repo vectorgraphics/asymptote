@@ -1774,11 +1774,12 @@ returns @code{(max(u.x,v.x),max(u.y,v.y),max(u.z,v.z)}).
 a character string, implemented using the STL @code{string} class.
 
 Strings delimited by double quotes (@code{"}) are subject to the
-following mapping to allow the use of double quotes in @TeX{} (e.g.@ for
+following mappings to allow the use of double quotes in @TeX{} (e.g.@ for
 using the @code{babel} package, @pxref{babel}):
 
 @itemize @bullet 
 @item \" maps to "
+@item \\ maps to \\
 @end itemize
 
 @cindex @code{C} string
