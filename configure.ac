@@ -107,18 +107,26 @@ if test "x$ac_cv_use_gc" != "xno" ; then
    OPTIONS=$OPTIONS"-DUSEGC "
    case $ac_cv_use_gc in
    system|*[[\\/]]*)
-      if test "x$ac_cv_use_gc" = "xsystem"
-      then INCL="-I$prefix/include/gc" 
-      else INCL="-I$ac_cv_use_gc/include/gc"
+      if test "x$ac_cv_use_gc" = "xsystem" ; then
+         INCL="-I$prefix/include/gc -I/usr/include/gc"
+         LIBS=$LIBS"-L$prefix/lib " 
+      else 
+         INCL="-I$ac_cv_use_gc/include/gc"
+         LIBS=$LIBS"-L$ac_cv_use_gc/lib "
       fi
+      CPPFLAGS_SAVE=$CPPFLAGS
+      CPPFLAGS=$CPPFLAGS" $INCL"
       AC_CHECK_HEADER(gc.h,
 	AC_CHECK_LIB([gc],[GC_malloc],[
 	  LIBS=$LIBS"-lgc "
 	  AC_MSG_NOTICE([enabling system $GCNAME])],[
         GCDIR=$GCVERSION
+	GCLIB="\$(GC)/.libs/libgc.a"
 	AC_MSG_NOTICE($GCNAME library not found)]),
       GCDIR=$GCVERSION
+      INCL="-I\$(GC)/include"
       AC_MSG_NOTICE($GCNAME header file not found))
+      CPPFLAGS=$CPPFLAGS_SAVE
       ;;
    *)
       GCDIR=$ac_cv_use_gc
