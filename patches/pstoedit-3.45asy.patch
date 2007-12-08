@@ -1,0 +1,149 @@
+diff -ru pstoedit-3.45/src/drvasy.cpp pstoedit-3.45J/src/drvasy.cpp
+--- pstoedit-3.45/src/drvasy.cpp	2007-07-22 05:27:30.000000000 -0600
++++ pstoedit-3.45J/src/drvasy.cpp	2007-12-08 16:22:58.000000000 -0700
+@@ -58,7 +58,8 @@
+   clipmode(false),
+   evenoddmode(false),
+   firstpage(true),
+-  imgcount(0)
++  imgcount(0),
++  level(0)
+ {
+   // Output copyright information
+   outf << "// Converted from PostScript(TM) to Asymptote by pstoedit\n"
+@@ -76,6 +77,29 @@
+ 	options=0;
+ }
+ 
++void drvASY::save()
++{
++  while(gsavestack.size() && gsavestack.front()) {
++    gsavestack.pop_front();
++    outf << "gsave();" << endl;
++    ++level;
++    clipstack.push_back(false);
++  }
++}
++  
++void drvASY::restore() {
++  while(gsavestack.size() && !gsavestack.front()) {
++    gsavestack.pop_front();
++    while(clipstack.size() > 0) {
++      if(clipstack.back())
++	outf << "endclip();" << endl;
++      clipstack.pop_back();
++    }
++    outf << "grestore();" << endl;
++    if(level > 0) --level;
++  }
++}
++
+ // Output a path
+ void drvASY::print_coords()
+ {
+@@ -84,11 +108,7 @@
+   bool havecycle=false;
+   bool firstpoint=false;
+ 
+-  while(gsavestack.size() && gsavestack.front()) {
+-    gsavestack.pop_front();
+-    outf << "gsave();" << endl;
+-    clipstack.push_back(false);
+-  }
++  save();
+   
+   if (fillmode || clipmode) {
+     for (unsigned int n = 0; n < numberOfElementsInPath(); n++) {
+@@ -247,16 +267,7 @@
+       outf << ");" << endl;
+     }
+   }
+-  
+-  while(gsavestack.size() && !gsavestack.front()) {
+-    gsavestack.pop_front();
+-    if(clipstack.size() > 0) {
+-      if(clipstack.back())
+-	outf << "endclip();" << endl;
+-      clipstack.pop_back();
+-    }
+-    outf << "grestore();" << endl;
+-  }
++  restore();
+ }
+ 
+ // Each page will produce a different figure
+@@ -272,6 +283,8 @@
+ 
+ void drvASY::show_image(const PSImage & imageinfo)
+ {
++  restore();
++  
+   if (outBaseName == "" ) {
+     errf << "images cannot be handled via standard output. Use an output file" << endl;
+     return;
+@@ -285,9 +298,13 @@
+   ostringstream buf;
+   buf << outBaseName << "." << imgcount << ".eps";
+   
+-  outf << "label(graphic(\"" << buf.str() << "\"),("
++  outf << "label(graphic(\"" << buf.str() << "\",\"bb="
++       << ll.x_ << " " << ll.y_ << " " << ur.x_ << " " << ur.y_ << "\"),("
+        << ll.x_ << "," << ll.y_ << "),align);" << endl;
+-  outf << "layer();" << endl;
++  
++  // Try to draw image in a separate layer.
++  if(level == 0) 
++    outf << "layer();" << endl;
+   
+   ofstream outi(buf.str().c_str());
+   if (!outi) {
+@@ -304,6 +321,8 @@
+ // Output a text string
+ void drvASY::show_text(const TextInfo & textinfo)
+ {
++  restore();
++  
+   // Change fonts
+   string thisFontName(textinfo.currentFontName.value());
+   string thisFontWeight(textinfo.currentFontWeight.value());
+@@ -361,7 +380,8 @@
+   if(prevFontAngle != 0.0) outf << "rotate(" << prevFontAngle << ")*(";
+   bool texify=false;
+   bool quote=false;
+-  for (const char *c = textinfo.thetext.value(); *c; c++) {
++  const char *c=textinfo.thetext.value();
++  if(*c) for (; *c; c++) {
+     if (*c >= ' ' && *c != '\\' && *c <= '~') {
+       if(!texify) {
+ 	if(quote) outf << "\"+";
+@@ -383,7 +403,7 @@
+       }
+       outf << "\\char" << (int) *c;
+     }
+-  }
++  } else outf << "\"\"";
+   if(quote) outf << "\"";
+   if(texify) outf << ")";
+   if(prevFontAngle != 0.0) outf << ")";
+diff -ru pstoedit-3.45/src/drvasy.h pstoedit-3.45J/src/drvasy.h
+--- pstoedit-3.45/src/drvasy.h	2007-07-22 05:27:40.000000000 -0600
++++ pstoedit-3.45J/src/drvasy.h	2007-12-08 16:22:51.000000000 -0700
+@@ -58,6 +58,8 @@
+ 
+ private:
+   void print_coords();
++  void save();
++  void restore();
+   // Previous values of graphics state variables
+   string prevFontName;
+   string prevFontWeight;
+@@ -80,6 +82,9 @@
+   
+   int imgcount;
+   
++  unsigned int level;
++  // gsave nesting level
++  
+   std::list<bool> clipstack;
+   std::list<bool> gsavestack;
+ };
