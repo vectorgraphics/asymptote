@@ -17,9 +17,10 @@ bibliographystyle("alpha");
 // Generated needed files if they don't already exist.
 asy(nativeformat(),"Pythagoras","log","near_earth");
 
-// Optional background color:
+// Optional background color or header:
 // import x11colors;
 // fill(background,box((-1,-1),(1,1)),Azure);
+// label(background,"Header",(0,startposition.y));
 
 titlepage(title="Slides with {\tt Asymptote}: A Demo",
           author="John C. Bowman",
