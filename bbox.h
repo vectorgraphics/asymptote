@@ -133,10 +133,13 @@ struct bbox {
   }
 
   void clip(const bbox& b) {
+    if(this->empty) return;
     left = max(left, b.left);
     right = min(right, b.right);
     bottom = max(bottom, b.bottom);
     top = min(top, b.top);
+    if(left > right || bottom > top) 
+      *this=bbox();
   }
   
   void shift(const pair& p) {
