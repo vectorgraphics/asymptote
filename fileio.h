@@ -196,6 +196,10 @@ public:
   Int Ny() {return ny;}
   Int Nz() {return nz;}
   
+  void Nx(Int n) {nx=n;}
+  void Ny(Int n) {ny=n;}
+  void Nz(Int n) {nz=n;}
+  
   void LineMode(bool b) {linemode=b;}
   bool LineMode() {return linemode;}
   

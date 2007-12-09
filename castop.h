@@ -99,11 +99,11 @@ void readArray(vm::stack *s)
   vm::array *c=new vm::array(0);
   if(f->isOpen()) {
     Int nx=f->Nx();
-    if(nx == -2) {f->read(nx); if(nx == 0) {s->push(c); return;}}
+    if(nx == -2) {f->read(nx); f->Nx(-1); if(nx == 0) {s->push(c); return;}}
     Int ny=f->Ny();
-    if(ny == -2) {f->read(ny); if(ny == 0) {s->push(c); return;}}
+    if(ny == -2) {f->read(ny); f->Ny(-1); if(ny == 0) {s->push(c); return;}}
     Int nz=f->Nz();
-    if(nz == -2) {f->read(nz); if(nz == 0) {s->push(c); return;}}
+    if(nz == -2) {f->read(nz); f->Nz(-1); if(nz == 0) {s->push(c); return;}}
     T v;
     if(nx >= 0) {
       for(Int i=0; i < Limit(nx); i++) {
