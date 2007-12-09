@@ -1211,25 +1211,26 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
 	    }
 	}
       }
-      if(p == f->nodes.end()) break;
-      assert(*p);
-      drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
-      group->append(e);
-      bbox b;
-      ostringstream buf;
-      buf << prefix << "_" << n;
-      string name=buildname(buf.str(),preformat);
-      cmd << " '";
-      if(!png) cmd << preformat+":";
-      cmd << name << "'";
-      group->shipout(preamble,buf.str(),preformat,magnification,false,false);
-      b=group->bounds();
-      b *= magnification;
+      if(p != f->nodes.end()) {
+	assert(*p);
+	drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
+	group->append(e);
+	bbox b;
+	ostringstream buf;
+	buf << prefix << "_" << n;
+	string name=buildname(buf.str(),preformat);
+	cmd << " '";
+	if(!png) cmd << preformat+":";
+	cmd << name << "'";
+	group->shipout(preamble,buf.str(),preformat,magnification,false,false);
+	b=group->bounds();
+	b *= magnification;
       
-      cout << b << newl;
-      ++n;
-      ++p;
-      ++arg;
+	cout << b << newl;
+	++n;
+	++p;
+	++arg;
+      }
       
       if(p == f->nodes.end() || arg >= maxargs) {
 	arg=0;
