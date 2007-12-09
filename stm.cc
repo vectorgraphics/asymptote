@@ -63,19 +63,33 @@ exp *tryToWriteExp(coenv &e, exp *body)
 {
   // First check if it is the kind of expression that should be written.
   if (body->writtenToPrompt() &&
-      settings::getSetting<bool>("interactiveWrite")) {
+      settings::getSetting<bool>("interactiveWrite"))
+  {
     types::ty *t=body->cgetType(e);
-    if (t->kind == ty_error || t->kind == ty_overloaded) {
-      // Don't try to write erroneous expressions, and don't resolve an
-      // overloaded expression, by trying to write it.
+    if (t->kind == ty_error) {
       return body;
     }
     else {
       exp *callee=new nameExp(body->getPos(), symbol::trans("write"));
       exp *call=new callExp(body->getPos(), callee, body);
+
       types::ty *ct=call->getType(e);
-      return (ct->kind == ty_error || ct->kind == ty_overloaded) ? body :
-                                                                   call;
+      if (ct->kind == ty_error || ct->kind == ty_overloaded) {
+        return body;
+      }
+      else {
+        // Issue a warning if the act of writing turns an ambiguous expression
+        // into an unambiguous one.
+        if (t->kind == ty_overloaded) {
+          em.warning(body->getPos());
+          em << "writing overloaded";
+          if (body->getName())
+            em << " variable '" << *body->getName() << "'";
+          else
+            em << " expression";
+        }
+        return call;
+      }
     }
   }
   else {
