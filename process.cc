@@ -158,7 +158,7 @@ public:
     run::exitFunction(&s);
   }
 
-  virtual void doRun(bool purge=false) {
+  virtual void doRun(bool purge=false, transMode tm=TRANS_NORMAL) {
     em.sync();
     if(em.errors())
       return;
@@ -180,13 +180,14 @@ public:
       if(purge) run::purge();
 
       // Now that everything is set up, run the core.
-      run(e,s);
+      run(e,s,tm);
 
       postRun(e,s);
 
     } catch(std::bad_alloc&) {
       cerr << "error: out of memory" << endl;
       em.statusError();
+    } catch(quit) {
     } catch(handled_error) {
       em.statusError();
     }
@@ -267,14 +268,14 @@ public:
     }
   }
 
-  void doRun() {
+  void doRun(transMode tm=TRANS_NORMAL) {
     // Don't prepare an environment to run the code if there isn't any code.
     if (getTree()) {
       // This is not done in preRun as it is not an optional step.
       processDataStruct data;
       processDataStack.push(&data);
 
-      icore::doRun();
+      icore::doRun(false,tm);
 
       processDataStack.pop();
     }
@@ -842,8 +843,8 @@ void processPrompt() {
 void runCode(absyntax::block *code) {
   icode(code).doRun();
 }
-void runString(const string& s) {
-  istring(s).doRun();
+void runString(const string& s, bool interactiveWrite) {
+  istring(s).doRun(interactiveWrite ? TRANS_INTERACTIVE : TRANS_NORMAL);
 }
 void runFile(const string& filename) {
   ifile(filename).doRun();

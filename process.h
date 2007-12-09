@@ -30,7 +30,7 @@ void processPrompt();
 
 // Run the code in its own environment.
 void runCode(absyntax::block *code);
-void runString(const string& s);
+void runString(const string& s, bool interactiveWrite=false);
 void runFile(const string& filename);
 void runPrompt();
 

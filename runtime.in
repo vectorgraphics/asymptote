@@ -1587,6 +1587,11 @@ void abort(string s=emptystring)
   error(s.c_str());
 }
 
+void exit()
+{
+  throw quit();
+}
+
 void assert(bool b, string s=emptystring)
 {
   flush(cout);
@@ -1608,7 +1613,7 @@ void usleep(Int microseconds)
   usleep((unsigned long) microseconds); 
 }
 
-void _eval(string *s, bool embedded)
+void _eval(string *s, bool embedded, bool interactiveWrite=false)
 {
   if (embedded) {
     trans::coenv *e=Stack->getEnvironment();
@@ -1619,7 +1624,7 @@ void _eval(string *s, bool embedded)
       cerr << "no runtime environment for embedded eval" << endl;
     }
   } else {
-    runString(*s);
+    runString(*s,interactiveWrite);
   }
 }
 

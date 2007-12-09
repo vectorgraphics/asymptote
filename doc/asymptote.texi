@@ -1924,9 +1924,14 @@ time(seconds()-24*60*60);
 @end verbatim
 
 @cindex @code{abort}
-@item abort(string s)
-aborts execution; if string @code{s} is nonempty, a diagnostic message
-constructed from the source file, line number, and @code{s} is printed;
+@item void abort(string s)
+aborts execution (with a non-zero return code in batch mode); if string
+@code{s} is nonempty, a diagnostic message constructed from the source
+file, line number, and @code{s} is printed;
+
+@cindex @code{exit}
+@item void exit()
+exits with a zero error return code in batch mode;
 
 @cindex @code{sleep}
 @item void sleep(int microseconds)
@@ -7456,16 +7461,33 @@ A @code{PostScript} offset may be specified as a pair (in bp units) with the
 @verbatim
 asy -O 0,0 file
 @end verbatim
-
+@noindent
 The default offset is zero. The default value of the page alignment
 setting @code{align} is @code{Center}.
 
+@cindex @code{-c}
+The @code{-c} (@code{command}) option may be used to execute arbitrary
+@code{Asymptote} code on the command line as a string. It is not
+necessary to terminate the string with a semicolon. Multiple @code{-c}
+options are executed in the order they are given. For example
+@verbatim
+asy -c 2+2 -c "sin(1)" -c "size(100); draw(unitsquare)" 
+@end verbatim
+@noindent
+produces the output
+@verbatim
+4
+0.841470984807897
+@end verbatim
+@noindent
+and draws a unitsquare of size @code{100}.
+
 @cindex @code{-u}
-The @code{-u} option may be used to specify arbitrary @code{Asymptote}
-code on the command line as a string. It is not necessary to terminate
-the string with a semicolon. Multiple @code{-u} options are executed
-in the order they are given. Command-line code like @code{-u
-x=sqrt(2)} can be executed within a module like this:
+The @code{-u} (@code{user}) option may be used to specify arbitrary
+@code{Asymptote} settings on the command line as a string. It is not
+necessary to terminate the string with a semicolon. Multiple @code{-u}
+options are executed in the order they are given. Command-line code like 
+@code{-u x=sqrt(2)} can be executed within a module like this:
 @verbatim
 real x;
 usersetting();
@@ -7473,8 +7495,9 @@ write(x);
 @end verbatim
 
 @cindex @code{-l}
-When the @code{-l} option is used with file arguments, it only lists
-global functions and variables defined in the specified file(s).
+When the @code{-l} (@code{listvariables}) option is used with file
+arguments, only global functions and variables defined in the specified
+file(s) are listed.
 
 Additional debugging output is produced with each additional @code{-v} option:
 @table @code

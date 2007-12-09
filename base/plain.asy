@@ -7,6 +7,15 @@
  *****/
 
 access settings;
+
+if(settings.command != "") {
+  string s=settings.command;
+  settings.command="";
+  settings.multipleView=settings.batchView=settings.interactiveView;
+  _eval(s+";",false,true);
+  exit();
+}
+
 include plain_constants;
 
 access version;             

@@ -984,8 +984,6 @@ void initSettings() {
 
   addOption(new boolSetting("wait", 0,
 			    "Wait for child processes to finish before exiting"));
-  // Signal parent process at completion of each shipout
-  addOption(new boolSetting("signal", 0, ""));
   // Be interactive even in a pipe
   addOption(new boolSetting("interactive", 0, ""));
 			    
@@ -1004,6 +1002,8 @@ void initSettings() {
 			    false));
   addOption(new stringSetting("autoimport", 0, "string",
 			      "Module to automatically import [\"\"]", ""));
+  addOption(new userSetting("command", 'c', "string",
+			    "Command to autoexecute", ""));
   addOption(new userSetting("user", 'u', "string",
 			    "General purpose user string [\"\"]", ""));
   
@@ -1035,6 +1035,7 @@ char *getArg(int n) { return argList[n]; }
 
 void setInteractive() {
   if(numArgs() == 0 && !getSetting<bool>("listvariables") && 
+     getSetting<string>("command").empty() &&
      (isatty(STDIN_FILENO) || getSetting<bool>("interactive")))
     interact::interactive=true;
   
