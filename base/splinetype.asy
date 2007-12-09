@@ -2,6 +2,11 @@ typedef real[] splinetype(real[], real[]);
 
 string morepoints="interpolation requires at least 2 points";
 string differentlengths="arrays have different lengths";
+void checklengths(int x, int y, string text=differentlengths)
+{
+  if(x != y)
+    abort(text+": "+string(x)+" != "+string(y));
+}
 
 // Standard cubic spline interpolation with not-a-knot condition:
 // s'''(x_2^-)=s'''(x_2^+) et s'''(x_(n_2)^-)=s'''(x_(n-2)^+)
@@ -11,7 +16,7 @@ string differentlengths="arrays have different lengths";
 real[] notaknot(real[] x, real[] y)
 {
   int n=x.length;
-  if(n != y.length) abort(differentlengths);
+  checklengths(n,y.length);
   real[] d;
   if(n > 3) {
     real[] a=new real[n];
@@ -54,7 +59,7 @@ real[] notaknot(real[] x, real[] y)
 real[] periodic(real[] x, real[] y)
 {
   int n=x.length;
-  if(n != y.length) abort(differentlengths);
+  checklengths(n,y.length);
   if(y[n-1] != y[0]) abort("function values are not periodic");
   real[] d;
   if(n > 2) {
@@ -88,7 +93,7 @@ real[] periodic(real[] x, real[] y)
 real[] natural(real[] x, real[] y)
 {
   int n=x.length;
-  if(n != y.length) abort(differentlengths);
+  checklengths(n,y.length);
   real[] d;
   if(n > 2) {
     real[] a=new real[n];
@@ -122,7 +127,7 @@ splinetype clamped(real slopea, real slopeb)
 {
   return new real[] (real[] x, real[] y) {
     int n=x.length;
-    if(n != y.length) abort(differentlengths);
+    checklengths(n,y.length);
     real[] d;
     if(n > 2) {
       real[] a=new real[n];
@@ -161,7 +166,7 @@ splinetype clamped(real slopea, real slopeb)
 real[] monotonic(real[] x, real[] y) 
 {
   int n=x.length; 
-  if(n != y.length) abort(differentlengths); 
+  checklengths(n,y.length);
   real[] d=new real[n]; 
   if(n > 2) {
     real[] h=new real[n-1];

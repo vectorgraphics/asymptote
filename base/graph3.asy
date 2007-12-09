@@ -392,8 +392,7 @@ guide3 graph(picture pic=currentpicture, triple v(real), real a, real b,
 int[] conditional(triple[] v, bool[] cond)
 {
   if(cond.length > 0) {
-    if(cond.length != v.length)
-      abort("condition array has different length than data");
+    checklengths(cond.length,v.length,conditionlength);
     return cond ? sequence(cond.length) : null;
   } else return sequence(v.length);
 }
@@ -412,7 +411,8 @@ guide3 graph(picture pic=currentpicture, triple[] v, bool[] cond={},
 guide3 graph(picture pic=currentpicture, real[] x, real[] y, real[] z,
              bool[] cond={}, interpolate3 join=operator --)
 {
-  if(x.length != y.length || x.length != z.length) abort(differentlengths);
+  checklengths(x.length,y.length);
+  checklengths(x.length,z.length);
   int[] I=conditional(x,cond);
   int k=0;
   return graph(join)(new triple(real) {
@@ -455,7 +455,7 @@ guide3 graph(real f(pair), path p, int n=1, real T(pair),
 // of b using interpolation operator join. 
 path3[] segment(triple[] v, bool[] b, interpolate3 join=operator --)
 {
-  if(v.length != b.length) abort(differentlengths);
+  checklengths(v.length,b.length,conditionlength);
   int[][] segment=segment(b);
   return sequence(new path3(int i) {return join(... v[segment[i]]);},
 		  segment.length);

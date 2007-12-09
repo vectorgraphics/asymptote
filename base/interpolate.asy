@@ -46,7 +46,7 @@ struct horner {
 fhorner fhorner(horner sh)
 {
   int n=sh.x.length;
-  if(n != sh.a.length) abort(differentlengths);
+  checklengths(n,sh.a.length);
   return new real(real x) {
     real s=sh.a[n-1];
     for(int k=n-2; k >= 0; --k)
@@ -60,7 +60,7 @@ horner diffdiv(real[] x, real[] y)
 {
   int n=x.length;
   horner s;
-  if(n != y.length) abort(differentlengths);
+  checklengths(n,y.length);
   for(int i=0; i < n; ++i)
     s.a[i]=y[i];
   for(int k=0; k < n-1; ++k) {
@@ -78,7 +78,8 @@ horner hdiffdiv(real[] x, real[] y, real[] dy)
 {
   int n=x.length;
   horner s;
-  if(n != y.length || n != dy.length) abort(differentlengths);
+  checklengths(n,y.length);
+  checklengths(n,dy.length);
   for(int i=0; i < n; ++i) {
     s.a[2*i]=y[i];
     s.a[2*i+1]=dy[i];
@@ -108,7 +109,8 @@ typedef real realfunction(real);
 realfunction pwhermite(real[] x, real[] y, real[] dy)
 {
   int n=x.length;
-  if(n != y.length || n != dy.length) abort(differentlengths);
+  checklengths(n,y.length);
+  checklengths(n,dy.length);
   if(n < 2) abort(morepoints);
   if(!increasing(x,strict=true)) abort("array x is not strictly increasing");
   return new real(real t) {

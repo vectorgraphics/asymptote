@@ -1820,11 +1820,19 @@ guide graph(picture pic=currentpicture, pair z(real), real a, real b,
   return graph(join)(new pair(real t) {return Scale(pic,z(t));},a,b,n);
 }
 
+string differentlengths="attempt to graph arrays of different lengths";
+string conditionlength="condition array has different length than data";
+
+void checklengths(int x, int y, string text=differentlengths)
+{
+  if(x != y)
+    abort(text+": "+string(x)+" != "+string(y));
+}
+
 int[] conditional(pair[] z, bool[] cond)
 {
   if(cond.length > 0) {
-    if(cond.length != z.length)
-      abort("condition array has different length than data");
+    checklengths(cond.length,z.length,conditionlength);
     return cond ? sequence(cond.length) : null;
   } else return sequence(z.length);
 }
@@ -1840,12 +1848,10 @@ guide graph(picture pic=currentpicture, pair[] z, bool[] cond={},
     },0,0,I.length-1);
 }
 
-string differentlengths="attempt to graph arrays of different lengths";
-
 guide graph(picture pic=currentpicture, real[] x, real[] y, bool[] cond={},
             interpolate join=operator --)
 {
-  if(x.length != y.length) abort(differentlengths);
+  checklengths(x.length,y.length);
   int[] I=conditional(x,cond);
   int k=0;
   return graph(join)(new pair(real) {
@@ -1878,7 +1884,7 @@ guide graph(picture pic=currentpicture, pair z(real), real a, real b,
 // of b using interpolation operator join. 
 path[] segment(pair[] z, bool[] b, interpolate join=operator --)
 {
-  if(z.length != b.length) abort(differentlengths);
+  checklengths(z.length,b.length,conditionlength);
   int[][] segment=segment(b);
   return sequence(new path(int i) {return join(... z[segment[i]]);},
                   segment.length);
@@ -1914,7 +1920,9 @@ void errorbars(picture pic=currentpicture, pair[] z, pair[] dp, pair[] dm={},
                bool[] cond={}, pen p=currentpen, real size=0)
 {
   if(dm.length == 0) dm=dp;
-  if(z.length != dm.length || z.length != dp.length) abort(differentlengths);
+  checklengths(z.length,dm.length);
+  checklengths(z.length,dp.length);
+
   int[] I=conditional(z,cond);
   int i=0;
   for(int k=0; k < I.length; ++k) {
@@ -1929,9 +1937,11 @@ void errorbars(picture pic=currentpicture, real[] x, real[] y,
 {
   if(dmx.length == 0) dmx=dpx;
   if(dmy.length == 0) dmy=dpy;
-  if(x.length != y.length || 
-     x.length != dpx.length || x.length != dmx.length ||
-     x.length != dpy.length || x.length != dmy.length) abort(differentlengths);
+  checklengths(x.length,y.length);
+  checklengths(x.length,dpx.length);
+  checklengths(x.length,dpy.length);
+  checklengths(x.length,dmx.length);
+  checklengths(x.length,dmy.length);
   int[] I=conditional(x,cond);
   for(int k=0; k < I.length; ++k) {
     int i=I[k];
