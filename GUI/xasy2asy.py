@@ -76,6 +76,18 @@ def asyExecute(command):
   syncQuickAsyOutput()
   quickAsy.stdin.write(command)
 
+def consoleOutput(line):
+  global console
+  if console == None:
+    root=Toplevel()
+    root.title("Asymptote Console")
+    yscrollbar=Scrollbar(root)
+    yscrollbar.pack(side=RIGHT,fill=Y)
+    console=Text(root,yscrollcommand=yscrollbar.set)
+    yscrollbar.config(command=console.yview)
+  console.insert(END,line)
+  console.pack();
+  
 def syncQuickAsyOutput(verbose=False):
   global idCounter
   idStr = randString+"-id "+str(idCounter)
@@ -85,16 +97,7 @@ def syncQuickAsyOutput(verbose=False):
   line = quickAsy.stdout.readline()
   while not line.endswith(idStr+'\n'):
     if verbose:
-      global console
-      if console == None:
-        root=Toplevel()
-        root.title("Asymptote Console")
-        yscrollbar=Scrollbar(root)
-        yscrollbar.pack(side=RIGHT,fill=Y)
-        console=Text(root,yscrollcommand=yscrollbar.set)
-        yscrollbar.config(command=console.yview)
-      console.insert(END,line)
-      console.pack();
+      consoleOutput(line)
     line = quickAsy.stdout.readline()
     quickAsy.stdin.flush()
 
@@ -488,7 +491,7 @@ class xasyItem:
         batch += 1
         n=0
     if text == "Error\n":
-      print quickAsy.stdout.readline()
+      consoleOutput(quickAsy.stdout.readline())
     else:
       render()
     self.imageHandleQueue.put((None,))
