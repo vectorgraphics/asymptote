@@ -170,6 +170,8 @@ public:
   // Start an environment for a file-level module.
   env(genv &ge);
 
+  ~env();
+
   record *getModule(symbol *id, string filename);
 };
 

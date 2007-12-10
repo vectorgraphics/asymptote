@@ -13,6 +13,9 @@
 
 using namespace types;
 
+namespace absyntax {
+  void clearCachedCalls();
+}
 
 namespace trans {
 
@@ -141,6 +144,14 @@ env::env(genv &ge)
   // and then import the builtin module.
   base_tenv(te);
   base_venv(ve);
+}
+
+env::~env()
+{
+  // Once the file-level venv is destroyed, any cached calls with markers
+  // derived from that venv are meaningless; clear them so they don't keep data
+  // live.
+  absyntax::clearCachedCalls();
 }
 
 record *env::getModule(symbol *id, string filename)

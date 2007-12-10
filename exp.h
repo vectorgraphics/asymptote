@@ -589,6 +589,9 @@ public:
   }
 };
 
+// callExp has a global cache of resolved overloaded functions.  This clears
+// this cache so the associated data can be garbage collected.
+void clearCachedCalls();
 
 class callExp : public exp {
 protected:

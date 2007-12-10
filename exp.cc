@@ -493,6 +493,11 @@ size_t hash(void *marker, types::signature *source) {
   return 5 * (size_t)marker + source->hash();
 }
 
+void clearCachedCalls() {
+  matchCache.clear();
+  matchCache.resize(matchCacheSize);
+}
+
 function *lookupMatch(void *marker, types::signature *source) {
   assert(marker!=0);
   size_t h=hash(marker, source);
