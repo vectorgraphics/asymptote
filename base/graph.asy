@@ -514,7 +514,7 @@ string autoformat(bool trailingzero=false, real norm ... real[] a)
     for(int i=0; i < A.length-1; ++i) {
       real a=A[i];
       while(format(defaultformat(n,fixed=Fixed),a) !=
-	    format(defaultformat(4,fixed=Fixed),a)) ++n;
+            format(defaultformat(4,fixed=Fixed),a)) ++n;
     }
   }
 
@@ -525,7 +525,7 @@ string autoformat(bool trailingzero=false, real norm ... real[] a)
     real b=A[i+1];
     if(a != b) {
       while(format(format,a) == format(format,b))
-	format=defaultformat(++n,trailingzero,Fixed);
+        format=defaultformat(++n,trailingzero,Fixed);
     }
   }
 
@@ -581,20 +581,20 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
     real len=tickmax-tickmin;
     if(Step == 0 && N == 0) {
       if(divisor.length > 0) {
-	bool autoscale=locate.S.automin && locate.S.automax;
+        bool autoscale=locate.S.automin && locate.S.automax;
         real limit=axiscoverage*arclength(G);
         for(int d=divisor.length-1; d >= 0; --d) {
           N=divisor[d];
           Step=len/N;
-	  if(b > a && !autoscale) {
-	    int N0=N;
-	    int m=2;
-	    while(Step > 0.5*(b-a)) {
-	      N=m*N0;
-	      Step=len/N;
-	      ++m;
-	    }
-	  }
+          if(b > a && !autoscale) {
+            int N0=N;
+            int m=2;
+            while(Step > 0.5*(b-a)) {
+              N=m*N0;
+              Step=len/N;
+              ++m;
+            }
+          }
           if(axiscoverage(N,T,g,locate,Step,side,sign,Size,F,ticklabel,norm,
                           limit) <= limit) {
             if(N == 1 && !autoscale && d < divisor.length-1) {
@@ -834,7 +834,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
                                            opposite));
 
     Ticks(sign,F,ticklabel,beginlabel,endlabel,values.major,values.minor,
-	  values.N,begin,end,Size,size,extend,pTick,ptick)
+          values.N,begin,end,Size,size,extend,pTick,ptick)
       (f,T,L,side,g,g2,p,arrow,locate,divisor,opposite);
   };
 }
@@ -1529,11 +1529,11 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
 }
 
 // Draw x and y axes.
-void axes(picture pic=currentpicture, pen p=currentpen, arrowbar arrow=None,
-          bool put=Below)
+void axes(picture pic=currentpicture, Label xlabel="", Label ylabel="",
+          pen p=currentpen, arrowbar arrow=None, bool put=Below)
 {
-  xaxis(pic,p,arrow,put);
-  yaxis(pic,p,arrow,put);
+  xaxis(pic,xlabel,p,arrow,put);
+  yaxis(pic,ylabel,p,arrow,put);
 }
 
 // Draw a yaxis at x.

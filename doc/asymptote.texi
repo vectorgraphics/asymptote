@@ -6198,6 +6198,16 @@ or horizontal lines and axes at arbitrary locations.
 
 @item
 @verbatim 
+void axes(picture pic=currentpicture, Label xlabel="", Label ylabel="",
+          pen p=currentpen, arrowbar arrow=None, bool put=Below);
+@end verbatim
+This convenience routine draws both @math{x} and @math{y} axes 
+on picture @code{pic} with optional labels @code{xlabel} and @code{ylabel}
+and any arrows specified by @code{arrow}. The axes are drawn on top of
+existing objects in the current picture only if @code{put} is @code{Above}.
+
+@item
+@verbatim 
 void axis(picture pic=currentpicture, Label L="", path g,
           pen p=currentpen, ticks ticks, ticklocate locate,
           arrowbar arrow=None, int[] divisor=new int[],
@@ -6212,7 +6222,7 @@ The optional integer array @code{divisor} specifies what tick divisors
 to try in the attempt to produce uncrowded tick labels. A @code{true}
 value for the flag @code{opposite} identifies an unlabelled secondary
 axis (typically drawn opposite a primary axis).  The axis is drawn
-on top of any existing objects in the current picture only if @code{put}
+on top of existing objects in the current picture only if @code{put}
 is @code{Above}. The tick locator @code{ticklocate} is
 constructed by the routine
 @verbatim
@@ -6986,12 +6996,13 @@ Analogous routines @code{yaxis} and @code{zaxis} can be used to draw
 @math{y} and @math{z} axes in three dimensions.
 There are also some convenient routines for drawing all three axis:
 @verbatim
-void axes(Label xlabel="$x$", Label ylabel="$y$", Label zlabel="$z$", 
-          triple min, triple max, pen p=currentpen, arrowbar arrow=None,
-          bool put=Below, projection P=currentprojection);
-
-void axes(Label xlabel="$x$", Label ylabel="$y$", Label zlabel="$z$", 
+void axes(picture pic=currentpicture,
+          Label xlabel="", Label ylabel="", Label zlabel="", 
           bbox3 b, pen p=currentpen, arrowbar arrow=None,
+          bool put=Below, projection P=currentprojection);
+void axes(picture pic=currentpicture,
+          Label xlabel="", Label ylabel="", Label zlabel="", 
+          triple min, triple max, pen p=currentpen, arrowbar arrow=None,
           bool put=Below, projection P=currentprojection);
 @end verbatim
 

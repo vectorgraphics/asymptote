@@ -180,9 +180,9 @@ void xaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
     int sign=back ? -1 : 1;
     axis(L,b.min,b.X(),back,sign);
     axis(L,(b.min.x,b.max.y,b.min.z),(b.max.x,b.max.y,b.min.z),!back,
-	 swap ? 1 : sign);
+         swap ? 1 : sign);
     axis(L,(b.min.x,b.min.y,b.max.z),(b.max.x,b.min.y,b.max.z),true,
-	 swap ? 1 : -1);
+         swap ? 1 : -1);
     axis(L,(b.min.x,b.max.y,b.max.z),b.max,true);
   } else xaxis(pic,L,b.O(),b.X(),p,ticks,dir,arrow,put,P);
 }
@@ -208,9 +208,9 @@ void yaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
     int sign=back ? -1 : 1;
     axis(L,b.min,b.Y(),back,sign);
     axis(L,(b.max.x,b.min.y,b.min.z),(b.max.x,b.max.y,b.min.z),!back,
-	 swap ? 1 : sign);
+         swap ? 1 : sign);
     axis(L,(b.min.x,b.min.y,b.max.z),(b.min.x,b.max.y,b.max.z),true,
-	 swap ? 1 : -1);
+         swap ? 1 : -1);
     axis(L,(b.max.x,b.min.y,b.max.z),b.max,true);
   } else yaxis(pic,L,b.O(),b.Y(),p,ticks,dir,arrow,put,P);
 }
@@ -236,9 +236,9 @@ void zaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
     int sign=back ? -1 : 1;
     axis(L,b.min,b.Z(),back,sign);
     axis(L,(b.max.x,b.min.y,b.min.z),(b.max.x,b.min.y,b.max.z),!back,
-	 swap ? 1 : sign);
+         swap ? 1 : sign);
     axis(L,(b.min.x,b.max.y,b.min.z),(b.min.x,b.max.y,b.max.z),true,
-	 swap ? 1 : -1);
+         swap ? 1 : -1);
     axis(L,(b.max.x,b.max.y,b.min.z),b.max,true);
   } else zaxis(pic,L,b.O(),b.Z(),p,ticks,dir,arrow,put,P);
 }
@@ -317,20 +317,22 @@ void limits(bbox3 b, triple min, triple max)
   zlimits(b,min.z,max.z);
 }
   
-void axes(Label xlabel="$x$", Label ylabel="$y$", Label zlabel="$z$", 
+void axes(picture pic=currentpicture,
+          Label xlabel="", Label ylabel="", Label zlabel="", 
           bbox3 b, pen p=currentpen, arrowbar arrow=None,
           bool put=Below, projection P=currentprojection)
 {
-  xaxis(xlabel,b,p,arrow,put,P);
-  yaxis(ylabel,b,p,arrow,put,P);
-  zaxis(zlabel,b,p,arrow,put,P);
+  xaxis(pic,xlabel,b,p,arrow,put,P);
+  yaxis(pic,ylabel,b,p,arrow,put,P);
+  zaxis(pic,zlabel,b,p,arrow,put,P);
 }
 
-void axes(Label xlabel="$x$", Label ylabel="$y$", Label zlabel="$z$", 
+void axes(picture pic=currentpicture,
+          Label xlabel="", Label ylabel="", Label zlabel="", 
           triple min, triple max, pen p=currentpen, arrowbar arrow=None,
           bool put=Below, projection P=currentprojection)
 {
-  axes(xlabel,ylabel,zlabel,limits(min,max),p,arrow,put,P);
+  axes(pic,xlabel,ylabel,zlabel,limits(min,max),p,arrow,put,P);
 }
 
 void xtick(picture pic=currentpicture, Label L="", triple v, triple dir=Y,
@@ -367,8 +369,8 @@ graph graph(interpolate3 join)
     real width=b-a;
     return n == 0 ? join(f(a)) :
       join(...sequence(new guide3(int i) {
-	    return f(a+(i/n)*width);
-	  },n+1));
+            return f(a+(i/n)*width);
+          },n+1));
   };
 }
 
@@ -426,7 +428,7 @@ guide3 graph(triple F(path, real), path p, int n=1,
              interpolate3 join=operator --)
 {
   guide3 g=join(...sequence(new guide3(int i) {
-	return F(p,i/n);
+        return F(p,i/n);
       },n*length(p)));
   return cyclic(p) ? join(g,cycle) : join(g,F(p,length(p)));
 }
@@ -458,7 +460,7 @@ path3[] segment(triple[] v, bool[] b, interpolate3 join=operator --)
   checklengths(v.length,b.length,conditionlength);
   int[][] segment=segment(b);
   return sequence(new path3(int i) {return join(... v[segment[i]]);},
-		  segment.length);
+                  segment.length);
 }
 
 // draw the surface described by a matrix f, respecting lighting
@@ -687,9 +689,9 @@ guide3[][] lift(real f(real x, real y), guide[][] g,
     for(int i=0; i < gcnt.length; ++i) {
       guide gcnti=gcnt[i];
       guide3 Gcnti=join(...sequence(new guide3(int j) {
-	    pair z=point(gcnti,j);
-	    return (z.x,z.y,f(z.x,z.y));
-	  },size(gcnti)));
+            pair z=point(gcnti,j);
+            return (z.x,z.y,f(z.x,z.y));
+          },size(gcnti)));
       if(cyclic(gcnti)) Gcnti=Gcnti..cycle;
       Gcnt[i]=Gcnti;
     }
