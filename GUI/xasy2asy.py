@@ -14,7 +14,6 @@ from string import *
 import xasyOptions
 import Queue
 from Tkinter import *
-from math import sqrt
 from tempfile import mkdtemp
 
 # PIL support is now mandatory due to rotations
