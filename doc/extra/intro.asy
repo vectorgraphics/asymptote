@@ -603,7 +603,6 @@ equation("x'_i=A_{ij} x_j+C_i");
 remark("to a Bezier curve:");
 
 equation("x(t)=\sum_{k=0}^3 B_k(t) P_k, \qquad t\in [0,1].");
-equation("x'_i=A_{ij} x_j+C_i.");
 
 item("The resulting curve is also a Bezier curve:");
 
