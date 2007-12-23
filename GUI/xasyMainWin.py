@@ -354,7 +354,6 @@ class xasyMainWin:
     self.mainCanvas.bind("<Down>",self.itemLower)
     self.mainCanvas.bind("<Configure>",self.configEvt)
 
-
   def foregroundPenColor(self,hex):
     hex = hex[1:]
     rgb = max(hex[0:2], hex[2:4], hex[4:6])

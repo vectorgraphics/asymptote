@@ -75,19 +75,26 @@ def asyExecute(command):
   syncQuickAsyOutput()
   quickAsy.stdin.write(command)
 
+def closeConsole(event):
+  global console
+  console = None
+
 def consoleOutput(line):
   global console
+  global ctl
   if console == None:
-    root=Toplevel()
-    root.title("Asymptote Console")
-    yscrollbar=Scrollbar(root)
+    ctl=Toplevel()
+    ctl.title("Asymptote Console")
+    ctl.bind("<Destroy>",closeConsole)
+    yscrollbar=Scrollbar(ctl)
     yscrollbar.pack(side=RIGHT,fill=Y)
-    console=Text(root,yscrollcommand=yscrollbar.set)
+    console=Text(ctl,yscrollcommand=yscrollbar.set)
+    console.pack()
     yscrollbar.config(command=console.yview)
   console.insert(END,line)
-  console.pack();
-  
-def syncQuickAsyOutput(verbose=False):
+  ctl.lift()
+
+def syncQuickAsyOutput(verbose=False,queue=None):
   global idCounter
   idStr = randString+"-id "+str(idCounter)
   idCounter += 1
@@ -96,7 +103,7 @@ def syncQuickAsyOutput(verbose=False):
   line = quickAsy.stdout.readline()
   while not line.endswith(idStr+'\n'):
     if verbose:
-      consoleOutput(line)
+      queue.put(("ERROR",line))
     line = quickAsy.stdout.readline()
     quickAsy.stdin.flush()
 
@@ -442,12 +449,17 @@ class xasyItem:
     worker = threading.Thread(target=self.asyfyThread,args=(mag,))
     worker.start()
     item = self.imageHandleQueue.get()
-    while item != (None,):
+    if console != None:
+      console.delete(1.0,END)
+    while item != (None,) and item[0] != "ERROR":
       self.handleImageReception(*item)
       try:
         os.remove(item[0])
       except:
         pass
+      item = self.imageHandleQueue.get()
+    while item[0] == "ERROR":
+      consoleOutput(item[1])
       item = self.imageHandleQueue.get()
     #self.imageHandleQueue.task_done()
     worker.join()
@@ -457,19 +469,16 @@ class xasyItem:
     quickAsy.stdin.write("\nreset;\n")
     quickAsy.stdin.write("initXasyMode();\n")
     quickAsy.stdin.write("atexit(null);\n")
-
     syncQuickAsyOutput()
-    if console != None:
-      console.delete(1.0,END)
+    global console
     for line in self.getCode().splitlines():
       quickAsy.stdin.write(line+"\n");
     quickAsy.stdin.flush()
-    syncQuickAsyOutput(verbose=True);
+    syncQuickAsyOutput(verbose=True,queue=self.imageHandleQueue);
     quickAsy.stdin.write("deconstruct(%f);\n"%mag)
     quickAsy.stdin.flush()
     format = split(quickAsy.stdout.readline())[1]
     maxargs = int(split(quickAsy.stdout.readline())[0])
-
     boxes=[]
     batch=0
     n=0
@@ -490,7 +499,7 @@ class xasyItem:
         batch += 1
         n=0
     if text == "Error\n":
-      consoleOutput(quickAsy.stdout.readline())
+      self.imageHandleQueue.put(("ERROR",quickAsy.stdout.readline()))
     else:
       render()
     self.imageHandleQueue.put((None,))
