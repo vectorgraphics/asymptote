@@ -58,6 +58,7 @@ INSTALL = @INSTALL@
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
 asy: $(GCLIB) $(FILES:=.o) 
+	ln -sf GUI/xasy.py $(XNAME)
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) $(LIBS)
 
 msdos: $(GCLIB) $(FILES:=.o) asy.o
