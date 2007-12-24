@@ -103,7 +103,7 @@ def syncQuickAsyOutput(verbose=False,queue=None):
   line = quickAsy.stdout.readline()
   while not line.endswith(idStr+'\n'):
     if verbose:
-      queue.put(("ERROR",line))
+      queue.put(("OUTPUT",line))
     line = quickAsy.stdout.readline()
     quickAsy.stdin.flush()
 
@@ -452,14 +452,14 @@ class xasyItem:
     if console != None:
       console.delete(1.0,END)
     while item != (None,) and item[0] != "ERROR":
-      self.handleImageReception(*item)
-      try:
-        os.remove(item[0])
-      except:
-        pass
-      item = self.imageHandleQueue.get()
-    while item[0] == "ERROR":
-      consoleOutput(item[1])
+      if(item[0] == "OUTPUT"):
+        consoleOutput(item[1])
+      else:
+        self.handleImageReception(*item)
+        try:
+          os.remove(item[0])
+        except:
+          pass
       item = self.imageHandleQueue.get()
     #self.imageHandleQueue.task_done()
     worker.join()
