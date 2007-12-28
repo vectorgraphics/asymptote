@@ -509,12 +509,13 @@ string autoformat(bool trailingzero=false, real norm ... real[] a)
   int n=0;
 
   bool Fixed=find(a >= 1e4-epsilon | (a > 0 & a <= 1e-4-epsilon)) < 0;
+  string Format=defaultformat(4,fixed=Fixed);
 
   if(Fixed && n < 4) {
     for(int i=0; i < A.length-1; ++i) {
       real a=A[i];
       while(format(defaultformat(n,fixed=Fixed),a) !=
-            format(defaultformat(4,fixed=Fixed),a)) ++n;
+            format(Format,a)) ++n;
     }
   }
 
@@ -523,6 +524,14 @@ string autoformat(bool trailingzero=false, real norm ... real[] a)
   for(int i=0; i < A.length-1; ++i) {
     real a=A[i];
     real b=A[i+1];
+    // Check if an extra digit of precision should be added.
+    string fixedformat="%#."+string(n+1)+"f";
+    string A=format(fixedformat,a);
+    string B=format(fixedformat,b);
+    if(substr(A,length(A)-1,1) != "0" || substr(B,length(B)-1,1) != "0") {
+      a *= 0.1;
+      b *= 0.1;
+    }
     if(a != b) {
       while(format(format,a) == format(format,b))
         format=defaultformat(++n,trailingzero,Fixed);
