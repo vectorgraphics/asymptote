@@ -6802,9 +6802,14 @@ This is equivalent to @code{orthographic((x,y,z),up)}.
 
 @item perspective(triple camera, triple up=Z, triple target=O)
 @cindex @code{perspective}
+@cindex @code{nurbs}
 This projects from three to two dimensions, taking account of
 perspective, as seen from the location @code{camera} looking at @code{target},
 orienting the camera so that, if possible, the vector @code{up} points upwards.
+Projection of three-dimensional cubic Bezier splines is implemented
+by approximating a two-dimensional nonuniform rational B-spline
+(@acronym{nurbs}) with a two-dimensional Bezier curve containing
+additional nodes and control points. 
 
 @item perspective(real x, real y, real z, triple up=Z, triple target=O)
 This is equivalent to @code{perspective((x,y,z),up,target)}.

@@ -258,3 +258,17 @@ path buildcycle(... path[] p)
     G=G..subpath(p[i],ta[i],tb[i]);
   return G..cycle;
 }
+
+path operator &(path p, cycleToken tok)
+{
+  int n=length(p);
+  if(n < 0) return nullpath;
+  pair a=point(p,0);
+  pair b=point(p,n);
+  static real Fuzz=10.0*realEpsilon;
+  if(abs(a-b) > Fuzz*max(abs(a),abs(b)))
+    abort("paths in concatenation do not meet");
+  return subpath(p,0,n-1)..controls postcontrol(p,n-1) and precontrol(p,n)..
+    cycle;
+}
+

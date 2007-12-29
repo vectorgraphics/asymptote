@@ -3,6 +3,8 @@ private import math;
 triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
 
+int ninterpolate=16;
+
 real[] operator ecast(triple v)
 {
   return new real[] {v.x, v.y, v.z, 1};
@@ -1031,30 +1033,33 @@ struct path3 {
   real cached_length=-1;
   bbox3 box;
   
-  static path3 path3(node[] nodes, bool cycles=false, real cached_length=-1) {
-    path3 p=new path3;
+  void operator init(node[] nodes, bool cycles=false, real cached_length=-1) {
     for(int i=0; i < nodes.length; ++i)
-      p.nodes[i]=nodes[i].copy();
-    p.cycles=cycles;
-    p.cached_length=cached_length;
-    p.n=cycles ? nodes.length-1 : nodes.length;
-    return p;
+      this.nodes[i]=nodes[i].copy();
+    this.cycles=cycles;
+    this.cached_length=cached_length;
+    this.n=cycles ? nodes.length-1 : nodes.length;
   }
   
-  static path3 path3(triple v) {
+  void operator init(triple v) {
     node node;
     node.pre=node.point=node.post=v;
     node.straight=false;
-    return path3(new node[] {node});
+    this.nodes.push(node);
+    this.cycles=false;
+    this.n=1;
   }
   
-  static path3 path3(node n0, node n1) {
+  void operator init(node n0, node n1) {
     node N0,N1;
     N0 = n0.copy();
     N1 = n1.copy();
     N0.pre = N0.point;
     N1.post = N1.point;
-    return path3(new node[] {N0,N1});
+    this.nodes.push(N0);
+    this.nodes.push(N1);
+    this.cycles=false;
+    this.n=2;
   }
   
   int size() {return n;}
@@ -1494,7 +1499,7 @@ path3 operator * (transform3 t, path3 p)
     nodes[i].point=t*p.nodes[i].point;
     nodes[i].post=t*p.nodes[i].post;
   }
-  return path3.path3(nodes,p.cycles);
+  return path3(nodes,p.cycles);
 }
 
 void write(file file, string s="", explicit path3 x, suffix suffix=none)
@@ -1649,43 +1654,80 @@ path3 solve(flatguide3 g)
     nodes[g.nodes.length-1].post=nodes[g.nodes.length-1].point;
   }
   
-  return path3.path3(nodes,cyclic);
+  return path3(nodes,cyclic);
 }
 
-path project(explicit path3 p, projection Q=currentprojection)
+path nurb(path3 p, projection P=currentprojection,
+	  int ninterpolate=ninterpolate)
 {
-  if(!Q.infinity) {
-    Q.check(p.min());
-    Q.check(p.max());
+  project Q=aspect(P);
+  triple f=P.camera;
+  triple u=unit(P.camera-P.target);
+
+  path nurb(triple v0, triple v1, triple v2, triple v3) {
+    return nurb(Q(v0),Q(v1),Q(v2),Q(v3),dot(u,f-v0),dot(u,f-v1),dot(u,f-v2),
+		dot(u,f-v3),ninterpolate);
   }
 
-  guide g;
-  project P=aspect(Q);
-  
-  int last=p.nodes.length-1;
-  if(last < 0) return g;
-  
-  g=P(p.nodes[0].point);
-  // Construct the path.
-  for(int i=0; i < (p.cycles ? last-1 : last); ++i) {
+  path g;
+
+  if(p.nodes[0].straight)
+    g=Q(p.nodes[0].point);
+
+  for(int i=0; i < length(p); ++i) {
     if(p.nodes[i].straight)
-      g=g--P(p.nodes[i+1].point);
-    else {
-      g=g..controls P(p.nodes[i].post) and P(p.nodes[i+1].pre)..
-        P(p.nodes[i+1].point);
-    }
+      g=g--Q(p.nodes[i+1].point);
+    else
+    g=g&nurb(p.nodes[i].point,p.nodes[i].post,p.nodes[i+1].pre,
+	     p.nodes[i+1].point);
   }
-  
-  if(p.cycles)
-    g=p.nodes[last-1].straight ? g--cycle :
-      g..controls P(p.nodes[last-1].post) and P(p.nodes[last].pre)..cycle;
+
+  int n=length(g);
+  if(p.cycles) g=g&cycle;
 
   return g;
 }
 
-path project(flatguide3 g, projection P=currentprojection)
+path project(explicit path3 p, projection P=currentprojection,
+	     int ninterpolate=ninterpolate)
 {
-  return project(solve(g),P);
+  if(!P.infinity) {
+    P.check(p.min());
+    P.check(p.max());
+  }
+
+  guide g;
+  
+  int last=p.nodes.length-1;
+  if(last < 0) return g;
+  
+  project Q=aspect(P);
+
+  if(P.infinity || ninterpolate == 1) {
+    g=Q(p.nodes[0].point);
+    // Construct the path.
+    for(int i=0; i < (p.cycles ? last-1 : last); ++i) {
+      if(p.nodes[i].straight)
+	g=g--Q(p.nodes[i+1].point);
+      else {
+	g=g..controls Q(p.nodes[i].post) and Q(p.nodes[i+1].pre)..
+	  Q(p.nodes[i+1].point);
+      }
+    }
+  } else return nurb(p,P,ninterpolate);
+  
+  if(p.cycles)
+    g=p.nodes[last-1].straight ? g--cycle :
+      g..controls Q(p.nodes[last-1].post) and Q(p.nodes[last].pre)..cycle;
+
+  return g;
+}
+
+path project(flatguide3 g, projection P=currentprojection,
+	     int ninterpolate=ninterpolate)
+
+{
+  return project(solve(g),P,ninterpolate);
 }
 
 pair project(triple v, projection P=currentprojection)
@@ -1704,11 +1746,12 @@ pair[] project(triple[] v, projection P=currentprojection)
   return z;
 }
 
-path[] project(path3[] g, projection P=currentprojection)
+path[] project(path3[] g, projection P=currentprojection,
+	     int ninterpolate=ninterpolate)
 {
   path[] p=new path[g.length];
   for(int i=0; i < g.length; ++i) 
-    p[i]=project(g[i],P);
+    p[i]=project(g[i],P,ninterpolate);
   return p;
 }
   
@@ -1755,7 +1798,7 @@ path3 operator cast(guide3 g) {return solve(g);}
 path operator cast(path3 p) {return project(p);}
 path operator cast(triple v) {return project(v);}
 path operator cast(guide3 g) {return project(solve(g));}
-path3 operator cast(triple v) {return path3.path3(v);}
+path3 operator cast(triple v) {return path3(v);}
 
 path[] operator cast(path3 p) {return new path[] {(path) p};}
 path[] operator cast(guide3 g) {return new path[] {(path) g};}
@@ -1918,8 +1961,8 @@ real[] intersect(path3 p, path3 q, real fuzz, int depth)
     if(lp == 1) {
       node[] sn=nodes(3);
       splitCubic(sn,0.5,p.nodes[0],p.nodes[1]);
-      p1=path3.path3(new node[] {sn[0],sn[1]});
-      p2=path3.path3(new node[] {sn[1],sn[2]});
+      p1=path3(new node[] {sn[0],sn[1]});
+      p2=path3(new node[] {sn[1],sn[2]});
       pscale=poffset=0.5;
     } else {
       int tp=quotient(lp,2);
@@ -1936,8 +1979,8 @@ real[] intersect(path3 p, path3 q, real fuzz, int depth)
     if(lq == 1) {
       node[] sn=nodes(3);
       splitCubic(sn,0.5,q.nodes[0],q.nodes[1]);
-      q1=path3.path3(new node[] {sn[0],sn[1]});
-      q2=path3.path3(new node[] {sn[1],sn[2]});
+      q1=path3(new node[] {sn[0],sn[1]});
+      q2=path3(new node[] {sn[1],sn[2]});
       qscale=qoffset=0.5;
     } else {
       int tq=quotient(lq,2);
@@ -2025,8 +2068,8 @@ real[][] intersections(path3 p, path3 q, real fuzz, int depth)
     if(lp == 1) {
       node[] sn=nodes(3);
       splitCubic(sn,0.5,p.nodes[0],p.nodes[1]);
-      p1=path3.path3(new node[] {sn[0],sn[1]});
-      p2=path3.path3(new node[] {sn[1],sn[2]});
+      p1=path3(new node[] {sn[0],sn[1]});
+      p2=path3(new node[] {sn[1],sn[2]});
       pscale=poffset=0.5;
     } else {
       int tp=quotient(lp,2);
@@ -2043,8 +2086,8 @@ real[][] intersections(path3 p, path3 q, real fuzz, int depth)
     if(lq == 1) {
       node[] sn=nodes(3);
       splitCubic(sn,0.5,q.nodes[0],q.nodes[1]);
-      q1=path3.path3(new node[] {sn[0],sn[1]});
-      q2=path3.path3(new node[] {sn[1],sn[2]});
+      q1=path3(new node[] {sn[0],sn[1]});
+      q2=path3(new node[] {sn[1],sn[2]});
       qscale=qoffset=0.5;
     } else {
       int tq=quotient(lq,2);
@@ -2210,6 +2253,24 @@ void draw(frame f, path3[] g, pen p=currentpen)
 void draw(picture pic=currentpicture, path3[] g, pen p=currentpen)
 {
   draw(pic,(path[]) g,p);
+}
+
+void dot(picture pic=currentpicture, explicit path3 g, pen p=currentpen,
+	 filltype filltype=Fill)
+{
+  for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p,filltype);
+}
+
+void dot(picture pic=currentpicture, explicit guide3 g, pen p=currentpen,
+	 filltype filltype=Fill)
+{
+  dot(pic,(path3) g,p,filltype);
+}
+
+void dot(picture pic=currentpicture, path3[] g, pen p=currentpen,
+	 filltype filltype=Fill)
+{
+  for(int i=0; i < g.length; ++i) dot(pic,g[i],p,Fill);
 }
 
 path3[] operator ^^ (path3 p, path3  q) 
@@ -2405,13 +2466,11 @@ struct face {
   frame fit;
   triple normal,point;
   bbox3 box;
-  static face face(path3 p) {
-    face f=new face;
-    f.normal=normal(p);
-    if(f.normal == O) abort("path is linear");
-    f.point=point(p,0);
-    f.box=bbox3(min(p),max(p));
-    return f;
+  void operator init(path3 p) {
+    this.normal=normal(p);
+    if(this.normal == O) abort("path is linear");
+    this.point=point(p,0);
+    this.box=bbox3(min(p),max(p));
   }
   face copy() {
     face f=new face;
@@ -2426,7 +2485,7 @@ struct face {
 }
 
 picture operator cast(face f) {return f.pic;}
-face operator cast(path3 p) {return face.face(p);}
+face operator cast(path3 p) {return face(p);}
   
 struct line {
   triple point;
@@ -2449,8 +2508,7 @@ struct half {
   // Points exactly on L are considered to be on the right side.
   // Also push any points of intersection of L with the path operator --(... z)
   // onto each of the arrays left and right. 
-  static half split(pair dir, pair P ... pair[] z) {
-    half h=new half;
+  void operator init(pair dir, pair P ... pair[] z) {
     pair lastz;
     pair invdir=dir != 0 ? 1/dir : 0;
     bool left,last;
@@ -2458,15 +2516,14 @@ struct half {
       left=(invdir*z[i]).y > (invdir*P).y;
       if(i > 0 && last != left) {
         pair w=extension(P,P+dir,lastz,z[i]);
-        h.left.push(w);
-        h.right.push(w);
+        this.left.push(w);
+        this.right.push(w);
       }
-      if(left) h.left.push(z[i]);
-      else h.right.push(z[i]);
+      if(left) this.left.push(z[i]);
+      else this.right.push(z[i]);
       last=left;
       lastz=z[i];
     }
-    return h;  
   }
 }
   
@@ -2519,7 +2576,7 @@ splitface split(face a, face cut, projection P)
   face back=a, front=a.copy();
   pair max=max(a.fit);
   pair min=min(a.fit);
-  half h=half.split(dir,point,max,(min.x,max.y),min,(max.x,min.y),max);
+  half h=half(dir,point,max,(min.x,max.y),min,(max.x,min.y),max);
   if(h.right.length == 0) {
     if(rightfront) front=null;
     else back=null;
@@ -2546,19 +2603,18 @@ struct bsp
   face node;
   
   // Construct the bsp.
-  static bsp split(face[] faces, projection P) {
-    if(faces.length == 0) return null;
-    bsp bsp=new bsp;
-    bsp.node=faces.pop();
-    face[] front,back;
-    for(int i=0; i < faces.length; ++i) {
-      splitface split=split(faces[i],bsp.node,P);
-      if(split.front != null) front.push(split.front);
-      if(split.back != null) back.push(split.back);
+  void operator init(face[] faces, projection P) {
+    if(faces.length != 0) {
+      this.node=faces.pop();
+      face[] front,back;
+      for(int i=0; i < faces.length; ++i) {
+	splitface split=split(faces[i],this.node,P);
+	if(split.front != null) front.push(split.front);
+	if(split.back != null) back.push(split.back);
+      }
+      this.front=bsp(front,P);
+      this.back=bsp(back,P);
     }
-    bsp.front=bsp.split(front,P);
-    bsp.back=bsp.split(back,P);
-    return bsp;
   }
   
   // Draw from back to front.
@@ -2589,7 +2645,7 @@ void add(picture pic=currentpicture, face[] faces,
                      F.fit=F.pic.fit(t,T*F.pic.T,m,M);
                    }
     
-                   bsp bsp=bsp.split(faces,P);
+                   bsp bsp=bsp(faces,P);
                    if(bsp != null) bsp.add(f);
                  });
     

@@ -988,7 +988,7 @@ path concat(const path& p1, const path& p2)
   if (n2 == -1) return p1;
   pair a=p1.point(n1);
   pair b=p2.point((Int) 0);
-  if ((a-b).abs2() > Fuzz*max(a.abs2(),b.abs2()))
+  if ((a-b).abs2() > Fuzz2*max(a.abs2(),b.abs2()))
     reportError("paths in concatenation do not meet");
 
   mem::vector<solvedKnot> nodes(n1+n2+1);
@@ -1126,6 +1126,47 @@ path transformed(const transform& t, const path& p)
   }
 
   return path(nodes, n, p.cyclic());
+}
+
+path nurb(pair z0, pair z1, pair z2, pair z3,
+	  double w0, double w1, double w2, double w3, Int m)
+{
+  mem::vector<solvedKnot> nodes(m+1);
+
+  if(m < 1) reportError("invalid sampling interval");
+
+  double step=1.0/m;
+  for(Int i=0; i <= m; ++i) { 
+    double t=i*step;
+    double t2=t*t;
+    double onemt=1.0-t;
+    double onemt2=onemt*onemt;
+    double W0=w0*onemt2*onemt;
+    double W1=w1*3.0*t*onemt2;
+    double W2=w2*3.0*t2*onemt;
+    double W3=w3*t2*t;
+    nodes[i].point=(W0*z0+W1*z1+W2*z2+W3*z3)/(W0+W1+W2+W3);
+  }
+  
+  static const double onethird=1.0/3.0;
+  static const double twothirds=2.0/3.0;
+  pair z=nodes[0].point;
+  nodes[0].pre=z;
+  nodes[0].post=twothirds*z+onethird*nodes[1].point;
+  for(int i=1; i < m; ++i) {
+    pair z0=nodes[i].point;
+    pair zm=nodes[i-1].point;
+    pair zp=nodes[i+1].point;
+    pair pre=twothirds*z0+onethird*zm;
+    pair pos=twothirds*z0+onethird*zp;
+    pair dir=unit(pos-pre);
+    nodes[i].pre=z0-length(z0-pre)*dir;
+    nodes[i].post=z0+length(pos-z0)*dir;
+  }
+  z=nodes[m].point;
+  nodes[m].pre=twothirds*z+onethird*nodes[m-1].point;
+  nodes[m].post=z;
+  return path(nodes,m+1);
 }
 
 } //namespace camp

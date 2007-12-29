@@ -180,8 +180,8 @@ struct revolution {
     else {
       path3 Sp=slice(t+epsilon,ngraph);
       path3 Sm=slice(t-epsilon,ngraph);
-      path sp=project(Sp,P);
-      path sm=project(Sm,P);
+      path sp=project(Sp,P,1);
+      path sm=project(Sm,P,1);
       real[] t1=tangent(sp,sm,true);
       real[] t2=tangent(sp,sm,false);
       if(t1.length > 1 && t2.length > 1) {
@@ -234,8 +234,8 @@ struct revolution {
     path3 S=slice(t,ngraph);
     path3 Sm=slice(t+epsilon,ngraph);
     path3 Sp=slice(t-epsilon,ngraph);
-    path sp=project(Sp,P);
-    path sm=project(Sm,P);
+    path sp=project(Sp,P,1);
+    path sm=project(Sm,P,1);
     real[] t1=tangent(sp,sm,true);
     real[] t2=tangent(sp,sm,false);
     transform3 T=align(axis);

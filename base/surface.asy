@@ -697,12 +697,11 @@ triple point(surface s, real u, real v)
 
 void tensorshade(picture pic=currentpicture, surface s,
                  pen surfacepen=lightgray, light light=currentlight,
-                 projection P=currentprojection)
+                 projection P=currentprojection, int ninterpolate=1)
 {
-  // path[] b=project(box(min(s),max(s)),P);
   path[] b=box(min(s,P),max(s,P));
   tensorshade(pic,box(min(b),max(b)),surfacepen,s.colors(surfacepen,light),
-              project(s.external(),P),project(s.internal(),P));
+              project(s.external(),P,1),project(s.internal(),P));
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
