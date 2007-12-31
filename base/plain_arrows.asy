@@ -7,6 +7,7 @@ real arrowsizelimit=0.5;
 real arrow2sizelimit=1/3;
 real arrowdir=5;
 real arrowbarb=3;
+real arrowhookfactor=1.5;
 
 real barfactor=arrowfactor;
 
@@ -87,8 +88,8 @@ arrowheadT HookHead(real dir=arrowdir, real barb=arrowbarb)
   return new path(path g, position position, pen p=currentpen, real size=0,
                   real angle=arrowangle)
     {
-      angle *= 2;
       if(size == 0) size=arrowsize(p);
+      angle *= arrowhookfactor;
       bool relative=position.relative;
       real position=position.position.x;
       if(relative) position=reltime(g,position);
