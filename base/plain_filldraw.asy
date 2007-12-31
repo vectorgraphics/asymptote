@@ -119,7 +119,10 @@ filltype FillDraw(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
     pen fillpen=p == nullpen ? drawpen : p;
     if(fillpen == nullpen) fillpen=currentpen;
     if(drawpen == nullpen) drawpen=currentpen;
-    filldraw(f,margin(g,xmargin,ymargin),fillpen,drawpen);
+    if(cyclic(g[0]))
+      filldraw(f,margin(g,xmargin,ymargin),fillpen,drawpen);
+    else
+      draw(f,margin(g,xmargin,ymargin),drawpen);
     return true;
   };
 }
