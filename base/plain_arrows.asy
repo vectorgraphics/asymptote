@@ -33,8 +33,8 @@ real[] arrowbasepoints(path base, path left, path right)
 {
   real[][] Tl=transpose(intersections(left,base));
   real[][] Tr=transpose(intersections(right,base));
-  return new real[] {Tl.length > 0 ? Tl[0][0] : 0,
-      Tr.length > 0 ? Tr[0][0] : 0};
+  return new real[] {Tl.length > 0 ? Tl[0][0] : 1,
+      Tr.length > 0 ? Tr[0][0] : 1};
 }
 
 path DefaultHead(path g, position position=EndPoint, pen p=currentpen,
@@ -89,7 +89,7 @@ arrowheadT HookHead(real dir=arrowdir, real barb=arrowbarb)
                   real angle=arrowangle)
     {
       if(size == 0) size=arrowsize(p);
-      angle *= arrowhookfactor;
+      angle=min(angle*arrowhookfactor,45);
       bool relative=position.relative;
       real position=position.position.x;
       if(relative) position=reltime(g,position);
