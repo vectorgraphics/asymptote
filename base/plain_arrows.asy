@@ -142,16 +142,16 @@ TeXHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
 {
   static real wcoef=1/84; // 1/abs(base-hint)
   static path texhead=scale(wcoef)*
-  ((0,20)..     controls (-75,75)    and (-108,158)  ..
-   (-108,166).. controls (-108,175)  and (-100,178)  ..
-   (-93,178)..  controls (-81,178)   and (-79,172)   ..
-   (-76,164)..  controls (-62,134)   and (-30,61)    ..
-   (70,14)..    controls (82,8)      and (84,7)      ..
-   (84,0)..     controls (84,-7)     and (82,-8)     ..
-   (70,-14)..   controls (-30,-61)   and (-62,-134)  ..
-   (-76,-164).. controls (-79,-172)  and (-81,-178)  ..
-   (-93,-178).. controls (-100,-178) and (-108,-175) ..
-   (-108,-166)..controls (-108,-158) and (-75,-75)   ..
+  ((0,20)     .. controls (-75,75)    and (-108,158) ..
+   (-108,166) .. controls (-108,175)  and (-100,178) ..
+   (-93,178)  .. controls (-82,178)   and (-80,173)  ..
+   (-77,168)  .. controls (-62,134)   and (-30,61)   ..
+   (70,14)    .. controls (82,8)      and (84,7)     ..
+   (84,0)     .. controls (84,-7)     and (82,-8)    ..
+   (70,-14)   .. controls (-30,-61)   and (-62,-134) ..
+   (-77,-168) .. controls (-80,-173)  and (-82,-178) ..
+   (-93,-178) .. controls (-100,-178) and (-108,-175)..
+   (-108,-166).. controls (-108,-158) and (-75,-75)  ..
    (0,-20)--cycle);
   if(size == 0) size=TeXHead.size(p);
   path gp=scale(size)*texhead;
