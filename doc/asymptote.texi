@@ -1059,14 +1059,24 @@ bar length is @code{barsize(p)}.
 @cindex @code{EndArcArrow}
 @cindex @code{ArcArrow}
 @cindex @code{ArcArrows}
+
+@cindex @code{DefaultHead}
+@cindex @code{SimpleHead}
+@cindex @code{HookHead}
+@cindex @code{TeXHead}
+
 The possible values of @code{arrow} are @code{None}, @code{Blank}
 (which draws no arrows or path), @code{BeginArrow}, @code{MidArrow},
 @code{EndArrow} (or equivalently @code{Arrow}),
 and @code{Arrows} (which draws an arrow at both ends of the path).
-These arrow specifiers (except for @code{None} and @code{Blank})
-may be given the optional arguments real @code{size} (arrowhead size
-in @code{PostScript} coordinates), real @code{angle} (arrowhead angle
-in degrees), @code{FillDraw}, @code{Fill}, @code{NoFill}, @code{Draw},
+All of the arrow specifiers except for @code{None} and @code{Blank} 
+may be given the optional arguments arrowhead @code{arrowhead} (one of
+the predefined arrowhead styles @code{DefaultHead}, @code{SimpleHead},
+@code{HookHead}, @code{TeXHead}),
+real @code{size} (arrowhead size in @code{PostScript} coordinates),
+real @code{angle} (arrowhead angle
+in degrees), filltype @code{filltype} (one of @code{FillDraw}, @code{Fill},
+@code{NoFill}, @code{Draw}) 
 and (except for @code{MidArrow} and @code{Arrows}) a
 relative real @code{position} along the path (an @code{arctime}) where
 the tip of the arrow should be placed. The default arrowhead size when drawn
