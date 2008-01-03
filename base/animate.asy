@@ -106,17 +106,17 @@ struct animation {
     }
   }
 
-  string load(string name, int frames,
-	      real delay=animationdelay, string options="") {
+  string load(int frames, real delay=animationdelay, string options="") {
     return "\animategraphics["+options+"]{"+string(1000/delay)+"}{"+
       pdfname()+"}{0}{"+string(frames-1)+"}";
   }
 
-  string pdf(real delay=animationdelay, string options="") {
+  string pdf(real delay=animationdelay, string options="",
+	     bool multipage=settings.inlinetex) {
     string filename=pdfname();
 
     if(global)
-      export(filename);
+      export(filename,multipage=multipage);
 
     if(!settings.keep && !settings.inlinetex) {
       exitfcn atexit=atexit();
@@ -127,7 +127,10 @@ struct animation {
       atexit(exitfunction);
     }
 
-    return load(filename,index,delay,options);
+    if(!multipage)
+      delete(filename+".pdf");
+
+    return load(index,delay,options);
   }
 
   int movie(int loops=0, real delay=animationdelay,
