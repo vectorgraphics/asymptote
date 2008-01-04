@@ -12,7 +12,7 @@ usepackage("animate");
 
 struct animation {
   string outname() {
-    return defaultfilename == "" ? settings.outname : defaultfilename;
+    return "_"+(defaultfilename == "" ? settings.outname : defaultfilename);
   }
 
   picture[] pictures;
@@ -42,7 +42,7 @@ struct animation {
   }
   
   string pdfname() {
-    return "_"+stripextension(stripdirectory(prefix));
+    return stripextension(stripdirectory(prefix));
   }
 
   void add(picture pic=currentpicture) {
@@ -110,7 +110,7 @@ struct animation {
   }
 
   string pdf(real delay=animationdelay, string options="",
-	     bool multipage=settings.inlinetex) {
+	     bool multipage=true) {
     string filename=pdfname();
 
     if(global)

@@ -152,6 +152,17 @@
 
 \AtEndDocument{\immediate\closeout\AsyStream}
 
+\ifx\animategraphics
+\let\Animategraphics\animategraphics
+\newcommand{\animategraphics}[5][]{%
+\openin\AsyTestStream=#3.pdf
+\ifeof\AsyTestStream%
+\else%
+\Animategraphics[#1]{#2}{#3}{#4}{#5}%
+\fi%
+}
+\fi
+
 \def\Asymptote{{\tt Asymptote}}
 
 %%% Local Variables: 

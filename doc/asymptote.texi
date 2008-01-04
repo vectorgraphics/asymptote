@@ -5358,7 +5358,7 @@ pdflatex latexusage
 
 If the @code{inline} option is given to the
 @code{asymptote.sty} package, inline @code{LaTeX} code is generated instead of
-@acronym{EPS} files. This makes LaTeX symbols visible to the
+@acronym{EPS} or @acronym{PDF} files. This makes LaTeX symbols visible to the
 @code{\begin@{asy@}...\end@{asy@}} environment.  In this mode,
 Asymptote correctly aligns LaTeX symbols defined outside of
 @code{\begin@{asy@}...\end@{asy@}}, but treats their size as zero; an
@@ -5667,11 +5667,13 @@ one must then execute the command @code{texhash}.
 
 The example @code{pdfmovie.asy} in the @code{animations}
 directory, along with the slide presentations @code{slidemovies.asy}
-and @code{intro.asy} illustrate the use of embedded @acronym{PDF} movies.
+and @code{intro.asy}, illustrate the use of embedded @acronym{PDF} movies.
+The example @code{inlinemovie.tex} shows how to generate and embed @acronym{PDF}
+movies directly within a @code{LaTeX} file (@pxref{LaTeX usage}).
 The member function
 @verbatim
 string pdf(real delay=animationdelay, string options="",
-           bool multipage=settings.inlinetex);
+           bool multipage=true);
 @end verbatim
 @noindent
 of the @code{animate} structure accepts any of the @code{animate.sty} options,
@@ -8057,4 +8059,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  firstname lastname multdiagonal Raphson OmitTick OmitFormat
 @c  LocalWords:  NoZero NoZeroFormat abbrevation gsOptions namespace redeclared
 @c  LocalWords:  atLeast intMin globalwrite quarticroots deconsruct substrings
-@c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt
+@c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt DefaultHead
+@c  LocalWords:  SimpleHead HookHead TeXHead multipage nurbs
