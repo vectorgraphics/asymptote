@@ -20,6 +20,7 @@
 #define PIPESTREAM_H
 
 #include <iostream>
+#include <cstring>
 #include <sys/wait.h>
 #include <cerrno>
 #include <sstream>
