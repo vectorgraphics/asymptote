@@ -11,7 +11,7 @@ real animationdelay=50;
 usepackage("animate");
 
 struct animation {
-  static string outname() {
+  string outname() {
     return defaultfilename == "" ? settings.outname : defaultfilename;
   }
 
@@ -23,10 +23,8 @@ struct animation {
   // extra memory since the actual shipout is deferred until all frames have
   // been generated. 
 
-  static animation prefix(string s=outname()) {
-    animation animation=new animation;
-    animation.prefix=s;
-    return animation;
+  void operator init(string s=outname()) {
+    this.prefix=s;
   }
   
   private string nextname(string prefix=prefix) {
@@ -142,9 +140,4 @@ struct animation {
     return merge(loops,delay,format,options,keep);
   }
 
-}
-
-animation animation(string prefix) 
-{
-  return animation.prefix(prefix);
 }

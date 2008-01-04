@@ -5660,7 +5660,7 @@ optional controls, can be internally generated and embedded by
 @noindent
 @end quotation
 @noindent
-(version 2007/05/24 or later) in a new directory @code{animate} in the
+(version 2007/11/30 or later) in a new directory @code{animate} in the
 @code{LaTeX} source directory (for example, in
 @code{/usr/share/texmf/tex/latex/animate}). On @code{UNIX} systems,
 one must then execute the command @code{texhash}.
@@ -5670,7 +5670,8 @@ directory, along with the slide presentations @code{slidemovies.asy}
 and @code{intro.asy} illustrate the use of embedded @acronym{PDF} movies.
 The member function
 @verbatim
-string pdf(real delay=animationdelay, string options="")
+string pdf(real delay=animationdelay, string options="",
+           bool multipage=settings.inlinetex);
 @end verbatim
 @noindent
 of the @code{animate} structure accepts any of the @code{animate.sty} options,
