@@ -2267,7 +2267,7 @@ void dot(picture pic=currentpicture, explicit guide3 g, pen p=currentpen,
   dot(pic,(path3) g,p,filltype);
 }
 
-void dot(picture pic=currentpicture, path3[] g, pen p=currentpen,
+void dot(picture pic=currentpicture, explicit path3[] g, pen p=currentpen,
 	 filltype filltype=Fill)
 {
   for(int i=0; i < g.length; ++i) dot(pic,g[i],p,Fill);
