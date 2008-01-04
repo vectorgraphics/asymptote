@@ -17,14 +17,16 @@ struct animation {
 
   picture[] pictures;
   string[] files;
-  string prefix=outname();
   int index;
-  bool global=true; // Use a global scaling for all frames; this requires
+
+  string prefix;
+  bool global; // Use a global scaling for all frames; this requires
   // extra memory since the actual shipout is deferred until all frames have
   // been generated. 
 
-  void operator init(string s=outname()) {
+  void operator init(string s=outname(), bool global=true) {
     this.prefix=s;
+    this.global=global;
   }
   
   private string nextname(string prefix=prefix) {
@@ -125,7 +127,7 @@ struct animation {
       atexit(exitfunction);
     }
 
-    if(!multipage)
+    if(!global || !multipage)
       delete(filename+".pdf");
 
     return load(index,delay,options);

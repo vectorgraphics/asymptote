@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage[inline]{asymptote}
+%\usepackage{asymptote}
 \usepackage{animate}
 \begin{document}
 
@@ -19,7 +20,7 @@ Here is an inline PDF movie:
   label(A.pdf("controls"));
 \end{asy}
 %Uncomment the following line when not using the [inline] package option
-%\animategraphics[controls,loop]{10}{movie1}{}{}
+%\ASYanimategraphics[controls,loop]{10}{movie1}{}{}
 \end{center}
 
 And here is another one:
@@ -38,9 +39,8 @@ And here is another one:
   label(A.pdf("controls"));
 \end{asy}
 %Uncomment the following when not using the [inline] package option
-%\animategraphics[controls,loop]{10}{movie2}{}{}
+%\ASYanimategraphics[controls,loop]{10}{movie2}{}{}
 
 \end{center}
 
 \end{document}
-
