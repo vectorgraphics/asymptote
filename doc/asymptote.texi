@@ -5673,7 +5673,7 @@ movies directly within a @code{LaTeX} file (@pxref{LaTeX usage}).
 The member function
 @verbatim
 string pdf(real delay=animationdelay, string options="",
-           bool multipage=true);
+           bool keep=false, bool multipage=true);
 @end verbatim
 @noindent
 of the @code{animate} structure accepts any of the @code{animate.sty} options,

@@ -112,8 +112,9 @@ struct animation {
   }
 
   string pdf(real delay=animationdelay, string options="",
-	     bool multipage=true, bool keep=true) {
+             bool keep=false, bool multipage=true) {
     string filename=pdfname();
+    bool single=global && multipage;
 
     if(global)
       export(filename,multipage=multipage);
@@ -121,13 +122,15 @@ struct animation {
     if(!settings.keep && !settings.inlinetex) {
       exitfcn atexit=atexit();
       void exitfunction() {
-	atexit();
-	this.purge();
+        atexit();
+        this.purge();
+        if(!keep && single)
+          delete(pdfname()+".pdf");
       }
       atexit(exitfunction);
     }
 
-    if(!global || !multipage)
+    if(!single)
       delete(filename+".pdf");
 
     return load(index,delay,options);
@@ -147,4 +150,3 @@ animation operator init() {
   animation a=animation();
   return a;
 }
-
