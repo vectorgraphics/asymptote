@@ -20,7 +20,7 @@ struct animation {
   int index;
 
   string prefix;
-  bool global; // Use a global scaling for all frames; this requires
+  bool global; // If true, use a global scaling for all frames; this requires
   // extra memory since the actual shipout is deferred until all frames have
   // been generated. 
 
@@ -112,7 +112,7 @@ struct animation {
   }
 
   string pdf(real delay=animationdelay, string options="",
-	     bool multipage=true) {
+	     bool multipage=true, bool keep=true) {
     string filename=pdfname();
 
     if(global)
@@ -141,5 +141,10 @@ struct animation {
     shipped=true;
     return merge(loops,delay,format,options,keep);
   }
-
 }
+
+animation operator init() {
+  animation a=animation();
+  return a;
+}
+
