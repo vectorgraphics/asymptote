@@ -23,7 +23,7 @@ Here is an inline PDF movie:
 %\ASYanimategraphics[controls,loop]{10}{movie1}{}{}
 \end{center}
 
-And here is another one:
+And here is another one, without the control panel:
 \begin{center}
 \begin{asy}
   import animate;
@@ -36,7 +36,7 @@ And here is another one:
     draw(pic,expi(-i*h)--expi(-(i+1)*h),red);
     A.add(pic);
   }
-  label(A.pdf("controls",keep=true));
+  label(A.pdf(keep=true));
 \end{asy}
 %Uncomment the following line when not using the [inline] package option:
 %\ASYanimategraphics[controls,loop]{10}{movie2}{}{}
