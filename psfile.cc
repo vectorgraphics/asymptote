@@ -93,7 +93,8 @@ void psfile::prologue(const bbox& box)
   *out << "%%Pages: 1" << newl;
   *out << "%%Page: 1 1" << newl;
   
-  *out << "/Setlinewidth {0 exch dtransform dup abs 1 lt {pop 0}{round} ifelse idtransform setlinewidth pop} bind def" << newl;
+  if(!pdfformat)
+    *out << "/Setlinewidth {0 exch dtransform dup abs 1 lt {pop 0}{round} ifelse idtransform setlinewidth pop} bind def" << newl;
 }
 
 void psfile::epilogue()
@@ -142,7 +143,8 @@ void psfile::setpen(pen p)
   
   // Defer dynamic linewidth until stroke time in case currentmatrix changes.
   if(p.width() != lastpen.width()) {
-    *out << p.width() << " Setlinewidth" << newl;
+    *out << p.width() << (pdfformat ? " setlinewidth" : " Setlinewidth") 
+	 << newl;
   }
     
   if(p.cap() != lastpen.cap()) {
