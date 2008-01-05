@@ -147,7 +147,7 @@ struct revolution {
       triple v1=vertex(i+1,j);
       triple v2=vertex(i+1,j+s);
       triple v3=vertex(i,j+s);
-      gouraudshade(pic,project(v0--v1--v2--v3--cycle,P),
+      gouraudshade(pic,project(v0--v1--v2--v3--cycle,P,1),
 		   new pen[] {color(v0),color(v1),color(v2),color(v3)},edges);
     }
     endgroup(pic);
