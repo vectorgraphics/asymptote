@@ -82,7 +82,7 @@ Drawing commands
 * draw::                        Draw a path on a picture or frame
 * fill::                        Fill a cyclic path on a picture or frame
 * clip::                        Clip a picture or frame to a cyclic path
-* label::                       Label a point on a picture
+* label::                       Label a point on a picture or frame
 
 Programming
 

@@ -174,7 +174,8 @@ struct revolution {
     triple camera=P.camera;
     if(P.infinity)
       camera *= scalefactor();
-    real sign=sgn(dot(axis,camera-P.target))*sgn(dot(axis,dir(g,0)));
+    real midtime=0.5*length(g);
+    real sign=sgn(dot(axis,camera-P.target))*sgn(dot(axis,dir(g,midtime)));
     if((t <= epsilon && sign < 0) || (t >= length(g)-epsilon && sign > 0))
       s.front.push(S);
     else {
@@ -198,7 +199,12 @@ struct revolution {
           s.front.push(p2);
           s.back.push(p1);
         }
-      } else s.front.push(S);
+      } else {
+	if((t <= midtime && sign < 0) || (t >= midtime && sign > 0))
+	  s.front.push(S);
+	else
+	  s.back.push(S);
+      }
     }
   }
 
