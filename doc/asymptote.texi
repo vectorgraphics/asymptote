@@ -6461,7 +6461,7 @@ to the @code{label} and @code{limits} functions) are always treated as linear
 pair Scale(picture pic=currentpicture, pair z);
 @end verbatim
 to convert a graph coordinate into a scaled picture coordinate.
-@verbatim
+
 The @math{x} and @math{y} components can be individually scaled using
 the analogous routines
 @verbatim
