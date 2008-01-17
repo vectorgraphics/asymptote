@@ -1531,6 +1531,7 @@ for(int i=0; i < 10; ++i) {
 @code{continue} statements just as in C/C++. It also supports the Java-style
 shorthand for iterating over all elements of an array:
 
+@cindex array iteration
 @anchor{array iteration}
 @verbatim
 // Iterate over an array
