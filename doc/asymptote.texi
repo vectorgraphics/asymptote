@@ -930,8 +930,9 @@ with
 @cindex @code{---}
 @cindex @code{&}
 The @code{---} connector is an abbreviation for @code{..tension atleast
-infinity..} and the @code{&} connector concatenates two paths which meet
-at a common point. 
+infinity..} and the @code{&} connector concatenates two paths, after
+first stripping of the last node of the first path (which normally
+should coincide with the first node of the second path).
 
 @cindex @code{PostScript} subpath
 @cindex @code{^^}

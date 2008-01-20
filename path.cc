@@ -988,8 +988,6 @@ path concat(const path& p1, const path& p2)
   if (n2 == -1) return p1;
   pair a=p1.point(n1);
   pair b=p2.point((Int) 0);
-  if ((a-b).abs2() > Fuzz2*max(a.abs2(),b.abs2()))
-    reportError("paths in concatenation do not meet");
 
   mem::vector<solvedKnot> nodes(n1+n2+1);
 

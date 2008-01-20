@@ -238,37 +238,55 @@ pair endpoint(path p)
   return point(p,length(p));
 }
 
-// return the path surrounding a region bounded by a list of consecutively
-// intersecting paths
-path buildcycle(... path[] p)
-{
-  int n=p.length;
-  real[] ta=new real[n];
-  real[] tb=new real[n];
-  int j=n-1;
-  for(int i=0; i < n; ++i) {
-    real[] t=intersect(p[i],reverse(p[j]));
-    if(t.length == 0)
-      abort("Paths "+(string) i+" and " +(string) j+" do not intersect");
-    ta[i]=t[0]; tb[j]=length(p[j])-t[1];
-    j=i;
-  }
-  path G;
-  for(int i=0; i < n ; ++i) 
-    G=G..subpath(p[i],ta[i],tb[i]);
-  return G..cycle;
-}
-
 path operator &(path p, cycleToken tok)
 {
   int n=length(p);
   if(n < 0) return nullpath;
   pair a=point(p,0);
   pair b=point(p,n);
-  static real Fuzz=10.0*realEpsilon;
-  if(abs(a-b) > Fuzz*max(abs(a),abs(b)))
-    abort("paths in concatenation do not meet");
   return subpath(p,0,n-1)..controls postcontrol(p,n-1) and precontrol(p,n)..
     cycle;
 }
 
+// return a cyclic path enclosing a region bounded by a list of consecutively
+// intersecting paths
+path buildcycle(... path[] p)
+{
+  int n=p.length;
+  real[] ta=new real[n];
+  real[] tb=new real[n];
+  if(n == 2) {
+    real[][] t=intersections(p[0],p[1]);
+    if(t.length < 2)
+      return nullpath;
+    int k=t.length-1;
+    ta[0]=t[0][0]; tb[0]=t[k][0];
+    ta[1]=t[k][1]; tb[1]=t[0][1];
+  } else {
+    int j=n-1;
+    for(int i=0; i < n; ++i) {
+      real[][] t=intersections(p[i],p[j]);
+      if(t.length == 0)
+	return nullpath;
+      ta[i]=t[0][0]; tb[j]=t[0][1];
+      j=i;
+    }
+  }
+
+  pair c;
+  for(int i=0; i < n ; ++i)
+    c += point(p[i],ta[i]);
+  c /= n;
+
+  path G;
+  for(int i=0; i < n ; ++i) {
+    real Tb=tb[i];
+    if(cyclic(p[i])) {
+      real t=Tb-length(p[i]);
+      if(abs(c-point(p[i],0.5(ta[i]+t))) <
+	 abs(c-point(p[i],0.5(ta[i]+tb[i])))) Tb=t;
+    }
+    G=G&subpath(p[i],ta[i],Tb);
+  }
+  return G&cycle;
+}
