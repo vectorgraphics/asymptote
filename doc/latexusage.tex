@@ -49,10 +49,10 @@ add(intersection);
 draw(c1);
 draw(c2);
 
-//box(Label("$\A$",z1));              // Requires [inline] package option.
-//box(Label("$\B$","$B$",z2));        // Requires [inline] package option.
-box(Label("$A$",z1));             
-box(Label("$\bm{B}$",z2));
+//draw("$\A$",box,z1);              // Requires [inline] package option.
+//draw(Label("$\B$","$B$"),box,z2); // Requires [inline] package option.
+draw("$A$",box,z1);            
+draw("$\bm{B}$",box,z2);
 
 pair z=(0,-2);
 real m=3;

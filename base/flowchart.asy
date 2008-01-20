@@ -76,8 +76,8 @@ block rectangle(object header, object body, pair center=(0,0),
                 real dx=3, real minheaderwidth=0, real minheaderheight=0,
                 real minbodywidth=0, real minbodyheight=0)
 {
-  frame fbody=body.fit();
-  frame fheader=header.fit();
+  frame fbody=body.f;
+  frame fheader=header.f;
   pair mheader=min(fheader);
   pair Mheader=max(fheader);
   pair mbody=min(fbody);
@@ -121,7 +121,7 @@ block rectangle(object body, pair center=(0,0), pen fillpen=invisible,
 		pen drawpen=currentpen, real dx=3, real minwidth=0,
 		real minheight=0)
 {
-  frame f=body.fit();
+  frame f=body.f;
   pair m=min(f);
   pair M=max(f);
   pair z=maxbound(M-m+dx*(2,2),(minwidth,minheight));
@@ -156,7 +156,7 @@ block diamond(object body, pair center=(0,0),
 	      real ds=5, real dw=1,
               real height=20, real minwidth=0, real minheight=0)
 {
-  frame f=body.fit();
+  frame f=body.f;
   pair m=min(f);
   pair M=max(f);
   pair bound=maxbound(M-m,(minwidth,minheight));
@@ -200,7 +200,7 @@ block diamond(object body, pair center=(0,0),
 block circle(object body, pair center=(0,0), pen fillpen=invisible,
 	     pen drawpen=currentpen, real dr=3, real mindiameter=0)
 {
-  frame f=body.fit();
+  frame f=body.f;
   pair m=min(f);
   pair M=max(f);
   real r=max(0.5length(M-m)+dr,0.5mindiameter);
@@ -236,7 +236,7 @@ block roundrectangle(object body, pair center=(0,0),
 		     real ds=5, real dw=0, real minwidth=0,
 		     real minheight=0)
 {
-  frame f=body.fit();
+  frame f=body.f;
   pair m=min(f);
   pair M=max(f);
   pair bound=maxbound(M-m,(minwidth,minheight));
@@ -277,7 +277,7 @@ block bevel(object body, pair center=(0,0), pen fillpen=invisible,
 	    pen drawpen=currentpen, real dh=5,
 	    real dw=5, real minwidth=0, real minheight=0)
 {
-  frame f=body.fit();
+  frame f=body.f;
   pair m=min(f);
   pair M=max(f);
   pair bound=maxbound(M-m,(minwidth,minheight));

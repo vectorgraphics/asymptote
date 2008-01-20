@@ -441,30 +441,32 @@ Label operator cast(string s) {return Label(s);}
 struct object {
   frame f;
   Label L=Label;
-  frame fit() {
-    if(L != Label) L.out(f);
-    return f;
+  path g; // Bounding path
+
+  void operator init(frame f) {
+    this.f=f;
+    this.g=box(min(f),max(f));
+  }
+
+  void operator init(Label L) {
+    this.L=L.copy();
+    if(L != Label) L.out(this.f);
+    this.g=box(min(this.f),max(this.f));
   }
 }
 
 object operator cast(frame f) {
-  object o;
-  o.f=f;
-  return o;
+  return object(f);
 }
 
 object operator cast(Label L) 
 {
-  object o;
-  o.L=L.copy();
-  return o;
+  return object(L);
 }
 
 object operator cast(string s) 
 {
-  object o;
-  o.L=s;
-  return o;
+  return object(s);
 }
 
 // Pack a list of objects into a frame.
@@ -474,9 +476,8 @@ frame pack(pair align=2S ... object inset[])
   int n=inset.length;
   pair z;
   for (int i=0; i < n; ++i) {
-    frame f=inset[i].fit();
-    add(F,f,z);
-    z += align+realmult(unit(align),size(f));
+    add(F,inset[i].f,z);
+    z += align+realmult(unit(align),size(inset[i].f));
   }
   return F;
 }

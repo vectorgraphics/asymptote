@@ -7,5 +7,5 @@ object label1=draw("small box",box,z1,margin);
 object label0=draw("LARGE ELLIPSE",ellipse,z0,margin);
 
 add(new void(frame f, transform t) {
-    draw(f,point(label1,S,t)--point(label0,N,t));
+    draw(f,point(label1,SW,t){SW}..{SW}point(label0,NNE,t));
   });

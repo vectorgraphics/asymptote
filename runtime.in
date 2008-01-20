@@ -2807,6 +2807,11 @@ pair dir(real theta)
   return expi(radians(theta));
 }
 
+pair dir(explicit pair z)
+{
+  return unit(z);
+}
+
 pair expi(real theta)
 {
   return expi(theta);

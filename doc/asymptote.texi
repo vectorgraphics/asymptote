@@ -1478,6 +1478,20 @@ A group of objects may be packed together into single frame with the routine
 @verbatim
 frame pack(pair align=2S ... object inset[]);
 @end verbatim
+@noindent
+To draw or fill a box (or ellipse or other path) around a Label and
+return the bounding object, use one of the routines
+@verbatim
+object draw(picture pic=currentpicture, Label L, envelope e, 
+	    real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+	    filltype filltype=NoFill, bool put=Above);
+object draw(picture pic=currentpicture, Label L, envelope e, pair position,
+            real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+            filltype filltype=NoFill, bool put=Above);
+@end verbatim
+@noindent
+Here @code{envelope} is a boundary-drawing routine such as @code{box} or
+@code{ellipse} defined in @code{plain_boxes.asy} (@pxref{envelope}).
 
 @cindex @code{minipage}
 The @code{string minipage(string s, width=100pt)} function can be used
@@ -2850,6 +2864,21 @@ A frame obtained by aligning frame @code{f} in the direction
 frame align(frame f, pair align);
 @end verbatim
 
+@cindex @code{box}
+@cindex @code{ellipse}
+@anchor{envelope}
+@cindex @code{envelope}
+To draw or fill a box or ellipse around a label or frame and return the
+boundary as a path, use one of the predefined @code{envelope} routines
+@verbatim
+path box(frame f, Label L="", real xmargin=0,
+         real ymargin=xmargin, pen p=currentpen,
+         filltype filltype=NoFill, bool put=Above);
+path ellipse(frame f, Label L="", real xmargin=0,
+             real ymargin=xmargin, pen p=currentpen,
+             filltype filltype=NoFill, bool put=Above);
+@end verbatim
+
 @item picture
 @cindex @code{picture}
 Pictures are high-level structures (@pxref{Structures}) defined in
@@ -3142,21 +3171,6 @@ void attach(picture dest=currentpicture, frame src,
 void attach(picture dest=currentpicture, frame src,
             pair position=0, pair align, bool group=true,
             filltype filltype=NoFill, bool put=Above);
-@end verbatim
-
-To draw or fill a box or ellipse around a label, frame, or picture,
-use one of the routines (the first two routines for convenience also
-return the boundary as a guide):
-@verbatim
-path box(frame f, Label L="", real xmargin=0,
-         real ymargin=xmargin, pen p=currentpen,
-         filltype filltype=NoFill, bool put=Above);
-path ellipse(frame f, Label L="", real xmargin=0,
-             real ymargin=xmargin, pen p=currentpen,
-             filltype filltype=NoFill, bool put=Above);
-void box(picture pic=currentpicture, Label L,
-         real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-         filltype filltype=NoFill, bool put=Above);
 @end verbatim
 
 @cindex @code{erase}

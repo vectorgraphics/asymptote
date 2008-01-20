@@ -50,11 +50,13 @@ typedef path envelope(frame dest, frame src=dest, real xmargin=0,
                       real ymargin=xmargin, pen p=currentpen,
                       filltype filltype=NoFill, bool put=Above);
 
-frame enclose(picture pic=currentpicture, envelope e, Label L,
-              real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-              filltype filltype=NoFill, bool put=Above) 
+object draw(picture pic=currentpicture, Label L, envelope e, 
+	    real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+	    filltype filltype=NoFill, bool put=Above) 
 {
+  object F;
   Label L=L.copy();
+  F.L=L;
   pic.add(new void (frame f, transform t) {
       frame d;
       add(d,t,L);
@@ -66,38 +68,27 @@ frame enclose(picture pic=currentpicture, envelope e, Label L,
   L0.p(p);
   frame f;
   add(f,L0);
-  e(f,xmargin,ymargin,p,filltype);
+  F.g=e(f,xmargin,ymargin,p,filltype);
   pic.addBox(L.position,L.position,min(f),max(f));
-  return f;
-}
-
-object draw(picture pic=currentpicture, Label L, envelope S,
-            real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-            filltype filltype=NoFill, bool put=Above)
-{
-  object F;
-  F.L=L.copy();
-  F.f=enclose(pic,S,L,xmargin,ymargin,p,filltype,put);
   return F;
 }
 
-object draw(picture pic=currentpicture, Label L, envelope S, pair position,
+object draw(picture pic=currentpicture, Label L, envelope e, pair position,
             real xmargin=0, real ymargin=xmargin, pen p=currentpen,
             filltype filltype=NoFill, bool put=Above)
 {
-  return draw(pic,Label(L,position),S,xmargin,ymargin,p,filltype,put);
+  return draw(pic,Label(L,position),e,xmargin,ymargin,p,filltype,put);
 }
 
 pair point(object F, pair dir, transform t=identity()) 
 {
-  return t*F.L.position+point(F.f,dir);
-}
-
-void box(picture pic=currentpicture, Label L,
-         real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-         filltype filltype=NoFill, bool put=Above)
-{
-  enclose(pic,box,L,xmargin,ymargin,p,filltype,put);
+  pair m=min(F.g);
+  pair M=max(F.g);
+  pair c=0.5*(m+M);
+  pair z=t*F.L.position;
+  real[] T=intersect(F.g,c--2*(m+realmult(rectify(dir),M-m))-c);
+  if(T.length == 0) return z;
+  return z+point(F.g,T[0]);
 }
 
 frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=xmargin,
@@ -107,4 +98,3 @@ frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=xmargin,
   box(f,xmargin,ymargin,p,filltype,Below);
   return f;
 }
-
