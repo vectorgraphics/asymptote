@@ -17,7 +17,7 @@ FILES = $(CAMP) runtime env genv main stm dec errormsg callable name \
 	symbol types entry exp newexp stack camp.tab lex.yy access \
 	absyn record interact fileio builtin fftw++ simpson coder coenv \
 	@getopt@ locate parser program application varinit fundec refaccess \
-	Delaunay envcompleter process constructor
+	Delaunay envcompleter process constructor array
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc keywords.cc \
 	asy-keywords.el base/asy-keywords.el
