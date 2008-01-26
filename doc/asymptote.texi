@@ -82,7 +82,7 @@ Drawing commands
 * draw::                        Draw a path on a picture or frame
 * fill::                        Fill a cyclic path on a picture or frame
 * clip::                        Clip a picture or frame to a cyclic path
-* label::                       Label a point on a picture or frame
+* label::                       Label a point on a picture
 
 Programming
 
@@ -132,7 +132,7 @@ Base modules
 * syzygy::                      Syzygy and braid drawing module
 * feynman::                     Feynman diagrams
 * roundedpath::                 Round the sharp corners of paths
-* animate::                     Embedded @acronym{PDF} and @acronym{MPEG} movies
+* animation::                   Embedded @acronym{PDF} and @acronym{MPEG} movies
 * embed::                       Embedding movies, sounds, and 3D objects
 * slide::                       Making presentations with @code{Asymptote}
 * MetaPost::                    @code{MetaPost} compatibility routines
@@ -363,7 +363,7 @@ The @code{ImageMagick} package from
 
 @noindent
 is required to support alternate output formats (@pxref{convert}),
-including the graphical user interface and animations.
+including the graphical user interface and non-PDF animations.
 The @code{Python} interpreter from @url{http://www.python.org} is only required
 if you wish to try out the graphical user interface (@pxref{GUI}).
 
@@ -4519,6 +4519,7 @@ The @code{copy} function listed below provides a deep copy of an array.
 @cindex @code{length}
 @cindex @code{cyclic}
 @cindex @code{cyclicflag}
+@cindex @code{keys}
 @cindex @code{push}
 @cindex @code{append}
 @cindex @code{pop}
@@ -5437,7 +5438,7 @@ Here now is @code{latexusage.tex}:
 * syzygy::                      Syzygy and braid drawing module
 * feynman::                     Feynman diagrams
 * roundedpath::                 Round the sharp corners of paths
-* animate::                     Embedded @acronym{PDF} and @acronym{MPEG} movies
+* animation::                   Embedded @acronym{PDF} and @acronym{MPEG} movies
 * embed::                       Embedding movies, sounds, and 3D objects
 * slide::                       Making presentations with @code{Asymptote}
 * MetaPost::                    @code{MetaPost} compatibility routines
@@ -5674,9 +5675,9 @@ and @code{fermi.asy}.
 This package, contributed by Stefan Knorr, is useful for rounding the
 sharp corners of paths, as illustrated in the example file @code{roundpath.asy}.
 
-@node animate
-@section @code{animate}
-@cindex @code{animate}
+@node animation
+@section @code{animation}
+@cindex @code{animation}
 @cindex @code{merge}
 @cindex @code{convert}
 @cindex animation
@@ -5686,11 +5687,13 @@ files @code{wheel.asy}, @code{wavelet.asy}, and @code{cube.asy} in
 the @code{animations} subdirectory of the examples directory. These
 animations use the @code{ImageMagick} @code{convert} program to
 @code{merge} multiple images into a @acronym{GIF} or @acronym{MPEG}
-movie. 
+movie.
 
-Higher-quality portable clickable @acronym{PDF} movies, with
-optional controls, can be internally generated and embedded by
-@code{Asymptote}. This requires installing the package
+@cindex @code{animate}
+@anchor{animate}
+The related @code{animate} module, derived from the @code{animation}
+module, generates higher-quality portable clickable @acronym{PDF} movies, with
+optional controls. This requires installing the package
 @quotation
 @url{http://www.ctan.org/tex-archive/macros/latex/contrib/animate/animate.sty}
 @noindent
@@ -8096,4 +8099,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  NoZero NoZeroFormat abbrevation gsOptions namespace redeclared
 @c  LocalWords:  atLeast intMin globalwrite quarticroots deconsruct substrings
 @c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt DefaultHead
-@c  LocalWords:  SimpleHead HookHead TeXHead multipage nurbs
+@c  LocalWords:  SimpleHead HookHead TeXHead multipage nurbs inlinemovie

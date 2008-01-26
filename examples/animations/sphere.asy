@@ -1,5 +1,5 @@
 import solids;
-import animate;
+import animation;
 
 currentprojection=orthographic((0,5,2));
 currentlight=(0,5,5);

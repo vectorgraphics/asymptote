@@ -1,7 +1,7 @@
 // Author : Philippe Ivaldi
 // 2006/11/10
 
-import animate;
+import animation;
 import graph;
 
 unitsize(x=2cm,y=1.5cm);

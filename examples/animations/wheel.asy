@@ -1,5 +1,5 @@
 import graph;
-import animate;
+import animation;
 
 size(0,200);
 

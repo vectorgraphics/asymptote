@@ -1,6 +1,6 @@
 import math;
 import three;
-import animate;
+import animation;
 
 size(100,100);
 
