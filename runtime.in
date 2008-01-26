@@ -3167,6 +3167,7 @@ item :arrayRead(array *a, Int n)
 // Slice a substring from an array.
 item :arraySliceRead(array *a, Int left, Int right)
 {
+  checkArray(a);
   return a->slice(left, right);
 }
 
