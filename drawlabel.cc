@@ -40,7 +40,7 @@ int drawLabel::wait(iopipestream &tex, const char *s, const char **abort,
       tex.wait(s,abort);
     }
     if(!ignore)
-      reportError(*tex.message());
+      reportError(tex.message());
    }
   return rc;
 }
