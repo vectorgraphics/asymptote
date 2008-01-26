@@ -67,8 +67,13 @@ void formals::addToSignature(signature& sig,
   for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
     sig.add((*p)->trans(e, encodeDefVal, tacit));
 
-  if (rest)
+  if (rest) {
+    if (!tacit && rest->getDefaultValue()) {
+      em.error(rest->getPos());
+      em << "rest parameters cannot have default values";
+    }
     sig.addRest(rest->trans(e, encodeDefVal, tacit));
+  }
 }
 
 // Returns the types of each parameter as a signature.
@@ -173,10 +178,6 @@ void formals::trans(coenv &e)
   }
 
   if (rest) {
-    if (rest->getDefaultValue()) {
-      em.error(rest->getPos());
-      em << "rest parameters cannot have default values";
-    }
     rest->transAsVar(e, index);
     ++index;
   }
