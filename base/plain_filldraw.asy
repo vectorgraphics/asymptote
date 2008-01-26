@@ -113,16 +113,18 @@ filltype Fill(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
   };
 }
 
-filltype FillDraw(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
+filltype FillDraw(real xmargin=0, real ymargin=xmargin,
+		  pen fillpen=nullpen, pen drawpen=nullpen)
 {
-  return new bool(frame f, path[] g, pen drawpen) {
-    pen fillpen=p == nullpen ? drawpen : p;
-    if(fillpen == nullpen) fillpen=currentpen;
-    if(drawpen == nullpen) drawpen=currentpen;
-    if(cyclic(g[0]))
-      filldraw(f,margin(g,xmargin,ymargin),fillpen,drawpen);
+  return new bool(frame f, path[] g, pen Drawpen) {
+    if(drawpen != nullpen) Drawpen=drawpen;
+    pen Fillpen=fillpen == nullpen ? Drawpen : fillpen;
+    if(Fillpen == nullpen) Fillpen=currentpen;
+    if(Drawpen == nullpen) Drawpen=Fillpen;
+     if(cyclic(g[0]))
+      filldraw(f,margin(g,xmargin,ymargin),Fillpen,Drawpen);
     else
-      draw(f,margin(g,xmargin,ymargin),drawpen);
+      draw(f,margin(g,xmargin,ymargin),Drawpen);
     return true;
   };
 }

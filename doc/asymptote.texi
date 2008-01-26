@@ -3021,17 +3021,20 @@ Here @code{filltype} specifies one of the following fill types:
 @table @code
 @cindex @code{FillDraw}
 @item FillDraw
-Fill with the pen used to draw the boundary.
+Fill the interior and draw the boundary.
 
-@item FillDraw(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
+@item FillDraw(real xmargin=0, real ymargin=xmargin, pen fillpen=nullpen,
+               @code{pen drawpen=nullpen);}
 @cindex @code{nullpen}
-If @code{p} is @code{nullpen}, fill with the pen used to draw the
-boundary; otherwise fill with pen @code{p}. An optional margin of
+If @code{fillpen} is @code{nullpen}, fill with the drawing pen;
+otherwise fill with pen @code{fillpen}. 
+If @code{drawpen} is @code{nullpen}, draw the boundary with @code{fillpen};
+otherwise with @code{drawpen}. An optional margin of
 @code{xmargin} and @code{ymargin} can be specified.
 
 @cindex @code{Fill}
 @item Fill
-Fill with the drawing pen.
+Fill the interior.
 
 @cindex @code{nullpen}
 @item Fill(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
@@ -3057,7 +3060,7 @@ otherwise draw with pen @code{p}. An optional margin of
 Clip the region.
 
 @cindex @code{UnFill}
-@item UnFill(real xmargin=0, real ymargin=xmargin
+@item UnFill(real xmargin=0, real ymargin=xmargin)
 Clip the region and surrounding margins @code{xmargin} and @code{ymargin}.
 
 @cindex @code{RadialShade}

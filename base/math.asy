@@ -399,7 +399,7 @@ real node(path g, explicit pair z, int n=0)
     return T[0];
   }
   real[][] T=intersections(g,p);
-  if(T.length == 0) abort("node not found");
+  if(T.length == 0) abort(nonode);
   T.cyclic(true);
   return T[n][0];
 }

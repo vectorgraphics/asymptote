@@ -43,6 +43,11 @@ real[] arrowbasepoints(path base, path left, path right)
       Tr.length > 0 ? Tr[0][0] : 1};
 }
 
+path arrowbase(path r, pair y, real t, real size)
+{
+  return size == 0 ? y : y+2*size*I*dir(r,t)--y-2*size*I*dir(r,t);
+}
+
 arrowhead DefaultHead;
 DefaultHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
                           real size=0, real angle=arrowangle)
@@ -55,7 +60,7 @@ DefaultHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
   pair x=point(r,0);
   real t=arctime(r,size);
   pair y=point(r,t);
-  path base=y+2*size*I*dir(r,t)--y-2*size*I*dir(r,t);
+  path base=arrowbase(r,y,t,size);
   path left=rotate(-angle,x)*r;
   path right=rotate(angle,x)*r;
   real[] T=arrowbasepoints(base,left,right);
@@ -79,7 +84,7 @@ SimpleHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
   pair x=point(r,0);
   real t=arctime(r,size);
   pair y=point(r,t);
-  path base=y+2*size*I*dir(r,t)--y-2*size*I*dir(r,t);
+  path base=arrowbase(r,y,t,size);
   path left=rotate(-angle,x)*r;
   path right=rotate(angle,x)*r;
   real[] T=arrowbasepoints(base,left,right);
@@ -106,7 +111,7 @@ arrowhead HookHead(real dir=arrowdir, real barb=arrowbarb)
       pair x=point(r,0);
       real t=arctime(r,size);
       pair y=point(r,t);
-      path base=y+2*size*I*dir(r,t)--y-2*size*I*dir(r,t);
+      path base=arrowbase(r,y,t,size);
       path left=rotate(-angle,x)*r;
       path right=rotate(angle,x)*r;
       real[] T=arrowbasepoints(base,left,right);
