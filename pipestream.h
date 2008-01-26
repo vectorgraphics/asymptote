@@ -52,10 +52,12 @@ public:
     *buffer=0;
   }
   
-  const string message(bool shred=true) {
-    string s=transcript.str();
-    if(shred) transcript.str("");
-    return s;
+  void shred() {
+    transcript.str("");
+  }
+  
+  const string message() const {
+    return transcript.str();
   }
   
   void open(const char *command, const char *hint=NULL,

@@ -39,9 +39,13 @@ int drawLabel::wait(iopipestream &tex, const char *s, const char **abort,
       tex << "\n";
       tex.wait(s,abort);
     }
-    if(!ignore)
-      reportError(tex.message());
+    if(!ignore) {
+      string s=tex.message();
+      tex.shred();
+      reportError(s);
+    }
    }
+  tex.shred();
   return rc;
 }
  
