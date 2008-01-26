@@ -1161,6 +1161,7 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
   bool png=xformat == "png";
   
   if(magnification > 0.0) {
+    mem::list<string> nameStack;
     string outname;
     unsigned arg=0;
     unsigned batch=0;
@@ -1218,11 +1219,13 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
 	bbox b;
 	ostringstream buf;
 	buf << prefix << "_" << n;
-	string name=buildname(buf.str(),preformat);
+	group->shipout(preamble,buf.str(),preformat,magnification,false,false);
+	string Preformat=png && group->Transparency() ? "pdf" : preformat;
+	string name=buildname(buf.str(),Preformat);
+	nameStack.push_back(name);
 	cmd << " '";
 	if(!png) cmd << preformat+":";
 	cmd << name << "'";
-	group->shipout(preamble,buf.str(),preformat,magnification,false,false);
 	b=group->bounds();
 	b *= magnification;
       
@@ -1248,11 +1251,9 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
     }
     
     if(!getSetting<bool>("keep")) {
-      for(unsigned i=0; i < n; ++i) {
-	ostringstream buf;
-	buf << prefix << "_" << i;
-	unlink(buildname(buf.str(),preformat).c_str());
-      }
+      for(mem::list<string>::iterator p=nameStack.begin();
+	  p != nameStack.end(); ++p)
+	unlink(p->c_str());
     }
     
     cout << Done << endl;

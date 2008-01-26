@@ -292,7 +292,7 @@ bool picture::postprocess(const string& prename, const string& outname,
 {
   int status=0;
   
-  if((pdf && Labels) || !(epsformat || xobject)) {
+  if((pdf && Labels) || !epsformat) {
     if(pdfformat) {
       if(pdf && Labels) status=rename(prename.c_str(),outname.c_str());
       else status=epstopdf(prename,outname);
@@ -311,7 +311,7 @@ bool picture::postprocess(const string& prename, const string& outname,
   }
   if(status != 0) return false;
   
-  if(verbose > (xobject ? 1 : 0)) 
+  if(verbose > 0)
     cout << "Wrote " << outname << endl;
   if(settings::view() && view) {
     if(epsformat || pdfformat) {
@@ -351,6 +351,14 @@ bool picture::postprocess(const string& prename, const string& outname,
   return true;
 }
 
+string Outname(const string& prefix, const string& outputformat,
+	       bool standardout)
+{
+  return (standardout ? "-" : buildname(prefix,outputformat,"",
+					prefix != settings::outname() &&
+					!globalwrite()));
+}
+
 bool picture::shipout(picture *preamble, const string& Prefix,
 		      const string& format, double magnification,
 		      bool wait, bool view)
@@ -370,9 +378,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   epsformat=outputformat == "eps";
   pdfformat=outputformat == "pdf";
   xobject=magnification > 0;
-  string outname=(standardout ? "-" : buildname(prefix,outputformat,"",
-				   prefix != settings::outname() &&
-				   !globalwrite()));
+  string outname=Outname(prefix,outputformat,standardout);
   string epsname=epsformat ? (standardout ? "" : outname) :
     auxname(prefix,"eps");
   string prename=((epsformat && !pdf) || !Labels) ? epsname : 
@@ -389,7 +395,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     return postprocess(epsname,outname,outputformat,1.0,wait,view);
   }
   
-  if(xobject && getSetting<string>("xformat") == "png") {
+  bool pngxformat=xobject && getSetting<string>("xformat") == "png";
+  if(pngxformat) {
     // Work around half-pixel bounding box bug in Ghostscript pngalpha driver
     double fuzz=0.5/magnification;
     b.top += fuzz;
@@ -435,6 +442,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   mem::list<string> psnameStack;
   
   bbox bshift=b;
+  
+  transparency=false;
   
   while(p != nodes.end()) {
     string psname,pdfname;
@@ -484,6 +493,9 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     out.epilogue();
     out.close();
     
+    if(out.Transparency())
+      transparency=true;
+    
     if(Labels) {
       tex->resetpen();
       if(status) {
@@ -524,9 +536,14 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 	    unlink(p->c_str());
 	}
       }
-      if(status)
-	status=postprocess(prename,outname,outputformat,magnification,wait,
-			   view);
+      if(status) {
+	if(xobject) {
+	  if(transparency && pngxformat)
+	    status=(epstopdf(prename,Outname(prefix,"pdf",standardout)) == 0);
+	} else
+	  status=postprocess(prename,outname,outputformat,magnification,wait,
+			     view);
+      }
     }
   }
   

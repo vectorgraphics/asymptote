@@ -25,6 +25,7 @@ private:
   bbox b_cached;   // Cached bounding box
   boxvector labelbounds;
   bboxlist bboxstack;
+  bool transparency;
   
   static bool epsformat,pdfformat,xobject,pdf,Labels;
   static double paperWidth,paperHeight;
@@ -33,7 +34,7 @@ public:
   typedef mem::list<drawElement*> nodelist;
   nodelist nodes;
   
-  picture() : labels(false), lastnumber(0), T(identity) {}
+  picture() : labels(false), lastnumber(0), T(identity), transparency(false) {}
   
   // Destroy all of the owned picture objects.
   ~picture();
@@ -56,6 +57,10 @@ public:
 
   void texinit();
 
+  bool Transparency() {
+    return transparency;
+  }
+  
   int epstopdf(const string& epsname, const string& pdfname);
   
   bool texprocess(const string& texname, const string& tempname,

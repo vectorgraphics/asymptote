@@ -31,8 +31,9 @@ inline void BoundingBox(std::ostream& s, const bbox& box)
 
 class psfile {
   string filename;
-  bool pdfformat; // Is final output format PDF?
-  bool pdf;       // Output direct PDF?
+  bool pdfformat;    // Is final output format PDF?
+  bool pdf;          // Output direct PDF?
+  bool transparency; // Is transparency used?
   mem::stack<pen> pens;
 
   void write(transform t) {
@@ -71,6 +72,10 @@ public:
     *out << " " << x;
   }
 
+  bool Transparency() {
+    return transparency;
+  }
+  
   void write(pair z) {
     *out << " " << z.getx() << " " << z.gety();
   }
