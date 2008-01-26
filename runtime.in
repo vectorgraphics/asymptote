@@ -3144,6 +3144,20 @@ item :arrayRead(array *a, Int n)
   return i;
 }
 
+// Slice a substring from an array.
+item :arraySliceRead(array *a, Int left, Int right)
+{
+  return a->slice(left, right);
+}
+
+// Slice a substring from an array.  This implements the cases a[i:] and a[:]
+// where the endpoint is not given, and assumed to be the length of the array.
+item :arraySliceReadToEnd(array *a, Int left)
+{
+  size_t len=checkArray(a);
+  return a->slice(left, (Int)len);
+}
+
 // Read an element from an array of arrays. Check bounds and initialize
 // as necessary.
 item :arrayArrayRead(array *a, Int n)

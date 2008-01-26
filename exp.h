@@ -344,16 +344,25 @@ public:
   }
 };
 
-class subscriptExp : public exp {
+class arrayExp : public exp {
+protected:
   exp *set;
-  exp *index;
 
   array *getArrayType(coenv &e);
   array *transArray(coenv &e);
 
 public:
+  arrayExp(position pos, exp *set) 
+    : exp(pos), set(set) {}
+};
+
+
+class subscriptExp : public arrayExp {
+  exp *index;
+
+public:
   subscriptExp(position pos, exp *set, exp *index)
-    : exp(pos), set(set), index(index) {}
+    : arrayExp(pos, set), index(index) {}
 
   void prettyprint(ostream &out, Int indent);
 
@@ -367,6 +376,34 @@ public:
                             new tempExp(e, index, types::primInt()));
   }
 };
+
+class slice : public absyn {
+  exp *left;
+  exp *right;
+
+public:
+  slice(position pos, exp *left, exp *right)
+    : absyn(pos), left(left), right(right) {}
+
+  void prettyprint(ostream &out, Int indent);
+
+  exp *getLeft() { return left; }
+  exp *getRight() { return right; }
+};
+
+class sliceExp : public arrayExp {
+  slice *index;
+
+public:
+  sliceExp(position pos, exp *set, slice *index)
+    : arrayExp(pos, set), index(index) {}
+
+  void prettyprint(ostream &out, Int indent);
+
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &e);
+};
+
 
 // The expression "this," that evaluates to the lexically enclosing record.
 class thisExp : public exp {

@@ -59,6 +59,7 @@ using mem::string;
   absyntax::explist *elist;
   absyntax::argument arg;
   absyntax::arglist *alist;
+  absyntax::slice *slice;
   absyntax::dimensions *dim;
   absyntax::ty  *t;
   absyntax::decid *di;
@@ -148,6 +149,7 @@ using mem::string;
 %type  <fls> formals baseformals
 %type  <e>   value exp fortest
 %type  <arg> argument
+%type  <slice> slice
 %type  <j>   join basicjoin
 %type  <e>   tension controls
 %type  <se>  dir
@@ -382,12 +384,21 @@ typedec:
 | TYPEDEF vardec   { $$ = new typedec($1, $2); }
 ;
 
+slice:
+  ':'              { $$ = new slice($1, 0, 0); }
+| exp ':'          { $$ = new slice($2, $1, 0); }
+| ':' exp          { $$ = new slice($1, 0, $2); }
+| exp ':' exp      { $$ = new slice($2, $1, $3); }
+;
 
 value:
   value '.' ID     { $$ = new fieldExp($2, $1, $3.sym); } 
 | name '[' exp ']' { $$ = new subscriptExp($2,
                               new nameExp($1->getPos(), $1), $3); }
 | value '[' exp ']'{ $$ = new subscriptExp($2, $1, $3); }
+| name '[' slice ']' { $$ = new sliceExp($2,
+                              new nameExp($1->getPos(), $1), $3); }
+| value '[' slice ']'{ $$ = new sliceExp($2, $1, $3); }
 | name '(' ')'     { $$ = new callExp($2,
                                       new nameExp($1->getPos(), $1),
                                       new arglist()); } 

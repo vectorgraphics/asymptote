@@ -156,7 +156,7 @@ void subscriptExp::prettyprint(ostream &out, Int indent)
   index->prettyprint(out, indent+1);
 }
 
-array *subscriptExp::getArrayType(coenv &e)
+array *arrayExp::getArrayType(coenv &e)
 {
   types::ty *a = set->cgetType(e);
   if (a->kind == ty_overloaded) {
@@ -175,7 +175,7 @@ array *subscriptExp::getArrayType(coenv &e)
   }
 }
 
-array *subscriptExp::transArray(coenv &e)
+array *arrayExp::transArray(coenv &e)
 {
   types::ty *a = set->cgetType(e);
   if (a->kind == ty_overloaded) {
@@ -246,6 +246,57 @@ void subscriptExp::transWrite(coenv &e, types::ty *t)
 
   index->transToType(e, types::primInt());
   e.c.encode(inst::builtin, run::arrayWrite);
+}
+
+
+void slice::prettyprint(ostream &out, Int indent)
+{
+  prettyname(out, "slice", indent);
+  if (left)
+    left->prettyprint(out, indent+1);
+  else
+    prettyname(out, "left omitted", indent+1);
+  if (right)
+    right->prettyprint(out, indent+1);
+  else
+    prettyname(out, "right omitted", indent+1);
+}
+
+
+void sliceExp::prettyprint(ostream &out, Int indent)
+{
+  prettyname(out, "sliceExp", indent);
+  set->prettyprint(out, indent+1);
+  index->prettyprint(out, indent+1);
+}
+
+types::ty *sliceExp::trans(coenv &e)
+{
+  array *a = transArray(e);
+  if (!a)
+    return primError();
+
+  exp *left=index->getLeft();
+  if (left)
+    left->transToType(e, types::primInt());
+  else
+    // If the left index is omitted it can be assumed to be zero.
+    e.c.encode(inst::intpush, (Int)0);
+
+  exp *right=index->getRight();
+  if (right)
+    right->transToType(e, types::primInt());
+
+  e.c.encode(inst::builtin, right ? run::arraySliceRead :
+                                    run::arraySliceReadToEnd);
+
+  return a;
+}
+
+types::ty *sliceExp::getType(coenv &e)
+{
+  array *a = getArrayType(e);
+  return a ? a : primError();
 }
 
 

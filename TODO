@@ -13,3 +13,5 @@ John or Andy: Add unit test for AddOps.
 Andy: Fix: void f(int x=blah);
 
 Andy: Clean up processData and preRun
+
+Andy: Document array slices.  Decide on a[1:-1].
