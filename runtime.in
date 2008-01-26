@@ -3175,6 +3175,21 @@ Int :arrayLength(array *a)
   return (Int) checkArray(a);
 }
 
+// Returns an array of integers representing the keys of the array.
+array * :arrayKeys(array *a)
+{
+  size_t size=checkArray(a);
+
+  array *keys=new array();
+  for (size_t i=0; i<size; ++i) {
+    item& cell = (*a)[i];
+    if (!cell.empty())
+      keys->push((Int)i);
+  }
+
+  return keys;
+}
+
 // Return the cyclic flag for an array.
 bool :arrayCyclicFlag(array *a)
 {
@@ -3390,16 +3405,32 @@ array* :arrayCopy(array *a)
   return copyArray(a);
 }
 
-array* :arrayConcat(array *a, array *b)
+array* :arrayConcat(array *a)
 {
-  size_t asize=checkArray(a);
-  size_t bsize=checkArray(b);
-  array *c=new array(asize+bsize);
-  for(size_t i=0; i < asize; i++) 
-    (*c)[i]=(*a)[i];
-  for(size_t i=0; i < bsize; i++, asize++) 
-    (*c)[asize]=(*b)[i];
-  return c;
+  // a is an array of arrays to be concatenated together.
+  // The signature is
+  //   T[] concat(... T[][] a);
+
+  size_t numArgs=checkArray(a);
+  size_t resultSize=0;
+  for (size_t i=0; i < numArgs; ++i) {
+    resultSize += checkArray(a->read<array *>(i));
+  }
+
+  array *result=new array(resultSize);
+
+  size_t ri=0;
+  for (size_t i=0; i < numArgs; ++i) {
+    array *arg=a->read<array *>(i);
+    size_t size=arg->size();
+
+    for (size_t j=0; j < size; ++j) {
+      (*result)[ri]=(*arg)[j];
+      ++ri;
+    }
+  }
+
+  return result;
 }
 
 array* :array2Copy(array *a)

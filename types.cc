@@ -246,6 +246,12 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
     static trans::varEntry v(primInt(), &a, 0, position());
     return &v;
   }
+  if (sig == 0 && id == symbol::trans("keys"))
+  {
+    static trans::bltinAccess a(run::arrayKeys);
+    static trans::varEntry v(IntArray(), &a, 0, position());
+    return &v;
+  }
   if (sig == 0 && id == symbol::trans("cyclicflag"))
   {
     static trans::bltinAccess a(run::arrayCyclicFlag);

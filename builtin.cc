@@ -566,7 +566,7 @@ void addArrayOps(venv &ve, types::array *t)
   switch (t->depth()) {
   case 1:
     addFunc(ve, run::arrayCopy, t, "copy", formal(t, "a"));
-    addFunc(ve, run::arrayConcat, t, "concat", formal(t, "a"), formal(t, "b"));
+    addRestFunc(ve, run::arrayConcat, t, "concat", new types::array(t));
     addFunc(ve, run::arraySequence,
             t, "sequence", formal(new function(ct, primInt()), "f"),
                            formal(primInt(), "n"));

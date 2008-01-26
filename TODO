@@ -3,6 +3,8 @@ sub-expressions into iteration over the array(s)
 
 Andy: Change primNull to another name (null is not primitive).
 
+Andy: Decide if we should change vm::error to em in application.cc
+
 Andy: Add info to vm to aid debugging.  (Locations are a start, but we can add
 variable names, type info, stack traces).
 
@@ -10,3 +12,5 @@ John or Andy: Add unit test for AddOps.
 
 Andy: Fix: void f(int x=blah);
 Andy: Fix default arguments for rest parameters.
+
+Andy: Clean up processData and preRun

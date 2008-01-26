@@ -4526,15 +4526,32 @@ The @code{copy} function listed below provides a deep copy of an array.
 @cindex @code{delete}
 @cindex @code{initialized}
 Every array @code{A} of type @code{T[]} has the virtual members
-@code{int length}, @code{void cyclic(bool b)}, @code{bool cyclicflag},
-@code{T push(T x)}, @code{void append(T[] a)}, @code{T pop()},
-@code{void insert(int i ... T[] x)}, @code{void delete(int i, int j=i)}, 
-@code{void delete()}, and @code{bool initialized(int n)}.
+@itemize
+@item   @code{int length},
+@item   @code{void cyclic(bool b)},
+@item   @code{bool cyclicflag},
+@item   @code{int[] keys},
+@item   @code{T push(T x)},
+@item   @code{void append(T[] a)},
+@item   @code{T pop()},
+@item   @code{void insert(int i ... T[] x)},
+@item   @code{void delete(int i, int j=i)}, 
+@item   @code{void delete()}, and
+@item   @code{bool initialized(int n)}.
+@end itemize
+
 The member @code{A.length} evaluates to the length of the array.
 Setting @code{A.cyclic(true)} signifies that array indices should be reduced
 modulo the current array length. Reading from or writing to a nonempty
 cyclic array never leads to out-of-bounds errors or array resizing. The member
 @code{A.cyclicflag} returns the current setting of the @code{cyclic} flag.
+
+The member @code{A.keys} evaluates to an array of integers containing the
+indices of initialized entries in the array in ascending order.  Hence, for an
+array of length @code{n} with all entries initialized, @code{A.keys} evaluates
+to the array of integers from @code{0} to @code{n-1} inclusive.  A new keys
+array is produced each time @code{A.keys} is evaluated.
+
 The functions @code{A.push} and @code{A.append} append their
 arguments onto the end of the array, while @code{A.insert(int i ... T[] x)}
 inserts @code{x} into the array at index @code{i}.
@@ -4655,8 +4672,8 @@ returns a deep copy of the array @code{a};
 returns a deep copy of the array @code{a};
 
 @cindex @code{concat}
-@item T[] concat(T[] a, T[] b)
-returns a new array formed by concatenating arrays @code{a} and @code{b};
+@item T[] concat(... T[][] a)
+returns a new array formed by concatenating the arrays given as arguments;
 
 @cindex @code{alias}
 @item bool alias(T[] a, T[] b)
