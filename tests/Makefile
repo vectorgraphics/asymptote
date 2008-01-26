@@ -3,6 +3,7 @@ TESTDIRS = string arith frames types imp array
 test: $(TESTDIRS)
 
 $(TESTDIRS)::
+	@echo
 	../asy -dir ../base $@/*.asy
 
 clean:  FORCE
