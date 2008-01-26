@@ -4388,7 +4388,9 @@ interval [0,360).
 @cindex @code{aTan}
 For convenience, @code{Asymptote} defines variants @code{Sin},
 @code{Cos}, @code{Tan}, @code{aSin}, @code{aCos}, and @code{aTan} of
-the standard trigonometric functions using degrees rather than radians.
+the standard trigonometric functions that use degrees rather than radians.
+We also define complex versions of the @code{sqrt}, @code{cos}, @code{sin},
+@code{exp}, and @code{log} functions.
 
 @cindex @code{floor}
 @cindex @code{ceil}
@@ -4406,8 +4408,8 @@ We also define a function @code{sgn}, which returns the sign of its
 real argument as an integer (-1, 0, or 1).
 
 @cindex @code{abs}
-There is an @code{abs(int)} function, as well as an @code{abs(real)} function
-(equivalent to @code{fabs(real)}) and an @code{abs(pair)} function
+There is an @code{abs(int)} function, as well as an @code{abs(real)}
+function (equivalent to @code{fabs(real)}), an @code{abs(pair)} function
 (equivalent to @code{length(pair)}).
 
 @cindex @code{rand}

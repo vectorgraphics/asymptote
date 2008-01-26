@@ -2818,6 +2818,26 @@ pair expi(real theta)
   return expi(theta);
 }
 
+pair exp(explicit pair z) 
+{ 
+  return exp(z.getx())*expi(z.gety());
+}
+
+pair log(explicit pair z) 
+{ 
+  return pair(log(z.length()),z.angle());
+}
+
+pair sin(explicit pair z) 
+{ 
+  return pair(sin(z.getx())*cosh(z.gety()),cos(z.getx())*sinh(z.gety())); 
+}
+
+pair cos(explicit pair z) 
+{ 
+  return pair(cos(z.getx())*cosh(z.gety()),-sin(z.getx())*sinh(z.gety())); 
+}
+
 pair conj(pair z)
 {
   return conj(z);
