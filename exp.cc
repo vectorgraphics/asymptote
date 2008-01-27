@@ -147,15 +147,6 @@ types::ty *fieldExp::getObject(coenv& e)
 }
 
 
-void subscriptExp::prettyprint(ostream &out, Int indent)
-{
-  prettyindent(out, indent);
-  out << "subscriptExp\n";
-
-  set->prettyprint(out, indent+1);
-  index->prettyprint(out, indent+1);
-}
-
 array *arrayExp::getArrayType(coenv &e)
 {
   types::ty *a = set->cgetType(e);
@@ -210,6 +201,16 @@ bool isAnArray(coenv &e, exp *x)
   return t && t->kind==ty_array;
 }
 
+
+void subscriptExp::prettyprint(ostream &out, Int indent)
+{
+  prettyindent(out, indent);
+  out << "subscriptExp\n";
+
+  set->prettyprint(out, indent+1);
+  index->prettyprint(out, indent+1);
+}
+
 types::ty *subscriptExp::trans(coenv &e)
 {
   array *a = transArray(e);
@@ -262,6 +263,18 @@ void slice::prettyprint(ostream &out, Int indent)
     prettyname(out, "right omitted", indent+1);
 }
 
+void slice::trans(coenv &e)
+{
+  if (left)
+    left->transToType(e, types::primInt());
+  else
+    // If the left index is omitted it can be assumed to be zero.
+    e.c.encode(inst::intpush, (Int)0);
+
+  if (right)
+    right->transToType(e, types::primInt());
+}
+
 
 void sliceExp::prettyprint(ostream &out, Int indent)
 {
@@ -276,19 +289,10 @@ types::ty *sliceExp::trans(coenv &e)
   if (!a)
     return primError();
 
-  exp *left=index->getLeft();
-  if (left)
-    left->transToType(e, types::primInt());
-  else
-    // If the left index is omitted it can be assumed to be zero.
-    e.c.encode(inst::intpush, (Int)0);
+  index->trans(e);
 
-  exp *right=index->getRight();
-  if (right)
-    right->transToType(e, types::primInt());
-
-  e.c.encode(inst::builtin, right ? run::arraySliceRead :
-                                    run::arraySliceReadToEnd);
+  e.c.encode(inst::builtin, index->getRight() ? run::arraySliceRead :
+                                                run::arraySliceReadToEnd);
 
   return a;
 }
@@ -299,6 +303,18 @@ types::ty *sliceExp::getType(coenv &e)
   return a ? a : primError();
 }
 
+void sliceExp::transWrite(coenv &e, types::ty *t)
+{
+  array *a = transArray(e);
+  if (!a)
+    return;
+  assert(equivalent(a, t));
+
+  index->trans(e);
+
+  e.c.encode(inst::builtin, index->getRight() ? run::arraySliceWrite :
+                                                run::arraySliceWriteToEnd);
+}
 
 void thisExp::prettyprint(ostream &out, Int indent)
 {

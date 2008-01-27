@@ -3204,6 +3204,22 @@ item :arrayWrite(item value, array *a, Int n)
   return value;
 }
 
+array * :arraySliceWrite(array *src, array *dest, Int left, Int right)
+{
+  checkArray(src);
+  checkArray(dest);
+  dest->setSlice(left, right, src);
+  return src;
+}
+
+array * :arraySliceWriteToEnd(array *src, array *dest, Int left)
+{
+  checkArray(src);
+  size_t len=checkArray(dest);
+  dest->setSlice(left, (Int) len, src);
+  return src;
+}
+
 // Returns the length of an array.
 Int :arrayLength(array *a)
 {

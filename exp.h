@@ -389,6 +389,17 @@ public:
 
   exp *getLeft() { return left; }
   exp *getRight() { return right; }
+
+  // Translates code to put the left and right expressions on the stack (in that
+  // order).  If left is omitted, zero is pushed on the stack in it's place.  If
+  // right is omitted, nothing is pushed in its place.
+  void trans(coenv &e);
+
+  slice *evaluate(coenv &e) {
+    return new slice(getPos(),
+                     left ? new tempExp(e, left, types::primInt()) : 0,
+                     right ? new tempExp(e, right, types::primInt()) : 0);
+  }
 };
 
 class sliceExp : public arrayExp {
@@ -402,6 +413,13 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
+  void transWrite(coenv &e, types::ty *target);
+
+  exp *evaluate(coenv &e, types::ty *) {
+    return new sliceExp(getPos(),
+                        new tempExp(e, set, getArrayType(e)),
+                        index->evaluate(e));
+  }
 };
 
 
