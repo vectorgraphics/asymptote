@@ -4476,6 +4476,35 @@ import gsl;
 write(Si(1.0));
 @end verbatim
 
+@code{Asymptote} also provides a few general purpose numerical routines:
+
+@table @code
+
+@cindex @code{newton}
+@item @code{real newton(int iterations=100, real f(real), real fprime(real), real x, bool verbose=false);}
+Use Newton-Raphson iteration to solve for a root of a real-valued
+differentiable function @code{f}, given its derivative @code{fprime} and
+an initial guess @code{x}. Diagnostics for
+each iteration are printed if @code{verbose=true}. 
+If the iteration fails after the maximum allowed number of loops
+(@code{iterations}), @code{realMax} is returned.
+
+@cindex @code{newton}
+@item @code{real newton(int iterations=100, real f(real), real fprime(real), real x1, real x2, bool verbose=false);}
+Use bracketed Newton-Raphson bisection to solve for a root of a real-valued
+differentiable function @code{f} within an interval
+[@code{x1},@code{x2}] (on which the endpoint values of @code{f} have
+opposite signs), given its derivative @code{fprime}. Diagnostics for
+each iteration are printed if @code{verbose=true}.
+If the iteration fails after the maximum allowed number of loops
+(@code{iterations}), @code{realMax} is returned.
+
+@cindex @code{simpson}
+@item @code{real simpson(real f(real), real a, real b, real acc=realEpsilon, real dxmax=b-a)}
+returns the integral of @code{f} from @code{a} to @code{b} using adaptive Simpson integration.
+
+@end table
+
 @node Arrays
 @section Arrays
 @cindex arrays
@@ -4831,25 +4860,6 @@ quadratic equation @math{ax^2+bx+c=0}.
 @item @code{real[] cubicroots(real a, real b, real c, real d);}
 This numerically robust solver returns the real roots of the
 cubic equation @math{ax^3+bx^2+cx+d=0}. Multiple roots are listed separately.
-
-@cindex @code{newton}
-@item @code{real newton(int iterations=100, real f(real), real fprime(real), real x, bool verbose=false);}
-Use Newton-Raphson iteration to solve for a root of a real-valued
-differentiable function @code{f}, given its derivative @code{fprime} and
-an initial guess @code{x}. Diagnostics for
-each iteration are printed if @code{verbose=true}. 
-If the iteration fails after the maximum allowed number of loops
-(@code{iterations}), @code{realMax} is returned.
-
-@cindex @code{newton}
-@item @code{real newton(int iterations=100, real f(real), real fprime(real), real x1, real x2, bool verbose=false);}
-Use bracketed Newton-Raphson bisection to solve for a root of a real-valued
-differentiable function @code{f} within an interval
-[@code{x1},@code{x2}] (on which the endpoint values of @code{f} have
-opposite signs), given its derivative @code{fprime}. Diagnostics for
-each iteration are printed if @code{verbose=true}.
-If the iteration fails after the maximum allowed number of loops
-(@code{iterations}), @code{realMax} is returned.
 
 @end table
 
