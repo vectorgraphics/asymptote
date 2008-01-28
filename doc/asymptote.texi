@@ -4644,7 +4644,7 @@ returns a null array);
 @cindex @code{complement}
 @item int[] complement(int[] a, int n)
 returns the complement of the integer array @code{a} in
-@code{@{1,2,...,n@}}, so that @code{b[complement(a,b.length)]} yields the
+@code{@{0,1,2,...,n-1@}}, so that @code{b[complement(a,b.length)]} yields the
 complement of @code{b[a]}.
 
 @cindex @code{find}
