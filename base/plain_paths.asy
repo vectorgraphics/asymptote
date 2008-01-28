@@ -248,11 +248,12 @@ path operator &(path p, cycleToken tok)
     cycle;
 }
 
-// return a cyclic path enclosing a region bounded by a list of consecutively
-// intersecting paths
+// return a cyclic path enclosing a region bounded by a list of two or more
+// consecutively intersecting paths
 path buildcycle(... path[] p)
 {
   int n=p.length;
+  if(n < 2) return nullpath;
   real[] ta=new real[n];
   real[] tb=new real[n];
   if(n == 2) {

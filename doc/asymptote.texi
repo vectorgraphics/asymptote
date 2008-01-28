@@ -2209,8 +2209,8 @@ Note that @code{lastcut.before} plays the role of the
 
 @cindex @code{buildcycle}
 @item path buildcycle(... path[] p);
-This returns the path surrounding a region bounded by a list of consecutively
-intersecting paths, following the behaviour of the 
+This returns the path surrounding a region bounded by a list of two or more
+consecutively intersecting paths, following the behaviour of the 
 @code{MetaPost buildcycle} command.
 
 @cindex @code{min}
