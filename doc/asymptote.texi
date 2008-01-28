@@ -1483,8 +1483,8 @@ To draw or fill a box (or ellipse or other path) around a Label and
 return the bounding object, use one of the routines
 @verbatim
 object draw(picture pic=currentpicture, Label L, envelope e, 
-	    real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-	    filltype filltype=NoFill, bool put=Above);
+            real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+            filltype filltype=NoFill, bool put=Above);
 object draw(picture pic=currentpicture, Label L, envelope e, pair position,
             real xmargin=0, real ymargin=xmargin, pen p=currentpen,
             filltype filltype=NoFill, bool put=Above);
@@ -8044,7 +8044,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  nondeconstructed backends usr venn labelsquare nobasealign dp
 @c  LocalWords:  NoMargin BeginMargin EndMargin BeginPenMargin EndPenMargin dm
 @c  LocalWords:  PenMargin PenMargins TrueMargin labelmargin errorbars errorbar
-@c  LocalWords:  dpx dpy dmx dmy barsize arrowsize BeginDotMargin DotMargin
+@c  LocalWords:  dpx dpy dmx dmy barsize arrowsize BeginDotMargin DotMargin acc
 @c  LocalWords:  EndDotMargin DotMargins NColors BWRainbow colorspace labelled
 @c  LocalWords:  PaletteTicks defaultformat leastsquares bjam fprintf endgroup
 @c  LocalWords:  begingroup xmargin ymargin pbox box ellipse wget exe Gouraud
@@ -8109,4 +8109,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  NoZero NoZeroFormat abbrevation gsOptions namespace redeclared
 @c  LocalWords:  atLeast intMin globalwrite quarticroots deconsruct substrings
 @c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt DefaultHead
-@c  LocalWords:  SimpleHead HookHead TeXHead multipage nurbs inlinemovie
+@c  LocalWords:  SimpleHead HookHead TeXHead multipage nurbs inlinemovie dxmax
+@c  LocalWords:  simpson
