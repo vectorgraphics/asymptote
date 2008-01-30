@@ -4676,6 +4676,11 @@ returns the complement of the integer array @code{a} in
 @code{@{0,1,2,...,n-1@}}, so that @code{b[complement(a,b.length)]} yields the
 complement of @code{b[a]}.
 
+@cindex @code{uniform}
+@item int[] uniform(real a, real b, int n)
+if @code{n >= 1} returns a uniform partition of @code{[a,b]} into
+@code{n} subintervals (otherwise returns a null array);
+
 @cindex @code{find}
 @item int find(bool[], int n=1)
 returns the index of the @code{n}th @code{true} value or -1 if not found.

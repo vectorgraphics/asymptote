@@ -151,6 +151,13 @@ pair[] reverse(pair[] a) {return a[reverse(a.length)];}
 triple[] reverse(triple[] a) {return a[reverse(a.length)];}
 string[] reverse(string[] a) {return a[reverse(a.length)];}
 
+// Return a uniform partition dividing [a,b] into n subintervals.
+real[] uniform(real a, real b, int n)
+{
+  if(n < 0) return new real[];
+  return a+(b-a)/n*sequence(n+1);
+}
+
 void eval(string s, bool embedded=false)
 {
   if(!embedded) initdefaults();

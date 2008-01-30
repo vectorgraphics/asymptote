@@ -3377,7 +3377,7 @@ array* :arrayIntArray(array *a, array *b)
   return r;
 }
 
-// returns the complement of the integer array a in {1,2,...,n},
+// returns the complement of the integer array a in {0,2,...,n-1},
 // so that b[complement(a,b.length)] yields the complement of b[a].
 Intarray* complement(Intarray *a, Int n)
 {
