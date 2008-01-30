@@ -287,9 +287,11 @@ void writeArray(vm::stack *s)
       cont=false;
       bool first=true;
       if(i < asize) {
-	T v=read<T>(a,i);
+	vm::item& I=(*a)[i];
 	if(defaultfile) cout << i << ":\t";
-	f->write(v); cont=true;
+	if(!I.empty())
+	  f->write(vm::get<T>(I));
+	cont=true;
 	first=false;
       }
       unsigned count=0;
@@ -303,9 +305,11 @@ void writeArray(vm::stack *s)
 	      f->write(tab);
 	    count=0;
 	  }
-	  f->write(read<T>(Aj,i));
-	  first=false;
+	  vm::item& I=(*Aj)[i];
+	  if(!I.empty())
+	    f->write(vm::get<T>(I));
 	  cont=true;
+	  first=false;
 	} else count++;
       }
       ++i;
@@ -328,11 +332,16 @@ void writeArray2(vm::stack *s)
   
   try {
   for(size_t i=0; i < size; i++) {
-    array *ai=read<array*>(a,i);
-    size_t aisize=checkArray(ai);
-    for(size_t j=0; j < aisize; j++) {
-      if(j > 0 && f->text()) f->write(tab);
-      f->write(read<T>(ai,j));
+    vm::item& I=(*a)[i];
+    if(!I.empty()) {
+      array *ai=vm::get<array*>(I);
+      size_t aisize=checkArray(ai);
+      for(size_t j=0; j < aisize; j++) {
+	if(j > 0 && f->text()) f->write(tab);
+	vm::item& I=(*ai)[j];
+	if(!I.empty())
+	  f->write(vm::get<T>(I));
+      }
     }
     if(f->text()) f->writeline();
   }
@@ -353,16 +362,24 @@ void writeArray3(vm::stack *s)
   
   try {
   for(size_t i=0; i < size;) {
-    array *ai=read<array*>(a,i);
-    size_t aisize=checkArray(ai);
-    for(size_t j=0; j < aisize; j++) {
-      array *aij=read<array*>(ai,j);
-      size_t aijsize=checkArray(aij);
-      for(size_t k=0; k < aijsize; k++) {
-	if(k > 0 && f->text()) f->write(tab);
-	f->write(read<T>(aij,k));
+    vm::item& I=(*a)[i];
+    if(!I.empty()) {
+      array *ai=vm::get<array*>(I);
+      size_t aisize=checkArray(ai);
+      for(size_t j=0; j < aisize; j++) {
+	vm::item& I=(*ai)[j];
+	if(!I.empty()) {
+	  array *aij=vm::get<array*>(I);
+	  size_t aijsize=checkArray(aij);
+	  for(size_t k=0; k < aijsize; k++) {
+	    if(k > 0 && f->text()) f->write(tab);
+	    vm::item& I=(*aij)[k];
+	    if(!I.empty())
+	      f->write(vm::get<T>(I));
+	  }
+	}
+	if(f->text()) f->writeline();
       }
-      if(f->text()) f->writeline();
     }
     ++i;
     if(i < size && f->text()) f->writeline();
