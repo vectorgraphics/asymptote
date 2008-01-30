@@ -10,9 +10,22 @@
 
 namespace vm {
 
+inline void checkBackSlice(Int left, Int right)
+{
+  if (right < left)
+    // There isn't a clear behaviour for slices of the form A[5:2], so we don't
+    // allow them. (Atleast, not until we can figure out what the behaviour
+    // should be.)
+    vm::error("slice ends before it begins");
+}
+
 inline size_t sliceIndex(Int in, size_t len) {
   if (in < 0)
-    in += len;
+    // The Python behaviour here would simply be
+    //   in += len;
+    // but this is inconsistent with Asymptote issuing an error for A[-1] if A
+    // is a non-cyclic array, so we also issue an error here.
+    vm::error("invalid negative index in slice of non-cyclic array");
   if (in < 0)
     return 0;
   size_t index = (size_t)in;
@@ -21,14 +34,16 @@ inline size_t sliceIndex(Int in, size_t len) {
 
 array *array::slice(Int left, Int right)
 {
+  checkBackSlice(left, right);
+
+  if (left == right)
+    return new array();
+
   size_t length=size();
   if (length == 0)
     return new array();
 
   if (cycle) {
-    if (right <= left)
-      return new array();
-
     size_t resultLength = (size_t)(right - left);
     array *result = new array(resultLength);
 
@@ -47,9 +62,6 @@ array *array::slice(Int left, Int right)
   else { // Non-cyclic
     size_t l = sliceIndex(left, length);
     size_t r = sliceIndex(right, length);
-
-    if (r <= l)
-      return new array();
 
     size_t resultLength = r - l;
     array *result = new array(resultLength);
@@ -98,15 +110,14 @@ void array::setBridgingSlice(size_t l, size_t r, mem::vector<item> *a)
 
 void array::setSlice(Int left, Int right, array *a)
 {
+  checkBackSlice(left, right);
+
   // If we are slicing an array into itself, slice in a copy instead, to ensure
   // the proper result.
   mem::vector<item> *v = (a == this) ? new mem::vector<item>(*a) : a;
 
   size_t length=size();
   if (cycle) {
-    if (right < left)
-      right = left;
-
     if (right == left) {
       // Notice that assigning to the slice A[A.length:A.length] is the same as
       // assigning to the slice A[0:0] for a cyclic array.
@@ -138,9 +149,6 @@ void array::setSlice(Int left, Int right, array *a)
   else {
     size_t l=sliceIndex(left, length);
     size_t r=sliceIndex(right, length);
-
-    if (r < l)
-      r = l;
 
     setNonBridgingSlice(l, r, v);
   }
