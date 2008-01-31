@@ -108,6 +108,10 @@ Operators
 * Self & prefix operators::     Increment and decrement
 * User-defined operators::      Overloading operators
 
+Arrays
+
+* Slices::                      Python style array slices
+
 Functions
 
 * Default arguments::           Default values can appear anywhere
@@ -4509,6 +4513,10 @@ returns the integral of @code{f} from @code{a} to @code{b} using adaptive Simpso
 @section Arrays
 @cindex arrays
 
+@menu
+* Slices::                      Python style array slices
+@end menu
+
 Appending @code{[]} to a built-in or user-defined type yields an array.
 The array element @code{i} of an array @code{A} can be accessed as @code{A[i]}.
 By default, attempts to access or assign to an array element using a negative
@@ -4975,6 +4983,98 @@ real[][][] C=read3(fin);
 One, two, and three-dimensional arrays of the basic data types can be
 output with the functions @code{write(file,T[])},
 @code{write(file,T[][])}, @code{write(file,T[][][])}, respectively.
+
+@node Slices
+@subsection Slices
+@cindex slices
+
+Asymptote allows a section of an array to be addressed by a slice through
+syntax similar to Python.  If @code{A} is an array, the expression
+@code{A[m:n]} returns a new array consisting of the elements of @code{A} with
+indices between @code{m} inclusive and @code{n} exclusive.  For example:
+
+@verbatim
+int[] x={0,1,2,3,4,5,6,7,8,9};
+int[] y=x[2:6];  // y equals {2,3,4,5};
+int[] z=x[5:10]; // z equals {5,6,7,8,9};
+@end verbatim
+
+If the left index is omitted, it is taken be @code{0}.  If the right index is
+omitted it is taken to be the length of the array.  If both are omitted, the
+slice then goes from the start of the array to the end, producing a non-cyclic
+deep copy of the array.  For example:
+
+@verbatim
+int[] x={0,1,2,3,4,5,6,7,8,9};
+int[] y=x[:4];  // y equals {0,1,2,3}
+int[] z=x[5:];  // z equals {5,6,7,8,9}
+int[] w=x[:];   // w equals {0,1,2,3,4,5,6,7,8,9} but
+                // is a distinct array from x.
+@end verbatim
+
+If A is a non-cyclic array, it is illegal to use negative values for either of
+the indices.  If the indices exceed the length of the array, however, they are
+politely rounded down to that length.
+
+For cyclic arrays, the slice @code{A[m:n]} still consists of the cells with
+indices from @code{m} up to (but not including) @code{n}, but now negative
+values and values beyond the length of the array are allowed.  The indices
+simply wrap around.  For example:
+
+@verbatim
+int[] x={0,1,2,3,4,5,6,7,8,9};
+x.cyclic(true);
+int[] y=x[8:15];  // y equals {8,9,0,1,2,3,4}.
+int[] z=x[-5,5];  // z equals {5,6,7,8,9,0,1,2,3,4}
+int[] w=x[-3,17]; // w equals {7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6}
+@end verbatim
+
+Notice that with cyclic arrays, it is possible to include the same element of
+the original array multiple times within a slice.  Regardless of the original
+array, arrays produced by slices are always non-cyclic.
+
+If the left and right indices of a slice are the same, the result is an empty
+array.  If the array being sliced is empty, the result is an empty array.  Any
+slice with a left index greater than its right index will yield an error.
+
+Slices can also be assigned to, changing the value of the original array.  If
+the array being assigned to the slice is of a different length than the slice,
+elements will be inserted or removed from the array to accomodate it.  For
+instance:
+
+@verbatim
+string[] toppings={"mayo", "salt", "ham", "lettuce"};
+toppings[0:2] = new string[] {"mustard", "pepper"};
+    // Now toppings equals {"mustard", "pepper", "ham", "lettuce"}
+toppings[2:3] = new string[] {"turkey", "bacon" };
+    // Now toppings equals {"mustard", "pepper", "turkey", "bacon", "lettuce"}
+toppings[0:3] = new string[] {"tomato"};
+    // Now toppings equals {"tomato", "bacon", "lettuce"}
+@end verbatim
+
+If an array is assigned to a slice of itself, a copy of the original array
+is assigned to the slice.  That is, code such as @code{x[m:n]=x} is equivalent
+to @code{x[m:n]=copy(x)}.  One can use the shorthand @code{x[m:m]=y} to insert
+the contents of the array @code{y} into the array @code{x} starting at the
+location just before @code{A[m]}.
+
+For a cyclic array, a slice is bridging if it addresses cells up to the end of
+the array and then continues on to address cells at the start of the array.
+For instance, if @code{A} is a cyclic array of length 10, @code{A[8:12]},
+@code{A[-3,-1]}, and @code{A[5,25]} are bridging slices whereas @code{A[3:7]},
+@code{A[7:10]}, @code{A[-3:0]} and @code{A[103:107]} are not.  Bridging slices
+can only be assigned to if the number of elements in the slice is exactly equal
+to the number of elements we are assigning to it.  Otherwise, there is no clear
+way to decide which of the new entries should be @code{A[0]} and an error is
+reported.  Non-bridging slices may be assigned an array of any length.
+
+For a cyclic array @code{A} an expression of the form
+@code{A[A.length:A.length]} is equivalent to the expression @code{A[0:0]} and
+so assigning to this slice will insert values at the start of the array.
+@code{A.append()} can be used to insert values at the end of the array.
+
+It is illegal to assign to a slice of a cyclic array that repeats any of the
+cells.
 
 @node Casts
 @section Casts
