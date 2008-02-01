@@ -108,10 +108,6 @@ Operators
 * Self & prefix operators::     Increment and decrement
 * User-defined operators::      Overloading operators
 
-Arrays
-
-* Slices::                      Python style array slices
-
 Functions
 
 * Default arguments::           Default values can appear anywhere
@@ -119,6 +115,10 @@ Functions
 * Rest arguments::              Functions with a variable number of arguments
 * Mathematical functions::      Standard libm functions
 
+
+Arrays
+
+* Slices::                      Python-style array slices
 
 Base modules
 
@@ -4393,7 +4393,7 @@ interval [0,360).
 For convenience, @code{Asymptote} defines variants @code{Sin},
 @code{Cos}, @code{Tan}, @code{aSin}, @code{aCos}, and @code{aTan} of
 the standard trigonometric functions that use degrees rather than radians.
-We also define complex versions of the @code{sqrt}, @code{cos}, @code{sin},
+We also define complex versions of the @code{sqrt}, @code{sin}, @code{cos},
 @code{exp}, and @code{log} functions.
 
 @cindex @code{floor}
@@ -4514,7 +4514,7 @@ returns the integral of @code{f} from @code{a} to @code{b} using adaptive Simpso
 @cindex arrays
 
 @menu
-* Slices::                      Python style array slices
+* Slices::                      Python-style array slices
 @end menu
 
 Appending @code{[]} to a built-in or user-defined type yields an array.
@@ -4988,15 +4988,15 @@ output with the functions @code{write(file,T[])},
 @subsection Slices
 @cindex slices
 
-Asymptote allows a section of an array to be addressed by a slice through
-syntax similar to Python.  If @code{A} is an array, the expression
+Asymptote allows a section of an array to be addressed as a slice
+using a Python-like syntax.  If @code{A} is an array, the expression
 @code{A[m:n]} returns a new array consisting of the elements of @code{A} with
-indices between @code{m} inclusive and @code{n} exclusive.  For example:
+indices from @code{m} up to but not including @code{n}. For example,
 
 @verbatim
 int[] x={0,1,2,3,4,5,6,7,8,9};
-int[] y=x[2:6];  // y equals {2,3,4,5};
-int[] z=x[5:10]; // z equals {5,6,7,8,9};
+int[] y=x[2:6];  // y={2,3,4,5};
+int[] z=x[5:10]; // z={5,6,7,8,9};
 @end verbatim
 
 If the left index is omitted, it is taken be @code{0}.  If the right index is
@@ -5006,27 +5006,26 @@ deep copy of the array.  For example:
 
 @verbatim
 int[] x={0,1,2,3,4,5,6,7,8,9};
-int[] y=x[:4];  // y equals {0,1,2,3}
-int[] z=x[5:];  // z equals {5,6,7,8,9}
-int[] w=x[:];   // w equals {0,1,2,3,4,5,6,7,8,9} but
-                // is a distinct array from x.
+int[] y=x[:4];  // y={0,1,2,3}
+int[] z=x[5:];  // z={5,6,7,8,9}
+int[] w=x[:];   // w={0,1,2,3,4,5,6,7,8,9}, distinct from array x.
 @end verbatim
 
 If A is a non-cyclic array, it is illegal to use negative values for either of
 the indices.  If the indices exceed the length of the array, however, they are
-politely rounded down to that length.
+politely truncated to that length.
 
 For cyclic arrays, the slice @code{A[m:n]} still consists of the cells with
-indices from @code{m} up to (but not including) @code{n}, but now negative
+indices in the set [@code{m},@code{n}), but now negative
 values and values beyond the length of the array are allowed.  The indices
 simply wrap around.  For example:
 
 @verbatim
 int[] x={0,1,2,3,4,5,6,7,8,9};
 x.cyclic(true);
-int[] y=x[8:15];  // y equals {8,9,0,1,2,3,4}.
-int[] z=x[-5,5];  // z equals {5,6,7,8,9,0,1,2,3,4}
-int[] w=x[-3,17]; // w equals {7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6}
+int[] y=x[8:15];  // y={8,9,0,1,2,3,4}.
+int[] z=x[-5:5];  // z={5,6,7,8,9,0,1,2,3,4}
+int[] w=x[-3:17]; // w={7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6}
 @end verbatim
 
 Notice that with cyclic arrays, it is possible to include the same element of
@@ -5038,18 +5037,18 @@ array.  If the array being sliced is empty, the result is an empty array.  Any
 slice with a left index greater than its right index will yield an error.
 
 Slices can also be assigned to, changing the value of the original array.  If
-the array being assigned to the slice is of a different length than the slice,
-elements will be inserted or removed from the array to accomodate it.  For
-instance:
+the array being assigned to the slice has a different length than the
+slice itself, elements will be inserted or removed from the array to
+accommodate it. For instance:
 
 @verbatim
 string[] toppings={"mayo", "salt", "ham", "lettuce"};
-toppings[0:2] = new string[] {"mustard", "pepper"};
-    // Now toppings equals {"mustard", "pepper", "ham", "lettuce"}
-toppings[2:3] = new string[] {"turkey", "bacon" };
-    // Now toppings equals {"mustard", "pepper", "turkey", "bacon", "lettuce"}
-toppings[0:3] = new string[] {"tomato"};
-    // Now toppings equals {"tomato", "bacon", "lettuce"}
+toppings[0:2]=new string[] {"mustard", "pepper"};
+    // Now toppings={"mustard", "pepper", "ham", "lettuce"}
+toppings[2:3]=new string[] {"turkey", "bacon" };
+    // Now toppings={"mustard", "pepper", "turkey", "bacon", "lettuce"}
+toppings[0:3]=new string[] {"tomato"};
+    // Now toppings={"tomato", "bacon", "lettuce"}
 @end verbatim
 
 If an array is assigned to a slice of itself, a copy of the original array
@@ -5061,7 +5060,7 @@ location just before @code{A[m]}.
 For a cyclic array, a slice is bridging if it addresses cells up to the end of
 the array and then continues on to address cells at the start of the array.
 For instance, if @code{A} is a cyclic array of length 10, @code{A[8:12]},
-@code{A[-3,-1]}, and @code{A[5,25]} are bridging slices whereas @code{A[3:7]},
+@code{A[-3:-1]}, and @code{A[5:25]} are bridging slices whereas @code{A[3:7]},
 @code{A[7:10]}, @code{A[-3:0]} and @code{A[103:107]} are not.  Bridging slices
 can only be assigned to if the number of elements in the slice is exactly equal
 to the number of elements we are assigning to it.  Otherwise, there is no clear
