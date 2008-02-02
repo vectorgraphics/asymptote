@@ -252,3 +252,47 @@ pen ZapfDingbats(string series="m", string shape="n")
 }
 
 pen squarepen=makepen(shift(-0.5,-0.5)*unitsquare);
+
+struct hsv {
+  real h;
+  real v;
+  real s;
+  void operator init(real h, real s, real v) {
+    this.h=h;
+    this.s=s;
+    this.v=v;
+  }
+  void operator init(pen p) {
+    real[] c=colors(rgb(p));
+    real r=c[0];
+    real g=c[1];
+    real b=c[2];
+    real M=max(r,g,b);
+    real m=min(r,g,b);
+    if(M == m) this.h=0;
+    else {
+      real denom=1/(M-m);
+      if(M == r) {
+	this.h=60*(g-b)*denom;
+	if(g < b) h += 360;
+      } else if(M == g) {
+	this.h=60*(b-r)*denom+120;
+      } else
+	this.h=60*(r-g)*denom+240;
+    }
+    this.s=M == 0 ? 0 : 1-m/M;
+    this.v=M;
+  }
+  // return an rgb pen corresponding to h in [0,360) and s and v in [0,1].
+  pen rgb() {
+    real H=h/60;
+    int i=floor(H) % 6;
+    real f=H-i;
+    real[] V={v,v*(1-s),v*(1-(i % 2 == 0 ? 1-f : f)*s)};
+    int[] a={0,2,1,1,2,0};
+    int[] b={2,0,0,2,1,1};
+    int[] c={1,1,2,0,0,2};
+    return rgb(V[a[i]],V[b[i]],V[c[i]]);
+  }
+}
+

@@ -2460,6 +2460,17 @@ color of only a portion of a string, say for a slide presentation,
 usepackage("asycolors");
 @end verbatim
 
+The structure @code{hsv} defined in @code{plain_pens.asy} may be used
+to convert between @acronym{HSV} and @acronym{RGB} spaces, where
+the hue @code{h} is an angle in @math{[0,360)} and the saturation
+@code{s} and value @code{v} lie in @code{[0,1]}:
+@verbatim
+pen p=hsv(180,0.5,0.75).rgb();
+write(p);           // ([default], red=0.375, green=0.75, blue=0.75)
+hsv A=hsv(p);
+write(A.h,A.s,A.v); // 180     0.5     0.75
+@end verbatim
+
 @item Line types are specified with the function 
 @code{pen linetype(string s, real offset=0, bool scale=true,
  bool adjust=true)},
