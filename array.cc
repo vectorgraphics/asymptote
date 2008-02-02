@@ -125,7 +125,7 @@ void array::setSlice(Int left, Int right, array *a)
       setNonBridgingSlice(l, l, v);
     }
     else {
-      if (left + length < right)
+      if (left + (Int) length < right)
         vm::error("assigning to cyclic slice with repeated entries");
 
       size_t l = (size_t)imod(left, length);
