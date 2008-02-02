@@ -285,7 +285,7 @@ struct hsv {
   }
   // return an rgb pen corresponding to h in [0,360) and s and v in [0,1].
   pen rgb() {
-    real H=h/60;
+    real H=(h % 360)/60;
     int i=floor(H) % 6;
     real f=H-i;
     real[] V={v,v*(1-s),v*(1-(i % 2 == 0 ? 1-f : f)*s)};
@@ -296,3 +296,13 @@ struct hsv {
   }
 }
 
+pen operator cast(hsv hsv)
+{
+  return hsv.rgb();
+}
+
+hsv operator cast(pen p)
+{
+  return hsv(p);
+}
+			  
