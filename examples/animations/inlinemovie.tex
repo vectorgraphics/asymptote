@@ -4,7 +4,13 @@
 \usepackage{animate}
 \begin{document}
 
-Here is an inline PDF movie:
+Here is an inline PDF movie, generated with the commands
+\begin{verbatim}
+pdflatex inlinemovie
+asy inlinemovie
+pdflatex inlinemovie
+\end{verbatim}
+
 \begin{center}
 \begin{asy}
   import animate;
@@ -23,7 +29,7 @@ Here is an inline PDF movie:
 %\ASYanimategraphics[controls,loop]{10}{movie1}{}{}
 \end{center}
 
-And here is another one, without the control panel:
+And here is another one, clickable but without the control panel:
 \begin{center}
 \begin{asy}
   import animate;

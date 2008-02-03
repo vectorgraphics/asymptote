@@ -75,7 +75,7 @@ struct animation {
   pair min,max;
 
   // Export all frames with the same scaling.
-  void export(string prefix=prefix, bool multipage=false) {
+  void export(string prefix=prefix, bool multipage=false, bool view=false) {
     if(pictures.length == 0) return;
     picture all;
     size(all,pictures[0]);
@@ -86,9 +86,8 @@ struct animation {
     if(multipage) {
       bool inlinetex=settings.inlinetex;
       settings.inlinetex=false;
-      plain.shipout(prefix,all,view=false);
+      plain.shipout(prefix,all,view=view);
       settings.inlinetex=inlinetex;
-      shipped=false;
       return;
     }
     index=0;
@@ -102,6 +101,7 @@ struct animation {
       draw(pictures[i],M,nullpen);
       this.shipout(prefix,pictures[i]);
     }
+    shipped=true;
   }
 
   string load(int frames, real delay=animationdelay, string options="") {
@@ -111,11 +111,15 @@ struct animation {
 
   string pdf(real delay=animationdelay, string options="",
              bool keep=false, bool multipage=true) {
+    if(settings.tex != "pdflatex")
+      abort("inline pdf animations require -tex pdflatex");
+    
     string filename=pdfname();
     bool single=global && multipage;
 
     if(global)
       export(filename,multipage=multipage);
+    shipped=false;
 
     if(!settings.keep && !settings.inlinetex) {
       exitfcn atexit=atexit();
@@ -137,9 +141,13 @@ struct animation {
   int movie(int loops=0, real delay=animationdelay,
             string format=settings.outformat == "" ? "gif" : settings.outformat,
             string options="", bool keep=false) {
+    if(global && format == "pdf") {
+      export(settings.outname,multipage=true,view=true);
+      return 0;
+    }
+
     if(global)
       export();
-    shipped=true;
     return merge(loops,delay,format,options,keep);
   }
 }
