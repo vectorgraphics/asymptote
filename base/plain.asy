@@ -154,7 +154,7 @@ string[] reverse(string[] a) {return a[reverse(a.length)];}
 // Return a uniform partition dividing [a,b] into n subintervals.
 real[] uniform(real a, real b, int n)
 {
-  if(n < 0) return new real[];
+  if(n <= 0) return new real[];
   return a+(b-a)/n*sequence(n+1);
 }
 
