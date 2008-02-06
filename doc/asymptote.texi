@@ -5071,7 +5071,7 @@ location just before @code{A[m]}.
 For a cyclic array, a slice is bridging if it addresses cells up to the end of
 the array and then continues on to address cells at the start of the array.
 For instance, if @code{A} is a cyclic array of length 10, @code{A[8:12]},
-@code{A[-3:-1]}, and @code{A[5:25]} are bridging slices whereas @code{A[3:7]},
+@code{A[-3:1]}, and @code{A[5:25]} are bridging slices whereas @code{A[3:7]},
 @code{A[7:10]}, @code{A[-3:0]} and @code{A[103:107]} are not.  Bridging slices
 can only be assigned to if the number of elements in the slice is exactly equal
 to the number of elements we are assigning to it.  Otherwise, there is no clear
