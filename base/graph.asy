@@ -804,6 +804,7 @@ tickvalues None(tickvalues v) {return v;}
 
 tickmodifier OmitTick(... real[] x) {
   return new tickvalues(tickvalues v) { 
+    if(v.major.length == 0) return v;
     real norm=max(abs(v.major));
     for(int i=0; i < x.length; ++i) {
       int j=find(abs(v.major-x[i]) < zerotickfuzz*norm);
