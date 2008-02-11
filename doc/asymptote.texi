@@ -2405,11 +2405,6 @@ This special pen writes in invisible ink, but adjusts the bounding
 box as if something had been drawn (like the @code{\phantom}
 command in @TeX{}).
 
-@item pen colorless(pen);
-@cindex @code{colorless}
-The function @code{colorless(pen)}; returns a copy of @code{pen p}
-with its color attributes stripped (to avoid color mixing).
-
 @end table
 
 @cindex @code{defaultpen}
@@ -2423,6 +2418,9 @@ The function @code{real[] colors(pen)} returns the color components of a pen.
 The functions @code{pen gray(pen)}, @code{pen rgb(pen)},  and
 @code{pen cmyk(pen)} return new pens obtained by converting their
 arguments to the respective color spaces. 
+@cindex @code{colorless}
+The function @code{colorless(pen)} returns a copy of its argument
+with the color attributes stripped (to avoid color mixing).
 
 Various shades and mixtures of the grayscale primary colors
 @code{black} and @code{white}, @acronym{RGB} primary colors
