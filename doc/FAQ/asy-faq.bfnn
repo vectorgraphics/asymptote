@@ -388,9 +388,11 @@ texpreamble("\\usepackage[pdftex,setpagesize=false]{hyperref}");
 Assuming that at least one of the arrowheads is to be filled, you can do this:
 
 \verbatim
-path g=((0,0)--(5cm,0));
-draw(g,Arrow(Relative(0.45)));
-fill(arrowhead(g,Relative(0.55)));
+size(200); 
+path g = (0,0)..(1,3)..(3,0); 
+draw(g,Arrow(Relative(0.9))); 
+add(arrow(g,invisible,FillDraw(black),Relative(0.5))); 
+add(arrow(reverse(g),invisible,FillDraw(white,black),Relative(0.9))); 
 \endverbatim
 
 If both of the arrowheads are to be drawn with filltype NoFill,
@@ -398,10 +400,11 @@ one will need to create a specialized version of the arrow routine in
 \courier{plain_arrows.asy\}:
 
 \verbatim
-void arrow(frame f, path g, pen p=currentpen, real size=0,
-	   real angle=arrowangle, filltype filltype=FillDraw,
-	   position position=EndPoint, bool forwards=true,
-	   margin margin=NoMargin, bool center=false);
+void arrow(frame f, arrowhead arrowhead=DefaultHead,
+           path g, pen p=currentpen, real size=0,
+           real angle=arrowangle, filltype filltype=arrowhead.defaultfilltype,
+           position position=EndPoint, bool forwards=true,
+           margin margin=NoMargin, bool center=false);
 \endverbatim
 
 \question 02sep:reversearrow How do I reverse the direction of an arrowhead?
