@@ -249,7 +249,7 @@ second, you may set dotfactor=1.
 
 \section Questions about labels
 
-\question 02sep:greek How do I get greek letters like omega to show up in my labels?
+\question 02sep:greek How do I get Greek letters like omega to show up in my labels?
 
 In (La)TeX, Greek letters can be obtained in math mode by prepending a 
 backslash to the letter name. So for a omega symbol, use "$\\omega$". Everything
@@ -425,17 +425,31 @@ arrowsize=new real(pen p=currentpen) {return 2mm;};
  
 \question 26jun:arrowhead Can I create other arrowhead styles?
 
-Yes, you can build your own arrowheads by modifying the \courier{arrowhead\} routine in \courier{plain_arrows.asy\}: 
+Yes, you can build custom arrowheads like this (see the predefined
+arrowhead styles in \courier{plain_arrows.asy\} for further examples): 
  
 \verbatim
-arrowhead=new guide(path g, real position, pen p=currentpen, real size=0,
-real angle=arrowangle)
-{ 
-... 
-} 
+arrowhead DotHead;
+DotHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
+		      real size=0, real angle=0)
+{
+  if(size == 0) size=DotHead.size(p);
+  bool relative=position.relative;
+  real position=position.position.x;
+  if(relative) position=reltime(g,position);
+  path r=subpath(g,position,0.0);
+  pair x=point(r,0);
+  real t=arctime(r,size);
+  pair y=point(r,t);
+  return circle(0.5(x+y),0.5size);
+};
+
+size(100);
+draw((0,0)..(1,1)..(2,0),Arrow(DotHead));
+dot((2,0),red);
 \endverbatim
 
-If you submit your alternate arrowheads to the forum or the Patch 
+If you submit your alternate arrowheads to the Forum or the Patch 
 Tracking System, we'll consider including them in a future release.
 
 \comment #####################################################################
@@ -712,11 +726,11 @@ void distance(picture pic=currentpicture, pair A, pair B, Label L="", real n=0,
 	      pen p=currentpen) 
 {
   real d=3mm;
-  guide g=A--B;
+  path g=A--B;
   transform T=shift(-n*d*unit(B-A)*I);
   pic.add(new void(frame f, transform t) {
     picture opic;
-    guide G=T*t*g;
+    path G=T*t*g;
     draw(opic,Label(L,Center,UnFill(1)),G,p,Arrows(NoFill),Bars,PenMargins);
     add(f,opic.fit());
   });
@@ -855,7 +869,7 @@ Here is a way of achieving the desired effect (assuming a white background):
 import graph;
 size(10cm,0);
 pair[] z={(0,0),(0.5,0.5),(1,1)};
-guide g=graph(z);
+path g=graph(z);
  
 draw(shift(0,.5)*g,marker(scale(5)*unitcircle,FillDraw(white)));
  
