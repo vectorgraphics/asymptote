@@ -2795,7 +2795,7 @@ y' = t.y + t.yx * x + t.yy * y
 This is equivalent to the @code{PostScript} transformation
 @code{[t.xx t.yx t.xy t.yy t.x t.y]}.
 
-Transforms can be applied to pairs, guides, paths, pens,
+Transforms can be applied to pairs, guides, paths, pens, strings,
 transforms, frames, and pictures by multiplication (via the binary operator
 @code{*}) on the left (@pxref{circle} for an example).
 @cindex @code{inverse}

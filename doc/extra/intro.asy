@@ -199,7 +199,7 @@ transform t=rotate(90);
 write(t*(1,0));  // Writes (0,1).
 ");
 
-item("Pairs, paths, pens, and whole pictures can be transformed.");
+item("Pairs, paths, pens, strings, and whole pictures can be transformed.");
 code("
 fill(P,blue);
 fill(shift(2,0)*reflect((0,0),(0,1))*P, red);
