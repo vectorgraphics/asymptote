@@ -38,37 +38,41 @@ void texdocumentclass(T& out, bool pipe=false)
 }
   
 template<class T>
-void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble)
+void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
+		 bool ASYdefines=true, bool ASYbox=true)
 {
+  string texengine=settings::getSetting<string>("tex");
   for(mem::list<string>::iterator p=preamble.begin();
       p != preamble.end(); ++p)
     out << stripblanklines(*p);
+  if(ASYbox)
+    out << "\\newbox\\ASYbox" << newl;
+  if(ASYdefines) {
+    out << "\\newdimen\\ASYdimen" << newl
+	<< "\\def\\ASYbase#1#2{\\setbox\\ASYbox=\\hbox{#1}"
+	<< "\\ASYdimen=\\ht\\ASYbox%" << newl
+	<< "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl
+	<< "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{\\leavevmode%" << newl
+	<< "\\setbox\\ASYbox=\\hbox{#6}%" << newl
+	<< "\\setbox\\ASYbox\\hbox{\\ASYdimen=\\ht\\ASYbox%" << newl
+	<< "\\advance\\ASYdimen by\\dp\\ASYbox\\kern#3\\wd\\ASYbox"
+	<< "\\raise#4\\ASYdimen\\box\\ASYbox}%" << newl
+	<< "\\put(#1,#2){%" << newl
+	<< settings::beginlabel(texengine) << "%" << newl
+	<< "\\box\\ASYbox%" << newl
+	<< settings::endlabel(texengine) << "%" << newl
+	<< "}}" << newl
+	<< settings::rawpostscript(texengine) << newl;
+  }
 }
 
 template<class T>
 void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
 		bool pipe=false)
 {
-  string texengine=settings::getSetting<string>("tex");
   if(pipe || !settings::getSetting<bool>("inlinetex"))
-    texpreamble(out,preamble);
-  out << "\\newbox\\ASYbox" << newl
-      << "\\newdimen\\ASYdimen" << newl
-      << "\\def\\ASYbase#1#2{\\setbox\\ASYbox=\\hbox{#1}"
-      << "\\ASYdimen=\\ht\\ASYbox%" << newl
-      << "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl
-      << "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{\\leavevmode%" << newl
-      << "\\setbox\\ASYbox=\\hbox{#6}%" << newl
-      << "\\setbox\\ASYbox\\hbox{\\ASYdimen=\\ht\\ASYbox%" << newl
-      << "\\advance\\ASYdimen by\\dp\\ASYbox\\kern#3\\wd\\ASYbox"
-      << "\\raise#4\\ASYdimen\\box\\ASYbox}%" << newl
-      << "\\put(#1,#2){%" << newl
-      << settings::beginlabel(texengine) << "%" << newl
-      << "\\box\\ASYbox%" << newl
-      << settings::endlabel(texengine) << "%" << newl
-      << "}}" << newl
-      << settings::rawpostscript(texengine) << newl;
-  
+    texpreamble(out,preamble,!pipe);
+
   if(pipe) {
     // Make tex pipe aware of a previously generated aux file.
     string name=auxname(settings::outname(),"aux");
@@ -80,7 +84,7 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
 	fout << s << endl;
     }
   }
-  if(settings::latex(texengine)) {
+  if(settings::latex(settings::getSetting<string>("tex"))) {
     if(pipe || !settings::getSetting<bool>("inlinetex")) {
       out << "\\usepackage{graphicx}" << newl;
       if(!pipe) out << "\\usepackage{color}" << newl;

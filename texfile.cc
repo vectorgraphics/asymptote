@@ -44,10 +44,12 @@ texfile::~texfile()
 void texfile::prologue()
 {
   if(inlinetex) {
+    string prename=auxname(getSetting<string>("outname"),"pre");
+    std::ifstream exists(prename.c_str());
     std::ofstream *outpreamble=
-      new std::ofstream(auxname(getSetting<string>("outname"),"pre").c_str(),
-			std::ios::app);
-    texpreamble(*outpreamble,processData().TeXpreamble);
+      new std::ofstream(prename.c_str(),std::ios::app);
+    bool ASYdefines=!exists;
+    texpreamble(*outpreamble,processData().TeXpreamble,ASYdefines,ASYdefines);
     outpreamble->close();
   }
   

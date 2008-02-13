@@ -154,7 +154,7 @@ void picture::texinit()
   // Output any new texpreamble commands
   if(pd.tex.isopen()) {
     if(pd.TeXpipepreamble.empty()) return;
-    texpreamble(pd.tex,pd.TeXpipepreamble);
+    texpreamble(pd.tex,pd.TeXpipepreamble,false);
     pd.TeXpipepreamble.clear();
     return;
   }
