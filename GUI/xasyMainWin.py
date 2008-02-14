@@ -1334,8 +1334,8 @@ class xasyMainWin:
         self.bindItemEvents(theItem)
         self.addItemToFile(theItem)
         self.undoRedoStack.add(addLabelAction(self,theItem))
-        self.updateSelectedButton(self.toolSelectButton)
-        self.releaseLock()
+      self.releaseLock()
+      self.updateSelectedButton(self.toolSelectButton)
     elif self.selectedButton in [self.toolDrawLinesButton,self.toolDrawBeziButton,self.toolDrawPolyButton,self.toolDrawShapeButton,self.toolFillPolyButton,self.toolFillShapeButton]:
       self.inDrawingMode = True
       try:
