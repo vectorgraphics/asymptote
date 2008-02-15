@@ -39,20 +39,20 @@ void texdocumentclass(T& out, bool pipe=false)
   
 template<class T>
 void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
-		 bool ASYdefines=true, bool ASYbox=true)
+		 bool ASYalign=true, bool ASYbase=true)
 {
   string texengine=settings::getSetting<string>("tex");
   for(mem::list<string>::iterator p=preamble.begin();
       p != preamble.end(); ++p)
     out << stripblanklines(*p);
-  if(ASYbox)
-    out << "\\newbox\\ASYbox" << newl;
-  if(ASYdefines) {
-    out << "\\newdimen\\ASYdimen" << newl
+  if(ASYbase)
+    out << "\\newbox\\ASYbox" << newl
+	<< "\\newdimen\\ASYdimen" << newl
 	<< "\\def\\ASYbase#1#2{\\setbox\\ASYbox=\\hbox{#1}"
 	<< "\\ASYdimen=\\ht\\ASYbox%" << newl
-	<< "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl
-	<< "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{\\leavevmode%" << newl
+	<< "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl;
+  if(ASYalign)
+    out << "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{\\leavevmode%" << newl
 	<< "\\setbox\\ASYbox=\\hbox{#6}%" << newl
 	<< "\\setbox\\ASYbox\\hbox{\\ASYdimen=\\ht\\ASYbox%" << newl
 	<< "\\advance\\ASYdimen by\\dp\\ASYbox\\kern#3\\wd\\ASYbox"
@@ -63,7 +63,6 @@ void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
 	<< settings::endlabel(texengine) << "%" << newl
 	<< "}}" << newl
 	<< settings::rawpostscript(texengine) << newl;
-  }
 }
 
 template<class T>

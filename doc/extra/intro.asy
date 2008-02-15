@@ -482,7 +482,7 @@ write(x+x());  // Writes 9.
 write(x(x)+x());  // Writes 11.
 ");
 
-item("Functions definitions are just variable definitions, but variables are
+item("Function definitions are just variable definitions, but variables are
     distinguished by their signatures to allow overloading.");
 
 title("Operators");
@@ -711,7 +711,7 @@ display(a.pdf(delay=150,"controls"));
 
 title("Automatic Sizing");
 item("Figures can be specified in user coordinates, then
-    automatically scaled to the final size.");
+    automatically scaled to the desired final size.");
 asyfigure(asywrite("
 import graph;
 
