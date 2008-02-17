@@ -1794,6 +1794,24 @@ void label(picture pic=currentpicture, Label L, pair position,
   label(pic,L,position,project(align),p,filltype);
 }
 
+// Transform for projecting onto plane through point O with normal cross(u,v).
+transform transform(triple u, triple v, triple O=O,
+		    projection P=currentprojection) {
+  pair o=project(O,P);
+  pair U=project(O+unit(u),P)-o;
+  pair V=project(O+unit(v),P)-o;
+  return (0,0,U.x,V.x,U.y,V.y);
+}
+
+// Project Label onto plane through point O with normal cross(u,v).
+Label project(Label L, triple u, triple v, triple O=O,
+	      projection P=currentprojection) {
+  Label L=L.copy();
+  L.position=project(O,P);
+  L.T=transform(u,v,O,P);
+  return L;
+}
+
 path3 operator cast(guide3 g) {return solve(g);}
 path operator cast(path3 p) {return project(p);}
 path operator cast(triple v) {return project(v);}
