@@ -51,6 +51,12 @@ void shipout(string prefix=defaultfilename,
   shipout(prefix,currentpicture,orientation,format,wait,view);
 };
 
+void newpage(frame f)
+{
+  tex(f,"\newpage");
+  layer(f);
+}
+
 void newpage(picture pic=currentpicture) 
 {
   tex(pic,"\newpage");

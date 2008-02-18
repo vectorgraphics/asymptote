@@ -8,6 +8,19 @@
 // animation delay is in milliseconds
 real animationdelay=50;
 
+typedef frame fit(picture);
+
+frame NoBox(picture pic) {
+  return pic.fit();
+}
+
+fit BBox(real xmargin=0, real ymargin=xmargin,
+	 pen p=currentpen, filltype filltype=NoFill) {
+  return new frame(picture pic) {
+    return bbox(pic,xmargin,ymargin,p,filltype);
+  };
+}
+
 struct animation {
   string outname() {
     return "_"+(defaultfilename == "" ? settings.outname : defaultfilename);
@@ -27,16 +40,19 @@ struct animation {
     this.global=global;
   }
   
-  private string nextname(string prefix=prefix) {
-    string name=prefix+string(index);
-    ++index;
-    return stripextension(stripdirectory(name));
+  string name(string prefix, int index) {
+    return stripextension(stripdirectory(prefix+string(index)));
   }
 
-  void shipout(string prefix=prefix, picture pic=currentpicture) {
-    string name=nextname(prefix);
+  private string nextname(string prefix) {
+    string name=name(prefix,index);
+    ++index;
+    return name;
+  }
+
+  void shipout(string prefix=prefix, string name=nextname(prefix), frame f) {
     string format=nativeformat();
-    shipout(name,pic,format=format,view=false);
+    shipout(name,f,format=format,view=false);
     files.push(name+"."+format);
     shipped=false;
   }
@@ -48,8 +64,7 @@ struct animation {
   void add(picture pic=currentpicture) {
     if(global) {
       pictures.push(pic.copy());
-      index=pictures.length;
-    } else this.shipout(pdfname(),pic);
+    } else this.shipout(pdfname(),pic.fit());
   }
   
   void purge(bool keep=settings.keep) {
@@ -72,34 +87,32 @@ struct animation {
       return rc;
   }
 
-  pair min,max;
-
   // Export all frames with the same scaling.
-  void export(string prefix=prefix, bool multipage=false, bool view=false) {
+  void export(string prefix=prefix, fit fit=NoBox,
+	      bool multipage=false, bool view=false) {
     if(pictures.length == 0) return;
     picture all;
     size(all,pictures[0]);
-    for(int i=0; i < pictures.length; ++i) {
+    for(int i=0; i < pictures.length; ++i)
       add(all,pictures[i]);
-      if(multipage) newpage(all);
+    transform t=inverse(all.calculateTransform()*pictures[0].T);
+    pair m=t*min(all);
+    pair M=t*max(all);
+    frame multi;
+    for(int i=0; i < pictures.length; ++i) {
+      draw(pictures[i],m,nullpen);
+      draw(pictures[i],M,nullpen);
+      if(multipage) {
+	add(multi,fit(pictures[i]));
+	newpage(multi);
+      } else
+	this.shipout(prefix,name(prefix,i),fit(pictures[i]));
     }
     if(multipage) {
       bool inlinetex=settings.inlinetex;
       settings.inlinetex=false;
-      plain.shipout(prefix,all,view=view);
+      plain.shipout(prefix,multi,view=view);
       settings.inlinetex=inlinetex;
-      return;
-    }
-    index=0;
-    transform t=inverse(all.calculateTransform()*pictures[0].T);
-    min=min(all);
-    max=max(all);
-    pair m=t*min;
-    pair M=t*max;
-    for(int i=0; i < pictures.length; ++i) {
-      draw(pictures[i],m,nullpen);
-      draw(pictures[i],M,nullpen);
-      this.shipout(prefix,pictures[i]);
     }
     shipped=true;
   }
@@ -109,7 +122,7 @@ struct animation {
       pdfname()+"}{0}{"+string(frames-1)+"}";
   }
 
-  string pdf(real delay=animationdelay, string options="",
+  string pdf(fit fit=NoBox, real delay=animationdelay, string options="",
              bool keep=false, bool multipage=true) {
     if(settings.tex != "pdflatex")
       abort("inline pdf animations require -tex pdflatex");
@@ -118,7 +131,7 @@ struct animation {
     bool single=global && multipage;
 
     if(global)
-      export(filename,multipage=multipage);
+      export(filename,fit,multipage=multipage);
     shipped=false;
 
     if(!settings.keep && !settings.inlinetex) {
@@ -135,19 +148,19 @@ struct animation {
     if(!single)
       delete(filename+".pdf");
 
-    return load(index,delay,options);
+    return load(pictures.length,delay,options);
   }
 
-  int movie(int loops=0, real delay=animationdelay,
+  int movie(fit fit=NoBox, int loops=0, real delay=animationdelay,
             string format=settings.outformat == "" ? "gif" : settings.outformat,
             string options="", bool keep=false) {
     if(global && format == "pdf") {
-      export(settings.outname,multipage=true,view=true);
+      export(settings.outname,fit,multipage=true,view=true);
       return 0;
     }
 
     if(global)
-      export();
+      export(fit);
     return merge(loops,delay,format,options,keep);
   }
 }

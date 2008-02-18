@@ -5841,7 +5841,7 @@ The example @code{inlinemovie.tex} shows how to generate and embed @acronym{PDF}
 movies directly within a @code{LaTeX} file (@pxref{LaTeX usage}).
 The member function
 @verbatim
-string pdf(real delay=animationdelay, string options="",
+string pdf(fit fit=NoBox, real delay=animationdelay, string options="",
            bool keep=false, bool multipage=true);
 @end verbatim
 @noindent
