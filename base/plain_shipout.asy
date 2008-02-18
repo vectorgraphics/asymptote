@@ -15,10 +15,6 @@ frame Seascape(frame f) {return rotate(-90)*f;};
 typedef frame orientation(frame);
 orientation orientation=Portrait;
 
-void shipout(string prefix=defaultfilename,
-             orientation orientation=orientation,
-             string format="", bool wait=NoWait, bool view=true);
-
 include plain_xasy;
 
 void shipout(string prefix=defaultfilename, frame f,
@@ -47,9 +43,10 @@ void shipout(string prefix=defaultfilename, picture pic,
   shipout(prefix,orientation(pic.fit()),format,wait,view);
 }
 
-shipout=new void(string prefix=defaultfilename,
+void shipout(string prefix=defaultfilename,
              orientation orientation=orientation,
-             string format="", bool wait=NoWait, bool view=true) {
+             string format="", bool wait=NoWait, bool view=true)
+{
   uptodate(true);
   shipout(prefix,currentpicture,orientation,format,wait,view);
 };
