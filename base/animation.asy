@@ -61,10 +61,10 @@ struct animation {
     return stripextension(stripdirectory(prefix));
   }
 
-  void add(picture pic=currentpicture) {
+  void add(picture pic=currentpicture, fit fit=NoBox) {
     if(global) {
       pictures.push(pic.copy());
-    } else this.shipout(pdfname(),pic.fit());
+    } else this.shipout(pdfname(),fit(pic));
   }
   
   void purge(bool keep=settings.keep) {
