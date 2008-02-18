@@ -291,3 +291,14 @@ path buildcycle(... path[] p)
   }
   return G&cycle;
 }
+
+// return 1 if p strictly contains q,
+//       -1 if q strictly contains p,
+//        0 otherwise.
+int inside(path p, path q, pen fillrule=currentpen)
+{
+  if(intersect(p,q).length > 0) return 0;
+  if(cyclic(p) && inside(p,point(q,0),fillrule)) return 1;
+  if(cyclic(q) && inside(q,point(p,0),fillrule)) return -1;
+  return 0;
+}

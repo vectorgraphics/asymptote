@@ -577,6 +577,7 @@ default_t def;
 string emptystring;
 array *emptyarray=new array(0);
 string commentchar="#";
+pen currentpen=pen(DEFLINE);
 
 void breakpoint(stack *Stack, runnable *r)
 {
@@ -1862,9 +1863,14 @@ Int windingnumber(patharray *p, pair z)
   return windingnumber(p,z);
 }
 
-bool inside(patharray *g, pair z, pen fillrule)
+bool inside(patharray *g, pair z, pen fillrule=currentpen)
 {
   return fillrule.inside(windingnumber(g,z));
+}
+
+bool inside(path g, pair z, pen fillrule=currentpen)
+{
+  return fillrule.inside(g.windingnumber(z));
 }
 
 

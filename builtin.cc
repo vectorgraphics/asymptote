@@ -31,6 +31,10 @@ using namespace types;
 using namespace camp;
 using namespace vm;  
 
+namespace run {
+  extern camp::pen currentpen;
+}
+
 namespace trans {
 using camp::transform;
 using camp::pair;
@@ -324,6 +328,14 @@ void addConstant(venv &ve, T value, ty *t, const char *name,
   *ref=value;
   access *a = new itemRefAccess(ref);
   varEntry *ent = new varEntry(t, a, RESTRICTED, module, 0, position());
+  ve.enter(symbol::trans(name), ent);
+}
+
+template<class T>
+void addVariable(venv &ve, T *ref, ty *t, const char *name,
+		 record *module=settings::getSettingsModule()) {
+  access *a = new refAccess<T>(ref);
+  varEntry *ent = new varEntry(t, a, PUBLIC, module, 0, position());
   ve.enter(symbol::trans(name), ent);
 }
 
@@ -769,6 +781,8 @@ void base_venv(venv &ve)
   addConstant<Int>(ve, DBL_DIG, primInt(), "realDigits");
   addConstant<Int>(ve, RAND_MAX, primInt(), "randMax");
   addConstant<double>(ve, PI, primReal(), "pi");
+  
+  addVariable<pen>(ve, &run::currentpen, primPen(), "currentpen");
 
   gen_base_venv(ve);
 }

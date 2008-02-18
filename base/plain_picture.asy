@@ -1085,11 +1085,6 @@ void filloutside(picture pic=currentpicture, path[] g, pen p=currentpen,
   pic.addPath(g);
 }
 
-bool inside(path[] g, pair z) 
-{
-  return inside(g,z,currentpen);
-}
-
 // Use a fixed scaling to map user coordinates in box(min,max) to the 
 // desired picture size.
 transform fixedscaling(picture pic=currentpicture, pair min, pair max,

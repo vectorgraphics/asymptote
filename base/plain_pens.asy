@@ -1,8 +1,6 @@
 real labelmargin=0.3;
 real dotfactor=6;
 
-pen currentpen;
-
 pen nullpen=linewidth(0);
 
 pen solid=linetype("");
@@ -305,4 +303,3 @@ hsv operator cast(pen p)
 {
   return hsv(p);
 }
-			  

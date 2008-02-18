@@ -2237,6 +2237,13 @@ returns @code{true} iff the point @code{z} is inside the region bounded
 by the cyclic path @code{p} according to the fill rule @code{fillrule}
 (@pxref{fillrule}). 
 
+@cindex @code{inside}
+@item bool inside(path p, path q, pen fillrule=currentpen);
+returns @code{1} if the cyclic path @code{p} strictly contains @code{q}
+according to the fill rule @code{fillrule} (@pxref{fillrule}), @code{-1}
+if the cyclic path @code{q} strictly contains @code{p}, and @code{0}
+otherwise.
+
 @end table
 
 @item guide
