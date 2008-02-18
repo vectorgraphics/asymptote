@@ -1863,7 +1863,7 @@ Int windingnumber(patharray *p, pair z)
   return windingnumber(p,z);
 }
 
-bool inside(patharray *g, pair z, pen fillrule=currentpen)
+bool inside(explicit patharray *g, pair z, pen fillrule=currentpen)
 {
   return fillrule.inside(windingnumber(g,z));
 }
