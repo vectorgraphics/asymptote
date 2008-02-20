@@ -40,31 +40,31 @@ struct animation {
     this.global=global;
   }
   
-  string name(string prefix, int index) {
-    return stripextension(stripdirectory(prefix+string(index)));
+  string basename(string prefix=prefix) {
+    return stripextension(stripdirectory(prefix));
   }
 
-  private string nextname(string prefix) {
+  string name(string prefix, int index) {
+    return basename(prefix)+string(index);
+  }
+
+  private string nextname() {
     string name=name(prefix,index);
     ++index;
     return name;
   }
 
-  void shipout(string prefix=prefix, string name=nextname(prefix), frame f) {
+  void shipout(string name=nextname(), frame f) {
     string format=nativeformat();
-    shipout(name,f,format=format,view=false);
+    plain.shipout(name,f,format=format,view=false);
     files.push(name+"."+format);
     shipped=false;
   }
   
-  string pdfname() {
-    return stripextension(stripdirectory(prefix));
-  }
-
   void add(picture pic=currentpicture, fit fit=NoBox) {
     if(global) {
       pictures.push(pic.copy());
-    } else this.shipout(pdfname(),fit(pic));
+    } else this.shipout(nextname(),fit(pic));
   }
   
   void purge(bool keep=settings.keep) {
@@ -106,7 +106,7 @@ struct animation {
 	add(multi,fit(pictures[i]));
 	newpage(multi);
       } else
-	this.shipout(prefix,name(prefix,i),fit(pictures[i]));
+	this.shipout(name(prefix,i),fit(pictures[i]));
     }
     if(multipage) {
       bool inlinetex=settings.inlinetex;
@@ -119,7 +119,7 @@ struct animation {
 
   string load(int frames, real delay=animationdelay, string options="") {
     return "\animategraphics["+options+"]{"+string(1000/delay)+"}{"+
-      pdfname()+"}{0}{"+string(frames-1)+"}";
+      basename()+"}{0}{"+string(frames-1)+"}";
   }
 
   string pdf(fit fit=NoBox, real delay=animationdelay, string options="",
@@ -127,7 +127,7 @@ struct animation {
     if(settings.tex != "pdflatex")
       abort("inline pdf animations require -tex pdflatex");
     
-    string filename=pdfname();
+    string filename=basename();
     bool single=global && multipage;
 
     if(global)
@@ -140,7 +140,7 @@ struct animation {
         atexit();
         this.purge();
         if(!keep && single)
-          delete(pdfname()+".pdf");
+          delete(filename+".pdf");
       }
       atexit(exitfunction);
     }
