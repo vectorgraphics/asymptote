@@ -128,6 +128,7 @@ struct animation {
       abort("inline pdf animations require -tex pdflatex");
     
     string filename=basename();
+    string pdfname=filename+".pdf";
     bool single=global && multipage;
 
     if(global)
@@ -140,13 +141,13 @@ struct animation {
         atexit();
         this.purge();
         if(!keep && single)
-          delete(filename+".pdf");
+          delete(pdfname);
       }
       atexit(exitfunction);
     }
 
     if(!single)
-      delete(filename+".pdf");
+      delete(pdfname);
 
     return load(pictures.length,delay,options);
   }
