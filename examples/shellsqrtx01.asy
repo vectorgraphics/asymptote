@@ -9,7 +9,7 @@ real alpha=240;
 real f(real x) {return sqrt(x);}
 triple F(real x) {return (x,f(x),0);}
 
-guide3 p=graph(F,0,1,n=30);
+path3 p=graph(F,0,1,n=30);
 revolution a=revolution(p,X,180,180+alpha);
 a.filldraw(8,color,blue,false);
 p=p--X--cycle;

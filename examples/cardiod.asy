@@ -4,7 +4,7 @@ size(0,100);
 
 real f(real t) {return 1+cos(t);}
 
-guide g=polargraph(f,0,2pi,operator ..)--cycle;
+path g=polargraph(f,0,2pi,operator ..)--cycle;
 filldraw(g,pink);
 
 xaxis("$x$");

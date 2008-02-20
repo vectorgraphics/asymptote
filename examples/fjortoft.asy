@@ -14,8 +14,8 @@ add(box("$k_1$"));
 add(shift(s)*box("$k_2$"));
 add(shift(s)^2*box("$k_3$"));
 
-guide g=(d.x,d.y/2)--(s,d.y/2);
-guide G=(d.x/2,-(s-d.x))--(d.x/2,0);
+path g=(d.x,d.y/2)--(s,d.y/2);
+path G=(d.x/2,-(s-d.x))--(d.x/2,0);
 
 draw(Label(baseline("$\ldots$")),shift(-s)*g,BeginArrow,BeginPenMargin);
 draw(Label("$Z_1$"),g,BeginArrow,BeginPenMargin);

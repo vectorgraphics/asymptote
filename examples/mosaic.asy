@@ -65,12 +65,12 @@ pen farbe(int j) {
   return hlp;}
 
 // farbe=German word for color
-guide kasten=yscale(yc)*unitsquare;
+path kasten=yscale(yc)*unitsquare;
 // Kasten is a German word meaning something like box
-guide Gkasten=shift((0,2*yc)+diff)*xscale(7)*yscale(2)*kasten;
-guide tage[]= new guide[7]; // Tag=day
+path Gkasten=shift((0,2*yc)+diff)*xscale(7)*yscale(2)*kasten;
+path tage[]= new path[7]; // Tag=day
 string wochentag[]={"MO","DI","MI","DO","FR","SA","SO"};
-guide[][] bx= new guide[6][7];
+path[][] bx= new path[6][7];
 string[][] entry= new string[6][7];
 bool[][] holiday=new bool[6][7];
 

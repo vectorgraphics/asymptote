@@ -8,7 +8,7 @@ dotfactor=7;
 
 void subinterval(real a, real b)
 {
-  guide g=box((a,0),(b,f(b)));
+  path g=box((a,0),(b,f(b)));
   filldraw(g,lightgray); 
   draw(box((a,f(a)),(b,0)));
 }

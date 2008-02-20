@@ -17,11 +17,11 @@ real x1=r*s1/h;
 real s2=sr+0.2;
 real x2=r*s2/h;
 
-guide3 p=(0,0,0)--(x,0,s);
+path3 p=(0,0,0)--(x,0,s);
 revolution a=revolution(p,Z);
 a.filldraw(lightblue,lightblue+white,false);
 
-guide3 q=(x,0,s)--(r,0,h);
+path3 q=(x,0,s)--(r,0,h);
 revolution b=revolution(q,Z);
 b.filldraw(white,black,false);
 
@@ -30,7 +30,7 @@ bbox3 b=autolimits(O,h*(X+Z)+Y);
 draw((-r-1,0,0)--(r+1,0,0));
 draw((0,0,0)--(0,0,h+1),dashed);
 
-guide3 w=(x1,0,s1)--(x2,0,s2)--(0,0,s2);
+path3 w=(x1,0,s1)--(x2,0,s2)--(0,0,s2);
 revolution b=revolution(w,Z);
 b.filldraw(blue,black,false);
 draw(circle((0,0,s2),x2));

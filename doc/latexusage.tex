@@ -35,8 +35,8 @@ pair z0=(0,0);
 pair z1=(-1,0);
 pair z2=(1,0);
 real r=1.5;
-guide c1=circle(z1,r);
-guide c2=circle(z2,r);
+path c1=circle(z1,r);
+path c2=circle(z2,r);
 fill(c1,colour1);
 fill(c2,colour2);
 
@@ -95,7 +95,7 @@ pair F(real x) {return (x,f(x));}
 real g(real x) {return -sqrt(x);}
 pair G(real x) {return (x,g(x));}
 
-guide p=(0,0)--graph(f,0,1,operator ..)--(1,0);
+path p=(0,0)--graph(f,0,1,operator ..)--(1,0);
 fill(p--cycle,lightgray);
 draw(p);
 draw((0,0)--graph(g,0,1,operator ..)--(1,0),dotted);

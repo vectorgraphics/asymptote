@@ -9,7 +9,7 @@ real f(real x) {return x^2;}
 triple F(real x) {return (x,f(x),0);}
 triple H(real x) {return (x,x,0);}
 
-guide3 p=graph(F,0,1,n=10)--graph(H,1,0,n=10)--cycle;
+path3 p=graph(F,0,1,n=10)--graph(H,1,0,n=10)--cycle;
 revolution a=revolution(-X,p,Y,180,360);
 a.filldraw(16,color,blue,false);
 filldraw(p,color);

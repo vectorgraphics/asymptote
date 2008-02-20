@@ -7,8 +7,8 @@ pair z0=(0,0);
 pair z1=(-1,0);
 pair z2=(1,0);
 real r=1.5;
-guide c1=circle(z1,r);
-guide c2=circle(z2,r);
+path c1=circle(z1,r);
+path c2=circle(z2,r);
 fill(c1,colour1);
 fill(c2,colour2);
 

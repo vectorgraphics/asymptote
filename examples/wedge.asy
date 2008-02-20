@@ -9,13 +9,13 @@ draw(circle(O,4,Z));
 r.draw(color);
 
 triple F(real x){return (x,sqrt(16-x^2),sqrt((16-x^2)/3));}
-guide3 p=graph(F,0,4,operator ..)--O;
-guide3 q=rotate(180,(0,4,4/sqrt(3)))*p--O;
+path3 p=graph(F,0,4,operator ..)--O;
+path3 q=rotate(180,(0,4,4/sqrt(3)))*p--O;
 draw(p); fill(p--cycle,color);
 draw(q); fill(q--cycle,color);
 
 real t=2;
-guide3 triangle=(t,0,0)--(t,sqrt(16-t^2),0)--F(t)--cycle;
+path3 triangle=(t,0,0)--(t,sqrt(16-t^2),0)--F(t)--cycle;
 filldraw(triangle,red);
 
 bbox3 b=autolimits(O,6*(X+Y+Z));

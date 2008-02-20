@@ -11,7 +11,7 @@ real f(real x) {return 2x^2-x^3;}
 triple F(real x) {return (x,f(x),0);}
 
 ngraph=12;
-guide3[] p=new guide3[] {
+path3[] p=new path3[] {
   graph(F,0.7476,1.8043)--cycle,
   graph(F,0.7,0.7476)--graph(F,1.7787,1.8043)--cycle,
   graph(F,0,0.7)--graph(F,1.8043,2)--cycle};

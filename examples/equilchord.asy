@@ -10,7 +10,7 @@ real F(pair z) {
 }
 
 real a=1.5;
-guide3 square=(-a,-a,0)--(-a,a,0)--(a,a,0)--(a,-a,0)--cycle;
+path3 square=(-a,-a,0)--(-a,a,0)--(a,a,0)--(a,-a,0)--cycle;
 fill(square,lightgray);
 
 bbox3 b=limits(O,1.5(1,1,1));

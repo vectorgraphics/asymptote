@@ -11,7 +11,7 @@ real[][] A=dimension(in,0,0);
 A=transpose(A);
 real[] number=A[0], survival=A[1];
 
-guide g=graph(number,survival);
+path g=graph(number,survival);
 draw(g);
 
 xaxis("Initial no.\ of mosquitoes per bird ($S_{M_0}/N_{B_0}$)",

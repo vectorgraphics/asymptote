@@ -7,7 +7,7 @@ currentlight=(1,0,0.25);
 real f(real x) {return sqrt(x);}
 triple F(real x) {return (x,f(x),0);}
 
-guide3 p=graph(F,0,1,n=25);
+path3 p=graph(F,0,1,n=25);
 revolution a=revolution(p,Y,0,360);
 a.filldraw(20,green,blue,false);
 draw(p,blue);

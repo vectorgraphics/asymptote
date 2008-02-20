@@ -733,9 +733,7 @@ frame cardsize(real w=0, real h=0, bool keepAspect=Aspect) {
   dot(pic,\"$(2a,0)$\",(2,0),N+E);
 
   frame f=pic.fit();
-  label(f,\"{\tt size(\"+string(w)+\",\"+string(h)+\");}\",
-        (0.5(min(f).x+max(f).x),min(f).y), align=S);
-
+  label(f,\"{\tt size(\"+string(w)+\",\"+string(h)+\");}\",point(f,S),align=S);
   return f;
 }
 
@@ -760,7 +758,7 @@ void draw(picture pic=currentpicture, path g, pen p=currentpen) {
 ");
 
 title("Coordinates");
-item("Store bounding box information as a sum of user and true-size
+item("Store bounding box information as the sum of user and true-size
     coordinates:");
 asyfigure(asywrite("
 size(0,150);
@@ -822,7 +820,7 @@ remark("and each drawing component adds two coordinates.");
 item("A figure could easily produce thousands of restrictions, making the
     simplex method impractical.");
 
-item("Most of these restrictions are redundent, however.  For instance, with
+item("Most of these restrictions are redundant, however.  For instance, with
     concentric circles, only the largest circle needs to be accounted for.");
 asyfigure(asywrite("
 import palette;
@@ -840,7 +838,7 @@ remark("for all choices of $a>0$ and $b$, so");
 equation("0\le au+t+b\le au'+t'+b\le S.");
 item("This defines a partial ordering on coordinates.  When sizing a picture,
     the program first computes which coordinates are maximal (or minimal) and
-    only sends effective restraints to the simplex algorithm.");
+    only sends effective constraints to the simplex algorithm.");
 item("In practice, the linear programming problem will have less than a dozen
     restraints.");
 item("All picture sizing is implemented in Asymptote code.");

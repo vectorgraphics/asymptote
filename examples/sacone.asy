@@ -7,14 +7,14 @@ real l=sqrt(r^2+h^2);
 real a=(1-r/l)*360;
 real a1=a/2;
 real a2=360-a/2;
-guide g=arc(z0,r,a1,a2);
+path g=arc(z0,r,a1,a2);
 fill((0,0)--g--cycle,lightgreen);
 draw(g);
 pair z1=point(g,0);
 pair z2=point(g,length(g));
 
 real r2=1.1*r;
-guide c=arc(0,r2,a1,a2);
+path c=arc(0,r2,a1,a2);
 draw("$2\pi r$",c,red,Arrows,Bars,PenMargins);
 pen edge=blue+0.5mm;
 draw("$\ell$",z0--z1,0.5*SE,edge);

@@ -19,7 +19,7 @@ for(int i=1; i <= n; ++i) {
     (left,0,0)--(left,height,0)--(right,height,0)--(right,0,0)--cycle;
 }
 
-guide3 p=graph(F,0,2,n=25)--cycle;
+path3 p=graph(F,0,2,n=25)--cycle;
 
 revolution a=revolution(p,Y,0,alpha);
 a.filldraw(8,color,1,blue,false);

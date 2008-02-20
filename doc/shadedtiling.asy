@@ -3,7 +3,7 @@ import patterns;
 
 real d=4mm;
 picture tiling;
-guide square=scale(d)*unitsquare;
+path square=scale(d)*unitsquare;
 axialshade(tiling,square,white,(0,0),black,(d,d));
 fill(tiling,shift(d,d)*square,blue);
 add("shadedtiling",tiling);
