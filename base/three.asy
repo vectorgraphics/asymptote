@@ -10,11 +10,18 @@ real[] operator ecast(triple v)
   return new real[] {v.x, v.y, v.z, 1};
 }
 
+private string tooclose="camera is too close to object";
+
 triple operator ecast(real[] a)
 {
-  if(a.length != 4) abort("vector length of "+(string) a.length+" != 4");
-  if(a[3] == 0) abort("camera is too close to object");
+  if(a[3] == 0) abort(tooclose);
   return (a[0],a[1],a[2])/a[3];
+}
+
+pair operator ecast(real[] a)
+{
+  if(a[3] == 0) abort(tooclose);
+  return (a[0],a[1])/a[3];
 }
 
 typedef real[][] transform3;
@@ -324,7 +331,7 @@ pair xypart(triple v)
 project operator cast(transform3 t)
 {
   return new pair(triple v) {
-    return xypart(t*v);
+    return (pair) (t*(real[]) v);
   };
 }
 
