@@ -194,6 +194,14 @@ struct projection {
     return P;
   }
 
+  transform3 transform3() {
+    return multdiagonal(project,aspect);
+  }
+
+  void scale(real x, real y, real z) {
+    aspect=new real[] {x,y,z,1};
+  }
+
   // Check that v is in front of the projection plane.
   void check(triple v) {
     if(!infinity && dot(camera-v,camera-target) < 0)
@@ -299,28 +307,18 @@ projection obliqueX=obliqueX(), obliqueY=obliqueY(), obliqueZ=obliqueZ();
 
 currentprojection=perspective(5,4,2);
 
-transform3 aspect(projection P)
-{
-  return multdiagonal(P.project,P.aspect);
-}
-
 // Map pair z onto a triple by inverting the projection P onto the 
 // plane perpendicular to normal and passing through point.
 triple invert(pair z, triple normal, triple point,
               projection P=currentprojection)
 {
-  transform3 t=aspect(P);
+  transform3 t=P.transform3();
   real[][] A={{t[0][0]-z.x*t[3][0],t[0][1]-z.x*t[3][1],t[0][2]-z.x*t[3][2]},
               {t[1][0]-z.y*t[3][0],t[1][1]-z.y*t[3][1],t[1][2]-z.y*t[3][2]},
               {normal.x,normal.y,normal.z}};
   real[] b={z.x*t[3][3],z.y*t[3][3],dot(normal,point)};
   real[] x=solve(A,b);
   return (x[0],x[1],x[2]);
-}
-
-void scale(projection dest=currentprojection, real x, real y, real z)
-{
-  dest.aspect=new real[] {x,y,z,1};
 }
 
 pair xypart(triple v)
@@ -1667,7 +1665,7 @@ path3 solve(flatguide3 g)
 path nurb(path3 p, projection P=currentprojection,
 	  int ninterpolate=ninterpolate)
 {
-  project Q=aspect(P);
+  project Q=P.transform3();
   triple f=P.camera;
   triple u=unit(P.camera-P.target);
 
@@ -1708,7 +1706,7 @@ path project(explicit path3 p, projection P=currentprojection,
   int last=p.nodes.length-1;
   if(last < 0) return g;
   
-  project Q=aspect(P);
+  project Q=P.transform3();
 
   if(P.infinity || ninterpolate == 1) {
     g=Q(p.nodes[0].point);
@@ -1740,7 +1738,7 @@ path project(flatguide3 g, projection P=currentprojection,
 pair project(triple v, projection P=currentprojection)
 {
   P.check(v);
-  project P=aspect(P);
+  project P=P.transform3();
   return P(v);
 }
 
@@ -2489,13 +2487,13 @@ void aspect(projection P=currentprojection, bbox3 b,
   triple L=b.max-b.min;
   if(z != 0) {
     real s=L.z/z;
-    scale(P,x == 0 || L.x == 0 ? 1 : s*x/L.x,y == 0 || L.y == 0 ? 1 : s*y/L.y,
+    P.scale(x == 0 || L.x == 0 ? 1 : s*x/L.x,y == 0 || L.y == 0 ? 1 : s*y/L.y,
           1);
   } else if(y != 0) {
     real s=L.y/y;
-    scale(P,x == 0 || L.x == 0 ? 1 : s*x/L.x,1,1);
+    P.scale(x == 0 || L.x == 0 ? 1 : s*x/L.x,1,1);
   }
-  else scale(P,1,1,1);
+  else P.scale(1,1,1);
 }
   
 // Routines for hidden surface removal (via binary space partition):
