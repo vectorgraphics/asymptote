@@ -1161,8 +1161,6 @@ void dot(picture pic=currentpicture, pair z, pen p=currentpen,
         filltype filltype=Fill);
 void dot(picture pic=currentpicture, pair[] z, pen p=currentpen
         filltype filltype=Fill);
-void dot(picture pic=currentpicture, pair[] x, pair[] y, pen p=currentpen
-        filltype filltype=Fill);
 void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
          string format=defaultformat, pen p=currentpen, filltype filltype=Fill);
 void dot(picture pic=currentpicture, Label L, pen p=currentpen
@@ -4819,6 +4817,10 @@ write();
 write(f/n);
 @end verbatim
 
+@cindex @code{solve}
+@item real dot(real[] a, real[] b)
+returns the dot product of the vectors @code{a} and @code{b}.
+
 @anchor{tridiagonal}
 @cindex @code{tridiagonal}
 @item real[] tridiagonal(real[] a, real[] b, real[] c, real[] f);
@@ -6881,7 +6883,7 @@ as illustrated in the following example:
 This module fully extends the notion of guides and paths in @code{Asymptote}
 to three dimensions, introducing the new types @code{guide3} and @code{path3}.
 Guides in three dimensions are specified with the same syntax as in two
-dimensions but with triples @code{(x,y,z)} in place of pairs @code{(x,y)} for
+dimensions but using triples @code{(x,y,z)} in place of pairs @code{(x,y)} for
 the nodes and direction specifiers.  This generalization of John Hobby's spline
 algorithm is shape-invariant under three-dimensional rotation, scaling, and
 shifting, and reduces in the planar case to the two-dimensional algorithm used
@@ -6897,16 +6899,26 @@ and then distorted into a saddle:
 @image{saddle}
 @noindent
 
+@cindex @code{O}
+@cindex @code{X}
+@cindex @code{Y}
+@cindex @code{Z}
+@cindex @code{unitcircle}
+For convenience, the @code{three} module defines @code{O=(0,0,0)},
+@code{X=(1,0,0)}, @code{Y=(0,1,0)}, and @code{Z=(0,0,1)}, along with a
+unitcircle in the XY plane:
+@verbatim
+path3 unitcircle3=X..Y..-X..-Y..cycle;
+@end verbatim
 
-Here @code{O} is the triple @code{(0,0,0)} and @code{X},
-@code{Y}, and @code{Z} are the triples @code{(1,0,0)},
-@code{(0,1,0)}, and @code{(0,0,1)}, respectively.
-A general circle can be drawn perpendicular to the direction
+@cindex @code{circle}
+A general (approximate) circle can be drawn perpendicular to the direction
 @code{normal} with the routine
 @verbatim
 path3 circle(triple c, real r, triple normal=Z);
 @end verbatim
 
+@cindex @code{arc}
 A circular arc centered at @code{c} with radius @code{r} from
 @code{c+r*dir(theta1,phi1)} to @code{c+r*dir(theta2,phi2)},
 drawing counterclockwise relative to the normal vector
@@ -6931,18 +6943,21 @@ When high accuracy is needed, the routines @code{Circle} and
 @code{Arc} defined in @code{graph3} may be used instead.
 See @ref{GaussianSurface} for an example of a three-dimensional circular arc.
 
-A representation of the plane passing through point O with normal cross(u,v)
-is given by
+@cindex @code{plane}
+A representation of the plane passing through point @code{O} with normal
+@code{cross(u,v)} is given by
 @verbatim
 path3 plane(triple u, triple v, triple O=O);
 @end verbatim
 A three-dimensional box with opposite vertices at triples @code{v1}
 and @code{v2} may be drawn with the function
+@cindex @code{box}
 @verbatim
 path3[] box(triple v1, triple v2);
 @end verbatim
 @noindent
 For example, a unit cube is predefined as
+@cindex @code{unitcube}
 @verbatim
 path3[] unitcube=box((0,0,0),(1,1,1));
 @end verbatim
@@ -7013,6 +7028,14 @@ through @code{point}:
 @verbatim
 triple invert(pair z, triple normal, triple point,
               projection P=currentprojection);
+@end verbatim
+
+@cindex @code{transform}
+To project a Label onto the plane passing through point @code{O} with
+normal @code{cross(u,v)} use the function
+@verbatim
+transform transform(triple u, triple v, triple O=O,
+		    projection P=currentprojection);
 @end verbatim
 
 @cindex @code{transform}
@@ -7804,7 +7827,7 @@ g.label("\"$O$\", (0,0), SW")
 In the event that adjustments to the final figure are required, the
 preliminary Graphical User Interface (@acronym{GUI}) @code{xasy} included with
 @code{Asymptote} allows you to move graphical objects and draw new ones.
-The modified figure can then be saved as an normal @code{Asymptote} file.
+The modified figure can then be saved as a normal @code{Asymptote} file.
 
 @menu
 * GUI Installation::            Installing @code{xasy}

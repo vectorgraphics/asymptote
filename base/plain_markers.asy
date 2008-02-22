@@ -268,13 +268,6 @@ void dot(picture pic=currentpicture, pair[] z, pen p=currentpen,
   for(int i=0; i < z.length; ++i) dot(pic,z[i],p,filltype);
 }
 
-void dot(picture pic=currentpicture, real[] x, real[] y, pen p=currentpen,
-	 filltype filltype=Fill)
-{
-  if(x.length != y.length) abort("arrays have different lengths");
-  for(int i=0; i < x.length; ++i) dot(pic,(x[i],y[i]),p,filltype);
-}
-
 void dot(picture pic=currentpicture, explicit path g, pen p=currentpen,
 	 filltype filltype=Fill)
 {

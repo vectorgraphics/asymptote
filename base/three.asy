@@ -1803,11 +1803,26 @@ void label(picture pic=currentpicture, Label L, pair position,
 
 // Transform for projecting onto plane through point O with normal cross(u,v).
 transform transform(triple u, triple v, triple O=O,
-		    projection P=currentprojection) {
-  pair o=project(O,P);
-  pair U=project(O+unit(u),P)-o;
-  pair V=project(O+unit(v),P)-o;
-  return (0,0,U.x,V.x,U.y,V.y);
+		    projection P=currentprojection)
+{
+  transform3 t=P.project;
+  real[] tO=t*(real[]) O;
+  real[] x=new real[4];
+  real[] y=new real[4];
+  real[] t3=t[3];
+  real tO3=tO[3];
+  real factor=1.0/tO3^2;
+  for(int i=0; i < 3; ++i) {
+    x[i]=(tO3*t[0][i]-tO[0]*t3[i])*factor;
+    y[i]=(tO3*t[1][i]-tO[1]*t3[i])*factor;
+  }
+  x[3]=1;
+  y[3]=1;
+  triple x=(triple) x;
+  triple y=(triple) y;
+  u=unit(u);
+  v=unit(v);
+  return (0,0,dot(u,x),dot(v,x),dot(u,y),dot(v,y));
 }
 
 // Project Label onto plane through point O with normal cross(u,v).

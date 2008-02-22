@@ -3912,6 +3912,16 @@ realarray *Operator *(realarray2 *a, realarray *b)
   return c;
 }
 
+// Compute the dot product of vectors a and b.
+real dot(realarray *a, realarray *b) 
+{
+  size_t n=checkArrays(a,b);
+  real sum=0.0;
+  for(size_t i=0; i < n; ++i)
+    sum += read<real>(a,i)*read<real>(b,i);
+  return sum;
+}
+
 // Multiply a by diagonal(b).
 realarray2 *multdiagonal(realarray2 *a, realarray *b)
 {
