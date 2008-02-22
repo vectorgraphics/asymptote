@@ -1168,7 +1168,7 @@ void dot(picture pic=currentpicture, Label L, pen p=currentpen
 @end verbatim
 
 @cindex @code{Label}
-The third routine draws a dot at every point of a pair array @code{z}.
+The second routine draws a dot at every point of a pair array @code{z}.
 If the special variable @code{Label} is given as the @code{Label}
 argument to the fourth routine, the @code{format} argument will be
 used to format a string based on the dot location (here @code{defaultformat}
@@ -4800,6 +4800,11 @@ For built-in ordered types @code{T}, and arrays @code{a} and @code{b}
 of the same length, returns an array composed of the maximum of the
 corresponding elements of @code{a} and @code{b}.
 
+@cindex @code{pairs}
+@item pair[] pairs(real[] x, real[] y);
+For arrays @code{x} and @code{y} of the same length, returns the pair array
+@code{sequence(new pair(int i) @{return (x[i],y[i]);@},x.length)}.
+
 @cindex @code{fft}
 @item pair[] fft(pair[] a, int sign=1)
 returns the Fast Fourier Transform of @code{a} (if the optional
@@ -7083,13 +7088,14 @@ reflects about the plane through @code{u}, @code{v}, and @code{w}.
 @cindex @code{subpath}
 @cindex @code{intersect}
 @cindex @code{intersectpoint}
+@cindex @code{intersectpoints}
 @cindex @code{min}
 @cindex @code{max}
 @cindex @code{cyclic}
 @cindex @code{straight}
-@cindex @code{inside}
 Three-dimensional versions of the path functions @code{length},
-@code{size}, @code{point}, @code{dir}, @code{precontrol}, @code{postcontrol}, @code{arclength}, @code{arctime}, @code{reverse}, @code{subpath},
+@code{size}, @code{point}, @code{dir}, @code{precontrol}, @code{postcontrol},
+@code{arclength}, @code{arctime}, @code{reverse}, @code{subpath},
 @code{intersect}, @code{intersections}, @code{intersectionpoint},
 @code{intersectionpoints}, @code{min}, @code{max}, @code{cyclic}, and
 @code{straight} are also defined in the module @code{three}.

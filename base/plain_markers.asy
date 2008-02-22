@@ -239,6 +239,12 @@ frame legend(picture pic=currentpicture, int perline=1,
   return F;
 }
 
+pair[] pairs(real[] x, real[] y)
+{
+  if(x.length != y.length) abort("arrays have different lengths");
+  return sequence(new pair(int i) {return (x[i],y[i]);},x.length);
+}
+
 void dot(frame f, pair z, pen p=currentpen, filltype filltype=Fill)
 {
   if(filltype == Fill)

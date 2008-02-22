@@ -2293,6 +2293,13 @@ void draw(picture pic=currentpicture, path3[] g, pen p=currentpen)
   draw(pic,(path[]) g,p);
 }
 
+triple[] triples(real[] x, real[] y, real[] z)
+{
+  if(x.length != y.length || x.length != z.length)
+    abort("arrays have different lengths");
+  return sequence(new triple(int i) {return (x[i],y[i],z[i]);},x.length);
+}
+
 void dot(picture pic=currentpicture, explicit path3 g, pen p=currentpen,
 	 filltype filltype=Fill)
 {
