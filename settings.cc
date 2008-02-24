@@ -1065,7 +1065,7 @@ string outname() {
 
 void initDir() {
   initdir=Getenv(HOME,msdos)+"/."+suffix;
-  mkdir(initdir.c_str(),0xFFFF);
+  mkdir(initdir.c_str(),0777);
 }
   
 void setPath() {
