@@ -7040,7 +7040,7 @@ To project a Label onto the plane passing through point @code{O} with
 normal @code{cross(u,v)} use the function
 @verbatim
 transform transform(triple u, triple v, triple O=O,
-		    projection P=currentprojection);
+                    projection P=currentprojection);
 @end verbatim
 
 @cindex @code{transform}
@@ -7087,8 +7087,8 @@ reflects about the plane through @code{u}, @code{v}, and @code{w}.
 @cindex @code{reverse}
 @cindex @code{subpath}
 @cindex @code{intersect}
-@cindex @code{intersectpoint}
-@cindex @code{intersectpoints}
+@cindex @code{intersectionpoint}
+@cindex @code{intersectionpoints}
 @cindex @code{min}
 @cindex @code{max}
 @cindex @code{cyclic}
@@ -7564,7 +7564,8 @@ To draw a slope field for the differential equation @math{dy/dx=f(x,y)} (or
 @verbatim
 picture slopefield(real f(real,real), pair a, pair b,
                    int nx=nmesh, int ny=nx, 
-                   real tickfactor=0.5, pen p=currentpen);
+                   real tickfactor=0.5, pen p=currentpen,
+                   arrowbar arrow=None);
 @end verbatim
 @noindent
 Here, the points @code{a} and @code{b} are the lower left and upper
@@ -7577,15 +7578,18 @@ The return value is a picture that can be added to
 @code{currentpicture} via the @code{add(picture)} command.
 
 The function
+@cindex @code{curve}
 @verbatim
 path curve(pair c, real f(real,real), pair a, pair b);
 @end verbatim
 @noindent
 takes a point (@code{c}) and a slope field-defining function @code{f}
-(@code{real f(real)} is also accepted), and returns, as a path, the
-curve passing through that point. The points @code{a} and @code{b}
-represent the rectangular boundaries over which the curve is interpolated.
-Here is an example of a slope field:
+and returns, as a path, the curve passing through that point. The points
+@code{a} and @code{b} represent the rectangular boundaries over which
+the curve is interpolated. 
+
+Both @code{slopefield} and @code{curve} alternatively accept a function
+@code{real f(real)} that depends on @math{x} only, as seen in this example:
 
 @verbatiminclude slopefield1.asy
 @image{slopefield1}
@@ -8202,7 +8206,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  nodeps Ghostgum beginlabel endlabel pTick ptick loggrid SAS dy
 @c  LocalWords:  currentprojection latticeshading subpictures colinear unitcube
 @c  LocalWords:  Autoscaling solveQuadratic MidArrow MidArcArrow Prebuilt url
-@c  LocalWords:  pdftex comment getstring getstringprefix getreal defaultS
+@c  LocalWords:  pdftex comment getstring getstringprefix getreal defaultS hsv
 @c  LocalWords:  ticklocate autoscaleT autoscaling vectorfield autolimits dvi
 @c  LocalWords:  zlimits inline dvipdf hyperdvi autoconf gui zerowindingoverlap
 @c  LocalWords:  prepended intMax quadraticroots cubicroots filltype prepend dx
@@ -8259,4 +8263,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  atLeast intMin globalwrite quarticroots deconsruct substrings
 @c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt DefaultHead
 @c  LocalWords:  SimpleHead HookHead TeXHead multipage nurbs inlinemovie dxmax
-@c  LocalWords:  simpson
+@c  LocalWords:  simpson NoBox

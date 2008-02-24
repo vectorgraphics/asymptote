@@ -3,7 +3,7 @@ real stepfraction=0.05;
 
 picture slopefield(real f(real,real), pair a, pair b,
                    int nx=nmesh, int ny=nx,
-                   real tickfactor=0.5, pen p=currentpen)
+                   real tickfactor=0.5, pen p=currentpen, arrowbar arrow=None)
 {
   picture pic;
   real dx=(b.x-a.x)/nx;
@@ -16,7 +16,7 @@ picture slopefield(real f(real,real), pair a, pair b,
       pair cp=(x,a.y+j*dy);
       real slope=f(cp.x,cp.y);
       real mp=step/sqrt(1+slope^2);
-      draw(pic,(cp.x-mp,cp.y-mp*slope)--(cp.x+mp,cp.y+mp*slope),p); 
+      draw(pic,(cp.x-mp,cp.y-mp*slope)--(cp.x+mp,cp.y+mp*slope),p,arrow); 
     }
   }
   clip(pic,box(a,b));
@@ -24,9 +24,10 @@ picture slopefield(real f(real,real), pair a, pair b,
 }
 
 picture slopefield(real f(real), pair a, pair b,
-                   int nx=nmesh, int ny=nx, pen p=currentpen)
+                   int nx=nmesh, int ny=nx, pen p=currentpen,
+		   arrowbar arrow=None)
 {
-  return slopefield(new real(real x, real y) {return f(x);},a,b,nx,ny,p);
+  return slopefield(new real(real x, real y) {return f(x);},a,b,nx,ny,p,arrow);
 }
 
 path curve(pair c, real f(real,real), pair a, pair b) 
