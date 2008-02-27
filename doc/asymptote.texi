@@ -2475,8 +2475,7 @@ write(q.h,q.s,q.v); // 180     0.5     0.75
 @end verbatim
 
 @item Line types are specified with the function 
-@code{pen linetype(string s, real offset=0, bool scale=true,
- bool adjust=true)},
+@code{pen linetype(string s, real offset=0, bool scale=true, bool adjust=true)},
 @cindex @code{solid}
 @cindex @code{dashed}
 @cindex @code{dotted}
