@@ -43,7 +43,7 @@
 ;;
 ;; See also paragraph II of the documentation below to automate asy-insinuate-latex.
 
-(defvar asy-mode-version "1.2")
+(defvar asy-mode-version "1.3")
 
 ;;;###autoload
 (define-derived-mode asy-mode objc-mode "Asymptote"
