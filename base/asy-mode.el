@@ -1330,14 +1330,31 @@ returned by `asy-log-filename'.
 In this case command is running in an inferior shell without any output and
 the parameter auto-close is not used (see `asy-internal-shell')."
   (setq asy-last-compilation-code -1)
-  (let* ((compilation-buffer-name-function
-          (lambda (mj) "*asy-compilation*")))
+  (let* ((compilation-buffer-name "*asy-compilation*")
+         (compilation-buffer-name-function (lambda (mj) compilation-buffer-name)))
     (if (or stderr (eq asy-compilation-buffer 'never))
         (progn
           (asy-internal-shell command pass)
           (asy-error-message t))
       (progn
-        (let ((view-inhibit-help-message t))(write-region "" 0 (asy-log-filename) nil))
+        (let ((comp-proc (get-buffer-process compilation-buffer-name)))
+          (if comp-proc
+              (if (or (not (eq (process-status comp-proc) 'run))
+                      (y-or-n-p "An Asymptote process is running; kill it? "))
+                  (condition-case ()
+                      (progn
+                        (interrupt-process comp-proc)
+                        (sit-for 1)
+                        (delete-process comp-proc)
+                        (when (and asy-compilation-auto-close
+                                   (eq asy-compilation-buffer 'none)
+                                   (not (eq asy-compilation-buffer 'visible)))
+                          (sit-for 0.6)))
+                    (error ""))
+                (error "Cannot have two processes in `%s' at once"
+                       (buffer-name)))))
+        (let ((view-inhibit-help-message t))
+          (write-region "" 0 (asy-log-filename) nil))
         (compile command))
       (asy-compilation-wait pass auto-close))))
 
