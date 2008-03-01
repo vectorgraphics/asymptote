@@ -6719,7 +6719,7 @@ least-squares fit, using the @code{stats} module.
 @item To draw a vector field along a path, first define a routine
 that returns a path as a function of a relative position parameter
 from [0,1] and use
-@cindex @code{vector field}
+@cindex @code{vectorfield}
 @verbatim
 typedef path vector(real);
 
@@ -7240,31 +7240,35 @@ One can also place ticks along a general three-dimensional axis:
 Surface plots of matrices and functions over the region
 @code{box(a,b)} in the @math{XY} plane are also implemented: 
 @verbatim
-picture surface(real[][] f, pair a, pair b, bool outward=false,
+picture surface(real[][] f, pair a, pair b, bool[][] cond={}, 
+                bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
-picture surface(triple[][] f, bool outward=false,
+picture surface(triple[][] f, bool[][] cond={}, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 picture surface(real f(pair z), pair a, pair b, int nx=nmesh,
-                int ny=nx, bool outward=false,
+                int ny=nx, bool cond(pair z)=null, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 picture surface(real f(pair z), int nsub, pair a, pair b, int nx=nmesh,
-                int ny=nx, bool outward=false,
+                int ny=nx, bool cond(pair z)=null, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 @end verbatim
 @noindent
+The boolean array or function @code{cond} can be used to control which
+surface mesh cells are actually drawn (by default all mesh cells over
+@code{box(a,b)} are drawn).
 A parametric surface for a function @math{f(u,v)} over the parameter
 space @code{box(a,b)} may be drawn with
 @verbatim
 picture surface(triple f(pair z), pair a, pair b, int nu=nmesh,
-                int nv=nu, bool outward=false,
+                int nv=nu, bool cond(pair z)=null, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 picture surface(triple f(pair z), int nsub, pair a, pair b, int nu=nmesh,
-                int nv=nu, bool outward=false,
+                int nv=nu, bool cond(pair z)=null, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 @end verbatim

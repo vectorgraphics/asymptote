@@ -464,7 +464,7 @@ path3[] segment(triple[] v, bool[] b, interpolate3 join=operator --)
 }
 
 // draw the surface described by a matrix f, respecting lighting
-picture surface(triple[][] f, bool outward=false,
+picture surface(triple[][] f, bool[][] cond={}, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
@@ -509,10 +509,13 @@ picture surface(triple[][] f, bool outward=false,
     if(meshpen != nullpen) draw(pic,g,meshpen);
   }
   
+  bool all=cond.length == 0;
+
   if(surfacepen == nullpen) {
     for(int i=0; i < nx; ++i)
       for(int j=0; j < ny; ++j)
-        drawcell(i,j);
+	if(all || cond[i][j])
+	  drawcell(i,j);
   } else {
     // Sort cells by distance from camera
     triple camera=P.camera;
@@ -522,8 +525,10 @@ picture surface(triple[][] f, bool outward=false,
     real[][] depth;
     for(int i=0; i < nx; ++i) {
       for(int j=0; j < ny; ++j) {
-        real d=abs(camera-0.25(f[i][j]+f[i][j+1]+f[i+1][j]+f[i+1][j+1]));
-        depth.push(new real[] {d,i,j});
+	if(all || cond[i][j]) {
+	  real d=abs(camera-0.25(f[i][j]+f[i][j+1]+f[i+1][j]+f[i+1][j+1]));
+	  depth.push(new real[] {d,i,j});
+	}
       }
     }
 
@@ -540,7 +545,8 @@ picture surface(triple[][] f, bool outward=false,
 }
 
 // draw the surface described by a real matrix f, respecting lighting
-picture surface(real[][] f, pair a, pair b, bool outward=false,
+picture surface(real[][] f, pair a, pair b, bool[][] cond={},
+		bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
@@ -559,33 +565,54 @@ picture surface(real[][] f, pair a, pair b, bool outward=false,
       v[i][j]=(x,interp(a.y,b.y,j/ny),f[i][j]);
     }
   }
-  return surface(v,outward,surfacepen,meshpen,light,P);
+  return surface(v,cond,outward,surfacepen,meshpen,light,P);
 }
 
 // draw the surface described by a parametric function f over box(a,b),
 // respecting lighting.
 picture surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
-                bool outward=false,
+                bool cond(pair z)=null, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
   if(nu <= 0 || nv <= 0) return new picture;
   triple[][] v=new triple[nu+1][nv+1];
+  bool[][] active;
 
-  real ustep=1/nu;
-  real vstep=1/nv;
+  bool all=cond == null;
+  if(!all) active=new bool[nu+1][nv+1];
+
+  real du=1/nu;
+  real dv=1/nv;
+  pair Idv=(0,dv);
+  pair dz=(du,dv);
   for(int i=0; i <= nu; ++i) {
-    real x=interp(a.x,b.x,i*ustep);
-    for(int j=0; j <= nv; ++j)
-      v[i][j]=f((x,interp(a.y,b.y,j*vstep)));
+    real x=interp(a.x,b.x,i*du);
+    for(int j=0; j <= nv; ++j) {
+      pair z=(x,interp(a.y,b.y,j*dv));
+      v[i][j]=f(z);
+      if(!all) active[i][j]=cond(z) || cond(z+du) || cond(z+Idv) || cond(z+dz);
+    }
   }
-  return surface(v,outward,surfacepen,meshpen,light,P);
+  return surface(v,active,outward,surfacepen,meshpen,light,P);
+}
+
+// draw the surface described by a real function f over box(a,b),
+// respecting lighting.
+picture surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
+                bool cond(pair z)=null, bool outward=false,
+                pen surfacepen=lightgray, pen meshpen=nullpen,
+                light light=currentlight, projection P=currentprojection)
+{
+  return surface(new triple(pair z) {return (z.x,z.y,f(z));},a,b,nx,ny,
+                 cond,outward,surfacepen,meshpen,light,P);
 }
 
 // draw the surface described by a parametric function f over box(a,b),
 // subsampled nsub times, respecting lighting.
 picture surface(triple f(pair z), int nsub, pair a, pair b,
-                int nu=nmesh, int nv=nu, bool outward=false,
+		int nu=nmesh, int nv=nu,
+		bool cond(pair z)=null, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
@@ -622,10 +649,19 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
     if(meshpen != nullpen) draw(pic,g,meshpen);
   }
   
+  bool all=cond == null;
+
+  bool active(int i, int j) {
+    return all ||
+      cond(sample(i,j)) || cond(sample(i,j+1)) ||
+      cond(sample(i+1,j)) || cond(sample(i+1,j+1));
+  }
+  
   if(surfacepen == nullpen) {
     for(int i=0; i < nu; ++i)
       for(int j=0; j < nv; ++j)
-        draw(pic,project(cell(i,j),P),meshpen);
+	if(active(i,j))
+	  draw(pic,project(cell(i,j),P),meshpen);
   } else {
     // Sort cells by distance from camera
     triple camera=P.camera;
@@ -633,16 +669,19 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
       real r=0;
       for(int i=0; i <= nu; ++i)
         for(int j=0; j <= nv; ++j)
-          r=max(r,abs(f(sample(i,j))));
+	  if(active(i,j))
+	    r=max(r,abs(f(sample(i,j))));
       camera *= r;
     }
 
     real[][] depth;
     for(int i=0; i < nu; ++i) {
       for(int j=0; j < nv; ++j) {
-        real d=abs(camera-0.25*(f(sample(i,j))+f(sample(i,j+1))+
-                                f(sample(i+1,j))+f(sample(i+1,j+1))));
-        depth.push(new real[] {d,i,j});
+	if(active(i,j)) {
+	  real d=abs(camera-0.25*(f(sample(i,j))+f(sample(i,j+1))+
+				  f(sample(i+1,j))+f(sample(i+1,j+1))));
+	  depth.push(new real[] {d,i,j});
+	}
       }
     }
 
@@ -658,25 +697,15 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
 }
 
 // draw the surface described by a real function f over box(a,b),
-// respecting lighting.
-picture surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
-                bool outward=false,
-                pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection)
-{
-  return surface(new triple(pair z) {return (z.x,z.y,f(z));},a,b,nx,ny,
-                 outward,surfacepen,meshpen,light,P);
-}
-
-// draw the surface described by a real function f over box(a,b),
 // subsampled nsub times, respecting lighting.
 picture surface(real f(pair z), int nsub, pair a, pair b, 
-                int nx=nmesh, int ny=nx, bool outward=false,
+                int nx=nmesh, int ny=nx, bool cond(pair z)=null,
+		bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
   return surface(new triple(pair z) {return (z.x,z.y,f(z));},nsub,a,b,nx,ny,
-                 outward,surfacepen,meshpen,light,P);
+                 cond,outward,surfacepen,meshpen,light,P);
 }
 
 guide3[][] lift(real f(real x, real y), guide[][] g,
