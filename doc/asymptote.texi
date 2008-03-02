@@ -4875,7 +4875,7 @@ returns an @math{n \times n} identity matrix.
 
 @cindex @code{inverse}
 @item real[][] inverse(real[][] a)
-returns the inverse of an @math{n \times n} matrix @code{a}.
+returns the inverse of a square matrix @code{a}.
 
 @cindex @code{multdiagonal}
 @item real[][] multdiagonal(real[][] a, real[] b)
@@ -6716,20 +6716,27 @@ least-squares fit, using the @code{stats} module.
 @verbatiminclude generalaxis.asy
 @image{generalaxis}
 
-@item To draw a vector field along a path, first define a routine
-that returns a path as a function of a relative position parameter
-from [0,1] and use
+@item To draw a vector field of @code{n} arrows evenly spaced along the arclength of a path, use the routine
 @cindex @code{vectorfield}
 @verbatim
-typedef path vector(real);
-
-void vectorfield(picture pic=currentpicture, path g, int n, 
-                 vector vector, real arrowsize=0, real arrowlength=0,
-                 pen p=currentpen);
+picture vectorfield(path vector(real), path g, int n, bool truesize=false,
+                    pen p=currentpen, arrowbar arrow=Arrow);
 @end verbatim
-Here is a simple example of a flow field:
+as illustrated in this simple example of a flow field:
 @verbatiminclude flow.asy
 @image{flow}
+
+@item To draw a vector field of @code{nx}@math{\times}@code{ny} arrows in @code{box(a,b)}, use the routine
+@cindex @code{vectorfield}
+@verbatim
+picture vectorfield(path vector(pair), pair a, pair b,
+                    int nx=nmesh, int ny=nx, 
+                    bool autoscale=true, bool truesize=false,
+                    pen p=currentpen, arrowbar arrow=Arrow);
+@end verbatim
+as illustrated in this example:
+@verbatiminclude vectorfield.asy
+@image{vectorfield}
 
 @item The following scientific graphs, which illustrate many features of
 @code{Asymptote}'s graphics routines, were generated from the examples
@@ -8266,4 +8273,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  atLeast intMin globalwrite quarticroots deconsruct substrings
 @c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt DefaultHead
 @c  LocalWords:  SimpleHead HookHead TeXHead multipage nurbs inlinemovie dxmax
-@c  LocalWords:  simpson NoBox
+@c  LocalWords:  simpson NoBox truesize autoscale

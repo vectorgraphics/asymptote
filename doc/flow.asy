@@ -6,6 +6,8 @@ size(0,150,IgnoreAspect);
 real arrowsize=4mm;
 real arrowlength=2arrowsize;
 
+typedef path vector(real);
+
 // Return a vector interpolated linearly between a and b.
 vector vector(pair a, pair b) {
   return new path(real x) {
@@ -13,18 +15,17 @@ vector vector(pair a, pair b) {
   };
 }
 
-real alpha=1;
-real f(real x) {return alpha/x;}
+real f(real x) {return 1/x;}
 
 real epsilon=0.5;
-path p=graph(f,epsilon,1/epsilon);
+path g=graph(f,epsilon,1/epsilon);
 
-int n=2;
-draw(p);
+int n=3;
+draw(g);
 xaxis("$x$");
 yaxis("$y$");
 
-vectorfield(p,n,vector(W,W),arrowsize);
-vectorfield((0,0)--(point(E).x,0),n,vector(NE,NW),arrowsize);
-vectorfield((0,0)--(0,point(N).y),n,vector(NE,NE),arrowsize);
+add(vectorfield(vector(W,W),g,n,true));
+add(vectorfield(vector(NE,NW),(0,0)--(point(E).x,0),n,true));
+add(vectorfield(vector(NE,NE),(0,0)--(0,point(N).y),n,true));
 

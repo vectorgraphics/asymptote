@@ -776,6 +776,41 @@ guide3 polargraph(real r(real,real), real theta(real), real phi(real),
     },0,1,n);
 }
 
+picture vectorfield(path3 vector(pair z), triple f(pair z),
+		    pair a, pair b, int nx=nmesh, int ny=nx,
+		    bool autoscale=true,
+		    pen p=currentpen, arrowbar arrow=Arrow,
+		    projection P=currentprojection)
+{
+  picture pic;
+  real dx=1/nx;
+  real dy=1/ny;
+  real scale;
+  if(autoscale) {
+    real size(pair z) {
+      path3 g=vector(z);
+      return abs(point(g,size(g)-1)-point(g,0));
+    }
+    real max=size((0,0));
+    for(int i=0; i <= nx; ++i) {
+      real x=interp(a.x,b.x,i*dx);
+      for(int j=0; j <= ny; ++j)
+	max=max(max,size((x,interp(a.y,b.y,j*dy))));
+    }
+    pair lambda=(abs(f((b.x,a.y))-f(a)),abs(f((a.x,b.y))-f(a)));
+    scale=min(lambda.x/nx,lambda.y/ny)/max;
+  } else scale=1;
+  for(int i=0; i <= nx; ++i) {
+    real x=interp(a.x,b.x,i*dx);
+    for(int j=0; j <= ny; ++j) {
+      real y=interp(a.y,b.y,j*dy);
+      pair z=(x,y);
+      draw(pic,project(shift(f(z))*scale3(scale)*vector(z),P),p,arrow);
+    }
+  }
+  return pic;
+}
+
 // True arc
 path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
           triple normal=Z, int n=400)
