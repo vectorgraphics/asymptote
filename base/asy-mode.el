@@ -1244,8 +1244,7 @@ when no error or warning occurs."
     (when (and asy-compilation-auto-close
                (eq asy-compilation-buffer 'none))
       (setq asy-compilation-auto-close nil)
-      (if (string-match "exited abnormally" msg)
-          (message "Compilation errors, press C-x ` or  F4 to visit.")
+      (if (not (string-match "exited abnormally" msg))
         (progn
           (save-excursion
             (set-buffer buf)
@@ -1339,20 +1338,17 @@ the parameter auto-close is not used (see `asy-internal-shell')."
       (progn
         (let ((comp-proc (get-buffer-process compilation-buffer-name)))
           (if comp-proc
-              (if (or (not (eq (process-status comp-proc) 'run))
-                      (y-or-n-p "An Asymptote process is running; kill it? "))
-                  (condition-case ()
-                      (progn
-                        (interrupt-process comp-proc)
-                        (sit-for 1)
-                        (delete-process comp-proc)
-                        (when (and asy-compilation-auto-close
-                                   (eq asy-compilation-buffer 'none)
-                                   (not (eq asy-compilation-buffer 'visible)))
-                          (sit-for 0.6)))
-                    (error ""))
-                (error "Cannot have two processes in `%s' at once"
-                       (buffer-name)))))
+	      (condition-case ()
+		  (progn
+		    (interrupt-process comp-proc)
+		    (sit-for 1)
+		    (delete-process comp-proc)
+		    (when (and asy-compilation-auto-close
+			       (eq asy-compilation-buffer 'none)
+			       (not (eq asy-compilation-buffer 'visible)))
+		      (sit-for 0.6)))
+		(error ""))
+	    ))
         (let ((view-inhibit-help-message t))
           (write-region "" 0 (asy-log-filename) nil))
         (compile command))
