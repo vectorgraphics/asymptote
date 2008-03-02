@@ -10,7 +10,5 @@ for(int i=0; i < n; ++i)
   for(int j=0; j < n; ++j)
     v[i][j]=rgb(0.5*(1+sin(i*ninv)),0.5*(1+cos(j*ninv)),0);
 
-picture bar;
-
 image(v,(0,0),(1,1));
 
