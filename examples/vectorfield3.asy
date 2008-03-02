@@ -9,7 +9,7 @@ real f(pair z) {return abs(z)^2;}
 
 path3 gradient(pair z) {
   static real dx=sqrt(realEpsilon), dy=dx;
-  return O--((f(z+dx)-f(z-dx))/dx,(f(z+I*dy)-f(z-I*dy))/dy,0);
+  return O--((f(z+dx)-f(z-dx))/2dx,(f(z+I*dy)-f(z-I*dy))/2dy,0);
 }
 
 bbox3 b=limits((-1,-1,0),(1,1,2));
