@@ -1,5 +1,4 @@
 import graph3;
-import contour;
 
 size(12cm,0);
 
@@ -25,4 +24,4 @@ triple F(pair z) {return (z.x,z.y,0);}
 
 add(vectorfield(gradient,F,A,B,red));
 
-add(surface(f,A,B,50,lightgray+opacity(0.5)));
+add(surface(f,A,B,50,gray+opacity(0.5)));
