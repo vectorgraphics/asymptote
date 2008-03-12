@@ -763,12 +763,16 @@ class xasyMainWin:
     self.canQuit()
 
   def editUndoCmd(self):
+    if not self.editor == None:
+      return
     if(not self.testOrAcquireLock()):
       return
     self.undoOperation()
     self.releaseLock()
 
   def editRedoCmd(self):
+    if not self.editor == None:
+      return
     if(not self.testOrAcquireLock()):
       return
     self.redoOperation()

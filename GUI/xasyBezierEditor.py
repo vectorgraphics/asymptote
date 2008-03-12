@@ -118,7 +118,6 @@ class xasyBezierEditor:
         self.nodeList.append(node(precontrol,node0,postcontrol,len(self.nodeList)))
     if not isCyclic:
       node0 = self.transform*self.path.nodeSet[-1]
-      print "here"
       precontrol = self.transform*self.path.controlSet[-1][1]
       self.nodeList.append(node(precontrol,node0,None,len(self.nodeList)))
     else:
