@@ -212,7 +212,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       voffset += paperHeight-height-b.bottom-bboxshift.gety();
     
       ostringstream dcmd;
-      dcmd << "'" << getSetting<string>("dvips") << "' -R -Pdownload35"
+      dcmd << "'" << getSetting<string>("dvips") << "' -R -Pdownload35 -D600"
 	   << " -O " << hoffset << "bp," << voffset << "bp"
 	   << " -T " << paperWidth << "bp," << paperHeight << "bp "
            << getSetting<string>("dvipsOptions");
