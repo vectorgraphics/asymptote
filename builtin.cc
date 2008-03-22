@@ -575,6 +575,11 @@ void addArrayOps(venv &ve, types::array *t)
   addFunc(ve, run::arrayAlias,
           primBoolean(), "alias", formal(t, "a"), formal(t, "b"));
 
+  addFunc(ve, run::newDuplicateArray,
+          t, "array", formal(primInt(), "n"),
+                      formal(ct, "value"),
+                      formal(primInt(), "depth", /*optional=*/ true));
+
   switch (t->depth()) {
   case 1:
     addFunc(ve, run::arrayCopy, t, "copy", formal(t, "a"));

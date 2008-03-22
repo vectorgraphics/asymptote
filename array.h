@@ -27,6 +27,8 @@ public:
     : mem::vector<item>(n), cycle(false)
   {}
 
+  array(size_t n, item i, Int depth);
+
   void push(item i)
   {
     push_back(i);
@@ -55,6 +57,8 @@ public:
   bool cyclic() const {
     return cycle;
   }
+
+  array *copyToDepth(Int depth);
 };
 
 template <typename T>
@@ -85,6 +89,18 @@ inline size_t checkArrays(vm::array *a, vm::array *b)
   return asize;
 }
  
+// Tests if an item is actually an array.  This needs to be defined here,
+// after the array type is declared.
+inline bool isarray(const item& it)
+{
+  return *it.kind == typeid(array);
+} 
+
+// Copies an item to a depth d.  If d==0 or if the item is not array, then the
+// item is just returned without copying, otherwise, the array and its
+// subarrays are copied as deeply as possible up to a depth d.
+item copyItemToDepth(item i, Int depth);
+
 } // namespace vm
 
 #endif // ARRAY_H

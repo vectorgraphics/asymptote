@@ -69,6 +69,7 @@ public:
   friend inline T get(const item&);
 
   friend inline bool isdefault(const item&);
+  friend inline bool isarray(const item&);
   
   const std::type_info &type() const
   { return *kind; }

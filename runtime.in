@@ -3167,6 +3167,16 @@ array* :newAppendedArray(array* tail, Int n)
   return a;
 }
 
+// The function T[] array(int n, T value, int depth=0) produces a array of n
+// copies of x, where each copy is copied up to depth.
+array* :newDuplicateArray(Int n, item value, Int depth=Int_MAX)
+{
+  if(n < 0) error("cannot create a negative length array");
+  if(depth < 0) error("cannot copy to a negative depth");
+
+  return new array(n, value, depth);
+}
+
 // Read an element from an array. Checks for initialization & bounds.
 item :arrayRead(array *a, Int n)
 {
