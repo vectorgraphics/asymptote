@@ -627,6 +627,11 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
       } else N=1;
     }
       
+    if(Step != 0 && !locate.S.automin) {
+      tickmin=floor(tickmin/Step)*Step;
+      len=tickmax-tickmin;
+    }
+
     if(calcStep) {
       if(N == 0) N=(int) (len/Step);
       else Step=len/N;
@@ -1449,7 +1454,7 @@ void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
   }
   
   axis(pic,axis);
-  if(axis.extend) put=Above;
+  //  if(axis.extend) put=Above;
   
   if(xmin == -infinity && !axis.extend) {
     if(pic.scale.set && pic.scale.x.automin())
@@ -1509,7 +1514,7 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
   }
   
   axis(pic,axis);
-  if(axis.extend) put=Above;
+  //  if(axis.extend) put=Above;
   
   if(ymin == -infinity && !axis.extend) {
     if(pic.scale.set && pic.scale.y.automin())
