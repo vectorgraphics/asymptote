@@ -46,7 +46,7 @@ real codeskip=0.25;
 pair dateskip=(0,0.1);
 pair urlskip=(0,0.2);
 
-pair titlealign=2S;
+pair titlealign=3S;
 pen titlepen=fontsize(32pt);
 real titleskip=0.5;
 
@@ -65,7 +65,7 @@ pen figuremattpen;
 pen backgroundcolor;
 pen foregroundcolor;
 
-pair titleposition=(-0.8,0.4);
+pair titlepageposition=(-0.8,0.4);
 pair startposition=(-0.8,0.9);
 pair currentposition=startposition;
 
@@ -488,7 +488,7 @@ void titlepage(string title, string author, string institution="",
                string date="", string url="", bool newslide=false)
 {
   newslide();
-  currentposition=titleposition;
+  currentposition=titlepageposition;
   center(title,titlepagepen);
   center(author,authorpen);
   if(institution != "") center(institution,institutionpen);
