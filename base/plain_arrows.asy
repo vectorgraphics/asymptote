@@ -493,12 +493,24 @@ void draw(picture pic=currentpicture, explicit path[] g, pen p=currentpen,
   if(g.length > 0) draw(pic,g[g.length-1],p,legend,marker);
 } 
 
+void draw(picture pic=currentpicture, guide[] g, pen p=currentpen,
+          Label legend="", marker marker=nomarker)
+{
+  draw(pic,(path[]) g,p,legend,marker);
+}
+
 void draw(pair origin, picture pic=currentpicture, explicit path[] g,
           pen p=currentpen, Label legend="", marker marker=nomarker)
 {
   picture opic;
   draw(opic,g,p,legend,marker);
   add(pic,opic,origin);
+}
+
+void draw(pair origin, picture pic=currentpicture, guide[] g, pen p=currentpen,
+          Label legend="", marker marker=nomarker)
+{
+  draw(origin,pic,(path[]) g,p,legend,marker);
 }
 
 // Align an arrow pointing to b from the direction dir. The arrow is
