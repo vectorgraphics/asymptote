@@ -61,7 +61,7 @@ restricted file stdin=input("");
 restricted file stdout=output("");
 
 void none(file file) {}
-void endl(file file) {write(file,'\n'); flush(file);}
+void endl(file file) {write(file,'\n',flush);}
 void tab(file file) {write(file,'\t');}
 void comma(file file) {write(file,',');}
 typedef void suffix(file);
