@@ -1967,7 +1967,11 @@ pauses for the given number of seconds;
 
 @cindex @code{usleep}
 @item void usleep(int microseconds)
-pauses for the given number of microseconds.
+pauses for the given number of microseconds;
+
+@cindex @code{beep}
+@item void beep
+produces a beep on the console;
 
 @end table
 
@@ -3343,6 +3347,7 @@ write(suffix suffix=endl);
 write(file file, suffix suffix=none);
 @end verbatim
 @cindex @code{none}
+@cindex @code{flush}
 @cindex @code{endl}
 @cindex @code{tab}
 @cindex @code{comma}
@@ -3351,10 +3356,10 @@ terminated by default with a newline. If specified, the optional
 identifying string @code{s} is written before the data @code{x}.
 An arbitrary number of data values may be listed when writing scalars
 or one-dimensional arrays. The @code{suffix} may be one of the following:
-@code{none} (do nothing), @code{endl} (terminate with a newline),
+@code{none} (do nothing), @code{flush} (output buffered data),
+@code{endl} (terminate with a newline and flush),
 @code{tab} (terminate with a tab), or @code{comma} (terminate with a
-comma). Here are some simple examples of
-data output:
+comma). Here are some simple examples of data output:
 @verbatim
 file fout=output("test.txt");
 write(fout,1);                  // Writes "1"

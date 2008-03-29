@@ -203,6 +203,10 @@ void asy(string format, bool overwrite=false ... string[] s)
   }
 }
 
+void beep() {
+  write('\7',flush);
+}
+
 struct processtime {
   real user;
   real system;
