@@ -32,6 +32,13 @@ path[] operator cast(pair[] z)
   return g;
 }
 
+path[] operator cast(guide[] g)
+{
+  path[] p=new path[g.length];
+  for(int i=0; i < g.length; ++i) p[i]=g[i];
+  return p;
+}
+
 path[] operator cast(path p)
 {
   return new path[] {p};
