@@ -55,6 +55,11 @@ void draw(frame f, explicit path[] g, pen p=currentpen)
   for(int i=0; i < g.length; ++i) draw(f,g[i],p);
 }
 
+void draw(frame f, guide[] g, pen p=currentpen)
+{
+  for(int i=0; i < g.length; ++i) draw(f,g[i],p);
+}
+
 void fill(frame f, path[] g)
 {
   fill(f,g,currentpen);
