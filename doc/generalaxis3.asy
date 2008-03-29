@@ -10,4 +10,6 @@ axis(Label("C",align=Relative(5E)),G,
          path g=G;
          path h=O--max(abs(max(G)),abs(min(G)))*dir(90,v);
          return intersect(g,h)[0];
-       },perpendicular(G,Z)));
+       },new pair(real t) {
+	 t /= ninterpolate;
+	 return dir(point(G,t),cross(dir(G,t),Z));}));
