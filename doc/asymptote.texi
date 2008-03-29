@@ -4671,6 +4671,7 @@ returns a new array of @code{n} elements of type @code{T[]}.
 These @code{n} array elements are not initialized unless they are arrays
 themselves (in which case they are each initialized to empty arrays).
 
+@cindex @code{array}
 @item T[] array(int n, T value, int depth=intMax)
 returns an array consisting of n copies of value.  By default, if value is
 itself an array, a deep copy of that array is made for each entry in the new
