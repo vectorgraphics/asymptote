@@ -98,6 +98,14 @@ string[] split(string s, string delimiter)
   return S;
 }
 
+real[] operator ecast(string[] a)
+{
+  real[] b=new real[a.length];
+  for(int i=0; i < a.length; ++i)
+    b[i]=(real) a[i];
+  return b;
+}
+
 // Read contents of file as a string.
 string file(string s)
 {
