@@ -5875,14 +5875,14 @@ as described here:
 This module provides an interface to the @code{LaTeX} package
 (included with @code{MikTeX}) 
 @quotation
-@url{http://www.tug.org/tex-archive/macros/latex/contrib/movie15}
+@url{http://www.ctan.org/tex-archive/macros/latex/contrib/movie15}
 @end quotation
 @noindent
 for embedding movies, sounds, and 3D objects into a @acronym{PDF} document.
 The latest version of the @code{movie15} package requires both
 @code{pdflatex} version 1.20 or later and the file
 @quotation
-@url{http://www.tug.org/tex-archive/macros/latex/contrib/oberdiek/ifdraft.dtx}
+@url{http://www.ctan.org/tex-archive/macros/latex/contrib/oberdiek/ifdraft.dtx}
 @end quotation
 @noindent
 which can be installed by placing it in a directory @code{ifdraft} in
@@ -5961,7 +5961,7 @@ defaultpen(font("T2A","cmr"));
 Support for Chinese, Japanese, and Korean fonts is provided by the
 CJK package: 
 @quotation
-@url{http://www.tug.org/tex-archive/languages/chinese/CJK/}
+@url{http://www.ctan.org/tex-archive/languages/chinese/CJK/}
 @end quotation
 @noindent
 The following commands enable the CJK song family (within a label, you
