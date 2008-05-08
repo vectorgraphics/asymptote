@@ -531,7 +531,7 @@ cd asymptote-x.xx
 @end verbatim
 
 @noindent Then put
-@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-7.0.tar.gz}
+@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-7.1.tar.gz}
 in the current directory and
 @verbatim
 ./configure
@@ -670,7 +670,7 @@ svn co https://asymptote.svn.sourceforge.net/svnroot/asymptote/trunk/asymptote
  
 cd asymptote
 ./autogen.sh
-wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-7.0.tar.gz
+wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-7.1.tar.gz
 ./configure
 make all
 make install
@@ -1962,7 +1962,7 @@ file, line number, and @code{s} is printed;
 exits with a zero error return code in batch mode;
 
 @cindex @code{sleep}
-@item void sleep(int microseconds)
+@item void sleep(int seconds)
 pauses for the given number of seconds;
 
 @cindex @code{usleep}
