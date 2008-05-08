@@ -1616,11 +1616,13 @@ void assert(bool b, string s=emptystring)
 
 void sleep(Int seconds)
 {
+  if(seconds <= 0) return;	
   sleep(seconds);
 }
 
 void usleep(Int microseconds)
 {
+  if(microseconds <= 0) return;	
   usleep((unsigned long) microseconds); 
 }
 
