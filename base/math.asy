@@ -134,12 +134,11 @@ triple intersectionpoint(triple n0, triple P0, triple n1, triple P1)
 // Given a real array A, return its partial sums.
 real[] partialsum(real[] A)
 {
-  real[] B=new real[A.length+1];
+  real[] B=new real[A.length];
   real sum=0;
-  B[0]=0;
   for(int i=0; i < A.length; ++i) {
     sum += A[i];
-    B[i+1]=sum;
+    B[i]=sum;
   }
   return B;
 }
@@ -147,12 +146,11 @@ real[] partialsum(real[] A)
 // Given a real array A, return its partial dx-weighted sums.
 real[] partialsum(real[] A, real[] dx)
 {
-  real[] B=new real[A.length+1];
+  real[] B=new real[A.length];
   real sum=0;
-  B[0]=0;
   for(int i=0; i < A.length; ++i) {
     sum += A[i]*dx[i];
-    B[i+1]=sum;
+    B[i]=sum;
   }
   return B;
 }
@@ -457,4 +455,3 @@ pair[] quarticroots(real a, real b, real c, real d, real e)
 
   return roots;
 }
-
