@@ -544,14 +544,14 @@ bbox path::internalbounds(const bbox& padding) const
     pair post=postcontrol(i)-point(i);
     
     // Check node x coordinate
-    if(pre.getx() >= 0.0 ^ post.getx() >= 0) {
+    if((pre.getx() >= 0.0) ^ (post.getx() >= 0)) {
       pair z=point(i);
       box += z+padding.left;
       box += z+padding.right;
     }
 			      
     // Check node y coordinate
-    if(pre.gety() >= 0.0 ^ post.gety() >= 0) {
+    if((pre.gety() >= 0.0) ^ (post.gety() >= 0)) {
       pair z=point(i);
       box += z+pair(0,padding.bottom);
       box += z+pair(0,padding.top);

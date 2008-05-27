@@ -1125,8 +1125,10 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 	if(p == f->nodes.end()) break;
 	assert(*p);
 	if((*p)->begingroup()) ++level;
-	if((*p)->endgroup()) if(level) --level;
+	if((*p)->endgroup()) {
+	  if(level) --level;
 	  else error(nobegin);
+	}
       }
     }
     if(p == f->nodes.end()) break;
@@ -1150,6 +1152,7 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
   string prefix=outname();
   string xformat=getSetting<string>("xformat");
 
+  static long ARG_MAX=sysconf(_SC_ARG_MAX);
   const unsigned maxargs=::min(ARG_MAX/(prefix.size()+xformat.size()+25ul),
 			       256ul);
   
@@ -1215,11 +1218,13 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
 	  if(p == f->nodes.end()) break;
 	  assert(*p);
 	  if((*p)->begingroup()) ++level;
-	  if((*p)->endgroup()) if(level) --level;
+	  if((*p)->endgroup()) {
+	    if(level) --level;
 	    else {
 	      cout << Error << endl;
 	      error(nobegin);
 	    }
+	  }
 	}
       }
       if(p != f->nodes.end()) {

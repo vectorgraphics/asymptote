@@ -10,6 +10,7 @@
 
 #include <sys/types.h>
 #include <iostream>
+#include <cstdlib>
 
 #include "common.h"
 

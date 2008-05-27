@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <cstring>
+#include <algorithm>
 
 #include "util.h"
 #include "settings.h"
@@ -196,7 +197,7 @@ char **args(const char *command)
 void execError(const char *command, const char *hint, const char *application)
 {
     cerr << "Cannot execute " << command << endl;
-    if(application == "") application=hint;
+    if(*application == 0) application=hint;
     if(hint) {
       string s=string(hint);
       transform(s.begin(), s.end(), s.begin(), toupper);        

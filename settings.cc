@@ -13,6 +13,7 @@
 #include <cfloat>
 #include <locale.h>
 #include <unistd.h>
+#include <algorithm>
 
 #include "common.h"
 

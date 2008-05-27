@@ -291,11 +291,11 @@ class venv {
 
   // A hash table used to quickly look up a variable once its name and type are
   // known.  Includes all scopes.
-  typedef mem::hash_map<key, value *, keyhash, keyeq> keymap;
+  typedef mem::unordered_map<key, value *, keyhash, keyeq> keymap;
   keymap all;
 
   // Similar hashes, one for each scope level.
-  typedef mem::hash_multimap<key, value *, keyhash, keyeq> keymultimap;
+  typedef mem::unordered_multimap<key, value *, keyhash, keyeq> keymultimap;
   typedef mem::stack<keymultimap> mapstack;
   mapstack scopes;
 
@@ -303,7 +303,7 @@ class venv {
   // all values of that name.  Used to get the (possibly overloaded) type
   // of the name.
   typedef mem::list<value *> values;
-  typedef mem::hash_map<symbol *, values, namehash, nameeq> namemap;
+  typedef mem::unordered_map<symbol *, values, namehash, nameeq> namemap;
   namemap names;
 
   void listValues(symbol *name, values &vals, record *module);

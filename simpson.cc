@@ -58,7 +58,7 @@ simpson(double& integral,	// Approximate value of the integral.
     area -= diff;
 
     if(p >= pstop) success=false;
-    if(!success || fabs(diff) <= acc*fabs(area) && da <= dxmax) {
+    if(!success || (fabs(diff) <= acc*fabs(area) && da <= dxmax)) {
       // Accept approximate integral.
       // If it was a right interval, add results to finish at this level.
       // If it was a left interval, process right interval.

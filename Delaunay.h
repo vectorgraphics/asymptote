@@ -2,7 +2,7 @@
 #define Delaunay_H
 
 #include <iostream>
-#include <stdlib.h> // for C qsort 
+#include <cstdlib>
 #include <cmath>
 #include <cfloat>
 
