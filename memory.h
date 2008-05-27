@@ -15,7 +15,15 @@
 #include <sstream>
 
 #ifndef NOHASH
+#if __GNUC_PREREQ (4,3)
 #include <tr1/unordered_map>
+#define EXT std::tr1
+#else
+#define EXT __gnu_cxx
+#include <ext/hash_map>
+#define unordered_map hash_map
+#define unordered_multimap hash_multimap
+#endif
 #endif
 
 #ifdef __DECCXX_LIBCXX_RH70
@@ -123,7 +131,6 @@ GC_CONTAINER(multimap);
 #undef GC_CONTAINER
 
 #ifndef NOHASH
-#define EXT std::tr1
 #define GC_CONTAINER(KIND)                                                    \
   template <typename Key, typename T,                                         \
             typename Hash = EXT::hash<Key>,                                   \

@@ -165,7 +165,8 @@ AC_ARG_ENABLE(gc-full-debug,
 AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
 			   [Define if getopt.h is the GNU version]),
 			   getopt="getopt getopt1",)
-AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")
+AC_CHECK_HEADER(tr1/unordered_map,,
+		[AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])
 
 AC_SUBST(getopt)
 AC_SUBST(GCDIR)
