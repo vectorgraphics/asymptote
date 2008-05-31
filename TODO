@@ -13,3 +13,6 @@ John or Andy: Add unit test for AddOps.
 Andy: Fix: void f(int x=blah);
 
 Andy: Clean up processData and preRun
+
+Andy: Investigate adding unicode support for identifiers, using iswalpha, mbtowc
+etc.
