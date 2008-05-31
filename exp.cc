@@ -520,6 +520,22 @@ void arglist::prettyprint(ostream &out, Int indent)
 }
 
 /*****
+  matchCache does not account for changes in casting and so can yield incorrect
+  results.  For that reason, it has been disabled.  An example where it fails
+  is:
+
+      struct A {} struct B {} struct C {}
+
+      void f(B, real) { write("f(B, real)"); }
+      void f(C, int) { write("f(C, int)"); }
+      B operator cast(A) { return new B; }
+
+      f(new A, 3);
+      C operator cast(A) { return new C; }
+      f(new A, 3);  // should write "f(C, int)"
+
+
+
   Global level caching for callExp.
   Consider the code:
 
@@ -767,7 +783,12 @@ application *callExp::getApplication(coenv &e)
     } 
     case ty_overloaded:
       //cerr << "resolving overloaded\n";
+#if 0
+      // matchCache has been disabled; see note above.
       return resolveWithCache(e, (overloaded *)ft, source, false);
+#else
+      return resolve(e, (overloaded *)ft, source, false);
+#endif
     default:
       //cerr << "not a function\n";
       em.error(getPos());
@@ -831,7 +852,12 @@ types::ty *callExp::getType(coenv &e)
     case ty_function:
       return ((function *)ft)->result;
     case ty_overloaded: {
+#if 0
+      // matchCache has been disabled; see note above.
       application *a=resolveWithCache(e, (overloaded *)ft, source, true);
+#else
+      application *a=resolve(e, (overloaded *)ft, source, true);
+#endif
       if (a) {
         // Cache the application to avoid calling multimatch again later.
         ca=a;
