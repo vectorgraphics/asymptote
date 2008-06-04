@@ -104,11 +104,6 @@ public:
     return ve.getType(name);
   }
 
-  void *varGetMarker(symbol *name)
-  {
-    return ve.getMarker(name);
-  }
-
   void addType(symbol *name, tyEntry *desc)
   {
     te.enter(name, desc);

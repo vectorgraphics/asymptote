@@ -96,11 +96,6 @@ types::ty *simpleName::varGetType(coenv &e)
   return e.e.varGetType(id);
 }
 
-void *simpleName::getMarker(coenv &e)
-{
-  return e.e.varGetMarker(id);
-}
-
 types::ty *simpleName::typeTrans(coenv &e, bool tacit)
 {
   types::ty *t = e.e.lookupType(id);

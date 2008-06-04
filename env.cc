@@ -148,10 +148,6 @@ env::env(genv &ge)
 
 env::~env()
 {
-  // Once the file-level venv is destroyed, any cached calls with markers
-  // derived from that venv are meaningless; clear them so they don't keep data
-  // live.
-  absyntax::clearCachedCalls();
 }
 
 record *env::getModule(symbol *id, string filename)
