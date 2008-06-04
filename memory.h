@@ -16,7 +16,7 @@
 
 #ifndef NOHASH
 #ifndef __GNUC_PREREQ
-define __GNUC_PREREQ(maj, min) (0)
+#define __GNUC_PREREQ(maj, min) (0)
 # endif
 #if __GNUC_PREREQ(4,3)
 #include <tr1/unordered_map>
