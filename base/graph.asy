@@ -1093,7 +1093,7 @@ YZero=YZero();
 void axis(picture pic=currentpicture, Label L="", path g, path g2=nullpath,
           pen p=currentpen,
           ticks ticks, ticklocate locate, arrowbar arrow=None,
-          int[] divisor=new int[], bool put=Above, bool opposite=false) 
+          int[] divisor=new int[], bool put=Below, bool opposite=false) 
 {
   Label L=L.copy();
   real t=reltime(g,0.5);
@@ -1454,7 +1454,6 @@ void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
   }
   
   axis(pic,axis);
-  //  if(axis.extend) put=Above;
   
   if(xmin == -infinity && !axis.extend) {
     if(pic.scale.set && pic.scale.x.automin())
@@ -1514,7 +1513,6 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
   }
   
   axis(pic,axis);
-  //  if(axis.extend) put=Above;
   
   if(ymin == -infinity && !axis.extend) {
     if(pic.scale.set && pic.scale.y.automin())

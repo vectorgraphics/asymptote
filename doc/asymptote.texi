@@ -6180,9 +6180,8 @@ end of the axis. An infinite value of @code{xmin}
 or @code{xmax} specifies that the corresponding axis limit will be
 automatically determined from the picture limits. 
 The optional @code{arrow} argument takes the same values as in the
-@code{draw} command (@pxref{arrows}). If @code{put}=@code{Below} and
-the @code{extend} flag for @code{axis} is @code{false}, the axis is
-drawn before any existing objects in the current picture.
+@code{draw} command (@pxref{arrows}). The axis is drawn before any
+existing objects in the current picture unless @code{put}=@code{Above}.
 The axis placement is determined by one of the following @code{axis} types:
 
 @table @code
@@ -6342,9 +6341,8 @@ Label @code{L}. The relative location of the label (a real number from
 or @code{ymax} specifies that the corresponding axis limit will be
 automatically determined from the picture limits. 
 The optional @code{arrow} argument takes the same values as in the
-@code{draw} command (@pxref{arrows}). If @code{put}=@code{Below} and
-the @code{extend} flag for @code{axis} is @code{false}, the axis is
-drawn before any existing objects in the current picture.
+@code{draw} command (@pxref{arrows}). The axis is drawn before any
+existing objects in the current picture unless @code{put}=@code{Above}.
 The tick type is specified by @code{ticks} and the axis placement is
 determined by one of the following @code{axis} types:
 
@@ -6407,11 +6405,11 @@ and any arrows specified by @code{arrow}. The axes are drawn on top of
 existing objects in the current picture only if @code{put} is @code{Above}.
 
 @item
-@verbatim 
+@verbatim
 void axis(picture pic=currentpicture, Label L="", path g,
           pen p=currentpen, ticks ticks, ticklocate locate,
           arrowbar arrow=None, int[] divisor=new int[],
-          bool put=Above, bool opposite=false);
+          bool put=Below, bool opposite=false);
 @end verbatim
 
 This routine can be used to draw on picture @code{pic} a general axis
@@ -6421,10 +6419,9 @@ One can optionally label the axis with Label @code{L} and add an arrow
 The optional integer array @code{divisor} specifies what tick divisors
 to try in the attempt to produce uncrowded tick labels. A @code{true}
 value for the flag @code{opposite} identifies an unlabelled secondary
-axis (typically drawn opposite a primary axis).  The axis is drawn
-on top of existing objects in the current picture only if @code{put}
-is @code{Above}. The tick locator @code{ticklocate} is
-constructed by the routine
+axis (typically drawn opposite a primary axis). The axis is drawn before
+any existing objects in the current picture unless @code{put}=@code{Above}.
+The tick locator @code{ticklocate} is constructed by the routine
 @verbatim
 ticklocate ticklocate(real a, real b, autoscaleT S=defaultS,
                       real tickmin=-infinity, real tickmax=infinity,
