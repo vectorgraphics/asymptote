@@ -128,7 +128,7 @@ public:
   virtual bool error() {return true;}
   virtual void close() {}
   virtual void clear() {}
-  virtual void precision(Int) {}
+  virtual Int precision(Int) {return 0;}
   virtual void flush() {}
   virtual size_t tell() {return 0;}
   virtual void seek(Int, bool=true) {}
@@ -316,7 +316,9 @@ public:
   iofile(const string& name, char comment=0) : 
     ifile(name,true,comment,std::ios::in | std::ios::out) {}
 
-  void precision(Int p) {stream->precision(p);}
+  Int precision(Int p) {
+    return p == 0 ? stream->precision() : stream->precision(p);
+  }
   void flush() {if(fstream) fstream->flush();}
   
   void write(bool val) {*fstream << (val ? "true " : "false ");}
@@ -377,7 +379,9 @@ public:
     }
   }
   void clear() {stream->clear();}
-  void precision(Int p) {stream->precision(p);}
+  Int precision(Int p) {
+    return p == 0 ? stream->precision() : stream->precision(p);
+  }
   void flush() {stream->flush();}
   
   void seek(Int pos, bool begin=true) {

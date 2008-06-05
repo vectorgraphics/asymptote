@@ -4102,7 +4102,9 @@ real newton(Int iterations=100, callableReal *f, callableReal *fprime, real x,
 {
   static const real fuzz=1000.0*DBL_EPSILON;
   Int i=0;
-  size_t oldPrec=cout.precision(DBL_DIG);
+  size_t oldPrec=0;
+  if(verbose) 
+    oldPrec=cout.precision(DBL_DIG);
 
   real diff=DBL_MAX;
   real lastdiff;
@@ -4135,7 +4137,8 @@ real newton(Int iterations=100, callableReal *f, callableReal *fprime, real x,
     }
   } while (diff != 0.0 && (diff < lastdiff || diff > fuzz*fabs(x)));
 
-  cout.precision(oldPrec);
+  if(verbose)
+    cout.precision(oldPrec);
   return x;
 }
 
@@ -4145,7 +4148,9 @@ real newton(Int iterations=100, callableReal *f, callableReal *fprime, real x1,
 	    real x2, bool verbose=false)
 {
   static const real fuzz=1000.0*DBL_EPSILON;
-  size_t oldPrec=cout.precision(DBL_DIG);
+  size_t oldPrec=0;
+  if(verbose) 
+    oldPrec=cout.precision(DBL_DIG);
 
   Stack->push(x1);
   f->call(Stack);
@@ -4214,7 +4219,8 @@ real newton(Int iterations=100, callableReal *f, callableReal *fprime, real x1,
     if(y < 0.0) x1=x;
     else x2=x;
   }
-  cout.precision(oldPrec);
+  if(verbose)
+    cout.precision(oldPrec);
   return (j == iterations) ? DBL_MAX : x;
 }
 
@@ -4407,9 +4413,10 @@ void close(file *File)
   File->close();
 }
 
-void precision(file *File, Int digits) 
+Int precision(file *File=NULL, Int digits=0) 
 {
-  File->precision(digits);
+  if(File == 0) File=&camp::Stdout;
+  return File->precision(digits);
 }
 
 void flush(file *File) 

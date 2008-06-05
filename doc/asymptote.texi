@@ -3405,10 +3405,13 @@ One can test a file for end-of-file with the boolean function @code{eof(file)},
 end-of-line with @code{eol(file)}, and for I/O errors with @code{error(file)}.
 One can flush the output buffers with @code{flush(file)}, clear a
 previous I/O error with @code{clear(file)}, and close the file with
-@code{close(file)}. To set the number of digits of output precision, use
-@code{precision(file,int)}. The function @code{int tell(file)} returns
+@code{close(file)}. The function 
+@code{int precision(file file=stdout, int digits=0)}
+sets the number of digits of output precision for @code{file} to @code{digits},
+provided @code{digits} is nonzero, and returns the previous
+precision setting. The function @code{int tell(file)} returns
 the current position in a file relative to the beginning.
-The function @code{seek(file file, int pos)} can be used to
+The routine @code{seek(file file, int pos)} can be used to
 change this position, where a negative value for the position @code{pos}
 is interpreted as relative to the end-of-file. For example, one can
 rewind a file @code{file} with the command @code{seek(file,0)}
@@ -4372,6 +4375,7 @@ i(3,4); // ambiguous; the first candidate is better for the first argument,
 @cindex @code{sqrt}
 @cindex @code{cbrt}
 @cindex @code{fabs}
+@cindex @code{expm1}
 @cindex @code{identity}
 @cindex @code{J}
 @cindex @code{Y}
@@ -4386,7 +4390,7 @@ i(3,4); // ambiguous; the first candidate is better for the first argument,
 real(real) functions @code{sin}, @code{cos}, @code{tan}, @code{asin},
 @code{acos}, @code{atan}, @code{exp}, @code{log}, @code{pow10},
 @code{log10}, @code{sinh}, @code{cosh}, @code{tanh}, @code{asinh},
-@code{acosh}, @code{atanh}, @code{sqrt}, @code{cbrt}, @code{fabs},
+@code{acosh}, @code{atanh}, @code{sqrt}, @code{cbrt}, @code{fabs}, @code{expm1},
 as well as the identity function @code{identity}. 
 @code{Asymptote} also defines the order @code{n} Bessel functions of
 the first kind @code{J(int n, real)} and second kind

@@ -941,8 +941,6 @@ void intersections(std::vector<double>& S, std::vector<double>& T,
 
 ostream& operator<< (ostream& out, const path& p)
 {
-  size_t oldPrec = out.precision(6);
-  
   Int n = p.n;
   switch(n) {
   case 0:
@@ -974,8 +972,6 @@ ostream& operator<< (ostream& out, const path& p)
 	  << " ..cycle";
     break;
   }
-
-  out.precision(oldPrec);
 
   return out;
 }
