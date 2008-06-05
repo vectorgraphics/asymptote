@@ -84,10 +84,12 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
     }
   }
   if(settings::latex(settings::getSetting<string>("tex"))) {
-    out << "\\xdef\\ASYencoding{\\csname f@encoding\\endcsname}%" << newl
-	<< "\\xdef\\ASYfamily{\\csname f@family\\endcsname}%" << newl
-	<< "\\xdef\\ASYseries{\\csname f@series\\endcsname}%" << newl
-	<< "\\xdef\\ASYshape{\\csname f@shape\\endcsname}%" << newl;
+    out << "\\makeatletter%" << newl
+	<< "\\let\\ASYencoding\\f@encoding%" << newl
+	<< "\\let\\ASYfamily\\f@family%" << newl
+	<< "\\let\\ASYseries\\f@series%" << newl
+	<< "\\let\\ASYshape\\f@shape%" << newl
+	<< "\\makeatother%" << newl;
     
     if(pipe || !settings::getSetting<bool>("inlinetex")) {
       out << "\\usepackage{graphicx}" << newl;
