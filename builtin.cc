@@ -714,6 +714,7 @@ void base_venv(venv &ve)
   addRealFunc(cbrt);
   addRealFunc(fabs);
   addRealFunc<fabs>(ve,"abs");
+  addRealFunc(expm1);
 
   addRealFunc(pow10);
   addRealFunc(identity);
