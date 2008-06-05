@@ -1,0 +1,415 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1-strict.dtd">
+<html>
+  <head>
+    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+    <title>Asymptote Proposal - External Modules</title>
+    <style><!--
+      --></style>
+  </head>
+  <body>
+    <h1>Asymptote Proposal &mdash External Modules</h1>
+    <h2>Overview</h2>
+      <p>External modules allow users to extend Asymptote by calling functions
+      written in another programming language.</p>
+      <p>Users do this by writing a .asyc file, which contains a mix of
+      Asymptote code and code from another language, say C++.  Then, a program
+      is run which produces a .asy file and a C++ source file.  The C++ file is
+      compiled to produce a shared library file.  Then, the .asy file can be
+      imported in Asymptote to use the externally defined features.</p>
+      <p>This spec is describes a proposed feature that has not yet been
+      implemented.  It is incomplete, and does not address all of the issues
+      involved in implementing the feature.</p>
+    <h2>Example</h2>
+      <p>Let&#8217;s look at a simple example that shows off the main features.
+      Asymptote currently doesn&#8217;t offer a way to read the contents of a
+      directory.  This would be useful if, say, we wanted to make a series of
+      graphs for every .csv file in a directory.</p>
+      <pre>
+/*****
+ * dir.asyc
+ * Andy Hammerlindl 2007/09/11
+ *
+ * An example for the proposed external module support in Asymptote.  This reads
+ * the contents of a directory via the POSIX commands.
+ *
+ * Example usage in asymptote:
+ *   access dir;
+ *   dir.entry[] entries= dir.open('.');
+ *   for (dir.entry e : entries)
+ *     write(e.name);
+ *****/
+
+// Verbatim code will appear in the c++ or asy file (as specified) interleaved
+// in the same order as it appears here.
+verbatim c++ {
+  #include &lt;sys/types.h&gt;
+  #include &lt;dirent.h&gt;
+  #include &lt;errno.h&gt;
+
+  // asy.h is included by default (needed for hidden code, anyway).
+  // Asymptote-specific types, such as array below, are in the asy namespace.
+  using namespace asy;
+}
+
+// Define a new opaque type in asy which is internally represented by struct
+// dirent *.  This is too messy to expose to users of the module, so define
+// everything as private.
+private asytype const struct dirent *entry_t;
+
+private int entry_d_ino(entry_t e) {
+  return (Int)e-&gt;d_ino;
+}
+
+private int entry_d_off(entry_t e) {
+  return (Int)e-&gt;d_off;
+}
+
+private int entry_d_reclen(entry_t e) {
+  return (Int)e-&gt;reclen;
+}
+
+private string entry_d_type(entry_t e) {
+  return string( /*length*/ 1, e-&gt;d_type);
+}
+
+private string entry_d_name(entry_t e) {
+  return string(e-&gt;d_name);
+}
+
+// Define an asy structure to expose the information.  These steps are annoying,
+// but straightforward, and not too hard to plow through.
+verbatim asy {
+  struct entry {
+    restricted int ino;
+    restricted int off;
+    restricted int reclen;
+    restricted int type;
+    restricted string name;
+
+    void operator init(entry_t e) {
+      ino=entry_d_ino(e);
+      off=entry_d_off(e);
+      reclen=entry_d_reclen(e);
+      type=entry_d_type(e);
+      name=entry_d_name(e);
+    }
+  }
+}
+
+
+// Given the name of a directory, return an array of entries.  Return 0
+// (a null array) on error.
+private entry_t[] base_read(string name)
+{
+  DIR *dir=opendir(name.c_str());
+
+  // TODO: Add standard style of error reporting.
+  if (dir == NULL)
+    return 0;
+
+  // Create the array structure.
+  // array is derived from gc, so will be automatically memory-managed.
+  array *a=new array();
+
+  struct dirent *entry;
+  while (entry=readdir(dir))
+    a-&gt;push&lt;struct dirent *&gt;(entry);
+
+  // The loop has exited, either by error, or after reading the entire
+  // directory.  Check before closedir(), in case that call resets errno.
+  if (errno != 0) {
+    closedir(dir);
+    return 0;
+  }
+
+  closedir(dir);
+  return a;
+}
+
+verbatim asy {
+  private entry[] cleanEntries(entry_t[] raw_entries) {
+    if (raw_entries) {
+      entry[] entries;
+      for (entry_t e : raw_entries)
+        entries.push(entry(e));
+      return entries;
+    }
+    return null;
+  }
+
+  entry[] read(string name) {
+    return cleanEntries(base_read(name));
+  }
+}
+
+</pre>
+      <h2>Type Mappings</h2>
+        <p>Types in Asymptote do not directly relate to types in C++, but there
+        is a partial mapping between them.  The header file
+        <code>asymptote.h</code> provides typedefs for the primitive asymptote
+        types.  For instance <code>string</code> in Asymptote maps to the C++
+        class <code>asy::string</code> which is a variant of
+        <code>std::string</code> and <code>real</code> to <code>asy::real</code>
+        which is a basic floating point type (probably <code>double</code>).
+        Because <code>int</code> is a reserved word in C++, the Asymptote type
+        <code>int</code> is mapped to <code>asy::Int</code> which is one of the
+        basic signed numeric types in C++ (currently 64 bit).
+        <code>asy::pair</code> is a class that implements complex numbers.  In
+        the first version of the external module implementation, these will be
+        the only primitive types with mappings, but eventually all of them will
+        be added.</p>
+
+        <p>All Asymptote arrays, regardless of the cell type, are mapped to
+        <code>asy::array *</code> where <code>asy::array</code> is a C++ class.
+        The cells of the array are of the type <code>asy::item</code> which can
+        hold any Asymptote data type.  Items can be constructed from any C++
+        type.  Once constructed, the value of an item can be retrieved by the
+        function <code>template&lt;typename T&gt; T get(const item&amp;)</code>.
+        Calling <code>get</code> on an item using the wrong type generates a
+        runtime error.  </p>
+<pre>
+// Examples of using item.
+item x((asy::Int)2);
+item y(3.4);
+item z=new array;
+item w=(asy::real)3.4;
+
+cout &lt;&lt; get&lt;asy::Int&gt;(x);
+cout &lt;&lt; get&lt;double&gt;(y);
+
+x=y;  // x now stores a double.
+cout &lt;&lt; get&lt;double&gt;(x);
+
+cout &lt;&lt; get&lt;asy::real&gt;(w);
+</pre>
+        
+        <p>The <code>asy::array</code> class implements, at a minimum, the
+        methods:</p>
+        <ul>
+          <li><code>size_t size()</code>
+          which returns the number of elements,</li>
+          <li><code>template &lt;typename T&gt; T read(size_t i) const</code>
+          which returns the i-th element, interpreted as being of type t.</li>
+          <li><code>template &lt;typename T&gt; void push(item i)</code>
+          adds the item to the end of the array.</li>
+        </ul>
+        <p>It allows access to elements of the array as items by
+        <code>operator[]</code>.  We may specify that <code>asy::array</code>
+        be a model of the Random Access Container in the C++ Standard Template
+        Library.  It is currently implemented as a subclass of an STL
+        vector.</p>
+<pre>
+// Example of a C++ function that doubles the entries in an array of integers.
+using namespace asy;
+
+void doubler(array *a) {
+  assert(a);
+  size_t length=a-&gt;size();
+  for (size_t i=0; i&lt;length; ++i) {
+    Int x=a-&gt;read&lt;Int&gt;(i);  // This is shorthand for get&lt;Int&gt;((*a)[i]).
+    a[i]=2*x;               // The type of 2*x is also Int, so this will enter
+                            // the item as the proper type.
+  }
+}
+</pre>
+        <p>Users can map new Asymptote types to their own custom C++ types using
+        Opaque Type Declarations, explained below.</p>
+
+      <h2>Syntactic Features</h2>
+        <p>A .asyc file is neither an asy file with some C++ in it, nor a C++
+        with some asy code in it.  It can only contain a small number of
+        specific constructs:</p>
+        <ul>
+          <li>Comments</li>
+          <li>Function Definitions</li>
+          <li>Verbatim Code Block</li>
+          <li>Opaque Type Declaration</li>
+        </ul>
+        <!-- Move to after constructs -->
+        <p>Each component may produce code for either the .asy file, the .cc
+        file, or both.  The pieces of code produced by each construct appears in
+        the output file in the same order as the constructs in the .asyc.  For
+        example, if a function definition occurs before a verbatim Asymptote
+        code block, we can be sure that the function is defined and can be used
+        in that block.  Similarly, if a verbatim C++ block occurs before a
+        function definition, then the body of the function can use features
+        declared in the verbatim section.</p>
+
+        <h3>Comments</h3>
+        <p>C++/Asymptote style comments using <code>/* */</code> or
+        <code>//</code> are allowed at the top level. These do not affect the
+        definition of the module, but the implementation may copy them into the
+        .asy and .cc to help explain the resulting code.</p>
+        
+        <h3>Verbatim Code Blocks</h3>
+        <p>Verbatim code, ie. code to be copied directly into the either
+        the output .asy or .cc file can be specified in the .asyc file by
+        enclosing it in a verbatim code block.  This starts with the special
+        identifier <code>verbatim</code> followed by either <code>c++</code>
+        or <code>asy</code> to specify into which file the code will be copied,
+        and then a block of code in braces.  When the .asyc file is parsed,
+        the parser keeps track of matching open and close braces inside the
+        verbatim code block, so that the brace at the start of the block can
+        be matched with the one at the end.  This matching process will ignore
+        braces occuring in comments and string and character literals.</p>
+        <h4>Open issue</h4>
+        <p>It may prove to be impractical to walk through the code, matching
+        braces.  Also, this plan precludes having a verbatim block with an
+        unbalanced number of braces which might be useful, say to start a
+        namespace at the beginning of the C++ file, and end it at the end of the
+        file.  As such, it may be useful to have another technique.  A really
+        simple idea (with obvious drawbacks) would be to use the first closing
+        braces that occur at the same indentation level as the verbatim keyword
+        (assuming that the code block itself will be indented).  Other
+        alternatives are to use more complicated tokens such as <code>%{</code>
+        and <code>%}</code>, or the shell style <code>&lt;&lt;EOF</code>.</p>
+
+        <h3>Function Definitions</h3>
+        <p>A function definition given at the top level of the file (and not
+        inside a verbatim block) looks much like a function definition in
+        Asymptote or C++, but is actually a mix of both.  The header of the
+        function is given in Asymptote code, and defines how the function will
+        look in the resulting Asymptote module.  The body, on the other hand, is
+        given in C++, and defines how the function is implemented in C++.  As a
+        simple example, consider:
+        <pre>real sum(real x, real y=0.0) {
+  return x+y;
+}</pre>
+        <h4>Header</h4>
+        <p> The header of the definition gives
+        the name, permission, return type, and parameters of the function.
+        Because the function is defined for use in Asymptote, all of the types
+        are given as Asymptote types.</p>
+        <h5>Permissions</h5>
+        <p>As in pure Asymptote, the function can optionally be given a
+        <code>private</code>, <code>restricted</code> or <code>public</code>
+        permission.  If not specified, the permission is <code>public</code> by
+        default.  This is the permission that the function will have when it is
+        part of the Asymptote module. The example of <code>sum</code> above
+        specifies no permission, so it is public.</p>
+        <p>Just as public methods such as <code>plain.draw</code> can be
+        re-assigned by scripts that import the <code>plain</code> module, the
+        current plan is to allow Asymptote code to modify public members of any
+        module, including ones defined using native code.  This is in contrast
+        to builtin functions bindings, which cannot be modified.</p>
+        <h5>Return Type</h5>
+        <p>This gives the Asymptote return type of the function.  This cannot be
+        an arbitrary Asymptote type, but must one which maps to a C++ type as
+        explained in the type mapping section above.  Our example of <code>sum</code> gives
+        <code>real</code> as a return type, which maps to the C++ type
+        <code>asy::real</code>.</p>
+        <h5>Function Name</h5>
+        <p>This gives the name of the function as it will appear in the
+        Asymptote module.  In our example, the Asymptote name is
+        <code>sum</code>.  The name can be any Asymptote identifier, including
+        operator names, such as <code>operator +</code>.</p>
+        <p>It is important to note that the Asymptote name has no relation to
+        the C++ name of the function, which may be something strange, such as
+        <code>_asy_func_modulename162</code>.  Also, the actual signature and
+        return type of the C++ function may bear no relation to the Asymptote
+        signature.  That said, the C++ name of the function may be defined by
+        giving the function name as <code>asyname:cname</code>.  Then it can be
+        referred to by other C++ code.  The function will be defined with C
+        calling convention, so that its name is not mangled.</p>
+        <h5>Formal Parameters</h5>
+        <p>The function header takes a list of formal parameters.  Just as in
+        pure Asymptote code, these can include <code>explicit</code>
+        keywords, type declarations with array and functional types, and rest
+        parameters.  Just as with the return type of the function, the type of
+        each of the parameters must map to a C++ type.</p>
+        <p>Parameters may be given an optional Asymptote name and an optional
+        C++ name.  These may be declared in one of six ways as in the following
+        examples:</p>
+        <pre>void f(int)
+void f(int name)
+void f(int :)
+void f(int asyname:)
+void f(int :cname)
+void f(int asyname:cname)
+</pre>
+        <p>If the parameter just contains a type, with no identifier,
+        then it has no Asymptote name and no C++ name.  If it contains a single
+        name (with no colon), then that name is both the Asymptote and the C++
+        name.  If it contains a colon in the place of an identifier, with an
+        optional name in front of the colon and an optional name behind the
+        colon, than the name in front (if given) is the Asymptote name, and the
+        name behind (if given) is the C++ name.</p>
+        <p>The Asymptote name can be any Asymptote identifier, including
+        operator names, but the C++ name must be a valid C++ identifier.  For
+        instance <code>void f(int operator +)</code> is not allowed, as the
+        parameter would not have a valid C++ name.  The examples
+        <code>void f(int operator +:)</code> and
+        <code>void f(int operator +:addop)</code> are allowed.</p>
+        <p>When called by Asymptote code, named arguments are only matched to
+        the Asymptote names, so for example a function defined by
+        <code>void f(int :x, string x:y)</code> could be called by
+        <code>f(x="hi mom", 4)</code>, but one defined by
+        <code>void f(int x, string x:y)</code> could not.</p>
+        <p>Each formal parameter may take a piece of code as a default value.
+        Because the function is implemented in C++, this code must be given as
+        C++ code.  More akin to Asymptote than C++, default arguments may occur
+        for any non-rest parameters, not just those at the end of the list, and 
+        may refer to earlier parameters in the list.  Earlier parameters are
+        refered to by their C++ names.  Example:
+<pre>void drawbox(pair center, real width, real height=2*width, pen p)</pre>
+        Default arguments are parsed by finding the next comma that is not part
+        of a comment, string literal, or character constant, and is not nested
+        inside parentheses.  The C++ code between the equals-sign and the comma
+        is taken as the expression for the default argument.</p>
+        <h4>Body</h4>
+        <p>The body of the function is written as C++ code.  When the .asyc
+        file is processed, this C++ code is copied verbatim into an actual C++
+        function providing the implementation.  However, the actual body of the
+        resultant C++ function may contain code other than the body provided by
+        the user.  This auxillary code could include instruction to retrieve the
+        arguments of the function from their representation in the Asymptote
+        virtual machine and bind them to local variables with their C++ names.
+        It could also include initialization and finalization code for the
+        function.</p>
+        <p>In writing code for the function body, one can be assured that all
+        function arguments with C++ names have been bound and are therefore
+        usable in the code.  Since all parameters must have Asymptote types that
+        map to C++ types, the types of the paramaters in the body have the type
+        resulting from that mapping.</p>
+        <p>The <code>return</code> keyword can be used to return the result of
+        the function (or without an expression, if the return type was declared
+        as void).  The Asymptote return type must map to a C++ type, and the
+        expression given in the return statement will be implicitly cast to that
+        type.</p>
+        <p>Since the implementation will likely not use an actual return
+        statement to return the value of the function back to the Asymptote
+        virtual machine, the interpreter of the .asyc file may walk through the
+        code converting return expressions into a special format in the actual
+        implementation of the function.<p>
+
+        <h3>Opaque Type Declarations</h3>
+        <p>There are a number of mappings between Asymptote and C++ types
+        builtin to the facility.  For instance <code>int</code> maps to
+        <code>asy::Int</code> and <code>real</code> to <code>asy::real</code>.
+        Users, however, may want to reference other C++ objects in Asymptote
+        code.  This done though opaque type declarations.</p>
+
+        <p>An opaque type declaration is given by an optional permission
+        modifier, the keyword <code>asytype</code>, a C++ type, and an Asymptote
+        identifier; in that order.</p>
+<pre>
+// Examples
+asytype char char;
+public asytype const std::list&lt;asy::Int&gt; *intList;
+private asytype const struct dirert *entry_t;
+</pre>
+        <p>This declaration mapping the Asymptote identifier to the C++ type
+        within the module.  The permission of the Asymptote type is given by the
+        permission modifier (or public if the modifier is omitted).  The type is
+        opaque, in that none of its internal structure is revealed in the
+        Asymptote code.  Like any other type, however, objects of this new type
+        can be returned from functions, given as an arguments to functions, and
+        stored in variables, structures and arrays.</p>
+        <p>In many cases, such as the directory listing example at the start, it
+        will be practical to declare the type as private, and use an Asymptote
+        structure as a wrapper hiding the C++ implementation.</p>
+  </body>
+</html>
+
+
