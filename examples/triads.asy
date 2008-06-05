@@ -11,11 +11,12 @@ pair o=(m.x,0.5(m.x+l.y));
 
 pen d=c+darkgreen;
 
-void drawarrow(pair p, pair q, bool upscale=false, pen c)
+void drawarrow(string s="", pair p, pair q, side side=RightSide,
+	       bool upscale=false, pen c)
 {
   path g=p{dir(-5)}..{dir(-85)}q;
   if(upscale) g=reverse(g); 
-  draw(g,c,Arrow(Fill,0.65));
+  draw(s,g,side,c,Arrow(Fill,0.65));
 } 
 
 void spectrum(pair l,pair m, pair s) {
@@ -30,22 +31,22 @@ void spectrum(pair l,pair m, pair s) {
   yaxis("$E(k)$",0);
 }
 
-drawarrow(l,m,true,blue);
-drawarrow(m,s,red);
+drawarrow("$T_p$",l,m,true,blue);
+drawarrow("$T_k$",m,s,LeftSide,red);
 spectrum(l,m,s);
 shipout("triadpqk");
 
 erase();
 
-drawarrow(l,m,red);
-drawarrow(m,s,true,blue);
+drawarrow("$-T_p$",l,m,LeftSide,red);
+drawarrow("$-T_q$",m,s,true,blue);
 spectrum(l,s,m);
 shipout("triadpkq");
 
 erase();
 
-drawarrow(l,m,true,blue);
-drawarrow(m,s,red);
+drawarrow("$T_k$",l,m,true,blue);
+drawarrow("$T_q$",m,s,LeftSide,red);
 spectrum(m,s,l);
 
 shipout("triadkpq");
