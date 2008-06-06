@@ -764,6 +764,7 @@ class iprompt : public icore {
     } catch(interrupted&) {
       // Turn off the interrupted flag.
       em.Interrupt(false);
+      uptodate=true;
       cout << endl;
     } catch(quit&) {
     }
