@@ -3156,30 +3156,32 @@ whether to add @code{src} above or below existing objects.
 
 There are also routines to add a picture or frame @code{src} specified
 in postscript coordinates to another picture about the user coordinate
-@code{position}:
+@code{position}. They return the transform that maps @code{src} coordinates to
+@code{dest} coordinates:
 @anchor{add about}
 @cindex @code{add}
 @cindex picture alignment
 @verbatim
-void add(picture dest, picture src, pair position, bool group=true,
-         filltype filltype=NoFill, bool put=Above);
-void add(picture src, pair position, bool group=true,
-         filltype filltype=NoFill, bool put=Above);
-void add(picture dest=currentpicture, frame src, pair position=0,
-         bool group=true, filltype filltype=NoFill,
-         bool put=Above);
-void add(picture dest=currentpicture, frame src, pair position,
-         pair align, bool group=true, filltype filltype=NoFill,
-         bool put=Above);
+transform add(picture dest=currentpicture, picture src, pair position,
+              bool group=true, filltype filltype=NoFill, bool put=Above);
+transform add(picture dest=currentpicture, frame src, pair position=0,
+              bool group=true, filltype filltype=NoFill,
+              bool put=Above);
+transform add(picture dest=currentpicture, picture src, pair position,
+              pair align, bool group=true, filltype filltype=NoFill,
+              bool put=Above);
+transform add(picture dest=currentpicture, frame src, pair position,
+              pair align, bool group=true, filltype filltype=NoFill,
+              bool put=Above);
 @end verbatim
 
-The optional @code{align} argument in the last form specifies a
+The optional @code{align} argument in the last two forms specifies a
 direction to use for aligning the frame, in a manner analogous to the
 @code{align} argument of @code{label} (@pxref{label}). However, one key
 difference is that when @code{align} is not specified, labels are
 centered, whereas frames and pictures are aligned so that their origin is
 at @code{position}. Illustrations of frame alignment can be found in
-the examples @ref{errorbars} and @ref{image}. If you want to align 3
+the examples @ref{errorbars} and @ref{image}. If you want to align three
 or more subpictures, group them two at a time:
 
 @verbatiminclude subpictures.asy
@@ -3189,12 +3191,12 @@ Alternatively, one can use @code{attach} to automatically increase the
 size of picture @code{dest} to accommodate adding a frame @code{src}
 about the user coordinate @code{position}:
 @verbatim
-void attach(picture dest=currentpicture, frame src,
-            pair position=0, bool group=true,
-            filltype filltype=NoFill, bool put=Above);
-void attach(picture dest=currentpicture, frame src,
-            pair position=0, pair align, bool group=true,
-            filltype filltype=NoFill, bool put=Above);
+transform attach(picture dest=currentpicture, frame src,
+                 pair position=0, bool group=true,
+                 filltype filltype=NoFill, bool put=Above);
+transform attach(picture dest=currentpicture, frame src,
+                 pair position, pair align, bool group=true,
+                 filltype filltype=NoFill, bool put=Above);
 @end verbatim
 
 @cindex @code{erase}
