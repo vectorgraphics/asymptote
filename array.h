@@ -79,13 +79,13 @@ inline size_t checkArray(vm::array *a)
   return a->size();
 }
 
-extern const char *arraymismatch;
+extern const void checkequal(size_t i, size_t j);
 
 inline size_t checkArrays(vm::array *a, vm::array *b) 
 {
   size_t asize=checkArray(a);
-  if(asize != checkArray(b))
-    vm::error(arraymismatch);
+  size_t bsize=checkArray(b);
+  checkequal(asize,bsize);
   return asize;
 }
  

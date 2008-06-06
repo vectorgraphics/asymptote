@@ -209,7 +209,13 @@ function *transformFunction()
 const unsigned camp::ColorComponents[]={0,0,1,3,4,0};
 
 namespace vm {
-const char *arraymismatch="operation attempted on arrays of different lengths";
+  const void checkequal(size_t i, size_t j) {
+    if(i == j) return;
+    ostringstream buf;
+    buf << "operation attempted on arrays of different lengths: "
+	<< i << " != " << j;
+    error(buf);
+  }
 }
 
 namespace run {
@@ -565,6 +571,7 @@ void updateFunction(stack *Stack)
   callable *atExitFunction=processData().atExitFunction;
   if(atExitFunction && !nullfunc::instance()->compare(atExitFunction))
     atExitFunction->call(Stack);
+  interact::uptodate=true;
 }
 
 void exitFunction(stack *Stack)
@@ -957,8 +964,8 @@ void tensorshade(picture *f, patharray *g, pen fillrule, penarray2 *p,
   if(b == NULL) b=g;
   size_t n=checkArrays(p,b);
   size_t nz=checkArray(z);
-  if(nz != 0 && nz != n)
-    error(arraymismatch);
+  if(nz != 0)
+    checkequal(nz,n);
   f->append(new drawTensorShade(*copyarray(g),fillrule,*copyarray2(p),
 				*copyarray(b),*copyarray2(z)));
 }
@@ -4002,8 +4009,8 @@ realarray2 *Operator *(realarray2 *a, realarray2 *b)
 realarray *tridiagonal(realarray *a, realarray *b, realarray *c, realarray *f)
 {
   size_t n=checkArrays(a,b);
-  if(n != checkArray(c) || n != checkArray(f))
-    error(arraymismatch);
+  checkequal(n,checkArray(c));
+  checkequal(n,checkArray(f));
   
   array *up=new array(n);
   array& u=*up;
