@@ -1228,8 +1228,6 @@ struct path3 {
     if (n2 == -1) return p1;
     triple a=p1.point(n1);
     triple b=p2.point(0);
-    if (abs(a-b) > Fuzz*max(abs(a),abs(b)))
-      abort("path3 arguments in concatenation do not meet");
 
     node[] nodes = nodes(n1+n2+1);
 
