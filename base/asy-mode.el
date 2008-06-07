@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2006
 ;; Author: Philippe IVALDI 20 August 2006
-;; Modified by: John Bowman 01 September 2006
-;; Last modification: 24 September 2007 (Philippe Ivaldi)
+;; Modified by: John Bowman
+;; Last modification: 24 April 2008 (Philippe Ivaldi)
 ;;
 ;; This program is free software ; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@
 ;;
 ;; See also paragraph II of the documentation below to automate asy-insinuate-latex.
 
-(defvar asy-mode-version "1.3")
+(defvar asy-mode-version "1.4")
 
 ;;;###autoload
 (define-derived-mode asy-mode objc-mode "Asymptote"
@@ -64,12 +64,12 @@ To link a Tex document try 'M-x asy-set-master-tex' follow by C-Return (see desc
 2- lasy-mode
 Editing a TeX file that contains Asymptote code is facilitated with the hybrid mode 'lasy-mode'.
 Toggle lasy-mode with M-x lasy-mode.
-In this hybrid mode the major mode is LaTeX when the cursor is in LaTeX code and becomes asy-mode when the cursor is between '\begin{asy}' and '\end{asy}'.
+In this hybrid mode the major mode is LaTeX when the cursor is in LaTeX code and becomes asy-mode when the cursor is between '\\begin{asy}' and '\\end{asy}'.
 All the features of asy-mode are provided and the key binding C-c C-c of asy-mode compiles and views only the code of the picture where the cursor is.
 Note that some keys binding are added to the LaTeX-mode-map in lasy-mode if the value of the variable lasy-extra-key is t (the default)
 .
 * C-return: compile (if the buffer/file is modified) and view the PostScript output with sequence [latex->[asy->latex]->dvips]->PSviewer
-* M-return: same with pdf output and with the sequence [pdflatex -shell-escape->[asy->pdflatex -shell-escape]]->PDFviewer
+* M-return: same with pdf output and with the sequence [pdflatex->[asy->pdflatex]]->PDFviewer
 * C-M-return: same with pdf output and with the sequence [latex->[asy->latex]->dvips->ps2pdf]->PSviewer
 * Add the Shift key to the sequence of keys to compile even if the file is not modified.
 
@@ -798,13 +798,13 @@ restricted to the region (start end).
                     (push (list
                            (progn (beginning-of-line)(point))
                            (progn (end-of-line)(point))) out)))
-            (goto-char beg)(beginning-of-line)
-            (while
+              (goto-char beg)(beginning-of-line)
+              (while
                   (when (re-search-forward "^\\\\end{asy}" lim t)
                     (push (list
                            (progn (beginning-of-line)(point))
                            (progn (end-of-line)(point))) out)))
-            out)))
+              out)))
 
         (defun lasy-restrict-region (start end &optional interior)
           "If the region 'start to end' contains the beginning or
@@ -959,42 +959,58 @@ is in a asy environnement."
     (setq asy-latex-menu-item (nconc '("Asymptote") asy-latex-menu-item))
   (setq asy-latex-menu-item (nconc '("Asymptote" :visible asy-insinuate-latex-p) asy-latex-menu-item)))
 
+(defun asy-insinuate-latex-maybe ()
+  "This function is added to `LaTeX-mode-hook' to define the environment 'asy'
+and, eventually, set its indentation.
+For internal use only."
+  (when (or asy-insinuate-latex-globally-p
+            (save-excursion
+              (beginning-of-buffer)
+              (save-match-data
+                (search-forward "\\begin{asy}" nil t))))
+    (asy-insinuate-latex))
+  (LaTeX-add-environments
+   '("asy"  (lambda (env &rest ignore)
+              (unless asy-insinuate-latex-p (asy-insinuate-latex))
+              (LaTeX-insert-environment env)))))
 
-(add-hook 'after-init-hook
-          (lambda ()
-            (eval-after-load "latex"
-              '(progn
-                 (setq lasy-mode-map (copy-keymap LaTeX-mode-map))
-                 (setq LaTeX-mode-map-backup (copy-keymap LaTeX-mode-map))
-                 (when lasy-extra-key
-                   (define-key lasy-mode-map (kbd "<C-return>")
-                     (lambda ()
-                       (interactive)
-                       (lasy-view-ps nil nil t)))
-                   (define-key lasy-mode-map (kbd "<C-S-return>")
-                     (lambda ()
-                       (interactive)
-                       (lasy-view-ps t nil t)))
-                   (define-key lasy-mode-map (kbd "<M-return>")
-                     (lambda ()
-                       (interactive)
-                       (lasy-view-pdf-via-pdflatex nil nil t)))
-                   (define-key lasy-mode-map (kbd "<M-S-return>")
-                     (lambda ()
-                       (interactive)
-                       (lasy-view-pdf-via-pdflatex t nil t)))
-                   (define-key lasy-mode-map (kbd "<C-M-return>")
-                     (lambda ()
-                       (interactive)
-                       (lasy-view-pdf-via-ps2pdf nil nil t)))
-                   (define-key lasy-mode-map (kbd "<C-M-S-return>")
-                     (lambda ()
-                       (interactive)
-                       (lasy-view-pdf-via-ps2pdf t nil t)))
-                   (define-key lasy-mode-map  (kbd "<f4>") 'asy-goto-error))
+;; (add-hook 'after-init-hook
+;;           (lambda ()
+(eval-after-load "latex"
+  '(progn
+     (add-hook 'LaTeX-mode-hook 'asy-insinuate-latex-maybe)
+     (setq lasy-mode-map (copy-keymap LaTeX-mode-map))
+     (setq LaTeX-mode-map-backup (copy-keymap LaTeX-mode-map))
+     (when lasy-extra-key
+       (define-key lasy-mode-map (kbd "<C-return>")
+         (lambda ()
+           (interactive)
+           (lasy-view-ps nil nil t)))
+       (define-key lasy-mode-map (kbd "<C-S-return>")
+         (lambda ()
+           (interactive)
+           (lasy-view-ps t nil t)))
+       (define-key lasy-mode-map (kbd "<M-return>")
+         (lambda ()
+           (interactive)
+           (lasy-view-pdf-via-pdflatex nil nil t)))
+       (define-key lasy-mode-map (kbd "<M-S-return>")
+         (lambda ()
+           (interactive)
+           (lasy-view-pdf-via-pdflatex t nil t)))
+       (define-key lasy-mode-map (kbd "<C-M-return>")
+         (lambda ()
+           (interactive)
+           (lasy-view-pdf-via-ps2pdf nil nil t)))
+       (define-key lasy-mode-map (kbd "<C-M-S-return>")
+         (lambda ()
+           (interactive)
+           (lasy-view-pdf-via-ps2pdf t nil t)))
+       (define-key lasy-mode-map  (kbd "<f4>") 'asy-goto-error))
 
-                 (easy-menu-define asy-latex-mode-menu lasy-mode-map "Asymptote insinuates LaTeX" asy-latex-menu-item)
-                 ))))
+     (easy-menu-define asy-latex-mode-menu lasy-mode-map "Asymptote insinuates LaTeX" asy-latex-menu-item)
+     ))
+;; ))
 
 (defvar asy-insinuate-latex-p nil
   "Not nil when current buffer is insinuated by Asymptote.
@@ -1005,11 +1021,28 @@ For internal use.")
   "Not nil when all latex-mode buffers is insinuated by Asymptote.
 For internal use.")
 
+(defun asy-set-latex-asy-indentation ()
+  "Set the indentation of environnment 'asy' like the environnment 'verbatim' is."
+  ;; Regexp matching environments with indentation at col 0 for begin/end.
+  (set (make-local-variable 'LaTeX-verbatim-regexp)
+       (concat (default-value 'LaTeX-verbatim-regexp) "\\|asy"))
+  ;; Alist of environments with special indentation.
+  (make-local-variable 'LaTeX-indent-environment-list)
+  (add-to-list 'LaTeX-indent-environment-list
+               '("asy" current-indentation)))
+
+(defun asy-unset-latex-asy-indentation ()
+  "Unset the indentation of environnment 'asy' like the environnment 'verbatim' is."
+  (set (make-local-variable 'LaTeX-verbatim-regexp)
+       (default-value 'LaTeX-verbatim-regexp))
+  (set (make-local-variable 'LaTeX-indent-environment-list)
+       (default-value 'LaTeX-indent-environment-list)))
 
 (defun asy-no-insinuate-locally ()
   (interactive)
   (set (make-local-variable 'asy-insinuate-latex-p) nil)
   (setq asy-insinuate-latex-globally-p nil)
+  (asy-unset-latex-asy-indentation)
   (if running-xemacs-p
       (easy-menu-remove-item nil nil "Asymptote")
     (menu-bar-update-buffers))
@@ -1034,6 +1067,7 @@ For internal use.")
     (mapc (lambda (buffer)
             (with-current-buffer buffer
               (when (and (buffer-file-name) (string= (file-name-extension (buffer-file-name)) "tex"))
+                (asy-unset-latex-asy-indentation)
                 (latex-mode)
                 (setq asy-insinuate-latex-p nil))))
           (buffer-list))))
@@ -1052,6 +1086,7 @@ You can automate this feature for all the 'latex-mode' buffers by inserting the 
   (interactive)
   (if (and (not asy-insinuate-latex-globally-p) (or global (string= major-mode "latex-mode")))
       (progn
+        (asy-set-latex-asy-indentation)
         (if global
             (progn
               (setq asy-insinuate-latex-p t)
@@ -1086,6 +1121,7 @@ See `asy-insinuate-latex'."
               (setq asy-insinuate-latex-p t)
               (use-local-map LaTeX-mode-map)
               (use-local-map lasy-mode-map)
+              (asy-set-latex-asy-indentation)
               (easy-menu-add asy-latex-mode-menu lasy-mode-map))))
         (buffer-list)))
 
@@ -1245,18 +1281,18 @@ when no error or warning occurs."
                (eq asy-compilation-buffer 'none))
       (setq asy-compilation-auto-close nil)
       (if (not (string-match "exited abnormally" msg))
-        (progn
-          (save-excursion
-            (set-buffer buf)
-            (beginning-of-buffer)
-            (if (not (search-forward-regexp "[wW]arning" nil t))
-                (when (not (eq asy-compilation-buffer 'visible))
-                  ;;no errors/Warning, make the compilation window go away
-                  (run-at-time 0.5 nil (lambda (buf_)
-                                         (delete-windows-on buf_)
-                                         (kill-buffer buf_)) buf)
-                  (message (replace-regexp-in-string "\n" "" msg)))
-              (message "Compilation warnings..."))))))))
+          (progn
+            (save-excursion
+              (set-buffer buf)
+              (beginning-of-buffer)
+              (if (not (search-forward-regexp "[wW]arning" nil t))
+                  (when (not (eq asy-compilation-buffer 'visible))
+                    ;;no errors/Warning, make the compilation window go away
+                    (run-at-time 0.5 nil (lambda (buf_)
+                                           (delete-windows-on buf_)
+                                           (kill-buffer buf_)) buf)
+                    (message (replace-regexp-in-string "\n" "" msg)))
+                (message "Compilation warnings..."))))))))
 
 (if  running-xemacs-p
     (setq compilation-finish-function 'asy-compilation-finish-function)
