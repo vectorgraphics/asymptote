@@ -1314,9 +1314,15 @@ available:
 void tensorshade(picture pic=currentpicture, path g, pen fillrule=currentpen,
                  pen[] p, path b=g, pair[] z=new pair[]);
 @end verbatim
+One can also smoothly shade the regions between consecutive paths of a
+sequence using a given array of pens:
+@verbatim
+void draw(picture pic=currentpicture, path[] g, pen[] p);
+@end verbatim
 @noindent
 Illustrations of tensor product and Coons shading are provided in the
-example files @code{tensor.asy}, @code{Coons.asy}, and @code{BezierSurface.asy}.
+example files @code{tensor.asy}, @code{Coons.asy}, @code{BezierSurface.asy},
+and @code{rainbow.asy}.
 
 @cindex unfill
 The following routine uses @code{evenodd} clipping together with the
