@@ -1123,79 +1123,46 @@ transform fixedscaling(picture pic=currentpicture, pair min, pair max,
 						 pic.keepAspect);
 }
 
-// Add frame src about position to frame dest with optional grouping;
-// return transform mapping src ooordinates to dest coordinates.
-transform add(frame dest, frame src, pair position, bool group=false,
-	      filltype filltype=NoFill, bool put=Above)
+// Add frame src about position to frame dest with optional grouping.
+void add(frame dest, frame src, pair position, bool group=false,
+	 filltype filltype=NoFill, bool put=Above)
 {
-  transform t=shift(position);
-  add(dest,t*src,group,filltype,put);
-  return t;
+  add(dest,shift(position)*src,group,filltype,put);
 }
 
-// Add frame src about position to picture dest with optional grouping;
-// return transform mapping src ooordinates to dest coordinates.
-transform add(picture dest=currentpicture, frame src, pair position=0,
-	      bool group=true, filltype filltype=NoFill, bool put=Above)
+// Add frame src about position to picture dest with optional grouping.
+void add(picture dest=currentpicture, frame src, pair position=0,
+	 bool group=true, filltype filltype=NoFill, bool put=Above)
 {
   dest.add(new void(frame f, transform t) {
       add(f,shift(t*position)*src,group,filltype,put);
     },true);
   dest.addBox(position,position,min(src),max(src));
-  return shift(position);
 }
 
-// Like add(picture,frame,pair) but extend picture to accommodate frame;
-// return transform mapping src ooordinates to dest coordinates.
-transform attach(picture dest=currentpicture, frame src, pair position=0,
-		 bool group=true, filltype filltype=NoFill, bool put=Above)
+// Like add(picture,frame,pair) but extend picture to accommodate frame.
+void attach(picture dest=currentpicture, frame src, pair position=0,
+	    bool group=true, filltype filltype=NoFill, bool put=Above)
 {
   transform t=dest.calculateTransform();
-  transform a=add(dest,src,position,group,filltype,put);
+  add(dest,src,position,group,filltype,put);
   pair s=size(dest.fit(t));
   size(dest,dest.xsize != 0 ? s.x : 0,dest.ysize != 0 ? s.y : 0);
-  return a;
 }
 
-// Like add(picture,frame,pair) but align frame in direction align;
-// return transform mapping src ooordinates to dest coordinates.
-transform add(picture dest=currentpicture, frame src, pair position, pair align,
-	      bool group=true, filltype filltype=NoFill, bool put=Above)
+// Like add(picture,frame,pair) but align frame in direction align.
+void add(picture dest=currentpicture, frame src, pair position, pair align,
+	 bool group=true, filltype filltype=NoFill, bool put=Above)
 {
-  transform a=shift(src,align);
-  add(dest,a*src,position,group,filltype,put);
-  return a;
-}
-
-// Align src to dest about position in direction align;
-// return transform mapping src ooordinates to dest coordinates.
-transform add(picture dest, picture src, pair position, pair align,
-	      bool group=true, filltype filltype=NoFill, bool put=Above)
-{
-  frame f=src.fit();
-  transform t=src.calculateTransform();
-  transform a=shift(f,align);
-  add(dest,a*f,position,group,filltype,put);
-  return a*t;
-}
-
-// Align src to currentpicture about position in direction align;
-// return transform mapping src ooordinates to dest coordinates.
-transform add(picture src, pair position, pair align, bool group=true,
-	      filltype filltype=NoFill, bool put=Above)
-{
-  return add(currentpicture,src,position,align,group,filltype,put);
+  add(dest,align(src,align),position,group,filltype,put);
 }
 
 // Like attach(picture,frame,pair) but extend picture to accommodate frame;
-// return transform mapping src ooordinates to dest coordinates.
-transform attach(picture dest=currentpicture, frame src, pair position,
-		 pair align, bool group=true, filltype filltype=NoFill,
-		 bool put=Above)
+void attach(picture dest=currentpicture, frame src, pair position,
+	    pair align, bool group=true, filltype filltype=NoFill,
+	    bool put=Above)
 {
-  transform a=shift(src,align);
-  attach(dest,a*src,position,group,filltype,put);
-  return a*shift(position);
+  attach(dest,align(src,align),position,group,filltype,put);
 }
 
 // Add a picture to another such that user coordinates in both will be scaled
@@ -1214,12 +1181,11 @@ void add(picture src, bool group=true, filltype filltype=NoFill,
 
 // Fit the picture src using the identity transformation (so user
 // coordinates and truesize coordinates agree) and add it about the point
-// position to picture dest;
-// return transform mapping src ooordinates to dest coordinates.
-transform add(picture dest, picture src, pair position, bool group=true,
-	      filltype filltype=NoFill, bool put=Above)
+// position to picture dest.
+void add(picture dest, picture src, pair position, bool group=true,
+	 filltype filltype=NoFill, bool put=Above)
 {
-  return add(dest,src.fit(identity()),position,group,filltype,put);
+  add(dest,src.fit(identity()),position,group,filltype,put);
 }
 
 void add(picture src, pair position, bool group=true, filltype filltype=NoFill,

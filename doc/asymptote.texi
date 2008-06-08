@@ -3162,23 +3162,21 @@ whether to add @code{src} above or below existing objects.
 
 There are also routines to add a picture or frame @code{src} specified
 in postscript coordinates to another picture about the user coordinate
-@code{position}. They return the transform that maps @code{src} coordinates to
-@code{dest} coordinates:
+@code{position}:
 @anchor{add about}
 @cindex @code{add}
 @cindex picture alignment
 @verbatim
-transform add(picture dest=currentpicture, picture src, pair position,
-              bool group=true, filltype filltype=NoFill, bool put=Above);
-transform add(picture dest=currentpicture, frame src, pair position=0,
-              bool group=true, filltype filltype=NoFill,
-              bool put=Above);
-transform add(picture dest=currentpicture, picture src, pair position,
-              pair align, bool group=true, filltype filltype=NoFill,
-              bool put=Above);
-transform add(picture dest=currentpicture, frame src, pair position,
-              pair align, bool group=true, filltype filltype=NoFill,
-              bool put=Above);
+void add(picture dest=currentpicture, picture src, pair position,
+         bool group=true, filltype filltype=NoFill, bool put=Above);
+void add(picture dest=currentpicture, frame src, pair position=0,
+         bool group=true, filltype filltype=NoFill, bool put=Above);
+void add(picture dest=currentpicture, picture src, pair position,
+         pair align, bool group=true, filltype filltype=NoFill,
+         bool put=Above);
+void add(picture dest=currentpicture, frame src, pair position,
+         pair align, bool group=true, filltype filltype=NoFill,
+         bool put=Above);
 @end verbatim
 
 The optional @code{align} argument in the last two forms specifies a
@@ -3197,10 +3195,10 @@ Alternatively, one can use @code{attach} to automatically increase the
 size of picture @code{dest} to accommodate adding a frame @code{src}
 about the user coordinate @code{position}:
 @verbatim
-transform attach(picture dest=currentpicture, frame src,
+void attach(picture dest=currentpicture, frame src,
                  pair position=0, bool group=true,
                  filltype filltype=NoFill, bool put=Above);
-transform attach(picture dest=currentpicture, frame src,
+void attach(picture dest=currentpicture, frame src,
                  pair position, pair align, bool group=true,
                  filltype filltype=NoFill, bool put=Above);
 @end verbatim
