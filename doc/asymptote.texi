@@ -7572,8 +7572,8 @@ from irregularly spaced data:
 @image{irregularcontour}
 
 In the above example, the contours of irregularly spaced data are constructed by
-first creating a triangular mesh from an array @code{z} of pairs,
-using Gilles Dumoulin's C++ port of Paul Bourke's triangulation code: 
+first creating a triangular mesh from an array @code{z} of pairs:
+
 @verbatim
 int[][] triangulate(pair[] z);
 @end verbatim
@@ -7583,6 +7583,17 @@ int[][] triangulate(pair[] z);
 
 The example @code{Gouraudcontour} illustrates how to produce color
 density images over such irregular triangular meshes.
+
+By default, @code{Asymptote} uses Gilles Dumoulin's C++ port of Paul Bourke's
+triangulation code. However, @code{Asymptote} can be optionally built
+with Jonathan Shewchuk's more robust triangulation routines by placing
+@url{http://netlib.sandia.gov/voronoi/triangle.shar.gz}
+in the @code{Asymptote} source directory and executing the commands
+@verbatim
+./configure
+make all
+make install
+@end verbatim
 
 @node contour3
 @section @code{contour3}

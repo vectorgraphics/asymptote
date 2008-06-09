@@ -1,0 +1,54 @@
+--- triangle.c	2005-07-28 15:11:32.000000000 -0600
++++ triangle.cc	2008-06-08 13:15:42.000000000 -0600
+@@ -513,6 +513,7 @@
+ struct otri {
+   triangle *tri;
+   int orient;                                         /* Ranges from 0 to 2. */
++  otri() : tri(NULL), orient(0) {}
+ };
+ 
+ /* The subsegment data structure.  Each subsegment contains two pointers to  */
+@@ -3931,14 +3932,14 @@
+ 
+ #ifdef ANSI_DECLARATORS
+ void poolinit(struct memorypool *pool, int bytecount, int itemcount,
+-              int firstitemcount, int alignment)
++              int firstitemcount, size_t alignment)
+ #else /* not ANSI_DECLARATORS */
+ void poolinit(pool, bytecount, itemcount, firstitemcount, alignment)
+ struct memorypool *pool;
+ int bytecount;
+ int itemcount;
+ int firstitemcount;
+-int alignment;
++size_t alignment;
+ #endif /* not ANSI_DECLARATORS */
+ 
+ {
+@@ -4317,7 +4318,7 @@
+ #endif /* not ANSI_DECLARATORS */
+ 
+ {
+-  int trisize;
++  size_t trisize;
+ 
+   /* The index within each triangle at which the extra nodes (above three)  */
+   /*   associated with high order elements are found.  There are three      */
+@@ -5354,7 +5355,7 @@
+   REAL cxtaa[8], cxtbb[8], cytaa[8], cytbb[8];
+   int cxtaalen, cxtbblen, cytaalen, cytbblen;
+   REAL axtbc[8], aytbc[8], bxtca[8], bytca[8], cxtab[8], cytab[8];
+-  int axtbclen, aytbclen, bxtcalen, bytcalen, cxtablen, cytablen;
++  int axtbclen=0, aytbclen=0, bxtcalen=0, bytcalen=0, cxtablen=0, cytablen=0;
+   REAL axtbct[16], aytbct[16], bxtcat[16], bytcat[16], cxtabt[16], cytabt[16];
+   int axtbctlen, aytbctlen, bxtcatlen, bytcatlen, cxtabtlen, cytabtlen;
+   REAL axtbctt[8], aytbctt[8], bxtcatt[8];
+@@ -6951,7 +6952,7 @@
+     length *= multiplier;
+   }
+   /* `length' is approximately squareroot(2.0) to what exponent? */
+-  exponent = 2.0 * exponent + (length > SQUAREROOTTWO);
++  exponent = (int) (2.0 * exponent + (length > SQUAREROOTTWO));
+   /* `exponent' is now in the range 0...2047 for IEEE double precision.   */
+   /*   Choose a queue in the range 0...4095.  The shortest edges have the */
+   /*   highest priority (queue 4095).                                     */

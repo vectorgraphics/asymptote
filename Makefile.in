@@ -13,11 +13,11 @@ LIBS = $(LFLAGS) @LIBS@ $(GCLIBS)
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill path3
-FILES = $(CAMP) runtime env genv main stm dec errormsg callable name \
-	symbol types entry exp newexp stack camp.tab lex.yy access \
+FILES = $(CAMP) @TRIANGLE@ runtime env genv main stm dec errormsg callable \
+	name symbol types entry exp newexp stack camp.tab lex.yy access \
 	absyn record interact fileio builtin fftw++ simpson coder coenv \
 	@getopt@ locate parser program application varinit fundec refaccess \
-	Delaunay envcompleter process constructor array
+	envcompleter process constructor array
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc keywords.cc \
 	asy-keywords.el base/asy-keywords.el
@@ -94,6 +94,17 @@ man:	asy
 
 faq:	asy
 	cd doc; $(MAKE) faq
+
+triangle.h: triangle.shar.gz
+	mkdir triangle
+	gunzip -c triangle.shar.gz > triangle/triangle.shar
+	cd triangle; sh triangle.shar
+	cp triangle/triangle.h .
+	cp triangle/triangle.c ./triangle.cc
+	patch triangle.cc patches/triangle.patch
+
+triangle.o: triangle.h
+	$(CXX) $(OPTS) $(INCL) -DANSI_DECLARATORS -DTRILIBRARY -o triangle.o -c triangle.cc
 
 runtime.cc: runtime.pl runtime.in
 	./runtime.pl
@@ -180,6 +191,7 @@ distclean: FORCE clean
 	-if test -d $(GC); then \
 		rm -rf $(GC); \
 	fi
+	rm -rf triangle triangle.h triangle.cc
 	rm -f Makefile config.h config.log config.status errors.temp
 	cd doc; $(MAKE) distclean
 	cd tests; $(MAKE) distclean

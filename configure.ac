@@ -203,6 +203,13 @@ AC_CHECK_HEADER(gsl/gsl_sf.h,
            AC_MSG_NOTICE([*** Could not find libgsl: will compile without optional special functions. ***]),[-lgslcblas]),
      AC_MSG_NOTICE([*** Header file gsl_sf.h not found: will compile without optional special functions. ***]))
 
+TRIANGLE=Delaunay
+AC_CHECK_FILE(triangle.shar.gz,
+   [AC_DEFINE(HAVE_TRIANGLE, 1,
+   [Define to 1 if you have the source files for the 'triangle' mesh generator. ]) TRIANGLE="triangle "])
+
+AC_SUBST(TRIANGLE)
+
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
