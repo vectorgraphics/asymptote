@@ -205,56 +205,49 @@ private guide[][] connect(pair[][][] points, real[] c, interpolate join)
 }
 
 
-// Return contour guides for a 2D data array, using a triangle mesh
-// f:        two-dimensional array of real data values
-// a,b:      lower-left and upper-right vertices of contour domain
-// c:        array of contour values
-// join:     interpolation operator (e.g. operator -- or operator ..)
-guide[][] contour(real[][] f, real[][] midpoint=new real[][],
-                  pair a, pair b, real[] c,
+// Return contour guides for a 2D data array.
+// z:         two-dimensional array of nonoverlapping mesh points
+// f:         two-dimensional array of corresponding f(x,y) data values
+// midpoint:  optional array containing estimate of f at midpoint values
+// c:         array of contour values
+// join:      interpolation operator (e.g. operator -- or operator ..)
+guide[][] contour(pair[][] z, real[][] f,
+		  real[][] midpoint=new real[][], real[] c,
                   interpolate join=operator --)
 {
-  int nx=f.length-1;
+  int nx=z.length-1;
   if(nx == 0)
-    abort("array f must have length >= 2");
-  int ny=f[0].length-1;
+    abort("array z must have length >= 2");
+  int ny=z[0].length-1;
   if(ny == 0)
-    abort("array f[0] must have length >= 2");
-  
+    abort("array z[0] must have length >= 2");
+
   c=sort(c);
   bool midpoints=midpoint.length > 0;
   
-  // check if boundaries are good
-  if(b.x <= a.x || b.y <= a.y) {
-    abort("bad contour domain: all coordinates of b-a must be positive.");
-  } 
-
   segment segments[][][]=new segment[nx][ny][];
 
-  real dx=(b.x-a.x)/nx;
-  real dy=(b.y-a.y)/ny;
-  
   // go over region a rectangle at a time
   for(int i=0; i < nx; ++i) {
-    real x=a.x+i*dx;
+    pair[] zi=z[i];
+    pair[] zp=z[i+1];
     real[] fi=f[i];
-    real[] fi1=f[i+1];
+    real[] fp=f[i+1];
     segment[][] segmentsi=segments[i];
     for(int j=0; j < ny; ++j) {
-      real y=a.y+j*dy;
       segment[] segmentsij=segmentsi[j];
       
       // define points
-      pair bleft=(x,y);
-      pair bright=(x+dx,y);
-      pair tleft=(x,y+dy);
-      pair tright=(x+dx,y+dy);
+      pair bleft=zi[j];
+      pair bright=zp[j];
+      pair tleft=zi[j+1];
+      pair tright=zp[j+1];
       pair middle=0.5*(bleft+tright);
    
       real f00=fi[j];
       real f01=fi[j+1];
-      real f10=fi1[j];
-      real f11=fi1[j+1];
+      real f10=fp[j];
+      real f11=fp[j+1];
       
       int checkcell(int cnt) {
         real C=c[cnt];
@@ -456,11 +449,39 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
   return connect(points,c,join);
 }
 
+// Return contour guides for a 2D data array on a uniform lattice
+// f:         two-dimensional array of real data values
+// midpoint:  optional array containing estimate of f at midpoint values
+// a,b:       diagonally opposite vertices of rectangular domain
+// c:         array of contour values
+// join:      interpolation operator (e.g. operator -- or operator ..)
+guide[][] contour(real[][] f, real[][] midpoint=new real[][],
+                  pair a, pair b, real[] c,
+                  interpolate join=operator --)
+{
+  int nx=f.length-1;
+  if(nx == 0)
+    abort("array f must have length >= 2");
+  int ny=f[0].length-1;
+  if(ny == 0)
+    abort("array f[0] must have length >= 2");
+
+  pair[][] z=new pair[nx+1][ny+1];
+  for(int i=0; i <= nx; ++i) {
+    pair[] zi=z[i];
+    real xi=interp(a.x,b.x,i/nx);
+    for(int j=0; j <= ny; ++j) {
+      zi[j]=(xi,interp(a.y,b.y,j/ny));
+    }
+  }
+  return contour(z,f,midpoint,c,join);
+}
+
 // return contour guides for a real-valued function
 // f:        real-valued function of two real variables
-// a,b:      lower-left and upper-right vertices of contour domain
+// a,b:      diagonally opposite vertices of rectangular domain
 // c:        array of contour values
-// nx,ny:    subdivisions on x and y axes (affects accuracy)
+// nx,ny:    number of subdivisions in x and y directions (determines accuracy)
 // join:     interpolation operator (e.g. operator -- or operator ..)
 guide[][] contour(real f(real, real), pair a, pair b,
                   real[] c, int nx=ngraph, int ny=nx,
@@ -595,7 +616,7 @@ void fill(picture pic=currentpicture, guide[][] g, pen[][] palette)
   }
 }
 
-// non-regularly spaced points routines:
+// routines for irregularly spaced points:
 
 // check existing guides and adds new segment to them if possible,
 // or otherwise store segment as a new guide
@@ -639,6 +660,7 @@ guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
 {
   if(z.length != f.length)
     abort("z and f arrays have different lengths");
+
   int[][] trn=triangulate(z);
 
   // array to store guides found so far
@@ -646,30 +668,16 @@ guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
         
   for(int cnt=0; cnt < c.length; ++cnt) {
     pair[][] pointscnt=points[cnt];
+    real C=c[cnt];
     for(int i=0; i < trn.length; ++i) {
       int[] trni=trn[i];
       int i0=trni[0], i1=trni[1], i2=trni[2];
       addseg(pointscnt,checktriangle(z[i0],z[i1],z[i2],
-                                     f[i0]-c[cnt],f[i1]-c[cnt],f[i2]-c[cnt],0));
+                                     f[i0]-C,f[i1]-C,f[i2]-C,0));
     }
   }
 
   collect(points,c);
 
   return connect(points,c,join);
-}
-
-guide[][] contour(real[] x, real[] y, real[] f, real[] c,
-                  interpolate join=operator --)
-{
-  int n=x.length;
-  if(n != y.length)
-    abort("x and y arrays have different lengths");
-
-  pair[] z=new pair[n];
-
-  for(int i=0; i < n; ++i)
-    z[i]=(x[i],y[i]);
-    
-  return contour(z,f,c,join);
 }

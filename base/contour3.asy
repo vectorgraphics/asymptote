@@ -35,30 +35,25 @@ private struct object
   weighted[] pts;
 }
 
-// Return contour vertices for a 3D data array, using a pyramid mesh
-// f,mp:      three-dimensional arrays of real data values
-// a,b:       'bottom' and 'top' vertices of contour domain
-vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
-                    triple a, triple b,
+// Return contour vertices for a 3D data array.
+// z:         three-dimensional array of nonoverlapping mesh points
+// f:         three-dimensional arrays of real data values
+// midpoint:  optional array containing estimate of f at midpoint values
+vertex[][] contour3(triple[][][] v, real[][][] f,
+		    real[][][] midpoint=new real[][][],
                     projection P=currentprojection)
 {
-  int nx=f.length-1;
+  int nx=v.length-1;
   if(nx == 0)
-    abort("array f must have length >= 2");
-  int ny=f[0].length-1;
+    abort("array v must have length >= 2");
+  int ny=v[0].length-1;
   if(ny == 0)
-    abort("array f[0] must have length >= 2");
-  int nz=f[0][0].length-1;
+    abort("array v[0] must have length >= 2");
+  int nz=v[0][0].length-1;
   if(nz == 0)
-    abort("array f[0][0] must have length >= 2");
- 
-  // check if boundaries are good
-  if(b.x <= a.x || b.y <= a.y) {
-    abort("bad contour domain: all coordinates of b-a must be positive.");
-  }
- 
-  bool midpoints=mp.length > 0;
-  if(!midpoints) mp=new real[2nx+1][2ny+1][2nz+1];
+    abort("array v[0][0] must have length >= 2");
+
+  bool midpoints=midpoint.length > 0;
 
   bucket[][][][] kps=new bucket[2nx+1][2ny+1][2nz+1][];
   for(int i=0; i < 2nx+1; ++i)
@@ -66,57 +61,50 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
       for(int k=0; k < 2nz+1; ++k)
         kps[i][j][k]=new bucket[];
 
-  for(int i=0; i <= nx; ++i)
-    for(int j=0; j <= ny; ++j)
-      for(int k=0; k <= nz; ++k)
-        mp[2i][2j][2k]=f[i][j][k];   
-
   object[] objects;
 
-  real dx=(b.x-a.x)/nx;
-  real dy=(b.y-a.y)/ny;
-  real dz=(b.z-a.z)/nz;
-  
   // go over region a rectangle at a time
   for(int i=0; i < nx; ++i) {
-    real x=a.x+i*dx;
+    triple[][] vi=v[i];
+    triple[][] vp=v[i+1];
     real[][] fi=f[i];
-    real[][] fi1=f[i+1];
+    real[][] fp=f[i+1];
     int i2=2i;
     int i2p1=i2+1;
     int i2p2=i2+2;
     for(int j=0; j < ny; ++j) {
-      real y=a.y+j*dy;
+      triple[] vij=vi[j];
+      triple[] vpj=vp[j];
+      triple[] vip=vi[j+1];
+      triple[] vpp=vp[j+1];
       real[] fij=fi[j];
-      real[] fi1j=fi1[j];
-      real[] fij1=fi[j+1];
-      real[] fi1j1=fi1[j+1];
+      real[] fpj=fp[j];
+      real[] fip=fi[j+1];
+      real[] fpp=fp[j+1];
       int j2=2j;
       int j2p1=j2+1;
       int j2p2=j2+2;
  
       for(int k=0; k < nz; ++k) {
-        real z=a.z+k*dz;
-
         // vertex values
         real vdat0=fij[k];
         real vdat1=fij[k+1];
-        real vdat2=fij1[k];
-        real vdat3=fij1[k+1];
-        real vdat4=fi1j[k];
-        real vdat5=fi1j[k+1];
-        real vdat6=fi1j1[k];
-        real vdat7=fi1j1[k+1];
+        real vdat2=fip[k];
+        real vdat3=fip[k+1];
+        real vdat4=fpj[k];
+        real vdat5=fpj[k+1];
+        real vdat6=fpp[k];
+        real vdat7=fpp[k+1];
 
         // define points
-        triple p000=(x,y,z);
-        triple p001=(x,y,z+dz);
-        triple p010=(x,y+dy,z);
-        triple p011=(x,y+dy,z+dz);
-        triple p100=(x+dx,y,z);
-        triple p101=(x+dx,y,z+dz);
-        triple p110=(x+dx,y+dy,z);
-        triple p111=(x+dx,y+dy,z+dz);
+        triple p000=vij[k];
+        triple p001=vij[k+1];
+        triple p010=vip[k];
+        triple p011=vip[k+1];
+        triple p100=vpj[k];
+        triple p101=vpj[k+1];
+        triple p110=vpp[k];
+        triple p111=vpp[k+1];
         triple m0=0.25*(p000+p010+p110+p100);
         triple m1=0.25*(p010+p110+p111+p011);
         triple m2=0.25*(p110+p100+p101+p111);
@@ -156,19 +144,19 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
  
         // Evaluate midpoints of cube sides.
         // Then evaluate midpoint of cube.
-        real vdat8=midpoints ? mp[i2p1][j2p1][k2] :
+        real vdat8=midpoints ? midpoint[i2p1][j2p1][k2] :
           0.25*(vdat0+vdat2+vdat6+vdat4);
-        real vdat9=midpoints ? mp[i2p1][j2p2][k2p1] : 
+        real vdat9=midpoints ? midpoint[i2p1][j2p2][k2p1] : 
           0.25*(vdat2+vdat6+vdat7+vdat3);
-        real vdat10=midpoints ? mp[i2p2][j2p1][k2p1] : 
+        real vdat10=midpoints ? midpoint[i2p2][j2p1][k2p1] : 
           0.25*(vdat7+vdat6+vdat4+vdat5);
-        real vdat11=midpoints ? mp[i2p1][j2][k2p1] : 
+        real vdat11=midpoints ? midpoint[i2p1][j2][k2p1] : 
           0.25*(vdat0+vdat4+vdat5+vdat1);
-        real vdat12=midpoints ? mp[i2][j2p1][k2p1] : 
+        real vdat12=midpoints ? midpoint[i2][j2p1][k2p1] : 
           0.25*(vdat0+vdat2+vdat3+vdat1);
-        real vdat13=midpoints ? mp[i2p1][j2p1][k2p2] : 
+        real vdat13=midpoints ? midpoint[i2p1][j2p1][k2p2] : 
           0.25*(vdat1+vdat3+vdat7+vdat5);
-        real vdat14=midpoints ? mp[i2p1][j2p1][k2p1] : 
+        real vdat14=midpoints ? midpoint[i2p1][j2p1][k2p1] : 
           0.125*(vdat0+vdat1+vdat2+vdat3+vdat4+vdat5+vdat6+vdat7);
       
         // Go through the 24 pyramids, 4 for each side.
@@ -407,10 +395,42 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
   return g;
 }
 
+// Return contour vertices for a 3D data array on a uniform lattice.
+// f:         three-dimensional arrays of real data values
+// midpoint:  optional array containing estimate of f at midpoint values
+// a,b:       diagonally opposite points of rectangular parellelpiped domain
+vertex[][] contour3(real[][][] f, real[][][] midpoint=new real[][][],
+                    triple a, triple b, projection P=currentprojection)
+{
+  int nx=f.length-1;
+  if(nx == 0)
+    abort("array f must have length >= 2");
+  int ny=f[0].length-1;
+  if(ny == 0)
+    abort("array f[0] must have length >= 2");
+  int nz=f[0][0].length-1;
+  if(nz == 0)
+    abort("array f[0][0] must have length >= 2");
+
+  triple[][][] v=new triple[nx+1][ny+1][nz+1];
+  for(int i=0; i <= nx; ++i) {
+    real xi=interp(a.x,b.x,i/nx);
+    triple[][] vi=v[i];
+    for(int j=0; j <= ny; ++j) {
+      triple[] vij=v[i][j];
+      real yj=interp(a.y,b.y,j/ny);
+      for(int k=0; k <= nz; ++k) {
+	vij[k]=(xi,yj,interp(a.z,b.z,k/nz));
+      }
+    }
+  }
+  return contour3(v,f,midpoint,P);
+}
+
 // Return contour vertices for a 3D data array, using a pyramid mesh
-// f:         Function from R3 to R.
-// a,b:       'bottom' and 'top' vertices of contour domain
-// nx,ny,nz   subdivisions on x, y and z axes
+// f:         real-valued function of three real variables
+// a,b:       diagonally opposite points of rectangular parellelpiped domain
+// nx,ny,nz   number of subdivisions in x, y, and z directions
 vertex[][] contour3(real f(real, real, real), triple a, triple b,
                     int nx=ncell, int ny=nx, int nz=nx,
                     projection P=currentprojection)

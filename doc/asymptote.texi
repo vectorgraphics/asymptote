@@ -7501,37 +7501,43 @@ Here is a simple flowchart example:
 @section @code{contour}
 @cindex @code{contour}
 This package draws contour lines.
-To construct contours for a function @code{f}, use
+To construct contours corrsponding to the values in an array @code{c}
+for a function @code{f} on @code{box(a,b)}, use
 @verbatim
 guide[][] contour(real f(real, real), pair a, pair b,
                   real[] c, int nx=ngraph, int ny=nx,
                   interpolate join=operator --);
 @end verbatim
 @noindent
-The contour lines @code{c} for the function @code{f} are drawn
-on the rectangle defined by the bottom-left and top-right points @code{a}
-and @code{b}. The integers @code{nx} and @code{ny} define the resolution.
+The integers @code{nx} and @code{ny} define the resolution.
 The default resolution, @code{ngraph x ngraph} (here @code{ngraph}
 defaults to @code{100}), can be increased for greater accuracy. The
 default interpolation operator is @code{operator --} (linear). Spline
-interpolation (@code{operator ..}) generally produces more
-accurate pictures, but as usual, can overshoot in certain cases.
+interpolation (@code{operator ..}) may produce smoother
+contours but it can also lead to overshooting.
 
 To construct contours for an array of data values on a uniform
-two-dimensional lattice, use
+two-dimensional lattice on @code{box(a,b)}, use
 @verbatim
 guide[][] contour(real[][] f, real[][] midpoint=new real[][],
                   pair a, pair b, real[] c,
                   interpolate join=operator --);
+@end verbatim
+
+To construct contours for an array of data values on a nonoverlapping
+mesh specified by the two-dimensional array @code{z}, optionally
+specifying an estimate for the values of @code{f} at the mesh midpoints, use
+@verbatim
+guide[][] contour(pair[][] z, real[][] f,
+		  real[][] midpoint=new real[][], real[] c,
+                  interpolate join=operator --);
 
 @end verbatim
 @noindent
-To construct contours for an array of irregularly spaced points
-and an array of values @code{f} at these points, use one of the routines
+To construct contours for an array of values @code{f} specified at
+irregularly positioned points @code{z}, use the routine
 @verbatim
 guide[][] contour(pair[] z, real[] f, real[] c,
-                  interpolate join=operator --);
-guide[][] contour(real[] x, real[] y, real[] f, real[] c,
                   interpolate join=operator --);
 @end verbatim 
 @noindent
