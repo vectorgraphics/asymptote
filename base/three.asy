@@ -1505,6 +1505,14 @@ path3 operator * (transform3 t, path3 p)
   return path3(nodes,p.cycles);
 }
 
+path3[] operator * (transform3 t, path3[] p) 
+{
+  path3[] g=new path3[p.length];
+  for(int i=0; i < p.length; ++i)
+    g[i]=t*p[i];
+  return g;
+}
+
 void write(file file, string s="", explicit path3 x, suffix suffix=none)
 {
   write(file,s);
