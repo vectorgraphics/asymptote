@@ -497,8 +497,8 @@ static HISTORY_STATE history_save;
 void store_history(HISTORY_STATE *dest)
 {
   HISTORY_STATE *src=history_get_history_state();
-  *dest=*src;
   if(src) {
+    *dest=*src;
     for(Int i=0; i < src->length; ++i)
       dest->entries[i]=src->entries[i];
     free(src);
@@ -514,7 +514,7 @@ stringarray* get_history(Int n)
   int offset=history_length-N+1;
   for(int i=0; i < N; ++i) {
     HIST_ENTRY *last=history_get(offset+i);
-    string s=last ? last-> line : "";
+    string s=last ? last->line : "";
     (*a)[i]=s;
   }	
   return a;
@@ -580,7 +580,6 @@ void updateFunction(stack *Stack)
   callable *atExitFunction=processData().atExitFunction;
   if(atExitFunction && !nullfunc::instance()->compare(atExitFunction))
     atExitFunction->call(Stack);
-  interact::uptodate=true;
 }
 
 void exitFunction(stack *Stack)
@@ -1117,6 +1116,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 	     string format=emptystring, bool wait=false, bool view=true,
 	     callableTransform *xform)
 {
+  interact::uptodate=true;
   if(prefix.empty()) prefix=outname();
 
   picture *result=new picture;
