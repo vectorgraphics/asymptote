@@ -95,24 +95,24 @@
 
 \def\AfterasyAsymptote{%
   \immediate\write\AsyStream{\@charrb);}%
-  \immediate\write\AsyStream{// End of Asymptote Figure \arabic{asy}}%
+  \immediate\write\AsyStream{// End of Asymptote Figure \the\c@asy}%
   \ifinline
-    \openin\AsyTestStream=\Jobname_\arabic{asy}_.tex
+    \openin\AsyTestStream=\Jobname_\the\c@asy_.tex
   \else
     \ifcase\pdfoutput
-      \openin\AsyTestStream=\Jobname_\arabic{asy}.eps
+      \openin\AsyTestStream=\Jobname_\the\c@asy.eps
     \else
-      \openin\AsyTestStream=\Jobname_\arabic{asy}.pdf
+      \openin\AsyTestStream=\Jobname_\the\c@asy.pdf
     \fi
   \fi
   \ifeof\AsyTestStream
     \ifinline
-      \PackageWarning{asymptote}{file \Jobname_\arabic{asy}_.tex does not exist}%
+      \PackageWarning{asymptote}{file \Jobname_\the\c@asy_.tex does not exist}%
     \else
       \ifcase\pdfoutput
-        \PackageWarning{asymptote}{file \Jobname_\arabic{asy}.eps does not exist}%
+        \PackageWarning{asymptote}{file \Jobname_\the\c@asy.eps does not exist}%
       \else
-        \PackageWarning{asymptote}{file \Jobname_\arabic{asy}.pdf does not exist}%
+        \PackageWarning{asymptote}{file \Jobname_\the\c@asy.pdf does not exist}%
       \fi
     \fi
     \closein\AsyTestStream%
@@ -120,9 +120,9 @@
     \closein\AsyTestStream%
     \ifinline
     \catcode`:=12
-    \input \Jobname_\arabic{asy}_.tex%
+    \input \Jobname_\the\c@asy_.tex%
     \else
-    \includegraphics{\Jobname_\arabic{asy}}%
+    \includegraphics{\Jobname_\the\c@asy}%
     \fi
   \fi
   \relax%
@@ -133,9 +133,9 @@
   \stepcounter{asy}%
   \def\@optarg{#1}%
    \immediate\write\AsyStream{}%
-   \immediate\write\AsyStream{// Beginning of Asymptote Figure \arabic{asy}}%
+   \immediate\write\AsyStream{// Beginning of Asymptote Figure \the\c@asy}%
    \immediate\write\AsyStream{eval(quote\@charlb}%
-   \immediate\write\AsyStream{defaultfilename='\Jobname_\arabic{asy}';}%
+   \immediate\write\AsyStream{defaultfilename='\Jobname_\the\c@asy';}%
   \ifx\@optarg\empty
   \else
     \immediate\write\AsyStream{size(#1);}%
