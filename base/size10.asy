@@ -1,0 +1,12 @@
+texpreamble("\makeatletter%
+\renewcommand\normalsize{\@setfontsize\normalsize\@xpt\@xiipt}%
+\renewcommand\small{\@setfontsize\small\@ixpt{11}}%
+\renewcommand\footnotesize{\@setfontsize\footnotesize\@viiipt{9.5}}%
+\renewcommand\scriptsize{\@setfontsize\scriptsize\@viipt\@viiipt}%
+\renewcommand\tiny{\@setfontsize\tiny\@vpt\@vipt}%
+\renewcommand\large{\@setfontsize\large\@xiipt{14}}%
+\renewcommand\Large{\@setfontsize\Large\@xivpt{18}}%
+\renewcommand\LARGE{\@setfontsize\LARGE\@xviipt{22}}%
+\renewcommand\huge{\@setfontsize\huge\@xxpt{25}}%
+\renewcommand\Huge{\@setfontsize\Huge\@xxvpt{30}}%
+\makeatother");
