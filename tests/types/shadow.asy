@@ -8,10 +8,10 @@ void setX(int value) { x=value; }
 int x = 2;
 assert(x==2);
 assert(getX()==1);
-x = 4
+x = 4;
 assert(x==4);
 assert(getX()==1);
-setX(7)
+setX(7);
 assert(x==4);
 assert(getX()==7);
 EndTest();
