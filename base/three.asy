@@ -184,12 +184,14 @@ struct projection {
   triple camera;
   triple target;
   transform3 project;
+  triple up;
   aspect aspect;
   projection copy() {
     projection P=new projection;
     P.infinity=infinity;
     P.camera=camera;
     P.target=target;
+    P.up=up;
     P.project=project;
     P.aspect=aspect;
     return P;
@@ -222,7 +224,8 @@ addSaveFunction(new restoreThunk() {
   });
 
 
-projection projection(triple camera, triple target=O, transform3 project,
+projection projection(triple camera, triple target=O, triple up=Z,
+		      transform3 project,
                       aspect aspect=new real[] {1,1,1,1}, bool infinity=false)
 {
   projection P;
@@ -234,6 +237,7 @@ projection projection(triple camera, triple target=O, transform3 project,
     P.camera=camera;
     P.target=target;
   }
+  P.up=up;
   P.project=project;
   P.aspect=aspect;
   return P;
@@ -245,7 +249,7 @@ projection projection(triple camera, triple target=O, transform3 project,
 // perpendicular to the vector camera-target.
 projection perspective(triple camera, triple up=Z, triple target=O)
 {
-  return projection(camera,target,shift(-target)*distort(camera-target)*
+  return projection(camera,target,up,shift(-target)*distort(camera-target)*
                     look(camera-target,up));
 }
 
@@ -256,7 +260,7 @@ projection perspective(real x, real y, real z, triple up=Z, triple target=O)
 
 projection orthographic(triple camera, triple up=Z)
 {
-  return projection(camera,look(camera,up),infinity=true);
+  return projection(camera,up,look(camera,up),infinity=true);
 }
 
 projection orthographic(real x, real y, real z, triple up=Z)
@@ -272,7 +276,7 @@ projection oblique(real angle=45)
   t[0][2]=-c2;
   t[1][2]=-s2;
   t[2][2]=0;
-  return projection((c2,s2,1),t,infinity=true);
+  return projection((c2,s2,1),up=Y,t,infinity=true);
 }
 
 projection obliqueZ(real angle=45) {return oblique(angle);}
@@ -2758,8 +2762,13 @@ void add(picture pic=currentpicture, face[] faces,
 private int count3=0;
 private string[] file3;
 
-void add3(picture pic=currentpicture, frame f, real width, real height=width,
-	  pair position=0, pair align=0, projection P=currentprojection) {
+void add3(picture pic=currentpicture, frame f,
+	  string label="", string text=label,
+	  real width, real height=width,
+	  pair position=0, pair align=0, real angle=30,
+	  string render="Solid", string lights="White", string views="", 
+	  string javascript="",
+	  pen background=white, projection P=currentprojection) {
   string prefix=defaultfilename;
   if(prefix == "") prefix="out";
   prefix += "-"+(string) count3;
@@ -2767,8 +2776,33 @@ void add3(picture pic=currentpicture, frame f, real width, real height=width,
   shipout3(prefix,f);
   prefix += ".prc";
   file3.push(prefix);
-  label(pic,embed(prefix,"poster,text="+prefix+",label=prc,3Droo=10,3Drender=Solid,3Dlights=White,3Dbg=1 1 1,3Dc2c=0 0 1,3Droll=0",width,height),
-	position);
+  triple v=P.camera-P.target;
+  string format(real x) {
+    assert(abs(x) < 1e18,"Number too large: "+string(x));
+    return format("%.18f",x);
+  }
+  
+  string format(triple v) {return format(v.x)+" "+format(v.y)+" "+format(v.z);}
+  string format(pen p) {
+    real[] c=colors(rgb(p));
+    return format((c[0],c[1],c[2]));
+  }
+  string options="poster,text="+text+",label="+label+
+    ",3Daac="+format(angle)+
+    ",3Dc2c="+format(unit(v))+
+    ",3Dcoo="+format(P.target)+
+    ",3Droll="+format(aCos(P.up.z/abs(P.up)))+
+    ",3Droo="+format(abs(v));
+  if(views != "") options += ",3Dviews="+views;
+  options += ",3Dbg="+format(background);
+  if(lights != "") options += ",3Dlights="+lights;
+  if(render != "") options += ",3Drender="+render;
+  if(javascript != "") options += ",3Djscript="+javascript;
+  label(pic,embed(prefix,options,width,height),position);
+}
+
+string cameralink(string label, string text="camera") {
+  return link(label,text,"3Dgetview");
 }
 
 exitfcn currentexitfunction=atexit();
