@@ -327,6 +327,13 @@ bool picture::postprocess(const string& prename, const string& outname,
 	  running=(waitpid(pid, &status, WNOHANG) != pid);
       }
 	
+      if(running) {
+	if(Viewer == "gv") kill(pid,SIGHUP); // Tell gv to reread file.
+	else if(pdfformat) { // Kill pdfviewer so that file can be redrawn.
+	  kill(pid,SIGINT);
+	  running=false;
+	}
+      }
       if(!running) {
 	ostringstream cmd;
 	cmd << "'" << Viewer << "'";
@@ -337,7 +344,7 @@ bool picture::postprocess(const string& prename, const string& outname,
 		      &pid);
 	pids[outname]=pid;
 	if(status != 0) return false;
-      } else if(Viewer == "gv") kill(pid,SIGHUP); // Tell gv to reread file.
+      }
     } else {
       ostringstream cmd;
       cmd << "'" << getSetting<string>("display") << "' '"
