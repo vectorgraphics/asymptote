@@ -331,6 +331,7 @@ bool picture::postprocess(const string& prename, const string& outname,
 	if(Viewer == "gv") kill(pid,SIGHUP); // Tell gv to reread file.
 	else if(pdfformat) { // Kill pdfviewer so that file can be redrawn.
 	  kill(pid,SIGINT);
+	  while(waitpid(pid, &status, 0) != pid);
 	  running=false;
 	}
       }
