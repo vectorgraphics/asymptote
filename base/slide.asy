@@ -538,10 +538,12 @@ void bibliography(string name)
   tex(s);
 }
 
+exitfcn currentexitfunction=atexit();
+
 void exitfunction()
 {
   numberpage();
-  plain.exitfunction();
+  currentexitfunction();
   if(!settings.keep)
     for(int i=0; i < codefile.length; ++i) {
       string name=codefile[i];
@@ -549,6 +551,7 @@ void exitfunction()
       delete(name+"_.aux");
       delete(name+".asy");
     }
+  codefile=new string[];
 }
 
 atexit(exitfunction);

@@ -2755,15 +2755,31 @@ void add(picture pic=currentpicture, face[] faces,
   }
 }
 
-int count3d=0;
+private int count3=0;
+private string[] file3;
 
 void add3(picture pic=currentpicture, frame f, real width, real height=width,
 	  pair position=0, pair align=0, projection P=currentprojection) {
   string prefix=defaultfilename;
   if(prefix == "") prefix="out";
-  prefix += "-"+(string) count3d;
-  ++count3d;
+  prefix += "-"+(string) count3;
+  ++count3;
   shipout3(prefix,f);
-  label(pic,embed(prefix+".prc","poster,text="+prefix+",label=prc,3Droo=10,3Drender=Solid,3Dlights=White,3Dbg=1 1 1,3Dc2c=0 0 1,3Droll=0",width,height),
+  prefix += ".prc";
+  file3.push(prefix);
+  label(pic,embed(prefix,"poster,text="+prefix+",label=prc,3Droo=10,3Drender=Solid,3Dlights=White,3Dbg=1 1 1,3Dc2c=0 0 1,3Droll=0",width,height),
 	position);
 }
+
+exitfcn currentexitfunction=atexit();
+
+void exitfunction()
+{
+  currentexitfunction();
+  if(!settings.keep)
+    for(int i=0; i < file3.length; ++i)
+      delete(file3[i]);
+  file3=new string[];
+}
+
+atexit(exitfunction);
