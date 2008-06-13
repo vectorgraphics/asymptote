@@ -177,12 +177,9 @@ class PRCTreeSection : public PRCCompressedSection
   public:
     PRCTreeSection(oPRCFile *p, uint32_t i) :
       PRCCompressedSection(p),index(i) {}
-    void prepare();
-    void prepareEnd();
   private:
     uint32_t index;
     virtual void writeData();
-    void writeDataEnd();
 };
 
 class PRCTessellationSection : public PRCCompressedSection

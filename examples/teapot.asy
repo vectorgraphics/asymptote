@@ -165,5 +165,12 @@ triple[][][] Q={
   }
 };
 
-for(int i=0; i < Q.length; ++i)
-  draw(Q[i],1,1);
+frame f;
+for(int i=0; i < 32;/*Q.length;*/ ++i)
+  draw(f,Q[i],blue);
+
+//for(int i=0; i < Q.length; ++i)
+// draw(Q[i],1,1);
+
+add3(f,10cm);
+

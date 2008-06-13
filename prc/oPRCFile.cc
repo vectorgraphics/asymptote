@@ -350,18 +350,6 @@ void PRCGlobalsSection::writeData()
   userData.write(out);
 }
 
-void PRCTreeSection::prepare()
-{
-  writeData();
-}
-
-void PRCTreeSection::prepareEnd()
-{
-  writeDataEnd();
-  compress();
-  prepared = true;
-}
-
 void PRCTreeSection::writeData()
 {
   out << (uint32_t)(PRC_TYPE_ASM_FileStructureTree);
@@ -427,10 +415,7 @@ void PRCTreeSection::writeData()
       << (uint32_t)0 // number_of_display_filters
       << (uint32_t)0; // number_of_scene_display_parameters
   UserData(0,0).write(out);
-}
 
-void PRCTreeSection::writeDataEnd()
-{
   // File Structure Internal Data
   out << (uint32_t)(PRC_TYPE_ASM_FileStructure);
   EMPTY_CONTENTPRCBASE.write(out);
@@ -571,13 +556,12 @@ void PRCFileStructure::write(std::ostream &out)
 }
 
 void PRCFileStructure::prepare()
-{
-  tree.prepare();
-  resetGraphicsAndName();
-
+{ // removed un-needed workaround
   globals.prepare();
   resetGraphicsAndName();
-  tree.prepareEnd(); // hack to get the indices right
+
+  tree.prepare();
+  resetGraphicsAndName();
 
   tessellations.prepare();
   resetGraphicsAndName();
