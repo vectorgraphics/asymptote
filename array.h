@@ -73,7 +73,7 @@ inline T read(const array &a, size_t i)
   return a.array::read<T>(i);
 }
 
-inline size_t checkArray(vm::array *a)
+inline size_t checkArray(const vm::array *a)
 {
   if(a == 0) vm::error("dereference of null array");
   return a->size();

@@ -752,3 +752,8 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
       draw(pic,s.vequals(j*step),meshpen);
   }
 }
+
+void draw(frame f, surface S, pen p=currentpen)
+{
+  draw(f,S.P,p);
+}

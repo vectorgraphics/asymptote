@@ -47,7 +47,7 @@ void shipout(string prefix=defaultfilename,
              string format="", bool wait=NoWait, bool view=true)
 {
   shipout(prefix,currentpicture,orientation,format,wait,view);
-};
+}
 
 void newpage(frame f)
 {

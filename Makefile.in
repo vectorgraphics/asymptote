@@ -12,12 +12,15 @@ LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @LIBS@ $(GCLIBS)
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
-       guide flatguide knot drawfill path3
+       guide flatguide knot drawfill path3 drawpath3 drawsurface
+
+PRC =  prc/PRCbitStream prc/oPRCFile prc/PRCdouble prc/writePRC
+
 FILES = $(CAMP) @TRIANGLE@ runtime env genv main stm dec errormsg callable \
 	name symbol types entry exp newexp stack camp.tab lex.yy access \
 	absyn record interact fileio builtin fftw++ simpson coder coenv \
 	@getopt@ locate parser program application varinit fundec refaccess \
-	envcompleter process constructor array
+	envcompleter process constructor array $(PRC)
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc keywords.cc \
 	asy-keywords.el base/asy-keywords.el
@@ -57,7 +60,7 @@ INSTALL = @INSTALL@
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: $(GCLIB) $(FILES:=.o) 
+asy: $(GCLIB) $(FILES:=.o) prc
 	ln -sf GUI/xasy.py $(XNAME)
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) $(LIBS)
 
@@ -178,15 +181,18 @@ uninstall-asy:
 uninstall-man: 
 	cd doc; $(MAKE) uninstall
 
-clean:  FORCE
+prc-clean: FORCE
+	rm -f prc/*.o prc/*.d 
+
+clean:  FORCE prc-clean
 	rm -f asy *.o *.d *mon.out $(CLEAN)
 
-gc-clean: clean
+gc-clean: FORCE clean
 	-if test -d $(GC); then \
 		$(MAKE) -C $(GC) clean; \
 	fi
 
-cleaner: distclean
+cleaner: FORCE distclean
 distclean: FORCE clean
 	-if test -d $(GC); then \
 		rm -rf $(GC); \
@@ -196,7 +202,7 @@ distclean: FORCE clean
 	cd doc; $(MAKE) distclean
 	cd tests; $(MAKE) distclean
 
-cleanest: maintainer-clean
+cleanest: FORCE maintainer-clean
 maintainer-clean: FORCE distclean
 	rm -f configure config.h.in $(DIST)
 	rm -rf autom4te.cache

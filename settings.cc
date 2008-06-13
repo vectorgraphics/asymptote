@@ -1094,9 +1094,6 @@ void SetPageDimensions() {
      getSetting<double>("paperwidth") != 0.0 &&
      getSetting<double>("paperheight") != 0.0) return;
   
-  const double inches=72;
-  const double cm=inches/2.54;
-  
   if(paperType == "letter") {
     Setting("paperwidth")=8.5*inches;
     Setting("paperheight")=11.0*inches;

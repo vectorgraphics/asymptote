@@ -429,8 +429,8 @@ template<class T, template <class S> class op>
 void addOps(venv &ve, ty *t1, const char *name, ty *t2)
 {
   addSimpleOperator(ve,binaryOp<T,op>,t1,name);
-  addFunc(ve,opArray<T,op>,t2,name,formal(t1,"a"),formal(t2,"b"));
-  addFunc(ve,arrayOp<T,op>,t2,name,formal(t2,"a"),formal(t1,"b"));
+  addFunc(ve,opArray<T,T,op>,t2,name,formal(t1,"a"),formal(t2,"b"));
+  addFunc(ve,arrayOp<T,T,op>,t2,name,formal(t2,"a"),formal(t1,"b"));
   addSimpleOperator(ve,arrayArrayOp<T,op>,t2,name);
 }
 
@@ -438,8 +438,8 @@ template<class T, template <class S> class op>
 void addBooleanOps(venv &ve, ty *t1, const char *name, ty *t2)
 {
   addBooleanOperator(ve,binaryOp<T,op>,t1,name);
-  addFunc(ve,opArray<T,op>,boolArray(),name,formal(t1,"a"),formal(t2,"b"));
-  addFunc(ve,arrayOp<T,op>,boolArray(),name,formal(t2,"a"),formal(t1,"b"));
+  addFunc(ve,opArray<T,T,op>,boolArray(),name,formal(t1,"a"),formal(t2,"b"));
+  addFunc(ve,arrayOp<T,T,op>,boolArray(),name,formal(t2,"a"),formal(t1,"b"));
   addFunc(ve,arrayArrayOp<T,op>,boolArray(),name,formal(t2,"a"),
 	  formal(t2,"b"));
 }
@@ -637,6 +637,13 @@ void addOperators(venv &ve)
   addOps<pair>(ve,primPair(),pairArray(),pairArray2(),pairArray3());
   addBasicOps<triple>(ve,primTriple(),tripleArray(),tripleArray2(),
 		      tripleArray3());
+  addFunc(ve,opArray<double,triple,times>,tripleArray(),"*",
+	  formal(primReal(),"a"),formal(tripleArray(),"b"));
+  addFunc(ve,arrayOp<triple,double,timesR>,tripleArray(),"*",
+	  formal(tripleArray(),"a"),formal(primReal(),"b"));
+  addFunc(ve,arrayOp<triple,double,divide>,tripleArray(),"/",
+	  formal(tripleArray(),"a"),formal(primReal(),"b"));
+
   addUnorderedOps<string>(ve,primString(),stringArray(),stringArray2(),
 			  stringArray3());
   
@@ -660,9 +667,9 @@ void addOperators(venv &ve)
   
   addFunc(ve,binaryOp<Int,divide>,primReal(),"/",
 	  formal(primInt(),"a"),formal(primInt(),"b"));
-  addFunc(ve,arrayOp<Int,divide>,realArray(),"/",
+  addFunc(ve,arrayOp<Int,Int,divide>,realArray(),"/",
 	  formal(IntArray(),"a"),formal(primInt(),"b"));
-  addFunc(ve,opArray<Int,divide>,realArray(),"/",
+  addFunc(ve,opArray<Int,Int,divide>,realArray(),"/",
 	  formal(primInt(),"a"),formal(IntArray(),"b"));
   addFunc(ve,arrayArrayOp<Int,divide>,realArray(),"/",
 	  formal(IntArray(),"a"),formal(IntArray(),"b"));

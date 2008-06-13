@@ -49,6 +49,7 @@ realarray2* => realArray2()
 pairarray* => pairArray()
 pairarray2* => pairArray2()
 triplearray* => tripleArray()
+triplearray2* => tripleArray2()
 patharray* => pathArray()  
 guidearray* => guideArray()  
 transformarray* => transformArray()
@@ -71,6 +72,8 @@ stringarray2* => stringArray2()
 #include "guide.h"
 #include "picture.h"
 #include "drawpath.h"
+#include "drawpath3.h"
+#include "drawsurface.h"
 #include "drawfill.h"
 #include "drawclipbegin.h"
 #include "drawclipend.h"
@@ -145,6 +148,7 @@ typedef array realarray2;
 typedef array pairarray;
 typedef array pairarray2;
 typedef array triplearray;
+typedef array triplearray2;
 typedef array patharray;
 typedef array guidearray;
 typedef array transformarray;
@@ -173,6 +177,7 @@ using types::realArray2;
 using types::pairArray;
 using types::pairArray2;
 using types::tripleArray;
+using types::tripleArray2;
 using types::pathArray;
 using types::guideArray;
 using types::transformArray;
@@ -1157,6 +1162,11 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
   }
     
   result->shipout(preamble,prefix,format,0.0,wait,view);
+}
+
+void shipout3(string prefix, picture *f)
+{
+  f->shipout3(prefix);	
 }
 
 void deconstruct(picture *f, picture *preamble=NULL, real magnification=1, 
@@ -2152,6 +2162,18 @@ guide *reverse(guide *g)
       v.push_back(new cycletokguide());
   }
   return new multiguide(v);
+}
+
+
+// Three-dimensional operations
+void draw(picture *f, triplearray *g, pen p, bool straight)
+{
+  f->append(new drawPath3(*g,p,straight));
+}
+
+void draw(picture *f, triplearray2 *g, pen p)
+{
+  f->append(new drawSurface(*g,p));
 }
 
 

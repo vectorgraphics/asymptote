@@ -15,6 +15,7 @@
 #include "pen.h"
 #include "psfile.h"
 #include "texfile.h"
+#include "prcfile.h"
 
 namespace camp {
 
@@ -101,7 +102,7 @@ public:
   virtual void bounds(bbox&, iopipestream&, boxvector&, bboxlist&) {}
 
   virtual bool islabel() {return false;}
-
+  
   virtual bool islayer() {return false;}
 
   virtual bool endclip() {return false;}
@@ -112,13 +113,18 @@ public:
 
   virtual void save(bool b) {}
   
-  // Handles its output in a PostScript file
+  // Output to a PostScript file
   virtual bool draw(psfile *) {
     return true;
   }
 
-  // Handles its output in a TeX file
+  // Output to a TeX file
   virtual bool write(texfile *, const bbox&) {
+    return true;
+  }
+
+  // Output to a PRC file
+  virtual bool write(prcfile *) {
     return true;
   }
 

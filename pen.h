@@ -502,6 +502,11 @@ public:
     rgbtogrey();
   }
   
+  void torgb() {
+    if(cmyk()) cmyktorgb();
+    else if(gray()) greytorgb();
+  }
+  
   void convert() {
     if(settings::gray || settings::bw) {
       if(rgb()) rgbtogrey();

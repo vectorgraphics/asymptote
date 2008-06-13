@@ -75,6 +75,8 @@ public:
 	       const string& format, double magnification=0.0,
 	       bool wait=false, bool view=true);
  
+  bool shipout3(const string& prefix);
+  
   picture *transformed(const transform& t);
   
   bool null() {

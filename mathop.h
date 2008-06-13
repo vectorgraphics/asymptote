@@ -13,6 +13,7 @@
 
 #include "stack.h"
 #include "mod.h"
+#include "triple.h"
 
 namespace run {
 
@@ -76,6 +77,16 @@ struct times {
   T operator() (T x, T y, size_t=0) {return x*y;}
 };
 
+template <>
+struct times<camp::triple> {
+  camp::triple operator() (double x, camp::triple y, size_t=0) {return x*y;}
+};
+
+template <typename T>
+struct timesR {
+  T operator () (T y, double x, size_t=0) {return x*y;}
+};
+
 extern void dividebyzero(size_t i=0);  
 extern void integeroverflow(size_t i=0);  
   
@@ -85,6 +96,11 @@ struct divide {
     if(y == 0) dividebyzero(i);
     return x/y;
   }
+};
+
+template <>
+struct divide<camp::triple> {
+  camp::triple operator() (camp::triple x, double y, size_t=0) {return x/y;}
 };
 
 inline bool validInt(double x) {

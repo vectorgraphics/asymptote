@@ -560,6 +560,28 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   return true;
 }
 
+bool picture::shipout3(const string& prefix)
+{
+  bool status = true;
+  string prcname=buildname(prefix,"prc");
+  prcfile prc(prcname);
+  
+  for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
+    assert(*p);
+    if(!(*p)->write(&prc))
+      status = false;
+  }
+  
+  if(status)
+    status=prc.finish();
+  
+  if(!status) reportError("shipout failed");
+    
+  if(verbose > 0) cout << "Wrote " << prcname << endl;
+  
+  return true;
+}
+
 picture *picture::transformed(const transform& t)
 {
   picture *pic = new picture;

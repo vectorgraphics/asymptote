@@ -83,5 +83,8 @@ const char **texabort(const string& texengine);
   
 string texengine();
 string texprogram();
+  
+const double inches=72;
+const double cm=inches/2.54;
 }
 #endif

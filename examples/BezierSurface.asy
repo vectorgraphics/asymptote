@@ -25,9 +25,18 @@ triple[][][] P={{
     {(-2.7,0,1.65),(-2.7,0.3,1.65),(-3,0.3,1.65),(-3,0,1.65)}
   }};
 
+frame f;
+for(int i=0; i < P.length; ++i) {
+  for(int j=0; j < P[i].length; ++j)
+    P[i][j] *= 10; // Temporary scaling.
+  draw(f,P[i],blue);
+}
+add3(f,10cm);
+
+/*
 draw(P[1],1,16);
 draw(P[3],1,16);
 draw(P[0],16,1);
 draw(P[2],16,1);
-
+*/
 

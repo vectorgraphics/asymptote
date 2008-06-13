@@ -1,4 +1,5 @@
 private import math;
+import embed;
 
 triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
@@ -1788,6 +1789,7 @@ guide3 operator cast(path3 p) {
   return g;
 }
 
+bool cyclic(path3 p) {return p.cyclic();}
 pair operator cast(triple v) {return project(v);}
 pair[] operator cast(triple[] v) {return project(v);}
 
@@ -2299,6 +2301,52 @@ void draw(picture pic=currentpicture, path3[] g, pen p=currentpen)
   draw(pic,(path[]) g,p);
 }
 
+void draw(frame f, path3 g, pen p=currentpen)
+{
+  node[] nodes=g.nodes;
+
+  bool straight() {
+  for(node n : nodes)
+    if(!n.straight) return false;
+  return true;
+  }
+
+  bool straight=straight();
+
+  triple[] v;
+  if(straight) {
+    int n=nodes.length;
+    v=new triple[n];
+    for(int i=0; i < n; ++i)
+      v[i]=nodes[i].point;
+  } else {
+    int n=nodes.length-1;
+    v=new triple[3*n+1];
+    int k=1;
+    v[0]=nodes[0].point;
+    v[1]=nodes[0].post;
+    for(int i=1; i < n; ++i) {
+      v[++k]=nodes[i].pre;
+      v[++k]=nodes[i].point;
+      v[++k]=nodes[i].post;
+    }
+    v[++k]=nodes[n].pre;
+    v[++k]=nodes[n].point;
+  }
+
+  draw(f,v,p,straight);
+}
+
+void draw(frame f, explicit guide3 g, pen p=currentpen)
+{
+  draw(f,(path3) g,p);
+}
+
+void draw(frame f, explicit path3[] g, pen p=currentpen)
+{
+  for(int i=0; i < g.length; ++i) draw(f,g[i],p);
+}
+
 triple[] triples(real[] x, real[] y, real[] z)
 {
   if(x.length != y.length || x.length != z.length)
@@ -2705,4 +2753,17 @@ void add(picture pic=currentpicture, face[] faces,
     pic.userBox(F.userMin,F.userMax);
     pic.append(pic.bounds.point,pic.bounds.min,pic.bounds.max,F.T,F.bounds);
   }
+}
+
+int count3d=0;
+
+void add3(picture pic=currentpicture, frame f, real width, real height=width,
+	  pair position=0, pair align=0, projection P=currentprojection) {
+  string prefix=defaultfilename;
+  if(prefix == "") prefix="out";
+  prefix += "-"+(string) count3d;
+  ++count3d;
+  shipout3(prefix,f);
+  label(pic,embed(prefix+".prc","poster,text="+prefix+",label=prc,3Droo=10,3Drender=Solid,3Dlights=White,3Dbg=1 1 1,3Dc2c=0 0 1,3Droll=0",width,height),
+	position);
 }
