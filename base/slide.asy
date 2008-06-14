@@ -543,7 +543,7 @@ exitfcn currentexitfunction=atexit();
 void exitfunction()
 {
   numberpage();
-  currentexitfunction();
+  if(currentexitfunction != null) currentexitfunction();
   if(!settings.keep)
     for(int i=0; i < codefile.length; ++i) {
       string name=codefile[i];

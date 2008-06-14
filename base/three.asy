@@ -2811,7 +2811,7 @@ exitfcn currentexitfunction=atexit();
 
 void exitfunction()
 {
-  currentexitfunction();
+  if(currentexitfunction != null) currentexitfunction();
   if(!settings.keep)
     for(int i=0; i < file3.length; ++i)
       delete(file3[i]);
