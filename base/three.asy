@@ -2653,16 +2653,18 @@ splitface split(face a, face cut, projection P)
   if(P.infinity) {
     P=P.copy();
     P.camera *= 2*max(abs(a.box.min),abs(a.box.max),
-                      abs(cut.box.min),abs(cut.box.max));
-  } else if((abs(a.normal-cut.normal) < epsilon ||
-             abs(a.normal+cut.normal) < epsilon)) {
+		      abs(cut.box.min),abs(cut.box.max));
+  }
+
+  if((abs(a.normal-cut.normal) < epsilon ||
+      abs(a.normal+cut.normal) < epsilon)) {
     nointersection();
     return S;
   }
 
   line L=intersection(a,cut);
 
-  if(!P.infinity && dot(P.camera-L.point,P.camera-P.target) < 0) {
+  if(dot(P.camera-L.point,P.camera-P.target) < 0) {
     nointersection();
     return S;
   }
