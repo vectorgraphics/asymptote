@@ -219,6 +219,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       if(verbose <= 1) dcmd << " -q";
       dcmd << " -o '" << psname << "' '" << dviname << "'";
       status=System(dcmd,0,true,"dvips");
+      if(status != 0) return false;
     
       ifstream fin(psname.c_str());
       psfile fout(outname,false);
@@ -261,9 +262,9 @@ bool picture::texprocess(const string& texname, const string& outname,
       unlink(auxname(prefix,"log").c_str());
       unlink(auxname(prefix,"out").c_str());
     }
+    if(status == 0) return true;
   }
-  if(status) return false;
-  return true;
+  return false;
 }
 
 int picture::epstopdf(const string& epsname, const string& pdfname)
@@ -575,7 +576,7 @@ bool picture::shipout3(const string& prefix)
   if(status)
     status=prc.finish();
   
-  if(!status) reportError("shipout failed");
+  if(!status) reportError("shipout3 failed");
     
   if(verbose > 0) cout << "Wrote " << prcname << endl;
   
