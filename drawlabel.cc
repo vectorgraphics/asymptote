@@ -165,13 +165,14 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
   getbounds(tex,texengine);
   
   // alignment point
+  double delta=(pentype.Baseline() == NOBASEALIGN) ? 0.0 : -depth;
   pair p=position+Align;
   const double vertical=height+depth;
   const double fuzz=pentype.size()*0.05+0.3;
-  pair A=p+T*pair(-fuzz,-fuzz);
+  pair A=p+T*pair(-fuzz,delta-fuzz);
   pair B=p+T*pair(-fuzz,vertical+fuzz);
   pair C=p+T*pair(width+fuzz,vertical+fuzz);
-  pair D=p+T*pair(width+fuzz,-fuzz);
+  pair D=p+T*pair(width+fuzz,delta-fuzz);
   
   if(pentype.Overwrite() != ALLOW && label != "") {
     size_t n=labelbounds.size();
