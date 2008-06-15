@@ -2652,8 +2652,9 @@ splitface split(face a, face cut, projection P)
 
   if(P.infinity) {
     P=P.copy();
-    P.camera *= 1/sqrt(realEpsilon)*max(abs(a.box.min),abs(a.box.max),
-					abs(cut.box.min),abs(cut.box.max));
+    static real factor=1/sqrt(realEpsilon);
+    P.camera *= factor*max(abs(a.box.min),abs(a.box.max),
+			   abs(cut.box.min),abs(cut.box.max));
   }
 
   if((abs(a.normal-cut.normal) < epsilon ||
