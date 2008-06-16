@@ -919,7 +919,7 @@ bool labels(picture *f)
   return f->havelabels();
 }
 
-patharray2 *texpath(string *s)
+patharray *texpath(string *s)
 {
   array *P=new array(0);
   if(s->empty()) return P;
@@ -932,25 +932,20 @@ patharray2 *texpath(string *s)
   string pathname=auxname(prefix,"path");
   bbox b;
   texfile tex(texname,b);
-  tex.prologue();
+  tex.miniprologue();
   
   tex.verbatimline("\\special{ps:");
-  tex.verbatimline("/FO ("+pathname+") (w) file def");
-  tex.verbatimline("/out {10 string cvs FO exch writestring} bind def");
-  tex.verbatimline("/S {FO ( ) writestring} bind def");
-  tex.verbatimline("/endl{FO 10 write} bind def");
-  tex.verbatimline("/M {FO (M) writestring out S out endl} bind def");
-  tex.verbatimline("/L {FO (L) writestring out S out endl} bind def");
-  tex.verbatimline("/C {FO (C) writestring out S out S out S out S out S out endl} bind def");
-  tex.verbatimline("/c {FO (c) writestring endl} bind def");
-  tex.verbatimline("/first true def");
-  tex.verbatimline("/Z {FO (Z) writestring currentpoint out S out endl /first false def} bind def");
-  tex.verbatimline("/show {first {Z} if currentpoint newpath moveto false charpath {M} {L} {C} {c} pathforall} bind def}");
+  tex.verbatimline("/ASYf ("+pathname+") (w) file def");
+  tex.verbatimline("/ASYo {10 string cvs ASYf exch writestring} bind def");
+  tex.verbatimline("/ASYs {ASYf ( ) writestring} bind def");
+  tex.verbatimline("/ASYendl {ASYf 10 write} bind def");
+  tex.verbatimline("/ASY1 true def");
+  tex.verbatimline("/show {ASY1 {ASYf (Z) writestring currentpoint ASYo ASYs ASYo ASYendl /ASY1 false def} if currentpoint newpath moveto false charpath {ASYf (M) writestring ASYo ASYs ASYo ASYendl} {ASYf (L) writestring ASYo ASYs ASYo ASYendl} {ASYf (C) writestring ASYo ASYs ASYo ASYs ASYo ASYs ASYo ASYs ASYo ASYs ASYo ASYendl} {ASYf (c) writestring ASYendl} pathforall} bind def}");
   
   tex.verbatim(*s);
   tex.verbatimline("\\special{ps:");
-//  tex.verbatimline("FO (endtext) writestring endl");
-  tex.verbatimline("FO closefile}");
+//  tex.verbatimline("ASYf (endtext) writestring ASYendl");
+  tex.verbatimline("ASYf closefile}");
   tex.epilogue();
   tex.close();
   
@@ -984,7 +979,7 @@ patharray2 *texpath(string *s)
     ostringstream cmd;
     unlink(pathname.c_str());
     cmd << "'" << getSetting<string>("gs")
-	 << "' -q -dNOPAUSE -dBATCH -dNODISPLAY '"<< "'" << psname << "'";
+	<< "' -q -dNOPAUSE -dBATCH -dNODISPLAY '"<< "'" << psname << "'";
     status=System(cmd,0,true,"gs","Ghostscript");
   }
     
@@ -997,9 +992,8 @@ patharray2 *texpath(string *s)
   solvedKnot node;
   bool cyclic=false;
   bool active=false;
-  array *Pi=NULL;
   
-  pair position(0,0);
+  pair offset(0,0);
   while(!fin.eof()) {
     fin >> c;
     switch(c) {
@@ -1008,20 +1002,17 @@ patharray2 *texpath(string *s)
 	if(active) {
 	  node.post=node.point;
 	  nodes.push_back(node);
-	  Pi->push(path(nodes,nodes.size(),cyclic));
+	  P->push(path(nodes,nodes.size(),cyclic));
 	  nodes.clear();
-	} else {
-	  Pi=new array(0);
-	  P->push(Pi);
 	}
 	active=false;
 	cyclic=false;
-	node.pre=node.point=position+readpair(fin);
+	node.pre=node.point=readpair(fin)-offset;
 	break;
       }
     case 'L':
       {
-	pair point=position+readpair(fin);
+	pair point=readpair(fin)-offset;
 	static const double third=1.0/3.0;
 	pair delta=(point-node.point)*third;
 	node.post=node.point+delta;
@@ -1033,9 +1024,9 @@ patharray2 *texpath(string *s)
       }
     case 'C':
       {
-	pair point=position+readpair(fin);
-	pair pre=position+readpair(fin);
-	node.post=position+readpair(fin);
+	pair point=readpair(fin)-offset;
+	pair pre=readpair(fin)-offset;
+	node.post=readpair(fin)-offset;
 	nodes.push_back(node);
 	active=true;
 	node.pre=pre;
@@ -1049,14 +1040,11 @@ patharray2 *texpath(string *s)
       }
     case 'Z':
       {
-	position=readpair(fin);
+	offset=readpair(fin);
 	break;
       }
     }
   }
-  
-  if(P->size() > 1)
-    P->pop_back();
   
   if(!getSetting<bool>("keep")) { // Delete temporary files.
     unlink(texname.c_str());

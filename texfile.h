@@ -38,13 +38,20 @@ void texdocumentclass(T& out, bool pipe=false)
 }
   
 template<class T>
-void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
-		 bool ASYalign=true, bool ASYbase=true)
+void texuserpreamble(T& out,
+		     mem::list<string>& preamble=processData().TeXpreamble)
 {
-  string texengine=settings::getSetting<string>("tex");
   for(mem::list<string>::iterator p=preamble.begin();
       p != preamble.end(); ++p)
     out << stripblanklines(*p);
+}
+  
+template<class T>
+void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
+		 bool ASYalign=true, bool ASYbase=true)
+{
+  texuserpreamble(out,preamble);
+  string texengine=settings::getSetting<string>("tex");
   if(ASYbase)
     out << "\\newbox\\ASYbox" << newl
 	<< "\\newdimen\\ASYdimen" << newl
@@ -136,6 +143,8 @@ public:
   void writepair(pair z) {
     *out << z;
   }
+  
+  void miniprologue();
   
   void writeshifted(path p, bool newPath=true);
   

@@ -41,6 +41,13 @@ texfile::~texfile()
   }
 }
   
+void texfile::miniprologue()
+{
+  texuserpreamble(*out);
+  *out << "\\pagestyle{empty}" << newl;
+  *out << "\\begin{document}" << newl;
+}
+
 void texfile::prologue()
 {
   if(inlinetex) {
