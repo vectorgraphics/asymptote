@@ -2782,7 +2782,7 @@ void add3(picture pic=currentpicture, frame f,
   triple v=P.camera-P.target;
   string format(real x) {
     assert(abs(x) < 1e18,"Number too large: "+string(x));
-    return format("%.18f",x);
+    return string(x,18);
   }
   
   string format(triple v) {return format(v.x)+" "+format(v.y)+" "+format(v.z);}
