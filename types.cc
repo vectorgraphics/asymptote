@@ -61,6 +61,8 @@ array tripleArray2_(tripleArray());
 ty *tripleArray2() { return &tripleArray2_; }
 array stringArray2_(stringArray());
 ty *stringArray2() { return &stringArray2_; }
+array pathArray2_(pathArray());
+ty *pathArray2() { return &pathArray2_; }
 array penArray2_(penArray());
 ty *penArray2() { return &penArray2_; }
   

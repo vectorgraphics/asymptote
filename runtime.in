@@ -51,6 +51,7 @@ pairarray2* => pairArray2()
 triplearray* => tripleArray()
 triplearray2* => tripleArray2()
 patharray* => pathArray()  
+patharray2* => pathArray2()  
 guidearray* => guideArray()  
 transformarray* => transformArray()
 penarray* => penArray()  
@@ -150,6 +151,7 @@ typedef array pairarray2;
 typedef array triplearray;
 typedef array triplearray2;
 typedef array patharray;
+typedef array patharray2;
 typedef array guidearray;
 typedef array transformarray;
 typedef array penarray;
@@ -179,6 +181,7 @@ using types::pairArray2;
 using types::tripleArray;
 using types::tripleArray2;
 using types::pathArray;
+using types::pathArray2;
 using types::guideArray;
 using types::transformArray;
 using types::penArray;
@@ -598,6 +601,7 @@ string emptystring;
 array *emptyarray=new array(0);
 string commentchar="#";
 pen currentpen=pen(DEFLINE);
+pair zero;
 
 void breakpoint(stack *Stack, runnable *r)
 {
@@ -746,6 +750,16 @@ double wrapFunction(double x)
 void unused(void *)
 {
 }
+
+pair readpair(std::ifstream& s)
+{
+  static const double f=12.0/100.0;
+  double x,y;
+  s >> y;
+  s >> x;
+  return pair(f*x,-f*y);
+}
+
 
 // Ignore unclosed begingroups but not spurious endgroups.
 const char *nobegin="endgroup without matching begingroup";
@@ -903,6 +917,157 @@ void label(picture *f, string *s, string *size, transform t, pair position,
 bool labels(picture *f)
 {
   return f->havelabels();
+}
+
+patharray2 *texpath(string *s)
+{
+  array *P=new array(0);
+  if(s->empty()) return P;
+  
+  string prefix=outname();
+  spaceToUnderscore(prefix);
+  string texname=auxname(prefix,"tex");
+  string dviname=auxname(prefix,"dvi");
+  string psname=auxname(prefix,"ps");
+  string pathname=auxname(prefix,"path");
+  bbox b;
+  texfile tex(texname,b);
+  tex.prologue();
+  
+  tex.verbatimline("\\special{ps:");
+  tex.verbatimline("/FO ("+pathname+") (w) file def");
+  tex.verbatimline("/out {10 string cvs FO exch writestring} bind def");
+  tex.verbatimline("/S {FO ( ) writestring} bind def");
+  tex.verbatimline("/endl{FO 10 write} bind def");
+  tex.verbatimline("/M {FO (M) writestring out S out endl} bind def");
+  tex.verbatimline("/L {FO (L) writestring out S out endl} bind def");
+  tex.verbatimline("/C {FO (C) writestring out S out S out S out S out S out endl} bind def");
+  tex.verbatimline("/c {FO (c) writestring endl} bind def");
+  tex.verbatimline("/first true def");
+  tex.verbatimline("/Z {FO (Z) writestring currentpoint out S out endl /first false def} bind def");
+  tex.verbatimline("/show {first {Z} if currentpoint newpath moveto false charpath {M} {L} {C} {c} pathforall} bind def}");
+  
+  tex.verbatim(*s);
+  tex.verbatimline("\\special{ps:");
+//  tex.verbatimline("FO (endtext) writestring endl");
+  tex.verbatimline("FO closefile}");
+  tex.epilogue();
+  tex.close();
+  
+  ostringstream cmd;
+  cmd << "'" << texprogram() << "'"
+      << " \\nonstopmode\\input '" << texname << "'";
+  bool quiet=verbose <= 1;
+  int status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
+  if(!status && getSetting<bool>("twice"))
+    status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
+  if(status) {
+    if(quiet) {
+      ostringstream cmd;
+      cmd << "'" << texprogram() << "'"
+	  << " \\scrollmode\\input '" << texname << "'";
+      System(cmd,0);
+    }
+  }
+    
+  if(!status) {  
+    ostringstream cmd;
+    cmd << "'" << getSetting<string>("dvips") << "' -R -Pdownload35 -D600 "
+	<< getSetting<string>("dvipsOptions");
+    if(verbose <= 1) cmd << " -q";
+    cmd  << " -o '" << psname << "' '" << dviname << "'";
+    
+    status=System(cmd,0,true,"dvips");
+  }
+
+  if(!status) {
+    ostringstream cmd;
+    unlink(pathname.c_str());
+    cmd << "'" << getSetting<string>("gs")
+	 << "' -q -dNOPAUSE -dBATCH -dNODISPLAY '"<< "'" << psname << "'";
+    status=System(cmd,0,true,"gs","Ghostscript");
+  }
+    
+  if(status != 0) 
+    error("texpath failed");
+  
+  std::ifstream fin(pathname.c_str());
+  char c;
+  mem::vector<solvedKnot> nodes;
+  solvedKnot node;
+  bool cyclic=false;
+  bool active=false;
+  array *Pi=NULL;
+  
+  pair position(0,0);
+  while(!fin.eof()) {
+    fin >> c;
+    switch(c) {
+    case 'M':
+      {
+	if(active) {
+	  node.post=node.point;
+	  nodes.push_back(node);
+	  Pi->push(path(nodes,nodes.size(),cyclic));
+	  nodes.clear();
+	} else {
+	  Pi=new array(0);
+	  P->push(Pi);
+	}
+	active=false;
+	cyclic=false;
+	node.pre=node.point=position+readpair(fin);
+	break;
+      }
+    case 'L':
+      {
+	pair point=position+readpair(fin);
+	static const double third=1.0/3.0;
+	pair delta=(point-node.point)*third;
+	node.post=node.point+delta;
+	nodes.push_back(node);
+	active=true;
+	node.pre=point-delta;
+	node.point=point;
+	break;
+      }
+    case 'C':
+      {
+	pair point=position+readpair(fin);
+	pair pre=position+readpair(fin);
+	node.post=position+readpair(fin);
+	nodes.push_back(node);
+	active=true;
+	node.pre=pre;
+	node.point=point;
+	break;
+      }
+    case 'c':
+      {
+	cyclic=true;
+	break;
+      }
+    case 'Z':
+      {
+	position=readpair(fin);
+	break;
+      }
+    }
+  }
+  
+  if(P->size() > 1)
+    P->pop_back();
+  
+  if(!getSetting<bool>("keep")) { // Delete temporary files.
+    unlink(texname.c_str());
+    if(!getSetting<bool>("keepaux")) unlink(auxname(prefix,"aux").c_str());
+    unlink(auxname(prefix,"log").c_str());
+    unlink(dviname.c_str());
+    unlink(psname.c_str());
+    unlink(pathname.c_str());
+  }
+  
+  return P;
 }
 
 void _draw(picture *f, path g, pen p)
@@ -2058,7 +2223,6 @@ pairarray *dirSpecifier(guide *g, Int t)
   Int n=f.size();
   if(g->cyclic()) t=t % n;
   else if(t < 0 || t >= n-1) {
-    static pair zero;
     (*c)[0]=zero;
     (*c)[1]=zero;
     return c;
@@ -2141,7 +2305,6 @@ guide *reverse(guide *g)
 	v.push_back(new controlguide(next.in->control(),curr.out->control()));
       } else {
 	pair d=f.Nodes(i+1).in->dir();
-	static pair zero;
 	if(d != zero) 
 	  v.push_back(new specguide(new dirSpec(-d),camp::OUT));
 	real tout=next.tin.val;
@@ -2757,7 +2920,6 @@ transform reflect(pair a, pair b)
 
 pair :pairZero()
 {
-  static pair zero;
   return zero;
 }
 

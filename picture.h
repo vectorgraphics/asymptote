@@ -90,6 +90,8 @@ inline picture *transformed(const transform& t, picture *p)
   return p->transformed(t);
 }
 
+const char *texpathmessage();
+  
 } //namespace camp
 
 #endif
