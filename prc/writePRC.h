@@ -84,12 +84,12 @@ union SingleAttributeData
   int32_t integer;
   double real;
   uint32_t time;
-  char *text;
+  const char *text;
 };
 
 union AttributeTitle
 {
-  char *text;
+  const char *text;
   uint32_t integer;
 };
 

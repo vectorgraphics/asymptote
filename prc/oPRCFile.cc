@@ -301,7 +301,7 @@ void PRCGlobalsSection::writeData()
 
   SingleAttributeData value = {7094};
   SingleAttribute sa(false,EMPTY_ATTRIBUTE_TITLE,KEPRCModellerAttributeTypeInt,value);
-  AttributeTitle iv; iv.text = (char*)"__PRC_RESERVED_ATTRIBUTE_PRCInternalVersion";
+  AttributeTitle iv; iv.text = "__PRC_RESERVED_ATTRIBUTE_PRCInternalVersion";
   Attribute a(false,iv,1,&sa);
   Attributes as(1,&a);
   ContentPRCBase(&as).write(out);
@@ -381,19 +381,19 @@ void PRCTreeSection::writeData()
   SingleAttributeData sad;
   AttributeTitle at;
 
-  at.text = (char*)"FilePath";
-  sad.text = (char*)"file name not specified";
+  at.text = "FilePath";
+  sad.text = "file name not specified";
   sas[0] = SingleAttribute(false,at,KEPRCModellerAttributeTypeString,sad);
 
-  at.text = (char*)"FileSize";
+  at.text = "FileSize";
   sad.integer = 1234;
   sas[1] = SingleAttribute(false,at,KEPRCModellerAttributeTypeInt,sad);
 
-  at.text = (char*)"FileModificationTime";
+  at.text = "FileModificationTime";
   sad.time = time(NULL);
   sas[2] = SingleAttribute(false,at,KEPRCModellerAttributeTypeInt,sad);
 
-  at.text = (char*)"__PRC_RESERVED_ATTRIBUTE_A3DF_ProductInformation";
+  at.text = "__PRC_RESERVED_ATTRIBUTE_A3DF_ProductInformation";
   Attribute attr(false,at,3,sas);
   Attributes attrs(1,&attr);
   ContentPRCBase(&attrs,"Unknown",true,0,0,makePRCID()).write(out); // 0 or else???
@@ -470,7 +470,7 @@ void PRCModelFile::writeData()
 
   SingleAttributeData value = {7094};
   SingleAttribute sa(false,EMPTY_ATTRIBUTE_TITLE,KEPRCModellerAttributeTypeInt,value);
-  AttributeTitle at; at.text = (char*)"__PRC_RESERVED_ATTRIBUTE_PRCInternalVersion";
+  AttributeTitle at; at.text = "__PRC_RESERVED_ATTRIBUTE_PRCInternalVersion";
   Attribute a(false,at,1,&sa);
   Attributes as(1,&a);
   ContentPRCBase(&as,"PRC file").write(out);
