@@ -1,7 +1,7 @@
 import surface;
 
 size(400,400);
-currentprojection=orthographic((1,1,1),Y);
+currentprojection=perspective((1,1,1));
 
 triple[][][] P={{
     {(-1.6,0,1.875),(-1.6,-0.3,1.875),(-1.5,-0.3,2.1),(-1.5,0,2.1)},
@@ -31,7 +31,8 @@ for(int i=0; i < P.length; ++i) {
     P[i][j] *= 10; // Temporary scaling.
   draw(f,P[i],blue);
 }
-add3(f,10cm);
+add3(f,"label",10cm);
+label(cameralink("label"),(5cm,-10cm));
 
 /*
 draw(P[1],1,16);
