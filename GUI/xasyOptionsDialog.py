@@ -29,6 +29,7 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
   def body(self,master):
     optFrame = Frame(master)
     optFrame.grid(row=0,column=0,sticky=N+S+E+W)
+
     asyGrp = LabelFrame(optFrame,text="Asymptote",padx=5,pady=5)
     asyGrp.grid(row=0,column=0,sticky=E+W)
     asyGrp.rowconfigure(0,weight=1)
@@ -40,13 +41,24 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
     self.ap.insert(END,xasyOptions.options['asyPath'])
     self.ap.grid(row=0,column=1,sticky=E+W)
     Button(asyGrp,text="...",command=self.findAsyPath).grid(row=0,column=2,sticky=E+W)
-    self.showDebug = BooleanVar()
-    self.showDebug.set(xasyOptions.options['showDebug'])
+    self.showDebug = BooleanVar(value=xasyOptions.options['showDebug'])
     self.sd = Checkbutton(asyGrp,text="Show debugging info in console",var=self.showDebug)
     self.sd.grid(row=1,column=0,columnspan=2,sticky=W)
 
+    editGrp = LabelFrame(optFrame,text="External Editor",padx=5,pady=5)
+    editGrp.grid(row=1,column=0,sticky=E+W)
+    editGrp.rowconfigure(0,weight=1)
+    editGrp.rowconfigure(1,weight=1)
+    editGrp.columnconfigure(0,weight=1)
+    editGrp.columnconfigure(0,weight=2)
+    Label(editGrp,text="Program").grid(row=0,column=0,sticky=W)
+    self.ee = Entry(editGrp)
+    self.ee.insert(END,xasyOptions.options['externalEditor'])
+    self.ee.grid(row=0,column=1,sticky=E+W)
+    Button(editGrp,text="...",command=self.findEEPath).grid(row=0,column=2,sticky=E+W)
+
     penGrp = LabelFrame(optFrame,text="Default Pen",padx=5,pady=5)
-    penGrp.grid(row=1,column=0,sticky=E+W)
+    penGrp.grid(row=2,column=0,sticky=E+W)
     penGrp.rowconfigure(0,weight=1)
     penGrp.rowconfigure(1,weight=1)
     penGrp.rowconfigure(2,weight=1)
@@ -64,7 +76,7 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
     self.po.grid(row=2,column=1,sticky=E+W)
 
     dispGrp = LabelFrame(optFrame,text="Display Options",padx=5,pady=5)
-    dispGrp.grid(row=2,column=0,sticky=E+W)
+    dispGrp.grid(row=3,column=0,sticky=E+W)
     dispGrp.rowconfigure(0,weight=1)
     dispGrp.rowconfigure(1,weight=1)
     dispGrp.rowconfigure(2,weight=1)
@@ -72,8 +84,7 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
     dispGrp.columnconfigure(0,weight=1)
     dispGrp.columnconfigure(1,weight=1)
     dispGrp.columnconfigure(2,weight=1)
-    self.showAxes = BooleanVar()
-    self.showAxes.set(xasyOptions.options['showAxes'])
+    self.showAxes = BooleanVar(value=xasyOptions.options['showAxes'])
     self.sa = Checkbutton(dispGrp,text="Show Axes",var=self.showAxes)
     self.sa.grid(row=0,column=0,sticky=W)
     self.ac = xasyOptions.options['axesColor']
@@ -87,10 +98,9 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
     self.ays.insert(END,xasyOptions.options['axisY'])
     self.ays.grid(row=1,column=2,sticky=W+E)
 
-    self.showGrid = BooleanVar()
-    self.showGrid.set(xasyOptions.options['showGrid'])
+    self.showGrid = BooleanVar(value=xasyOptions.options['showGrid'])
     self.sg = Checkbutton(dispGrp,text="Show Grid",var=self.showGrid)
-    self.sg.grid(row=2,column=0,sticky=W)
+    self.sg.grid(row=4,column=0,sticky=W)
     self.gc = xasyOptions.options['gridColor']
     Button(dispGrp,text="Color...",command=self.changeGridColor).grid(row=3,column=0)
     Label(dispGrp,text="x").grid(row=2,column=1,padx=5,sticky=E)
@@ -101,6 +111,18 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
     self.gys = Entry(dispGrp,width=6)
     self.gys.insert(END,xasyOptions.options['gridY'])
     self.gys.grid(row=3,column=2,sticky=W+E)
+
+  def findEEPath(self):
+    if sys.platform[:3] == 'win': #for windows, wince, win32, etc
+      file=tkFileDialog.askopenfile(filetypes=[("Programs","*.exe"),("All files","*")],title="Choose External Editor",parent=self)
+    else:
+      file=tkFileDialog.askopenfile(filetypes=[("All files","*")],title="Choose External Editor",parent=self)
+    if file != None:
+      name = os.path.abspath(file.name)
+      file.close()
+      self.ee.delete(0,END)
+      self.ee.insert(END,name)
+      self.validate()
 
   def findAsyPath(self):
     if sys.platform[:3] == 'win': #for windows, wince, win32, etc
@@ -128,19 +150,20 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
     self.pc = self.getAColor(self.pc)
 
   def apply(self):
+    xasyOptions.options['externalEditor'] = self.ee.get()
     xasyOptions.options['asyPath'] = self.ap.get()
-    xasyOptions.options['showDebug'] = self.showDebug.get()
+    xasyOptions.options['showDebug'] = bool(self.showDebug.get())
 
     xasyOptions.options['defPenColor'] = self.pc
     xasyOptions.options['defPenWidth'] = float(self.pw.get())
     xasyOptions.options['defPenOptions'] = self.po.get()
 
-    xasyOptions.options['showAxes'] = self.showAxes.get()
+    xasyOptions.options['showAxes'] = bool(self.showAxes.get())
     xasyOptions.options['axesColor'] = self.ac
     xasyOptions.options['tickColor'] = self.ac
     xasyOptions.options['axisX'] = int(self.axs.get())
     xasyOptions.options['axisY'] = int(self.ays.get())
-    xasyOptions.options['showGrid'] = self.showGrid.get()
+    xasyOptions.options['showGrid'] = bool(self.showGrid.get())
     xasyOptions.options['gridColor'] = self.gc
     xasyOptions.options['gridX'] = int(self.gxs.get())
     xasyOptions.options['gridY'] = int(self.gys.get())
@@ -167,6 +190,9 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
     if not pathOK or not idString.startswith("Welcome to Asymptote"):
       tkMessageBox.showerror("xasy Options","Specified file does not exist or is not an Asymptote executable.\r\n"+self.ap.get(),parent=self)
       return False
+
+    #validate the external editor
+    # how can I validate the editor?
 
     #validate the color
     hexdigits = '0123456789abcdef'

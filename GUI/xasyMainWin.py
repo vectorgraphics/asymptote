@@ -25,7 +25,7 @@ import threading
 import time
 
 from xasyVersion import xasyVersion
-from xasyCodeEditor import *
+import xasyCodeEditor
 from xasy2asy import *
 import xasyFile
 import xasyOptions
@@ -847,7 +847,7 @@ class xasyMainWin:
     self.clearHighlight()
     self.addItemToFile(xasyScript(self.mainCanvas))
     self.unbindGlobalEvents()
-    text = xasyCodeEditor(self.parent,"// enter your code here").getText()
+    text = xasyCodeEditor.getText("// enter your code here")
     self.bindGlobalEvents()
     self.undoRedoStack.add(addScriptAction(self,self.fileItems[-1]))
     self.fileItems[-1].setScript(text)
@@ -1156,7 +1156,7 @@ class xasyMainWin:
     if isinstance(item,xasyScript):
       oldText = item.script
       self.unbindGlobalEvents()
-      newText = xasyCodeEditor(self.parent,item.script).getText()
+      newText = xasyCodeEditor.getText(item.script)
       self.bindGlobalEvents()
       if newText != oldText:
         self.undoRedoStack.add(editScriptAction(self,item,newText,oldText))
@@ -1614,7 +1614,6 @@ class xasyMainWin:
 
   def resetOptions(self):
     xasyOptions.setDefaults()
-    xasyOptions.save()
     self.applyOptions()
 
   def applyPenWidth(self):

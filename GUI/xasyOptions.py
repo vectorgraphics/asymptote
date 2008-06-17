@@ -28,8 +28,15 @@ defaultOptions = {
     'tickColor':'#eeeeee',
     'defPenOptions':'',
     'defPenColor':'#000000',
-    'defPenWidth':1.0
+    'defPenWidth':1.0,
+    'externalEditor':''
   }
+
+if sys.platform[:3] == "win":
+  defaultOptions['externalEditor'] = "notepad.exe"
+else:
+  defaultOptions['externalEditor'] = "emacs"
+
 
 options = defaultOptions.copy()
 
@@ -71,12 +78,12 @@ def setDefaults():
   options = defaultOptions.copy()
   if sys.platform[:3] == 'win': #for windows, wince, win32, etc
     setAsyPathFromWindowsRegistry()
+  save()
 
 def load():
   global options
   fileName = settingsFileLocation()
   if not os.path.exists(fileName):
-    setDefaults()
     #make folder
     thedir = os.path.dirname(fileName)
     if not os.path.exists(thedir):
@@ -86,7 +93,7 @@ def load():
         raise Exception,"Could not create configuration folder"
     if not os.path.isdir(thedir):
       raise Exception,"Configuration folder path does not point to a folder"
-    save()
+    setDefaults()
   try:
     f = open(fileName,"rb")
     newOptions = pickle.load(f)
