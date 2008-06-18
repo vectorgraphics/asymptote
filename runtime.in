@@ -898,6 +898,11 @@ bool empty(picture *f)
   return f->null();
 }
 
+void erase(picture *f)
+{
+  f->nodes.clear();
+}
+
 pair max(picture *f)
 {
   return f->bounds().Max();

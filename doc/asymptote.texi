@@ -2879,15 +2879,20 @@ return the transforms @code{(t.x,t.y,0,0,0,0)} and
 @item frame
 @cindex @code{frame}
 @cindex @code{newframe}
+@cindex @code{empty}
+@cindex @code{erase}
+@cindex @code{min}
+@cindex @code{max}
 Frames are canvases for drawing in @code{PostScript} coordinates. While working
 with frames directly is occasionally necessary for constructing deferred
 drawing routines, pictures are usually more convenient to work with.
 The implicit initializer for frames is @code{newframe}. The function
 @code{bool empty(frame f)} returns @code{true} only if the frame @code{f}
-is empty. The functions @code{pair min(frame f)} and @code{pair
-max(frame f)} return the (left,bottom) and (right,top) coordinates of
-the frame bounding box, respectively. The contents of frame @code{src}
-may be appended to frame @code{dest} with the command
+is empty. A frame may be erased with the @code{erase(frame)} routine.
+The functions @code{pair min(frame)} and @code{pair max(frame)}
+return the (left,bottom) and (right,top) coordinates of the frame
+bounding box, respectively. The contents of frame @code{src} may be
+appended to frame @code{dest} with the command
 @verbatim
 void add(frame dest, frame src);
 @end verbatim
