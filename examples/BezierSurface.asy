@@ -1,7 +1,10 @@
 import surface;
 
 size(400,400);
-currentprojection=perspective((1,1,1));
+
+string viewpoint="{-0.5926061272621155 -0.037049900740385056 0.3997249901294708}{0.7891266345977783 -0.5273118615150452 -0.314994215965271}{1.605668490127913}{13.567415033043787}{}";
+//viewpoint=getstring("viewpoint",viewpoint);
+currentprojection=perspective(viewpoint);
 
 triple[][][] P={{
     {(-1.6,0,1.875),(-1.6,-0.3,1.875),(-1.5,-0.3,2.1),(-1.5,0,2.1)},
@@ -31,8 +34,8 @@ for(int i=0; i < P.length; ++i) {
     P[i][j] *= 10; // Temporary scaling.
   draw(f,P[i],blue);
 }
-add3(f,"label",10cm);
-label(cameralink("label"),(5cm,-10cm));
+add3(f,"label",10cm,(0,0));
+label(cameralink("label"),(1,-2));
 
 /*
 draw(P[1],1,16);

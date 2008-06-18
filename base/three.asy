@@ -2779,7 +2779,7 @@ void add3(picture pic=currentpicture, frame f,
   shipout3(prefix,f);
   prefix += ".prc";
   file3.push(prefix);
-  triple v=P.camera-P.target;
+
   string format(real x) {
     assert(abs(x) < 1e18,"Number too large: "+string(x));
     return string(x,18);
@@ -2790,11 +2790,15 @@ void add3(picture pic=currentpicture, frame f,
     real[] c=colors(rgb(p));
     return format((c[0],c[1],c[2]));
   }
+
+  triple v=P.camera-P.target;
+  real roll=colatitude(P.up)*(longitude(P.up,warn=false) < 180 ? 1 : -1);
+
   string options="poster,text="+text+",label="+label+
     ",3Daac="+format(angle)+
     ",3Dc2c="+format(unit(v))+
     ",3Dcoo="+format(P.target)+
-    ",3Droll="+format(aCos(P.up.z/abs(P.up)))+
+    ",3Droll="+format(roll)+
     ",3Droo="+format(abs(v));
   if(views != "") options += ",3Dviews="+views;
   options += ",3Dbg="+format(background);
@@ -2804,8 +2808,28 @@ void add3(picture pic=currentpicture, frame f,
   label(pic,embed(prefix,options,width,height),position);
 }
 
-string cameralink(string label, string text="camera") {
+string cameralink(string label, string text="Viewpoint") {
   return link(label,text,"3Dgetview");
+}
+
+private struct viewpoint {
+  triple target,camera,up;
+  void operator init(string s) {
+    s=replace(s,new string[][] {{"{",""},{"}"," "}});
+    string[] S=split(s," ");
+    target=((real) S[0],(real) S[1],(real) S[2]);
+    camera=target+(real) S[6]*((real) S[3],(real) S[4],(real) S[5]);
+    up=Z;
+    if(S.length > 7) {
+      real roll=(real) S[7];
+      up=dir(roll,sgn(roll) >= 0 ? 0 : 180);
+    }
+  }
+}
+
+projection perspective(string s) {
+  viewpoint v=viewpoint(s);
+  return perspective(v.camera,v.up,v.target);
 }
 
 exitfcn currentexitfunction=atexit();
