@@ -945,7 +945,7 @@ patharray *texpath(string *s, pen p=currentpen)
   tex.verbatimline("/ASYe {ASYf 10 write} bind def");
   tex.verbatimline("/ASYo {10 string cvs ASYf exch writestring ASYe} bind def");
   tex.verbatimline("/ASY1 true def");
-  tex.verbatimline("/v {neg 0.5 add exch 4 copy 4 2 roll 2 copy 6 2 roll 2 copy ASYf (M) writestring ASYo ASYo ASYf (L) writestring ASYo add ASYo ASYf (L) writestring add ASYo add ASYo ASYf (L) writestring add ASYo ASYo ASYf (c) writestring ASYe} bind def");
+  tex.verbatimline("/v {neg exch 4 copy 4 2 roll 2 copy 6 2 roll 2 copy ASYf (M) writestring ASYo ASYo ASYf (L) writestring ASYo add ASYo ASYf (L) writestring add ASYo add ASYo ASYf (L) writestring add ASYo ASYo ASYf (c) writestring ASYe} bind def");
   tex.verbatimline("/show {ASY1 {ASYf (Z) writestring currentpoint ASYo ASYo /ASY1 false def} if currentpoint newpath moveto false charpath {ASYf (M) writestring ASYo ASYo} {ASYf (L) writestring ASYo ASYo} {ASYf (C) writestring ASYo ASYo ASYo ASYo ASYo ASYo} {ASYf (c) writestring ASYe} pathforall} bind def}");
   
   tex.verbatim(*s);
@@ -985,7 +985,8 @@ patharray *texpath(string *s, pen p=currentpen)
     ostringstream cmd;
     unlink(pathname.c_str());
     cmd << "'" << getSetting<string>("gs")
-	<< "' -q -dNOPAUSE -dBATCH '"<< "'" << psname << "'";
+	<< "' -q -dNOPAUSE -dBATCH -sDEVICE=epswrite -sOutputFile=/dev/null "
+	<< "'" << psname << "'";
     status=System(cmd,0,true,"gs","Ghostscript");
   }
     
