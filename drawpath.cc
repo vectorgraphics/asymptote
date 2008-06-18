@@ -119,7 +119,7 @@ void cap(bbox& b, double t, path p, pen pentype) {
   }
 }
 
-void drawPath::bounds(bbox& b, iopipestream&, boxvector&, bboxlist&)
+void drawPathPenBase::strokebounds(bbox& b, const path& p)
 {
   Int l=p.length();
   if(l < 0) return;

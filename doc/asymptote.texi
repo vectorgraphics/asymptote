@@ -1237,50 +1237,54 @@ boundary of picture @code{pic}.
 @cindex gradient shading
 
 @cindex shading
-@cindex lattice shading
+@cindex @code{latticeshade}
 Lattice gradient shading varying smoothly over a two-dimensional
 array of pens @code{p}, using fill rule @code{fillrule}, can be produced with
 @verbatim
-void latticeshade(picture pic=currentpicture, path g,
+void latticeshade(picture pic=currentpicture, path g, bool stroke=false,
                   pen fillrule=currentpen, pen[][] p)
 @end verbatim
+@cindex @code{stroke}
+If @code{stroke=true}, the region filled is the same as the region that
+would be drawn by @code{draw(pic,g,fillrule+zerowinding)}; in this case the path
+@code{g} need not be cyclic.
 The pens in @code{p} must belong to the same color space. One can use the
 functions @code{rgb(pen)} or @code{cmyk(pen)} to promote pens to a
 higher color space, as illustrated in the example file
 @code{latticeshading.asy}.
 
-@cindex axial shading
+@cindex @code{axialshade}
 Axial gradient shading varying smoothly from @code{pena} to @code{penb} in the
 direction of the line segment @code{a--b} can be achieved with
 @verbatim
-void axialshade(picture pic=currentpicture, path g,
+void axialshade(picture pic=currentpicture, path g, bool stroke=false,
                 pen pena, pair a,
                 pen penb, pair b);
 @end verbatim
 
-@cindex radial shading
+@cindex @code{radialshade}
 Radial gradient shading varying smoothly from
 @code{pena} on the circle with center @code{a} and radius @code{ra} to
 @code{penb} on the circle with center @code{b} and radius @code{rb} 
 is similar:
 @verbatim
-void radialshade(picture pic=currentpicture, path g,
+void radialshade(picture pic=currentpicture, path g, bool stroke=false,
                  pen pena, pair a, real ra,
                  pen penb, pair b, real rb);
 @end verbatim
 @noindent
 Illustrations of radial shading are provided in the example files
-@code{shade.asy} and @code{ring.asy}.
+@code{shade.asy}, @code{ring.asy}, and @code{shadestroke.asy}.
 
-@cindex Gouraud shading
+@cindex @code{gouraudshade}
 Gouraud shading using fill rule @code{fillrule} and the vertex colors in the
 pen array @code{p} on a triangular lattice defined by the vertices
 @code{z} and edge flags @code{edges} is implemented with
 @verbatim
-void gouraudshade(picture pic=currentpicture, path g,
+void gouraudshade(picture pic=currentpicture, path g, bool stroke=false,
                   pen fillrule=currentpen, pen[] p, pair[] z,
                   int[] edges);
-void gouraudshade(picture pic=currentpicture, path g,
+void gouraudshade(picture pic=currentpicture, path g, bool stroke=false,
                   pen fillrule=currentpen, pen[] p, int[] edges);
 @end verbatim
 @noindent
@@ -1295,14 +1299,16 @@ The edge flags used in Gouraud shading are documented here:
 
 @cindex Coons shading
 @cindex tensor product shading
+@cindex @code{tensorshade}
 Tensor product shading using fill rule @code{fillrule} on patches
 bounded by the @math{n} cyclic paths of length 4 in path array @code{b},
 using the vertex colors specified in the @math{n \times 4} pen array
 @code{p} and internal control points in the @math{n \times 4}
 array @code{z}, is implemented with
 @verbatim
-void tensorshade(picture pic=currentpicture, path g, pen fillrule=currentpen,
-                 pen[][] p, path[] b=g, pair[][] z=new pair[][]);
+void tensorshade(picture pic=currentpicture, path g, bool stroke=false,
+                 pen fillrule=currentpen, pen[][] p, path[] b=g,
+                 pair[][] z=new pair[][]);
 @end verbatim
 @noindent
 If the array @code{z} is empty, Coons shading, in which the color
@@ -1311,8 +1317,9 @@ The pens in @code{p} must belong to the same color space.
 A simpler interface for the case of a single patch (@math{n=1}) is also
 available:
 @verbatim
-void tensorshade(picture pic=currentpicture, path g, pen fillrule=currentpen,
-                 pen[] p, path b=g, pair[] z=new pair[]);
+void tensorshade(picture pic=currentpicture, path g, bool stroke=false,
+                 pen fillrule=currentpen, pen[] p, path b=g,
+                 pair[] z=new pair[]);
 @end verbatim
 One can also smoothly shade the regions between consecutive paths of a
 sequence using a given array of pens:
@@ -1333,16 +1340,20 @@ void unfill(picture pic=currentpicture, path g);
 @end verbatim
 
 @cindex @code{clip}
+@cindex @code{stroke}
 @node clip
 @section clip
 @verbatim 
-void clip(picture pic=currentpicture, path g, pen fillrule=currentpen);
+void clip(picture pic=currentpicture, path g, stroke=false,
+          pen fillrule=currentpen);
 @end verbatim
 
 Clip the current contents of picture @code{pic} to the region bounded
 by the path @code{g}, using fill rule @code{fillrule} (@pxref{fillrule}).
-For an illustration of picture clipping, see the first example in
-@ref{LaTeX usage}.
+If @code{stroke=true}, the clipped portion is the same as the region
+that would be drawn with @code{draw(pic,g,fillrule+zerowinding)}; in
+this case the path @code{g} need not be cyclic. For an illustration of
+picture clipping, see the first example in @ref{LaTeX usage}.
 
 @cindex @code{label}
 @node label
@@ -7501,7 +7512,7 @@ Here is a simple flowchart example:
 @section @code{contour}
 @cindex @code{contour}
 This package draws contour lines.
-To construct contours corrsponding to the values in an array @code{c}
+To construct contours corresponding to the values in an array @code{c}
 for a function @code{f} on @code{box(a,b)}, use
 @verbatim
 guide[][] contour(real f(real, real), pair a, pair b,
@@ -7529,7 +7540,7 @@ mesh specified by the two-dimensional array @code{z}, optionally
 specifying an estimate for the values of @code{f} at the mesh midpoints, use
 @verbatim
 guide[][] contour(pair[][] z, real[][] f,
-		  real[][] midpoint=new real[][], real[] c,
+                  real[][] midpoint=new real[][], real[] c,
                   interpolate join=operator --);
 
 @end verbatim
@@ -8294,7 +8305,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  LeftJustified RightJustified tickmodifier gunzip gmake IRIX dv
 @c  LocalWords:  texcommand RET SITEDIR filegraph pathmarkers POSIX binput AOB
 @c  LocalWords:  boutput nonportable markinterval stickframe circlebarframe tix
-@c  LocalWords:  crossframe tildeframe markangle StickIntervalMarker gswin
+@c  LocalWords:  crossframe tildeframe markangle StickIntervalMarker gswin expm
 @c  LocalWords:  CrossIntervalMarker CircleBarIntervalMarker Ghostscript syzygy
 @c  LocalWords:  TildeIntervalMarker autoimport calculateTransform bitwise tk
 @c  LocalWords:  headersize bodysize minheaderwidth minheaderheight minwidth
@@ -8309,4 +8320,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  atLeast intMin globalwrite quarticroots deconsruct substrings
 @c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt DefaultHead
 @c  LocalWords:  SimpleHead HookHead TeXHead multipage nurbs inlinemovie dxmax
-@c  LocalWords:  simpson NoBox truesize autoscale
+@c  LocalWords:  simpson NoBox truesize autoscale shadestroke recurses
+@c  LocalWords:  nonoverlapping Shewchuk's

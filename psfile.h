@@ -127,6 +127,11 @@ public:
     else *out << "stroke" << newl;
   }
   
+  void strokepath() {
+    if(pdf) reportError("PDF does not support strokepath");
+    else *out << "strokepath" << newl;
+  }
+  
   void fill(const pen &p) {
     if(p.evenodd()) {
       if(pdf) *out << "f*" << newl;

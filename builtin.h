@@ -29,7 +29,7 @@ void addFunc(venv &ve, vm::bltin f, types::ty *result, const char *name,
 	     types::formal f3=noformal, types::formal f4=noformal,
 	     types::formal f5=noformal, types::formal f6=noformal,
 	     types::formal f7=noformal, types::formal f8=noformal,
-	     types::formal f9=noformal);
+	     types::formal f9=noformal, types::formal fA=noformal);
   
 // Adds standard functions for a newly added types.
 void addArrayOps(venv &ve, types::array *t);

@@ -49,18 +49,18 @@ bool drawFill::draw(psfile *out)
   
 drawElement *drawFill::transformed(const transform& t)
 {
-  return new drawFill(transpath(t),transpen(t));
+  return new drawFill(transpath(t),stroke,transpen(t));
 }
   
 drawElement *drawLatticeShade::transformed(const transform& t)
 {
-  return new drawLatticeShade(transpath(t),pentype,pens);
+  return new drawLatticeShade(transpath(t),stroke,pentype,pens);
 }
 
 drawElement *drawAxialShade::transformed(const transform& t)
 {
   pair A=t*a, B=t*b;
-  return new drawAxialShade(transpath(t),pentype,A,penb,B);
+  return new drawAxialShade(transpath(t),stroke,pentype,A,penb,B);
 }
   
 drawElement *drawRadialShade::transformed(const transform& t)
@@ -68,7 +68,7 @@ drawElement *drawRadialShade::transformed(const transform& t)
   pair A=t*a, B=t*b;
   double RA=length(t*(a+ra)-A);
   double RB=length(t*(b+rb)-B);
-  return new drawRadialShade(transpath(t),pentype,A,RA,penb,B,RB);
+  return new drawRadialShade(transpath(t),stroke,pentype,A,RA,penb,B,RB);
 }
 
 drawElement *drawGouraudShade::transformed(const transform& t)
@@ -78,7 +78,7 @@ drawElement *drawGouraudShade::transformed(const transform& t)
   for(size_t i=0; i < size; i++)
     (*Vertices)[i]=t*vm::read<pair>(vertices,i);
 
-  return new drawGouraudShade(transpath(t),pentype,pens,*Vertices,edges);
+  return new drawGouraudShade(transpath(t),stroke,pentype,pens,*Vertices,edges);
 }
 
 drawElement *drawTensorShade::transformed(const transform& t)
@@ -100,7 +100,7 @@ drawElement *drawTensorShade::transformed(const transform& t)
       (*Zi)[j]=t*vm::read<pair>(zi,j);
   }
 
-  return new drawTensorShade(transpath(t),pentype,pens,*Boundaries,*Z);
+  return new drawTensorShade(transpath(t),stroke,pentype,pens,*Boundaries,*Z);
 }
 
 } // namespace camp

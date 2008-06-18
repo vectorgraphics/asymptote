@@ -1066,42 +1066,42 @@ void _draw(picture *f, path g, pen p)
 void fill(picture *f, patharray *g, pen p, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  f->append(new drawFill(*copyarray(g),p));
+  f->append(new drawFill(*copyarray(g),false,p));
 }
 
-void latticeshade(picture *f, patharray *g, pen fillrule, penarray2 *p,
-		  bool copy=true)
+void latticeshade(picture *f, patharray *g, bool stroke=false,
+		  pen fillrule, penarray2 *p, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  f->append(new drawLatticeShade(*copyarray(g),fillrule,*copyarray(p)));
+  f->append(new drawLatticeShade(*copyarray(g),stroke,fillrule,*copyarray(p)));
 }
 
-void axialshade(picture *f, patharray *g, pen pena, pair a, pen penb, pair b,
-		bool copy=true)
+void axialshade(picture *f, patharray *g, bool stroke=false, pen pena, pair a,
+		pen penb, pair b, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  f->append(new drawAxialShade(*copyarray(g),pena,a,penb,b));
+  f->append(new drawAxialShade(*copyarray(g),stroke,pena,a,penb,b));
 }
 
-void radialshade(picture *f, patharray *g, pen pena, pair a, real ra,
-		 pen penb, pair b, real rb, bool copy=true)
+void radialshade(picture *f, patharray *g, bool stroke=false, pen pena,
+		 pair a, real ra, pen penb, pair b, real rb, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  f->append(new drawRadialShade(*copyarray(g),pena,a,ra,penb,b,rb));
+  f->append(new drawRadialShade(*copyarray(g),stroke,pena,a,ra,penb,b,rb));
 }
 
-void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
-		  pairarray *z, Intarray *edges, bool copy=true)
+void gouraudshade(picture *f, patharray *g, bool stroke=false, pen fillrule,
+		  penarray *p, pairarray *z, Intarray *edges, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   checkArrays(p,z);
   checkArrays(z,edges);
-  f->append(new drawGouraudShade(*copyarray(g),fillrule,*copyarray(p),
+  f->append(new drawGouraudShade(*copyarray(g),stroke,fillrule,*copyarray(p),
 				 *copyarray(z),*copyarray(edges)));
 }
 
-void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
-		  Intarray *edges, bool copy=true)
+void gouraudshade(picture *f, patharray *g, bool stroke=false, pen fillrule,
+		  penarray *p, Intarray *edges, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   size_t n=checkArrays(p,edges);
@@ -1118,12 +1118,13 @@ void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
   }
   checkArrays(p,z);
   
- f->append(new drawGouraudShade(*copyarray(g),fillrule,*copyarray(p),
+  f->append(new drawGouraudShade(*copyarray(g),stroke,fillrule,*copyarray(p),
 				*z,*copyarray(edges)));
 }
 
-void tensorshade(picture *f, patharray *g, pen fillrule, penarray2 *p,
-		 patharray *b=NULL, pairarray2 *z=emptyarray, bool copy=true)
+void tensorshade(picture *f, patharray *g, bool stroke=false, pen fillrule,
+		 penarray2 *p, patharray *b=NULL, pairarray2 *z=emptyarray,
+		 bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
@@ -1132,22 +1133,23 @@ void tensorshade(picture *f, patharray *g, pen fillrule, penarray2 *p,
   size_t nz=checkArray(z);
   if(nz != 0)
     checkequal(nz,n);
-  f->append(new drawTensorShade(*copyarray(g),fillrule,*copyarray2(p),
+  f->append(new drawTensorShade(*copyarray(g),stroke,fillrule,*copyarray2(p),
 				*copyarray(b),*copyarray2(z)));
 }
 
 // Clip a picture to a superpath using the given fill rule.
 // Subsequent additions to the picture will not be affected by the clipping.
-void clip(picture *f, patharray *g, pen fillrule, bool copy=true)
+void clip(picture *f, patharray *g, bool stroke=false, pen fillrule,
+	  bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  drawClipBegin *begin=new drawClipBegin(*copyarray(g),fillrule,true);
+  drawClipBegin *begin=new drawClipBegin(*copyarray(g),stroke,fillrule,true);
   f->enclose(begin,new drawClipEnd(true,begin));
 }
 
-void beginclip(picture *f, patharray *g, pen fillrule)
+void beginclip(picture *f, patharray *g, bool stroke=false, pen fillrule)
 {
-  f->append(new drawClipBegin(*copyArray(g),fillrule,false));
+  f->append(new drawClipBegin(*copyArray(g),stroke,fillrule,false));
 }
 
 void endclip(picture *f)

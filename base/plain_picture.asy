@@ -542,12 +542,14 @@ struct picture {
   }
 
   void size(real x, real y=x, bool keepAspect=this.keepAspect) {
+    uptodate(false);
     xsize=x;
     ysize=y;
     this.keepAspect=keepAspect;
   }
 
   void unitsize(real x, real y=x) {
+    uptodate(false);
     xunitsize=x;
     yunitsize=y;
   }
@@ -949,7 +951,7 @@ void fill(picture pic=currentpicture, path[] g, pen p=currentpen,
   pic.addPath(g);
 }
 
-void latticeshade(picture pic=currentpicture, path[] g,
+void latticeshade(picture pic=currentpicture, path[] g, bool stroke=false,
                   pen fillrule=currentpen, pen[][] p, bool copy=true)
 {
   if(copy) {
@@ -957,24 +959,25 @@ void latticeshade(picture pic=currentpicture, path[] g,
     p=copy(p);
   }
   pic.add(new void(frame f, transform t) {
-      latticeshade(f,t*g,fillrule,p,false);
+      latticeshade(f,t*g,stroke,fillrule,p,false);
     },true);
   pic.addPath(g);
 }
 
-void axialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
-                pen penb, pair b, bool copy=true)
+void axialshade(picture pic=currentpicture, path[] g, bool stroke=false,
+		pen pena, pair a, pen penb, pair b, bool copy=true)
 {
   if(copy)
     g=copy(g);
   pic.add(new void(frame f, transform t) {
-      axialshade(f,t*g,pena,t*a,penb,t*b,false);
+      axialshade(f,t*g,stroke,pena,t*a,penb,t*b,false);
     },true);
   pic.addPath(g);
 }
 
-void radialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
-                 real ra, pen penb, pair b, real rb, bool copy=true)
+void radialshade(picture pic=currentpicture, path[] g, bool stroke=false,
+		 pen pena, pair a, real ra, pen penb, pair b, real rb,
+		 bool copy=true)
 {
   if(copy)
     g=copy(g);
@@ -982,13 +985,14 @@ void radialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
       pair A=t*a, B=t*b;
       real RA=abs(t*(a+ra)-A);
       real RB=abs(t*(b+rb)-B);
-      radialshade(f,t*g,pena,A,RA,penb,B,RB,false);
+      radialshade(f,t*g,stroke,pena,A,RA,penb,B,RB,false);
     },true);
   pic.addPath(g);
 }
 
-void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
-                  pen[] p, pair[] z, int[] edges, bool copy=true)
+void gouraudshade(picture pic=currentpicture, path[] g, bool stroke=false,
+		  pen fillrule=currentpen, pen[] p, pair[] z, int[] edges,
+		  bool copy=true)
 {
   if(copy) {
     g=copy(g);
@@ -997,13 +1001,13 @@ void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
     edges=copy(edges);
   }
   pic.add(new void(frame f, transform t) {
-      gouraudshade(f,t*g,fillrule,p,t*z,edges,false);
+      gouraudshade(f,t*g,stroke,fillrule,p,t*z,edges,false);
     },true);
   pic.addPath(g);
 }
 
-void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
-                  pen[] p, int[] edges, bool copy=true)
+void gouraudshade(picture pic=currentpicture, path[] g, bool stroke=false,
+		  pen fillrule=currentpen, pen[] p, int[] edges, bool copy=true)
 {
   if(copy) {
     g=copy(g);
@@ -1011,13 +1015,14 @@ void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
     edges=copy(edges);
   }
   pic.add(new void(frame f, transform t) {
-      gouraudshade(f,t*g,fillrule,p,edges,false);
+      gouraudshade(f,t*g,stroke,fillrule,p,edges,false);
     },true);
   pic.addPath(g);
 }
 
-void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
-                 pen[][] p, path[] b=g, pair[][] z=new pair[][], bool copy=true)
+void tensorshade(picture pic=currentpicture, path[] g, bool stroke=false,
+		 pen fillrule=currentpen, pen[][] p, path[] b=g,
+		 pair[][] z=new pair[][], bool copy=true)
 {
   if(copy) {
     g=copy(g);
@@ -1029,21 +1034,23 @@ void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
       pair[][] Z=new pair[z.length][];
       for(int i=0; i < z.length; ++i)
         Z[i]=t*z[i];
-      tensorshade(f,t*g,fillrule,p,t*b,Z,false);
+      tensorshade(f,t*g,stroke,fillrule,p,t*b,Z,false);
     },true);
   pic.addPath(g);
 }
 
-void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
-                 pen[] p, path b=g.length > 0 ? g[0] : nullpath)
+void tensorshade(picture pic=currentpicture, path[] g, bool stroke=false,
+		 pen fillrule=currentpen, pen[] p,
+		 path b=g.length > 0 ? g[0] : nullpath)
 {
-  tensorshade(pic,g,fillrule,new pen[][] {p},b);
+  tensorshade(pic,g,stroke,fillrule,new pen[][] {p},b);
 }
 
-void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
-                 pen[] p, path b=g.length > 0 ? g[0] : nullpath, pair[] z)
+void tensorshade(picture pic=currentpicture, path[] g, bool stroke=false,
+		 pen fillrule=currentpen, pen[] p,
+		 path b=g.length > 0 ? g[0] : nullpath, pair[] z)
 {
-  tensorshade(pic,g,fillrule,new pen[][] {p},b,new pair[][] {z});
+  tensorshade(pic,g,stroke,fillrule,new pen[][] {p},b,new pair[][] {z});
 }
 
 // Smoothly shade the regions between consecutive paths of a sequence using a
@@ -1075,19 +1082,19 @@ void filldraw(picture pic=currentpicture, path[] g, pen fillpen=currentpen,
   endgroup(pic);
 }
 
-void clip(frame f, path[] g)
+void clip(frame f, path[] g, bool stroke=false)
 {
-  clip(f,g,currentpen);
+  clip(f,g,stroke,currentpen);
 }
 
-void clip(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
-	  bool copy=true)
+void clip(picture pic=currentpicture, path[] g, bool stroke=false,
+	  pen fillrule=currentpen, bool copy=true)
 {
   if(copy)
     g=copy(g);
   pic.userClip(min(g),max(g));
   pic.clip(new void(frame f, transform t) {
-      clip(f,t*g,fillrule,false);
+      clip(f,t*g,stroke,fillrule,false);
     },true);
 }
 

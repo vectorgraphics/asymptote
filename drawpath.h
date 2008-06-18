@@ -19,7 +19,9 @@ public:
   
   virtual ~drawPath() {}
 
-  void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&);
+  void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&) {
+    strokebounds(b,p);
+  }
 
   bool draw(psfile *out);
 
