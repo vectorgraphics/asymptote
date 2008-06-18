@@ -1063,7 +1063,7 @@ void _draw(picture *f, path g, pen p)
   f->append(new drawPath(g,p));
 }
 
-void fill(picture *f, patharray *g, pen p, bool copy=true)
+void fill(picture *f, patharray *g, pen p=currentpen, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   f->append(new drawFill(*copyarray(g),false,p));
