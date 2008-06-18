@@ -9,19 +9,19 @@ markroutine marks() {
       pair z=point(g,i);
       frame f;
       if(i % 4 == 0) {
-	fill(f,p);
-	add(pic,f,z);
+        fill(f,p);
+        add(pic,f,z);
       } else {
-	if(z.y > 50) {
-	  pic.add(new void(frame F, transform t) {
-	      path q=shift(t*z)*p;
-	      unfill(F,q);
-	      draw(F,q);
-	    });
-	} else {
-	  draw(f,p);
-	  add(pic,f,z);
-	}
+        if(z.y > 50) {
+          pic.add(new void(frame F, transform t) {
+              path q=shift(t*z)*p;
+              unfill(F,q);
+              draw(F,q);
+            });
+        } else {
+          draw(f,p);
+          add(pic,f,z);
+        }
       }
     }
   };
