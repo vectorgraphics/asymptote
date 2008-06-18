@@ -6606,6 +6606,11 @@ positive and negative extents of the error are assumed to be equal.
 @verbatiminclude errorbars.asy
 @image{errorbars}
 
+@cindex custom mark routine
+@item A custom mark routine can be also be specified:
+@verbatiminclude graphmarkers.asy
+@image{graphmarkers}
+
 @item This example shows how to label an axis with arbitrary strings.
 @verbatiminclude monthaxis.asy
 @image{monthaxis}
