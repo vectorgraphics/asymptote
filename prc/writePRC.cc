@@ -22,19 +22,27 @@
 
 void UserData::write(PRCbitStream &pbs)
 {
-  pbs << size;
-  if(size > 0)
+  if(size == 0) // always write some bits
   {
-    uint32_t i = 0;
-    for(; i < size/8; ++i)
+    pbs << (uint32_t)1
+        << true;
+  }
+  else
+  {
+    pbs << size;
+    if(size > 0)
     {
-      pbs << data[i];
-    }
-    if(size % 8 != 0)
-    {
-      for(uint32_t j = 0; j < size%8; ++j) // 0-based, big endian bit counting
+      uint32_t i = 0;
+      for(; i < size/8; ++i)
       {
-        pbs << (bool)(data[i] & (0x80 >> j));
+        pbs << data[i];
+      }
+      if(size % 8 != 0)
+      {
+        for(uint32_t j = 0; j < size%8; ++j) // 0-based, big endian bit counting
+        {
+          pbs << (bool)(data[i] & (0x80 >> j));
+        }
       }
     }
   }
@@ -156,9 +164,8 @@ void resetGraphicsAndName()
 
 uint32_t makeCADID()
 {
-  static uint32_t ID = -1;
-  ID += 2;
-  return ID;
+  static uint32_t ID = 1;
+  return ID++;
 }
 
 uint32_t makePRCID()

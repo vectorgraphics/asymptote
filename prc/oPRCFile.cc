@@ -556,7 +556,7 @@ void PRCFileStructure::write(std::ostream &out)
 }
 
 void PRCFileStructure::prepare()
-{ // removed un-needed workaround
+{
   globals.prepare();
   resetGraphicsAndName();
 
@@ -717,7 +717,7 @@ bool oPRCFile::finish()
   for(uint32_t i = 0; i < number_of_file_structures; ++i)
     delete[] header.fileStructureInformation[i].offsets;
   delete[] header.fileStructureInformation;
-  
+
   return true;
 }
 
