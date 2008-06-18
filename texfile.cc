@@ -46,6 +46,7 @@ void texfile::miniprologue()
   texuserpreamble(*out);
   *out << "\\pagestyle{empty}" << newl;
   *out << "\\begin{document}" << newl;
+  texfontencoding(*out);
 }
 
 void texfile::prologue()
@@ -147,6 +148,21 @@ void texfile::setlatexcolor(pen p)
   }
 }
   
+void texfile::setfont(pen p)
+{
+  if((p.size() != lastpen.size() || p.Lineskip() != lastpen.Lineskip()) &&
+     settings::latex(texengine)) {
+    *out << "\\fontsize{" << p.size() << "}{" << p.Lineskip()
+	 << "}\\selectfont" << newl;
+  }
+
+  if(p.Font() != lastpen.Font()) {
+    *out << p.Font() << "%" << newl;
+  }
+  
+  lastpen=p;
+}
+  
 void texfile::setpen(pen p)
 {
   bool latex=settings::latex(texengine);
@@ -157,17 +173,7 @@ void texfile::setpen(pen p)
   if(latex) setlatexcolor(p);
   else setcolor(p,settings::beginspecial(texengine),settings::endspecial());
   
-  if((p.size() != lastpen.size() || p.Lineskip() != lastpen.Lineskip()) &&
-     settings::latex(texengine)) {
-    *out << "\\fontsize{" << p.size() << "}{" << p.Lineskip()
-	 << "}\\selectfont" << newl;
-  }
-
-  if(p.Font() != lastpen.Font()) {
-    *out << p.Font() << "%" << newl;
-  }
-
-  lastpen=p;
+  setfont(p);
 }
    
 void texfile::gsave()

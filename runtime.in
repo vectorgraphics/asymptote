@@ -919,7 +919,7 @@ bool labels(picture *f)
   return f->havelabels();
 }
 
-patharray *texpath(string *s)
+patharray *texpath(string *s, pen p=currentpen)
 {
   array *P=new array(0);
   if(s->empty()) return P;
@@ -934,17 +934,18 @@ patharray *texpath(string *s)
   texfile tex(texname,b);
   tex.miniprologue();
   
+  tex.setfont(p);
   tex.verbatimline("\\special{ps:");
   tex.verbatimline("/ASYf ("+pathname+") (w) file def");
-  tex.verbatimline("/ASYo {10 string cvs ASYf exch writestring} bind def");
-  tex.verbatimline("/ASYs {ASYf ( ) writestring} bind def");
-  tex.verbatimline("/ASYendl {ASYf 10 write} bind def");
+  tex.verbatimline("/ASYe {ASYf 10 write} bind def");
+  tex.verbatimline("/ASYo {10 string cvs ASYf exch writestring ASYe} bind def");
   tex.verbatimline("/ASY1 true def");
-  tex.verbatimline("/show {ASY1 {ASYf (Z) writestring currentpoint ASYo ASYs ASYo ASYendl /ASY1 false def} if currentpoint newpath moveto false charpath {ASYf (M) writestring ASYo ASYs ASYo ASYendl} {ASYf (L) writestring ASYo ASYs ASYo ASYendl} {ASYf (C) writestring ASYo ASYs ASYo ASYs ASYo ASYs ASYo ASYs ASYo ASYs ASYo ASYendl} {ASYf (c) writestring ASYendl} pathforall} bind def}");
+  tex.verbatimline("/v {neg 0.5 add exch 4 copy 4 2 roll 2 copy 6 2 roll 2 copy ASYf (M) writestring ASYo ASYo ASYf (L) writestring ASYo add ASYo ASYf (L) writestring add ASYo add ASYo ASYf (L) writestring add ASYo ASYo ASYf (c) writestring ASYe} bind def");
+  tex.verbatimline("/show {ASY1 {ASYf (Z) writestring currentpoint ASYo ASYo /ASY1 false def} if currentpoint newpath moveto false charpath {ASYf (M) writestring ASYo ASYo} {ASYf (L) writestring ASYo ASYo} {ASYf (C) writestring ASYo ASYo ASYo ASYo ASYo ASYo} {ASYf (c) writestring ASYe} pathforall} bind def}");
   
   tex.verbatim(*s);
   tex.verbatimline("\\special{ps:");
-//  tex.verbatimline("ASYf (endtext) writestring ASYendl");
+//  tex.verbatimline("ASYf (endtext) writestring ASYe");
   tex.verbatimline("ASYf closefile}");
   tex.epilogue();
   tex.close();
@@ -979,14 +980,13 @@ patharray *texpath(string *s)
     ostringstream cmd;
     unlink(pathname.c_str());
     cmd << "'" << getSetting<string>("gs")
-	<< "' -q -dNOPAUSE -dBATCH -dNODISPLAY '"<< "'" << psname << "'";
+	<< "' -q -dNOPAUSE -dBATCH '"<< "'" << psname << "'";
     status=System(cmd,0,true,"gs","Ghostscript");
   }
     
-  if(status != 0) 
-    error("texpath failed");
-  
   std::ifstream fin(pathname.c_str());
+  if(status != 0 || !fin.good())
+    error("texpath failed");
   char c;
   mem::vector<solvedKnot> nodes;
   solvedKnot node;

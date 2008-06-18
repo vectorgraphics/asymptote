@@ -47,6 +47,19 @@ void texuserpreamble(T& out,
 }
   
 template<class T>
+void texfontencoding(T& out) 
+{
+  if(settings::latex(settings::getSetting<string>("tex"))) {
+    out << "\\makeatletter%" << newl
+	<< "\\let\\ASYencoding\\f@encoding%" << newl
+	<< "\\let\\ASYfamily\\f@family%" << newl
+	<< "\\let\\ASYseries\\f@series%" << newl
+	<< "\\let\\ASYshape\\f@shape%" << newl
+	<< "\\makeatother%" << newl;
+  }
+}
+
+template<class T>
 void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
 		 bool ASYalign=true, bool ASYbase=true)
 {
@@ -90,14 +103,8 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
 	fout << s << endl;
     }
   }
+  texfontencoding(out);
   if(settings::latex(settings::getSetting<string>("tex"))) {
-    out << "\\makeatletter%" << newl
-	<< "\\let\\ASYencoding\\f@encoding%" << newl
-	<< "\\let\\ASYfamily\\f@family%" << newl
-	<< "\\let\\ASYseries\\f@series%" << newl
-	<< "\\let\\ASYshape\\f@shape%" << newl
-	<< "\\makeatother%" << newl;
-    
     if(pipe || !settings::getSetting<bool>("inlinetex")) {
       out << "\\usepackage{graphicx}" << newl;
       if(!pipe) out << "\\usepackage{color}" << newl;
@@ -127,6 +134,8 @@ public:
 
   void setlatexcolor(pen p);
   void setpen(pen p);
+  
+  void setfont(pen p);
   
   void gsave();
   
