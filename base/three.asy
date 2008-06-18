@@ -2791,13 +2791,13 @@ void add3(picture pic=currentpicture, frame f,
     return format((c[0],c[1],c[2]));
   }
 
-  triple v=P.camera-P.target;
+  triple v=(P.camera-P.target)/cm;
   real roll=colatitude(P.up)*(longitude(P.up,warn=false) < 180 ? 1 : -1);
 
   string options="poster,text="+text+",label="+label+
     ",3Daac="+format(angle)+
     ",3Dc2c="+format(unit(v))+
-    ",3Dcoo="+format(P.target)+
+    ",3Dcoo="+format(P.target/cm)+
     ",3Droll="+format(roll)+
     ",3Droo="+format(abs(v));
   if(views != "") options += ",3Dviews="+views;
