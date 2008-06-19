@@ -22,27 +22,19 @@
 
 void UserData::write(PRCbitStream &pbs)
 {
-  if(size == 0) // always write some bits
+  pbs << size;
+  if(size > 0)
   {
-    pbs << (uint32_t)1
-        << true;
-  }
-  else
-  {
-    pbs << size;
-    if(size > 0)
+    uint32_t i = 0;
+    for(; i < size/8; ++i)
     {
-      uint32_t i = 0;
-      for(; i < size/8; ++i)
+      pbs << data[i];
+    }
+    if(size % 8 != 0)
+    {
+      for(uint32_t j = 0; j < size%8; ++j) // 0-based, big endian bit counting
       {
-        pbs << data[i];
-      }
-      if(size % 8 != 0)
-      {
-        for(uint32_t j = 0; j < size%8; ++j) // 0-based, big endian bit counting
-        {
-          pbs << (bool)(data[i] & (0x80 >> j));
-        }
+        pbs << (bool)(data[i] & (0x80 >> j));
       }
     }
   }
@@ -155,7 +147,6 @@ void resetGraphics()
   index_of_line_style = -1;
   behaviour_bit_field = 1;
 }
-
 
 void resetGraphicsAndName()
 {

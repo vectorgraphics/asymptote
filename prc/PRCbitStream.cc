@@ -84,19 +84,8 @@ unsigned int PRCbitStream::getSize() const
 {
   if(compressed)
     return compressedDataSize;
-  if(bitIndex > 0)
-    return byteIndex+1;
   else
-    return byteIndex;
-}
-
-void PRCbitStream::flush()
-{
-  if(bitIndex>0)
-  {
-    data[byteIndex] &= ~(0xFF >> bitIndex);
-    nextByte();
-  }
+    return byteIndex+1;
 }
 
 uint8_t* PRCbitStream::getData()

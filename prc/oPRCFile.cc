@@ -319,7 +319,7 @@ void PRCGlobalsSection::writeData()
   out << numberOfPictures << numberOfTextureDefinitions << numberOfMaterials;
   out << (uint32_t)1 // number of line patterns hard coded for now
       << (uint32_t)PRC_TYPE_GRAPH_LinePattern;
-  ContentPRCBase(&EMPTY_ATTRIBUTES,"",true,0,0,makePRCID()).write(out);
+  ContentPRCBase(&EMPTY_ATTRIBUTES,"",true,makeCADID(),0,makePRCID()).write(out);
   out << (uint32_t)2 // number of lengths
       << 1e6  // size 0
       << 0.0 // size 1
@@ -331,7 +331,7 @@ void PRCGlobalsSection::writeData()
   for(std::vector<RGBAColour>::iterator i = parent->colourMap.begin(); i != parent->colourMap.end(); i++, ++index)
   {
     out << (uint32_t)PRC_TYPE_GRAPH_Style;
-    ContentPRCBase(&EMPTY_ATTRIBUTES,"",true,0,0,makePRCID()).write(out);
+    ContentPRCBase(&EMPTY_ATTRIBUTES,"",true,makeCADID(),0,makePRCID()).write(out);
     out << 1.0 // line width in mm
         << false // is vpicture
         << (uint32_t)1 // line pattern index+1
@@ -359,7 +359,7 @@ void PRCTreeSection::writeData()
   out << (uint32_t)1; // number of part definitions
       // part definitions
   out << (uint32_t)(PRC_TYPE_ASM_PartDefinition);
-  ContentPRCBase(&EMPTY_ATTRIBUTES,"",true,0,0,makePRCID()).write(out);
+  ContentPRCBase(&EMPTY_ATTRIBUTES,"",true,makeCADID(),0,makePRCID()).write(out);
   writeGraphics(out,-1,-1,1,true);
   Extent3d(Point3d(1e20,1e20,1e20),Point3d(-1e20,-1e20,-1e20)).write(out);
 
@@ -396,7 +396,7 @@ void PRCTreeSection::writeData()
   at.text = "__PRC_RESERVED_ATTRIBUTE_A3DF_ProductInformation";
   Attribute attr(false,at,3,sas);
   Attributes attrs(1,&attr);
-  ContentPRCBase(&attrs,"Unknown",true,0,0,makePRCID()).write(out); // 0 or else???
+  ContentPRCBase(&attrs,"Unknown",true,makeCADID(),0,makePRCID()).write(out);
 
   writeGraphics(out,-1,-1,1,true);
   out << (uint32_t)1 // index_part+1
@@ -421,6 +421,7 @@ void PRCTreeSection::writeData()
   EMPTY_CONTENTPRCBASE.write(out);
   out << makePRCID(); // next available index
   out << (uint32_t)1; // product occurrence index
+
   UserData(0,0).write(out);
 }
 

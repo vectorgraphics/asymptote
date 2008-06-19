@@ -41,7 +41,6 @@ class PRCbitStream
     }
 
     unsigned int getSize() const;
-    void flush();
     uint8_t* getData();
 
     PRCbitStream& operator <<(const std::string&);
