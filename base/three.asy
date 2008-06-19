@@ -2817,8 +2817,8 @@ private struct viewpoint {
   void operator init(string s) {
     s=replace(s,new string[][] {{"{",""},{"}"," "}});
     string[] S=split(s," ");
-    target=((real) S[0],(real) S[1],(real) S[2]);
-    camera=target+(real) S[6]*((real) S[3],(real) S[4],(real) S[5]);
+    target=((real) S[0],(real) S[1],(real) S[2])*cm;
+    camera=target+(real) S[6]*((real) S[3],(real) S[4],(real) S[5])*cm;
     up=Z;
     if(S.length > 7) {
       real roll=(real) S[7];
