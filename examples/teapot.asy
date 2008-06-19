@@ -201,5 +201,5 @@ frame f;
 for(int i=0; i < Q.length; ++i)
   draw(f,Q[i],blue);
 
-currentprojection = perspective((10cm,-10cm,5cm),target=(0,0,5cm));
+currentprojection = perspective((10cm,-10cm,5cm),target=(0,0,1.5cm));
 add3(f,10cm);
