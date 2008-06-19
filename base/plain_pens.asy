@@ -17,19 +17,19 @@ pen operator +(real w, pen p) {return linewidth(w)+p;}
 pen Dotted=dotted+1.0;
 pen Dotted(pen p=currentpen) {return dotted+2*linewidth(p);}
 
-pen squarecap=linecap(0);
-pen roundcap=linecap(1);
-pen extendcap=linecap(2);
+restricted pen squarecap=linecap(0);
+restricted pen roundcap=linecap(1);
+restricted pen extendcap=linecap(2);
 
-pen miterjoin=linejoin(0);
-pen roundjoin=linejoin(1);
-pen beveljoin=linejoin(2);
+restricted pen miterjoin=linejoin(0);
+restricted pen roundjoin=linejoin(1);
+restricted pen beveljoin=linejoin(2);
 
-pen zerowinding=fillrule(0);
-pen evenodd=fillrule(1);
+restricted pen zerowinding=fillrule(0);
+restricted pen evenodd=fillrule(1);
 
-pen nobasealign=basealign(0);
-pen basealign=basealign(1);
+restricted pen nobasealign=basealign(0);
+restricted pen basealign=basealign(1);
 
 pen invisible=invisible();
 pen black=gray(0);
@@ -137,11 +137,11 @@ real lineskip()
 }
 
 // Options for handling label overwriting
-int Allow=0;
-int Suppress=1;
-int SuppressQuiet=2;
-int Move=3;
-int MoveQuiet=4;
+restricted int Allow=0;
+restricted int Suppress=1;
+restricted int SuppressQuiet=2;
+restricted int Move=3;
+restricted int MoveQuiet=4;
 
 pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,
                 deepblue,deepgreen,chartreuse,fuchsia,lightred,

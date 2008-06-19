@@ -481,3 +481,19 @@ frame pack(pair align=2S ... object inset[])
   }
   return F;
 }
+
+path[] texpath(string s, transform t=identity(), pair position=0, pair align=0,
+	       pen p=currentpen)
+{
+  path[] g=_texpath(s,p);
+
+  pair a;
+  pair m=min(g);
+  pair M=max(g);
+  pair dir=rectify(inverse(t)*-align);
+  if(basealign(p) == 1)
+    dir -= (0,m.y/(M.y-m.y));
+  a=m+realmult(dir,M-m);
+
+  return shift(position+align*labelmargin(p))*t*shift(-a)*g;
+}

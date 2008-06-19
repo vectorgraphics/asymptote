@@ -320,7 +320,9 @@ pair rectify(pair dir)
 
 pair point(frame f, pair dir)
 {
-  return min(f)+realmult(rectify(dir),max(f)-min(f));
+  pair m=min(f);
+  pair M=max(f);
+  return m+realmult(rectify(dir),M-m);
 }
 
 // Returns a transform for aligning frame f in the direction align

@@ -924,7 +924,7 @@ bool labels(picture *f)
   return f->havelabels();
 }
 
-patharray *texpath(string *s, pen p=currentpen)
+patharray *_texpath(string *s, pen p=currentpen)
 {
   array *P=new array(0);
   if(s->empty()) return P;
