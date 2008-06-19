@@ -2762,7 +2762,6 @@ void add(picture pic=currentpicture, face[] faces,
   }
 }
 
-private int count3=0;
 private string[] file3;
 
 void add3(picture pic=currentpicture, frame f,
@@ -2774,8 +2773,7 @@ void add3(picture pic=currentpicture, frame f,
 	  pen background=white, projection P=currentprojection) {
   string prefix=defaultfilename;
   if(prefix == "") prefix="out";
-  prefix += "-"+(string) count3;
-  ++count3;
+  prefix += "-"+(string) file3.length;
   shipout3(prefix,f);
   prefix += ".prc";
   file3.push(prefix);
@@ -2831,6 +2829,37 @@ projection perspective(string s) {
   viewpoint v=viewpoint(s);
   return perspective(v.camera,v.up,v.target);
 }
+
+triple XYplane(pair z) {return (z.x,z.y,0);}
+
+path3 lift(path g, triple f(pair)=XYplane) {
+  path3 G;
+  cyclic(g);
+  G.cycles=cyclic(g);
+  int n=size(g);
+  G.n=n;
+  int N=G.cycles ? n+1 : n;
+  node[] nodes=new node[N];
+  for(int i=0; i < N; ++i) {
+    node node;
+    node.pre=f(precontrol(g,i));
+    node.point=f(point(g,i));
+    node.post=f(postcontrol(g,i));
+    node.straight=straight(g,i);
+    nodes[i]=node;
+  }
+  G.nodes=nodes;  
+  return G;
+}
+
+// TODO: Replace outline font with Bezier surface patch.
+void label3(frame f, string s, transform t=identity(), pair position=0,
+	    pair align=0, pen p=currentpen) {
+  path[] G=texpath(s,t,position,align,p);
+  for(path g : G)
+    draw(f,lift(g),p);
+}
+
 
 exitfcn currentexitfunction=atexit();
 
