@@ -58,9 +58,9 @@ int decompress(char* inb, int fileLength, char* &outb)
       cerr << "Ran out of memory while decompressing." << endl;
       exit(1);
     }
-    size *= 2;
     strm.next_out = (Bytef*)(outb + resultSize);
-    strm.avail_out += CHUNK;
+    strm.avail_out += size;
+    size *= 2;
     code = inflate(&strm,Z_NO_FLUSH);
     resultSize = size - strm.avail_out;
   }
