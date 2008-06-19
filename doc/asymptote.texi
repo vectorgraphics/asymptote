@@ -7839,12 +7839,12 @@ and must be entered immediately after the prompt:
 view the manual;
 @item reset
 reset the @code{Asymptote} environment to its initial state, except for
-changes to the settings module (@pxref{settings}), the current path
+changes to the settings module (@pxref{settings}), the current directory
 (@pxref{cd}), and breakpoints (@pxref{Debugger});
 @cindex @code{input}
 @item input FILE
-does an interactive reset, followed by the commands 
-@code{erase(); include FILE}. If the file name @code{FILE} contains
+does an interactive reset, followed by the command 
+@code{include FILE}. If the file name @code{FILE} contains
 nonalphanumeric characters, enclose it with quotation marks.
 A trailing semi-colon followed by optional @code{Asymptote} commands may
 be entered on the same line.

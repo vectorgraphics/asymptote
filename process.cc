@@ -647,7 +647,7 @@ class iprompt : public icore {
 
 
   bool input(commandLine cl) {
-    string prefix="erase(); include ";
+    string prefix="include ";
     string line=prefix+cl.rest;
     running=false;
     restart=true;
@@ -665,8 +665,8 @@ class iprompt : public icore {
     ADDCOMMAND(q,q);
     ADDCOMMAND(exit,exit);
     ADDCOMMAND(reset,reset);
-    ADDCOMMAND(help, help);
-    ADDCOMMAND(input, input);
+    ADDCOMMAND(help,help);
+    ADDCOMMAND(input,input);
 
 #undef ADDCOMMAND
   }
