@@ -963,10 +963,7 @@ void splitCubic(node[] sn, real t, node left_, node right_)
 
 node[] nodes(int n)
 {
-  node[] nodes=new node[n];
-  for(int i=0; i < n; ++i)
-    nodes[i]=new node;
-  return nodes;
+  return sequence(new node(int) {return new node;},n);
 }
 
 struct bbox3 {
