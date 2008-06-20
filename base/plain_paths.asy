@@ -309,3 +309,39 @@ int inside(path p, path q, pen fillrule=currentpen)
   if(cyclic(q) && inside(q,point(p,0),fillrule)) return -1;
   return 0;
 }
+
+// Return all intersection times of path p with the line segment pq.
+real[] intersections(path g, pair p, pair q) {
+  static real fuzz=10*realEpsilon;
+  real[] T;
+  real angle=-degrees(q-p,warn=false);
+  transform t=rotate(angle,p);
+  g=t*g;
+  q=t*q;
+  int n=length(g);
+  bool cycles=cyclic(g);
+  for(int i=0; i < n; ++i) {
+    real y0=point(g,i).y;
+    real c0=postcontrol(g,i).y;
+    real c1=precontrol(g,i+1).y;
+    real y1=point(g,i+1).y;
+    real a=-y0+3c0-3c1+y1;
+    real b=3y0-6c0+3c1;
+    real c=-3y0+3c0;
+    real d=y0-p.y;
+    real[] t=cubicroots(a,b,c,d);
+    for(int j=0; j < t.length; ++j) {
+      real tj=t[j];
+      if(tj >= 0 && tj <= 1) {
+	pair z=point(g,i+tj);
+	if(p.x <= z.x && z.x <= q.x) {
+	  real t=i+tj;
+	  if(cycles && t > n-fuzz) t=0;
+	  if(find(abs(T-t) <= fuzz) == -1)
+	    T.push(t);
+	}
+      }
+    }
+  }
+  return T;
+}
