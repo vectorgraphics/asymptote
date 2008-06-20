@@ -1036,6 +1036,8 @@ bbox3 bbox3(triple min, triple max)
 
 private real Fuzz=10.0*realEpsilon;
 
+triple XYplane(pair z) {return (z.x,z.y,0);}
+
 struct path3 {
   node[] nodes;
   bool cycles;
@@ -1072,6 +1074,22 @@ struct path3 {
     this.n=2;
   }
   
+  void operator init(path g, triple plane(pair)=XYplane) {
+    this.cycles=cyclic(g);
+    this.n=size(g);
+    int N=this.cycles ? this.n+1 : this.n;
+    node[] nodes=new node[N];
+    for(int i=0; i < N; ++i) {
+      node node;
+      node.pre=plane(precontrol(g,i));
+      node.point=plane(point(g,i));
+      node.post=plane(postcontrol(g,i));
+      node.straight=straight(g,i);
+      nodes[i]=node;
+    }
+    this.nodes=nodes;  
+  }
+
   int size() {return n;}
   int length() {return nodes.length-1;}
   bool empty() {return n == 0;}
@@ -2790,6 +2808,7 @@ void add3(picture pic=currentpicture, frame f,
   }
 
   triple v=(P.camera-P.target)/cm;
+  // FIXME: Use longitude of v instead of 180.
   real roll=colatitude(P.up)*(longitude(P.up,warn=false) < 180 ? 1 : -1);
 
   string options="poster,text="+text+",label="+label+
@@ -2830,34 +2849,12 @@ projection perspective(string s) {
   return perspective(v.camera,v.up,v.target);
 }
 
-triple XYplane(pair z) {return (z.x,z.y,0);}
-
-path3 lift(path g, triple f(pair)=XYplane) {
-  path3 G;
-  cyclic(g);
-  G.cycles=cyclic(g);
-  int n=size(g);
-  G.n=n;
-  int N=G.cycles ? n+1 : n;
-  node[] nodes=new node[N];
-  for(int i=0; i < N; ++i) {
-    node node;
-    node.pre=f(precontrol(g,i));
-    node.point=f(point(g,i));
-    node.post=f(postcontrol(g,i));
-    node.straight=straight(g,i);
-    nodes[i]=node;
-  }
-  G.nodes=nodes;  
-  return G;
-}
-
 // TODO: Replace outline font with Bezier surface patch.
 void label3(frame f, string s, transform t=identity(), pair position=0,
 	    pair align=0, pen p=currentpen) {
   path[] G=texpath(s,t,position,align,p);
   for(path g : G)
-    draw(f,lift(g),p);
+    draw(f,path3(g),p);
 }
 
 

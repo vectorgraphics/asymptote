@@ -565,13 +565,13 @@ struct surface {
   triple min() {return bounds3.min();}
   triple max() {return bounds3.max();}
 
-  void init(triple[][] P) {
+  void operator init(triple[][] P) {
     bounds.empty=true;
     bounds3.empty=true;
     this.P=copy(P);
   }
 
-  void init(path3 external, triple[] internal=new triple[]) {
+  void operator init(path3 external, triple[] internal=new triple[]) {
     bounds.empty=true;
     bounds3.empty=true;
     if(internal.length == 0) {
@@ -626,28 +626,12 @@ surface operator * (transform3 t, surface s)
  
 surface operator cast(triple[][] P)
 {
-  surface s;
-  s.init(P);
-  return s;
-}
-
-surface surface(triple[][] P)
-{
-  surface s;
-  s.init(P);
-  return s;
+  return surface(P);
 }
 
 path3[] bbox3(surface s)
 {
   return box(s.min(),s.max());
-}
-
-surface surface(path3 external, triple[] internal=new triple[]) 
-{
-  surface s;
-  s.init(external,internal);
-  return s;
 }
 
 triple min(surface s) {return s.min();}
@@ -756,4 +740,13 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
 void draw(frame f, surface S, pen p=currentpen)
 {
   draw(f,S.P,p);
+}
+
+surface[] extrude(path g, triple elongation=Z)
+{
+  path3 G=path3(g);
+  path3 G2=shift(elongation)*G;
+  return sequence(new surface(int i) {
+      return surface(subpath(G,i,i+1)--subpath(G2,i+1,i)--cycle);
+    },length(G));
 }
