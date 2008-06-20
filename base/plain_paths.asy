@@ -310,36 +310,35 @@ int inside(path p, path q, pen fillrule=currentpen)
   return 0;
 }
 
-// Return all intersection times of path p with the line segment pq.
+// Return a sorted list of all intersection times of path g with the (infinite)
+// line through p and q. 
 real[] intersections(path g, pair p, pair q) {
-  static real fuzz=10*realEpsilon;
+  static real fuzz=10realEpsilon;
   real[] T;
-  real angle=-degrees(q-p,warn=false);
-  transform t=rotate(angle,p);
-  g=t*g;
-  q=t*q;
   int n=length(g);
   bool cycles=cyclic(g);
+  real dx=q.x-p.x;
+  real dy=q.y-p.y;
   for(int i=0; i < n; ++i) {
-    real y0=point(g,i).y;
-    real c0=postcontrol(g,i).y;
-    real c1=precontrol(g,i+1).y;
-    real y1=point(g,i+1).y;
-    real a=-y0+3c0-3c1+y1;
-    real b=3y0-6c0+3c1;
-    real c=-3y0+3c0;
-    real d=y0-p.y;
-    real[] t=cubicroots(a,b,c,d);
+    pair z0=point(g,i);
+    pair c0=postcontrol(g,i);
+    pair c1=precontrol(g,i+1);
+    pair t3=point(g,i+1)-z0-3c1+3c0;
+    pair t2=3z0+3c1-6c0;
+    pair t1=3c0-3z0;
+    real a=dy*t3.x-dx*t3.y;
+    real b=dy*t2.x-dx*t2.y;
+    real c=dy*t1.x-dx*t1.y;
+    real d=dy*z0.x-dx*z0.y+p.y*q.x-p.x*q.y;
+    real[] t=sort(cubicroots(a,b,c,d));
     for(int j=0; j < t.length; ++j) {
       real tj=t[j];
-      if(tj >= 0 && tj <= 1) {
-	pair z=point(g,i+tj);
-	if(p.x <= z.x && z.x <= q.x) {
-	  real t=i+tj;
-	  if(cycles && t > n-fuzz) t=0;
-	  if(find(abs(T-t) <= fuzz) == -1)
-	    T.push(t);
-	}
+      if(tj >= -fuzz && tj < 1+fuzz) {
+	real t=i+tj;
+	if(cycles && t >= n-fuzz) {
+	  if(T.length == 0 || T[0] > fuzz)
+	    T.insert(0,0);
+	} else if(T.length == 0 || t > T[T.length-1]+fuzz) T.push(t);
       }
     }
   }
