@@ -1,5 +1,5 @@
 import contour;
-import stats;
+
 size(200);
 
 real f(real x, real y) {return x^2-y^2;}

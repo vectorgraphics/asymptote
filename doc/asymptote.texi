@@ -4460,14 +4460,17 @@ There is an @code{abs(int)} function, as well as an @code{abs(real)}
 function (equivalent to @code{fabs(real)}), an @code{abs(pair)} function
 (equivalent to @code{length(pair)}).
 
-@cindex @code{rand}
 @cindex @code{srand}
+@cindex @code{rand}
 @cindex @code{randMax}
+@cindex @code{unitrand}
 @cindex @code{Gaussrand}
 @cindex @code{histogram}
 Random numbers can be seeded with @code{srand(int)} and generated with
 the @code{int rand()} function, which returns a random integer between 0
-and the integer @code{randMax}. A Gaussian random number generator
+and the integer @code{randMax}. The @code{unitrand()} function returns
+a random number uniformly distributed in the interval [0,1].
+A Gaussian random number generator
 @code{Gaussrand} and a collection of statistics routines, including
 @code{histogram}, are provided in the base file @code{stats.asy}.
 

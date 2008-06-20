@@ -1,4 +1,3 @@
-import stats;
 size(7cm,0);
 
 pair z1=(1,-0.25);

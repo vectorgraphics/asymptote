@@ -234,12 +234,6 @@ int bins(real[] data, int max=100)
   return bins;
 }
 
-// return a random number uniformly distributed in the unit interval [0,1]
-real unitrand()
-{                         
-  return rand()/randMax;
-}
-
 // return a pair of central Gaussian random numbers with unit variance
 pair Gaussrandpair()
 {

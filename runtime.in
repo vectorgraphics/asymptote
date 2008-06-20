@@ -2649,6 +2649,12 @@ void srand(Int seed)
   srand(intcast(seed));
 }  
 
+// a random number uniformly distributed in the interval [0,1]
+real unitrand()
+{                         
+  return ((double) rand())/RAND_MAX;
+}
+
 Int ceil(real x)
 { 
   return Intcast(ceil(x));

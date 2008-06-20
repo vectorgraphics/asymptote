@@ -312,7 +312,8 @@ int inside(path p, path q, pen fillrule=currentpen)
 
 // Return a sorted list of all intersection times of path g with the (infinite)
 // line through p and q. 
-real[] intersections(path g, pair p, pair q) {
+real[] intersections(path g, pair p, pair q)
+{
   static real fuzz=10realEpsilon;
   real[] T;
   int n=length(g);
