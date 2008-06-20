@@ -75,8 +75,8 @@ struct revolution {
   triple axis;
   real angle1,angle2;
   
-  void init(triple c=O, path3 g, triple axis=Z, real angle1=0,
-            real angle2=360) {
+  void operator init(triple c=O, path3 g, triple axis=Z, real angle1=0,
+		     real angle2=360) {
     this.c=c;
     this.g=g;
     this.axis=unit(axis);
@@ -85,9 +85,7 @@ struct revolution {
   }
   
   revolution copy() {
-    revolution r=new revolution;
-    r.init(c,g,axis,angle1,angle2);
-    return r;
+    return revolution(c,g,axis,angle1,angle2);
   }
   
   private real scalefactor() {return abs(c)+max(abs(min(g)),abs(max(g)));}
@@ -174,9 +172,10 @@ struct revolution {
     triple camera=P.camera;
     if(P.infinity)
       camera *= scalefactor();
-    real midtime=0.5*length(g);
+    real L=length(g);
+    real midtime=0.5*L;
     real sign=sgn(dot(axis,camera-P.target))*sgn(dot(axis,dir(g,midtime)));
-    if((t <= epsilon && sign < 0) || (t >= length(g)-epsilon && sign > 0))
+    if(L == 0 || (t <= epsilon && sign < 0) || (t >= L-epsilon && sign > 0))
       s.front.push(S);
     else {
       path3 Sp=slice(t+epsilon,ngraph);
@@ -280,14 +279,6 @@ struct revolution {
     fill(pic,n,fillpen,P);
     draw(pic,m,drawpen,longitudinal,P);
   }
-}
-
-revolution revolution(triple c=O, path3 g, triple axis=Z, real angle1=0,
-                      real angle2=360) 
-{
-  revolution r;
-  r.init(c,g,axis,angle1,angle2);
-  return r;
 }
 
 revolution operator * (transform3 t, revolution r)
