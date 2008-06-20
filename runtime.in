@@ -561,6 +561,7 @@ void cleanup()
 {
   processDataStruct &pd=processData();
   pd.atExitFunction=NULL;
+  pd.atUpdateFunction=NULL;
   pd.atBreakpointFunction=NULL;
   
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
@@ -585,14 +586,16 @@ void purge()
 
 void updateFunction(stack *Stack)
 {
-  callable *atExitFunction=processData().atExitFunction;
-  if(atExitFunction && !nullfunc::instance()->compare(atExitFunction))
-    atExitFunction->call(Stack);
+  callable *atUpdateFunction=processData().atUpdateFunction;
+  if(atUpdateFunction && !nullfunc::instance()->compare(atUpdateFunction))
+    atUpdateFunction->call(Stack);
 }
 
 void exitFunction(stack *Stack)
 {
-  updateFunction(Stack);
+  callable *atExitFunction=processData().atExitFunction;
+  if(atExitFunction && !nullfunc::instance()->compare(atExitFunction))
+    atExitFunction->call(Stack);
   cleanup();
 }
 
@@ -3193,6 +3196,16 @@ real cubiclength(triple z0, triple z0p, triple z1m, triple z1, real goal)
 string VERSION()
 {
   return VERSION;
+}
+
+void atupdate(callable *f)
+{
+  processData().atUpdateFunction=f;
+}
+
+callable *atupdate()
+{
+  return processData().atUpdateFunction;
 }
 
 void atexit(callable *f)

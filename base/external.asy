@@ -11,9 +11,9 @@ string embed(string name, string options="", real width=0, real height=0,
     convert(name+"[0]",image,nativeformat());
 
     if(!settings.keep) {
-      exitfcn atexit=atexit();
+      exitfcn currentexitfunction=atexit();
       void exitfunction() {
-        atexit();
+	if(currentexitfunction != null) currentexitfunction();
         delete(image);
       }
       atexit(exitfunction);

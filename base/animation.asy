@@ -136,9 +136,9 @@ struct animation {
     shipped=false;
 
     if(!settings.keep && !settings.inlinetex) {
-      exitfcn atexit=atexit();
+      exitfcn currentexitfunction=atexit();
       void exitfunction() {
-        atexit();
+	if(currentexitfunction != null) currentexitfunction();
         this.purge();
         if(!keep && single)
           delete(pdfname);

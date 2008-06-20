@@ -90,6 +90,7 @@ struct processDataStruct {
   mem::list<string> TeXpipepreamble;
   mem::list<string> TeXpreamble;
   vm::callable *atExitFunction;
+  vm::callable *atUpdateFunction;
   vm::callable *atBreakpointFunction;
   camp::pen defaultpen;
   
@@ -102,6 +103,7 @@ struct processDataStruct {
   
   processDataStruct() {
     atExitFunction=NULL;
+    atUpdateFunction=NULL;
     atBreakpointFunction=NULL;
     defaultpen=camp::pen::initialpen();
   }

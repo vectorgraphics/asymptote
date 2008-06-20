@@ -811,7 +811,10 @@ struct Syzygy { // {{{1
     pic.add(tableau(fit(drawMoves()), this.number));
   }
 
+  exitfcn currentexitfunction=atexit();
+
   void watch() {
+    if(currentexitfunction != null) currentexitfunction();
     watched=true;
     atexit(new void () {
         picture pic; this.draw(pic);
@@ -823,7 +826,7 @@ struct Syzygy { // {{{1
   void unwatch() {
     assert(watched);
     watched=false;
-    atexit(plain.exitfunction);
+    atexit(currentexitfunction);
     uptodate(false);
   }
   // Writing {{{2

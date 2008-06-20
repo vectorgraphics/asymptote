@@ -44,15 +44,17 @@ bool needshipout() {
   return !shipped && !currentpicture.empty();
 }
 
-void shiponce() {
-  if(needshipout()) shipout();
+void updatefunction()
+{
+  shipout();
 }
 
 void exitfunction()
 {
-  if(interactive() || needshipout()) shipout();
+  if(needshipout()) shipout();
 }
 
+atupdate(updatefunction);
 atexit(exitfunction);
 
 // A restore thunk is a function, that when called, restores the graphics state
@@ -115,10 +117,12 @@ void restoredefaults()
 restoreThunk buildRestoreDefaults()
 {
   pen defaultpen=defaultpen();
+  exitfcn atupdate=atupdate();
   exitfcn atexit=atexit();
   restoreThunk r=restoredefaults;
   return new void() {
     defaultpen(defaultpen);
+    atupdate(atupdate);
     atexit(atexit);
     restoredefaults=r;
   };
@@ -134,6 +138,7 @@ void initdefaults()
 {
   savedefaults();
   resetdefaultpen();
+  atupdate(null);
   atexit(null);
 }
 
@@ -259,6 +264,7 @@ if(settings.autoimport != "") {
   settings.autoimport="";
   eval("import \""+s+"\" as dummy",true);
   shipped=false;
+  atupdate(updatefunction);
   atexit(exitfunction);
   settings.autoimport=s;
 }

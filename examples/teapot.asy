@@ -1,6 +1,7 @@
 import surface;
 
 currentprojection=perspective(250,-250,250);
+settings.outformat="pdf";
 
 triple[][][] Q={
   {
