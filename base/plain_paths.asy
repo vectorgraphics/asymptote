@@ -310,11 +310,12 @@ int inside(path p, path q, pen fillrule=currentpen)
   return 0;
 }
 
+private real fuzz=10realEpsilon;
+
 // Return a sorted list of all intersection times of path g with the (infinite)
 // line through p and q.
-real[] intersections0(path g, pair p, pair q)
+real[] intersectionsline(path g, pair p, pair q)
 {
-  static real fuzz=10realEpsilon;
   real[] T;
   int n=length(g);
   bool cycles=cyclic(g);
@@ -332,15 +333,13 @@ real[] intersections0(path g, pair p, pair q)
     real b=dy*t2.x-dx*t2.y;
     real c=dy*t1.x-dx*t1.y;
     real d=dy*z0.x-dx*z0.y+det;
-    real[] t=sort(cubicroots(a,b,c,d));
-    for(int j=0; j < t.length; ++j) {
-      real tj=t[j];
-      if(tj >= -fuzz && tj < 1+fuzz) {
-	real t=i+tj;
-	if(cycles && t >= n-fuzz) {
+    for(real t : sort(cubicroots(a,b,c,d))) {
+      if(t >= -fuzz && t <= 1+fuzz) {
+	real s=i+t;
+	if(cycles && s >= n-fuzz) {
 	  if(T.length == 0 || T[0] > fuzz)
 	    T.insert(0,0);
-	} else if(T.length == 0 || t > T[T.length-1]+fuzz) T.push(t);
+	} else if(T.length == 0 || s > T[T.length-1]+fuzz) T.push(s);
       }
     }
   }
@@ -350,7 +349,6 @@ real[] intersections0(path g, pair p, pair q)
 // Return a sorted list of all intersection times of path g with the pair z.
 real[] intersections(path g, pair z)
 {
-  static real fuzz=10realEpsilon;
   real[] T;
   int n=length(g);
   bool cycles=cyclic(g);
@@ -362,15 +360,14 @@ real[] intersections(path g, pair z)
     real b=3(x0+c1)-6c0;
     real c=3(c0-x0);
     real d=x0-z.x;
-    real[] t=sort(cubicroots(a,b,c,d));
-    for(real tj : t) {
-      if(tj >= -fuzz && tj <= 1+fuzz) {
-	real t=i+tj;
-	if(abs(point(g,t)-z) <= fuzz) {
-	  if(cycles && t >= n-fuzz) {
+    for(real t : sort(cubicroots(a,b,c,d))) {
+      if(t >= -fuzz && t <= 1+fuzz) {
+	real s=i+t;
+	if(abs(point(g,s)-z) <= fuzz) {
+	  if(cycles && s >= n-fuzz) {
 	    if(T.length == 0 || T[0] > fuzz)
 	      T.insert(0,0);
-	  } else if(T.length == 0 || t > T[T.length-1]+fuzz) T.push(t);
+	  } else if(T.length == 0 || s > T[T.length-1]+fuzz) T.push(s);
 	}
       }
     }
@@ -378,19 +375,22 @@ real[] intersections(path g, pair z)
   return T;
 }
 
-// Return a sorted list of all intersection times of path g with the line
-// segment through p and q.
-real[] intersections(path g, pair p, pair q)
+// An optimized implementation of intersections(g,p--q).
+real[][] intersections(path g, pair p, pair q)
 {
-  static real fuzz=10realEpsilon;
-  real[] T;
-  if(q == p) return intersections(g,p);
-  real[] t=intersections0(g,p,q);
-  for(real tj : t) {
-    pair z=point(g,tj);
+  real[][] T;
+  if(q == p) {
+    real[] t=intersections(g,p);
+    T=new real[t.length][];
+    for(int i=0; i < t.length; ++i)
+      T[i]=new real[] {t[i],0};
+    return T;
+  }
+  for(real t : intersectionsline(g,p,q)) {
+    pair z=point(g,t);
     real s=xpart((z-p)/(q-p));
     if(s >= -fuzz && s <= 1+fuzz)
-      T.push(s);
+      T.push(new real[] {t,s});
   }
   return T;
 }
