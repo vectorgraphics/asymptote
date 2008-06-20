@@ -43,7 +43,7 @@ void PRCline::writeTopologicalContext(PRCbitStream &out)
   out << (uint32_t)(PRC_TYPE_TOPO_Context);
   EMPTY_CONTENTPRCBASE.write(out);
   out << (uint8_t)0 // behaviour
-      << 0.01 // granularity
+      << 0.0 // granularity
       << 0.001 // tolerance
       << true // have smallest face thickness
       << 0.01 // smallest face thickness
@@ -112,7 +112,7 @@ void PRCcurve::writeTopologicalContext(PRCbitStream &out)
   out << (uint32_t)(PRC_TYPE_TOPO_Context);
   EMPTY_CONTENTPRCBASE.write(out);
   out << (uint8_t)0 // behaviour
-      << 0.01 // granularity
+      << 0.0 // granularity
       << 0.001 // tolerance
       << true // have smallest face thickness
       << 0.01 // smallest face thickness
@@ -191,7 +191,7 @@ void PRCsurface::writeTopologicalContext(PRCbitStream &out)
   out << (uint32_t)(PRC_TYPE_TOPO_Context);
   EMPTY_CONTENTPRCBASE.write(out);
   out << (uint8_t)0 // behaviour
-      << 0.01 // granularity
+      << 0.0 // granularity
       << 0.001 // tolerance
       << true // have smallest face thickness
       << 0.01 // smallest face thickness
