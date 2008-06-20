@@ -311,8 +311,8 @@ int inside(path p, path q, pen fillrule=currentpen)
 }
 
 // Return a sorted list of all intersection times of path g with the (infinite)
-// line through p and q. 
-real[] intersections(path g, pair p, pair q)
+// line through p and q.
+real[] intersections0(path g, pair p, pair q)
 {
   static real fuzz=10realEpsilon;
   real[] T;
@@ -320,17 +320,18 @@ real[] intersections(path g, pair p, pair q)
   bool cycles=cyclic(g);
   real dx=q.x-p.x;
   real dy=q.y-p.y;
+  real det=p.y*q.x-p.x*q.y;
   for(int i=0; i < n; ++i) {
     pair z0=point(g,i);
     pair c0=postcontrol(g,i);
     pair c1=precontrol(g,i+1);
-    pair t3=point(g,i+1)-z0-3c1+3c0;
-    pair t2=3z0+3c1-6c0;
-    pair t1=3c0-3z0;
+    pair t3=point(g,i+1)-z0+3(c0-c1);
+    pair t2=3(z0+c1)-6c0;
+    pair t1=3(c0-z0);
     real a=dy*t3.x-dx*t3.y;
     real b=dy*t2.x-dx*t2.y;
     real c=dy*t1.x-dx*t1.y;
-    real d=dy*z0.x-dx*z0.y+p.y*q.x-p.x*q.y;
+    real d=dy*z0.x-dx*z0.y+det;
     real[] t=sort(cubicroots(a,b,c,d));
     for(int j=0; j < t.length; ++j) {
       real tj=t[j];
@@ -345,3 +346,52 @@ real[] intersections(path g, pair p, pair q)
   }
   return T;
 }
+
+// Return a sorted list of all intersection times of path g with the pair z.
+real[] intersections(path g, pair z)
+{
+  static real fuzz=10realEpsilon;
+  real[] T;
+  int n=length(g);
+  bool cycles=cyclic(g);
+  for(int i=0; i < n; ++i) {
+    real x0=point(g,i).x;
+    real c0=postcontrol(g,i).x;
+    real c1=precontrol(g,i+1).x;
+    real a=point(g,i+1).x-x0+3(c0-c1);
+    real b=3(x0+c1)-6c0;
+    real c=3(c0-x0);
+    real d=x0-z.x;
+    real[] t=sort(cubicroots(a,b,c,d));
+    for(real tj : t) {
+      if(tj >= -fuzz && tj <= 1+fuzz) {
+	real t=i+tj;
+	if(abs(point(g,t)-z) <= fuzz) {
+	  if(cycles && t >= n-fuzz) {
+	    if(T.length == 0 || T[0] > fuzz)
+	      T.insert(0,0);
+	  } else if(T.length == 0 || t > T[T.length-1]+fuzz) T.push(t);
+	}
+      }
+    }
+  }
+  return T;
+}
+
+// Return a sorted list of all intersection times of path g with the line
+// segment through p and q.
+real[] intersections(path g, pair p, pair q)
+{
+  static real fuzz=10realEpsilon;
+  real[] T;
+  if(q == p) return intersections(g,p);
+  real[] t=intersections0(g,p,q);
+  for(real tj : t) {
+    pair z=point(g,tj);
+    real s=xpart((z-p)/(q-p));
+    if(s >= -fuzz && s <= 1+fuzz)
+      T.push(s);
+  }
+  return T;
+}
+
