@@ -37,7 +37,7 @@ real projecttime(path3 G, real T, path g, projection P=currentprojection)
   triple v=point(G,T);
   pair z=project(v,P);
   pair dir=dir(v,dir(G,T),P);
-  return intersect(g,z)[0];
+  return intersections(g,z)[0];
 }
 
 real projecttime(path3 G, real T, projection P=currentprojection)

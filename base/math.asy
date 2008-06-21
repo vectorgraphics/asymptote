@@ -68,7 +68,7 @@ bool polygon(path p)
 
 // Return the intersection point of the extensions of the line segments 
 // PQ and pq.
-pair extension(pair P, pair Q, pair p, pair q) 
+pair extension(pair P, pair Q, pair p, pair q)
 {
   pair ac=P-Q;
   pair bd=q-p;
@@ -366,61 +366,48 @@ real interpolate(real[] x, real[] y, real x0)
   return interpolate(x,y,x0,search(x,x0));
 }
 
-private string nonode="node not found";
+private string nopoint="point not found";
 
-real node(path g, real x, int n=0)
+// Return the nth intersection time of path g with the vertical line through x.
+real time(path g, real x, int n=0)
 {
-  real m=min(g).y;
-  real M=max(g).y;
-  path p=(x,m)--(x,M);
-  if(n == 0) {
-    real[] T=intersect(g,p);
-    if(T.length == 0) abort(nonode);
-    T.cyclic(true);
-    return T[0];
-  }
-  real[][] T=intersections(g,p);
-  if(T.length == 0) abort(nonode);
-  T.cyclic(true);
-  return T[n][0];
+  real[] t=times(g,x);
+  if(t.length <= n) abort(nopoint);
+  return t[n];
 }
 
-real node(path g, explicit pair z, int n=0)
+// Return the nth intersection time of path g with the horizontal line through
+// (0,z.y).
+real time(path g, explicit pair z, int n=0)
 {
-  real m=min(g).x;
-  real M=max(g).x;
-  path p=(m,z.y)--(M,z.y);
-  if(n == 0) {
-    real[] T=intersect(g,p);
-    if(T.length == 0) abort(nonode);
-    T.cyclic(true);
-    return T[0];
-  }
-  real[][] T=intersections(g,p);
-  if(T.length == 0) abort(nonode);
-  T.cyclic(true);
-  return T[n][0];
+  real[] t=times(g,z);
+  if(t.length <= n) abort(nopoint);
+  return t[n];
 }
 
+// Return the nth y value of g at x.
 real value(path g, real x, int n=0)
 {
-  return point(g,node(g,x,n)).y;
+  return point(g,time(g,x,n)).y;
 }
 
+// Return the nth x value of g at y=z.y.
 real value(path g, explicit pair z, int n=0)
 {
-  return point(g,node(g,(0,z.y),n)).x;
+  return point(g,time(g,(0,z.y),n)).x;
 }
 
+// Return the nth slope of g at x.
 real slope(path g, real x, int n=0)
 {
-  pair a=dir(g,node(g,x,n));
+  pair a=dir(g,time(g,x,n));
   return a.y/a.x;
 }
 
+// Return the nth slope of g at y=z.y.
 real slope(path g, explicit pair z, int n=0)
 {
-  pair a=dir(g,node(g,(0,z.y),n));
+  pair a=dir(g,time(g,(0,z.y),n));
   return a.y/a.x;
 }
 

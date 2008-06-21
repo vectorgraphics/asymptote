@@ -13,15 +13,21 @@ real[] tangent(path p, path q, bool side)
       cyclic(q) && inside(q,point(p,0))) &&
      intersect(p,q,fuzz).length == 0) return new real[];
 
+  static real epsilon=sqrt(realEpsilon);
+  
   real time(path p) {
     pair m=min(p);
     pair M=max(p);
-    path edge=side ? (m.x,m.y)--(M.x,m.y) : (m.x,M.y)--(M.x,M.y);
-    return intersect(p,edge)[0];
+
+    pair dz=epsilon*(M-m);
+    m += dz;
+    M -= dz; 
+
+    real[] t=side ? lineintersections(p,(m.x,m.y),(M.x,m.y)) :
+      lineintersections(p,(m.x,M.y),(M.x,M.y));
+    return t[0];
   }
 
-  static real epsilon=sqrt(realEpsilon);
-  
   for(int i=0; i < 100; ++i) {
     real ta=time(p);
     real tb=time(q);

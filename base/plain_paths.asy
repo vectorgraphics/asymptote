@@ -312,40 +312,6 @@ int inside(path p, path q, pen fillrule=currentpen)
 
 private real fuzz=10realEpsilon;
 
-// Return a sorted list of all intersection times of path g with the (infinite)
-// line through p and q.
-real[] lineintersections(path g, pair p, pair q)
-{
-  real[] T;
-  int n=length(g);
-  bool cycles=cyclic(g);
-  real dx=q.x-p.x;
-  real dy=q.y-p.y;
-  real det=p.y*q.x-p.x*q.y;
-  for(int i=0; i < n; ++i) {
-    pair z0=point(g,i);
-    pair c0=postcontrol(g,i);
-    pair c1=precontrol(g,i+1);
-    pair t3=point(g,i+1)-z0+3(c0-c1);
-    pair t2=3(z0+c1)-6c0;
-    pair t1=3(c0-z0);
-    real a=dy*t3.x-dx*t3.y;
-    real b=dy*t2.x-dx*t2.y;
-    real c=dy*t1.x-dx*t1.y;
-    real d=dy*z0.x-dx*z0.y+det;
-    for(real t : sort(cubicroots(a,b,c,d))) {
-      if(t >= -fuzz && t <= 1+fuzz) {
-	real s=i+t;
-	if(cycles && s >= n-fuzz) {
-	  if(T.length == 0 || T[0] > fuzz)
-	    T.insert(0,0);
-	} else if(T.length == 0 || s > T[T.length-1]+fuzz) T.push(s);
-      }
-    }
-  }
-  return T;
-}
-
 // Return a sorted list of all intersection times of path g with the pair z.
 real[] intersections(path g, pair z)
 {
@@ -353,14 +319,20 @@ real[] intersections(path g, pair z)
   int n=length(g);
   bool cycles=cyclic(g);
   for(int i=0; i < n; ++i) {
-    real x0=point(g,i).x;
-    real c0=postcontrol(g,i).x;
-    real c1=precontrol(g,i+1).x;
-    real a=point(g,i+1).x-x0+3(c0-c1);
-    real b=3(x0+c1)-6c0;
-    real c=3(c0-x0);
-    real d=x0-z.x;
-    for(real t : sort(cubicroots(a,b,c,d))) {
+    real[] roots(real x0, real c0, real c1, real x1, real x) {
+      real a=x1-x0+3(c0-c1);
+      real b=3(x0+c1)-6c0;
+      real c=3(c0-x0);
+      real d=x0-x;
+      return cubicroots(a,b,c,d);
+    }
+
+    // Check both directions to circumvent degeneracy.
+    real[] r=roots(point(g,i).x,postcontrol(g,i).x,precontrol(g,i+1).x,
+		   point(g,i+1).x,z.x);
+    r.append(roots(point(g,i).y,postcontrol(g,i).y,precontrol(g,i+1).y,
+		   point(g,i+1).y,z.y));
+    for(real t : sort(r)) {
       if(t >= -fuzz && t <= 1+fuzz) {
 	real s=i+t;
 	if(abs(point(g,s)-z) <= fuzz) {
@@ -375,7 +347,59 @@ real[] intersections(path g, pair z)
   return T;
 }
 
-// An optimized implementation of intersections(g,p--q).
+// Return a sorted list of all intersection times of path g with the (infinite)
+// line through p and q; if there are an infinite number of intersection points,
+// the returned list is only guaranteed to include the endpoint times.
+real[] lineintersections(path g, pair p, pair q)
+{
+  real[] T;
+  int n=length(g);
+  bool cycles=cyclic(g);
+  real dx=q.x-p.x;
+  real dy=q.y-p.y;
+  real det=p.y*q.x-p.x*q.y;
+  pair denom=q != p ? 1/(q-p) : 0;
+  for(int i=0; i < n; ++i) {
+    pair z0=point(g,i);
+    pair c0=postcontrol(g,i);
+    pair c1=precontrol(g,i+1);
+    pair z1=point(g,i+1);
+    pair t3=z1-z0+3(c0-c1);
+    pair t2=3(z0+c1)-6c0;
+    pair t1=3(c0-z0);
+    real a=dy*t3.x-dx*t3.y;
+    real b=dy*t2.x-dx*t2.y;
+    real c=dy*t1.x-dx*t1.y;
+    real d=dy*z0.x-dx*z0.y+det;
+    real[] r=(max(abs(a),abs(b),abs(c),abs(d)) >
+       fuzz*max(abs(z0),abs(z1),abs(c0),abs(c1))) ? cubicroots(a,b,c,d) :
+      new real[] {0};
+    path h=subpath(g,i,i+1);
+    r.append(intersections(h,p));
+    r.append(intersections(h,q));
+    bool online(pair z) {
+      if(p == q) return abs(z-p) < fuzz;
+      pair w=(z-p)*denom;
+      return abs(w.y) < fuzz*abs(w.x);
+    }
+    if(online(z0)) r.push(0);
+    if(online(z1)) r.push(1);
+    for(real t : sort(r)) {
+      if(t >= -fuzz && t <= 1+fuzz) {
+	real s=i+t;
+	if(cycles && s >= n-fuzz) {
+	  if(T.length == 0 || T[0] > fuzz)
+	    T.insert(0,0);
+	} else if(T.length == 0 || s > T[T.length-1]+fuzz) T.push(s);
+      }
+    }
+  }
+  return T;
+}
+
+// An optimized implementation of intersections(g,p--q);
+// if there are an infinite number of intersection points, the returned list is
+// only guaranteed to include the endpoint times.
 real[][] intersections(path g, pair p, pair q)
 {
   real[][] T;
@@ -386,12 +410,25 @@ real[][] intersections(path g, pair p, pair q)
       T[i]=new real[] {t[i],0};
     return T;
   }
+  pair denom=1/(q-p);
   for(real t : lineintersections(g,p,q)) {
     pair z=point(g,t);
-    real s=xpart((z-p)/(q-p));
+    real s=xpart((z-p)*denom);
     if(s >= -fuzz && s <= 1+fuzz)
       T.push(new real[] {t,s});
   }
   return T;
 }
 
+// Return all intersection times of path g with the vertical line through x.
+real[] times(path g, real x)
+{
+  return lineintersections(g,(x,0),(x,1));
+}
+
+// Return all intersection times of path g with the horizontal line through
+// (0,z.y).
+real[] times(path g, explicit pair z)
+{
+  return lineintersections(g,(0,z.y),(1,z.y));
+}

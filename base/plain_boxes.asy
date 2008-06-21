@@ -86,7 +86,7 @@ pair point(object F, pair dir, transform t=identity())
   pair M=max(F.g);
   pair c=0.5*(m+M);
   pair z=t*F.L.position;
-  real[] T=intersect(F.g,c--2*(m+realmult(rectify(dir),M-m))-c);
+  real[] T=lineintersections(F.g,c,2*(m+realmult(rectify(dir),M-m))-c);
   if(T.length == 0) return z;
   return z+point(F.g,T[0]);
 }

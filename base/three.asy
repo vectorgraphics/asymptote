@@ -1674,7 +1674,7 @@ path3 solve(flatguide3 g)
     nodes[i].point=g.nodes[i];
     nodes[i].post=g.control[i].post;
     nodes[i+1].pre=g.control[i].pre;
-    nodes[i].straight=!g.control[i].active; // TODO: test control points here
+    nodes[i].straight=!g.control[i].active;
   }
   nodes[g.nodes.length-1].point=g.nodes[g.nodes.length-1];
   if(cyclic) {
