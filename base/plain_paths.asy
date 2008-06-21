@@ -314,7 +314,7 @@ private real fuzz=10realEpsilon;
 
 // Return a sorted list of all intersection times of path g with the (infinite)
 // line through p and q.
-real[] intersectionsline(path g, pair p, pair q)
+real[] lineintersections(path g, pair p, pair q)
 {
   real[] T;
   int n=length(g);
@@ -386,7 +386,7 @@ real[][] intersections(path g, pair p, pair q)
       T[i]=new real[] {t[i],0};
     return T;
   }
-  for(real t : intersectionsline(g,p,q)) {
+  for(real t : lineintersections(g,p,q)) {
     pair z=point(g,t);
     real s=xpart((z-p)/(q-p));
     if(s >= -fuzz && s <= 1+fuzz)
