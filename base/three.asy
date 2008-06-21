@@ -2805,8 +2805,10 @@ void add3(picture pic=currentpicture, frame f,
   }
 
   triple v=(P.camera-P.target)/cm;
-  // FIXME: Use longitude of v instead of 180.
-  real roll=colatitude(P.up)*(longitude(P.up,warn=false) < 180 ? 1 : -1);
+  triple u=unit(v);
+  triple w=unit(Z-u.z*u);
+  triple up=P.up-dot(P.up,u)*u;
+  real roll=aCos(dot(up,w))*sgn(dot(cross(up,w),v));
 
   string options="poster,text="+text+",label="+label+
     ",3Daac="+format(angle)+
@@ -2833,11 +2835,9 @@ private struct viewpoint {
     string[] S=split(s," ");
     target=((real) S[0],(real) S[1],(real) S[2])*cm;
     camera=target+(real) S[6]*((real) S[3],(real) S[4],(real) S[5])*cm;
-    up=Z;
-    if(S.length > 7) {
-      real roll=(real) S[7];
-      up=dir(roll,sgn(roll) >= 0 ? 0 : 180);
-    }
+    triple u=unit(target-camera);
+    triple w=unit(Z-u.z*u);
+    up=S.length > 7 ? rotate((real) S[7],O,u)*w : w;
   }
 }
 
