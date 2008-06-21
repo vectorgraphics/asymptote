@@ -93,6 +93,7 @@ struct processDataStruct {
   vm::callable *atUpdateFunction;
   vm::callable *atBreakpointFunction;
   camp::pen defaultpen;
+  camp::pen currentpen;
   
   terminator<std::ofstream> ofile;
   terminator<std::fstream> ifile;
@@ -106,6 +107,7 @@ struct processDataStruct {
     atUpdateFunction=NULL;
     atBreakpointFunction=NULL;
     defaultpen=camp::pen::initialpen();
+    currentpen=camp::pen(camp::DEFLINE);
   }
   
 };

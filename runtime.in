@@ -141,6 +141,8 @@ using absyntax::runnable;
 
 typedef double real;
 
+#define CURRENTPEN processData().currentpen
+
 typedef array boolarray;
 typedef array Intarray;
 typedef array Intarray2;
@@ -603,7 +605,6 @@ default_t def;
 string emptystring;
 array *emptyarray=new array(0);
 string commentchar="#";
-pen currentpen=pen(DEFLINE);
 pair zero;
 
 void breakpoint(stack *Stack, runnable *r)
@@ -927,7 +928,7 @@ bool labels(picture *f)
   return f->havelabels();
 }
 
-patharray *_texpath(string *s, pen p=currentpen)
+patharray *_texpath(string *s, pen p=CURRENTPEN)
 {
   array *P=new array(0);
   if(s->empty()) return P;
@@ -1072,7 +1073,7 @@ void _draw(picture *f, path g, pen p)
   f->append(new drawPath(g,p));
 }
 
-void fill(picture *f, patharray *g, pen p=currentpen, bool copy=true)
+void fill(picture *f, patharray *g, pen p=CURRENTPEN, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   f->append(new drawFill(*copyarray(g),false,p));
@@ -2060,12 +2061,12 @@ Int windingnumber(patharray *p, pair z)
   return windingnumber(p,z);
 }
 
-bool inside(explicit patharray *g, pair z, pen fillrule=currentpen)
+bool inside(explicit patharray *g, pair z, pen fillrule=CURRENTPEN)
 {
   return fillrule.inside(windingnumber(g,z));
 }
 
-bool inside(path g, pair z, pen fillrule=currentpen)
+bool inside(path g, pair z, pen fillrule=CURRENTPEN)
 {
   return fillrule.inside(g.windingnumber(z));
 }

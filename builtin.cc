@@ -31,10 +31,6 @@ using namespace types;
 using namespace camp;
 using namespace vm;  
 
-namespace run {
-  extern camp::pen currentpen;
-}
-
 namespace trans {
 using camp::transform;
 using camp::pair;
@@ -797,7 +793,7 @@ void base_venv(venv &ve)
   addConstant<Int>(ve, RAND_MAX, primInt(), "randMax");
   addConstant<double>(ve, PI, primReal(), "pi");
   
-  addVariable<pen>(ve, &run::currentpen, primPen(), "currentpen");
+  addVariable<pen>(ve, &processData().currentpen, primPen(), "currentpen");
 
   gen_base_venv(ve);
 }
