@@ -200,14 +200,15 @@ public:
   virtual void process(bool purge=false) {
     if (!interactive && getSetting<bool>("parseonly"))
       doParse();
-    else if (getSetting<bool>("listvariables"))
-      doList();
     else {
       // This is not done in preRun as it is not an optional step.
       processDataStruct data;
       processDataStack.push(&data);
-
-      doRun(purge);
+      
+      if (getSetting<bool>("listvariables"))
+	doList();
+      else
+	doRun(purge);
 
       processDataStack.pop();
     }
@@ -865,6 +866,9 @@ void runPromptEmbedded(trans::coenv &e, istack &s) {
 }
 
 void doUnrestrictedList() {
+  processDataStruct data;
+  processDataStack.push(&data);
+  
   genv ge;
   env base_env(ge);
   coder base_coder;
@@ -873,6 +877,7 @@ void doUnrestrictedList() {
   if (getSetting<bool>("autoplain"))
     absyntax::autoplainRunnable()->trans(e);
 
+  processDataStack.pop();
   e.e.list(0);
 }
 
