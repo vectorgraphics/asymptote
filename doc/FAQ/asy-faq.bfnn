@@ -139,7 +139,7 @@ pdflatex latexusage
 
 \question 02sep:tkinterdepend Do I need the \courier{tkinter\} package to install an Asymptote rpm binary?
  
-No, you don't need \courier{tkinter\} unless you want to try out the GUI \courier{xasy\} (still under development). Try
+No, you don't need \courier{tkinter\} unless you want to try out the GUI \courier{xasy\}. Try
 
 \verbatim
 rpm -Uvh --nodeps asymptote-x.xx-1.i386.rpm

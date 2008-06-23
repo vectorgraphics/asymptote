@@ -5139,7 +5139,7 @@ If an array is assigned to a slice of itself, a copy of the original array
 is assigned to the slice.  That is, code such as @code{x[m:n]=x} is equivalent
 to @code{x[m:n]=copy(x)}.  One can use the shorthand @code{x[m:m]=y} to insert
 the contents of the array @code{y} into the array @code{x} starting at the
-location just before @code{A[m]}.
+location just before @code{x[m]}.
 
 For a cyclic array, a slice is bridging if it addresses cells up to the end of
 the array and then continues on to address cells at the start of the array.
