@@ -155,6 +155,8 @@ GC_CONTAINER(unordered_multimap);
 #ifdef USEGC
 typedef std::basic_string<char,std::char_traits<char>,
                           gc_allocator<char> > string;
+typedef std::basic_stringstream<char,std::char_traits<char>,
+				gc_allocator<char> > stringstream;
 typedef std::basic_istringstream<char,std::char_traits<char>,
                                  gc_allocator<char> > istringstream;
 typedef std::basic_ostringstream<char,std::char_traits<char>,
@@ -163,6 +165,7 @@ typedef std::basic_stringbuf<char,std::char_traits<char>,
                              gc_allocator<char> > stringbuf;
 #else
 typedef std::string string;
+typedef std::stringstream stringstream;
 typedef std::istringstream istringstream;
 typedef std::ostringstream ostringstream;
 typedef std::stringbuf stringbuf;

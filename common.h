@@ -41,6 +41,7 @@ using std::istream;
 using std::ostream;
 
 using mem::string;
+using mem::stringstream;
 using mem::istringstream;
 using mem::ostringstream;
 using mem::stringbuf;

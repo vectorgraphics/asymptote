@@ -755,7 +755,7 @@ void unused(void *)
 {
 }
 
-pair readpair(std::ifstream& s)
+pair readpair(stringstream& s)
 {
   static const double f=12.0/100.0;
   double x,y;
@@ -938,24 +938,19 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   string texname=auxname(prefix,"tex");
   string dviname=auxname(prefix,"dvi");
   string psname=auxname(prefix,"ps");
-  string pathname=auxname(prefix,"path");
   bbox b;
   texfile tex(texname,b);
   tex.miniprologue();
   
   tex.setfont(p);
   tex.verbatimline("\\special{ps:");
-  tex.verbatimline("/ASYf ("+pathname+") (w) file def");
-  tex.verbatimline("/ASYe {ASYf 10 write} bind def");
-  tex.verbatimline("/ASYo {10 string cvs ASYf exch writestring ASYe} bind def");
+  tex.verbatimline("/ASYo {( ) print 10 string cvs print} bind def");
   tex.verbatimline("/ASY1 true def");
-  tex.verbatimline("/v {neg exch 4 copy 4 2 roll 2 copy 6 2 roll 2 copy ASYf (M) writestring ASYo ASYo ASYf (L) writestring ASYo add ASYo ASYf (L) writestring add ASYo add ASYo ASYf (L) writestring add ASYo ASYo ASYf (c) writestring ASYe} bind def");
-  tex.verbatimline("/show {ASY1 {ASYf (Z) writestring currentpoint ASYo ASYo /ASY1 false def} if currentpoint newpath moveto false charpath {ASYf (M) writestring ASYo ASYo} {ASYf (L) writestring ASYo ASYo} {ASYf (C) writestring ASYo ASYo ASYo ASYo ASYo ASYo} {ASYf (c) writestring ASYe} pathforall} bind def}");
+  tex.verbatimline("/v {neg exch 4 copy 4 2 roll 2 copy 6 2 roll 2 copy (M) print ASYo ASYo (L) print ASYo add ASYo (L) print add ASYo add ASYo (L) print add ASYo ASYo (c) print} bind def");
+  tex.verbatimline("/show {ASY1 {(Z) print currentpoint ASYo ASYo /ASY1 false def} if currentpoint newpath moveto false charpath {(M) print ASYo ASYo} {(L) print ASYo ASYo} {(C) print ASYo ASYo ASYo ASYo ASYo ASYo} {(c) print} pathforall} bind def}");
   
   tex.verbatim(*s);
-  tex.verbatimline("\\special{ps:");
-//  tex.verbatimline("ASYf (endtext) writestring ASYe");
-  tex.verbatimline("ASYf closefile}");
+  tex.verbatimline("\\special{ps: (E) print}");
   tex.epilogue();
   tex.close();
   
@@ -985,18 +980,24 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
     status=System(cmd,0,true,"dvips");
   }
 
-  if(!status) {
-    ostringstream cmd;
-    unlink(pathname.c_str());
-    cmd << "'" << getSetting<string>("gs")
-	<< "' -q -dNOPAUSE -dBATCH -sDEVICE=epswrite -sOutputFile=/dev/null "
-	<< "'" << psname << "'";
-    status=System(cmd,0,true,"gs","Ghostscript");
+  if(status != 0)
+    error("texpath failed");
+
+  ostringstream pipe;
+  pipe << "'" << getSetting<string>("gs")
+       << "' -q -dNOPAUSE -dBATCH";
+  if(safe) pipe << " -dSAFER";
+  pipe << " -sDEVICE=epswrite -sOutputFile=/dev/null '" << psname << "'";
+  iopipestream gs(pipe.str().c_str(),"gs","Ghostscript");
+  stringstream buf;
+  while(true) {
+    string out;
+    gs >> out;
+    buf << out;
+    string s=buf.str();
+    if(gs.tailequals(s.c_str(),s.size(),"E",1)) break;
   }
     
-  std::ifstream fin(pathname.c_str());
-  if(status != 0 || !fin.good())
-    error("texpath failed");
   char c;
   mem::vector<solvedKnot> nodes;
   solvedKnot node;
@@ -1004,8 +1005,8 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   bool active=false;
   
   pair offset(0,0);
-  while(!fin.eof()) {
-    fin >> c;
+  while(!buf.eof()) {
+    buf >> c;
     switch(c) {
     case 'M':
       {
@@ -1017,12 +1018,12 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
 	}
 	active=false;
 	cyclic=false;
-	node.pre=node.point=readpair(fin)-offset;
+	node.pre=node.point=readpair(buf)-offset;
 	break;
       }
     case 'L':
       {
-	pair point=readpair(fin)-offset;
+	pair point=readpair(buf)-offset;
 	static const double third=1.0/3.0;
 	pair delta=(point-node.point)*third;
 	node.post=node.point+delta;
@@ -1034,9 +1035,9 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
       }
     case 'C':
       {
-	pair point=readpair(fin)-offset;
-	pair pre=readpair(fin)-offset;
-	node.post=readpair(fin)-offset;
+	pair point=readpair(buf)-offset;
+	pair pre=readpair(buf)-offset;
+	node.post=readpair(buf)-offset;
 	nodes.push_back(node);
 	active=true;
 	node.pre=pre;
@@ -1050,7 +1051,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
       }
     case 'Z':
       {
-	offset=readpair(fin);
+	offset=readpair(buf);
 	break;
       }
     }
@@ -1062,7 +1063,6 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
     unlink(auxname(prefix,"log").c_str());
     unlink(dviname.c_str());
     unlink(psname.c_str());
-    unlink(pathname.c_str());
   }
   
   return P;
