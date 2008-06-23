@@ -23,9 +23,8 @@ real[] tangent(path p, path q, bool side)
     m += dz;
     M -= dz; 
 
-    real[] t=side ? lineintersections(p,(m.x,m.y),(M.x,m.y)) :
-      lineintersections(p,(m.x,M.y),(M.x,M.y));
-    return t[0];
+    return side ? intersections(p,(m.x,m.y),(M.x,m.y))[0] :
+      intersections(p,(m.x,M.y),(M.x,M.y))[0];
   }
 
   for(int i=0; i < 100; ++i) {

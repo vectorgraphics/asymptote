@@ -35,9 +35,8 @@ direction perpendicular(path3 G, triple normal,
 real projecttime(path3 G, real T, path g, projection P=currentprojection)
 {
   triple v=point(G,T);
-  pair z=project(v,P);
   pair dir=dir(v,dir(G,T),P);
-  return intersections(g,z)[0];
+  return intersect(g,project(v,P))[0];
 }
 
 real projecttime(path3 G, real T, projection P=currentprojection)

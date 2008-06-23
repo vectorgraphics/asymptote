@@ -2003,12 +2003,13 @@ realarray* intersect(path p, path q, real fuzz=0)
 {
   fuzz=::max(fuzz,Fuzz*::max(::max(length(p.max()),length(p.min())),
 			     ::max(length(q.max()),length(q.min()))));
+  std::vector<real> S,T;
   real s,t;
-  if(intersect(s,t,p,q,fuzz)) {
-    array *T=new array(2);
-    (*T)[0]=s;
-    (*T)[1]=t;
-    return T;
+  if(intersections(s,t,S,T,p,q,fuzz,true)) {
+    array *V=new array(2);
+    (*V)[0]=s;
+    (*V)[1]=t;
+    return V;
   } else
     return new array(0);
 }
@@ -2017,17 +2018,32 @@ realarray2* intersections(path p, path q, real fuzz=0)
 {
   fuzz=::max(fuzz,Fuzz*::max(::max(length(p.max()),length(p.min())),
 			     ::max(length(q.max()),length(q.min()))));
+  real s,t;
   std::vector<real> S,T;
-  intersections(S,T,p,q,fuzz);
-  unsigned n=S.size();
+  intersections(s,t,S,T,p,q,fuzz,false);
+  size_t n=S.size();
   array *V=new array(n);
-  for(unsigned i=0; i < n; ++i) {
+  for(size_t i=0; i < n; ++i) {
     array *Vi=new array(2);
     (*V)[i]=Vi;
     (*Vi)[0]=S[i];
     (*Vi)[1]=T[i];
   }
-  stable_sort(V->begin(),V->end(),compare2<double>());
+  stable_sort(V->begin(),V->end(),run::compare2<double>());
+  return V;
+}
+
+realarray* intersections(path p, pair a, pair b, real fuzz=0)
+{
+  fuzz=::max(fuzz,Fuzz*::max(::max(length(p.max()),length(p.min())),
+			     ::max(length(a),length(b))));
+  std::vector<real> S;
+  intersections(S,p,a,b,fuzz);
+  sort(S.begin(),S.end());
+  size_t n=S.size();
+  array *V=new array(n);
+  for(size_t i=0; i < n; ++i)
+    (*V)[i]=S[i];
   return V;
 }
 

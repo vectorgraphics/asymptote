@@ -13,6 +13,7 @@
 #include "angle.h"
 #include "camperror.h"
 #include "mathop.h"
+#include "arrayop.h"
 
 namespace camp {
 
@@ -602,7 +603,6 @@ static double ds(double t)
 {
   double dx=quadratic(a.getx(),b.getx(),c.getx(),t);
   double dy=quadratic(a.gety(),b.gety(),c.gety(),t);
-//  cout << t << " " << sqrt(dx*dx+dy*dy) << endl;
   return sqrt(dx*dx+dy*dy);
 }
 
@@ -757,107 +757,228 @@ double path::directiontime(const pair& dir) const {
 const unsigned maxdepth=DBL_MANT_DIG;
 const unsigned mindepth=maxdepth-16;
 
-bool intersect(double& S, double& T, path& p, path& q, double fuzz,
-	       unsigned depth)
+void roots(std::vector<double> &roots, double a, double b, double c, double d)
 {
-  if(errorstream::interrupt) throw interrupted();
+  cubicroots r(a,b,c,d);
+  if(r.roots >= 1) roots.push_back(r.t1);
+  if(r.roots >= 2) roots.push_back(r.t2);
+  if(r.roots == 3) roots.push_back(r.t3);
+}
   
-  pair maxp=p.max();
-  pair minp=p.min();
-  pair maxq=q.max();
-  pair minq=q.min();
-  
-  if(maxp.getx()+fuzz >= minq.getx() &&
-     maxp.gety()+fuzz >= minq.gety() && 
-     maxq.getx()+fuzz >= minp.getx() &&
-     maxq.gety()+fuzz >= minp.gety()) {
-    // Overlapping bounding boxes
-
-    --depth;
-    if((maxp-minp).length()+(maxq-minq).length() <= fuzz || depth == 0) {
-      S=0;
-      T=0;
-      return true;
-    }
-    
-    Int lp=p.length();
-    path p1,p2;
-    double pscale,poffset;
-    
-    if(lp == 1) {
-      p.halve(p1,p2);
-      pscale=poffset=0.5;
-    } else {
-      Int tp=lp/2;
-      p1=p.subpath(0,tp);
-      p2=p.subpath(tp,lp);
-      poffset=tp;
-      pscale=1.0;
-    }
-      
-    Int lq=q.length();
-    path q1,q2;
-    double qscale,qoffset;
-    
-    if(lq == 1) {
-      q.halve(q1,q2);
-      qscale=qoffset=0.5;
-    } else {
-      Int tq=lq/2;
-      q1=q.subpath(0,tq);
-      q2=q.subpath(tq,lq);
-      qoffset=tq;
-      qscale=1.0;
-    }
-      
-    if(intersect(S,T,p1,q1,fuzz,depth)) {
-      S=S*pscale;
-      T=T*qscale;
-      return true;
-    }
-    if(intersect(S,T,p1,q2,fuzz,depth)) {
-      S=S*pscale;
-      T=T*qscale+qoffset;
-      return true;
-    }
-    if(intersect(S,T,p2,q1,fuzz,depth)) {
-      S=S*pscale+poffset;
-      T=T*qscale;
-      return true;
-    }
-    if(intersect(S,T,p2,q2,fuzz,depth)) {
-      S=S*pscale+poffset;
-      T=T*qscale+qoffset;
-      return true;
-    }
-  }
-  return false;
+void roots(std::vector<double> &r, double x0, double c0, double c1, double x1,
+	   double x)
+{
+  double a=x1-x0+3.0*(c0-c1);
+  double b=3.0*(x0+c1)-6.0*c0;
+  double c=3.0*(c0-x0);
+  double d=x0-x;
+  roots(r,a,b,c,d);
 }
 
-void add(std::vector<double>& S, std::vector<double>& T, double s, double t,
-	 const path& p, const path& q, double fuzz)
+// Return all intersection times of path g with the pair z.
+void intersections(std::vector<double>& T, const path& g, const pair& z,
+		   double fuzz)
 {
-  for(unsigned i=0; i < S.size(); ++i)
-    if((p.point(S[i])-p.point(s)).length() <= fuzz &&
-       (q.point(T[i])-q.point(t)).length() <= fuzz) return;
+  double fuzz2=fuzz*fuzz;
+  Int n=g.length();
+  bool cycles=g.cyclic();
+  for(Int i=0; i < n; ++i) {
+    // Check both directions to circumvent degeneracy.
+    std::vector<double> r;
+    roots(r,g.point(i).getx(),g.postcontrol(i).getx(),
+	  g.precontrol(i+1).getx(),g.point(i+1).getx(),z.getx());
+    roots(r,g.point(i).gety(),g.postcontrol(i).gety(),
+	  g.precontrol(i+1).gety(),g.point(i+1).gety(),z.gety());
+    
+    size_t m=r.size();
+    for(size_t j=0 ; j < m; ++j) {
+      double t=r[j];
+      if(t >= -fuzz && t <= 1.0+fuzz) {
+	double s=i+t;
+	if((g.point(s)-z).abs2() <= fuzz2) {
+	  if(cycles && s >= n-fuzz) s=0;
+	  T.push_back(s);
+	}
+      }
+    }
+  }
+}
+
+inline bool online(const pair&p, const pair& q, const pair& z, double fuzz)
+{
+  if(p == q) return (z-p).abs2() <= fuzz*fuzz;
+  pair denom=1.0/(q-p);
+  pair w=(z-p)*denom;
+  return fabs(w.gety()) <= fuzz*fabs(w.getx());
+}
+
+// Return all intersection times of path g with the (infinite)
+// line through p and q; if there are an infinite number of intersection points,
+// the returned list is only guaranteed to include the endpoint times of
+// the intersection.
+void lineintersections(std::vector<double>& T, const path& g,
+		       const pair& p, const pair& q, double fuzz)
+{
+  Int n=g.length();
+  if(n == 0) {
+    if(online(p,q,g.point((Int) 0),fuzz)) T.push_back(0.0);
+    return;
+  }
+  double fuzz2=fuzz*fuzz;
+  bool cycles=g.cyclic();
+  double dx=q.getx()-p.getx();
+  double dy=q.gety()-p.gety();
+  double det=p.gety()*q.getx()-p.getx()*q.gety();
+  for(Int i=0; i < n; ++i) {
+    pair z0=g.point(i);
+    pair c0=g.postcontrol(i);
+    pair c1=g.precontrol(i+1);
+    pair z1=g.point(i+1);
+    pair t3=z1-z0+3.0*(c0-c1);
+    pair t2=3.0*(z0+c1)-6.0*c0;
+    pair t1=3.0*(c0-z0);
+    double a=dy*t3.getx()-dx*t3.gety();
+    double b=dy*t2.getx()-dx*t2.gety();
+    double c=dy*t1.getx()-dx*t1.gety();
+    double d=dy*z0.getx()-dx*z0.gety()+det;
+    std::vector<double> r;
+    if(max(max(max(a*a,b*b),c*c),d*d) >
+       fuzz2*max(max(max(z0.abs2(),z1.abs2()),c0.abs2()),c1.abs2()))
+      roots(r,a,b,c,d);
+    else r.push_back(0.0);
+    path h=g.subpath(i,i+1);
+    intersections(r,h,p,fuzz);
+    intersections(r,h,q,fuzz);
+    if(online(p,q,z0,fuzz)) r.push_back(0.0);
+    if(online(p,q,z1,fuzz)) r.push_back(1.0);
+    size_t m=r.size();
+    for(size_t j=0 ; j < m; ++j) {
+      double t=r[j];
+      if(t >= -fuzz && t <= 1.0+fuzz) {
+	double s=i+t;
+	if(cycles && s >= n-fuzz) s=0;
+	T.push_back(s);
+      }
+    }
+  }
+}
+
+// An optimized implementation of intersections(g,p--q);
+// if there are an infinite number of intersection points, the returned list is
+// only guaranteed to include the endpoint times of the intersection.
+void intersections(std::vector<double>& S, std::vector<double>& T,
+		   const path& g, const pair& p, const pair& q, double fuzz)
+{
+  if(q == p) {
+    std::vector<double> S1;
+    intersections(S1,g,p,fuzz);
+    size_t n=S1.size();
+    for(size_t i=0; i < n; ++i) {
+      S.push_back(S1[i]);
+      T.push_back(0);
+    }
+  } else {
+    pair denom=1.0/(q-p);
+    std::vector<double> S1;
+    lineintersections(S1,g,p,q,fuzz);
+    size_t n=S1.size();
+    for(size_t i=0; i < n; ++i) {
+      double s=S1[i];
+      pair z=g.point(s);
+      double t=((z-p)*denom).getx();
+      if(t >= -fuzz && t <= 1.0+fuzz) {
+	S.push_back(s);
+	T.push_back(t);
+      }
+    }
+  }
+}
+
+void add(std::vector<double>& S, double s, const path& p, double fuzz2)
+{
+  pair P=p.point(s);
+  for(size_t i=0; i < S.size(); ++i)
+    if((p.point(S[i])-P).abs2() <= fuzz2) return;
+  S.push_back(s);
+}
+  
+void add(std::vector<double>& S, std::vector<double>& T, double s, double t,
+	 const path& p, const path& q, double fuzz2)
+{
+  pair P=p.point(s);
+  pair Q=q.point(t);
+  for(size_t i=0; i < S.size(); ++i)
+    if((p.point(S[i])-P).abs2() <= fuzz2 &&
+       (q.point(T[i])-Q).abs2() <= fuzz2) return;
   S.push_back(s);
   T.push_back(t);
 }
   
-void add(std::vector<double>& S, std::vector<double>& T,
+void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
 	 std::vector<double>& S1, std::vector<double>& T1,
 	 double pscale, double qscale, double poffset, double qoffset,
-	 const path& p, const path& q, double fuzz)
+	 const path& p, const path& q, double fuzz, bool single)
 {
-  fuzz *= 2.0;
-  for(unsigned i=0; i < S1.size(); ++i)
-    add(S,T,pscale*S1[i]+poffset,qscale*T1[i]+qoffset,p,q,fuzz);
+  if(single) {
+    s=s*pscale+poffset;
+    t=t*qscale+qoffset;
+  } else {
+    double fuzz2=4.0*fuzz*fuzz;
+    size_t n=S1.size();
+    for(size_t i=0; i < n; ++i)
+      add(S,T,pscale*S1[i]+poffset,qscale*T1[i]+qoffset,p,q,fuzz2);
+  }
 }
 
-void intersections(std::vector<double>& S, std::vector<double>& T,
-		   path& p, path& q, double fuzz, unsigned depth)
+void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
+	 std::vector<double>& S1, std::vector<double>& T1,
+	 const path& p, const path& q, double fuzz, bool single)
+{
+  size_t n=S1.size();
+  if(single) {
+    if(n > 0) {
+      s=S1[0];
+      t=T1[0];
+    }
+  } else {
+    double fuzz2=4.0*fuzz*fuzz;
+    for(size_t i=0; i < n; ++i)
+      add(S,T,S1[i],T1[i],p,q,fuzz2);
+  }
+}
+
+void intersections(std::vector<double>& S, path& g,
+		   const pair& p, const pair& q, double fuzz)
+{	
+  double fuzz2=fuzz*fuzz;
+  std::vector<double> S1;
+  lineintersections(S1,g,p,q,fuzz);
+  size_t n=S1.size();
+  for(size_t i=0; i < n; ++i)
+    add(S,S1[i],g,fuzz2);
+}
+
+bool intersections(double &s, double &t, std::vector<double>& S,
+		   std::vector<double>& T,
+		   path& p, path& q, double fuzz, bool single, unsigned depth)
 {
   if(errorstream::interrupt) throw interrupted();
+  
+  Int lp=p.length();
+  if((lp == 1 && p.straight(0)) || lp == 0) {
+    std::vector<double> T1,S1;
+    intersections(T1,S1,q,p.point((Int) 0),p.point(lp),fuzz);
+    add(s,t,S,T,S1,T1,p,q,fuzz,single);
+    return S1.size() > 0;
+  }
+  
+  Int lq=q.length();
+  if((lq == 1 && q.straight(0)) || lq == 0) {
+    std::vector<double> S1,T1;
+    intersections(S1,T1,p,q.point((Int) 0),q.point(lq),fuzz);
+    add(s,t,S,T,S1,T1,p,q,fuzz,single);
+    return S1.size() > 0;
+  }
   
   pair maxp=p.max();
   pair minp=p.min();
@@ -872,17 +993,27 @@ void intersections(std::vector<double>& S, std::vector<double>& T,
 
     --depth;
     if((maxp-minp).length()+(maxq-minq).length() <= fuzz || depth == 0) {
-      S.push_back(0.0);
-      T.push_back(0.0);
-      return;
+      if(single) {
+	s=0;
+	t=0;
+      } else {
+	S.push_back(0.0);
+	T.push_back(0.0);
+      }
+      return true;
     }
     
-    Int lp=p.length();
     path p1,p2;
     double pscale,poffset;
     
     if(lp <= 1) {
       p.halve(p1,p2);
+      if(p1 == p || p2 == p) {
+	std::vector<double> T1,S1;
+	intersections(T1,S1,q,p.point((Int) 0),p.point((Int) 0),fuzz);
+	add(s,t,S,T,S1,T1,p,q,fuzz,single);
+	return S1.size() > 0;
+      }
       pscale=poffset=0.5;
     } else {
       Int tp=lp/2;
@@ -892,12 +1023,17 @@ void intersections(std::vector<double>& S, std::vector<double>& T,
       pscale=1.0;
     }
       
-    Int lq=q.length();
     path q1,q2;
     double qscale,qoffset;
     
     if(lq <= 1) {
       q.halve(q1,q2);
+      if(q1 == q || q2 == q) {
+	std::vector<double> S1,T1;
+	intersections(S1,T1,p,q.point((Int) 0),q.point((Int) 0),fuzz);
+	add(s,t,S,T,S1,T1,p,q,fuzz,single);
+	return S1.size() > 0;
+      }
       qscale=qoffset=0.5;
     } else {
       Int tq=lq/2;
@@ -908,33 +1044,37 @@ void intersections(std::vector<double>& S, std::vector<double>& T,
     }
       
     std::vector<double> S1,T1;
-    intersections(S1,T1,p1,q1,fuzz,depth);
-    add(S,T,S1,T1,pscale,qscale,0.0,0.0,p,q,fuzz);
-
-    if(depth <= mindepth && S1.size() > 0)
-      return;
+    if(intersections(s,t,S1,T1,p1,q1,fuzz,single,depth)) {
+      add(s,t,S,T,S1,T1,pscale,qscale,0.0,0.0,p,q,fuzz,single);
+      if(single || depth <= mindepth)
+	return true;
+    }
     
     S1.clear();
     T1.clear();
-    intersections(S1,T1,p1,q2,fuzz,depth);
-    add(S,T,S1,T1,pscale,qscale,0.0,qoffset,p,q,fuzz);
-    
-    if(depth <= mindepth && S1.size() > 0)
-      return;
-    
-    S1.clear();
-    T1.clear();
-    intersections(S1,T1,p2,q1,fuzz,depth);
-    add(S,T,S1,T1,pscale,qscale,poffset,0.0,p,q,fuzz);
-    
-    if(depth <= mindepth && S1.size() > 0)
-      return;
+    if(intersections(s,t,S1,T1,p1,q2,fuzz,single,depth)) {
+      add(s,t,S,T,S1,T1,pscale,qscale,0.0,qoffset,p,q,fuzz,single);
+      if(single || depth <= mindepth)
+	return true;
+    }
     
     S1.clear();
     T1.clear();
-    intersections(S1,T1,p2,q2,fuzz,depth);
-    add(S,T,S1,T1,pscale,qscale,poffset,qoffset,p,q,fuzz);
+    if(intersections(s,t,S1,T1,p2,q1,fuzz,single,depth)) {
+      add(s,t,S,T,S1,T1,pscale,qscale,poffset,0.0,p,q,fuzz,single);
+      if(single || depth <= mindepth)
+	return true;
+    }
+    
+    S1.clear();
+    T1.clear();
+    if(intersections(s,t,S1,T1,p2,q2,fuzz,single,depth)) {
+      add(s,t,S,T,S1,T1,pscale,qscale,poffset,qoffset,p,q,fuzz,single);
+      if(single || depth <= mindepth)
+	return true;
+    }
   }
+  return S.size() > 0;
 }
 
 // }}}

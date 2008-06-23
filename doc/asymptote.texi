@@ -2190,7 +2190,28 @@ intersect, return a real array of length 0.
 Return all intersection times of paths @code{p} and @code{q} as a sorted array
 of real arrays of length 2 (@pxref{sort}).
 The computations are performed to the absolute error specified by @code{fuzz}, 
-or, if @code{fuzz} is 0, to machine precision. 
+or, if @code{fuzz} is 0, to machine precision. If there are an infinite
+number of intersection points, the returned list is only guaranteed to
+include the endpoint times of the intersection.
+
+@cindex @code{intersections}
+@item real[] intersections(path p, pair a, pair b, real fuzz=0);
+Return all intersection times of path @code{p} with the (infinite) line
+through points @code{a} and @code{b} as a sorted array.
+The computations are performed to the absolute error specified by
+@code{fuzz}, or, if @code{fuzz} is 0, to machine precision. 
+If there are an infinite number of intersection points, the returned
+list is only guaranteed to include the endpoint times of the intersection.
+
+@cindex @code{times}
+@item real[] times(path g, real x)
+returns all intersection times of path @code{g} with the vertical line
+through @code{x}.
+
+@cindex @code{times}
+@item real[] times(path g, explicit pair z)
+returns all intersection times of path @code{g} with the horizontal line
+through @code{(0,z.y)}.
 
 @cindex @code{intersectionpoint}
 @item pair intersectionpoint(path p, path q, real fuzz=0);
