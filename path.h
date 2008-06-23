@@ -72,6 +72,7 @@ struct solvedKnot : public gc {
   }
 };
 
+extern const double BigFuzz;
 extern const double Fuzz;
 extern const double Fuzz2;
 extern const double sqrtFuzz;

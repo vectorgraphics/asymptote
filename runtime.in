@@ -2003,7 +2003,7 @@ real dirtime(path p, pair z)
 
 realarray* intersect(path p, path q, real fuzz=0)
 {
-  fuzz=::max(fuzz,Fuzz*::max(::max(length(p.max()),length(p.min())),
+  fuzz=::max(fuzz,BigFuzz*::max(::max(length(p.max()),length(p.min())),
 			     ::max(length(q.max()),length(q.min()))));
   std::vector<real> S,T;
   real s,t;
@@ -2018,7 +2018,7 @@ realarray* intersect(path p, path q, real fuzz=0)
 
 realarray2* intersections(path p, path q, real fuzz=0)
 {
-  fuzz=::max(fuzz,Fuzz*::max(::max(length(p.max()),length(p.min())),
+  fuzz=::max(fuzz,BigFuzz*::max(::max(length(p.max()),length(p.min())),
 			     ::max(length(q.max()),length(q.min()))));
   real s,t;
   std::vector<real> S,T;
@@ -2037,8 +2037,8 @@ realarray2* intersections(path p, path q, real fuzz=0)
 
 realarray* intersections(path p, pair a, pair b, real fuzz=0)
 {
-  fuzz=::max(fuzz,Fuzz*::max(::max(length(p.max()),length(p.min())),
-			     ::max(length(a),length(b))));
+  fuzz=::max(fuzz,BigFuzz*::max(::max(length(p.max()),length(p.min())),
+				::max(length(a),length(b))));
   std::vector<real> S;
   intersections(S,p,a,b,fuzz);
   sort(S.begin(),S.end());
