@@ -998,14 +998,14 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
     if(gs.tailequals(s.c_str(),s.size(),"E",1)) break;
   }
     
-  char c;
   mem::vector<solvedKnot> nodes;
   solvedKnot node;
   bool cyclic=false;
   bool active=false;
   
-  pair offset(0,0);
+  pair offset;
   while(!buf.eof()) {
+    char c;
     buf >> c;
     switch(c) {
     case 'M':
@@ -1379,8 +1379,10 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
 			  prefix != settings::outname() && !globalwrite());
 	if(png) {
 	  cmd << "'" << getSetting<string>("gs")
-	      << "' -q -dNOPAUSE -dBATCH -sDEVICE=pngalpha -dEPSCrop"
-	      << " -r" << res << "x" << res
+	      << "' -q -dNOPAUSE -dBATCH -sDEVICE=pngalpha -dEPSCrop";
+	  if(safe)
+	    cmd << " -dSAFER";
+	  cmd << " -r" << res << "x" << res
 	      << " -sOutputFile='" << outname << "'";
 	  converter="gs";
 	  hint="Ghostscript";
