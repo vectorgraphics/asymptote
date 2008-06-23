@@ -84,7 +84,7 @@ don't care about interactive readline support (in which case configure will
 automatically detect and disable obsolete versions of the readline library).
 Marius Schamschula also maintains a binary package for various MacOS X
 platforms 
-\docref{http://www.hmug.org/pub/MacOS_X/BSD/Applications/Publishing/asymptote/\}.
+\docref{http://www.hmug.org/pub/MacOS_X/X/Applications/Publishing/asymptote\}.
 
 \question 26jun:osxbadCPU Why do I get the error \courier{Bad CPU type in executable\} on installing Asymptote from the MAC OS binary?
 
