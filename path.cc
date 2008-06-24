@@ -1155,17 +1155,18 @@ path concat(const path& p1, const path& p2)
   return path(nodes, i+1);
 }
 
+inline Int sgn1(double x)
+{
+  return x > 0.0 ? 1 : -1;
+}
+
 // Increment count if the path has a vertical component at t.
 bool path::Count(Int& count, double t) const
 {
   pair z=point(t);
-  pair Pre=z-precontrol(t);
-  pair Post=postcontrol(t)-z;
-  double pre=unit(Pre).gety();
-  double post=unit(Post).gety();
-  if(pre == 0.0 && Pre != pair(0.0,0.0)) pre=post;
-  if(post == 0.0 && Post != pair(0.0,0.0)) post=pre;
-  Int incr=(pre*post > Fuzz) ? sgn1(pre) : 0;
+  double pre=predir(t).gety();
+  double post=postdir(t).gety();
+  Int incr=(pre*post > 0) ? sgn1(pre) : 0;
   count += incr;
   return incr != 0.0;
 }

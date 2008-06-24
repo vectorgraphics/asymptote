@@ -2102,17 +2102,20 @@ endpoint of @code{p}.
 
 @cindex @code{dir}
 @item pair dir(path p, int t, int sign=0);
-If @code{sign < 0}, the direction (as a pair) of the incoming tangent 
-to path @code{p} at node @code{t} is returned; if @code{sign > 0}, the
-direction of the outgoing tangent is returned. If @code{sign=0}, the
-mean of these two directions is returned. If @code{p} contains only one
-point, @code{(0,0)} is returned.
+If @code{sign < 0}, return the direction (as a pair) of the incoming tangent 
+to path @code{p} at node @code{t}; if @code{sign > 0}, return the
+direction of the outgoing tangent. If @code{sign=0}, the mean of these
+two directions is returned. If @code{p} contains only one point,
+@code{(0,0)} is returned.
 
-@item pair dir(path p, real t);
-This returns the direction of the tangent to path @code{p} at the point
-between node @code{floor(t)} and @code{floor(t)+1} corresponding to the
-cubic spline parameter @code{t-floor(t)} (@pxref{Bezier}).
-If @code{p} contains only one point, @code{(0,0)} is returned.
+@item pair dir(path p, real t, int sign=0);
+If @code{sign < 0}, return the direction of the incoming tangent to path
+@code{p} at the point between node @code{floor(t)} and @code{floor(t)+1}
+corresponding to the cubic spline parameter @code{t-floor(t)}
+(@pxref{Bezier}); if @code{sign > 0}, return the direction of the outgoing
+tangent.  If @code{sign=0}, the mean of these two directions
+is returned. If @code{p} contains only one point, @code{(0,0)} is
+returned.
 
 @cindex @code{precontrol}
 @item pair precontrol(path p, int t);

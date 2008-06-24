@@ -244,6 +244,12 @@ public:
     else return predir(t);
   }
 
+  pair dir(double t, Int sign) const {
+    if(sign == 0) return dir(t);
+    else if(sign > 0) return postdir(t);
+    else return predir(t);
+  }
+
   // Returns the path traced out in reverse.
   path reverse() const;
 
@@ -292,11 +298,6 @@ public:
   
   // Debugging output
   friend std::ostream& operator<< (std::ostream& out, const path& p);
-
-  Int sgn1(double x) const
-  {
-    return x > 0.0 ? 1 : -1;
-  }
 
 // Increment count if the path has a vertical component at t.
   bool Count(Int& count, double t) const;
