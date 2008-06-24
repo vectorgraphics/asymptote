@@ -148,7 +148,7 @@ static inline double costhetapi3(double w)
 // Solve for the real roots of the cubic equation ax^3+bx^2+cx+d=0.
 cubicroots::cubicroots(double a, double b, double c, double d) 
 {
-  static const double Fuzz=100.0*DBL_EPSILON;
+  static const double Fuzz=300.0*DBL_EPSILON;
   static const double third=1.0/3.0;
   static const double ninth=1.0/9.0;
   static const double fiftyfourth=1.0/54.0;
@@ -819,6 +819,7 @@ inline bool online(const pair&p, const pair& q, const pair& z, double fuzz)
   return fabs(w.gety()) <= fuzz*fabs(w.getx());
 }
 
+// TODO: optimize case where g has linear segments.
 // Return all intersection times of path g with the (infinite)
 // line through p and q; if there are an infinite number of intersection points,
 // the returned list is only guaranteed to include the endpoint times of
@@ -909,6 +910,17 @@ void add(std::vector<double>& S, double s, const path& p, double fuzz2)
   S.push_back(s);
 }
   
+void intersections(std::vector<double>& S, path& g,
+		   const pair& p, const pair& q, double fuzz)
+{	
+  std::vector<double> S1;
+  lineintersections(S1,g,p,q,fuzz);
+  size_t n=S1.size();
+  double fuzz2=fuzz*fuzz;
+  for(size_t i=0; i < n; ++i)
+    add(S,S1[i],g,fuzz2);
+}
+
 void add(std::vector<double>& S, std::vector<double>& T, double s, double t,
 	 const path& p, const path& q, double fuzz2)
 {
@@ -952,17 +964,6 @@ void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
     for(size_t i=0; i < n; ++i)
       add(S,T,S1[i],T1[i],p,q,fuzz2);
   }
-}
-
-void intersections(std::vector<double>& S, path& g,
-		   const pair& p, const pair& q, double fuzz)
-{	
-  double fuzz2=fuzz*fuzz;
-  std::vector<double> S1;
-  lineintersections(S1,g,p,q,fuzz);
-  size_t n=S1.size();
-  for(size_t i=0; i < n; ++i)
-    add(S,S1[i],g,fuzz2);
 }
 
 bool intersections(double &s, double &t, std::vector<double>& S,
@@ -1160,82 +1161,31 @@ inline Int sgn1(double x)
   return x > 0.0 ? 1 : -1;
 }
 
-// Increment count if the path has a vertical component at t.
-bool path::Count(Int& count, double t) const
-{
-  pair z=point(t);
-  double pre=predir(t).gety();
-  double post=postdir(t).gety();
-  Int incr=(pre*post > 0) ? sgn1(pre) : 0;
-  count += incr;
-  return incr != 0.0;
-}
-  
-// Count if t is in (begin,end] and z lies to the left of point(i+t).
-void path::countleft(Int& count, double x, Int i, double t, double begin,
-		     double end, double& mint, double& maxt) const 
-{
-  if(t > -Fuzz && t < Fuzz) t=0;
-  if(begin < t && t <= end && x < point(i+t).getx() && Count(count,i+t)) {
-    if(t > maxt) maxt=t;
-    if(t < mint) mint=t;
-  }
-}
-
 // Return the winding number of the region bounded by the (cyclic) path
 // relative to the point z.
 Int path::windingnumber(const pair& z) const
 {
   if(!cycles)
     reportError("path is not cyclic");
-  Int count=0;
   
   double x=z.getx();
   double y=z.gety();
-  
-  double begin=-Fuzz;
-  double end=1.0+Fuzz;
       
   bbox b=bounds();
+  if(x < b.left || x > b.right || y < b.bottom || y > b.top) return 0;
   
-  if(z.getx() < b.left || z.getx() > b.right ||
-     z.gety() < b.bottom || z.gety() > b.top) return 0;
-  
-  for(Int i=0; i < n; ++i) {
-    pair a=point(i);
-    pair d=point(i+1);
-      
-    double mint=1.0;
-    double maxt=0.0;
-    double stop=(i < n-1) ? 1.0+Fuzz : end;
-      
-    if(straight(i)) {
-      double denom=d.gety()-a.gety();
-      if(denom != 0.0)
-	countleft(count,x,i,(z.gety()-a.gety())/denom,begin,stop,mint,maxt);
-    } else {
-      pair b=postcontrol(i);
-      pair c=precontrol(i+1);
-    
-      double A=-a.gety()+3.0*(b.gety()-c.gety())+d.gety();
-      double B=3.0*(a.gety()-2.0*b.gety()+c.gety());
-      double C=3.0*(-a.gety()+b.gety());
-      double D=a.gety()-y;
-    
-      cubicroots r(A,B,C,D);
-
-      if(r.roots >= 1) countleft(count,x,i,r.t1,begin,stop,mint,maxt);
-      if(r.roots >= 2) countleft(count,x,i,r.t2,begin,stop,mint,maxt);
-      if(r.roots >= 3) countleft(count,x,i,r.t3,begin,stop,mint,maxt);
-    }
-      
-    // Avoid double-counting endpoint roots.      
-    if(i == 0)
-      end=camp::min(mint-Fuzz,Fuzz)+1.0;
-    if(mint <= maxt)
-      begin=camp::max(maxt+Fuzz-1.0,-Fuzz); 
-    else // no root found
-      begin=-Fuzz;
+  Int count=0;
+  std::vector<double> T;
+  double fuzz=BigFuzz*camp::max(camp::max(max().length(),min().length()),
+				z.length());
+  lineintersections(T,*this,z,z+1,fuzz);
+  size_t n=T.size();
+  for(size_t i=0; i < n; ++i) {
+    double t=T[i];
+    double pre=dir(t,-1).gety();
+    double post=dir(t,1).gety();
+    Int sign=(pre*post > 0) ? sgn1(pre) : 0;
+    if((point(t)-z).getx() > 0) count += sign;
   }
   return count;
 }
