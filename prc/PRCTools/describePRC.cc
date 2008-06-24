@@ -1694,7 +1694,7 @@ void describePicture(BitByBitData &mData)
     cout << getIndent() << "Invalid section code." << endl;
   }
 
-  describeContentPRCBase(mData,true);
+  describeContentPRCBase(mData,false);
 
   int format = mData.readInt();
   switch(format)
@@ -1722,7 +1722,7 @@ void describePicture(BitByBitData &mData)
       break;
   }
   cout << getIndent() << "uncompressed_file_index "
-      << mData.readUnsignedInt() << endl;
+      << mData.readUnsignedInt()-1 << endl;
   cout << getIndent() << "pixel width " << mData.readUnsignedInt() << endl;
   cout << getIndent() << "pixel height " << mData.readUnsignedInt() << endl;
 }

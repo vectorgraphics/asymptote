@@ -92,6 +92,17 @@ void iPRCFile::describe()
     cout << "  Application UUID " << *(unsigned int*)(header+27) << ' ' << *(unsigned int*)(header+31) << ' ' 
         << *(unsigned int*)(header+35) << ' ' << *(unsigned int*)(header+39) << endl;
     cout << std::dec;
+    // uncompressed files
+    unsigned int numberOfUncompressedFiles = *(unsigned int*)(header+43);
+    cout << "Number of uncompressed files " << numberOfUncompressedFiles << endl;
+    char *position = header+47;
+    for(unsigned int j = 0; j < numberOfUncompressedFiles; ++j)
+    {
+      cout << "Uncompressed file " << j << ":" << endl;
+      unsigned int size = *(unsigned int*)position;
+      cout << "  size " << size << " bytes" << endl;
+      position += size+sizeof(unsigned int);
+    }
 
     BitByBitData fileStruct(fileStructures[i].sections[GLOBALS_SECTION],fileStructures[i].sectionLengths[GLOBALS_SECTION]);
     describeSchema(fileStruct);

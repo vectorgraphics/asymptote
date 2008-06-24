@@ -177,6 +177,20 @@
 #define 	PRC_FACETESSDATA_TriangleFanOneNormalTextured      0x4000
 #define 	PRC_FACETESSDATA_TriangleStripeOneNormalTextured   0x8000
 
+#define 	PRC_TEXTURE_MAPPING_DIFFUSE                        0x0001
+#define 	PRC_TEXTURE_MAPPING_BUMP                           0x0002
+#define 	PRC_TEXTURE_MAPPING_OPACITY                        0x0004
+#define 	PRC_TEXTURE_MAPPING_SPHERICAL_REFLECTION           0x0008
+#define 	PRC_TEXTURE_MAPPING_CUBICAL_REFLECTION             0x0010
+#define 	PRC_TEXTURE_MAPPING_REFRACTION                     0x0020
+#define 	PRC_TEXTURE_MAPPING_SPECULAR                       0x0040
+#define 	PRC_TEXTURE_MAPPING_AMBIENT                        0x0080
+#define 	PRC_TEXTURE_MAPPING_EMISSION                       0x0100
+#define 	PRC_TEXTURE_APPLYING_MODE_NONE                     0x00 // let the application choose
+#define 	PRC_TEXTURE_APPLYING_MODE_LIGHTING                 0x01 // use lighting mode
+#define 	PRC_TEXTURE_APPLYING_MODE_ALPHATEST                0x02 // use alpha test
+#define 	PRC_TEXTURE_APPLYING_MODE_VERTEXCOLOR              0x04 // combine a texture with one-color-per-vertex mode
+
 enum EPRCModellerAttributeType {
   KEPRCModellerAttributeTypeNull = 0,
   KEPRCModellerAttributeTypeInt = 1,
@@ -240,6 +254,45 @@ enum EPRCBSplineCurveForm {
   KEPRCBSplineCurveFormEllipticArc,
   KEPRCBSplineCurveFormParabolicArc,
   KEPRCBSplineCurveFormHyperbolicArc
+};
+
+enum EPRCTextureMappingType {
+  KEPRCTextureMappingType_Unknown,
+  KEPRCTextureMappingType_Stored,
+  KEPRCTextureMappingType_Parametric,
+  KEPRCTextureMappingType_Operator
+};
+
+enum EPRCTextureFunction {
+  KEPRCTextureFunction_Unknown,
+  KEPRCTextureFunction_Modulate,
+  KEPRCTextureFunction_Replace,
+  KEPRCTextureFunction_Blend,
+  KEPRCTextureFunction_Decal
+};
+
+enum EPRCTextureBlendParameter {
+  KEPRCTextureBlendParameter_Unknown,
+  KEPRCTextureBlendParameter_Zero,
+  KEPRCTextureBlendParameter_One,
+  KEPRCTextureBlendParameter_SrcColor,
+  KEPRCTextureBlendParameter_OneMinusSrcColor,
+  KEPRCTextureBlendParameter_DstColor,
+  KEPRCTextureBlendParameter_OneMinusDstColor,
+  KEPRCTextureBlendParameter_SrcAlpha,
+  KEPRCTextureBlendParameter_OneMinusSrcAlpha,
+  KEPRCTextureBlendParameter_DstAlpha,
+  KEPRCTextureBlendParameter_OneMinusDstAlpha,
+  KEPRCTextureBlendParameter_SrcAlphaSaturate
+};
+
+enum EPRCTextureWrappingMode {
+  KEPRCTextureWrappingMode_Unknown,
+  KEPRCTextureWrappingMode_Repeat,
+  KEPRCTextureWrappingMode_ClampToBorder,
+  KEPRCTextureWrappingMode_Clamp,
+  KEPRCTextureWrappingMode_ClampToEdge,
+  KEPRCTextureWrappingMode_MirroredRepeat
 };
 
 #endif // __PRC_H
