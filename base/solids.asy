@@ -8,7 +8,7 @@ import graph3;
 real[] tangent(path p, path q, bool side) 
 {
   static real fuzz=1.0e-5;
-  
+
   if((cyclic(p) && inside(p,point(q,0)) || 
       cyclic(q) && inside(q,point(p,0))) &&
      intersect(p,q,fuzz).length == 0) return new real[];
@@ -16,15 +16,8 @@ real[] tangent(path p, path q, bool side)
   static real epsilon=sqrt(realEpsilon);
   
   real time(path p) {
-    pair m=min(p);
-    pair M=max(p);
-
-    pair dz=epsilon*(M-m);
-    m += dz;
-    M -= dz; 
-
-    return side ? intersections(p,(m.x,m.y),(M.x,m.y))[0] :
-      intersections(p,(m.x,M.y),(M.x,M.y))[0];
+    real[] t=ytimes(p);
+    return side ? t[0] : t[1];
   }
 
   for(int i=0; i < 100; ++i) {

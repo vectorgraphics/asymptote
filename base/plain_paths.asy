@@ -310,7 +310,7 @@ int inside(path p, path q, pen fillrule=currentpen)
   return 0;
 }
 
-// Return all intersection times of path g with the vertical line through x.
+// Return all intersection times of path g with the vertical line through (x,0).
 real[] times(path g, real x)
 {
   return intersections(g,(x,0),(x,1));

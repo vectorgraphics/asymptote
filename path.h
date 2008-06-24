@@ -258,6 +258,9 @@ public:
   // Used by picture to determine bounding box.
   bbox bounds() const;
   
+  // Return times where path g reaches its minimum and maximum y extents.
+  void ytimes(double& min, double& max) const;
+  
   template<class T>
   void addpoint(bbox& box, T i, double min, double max) const
   {
@@ -269,7 +272,7 @@ public:
 
   // Return bounding box accounting for padding perpendicular to path.
   bbox bounds(double min, double max) const;
-
+  
   // Return bounding box accounting for internal pen padding (but not pencap).
   bbox internalbounds(const bbox &padding) const;
   

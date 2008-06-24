@@ -2206,12 +2206,17 @@ list is only guaranteed to include the endpoint times of the intersection.
 @cindex @code{times}
 @item real[] times(path g, real x)
 returns all intersection times of path @code{g} with the vertical line
-through @code{x}.
+through @code{(x,0)}.
 
 @cindex @code{times}
 @item real[] times(path g, explicit pair z)
 returns all intersection times of path @code{g} with the horizontal line
 through @code{(0,z.y)}.
+
+@cindex @code{ytimes}
+@item real[] ytimes(path g)
+returns an array of length 2 containing times at which path @code{g}
+reaches its minimum and maximum @math{y} extents, respectively.
 
 @cindex @code{intersectionpoint}
 @item pair intersectionpoint(path p, path q, real fuzz=0);

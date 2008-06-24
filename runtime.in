@@ -2069,6 +2069,16 @@ pair max(path p)
   return p.max();
 }
 
+realarray* ytimes(path p)
+{
+  real min,max;
+  p.ytimes(min,max);
+  array *V=new array(2);
+  (*V)[0]=min;
+  (*V)[1]=max;
+  return V;
+}
+
 real relativedistance(real theta, real phi, real t, bool atleast)
 {
   return camp::velocity(theta,phi,tension(t,atleast));
