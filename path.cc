@@ -148,8 +148,7 @@ static inline double costhetapi3(double w)
 // Solve for the real roots of the cubic equation ax^3+bx^2+cx+d=0.
 cubicroots::cubicroots(double a, double b, double c, double d) 
 {
-  const double Fuzz=100.0*DBL_EPSILON;
-  
+  static const double Fuzz=100.0*DBL_EPSILON;
   static const double third=1.0/3.0;
   static const double ninth=1.0/9.0;
   static const double fiftyfourth=1.0/54.0;
@@ -488,13 +487,9 @@ bbox path::bounds(double min, double max) const
 {
   bbox box;
   
-  static pair I(0,1);
-  
   Int len=length();
   for (Int i = 0; i < len; i++) {
-    pair v=I*dir(i);
-    box += point(i)+min*v;
-    box += point(i)+max*v;
+    addpoint(box,i,min,max);
     if(straight(i)) continue;
     
     pair a,b,c;
@@ -502,40 +497,29 @@ bbox path::bounds(double min, double max) const
     
     // Check x coordinate
     quadraticroots x(a.getx(),b.getx(),c.getx());
-    if(x.distinct != quadraticroots::NONE && goodroot(x.t1)) {
-      double t=i+x.t1;
-      pair v=I*dir(t);
-      box += point(t)+min*v;
-      box += point(t)+max*v;
-    }
-    if(x.distinct == quadraticroots::TWO && goodroot(x.t2)) {
-      double t=i+x.t2;
-      pair v=I*dir(t);
-      box += point(t)+min*v;
-      box += point(t)+max*v;
-    }
+    if(x.distinct != quadraticroots::NONE && goodroot(x.t1))
+      addpoint(box,i+x.t1,min,max);
+
+    if(x.distinct == quadraticroots::TWO && goodroot(x.t2))
+      addpoint(box,i+x.t2,min,max);
     
     // Check y coordinate
     quadraticroots y(a.gety(),b.gety(),c.gety());
-    if(y.distinct != quadraticroots::NONE && goodroot(y.t1)) {
-      double t=i+y.t1;
-      pair v=I*dir(t);
-      box += point(t)+min*v;
-      box += point(t)+max*v;
-    }
-    if(y.distinct == quadraticroots::TWO && goodroot(y.t2)) {
-      double t=i+y.t2;
-      pair v=I*dir(t);
-      box += point(t)+min*v;
-      box += point(t)+max*v;
-    }
+    if(y.distinct != quadraticroots::NONE && goodroot(y.t1))
+      addpoint(box,i+y.t1,min,max);
+    if(y.distinct == quadraticroots::TWO && goodroot(y.t2))
+      addpoint(box,i+y.t2,min,max);
   }
-  pair v=I*dir(len);
-  box += point(len)+min*v;
-  box += point(len)+max*v;
+  addpoint(box,len,min,max);
   return box;
 }
   
+inline void add(bbox& box, const pair& z, const pair& min, const pair& max)
+{
+    box += z+min;
+    box += z+max;
+}
+
 bbox path::internalbounds(const bbox& padding) const
 {
   bbox box;
@@ -543,23 +527,16 @@ bbox path::internalbounds(const bbox& padding) const
   // Check interior nodes.
   Int len=length();
   for (Int i = 1; i < len; i++) {
-    
     pair pre=point(i)-precontrol(i);
     pair post=postcontrol(i)-point(i);
     
     // Check node x coordinate
-    if((pre.getx() >= 0.0) ^ (post.getx() >= 0)) {
-      pair z=point(i);
-      box += z+padding.left;
-      box += z+padding.right;
-    }
+    if((pre.getx() >= 0.0) ^ (post.getx() >= 0))
+      add(box,point(i),padding.left,padding.right);
 			      
     // Check node y coordinate
-    if((pre.gety() >= 0.0) ^ (post.gety() >= 0)) {
-      pair z=point(i);
-      box += z+pair(0,padding.bottom);
-      box += z+pair(0,padding.top);
-    }
+    if((pre.gety() >= 0.0) ^ (post.gety() >= 0))
+      add(box,point(i),pair(0,padding.bottom),pair(0,padding.top));
   }
 			      
   // Check interior segments.
@@ -571,29 +548,17 @@ bbox path::internalbounds(const bbox& padding) const
     
     // Check x coordinate
     quadraticroots x(a.getx(),b.getx(),c.getx());
-    if(x.distinct != quadraticroots::NONE && goodroot(x.t1)) {
-      pair z=point(i+x.t1);
-      box += z+padding.left;
-      box += z+padding.right;
-    }
-    if(x.distinct == quadraticroots::TWO && goodroot(x.t2)) {
-      pair z=point(i+x.t2);     
-      box += z+padding.left;
-      box += z+padding.right;
-    }
+    if(x.distinct != quadraticroots::NONE && goodroot(x.t1))
+      add(box,point(i+x.t1),padding.left,padding.right);
+    if(x.distinct == quadraticroots::TWO && goodroot(x.t2))
+      add(box,point(i+x.t2),padding.left,padding.right);
     
     // Check y coordinate
     quadraticroots y(a.gety(),b.gety(),c.gety());
-    if(y.distinct != quadraticroots::NONE && goodroot(y.t1)) {
-      pair z=point(i+y.t1);     
-      box += z+pair(0,padding.bottom);
-      box += z+pair(0,padding.top);
-    }
-    if(y.distinct == quadraticroots::TWO && goodroot(y.t2)) {
-      pair z=point(i+y.t2);
-      box += z+pair(0,padding.bottom);
-      box += z+pair(0,padding.top);
-    }
+    if(y.distinct != quadraticroots::NONE && goodroot(y.t1))
+      add(box,point(i+y.t1),pair(0,padding.bottom),pair(0,padding.top));
+    if(y.distinct == quadraticroots::TWO && goodroot(y.t2))
+      add(box,point(i+y.t2),pair(0,padding.bottom),pair(0,padding.top));
   }
   return box;
 }

@@ -258,6 +258,15 @@ public:
   // Used by picture to determine bounding box.
   bbox bounds() const;
   
+  template<class T>
+  void addpoint(bbox& box, T i, double min, double max) const
+  {
+    static const pair I(0,1);
+    pair v=I*dir(i);
+    box += point(i)+min*v;
+    box += point(i)+max*v;
+  }
+
   // Return bounding box accounting for padding perpendicular to path.
   bbox bounds(double min, double max) const;
 
