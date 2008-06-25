@@ -1937,6 +1937,11 @@ pair dir(path p, Int t, Int sign=0)
   return p.dir(t,sign);
 }
 
+pair dir(path p, real t)
+{
+  return p.dir(t);
+}
+
 path reverse(path p)
 {
   return p.reverse();
