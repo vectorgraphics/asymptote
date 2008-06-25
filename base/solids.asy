@@ -173,9 +173,8 @@ struct revolution {
     real L=length(g);
     real midtime=0.5*L;
     real sign=sgn(dot(axis,camera-P.target))*sgn(dot(axis,dir(g,midtime)));
-    triple m=min(g);
-    triple M=max(g);
-    if(m.z == M.z || (t <= epsilon && sign < 0) || (t >= L-epsilon && sign > 0))
+    if(dot(max(g)-min(g),axis) == 0 || (t <= epsilon && sign < 0) ||
+       (t >= L-epsilon && sign > 0))
       s.front.push(S);
     else {
       path3 Sp=slice(t+epsilon,ngraph);
