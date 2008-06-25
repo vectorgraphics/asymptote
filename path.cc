@@ -799,10 +799,10 @@ void intersections(std::vector<double>& T, const path& g, const pair& z,
     size_t m=r.size();
     for(size_t j=0 ; j < m; ++j) {
       double t=r[j];
-      if(t >= -fuzz && t <= 1.0+fuzz) {
+      if(t >= -Fuzz && t <= 1.0+Fuzz) {
 	double s=i+t;
 	if((g.point(s)-z).abs2() <= fuzz2) {
-	  if(cycles && s >= n-fuzz) s=0;
+	  if(cycles && s >= n-Fuzz) s=0;
 	  T.push_back(s);
 	}
       }
@@ -815,7 +815,7 @@ inline bool online(const pair&p, const pair& q, const pair& z, double fuzz)
   if(p == q) return (z-p).abs2() <= fuzz*fuzz;
   pair denom=1.0/(q-p);
   pair w=(z-p)*denom;
-  return fabs(w.gety()) <= fuzz*fabs(w.getx());
+  return fabs(w.gety()) <= Fuzz*fabs(w.getx());
 }
 
 // Return all intersection times of path g with the (infinite)
@@ -831,7 +831,6 @@ void lineintersections(std::vector<double>& T, const path& g,
     if(online(p,q,g.point((Int) 0),fuzz)) T.push_back(0.0);
     return;
   }
-  double fuzz2=fuzz*fuzz;
   bool cycles=g.cyclic();
   double dx=q.getx()-p.getx();
   double dy=q.gety()-p.gety();
@@ -850,7 +849,7 @@ void lineintersections(std::vector<double>& T, const path& g,
     double d=dy*z0.getx()-dx*z0.gety()+det;
     std::vector<double> r;
     if(max(max(max(a*a,b*b),c*c),d*d) >
-       fuzz2*max(max(max(z0.abs2(),z1.abs2()),c0.abs2()),c1.abs2()))
+       Fuzz2*max(max(max(z0.abs2(),z1.abs2()),c0.abs2()),c1.abs2()))
       roots(r,a,b,c,d);
     else r.push_back(0.0);
     if(endpoints) {
@@ -863,9 +862,9 @@ void lineintersections(std::vector<double>& T, const path& g,
     size_t m=r.size();
     for(size_t j=0 ; j < m; ++j) {
       double t=r[j];
-      if(t >= -fuzz && t <= 1.0+fuzz) {
+      if(t >= -Fuzz && t <= 1.0+Fuzz) {
 	double s=i+t;
-	if(cycles && s >= n-fuzz) s=0;
+	if(cycles && s >= n-Fuzz) s=0;
 	T.push_back(s);
       }
     }
@@ -895,7 +894,7 @@ void intersections(std::vector<double>& S, std::vector<double>& T,
       double s=S1[i];
       pair z=g.point(s);
       double t=((z-p)*denom).getx();
-      if(t >= -fuzz && t <= 1.0+fuzz) {
+      if(t >= -Fuzz && t <= 1.0+Fuzz) {
 	S.push_back(s);
 	T.push_back(t);
       }
@@ -1190,19 +1189,19 @@ Int path::windingnumber(const pair& z) const
 {
   if(!cycles)
     reportError("path is not cyclic");
-  Int count=0;
+  
+  bbox b=bounds();
   
   double x=z.getx();
   double y=z.gety();
   
+  if(x < b.left || x > b.right || y < b.bottom || y > b.top) return 0;
+  
+  Int count=0;
+  
   double begin=-Fuzz;
   double end=1.0+Fuzz;
       
-  bbox b=bounds();
-  
-  if(z.getx() < b.left || z.getx() > b.right ||
-     z.gety() < b.bottom || z.gety() > b.top) return 0;
-  
   for(Int i=0; i < n; ++i) {
     pair a=point(i);
     pair d=point(i+1);
