@@ -1203,28 +1203,29 @@ Int path::windingnumber(const pair& z) const
   double end=1.0+Fuzz;
       
   for(Int i=0; i < n; ++i) {
-    pair a=point(i);
-    pair d=point(i+1);
-      
+    double ay=point(i).gety();
+    double dy=point(i+1).gety();
+    
     double mint=1.0;
     double maxt=0.0;
     double stop=(i < n-1) ? 1.0+Fuzz : end;
       
     if(straight(i)) {
-      double denom=d.gety()-a.gety();
+      double denom=dy-ay;
       if(denom != 0.0)
-	countleft(count,x,i,(z.gety()-a.gety())/denom,begin,stop,mint,maxt);
+	countleft(count,x,i,(y-ay)/denom,begin,stop,mint,maxt);
     } else {
-      pair b=postcontrol(i);
-      pair c=precontrol(i+1);
+      double by=postcontrol(i).gety();
+      double cy=precontrol(i+1).gety();
     
-      double A=-a.gety()+3.0*(b.gety()-c.gety())+d.gety();
-      double B=3.0*(a.gety()-2.0*b.gety()+c.gety());
-      double C=3.0*(-a.gety()+b.gety());
-      double D=a.gety()-y;
+      double A=-ay+3.0*(by-cy)+dy;
+      double B=3.0*(ay-2.0*by+cy);
+      double C=3.0*(-ay+by);
+      double D=ay-y;
     
-      cubicroots r(A,B,C,D);
+      if(fabs(D) <= Fuzz*camp::max(fabs(ay),fabs(y))) D=0;
 
+      cubicroots r(A,B,C,D);
       if(r.roots >= 1) countleft(count,x,i,r.t1,begin,stop,mint,maxt);
       if(r.roots >= 2) countleft(count,x,i,r.t2,begin,stop,mint,maxt);
       if(r.roots >= 3) countleft(count,x,i,r.t3,begin,stop,mint,maxt);
