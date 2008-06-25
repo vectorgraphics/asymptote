@@ -73,12 +73,37 @@ struct bbox {
     else {
       if (x < left)
 	left = x;  
-      if (x > right)
+      else if (x > right)
 	right = x;  
       if (y < bottom)
 	bottom = y;
-      if (y > top)
+      else if (y > top)
 	top = y;
+    }
+
+    return *this;
+  }
+
+  // Add a point to a nonempty bbox, updating bounding times
+  bbox add(const pair& z, bbox& times, double t)
+  {
+    double x = z.getx(), y = z.gety();
+
+    if (x < left) {
+      left = x;  
+      times.left = t;
+    }
+    else if (x > right) {
+      right = x;  
+      times.right = t;
+    }
+    if (y < bottom) {
+      bottom = y;
+      times.bottom = t;
+    }
+    else if (y > top) {
+      top = y;
+      times.top = t;
     }
 
     return *this;

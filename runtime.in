@@ -2069,13 +2069,21 @@ pair max(path p)
   return p.max();
 }
 
-realarray* ytimes(path p)
+realarray *mintimes(path p)
 {
-  real min,max;
-  p.ytimes(min,max);
   array *V=new array(2);
-  (*V)[0]=min;
-  (*V)[1]=max;
+  pair z=p.mintimes();
+  (*V)[0]=z.getx();
+  (*V)[1]=z.gety();
+  return V;
+}
+
+realarray *maxtimes(path p)
+{
+  array *V=new array(2);
+  pair z=p.maxtimes();
+  (*V)[0]=z.getx();
+  (*V)[1]=z.gety();
   return V;
 }
 

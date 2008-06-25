@@ -2209,10 +2209,15 @@ through @code{(x,0)}.
 returns all intersection times of path @code{g} with the horizontal line
 through @code{(0,z.y)}.
 
-@cindex @code{ytimes}
-@item real[] ytimes(path g)
+@cindex @code{mintimes}
+@item real[] mintimes(path g)
 returns an array of length 2 containing times at which path @code{g}
-reaches its minimum and maximum @math{y} extents, respectively.
+reaches its minimal horizontal and vertical extents, respectively.
+
+@cindex @code{maxtimes}
+@item real[] maxtimes(path g)
+returns an array of length 2 containing the times at which path @code{g}
+reaches its maximal horizontal and vertical extents, respectively.
 
 @cindex @code{intersectionpoint}
 @item pair intersectionpoint(path p, path q, real fuzz=0);

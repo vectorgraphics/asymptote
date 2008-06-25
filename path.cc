@@ -455,10 +455,12 @@ bbox path::bounds() const
     // No bounds
     return bbox();
   }
-
+  
   Int len=length();
+  box.add(point(len));
+
   for (Int i = 0; i < len; i++) {
-    box += point(i);
+    addpoint(box,i);
     if(straight(i)) continue;
     
     pair a,b,c;
@@ -467,58 +469,18 @@ bbox path::bounds() const
     // Check x coordinate
     quadraticroots x(a.getx(),b.getx(),c.getx());
     if(x.distinct != quadraticroots::NONE && goodroot(x.t1))
-      box += point(i+x.t1);
+      addpoint(box,i+x.t1);
     if(x.distinct == quadraticroots::TWO && goodroot(x.t2))
-      box += point(i+x.t2);
+      addpoint(box,i+x.t2);
     
     // Check y coordinate
     quadraticroots y(a.gety(),b.gety(),c.gety());
     if(y.distinct != quadraticroots::NONE && goodroot(y.t1))
-      box += point(i+y.t1);
+      addpoint(box,i+y.t1);
     if(y.distinct == quadraticroots::TWO && goodroot(y.t2))
-      box += point(i+y.t2);
+      addpoint(box,i+y.t2);
   }
-  box += point(len);
   return box;
-}
-
-void path::ytimes(double& min, double& max) const
-{
-  checkEmpty(n);
-  
-  double m=point((Int) 0).gety();
-  double M=m;
-  min=max=0.0;
-  
-  Int len=length();
-  for (Int i = 0; i < len; i++) {
-    double Y=point(i).gety();
-    if(Y > M) {M=Y; min=i;}
-    else if(Y < m) {m=Y; max=i;}
-    if(straight(i)) continue;
-    
-    pair a,b,c;
-    derivative(a,b,c,point(i),postcontrol(i),precontrol(i+1),point(i+1));
-    
-    // Check y coordinate
-    quadraticroots y(a.gety(),b.gety(),c.gety());
-    if(y.distinct != quadraticroots::NONE && goodroot(y.t1)) {
-      double t=i+y.t1;
-      Y=point(t).gety();
-      if(Y > M) {M=Y; min=t;}
-      else if(Y < m) {m=Y; max=t;}
-    }
-    if(y.distinct == quadraticroots::TWO && goodroot(y.t2)) {
-      double t=i+y.t2;
-      Y=point(t).gety();
-      if(Y > M) {M=Y; min=t;}
-      else if(Y < m) {m=Y; max=t;}
-    }
-  }
-  
-  double Y=point(len).gety();
-  if(Y > M) {M=Y; min=len;}
-  else if(Y < m) {m=Y; max=len;}
 }
 
 bbox path::bounds(double min, double max) const

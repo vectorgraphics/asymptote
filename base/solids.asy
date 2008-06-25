@@ -15,14 +15,9 @@ real[] tangent(path p, path q, bool side)
 
   static real epsilon=sqrt(realEpsilon);
   
-  real time(path p) {
-    real[] t=ytimes(p);
-    return side ? t[0] : t[1];
-  }
-
   for(int i=0; i < 100; ++i) {
-    real ta=time(p);
-    real tb=time(q);
+    real ta=side ? mintimes(p)[1] : maxtimes(p)[1];
+    real tb=side ? mintimes(q)[1] : maxtimes(q)[1];
     pair a=point(p,ta);
     pair b=point(q,tb);
     real angle=angle(b-a,warn=false);

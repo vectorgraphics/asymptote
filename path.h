@@ -84,7 +84,9 @@ class path : public gc {
 
   mem::vector<solvedKnot> nodes;
   mutable double cached_length; // Cache length since path is immutable.
+  
   mutable bbox box;
+  mutable bbox times; // Times where minimum and maximum extents are attained.
 
 public:
   path()
@@ -264,16 +266,33 @@ public:
   // Used by picture to determine bounding box.
   bbox bounds() const;
   
-  // Return times where path g reaches its minimum and maximum y extents.
-  void ytimes(double& min, double& max) const;
+  // Return times where path reaches its minimum and maximum y extents.
+  void ybboxtimes(double& min, double& max) const;
+  
+  pair mintimes() const {
+    checkEmpty(n);
+    bounds();
+    return camp::pair(times.left,times.bottom);
+  }
+  
+  pair maxtimes() const {
+    checkEmpty(n);
+    bounds();
+    return camp::pair(times.right,times.top);
+  }
   
   template<class T>
-  void addpoint(bbox& box, T i, double min, double max) const
-  {
+  void addpoint(bbox& box, T i) const {
+    box.add(point(i),times,(double) i);
+  }
+
+  template<class T>
+  void addpoint(bbox& box, T i, double min, double max) const {
     static const pair I(0,1);
     pair v=I*dir(i);
-    box += point(i)+min*v;
-    box += point(i)+max*v;
+    pair z=point(i);
+    box += z+min*v;
+    box += z+max*v;
   }
 
   // Return bounding box accounting for padding perpendicular to path.
