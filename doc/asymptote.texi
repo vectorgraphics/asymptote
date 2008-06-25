@@ -4954,7 +4954,8 @@ returns @code{a*diagonal(b)}.
 @cindex @code{quadraticroots}
 @item @code{real[] quadraticroots(real a, real b, real c);}
 This numerically robust solver returns the real roots of the
-quadratic equation @math{ax^2+bx+c=0}. Multiple roots are listed separately.
+quadratic equation @math{ax^2+bx+c=0}, in ascending order. Multiple
+roots are listed separately.
 
 @cindex @code{quadraticroots}
 @item @code{pair[] quadraticroots(explicit pair a, explicit pair b, explicit pair c);}
