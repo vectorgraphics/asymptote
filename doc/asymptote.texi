@@ -2108,14 +2108,11 @@ direction of the outgoing tangent. If @code{sign=0}, the mean of these
 two directions is returned. If @code{p} contains only one point,
 @code{(0,0)} is returned.
 
-@item pair dir(path p, real t, int sign=0);
-If @code{sign < 0}, return the direction of the incoming tangent to path
-@code{p} at the point between node @code{floor(t)} and @code{floor(t)+1}
-corresponding to the cubic spline parameter @code{t-floor(t)}
-(@pxref{Bezier}); if @code{sign > 0}, return the direction of the outgoing
-tangent.  If @code{sign=0}, the mean of these two directions
-is returned. If @code{p} contains only one point, @code{(0,0)} is
-returned.
+@item pair dir(path p, real t);
+Return the direction of the tangent to path @code{p} at the point
+between node @code{floor(t)} and @code{floor(t)+1} corresponding to the
+cubic spline parameter @code{t-floor(t)} (@pxref{Bezier}).
+If @code{p} contains only one point, @code{(0,0)} is returned.
 
 @cindex @code{precontrol}
 @item pair precontrol(path p, int t);
@@ -2193,18 +2190,14 @@ intersect, return a real array of length 0.
 Return all intersection times of paths @code{p} and @code{q} as a sorted array
 of real arrays of length 2 (@pxref{sort}).
 The computations are performed to the absolute error specified by @code{fuzz}, 
-or, if @code{fuzz} is 0, to machine precision. If there are an infinite
-number of intersection points, the returned list is only guaranteed to
-include the endpoint times of the intersection.
+or, if @code{fuzz} is 0, to machine precision.
 
 @cindex @code{intersections}
 @item real[] intersections(path p, pair a, pair b, real fuzz=0);
-Return all intersection times of path @code{p} with the (infinite) line
-through points @code{a} and @code{b} as a sorted array.
-The computations are performed to the absolute error specified by
-@code{fuzz}, or, if @code{fuzz} is 0, to machine precision. 
-If there are an infinite number of intersection points, the returned
-list is only guaranteed to include the endpoint times of the intersection.
+Return all (unless there are infinitely many) intersection times of path
+@code{p} with the (infinite) line through points @code{a} and @code{b}
+as a sorted array. The computations are performed to the absolute error
+specified by @code{fuzz}, or, if @code{fuzz} is 0, to machine precision. 
 
 @cindex @code{times}
 @item real[] times(path g, real x)
@@ -7166,6 +7159,7 @@ reflects about the plane through @code{u}, @code{v}, and @code{w}.
 @cindex @code{reverse}
 @cindex @code{subpath}
 @cindex @code{intersect}
+@cindex @code{intersections}
 @cindex @code{intersectionpoint}
 @cindex @code{intersectionpoints}
 @cindex @code{min}
