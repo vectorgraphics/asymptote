@@ -18,7 +18,7 @@
 namespace camp {
 
 const double BigFuzz=10000.0*DBL_EPSILON;
-const double Fuzz=10.0*DBL_EPSILON;
+const double Fuzz=300.0*DBL_EPSILON;
 const double Fuzz2=Fuzz*Fuzz;
 const double sqrtFuzz=sqrt(Fuzz);
 
@@ -148,7 +148,6 @@ static inline double costhetapi3(double w)
 // Solve for the real roots of the cubic equation ax^3+bx^2+cx+d=0.
 cubicroots::cubicroots(double a, double b, double c, double d) 
 {
-  static const double Fuzz=300.0*DBL_EPSILON;
   static const double third=1.0/3.0;
   static const double ninth=1.0/9.0;
   static const double fiftyfourth=1.0/54.0;
