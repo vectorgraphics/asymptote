@@ -132,19 +132,6 @@ inline double cbrtsqrt1pxm(double x)
   return 2.0/(cbrt(x+2.0*(sqrt(1.0+x)+1.0))+cbrt(x)+cbrt(s*s));
 }
   
-// Taylor series of cos((atan(1.0/w)+pi)/3.0).
-static inline double costhetapi3(double w)
-{
-  static const double c1=1.0/3.0;
-  static const double c3=-19.0/162.0;
-  static const double c5=425.0/5832.0;
-  static const double c7=-16829.0/314928.0;
-  double w2=w*w;
-  double w3=w2*w;
-  double w5=w3*w2;
-  return c1*w+c3*w3+c5*w5+c7*w5*w2;
-}
-      
 // Solve for the real roots of the cubic equation ax^3+bx^2+cx+d=0.
 cubicroots::cubicroots(double a, double b, double c, double d) 
 {
@@ -197,18 +184,12 @@ cubicroots::cubicroots(double a, double b, double c, double d)
     if(R2 != 0.0) t1 += cbrt(R)*cbrtsqrt1pxm(Q3/R2);
   } else {
     roots=3;
-    double v=0.0,theta;
-    if(R2 > 0.0) {
-      v=sqrt(-D/R2);
-      theta=atan(v);
-    } else theta=0.5*PI;
+    double theta=(R2 > 0.0) ? atan(sqrt(-D/R2)) : 0.5*PI;
     double factor=2.0*sqrt(-Q)*(R >= 0 ? 1 : -1);
       
     t1=mthirdb+factor*cos(third*theta);
     t2=mthirdb-factor*cos(third*(theta-PI));
-    t3=mthirdb;
-    if(R2 > 0.0)
-      t3 -= factor*((v < 100.0) ? cos(third*(theta+PI)) : costhetapi3(1.0/v)); 
+    t3=-d/(t1*t2);
   }
 }
   
