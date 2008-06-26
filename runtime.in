@@ -4364,10 +4364,6 @@ real newton(Int iterations=100, callableReal *f, callableReal *fprime, real x,
     real x0=x;
     
     Stack->push(x);
-    f->call(Stack);
-    real fx=pop<real>(Stack);
-    
-    Stack->push(x);
     fprime->call(Stack);
     real dfdx=pop<real>(Stack);
     
@@ -4375,6 +4371,11 @@ real newton(Int iterations=100, callableReal *f, callableReal *fprime, real x,
       x=DBL_MAX;
       break;
     }
+
+    Stack->push(x);
+    f->call(Stack);
+    real fx=pop<real>(Stack);
+    
     x -= fx/dfdx;
 
     lastdiff=diff;
