@@ -98,12 +98,11 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
   Include each point one at a time into the existing mesh
 */
   for(Int i = 0; i < nv; i++) {
-    double xp = pxyz[i].p[0];
-    double yp = pxyz[i].p[1];
     Int nedge = 0;
+    double *d=pxyz[i].p;
 /*
   Set up the edge buffer.
-  If the point (xp,yp) lies inside the circumcircle then the
+  If the point d lies inside the circumcircle then the
   three edges of that triangle are added to the edge buffer
   and that triangle is removed.
 */
@@ -115,7 +114,6 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
       double *a=pxyz[vj->p1].p;
       double *b=pxyz[vj->p2].p;
       double *c=pxyz[vj->p3].p;
-      double d[]={xp,yp};
       
       if(incircle(a,b,c,d) <= 0.0) { // Point d is inside or on circumcircle
 /* Check that we haven't exceeded the edge list size */
@@ -132,18 +130,18 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
 	Int p1=vj->p1;
 	Int p2=vj->p2;
 	Int p3=vj->p3;
-	edges[nedge+0].p1 = p1;
-	edges[nedge+0].p2 = p2;
-	edges[nedge+1].p1 = p2;
-	edges[nedge+1].p2 = p3;
-	edges[nedge+2].p1 = p3;
-	edges[nedge+2].p2 = p1;
-	nedge += 3;
+	edges[nedge].p1 = p1;
+	edges[nedge].p2 = p2;
+	edges[++nedge].p1 = p2;
+	edges[nedge].p2 = p3;
+	edges[++nedge].p1 = p3;
+	edges[nedge].p2 = p1;
+	++nedge;
 	ntri--;
 	v[j] = v[ntri];
 	complete[j] = complete[ntri];
 	j--;
-      } else {// Check if xp > xc+r for circumscircle of radius r about (xc,yc).
+      } else {
 	double A=hypot2(a);
 	double B=hypot2(b);
 	double C=hypot2(c);
@@ -153,14 +151,15 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
 	double x3[]={C,c[1]};
       
 	double a0=orient2d(a,b,c);
-	if(xp*a0 < 0.5*orient2d(x1,x2,x3)) {
+	// Is d[0] > xc+r for circumscircle abc of radius r about (xc,yc)?
+	if(d[0]*a0 < 0.5*orient2d(x1,x2,x3)) {
 	  x1[1]=a[0];
 	  x2[1]=b[0];
 	  x3[1]=c[0];
 	  double A[]={a[0]*a0,a[1]*a0};
 	  double B[]={b[0]*a0,b[1]*a0};
 	  double C[]={c[0]*a0,c[1]*a0};
-	  double D[]={xp*a0,-0.5*orient2d(x1,x2,x3)};
+	  double D[]={d[0]*a0,-0.5*orient2d(x1,x2,x3)};
 	  complete[j]=incircle(A,B,C,D) > 0.0;
 	}
       }
@@ -173,13 +172,6 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
     for(Int j = 0; j < nedge - 1; j++) {
       for(Int k = j + 1; k < nedge; k++) {
 	if((edges[j].p1 == edges[k].p2) && (edges[j].p2 == edges[k].p1)) {
-	  edges[j].p1 = -1;
-	  edges[j].p2 = -1;
-	  edges[k].p1 = -1;
-	  edges[k].p2 = -1;
-	}
-	/* Shouldn't need the following, see note above */
-	if((edges[j].p1 == edges[k].p1) && (edges[j].p2 == edges[k].p2)) {
 	  edges[j].p1 = -1;
 	  edges[j].p2 = -1;
 	  edges[k].p1 = -1;
