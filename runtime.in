@@ -4567,7 +4567,7 @@ Intarray2 *triangulate(pairarray *z)
 // Call Gilles Dumoulin's port of Paul Bourke's triangulation code.
 
   XYZ *pxyz=new XYZ[nv+3];
-  ITRIANGLE *V=new ITRIANGLE[3*nv];
+  ITRIANGLE *V=new ITRIANGLE[4*nv];
   
   for(size_t i=0; i < nv; ++i) {
     pair w=read<pair>(z,i);

@@ -82,7 +82,7 @@ int XYZCompare(const void *v1, const void *v2)
 //   Takes as input NV vertices in array pxyz
 //   Returned is a list of ntri triangular faces in the array v
 //   These triangles are arranged in a consistent clockwise order.
-//   The triangle array v should be allocated to 3 * nv
+//   The triangle array v should be allocated to 4 * nv
 //   The vertex array pxyz must be big enough to hold 3 additional points.
 //   By default, the array pxyz is automatically presorted and postsorted.
 ///////////////////////////////////////////////////////////////////////////////
@@ -90,9 +90,6 @@ int XYZCompare(const void *v1, const void *v2)
 Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
 		bool presort, bool postsort)
 {
-  Int *complete = NULL;
-  IEDGE *edges = NULL; 
-  IEDGE *p_EdgeTemp;
   Int nedge = 0;
   Int trimax, emax = 200;
   Int inside;
@@ -106,9 +103,9 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
   
 /* Allocate memory for the completeness list, flag for each triangle */
   trimax = 4 * nv;
-  complete = new Int[trimax];
+  Int *complete = new Int[trimax];
 /* Allocate memory for the edge list */
-  edges = new IEDGE[emax];
+  IEDGE *edges = new IEDGE[emax];
 /*
   Find the maximum and minimum vertex bounds.
   This is to allow calculation of the bounding triangle
@@ -179,11 +176,11 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
 /* Check that we haven't exceeded the edge list size */
 	if(nedge + 3 >= emax) {
 	  emax += 100;
-	  p_EdgeTemp = new IEDGE[emax];
+	  IEDGE *p_EdgeTemp = new IEDGE[emax];
 	  for (Int i = 0; i < nedge; i++) {
 	    p_EdgeTemp[i] = edges[i];   
 	  }
-	  delete []edges;
+	  delete[] edges;
 	  edges = p_EdgeTemp;
 	}
 	ITRIANGLE *vj=v+j;

@@ -10,9 +10,9 @@ for(int i=0; i < np; ++i)
 int[][] trn=triangulate(points);
 
 for(int i=0; i < trn.length; ++i) {
-  draw((points[trn[i][0]])--(points[trn[i][1]]));
-  draw((points[trn[i][1]])--(points[trn[i][2]]));
-  draw((points[trn[i][2]])--(points[trn[i][0]]));
+  draw(points[trn[i][0]]--points[trn[i][1]]);
+  draw(points[trn[i][1]]--points[trn[i][2]]);
+  draw(points[trn[i][2]]--points[trn[i][0]]);
 }
 
 for(int i=0; i < np; ++i)
