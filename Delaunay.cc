@@ -143,7 +143,7 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
 	v[j] = v[ntri];
 	complete[j] = complete[ntri];
 	j--;
-      } else { // Check if xp > xc+r for circumscribe of radius r about (xc,yc).
+      } else {// Check if xp > xc+r for circumscircle of radius r about (xc,yc).
 	double A=hypot2(a);
 	double B=hypot2(b);
 	double C=hypot2(c);
