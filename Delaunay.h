@@ -1,5 +1,5 @@
-#ifndef Delaunay_H
-#define Delaunay_H
+#ifndef DELAUNAY_H
+#define DELAUNAY_H
 
 #include <iostream>
 #include <cstdlib>
@@ -17,14 +17,12 @@ struct IEDGE{
 };
 
 struct XYZ{
-  double x, y;
-	Int i;
+  double p[2]; // {x,y}
+  Int i;
 };
 
 Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
 		bool presort=true, bool postsort=true);
-Int CircumCircle(double, double, double, double, double, double, double, 
-double, double&, double&, double&);
 
 #endif
 

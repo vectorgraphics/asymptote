@@ -191,6 +191,7 @@ AC_MSG_NOTICE(*** Could not find GNU readline 4.2 or later: will compile without
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([fenv.h stddef.h libintl.h])
 AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h], [break])
+AC_CHECK_HEADERS(fpu_control.h)
 
 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include "xstream.h"]),
                    [AC_SEARCH_LIBS([xdrstdio_create],[nsl rpc])
@@ -204,7 +205,7 @@ AC_CHECK_HEADER(gsl/gsl_sf.h,
            AC_MSG_NOTICE([*** Could not find libgsl: will compile without optional special functions. ***]),[-lgslcblas]),
      AC_MSG_NOTICE([*** Header file gsl_sf.h not found: will compile without optional special functions. ***]))
 
-TRIANGLE=Delaunay
+TRIANGLE="Delaunay predicates "
 AC_CHECK_FILE(triangle.shar.gz,
    [AC_DEFINE(HAVE_TRIANGLE, 1,
    [Define to 1 if you have the source files for the 'triangle' mesh generator. ]) TRIANGLE="triangle "])

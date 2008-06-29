@@ -7637,11 +7637,13 @@ int[][] triangulate(pair[] z);
 The example @code{Gouraudcontour} illustrates how to produce color
 density images over such irregular triangular meshes.
 
-By default, @code{Asymptote} uses Gilles Dumoulin's C++ port of Paul Bourke's
-triangulation code. However, @code{Asymptote} can be optionally built
-with Jonathan Shewchuk's more robust triangulation routines by placing
-@url{http://netlib.sandia.gov/voronoi/triangle.shar.gz}
-in the @code{Asymptote} source directory and executing the commands
+By default, @code{Asymptote} is configured to use a version of Gilles
+Dumoulin's C++ port of Paul Bourke's triangulation code modified to use the
+public-domain exact arithmetic predicates written by Jonathan
+Shewchuk. Optionally, @code{Asymptote} can be built with Shewchuk's
+efficient and robust triangulation routines by placing
+@url{http://netlib.sandia.gov/voronoi/triangle.shar.gz} in the
+@code{Asymptote} source directory and executing the commands 
 @verbatim
 ./configure
 make all

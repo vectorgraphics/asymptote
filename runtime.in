@@ -4571,8 +4571,8 @@ Intarray2 *triangulate(pairarray *z)
   
   for(size_t i=0; i < nv; ++i) {
     pair w=read<pair>(z,i);
-    pxyz[i].x=w.getx();
-    pxyz[i].y=w.gety();
+    pxyz[i].p[0]=w.getx();
+    pxyz[i].p[1]=w.gety();
     pxyz[i].i=(Int) i;
   }
   
