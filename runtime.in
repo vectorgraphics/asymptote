@@ -100,6 +100,7 @@ stringarray2* => stringArray2()
 #include "lexical.h"
 #include "process.h"
 #include "arrayop.h"
+#include "predicates.h"
   
 #ifdef HAVE_TRIANGLE  
 #define REAL double
@@ -2105,6 +2106,27 @@ bool inside(explicit patharray *g, pair z, pen fillrule=CURRENTPEN)
 bool inside(path g, pair z, pen fillrule=CURRENTPEN)
 {
   return fillrule.inside(g.windingnumber(z));
+}
+
+// Determine the side of a--b that c lies on
+// (negative=left, zero=on line, positive=right).
+real side(pair a, pair b, pair c) 
+{
+  double A[]={a.getx(),a.gety()};
+  double B[]={b.getx(),b.gety()};
+  double C[]={c.getx(),c.gety()};
+  return orient2d(B,A,C);
+}
+
+// Determine the side of the counterclockwise circle through a,b,c that d
+// lies on (negative=inside, 0=on circle, positive=right). 
+real incircle(pair a, pair b, pair c, pair d) 
+{
+  double A[]={a.getx(),a.gety()};
+  double B[]={b.getx(),b.gety()};
+  double C[]={c.getx(),c.gety()};
+  double D[]={d.getx(),d.gety()};
+  return incircle(A,B,C,D);
 }
 
 
