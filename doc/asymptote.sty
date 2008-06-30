@@ -5,6 +5,7 @@
 
 \newif\ifinline
 \DeclareOption{inline}{\inlinetrue}
+\DeclareOption{pdf}{\ifx\pdfoutput\undefined\def\pdfoutput{1}\fi}
 \ProcessOptions*
 
 % Work around jobname bug in MiKTeX 2.5 and 2.6:
