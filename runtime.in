@@ -2112,10 +2112,7 @@ bool inside(path g, pair z, pen fillrule=CURRENTPEN)
 // (negative=left, zero=on line, positive=right).
 real side(pair a, pair b, pair c) 
 {
-  double A[]={a.getx(),a.gety()};
-  double B[]={b.getx(),b.gety()};
-  double C[]={c.getx(),c.gety()};
-  return orient2d(B,A,C);
+  return orient2d(a,b,c);
 }
 
 // Determine the side of the counterclockwise circle through a,b,c that d

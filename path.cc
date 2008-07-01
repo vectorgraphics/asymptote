@@ -14,6 +14,8 @@
 #include "camperror.h"
 #include "mathop.h"
 #include "arrayop.h"
+#include "predicates.h"
+#include "rounding.h"
 
 namespace camp {
 
@@ -371,12 +373,12 @@ inline void splitCubic(solvedKnot sn[], double t, const solvedKnot& left_,
 		       const solvedKnot& right_)
 {
   solvedKnot &left=(sn[0]=left_), &mid=sn[1], &right=(sn[2]=right_);
-  pair x=split(t,left.post,right.pre);
-  left.post=split(t,left.point,left.post);
-  right.pre=split(t,right.pre,right.point);
-  mid.pre=split(t,left.post,x);
-  mid.post=split(t,x,right.pre);
-  mid.point=split(t,mid.pre,mid.post);
+  pair x=split(t,left.post,right.pre); // m1
+  left.post=split(t,left.point,left.post); // m0
+  right.pre=split(t,right.pre,right.point); // m2
+  mid.pre=split(t,left.post,x); // m3
+  mid.post=split(t,x,right.pre); // m4 
+  mid.point=split(t,mid.pre,mid.post); // m5
 }
 
 path path::subpath(double a, double b) const
@@ -882,10 +884,8 @@ void add(std::vector<double>& S, std::vector<double>& T, double s, double t,
 	 const path& p, const path& q, double fuzz2)
 {
   pair P=p.point(s);
-  pair Q=q.point(t);
   for(size_t i=0; i < S.size(); ++i)
-    if((p.point(S[i])-P).abs2() <= fuzz2 &&
-       (q.point(T[i])-Q).abs2() <= fuzz2) return;
+    if((p.point(S[i])-P).abs2() <= fuzz2) return;
   S.push_back(s);
   T.push_back(t);
 }
@@ -1124,30 +1124,105 @@ path concat(const path& p1, const path& p2)
   return path(nodes, i+1);
 }
 
-inline Int sgn1(double x)
+// Interface to orient2d predicate optimized for pairs.
+double orient2d(const pair& a, const pair& b, const pair& c)
 {
-  return x > 0.0 ? 1 : -1;
+  double detleft, detright, det;
+  double detsum, errbound;
+  double orient;
+
+  FPU_ROUND_DOUBLE;
+
+  detleft = (a.getx() - c.getx()) * (b.gety() - c.gety());
+  detright = (a.gety() - c.gety()) * (b.getx() - c.getx());
+  det = detleft - detright;
+
+  if (detleft > 0.0) {
+    if (detright <= 0.0) {
+      FPU_RESTORE;
+      return det;
+    } else {
+      detsum = detleft + detright;
+    }
+  } else if (detleft < 0.0) {
+    if (detright >= 0.0) {
+      FPU_RESTORE;
+      return det;
+    } else {
+      detsum = -detleft - detright;
+    }
+  } else {
+    FPU_RESTORE;
+    return det;
+  }
+
+  errbound = ccwerrboundA * detsum;
+  if ((det >= errbound) || (-det >= errbound)) {
+    FPU_RESTORE;
+    return det;
+  }
+
+  double pa[]={a.getx(),a.gety()};
+  double pb[]={b.getx(),b.gety()};
+  double pc[]={c.getx(),c.gety()};
+  
+  orient = orient2dadapt(pa, pb, pc, detsum);
+  FPU_RESTORE;
+  return orient;
 }
 
-// Increment count if the path has a vertical component at t.
-bool path::Count(Int& count, double t) const
+// Returns true iff the point z lies in the region bounded by the cyclic
+// nonintersecting polygon p of n vertices.
+bool insidepolygon(const pair *p, size_t n, pair z)
 {
-  pair z=point(t);
-  double pre=predir(t).gety();
-  double post=postdir(t).gety();
-  Int incr=(pre*post > 0) ? sgn1(pre) : 0;
-  count += incr;
-  return incr != 0.0;
+  int count=0;
+  pair pj=p[n-1];
+  for(size_t i=0; i < n; ++i) {
+    const pair pi=pj;
+    pj=p[i];
+    if(pi.gety() <= z.gety() && z.gety() < pj.gety() &&
+       orient2d(pi,pj,z) < 0) ++count;
+    else if(pj.gety() <= z.gety() && z.gety() < pi.gety() &&
+	    orient2d(pi,pj,z) > 0) --count;
+  }
+  return count != 0;
 }
-  
-// Count if t is in (begin,end] and z lies to the left of point(i+t).
-void path::countleft(Int& count, double x, Int i, double t, double begin,
-		     double end, double& mint, double& maxt) const 
+
+bool insidehull(const pair& z0, const pair& c0, const pair& c1, const pair& z1,
+		const pair& z)
 {
-  if(t > -Fuzz && t < Fuzz) t=0;
-  if(begin < t && t <= end && x < point(i+t).getx() && Count(count,i+t)) {
-    if(t > maxt) maxt=t;
-    if(t < mint) mint=t;
+  pair v=z1-z0;
+  pair post=c0-z0;
+  pair pre=z1-c1;
+  if((post.getx()*v.gety()-post.gety()*v.getx())*
+     (pre.getx()*v.gety()-pre.gety()*v.getx()) <= 0) {
+    const pair P[]={z0,c0,c1,z1};
+    return insidepolygon(P,4,z);
+  } else {
+    const pair P[]={z0,c0,z1,c1};
+    return insidepolygon(P,4,z);
+  }
+}
+
+void checkside(const pair& z0, const pair& c0, const pair& c1,
+	       const pair& z1, const pair& z, Int& count, unsigned depth) 
+{
+  if(depth == 0) return;
+  --depth;
+  if(insidehull(z0,c0,c1,z1,z)) {
+    const pair m0=0.5*(z0+c0);
+    const pair m1=0.5*(c0+c1);
+    const pair m2=0.5*(c1+z1);
+    const pair m3=0.5*(m0+m1);
+    const pair m4=0.5*(m1+m2);
+    const pair m5=0.5*(m3+m4);
+    checkside(z0,m0,m3,m5,z,count,depth);
+    checkside(m5,m4,m2,z1,z,count,depth);
+  } else {
+    if(z0.gety() <= z.gety() && z.gety() < z1.gety() &&
+       orient2d(z0,z1,z) < 0) ++count;
+    else if(z1.gety() <= z.gety() && z.gety() < z0.gety() &&
+	    orient2d(z0,z1,z) > 0) --count;
   }
 }
 
@@ -1160,53 +1235,14 @@ Int path::windingnumber(const pair& z) const
   
   bbox b=bounds();
   
-  double x=z.getx();
-  double y=z.gety();
-  
-  if(x < b.left || x > b.right || y < b.bottom || y > b.top) return 0;
+  if(z.getx() < b.left || z.getx() > b.right ||
+     z.gety() < b.bottom || z.gety() > b.top) return 0;
   
   Int count=0;
+  for(Int i=0; i < n; ++i)
+    checkside(point(i),postcontrol(i),precontrol(i+1),point(i+1),z,count,
+	      maxdepth);
   
-  double begin=-Fuzz;
-  double end=1.0+Fuzz;
-      
-  for(Int i=0; i < n; ++i) {
-    double ay=point(i).gety();
-    double dy=point(i+1).gety();
-    
-    double mint=1.0;
-    double maxt=0.0;
-    double stop=(i < n-1) ? 1.0+Fuzz : end;
-      
-    if(straight(i)) {
-      double denom=dy-ay;
-      if(denom != 0.0)
-	countleft(count,x,i,(y-ay)/denom,begin,stop,mint,maxt);
-    } else {
-      double by=postcontrol(i).gety();
-      double cy=precontrol(i+1).gety();
-    
-      double A=-ay+3.0*(by-cy)+dy;
-      double B=3.0*(ay-2.0*by+cy);
-      double C=3.0*(-ay+by);
-      double D=ay-y;
-    
-      if(fabs(D) <= Fuzz*camp::max(fabs(ay),fabs(y))) D=0;
-
-      cubicroots r(A,B,C,D);
-      if(r.roots >= 1) countleft(count,x,i,r.t1,begin,stop,mint,maxt);
-      if(r.roots >= 2) countleft(count,x,i,r.t2,begin,stop,mint,maxt);
-      if(r.roots >= 3) countleft(count,x,i,r.t3,begin,stop,mint,maxt);
-    }
-      
-    // Avoid double-counting endpoint roots.      
-    if(i == 0)
-      end=camp::min(mint-Fuzz,Fuzz)+1.0;
-    if(mint <= maxt)
-      begin=camp::max(maxt+Fuzz-1.0,-Fuzz); 
-    else // no root found
-      begin=-Fuzz;
-  }
   return count;
 }
 

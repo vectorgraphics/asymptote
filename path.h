@@ -383,6 +383,8 @@ public:
 path nurb(pair z0, pair z1, pair z2, pair z3,
 	  double w0, double w1, double w2, double w3, Int m);
   
+double orient2d(const pair& a, const pair& b, const pair& c);
+
 }
 
 // Delete the following line to work around problems with old broken compilers.

@@ -145,23 +145,12 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
 	double A=hypot2(a);
 	double B=hypot2(b);
 	double C=hypot2(c);
-      
-	double x1[]={A,a[1]};
-	double x2[]={B,b[1]};
-	double x3[]={C,c[1]};
-      
 	double a0=orient2d(a,b,c);
 	// Is d[0] > xc+r for circumscircle abc of radius r about (xc,yc)?
-	if(d[0]*a0 < 0.5*orient2d(x1,x2,x3)) {
-	  x1[1]=a[0];
-	  x2[1]=b[0];
-	  x3[1]=c[0];
-	  double A[]={a[0]*a0,a[1]*a0};
-	  double B[]={b[0]*a0,b[1]*a0};
-	  double C[]={c[0]*a0,c[1]*a0};
-	  double D[]={d[0]*a0,-0.5*orient2d(x1,x2,x3)};
-	  complete[j]=incircle(A,B,C,D) > 0.0;
-	}
+	if(d[0]*a0 < 0.5*orient2d(A,a[1],B,b[1],C,c[1]))
+	  complete[j]=
+	    incircle(a[0]*a0,a[1]*a0,b[0]*a0,b[1]*a0,c[0]*a0,c[1]*a0,
+		     d[0]*a0,0.5*orient2d(a[0],A,b[0],B,c[0],C)) > 0.0;
       }
     }
 /*

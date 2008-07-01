@@ -363,25 +363,25 @@
   Two_Two_Sum(_j, _1, _l, _2, x5, x4, x3, x2)
 
 /* 2^(-p), where p=DBL_MANT_DIG.  Used to estimate roundoff errors.          */
-static const double epsilon=0.5*DBL_EPSILON; 
+static const REAL epsilon=0.5*DBL_EPSILON; 
 
 /* 2^ceiling(p/2) + 1.  Used to split floats in half. */
-static const double splitter=sqrt((DBL_MANT_DIG % 2 ? 2.0 : 1.0)/epsilon)+1.0;
+static const REAL splitter=sqrt((DBL_MANT_DIG % 2 ? 2.0 : 1.0)/epsilon)+1.0;
 
 /* A set of coefficients used to calculate maximum roundoff errors.          */
-static const REAL resulterrbound=(3.0 + 8.0 * epsilon) * epsilon;
-static const REAL ccwerrboundA=(3.0 + 16.0 * epsilon) * epsilon;
-static const REAL ccwerrboundB=(2.0 + 12.0 * epsilon) * epsilon;
-static const REAL ccwerrboundC=(9.0 + 64.0 * epsilon) * epsilon * epsilon;
-static const REAL o3derrboundA=(7.0 + 56.0 * epsilon) * epsilon; 
-static const REAL o3derrboundB=(3.0 + 28.0 * epsilon) * epsilon;
-static const REAL o3derrboundC=(26.0 + 288.0 * epsilon) * epsilon * epsilon;
-static const REAL iccerrboundA=(10.0 + 96.0 * epsilon) * epsilon;
-static const REAL iccerrboundB=(4.0 + 48.0 * epsilon) * epsilon;
-static const REAL iccerrboundC=(44.0 + 576.0 * epsilon) * epsilon * epsilon;
-static const REAL isperrboundA=(16.0 + 224.0 * epsilon) * epsilon;
-static const REAL isperrboundB=(5.0 + 72.0 * epsilon) * epsilon;
-static const REAL isperrboundC=(71.0 + 1408.0 * epsilon) * epsilon * epsilon;
+const REAL resulterrbound=(3.0 + 8.0 * epsilon) * epsilon;
+const REAL ccwerrboundA=(3.0 + 16.0 * epsilon) * epsilon;
+const REAL ccwerrboundB=(2.0 + 12.0 * epsilon) * epsilon;
+const REAL ccwerrboundC=(9.0 + 64.0 * epsilon) * epsilon * epsilon;
+const REAL o3derrboundA=(7.0 + 56.0 * epsilon) * epsilon; 
+const REAL o3derrboundB=(3.0 + 28.0 * epsilon) * epsilon;
+const REAL o3derrboundC=(26.0 + 288.0 * epsilon) * epsilon * epsilon;
+const REAL iccerrboundA=(10.0 + 96.0 * epsilon) * epsilon;
+const REAL iccerrboundB=(4.0 + 48.0 * epsilon) * epsilon;
+const REAL iccerrboundC=(44.0 + 576.0 * epsilon) * epsilon * epsilon;
+const REAL isperrboundA=(16.0 + 224.0 * epsilon) * epsilon;
+const REAL isperrboundB=(5.0 + 72.0 * epsilon) * epsilon;
+const REAL isperrboundC=(71.0 + 1408.0 * epsilon) * epsilon * epsilon;
 
 /*****************************************************************************/
 /*                                                                           */
@@ -835,7 +835,7 @@ static REAL estimate(int elen, REAL *e)
 /*                                                                           */
 /*****************************************************************************/
 
-static REAL orient2dadapt(REAL *pa, REAL *pb, REAL *pc, REAL detsum)
+REAL orient2dadapt(REAL *pa, REAL *pb, REAL *pc, REAL detsum)
 {
   INEXACT REAL acx, acy, bcx, bcy;
   REAL acxtail, acytail, bcxtail, bcytail;
@@ -952,6 +952,52 @@ REAL orient2d(REAL *pa, REAL *pb, REAL *pc)
     return det;
   }
 
+  orient = orient2dadapt(pa, pb, pc, detsum);
+  FPU_RESTORE;
+  return orient;
+}
+
+REAL orient2d(REAL ax, REAL ay, REAL bx, REAL by, REAL cx, REAL cy)
+{
+  REAL detleft, detright, det;
+  REAL detsum, errbound;
+  REAL orient;
+
+  FPU_ROUND_DOUBLE;
+
+  detleft = (ax - cx) * (by - cy);
+  detright = (ay - cy) * (bx - cx);
+  det = detleft - detright;
+
+  if (detleft > 0.0) {
+    if (detright <= 0.0) {
+      FPU_RESTORE;
+      return det;
+    } else {
+      detsum = detleft + detright;
+    }
+  } else if (detleft < 0.0) {
+    if (detright >= 0.0) {
+      FPU_RESTORE;
+      return det;
+    } else {
+      detsum = -detleft - detright;
+    }
+  } else {
+    FPU_RESTORE;
+    return det;
+  }
+
+  errbound = ccwerrboundA * detsum;
+  if ((det >= errbound) || (-det >= errbound)) {
+    FPU_RESTORE;
+    return det;
+  }
+
+  REAL pa[]={ax,ay};
+  REAL pb[]={bx,by};
+  REAL pc[]={cx,cy};
+  
   orient = orient2dadapt(pa, pb, pc, detsum);
   FPU_RESTORE;
   return orient;
@@ -2075,6 +2121,60 @@ REAL incircle(REAL *pa, REAL *pb, REAL *pc, REAL *pd)
     return det;
   }
 
+  inc = incircleadapt(pa, pb, pc, pd, permanent);
+  FPU_RESTORE;
+  return inc;
+}
+
+REAL incircle(REAL ax, REAL ay, REAL bx, REAL by, REAL cx, REAL cy, REAL dx,
+	      REAL dy)
+{
+  REAL adx, bdx, cdx, ady, bdy, cdy;
+  REAL bdxcdy, cdxbdy, cdxady, adxcdy, adxbdy, bdxady;
+  REAL alift, blift, clift;
+  REAL det;
+  REAL permanent, errbound;
+  REAL inc;
+
+  FPU_ROUND_DOUBLE;
+  
+  adx = ax - dx;
+  bdx = bx - dx;
+  cdx = cx - dx;
+  ady = ay - dy;
+  bdy = by - dy;
+  cdy = cy - dy;
+
+  bdxcdy = bdx * cdy;
+  cdxbdy = cdx * bdy;
+  alift = adx * adx + ady * ady;
+
+  cdxady = cdx * ady;
+  adxcdy = adx * cdy;
+  blift = bdx * bdx + bdy * bdy;
+
+  adxbdy = adx * bdy;
+  bdxady = bdx * ady;
+  clift = cdx * cdx + cdy * cdy;
+
+  det = alift * (bdxcdy - cdxbdy)
+      + blift * (cdxady - adxcdy)
+      + clift * (adxbdy - bdxady);
+
+  permanent = (Absolute(bdxcdy) + Absolute(cdxbdy)) * alift
+            + (Absolute(cdxady) + Absolute(adxcdy)) * blift
+            + (Absolute(adxbdy) + Absolute(bdxady)) * clift;
+  errbound = iccerrboundA * permanent;
+  if ((det > errbound) || (-det > errbound)) {
+    FPU_RESTORE;
+    return det;
+  }
+
+  REAL pa[]={ax,ay};
+  REAL pb[]={bx,by};
+  REAL pc[]={cx,cy};
+  REAL pd[]={dx,dy};
+  
   inc = incircleadapt(pa, pb, pc, pd, permanent);
   FPU_RESTORE;
   return inc;
