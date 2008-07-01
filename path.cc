@@ -134,30 +134,6 @@ inline double cbrtsqrt1pxm(double x)
   return 2.0/(cbrt(x+2.0*(sqrt(1.0+x)+1.0))+cbrt(x)+cbrt(s*s));
 }
   
-// Try to refine a calculated cubic root with Newton-Raphson iteration.
-inline double refine(double x, double b, double c, double d)
-{
-  int iterations=100;
-  int i=0;
-  double diff=DBL_MAX;
-  double lastdiff;
-  do {
-    double x0=x;
-    double dfdx=3*x*x+2*b*x+c;
-    if(dfdx == 0.0) return x0;
-    
-    x -= (x*x*x+b*x*x+c*x+d)/dfdx;
-
-    lastdiff=diff;
-    diff=fabs(x-x0);
-    
-    if(++i == iterations)
-      return x0;
-  } while (diff != 0.0 && (diff < lastdiff || diff > Fuzz*fabs(x)));
-
-  return x;
-}
-
 // Solve for the real roots of the cubic equation ax^3+bx^2+cx+d=0.
 cubicroots::cubicroots(double a, double b, double c, double d) 
 {
@@ -208,14 +184,13 @@ cubicroots::cubicroots(double a, double b, double c, double d)
     roots=1;
     t1=mthirdb;
     if(R2 != 0.0) t1 += cbrt(R)*cbrtsqrt1pxm(Q3/R2);
-    t1=refine(t1,b,c,d);
   } else {
     roots=3;
     double theta=(R2 > 0.0) ? atan(sqrt(-D/R2)) : 0.5*PI;
     double factor=2.0*sqrt(-Q)*(R >= 0 ? 1 : -1);
       
-    t1=refine(mthirdb+factor*cos(third*theta),b,c,d);
-    t2=refine(mthirdb-factor*cos(third*(theta-PI)),b,c,d);
+    t1=mthirdb+factor*cos(third*theta);
+    t2=mthirdb-factor*cos(third*(theta-PI));
     t3=-d/(t1*t2);
   }
 }

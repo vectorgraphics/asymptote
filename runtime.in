@@ -2117,13 +2117,10 @@ real side(pair a, pair b, pair c)
 
 // Determine the side of the counterclockwise circle through a,b,c that d
 // lies on (negative=inside, 0=on circle, positive=right). 
-real incircle(pair a, pair b, pair c, pair d) 
+real incircle(pair a, pair b, pair c, pair d)
 {
-  double A[]={a.getx(),a.gety()};
-  double B[]={b.getx(),b.gety()};
-  double C[]={c.getx(),c.gety()};
-  double D[]={d.getx(),d.gety()};
-  return incircle(A,B,C,D);
+  return incircle(a.getx(),a.gety(),b.getx(),b.gety(),c.getx(),c.gety(),
+		  d.getx(),d.gety());
 }
 
 

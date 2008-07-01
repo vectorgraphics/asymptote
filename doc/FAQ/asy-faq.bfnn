@@ -277,7 +277,12 @@ Put
 usepackage("mathptmx");
 \endverbatim
 
-at the beginning of your file.
+at the beginning of your file. Note: to enable the Adobe Times Roman font
+for text, you will also need to say:
+\verbatim
+defaultpen(TimesRoman());
+\endverbatim
+
 
 \question 28jun:internatfonts How can I use international fonts in Asymptote labels?
 
