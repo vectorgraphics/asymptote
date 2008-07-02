@@ -75,6 +75,8 @@ string defaultformat();
 const char *beginlabel(const string& texengine);
 const char *endlabel(const string& texengine);
 const char *rawpostscript(const string& texengine);
+const char *beginpicture(const string& texengine);
+const char *endpicture(const string& texengine);
 const char *beginspecial(const string& texengine);
 const char *endspecial();
   

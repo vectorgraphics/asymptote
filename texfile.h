@@ -120,11 +120,12 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
   
 class texfile : public psfile {
   bbox box;
-  string texengine;
   bool inlinetex;
   double Hoffset;
 
 public:
+  string texengine;
+  
   texfile(const string& texname, const bbox& box);
   ~texfile();
 

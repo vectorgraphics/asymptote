@@ -1156,6 +1156,22 @@ const char *rawpostscript(const string& texengine) {
       "setmatrix neg exch neg exch translate}";
 }
 
+// TeX macro to begin picture
+const char *beginpicture(const string& texengine) {
+  if(latex(texengine))
+    return "\\begin{picture}";
+  else
+    return "\\picture";
+}
+
+// TeX macro to end picture
+const char *endpicture(const string& texengine) {
+  if(latex(texengine))
+    return "\\end{picture}%";
+  else
+    return "\\endpicture%";
+}
+
 // Begin TeX special command.
 const char *beginspecial(const string& texengine) {
   if(pdf(texengine))

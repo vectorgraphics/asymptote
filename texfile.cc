@@ -70,8 +70,6 @@ void texfile::prologue()
       if(height < 12.0) voffset=height-12.0;
     } else if(height < 10.0) voffset=height-10.0;
 
-    *out << "\\pdfhorigin=0bp" << newl
-	 << "\\pdfvorigin=" << voffset << "bp" << newl;
     if(width > 0) 
       *out << "\\pdfpagewidth=" << width << "bp" << newl;
     if(height > 0)
@@ -84,17 +82,18 @@ void texfile::prologue()
 	   << "\\textheight=" << height+18.0 << "bp" << newl
 	   << "\\textwidth=" << width+18.0 << "bp" << newl;
       if(settings::pdf(texengine))
-	*out << "\\oddsidemargin=-17.61pt" << newl
+	*out << "\\oddsidemargin=-89.9pt" << newl
 	     << "\\evensidemargin=\\oddsidemargin" << newl
-	     << "\\topmargin=-37.01pt" << newl;
+	     << "\\topmargin=-109.27pt" << newl;
       *out << "\\begin{document}" << newl;
     }
   } else {
-    *out << "\\hoffset=36.6pt" << newl
-	 << "\\voffset=54.0pt" << newl;
     if(settings::pdf(texengine)) {
-      *out << "\\hoffset=-20pt" << newl
-	   << "\\voffset=0pt" << newl;
+      *out << "\\hoffset=-92.27pt" << newl
+	   << "\\voffset=-72.27pt" << newl;
+    } else {
+      *out << "\\hoffset=36.6pt" << newl
+	   << "\\voffset=54.0pt" << newl;
     }
   }
 }

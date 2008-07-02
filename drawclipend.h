@@ -47,7 +47,7 @@ public:
   }
 
   bool write(texfile *out, const bbox& bpath) {
-    out->verbatimline("\\end{picture}%");
+    out->verbatimline(settings::endpicture(out->texengine));
     out->verbatim("\\kern");
     double width=bpath.right-bpath.left;
     out->write(-width*ps2tex);

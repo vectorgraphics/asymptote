@@ -58,7 +58,8 @@ public:
     if(gsave) out->gsave();
     if(empty()) return true;
     
-    out->verbatim("\\begin{picture}(");
+    out->verbatim(settings::beginpicture(out->texengine));
+    out->verbatim("(");
     double width=bpath.right-bpath.left;
     double height=bpath.top-bpath.bottom;
     out->write(width*ps2tex);
