@@ -76,7 +76,7 @@ add(new void(frame f, transform t) {
     draw(pic,Label("$t+\tau\rightarrow t$",0.45),
          point(AdvD,W,t)--point(Adv0,E,t),2.5LeftSide,red,Arrow,PenMargin);
     draw(pic,point(psi,N,t)--point(vel,S,t),darkgreen,Arrow,PenMargin);
-    draw(pic,Label("self-advection",5.5),point(vel,N,t)--
+    draw(pic,Label("self-advection",4.5),point(vel,N,t)--
          arc((point(vel,N,t).x,point(Adv,E,t).y),5,270,90)--
          (point(vel,N,t).x,padv.y)--
          padv,LeftSide,darkgreen,Arrow,PenMargin);
