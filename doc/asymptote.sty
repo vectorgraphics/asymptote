@@ -42,7 +42,10 @@
 \newif\ifAsyPDF
 \ifx\pdfoutput\undefined
 \else
+\ifcase\pdfoutput
+\else
 \AsyPDFtrue
+\fi
 \fi
 \ifAsyPDF
 \immediate\write\AsyStream{settings.tex="pdflatex";}%
