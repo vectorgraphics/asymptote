@@ -47,14 +47,13 @@
 \AsyPDFtrue
 \fi
 \fi
-\ifAsyPDF
-\immediate\write\AsyStream{settings.tex="pdflatex";}%
-\fi
 \ifx\XeTeXversion\undefined
 \else
 \AsyPDFtrue
-\immediate\write
-\AsyStream{settings.tex="pdflatex"; settings.texcommand="xelatex";}%
+\immediate\write\AsyStream{settings.texcommand="xelatex";}%
+\fi
+\ifAsyPDF
+\immediate\write\AsyStream{settings.tex="pdflatex";}%
 \fi
 
 \ifinline
