@@ -5,7 +5,6 @@
 
 \newif\ifinline
 \DeclareOption{inline}{\inlinetrue}
-\DeclareOption{pdf}{\ifx\pdfoutput\undefined\def\pdfoutput{1}\fi}
 \ProcessOptions*
 
 % Work around jobname bug in MiKTeX 2.5 and 2.6:
@@ -39,13 +38,22 @@
 \immediate\write\AsyStream{access settings;}%
 \immediate\write\AsyStream{if(!settings.multipleView)}%
 \immediate\write\AsyStream{  settings.batchView=false;}%
+
+\newif\ifAsyPDF
 \ifx\pdfoutput\undefined
-\def\pdfoutput{0}
-\fi
-\ifcase\pdfoutput
 \else
+\AsyPDFtrue
+\fi
+\ifAsyPDF
 \immediate\write\AsyStream{settings.tex="pdflatex";}%
 \fi
+\ifx\XeTeXversion\undefined
+\else
+\AsyPDFtrue
+\immediate\write
+\AsyStream{settings.tex="pdflatex"; settings.texcommand="xelatex";}%
+\fi
+
 \ifinline
 \immediate\write\AsyStream{settings.inlinetex=true;}%
 \immediate\write\AsyStream{deletepreamble();}%
@@ -100,20 +108,20 @@
   \ifinline
     \openin\AsyTestStream=\Jobname_\the\c@asy_.tex
   \else
-    \ifcase\pdfoutput
-      \openin\AsyTestStream=\Jobname_\the\c@asy.eps
-    \else
+    \ifAsyPDF
       \openin\AsyTestStream=\Jobname_\the\c@asy.pdf
+    \else
+      \openin\AsyTestStream=\Jobname_\the\c@asy.eps
     \fi
   \fi
   \ifeof\AsyTestStream
     \ifinline
       \PackageWarning{asymptote}{file \Jobname_\the\c@asy_.tex does not exist}%
     \else
-      \ifcase\pdfoutput
-        \PackageWarning{asymptote}{file \Jobname_\the\c@asy.eps does not exist}%
-      \else
+      \ifAsyPDF
         \PackageWarning{asymptote}{file \Jobname_\the\c@asy.pdf does not exist}%
+      \else
+        \PackageWarning{asymptote}{file \Jobname_\the\c@asy.eps does not exist}%
       \fi
     \fi
     \closein\AsyTestStream%
