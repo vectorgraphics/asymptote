@@ -1013,6 +1013,9 @@ bool intersections(double &s, double &t, std::vector<double>& S,
       qscale=1.0;
     }
       
+//    static size_t maxcount=9;
+//    size_t oldcount=S.size();
+    
     std::vector<double> S1,T1;
     if(intersections(s,t,S1,T1,p1,q1,fuzz,single,depth)) {
       add(s,t,S,T,S1,T1,pscale,qscale,0.0,0.0,p,q,fuzz,single);
@@ -1043,8 +1046,12 @@ bool intersections(double &s, double &t, std::vector<double>& S,
       if(single || depth <= mindepth)
 	return true;
     }
+    
+    size_t count=S.size();
+//    if(lp == 1 && lq == 1 && count > oldcount+maxcount) return true;
+    return count > 0;
   }
-  return S.size() > 0;
+  return false;
 }
 
 // }}}
@@ -1165,8 +1172,8 @@ double orient2d(const pair& a, const pair& b, const pair& c)
   return orient;
 }
 
-// Returns true iff the point z lies in the region bounded by the cyclic
-// nonintersecting polygon p of n vertices.
+// Returns true iff the point z lies strictly inside the region bounded by
+// the cyclic nonintersecting polygon p of n vertices.
 bool insidepolygon(const pair *p, size_t n, pair z)
 {
   int count=0;
@@ -1175,9 +1182,9 @@ bool insidepolygon(const pair *p, size_t n, pair z)
     const pair pi=pj;
     pj=p[i];
     if(pi.gety() <= z.gety() && z.gety() < pj.gety() &&
-       orient2d(pi,pj,z) < 0) ++count;
+       orient2d(pi,pj,z) > 0) ++count;
     else if(pj.gety() <= z.gety() && z.gety() < pi.gety() &&
-	    orient2d(pi,pj,z) > 0) --count;
+	    orient2d(pi,pj,z) <= 0) --count;
   }
   return count != 0;
 }
@@ -1198,10 +1205,12 @@ bool insidehull(const pair& z0, const pair& c0, const pair& c1, const pair& z1,
   }
 }
 
-void checkside(const pair& z0, const pair& c0, const pair& c1,
+// returns true if point is on curve; otherwise compute contribution to 
+// winding number.
+bool checkside(const pair& z0, const pair& c0, const pair& c1,
 	       const pair& z1, const pair& z, Int& count, unsigned depth) 
 {
-  if(depth == 0) return;
+  if(depth == 0) return true;
   --depth;
   if(insidehull(z0,c0,c1,z1,z)) {
     const pair m0=0.5*(z0+c0);
@@ -1210,20 +1219,30 @@ void checkside(const pair& z0, const pair& c0, const pair& c1,
     const pair m3=0.5*(m0+m1);
     const pair m4=0.5*(m1+m2);
     const pair m5=0.5*(m3+m4);
-    checkside(z0,m0,m3,m5,z,count,depth);
-    checkside(m5,m4,m2,z1,z,count,depth);
+    if(checkside(z0,m0,m3,m5,z,count,depth) || 
+       checkside(m5,m4,m2,z1,z,count,depth)) return true;
   } else {
-    if(z0.gety() <= z.gety() && z.gety() < z1.gety() &&
-       orient2d(z0,z1,z) < 0) ++count;
-    else if(z1.gety() <= z.gety() && z.gety() < z0.gety() &&
-	    orient2d(z0,z1,z) > 0) --count;
+    if(z0.gety() <= z.gety() && z.gety() <= z1.gety()) {
+      double side=orient2d(z0,z1,z);
+      if(side == 0) return true;
+      if(z.gety() < z1.gety() && side > 0) ++count;
+    }
+    else if(z1.gety() <= z.gety() && z.gety() <= z0.gety()) {
+      double side=orient2d(z0,z1,z);
+      if(side == 0) return true;
+      if(z.gety() < z0.gety() && side < 0) --count;
+    }
   }
+  return false;
 }
 
 // Return the winding number of the region bounded by the (cyclic) path
-// relative to the point z.
+// relative to the point z, or the largest odd integer if the point lies on
+// the path.
 Int path::windingnumber(const pair& z) const
 {
+  static const Int infinity=Int_MAX+((Int_MAX % 2)-1);;
+  
   if(!cycles)
     reportError("path is not cyclic");
   
@@ -1234,9 +1253,8 @@ Int path::windingnumber(const pair& z) const
   
   Int count=0;
   for(Int i=0; i < n; ++i)
-    checkside(point(i),postcontrol(i),precontrol(i+1),point(i+1),z,count,
-	      maxdepth);
-  
+    if(checkside(point(i),postcontrol(i),precontrol(i+1),point(i+1),z,count,
+		 maxdepth)) return infinity;
   return count;
 }
 
