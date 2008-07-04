@@ -1013,14 +1013,18 @@ bool intersections(double &s, double &t, std::vector<double>& S,
       qscale=1.0;
     }
       
-//    static size_t maxcount=9;
-//    size_t oldcount=S.size();
+    bool Short=lp == 1 && lq == 1;
+    
+    static size_t maxcount=9;
+    size_t count=0;
     
     std::vector<double> S1,T1;
     if(intersections(s,t,S1,T1,p1,q1,fuzz,single,depth)) {
       add(s,t,S,T,S1,T1,pscale,qscale,0.0,0.0,p,q,fuzz,single);
       if(single || depth <= mindepth)
 	return true;
+      count += S1.size();
+      if(Short && count > maxcount) return true;
     }
     
     S1.clear();
@@ -1029,6 +1033,8 @@ bool intersections(double &s, double &t, std::vector<double>& S,
       add(s,t,S,T,S1,T1,pscale,qscale,0.0,qoffset,p,q,fuzz,single);
       if(single || depth <= mindepth)
 	return true;
+      count += S1.size();
+      if(Short && count > maxcount) return true;
     }
     
     S1.clear();
@@ -1037,6 +1043,8 @@ bool intersections(double &s, double &t, std::vector<double>& S,
       add(s,t,S,T,S1,T1,pscale,qscale,poffset,0.0,p,q,fuzz,single);
       if(single || depth <= mindepth)
 	return true;
+      count += S1.size();
+      if(Short && count > maxcount) return true;
     }
     
     S1.clear();
@@ -1045,11 +1053,11 @@ bool intersections(double &s, double &t, std::vector<double>& S,
       add(s,t,S,T,S1,T1,pscale,qscale,poffset,qoffset,p,q,fuzz,single);
       if(single || depth <= mindepth)
 	return true;
+      count += S1.size();
+      if(Short && count > maxcount) return true;
     }
     
-    size_t count=S.size();
-//    if(lp == 1 && lq == 1 && count > oldcount+maxcount) return true;
-    return count > 0;
+    return S.size() > 0;
   }
   return false;
 }

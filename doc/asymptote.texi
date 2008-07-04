@@ -2187,10 +2187,10 @@ intersect, return a real array of length 0.
 
 @cindex @code{intersections}
 @item real[][] intersections(path p, path q, real fuzz=0);
-Return all intersection times of paths @code{p} and @code{q} as a sorted array
-of real arrays of length 2 (@pxref{sort}).
-The computations are performed to the absolute error specified by @code{fuzz}, 
-or, if @code{fuzz} is 0, to machine precision.
+Return all (unless there are infinitely many) intersection times of
+paths @code{p} and @code{q} as a sorted array of real arrays of length 2
+(@pxref{sort}). The computations are performed to the absolute error
+specified by @code{fuzz}, or, if @code{fuzz} is 0, to machine precision.
 
 @cindex @code{intersections}
 @item real[] intersections(path p, pair a, pair b, real fuzz=0);
@@ -2200,23 +2200,23 @@ as a sorted array. The computations are performed to the absolute error
 specified by @code{fuzz}, or, if @code{fuzz} is 0, to machine precision. 
 
 @cindex @code{times}
-@item real[] times(path g, real x)
-returns all intersection times of path @code{g} with the vertical line
+@item real[] times(path p, real x)
+returns all intersection times of path @code{p} with the vertical line
 through @code{(x,0)}.
 
 @cindex @code{times}
-@item real[] times(path g, explicit pair z)
-returns all intersection times of path @code{g} with the horizontal line
+@item real[] times(path p, explicit pair z)
+returns all intersection times of path @code{p} with the horizontal line
 through @code{(0,z.y)}.
 
 @cindex @code{mintimes}
-@item real[] mintimes(path g)
-returns an array of length 2 containing times at which path @code{g}
+@item real[] mintimes(path p)
+returns an array of length 2 containing times at which path @code{p}
 reaches its minimal horizontal and vertical extents, respectively.
 
 @cindex @code{maxtimes}
-@item real[] maxtimes(path g)
-returns an array of length 2 containing the times at which path @code{g}
+@item real[] maxtimes(path p)
+returns an array of length 2 containing the times at which path @code{p}
 reaches its maximal horizontal and vertical extents, respectively.
 
 @cindex @code{intersectionpoint}
@@ -2272,19 +2272,21 @@ returns the pair (left,bottom) for the path bounding box of path @code{p}.
 returns the pair (right,top) for the path bounding box of path @code{p}.
 
 @cindex @code{windingnumber}
+@cindex @code{undefined}
 @item int windingnumber(path p, pair z);
-returns the winding number of the cyclic path @code{g} relative to the point
+returns the winding number of the cyclic path @code{p} relative to the point
 @code{z}. The winding number is positive if the path encircles @code{z} in the
-counterclockwise direction.
+counterclockwise direction. If @code{z} lies on @code{p} the constant
+@code{undefined} (defined to be the largest odd integer) is returned.
 
 @cindex @code{inside}
 @item bool inside(path p, pair z, pen fillrule=currentpen);
-returns @code{true} iff the point @code{z} is inside the region bounded
-by the cyclic path @code{p} according to the fill rule @code{fillrule}
-(@pxref{fillrule}). 
+returns @code{true} iff the point @code{z} is inside or on the edge of
+the region bounded by the cyclic path @code{p} according to the fill
+rule @code{fillrule} (@pxref{fillrule}). 
 
 @cindex @code{inside}
-@item bool inside(path p, path q, pen fillrule=currentpen);
+@item int inside(path p, path q, pen fillrule=currentpen);
 returns @code{1} if the cyclic path @code{p} strictly contains @code{q}
 according to the fill rule @code{fillrule} (@pxref{fillrule}), @code{-1}
 if the cyclic path @code{q} strictly contains @code{p}, and @code{0}

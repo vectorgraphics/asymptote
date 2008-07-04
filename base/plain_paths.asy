@@ -311,14 +311,14 @@ int inside(path p, path q, pen fillrule=currentpen)
 }
 
 // Return all intersection times of path g with the vertical line through (x,0).
-real[] times(path g, real x)
+real[] times(path p, real x)
 {
-  return intersections(g,(x,0),(x,1));
+  return intersections(p,(x,0),(x,1));
 }
 
 // Return all intersection times of path g with the horizontal line through
 // (0,z.y).
-real[] times(path g, explicit pair z)
+real[] times(path p, explicit pair z)
 {
-  return intersections(g,(0,z.y),(1,z.y));
+  return intersections(p,(0,z.y),(1,z.y));
 }
