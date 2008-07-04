@@ -613,23 +613,47 @@ struct surface {
   }
 }
 
-// A constructor for a (possibly) nonconvex cyclic path that returns an array of
-// one or two surfaces in the XY plane.
-surface[] surface(explicit path g)
+// A constructor for a (possibly) nonconvex cyclic path of length 4 that
+// returns an array of one or two surfaces in a given plane.
+surface[] surface(explicit path g, triple plane(pair)=XYplane)
 {
   if(!cyclic(g) || length(g) != 4)
     abortcyclic();
   for(int i=0; i < 4; ++i) {
     int w=windingnumber(subpath(g,i+1,i+3)--cycle,point(g,i));
     if(w != 0 && w != undefined) {
-      return new surface[] {
-	surface(path3(subpath(g,i,i+2)--0.5*(point(g,i)+point(g,i+2))--
-		      cycle)),
-	  surface(path3(subpath(g,i-2,i)--0.5*(point(g,i-2)+point(g,i))--
-			cycle))};
+      path h=point(g,i)--point(g,i+2);
+      path s=subpath(g,i,i+4)&cycle;
+      real[][] T=intersections(h,s);
+      pair z=point(g,i);
+      pair w=point(g,i+2);
+      path c,d;
+      if(T.length > 2) {
+	real t=T[1][1];
+	pair m=0.5*(point(s,t)+w);
+	path close(path p) {
+	  int n=length(p);
+	  if(n == 4) return p&cycle;
+	  if(n == 3) return p--cycle;
+	  if(n == 2) return p--m--cycle;
+	  return g;
+	}
+	if(t < 2) {
+	  c=close(subpath(s,t,2));
+	  d=close(subpath(s,-2,t));
+	} else {
+	  c=close(subpath(s,t-4,2));
+	  d=close(subpath(s,2,t));
+	}
+      } else {
+	pair m=0.5*(z+w);
+	c=subpath(g,i-2,i)--m--cycle;
+	d=subpath(g,i,i+2)--m--cycle;
+      }
+      return new surface[] {surface(path3(c,plane)),surface(path3(d,plane))};
     }
   }
-  return new surface[] {surface(path3(g))};
+  return new surface[] {surface(path3(g,plane))};
 }
 
 surface[] surface(explicit guide g)

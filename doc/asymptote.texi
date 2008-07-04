@@ -7195,7 +7195,7 @@ Here is an example showing three orthogonal intersecting planes:
 @verbatiminclude planes.asy
 @image{planes}
 
-Here is an example showing all five 3D path connectors:
+Here is an example showing all five path3 connectors:
 @verbatiminclude join3.asy
 @image{join3}
 
