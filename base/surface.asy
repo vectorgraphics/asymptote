@@ -614,7 +614,7 @@ struct surface {
 }
 
 // A constructor for a (possibly) nonconvex cyclic path that returns an array of
-// one or two surfaces in the XY plance.
+// one or two surfaces in the XY plane.
 surface[] surface(explicit path g)
 {
   if(!cyclic(g) || length(g) != 4)

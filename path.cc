@@ -1180,6 +1180,10 @@ double orient2d(const pair& a, const pair& b, const pair& c)
   return orient;
 }
 
+inline bool inrange(double x0, double x1, double x) {
+  return (x0 <= x && x <= x1) || (x1 <= x && x <= x0);
+}
+
 // Returns true iff the point z lies strictly inside the region bounded by
 // the cyclic nonintersecting polygon p of n vertices.
 bool insidepolygon(const pair *p, size_t n, pair z)
@@ -1191,8 +1195,11 @@ bool insidepolygon(const pair *p, size_t n, pair z)
     pj=p[i];
     if(pi.gety() <= z.gety() && z.gety() < pj.gety() &&
        orient2d(pi,pj,z) > 0) ++count;
-    else if(pj.gety() <= z.gety() && z.gety() < pi.gety() &&
-	    orient2d(pi,pj,z) <= 0) --count;
+    else if(pj.gety() <= z.gety() && z.gety() < pi.gety()) {
+      double side=orient2d(pi,pj,z);
+      if(side < 0 || (side == 0.0 && inrange(pi.getx(),pj.getx(),z.getx())))
+	--count;
+    }
   }
   return count != 0;
 }
@@ -1232,12 +1239,14 @@ bool checkside(const pair& z0, const pair& c0, const pair& c1,
   } else {
     if(z0.gety() <= z.gety() && z.gety() <= z1.gety()) {
       double side=orient2d(z0,z1,z);
-      if(side == 0) return true;
+      if(side == 0.0 && inrange(z0.getx(),z1.getx(),z.getx()))
+	return true;
       if(z.gety() < z1.gety() && side > 0) ++count;
     }
     else if(z1.gety() <= z.gety() && z.gety() <= z0.gety()) {
       double side=orient2d(z0,z1,z);
-      if(side == 0) return true;
+      if(side == 0.0 && inrange(z0.getx(),z1.getx(),z.getx()))
+	return true;
       if(z.gety() < z0.gety() && side < 0) --count;
     }
   }
