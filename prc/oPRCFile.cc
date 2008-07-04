@@ -70,7 +70,7 @@ void PRCline::writeTopologicalContext(PRCbitStream &out)
       << KEPRCExtendTypeNone // extend info
       << true // is 3d
       << false // no transformation
-      << 0.0 << static_cast<double>(numberOfPoints) // parameterization interval
+      << 0.0 << static_cast<double>(numberOfPoints-1) // parameterization interval
       << 1.0 // no reparameterization
       << 0.0 // no reparameterization
       << (uint32_t) numberOfPoints;
