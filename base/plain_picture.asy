@@ -544,7 +544,7 @@ struct picture {
   }
 
   void size(real x, real y=x, bool keepAspect=this.keepAspect) {
-    uptodate(false);
+    if(!empty()) uptodate(false);
     xsize=x;
     ysize=y;
     this.keepAspect=keepAspect;
