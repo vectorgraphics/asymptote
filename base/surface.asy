@@ -4,6 +4,8 @@ import graph_settings;
 
 int maxdepth=16;
 
+private void abortcyclic() {abort("cyclic path of length 4 expected");}
+
 struct surface {
   triple[][] P=new triple[4][4];
 
@@ -572,6 +574,8 @@ struct surface {
   }
 
   void operator init(path3 external, triple[] internal=new triple[]) {
+    if(!cyclic(external) || length(external) != 4)
+      abortcyclic();
     bounds.empty=true;
     bounds3.empty=true;
     if(internal.length == 0) {
@@ -607,6 +611,30 @@ struct surface {
     P[2][0]=postcontrol(external,3);
     P[2][1]=internal[3];
   }
+}
+
+// A constructor for a (possibly) nonconvex cyclic path that returns an array of
+// one or two surfaces in the XY plance.
+surface[] surface(explicit path g)
+{
+  if(!cyclic(g) || length(g) != 4)
+    abortcyclic();
+  for(int i=0; i < 4; ++i) {
+    int w=windingnumber(subpath(g,i+1,i+3)--cycle,point(g,i));
+    if(w != 0 && w != undefined) {
+      return new surface[] {
+	surface(path3(subpath(g,i,i+2)--0.5*(point(g,i)+point(g,i+2))--
+		      cycle)),
+	  surface(path3(subpath(g,i-2,i)--0.5*(point(g,i-2)+point(g,i))--
+			cycle))};
+    }
+  }
+  return new surface[] {surface(path3(g))};
+}
+
+surface[] surface(explicit guide g)
+{
+  return surface((path) g);
 }
 
 surface operator * (transform3 t, surface s)
@@ -737,9 +765,23 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
   }
 }
 
-void draw(frame f, surface S, pen p=currentpen)
+void draw(picture pic=currentpicture, surface[] s, int nu=nmesh, int nv=nu,
+          pen surfacepen=lightgray, pen meshpen=nullpen,
+          light light=currentlight, projection P=currentprojection)
 {
-  draw(f,S.P,p);
+  for(int i=0; i < s.length; ++i)
+    draw(pic,s[i],nu,nv,surfacepen,meshpen,light,P);
+}
+
+void draw(frame f, surface s, pen p=currentpen)
+{
+  draw(f,s.P,p);
+}
+
+void draw(frame f, surface[] s, pen p=currentpen)
+{
+  for(int i=0; i < s.length; ++i)
+    draw(f,s[i].P,p);
 }
 
 surface[] extrude(path g, triple elongation=Z)
