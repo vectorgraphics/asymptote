@@ -63,16 +63,17 @@ revision = `svn info 2>/dev/null | grep "Revision" | sed -e "s/Revision: \(.*\)/
 last = `cat svnrevision.cc | sed -e 's/.*\"\(.*\)\";/\\1/'`
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
+
 asy: $(GCLIB) $(FILES:=.o) prc
 	if test "$(revision)" != "$(last)"; then \
 	  echo $(REVISION)\"$(revision)\"\; > svnrevision.cc; \
-   	  $(CXX) $(OPTS) $(INCL) -o svnrevision.o -c svnrevision.cc; \
-	  echo string VERSION=\"@VERSION@$(revision)\"\; > base/version.asy; \
-	  echo @set VERSION @VERSION@$(revision) > doc/version.texi; \
-	  echo @set Datadir @datadir@ >> doc/version.texi; \
-	  echo #!/usr/bin/env python > GUI/xasyVersion.py; \
-	  echo xasyVersion = "@VERSION@$(revision)" >> GUI/xasyVersion.py; \
+	  $(CXX) $(OPTS) $(INCL) -o svnrevision.o -c svnrevision.cc; \
 	fi
+	echo string VERSION=\"@VERSION@$(revision)\"\; > base/version.asy
+	echo @set VERSION @VERSION@$(revision) > doc/version.texi
+	echo @set Datadir @datadir@ >> doc/version.texi
+	echo "#!/usr/bin/env python" > GUI/xasyVersion.py
+	echo xasyVersion = \"@VERSION@$(revision)\" >> GUI/xasyVersion.py
 	ln -sf GUI/xasy.py $(XNAME)
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) $(LIBS)
 
