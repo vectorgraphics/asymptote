@@ -23,5 +23,3 @@ transparency support in PIL for xasy (this supercedes an obsolete patch
 of the same name included in Asymptote 1.36, which resulted in very slow
 rendering). Application of this patch is strongly recommended.
 
-The file triangle.patch fixes some C++ warnings in Jonathan Shewchuk's
-triangle mesh generator.

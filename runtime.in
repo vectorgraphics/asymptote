@@ -101,16 +101,7 @@ stringarray2* => stringArray2()
 #include "process.h"
 #include "arrayop.h"
 #include "predicates.h"
-  
-#ifdef HAVE_TRIANGLE  
-#define REAL double
-#define VOID int
-#define ANSI_DECLARATORS
-#define TRILIBRARY
-#include "triangle.h"
-#else
 #include "Delaunay.h"
-#endif   
    
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
@@ -4538,49 +4529,8 @@ pairarray* :pairArrayFFT(pairarray *a, Int sign=1)
 Intarray2 *triangulate(pairarray *z)
 {
   size_t nv=checkArray(z);
-
-#ifdef HAVE_TRIANGLE  
-  struct triangulateio in, out;
-
-  in.numberofpoints = nv;
-  in.pointlist=new double[2*nv];
-
-  double *p=in.pointlist;
-  for(size_t i=0; i < nv; ++i) {
-    pair w=read<pair>(z,i);
-    *(p++)=w.getx();
-    *(p++)=w.gety();
-  }
-  
-  in.numberofpointattributes = 0;
-  in.pointattributelist = NULL;
-  in.pointmarkerlist = NULL;
-  in.numberofsegments = 0;
-  in.numberofholes = 0;
-  in.numberofregions = 0;
-  in.regionlist = NULL;
-
-  out.trianglelist = NULL;
-
-  triangulate("zBNQ", &in, &out, NULL);
-
-  delete[] in.pointlist;
-
-  size_t nt=(size_t) out.numberoftriangles;
-  array *t=new array(nt);
-  int *k=out.trianglelist;
-  for(size_t i=0; i < nt; ++i) {
-    array *ti=new array(3);
-    (*t)[i]=ti;
-    (*ti)[0]=*(k++);
-    (*ti)[1]=*(k++);
-    (*ti)[2]=*(k++);
-  }
-   
-  free(out.trianglelist);
-  return t;
-#else  
-// Call Gilles Dumoulin's port of Paul Bourke's triangulation code.
+// Call robust version of Gilles Dumoulin's port of Paul Bourke's
+// triangulation code.
 
   XYZ *pxyz=new XYZ[nv+3];
   ITRIANGLE *V=new ITRIANGLE[4*nv];
@@ -4609,7 +4559,6 @@ Intarray2 *triangulate(pairarray *z)
   delete[] V;
   delete[] pxyz;
   return t;
-#endif  
 }
 
 
