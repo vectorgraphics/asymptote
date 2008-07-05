@@ -3254,7 +3254,7 @@ real cubiclength(triple z0, triple z0p, triple z1m, triple z1, real goal)
 
 string VERSION()
 {
-  return VERSION;
+  return string(VERSION)+string(SVN_REVISION);
 }
 
 void atupdate(callable *f)

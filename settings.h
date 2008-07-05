@@ -89,4 +89,7 @@ string texprogram();
 const double inches=72;
 const double cm=inches/2.54;
 }
+
+extern const char *SVN_REVISION;
+
 #endif

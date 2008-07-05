@@ -356,7 +356,7 @@ public:
 };
 
 void printGreeting() {
-    cout << "Welcome to " << PROGRAM << " version " << VERSION
+    cout << "Welcome to " << PROGRAM << " version " << VERSION << SVN_REVISION
 	 << " (to view the manual, type help)" << endl;
 }
 

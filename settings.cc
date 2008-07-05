@@ -713,7 +713,7 @@ void addOption(option *o) {
 
 void version()
 {
-  cerr << PROGRAM << " version " << VERSION
+  cerr << PROGRAM << " version " << VERSION << SVN_REVISION
        << " [(C) 2004 Andy Hammerlindl, John C. Bowman, Tom Prince]" 
        << endl;
 }
