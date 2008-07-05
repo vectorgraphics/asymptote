@@ -77,7 +77,7 @@ asy: $(GCLIB) $(FILES:=.o) prc
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) $(LIBS)
 
 svnrevision.cc:
-	echo $(REVISION)\"$(revision)\"\; > svnrevision.cc;
+	echo $(REVISION)\"\"\; > svnrevision.cc;
 
 msdos: $(GCLIB) $(FILES:=.o) asy.o
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) asy.o $(LIBS) -s -static
