@@ -1,5 +1,6 @@
-// Gilles Dumoulin's C++ port of Paul Bourke's triangulation code available
-// from http://astronomy.swin.edu.au/~pbourke/papers/triangulate
+// Robust version of Gilles Dumoulin's C++ port of Paul Bourke's
+// triangulation code available from
+// http://astronomy.swin.edu.au/~pbourke/papers/triangulate
 // Used with permission of Paul Bourke.
 // Segmentation fault and numerical robustness improvements by John C. Bowman
 
@@ -72,9 +73,6 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
   }
   double dx = xmax - xmin;
   double dy = ymax - ymin;
-  double dmax = (dx > dy) ? dx : dy;
-  double xmid = 0.5*(xmax + xmin);
-  double ymid = 0.5*(ymax + ymin);
 /*
   Set up the supertriangle.
   This is a triangle which encompasses all the sample points.
@@ -82,13 +80,15 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
   vertex list. The supertriangle is the first triangle in
   the triangle list.
 */
-  double Dmax=20*dmax;
-  pxyz[nv+0].p[0] = xmid - Dmax;
-  pxyz[nv+0].p[1] = ymid - dmax;
-  pxyz[nv+1].p[0] = xmid;
-  pxyz[nv+1].p[1] = ymid + Dmax;
-  pxyz[nv+2].p[0] = xmid + Dmax;
-  pxyz[nv+2].p[1] = ymid - dmax;
+  static const double margin=0.01;
+  double xmargin=margin*dx;
+  double ymargin=margin*dy;
+  pxyz[nv+0].p[0] = xmin-xmargin;
+  pxyz[nv+0].p[1] = ymin-ymargin;
+  pxyz[nv+1].p[0] = xmin-xmargin;
+  pxyz[nv+1].p[1] = ymax+ymargin+dx;
+  pxyz[nv+2].p[0] = xmax+xmargin+dy;
+  pxyz[nv+2].p[1] = ymin-ymargin;
   v->p1 = nv;
   v->p2 = nv+1;
   v->p3 = nv+2;
