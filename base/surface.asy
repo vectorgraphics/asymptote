@@ -1,6 +1,7 @@
 import three;
 import light;
 import graph_settings;
+import bezulate;
 
 int maxdepth=16;
 
@@ -641,7 +642,6 @@ surface[] surface(explicit path g, triple plane(pair)=XYplane)
 	  c=close(subpath(g,i+s,i+4),z);
 	  d=close(subpath(g,i,i+s),z);
 	}
-
       } else {
 	pair m=0.5*(z+w);
 	c=subpath(g,i-2,i)--m--cycle;
@@ -795,14 +795,6 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
   }
 }
 
-void draw(picture pic=currentpicture, surface[] s, int nu=nmesh, int nv=nu,
-          pen surfacepen=lightgray, pen meshpen=nullpen,
-          light light=currentlight, projection P=currentprojection)
-{
-  for(int i=0; i < s.length; ++i)
-    draw(pic,s[i],nu,nv,surfacepen,meshpen,light,P);
-}
-
 void draw(frame f, surface s, pen p=currentpen)
 {
   draw(f,s.P,p);
@@ -811,7 +803,7 @@ void draw(frame f, surface s, pen p=currentpen)
 void draw(frame f, surface[] s, pen p=currentpen)
 {
   for(int i=0; i < s.length; ++i)
-    draw(f,s[i].P,p);
+    draw(f,s[i],p);
 }
 
 surface[] extrude(path g, triple elongation=Z)
@@ -822,3 +814,10 @@ surface[] extrude(path g, triple elongation=Z)
       return surface(subpath(G,i,i+1)--subpath(G2,i+1,i)--cycle);
     },length(G));
 }
+
+void label3(frame f, string s, transform t=identity(), pair position=0,
+	    pair align=0, pen p=currentpen)
+{
+  draw(f,surface(bezulate(texpath(s,t,position,align,p))));
+}
+

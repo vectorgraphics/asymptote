@@ -2846,15 +2846,6 @@ projection perspective(string s) {
   return perspective(v.camera,v.up,v.target);
 }
 
-// TODO: Replace outline font with Bezier surface patch.
-void label3(frame f, string s, transform t=identity(), pair position=0,
-	    pair align=0, pen p=currentpen) {
-  path[] G=texpath(s,t,position,align,p);
-  for(path g : G)
-    draw(f,path3(g),p);
-}
-
-
 exitfcn currentexitfunction=atexit();
 
 void exitfunction()
