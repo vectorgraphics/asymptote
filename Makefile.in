@@ -25,9 +25,9 @@ FILES = $(CAMP) runtime env genv main stm dec errormsg \
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc keywords.cc \
 	asy-keywords.el base/asy-keywords.el
-CLEAN = camp.output asy.list svnrevision.cc doc/version.texi GUI/xasyVersion.py
 NAME = asy
 XNAME = x$(NAME)
+CLEAN = camp.output asy.list svnrevision.cc doc/version.texi GUI/xasyVersion.py $(XNAME)
 EXTRA = asy-mode.el asy-keywords.el asy-init.el asy.vim asymptote.py
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
 LATEXFILES = asymptote.sty asycolors.sty
@@ -81,6 +81,11 @@ svnrevision.cc:
 	echo $(REVISION)\"\"\; > svnrevision.cc;
 
 msdos: $(GCLIB) $(FILES:=.o) prc asy.o
+	echo string VERSION=\"@VERSION@\"\; > base/version.asy
+	echo @set VERSION @VERSION@ > doc/version.texi
+	echo @set Datadir @datadir@ >> doc/version.texi
+	echo "#!/usr/bin/env python" > GUI/xasyVersion.py
+	echo xasyVersion = \"@VERSION@\" >> GUI/xasyVersion.py
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) asy.o $(LIBS) -s -static
 
 asy.o:	asy.rc asy.ico Makefile
