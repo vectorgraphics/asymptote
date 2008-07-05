@@ -620,31 +620,28 @@ surface[] surface(explicit path g, triple plane(pair)=XYplane)
   if(!cyclic(g) || length(g) != 4)
     abortcyclic();
   for(int i=0; i < 4; ++i) {
-    int w=windingnumber(subpath(g,i+1,i+3)--cycle,point(g,i));
+    pair z=point(g,i);
+    int w=windingnumber(subpath(g,i+1,i+3)--cycle,z);
     if(w != 0 && w != undefined) {
-      path h=point(g,i)--point(g,i+2);
-      path s=subpath(g,i,i+4)&cycle;
-      real[][] T=intersections(h,s);
-      pair z=point(g,i);
       pair w=point(g,i+2);
+      real[][] T=intersections(z--w,g);
       path c,d;
       if(T.length > 2) {
 	real t=T[1][1];
-	pair m=0.5*(point(s,t)+w);
-	path close(path p) {
-	  int n=length(p);
-	  if(n == 4) return p&cycle;
-	  if(n == 3) return p--cycle;
-	  if(n == 2) return p--m--cycle;
-	  return g;
+	real s=t-i;
+	if(s < -1) s += 4;
+	else if(s > 3) s -= 4;
+	path close(path p, pair m) {
+	  return length(p) == 3 ? p--cycle : p--0.5*(m+point(g,t))--cycle;
 	}
-	if(t < 2) {
-	  c=close(subpath(s,t,2));
-	  d=close(subpath(s,-2,t));
+	if(s < 1) {
+	  c=close(subpath(g,i+s,i+2),w);
+	  d=close(subpath(g,i-2,i+s),w);
 	} else {
-	  c=close(subpath(s,t-4,2));
-	  d=close(subpath(s,2,t));
+	  c=close(subpath(g,i+s,i+4),z);
+	  d=close(subpath(g,i,i+s),z);
 	}
+
       } else {
 	pair m=0.5*(z+w);
 	c=subpath(g,i-2,i)--m--cycle;
@@ -659,6 +656,15 @@ surface[] surface(explicit path g, triple plane(pair)=XYplane)
 surface[] surface(explicit guide g)
 {
   return surface((path) g);
+}
+
+surface[] surface(explicit path[] g, triple plane(pair)=XYplane)
+{
+  surface[] s;
+  for(int i=0; i < g.length; ++i) {
+    s.append(surface(g[i],plane));
+  }
+  return s;
 }
 
 surface operator * (transform3 t, surface s)
