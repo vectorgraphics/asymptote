@@ -122,8 +122,8 @@ void resetName()
   currentName = "";
 }
 
-uint32_t layer_index = -1;
-uint32_t index_of_line_style = -1;
+uint32_t layer_index = m1;
+uint32_t index_of_line_style = m1;
 uint32_t behaviour_bit_field = 1;
 
 void writeGraphics(PRCbitStream &pbs,uint32_t l,uint32_t i,uint32_t b,bool force)
@@ -143,8 +143,8 @@ void writeGraphics(PRCbitStream &pbs,uint32_t l,uint32_t i,uint32_t b,bool force
 
 void resetGraphics()
 {
-  layer_index = -1;
-  index_of_line_style = -1;
+  layer_index = m1;
+  index_of_line_style = m1;
   behaviour_bit_field = 1;
 }
 

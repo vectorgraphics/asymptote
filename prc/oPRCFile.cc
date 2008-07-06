@@ -27,7 +27,7 @@ void PRCline::writeRepresentationItem(PRCbitStream &out,uint32_t index)
 {
   out << (uint32_t)(PRC_TYPE_RI_Curve);
   ContentPRCBase(&EMPTY_ATTRIBUTES,"line",true,makeCADID(),0,makePRCID()).write(out);
-  writeGraphics(out,-1,parent->getColourIndex(colour),1);
+  writeGraphics(out,m1,parent->getColourIndex(colour),1);
   out << (uint32_t)0 // index_local_coordinate_system+1
       << (uint32_t)0; // index_tessellation
 
@@ -67,13 +67,13 @@ void PRCline::writeTopologicalContext(PRCbitStream &out)
   out << false // not already stored
       << (uint32_t)PRC_TYPE_CRV_PolyLine
       << false // base topology: no base information
-      << KEPRCExtendTypeNone // extend info
+      << (uint32_t)KEPRCExtendTypeNone // extend info
       << true // is 3d
       << false // no transformation
       << 0.0 << static_cast<double>(numberOfPoints-1) // parameterization interval
       << 1.0 // no reparameterization
       << 0.0 // no reparameterization
-      << (uint32_t) numberOfPoints;
+      << (uint32_t)numberOfPoints;
 
   // points
   for(uint32_t i = 0; i < numberOfPoints; ++i)
@@ -96,7 +96,7 @@ void PRCcurve::writeRepresentationItem(PRCbitStream &out,uint32_t index)
 {
   out << (uint32_t)(PRC_TYPE_RI_Curve);
   ContentPRCBase(&EMPTY_ATTRIBUTES,"curve",true,makeCADID(),0,makePRCID()).write(out);
-  writeGraphics(out,-1,parent->getColourIndex(colour),1);
+  writeGraphics(out,m1,parent->getColourIndex(colour),1);
   out << (uint32_t)0 // index_local_coordinate_system+1
       << (uint32_t)0; // index_tessellation
 
@@ -136,7 +136,7 @@ void PRCcurve::writeTopologicalContext(PRCbitStream &out)
   out << false // not already stored
       << (uint32_t)PRC_TYPE_CRV_NURBS
       << false // base topology: no base information
-      << KEPRCExtendTypeNone // extend info
+      << (uint32_t)KEPRCExtendTypeNone // extend info
       << true // is 3D
       << isRational
       << (uint32_t)degree // degree
@@ -227,7 +227,7 @@ void PRCsurface::writeTopologicalContext(PRCbitStream &out)
   out << false // not already stored
       << (uint32_t)PRC_TYPE_SURF_NURBS
       << false // base topology: no base information
-      << KEPRCExtendTypeNone // Extend Info
+      << (uint32_t)KEPRCExtendTypeNone // Extend Info
       << isRational // is rational
       << (uint32_t)degreeU // degree in u
       << (uint32_t)degreeV // degree in v
@@ -287,7 +287,7 @@ void PRCCompressedSection::prepare()
 uint32_t PRCCompressedSection::getSize()
 {
   if(!prepared)
-    return -1;
+    return m1;
   else
     return out.getSize();
 }
@@ -326,7 +326,7 @@ void PRCGlobalsSection::writeData()
       << 0.0 // phase
       << false; // is real length
 
-  out << (uint32_t) parent->colourMap.size(); // number of styles
+  out << (uint32_t)parent->colourMap.size(); // number of styles
   uint32_t index = 0;
   for(std::vector<RGBAColour>::iterator i = parent->colourMap.begin(); i != parent->colourMap.end(); i++, ++index)
   {
@@ -360,7 +360,7 @@ void PRCTreeSection::writeData()
       // part definitions
   out << (uint32_t)(PRC_TYPE_ASM_PartDefinition);
   ContentPRCBase(&EMPTY_ATTRIBUTES,"",true,makeCADID(),0,makePRCID()).write(out);
-  writeGraphics(out,-1,-1,1,true);
+  writeGraphics(out,m1,m1,1,true);
   Extent3d(Point3d(1e20,1e20,1e20),Point3d(-1e20,-1e20,-1e20)).write(out);
 
   out << (uint32_t)parent->fileEntities.size(); // number of representation items
@@ -398,7 +398,7 @@ void PRCTreeSection::writeData()
   Attributes attrs(1,&attr);
   ContentPRCBase(&attrs,"Unknown",true,makeCADID(),0,makePRCID()).write(out);
 
-  writeGraphics(out,-1,-1,1,true);
+  writeGraphics(out,m1,m1,1,true);
   out << (uint32_t)1 // index_part+1
       << (uint32_t)0 // index_prototype+1
       << (uint32_t)0 // index_external_data+1
@@ -637,7 +637,7 @@ uint32_t PRCHeader::getSize()
 bool oPRCFile::add(PRCentity *p)
 {
   fileEntities.push_back(p);
-  if(getColourIndex(p->colour) == static_cast<uint32_t>(-1))
+  if(getColourIndex(p->colour) == m1)
   {
     colourMap.push_back(p->colour);
   }
@@ -729,7 +729,7 @@ uint32_t oPRCFile::getColourIndex(const RGBAColour &c)
     if(colourMap[i] == c)
       return i;
   }
-  return -1;
+  return m1;
 }
 
 uint32_t oPRCFile::getSize()

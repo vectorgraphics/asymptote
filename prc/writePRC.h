@@ -160,7 +160,9 @@ void resetName();
 extern uint32_t layer_index;
 extern uint32_t index_of_line_style;
 extern uint32_t behaviour_bit_field;
-void writeGraphics(PRCbitStream&,uint32_t=-1,uint32_t=-1,uint32_t=1,bool=false);
+static const uint32_t m1=(uint32_t)-1;
+
+void writeGraphics(PRCbitStream&,uint32_t=m1,uint32_t=m1,uint32_t=1,bool=false);
 void resetGraphics();
 
 void resetGraphicsAndName();
