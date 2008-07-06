@@ -1,0 +1,32 @@
+diff -ru gc-7.1/include/private/gc_priv.h gc-7.1J/include/private/gc_priv.h
+--- gc-7.1/include/private/gc_priv.h	Wed Feb  6 17:23:39 2008
++++ gc-7.1J/include/private/gc_priv.h	Sun Jul  6 11:13:37 2008
+@@ -72,7 +72,7 @@
+ #   include "gc_hdrs.h"
+ # endif
+ 
+-#if __GNUC__ >= 3
++#if __GNUC__ >= 3 && !defined(FREEBSD)
+ # define EXPECT(expr, outcome) __builtin_expect(expr,outcome)
+   /* Equivalent to (expr), but predict that usually (expr)==outcome. */
+ # define INLINE inline
+diff -ru gc-7.1/mach_dep.c gc-7.1J/mach_dep.c
+--- gc-7.1/mach_dep.c	Mon Aug 13 15:49:11 2007
++++ gc-7.1J/mach_dep.c	Sun Jul  6 10:55:38 2008
+@@ -160,6 +160,7 @@
+ #endif
+ 
+ #if !defined(HAVE_PUSH_REGS) && defined(UNIX_LIKE)
++# include <signal.h>
+ # include <ucontext.h>
+ #endif
+ 
+@@ -174,7 +175,7 @@
+ 
+ #   if defined(HAVE_PUSH_REGS)
+       GC_push_regs();
+-#   elif defined(UNIX_LIKE) && !defined(DARWIN) && !defined(ARM32) && \
++#   elif defined(UNIX_LIKE) && !defined(FREEBSD) && !defined(DARWIN) && !defined(ARM32) && \
+ 	 !defined(HURD)
+       /* Older versions of Darwin seem to lack getcontext(). */
+       /* ARM Linux often doesn't support a real getcontext(). */

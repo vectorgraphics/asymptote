@@ -104,6 +104,9 @@ $(GCLIB): $(GC).tar.gz
 	if test "$(GC)" = "gc-7.0"; then \
 	  cd $(GC)/include/private; patch < ../../../patches/gc-7.0nomem.patch;\
 	fi
+	if test "$(GC)" = "gc-7.1"; then \
+	  cd $(GC); patch -p1 < ../patches/gc-7.1FreeBSD.patch;\
+	fi
 	cd $(GC); \
 	./configure $(GCOPTIONS); \
 	$(MAKE) check
