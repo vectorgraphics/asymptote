@@ -5746,9 +5746,9 @@ returns @code{true} iff the path @code{p} is straight.
 returns a diagonal matrix with diagonal entries given by a.
 
 @cindex @code{quarticroots}
-@item @code{pair[] quarticroots(real a, real b, real c, real d);}
+@item @code{pair[] quarticroots(real a, real b, real c, real d, real e);}
 This routine returns the four complex roots of the quartic equation
-@math{ax^4+bx^3+cx^2+dx=0}.
+@math{ax^4+bx^3+cx^2+dx+e=0}.
 
 @end table
 
