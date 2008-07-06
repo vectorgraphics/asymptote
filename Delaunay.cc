@@ -15,11 +15,11 @@ inline double max(double a, double b)
 
 int XYZCompare(const void *v1, const void *v2) 
 {
-  XYZ *p1 = (XYZ*)v1;
-  XYZ *p2 = (XYZ*)v2;
-  if(p1->p[0] < p2->p[0])
+  double x1=((XYZ*)v1)->p[0];
+  double x2=((XYZ*)v2)->p[0];
+  if(x1 < x2)
     return(-1);
-  else if(p1->p[0] > p2->p[0])
+  else if(x1 > x2)
     return(1);
   else
     return(0);
