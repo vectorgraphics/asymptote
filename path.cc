@@ -1180,44 +1180,22 @@ double orient2d(const pair& a, const pair& b, const pair& c)
   return orient;
 }
 
-inline bool inrange(double x0, double x1, double x) {
-  return (x0 <= x && x <= x1) || (x1 <= x && x <= x0);
-}
-
-// Returns true iff the point z lies strictly inside the region bounded by
-// the cyclic nonintersecting polygon p of n vertices.
-bool insidepolygon(const pair *p, size_t n, pair z)
-{
-  int count=0;
-  pair pj=p[n-1];
-  for(size_t i=0; i < n; ++i) {
-    const pair pi=pj;
-    pj=p[i];
-    if(pi.gety() <= z.gety() && z.gety() < pj.gety() &&
-       orient2d(pi,pj,z) > 0) ++count;
-    else if(pj.gety() <= z.gety() && z.gety() < pi.gety()) {
-      double side=orient2d(pi,pj,z);
-      if(side < 0 || (side == 0.0 && inrange(pi.getx(),pj.getx(),z.getx())))
-	--count;
-    }
-  }
-  return count != 0;
-}
-
-bool insidehull(const pair& z0, const pair& c0, const pair& c1, const pair& z1,
+// Returns true iff the point z lies strictly inside the bounding box
+// of a,b,c, and d.
+bool insidebbox(const pair& a, const pair& b, const pair& c, const pair& d,
 		const pair& z)
 {
-  pair v=z1-z0;
-  pair post=c0-z0;
-  pair pre=z1-c1;
-  if((post.getx()*v.gety()-post.gety()*v.getx())*
-     (pre.getx()*v.gety()-pre.gety()*v.getx()) <= 0) {
-    const pair P[]={z0,c0,c1,z1};
-    return insidepolygon(P,4,z);
-  } else {
-    const pair P[]={z0,c0,z1,c1};
-    return insidepolygon(P,4,z);
-  }
+  bbox B(a);
+  B.addnonempty(b);
+  B.addnonempty(c);
+  B.addnonempty(d);
+  return B.left < z.getx() && z.getx() < B.right && B.bottom < z.gety() 
+    && z.gety() < B.top;
+}
+
+inline bool inrange(double x0, double x1, double x)
+{
+  return (x0 <= x && x <= x1) || (x1 <= x && x <= x0);
 }
 
 // returns true if point is on curve; otherwise compute contribution to 
@@ -1227,7 +1205,7 @@ bool checkside(const pair& z0, const pair& c0, const pair& c1,
 {
   if(depth == 0) return true;
   --depth;
-  if(insidehull(z0,c0,c1,z1,z)) {
+  if(insidebbox(z0,c0,c1,z1,z)) {
     const pair m0=0.5*(z0+c0);
     const pair m1=0.5*(c0+c1);
     const pair m2=0.5*(c1+z1);

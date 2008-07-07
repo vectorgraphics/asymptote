@@ -43,17 +43,11 @@ struct bbox {
   {
   }
 
-  bbox(pair p, pair q) 
-  {
-    bbox();
-    add(p); add(q);
-  }
-  
   // Start a bbox with a point
-  bbox(pair z)
+  bbox(const pair& z)
+    : empty(false), left(z.getx()), bottom(z.gety()),
+      right(z.getx()), top(z.gety())
   {
-    bbox();
-    add(z);
   }
 
   bool nonempty() const {
@@ -80,6 +74,22 @@ struct bbox {
       else if (y > top)
 	top = y;
     }
+
+    return *this;
+  }
+
+  // Add a point to a nonempty bbox
+  bbox addnonempty(const pair& z)
+  {
+    double x = z.getx(), y = z.gety();
+    if (x < left)
+      left = x;  
+    else if (x > right)
+      right = x;  
+    if (y < bottom)
+      bottom = y;
+    else if (y > top)
+      top = y;
 
     return *this;
   }
