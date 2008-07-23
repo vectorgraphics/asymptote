@@ -8,9 +8,9 @@ usepackage("hyperref","setpagesize=false");
 string embed(string name, string options="", real width=0, real height=0)
 {
   if(options != "") options="["+options+"]{";
-  if(width != 0) options += (string) (width*pt)+"pt"; 
+  if(width != 0) options += (string) (width/pt)+"pt"; 
   options += "}{";
-  if(height != 0) options += (string) (height*pt)+"pt"; 
+  if(height != 0) options += (string) (height/pt)+"pt"; 
   return "\includemovie"+options+"}{"+name+"}";
 }
 
