@@ -6,30 +6,10 @@ triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
 
 int ninterpolate=16;
 
-real[] operator ecast(triple v)
-{
-  return new real[] {v.x, v.y, v.z, 1};
-}
-
-private string tooclose="camera is too close to object";
-
-triple operator ecast(real[] a)
-{
-  if(a[3] == 0) abort(tooclose);
-  return (a[0],a[1],a[2])/a[3];
-}
-
 pair operator ecast(real[] a)
 {
   if(a[3] == 0) abort(tooclose);
   return (a[0],a[1])/a[3];
-}
-
-typedef real[][] transform3;
-
-triple operator * (transform3 t, triple v)
-{
-  return (triple) (t*(real[]) v);
 }
 
 // A translation in 3D space.
@@ -46,14 +26,6 @@ transform3 shift(triple v)
 transform3 shift(real x, real y, real z)
 {
   return shift((x,y,z));
-}
-
-// A uniform scaling in 3D space.
-transform3 scale3(real s)
-{
-  transform3 t=identity(4);
-  t[0][0]=t[1][1]=t[2][2]=s;
-  return t;
 }
 
 // A scaling in the x direction in 3D space.
@@ -76,15 +48,6 @@ transform3 yscale3(real y)
 transform3 zscale3(real z)
 {
   transform3 t=identity(4);
-  t[2][2]=z;
-  return t;
-}
-
-transform3 scale(real x, real y, real z)
-{
-  transform3 t=identity(4);
-  t[0][0]=x;
-  t[1][1]=y;
   t[2][2]=z;
   return t;
 }
@@ -208,7 +171,7 @@ struct projection {
   // Check that v is in front of the projection plane.
   void check(triple v) {
     if(!infinity && dot(camera-v,camera-target) < 0)
-      abort("camera is too close to object");
+      abort(tooclose);
   }
 }
 
@@ -225,7 +188,7 @@ addSaveFunction(new restoreThunk() {
 
 
 projection projection(triple camera, triple target=O, triple up=Z,
-		      transform3 project,
+                      transform3 project,
                       aspect aspect=new real[] {1,1,1,1}, bool infinity=false)
 {
   projection P;
@@ -878,7 +841,7 @@ void aim(flatguide3 g, int N)
   triple reference=reference(v,n,d0,d1);
 
   real[] theta=theta(v,alpha,beta,d0,d1,g.out[start].gamma,g.in[final].gamma,
-		     reference);
+                     reference);
 
   v.cyclic(true);
   theta.cyclic(true);
@@ -917,7 +880,7 @@ void aim(flatguide3 g, int i, int n)
     triple reference=reference(v,j,d0,d1);
 
     real[] theta=theta(v,alpha,beta,d0,d1,g.out[i].gamma,g.in[n-1].gamma,
-		       reference);
+                       reference);
     
     for(int k=1; k < j; ++k) {
       triple w=dir(theta[k],v[k]-v[k-1],v[k+1]-v[k],reference);
@@ -989,15 +952,15 @@ struct bbox3 {
       
       if(x < left)
         left = x;  
-      if(x > right)
+      else if(x > right)
         right = x;  
       if(y < bottom)
         bottom = y;
-      if(y > top)
+      else if(y > top)
         top = y;
       if(z < lower)
         lower = z;
-      if(z > upper)
+      else if(z > upper)
         upper = z;
       
       min=(left,bottom,lower);
@@ -1689,7 +1652,7 @@ path3 solve(flatguide3 g)
 }
 
 path nurb(path3 p, projection P=currentprojection,
-	  int ninterpolate=ninterpolate)
+          int ninterpolate=ninterpolate)
 {
   project Q=P.transform3();
   triple f=P.camera;
@@ -1697,7 +1660,7 @@ path nurb(path3 p, projection P=currentprojection,
 
   path nurb(triple v0, triple v1, triple v2, triple v3) {
     return nurb(Q(v0),Q(v1),Q(v2),Q(v3),dot(u,f-v0),dot(u,f-v1),dot(u,f-v2),
-		dot(u,f-v3),ninterpolate);
+                dot(u,f-v3),ninterpolate);
   }
 
   path g;
@@ -1709,8 +1672,8 @@ path nurb(path3 p, projection P=currentprojection,
     if(p.nodes[i].straight)
       g=g--Q(p.nodes[i+1].point);
     else
-    g=g&nurb(p.nodes[i].point,p.nodes[i].post,p.nodes[i+1].pre,
-	     p.nodes[i+1].point);
+      g=g&nurb(p.nodes[i].point,p.nodes[i].post,p.nodes[i+1].pre,
+               p.nodes[i+1].point);
   }
 
   int n=length(g);
@@ -1719,8 +1682,16 @@ path nurb(path3 p, projection P=currentprojection,
   return g;
 }
 
+bool piecewisestraight(path3 p)
+{
+  int L=p.length();
+  for(int i=0; i < L; ++i)
+    if(!p.straight(i)) return false;
+  return true;
+}
+
 path project(explicit path3 p, projection P=currentprojection,
-	     int ninterpolate=ninterpolate)
+             int ninterpolate=ninterpolate)
 {
   if(!P.infinity) {
     P.check(p.min());
@@ -1734,15 +1705,15 @@ path project(explicit path3 p, projection P=currentprojection,
   
   project Q=P.transform3();
 
-  if(P.infinity || ninterpolate == 1) {
+  if(P.infinity || ninterpolate == 1 || piecewisestraight(p)) {
     g=Q(p.nodes[0].point);
     // Construct the path.
     for(int i=0; i < (p.cycles ? last-1 : last); ++i) {
       if(p.nodes[i].straight)
-	g=g--Q(p.nodes[i+1].point);
+        g=g--Q(p.nodes[i+1].point);
       else {
-	g=g..controls Q(p.nodes[i].post) and Q(p.nodes[i+1].pre)..
-	  Q(p.nodes[i+1].point);
+        g=g..controls Q(p.nodes[i].post) and Q(p.nodes[i+1].pre)..
+          Q(p.nodes[i+1].point);
       }
     }
   } else return nurb(p,P,ninterpolate);
@@ -1755,7 +1726,7 @@ path project(explicit path3 p, projection P=currentprojection,
 }
 
 path project(flatguide3 g, projection P=currentprojection,
-	     int ninterpolate=ninterpolate)
+             int ninterpolate=ninterpolate)
 
 {
   return project(solve(g),P,ninterpolate);
@@ -1778,7 +1749,7 @@ pair[] project(triple[] v, projection P=currentprojection)
 }
 
 path[] project(path3[] g, projection P=currentprojection,
-	     int ninterpolate=ninterpolate)
+               int ninterpolate=ninterpolate)
 {
   path[] p=new path[g.length];
   for(int i=0; i < g.length; ++i) 
@@ -1828,7 +1799,7 @@ void label(picture pic=currentpicture, Label L, pair position,
 
 // Transform for projecting onto plane through point O with normal cross(u,v).
 transform transform(triple u, triple v, triple O=O,
-		    projection P=currentprojection)
+                    projection P=currentprojection)
 {
   transform3 t=P.project;
   real[] tO=t*(real[]) O;
@@ -1852,7 +1823,7 @@ transform transform(triple u, triple v, triple O=O,
 
 // Project Label onto plane through point O with normal cross(u,v).
 Label project(Label L, triple u, triple v, triple O=O,
-	      projection P=currentprojection) {
+              projection P=currentprojection) {
   Label L=L.copy();
   L.position=project(O,P);
   L.T=transform(u,v,O,P);
@@ -2079,7 +2050,7 @@ real[] intersect(path3 p, path3 q, real fuzz, int depth)
 
 private real computefuzz(path3 p, path3 q, real fuzz) {
   return max(fuzz,Fuzz*max(max(length(p.max()),length(p.min())),
-			   max(length(q.max()),length(q.min()))));
+                           max(length(q.max()),length(q.min()))));
 }
 
 real[] intersect(path3 p, path3 q, real fuzz=0)
@@ -2168,17 +2139,17 @@ real[][] intersections(path3 p, path3 q, real fuzz, int depth)
     void add(real s, real t) {
       real fuzz=2*fuzz;
       for(int i=0; i < S.length; ++i) {
-	real[] Si=S[i];
-	if(abs(p.point(Si[0])-p.point(s)) <= fuzz &&
-	   abs(q.point(Si[1])-q.point(t)) <= fuzz) return;
+        real[] Si=S[i];
+        if(abs(p.point(Si[0])-p.point(s)) <= fuzz &&
+           abs(q.point(Si[1])-q.point(t)) <= fuzz) return;
       }
       S.push(new real[] {s,t});
     }
   
     void add(real pscale, real qscale, real poffset, real qoffset) {
       for(int j=0; j < T.length; ++j) {
-	real[] Tj=T[j];
-	add(pscale*Tj[0]+poffset,qscale*Tj[1]+qoffset);
+        real[] Tj=T[j];
+        add(pscale*Tj[0]+poffset,qscale*Tj[1]+qoffset);
       }
     }
 
@@ -2320,40 +2291,48 @@ void draw(picture pic=currentpicture, path3[] g, pen p=currentpen)
   draw(pic,(path[]) g,p);
 }
 
+bool prc()
+{
+  return settings.prc && settings.outformat == "pdf";
+}
+
 void draw(frame f, path3 g, pen p=currentpen)
 {
-  node[] nodes=g.nodes;
+  if(prc()) {
+    node[] nodes=g.nodes;
 
-  bool straight() {
-  for(node n : nodes)
-    if(!n.straight) return false;
-  return true;
-  }
-
-  bool straight=straight();
-
-  triple[] v;
-  if(straight) {
-    int n=nodes.length;
-    v=new triple[n];
-    for(int i=0; i < n; ++i)
-      v[i]=nodes[i].point;
-  } else {
-    int n=nodes.length-1;
-    v=new triple[3*n+1];
-    int k=1;
-    v[0]=nodes[0].point;
-    v[1]=nodes[0].post;
-    for(int i=1; i < n; ++i) {
-      v[++k]=nodes[i].pre;
-      v[++k]=nodes[i].point;
-      v[++k]=nodes[i].post;
+    bool straight() {
+      for(node n : nodes)
+        if(!n.straight) return false;
+      return true;
     }
-    v[++k]=nodes[n].pre;
-    v[++k]=nodes[n].point;
-  }
 
-  draw(f,v,p,straight);
+    bool straight=straight();
+
+    triple[] v;
+    if(straight) {
+      int n=nodes.length;
+      v=new triple[n];
+      for(int i=0; i < n; ++i)
+        v[i]=nodes[i].point;
+    } else {
+      int n=nodes.length-1;
+      v=new triple[3*n+1];
+      int k=1;
+      v[0]=nodes[0].point;
+      v[1]=nodes[0].post;
+      for(int i=1; i < n; ++i) {
+        v[++k]=nodes[i].pre;
+        v[++k]=nodes[i].point;
+        v[++k]=nodes[i].post;
+      }
+      v[++k]=nodes[n].pre;
+      v[++k]=nodes[n].point;
+    }
+
+    draw(f,v,p,straight,min(g),max(g));
+  } else
+    draw(f,project(g),p);
 }
 
 void draw(frame f, explicit guide3 g, pen p=currentpen)
@@ -2374,19 +2353,19 @@ triple[] triples(real[] x, real[] y, real[] z)
 }
 
 void dot(picture pic=currentpicture, explicit path3 g, pen p=currentpen,
-	 filltype filltype=Fill)
+         filltype filltype=Fill)
 {
   for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p,filltype);
 }
 
 void dot(picture pic=currentpicture, explicit guide3 g, pen p=currentpen,
-	 filltype filltype=Fill)
+         filltype filltype=Fill)
 {
   dot(pic,(path3) g,p,filltype);
 }
 
 void dot(picture pic=currentpicture, explicit path3[] g, pen p=currentpen,
-	 filltype filltype=Fill)
+         filltype filltype=Fill)
 {
   for(int i=0; i < g.length; ++i) dot(pic,g[i],p,Fill);
 }
@@ -2568,7 +2547,7 @@ void aspect(projection P=currentprojection, bbox3 b,
   if(z != 0) {
     real s=L.z/z;
     P.scale(x == 0 || L.x == 0 ? 1 : s*x/L.x,y == 0 || L.y == 0 ? 1 : s*y/L.y,
-          1);
+            1);
   } else if(y != 0) {
     real s=L.y/y;
     P.scale(x == 0 || L.x == 0 ? 1 : s*x/L.x,1,1);
@@ -2669,7 +2648,7 @@ splitface split(face a, face cut, projection P)
     P=P.copy();
     static real factor=1/sqrt(realEpsilon);
     P.camera *= factor*max(abs(a.box.min),abs(a.box.max),
-			   abs(cut.box.min),abs(cut.box.max));
+                           abs(cut.box.min),abs(cut.box.max));
   }
 
   if((abs(a.normal-cut.normal) < epsilon ||
@@ -2729,9 +2708,9 @@ struct bsp
       this.node=faces.pop();
       face[] front,back;
       for(int i=0; i < faces.length; ++i) {
-	splitface split=split(faces[i],this.node,P);
-	if(split.front != null) front.push(split.front);
-	if(split.back != null) back.push(split.back);
+        splitface split=split(faces[i],this.node,P);
+        if(split.front != null) front.push(split.front);
+        if(split.back != null) back.push(split.back);
       }
       this.front=bsp(front,P);
       this.back=bsp(back,P);
@@ -2779,13 +2758,19 @@ void add(picture pic=currentpicture, face[] faces,
 
 private string[] file3;
 
+triple size3(frame f)
+{
+  return max3(f)-min3(f);
+}
+
 void add3(picture pic=currentpicture, frame f,
-	  string label="", string text=label,
-	  real width, real height=width,
-	  pair position=0, pair align=0, real angle=30,
-	  string render="Solid", string lights="White", string views="", 
-	  string javascript="",
-	  pen background=white, projection P=currentprojection) {
+          string label="", string text=label,
+          real width=settings.paperwidth, real height=settings.paperheight,
+          pair position=0, pair align=0, real angle=30,
+          string render="Solid", string lights="White", string views="", 
+          string javascript="", pen background=white,
+          projection P=currentprojection) {
+  if(!prc()) return;
   string prefix=defaultfilename;
   if(prefix == "") prefix="out";
   prefix += "-"+(string) file3.length;
@@ -2821,10 +2806,41 @@ void add3(picture pic=currentpicture, frame f,
   if(lights != "") options += ",3Dlights="+lights;
   if(render != "") options += ",3Drender="+render;
   if(javascript != "") options += ",3Djscript="+javascript;
-  label(pic,embed(prefix,options,width,height),position);
+  label(pic,embed(prefix,options,width,height),position,align);
 }
 
-string cameralink(string label, string text="Viewpoint") {
+void add(picture pic=currentpicture, frame f,
+         string label="", string text=label,
+         real width=settings.paperwidth, real height=settings.paperheight,
+         pair position=0, pair align, real angle=30,
+         string render="Solid", string lights="White", string views="", 
+         string javascript="", pen background=white,
+         projection P=currentprojection)
+{
+  if(is3D(f) && prc())
+    add3(pic,f,label,text,width,height,position,align,angle,render,lights,
+         views,javascript,background,P);
+  else
+    plain.add(pic,f,position,align);
+}
+
+void add(picture pic=currentpicture, frame f,
+         string label="", string text=label,
+         real width=settings.paperwidth, real height=settings.paperheight,
+         pair position=0, real angle=30,
+         string render="Solid", string lights="White", string views="", 
+         string javascript="", pen background=white,
+         projection P=currentprojection)
+{
+  if(is3D(f) && prc())
+    add3(pic,f,label,text,width,height,position,angle,render,lights,
+         views,javascript,background,P);
+  else
+    plain.add(pic,f,position);
+}
+
+string cameralink(string label, string text="Viewpoint")
+{
   return link(label,text,"3Dgetview");
 }
 
@@ -2841,10 +2857,41 @@ private struct viewpoint {
   }
 }
 
-projection perspective(string s) {
+projection perspective(string s)
+{
   viewpoint v=viewpoint(s);
   return perspective(v.camera,v.up,v.target);
 }
+
+void draw(picture pic=currentpicture, path3 g, pen p=currentpen)
+{
+  if(prc()) {
+    pic.add(new void(frame f, transform3 t) {
+        draw(f,t*g,p);
+      },true);
+    if(size(g) > 0) {
+      pic.addPoint(min(g));
+      pic.addPoint(max(g));
+    }
+    pic.is3D=true;
+  } else plain.draw(pic,g,p);
+}
+
+void draw(picture pic=currentpicture, explicit guide3 g, pen p=currentpen)
+{
+  draw(pic,(path3) g,p);
+}
+
+shipout=new void(string prefix=defaultfilename, picture pic,
+                 orientation orientation=orientation,
+                 string format="", bool wait=NoWait, bool view=true)
+{
+  if(pic.is3D)  {
+    picture out;
+    add3(out,pic.fit());
+    plain.shipout(prefix,orientation(out.fit()),format,wait,view);
+  } else plain.shipout(prefix,orientation(pic.fit()),format,wait,view);
+};
 
 exitfcn currentexitfunction=atexit();
 

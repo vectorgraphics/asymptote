@@ -18,11 +18,13 @@ class drawPath3 : public drawElement {
 protected:
   pen pentype;
   bool straight;
+  triple min,max;
   size_t n;
   Triple *controls;
 public:
-  drawPath3(const vm::array& g, pen pentype, bool straight) : 
-    pentype(pentype), straight(straight) {
+  drawPath3(const vm::array& g, pen pentype, bool straight, triple min,
+	    triple max) : 
+    pentype(pentype), straight(straight), min(min), max(max) {
     n=checkArray(&g);
     controls=new Triple[n];
   
@@ -39,6 +41,13 @@ public:
     delete *controls;
   }
 
+  bool is3D() {return true;}
+  
+  void bounds(bbox3& b) {
+    b.add(min);
+    b.add(max);
+  }
+  
   bool write(prcfile *out);
 };
 

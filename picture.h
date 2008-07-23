@@ -20,9 +20,11 @@ class picture : public gc {
 private:
   bool labels;
   size_t lastnumber;
+  size_t lastnumber3;
   transform T; // Keep track of accumulative picture transform
   bbox b;
   bbox b_cached;   // Cached bounding box
+  bbox3 b3_cached; // Cached 3D bounding box
   boxvector labelbounds;
   bboxlist bboxstack;
   bool transparency;
@@ -34,7 +36,8 @@ public:
   typedef mem::list<drawElement*> nodelist;
   nodelist nodes;
   
-  picture() : labels(false), lastnumber(0), T(identity), transparency(false) {}
+  picture() : labels(false), lastnumber(0), lastnumber3(0), T(identity),
+	      transparency(false) {}
   
   // Destroy all of the owned picture objects.
   ~picture();
@@ -53,7 +56,10 @@ public:
   void prepend(picture &pic);
   
   bool havelabels();
+  bool have3D();
+
   bbox bounds();
+  bbox3 bounds3();
 
   void texinit();
 

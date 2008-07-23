@@ -462,6 +462,8 @@ path3[] segment(triple[] v, bool[] b, interpolate3 join=operator --)
                   segment.length);
 }
 
+import surface;
+
 // draw the surface described by a matrix f, respecting lighting
 picture surface(triple[][] f, bool[][] cond={}, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
@@ -477,75 +479,85 @@ picture surface(triple[][] f, bool[][] cond={}, bool outward=false,
   int nx=f.length-1;
   int ny=nx > 0 ? f[0].length-1 : 0;
   
-  // calculate colors at each point
-  pen color(int i, int j) {
-    triple dfx,dfy;
-    if(i == 0) dfx=f[1][j]-f[0][j];
-    else if(i == nx) dfx=f[nx][j]-f[nx-1][j];
-    else dfx=0.5(f[i+1][j]-f[i-1][j]);
-    if(j == 0) dfy=f[i][1]-f[i][0];
-    else if(j == ny) dfy=f[i][ny]-f[i][ny-1];
-    else dfy=0.5(f[i][j+1]-f[i][j-1]);
-    triple v=cross(dfx,dfy);
-    if(!outward)
-      v *= sgn(dot(v,P.camera-P.target));
-    return light.intensity(v)*surfacepen;
-  }
-
-  int[] edges={0,0,0,2};
-  
-  void drawcell(int i, int j) {
-    path g=project(f[i][j],P)--project(f[i][j+1],P)--project(f[i+1][j+1],P)--
-      project(f[i+1][j],P)--cycle;
-    if(surfacepen != nullpen) {
-      if(light.source == O)
-        fill(pic,g,surfacepen);
-      else {
-        pen[] pcell={color(i,j),color(i,j+1),color(i+1,j+1),color(i+1,j)};
-        gouraudshade(pic,g,pcell,edges);
-      }
-    }
-    if(meshpen != nullpen) draw(pic,g,meshpen);
-  }
-  
-  bool all=cond.length == 0;
-
-  if(surfacepen == nullpen) {
-    for(int i=0; i < nx; ++i)
-      for(int j=0; j < ny; ++j)
-	if(all || cond[i][j])
-	  drawcell(i,j);
-  } else {
-    // Sort cells by distance from camera
-    triple camera=P.camera;
-    if(P.infinity)
-      camera *= max(abs(minbound(f)),abs(maxbound(f)));
-
-    real[][] depth;
+  if(prc()) {
     for(int i=0; i < nx; ++i) {
       for(int j=0; j < ny; ++j) {
-	if(all || cond[i][j]) {
-	  real d=abs(camera-0.25(f[i][j]+f[i][j+1]+f[i+1][j]+f[i+1][j+1]));
-	  depth.push(new real[] {d,i,j});
-	}
+        surface s=surface(f[i][j]--f[i][j+1]--f[i+1][j+1]--f[i+1][j]--cycle);
+        draw(pic,s,surfacepen);
       }
     }
+  } else {
 
-    depth=sort(depth);
+    // calculate colors at each point
+    pen color(int i, int j) {
+      triple dfx,dfy;
+      if(i == 0) dfx=f[1][j]-f[0][j];
+      else if(i == nx) dfx=f[nx][j]-f[nx-1][j];
+      else dfx=0.5(f[i+1][j]-f[i-1][j]);
+      if(j == 0) dfy=f[i][1]-f[i][0];
+      else if(j == ny) dfy=f[i][ny]-f[i][ny-1];
+      else dfy=0.5(f[i][j+1]-f[i][j-1]);
+      triple v=cross(dfx,dfy);
+      if(!outward)
+        v *= sgn(dot(v,P.camera-P.target));
+      return light.intensity(v)*surfacepen;
+    }
+
+    int[] edges={0,0,0,2};
   
-    // Draw from farthest to nearest
-    while(depth.length > 0) {
-      real[] a=depth.pop();
-      drawcell(round(a[1]),round(a[2]));
+    void drawcell(int i, int j) {
+      path g=project(f[i][j],P)--project(f[i][j+1],P)--project(f[i+1][j+1],P)--
+        project(f[i+1][j],P)--cycle;
+
+      if(surfacepen != nullpen) {
+        if(light.source == O)
+          fill(pic,g,surfacepen);
+        else {
+          pen[] pcell={color(i,j),color(i,j+1),color(i+1,j+1),color(i+1,j)};
+          gouraudshade(pic,g,pcell,edges);
+        }
+      }
+      if(meshpen != nullpen) draw(pic,g,meshpen);
+    }
+  
+    bool all=cond.length == 0;
+
+    if(surfacepen == nullpen) {
+      for(int i=0; i < nx; ++i)
+        for(int j=0; j < ny; ++j)
+          if(all || cond[i][j])
+            drawcell(i,j);
+    } else {
+      // Sort cells by distance from camera
+      triple camera=P.camera;
+      if(P.infinity)
+        camera *= max(abs(minbound(f)),abs(maxbound(f)));
+
+      real[][] depth;
+      for(int i=0; i < nx; ++i) {
+        for(int j=0; j < ny; ++j) {
+          if(all || cond[i][j]) {
+            real d=abs(camera-0.25(f[i][j]+f[i][j+1]+f[i+1][j]+f[i+1][j+1]));
+            depth.push(new real[] {d,i,j});
+          }
+        }
+      }
+
+      depth=sort(depth);
+  
+      // Draw from farthest to nearest
+      while(depth.length > 0) {
+        real[] a=depth.pop();
+        drawcell(round(a[1]),round(a[2]));
+      }
     }
   }
-
   return pic;
 }
 
 // draw the surface described by a real matrix f, respecting lighting
 picture surface(real[][] f, pair a, pair b, bool[][] cond={},
-		bool outward=false,
+                bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
@@ -610,8 +622,8 @@ picture surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
 // draw the surface described by a parametric function f over box(a,b),
 // subsampled nsub times, respecting lighting.
 picture surface(triple f(pair z), int nsub, pair a, pair b,
-		int nu=nmesh, int nv=nu,
-		bool cond(pair z)=null, bool outward=false,
+                int nu=nmesh, int nv=nu,
+                bool cond(pair z)=null, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
@@ -659,8 +671,8 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
   if(surfacepen == nullpen) {
     for(int i=0; i < nu; ++i)
       for(int j=0; j < nv; ++j)
-	if(active(i,j))
-	  draw(pic,project(cell(i,j),P),meshpen);
+        if(active(i,j))
+          draw(pic,project(cell(i,j),P),meshpen);
   } else {
     // Sort cells by distance from camera
     triple camera=P.camera;
@@ -668,19 +680,19 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
       real r=0;
       for(int i=0; i <= nu; ++i)
         for(int j=0; j <= nv; ++j)
-	  if(active(i,j))
-	    r=max(r,abs(f(sample(i,j))));
+          if(active(i,j))
+            r=max(r,abs(f(sample(i,j))));
       camera *= r;
     }
 
     real[][] depth;
     for(int i=0; i < nu; ++i) {
       for(int j=0; j < nv; ++j) {
-	if(active(i,j)) {
-	  real d=abs(camera-0.25*(f(sample(i,j))+f(sample(i,j+1))+
-				  f(sample(i+1,j))+f(sample(i+1,j+1))));
-	  depth.push(new real[] {d,i,j});
-	}
+        if(active(i,j)) {
+          real d=abs(camera-0.25*(f(sample(i,j))+f(sample(i,j+1))+
+                                  f(sample(i+1,j))+f(sample(i+1,j+1))));
+          depth.push(new real[] {d,i,j});
+        }
       }
     }
 
@@ -699,7 +711,7 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
 // subsampled nsub times, respecting lighting.
 picture surface(real f(pair z), int nsub, pair a, pair b, 
                 int nx=nmesh, int ny=nx, bool cond(pair z)=null,
-		bool outward=false,
+                bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
@@ -776,10 +788,10 @@ guide3 polargraph(real r(real,real), real theta(real), real phi(real),
 }
 
 picture vectorfield(path3 vector(pair z), triple f(pair z),
-		    pair a, pair b, int nx=nmesh, int ny=nx,
-		    bool autoscale=true,
-		    pen p=currentpen, arrowbar arrow=Arrow,
-		    projection P=currentprojection)
+                    pair a, pair b, int nx=nmesh, int ny=nx,
+                    bool autoscale=true,
+                    pen p=currentpen, arrowbar arrow=Arrow,
+                    projection P=currentprojection)
 {
   picture pic;
   real dx=1/nx;
@@ -794,7 +806,7 @@ picture vectorfield(path3 vector(pair z), triple f(pair z),
     for(int i=0; i <= nx; ++i) {
       real x=interp(a.x,b.x,i*dx);
       for(int j=0; j <= ny; ++j)
-	max=max(max,size((x,interp(a.y,b.y,j*dy))));
+        max=max(max,size((x,interp(a.y,b.y,j*dy))));
     }
     pair lambda=(abs(f((b.x,a.y))-f(a)),abs(f((a.x,b.y))-f(a)));
     scale=min(lambda.x/nx,lambda.y/ny)/max;

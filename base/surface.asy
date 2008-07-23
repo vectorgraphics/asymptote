@@ -7,7 +7,7 @@ int maxdepth=16;
 
 private void abortcyclic() {abort("cyclic path of length 4 expected");}
 
-struct surface {
+struct patch {
   triple[][] P=new triple[4][4];
 
   path3 external() {
@@ -20,6 +20,13 @@ struct surface {
 
   triple[] internal() {
     return new triple[]{P[1][1],P[1][2],P[2][2],P[2][1]};
+  }
+
+  triple[] controlpoints() {
+    return new triple[] {P[0][0],P[0][1],P[0][2],P[0][3],
+	P[1][0],P[1][1],P[1][2],P[1][3],
+	P[2][0],P[2][1],P[2][2],P[2][3],
+	P[3][0],P[3][1],P[3][2],P[3][3]};
   }
 
   triple Bezier(triple a, triple b,triple c, triple d, real t) {
@@ -48,110 +55,22 @@ struct surface {
         color(P[3][0]-P[2][0],P[3][1]-P[3][0])};
   };
 
-  struct bbox {
-    real x,y;
-    real X,Y;
-    pair min() {return (x,y);}
-    pair max() {return (X,Y);}
-    void operator init(real x, real y, real X, real Y) {
-      this.x=x;
-      this.y=y;
-      this.X=X;
-      this.Y=Y;
-    }
-    void operator init(pair min, pair max) {
-      this.x=min.x;
-      this.y=min.y;
-      this.X=max.x;
-      this.Y=max.y;
-    }
+
+  private real[] split(real z0, real c0, real c1, real z1) {
+    real m0=0.5*(z0+c0);
+    real m1=0.5*(c0+c1);
+    real m2=0.5*(c1+z1);
+    real m3=0.5*(m0+m1);
+    real m4=0.5*(m1+m2);
+    real m5=0.5*(m3+m4);
+
+    return new real[] {m0,m3,m5,m4,m2};
   }
 
-  struct bbox3 {
-    real x,y,z;
-    real X,Y,Z;
-    triple min() {return (x,y,z);}
-    triple max() {return (X,Y,Z);}
-    void operator init(real x, real y, real z, real X, real Y, real Z) {
-      this.x=x;
-      this.y=y;
-      this.z=z;
-      this.X=X;
-      this.Y=Y;
-      this.Z=Z;
-    }
-    void operator init(triple min, triple max) {
-      this.x=min.x;
-      this.y=min.y;
-      this.z=min.z;
-      this.X=max.x;
-      this.Y=max.y;
-      this.Z=max.z;
-    }
-  }
-
-  struct bboxes {
-    real[] x,y;
-    real[] X,Y;
-    void operator init(int n) {
-      x=new real[n];
-      y=new real[n];
-      X=new real[n];
-      Y=new real[n];
-    }
-    void set(int i,bbox b) {
-      x[i]=b.x;
-      X[i]=b.X;
-      y[i]=b.y;
-      Y[i]=b.Y;
-    }
-  }
-
-  void write(bbox a) {
-    write(a.min(),a.max());
-  }
-
-  struct bboxes3 {
-    real[] x,y,z;
-    real[] X,Y,Z;
-
-    void operator init(int n) {
-      x=new real[n];
-      y=new real[n];
-      z=new real[n];
-      X=new real[n];
-      Y=new real[n];
-      Z=new real[n];
-    }
-    void set(int i,bbox3 b) {
-      x[i]=b.x;
-      X[i]=b.X;
-      y[i]=b.y;
-      Y[i]=b.Y;
-      z[i]=b.z;
-      Z[i]=b.Z;
-    }
-  }
-
-  void write(bbox3 a) {
-    write(a.min(),a.max());
-  }
-
-  private int minindex(real[] x) {return find(x == minbound(x));}
-  private int maxindex(real[] x) {return find(x == maxbound(x));}
-
-  private bbox3 bbox3(... triple[] points) {
-    return bbox3(minbound(points),maxbound(points));
-  }
-
-  private bbox bbox(... pair[] points) {
-    return bbox(minbound(points),maxbound(points));
-  }
-
-  private triple[] RtrnPointOnSrfc(triple a, triple cp1, triple cp2, triple b) {
-    triple m0=0.5*(a+cp1);
-    triple m1=0.5*(cp1+cp2);
-    triple m2=0.5*(cp2+b);
+  triple[] split(triple z0, triple c0, triple c1, triple z1) {
+    triple m0=0.5*(z0+c0);
+    triple m1=0.5*(c0+c1);
+    triple m2=0.5*(c1+z1);
     triple m3=0.5*(m0+m1);
     triple m4=0.5*(m1+m2);
     triple m5=0.5*(m3+m4);
@@ -159,426 +78,182 @@ struct surface {
     return new triple[] {m0,m3,m5,m4,m2};
   }
 
-  //Splits a Bezier surface into 4 subsurfaces.
-  private triple[][] splitsurface4(triple[] p) {
+  // Split one component of a Bezier patch into 4 subpatches.
+  real[][] splitpatch4(real[] p) {
     // Find new control points.
-    triple[] c0=RtrnPointOnSrfc(p[0],p[1],p[2],p[3]);
-    triple[] c1=RtrnPointOnSrfc(p[4],p[5],p[6],p[7]);
-    triple[] c2=RtrnPointOnSrfc(p[8],p[9],p[10],p[11]);
-    triple[] c3=RtrnPointOnSrfc(p[12],p[13],p[14],p[15]);
+    real[] c0=split(p[0],p[1],p[2],p[3]);
+    real[] c1=split(p[4],p[5],p[6],p[7]);
+    real[] c2=split(p[8],p[9],p[10],p[11]);
+    real[] c3=split(p[12],p[13],p[14],p[15]);
 
-    triple[] c4=RtrnPointOnSrfc(p[12],p[8],p[4],p[0]);
-    triple[] c5=RtrnPointOnSrfc(c3[0],c2[0],c1[0],c0[0]);
-    triple[] c6=RtrnPointOnSrfc(c3[1],c2[1],c1[1],c0[1]);
-    triple[] c7=RtrnPointOnSrfc(c3[2],c2[2],c1[2],c0[2]);
+    real[] c4=split(p[12],p[8],p[4],p[0]);
+    real[] c5=split(c3[0],c2[0],c1[0],c0[0]);
+    real[] c6=split(c3[1],c2[1],c1[1],c0[1]);
+    real[] c7=split(c3[2],c2[2],c1[2],c0[2]);
 
-    triple[] c8=RtrnPointOnSrfc(c3[3],c2[3],c1[3],c0[3]);
-    triple[] c9=RtrnPointOnSrfc(c3[4],c2[4],c1[4],c0[4]);
-    triple[] c10=RtrnPointOnSrfc(p[15],p[11],p[7],p[3]);
+    real[] c8=split(c3[3],c2[3],c1[3],c0[3]);
+    real[] c9=split(c3[4],c2[4],c1[4],c0[4]);
+    real[] c10=split(p[15],p[11],p[7],p[3]);
 
-    //Set up 4 Bezier subsurfaces.
-    triple[] bss0={c4[2],c5[2],c6[2],c7[2],c4[1],c5[1],c6[1],c7[1],
-		   c4[0],c5[0],c6[0],c7[0],p[12],c3[0],c3[1],c3[2]};
-    triple[] bss1={p[0],c0[0],c0[1],c0[2],c4[4],c5[4],c6[4],c7[4],
-		   c4[3],c5[3],c6[3],c7[3],c4[2],c5[2],c6[2],c7[2]};
-    triple[] bss2={c0[2],c0[3],c0[4],p[3],c7[4],c8[4],c9[4],c10[4],
-		   c7[3],c8[3],c9[3],c10[3],c7[2],c8[2],c9[2],c10[2]};
-    triple[] bss3={c7[2],c8[2],c9[2],c10[2],c7[1],c8[1],c9[1],c10[1],
-		   c7[0],c8[0],c9[0],c10[0],c3[2],c3[3],c3[4],p[15]};
+    // Set up 4 Bezier subpatches.
+    real[] s0={c4[2],c5[2],c6[2],c7[2],c4[1],c5[1],c6[1],c7[1],
+               c4[0],c5[0],c6[0],c7[0],p[12],c3[0],c3[1],c3[2]};
+    real[] s1={p[0],c0[0],c0[1],c0[2],c4[4],c5[4],c6[4],c7[4],
+               c4[3],c5[3],c6[3],c7[3],c4[2],c5[2],c6[2],c7[2]};
+    real[] s2={c0[2],c0[3],c0[4],p[3],c7[4],c8[4],c9[4],c10[4],
+               c7[3],c8[3],c9[3],c10[3],c7[2],c8[2],c9[2],c10[2]};
+    real[] s3={c7[2],c8[2],c9[2],c10[2],c7[1],c8[1],c9[1],c10[1],
+               c7[0],c8[0],c9[0],c10[0],c3[2],c3[3],c3[4],p[15]};
 
-    return new triple[][] {bss0,bss1,bss2,bss3};
+    return new real[][] {s0,s1,s2,s3};
   }
 
-  // Check if an extremum is on the surface, in which case it is the extremum
-  // we want.
-  private bbox ipointonsrfc(pair[] p) {
-    return bbox(p[0],p[3],p[12],p[15]);
+  triple[][] splitpatch4(triple[] p) {
+    // Find new control points.
+    triple[] c0=split(p[0],p[1],p[2],p[3]);
+    triple[] c1=split(p[4],p[5],p[6],p[7]);
+    triple[] c2=split(p[8],p[9],p[10],p[11]);
+    triple[] c3=split(p[12],p[13],p[14],p[15]);
+
+    triple[] c4=split(p[12],p[8],p[4],p[0]);
+    triple[] c5=split(c3[0],c2[0],c1[0],c0[0]);
+    triple[] c6=split(c3[1],c2[1],c1[1],c0[1]);
+    triple[] c7=split(c3[2],c2[2],c1[2],c0[2]);
+
+    triple[] c8=split(c3[3],c2[3],c1[3],c0[3]);
+    triple[] c9=split(c3[4],c2[4],c1[4],c0[4]);
+    triple[] c10=split(p[15],p[11],p[7],p[3]);
+
+    // Set up 4 Bezier subpatches.
+    triple[] s0={c4[2],c5[2],c6[2],c7[2],c4[1],c5[1],c6[1],c7[1],
+                 c4[0],c5[0],c6[0],c7[0],p[12],c3[0],c3[1],c3[2]};
+    triple[] s1={p[0],c0[0],c0[1],c0[2],c4[4],c5[4],c6[4],c7[4],
+                 c4[3],c5[3],c6[3],c7[3],c4[2],c5[2],c6[2],c7[2]};
+    triple[] s2={c0[2],c0[3],c0[4],p[3],c7[4],c8[4],c9[4],c10[4],
+                 c7[3],c8[3],c9[3],c10[3],c7[2],c8[2],c9[2],c10[2]};
+    triple[] s3={c7[2],c8[2],c9[2],c10[2],c7[1],c8[1],c9[1],c10[1],
+                 c7[0],c8[0],c9[0],c10[0],c3[2],c3[3],c3[4],p[15]};
+
+    return new triple[][] {s0,s1,s2,s3};
   }
 
-  private bbox3 ipointonsrfc(triple[] p) {
-    return bbox3(p[0],p[3],p[12],p[15]);
-  }
+  real bound(real[] p, real m(...real[]), real bound=p[0], int depth=maxdepth) {
+    bound=m(bound,p[0],p[3],p[12],p[15]);
+    if(m(-1,1)*(bound-m(p[1],p[2],p[4],p[5],p[6],p[7],p[8],
+                        p[9],p[10],p[11],p[13],p[14])) >= 0)
+      return bound;
 
-  private bbox ipointonsrfc(triple[] p, projection P) {
-    return bbox(project(p[0],P),project(p[3],P),project(p[12],P),
-		project(p[15],P));
-  }
-
-  // If both the min and max values of the bbox are points on the surface, 
-  // the patch is explored and we should cease examining it.
-  private bool isexplored(triple[] p, pair m, pair M, projection P) {
-    bbox c=ipointonsrfc(p,P);
-    return m == c.min() && M == c.max();
-  }
-
-  private bool isexplored(triple[] p, triple m, triple M) {
-    bbox3 c=ipointonsrfc(p);
-    return m == c.min() && M == c.max();
-  }
-
-  private bboxes projboxes(triple[][] ss, projection P) {
-    bboxes bboxes=bboxes(ss.length);
-    for(int i=0; i < ss.length; ++i) {
-      triple[] ssi=ss[i];
-      bboxes.set(i,bbox(...sequence(new pair(int j) {
-	      return project(ssi[j],P);
-	    },16)));
-    } 
-    return bboxes;
-  }
-
-  private int[] removal(triple[][] ss, bboxes b, real xlb, real xsb, real ylb, 
-			real ysb, bool[] found, projection P) {
-    // Remove areas of the surface that should not be explored.
-    int[] toremove;
-    for(int i=0; i < ss.length; ++i) {
-      if((found[0] || b.X[i] <= xlb) && (found[1] || b.x[i] >= xsb) && 
-	 (found[2] || b.Y[i] <= ylb) && (found[3] || b.y[i] >= ysb))
-	toremove.push(i);
-      else if(isexplored(ss[i],(b.x[i],b.y[i]),(b.X[i],b.Y[i]),P))
-	toremove.push(i);
-    }
-    return toremove;
-  }
-
-  private int[] removal(triple[][] ss, bboxes3 b, real xlb, real xsb, 
-			real ylb, real ysb, real zlb, real zsb, bool[] found) {
-    int[] toremove;
-    for(int i=0; i < ss.length; ++i) {
-      if((found[0] || b.X[i] <= xlb) && (found[1] || b.x[i] >= xsb) && 
-	 (found[2] || b.Y[i] <= ylb) && (found[3] || b.y[i] >= ysb) &&
-	 (found[4] || b.Z[i] <= zlb) && (found[5] || b.z[i] >= zsb))
-	toremove.push(i);
-      else if(isexplored(ss[i],(b.x[i],b.y[i],b.z[i]),(b.X[i],b.Y[i],b.Z[i]))) 
-	toremove.push(i);
-    }
-    return toremove;
-  }
-
-  private void iteration(triple[][] sfcs, real[] rvalues, bool[] found,
-			 projection P) {
-    static int depth=0;
-
-    // Refine current partitioning.
-    triple[][] ss=splitsurface4(sfcs[0]);
-    for(int i=1; i < sfcs.length; ++i)
-      ss.append(splitsurface4(sfcs[i]));
-
-    bboxes bxs=projboxes(ss,P);
-
-    // See if an extremum has been attained.
-    real xlb,xsb,ylb,ysb;
-
-    bool stop=depth >= maxdepth;
-
-    if(!found[0]) {
-      int xlarge=maxindex(bxs.X);
-      xlb=bxs.x[xlarge];
-      if(ipointonsrfc(ss[xlarge],P).X == bxs.X[xlarge] || stop) {
-	found[0]=true;
-	rvalues[0]=bxs.X[xlarge];
-      }
-    }
-    if(!found[1]) {
-      int xsmall=minindex(bxs.x);
-      xsb=bxs.X[xsmall];
-      if(ipointonsrfc(ss[xsmall],P).x == bxs.x[xsmall] || stop) {
-	found[1]=true;
-	rvalues[1]=bxs.x[xsmall];
-      }
-    }
-    if(!found[2]) {
-      int ylarge=maxindex(bxs.Y);
-      ylb=bxs.y[ylarge];
-      if(ipointonsrfc(ss[ylarge],P).Y == bxs.Y[ylarge] || stop) {
-	found[2]=true;
-	rvalues[2]=bxs.Y[ylarge];
-      }
-    }
-    if(!found[3]) {
-      int ysmall=minindex(bxs.y);
-      ysb=bxs.Y[ysmall];
-      if(ipointonsrfc(ss[ysmall],P).y == bxs.y[ysmall] || stop) {
-	found[3]=true;
-	rvalues[3]=bxs.y[ysmall];
-      }
-    }
-
-    // Stopping condition.
-    if(all(found)) return;
-
-    int[] toremove=removal(ss,bxs,xlb,xsb,ylb,ysb,found,P);
-    ss=ss[complement(toremove,ss.length)];
-  
-    ++depth;
-    iteration(ss,rvalues,found,P);
+    if(depth == 0) return p[0];
     --depth;
+    real[][] s=splitpatch4(p);
+
+    return m(bound(s[0],m,bound,depth),bound(s[1],m,bound,depth),
+             bound(s[2],m,bound,depth),bound(s[3],m,bound,depth));
   }
 
-  // Finds the projection bounding box of a given surface.
-  bbox bbox(triple[][] pts, projection P=currentprojection) {
-    triple[] points=new triple[16];
-    int k=0;
-    for(int i=0; i < 4; ++i) {
-      triple[] ptsi=pts[i];
-      for(int j=0; j < 4; ++j) {
-	points[k]=ptsi[j];
-	++k;
-      }
-    }
+  real bound(triple[] p, real m(...real[]), real f(triple), real bound=f(p[0]),
+             int depth=maxdepth) {
+    bound=m(bound,f(p[0]),f(p[3]),f(p[12]),f(p[15]));
+    if(m(-1,1)*(bound-m(f(p[1]),f(p[2]),f(p[4]),f(p[5]),f(p[6]),f(p[7]),f(p[8]),
+                        f(p[9]),f(p[10]),f(p[11]),f(p[13]),f(p[14]))) >= 0)
+      return bound;
 
-    // Splits surface.
-    triple[][] ss=splitsurface4(points);
+    if(depth == 0) return f(p[0]);
+    --depth;
+    triple[][] s=splitpatch4(p);
 
-    bboxes bxs=projboxes(ss,P);
-
-    // Checks if extrema have been attained.
-    int xsmall=minindex(bxs.x);
-    int ysmall=minindex(bxs.y);
-    int xlarge=maxindex(bxs.X);
-    int ylarge=maxindex(bxs.Y);
-
-    real xlb=bxs.x[xlarge];
-    real ylb=bxs.y[ylarge];
-    real xsb=bxs.X[xsmall];
-    real ysb=bxs.Y[ysmall];
-
-    real[] rvalues=new real[4];
-    bool[] found=new bool[4];
-    for(int i=0; i < found.length; ++i)
-      found[i]=false;
-
-    if(ipointonsrfc(ss[xlarge],P).X == bxs.X[xlarge]) {
-      found[0]=true;
-      rvalues[0]=bxs.X[xlarge];
-    }
-    if(ipointonsrfc(ss[xsmall],P).x == bxs.x[xsmall]) {
-      found[1]=true;
-      rvalues[1]=bxs.x[xsmall];
-    }
-    if(ipointonsrfc(ss[ylarge],P).Y == bxs.Y[ylarge]) {
-      found[2]=true;
-      rvalues[2]=bxs.Y[ylarge];
-    }
-    if(ipointonsrfc(ss[ysmall],P).y == bxs.y[ysmall]) {
-      found[3]=true;
-      rvalues[3]=bxs.y[ysmall];
-    }
-
-    if(!all(found)) {
-      int[] toremove=removal(ss,bxs,xlb,xsb,ylb,ysb,found,P);
-      ss=ss[complement(toremove,ss.length)];
-
-      iteration(ss,rvalues,found,P);
-    }
-
-    // Prepare return value and return it.
-    return bbox(rvalues[1],rvalues[3],rvalues[0],rvalues[2]);
+    return m(bound(s[0],m,f,bound,depth),bound(s[1],m,f,bound,depth),
+             bound(s[2],m,f,bound,depth),bound(s[3],m,f,bound,depth));
   }
 
-
-  private void bbox3it(triple[][] sfcs, real[] rvalues, bool[] found) {
-    // Refine current partitioning.
-    triple[][] ss=splitsurface4(sfcs[0]);
-    for(int i=1; i < sfcs.length; ++i)
-      ss.append(splitsurface4(sfcs[i]));
-
-    bboxes3 bxs=bboxes3(ss.length);
-    for(int i=0; i < ss.length; ++i)
-      bxs.set(i,bbox3(...ss[i]));
-
-    // See if an extremum has been attained.
-    real xlb,xsb,ylb,ysb,zlb,zsb;
-    if(!found[0]) {
-      int xlarge=maxindex(bxs.X);
-      xlb=bxs.x[xlarge];
-      if(ipointonsrfc(ss[xlarge]).X == bxs.X[xlarge]) {
-	found[0]=true;
-	rvalues[0]=bxs.X[xlarge];
-      }
-    }
-    if(!found[1]) {
-      int xsmall=minindex(bxs.x);
-      xsb=bxs.X[xsmall];
-      if(ipointonsrfc(ss[xsmall]).x == bxs.x[xsmall]) {
-	found[1]=true;
-	rvalues[1]=bxs.x[xsmall];
-      }
-    }
-    if(!found[2]) {
-      int ylarge=maxindex(bxs.Y);
-      ylb=bxs.y[ylarge];
-      if(ipointonsrfc(ss[ylarge]).Y == bxs.Y[ylarge]) {
-	found[2]=true;
-	rvalues[2]=bxs.Y[ylarge];
-      }
-    }
-    if(!found[3]) {
-      int ysmall=minindex(bxs.y);
-      ysb=bxs.Y[ysmall];
-      if(ipointonsrfc(ss[ysmall]).y == bxs.y[ysmall]) {
-	found[3]=true;
-	rvalues[3]=bxs.y[ysmall];
-      }
-    }
-    if(!found[4]) {
-      int zlarge=maxindex(bxs.Z);
-      zlb=bxs.z[zlarge];
-      if(ipointonsrfc(ss[zlarge]).Z == bxs.Z[zlarge]) {
-	found[4]=true;
-	rvalues[4]=bxs.Z[zlarge];
-      }
-    }
-    if(!found[5]) {
-      int zsmall=minindex(bxs.z);
-      zsb=bxs.Z[zsmall];
-      if(ipointonsrfc(ss[zsmall]).z == bxs.z[zsmall]) {
-	found[5]=true;
-	rvalues[5]=bxs.z[zsmall];
-      }
-    }
-
-    // Stopping conditions.
-    if(all(found)) return;
-
-    int[] toremove=removal(ss,bxs,xlb,xsb,ylb,ysb,zlb,zsb,found);
-    ss=ss[complement(toremove,ss.length)];
-
-    bbox3it(ss,rvalues,found);
+  triple bound(real m(...real[]), triple bound) {
+    real x=bound(new real[] {P[0][0].x,P[0][1].x,P[0][2].x,P[0][3].x,
+                             P[1][0].x,P[1][1].x,P[1][2].x,P[1][3].x,
+                             P[2][0].x,P[2][1].x,P[2][2].x,P[2][3].x,
+                             P[3][0].x,P[3][1].x,P[3][2].x,P[3][3].x},
+      m,bound.x);
+    real y=bound(new real[] {P[0][0].y,P[0][1].y,P[0][2].y,P[0][3].y,
+                             P[1][0].y,P[1][1].y,P[1][2].y,P[1][3].y,
+                             P[2][0].y,P[2][1].y,P[2][2].y,P[2][3].y,
+                             P[3][0].y,P[3][1].y,P[3][2].y,P[3][3].y},
+      m,bound.y);
+    real z=bound(new real[] {P[0][0].z,P[0][1].z,P[0][2].z,P[0][3].z,
+                             P[1][0].z,P[1][1].z,P[1][2].z,P[1][3].z,
+                             P[2][0].z,P[2][1].z,P[2][2].z,P[2][3].z,
+                             P[3][0].z,P[3][1].z,P[3][2].z,P[3][3].z},
+      m,bound.z);
+    return (x,y,z);
   }
 
-  bbox3 bbox3(triple[][] pts) {
-    triple[] points=new triple[16];
-    int k=0;
-    for(int i=0; i < 4; ++i) {
-      triple[] ptsi=pts[i];
-      for(int j=0; j < 4; ++j) {
-	points[k]=ptsi[j];
-	++k;
-      }
-    }
-
-    // Split surface.
-  
-    triple[][] split4=splitsurface4(points);
-    triple[][] split16=splitsurface4(split4[0]);
-    for(int i=1; i < split4.length; ++i)
-      split16.append(splitsurface4(split4[i]));
-    triple[][] ss=splitsurface4(split16[0]);
-    for(int i=1; i < split16.length; ++i)
-      ss.append(splitsurface4(split16[i]));
-
-    bboxes3 bxs=bboxes3(ss.length);
-    for(int i=0; i < ss.length; ++i)
-      bxs.set(i,bbox3(...ss[i]));
-
-    // Check if extrema have been attained.
-    int xsmall=minindex(bxs.x);
-    int ysmall=minindex(bxs.y);
-    int zsmall=minindex(bxs.z);
-    int xlarge=maxindex(bxs.X);
-    int ylarge=maxindex(bxs.Y);
-    int zlarge=maxindex(bxs.Z);
-
-    real xlb=bxs.x[xlarge];
-    real ylb=bxs.y[ylarge];
-    real zlb=bxs.z[zlarge];
-    real xsb=bxs.X[xsmall];
-    real ysb=bxs.Y[ysmall];
-    real zsb=bxs.Z[zsmall];
-
-    real[] rvalues=new real[6];
-    bool[] found=new bool[6];
-    for(int i=0; i < found.length; ++i)
-      found[i]=false;
-
-    if(ipointonsrfc(ss[xlarge]).X == bxs.X[xlarge]) {
-      found[0]=true;
-      rvalues[0]=bxs.X[xlarge];
-    }
-    if(ipointonsrfc(ss[xsmall]).x == bxs.x[xsmall]) {
-      found[1]=true;
-      rvalues[1]=bxs.x[xsmall];
-    }
-    if(ipointonsrfc(ss[ylarge]).Y == bxs.Y[ylarge]) {
-      found[2]=true;
-      rvalues[2]=bxs.Y[ylarge];
-    }
-    if(ipointonsrfc(ss[ysmall]).y == bxs.y[ysmall]) {
-      found[3]=true;
-      rvalues[3]=bxs.y[ysmall];
-    }
-
-    if(ipointonsrfc(ss[zlarge]).Z == bxs.Z[zlarge]) {
-      found[4]=true;
-      rvalues[4]=bxs.Z[zlarge];
-    }
-    if(ipointonsrfc(ss[zsmall]).z == bxs.z[zsmall]) {
-      found[5]=true;
-      rvalues[5]=bxs.z[zsmall];
-    }
-
-    if(!all(found)) {
-      int[] toremove=removal(ss,bxs,xlb,xsb,ylb,ysb,zlb,zsb,found);
-      ss=ss[complement(toremove,ss.length)];
-
-      if(ss.length > 0)
-	bbox3it(ss,rvalues,found);
-    }
-
-    // Prepare return value and return it.
-    return bbox3(rvalues[1],rvalues[3],rvalues[5],
-		 rvalues[0],rvalues[2],rvalues[4]);
+  pair bound(real m(...real[]), projection Q, pair bound=project(P[0][0],Q)) {
+    real x=bound(new triple[] {P[0][0],P[0][1],P[0][2],P[0][3],
+			       P[1][0],P[1][1],P[1][2],P[1][3],
+			       P[2][0],P[2][1],P[2][2],P[2][3],
+			       P[3][0],P[3][1],P[3][2],P[3][3]},
+      m,new real(triple v) {return project(v,Q).x;});
+    real y=bound(new triple[] {P[0][0],P[0][1],P[0][2],P[0][3],
+			       P[1][0],P[1][1],P[1][2],P[1][3],
+			       P[2][0],P[2][1],P[2][2],P[2][3],
+			       P[3][0],P[3][1],P[3][2],P[3][3]},
+      m,new real(triple v) {return project(v,Q).y;});
+    return (x,y);
   }
 
-  struct bounds {
-    bool empty=true;
-    projection Q;
-    bbox b;
-    void init(projection Q) {
-      if(empty || Q != this.Q) {
-	b=bbox(P,Q);
-	this.Q=Q;
-	empty=false;
-      }
-    }
-    pair min(projection P) {init(P); return b.min();}
-    pair max(projection P) {init(P); return b.max();}
+  triple min3,max3;
+  bool havemin3,havemax3;
+
+  pair min2,max2;
+  bool havemin2,havemax2;
+
+  void init() {
+    havemin3=false;
+    havemax3=false;
+    havemin2=false;
+    havemax2=false;
   }
 
-  struct bounds3 {
-    bool empty=true;
-    bbox3 b;
-    void init() {
-      if(empty) {
-	b=bbox3(P);
-	empty=false;
-      }
-    }
-    triple min() {init(); return b.min();}
-    triple max() {init(); return b.max();}
+  triple min(triple bound=P[0][0]) {
+    if(havemin3) return min3;
+    havemin3=true;
+    return min3=bound(min,bound);
   }
 
-  bounds bounds;
-  bounds3 bounds3;
+  triple max(triple bound=P[0][0]) {
+    if(havemax3) return max3;
+    havemax3=true;
+    return max3=bound(max,bound);
+  }
 
-  pair min(projection P) {return bounds.min(P);}
-  pair max(projection P) {return bounds.max(P);}
+  pair min(projection P, pair bound=project(this.P[0][0],P)) {
+    if(havemin2) return min2;
+    havemin2=true;
+    return min2=bound(min,P,bound);
+  }
 
-  triple min() {return bounds3.min();}
-  triple max() {return bounds3.max();}
+  pair max(projection P, pair bound=project(this.P[0][0],P)) {
+    if(havemax2) return max2;
+    havemax2=true;
+    return max2=bound(max,P,bound);
+  }
 
   void operator init(triple[][] P) {
-    bounds.empty=true;
-    bounds3.empty=true;
+    init();
     this.P=copy(P);
+  }
+
+  void operator init(triple[] P) {
+    init();
+    this.P=new triple[][] {{P[0],P[1],P[2],P[3]},
+                           {P[4],P[5],P[6],P[7]},
+                           {P[8],P[9],P[10],P[11]},
+                           {P[12],P[13],P[14],P[15]}};
   }
 
   void operator init(path3 external, triple[] internal=new triple[]) {
     if(!cyclic(external) || length(external) != 4)
       abortcyclic();
-    bounds.empty=true;
-    bounds3.empty=true;
+    P=new triple[4][4];
+    init();
     if(internal.length == 0) {
       for(int j=0; j < 4; ++j) {
         static real nineth=1.0/9.0;
@@ -612,136 +287,208 @@ struct surface {
     P[2][0]=postcontrol(external,3);
     P[2][1]=internal[3];
   }
+
+  void operator init(explicit guide3 external, triple[] internal=new triple[]) {
+    operator init((path3) external,internal);
+  }
 }
 
-// A constructor for a (possibly) nonconvex cyclic path of length 4 that
-// returns an array of one or two surfaces in a given plane.
-surface[] surface(explicit path g, triple plane(pair)=XYplane)
-{
-  if(!cyclic(g) || length(g) != 4)
-    abortcyclic();
-  for(int i=0; i < 4; ++i) {
-    pair z=point(g,i);
-    int w=windingnumber(subpath(g,i+1,i+3)--cycle,z);
-    if(w != 0 && w != undefined) {
-      pair w=point(g,i+2);
-      real[][] T=intersections(z--w,g);
-      path c,d;
-      if(T.length > 2) {
-	real t=T[1][1];
-	real s=t-i;
-	if(s < -1) s += 4;
-	else if(s > 3) s -= 4;
-	path close(path p, pair m) {
-	  return length(p) == 3 ? p--cycle : p--0.5*(m+point(g,t))--cycle;
-	}
-	if(s < 1) {
-	  c=close(subpath(g,i+s,i+2),w);
-	  d=close(subpath(g,i-2,i+s),w);
-	} else {
-	  c=close(subpath(g,i+s,i+4),z);
-	  d=close(subpath(g,i,i+s),z);
-	}
-      } else {
-	pair m=0.5*(z+w);
-	c=subpath(g,i-2,i)--m--cycle;
-	d=subpath(g,i,i+2)--m--cycle;
+struct surface {
+  patch[] s;
+  
+  void operator init(patch s) {
+    this.s=new patch[] {s};
+  }
+
+  void operator init(triple[][] P) {
+    s=new patch[] {patch(P)};
+  }
+
+  void operator init(triple[][][] P) {
+    s=sequence(new patch(int i) {return patch(P[i]);},s.length);
+  }
+
+  void operator init(path3 external, triple[] internal=new triple[]) {
+    s=new patch[] {patch(external,internal)};
+  }
+
+  // A constructor for a (possibly) nonconvex cyclic path of length 4 that
+  // returns an array of one or two surfaces in a given plane.
+  void operator init (explicit path g, triple plane(pair)=XYplane) {
+    if(!cyclic(g) || length(g) != 4)
+      abortcyclic();
+    for(int i=0; i < 4; ++i) {
+      pair z=point(g,i);
+      int w=windingnumber(subpath(g,i+1,i+3)--cycle,z);
+      if(w != 0 && w != undefined) {
+        pair w=point(g,i+2);
+        real[][] T=intersections(z--w,g);
+        path c,d;
+        if(T.length > 2) {
+          real t=T[1][1];
+          real s=t-i;
+          if(s < -1) s += 4;
+          else if(s > 3) s -= 4;
+          path close(path p, pair m) {
+            return length(p) == 3 ? p--cycle : p--0.5*(m+point(g,t))--cycle;
+          }
+          if(s < 1) {
+            c=close(subpath(g,i+s,i+2),w);
+            d=close(subpath(g,i-2,i+s),w);
+          } else {
+            c=close(subpath(g,i+s,i+4),z);
+            d=close(subpath(g,i,i+s),z);
+          }
+        } else {
+          pair m=0.5*(z+w);
+          c=subpath(g,i-2,i)--m--cycle;
+          d=subpath(g,i,i+2)--m--cycle;
+        }
+        s=new patch[] {patch(path3(c,plane)),patch(path3(d,plane))};
+        return;
       }
-      return new surface[] {surface(path3(c,plane)),surface(path3(d,plane))};
     }
+    s=new patch[] {patch(path3(g,plane))};
   }
-  return new surface[] {surface(path3(g,plane))};
-}
 
-surface[] surface(explicit guide g)
-{
-  return surface((path) g);
-}
-
-surface[] surface(explicit path[] g, triple plane(pair)=XYplane)
-{
-  surface[] s;
-  for(int i=0; i < g.length; ++i) {
-    s.append(surface(g[i],plane));
+  void operator init (explicit guide g) {
+    operator init((path) g);
   }
-  return s;
+
+  void operator init(explicit path[] g, triple plane(pair)=XYplane) {
+    for(int i=0; i < g.length; ++i)
+      s.append(surface(g[i],plane).s);
+  }
 }
 
-surface operator * (transform3 t, surface s)
+patch operator * (transform3 t, patch s)
 { 
-  surface S;
-  triple[][] p=s.P;
-  triple[][] P=S.P;
-  for(int i=0; i < p.length; ++i) { 
-    triple[] si=p[i];
-    triple[] Si=P[i];
+  patch S;
+  S.P=new triple[4][4];
+  for(int i=0; i < s.P.length; ++i) { 
+    triple[] si=s.P[i];
+    triple[] Si=S.P[i];
     for(int j=0; j < si.length; ++j) { 
       Si[j]=t*si[j]; 
     } 
   }
-  return S; 
+  return S;
 }
  
-surface operator cast(triple[][] P)
-{
-  return surface(P);
+surface operator * (transform3 t, surface s)
+{ 
+  surface S;
+  S.s=new patch[s.s.length];
+  for(int i=0; i < s.s.length; ++i)
+    S.s[i]=t*s.s[i];
+  return S;
 }
 
-path3[] bbox3(surface s)
+patch operator cast(triple[][] P)
+{
+  return patch(P);
+}
+
+path3[] bbox3(patch s)
 {
   return box(s.min(),s.max());
 }
 
-triple min(surface s) {return s.min();}
-triple max(surface s) {return s.max();}
+private string nullsurface="null surface";
 
-pair min(surface s, projection P) {return s.min(P);}
-pair max(surface s, projection P) {return s.max(P);}
-
-surface subsurfaceu(surface s, real ua, real ub)
+triple min(surface s)
 {
-  path3 G=s.uequals(ua)&subpath(s.vequals(1),ua,ub)&
-    reverse(s.uequals(ub));
+  if(s.s.length == 0)
+    abort(nullsurface);
+  triple bound=s.s[0].min();
+  for(int i=1; i < s.s.length; ++i)
+    bound=s.s[i].min(bound);
+  return bound;
+}
+  
+triple max(surface s)
+{
+  if(s.s.length == 0)
+    abort(nullsurface);
+  triple bound=s.s[0].max();
+  for(int i=1; i < s.s.length; ++i)
+    bound=s.s[i].max(bound);
+  return bound;
+}
+
+pair min(surface s, projection P)
+{
+  if(s.s.length == 0)
+    abort(nullsurface);
+  pair bound=s.s[0].min(P);
+  for(int i=1; i < s.s.length; ++i)
+    bound=s.s[i].min(P,bound);
+  return bound;
+}
+  
+pair max(surface s, projection P)
+{
+  if(s.s.length == 0)
+    abort(nullsurface);
+  pair bound=s.s[0].max(P);
+  for(int i=1; i < s.s.length; ++i)
+    bound=s.s[i].max(P,bound);
+  return bound;
+}
+
+patch subpatchu(patch s, real ua, real ub)
+{
+  path3 G=s.uequals(ua)&subpath(s.vequals(1),ua,ub)&reverse(s.uequals(ub));
   path3 w=subpath(s.vequals(0),ub,ua);
   path3 i1=s.P[0][1]..controls s.P[1][1] and s.P[2][1]..s.P[3][1];
   path3 i2=s.P[0][2]..controls s.P[1][2] and s.P[2][2]..s.P[3][2];
   path3 s1=subpath(i1,ua,ub);
   path3 s2=subpath(i2,ua,ub);
-  return surface(G..controls postcontrol(w,0) and precontrol(w,1)..cycle,
-                 new triple[] {postcontrol(s1,0),postcontrol(s2,0),
-                     precontrol(s2,1),precontrol(s1,1)});
+  return patch(G..controls postcontrol(w,0) and precontrol(w,1)..cycle,
+	       new triple[] {postcontrol(s1,0),postcontrol(s2,0),
+		   precontrol(s2,1),precontrol(s1,1)});
 }
 
-surface subsurfacev(surface s, real va, real vb)
+patch subpatchv(patch s, real va, real vb)
 {
-  path3 G=subpath(s.uequals(0),va,vb)&s.vequals(vb)&
-    subpath(s.uequals(1),vb,va);
+  path3 G=subpath(s.uequals(0),va,vb)&s.vequals(vb)&subpath(s.uequals(1),vb,va);
   path3 w=s.vequals(va);
   path3 j1=s.P[1][0]..controls s.P[1][1] and s.P[1][2]..s.P[1][3];
   path3 j2=s.P[2][0]..controls s.P[2][1] and s.P[2][2]..s.P[2][3];
   path3 t1=subpath(j1,va,vb);
   path3 t2=subpath(j2,va,vb);
 
-  return surface(G..controls precontrol(w,1) and postcontrol(w,0)..cycle,
-                 new triple[] {postcontrol(t1,0),precontrol(t1,1),
-                     precontrol(t2,1),postcontrol(t2,0)});
+  return patch(G..controls precontrol(w,1) and postcontrol(w,0)..cycle,
+	       new triple[] {postcontrol(t1,0),precontrol(t1,1),
+		   precontrol(t2,1),postcontrol(t2,0)});
 }
 
-surface subsurface(surface s, real ua, real ub, real va, real vb)
+patch subpatch(patch s, real ua, real ub, real va, real vb)
 {
-  return subsurfaceu(subsurfacev(s,va,vb),ua,ub);
+  return subpatchu(subpatchv(s,va,vb),ua,ub);
 }
 
-triple point(surface s, real u, real v)
+triple point(patch s, real u, real v)
 {
   return point(s.uequals(u),v);
 }
 
-void tensorshade(picture pic=currentpicture, surface s,
+void draw(frame f, patch s, pen p=currentpen)
+{
+  draw(f,s.P,p,s.min(),s.max());
+}
+
+void draw(frame f, surface s, pen p=currentpen)
+{
+  for(int i=0; i < s.s.length; ++i)
+    draw(f,s.s[i],p);
+}
+
+void tensorshade(picture pic=currentpicture, patch s,
                  pen surfacepen=lightgray, light light=currentlight,
                  projection P=currentprojection, int ninterpolate=1)
 {
-  path[] b=box(min(s,P),max(s,P));
+  path[] b=box(s.min(P),s.max(P));
   tensorshade(pic,box(min(b),max(b)),surfacepen,s.colors(surfacepen,light),
               project(s.external(),P,1),project(s.internal(),P));
 }
@@ -753,71 +500,102 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
   // Draw a mesh in the absence of lighting (override with meshpen=invisible).
   if(light.source == O && meshpen == nullpen) meshpen=currentpen;
 
-  if(surfacepen != nullpen && nu > 0) {
-    // Sort cells by mean distance from camera
+  if(surfacepen != nullpen) {
     triple camera=P.camera;
+    triple m=min(s);
+    triple M=max(s);
     if(P.infinity)
-      camera *= max(abs(min(s)),abs(max(s)));
+      camera *= max(abs(m),abs(M));
 
-    real[][] depth;
-    surface[] su=new surface[nu];
+    if(prc()) {
+      pic.add(new void(frame f, transform3 t) {
+          for(int i=0; i < s.s.length; ++i)
+            draw(f,t*s.s[i],surfacepen);
+        },true);
+      if(s.s.length > 0) {
+        pic.addPoint(m);
+        pic.addPoint(M);
+      }
+      pic.is3D=true;
+    } else {
+      // Sort patches by mean distance from camera
+      triple camera=P.camera;
+      if(P.infinity)
+        camera *= max(abs(min(s)),abs(max(s)));
+
+      real[][] depth;
     
-    for(int i=0; i < nu; ++i) {
-      su[i]=subsurfaceu(s,i/nu,(i+1)/nu);
-      path3 s0=s.uequals(i/nu);
-      path3 s1=s.uequals((i+1)/nu);
-      for(int j=0; j < nv; ++j) {
-        real d=abs(camera-0.25*(point(s0,j/nv)+point(s0,(j+1)/nv)+
-                                point(s1,j/nv)+point(s1,(j+1)/nv)));
-        depth.push(new real[] {d,i,j});
+      for(int i=0; i < s.s.length; ++i) {
+        triple[][] P=s.s[i].P;
+        for(int j=0; j < nv; ++j) {
+          real d=abs(camera-0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]));
+          depth.push(new real[] {d,i,j});
+        }
+      }
+
+      depth=sort(depth);
+
+      // Draw from farthest to nearest
+      while(depth.length > 0) {
+        real[] a=depth.pop();
+        int i=round(a[1]);
+        int j=round(a[2]);
+        tensorshade(pic,s.s[i],surfacepen,light,P);
       }
     }
-
-    depth=sort(depth);
-
-    // Draw from farthest to nearest
-    while(depth.length > 0) {
-      real[] a=depth.pop();
-      int i=round(a[1]);
-      int j=round(a[2]);
-      tensorshade(pic,subsurfacev(su[i],j/nv,(j+1)/nv),surfacepen,light,P);
+  }
+    
+  if(meshpen != nullpen) {
+    for(int k=0; k < s.s.length; ++k) {
+      real step=nu == 0 ? 0 : 1/nu;
+      for(int i=0; i <= nu; ++i)
+        draw(pic,s.s[k].uequals(i*step),meshpen);
+    
+      real step=nv == 0 ? 0 : 1/nv;
+      for(int j=0; j <= nv; ++j)
+        draw(pic,s.s[k].vequals(j*step),meshpen);
     }
   }
-
-  if(meshpen != nullpen) {
-    real step=nu == 0 ? 0 : 1/nu;
-    for(int i=0; i <= nu; ++i)
-      draw(pic,s.uequals(i*step),meshpen);
-    
-    real step=nv == 0 ? 0 : 1/nv;
-    for(int j=0; j <= nv; ++j)
-      draw(pic,s.vequals(j*step),meshpen);
-  }
 }
 
-void draw(frame f, surface s, pen p=currentpen)
+void draw(picture pic=currentpicture, triple[][][] P, pen p=currentpen)
 {
-  draw(f,s.P,p);
+  for(int i=0; i < P.length; ++i)
+    draw(pic,surface(P[i]),p);
 }
 
-void draw(frame f, surface[] s, pen p=currentpen)
+surface extrude(path g, triple elongation=Z)
 {
-  for(int i=0; i < s.length; ++i)
-    draw(f,s[i],p);
-}
-
-surface[] extrude(path g, triple elongation=Z)
-{
+  patch[] allocate;
+  surface S;
   path3 G=path3(g);
   path3 G2=shift(elongation)*G;
-  return sequence(new surface(int i) {
-      return surface(subpath(G,i,i+1)--subpath(G2,i+1,i)--cycle);
+  S.s=sequence(new patch(int i) {
+      return patch(subpath(G,i,i+1)--subpath(G2,i+1,i)--cycle);
     },length(G));
+  return S;
 }
 
-void label3(frame f, string s, transform t=identity(), pair position=0,
-	    pair align=0, pen p=currentpen)
+private transform3 shift(transform3 T, triple v)
 {
-  draw(f,surface(bezulate(texpath(s,t,position,align,p))));
+  transform3 t=copy(T);
+  t[0][3] += v.x;
+  t[1][3] += v.y;
+  t[2][3] += v.z;
+  return t;
 }
 
+private transform3 identity4=identity(4);
+
+void label(frame f, string s, transform t=identity(), transform3 T=identity4,
+           triple position, pair align=0, pen p=currentpen)
+{
+  draw(f,shift(T,position)*surface(bezulate(texpath(s,t,0,align,p))),p);
+}
+
+void label(picture pic=currentpicture, string s, transform t=identity(),
+           transform3 T=identity4, triple position, pair align=0,
+           pen p=currentpen)
+{
+  draw(pic,shift(T,position)*surface(bezulate(texpath(s,t,0,align,p))),p);
+}

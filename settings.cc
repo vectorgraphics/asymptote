@@ -898,6 +898,8 @@ void initSettings() {
   addOption(new stringSetting("outformat", 'f', "format",
 			      "Convert each output file to specified format",
 			      ""));
+  addOption(new boolSetting("prc", 0,
+                            "Embed 3D PRC graphics in PDF output", false));
   addOption(new stringOutnameSetting("outname", 'o', "name",
 				     "Alternative output name for first file",
 				     ""));

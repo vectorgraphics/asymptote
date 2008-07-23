@@ -105,11 +105,23 @@ bool picture::havelabels()
     for(size_t i=0; i < lastnumber; ++i) ++p;
     for(; p != nodes.end(); ++p) {
       assert(*p);
-      if((*p)->islabel())
+      if((*p)->islabel()) {
         labels=true;
+	break;
+      }
     }
   }
   return labels;
+}
+
+bool picture::have3D()
+{
+  for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
+    assert(*p);
+    if((*p)->is3D())
+      return true;
+  }
+  return false;
 }
 
 bbox picture::bounds()
@@ -147,6 +159,25 @@ bbox picture::bounds()
   return b_cached;
 }
 
+bbox3 picture::bounds3()
+{
+  size_t n=nodes.size();
+  if(n == lastnumber3) return b3_cached;
+  
+  if(lastnumber3 == 0)
+    b3_cached=bbox3();
+  
+  nodelist::iterator p=nodes.begin();
+  for(size_t i=0; i < lastnumber3; ++i) ++p;
+  for(; p != nodes.end(); ++p) {
+    assert(*p);
+    (*p)->bounds(b3_cached);
+  }
+
+  lastnumber3=n;
+  return b3_cached;
+}
+  
 void picture::texinit()
 {
   drawElement::lastpen=pen(initialpen);

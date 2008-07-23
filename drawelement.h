@@ -12,6 +12,7 @@
 
 #include "common.h"
 #include "bbox.h"
+#include "bbox3.h"
 #include "pen.h"
 #include "psfile.h"
 #include "texfile.h"
@@ -100,11 +101,14 @@ public:
   // Adjust the bbox of the picture based on the addition of this
   // element. The iopipestream is needed for determining label sizes.
   virtual void bounds(bbox&, iopipestream&, boxvector&, bboxlist&) {}
+  virtual void bounds(bbox3&) {}
 
   virtual bool islabel() {return false;}
   
   virtual bool islayer() {return false;}
 
+  virtual bool is3D() {return false;}
+  
   virtual bool endclip() {return false;}
   
   virtual bool begingroup() {return false;}

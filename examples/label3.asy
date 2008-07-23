@@ -1,10 +1,9 @@
 import surface;
 
 settings.outformat="pdf";
-currentprojection=perspective(100,100,100,up=Y);
-frame f;
+size(100);
 
-label3(f,"$\displaystyle\int_{-\infty}^{+\infty} e^{-\alpha x^2}\,dx=
-\sqrt{\frac{\pi}{\alpha}}$",blue);
-add3(f,"test",10cm);
-label(cameralink("test"),(50,-200));
+currentprojection=perspective(100,100,100,up=Y);
+
+label("$\displaystyle\int_{-\infty}^{+\infty} e^{-\alpha x^2}\,dx=
+\sqrt{\frac{\pi}{\alpha}}$",O,blue);

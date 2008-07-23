@@ -940,12 +940,12 @@ Ticks=Ticks();
 
 pair tickMin(picture pic)
 {
-  return minbound(pic.userMin,(pic.scale.x.tickMin,pic.scale.y.tickMin));
+  return minbound(pic.userMin(),(pic.scale.x.tickMin,pic.scale.y.tickMin));
 }
   
 pair tickMax(picture pic)
 {
-  return maxbound(pic.userMax,(pic.scale.x.tickMax,pic.scale.y.tickMax));
+  return maxbound(pic.userMax(),(pic.scale.x.tickMax,pic.scale.y.tickMax));
 }
                                                
 // Structure used to communicate axis and autoscale settings to tick routines. 
@@ -1321,8 +1321,8 @@ void xlimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
   } else pic.userMaxx(pic.scale.x.T(max));
   
   if(crop) {
-    pair userMin=pic.userMin;
-    pair userMax=pic.userMax;
+    pair userMin=pic.userMin();
+    pair userMax=pic.userMax();
     pic.bounds.xclip(userMin.x,userMax.x);
     pic.clip(new void (frame f, transform t) {
         clip(f,box(((t*userMin).x,min(f).y),((t*userMax).x,max(f).y)));
@@ -1352,8 +1352,8 @@ void ylimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
   } else pic.userMaxy(pic.scale.y.T(max));
   
   if(crop) {
-    pair userMin=pic.userMin;
-    pair userMax=pic.userMax;
+    pair userMin=pic.userMin();
+    pair userMax=pic.userMax();
     pic.bounds.yclip(userMin.y,userMax.y);
     pic.clip(new void (frame f, transform t) {
         clip(f,box((min(f).x,(t*userMin).y),(max(f).x,(t*userMax).y)));
@@ -1367,7 +1367,7 @@ void crop(picture pic=currentpicture)
   xlimits(pic,false);
   ylimits(pic,false);
   if(pic.userSetx && pic.userSety)
-    clip(pic,box(pic.userMin,pic.userMax));
+    clip(pic,box(pic.userMin(),pic.userMax()));
 }
 
 // Set the x and y limits to box(min,max).
@@ -1970,7 +1970,7 @@ void errorbars(picture pic=currentpicture, real[] x, real[] y,
 // Return a vector field on path g, specifying the vector as a function of the
 // relative position along path g in [0,1].
 picture vectorfield(path vector(real), path g, int n, bool truesize=false,
-		    pen p=currentpen, arrowbar arrow=Arrow)
+                    pen p=currentpen, arrowbar arrow=Arrow)
 {
   picture pic;
   for(int i=0; i < n; ++i) {
@@ -1984,9 +1984,9 @@ picture vectorfield(path vector(real), path g, int n, bool truesize=false,
 }
 
 picture vectorfield(path vector(pair), pair a, pair b,
-		    int nx=nmesh, int ny=nx, 
-		    bool autoscale=true, bool truesize=false,
-		    pen p=currentpen, arrowbar arrow=Arrow)
+                    int nx=nmesh, int ny=nx, 
+                    bool autoscale=true, bool truesize=false,
+                    pen p=currentpen, arrowbar arrow=Arrow)
 {
   picture pic;
   real dx=1/nx;
@@ -2001,7 +2001,7 @@ picture vectorfield(path vector(pair), pair a, pair b,
     for(int i=0; i <= nx; ++i) {
       real x=interp(a.x,b.x,i*dx);
       for(int j=0; j <= ny; ++j)
-	max=max(max,size((x,interp(a.y,b.y,j*dy))));
+        max=max(max,size((x,interp(a.y,b.y,j*dy))));
     }
     pair lambda=b-a;
     scale=min(lambda.x/nx,lambda.y/ny)/max;
@@ -2012,9 +2012,9 @@ picture vectorfield(path vector(pair), pair a, pair b,
       real y=interp(a.y,b.y,j*dy);
       pair z=(x,y);
       if(truesize)
-	draw(z,pic,vector(z),p,arrow);
+        draw(z,pic,vector(z),p,arrow);
       else
-	draw(pic,shift(z)*scale(scale)*vector(z),p,arrow,PenMargin);
+        draw(pic,shift(z)*scale(scale)*vector(z),p,arrow,PenMargin);
     }
   }
   return pic;

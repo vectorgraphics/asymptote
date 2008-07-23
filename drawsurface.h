@@ -17,10 +17,11 @@ typedef double Triple[3];
 class drawSurface : public drawElement {
 protected:
   pen pentype;
+  triple min,max;
   Triple controls[16];
 public:
-  drawSurface(const vm::array& g, pen pentype) : pentype(pentype) {
-  
+  drawSurface(const vm::array& g, pen pentype, triple min, triple max) :
+    pentype(pentype), min(min), max(max) {
     int k=0;
     size_t gsize=checkArray(&g);
     string wrongsize="Bezier surface patch requires 4x4 array of triples";
@@ -40,6 +41,13 @@ public:
 	++k;
       }
     }
+  }
+  
+  bool is3D() {return true;}
+  
+  void bounds(bbox3& b) {
+    b.add(min);
+    b.add(max);
   }
   
   virtual ~drawSurface() {}

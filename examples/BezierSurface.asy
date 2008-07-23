@@ -1,9 +1,8 @@
 import surface;
 
-size(400,400);
 settings.outformat="pdf";
 
-string viewpoint="{-0.5426446795463562 -0.14865268766880035 0.4635830819606781}{0.8478688597679138 -0.43896540999412537 -0.2973680794239044}{1.773653046791941}{22.894760674626774}{}";
+string viewpoint="{-9.074610710144043 3.7582550048828125 9.491896629333496}{0.6583541035652161 0.7360872626304626 0.1573067307472229}{19.13666639673018}{175.3142865932709}{}";
 
 //viewpoint=getstring("viewpoint",viewpoint);
 currentprojection=perspective(viewpoint);
@@ -30,19 +29,9 @@ triple[][][] P={{
     {(-2.7,0,1.65),(-2.7,0.3,1.65),(-3,0.3,1.65),(-3,0,1.65)}
   }};
 
-frame f;
-for(int i=0; i < P.length; ++i) {
-  for(int j=0; j < P[i].length; ++j)
-    P[i][j] *= 10; // Temporary scaling.
-  draw(f,P[i],blue);
-}
-add3(f,"label",10cm,(0,0));
-label(cameralink("label"),(1,-2));
+picture pic;
+size(pic,10cm);
+draw(pic,P,blue);
 
-/*
-draw(P[1],1,16);
-draw(P[3],1,16);
-draw(P[0],16,1);
-draw(P[2],16,1);
-*/
-
+add(pic.fit(),"label",(0,0),N);
+label(cameralink("label"),(0,0),10S,fontsize(24pt));

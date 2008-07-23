@@ -198,9 +198,4 @@ triple[][][] Q={
   }
 };
 
-
-frame f;
-for(int i=0; i < Q.length; ++i)
-  draw(f,Q[i],blue);
-
-add3(f,10cm);
+draw(Q,blue);

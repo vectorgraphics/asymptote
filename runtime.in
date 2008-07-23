@@ -899,14 +899,14 @@ void erase(picture *f)
   f->nodes.clear();
 }
 
-pair max(picture *f)
-{
-  return f->bounds().Max();
-}
-
 pair min(picture *f)
 {
   return f->bounds().Min();
+}
+
+pair max(picture *f)
+{
+  return f->bounds().Max();
 }
 
 void label(picture *f, string *s, string *size, transform t, pair position,
@@ -2372,15 +2372,32 @@ guide *reverse(guide *g)
 
 
 // Three-dimensional operations
-void draw(picture *f, triplearray *g, pen p, bool straight)
+void draw(picture *f, triplearray *g, pen p, bool straight,
+	  triple min, triple max)
 {
-  f->append(new drawPath3(*g,p,straight));
+  f->append(new drawPath3(*g,p,straight,min,max));
 }
 
-void draw(picture *f, triplearray2 *g, pen p)
+void draw(picture *f, triplearray2 *g, pen p, triple min, triple max)
 {
-  f->append(new drawSurface(*g,p));
+  f->append(new drawSurface(*g,p,min,max));
 }
+
+triple min3(picture *f)
+{
+  return f->bounds3().Min();
+}
+
+triple max3(picture *f)
+{
+  return f->bounds3().Max();
+}
+
+bool is3D(picture *f)
+{
+  return f->have3D();
+}
+
 
 
 // String operations
