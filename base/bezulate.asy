@@ -67,21 +67,18 @@ private real fuzz=10*realEpsilon;
 
 bool isDuplicate(pair a, pair b)
 {
-  return (abs(a-b) <= fuzz*max(abs(a),abs(b)));
+  return abs(a-b) <= fuzz*max(abs(a),abs(b));
 }
 
 path removeDuplicates(path p)
 {
   for(int i=0; i < length(p); ++i) {
     if(isDuplicate(point(p,i),point(p,i+1))) {
-      if(cyclic(p))
-	p=subpath(p,0,i)&subpath(p,i+1,length(p))&cycle;
-      else
-	p=subpath(p,0,i)&subpath(p,i+1,length(p));
+      p=subpath(p,0,i)&subpath(p,i+1,length(p));
       --i;
     }
   }
-  return p;
+  return cyclic(p) ? p&cycle : p;
 }
 
 path section(path p, real t1, real t2, bool loop=false)
@@ -230,7 +227,7 @@ path[] bezulate(path[] p)
   for(int i=0; i < result.length; ++i) {
     path p=result[i];
     int refinements=0;
-    static int maxR=100;
+    static int maxR=ceil(-log(realEpsilon)/log(2))+1;
     if(!cyclic(p)) {
       abort("path must be cyclic and non-self-intersecting.");
     }
@@ -250,7 +247,6 @@ path[] bezulate(path[] p)
 	  if(found) {
 	    path p1=subpath(p,endi,i+length(p))--cycle;
 	    patch.append(patch(subpath(p,endi,i)--cycle));
-
 	    p=removeDuplicates(p1);
 	    i=-1; // increment will make i be 0
 	  }
