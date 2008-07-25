@@ -72,13 +72,14 @@ bool isDuplicate(pair a, pair b)
 
 path removeDuplicates(path p)
 {
+  bool cyclic=cyclic(p);
   for(int i=0; i < length(p); ++i) {
     if(isDuplicate(point(p,i),point(p,i+1))) {
       p=subpath(p,0,i)&subpath(p,i+1,length(p));
       --i;
     }
   }
-  return cyclic(p) ? p&cycle : p;
+  return cyclic ? p&cycle : p;
 }
 
 path section(path p, real t1, real t2, bool loop=false)
@@ -88,15 +89,9 @@ path section(path p, real t1, real t2, bool loop=false)
   return subpath(p,t1,t2);
 }
 
-path uncycle(path p,real t)
+path uncycle(path p, real t)
 {
-  if(!cyclic(p))
-    return p;
-  path result=subpath(p,t,ceil(t));
-  int i=ceil(t);
-  for(; i < ceil(t)+length(p)-1; ++i)
-    result=result&subpath(p,i,i+1);
-  return result&subpath(p,i,t+length(p));
+  return subpath(p,t,t+length(p));
 }
 
 // TODO: check if fillrule is respected
@@ -196,7 +191,8 @@ path[] connect(path[] paths, path[] result, path[] patch, int depth=0)
 int countIntersections(path g, pair p, pair q)
 {
   int ints=0;
-  for(int i=1; i <= length(g); ++i)
+  int l=length(g);
+  for(int i=1; i <= l; ++i)
     ints += intersections(subpath(g,i-1,i),p--q).length;
   return ints;
 }
@@ -214,9 +210,7 @@ path subdivide(path p)
   int l=length(p);
   for(int i=0; i < l; ++i)
     q=q&subpath(p,i,i+0.5)&subpath(p,i+0.5,i+1);
-  if(cyclic(p))
-    q=q&cycle;
-  return q;
+  return cyclic(p) ? q&cycle : q;
 }
 
 path[] bezulate(path[] p)
