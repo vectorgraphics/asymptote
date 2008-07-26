@@ -240,7 +240,7 @@ path[] bezulate(path[] p)
 	  found=checkSegment(p,start,end);
 	  if(found) {
 	    path p1=subpath(p,endi,i+length(p))--cycle;
-	    patch.append(patch(subpath(p,endi,i)--cycle));
+	    patch.append(patch(subpath(p,i,endi)--cycle));
 	    p=removeDuplicates(p1);
 	    i=-1; // increment will make i be 0
 	  }
