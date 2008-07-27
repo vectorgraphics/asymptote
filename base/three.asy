@@ -2885,8 +2885,8 @@ shipout=new void(string prefix=defaultfilename, picture pic,
   } else plain.shipout(prefix,orientation(pic.fit()),format,wait,view);
 };
 
-include light;
-include surface;
+include three_light;
+include three_surface;
 
 exitfcn currentexitfunction=atexit();
 
