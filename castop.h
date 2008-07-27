@@ -40,8 +40,9 @@ void stringCast(vm::stack *s)
 {
   ostringstream buf;
   buf.precision(DBL_DIG);
+  buf.setf(std::ios::fixed);
   buf << pop<T>(s);
-  s->push((string) buf.str());
+  s->push(buf.str());
 }
 
 template<class T>

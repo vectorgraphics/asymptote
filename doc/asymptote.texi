@@ -1920,7 +1920,8 @@ specified) and @TeX{} is used to typeset scientific notation;
 
 @cindex @code{string}
 @item string string(real x, int digits=realDigits)
-casts @code{x} using precision @code{digits} to a string, using the C locale;
+casts @code{x} to a string, using fixed notation with precision @code{digits}
+and the C locale; 
 
 @item string time(string format="%a %b %d %T %Z %Y")
 @cindex @code{time}

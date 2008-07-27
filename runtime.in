@@ -2672,10 +2672,11 @@ string format(string *format, real x)
   return out.str();
 }
 
-string string(real x, Int digits)
+string string(real x, Int digits=DBL_DIG)
 {
   ostringstream buf;
   buf.precision(digits);
+  buf.setf(std::ios::fixed);
   buf << x;
   return buf.str();
 }

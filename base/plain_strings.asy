@@ -1,8 +1,3 @@
-string string(real x)
-{
-  return (string) x;
-}
-
 string defaultformat(int n, bool trailingzero=false, bool fixed=false)
 {
   return "$%"+(trailingzero ? "#" : "")+"."+string(n)+(fixed ? "f" : "g")+"$";
