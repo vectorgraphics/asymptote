@@ -1,5 +1,3 @@
-import three;
-
 path defaultshading(real s0=0.03, real s1=0.25, real s2=1-s1, real s3=1-s0)
 {
   return (0,s0)..controls (1/3,s1) and (2/3,s2)..(1,s3);

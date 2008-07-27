@@ -1,4 +1,4 @@
-import surface;
+import three;
 
 currentprojection=perspective(250,-250,250);
 settings.outformat="pdf";
@@ -198,4 +198,4 @@ triple[][][] Q={
   }
 };
 
-draw(Q,blue);
+draw(surface(Q),blue);

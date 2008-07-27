@@ -519,11 +519,14 @@ struct picture {
              userMax.z);
   }
   
-  void userCorners(triple c00, triple c01, triple c10, triple c11) {
-    userMin=(min(c00.x,c01.x,c10.x,c11.x),min(c00.y,c01.y,c10.y,c11.y),
-             min(c00.z,c01.z,c10.z,c11.z));
-    userMax=(max(c00.x,c01.x,c10.x,c11.x),max(c00.y,c01.y,c10.y,c11.y),
-             max(c00.z,c01.z,c10.z,c11.z));
+  void userCorners(triple c000, triple c001, triple c010, triple c011,
+		   triple c100, triple c101, triple c110, triple c111) {
+    userMin=(min(c000.x,c001.x,c010.x,c011.x,c100.x,c101.x,c110.x,c111.x),
+	     min(c000.y,c001.y,c010.y,c011.y,c100.y,c101.y,c110.y,c111.y),
+             min(c000.z,c001.z,c010.z,c011.z,c100.z,c101.z,c110.z,c111.z));
+    userMax=(max(c000.x,c001.x,c010.x,c011.x,c100.x,c101.x,c110.x,c111.x),
+	     max(c000.y,c001.y,c010.y,c011.y,c100.y,c101.y,c110.y,c111.y),
+             max(c000.z,c001.z,c010.z,c011.z,c100.z,c101.z,c110.z,c111.z));
   }
   
   void userCopy(picture pic) {
@@ -637,6 +640,13 @@ struct picture {
 
   // Add a box to the sizing.
   void addBox(pair userMin, pair userMax, pair trueMin=0, pair trueMax=0) {
+    bounds.min.push(userMin,trueMin);
+    bounds.max.push(userMax,trueMax);
+    userBox(userMin,userMax);
+  }
+
+  void addBox(triple userMin, triple userMax, triple trueMin=(0,0,0),
+	      triple trueMax=(0,0,0)) {
     bounds.min.push(userMin,trueMin);
     bounds.max.push(userMax,trueMax);
     userBox(userMin,userMax);
@@ -1077,10 +1087,14 @@ picture operator * (transform3 t, picture orig)
 {
   picture pic=orig.copy();
   pic.T3=t*pic.T3;
-  pic.userCorners(t*(pic.userMin.x,pic.userMin.y,pic.userMin.z),
+  pic.userCorners(t*pic.userMin,
+		  t*(pic.userMin.x,pic.userMin.y,pic.userMax.z),
+                  t*(pic.userMin.x,pic.userMax.y,pic.userMin.z),
                   t*(pic.userMin.x,pic.userMax.y,pic.userMax.z),
                   t*(pic.userMax.x,pic.userMin.y,pic.userMin.z),
-                  t*(pic.userMax.x,pic.userMax.y,pic.userMin.z));
+                  t*(pic.userMax.x,pic.userMin.y,pic.userMax.z),
+                  t*(pic.userMax.x,pic.userMax.y,pic.userMin.z),
+                  t*pic.userMax);
   pic.bounds.exact=false;
   return pic;
 }

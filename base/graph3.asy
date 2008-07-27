@@ -3,7 +3,6 @@
 private import math;
 import graph;
 import three;
-import light;
 
 triple Scale(picture pic, triple v)
 {
@@ -25,7 +24,7 @@ direction dir(path3 G, triple dir, projection P=currentprojection)
 }
 
 direction perpendicular(path3 G, triple normal,
-                        projection P=currentprojection)
+			projection P=currentprojection)
 {
   return new pair(real t) {
     return dir(point(G,t),cross(dir(G,t),normal),P);
@@ -45,7 +44,7 @@ real projecttime(path3 G, real T, projection P=currentprojection)
 }
 
 valuetime linear(picture pic=currentpicture, path3 G, scalefcn S,
-                 real Min, real Max, projection P=currentprojection)
+		 real Min, real Max, projection P=currentprojection)
 {
   real factor=Max == Min ? 0.0 : 1.0/(Max-Min);
   path g=project(G,P);
@@ -56,9 +55,9 @@ valuetime linear(picture pic=currentpicture, path3 G, scalefcn S,
 
 // Draw a general three-dimensional axis.
 void axis(picture pic=currentpicture, Label L="", path3 G, pen p=currentpen,
-          ticks ticks, ticklocate locate, arrowbar arrow=None,
-          int[] divisor=new int[], bool put=Above,
-          projection P=currentprojection,  bool opposite=false) 
+	  ticks ticks, ticklocate locate, arrowbar arrow=None,
+	  int[] divisor=new int[], bool put=Above,
+	  projection P=currentprojection,  bool opposite=false) 
 {
   divisor=copy(divisor);
   locate=locate.copy();
@@ -91,9 +90,9 @@ private triple defaultdir(triple X, triple Y, triple Z, projection P) {
 
 // Draw an x axis in three dimensions.
 void xaxis(picture pic=currentpicture, Label L="", triple min, triple max,
-           pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
-           arrowbar arrow=None, bool put=Above,
-           projection P=currentprojection, bool opposite=false) 
+	   pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
+	   arrowbar arrow=None, bool put=Above,
+	   projection P=currentprojection, bool opposite=false) 
 {
   if(dir == O) dir=defaultdir(Y,Z,X,P);
   bounds m=autoscale(min.x,max.x,pic.scale.x.scale);
@@ -105,18 +104,18 @@ void xaxis(picture pic=currentpicture, Label L="", triple min, triple max,
 }
 
 void xaxis(picture pic=currentpicture, Label L="", triple min, real max,
-           pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
-           arrowbar arrow=None, bool put=Above,
-           projection P=currentprojection, bool opposite=false) 
+	   pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
+	   arrowbar arrow=None, bool put=Above,
+	   projection P=currentprojection, bool opposite=false) 
 {
   xaxis(pic,L,min,(max,min.y,min.z),p,ticks,dir,arrow,put,P,opposite);
 }
 
 // Draw a y axis in three dimensions.
 void yaxis(picture pic=currentpicture, Label L="", triple min, triple max,
-           pen p=currentpen, ticks ticks=NoTicks, triple dir=X,
-           arrowbar arrow=None, bool put=Above, 
-           projection P=currentprojection, bool opposite=false) 
+	   pen p=currentpen, ticks ticks=NoTicks, triple dir=X,
+	   arrowbar arrow=None, bool put=Above, 
+	   projection P=currentprojection, bool opposite=false) 
 {
   if(dir == O) dir=defaultdir(Z,X,Y,P);
   bounds m=autoscale(min.y,max.y,pic.scale.y.scale);
@@ -128,18 +127,18 @@ void yaxis(picture pic=currentpicture, Label L="", triple min, triple max,
 }
 
 void yaxis(picture pic=currentpicture, Label L="", triple min, real max,
-           pen p=currentpen, ticks ticks=NoTicks, triple dir=X,
-           arrowbar arrow=None, bool put=Above, 
-           projection P=currentprojection, bool opposite=false) 
+	   pen p=currentpen, ticks ticks=NoTicks, triple dir=X,
+	   arrowbar arrow=None, bool put=Above, 
+	   projection P=currentprojection, bool opposite=false) 
 {
   yaxis(pic,L,min,(min.x,max,min.z),p,ticks,dir,arrow,put,P,opposite);
 }
 
 // Draw a z axis in three dimensions.
 void zaxis(picture pic=currentpicture, Label L="", triple min, triple max,
-           pen p=currentpen, ticks ticks=NoTicks, triple dir=O,
-           arrowbar arrow=None, bool put=Above,
-           projection P=currentprojection, bool opposite=false) 
+	   pen p=currentpen, ticks ticks=NoTicks, triple dir=O,
+	   arrowbar arrow=None, bool put=Above,
+	   projection P=currentprojection, bool opposite=false) 
 {
   if(dir == O) dir=defaultdir(X,Y,Z,P);
   bounds m=autoscale(min.z,max.z,pic.scale.z.scale);
@@ -151,9 +150,9 @@ void zaxis(picture pic=currentpicture, Label L="", triple min, triple max,
 }
 
 void zaxis(picture pic=currentpicture, Label L="", triple min, real max,
-           pen p=currentpen, ticks ticks=NoTicks, triple dir=O,
-           arrowbar arrow=None, bool put=Above,
-           projection P=currentprojection, bool opposite=false) 
+	   pen p=currentpen, ticks ticks=NoTicks, triple dir=O,
+	   arrowbar arrow=None, bool put=Above,
+	   projection P=currentprojection, bool opposite=false) 
 {
   zaxis(pic,L,min,(min.x,min.y,max),p,ticks,dir,arrow,put,P,opposite);
 }
@@ -161,9 +160,9 @@ void zaxis(picture pic=currentpicture, Label L="", triple min, real max,
 // Draw an x axis.
 // If all=true, also draw opposing edges of the three-dimensional bounding box.
 void xaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
-           pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
-           arrowbar arrow=None, bool put=Above,
-           projection P=currentprojection) 
+	   pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
+	   arrowbar arrow=None, bool put=Above,
+	   projection P=currentprojection) 
 {
   if(dir == O) dir=defaultdir(Y,Z,X,P);
 
@@ -172,16 +171,16 @@ void xaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
     bounds m=autoscale(b.min.x,b.max.x,pic.scale.x.scale);
   
     void axis(Label L, triple min, triple max, bool opposite=false,
-              int sign=1) {
+	      int sign=1) {
       xaxis(pic,L,min,max,p,ticks,sign*dir,arrow,put,P,opposite);
     }
     bool back=dot(b.Y()-b.O(),P.camera)*sgn(P.camera.z) > 0;
     int sign=back ? -1 : 1;
     axis(L,b.min,b.X(),back,sign);
     axis(L,(b.min.x,b.max.y,b.min.z),(b.max.x,b.max.y,b.min.z),!back,
-         swap ? 1 : sign);
+	 swap ? 1 : sign);
     axis(L,(b.min.x,b.min.y,b.max.z),(b.max.x,b.min.y,b.max.z),true,
-         swap ? 1 : -1);
+	 swap ? 1 : -1);
     axis(L,(b.min.x,b.max.y,b.max.z),b.max,true);
   } else xaxis(pic,L,b.O(),b.X(),p,ticks,dir,arrow,put,P);
 }
@@ -189,9 +188,9 @@ void xaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
 // Draw a y axis.
 // If all=true, also draw opposing edges of the three-dimensional bounding box.
 void yaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
-           pen p=currentpen, ticks ticks=NoTicks, triple dir=X,
-           arrowbar arrow=None, bool put=Above,
-           projection P=currentprojection) 
+	   pen p=currentpen, ticks ticks=NoTicks, triple dir=X,
+	   arrowbar arrow=None, bool put=Above,
+	   projection P=currentprojection) 
 {
   if(dir == O) dir=defaultdir(Z,X,Y,P);
 
@@ -200,16 +199,16 @@ void yaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
     bounds m=autoscale(b.min.y,b.max.y,pic.scale.y.scale);
   
     void axis(Label L, triple min, triple max, bool opposite=false,
-              int sign=1) {
+	      int sign=1) {
       yaxis(pic,L,min,max,p,ticks,sign*dir,arrow,put,P,opposite);
     }
     bool back=dot(b.X()-b.O(),P.camera)*sgn(P.camera.z) > 0;
     int sign=back ? -1 : 1;
     axis(L,b.min,b.Y(),back,sign);
     axis(L,(b.max.x,b.min.y,b.min.z),(b.max.x,b.max.y,b.min.z),!back,
-         swap ? 1 : sign);
+	 swap ? 1 : sign);
     axis(L,(b.min.x,b.min.y,b.max.z),(b.min.x,b.max.y,b.max.z),true,
-         swap ? 1 : -1);
+	 swap ? 1 : -1);
     axis(L,(b.max.x,b.min.y,b.max.z),b.max,true);
   } else yaxis(pic,L,b.O(),b.Y(),p,ticks,dir,arrow,put,P);
 }
@@ -217,9 +216,9 @@ void yaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
 // Draw a z axis.
 // If all=true, also draw opposing edges of the three-dimensional bounding box.
 void zaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
-           pen p=currentpen, ticks ticks=NoTicks, triple dir=O,
-           arrowbar arrow=None, bool put=Above,
-           projection P=currentprojection) 
+	   pen p=currentpen, ticks ticks=NoTicks, triple dir=O,
+	   arrowbar arrow=None, bool put=Above,
+	   projection P=currentprojection) 
 {
   if(dir == O) dir=defaultdir(X,Y,Z,P);
 
@@ -228,16 +227,16 @@ void zaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
     bounds m=autoscale(b.min.z,b.max.z,pic.scale.z.scale);
   
     void axis(Label L, triple min, triple max, bool opposite=false,
-              int sign=1) {
+	      int sign=1) {
       zaxis(pic,L,min,max,p,ticks,sign*dir,arrow,put,P,opposite);
     }
     bool back=dot(b.X()-b.O(),P.camera)*sgn(P.camera.y) > 0;
     int sign=back ? -1 : 1;
     axis(L,b.min,b.Z(),back,sign);
     axis(L,(b.max.x,b.min.y,b.min.z),(b.max.x,b.min.y,b.max.z),!back,
-         swap ? 1 : sign);
+	 swap ? 1 : sign);
     axis(L,(b.min.x,b.max.y,b.min.z),(b.min.x,b.max.y,b.max.z),true,
-         swap ? 1 : -1);
+	 swap ? 1 : -1);
     axis(L,(b.max.x,b.max.y,b.min.z),b.max,true);
   } else zaxis(pic,L,b.O(),b.Z(),p,ticks,dir,arrow,put,P);
 }
@@ -317,9 +316,9 @@ void limits(bbox3 b, triple min, triple max)
 }
   
 void axes(picture pic=currentpicture,
-          Label xlabel="", Label ylabel="", Label zlabel="", 
-          bbox3 b, pen p=currentpen, arrowbar arrow=None,
-          bool put=Below, projection P=currentprojection)
+	  Label xlabel="", Label ylabel="", Label zlabel="", 
+	  bbox3 b, pen p=currentpen, arrowbar arrow=None,
+	  bool put=Below, projection P=currentprojection)
 {
   xaxis(pic,xlabel,b,p,arrow,put,P);
   yaxis(pic,ylabel,b,p,arrow,put,P);
@@ -327,32 +326,32 @@ void axes(picture pic=currentpicture,
 }
 
 void axes(picture pic=currentpicture,
-          Label xlabel="", Label ylabel="", Label zlabel="", 
-          triple min, triple max, pen p=currentpen, arrowbar arrow=None,
-          bool put=Below, projection P=currentprojection)
+	  Label xlabel="", Label ylabel="", Label zlabel="", 
+	  triple min, triple max, pen p=currentpen, arrowbar arrow=None,
+	  bool put=Below, projection P=currentprojection)
 {
   axes(pic,xlabel,ylabel,zlabel,limits(min,max),p,arrow,put,P);
 }
 
 void xtick(picture pic=currentpicture, Label L="", triple v, triple dir=Y,
-           string format="", real size=Ticksize, pen p=currentpen,
-           projection P=currentprojection)
+	   string format="", real size=Ticksize, pen p=currentpen,
+	   projection P=currentprojection)
 {
   if(L.s == "") L.s=format(format == "" ? defaultformat : format,v.x);
   xtick(pic,L,project(v,P),project(dir,P),format,size,p);
 }
 
 void ytick(picture pic=currentpicture, Label L="", triple v, triple dir=X,
-           string format="", real size=Ticksize, pen p=currentpen,
-           projection P=currentprojection)
+	   string format="", real size=Ticksize, pen p=currentpen,
+	   projection P=currentprojection)
 {
   if(L.s == "") L.s=format(format == "" ? defaultformat : format,v.y);
   xtick(pic,L,project(v,P),project(dir,P),format,size,p);
 }
 
 void ztick(picture pic=currentpicture, Label L="", triple v, triple dir=Y,
-           string format="", real size=Ticksize, pen p=currentpen,
-           projection P=currentprojection)
+	   string format="", real size=Ticksize, pen p=currentpen,
+	   projection P=currentprojection)
 {
   if(L.s == "") L.s=format(format == "" ? defaultformat : format,v.z);
   xtick(pic,L,project(v,P),project(dir,P),format,size,p);
@@ -368,24 +367,24 @@ graph graph(interpolate3 join)
     real width=b-a;
     return n == 0 ? join(f(a)) :
       join(...sequence(new guide3(int i) {
-            return f(a+(i/n)*width);
-          },n+1));
+	    return f(a+(i/n)*width);
+	  },n+1));
   };
 }
 
 guide3 Straight(... guide3[])=operator --;
 guide3 Spline(... guide3[])=operator ..;
-                       
+		       
 guide3 graph(picture pic=currentpicture, real x(real), real y(real),
-             real z(real), real a, real b, int n=ngraph,
-             interpolate3 join=operator --)
+	     real z(real), real a, real b, int n=ngraph,
+	     interpolate3 join=operator --)
 {
   return graph(join)(new triple(real t) {return Scale(pic,(x(t),y(t),z(t)));},
-                     a,b,n);
+		     a,b,n);
 }
 
 guide3 graph(picture pic=currentpicture, triple v(real), real a, real b,
-             int n=ngraph, interpolate3 join=operator --)
+	     int n=ngraph, interpolate3 join=operator --)
 {
   return graph(join)(new triple(real t) {return Scale(pic,v(t));},a,b,n);
 }
@@ -399,7 +398,7 @@ int[] conditional(triple[] v, bool[] cond)
 }
 
 guide3 graph(picture pic=currentpicture, triple[] v, bool[] cond={},
-             interpolate3 join=operator --)
+	     interpolate3 join=operator --)
 {
   int[] I=conditional(v,cond);
   int k=0;
@@ -410,7 +409,7 @@ guide3 graph(picture pic=currentpicture, triple[] v, bool[] cond={},
 }
 
 guide3 graph(picture pic=currentpicture, real[] x, real[] y, real[] z,
-             bool[] cond={}, interpolate3 join=operator --)
+	     bool[] cond={}, interpolate3 join=operator --)
 {
   checklengths(x.length,y.length);
   checklengths(x.length,z.length);
@@ -424,10 +423,10 @@ guide3 graph(picture pic=currentpicture, real[] x, real[] y, real[] z,
 
 // The graph of a function along a path.
 guide3 graph(triple F(path, real), path p, int n=1,
-             interpolate3 join=operator --)
+	     interpolate3 join=operator --)
 {
   guide3 g=join(...sequence(new guide3(int i) {
-        return F(p,i/n);
+	return F(p,i/n);
       },n*length(p)));
   return cyclic(p) ? join(g,cycle) : join(g,F(p,length(p)));
 }
@@ -435,21 +434,21 @@ guide3 graph(triple F(path, real), path p, int n=1,
 guide3 graph(triple F(pair), path p, int n=1, interpolate3 join=operator --)
 {
   return graph(new triple(path p, real position) 
-               {return F(point(p,position));},p,n,join);
+	       {return F(point(p,position));},p,n,join);
 }
 
 guide3 graph(picture pic=currentpicture, real f(pair), path p, int n=1,
-             interpolate3 join=operator --) 
+	     interpolate3 join=operator --) 
 {
   return graph(new triple(pair z) {return Scale(pic,(z.x,z.y,f(z)));},p,n,
-               join);
+	       join);
 }
 
 guide3 graph(real f(pair), path p, int n=1, real T(pair),
-             interpolate3 join=operator --)
+	     interpolate3 join=operator --)
 {
   return graph(new triple(pair z) {pair w=T(z); return (w.x,w.y,f(w));},p,n,
-               join);
+	       join);
 }
 
 // Connect points in v into segments corresponding to consecutive true elements
@@ -459,15 +458,13 @@ path3[] segment(triple[] v, bool[] b, interpolate3 join=operator --)
   checklengths(v.length,b.length,conditionlength);
   int[][] segment=segment(b);
   return sequence(new path3(int i) {return join(... v[segment[i]]);},
-                  segment.length);
+		  segment.length);
 }
-
-import surface;
 
 // draw the surface described by a matrix f, respecting lighting
 picture surface(triple[][] f, bool[][] cond={}, bool outward=false,
-                pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection)
+		pen surfacepen=lightgray, pen meshpen=nullpen,
+		light light=currentlight, projection P=currentprojection)
 {
   picture pic;
   
@@ -482,8 +479,8 @@ picture surface(triple[][] f, bool[][] cond={}, bool outward=false,
   if(prc()) {
     for(int i=0; i < nx; ++i) {
       for(int j=0; j < ny; ++j) {
-        surface s=surface(f[i][j]--f[i][j+1]--f[i+1][j+1]--f[i+1][j]--cycle);
-        draw(pic,s,surfacepen);
+	surface s=surface(f[i][j]--f[i][j+1]--f[i+1][j+1]--f[i+1][j]--cycle);
+	draw(pic,s,surfacepen);
       }
     }
   } else {
@@ -499,7 +496,7 @@ picture surface(triple[][] f, bool[][] cond={}, bool outward=false,
       else dfy=0.5(f[i][j+1]-f[i][j-1]);
       triple v=cross(dfx,dfy);
       if(!outward)
-        v *= sgn(dot(v,P.camera-P.target));
+	v *= sgn(dot(v,P.camera-P.target));
       return light.intensity(v)*surfacepen;
     }
 
@@ -507,15 +504,15 @@ picture surface(triple[][] f, bool[][] cond={}, bool outward=false,
   
     void drawcell(int i, int j) {
       path g=project(f[i][j],P)--project(f[i][j+1],P)--project(f[i+1][j+1],P)--
-        project(f[i+1][j],P)--cycle;
+	project(f[i+1][j],P)--cycle;
 
       if(surfacepen != nullpen) {
-        if(light.source == O)
-          fill(pic,g,surfacepen);
-        else {
-          pen[] pcell={color(i,j),color(i,j+1),color(i+1,j+1),color(i+1,j)};
-          gouraudshade(pic,g,pcell,edges);
-        }
+	if(light.source == O)
+	  fill(pic,g,surfacepen);
+	else {
+	  pen[] pcell={color(i,j),color(i,j+1),color(i+1,j+1),color(i+1,j)};
+	  gouraudshade(pic,g,pcell,edges);
+	}
       }
       if(meshpen != nullpen) draw(pic,g,meshpen);
     }
@@ -524,31 +521,31 @@ picture surface(triple[][] f, bool[][] cond={}, bool outward=false,
 
     if(surfacepen == nullpen) {
       for(int i=0; i < nx; ++i)
-        for(int j=0; j < ny; ++j)
-          if(all || cond[i][j])
-            drawcell(i,j);
+	for(int j=0; j < ny; ++j)
+	  if(all || cond[i][j])
+	    drawcell(i,j);
     } else {
       // Sort cells by distance from camera
       triple camera=P.camera;
       if(P.infinity)
-        camera *= max(abs(minbound(f)),abs(maxbound(f)));
+	camera *= max(abs(minbound(f)),abs(maxbound(f)));
 
       real[][] depth;
       for(int i=0; i < nx; ++i) {
-        for(int j=0; j < ny; ++j) {
-          if(all || cond[i][j]) {
-            real d=abs(camera-0.25(f[i][j]+f[i][j+1]+f[i+1][j]+f[i+1][j+1]));
-            depth.push(new real[] {d,i,j});
-          }
-        }
+	for(int j=0; j < ny; ++j) {
+	  if(all || cond[i][j]) {
+	    real d=abs(camera-0.25(f[i][j]+f[i][j+1]+f[i+1][j]+f[i+1][j+1]));
+	    depth.push(new real[] {d,i,j});
+	  }
+	}
       }
 
       depth=sort(depth);
   
       // Draw from farthest to nearest
       while(depth.length > 0) {
-        real[] a=depth.pop();
-        drawcell(round(a[1]),round(a[2]));
+	real[] a=depth.pop();
+	drawcell(round(a[1]),round(a[2]));
       }
     }
   }
@@ -557,9 +554,9 @@ picture surface(triple[][] f, bool[][] cond={}, bool outward=false,
 
 // draw the surface described by a real matrix f, respecting lighting
 picture surface(real[][] f, pair a, pair b, bool[][] cond={},
-                bool outward=false,
-                pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection)
+		bool outward=false,
+		pen surfacepen=lightgray, pen meshpen=nullpen,
+		light light=currentlight, projection P=currentprojection)
 {
   if(!rectangular(f)) abort("matrix is not rectangular");
 
@@ -582,9 +579,9 @@ picture surface(real[][] f, pair a, pair b, bool[][] cond={},
 // draw the surface described by a parametric function f over box(a,b),
 // respecting lighting.
 picture surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
-                bool cond(pair z)=null, bool outward=false,
-                pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection)
+		bool cond(pair z)=null, bool outward=false,
+		pen surfacepen=lightgray, pen meshpen=nullpen,
+		light light=currentlight, projection P=currentprojection)
 {
   if(nu <= 0 || nv <= 0) return new picture;
   triple[][] v=new triple[nu+1][nv+1];
@@ -611,21 +608,21 @@ picture surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
 // draw the surface described by a real function f over box(a,b),
 // respecting lighting.
 picture surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
-                bool cond(pair z)=null, bool outward=false,
-                pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection)
+		bool cond(pair z)=null, bool outward=false,
+		pen surfacepen=lightgray, pen meshpen=nullpen,
+		light light=currentlight, projection P=currentprojection)
 {
   return surface(new triple(pair z) {return (z.x,z.y,f(z));},a,b,nx,ny,
-                 cond,outward,surfacepen,meshpen,light,P);
+		 cond,outward,surfacepen,meshpen,light,P);
 }
 
 // draw the surface described by a parametric function f over box(a,b),
 // subsampled nsub times, respecting lighting.
 picture surface(triple f(pair z), int nsub, pair a, pair b,
-                int nu=nmesh, int nv=nu,
-                bool cond(pair z)=null, bool outward=false,
-                pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection)
+		int nu=nmesh, int nv=nu,
+		bool cond(pair z)=null, bool outward=false,
+		pen surfacepen=lightgray, pen meshpen=nullpen,
+		light light=currentlight, projection P=currentprojection)
 {
   picture pic;
 
@@ -671,28 +668,28 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
   if(surfacepen == nullpen) {
     for(int i=0; i < nu; ++i)
       for(int j=0; j < nv; ++j)
-        if(active(i,j))
-          draw(pic,project(cell(i,j),P),meshpen);
+	if(active(i,j))
+	  draw(pic,project(cell(i,j),P),meshpen);
   } else {
     // Sort cells by distance from camera
     triple camera=P.camera;
     if(P.infinity) {
       real r=0;
       for(int i=0; i <= nu; ++i)
-        for(int j=0; j <= nv; ++j)
-          if(active(i,j))
-            r=max(r,abs(f(sample(i,j))));
+	for(int j=0; j <= nv; ++j)
+	  if(active(i,j))
+	    r=max(r,abs(f(sample(i,j))));
       camera *= r;
     }
 
     real[][] depth;
     for(int i=0; i < nu; ++i) {
       for(int j=0; j < nv; ++j) {
-        if(active(i,j)) {
-          real d=abs(camera-0.25*(f(sample(i,j))+f(sample(i,j+1))+
-                                  f(sample(i+1,j))+f(sample(i+1,j+1))));
-          depth.push(new real[] {d,i,j});
-        }
+	if(active(i,j)) {
+	  real d=abs(camera-0.25*(f(sample(i,j))+f(sample(i,j+1))+
+				  f(sample(i+1,j))+f(sample(i+1,j+1))));
+	  depth.push(new real[] {d,i,j});
+	}
       }
     }
 
@@ -710,17 +707,17 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
 // draw the surface described by a real function f over box(a,b),
 // subsampled nsub times, respecting lighting.
 picture surface(real f(pair z), int nsub, pair a, pair b, 
-                int nx=nmesh, int ny=nx, bool cond(pair z)=null,
-                bool outward=false,
-                pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection)
+		int nx=nmesh, int ny=nx, bool cond(pair z)=null,
+		bool outward=false,
+		pen surfacepen=lightgray, pen meshpen=nullpen,
+		light light=currentlight, projection P=currentprojection)
 {
   return surface(new triple(pair z) {return (z.x,z.y,f(z));},nsub,a,b,nx,ny,
-                 cond,outward,surfacepen,meshpen,light,P);
+		 cond,outward,surfacepen,meshpen,light,P);
 }
 
 guide3[][] lift(real f(real x, real y), guide[][] g,
-                interpolate3 join=operator --)
+		interpolate3 join=operator --)
 {
   guide3[][] G=new guide3[g.length][];
   for(int cnt=0; cnt < g.length; ++cnt) {
@@ -729,9 +726,9 @@ guide3[][] lift(real f(real x, real y), guide[][] g,
     for(int i=0; i < gcnt.length; ++i) {
       guide gcnti=gcnt[i];
       guide3 Gcnti=join(...sequence(new guide3(int j) {
-            pair z=point(gcnti,j);
-            return (z.x,z.y,f(z.x,z.y));
-          },size(gcnti)));
+	    pair z=point(gcnti,j);
+	    return (z.x,z.y,f(z.x,z.y));
+	  },size(gcnti)));
       if(cyclic(gcnti)) Gcnti=Gcnti..cycle;
       Gcnt[i]=Gcnti;
     }
@@ -746,8 +743,8 @@ guide3[][] lift(real f(pair z), guide[][] g, interpolate3 join=operator --)
 }
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-          guide3[][] g, pen[] p, Label[] legend=new Label[],
-          projection P=currentprojection)
+	  guide3[][] g, pen[] p, Label[] legend=new Label[],
+	  projection P=currentprojection)
 {
   begingroup(pic);
   for(int cnt=0; cnt < g.length; ++cnt) {
@@ -758,9 +755,9 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
       if (i == 0 && legend.length > 0) draw(pic,G,pcnt,legend[cnt]);
       else draw(pic,G,pcnt);
       if(L.length > 0) {
-        Label Lcnt=L[cnt];
-        if(Lcnt.s != "" && size(gcnt[i]) > 1)
-          label(pic,Lcnt,G,pcnt);
+	Label Lcnt=L[cnt];
+	if(Lcnt.s != "" && size(gcnt[i]) > 1)
+	  label(pic,Lcnt,G,pcnt);
       }
     }
   }
@@ -768,8 +765,8 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
 }
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-          guide3[][] g, pen p=currentpen, Label[] legend=new Label[],
-          projection P=currentprojection)
+	  guide3[][] g, pen p=currentpen, Label[] legend=new Label[],
+	  projection P=currentprojection)
 {
   draw(pic,L,g,sequence(new pen(int) {return p;},g.length),legend,P);
 }
@@ -780,7 +777,7 @@ triple polar(real r, real theta, real phi)
 }
 
 guide3 polargraph(real r(real,real), real theta(real), real phi(real),
-                  int n=ngraph, interpolate3 join=operator --)
+		  int n=ngraph, interpolate3 join=operator --)
 {
   return graph(join)(new triple(real t) {
       return polar(r(theta(t),phi(t)),theta(t),phi(t));
@@ -788,10 +785,10 @@ guide3 polargraph(real r(real,real), real theta(real), real phi(real),
 }
 
 picture vectorfield(path3 vector(pair z), triple f(pair z),
-                    pair a, pair b, int nx=nmesh, int ny=nx,
-                    bool autoscale=true,
-                    pen p=currentpen, arrowbar arrow=Arrow,
-                    projection P=currentprojection)
+		    pair a, pair b, int nx=nmesh, int ny=nx,
+		    bool autoscale=true,
+		    pen p=currentpen, arrowbar arrow=Arrow,
+		    projection P=currentprojection)
 {
   picture pic;
   real dx=1/nx;
@@ -806,7 +803,7 @@ picture vectorfield(path3 vector(pair z), triple f(pair z),
     for(int i=0; i <= nx; ++i) {
       real x=interp(a.x,b.x,i*dx);
       for(int j=0; j <= ny; ++j)
-        max=max(max,size((x,interp(a.y,b.y,j*dy))));
+	max=max(max,size((x,interp(a.y,b.y,j*dy))));
     }
     pair lambda=(abs(f((b.x,a.y))-f(a)),abs(f((a.x,b.y))-f(a)));
     scale=min(lambda.x/nx,lambda.y/ny)/max;
@@ -824,13 +821,13 @@ picture vectorfield(path3 vector(pair z), triple f(pair z),
 
 // True arc
 path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
-          triple normal=Z, int n=400)
+	  triple normal=Z, int n=400)
 {
   path3 p=polargraph(new real(real theta, real phi) {return r;},
-                     new real(real t) {
-                       return radians(interp(theta1,theta2,t));},
-                     new real(real t) {return radians(interp(phi1,phi2,t));},
-                     n,operator ..);
+		     new real(real t) {
+		       return radians(interp(theta1,theta2,t));},
+		     new real(real t) {return radians(interp(phi1,phi2,t));},
+		     n,operator ..);
   if(normal != Z)
     p=rotate(longitude(normal,warn=false),Z)*rotate(colatitude(normal),Y)*p;
   return shift(c)*p;

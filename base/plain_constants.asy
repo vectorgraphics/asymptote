@@ -75,9 +75,9 @@ path box(pair a, pair b)
   return a--(b.x,a.y)--b--(a.x,b.y)--cycle;
 }
 
-path unitsquare=box((0,0),(1,1));
+restricted path unitsquare=box((0,0),(1,1));
 
-path unitcircle=E..N..W..S..cycle;
+restricted path unitcircle=E..N..W..S..cycle;
 restricted real circleprecision=0.0006;
 
 restricted transform invert=reflect((0,0),(1,0));

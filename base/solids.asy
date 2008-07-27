@@ -1,5 +1,4 @@
 import three;
-import light;
 import graph3;
 
 // A solid geometry package.

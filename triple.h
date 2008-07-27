@@ -151,8 +151,14 @@ public:
     : pre(pre), point(point), post(post) {}
 };
   
+extern const unsigned maxdepth;
+
 double cubiclength(const triple& z0, const triple& z0p, const triple& z1m,
 		   const triple& z1, double goal=-1);
+double bound(double *p, double (*m)(double, double), double b,
+	     int depth=maxdepth);
+double bound(triple *p, double (*m)(double, double), double (*f)(triple),
+	     double b, int depth=maxdepth);
   
 } //namespace camp
 

@@ -1,7 +1,7 @@
 int ncell=10;
 
 import graph_settings;
-import light;
+import three;
 
 real eps=10000*realEpsilon;
 

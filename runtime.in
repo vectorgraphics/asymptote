@@ -40,6 +40,7 @@ callable* => voidFunction()
 callableBp* => breakpointFunction()
 callableReal* => realRealFunction()
 callableTransform* => transformFunction()
+callableProject* => realTripleFunction()
 runnable* => primCode()
 boolarray* => boolArray()
 Intarray*  => IntArray()
@@ -155,6 +156,7 @@ typedef array stringarray2;
   
 typedef callable callableBp;
 typedef callable callableReal;
+typedef callable callableProject;
 typedef callable callableTransform;
 }
 
@@ -215,6 +217,11 @@ function *realRealFunction()
 function *transformFunction()
 {
   return new function(primTransform());
+}
+
+function *realTripleFunction()
+{
+  return new function(primReal(),primTriple());
 }
 
 const unsigned camp::ColorComponents[]={0,0,1,3,4,0};
@@ -299,6 +306,18 @@ double *copyArrayC(array *a)
   double *c=new double[size];
   for(size_t i=0; i < size; i++) 
     c[i]=read<double>(a,i);
+  return c;
+}
+
+static const char *notlength16="array of length 16 expected";
+
+triple *copyTripleArray16C(array *a)
+{
+  size_t size=checkArray(a);
+  if(size != 16) error(notlength16);
+  triple *c=new triple[size];
+  for(size_t i=0; i < size; i++) 
+    c[i]=read<triple>(a,i);
   return c;
 }
 
@@ -743,6 +762,13 @@ double wrapFunction(double x)
   return pop<double>(FuncStack);
 }
 
+double project(triple v) 
+{
+  FuncStack->push(v);
+  Func->call(FuncStack);
+  return pop<double>(FuncStack);
+}
+
 void unused(void *)
 {
 }
@@ -755,7 +781,6 @@ pair readpair(stringstream& s)
   s >> x;
   return pair(f*x,-f*y);
 }
-
 
 // Ignore unclosed begingroups but not spurious endgroups.
 const char *nobegin="endgroup without matching begingroup";
@@ -2391,6 +2416,42 @@ triple min3(picture *f)
 triple max3(picture *f)
 {
   return f->bounds3().Max();
+}
+
+double minbound(realarray *a, double b)
+{
+  real *A=copyArrayC(a);
+  b=bound(A,::min,b);
+  delete[] A;
+  return b;
+}
+
+double maxbound(realarray *a, double b)
+{
+  real *A=copyArrayC(a);
+  b=bound(A,::max,b);
+  delete[] A;
+  return b;
+}
+
+double minbound(triplearray *a, callableProject *f, double b)
+{
+  triple *A=copyTripleArray16C(a);
+  Func=f;
+  FuncStack=Stack;
+  b=bound(A,::min,project,b);
+  delete[] A;
+  return b;
+}
+
+double maxbound(triplearray *a, callableProject *f, double b)
+{
+  triple *A=copyTripleArray16C(a);
+  Func=f;
+  FuncStack=Stack;
+  b=bound(A,::max,project,b);
+  delete[] A;
+  return b;
 }
 
 bool is3D(picture *f)

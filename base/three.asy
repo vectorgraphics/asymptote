@@ -1488,6 +1488,11 @@ path3 operator * (transform3 t, path3 p)
   return path3(nodes,p.cycles);
 }
 
+path3[] path3(path[] g, triple plane(pair)=XYplane)
+{
+  return sequence(new path3(int i) {return path3(g[i],plane);},g.length);
+}
+
 path3[] operator * (transform3 t, path3[] p) 
 {
   path3[] g=new path3[p.length];
@@ -1780,8 +1785,6 @@ guide3 operator cast(path3 p) {
 }
 
 bool cyclic(path3 p) {return p.cyclic();}
-pair operator cast(triple v) {return project(v);}
-pair[] operator cast(triple[] v) {return project(v);}
 
 position operator cast(triple x) {return project(x);}
 
@@ -1796,6 +1799,14 @@ void label(picture pic=currentpicture, Label L, pair position,
 {
   label(pic,L,position,project(align),p,filltype);
 }
+
+// Transforms that map XY plane to YX, YZ, ZY, ZX, and XZ planes.
+transform3 XY=identity(4);
+transform3 YX=zscale3(-1)*rotate(90,O,Z);
+transform3 YZ=rotate(90,O,Z)*rotate(90,O,X);
+transform3 ZY=yscale3(-1)*rotate(-90,O,Y);
+transform3 ZX=rotate(-90,O,Z)*rotate(-90,O,Y);
+transform3 XZ=xscale3(-1)*rotate(90,O,X);
 
 // Transform for projecting onto plane through point O with normal cross(u,v).
 transform transform(triple u, triple v, triple O=O,
@@ -2278,96 +2289,14 @@ transform3 align(triple u)
 
 transform rotate(explicit triple dir)
 {
-  return rotate((pair) dir);
+  return rotate(project(dir));
 } 
-
-void draw(frame f, path3[] g, pen p=currentpen)
-{
-  draw(f,(path[]) g,p);
-}
-
-void draw(picture pic=currentpicture, path3[] g, pen p=currentpen)
-{
-  draw(pic,(path[]) g,p);
-}
-
-bool prc()
-{
-  return settings.prc && settings.outformat == "pdf";
-}
-
-void draw(frame f, path3 g, pen p=currentpen)
-{
-  if(prc()) {
-    node[] nodes=g.nodes;
-
-    bool straight() {
-      for(node n : nodes)
-        if(!n.straight) return false;
-      return true;
-    }
-
-    bool straight=straight();
-
-    triple[] v;
-    if(straight) {
-      int n=nodes.length;
-      v=new triple[n];
-      for(int i=0; i < n; ++i)
-        v[i]=nodes[i].point;
-    } else {
-      int n=nodes.length-1;
-      v=new triple[3*n+1];
-      int k=1;
-      v[0]=nodes[0].point;
-      v[1]=nodes[0].post;
-      for(int i=1; i < n; ++i) {
-        v[++k]=nodes[i].pre;
-        v[++k]=nodes[i].point;
-        v[++k]=nodes[i].post;
-      }
-      v[++k]=nodes[n].pre;
-      v[++k]=nodes[n].point;
-    }
-
-    draw(f,v,p,straight,min(g),max(g));
-  } else
-    draw(f,project(g),p);
-}
-
-void draw(frame f, explicit guide3 g, pen p=currentpen)
-{
-  draw(f,(path3) g,p);
-}
-
-void draw(frame f, explicit path3[] g, pen p=currentpen)
-{
-  for(int i=0; i < g.length; ++i) draw(f,g[i],p);
-}
 
 triple[] triples(real[] x, real[] y, real[] z)
 {
   if(x.length != y.length || x.length != z.length)
     abort("arrays have different lengths");
   return sequence(new triple(int i) {return (x[i],y[i],z[i]);},x.length);
-}
-
-void dot(picture pic=currentpicture, explicit path3 g, pen p=currentpen,
-         filltype filltype=Fill)
-{
-  for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p,filltype);
-}
-
-void dot(picture pic=currentpicture, explicit guide3 g, pen p=currentpen,
-         filltype filltype=Fill)
-{
-  dot(pic,(path3) g,p,filltype);
-}
-
-void dot(picture pic=currentpicture, explicit path3[] g, pen p=currentpen,
-         filltype filltype=Fill)
-{
-  for(int i=0; i < g.length; ++i) dot(pic,g[i],p,Fill);
 }
 
 path3[] operator ^^ (path3 p, path3  q) 
@@ -2402,16 +2331,18 @@ path3[] operator ^^ (explicit path3[] p, explicit path3[] q)
 
 triple min(explicit path3[] p)
 {
-  triple minp=(infinity,infinity,infinity);
-  for(int i=0; i < p.length; ++i)
+  checkEmpty(p.length);
+  triple minp=min(p[0]);
+  for(int i=1; i < p.length; ++i)
     minp=minbound(minp,min(p[i]));
   return minp;
 }
 
 triple max(explicit path3[] p)
 {
-  triple maxp=(-infinity,-infinity,-infinity);
-  for(int i=0; i < p.length; ++i)
+  checkEmpty(p.length);
+  triple maxp=max(p[0]);
+  for(int i=1; i < p.length; ++i)
     maxp=maxbound(maxp,max(p[i]));
   return maxp;
 }
@@ -2756,11 +2687,18 @@ void add(picture pic=currentpicture, face[] faces,
   }
 }
 
-private string[] file3;
-
 triple size3(frame f)
 {
   return max3(f)-min3(f);
+}
+
+// PRC support
+
+private string[] file3;
+
+bool prc()
+{
+  return settings.prc && settings.outformat == "pdf";
 }
 
 void add3(picture pic=currentpicture, frame f,
@@ -2839,7 +2777,7 @@ void add(picture pic=currentpicture, frame f,
     plain.add(pic,f,position);
 }
 
-string cameralink(string label, string text="Viewpoint")
+string cameralink(string label, string text="View Parameters")
 {
   return link(label,text,"3Dgetview");
 }
@@ -2863,6 +2801,55 @@ projection perspective(string s)
   return perspective(v.camera,v.up,v.target);
 }
 
+void draw(frame f, path3 g, pen p=currentpen)
+{
+  if(prc()) {
+    node[] nodes=g.nodes;
+
+    bool straight() {
+      for(node n : nodes)
+        if(!n.straight) return false;
+      return true;
+    }
+
+    bool straight=straight();
+
+    triple[] v;
+    if(straight) {
+      int n=nodes.length;
+      v=new triple[n];
+      for(int i=0; i < n; ++i)
+        v[i]=nodes[i].point;
+    } else {
+      int n=nodes.length-1;
+      v=new triple[3*n+1];
+      int k=1;
+      v[0]=nodes[0].point;
+      v[1]=nodes[0].post;
+      for(int i=1; i < n; ++i) {
+        v[++k]=nodes[i].pre;
+        v[++k]=nodes[i].point;
+        v[++k]=nodes[i].post;
+      }
+      v[++k]=nodes[n].pre;
+      v[++k]=nodes[n].point;
+    }
+
+    draw(f,v,p,straight,min(g),max(g));
+  } else
+    draw(f,project(g),p);
+}
+
+void draw(frame f, explicit guide3 g, pen p=currentpen)
+{
+  draw(f,(path3) g,p);
+}
+
+void draw(frame f, explicit path3[] g, pen p=currentpen)
+{
+  for(int i=0; i < g.length; ++i) draw(f,g[i],p);
+}
+
 void draw(picture pic=currentpicture, path3 g, pen p=currentpen)
 {
   if(prc()) {
@@ -2882,6 +2869,11 @@ void draw(picture pic=currentpicture, explicit guide3 g, pen p=currentpen)
   draw(pic,(path3) g,p);
 }
 
+void draw(picture pic=currentpicture, path3[] g, pen p=currentpen)
+{
+  for(int i=0; i < g.length; ++i) draw(pic,g[i],p);
+}
+
 shipout=new void(string prefix=defaultfilename, picture pic,
                  orientation orientation=orientation,
                  string format="", bool wait=NoWait, bool view=true)
@@ -2892,6 +2884,9 @@ shipout=new void(string prefix=defaultfilename, picture pic,
     plain.shipout(prefix,orientation(out.fit()),format,wait,view);
   } else plain.shipout(prefix,orientation(pic.fit()),format,wait,view);
 };
+
+include light;
+include surface;
 
 exitfcn currentexitfunction=atexit();
 

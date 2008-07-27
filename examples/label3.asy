@@ -1,7 +1,6 @@
-import surface;
+import three;
 
 settings.outformat="pdf";
-size(100);
 
 currentprojection=perspective(100,100,100,up=Y);
 
