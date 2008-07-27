@@ -33,5 +33,5 @@ picture pic;
 size(pic,10cm);
 draw(pic,surface(P),blue);
 
-add(pic.fit(),"label",(0,0),N);
+label(embed(pic.fit(),"label"),(0,0),N);
 label(cameralink("label"),(0,0),10S,fontsize(24pt));

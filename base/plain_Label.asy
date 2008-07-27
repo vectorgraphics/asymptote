@@ -190,6 +190,7 @@ struct Label {
   align align;
   pen p=nullpen;
   transform T;
+  transform3 T3;
   bool defaulttransform=true;
   embed embed=Rotate; // Fixed, Rotate, Rotate, or Scale with embedded picture
   filltype filltype=NoFill;
@@ -197,6 +198,7 @@ struct Label {
   void init(string s="", string size="", position position=0, 
             bool defaultposition=true,
             align align=NoAlign, pen p=nullpen, transform T=identity(),
+	    transform3 T3=identity4,
             bool defaulttransform=true, embed embed=Rotate,
             filltype filltype=NoFill) {
     this.s=s;
@@ -206,6 +208,7 @@ struct Label {
     this.align=align.copy();
     this.p=p;
     this.T=T;
+    this.T3=T3;
     this.defaulttransform=defaulttransform;
     this.embed=embed;
     this.filltype=filltype;
@@ -218,7 +221,7 @@ struct Label {
   
   Label copy() {
     Label L=new Label;
-    L.init(s,size,position,defaultposition,align,p,T,defaulttransform,
+    L.init(s,size,position,defaultposition,align,p,T,T3,defaulttransform,
            embed,filltype);
     return L;
   }
@@ -335,6 +338,14 @@ Label operator * (transform t, Label L)
   Label tL=L.copy();
   tL.align.dir=L.align.dir;
   tL.transform(t*L.T);
+  return tL;
+}
+
+Label operator * (transform3 t, Label L)
+{
+  Label tL=L.copy();
+  tL.align.dir=L.align.dir;
+  tL.T3=t*L.T3;
   return tL;
 }
 

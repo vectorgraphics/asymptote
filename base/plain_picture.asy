@@ -46,6 +46,7 @@ pair size(frame f)
 }
                                      
 typedef real[][] transform3;
+restricted transform3 identity4=identity(4);
 
 string tooclose="camera is too close to object";
 
@@ -1383,10 +1384,18 @@ void add(frame dest, frame src, pair position, bool group=false,
 void add(picture dest=currentpicture, frame src, pair position=0,
          bool group=true, filltype filltype=NoFill, bool put=Above)
 {
-  dest.add(new void(frame f, transform t) {
-      add(f,shift(t*position)*src,group,filltype,put);
-    },true);
-  dest.addBox(position,position,min(src),max(src));
+  if(is3D(src)) {
+    dest.add(new void(frame f, transform3) {
+	add(f,src); // always add about 3D origin (ignore position)
+      },true);
+    dest.is3D=true;
+    dest.addBox((0,0,0),(0,0,0),min3(src),max3(src));
+  } else {
+    dest.add(new void(frame f, transform t) {
+	add(f,shift(t*position)*src,group,filltype,put);
+      },true);
+    dest.addBox(position,position,min(src),max(src));
+  }
 }
 
 // Like add(picture,frame,pair) but extend picture to accommodate frame.

@@ -2687,11 +2687,6 @@ void add(picture pic=currentpicture, face[] faces,
   }
 }
 
-triple size3(frame f)
-{
-  return max3(f)-min3(f);
-}
-
 // PRC support
 
 private string[] file3;
@@ -2701,14 +2696,12 @@ bool prc()
   return settings.prc && settings.outformat == "pdf";
 }
 
-void add3(picture pic=currentpicture, frame f,
-          string label="", string text=label,
-          real width=settings.paperwidth, real height=settings.paperheight,
-          pair position=0, pair align=0, real angle=30,
-          string render="Solid", string lights="White", string views="", 
-          string javascript="", pen background=white,
-          projection P=currentprojection) {
-  if(!prc()) return;
+string embed(frame f, string label="", string text=label,
+	     real width=settings.paperwidth, real height=settings.paperheight,
+	     real angle=30, string render="Solid", string lights="White",
+	     string views="",  string javascript="", pen background=white,
+	     projection P=currentprojection)
+{
   string prefix=defaultfilename;
   if(prefix == "") prefix="out";
   prefix += "-"+(string) file3.length;
@@ -2720,8 +2713,9 @@ void add3(picture pic=currentpicture, frame f,
     assert(abs(x) < 1e18,"Number too large: "+string(x));
     return string(x,18);
   }
-  
-  string format(triple v) {return format(v.x)+" "+format(v.y)+" "+format(v.z);}
+  string format(triple v) {
+    return format(v.x)+" "+format(v.y)+" "+format(v.z);
+  }
   string format(pen p) {
     real[] c=colors(rgb(p));
     return format((c[0],c[1],c[2]));
@@ -2744,37 +2738,8 @@ void add3(picture pic=currentpicture, frame f,
   if(lights != "") options += ",3Dlights="+lights;
   if(render != "") options += ",3Drender="+render;
   if(javascript != "") options += ",3Djscript="+javascript;
-  label(pic,embed(prefix,options,width,height),position,align);
-}
 
-void add(picture pic=currentpicture, frame f,
-         string label="", string text=label,
-         real width=settings.paperwidth, real height=settings.paperheight,
-         pair position=0, pair align, real angle=30,
-         string render="Solid", string lights="White", string views="", 
-         string javascript="", pen background=white,
-         projection P=currentprojection)
-{
-  if(is3D(f) && prc())
-    add3(pic,f,label,text,width,height,position,align,angle,render,lights,
-         views,javascript,background,P);
-  else
-    plain.add(pic,f,position,align);
-}
-
-void add(picture pic=currentpicture, frame f,
-         string label="", string text=label,
-         real width=settings.paperwidth, real height=settings.paperheight,
-         pair position=0, real angle=30,
-         string render="Solid", string lights="White", string views="", 
-         string javascript="", pen background=white,
-         projection P=currentprojection)
-{
-  if(is3D(f) && prc())
-    add3(pic,f,label,text,width,height,position,angle,render,lights,
-         views,javascript,background,P);
-  else
-    plain.add(pic,f,position);
+  return embed(prefix,options,width,height);
 }
 
 string cameralink(string label, string text="View Parameters")
@@ -2880,7 +2845,7 @@ shipout=new void(string prefix=defaultfilename, picture pic,
 {
   if(pic.is3D)  {
     picture out;
-    add3(out,pic.fit());
+    label(out,embed(pic.fit()));
     plain.shipout(prefix,orientation(out.fit()),format,wait,view);
   } else plain.shipout(prefix,orientation(pic.fit()),format,wait,view);
 };

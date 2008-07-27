@@ -471,30 +471,45 @@ surface extrude(path g, triple elongation=Z)
   return S;
 }
 
-private transform3 identity4=identity(4);
-
-void label(frame f, string s, transform t=identity(), transform3 T=identity4,
-	   triple position, pair align=0, pen p=currentpen)
+void label(frame f, Label L, triple position, align align=NoAlign,
+	   pen p=currentpen, light light=nolight,
+	   projection P=currentprojection)
 {
-  draw(f,T*shift(position)*surface(bezulate(texpath(s,t,0,align,p))),p);
+  Label L=L.copy();
+  L.align(align);
+  L.p(p);
+  if(prc())
+    draw(f,shift(position)*L.T3*surface(bezulate(texpath(L.s,0,L.align.dir,
+							 L.p))),L.p);
+  else
+    fill(f,project(L.T3*path3(texpath(L.s,0,L.align.dir,L.p)),P),
+    	 light.intensity(L.T3*Z)*L.p);
 }
 
-void label(picture pic=currentpicture, string s,
-	   transform3 T=identity4, triple position,
-	   pair align=0, pen p=currentpen)
+void label(picture pic=currentpicture, Label L, triple position,
+	   align align=NoAlign, pen p=currentpen, light light=nolight,
+	   projection P=currentprojection)
 {
+  Label L=L.copy();
+  L.align(align);
+  L.p(p);
+  path[] g=texpath(L.s,0,L.align.dir,L.p);
   if(prc()) {
+    surface s=L.T3*surface(bezulate(g));
+    if(s.s.length == 0) return;
     pic.add(new void(frame f, transform3 t) {
-	draw(f,shift(t*position)*T*surface(bezulate(texpath(s,0,align,p))),p);
+	draw(f,shift(t*position)*s,L.p);
       },true);
     pic.is3D=true;
+    pic.addPoint(position,min(s));
+    pic.addPoint(position,max(s));
   } else {
     picture opic;
     // FOR TESTING:
-    //	draw(opic,surface(bezulate(texpath(s,0,p))),p);
-    // label(pic,transform(T*X,T*Y)*s,project(position),p);
-    fill(opic,T*path3(texpath(s,0,align,p)),p);
-    add(pic,opic,project(position));
+    //  draw(opic,L.T3*surface(bezulate(g)),L.p,invisible,light,P);
+    // label(pic,transform(L.T3*X,L.T3*Y)*L.s,project(position,P),L.p);
+    fill(opic,project(L.T3*path3(g),P),light.intensity(L.T3*Z)*L.p);
+    add(pic,opic,project(position,P));
   }
 }
 
