@@ -456,13 +456,13 @@ struct object {
 
   void operator init(frame f) {
     this.f=f;
-    this.g=box(min(f),max(f));
+    g=box(min(f),max(f));
   }
 
   void operator init(Label L) {
     this.L=L.copy();
-    if(L != Label) L.out(this.f);
-    this.g=box(min(this.f),max(this.f));
+    if(L != Label) L.out(f);
+    g=box(min(f),max(f));
   }
 }
 
@@ -478,6 +478,16 @@ object operator cast(Label L)
 object operator cast(string s) 
 {
   return object(s);
+}
+
+Label operator cast(object F)
+{
+  return F.L;
+}
+
+frame operator cast(object F)
+{
+  return F.f;
 }
 
 // Pack a list of objects into a frame.

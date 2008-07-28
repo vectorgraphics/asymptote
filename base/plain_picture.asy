@@ -1282,6 +1282,20 @@ void tensorshade(picture pic=currentpicture, path[] g, bool stroke=false,
   pic.addPath(g);
 }
 
+void tensorshade(frame f, path[] g, bool stroke=false,
+                 pen fillrule=currentpen, pen[] p,
+                 path b=g.length > 0 ? g[0] : nullpath)
+{
+  tensorshade(f,g,stroke,fillrule,new pen[][] {p},b);
+}
+
+void tensorshade(frame f, path[] g, bool stroke=false,
+                 pen fillrule=currentpen, pen[] p,
+                 path b=g.length > 0 ? g[0] : nullpath, pair[] z)
+{
+  tensorshade(f,g,stroke,fillrule,new pen[][] {p},b,new pair[][] {z});
+}
+
 void tensorshade(picture pic=currentpicture, path[] g, bool stroke=false,
                  pen fillrule=currentpen, pen[] p,
                  path b=g.length > 0 ? g[0] : nullpath)

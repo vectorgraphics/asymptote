@@ -144,14 +144,17 @@ typedef real[] aspect;
 
 struct projection {
   bool infinity;
+  bool absolute;
   triple camera;
   triple target;
   transform3 project;
   triple up;
   aspect aspect;
+
   projection copy() {
     projection P=new projection;
     P.infinity=infinity;
+    P.absolute=absolute;
     P.camera=camera;
     P.target=target;
     P.up=up;
@@ -173,9 +176,37 @@ struct projection {
     if(!infinity && dot(camera-v,camera-target) < 0)
       abort(tooclose);
   }
+
+  void operator init(triple camera, triple target=O, triple up=Z,
+		     transform3 project,
+		     aspect aspect=new real[] {1,1,1,1},
+		     bool infinity=false) {
+    this.infinity=infinity;
+    if(infinity) {
+      this.camera=unit(camera);
+      this.target=O;
+      this.absolute=true;
+    } else {
+      this.camera=camera;
+      this.target=target;
+      this.absolute=false;
+    }
+    this.up=up;
+    this.project=project;
+    this.aspect=aspect;
+  }
 }
 
 projection currentprojection;
+
+projection operator *(transform3 t, projection P)
+{
+  projection P=P.copy();
+  P.camera=t*P.camera;
+  P.target=t*P.target;
+  P.project=t*P.project;
+  return P;
+}
 
 // With this, save() and restore() in plain also save and restore the
 // currentprojection.
@@ -186,25 +217,6 @@ addSaveFunction(new restoreThunk() {
     };
   });
 
-
-projection projection(triple camera, triple target=O, triple up=Z,
-                      transform3 project,
-                      aspect aspect=new real[] {1,1,1,1}, bool infinity=false)
-{
-  projection P;
-  P.infinity=infinity;
-  if(infinity) {
-    P.camera=unit(camera);
-    P.target=O;
-  } else {
-    P.camera=camera;
-    P.target=target;
-  }
-  P.up=up;
-  P.project=project;
-  P.aspect=aspect;
-  return P;
-}
 
 // Uses the homogenous coordinate to perform perspective distortion.
 // When combined with a projection to the XY plane, this effectively maps
@@ -670,7 +682,10 @@ struct Controls {
   triple c0,c1;
 
   // 3D extension of John Hobby's control point formula
-  //  (The MetaFont Book, page 131).
+  // (cf. The MetaFont Book, page 131),
+  // as described in John C. Bowman and A. Hammerlindl,
+  // TUGBOAT: The Communications of th TeX Users Group 29:2 (2008).
+
   void init(triple v0, triple v1, triple d0, triple d1, real tout, real tin,
             bool atLeast) {
     triple v=v1-v0;
@@ -1801,12 +1816,12 @@ void label(picture pic=currentpicture, Label L, pair position,
 }
 
 // Transforms that map XY plane to YX, YZ, ZY, ZX, and XZ planes.
-transform3 XY=identity(4);
-transform3 YX=zscale3(-1)*rotate(90,O,Z);
-transform3 YZ=rotate(90,O,Z)*rotate(90,O,X);
-transform3 ZY=yscale3(-1)*rotate(-90,O,Y);
-transform3 ZX=rotate(-90,O,Z)*rotate(-90,O,Y);
-transform3 XZ=xscale3(-1)*rotate(90,O,X);
+restricted transform3 XY=identity4;
+restricted transform3 YX=zscale3(-1)*rotate(90,O,Z);
+restricted transform3 YZ=rotate(90,O,Z)*rotate(90,O,X);
+restricted transform3 ZY=yscale3(-1)*rotate(-90,O,Y);
+restricted transform3 ZX=rotate(-90,O,Z)*rotate(-90,O,Y);
+restricted transform3 XZ=xscale3(-1)*rotate(90,O,X);
 
 // Transform for projecting onto plane through point O with normal cross(u,v).
 transform transform(triple u, triple v, triple O=O,
@@ -2699,9 +2714,10 @@ bool prc()
 string embed(frame f, string label="", string text=label,
 	     real width=settings.paperwidth, real height=settings.paperheight,
 	     real angle=30, string render="Solid", string lights="White",
-	     string views="",  string javascript="", pen background=white,
+	     string views="", string javascript="", pen background=white,
 	     projection P=currentprojection)
 {
+  if(!prc()) return "";
   string prefix=defaultfilename;
   if(prefix == "") prefix="out";
   prefix += "-"+(string) file3.length;
@@ -2711,7 +2727,7 @@ string embed(frame f, string label="", string text=label,
 
   string format(real x) {
     assert(abs(x) < 1e18,"Number too large: "+string(x));
-    return string(x,18);
+    return format("%.18f",x,"C");
   }
   string format(triple v) {
     return format(v.x)+" "+format(v.y)+" "+format(v.z);
@@ -2742,6 +2758,45 @@ string embed(frame f, string label="", string text=label,
   return embed(prefix,options,width,height);
 }
 
+object embed(picture pic, string label="", string text=label,
+	     real width=0, real height=0,
+	     real angle=30, string render="Solid", string lights="White",
+	     string views="", string javascript="", pen background=white,
+	     projection P=currentprojection)
+{
+  object F;
+  if(pic.empty3()) return F;
+  transform3 t=pic.scaling(pic.xsize,pic.ysize,pic.zsize,pic.keepAspect);
+  frame f=pic.fit3(t);
+  if(!pic.bounds.exact) {
+    t=pic.scale3(f,pic.keepAspect)*t;
+    f=pic.fit3(t);
+  }
+
+  if(P.infinity) P.camera=unit(P.camera)*max(abs(min3(f)),abs(max3(f)));
+
+  if(prc()) {
+    real size=max(pic.xsize,pic.ysize,pic.zsize);
+    if(width == 0) width=size;
+    if(height == 0) height=size;
+    if(width == 0) width=settings.paperwidth;
+    if(height == 0) height=settings.paperheight;
+    F.L=embed(f,label,text,width,height,angle,render,lights,views,javascript,
+	      background,P.absolute? P : t*P);
+  }
+  else F.f=f;
+  return F;
+}
+
+void add(picture dest=currentpicture, object src, pair position, pair align,
+         bool group=true, filltype filltype=NoFill, bool put=Above)
+{
+  if(prc())
+    label(src,position,align);
+  else
+   plain. add(dest,src,position,align,group,filltype,put);
+}
+
 string cameralink(string label, string text="View Parameters")
 {
   return link(label,text,"3Dgetview");
@@ -2763,46 +2818,52 @@ private struct viewpoint {
 projection perspective(string s)
 {
   viewpoint v=viewpoint(s);
-  return perspective(v.camera,v.up,v.target);
+  projection P=perspective(v.camera,v.up,v.target);
+  P.absolute=true;
+  return P;
 }
 
-void draw(frame f, path3 g, pen p=currentpen)
+void drawprc(frame f, path3 g, pen p=currentpen)
 {
-  if(prc()) {
-    node[] nodes=g.nodes;
+  node[] nodes=g.nodes;
 
-    bool straight() {
-      for(node n : nodes)
-        if(!n.straight) return false;
-      return true;
+  bool straight() {
+    for(node n : nodes)
+      if(!n.straight) return false;
+    return true;
+  }
+
+  bool straight=straight();
+
+  triple[] v;
+  if(straight) {
+    int n=nodes.length;
+    v=new triple[n];
+    for(int i=0; i < n; ++i)
+      v[i]=nodes[i].point;
+  } else {
+    int n=nodes.length-1;
+    v=new triple[3*n+1];
+    int k=1;
+    v[0]=nodes[0].point;
+    v[1]=nodes[0].post;
+    for(int i=1; i < n; ++i) {
+      v[++k]=nodes[i].pre;
+      v[++k]=nodes[i].point;
+      v[++k]=nodes[i].post;
     }
+    v[++k]=nodes[n].pre;
+    v[++k]=nodes[n].point;
+  }
 
-    bool straight=straight();
+  draw(f,v,p,straight,min(g),max(g));
+}
 
-    triple[] v;
-    if(straight) {
-      int n=nodes.length;
-      v=new triple[n];
-      for(int i=0; i < n; ++i)
-        v[i]=nodes[i].point;
-    } else {
-      int n=nodes.length-1;
-      v=new triple[3*n+1];
-      int k=1;
-      v[0]=nodes[0].point;
-      v[1]=nodes[0].post;
-      for(int i=1; i < n; ++i) {
-        v[++k]=nodes[i].pre;
-        v[++k]=nodes[i].point;
-        v[++k]=nodes[i].post;
-      }
-      v[++k]=nodes[n].pre;
-      v[++k]=nodes[n].point;
-    }
-
-    draw(f,v,p,straight,min(g),max(g));
-  } else
-    draw(f,project(g),p);
+void draw(frame f, path3 g, pen p=currentpen, transform3 t=identity4,
+	  projection P=currentprojection)
+{
+  if(prc()) drawprc(f,t*g,p);
+  else draw(f,project(g,t*P),p);
 }
 
 void draw(frame f, explicit guide3 g, pen p=currentpen)
@@ -2815,18 +2876,17 @@ void draw(frame f, explicit path3[] g, pen p=currentpen)
   for(int i=0; i < g.length; ++i) draw(f,g[i],p);
 }
 
-void draw(picture pic=currentpicture, path3 g, pen p=currentpen)
+void draw(picture pic=currentpicture, path3 g, pen p=currentpen,
+	  projection P=currentprojection)
 {
-  if(prc()) {
-    pic.add(new void(frame f, transform3 t) {
-        draw(f,t*g,p);
-      },true);
-    if(size(g) > 0) {
-      pic.addPoint(min(g));
-      pic.addPoint(max(g));
-    }
-    pic.is3D=true;
-  } else plain.draw(pic,g,p);
+  pic.is3D=true;
+  pic.add(new void(frame f, transform3 t) {
+      draw(f,g,p,t,P);
+    },true);
+  if(size(g) > 0) {
+    pic.addPoint(min(g));
+    pic.addPoint(max(g));
+  }
 }
 
 void draw(picture pic=currentpicture, explicit guide3 g, pen p=currentpen)
@@ -2843,11 +2903,12 @@ shipout=new void(string prefix=defaultfilename, picture pic,
                  orientation orientation=orientation,
                  string format="", bool wait=NoWait, bool view=true)
 {
-  if(pic.is3D)  {
+  if(pic.is3D && prc()) {
     picture out;
-    label(out,embed(pic.fit()));
-    plain.shipout(prefix,orientation(out.fit()),format,wait,view);
-  } else plain.shipout(prefix,orientation(pic.fit()),format,wait,view);
+    label(out,embed(pic));
+    pic=out;
+  }
+  plain.shipout(prefix,orientation(pic.fit()),format,wait,view);
 };
 
 include three_light;

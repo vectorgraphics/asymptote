@@ -369,54 +369,40 @@ triple point(patch s, real u, real v)
   return point(s.uequals(u),v);
 }
 
-void draw(frame f, patch s, pen p=currentpen)
+void drawprc(frame f, patch s, pen p=currentpen)
 {
   draw(f,s.P,p,s.min(),s.max());
 }
 
-void draw(frame f, surface s, pen p=currentpen)
-{
-  for(int i=0; i < s.s.length; ++i)
-    draw(f,s.s[i],p);
-}
-
-void tensorshade(picture pic=currentpicture, patch s,
-		 pen surfacepen=lightgray, light light=currentlight,
+void tensorshade(frame f, patch s, pen surfacepen=lightgray,
+		 light light=currentlight,
 		 projection P=currentprojection, int ninterpolate=1)
 {
-  tensorshade(pic,box(s.min(P),s.max(P)),surfacepen,s.colors(surfacepen,light),
+  tensorshade(f,box(s.min(P),s.max(P)),surfacepen,s.colors(surfacepen,light),
 	      project(s.external(),P,1),project(s.internal(),P));
 }
 
-void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
+void draw(frame f, surface s, int nu=nmesh, int nv=nu,
 	  pen surfacepen=lightgray, pen meshpen=nullpen,
-	  light light=currentlight, projection P=currentprojection)
+	  light light=currentlight,
+	  transform3 t=identity4, projection P=currentprojection)
 {
   // Draw a mesh in the absence of lighting (override with meshpen=invisible).
   if(light.source == O && meshpen == nullpen) meshpen=currentpen;
 
-  if(surfacepen != nullpen) {
-    triple camera=P.camera;
-    triple m=min(s);
-    triple M=max(s);
-    if(P.infinity)
-      camera *= max(abs(m),abs(M));
+  if(prc()) {
+    for(int i=0; i < s.s.length; ++i)
+      drawprc(f,t*s.s[i],surfacepen);
+  } else {
+    if(surfacepen != nullpen) {
+      projection P=t*P;
+      triple m=min(s);
+      triple M=max(s);
 
-    if(prc()) {
-      pic.add(new void(frame f, transform3 t) {
-	  for(int i=0; i < s.s.length; ++i)
-	    draw(f,t*s.s[i],surfacepen);
-	},true);
-      if(s.s.length > 0) {
-	pic.addPoint(m);
-	pic.addPoint(M);
-      }
-      pic.is3D=true;
-    } else {
       // Sort patches by mean distance from camera
       triple camera=P.camera;
       if(P.infinity)
-	camera *= max(abs(min(s)),abs(max(s)));
+	camera *= max(abs(m),abs(M));
 
       real[][] depth;
     
@@ -435,7 +421,7 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
 	real[] a=depth.pop();
 	int i=round(a[1]);
 	int j=round(a[2]);
-	tensorshade(pic,s.s[i],surfacepen,light,P);
+	tensorshade(f,s.s[i],surfacepen,light,P);
       }
     }
   }
@@ -444,19 +430,26 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
     for(int k=0; k < s.s.length; ++k) {
       real step=nu == 0 ? 0 : 1/nu;
       for(int i=0; i <= nu; ++i)
-	draw(pic,s.s[k].uequals(i*step),meshpen);
+	draw(f,s.s[k].uequals(i*step),meshpen,t,P);
     
       real step=nv == 0 ? 0 : 1/nv;
       for(int j=0; j <= nv; ++j)
-	draw(pic,s.s[k].vequals(j*step),meshpen);
+	draw(f,s.s[k].vequals(j*step),meshpen,t,P);
     }
   }
 }
 
-void draw(picture pic=currentpicture, triple[][][] P, pen p=currentpen)
+void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
+	  pen surfacepen=lightgray, pen meshpen=nullpen,
+	  light light=currentlight, projection P=currentprojection)
 {
-  for(int i=0; i < P.length; ++i)
-    draw(pic,surface(P[i]),p);
+  if(s.s.length == 0) return;
+  pic.is3D=true;
+  pic.add(new void(frame f, transform3 t) {
+      draw(f,s,nu,nv,surfacepen,meshpen,light,t,P);
+    },true);
+  pic.addPoint(min(s));
+  pic.addPoint(max(s));
 }
 
 surface extrude(path g, triple elongation=Z)
@@ -478,12 +471,11 @@ void label(frame f, Label L, triple position, align align=NoAlign,
   Label L=L.copy();
   L.align(align);
   L.p(p);
+  path[] g=texpath(L.s,0,L.align.dir,L.p);
   if(prc())
-    draw(f,shift(position)*L.T3*surface(bezulate(texpath(L.s,0,L.align.dir,
-							 L.p))),L.p);
+    draw(f,shift(position)*L.T3*surface(bezulate(g)),L.p);
   else
-    fill(f,project(L.T3*path3(texpath(L.s,0,L.align.dir,L.p)),P),
-    	 light.intensity(L.T3*Z)*L.p);
+    fill(f,project(L.T3*path3(g),P),light.intensity(L.T3*Z)*L.p);
 }
 
 void label(picture pic=currentpicture, Label L, triple position,
@@ -494,22 +486,22 @@ void label(picture pic=currentpicture, Label L, triple position,
   L.align(align);
   L.p(p);
   path[] g=texpath(L.s,0,L.align.dir,L.p);
+  if(g.length == 0) return;
+  pic.is3D=true;
   if(prc()) {
     surface s=L.T3*surface(bezulate(g));
-    if(s.s.length == 0) return;
     pic.add(new void(frame f, transform3 t) {
 	draw(f,shift(t*position)*s,L.p);
       },true);
-    pic.is3D=true;
     pic.addPoint(position,min(s));
     pic.addPoint(position,max(s));
   } else {
-    picture opic;
-    // FOR TESTING:
-    //  draw(opic,L.T3*surface(bezulate(g)),L.p,invisible,light,P);
-    // label(pic,transform(L.T3*X,L.T3*Y)*L.s,project(position,P),L.p);
-    fill(opic,project(L.T3*path3(g),P),light.intensity(L.T3*Z)*L.p);
-    add(pic,opic,project(position,P));
+    pic.add(new void(frame f, transform3 t) {
+	fill(f,project(shift(position)*inverse(t)*L.T3*path3(g),t*P),
+	     light.intensity(L.T3*Z)*L.p);
+      },true);
+    pic.addPoint(position,L.T3*XYplane(min(g)));
+    pic.addPoint(position,L.T3*XYplane(max(g)));
   }
 }
 
@@ -526,24 +518,23 @@ private patch octant4=t*octant3;
 restricted surface unitsphere=surface(octant1,octant2,octant3,octant4,
 				      i*octant1,i*octant2,i*octant3,i*octant4);
 
-void dot(frame f, triple v, pen p=currentpen, filltype filltype=Fill)
+void dot(frame f, triple v, pen p=currentpen, filltype filltype=Fill,
+	 transform3 t=identity4, projection P=currentprojection)
 {
   if(prc())
-    draw(f,shift(v)*scale3(0.5*dotsize(p))*unitsphere,p);
-  else dot(f,project(v),p,filltype);
+    draw(f,shift(t*v)*scale3(0.5*dotsize(p))*unitsphere,p);
+  else dot(f,project(v,t*P),p,filltype);
 };
 
 void dot(picture pic=currentpicture, triple v, pen p=currentpen,
-	 filltype filltype=Fill)
+	 filltype filltype=Fill, projection P=currentprojection)
 {
-  real r=0.5*dotsize(p);
-  if(prc()) {
-    pic.add(new void(frame f, transform3 t) {
-	draw(f,shift(t*v)*scale3(r)*unitsphere,p);
-      },true);
-    triple R=r*(1,1,1);
-    pic.addBox(v,v,-R,R);
-  } else plain.dot(pic,project(v),p,filltype);
+  pic.is3D=true;
+  pic.add(new void(frame f, transform3 t) {
+      dot(f,v,p,filltype,t,P);
+    },true);
+  triple R=0.5*dotsize(p)*(1,1,1);
+  pic.addBox(v,v,-R,R);
 }
 
 void dot(picture pic=currentpicture, triple[] v, pen p=currentpen,
