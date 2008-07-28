@@ -1807,6 +1807,12 @@ Int system(string *s)
   else return System(s->c_str());
 }
 
+string locale(string s=emptystring)
+{
+  char *L=setlocale(LC_ALL,s.empty() ? NULL : s.c_str());
+  return L != NULL ? string(L) : "";
+}
+
 void abort(string s=emptystring)
 {
   if(s == "") throw handled_error();
@@ -2566,12 +2572,12 @@ string format(string *format, Int x)
   return s;
 }
 
-string format(string *format, real x) 
+string format(string *format, real x, string locale=emptystring) 
 {
   ostringstream out;
   
   checkformat(format->c_str(),false);
-  
+
   const char *phantom="\\phantom{+}";
   const char *p0=format->c_str();
   
@@ -2596,11 +2602,21 @@ string format(string *format, real x)
   
   const char *tail=p;
   string f=format->substr(start-p0,tail-start);
+
+  const char *oldlocale=NULL;
+  if(!locale.empty()) {
+    oldlocale=setlocale(LC_ALL,NULL);
+    setlocale(LC_ALL,locale.c_str());
+  }
+
   Int size=snprintf(NULL,0,f.c_str(),x)+1;
   if(size < 1) size=255; // Workaround for non-C99 compliant systems.
   char *buf=new char[size];
   snprintf(buf,size,f.c_str(),x);
 
+  if(!locale.empty())
+    setlocale(LC_ALL,oldlocale);
+  
   bool trailingzero=f.find("#") < string::npos;
   bool plus=f.find("+") < string::npos;
   bool space=f.find(" ") < string::npos;
@@ -2669,14 +2685,21 @@ string format(string *format, real x)
     out << *(tail++);
   
   delete[] buf;
+
   return out.str();
+}
+
+string string(Int x)
+{
+  ostringstream buf;
+  buf << x;
+  return buf.str();
 }
 
 string string(real x, Int digits=DBL_DIG)
 {
   ostringstream buf;
   buf.precision(digits);
-  buf.setf(std::ios::fixed);
   buf << x;
   return buf.str();
 }

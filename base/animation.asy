@@ -118,7 +118,7 @@ struct animation {
   }
 
   string load(int frames, real delay=animationdelay, string options="") {
-    return "\animategraphics["+options+"]{"+string(1000/delay)+"}{"+
+    return "\animategraphics["+options+"]{"+format("%.18f",1000/delay,"C")+"}{"+
       basename()+"}{0}{"+string(frames-1)+"}";
   }
 

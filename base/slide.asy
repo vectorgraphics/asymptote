@@ -109,8 +109,8 @@ string texcolor(pen p)
   if(colors.length > 0) {
     s="{"+colorspace(p)+"}{";
     for(int i=0; i < colors.length-1; ++i)
-      s += string(colors[i])+",";
-    s += string(colors[colors.length-1])+"}";
+      s += format("%.6f",colors[i],"C")+",";
+    s += format("%.6f",colors[colors.length-1],"C")+"}";
   }
   return s;
 }

@@ -1911,17 +1911,22 @@ delimited by @code{delimiter};
 returns a string containing @code{n} formatted according to the C-style
 format string @code{s} using the current locale;
 
-@item string format(string s, real x)
+@item string format(string s, real x, string locale="")
 returns a string containing @code{x} formatted according to the C-style format
-string @code{s} using the current locale (see the documentation for
-the C-function @code{fprintf}), except that only one data field is
-allowed, trailing zeros are removed by default (unless @code{#} is
-specified) and @TeX{} is used to typeset scientific notation;
+string @code{s} using locale @code{locale} (or the current locale if an
+empty string is specified), following the behaviour of the C function
+@code{fprintf}), except that only one data field is allowed, trailing
+zeros are removed by default (unless @code{#} is specified), and @TeX{}
+is used to typeset scientific notation;
 
 @cindex @code{string}
 @item string string(real x, int digits=realDigits)
-casts @code{x} to a string, using fixed notation with precision @code{digits}
-and the C locale; 
+casts @code{x} to a string using precision @code{digits} and the C locale;
+
+@cindex @code{locale}
+@item string locale(string s="")
+sets the locale to the given string, if nonempty, and returns the
+current locale.
 
 @item string time(string format="%a %b %d %T %Z %Y")
 @cindex @code{time}

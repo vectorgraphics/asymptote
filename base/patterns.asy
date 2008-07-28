@@ -6,12 +6,12 @@ frame tiling(string name, picture pic, pair lb=0, pair rt=0)
   frame f=pic.fit(identity());
   pair pmin=min(f)-lb;
   pair pmax=max(f)+rt;
-  int n=9;
+  string s="%.6f";
   postscript(tiling,"<< /PaintType 1 /PatternType 1 /TilingType 1 
-/BBox ["+string(pmin.x,n)+" "+string(pmin.y,n)+" "+string(pmax.x,n)+" "
-             +string(pmax.y,n)+"]
-/XStep "+string(pmax.x-pmin.x,n)+"
-/YStep "+string(pmax.y-pmin.y,n)+"
+/BBox ["+format(s,pmin.x,"C")+" "+format(s,pmin.y,"C")+" "+
+	     format(s,pmax.x,"C")+" "+format(s,pmax.y,"C")+"]
+/XStep "+format(s,pmax.x-pmin.x,"C")+"
+/YStep "+format(s,pmax.y-pmin.y,"C")+"
 /PaintProc {pop");
   add(tiling,f);
   postscript(tiling,"} >>
