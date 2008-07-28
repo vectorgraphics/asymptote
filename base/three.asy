@@ -2860,28 +2860,28 @@ void drawprc(frame f, path3 g, pen p=currentpen)
 }
 
 void draw(frame f, path3 g, pen p=currentpen, transform3 t=identity4,
-	  projection P=currentprojection)
+	  projection P=currentprojection, int ninterpolate=ninterpolate)
 {
   if(prc()) drawprc(f,t*g,p);
-  else draw(f,project(g,t*P),p);
+  else draw(f,project(g,t*P,ninterpolate),p);
 }
 
-void draw(frame f, explicit guide3 g, pen p=currentpen)
-{
-  draw(f,(path3) g,p);
-}
+include three_light;
+include three_surface;
 
-void draw(frame f, explicit path3[] g, pen p=currentpen)
+void draw(picture pic=currentpicture, Label L="", path3 g, align align=NoAlign,
+	  pen p=currentpen, projection P=currentprojection,
+	  int ninterpolate=ninterpolate)
 {
-  for(int i=0; i < g.length; ++i) draw(f,g[i],p);
-}
-
-void draw(picture pic=currentpicture, path3 g, pen p=currentpen,
-	  projection P=currentprojection)
-{
+  Label L=L.copy();
+  L.align(align);
+  if(L.s != "") {
+    L.p(p);
+    label(pic,L,g);
+  }
   pic.is3D=true;
   pic.add(new void(frame f, transform3 t) {
-      draw(f,g,p,t,P);
+      draw(f,g,p,t,P,ninterpolate);
     },true);
   if(size(g) > 0) {
     pic.addPoint(min(g));
@@ -2889,14 +2889,15 @@ void draw(picture pic=currentpicture, path3 g, pen p=currentpen,
   }
 }
 
-void draw(picture pic=currentpicture, explicit guide3 g, pen p=currentpen)
+void draw(picture pic=currentpicture, Label L="", explicit guide3 g,
+	  pen p=currentpen)
 {
-  draw(pic,(path3) g,p);
+  draw(pic,L,(path3) g,p);
 }
 
-void draw(picture pic=currentpicture, path3[] g, pen p=currentpen)
+void draw(picture pic=currentpicture, Label L="", path3[] g, pen p=currentpen)
 {
-  for(int i=0; i < g.length; ++i) draw(pic,g[i],p);
+  for(int i=0; i < g.length; ++i) draw(pic,L,g[i],p);
 }
 
 shipout=new void(string prefix=defaultfilename, picture pic,
@@ -2910,9 +2911,6 @@ shipout=new void(string prefix=defaultfilename, picture pic,
   }
   plain.shipout(prefix,orientation(pic.fit()),format,wait,view);
 };
-
-include three_light;
-include three_surface;
 
 exitfcn currentexitfunction=atexit();
 

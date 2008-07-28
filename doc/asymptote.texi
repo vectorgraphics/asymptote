@@ -573,7 +573,7 @@ configure to look for header files and libraries in nonstandard locations:
 @end verbatim
 
 If you are compiling @code{Asymptote} with @code{gcc}, you will need a
-relatively recent version (e.g.@ 3.2 or later).  For full interactive
+relatively recent version (e.g.@ 3.4.4 or later).  For full interactive
 functionality, you will need version 4.2 or later of the @acronym{GNU}
 @code{readline} library.
 The file @code{gcc3.3.2curses.patch} in the @code{patches} directory can

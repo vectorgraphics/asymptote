@@ -505,6 +505,24 @@ void label(picture pic=currentpicture, Label L, triple position,
   }
 }
 
+void label(picture pic=currentpicture, Label L, path3 g,
+           align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
+{
+  Label L=Label(L,align,p,filltype);
+  bool relative=L.position.relative;
+  real position=L.position.position.x;
+  pair Align=L.align.dir;
+  bool alignrelative=L.align.relative;
+  if(L.defaultposition) {relative=true; position=0.5;}
+  if(relative) position=reltime(g,position);
+  if(L.align.default) {
+    alignrelative=true;
+    Align=position <= 0 ? S : position >= length(g) ? N : E;
+  }
+  label(pic,L,point(g,position),
+	alignrelative ? -Align*xypart(inverse(L.T3)*dir(g,position))*I : Align);
+}
+
 private real a=4/3*(sqrt(2)-1);
 private transform3 t=rotate(90,O,Z);
 private transform3 i=zscale3(-1);

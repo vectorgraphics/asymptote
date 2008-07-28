@@ -299,7 +299,7 @@ struct Label {
       Align=position <= 0 ? S : position >= length(g) ? N : E;
     }
     label(pic,point(g,position),
-          alignrelative ? Align*dir(g,position)/N : Align);
+          alignrelative ? -Align*dir(g,position)*I : Align);
   }
   
   void write(file file=stdout, suffix suffix=endl) {
