@@ -123,7 +123,7 @@ double controlbound(triple *p, double (*m)(double, double),
 double bound(double *p, double (*m)(double, double), double b, int depth)
 {
   b=m(b,cornerbound(p,m));
-  if(m(-1.0,1.0)*(b-controlbound(p,m)) >= 0 || depth == 0)
+  if(m(-1.0,1.0)*(b-controlbound(p,m)) >= -Fuzz || depth == 0)
     return b;
   --depth;
 
@@ -159,7 +159,7 @@ double bound(triple *p, double (*m)(double, double), double (*f)(triple),
 	     double b, int depth)
 {
   b=m(b,cornerbound(p,m,f));
-  if(m(-1,1)*(b-controlbound(p,m,f)) >= 0 || depth == 0)
+  if(m(-1.0,1.0)*(b-controlbound(p,m,f)) >= -Fuzz || depth == 0)
     return b;
   --depth;
 
