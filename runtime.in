@@ -3780,7 +3780,7 @@ Intarray* complement(Intarray *a, Int n)
   return r;
 }
 
-// Generate the sequence {f_i : i=0,1,...n-1} given a function f and integer n
+// Generate the sequence {f(i) : i=0,1,...n-1} given a function f and integer n
 Intarray* :arraySequence(callable *f, Int n)
 {
   if(n < 0) n=0;

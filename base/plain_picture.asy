@@ -1123,8 +1123,8 @@ void size(picture pic=currentpicture, real xsize, real ysize,
 
 void size(picture dest, picture src)
 {
-  dest.size(src.xsize,src.ysize,src.keepAspect);
-  dest.unitsize(src.xunitsize,src.yunitsize);
+  dest.size(src.xsize,src.ysize,src.zsize,src.keepAspect);
+  dest.unitsize(src.xunitsize,src.yunitsize,src.zunitsize);
 }
 
 void size(picture src)

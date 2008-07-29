@@ -1817,11 +1817,11 @@ void label(picture pic=currentpicture, Label L, pair position,
 
 // Transforms that map XY plane to YX, YZ, ZY, ZX, and XZ planes.
 restricted transform3 XY=identity4;
-restricted transform3 YX=zscale3(-1)*rotate(90,O,Z);
+restricted transform3 YX=rotate(-90,O,Z);
 restricted transform3 YZ=rotate(90,O,Z)*rotate(90,O,X);
-restricted transform3 ZY=yscale3(-1)*rotate(-90,O,Y);
+restricted transform3 ZY=rotate(-90,O,X)*YZ;
 restricted transform3 ZX=rotate(-90,O,Z)*rotate(-90,O,Y);
-restricted transform3 XZ=xscale3(-1)*rotate(90,O,X);
+restricted transform3 XZ=rotate(-90,O,Y)*ZX;
 
 // Transform for projecting onto plane through point O with normal cross(u,v).
 transform transform(triple u, triple v, triple O=O,
@@ -2297,9 +2297,21 @@ triple midpoint(explicit guide3 p)
 // return a rotation that maps u to Z.
 transform3 align(triple u) 
 {
-  triple v=cross(u,Z);
-  if(v != O) return rotate(colatitude(u),v);
+  triple xi=cross(u,Z);
+  if(xi != O) return rotate(colatitude(u),xi);
   return u.z >= 0 ? identity(4) : diagonal(1,-1,-1,1);
+}
+
+// return a rotation that maps X,Y to u,v
+transform3 transform3(triple u, triple v) 
+{
+  u=unit(u);
+  v=unit(v);
+  triple w=cross(u,v);
+  triple xi=unit(cross(Z,w));
+  real degrees=aCos(dot(u,xi))*sgn(dot(cross(u,xi),w));
+  return rotate(degrees,O,w)*inverse(align(w))*
+    rotate(longitude(xi,warn=false),O,Z);
 }
 
 transform rotate(explicit triple dir)
@@ -2409,8 +2421,12 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
   transform3 T=align(normal); 
   triple v1=T*dir(theta1,phi1);
   triple v2=T*dir(theta2,phi2);
-  real t1=intersect(unitcircle3,O--2*(v1.x,v1.y,0))[0];
-  real t2=intersect(unitcircle3,O--2*(v2.x,v2.y,0))[0];
+  real[] t1=intersect(unitcircle3,O--2*(v1.x,v1.y,0));
+  real[] t2=intersect(unitcircle3,O--2*(v2.x,v2.y,0));
+  if(t1.length == 0 || t2.length == 0)
+    abort("invalid normal vector");
+  real t1=t1[0];
+  real t2=t2[0];
   int n=length(unitcircle3);
   if(t1 >= t2 && direction) t1 -= n;
   if(t2 >= t1 && !direction) t2 -= n;
@@ -2740,8 +2756,8 @@ string embed(frame f, string label="", string text=label,
   triple v=(P.camera-P.target)/cm;
   triple u=unit(v);
   triple w=unit(Z-u.z*u);
-  triple up=P.up-dot(P.up,u)*u;
-  real roll=aCos(dot(up,w))*sgn(dot(cross(up,w),v));
+  triple up=unit(P.up-dot(P.up,u)*u);
+  real roll=aCos(dot(up,w))*sgn(dot(cross(up,w),u));
 
   string options="poster,text="+text+",label="+label+
     ",3Daac="+format(angle)+
@@ -2783,8 +2799,7 @@ object embed(picture pic, string label="", string text=label,
     if(height == 0) height=settings.paperheight;
     F.L=embed(f,label,text,width,height,angle,render,lights,views,javascript,
 	      background,P.absolute? P : t*P);
-  }
-  else F.f=f;
+  } else F.f=f;
   return F;
 }
 

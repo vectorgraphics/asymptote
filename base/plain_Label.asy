@@ -196,11 +196,10 @@ struct Label {
   filltype filltype=NoFill;
   
   void init(string s="", string size="", position position=0, 
-            bool defaultposition=true,
-            align align=NoAlign, pen p=nullpen, transform T=identity(),
-	    transform3 T3=identity4,
-            bool defaulttransform=true, embed embed=Rotate,
-            filltype filltype=NoFill) {
+            bool defaultposition=true, align align=NoAlign, pen p=nullpen,
+	    transform T=identity(), transform3 T3=identity4,
+	    bool defaulttransform=true, embed embed=Rotate,
+	    filltype filltype=NoFill) {
     this.s=s;
     this.size=size;
     this.position=position;
@@ -231,6 +230,11 @@ struct Label {
     defaulttransform=false;
   }
   
+  void transform3(transform3 T) {
+    this.T3=T;
+    defaulttransform=false;
+  }
+
   void position(position pos) {
     this.position=pos;
     defaultposition=false;
@@ -308,7 +312,10 @@ struct Label {
     if(!align.default) write(file,", align=");
     write(file,align);
     if(p != nullpen) write(file,", pen=",p);
-    if(!defaulttransform) write(file,", transform=",T);
+    if(!defaulttransform) {
+      write(file,", transform=",T);
+      write(file,T3);
+    }
     write(file,"",suffix);
   }
   
@@ -345,7 +352,7 @@ Label operator * (transform3 t, Label L)
 {
   Label tL=L.copy();
   tL.align.dir=L.align.dir;
-  tL.T3=t*L.T3;
+  tL.transform3(t*L.T3);
   return tL;
 }
 

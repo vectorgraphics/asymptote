@@ -489,6 +489,8 @@ void label(picture pic=currentpicture, Label L, triple position,
   if(g.length == 0) return;
   pic.is3D=true;
   if(prc()) {
+    if(L.defaulttransform)
+      L.T3=inverse(look(P.camera-P.target,P.up));
     surface s=L.T3*surface(bezulate(g));
     pic.add(new void(frame f, transform3 t) {
 	draw(f,shift(t*position)*s,L.p);
@@ -497,8 +499,11 @@ void label(picture pic=currentpicture, Label L, triple position,
     pic.addPoint(position,max(s));
   } else {
     pic.add(new void(frame f, transform3 t) {
-	fill(f,project(shift(position)*inverse(t)*L.T3*path3(g),t*P),
-	     light.intensity(L.T3*Z)*L.p);
+	if(L.defaulttransform)
+	  fill(f,shift(project(position,t*P))*g,light.intensity(L.T3*Z)*L.p);
+	else
+	  fill(f,project(shift(position)*inverse(t)*L.T3*path3(g),t*P),
+	       light.intensity(L.T3*Z)*L.p);
       },true);
     pic.addPoint(position,L.T3*XYplane(min(g)));
     pic.addPoint(position,L.T3*XYplane(max(g)));
@@ -543,6 +548,8 @@ private patch unitcone3=t*unitcone2;
 private patch unitcone4=t*unitcone3;
 
 restricted surface unitcone=surface(unitcone1,unitcone2,unitcone3,unitcone4);
+restricted surface solidcone=surface(...unitcone.s);
+solidcone.s.push(patch(unitcircle3));
 
 void dot(frame f, triple v, pen p=currentpen, filltype filltype=Fill,
 	 transform3 t=identity4, projection P=currentprojection)

@@ -4827,7 +4827,7 @@ columns. For example:
 string[][] a={{"bob","9"},{"alice","5"},{"pete","7"},
               {"alice","4"}};
 // Row sort (by column 0, using column 1 to break ties):
-write(stdout,sort(a));
+write(sort(a));
 @end verbatim
 
 produces
