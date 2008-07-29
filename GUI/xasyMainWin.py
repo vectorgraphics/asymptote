@@ -15,7 +15,6 @@ from string import *
 import subprocess
 import math
 import copy
-import threading
 
 from Tkinter import *
 import tkMessageBox
@@ -838,7 +837,6 @@ class xasyMainWin:
   def toolTextCmd(self):
     self.updateSelectedButton(self.toolTextButton)
   def toolAsyCmd(self):
-    self.updateSelectedButton(self.toolSelectButton)
     # ignore the command if we are too busy to process it
     if not self.testOrAcquireLock():
       return
@@ -847,7 +845,8 @@ class xasyMainWin:
     self.clearHighlight()
     self.addItemToFile(xasyScript(self.mainCanvas))
     self.unbindGlobalEvents()
-    text = xasyCodeEditor.getText("// enter your code here")
+    self.getNewText("// enter your code here")
+    text = self.newText
     self.bindGlobalEvents()
     self.undoRedoStack.add(addScriptAction(self,self.fileItems[-1]))
     self.fileItems[-1].setScript(text)
@@ -1148,21 +1147,32 @@ class xasyMainWin:
     self.mainCanvas.delete(ID)
     self.populatePropertyList()
 
+  def scriptEditThread(self,oldText):
+    self.newText = xasyCodeEditor.getText(oldText)
+
+  def getNewText(self,oldText):
+    editThread = threading.Thread(target=self.scriptEditThread,args=(oldText,))
+    editThread.start()
+    while editThread.isAlive():
+      time.sleep(0.05)
+      self.parent.update()
+    editThread.join()
+
   def itemEdit(self,item):
     # are we too busy?
     if not self.testOrAcquireLock():
       return
     self.updateSelectedButton(self.toolSelectButton)
     if isinstance(item,xasyScript):
-      oldText = item.script
       self.unbindGlobalEvents()
-      newText = xasyCodeEditor.getText(item.script)
-      self.bindGlobalEvents()
-      if newText != oldText:
-        self.undoRedoStack.add(editScriptAction(self,item,newText,oldText))
-        item.setScript(newText)
+      oldText = item.script
+      self.getNewText(oldText)
+      if self.newText != oldText:
+        self.undoRedoStack.add(editScriptAction(self,item,self.newText,oldText))
+        item.setScript(self.newText)
         item.drawOnCanvas(self.mainCanvas,self.magnification)
         self.bindItemEvents(item)
+      self.bindGlobalEvents()
     elif isinstance(item,xasyText):
       theText = tkSimpleDialog.askstring(title="Xasy - Text",prompt="Enter text to display:",initialvalue=item.label.text,parent=self.parent)
       if theText != None and theText != "":
