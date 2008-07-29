@@ -146,7 +146,7 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
 	double B=hypot2(b);
 	double C=hypot2(c);
 	double a0=orient2d(a,b,c);
-	// Is d[0] > xc+r for circumscircle abc of radius r about (xc,yc)?
+	// Is d[0] > xc+r for circumcircle abc of radius r about (xc,yc)?
 	if(d[0]*a0 < 0.5*orient2d(A,a[1],B,b[1],C,c[1]))
 	  complete[j]=
 	    incircle(a[0]*a0,a[1]*a0,b[0]*a0,b[1]*a0,c[0]*a0,c[1]*a0,
