@@ -40,6 +40,8 @@ void describeFillPattern(BitByBitData&);
 void describeRepresentationItem(BitByBitData&);
 
 //void describe(BitByBitData&);
+void describeLight(BitByBitData&);
+void describeCamera(BitByBitData&);
 bool describeContentCurve(BitByBitData&);
 void describeCurvCircle(BitByBitData&);
 void describeCurvLine(BitByBitData&);

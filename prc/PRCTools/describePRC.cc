@@ -376,6 +376,55 @@ void describeModelFileData(BitByBitData &mData,
 // {
 //   
 // }
+
+void describeLight(BitByBitData &mData)
+{
+  unsigned int ID = mData.readUnsignedInt();
+  if(ID == PRC_TYPE_GRAPH_AmbientLight)
+    cout << getIndent() << "--Ambient Light--" << endl;
+  else
+    return;
+
+  indent();
+
+  describeContentPRCBase(mData,true);
+
+  cout << getIndent() << "ambient colour index: " << mData.readUnsignedInt()-1 << endl
+      << getIndent() << "diffuse colour index: " << mData.readUnsignedInt()-1 << endl
+      << getIndent() << "specular colour index: " << mData.readUnsignedInt()-1 << endl;
+
+  describeUserData(mData);
+  describeUserData(mData); // why?
+  dedent();
+}
+
+void describeCamera(BitByBitData &mData)
+{
+  cout << getIndent() << "--Camera--" << endl;
+  if(!checkSectionCode(mData,PRC_TYPE_GRAPH_Camera))
+    return;
+  indent();
+
+  describeContentPRCBase(mData,true);
+
+  cout << getIndent() << (mData.readBit()?"orthographic":"perspective") << endl;
+  cout << getIndent() << "Camera Position" << endl;
+  describeVector3d(mData);
+  cout << getIndent() << "Look At Point" << endl;
+  describeVector3d(mData);
+  cout << getIndent() << "Up" << endl;
+  describeVector3d(mData);
+  cout << getIndent() << "X field of view angle (perspective) || X scale (orthographic) "
+      << mData.readDouble() << endl;
+  cout << getIndent() << "Y field of view angle (perspective) || Y scale (orthographic) "
+      << mData.readDouble() << endl;
+  cout << getIndent() << "aspect ratio x/y " << mData.readDouble() << endl;
+  cout << getIndent() << "near z clipping plane distance from viewer " << mData.readDouble() << endl;
+  cout << getIndent() << "far z clipping plane distance from viewer " << mData.readDouble() << endl;
+  cout << getIndent() << "zoom factor " << mData.readDouble() << endl;
+  dedent();
+}
+
 bool describeContentCurve(BitByBitData &mData)
 {
   describeBaseGeometry(mData);
@@ -1280,7 +1329,50 @@ void describeSceneDisplayParameters(BitByBitData &mData)
     return;
   indent();
   describeContentPRCBase(mData,true);
-  //TODO: finish this!
+
+  cout << getIndent() << "is active? " << (mData.readBit()?"yes":"no") << endl;
+
+  unsigned int number_of_lights = mData.readUnsignedInt();
+  cout << getIndent() << "number of lights " << number_of_lights << endl;
+  indent();
+  for(unsigned int i = 0; i < number_of_lights; ++i)
+  {
+    describeLight(mData);
+  }
+  dedent();
+
+  bool camera = mData.readBit();
+  cout << getIndent() << "camera? " << (camera?"yes":"no") << endl;
+  if(camera)
+    describeCamera(mData);
+
+  bool rotation_centre = mData.readBit();
+  cout << getIndent() << "rotation centre? " << (rotation_centre?"yes":"no") << endl;
+  if(rotation_centre)
+    describeVector3d(mData);
+
+  unsigned int number_of_clipping_planes = mData.readUnsignedInt();
+  cout << getIndent() << "number of clipping planes " << number_of_clipping_planes << endl;
+  indent();
+  for(unsigned int i = 0; i < number_of_clipping_planes; ++i)
+  {
+    cout << "Can't describe planes!!!" << endl;
+    //describePlane(mData);
+  }
+  dedent();
+
+  cout << getIndent() << "Background line style index: " << mData.readUnsignedInt()-1 << endl;
+  cout << getIndent() << "Default line style index: " << mData.readUnsignedInt()-1 << endl;
+
+  unsigned int number_of_default_styles_per_type = mData.readUnsignedInt();
+  cout << getIndent() << "number_of_default_styles_per_type " << number_of_default_styles_per_type << endl;
+  indent();
+  for(unsigned int i = 0; i < number_of_default_styles_per_type; ++i)
+  {
+    cout << getIndent() << "type " << mData.readUnsignedInt() << endl;
+    cout << getIndent() << "line style index: " << mData.readUnsignedInt()-1 << endl;
+  }
+  dedent();
 
   dedent();
 }
