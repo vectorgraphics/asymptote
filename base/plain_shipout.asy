@@ -17,9 +17,35 @@ orientation orientation=Portrait;
 
 include plain_xasy;
 
+object embed3(frame f);
+object embed3(picture pic);
+
+bool prc()
+{
+  return settings.prc && settings.outformat == "pdf";
+}
+
+frame enclose(object F)
+{
+  frame f;
+  if(prc()) {
+    frame out;
+    label(out,F.L);
+    f=out;
+  } else f=F.f;
+  return f;
+}
+
+void shipout(string prefix=defaultfilename, picture pic,
+             orientation orientation=orientation,
+             string format="", bool wait=NoWait, bool view=true);
+
 void shipout(string prefix=defaultfilename, frame f,
              string format="", bool wait=NoWait, bool view=true)
 {
+  if(is3D(f))
+    f=enclose(embed3(f));
+
   if(inXasyMode) {
     erase();
     add(f,group=false);
@@ -35,12 +61,14 @@ void shipout(string prefix=defaultfilename, frame f,
   shipped=true;
 }
 
-void shipout(string prefix=defaultfilename, picture pic,
-             orientation orientation=orientation,
-             string format="", bool wait=NoWait, bool view=true)
+shipout=new void(string prefix=defaultfilename, picture pic,
+	orientation orientation=orientation,
+	string format="", bool wait=NoWait, bool view=true)
 {
-  shipout(prefix,orientation(pic.fit()),format,wait,view);
-}
+  shipout(prefix,
+	  orientation(pic.nodes3.length > 0 ? enclose(embed3(pic)) : pic.fit()),
+	  format,wait,view);
+};
 
 void shipout(string prefix=defaultfilename,
              orientation orientation=orientation,

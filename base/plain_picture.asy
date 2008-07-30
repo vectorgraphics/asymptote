@@ -52,7 +52,7 @@ string tooclose="camera is too close to object";
 
 real[] operator ecast(triple v)
 {
-  return new real[] {v.x, v.y, v.z, 1};
+  return new real[] {v.x,v.y,v.z,1};
 }
 
 triple operator ecast(real[] a)
@@ -121,11 +121,10 @@ struct coord {
 }
 
 struct coords2 {
-  coord[] x,y,z;
+  coord[] x,y;
   void erase() {
     x.delete();
     y.delete();
-    z.delete();
   }
   // Only a shallow copy of the individual elements of x and y
   // is needed since, once entered, they are never modified.
@@ -133,22 +132,15 @@ struct coords2 {
     coords2 c=new coords2;
     c.x=copy(x);
     c.y=copy(y);
-    c.z=copy(z);
     return c;
   }
   void append(coords2 c) {
     x.append(c.x);
     y.append(c.y);
-    z.append(c.z);
   }
   void push(pair user, pair truesize) {
     x.push(coord.build(user.x,truesize.x));
     y.push(coord.build(user.y,truesize.y));
-  }
-  void push(triple user, triple truesize) {
-    x.push(coord.build(user.x,truesize.x));
-    y.push(coord.build(user.y,truesize.y));
-    z.push(coord.build(user.z,truesize.z));
   }
   void push(coord cx, coord cy) {
     x.push(cx);
@@ -177,6 +169,38 @@ struct coords2 {
   void yclip(real min, real max) {
     for(int i=0; i < y.length; ++i) 
       y[i].clip(min,max);
+  }
+}
+  
+struct coords3 {
+  coord[] x,y,z;
+  void erase() {
+    x.delete();
+    y.delete();
+    z.delete();
+  }
+  // Only a shallow copy of the individual elements of x and y
+  // is needed since, once entered, they are never modified.
+  coords3 copy() {
+    coords3 c=new coords3;
+    c.x=copy(x);
+    c.y=copy(y);
+    c.z=copy(z);
+    return c;
+  }
+  void append(coords3 c) {
+    x.append(c.x);
+    y.append(c.y);
+    z.append(c.z);
+  }
+  void push(triple user, triple truesize) {
+    x.push(coord.build(user.x,truesize.x));
+    y.push(coord.build(user.y,truesize.y));
+    z.push(coord.build(user.z,truesize.z));
+  }
+  void push(coord cx, coord cy) {
+    x.push(cx);
+    y.push(cy);
   }
 }
   
@@ -421,7 +445,26 @@ struct picture {
     }
   }
   
+  struct bounds3 {
+    coords3 point,min,max;
+    bool exact=true; // An accurate picture bounds is provided by the user.
+    void erase() {
+      point.erase();
+      min.erase();
+      max.erase();
+    }
+    bounds3 copy() {
+      bounds3 b=new bounds3;
+      b.point=point.copy();
+      b.min=min.copy();
+      b.max=max.copy();
+      b.exact=exact;
+      return b;
+    }
+  }
+  
   bounds bounds;
+  bounds3 bounds3;
     
   // Transform to be applied to this picture.
   transform T;
@@ -435,21 +478,21 @@ struct picture {
   Legend[] legend;
 
   // The maximum sizes in the x, y, and z directions; zero means no restriction.
-  real xsize=0, ysize=0, zsize=0;
+  real xsize=0, ysize=0;
+
+  real xsize3=0, ysize3=0, zsize3=0;
 
   // Fixed unitsizes in the x y, and z directions; zero means use
   // xsize, ysize, and zsize.
   real xunitsize=0, yunitsize=0, zunitsize=0;
   
-  // If true, the x and y directions must be scaled by the same amount.
+   // If true, the x and y directions must be scaled by the same amount.
   bool keepAspect=true;
 
   // A fixed scaling transform.
   bool fixed;
   transform fixedscaling;
   
-  bool is3D=false;
-
   void init() {
     userMin=userMax=(0,0,0);
     userSetx=userSety=userSetz=false;
@@ -462,6 +505,7 @@ struct picture {
     nodes.delete();
     nodes3.delete();
     bounds.erase();
+    bounds3.erase();
     T=identity();
     scale=new ScaleT;
     legend.delete();
@@ -611,7 +655,7 @@ struct picture {
 
   void add(drawer3 d, bool exact=false) {
     uptodate(false);
-    if(!exact) bounds.exact=false;
+    if(!exact) bounds3.exact=false;
     nodes3.push(new void(frame f, transform3 t, transform3 T) {
         d(f,t*T);
       });
@@ -635,7 +679,7 @@ struct picture {
   }
   
   void addPoint(triple user, triple truesize=(0,0,0)) {
-    bounds.point.push(user,truesize);
+    bounds3.point.push(user,truesize);
     userBox(user,user);
   }
 
@@ -648,8 +692,8 @@ struct picture {
 
   void addBox(triple userMin, triple userMax, triple trueMin=(0,0,0),
 	      triple trueMax=(0,0,0)) {
-    bounds.min.push(userMin,trueMin);
-    bounds.max.push(userMax,trueMax);
+    bounds3.min.push(userMin,trueMin);
+    bounds3.max.push(userMax,trueMax);
     userBox(userMin,userMax);
   }
 
@@ -669,11 +713,18 @@ struct picture {
       addBox(min(g),max(g),min(p),max(p));
   }
 
-  void size(real x, real y=x, real z=y, bool keepAspect=this.keepAspect) {
+  void size(real x, real y=x, bool keepAspect=this.keepAspect) {
     if(!empty()) uptodate(false);
     xsize=x;
     ysize=y;
-    zsize=z;
+    this.keepAspect=keepAspect;
+  }
+
+  void size3(real x, real y=x, real z=y, bool keepAspect=this.keepAspect) {
+    if(!empty()) uptodate(false);
+    xsize3=x;
+    ysize3=y;
+    zsize3=z;
     this.keepAspect=keepAspect;
   }
 
@@ -802,6 +853,15 @@ struct picture {
     }
   }
   
+  void append(coords3 point, coords3 min, coords3 max,
+              bounds3 bounds) 
+  {
+    // Add the coord info to this picture.
+    point.append(bounds.point);
+    min.append(bounds.min);
+    max.append(bounds.max);
+  }
+  
   // Returns the transform for turning user-space pairs into true-space pairs.
   transform scaling(real xsize, real ysize, bool keepAspect=true,
                     bool warn=true) {
@@ -842,9 +902,9 @@ struct picture {
        && zsize == 0 && zunitsize == 0)
       return identity(4);
 
-    coords2 Coords;
+    coords3 Coords;
     
-    append(Coords,Coords,Coords,identity(),bounds);
+    append(Coords,Coords,Coords,bounds3);
     
     real sx;
     if(xunitsize == 0) {
@@ -921,35 +981,20 @@ struct picture {
 
   // Calculate additional scaling required if only an approximate picture
   // size estimate is available.
-  transform scale(frame f, bool keepaspect=this.keepAspect) {
-    if(bounds.exact) return identity();
-    pair m=min(f);
-    pair M=max(f);
-    real width=M.x-m.x;
-    real height=M.y-m.y;
-    real xgrow=xsize == 0 || width == 0 ? 1 : xsize/width;
-    real ygrow=ysize == 0 || height == 0 ? 1 : ysize/height;
-    return keepAspect ? 
-      scale(min(xsize > 0 ? xgrow : ygrow, ysize > 0 ? ygrow : xgrow)) :
-      scale(xgrow,ygrow);
-  }
-
-  // Calculate additional scaling required if only an approximate picture
-  // size estimate is available.
   transform3 scale3(frame f, bool keepaspect=this.keepAspect) {
-    if(bounds.exact) return identity(4);
+    if(bounds3.exact) return identity(4);
     triple m=min3(f);
     triple M=max3(f);
     real width=M.x-m.x;
     real height=M.y-m.y;
     real depth=M.z-m.z;
-    real xgrow=xsize == 0 || width == 0 ? 1 : xsize/width;
-    real ygrow=ysize == 0 || height == 0 ? 1 : ysize/height;
-    real zgrow=zsize == 0 || depth == 0 ? 1 : zsize/depth;
+    real xgrow=xsize3 == 0 || width == 0 ? 1 : xsize3/width;
+    real ygrow=ysize3 == 0 || height == 0 ? 1 : ysize3/height;
+    real zgrow=zsize3 == 0 || depth == 0 ? 1 : zsize3/depth;
     return keepAspect ? 
-      scale3(min(xsize > 0 ? xgrow : ygrow,
-                 ysize > 0 ? ygrow : xgrow,
-                 zsize > 0 ? zgrow : xgrow)) : // FIXME
+      scale3(min(xsize3 > 0 ? xgrow : ygrow,
+                 ysize3 > 0 ? ygrow : xgrow,
+                 zsize3 > 0 ? zgrow : xgrow)) : // FIXME!!!!!!!!!!!!!
       scale(xgrow,ygrow,zgrow);
   }
 
@@ -975,24 +1020,16 @@ struct picture {
     return max(calculateTransform(xsize,ysize,keepAspect));
   }
   
-  // Returns the picture fit to the requested size.
-  frame fit(real xsize=this.xsize, real ysize=this.ysize, real zsize=this.zsize,
+  // Returns the 2D picture fit to the requested size.
+  frame fit(real xsize=this.xsize, real ysize=this.ysize,
             bool keepAspect=this.keepAspect) {
-    if(is3D) {
-      if(empty3()) return newframe;
-      transform3 t=scaling(xsize,ysize,zsize,keepAspect);
-      frame f=fit3(t);
-      if(bounds.exact) return f;
-      return fit3(scale3(f,keepAspect)*t);
-    } else {
-      if(fixed) return scaled();
-      if(empty2()) return newframe;
-      transform t=scaling(xsize,ysize,keepAspect);
-      frame f=fit(t);
-      transform s=scale(f,keepAspect);
-      if(s == identity()) return f;
-      return fit(s*t);
-    }
+    if(fixed) return scaled();
+    if(empty2()) return newframe;
+    transform t=scaling(xsize,ysize,keepAspect);
+    frame f=fit(t);
+    transform s=scale(f,keepAspect);
+    if(s == identity()) return f;
+    return fit(s*t);
   }
 
   // In case only an approximate picture size estimate is available, return the
@@ -1017,7 +1054,6 @@ struct picture {
     dest.userCopy(this);
     dest.scale=scale.copy();
     dest.legend=copy(legend);
-    dest.is3D=is3D;
 
     return dest;
   }
@@ -1028,8 +1064,10 @@ struct picture {
     picture dest=drawcopy();
 
     dest.bounds=bounds.copy();
+    dest.bounds3=bounds3.copy();
     
-    dest.xsize=xsize; dest.ysize=ysize; dest.zsize=zsize;
+    dest.xsize=xsize; dest.ysize=ysize;
+    dest.xsize3=xsize; dest.ysize3=ysize3; dest.zsize3=zsize3;
     dest.keepAspect=keepAspect;
     dest.xunitsize=xunitsize; dest.yunitsize=yunitsize;
     dest.zunitsize=zunitsize;
@@ -1050,25 +1088,26 @@ struct picture {
     
     picture srcCopy=src.drawcopy();
     // Draw by drawing the copied picture.
-    nodes.push(new void(frame f, transform t, transform T, pair m, pair M) {
-        add(f,srcCopy.fit(t,T*srcCopy.T,m,M),put,filltype,group);
+    if(srcCopy.nodes.length > 0)
+      nodes.push(new void(frame f, transform t, transform T, pair m, pair M) {
+	  add(f,srcCopy.fit(t,T*srcCopy.T,m,M),put,filltype,group);
       });
     
-    if(srcCopy.is3D) {
+    if(srcCopy.nodes3.length > 0)
       nodes3.push(new void(frame f, transform3 t, transform3 T3) {
-          add(f,srcCopy.fit3(t,T3*srcCopy.T3));
-        });
-      is3D=true;
-    }
+	  add(f,srcCopy.fit3(t,T3*srcCopy.T3));
+	});
     
     legend.append(src.legend);
     
     if(src.userSetx) userBoxX(src.userMin.x,src.userMax.x);
     if(src.userSety) userBoxY(src.userMin.y,src.userMax.y);
-    if(src.userSetz) userBoxY(src.userMin.z,src.userMax.z);
+    if(src.userSetz) userBoxZ(src.userMin.z,src.userMax.z);
     
     append(bounds.point,bounds.min,bounds.max,srcCopy.T,src.bounds);
+    append(bounds3.point,bounds3.min,bounds3.max,src.bounds3);
     if(!src.bounds.exact) bounds.exact=false;
+    if(!src.bounds3.exact) bounds3.exact=false;
   }
 }
 
@@ -1096,16 +1135,22 @@ picture operator * (transform3 t, picture orig)
                   t*(pic.userMax.x,pic.userMin.y,pic.userMax.z),
                   t*(pic.userMax.x,pic.userMax.y,pic.userMin.z),
                   t*pic.userMax);
-  pic.bounds.exact=false;
+  pic.bounds3.exact=false;
   return pic;
 }
 
 picture currentpicture;
 
-void size(picture pic=currentpicture, real x, real y=x, real z=y,
+void size(picture pic=currentpicture, real x, real y=x,
           bool keepAspect=pic.keepAspect)
 {
-  pic.size(x,y,z,keepAspect);
+  pic.size(x,y,keepAspect);
+}
+
+void size3(picture pic=currentpicture, real x, real y=x, real z=y,
+          bool keepAspect=pic.keepAspect)
+{
+  pic.size3(x,y,z,keepAspect);
 }
 
 void unitsize(picture pic=currentpicture, real x, real y=x, real z=y) 
@@ -1123,7 +1168,8 @@ void size(picture pic=currentpicture, real xsize, real ysize,
 
 void size(picture dest, picture src)
 {
-  dest.size(src.xsize,src.ysize,src.zsize,src.keepAspect);
+  dest.size(src.xsize,src.ysize,src.keepAspect);
+  dest.size3(src.xsize3,src.ysize3,src.zsize3,src.keepAspect);
   dest.unitsize(src.xunitsize,src.yunitsize,src.zunitsize);
 }
 
@@ -1402,7 +1448,6 @@ void add(picture dest=currentpicture, frame src, pair position=0,
     dest.add(new void(frame f, transform3) {
 	add(f,src); // always add about 3D origin (ignore position)
       },true);
-    dest.is3D=true;
     dest.addBox((0,0,0),(0,0,0),min3(src),max3(src));
   } else {
     dest.add(new void(frame f, transform t) {

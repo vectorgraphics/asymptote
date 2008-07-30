@@ -375,68 +375,12 @@ void drawprc(frame f, patch s, pen p=currentpen)
 }
 
 void tensorshade(frame f, patch s, pen surfacepen=lightgray,
-		 light light=currentlight,
+		 light light=currentlight, transform t=identity(),
 		 projection P=currentprojection, int ninterpolate=1)
 {
-  tensorshade(f,box(s.min(P),s.max(P)),surfacepen,s.colors(surfacepen,light),
-	      project(s.external(),P,1),project(s.internal(),P));
-}
-
-void draw(frame f, surface s, int nu=nmesh, int nv=nu,
-	  pen surfacepen=lightgray, pen meshpen=nullpen,
-	  light light=currentlight,
-	  transform3 t=identity4, projection P=currentprojection)
-{
-  // Draw a mesh in the absence of lighting (override with meshpen=invisible).
-  if(light.source == O && meshpen == nullpen) meshpen=currentpen;
-
-  if(prc()) {
-    for(int i=0; i < s.s.length; ++i)
-      drawprc(f,t*s.s[i],surfacepen);
-  } else {
-    if(surfacepen != nullpen) {
-      projection P=t*P;
-      triple m=min(s);
-      triple M=max(s);
-
-      // Sort patches by mean distance from camera
-      triple camera=P.camera;
-      if(P.infinity)
-	camera *= max(abs(m),abs(M));
-
-      real[][] depth;
-    
-      for(int i=0; i < s.s.length; ++i) {
-	triple[][] P=s.s[i].P;
-	for(int j=0; j < nv; ++j) {
-	  real d=abs(camera-0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]));
-	  depth.push(new real[] {d,i,j});
-	}
-      }
-
-      depth=sort(depth);
-
-      // Draw from farthest to nearest
-      while(depth.length > 0) {
-	real[] a=depth.pop();
-	int i=round(a[1]);
-	int j=round(a[2]);
-	tensorshade(f,s.s[i],surfacepen,light,P);
-      }
-    }
-  }
-    
-  if(meshpen != nullpen) {
-    for(int k=0; k < s.s.length; ++k) {
-      real step=nu == 0 ? 0 : 1/nu;
-      for(int i=0; i <= nu; ++i)
-	draw(f,s.s[k].uequals(i*step),meshpen,t,P);
-    
-      real step=nv == 0 ? 0 : 1/nv;
-      for(int j=0; j <= nv; ++j)
-	draw(f,s.s[k].vequals(j*step),meshpen,t,P);
-    }
-  }
+  tensorshade(f,box(t*s.min(P),t*s.max(P)),surfacepen,
+	      s.colors(surfacepen,light),t*project(s.external(),P,1),
+	      t*project(s.internal(),P));
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
@@ -444,12 +388,65 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
 	  light light=currentlight, projection P=currentprojection)
 {
   if(s.s.length == 0) return;
-  pic.is3D=true;
+  triple m=min(s);
+  triple M=max(s);
   pic.add(new void(frame f, transform3 t) {
-      draw(f,s,nu,nv,surfacepen,meshpen,light,t,P);
+      if(prc()) {
+	for(int i=0; i < s.s.length; ++i)
+	  drawprc(f,t*s.s[i],surfacepen);
+      } else {
+	projection P=t*P;
+	pic.add(new void(frame f, transform t2) {
+	    // Draw a mesh in the absence of lighting (override with
+	    // meshpen=invisible). 
+	    if(light.source == O && meshpen == nullpen) meshpen=currentpen;
+
+	    if(surfacepen != nullpen) {
+
+	      // Sort patches by mean distance from camera
+	      triple camera=P.camera;
+	      if(P.infinity)
+		camera *= max(abs(m),abs(M));
+
+	      real[][] depth;
+    
+	      for(int i=0; i < s.s.length; ++i) {
+		triple[][] P=s.s[i].P;
+		for(int j=0; j < nv; ++j) {
+		  real d=abs(camera-0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]));
+		  depth.push(new real[] {d,i,j});
+		}
+	      }
+
+	      depth=sort(depth);
+
+	      // Draw from farthest to nearest
+	      while(depth.length > 0) {
+		real[] a=depth.pop();
+		int i=round(a[1]);
+		int j=round(a[2]);
+		tensorshade(f,s.s[i],surfacepen,light,t2,P);
+	      }
+	    }
+    
+	    if(meshpen != nullpen) {
+	      for(int k=0; k < s.s.length; ++k) {
+		real step=nu == 0 ? 0 : 1/nu;
+		for(int i=0; i <= nu; ++i)
+		  draw(f,t*s.s[k].uequals(i*step),meshpen,P);
+    
+		real step=nv == 0 ? 0 : 1/nv;
+		for(int j=0; j <= nv; ++j)
+		  draw(f,t*s.s[k].vequals(j*step),meshpen,P);
+	      }
+	    }
+	  },true);
+	pic.addPoint(min(s,P));
+	pic.addPoint(max(s,P));
+      }
     },true);
-  pic.addPoint(min(s));
-  pic.addPoint(max(s));
+  pic.addPoint(m);
+  pic.addPoint(M);
 }
 
 surface extrude(path g, triple elongation=Z)
@@ -464,6 +461,7 @@ surface extrude(path g, triple elongation=Z)
   return S;
 }
 
+// Generalize
 void label(frame f, Label L, triple position, align align=NoAlign,
 	   pen p=currentpen, light light=nolight,
 	   projection P=currentprojection)
@@ -472,10 +470,18 @@ void label(frame f, Label L, triple position, align align=NoAlign,
   L.align(align);
   L.p(p);
   path[] g=texpath(L.s,0,L.align.dir,L.p);
-  if(prc())
-    draw(f,shift(position)*L.T3*surface(bezulate(g)),L.p);
-  else
-    fill(f,project(L.T3*path3(g),P),light.intensity(L.T3*Z)*L.p);
+  if(prc()) {
+    if(L.defaulttransform)
+      L.T3=transform3(P);
+    for(patch S : surface(bezulate(g)).s)
+      drawprc(f,shift(position)*L.T3*S,L.p);
+  } else {
+    if(L.defaulttransform)
+      fill(f,shift(project(position,P))*g,light.intensity(L.T3*Z)*L.p);
+    else
+      fill(f,project(shift(position)*L.T3*path3(g),P),
+	   light.intensity(L.T3*Z)*L.p);
+  }
 }
 
 void label(picture pic=currentpicture, Label L, triple position,
@@ -487,22 +493,23 @@ void label(picture pic=currentpicture, Label L, triple position,
   L.p(p);
   path[] g=texpath(L.s,0,L.align.dir,L.p);
   if(g.length == 0) return;
-  pic.is3D=true;
   if(prc()) {
     if(L.defaulttransform)
-      L.T3=inverse(look(P.camera-P.target,P.up));
+      L.T3=transform3(P);
     surface s=L.T3*surface(bezulate(g));
     pic.add(new void(frame f, transform3 t) {
-	draw(f,shift(t*position)*s,L.p);
+	for(patch S : s.s)
+	  drawprc(f,shift(t*position)*S,L.p);
       },true);
     pic.addPoint(position,min(s));
     pic.addPoint(position,max(s));
   } else {
     pic.add(new void(frame f, transform3 t) {
+	projection P=t*P;
 	if(L.defaulttransform)
-	  fill(f,shift(project(position,t*P))*g,light.intensity(L.T3*Z)*L.p);
+	  fill(project(position,P),pic,g,light.intensity(L.T3*Z)*L.p);
 	else
-	  fill(f,project(shift(position)*inverse(t)*L.T3*path3(g),t*P),
+	  fill(project(position,P),pic,project(inverse(t)*L.T3*path3(g),P),
 	       light.intensity(L.T3*Z)*L.p);
       },true);
     pic.addPoint(position,L.T3*XYplane(min(g)));
@@ -551,20 +558,34 @@ restricted surface unitcone=surface(unitcone1,unitcone2,unitcone3,unitcone4);
 restricted surface solidcone=surface(...unitcone.s);
 solidcone.s.push(patch(unitcircle3));
 
-void dot(frame f, triple v, pen p=currentpen, filltype filltype=Fill,
-	 transform3 t=identity4, projection P=currentprojection)
+void dot(frame f, triple v, pen p=currentpen,
+	 filltype filltype=Fill, projection P=currentprojection)
 {
   if(prc())
-    draw(f,shift(t*v)*scale3(0.5*dotsize(p))*unitsphere,p);
-  else dot(f,project(v,t*P),p,filltype);
-};
+    for(patch s : unitsphere.s)
+      drawprc(f,shift(v)*scale3(0.5*dotsize(p))*s,p);
+  else dot(f,project(v,P),p,filltype);
+}
+
+void dot(frame f, explicit path3 g, pen p=currentpen,
+	 filltype filltype=Fill)
+{
+  for(int i=0; i <= length(g); ++i) dot(f,point(g,i),p,filltype);
+}
+
+void dot(frame f, explicit path3[] g, pen p=currentpen, filltype filltype=Fill)
+{
+  for(int i=0; i < g.length; ++i) dot(f,g[i],p,filltype);
+}
 
 void dot(picture pic=currentpicture, triple v, pen p=currentpen,
 	 filltype filltype=Fill, projection P=currentprojection)
 {
-  pic.is3D=true;
   pic.add(new void(frame f, transform3 t) {
-      dot(f,v,p,filltype,t,P);
+      if(prc())
+	for(patch s : unitsphere.s)
+	  drawprc(f,shift(t*v)*scale3(0.5*dotsize(p))*s,p);
+      else dot(pic,project(v,t*P),p,filltype);
     },true);
   triple R=0.5*dotsize(p)*(1,1,1);
   pic.addBox(v,v,-R,R);

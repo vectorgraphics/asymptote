@@ -2,7 +2,7 @@ import three;
 
 settings.outformat="pdf";
 
-string viewpoint="{-27.424104690551758 3.2781381607055664 15.555781364440918}{0.8285414576530457 -0.55641108751297 0.06265588104724884}{49.19351482283476}{17.39883830010347}{}";
+string viewpoint="{-23.611555099487305 8.015114784240723 7.206217288970947}{0.8244763016700745 -0.563306450843811 0.0540805384516716}{35.62760630478586}{17.392765783664785}{}";
 
 //viewpoint=getstring("viewpoint",viewpoint);
 currentprojection=perspective(viewpoint);
@@ -30,7 +30,8 @@ triple[][][] P={{
   }};
 
 picture pic;
-size(pic,20cm);
+size(pic,15cm);
+size3(pic,10cm);
 draw(pic,surface(P),blue);
 
 add(embed(pic,"label"),(0,0),N);

@@ -571,8 +571,6 @@ guide3 operator cast(cycleToken) {
   };
 }
 
-guide3 cycle3=cycle;
-
 guide3 operator controls(triple post, triple pre) 
 {
   return new void(flatguide3 f) {
@@ -2314,6 +2312,14 @@ transform3 transform3(triple u, triple v)
     rotate(longitude(xi,warn=false),O,Z);
 }
 
+// return a transfrom that maps X,Y to the projection plane.
+transform3 transform3(projection P)
+{
+  triple v=unit(P.camera-P.target);
+  triple u=P.up-dot(P.up,v)*v;
+  return transform3(cross(u,v),u);
+}
+
 transform rotate(explicit triple dir)
 {
   return rotate(project(dir));
@@ -2722,18 +2728,19 @@ void add(picture pic=currentpicture, face[] faces,
 
 private string[] file3;
 
-bool prc()
-{
-  return settings.prc && settings.outformat == "pdf";
-}
-
-string embed(frame f, string label="", string text=label,
-	     real width=settings.paperwidth, real height=settings.paperheight,
-	     real angle=30, string render="Solid", string lights="White",
-	     string views="", string javascript="", pen background=white,
-	     projection P=currentprojection)
+string embedprc(frame f, string label="", string text=label,
+		real width=0, real height=0,
+		real angle=30, string render="Solid", string lights="White",
+		string views="", string javascript="", pen background=white,
+		projection P=currentprojection)
 {
   if(!prc()) return "";
+
+  projection P=P.copy();
+  if(P.infinity) P.camera=3*unit(P.camera)*max(abs(min3(f)),abs(max3(f)));
+
+  if(width == 0) width=settings.paperwidth;
+  if(height == 0) height=settings.paperheight;
   string prefix=defaultfilename;
   if(prefix == "") prefix="out";
   prefix += "-"+(string) file3.length;
@@ -2757,7 +2764,7 @@ string embed(frame f, string label="", string text=label,
   triple u=unit(v);
   triple w=unit(Z-u.z*u);
   triple up=unit(P.up-dot(P.up,u)*u);
-  real roll=aCos(dot(up,w))*sgn(dot(cross(up,w),u));
+  real roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));
 
   string options="poster,text="+text+",label="+label+
     ",3Daac="+format(angle)+
@@ -2774,34 +2781,50 @@ string embed(frame f, string label="", string text=label,
   return embed(prefix,options,width,height);
 }
 
-object embed(picture pic, string label="", string text=label,
+object embed(frame f, string label="", string text=label,
 	     real width=0, real height=0,
 	     real angle=30, string render="Solid", string lights="White",
 	     string views="", string javascript="", pen background=white,
 	     projection P=currentprojection)
 {
   object F;
+
+  if(prc())
+    F.L=embedprc(f,label,text,width,height,angle,render,lights,views,javascript,
+		 background,P);
+  else
+    F.f=f;
+  return F;
+}
+
+object embed(picture pic, string label="", string text=label,
+	     real width=pic.xsize, real height=pic.ysize,
+	     real angle=30, string render="Solid", string lights="White",
+	     string views="", string javascript="", pen background=white,
+	     projection P=currentprojection)
+{
+  object F;
   if(pic.empty3()) return F;
-  transform3 t=pic.scaling(pic.xsize,pic.ysize,pic.zsize,pic.keepAspect);
+  transform3 t=pic.scaling(pic.xsize3,pic.ysize3,pic.zsize3,pic.keepAspect);
   frame f=pic.fit3(t);
   if(!pic.bounds.exact) {
     t=pic.scale3(f,pic.keepAspect)*t;
     f=pic.fit3(t);
   }
 
-  if(P.infinity) P.camera=unit(P.camera)*max(abs(min3(f)),abs(max3(f)));
-
   if(prc()) {
-    real size=max(pic.xsize,pic.ysize,pic.zsize);
+    real size=max(pic.xsize3,pic.ysize3,pic.zsize3);
     if(width == 0) width=size;
     if(height == 0) height=size;
-    if(width == 0) width=settings.paperwidth;
-    if(height == 0) height=settings.paperheight;
-    F.L=embed(f,label,text,width,height,angle,render,lights,views,javascript,
-	      background,P.absolute? P : t*P);
-  } else F.f=f;
+    F.L=embedprc(f,label,text,width,height,angle,render,lights,views,javascript,
+		 background,P.absolute? P : t*P);
+  } else
+    F.f=pic.fit(pic.xsize,pic.ysize,pic.keepAspect);
   return F;
 }
+
+embed3=new object(frame f) {return embed(f);};
+embed3=new object(picture pic) {return embed(pic);};
 
 void add(picture dest=currentpicture, object src, pair position, pair align,
          bool group=true, filltype filltype=NoFill, bool put=Above)
@@ -2809,7 +2832,7 @@ void add(picture dest=currentpicture, object src, pair position, pair align,
   if(prc())
     label(src,position,align);
   else
-   plain. add(dest,src,position,align,group,filltype,put);
+   plain.add(dest,src,position,align,group,filltype,put);
 }
 
 string cameralink(string label, string text="View Parameters")
@@ -2874,11 +2897,16 @@ void drawprc(frame f, path3 g, pen p=currentpen)
   draw(f,v,p,straight,min(g),max(g));
 }
 
-void draw(frame f, path3 g, pen p=currentpen, transform3 t=identity4,
-	  projection P=currentprojection, int ninterpolate=ninterpolate)
+void draw(frame f, path3 g, pen p=currentpen, projection P=currentprojection,
+	  int ninterpolate=ninterpolate)
 {
-  if(prc()) drawprc(f,t*g,p);
-  else draw(f,project(g,t*P,ninterpolate),p);
+  if(prc()) drawprc(f,g,p);
+  else draw(f,project(g,P,ninterpolate),p);
+}
+
+void draw(frame f, path3[] g, pen p=currentpen)
+{
+  for(int i=0; i < g.length; ++i) draw(f,g[i],p);
 }
 
 include three_light;
@@ -2894,12 +2922,14 @@ void draw(picture pic=currentpicture, Label L="", path3 g, align align=NoAlign,
     L.p(p);
     label(pic,L,g);
   }
-  pic.is3D=true;
   pic.add(new void(frame f, transform3 t) {
-      draw(f,g,p,t,P,ninterpolate);
+      if(prc())
+	drawprc(f,t*g,p);
+      else
+	draw(pic,project(g,t*P,ninterpolate),p);
     },true);
   if(size(g) > 0) {
-    pic.addPoint(min(g));
+    pic.addPoint(min(g)); // TODO: Add pen bounds
     pic.addPoint(max(g));
   }
 }
@@ -2914,18 +2944,6 @@ void draw(picture pic=currentpicture, Label L="", path3[] g, pen p=currentpen)
 {
   for(int i=0; i < g.length; ++i) draw(pic,L,g[i],p);
 }
-
-shipout=new void(string prefix=defaultfilename, picture pic,
-                 orientation orientation=orientation,
-                 string format="", bool wait=NoWait, bool view=true)
-{
-  if(pic.is3D && prc()) {
-    picture out;
-    label(out,embed(pic));
-    pic=out;
-  }
-  plain.shipout(prefix,orientation(pic.fit()),format,wait,view);
-};
 
 exitfcn currentexitfunction=atexit();
 
