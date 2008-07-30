@@ -42,19 +42,10 @@ options = defaultOptions.copy()
 
 def settingsFileLocation():
   folder = ""
-  if sys.platform[:3] == 'win': #for windows, wince, win32, etc
-    try:
-      folder = os.path.join(os.environ["APPDATA"],"xasy/")
-    except:
-      try:
-        folder = os.path.expanduser("~/xasy/")
-      except:
-        pass
-  else:
-    try:
-      folder = os.path.expanduser("~/.xasy/")
-    except:
-      pass
+  try:
+    folder = os.path.expanduser("~/.asy/")
+  except:
+    pass
   return os.path.normcase(os.path.join(folder,"xasy.conf"))
 
 def setAsyPathFromWindowsRegistry():
