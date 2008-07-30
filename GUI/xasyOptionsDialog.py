@@ -41,7 +41,8 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
     self.ap.insert(END,xasyOptions.options['asyPath'])
     self.ap.grid(row=0,column=1,sticky=E+W)
     Button(asyGrp,text="...",command=self.findAsyPath).grid(row=0,column=2,sticky=E+W)
-    self.showDebug = BooleanVar(value=xasyOptions.options['showDebug'])
+    self.showDebug = BooleanVar()
+    self.showDebug.set(xasyOptions.options['showDebug'])
     self.sd = Checkbutton(asyGrp,text="Show debugging info in console",var=self.showDebug)
     self.sd.grid(row=1,column=0,columnspan=2,sticky=W)
 
@@ -84,7 +85,8 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
     dispGrp.columnconfigure(0,weight=1)
     dispGrp.columnconfigure(1,weight=1)
     dispGrp.columnconfigure(2,weight=1)
-    self.showAxes = BooleanVar(value=xasyOptions.options['showAxes'])
+    self.showAxes = BooleanVar()
+    self.showAxes.set(xasyOptions.options['showAxes'])
     self.sa = Checkbutton(dispGrp,text="Show Axes",var=self.showAxes)
     self.sa.grid(row=0,column=0,sticky=W)
     self.ac = xasyOptions.options['axesColor']
@@ -98,7 +100,8 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
     self.ays.insert(END,xasyOptions.options['axisY'])
     self.ays.grid(row=1,column=2,sticky=W+E)
 
-    self.showGrid = BooleanVar(value=xasyOptions.options['showGrid'])
+    self.showGrid = BooleanVar()
+    self.showGrid.set(xasyOptions.options['showGrid'])
     self.sg = Checkbutton(dispGrp,text="Show Grid",var=self.showGrid)
     self.sg.grid(row=4,column=0,sticky=W)
     self.gc = xasyOptions.options['gridColor']
