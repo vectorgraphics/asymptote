@@ -20,7 +20,7 @@ using std::ofstream;
 using namespace settings;
 
 // Give up on waiting for acroread to finish after this much time.
-unsigned psimagelimit=30;
+unsigned psimagelimit=60;
 
 texstream::~texstream() {
   if(!getSetting<bool>("keep")) {

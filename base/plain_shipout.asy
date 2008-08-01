@@ -53,16 +53,11 @@ console.println('Rasterizing to "+name+"');
 var pp = this.getPrintParams();
 pp.interactive = pp.constants.interactionLevel.silent;
 pp.fileName = '"+name+"';
-pp.bitmapDPI = 9600;
-pp.gradientDPI = 9600;
-fv = pp.constants.flagValues; // do not auto-rotate
+fv = pp.constants.flagValues;
 pp.flags |= fv.suppressRotate;
-pp.pageHandling = pp.constants.handling.none; // do not scale the page
+pp.pageHandling = pp.constants.handling.none;
 pp.printerName = 'FILE';
-try{silentPrint(pp);}
-catch(e){
-this.print(pp);
-}";
+try{silentPrint(pp);} catch(e){this.print(pp);}";
     if(!view ||
        !(interactive() ? settings.interactiveView : settings.batchView))
       javascript += "this.closeDoc();";
