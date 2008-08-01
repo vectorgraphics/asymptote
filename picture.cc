@@ -19,6 +19,9 @@ using std::ofstream;
 
 using namespace settings;
 
+// Give up on waiting for acroread to finish after this much time.
+unsigned psimagelimit=30;
+
 texstream::~texstream() {
   if(!getSetting<bool>("keep")) {
     unlink("texput.log");
@@ -385,6 +388,7 @@ bool picture::postprocess(const string& prename, const string& outname,
 	
 	// Kill acroread psimage process.
 	if(!View) {
+	  unsigned count=0;
 	  while(true) {
 	    ifstream psfile((stripExt(outname)+".ps").c_str());
 	    if(psfile.good()) {
@@ -394,6 +398,8 @@ bool picture::postprocess(const string& prename, const string& outname,
 	      psfile >> s;
 	      if(s == eof) break;
 	    }
+	    ++count;
+	    if(count > psimagelimit) break;
 	    sleep(1);
 	  }
 	  kill(pid,SIGINT);
