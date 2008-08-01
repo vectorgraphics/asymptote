@@ -197,7 +197,7 @@ struct Label {
   
   void init(string s="", string size="", position position=0, 
             bool defaultposition=true, align align=NoAlign, pen p=nullpen,
-	    transform T=identity(), transform3 T3=identity4,
+	    transform T=identity(), transform3 T3=identity(4),
 	    bool defaulttransform=true, embed embed=Rotate,
 	    filltype filltype=NoFill) {
     this.s=s;

@@ -83,6 +83,13 @@ transform3 scale3(real s)
   return t;
 }
 
+transform3 shiftless(transform3 t)
+{
+  transform3 T=copy(t);
+  T[0][3]=T[1][3]=T[2][3]=0;
+  return T;
+}
+
 // A function that draws an object to frame pic, given that the transform
 // from user coordinates to true-size coordinates is t.
 typedef void drawer(frame f, transform t);
@@ -198,9 +205,29 @@ struct coords3 {
     y.push(coord.build(user.y,truesize.y));
     z.push(coord.build(user.z,truesize.z));
   }
-  void push(coord cx, coord cy) {
+  void push(coord cx, coord cy, coord cz) {
     x.push(cx);
     y.push(cy);
+    z.push(cz);
+  }
+  void push(transform3 t, coords3 c1, coords3 c2, coords3 c3) {
+    for(int i=0; i < c1.x.length; ++i) {
+      coord cx=c1.x[i], cy=c2.y[i], cz=c3.z[i];
+      triple tinf=shiftless(t)*((finite(cx.user) ? 0 : 1),
+				(finite(cy.user) ? 0 : 1),
+				(finite(cz.user) ? 0 : 1));
+      triple z=t*(cx.user,cy.user,cz.user);
+      triple w=(cx.truesize,cy.truesize,cz.truesize);
+      w=length(w)*unit(shiftless(t)*w);
+      coord Cx,Cy,Cz;
+      Cx.user=(tinf.x == 0 ? z.x : infinity);
+      Cy.user=(tinf.y == 0 ? z.y : infinity);
+      Cz.user=(tinf.z == 0 ? z.z : infinity);
+      Cx.truesize=w.x;
+      Cy.truesize=w.y;
+      Cz.truesize=w.z;
+      push(Cx,Cy,Cz);
+    }
   }
 }
   
@@ -853,13 +880,26 @@ struct picture {
     }
   }
   
-  void append(coords3 point, coords3 min, coords3 max,
+  void append(coords3 point, coords3 min, coords3 max, transform3 t,
               bounds3 bounds) 
   {
     // Add the coord info to this picture.
-    point.append(bounds.point);
-    min.append(bounds.min);
-    max.append(bounds.max);
+    if(t == identity4) {
+      point.append(bounds.point);
+      min.append(bounds.min);
+      max.append(bounds.max);
+    } else {
+      point.push(t,bounds.point,bounds.point,bounds.point);
+      // Add in all 8 corner points, to properly size cuboid pictures.
+      point.push(t,bounds.min,bounds.min,bounds.min);
+      point.push(t,bounds.min,bounds.min,bounds.max);
+      point.push(t,bounds.min,bounds.max,bounds.min);
+      point.push(t,bounds.min,bounds.max,bounds.max);
+      point.push(t,bounds.max,bounds.min,bounds.min);
+      point.push(t,bounds.max,bounds.min,bounds.max);
+      point.push(t,bounds.max,bounds.max,bounds.min);
+      point.push(t,bounds.max,bounds.max,bounds.max);
+    }
   }
   
   // Returns the transform for turning user-space pairs into true-space pairs.
@@ -904,7 +944,7 @@ struct picture {
 
     coords3 Coords;
     
-    append(Coords,Coords,Coords,bounds3);
+    append(Coords,Coords,Coords,T3,bounds3);
     
     real sx;
     if(xunitsize == 0) {
@@ -1105,7 +1145,8 @@ struct picture {
     if(src.userSetz) userBoxZ(src.userMin.z,src.userMax.z);
     
     append(bounds.point,bounds.min,bounds.max,srcCopy.T,src.bounds);
-    append(bounds3.point,bounds3.min,bounds3.max,src.bounds3);
+    append(bounds3.point,bounds3.min,bounds3.max,srcCopy.T3,src.bounds3);
+
     if(!src.bounds.exact) bounds.exact=false;
     if(!src.bounds3.exact) bounds3.exact=false;
   }

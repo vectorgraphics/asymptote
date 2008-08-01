@@ -399,7 +399,7 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
 	pic.add(new void(frame f, transform t2) {
 	    // Draw a mesh in the absence of lighting (override with
 	    // meshpen=invisible). 
-	    if(light.source == O && meshpen == nullpen) meshpen=currentpen;
+	    if(!light.on && meshpen == nullpen) meshpen=currentpen;
 
 	    if(surfacepen != nullpen) {
 
@@ -549,7 +549,8 @@ restricted surface unitsphere=surface(octant1,octant2,octant3,octant4,
 				      i*octant1,i*octant2,i*octant3,i*octant4);
 
 private patch unitcone1=patch(X--Z--Z--Y{X}..{-Y}cycle,
-			      new triple[] {(2/3,a,1/3),Z,Z,(a,2/3,1/3)});
+			      new triple[] {(2/3,2/3*a,1/3),Z,Z,
+					    (2/3*a,2/3,1/3)});
 private patch unitcone2=t*unitcone1;
 private patch unitcone3=t*unitcone2;
 private patch unitcone4=t*unitcone3;
