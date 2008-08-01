@@ -900,6 +900,8 @@ void initSettings() {
 			      ""));
   addOption(new boolSetting("prc", 0,
                             "Embed 3D PRC graphics in PDF output", false));
+  addOption(new boolSetting("psimage", 0,
+                            "Output ps image of 3D PRC graphics", false));
   addOption(new stringOutnameSetting("outname", 'o', "name",
 				     "Alternative output name for first file",
 				     ""));
@@ -1022,6 +1024,7 @@ void initSettings() {
   addOption(new envSetting("gs", defaultGhostscript));
   addOption(new envSetting("texpath", ""));
   addOption(new envSetting("texcommand", ""));
+  addOption(new envSetting("texdvicommand", ""));
   addOption(new envSetting("dvips", "dvips"));
   addOption(new envSetting("convert", "convert"));
   addOption(new envSetting("display", defaultDisplay));
@@ -1196,16 +1199,23 @@ const char **texabort(const string& texengine)
   return settings::pdf(texengine) ? pdftexerrors : texerrors;
 }
 
-string texengine() 
+string texengine(bool ps)
 {
-  string command=getSetting<string>("texcommand");
+  string command;
+  if(ps) {
+    command=getSetting<string>("texdvicommand");
+    if(command == "")
+      command=latex(getSetting<string>("tex")) ? "latex" : "tex";
+  }
+  command=getSetting<string>("texcommand");
   return command.empty() ? getSetting<string>("tex") : command;
 }
   
-string texprogram()
+string texprogram(bool ps)
 {
   string path=getSetting<string>("texpath");
-  return (path == "") ? texengine() : (string) (path+"/"+texengine());
+  string engine=texengine(ps);
+  return (path == "") ? engine : (string) (path+"/"+engine);
 }
 
 Int getScroll() 

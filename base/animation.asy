@@ -23,7 +23,7 @@ fit BBox(real xmargin=0, real ymargin=xmargin,
 
 struct animation {
   string outname() {
-    return "_"+(defaultfilename == "" ? settings.outname : defaultfilename);
+    return "_"+outprefix();
   }
 
   picture[] pictures;

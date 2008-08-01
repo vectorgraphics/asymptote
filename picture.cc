@@ -347,7 +347,9 @@ bool picture::postprocess(const string& prename, const string& outname,
   
   if(verbose > 0)
     cout << "Wrote " << outname << endl;
-  if(settings::view() && view) {
+  bool View=settings::view() && view;
+  if(View || (pdfformat && getSetting<bool>("psimage") && 
+	      getSetting<bool>("prc"))) {
     if(epsformat || pdfformat) {
       // Check to see if there is an existing viewer for this outname.
       mem::map<CONST string,int>::iterator p=pids.find(outname);
@@ -378,8 +380,28 @@ bool picture::postprocess(const string& prename, const string& outname,
 		      pdfformat ? "pdfviewer" : "psviewer",
 		      pdfformat ? "your PDF viewer" : "your PostScript viewer",
 		      &pid);
-	pids[outname]=pid;
+
 	if(status != 0) return false;
+	
+	// Kill acroread psimage process.
+	if(!View) {
+	  while(true) {
+	    ifstream psfile((stripExt(outname)+".ps").c_str());
+	    if(psfile.good()) {
+	      string eof="%%EOF";
+	      psfile.seekg(-((int) eof.size()+1),std::ios_base::end);
+	      string s;
+	      psfile >> s;
+	      if(s == eof) break;
+	    }
+	    sleep(1);
+	  }
+	  kill(pid,SIGINT);
+	  while(waitpid(pid, &status, 0) != pid);
+	  running=false;
+	} 
+	
+	pids[outname]=pid;
       }
     } else {
       ostringstream cmd;

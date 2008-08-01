@@ -450,6 +450,7 @@ configuration variables @code{paperwidth} and @code{paperheight}.
 
 @cindex @code{texpath}
 @cindex @code{texcommand}
+@cindex @code{texdvicommand}
 @cindex @code{dvips}
 @cindex @code{convert}
 @cindex @code{display}
@@ -460,12 +461,16 @@ The following configuration variables normally do not require adjustment:
 @verbatim
 texpath
 texcommand
+texdvicommand
 dvips
 convert
 display
 animate
 xasy
 @end verbatim
+The @code{texdvicommand} is used for @code{3D} label typesetting, which
+requires @code{dvips} output. An empty string indicates the default setting
+of @code{latex}/@code{tex}, depending on the setting of @code{texengine}.
 
 @cindex command-line options
 Configuration variables may also be set or overwritten with a

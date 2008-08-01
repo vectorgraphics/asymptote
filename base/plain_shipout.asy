@@ -1,6 +1,11 @@
 // Default file prefix used for inline LaTeX mode
 string defaultfilename;
 
+string outprefix(string prefix=defaultfilename) {
+  return stripdirectory(stripextension(prefix == "" ? settings.outname :
+				       prefix));
+}
+
 bool shipped; // Was a picture or frame already shipped out?
 
 restricted bool Wait=true;                         
@@ -17,34 +22,37 @@ orientation orientation=Portrait;
 
 include plain_xasy;
 
-object embed3(frame f);
-object embed3(picture pic);
+object embed3(string prefix, frame f);
+object embed3(string prefix, picture pic);
 
 bool prc()
 {
   return settings.prc && settings.outformat == "pdf";
 }
 
-frame enclose(object F)
+frame enclose(string prefix=defaultfilename, object F)
 {
-  frame f;
   if(prc()) {
-    frame out;
-    label(out,F.L);
-    f=out;
-  } else f=F.f;
-  return f;
+    frame f;
+    label(f,F.L);
+    return f;
+  } return F.f;
 }
-
-void shipout(string prefix=defaultfilename, picture pic,
-             orientation orientation=orientation,
-             string format="", bool wait=NoWait, bool view=true);
 
 void shipout(string prefix=defaultfilename, frame f,
              string format="", bool wait=NoWait, bool view=true)
 {
   if(is3D(f))
-    f=enclose(embed3(f));
+    f=enclose(prefix,embed3(prefix,f));
+
+  if(settings.psimage && prc() && !pdf()) {
+    string name=outprefix(prefix)+".ps";
+    delete(name);
+    string autoclose=view &&
+      (interactive() ? settings.interactiveView : settings.batchView) ?
+      "" : "this.closeDoc();";
+    tex(f,"\special{ps: mark {Catalog} << /OpenAction << /S /JavaScript /JS (printToFile(\""+name+"\");"+autoclose+") >> >> /PUT pdfmark }");
+  }
 
   if(inXasyMode) {
     erase();
@@ -61,14 +69,14 @@ void shipout(string prefix=defaultfilename, frame f,
   shipped=true;
 }
 
-shipout=new void(string prefix=defaultfilename, picture pic,
+void shipout(string prefix=defaultfilename, picture pic,
 	orientation orientation=orientation,
 	string format="", bool wait=NoWait, bool view=true)
 {
-  shipout(prefix,
-	  orientation(pic.nodes3.length > 0 ? enclose(embed3(pic)) : pic.fit()),
+  shipout(prefix,orientation(pic.nodes3.length > 0 ?
+			     enclose(embed3(prefix,pic)) : pic.fit()),
 	  format,wait,view);
-};
+}
 
 void shipout(string prefix=defaultfilename,
              orientation orientation=orientation,

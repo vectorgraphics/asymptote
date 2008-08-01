@@ -418,13 +418,6 @@ void write(file file, dir d)
   }
 }
   
-transform3 shiftless(transform3 t)
-{
-  transform3 T=copy(t);
-  T[0][3]=T[1][3]=T[2][3]=0;
-  return T;
-}
-
 dir operator * (transform3 t, dir d) 
 {
   dir D=d.copy();
@@ -2301,6 +2294,7 @@ transform3 align(triple u)
 }
 
 // return a rotation that maps X,Y to u,v
+// TODO: Optimize
 transform3 transform3(triple u, triple v) 
 {
   u=unit(u);
@@ -2728,8 +2722,8 @@ void add(picture pic=currentpicture, face[] faces,
 
 private string[] file3;
 
-string embedprc(frame f, string label="", string text=label,
-		real width=0, real height=0,
+string embedprc(string prefix=defaultfilename, frame f, string label="",
+		string text=label, real width=0, real height=0,
 		real angle=30, string render="Solid", string lights="White",
 		string views="", string javascript="", pen background=white,
 		projection P=currentprojection)
@@ -2741,8 +2735,7 @@ string embedprc(frame f, string label="", string text=label,
 
   if(width == 0) width=settings.paperwidth;
   if(height == 0) height=settings.paperheight;
-  string prefix=defaultfilename;
-  if(prefix == "") prefix="out";
+  string prefix=outprefix();
   prefix += "-"+(string) file3.length;
   shipout3(prefix,f);
   prefix += ".prc";
@@ -2781,7 +2774,8 @@ string embedprc(frame f, string label="", string text=label,
   return embed(prefix,options,width,height);
 }
 
-object embed(frame f, string label="", string text=label,
+object embed(string prefix=defaultfilename, frame f, string label="",
+	     string text=label,
 	     real width=0, real height=0,
 	     real angle=30, string render="Solid", string lights="White",
 	     string views="", string javascript="", pen background=white,
@@ -2790,15 +2784,15 @@ object embed(frame f, string label="", string text=label,
   object F;
 
   if(prc())
-    F.L=embedprc(f,label,text,width,height,angle,render,lights,views,javascript,
-		 background,P);
+    F.L=embedprc(prefix,f,label,text,width,height,angle,render,lights,views,
+		 javascript,background,P);
   else
     F.f=f;
   return F;
 }
 
-object embed(picture pic, string label="", string text=label,
-	     real width=pic.xsize, real height=pic.ysize,
+object embed(string prefix=defaultfilename, picture pic, string label="",
+	     string text=label, real width=pic.xsize, real height=pic.ysize,
 	     real angle=30, string render="Solid", string lights="White",
 	     string views="", string javascript="", pen background=white,
 	     projection P=currentprojection)
@@ -2814,23 +2808,25 @@ object embed(picture pic, string label="", string text=label,
 
   if(prc()) {
     real size=max(pic.xsize3,pic.ysize3,pic.zsize3);
-    if(width == 0) width=size;
-    if(height == 0) height=size;
-    F.L=embedprc(f,label,text,width,height,angle,render,lights,views,javascript,
-		 background,P.absolute? P : t*P);
+    if(width == 0) {
+      if(height == 0) height=size;
+      width=height;
+    } else if(height == 0) height=width;
+    F.L=embedprc(prefix,f,label,text,width,height,angle,render,lights,views,
+		 javascript,background,P.absolute? P : t*P);
   } else
     F.f=pic.fit(pic.xsize,pic.ysize,pic.keepAspect);
   return F;
 }
 
-embed3=new object(frame f) {return embed(f);};
-embed3=new object(picture pic) {return embed(pic);};
+embed3=new object(string prefix, frame f) {return embed(prefix,f);};
+embed3=new object(string prefix, picture pic) {return embed(prefix,pic);};
 
 void add(picture dest=currentpicture, object src, pair position, pair align,
          bool group=true, filltype filltype=NoFill, bool put=Above)
 {
   if(prc())
-    label(src,position,align);
+    label(dest,src,position,align);
   else
    plain.add(dest,src,position,align,group,filltype,put);
 }

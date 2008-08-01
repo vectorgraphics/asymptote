@@ -14,22 +14,20 @@ real defaultshade(real x) {
 struct light {
   triple source;
   shadefcn shade;
+  bool on=false;
   
-  real intensity(triple v) {
-    if(source == O) return 1;
-    return shade(0.5(dot(unit(v),source)+1));
+  void operator init(triple source, shadefcn shade=defaultshade) {
+    this.source=unit(source);
+    this.shade=shade;
+    on=true;
   }
-}
 
-light light(triple source, shadefcn shade=defaultshade)
-{
-  light L;
-  L.source=unit(source);
-  L.shade=shade;
-  return L;
+  real intensity(triple v) {
+    return on ? shade(0.5(dot(unit(v),source)+1)) : 1;
+  }
 }
 
 light operator cast(triple v) {return light(v);}
 
 light currentlight=(0.25,-0.25,1);
-light nolight=O;
+light nolight;

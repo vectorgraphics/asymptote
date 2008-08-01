@@ -972,7 +972,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   tex.close();
   
   ostringstream cmd;
-  cmd << "'" << texprogram() << "'"
+  cmd << "'" << texprogram(true) << "'"
       << " \\nonstopmode\\input '" << texname << "'";
   bool quiet=verbose <= 1;
   int status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
@@ -4016,6 +4016,25 @@ Int find(boolarray *a, Int n=1)
 	n++; if(n == 0) {j=(Int) i; break;}
       }
   return j;
+}
+
+bool Operator ==(realarray2 *a, realarray2 *b)
+{
+  size_t n=a->size();
+  if(n != b->size()) return false;
+  
+  size_t n0=n == 0 ? 0 : read<array*>(a,0)->size();
+  if(n0 != read<array*>(b,0)->size()) return false;
+    
+  for(size_t i=0; i < n; ++i) {
+    array *ai=read<array*>(a,i);
+    array *bi=read<array*>(b,i);
+    for(size_t j=0; j < n0; ++j) {
+      if(read<real>(ai,j) != read<real>(bi,j))
+	return false;
+    }
+  }
+  return true;
 }
 
 // construct vector obtained by replacing those elements of b for which the
