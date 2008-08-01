@@ -63,12 +63,13 @@ try{silentPrint(pp);} catch(e){this.print(pp);}";
       javascript += "this.closeDoc();";
     string s;
     if(pdf())
-      s="\pdfcatalog{ /OpenAction << /S /JavaScript /JS ("+javascript+
-	") >> }";
+      s="\pdfannot width 1pt height 1pt { /AA << /PO << /S /JavaScript /JS ("+javascript+") >> >> }";
     else
       s="\special{ps: mark {Catalog} << /OpenAction << /S /JavaScript /JS ("+
 	javascript+") >> >> /PUT pdfmark }";
-    tex(f,s);
+    frame g;
+    tex(g,s);
+    prepend(f,g);
   }
 
   if(inXasyMode) {
