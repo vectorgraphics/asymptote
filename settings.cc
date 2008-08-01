@@ -1206,8 +1206,8 @@ string texengine(bool ps)
     command=getSetting<string>("texdvicommand");
     if(command == "")
       command=latex(getSetting<string>("tex")) ? "latex" : "tex";
-  }
-  command=getSetting<string>("texcommand");
+  } else
+    command=getSetting<string>("texcommand");
   return command.empty() ? getSetting<string>("tex") : command;
 }
   

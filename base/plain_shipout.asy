@@ -45,13 +45,35 @@ void shipout(string prefix=defaultfilename, frame f,
   if(is3D(f))
     f=enclose(prefix,embed3(prefix,f));
 
-  if(settings.psimage && prc() && !pdf()) {
+  if(settings.psimage && prc()) {
     string name=outprefix(prefix)+".ps";
     delete(name);
-    string autoclose=view &&
-      (interactive() ? settings.interactiveView : settings.batchView) ?
-      "" : "this.closeDoc();";
-    tex(f,"\special{ps: mark {Catalog} << /OpenAction << /S /JavaScript /JS (printToFile(\""+name+"\");"+autoclose+") >> >> /PUT pdfmark }");
+    string javascript="
+console.println('Rasterizing to "+name+"');
+var pp = this.getPrintParams();
+pp.interactive = pp.constants.interactionLevel.silent;
+pp.fileName = '"+name+"';
+pp.bitmapDPI = 9600;
+pp.gradientDPI = 9600;
+fv = pp.constants.flagValues; // do not auto-rotate
+pp.flags |= fv.suppressRotate;
+pp.pageHandling = pp.constants.handling.none; // do not scale the page
+pp.printerName = 'FILE';
+try{silentPrint(pp);}
+catch(e){
+this.print(pp);
+}";
+    if(!view ||
+       !(interactive() ? settings.interactiveView : settings.batchView))
+      javascript += "this.closeDoc();";
+    string s;
+    if(pdf())
+      s="\pdfcatalog{ /OpenAction << /S /JavaScript /JS ("+javascript+
+	") >> }";
+    else
+      s="\special{ps: mark {Catalog} << /OpenAction << /S /JavaScript /JS ("+
+	javascript+") >> >> /PUT pdfmark }";
+    tex(f,s);
   }
 
   if(inXasyMode) {
