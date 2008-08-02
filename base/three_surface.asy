@@ -559,6 +559,14 @@ restricted surface unitcone=surface(unitcone1,unitcone2,unitcone3,unitcone4);
 restricted surface solidcone=surface(...unitcone.s);
 solidcone.s.push(patch(unitcircle3));
 
+private patch unitcylinder1=patch(X--X+Z{Y}..{-X}Y+Z--Y{X}..{-Y}cycle);
+private patch unitcylinder2=t*unitcylinder1;
+private patch unitcylinder3=t*unitcylinder2;
+private patch unitcylinder4=t*unitcylinder3;
+
+restricted surface unitcylinder=surface(unitcylinder1,unitcylinder2,
+					unitcylinder3,unitcylinder4);
+
 void dot(frame f, triple v, pen p=currentpen,
 	 filltype filltype=Fill, projection P=currentprojection)
 {
