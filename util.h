@@ -98,6 +98,7 @@ extern char *startpath;
 void backslashToSlash(string& s);
 void spaceToUnderscore(string& s);
 string Getenv(const char *name, bool msdos);
+char *getPath(char *p=NULL);
 
 void execError(const char *command, const char *hint, const char *application);
   

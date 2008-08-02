@@ -304,14 +304,13 @@ string stripblanklines(const string& s)
 }
 
 char *startpath=NULL;
-char *currentpath=NULL;
 
 void noPath()
 {
   camp::reportError("Cannot get current path");
 }
 
-char *getPath(char *p=currentpath)
+char *getPath(char *p)
 {
   static size_t size=MAXPATHLEN;
   if(!p) p=new(UseGC) char[size];

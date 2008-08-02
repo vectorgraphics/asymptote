@@ -13,6 +13,7 @@
 #include "util.h"
 #include "settings.h"
 #include "interact.h"
+#include "drawverbatim.h"
 
 using std::ifstream;
 using std::ofstream;
@@ -321,12 +322,38 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   return System(cmd,0,true,"gs","Ghostscript");
 }
   
-static mem::map<CONST string,int> pids;
-
+bool picture::reloadpdf(const string& Viewer, const string& outname) const 
+{
+  static bool needReload=true;
+  static bool haveReload=false;
+  
+  // Send javascript code to redraw picture.
+  picture f;
+  string name=getPath()+string("/")+outname;
+  f.append(new drawVerbatim(TeX,"\\ \\pdfannot width 0pt height 0pt { /AA << /PO << /S /JavaScript /JS (try{reload('"+
+			    name+"');} catch(e) {} closeDoc(this);) >> >> }"));
+  string reloadprefix="reload";
+  if(needReload) {
+    needReload=false;
+    string texengine=getSetting<string>("tex");
+    Setting("tex")=string("pdflatex");
+    haveReload=f.shipout(NULL,reloadprefix,"pdf",0.0,false,false);
+    Setting("tex")=texengine;
+  }
+  if(haveReload) {
+    ostringstream cmd;
+    cmd << "'" << Viewer << "' '" << reloadprefix << ".pdf'";
+    System(cmd,0,false);
+  }
+  return true;
+}		
+  
+  
 bool picture::postprocess(const string& prename, const string& outname,
 			  const string& outputformat, double magnification,
 			  bool wait, bool view)
 {
+  static mem::map<CONST string,int> pids;
   int status=0;
   
   if((pdf && Labels) || !epsformat) {
@@ -366,28 +393,37 @@ bool picture::postprocess(const string& prename, const string& outname,
 	  running=(waitpid(pid, &status, WNOHANG) != pid);
       }
 	
+      bool reload=getSetting<bool>("reload");
       if(running) {
-	if(Viewer == "gv") kill(pid,SIGHUP); // Tell gv to reread file.
-	else if(pdfformat && !b.empty) {
-	  // Kill pdfviewer so that file can be redrawn.
-	  kill(pid,SIGINT);
-	  while(waitpid(pid, &status, 0) != pid);
-	  running=false;
+	if(reload) {
+	  // Tell gv/acroread to reread file.	  
+	  if(Viewer == "gv" && reload) kill(pid,SIGHUP);
+	  else if(pdfformat) reloadpdf(Viewer,outname);
 	}
-      }
-      if(!running) {
+      } else {
 	ostringstream cmd;
-	cmd << "'" << Viewer << "'";
-	cmd << " '" << outname << "'";
+	cmd << "'" << Viewer << "' '";
+	string viewerOptions=getSetting<string>(pdfformat ? 
+						"pdfviewerOptions" : 
+						"psviewerOptions");
+	if(!viewerOptions.empty())
+	  cmd <<  viewerOptions << "' '";
+	cmd << outname << "'";
 	status=System(cmd,0,wait,
 		      pdfformat ? "pdfviewer" : "psviewer",
 		      pdfformat ? "your PDF viewer" : "your PostScript viewer",
 		      &pid);
-
 	if(status != 0) return false;
 	
-	// Kill acroread psimage process.
-	if(!View) {
+	pids[outname]=pid;
+
+	if(View) {
+	  if(pdfformat && reload) {
+	    // Work around race conditions in acroread initialization script
+	    usleep(500000); 
+	    reloadpdf(Viewer,outname);
+	  }
+	} else { // Kill acroread psimage process.
 	  unsigned count=0;
 	  while(true) {
 	    ifstream psfile((stripExt(outname)+".ps").c_str());
@@ -405,9 +441,7 @@ bool picture::postprocess(const string& prename, const string& outname,
 	  kill(pid,SIGINT);
 	  while(waitpid(pid, &status, 0) != pid);
 	  running=false;
-	} 
-	
-	pids[outname]=pid;
+	}
       }
     } else {
       ostringstream cmd;

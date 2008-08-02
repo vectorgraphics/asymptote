@@ -1005,6 +1005,9 @@ void initSettings() {
   addOption(new boolSetting("autorotate", 0,
 			    "Enable automatic PDF page rotation",
 			    false));
+  addOption(new boolSetting("reload", 0,
+                            "Automatically reload graphics in viewer", true));
+
   addOption(new stringSetting("autoimport", 0, "string",
 			      "Module to automatically import [\"\"]", ""));
   addOption(new userSetting("command", 'c', "string",
@@ -1017,6 +1020,8 @@ void initSettings() {
   
   addOption(new stringSetting("dvipsOptions", 0, "string", "", ""));
   addOption(new stringSetting("gsOptions", 0, "string", "", ""));
+  addOption(new stringSetting("psviewerOptions", 0, "string", "", ""));
+  addOption(new stringSetting("pdfviewerOptions", 0, "string", "", ""));
   
   addOption(new envSetting("config","config."+suffix));
   addOption(new envSetting("pdfviewer", defaultPDFViewer));

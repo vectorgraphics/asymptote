@@ -1,3 +1,5 @@
+// Print without querying user.
+
 // UNIX: Copy to ~/.adobe/Acrobat/x.x/JavaScripts/
 // MSWindows: Copy to %APPDATA%/Adobe/Acrobat/x.x/JavaScripts/
 // where x.x represents the appropriate Acrobat Reader version number
