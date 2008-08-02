@@ -320,9 +320,8 @@ void PRCGlobalsSection::writeData()
   out << (uint32_t)1 // number of line patterns hard coded for now
       << (uint32_t)PRC_TYPE_GRAPH_LinePattern;
   ContentPRCBase(&EMPTY_ATTRIBUTES,"",true,makeCADID(),0,makePRCID()).write(out);
-  out << (uint32_t)2 // number of lengths
-      << 1e6  // size 0
-      << 0.0 // size 1
+  out << (uint32_t)0 // number of lengths
+//      << 1.0  // size 0
       << 0.0 // phase
       << false; // is real length
 
