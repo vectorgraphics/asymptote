@@ -456,7 +456,8 @@ struct stringSetting : public argumentSetting {
   stringSetting(string name, char code,
                 string argname, string desc,
                 string defaultValue)
-    : argumentSetting(name, code, argname, desc,
+    : argumentSetting(name, code, argname, desc.empty() ? "" :
+		      desc+(defaultValue.empty() ? "" : " ["+defaultValue+"]"),
 		      types::primString(), (item)defaultValue) {}
 
   bool getOption() {
@@ -525,24 +526,41 @@ struct dataSetting : public argumentSetting {
   }
 };
 
+template<class T>
+string String(T x)
+{
+  ostringstream buf;
+  buf << x; 
+  return buf.str();
+}
+  
+template<class T>
+string description(string desc, T defaultValue) 
+{
+  return desc.empty() ? "" : desc+" ["+String(defaultValue)+"]";
+}
+
 struct IntSetting : public dataSetting<Int> {
   IntSetting(string name, char code,
 	     string argname, string desc, Int defaultValue=0)
-    : dataSetting<Int>("an int", name, code, argname, desc,
+    : dataSetting<Int>("an int", name, code, argname,
+		       description(desc,defaultValue),
 		       types::primInt(), defaultValue) {}
 };
   
 struct realSetting : public dataSetting<double> {
   realSetting(string name, char code,
 	      string argname, string desc, double defaultValue=0.0)
-    : dataSetting<double>("a real", name, code, argname, desc,
+    : dataSetting<double>("a real", name, code, argname,
+			  description(desc,defaultValue),
 			  types::primReal(), defaultValue) {}
 };
   
 struct pairSetting : public dataSetting<pair> {
   pairSetting(string name, char code,
 	      string argname, string desc, pair defaultValue=0.0)
-    : dataSetting<pair>("a pair", name, code, argname, desc,
+    : dataSetting<pair>("a pair", name, code, argname,
+			  description(desc,defaultValue),
 			types::primPair(), defaultValue) {}
 };
   
@@ -894,7 +912,7 @@ void initSettings() {
 			    "View output in interactive mode", true));
   addOption(view);
   addOption(new stringSetting("xformat", 0, "format", 
-			      "GUI deconstruction format [\"png\"]","png"));
+			      "GUI deconstruction format","png"));
   addOption(new stringSetting("outformat", 'f', "format",
 			      "Convert each output file to specified format",
 			      ""));
@@ -911,8 +929,7 @@ void initSettings() {
   addOption(new helpOption("help", 'h', "Show summary of options"));
   addOption(new versionOption("version", 0, "Show version"));
 
-  addOption(new pairSetting("offset", 'O', "pair",
-			    "PostScript offset [(0,0)]"));
+  addOption(new pairSetting("offset", 'O', "pair", "PostScript offset"));
   addOption(new alignSetting("align", 'a', "C|B|T|Z",
 			     "Center, Bottom, Top, or Zero page alignment [Center]"));
   
@@ -927,7 +944,7 @@ void initSettings() {
   addOption(new boolSetting("keepaux", 0,
 			    "Keep intermediate LaTeX .aux files"));
   addOption(new stringSetting("tex", 0,"engine",
-			      "TeX engine (\"latex|pdflatex|tex|pdftex|none\") [\"latex\"]",
+			      "TeX engine (\"latex|pdflatex|tex|pdftex|none\")",
 			      "latex"));
   addOption(new boolSetting("twice", 0,
 			    "Run LaTeX twice (to resolve references)"));
@@ -980,10 +997,10 @@ void initSettings() {
 				    "an int"));
 #endif  
   
-  addOption(new stringSetting("prompt", 0,"string","Prompt [\"> \"]","> "));
+  addOption(new stringSetting("prompt", 0,"string","Prompt","> "));
   addOption(new stringSetting("prompt2", 0,"string",
-                              "Continuation prompt for multiline input "
-                              "[\"..\"]", ".."));
+                              "Continuation prompt for multiline input ",
+			      ".."));
   addOption(new boolSetting("multiline", 0,
                             "Input code over multiple lines at the prompt"));
 
@@ -995,10 +1012,10 @@ void initSettings() {
   addOption(new boolSetting("localhistory", 0,
 			    "Use a local interactive history file"));
   addOption(new IntSetting("historylines", 0, "n",
-			   "Retain n lines of history [1000]",1000));
+			   "Retain n lines of history",1000));
   addOption(new IntSetting("scroll", 0, "n",
-			   "Scroll standard output n lines at a time [0]",0));
-  addOption(new IntSetting("level", 0, "n", "Postscript level [3]",3));
+			   "Scroll standard output n lines at a time",0));
+  addOption(new IntSetting("level", 0, "n", "Postscript level",3));
   addOption(new boolSetting("autoplain", 0,
 			    "Enable automatic importing of plain",
 			    true));
@@ -1008,14 +1025,14 @@ void initSettings() {
   addOption(new boolSetting("reload", 0,
                             "Automatically reload graphics in viewer", true));
   addOption(new IntSetting("reloaddelay", 0, "useconds",
-			   "Delay before attempting initial pdf reload",
-			   750000));
+			   "Delay before attempting initial pdf reload"
+			   ,750000));
   addOption(new stringSetting("autoimport", 0, "string",
-			      "Module to automatically import [\"\"]", ""));
+			      "Module to automatically import", ""));
   addOption(new userSetting("command", 'c', "string",
 			    "Command to autoexecute", ""));
   addOption(new userSetting("user", 'u', "string",
-			    "General purpose user string [\"\"]", ""));
+			    "General purpose user string", ""));
   
   addOption(new realSetting("paperwidth", 0, "bp", ""));
   addOption(new realSetting("paperheight", 0, "bp", ""));
