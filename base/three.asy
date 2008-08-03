@@ -2862,13 +2862,7 @@ void drawprc(frame f, path3 g, pen p=currentpen)
 {
   node[] nodes=g.nodes;
 
-  bool straight() {
-    for(node n : nodes)
-      if(!n.straight) return false;
-    return true;
-  }
-
-  bool straight=straight();
+  bool straight=piecewisestraight(g);
 
   triple[] v;
   if(straight) {
