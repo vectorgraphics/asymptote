@@ -1698,7 +1698,7 @@ bool piecewisestraight(path3 p)
 {
   int L=p.length();
   for(int i=0; i < L; ++i)
-    if(!p.straight(i)) return false;
+    if(!p.nodes[i].straight) return false;
   return true;
 }
 

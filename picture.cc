@@ -402,13 +402,13 @@ bool picture::postprocess(const string& prename, const string& outname,
 	}
       } else {
 	ostringstream cmd;
-	cmd << "'" << Viewer << "' '";
+	cmd << "'" << Viewer << "' ";
 	string viewerOptions=getSetting<string>(pdfformat ? 
 						"pdfviewerOptions" : 
 						"psviewerOptions");
 	if(!viewerOptions.empty())
-	  cmd <<  viewerOptions << "' '";
-	cmd << outname << "'";
+	  cmd << viewerOptions << " ";
+	cmd << "'" << outname << "'";
 	status=System(cmd,0,wait,
 		      pdfformat ? "pdfviewer" : "psviewer",
 		      pdfformat ? "your PDF viewer" : "your PostScript viewer",
