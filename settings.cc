@@ -1007,7 +1007,9 @@ void initSettings() {
 			    false));
   addOption(new boolSetting("reload", 0,
                             "Automatically reload graphics in viewer", true));
-
+  addOption(new IntSetting("reloaddelay", 0, "useconds",
+			   "Delay before attempting initial pdf reload",
+			   750000));
   addOption(new stringSetting("autoimport", 0, "string",
 			      "Module to automatically import [\"\"]", ""));
   addOption(new userSetting("command", 'c', "string",

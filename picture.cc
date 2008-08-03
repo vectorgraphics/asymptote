@@ -420,8 +420,10 @@ bool picture::postprocess(const string& prename, const string& outname,
 	if(View) {
 	  if(pdfformat && reload) {
 	    // Work around race conditions in acroread initialization script
-	    usleep(500000); 
-	    reloadpdf(Viewer,outname);
+	    usleep(getSetting<Int>("reloaddelay"));
+	    // Only reload if acroread process already is running.
+	    if(waitpid(pid, &status, WNOHANG) == pid)
+	      reloadpdf(Viewer,outname);
 	  }
 	} else { // Kill acroread psimage process.
 	  unsigned count=0;
