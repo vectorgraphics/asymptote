@@ -199,7 +199,7 @@ struct projection {
 
 projection currentprojection;
 
-projection operator *(transform3 t, projection P)
+projection operator * (transform3 t, projection P)
 {
   projection P=P.copy();
   P.camera=t*P.camera;
@@ -1490,6 +1490,7 @@ path3 operator * (transform3 t, path3 p)
     nodes[i].pre=t*p.nodes[i].pre;
     nodes[i].point=t*p.nodes[i].point;
     nodes[i].post=t*p.nodes[i].post;
+    nodes[i].straight=p.nodes[i].straight;
   }
   return path3(nodes,p.cycles);
 }
