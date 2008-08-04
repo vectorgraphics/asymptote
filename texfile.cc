@@ -43,7 +43,7 @@ texfile::~texfile()
   
 void texfile::miniprologue()
 {
-  texuserpreamble(*out);
+  texpreamble(*out,processData().TeXpreamble,false,true);
   *out << "\\pagestyle{empty}" << newl;
   *out << "\\begin{document}" << newl;
   texfontencoding(*out);
