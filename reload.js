@@ -1,8 +1,12 @@
-// Reload the document associated with a given path.
+// Load/reload the document associated with a given path.
 
 // UNIX: Copy to ~/.adobe/Acrobat/x.x/JavaScripts/
+// To avoid random window placement we recommend specifying an acroread 
+// geometry option, for example: -geometry +0+0
+
 // MSWindows: Copy to %APPDATA%/Adobe/Acrobat/x.x/JavaScripts/
-// where x.x represents the appropriate Acrobat Reader version number
+
+// Note: x.x represents the appropriate Acrobat Reader version number.
 
 reload = app.trustedFunction(function(path) {
 	app.beginPriv();
@@ -11,9 +15,9 @@ reload = app.trustedFunction(function(path) {
 	    Doc=app.activeDocs[i];
 	    if(Doc.path == path && Doc != this) {
 		Doc.closeDoc();
-		app.openDoc(path);
 		break;
 	    }
 	}
+	app.openDoc(path);
 	app.endPriv();
     });
