@@ -44,9 +44,9 @@ void PRCline::writeTopologicalContext(PRCbitStream &out)
   EMPTY_CONTENTPRCBASE.write(out);
   out << (uint8_t)0 // behaviour
       << 0.0 // granularity
-      << 0.001 // tolerance
-      << true // have smallest face thickness
-      << 0.01 // smallest face thickness
+      << 0.0 // tolerance
+      << false // have smallest face thickness
+//      << 0.0 // smallest face thickness
       << false; // have scale
 
   out << (uint32_t)1; // number of bodies
@@ -113,9 +113,9 @@ void PRCcurve::writeTopologicalContext(PRCbitStream &out)
   EMPTY_CONTENTPRCBASE.write(out);
   out << (uint8_t)0 // behaviour
       << 0.0 // granularity
-      << 0.001 // tolerance
-      << true // have smallest face thickness
-      << 0.01 // smallest face thickness
+      << 0.0 // tolerance
+      << false // have smallest face thickness
+//      << 0.0 // smallest face thickness
       << false; // have scale
 
   out << (uint32_t)1; // number of bodies
@@ -192,9 +192,9 @@ void PRCsurface::writeTopologicalContext(PRCbitStream &out)
   EMPTY_CONTENTPRCBASE.write(out);
   out << (uint8_t)0 // behaviour
       << 0.0 // granularity
-      << 0.001 // tolerance
-      << true // have smallest face thickness
-      << 0.01 // smallest face thickness
+      << 0.0 // tolerance
+      << false // have smallest face thickness
+//      << 0.0 // smallest face thickness
       << false; // have scale
 
   out << (uint32_t)1; // number of bodies
@@ -331,7 +331,7 @@ void PRCGlobalsSection::writeData()
   {
     out << (uint32_t)PRC_TYPE_GRAPH_Style;
     ContentPRCBase(&EMPTY_ATTRIBUTES,"",true,makeCADID(),0,makePRCID()).write(out);
-    out << 1.0 // line width in mm
+    out << 0.0 // line width in mm
         << false // is vpicture
         << (uint32_t)1 // line pattern index+1
         << false // is material
