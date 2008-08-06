@@ -368,12 +368,16 @@ triple point(patch s, real u, real v)
   return point(s.uequals(u),v);
 }
 
-void drawprc(frame f, patch s, pen diffusepen=lightgray,
+void drawprc(frame f, patch s, pen surfacepen=lightgray,
 	     pen ambientpen=black, pen emissivepen=black,
-	     pen specularpen=mediumgray, real alpha=1, real shininess=0.25)
+	     pen specularpen=mediumgray, real opacity=1, real shininess=0.25,
+	     light light=currentlight)
 {
-  draw(f,s.P,diffusepen,ambientpen,emissivepen,specularpen,alpha,shininess,
-       s.min(),s.max());
+  if(light == nolight)
+    draw(f,s.P,black,black,surfacepen,black,opacity,1,s.min(),s.max());
+  else
+    draw(f,s.P,surfacepen,ambientpen,emissivepen,specularpen,opacity,shininess,
+	 s.min(),s.max());
 }
 
 void tensorshade(frame f, patch s, pen surfacepen=lightgray,
@@ -386,9 +390,9 @@ void tensorshade(frame f, patch s, pen surfacepen=lightgray,
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
-	  pen diffusepen=lightgray, pen meshpen=nullpen,
+	  pen surfacepen=lightgray, pen meshpen=nullpen,
 	  pen ambientpen=black, pen emissivepen=black,
-	  pen specularpen=mediumgray, real alpha=1, real shininess=0.25,
+	  pen specularpen=mediumgray, real opacity=1, real shininess=0.25,
 	  light light=currentlight, projection P=currentprojection)
 {
   if(s.s.length == 0) return;
@@ -397,8 +401,8 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
   pic.add(new void(frame f, transform3 t) {
       if(prc()) {
 	for(int i=0; i < s.s.length; ++i)
-	  drawprc(f,t*s.s[i],diffusepen,ambientpen,emissivepen,
-		  specularpen,alpha,shininess);
+	  drawprc(f,t*s.s[i],surfacepen,ambientpen,emissivepen,
+		  specularpen,opacity,shininess);
       } else {
 	projection P=t*P;
 	pic.add(new void(frame f, transform t2) {
@@ -406,8 +410,7 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
 	    // meshpen=invisible). 
 	    if(!light.on && meshpen == nullpen) meshpen=currentpen;
 
-	    if(diffusepen != nullpen) {
-
+	    if(surfacepen != nullpen) {
 	      // Sort patches by mean distance from camera
 	      triple camera=P.camera;
 	      if(P.infinity)
@@ -418,7 +421,7 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
 	      for(int i=0; i < s.s.length; ++i) {
 		triple[][] P=s.s[i].P;
 		for(int j=0; j < nv; ++j) {
-		  real d=abs(camera-0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]));
+		  real d=abs(camera-0.25*t*(P[0][0]+P[0][3]+P[3][3]+P[3][0]));
 		  depth.push(new real[] {d,i,j});
 		}
 	      }
@@ -430,7 +433,7 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
 		real[] a=depth.pop();
 		int i=round(a[1]);
 		int j=round(a[2]);
-		tensorshade(f,s.s[i],diffusepen,light,t2,P);
+		tensorshade(f,t*s.s[i],surfacepen,light,t2,P);
 	      }
 	    }
     
@@ -478,16 +481,11 @@ void label(frame f, Label L, triple position, align align=NoAlign,
   if(prc()) {
     if(L.defaulttransform)
       L.T3=transform3(P);
-    for(patch S : surface(bezulate(g)).s) {
-      if(light == nolight)
-	drawprc(f,shift(position)*L.T3*S,diffusepen=black,emissivepen=L.p,
-		specularpen=black);
-      else
-	drawprc(f,shift(position)*L.T3*S,L.p);
-    }
+    for(patch S : surface(bezulate(g)).s)
+      drawprc(f,shift(position)*L.T3*S,L.p,light);
   } else {
     if(L.defaulttransform)
-      fill(f,shift(project(position,P))*g,light.intensity(L.T3*Z)*L.p);
+      fill(f,shift(project(position,P))*g,light.intensity(transform3(P)*Z)*L.p);
     else
       fill(f,project(shift(position)*L.T3*path3(g),P),
 	   light.intensity(L.T3*Z)*L.p);
@@ -504,27 +502,20 @@ void label(picture pic=currentpicture, Label L, triple position,
   path[] g=texpath(L.s,0,L.align.dir,L.p);
   if(g.length == 0) return;
   if(prc()) {
-    if(L.defaulttransform)
-      L.T3=transform3(P);
-    surface s=L.T3*surface(bezulate(g));
     pic.add(new void(frame f, transform3 t) {
-	for(patch S : s.s) {
-	  if(light == nolight)
-	    drawprc(f,shift(t*position)*S,diffusepen=black,emissivepen=L.p,
-		    specularpen=black);
-	  else 
-	    drawprc(f,shift(t*position)*S,L.p);
-	}
+	if(L.defaulttransform)
+	  L.T3=transform3(t*P);
+	for(patch S : (L.T3*surface(bezulate(g))).s)
+	  drawprc(f,shift(t*position)*S,L.p,light);
       },true);
   } else {
     pic.add(new void(frame f, transform3 t) {
 	projection P=t*P;
-	pair origin=project(position,P);
+	pair origin=project(t*position,P);
 	if(L.defaulttransform)
-	  fill(origin,pic,g,light.intensity(L.T3*Z)*L.p);
+	  fill(origin,pic,g,light.intensity(transform3(P)*Z)*L.p);
 	else
-	  fill(origin,pic,project(inverse(t)*L.T3*path3(g),P),
-	       light.intensity(L.T3*Z)*L.p);
+	  fill(origin,pic,project(L.T3*path3(g),P),light.intensity(L.T3*Z)*L.p);
       },true);
   }
   pair m=min(g);
@@ -586,12 +577,12 @@ restricted surface unitcylinder=surface(unitcylinder1,unitcylinder2,
 					unitcylinder3,unitcylinder4);
 
 void dot(frame f, triple v, pen p=currentpen,
-	 filltype filltype=Fill, projection P=currentprojection)
+	 filltype filltype=Fill, light light=nolight,
+	 projection P=currentprojection)
 {
   if(prc())
     for(patch s : unitsphere.s)
-      drawprc(f,shift(v)*scale3(0.5*dotsize(p))*s,diffusepen=black,
-	      emissivepen=p,specularpen=black);
+      drawprc(f,shift(v)*scale3(0.5*dotsize(p))*s,p,light);
   else dot(f,project(v,P),p,filltype);
 }
 
@@ -607,14 +598,14 @@ void dot(frame f, explicit path3[] g, pen p=currentpen, filltype filltype=Fill)
 }
 
 void dot(picture pic=currentpicture, triple v, pen p=currentpen,
-	 filltype filltype=Fill, projection P=currentprojection)
+	 filltype filltype=Fill, light light=nolight,
+	 projection P=currentprojection)
 {
   pic.add(new void(frame f, transform3 t) {
       if(prc())
 	for(patch s : unitsphere.s)
-	  drawprc(f,shift(t*v)*scale3(0.5*dotsize(p))*s,diffusepen=black,
-		  emissivepen=p,specularpen=black);
-      else dot(pic,project(v,t*P),p,filltype);
+	  drawprc(f,shift(t*v)*scale3(0.5*dotsize(p))*s,p,light);
+      else dot(pic,project(t*v,t*P),p,filltype);
     },true);
   triple R=0.5*dotsize(p)*(1,1,1);
   pic.addBox(v,v,-R,R);

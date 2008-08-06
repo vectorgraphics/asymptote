@@ -2409,11 +2409,11 @@ void draw(picture *f, triplearray *g, pen p, bool straight,
   f->append(new drawPath3(*g,p,straight,min,max));
 }
 
-void draw(picture *f, triplearray2 *g, pen diffusepen, pen ambientpen,
+void draw(picture *f, triplearray2 *g, pen surfacepen, pen ambientpen,
 	  pen emissivepen, pen specularpen, real alpha, real shininess,
 	  triple min, triple max)
 {
-  f->append(new drawSurface(*g,diffusepen,ambientpen,emissivepen,specularpen,
+  f->append(new drawSurface(*g,surfacepen,ambientpen,emissivepen,specularpen,
 			    alpha,shininess,min,max));
 }
 

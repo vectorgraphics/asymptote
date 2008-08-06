@@ -25,17 +25,17 @@ protected:
   triple min,max;
   Triple controls[16];
 public:
-  drawSurface(const vm::array& g, pen diffusepen_, pen ambientpen_,
-	      pen emissivepen_, pen specularpen_, double alpha,
+  drawSurface(const vm::array& g, pen diffusepen, pen ambientpen,
+	      pen emissivepen, pen specularpen, double alpha,
 	      double shininess, triple min, triple max) :
-    diffusepen(diffusepen_), ambientpen(ambientpen_),
-    emissivepen(emissivepen_), specularpen(specularpen_), alpha(alpha),
+    diffusepen(diffusepen), ambientpen(ambientpen),
+    emissivepen(emissivepen), specularpen(specularpen), alpha(alpha),
     shininess(shininess), min(min), max(max) {
     
-    diffusepen.torgb();
-    ambientpen.torgb();
-    emissivepen.torgb();
-    specularpen.torgb();
+    this->diffusepen.torgb();
+    this->ambientpen.torgb();
+    this->emissivepen.torgb();
+    this->specularpen.torgb();
     
     int k=0;
     size_t gsize=checkArray(&g);

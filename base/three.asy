@@ -145,6 +145,8 @@ struct projection {
   bool absolute;
   triple camera;
   triple target;
+  typedef transform3 projector(triple camera, triple target, triple up);
+  projector projector;
   transform3 project;
   triple up;
 
@@ -156,6 +158,7 @@ struct projection {
     P.target=target;
     P.up=up;
     P.project=project;
+    P.projector=projector;
     return P;
   }
 
@@ -166,7 +169,7 @@ struct projection {
   }
 
   void operator init(triple camera, triple target=O, triple up=Z,
-		     transform3 project, bool infinity=false) {
+		     projector projector, bool infinity=false) {
     this.infinity=infinity;
     if(infinity) {
       this.camera=unit(camera);
@@ -178,7 +181,8 @@ struct projection {
       this.absolute=false;
     }
     this.up=up;
-    this.project=project;
+    this.projector=projector;
+    project=projector(camera,up,target);
   }
 }
 
@@ -187,9 +191,11 @@ projection currentprojection;
 projection operator * (transform3 t, projection P)
 {
   projection P=P.copy();
-  P.camera=t*P.camera;
-  P.target=t*P.target;
-  P.project=t*P.project;
+  if(!P.absolute) {
+    P.camera=t*P.camera;
+    P.target=t*P.target;
+    P.project=P.projector(P.camera,P.up,P.target);
+  }
   return P;
 }
 
@@ -220,8 +226,10 @@ pair project(triple v, projection P=currentprojection)
 // perpendicular to the vector camera-target.
 projection perspective(triple camera, triple up=Z, triple target=O)
 {
-  return projection(camera,target,up,shift(-target)*distort(camera-target)*
-                    look(camera-target,up));
+  return projection(camera,target,up,
+		    new transform3(triple camera, triple up, triple target) {
+		      return shift(-target)*distort(camera-target)*
+			look(camera-target,up);});
 }
 
 projection perspective(real x, real y, real z, triple up=Z, triple target=O)
@@ -231,7 +239,8 @@ projection perspective(real x, real y, real z, triple up=Z, triple target=O)
 
 projection orthographic(triple camera, triple up=Z)
 {
-  return projection(camera,up,look(camera,up),infinity=true);
+  return projection(camera,up,new transform3(triple camera, triple up, triple) {
+      return look(camera,up);},infinity=true);
 }
 
 projection orthographic(real x, real y, real z, triple up=Z)
@@ -247,7 +256,9 @@ projection oblique(real angle=45)
   t[0][2]=-c2;
   t[1][2]=-s2;
   t[2][2]=0;
-  return projection((c2,s2,1),up=Y,t,infinity=true);
+  return projection((c2,s2,1),up=Y,
+		    new transform3(triple,triple,triple) {return t;},
+		    infinity=true);
 }
 
 projection obliqueZ(real angle=45) {return oblique(angle);}
@@ -263,7 +274,9 @@ projection obliqueX(real angle=45)
   t[0][1]=1;
   t[1][2]=1;
   t[2][2]=0;
-  return projection((1,c2,s2),t,infinity=true);
+  return projection((1,c2,s2),
+		    new transform3(triple,triple,triple) {return t;},
+		    infinity=true);
 }
 
 projection obliqueY(real angle=45)
@@ -275,7 +288,9 @@ projection obliqueY(real angle=45)
   t[1][1]=s2;
   t[1][2]=1;
   t[2][2]=0;
-  return projection((c2,-1,s2),t,infinity=true);
+  return projection((c2,-1,s2),
+		    new transform3(triple,triple,triple) {return t;},
+		    infinity=true);
 }
 
 projection oblique=oblique();
@@ -2274,7 +2289,7 @@ transform3 align(triple u)
   return u.z >= 0 ? identity(4) : diagonal(1,-1,-1,1);
 }
 
-// return a rotation that maps X,Y to u,v
+// return a rotation that maps X,Y to u,v preserving orientation.
 // TODO: Optimize
 transform3 transform3(triple u, triple v) 
 {
@@ -2775,7 +2790,8 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
     xsize=ysize=zsize=max(pic.xsize,pic.ysize);
   transform3 t=pic.scaling(xsize,ysize,zsize,pic.keepAspect);
   frame f=pic.fit3(t);
-  if(!pic.bounds.exact) {
+  pic.bounds3.exact=false;
+  if(!pic.bounds3.exact) {
     t=pic.scale3(f,pic.keepAspect)*t;
     f=pic.fit3(t);
   }
@@ -2787,7 +2803,7 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
       width=height;
     } else if(height == 0) height=width;
     F.L=embedprc(prefix,f,label,text,width,height,angle,render,lights,views,
-		 javascript,background,options,P.absolute? P : t*P);
+		 javascript,background,options,t*P);
   } else
     F.f=pic.fit(pic.xsize,pic.ysize,pic.keepAspect);
   return F;
@@ -2907,7 +2923,7 @@ void draw(picture pic=currentpicture, Label L="", path3 g, align align=NoAlign,
       if(prc())
 	drawprc(f,t*g,p);
       else
-	draw(pic,project(g,t*P,ninterpolate),p);
+	draw(pic,project(t*g,t*P,ninterpolate),p);
     },true);
   if(size(g) > 0) {
     pic.addPoint(min(g),min3(p));
