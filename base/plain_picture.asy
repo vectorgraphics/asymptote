@@ -1020,9 +1020,13 @@ struct picture {
     real height=M.y-m.y;
     real xgrow=xsize == 0 || width == 0 ? 1 : xsize/width;
     real ygrow=ysize == 0 || height == 0 ? 1 : ysize/height;
-    return keepAspect ? 
-      scale(min(xsize > 0 ? xgrow : ygrow, ysize > 0 ? ygrow : xgrow)) :
-      scale(xgrow,ygrow);
+    if(keepAspect) {
+      real[] grow={1};
+      if(xsize > 0) grow.push(xsize);
+      if(ysize > 0) grow.push(ysize);
+      return scale(min(grow));
+    } else return scale(xgrow,ygrow);
+
   }
 
   // Calculate additional scaling required if only an approximate picture
@@ -1037,11 +1041,13 @@ struct picture {
     real xgrow=xsize3 == 0 || width == 0 ? 1 : xsize3/width;
     real ygrow=ysize3 == 0 || height == 0 ? 1 : ysize3/height;
     real zgrow=zsize3 == 0 || depth == 0 ? 1 : zsize3/depth;
-    return keepAspect ? 
-      scale3(min(xsize3 > 0 ? xgrow : ygrow,
-                 ysize3 > 0 ? ygrow : xgrow,
-                 zsize3 > 0 ? zgrow : xgrow)) : // FIXME!!!!!!!!!!!!!
-      scale(xgrow,ygrow,zgrow);
+    if(keepAspect) {
+      real[] grow={1};
+      if(xsize3 > 0) grow.push(xsize3);
+      if(ysize3 > 0) grow.push(ysize3);
+      if(zsize3 > 0) grow.push(zsize3);
+      return scale3(min(grow));
+    } else return scale(xgrow,ygrow,zgrow);
   }
 
   // Return the transform that would be used to fit the picture to a frame
