@@ -5,7 +5,6 @@ currentprojection=orthographic(0.5,1,0.5);
 
 defaultpen(overwrite(SuppressQuiet));
 bbox3 b=limits((-2,-2,0),(0,2,2));
-aspect(b,1,1,1);
 
 scale(Linear, Linear, Log);
 
