@@ -2790,9 +2790,9 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
     xsize=ysize=zsize=max(pic.xsize,pic.ysize);
   transform3 t=pic.scaling(xsize,ysize,zsize,pic.keepAspect);
   frame f=pic.fit3(t);
-  pic.bounds3.exact=false;
   if(!pic.bounds3.exact) {
     t=pic.scale3(f,pic.keepAspect)*t;
+    pic.bounds3.exact=true;
     f=pic.fit3(t);
   }
 
@@ -2940,6 +2940,76 @@ void draw(picture pic=currentpicture, Label L="", explicit guide3 g,
 void draw(picture pic=currentpicture, Label L="", path3[] g, pen p=currentpen)
 {
   for(int i=0; i < g.length; ++i) draw(pic,L,g[i],p);
+}
+
+void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
+	  pen surfacepen=lightgray, pen meshpen=nullpen,
+	  pen ambientpen=black, pen emissivepen=black,
+	  pen specularpen=mediumgray, real opacity=1, real shininess=0.25,
+	  light light=currentlight, projection P=currentprojection)
+{
+  if(s.s.length == 0) return;
+  triple m=min(s);
+  triple M=max(s);
+
+  // Draw a mesh in the absence of lighting (override with
+  // meshpen=invisible). 
+  if(!light.on && meshpen == nullpen) meshpen=currentpen;
+
+  pic.add(new void(frame f, transform3 t) {
+      surface S=t*s;
+      if(prc()) {
+	for(int i=0; i < S.s.length; ++i)
+	  drawprc(f,S.s[i],surfacepen,ambientpen,emissivepen,
+		  specularpen,opacity,shininess,light);
+      } else {
+	projection P=t*P;
+	  pic.add(new void(frame f, transform t2) {
+	    if(surfacepen != nullpen) {
+	      // Sort patches by mean distance from camera
+	      triple camera=P.camera;
+	      if(P.infinity)
+		camera *= max(abs(m),abs(M));
+
+	      real[][] depth;
+    
+	      for(int i=0; i < s.s.length; ++i) {
+		triple[][] P=S.s[i].P;
+		for(int j=0; j < nv; ++j) {
+		  real d=abs(camera-0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]));
+		  depth.push(new real[] {d,i,j});
+		}
+	      }
+
+	      depth=sort(depth);
+
+	      // Draw from farthest to nearest
+	      while(depth.length > 0) {
+		real[] a=depth.pop();
+		int i=round(a[1]);
+		int j=round(a[2]);
+		tensorshade(f,S.s[i],surfacepen,light,t2,P);
+	      }
+	    }
+	  },true);
+	pic.addPoint(min(S,P));
+	pic.addPoint(max(S,P));
+      }
+    },true);
+  pic.addPoint(m);
+  pic.addPoint(M);
+
+  if(meshpen != nullpen) {
+    for(int k=0; k < s.s.length; ++k) {
+      real step=nu == 0 ? 0 : 1/nu;
+      for(int i=0; i <= nu; ++i)
+	draw(pic,s.s[k].uequals(i*step),meshpen,P);
+      
+      real step=nv == 0 ? 0 : 1/nv;
+      for(int j=0; j <= nv; ++j)
+	draw(pic,s.s[k].vequals(j*step),meshpen,P);
+    }
+  }
 }
 
 exitfcn currentexitfunction=atexit();

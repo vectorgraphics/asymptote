@@ -629,6 +629,7 @@ struct picture {
   }
   
   void add(drawerBound d, bool exact=false) {
+    if(!bounds3.exact) return;
     uptodate(false);
     if(!exact) bounds.exact=false;
     nodes.push(d);
@@ -641,6 +642,7 @@ struct picture {
   }
 
   void add(drawer d, bool exact=false) {
+    if(!bounds3.exact) return;
     uptodate(false);
     if(!exact) bounds.exact=false;
     nodes.push(new void(frame f, transform t, transform T, pair, pair) {
