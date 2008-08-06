@@ -199,15 +199,6 @@ real[][] zero(int n, int m)
   return M;
 }
 
-real[][] diagonal(... real[] a)
-{
-  int n=a.length;
-  real[][] m=new real[n][];
-  for(int i=0; i < n; ++i)
-    m[i]=sequence(new real(int j) {return j == i ? a[i] : 0;},n);
-  return m;
-}
-
 real[][] operator + (real[][] a, real[][] b)
 {
   int n=a.length;

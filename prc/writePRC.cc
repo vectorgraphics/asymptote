@@ -130,9 +130,7 @@ void writeGraphics(PRCbitStream &pbs,uint32_t l,uint32_t i,uint32_t b,bool force
 {
   if(force || layer_index != l || index_of_line_style != i || behaviour_bit_field != b)
   {
-    pbs << false;
-    pbs << (uint32_t)(l+1) << (uint32_t)(i+1)
-         << (uint8_t)(b&0xFF) << (uint8_t)((b>>8)&0xFF);
+    pbs << false << l+1 << i+1 << (uint8_t)(b&0xFF) << (uint8_t)((b>>8)&0xFF);
     layer_index = l;
     index_of_line_style = i;
     behaviour_bit_field = b;

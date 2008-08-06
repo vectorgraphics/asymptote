@@ -1,45 +1,6 @@
 restricted bool Aspect=true;
 restricted bool IgnoreAspect=false;
 
-real cap(real x, real m, real M, real bottom, real top)
-{
-  return x+top > M ? M-top : x+bottom < m ? m-bottom : x;
-}
-
-// Scales pair z, so that when drawn with pen p, it does not exceed box(lb,rt).
-pair cap(pair z, pair lb, pair rt, pen p=currentpen)
-{
-
-  return (cap(z.x,lb.x,rt.x,min(p).x,max(p).x),
-          cap(z.y,lb.y,rt.y,min(p).y,max(p).y));
-}
-
-real xtrans(transform t, real x)
-{
-  return (t*(x,0)).x;
-}
-
-real ytrans(transform t, real y)
-{
-  return (t*(0,y)).y;
-}
-
-real cap(transform t, real x, real m, real M, real bottom, real top,
-         real ct(transform,real))
-{
-  return x == infinity  ? M-top :
-    x == -infinity ? m-bottom : cap(ct(t,x),m,M,bottom,top);
-}
-
-pair cap(transform t, pair z, pair lb, pair rt, pen p=currentpen)
-{
-  if (finite(z))
-    return cap(t*z, lb, rt, p);
-  else
-    return (cap(t,z.x,lb.x,rt.x,min(p).x,max(p).x,xtrans),
-            cap(t,z.y,lb.y,rt.y,min(p).y,max(p).y,ytrans));
-}
-  
 pair size(frame f)
 {
   return max(f)-min(f);
@@ -97,7 +58,8 @@ typedef void drawer3(frame f, transform3 t);
 
 // A generalization of drawer that includes the final frame's bounds.
 typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
-typedef void drawerBound3(frame f, transform3 t, transform3 T);
+typedef void drawerBound3(frame f, transform3 t, transform3 T, triple lb,
+			  triple rt);
 
 // A coordinate in "flex space." A linear combination of user and true-size
 // coordinates.
@@ -672,6 +634,12 @@ struct picture {
     nodes.push(d);
   }
 
+  void add(drawerBound3 d, bool exact=false) {
+    uptodate(false);
+    if(!exact) bounds.exact=false;
+    nodes3.push(d);
+  }
+
   void add(drawer d, bool exact=false) {
     uptodate(false);
     if(!exact) bounds.exact=false;
@@ -683,7 +651,7 @@ struct picture {
   void add(drawer3 d, bool exact=false) {
     uptodate(false);
     if(!exact) bounds3.exact=false;
-    nodes3.push(new void(frame f, transform3 t, transform3 T) {
+    nodes3.push(new void(frame f, transform3 t, transform3 T, triple, triple) {
         d(f,t*T);
       });
   }
@@ -796,10 +764,10 @@ struct picture {
 
   // Calculate the min for the final frame, given the coordinate transform.
   pair min(transform t) {
+    if(empty2()) return 0;
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
-    if(empty2()) return 0;
     return (min(min(min(infinity,xs,bounds.point.x),xs,bounds.min.x),
                 xs,bounds.max.x),
             min(min(min(infinity,ys,bounds.point.y),ys,bounds.min.y),
@@ -808,14 +776,44 @@ struct picture {
 
   // Calculate the max for the final frame, given the coordinate transform.
   pair max(transform t) {
+    if(empty2()) return 0;
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
-    if(empty2()) return 0;
     return (max(max(max(-infinity,xs,bounds.point.x),xs,bounds.min.x),
                 xs,bounds.max.x),
             max(max(max(-infinity,ys,bounds.point.y),ys,bounds.min.y),
                 ys,bounds.max.y));
+  }
+
+  // Calculate the min for the final frame, given the coordinate transform.
+  triple min(transform3 t) {
+    if(empty3()) return (0,0,0);
+    triple a=t*(1,1,1)-t*(0,0,0), b=t*(0,0,0);
+    scaling xs=scaling.build(a.x,b.x);
+    scaling ys=scaling.build(a.y,b.y);
+    scaling zs=scaling.build(a.z,b.z);
+    return (min(min(min(infinity,xs,bounds3.point.x),xs,bounds3.min.x),
+                xs,bounds3.max.x),
+            min(min(min(infinity,ys,bounds3.point.y),ys,bounds3.min.y),
+                ys,bounds3.max.y),
+            min(min(min(infinity,zs,bounds3.point.z),zs,bounds3.min.z),
+                zs,bounds3.max.z));
+  }
+
+  // Calculate the max for the final frame, given the coordinate transform.
+  triple max(transform3 t) {
+    if(empty3()) return (0,0,0);
+    triple a=t*(1,1,1)-t*(0,0,0), b=t*(0,0,0);
+    scaling xs=scaling.build(a.x,b.x);
+    scaling ys=scaling.build(a.y,b.y);
+    scaling zs=scaling.build(a.z,b.z);
+    return (max(max(max(-infinity,xs,bounds3.point.x),xs,bounds3.min.x),
+                xs,bounds3.max.x),
+            max(max(max(-infinity,ys,bounds3.point.y),ys,bounds3.min.y),
+                ys,bounds3.max.y),
+            max(max(max(-infinity,zs,bounds3.point.z),zs,bounds3.min.z),
+                zs,bounds3.max.z));
   }
 
   // Calculate the sizing constants for the given array and maximum size.
@@ -971,6 +969,10 @@ struct picture {
       return scale(sx,sy,sz);
   }
 
+  transform3 scaling3(bool warn=true) {
+    return scaling(xsize3,ysize3,zsize3,keepAspect,warn);
+  }
+
   frame fit(transform t, transform T0=T, pair m, pair M) {
     frame f;
     for (int i=0; i < nodes.length; ++i)
@@ -978,10 +980,10 @@ struct picture {
     return f;
   }
 
-  frame fit3(transform3 t, transform3 T0=T3) {
+  frame fit3(transform3 t, transform3 T0=T3, triple m, triple M) {
     frame f;
     for (int i=0; i < nodes3.length; ++i)
-      nodes3[i](f,t,T0);
+      nodes3[i](f,t,T0,m,M);
     return f;
   }
 
@@ -989,6 +991,10 @@ struct picture {
   // into truesize coords.
   frame fit(transform t) {
     return fit(t,min(t),max(t));
+  }
+
+  frame fit3(transform3 t) {
+    return fit3(t,min(t),max(t));
   }
 
   frame scaled() {
@@ -1134,9 +1140,10 @@ struct picture {
       });
     
     if(srcCopy.nodes3.length > 0)
-      nodes3.push(new void(frame f, transform3 t, transform3 T3) {
-	  add(f,srcCopy.fit3(t,T3*srcCopy.T3));
-	});
+      nodes3.push(new void(frame f, transform3 t, transform3 T3, triple m,
+			   triple M) {
+		    add(f,srcCopy.fit3(t,T3*srcCopy.T3,m,M));
+		  });
     
     legend.append(src.legend);
     

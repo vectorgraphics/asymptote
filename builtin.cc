@@ -679,6 +679,8 @@ void addOperators(venv &ve)
   
   addOps<Int,mod>(ve,primInt(),"%",IntArray());
   addOps<double,mod>(ve,primReal(),"%",realArray());
+  
+  addRestFunc(ve,run::diagonal,realArray2(),"diagonal",realArray());
 }
 
 dummyRecord *createDummyRecord(venv &ve, const char *name)
@@ -844,5 +846,5 @@ void arrayDeleteHelper(vm::stack *Stack)
 
   (*a).erase((*a).begin()+i,(*a).begin()+j+1);
 }
-  
+
 }

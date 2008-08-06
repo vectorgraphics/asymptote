@@ -1117,6 +1117,16 @@ void axis(picture pic=currentpicture, Label L="", path g, path g2=nullpath,
   }
 }
 
+real xtrans(transform t, real x)
+{
+  return (t*(x,0)).x;
+}
+
+real ytrans(transform t, real y)
+{
+  return (t*(0,y)).y;
+}
+
 // An internal routine to draw an x axis at a particular y value.
 void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
              real xmin=-infinity, real xmax=infinity, pen p=currentpen,

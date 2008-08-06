@@ -12,7 +12,6 @@ defaultpen(overwrite(SuppressQuiet));
 
 path3 p=graph(x,y,z,0,2.7,operator ..);
 bbox3 b=autolimits(min(p),max(p));
-aspect(b,1,1,1);
 
 xaxis(rotate(X)*"$x$",all=true,b,red,RightTicks(rotate(X)*Label,2,2));
 yaxis(rotate(Y)*"$y$",all=true,b,red,RightTicks(rotate(Y)*Label,2,2));

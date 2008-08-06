@@ -2054,7 +2054,7 @@ realarray2* intersections(path p, path q, real fuzz=0)
     (*Vi)[0]=S[i];
     (*Vi)[1]=T[i];
   }
-  stable_sort(V->begin(),V->end(),run::compare2<double>());
+  stable_sort(V->begin(),V->end(),run::compare2<real>());
   return V;
 }
 
@@ -2409,9 +2409,12 @@ void draw(picture *f, triplearray *g, pen p, bool straight,
   f->append(new drawPath3(*g,p,straight,min,max));
 }
 
-void draw(picture *f, triplearray2 *g, pen p, triple min, triple max)
+void draw(picture *f, triplearray2 *g, pen diffusepen, pen ambientpen,
+	  pen emissivepen, pen specularpen, real alpha, real shininess,
+	  triple min, triple max)
 {
-  f->append(new drawSurface(*g,p,min,max));
+  f->append(new drawSurface(*g,diffusepen,ambientpen,emissivepen,specularpen,
+			    alpha,shininess,min,max));
 }
 
 triple min3(picture *f)
@@ -4078,6 +4081,23 @@ realarray2 *identity(Int n)
   return c;
 }
 
+// Return the diagonal matrix with diagonal entries given by a.
+realarray2* :diagonal(realarray *a)
+{
+  size_t n=checkArray(a);
+  array *c=new array(n);
+  for(size_t i=0; i < n; ++i) {
+    array *ci=new array(n);
+    (*c)[i]=ci;
+    for(size_t j=0; j < i; ++j)
+      (*ci)[j]=0.0;
+    (*ci)[i]=read<real>(a,i);
+    for(size_t j=i+1; j < n; ++j)
+      (*ci)[j]=0.0;
+  }
+  return c;
+}
+
 // Return the inverse of an n x n matrix a using Gauss-Jordan elimination.
 realarray2 *inverse(realarray2 *a)
 {
@@ -4317,24 +4337,6 @@ real dot(realarray *a, realarray *b)
   for(size_t i=0; i < n; ++i)
     sum += read<real>(a,i)*read<real>(b,i);
   return sum;
-}
-
-// Multiply a by diagonal(b).
-realarray2 *multdiagonal(realarray2 *a, realarray *b)
-{
-  size_t n=checkArray(a);
-  if(b->size() != n) error(incommensurate);
-  array *c=new array(n);
-  real *B=copyArrayC(b);
-  for(size_t i=0; i < n; ++i) {
-    array *ai=read<array*>(a,i);
-    array *ci=new array(n);
-    (*c)[i]=ci;
-    for(size_t j=0; j < n; ++j)
-      (*ci)[j]=read<real>(ai,j)*B[j];
-  }
-  delete[] B;
-  return c;
 }
 
 realarray2 *Operator *(realarray2 *a, realarray2 *b)

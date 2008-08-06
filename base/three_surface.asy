@@ -100,9 +100,8 @@ struct patch {
   pair bound(real m(triple[], real f(triple), real),
 	     projection P, pair b=project(this.P[0][0],P)) {
     triple[] Q=controlpoints();
-    project P=P.transform3();
-    return (m(Q,new real(triple v) {return P(v).x;},b.x),     
-	    m(Q,new real(triple v) {return P(v).y;},b.y));
+    return (m(Q,new real(triple v) {return project0(v,P).x;},b.x),
+	    m(Q,new real(triple v) {return project0(v,P).y;},b.y));
   }
 
   pair min2,max2;
@@ -369,9 +368,12 @@ triple point(patch s, real u, real v)
   return point(s.uequals(u),v);
 }
 
-void drawprc(frame f, patch s, pen p=currentpen)
+void drawprc(frame f, patch s, pen diffusepen=lightgray,
+	     pen ambientpen=black, pen emissivepen=black,
+	     pen specularpen=mediumgray, real alpha=1, real shininess=0.25)
 {
-  draw(f,s.P,p,s.min(),s.max());
+  draw(f,s.P,diffusepen,ambientpen,emissivepen,specularpen,alpha,shininess,
+       s.min(),s.max());
 }
 
 void tensorshade(frame f, patch s, pen surfacepen=lightgray,
@@ -384,7 +386,9 @@ void tensorshade(frame f, patch s, pen surfacepen=lightgray,
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
-	  pen surfacepen=lightgray, pen meshpen=nullpen,
+	  pen diffusepen=lightgray, pen meshpen=nullpen,
+	  pen ambientpen=black, pen emissivepen=black,
+	  pen specularpen=mediumgray, real alpha=1, real shininess=0.25,
 	  light light=currentlight, projection P=currentprojection)
 {
   if(s.s.length == 0) return;
@@ -393,7 +397,8 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
   pic.add(new void(frame f, transform3 t) {
       if(prc()) {
 	for(int i=0; i < s.s.length; ++i)
-	  drawprc(f,t*s.s[i],surfacepen);
+	  drawprc(f,t*s.s[i],diffusepen,ambientpen,emissivepen,
+		  specularpen,alpha,shininess);
       } else {
 	projection P=t*P;
 	pic.add(new void(frame f, transform t2) {
@@ -401,7 +406,7 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
 	    // meshpen=invisible). 
 	    if(!light.on && meshpen == nullpen) meshpen=currentpen;
 
-	    if(surfacepen != nullpen) {
+	    if(diffusepen != nullpen) {
 
 	      // Sort patches by mean distance from camera
 	      triple camera=P.camera;
@@ -425,7 +430,7 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
 		real[] a=depth.pop();
 		int i=round(a[1]);
 		int j=round(a[2]);
-		tensorshade(f,s.s[i],surfacepen,light,t2,P);
+		tensorshade(f,s.s[i],diffusepen,light,t2,P);
 	      }
 	    }
     
@@ -473,8 +478,13 @@ void label(frame f, Label L, triple position, align align=NoAlign,
   if(prc()) {
     if(L.defaulttransform)
       L.T3=transform3(P);
-    for(patch S : surface(bezulate(g)).s)
-      drawprc(f,shift(position)*L.T3*S,L.p);
+    for(patch S : surface(bezulate(g)).s) {
+      if(light == nolight)
+	drawprc(f,shift(position)*L.T3*S,diffusepen=black,emissivepen=L.p,
+		specularpen=black);
+      else
+	drawprc(f,shift(position)*L.T3*S,L.p);
+    }
   } else {
     if(L.defaulttransform)
       fill(f,shift(project(position,P))*g,light.intensity(L.T3*Z)*L.p);
@@ -498,23 +508,31 @@ void label(picture pic=currentpicture, Label L, triple position,
       L.T3=transform3(P);
     surface s=L.T3*surface(bezulate(g));
     pic.add(new void(frame f, transform3 t) {
-	for(patch S : s.s)
-	  drawprc(f,shift(t*position)*S,L.p);
+	for(patch S : s.s) {
+	  if(light == nolight)
+	    drawprc(f,shift(t*position)*S,diffusepen=black,emissivepen=L.p,
+		    specularpen=black);
+	  else 
+	    drawprc(f,shift(t*position)*S,L.p);
+	}
       },true);
-    pic.addPoint(position,min(s));
-    pic.addPoint(position,max(s));
   } else {
     pic.add(new void(frame f, transform3 t) {
 	projection P=t*P;
+	pair origin=project(position,P);
 	if(L.defaulttransform)
-	  fill(project(position,P),pic,g,light.intensity(L.T3*Z)*L.p);
+	  fill(origin,pic,g,light.intensity(L.T3*Z)*L.p);
 	else
-	  fill(project(position,P),pic,project(inverse(t)*L.T3*path3(g),P),
+	  fill(origin,pic,project(inverse(t)*L.T3*path3(g),P),
 	       light.intensity(L.T3*Z)*L.p);
       },true);
-    pic.addPoint(position,L.T3*XYplane(min(g)));
-    pic.addPoint(position,L.T3*XYplane(max(g)));
   }
+  pair m=min(g);
+  pair M=max(g);
+  pic.addPoint(position,L.T3*XYplane(m));
+  pic.addPoint(position,L.T3*XYplane((m.x,M.y)));
+  pic.addPoint(position,L.T3*XYplane((M.x,m.y)));
+  pic.addPoint(position,L.T3*XYplane(M));
 }
 
 void label(picture pic=currentpicture, Label L, path3 g,
@@ -572,7 +590,8 @@ void dot(frame f, triple v, pen p=currentpen,
 {
   if(prc())
     for(patch s : unitsphere.s)
-      drawprc(f,shift(v)*scale3(0.5*dotsize(p))*s,p);
+      drawprc(f,shift(v)*scale3(0.5*dotsize(p))*s,diffusepen=black,
+	      emissivepen=p,specularpen=black);
   else dot(f,project(v,P),p,filltype);
 }
 
@@ -593,7 +612,8 @@ void dot(picture pic=currentpicture, triple v, pen p=currentpen,
   pic.add(new void(frame f, transform3 t) {
       if(prc())
 	for(patch s : unitsphere.s)
-	  drawprc(f,shift(t*v)*scale3(0.5*dotsize(p))*s,p);
+	  drawprc(f,shift(t*v)*scale3(0.5*dotsize(p))*s,diffusepen=black,
+		  emissivepen=p,specularpen=black);
       else dot(pic,project(v,t*P),p,filltype);
     },true);
   triple R=0.5*dotsize(p)*(1,1,1);

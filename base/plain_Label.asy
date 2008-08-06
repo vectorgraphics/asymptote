@@ -190,14 +190,14 @@ struct Label {
   align align;
   pen p=nullpen;
   transform T;
-  transform3 T3;
+  transform3 T3=identity(4);
   bool defaulttransform=true;
   embed embed=Rotate; // Fixed, Rotate, Rotate, or Scale with embedded picture
   filltype filltype=NoFill;
   
   void init(string s="", string size="", position position=0, 
             bool defaultposition=true, align align=NoAlign, pen p=nullpen,
-	    transform T=identity(), transform3 T3=identity(4),
+	    transform T=identity(), transform3 T3=identity4,
 	    bool defaulttransform=true, embed embed=Rotate,
 	    filltype filltype=NoFill) {
     this.s=s;
@@ -207,7 +207,7 @@ struct Label {
     this.align=align.copy();
     this.p=p;
     this.T=T;
-    this.T3=T3;
+    this.T3=copy(T3);
     this.defaulttransform=defaulttransform;
     this.embed=embed;
     this.filltype=filltype;
@@ -218,23 +218,23 @@ struct Label {
     init(s,size,align,p,embed,filltype);
   }
   
-  Label copy() {
-    Label L=new Label;
-    L.init(s,size,position,defaultposition,align,p,T,T3,defaulttransform,
-           embed,filltype);
-    return L;
-  }
-  
   void transform(transform T) {
     this.T=T;
     defaulttransform=false;
   }
   
   void transform3(transform3 T) {
-    this.T3=T;
+    this.T3=copy(T);
     defaulttransform=false;
   }
 
+  Label copy(transform3 T3=this.T3) {
+    Label L=new Label;
+     L.init(s,size,position,defaultposition,align,p,T,T3,defaulttransform,
+           embed,filltype);
+    return L;
+  }
+  
   void position(position pos) {
     this.position=pos;
     defaultposition=false;
@@ -350,9 +350,9 @@ Label operator * (transform t, Label L)
 
 Label operator * (transform3 t, Label L)
 {
-  Label tL=L.copy();
+  Label tL=L.copy(t*L.T3);
   tL.align.dir=L.align.dir;
-  tL.transform3(t*L.T3);
+  tL.defaulttransform=false;
   return tL;
 }
 

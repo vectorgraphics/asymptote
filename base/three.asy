@@ -140,8 +140,6 @@ transform3 distort(triple v)
   return t;
 }
 
-typedef real[] aspect;
-
 struct projection {
   bool infinity;
   bool absolute;
@@ -149,7 +147,6 @@ struct projection {
   triple target;
   transform3 project;
   triple up;
-  aspect aspect;
 
   projection copy() {
     projection P=new projection;
@@ -159,16 +156,7 @@ struct projection {
     P.target=target;
     P.up=up;
     P.project=project;
-    P.aspect=aspect;
     return P;
-  }
-
-  transform3 transform3() {
-    return multdiagonal(project,aspect);
-  }
-
-  void scale(real x, real y, real z) {
-    aspect=new real[] {x,y,z,1};
   }
 
   // Check that v is in front of the projection plane.
@@ -178,9 +166,7 @@ struct projection {
   }
 
   void operator init(triple camera, triple target=O, triple up=Z,
-		     transform3 project,
-		     aspect aspect=new real[] {1,1,1,1},
-		     bool infinity=false) {
+		     transform3 project, bool infinity=false) {
     this.infinity=infinity;
     if(infinity) {
       this.camera=unit(camera);
@@ -193,7 +179,6 @@ struct projection {
     }
     this.up=up;
     this.project=project;
-    this.aspect=aspect;
   }
 }
 
@@ -217,6 +202,17 @@ addSaveFunction(new restoreThunk() {
     };
   });
 
+
+pair project0(triple v, projection P=currentprojection)
+{
+  return (pair) (P.project*(real[]) v);
+}
+
+pair project(triple v, projection P=currentprojection)
+{
+  P.check(v);
+  return project0(v,P);
+}
 
 // Uses the homogenous coordinate to perform perspective distortion.
 // When combined with a projection to the XY plane, this effectively maps
@@ -292,7 +288,7 @@ currentprojection=perspective(5,4,2);
 triple invert(pair z, triple normal, triple point,
               projection P=currentprojection)
 {
-  transform3 t=P.transform3();
+  transform3 t=P.project;
   real[][] A={{t[0][0]-z.x*t[3][0],t[0][1]-z.x*t[3][1],t[0][2]-z.x*t[3][2]},
               {t[1][0]-z.y*t[3][0],t[1][1]-z.y*t[3][1],t[1][2]-z.y*t[3][2]},
               {normal.x,normal.y,normal.z}};
@@ -304,13 +300,6 @@ triple invert(pair z, triple normal, triple point,
 pair xypart(triple v)
 {
   return (v.x,v.y);
-}
-
-project operator cast(transform3 t)
-{
-  return new pair(triple v) {
-    return (pair) (t*(real[]) v);
-  };
 }
 
 struct control {
@@ -1666,23 +1655,22 @@ path3 solve(flatguide3 g)
 path nurb(path3 p, projection P=currentprojection,
           int ninterpolate=ninterpolate)
 {
-  project Q=P.transform3();
   triple f=P.camera;
   triple u=unit(P.camera-P.target);
 
   path nurb(triple v0, triple v1, triple v2, triple v3) {
-    return nurb(Q(v0),Q(v1),Q(v2),Q(v3),dot(u,f-v0),dot(u,f-v1),dot(u,f-v2),
-                dot(u,f-v3),ninterpolate);
+    return nurb(project(v0,P),project(v1,P),project(v2,P),project(v3,P),
+		dot(u,f-v0),dot(u,f-v1),dot(u,f-v2),dot(u,f-v3),ninterpolate);
   }
 
   path g;
 
   if(p.nodes[0].straight)
-    g=Q(p.nodes[0].point);
+    g=project(p.nodes[0].point,P);
 
   for(int i=0; i < length(p); ++i) {
     if(p.nodes[i].straight)
-      g=g--Q(p.nodes[i+1].point);
+      g=g--project(p.nodes[i+1].point,P);
     else
       g=g&nurb(p.nodes[i].point,p.nodes[i].post,p.nodes[i+1].pre,
                p.nodes[i+1].point);
@@ -1715,24 +1703,23 @@ path project(explicit path3 p, projection P=currentprojection,
   int last=p.nodes.length-1;
   if(last < 0) return g;
   
-  project Q=P.transform3();
-
   if(P.infinity || ninterpolate == 1 || piecewisestraight(p)) {
-    g=Q(p.nodes[0].point);
+    g=project(p.nodes[0].point,P);
     // Construct the path.
     for(int i=0; i < (p.cycles ? last-1 : last); ++i) {
       if(p.nodes[i].straight)
-        g=g--Q(p.nodes[i+1].point);
+        g=g--project(p.nodes[i+1].point,P);
       else {
-        g=g..controls Q(p.nodes[i].post) and Q(p.nodes[i+1].pre)..
-          Q(p.nodes[i+1].point);
+        g=g..controls project(p.nodes[i].post,P) and
+	  project(p.nodes[i+1].pre,P)..project(p.nodes[i+1].point,P);
       }
     }
   } else return nurb(p,P,ninterpolate);
   
   if(p.cycles)
     g=p.nodes[last-1].straight ? g--cycle :
-      g..controls Q(p.nodes[last-1].post) and Q(p.nodes[last].pre)..cycle;
+      g..controls project(p.nodes[last-1].post,P) and
+      project(p.nodes[last].pre,P)..cycle;
 
   return g;
 }
@@ -1742,13 +1729,6 @@ path project(flatguide3 g, projection P=currentprojection,
 
 {
   return project(solve(g),P,ninterpolate);
-}
-
-pair project(triple v, projection P=currentprojection)
-{
-  P.check(v);
-  project P=P.transform3();
-  return P(v);
 }
 
 pair[] project(triple[] v, projection P=currentprojection)
@@ -1844,7 +1824,7 @@ Label project(Label L, triple u, triple v, triple O=O,
               projection P=currentprojection) {
   Label L=L.copy();
   L.position=project(O,P);
-  L.T=transform(u,v,O,P);
+  L.transform(transform(u,v,O,P)); 
   return L;
 }
 
@@ -2302,7 +2282,7 @@ transform3 transform3(triple u, triple v)
   v=unit(v);
   triple w=cross(u,v);
   triple xi=unit(cross(Z,w));
-  real degrees=aCos(dot(u,xi))*sgn(dot(cross(u,xi),w));
+  real degrees=degrees(acos1(dot(u,xi)))*sgn(dot(cross(u,xi),w));
   return rotate(degrees,O,w)*inverse(align(w))*
     rotate(longitude(xi,warn=false),O,Z);
 }
@@ -2502,22 +2482,6 @@ triple normal(path3 p)
   return normal;
 }
 
-// Adjust the aspect ratio.
-void aspect(projection P=currentprojection, bbox3 b,
-            real x=0, real y=0, real z=0)
-{
-  triple L=b.max-b.min;
-  if(z != 0) {
-    real s=L.z/z;
-    P.scale(x == 0 || L.x == 0 ? 1 : s*x/L.x,y == 0 || L.y == 0 ? 1 : s*y/L.y,
-            1);
-  } else if(y != 0) {
-    real s=L.y/y;
-    P.scale(x == 0 || L.x == 0 ? 1 : s*x/L.x,1,1);
-  }
-  else P.scale(1,1,1);
-}
-  
 // Routines for hidden surface removal (via binary space partition):
 // Structure face is derived from picture.
 struct face {
@@ -2719,6 +2683,11 @@ void add(picture pic=currentpicture, face[] faces,
   }
 }
 
+triple size3(frame f)
+{
+  return max3(f)-min3(f);
+}
+
 // PRC support
 
 private string[] file3;
@@ -2727,7 +2696,7 @@ string embedprc(string prefix=defaultfilename, frame f, string label="",
 		string text=label, real width=0, real height=0,
 		real angle=30, string render="Solid", string lights="White",
 		string views="", string javascript="", pen background=white,
-		projection P=currentprojection)
+		string options="", projection P=currentprojection)
 {
   if(!prc()) return "";
 
@@ -2760,19 +2729,20 @@ string embedprc(string prefix=defaultfilename, frame f, string label="",
   triple up=unit(P.up-dot(P.up,u)*u);
   real roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));
 
-  string options="poster,text="+text+",label="+label+
+  string options3="poster,text="+text+",label="+label+
     ",3Daac="+format(angle)+
     ",3Dc2c="+format(unit(v))+
     ",3Dcoo="+format(P.target/cm)+
     ",3Droll="+format(roll)+
     ",3Droo="+format(abs(v));
-  if(views != "") options += ",3Dviews="+views;
-  options += ",3Dbg="+format(background);
-  if(lights != "") options += ",3Dlights="+lights;
-  if(render != "") options += ",3Drender="+render;
-  if(javascript != "") options += ",3Djscript="+javascript;
+  if(views != "") options3 += ",3Dviews="+views;
+  options3 += ",3Dbg="+format(background);
+  if(lights != "") options3 += ",3Dlights="+lights;
+  if(render != "") options3 += ",3Drender="+render;
+  if(javascript != "") options3 += ",3Djscript="+javascript;
+  if(options != "") options3 += ","+options;
 
-  return embed(prefix,options,width,height);
+  return embed(prefix,options3,width,height);
 }
 
 object embed(string prefix=defaultfilename, frame f, string label="",
@@ -2780,13 +2750,13 @@ object embed(string prefix=defaultfilename, frame f, string label="",
 	     real width=0, real height=0,
 	     real angle=30, string render="Solid", string lights="White",
 	     string views="", string javascript="", pen background=white,
-	     projection P=currentprojection)
+	     string options="", projection P=currentprojection)
 {
   object F;
 
   if(prc())
     F.L=embedprc(prefix,f,label,text,width,height,angle,render,lights,views,
-		 javascript,background,P);
+		 javascript,background,options,P);
   else
     F.f=f;
   return F;
@@ -2796,11 +2766,14 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
 	     string text=label, real width=pic.xsize, real height=pic.ysize,
 	     real angle=30, string render="Solid", string lights="White",
 	     string views="", string javascript="", pen background=white,
-	     projection P=currentprojection)
+	     string options="", projection P=currentprojection)
 {
   object F;
   if(pic.empty3()) return F;
-  transform3 t=pic.scaling(pic.xsize3,pic.ysize3,pic.zsize3,pic.keepAspect);
+  real xsize=pic.xsize3, ysize=pic.ysize3, zsize=pic.zsize3;
+  if(xsize == 0 && ysize == 0 && zsize == 0)
+    xsize=ysize=zsize=max(pic.xsize,pic.ysize);
+  transform3 t=pic.scaling(xsize,ysize,zsize,pic.keepAspect);
   frame f=pic.fit3(t);
   if(!pic.bounds.exact) {
     t=pic.scale3(f,pic.keepAspect)*t;
@@ -2808,13 +2781,13 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
   }
 
   if(prc()) {
-    real size=max(pic.xsize3,pic.ysize3,pic.zsize3);
+    real size=max(xsize,ysize,zsize);
     if(width == 0) {
       if(height == 0) height=size;
       width=height;
     } else if(height == 0) height=width;
     F.L=embedprc(prefix,f,label,text,width,height,angle,render,lights,views,
-		 javascript,background,P.absolute? P : t*P);
+		 javascript,background,options,P.absolute? P : t*P);
   } else
     F.f=pic.fit(pic.xsize,pic.ysize,pic.keepAspect);
   return F;
@@ -2895,6 +2868,13 @@ void draw(frame f, path3 g, pen p=currentpen, projection P=currentprojection,
   else draw(f,project(g,P,ninterpolate),p);
 }
 
+// Temporary
+void draw(frame f, guide3 g, pen p=currentpen, projection P=currentprojection,
+	  int ninterpolate=ninterpolate)
+{
+  draw(f,(path3) g,p,P,ninterpolate);
+}
+
 void draw(frame f, path3[] g, pen p=currentpen)
 {
   for(int i=0; i < g.length; ++i) draw(f,g[i],p);
@@ -2902,6 +2882,16 @@ void draw(frame f, path3[] g, pen p=currentpen)
 
 include three_light;
 include three_surface;
+
+triple min3(pen p)
+{
+  return linewidth(p)*(-0.5,-0.5,-0.5);
+}
+
+triple max3(pen p)
+{
+  return linewidth(p)*(0.5,0.5,0.5);
+}
 
 void draw(picture pic=currentpicture, Label L="", path3 g, align align=NoAlign,
 	  pen p=currentpen, projection P=currentprojection,
@@ -2920,8 +2910,8 @@ void draw(picture pic=currentpicture, Label L="", path3 g, align align=NoAlign,
 	draw(pic,project(g,t*P,ninterpolate),p);
     },true);
   if(size(g) > 0) {
-    pic.addPoint(min(g)); // TODO: Add pen bounds
-    pic.addPoint(max(g));
+    pic.addPoint(min(g),min3(p));
+    pic.addPoint(max(g),max3(p));
   }
 }
 

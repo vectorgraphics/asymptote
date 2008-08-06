@@ -16,12 +16,27 @@ typedef double Triple[3];
   
 class drawSurface : public drawElement {
 protected:
-  pen pentype;
+  pen diffusepen;
+  pen ambientpen;
+  pen emissivepen;
+  pen specularpen;
+  double alpha;
+  double shininess;
   triple min,max;
   Triple controls[16];
 public:
-  drawSurface(const vm::array& g, pen pentype, triple min, triple max) :
-    pentype(pentype), min(min), max(max) {
+  drawSurface(const vm::array& g, pen diffusepen_, pen ambientpen_,
+	      pen emissivepen_, pen specularpen_, double alpha,
+	      double shininess, triple min, triple max) :
+    diffusepen(diffusepen_), ambientpen(ambientpen_),
+    emissivepen(emissivepen_), specularpen(specularpen_), alpha(alpha),
+    shininess(shininess), min(min), max(max) {
+    
+    diffusepen.torgb();
+    ambientpen.torgb();
+    emissivepen.torgb();
+    specularpen.torgb();
+    
     int k=0;
     size_t gsize=checkArray(&g);
     string wrongsize="Bezier surface patch requires 4x4 array of triples";
@@ -54,7 +69,7 @@ public:
 
   bool write(prcfile *out);
 };
-
+  
 }
 
 #endif
