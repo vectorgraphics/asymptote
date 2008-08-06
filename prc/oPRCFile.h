@@ -44,14 +44,36 @@ struct RGBAColour
   }
 };
 
+struct PRCMaterial
+{
+  PRCMaterial() : alpha(1.0),shininess(1.0) {}
+  PRCMaterial(const RGBAColour &a, const RGBAColour &d, const RGBAColour &e,
+              const RGBAColour &s, double p, double h) :
+      ambient(a), diffuse(d), emissive(e), specular(s), alpha(p), shininess(h) {}
+  RGBAColour ambient,diffuse,emissive,specular;
+  double alpha,shininess;
+
+  bool operator==(const PRCMaterial &m) const
+  {
+    return (ambient==m.ambient && diffuse==m.diffuse && emissive==m.emissive
+        && specular==m.specular && shininess==m.shininess);
+  }
+};
+
 class PRCentity
 {
   public:
-    PRCentity(oPRCFile *p, const RGBAColour &c) : colour(c),parent(p) {}
+    PRCentity(oPRCFile *p,const RGBAColour &c) : colour(c),useMaterial(false),
+              parent(p) {}
+    PRCentity(oPRCFile *p,const PRCMaterial &m) : material(m),useMaterial(true),
+              parent(p) {}
+    uint32_t getGraphicsIndex();
     virtual void writeRepresentationItem(PRCbitStream&,uint32_t) = 0;
     virtual void writeTopologicalContext(PRCbitStream&) = 0;
     virtual void writeExtraGeometryContext(PRCbitStream&) = 0;
     RGBAColour colour;
+    PRCMaterial material;
+    bool useMaterial;
   virtual ~PRCentity() {}
   protected:
     oPRCFile *parent;
@@ -60,10 +82,18 @@ class PRCentity
 class PRCsurface : public PRCentity
 {
   public:
+    // contructor with colour
     PRCsurface(oPRCFile *p, uint32_t dU, uint32_t dV, uint32_t nU, uint32_t nV,
               double cP[][3], double *kU, double *kV, const RGBAColour &c,
               bool iR = false, double w[] = 0) :
       PRCentity(p,c), degreeU(dU), degreeV(dV), numberOfControlPointsU(nU),
+      numberOfControlPointsV(nV), knotsU(kU), knotsV(kV), controlPoints(cP),
+      isRational(iR), weights(w) {}
+    // contructor with material
+    PRCsurface(oPRCFile *p, uint32_t dU, uint32_t dV, uint32_t nU, uint32_t nV,
+              double cP[][3], double *kU, double *kV, const PRCMaterial &m,
+              bool iR = false, double w[] = 0) :
+      PRCentity(p,m), degreeU(dU), degreeV(dV), numberOfControlPointsU(nU),
       numberOfControlPointsV(nV), knotsU(kU), knotsV(kV), controlPoints(cP),
       isRational(iR), weights(w) {}
     virtual void writeRepresentationItem(PRCbitStream&,uint32_t);
@@ -88,8 +118,12 @@ class PRCsurface : public PRCentity
 class PRCline : public PRCentity
 {
   public:
+    // constructor with colour
     PRCline(oPRCFile *p, uint32_t n, double P[][3], const RGBAColour &c) :
       PRCentity(p,c), numberOfPoints(n), points(P) {}
+    // constructor with material
+    PRCline(oPRCFile *p, uint32_t n, double P[][3], const PRCMaterial &m) :
+        PRCentity(p,m), numberOfPoints(n), points(P) {}
       virtual void writeRepresentationItem(PRCbitStream&,uint32_t);
       virtual void writeTopologicalContext(PRCbitStream&);
       virtual void writeExtraGeometryContext(PRCbitStream&);
@@ -101,19 +135,24 @@ class PRCline : public PRCentity
 class PRCcurve : public PRCentity
 {
   public:
+    // constructor with colour
     PRCcurve(oPRCFile *p, uint32_t d, uint32_t n, double cP[][3], double *k,
             const RGBAColour &c, bool iR = false, double w[] = 0) :
       PRCentity(p,c), degree(d), numberOfControlPoints(n), knots(k),
+      controlPoints(cP), isRational(iR), weights(w) {}
+    // constructor with material
+    PRCcurve(oPRCFile *p, uint32_t d, uint32_t n, double cP[][3], double *k,
+            const PRCMaterial &m, bool iR = false, double w[] = 0) :
+      PRCentity(p,m), degree(d), numberOfControlPoints(n), knots(k),
       controlPoints(cP), isRational(iR), weights(w) {}
     virtual void writeRepresentationItem(PRCbitStream&,uint32_t);
     virtual void writeTopologicalContext(PRCbitStream&);
     virtual void writeExtraGeometryContext(PRCbitStream&);
   protected:
-    virtual void writeKnots(PRCbitStream &out) {
+    virtual void writeKnots(PRCbitStream &out)
+    {
       for(uint32_t i = 0; i < degree+numberOfControlPoints+1; ++i)
-        {
-	  out << knots[i];
-        }
+        out << knots[i];
     }
   private:
     uint32_t degree, numberOfControlPoints;
@@ -156,15 +195,14 @@ class PRCGlobalsSection : public PRCCompressedSection
       PRCCompressedSection(p),numberOfReferencedFileStructures(0), 
       tessellationChordHeightRatio(2000.0),tessellationAngleDegrees(40.0),
       defaultFontFamilyName(""),numberOfFonts(0),numberOfPictures(0),
-      numberOfTextureDefinitions(0),numberOfMaterials(0),
-      numberOfFillPatterns(0),numberOfReferenceCoordinateSystems(0),
-      userData(0,0),index(i) {}
+      numberOfTextureDefinitions(0),numberOfFillPatterns(0),
+      numberOfReferenceCoordinateSystems(0),userData(0,0),index(i) {}
     uint32_t numberOfReferencedFileStructures;
     double tessellationChordHeightRatio;
     double tessellationAngleDegrees;
     std::string defaultFontFamilyName;
     uint32_t numberOfFonts,numberOfPictures,numberOfTextureDefinitions;
-    uint32_t numberOfMaterials,numberOfFillPatterns;
+    uint32_t numberOfFillPatterns;
     uint32_t numberOfReferenceCoordinateSystems;
     UserData userData;
   private:
@@ -324,6 +362,7 @@ class oPRCFile
     bool add(PRCentity*);
     bool finish();
     uint32_t getColourIndex(const RGBAColour&);
+    uint32_t getMaterialIndex(const PRCMaterial&);
     uint32_t getSize();
 
     const uint32_t number_of_file_structures;
@@ -332,6 +371,7 @@ class oPRCFile
     PRCModelFile modelFile;
     std::vector<PRCentity*> fileEntities;
     std::vector<RGBAColour> colourMap;
+    std::vector<PRCMaterial> materialMap;
 
   private:
     std::ofstream *fout;

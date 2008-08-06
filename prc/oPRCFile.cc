@@ -23,11 +23,19 @@
 
 using std::string;
 
+uint32_t PRCentity::getGraphicsIndex()
+{
+  if(useMaterial)
+    return parent->colourMap.size()+parent->getMaterialIndex(material);
+  else
+    return parent->getColourIndex(colour);
+}
+
 void PRCline::writeRepresentationItem(PRCbitStream &out,uint32_t index)
 {
   out << (uint32_t)(PRC_TYPE_RI_Curve);
   ContentPRCBase(&EMPTY_ATTRIBUTES,"line",true,makeCADID(),0,makePRCID()).write(out);
-  writeGraphics(out,m1,parent->getColourIndex(colour),1);
+  writeGraphics(out,m1,getGraphicsIndex(),1);
   out << (uint32_t)0 // index_local_coordinate_system+1
       << (uint32_t)0; // index_tessellation
 
@@ -46,7 +54,6 @@ void PRCline::writeTopologicalContext(PRCbitStream &out)
       << 0.0 // granularity
       << 0.0 // tolerance
       << false // have smallest face thickness
-//      << 0.0 // smallest face thickness
       << false; // have scale
 
   out << (uint32_t)1; // number of bodies
@@ -96,7 +103,7 @@ void PRCcurve::writeRepresentationItem(PRCbitStream &out,uint32_t index)
 {
   out << (uint32_t)(PRC_TYPE_RI_Curve);
   ContentPRCBase(&EMPTY_ATTRIBUTES,"curve",true,makeCADID(),0,makePRCID()).write(out);
-  writeGraphics(out,m1,parent->getColourIndex(colour),1);
+  writeGraphics(out,m1,getGraphicsIndex(),1);
   out << (uint32_t)0 // index_local_coordinate_system+1
       << (uint32_t)0; // index_tessellation
 
@@ -115,7 +122,6 @@ void PRCcurve::writeTopologicalContext(PRCbitStream &out)
       << 0.0 // granularity
       << 0.0 // tolerance
       << false // have smallest face thickness
-//      << 0.0 // smallest face thickness
       << false; // have scale
 
   out << (uint32_t)1; // number of bodies
@@ -174,7 +180,7 @@ void PRCsurface::writeRepresentationItem(PRCbitStream &out,uint32_t index)
 {
   out << (uint32_t)(PRC_TYPE_RI_BrepModel);
   ContentPRCBase(&EMPTY_ATTRIBUTES,"surface",true,makeCADID(),0,makePRCID()).write(out);
-  writeGraphics(out,0,parent->getColourIndex(colour),1);
+  writeGraphics(out,0,getGraphicsIndex(),1);
   out << (uint32_t)0 // index_local_coordinate_system+1
       << (uint32_t)0; // index_tessellation
 
@@ -194,7 +200,6 @@ void PRCsurface::writeTopologicalContext(PRCbitStream &out)
       << 0.0 // granularity
       << 0.0 // tolerance
       << false // have smallest face thickness
-//      << 0.0 // smallest face thickness
       << false; // have scale
 
   out << (uint32_t)1; // number of bodies
@@ -316,17 +321,34 @@ void PRCGlobalsSection::writeData()
   {
     out << i->R << i->G << i->B;
   }
-  out << numberOfPictures << numberOfTextureDefinitions << numberOfMaterials;
+  out << numberOfPictures << numberOfTextureDefinitions;
+
+  out << (uint32_t)parent->materialMap.size(); // number of materials
+  for(std::vector<PRCMaterial>::iterator i = parent->materialMap.begin(); i != parent->materialMap.end(); i++)
+  {
+    out << (uint32_t)PRC_TYPE_GRAPH_Material;
+    ContentPRCBase(&EMPTY_ATTRIBUTES,"",true,makeCADID(),0,makePRCID()).write(out);
+    out << 3*parent->getColourIndex(i->ambient)+1 // ambient + 1
+        << 3*parent->getColourIndex(i->diffuse)+1 // diffuse + 1
+        << 3*parent->getColourIndex(i->emissive)+1 // emissive + 1
+        << 3*parent->getColourIndex(i->specular)+1 // specular + 1
+        << i->shininess // shininess
+        << i->ambient.A // ambient_alpha
+        << i->diffuse.A // diffuse_alpha
+        << i->emissive.A // emissive_alpha
+        << i->specular.A; // specular_alpha
+  }
+
   out << (uint32_t)1 // number of line patterns hard coded for now
       << (uint32_t)PRC_TYPE_GRAPH_LinePattern;
   ContentPRCBase(&EMPTY_ATTRIBUTES,"",true,makeCADID(),0,makePRCID()).write(out);
   out << (uint32_t)0 // number of lengths
-//      << 1.0  // size 0
       << 0.0 // phase
       << false; // is real length
 
-  out << (uint32_t)parent->colourMap.size(); // number of styles
+  out << (uint32_t)(parent->colourMap.size()+parent->materialMap.size()); // number of styles
   uint32_t index = 0;
+  // colours are written first
   for(std::vector<RGBAColour>::iterator i = parent->colourMap.begin(); i != parent->colourMap.end(); i++, ++index)
   {
     out << (uint32_t)PRC_TYPE_GRAPH_Style;
@@ -335,9 +357,28 @@ void PRCGlobalsSection::writeData()
         << false // is vpicture
         << (uint32_t)1 // line pattern index+1
         << false // is material
-        << (uint32_t)(3*index+1); // color_index+1: the multiplication by three is based on observed data
+        << (uint32_t)(3*index+1); // 3*color_index+1
     if(i->A < 1.0)
       out << true << (uint8_t)(i->A * 256);
+    else
+      out << false;
+    out << false // additional 1 not defined
+        << false // additional 2 not defined
+        << false; // additional 3 not defined
+  }
+  // materials are after colours
+  index = 0;
+  for(std::vector<PRCMaterial>::iterator i = parent->materialMap.begin(); i != parent->materialMap.end(); i++, ++index)
+  {
+    out << (uint32_t)PRC_TYPE_GRAPH_Style;
+    ContentPRCBase(&EMPTY_ATTRIBUTES,"",true,makeCADID(),0,makePRCID()).write(out);
+    out << 0.0 // line width in mm
+        << false // is vpicture
+        << (uint32_t)1 // line pattern index+1
+        << true // is material
+        << index+1; // material_index+1
+    if(i->alpha < 1.0)
+      out << true << (uint8_t)(i->alpha * 256);
     else
       out << false;
     out << false // additional 1 not defined
@@ -636,9 +677,31 @@ uint32_t PRCHeader::getSize()
 bool oPRCFile::add(PRCentity *p)
 {
   fileEntities.push_back(p);
-  if(getColourIndex(p->colour) == m1)
+  if(p->useMaterial)
   {
-    colourMap.push_back(p->colour);
+    if(getMaterialIndex(p->material) == m1)
+    {
+      materialMap.push_back(p->material);
+
+      if(getColourIndex(p->material.ambient) == m1)
+        colourMap.push_back(p->material.ambient);
+
+      if(getColourIndex(p->material.diffuse) == m1)
+        colourMap.push_back(p->material.diffuse);
+
+      if(getColourIndex(p->material.emissive) == m1)
+        colourMap.push_back(p->material.emissive);
+
+      if(getColourIndex(p->material.specular) == m1)
+        colourMap.push_back(p->material.specular);
+    }
+  }
+  else
+  {
+    if(getColourIndex(p->colour) == m1)
+    {
+      colourMap.push_back(p->colour);
+    }
   }
   return true;
 }
@@ -726,6 +789,16 @@ uint32_t oPRCFile::getColourIndex(const RGBAColour &c)
   for(uint32_t i = 0; i < colourMap.size(); ++i)
   {
     if(colourMap[i] == c)
+      return i;
+  }
+  return m1;
+}
+
+uint32_t oPRCFile::getMaterialIndex(const PRCMaterial &m)
+{
+  for(uint32_t i = 0; i < materialMap.size(); ++i)
+  {
+    if(materialMap[i] == m)
       return i;
   }
   return m1;
