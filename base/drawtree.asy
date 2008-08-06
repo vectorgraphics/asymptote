@@ -3,6 +3,7 @@
 
 real treeNodeStep = 0.5cm;
 real treeLevelStep = 1cm;
+real treeMinNodeWidth = 2cm;
 
 struct TreeNode {
   TreeNode parent;
@@ -52,16 +53,16 @@ real layout( int level, TreeNode node )
       curWidth += width[i] + treeNodeStep;
     }
 
-    real midPoint = sum( width ) / 2;
+    real midPoint = ( sum( width )+treeNodeStep*(width.length-1)) / 2;
     for( int i = 0; i < node.children.length; ++i ) {
       node.children[i].adjust = - midPoint;
     }
 
     return max( (max(node.content)-min(node.content)).x,
-                sum(width)+treeNodeStep*width.length );
+                sum(width)+treeNodeStep*(width.length-1) );
   }
   else {
-    return max( 2cm, (max(node.content)-min(node.content)).x );
+    return max( treeMinNodeWidth, (max(node.content)-min(node.content)).x );
   }
 }
 
@@ -91,7 +92,7 @@ void draw( TreeNode root, pair pos )
 {
   frame f;
 
-  root.pos = pos;
+  root.pos = (0,0);
   layout( 1, root );
 
   drawAll( root, f );
