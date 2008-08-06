@@ -513,8 +513,27 @@ frame pack(pair align=2S ... object inset[])
 path[] texpath(string s, transform t=identity(), pair position=0, pair align=0,
 	       pen p=currentpen)
 {
-  path[] g=_texpath(s,p);
+  static string[] stringcache;
+  static pen[] pencache;
+  static path[][] pathcache;
+  path[] g;
 
+  int k=0;
+  int i;
+  while((i=find(stringcache == s,++k)) >= 0) {
+    if(pencache[i] == p) {
+      g=pathcache[i];
+      break;
+    }
+  }
+
+  if(i == -1) {
+    g=_texpath(s,p);
+    stringcache.push(s);
+    pencache.push(p);
+    pathcache.push(g);
+  }
+  
   pair a;
   pair m=min(g);
   pair M=max(g);
