@@ -11,7 +11,7 @@ scale(Linear,Linear,Log(automax=false));
 
 bbox3 b=autolimits(Z,X+Y+30Z);
 
-xaxis("$x$",b,red,RightTicks3(2,2));
-yaxis("$y$",b,red,RightTicks3(2,2));
-zaxis("$z$",b,red,RightTicks3);
+xaxis("$x$",b,red,RightTicks(2,2));
+yaxis("$y$",b,red,RightTicks(2,2));
+zaxis("$z$",b,red,RightTicks);
 
