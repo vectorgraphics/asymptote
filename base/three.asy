@@ -2289,17 +2289,19 @@ transform3 align(triple u)
   return u.z >= 0 ? identity(4) : diagonal(1,-1,-1,1);
 }
 
-// return a rotation that maps X,Y to u,v preserving orientation.
-// TODO: Optimize
+// return a rotation that maps X,Y,Z to unit(u),unit(v),unit(cross(u,v))
 transform3 transform3(triple u, triple v) 
 {
   u=unit(u);
   v=unit(v);
   triple w=cross(u,v);
-  triple xi=unit(cross(Z,w));
-  real degrees=degrees(acos1(dot(u,xi)))*sgn(dot(cross(u,xi),w));
-  return rotate(degrees,O,w)*inverse(align(w))*
-    rotate(longitude(xi,warn=false),O,Z);
+
+  return new real[][] {
+    {u.x,v.x,w.x,0.0},
+    {u.y,v.y,w.y,0.0},
+    {u.z,v.z,w.z,0.0},
+    {0.0,0.0,0.0,1.0}
+  };
 }
 
 // return a transfrom that maps X,Y to the projection plane.
