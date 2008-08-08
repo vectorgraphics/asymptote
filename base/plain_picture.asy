@@ -1023,10 +1023,10 @@ struct picture {
     real xgrow=xsize == 0 || width == 0 ? 1 : xsize/width;
     real ygrow=ysize == 0 || height == 0 ? 1 : ysize/height;
     if(keepAspect) {
-      real[] grow={1};
-      if(xsize > 0) grow.push(xsize);
-      if(ysize > 0) grow.push(ysize);
-      return scale(min(grow));
+      real[] grow;
+      if(xsize > 0) grow.push(xgrow);
+      if(ysize > 0) grow.push(ygrow);
+      return scale(grow.length == 0 ? 1 : min(grow));
     } else return scale(xgrow,ygrow);
 
   }
@@ -1044,11 +1044,11 @@ struct picture {
     real ygrow=ysize3 == 0 || height == 0 ? 1 : ysize3/height;
     real zgrow=zsize3 == 0 || depth == 0 ? 1 : zsize3/depth;
     if(keepAspect) {
-      real[] grow={1};
-      if(xsize3 > 0) grow.push(xsize3);
-      if(ysize3 > 0) grow.push(ysize3);
-      if(zsize3 > 0) grow.push(zsize3);
-      return scale3(min(grow));
+      real[] grow;
+      if(xsize3 > 0) grow.push(xgrow);
+      if(ysize3 > 0) grow.push(ygrow);
+      if(zsize3 > 0) grow.push(zgrow);
+      return scale3(grow.length == 0 ? 1 : min(grow));
     } else return scale(xgrow,ygrow,zgrow);
   }
 
