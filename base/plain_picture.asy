@@ -718,7 +718,7 @@ struct picture {
   }
 
   void size3(real x, real y=x, real z=y, bool keepAspect=this.keepAspect) {
-    if(!empty()) uptodate(false);
+    if(!empty3()) uptodate(false);
     xsize3=x;
     ysize3=y;
     zsize3=z;
@@ -766,7 +766,7 @@ struct picture {
 
   // Calculate the min for the final frame, given the coordinate transform.
   pair min(transform t) {
-    if(empty2()) return 0;
+    if(bounds.point.x.length == 0) return 0;
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
@@ -778,7 +778,7 @@ struct picture {
 
   // Calculate the max for the final frame, given the coordinate transform.
   pair max(transform t) {
-    if(empty2()) return 0;
+    if(bounds.point.x.length == 0) return 0;
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
@@ -790,7 +790,7 @@ struct picture {
 
   // Calculate the min for the final frame, given the coordinate transform.
   triple min(transform3 t) {
-    if(empty3()) return (0,0,0);
+    if(bounds3.point.x.length == 0) return (0,0,0);
     triple a=t*(1,1,1)-t*(0,0,0), b=t*(0,0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
@@ -805,7 +805,7 @@ struct picture {
 
   // Calculate the max for the final frame, given the coordinate transform.
   triple max(transform3 t) {
-    if(empty3()) return (0,0,0);
+    if(bounds3.point.x.length == 0) return (0,0,0);
     triple a=t*(1,1,1)-t*(0,0,0), b=t*(0,0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);

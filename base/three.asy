@@ -2976,12 +2976,12 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
 
   pic.add(new void(frame f, transform3 t) {
       surface S=t*s;
+      projection P=t*P;
       if(prc()) {
 	for(int i=0; i < S.s.length; ++i)
 	  drawprc(f,S.s[i],surfacepen,ambientpen,emissivepen,
 		  specularpen,opacity,shininess,light);
       } else {
-	projection P=t*P;
 	pic.add(new void(frame f, transform t2) {
 	    if(surfacepen != nullpen) {
 	      // Sort patches by mean distance from camera
