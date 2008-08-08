@@ -83,12 +83,12 @@ string[] split(string s, string delimiter)
   int i;
   int N=length(delimiter);
   while((i=find(s,delimiter,last)) >= 0) {
-    if(i > last)
+    if(i >= last)
       S.push(substr(s,last,i-last));
     last=i+N;
   }
   int n=length(s);
-  if(n > last)
+  if(n >= last)
     S.push(substr(s,last,n-last));
   return S;
 }
