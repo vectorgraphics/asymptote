@@ -433,23 +433,20 @@ void label(picture pic=currentpicture, Label L, triple position,
   L.p(p);
   path[] g=texpath(L.s,0,L.align.dir,L.p);
   if(g.length == 0) return;
-  if(prc()) {
-    pic.add(new void(frame f, transform3 t) {
+  pic.add(new void(frame f, transform3 t) {
+      if(prc()) {
 	if(L.defaulttransform)
 	  L.T3=transform3(t*P);
 	for(patch S : (L.T3*surface(bezulate(g))).s)
 	  drawprc(f,shift(t*position)*S,L.p,light);
-      },true);
-  } else {
-    pic.add(new void(frame f, transform3 t) {
-	projection P=t*P;
-	pair origin=project(t*position,P);
-	if(L.defaulttransform)
-	  fill(origin,pic,g,light.intensity(transform3(P)*Z)*L.p);
-	else
-	  fill(origin,pic,project(L.T3*path3(g),P),light.intensity(L.T3*Z)*L.p);
-      },true);
-  }
+      }
+      projection P=t*P;
+      pair origin=project(t*position,P);
+      if(L.defaulttransform)
+	fill(origin,pic,g,light.intensity(transform3(P)*Z)*L.p);
+      else
+	fill(origin,pic,project(L.T3*path3(g),P),light.intensity(L.T3*Z)*L.p);
+    },true);
   pair m=min(g);
   pair M=max(g);
   pic.addPoint(position,L.T3*XYplane(m));
@@ -537,7 +534,7 @@ void dot(picture pic=currentpicture, triple v, pen p=currentpen,
       if(prc())
 	for(patch s : unitsphere.s)
 	  drawprc(f,shift(t*v)*scale3(0.5*dotsize(p))*s,p,light);
-      else dot(pic,project(t*v,t*P),p,filltype);
+      dot(pic,project(t*v,t*P),p,filltype);
     },true);
   triple R=0.5*dotsize(p)*(1,1,1);
   pic.addBox(v,v,-R,R);

@@ -142,13 +142,14 @@ transform3 distort(triple v)
 
 struct projection {
   bool infinity;
-  bool absolute;
+  bool absolute=false;
   triple camera;
   triple target;
   typedef transform3 projector(triple camera, triple target, triple up);
   projector projector;
   transform3 project;
   triple up;
+  real angle; // Lens angle (currently only used by PRC viewpoint).
 
   projection copy() {
     projection P=new projection;
@@ -159,6 +160,7 @@ struct projection {
     P.up=up;
     P.project=project;
     P.projector=projector;
+    P.angle=angle;
     return P;
   }
 
@@ -174,11 +176,9 @@ struct projection {
     if(infinity) {
       this.camera=unit(camera);
       this.target=O;
-      this.absolute=true;
     } else {
       this.camera=camera;
       this.target=target;
-      this.absolute=false;
     }
     this.up=up;
     this.projector=projector;
@@ -2281,6 +2281,11 @@ triple midpoint(explicit guide3 p)
   return relpoint(p,0.5);
 }
 
+real relative(Label L, path3 g)
+{
+  return L.position.relative ? reltime(g,L.relative()) : L.relative();
+}
+
 // return a rotation that maps u to Z.
 transform3 align(triple u) 
 {
@@ -2710,15 +2715,11 @@ triple size3(frame f)
 private string[] file3;
 
 string embedprc(string prefix=defaultfilename, frame f, string label="",
-		string text=label, real width=0, real height=0,
-		real angle=30, string render="Solid", string lights="White",
-		string views="", string javascript="", pen background=white,
-		string options="", projection P=currentprojection)
+		string text=label,  string options="",
+		real width=0, real height=0, real angle=30,
+		pen background=white, projection P=currentprojection)
 {
   if(!prc()) return "";
-
-  projection P=P.copy();
-  if(P.infinity) P.camera=3*unit(P.camera)*max(abs(min3(f)),abs(max3(f)));
 
   if(width == 0) width=settings.paperwidth;
   if(height == 0) height=settings.paperheight;
@@ -2747,43 +2748,37 @@ string embedprc(string prefix=defaultfilename, frame f, string label="",
   real roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));
 
   string options3="poster,text="+text+",label="+label+
-    ",3Daac="+format(angle)+
+    ",3Daac="+format(P.absolute ? P.angle : angle)+
     ",3Dc2c="+format(unit(v))+
     ",3Dcoo="+format(P.target/cm)+
     ",3Droll="+format(roll)+
-    ",3Droo="+format(abs(v));
-  if(views != "") options3 += ",3Dviews="+views;
-  options3 += ",3Dbg="+format(background);
-  if(lights != "") options3 += ",3Dlights="+lights;
-  if(render != "") options3 += ",3Drender="+render;
-  if(javascript != "") options3 += ",3Djscript="+javascript;
+    ",3Droo="+format(abs(v))+
+    ",3Dbg="+format(background)+
+    ",3Drender=Solid"+
+    ",3Dlights=White";
   if(options != "") options3 += ","+options;
 
   return embed(prefix,options3,width,height);
 }
 
 object embed(string prefix=defaultfilename, frame f, string label="",
-	     string text=label,
-	     real width=0, real height=0,
-	     real angle=30, string render="Solid", string lights="White",
-	     string views="", string javascript="", pen background=white,
-	     string options="", projection P=currentprojection)
+	     string text=label, string options="",
+	     real width=0, real height=0, real angle=30,
+	     pen background=white, projection P=currentprojection)
 {
   object F;
 
   if(prc())
-    F.L=embedprc(prefix,f,label,text,width,height,angle,render,lights,views,
-		 javascript,background,options,P);
+    F.L=embedprc(prefix,f,label,text,options,width,height,angle,background,P);
   else
     F.f=f;
   return F;
 }
 
 object embed(string prefix=defaultfilename, picture pic, string label="",
-	     string text=label, real width=pic.xsize, real height=pic.ysize,
-	     real angle=30, string render="Solid", string lights="White",
-	     string views="", string javascript="", pen background=white,
-	     string options="", projection P=currentprojection)
+	     string text=label, string options="",
+	     real width=pic.xsize, real height=pic.ysize, real angle=30, 
+	     pen background=white, projection P=currentprojection)
 {
   object F;
   if(pic.empty3()) return F;
@@ -2792,20 +2787,39 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
     xsize=ysize=zsize=max(pic.xsize,pic.ysize);
   transform3 t=pic.scaling(xsize,ysize,zsize,pic.keepAspect);
   frame f=pic.fit3(t);
+
   if(!pic.bounds3.exact) {
     t=pic.scale3(f,pic.keepAspect)*t;
     pic.bounds3.exact=true;
+    pic.bounds.erase();
     f=pic.fit3(t);
   }
 
   if(prc()) {
-    real size=max(xsize,ysize,zsize);
-    if(width == 0) {
-      if(height == 0) height=size;
-      width=height;
-    } else if(height == 0) height=width;
-    F.L=embedprc(prefix,f,label,text,width,height,angle,render,lights,views,
-		 javascript,background,options,t*P);
+    transform s=pic.scaling(width,height,true);
+    pair M=pic.max(s);
+    pair m=pic.min(s);
+    pair lambda=M-m;
+    if(width == 0) width=lambda.x;
+    if(height == 0) height=lambda.y;
+
+    projection Q;
+    if(P.absolute) Q=P;
+    else {
+      real s=s.xx;
+      t=scale3(s)*t;
+      Q=t*P;
+      if(Q.infinity)
+	Q.camera=t*unit(P.camera)*max(abs(min3(f)),abs(max3(f)));
+      pair c=0.5*(M+m);
+      triple S=invert(c,unit(Q.camera-Q.target),Q.target,Q)-Q.target;
+      real r=max(M.x-c.x,M.y-c.y);
+      pic.bounds.erase();
+      f=pic.fit3(shift(-S)*t);
+      angle=2*aTan(r/(abs(Q.camera-Q.target)));
+    }
+    
+    F.L=embedprc(prefix,f,label,text,options,width,height,angle,background,Q);
   } else
     F.f=pic.fit(pic.xsize,pic.ysize,pic.keepAspect);
   return F;
@@ -2830,14 +2844,16 @@ string cameralink(string label, string text="View Parameters")
 
 private struct viewpoint {
   triple target,camera,up;
+  real angle;
   void operator init(string s) {
-    s=replace(s,new string[][] {{"{",""},{"}"," "}});
-    string[] S=split(s," ");
+    s=replace(s,new string[][] {{" ",","},{"}{",","},{"{",""},{"}",""},});
+    string[] S=split(s,",");
     target=((real) S[0],(real) S[1],(real) S[2])*cm;
     camera=target+(real) S[6]*((real) S[3],(real) S[4],(real) S[5])*cm;
     triple u=unit(target-camera);
     triple w=unit(Z-u.z*u);
-    up=S.length > 7 ? rotate((real) S[7],O,u)*w : w;
+    up=rotate((real) S[7],O,u)*w;
+    angle=S[8] == "" ? 30 : (real) S[8];
   }
 }
 
@@ -2845,6 +2861,7 @@ projection perspective(string s)
 {
   viewpoint v=viewpoint(s);
   projection P=perspective(v.camera,v.up,v.target);
+  P.angle=v.angle;
   P.absolute=true;
   return P;
 }
@@ -2924,8 +2941,7 @@ void draw(picture pic=currentpicture, Label L="", path3 g, align align=NoAlign,
   pic.add(new void(frame f, transform3 t) {
       if(prc())
 	drawprc(f,t*g,p);
-      else
-	draw(pic,project(t*g,t*P,ninterpolate),p);
+      draw(pic,project(t*g,t*P,ninterpolate),p);
     },true);
   if(size(g) > 0) {
     pic.addPoint(min(g),min3(p));
@@ -2966,7 +2982,7 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
 		  specularpen,opacity,shininess,light);
       } else {
 	projection P=t*P;
-	  pic.add(new void(frame f, transform t2) {
+	pic.add(new void(frame f, transform t2) {
 	    if(surfacepen != nullpen) {
 	      // Sort patches by mean distance from camera
 	      triple camera=P.camera;
@@ -2994,9 +3010,9 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
 	      }
 	    }
 	  },true);
-	pic.addPoint(min(S,P));
-	pic.addPoint(max(S,P));
       }
+      pic.addPoint(min(S,P));
+      pic.addPoint(max(S,P));
     },true);
   pic.addPoint(m);
   pic.addPoint(M);
@@ -3026,3 +3042,4 @@ void exitfunction()
 }
 
 atexit(exitfunction);
+
