@@ -159,7 +159,7 @@ double bound(triple *p, double (*m)(double, double), double (*f)(triple),
 	     double b, int depth)
 {
   b=m(b,cornerbound(p,m,f));
-  if(m(-1.0,1.0)*(b-controlbound(p,m,f)) >= -Fuzz || depth == 0)
+  if(m(-1.0,1.0)*(b-controlbound(p,m,f)) >= -sqrtFuzz || depth == 0)
     return b;
   --depth;
 
