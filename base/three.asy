@@ -1,6 +1,8 @@
 private import math;
 import embedding;
 
+string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true";
+
 triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
 
@@ -28,7 +30,7 @@ transform3 shift(real x, real y, real z)
   return shift((x,y,z));
 }
 
-// A scaling in the x direction in 3D space.
+// A 3D scaling in the x direction.
 transform3 xscale3(real x)
 {
   transform3 t=identity(4);
@@ -36,7 +38,7 @@ transform3 xscale3(real x)
   return t;
 }
 
-// A scaling in the y direction in 3D space.
+// A 3D scaling in the y direction.
 transform3 yscale3(real y)
 {
   transform3 t=identity(4);
@@ -44,12 +46,24 @@ transform3 yscale3(real y)
   return t;
 }
 
-// A scaling in the z direction in 3D space.
+// A 3D scaling in the z direction.
 transform3 zscale3(real z)
 {
   transform3 t=identity(4);
   t[2][2]=z;
   return t;
+}
+
+// A 3D scaling by s in the v direction.
+transform3 scale(triple v, real s)
+{
+  v=unit(v);
+  s -= 1;
+  return new real[][] {
+    {1+s*v.x^2, s*v.x*v.y, s*v.x*v.z, 0}, 
+      {s*v.x*v.y, 1+s*v.y^2, s*v.y*v.z, 0}, 
+      {s*v.x*v.z, s*v.y*v.z, 1+s*v.z^2, 0},
+	{0, 0, 0, 1}};
 }
 
 // A transformation representing rotation by an angle in degrees about
@@ -75,6 +89,7 @@ transform3 rotate(real angle, triple u, triple v)
   return shift(u)*rotate(angle,v-u)*shift(-u);
 }
 
+// Reflects about the plane through u, v, and w.
 transform3 reflect(triple u, triple v, triple w)
 {
   triple normal=cross(v-u,w-u);
@@ -2294,7 +2309,7 @@ transform3 align(triple u)
   return u.z >= 0 ? identity(4) : diagonal(1,-1,-1,1);
 }
 
-// return a rotation that maps X,Y,Z to unit(u),unit(v),unit(cross(u,v))
+// return the rotation that maps X,Y,Z to unit(u),unit(v),unit(cross(u,v))
 transform3 transform3(triple u, triple v) 
 {
   u=unit(u);
@@ -2754,8 +2769,7 @@ string embedprc(string prefix=defaultfilename, frame f, string label="",
     ",3Droll="+format(roll)+
     ",3Droo="+format(abs(v))+
     ",3Dbg="+format(background)+
-    ",3Drender=Solid"+
-    ",3Dlights=White";
+    ","+defaultembed3options;
   if(options != "") options3 += ","+options;
 
   return embed(prefix,options3,width,height);
@@ -2777,7 +2791,7 @@ object embed(string prefix=defaultfilename, frame f, string label="",
 
 object embed(string prefix=defaultfilename, picture pic, string label="",
 	     string text=label, string options="",
-	     real width=pic.xsize, real height=pic.ysize, real angle=30, 
+	     real width=0, real height=0, real angle=0, 
 	     pen background=white, projection P=currentprojection)
 {
   object F;
@@ -2796,30 +2810,45 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
   }
 
   if(prc()) {
-    transform s=pic.scaling(width,height,true);
+    projection P=P.copy();
+
+    transform s=pic.scaling(width == 0 ? pic.xsize : width,
+			    height == 0 ? pic.ysize : height,pic.keepAspect);
     pair M=pic.max(s);
     pair m=pic.min(s);
     pair lambda=M-m;
-    if(width == 0) width=lambda.x;
-    if(height == 0) height=lambda.y;
+    width=lambda.x;
+    height=lambda.y;
 
-    projection Q;
-    if(P.absolute) Q=P;
-    else {
-      real s=s.xx;
-      t=scale3(s)*t;
-      Q=t*P;
-      if(Q.infinity)
-	Q.camera=t*unit(P.camera)*max(abs(min3(f)),abs(max3(f)));
+    if(!P.absolute) {
+      pair v=(s.xx,s.yy);
+      pair x=project(X,P);
+      pair y=project(Y,P);
+      pair z=project(Z,P);
+      real f(pair a, pair b) {
+	return b == 0 ? (0.5*(a.x+a.y)) :
+	  (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
+      }
+      t=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z))*t;
+      P=t*P;
       pair c=0.5*(M+m);
-      triple S=invert(c,unit(Q.camera-Q.target),Q.target,Q)-Q.target;
-      real r=max(M.x-c.x,M.y-c.y);
-      pic.bounds.erase();
-      f=pic.fit3(shift(-S)*t);
-      angle=2*aTan(r/(abs(Q.camera-Q.target)));
+      triple origin=invert(c,unit(P.camera-P.target),P.target,P);
+      if(P.infinity) {
+	f=pic.fit3(shift(-origin)*t);
+	P.camera=unit(P.camera)*max(abs(min3(f)),abs(max3(f)));
+      } else {
+	f=pic.fit3(t);
+	P.target=origin;
+      }
+      if(angle == 0) {
+	real r=min(M.x-c.x,M.y-c.y);
+	pic.bounds.erase();
+	// Choose the angle to be just large enough to view the entire image:
+	angle=2.05*aTan(r/(abs(P.camera-P.target)));
+      }
     }
     
-    F.L=embedprc(prefix,f,label,text,options,width,height,angle,background,Q);
+    F.L=embedprc(prefix,f,label,text,options,width,height,angle,background,P);
   } else
     F.f=pic.fit(pic.xsize,pic.ysize,pic.keepAspect);
   return F;

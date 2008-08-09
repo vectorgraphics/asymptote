@@ -83,7 +83,7 @@ public:
  
   bool shipout3(const string& prefix);
   
-  bool reloadpdf(const string& Viewer, const string& outname) const;
+  bool reloadPDF(const string& Viewer, const string& outname) const;
   
   picture *transformed(const transform& t);
   

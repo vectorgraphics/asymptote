@@ -322,7 +322,7 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   return System(cmd,0,true,"gs","Ghostscript");
 }
   
-bool picture::reloadpdf(const string& Viewer, const string& outname) const 
+bool picture::reloadPDF(const string& Viewer, const string& outname) const 
 {
   static bool needReload=true;
   static bool haveReload=false;
@@ -342,7 +342,11 @@ bool picture::reloadpdf(const string& Viewer, const string& outname) const
   }
   if(haveReload) {
     ostringstream cmd;
-    cmd << "'" << Viewer << "' '" << reloadprefix << ".pdf'";
+    cmd << "'" << Viewer << "' ";
+    string pdfreloadOptions=getSetting<string>("pdfreloadOptions");
+    if(!pdfreloadOptions.empty())
+      cmd << pdfreloadOptions << " ";
+    cmd << "'" << reloadprefix << ".pdf'";
     System(cmd,0,false);
   }
   return true;
@@ -393,13 +397,11 @@ bool picture::postprocess(const string& prename, const string& outname,
 	  running=(waitpid(pid, &status, WNOHANG) != pid);
       }
 	
-      bool reload=getSetting<bool>("reload");
+      bool pdfreload=pdfformat && getSetting<bool>("pdfreload");
       if(running) {
-	if(reload) {
-	  // Tell gv/acroread to reread file.	  
-	  if(Viewer == "gv" && reload) kill(pid,SIGHUP);
-	  else if(pdfformat) reloadpdf(Viewer,outname);
-	}
+	// Tell gv/acroread to reread file.	  
+	if(Viewer == "gv") kill(pid,SIGHUP);
+	else if(pdfreload) reloadPDF(Viewer,outname);
       } else {
 	ostringstream cmd;
 	cmd << "'" << Viewer << "' ";
@@ -418,12 +420,12 @@ bool picture::postprocess(const string& prename, const string& outname,
 	pids[outname]=pid;
 
 	if(View) {
-	  if(pdfformat && reload) {
+	  if(pdfreload) {
 	    // Work around race conditions in acroread initialization script
-	    usleep(getSetting<Int>("reloaddelay"));
-	    // Only reload if acroread process already is running.
+	    usleep(getSetting<Int>("pdfreloaddelay"));
+	    // Only reload if pdf viewer process is already running.
 	    if(waitpid(pid, &status, WNOHANG) == pid)
-	      reloadpdf(Viewer,outname);
+	      reloadPDF(Viewer,outname);
 	  }
 	} else { // Kill acroread psimage process.
 	  unsigned count=0;

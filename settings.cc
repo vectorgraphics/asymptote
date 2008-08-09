@@ -1022,9 +1022,10 @@ void initSettings() {
   addOption(new boolSetting("autorotate", 0,
 			    "Enable automatic PDF page rotation",
 			    false));
-  addOption(new boolSetting("reload", 0,
-                            "Automatically reload graphics in viewer", true));
-  addOption(new IntSetting("reloaddelay", 0, "useconds",
+  addOption(new boolSetting("pdfreload", 0,
+                            "Automatically reload document in pdfviewer",
+			    false));
+  addOption(new IntSetting("pdfreloaddelay", 0, "useconds",
 			   "Delay before attempting initial pdf reload"
 			   ,750000));
   addOption(new stringSetting("autoimport", 0, "string",
@@ -1041,6 +1042,7 @@ void initSettings() {
   addOption(new stringSetting("gsOptions", 0, "string", "", ""));
   addOption(new stringSetting("psviewerOptions", 0, "string", "", ""));
   addOption(new stringSetting("pdfviewerOptions", 0, "string", "", ""));
+  addOption(new stringSetting("pdfreloadOptions", 0, "string", "", ""));
   
   addOption(new envSetting("config","config."+suffix));
   addOption(new envSetting("pdfviewer", defaultPDFViewer));

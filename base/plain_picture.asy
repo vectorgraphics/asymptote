@@ -27,20 +27,21 @@ triple operator * (transform3 t, triple v)
   return (triple) (t*(real[]) v);
 }
 
+// A uniform 3D scaling.
+transform3 scale3(real s)
+{
+  transform3 t=identity(4);
+  t[0][0]=t[1][1]=t[2][2]=s;
+  return t;
+}
+
+// Simultaneous 3D scalings in the x, y, and z directions.
 transform3 scale(real x, real y, real z)
 {
   transform3 t=identity(4);
   t[0][0]=x;
   t[1][1]=y;
   t[2][2]=z;
-  return t;
-}
-
-// A uniform scaling in 3D space.
-transform3 scale3(real s)
-{
-  transform3 t=identity(4);
-  t[0][0]=t[1][1]=t[2][2]=s;
   return t;
 }
 
@@ -766,7 +767,7 @@ struct picture {
 
   // Calculate the min for the final frame, given the coordinate transform.
   pair min(transform t) {
-    if(bounds.point.x.length == 0) return 0;
+    if(bounds.min.x.length == 0) return 0;
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
@@ -778,7 +779,7 @@ struct picture {
 
   // Calculate the max for the final frame, given the coordinate transform.
   pair max(transform t) {
-    if(bounds.point.x.length == 0) return 0;
+    if(bounds.max.x.length == 0) return 0;
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
@@ -790,7 +791,7 @@ struct picture {
 
   // Calculate the min for the final frame, given the coordinate transform.
   triple min(transform3 t) {
-    if(bounds3.point.x.length == 0) return (0,0,0);
+    if(bounds3.min.x.length == 0) return (0,0,0);
     triple a=t*(1,1,1)-t*(0,0,0), b=t*(0,0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
@@ -805,7 +806,7 @@ struct picture {
 
   // Calculate the max for the final frame, given the coordinate transform.
   triple max(transform3 t) {
-    if(bounds3.point.x.length == 0) return (0,0,0);
+    if(bounds3.max.x.length == 0) return (0,0,0);
     triple a=t*(1,1,1)-t*(0,0,0), b=t*(0,0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
