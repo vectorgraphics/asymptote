@@ -3046,7 +3046,7 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
   pic.addPoint(m);
   pic.addPoint(M);
 
-  if(meshpen != nullpen) {
+  if(meshpen != nullpen && meshpen != invisible) {
     for(int k=0; k < s.s.length; ++k) {
       real step=nu == 0 ? 0 : 1/nu;
       for(int i=0; i <= nu; ++i)
