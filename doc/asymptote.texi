@@ -4847,6 +4847,11 @@ bob     9
 pete    7
 @end verbatim
 
+@cindex @code{sort}
+@item T[] sort(T[] a, bool compare(T i, T j))
+returns a copy of @code{a} stably sorted in ascending order such that
+element @code{i} precedes element @code{j} if @code{compare(i,j)} is true.
+
 @cindex @code{transpose}
 @item T[][] transpose(T[][] a)
 returns the transpose of @code{a}.

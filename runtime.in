@@ -762,6 +762,15 @@ double wrapFunction(double x)
   return pop<double>(FuncStack);
 }
 
+callable *compareFunc;
+bool compareFunction(const vm::item& i, const vm::item& j)
+{
+  FuncStack->push(i);
+  FuncStack->push(j);
+  compareFunc->call(FuncStack);
+  return pop<bool>(FuncStack);
+}
+
 double project(triple v) 
 {
   FuncStack->push(v);
@@ -3818,6 +3827,15 @@ array* :arrayFunction(callable *f, array *a)
     (*b)[i]=pop(Stack);
   }
   return b;
+}
+
+array* :arraySort(array *a, callable *f)
+{
+  array *c=copyArray(a);
+  compareFunc=f;
+  FuncStack=Stack;
+  stable_sort(c->begin(),c->end(),compareFunction);
+  return c;
 }
 
 bool all(boolarray *a)

@@ -587,6 +587,9 @@ void addArrayOps(venv &ve, types::array *t)
                            formal(primInt(), "n"));
     addFunc(ve, run::arrayFunction,
             t, "map", formal(new function(ct, ct), "f"), formal(t, "a"));
+    addFunc(ve, run::arraySort,
+            t, "sort", formal(t, "a"),
+	    formal(new function(primBoolean(), ct, ct), "f"));
     break;
   case 2:
     addFunc(ve, run::array2Copy, t, "copy", formal(t, "a"));
