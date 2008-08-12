@@ -92,15 +92,16 @@ transform3 rotate(real angle, triple u, triple v)
 // Reflects about the plane through u, v, and w.
 transform3 reflect(triple u, triple v, triple w)
 {
-  triple normal=cross(v-u,w-u);
-  if(normal == O)
-    abort("points determining plane to reflect about cannot be colinear");
-  transform3 basis=shift(u);
-  if(normal.x != 0 || normal.y != 0)
-    basis *= rotate(longitude(normal,warn=false),Z)*
-      rotate(colatitude(normal),Y);
-  
-  return basis*zscale3(-1)*inverse(basis);
+  triple n=unit(cross(v-u,w-u));
+  if(n == O)
+    abort("points determining reflection plane cannot be colinear");
+
+  return new real[][] {
+    {1-2*n.x^2, -2*n.x*n.y, -2*n.x*n.z, u.x},
+    {-2*n.x*n.y, 1-2*n.y^2, -2*n.y*n.z, u.y},
+    {-2*n.x*n.z, -2*n.y*n.z, 1-2*n.z^2, u.z},
+    {0.0, 0.0, 0.0, 1.0}
+  }*shift(-u);
 }
 
 typedef pair project(triple v);
