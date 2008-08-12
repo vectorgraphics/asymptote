@@ -3233,6 +3233,11 @@ pair realmult(pair z, pair w)
   return pair (z.getx()*w.getx(),z.gety()*w.gety());
 }
 
+triple realmult(triple u, triple v) 
+{
+  return triple (u.getx()*v.getx(),u.gety()*v.gety(),u.getz()*v.getz());
+}
+
 // To avoid confusion, a dot product requires explicit pair arguments.
 real dot(explicit pair z, explicit pair w)
 {

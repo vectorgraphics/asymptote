@@ -100,8 +100,8 @@ struct patch {
   pair bound(real m(triple[], real f(triple), real),
 	     projection P, pair b=project(this.P[0][0],P)) {
     triple[] Q=controlpoints();
-    return (m(Q,new real(triple v) {return project0(v,P).x;},b.x),
-	    m(Q,new real(triple v) {return project0(v,P).y;},b.y));
+    return (m(Q,new real(triple v) {return project(v,P).x;},b.x),
+	    m(Q,new real(triple v) {return project(v,P).y;},b.y));
   }
 
   pair min2,max2;
@@ -380,8 +380,8 @@ void drawprc(frame f, patch s, pen surfacepen=lightgray,
 	 s.min(),s.max());
 }
 
-void tensorshade(frame f, patch s, pen surfacepen=lightgray,
-		 light light=currentlight, transform t=identity(),
+void tensorshade(transform t=identity(), frame f, patch s,
+		 pen surfacepen=lightgray, light light=currentlight,
 		 projection P=currentprojection, int ninterpolate=1)
 {
   tensorshade(f,box(t*s.min(P),t*s.max(P)),surfacepen,
@@ -401,7 +401,67 @@ surface extrude(path g, triple elongation=Z)
   return S;
 }
 
-// Generalize
+triple rectify(triple dir) 
+{
+  real scale=max(abs(dir.x),abs(dir.y),abs(dir.z));
+  if(scale != 0) dir *= 0.5/scale;
+  dir += (0.5,0.5,0.5);
+  return dir;
+}
+
+path[] align(path[] g, transform t=identity(), pair position,
+	     pair align, pen p=currentpen)
+{
+  pair m=min(g);
+  pair M=max(g);
+  pair dir=rectify(inverse(t)*-align);
+  if(basealign(p) == 1)
+    dir -= (0,m.y/(M.y-m.y));
+  pair a=m+realmult(dir,M-m);
+  return shift(position+align*labelmargin(p))*t*shift(-a)*g;
+}
+
+path3[] align(path3[] g, transform3 t=identity4, triple position,
+	      triple align, pen p=currentpen)
+{
+  triple m=min(g);
+  triple M=max(g);
+  triple dir=rectify(inverse(t)*-align);
+  triple a=m+realmult(dir,M-m);
+  return shift(position+align*labelmargin(p))*t*shift(-a)*g;
+}
+
+surface align(surface s, transform3 t=identity4, triple position,
+	      triple align, pen p=currentpen)
+{
+  triple m=min(s);
+  triple M=max(s);
+  triple dir=rectify(inverse(t)*-align);
+  triple a=m+realmult(dir,M-m);
+  return shift(position+align*labelmargin(p))*t*shift(-a)*s;
+}
+
+surface surface(Label L, triple position=O)
+{
+  path[] g=texpath(L);
+  surface s=surface(bezulate(g));
+  return L.align.is3D ? align(s,L.T3,position,L.align.dir3,L.p) :
+    shift(position)*L.T3*s;
+}
+
+path[] path(Label L, pair z=0, projection P)
+{
+  path[] g=texpath(L);
+  if(L.defaulttransform) {
+    return L.align.is3D ? align(g,z,project(L.align.dir3,P)-project(O,P),L.p) :
+      shift(z)*g;
+  } else {
+    path3[] G=path3(g);
+    return L.align.is3D ? shift(z)*project(align(G,L.T3,O,L.align.dir3,L.p),P) :
+      shift(z)*project(L.T3*G,P);
+  }
+}
+
 void label(frame f, Label L, triple position, align align=NoAlign,
 	   pen p=currentpen, light light=nolight,
 	   projection P=currentprojection)
@@ -409,19 +469,12 @@ void label(frame f, Label L, triple position, align align=NoAlign,
   Label L=L.copy();
   L.align(align);
   L.p(p);
-  path[] g=texpath(L.s,0,L.align.dir,L.p);
+  if(L.defaulttransform)
+    L.T3=transform3(P);
   if(prc()) {
-    if(L.defaulttransform)
-      L.T3=transform3(P);
-    for(patch S : surface(bezulate(g)).s)
-      drawprc(f,shift(position)*L.T3*S,L.p,light);
-  } else {
-    if(L.defaulttransform)
-      fill(f,shift(project(position,P))*g,light.intensity(transform3(P)*Z)*L.p);
-    else
-      fill(f,project(shift(position)*L.T3*path3(g),P),
-	   light.intensity(L.T3*Z)*L.p);
-  }
+    for(patch S : surface(L,position).s)
+      drawprc(f,S,L.p,light);
+  } else fill(f,path(L,project(position,P),P),light.intensity(L.T3*Z)*L.p);
 }
 
 void label(picture pic=currentpicture, Label L, triple position,
@@ -431,21 +484,18 @@ void label(picture pic=currentpicture, Label L, triple position,
   Label L=L.copy();
   L.align(align);
   L.p(p);
-  path[] g=texpath(L.s,0,L.align.dir,L.p);
+  path[] g=texpath(L);
   if(g.length == 0) return;
   pic.add(new void(frame f, transform3 t) {
-      if(prc()) {
-	if(L.defaulttransform)
-	  L.T3=transform3(t*P);
-	for(patch S : (L.T3*surface(bezulate(g))).s)
-	  drawprc(f,shift(t*position)*S,L.p,light);
-      }
       projection P=t*P;
-      pair origin=project(t*position,P);
+      triple v=t*position;
       if(L.defaulttransform)
-	fill(origin,pic,g,light.intensity(transform3(P)*Z)*L.p);
-      else
-	fill(origin,pic,project(L.T3*path3(g),P),light.intensity(L.T3*Z)*L.p);
+	L.T3=transform3(P);
+      if(prc()) {
+	for(patch S : surface(L,v).s)
+	  drawprc(f,S,L.p,light);
+      }
+      fill(project(v,P),pic,path(L,P),light.intensity(L.T3*Z)*L.p);
     },true);
   pair m=min(g);
   pair M=max(g);

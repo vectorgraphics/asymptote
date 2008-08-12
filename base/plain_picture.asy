@@ -1234,11 +1234,6 @@ void size(picture dest, picture src)
   dest.unitsize(src.xunitsize,src.yunitsize,src.zunitsize);
 }
 
-void size(picture src)
-{
-  size(currentpicture,src);
-}
-
 pair min(picture pic)
 {
   return pic.min();
@@ -1249,6 +1244,12 @@ pair max(picture pic)
   return pic.max();
 }
   
+pair size(picture pic)
+{
+  transform s=pic.calculateTransform();
+  return pic.max(s)-pic.min(s);
+}
+
 void add(picture pic=currentpicture, drawer d, bool exact=false)
 {
   pic.add(d,exact);

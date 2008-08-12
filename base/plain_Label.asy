@@ -85,36 +85,58 @@ transform scaleless(transform t)
 
 struct align {
   pair dir;
+  triple dir3;
   bool relative=false;
   bool default=true;
+  bool is3D=false;
   void init(pair dir=0, bool relative=false, bool default=false) {
     this.dir=dir;
     this.relative=relative;
     this.default=default;
+    is3D=false;
+  }
+  void init(triple dir=(0,0,0), bool relative=false, bool default=false) {
+    this.dir3=dir;
+    this.relative=relative;
+    this.default=default;
+    is3D=true;
   }
   align copy() {
     align align=new align;
     align.init(dir,relative,default);
+    align.dir3=dir3;
+    align.is3D=is3D;
     return align;
   }
   void align(align align) {
-    if(!align.default) init(align.dir,align.relative);
+    if(!align.default) {
+      init(align.dir,align.relative);
+      dir3=align.dir3;
+      is3D=align.is3D;
+    }
   }
   void align(align align, align default) {
     align(align);
-    if(this.default) init(default.dir,default.relative,default.default);
+    if(this.default) {
+      init(default.dir,default.relative,default.default);
+      dir3=default.dir3;
+      is3D=default.is3D;
+    }
   }
   void write(file file=stdout, suffix suffix=endl) {
     if(!default) {
       if(relative) {
         write(file,"Relative(");
-        write(file,dir);
+	if(is3D)
+	  write(file,dir3);
+	else
+	  write(file,dir);
         write(file,")",suffix);
       } else write(file,dir,suffix);
     }
   }
   bool Center() {
-    return relative && dir == 0;
+    return relative && (is3D ? dir3 == (0,0,0) : dir == 0);
   }
 }
 
@@ -142,6 +164,7 @@ side operator * (real x, side s)
 }
 
 align operator cast(pair dir) {align A; A.init(dir,false); return A;}
+align operator cast(triple dir) {align A; A.init(dir,false); return A;}
 align operator cast(side side) {align A; A.init(side.align,true); return A;}
 align NoAlign;
 
@@ -510,14 +533,15 @@ frame pack(pair align=2S ... object inset[])
   return F;
 }
 
-path[] texpath(string s, transform t=identity(), pair position=0, pair align=0,
-	       pen p=currentpen)
+path[] texpath(Label L)
 {
   static string[] stringcache;
   static pen[] pencache;
   static path[][] pathcache;
   path[] g;
 
+  string s=L.s;
+  pen p=L.p;
   int k=0;
   int i;
   while((i=find(stringcache == s,++k)) >= 0) {
@@ -535,12 +559,13 @@ path[] texpath(string s, transform t=identity(), pair position=0, pair align=0,
   }
   
   pair a;
+  if(g.length == 0) return g;
   pair m=min(g);
   pair M=max(g);
-  pair dir=rectify(inverse(t)*-align);
+  pair dir=rectify(inverse(L.T)*-L.align.dir);
   if(basealign(p) == 1)
     dir -= (0,m.y/(M.y-m.y));
   a=m+realmult(dir,M-m);
 
-  return shift(position+align*labelmargin(p))*t*shift(-a)*g;
+  return shift(L.position+L.align.dir*labelmargin(p))*L.T*shift(-a)*g;
 }

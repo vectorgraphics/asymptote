@@ -50,8 +50,7 @@ path arrowbase(path r, pair y, real t, real size)
 
 arrowhead DefaultHead;
 DefaultHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
-                          real size=0, real angle=arrowangle)
-{
+                          real size=0, real angle=arrowangle) {
   if(size == 0) size=DefaultHead.size(p);
   bool relative=position.relative;
   real position=position.position.x;
@@ -74,8 +73,7 @@ DefaultHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
 
 arrowhead SimpleHead;
 SimpleHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
-                         real size=0, real angle=arrowangle)
-{
+                         real size=0, real angle=arrowangle) {
   if(size == 0) size=SimpleHead.size(p);
   bool relative=position.relative;
   real position=position.position.x;
@@ -143,8 +141,7 @@ TeXHead.size=new real(pen p)
 };
 
 TeXHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
-                      real size=0, real angle=arrowangle)
-{
+                      real size=0, real angle=arrowangle) {
   static real wcoef=1/84; // 1/abs(base-hint)
   static path texhead=scale(wcoef)*
   ((0,20)     .. controls (-75,75)    and (-108,158) ..

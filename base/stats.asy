@@ -60,10 +60,10 @@ real Gaussian(real x)
 
 path randompath(int n, bool cumulate=true, interpolate join=operator ..)
 {
-  path g;
+  guide g;
   pair w;
   for(int i=0; i < n; ++i) {
-    pair z=(unitrand(),unitrand());
+    pair z=(unitrand()-0.5,unitrand()-0.5);
     if(cumulate) w += z; 
     else w=z;
     g=join(g,w);

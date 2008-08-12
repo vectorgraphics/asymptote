@@ -179,10 +179,14 @@ struct projection {
     return P;
   }
 
-  // Check that v is in front of the projection plane.
-  void check(triple v) {
-    if(!infinity && dot(camera-v,camera-target) < 0)
-      abort(tooclose);
+  // Check if v is on or behind the projection plane.
+  bool behind(triple v) {
+    return dot(camera-v,camera-target) < 0;
+  }
+
+  void adjust(triple v) {
+    if(!infinity && !absolute && behind(v))
+      camera=target+1.1*abs(v-target)*unit(camera-target);
   }
 
   void operator init(triple camera, triple target=O, triple up=Z,
@@ -223,16 +227,9 @@ addSaveFunction(new restoreThunk() {
     };
   });
 
-
-pair project0(triple v, projection P=currentprojection)
-{
-  return (pair) (P.project*(real[]) v);
-}
-
 pair project(triple v, projection P=currentprojection)
 {
-  P.check(v);
-  return project0(v,P);
+  return (pair) (P.project*(real[]) v);
 }
 
 // Uses the homogenous coordinate to perform perspective distortion.
@@ -1723,13 +1720,8 @@ bool piecewisestraight(path3 p)
 path project(explicit path3 p, projection P=currentprojection,
              int ninterpolate=ninterpolate)
 {
-  if(!P.infinity) {
-    P.check(p.min());
-    P.check(p.max());
-  }
-
   guide g;
-  
+
   int last=p.nodes.length-1;
   if(last < 0) return g;
   
@@ -1804,18 +1796,6 @@ guide3 operator cast(path3 p) {
 bool cyclic(path3 p) {return p.cyclic();}
 
 position operator cast(triple x) {return project(x);}
-
-Label Label(Label L, position position, triple align, pen p=nullpen,
-            filltype filltype=NoFill) 
-{
-  return Label(L,position,project(align),p,filltype);
-}
-
-void label(picture pic=currentpicture, Label L, pair position,
-           triple align, pen p=nullpen, filltype filltype=NoFill)
-{
-  label(pic,L,position,project(align),p,filltype);
-}
 
 // Transforms that map XY plane to YX, YZ, ZY, ZX, and XZ planes.
 restricted transform3 XY=identity4;
@@ -2392,6 +2372,21 @@ triple max(explicit path3[] p)
   return maxp;
 }
 
+typedef guide3 interpolate3(... guide3[]);
+
+path3 randompath3(int n, bool cumulate=true, interpolate3 join=operator ..)
+{
+  guide3 g;
+  triple w;
+  for(int i=0; i < n; ++i) {
+    triple z=(unitrand()-0.5,unitrand()-0.5,unitrand()-0.5);
+    if(cumulate) w += z; 
+    else w=z;
+    g=join(g,w);
+  }
+  return g;
+}
+
 path3[] box(triple v1, triple v2)
 {
   return
@@ -2847,10 +2842,13 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
 	angle=2.05*aTan(r/(abs(P.camera-P.target)));
       }
     }
-    
+
     F.L=embedprc(prefix,f,label,text,options,width,height,angle,background,P);
-  } else
+  } else {
+    //    P.adjust(m);
+    //    P.adjust(M);
     F.f=pic.fit(pic.xsize,pic.ysize,pic.keepAspect);
+  }
   return F;
 }
 
@@ -2989,62 +2987,84 @@ void draw(picture pic=currentpicture, Label L="", path3[] g, pen p=currentpen)
   for(int i=0; i < g.length; ++i) draw(pic,L,g[i],p);
 }
 
-void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
+void draw(transform t=identity(), frame f, surface s, int nu=nmesh, int nv=nu,
 	  pen surfacepen=lightgray, pen meshpen=nullpen,
 	  pen ambientpen=black, pen emissivepen=black,
 	  pen specularpen=mediumgray, real opacity=1, real shininess=0.25,
 	  light light=currentlight, projection P=currentprojection)
 {
   if(s.s.length == 0) return;
-  triple m=min(s);
-  triple M=max(s);
 
-  // Draw a mesh in the absence of lighting (override with
-  // meshpen=invisible). 
+  // Draw a mesh in the absence of lighting (override with meshpen=invisible). 
   if(!light.on && meshpen == nullpen) meshpen=currentpen;
 
+  if(prc()) {
+    for(int i=0; i < s.s.length; ++i)
+      drawprc(f,s.s[i],surfacepen,ambientpen,emissivepen,
+	      specularpen,opacity,shininess,light);
+  } else {
+    if(surfacepen != nullpen) {
+      // Sort patches by mean distance from camera
+      triple camera=P.camera;
+      if(P.infinity)
+	camera *= max(abs(min(s)),abs(max(s)));
+
+      real[][] depth;
+    
+      for(int i=0; i < s.s.length; ++i) {
+	triple[][] P=s.s[i].P;
+	for(int j=0; j < nv; ++j) {
+	  real d=abs(camera-0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]));
+	  depth.push(new real[] {d,i,j});
+	}
+      }
+
+      depth=sort(depth);
+
+      // Draw from farthest to nearest
+      while(depth.length > 0) {
+	real[] a=depth.pop();
+	int i=round(a[1]);
+	int j=round(a[2]);
+	tensorshade(t,f,s.s[i],surfacepen,light,P);
+      }
+    }
+  }
+
+  if(meshpen != nullpen && meshpen != invisible) {
+    for(int k=0; k < s.s.length; ++k) {
+      real step=nu == 0 ? 0 : 1/nu;
+      for(int i=0; i <= nu; ++i)
+	draw(f,s.s[k].uequals(i*step),meshpen,P);
+      
+      real step=nv == 0 ? 0 : 1/nv;
+      for(int j=0; j <= nv; ++j)
+	draw(f,s.s[k].vequals(j*step),meshpen,P);
+    }
+  }
+}
+
+void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
+	  pen surfacepen=lightgray, pen meshpen=nullpen,
+	  pen ambientpen=black, pen emissivepen=black,
+	  pen specularpen=mediumgray, real opacity=1, real shininess=0.25,
+	  light light=currentlight, projection P=currentprojection)
+{
   pic.add(new void(frame f, transform3 t) {
       surface S=t*s;
       projection P=t*P;
       if(prc()) {
-	for(int i=0; i < S.s.length; ++i)
-	  drawprc(f,S.s[i],surfacepen,ambientpen,emissivepen,
-		  specularpen,opacity,shininess,light);
-      } else {
-	pic.add(new void(frame f, transform t2) {
-	    if(surfacepen != nullpen) {
-	      // Sort patches by mean distance from camera
-	      triple camera=P.camera;
-	      if(P.infinity)
-		camera *= max(abs(m),abs(M));
-
-	      real[][] depth;
-    
-	      for(int i=0; i < s.s.length; ++i) {
-		triple[][] P=S.s[i].P;
-		for(int j=0; j < nv; ++j) {
-		  real d=abs(camera-0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]));
-		  depth.push(new real[] {d,i,j});
-		}
-	      }
-
-	      depth=sort(depth);
-
-	      // Draw from farthest to nearest
-	      while(depth.length > 0) {
-		real[] a=depth.pop();
-		int i=round(a[1]);
-		int j=round(a[2]);
-		tensorshade(f,S.s[i],surfacepen,light,t2,P);
-	      }
-	    }
-	  },true);
-      }
+      draw(f,S,nu,nv,surfacepen,invisible,ambientpen,emissivepen,specularpen,
+	   opacity,shininess,light,P);
+      } else pic.add(new void(frame f, transform T) {
+	  draw(T,f,S,nu,nv,surfacepen,invisible,ambientpen,emissivepen,
+	       specularpen,opacity,shininess,light,P);
+	},true);
       pic.addPoint(min(S,P));
       pic.addPoint(max(S,P));
     },true);
-  pic.addPoint(m);
-  pic.addPoint(M);
+  pic.addPoint(min(s));
+  pic.addPoint(max(s));
 
   if(meshpen != nullpen && meshpen != invisible) {
     for(int k=0; k < s.s.length; ++k) {

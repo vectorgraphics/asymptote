@@ -1,5 +1,7 @@
 path nullpath;
 
+typedef guide interpolate(... guide[]);
+
 // These numbers identify the side of a specifier in an operator spec or
 // operator curl expression:
 //  a{out} .. {in}b
