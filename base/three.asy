@@ -3,6 +3,8 @@ import embedding;
 
 string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true";
 
+real defaultshininess=0.25;
+
 triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
 
@@ -104,8 +106,6 @@ transform3 reflect(triple u, triple v, triple w)
   }*shift(-u);
 }
 
-typedef pair project(triple v);
-
 // Project u onto v.
 triple project(triple u, triple v)
 {
@@ -154,56 +154,6 @@ transform3 distort(triple v)
   t[3][2]=-1/d;
   t[3][3]=0;
   return t;
-}
-
-struct projection {
-  bool infinity;
-  bool absolute=false;
-  triple camera;
-  triple target;
-  typedef transform3 projector(triple camera, triple target, triple up);
-  projector projector;
-  transform3 project;
-  triple up;
-  real angle; // Lens angle (currently only used by PRC viewpoint).
-
-  projection copy() {
-    projection P=new projection;
-    P.infinity=infinity;
-    P.absolute=absolute;
-    P.camera=camera;
-    P.target=target;
-    P.up=up;
-    P.project=project;
-    P.projector=projector;
-    P.angle=angle;
-    return P;
-  }
-
-  // Check if v is on or behind the projection plane.
-  bool behind(triple v) {
-    return dot(camera-v,camera-target) < 0;
-  }
-
-  void adjust(triple v) {
-    if(!infinity && !absolute && behind(v))
-      camera=target+1.1*abs(v-target)*unit(camera-target);
-  }
-
-  void operator init(triple camera, triple target=O, triple up=Z,
-		     projector projector, bool infinity=false) {
-    this.infinity=infinity;
-    if(infinity) {
-      this.camera=unit(camera);
-      this.target=O;
-    } else {
-      this.camera=camera;
-      this.target=target;
-    }
-    this.up=up;
-    this.projector=projector;
-    project=projector(camera,up,target);
-  }
 }
 
 projection currentprojection;
@@ -2796,22 +2746,23 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
   if(xsize == 0 && ysize == 0 && zsize == 0)
     xsize=ysize=zsize=max(pic.xsize,pic.ysize);
   transform3 t=pic.scaling(xsize,ysize,zsize,pic.keepAspect);
-  frame f=pic.fit3(t);
+  picture pic2;
+  size(pic2,pic);
+  frame f=pic.fit3(t,pic2,P);
 
   if(!pic.bounds3.exact) {
     t=pic.scale3(f,pic.keepAspect)*t;
     pic.bounds3.exact=true;
-    pic.bounds.erase();
-    f=pic.fit3(t);
+    f=pic.fit3(t,pic2,P);
   }
 
   if(prc()) {
     projection P=P.copy();
 
-    transform s=pic.scaling(width == 0 ? pic.xsize : width,
-			    height == 0 ? pic.ysize : height,pic.keepAspect);
-    pair M=pic.max(s);
-    pair m=pic.min(s);
+    transform s=pic2.scaling(width == 0 ? pic.xsize : width,
+			     height == 0 ? pic.ysize : height,pic.keepAspect);
+    pair M=pic2.max(s);
+    pair m=pic2.min(s);
     pair lambda=M-m;
     width=lambda.x;
     height=lambda.y;
@@ -2830,15 +2781,14 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
       pair c=0.5*(M+m);
       triple origin=invert(c,unit(P.camera-P.target),P.target,P);
       if(P.infinity) {
-	f=pic.fit3(shift(-origin)*t);
+	f=pic.fit3(shift(-origin)*t,pic2,P);
 	P.camera=unit(P.camera)*max(abs(min3(f)),abs(max3(f)));
       } else {
-	f=pic.fit3(t);
+	f=pic.fit3(t,pic2,P);
 	P.target=origin;
       }
       if(angle == 0) {
 	real r=min(M.x-c.x,M.y-c.y);
-	pic.bounds.erase();
 	// Choose the angle to be just large enough to view the entire image:
 	angle=2.05*aTan(r/(abs(P.camera-P.target)));
       }
@@ -2848,7 +2798,7 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
   } else {
     //    P.adjust(m);
     //    P.adjust(M);
-    F.f=pic.fit(pic.xsize,pic.ysize,pic.keepAspect);
+    F.f=pic2.fit(pic.xsize,pic.ysize,pic.keepAspect);
   }
   return F;
 }
@@ -2957,8 +2907,7 @@ triple max3(pen p)
 }
 
 void draw(picture pic=currentpicture, Label L="", path3 g, align align=NoAlign,
-	  pen p=currentpen, projection P=currentprojection,
-	  int ninterpolate=ninterpolate)
+	  pen p=currentpen, int ninterpolate=ninterpolate)
 {
   Label L=L.copy();
   L.align(align);
@@ -2966,7 +2915,7 @@ void draw(picture pic=currentpicture, Label L="", path3 g, align align=NoAlign,
     L.p(p);
     label(pic,L,g);
   }
-  pic.add(new void(frame f, transform3 t) {
+  pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       if(prc())
 	drawprc(f,t*g,p);
       draw(pic,project(t*g,t*P,ninterpolate),p);
@@ -2989,9 +2938,9 @@ void draw(picture pic=currentpicture, Label L="", path3[] g, pen p=currentpen)
 }
 
 void draw(transform t=identity(), frame f, surface s, int nu=nmesh, int nv=nu,
-	  pen surfacepen=lightgray, pen meshpen=nullpen,
-	  pen ambientpen=black, pen emissivepen=black,
-	  pen specularpen=mediumgray, real opacity=1, real shininess=0.25,
+	  pen surfacepen=lightgray, pen meshpen=nullpen, pen ambientpen=black,
+	  pen emissivepen=black, pen specularpen=mediumgray,
+	  real opacity=opacity(surfacepen), real shininess=defaultshininess,
 	  light light=currentlight, projection P=currentprojection)
 {
   if(s.s.length == 0) return;
@@ -3014,10 +2963,8 @@ void draw(transform t=identity(), frame f, surface s, int nu=nmesh, int nv=nu,
     
       for(int i=0; i < s.s.length; ++i) {
 	triple[][] P=s.s[i].P;
-	for(int j=0; j < nv; ++j) {
 	  real d=abs(camera-0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]));
-	  depth.push(new real[] {d,i,j});
-	}
+	  depth.push(new real[] {d,i});
       }
 
       depth=sort(depth);
@@ -3026,7 +2973,6 @@ void draw(transform t=identity(), frame f, surface s, int nu=nmesh, int nv=nu,
       while(depth.length > 0) {
 	real[] a=depth.pop();
 	int i=round(a[1]);
-	int j=round(a[2]);
 	tensorshade(t,f,s.s[i],surfacepen,light,P);
       }
     }
@@ -3046,20 +2992,21 @@ void draw(transform t=identity(), frame f, surface s, int nu=nmesh, int nv=nu,
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
-	  pen surfacepen=lightgray, pen meshpen=nullpen,
-	  pen ambientpen=black, pen emissivepen=black,
-	  pen specularpen=mediumgray, real opacity=1, real shininess=0.25,
-	  light light=currentlight, projection P=currentprojection)
+	  pen surfacepen=lightgray, pen meshpen=nullpen, pen ambientpen=black,
+	  pen emissivepen=black, pen specularpen=mediumgray,
+	  real opacity=opacity(surfacepen), real shininess=defaultshininess,
+	  light light=currentlight)
 {
-  pic.add(new void(frame f, transform3 t) {
+  pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
       projection P=t*P;
       if(prc()) {
       draw(f,S,nu,nv,surfacepen,invisible,ambientpen,emissivepen,specularpen,
 	   opacity,shininess,light,P);
-      } else pic.add(new void(frame f, transform T) {
-	  draw(T,f,S,nu,nv,surfacepen,invisible,ambientpen,emissivepen,
-	       specularpen,opacity,shininess,light,P);
+      } else
+	pic.add(new void(frame f, transform T) {
+	    draw(T,f,S,nu,nv,surfacepen,invisible,ambientpen,emissivepen,
+		 specularpen,opacity,shininess,light,P);
 	},true);
       pic.addPoint(min(S,P));
       pic.addPoint(max(S,P));
@@ -3071,11 +3018,11 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
     for(int k=0; k < s.s.length; ++k) {
       real step=nu == 0 ? 0 : 1/nu;
       for(int i=0; i <= nu; ++i)
-	draw(pic,s.s[k].uequals(i*step),meshpen,P);
+	draw(pic,s.s[k].uequals(i*step),meshpen);
       
       real step=nv == 0 ? 0 : 1/nv;
       for(int j=0; j <= nv; ++j)
-	draw(pic,s.s[k].vequals(j*step),meshpen,P);
+	draw(pic,s.s[k].vequals(j*step),meshpen);
     }
   }
 }

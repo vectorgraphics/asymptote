@@ -20,16 +20,16 @@ protected:
   pen ambientpen;
   pen emissivepen;
   pen specularpen;
-  double alpha;
+  double opacity;
   double shininess;
   triple min,max;
   Triple controls[16];
 public:
   drawSurface(const vm::array& g, pen diffusepen, pen ambientpen,
-	      pen emissivepen, pen specularpen, double alpha,
+	      pen emissivepen, pen specularpen, double opacity,
 	      double shininess, triple min, triple max) :
     diffusepen(diffusepen), ambientpen(ambientpen),
-    emissivepen(emissivepen), specularpen(specularpen), alpha(alpha),
+    emissivepen(emissivepen), specularpen(specularpen), opacity(opacity),
     shininess(shininess), min(min), max(max) {
     
     this->diffusepen.torgb();

@@ -52,15 +52,13 @@ transform3 shiftless(transform3 t)
   return T;
 }
 
+//typedef pair project(triple v);
+
+//struct picture;
+
 // A function that draws an object to frame pic, given that the transform
 // from user coordinates to true-size coordinates is t.
-typedef void drawer(frame f, transform t);
-typedef void drawer3(frame f, transform3 t);
-
-// A generalization of drawer that includes the final frame's bounds.
-typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
-typedef void drawerBound3(frame f, transform3 t, transform3 T, triple lb,
-			  triple rt);
+//typedef pair project
 
 // A coordinate in "flex space." A linear combination of user and true-size
 // coordinates.
@@ -397,7 +395,66 @@ frame align(frame f, pair align)
   return shift(f,align)*f;
 }
 
+struct projection {
+  bool infinity;
+  bool absolute=false;
+  triple camera;
+  triple target;
+  typedef transform3 projector(triple camera, triple target, triple up);
+  projector projector;
+  transform3 project;
+  triple up;
+  real angle; // Lens angle (currently only used by PRC viewpoint).
+
+  projection copy() {
+    projection P=new projection;
+    P.infinity=infinity;
+    P.absolute=absolute;
+    P.camera=camera;
+    P.target=target;
+    P.up=up;
+    P.project=project;
+    P.projector=projector;
+    P.angle=angle;
+    return P;
+  }
+
+  // Check if v is on or behind the projection plane.
+  bool behind(triple v) {
+    return dot(camera-v,camera-target) < 0;
+  }
+
+  void adjust(triple v) {
+    if(!infinity && !absolute && behind(v))
+      camera=target+1.1*abs(v-target)*unit(camera-target);
+  }
+
+  void operator init(triple camera, triple target=(0,0,0), triple up=(0,0,1),
+		     projector projector, bool infinity=false) {
+    this.infinity=infinity;
+    if(infinity) {
+      this.camera=unit(camera);
+      this.target=(0,0,0);
+    } else {
+      this.camera=camera;
+      this.target=target;
+    }
+    this.up=up;
+    this.projector=projector;
+    project=projector(camera,up,target);
+  }
+}
+
 struct picture {
+
+typedef void drawer(frame f, transform t);
+typedef void drawer3(frame f, transform3 t, picture pic, projection P);
+
+// A generalization of drawer that includes the final frame's bounds.
+typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
+typedef void drawerBound3(frame f, transform3 t, transform3 T, picture pic,
+			  projection P, triple lb, triple rt);
+
   // The functions to do the deferred drawing.
   drawerBound[] nodes;
   drawerBound3[] nodes3;
@@ -654,9 +711,10 @@ struct picture {
   void add(drawer3 d, bool exact=false) {
     uptodate(false);
     if(!exact) bounds3.exact=false;
-    nodes3.push(new void(frame f, transform3 t, transform3 T, triple, triple) {
-        d(f,t*T);
-      });
+    nodes3.push(new void(frame f, transform3 t, transform3 T, picture pic,
+			 projection P, triple, triple) {
+		  d(f,t*T,pic,P);
+		});
   }
 
   void clip(drawer d, bool exact=false) {
@@ -987,10 +1045,11 @@ struct picture {
     return f;
   }
 
-  frame fit3(transform3 t, transform3 T0=T3, triple m, triple M) {
+  frame fit3(transform3 t, transform3 T0=T3, picture pic, projection P,
+	     triple m, triple M) {
     frame f;
     for (int i=0; i < nodes3.length; ++i)
-      nodes3[i](f,t,T0,m,M);
+      nodes3[i](f,t,T0,pic,P,m,M);
     return f;
   }
 
@@ -1000,8 +1059,8 @@ struct picture {
     return fit(t,min(t),max(t));
   }
 
-  frame fit3(transform3 t) {
-    return fit3(t,min(t),max(t));
+  frame fit3(transform3 t, picture pic, projection P) {
+    return fit3(t,pic,P,min(t),max(t));
   }
 
   frame scaled() {
@@ -1153,9 +1212,9 @@ struct picture {
       });
     
     if(srcCopy.nodes3.length > 0)
-      nodes3.push(new void(frame f, transform3 t, transform3 T3, triple m,
-			   triple M) {
-		    add(f,srcCopy.fit3(t,T3*srcCopy.T3,m,M));
+      nodes3.push(new void(frame f, transform3 t, transform3 T3,
+			   picture pic, projection P, triple m, triple M) {
+		    add(f,srcCopy.fit3(t,T3*srcCopy.T3,pic,P,m,M));
 		  });
     
     legend.append(src.legend);
@@ -1248,11 +1307,6 @@ pair size(picture pic)
 {
   transform s=pic.calculateTransform();
   return pic.max(s)-pic.min(s);
-}
-
-void add(picture pic=currentpicture, drawer d, bool exact=false)
-{
-  pic.add(d,exact);
 }
 
 void begingroup(picture pic=currentpicture)
@@ -1507,7 +1561,7 @@ void add(picture dest=currentpicture, frame src, pair position=0,
          bool group=true, filltype filltype=NoFill, bool put=Above)
 {
   if(is3D(src)) {
-    dest.add(new void(frame f, transform3) {
+    dest.add(new void(frame f, transform3, picture, projection) {
 	add(f,src); // always add about 3D origin (ignore position)
       },true);
     dest.addBox((0,0,0),(0,0,0),min3(src),max3(src));

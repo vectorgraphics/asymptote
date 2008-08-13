@@ -55,7 +55,7 @@ DefaultHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
   bool relative=position.relative;
   real position=position.position.x;
   if(relative) position=reltime(g,position);
-  path r=subpath(g,position,0.0);
+  path r=subpath(g,position,0);
   pair x=point(r,0);
   real t=arctime(r,size);
   pair y=point(r,t);
@@ -160,7 +160,7 @@ TeXHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
   bool relative=position.relative;
   real position=position.position.x;
   if(relative) position=reltime(g,position);
-  path r=subpath(g,position,0.0);
+  path r=subpath(g,position,0);
   pair y=point(r,arctime(r,size));
   return shift(y)*rotate(degrees(dir(g,position)))*gp;
 };
@@ -178,7 +178,7 @@ void arrowheadbbox(picture pic=currentpicture,
   bool relative=position.relative;
   real position=position.position.x;
   if(relative) position=reltime(g,position);
-  path r=subpath(g,position,0.0);
+  path r=subpath(g,position,0);
   pair x=point(r,0);
   pair y=point(r,arctime(r,size))-x;
   pair dz1=rotate(-angle)*y;
@@ -210,7 +210,7 @@ void arrow(frame f, arrowhead arrowhead=DefaultHead,
     g=reverse(g);
     position=L-position;
   }
-  path r=subpath(g,position,0.0);
+  path r=subpath(g,position,0);
   path s=subpath(g,position,L);
 
   size=min(arrowsizelimit*arclength(r),size);
@@ -248,7 +248,7 @@ picture arrow(arrowhead arrowhead=DefaultHead,
               margin margin=NoMargin, bool center=false)
 {
   picture pic;
-  pic.add(new void (frame f, transform t) {
+  pic.add(new void(frame f, transform t) {
       arrow(f,arrowhead,t*g,p,size,angle,filltype,position,forwards,margin,
             center);
     });
@@ -265,7 +265,7 @@ picture arrow2(arrowhead arrowhead=DefaultHead,
                margin margin=NoMargin)
 {
   picture pic;
-  pic.add(new void (frame f, transform t) {
+  pic.add(new void(frame f, transform t) {
       arrow2(f,arrowhead,t*g,p,size,angle,filltype,margin);
     });
   

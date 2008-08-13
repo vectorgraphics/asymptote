@@ -2419,11 +2419,11 @@ void draw(picture *f, triplearray *g, pen p, bool straight,
 }
 
 void draw(picture *f, triplearray2 *g, pen surfacepen, pen ambientpen,
-	  pen emissivepen, pen specularpen, real alpha, real shininess,
+	  pen emissivepen, pen specularpen, real opacity, real shininess,
 	  triple min, triple max)
 {
   f->append(new drawSurface(*g,surfacepen,ambientpen,emissivepen,specularpen,
-			    alpha,shininess,min,max));
+			    opacity,shininess,min,max));
 }
 
 triple min3(picture *f)

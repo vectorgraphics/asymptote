@@ -22,7 +22,7 @@ bool drawSurface::write(prcfile *out)
   RGBAColour specular(specularpen.red(),specularpen.green(),specularpen.blue(),
 		      specularpen.opacity());
   
-  PRCMaterial m(ambient,diffuse,emissive,specular,alpha,shininess);
+  PRCMaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
   out->add(new PRCBezierSurface(out,3,3,4,4,controls,m));
   
   return true;

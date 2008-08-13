@@ -478,15 +478,14 @@ void label(frame f, Label L, triple position, align align=NoAlign,
 }
 
 void label(picture pic=currentpicture, Label L, triple position,
-	   align align=NoAlign, pen p=currentpen, light light=nolight,
-	   projection P=currentprojection)
+	   align align=NoAlign, pen p=currentpen, light light=nolight)
 {
   Label L=L.copy();
   L.align(align);
   L.p(p);
   path[] g=texpath(L);
   if(g.length == 0) return;
-  pic.add(new void(frame f, transform3 t) {
+  pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       projection P=t*P;
       triple v=t*position;
       if(L.defaulttransform)
@@ -577,10 +576,9 @@ void dot(frame f, explicit path3[] g, pen p=currentpen, filltype filltype=Fill)
 }
 
 void dot(picture pic=currentpicture, triple v, pen p=currentpen,
-	 filltype filltype=Fill, light light=nolight,
-	 projection P=currentprojection)
+	 filltype filltype=Fill, light light=nolight)
 {
-  pic.add(new void(frame f, transform3 t) {
+  pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       if(prc())
 	for(patch s : unitsphere.s)
 	  drawprc(f,shift(t*v)*scale3(0.5*dotsize(p))*s,p,light);
