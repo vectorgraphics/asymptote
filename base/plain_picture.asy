@@ -9,8 +9,6 @@ pair size(frame f)
 typedef real[][] transform3;
 restricted transform3 identity4=identity(4);
 
-string tooclose="camera is too close to object";
-
 real[] operator ecast(triple v)
 {
   return new real[] {v.x,v.y,v.z,1};
@@ -18,7 +16,6 @@ real[] operator ecast(triple v)
 
 triple operator ecast(real[] a)
 {
-  if(a[3] == 0) abort(tooclose);
   return (a[0],a[1],a[2])/a[3];
 }
 

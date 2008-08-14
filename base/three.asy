@@ -12,7 +12,6 @@ int ninterpolate=16;
 
 pair operator ecast(real[] a)
 {
-  if(a[3] == 0) abort(tooclose);
   return (a[0],a[1])/a[3];
 }
 
