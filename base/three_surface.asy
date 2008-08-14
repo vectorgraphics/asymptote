@@ -157,7 +157,6 @@ struct patch {
   void operator init(path3 external, triple[] internal=new triple[]) {
     if(!cyclic(external) || length(external) != 4)
       abortcyclic();
-    P=new triple[4][4];
     init();
     if(internal.length == 0) {
       for(int j=0; j < 4; ++j) {
@@ -269,13 +268,12 @@ struct surface {
 patch operator * (transform3 t, patch s)
 { 
   patch S;
-  S.P=new triple[4][4];
-  for(int i=0; i < s.P.length; ++i) { 
+  for(int i=0; i < 4; ++i) { 
     triple[] si=s.P[i];
     triple[] Si=S.P[i];
-    for(int j=0; j < si.length; ++j) { 
+    for(int j=0; j < 4; ++j) { 
       Si[j]=t*si[j]; 
-    } 
+    }
   }
   return S;
 }

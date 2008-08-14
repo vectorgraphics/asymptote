@@ -249,7 +249,7 @@ path[] bezulate(path[] p)
 	  // avoid infinite recursion
 	  ++refinements;
 	  if(refinements > maxR) {
-	    write("Warning: too many subdivisions");
+	    write("warning: too many subdivisions");
 	  } else {
 	    p=subdivide(p);
 	    i=-1;

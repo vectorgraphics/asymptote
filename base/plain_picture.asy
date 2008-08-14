@@ -24,7 +24,7 @@ triple operator ecast(real[] a)
 
 triple operator * (transform3 t, triple v)
 {
-  return (triple) (t*(real[]) v);
+  return t == identity4 ? v : (triple) (t*(real[]) v);
 }
 
 // A uniform 3D scaling.
@@ -52,17 +52,8 @@ transform3 shiftless(transform3 t)
   return T;
 }
 
-//typedef pair project(triple v);
-
-//struct picture;
-
-// A function that draws an object to frame pic, given that the transform
-// from user coordinates to true-size coordinates is t.
-//typedef pair project
-
 // A coordinate in "flex space." A linear combination of user and true-size
 // coordinates.
-  
 struct coord {
   real user,truesize;
   bool finite=true;
@@ -395,6 +386,8 @@ frame align(frame f, pair align)
   return shift(f,align)*f;
 }
 
+real camerafactor=1.2;
+
 struct projection {
   bool infinity;
   bool absolute=false;
@@ -406,27 +399,8 @@ struct projection {
   triple up;
   real angle; // Lens angle (currently only used by PRC viewpoint).
 
-  projection copy() {
-    projection P=new projection;
-    P.infinity=infinity;
-    P.absolute=absolute;
-    P.camera=camera;
-    P.target=target;
-    P.up=up;
-    P.project=project;
-    P.projector=projector;
-    P.angle=angle;
-    return P;
-  }
-
-  // Check if v is on or behind the projection plane.
-  bool behind(triple v) {
-    return dot(camera-v,camera-target) < 0;
-  }
-
-  void adjust(triple v) {
-    if(!infinity && !absolute && behind(v))
-      camera=target+1.1*abs(v-target)*unit(camera-target);
+  void calculate() {
+    project=projector(camera,up,target);
   }
 
   void operator init(triple camera, triple target=(0,0,0), triple up=(0,0,1),
@@ -441,12 +415,52 @@ struct projection {
     }
     this.up=up;
     this.projector=projector;
-    project=projector(camera,up,target);
+    calculate();
+  }
+
+  projection copy() {
+    projection P=new projection;
+    P.infinity=infinity;
+    P.absolute=absolute;
+    P.camera=camera;
+    P.target=target;
+    P.up=up;
+    P.project=project;
+    P.projector=projector;
+    P.angle=angle;
+    return P;
+  }
+
+  // Check if v is on or behind the clipping plane.
+  bool behind(triple v) {
+    return dot(camera-v,camera-target) <= 0;
+  }
+
+  // Move the camera so that v is on or in front of clipping plane.
+  void adjust(triple v) {
+    if(!absolute && behind(v)) {
+      camera=target+camerafactor*abs(v-target)*unit(camera-target);
+      if(!infinity) {
+	write("adjusting camera to ",camera);
+	calculate();
+      }
+    }
   }
 }
 
-struct picture {
+triple min3(pen p)
+{
+  return linewidth(p)*(-0.5,-0.5,-0.5);
+}
 
+triple max3(pen p)
+{
+  return linewidth(p)*(0.5,0.5,0.5);
+}
+
+struct picture {
+// A function that draws an object to frame pic, given that the transform
+// from user coordinates to true-size coordinates is t.
 typedef void drawer(frame f, transform t);
 typedef void drawer3(frame f, transform3 t, picture pic, projection P);
 
@@ -739,6 +753,11 @@ typedef void drawerBound3(frame f, transform3 t, transform3 T, picture pic,
     userBox(user,user);
   }
 
+  void addPoint(triple user, triple truesize=(0,0,0), pen p) {
+    addPoint(user,truesize+min3(p));
+    addPoint(user,truesize+max3(p));
+  }
+
   // Add a box to the sizing.
   void addBox(pair userMin, pair userMax, pair trueMin=0, pair trueMax=0) {
     bounds.min.push(userMin,trueMin);
@@ -909,7 +928,7 @@ typedef void drawerBound3(frame f, transform3 t, transform3 T, picture pic,
       return scaling.build(p.a(),p.b()).a;
     } else if (status == simplex.problem.UNBOUNDED) {
       if(warn) write("warning: "+dir+" scaling in picture unbounded");
-      return 1;
+      return 0;
     } else {
       if(!warn) return 1;
       bool userzero=true;
@@ -1034,10 +1053,6 @@ typedef void drawerBound3(frame f, transform3 t, transform3 T, picture pic,
       return scale(sx,sy,sz);
   }
 
-  transform3 scaling3(bool warn=true) {
-    return scaling(xsize3,ysize3,zsize3,keepAspect,warn);
-  }
-
   frame fit(transform t, transform T0=T, pair m, pair M) {
     frame f;
     for (int i=0; i < nodes.length; ++i)
@@ -1128,6 +1143,13 @@ typedef void drawerBound3(frame f, transform3 t, transform3 T, picture pic,
     return calculateTransform(xsize,ysize,keepAspect,warn);
   }
 
+  transform3 calculateTransform3(real xsize=xsize3, real ysize=ysize3,
+				 real zsize=zsize3,
+				 bool keepAspect=true, bool warn=true) {
+    transform3 t=scaling(xsize,ysize,zsize,keepAspect,warn);
+    return scale3(fit3(t,new picture, new projection),keepAspect)*t;
+  }
+
   pair min(real xsize=this.xsize, real ysize=this.ysize,
            bool keepAspect=this.keepAspect) {
     return min(calculateTransform(xsize,ysize,keepAspect));
@@ -1136,6 +1158,16 @@ typedef void drawerBound3(frame f, transform3 t, transform3 T, picture pic,
   pair max(real xsize=this.xsize, real ysize=this.ysize,
            bool keepAspect=this.keepAspect) {
     return max(calculateTransform(xsize,ysize,keepAspect));
+  }
+  
+  triple min3(real xsize=this.xsize3, real ysize=this.ysize3,
+	      real zsize=this.zsize3, bool keepAspect=this.keepAspect) {
+    return min(calculateTransform3(xsize,ysize,zsize,keepAspect));
+  }
+  
+  triple max3(real xsize=this.xsize3, real ysize=this.ysize3,
+	      real zsize=this.zsize3, bool keepAspect=this.keepAspect) {
+    return max(calculateTransform3(xsize,ysize,zsize,keepAspect));
   }
   
   // Returns the 2D picture fit to the requested size.
@@ -1260,6 +1292,7 @@ picture operator * (transform3 t, picture orig)
 }
 
 picture currentpicture;
+projection currentprojection;
 
 void size(picture pic=currentpicture, real x, real y=x,
           bool keepAspect=pic.keepAspect)
@@ -1301,6 +1334,16 @@ pair min(picture pic)
 pair max(picture pic)
 {
   return pic.max();
+}
+  
+triple min3(picture pic)
+{
+  return pic.min3();
+}
+  
+triple max3(picture pic)
+{
+  return pic.max3();
 }
   
 pair size(picture pic)

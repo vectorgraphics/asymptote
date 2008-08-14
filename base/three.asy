@@ -156,8 +156,6 @@ transform3 distort(triple v)
   return t;
 }
 
-projection currentprojection;
-
 projection operator * (transform3 t, projection P)
 {
   projection P=P.copy();
@@ -979,6 +977,7 @@ struct path3 {
   bbox3 box;
   
   void operator init(node[] nodes, bool cycles=false, real cached_length=-1) {
+    this.nodes=new node[nodes.length];
     for(int i=0; i < nodes.length; ++i)
       this.nodes[i]=nodes[i].copy();
     this.cycles=cycles;
@@ -1021,6 +1020,10 @@ struct path3 {
       nodes[i]=node;
     }
     this.nodes=nodes;  
+  }
+
+  void operator init(path3 g) {
+    operator init(g.nodes,g.cycles,g.cached_length);
   }
 
   int size() {return n;}
@@ -2745,9 +2748,13 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
   real xsize=pic.xsize3, ysize=pic.ysize3, zsize=pic.zsize3;
   if(xsize == 0 && ysize == 0 && zsize == 0)
     xsize=ysize=zsize=max(pic.xsize,pic.ysize);
-  transform3 t=pic.scaling(xsize,ysize,zsize,pic.keepAspect);
+
+  projection P=P.copy();
+  P.adjust(pic.max(identity4));
+  P.adjust(pic.min(identity4));
+
   picture pic2;
-  size(pic2,pic);
+  transform3 t=pic.scaling(xsize,ysize,zsize,pic.keepAspect);
   frame f=pic.fit3(t,pic2,P);
 
   if(!pic.bounds3.exact) {
@@ -2757,8 +2764,6 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
   }
 
   if(prc()) {
-    projection P=P.copy();
-
     transform s=pic2.scaling(width == 0 ? pic.xsize : width,
 			     height == 0 ? pic.ysize : height,pic.keepAspect);
     pair M=pic2.max(s);
@@ -2773,38 +2778,39 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
       pair y=project(Y,P);
       pair z=project(Z,P);
       real f(pair a, pair b) {
-	return b == 0 ? (0.5*(a.x+a.y)) :
-	  (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
+	return b == 0 ? (0.5*(a.x+a.y)) : (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
       }
       t=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z))*t;
       P=t*P;
       pair c=0.5*(M+m);
       triple origin=invert(c,unit(P.camera-P.target),P.target,P);
-      if(P.infinity) {
-	f=pic.fit3(shift(-origin)*t,pic2,P);
-	P.camera=unit(P.camera)*max(abs(min3(f)),abs(max3(f)));
-      } else {
+      if(P.infinity)
+ 	f=pic.fit3(shift(-origin)*t,pic2,P);
+      else {
 	f=pic.fit3(t,pic2,P);
 	P.target=origin;
       }
       if(angle == 0) {
 	real r=min(M.x-c.x,M.y-c.y);
 	// Choose the angle to be just large enough to view the entire image:
-	angle=2.05*aTan(r/(abs(P.camera-P.target)));
+	angle=2.02*aTan(r/(abs(P.camera-P.target)));
       }
     }
 
     F.L=embedprc(prefix,f,label,text,options,width,height,angle,background,P);
-  } else {
-    //    P.adjust(m);
-    //    P.adjust(M);
+  } else
     F.f=pic2.fit(pic.xsize,pic.ysize,pic.keepAspect);
-  }
+
   return F;
 }
 
-embed3=new object(string prefix, frame f) {return embed(prefix,f);};
-embed3=new object(string prefix, picture pic) {return embed(prefix,pic);};
+embed3=new object(string prefix, frame f, projection P) {
+  return embed(prefix,f,P);
+};
+
+embed3=new object(string prefix, picture pic, projection P) {
+  return embed(prefix,pic,P);
+};
 
 void add(picture dest=currentpicture, object src, pair position, pair align,
          bool group=true, filltype filltype=NoFill, bool put=Above)
@@ -2896,16 +2902,6 @@ void draw(frame f, path3[] g, pen p=currentpen)
 include three_light;
 include three_surface;
 
-triple min3(pen p)
-{
-  return linewidth(p)*(-0.5,-0.5,-0.5);
-}
-
-triple max3(pen p)
-{
-  return linewidth(p)*(0.5,0.5,0.5);
-}
-
 void draw(picture pic=currentpicture, Label L="", path3 g, align align=NoAlign,
 	  pen p=currentpen, int ninterpolate=ninterpolate)
 {
@@ -2921,8 +2917,8 @@ void draw(picture pic=currentpicture, Label L="", path3 g, align align=NoAlign,
       draw(pic,project(t*g,t*P,ninterpolate),p);
     },true);
   if(size(g) > 0) {
-    pic.addPoint(min(g),min3(p));
-    pic.addPoint(max(g),max3(p));
+    pic.addPoint(min(g),p);
+    pic.addPoint(max(g),p);
   }
 }
 
