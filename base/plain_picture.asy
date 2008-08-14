@@ -458,16 +458,18 @@ triple max3(pen p)
   return linewidth(p)*(0.5,0.5,0.5);
 }
 
-struct picture {
 // A function that draws an object to frame pic, given that the transform
 // from user coordinates to true-size coordinates is t.
 typedef void drawer(frame f, transform t);
-typedef void drawer3(frame f, transform3 t, picture pic, projection P);
 
 // A generalization of drawer that includes the final frame's bounds.
 typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
-typedef void drawerBound3(frame f, transform3 t, transform3 T, picture pic,
-			  projection P, triple lb, triple rt);
+
+struct picture {
+  // Three-dimensional version of drawer and drawerBound:
+  typedef void drawer3(frame f, transform3 t, picture pic, projection P);
+  typedef void drawerBound3(frame f, transform3 t, transform3 T, picture pic,
+			    projection P, triple lb, triple rt);
 
   // The functions to do the deferred drawing.
   drawerBound[] nodes;
@@ -1350,6 +1352,11 @@ pair size(picture pic)
 {
   transform s=pic.calculateTransform();
   return pic.max(s)-pic.min(s);
+}
+
+void add(picture pic=currentpicture, drawer d, bool exact=false)
+{
+  pic.add(d,exact);
 }
 
 void begingroup(picture pic=currentpicture)
