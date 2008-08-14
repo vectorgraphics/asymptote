@@ -2331,7 +2331,7 @@ path3 randompath3(int n, bool cumulate=true, interpolate3 join=operator ..)
 {
   guide3 g;
   triple w;
-  for(int i=0; i < n; ++i) {
+  for(int i=0; i <= n; ++i) {
     triple z=(unitrand()-0.5,unitrand()-0.5,unitrand()-0.5);
     if(cumulate) w += z; 
     else w=z;
@@ -2754,10 +2754,13 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
 
   picture pic2;
   transform3 t=pic.scaling(xsize,ysize,zsize,pic.keepAspect);
+  P=t*P;
   frame f=pic.fit3(t,pic2,P);
 
   if(!pic.bounds3.exact) {
-    t=pic.scale3(f,pic.keepAspect)*t;
+    transform3 s=pic.scale3(f,pic.keepAspect);
+    t=s*t;
+    P=s*P;
     pic.bounds3.exact=true;
     f=pic.fit3(t,pic2,P);
   }
@@ -2779,16 +2782,15 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
       real f(pair a, pair b) {
 	return b == 0 ? (0.5*(a.x+a.y)) : (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
       }
-      t=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z))*t;
-      P=t*P;
+      transform3 s=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z));
+      P=s*P;
       pair c=0.5*(M+m);
       triple origin=invert(c,unit(P.camera-P.target),P.target,P);
       if(P.infinity)
- 	f=pic.fit3(shift(-origin)*t,pic2,P);
-      else {
-	f=pic.fit3(t,pic2,P);
+	s=shift(-origin)*s;
+      else
 	P.target=origin;
-      }
+      f=pic.fit3(s*t,pic2,P);
       if(angle == 0) {
 	real r=min(M.x-c.x,M.y-c.y);
 	// Choose the angle to be just large enough to view the entire image:
@@ -2913,7 +2915,7 @@ void draw(picture pic=currentpicture, Label L="", path3 g, align align=NoAlign,
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       if(prc())
 	drawprc(f,t*g,p);
-      draw(pic,project(t*g,t*P,ninterpolate),p);
+      draw(pic,project(t*g,P,ninterpolate),p);
     },true);
   if(size(g) > 0) {
     pic.addPoint(min(g),p);
@@ -2994,7 +2996,6 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
 {
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
-      projection P=t*P;
       if(prc()) {
       draw(f,S,nu,nv,surfacepen,invisible,ambientpen,emissivepen,specularpen,
 	   opacity,shininess,light,P);

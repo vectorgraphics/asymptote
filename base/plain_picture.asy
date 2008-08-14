@@ -1077,6 +1077,14 @@ struct picture {
     return fit3(t,pic,P,min(t),max(t));
   }
 
+  void add(void d(picture, transform3), bool exact=false) {
+    this.add(new void(frame f, transform3 t, picture pic2, projection P) {
+	picture opic=new picture;
+	d(opic,t);
+	add(f,opic.fit3(identity4,pic2,P));
+      });
+  }
+
   frame scaled() {
     frame f=fit(fixedscaling);
     pair d=size(f);

@@ -62,7 +62,7 @@ path randompath(int n, bool cumulate=true, interpolate join=operator ..)
 {
   guide g;
   pair w;
-  for(int i=0; i < n; ++i) {
+  for(int i=0; i <= n; ++i) {
     pair z=(unitrand()-0.5,unitrand()-0.5);
     if(cumulate) w += z; 
     else w=z;

@@ -484,7 +484,6 @@ void label(picture pic=currentpicture, Label L, triple position,
   path[] g=texpath(L);
   if(g.length == 0) return;
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
-      projection P=t*P;
       triple v=t*position;
       if(L.defaulttransform)
 	L.T3=transform3(P);
@@ -580,7 +579,7 @@ void dot(picture pic=currentpicture, triple v, pen p=currentpen,
       if(prc())
 	for(patch s : unitsphere.s)
 	  drawprc(f,shift(t*v)*scale3(0.5*dotsize(p))*s,p,light);
-      dot(pic,project(t*v,t*P),p,filltype);
+      dot(pic,project(t*v,P),p,filltype);
     },true);
   triple R=0.5*dotsize(p)*(1,1,1);
   pic.addBox(v,v,-R,R);
