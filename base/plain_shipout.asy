@@ -22,8 +22,8 @@ orientation orientation=Portrait;
 
 include plain_xasy;
 
-object embed3(string, frame, projection);
-object embed3(string, picture, projection);
+object embed3(string, frame, string, projection);
+object embed3(string, picture, string, projection);
 
 bool prc()
 {
@@ -41,10 +41,10 @@ frame enclose(string prefix=defaultfilename, object F)
 
 void shipout(string prefix=defaultfilename, frame f,
              string format="", bool wait=NoWait, bool view=true,
-	     projection P=currentprojection)
+	     string options="", projection P=currentprojection)
 {
   if(is3D(f))
-    f=enclose(prefix,embed3(prefix,f,P));
+    f=enclose(prefix,embed3(prefix,f,options,P));
 
   if(settings.psimage && prc()) {
     string name=outprefix(prefix)+".ps";
@@ -91,10 +91,10 @@ try{silentPrint(pp);} catch(e){this.print(pp);}";
 void shipout(string prefix=defaultfilename, picture pic,
 	     orientation orientation=orientation,
 	     string format="", bool wait=NoWait, bool view=true,
-	     projection P=currentprojection)
+	     string options="", projection P=currentprojection)
 {
   shipout(prefix,orientation(pic.nodes3.length > 0 ?
-			     enclose(embed3(prefix,pic,P)) : pic.fit()),
+			     enclose(embed3(prefix,pic,options,P)) : pic.fit()),
 	  format,wait,view);
 }
 

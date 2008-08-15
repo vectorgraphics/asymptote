@@ -465,8 +465,8 @@ typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
 struct picture {
   // Three-dimensional version of drawer and drawerBound:
   typedef void drawer3(frame f, transform3 t, picture pic, projection P);
-  typedef void drawerBound3(frame f, transform3 t, transform3 T, picture pic,
-			    projection P, triple lb, triple rt);
+  typedef void drawerBound3(frame f, transform3 t, transform3 T,
+			    picture pic, projection P, triple lb, triple rt);
 
   // The functions to do the deferred drawing.
   drawerBound[] nodes;
@@ -1052,6 +1052,10 @@ struct picture {
       return scale(sx,sy,sz);
   }
 
+  transform3 scaling3(bool warn=true) {
+    return scaling(xsize3,ysize3,zsize3,keepAspect,warn);
+  }
+
   frame fit(transform t, transform T0=T, pair m, pair M) {
     frame f;
     for (int i=0; i < nodes.length; ++i)
@@ -1073,16 +1077,27 @@ struct picture {
     return fit(t,min(t),max(t));
   }
 
-  frame fit3(transform3 t, picture pic, projection P) {
+  frame fit3(transform3 t, picture pic, projection P)
+  {
     return fit3(t,pic,P,min(t),max(t));
   }
 
   void add(void d(picture, transform3), bool exact=false) {
-    this.add(new void(frame f, transform3 t, picture pic2, projection P) {
-	picture opic=new picture;
-	d(opic,t);
-	add(f,opic.fit3(identity4,pic2,P));
-      });
+    add(new void(frame f, transform3 t, picture pic2, projection P) {
+	  picture opic=new picture;
+	  d(opic,t);
+	  add(f,opic.fit3(identity4,pic2,P));
+	},exact);
+  }
+
+  void add(void d(picture, transform3, transform3, triple, triple),
+	   bool exact=false) {
+    add(new void(frame f, transform3 t, transform3 T, picture pic2,
+		 projection P, triple lb, triple rt) {
+	  picture opic=new picture;
+	  d(opic,t,T,lb,rt);
+	  add(f,opic.fit3(identity4,pic2,P));
+	},exact);
   }
 
   frame scaled() {
@@ -1154,7 +1169,7 @@ struct picture {
 				 real zsize=zsize3,
 				 bool keepAspect=true, bool warn=true) {
     transform3 t=scaling(xsize,ysize,zsize,keepAspect,warn);
-    return scale3(fit3(t,new picture, new projection),keepAspect)*t;
+    return scale3(fit3(t,null,currentprojection),keepAspect)*t;
   }
 
   pair min(real xsize=this.xsize, real ysize=this.ysize,
@@ -1251,8 +1266,8 @@ struct picture {
       });
     
     if(srcCopy.nodes3.length > 0)
-      nodes3.push(new void(frame f, transform3 t, transform3 T3,
-			   picture pic, projection P, triple m, triple M) {
+      nodes3.push(new void(frame f, transform3 t, transform3 T3, picture pic,
+			   projection P, triple m, triple M) {
 		    add(f,srcCopy.fit3(t,T3*srcCopy.T3,pic,P,m,M));
 		  });
     

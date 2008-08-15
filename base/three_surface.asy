@@ -491,7 +491,8 @@ void label(picture pic=currentpicture, Label L, triple position,
 	for(patch S : surface(L,v).s)
 	  drawprc(f,S,L.p,light);
       }
-      fill(project(v,P),pic,path(L,P),light.intensity(L.T3*Z)*L.p);
+      if(pic != null)
+	fill(project(v,P),pic,path(L,P),light.intensity(L.T3*Z)*L.p);
     },true);
   pair m=min(g);
   pair M=max(g);
@@ -579,7 +580,8 @@ void dot(picture pic=currentpicture, triple v, pen p=currentpen,
       if(prc())
 	for(patch s : unitsphere.s)
 	  drawprc(f,shift(t*v)*scale3(0.5*dotsize(p))*s,p,light);
-      dot(pic,project(t*v,P),p,filltype);
+      if(pic != null)
+	dot(pic,project(t*v,P),p,filltype);
     },true);
   triple R=0.5*dotsize(p)*(1,1,1);
   pic.addBox(v,v,-R,R);

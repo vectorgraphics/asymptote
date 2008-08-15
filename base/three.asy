@@ -1,7 +1,7 @@
 private import math;
 import embedding;
 
-string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true";
+string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
 
 real defaultshininess=0.25;
 
@@ -2738,8 +2738,7 @@ object embed(string prefix=defaultfilename, frame f, string label="",
 }
 
 object embed(string prefix=defaultfilename, picture pic, string label="",
-	     string text=label, string options="",
-	     real width=0, real height=0, real angle=0, 
+	     string text=label, string options="", real angle=0, 
 	     pen background=white, projection P=currentprojection)
 {
   object F;
@@ -2766,13 +2765,12 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
   }
 
   if(prc()) {
-    transform s=pic2.scaling(width == 0 ? pic.xsize : width,
-			     height == 0 ? pic.ysize : height,pic.keepAspect);
+    transform s=pic2.scaling();
     pair M=pic2.max(s);
     pair m=pic2.min(s);
     pair lambda=M-m;
-    width=lambda.x;
-    height=lambda.y;
+    real width=lambda.x;
+    real height=lambda.y;
 
     if(!P.absolute) {
       pair v=(s.xx,s.yy);
@@ -2790,7 +2788,7 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
 	s=shift(-origin)*s;
       else
 	P.target=origin;
-      f=pic.fit3(s*t,pic2,P);
+      f=pic.fit3(s*t,null,P);
       if(angle == 0) {
 	real r=min(M.x-c.x,M.y-c.y);
 	// Choose the angle to be just large enough to view the entire image:
@@ -2805,12 +2803,12 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
   return F;
 }
 
-embed3=new object(string prefix, frame f, projection P) {
-  return embed(prefix,f,P);
+embed3=new object(string prefix, frame f, string options="", projection P) {
+  return embed(prefix,f,options,P);
 };
 
-embed3=new object(string prefix, picture pic, projection P) {
-  return embed(prefix,pic,P);
+embed3=new object(string prefix, picture pic, string options="", projection P) {
+  return embed(prefix,pic,options,P);
 };
 
 void add(picture dest=currentpicture, object src, pair position, pair align,
@@ -2915,7 +2913,8 @@ void draw(picture pic=currentpicture, Label L="", path3 g, align align=NoAlign,
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       if(prc())
 	drawprc(f,t*g,p);
-      draw(pic,project(t*g,P,ninterpolate),p);
+      if(pic != null)
+	draw(pic,project(t*g,P,ninterpolate),p);
     },true);
   if(size(g) > 0) {
     pic.addPoint(min(g),p);
@@ -3004,8 +3003,10 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
 	    draw(T,f,S,nu,nv,surfacepen,invisible,ambientpen,emissivepen,
 		 specularpen,opacity,shininess,light,P);
 	},true);
-      pic.addPoint(min(S,P));
-      pic.addPoint(max(S,P));
+      if(pic != null) {
+	pic.addPoint(min(S,P));
+	pic.addPoint(max(S,P));
+      }
     },true);
   pic.addPoint(min(s));
   pic.addPoint(max(s));
