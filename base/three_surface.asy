@@ -481,6 +481,7 @@ void label(picture pic=currentpicture, Label L, triple position,
   Label L=L.copy();
   L.align(align);
   L.p(p);
+  L.position(0);
   path[] g=texpath(L);
   if(g.length == 0) return;
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
@@ -494,14 +495,13 @@ void label(picture pic=currentpicture, Label L, triple position,
       if(pic != null)
 	fill(project(v,P),pic,path(L,P),light.intensity(L.T3*Z)*L.p);
     },true);
-  pair m=min(g);
-  pair M=max(g);
-  pic.addPoint(position,L.T3*XYplane(m));
-  pic.addPoint(position,L.T3*XYplane((m.x,M.y)));
-  pic.addPoint(position,L.T3*XYplane((M.x,m.y)));
-  pic.addPoint(position,L.T3*XYplane(M));
+
+  path3[] G=path3(g);
+  G=L.align.is3D ? align(G,O,L.align.dir3,L.p) : L.T3*G;
+  pic.addBox(position,min(G),max(G));
 }
 
+// TODO: generalize to handle triples.
 void label(picture pic=currentpicture, Label L, path3 g,
            align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
 {
