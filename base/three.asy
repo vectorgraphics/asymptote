@@ -883,6 +883,11 @@ struct node {
   }
 }
   
+bool operator != (node a, node b)
+{
+  return a.pre != b.pre || a.point != b.point && a.post != b.post;
+}
+
 void splitCubic(node[] sn, real t, node left_, node right_)
 {
   node left=sn[0]=left_.copy(), mid=sn[1], right=sn[2]=right_.copy();
@@ -1462,6 +1467,20 @@ path3 operator * (transform3 t, path3 p)
     nodes[i].straight=p.nodes[i].straight;
   }
   return path3(nodes,p.cycles);
+}
+
+bool operator == (path3 a, path3 b)
+{
+  if(a.cycles != b.cycles) return false;
+  if(a.nodes.length != b.nodes.length) return false;
+  for(int i=0; i < a.nodes.length; ++i)
+    if(a.nodes[i] != b.nodes[i]) return false;
+  return true;
+}
+
+bool operator != (path3 a, path3 b)
+{
+  return !(a == b);
 }
 
 path3[] path3(path[] g, triple plane(pair)=XYplane)
