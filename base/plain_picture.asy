@@ -1167,29 +1167,32 @@ struct picture {
 
   transform3 calculateTransform3(real xsize=xsize3, real ysize=ysize3,
 				 real zsize=zsize3,
-				 bool keepAspect=true, bool warn=true) {
+				 bool keepAspect=true, bool warn=true,
+				 projection P) {
     transform3 t=scaling(xsize,ysize,zsize,keepAspect,warn);
-    return scale3(fit3(t,null,currentprojection),keepAspect)*t;
+    return scale3(fit3(t,null,P),keepAspect)*t;
   }
 
   pair min(real xsize=this.xsize, real ysize=this.ysize,
-           bool keepAspect=this.keepAspect) {
-    return min(calculateTransform(xsize,ysize,keepAspect));
+           bool keepAspect=this.keepAspect, bool warn=true) {
+    return min(calculateTransform(xsize,ysize,keepAspect,warn));
   }
   
   pair max(real xsize=this.xsize, real ysize=this.ysize,
-           bool keepAspect=this.keepAspect) {
-    return max(calculateTransform(xsize,ysize,keepAspect));
+           bool keepAspect=this.keepAspect, bool warn=true) {
+    return max(calculateTransform(xsize,ysize,keepAspect,warn));
   }
   
   triple min3(real xsize=this.xsize3, real ysize=this.ysize3,
-	      real zsize=this.zsize3, bool keepAspect=this.keepAspect) {
-    return min(calculateTransform3(xsize,ysize,zsize,keepAspect));
+	      real zsize=this.zsize3, bool keepAspect=this.keepAspect,
+	      bool warn=true, projection P) {
+    return min(calculateTransform3(xsize,ysize,zsize,keepAspect,warn,P));
   }
   
   triple max3(real xsize=this.xsize3, real ysize=this.ysize3,
-	      real zsize=this.zsize3, bool keepAspect=this.keepAspect) {
-    return max(calculateTransform3(xsize,ysize,zsize,keepAspect));
+	      real zsize=this.zsize3, bool keepAspect=this.keepAspect,
+	      bool warn=true, projection P) {
+    return max(calculateTransform3(xsize,ysize,zsize,keepAspect,warn,P));
   }
   
   // Returns the 2D picture fit to the requested size.
@@ -1358,14 +1361,14 @@ pair max(picture pic)
   return pic.max();
 }
   
-triple min3(picture pic)
+triple min3(picture pic, projection P=currentprojection)
 {
-  return pic.min3();
+  return pic.min3(P);
 }
   
-triple max3(picture pic)
+triple max3(picture pic, projection P=currentprojection)
 {
-  return pic.max3();
+  return pic.max3(P);
 }
   
 pair size(picture pic)
