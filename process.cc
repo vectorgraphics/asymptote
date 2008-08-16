@@ -316,7 +316,7 @@ public:
   ifile(const string& filename)
     : itree(filename),
       filename(filename),
-      outname((string) (filename == "-" ? "out" :
+      outname((string) (filename == "-" ? settings::outname() :
 			stripDir(stripExt(string(filename), suffix)))) {}
   
   block *buildTree() {
