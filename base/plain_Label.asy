@@ -132,7 +132,12 @@ struct align {
 	else
 	  write(file,dir);
         write(file,")",suffix);
-      } else write(file,dir,suffix);
+      } else {
+	if(is3D)
+	  write(file,dir3,suffix);
+	else
+	  write(file,dir,suffix);
+      }
     }
   }
   bool Center() {
