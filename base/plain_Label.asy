@@ -110,9 +110,10 @@ struct align {
   }
   void align(align align) {
     if(!align.default) {
+      bool is3D=align.is3D;
       init(align.dir,align.relative);
       dir3=align.dir3;
-      is3D=align.is3D;
+      this.is3D=is3D;
     }
   }
   void align(align align, align default) {
