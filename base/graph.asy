@@ -2049,5 +2049,5 @@ path Arc(pair c, real r, real angle1, real angle2, int n=nCircle)
 // True circle
 path Circle(pair c, real r, int n=nCircle)
 {
-  return Arc(c,r,0,360,n)..cycle;
+  return Arc(c,r,0,360,n)&cycle;
 }

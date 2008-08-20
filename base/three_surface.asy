@@ -17,7 +17,7 @@ struct patch {
   }
 
   triple[] internal() {
-    return new triple[]{P[1][1],P[1][2],P[2][2],P[2][1]};
+    return new triple[] {P[1][1],P[1][2],P[2][2],P[2][1]};
   }
 
   triple[] controlpoints() {
@@ -148,22 +148,26 @@ struct patch {
     return max2=bound(maxbound,P,bound);
   }
 
-  void operator init(triple[][] P) {
+  void operator init(triple[][] P, pen[] colors=new pen[]) {
     init();
     this.P=copy(P);
+    if(colors.length != 0)
+      this.colors=copy(colors);
   }
 
-  void operator init(triple[] P) {
+  void operator init(triple[] P, pen[] colors=new pen[]) {
     init();
     this.P=new triple[][] {{P[0],P[1],P[2],P[3]},
 			   {P[4],P[5],P[6],P[7]},
 			   {P[8],P[9],P[10],P[11]},
 			   {P[12],P[13],P[14],P[15]}};
+    if(colors.length != 0)
+      this.colors=copy(colors);
   }
 
   void operator init(path3 external, triple[] internal=new triple[],
 		     pen[] colors=new pen[]) {
-    if(colors.length !=0)
+    if(colors.length != 0)
       this.colors=copy(colors);
 
     if(!cyclic(external) || length(external) != 4)
@@ -208,20 +212,32 @@ struct patch {
 struct surface {
   patch[] s;
   
-  void operator init(...patch[] s) {
+  void operator init(int n) {
+    s=new patch[n];
+  }
+
+  void operator init(... patch[] s) {
     this.s=s;
   }
 
-  void operator init(triple[][] P) {
-    s=new patch[] {patch(P)};
+  void operator init(triple[][] P, pen[] colors=new pen[]) {
+    s=new patch[] {patch(P,colors)};
   }
 
-  void operator init(triple[][][] P) {
-    s=sequence(new patch(int i) {return patch(P[i]);},P.length);
+  void operator init(triple[][][] P, pen[][] colors=new pen[][]) {
+    s=sequence(new patch(int i) {
+	return patch(P[i],colors.length == 0 ? new pen[] : colors[i]);
+      },P.length);
   }
 
-  void operator init(path3 external, triple[] internal=new triple[]) {
-    s=new patch[] {patch(external,internal)};
+  void operator init(path3 external, triple[] internal=new triple[],
+		     pen[] colors=new pen[]) {
+    s=new patch[] {patch(external,internal,colors)};
+  }
+
+  void push(path3 external, triple[] internal=new triple[],
+	      pen[] colors=new pen[]) {
+    s.push(patch(external,internal,colors));
   }
 
   // A constructor for a (possibly) nonconvex cyclic path of length 4 that

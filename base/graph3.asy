@@ -1406,12 +1406,13 @@ surface surface(triple[][] f, bool[][] cond={},
   int nx=f.length-1;
   int ny=nx > 0 ? f[0].length-1 : 0;
   
-  surface s;
+  surface s=surface(nx*ny);
   bool all=cond.length == 0;
+  int k=-1;
   for(int i=0; i < nx; ++i) {
     for(int j=0; j < ny; ++j) {
       if(all || cond[i][j])
-	s.s.push(patch(f[i][j]--f[i][j+1]--f[i+1][j+1]--f[i+1][j]--cycle));
+	s.s[++k]=patch(f[i][j]--f[i][j+1]--f[i+1][j+1]--f[i+1][j]--cycle);
     }
   }
   return s;
@@ -1624,5 +1625,5 @@ path3 Arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW,
 // True circle
 path3 Circle(triple c, real r, triple normal=Z, int n=nCircle)
 {
-  return Arc(c,r,90,0,90,360,normal,n)..cycle;
+  return Arc(c,r,90,0,90,360,normal,n)&cycle;
 }

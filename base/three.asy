@@ -2174,6 +2174,16 @@ triple[] intersectionpoints(path3 p, path3 q, real fuzz=0)
 
 path3 operator & (path3 p, path3 q) {return p.concat(p,q);}
 
+path3 operator &(path3 p, cycleToken tok)
+{
+  int n=length(p);
+  if(n < 0) return nullpath3;
+  triple a=point(p,0);
+  triple b=point(p,n);
+  return subpath(p,0,n-1)..controls postcontrol(p,n-1) and precontrol(p,n)..
+    cycle;
+}
+
 // return the point on path3 p at arclength L
 triple arcpoint(path3 p, real L)
 {
