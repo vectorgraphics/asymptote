@@ -766,7 +766,7 @@ struct Syzygy { // {{{1
     };
     moves.push(m);
 
-    if (watched) uptodate(false);
+    //    if (watched) uptodate(false);
   }
 
   void swap(int i, int j) {
@@ -777,7 +777,7 @@ struct Syzygy { // {{{1
     };
     moves.push(m);
 
-    if (watched) uptodate(false);
+    //    if (watched) uptodate(false);
   }
 
   // Drawing {{{2
@@ -820,14 +820,14 @@ struct Syzygy { // {{{1
         picture pic; this.draw(pic);
         shipout(pic);
       });
-    uptodate(false);
+    //    uptodate(false);
   }
 
   void unwatch() {
     assert(watched);
     watched=false;
     atexit(currentexitfunction);
-    uptodate(false);
+    //    uptodate(false);
   }
   // Writing {{{2
   string linearName() {

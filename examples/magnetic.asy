@@ -10,9 +10,8 @@ real B(real z) {return 1-0.5cos(pi*z/10);}
 
 real f(real x, real y, real z) {return 0.5B(z)*(a(z)*x^2+b(z)*y^2)-1;}
 
-bbox3 b=autolimits(O,4X+4Y+12Z);
-xaxis(Label("$x$",1),b,red);
-yaxis(Label("$y$",1),b,red);
-zaxis(Label("$z$",1),b,red);
-
 draw(contour3(f,(-2,-2,-10),(2,2,10),10));
+
+xaxis3(Label("$x$",1),red);
+yaxis3(Label("$y$",1),red);
+zaxis3(Label("$z$",1),red);

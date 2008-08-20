@@ -67,6 +67,7 @@ processDataStruct &processData() {
 void init(bool resetpath=true)
 {
   vm::indebugger=false;
+  uptodate=false;
   if(resetpath)
     setPath("");  /* On second and subsequent calls, sets the path
 		     to what it was when the program started. */
@@ -630,7 +631,6 @@ class iprompt : public icore {
       restart=true;
       startline="";
 
-      uptodate=true;
       run::purge();
 
       return true;
@@ -757,8 +757,8 @@ class iprompt : public icore {
         i.run(e,s,TRANS_INTERACTIVE);
       }
 
-      if(!uptodate)
-        run::updateFunction(&s);
+      run::updateFunction(&s);
+      uptodate=false;
 
     } catch(handled_error) {
       vm::indebugger=false;

@@ -9,8 +9,13 @@ draw(graph(Sin,0,1),red,"$\sin(2\pi x)$");
 draw(graph(Cos,0,1),blue,"$\cos(2\pi x)$");
 
 xaxis("$x$",BottomTop,LeftTicks);
-yaxis("$y$",LeftRight,RightTicks(trailingzero));
+yaxis("$y$",Right,LeftTicks(trailingzero));
+yaxis("",Left);
 
 label("LABEL",point(0),UnFill(1mm));
 
-attach(legend(),point(E),20E,UnFill);
+picture pic;
+size(pic,250,200,IgnoreAspect);
+add(pic,currentpicture.fit(),(0,0),W);
+add(pic,legend(currentpicture),(0,0),20E,UnFill);
+shipout(pic);

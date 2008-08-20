@@ -31,6 +31,15 @@ transform3 shift(real x, real y, real z)
   return shift((x,y,z));
 }
 
+transform3 shift(transform3 t)
+{
+  transform3 T=identity(4);
+  T[0][3]=t[0][3];
+  T[1][3]=t[1][3];
+  T[2][3]=t[2][3];
+  return T;
+}
+
 // A 3D scaling in the x direction.
 transform3 xscale3(real x)
 {
@@ -105,6 +114,10 @@ transform3 reflect(triple u, triple v, triple w)
   }*shift(-u);
 }
 
+bool operator != (real[][] a, real[][] b) {
+  return !(a == b);
+}
+
 // Project u onto v.
 triple project(triple u, triple v)
 {
@@ -161,7 +174,7 @@ projection operator * (transform3 t, projection P)
   if(!P.absolute) {
     P.camera=t*P.camera;
     P.target=t*P.target;
-    P.project=P.projector(P.camera,P.up,P.target);
+    P.calculate();
   }
   return P;
 }
@@ -267,9 +280,9 @@ triple invert(pair z, triple normal, triple point,
   real[][] A={{t[0][0]-z.x*t[3][0],t[0][1]-z.x*t[3][1],t[0][2]-z.x*t[3][2]},
               {t[1][0]-z.y*t[3][0],t[1][1]-z.y*t[3][1],t[1][2]-z.y*t[3][2]},
               {normal.x,normal.y,normal.z}};
-  real[] b={z.x*t[3][3],z.y*t[3][3],dot(normal,point)};
-  real[] x=solve(A,b);
-  return (x[0],x[1],x[2]);
+  real[] b={z.x*t[3][3]-t[0][3],z.y*t[3][3]-t[1][3],dot(normal,point)};
+  real[] x=solve(A,b,warn=false);
+  return x.length > 0 ? (x[0],x[1],x[2]) : P.camera;
 }
 
 pair xypart(triple v)
@@ -511,7 +524,7 @@ void write(string s="", flatguide3 x, suffix suffix=endl)
 // A guide3 is most easily represented as something that modifies a flatguide3.
 typedef void guide3(flatguide3);
 
-void nullpath3(flatguide3) {};
+restricted void nullpath3(flatguide3) {};
 
 guide3 operator init() {return nullpath3;}
 
@@ -972,6 +985,8 @@ bbox3 bbox3(triple min, triple max)
 private real Fuzz=10.0*realEpsilon;
 
 triple XYplane(pair z) {return (z.x,z.y,0);}
+triple YZplane(pair z) {return (0,z.x,z.y);}
+triple ZXplane(pair z) {return (z.y,0,z.x);}
 
 struct path3 {
   node[] nodes;
@@ -1652,7 +1667,7 @@ path3 solve(flatguide3 g)
 }
 
 path nurb(path3 p, projection P=currentprojection,
-          int ninterpolate=ninterpolate)
+	  int ninterpolate=ninterpolate)
 {
   triple f=P.camera;
   triple u=unit(P.camera-P.target);
@@ -1689,7 +1704,7 @@ bool piecewisestraight(path3 p)
   return true;
 }
 
-path project(explicit path3 p, projection P=currentprojection,
+path project(path3 p, projection P=currentprojection,
              int ninterpolate=ninterpolate)
 {
   guide g;
@@ -1716,13 +1731,6 @@ path project(explicit path3 p, projection P=currentprojection,
       project(p.nodes[last].pre,P)..cycle;
 
   return g;
-}
-
-path project(flatguide3 g, projection P=currentprojection,
-             int ninterpolate=ninterpolate)
-
-{
-  return project(solve(g),P,ninterpolate);
 }
 
 pair[] project(triple[] v, projection P=currentprojection)
@@ -1767,8 +1775,6 @@ guide3 operator cast(path3 p) {
 
 bool cyclic(path3 p) {return p.cyclic();}
 
-position operator cast(triple x) {return project(x);}
-
 // Transforms that map XY plane to YX, YZ, ZY, ZX, and XZ planes.
 restricted transform3 XY=identity4;
 restricted transform3 YX=rotate(-90,O,Z);
@@ -1776,6 +1782,54 @@ restricted transform3 YZ=rotate(90,O,Z)*rotate(90,O,X);
 restricted transform3 ZY=rotate(-90,O,X)*YZ;
 restricted transform3 ZX=rotate(-90,O,Z)*rotate(-90,O,Y);
 restricted transform3 XZ=rotate(-90,O,Y)*ZX;
+
+private transform3 flip(transform3 t, triple X, triple Y, triple Z,
+			projection P=currentprojection)
+{
+  static transform3 flip(triple v) {
+    static real s(real x) {return x > 0 ? -1 : 1;}
+    return scale(s(v.x),s(v.y),s(v.z));
+  }
+
+  triple u=unit(P.camera-P.target);
+  triple up=unit(P.up-dot(P.up,u)*u);
+  bool upright=dot(Z,u) >= 0;
+  if(dot(Y,up) < 0) {
+    t=flip(Y)*t;
+    upright=!upright;
+  }
+  return upright ? t : flip(X)*t;
+}
+
+restricted transform3 XY(projection P=currentprojection)
+{
+  return flip(XY,X,Y,Z,P);
+}
+
+restricted transform3 YX(projection P=currentprojection)
+{
+  return flip(YX,Y,X,Z,P);
+}
+
+restricted transform3 YZ(projection P=currentprojection)
+{
+  return flip(YZ,Y,Z,X,P);
+}
+
+restricted transform3 ZY(projection P=currentprojection)
+{
+  return flip(ZY,Z,Y,X,P);
+}
+
+restricted transform3 ZX(projection P=currentprojection)
+{
+  return flip(ZX,Z,X,Y,P);
+}
+
+restricted transform3 XZ(projection P=currentprojection)
+{
+  return flip(XZ,X,Z,Y,P);
+}
 
 // Transform for projecting onto plane through point O with normal cross(u,v).
 transform transform(triple u, triple v, triple O=O,
@@ -1811,14 +1865,7 @@ Label project(Label L, triple u, triple v, triple O=O,
 }
 
 path3 operator cast(guide3 g) {return solve(g);}
-path operator cast(path3 p) {return project(p);}
-path operator cast(triple v) {return project(v);}
-path operator cast(guide3 g) {return project(solve(g));}
 path3 operator cast(triple v) {return path3(v);}
-
-path[] operator cast(path3 p) {return new path[] {(path) p};}
-path[] operator cast(guide3 g) {return new path[] {(path) g};}
-path[] operator cast(path3[] g) {return project(g);}
 
 guide3[] operator cast(triple[] v)
 {
@@ -1837,7 +1884,6 @@ path3[] operator cast(triple[] v)
 }
 
 bool straight(path3 p, int t) {return p.straight(t);}
-bool straight(explicit guide3 g, int t) {return ((path3) g).straight(t);}
 
 triple point(path3 p, int t) {return p.point(t);}
 triple point(explicit guide3 g, int t) {
@@ -1848,25 +1894,10 @@ triple point(explicit guide3 g, int t) {
 }
 
 triple point(path3 p, real t) {return p.point(t);}
-triple point(explicit guide3 g, real t) {return ((path3) g).point(t);}
-
 triple postcontrol(path3 p, int t) {return p.postcontrol(t);}
-triple postcontrol(explicit guide3 g, int t) {
-  return ((path3) g).postcontrol(t);
-}
 triple postcontrol(path3 p, real t) {return p.postcontrol(t);}
-triple postcontrol(explicit guide3 g, real t) {
-  return ((path3) g).postcontrol(t);
-}
-
 triple precontrol(path3 p, int t) {return p.precontrol(t);}
-triple precontrol(explicit guide3 g, int t) {
-  return ((path3) g).precontrol(t);
-}
 triple precontrol(path3 p, real t) {return p.precontrol(t);}
-triple precontrol(explicit guide3 g, real t) {
-  return ((path3) g).precontrol(t);
-}
 
 triple[] dirSpecifier(guide3 g, int t)
 {
@@ -1914,38 +1945,18 @@ real[] curlSpecifier(guide3 g)
 }
 
 triple dir(path3 p, int t, int sign=0) {return p.dir(t,sign);}
-triple dir(explicit guide3 g, int t, int sign=0) {
-  return ((path3) g).dir(t,sign);
-}
 triple dir(path3 p, real t) {return p.dir(t);}
-triple dir(explicit guide3 g, real t) {return ((path3) g).dir(t);}
 
 path3 reverse(path3 p) {return p.reverse();}
-path3 reverse(explicit guide3 g) {return ((path3) g).reverse();}
 
 real arclength(path3 p) {return p.arclength();}
-real arclength(explicit guide3 g) {return ((path3) g).arclength();}
-
 real arctime(path3 p, real l) {return p.arctime(l);}
-real arctime(explicit guide3 g, real l) {return ((path3) g).arctime(l);}
 
 triple max(path3 p) {return p.max();}
-triple max(explicit guide3 g) {return ((path3) g).max();}
-
 triple min(path3 p) {return p.min();}
-triple min(explicit guide3 g) {return ((path3) g).min();}
 
 path3 subpath(path3 p, int a, int b) {return p.subpath(a,b);}
-path3 subpath(explicit guide3 g, int a, int b)
-{
-  return ((path3) g).subpath(a,b);
-}
-
 path3 subpath(path3 p, real a, real b) {return p.subpath(a,b);}
-path3 subpath(explicit guide3 g, real a, real b) 
-{
-  return ((path3) g).subpath(a,b);
-}
 
 int maxdepth=round(1-log(realEpsilon)/log(2));
 int mindepth=maxdepth-12;
@@ -2039,21 +2050,11 @@ real[] intersect(path3 p, path3 q, real fuzz=0)
   return intersect(p,q,fuzz,maxdepth);
 }
 
-real[] intersect(explicit guide3 p, explicit guide3 q, real fuzz=0)
-{
-  return intersect((path3) p,(path3) q,fuzz);
-}
-
 triple intersectionpoint(path3 p, path3 q, real fuzz=0)
 {
   real[] t=intersect(p,q,fuzz);
   if(t.length == 0) abort("paths do not intersect");
   return point(p,t[0]);
-}
-
-triple intersectionpoint(explicit guide3 p, explicit guide3 q, real fuzz=0)
-{
-  return intersectionpoint((path3) p,(path3) q,fuzz);
 }
 
 // return an array containing all intersection times of p and q
@@ -2171,16 +2172,7 @@ triple[] intersectionpoints(path3 p, path3 q, real fuzz=0)
   return v;
 }
 
-triple[] intersectionpoints(explicit guide3 p, explicit guide3 q, real fuzz=0)
-{
-  return intersectionpoints((path3) p,(path3) q, fuzz);
-}
-
 path3 operator & (path3 p, path3 q) {return p.concat(p,q);}
-path3 operator & (explicit guide3 p, explicit guide3 q)
-{
-  return ((path3) p).concat(p,q);
-}
 
 // return the point on path3 p at arclength L
 triple arcpoint(path3 p, real L)
@@ -2192,10 +2184,6 @@ triple arcpoint(path3 p, real L)
 triple arcpoint(path3 p, real L)
 {
   return point(p,arctime(p,L));
-}
-triple arcpoint(explicit guide3 p, real L)
-{
-  return arcpoint((path3) p,L);
 }
 
 // return the direction on path3 p at arclength L
@@ -2203,19 +2191,11 @@ triple arcdir(path3 p, real L)
 {
   return dir(p,arctime(p,L));
 }
-triple arcdir(explicit guide3 p, real L)
-{
-  return arcdir((path3) p,L);
-}
 
 // return the time on path3 p at the relative fraction l of its arclength
 real reltime(path3 p, real l)
 {
   return arctime(p,l*arclength(p));
-}
-real reltime(explicit guide3 p, real l)
-{
-  return reltime((path3) p,l);
 }
 
 // return the point on path3 p at the relative fraction l of its arclength
@@ -2223,27 +2203,15 @@ triple relpoint(path3 p, real l)
 {
   return point(p,reltime(p,l));
 }
-triple relpoint(explicit guide3 p, real l)
-{
-  return relpoint((path3) p,l);
-}
 
 // return the direction of path3 p at the relative fraction l of its arclength
 triple reldir(path3 p, real l)
 {
   return dir(p,reltime(p,l));
 }
-triple reldir(explicit guide3 p, real l)
-{
-  return reldir((path3) p,l);
-}
 
 // return the point on path3 p at half of its arclength
 triple midpoint(path3 p)
-{
-  return relpoint(p,0.5);
-}
-triple midpoint(explicit guide3 p)
 {
   return relpoint(p,0.5);
 }
@@ -2261,11 +2229,9 @@ transform3 align(triple u)
   return u.z >= 0 ? identity(4) : diagonal(1,-1,-1,1);
 }
 
-// return the rotation that maps X,Y,Z to unit(u),unit(v),unit(cross(u,v))
+// return the linear transformation that maps X,Y,Z to u,v,cross(u,v).
 transform3 transform3(triple u, triple v) 
 {
-  u=unit(u);
-  v=unit(v);
   triple w=cross(u,v);
 
   return new real[][] {
@@ -2276,18 +2242,13 @@ transform3 transform3(triple u, triple v)
   };
 }
 
-// return a transfrom that maps X,Y to the projection plane.
+// return a rotation that maps X,Y to the projection plane.
 transform3 transform3(projection P)
 {
   triple v=unit(P.camera-P.target);
-  triple u=P.up-dot(P.up,v)*v;
+  triple u=unit(P.up-dot(P.up,v)*v);
   return transform3(cross(u,v),u);
 }
-
-transform rotate(explicit triple dir)
-{
-  return rotate(project(dir));
-} 
 
 triple[] triples(real[] x, real[] y, real[] z)
 {
@@ -2486,207 +2447,6 @@ triple normal(path3 p)
   return normal;
 }
 
-// Routines for hidden surface removal (via binary space partition):
-// Structure face is derived from picture.
-struct face {
-  picture pic;
-  transform t;
-  frame fit;
-  triple normal,point;
-  bbox3 box;
-  void operator init(path3 p) {
-    this.normal=normal(p);
-    if(this.normal == O) abort("path is linear");
-    this.point=point(p,0);
-    this.box=bbox3(min(p),max(p));
-  }
-  face copy() {
-    face f=new face;
-    f.pic=pic.copy();
-    f.t=t;
-    f.normal=normal;
-    f.point=point;
-    f.box=box;
-    add(f.fit,fit);
-    return f;
-  }
-}
-
-picture operator cast(face f) {return f.pic;}
-face operator cast(path3 p) {return face(p);}
-  
-struct line {
-  triple point;
-  triple dir;
-}
-
-private line intersection(face a, face b) 
-{
-  line L;
-  L.point=intersectionpoint(a.normal,a.point,b.normal,b.point);
-  L.dir=unit(cross(a.normal,b.normal));
-  return L;
-}
-
-struct half {
-  pair[] left,right;
-  
-  // Sort the points in the pair array z according to whether they lie on the
-  // left or right side of the line L in the direction dir passing through P.
-  // Points exactly on L are considered to be on the right side.
-  // Also push any points of intersection of L with the path operator --(... z)
-  // onto each of the arrays left and right. 
-  void operator init(pair dir, pair P ... pair[] z) {
-    pair lastz;
-    pair invdir=dir != 0 ? 1/dir : 0;
-    bool left,last;
-    for(int i=0; i < z.length; ++i) {
-      left=(invdir*z[i]).y > (invdir*P).y;
-      if(i > 0 && last != left) {
-        pair w=extension(P,P+dir,lastz,z[i]);
-        this.left.push(w);
-        this.right.push(w);
-      }
-      if(left) this.left.push(z[i]);
-      else this.right.push(z[i]);
-      last=left;
-      lastz=z[i];
-    }
-  }
-}
-  
-struct splitface {
-  face back,front;
-}
-
-// Return the pieces obtained by splitting face a by face cut.
-splitface split(face a, face cut, projection P)
-{
-  splitface S;
-
-  void nointersection() {
-    if(abs(dot(a.point-P.camera,a.normal)) >= 
-       abs(dot(cut.point-P.camera,cut.normal))) {
-      S.back=a;
-      S.front=null;
-    } else {
-      S.back=null;
-      S.front=a;
-    }
-  }
-
-  if(P.infinity) {
-    P=P.copy();
-    static real factor=1/sqrt(realEpsilon);
-    P.camera *= factor*max(abs(a.box.min),abs(a.box.max),
-                           abs(cut.box.min),abs(cut.box.max));
-  }
-
-  if((abs(a.normal-cut.normal) < epsilon ||
-      abs(a.normal+cut.normal) < epsilon)) {
-    nointersection();
-    return S;
-  }
-
-  line L=intersection(a,cut);
-
-  if(dot(P.camera-L.point,P.camera-P.target) < 0) {
-    nointersection();
-    return S;
-  }
-    
-  pair point=a.t*project(L.point,P);
-  pair dir=a.t*project(L.point+L.dir,P)-point;
-  pair invdir=dir != 0 ? 1/dir : 0;
-  triple apoint=L.point+cross(L.dir,a.normal);
-  bool left=(invdir*(a.t*project(apoint,P))).y >= (invdir*point).y;
-
-  real t=intersect(apoint,P.camera,cut.normal,cut.point);
-  bool rightfront=left ^ (t <= 0 || t >= 1);
-  
-  face back=a, front=a.copy();
-  pair max=max(a.fit);
-  pair min=min(a.fit);
-  half h=half(dir,point,max,(min.x,max.y),min,(max.x,min.y),max);
-  if(h.right.length == 0) {
-    if(rightfront) front=null;
-    else back=null;
-  } else if(h.left.length == 0) {
-    if(rightfront) back=null;
-    else front=null;
-  }
-  if(front != null)
-    clip(front.fit,operator --(... rightfront ? h.right : h.left)--cycle,
-         zerowinding);
-  if(back != null)
-    clip(back.fit,operator --(... rightfront ? h.left : h.right)--cycle,
-         zerowinding);
-  S.back=back;
-  S.front=front;
-  return S;
-}
-
-// A binary space partition
-struct bsp
-{
-  bsp back;
-  bsp front;
-  face node;
-  
-  // Construct the bsp.
-  void operator init(face[] faces, projection P) {
-    if(faces.length != 0) {
-      this.node=faces.pop();
-      face[] front,back;
-      for(int i=0; i < faces.length; ++i) {
-        splitface split=split(faces[i],this.node,P);
-        if(split.front != null) front.push(split.front);
-        if(split.back != null) back.push(split.back);
-      }
-      this.front=bsp(front,P);
-      this.back=bsp(back,P);
-    }
-  }
-  
-  // Draw from back to front.
-  void add(frame f) {
-    if(back != null) back.add(f);
-    add(f,node.fit,group=true);
-    if(labels(node.fit)) layer(f); // Draw over any existing TeX layers.
-    if(front != null) front.add(f);
-  }
-}
-
-void add(picture pic=currentpicture, face[] faces,
-         projection P=currentprojection)
-{
-  int n=faces.length;
-  face[] Faces=new face[n];
-  for(int i=0; i < n; ++i)
-    Faces[i]=faces[i].copy();
-  
-  pic.nodes.push(new void (frame f, transform t, transform T,
-                           pair m, pair M) {
-                   // Fit all of the pictures so we know their exact sizes.
-                   face[] faces=new face[n];
-                   for(int i=0; i < n; ++i) {
-                     faces[i]=Faces[i].copy();
-                     face F=faces[i];
-                     F.t=t*T*F.pic.T;
-                     F.fit=F.pic.fit(t,T*F.pic.T,m,M);
-                   }
-    
-                   bsp bsp=bsp(faces,P);
-                   if(bsp != null) bsp.add(f);
-                 });
-    
-  for(int i=0; i < n; ++i) {
-    picture F=Faces[i].pic;
-    pic.userBox(F.userMin,F.userMax);
-    pic.append(pic.bounds.point,pic.bounds.min,pic.bounds.max,F.T,F.bounds);
-  }
-}
-
 triple size3(frame f)
 {
   return max3(f)-min3(f);
@@ -2705,7 +2465,7 @@ string embedprc(string prefix=defaultfilename, frame f, string label="",
 
   if(width == 0) width=settings.paperwidth;
   if(height == 0) height=settings.paperheight;
-  string prefix=outprefix();
+  if(prefix == "") prefix=outprefix();
   prefix += "-"+(string) file3.length;
   shipout3(prefix,f);
   prefix += ".prc";
@@ -2756,35 +2516,40 @@ object embed(string prefix=defaultfilename, frame f, string label="",
   return F;
 }
 
-object embed(string prefix=defaultfilename, picture pic, string label="",
-	     string text=label, string options="", real angle=0, 
-	     pen background=white, projection P=currentprojection)
+object embed(string prefix=defaultfilename, picture pic,
+	     real xsize=pic.xsize, real ysize=pic.ysize,
+	     bool keepAspect=pic.keepAspect,
+	     string label="", string text=label, string options="",
+	     real angle=0, pen background=white, projection P=currentprojection)
 {
   object F;
   if(pic.empty3()) return F;
-  real xsize=pic.xsize3, ysize=pic.ysize3, zsize=pic.zsize3;
-  if(xsize == 0 && ysize == 0 && zsize == 0)
-    xsize=ysize=zsize=max(pic.xsize,pic.ysize);
+  real xsize3=pic.xsize3, ysize3=pic.ysize3, zsize3=pic.zsize3;
+  if(xsize3 == 0 && ysize3 == 0 && zsize3 == 0)
+    xsize3=ysize3=zsize3=max(xsize,ysize);
 
   projection P=P.copy();
   P.adjust(pic.max(identity4));
   P.adjust(pic.min(identity4));
 
   picture pic2;
-  transform3 t=pic.scaling(xsize,ysize,zsize,pic.keepAspect);
+  transform3 t=pic.scaling(xsize3,ysize3,zsize3,keepAspect);
   P=t*P;
-  frame f=pic.fit3(t,pic2,P);
+  frame f=pic.fit3(t,pic.bounds3.exact ? pic2 : null,P);
+
+  bool prc=prc();
 
   if(!pic.bounds3.exact) {
-    transform3 s=pic.scale3(f,pic.keepAspect);
+    transform3 s=pic.scale3(f,keepAspect);
     t=s*t;
     P=s*P;
-    pic.bounds3.exact=true;
     f=pic.fit3(t,pic2,P);
   }
 
-  if(prc()) {
-    transform s=pic2.scaling();
+  bool scale=xsize != 0 || ysize != 0;
+
+  if(prc || scale) {
+    transform s=pic2.scaling(xsize,ysize,keepAspect);
     pair M=pic2.max(s);
     pair m=pic2.min(s);
     pair lambda=M-m;
@@ -2799,25 +2564,31 @@ object embed(string prefix=defaultfilename, picture pic, string label="",
       real f(pair a, pair b) {
 	return b == 0 ? (0.5*(a.x+a.y)) : (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
       }
-      transform3 s=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z));
-      P=s*P;
-      pair c=0.5*(M+m);
-      triple origin=invert(c,unit(P.camera-P.target),P.target,P);
-      if(P.infinity)
-	s=shift(-origin)*s;
-      else
-	P.target=origin;
-      f=pic.fit3(s*t,null,P);
-      if(angle == 0) {
-	real r=min(M.x-c.x,M.y-c.y);
-	// Choose the angle to be just large enough to view the entire image:
-	angle=2.02*aTan(r/(abs(P.camera-P.target)));
+      transform3 s;
+      if(scale) {
+	s=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z));
+	P=s*P;
       }
+      pair c=0.5*(M+m);
+      if(prc) {
+	triple shift=invert(c,unit(P.camera-P.target),P.target,P);
+	P.target += shift;
+	P.calculate();
+      }
+      if(scale) {
+	pic2.erase();
+	f=pic.fit3(s*t,prc ? null : pic2,P);
+      }
+      if(prc && angle == 0)
+	// Choose the angle to be just large enough to view the entire image:
+	angle=2.02*aTan(min(M.x-c.x,M.y-c.y)/(abs(P.camera-P.target)));
     }
+    if(prc) F.L=embedprc(prefix,f,label,text,options,width,height,angle,
+			 background,P);
+  }
 
-    F.L=embedprc(prefix,f,label,text,options,width,height,angle,background,P);
-  } else
-    F.f=pic2.fit(pic.xsize,pic.ysize,pic.keepAspect);
+  if(!prc)
+    F.f=pic2.fit2(xsize,ysize,keepAspect);
 
   return F;
 }
@@ -2826,8 +2597,16 @@ embed3=new object(string prefix, frame f, string options="", projection P) {
   return embed(prefix,f,options,P);
 };
 
-embed3=new object(string prefix, picture pic, string options="", projection P) {
-  return embed(prefix,pic,options,P);
+embed3=new object(picture pic, real xsize, real ysize,
+		  bool keepAspect, string options="", projection P) {
+  return embed(pic,xsize,ysize,keepAspect,options,P);
+};
+
+currentpicture.fitter=new frame(picture pic, real xsize, real ysize,
+				bool keepAspect, string options, projection P) {
+  return pic.nodes3.length > 0 ?
+    enclose(embed3(pic,xsize,ysize,keepAspect,options,P)) :
+    pic.fit2(xsize,ysize,keepAspect);
 };
 
 void add(picture dest=currentpicture, object src, pair position, pair align,
@@ -2898,27 +2677,42 @@ void drawprc(frame f, path3 g, pen p=currentpen)
   draw(f,v,p,straight,min(g),max(g));
 }
 
-void draw(frame f, path3 g, pen p=currentpen, projection P=currentprojection,
+void draw(frame f, path3 g, pen p=currentpen, projection P,
 	  int ninterpolate=ninterpolate)
 {
   if(prc()) drawprc(f,g,p);
   else draw(f,project(g,P,ninterpolate),p);
 }
 
-// Temporary
-void draw(frame f, guide3 g, pen p=currentpen, projection P=currentprojection,
-	  int ninterpolate=ninterpolate)
+void draw(frame f, path3[] g, pen p=currentpen, projection P)
 {
-  draw(f,(path3) g,p,P,ninterpolate);
+  for(int i=0; i < g.length; ++i) draw(f,g[i],p,P);
 }
 
-void draw(frame f, path3[] g, pen p=currentpen)
+void begingroup3(picture pic=currentpicture)
 {
-  for(int i=0; i < g.length; ++i) draw(f,g[i],p);
+  pic.add(new void(frame f, transform3, picture opic, projection) {
+      if(opic != null)
+	begingroup(opic);
+    },true);
+}
+
+void endgroup3(picture pic=currentpicture)
+{
+  pic.add(new void(frame f, transform3, picture opic, projection) {
+      if(opic != null)
+	endgroup(opic);
+    },true);
 }
 
 include three_light;
 include three_surface;
+
+void addPath(picture pic, path3 g, pen p)
+{
+    pic.addPoint(min(g),p);
+    pic.addPoint(max(g),p);
+}
 
 void draw(picture pic=currentpicture, Label L="", path3 g, align align=NoAlign,
 	  pen p=currentpen, int ninterpolate=ninterpolate)
@@ -2935,16 +2729,8 @@ void draw(picture pic=currentpicture, Label L="", path3 g, align align=NoAlign,
       if(pic != null)
 	draw(pic,project(t*g,P,ninterpolate),p);
     },true);
-  if(size(g) > 0) {
-    pic.addPoint(min(g),p);
-    pic.addPoint(max(g),p);
-  }
-}
-
-void draw(picture pic=currentpicture, Label L="", explicit guide3 g,
-	  pen p=currentpen)
-{
-  draw(pic,L,(path3) g,p);
+  if(size(g) > 0)
+    addPath(pic,g,p);
 }
 
 void draw(picture pic=currentpicture, Label L="", path3[] g, pen p=currentpen)
@@ -2952,11 +2738,13 @@ void draw(picture pic=currentpicture, Label L="", path3[] g, pen p=currentpen)
   for(int i=0; i < g.length; ++i) draw(pic,L,g[i],p);
 }
 
-void draw(transform t=identity(), frame f, surface s, int nu=nmesh, int nv=nu,
+
+void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
+	  bool outward=false,
 	  pen surfacepen=lightgray, pen meshpen=nullpen, pen ambientpen=black,
 	  pen emissivepen=black, pen specularpen=mediumgray,
 	  real opacity=opacity(surfacepen), real shininess=defaultshininess,
-	  light light=currentlight, projection P=currentprojection)
+	  light light=currentlight, projection P)
 {
   if(s.s.length == 0) return;
 
@@ -2967,8 +2755,19 @@ void draw(transform t=identity(), frame f, surface s, int nu=nmesh, int nv=nu,
     for(int i=0; i < s.s.length; ++i)
       drawprc(f,s.s[i],surfacepen,ambientpen,emissivepen,
 	      specularpen,opacity,shininess,light);
+    if(meshpen != nullpen && meshpen != invisible) {
+      for(int k=0; k < s.s.length; ++k) {
+	real step=nu == 0 ? 0 : 1/nu;
+	for(int i=0; i <= nu; ++i)
+	  draw(f,s.s[k].uequals(i*step),meshpen,P);
+	step=nv == 0 ? 0 : 1/nv;
+	for(int j=0; j <= nv; ++j)
+	  draw(f,s.s[k].vequals(j*step),meshpen,P);
+      }
+    }
   } else {
     if(surfacepen != nullpen) {
+      begingroup(f);
       // Sort patches by mean distance from camera
       triple camera=P.camera;
       if(P.infinity)
@@ -2978,8 +2777,8 @@ void draw(transform t=identity(), frame f, surface s, int nu=nmesh, int nv=nu,
     
       for(int i=0; i < s.s.length; ++i) {
 	triple[][] P=s.s[i].P;
-	  real d=abs(camera-0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]));
-	  depth.push(new real[] {d,i});
+	real d=abs(camera-0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]));
+	depth.push(new real[] {d,i});
       }
 
       depth=sort(depth);
@@ -2988,39 +2787,36 @@ void draw(transform t=identity(), frame f, surface s, int nu=nmesh, int nv=nu,
       while(depth.length > 0) {
 	real[] a=depth.pop();
 	int i=round(a[1]);
-	tensorshade(t,f,s.s[i],surfacepen,light,P);
+	tensorshade(t,f,s.s[i],outward,surfacepen,light,P);
+	if(meshpen != nullpen && meshpen != invisible)
+	  draw(f,project(s.s[i].external(),P),meshpen);
       }
-    }
-  }
-
-  if(meshpen != nullpen && meshpen != invisible) {
-    for(int k=0; k < s.s.length; ++k) {
-      real step=nu == 0 ? 0 : 1/nu;
-      for(int i=0; i <= nu; ++i)
-	draw(f,s.s[k].uequals(i*step),meshpen,P);
-      
-      real step=nv == 0 ? 0 : 1/nv;
-      for(int j=0; j <= nv; ++j)
-	draw(f,s.s[k].vequals(j*step),meshpen,P);
+      endgroup(f);
     }
   }
 }
 
-void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
+void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
+	  bool outward=false,
 	  pen surfacepen=lightgray, pen meshpen=nullpen, pen ambientpen=black,
 	  pen emissivepen=black, pen specularpen=mediumgray,
 	  real opacity=opacity(surfacepen), real shininess=defaultshininess,
 	  light light=currentlight)
 {
+  if(s.s.length == 0) return;
+
+  // Draw a mesh in the absence of lighting (override with meshpen=invisible). 
+  if(!light.on && meshpen == nullpen) meshpen=currentpen;
+
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
       if(prc()) {
-      draw(f,S,nu,nv,surfacepen,invisible,ambientpen,emissivepen,specularpen,
+      draw(f,S,nu,nv,surfacepen,meshpen,ambientpen,emissivepen,specularpen,
 	   opacity,shininess,light,P);
-      } else
+      } else if(pic != null)
 	pic.add(new void(frame f, transform T) {
-	    draw(T,f,S,nu,nv,surfacepen,invisible,ambientpen,emissivepen,
-		 specularpen,opacity,shininess,light,P);
+	    draw(T,f,S,nu,nv,outward,surfacepen,meshpen,ambientpen,
+		 emissivepen,specularpen,opacity,shininess,light,P);
 	},true);
       if(pic != null) {
 	pic.addPoint(min(S,P));
@@ -3034,11 +2830,10 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
     for(int k=0; k < s.s.length; ++k) {
       real step=nu == 0 ? 0 : 1/nu;
       for(int i=0; i <= nu; ++i)
-	draw(pic,s.s[k].uequals(i*step),meshpen);
-      
-      real step=nv == 0 ? 0 : 1/nv;
+	addPath(pic,s.s[k].uequals(i*step),meshpen);
+      step=nv == 0 ? 0 : 1/nv;
       for(int j=0; j <= nv; ++j)
-	draw(pic,s.s[k].vequals(j*step),meshpen);
+	addPath(pic,s.s[k].vequals(j*step),meshpen);
     }
   }
 }
@@ -3055,4 +2850,3 @@ void exitfunction()
 }
 
 atexit(exitfunction);
-

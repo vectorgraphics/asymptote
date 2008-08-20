@@ -5,13 +5,8 @@ size3(200,IgnoreAspect);
 
 currentprojection=perspective(5,2,2);
 
-defaultpen(overwrite(SuppressQuiet));
-
 scale(Linear,Linear,Log(automax=false));
 
-bbox3 b=autolimits(Z,X+Y+30Z);
-
-xaxis("$x$",b,red,RightTicks(2,2));
-yaxis("$y$",b,red,RightTicks(2,2));
-zaxis("$z$",b,red,RightTicks);
-
+xaxis3("$x$",0,1,red,RightTicks3(2,2));
+yaxis3("$y$",0,1,red,RightTicks3(2,2));
+zaxis3("$z$",1,30,red,RightTicks3(beginlabel=false));

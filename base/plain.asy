@@ -46,7 +46,7 @@ bool needshipout() {
 
 void updatefunction()
 {
-  shipout();
+  if(!currentpicture.uptodate) shipout();
 }
 
 void exitfunction()
@@ -98,7 +98,7 @@ addSaveFunction(new restoreThunk () {
       defaultpen(defaultpen);
       currentpen=p;
       currentpicture=pic;
-      uptodate(false);
+      currentpicture.uptodate=false;
       restore=r;
     };
   });

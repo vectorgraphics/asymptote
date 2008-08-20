@@ -1,6 +1,7 @@
 import graph3;
 
 size(0,200);
+size3(200,IgnoreAspect);
 
 currentprojection=orthographic(4,6,3);
 
@@ -11,11 +12,12 @@ real z(real t) {return t;}
 defaultpen(overwrite(SuppressQuiet));
 
 path3 p=graph(x,y,z,0,2.7,operator ..);
-bbox3 b=autolimits(min(p),max(p));
 
-xaxis(rotate(X)*"$x$",all=true,b,red,RightTicks(rotate(X)*Label,2,2));
-yaxis(rotate(Y)*"$y$",all=true,b,red,RightTicks(rotate(Y)*Label,2,2));
-zaxis("$z$",all=true,b,red,RightTicks);
+//draw(p,Arrow);
+draw(p);
 
-draw(p,Arrow);
+xaxis3(XY()*"$x$",Bounds(),red,LeftTicks3(Label,2,2));
+yaxis3(YX()*"$y$",Bounds(),red,LeftTicks3(Label,2,2));
+zaxis3(XZ()*"$z$",Bounds(),red,LeftTicks3);
+
 

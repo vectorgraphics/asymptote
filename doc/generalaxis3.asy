@@ -2,14 +2,11 @@ import graph3;
 
 size(0,100);
 
-path3 G=xscale3(1)*(yscale3(2)*unitcircle3);
+path3 g=yscale3(2)*unitcircle3;
 
-axis(Label("C",align=Relative(5E)),G,
-     LeftTicks(endlabel=false,8,end=false),
+axis(Label("C",position=0,align=15X),g,
+     LeftTicks3(endlabel=false,8,end=false),
      ticklocate(0,360,new real(real v) {
-         path g=G;
-         path h=O--max(abs(max(G)),abs(min(G)))*dir(90,v);
-         return intersect(g,h)[0];
-       },new pair(real t) {
-	 t /= ninterpolate;
-	 return dir(point(G,t),cross(dir(G,t),Z));}));
+         path3 h=O--max(abs(max(g)),abs(min(g)))*dir(90,v);
+         return intersect(g,h)[0];},
+		new triple(real t) {return cross(dir(g,t),Z);}));

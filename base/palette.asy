@@ -228,7 +228,7 @@ void palette(picture pic=currentpicture, Label L="", bounds bounds,
   
   axisT axis;
   axis(pic,axis);
-  real angle=degrees(axis.align);
+  real angle=degrees(axis.align.dir);
 
   initial=Scale(pic,initial);
   final=Scale(pic,final);
@@ -242,7 +242,7 @@ void palette(picture pic=currentpicture, Label L="", bounds bounds,
   path g=(final-dot(lambda,par)*par)--final;
   path g2=initial--final-dot(lambda,perp)*perp;
 
-  if(sgn(dot(lambda,perp)*dot(axis.align,perp)) == -1) {
+  if(sgn(dot(lambda,perp)*dot(axis.align.dir,perp)) == -1) {
     path tmp=g;
     g=g2;
     g2=tmp;

@@ -1312,7 +1312,6 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 	     string format=emptystring, bool wait=false, bool view=true,
 	     callableTransform *xform)
 {
-  interact::uptodate=true;
   if(prefix.empty()) prefix=outname();
 
   picture *result=new picture;
@@ -1795,11 +1794,6 @@ pen colorless(pen p)
 bool interactive()
 {
   return interact::interactive;
-}
-
-void uptodate(bool b)
-{
-  interact::uptodate=b;
 }
 
 bool uptodate()
@@ -4215,21 +4209,26 @@ realarray2 *inverse(realarray2 *a)
 
 // Solve the linear equation ax=b by LU decomposition, returning the
 // solution x, where a is an n x n matrix and b is an array of length n.
-realarray *solve(realarray2 *a, realarray *b)
+// If no solution exists, return an empty array.
+realarray *solve(realarray2 *a, realarray *b, bool warn=true)
 {
   size_t n=a->size();
   
-  array *x=new array(n);
-  if(n == 0) return x;
+  if(n == 0) return new array(0);
+  
+  size_t m=b->size();
+  if(m != n) error(incommensurate);
   
   real *A=copyArray2C(a);
-  real *B=copyArrayC(b);
-  size_t m=b->size();
-  if(m != n) error(incommensurate);  
-  
   size_t *index=new size_t[n];
-  LUdecompose(A,n,index);
+  
+  if(LUdecompose(A,n,index,warn) == 0)
+    return new array(0);
 
+  array *x=new array(n);
+  
+  real *B=copyArrayC(b);
+  
   for(size_t i=0; i < n; ++i) {
     size_t ip=index[i];
     real sum=B[ip];
@@ -4261,22 +4260,26 @@ realarray *solve(realarray2 *a, realarray *b)
 
 // Solve the linear equation ax=b by LU decomposition, returning the
 // solution x, where a is an n x n matrix and b is an n x m matrix.
-realarray2 *solve(realarray2 *a, realarray2 *b)
+// If no solution exists, return an empty array.
+realarray2 *solve(realarray2 *a, realarray2 *b, bool warn=true)
 {
   size_t n=a->size();
   
-  array *x=new array(n);
-  if(n == 0) return x;
+  if(n == 0) return new array(0);
   
-  if(b->size() != n) error(incommensurate);  
+  if(b->size() != n) error(incommensurate);
   size_t m=read<array*>(b,0)->size();
   
   real *A=copyArray2C(a);
   real *B=copyArray2C(b,false);
   
   size_t *index=new size_t[n];
-  LUdecompose(A,n,index);
+  
+  if(LUdecompose(A,n,index,warn) == 0)
+    return new array(0);
 
+  array *x=new array(n);
+  
   for(size_t i=0; i < n; ++i) {
     real *Ai=A+i*n;
     real *Bi=B+i*m;

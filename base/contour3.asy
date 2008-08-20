@@ -19,12 +19,11 @@ private struct bucket
   triple v;
   triple val;
   int count;
-  pair z;
 }
 
 struct vertex
 {
-  pair z;
+  triple v;
   triple normal;
 }
 
@@ -41,7 +40,7 @@ private struct object
 // midpoint:  optional array containing estimate of f at midpoint values
 vertex[][] contour3(triple[][][] v, real[][][] f,
 		    real[][][] midpoint=new real[][][],
-                    projection P=currentprojection)
+		    projection P=currentprojection)
 {
   int nx=v.length-1;
   if(nx == 0)
@@ -172,7 +171,6 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
           }
           bucket newbuck;
           newbuck.v=v;
-          newbuck.z=project(v,P);
           newbuck.val=add;
           newbuck.count=1;
           cur.push(newbuck);
@@ -360,7 +358,7 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
       if(notfound1) {
         if(length(w.v-kp1[r].v) < eps) {
           if(first) {
-            ret.z=kp1[r].z;
+            ret.v=kp1[r].v;
             first=false;
           }
           normal += kp1[r].val;
@@ -371,7 +369,7 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
       if(notfound2) {
         if(length(w.v-kp2[r].v) < eps) {
           if(first) {
-            ret.z=kp2[r].z;
+            ret.v=kp2[r].v;
             first=false;
           }
           normal += kp2[r].val;
@@ -401,6 +399,7 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
 // a,b:       diagonally opposite points of rectangular parellelpiped domain
 vertex[][] contour3(real[][][] f, real[][][] midpoint=new real[][][],
                     triple a, triple b, projection P=currentprojection)
+
 {
   int nx=f.length-1;
   if(nx == 0)
@@ -433,7 +432,7 @@ vertex[][] contour3(real[][][] f, real[][][] midpoint=new real[][][],
 // nx,ny,nz   number of subdivisions in x, y, and z directions
 vertex[][] contour3(real f(real, real, real), triple a, triple b,
                     int nx=ncell, int ny=nx, int nz=nx,
-                    projection P=currentprojection)
+		    projection P=currentprojection)
 {
   // evaluate function at points and midpoints
   real[][][] dat=new real[nx+1][ny+1][nz+1];
@@ -471,19 +470,18 @@ vertex[][] contour3(real f(real, real, real), triple a, triple b,
   return contour3(dat,midpoint,a,b,P);
 }
 
-// Return contour guides for a 3D data array, using a pyramid mesh
+// Draw contour surface for a 3D data array, using a pyramid mesh
 void draw(picture pic=currentpicture, vertex[][] g, pen p=lightgray,
           light light=currentlight)
 {
-  begingroup(pic);
-  int[] edges={0,0,0};
+  surface s;
   for(int i=0; i < g.length; ++i) {
     vertex[] cur=g[i];
     pen pen0=light.intensity(cur[0].normal)*p;
     pen pen1=light.intensity(cur[1].normal)*p;
     pen pen2=light.intensity(cur[2].normal)*p;
-    gouraudshade(pic,cur[0].z--cur[1].z--cur[2].z--cycle,
-		 new pen[] {pen0,pen1,pen2}, edges);
+    s.s.push(patch(cur[0].v--cur[0].v--cur[1].v--cur[2].v--cycle,
+		   new pen[] {pen0,pen0,pen1,pen2}));
   }
-  endgroup(pic);
+  draw(pic,s,p);
 }

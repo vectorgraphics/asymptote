@@ -1,9 +1,9 @@
 import graph3;
 
 size(200,0);
-currentprojection=orthographic(4,0,2.0);
+currentprojection=orthographic(4,0,2);
 
-real R=2.0;
+real R=2;
 real a=1.9;
 
 triple f(pair t) {
@@ -13,13 +13,11 @@ triple f(pair t) {
 pen p=rgb(0.2,0.5,0.7);
 
 // surface only
-//add(surface(f,(0,0),(2pi,2pi),outward=true,30,15));
+//draw(surface(f,(0,0),(2pi,2pi),30,15));
 
 // mesh only
-//add(surface(f,(0,0),(2pi,2pi),outward=true,30,15,nullpen,meshpen=p));
+//draw(surface(f,(0,0),(2pi,2pi),30,15),invisible,meshpen=p);
 
 // surface & mesh
-//add(surface(f,(0,0),(2pi,2pi),outward=true,30,15,meshpen=p));
+draw(surface(f,(0,0),(2pi,2pi),30,15),meshpen=p);
 
-// Surface coloring looks better if seam is moved
-add(surface(f,(pi,pi),(3pi,3pi),outward=true,30,15,meshpen=p));

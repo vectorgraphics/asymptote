@@ -1,6 +1,5 @@
 size(6cm,0);
-import math;
-import three;
+import bsp;
 
 real u=2.5;
 real v=1;
@@ -12,9 +11,9 @@ path3 l=rotate(90,Z)*rotate(90,Y)*y;
 path3 g=rotate(90,X)*rotate(90,Y)*y;
 
 face[] faces;
-filldraw(faces.push(y),y,yellow);
-filldraw(faces.push(l),l,lightgrey);
-filldraw(faces.push(g),g,green);
+filldraw(faces.push(y),project(y),yellow);
+filldraw(faces.push(l),project(l),lightgrey);
+filldraw(faces.push(g),project(g),green);
 
 add(faces);
 

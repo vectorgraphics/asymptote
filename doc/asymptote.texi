@@ -4933,7 +4933,7 @@ For Dirichlet boundary conditions (denoted here by @code{u[-1]} and
 @code{f[n-1]-c[n-1]u[n]}; then set @code{a[0]=c[n-1]=0}. 
 
 @cindex @code{solve}
-@item real[] solve(real[][] a, real[] b)
+@item real[] solve(real[][] a, real[] b, bool warn=true)
 Solve the linear equation @math{@code{a}x=@code{b}} by LU decomposition
 and return the solution @math{x}, where @code{a} is an
 @math{n \times n} matrix and @code{b} is an array of length @math{n}. 
@@ -4948,16 +4948,19 @@ write(b); write();
 write(x); write();
 write(a*x);
 @end verbatim
+If @code{a} is a singular matrix and @code{warn} is @code{false}, return an
+empty array.
 If the matrix @code{a} is tridiagonal, the routine @code{tridiagonal} provides
 a more efficient algorithm (@pxref{tridiagonal}). 
 
 @anchor{solve}
 
 @cindex @code{solve}
-@item real[][] solve(real[][] a, real[][] b)
+@item real[][] solve(real[][] a, real[][] b, bool warn=true)
 Solve the linear equation @math{@code{a}x=@code{b}} and return the
 solution @math{x}, where @code{a} is an @math{n \times n} matrix and
-@code{b} is an @math{n \times m} matrix.
+@code{b} is an @math{n \times m} matrix. If @code{a} is a singular
+matrix and @code{warn} is @code{false}, return an empty matrix.
 
 @cindex @code{identity}
 @item real[][] identity(int n);
@@ -7382,9 +7385,8 @@ A mesh can be drawn without solid fills by specifying @code{nullpen}
 for the surfacepen. A mesh is always drawn in the absence of lighting, unless 
 @code{meshpen=invisible}. For closed orientable surfaces parametrized
 such that @math{df/du \times df/dv} points in the direction of the
-outward normal, low-mesh-resolution lighting artifacts near the
-projected edges can be avoided by specifying @code{outward=true},
-as this forces only the outer surface to be drawn.
+outward normal, one can force all surfaces to be shaded using their
+outward normal by specifying @code{outward=true}.
 
 @node grid3
 @section @code{grid3}
@@ -8324,7 +8326,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  fontcommand makepen aCos aTan Knorr roundpath BeginPoint nView
 @c  LocalWords:  MidPoint EndPoint nmask antialiasing autoplain batchMask libgc
 @c  LocalWords:  batchView clearGUI ignoreGUI interactiveMask interactiveView
-@c  LocalWords:  listvariables outformat outname parseonly prepending psviewer
+@c  LocalWords:  listvariables outformat parseonly prepending psviewer
 @c  LocalWords:  pdfviewer papertype tabcompletion noautoplain plugins Teixeira
 @c  LocalWords:  embeddedmovie historylines RadialShade penc penr CJK tgz GPL
 @c  LocalWords:  legendlinelength legendskip USERPROFILE LDFLAGS currentlight

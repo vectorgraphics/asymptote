@@ -2,8 +2,9 @@
 string defaultfilename;
 
 string outprefix(string prefix=defaultfilename) {
-  return stripdirectory(stripextension(prefix == "" ? settings.outname :
-				       prefix));
+  string s=prefix != "" ? prefix :
+    (settings.outname == "" && interactive()) ? "out" : settings.outname;
+return stripdirectory(stripextension(s));
 }
 
 bool shipped; // Was a picture or frame already shipped out?
@@ -20,10 +21,8 @@ frame Seascape(frame f) {return rotate(-90)*f;};
 typedef frame orientation(frame);
 orientation orientation=Portrait;
 
-include plain_xasy;
-
 object embed3(string, frame, string, projection);
-object embed3(string, picture, string, projection);
+object embed3(picture, real, real, bool, string, projection);
 
 bool prc()
 {
@@ -38,6 +37,8 @@ frame enclose(string prefix=defaultfilename, object F)
     return f;
   } return F.f;
 }
+
+include plain_xasy;
 
 void shipout(string prefix=defaultfilename, frame f,
              string format="", bool wait=NoWait, bool view=true,
@@ -88,21 +89,14 @@ try{silentPrint(pp);} catch(e){this.print(pp);}";
   shipped=true;
 }
 
-void shipout(string prefix=defaultfilename, picture pic,
+void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     orientation orientation=orientation,
 	     string format="", bool wait=NoWait, bool view=true,
 	     string options="", projection P=currentprojection)
 {
-  shipout(prefix,orientation(pic.nodes3.length > 0 ?
-			     enclose(embed3(prefix,pic,options,P)) : pic.fit()),
-	  format,wait,view);
-}
-
-void shipout(string prefix=defaultfilename,
-             orientation orientation=orientation,
-             string format="", bool wait=NoWait, bool view=true)
-{
-  shipout(prefix,currentpicture,orientation,format,wait,view);
+  if(!uptodate())
+    shipout(prefix,orientation(pic.fit(options,P)),format,wait,view);
+  pic.uptodate=true;
 }
 
 void newpage(frame f)

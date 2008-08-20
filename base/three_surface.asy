@@ -1,4 +1,3 @@
-import graph_settings;
 import bezulate;
 
 private real Fuzz=10.0*realEpsilon;
@@ -7,6 +6,7 @@ private void abortcyclic() {abort("cyclic path of length 4 expected");}
 
 struct patch {
   triple[][] P=new triple[4][4];
+  pen[] colors; // Optionally associate specific colors to this patch.
 
   path3 external() {
     return
@@ -41,9 +41,16 @@ struct patch {
     return Bv(0,v)..controls Bv(1,v) and Bv(2,v)..Bv(3,v);
   }
 
-  pen[] colors(pen surfacepen=lightgray, light light=currentlight) {
+  pen[] colors(pen surfacepen=lightgray, light light=currentlight,
+	       bool outward=false, projection Q=null) {
+    if(colors.length != 0)
+      return copy(colors);
+
     pen color(triple dfu, triple dfv) {
-      return light.intensity(cross(dfu,dfv))*surfacepen;
+      triple v=cross(dfu,dfv);
+      if(!outward)
+	v *= sgn(dot(v,Q.camera-Q.target));
+      return light.intensity(v)*surfacepen;
     }
 
     struct dir {
@@ -154,11 +161,16 @@ struct patch {
 			   {P[12],P[13],P[14],P[15]}};
   }
 
-  void operator init(path3 external, triple[] internal=new triple[]) {
+  void operator init(path3 external, triple[] internal=new triple[],
+		     pen[] colors=new pen[]) {
+    if(colors.length !=0)
+      this.colors=copy(colors);
+
     if(!cyclic(external) || length(external) != 4)
       abortcyclic();
     init();
     if(internal.length == 0) {
+      internal=new triple[4];
       for(int j=0; j < 4; ++j) {
 	static real nineth=1.0/9.0;
 	internal[j]=nineth*(-4.0*point(external,j)
@@ -191,10 +203,6 @@ struct patch {
     P[2][0]=postcontrol(external,3);
     P[2][1]=internal[3];
   }
-
-  void operator init(explicit guide3 external, triple[] internal=new triple[]) {
-    operator init((path3) external,internal);
-  }
 }
 
 struct surface {
@@ -218,7 +226,7 @@ struct surface {
 
   // A constructor for a (possibly) nonconvex cyclic path of length 4 that
   // returns an array of one or two surfaces in a given plane.
-  void operator init (explicit path g, triple plane(pair)=XYplane) {
+  void operator init (path g, triple plane(pair)=XYplane) {
     if(!cyclic(g) || length(g) != 4)
       abortcyclic();
     for(int i=0; i < 4; ++i) {
@@ -255,10 +263,6 @@ struct surface {
     s=new patch[] {patch(path3(g,plane))};
   }
 
-  void operator init (explicit guide g) {
-    operator init((path) g);
-  }
-
   void operator init(explicit path[] g, triple plane(pair)=XYplane) {
     for(int i=0; i < g.length; ++i)
       s.append(surface(g[i],plane).s);
@@ -275,6 +279,7 @@ patch operator * (transform3 t, patch s)
       Si[j]=t*si[j]; 
     }
   }
+  S.colors=copy(s.colors);
   return S;
 }
  
@@ -378,12 +383,12 @@ void drawprc(frame f, patch s, pen surfacepen=lightgray,
 	 s.min(),s.max());
 }
 
-void tensorshade(transform t=identity(), frame f, patch s,
+void tensorshade(transform t=identity(), frame f, patch s, bool outward=false,
 		 pen surfacepen=lightgray, light light=currentlight,
-		 projection P=currentprojection, int ninterpolate=1)
+		 projection P, int ninterpolate=1)
 {
   tensorshade(f,box(t*s.min(P),t*s.max(P)),surfacepen,
-	      s.colors(surfacepen,light),t*project(s.external(),P,1),
+	      s.colors(surfacepen,light,outward,P),t*project(s.external(),P,1),
 	      t*project(s.internal(),P));
 }
 
@@ -461,8 +466,7 @@ path[] path(Label L, pair z=0, projection P)
 }
 
 void label(frame f, Label L, triple position, align align=NoAlign,
-	   pen p=currentpen, light light=nolight,
-	   projection P=currentprojection)
+	   pen p=currentpen, light light=nolight, projection P)
 {
   Label L=L.copy();
   L.align(align);
@@ -494,11 +498,13 @@ void label(picture pic=currentpicture, Label L, triple position,
       }
       if(pic != null)
 	fill(project(v,P),pic,path(L,P),light.intensity(L.T3*Z)*L.p);
-    },true);
+    },!L.defaulttransform);
 
+  if(L.defaulttransform)
+    L.T3=transform3(currentprojection);
   path3[] G=path3(g);
-  G=L.align.is3D ? align(G,O,L.align.dir3,L.p) : L.T3*G;
-  pic.addBox(position,min(G),max(G));
+  G=L.align.is3D ? align(G,L.T3,O,L.align.dir3,L.p) : L.T3*G;
+  pic.addBox(position,position,min(G),max(G));
 }
 
 // TODO: generalize to handle triples.
@@ -519,6 +525,8 @@ void label(picture pic=currentpicture, Label L, path3 g,
   label(pic,L,point(g,position),
 	alignrelative ? -Align*xypart(inverse(L.T3)*dir(g,position))*I : Align);
 }
+
+restricted surface nullsurface;
 
 private real a=4/3*(sqrt(2)-1);
 private transform3 t=rotate(90,O,Z);
@@ -553,8 +561,7 @@ restricted surface unitcylinder=surface(unitcylinder1,unitcylinder2,
 					unitcylinder3,unitcylinder4);
 
 void dot(frame f, triple v, pen p=currentpen,
-	 filltype filltype=Fill, light light=nolight,
-	 projection P=currentprojection)
+	 filltype filltype=Fill, light light=nolight, projection P)
 {
   if(prc())
     for(patch s : unitsphere.s)
@@ -562,15 +569,16 @@ void dot(frame f, triple v, pen p=currentpen,
   else dot(f,project(v,P),p,filltype);
 }
 
-void dot(frame f, explicit path3 g, pen p=currentpen,
-	 filltype filltype=Fill)
+void dot(frame f, path3 g, pen p=currentpen, filltype filltype=Fill,
+	 projection P)
 {
-  for(int i=0; i <= length(g); ++i) dot(f,point(g,i),p,filltype);
+  for(int i=0; i <= length(g); ++i) dot(f,point(g,i),p,filltype,P);
 }
 
-void dot(frame f, explicit path3[] g, pen p=currentpen, filltype filltype=Fill)
+void dot(frame f, path3[] g, pen p=currentpen, filltype filltype=Fill,
+	 projection P)
 {
-  for(int i=0; i < g.length; ++i) dot(f,g[i],p,filltype);
+  for(int i=0; i < g.length; ++i) dot(f,g[i],p,filltype,P);
 }
 
 void dot(picture pic=currentpicture, triple v, pen p=currentpen,
@@ -593,19 +601,13 @@ void dot(picture pic=currentpicture, triple[] v, pen p=currentpen,
   for(int i=0; i < v.length; ++i) dot(pic,v[i],p,filltype);
 }
 
-void dot(picture pic=currentpicture, explicit path3 g, pen p=currentpen,
+void dot(picture pic=currentpicture, path3 g, pen p=currentpen,
 	 filltype filltype=Fill)
 {
   for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p,filltype);
 }
 
-void dot(picture pic=currentpicture, explicit guide3 g, pen p=currentpen,
-	 filltype filltype=Fill)
-{
-  dot(pic,(path3) g,p,filltype);
-}
-
-void dot(picture pic=currentpicture, explicit path3[] g, pen p=currentpen,
+void dot(picture pic=currentpicture, path3[] g, pen p=currentpen,
 	 filltype filltype=Fill)
 {
   for(int i=0; i < g.length; ++i) dot(pic,g[i],p,filltype);

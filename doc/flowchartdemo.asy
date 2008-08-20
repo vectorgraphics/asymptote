@@ -16,8 +16,7 @@ draw(block3);
 draw(block4);
 draw(block5);
 
-add(new void(frame f, transform t) {
-    picture pic;
+add(new void(picture pic, transform t) {
     draw(pic,path(new pair[]{block1.right(t),block2.top(t)},Horizontal),
          Arrow,PenMargin);
     draw(pic,Label("Yes",0.5),path(new pair[]{block2.left(t),block3.top(t)},
@@ -29,6 +28,4 @@ add(new void(frame f, transform t) {
     draw(pic,path(new pair[]{block4.bottom(t),block5.right(t)},Vertical),
          Arrow,PenMargin);
 
-    add(f,pic.fit());
   });
-
