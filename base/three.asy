@@ -2748,7 +2748,6 @@ void draw(picture pic=currentpicture, Label L="", path3[] g, pen p=currentpen)
   for(int i=0; i < g.length; ++i) draw(pic,L,g[i],p);
 }
 
-
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 	  bool outward=false,
 	  pen surfacepen=lightgray, pen meshpen=nullpen, pen ambientpen=black,
@@ -2758,14 +2757,16 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 {
   if(s.s.length == 0) return;
 
-  // Draw a mesh in the absence of lighting (override with meshpen=invisible). 
+  // Draw a mesh in the absence of lighting (override with meshpen=nullpen). 
   if(!light.on && meshpen == nullpen) meshpen=currentpen;
+
+  bool mesh=meshpen != nullpen && meshpen != invisible;
 
   if(prc()) {
     for(int i=0; i < s.s.length; ++i)
       drawprc(f,s.s[i],surfacepen,ambientpen,emissivepen,
 	      specularpen,opacity,shininess,light);
-    if(meshpen != nullpen && meshpen != invisible) {
+    if(mesh) {
       for(int k=0; k < s.s.length; ++k) {
 	real step=nu == 0 ? 0 : 1/nu;
 	for(int i=0; i <= nu; ++i)
@@ -2776,33 +2777,33 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
       }
     }
   } else {
-    if(surfacepen != nullpen) {
-      begingroup(f);
-      // Sort patches by mean distance from camera
-      triple camera=P.camera;
-      if(P.infinity)
-	camera *= max(abs(min(s)),abs(max(s)));
+    bool surface=surfacepen != nullpen;
+    begingroup(f);
+    // Sort patches by mean distance from camera
+    triple camera=P.camera;
+    if(P.infinity)
+      camera *= max(abs(min(s)),abs(max(s)));
 
-      real[][] depth;
+    real[][] depth;
     
-      for(int i=0; i < s.s.length; ++i) {
-	triple[][] P=s.s[i].P;
-	real d=abs(camera-0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]));
-	depth.push(new real[] {d,i});
-      }
-
-      depth=sort(depth);
-
-      // Draw from farthest to nearest
-      while(depth.length > 0) {
-	real[] a=depth.pop();
-	int i=round(a[1]);
-	tensorshade(t,f,s.s[i],outward,surfacepen,light,P);
-	if(meshpen != nullpen && meshpen != invisible)
-	  draw(f,project(s.s[i].external(),P),meshpen);
-      }
-      endgroup(f);
+    for(int i=0; i < s.s.length; ++i) {
+      triple[][] P=s.s[i].P;
+      real d=abs(camera-0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]));
+      depth.push(new real[] {d,i});
     }
+
+    depth=sort(depth);
+
+    // Draw from farthest to nearest
+    while(depth.length > 0) {
+      real[] a=depth.pop();
+      int i=round(a[1]);
+      if(surface)
+	tensorshade(t,f,s.s[i],outward,surfacepen,light,P);
+      if(mesh)
+	draw(f,project(s.s[i].external(),P),meshpen);
+    }
+    endgroup(f);
   }
 }
 
@@ -2815,7 +2816,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 {
   if(s.s.length == 0) return;
 
-  // Draw a mesh in the absence of lighting (override with meshpen=invisible). 
+  // Draw a mesh in the absence of lighting (override with meshpen=nullpen). 
   if(!light.on && meshpen == nullpen) meshpen=currentpen;
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {

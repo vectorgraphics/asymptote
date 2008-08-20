@@ -140,7 +140,7 @@ void drawPathPenBase::strokebounds(bbox& b, const path& p)
 bool drawPath::draw(psfile *out)
 {
   Int n = p.size();
-  if (n == 0 || pentype.invisible() || pentype.width() == 0.0)
+  if (n == 0 || pentype.invisible())
     return true;
 
   pen pen0=pentype;

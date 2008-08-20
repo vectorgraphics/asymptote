@@ -39,29 +39,3 @@ path arc(pair c, explicit pair z1, explicit pair z2, bool direction=CCW)
 {
   return arc(c,abs(z1-c),degrees(z1-c),degrees(z2-c),direction);
 }
-
-path ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
-             pen p=currentpen, filltype filltype=NoFill, bool put=Above)
-{
-  pair m=min(src);
-  pair M=max(src);
-  pair D=M-m;
-  static real factor=0.5*sqrt(2);
-  int sign=filltype == NoFill ? 1 : -1;
-  path g=ellipse(0.5*(M+m),factor*D.x+0.5*sign*max(p).x+xmargin,
-                 factor*D.y+0.5*sign*max(p).y+ymargin);
-  frame F;
-  if(put == Below) {
-    filltype(F,g,p);
-    prepend(dest,F);
-  } else filltype(dest,g,p);
-  return g;
-}
-
-path ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
-             pen p=currentpen, filltype filltype=NoFill, bool put=Above)
-{
-  add(f,L);
-  return ellipse(f,xmargin,ymargin,p,filltype,put);
-}
-

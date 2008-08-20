@@ -1,8 +1,6 @@
 real labelmargin=0.3;
 real dotfactor=6;
 
-pen nullpen=linewidth(0);
-
 pen solid=linetype("");
 pen dotted=linetype("0 4");
 pen dashed=linetype("8 8");
@@ -32,6 +30,8 @@ restricted pen nobasealign=basealign(0);
 restricted pen basealign=basealign(1);
 
 pen invisible=invisible();
+pen nullpen=linewidth(0)+invisible;
+
 pen black=gray(0);
 pen white=gray(1);
 pen gray=gray(0.5);

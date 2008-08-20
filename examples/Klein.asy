@@ -16,4 +16,4 @@ triple f(pair t) {
 
 pen p=rgb(0.2,0.5,0.7);
 
-add(surface(f,(0,0),(2pi,2pi),60,60,meshpen=p));
+draw(surface(f,(0,0),(2pi,2pi),60,60),meshpen=p);
