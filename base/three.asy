@@ -2221,7 +2221,7 @@ real relative(Label L, path3 g)
   return L.position.relative ? reltime(g,L.relative()) : L.relative();
 }
 
-// return a rotation that maps u to Z.
+// return the rotation that maps u to Z about cross(u,Z).
 transform3 align(triple u) 
 {
   triple xi=cross(u,Z);
@@ -2349,7 +2349,7 @@ path3 circle(triple c, real r, triple normal=Z)
 {
   path3 p=scale3(r)*unitcircle3;
   if(normal != Z) 
-    p=rotate(longitude(normal,warn=false),Z)*rotate(colatitude(normal),Y)*p;
+    p=inverse(align(normal))*p;
   return shift(c)*p;
 }
 

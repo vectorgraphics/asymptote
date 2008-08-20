@@ -1534,19 +1534,6 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
   draw(pic,L,g,sequence(new pen(int) {return p;},g.length),legend);
 }
 
-triple polar(real r, real theta, real phi)
-{
-  return r*expi(theta,phi);
-}
-
-guide3 polargraph(real r(real,real), real theta(real), real phi(real),
-		  int n=ngraph, interpolate3 join=operator --)
-{
-  return graph(join)(new triple(real t) {
-      return polar(r(theta(t),phi(t)),theta(t),phi(t));
-    },0,1,n);
-}
-
 picture vectorfield(path3 vector(pair z), triple f(pair z),
 		    pair a, pair b, int nx=nmesh, int ny=nx,
 		    bool autoscale=true,
@@ -1576,28 +1563,66 @@ picture vectorfield(path3 vector(pair z), triple f(pair z),
       real y=interp(a.y,b.y,j*dy);
       pair z=(x,y);
       //      draw(pic,shift(f(z))*scale3(scale)*vector(z),p,arrow);
-      draw(pic,shift(f(z))*scale3(scale)*vector(z),p);
+     draw(pic,shift(f(z))*scale3(scale)*vector(z),p);
     }
   }
   return pic;
 }
 
+triple polar(real r, real theta, real phi)
+{
+  return r*expi(theta,phi);
+}
+
+guide3 polargraph(real r(real,real), real theta(real), real phi(real),
+		  int n=ngraph, interpolate3 join=operator --)
+{
+  return graph(join)(new triple(real t) {
+      return polar(r(theta(t),phi(t)),theta(t),phi(t));
+    },0,1,n);
+}
+
 // True arc
 path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
-	  triple normal=Z, int n=400)
+	  triple normal=O, bool direction, int n=nCircle)
 {
+  if(normal == O) {
+    normal=cross(dir(theta1,phi1),dir(theta2,phi2));
+    if(normal == O) abort("explicit normal required for these endpoints");
+  }
+
+  theta1=radians(theta1);
+  theta2=radians(theta2);
+  phi1=radians(phi1);
+  phi2=radians(phi2);
+
   path3 p=polargraph(new real(real theta, real phi) {return r;},
-		     new real(real t) {
-		       return radians(interp(theta1,theta2,t));},
-		     new real(real t) {return radians(interp(phi1,phi2,t));},
+		     new real(real t) {return interp(theta1,theta2,t);},
+		     new real(real t) {return interp(phi1,phi2,t);},
 		     n,operator ..);
   if(normal != Z)
-    p=rotate(longitude(normal,warn=false),Z)*rotate(colatitude(normal),Y)*p;
+    p=inverse(align(direction ? normal : -normal))*p;
   return shift(c)*p;
 }
 
+path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
+          triple normal=O, int n=nCircle)
+{
+  bool pos=theta2 > theta1 || (theta2 == theta1 && phi2 >= phi1);
+  if(r > 0) return Arc(c,r,theta1,phi1,theta2,phi2,normal,pos ? CCW : CW,n);
+  else return Arc(c,-r,theta1,phi1,theta2,phi2,normal,pos ? CW : CCW,n);
+}
+
+path3 Arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW,
+	  int n=nCircle)
+{
+  v1 -= c; v2 -= c;
+  return Arc(c,abs(v1),colatitude(v1),longitude(v1,warn=false),
+             colatitude(v2),longitude(v2,warn=false),normal,direction,nCircle);
+}
+
 // True circle
-path3 Circle(triple c, real r, triple normal=Z, int n=400)
+path3 Circle(triple c, real r, triple normal=Z, int n=nCircle)
 {
   return Arc(c,r,90,0,90,360,normal,n)..cycle;
 }

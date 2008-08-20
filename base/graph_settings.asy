@@ -1,5 +1,6 @@
 // Number of function samples.
 int ngraph=100;
+int nCircle=400;
 
 // Number of mesh intervals.
 int nmesh=10;

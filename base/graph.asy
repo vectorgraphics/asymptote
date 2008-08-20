@@ -2038,14 +2038,16 @@ picture vectorfield(path vector(pair), pair a, pair b,
 }
 
 // True arc
-path Arc(pair c, real r, real angle1, real angle2, int n=400)
+path Arc(pair c, real r, real angle1, real angle2, int n=nCircle)
 {
-  return shift(c)*polargraph(new real(real t){return r;},radians(angle1),
-                             radians(angle2),n,operator ..);
+  angle1=radians(angle1);
+  angle2=radians(angle2);
+  return shift(c)*polargraph(new real(real t){return r;},angle1,angle2,n,
+			     operator ..);
 }
 
 // True circle
-path Circle(pair c, real r, int n=400)
+path Circle(pair c, real r, int n=nCircle)
 {
   return Arc(c,r,0,360,n)..cycle;
 }
