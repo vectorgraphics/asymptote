@@ -1,6 +1,8 @@
 private import math;
 import embedding;
 
+bool renderthick=false;
+
 string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
 
 real defaultshininess=0.25;
@@ -110,7 +112,7 @@ transform3 reflect(triple u, triple v, triple w)
     {1-2*n.x^2, -2*n.x*n.y, -2*n.x*n.z, u.x},
     {-2*n.x*n.y, 1-2*n.y^2, -2*n.y*n.z, u.y},
     {-2*n.x*n.z, -2*n.y*n.z, 1-2*n.z^2, u.z},
-    {0.0, 0.0, 0.0, 1.0}
+    {0, 0, 0, 1}
   }*shift(-u);
 }
 
@@ -982,7 +984,7 @@ bbox3 bbox3(triple min, triple max)
   return b;
 }
 
-private real Fuzz=10.0*realEpsilon;
+private real Fuzz=10*realEpsilon;
 
 triple XYplane(pair z) {return (z.x,z.y,0);}
 triple YZplane(pair z) {return (0,z.x,z.y);}
@@ -1233,7 +1235,7 @@ struct path3 {
   real arclength() {
     if(cached_length != -1) return cached_length;
     
-    real L=0.0;
+    real L=0;
     for(int i = 0; i < n-1; ++i)
       L += cubiclength(nodes[i].point,nodes[i].post,nodes[i+1].pre,
                        nodes[i+1].point,-1);
@@ -1841,7 +1843,7 @@ transform transform(triple u, triple v, triple O=O,
   real[] y=new real[4];
   real[] t3=t[3];
   real tO3=tO[3];
-  real factor=1.0/tO3^2;
+  real factor=1/tO3^2;
   for(int i=0; i < 3; ++i) {
     x[i]=(tO3*t[0][i]-tO[0]*t3[i])*factor;
     y[i]=(tO3*t[1][i]-tO[1]*t3[i])*factor;
@@ -1996,7 +1998,7 @@ real[] intersect(path3 p, path3 q, real fuzz, int depth)
       p1=p.subpath(0,tp);
       p2=p.subpath(tp,lp);
       poffset=tp;
-      pscale=1.0;
+      pscale=1;
     }
       
     int lq=q.length();
@@ -2014,7 +2016,7 @@ real[] intersect(path3 p, path3 q, real fuzz, int depth)
       q1=q.subpath(0,tq);
       q2=q.subpath(tq,lq);
       qoffset=tq;
-      qscale=1.0;
+      qscale=1;
     }
       
     real[] T;
@@ -2093,7 +2095,7 @@ real[][] intersections(path3 p, path3 q, real fuzz, int depth)
       p1=p.subpath(0,tp);
       p2=p.subpath(tp,lp);
       poffset=tp;
-      pscale=1.0;
+      pscale=1;
     }
       
     int lq=q.length();
@@ -2111,7 +2113,7 @@ real[][] intersections(path3 p, path3 q, real fuzz, int depth)
       q1=q.subpath(0,tq);
       q2=q.subpath(tq,lq);
       qoffset=tq;
-      qscale=1.0;
+      qscale=1;
     }
       
     real[][] S=new real[][];
@@ -2245,10 +2247,10 @@ transform3 transform3(triple u, triple v)
   triple w=cross(u,v);
 
   return new real[][] {
-    {u.x,v.x,w.x,0.0},
-    {u.y,v.y,w.y,0.0},
-    {u.z,v.z,w.z,0.0},
-    {0.0,0.0,0.0,1.0}
+    {u.x,v.x,w.x,0},
+    {u.y,v.y,w.y,0},
+    {u.z,v.z,w.z,0},
+    {0,0,0,1}
   };
 }
 
@@ -2687,18 +2689,6 @@ void drawprc(frame f, path3 g, pen p=currentpen)
   draw(f,v,p,straight,min(g),max(g));
 }
 
-void draw(frame f, path3 g, pen p=currentpen, projection P,
-	  int ninterpolate=ninterpolate)
-{
-  if(prc()) drawprc(f,g,p);
-  else draw(f,project(g,P,ninterpolate),p);
-}
-
-void draw(frame f, path3[] g, pen p=currentpen, projection P)
-{
-  for(int i=0; i < g.length; ++i) draw(f,g[i],p,P);
-}
-
 void begingroup3(picture pic=currentpicture)
 {
   pic.add(new void(frame f, transform3, picture opic, projection) {
@@ -2715,17 +2705,21 @@ void endgroup3(picture pic=currentpicture)
     },true);
 }
 
-include three_light;
-include three_surface;
-
 void addPath(picture pic, path3 g, pen p)
 {
     pic.addPoint(min(g),p);
     pic.addPoint(max(g),p);
 }
 
-void draw(picture pic=currentpicture, Label L="", path3 g, align align=NoAlign,
-	  pen p=currentpen, int ninterpolate=ninterpolate)
+void draw(frame f, path3 g, pen p=currentpen, projection P,
+	  int ninterpolate=ninterpolate);
+
+include three_light;
+include three_surface;
+
+void draw(picture pic=currentpicture, Label L="", path3 g,
+	  align align=NoAlign, pen p=currentpen,
+	  int ninterpolate=ninterpolate)
 {
   Label L=L.copy();
   L.align(align);
@@ -2733,120 +2727,40 @@ void draw(picture pic=currentpicture, Label L="", path3 g, align align=NoAlign,
     L.p(p);
     label(pic,L,g);
   }
+
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       if(prc())
-	drawprc(f,t*g,p);
+	draw(f,t*g,p,null);
       if(pic != null)
 	draw(pic,project(t*g,P,ninterpolate),p);
     },true);
-  if(size(g) > 0)
-    addPath(pic,g,p);
+  addPath(pic,g,p);
+}
+
+include three_arrows;
+
+draw=new void(frame f, path3 g, pen p=currentpen, projection P,
+	      int ninterpolate=ninterpolate) {
+  if(prc()) {
+    real width=linewidth(p);
+    if(renderthick && width > 0) {
+      surface s=tube(g,width);
+      for(int i=0; i < s.s.length; ++i)
+	drawprc(f,s.s[i],p,nolight);
+    }
+    drawprc(f,g,p);
+  }
+  else draw(f,project(g,P,ninterpolate),p);
+};
+
+void draw(frame f, path3[] g, pen p=currentpen, projection P)
+{
+  for(int i=0; i < g.length; ++i) draw(f,g[i],p,P);
 }
 
 void draw(picture pic=currentpicture, Label L="", path3[] g, pen p=currentpen)
 {
   for(int i=0; i < g.length; ++i) draw(pic,L,g[i],p);
-}
-
-void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
-	  bool outward=false,
-	  pen surfacepen=lightgray, pen meshpen=nullpen, pen ambientpen=black,
-	  pen emissivepen=black, pen specularpen=mediumgray,
-	  real opacity=opacity(surfacepen), real shininess=defaultshininess,
-	  light light=currentlight, projection P)
-{
-  if(s.s.length == 0) return;
-
-  // Draw a mesh in the absence of lighting (override with meshpen=nullpen). 
-  if(!light.on && meshpen == nullpen) meshpen=currentpen;
-
-  bool mesh=meshpen != nullpen && meshpen != invisible;
-
-  if(prc()) {
-    for(int i=0; i < s.s.length; ++i)
-      drawprc(f,s.s[i],surfacepen,ambientpen,emissivepen,
-	      specularpen,opacity,shininess,light);
-    if(mesh) {
-      for(int k=0; k < s.s.length; ++k) {
-	real step=nu == 0 ? 0 : 1/nu;
-	for(int i=0; i <= nu; ++i)
-	  draw(f,s.s[k].uequals(i*step),meshpen,P);
-	step=nv == 0 ? 0 : 1/nv;
-	for(int j=0; j <= nv; ++j)
-	  draw(f,s.s[k].vequals(j*step),meshpen,P);
-      }
-    }
-  } else {
-    bool surface=surfacepen != nullpen;
-    begingroup(f);
-    // Sort patches by mean distance from camera
-    triple camera=P.camera;
-    if(P.infinity)
-      camera *= max(abs(min(s)),abs(max(s)));
-
-    real[][] depth;
-    
-    for(int i=0; i < s.s.length; ++i) {
-      triple[][] P=s.s[i].P;
-      real d=abs(camera-0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]));
-      depth.push(new real[] {d,i});
-    }
-
-    depth=sort(depth);
-
-    // Draw from farthest to nearest
-    while(depth.length > 0) {
-      real[] a=depth.pop();
-      int i=round(a[1]);
-      if(surface)
-	tensorshade(t,f,s.s[i],outward,surfacepen,light,P);
-      if(mesh)
-	draw(f,project(s.s[i].external(),P),meshpen);
-    }
-    endgroup(f);
-  }
-}
-
-void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-	  bool outward=false,
-	  pen surfacepen=lightgray, pen meshpen=nullpen, pen ambientpen=black,
-	  pen emissivepen=black, pen specularpen=mediumgray,
-	  real opacity=opacity(surfacepen), real shininess=defaultshininess,
-	  light light=currentlight)
-{
-  if(s.s.length == 0) return;
-
-  // Draw a mesh in the absence of lighting (override with meshpen=nullpen). 
-  if(!light.on && meshpen == nullpen) meshpen=currentpen;
-
-  pic.add(new void(frame f, transform3 t, picture pic, projection P) {
-      surface S=t*s;
-      if(prc()) {
-      draw(f,S,nu,nv,surfacepen,meshpen,ambientpen,emissivepen,specularpen,
-	   opacity,shininess,light,P);
-      } else if(pic != null)
-	pic.add(new void(frame f, transform T) {
-	    draw(T,f,S,nu,nv,outward,surfacepen,meshpen,ambientpen,
-		 emissivepen,specularpen,opacity,shininess,light,P);
-	},true);
-      if(pic != null) {
-	pic.addPoint(min(S,P));
-	pic.addPoint(max(S,P));
-      }
-    },true);
-  pic.addPoint(min(s));
-  pic.addPoint(max(s));
-
-  if(meshpen != nullpen && meshpen != invisible) {
-    for(int k=0; k < s.s.length; ++k) {
-      real step=nu == 0 ? 0 : 1/nu;
-      for(int i=0; i <= nu; ++i)
-	addPath(pic,s.s[k].uequals(i*step),meshpen);
-      step=nv == 0 ? 0 : 1/nv;
-      for(int j=0; j <= nv; ++j)
-	addPath(pic,s.s[k].vequals(j*step),meshpen);
-    }
-  }
 }
 
 exitfcn currentexitfunction=atexit();

@@ -10,7 +10,7 @@ namespace camp {
 
 bool drawPath3::write(prcfile *out)
 {
-  if(n == 0 || pentype.invisible() || pentype.width() == 0.0)
+  if(n == 0 || pentype.invisible())
     return true;
 
   pentype.torgb();

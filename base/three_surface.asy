@@ -408,6 +408,107 @@ void tensorshade(transform t=identity(), frame f, patch s, bool outward=false,
 	      t*project(s.internal(),P));
 }
 
+void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
+	  bool outward=false,
+	  pen surfacepen=lightgray, pen meshpen=nullpen, pen ambientpen=black,
+	  pen emissivepen=black, pen specularpen=mediumgray,
+	  real opacity=opacity(surfacepen), real shininess=defaultshininess,
+	  light light=currentlight, projection P)
+{
+  if(s.s.length == 0) return;
+
+  // Draw a mesh in the absence of lighting (override with meshpen=nullpen). 
+  if(!light.on && meshpen == nullpen) meshpen=currentpen;
+
+  bool mesh=meshpen != nullpen && meshpen != invisible;
+
+  if(prc()) {
+    for(int i=0; i < s.s.length; ++i)
+      drawprc(f,s.s[i],surfacepen,ambientpen,emissivepen,
+	      specularpen,opacity,shininess,light);
+    if(mesh) {
+      for(int k=0; k < s.s.length; ++k) {
+	real step=nu == 0 ? 0 : 1/nu;
+	for(int i=0; i <= nu; ++i)
+	  draw(f,s.s[k].uequals(i*step),meshpen,P);
+	step=nv == 0 ? 0 : 1/nv;
+	for(int j=0; j <= nv; ++j)
+	  draw(f,s.s[k].vequals(j*step),meshpen,P);
+      }
+    }
+  } else {
+    bool surface=surfacepen != nullpen;
+    begingroup(f);
+    // Sort patches by mean distance from camera
+    triple camera=P.camera;
+    if(P.infinity)
+      camera *= max(abs(min(s)),abs(max(s)));
+
+    real[][] depth;
+    
+    for(int i=0; i < s.s.length; ++i) {
+      triple[][] P=s.s[i].P;
+      real d=abs(camera-0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]));
+      depth.push(new real[] {d,i});
+    }
+
+    depth=sort(depth);
+
+    // Draw from farthest to nearest
+    while(depth.length > 0) {
+      real[] a=depth.pop();
+      int i=round(a[1]);
+      if(surface)
+	tensorshade(t,f,s.s[i],outward,surfacepen,light,P);
+      if(mesh)
+	draw(f,project(s.s[i].external(),P),meshpen);
+    }
+    endgroup(f);
+  }
+}
+
+void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
+	  bool outward=false,
+	  pen surfacepen=lightgray, pen meshpen=nullpen, pen ambientpen=black,
+	  pen emissivepen=black, pen specularpen=mediumgray,
+	  real opacity=opacity(surfacepen), real shininess=defaultshininess,
+	  light light=currentlight)
+{
+  if(s.s.length == 0) return;
+
+  // Draw a mesh in the absence of lighting (override with meshpen=nullpen). 
+  if(!light.on && meshpen == nullpen) meshpen=currentpen;
+
+  pic.add(new void(frame f, transform3 t, picture pic, projection P) {
+      surface S=t*s;
+      if(prc()) {
+      draw(f,S,nu,nv,surfacepen,meshpen,ambientpen,emissivepen,specularpen,
+	   opacity,shininess,light,P);
+      } else if(pic != null)
+	pic.add(new void(frame f, transform T) {
+	    draw(T,f,S,nu,nv,outward,surfacepen,meshpen,ambientpen,
+		 emissivepen,specularpen,opacity,shininess,light,P);
+	},true);
+      if(pic != null) {
+	pic.addPoint(min(S,P));
+	pic.addPoint(max(S,P));
+      }
+    },true);
+  pic.addPoint(min(s));
+  pic.addPoint(max(s));
+
+  if(meshpen != nullpen && meshpen != invisible) {
+    for(int k=0; k < s.s.length; ++k) {
+      real step=nu == 0 ? 0 : 1/nu;
+      for(int i=0; i <= nu; ++i)
+	addPath(pic,s.s[k].uequals(i*step),meshpen);
+      step=nv == 0 ? 0 : 1/nv;
+      for(int j=0; j <= nv; ++j)
+	addPath(pic,s.s[k].vequals(j*step),meshpen);
+    }
+  }
+}
+
 surface extrude(path g, triple elongation=Z)
 {
   patch[] allocate;
