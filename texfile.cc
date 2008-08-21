@@ -88,12 +88,15 @@ void texfile::prologue()
       *out << "\\begin{document}" << newl;
     }
   } else {
-    if(settings::pdf(texengine)) {
-      *out << "\\hoffset=-92.27pt" << newl
-	   << "\\voffset=-72.27pt" << newl;
-    } else {
-      *out << "\\hoffset=36.6pt" << newl
-	   << "\\voffset=54.0pt" << newl;
+    if(!inlinetex) {
+      *out << "\\footline={}" << newl;
+      if(settings::pdf(texengine)) {
+	*out << "\\hoffset=-92.27pt" << newl
+	     << "\\voffset=-72.27pt" << newl;
+      } else {
+	*out << "\\hoffset=36.6pt" << newl
+	     << "\\voffset=54.0pt" << newl;
+      }
     }
   }
 }
