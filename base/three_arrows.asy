@@ -20,7 +20,7 @@ triple bend(triple p, path3 g, real scale=1, real endtime=g.length())
 
   triple dir2=unit(cross(dir(g,0),dir(g,1)));
   if(abs(dir2) < 1000*realEpsilon)
-    if(abs(dir-X) < 1000*realEpsilon)
+    if(abs(dir-X) < 1000*realEpsilon || abs(dir+X) < 1000*realEpsilon)
       dir2=Y;
     else dir2=X;
   dir2=unit(dir2-dot(dir2,dir)*dir);
@@ -42,8 +42,8 @@ real takeStep(path3 s, real endtime, real width)
   if(!s.straight(0)) { // use a better test ? 
     real a=abs(accel(s,endtime));
 
-    // tweak this : 
-    real K=0.85/width; // a different constant perhaps ? 
+    // tweak this :
+    real K=0.85/width; // a different constant perhaps ?
     real minStep=1/50; // at most 1/minStep segments for a curve
     real step=max(1/(K*a+1),minStep); // or a different model
     newend=min(endtime+step,length(s));
