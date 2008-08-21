@@ -2390,7 +2390,7 @@ path3 circle(triple c, real r, triple normal=Z)
 {
   path3 p=scale3(r)*unitcircle3;
   if(normal != Z) 
-    p=transform3(normal)*p;
+    p=transform3(unit(normal))*p;
   return shift(c)*p;
 }
 
