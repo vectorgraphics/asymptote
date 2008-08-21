@@ -178,9 +178,10 @@ struct patch {
       abortcyclic();
 
     init();
-    if(piecewisestraight(external)) straight=true;
 
     if(internal.length == 0) {
+      if(piecewisestraight(external)) straight=true;
+
       internal=new triple[4];
       for(int j=0; j < 4; ++j) {
 	static real nineth=1.0/9.0;
