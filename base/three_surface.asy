@@ -7,6 +7,7 @@ private void abortcyclic() {abort("cyclic path of length 4 expected");}
 struct patch {
   triple[][] P=new triple[4][4];
   pen[] colors; // Optionally associate specific colors to this patch.
+  bool straight;
 
   path3 external() {
     return
@@ -33,12 +34,14 @@ struct patch {
 
   path3 uequals(real u) {
     triple Bu(int j, real u) {return Bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
-    return Bu(0,u)..controls Bu(1,u) and Bu(2,u)..Bu(3,u);
+    return straight ? Bu(0,u)--Bu(3,u) :
+      Bu(0,u)..controls Bu(1,u) and Bu(2,u)..Bu(3,u);
   }
 
   path3 vequals(real v) {
     triple Bv(int i, real v) {return Bezier(P[i][0],P[i][1],P[i][2],P[i][3],v);}
-    return Bv(0,v)..controls Bv(1,v) and Bv(2,v)..Bv(3,v);
+    return straight ? Bv(0,v)--Bv(3,v) :
+      Bv(0,v)..controls Bv(1,v) and Bv(2,v)..Bv(3,v);
   }
 
   pen[] colors(pen surfacepen=lightgray, light light=currentlight,
@@ -122,6 +125,7 @@ struct patch {
     havemax2=false;
     havemin3=false;
     havemax3=false;
+    straight=false;
   }
 
   triple min(triple bound=P[0][0]) {
@@ -172,7 +176,10 @@ struct patch {
 
     if(!cyclic(external) || length(external) != 4)
       abortcyclic();
+
     init();
+    if(piecewisestraight(external)) straight=true;
+
     if(internal.length == 0) {
       internal=new triple[4];
       for(int j=0; j < 4; ++j) {
@@ -283,6 +290,10 @@ struct surface {
     for(int i=0; i < g.length; ++i)
       s.append(surface(g[i],plane).s);
   }
+
+  void append(surface s) {
+    this.s.append(s.s);
+  }
 }
 
 patch operator * (transform3 t, patch s)
@@ -296,6 +307,7 @@ patch operator * (transform3 t, patch s)
     }
   }
   S.colors=copy(s.colors);
+  S.straight=s.straight;
   return S;
 }
  
@@ -387,16 +399,37 @@ triple point(patch s, real u, real v)
   return point(s.uequals(u),v);
 }
 
-void drawprc(frame f, patch s, pen surfacepen=lightgray,
-	     pen ambientpen=black, pen emissivepen=black,
-	     pen specularpen=mediumgray, real opacity=1, real shininess=0.25,
-	     light light=currentlight)
+struct material {
+  pen[] p; // surfacepen,ambientpen,emissivepen,specularpen
+  real opacity;
+  real shininess;  
+  real granularity;
+  void operator init(pen surfacepen=lightgray, pen ambientpen=black,
+		     pen emissivepen=black, pen specularpen=mediumgray,
+		     real opacity=opacity(surfacepen),
+		     real shininess=defaultshininess,
+		     real granularity=defaultgranularity) {
+    p=new pen[] {surfacepen,ambientpen,emissivepen,specularpen};
+    this.opacity=opacity;
+    this.shininess=shininess;
+    this.granularity=granularity;
+  }
+}
+
+material operator cast(pen p)
 {
-  if(light == nolight)
-    draw(f,s.P,black,black,surfacepen,black,opacity,1,s.min(),s.max());
-  else
-    draw(f,s.P,surfacepen,ambientpen,emissivepen,specularpen,opacity,shininess,
-	 s.min(),s.max());
+  return material(p);
+}
+
+material emissive(pen p, real granularity=0)
+{
+  return material(black,black,p,black,opacity(p),1,granularity);
+}
+
+void drawprc(frame f, patch s, material m=lightgray, light light=currentlight)
+{
+  if(light == nolight) m=emissive(m.p[0],m.granularity);
+  draw(f,s.P,m.p,m.opacity,m.shininess,m.granularity,s.min(),s.max());
 }
 
 void tensorshade(transform t=identity(), frame f, patch s, bool outward=false,
@@ -409,14 +442,9 @@ void tensorshade(transform t=identity(), frame f, patch s, bool outward=false,
 }
 
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
-	  bool outward=false,
-	  pen surfacepen=lightgray, pen meshpen=nullpen, pen ambientpen=black,
-	  pen emissivepen=black, pen specularpen=mediumgray,
-	  real opacity=opacity(surfacepen), real shininess=defaultshininess,
-	  light light=currentlight, projection P)
+	  bool outward=false, material surfacepen=lightgray,
+	  pen meshpen=nullpen, light light=currentlight, projection P)
 {
-  if(s.s.length == 0) return;
-
   // Draw a mesh in the absence of lighting (override with meshpen=nullpen). 
   if(!light.on && meshpen == nullpen) meshpen=currentpen;
 
@@ -424,16 +452,15 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 
   if(prc()) {
     for(int i=0; i < s.s.length; ++i)
-      drawprc(f,s.s[i],surfacepen,ambientpen,emissivepen,
-	      specularpen,opacity,shininess,light);
+      drawprc(f,s.s[i],surfacepen,light);
     if(mesh) {
       for(int k=0; k < s.s.length; ++k) {
 	real step=nu == 0 ? 0 : 1/nu;
 	for(int i=0; i <= nu; ++i)
-	  draw(f,s.s[k].uequals(i*step),meshpen,P);
+	  draw(f,s.s[k].uequals(i*step),meshpen,null);
 	step=nv == 0 ? 0 : 1/nv;
 	for(int j=0; j <= nv; ++j)
-	  draw(f,s.s[k].vequals(j*step),meshpen,P);
+	  draw(f,s.s[k].vequals(j*step),meshpen,null);
       }
     }
   } else {
@@ -459,7 +486,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
       real[] a=depth.pop();
       int i=round(a[1]);
       if(surface)
-	tensorshade(t,f,s.s[i],outward,surfacepen,light,P);
+	tensorshade(t,f,s.s[i],outward,surfacepen.p[0],light,P);
       if(mesh)
 	draw(f,project(s.s[i].external(),P),meshpen);
     }
@@ -468,11 +495,8 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-	  bool outward=false,
-	  pen surfacepen=lightgray, pen meshpen=nullpen, pen ambientpen=black,
-	  pen emissivepen=black, pen specularpen=mediumgray,
-	  real opacity=opacity(surfacepen), real shininess=defaultshininess,
-	  light light=currentlight)
+	  bool outward=false, material surfacepen=lightgray,
+	  pen meshpen=nullpen, light light=currentlight)
 {
   if(s.s.length == 0) return;
 
@@ -482,12 +506,10 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
       if(prc()) {
-      draw(f,S,nu,nv,surfacepen,meshpen,ambientpen,emissivepen,specularpen,
-	   opacity,shininess,light,P);
+	draw(f,S,nu,nv,surfacepen,meshpen,light,null);
       } else if(pic != null)
 	pic.add(new void(frame f, transform T) {
-	    draw(T,f,S,nu,nv,outward,surfacepen,meshpen,ambientpen,
-		 emissivepen,specularpen,opacity,shininess,light,P);
+	    draw(T,f,S,nu,nv,outward,surfacepen,meshpen,light,P);
 	},true);
       if(pic != null) {
 	pic.addPoint(min(S,P));
@@ -682,7 +704,8 @@ void dot(frame f, triple v, pen p=currentpen,
 {
   if(prc())
     for(patch s : unitsphere.s)
-      drawprc(f,shift(v)*scale3(0.5*dotsize(p))*s,p,light);
+      drawprc(f,shift(v)*scale3(0.5*dotsize(p))*s,
+	      material(p,granularity=dotgranularity),light);
   else dot(f,project(v,P),p,filltype);
 }
 
@@ -704,7 +727,8 @@ void dot(picture pic=currentpicture, triple v, pen p=currentpen,
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       if(prc())
 	for(patch s : unitsphere.s)
-	  drawprc(f,shift(t*v)*scale3(0.5*dotsize(p))*s,p,light);
+	  drawprc(f,shift(t*v)*scale3(0.5*dotsize(p))*s,
+		  material(p,granularity=dotgranularity),light);
       if(pic != null)
 	dot(pic,project(t*v,P),p,filltype);
     },true);

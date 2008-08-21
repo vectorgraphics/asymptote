@@ -1602,7 +1602,7 @@ path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
 		     new real(real t) {return interp(phi1,phi2,t);},
 		     n,operator ..);
   if(normal != Z)
-    p=inverse(align(direction ? normal : -normal))*p;
+    p=transform3(direction ? normal : -normal)*p;
   return shift(c)*p;
 }
 

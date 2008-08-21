@@ -16,32 +16,36 @@ typedef double Triple[3];
   
 class drawSurface : public drawElement {
 protected:
-  pen diffusepen;
-  pen ambientpen;
-  pen emissivepen;
-  pen specularpen;
+  RGBAColour diffuse;
+  RGBAColour ambient;
+  RGBAColour emissive;
+  RGBAColour specular;
   double opacity;
   double shininess;
+  double granularity;
   triple min,max;
   Triple controls[16];
+  bool invisible;
 public:
-  drawSurface(const vm::array& g, pen diffusepen, pen ambientpen,
-	      pen emissivepen, pen specularpen, double opacity,
-	      double shininess, triple min, triple max) :
-    diffusepen(diffusepen), ambientpen(ambientpen),
-    emissivepen(emissivepen), specularpen(specularpen), opacity(opacity),
-    shininess(shininess), min(min), max(max) {
+  drawSurface(const vm::array& g, const vm::array&p, double opacity,
+	      double shininess, double granularity, triple min, triple max) :
+    opacity(opacity), shininess(shininess), granularity(granularity),
+    min(min), max(max) {
     
-    this->diffusepen.torgb();
-    this->ambientpen.torgb();
-    this->emissivepen.torgb();
-    this->specularpen.torgb();
-    
-    int k=0;
-    size_t gsize=checkArray(&g);
-    string wrongsize="Bezier surface patch requires 4x4 array of triples";
-    if(gsize != 4) 
+    string wrongsize=
+      "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
+    if(checkArray(&g) != 4 || checkArray(&p) != 4)
       reportError(wrongsize);
+    
+    pen surfacepen=vm::read<camp::pen>(p,0);
+    invisible=surfacepen.invisible();
+    
+    diffuse=rgba(surfacepen);
+    ambient=rgba(vm::read<camp::pen>(p,1));
+    emissive=rgba(vm::read<camp::pen>(p,2));
+    specular=rgba(vm::read<camp::pen>(p,3));
+    
+    size_t k=0;
     const double factor=1.0/settings::cm;
     for(size_t i=0; i < 4; ++i) {
       vm::array *gi=vm::read<vm::array*>(g,i);

@@ -197,7 +197,7 @@ void PRCsurface::writeTopologicalContext(PRCbitStream &out)
   out << (uint32_t)(PRC_TYPE_TOPO_Context);
   EMPTY_CONTENTPRCBASE.write(out);
   out << (uint8_t)0 // behaviour
-      << 0.0 // granularity
+      << granularity // granularity
       << 0.0 // tolerance
       << false // have smallest face thickness
       << false; // have scale

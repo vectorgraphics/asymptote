@@ -10,18 +10,13 @@ namespace camp {
 
 bool drawPath3::write(prcfile *out)
 {
-  if(n == 0 || pentype.invisible())
+  if(n == 0)
     return true;
 
-  pentype.torgb();
-  
-  RGBAColour rgba(pentype.red(),pentype.green(),pentype.blue(),
-		  pentype.opacity());
-
   if(straight)
-    out->add(new PRCline(out,n,controls,rgba));
+    out->add(new PRCline(out,n,controls,color));
   else
-    out->add(new PRCBezierCurve(out,3,n,controls,rgba));
+    out->add(new PRCBezierCurve(out,3,n,controls,color));
   
   return true;
 }

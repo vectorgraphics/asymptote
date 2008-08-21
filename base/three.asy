@@ -1,11 +1,15 @@
 private import math;
 import embedding;
 
-bool renderthick=false;
-
-string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
+bool renderthick=true; // Render thick PRC lines?
 
 real defaultshininess=0.25;
+real defaultgranularity=0;
+real linegranularity=0.01;
+real dotgranularity=0.0001;
+real anglefactor=1.08; // Factor used to expand PRC viewing angle.
+
+string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
 
 triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
@@ -1238,12 +1242,12 @@ struct path3 {
     real L=0;
     for(int i = 0; i < n-1; ++i)
       L += cubiclength(nodes[i].point,nodes[i].post,nodes[i+1].pre,
-                       nodes[i+1].point,-1);
+                       nodes[i+1].point);
 
     if(cycles) L += cubiclength(nodes[n-1].point,nodes[n-1].post,
-                                nodes[n].pre,nodes[n].point,-1);
+                                nodes[n].pre,nodes[n].point);
     cached_length = L;
-    return L;
+    return cached_length;
   }
   
   path3 reverse() {
@@ -1668,8 +1672,7 @@ path3 solve(flatguide3 g)
   return path3(nodes,cyclic);
 }
 
-path nurb(path3 p, projection P=currentprojection,
-	  int ninterpolate=ninterpolate)
+path nurb(path3 p, projection P, int ninterpolate=ninterpolate)
 {
   triple f=P.camera;
   triple u=unit(P.camera-P.target);
@@ -1786,7 +1789,7 @@ restricted transform3 ZX=rotate(-90,O,Z)*rotate(-90,O,Y);
 restricted transform3 XZ=rotate(-90,O,Y)*ZX;
 
 private transform3 flip(transform3 t, triple X, triple Y, triple Z,
-			projection P=currentprojection)
+			projection P)
 {
   static transform3 flip(triple v) {
     static real s(real x) {return x > 0 ? -1 : 1;}
@@ -1834,8 +1837,7 @@ restricted transform3 XZ(projection P=currentprojection)
 }
 
 // Transform for projecting onto plane through point O with normal cross(u,v).
-transform transform(triple u, triple v, triple O=O,
-                    projection P=currentprojection)
+transform transform(triple u, triple v, triple O=O, projection P)
 {
   transform3 t=P.project;
   real[] tO=t*(real[]) O;
@@ -2233,12 +2235,39 @@ real relative(Label L, path3 g)
   return L.position.relative ? reltime(g,L.relative()) : L.relative();
 }
 
-// return the rotation that maps u to Z about cross(u,Z).
+// return the rotation that maps a unit vector u to Z about cross(u,Z).
 transform3 align(triple u) 
 {
-  triple xi=cross(u,Z);
-  if(xi != O) return rotate(colatitude(u),xi);
-  return u.z >= 0 ? identity(4) : diagonal(1,-1,-1,1);
+  real a=u.x;
+  real b=u.y;
+  real c=u.z;
+  
+  real d=a^2+b^2;
+
+  if(d != 0)
+    return new real[][] {
+      {-b/d,a/d,0,0},
+	{-a*c/d,-b*c/d,1,0},
+	  {a,b,c,0},
+	    {0,0,0,1}};
+
+  return c >= 0 ? identity(4) : diagonal(1,-1,-1,1);
+}
+
+// return the inverse of align(u), mapping Z to u.
+transform3 transform3(triple u) 
+{
+  real a=u.x;
+  real b=u.y;
+  real c=u.z;
+  if(a != 0 || b != 0)
+    return new real[][] {
+      {-b,-a*c,a,0},
+	{a,-b*c,b,0},
+	  {0,a^2+b^2,c,0},
+	    {0,0,0,1}};
+
+  return c >= 0 ? identity(4) : diagonal(1,-1,-1,1);
 }
 
 // return the linear transformation that maps X,Y,Z to u,v,cross(u,v).
@@ -2248,9 +2277,9 @@ transform3 transform3(triple u, triple v)
 
   return new real[][] {
     {u.x,v.x,w.x,0},
-    {u.y,v.y,w.y,0},
-    {u.z,v.z,w.z,0},
-    {0,0,0,1}
+      {u.y,v.y,w.y,0},
+	{u.z,v.z,w.z,0},
+	  {0,0,0,1}
   };
 }
 
@@ -2361,7 +2390,7 @@ path3 circle(triple c, real r, triple normal=Z)
 {
   path3 p=scale3(r)*unitcircle3;
   if(normal != Z) 
-    p=inverse(align(normal))*p;
+    p=transform3(normal)*p;
   return shift(c)*p;
 }
 
@@ -2376,7 +2405,7 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
     normal=cross(dir(theta1,phi1),dir(theta2,phi2));
     if(normal == O) abort("explicit normal required for these endpoints");
   }
-  transform3 T=align(normal); 
+  transform3 T=align(unit(normal)); 
   triple v1=T*dir(theta1,phi1);
   triple v2=T*dir(theta2,phi2);
   real[] t1=intersect(unitcircle3,O--2*(v1.x,v1.y,0));
@@ -2593,8 +2622,8 @@ object embed(string prefix=defaultfilename, picture pic,
       }
       if(prc && angle == 0)
 	// Choose the angle to be just large enough to view the entire image:
-	angle=2.02*aTan(min(M.x-c.x,M.y-c.y)/(abs(P.camera-P.target)));
-    }
+	angle=2*anglefactor*aTan(min(M.x-c.x,M.y-c.y)/(abs(P.camera-P.target)));
+    }	
     if(prc) F.L=embedprc(prefix,f,label,text,options,width,height,angle,
 			 background,P);
   }
@@ -2746,7 +2775,7 @@ draw=new void(frame f, path3 g, pen p=currentpen, projection P,
     if(renderthick && width > 0) {
       surface s=tube(g,width);
       for(int i=0; i < s.s.length; ++i)
-	drawprc(f,s.s[i],p,nolight);
+      	drawprc(f,s.s[i],material(p,granularity=linegranularity),nolight);
     }
     drawprc(f,g,p);
   }

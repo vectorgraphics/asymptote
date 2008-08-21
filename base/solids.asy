@@ -155,7 +155,7 @@ struct revolution {
     triple perp=cross(normal,axis);
     triple v=point(g,position);
     triple center=c+dot(v-c,axis)*axis;
-    real o=longitude(align(axis)*perp,warn=false);
+    real o=longitude(align(unit(axis))*perp,warn=false);
     real theta=90;
     path3 p=Arc(center,abs(v-center),theta,angle1+o,theta,angle2+o,axis);
     return (angle2-angle1) % 360 == 0 ? p&cycle : p;
@@ -260,7 +260,7 @@ struct revolution {
     path sm=project(Sm,P,1);
     real[] t1=tangent(sp,sm,true);
     real[] t2=tangent(sp,sm,false);
-    transform3 T=align(axis);
+    transform3 T=align(unit(axis));
     real ref=longitude(T*(v-c),warn=false);
     real angle(real t) {return longitude(T*(point(S,t)-c),warn=false)-ref;}
     if(t1.length > 1)

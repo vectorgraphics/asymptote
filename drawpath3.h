@@ -16,7 +16,7 @@ typedef double Triple[3];
   
 class drawPath3 : public drawElement {
 protected:
-  pen pentype;
+  RGBAColour color;
   bool straight;
   triple min,max;
   size_t n;
@@ -24,7 +24,11 @@ protected:
 public:
   drawPath3(const vm::array& g, pen pentype, bool straight, triple min,
 	    triple max) : 
-    pentype(pentype), straight(straight), min(min), max(max) {
+    straight(straight), min(min), max(max) {
+    
+    if(pentype.invisible()) {n=0; return;}
+
+    color=rgba(pentype);
     n=checkArray(&g);
     controls=new Triple[n];
   

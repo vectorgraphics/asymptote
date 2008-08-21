@@ -2412,12 +2412,10 @@ void draw(picture *f, triplearray *g, pen p, bool straight,
   f->append(new drawPath3(*g,p,straight,min,max));
 }
 
-void draw(picture *f, triplearray2 *g, pen surfacepen, pen ambientpen,
-	  pen emissivepen, pen specularpen, real opacity, real shininess,
-	  triple min, triple max)
+void draw(picture *f, triplearray2 *g, penarray *p, real opacity,
+	  real shininess, real granularity, triple min, triple max)
 {
-  f->append(new drawSurface(*g,surfacepen,ambientpen,emissivepen,specularpen,
-			    opacity,shininess,min,max));
+  f->append(new drawSurface(*g,*p,opacity,shininess,granularity,min,max));
 }
 
 triple min3(picture *f)
@@ -3348,7 +3346,7 @@ triple dir(real theta, real phi)
   return expi(radians(theta),radians(phi));
 }
 
-real cubiclength(triple z0, triple z0p, triple z1m, triple z1, real goal)
+real cubiclength(triple z0, triple z0p, triple z1m, triple z1, real goal=-1)
 {
   return cubiclength(z0,z0p,z1m,z1,goal);
 }

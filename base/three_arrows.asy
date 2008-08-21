@@ -19,10 +19,11 @@ triple bend(triple p, path3 g, real scale=1, real endtime=g.length())
   triple w=point(g,time);
 
   triple dir2=unit(cross(dir(g,0),dir(g,1)));
-  if(abs(dir2) < 1000*realEpsilon)
+  if(abs(dir2) < 1000*realEpsilon) {
     if(abs(dir-X) < 1000*realEpsilon || abs(dir+X) < 1000*realEpsilon)
       dir2=Y;
     else dir2=X;
+  }
   dir2=unit(dir2-dot(dir2,dir)*dir);
 
   triple w=cross(dir,dir2);
@@ -42,7 +43,7 @@ real takeStep(path3 s, real endtime, real width)
   if(!s.straight(0)) { // use a better test ? 
     real a=abs(accel(s,endtime));
 
-    // tweak this :
+    // tweak this:
     real K=0.85/width; // a different constant perhaps ?
     real minStep=1/50; // at most 1/minStep segments for a curve
     real step=max(1/(K*a+1),minStep); // or a different model
@@ -58,38 +59,46 @@ real takeStep(path3 s, real endtime, real width)
 surface tube(path3 g, real width)
 {
   surface tube;
-  width *= 0.5; // get radius
+  real r=0.5*width;
+  
+  transform3 t=scale3(r);
 
   for(int i=0; i < length(g); ++i) {
-    path3 s=subpath(g,i,i+1);
+    if(straight(g,i)) {
+      triple v=point(g,i);
+      triple u=point(g,i+1)-v;
+      tube.append(shift(v)*transform3(unit(u))*scale(r,r,abs(u))*
+		  unitcylinder);
+    } else {
+      path3 s=subpath(g,i,i+1);
+      real endtime=0;
+      while(endtime < 1) {
+	real newend=takeStep(s,endtime,r);
 
-    real endtime=0;
-    while(endtime < 1) {
-      real newend=takeStep(s,endtime,width);
+	path3 si=subpath(s,endtime,newend);
 
-      path3 si=subpath(s,endtime,newend);
+	real L=arclength(si);
+	surface segment=scale(r,r,L)*unitcylinder;
+	path3 circle=t*unitcircle3;
+	if(endtime == 0)
+	  segment.push(circle);
+	if(newend == 1)
+	  segment.push(shift((0,0,L))*circle);
+	for(patch p : segment.s) {
+	  for(int i=0; i < 4; ++i) {
+	    for(int j=0; j < 4; ++j) {
+	      p.P[i][j]=bend(p.P[i][j],si,L,1);
+	    }
+	  }
+	}
+	tube.s.append(segment.s);
 
-      real L=arclength(si);
-      surface segment=scale(width,width,L)*unitcylinder;
-      if(endtime == 0)
-        segment.push(scale3(width)*unitcircle3);
-      if(newend == 1)
-        segment.push(shift(0,0,L)*scale3(width)*unitcircle3);
-      for(patch p : segment.s) {
-        for(int i=0; i < 4; ++i) {
-          for(int j=0; j < 4; ++j) {
-            p.P[i][j]=bend(p.P[i][j],si,L,1);
-          }
-        }
+	endtime=newend;
       }
-      tube.s.append(segment.s);
+    }
 
-      endtime=newend;
-    }
-    if(i > 0 && abs(dir(g,i,1)-dir(g,i,-1)) > 100*realEpsilon) {
-      surface sphere=shift(point(g,i))*scale3(width)*unitsphere;
-      tube.s.append(sphere.s);
-    }
+    if(i > 0 && abs(dir(g,i,1)-dir(g,i,-1)) > 100*realEpsilon)
+      tube.append(shift(point(g,i))*t*unitsphere);
   }
   return tube;
 }

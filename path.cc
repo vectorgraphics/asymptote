@@ -606,7 +606,6 @@ double path::arclength() const {
   if(cycles) L += cubiclength(point(n-1),postcontrol(n-1),precontrol(n),
 			      point(n));
   cached_length = L;
-  
   return cached_length;
 }
 

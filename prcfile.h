@@ -2,6 +2,11 @@
 
 namespace camp {
 
+inline RGBAColour rgba(pen p) {
+  p.torgb();
+  return RGBAColour(p.red(),p.green(),p.blue(),p.opacity());
+}
+  
 class prcfile : public oPRCFile {
   std::list<PRCentity *> entities;
 public:  
@@ -52,12 +57,14 @@ class PRCBezierSurface : public PRCsurface
   uint32_t nU,nV;
 public:
   PRCBezierSurface(oPRCFile *p, uint32_t dU, uint32_t dV, uint32_t nU,
-		   uint32_t nV, double cP[][3], const RGBAColour &c) :
-    PRCsurface(p,dU,dV,nU,nV,cP,NULL,NULL,c,false,NULL), dU(dU), dV(dV),
+		   uint32_t nV, double cP[][3], const RGBAColour &c,
+		   double g=0.0) :
+    PRCsurface(p,dU,dV,nU,nV,cP,NULL,NULL,c,false,NULL,g), dU(dU), dV(dV),
     nU(nU), nV(nV) {}
   PRCBezierSurface(oPRCFile *p, uint32_t dU, uint32_t dV, uint32_t nU,
-		   uint32_t nV, double cP[][3], const PRCMaterial &m) :
-    PRCsurface(p,dU,dV,nU,nV,cP,NULL,NULL,m,false,NULL), dU(dU), dV(dV),
+		   uint32_t nV, double cP[][3], const PRCMaterial &m,
+		   double g=0.0) :
+    PRCsurface(p,dU,dV,nU,nV,cP,NULL,NULL,m,false,NULL,g), dU(dU), dV(dV),
     nU(nU), nV(nV) {}
 private:
   void writeKnots(PRCbitStream &out) {
