@@ -1,5 +1,4 @@
 private import math;
-import embedding;
 
 bool renderthick=true; // Render thick PRC lines?
 
@@ -10,6 +9,15 @@ real dotgranularity=0.0001;
 real anglefactor=1.08; // Factor used to expand PRC viewing angle.
 
 string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
+
+string embed(string name, string options="", real width=0, real height=0);
+string link(string label, string text, string options="");
+
+if(prc()) {
+  access embedding;
+  embed=embedding.embed;
+  link=embedding.link;
+}
 
 triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
@@ -2244,12 +2252,14 @@ transform3 align(triple u)
   
   real d=a^2+b^2;
 
-  if(d != 0)
+  if(d != 0) {
+    d=sqrt(d);
     return new real[][] {
       {-b/d,a/d,0,0},
-	{-a*c/d,-b*c/d,1,0},
+	{-a*c/d,-b*c/d,d,0},
 	  {a,b,c,0},
 	    {0,0,0,1}};
+  }
 
   return c >= 0 ? identity(4) : diagonal(1,-1,-1,1);
 }
@@ -2260,12 +2270,16 @@ transform3 transform3(triple u)
   real a=u.x;
   real b=u.y;
   real c=u.z;
-  if(a != 0 || b != 0)
+  real d=a^2+b^2;
+  if(d != 0) {
+    d=sqrt(d);
+    real e=1/d;
     return new real[][] {
-      {-b,-a*c,a,0},
-	{a,-b*c,b,0},
-	  {0,a^2+b^2,c,0},
+      {-b*e,-a*c*e,a,0},
+	{a*e,-b*c*e,b,0},
+	  {0,d,c,0},
 	    {0,0,0,1}};
+  }
 
   return c >= 0 ? identity(4) : diagonal(1,-1,-1,1);
 }
@@ -2401,13 +2415,19 @@ path3 circle(triple c, real r, triple normal=Z)
 path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
           triple normal=O, bool direction)
 {
+  triple v1=dir(theta1,phi1);
+  triple v2=dir(theta2,phi2);
+
   if(normal == O) {
-    normal=cross(dir(theta1,phi1),dir(theta2,phi2));
+    normal=cross(v1,v2);
     if(normal == O) abort("explicit normal required for these endpoints");
   }
-  transform3 T=align(unit(normal)); 
-  triple v1=T*dir(theta1,phi1);
-  triple v2=T*dir(theta2,phi2);
+
+  normal=unit(normal);
+  transform3 T=align(normal);
+  v1=T*v1;
+  v2=T*v2;
+
   real[] t1=intersect(unitcircle3,O--2*(v1.x,v1.y,0));
   real[] t2=intersect(unitcircle3,O--2*(v2.x,v2.y,0));
   if(t1.length == 0 || t2.length == 0)
@@ -2417,7 +2437,8 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
   int n=length(unitcircle3);
   if(t1 >= t2 && direction) t1 -= n;
   if(t2 >= t1 && !direction) t2 -= n;
-  return shift(c)*scale3(r)*inverse(T)*subpath(unitcircle3,t1,t2);
+
+  return shift(c)*scale3(r)*transform3(normal)*subpath(unitcircle3,t1,t2);
 }
 
 // return an arc centered at c with radius r from c+r*dir(theta1,phi1) to
@@ -2740,7 +2761,7 @@ void addPath(picture pic, path3 g, pen p)
     pic.addPoint(max(g),p);
 }
 
-void draw(frame f, path3 g, pen p=currentpen, projection P,
+void draw(frame f, path3 g, pen p=currentpen, projection P=null,
 	  int ninterpolate=ninterpolate);
 
 include three_light;
@@ -2768,7 +2789,7 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
 
 include three_arrows;
 
-draw=new void(frame f, path3 g, pen p=currentpen, projection P,
+draw=new void(frame f, path3 g, pen p=currentpen, projection P=null,
 	      int ninterpolate=ninterpolate) {
   if(prc()) {
     real width=linewidth(p);
@@ -2782,7 +2803,7 @@ draw=new void(frame f, path3 g, pen p=currentpen, projection P,
   else draw(f,project(g,P,ninterpolate),p);
 };
 
-void draw(frame f, path3[] g, pen p=currentpen, projection P)
+void draw(frame f, path3[] g, pen p=currentpen, projection P=null)
 {
   for(int i=0; i < g.length; ++i) draw(f,g[i],p,P);
 }

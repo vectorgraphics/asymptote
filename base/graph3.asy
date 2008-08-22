@@ -418,30 +418,31 @@ axis YZZero(bool extend=true, triple dir=-Y)
     axis.value=pic.scale.y.T(pic.scale.y.scale.logarithmic ? 1 : 0);
     axis.value2=pic.scale.z.T(pic.scale.z.scale.logarithmic ? 1 : 0);
     axis.position=1;
-    axis.align=-Y;
+    axis.align=dir;
     axis.extend=extend;
   };
 }
 
-axis XZZero(bool extend=true)
+axis XZZero(bool extend=true, triple dir=-X)
 {
   return new void(picture pic, axisT axis) {
     axis.type=0;
     axis.value=pic.scale.x.T(pic.scale.x.scale.logarithmic ? 1 : 0);
     axis.value2=pic.scale.z.T(pic.scale.z.scale.logarithmic ? 1 : 0);
     axis.position=1;
-    axis.align=-X;
+    axis.align=dir;
     axis.extend=extend;
   };
 }
 
-axis XYZero(bool extend=true)
+axis XYZero(bool extend=true, triple dir=-X)
 {
   return new void(picture pic, axisT axis) {
     axis.type=0;
     axis.value=pic.scale.x.T(pic.scale.x.scale.logarithmic ? 1 : 0);
     axis.value2=pic.scale.y.T(pic.scale.y.scale.logarithmic ? 1 : 0);
     axis.position=1;
+    axis.align=dir;
     axis.extend=extend;
   };
 }

@@ -66,7 +66,8 @@ bool checkStraight(path3 g, int i, real straightEpsilon)
   triple d = point(g,i+1);
   c = d-c;
   d = d-a;
-  return  abs(b-project(b,d)) < straightEpsilon && abs(c-project(c,d)) < straightEpsilon;
+  return abs(b-project(b,d)) < straightEpsilon &&
+    abs(c-project(c,d)) < straightEpsilon;
 }
 
 surface tube(path3 g, real width)
@@ -80,8 +81,7 @@ surface tube(path3 g, real width)
     if(straight(g,i) || checkStraight(g,i,r)) {
       triple v=point(g,i);
       triple u=point(g,i+1)-v;
-      tube.append(shift(v)*transform3(unit(u))*scale(r,r,abs(u))*
-		  unitcylinder);
+      tube.append(shift(v)*transform3(unit(u))*scale(r,r,abs(u))*unitcylinder);
     } else {
       path3 s=subpath(g,i,i+1);
       real endtime=0;
@@ -110,7 +110,9 @@ surface tube(path3 g, real width)
       }
     }
 
-    if(i > 0 && abs(dir(g,i,1)-dir(g,i,-1)) > 100*realEpsilon)
+    static real epsilon=sqrt(realEpsilon);
+
+    if(i > 0 && abs(dir(g,i,1)-dir(g,i,-1)) > epsilon)
       tube.append(shift(point(g,i))*t*unitsphere);
   }
   return tube;

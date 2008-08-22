@@ -47,8 +47,7 @@ struct patch {
   pen[] colors(pen surfacepen=lightgray, light light=currentlight,
 	       bool outward=false, projection Q=null) {
     if(colors.length != 0)
-      return copy(colors);
-
+      return colors;
     pen color(triple dfu, triple dfv) {
       triple v=cross(dfu,dfv);
       if(!outward)
@@ -63,6 +62,7 @@ struct patch {
 	real epsilon=Fuzz*abs(z0-z1);
 
 	post=c0-z0;
+
 	if(abs(post) > epsilon) post=unit(post);
 	else {
 	  post=z0-2*c0+c1;
@@ -444,7 +444,7 @@ void tensorshade(transform t=identity(), frame f, patch s, bool outward=false,
 
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 	  bool outward=false, material surfacepen=lightgray,
-	  pen meshpen=nullpen, light light=currentlight, projection P)
+	  pen meshpen=nullpen, light light=currentlight, projection P=null)
 {
   // Draw a mesh in the absence of lighting (override with meshpen=nullpen). 
   if(!light.on && meshpen == nullpen) meshpen=currentpen;
@@ -606,7 +606,7 @@ path[] path(Label L, pair z=0, projection P)
 }
 
 void label(frame f, Label L, triple position, align align=NoAlign,
-	   pen p=currentpen, light light=nolight, projection P)
+	   pen p=currentpen, light light=nolight, projection P=null)
 {
   Label L=L.copy();
   L.align(align);
@@ -701,7 +701,7 @@ restricted surface unitcylinder=surface(unitcylinder1,unitcylinder2,
 					unitcylinder3,unitcylinder4);
 
 void dot(frame f, triple v, pen p=currentpen,
-	 filltype filltype=Fill, light light=nolight, projection P)
+	 filltype filltype=Fill, light light=nolight, projection P=null)
 {
   if(prc())
     for(patch s : unitsphere.s)
@@ -711,13 +711,13 @@ void dot(frame f, triple v, pen p=currentpen,
 }
 
 void dot(frame f, path3 g, pen p=currentpen, filltype filltype=Fill,
-	 projection P)
+	 projection P=null)
 {
   for(int i=0; i <= length(g); ++i) dot(f,point(g,i),p,filltype,P);
 }
 
 void dot(frame f, path3[] g, pen p=currentpen, filltype filltype=Fill,
-	 projection P)
+	 projection P=null)
 {
   for(int i=0; i < g.length; ++i) dot(f,g[i],p,filltype,P);
 }
@@ -725,10 +725,10 @@ void dot(frame f, path3[] g, pen p=currentpen, filltype filltype=Fill,
 void dot(picture pic=currentpicture, triple v, pen p=currentpen,
 	 filltype filltype=Fill, light light=nolight)
 {
-  pic.add(new void(frame f, transform3 t, picture pic, projection P) {
+  pic.add(new void(frame f, transform3 t, picture pic, projection P=null) {
       if(prc())
 	for(patch s : unitsphere.s)
-	  drawprc(f,shift(t*v)*scale3(0.5*dotsize(p))*s,
+	  drawprc(f,shift(t*v)*scale3(0.5*linewidth(dotsize(p)+p))*s,
 		  material(p,granularity=dotgranularity),light);
       if(pic != null)
 	dot(pic,project(t*v,P),p,filltype);
