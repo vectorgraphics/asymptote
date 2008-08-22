@@ -304,7 +304,7 @@ void PRCGlobalsSection::writeData()
   out << (uint32_t)(0); // number of schemas
   out << (uint32_t)PRC_TYPE_ASM_FileStructureGlobals;
 
-  SingleAttributeData value = {7094};
+  SingleAttributeData value = {PRCVersion};
   SingleAttribute sa(false,EMPTY_ATTRIBUTE_TITLE,KEPRCModellerAttributeTypeInt,value);
   AttributeTitle iv; iv.text = "__PRC_RESERVED_ATTRIBUTE_PRCInternalVersion";
   Attribute a(false,iv,1,&sa);
@@ -401,7 +401,9 @@ void PRCTreeSection::writeData()
   out << (uint32_t)(PRC_TYPE_ASM_PartDefinition);
   ContentPRCBase(&EMPTY_ATTRIBUTES,"",true,makeCADID(),0,makePRCID()).write(out);
   writeGraphics(out,m1,m1,1,true);
-  Extent3d(Point3d(1e20,1e20,1e20),Point3d(-1e20,-1e20,-1e20)).write(out);
+  Point3d M=Point3d(1e20,1e20,1e20);
+  Point3d m=Point3d(-1e20,-1e20,-1e20);
+  Extent3d(M,m).write(out);
 
   out << (uint32_t)parent->fileEntities.size(); // number of representation items
   for(uint32_t i = 0; i < parent->fileEntities.size(); ++i)
@@ -509,7 +511,7 @@ void PRCModelFile::writeData()
   out << (uint32_t)(0); // number of schemas
   out << (uint32_t)(PRC_TYPE_ASM_ModelFile);
 
-  SingleAttributeData value = {7094};
+  SingleAttributeData value = {PRCVersion};
   SingleAttribute sa(false,EMPTY_ATTRIBUTE_TITLE,KEPRCModellerAttributeTypeInt,value);
   AttributeTitle at; at.text = "__PRC_RESERVED_ATTRIBUTE_PRCInternalVersion";
   Attribute a(false,at,1,&sa);
@@ -711,8 +713,8 @@ bool oPRCFile::finish()
   // only one file structure is currently used
   // prepare data
   fileStructures[0] = new PRCFileStructure(this,0);
-  fileStructures[0]->header.minimal_version_for_read = 7094;
-  fileStructures[0]->header.authoring_version = 7094;
+  fileStructures[0]->header.minimal_version_for_read = PRCVersion;
+  fileStructures[0]->header.authoring_version = PRCVersion;
   makeFileUUID(fileStructures[0]->header.fileStructureUUID);
   makeAppUUID(fileStructures[0]->header.applicationUUID);
   fileStructures[0]->number_of_uncompressed_files = 0;
@@ -738,8 +740,8 @@ bool oPRCFile::finish()
     header.fileStructureInformation[i].offsets = new uint32_t[6];
   }
 
-  header.startHeader.minimal_version_for_read = 7094;
-  header.startHeader.authoring_version = 7094;
+  header.startHeader.minimal_version_for_read = PRCVersion;
+  header.startHeader.authoring_version = PRCVersion;
   makeFileUUID(header.startHeader.fileStructureUUID);
   makeAppUUID(header.startHeader.applicationUUID);
 

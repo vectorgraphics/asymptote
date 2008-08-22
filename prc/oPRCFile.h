@@ -276,8 +276,8 @@ class PRCUncompressedFile
 class PRCStartHeader
 {
   public:
-    uint32_t minimal_version_for_read; // 7094
-    uint32_t authoring_version; // 7094
+    uint32_t minimal_version_for_read; // PRCVersion
+    uint32_t authoring_version; // PRCVersion
     uint32_t fileStructureUUID[4];
     uint32_t applicationUUID[4]; // should be 0
 

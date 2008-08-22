@@ -1,6 +1,9 @@
 #ifndef __PRC_H
 #define __PRC_H
 
+const uint32_t PRCVersion=7094;   // For Adobe Reader 8 or later
+//const uint32_t PRCVersion=8137; // For Adobe Reader 9 or later
+
 // from Adobe's documentation
 
 #define	PRC_TYPE_ROOT				0			// This type does not correspond to any entity
