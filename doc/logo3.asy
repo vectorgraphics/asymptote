@@ -1,7 +1,7 @@
-import three;
-
 settings.outformat="pdf";
 settings.prc=true;
+
+import three;
 renderthick=false;
 
 size(560,320,IgnoreAspect);
