@@ -638,7 +638,6 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
 
   real x=axis.value;
   real z=axis.value2;
-  real x,z;
   real x2,z2;
   int[] divisor=copy(axis.ydivisor);
 
@@ -1587,23 +1586,31 @@ guide3 polargraph(real r(real,real), real theta(real), real phi(real),
 path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
 	  triple normal=O, bool direction, int n=nCircle)
 {
+  triple v1=dir(theta1,phi1);
+  triple v2=dir(theta2,phi2);
+
   if(normal == O) {
-    normal=cross(dir(theta1,phi1),dir(theta2,phi2));
+    normal=cross(v1,v2);
     if(normal == O) abort("explicit normal required for these endpoints");
   }
 
-  theta1=radians(theta1);
-  theta2=radians(theta2);
-  phi1=radians(phi1);
-  phi2=radians(phi2);
+  normal=unit(normal);
+  transform3 T=align(normal);
+  v1=T*v1;
+  v2=T*v2;
 
-  path3 p=polargraph(new real(real theta, real phi) {return r;},
-		     new real(real t) {return interp(theta1,theta2,t);},
-		     new real(real t) {return interp(phi1,phi2,t);},
-		     n,operator ..);
-  if(normal != Z)
-    p=transform3(unit(direction ? normal : -normal))*p;
-  return shift(c)*p;
+  phi1=radians(longitude(v1,warn=false));
+  phi2=radians(longitude(v2,warn=false));
+  if(phi1 >= phi2 && direction) phi1 -= 2pi;
+  if(phi2 >= phi1 && !direction) phi2 -= 2pi;
+
+  real piby2=pi/2;
+
+  return shift(c)*transform3(normal)*
+    polargraph(new real(real theta, real phi) {return r;},
+	       new real(real t) {return piby2;},
+	       new real(real t) {return interp(phi1,phi2,t);},
+	       n,operator ..);
 }
 
 path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
@@ -1619,7 +1626,7 @@ path3 Arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW,
 {
   v1 -= c; v2 -= c;
   return Arc(c,abs(v1),colatitude(v1),longitude(v1,warn=false),
-             colatitude(v2),longitude(v2,warn=false),normal,direction,nCircle);
+             colatitude(v2),longitude(v2,warn=false),normal,direction,n);
 }
 
 // True circle
