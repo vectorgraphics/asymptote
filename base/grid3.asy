@@ -293,7 +293,7 @@ ticksgrid RightTicks3(Label F="", ticklabel ticklabel=null,
     };
 }
 
-void xaxis3(picture pic=currentpicture, Label L="", axis axis,
+void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
 	    pen p=currentpen, ticksgrid ticks,
 	    arrowbar arrow=None, bool put=Below)
 {
@@ -301,7 +301,7 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis,
   ticks().grid3(pic,put);
 }
 
-void yaxis3(picture pic=currentpicture, Label L="", axis axis,
+void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
 	    pen p=currentpen, ticksgrid ticks,
 	    arrowbar arrow=None, bool put=Below)
 {
@@ -309,7 +309,7 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis,
   ticks().grid3(pic,put);
 }
 
-void zaxis3(picture pic=currentpicture, Label L="", axis axis,
+void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
 	    pen p=currentpen, ticksgrid ticks,
 	    arrowbar arrow=None, bool put=Below)
 {
