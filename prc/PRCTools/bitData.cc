@@ -112,6 +112,7 @@ unsigned int BitByBitData::readUnsignedInt()
   {
     result |= (static_cast<unsigned int>(readChar()) << 8*count++);
   }
+  if(showBits) cout << " " << result << endl;
   return result;
 }
 
@@ -131,6 +132,7 @@ std::string BitByBitData::readString()
     result = buf;
     delete[] buf;
   }
+  if(showBits) cout << " " << result << endl;
   return result;
 }
 
@@ -144,6 +146,7 @@ int BitByBitData::readInt()
   }
   result <<= (4-count)*8;
   result >>= (4-count)*8;
+  if(showBits) cout << " " << result << endl;
   return result;
 }
 
@@ -234,6 +237,7 @@ double BitByBitData::readDouble()
       }
     }
   }
+  if(showBits) cout << " " << value.d << endl;
   return value.d;
 }
 

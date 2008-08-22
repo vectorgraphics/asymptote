@@ -674,8 +674,9 @@ void describeSurfPlane(BitByBitData &mData)
 {
   cout << getIndent() << "--Plane surface--" << endl;
   indent();
+  mData.setShowBits(true);
+  describeContentSurface(mData);
   mData.tellPosition();
-
   //TODO: something is wrong, very wrong!!!
   // For now, all this does is search until the end of the data block,
   // assuming that the default parameterization [-inf,inf]x[-inf,inf] was used
@@ -717,10 +718,23 @@ void describeSurfPlane(BitByBitData &mData)
   }
   mData.setPosition(bp);
 
-  //describeContentSurface(mData);
-  //describeTransformation3d(mData);
-  describeUVParametrization(mData);
-  mData.tellPosition();
+/*
+  // this is what the 8137 docs say it should be
+  describeTransformation3d(mData);
+  cout << getIndent() << "UV domain" << endl;
+  indent();
+  cout << getIndent() << "Min: " << endl;
+  describeVector2d(mData);
+  cout << getIndent() << "Max: " << endl;
+  describeVector2d(mData);
+  dedent();
+
+  cout << getIndent() << "u coef. a = " << mData.readDouble() << endl;
+  cout << getIndent() << "v coef. a = " << mData.readDouble() << endl;
+  cout << getIndent() << "u coef. b = " << mData.readDouble() << endl;
+  cout << getIndent() << "v coef. b = " << mData.readDouble() << endl;
+*/
+  mData.setShowBits(false);
   dedent();
 }
 
