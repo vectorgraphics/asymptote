@@ -44,7 +44,7 @@ real takeStep(path3 s, real endtime, real width)
     real a=abs(accel(s,endtime));
 
     // tweak this:
-    real K=0.85/width; // a different constant perhaps ?
+    real K=1.25/width; // a different constant perhaps ?
     real minStep=1/50; // at most 1/minStep segments for a curve
     real step=max(1/(K*a+1),minStep); // or a different model
     newend=min(endtime+step,length(s));
@@ -56,15 +56,28 @@ real takeStep(path3 s, real endtime, real width)
   return newend;
 }
 
+
+// return true iff segment i of path3 g is close to being straight
+bool checkStraight(path3 g, int i, real straightEpsilon)
+{
+  triple a = point(g,i);
+  triple b = postcontrol(g,i)-a;
+  triple c = precontrol(g,i+1);
+  triple d = point(g,i+1);
+  c = d-c;
+  d = d-a;
+  return  abs(b-project(b,d)) < straightEpsilon && abs(c-project(c,d)) < straightEpsilon;
+}
+
 surface tube(path3 g, real width)
 {
   surface tube;
   real r=0.5*width;
-  
+
   transform3 t=scale3(r);
 
   for(int i=0; i < length(g); ++i) {
-    if(straight(g,i)) {
+    if(straight(g,i) || checkStraight(g,i,r)) {
       triple v=point(g,i);
       triple u=point(g,i+1)-v;
       tube.append(shift(v)*transform3(unit(u))*scale(r,r,abs(u))*
