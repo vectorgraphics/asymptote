@@ -2,9 +2,9 @@ import three;
 
 settings.outformat="pdf";
 settings.prc=true;
+renderthick=false;
 
-real scale = 4;
-size(scale*560,scale*320,IgnoreAspect);
+size(560,320,IgnoreAspect);
 size3(140,80,15);
 currentprojection = perspective(-3,20,10, up=Y);
 
@@ -28,7 +28,7 @@ outline.push((a,0)--(b,0));
 
 for(path p : outline)
 {
-  draw(extrude(p,-0.1Z),lightgray,shininess=1.0);
+  draw(extrude(p,-0.1Z),material(lightgray,shininess=1.0));
 }
 
 draw(path3(outline),red);
@@ -37,4 +37,4 @@ draw(path3(outline),red);
 path[] p = bezulate(text);
 
 for(path q:p)
-  draw(surface(q),red,emissivepen=red);
+  draw(surface(q),material(red,emissivepen=red));
