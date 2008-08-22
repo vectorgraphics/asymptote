@@ -251,7 +251,7 @@ ticksgrid Ticks3(Label F="", ticklabel ticklabel=null,
     };
 }
 
-ticksgrid LeftTicks(Label F="", ticklabel ticklabel=null,
+ticksgrid LeftTicks3(Label F="", ticklabel ticklabel=null,
                     bool beginlabel=true, bool endlabel=true,
                     int N=0, int n=0, real Step=0, real step=0,
                     bool begin=true, bool end=true,
@@ -272,7 +272,7 @@ ticksgrid LeftTicks(Label F="", ticklabel ticklabel=null,
     };
 }
 
-ticksgrid RightTicks(Label F="", ticklabel ticklabel=null,
+ticksgrid RightTicks3(Label F="", ticklabel ticklabel=null,
                      bool beginlabel=true, bool endlabel=true,
                      int N=0, int n=0, real Step=0, real step=0,
                      bool begin=true, bool end=true,
@@ -310,7 +310,7 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis,
 }
 
 void zaxis3(picture pic=currentpicture, Label L="", axis axis,
-	    pen p=currentpen, ticksgrid ticks, triple dir=Y,
+	    pen p=currentpen, ticksgrid ticks,
 	    arrowbar arrow=None, bool put=Below)
 {
   zaxis3(pic,L,axis,p,ticks().ticks,arrow,put);
