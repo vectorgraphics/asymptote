@@ -39,7 +39,7 @@ path line(path p, path q, real[] t)
 // Return the projection of a generalized cylinder of height h constructed
 // from area base in the XY plane and aligned with axis.
 path[] cylinder(path3 base, real h, triple axis=Z,
-		projection P=currentprojection) 
+                projection P=currentprojection) 
 {
   base=rotate(-colatitude(axis),cross(axis,Z))*base;
   path3 top=shift(h*axis)*base;
@@ -70,7 +70,7 @@ struct revolution {
   real angle1,angle2;
   
   void operator init(triple c=O, path3 g, triple axis=Z, real angle1=0,
-		     real angle2=360) {
+                     real angle2=360) {
     this.c=c;
     this.g=g;
     this.axis=unit(axis);
@@ -78,6 +78,15 @@ struct revolution {
     this.angle2=angle2;
   }
   
+  // Return the surface of rotation obtain by rotating the path3 (x,0,f(x))
+  // sampled n times between x=a and x=b about an axis lying in the XZ plane.
+  void operator init(triple c=O, real f(real x), real a, real b, int n=ngraph,
+                     interpolate3 join=operator --, triple axis=Z,
+                     real angle1=0, real angle2=360) {
+    operator init(c,graph(new triple(real x) {return (x,0,f(x));},a,b,n,
+                          join),axis,angle1,angle2);
+  }
+
   revolution copy() {
     return revolution(c,g,axis,angle1,angle2);
   }
@@ -97,13 +106,13 @@ struct revolution {
   // An optional surface pen color(int i, real j) may be specified
   // to override the color at vertex(i,j).
   surface surface(int n=nslice, pen color(int i, real j)=null) {
-    real step=(angle2-angle1)/n;
+    real w=(angle2-angle1)/n;
     int L=length(g);
     surface s=three.surface(L*n);
     int m=-1;
     transform3[] T=new transform3[n+1];
     real j=angle1;
-    for(int k=0; k <= n; ++k, j += step) 
+    for(int k=0; k <= n; ++k, j += w)
       T[k]=rotate(j,c,c+axis);
 
     for(int i=0; i < L; ++i) {
@@ -115,18 +124,18 @@ struct revolution {
       triple normal=cross(axis,perp);
       triple dir(real j) {return -Sin(j)*perp+Cos(j)*normal;}
       j=angle1;
-      for(int k=0; k < n; ++k, j += step) {
-	path3 G=T[k]*h{dir(j)}..{dir(j+step)}T[k+1]*r{-dir(j+step)}..
-					       {-dir(j)}cycle;
-	s.s[++m]=color == null ? patch(G) :
-	  patch(G,new pen[] {color(i,j),color(i+1,j),color(i+1,j+step),
-			     color(i,j+step)});
+      for(int k=0; k < n; ++k, j += w) {
+        path3 G=T[k]*h{dir(j)}..{dir(j+w)}T[k+1]*r{-dir(j+w)}..{-dir(j)}cycle;
+        s.s[++m]=color == null ? patch(G) :
+          patch(G,new pen[] {color(i,j),color(i+1,j),color(i+1,j+w),
+                             color(i,j+w)});
       }
     }
+
     return s;
   }
 
-  path3 slice(real position, int nslice) {
+  path3 slice(real position) {
     triple v=point(g,position);
     triple center=c+dot(v-c,axis)*axis;
     triple perp=v-center;
@@ -136,9 +145,9 @@ struct revolution {
   }
   
   // add transverse slice to skeleton s
-  void transverse(skeleton s, real t, int nslice=nslice,
-		  projection P=currentprojection) {
-    path3 S=slice(t,nslice);
+  void transverse(skeleton s, real t,
+                  projection P=currentprojection) {
+    path3 S=slice(t);
     if(prc()) {
       s.front.push(S);
       return;
@@ -154,65 +163,64 @@ struct revolution {
        (t >= L-epsilon && sign > 0))
       s.front.push(S);
     else {
-      path3 Sp=slice(t+epsilon,nslice);
-      path3 Sm=slice(t-epsilon,nslice);
+      path3 Sp=slice(t+epsilon);
+      path3 Sm=slice(t-epsilon);
       path sp=project(Sp,P,1);
       path sm=project(Sm,P,1);
       real[] t1=tangent(sp,sm,true);
       real[] t2=tangent(sp,sm,false);
       if(t1.length > 1 && t2.length > 1) {
-	real t1=t1[0];
-	real t2=t2[0];
-	int len=length(S);
-	if(t2 < t1) {
-	  real temp=t1;
-	  t1=t2;
-	  t2=temp;
-	}
-	path3 p1=subpath(S,t1,t2);
-	path3 p2=subpath(S,t2,len);
-	path3 P2=subpath(S,0,t1);
-	if(abs(midpoint(p1)-camera) <= abs(midpoint(p2)-camera)) {
-	  s.front.push(p1);
-	  if(cyclic(S))
-	    s.back.push(p2 & P2);
-	  else {
-	    s.back.push(p2);
-	    s.back.push(P2);
-	  }
-	} else {
-	  if(cyclic(S))
-	    s.front.push(p2 & P2);
-	  else {
-	    s.front.push(p2);
-	    s.front.push(P2);
-	  }
-	  s.back.push(p1);
-	}
+        real t1=t1[0];
+        real t2=t2[0];
+        int len=length(S);
+        if(t2 < t1) {
+          real temp=t1;
+          t1=t2;
+          t2=temp;
+        }
+        path3 p1=subpath(S,t1,t2);
+        path3 p2=subpath(S,t2,len);
+        path3 P2=subpath(S,0,t1);
+        if(abs(midpoint(p1)-camera) <= abs(midpoint(p2)-camera)) {
+          s.front.push(p1);
+          if(cyclic(S))
+            s.back.push(p2 & P2);
+          else {
+            s.back.push(p2);
+            s.back.push(P2);
+          }
+        } else {
+          if(cyclic(S))
+            s.front.push(p2 & P2);
+          else {
+            s.front.push(p2);
+            s.front.push(P2);
+          }
+          s.back.push(p1);
+        }
       } else {
-	if((t <= midtime && sign < 0) || (t >= midtime && sign > 0))
-	  s.front.push(S);
-	else
-	  s.back.push(S);
+        if((t <= midtime && sign < 0) || (t >= midtime && sign > 0))
+          s.front.push(S);
+        else
+          s.back.push(S);
       }
     }
   }
 
   // add m evenly spaced transverse slices to skeleton s
-  void transverse(skeleton s, int m=0, int nslice=nslice,
-		  projection P=currentprojection) {
+  void transverse(skeleton s, int m=0,
+                  projection P=currentprojection) {
     int N=size(g);
     int n=(m == 0) ? N : m;
     real factor=m == 1 ? 0 : 1/(m-1);
     for(int i=0; i < n; ++i) {
       real t=(m == 0) ? i : reltime(g,i*factor);
-      transverse(s,t,nslice,P);
+      transverse(s,t,P);
     }
   }
 
   // add longitudinal curves to skeleton
-  void longitudinal(skeleton s, int nslice=nslice,
-		    projection P=currentprojection) {
+  void longitudinal(skeleton s, projection P=currentprojection) {
     if(prc()) return;
     real t, d=0;
     static real epsilon=sqrt(realEpsilon);
@@ -224,14 +232,14 @@ struct revolution {
       triple center=c+dot(v-c,axis)*axis;
       real r=abs(v-center);
       if(r > d) {
-	t=i;
-	d=r;
+        t=i;
+        d=r;
       }
     }
     triple v=point(g,t);
-    path3 S=slice(t,nslice);
-    path3 Sm=slice(t+epsilon,nslice);
-    path3 Sp=slice(t-epsilon,nslice);
+    path3 S=slice(t);
+    path3 Sm=slice(t+epsilon);
+    path3 Sp=slice(t-epsilon);
     path sp=project(Sp,P,1);
     path sm=project(Sm,P,1);
     real[] t1=tangent(sp,sm,true);
@@ -245,11 +253,10 @@ struct revolution {
       s.longitudinal.push(rotate(angle(t2[0]),c,c+axis)*g);
   }
   
-  skeleton skeleton(int m=0, int nslice=nslice,
-		    projection P=currentprojection) {
+  skeleton skeleton(int m=0, projection P=currentprojection) {
     skeleton s;
-    transverse(s,m,nslice,P);
-    longitudinal(s,nslice,P);
+    transverse(s,m,P);
+    longitudinal(s,P);
     return s;
   }
 }
@@ -263,14 +270,15 @@ surface surface(revolution r, int n=nslice, pen color(int i, real j)=null)
 // Draw the front portion of each of the m transverse slices with pen p and
 // the back portion with pen backpen.
 void draw(picture pic=currentpicture, revolution r, int m=0, pen p=currentpen,
-	  pen backpen=p, bool longitudinal=true, pen longitudinalpen=p,
-	  projection P=currentprojection)
+          pen backpen=p, bool longitudinal=true, pen longitudinalpen=p,
+          projection P=currentprojection)
 {
+  pen thin=prc() ? thin : defaultpen;
   skeleton s=r.skeleton(m,P);
   begingroup3(pic);
   draw(pic,s.back,linetype("8 8",8)+backpen);
-  draw(pic,s.front,p);
-  if(longitudinal) draw(pic,s.longitudinal,longitudinalpen);
+  draw(pic,s.front,thin+p);
+  if(longitudinal) draw(pic,s.longitudinal,thin+longitudinalpen);
   endgroup3(pic);
 }
 
@@ -278,23 +286,6 @@ revolution operator * (transform3 t, revolution r)
 {
   triple trc=t*r.c;
   return revolution(trc,t*r.g,t*(r.c+r.axis)-trc,r.angle1,r.angle2);
-}
-
-// Return the surface of rotation obtain by rotating the path3 (x,0,f(x))
-// sampled n times between x=a and x=b about an axis lying in the XZ plane.
-revolution revolution(triple c=O, real f(real x), real a, real b, int n=nslice,
-                      triple axis=Z)
-{
-  guide3 g;
-  if(n == 0) g=(a,0,f(a));
-  else {
-    real width=b-a;
-    for(int i=0; i <= n; ++i) {
-      real x=a+(i/n)*width;
-      g=g--(x,0,f(x));
-    }
-  }
-  return revolution(c,g,axis);
 }
 
 // Return a vector perpendicular to axis.

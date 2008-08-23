@@ -30,7 +30,8 @@ restricted pen nobasealign=basealign(0);
 restricted pen basealign=basealign(1);
 
 pen invisible=invisible();
-pen nullpen=linewidth(0)+invisible;
+pen thin=linewidth(0);
+pen nullpen=thin+invisible;
 
 pen black=gray(0);
 pen white=gray(1);

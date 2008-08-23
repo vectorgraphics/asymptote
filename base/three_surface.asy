@@ -458,10 +458,10 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
       for(int k=0; k < s.s.length; ++k) {
 	real step=nu == 0 ? 0 : 1/nu;
 	for(int i=0; i <= nu; ++i)
-	  draw(f,s.s[k].uequals(i*step),meshpen,null);
+	  draw(f,s.s[k].uequals(i*step),thin+meshpen,null);
 	step=nv == 0 ? 0 : 1/nv;
 	for(int j=0; j <= nv; ++j)
-	  draw(f,s.s[k].vequals(j*step),meshpen,null);
+	  draw(f,s.s[k].vequals(j*step),thin+meshpen,null);
       }
     }
   } else {
@@ -521,6 +521,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   pic.addPoint(max(s));
 
   if(meshpen != nullpen && meshpen != invisible) {
+    if(prc()) meshpen=thin+meshpen;
     for(int k=0; k < s.s.length; ++k) {
       real step=nu == 0 ? 0 : 1/nu;
       for(int i=0; i <= nu; ++i)
