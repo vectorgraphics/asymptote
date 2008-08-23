@@ -5,9 +5,9 @@ currentprojection=orthographic(5,4,2);
 size(5cm);
 size3(3cm,5cm,8cm);
 
-draw(unitcube);
+draw(unitbox);
 
-dot(unitcube,red);
+dot(unitbox,red);
 
 label("$O$",(0,0,0),NW);
 label("(1,0,0)",(1,0,0),S);
