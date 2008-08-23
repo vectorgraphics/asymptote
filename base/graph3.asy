@@ -69,7 +69,7 @@ triple ticklabelshift(triple align, pen p=currentpen)
 
 // Signature of routines that draw labelled paths with ticks and tick labels.
 typedef void ticks3(picture, transform3, Label, path3, path3, pen,
-		    arrowbar, ticklocate, int[], bool opposite=false,
+		    arrowbar3, ticklocate, int[], bool opposite=false,
 		    bool opposite2=false);
 
 // Label a tick on a frame.
@@ -166,7 +166,7 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
 	      pen pTick=nullpen, pen ptick=nullpen)
 {
   return new void(picture pic, transform3 t, Label L,
-		  path3 g, path3 g2, pen p, arrowbar arrow, ticklocate locate,
+		  path3 g, path3 g2, pen p, arrowbar3 arrow, ticklocate locate,
 		  int[] divisor, bool opposite, bool opposite2) {
     // Use local copy of context variables:
     int sign=opposite ? -sign : sign;
@@ -218,9 +218,8 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
     }
 
     begingroup3(pic);
-    //    if(opposite)
-    //      draw(f,G,p,arrow);
-    draw(pic,G,p);
+    if(opposite || opposite2) draw(pic,G,p);
+    else draw(pic,G,p,arrow);
 
     for(int i=(begin ? 0 : 1); i < (end ? Ticks.length : Ticks.length-1); ++i) {
       real val=T(Ticks[i]);
@@ -259,7 +258,7 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
 	      pen pTick=nullpen, pen ptick=nullpen)
 {
   return new void(picture pic, transform3 T, Label L,
-		  path3 g, path3 g2, pen p, arrowbar arrow, ticklocate locate,
+		  path3 g, path3 g2, pen p, arrowbar3 arrow, ticklocate locate,
 		  int[] divisor, bool opposite, bool opposite2) {
     path3 G=T*g;
     real limit=Step == 0 ? axiscoverage*arclength(G) : 0;
@@ -277,7 +276,7 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
 ticks3 NoTicks3()
 {
   return new void(picture pic, transform3 T, Label L, path3 g,
-		  path3, pen p, arrowbar arrow, ticklocate, int[],
+		  path3, pen p, arrowbar3 arrow, ticklocate, int[],
 		  bool opposite, bool opposite2) {
     path3 G=T*g;
     draw(pic,G,p);
@@ -456,7 +455,7 @@ XYZero=XYZero();
 // Draw a general three-dimensional axis.
 void axis(picture pic=currentpicture, Label L="", path3 g, path3 g2=nullpath3,
 	  pen p=currentpen, ticks3 ticks, ticklocate locate,
-	  arrowbar arrow=None, int[] divisor=new int[], bool put=Below,
+	  arrowbar3 arrow=None, int[] divisor=new int[], bool put=Below,
 	  bool opposite=false) 
 {
   Label L=L.copy();
@@ -506,7 +505,7 @@ private triple defaultdir(triple X, triple Y, triple Z, projection P) {
 // An internal routine to draw an x axis at a particular y value.
 void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
 	      real xmin=-infinity, real xmax=infinity, pen p=currentpen,
-	      ticks3 ticks=NoTicks3, arrowbar arrow=None, bool put=Above,
+	      ticks3 ticks=NoTicks3, arrowbar3 arrow=None, bool put=Above,
 	      bool opposite=false, bool opposite2=false)
 {
   int type=axis.type;
@@ -627,7 +626,7 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
 // An internal routine to draw an x axis at a particular y value.
 void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
 	      real ymin=-infinity, real ymax=infinity, pen p=currentpen,
-	      ticks3 ticks=NoTicks3, arrowbar arrow=None, bool put=Above,
+	      ticks3 ticks=NoTicks3, arrowbar3 arrow=None, bool put=Above,
 	      bool opposite=false, bool opposite2=false)
 {
   int type=axis.type;
@@ -748,7 +747,7 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
 // An internal routine to draw an x axis at a particular y value.
 void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
 	      real zmin=-infinity, real zmax=infinity, pen p=currentpen,
-	      ticks3 ticks=NoTicks3, arrowbar arrow=None, bool put=Above,
+	      ticks3 ticks=NoTicks3, arrowbar3 arrow=None, bool put=Above,
 	      bool opposite=false, bool opposite2=false)
 {
   int type=axis.type;
@@ -894,7 +893,7 @@ void autoscale3(picture pic=currentpicture, axis axis)
 // Draw an x axis in three dimensions.
 void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
 	    real xmin=-infinity, real xmax=infinity, pen p=currentpen,
-	    ticks3 ticks=NoTicks3, arrowbar arrow=None, bool put=Below)
+	    ticks3 ticks=NoTicks3, arrowbar3 arrow=None, bool put=Below)
 {
   if(xmin > xmax) return;
   
@@ -959,7 +958,7 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
 // Draw a y axis in three dimensions.
 void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
 	    real ymin=-infinity, real ymax=infinity, pen p=currentpen,
-	    ticks3 ticks=NoTicks3, arrowbar arrow=None, bool put=Below)
+	    ticks3 ticks=NoTicks3, arrowbar3 arrow=None, bool put=Below)
 {
   if(ymin > ymax) return;
 
@@ -1022,7 +1021,7 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
 // Draw a z axis in three dimensions.
 void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
 	    real zmin=-infinity, real zmax=infinity, pen p=currentpen,
-	    ticks3 ticks=NoTicks3, arrowbar arrow=None, bool put=Below)
+	    ticks3 ticks=NoTicks3, arrowbar3 arrow=None, bool put=Below)
 {
   if(zmin > zmax) return;
 
@@ -1116,7 +1115,7 @@ void limits(picture pic=currentpicture, triple min, triple max)
 // Draw x, y and z axes.
 void axes3(picture pic=currentpicture,
 	   Label xlabel="", Label ylabel="", Label zlabel="", 
-	   pen p=currentpen, arrowbar arrow=None)
+	   pen p=currentpen, arrowbar3 arrow=None)
 {
   xaxis3(pic,xlabel,p,arrow);
   yaxis3(pic,ylabel,p,arrow);
@@ -1508,21 +1507,19 @@ guide3[][] lift(real f(pair z), guide[][] g, interpolate3 join=operator --)
 }
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-	  guide3[][] g, pen[] p, Label[] legend=new Label[])
+	  guide3[][] g, pen[] p)
 {
   begingroup3(pic);
   for(int cnt=0; cnt < g.length; ++cnt) {
     guide3[] gcnt=g[cnt];
     pen pcnt=p[cnt];
-    for(int i=0; i < gcnt.length; ++i) {
-      guide3 G=gcnt[i];
-      //      if (i == 0 && legend.length > 0) draw(pic,G,pcnt,legend[cnt]);
-      //      else
-	draw(pic,G,pcnt);
-      if(L.length > 0) {
-	Label Lcnt=L[cnt];
-	if(Lcnt.s != "" && size(gcnt[i]) > 1)
-	  label(pic,Lcnt,G,pcnt);
+    for(int i=0; i < gcnt.length; ++i)
+      draw(pic,gcnt[i],pcnt);
+    if(L.length > 0) {
+      Label Lcnt=L[cnt];
+      for(int i=0; i < gcnt.length; ++i) {
+        if(Lcnt.s != "" && size(gcnt[i]) > 1)
+	  label(pic,Lcnt,gcnt[i],pcnt);
       }
     }
   }
@@ -1530,15 +1527,15 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
 }
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-	  guide3[][] g, pen p=currentpen, Label[] legend=new Label[])
+	  guide3[][] g, pen p=currentpen)
 {
-  draw(pic,L,g,sequence(new pen(int) {return p;},g.length),legend);
+  draw(pic,L,g,sequence(new pen(int) {return p;},g.length));
 }
 
 picture vectorfield(path3 vector(pair z), triple f(pair z),
 		    pair a, pair b, int nx=nmesh, int ny=nx,
 		    bool autoscale=true,
-		    pen p=currentpen, arrowbar arrow=Arrow)
+		    pen p=currentpen, arrowbar3 arrow=Arrow3)
 {
   picture pic;
   real dx=1/nx;
@@ -1563,8 +1560,7 @@ picture vectorfield(path3 vector(pair z), triple f(pair z),
     for(int j=0; j <= ny; ++j) {
       real y=interp(a.y,b.y,j*dy);
       pair z=(x,y);
-      //      draw(pic,shift(f(z))*scale3(scale)*vector(z),p,arrow);
-     draw(pic,shift(f(z))*scale3(scale)*vector(z),p);
+     draw(pic,shift(f(z))*scale3(scale)*vector(z),p,arrow);
     }
   }
   return pic;

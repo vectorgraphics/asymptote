@@ -10,6 +10,15 @@ real anglefactor=1.08; // Factor used to expand PRC viewing angle.
 
 string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
 
+string Embed(string name, string options="", real width=0, real height=0);
+string Link(string label, string text, string options="");
+
+if(settings.prc) {
+  access embed;
+  Embed=embed.embed;
+  Link=embed.link;
+}
+
 triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
 
@@ -2514,8 +2523,7 @@ string embedprc(string prefix=defaultfilename, frame f, string label="",
 		real width=0, real height=0, real angle=30,
 		pen background=white, projection P=currentprojection)
 {
-  if(!prc()) return "";
-  import embed;
+  if(!prc() || Embed == null) return "";
 
   if(width == 0) width=settings.paperwidth;
   if(height == 0) height=settings.paperheight;
@@ -2553,7 +2561,7 @@ string embedprc(string prefix=defaultfilename, frame f, string label="",
     ","+defaultembed3options;
   if(options != "") options3 += ","+options;
 
-  return embed(prefix,options3,width,height);
+  return Embed(prefix,options3,width,height);
 }
 
 object embed(string prefix=defaultfilename, frame f, string label="",
@@ -2563,7 +2571,7 @@ object embed(string prefix=defaultfilename, frame f, string label="",
 {
   object F;
 
-  if(prc())
+  if(prc() && Embed != null)
     F.L=embedprc(prefix,f,label,text,options,width,height,angle,background,P);
   else
     F.f=f;
@@ -2674,10 +2682,8 @@ void add(picture dest=currentpicture, object src, pair position, pair align,
 
 string cameralink(string label, string text="View Parameters")
 {
-  if(!prc()) return "";
-  import embed;
-
-  return link(label,text,"3Dgetview");
+  if(!prc() || Link == null) return "";
+  return Link(label,text,"3Dgetview");
 }
 
 private struct viewpoint {
@@ -2763,8 +2769,7 @@ include three_light;
 include three_surface;
 
 void draw(picture pic=currentpicture, Label L="", path3 g,
-	  align align=NoAlign, pen p=currentpen,
-	  int ninterpolate=ninterpolate)
+	  align align=NoAlign, pen p=currentpen, int ninterpolate=ninterpolate)
 {
   Label L=L.copy();
   L.align(align);
@@ -2784,8 +2789,8 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
 
 include three_arrows;
 
-draw=new void(frame f, path3 g, pen p=currentpen, projection P=null,
-	      int ninterpolate=ninterpolate) {
+draw=new void(frame f, path3 g, pen p=currentpen,
+	      projection P=null, int ninterpolate=ninterpolate) {
   if(prc()) {
     real width=linewidth(p);
     if(renderthick && width > 0) {
@@ -2797,6 +2802,23 @@ draw=new void(frame f, path3 g, pen p=currentpen, projection P=null,
   }
   else draw(f,project(g,P,ninterpolate),p);
 };
+
+void draw(picture pic=currentpicture, Label L="", path3 g, 
+	  align align=NoAlign, pen p=currentpen, arrowbar3 arrow,
+	  int ninterpolate=ninterpolate)
+{
+  if(arrow(pic,g,p))
+    draw(pic,L,g,align,p,ninterpolate);
+}
+
+void draw(frame f, path3 g, pen p=currentpen, projection P=null,
+	  int ninterpolate=ninterpolate, arrowbar3 arrow)
+{
+  picture pic;
+  if(arrow(pic,g,p))
+    draw(f,g,p);
+  add(f,pic.fit());
+}
 
 void draw(frame f, path3[] g, pen p=currentpen, projection P=null)
 {

@@ -1280,6 +1280,8 @@ struct picture {
 
     if(src == this) abort("cannot add picture to itself");
     
+    uptodate=false;
+
     picture srcCopy=src.drawcopy();
     // Draw by drawing the copied picture.
     if(srcCopy.nodes.length > 0)

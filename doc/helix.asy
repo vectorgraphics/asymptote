@@ -13,8 +13,7 @@ defaultpen(overwrite(SuppressQuiet));
 
 path3 p=graph(x,y,z,0,2.7,operator ..);
 
-//draw(p,Arrow);
-draw(p);
+draw(p,Arrow3);
 
 xaxis3(XY()*"$x$",Bounds(),red,LeftTicks3(Label,2,2));
 yaxis3(YX()*"$y$",Bounds(),red,LeftTicks3(Label,2,2));

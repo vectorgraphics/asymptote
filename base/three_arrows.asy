@@ -86,27 +86,27 @@ surface tube(path3 g, real width)
       path3 s=subpath(g,i,i+1);
       real endtime=0;
       while(endtime < 1) {
-	real newend=takeStep(s,endtime,r);
+        real newend=takeStep(s,endtime,r);
 
-	path3 si=subpath(s,endtime,newend);
+        path3 si=subpath(s,endtime,newend);
 
-	real L=arclength(si);
-	surface segment=scale(r,r,L)*unitcylinder;
-	path3 circle=t*unitcircle3;
-	if(endtime == 0)
-	  segment.push(circle);
-	if(newend == 1)
-	  segment.push(shift((0,0,L))*circle);
-	for(patch p : segment.s) {
-	  for(int i=0; i < 4; ++i) {
-	    for(int j=0; j < 4; ++j) {
-	      p.P[i][j]=bend(p.P[i][j],si,L,1);
-	    }
-	  }
-	}
-	tube.s.append(segment.s);
+        real L=arclength(si);
+        surface segment=scale(r,r,L)*unitcylinder;
+        path3 circle=t*unitcircle3;
+        if(endtime == 0)
+          segment.push(circle);
+        if(newend == 1)
+          segment.push(shift((0,0,L))*circle);
+        for(patch p : segment.s) {
+          for(int i=0; i < 4; ++i) {
+            for(int j=0; j < 4; ++j) {
+              p.P[i][j]=bend(p.P[i][j],si,L,1);
+            }
+          }
+        }
+        tube.s.append(segment.s);
 
-	endtime=newend;
+        endtime=newend;
       }
     }
 
@@ -175,11 +175,12 @@ DefaultHead3.head=new surface(path3 g, position position, pen p=currentpen,
   return arrow;
 };
 
-void arrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
-           path3 g, pen p=currentpen, pen arrowheadpen=p, real size=0,
-           real angle=arrowangle, position position=EndPoint,
-           bool forwards=true, bool center=false)
+void arrow0(picture pic, arrowhead3 arrowhead=DefaultHead3,
+	    path3 g, pen p=currentpen, pen arrowheadpen=p, real size=0,
+	    real angle=arrowangle, position position=EndPoint,
+	    bool forwards=true, bool center=false)
 {
+  if(arrowheadpen == nullpen) arrowheadpen=p;
   if(size == 0) size=arrowhead.size(arrowheadpen);
   size=min(arrowsizelimit*arclength(g),size);
   bool relative=position.relative;
@@ -209,6 +210,19 @@ void arrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
     draw(pic,arrowhead.head(r,position,p,size,angle),arrowheadpen);
 }
 
+void arrow2(picture pic, arrowhead3 arrowhead=DefaultHead3,
+            path3 g, pen p=currentpen, pen arrowheadpen=p,
+	    real size=0, real angle=arrowangle)
+{
+  if(arrowheadpen == nullpen) arrowheadpen=p;
+  if(size == 0) size=arrowhead.size(p);
+  size=min(arrow2sizelimit*arclength(g),size);
+  path3 r=reverse(g);
+  draw(pic,subpath(r,arctime(r,size),length(r)-arctime(g,size)),p);
+  draw(pic,arrowhead.head(g,length(g),p,size,angle));
+  draw(pic,arrowhead.head(r,length(r),p,size,angle));
+}
+
 picture arrow(arrowhead3 arrowhead=DefaultHead3,
               path3 g, pen p=currentpen, pen arrowheadpen=p, real size=0,
               real angle=arrowangle, position position=EndPoint,
@@ -216,8 +230,8 @@ picture arrow(arrowhead3 arrowhead=DefaultHead3,
 {
   picture pic;
   pic.add(new void(picture f, transform3 t) {
-      arrow(f,arrowhead,t*g,p,arrowheadpen,size,angle,position,
-            forwards,center);
+      arrow0(f,arrowhead,t*g,p,arrowheadpen,size,angle,position,
+	     forwards,center);
     });
 
   if(size == 0) size=DefaultHead3.size(p);
@@ -227,7 +241,7 @@ picture arrow(arrowhead3 arrowhead=DefaultHead3,
 
   path3 r=subpath(g,0,position);
   if(arclength(r) > size) {
-    surface s=arrowhead.head(r,position,p,size,angle),arrowheadpen;
+    surface s=arrowhead.head(r,position,p,size,angle);
     triple v=point(r,length(r));
     pic.addPoint(v,min(s)-v);
     pic.addPoint(v,max(s)-v);
@@ -235,3 +249,91 @@ picture arrow(arrowhead3 arrowhead=DefaultHead3,
   addPath(pic,g,p);
   return pic;
 }
+
+picture arrow2(arrowhead3 arrowhead=DefaultHead3,
+               path3 g, pen p=currentpen, pen arrowheadpen=p,
+	       real size=0, real angle=arrowangle)
+{
+  picture pic;
+  pic.add(new void(picture f, transform3 t) {
+      arrow2(f,arrowhead,t*g,p,arrowheadpen,size,angle);
+    });
+  
+  if(size == 0) size=DefaultHead3.size(p);
+
+  void addArrow(path3 g) {
+    int L=length(g);
+    surface s=arrowhead.head(g,L,p,size,angle);
+    triple v=point(g,L);
+    pic.addPoint(v,min(s)-v);
+    pic.addPoint(v,max(s)-v);
+  }
+
+  addArrow(g);
+  addArrow(reverse(g));
+
+  addPath(pic,g,p);
+  return pic;
+}
+
+typedef bool arrowbar3(picture, path3, pen);
+
+bool Blank(picture pic, path3 g, pen p) {
+  return false;
+}
+
+bool None(picture pic, path3 g, pen p) {
+  return true;
+}
+
+arrowbar3 BeginArrow3(arrowhead3 arrowhead=DefaultHead3,
+		      real size=0, real angle=arrowangle,
+		      position position=EndPoint, pen arrowheadpen=nullpen)
+{
+  return new bool(picture pic, path3 g, pen p) {
+    add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,position,false));
+    return false;
+  };
+}
+
+arrowbar3 Arrow3(arrowhead3 arrowhead=DefaultHead3,
+		 real size=0, real angle=arrowangle,
+		 position position=EndPoint, pen arrowheadpen=nullpen)
+
+{
+  return new bool(picture pic, path3 g, pen p) {
+    add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,position));
+    return false;
+  };
+}
+
+arrowbar3 EndArrow3(arrowhead3 arrowhead=DefaultHead3,
+		    real size=0, real angle=arrowangle,
+		    position position=EndPoint,
+		    pen arrowheadpen=nullpen)=Arrow3;
+
+arrowbar3 MidArrow3(arrowhead3 arrowhead=DefaultHead3,
+		    real size=0, real angle=arrowangle,
+		    pen arrowheadpen=nullpen)
+{
+  return new bool(picture pic, path3 g, pen p) {
+    add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,MidPoint,true));
+    return false;
+  };
+}
+
+arrowbar3 Arrows3(arrowhead3 arrowhead=DefaultHead3,
+		  real size=0, real angle=arrowangle, pen arrowheadpen=nullpen)
+
+{
+  return new bool(picture pic, path3 g, pen p) {
+    add(pic,arrow2(arrowhead,g,p,arrowheadpen,size,angle));
+    return false;
+  };
+}
+
+arrowbar3 BeginArrow3=BeginArrow3(),
+MidArrow3=MidArrow3(),
+Arrow3=Arrow3(),
+EndArrow3=Arrow3(),
+Arrows3=Arrows3();
