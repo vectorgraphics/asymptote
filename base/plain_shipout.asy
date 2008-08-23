@@ -23,10 +23,12 @@ orientation orientation=Portrait;
 
 object embed3(string, frame, string, projection);
 object embed3(picture, real, real, bool, string, projection);
+string embed(string name, string options="", real width=0, real height=0);
+string link(string label, string text, string options="");
 
 bool prc()
 {
-  return settings.prc && settings.outformat == "pdf";
+  return settings.prc && settings.outformat == "pdf" && embed != null;
 }
 
 frame enclose(string prefix=defaultfilename, object F)

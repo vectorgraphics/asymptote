@@ -298,6 +298,7 @@ triple perp(triple axis)
 
 // Return a right circular cylinder of height h in the direction of axis
 // based on a circle centered at c with radius r.
+// Note: unitcylinder provides a better surface.
 revolution cylinder(triple c=O, real r, real h, triple axis=Z)
 {
   triple C=c+r*perp(axis);
@@ -307,13 +308,16 @@ revolution cylinder(triple c=O, real r, real h, triple axis=Z)
 
 // Return a right circular cone of height h in the direction of axis
 // based on a circle centered at c with radius r.
+// Note: unitcone provides a better surface.
 revolution cone(triple c=O, real r, real h, triple axis=Z)
 {
   axis=unit(axis);
   return revolution(c,c+r*perp(axis)--c+h*axis,axis);
 }
 
-// Return a sphere of radius r centered at c sampled n times.
+// Return an approximate sphere of radius r centered at c obtained by rotating
+// an (n+1)-point approximation to a half circle about the Z axis.
+// Note: unitsphere provides a better surface.
 revolution sphere(triple c=O, real r, int n=nslice)
 {
   return revolution(c,Arc(c,r,180,0,0,0,Y,n),Z);

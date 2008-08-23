@@ -1,5 +1,11 @@
 private import math;
 
+if(settings.prc && settings.outformat == "pdf") {
+  access embed;
+  plain.embed=embed.embed;
+  plain.link=embed.link;
+}
+
 bool renderthick=true; // Render thick PRC lines?
 
 real defaultshininess=0.25;
@@ -9,15 +15,6 @@ real dotgranularity=0.0001;
 real anglefactor=1.08; // Factor used to expand PRC viewing angle.
 
 string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
-
-string Embed(string name, string options="", real width=0, real height=0);
-string Link(string label, string text, string options="");
-
-if(settings.prc) {
-  access embed;
-  Embed=embed.embed;
-  Link=embed.link;
-}
 
 triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
@@ -2523,7 +2520,7 @@ string embedprc(string prefix=defaultfilename, frame f, string label="",
 		real width=0, real height=0, real angle=30,
 		pen background=white, projection P=currentprojection)
 {
-  if(!prc() || Embed == null) return "";
+  if(!prc()) return "";
 
   if(width == 0) width=settings.paperwidth;
   if(height == 0) height=settings.paperheight;
@@ -2561,7 +2558,7 @@ string embedprc(string prefix=defaultfilename, frame f, string label="",
     ","+defaultembed3options;
   if(options != "") options3 += ","+options;
 
-  return Embed(prefix,options3,width,height);
+  return plain.embed(prefix,options3,width,height);
 }
 
 object embed(string prefix=defaultfilename, frame f, string label="",
@@ -2571,7 +2568,7 @@ object embed(string prefix=defaultfilename, frame f, string label="",
 {
   object F;
 
-  if(prc() && Embed != null)
+  if(prc())
     F.L=embedprc(prefix,f,label,text,options,width,height,angle,background,P);
   else
     F.f=f;
@@ -2682,8 +2679,8 @@ void add(picture dest=currentpicture, object src, pair position, pair align,
 
 string cameralink(string label, string text="View Parameters")
 {
-  if(!prc() || Link == null) return "";
-  return Link(label,text,"3Dgetview");
+  if(!prc() || plain.link == null) return "";
+  return plain.link(label,text,"3Dgetview");
 }
 
 private struct viewpoint {
@@ -2795,8 +2792,15 @@ draw=new void(frame f, path3 g, pen p=currentpen,
     real width=linewidth(p);
     if(renderthick && width > 0) {
       surface s=tube(g,width);
+      if(linecap(p) == 1) {
+	real r=0.5*width;
+	surface sphere=scale3(r)*unitsphere;
+	s.append(shift(point(g,0))*sphere);
+	s.append(shift(point(g,length(g)))*sphere);
+      }
+      material m=material(p,granularity=linegranularity);
       for(int i=0; i < s.s.length; ++i)
-      	drawprc(f,s.s[i],material(p,granularity=linegranularity),nolight);
+      	drawprc(f,s.s[i],m,nolight);
     }
     drawprc(f,g,p);
   }
