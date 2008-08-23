@@ -717,6 +717,7 @@ restricted surface unitcube=surface(unitplane,
 				    rotate(90,X,X+Y)*unitplane,
 				    rotate(-90,Y,X+Y)*unitplane);
 restricted surface unitplane=surface(unitplane);
+restricted surface unitdisk=surface(unitcircle3);
 
 void dot(frame f, triple v, pen p=currentpen,
 	 filltype filltype=Fill, light light=nolight, projection P=null)

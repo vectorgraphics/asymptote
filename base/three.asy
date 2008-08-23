@@ -2792,11 +2792,24 @@ draw=new void(frame f, path3 g, pen p=currentpen,
     real width=linewidth(p);
     if(renderthick && width > 0) {
       surface s=tube(g,width);
-      if(linecap(p) == 1) {
 	real r=0.5*width;
+	int L=length(g);
+      if(linecap(p) == 0) {
+	surface disk=scale3(r)*unitdisk;
+	s.append(shift(point(g,0))*transform3(dir(g,0))*disk);
+	s.append(shift(point(g,L))*transform3(dir(g,L))*disk);
+      }
+      if(linecap(p) == 1) {
 	surface sphere=scale3(r)*unitsphere;
 	s.append(shift(point(g,0))*sphere);
-	s.append(shift(point(g,length(g)))*sphere);
+	s.append(shift(point(g,L))*sphere);
+      }
+      if(linecap(p) == 2) {
+	surface cylinder=unitcylinder;
+	cylinder.append(shift(Z)*unitdisk);
+	cylinder=scale3(r)*cylinder;
+	s.append(shift(point(g,0))*transform3(-dir(g,0))*cylinder);
+	s.append(shift(point(g,L))*transform3(dir(g,L))*cylinder);
       }
       material m=material(p,granularity=linegranularity);
       for(int i=0; i < s.s.length; ++i)
