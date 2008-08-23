@@ -10,15 +10,6 @@ real anglefactor=1.08; // Factor used to expand PRC viewing angle.
 
 string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
 
-string embed(string name, string options="", real width=0, real height=0);
-string link(string label, string text, string options="");
-
-if(prc()) {
-  access embedding;
-  embed=embedding.embed;
-  link=embedding.link;
-}
-
 triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
 
@@ -2396,7 +2387,7 @@ path3[] box(triple v1, triple v2)
     (v1.x,v1.y,v2.z);
 }
 
-path3[] unitcube=box((0,0,0),(1,1,1));
+path3[] unitbox=box(O,(1,1,1));
 
 path3 unitcircle3=X..Y..-X..-Y..cycle;
 
@@ -2524,6 +2515,7 @@ string embedprc(string prefix=defaultfilename, frame f, string label="",
 		pen background=white, projection P=currentprojection)
 {
   if(!prc()) return "";
+  import embed;
 
   if(width == 0) width=settings.paperwidth;
   if(height == 0) height=settings.paperheight;
@@ -2682,6 +2674,9 @@ void add(picture dest=currentpicture, object src, pair position, pair align,
 
 string cameralink(string label, string text="View Parameters")
 {
+  if(!prc()) return "";
+  import embed;
+
   return link(label,text,"3Dgetview");
 }
 

@@ -152,14 +152,20 @@ struct patch {
     return max2=bound(maxbound,P,bound);
   }
 
-  void operator init(triple[][] P, pen[] colors=new pen[]) {
+  void operator init(triple[][] P, pen[] colors=new pen[], bool straight=false)
+  {
     init();
     this.P=copy(P);
     if(colors.length != 0)
       this.colors=copy(colors);
+    this.straight=straight;
   }
 
-  void operator init(triple[] P, pen[] colors=new pen[]) {
+  void operator init(patch s) {
+    operator init(s.P,s.colors,s.straight);
+  }
+  
+  void operator init(triple[] P, pen[] colors=new pen[], bool straight=false) {
     init();
     this.P=new triple[][] {{P[0],P[1],P[2],P[3]},
 			   {P[4],P[5],P[6],P[7]},
@@ -167,6 +173,7 @@ struct patch {
 			   {P[12],P[13],P[14],P[15]}};
     if(colors.length != 0)
       this.colors=copy(colors);
+    this.straight=straight;
   }
 
   void operator init(path3 external, triple[] internal=new triple[],
@@ -226,6 +233,12 @@ struct surface {
 
   void operator init(... patch[] s) {
     this.s=s;
+  }
+
+  void operator init(surface s) {
+    this.s=new patch[s.s.length];
+    for(int i=0; i < s.s.length; ++i)
+      this.s[i]=patch(s.s[i]);
   }
 
   void operator init(triple[][] P, pen[] colors=new pen[]) {
@@ -671,35 +684,39 @@ restricted surface nullsurface;
 
 private real a=4/3*(sqrt(2)-1);
 private transform3 t=rotate(90,O,Z);
+private transform3 t2=t*t;
+private transform3 t3=t2*t;
 private transform3 i=zscale3(-1);
 
 private patch octant1=patch(X{Z}..{-X}Z..Z{Y}..{-Z}Y{X}..{-Y}cycle,
 			    new triple[] {(1,a,a),(a,a^2,1),(a^2,a,1),(a,1,a)});
-private patch octant2=t*octant1;
-private patch octant3=t*octant2;
-private patch octant4=t*octant3;
 
-restricted surface unitsphere=surface(octant1,octant2,octant3,octant4,
-				      i*octant1,i*octant2,i*octant3,i*octant4);
+restricted surface unitsphere=surface(octant1,t*octant1,t2*octant1,t3*octant1,
+				      i*octant1,i*t*octant1,i*t2*octant1,
+				      i*t3*octant1);
 
 private patch unitcone1=patch(X--Z--Z--Y{X}..{-Y}cycle,
 			      new triple[] {(2/3,2/3*a,1/3),Z,Z,
 					    (2/3*a,2/3,1/3)});
-private patch unitcone2=t*unitcone1;
-private patch unitcone3=t*unitcone2;
-private patch unitcone4=t*unitcone3;
 
-restricted surface unitcone=surface(unitcone1,unitcone2,unitcone3,unitcone4);
+restricted surface unitcone=surface(unitcone1,t*unitcone1,t2*unitcone1,
+				    t3*unitcone1);
 restricted surface solidcone=surface(...unitcone.s);
-solidcone.s.push(patch(unitcircle3));
+solidcone.push(unitcircle3);
 
 private patch unitcylinder1=patch(X--X+Z{Y}..{-X}Y+Z--Y{X}..{-Y}cycle);
-private patch unitcylinder2=t*unitcylinder1;
-private patch unitcylinder3=t*unitcylinder2;
-private patch unitcylinder4=t*unitcylinder3;
 
-restricted surface unitcylinder=surface(unitcylinder1,unitcylinder2,
-					unitcylinder3,unitcylinder4);
+restricted surface unitcylinder=surface(unitcylinder1,t*unitcylinder1,
+					t2*unitcylinder1,t3*unitcylinder1);
+
+private patch unitplane=patch(O--X--(X+Y)--Y--cycle);
+restricted surface unitcube=surface(unitplane,
+				    rotate(90,O,X)*unitplane,
+				    rotate(-90,O,Y)*unitplane,
+				    shift(Z)*unitplane,
+				    rotate(90,X,X+Y)*unitplane,
+				    rotate(-90,Y,X+Y)*unitplane);
+restricted surface unitplane=surface(unitplane);
 
 void dot(frame f, triple v, pen p=currentpen,
 	 filltype filltype=Fill, light light=nolight, projection P=null)
