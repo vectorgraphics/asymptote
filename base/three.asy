@@ -12,7 +12,7 @@ real defaultshininess=0.25;
 real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
-real anglefactor=1.08; // Factor used to expand PRC viewing angle.
+real anglefactor=1.005; // Factor used to expand PRC viewing angle.
 
 string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
 
@@ -2596,18 +2596,18 @@ object embed(string prefix=defaultfilename, picture pic,
   P=t*P;
   frame f=pic.fit3(t,pic.bounds3.exact ? pic2 : null,P);
 
-  bool prc=prc();
-
   if(!pic.bounds3.exact) {
-    transform3 s=pic.scale3(f,keepAspect);
+    transform3 s=pic.scale3(f,xsize3,ysize3,zsize3,keepAspect);
     t=s*t;
     P=s*P;
     f=pic.fit3(t,pic2,P);
   }
 
+  bool prc=prc();
   bool scale=xsize != 0 || ysize != 0;
 
   if(prc || scale) {
+  pic2.bounds.exact=true;
     transform s=pic2.scaling(xsize,ysize,keepAspect);
     pair M=pic2.max(s);
     pair m=pic2.min(s);
@@ -2792,19 +2792,18 @@ draw=new void(frame f, path3 g, pen p=currentpen,
     real width=linewidth(p);
     if(renderthick && width > 0) {
       surface s=tube(g,width);
-	real r=0.5*width;
-	int L=length(g);
-      if(linecap(p) == 0) {
-	surface disk=scale3(r)*unitdisk;
+      real r=0.5*width;
+      int L=length(g);
+      real linecap=linecap(p);
+      if(linecap == 0) {
+	surface disk=scale(r,r,1)*unitdisk;
 	s.append(shift(point(g,0))*transform3(dir(g,0))*disk);
 	s.append(shift(point(g,L))*transform3(dir(g,L))*disk);
-      }
-      if(linecap(p) == 1) {
+      } else if(linecap == 1) {
 	surface sphere=scale3(r)*unitsphere;
 	s.append(shift(point(g,0))*sphere);
 	s.append(shift(point(g,L))*sphere);
-      }
-      if(linecap(p) == 2) {
+      } else if(linecap == 2) {
 	surface cylinder=unitcylinder;
 	cylinder.append(shift(Z)*unitdisk);
 	cylinder=scale3(r)*cylinder;

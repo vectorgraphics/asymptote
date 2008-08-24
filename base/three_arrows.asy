@@ -39,21 +39,16 @@ triple bend(triple p, path3 g, real scale=1, real endtime=g.length())
 
 real takeStep(path3 s, real endtime, real width)
 {
-  real newend=1;
-  if(!s.straight(0)) { // use a better test ? 
-    real a=abs(accel(s,endtime));
+  real a=abs(accel(s,endtime));
 
-    // tweak this:
-    real K=1.25/width; // a different constant perhaps ?
-    real minStep=1/50; // at most 1/minStep segments for a curve
-    real step=max(1/(K*a+1),minStep); // or a different model
-    newend=min(endtime+step,length(s));
-    a=abs(accel(s,(newend+endtime)/2));
-    step=max(1/(K*a+1),minStep);
-    if(step > 0.25) step=0.25; // guarantee at least 4 segments per curve
-    newend=min(endtime+step,length(s));
-  }
-  return newend;
+  // tweak this:
+  real K=1.25/width; // a different constant perhaps ?
+  real minStep=1/50; // at most 1/minStep segments for a curve
+  real step=max(1/(K*a+1),minStep); // or a different model
+  a=abs(accel(s,(min(endtime+step,length(s))+endtime)/2));
+  step=max(1/(K*a+1),minStep);
+  if(step > 0.25) step=0.25; // guarantee at least 4 segments per curve
+  return min(endtime+step,length(s));
 }
 
 
@@ -127,20 +122,23 @@ struct arrowhead3
 
 arrowhead3 DefaultHead3;
 
-DefaultHead3.head=new surface(path3 g, position position, pen p=currentpen,
-                              real size=0, real angle=arrowangle) {
+DefaultHead3.head=new surface(path3 g, position position=EndPoint,
+			      pen p=currentpen, real size=0,
+			      real angle=arrowangle) {
   if(size == 0) size=DefaultHead3.size(p);
   bool relative=position.relative;
   real position=position.position.x;
   if(relative) position=reltime(g,position);
 
-  path3 s=subpath(g,arctime(g,arclength(g)-size),length(g));
+  path3 r=subpath(g,position,0);
+  real t=arctime(r,size);
+  path3 s=subpath(r,t,0);
   real L=arclength(s);
   real wl=Tan(angle);
   real width=L*wl; // make sure this is not zero
   real remainL=L;
 
-  surface arrow;
+  surface head;
 
   for(int i=0; i < length(s); ++i) {
     path3 s=subpath(s,i,i+1);
@@ -155,7 +153,7 @@ DefaultHead3.head=new surface(path3 g, position position, pen p=currentpen,
       real w=remainL*wl;
       surface segment=scale(w,w,l)*unitcylinder;
       if(endtime == 0) // add base
-        segment.push(scale3(w)*unitcircle3);
+        segment.append(scale(w,w,1)*unitdisk);
       for(patch p : segment.s) {
         for(int i=0; i < 4; ++i) {
           for(int j=0; j < 4; ++j) {
@@ -165,24 +163,18 @@ DefaultHead3.head=new surface(path3 g, position position, pen p=currentpen,
           }
         }
       }
-      arrow.s.append(segment.s);
+      head.append(segment);
 
       endtime=newend;
       remainL -= l;
     }
   }
 
-  return arrow;
+  return head;
 };
 
-void arrow0(picture pic, arrowhead3 arrowhead=DefaultHead3,
-	    path3 g, pen p=currentpen, pen arrowheadpen=p, real size=0,
-	    real angle=arrowangle, position position=EndPoint,
-	    bool forwards=true, bool center=false)
+private real position(position position, real size, path3 g, bool center)
 {
-  if(arrowheadpen == nullpen) arrowheadpen=p;
-  if(size == 0) size=arrowhead.size(arrowheadpen);
-  size=min(arrowsizelimit*arclength(g),size);
   bool relative=position.relative;
   real position=position.position.x;
   if(relative) {
@@ -191,36 +183,60 @@ void arrow0(picture pic, arrowhead3 arrowhead=DefaultHead3,
     position=arctime(g,position);
   } else if(center) 
     position=arctime(g,arclength(subpath(g,0,position))+0.5*size);
+  return position;
+}
+
+void drawarrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
+	       path3 g, pen p=currentpen, pen arrowheadpen=p, real size=0,
+	       real angle=arrowangle, position position=EndPoint,
+	       bool forwards=true, bool center=false)
+{
+  if(arrowheadpen == nullpen) arrowheadpen=p;
+  if(size == 0) size=arrowhead.size(p);
+  size=min(arrowsizelimit*arclength(g),size);
+  real position=position(position,size,g,center);
+
   int L=length(g);
   if(!forwards) {
     g=reverse(g);
     position=L-position;
   }
-
-  path3 r=subpath(g,0,position);
-  path3 s=subpath(g,position,L);
-
+  path3 r=subpath(g,position,0);
   size=min(arrowsizelimit*arclength(r),size);
-
-  if(opacity(arrowheadpen) < 1 || position == L) {
-    draw(pic,subpath(r,0,arctime(r,arclength(r)-size)),p);
-    if(position < L) draw(pic,s,p);
+  if(position == L) {
+    if(position > 0)
+      draw(pic,subpath(r,arctime(r,size),length(r)),p);
+    if(position < L)
+      draw(pic,subpath(g,position,L),p);
   } else draw(pic,g,p);
-  if(arclength(r) > size)
-    draw(pic,arrowhead.head(r,position,p,size,angle),arrowheadpen);
-}
+  draw(pic,arrowhead.head(g,position,p,size,angle),arrowheadpen);
+ }
 
-void arrow2(picture pic, arrowhead3 arrowhead=DefaultHead3,
-            path3 g, pen p=currentpen, pen arrowheadpen=p,
-	    real size=0, real angle=arrowangle)
+void drawarrow2(picture pic, arrowhead3 arrowhead=DefaultHead3,
+		path3 g, pen p=currentpen, pen arrowheadpen=p,
+		real size=0, real angle=arrowangle)
 {
   if(arrowheadpen == nullpen) arrowheadpen=p;
   if(size == 0) size=arrowhead.size(p);
   size=min(arrow2sizelimit*arclength(g),size);
+
   path3 r=reverse(g);
-  draw(pic,subpath(r,arctime(r,size),length(r)-arctime(g,size)),p);
-  draw(pic,arrowhead.head(g,length(g),p,size,angle));
-  draw(pic,arrowhead.head(r,length(r),p,size,angle));
+  int L=length(g);
+  draw(pic,subpath(r,arctime(r,size),L-arctime(g,size)),p);
+  draw(pic,arrowhead.head(g,L,p,size,angle),arrowheadpen);
+  draw(pic,arrowhead.head(r,L,p,size,angle),arrowheadpen);
+}
+
+// Add to picture an estimate of the bounding box contribution of arrowhead
+// using the local slope at endpoint.
+void addArrow(picture pic, arrowhead3 arrowhead, path3 g, pen p, real size,
+	      real angle, real position)
+{
+  triple v=point(g,position);
+  path3 g=v-(size+linewidth(p))*dir(g,position)--v;
+  surface s=arrowhead.head(g,position,p,size,angle);
+  pic.addPoint(v,min(s)-v);
+  pic.addPoint(v,max(s)-v);
 }
 
 picture arrow(arrowhead3 arrowhead=DefaultHead3,
@@ -228,25 +244,23 @@ picture arrow(arrowhead3 arrowhead=DefaultHead3,
               real angle=arrowangle, position position=EndPoint,
               bool forwards=true, bool center=false)
 {
+  if(size == 0) size=DefaultHead3.size(p);
   picture pic;
   pic.add(new void(picture f, transform3 t) {
-      arrow0(f,arrowhead,t*g,p,arrowheadpen,size,angle,position,
-	     forwards,center);
+      drawarrow(f,arrowhead,t*g,p,arrowheadpen,size,angle,position,
+		forwards,center);
     });
 
-  if(size == 0) size=DefaultHead3.size(p);
-  bool relative=position.relative;
-  real position=position.position.x;
-  if(relative) position=reltime(g,position);
-
-  path3 r=subpath(g,0,position);
-  if(arclength(r) > size) {
-    surface s=arrowhead.head(r,position,p,size,angle);
-    triple v=point(r,length(r));
-    pic.addPoint(v,min(s)-v);
-    pic.addPoint(v,max(s)-v);
-  }
   addPath(pic,g,p);
+
+  real position=position(position,size,g,center);
+  path3 G;
+  if(!forwards) {
+    G=reverse(g);
+    position=length(g)-position;
+  } else G=g;
+  addArrow(pic,arrowhead,G,p,size,angle,position);
+
   return pic;
 }
 
@@ -254,25 +268,18 @@ picture arrow2(arrowhead3 arrowhead=DefaultHead3,
                path3 g, pen p=currentpen, pen arrowheadpen=p,
 	       real size=0, real angle=arrowangle)
 {
+  if(size == 0) size=DefaultHead3.size(p);
   picture pic;
   pic.add(new void(picture f, transform3 t) {
-      arrow2(f,arrowhead,t*g,p,arrowheadpen,size,angle);
+      drawarrow2(f,arrowhead,t*g,p,arrowheadpen,size,angle);
     });
   
-  if(size == 0) size=DefaultHead3.size(p);
-
-  void addArrow(path3 g) {
-    int L=length(g);
-    surface s=arrowhead.head(g,L,p,size,angle);
-    triple v=point(g,L);
-    pic.addPoint(v,min(s)-v);
-    pic.addPoint(v,max(s)-v);
-  }
-
-  addArrow(g);
-  addArrow(reverse(g));
-
   addPath(pic,g,p);
+
+  int L=length(g);
+  addArrow(pic,arrowhead,g,p,size,angle,L);
+  addArrow(pic,arrowhead,reverse(g),p,size,angle,L);
+
   return pic;
 }
 
@@ -288,10 +295,11 @@ bool None(picture pic, path3 g, pen p) {
 
 arrowbar3 BeginArrow3(arrowhead3 arrowhead=DefaultHead3,
 		      real size=0, real angle=arrowangle,
-		      position position=EndPoint, pen arrowheadpen=nullpen)
+		      position position=BeginPoint, pen arrowheadpen=nullpen)
 {
   return new bool(picture pic, path3 g, pen p) {
-    add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,position,false));
+    add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,position,
+		  forwards=false));
     return false;
   };
 }
@@ -317,7 +325,7 @@ arrowbar3 MidArrow3(arrowhead3 arrowhead=DefaultHead3,
 		    pen arrowheadpen=nullpen)
 {
   return new bool(picture pic, path3 g, pen p) {
-    add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,MidPoint,true));
+    add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,MidPoint,center=true));
     return false;
   };
 }

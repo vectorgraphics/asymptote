@@ -1125,7 +1125,8 @@ struct picture {
   
   // Calculate additional scaling required if only an approximate picture
   // size estimate is available.
-  transform scale(frame f, bool keepaspect=this.keepAspect) {
+  transform scale(frame f, real xsize=this.xsize, real ysize=this.ysize,
+		  bool keepaspect=this.keepAspect) {
     if(bounds.exact) return identity();
     pair m=min(f);
     pair M=max(f);
@@ -1142,9 +1143,11 @@ struct picture {
 
   }
 
-  // Calculate additional scaling required if only an approximate picture
+  // Calculate additional scaling required if only an approximate thisture
   // size estimate is available.
-  transform3 scale3(frame f, bool keepaspect=this.keepAspect) {
+  transform3 scale3(frame f, real xsize3=this.xsize3,
+		    real ysize3=this.ysize3, real zsize3=this.zsize3,
+		    bool keepaspect=this.keepAspect) {
     if(bounds3.exact) return identity(4);
     triple m=min3(f);
     triple M=max3(f);
@@ -1167,7 +1170,7 @@ struct picture {
   transform calculateTransform(real xsize, real ysize, bool keepAspect=true,
                                bool warn=true) {
     transform t=scaling(xsize,ysize,keepAspect,warn);
-    return scale(fit(t),keepAspect)*t;
+    return scale(fit(t),xsize,ysize,keepAspect)*t;
   }
 
   transform calculateTransform(bool warn=true) {
@@ -1212,7 +1215,7 @@ struct picture {
     if(empty2()) return newframe;
     transform t=scaling(xsize,ysize,keepAspect);
     frame f=fit(t);
-    transform s=scale(f,keepAspect);
+    transform s=scale(f,xsize,ysize,keepAspect);
     if(s == identity()) return f;
     return fit(s*t);
   }
@@ -1231,7 +1234,7 @@ struct picture {
   frame scale(real xsize=this.xsize, real ysize=this.ysize,
               bool keepAspect=this.keepAspect) {
     frame f=fit(xsize,ysize,keepAspect);
-    transform s=scale(f,keepAspect);
+    transform s=scale(f,xsize,ysize,keepAspect);
     if(s == identity()) return f;
     return s*f;
   }
