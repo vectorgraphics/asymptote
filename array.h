@@ -21,7 +21,7 @@ class array : public mem::vector<item> {
   void setNonBridgingSlice(size_t l, size_t r, mem::vector<item> *a);
   void setBridgingSlice(size_t l, size_t r, mem::vector<item> *a);
 public:
-  array() {}
+  array() : cycle(false) {}
   
   array(size_t n)
     : mem::vector<item>(n), cycle(false)
