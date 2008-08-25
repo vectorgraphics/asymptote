@@ -22,75 +22,52 @@ struct patch {
   }
 
   triple[] controlpoints() {
-    return new triple[] {P[0][0],P[0][1],P[0][2],P[0][3],
+    return new triple[] {
+        P[0][0],P[0][1],P[0][2],P[0][3],
 	P[1][0],P[1][1],P[1][2],P[1][3],
 	P[2][0],P[2][1],P[2][2],P[2][3],
 	P[3][0],P[3][1],P[3][2],P[3][3]};
   }
 
-  triple Bezier(triple a, triple b,triple c, triple d, real t) {
-    return a*(1-t)^3+b*3t*(1-t)^2+c*3t^2*(1-t)+d*t^3;
-  }
+  triple Bu(int j, real u) {return Bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
+  triple BuP(int j, real u) {return BezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);}
 
   path3 uequals(real u) {
-    triple Bu(int j, real u) {return Bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
     return straight ? Bu(0,u)--Bu(3,u) :
       Bu(0,u)..controls Bu(1,u) and Bu(2,u)..Bu(3,u);
   }
 
+  triple Bv(int i, real v) {return Bezier(P[i][0],P[i][1],P[i][2],P[i][3],v);}
+  triple BvP(int i, real v) {return BezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);}
+
   path3 vequals(real v) {
-    triple Bv(int i, real v) {return Bezier(P[i][0],P[i][1],P[i][2],P[i][3],v);}
     return straight ? Bv(0,v)--Bv(3,v) :
       Bv(0,v)..controls Bv(1,v) and Bv(2,v)..Bv(3,v);
+  }
+
+  triple point(real u, real v) {	
+    return Bezier(Bu(0,u),Bu(1,u),Bu(2,u),Bu(3,u),v);
+  }
+
+  triple normal(real u, real v) {
+    return cross(Bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
+		 Bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u));
   }
 
   pen[] colors(pen surfacepen=lightgray, light light=currentlight,
 	       bool outward=false, projection Q=null) {
     if(colors.length != 0)
       return colors;
-    pen color(triple dfu, triple dfv) {
-      triple v=cross(dfu,dfv);
-      if(!outward)
-	v *= sgn(dot(v,Q.camera-Q.target));
-      return light.intensity(v)*surfacepen;
+    pen color(real u, real v) {
+      triple n=normal(u,v);
+      if(!outward)	
+	n *= sgn(dot(n,Q.camera-Q.target));
+      return light.intensity(n)*surfacepen;
     }
 
-    struct dir {
-      triple post;
-      triple pre;
-      void operator init(triple z0, triple c0, triple c1, triple z1) {
-	real epsilon=Fuzz*abs(z0-z1);
-
-	post=c0-z0;
-
-	if(abs(post) > epsilon) post=unit(post);
-	else {
-	  post=z0-2*c0+c1;
-	  if(abs(post) > epsilon) post=unit(post);
-	  else post=unit(z1-z0+3*(c0-c1));
-	}
-	
-	pre=z1-c1;
-	if(abs(pre) > epsilon) pre=unit(pre);
-	else {
-	  pre=2*c1-c0-z1;
-	  if(abs(pre) > epsilon) pre=unit(pre);
-	  else pre=unit(z1-z0+3*(c0-c1));
-	}
-      }
-    }
-
-    dir dir0=dir(P[0][0],P[0][1],P[0][2],P[0][3]);
-    dir dir1=dir(P[0][3],P[1][3],P[2][3],P[3][3]);
-    dir dir2=dir(P[3][3],P[3][2],P[3][1],P[3][0]);
-    dir dir3=dir(P[3][0],P[2][0],P[1][0],P[0][0]);
-
-    return new pen[] {color(dir3.pre,-dir0.post),
-	color(-dir1.post,-dir0.pre),
-	color(-dir1.pre,dir2.post),
-	color(dir3.post,dir2.pre)};
+    return new pen[] {color(0,0),color(0,1),color(1,1),color(1,0)};
   }
-
+  
   triple bound(real m(real[], real), triple b) {
     real x=m(new real[] {P[0][0].x,P[0][1].x,P[0][2].x,P[0][3].x,
 			 P[1][0].x,P[1][1].x,P[1][2].x,P[1][3].x,
@@ -107,8 +84,8 @@ struct patch {
     return (x,y,z);
   }
 
-  pair bound(real m(triple[], real f(triple), real),
-	     projection P, pair b=project(this.P[0][0],P)) {
+  pair bound(real m(triple[], real f(triple), real), projection P,
+	     pair b=project(this.P[0][0],P)) {
     triple[] Q=controlpoints();
     return (m(Q,new real(triple v) {return project(v,P).x;},b.x),
 	    m(Q,new real(triple v) {return project(v,P).y;},b.y));
@@ -410,7 +387,7 @@ patch subpatch(patch s, real ua, real ub, real va, real vb)
 
 triple point(patch s, real u, real v)
 {
-  return point(s.uequals(u),v);
+  return s.point(u,v);
 }
 
 struct material {

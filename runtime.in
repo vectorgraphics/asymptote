@@ -2468,7 +2468,18 @@ bool is3D(picture *f)
 {
   return f->have3D();
 }
-
+
+triple Bezier(triple a, triple b, triple c, triple d, real t) 
+{
+  real onemt=1-t;
+  real onemt2=onemt*onemt;
+  return onemt2*onemt*a+t*(3.0*(onemt2*b+t*onemt*c)+t*t*d);
+}
+
+triple BezierP(triple a, triple b, triple c, triple d, real t) 
+{
+  return 3.0*(t*t*(d-a+3.0*(b-c))+t*(2.0*(a+c)-4.0*b)+b-a);
+}
 
 
 // String operations
