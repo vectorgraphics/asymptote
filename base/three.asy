@@ -6,8 +6,6 @@ if(settings.prc && settings.outformat == "pdf") {
   plain.link=embed.link;
 }
 
-bool renderthick=true; // Render thick PRC lines?
-
 real defaultshininess=0.25;
 real defaultgranularity=0;
 real linegranularity=0.01;
@@ -2789,30 +2787,32 @@ include three_arrows;
 draw=new void(frame f, path3 g, pen p=currentpen,
 	      projection P=null, int ninterpolate=ninterpolate) {
   if(prc()) {
-    real width=linewidth(p);
-    if(renderthick && width > 0) {
-      surface s=tube(g,width);
-      real r=0.5*width;
-      int L=length(g);
-      real linecap=linecap(p);
-      if(linecap == 0) {
-	surface disk=scale(r,r,1)*unitdisk;
-	s.append(shift(point(g,0))*transform3(dir(g,0))*disk);
-	s.append(shift(point(g,L))*transform3(dir(g,L))*disk);
-      } else if(linecap == 1) {
-	surface sphere=scale3(r)*unitsphere;
-	s.append(shift(point(g,0))*sphere);
-	s.append(shift(point(g,L))*sphere);
-      } else if(linecap == 2) {
-	surface cylinder=unitcylinder;
-	cylinder.append(shift(Z)*unitdisk);
-	cylinder=scale3(r)*cylinder;
-	s.append(shift(point(g,0))*transform3(-dir(g,0))*cylinder);
-	s.append(shift(point(g,L))*transform3(dir(g,L))*cylinder);
+    if(settings.thick) {
+      real width=linewidth(p);
+      if(width > 0) {
+	surface s=tube(g,width);
+	real r=0.5*width;
+	int L=length(g);
+	real linecap=linecap(p);
+	if(linecap == 0) {
+	  surface disk=scale(r,r,1)*unitdisk;
+	  s.append(shift(point(g,0))*transform3(dir(g,0))*disk);
+	  s.append(shift(point(g,L))*transform3(dir(g,L))*disk);
+	} else if(linecap == 1) {
+	  surface sphere=scale3(r)*unitsphere;
+	  s.append(shift(point(g,0))*sphere);
+	  s.append(shift(point(g,L))*sphere);
+	} else if(linecap == 2) {
+	  surface cylinder=unitcylinder;
+	  cylinder.append(shift(Z)*unitdisk);
+	  cylinder=scale3(r)*cylinder;
+	  s.append(shift(point(g,0))*transform3(-dir(g,0))*cylinder);
+	  s.append(shift(point(g,L))*transform3(dir(g,L))*cylinder);
+	}
+	material m=material(p,granularity=linegranularity);
+	for(int i=0; i < s.s.length; ++i)
+	  drawprc(f,s.s[i],m,nolight);
       }
-      material m=material(p,granularity=linegranularity);
-      for(int i=0; i < s.s.length; ++i)
-      	drawprc(f,s.s[i],m,nolight);
     }
     drawprc(f,g,p);
   }

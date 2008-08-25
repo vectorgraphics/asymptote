@@ -436,10 +436,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 	  bool outward=false, material surfacepen=lightgray,
 	  pen meshpen=nullpen, light light=currentlight, projection P=null)
 {
-  // Draw a mesh in the absence of lighting (override with meshpen=nullpen). 
-  if(!light.on && meshpen == nullpen) meshpen=currentpen;
-
-  bool mesh=meshpen != nullpen && meshpen != invisible;
+  bool mesh=meshpen != nullpen;
 
   if(prc()) {
     for(int i=0; i < s.s.length; ++i)
@@ -491,9 +488,6 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 {
   if(s.s.length == 0) return;
 
-  // Draw a mesh in the absence of lighting (override with meshpen=nullpen). 
-  if(!light.on && meshpen == nullpen) meshpen=currentpen;
-
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
       if(prc()) {
@@ -510,7 +504,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   pic.addPoint(min(s));
   pic.addPoint(max(s));
 
-  if(meshpen != nullpen && meshpen != invisible) {
+  if(meshpen != nullpen) {
     if(prc()) meshpen=thin+meshpen;
     for(int k=0; k < s.s.length; ++k) {
       real step=nu == 0 ? 0 : 1/nu;

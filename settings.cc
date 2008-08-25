@@ -918,6 +918,8 @@ void initSettings() {
 			      ""));
   addOption(new boolSetting("prc", 0,
                             "Embed 3D PRC graphics in PDF output", false));
+  addOption(new boolSetting("thick", 0,
+                            "Render thick PRC lines", true));
   addOption(new boolSetting("psimage", 0,
                             "Output ps image of 3D PRC graphics", false));
   addOption(new stringOutnameSetting("outname", 'o', "name",

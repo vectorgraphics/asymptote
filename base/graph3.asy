@@ -1395,9 +1395,6 @@ surface surface(triple[][] f, bool[][] cond={},
 {
   if(!rectangular(f)) abort("matrix is not rectangular");
   
-  // Draw a mesh in the absence of lighting (override with meshpen=invisible).
-  if(light.source == O && meshpen == nullpen) meshpen=currentpen;
-
   int nx=f.length-1;
   int ny=nx > 0 ? f[0].length-1 : 0;
   
