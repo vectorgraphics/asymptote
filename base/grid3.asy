@@ -295,7 +295,7 @@ ticksgrid RightTicks3(Label F="", ticklabel ticklabel=null,
 
 void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
 	    pen p=currentpen, ticksgrid ticks,
-	    arrowbar arrow=None, bool put=Below)
+	    arrowbar3 arrow=None, bool put=Below)
 {
   xaxis3(pic,L,axis,p,ticks().ticks,arrow,put);
   ticks().grid3(pic,put);
@@ -303,7 +303,7 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
 
 void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
 	    pen p=currentpen, ticksgrid ticks,
-	    arrowbar arrow=None, bool put=Below)
+	    arrowbar3 arrow=None, bool put=Below)
 {
   yaxis3(pic,L,axis,p,ticks().ticks,arrow,put);
   ticks().grid3(pic,put);
@@ -311,7 +311,7 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
 
 void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
 	    pen p=currentpen, ticksgrid ticks,
-	    arrowbar arrow=None, bool put=Below)
+	    arrowbar3 arrow=None, bool put=Below)
 {
   zaxis3(pic,L,axis,p,ticks().ticks,arrow,put);
   ticks().grid3(pic,put);
