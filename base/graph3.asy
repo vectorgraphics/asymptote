@@ -402,7 +402,6 @@ axis XZEquals(real x, real z, bool extend=true)
 axis XYEquals(real x, real y, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
-    axis.type=0;
     axis.value=pic.scale.x.T(x);
     axis.value2=pic.scale.y.T(y);
     axis.position=1;
@@ -413,7 +412,6 @@ axis XYEquals(real x, real y, bool extend=true)
 axis YZZero(bool extend=true, triple dir=-Y)
 {
   return new void(picture pic, axisT axis) {
-    axis.type=0;
     axis.value=pic.scale.y.T(pic.scale.y.scale.logarithmic ? 1 : 0);
     axis.value2=pic.scale.z.T(pic.scale.z.scale.logarithmic ? 1 : 0);
     axis.position=1;
@@ -425,7 +423,6 @@ axis YZZero(bool extend=true, triple dir=-Y)
 axis XZZero(bool extend=true, triple dir=-X)
 {
   return new void(picture pic, axisT axis) {
-    axis.type=0;
     axis.value=pic.scale.x.T(pic.scale.x.scale.logarithmic ? 1 : 0);
     axis.value2=pic.scale.z.T(pic.scale.z.scale.logarithmic ? 1 : 0);
     axis.position=1;
@@ -437,7 +434,6 @@ axis XZZero(bool extend=true, triple dir=-X)
 axis XYZero(bool extend=true, triple dir=-X)
 {
   return new void(picture pic, axisT axis) {
-    axis.type=0;
     axis.value=pic.scale.x.T(pic.scale.x.scale.logarithmic ? 1 : 0);
     axis.value2=pic.scale.y.T(pic.scale.y.scale.logarithmic ? 1 : 0);
     axis.position=1;

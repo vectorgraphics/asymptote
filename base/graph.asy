@@ -954,17 +954,17 @@ int Both=2;
 
 // Structure used to communicate axis and autoscale settings to tick routines. 
 struct axisT {
-  int type;       // -1 = min, 0 = given value, 1 = max, 2 = min/max
-  int type2;      // for 3D axis
+  int type=Value;  // -1 = min, 0 = given value, 1 = max, 2 = min/max
+  int type2=Value; // for 3D axis
   real value;
   real value2;
-  pair side;      // 2D tick label direction relative to path (left or right)
-  real position;  // label position along axis
-  align align;    // default axis label alignment and 3D tick label direction
+  pair side;       // 2D tick label direction relative to path (left or right)
+  real position;   // label position along axis
+  align align;     // default axis label alignment and 3D tick label direction
   int[] xdivisor;
   int[] ydivisor;
   int[] zdivisor;
-  bool extend;    // extend axis to graph boundary?
+  bool extend;     // extend axis to graph boundary?
 };
 
 axisT axis;
@@ -973,7 +973,7 @@ typedef void axis(picture, axisT);
 axis Bottom(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
-    axis.type=-1;
+    axis.type=Min;
     axis.position=0.5;
     axis.side=right;
     axis.align=S;
@@ -984,7 +984,7 @@ axis Bottom(bool extend=false)
 axis Top(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
-    axis.type=1;
+    axis.type=Max;
     axis.position=0.5;
     axis.side=left;
     axis.align=N;
@@ -995,7 +995,7 @@ axis Top(bool extend=false)
 axis BottomTop(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
-    axis.type=2;
+    axis.type=Both;
     axis.position=0.5;
     axis.side=right;
     axis.align=S;
@@ -1006,7 +1006,7 @@ axis BottomTop(bool extend=false)
 axis Left(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
-    axis.type=-1;
+    axis.type=Min;
     axis.position=0.5;
     axis.side=left;
     axis.align=W;
@@ -1017,7 +1017,7 @@ axis Left(bool extend=false)
 axis Right(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
-    axis.type=1;
+    axis.type=Max;
     axis.position=0.5;
     axis.side=right;
     axis.align=E;
@@ -1028,7 +1028,7 @@ axis Right(bool extend=false)
 axis LeftRight(bool extend=false) 
 {
   return new void(picture pic, axisT axis) {
-    axis.type=2;
+    axis.type=Both;
     axis.position=0.5;
     axis.side=left;
     axis.align=W;
@@ -1166,11 +1166,11 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
     });
 
   void bounds() {
-    if(type == -1) 
+    if(type == Min) 
       y=pic.scale.y.automin() ? tickMin(pic).y : pic.userMin.y;
-    else if(type == 1)
+    else if(type == Max)
       y=pic.scale.y.automax() ? tickMax(pic).y : pic.userMax.y;
-    else if(type == 2) {
+    else if(type == Both) {
       y2=pic.scale.y.automax() ? tickMax(pic).y : pic.userMax.y;
       y=opposite ? y2 : 
         (pic.scale.y.automin() ? tickMin(pic).y : pic.userMin.y);
@@ -1260,11 +1260,11 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
     });
   
   void bounds() {
-    if(type == -1) 
+    if(type == Min) 
       x=pic.scale.x.automin() ? tickMin(pic).x : pic.userMin.x;
-    else if(type == 1)
+    else if(type == Max)
       x=pic.scale.x.automax() ? tickMax(pic).x : pic.userMax.x;
-    else if(type == 2) {
+    else if(type == Both) {
       x2=pic.scale.x.automax() ? tickMax(pic).x : pic.userMax.x;
       x=opposite ? x2 : 
         (pic.scale.x.automin() ? tickMin(pic).x : pic.userMin.x);
@@ -1487,7 +1487,7 @@ void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
   L.align(L.align,axis.align);
   
   xaxisAt(pic,L,axis,xmin,xmax,p,ticks,arrow,put);
-  if(axis.type == 2)
+  if(axis.type == Both)
     xaxisAt(pic,L,axis,xmin,xmax,p,ticks,arrow,put,true);
 }
 
@@ -1553,7 +1553,7 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
   }
   
   yaxisAt(pic,L,axis,ymin,ymax,p,ticks,arrow,put);
-  if(axis.type == 2)
+  if(axis.type == Both)
     yaxisAt(pic,L,axis,ymin,ymax,p,ticks,arrow,put,true);
 }
 
