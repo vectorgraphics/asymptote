@@ -232,8 +232,10 @@ void addArrow(picture pic, arrowhead3 arrowhead, path3 g, pen p, real size,
   triple v=point(g,position);
   path3 g=v-(size+linewidth(p))*dir(g,position)--v;
   surface s=arrowhead.head(g,position,p,size,angle);
-  pic.addPoint(v,min(s)-v);
-  pic.addPoint(v,max(s)-v);
+  if(s.s.length > 0) {
+    pic.addPoint(v,min(s)-v);
+    pic.addPoint(v,max(s)-v);
+  } else pic.addPoint(v);
 }
 
 picture arrow(arrowhead3 arrowhead=DefaultHead3,

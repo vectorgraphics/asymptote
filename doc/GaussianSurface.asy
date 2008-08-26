@@ -14,7 +14,7 @@ surface s=surface(f,(-1,-1),(1,1));
   
 xaxis3(Label("$x$",1),red,Arrow3);
 yaxis3(Label("$y$",1),red,Arrow3);
-zaxis3(Label("$z$",1),red,Arrow3);
+zaxis3(red,Arrow3);
 
 label("$O$",(0,0,0),S,red);
 

@@ -1552,7 +1552,7 @@ picture vectorfield(path3 vector(pair z), triple f(pair z),
     for(int j=0; j <= ny; ++j) {
       real y=interp(a.y,b.y,j*dy);
       pair z=(x,y);
-     draw(pic,shift(f(z))*scale3(scale)*vector(z),p,arrow);
+      draw(pic,shift(f(z))*scale3(scale)*vector(z),p,arrow);
     }
   }
   return pic;

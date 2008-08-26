@@ -12,16 +12,15 @@ path3 gradient(pair z) {
   return O--((f(z+dx)-f(z-dx))/2dx,(f(z+I*dy)-f(z-I*dy))/2dy,0);
 }
 
-bbox3 b=limits((-1,-1,0),(1,1,2));
-xaxis(rotate(X)*"$x$",b,RightTicks(rotate(X)*Label));
-yaxis(rotate(Y)*"$y$",b.X(),b.XY(),LeftTicks(rotate(Y)*Label));
-zaxis("$z$",b,RightTicks());
+xaxis3(XY()*"$x$",RightTicks3(XY()*Label));
+yaxis3(YZ()*"$y$",LeftTicks3(YZ()*Label));
+zaxis3("$z$",RightTicks3());
 
-pair A=xypart(b.O());
-pair B=xypart(b.XY());
+pair A=(-1,-1);
+pair B=(1,1);
 
 triple F(pair z) {return (z.x,z.y,0);}
 
 add(vectorfield(gradient,F,A,B,red));
 
-add(surface(f,A,B,50,gray+opacity(0.5)));
+draw(surface(f,A,B,50,gray+opacity(0.5)));

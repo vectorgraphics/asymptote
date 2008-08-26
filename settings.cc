@@ -917,7 +917,7 @@ void initSettings() {
 			      "Convert each output file to specified format",
 			      ""));
   addOption(new boolSetting("prc", 0,
-                            "Embed 3D PRC graphics in PDF output", false));
+                            "Embed 3D PRC graphics in PDF output", true));
   addOption(new boolSetting("thick", 0,
                             "Render thick PRC lines", true));
   addOption(new boolSetting("psimage", 0,
