@@ -393,7 +393,8 @@ triple point(patch s, real u, real v)
 void drawprc(frame f, patch s, material m=lightgray, light light=currentlight)
 {
   if(light == nolight) m=emissive(m.p[0],m.granularity);
-  draw(f,s.P,m.p,m.opacity,m.shininess,m.granularity,s.min(),s.max());
+  real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
+  draw(f,s.P,m.p,m.opacity,m.shininess,granularity,s.min(),s.max());
 }
 
 void tensorshade(transform t=identity(), frame f, patch s, bool outward=false,

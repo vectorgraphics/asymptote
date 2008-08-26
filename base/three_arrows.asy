@@ -1,4 +1,9 @@
 // approximate acceleration
+
+light arrowheadlight() {
+  return prc() ? currentlight : nolight;
+}
+
 private triple accel(path3 g, real t)
 {
   triple a;
@@ -190,7 +195,7 @@ void drawarrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
 	       path3 g, pen p=currentpen, material arrowheadpen=p, real size=0,
 	       real angle=arrowangle, position position=EndPoint,
 	       bool forwards=true, bool center=false, light light=nolight,
-	       light arrowheadlight=currentlight)
+	       light arrowheadlight=arrowheadlight())
 {
   if(arrowheadpen == nullpen) arrowheadpen=p;
   if(!arrowheadlight.on) arrowheadlight=light;
@@ -214,7 +219,7 @@ void drawarrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
 void drawarrow2(picture pic, arrowhead3 arrowhead=DefaultHead3,
 		path3 g, pen p=currentpen, material arrowheadpen=p,
 		real size=0, real angle=arrowangle, light light=nolight,
-		light arrowheadlight=currentlight)
+		light arrowheadlight=arrowheadlight())
 {
   if(arrowheadpen == nullpen) arrowheadpen=p;
   if(!arrowheadlight.on) arrowheadlight=light;
@@ -246,7 +251,7 @@ picture arrow(arrowhead3 arrowhead=DefaultHead3,
               path3 g, pen p=currentpen, material arrowheadpen=p, real size=0,
               real angle=arrowangle, position position=EndPoint,
               bool forwards=true, bool center=false, light light=nolight,
-	      light arrowheadlight=currentlight)
+	      light arrowheadlight=arrowheadlight())
 {
   if(size == 0) size=DefaultHead3.size(p);
   picture pic;
@@ -271,7 +276,7 @@ picture arrow(arrowhead3 arrowhead=DefaultHead3,
 picture arrow2(arrowhead3 arrowhead=DefaultHead3,
                path3 g, pen p=currentpen, material arrowheadpen=p,
 	       real size=0, real angle=arrowangle, light light=nolight,
-	       light arrowheadlight=currentlight)
+	       light arrowheadlight=arrowheadlight())
 {
   if(size == 0) size=DefaultHead3.size(p);
   picture pic;
@@ -305,7 +310,7 @@ arrowbar3 BeginArrow3(arrowhead3 arrowhead=DefaultHead3,
 		      real size=0, real angle=arrowangle,
 		      position position=BeginPoint,
 		      material arrowheadpen=nullpen,
-		      light arrowheadlight=currentlight)
+		      light arrowheadlight=arrowheadlight())
 {
   return new bool(picture pic, path3 g, pen p, light light) {
     add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,position,
@@ -318,7 +323,7 @@ arrowbar3 Arrow3(arrowhead3 arrowhead=DefaultHead3,
 		 real size=0, real angle=arrowangle,
 		 position position=EndPoint,
 		 material arrowheadpen=nullpen,
-		 light arrowheadlight=currentlight)
+		 light arrowheadlight=arrowheadlight())
 
 {
   return new bool(picture pic, path3 g, pen p, light light) {
@@ -332,12 +337,12 @@ arrowbar3 EndArrow3(arrowhead3 arrowhead=DefaultHead3,
 		    real size=0, real angle=arrowangle,
 		    position position=EndPoint,
 		    material arrowheadpen=nullpen,
-		    light arrowheadlight=currentlight)=Arrow3;
+		    light arrowheadlight=arrowheadlight())=Arrow3;
 
 arrowbar3 MidArrow3(arrowhead3 arrowhead=DefaultHead3,
 		    real size=0, real angle=arrowangle,
 		    material arrowheadpen=nullpen,
-		    light arrowheadlight=currentlight)
+		    light arrowheadlight=arrowheadlight())
 {
   return new bool(picture pic, path3 g, pen p, light light) {
     add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,MidPoint,center=true,
@@ -349,7 +354,7 @@ arrowbar3 MidArrow3(arrowhead3 arrowhead=DefaultHead3,
 arrowbar3 Arrows3(arrowhead3 arrowhead=DefaultHead3,
 		  real size=0, real angle=arrowangle,
 		  material arrowheadpen=nullpen,
-		  light arrowheadlight=currentlight)
+		  light arrowheadlight=arrowheadlight())
 {
   return new bool(picture pic, path3 g, pen p, light light) {
     add(pic,arrow2(arrowhead,g,p,arrowheadpen,size,angle,light,arrowheadlight));

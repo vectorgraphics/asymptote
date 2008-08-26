@@ -41,11 +41,17 @@ struct material {
 		     pen emissivepen=black, pen specularpen=mediumgray,
 		     real opacity=opacity(surfacepen),
 		     real shininess=defaultshininess,
-		     real granularity=defaultgranularity) {
+		     real granularity=-1) {
     p=new pen[] {surfacepen,ambientpen,emissivepen,specularpen};
     this.opacity=opacity;
     this.shininess=shininess;
     this.granularity=granularity;
+  }
+  void operator init(material m) {
+    p=copy(m.p);
+    opacity=m.opacity;
+    shininess=m.shininess;
+    granularity=m.granularity;
   }
 }
 
@@ -68,14 +74,4 @@ pen operator ecast(material m)
 material emissive(pen p, real granularity=0)
 {
   return material(p,black,p,black,opacity(p),1,granularity);
-}
-
-real linewidth(material m)
-{
-  return linewidth(m.p[0]);
-}
-
-real linecap(material m)
-{
-  return linecap(m.p[0]);
 }
