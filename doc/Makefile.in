@@ -103,12 +103,12 @@ uninstall: uninstall-all
 
 uninstall-all:
 	cd FAQ; $(MAKE) uninstall
-	-cd $(mandir)/man1; rm $(MANFILES)
+	-cd $(mandir)/man1; rm -f $(MANFILES)
 	-rm -f $(addprefix $(docdir)/,$(DOCFILES))
 	-install-info --remove --infodir=$(infodir) asymptote.info
 	-rm -f $(infodir)/asymptote.info $(infodir)/asymptote.info-*
 
 distclean: FORCE clean
-	rm -f version.texi
+	-rm -f version.texi
 	cd FAQ; make distclean
 FORCE:

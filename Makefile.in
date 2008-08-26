@@ -195,10 +195,10 @@ uninstall-man:
 	cd doc; $(MAKE) uninstall
 
 prc-clean: FORCE
-	rm -f prc/*.o prc/*.d 
+	-rm -f prc/*.o prc/*.d 
 
 clean:  FORCE prc-clean
-	rm -f asy *.o *.d *mon.out $(CLEAN)
+	-rm -f asy *.o *.d *mon.out $(CLEAN)
 
 gc-clean: FORCE clean
 	-if test -d $(GC); then \
@@ -210,14 +210,14 @@ distclean: FORCE clean
 	-if test -d $(GC); then \
 		rm -rf $(GC); \
 	fi
-	rm -f Makefile config.h config.log config.status errors.temp
+	-rm -f Makefile config.h config.log config.status errors.temp
 	cd doc; $(MAKE) distclean
 	cd tests; $(MAKE) distclean
 
 cleanest: FORCE maintainer-clean
 maintainer-clean: FORCE distclean
-	rm -f configure config.h.in $(DIST)
-	rm -rf autom4te.cache
+	-rm -f configure config.h.in $(DIST)
+	-rm -rf autom4te.cache
 
 check: asy FORCE
 	./wce
