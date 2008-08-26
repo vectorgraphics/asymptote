@@ -30,7 +30,7 @@ doc:	asymptote.dvi asymptote.info html man faq
 	$(ASY) -f eps $<
 
 %.pdf:	%.asy
-	$(ASY) -f pdf $<
+	$(ASY) -f pdf -noprc $<
 
 latexusage.asy: latexusage.tex
 	latex latexusage
