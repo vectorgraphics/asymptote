@@ -1585,8 +1585,9 @@ path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
 
   normal=unit(normal);
   transform3 T=align(normal);
-  v1=T*v1;
-  v2=T*v2;
+  transform3 Tinv=transpose(T);
+  v1=Tinv*v1;
+  v2=Tinv*v2;
 
   phi1=radians(longitude(v1,warn=false));
   phi2=radians(longitude(v2,warn=false));
@@ -1595,7 +1596,7 @@ path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
 
   real piby2=pi/2;
 
-  return shift(c)*transform3(normal)*
+  return shift(c)*T*
     polargraph(new real(real theta, real phi) {return r;},
 	       new real(real t) {return piby2;},
 	       new real(real t) {return interp(phi1,phi2,t);},

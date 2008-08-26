@@ -13,7 +13,7 @@ path3 gradient(pair z) {
 }
 
 xaxis3(XY()*"$x$",RightTicks3(XY()*Label));
-yaxis3(YZ()*"$y$",LeftTicks3(YZ()*Label));
+yaxis3(XY()*"$y$",LeftTicks3(YX()*Label));
 zaxis3("$z$",RightTicks3());
 
 pair A=(-1,-1);

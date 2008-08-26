@@ -31,3 +31,51 @@ light operator cast(triple v) {return light(v);}
 
 light currentlight=(0.25,-0.25,1);
 light nolight;
+
+struct material {
+  pen[] p; // surfacepen,ambientpen,emissivepen,specularpen
+  real opacity;
+  real shininess;  
+  real granularity;
+  void operator init(pen surfacepen=lightgray, pen ambientpen=black,
+		     pen emissivepen=black, pen specularpen=mediumgray,
+		     real opacity=opacity(surfacepen),
+		     real shininess=defaultshininess,
+		     real granularity=defaultgranularity) {
+    p=new pen[] {surfacepen,ambientpen,emissivepen,specularpen};
+    this.opacity=opacity;
+    this.shininess=shininess;
+    this.granularity=granularity;
+  }
+}
+
+bool operator == (material m, material n)
+{
+  return all(m.p == n.p) && m.opacity == n.opacity &&
+  m.shininess == n.shininess && m.granularity == n.granularity;
+}
+
+material operator cast(pen p)
+{
+  return material(p);
+}
+
+pen operator ecast(material m)
+{
+  return m.p.length > 0 ? m.p[0] : nullpen;
+}
+
+material emissive(pen p, real granularity=0)
+{
+  return material(p,black,p,black,opacity(p),1,granularity);
+}
+
+real linewidth(material m)
+{
+  return linewidth(m.p[0]);
+}
+
+real linecap(material m)
+{
+  return linecap(m.p[0]);
+}

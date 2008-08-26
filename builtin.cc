@@ -773,9 +773,13 @@ void base_venv(venv &ve)
 	  formal(primString(),"s"),
 	  formal(voidFileFunction(),"suffix",true));
   
-  addWrite(ve,write<pen>,primPen(),penArray());
   addWrite(ve,write<transform>,primTransform(),transformArray());
   addWrite(ve,write<guide *>,primGuide(),guideArray());
+  addWrite(ve,write<pen>,primPen(),penArray());
+  addFunc(ve,arrayArrayOp<pen,equals>,boolArray(),"==",
+	  formal(penArray(),"a"),formal(penArray(),"b"));
+  addFunc(ve,arrayArrayOp<pen,notequals>,boolArray(),"!=",
+	  formal(penArray(),"a"),formal(penArray(),"b"));
 
   addFunc(ve,arrayFunction,realArray(),"map",
 	  formal(realPairFunction(),"f"),

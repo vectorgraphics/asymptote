@@ -362,7 +362,7 @@ array *copyArray3(array *a)
 double *copyArray2C(array *a, bool square=true)
 {
   size_t n=checkArray(a);
-  size_t m=((square || n == 0) ? n : read<array*>(a,0)->size());
+  size_t m=(square || n == 0) ? n : checkArray(read<array*>(a,0));
   double *c=new double[n*m];
   for(size_t i=0; i < n; i++) {
     array *ai=read<array*>(a,i);
@@ -413,9 +413,9 @@ void writestring(stack *s)
 
 void checkSquare(array *a) 
 {
-  size_t n=a->size();
+  size_t n=checkArray(a);
   for(size_t i=0; i < n; i++)
-    if(read<array*>(a,i)->size() != n)
+    if(checkArray(read<array*>(a,i)) != n)
       error("matrix a must be square");
 }
 
@@ -739,7 +739,7 @@ void clear(string file, Int line, bool warn=false)
 
 Int windingnumber(array *p, camp::pair z)
 {
-  size_t size=p->size();
+  size_t size=checkArray(p);
   Int count=0;
   for(size_t i=0; i < size; i++) 
     count += read<path *>(p,i)->windingnumber(z);
@@ -1150,6 +1150,7 @@ void gouraudshade(picture *f, patharray *g, bool stroke=false, pen fillrule,
   Int in=(Int) n;
   for(size_t j=0; j < m; ++j) {
     path *P=read<path *>(g,j);
+    assert(P);
     Int stop=Min(P->size(),in-k);
     mem::vector<solvedKnot>& nodes=P->Nodes();
     for(Int i=0; i < stop; ++i)
@@ -4084,7 +4085,7 @@ array* :arrayConcat(array *a)
   size_t ri=0;
   for (size_t i=0; i < numArgs; ++i) {
     array *arg=a->read<array *>(i);
-    size_t size=arg->size();
+    size_t size=checkArray(arg);
 
     for (size_t j=0; j < size; ++j) {
       (*result)[ri]=(*arg)[j];
@@ -4113,7 +4114,7 @@ array* :array2Transpose(array *a)
     size_t ip=i+1;
     array *ai=read<array*>(a,i);
     size_t aisize=checkArray(ai);
-    size_t csize=c->size();
+    size_t csize=checkArray(c);
     if(csize < aisize) {
       c->resize(aisize);
       for(size_t j=csize; j < aisize; j++) {
@@ -4122,7 +4123,7 @@ array* :array2Transpose(array *a)
     }
     for(size_t j=0; j < aisize; j++) {
     array *cj=read<array*>(c,j);
-    if(cj->size() < ip) cj->resize(ip);
+    if(checkArray(cj) < ip) cj->resize(ip);
     (*cj)[i]=(*ai)[j];
     }
   }
@@ -4165,9 +4166,9 @@ array* :array3Transpose(array *a, array *perm)
   
   size_t isize=size[0]=checkArray(a);
   array *a0=read<array*>(a,0);
-  size[1]=a0->size();
+  size[1]=checkArray(a0);
   array *a00=read<array*>(a0,0);
-  size[2]=a00->size();
+  size[2]=checkArray(a00);
   for(size_t i=0; i < isize; i++) {
     array *ai=read<array*>(a,i);
     size_t jsize=checkArray(ai);
@@ -4238,11 +4239,11 @@ Int find(boolarray *a, Int n=1)
 
 bool Operator ==(realarray2 *a, realarray2 *b)
 {
-  size_t n=a->size();
-  if(n != b->size()) return false;
+  size_t n=checkArray(a);
+  if(n != checkArray(b)) return false;
   
-  size_t n0=n == 0 ? 0 : read<array*>(a,0)->size();
-  if(n0 != read<array*>(b,0)->size()) return false;
+  size_t n0=n == 0 ? 0 : checkArray(read<array*>(a,0));
+  if(n0 != checkArray(read<array*>(b,0))) return false;
     
   for(size_t i=0; i < n; ++i) {
     array *ai=read<array*>(a,i);
@@ -4317,7 +4318,7 @@ realarray2* :diagonal(realarray *a)
 realarray2 *inverse(realarray2 *a)
 {
   a=copyArray2(a);
-  size_t n=a->size();
+  size_t n=checkArray(a);
   checkSquare(a);
   
   inverseAllocate(n);
@@ -4410,11 +4411,11 @@ realarray2 *inverse(realarray2 *a)
 // If no solution exists, return an empty array.
 realarray *solve(realarray2 *a, realarray *b, bool warn=true)
 {
-  size_t n=a->size();
+  size_t n=checkArray(a);
   
   if(n == 0) return new array(0);
   
-  size_t m=b->size();
+  size_t m=checkArray(b);
   if(m != n) error(incommensurate);
   
   real *A=copyArray2C(a);
@@ -4461,12 +4462,12 @@ realarray *solve(realarray2 *a, realarray *b, bool warn=true)
 // If no solution exists, return an empty array.
 realarray2 *solve(realarray2 *a, realarray2 *b, bool warn=true)
 {
-  size_t n=a->size();
+  size_t n=checkArray(a);
   
   if(n == 0) return new array(0);
   
-  if(b->size() != n) error(incommensurate);
-  size_t m=read<array*>(b,0)->size();
+  if(checkArray(b) != n) error(incommensurate);
+  size_t m=checkArray(read<array*>(b,0));
   
   real *A=copyArray2C(a);
   real *B=copyArray2C(b,false);
@@ -4524,7 +4525,7 @@ realarray2 *solve(realarray2 *a, realarray2 *b, bool warn=true)
 real determinant(realarray2 *a)
 {
   real *A=copyArray2C(a);
-  size_t n=a->size();
+  size_t n=checkArray(a);
   
   real det=LUdecompose(A,n,NULL,false);
   size_t n1=n+1;
@@ -4539,13 +4540,14 @@ real determinant(realarray2 *a)
 realarray *Operator *(realarray2 *a, realarray *b)
 {
   size_t n=checkArray(a);
-  if(b->size() != n) error(incommensurate);
+  size_t m=checkArray(b);
   array *c=new array(n);
   real *B=copyArrayC(b);
   for(size_t i=0; i < n; ++i) {
     array *ai=read<array*>(a,i);
+    if(checkArray(ai) != m) error(incommensurate);
     real sum=0.0;
-    for(size_t j=0; j < n; ++j)
+    for(size_t j=0; j < m; ++j)
       sum += read<real>(ai,j)*B[j];
     (*c)[i]=sum;
   }
@@ -4553,26 +4555,16 @@ realarray *Operator *(realarray2 *a, realarray *b)
   return c;
 }
 
-// Compute the dot product of vectors a and b.
-real dot(realarray *a, realarray *b) 
-{
-  size_t n=checkArrays(a,b);
-  real sum=0.0;
-  for(size_t i=0; i < n; ++i)
-    sum += read<real>(a,i)*read<real>(b,i);
-  return sum;
-}
-
 realarray2 *Operator *(realarray2 *a, realarray2 *b)
 {
-  size_t n=a->size();
+  size_t n=checkArray(a);
   
-  size_t nb=b->size();
-  size_t na0=n == 0 ? 0 : read<array*>(a,0)->size();
+  size_t nb=checkArray(b);
+  size_t na0=n == 0 ? 0 : checkArray(read<array*>(a,0));
   if(na0 != nb) 
     error(incommensurate);
   
-  size_t nb0=nb == 0 ? 0 : read<array*>(b,0)->size();
+  size_t nb0=nb == 0 ? 0 : checkArray(read<array*>(b,0));
     
   array *c=new array(n);
 
@@ -4596,6 +4588,36 @@ realarray2 *Operator *(realarray2 *a, realarray2 *b)
   delete[] A;
   
   return c;
+}
+
+triple Operator *(realarray2 *a, triple v)
+{
+  size_t n=checkArray(a);
+  if(n != 4) error(incommensurate);
+  real B[4]={v.getx(),v.gety(),v.getz(),1};
+  real C[4];
+  for(size_t i=0; i < 4; ++i) {
+    array *ai=read<array*>(a,i);
+    if(checkArray(ai) != 4) error(incommensurate);
+    real sum=0.0;
+    for(size_t j=0; j < 4; ++j)
+      sum += read<real>(ai,j)*B[j];
+    C[i]=sum;
+  }
+  real f=C[3];
+  if(f == 0) dividebyzero();
+  f=1/f;
+  return triple(C[0]*f,C[1]*f,C[2]*f);
+}
+
+// Compute the dot product of vectors a and b.
+real dot(realarray *a, realarray *b) 
+{
+  size_t n=checkArrays(a,b);
+  real sum=0.0;
+  for(size_t i=0; i < n; ++i)
+    sum += read<real>(a,i)*read<real>(b,i);
+  return sum;
 }
 
 // Solve the problem L\inv f, where f is an n vector and L is the n x n matrix

@@ -1456,34 +1456,25 @@ real relative(Label L, path3 g)
   return L.position.relative ? reltime(g,L.relative()) : L.relative();
 }
 
-// return the rotation that maps a unit vector u to Z about cross(u,Z).
-transform3 align(triple u) 
+// return the linear transformation that maps X,Y,Z to u,v,w.
+transform3 transform3(triple u, triple v, triple w=cross(u,v)) 
 {
-  real a=u.x;
-  real b=u.y;
-  real c=u.z;
-  
-  real d=a^2+b^2;
-
-  if(d != 0) {
-    d=sqrt(d);
-    return new real[][] {
-      {-b/d,a/d,0,0},
-	{-a*c/d,-b*c/d,d,0},
-	  {a,b,c,0},
-	    {0,0,0,1}};
-  }
-
-  return c >= 0 ? identity(4) : diagonal(1,-1,-1,1);
+  return new real[][] {
+    {u.x,v.x,w.x,0},
+      {u.y,v.y,w.y,0},
+	{u.z,v.z,w.z,0},
+	  {0,0,0,1}
+  };
 }
 
-// return the inverse of align(u), mapping Z to u.
-transform3 transform3(triple u) 
+// return the rotation that maps Z to u about cross(u,Z).
+transform3 align(triple u)
 {
   real a=u.x;
   real b=u.y;
   real c=u.z;
   real d=a^2+b^2;
+
   if(d != 0) {
     d=sqrt(d);
     real e=1/d;
@@ -1493,21 +1484,7 @@ transform3 transform3(triple u)
 	  {0,d,c,0},
 	    {0,0,0,1}};
   }
-
   return c >= 0 ? identity(4) : diagonal(1,-1,-1,1);
-}
-
-// return the linear transformation that maps X,Y,Z to u,v,cross(u,v).
-transform3 transform3(triple u, triple v) 
-{
-  triple w=cross(u,v);
-
-  return new real[][] {
-    {u.x,v.x,w.x,0},
-      {u.y,v.y,w.y,0},
-	{u.z,v.z,w.z,0},
-	  {0,0,0,1}
-  };
 }
 
 // return a rotation that maps X,Y to the projection plane.
@@ -1618,7 +1595,7 @@ path3 circle(triple c, real r, triple normal=Z)
 {
   path3 p=scale3(r)*unitcircle3;
   if(normal != Z) 
-    p=transform3(unit(normal))*p;
+    p=align(unit(normal))*p;
   return shift(c)*p;
 }
 
@@ -1639,8 +1616,9 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
 
   normal=unit(normal);
   transform3 T=align(normal);
-  v1=T*v1;
-  v2=T*v2;
+  transform3 Tinv=transpose(T);
+  v1=Tinv*v1;
+  v2=Tinv*v2;
 
   real[] t1=intersect(unitcircle3,O--2*(v1.x,v1.y,0));
   real[] t2=intersect(unitcircle3,O--2*(v2.x,v2.y,0));
@@ -1652,7 +1630,7 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
   if(t1 >= t2 && direction) t1 -= n;
   if(t2 >= t1 && !direction) t2 -= n;
 
-  return shift(c)*scale3(r)*transform3(normal)*subpath(unitcircle3,t1,t2);
+  return shift(c)*scale3(r)*T*subpath(unitcircle3,t1,t2);
 }
 
 // return an arc centered at c with radius r from c+r*dir(theta1,phi1) to
@@ -1945,34 +1923,39 @@ void addPath(picture pic, path3 g, pen p)
   pic.addBox(min(g),max(g),min3(p),max3(p));
 }
 
-void draw(frame f, path3 g, pen p=currentpen, projection P=null,
-	  int ninterpolate=ninterpolate);
-
 include three_light;
+
+void draw(frame f, path3 g, material p=currentpen, light light=nolight,
+	  projection P=null, int ninterpolate=ninterpolate);
+
 include three_surface;
 
 void draw(picture pic=currentpicture, Label L="", path3 g,
-	  align align=NoAlign, pen p=currentpen, int ninterpolate=ninterpolate)
+	  align align=NoAlign, material p=currentpen, light light=nolight,
+	  int ninterpolate=ninterpolate)
 {
+  pen q=(pen) p;
   Label L=L.copy();
   L.align(align);
   if(L.s != "") {
-    L.p(p);
+    L.p(q);
     label(pic,L,g);
   }
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       if(prc())
-	draw(f,t*g,p,null);
+	draw(f,t*g,p,light,null);
       if(pic != null)
-	draw(pic,project(t*g,P,ninterpolate),p);
+	draw(pic,project(t*g,P,ninterpolate),q);
     },true);
-  addPath(pic,g,p);
+  addPath(pic,g,q);
 }
 
 include three_arrows;
 
-draw=new void(frame f, path3 g, pen p=currentpen,
+draw=new void(frame f, path3 g,
+	      material p=emissive(currentpen,granularity=linegranularity),
+	      light light=nolight,
 	      projection P=null, int ninterpolate=ninterpolate) {
   if(prc()) {
     if(settings.thick) {
@@ -1984,8 +1967,8 @@ draw=new void(frame f, path3 g, pen p=currentpen,
 	real linecap=linecap(p);
 	if(linecap == 0) {
 	  surface disk=scale(r,r,1)*unitdisk;
-	  s.append(shift(point(g,0))*transform3(dir(g,0))*disk);
-	  s.append(shift(point(g,L))*transform3(dir(g,L))*disk);
+	  s.append(shift(point(g,0))*align(dir(g,0))*disk);
+	  s.append(shift(point(g,L))*align(dir(g,L))*disk);
 	} else if(linecap == 1) {
 	  surface sphere=scale3(r)*unitsphere;
 	  s.append(shift(point(g,0))*sphere);
@@ -1994,33 +1977,32 @@ draw=new void(frame f, path3 g, pen p=currentpen,
 	  surface cylinder=unitcylinder;
 	  cylinder.append(shift(Z)*unitdisk);
 	  cylinder=scale3(r)*cylinder;
-	  s.append(shift(point(g,0))*transform3(-dir(g,0))*cylinder);
-	  s.append(shift(point(g,L))*transform3(dir(g,L))*cylinder);
+	  s.append(shift(point(g,0))*align(-dir(g,0))*cylinder);
+	  s.append(shift(point(g,L))*align(dir(g,L))*cylinder);
 	}
-	material m=material(p,granularity=linegranularity);
 	for(int i=0; i < s.s.length; ++i)
-	  drawprc(f,s.s[i],m,nolight);
+	  drawprc(f,s.s[i],p,light);
       }
     }
-    _draw(f,g,p);
+    _draw(f,g,(pen) p);
   }
-  else draw(f,project(g,P,ninterpolate),p);
+  else draw(f,project(g,P,ninterpolate),(pen) p);
 };
 
 void draw(picture pic=currentpicture, Label L="", path3 g, 
 	  align align=NoAlign, pen p=currentpen, arrowbar3 arrow,
-	  int ninterpolate=ninterpolate)
+	  light light=nolight, int ninterpolate=ninterpolate)
 {
-  if(arrow(pic,g,p))
+  if(arrow(pic,g,p,light))
     draw(pic,L,g,align,p,ninterpolate);
 }
 
 void draw(frame f, path3 g, pen p=currentpen, projection P=null,
-	  int ninterpolate=ninterpolate, arrowbar3 arrow)
+	  int ninterpolate=ninterpolate, arrowbar3 arrow, light light=nolight)
 {
   picture pic;
-  if(arrow(pic,g,p))
-    draw(f,g,p);
+  if(arrow(pic,g,p,light))
+    draw(f,g,p,light);
   add(f,pic.fit());
 }
 

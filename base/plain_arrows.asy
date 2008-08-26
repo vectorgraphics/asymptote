@@ -305,11 +305,13 @@ picture bar(pair a, pair d, pen p=currentpen)
 
 typedef bool arrowbar(picture, path, pen, margin);
 
-bool Blank(picture pic, path g, pen p, margin margin) {
+bool Blank(picture, path, pen, margin)
+{
   return false;
 }
 
-bool None(picture pic, path g, pen p, margin margin) {
+bool None(picture, path, pen, margin)
+{
   return true;
 }
 

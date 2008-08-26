@@ -19,11 +19,6 @@ triple operator ecast(real[] a)
   return (a[0],a[1],a[2])/a[3];
 }
 
-triple operator * (transform3 t, triple v)
-{
-  return t == identity4 ? v : (triple) (t*(real[]) v);
-}
-
 // A uniform 3D scaling.
 transform3 scale3(real s)
 {

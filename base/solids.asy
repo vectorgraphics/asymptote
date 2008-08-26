@@ -68,6 +68,7 @@ struct revolution {
   path3 g;
   triple axis;
   real angle1,angle2;
+  transform3 T;
   
   void operator init(triple c=O, path3 g, triple axis=Z, real angle1=0,
                      real angle2=360) {
@@ -76,6 +77,7 @@ struct revolution {
     this.axis=unit(axis);
     this.angle1=angle1;
     this.angle2=angle2;
+    T=transpose(align(axis));
   }
   
   // Return the surface of rotation obtain by rotating the path3 (x,0,f(x))
@@ -139,7 +141,7 @@ struct revolution {
     triple v=point(g,position);
     triple center=c+dot(v-c,axis)*axis;
     triple perp=v-center;
-    real o=longitude(align(axis)*perp,warn=false);
+    real o=longitude(T*perp,warn=false);
     path3 p=Arc(center,abs(v-center),90,angle1+o,90,angle2+o,axis);
     return (angle2-angle1) % 360 == 0 ? p&cycle : p;
   }
@@ -244,7 +246,6 @@ struct revolution {
     path sm=project(Sm,P,1);
     real[] t1=tangent(sp,sm,true);
     real[] t2=tangent(sp,sm,false);
-    transform3 T=align(axis);
     real ref=longitude(T*(v-c),warn=false);
     real angle(real t) {return longitude(T*(point(S,t)-c),warn=false)-ref;}
     if(t1.length > 1)

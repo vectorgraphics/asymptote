@@ -390,33 +390,6 @@ triple point(patch s, real u, real v)
   return s.point(u,v);
 }
 
-struct material {
-  pen[] p; // surfacepen,ambientpen,emissivepen,specularpen
-  real opacity;
-  real shininess;  
-  real granularity;
-  void operator init(pen surfacepen=lightgray, pen ambientpen=black,
-		     pen emissivepen=black, pen specularpen=mediumgray,
-		     real opacity=opacity(surfacepen),
-		     real shininess=defaultshininess,
-		     real granularity=defaultgranularity) {
-    p=new pen[] {surfacepen,ambientpen,emissivepen,specularpen};
-    this.opacity=opacity;
-    this.shininess=shininess;
-    this.granularity=granularity;
-  }
-}
-
-material operator cast(pen p)
-{
-  return material(p);
-}
-
-material emissive(pen p, real granularity=0)
-{
-  return material(black,black,p,black,opacity(p),1,granularity);
-}
-
 void drawprc(frame f, patch s, material m=lightgray, light light=currentlight)
 {
   if(light == nolight) m=emissive(m.p[0],m.granularity);
