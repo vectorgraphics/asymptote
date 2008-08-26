@@ -11,7 +11,6 @@
 #ifndef PATH_H
 #define PATH_H
 
-#include <iostream>
 #include <cfloat>
 
 #include "mod.h"
@@ -40,11 +39,8 @@ bool unsimpson(double integral, double (*)(double), double a, double& b,
 
 namespace camp {
 
-inline void checkEmpty(Int n) {
-  if(n == 0)
-    reportError("nullpath has no points");
-}
-
+void checkEmpty(Int n);
+  
 inline Int adjustedIndex(Int i, Int n, bool cycles)
 {
   checkEmpty(n);
@@ -93,7 +89,7 @@ public:
     : cycles(false), n(0), nodes(), cached_length(-1) {}
 
   // Create a path of a single point
-  path(pair z,bool = false)
+  path(pair z, bool = false)
     : cycles(false), n(1), nodes(1), cached_length(-1)
   {
     nodes[0].pre = nodes[0].point = nodes[0].post = z;
@@ -162,6 +158,14 @@ public:
   {
     if (cycles) return nodes[imod(t,n)].straight;
     return (t >= 0 && t < n) ? nodes[t].straight : false;
+  }
+  
+  bool piecewisestraight() const
+  {
+    Int L=length();
+    for(Int i=0; i < L; ++i)
+      if(!straight(i)) return false;
+    return true;
   }
   
   pair point(Int t) const
@@ -266,9 +270,6 @@ public:
   // Used by picture to determine bounding box.
   bbox bounds() const;
   
-  // Return times where path reaches its minimum and maximum y extents.
-  void ybboxtimes(double& min, double& max) const;
-  
   pair mintimes() const {
     checkEmpty(n);
     bounds();
@@ -283,7 +284,7 @@ public:
   
   template<class T>
   void addpoint(bbox& box, T i) const {
-    box.add(point(i),times,(double) i);
+    box.addnonempty(point(i),times,(double) i);
   }
 
   template<class T>
@@ -291,8 +292,8 @@ public:
     static const pair I(0,1);
     pair v=I*dir(i);
     pair z=point(i);
-    box += z+min*v;
-    box += z+max*v;
+    box.add(z+min*v);
+    box.addnonempty(z+max*v);
   }
 
   // Return bounding box accounting for padding perpendicular to path.
@@ -336,6 +337,7 @@ public:
 
 extern path nullpath;
 extern const unsigned maxdepth;
+extern const unsigned mindepth;
  
 bool intersect(double& S, double& T, path& p, path& q, double fuzz,
 	       unsigned depth=maxdepth);
@@ -384,6 +386,15 @@ path nurb(pair z0, pair z1, pair z2, pair z3,
 	  double w0, double w1, double w2, double w3, Int m);
   
 double orient2d(const pair& a, const pair& b, const pair& c);
+
+void roots(std::vector<double> &roots, double a, double b, double c, double d);
+void roots(std::vector<double> &r, double x0, double c0, double c1, double x1,
+	   double x);
+  
+inline bool goodroot(double t)
+{
+  return 0.0 <= t && t <= 1.0;
+}
 
 }
 

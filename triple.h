@@ -46,12 +46,17 @@ public:
     return triple(-z.x, -z.y, -z.z);
   }
 
-  friend triple operator* (double s, const triple &z)
+  friend triple operator* (double s, const triple& z)
   {
     return triple(s*z.x, s*z.y, s*z.z);
   }
 
-  friend triple operator/ (const triple &z, double s)
+  friend triple operator* (const triple& z, double s)
+  {
+    return triple(z.x*s, z.y*s, z.z*s);
+  }
+
+  friend triple operator/ (const triple& z, double s)
   {
     if (s == 0.0)
       reportError("division by 0");
@@ -87,6 +92,11 @@ public:
     return sqrt(abs2());
   }
   
+  friend double length(const triple& v)
+  {
+    return v.length();
+  }
+
   double polar() const /* theta */
   {
     double r=length();
@@ -100,13 +110,18 @@ public:
     return angle(x,y);
   }
   
-  friend triple unit(const triple& z)
+  friend triple unit(const triple& v)
   {
-    double scale=z.length();
+    double scale=v.length();
     if(scale != 0.0) scale=1.0/scale;
-    return triple(z.x*scale,z.y*scale,z.z*scale);
+    return triple(v.x*scale,v.y*scale,v.z*scale);
   }
   
+  friend double dot(const triple& u, const triple& v)
+  {
+    return u.getx()*v.getx()+u.gety()*v.gety()+u.getz()*v.getz();
+  }
+
   // Returns a unit triple in the direction (theta,phi), in radians.
   friend triple expi(double theta, double phi)
   {
@@ -143,26 +158,8 @@ public:
 
 triple expi(double theta, double phi);
   
-struct node : public gc {
-  triple pre,point,post;
-public:
-  node() {}
-  node(const triple& pre, const triple& point, const triple& post)
-    : pre(pre), point(point), post(post) {}
-};
-  
-extern const unsigned maxdepth;
-
-double cubiclength(const triple& z0, const triple& z0p, const triple& z1m,
-		   const triple& z1, double goal=-1);
-double bound(double *p, double (*m)(double, double), double b,
-	     int depth=maxdepth);
-double bound(triple *p, double (*m)(double, double), double (*f)(triple),
-	     double b, int depth=maxdepth);
-  
 } //namespace camp
 
 GC_DECLARE_PTRFREE(camp::triple);
-GC_DECLARE_PTRFREE(camp::node);
 
 #endif

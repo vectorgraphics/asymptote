@@ -129,7 +129,6 @@ void labelaxis(picture pic, transform3 T, Label L, path3 g,
 	if(align == O)
 	  align=unit(sgn(dot(sign*locate1.dir,perp))*perp);
 	path[] g=project(box(T*m,T*M),P);
-	path3[] b=box(T*m,T*M);
 	pair z=project(v,P);
 	pair Ppathdir=project(v+pathdir,P)-z;
 	pair Perp=unit(I*Ppathdir);

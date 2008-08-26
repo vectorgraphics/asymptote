@@ -5,7 +5,7 @@
  * Stores and returns information on a predefined path.
  *
  * When changing the path algorithms, also update the corresponding 
- * three-dimensional algorithms in path3.cc and three.asy.
+ * three-dimensional algorithms in path3.cc.
  *****/
 
 #include "path.h"
@@ -26,6 +26,11 @@ const double sqrtFuzz=sqrt(Fuzz);
 
 path nullpath;
   
+void checkEmpty(Int n) {
+  if(n == 0)
+    reportError("nullpath has no points");
+}
+
 // Accurate computation of sqrt(1+x)-1.
 inline double sqrt1pxm1(double x)
 {
@@ -115,11 +120,6 @@ Quadraticroots::Quadraticroots(pair a, pair b, pair c)
       z2=-z1-2.0*factor;
     }
   }
-}
-
-inline bool goodroot(double t)
-{
-  return 0.0 <= t && t <= 1.0;
 }
 
 inline bool goodroot(double a, double b, double c, double t)
@@ -439,7 +439,7 @@ void path::halve(path &first, path &second) const
   second=path(sn[1],sn[2]);
 }
   
-// Calculate coefficients of Bezier derivative.
+// Calculate the coefficients of a Bezier derivative divided by 3.
 static inline void derivative(pair& a, pair& b, pair& c,
 			      const pair& z0, const pair& z0p,
 			      const pair& z1m, const pair& z1)
@@ -721,7 +721,7 @@ double path::directiontime(const pair& dir) const {
 }
 // }}}
 
-// {{{ Path Intersection Calculation
+// {{{ Path Intersection Calculations
 
 const unsigned maxdepth=DBL_MANT_DIG;
 const unsigned mindepth=maxdepth-16;
@@ -776,9 +776,8 @@ void intersections(std::vector<double>& T, const path& g, const pair& z,
 inline bool online(const pair&p, const pair& q, const pair& z, double fuzz)
 {
   if(p == q) return (z-p).abs2() <= fuzz*fuzz;
-  pair denom=1.0/(q-p);
-  pair w=(z-p)*denom;
-  return fabs(w.gety()) <= Fuzz*fabs(w.getx());
+  return (z.getx()-p.getx())*(q.gety()-p.gety()) ==
+    (q.getx()-p.getx())*(z.gety()-p.gety());
 }
 
 // Return all intersection times of path g with the (infinite)
@@ -849,14 +848,14 @@ void intersections(std::vector<double>& S, std::vector<double>& T,
       T.push_back(0);
     }
   } else {
-    pair denom=1.0/(q-p);
+    pair factor=(q-p)/((q-p).abs2());
     std::vector<double> S1;
     lineintersections(S1,g,p,q,fuzz,true);
     size_t n=S1.size();
     for(size_t i=0; i < n; ++i) {
       double s=S1[i];
       pair z=g.point(s);
-      double t=((z-p)*denom).getx();
+      double t=dot(g.point(s)-p,factor);
       if(t >= -Fuzz && t <= 1.0+Fuzz) {
 	S.push_back(s);
 	T.push_back(t);

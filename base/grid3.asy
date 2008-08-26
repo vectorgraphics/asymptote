@@ -32,12 +32,18 @@ struct grid3 {
 
 typedef grid3 grid3routine(picture pic);
 
+triple X(picture pic) {return (pic.userMax.x,pic.userMin.y,pic.userMin.z);}
+triple XY(picture pic) {return (pic.userMax.x,pic.userMax.y,pic.userMin.z);}
+triple Y(picture pic) {return (pic.userMin.x,pic.userMax.y,pic.userMin.z);}
+triple YZ(picture pic) {return (pic.userMin.x,pic.userMax.y,pic.userMax.z);}
+triple Z(picture pic) {return (pic.userMin.x,pic.userMin.y,pic.userMax.z);}
+triple ZX(picture pic) {return (pic.userMax.x,pic.userMin.y,pic.userMax.z);}
+
 grid3routine XYgrid(position pos=Relative(0)) {
   return new grid3(picture pic) {
     grid3 og;
-    bbox3 b=bbox3(pic.userMin,pic.userMax);
-    og.create(pic,b.min--b.X(),b.Y()--b.XY(),b.min--b.Z(),
-              b.min.x,b.max.x,pos,pic.scale.x);
+    og.create(pic,pic.userMin--X(pic),Y(pic)--XY(pic),pic.userMin--Z(pic),
+              pic.userMin.x,pic.userMax.x,pos,pic.scale.x);
     return og;
   };
 };
@@ -46,9 +52,8 @@ grid3routine XYgrid=XYgrid();
 grid3routine YXgrid(position pos=Relative(0)) {
   return new grid3(picture pic) {
     grid3 og;
-    bbox3 b=bbox3(pic.userMin,pic.userMax);
-    og.create(pic,b.min--b.Y(),b.X()--b.XY(),b.min--b.Z(),
-              b.min.y,b.max.y,pos,pic.scale.y);
+    og.create(pic,pic.userMin--Y(pic),X(pic)--XY(pic),pic.userMin--Z(pic),
+              pic.userMin.y,pic.userMax.y,pos,pic.scale.y);
     return og;
   };
 };
@@ -58,9 +63,8 @@ grid3routine YXgrid=YXgrid();
 grid3routine XZgrid(position pos=Relative(0)) {
   return new grid3(picture pic) {
     grid3 og;
-    bbox3 b=bbox3(pic.userMin,pic.userMax);
-    og.create(pic,b.min--b.X(),b.Z()--b.ZX(),b.min--b.Y(),
-              b.min.x,b.max.x,pos,pic.scale.x);
+    og.create(pic,pic.userMin--X(pic),Z(pic)--ZX(pic),pic.userMin--Y(pic),
+              pic.userMin.x,pic.userMax.x,pos,pic.scale.x);
     return og;
   };
 };
@@ -69,9 +73,8 @@ grid3routine XZgrid=XZgrid();
 grid3routine ZXgrid(position pos=Relative(0)) {
   return new grid3(picture pic) {
     grid3 og;
-    bbox3 b=bbox3(pic.userMin,pic.userMax);
-    og.create(pic,b.min--b.Z(),b.X()--b.ZX(),b.min--b.Y(),
-              b.min.z,b.max.z,pos,pic.scale.z);
+    og.create(pic,pic.userMin--Z(pic),X(pic)--ZX(pic),pic.userMin--Y(pic),
+              pic.userMin.z,pic.userMax.z,pos,pic.scale.z);
     return og;
   };
 };
@@ -80,9 +83,8 @@ grid3routine ZXgrid=ZXgrid();
 grid3routine YZgrid(position pos=Relative(0)) {
   return new grid3(picture pic) {
     grid3 og;
-    bbox3 b=bbox3(pic.userMin,pic.userMax);
-    og.create(pic,b.min--b.Y(),b.Z()--b.YZ(),b.min--b.X(),
-              b.min.y,b.max.y,pos,pic.scale.y);
+    og.create(pic,pic.userMin--Y(pic),Z(pic)--YZ(pic),pic.userMin--X(pic),
+              pic.userMin.y,pic.userMax.y,pos,pic.scale.y);
     return og;
   };
 };
@@ -91,9 +93,8 @@ grid3routine YZgrid=YZgrid();
 grid3routine ZYgrid(position pos=Relative(0)) {
   return new grid3(picture pic) {
     grid3 og;
-    bbox3 b=bbox3(pic.userMin,pic.userMax);
-    og.create(pic,b.min--b.Z(),b.Y()--b.YZ(),b.min--b.X(),
-              b.min.z,b.max.z,pos,pic.scale.z);
+    og.create(pic,pic.userMin--Z(pic),Y(pic)--YZ(pic),pic.userMin--X(pic),
+              pic.userMin.z,pic.userMax.z,pos,pic.scale.z);
     return og;
   };
 };

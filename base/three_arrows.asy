@@ -1,5 +1,5 @@
 // approximate acceleration
-triple accel(path3 g, real t)
+private triple accel(path3 g, real t)
 {
   triple a;
   real deltaT=0.1;
@@ -11,7 +11,7 @@ triple accel(path3 g, real t)
 
 // transformation that bends points along a path
 // assumes that p.z is in [0,scale]
-triple bend(triple p, path3 g, real scale=1, real endtime=g.length())
+private triple bend(triple p, path3 g, real scale=1, real endtime=length(g))
 {
   real time=arctime(g,arclength(subpath(g,0,endtime))+(p.z-scale));
   triple dir=dir(g,time);
@@ -37,7 +37,7 @@ triple bend(triple p, path3 g, real scale=1, real endtime=g.length())
   return shift(q-t*(0,0,p.z))*t*p;
 }
 
-real takeStep(path3 s, real endtime, real width)
+private real takeStep(path3 s, real endtime, real width)
 {
   real a=abs(accel(s,endtime));
 
@@ -53,7 +53,7 @@ real takeStep(path3 s, real endtime, real width)
 
 
 // return true iff segment i of path3 g is close to being straight
-bool checkStraight(path3 g, int i, real straightEpsilon)
+private bool checkStraight(path3 g, int i, real straightEpsilon)
 {
   triple a = point(g,i);
   triple b = postcontrol(g,i)-a;

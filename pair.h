@@ -154,6 +154,11 @@ public:
     return pair(z.x,-z.y);
   }
   
+  friend double dot(const pair& z, const pair& w)
+  {
+    return z.getx()*w.getx()+z.gety()*w.gety();
+  }
+  
 // Return the principal branch of the square root (non-negative real part).
   friend pair Sqrt(const pair& z) {
     double mag=z.length();

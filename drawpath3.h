@@ -8,7 +8,7 @@
 #define DRAWPATH3_H
 
 #include "drawelement.h"
-#include "triple.h"
+#include "path3.h"
 
 namespace camp {
 
@@ -16,40 +16,21 @@ typedef double Triple[3];
   
 class drawPath3 : public drawElement {
 protected:
-  RGBAColour color;
-  bool straight;
-  triple min,max;
-  size_t n;
+  path3 g;
+  pen pentype;
   Triple *controls;
 public:
-  drawPath3(const vm::array& g, pen pentype, bool straight, triple min,
-	    triple max) : 
-    straight(straight), min(min), max(max) {
+  drawPath3(path3 g, pen pentype) : g(g), pentype(pentype), controls(NULL) {}
     
-    if(pentype.invisible()) {n=0; return;}
-
-    color=rgba(pentype);
-    n=checkArray(&g);
-    controls=new Triple[n];
-  
-    const double factor=1.0/settings::cm;
-    for(size_t i=0; i < n; ++i) {
-      triple v=vm::read<triple>(g,i);
-      controls[i][0]=v.getx()*factor;
-      controls[i][1]=v.gety()*factor;
-      controls[i][2]=v.getz()*factor;
-    }
-  }
-  
   virtual ~drawPath3() {
-    delete *controls;
+    if(controls) delete controls;
   }
 
   bool is3D() {return true;}
   
   void bounds(bbox3& b) {
-    b.add(min);
-    b.add(max);
+    b.add(g.min());
+    b.add(g.max());
   }
   
   bool write(prcfile *out);

@@ -95,7 +95,7 @@ struct bbox {
   }
 
   // Add a point to a nonempty bbox, updating bounding times
-  bbox add(const pair& z, bbox& times, double t)
+  bbox addnonempty(const pair& z, bbox& times, double t)
   {
     double x = z.getx(), y = z.gety();
 

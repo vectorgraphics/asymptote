@@ -368,6 +368,7 @@ void addInitializers(venv &ve)
   addInitializer(ve, primTransform(), transformIdentity);
   addInitializer(ve, primGuide(), nullGuide);
   addInitializer(ve, primPath(), nullPath);
+  addInitializer(ve, primPath3(), nullPath3);
   addInitializer(ve, primPen(), newPen);
   addInitializer(ve, primPicture(), newPicture);
   addInitializer(ve, primFile(), nullFile);

@@ -10,12 +10,13 @@ struct face {
   transform t;
   frame fit;
   triple normal,point;
-  bbox3 box;
+  triple min,max;
   void operator init(path3 p) {
     this.normal=normal(p);
     if(this.normal == O) abort("path is linear");
     this.point=point(p,0);
-    this.box=bbox3(min(p),max(p));
+    min=min(p);
+    max=max(p);
   }
   face copy() {
     face f=new face;
@@ -23,7 +24,8 @@ struct face {
     f.t=t;
     f.normal=normal;
     f.point=point;
-    f.box=box;
+    f.min=min;
+    f.max=max;
     add(f.fit,fit);
     return f;
   }
@@ -95,8 +97,8 @@ splitface split(face a, face cut, projection P)
   if(P.infinity) {
     P=P.copy();
     static real factor=1/sqrt(realEpsilon);
-    P.camera *= factor*max(abs(a.box.min),abs(a.box.max),
-                           abs(cut.box.min),abs(cut.box.max));
+    P.camera *= factor*max(abs(a.min),abs(a.max),
+                           abs(cut.min),abs(cut.max));
   }
 
   if((abs(a.normal-cut.normal) < epsilon ||
