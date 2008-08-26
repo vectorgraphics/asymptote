@@ -1958,33 +1958,59 @@ draw=new void(frame f, path3 g,
 	      light light=nolight,
 	      projection P=null, int ninterpolate=ninterpolate) {
   if(prc()) {
-    if(settings.thick) {
-      real width=linewidth(p);
-      if(width > 0) {
-	surface s=tube(g,width);
-	real r=0.5*width;
-	int L=length(g);
-	real linecap=linecap(p);
-	if(linecap == 0) {
-	  surface disk=scale(r,r,1)*unitdisk;
-	  s.append(shift(point(g,0))*align(dir(g,0))*disk);
-	  s.append(shift(point(g,L))*align(dir(g,L))*disk);
-	} else if(linecap == 1) {
-	  surface sphere=scale3(r)*unitsphere;
-	  s.append(shift(point(g,0))*sphere);
-	  s.append(shift(point(g,L))*sphere);
-	} else if(linecap == 2) {
-	  surface cylinder=unitcylinder;
-	  cylinder.append(shift(Z)*unitdisk);
-	  cylinder=scale3(r)*cylinder;
-	  s.append(shift(point(g,0))*align(-dir(g,0))*cylinder);
-	  s.append(shift(point(g,L))*align(dir(g,L))*cylinder);
+    if(p.granularity == -1) {
+      p=material(p);
+      p.granularity=linegranularity;
+    }
+    pen q=(pen) p;
+    void drawthick(path3 g) {
+      if(settings.thick) {
+	real width=linewidth(q);
+	if(width > 0) {
+	  surface s=tube(g,width);
+	  real r=0.5*width;
+	  int L=length(g);
+	  real linecap=linecap(q);
+	  if(linecap == 0) {
+	    surface disk=scale(r,r,1)*unitdisk;
+	    s.append(shift(point(g,0))*align(dir(g,0))*disk);
+	    s.append(shift(point(g,L))*align(dir(g,L))*disk);
+	  } else if(linecap == 1) {
+	    surface sphere=scale3(r)*unitsphere;
+	    s.append(shift(point(g,0))*sphere);
+	    s.append(shift(point(g,L))*sphere);
+	  } else if(linecap == 2) {
+	    surface cylinder=unitcylinder;
+	    cylinder.append(shift(Z)*unitdisk);
+	    cylinder=scale3(r)*cylinder;
+	    s.append(shift(point(g,0))*align(-dir(g,0))*cylinder);
+	    s.append(shift(point(g,L))*align(dir(g,L))*cylinder);
+	  }
+	  for(int i=0; i < s.s.length; ++i)
+	    drawprc(f,s.s[i],p,light);
 	}
-	for(int i=0; i < s.s.length; ++i)
-	  drawprc(f,s.s[i],p,light);
+      }
+      _draw(f,g,q);
+    }
+    string type=linetype(q);
+    if(length(type) == 0) drawthick(g);
+    else {
+      string[] dash=split(type," ");
+      dash.cyclic(true);
+      real offset=0;
+      real L=arclength(g);
+      int i=0;
+      real l=offset;
+      while(l <= L) {
+	real t1=arctime(g,l);
+	l += (real) dash[i];
+	real t2=arctime(g,l);
+	drawthick(subpath(g,t1,t2));
+	++i;
+	l += (real) dash[i];
+	++i;
       }
     }
-    _draw(f,g,(pen) p);
   }
   else draw(f,project(g,P,ninterpolate),(pen) p);
 };
