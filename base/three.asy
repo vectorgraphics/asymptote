@@ -1457,6 +1457,11 @@ struct path3 {
       roots=quadraticroots(a.y,b.y,c.y);
       if(roots.length > 0) box.add(point(i+roots[0]));
       if(roots.length > 1) box.add(point(i+roots[1]));
+
+      // Check z coordinate
+      roots=quadraticroots(a.z,b.z,c.z);
+      if(roots.length > 0) box.add(point(i+roots[0]));
+      if(roots.length > 1) box.add(point(i+roots[1]));
     }
     box.add(point(length()));
     return box;
