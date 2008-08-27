@@ -156,7 +156,7 @@ public:
   triple postcontrol(double t) const;
   
   triple predir(Int t) const {
-    if(!cycles && t <= 0) return triple(0,0);
+    if(!cycles && t <= 0) return triple(0,0,0);
     triple z0=point(t-1);
     triple z1=point(t);
     triple c1=precontrol(t);
@@ -171,7 +171,7 @@ public:
 
   triple predir(double t) const {
     if(!cycles) {
-      if(t <= 0) return triple(0,0);
+      if(t <= 0) return triple(0,0,0);
       if(t >= n-1) return predir(n-1);
     }
     Int a=Floor(t);
@@ -179,7 +179,7 @@ public:
   }
 
   triple postdir(Int t) const {
-    if(!cycles && t >= n-1) return triple(0,0);
+    if(!cycles && t >= n-1) return triple(0,0,0);
     triple z0=point(t);
     triple z1=point(t+1);
     triple c0=postcontrol(t);
@@ -194,7 +194,7 @@ public:
 
   triple postdir(double t) const {
     if(!cycles) {
-      if(t >= n-1) return triple(0,0);
+      if(t >= n-1) return triple(0,0,0);
       if(t <= 0) return postdir((Int) 0);
     }
     Int b=Ceil(t);
