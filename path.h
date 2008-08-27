@@ -236,22 +236,12 @@ public:
       subpath(t,(double) b).postdir((Int) 0);
   }
 
-  pair dir(Int t) const {
-    return unit(predir(t)+postdir(t));
-  }
-  
   pair dir(double t) const {
     return unit(predir(t)+postdir(t));
   }
 
   pair dir(Int t, Int sign) const {
-    if(sign == 0) return dir(t);
-    else if(sign > 0) return postdir(t);
-    else return predir(t);
-  }
-
-  pair dir(double t, Int sign) const {
-    if(sign == 0) return dir(t);
+    if(sign == 0) return unit(predir(t)+postdir(t));
     else if(sign > 0) return postdir(t);
     else return predir(t);
   }

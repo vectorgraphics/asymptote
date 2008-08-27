@@ -1227,7 +1227,7 @@ const char **texabort(const string& texengine)
   return settings::pdf(texengine) ? pdftexerrors : texerrors;
 }
 
-string texengine(bool ps)
+string texcommand(bool ps)
 {
   string command;
   if(ps) {
@@ -1242,7 +1242,7 @@ string texengine(bool ps)
 string texprogram(bool ps)
 {
   string path=getSetting<string>("texpath");
-  string engine=texengine(ps);
+  string engine=texcommand(ps);
   return (path == "") ? engine : (string) (path+"/"+engine);
 }
 

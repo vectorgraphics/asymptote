@@ -202,24 +202,61 @@ public:
       subpath(t,(double) b).postdir((Int) 0);
   }
 
-  triple dir(Int t) const {
-    return unit(predir(t)+postdir(t));
-  }
-  
   triple dir(double t) const {
     return unit(predir(t)+postdir(t));
   }
 
   triple dir(Int t, Int sign) const {
-    if(sign == 0) return dir(t);
+    if(sign == 0) return unit(predir(t)+postdir(t));
     else if(sign > 0) return postdir(t);
     else return predir(t);
   }
 
-  triple dir(double t, Int sign) const {
-    if(sign == 0) return dir(t);
-    else if(sign > 0) return postdir(t);
-    else return predir(t);
+  triple postaccel(Int t) const {
+    if(!cycles && t >= n-1) return triple(0,0,0);
+    triple z0=point(t);
+    triple c0=postcontrol(t);
+    triple c1=precontrol(t+1);
+    return 6.0*(z0+c1)-12.0*c0;
+  }
+
+  triple preaccel(Int t) const {
+    if(!cycles && t <= 0) return triple(0,0,0);
+    triple z0=point(t-1);
+    triple c0=postcontrol(t-1);
+    triple c1=precontrol(t);
+    triple z1=point(t);
+    return 6.0*(z1-z0)+18.0*(c0-c1);
+  }
+  
+  triple preaccel(double t) const {
+    if(!cycles) {
+      if(t <= 0) return triple(0,0,0);
+      if(t >= n-1) return preaccel(n-1);
+    }
+    Int a=Floor(t);
+    return (t-a < sqrtFuzz) ? preaccel(a) : 
+      subpath((double) a,t).preaccel((Int) 1);
+  }
+
+  triple postaccel(double t) const {
+    if(!cycles) {
+      if(t >= n-1) return triple(0,0,0);
+      if(t <= 0) return postaccel((Int) 0);
+    }
+    Int b=Ceil(t);
+    return (b-t < sqrtFuzz) ? postaccel(b) : 
+      subpath(t,(double) b).postaccel((Int) 0);
+  }
+
+  triple accel(double t) const {
+    return preaccel(t)+postaccel(t);
+  }
+
+  triple accel(Int t, Int sign) const {
+    if(sign == 0) return preaccel(t)+postaccel(t);
+    else if(sign > 0) return postaccel(t);
+    else return preaccel(t);
   }
 
   // Returns the path3 traced out in reverse.

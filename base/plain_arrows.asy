@@ -466,7 +466,8 @@ Bars=Bars();
 void draw(frame f, path g, pen p=currentpen, arrowbar arrow)
 {
   picture pic;
-  if(arrow(pic,g,p,NoMargin)) draw(f,g,p);
+  if(arrow(pic,g,p,NoMargin))
+    draw(f,g,p);
   add(f,pic.fit());
 }
 

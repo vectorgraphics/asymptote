@@ -28,7 +28,7 @@ texstream::~texstream() {
     unlink("texput.log");
     unlink("texput.out");
     unlink("texput.aux");
-    if(settings::pdf(texengine()))
+    if(settings::pdf(getSetting<string>("tex")))
       unlink("texput.pdf");
   }
 }
@@ -38,7 +38,7 @@ namespace camp {
 const char *texpathmessage() {
   ostringstream buf;
   buf << "the directory containing your " << getSetting<string>("tex")
-      << " engine (" << texengine() << ")";
+      << " engine (" << texcommand() << ")";
   return Strdup(buf.str());
 }
   

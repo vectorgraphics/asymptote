@@ -1304,12 +1304,12 @@ string nativeformat()
 
 bool latex()
 {
-  return latex(texengine());
+  return latex(getSetting<string>("tex"));
 }
 
 bool pdf()
 {
-  return pdf(texengine());
+  return pdf(getSetting<string>("tex"));
 }
 
 void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
@@ -2227,6 +2227,16 @@ triple dir(path3 p, Int t, Int sign=0)
 triple dir(path3 p, real t)
 {
   return p.dir(t);
+}
+
+triple accel(path3 p, Int t, Int sign=0)
+{
+  return p.accel(t,sign);
+}
+
+triple accel(path3 p, double t)
+{
+  return p.accel(t);
 }
 
 path3 reverse(path3 p)

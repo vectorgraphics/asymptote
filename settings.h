@@ -83,7 +83,7 @@ const char *endspecial();
 extern bool fataltex[];
 const char **texabort(const string& texengine);
   
-string texengine(bool ps=false);
+string texcommand(bool ps=false);
 string texprogram(bool ps=false);
   
 const double inches=72;

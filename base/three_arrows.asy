@@ -1,17 +1,5 @@
-// approximate acceleration
-
 light arrowheadlight() {
   return prc() ? currentlight : nolight;
-}
-
-private triple accel(path3 g, real t)
-{
-  triple a;
-  real deltaT=0.1;
-  if(t < deltaT) t=deltaT;
-  if(t > 1-deltaT) t=1-deltaT;
-  a=dir(g,t+deltaT)-dir(g,t-deltaT);
-  return a/deltaT/2;
 }
 
 // transformation that bends points along a path
