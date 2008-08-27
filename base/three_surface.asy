@@ -606,11 +606,10 @@ void label(picture pic=currentpicture, Label L, triple position,
   pic.addBox(position,position,min(G),max(G));
 }
 
-// TODO: generalize to handle triples.
-void label(picture pic=currentpicture, Label L, path3 g,
-           align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
+void label(picture pic=currentpicture, Label L, path3 g, align align=NoAlign,
+	   pen p=currentpen)
 {
-  Label L=Label(L,align,p,filltype);
+  Label L=Label(L,align,p);
   bool relative=L.position.relative;
   real position=L.position.position.x;
   pair Align=L.align.dir;
@@ -622,7 +621,7 @@ void label(picture pic=currentpicture, Label L, path3 g,
     Align=position <= 0 ? S : position >= length(g) ? N : E;
   }
   label(pic,L,point(g,position),
-	alignrelative ? -Align*xypart(inverse(L.T3)*dir(g,position))*I : Align);
+	alignrelative ? -Align*project(dir(g,position))*I : L.align);
 }
 
 restricted surface nullsurface;
@@ -665,29 +664,27 @@ restricted surface unitplane=surface(unitplane);
 restricted surface unitdisk=surface(unitcircle3);
 
 void dot(frame f, triple v, pen p=currentpen,
-	 filltype filltype=Fill, light light=nolight, projection P=null)
+	 light light=nolight, projection P=null)
 {
   if(prc())
     for(patch s : unitsphere.s)
       drawprc(f,shift(v)*scale3(0.5*dotsize(p))*s,
 	      material(p,granularity=dotgranularity),light);
-  else dot(f,project(v,P),p,filltype);
+  else dot(f,project(v,P),p);
 }
 
-void dot(frame f, path3 g, pen p=currentpen, filltype filltype=Fill,
-	 projection P=null)
+void dot(frame f, path3 g, pen p=currentpen, projection P=null)
 {
-  for(int i=0; i <= length(g); ++i) dot(f,point(g,i),p,filltype,P);
+  for(int i=0; i <= length(g); ++i) dot(f,point(g,i),p,P);
 }
 
-void dot(frame f, path3[] g, pen p=currentpen, filltype filltype=Fill,
-	 projection P=null)
+void dot(frame f, path3[] g, pen p=currentpen, projection P=null)
 {
-  for(int i=0; i < g.length; ++i) dot(f,g[i],p,filltype,P);
+  for(int i=0; i < g.length; ++i) dot(f,g[i],p,P);
 }
 
 void dot(picture pic=currentpicture, triple v, pen p=currentpen,
-	 filltype filltype=Fill, light light=nolight)
+	 light light=nolight)
 {
   pic.add(new void(frame f, transform3 t, picture pic, projection P=null) {
       if(prc())
@@ -695,26 +692,23 @@ void dot(picture pic=currentpicture, triple v, pen p=currentpen,
 	  drawprc(f,shift(t*v)*scale3(0.5*linewidth(dotsize(p)+p))*s,
 		  material(p,granularity=dotgranularity),light);
       if(pic != null)
-	dot(pic,project(t*v,P),p,filltype);
+	dot(pic,project(t*v,P),p);
     },true);
   triple R=0.5*dotsize(p)*(1,1,1);
   pic.addBox(v,v,-R,R);
 }
 
-void dot(picture pic=currentpicture, triple[] v, pen p=currentpen,
-	 filltype filltype=Fill)
+void dot(picture pic=currentpicture, triple[] v, pen p=currentpen)
 {
-  for(int i=0; i < v.length; ++i) dot(pic,v[i],p,filltype);
+  for(int i=0; i < v.length; ++i) dot(pic,v[i],p);
 }
 
-void dot(picture pic=currentpicture, path3 g, pen p=currentpen,
-	 filltype filltype=Fill)
+void dot(picture pic=currentpicture, path3 g, pen p=currentpen)
 {
-  for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p,filltype);
+  for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p);
 }
 
-void dot(picture pic=currentpicture, path3[] g, pen p=currentpen,
-	 filltype filltype=Fill)
+void dot(picture pic=currentpicture, path3[] g, pen p=currentpen)
 {
-  for(int i=0; i < g.length; ++i) dot(pic,g[i],p,filltype);
+  for(int i=0; i < g.length; ++i) dot(pic,g[i],p);
 }

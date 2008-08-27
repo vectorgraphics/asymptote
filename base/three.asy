@@ -2019,6 +2019,7 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
 	  align align=NoAlign, pen p=currentpen, arrowbar3 arrow,
 	  light light=nolight, int ninterpolate=ninterpolate)
 {
+  label(pic,L,g,align,p);
   if(arrow(pic,g,p,light))
     draw(pic,L,g,align,p,ninterpolate);
 }
