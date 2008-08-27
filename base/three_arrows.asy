@@ -198,7 +198,7 @@ void drawarrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
   }
   path3 r=subpath(g,position,0);
   size=min(arrowsizelimit*arclength(r),size);
-  if(position == L)
+  if(!cyclic(g) && position == L)
     draw(pic,subpath(r,arctime(r,size),length(r)),p,light);
   else draw(pic,g,p,light);
   draw(pic,arrowhead.head(g,position,p,size,angle),arrowheadpen,arrowheadlight);
