@@ -46,7 +46,8 @@ transform scaleless(transform t)
   pair[] u={l1-d,b};
   pair[] v={c,l2-a};
   u=unit(u);
-  v -= dot(u,v)/dot(u,u)*u;
+  pair d=dot(u,u);
+  if(d != 0) v -= dot(u,v)/d*u;
   v=unit(v);
 
   pair[][] U={{u[0],v[0]},{u[1],v[1]}};
