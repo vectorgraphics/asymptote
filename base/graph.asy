@@ -954,8 +954,8 @@ int Both=2;
 
 // Structure used to communicate axis and autoscale settings to tick routines. 
 struct axisT {
-  int type=Value;  // -1 = min, 0 = given value, 1 = max, 2 = min/max
-  int type2=Value; // for 3D axis
+  int type;        // -1 = min, 0 = given value, 1 = max, 2 = min/max
+  int type2;       // for 3D axis
   real value;
   real value2;
   pair side;       // 2D tick label direction relative to path (left or right)
@@ -1039,6 +1039,7 @@ axis LeftRight(bool extend=false)
 axis XEquals(real x, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
+    axis.type=Value;
     axis.value=pic.scale.x.T(x);
     axis.position=1;
     axis.side=left;
@@ -1050,6 +1051,7 @@ axis XEquals(real x, bool extend=true)
 axis YEquals(real y, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
+    axis.type=Value;
     axis.value=pic.scale.y.T(y);
     axis.position=1;
     axis.side=right;
@@ -1061,6 +1063,7 @@ axis YEquals(real y, bool extend=true)
 axis XZero(bool extend=true)
 {
   return new void(picture pic, axisT axis) {
+    axis.type=Value;
     axis.value=pic.scale.x.T(pic.scale.x.scale.logarithmic ? 1 : 0);
     axis.position=1;
     axis.side=left;
@@ -1072,6 +1075,7 @@ axis XZero(bool extend=true)
 axis YZero(bool extend=true)
 {
   return new void(picture pic, axisT axis) {
+    axis.type=Value;
     axis.value=pic.scale.y.T(pic.scale.y.scale.logarithmic ? 1 : 0);
     axis.position=1;
     axis.side=right;
