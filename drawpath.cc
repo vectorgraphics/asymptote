@@ -15,8 +15,9 @@
 
 namespace camp {
 
+
 double PatternLength(double arclength, const std::vector<double>& pat,
-		     const path& p, double penwidth)
+		     bool cyclic, double penwidth)
 {
   double sum=0.0;
       
@@ -30,23 +31,23 @@ double PatternLength(double arclength, const std::vector<double>& pat,
       
   // Fix bounding box resolution problem. Example:
   // asy -f pdf testlinetype; gv -scale -2 testlinetype.pdf
-  if(!p.cyclic() && pat[0] == 0) sum += 1.0e-3*penwidth;
+  if(!cyclic && pat[0] == 0) sum += 1.0e-3*penwidth;
       
-  double terminator=((p.cyclic() && arclength >= 0.5*sum) ? 0.0 : 
-		     pat[0]*penwidth);
+  double terminator=(cyclic && arclength >= 0.5*sum) ? 0.0 : pat[0]*penwidth;
   int ncycle=(int)((arclength-terminator)/sum+0.5);
 
   return (ncycle >= 1 || terminator >= 0.75*arclength) ? 
     ncycle*sum+terminator : 0.0;
 }
 
-void drawPath::adjustdash(pen& pen0)
+pen adjustdash(pen& p, double arclength, bool cyclic)
 {
+  pen q=p;
   // Adjust dash sizes to fit arclength; also compensate for linewidth.
-  string stroke=pen0.stroke();
+  string stroke=q.stroke();
   
   if(!stroke.empty()) {
-    double penwidth=pen0.linetype().scale ? pen0.width() : 1.0;
+    double penwidth=q.linetype().scale ? q.width() : 1.0;
     double factor=penwidth;
     
     std::vector<double> pat;
@@ -60,12 +61,11 @@ void drawPath::adjustdash(pen& pen0)
       
     size_t n=pat.size();
     
-    if(pen0.linetype().adjust) {
-      double arclength=p.arclength();
+    if(q.linetype().adjust) {
       if(arclength) {
-	if(n == 0) return;
+	if(n == 0) return q;
       
-	double denom=PatternLength(arclength,pat,p,penwidth);
+	double denom=PatternLength(arclength,pat,cyclic,penwidth);
 	if(denom != 0.0) factor *= arclength/denom;
       }
     }
@@ -74,13 +74,16 @@ void drawPath::adjustdash(pen& pen0)
     
     ostringstream buf;
     buf.setf(std::ios::fixed);
-    for(unsigned i=0; i < n; i++)
+    for(unsigned i=0; i < n-1; i++)
       buf << pat[i]*factor << " ";
-    pen0.setstroke(buf.str());
-    pen0.setoffset(pen0.linetype().offset*factor);
+    if(n > 0)
+      buf << pat[n-1]*factor;
+    q.setstroke(buf.str());
+    q.setoffset(q.linetype().offset*factor);
   }
+  return q;
 }
-  
+ 
 // Account for square or extended pen cap contributions to bounding box.
 void cap(bbox& b, double t, path p, pen pentype) {
   transform T=pentype.getTransform();  
@@ -144,7 +147,7 @@ bool drawPath::draw(psfile *out)
     return true;
 
   pen pen0=pentype;
-  adjustdash(pen0);
+  adjustdash(pen0,p.arclength(),p.cyclic());
 
   penSave(out);
   penTranslate(out);

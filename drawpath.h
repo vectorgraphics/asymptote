@@ -25,11 +25,10 @@ public:
 
   bool draw(psfile *out);
 
-  virtual void adjustdash(pen &);
-
   drawElement *transformed(const transform& t);
 };
 
+pen adjustdash(pen& p, double arclength, bool cyclic);
 }
 
 #endif

@@ -1992,7 +1992,7 @@ draw=new void(frame f, path3 g,
       }
       _draw(f,g,q);
     }
-    string type=linetype(q);
+    string type=linetype(adjust(q,arclength(g),cyclic(g)));
     if(length(type) == 0) drawthick(g);
     else {
       string[] dash=split(type," ");

@@ -1695,6 +1695,11 @@ bool adjust(pen p)
   return p.linetype().adjust;
 }
 
+pen adjust(pen p, double arclength, bool cyclic)
+{
+  return adjustdash(p,arclength,cyclic);
+}
+
 pen linecap(Int n)
 {
   return pen(setlinecap,n >= 0 && n < nCap ? n : DEFCAP);
