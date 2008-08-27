@@ -4615,6 +4615,30 @@ triple Operator *(realarray2 *a, triple v)
   return triple(C[0]*f,C[1]*f,C[2]*f);
 }
 
+pair project(triple v, realarray2 *a)
+{
+  size_t n=checkArray(a);
+  if(n != 4) error(incommensurate);
+  real B[4]={v.getx(),v.gety(),v.getz(),1};
+  real C[2];
+  for(size_t i=0; i < 2; ++i) {
+    array *ai=read<array*>(a,i);
+    if(checkArray(ai) != 4) error(incommensurate);
+    real sum=0.0;
+    for(size_t j=0; j < 4; ++j)
+      sum += read<real>(ai,j)*B[j];
+    C[i]=sum;
+  }
+  array *ai=read<array*>(a,3);
+  if(checkArray(ai) != 4) error(incommensurate);
+  real f=0.0;
+  for(size_t j=0; j < 4; ++j)
+      f += read<real>(ai,j)*B[j];
+  if(f == 0) dividebyzero();
+  f=1/f;
+  return pair(C[0]*f,C[1]*f);
+}
+
 // Compute the dot product of vectors a and b.
 real dot(realarray *a, realarray *b) 
 {

@@ -87,8 +87,9 @@ struct patch {
   pair bound(real m(triple[], real f(triple), real), projection P,
 	     pair b=project(this.P[0][0],P)) {
     triple[] Q=controlpoints();
-    return (m(Q,new real(triple v) {return project(v,P).x;},b.x),
-	    m(Q,new real(triple v) {return project(v,P).y;},b.y));
+    transform3 t=P.project;
+    return (m(Q,new real(triple v) {return project(v,t).x;},b.x),
+	    m(Q,new real(triple v) {return project(v,t).y;},b.y));
   }
 
   pair min2,max2;
@@ -117,13 +118,13 @@ struct patch {
     return max3=bound(maxbound,bound);
   }
 
-  pair min(projection P, pair bound=project(this.P[0][0],P)) {
+  pair min(projection P, pair bound=project(this.P[0][0],P.project)) {
     if(havemin2) return minbound(min2,bound);
     havemin2=true;
     return min2=bound(minbound,P,bound);
   }
 
-  pair max(projection P, pair bound=project(this.P[0][0],P)) {
+  pair max(projection P, pair bound=project(this.P[0][0],P.project)) {
     if(havemax2) return maxbound(max2,bound);
     havemax2=true;
     return max2=bound(maxbound,P,bound);
@@ -408,7 +409,8 @@ void tensorshade(transform t=identity(), frame f, patch s, bool outward=false,
 
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 	  bool outward=false, material surfacepen=lightgray,
-	  pen meshpen=nullpen, light light=currentlight, projection P=null)
+	  pen meshpen=nullpen, light light=currentlight, projection P=null,
+	  int ninterpolate=1)
 {
   bool mesh=meshpen != nullpen;
 
@@ -448,9 +450,9 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
       real[] a=depth.pop();
       int i=round(a[1]);
       if(surface)
-	tensorshade(t,f,s.s[i],outward,surfacepen.p[0],light,P);
+	tensorshade(t,f,s.s[i],outward,surfacepen.p[0],light,P,ninterpolate);
       if(mesh)
-	draw(f,project(s.s[i].external(),P),meshpen);
+	draw(f,project(s.s[i].external(),P,ninterpolate),meshpen);
     }
     endgroup(f);
   }
@@ -575,7 +577,8 @@ void label(frame f, Label L, triple position, align align=NoAlign,
   if(prc()) {
     for(patch S : surface(L,position).s)
       drawprc(f,S,L.p,light);
-  } else fill(f,path(L,project(position,P),P),light.intensity(L.T3*Z)*L.p);
+  } else fill(f,path(L,project(position,P.project),P),
+	      light.intensity(L.T3*Z)*L.p);
 }
 
 void label(picture pic=currentpicture, Label L, triple position,
@@ -596,7 +599,7 @@ void label(picture pic=currentpicture, Label L, triple position,
 	  drawprc(f,S,L.p,light);
       }
       if(pic != null)
-	fill(project(v,P),pic,path(L,P),light.intensity(L.T3*Z)*L.p);
+	fill(project(v,P.project),pic,path(L,P),light.intensity(L.T3*Z)*L.p);
     },!L.defaulttransform);
 
   if(L.defaulttransform)
@@ -621,7 +624,8 @@ void label(picture pic=currentpicture, Label L, path3 g, align align=NoAlign,
     Align=position <= 0 ? S : position >= length(g) ? N : E;
   }
   label(pic,L,point(g,position),
-	alignrelative ? -Align*project(dir(g,position))*I : L.align);
+	alignrelative ?
+	-Align*project(dir(g,position),currentprojection.project)*I : L.align);
 }
 
 restricted surface nullsurface;
@@ -670,7 +674,7 @@ void dot(frame f, triple v, pen p=currentpen,
     for(patch s : unitsphere.s)
       drawprc(f,shift(v)*scale3(0.5*dotsize(p))*s,
 	      material(p,granularity=dotgranularity),light);
-  else dot(f,project(v,P),p);
+  else dot(f,project(v,P.project),p);
 }
 
 void dot(frame f, path3 g, pen p=currentpen, projection P=null)
@@ -692,7 +696,7 @@ void dot(picture pic=currentpicture, triple v, pen p=currentpen,
 	  drawprc(f,shift(t*v)*scale3(0.5*linewidth(dotsize(p)+p))*s,
 		  material(p,granularity=dotgranularity),light);
       if(pic != null)
-	dot(pic,project(t*v,P),p);
+	dot(pic,project(t*v,P.project),p);
     },true);
   triple R=0.5*dotsize(p)*(1,1,1);
   pic.addBox(v,v,-R,R);

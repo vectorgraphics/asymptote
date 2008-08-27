@@ -19,11 +19,6 @@ triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
 
 int ninterpolate=16;
 
-pair operator ecast(real[] a)
-{
-  return (a[0],a[1])/a[3];
-}
-
 // A translation in 3D space.
 transform3 shift(triple v)
 {
@@ -198,7 +193,7 @@ addSaveFunction(new restoreThunk() {
 
 pair project(triple v, projection P=currentprojection)
 {
-  return (pair) (P.project*(real[]) v);
+  return project(v,P.project);
 }
 
 // Uses the homogenous coordinate to perform perspective distortion.
@@ -1122,21 +1117,22 @@ path nurb(path3 p, projection P, int ninterpolate=ninterpolate)
 {
   triple f=P.camera;
   triple u=unit(P.camera-P.target);
+  transform3 t=P.project;
 
   path nurb(triple v0, triple v1, triple v2, triple v3) {
-    return nurb(project(v0,P),project(v1,P),project(v2,P),project(v3,P),
+    return nurb(project(v0,t),project(v1,t),project(v2,t),project(v3,t),
 		dot(u,f-v0),dot(u,f-v1),dot(u,f-v2),dot(u,f-v3),ninterpolate);
   }
 
   path g;
 
   if(straight(p,0))
-    g=project(point(p,0),P);
+    g=project(point(p,0),t);
 
   int last=length(p);
   for(int i=0; i < last; ++i) {
     if(straight(p,i))
-      g=g--project(point(p,i+1),P);
+      g=g--project(point(p,i+1),t);
     else
       g=g&nurb(point(p,i),postcontrol(p,i),precontrol(p,i+1),point(p,i+1));
   }
@@ -1155,33 +1151,36 @@ path project(path3 p, projection P=currentprojection,
   int last=length(p);
   if(last < 0) return g;
   
+  transform3 t=P.project;
+
   if(P.infinity || ninterpolate == 1 || piecewisestraight(p)) {
-    g=project(point(p,0),P);
+    g=project(point(p,0),t);
     // Construct the path.
     int stop=cyclic(p) ? last-1 : last;
     for(int i=0; i < stop; ++i) {
       if(straight(p,i))
-        g=g--project(point(p,i+1),P);
+        g=g--project(point(p,i+1),t);
       else {
-        g=g..controls project(postcontrol(p,i),P) and
-	  project(precontrol(p,i+1),P)..project(point(p,i+1),P);
+        g=g..controls project(postcontrol(p,i),t) and
+	  project(precontrol(p,i+1),t)..project(point(p,i+1),t);
       }
     }
   } else return nurb(p,P,ninterpolate);
   
   if(cyclic(p))
     g=straight(p,last-1) ? g--cycle :
-      g..controls project(postcontrol(p,last-1),P) and
-			  project(precontrol(p,last),P)..cycle;
+      g..controls project(postcontrol(p,last-1),t) and
+			  project(precontrol(p,last),t)..cycle;
   return g;
 }
 
 pair[] project(triple[] v, projection P=currentprojection)
 {
+  transform3 t=P.project;
   int n=v.length;
   pair[] z=new pair[n];
   for(int i=0; i < n; ++i)
-    z[i]=project(v[i],P);
+    z[i]=project(v[i],t);
   return z;
 }
 
@@ -1280,23 +1279,18 @@ restricted transform3 XZ(projection P=currentprojection)
 }
 
 // Transform for projecting onto plane through point O with normal cross(u,v).
-transform transform(triple u, triple v, triple O=O, projection P)
+transform transform(triple u, triple v, triple O=O,
+		    projection P=currentprojection)
 {
   transform3 t=P.project;
-  real[] tO=t*(real[]) O;
-  real[] x=new real[4];
-  real[] y=new real[4];
-  real[] t3=t[3];
+  static real[] O={0,0,0,1};
+  real[] tO=t*O;
   real tO3=tO[3];
   real factor=1/tO3^2;
-  for(int i=0; i < 3; ++i) {
-    x[i]=(tO3*t[0][i]-tO[0]*t3[i])*factor;
-    y[i]=(tO3*t[1][i]-tO[1]*t3[i])*factor;
-  }
-  x[3]=1;
-  y[3]=1;
-  triple x=(triple) x;
-  triple y=(triple) y;
+  real[] x=(tO3*t[0]-tO[0]*t[3])*factor;
+  real[] y=(tO3*t[1]-tO[1]*t[3])*factor;
+  triple x=(x[0],x[1],x[2]);
+  triple y=(y[0],y[1],y[2]);
   u=unit(u);
   v=unit(v);
   return (0,0,dot(u,x),dot(v,x),dot(u,y),dot(v,y));
@@ -1306,7 +1300,7 @@ transform transform(triple u, triple v, triple O=O, projection P)
 Label project(Label L, triple u, triple v, triple O=O,
               projection P=currentprojection) {
   Label L=L.copy();
-  L.position=project(O,P);
+  L.position=project(O,P.project);
   L.transform(transform(u,v,O,P)); 
   return L;
 }
@@ -1812,9 +1806,10 @@ object embed(string prefix=defaultfilename, picture pic,
 
     if(!P.absolute) {
       pair v=(s.xx,s.yy);
-      pair x=project(X,P);
-      pair y=project(Y,P);
-      pair z=project(Z,P);
+      transform3 T=P.project;
+      pair x=project(X,T);
+      pair y=project(Y,T);
+      pair z=project(Z,T);
       real f(pair a, pair b) {
 	return b == 0 ? (0.5*(a.x+a.y)) : (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
       }

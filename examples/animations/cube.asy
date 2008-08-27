@@ -1,5 +1,5 @@
 import math;
-import three;
+import bsp;
 import animation;
 
 size(100,100);
@@ -8,10 +8,10 @@ animation a;
 
 void face(face[] faces, path3 p, int j, int k) {
   picture pic=faces.push(p);
-  filldraw(pic,p,Pen(j));
+  filldraw(pic,project(p),Pen(j));
   int sign=(k % 2 == 0) ? 1 : -1;
   transform t=scale(4)*transform(dir(p,0,sign),dir(p,0,-sign));
-  label(pic,t*(string) j,0.5*(min(p)+max(p)));
+  label(pic,t*(string) j,project(0.5*(min(p)+max(p))));
 }
 
 void snapshot(transform3 t)

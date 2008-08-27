@@ -7131,7 +7131,8 @@ triple invert(pair z, triple normal, triple point,
 
 @cindex @code{transform}
 To project a Label onto the plane passing through point @code{O} with
-normal @code{cross(u,v)} use the function
+normal @code{cross(u,v)} using projection @code{P}, multiply it by the
+transform 
 @verbatim
 transform transform(triple u, triple v, triple O=O,
                     projection P=currentprojection);

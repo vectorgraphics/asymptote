@@ -9,16 +9,6 @@ pair size(frame f)
 typedef real[][] transform3;
 restricted transform3 identity4=identity(4);
 
-real[] operator ecast(triple v)
-{
-  return new real[] {v.x,v.y,v.z,1};
-}
-
-triple operator ecast(real[] a)
-{
-  return (a[0],a[1],a[2])/a[3];
-}
-
 // A uniform 3D scaling.
 transform3 scale3(real s)
 {
