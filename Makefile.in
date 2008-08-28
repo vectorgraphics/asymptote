@@ -30,7 +30,6 @@ XNAME = x$(NAME)
 CLEAN = camp.output asy.list svnrevision.cc doc/version.texi GUI/xasyVersion.py $(XNAME)
 EXTRA = asy-mode.el asy-keywords.el asy-init.el asy.vim asymptote.py \
  silentPrint.js reload.js
-DATA = piicon.eps pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
 LATEXFILES = asymptote.sty asycolors.sty
 ASY = ./asy -dir base -config ""
@@ -157,7 +156,7 @@ install-asy: asy asy-keywords.el
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) $(asydir)
 	${INSTALL} -p -m 755 GUI/*.py $(GUIdir)
 	ln -sf @datadir@/asymptote/GUI/xasy.py $(bindir)/$(XNAME)
-	${INSTALL} -p -m 644 examples/*.asy $(addprefix examples/,$(DATA)) \
+	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps data/pixel.pdf \
 	  doc/*.asy doc/extra/*.asy doc/*.csv doc/*.dat doc/latexusage.tex \
 	  $(exampledir)
 	${INSTALL} -p -m 644 examples/animations/*.asy $(animationsdir)
@@ -179,7 +178,7 @@ uninstall-all: uninstall-man uninstall-asy
 uninstall-asy:
 	-cd $(animationsdir); rm -f *.asy
 	-rmdir $(animationsdir)
-	-cd $(exampledir); rm -f *.asy *.csv *.dat $(DATA) latexusage.tex
+	-cd $(exampledir); rm -f *.asy *.csv *.dat piicon.eps latexusage.tex
 	-rmdir $(exampledir)
 	-rmdir $(docdir)
 	-cd $(GUIdir); rm -f *.py
