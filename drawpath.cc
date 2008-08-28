@@ -74,10 +74,11 @@ pen adjustdash(pen& p, double arclength, bool cyclic)
     
     ostringstream buf;
     buf.setf(std::ios::fixed);
-    for(unsigned i=0; i < n-1; i++)
-      buf << pat[i]*factor << " ";
-    if(n > 0)
+    if(n > 0) {
+      for(size_t i=0; i < n-1; i++)
+	buf << pat[i]*factor << " ";
       buf << pat[n-1]*factor;
+    }
     q.setstroke(buf.str());
     q.setoffset(q.linetype().offset*factor);
   }
