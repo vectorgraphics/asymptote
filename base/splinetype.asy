@@ -1,5 +1,8 @@
 typedef real[] splinetype(real[], real[]);
 
+restricted real[] defaultspline(real[] x, real[] y);
+restricted real[] Spline(real[] x, real[] y);
+
 string morepoints="interpolation requires at least 2 points";
 string differentlengths="arrays have different lengths";
 void checklengths(int x, int y, string text=differentlengths)
@@ -211,10 +214,8 @@ real[] monotonic(real[] x, real[] y)
   return d;
 } 
 
-real[] defaultspline(real[] x, real[] y);
-
 // Return standard cubic spline interpolation as a guide
-guide hermite(real[] x, real[] y, splinetype splinetype=defaultspline)
+guide hermite(real[] x, real[] y, splinetype splinetype=null)
 {
   int n=x.length;
   if(n == 0) return nullpath;
@@ -223,7 +224,7 @@ guide hermite(real[] x, real[] y, splinetype splinetype=defaultspline)
   if(n == 1) return g;
   if(n == 2) return g--(x[1],y[1]);
 
-  if(splinetype == defaultspline)
+  if(splinetype == null)
     splinetype=(x[0] == x[x.length-1] && y[0] == y[y.length-1]) ?
       periodic : notaknot;
 

@@ -1422,10 +1422,8 @@ path3[] segment(triple[] v, bool[] b, interpolate3 join=operator --)
 		  segment.length);
 }
 
-// draw the surface described by a matrix f, respecting lighting
-surface surface(triple[][] f, bool[][] cond={},
-		pen surfacepen=lightgray, pen meshpen=nullpen,
-		light light=currentlight)
+// return the surface described by a matrix f
+surface surface(triple[][] f, bool[][] cond={})
 {
   if(!rectangular(f)) abort("matrix is not rectangular");
   
@@ -1444,10 +1442,120 @@ surface surface(triple[][] f, bool[][] cond={},
   return s;
 }
 
-// draw the surface described by a real matrix f, respecting lighting
-surface surface(real[][] f, pair a, pair b, bool[][] cond={},
-		pen surfacepen=lightgray, pen meshpen=nullpen,
-		light light=currentlight)
+private surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
+			 real[] x, real[] y, bool[][] cond={})
+{ // z[i][j] is the value at (x[i],y[j])
+  // p and q are the first derivatives with respect to x and y, respectively
+  // r is the second derivative ddu/dxdy
+  surface g;
+  triple [][] P;
+  int n=x.length;
+  int m=y.length;
+  bool all=cond.length == 0;
+  for(int i=0; i < n-1; ++i) {
+    real xi=x[i];
+    real[] zi=z[i];
+    real[] zp=z[i+1];
+    real[] ri=r[i];
+    real[] rp=r[i+1];
+    real[] pi=p[i];
+    real[] pp=p[i+1];
+    real[] qi=q[i];
+    real[] qp=q[i+1];
+    real xp=x[i+1];
+    real hx=(xp-xi)/3;
+    for(int j=0; j < m-1; ++j) {
+      real yj=y[j];
+      real yp=y[j+1];
+      if(all || cond[i][j]) {
+	triple[][] P={
+	  {O,O,O,O},
+	  {O,O,O,O},
+	  {O,O,O,O},
+	  {O,O,O,O}};
+	real hy=(yp-yj)/3;
+	real hxy=hx*hy;
+	// first x and y  directions
+	for(int k=0 ; k < 4 ; ++k) {
+	  P[0][k] += xi*X;
+	  P[k][0] += yj*Y;
+	  P[1][k] += (xp+2*xi)/3*X;
+	  P[k][1] += (yp+2*yj)/3*Y;
+	  P[2][k] += (2*xp+xi)/3*X;
+	  P[k][2] += (2*yp+yj)/3*Y;
+	  P[3][k] += xp*X;
+	  P[k][3] += yp*Y;
+	}
+	// now z, first the value 
+	P[0][0] += zi[j]*Z;
+	P[3][0] += zp[j]*Z;
+	P[0][3] += zi[j+1]*Z;
+	P[3][3] += zp[j+1]*Z;
+	// 2nd, first derivative
+	P[1][0] += (P[0][0].z+hx*pi[j])*Z;
+	P[1][3] += (P[0][3].z+hx*pi[j+1])*Z;
+	P[2][0] += (P[3][0].z-hx*pp[j])*Z;
+	P[2][3] += (P[3][3].z-hx*pp[j+1])*Z;
+	P[0][1] += (P[0][0].z+hy*qi[j])*Z;
+	P[3][1] += (P[3][0].z+hy*qp[j])*Z;
+	P[0][2] += (P[0][3].z-hy*qi[j+1])*Z;
+	P[3][2] += (P[3][3].z-hy*qp[j+1])*Z;
+	// 3nd, second derivative
+	P[1][1] += (P[0][1].z+P[1][0].z-P[0][0].z+hxy*ri[j])*Z;
+	P[1][2] += (P[0][2].z+P[1][3].z-P[0][3].z-hxy*ri[j+1])*Z;
+	P[2][1] += (P[2][0].z+P[3][1].z-P[3][0].z-hxy*rp[j])*Z;
+	P[2][2] += (P[2][3].z+P[3][2].z-P[3][3].z+hxy*rp[j+1])*Z;
+	g.push(patch(P));
+      }
+    }
+  }
+  return g;
+}
+
+// return the surface described by a real matrix f, interpolated with
+// splinetype.
+surface surface(real[][] f, real[] x, real[] y,
+		splinetype splinetype=null, bool[][] cond={})
+{
+  if(splinetype == null)
+    splinetype=(x[0] == x[x.length-1] && y[0] == y[y.length-1]) ? 
+      periodic : notaknot;
+  int n=x.length; int m=y.length;
+  real[][] ft=transpose(f);
+  real[][] tp=new real[m][];
+  for(int j=0; j < m ; ++j)
+    tp[j]=splinetype(x,ft[j]);
+  real[][] q=new real[n][];
+  for(int i=0; i < n ; ++i)
+    q[i]=splinetype(y,f[i]);
+  real[][] qt=transpose(q);
+  real[] d1=splinetype(x,qt[0]);
+  real[] d2=splinetype(x,qt[m-1]);
+  real[][] r=new real[n][];
+  for(int i=0; i < n ; ++i)
+    r[i]=clamped(d1[i],d2[i])(y,f[i]);
+  return bispline(f,transpose(tp),q,r,x,y,cond);
+}
+
+// return the surface described by a real matrix f, interpolated with
+// splinetype.
+surface surface(real[][] f, pair a, pair b, splinetype splinetype,
+		bool[][] cond={})
+{
+  if(!rectangular(f)) abort("matrix is not rectangular");
+
+  int nx=f.length-1;
+  int ny=nx > 0 ? f[0].length-1 : 0;
+
+  if(nx == 0 || ny == 0) return nullsurface;
+
+  real[] x=uniform(a.x,b.x,nx);
+  real[] y=uniform(a.y,b.y,ny);
+  return surface(f,x,y,splinetype,cond);
+}
+
+// return the surface described by a real matrix f, interpolated linearly.
+surface surface(real[][] f, pair a, pair b, bool[][] cond={})
 {
   if(!rectangular(f)) abort("matrix is not rectangular");
 
@@ -1457,27 +1565,23 @@ surface surface(real[][] f, pair a, pair b, bool[][] cond={},
   if(nx == 0 || ny == 0) return nullsurface;
 
   triple[][] v=new triple[nx+1][ny+1];
-
   for(int i=0; i <= nx; ++i) {
     real x=interp(a.x,b.x,i/nx);
     for(int j=0; j <= ny; ++j) {
       v[i][j]=(x,interp(a.y,b.y,j/ny),f[i][j]);
     }
   }
-  return surface(v,cond,surfacepen,meshpen,light);
+  return surface(v,cond);
 }
 
-// draw the surface described by a parametric function f over box(a,b),
-// respecting lighting.
+// return the surface described by a parametric function f over box(a,b),
+// interpolated linearly.
 surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
-		bool cond(pair z)=null,
-		pen surfacepen=lightgray, pen meshpen=nullpen,
-		light light=currentlight)
+		bool cond(pair z)=null)
 {
   if(nu <= 0 || nv <= 0) return nullsurface;
-  triple[][] v=new triple[nu+1][nv+1];
-  bool[][] active;
 
+  bool[][] active;
   bool all=cond == null;
   if(!all) active=new bool[nu+1][nv+1];
 
@@ -1485,26 +1589,56 @@ surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
   real dv=1/nv;
   pair Idv=(0,dv);
   pair dz=(du,dv);
+
+  triple[][] v=new triple[nu+1][nv+1];
+
   for(int i=0; i <= nu; ++i) {
     real x=interp(a.x,b.x,i*du);
     for(int j=0; j <= nv; ++j) {
       pair z=(x,interp(a.y,b.y,j*dv));
       v[i][j]=f(z);
-      if(!all) active[i][j]=cond(z) || cond(z+du) || cond(z+Idv) || cond(z+dz);
+      if(!all)
+	active[i][j]=cond(z) || cond(z+du) || cond(z+Idv) || cond(z+dz);
     }
   }
-  return surface(v,active,surfacepen,meshpen,light);
+  return surface(v,active);
+}
+  
+// return the surface described by a real function f over box(a,b),
+// interpolated with splinetype (null means linear).
+surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
+		bool cond(pair z)=null)
+{
+  return surface(new triple(pair z) {return (z.x,z.y,f(z));},a,b,nx,ny,cond);
 }
 
-// draw the surface described by a real function f over box(a,b),
-// respecting lighting.
+// return the surface described by a real function f over box(a,b),
+// interpolated with splinetype.
 surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
-		bool cond(pair z)=null,
-		pen surfacepen=lightgray, pen meshpen=nullpen,
-		light light=currentlight)
+		splinetype splinetype, bool cond(pair z)=null)
 {
-  return surface(new triple(pair z) {return (z.x,z.y,f(z));},a,b,nx,ny,
-		 cond,surfacepen,meshpen,light);
+  bool[][] active;
+  bool all=cond == null;
+  if(!all) active=new bool[nx+1][ny+1];
+
+  real dx=1/nx;
+  real dy=1/ny;
+  pair Idy=(0,dy);
+  pair dz=(dx,dy);
+
+  real[][] F=new real[nx+1][ny+1];
+  real[] x=uniform(a.x,b.x,nx);
+  real[] y=uniform(a.y,b.y,ny);
+  for(int i=0; i <= nx; ++i) {
+    real x=x[i];
+    for(int j=0; j <= ny; ++j) {
+      pair z=(x,y[j]);
+      F[i][j]=f(z);
+      if(!all)
+	active[i][j]=cond(z) || cond(z+dx) || cond(z+Idy) || cond(z+dz);
+    }
+  }
+  return surface(F,x,y,splinetype,active);
 }
 
 guide3[][] lift(real f(real x, real y), guide[][] g,
@@ -1536,10 +1670,11 @@ guide3[][] lift(real f(pair z), guide[][] g, interpolate3 join=operator --)
 void draw(picture pic=currentpicture, Label[] L=new Label[],
 	  guide3[][] g, pen[] p)
 {
+  pen thin=prc() ? thin : defaultpen;
   begingroup3(pic);
   for(int cnt=0; cnt < g.length; ++cnt) {
     guide3[] gcnt=g[cnt];
-    pen pcnt=p[cnt];
+    pen pcnt=thin+p[cnt];
     for(int i=0; i < gcnt.length; ++i)
       draw(pic,gcnt[i],pcnt);
     if(L.length > 0) {

@@ -2042,6 +2042,18 @@ void draw(picture pic=currentpicture, Label L="", path3[] g, pen p=currentpen)
   for(int i=0; i < g.length; ++i) draw(pic,L,g[i],p);
 }
 
+triple point(frame f, triple dir)
+{
+  triple m=min3(f);
+  triple M=max3(f);
+  return m+realmult(rectify(dir),M-m);
+}
+
+triple point(picture pic=currentpicture, triple dir)
+{
+  return pic.userMin+realmult(rectify(dir),pic.userMax-pic.userMin);
+}
+
 exitfcn currentexitfunction=atexit();
 
 void exitfunction()

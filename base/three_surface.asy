@@ -143,17 +143,6 @@ struct patch {
     operator init(s.P,s.colors,s.straight);
   }
   
-  void operator init(triple[] P, pen[] colors=new pen[], bool straight=false) {
-    init();
-    this.P=new triple[][] {{P[0],P[1],P[2],P[3]},
-			   {P[4],P[5],P[6],P[7]},
-			   {P[8],P[9],P[10],P[11]},
-			   {P[12],P[13],P[14],P[15]}};
-    if(colors.length != 0)
-      this.colors=copy(colors);
-    this.straight=straight;
-  }
-
   void operator init(path3 external, triple[] internal=new triple[],
 		     pen[] colors=new pen[]) {
     if(colors.length != 0)
@@ -205,6 +194,10 @@ struct patch {
 struct surface {
   patch[] s;
   
+  bool empty() {
+    return s.length == 0;
+  }
+
   void operator init(int n) {
     s=new patch[n];
   }
@@ -281,6 +274,10 @@ struct surface {
   void operator init(explicit path[] g, triple plane(pair)=XYplane) {
     for(int i=0; i < g.length; ++i)
       s.append(surface(g[i],plane).s);
+  }
+
+  void push(patch s) {
+    this.s.push(s);
   }
 
   void append(surface s) {
@@ -462,7 +459,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 	  bool outward=false, material surfacepen=lightgray,
 	  pen meshpen=nullpen, light light=currentlight)
 {
-  if(s.s.length == 0) return;
+  if(s.empty()) return;
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
