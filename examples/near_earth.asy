@@ -10,16 +10,16 @@ real radius=0.8, lambda=37, aux=60;
 currentprojection=perspective(4,1,2); 
 
 // Planes
-pen bg=gray(0.9);
-filldraw((1.2,0,0)--(1.2,0,1.2)--(0,0,1.2)--(0,0,0)--cycle,bg,bg);
-filldraw((0,1.2,0)--(0,1.2,1.2)--(0,0,1.2)--(0,0,0)--cycle,bg,bg);
-filldraw((1.2,0,0)--(1.2,1.2,0)--(0,1.2,0)--(0,0,0)--cycle,bg,bg);
+pen bg=gray(0.9)+opacity(0.5);
+draw(surface((1.2,0,0)--(1.2,0,1.2)--(0,0,1.2)--(0,0,0)--cycle),bg,bg);
+draw(surface((0,1.2,0)--(0,1.2,1.2)--(0,0,1.2)--(0,0,0)--cycle),bg,bg);
+draw(surface((1.2,0,0)--(1.2,1.2,0)--(0,1.2,0)--(0,0,0)--cycle),bg,bg);
 
 real r=1.5;
 pen p=rgb(0,0.7,0);
-draw(Label("$x$",1),O--r*X,p,Arrow);
-draw(Label("$y$",1),O--r*Y,p,Arrow);
-draw(Label("$z$",1),O--r*Z,p,Arrow);
+draw(Label("$x$",1),O--r*X,p,Arrow3);
+draw(Label("$y$",1),O--r*Y,p,Arrow3);
+draw(Label("$z$",1),O--r*Z,p,Arrow3);
 label("$\rm O$", (0,0,0),W);
   
 // Point Q
@@ -32,8 +32,8 @@ draw("$\lambda$",arc(O,0.15pQ,0.15*Z),N+0.3E);
 triple m=pQ-(0.26,-0.4,0.28);
 real width=5;
 dot("$m$",m,SE,linewidth(width));
-draw("$\bm{\rho}$",(0,0,0)--m,Arrow,PenMargin(0,width));
-draw("$\bm{r}$",pQ--m,Arrow,PenMargin(0,width));
+draw("$\bm{\rho}$",(0,0,0)--m,Arrow3);
+draw("$\bm{r}$",pQ--m,Arrow3);
 
 // Spherical octant
 real r=sqrt(pQ.x^2+pQ.y^2);
@@ -48,9 +48,9 @@ triple i=dir(90+lambda,aux);
 triple k=unit(pQ);
 triple j=cross(k,i);
 
-draw(Label("$x$",1),pQ--pQ+0.2*i,2W,red,Arrow);
-draw(Label("$y$",1),pQ--pQ+0.32*j,red,Arrow);
-draw(Label("$z$",1),pQ--pQ+0.26*k,red,Arrow);
+draw(Label("$x$",1),pQ--pQ+0.2*i,2W,red,Arrow3);
+draw(Label("$y$",1),pQ--pQ+0.32*j,red,Arrow3);
+draw(Label("$z$",1),pQ--pQ+0.26*k,red,Arrow3);
 
-draw("$\bm{R}$",O--pQ,Arrow);
-draw("$\omega\bm{K}$",arc(0.9Z,0.2,90,-120,90,160,CW),1.2N,Arrow);
+draw("$\bm{R}$",O--pQ,Arrow3);
+draw("$\omega\bm{K}$",arc(0.9Z,0.2,90,-120,90,160,CW),1.2N,Arrow3);

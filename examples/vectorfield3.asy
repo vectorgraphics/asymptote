@@ -23,4 +23,4 @@ triple F(pair z) {return (z.x,z.y,0);}
 
 add(vectorfield(gradient,F,A,B,red));
 
-draw(surface(f,A,B,50,gray+opacity(0.5)));
+draw(surface(f,A,B,50),gray+opacity(0.5));

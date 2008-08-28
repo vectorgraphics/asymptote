@@ -15,8 +15,6 @@ prototype in the file gc6.8/include/gc.h (version 6.8).
 The file gc-7.0nomem.patch avoids segmentation faults with gc-7.0 on
 out-of-memory errors.
 
-The file gc-7.1FreeBSD.patch supporst compilation of gc-7.1 with gcc-4.3.1 on FreeBSD 4.10-RELEASE-p2.
-
 A patch to provide full functionality in the Asymptote backend to pstoedit
 (http://pstoedit.net) is provided in the file pstoedit-3.45asy.patch.
 

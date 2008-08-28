@@ -35,14 +35,14 @@ draw(central--centre,dashed);
 
 draw((0,0,-bord)--(0,longradius+bord,-bord)--(0,longradius+bord,totup)
      --(0,0,totup)--cycle);
-draw(Label("$y$",1),refo--refo+refy,SW,Arrow);
-draw(Label("$x$",1),refo--refo+refx,SE,Arrow);
+draw(Label("$y$",1),refo--refo+refy,SW,Arrow3);
+draw(Label("$x$",1),refo--refo+refx,SE,Arrow3);
 
-draw(Label("$\vec{R}_N$",1),centre--centre+vecsize*refy,E,Arrow);
-draw(Label("$\vec{F}_a$",1),centre--centre+vecsize*refx,N,Arrow);
-draw(Label("$\vec{F}_c$",1),centre--centre+vecsize*Y,NE,Arrow);
-draw(Label("$\vec{P}$",1),centre--centre-vecsize*Z,E,Arrow);
-draw(Label("$\vec{v}$",1),centre--centre+vecsize*X,E,Arrow);
+draw(Label("$\vec{R}_N$",1),centre--centre+vecsize*refy,E,Arrow3);
+draw(Label("$\vec{F}_a$",1),centre--centre+vecsize*refx,N,Arrow3);
+draw(Label("$\vec{F}_c$",1),centre--centre+vecsize*Y,NE,Arrow3);
+draw(Label("$\vec{P}$",1),centre--centre-vecsize*Z,E,Arrow3);
+draw(Label("$\vec{v}$",1),centre--centre+vecsize*X,E,Arrow3);
 draw(centre,10pt+blue);
 
 draw(circle((0,0,updiff),longradius),linewidth(2bp));

@@ -525,6 +525,7 @@ path[] align(path[] g, transform t=identity(), pair position,
 path3[] align(path3[] g, transform3 t=identity4, triple position,
 	      triple align, pen p=currentpen)
 {
+  if(determinant(t) == 0) return g;
   triple m=min(g);
   triple M=max(g);
   triple dir=rectify(inverse(t)*-align);
@@ -535,6 +536,7 @@ path3[] align(path3[] g, transform3 t=identity4, triple position,
 surface align(surface s, transform3 t=identity4, triple position,
 	      triple align, pen p=currentpen)
 {
+  if(determinant(t) == 0) return s;
   triple m=min(s);
   triple M=max(s);
   triple dir=rectify(inverse(t)*-align);
@@ -712,4 +714,19 @@ void dot(picture pic=currentpicture, path3 g, pen p=currentpen)
 void dot(picture pic=currentpicture, path3[] g, pen p=currentpen)
 {
   for(int i=0; i < g.length; ++i) dot(pic,g[i],p);
+}
+
+void dot(picture pic=currentpicture, Label L, triple v, align align=NoAlign,
+         string format=defaultformat, pen p=currentpen)
+{
+  Label L=L.copy();
+  if(L.s == "") {
+    if(format == "") format=defaultformat;
+    L.s="("+format(format,v.x)+","+format(format,v.y)+","+
+      format(format,v.z)+")";
+  }
+  L.align(align,E);
+  L.p(p);
+  dot(pic,v,p);
+  label(pic,L,v);
 }

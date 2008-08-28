@@ -14,14 +14,12 @@ bool activeabove(pair pos) {return abs(pos) < R && V(pos) >= z;}
 
 pair a=(-1.5,-1);
 pair b=(0.5,1);
-int n=40;
 real f=1.2;
 
-add(surface(V,a,b,n,activebelow,lightblue,black));
-fill(plane(f*(b.x-a.x,0,z),(0,f*(b.y-a.y),z),(a.x,a.y,z)),
+draw(surface(plane(f*(b.x-a.x,0,z),(0,f*(b.y-a.y),z),(a.x,a.y,z))),
      lightgrey+opacity(0.5));
-add(surface(V,a,b,n,activeabove,lightblue,black));
+draw(surface(V,a,b,Spline,activebelow),lightblue,black);
+draw(surface(V,a,b,Spline,activeabove),lightgreen,black);
 
-bbox3 b=limits(O,(1,1,0.3));
-xaxis(Label("$\phi^\dagger\phi$",1),b,red,Arrow);
-zaxis(Label("$V(\phi^\dagger\phi)$",1),b,red,Arrow);
+xaxis3(Label("$\phi^\dagger\phi$",1),red,Arrow3);
+zaxis3(Label("$V(\phi^\dagger\phi)$",1),0,0.3,red,Arrow3);

@@ -2034,6 +2034,24 @@ void draw(frame f, path3 g, pen p=currentpen, arrowbar3 arrow,
   add(f,pic.fit());
 }
 
+// Align an arrow pointing to b from the direction dir. The arrow is
+// 'length' PostScript units long.
+void arrow(picture pic=currentpicture, Label L="", triple b, triple dir,
+           real length=arrowlength, align align=NoAlign,
+           pen p=currentpen, arrowbar3 arrow=Arrow3)
+{
+  Label L=L.copy();
+  if(L.defaultposition) L.position(0);
+  L.align(L.align,dir);
+  L.p(p);
+  triple a=length*unit(dir);
+  pic.add(new void(picture f, transform3 t) {
+      triple B=t*b;
+      draw(f,L,B+a--B,align,p,arrow);
+    });
+  pic.addBox(b,b,O,a);
+}
+
 void draw(frame f, path3[] g, pen p=currentpen, projection P=null)
 {
   for(int i=0; i < g.length; ++i) draw(f,g[i],p,P);

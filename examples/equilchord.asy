@@ -10,14 +10,12 @@ real F(pair z) {
 }
 
 real a=1.5;
-path3 square=(-a,-a,0)--(-a,a,0)--(a,a,0)--(a,-a,0)--cycle;
-fill(square,lightgray);
+draw((-a,-a,0)--(-a,a,0)--(a,a,0)--(a,-a,0)--cycle,lightgray);
 
-bbox3 b=limits(O,1.5(1,1,1));
-xaxis(Label("$x$",1),b,red,Arrow);
-yaxis(Label("$y$",1),b,red,Arrow);
+xaxis(Label("$x$",1),red,Arrow);
+yaxis(Label("$y$",1),red,Arrow);
 draw(circle((0,0,0),1),dashed);
-add(surface(F,(-1,-1),(t,1),20,green,black));
+draw(surface(F,(-1,-1),(t,1),20,monotonic),green,black);
 real y=sqrt(1-t^2);
 draw((t,y,0)--(t,-y,0)--(t,0,sqrt(3)*y)--cycle,blue);
 label("$1$",(1,0,0),-Y+X);

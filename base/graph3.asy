@@ -1430,8 +1430,19 @@ surface surface(triple[][] f, bool[][] cond={})
   int nx=f.length-1;
   int ny=nx > 0 ? f[0].length-1 : 0;
   
-  surface s=surface(nx*ny);
   bool all=cond.length == 0;
+
+  int count;
+  if(all)
+    count=nx*ny;
+  else {
+    count=0;
+    for(int i=0; i < nx; ++i)
+      for(int j=0; j < ny; ++j)
+	if(all || cond[i][j]) ++count;
+  }
+
+  surface s=surface(count);
   int k=-1;
   for(int i=0; i < nx; ++i) {
     for(int j=0; j < ny; ++j) {
@@ -1447,12 +1458,24 @@ private surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
 { // z[i][j] is the value at (x[i],y[j])
   // p and q are the first derivatives with respect to x and y, respectively
   // r is the second derivative ddu/dxdy
-  surface g;
-  triple [][] P;
-  int n=x.length;
-  int m=y.length;
+  int n=x.length-1;
+  int m=y.length-1;
+
   bool all=cond.length == 0;
-  for(int i=0; i < n-1; ++i) {
+
+  int count;
+  if(all)
+    count=n*m;
+  else {
+    count=0;
+    for(int i=0; i < n; ++i)
+      for(int j=0; j < m; ++j)
+	if(all || cond[i][j]) ++count;
+  }
+
+  surface g=surface(count);
+  int k=-1;
+  for(int i=0; i < n; ++i) {
     real xi=x[i];
     real[] zi=z[i];
     real[] zp=z[i+1];
@@ -1464,7 +1487,7 @@ private surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
     real[] qp=q[i+1];
     real xp=x[i+1];
     real hx=(xp-xi)/3;
-    for(int j=0; j < m-1; ++j) {
+    for(int j=0; j < m; ++j) {
       real yj=y[j];
       real yp=y[j+1];
       if(all || cond[i][j]) {
@@ -1505,7 +1528,7 @@ private surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
 	P[1][2] += (P[0][2].z+P[1][3].z-P[0][3].z-hxy*ri[j+1])*Z;
 	P[2][1] += (P[2][0].z+P[3][1].z-P[3][0].z-hxy*rp[j])*Z;
 	P[2][2] += (P[2][3].z+P[3][2].z-P[3][3].z+hxy*rp[j+1])*Z;
-	g.push(patch(P));
+	g.s[++k]=patch(P);
       }
     }
   }
