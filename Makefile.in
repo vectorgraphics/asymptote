@@ -156,7 +156,7 @@ install-asy: asy asy-keywords.el
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) $(asydir)
 	${INSTALL} -p -m 755 GUI/*.py $(GUIdir)
 	ln -sf @datadir@/asymptote/GUI/xasy.py $(bindir)/$(XNAME)
-	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps data/pixel.pdf \
+	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps doc/pixel.pdf \
 	  doc/*.asy doc/extra/*.asy doc/*.csv doc/*.dat doc/latexusage.tex \
 	  $(exampledir)
 	${INSTALL} -p -m 644 examples/animations/*.asy $(animationsdir)
