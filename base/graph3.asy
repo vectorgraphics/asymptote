@@ -368,18 +368,18 @@ triple tickMax3(picture pic)
 			       pic.scale.z.tickMax));
 }
                                                
-axis Bounds(int type=Both, int type2=Both, triple dir=O, bool extend=false)
+axis Bounds(int type=Both, int type2=Both, triple align=O, bool extend=false)
 {
   return new void(picture pic, axisT axis) {
     axis.type=type;
     axis.type2=type2;
     axis.position=0.5;
-    axis.align=dir;
+    axis.align=align;
     axis.extend=extend;
   };
 }
 
-axis YZEquals(real y, real z, triple dir=O, bool extend=true)
+axis YZEquals(real y, real z, triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -387,12 +387,12 @@ axis YZEquals(real y, real z, triple dir=O, bool extend=true)
     axis.value=pic.scale.y.T(y);
     axis.value2=pic.scale.z.T(z);
     axis.position=1;
-    axis.align=dir;
+    axis.align=align;
     axis.extend=extend;
   };
 }
 
-axis XZEquals(real x, real z, triple dir=O, bool extend=true)
+axis XZEquals(real x, real z, triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -400,12 +400,12 @@ axis XZEquals(real x, real z, triple dir=O, bool extend=true)
     axis.value=pic.scale.x.T(x);
     axis.value2=pic.scale.z.T(z);
     axis.position=1;
-    axis.align=dir;
+    axis.align=align;
     axis.extend=extend;
   };
 }
 
-axis XYEquals(real x, real y, triple dir=O, bool extend=true)
+axis XYEquals(real x, real y, triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -413,12 +413,12 @@ axis XYEquals(real x, real y, triple dir=O, bool extend=true)
     axis.value=pic.scale.x.T(x);
     axis.value2=pic.scale.y.T(y);
     axis.position=1;
-    axis.align=dir;
+    axis.align=align;
     axis.extend=extend;
   };
 }
 
-axis YZZero(triple dir=O, bool extend=true)
+axis YZZero(triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -426,12 +426,12 @@ axis YZZero(triple dir=O, bool extend=true)
     axis.value=pic.scale.y.T(pic.scale.y.scale.logarithmic ? 1 : 0);
     axis.value2=pic.scale.z.T(pic.scale.z.scale.logarithmic ? 1 : 0);
     axis.position=1;
-    axis.align=dir;
+    axis.align=align;
     axis.extend=extend;
   };
 }
 
-axis XZZero(triple dir=O, bool extend=true)
+axis XZZero(triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -439,12 +439,12 @@ axis XZZero(triple dir=O, bool extend=true)
     axis.value=pic.scale.x.T(pic.scale.x.scale.logarithmic ? 1 : 0);
     axis.value2=pic.scale.z.T(pic.scale.z.scale.logarithmic ? 1 : 0);
     axis.position=1;
-    axis.align=dir;
+    axis.align=align;
     axis.extend=extend;
   };
 }
 
-axis XYZero(triple dir=O, bool extend=true)
+axis XYZero(triple align=O, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -452,7 +452,7 @@ axis XYZero(triple dir=O, bool extend=true)
     axis.value=pic.scale.x.T(pic.scale.x.scale.logarithmic ? 1 : 0);
     axis.value2=pic.scale.y.T(pic.scale.y.scale.logarithmic ? 1 : 0);
     axis.position=1;
-    axis.align=dir;
+    axis.align=align;
     axis.extend=extend;
   };
 }

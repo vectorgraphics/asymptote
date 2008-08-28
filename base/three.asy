@@ -1992,20 +1992,22 @@ draw=new void(frame f, path3 g,
     string type=linetype(adjust(q,arclength(g),cyclic(g)));
     if(length(type) == 0) drawthick(g);
     else {
-      string[] dash=split(type," ");
-      dash.cyclic(true);
-      real offset=0;
-      real L=arclength(g);
-      int i=0;
-      real l=offset;
-      while(l <= L) {
-        real t1=arctime(g,l);
-        l += (real) dash[i];
-        real t2=arctime(g,l);
-        drawthick(subpath(g,t1,t2));
-        ++i;
-        l += (real) dash[i];
-        ++i;
+      real[] dash=(real[]) split(type," ");
+      if(sum(dash) > 0) {
+	dash.cyclic(true);
+	real offset=0;
+	real L=arclength(g);
+	int i=0;
+	real l=offset;
+	while(l <= L) {
+	  real t1=arctime(g,l);
+	  l += dash[i];
+	  real t2=arctime(g,l);
+	  drawthick(subpath(g,t1,t2));
+	  ++i;
+	  l += dash[i];
+	  ++i;
+	}
       }
     }
   }
