@@ -178,7 +178,8 @@ uninstall-all: uninstall-man uninstall-asy
 uninstall-asy:
 	-cd $(animationsdir); rm -f *.asy
 	-rmdir $(animationsdir)
-	-cd $(exampledir); rm -f *.asy *.csv *.dat piicon.eps latexusage.tex
+	-cd $(exampledir); rm -f *.asy *.csv *.dat piicon.eps pixel.pdf \
+          latexusage.tex
 	-rmdir $(exampledir)
 	-rmdir $(docdir)
 	-cd $(GUIdir); rm -f *.py
