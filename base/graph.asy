@@ -108,7 +108,11 @@ struct scientific
   real mantissa;
   int exponent;
   int ceil() {return sign*ceil(mantissa);}
-  real scale(real x, real exp) {return exp > 0 ? x/10^exp : x*10^-exp;}
+  real scale(real x, real exp) {
+    static real max=0.1*realMax;
+    static real limit=-log10(max);
+    return x*(exp > limit ? 10^-exp : max);
+  }
   real ceil(real x, real exp) {return ceil(sign*scale(abs(x),exp));}
   real floor(real x, real exp) {return floor(sign*scale(abs(x),exp));}
 }
