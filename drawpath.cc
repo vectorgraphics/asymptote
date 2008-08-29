@@ -147,8 +147,7 @@ bool drawPath::draw(psfile *out)
   if (n == 0 || pentype.invisible())
     return true;
 
-  pen pen0=pentype;
-  adjustdash(pen0,p.arclength(),p.cyclic());
+  pen pen0=adjustdash(pentype,p.arclength(),p.cyclic());
 
   penSave(out);
   penTranslate(out);
