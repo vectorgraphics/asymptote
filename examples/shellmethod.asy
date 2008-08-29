@@ -31,7 +31,7 @@ draw(a,1,blue,false);
 draw(s,color);
 draw(rotate(alpha,(0,1,0))*s,color);
 for(int i=0; i < n; ++i)
-  draw(surface(blocks[i]),color,black);
+  draw(surface(blocks[i]),color,black+linewidth());
 draw(p3);
 
 xaxis3(Label("$x$",1),Arrow3);

@@ -2014,6 +2014,16 @@ draw=new void(frame f, path3 g,
   else draw(f,project(g,P,ninterpolate),(pen) p);
 };
 
+void draw(frame f, path3[] g, pen p=currentpen, projection P=null)
+{
+  for(int i=0; i < g.length; ++i) draw(f,g[i],p,P);
+}
+
+void draw(picture pic=currentpicture, Label L="", path3[] g, pen p=currentpen)
+{
+  for(int i=0; i < g.length; ++i) draw(pic,L,g[i],p);
+}
+
 void draw(picture pic=currentpicture, Label L="", path3 g, 
           align align=NoAlign, pen p=currentpen, arrowbar3 arrow,
           light light=nolight, int ninterpolate=ninterpolate)
@@ -2034,6 +2044,23 @@ void draw(frame f, path3 g, pen p=currentpen, arrowbar3 arrow,
   add(f,pic.fit());
 }
 
+void add(picture pic=currentpicture, void d(picture,transform3),
+	 bool exact=false)
+{
+  pic.add(d,exact);
+}
+
+// Fit the picture src using the identity transformation (so user
+// coordinates and truesize coordinates agree) and add it about the point
+// position to picture dest.
+void add(picture dest, picture src, triple position, bool group=true,
+         bool put=Above)
+{
+  dest.add(new void(picture f, transform3 t) {
+      f.add(shift(t*position)*src,group,put);
+    });
+}
+
 // Align an arrow pointing to b from the direction dir. The arrow is
 // 'length' PostScript units long.
 void arrow(picture pic=currentpicture, Label L="", triple b, triple dir,
@@ -2044,24 +2071,27 @@ void arrow(picture pic=currentpicture, Label L="", triple b, triple dir,
   if(L.defaultposition) L.position(0);
   L.align(L.align,dir);
   L.p(p);
-  triple a=length*unit(dir);
-  pic.add(new void(picture f, transform3 t) {
-      triple B=t*b;
-      draw(f,L,B+a--B,align,p,arrow);
-    });
-  pic.addBox(b,b,O+min3(p),a+max3(p));
+  picture opic;
+  draw(opic,L,length*unit(dir)--O,align,p,arrow);
+  add(pic,opic,b);
 }
 
-void draw(frame f, path3[] g, pen p=currentpen, projection P=null)
+triple size3(picture pic, projection P=currentprojection)
 {
-  for(int i=0; i < g.length; ++i) draw(f,g[i],p,P);
+  transform3 s=pic.calculateTransform3(P);
+  return pic.max(s)-pic.min(s);
 }
 
-void draw(picture pic=currentpicture, Label L="", path3[] g, pen p=currentpen)
+triple min3(picture pic, projection P=currentprojection)
 {
-  for(int i=0; i < g.length; ++i) draw(pic,L,g[i],p);
+  return pic.min3(P);
 }
-
+  
+triple max3(picture pic, projection P=currentprojection)
+{
+  return pic.max3(P);
+}
+  
 triple point(frame f, triple dir)
 {
   triple m=min3(f);

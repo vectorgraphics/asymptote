@@ -1370,25 +1370,9 @@ pair max(picture pic)
   return pic.max();
 }
   
-triple min3(picture pic, projection P=currentprojection)
-{
-  return pic.min3(P);
-}
-  
-triple max3(picture pic, projection P=currentprojection)
-{
-  return pic.max3(P);
-}
-  
 pair size(picture pic)
 {
   transform s=pic.calculateTransform();
-  return pic.max(s)-pic.min(s);
-}
-
-triple size3(picture pic, projection P=currentprojection)
-{
-  transform3 s=pic.calculateTransform3(P);
   return pic.max(s)-pic.min(s);
 }
 
@@ -1398,12 +1382,6 @@ void add(picture pic=currentpicture, drawer d, bool exact=false)
 }
 
 void add(picture pic=currentpicture, void d(picture,transform),
-	 bool exact=false)
-{
-  pic.add(d,exact);
-}
-
-void add(picture pic=currentpicture, void d(picture,transform3),
 	 bool exact=false)
 {
   pic.add(d,exact);
