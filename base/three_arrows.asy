@@ -66,7 +66,7 @@ surface tube(path3 g, real width)
   transform3 t=scale3(r);
 
   for(int i=0; i < length(g); ++i) {
-    if(straight(g,i) || checkStraight(g,i,r)) {
+    if(straight(g,i) || checkStraight(g,i,0.5*r)) {
       triple v=point(g,i);
       triple u=point(g,i+1)-v;
       tube.append(shift(v)*align(unit(u))*scale(r,r,abs(u))*unitcylinder);
