@@ -2049,7 +2049,7 @@ void arrow(picture pic=currentpicture, Label L="", triple b, triple dir,
       triple B=t*b;
       draw(f,L,B+a--B,align,p,arrow);
     });
-  pic.addBox(b,b,O,a);
+  pic.addBox(b,b,O+min3(p),a+max3(p));
 }
 
 void draw(frame f, path3[] g, pen p=currentpen, projection P=null)
