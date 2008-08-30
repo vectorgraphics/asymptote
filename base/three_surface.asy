@@ -29,16 +29,16 @@ struct patch {
 	P[3][0],P[3][1],P[3][2],P[3][3]};
   }
 
-  triple Bu(int j, real u) {return Bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
-  triple BuP(int j, real u) {return BezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);}
+  triple Bu(int j, real u) {return bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
+  triple BuP(int j, real u) {return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);}
 
   path3 uequals(real u) {
     return straight ? Bu(0,u)--Bu(3,u) :
       Bu(0,u)..controls Bu(1,u) and Bu(2,u)..Bu(3,u);
   }
 
-  triple Bv(int i, real v) {return Bezier(P[i][0],P[i][1],P[i][2],P[i][3],v);}
-  triple BvP(int i, real v) {return BezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);}
+  triple Bv(int i, real v) {return bezier(P[i][0],P[i][1],P[i][2],P[i][3],v);}
+  triple BvP(int i, real v) {return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);}
 
   path3 vequals(real v) {
     return straight ? Bv(0,v)--Bv(3,v) :
@@ -46,12 +46,12 @@ struct patch {
   }
 
   triple point(real u, real v) {	
-    return Bezier(Bu(0,u),Bu(1,u),Bu(2,u),Bu(3,u),v);
+    return bezier(Bu(0,u),Bu(1,u),Bu(2,u),Bu(3,u),v);
   }
 
   triple normal(real u, real v) {
-    return cross(Bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
-		 Bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u));
+    return cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
+		 bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u));
   }
 
   pen[] colors(pen surfacepen=lightgray, light light=currentlight,
@@ -406,8 +406,8 @@ void tensorshade(transform t=identity(), frame f, patch s, bool outward=false,
 
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 	  bool outward=false, material surfacepen=lightgray,
-	  pen meshpen=nullpen, light light=currentlight, projection P=null,
-	  int ninterpolate=1)
+	  pen meshpen=nullpen, light light=currentlight,
+	  projection P=currentprojection, int ninterpolate=1)
 {
   bool mesh=meshpen != nullpen;
 
@@ -566,7 +566,8 @@ path[] path(Label L, pair z=0, projection P)
 }
 
 void label(frame f, Label L, triple position, align align=NoAlign,
-	   pen p=currentpen, light light=nolight, projection P=null)
+	   pen p=currentpen, light light=nolight,
+	   projection P=currentprojection)
 {
   Label L=L.copy();
   L.align(align);
@@ -667,7 +668,7 @@ restricted surface unitplane=surface(unitplane);
 restricted surface unitdisk=surface(unitcircle3);
 
 void dot(frame f, triple v, pen p=currentpen,
-	 light light=nolight, projection P=null)
+	 light light=nolight, projection P=currentprojection)
 {
   if(prc())
     for(patch s : unitsphere.s)
@@ -676,12 +677,12 @@ void dot(frame f, triple v, pen p=currentpen,
   else dot(f,project(v,P.project),p);
 }
 
-void dot(frame f, path3 g, pen p=currentpen, projection P=null)
+void dot(frame f, path3 g, pen p=currentpen, projection P=currentprojection)
 {
   for(int i=0; i <= length(g); ++i) dot(f,point(g,i),p,P);
 }
 
-void dot(frame f, path3[] g, pen p=currentpen, projection P=null)
+void dot(frame f, path3[] g, pen p=currentpen, projection P=currentprojection)
 {
   for(int i=0; i < g.length; ++i) dot(f,g[i],p,P);
 }
@@ -689,7 +690,7 @@ void dot(frame f, path3[] g, pen p=currentpen, projection P=null)
 void dot(picture pic=currentpicture, triple v, pen p=currentpen,
 	 light light=nolight)
 {
-  pic.add(new void(frame f, transform3 t, picture pic, projection P=null) {
+  pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       if(prc())
 	for(patch s : unitsphere.s)
 	  drawprc(f,shift(t*v)*scale3(0.5*linewidth(dotsize(p)+p))*s,

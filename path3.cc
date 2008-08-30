@@ -251,12 +251,12 @@ void path3::halve(path3 &first, path3 &second) const
   
 // Calculate the coefficients of a Bezier derivative divided by 3.
 static inline void derivative(triple& a, triple& b, triple& c,
-			      const triple& z0, const triple& z0p,
-			      const triple& z1m, const triple& z1)
+			      const triple& z0, const triple& c0,
+			      const triple& c1, const triple& z1)
 {
-  a=z1-z0+3.0*(z0p-z1m);
-  b=2.0*(z0+z1m)-4.0*z0p;
-  c=z0p-z0;
+  a=z1-z0+3.0*(c0-c1);
+  b=2.0*(z0+c1)-4.0*c0;
+  c=c0-z0;
 }
 
 bbox3 path3::bounds() const
@@ -315,11 +315,11 @@ static double ds(double t)
 }
 
 // Calculates arclength of a cubic using adaptive simpson integration.
-double cubiclength(const triple& z0, const triple& z0p,
-		   const triple& z1m, const triple& z1, double goal=-1)
+double cubiclength(const triple& z0, const triple& c0,
+		   const triple& c1, const triple& z1, double goal=-1)
 {
   double L,integral;
-  derivative(a,b,c,z0,z0p,z1m,z1);
+  derivative(a,b,c,z0,c0,c1,z1);
   
   if(!simpson(integral,ds,0.0,1.0,DBL_EPSILON,1.0))
     reportError("nesting capacity exceeded in computing arclength");
