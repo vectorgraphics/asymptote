@@ -260,7 +260,7 @@ struct scaleT {
   bool logarithmic;
   bool automin,automax;
   void init(scalefcn T, scalefcn Tinv, bool logarithmic=false,
-            bool automin=true, bool automax=true) {
+            bool automin=false, bool automax=false) {
     this.T=T;
     this.Tinv=Tinv;
     this.logarithmic=logarithmic;
@@ -288,7 +288,7 @@ struct autoscaleT {
   scaleT postscale;
   real tickMin=-infinity, tickMax=infinity;
   boundRoutine[] bound; // Optional routines to recompute the bounding box.
-  bool automin=true, automax=true;
+  bool automin=false, automax=false;
   bool automin() {return automin && scale.automin;}
   bool automax() {return automax && scale.automax;}
   

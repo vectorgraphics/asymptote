@@ -379,7 +379,7 @@ axis Bounds(int type=Both, int type2=Both, triple align=O, bool extend=false)
   };
 }
 
-axis YZEquals(real y, real z, triple align=O, bool extend=true)
+axis YZEquals(real y, real z, triple align=O, bool extend=false)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -392,7 +392,7 @@ axis YZEquals(real y, real z, triple align=O, bool extend=true)
   };
 }
 
-axis XZEquals(real x, real z, triple align=O, bool extend=true)
+axis XZEquals(real x, real z, triple align=O, bool extend=false)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -405,7 +405,7 @@ axis XZEquals(real x, real z, triple align=O, bool extend=true)
   };
 }
 
-axis XYEquals(real x, real y, triple align=O, bool extend=true)
+axis XYEquals(real x, real y, triple align=O, bool extend=false)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -418,7 +418,7 @@ axis XYEquals(real x, real y, triple align=O, bool extend=true)
   };
 }
 
-axis YZZero(triple align=O, bool extend=true)
+axis YZZero(triple align=O, bool extend=false)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -431,7 +431,7 @@ axis YZZero(triple align=O, bool extend=true)
   };
 }
 
-axis XZZero(triple align=O, bool extend=true)
+axis XZZero(triple align=O, bool extend=false)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
@@ -444,7 +444,7 @@ axis XZZero(triple align=O, bool extend=true)
   };
 }
 
-axis XYZero(triple align=O, bool extend=true)
+axis XYZero(triple align=O, bool extend=false)
 {
   return new void(picture pic, axisT axis) {
     axis.type=Value;
