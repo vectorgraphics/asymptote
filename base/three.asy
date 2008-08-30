@@ -1853,9 +1853,16 @@ embed3=new object(picture pic, real xsize, real ysize,
 
 currentpicture.fitter=new frame(picture pic, real xsize, real ysize,
                                 bool keepAspect, string options, projection P) {
-  return pic.nodes3.length > 0 ?
-  enclose(embed3(pic,xsize,ysize,keepAspect,options,P)) :
-  pic.fit2(xsize,ysize,keepAspect);
+  frame f;
+  add(f,pic.fit2(xsize,ysize,keepAspect));
+  if(pic.nodes3.length > 0) {
+    object F=embed(pic,xsize,ysize,keepAspect,options,P);
+    if(prc())
+      label(f,F.L);
+    else
+      add(f,F.f);
+  }
+  return f;
 };
 
 void add(picture dest=currentpicture, object src, pair position, pair align,
@@ -1921,7 +1928,7 @@ void addPath(picture pic, path3 g, pen p)
 include three_light;
 
 void draw(frame f, path3 g, material p=currentpen, light light=nolight,
-          projection P=null, int ninterpolate=ninterpolate);
+          projection P=currentprojection, int ninterpolate=ninterpolate);
 
 include three_surface;
 
@@ -1951,7 +1958,7 @@ include three_arrows;
 draw=new void(frame f, path3 g,
               material p=emissive(currentpen,granularity=linegranularity),
               light light=nolight,
-              projection P=null, int ninterpolate=ninterpolate) {
+              projection P=currentprojection, int ninterpolate=ninterpolate) {
   if(prc()) {
     if(p.granularity == -1) {
       p=material(p);
@@ -2014,7 +2021,7 @@ draw=new void(frame f, path3 g,
   else draw(f,project(g,P,ninterpolate),(pen) p);
 };
 
-void draw(frame f, path3[] g, pen p=currentpen, projection P=null)
+void draw(frame f, path3[] g, pen p=currentpen, projection P=currentprojection)
 {
   for(int i=0; i < g.length; ++i) draw(f,g[i],p,P);
 }
@@ -2036,7 +2043,8 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
 }
 
 void draw(frame f, path3 g, pen p=currentpen, arrowbar3 arrow,
-	  light light=nolight, projection P=null, int ninterpolate=ninterpolate)
+	  light light=nolight, projection P=currentprojection,
+	  int ninterpolate=ninterpolate)
 {
   picture pic;
   if(arrow(pic,g,p,light))

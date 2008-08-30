@@ -42,17 +42,11 @@ frame enclose(string prefix=defaultfilename, object F)
 
 include plain_xasy;
 
-void shipout(string prefix=defaultfilename, frame f,
-             string format="", bool wait=NoWait, bool view=true,
-	     string options="", projection P=currentprojection)
+frame psimage(string prefix=defaultfilename, bool view=true)
 {
-  if(is3D(f))
-    f=enclose(prefix,embed3(prefix,f,options,P));
-
-  if(settings.psimage && prc()) {
-    string name=outprefix(prefix)+".ps";
-    delete(name);
-    string javascript="
+  string name=outprefix(prefix)+".ps";
+  delete(name);
+  string javascript="
 console.println('Rasterizing to "+name+"');
 var pp = this.getPrintParams();
 pp.interactive = pp.constants.interactionLevel.silent;
@@ -62,19 +56,29 @@ pp.flags |= fv.suppressRotate;
 pp.pageHandling = pp.constants.handling.none;
 pp.printerName = 'FILE';
 try{silentPrint(pp);} catch(e){this.print(pp);}";
-    if(!view ||
-       !(interactive() ? settings.interactiveView : settings.batchView))
-      javascript += "this.closeDoc();";
-    string s;
-    if(pdf())
-      s="\pdfannot width 1pt height 1pt { /AA << /PO << /S /JavaScript /JS ("+javascript+") >> >> }";
-    else
-      s="\special{ps: mark {Catalog} << /OpenAction << /S /JavaScript /JS ("+
-	javascript+") >> >> /PUT pdfmark }";
-    frame g;
-    tex(g,s);
-    prepend(f,g);
-  }
+  if(!view ||
+     !(interactive() ? settings.interactiveView : settings.batchView))
+    javascript += "this.closeDoc();";
+  string s;
+  if(pdf())
+    s="\pdfannot width 1pt height 1pt { /AA << /PO << /S /JavaScript /JS ("+javascript+") >> >> }";
+  else
+    s="\special{ps: mark {Catalog} << /OpenAction << /S /JavaScript /JS ("+
+      javascript+") >> >> /PUT pdfmark }";
+  frame g;
+  tex(g,s);
+  return g;
+}
+
+void shipout(string prefix=defaultfilename, frame f,
+             string format="", bool wait=NoWait, bool view=true,
+	     string options="", projection P=currentprojection)
+{
+  if(is3D(f))
+    f=enclose(prefix,embed3(prefix,f,options,P));
+
+  if(settings.psimage && prc())
+    prepend(f,psimage(prefix,view));
 
   if(inXasyMode) {
     erase();
