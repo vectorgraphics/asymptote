@@ -1437,17 +1437,22 @@ surface surface(triple[][] f, bool[][] cond={})
     count=nx*ny;
   else {
     count=0;
-    for(int i=0; i < nx; ++i)
+    for(int i=0; i < nx; ++i) {
+      bool[] condi=cond[i];
       for(int j=0; j < ny; ++j)
-	if(all || cond[i][j]) ++count;
+	if(condi[j]) ++count;
+    }
   }
 
   surface s=surface(count);
   int k=-1;
   for(int i=0; i < nx; ++i) {
+    bool[] condi=all ? null : cond[i];
+    triple[] fi=f[i];
+    triple[] fp=f[i+1];
     for(int j=0; j < ny; ++j) {
-      if(all || cond[i][j])
-	s.s[++k]=patch(f[i][j]--f[i][j+1]--f[i+1][j+1]--f[i+1][j]--cycle);
+      if(all || condi[j])
+	s.s[++k]=patch(fi[j]--fp[j]--fp[j+1]--fi[j+1]--cycle);
     }
   }
   return s;
@@ -1468,14 +1473,17 @@ private surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
     count=n*m;
   else {
     count=0;
-    for(int i=0; i < n; ++i)
+    for(int i=0; i < n; ++i) {
+      bool[] condi=cond[i];
       for(int j=0; j < m; ++j)
-	if(all || cond[i][j]) ++count;
+	if(condi[j]) ++count;
+    }
   }
 
   surface g=surface(count);
   int k=-1;
   for(int i=0; i < n; ++i) {
+    bool[] condi=all ? null : cond[i];
     real xi=x[i];
     real[] zi=z[i];
     real[] zp=z[i+1];
@@ -1490,7 +1498,7 @@ private surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
     for(int j=0; j < m; ++j) {
       real yj=y[j];
       real yp=y[j+1];
-      if(all || cond[i][j]) {
+      if(all || condi[j]) {
 	triple[][] P={
 	  {O,O,O,O},
 	  {O,O,O,O},
@@ -1500,34 +1508,34 @@ private surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
 	real hxy=hx*hy;
 	// first x and y  directions
 	for(int k=0 ; k < 4 ; ++k) {
-	  P[0][k] += xi*X;
-	  P[k][0] += yj*Y;
-	  P[1][k] += (xp+2*xi)/3*X;
-	  P[k][1] += (yp+2*yj)/3*Y;
-	  P[2][k] += (2*xp+xi)/3*X;
-	  P[k][2] += (2*yp+yj)/3*Y;
-	  P[3][k] += xp*X;
-	  P[k][3] += yp*Y;
+	  P[k][0] += xi*X;
+	  P[0][k] += yj*Y;
+	  P[k][1] += (xp+2*xi)/3*X;
+	  P[1][k] += (yp+2*yj)/3*Y;
+	  P[k][2] += (2*xp+xi)/3*X;
+	  P[2][k] += (2*yp+yj)/3*Y;
+	  P[k][3] += xp*X;
+	  P[3][k] += yp*Y;
 	}
 	// now z, first the value 
 	P[0][0] += zi[j]*Z;
-	P[3][0] += zp[j]*Z;
-	P[0][3] += zi[j+1]*Z;
+	P[0][3] += zp[j]*Z;
+	P[3][0] += zi[j+1]*Z;
 	P[3][3] += zp[j+1]*Z;
 	// 2nd, first derivative
-	P[1][0] += (P[0][0].z+hx*pi[j])*Z;
-	P[1][3] += (P[0][3].z+hx*pi[j+1])*Z;
-	P[2][0] += (P[3][0].z-hx*pp[j])*Z;
-	P[2][3] += (P[3][3].z-hx*pp[j+1])*Z;
-	P[0][1] += (P[0][0].z+hy*qi[j])*Z;
-	P[3][1] += (P[3][0].z+hy*qp[j])*Z;
-	P[0][2] += (P[0][3].z-hy*qi[j+1])*Z;
-	P[3][2] += (P[3][3].z-hy*qp[j+1])*Z;
+	P[0][1] += (P[0][0].z+hx*pi[j])*Z;
+	P[3][1] += (P[3][0].z+hx*pi[j+1])*Z;
+	P[0][2] += (P[0][3].z-hx*pp[j])*Z;
+	P[3][2] += (P[3][3].z-hx*pp[j+1])*Z;
+	P[1][0] += (P[0][0].z+hy*qi[j])*Z;
+	P[1][3] += (P[0][3].z+hy*qp[j])*Z;
+	P[2][0] += (P[3][0].z-hy*qi[j+1])*Z;
+	P[2][3] += (P[3][3].z-hy*qp[j+1])*Z;
 	// 3nd, second derivative
-	P[1][1] += (P[0][1].z+P[1][0].z-P[0][0].z+hxy*ri[j])*Z;
-	P[1][2] += (P[0][2].z+P[1][3].z-P[0][3].z-hxy*ri[j+1])*Z;
-	P[2][1] += (P[2][0].z+P[3][1].z-P[3][0].z-hxy*rp[j])*Z;
-	P[2][2] += (P[2][3].z+P[3][2].z-P[3][3].z+hxy*rp[j+1])*Z;
+	P[1][1] += (P[1][0].z+P[0][1].z-P[0][0].z+hxy*ri[j])*Z;
+	P[2][1] += (P[2][0].z+P[3][1].z-P[3][0].z-hxy*ri[j+1])*Z;
+	P[1][2] += (P[0][2].z+P[1][3].z-P[0][3].z-hxy*rp[j])*Z;
+	P[2][2] += (P[3][2].z+P[2][3].z-P[3][3].z+hxy*rp[j+1])*Z;
 	g.s[++k]=patch(P);
       }
     }
@@ -1616,12 +1624,13 @@ surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
   triple[][] v=new triple[nu+1][nv+1];
 
   for(int i=0; i <= nu; ++i) {
+    bool[] activei=all ? null : active[i];
     real x=interp(a.x,b.x,i*du);
     for(int j=0; j <= nv; ++j) {
       pair z=(x,interp(a.y,b.y,j*dv));
       v[i][j]=f(z);
       if(!all)
-	active[i][j]=cond(z) || cond(z+du) || cond(z+Idv) || cond(z+dz);
+	activei[j]=cond(z) || cond(z+du) || cond(z+Idv) || cond(z+dz);
     }
   }
   return surface(v,active);
@@ -1653,12 +1662,13 @@ surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
   real[] x=uniform(a.x,b.x,nx);
   real[] y=uniform(a.y,b.y,ny);
   for(int i=0; i <= nx; ++i) {
+    bool[] activei=all ? null : active[i];
     real x=x[i];
     for(int j=0; j <= ny; ++j) {
       pair z=(x,y[j]);
       F[i][j]=f(z);
       if(!all)
-	active[i][j]=cond(z) || cond(z+dx) || cond(z+Idy) || cond(z+dz);
+	activei[j]=cond(z) || cond(z+dx) || cond(z+Idy) || cond(z+dz);
     }
   }
   return surface(F,x,y,splinetype,active);
