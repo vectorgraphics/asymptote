@@ -23,6 +23,8 @@ extern const char PROGRAM[];
 extern const char VERSION[];
 extern const char BUGREPORT[];
 
+extern char *argv0;
+
 extern const string docdir;
   
 extern bool safe;

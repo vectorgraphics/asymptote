@@ -188,18 +188,6 @@ using types::stringArray;
 using types::stringArray2;
 using types::formal;
 
-template<class T>
-inline T Min(T a, T b)
-{
-  return (a < b) ? a : b;
-}
-
-template<class T>
-inline T Max(T a, T b)
-{
-  return (a > b) ? a : b;
-}
-
 function *voidFunction()
 {
   return new function(primVoid());
@@ -293,6 +281,20 @@ array *nop(array *a)
   return a;
 }
   
+array *Identity(Int n)
+{
+  size_t N=(size_t) n;
+  array *c=new array(N);
+  for(size_t i=0; i < N; ++i) {
+    array *ci=new array(N);
+    (*c)[i]=ci;
+    for(size_t j=0; j < N; ++j)
+      (*ci)[j]=0.0;
+   (*ci)[i]=1.0;
+  }
+  return c;
+}
+
 array *copyArray(array *a)
 {
   size_t size=checkArray(a);
@@ -380,6 +382,27 @@ double *copyArray2C(array *a, bool square=true)
 static const char *incommensurate="Incommensurate matrices";
 static const char *singular="Singular matrix";
 static size_t *pivot,*Row,*Col;
+
+triple operator *(array *a, triple v)
+{
+  size_t n=checkArray(a);
+  if(n != 4) error(incommensurate);
+  real B[4]={v.getx(),v.gety(),v.getz(),1};
+  real C[4];
+  for(size_t i=0; i < 4; ++i) {
+    array *ai=read<array*>(a,i);
+    if(checkArray(ai) != 4) error(incommensurate);
+    real sum=0.0;
+    for(size_t j=0; j < 4; ++j)
+      sum += read<real>(ai,j)*B[j];
+    C[i]=sum;
+  }
+  real f=C[3];
+  if(f == 0) dividebyzero();
+  f=1/f;
+  return camp::triple(C[0]*f,C[1]*f,C[2]*f);
+}
+
 static inline void inverseAllocate(size_t n)
 {
   pivot=new size_t[n];
@@ -1358,9 +1381,18 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
   result->shipout(preamble,prefix,format,0.0,wait,view);
 }
 
+void shipout3(string prefix, picture *f, string format=emptystring,
+	      double width, double height, double expand=1,
+	      triple light, double angle, triple m, triple M,
+	      Int minsub=1, Int maxsub=0, bool view=true)
+{
+  f->shipout3(prefix,format,width,height,expand,light,angle,m,M,minsub,maxsub,
+	      view);
+}
+
 void shipout3(string prefix, picture *f)
 {
-  f->shipout3(prefix);	
+    f->shipout3(prefix);
 }
 
 void deconstruct(picture *f, picture *preamble=NULL, real magnification=1, 
@@ -2358,6 +2390,11 @@ realarray *maxtimes(path3 p)
   return V;
 }
 
+path3 Operator *(realarray2 *t, path3 g)
+{
+  return transformed(t,g);
+}
+
 
 // Guide operations
 
@@ -2623,9 +2660,11 @@ void _draw(picture *f, path3 g, pen p)
 }
 
 void draw(picture *f, triplearray2 *g, penarray *p, real opacity,
-	  real shininess, real granularity, triple min, triple max)
+	  real shininess, real granularity, bool localsub=false,
+	  triple min, triple max)
 {
-  f->append(new drawSurface(*g,*p,opacity,shininess,granularity,min,max));
+  f->append(new drawSurface(*g,*p,opacity,shininess,granularity,localsub,
+			    min,max));
 }
 
 triple min3(picture *f)
@@ -2677,6 +2716,18 @@ double maxbound(triplearray *a, callableProject *f, double b)
 bool is3D(picture *f)
 {
   return f->have3D();
+}
+
+pair bezier(pair a, pair b, pair c, pair d, real t) 
+{
+  real onemt=1-t;
+  real onemt2=onemt*onemt;
+  return onemt2*onemt*a+t*(3.0*(onemt2*b+t*onemt*c)+t*t*d);
+}
+
+pair bezierP(pair a, pair b, pair c, pair d, real t) 
+{
+  return 3.0*(t*t*(d-a+3.0*(b-c))+t*(2.0*(a+c)-4.0*b)+b-a);
 }
 
 triple bezier(triple a, triple b, triple c, triple d, real t) 
@@ -3179,6 +3230,11 @@ picture * Operator *(transform t, picture *f)
   return transformed(t,f);
 }
 
+picture * Operator *(realarray2 *t, picture *f)
+{
+  return transformed(copyArray2(t),f);
+}
+
 transform ^(transform t, Int n)
 {
   transform T;
@@ -3550,9 +3606,7 @@ real dot(triple u, triple v)
 
 triple cross(triple u, triple v) 
 {
-  return triple(u.gety()*v.getz()-u.getz()*v.gety(),
-		u.getz()*v.getx()-u.getx()*v.getz(),
-		u.getx()*v.gety()-v.getx()*u.gety());
+  return cross(u,v);
 }
 
 triple expi(real theta, real phi)
@@ -4300,16 +4354,7 @@ array* :arrayConditional(array *a, array *b, array *c)
 // Return an n x n identity matrix.
 realarray2 *identity(Int n)
 {
-  size_t N=(size_t) n;
-  array *c=new array(N);
-  for(size_t i=0; i < N; ++i) {
-    array *ci=new array(N);
-    (*c)[i]=ci;
-    for(size_t j=0; j < N; ++j)
-      (*ci)[j]=0.0;
-   (*ci)[i]=1.0;
-  }
-  return c;
+  return Identity(n);
 }
 
 // Return the diagonal matrix with diagonal entries given by a.
@@ -4607,22 +4652,7 @@ realarray2 *Operator *(realarray2 *a, realarray2 *b)
 
 triple Operator *(realarray2 *a, triple v)
 {
-  size_t n=checkArray(a);
-  if(n != 4) error(incommensurate);
-  real B[4]={v.getx(),v.gety(),v.getz(),1};
-  real C[4];
-  for(size_t i=0; i < 4; ++i) {
-    array *ai=read<array*>(a,i);
-    if(checkArray(ai) != 4) error(incommensurate);
-    real sum=0.0;
-    for(size_t j=0; j < 4; ++j)
-      sum += read<real>(ai,j)*B[j];
-    C[i]=sum;
-  }
-  real f=C[3];
-  if(f == 0) dividebyzero();
-  f=1/f;
-  return triple(C[0]*f,C[1]*f,C[2]*f);
+  return a*v;
 }
 
 pair project(triple v, realarray2 *a)

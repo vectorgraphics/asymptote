@@ -26,9 +26,17 @@ object embed3(picture, real, real, bool, string, projection);
 string embed(string name, string options="", real width=0, real height=0);
 string link(string label, string text, string options="");
 
-bool prc()
+bool prc0() {
+  return settings.prc && settings.outformat == "pdf";
+}
+
+bool prc() {
+  return prc0() && embed != null;
+}
+
+bool is3D()
 {
-  return settings.prc && settings.outformat == "pdf" && embed != null;
+  return prc() || settings.render;
 }
 
 frame enclose(string prefix=defaultfilename, object F)
@@ -74,10 +82,15 @@ void shipout(string prefix=defaultfilename, frame f,
              string format="", bool wait=NoWait, bool view=true,
 	     string options="", projection P=currentprojection)
 {
-  if(is3D(f))
+  if(is3D(f)) {
     f=enclose(prefix,embed3(prefix,f,options,P));
+    if(settings.render && !prc()) {
+      shipped=true;
+      return;
+    }
+  }
 
-  if(settings.psimage && prc())
+  if(settings.psimage && is3D())
     prepend(f,psimage(prefix,view));
 
   if(inXasyMode) {
@@ -100,8 +113,11 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     string format="", bool wait=NoWait, bool view=true,
 	     string options="", projection P=currentprojection)
 {
-  if(!uptodate())
-    shipout(prefix,orientation(pic.fit(options,P)),format,wait,view);
+  if(!uptodate()) {
+    frame f=pic.fit(options,P);
+    if(pic.nodes.length > 0 || (!settings.render || prc()))
+      shipout(prefix,orientation(f),format,wait,view);
+  }
   pic.uptodate=true;
 }
 

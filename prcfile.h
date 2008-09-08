@@ -1,3 +1,6 @@
+#ifndef PRCFILE_H
+#define PRCFILE_H
+
 #include "prc/oPRCFile.h"
 
 namespace camp {
@@ -73,4 +76,6 @@ private:
   }
 };
 
-}
+} //namespace camp
+
+#endif

@@ -24,15 +24,20 @@ private:
   transform T; // Keep track of accumulative picture transform
   bbox b;
   bbox b_cached;   // Cached bounding box
-  bbox3 b3_cached; // Cached 3D bounding box
   boxvector labelbounds;
   bboxlist bboxstack;
   bool transparency;
+  
+  int minsub;   // Minimum number of rendering subdivisions
+  int maxsub;   // Maximum number of rendering subdivisions (0 means no limit)
+  double fraction; // Maximum fraction of 3D bounding box occupied by surfaces
   
   static bool epsformat,pdfformat,xobject,pdf,Labels;
   static double paperWidth,paperHeight;
 
 public:
+  bbox3 b3; // 3D bounding box
+  
   typedef mem::list<drawElement*> nodelist;
   nodelist nodes;
   
@@ -81,11 +86,18 @@ public:
 	       const string& format, double magnification=0.0,
 	       bool wait=false, bool view=true);
  
-  bool shipout3(const string& prefix);
+  bool render(int width, int height, double zoom) const;
+  bool shipout3(const string& prefix, const string& format,
+		double width, double height, double expand, const triple& light,
+		double angle, const triple& m, const triple& M,
+		Int Minsub=1, Int Maxsub=0, bool view=true);
+  
+  bool shipout3(const string& prefix); // Embedded PRC
   
   bool reloadPDF(const string& Viewer, const string& outname) const;
   
   picture *transformed(const transform& t);
+  picture *transformed(vm::array *t);
   
   bool null() {
     return nodes.empty();
@@ -94,6 +106,11 @@ public:
 };
 
 inline picture *transformed(const transform& t, picture *p)
+{
+  return p->transformed(t);
+}
+
+inline picture *transformed(vm::array *t, picture *p)
 {
   return p->transformed(t);
 }

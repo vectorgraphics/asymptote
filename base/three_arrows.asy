@@ -1,5 +1,5 @@
 light arrowheadlight() {
-  return prc() ? currentlight : nolight;
+  return is3D() ? currentlight : nolight;
 }
 
 // transformation that bends points along a path
@@ -180,14 +180,15 @@ private real position(position position, real size, path3 g, bool center)
 }
 
 void drawarrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
-	       path3 g, pen p=currentpen, material arrowheadpen=p, real size=0,
-	       real angle=arrowangle, position position=EndPoint,
+	       path3 g, material p=currentpen, material arrowheadpen=p,
+	       real size=0, real angle=arrowangle, position position=EndPoint,
 	       bool forwards=true, bool center=false, light light=nolight,
 	       light arrowheadlight=arrowheadlight())
 {
+  pen q=(pen) p;
   if(arrowheadpen == nullpen) arrowheadpen=p;
   if(!arrowheadlight.on) arrowheadlight=light;
-  if(size == 0) size=arrowhead.size(p);
+  if(size == 0) size=arrowhead.size(q);
   size=min(arrowsizelimit*arclength(g),size);
   real position=position(position,size,g,center);
 
@@ -201,24 +202,25 @@ void drawarrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
   if(!cyclic(g) && position == L)
     draw(pic,subpath(r,arctime(r,size),length(r)),p,light);
   else draw(pic,g,p,light);
-  draw(pic,arrowhead.head(g,position,p,size,angle),arrowheadpen,arrowheadlight);
+  draw(pic,arrowhead.head(g,position,q,size,angle),arrowheadpen,arrowheadlight);
  }
 
 void drawarrow2(picture pic, arrowhead3 arrowhead=DefaultHead3,
-		path3 g, pen p=currentpen, material arrowheadpen=p,
+		path3 g, material p=currentpen, material arrowheadpen=p,
 		real size=0, real angle=arrowangle, light light=nolight,
 		light arrowheadlight=arrowheadlight())
 {
+  pen q=(pen) p;
   if(arrowheadpen == nullpen) arrowheadpen=p;
   if(!arrowheadlight.on) arrowheadlight=light;
-  if(size == 0) size=arrowhead.size(p);
+  if(size == 0) size=arrowhead.size(q);
   size=min(arrow2sizelimit*arclength(g),size);
 
   path3 r=reverse(g);
   int L=length(g);
   draw(pic,subpath(r,arctime(r,size),L-arctime(g,size)),p,light);
-  draw(pic,arrowhead.head(g,L,p,size,angle),arrowheadpen,arrowheadlight);
-  draw(pic,arrowhead.head(r,L,p,size,angle),arrowheadpen,arrowheadlight);
+  draw(pic,arrowhead.head(g,L,q,size,angle),arrowheadpen,arrowheadlight);
+  draw(pic,arrowhead.head(r,L,q,size,angle),arrowheadpen,arrowheadlight);
 }
 
 // Add to picture an estimate of the bounding box contribution of arrowhead
@@ -236,19 +238,20 @@ void addArrow(picture pic, arrowhead3 arrowhead, path3 g, pen p, real size,
 }
 
 picture arrow(arrowhead3 arrowhead=DefaultHead3,
-              path3 g, pen p=currentpen, material arrowheadpen=p, real size=0,
-              real angle=arrowangle, position position=EndPoint,
+              path3 g, material p=currentpen, material arrowheadpen=p,
+	      real size=0, real angle=arrowangle, position position=EndPoint,
               bool forwards=true, bool center=false, light light=nolight,
 	      light arrowheadlight=arrowheadlight())
 {
-  if(size == 0) size=DefaultHead3.size(p);
+  pen q=(pen) p;
+  if(size == 0) size=DefaultHead3.size(q);
   picture pic;
   pic.add(new void(picture f, transform3 t) {
       drawarrow(f,arrowhead,t*g,p,arrowheadpen,size,angle,position,
 		forwards,center,light,arrowheadlight);
     });
 
-  addPath(pic,g,p);
+  addPath(pic,g,q);
 
   real position=position(position,size,g,center);
   path3 G;
@@ -256,40 +259,41 @@ picture arrow(arrowhead3 arrowhead=DefaultHead3,
     G=reverse(g);
     position=length(g)-position;
   } else G=g;
-  addArrow(pic,arrowhead,G,p,size,angle,position);
+  addArrow(pic,arrowhead,G,q,size,angle,position);
 
   return pic;
 }
 
 picture arrow2(arrowhead3 arrowhead=DefaultHead3,
-               path3 g, pen p=currentpen, material arrowheadpen=p,
+               path3 g, material p=currentpen, material arrowheadpen=p,
 	       real size=0, real angle=arrowangle, light light=nolight,
 	       light arrowheadlight=arrowheadlight())
 {
-  if(size == 0) size=DefaultHead3.size(p);
+  pen q=(pen) p;
+  if(size == 0) size=DefaultHead3.size(q);
   picture pic;
   pic.add(new void(picture f, transform3 t) {
       drawarrow2(f,arrowhead,t*g,p,arrowheadpen,size,angle,light,
 		 arrowheadlight);
     });
   
-  addPath(pic,g,p);
+  addPath(pic,g,q);
 
   int L=length(g);
-  addArrow(pic,arrowhead,g,p,size,angle,L);
-  addArrow(pic,arrowhead,reverse(g),p,size,angle,L);
+  addArrow(pic,arrowhead,g,q,size,angle,L);
+  addArrow(pic,arrowhead,reverse(g),q,size,angle,L);
 
   return pic;
 }
 
-typedef bool arrowbar3(picture, path3, pen, light);
+typedef bool arrowbar3(picture, path3, material, light);
 
-bool Blank(picture, path3, pen, light)
+bool Blank(picture, path3, material, light)
 {
   return false;
 }
 
-bool None(picture, path3, pen, light)
+bool None(picture, path3, material, light)
 {
   return true;
 }
@@ -300,7 +304,7 @@ arrowbar3 BeginArrow3(arrowhead3 arrowhead=DefaultHead3,
 		      material arrowheadpen=nullpen,
 		      light arrowheadlight=arrowheadlight())
 {
-  return new bool(picture pic, path3 g, pen p, light light) {
+  return new bool(picture pic, path3 g, material p, light light) {
     add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,position,
 		  forwards=false,light,arrowheadlight));
     return false;
@@ -314,7 +318,7 @@ arrowbar3 Arrow3(arrowhead3 arrowhead=DefaultHead3,
 		 light arrowheadlight=arrowheadlight())
 
 {
-  return new bool(picture pic, path3 g, pen p, light light) {
+  return new bool(picture pic, path3 g, material p, light light) {
     add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,position,light,
 		  arrowheadlight));
     return false;
@@ -332,7 +336,7 @@ arrowbar3 MidArrow3(arrowhead3 arrowhead=DefaultHead3,
 		    material arrowheadpen=nullpen,
 		    light arrowheadlight=arrowheadlight())
 {
-  return new bool(picture pic, path3 g, pen p, light light) {
+  return new bool(picture pic, path3 g, material p, light light) {
     add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,MidPoint,center=true,
 		  light,arrowheadlight));
     return false;
@@ -344,7 +348,7 @@ arrowbar3 Arrows3(arrowhead3 arrowhead=DefaultHead3,
 		  material arrowheadpen=nullpen,
 		  light arrowheadlight=arrowheadlight())
 {
-  return new bool(picture pic, path3 g, pen p, light light) {
+  return new bool(picture pic, path3 g, material p, light light) {
     add(pic,arrow2(arrowhead,g,p,arrowheadpen,size,angle,light,arrowheadlight));
     return false;
   };

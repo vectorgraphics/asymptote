@@ -11,7 +11,7 @@ real sinc(pair z) {
   return r != 0 ? sin(r)/r : 1;
 }
 
-draw(lift(sinc,contour(sinc,(-2,-2),(2,2),new real[] {0})));
+draw(lift(sinc,contour(sinc,(-2,-2),(2,2),new real[] {0})),red);
 draw(surface(sinc,(-2,-2),(2,2),Spline),lightgray+opacity(0.5));
 
 xaxis3("$x$",Bounds,LeftTicks3(beginlabel=false,Label));

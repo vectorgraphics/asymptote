@@ -15,6 +15,7 @@
 #include "types.h"
 #include "fileio.h"
 #include "callable.h"
+#include "mathop.h"
 
 namespace run {
 
@@ -399,6 +400,9 @@ void arrayFunc(vm::stack *s)
     (*c)[i]=func(read<S>(a,i));
   s->push(c);
 }
+
+vm::array *Identity(Int n);
+camp::triple operator *(vm::array *a, camp::triple v);
 
 } // namespace run
 

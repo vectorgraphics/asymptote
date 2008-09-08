@@ -1,6 +1,8 @@
 restricted bool Aspect=true;
 restricted bool IgnoreAspect=false;
 
+real camerafactor=1.2;
+
 pair size(frame f)
 {
   return max(f)-min(f);
@@ -368,25 +370,54 @@ frame align(frame f, pair align)
   return shift(f,align)*f;
 }
 
-real camerafactor=1.2;
+struct transformation {
+  transform3 modelview;  // For orientation and positioning
+  transform3 projection; // For 3D to 2D projection
+  bool infinity;
+  void operator init(transform3 modelview) {
+    this.modelview=modelview;
+    this.projection=identity4;
+    infinity=true;
+  }
+  void operator init(transform3 modelview, transform3 projection) {
+    this.modelview=modelview;
+    this.projection=projection;
+    infinity=false;
+  }
+  transform3 compute() {
+    return projection*modelview;
+  }
+}
 
 struct projection {
+  transform3 t;          // T.projection*T.modelview (cached)
   bool infinity;
   bool absolute=false;
   triple camera;
   triple target;
-  typedef transform3 projector(triple camera, triple target, triple up);
-  projector projector;
-  transform3 project;
   triple up;
+  typedef transformation projector(triple camera, triple target, triple up);
+  projector projector;
   real angle; // Lens angle (currently only used by PRC viewpoint).
+  int ninterpolate=16; // Used for non-PRC approximation of nurbs
+  real antialias=1;  // Antialiasing factor for 3D OpenGL rendering
 
   void calculate() {
-    project=projector(camera,up,target);
+    transformation T=projector(camera,up,target);
+    t=T.compute();
+    infinity=T.infinity;
+  }
+
+  transformation transformation() {
+    return projector(camera,up,target);
+  }
+
+  triple vector() {
+    return camera-target;
   }
 
   void operator init(triple camera, triple target=(0,0,0), triple up=(0,0,1),
-		     projector projector, bool infinity=false) {
+		     projector projector) {
     this.infinity=infinity;
     if(infinity) {
       this.camera=unit(camera);
@@ -402,12 +433,12 @@ struct projection {
 
   projection copy() {
     projection P=new projection;
+    P.t=t;
     P.infinity=infinity;
     P.absolute=absolute;
     P.camera=camera;
     P.target=target;
     P.up=up;
-    P.project=project;
     P.projector=projector;
     P.angle=angle;
     return P;

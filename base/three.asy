@@ -1,6 +1,6 @@
 private import math;
 
-if(settings.prc && settings.outformat == "pdf") {
+if(prc0()) {
   access embed;
   plain.embed=embed.embed;
   plain.link=embed.link;
@@ -10,14 +10,12 @@ real defaultshininess=0.25;
 real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
-real anglefactor=1.005; // Factor used to expand PRC viewing angle.
+real anglefactor=1.03;       // Factor used to expand PRC viewing angle.
 
 string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
 
 triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
-
-int ninterpolate=16;
 
 // A translation in 3D space.
 transform3 shift(triple v)
@@ -129,15 +127,15 @@ triple project(triple u, triple v)
   return dot(u,v)*v;
 }
 
-// Transformation corresponding to moving the camera from the origin
-// (looking down the negative z axis) to the point 'eye' (looking at
-// the origin), orienting the camera so that direction 'up' points upwards.
-// Since, in actuality, we are transforming the points instead of
-// the camera, we calculate the inverse matrix.
+// Return the transformation corresponding to moving the camera from the target
+// (looking in the negative z direction) to the point 'eye' (looking at target),
+// orienting the camera so that direction 'up' points upwards.
+// Since, in actuality, we are transforming the points instead of the camera,
+// we calculate the inverse matrix.
 // Based on the gluLookAt implementation in the OpenGL manual.
-transform3 look(triple eye, triple up=Z)
+transform3 look(triple eye, triple up=Z, triple target=O)
 {
-  triple f=unit(-eye);
+  triple f=unit(target-eye);
   if(f == O)
     f=-Z; // The eye is already at the origin: look down.
 
@@ -193,7 +191,7 @@ addSaveFunction(new restoreThunk() {
 
 pair project(triple v, projection P=currentprojection)
 {
-  return project(v,P.project);
+  return project(v,P.t);
 }
 
 // Uses the homogenous coordinate to perform perspective distortion.
@@ -203,9 +201,9 @@ pair project(triple v, projection P=currentprojection)
 projection perspective(triple camera, triple up=Z, triple target=O)
 {
   return projection(camera,target,up,
-                    new transform3(triple camera, triple up, triple target) {
-                      return shift(-target)*distort(camera-target)*
-                        look(camera-target,up);});
+                    new transformation(triple camera, triple up, triple target)
+		    {	return transformation(look(camera,up,target),
+					      distort(camera-target));});
 }
 
 projection perspective(real x, real y, real z, triple up=Z, triple target=O)
@@ -213,10 +211,12 @@ projection perspective(real x, real y, real z, triple up=Z, triple target=O)
   return perspective((x,y,z),up,target);
 }
 
-projection orthographic(triple camera, triple up=Z)
+projection orthographic(triple camera, triple up=Z, triple target=O)
 {
-  return projection(camera,up,new transform3(triple camera, triple up, triple) {
-      return look(camera,up);},infinity=true);
+  return projection(camera,target,up,
+		    new transformation(triple camera, triple up,
+				       triple target) {
+		      return transformation(look(camera,up,target));});
 }
 
 projection orthographic(real x, real y, real z, triple up=Z)
@@ -233,8 +233,8 @@ projection oblique(real angle=45)
   t[1][2]=-s2;
   t[2][2]=0;
   return projection((c2,s2,1),up=Y,
-                    new transform3(triple,triple,triple) {return t;},
-                    infinity=true);
+                    new transformation(triple,triple,triple) {
+		      return transformation(t);});
 }
 
 projection obliqueZ(real angle=45) {return oblique(angle);}
@@ -251,8 +251,8 @@ projection obliqueX(real angle=45)
   t[1][2]=1;
   t[2][2]=0;
   return projection((1,c2,s2),
-                    new transform3(triple,triple,triple) {return t;},
-                    infinity=true);
+                    new transformation(triple,triple,triple) {
+		      return transformation(t);});
 }
 
 projection obliqueY(real angle=45)
@@ -265,8 +265,8 @@ projection obliqueY(real angle=45)
   t[1][2]=1;
   t[2][2]=0;
   return projection((c2,-1,s2),
-                    new transform3(triple,triple,triple) {return t;},
-                    infinity=true);
+                    new transformation(triple,triple,triple) {
+		      return transformation(t);});
 }
 
 projection oblique=oblique();
@@ -279,7 +279,7 @@ currentprojection=perspective(5,4,2);
 triple invert(pair z, triple normal, triple point,
               projection P=currentprojection)
 {
-  transform3 t=P.project;
+  transform3 t=P.t;
   real[][] A={{t[0][0]-z.x*t[3][0],t[0][1]-z.x*t[3][1],t[0][2]-z.x*t[3][2]},
               {t[1][0]-z.y*t[3][0],t[1][1]-z.y*t[3][1],t[1][2]-z.y*t[3][2]},
               {normal.x,normal.y,normal.z}};
@@ -303,7 +303,7 @@ struct control {
   }
 }
 
-control nocontrol;
+  control nocontrol;
   
 control operator * (transform3 t, control c) 
 {
@@ -338,7 +338,7 @@ struct Tension {
   }
 }
 
-Tension operator init()
+  Tension operator init()
 {
   Tension t=new Tension;
   t.init(false);
@@ -390,7 +390,7 @@ struct dir {
   }
 }
 
-void write(file file, dir d)
+  void write(file file, dir d)
 {
   if(d.dir != O) {
     write(file,"{"); write(file,unit(d.dir)); write(file,"}");
@@ -497,7 +497,7 @@ struct flatguide3 {
   }
 }
 
-void write(file file, string s="", explicit flatguide3 x, suffix suffix=none)
+  void write(file file, string s="", explicit flatguide3 x, suffix suffix=none)
 {
   write(file,s);
   if(x.size() == 0) write(file,"<nullpath3>");
@@ -673,7 +673,7 @@ struct Controls {
   }
 }
 
-private triple cross(triple d0, triple d1, triple reference)
+  private triple cross(triple d0, triple d1, triple reference)
 {
   triple normal=cross(d0,d1);
   return normal == O ? reference : normal;
@@ -897,22 +897,6 @@ bool cyclic(guide3 g) {flatguide3 f; g(f); return f.cyclic();}
 int size(guide3 g) {flatguide3 f; g(f); return f.size();}
 int length(guide3 g) {flatguide3 f; g(f); return f.nodes.length-1;}
 
-path3 operator * (transform3 t, path3 p) 
-{
-  int n=size(p);
-  triple[] pre=new triple[n];
-  triple[] point=new triple[n];
-  triple[] post=new triple[n];
-  bool[] straight=new bool[n];
-  for(int i=0; i < n; ++i) {
-    pre[i]=t*precontrol(p,i);
-    point[i]=t*point(p,i);
-    post[i]=t*postcontrol(p,i);
-    straight[i]=straight(p,i);
-  }
-  return path3(pre,point,post,straight,cyclic(p));
-}
-
 path3 path3(triple v)
 {
   triple[] point={v};
@@ -1113,11 +1097,11 @@ path3 solve(flatguide3 g)
   return path3(pre,point,post,straight,cyclic);
 }
 
-path nurb(path3 p, projection P, int ninterpolate=ninterpolate)
+path nurb(path3 p, projection P, int ninterpolate=P.ninterpolate)
 {
   triple f=P.camera;
-  triple u=unit(P.camera-P.target);
-  transform3 t=P.project;
+  triple u=unit(P.vector());
+  transform3 t=P.t;
 
   path nurb(triple v0, triple v1, triple v2, triple v3) {
     return nurb(project(v0,t),project(v1,t),project(v2,t),project(v3,t),
@@ -1144,14 +1128,14 @@ path nurb(path3 p, projection P, int ninterpolate=ninterpolate)
 }
 
 path project(path3 p, projection P=currentprojection,
-             int ninterpolate=ninterpolate)
+	     int ninterpolate=P.ninterpolate)
 {
   guide g;
 
   int last=length(p);
   if(last < 0) return g;
   
-  transform3 t=P.project;
+  transform3 t=P.t;
 
   if(P.infinity || ninterpolate == 1 || piecewisestraight(p)) {
     g=project(point(p,0),t);
@@ -1165,7 +1149,7 @@ path project(path3 p, projection P=currentprojection,
           project(precontrol(p,i+1),t)..project(point(p,i+1),t);
       }
     }
-  } else return nurb(p,P,ninterpolate);
+  } else return nurb(p,P);
   
   if(cyclic(p))
     g=straight(p,last-1) ? g--cycle :
@@ -1176,7 +1160,7 @@ path project(path3 p, projection P=currentprojection,
 
 pair[] project(triple[] v, projection P=currentprojection)
 {
-  transform3 t=P.project;
+  transform3 t=P.t;
   int n=v.length;
   pair[] z=new pair[n];
   for(int i=0; i < n; ++i)
@@ -1184,12 +1168,11 @@ pair[] project(triple[] v, projection P=currentprojection)
   return z;
 }
 
-path[] project(path3[] g, projection P=currentprojection,
-               int ninterpolate=ninterpolate)
+path[] project(path3[] g, projection P=currentprojection)
 {
   path[] p=new path[g.length];
   for(int i=0; i < g.length; ++i) 
-    p[i]=project(g[i],P,ninterpolate);
+    p[i]=project(g[i],P);
   return p;
 }
   
@@ -1238,7 +1221,7 @@ private transform3 flip(transform3 t, triple X, triple Y, triple Z,
     return scale(s(v.x),s(v.y),s(v.z));
   }
 
-  triple u=unit(P.camera-P.target);
+  triple u=unit(P.vector());
   triple up=unit(P.up-dot(P.up,u)*u);
   bool upright=dot(Z,u) >= 0;
   if(dot(Y,up) < 0) {
@@ -1282,7 +1265,7 @@ restricted transform3 XZ(projection P=currentprojection)
 transform transform(triple u, triple v, triple O=O,
                     projection P=currentprojection)
 {
-  transform3 t=P.project;
+  transform3 t=P.t;
   static real[] O={0,0,0,1};
   real[] tO=t*O;
   real tO3=tO[3];
@@ -1300,7 +1283,7 @@ transform transform(triple u, triple v, triple O=O,
 Label project(Label L, triple u, triple v, triple O=O,
               projection P=currentprojection) {
   Label L=L.copy();
-  L.position=project(O,P.project);
+  L.position=project(O,P.t);
   L.transform(transform(u,v,O,P)); 
   return L;
 }
@@ -1484,7 +1467,7 @@ transform3 align(triple u)
 // return a rotation that maps X,Y to the projection plane.
 transform3 transform3(projection P)
 {
-  triple v=unit(P.camera-P.target);
+  triple v=unit(P.vector());
   triple u=unit(P.up-dot(P.up,v)*v);
   return transform3(cross(u,v),u);
 }
@@ -1496,21 +1479,20 @@ triple[] triples(real[] x, real[] y, real[] z)
   return sequence(new triple(int i) {return (x[i],y[i],z[i]);},x.length);
 }
 
+path3[] operator cast(path3 p)
+{
+  return new path3[] {p};
+}
+
+path3[] operator cast(guide3 g)
+{
+  return new path3[] {(path3) g};
+}
+
 path3[] operator ^^ (path3 p, path3  q) 
 {
   return new path3[] {p,q};
 }
-
-path3[] operator ^^ (guide3 p, guide3 q) 
-{
-  return new path3[] {p,q};
-}
-
-/*
-  path3[] operator ^^ (triple p, triple q) 
-  {
-  return new path3[] {p,q};
-  }*/
 
 path3[] operator ^^ (path3 p, explicit path3[] q) 
 {
@@ -1525,6 +1507,13 @@ path3[] operator ^^ (explicit path3[] p, path3 q)
 path3[] operator ^^ (explicit path3[] p, explicit path3[] q) 
 {
   return concat(p,q);
+}
+
+path3[] operator * (transform3 t, explicit path3[] p) 
+{
+  path3[] P;
+  for(int i=0; i < p.length; ++i) P[i]=t*p[i];
+  return P;
 }
 
 triple min(explicit path3[] p)
@@ -1700,16 +1689,16 @@ triple size3(frame f)
   return max3(f)-min3(f);
 }
 
-// PRC support
+// PRC/OpenGL support
 
 private string[] file3;
 
-string embedprc(string prefix=defaultfilename, frame f, string label="",
-                string text=label,  string options="",
-                real width=0, real height=0, real angle=30,
-                pen background=white, projection P=currentprojection)
+string embed3D(string prefix=defaultfilename, frame f, string label="",
+	       string text=label,  string options="",
+	       real width=0, real height=0, real angle=30,
+	       pen background=white, projection P=currentprojection)
 {
-  if(!prc()) return "";
+  if(!prc() || plain.embed == null) return "";
 
   if(width == 0) width=settings.paperwidth;
   if(height == 0) height=settings.paperheight;
@@ -1718,6 +1707,12 @@ string embedprc(string prefix=defaultfilename, frame f, string label="",
   shipout3(prefix,f);
   prefix += ".prc";
   file3.push(prefix);
+
+  triple v=P.vector()/cm;
+  triple u=unit(v);
+  triple w=unit(Z-u.z*u);
+  triple up=unit(P.up-dot(P.up,u)*u);
+  real roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));
 
   string format(real x) {
     assert(abs(x) < 1e18,"Number too large: "+string(x));
@@ -1730,12 +1725,6 @@ string embedprc(string prefix=defaultfilename, frame f, string label="",
     real[] c=colors(rgb(p));
     return format((c[0],c[1],c[2]));
   }
-
-  triple v=(P.camera-P.target)/cm;
-  triple u=unit(v);
-  triple w=unit(Z-u.z*u);
-  triple up=unit(P.up-dot(P.up,u)*u);
-  real roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));
 
   string options3="poster,text="+text+",label="+label+
     ",3Daac="+format(P.absolute ? P.angle : angle)+
@@ -1757,12 +1746,22 @@ object embed(string prefix=defaultfilename, frame f, string label="",
 {
   object F;
 
-  if(prc())
-    F.L=embedprc(prefix,f,label,text,options,width,height,angle,background,P);
+  if(is3D())
+    F.L=embed3D(prefix,f,label,text,options,width,height,angle,background,P);
   else
     F.f=f;
   return F;
 }
+
+triple rectify(triple dir) 
+{
+  real scale=max(abs(dir.x),abs(dir.y),abs(dir.z));
+  if(scale != 0) dir *= 0.5/scale;
+  dir += (0.5,0.5,0.5);
+  return dir;
+}
+
+include three_light;
 
 object embed(string prefix=defaultfilename, picture pic,
              real xsize=pic.xsize, real ysize=pic.ysize,
@@ -1777,12 +1776,13 @@ object embed(string prefix=defaultfilename, picture pic,
     xsize3=ysize3=zsize3=max(xsize,ysize);
 
   projection P=P.copy();
-  P.adjust(pic.max(identity4));
-  P.adjust(pic.min(identity4));
-
   picture pic2;
   transform3 t=pic.scaling(xsize3,ysize3,zsize3,keepAspect);
+
+  P.adjust(inverse(t)*pic.max(t));
+  P.adjust(inverse(t)*pic.min(t));
   P=t*P;
+
   frame f=pic.fit3(t,pic.bounds3.exact ? pic2 : null,P);
 
   if(!pic.bounds3.exact) {
@@ -1791,11 +1791,10 @@ object embed(string prefix=defaultfilename, picture pic,
     P=s*P;
     f=pic.fit3(t,pic2,P);
   }
-
-  bool prc=prc();
+  bool is3D=is3D();
   bool scale=xsize != 0 || ysize != 0;
 
-  if(prc || scale) {
+  if(is3D || scale) {
     pic2.bounds.exact=true;
     transform s=pic2.scaling(xsize,ysize,keepAspect);
     pair M=pic2.max(s);
@@ -1806,37 +1805,53 @@ object embed(string prefix=defaultfilename, picture pic,
 
     if(!P.absolute) {
       pair v=(s.xx,s.yy);
-      transform3 T=P.project;
+      transform3 T=P.t;
       pair x=project(X,T);
       pair y=project(Y,T);
       pair z=project(Z,T);
       real f(pair a, pair b) {
         return b == 0 ? (0.5*(a.x+a.y)) : (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
       }
-      transform3 s;
+      transform3 s=identity4;
       if(scale) {
         s=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z));
-        P=s*P;
+	P=s*P;
       }
       pair c=0.5*(M+m);
-      if(prc) {
-        triple shift=invert(c,unit(P.camera-P.target),P.target,P);
+      if(is3D) {
+        triple shift=invert(c,unit(P.vector()),P.target,P);
         P.target += shift;
         P.calculate();
       }
       if(scale) {
         pic2.erase();
-        f=pic.fit3(s*t,prc ? null : pic2,P);
+        f=pic.fit3(s*t,is3D ? null : pic2,P);
       }
-      if(prc && angle == 0)
+      if(is3D && angle == 0)
         // Choose the angle to be just large enough to view the entire image:
-        angle=2*anglefactor*aTan(min(M.x-c.x,M.y-c.y)/(abs(P.camera-P.target)));
-    }   
-    if(prc) F.L=embedprc(prefix,f,label,text,options,width,height,angle,
-                         background,P);
+        angle=2*anglefactor*aTan((M.y-c.y)/(abs(P.vector())));
+    } 
+
+    if(settings.render && !prc()) {
+      transform3 T=P.projector(P.camera,P.up,P.target).modelview;
+      f=T*f;
+      triple m=min3(f)/cm;
+      triple M=max3(f)/cm;
+      real r=0.5*abs(M-m);
+      triple center=0.5*(M+m);
+      M=(M.x,M.y,center.z+r);
+      m=(m.x,m.y,center.z-r);
+      if(prefix == "") prefix=outprefix();
+      shipout3(prefix,f,width,height,P.antialias,currentlight.source,
+	       P.infinity ? 0 : angle,m,M);
+      return F;
+    }
+
+    if(prc()) F.L=embed3D(prefix,f,label,text,options,width,height,angle,
+			  background,P);
   }
 
-  if(!prc)
+  if(!is3D)
     F.f=pic2.fit2(xsize,ysize,keepAspect);
 
   return F;
@@ -1859,8 +1874,10 @@ currentpicture.fitter=new frame(picture pic, real xsize, real ysize,
     object F=embed(pic,xsize,ysize,keepAspect,options,P);
     if(prc())
       label(f,F.L);
-    else
-      add(f,F.f);
+    else {
+      if(settings.render) return f;
+      else add(f,F.f);
+    }
   }
   return f;
 };
@@ -1868,7 +1885,7 @@ currentpicture.fitter=new frame(picture pic, real xsize, real ysize,
 void add(picture dest=currentpicture, object src, pair position, pair align,
          bool group=true, filltype filltype=NoFill, bool put=Above)
 {
-  if(prc())
+  if(is3D())
     label(dest,src,position,align);
   else
     plain.add(dest,src,position,align,group,filltype,put);
@@ -1876,7 +1893,7 @@ void add(picture dest=currentpicture, object src, pair position, pair align,
 
 string cameralink(string label, string text="View Parameters")
 {
-  if(!prc() || plain.link == null) return "";
+  if(!is3D() || plain.link == null) return "";
   return plain.link(label,text,"3Dgetview");
 }
 
@@ -1925,16 +1942,15 @@ void addPath(picture pic, path3 g, pen p)
   pic.addBox(min(g),max(g),min3(p),max3(p));
 }
 
-include three_light;
-
 void draw(frame f, path3 g, material p=currentpen, light light=nolight,
-          projection P=currentprojection, int ninterpolate=ninterpolate);
+          projection P=currentprojection);
 
 include three_surface;
 
 void draw(picture pic=currentpicture, Label L="", path3 g,
-          align align=NoAlign, material p=currentpen, light light=nolight,
-          int ninterpolate=ninterpolate)
+          align align=NoAlign,
+	  material p=emissive(currentpen,granularity=linegranularity),
+	  light light=nolight)
 {
   pen q=(pen) p;
   Label L=L.copy();
@@ -1945,10 +1961,10 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
   }
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
-      if(prc())
+      if(is3D())
         draw(f,t*g,p,light,null);
       if(pic != null)
-        draw(pic,project(t*g,P,ninterpolate),q);
+        draw(pic,project(t*g,P),q);
     },true);
   addPath(pic,g,q);
 }
@@ -1957,9 +1973,8 @@ include three_arrows;
 
 draw=new void(frame f, path3 g,
               material p=emissive(currentpen,granularity=linegranularity),
-              light light=nolight,
-              projection P=currentprojection, int ninterpolate=ninterpolate) {
-  if(prc()) {
+              light light=nolight, projection P=currentprojection) {
+  if(is3D()) {
     if(p.granularity == -1) {
       p=material(p);
       p.granularity=linegranularity;
@@ -1991,7 +2006,7 @@ draw=new void(frame f, path3 g,
             }
           }
           for(int i=0; i < s.s.length; ++i)
-            drawprc(f,s.s[i],p,light);
+            draw3D(f,s.s[i],p,light,localsub=true);
         }
       }
       _draw(f,g,q);
@@ -2018,37 +2033,38 @@ draw=new void(frame f, path3 g,
       }
     }
   }
-  else draw(f,project(g,P,ninterpolate),(pen) p);
+  else draw(f,project(g,P),(pen) p);
 };
 
-void draw(frame f, path3[] g, pen p=currentpen, projection P=currentprojection)
+void draw(frame f, explicit path3[] g, material p=currentpen,
+	  light light=nolight, projection P=currentprojection)
 {
-  for(int i=0; i < g.length; ++i) draw(f,g[i],p,P);
+  for(int i=0; i < g.length; ++i) draw(f,g[i],p,light,P);
 }
 
-void draw(picture pic=currentpicture, Label L="", path3[] g, pen p=currentpen)
+void draw(picture pic=currentpicture, explicit path3[] g,
+	  material p=currentpen, light light=nolight)
 {
-  for(int i=0; i < g.length; ++i) draw(pic,L,g[i],p);
+  for(int i=0; i < g.length; ++i) draw(pic,g[i],p,light);
 }
 
 void draw(picture pic=currentpicture, Label L="", path3 g, 
-          align align=NoAlign, pen p=currentpen, arrowbar3 arrow,
-          light light=nolight, int ninterpolate=ninterpolate)
+          align align=NoAlign, material p=currentpen, arrowbar3 arrow,
+          light light=nolight)
 {
-  label(pic,L,g,align,p);
+  label(pic,L,g,align,(pen) p);
   begingroup3(pic);
   if(arrow(pic,g,p,light))
-    draw(pic,L,g,align,p,ninterpolate);
+    draw(pic,L,g,align,p,light);
   endgroup3(pic);
 }
 
-void draw(frame f, path3 g, pen p=currentpen, arrowbar3 arrow,
-	  light light=nolight, projection P=currentprojection,
-	  int ninterpolate=ninterpolate)
+void draw(frame f, path3 g, material p=currentpen, arrowbar3 arrow,
+	  light light=nolight, projection P=currentprojection)
 {
   picture pic;
   if(arrow(pic,g,p,light))
-    draw(f,g,p,light,P,ninterpolate);
+    draw(f,g,p,light,P);
   add(f,pic.fit());
 }
 

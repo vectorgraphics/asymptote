@@ -44,8 +44,18 @@ class psfile {
     if(!pdf) *out << "]";
   }
 
-  void writeHex(unsigned n) {
-    *out << std::hex << std::setw(2) << std::setfill('0') << n << std::dec;
+  void beginHex() {
+    out->setf(std::ios::hex,std::ios::basefield);
+    out->fill('0');
+  }
+  
+  void endHex() {
+    out->setf(std::ios::dec,std::ios::basefield);
+    out->fill();
+  }
+  
+  void write2(unsigned n) {
+    *out << std::setw(2) << n;
   }
   
 protected:
@@ -169,10 +179,12 @@ public:
   void tensorshade(const vm::array& pens, const vm::array& boundaries,
 		   const vm::array& z);
 
-  void imageheader(double width, double height, ColorSpace colorspace);
+  void imageheader(size_t width, size_t height, ColorSpace colorspace);
   
   void image(const vm::array& a, const vm::array& p);
   void image(const vm::array& a);
+  void image(const unsigned char *a, size_t width, size_t height,
+	     ColorSpace colorspace);
 
   void gsave(bool tex=false) {
     if(pdf) *out << "q";

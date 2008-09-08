@@ -21,7 +21,7 @@ FILES = $(CAMP) runtime env genv main stm dec errormsg \
 	access absyn record interact fileio builtin fftw++ simpson coder coenv \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
-	$(PRC) svnrevision
+	$(PRC) glrender arcball algebra3 quaternion svnrevision
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc keywords.cc \
 	asy-keywords.el base/asy-keywords.el

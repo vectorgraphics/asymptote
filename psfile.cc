@@ -245,19 +245,23 @@ void psfile::latticeshade(const vm::array& a, const bbox& b)
   *out << "/BitsPerSample 8" << newl;
   *out << "/Size [" << m << " " << n << "]" << newl
        << "/DataSource <" << newl;
+  
+  beginHex();
   for(size_t i=n; i > 0;) {
     array *ai=read<array *>(a,--i);
     checkArray(ai);
     size_t aisize=ai->size();
     if(aisize != m) reportError("shading matrix must be rectangular");
     for(size_t j=0; j < m; j++) {
-	pen *p=read<pen *>(ai,j);
-	p->convert();
-	if(!p->promote(colorspace))
-	  reportError(inconsistent);
-	writeHex(p,ncomponents);
-      }
+      pen *p=read<pen *>(ai,j);
+      p->convert();
+      if(!p->promote(colorspace))
+	reportError(inconsistent);
+      writeHex(p,ncomponents);
     }
+  }
+  endHex();
+
   *out << ">" << newl
        << ">>" << newl
        << ">>" << newl
@@ -410,27 +414,27 @@ void psfile::writeHex(pen *p, Int ncomponents)
   case 0:
     break;
   case 1: 
-    writeHex(byte(p->gray())); 
+    write2(byte(p->gray())); 
     *out << newl;
     break;
   case 3:
-    writeHex(byte(p->red())); 
-    writeHex(byte(p->green())); 
-    writeHex(byte(p->blue())); 
+    write2(byte(p->red())); 
+    write2(byte(p->green())); 
+    write2(byte(p->blue())); 
     *out << newl;
     break;
   case 4:
-    writeHex(byte(p->cyan())); 
-    writeHex(byte(p->magenta())); 
-    writeHex(byte(p->yellow())); 
-    writeHex(byte(p->black())); 
+    write2(byte(p->cyan())); 
+    write2(byte(p->magenta())); 
+    write2(byte(p->yellow())); 
+    write2(byte(p->black())); 
     *out << newl;
   default:
     break;
   }
 }
 
-void psfile::imageheader(double width, double height, ColorSpace colorspace)
+void psfile::imageheader(size_t width, size_t height, ColorSpace colorspace)
 {
   unsigned ncomponents=ColorComponents[colorspace];
   *out << "/Device" << ColorDeviceSuffix[colorspace] << " setcolorspace" 
@@ -484,6 +488,7 @@ void psfile::image(const array& a, const array& P)
   
   double step=(max == min) ? 0.0 : (Psize-1)/(max-min);
   
+  beginHex();
   for(size_t i=0; i < asize; i++) {
     array *ai=read<array *>(a,i);
     for(size_t j=0; j < a0size; j++) {
@@ -496,6 +501,7 @@ void psfile::image(const array& a, const array& P)
       writeHex(p,ncomponents);
     }
   }
+  endHex();
   
   *out << ">" << endl;
 }
@@ -518,6 +524,7 @@ void psfile::image(const array& a)
   
   imageheader(a0size,asize,colorspace);
     
+  beginHex();
   for(size_t i=0; i < asize; i++) {
     array *ai=read<array *>(a,i);
     for(size_t j=0; j < a0size; j++) {
@@ -528,7 +535,29 @@ void psfile::image(const array& a)
       writeHex(p,ncomponents);
     }
   }
+  endHex();
   
+  *out << ">" << endl;
+}
+  
+void psfile::image(const unsigned char *a, size_t width, size_t height,
+		   ColorSpace colorspace)
+{
+  checkColorSpace(colorspace);
+  unsigned ncomponents=ColorComponents[colorspace];
+  
+  imageheader(width,height,colorspace);
+    
+  beginHex();
+  for(size_t i=0; i < width; ++i) {
+    for(size_t j=0; j < height; ++j) {
+      size_t index=ncomponents*(height*i+j);
+      for(size_t k=0; k < ncomponents; ++k)
+	write2(a[index+k]);
+      *out << newl;
+    }	
+  }
+  endHex();
   *out << ">" << endl;
 }
   

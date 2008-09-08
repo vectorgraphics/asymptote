@@ -9,6 +9,7 @@
 
 #include "drawelement.h"
 #include "triple.h"
+#include "arrayop.h"
 
 namespace camp {
 
@@ -23,14 +24,18 @@ protected:
   double opacity;
   double shininess;
   double granularity;
+  bool localsub; // Use minimum of local and global number of subdivisions
   triple min,max;
   Triple controls[16];
   bool invisible;
+  double f; // Fraction of 3D bounding box occupied by surface.
+
 public:
   drawSurface(const vm::array& g, const vm::array&p, double opacity,
-	      double shininess, double granularity, triple min, triple max) :
+	      double shininess, double granularity, bool localsub, 
+	      triple min, triple max) :
     opacity(opacity), shininess(shininess), granularity(granularity),
-    min(min), max(max) {
+    localsub(localsub), min(min), max(max) {
     
     string wrongsize=
       "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
@@ -46,7 +51,6 @@ public:
     specular=rgba(vm::read<camp::pen>(p,3));
     
     size_t k=0;
-    const double factor=1.0/settings::cm;
     for(size_t i=0; i < 4; ++i) {
       vm::array *gi=vm::read<vm::array*>(g,i);
       size_t gisize=checkArray(gi);
@@ -54,11 +58,27 @@ public:
 	reportError(wrongsize);
       for(size_t j=0; j < 4; ++j) {
 	triple v=vm::read<triple>(gi,j);
-	controls[k][0]=v.getx()*factor;
-	controls[k][1]=v.gety()*factor;
-	controls[k][2]=v.getz()*factor;
+	controls[k][0]=v.getx()*scale3D;
+	controls[k][1]=v.gety()*scale3D;
+	controls[k][2]=v.getz()*scale3D;
 	++k;
       }
+    }
+  }
+  
+  drawSurface(vm::array *t, const drawSurface *s) :
+    diffuse(s->diffuse), ambient(s->ambient), emissive(s->emissive),
+    specular(s->specular), opacity(s->opacity), shininess(s->shininess),
+    granularity(s->granularity), localsub(s->localsub), 
+    invisible(s->invisible) {
+    min=run::operator *(t,s->min); // TODO: Bounds needs to be recalculated.
+    max=run::operator *(t,s->max);
+    for(size_t i=0; i < 16; ++i) {
+      const double *c=s->controls[i];
+      triple v=run::operator *(t,triple(c[0]/scale3D,c[1]/scale3D,c[2]/scale3D));
+      controls[i][0]=v.getx()*scale3D;
+      controls[i][1]=v.gety()*scale3D;
+      controls[i][2]=v.getz()*scale3D;
     }
   }
   
@@ -72,6 +92,11 @@ public:
   virtual ~drawSurface() {}
 
   bool write(prcfile *out);
+  
+  void fraction(double &f, const triple& size3);
+  bool render(int n, double, const triple&);
+  
+  drawElement *transformed(vm::array *t);
 };
   
 }

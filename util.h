@@ -44,6 +44,10 @@ string buildname(string filename, string suffix="",
 // directory.
 string auxname(string filename, string suffix="");
 
+// Return an argv array corresponding to the fields in command delimited
+// by spaces not within matching single quotes.
+char **args(const char *command, bool quiet=false);
+  
 // Similar to the standard system call except allows interrupts and does
 // not invoke a shell.
 int System(const char *command, int quiet=0, bool wait=true,

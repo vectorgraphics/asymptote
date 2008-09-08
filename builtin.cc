@@ -65,7 +65,8 @@ void addFunc(venv &ve, access *a, ty *result, symbol *id,
 	     formal f1=noformal, formal f2=noformal, formal f3=noformal,
 	     formal f4=noformal, formal f5=noformal, formal f6=noformal,
 	     formal f7=noformal, formal f8=noformal, formal f9=noformal,
-	     formal fA=noformal)
+	     formal fA=noformal, formal fB=noformal, formal fC=noformal,
+	     formal fD=noformal)
 {
   function *fun = new function(result);
 
@@ -79,6 +80,9 @@ void addFunc(venv &ve, access *a, ty *result, symbol *id,
   if (f8.t) fun->add(f8);
   if (f9.t) fun->add(f9);
   if (fA.t) fun->add(fA);
+  if (fB.t) fun->add(fB);
+  if (fC.t) fun->add(fC);
+  if (fD.t) fun->add(fD);
 
   // NOTE: If the function is a field, we should encode the defining record in
   // the entry
@@ -89,12 +93,13 @@ void addFunc(venv &ve, access *a, ty *result, symbol *id,
 
 // Add a function with one or more default arguments.
 void addFunc(venv &ve, bltin f, ty *result, const char *name, 
-	     formal f1, formal f2, formal f3,
-	     formal f4, formal f5, formal f6,
-	     formal f7, formal f8, formal f9, formal fA)
+	     formal f1, formal f2, formal f3, formal f4, formal f5, formal f6,
+	     formal f7, formal f8, formal f9, formal fA, formal fB,
+	     formal fC, formal fD)
 {
   access *a = new bltinAccess(f);
-  addFunc(ve,a,result,symbol::trans(name),f1,f2,f3,f4,f5,f6,f7,f8,f9,fA);
+  addFunc(ve,a,result,symbol::trans(name),f1,f2,f3,f4,f5,f6,f7,f8,f9,
+	  fA,fB,fC,fD);
 }
   
 void addFunc(venv &ve, access *a, ty *result, const char *name, formal f1)
@@ -470,38 +475,6 @@ void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   addFunc(ve,writeArray3<T>,primVoid(),"write",
 	  formal(primFile(),"file",true),t4);
 }
-
-inline double Min(double a, double b)
-{
-  return (a < b) ? a : b;
-}
-
-inline double Max(double a, double b)
-{
-  return (a > b) ? a : b;
-}
-
-template <typename T>
-struct minbound {
-  pair operator() (pair z, pair w) {
-    return pair(Min(z.getx(),w.getx()),Min(z.gety(),w.gety()));
-  }
-  triple operator() (triple u, triple v) {
-    return triple(Min(u.getx(),v.getx()),Min(u.gety(),v.gety()),
-		  Min(u.getz(),v.getz()));
-  }
-};
-
-template <typename T>
-struct maxbound {
-  pair operator() (pair z, pair w) {
-    return pair(Max(z.getx(),w.getx()),Max(z.gety(),w.gety()));
-  }
-  triple operator() (triple u, triple v) {
-    return triple(Max(u.getx(),v.getx()),Max(u.gety(),v.gety()),
-		  Max(u.getz(),v.getz()));
-  }
-};
 
 inline double abs(pair z) {
     return z.length();

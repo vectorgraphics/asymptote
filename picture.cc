@@ -14,11 +14,21 @@
 #include "settings.h"
 #include "interact.h"
 #include "drawverbatim.h"
+#include "drawimage.h"
 
 using std::ifstream;
 using std::ofstream;
 
 using namespace settings;
+
+#ifdef HAVE_LIBGLUT
+namespace gl {
+void glrender(const char *prefix, unsigned char* &data,
+	      const camp::picture *pic, int& width, int& height,
+	      const camp::triple& light, double angle,
+	      const camp::triple& m, const camp::triple& M, bool interactive);
+}
+#endif
 
 // Give up on waiting for acroread to finish after this much time.
 unsigned psimagelimit=60;
@@ -35,6 +45,9 @@ texstream::~texstream() {
 
 namespace camp {
 
+const double pixelfactor=1.5; // Adaptive rendering constant.
+const double pixelfactor2=pixelfactor*pixelfactor;
+  
 const char *texpathmessage() {
   ostringstream buf;
   buf << "the directory containing your " << getSetting<string>("tex")
@@ -56,6 +69,7 @@ void picture::enclose(drawElement *begin, drawElement *end)
   assert(end);
   nodes.push_front(begin);
   lastnumber=0;
+  lastnumber3=0;
   for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
     if((*p)->islayer()) {
@@ -75,6 +89,7 @@ void picture::prepend(drawElement *p)
   assert(p);
   nodes.push_front(p);
   lastnumber=0;
+  lastnumber3=0;
 }
 
 void picture::append(drawElement *p)
@@ -98,6 +113,7 @@ void picture::prepend(picture &pic)
   
   copy(pic.nodes.begin(), pic.nodes.end(), inserter(nodes, nodes.begin()));
   lastnumber=0;
+  lastnumber3=0;
 }
 
 bool picture::havelabels()
@@ -166,20 +182,20 @@ bbox picture::bounds()
 bbox3 picture::bounds3()
 {
   size_t n=nodes.size();
-  if(n == lastnumber3) return b3_cached;
+  if(n == lastnumber3) return b3;
   
   if(lastnumber3 == 0)
-    b3_cached=bbox3();
+    b3=bbox3();
   
   nodelist::iterator p=nodes.begin();
   for(size_t i=0; i < lastnumber3; ++i) ++p;
   for(; p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->bounds(b3_cached);
+    (*p)->bounds(b3);
   }
 
   lastnumber3=n;
-  return b3_cached;
+  return b3;
 }
   
 void picture::texinit()
@@ -661,21 +677,81 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   return true;
 }
 
+// render viewport with width x height pixels.
+bool picture::render(int width, int height, double zoom) const
+{  
+  bool status = true;
+  double size2=hypot(width,height);
+  triple size3=(b3.Max()-b3.Min())*scale3D;
+  
+  int n=minsub;
+  if(maxsub == 0 || n < maxsub)
+    n=camp::max(n,(int) ceil(sqrt(fraction*size2/zoom)));
+  if(maxsub > 0 && n > maxsub) n=maxsub;
+  
+  if(verbose > 1) 
+    cout << "Using " << n << "x" << n << " surface sampling." << endl;
+
+  for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
+    assert(*p);
+    if(!(*p)->render(n,size2,size3))
+      status = false;
+  }
+  return status;
+}
+  
+bool picture::shipout3(const string& prefix, const string& format,
+		       double width, double height, double expand,
+		       const triple& light, double angle,
+		       const triple& m, const triple& M,
+		       Int Minsub, Int Maxsub, bool view)
+{
+#ifdef HAVE_LIBGLUT
+  bounds3();
+  
+  minsub=Minsub;
+  maxsub=Maxsub;
+  triple size3=(b3.Max()-b3.Min())*scale3D;
+  fraction=0;
+  if(maxsub == 0 || minsub < maxsub) {
+    for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
+      assert(*p);
+      (*p)->fraction(fraction,size3);
+    }
+  }
+  ColorSpace colorspace=RGB;
+  if(expand <= 0) expand=1;
+  int Width=(int) ceil(expand*width);
+  int Height=(int) floor(expand*height);
+  unsigned char *data;
+  bool View=settings::view() && view;
+  gl::glrender(prefix.c_str(),data,this,Width,Height,light,angle,m,M,View);
+  double f=1.0/expand;
+  append(new drawImage(data,Width,Height,colorspace,
+		       transform(0.0,0.0,Width*f,0.0,0.0,Height*f)));
+  shipout(NULL,prefix,format);
+  delete[] data;
+  return true;
+#else
+  return false;
+#endif  
+}
+
 bool picture::shipout3(const string& prefix)
 {
+  bounds3();
   bool status = true;
+  
   string prcname=buildname(prefix,"prc");
   prcfile prc(prcname);
-  
   for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
     if(!(*p)->write(&prc))
       status = false;
   }
-  
   if(status)
     status=prc.finish();
-  
+    
   if(!status) reportError("shipout3 failed");
     
   if(verbose > 0) cout << "Wrote " << prcname << endl;
@@ -693,6 +769,19 @@ picture *picture::transformed(const transform& t)
     pic->append((*p)->transformed(t));
   }
   pic->T=transform(t*T);
+
+  return pic;
+}
+
+picture *picture::transformed(vm::array *t)
+{
+  picture *pic = new picture;
+
+  nodelist::iterator p;
+  for (p = nodes.begin(); p != nodes.end(); ++p) {
+    assert(*p);
+    pic->append((*p)->transformed(t));
+  }
 
   return pic;
 }

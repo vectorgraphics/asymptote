@@ -69,6 +69,12 @@ using camp::pair;
 string asyInstallDir; // Used only by msdos
 string defaultXasy="xasy";
 
+#ifdef HAVE_LIBGLUT
+const bool haveglut=true;  
+#else
+const bool haveglut=false;
+#endif
+  
 #ifndef __CYGWIN__
   
 bool msdos=false;
@@ -918,6 +924,8 @@ void initSettings() {
 			      ""));
   addOption(new boolSetting("prc", 0,
                             "Embed 3D PRC graphics in PDF output", true));
+  addOption(new boolSetting("render", 0,
+                            "Render 3D graphics with OpenGL",haveglut));
   addOption(new boolSetting("thick", 0,
                             "Render thick PRC lines", true));
   addOption(new boolSetting("psimage", 0,
@@ -1045,6 +1053,7 @@ void initSettings() {
   addOption(new stringSetting("psviewerOptions", 0, "string", "", ""));
   addOption(new stringSetting("pdfviewerOptions", 0, "string", "", ""));
   addOption(new stringSetting("pdfreloadOptions", 0, "string", "", ""));
+  addOption(new stringSetting("glOptions", 0, "string", "", ""));
   
   addOption(new envSetting("config","config."+suffix));
   addOption(new envSetting("pdfviewer", defaultPDFViewer));

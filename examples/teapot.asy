@@ -3,7 +3,6 @@ import three;
 size(20cm);
 
 currentprojection=perspective(250,-250,250);
-settings.outformat="pdf";
 
 triple[][][] Q={
   {

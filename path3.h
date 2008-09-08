@@ -15,6 +15,7 @@
 #include "triple.h"
 #include "bbox3.h"
 #include "path.h"
+#include "arrayop.h"
 
 namespace camp {
   
@@ -314,11 +315,10 @@ public:
 // relative to the point z.
   Int windingnumber(const triple& z) const;
 
-  // Transformation
-  path3 transformed(const transform& t) const;
-  
 };
 
+path3 transformed(vm::array *t, const path3& p);
+  
 extern path3 nullpath3;
 extern const unsigned maxdepth;
  
@@ -330,10 +330,38 @@ bool intersections(double& s, double& t, std::vector<double>& S,
 void intersections(std::vector<double>& S, path3& g,
 		   const triple& p, const triple& q, double fuzz);
 
-  
 // Concatenates two path3s into a new one.
 path3 concat(const path3& p1, const path3& p2);
 
+// estimate the viewport fraction associated with the displacement d
+inline double fraction(const triple& d, const triple& size)
+{
+  double s=fabs(d.getx()*size.getx())+fabs(d.gety()*size.gety())+
+    fabs(d.getz()*size.getz());
+  return s != 0.0 ? min((d.abs2()/s),1.0) : 0.0;
+}
+
+// return the perpendicular displacement of a point z from the line through 
+// points p and q.
+inline triple displacement(const triple& z, const triple& p, const triple& q)
+{
+  triple Z=z-p;
+  triple Q=unit(q-p);
+  return Z-dot(Z,Q)*Q;
+}
+  
+struct Split3 {
+  triple m0,m1,m2,m3,m4,m5;
+  Split3(triple z0, triple c0, triple c1, triple z1) {
+    m0=0.5*(z0+c0);
+    m1=0.5*(c0+c1);
+    m2=0.5*(c1+z1);
+    m3=0.5*(m0+m1);
+    m4=0.5*(m1+m2);
+    m5=0.5*(m3+m4);
+  }
+};
+  
 double bound(double *p, double (*m)(double, double), double b,
 	     int depth=maxdepth);
 double bound(triple *p, double (*m)(double, double), double (*f)(triple),

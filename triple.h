@@ -72,6 +72,14 @@ public:
     return *this;
   }
 
+  const triple& operator-= (const triple& w)
+  {
+    x -= w.x;
+    y -= w.y;
+    z -= w.z;
+    return *this;
+  }
+
   friend bool operator== (const triple& z, const triple& w)
   {
     return z.x == w.x && z.y == w.y && z.z == w.z;
@@ -120,6 +128,13 @@ public:
   friend double dot(const triple& u, const triple& v)
   {
     return u.getx()*v.getx()+u.gety()*v.gety()+u.getz()*v.getz();
+  }
+
+  friend triple cross(const triple& u, const triple& v) 
+  {
+    return triple(u.gety()*v.getz()-u.getz()*v.gety(),
+		  u.getz()*v.getx()-u.getx()*v.getz(),
+		  u.getx()*v.gety()-v.getx()*u.gety());
   }
 
   // Returns a unit triple in the direction (theta,phi), in radians.

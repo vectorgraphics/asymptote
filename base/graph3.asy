@@ -125,7 +125,7 @@ void labelaxis(picture pic, transform3 T, Label L, path3 g,
 	locate1.dir(T,g,locate,t);
 	triple pathdir=locate1.pathdir;
 
-	triple perp=cross(pathdir,P.camera-P.target);
+	triple perp=cross(pathdir,P.vector());
 	if(align == O)
 	  align=unit(sgn(dot(sign*locate1.dir,perp))*perp);
 	path[] g=project(box(T*m,T*M),P);
@@ -510,7 +510,7 @@ real ztrans(transform3 t, real z)
 
 private triple defaultdir(triple X, triple Y, triple Z, bool opposite=false,
 			  projection P) {
-  triple u=cross(P.camera-P.target,Z);
+  triple u=cross(P.vector(),Z);
   return abs(dot(u,X)) < abs(dot(u,Y)) ? -X : (opposite ? Y : -Y);
 }
 
@@ -958,9 +958,10 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
   }
   
   bool back=false;
-  if(axis.type == Both)
-    back=dot((0,pic.userMax.y-pic.userMin.y,0),currentprojection.camera)*
-      sgn(currentprojection.camera.z) > 0;
+  if(axis.type == Both) {
+    triple v=currentprojection.vector();
+    back=dot((0,pic.userMax.y-pic.userMin.y,0),v)*sgn(v.z) > 0;
+  }
 
   xaxis3At(pic,L,axis,xmin,xmax,p,ticks,arrow,put,false,false,!back);
   if(axis.type == Both)
@@ -1028,9 +1029,10 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
   }
   
   bool back=false;
-  if(axis.type == Both)
-  back=dot((pic.userMax.x-pic.userMin.x,0,0),currentprojection.camera)*
-    sgn(currentprojection.camera.z) > 0;
+  if(axis.type == Both) {
+    triple v=currentprojection.vector();
+    back=dot((pic.userMax.x-pic.userMin.x,0,0),v)*sgn(v.z) > 0;
+  }
 
   yaxis3At(pic,L,axis,ymin,ymax,p,ticks,arrow,put,false,false,!back);
 
@@ -1098,9 +1100,10 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
   }
   
   bool back=false;
-  if(axis.type == Both)
-    back=dot((pic.userMax.x-pic.userMin.x,0,0),currentprojection.camera)*
-      sgn(currentprojection.camera.y) > 0;
+  if(axis.type == Both) {
+    triple v=currentprojection.vector();
+    back=dot((pic.userMax.x-pic.userMin.x,0,0),v)*sgn(v.y) > 0;
+  }
 
   zaxis3At(pic,L,axis,zmin,zmax,p,ticks,arrow,put,false,false,!back);
   if(axis.type == Both)

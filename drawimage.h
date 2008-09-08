@@ -14,17 +14,26 @@
 
 namespace camp {
 
+enum imagetype {PALETTE, NOPALETTE, RAW};
+  
 class drawImage : public drawElement {
   vm::array image,palette;
+  const unsigned char *raw; // For internal use; not buffered.
+  size_t width,height;
+  ColorSpace colorspace;
   transform t;
-  bool havepalette;
+  imagetype type;
 public:
   drawImage(const vm::array& image, const vm::array& palette,
 	    const transform& t)
-    : image(image), palette(palette), t(t), havepalette(true) {}
+    : image(image), palette(palette), t(t), type(PALETTE) {}
   
   drawImage(const vm::array& image, const transform& t)
-    : image(image), t(t), havepalette(false) {}
+    : image(image), t(t), type(NOPALETTE) {}
+  drawImage(const unsigned char *raw, size_t width, size_t height,
+	    ColorSpace colorspace, const transform& t)
+    : raw(raw), width(width), height(height), colorspace(colorspace), t(t),
+      type(RAW) {}
   
   
   virtual ~drawImage() {}
@@ -37,8 +46,18 @@ public:
   bool draw(psfile *out) {
     out->gsave();
     out->concat(t);
-    if(havepalette) out->image(image,palette);
-    else out->image(image);
+    switch(type) {
+    case PALETTE:
+      out->image(image,palette);
+      break;
+    case NOPALETTE:
+      out->image(image);    
+      break;
+    case RAW:
+      out->image(raw,width,height,colorspace);
+      break;
+    }
+    
     out->grestore();
     
     return true;

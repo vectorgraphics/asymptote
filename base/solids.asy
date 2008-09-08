@@ -93,8 +93,6 @@ struct revolution {
     return revolution(c,g,axis,angle1,angle2);
   }
   
-  private real scalefactor() {return abs(c)+max(abs(min(g)),abs(max(g)));}
-
   triple vertex(int i, real j) {
     triple v=point(g,i);
     triple center=c+dot(v-c,axis)*axis;
@@ -127,7 +125,7 @@ struct revolution {
       triple dir(real j) {return -Sin(j)*perp+Cos(j)*normal;}
       j=angle1;
       for(int k=0; k < n; ++k, j += w) {
-        path3 G=T[k]*h{dir(j)}..{dir(j+w)}T[k+1]*r{-dir(j+w)}..{-dir(j)}cycle;
+	path3 G=T[k]*h{dir(j)}..{dir(j+w)}T[k+1]*r{-dir(j+w)}..{-dir(j)}cycle;
         s.s[++m]=color == null ? patch(G) :
           patch(G,new pen[] {color(i,j),color(i+1,j),color(i+1,j+w),
                              color(i,j+w)});
@@ -150,14 +148,16 @@ struct revolution {
   void transverse(skeleton s, real t,
                   projection P=currentprojection) {
     path3 S=slice(t);
-    if(prc()) {
+    if(is3D()) {
       s.front.push(S);
       return;
     }
     static real epsilon=sqrt(realEpsilon);
     triple camera=P.camera;
-    if(P.infinity)
-      camera *= scalefactor();
+    if(P.infinity) {
+      real s=abs(c-P.target)+max(abs(min(g)-P.target),abs(max(g)-P.target));
+      camera=P.target+camerafactor*s*unit(P.vector());
+    }
     int L=length(g);
     real midtime=0.5*L;
     real sign=sgn(dot(axis,camera-P.target))*sgn(dot(axis,dir(g,midtime)));
@@ -223,7 +223,7 @@ struct revolution {
 
   // add longitudinal curves to skeleton
   void longitudinal(skeleton s, projection P=currentprojection) {
-    if(prc()) return;
+    if(is3D()) return;
     real t, d=0;
     static real epsilon=sqrt(realEpsilon);
 
@@ -274,7 +274,7 @@ void draw(picture pic=currentpicture, revolution r, int m=0, pen p=currentpen,
           pen backpen=p, bool longitudinal=true, pen longitudinalpen=p,
           projection P=currentprojection)
 {
-  pen thin=prc() ? thin : defaultpen;
+  pen thin=is3D() ? thin : defaultpen;
   skeleton s=r.skeleton(m,P);
   begingroup3(pic);
   draw(pic,s.back,linetype("8 8",8)+backpen);

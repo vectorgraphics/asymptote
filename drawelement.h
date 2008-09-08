@@ -20,6 +20,10 @@
 
 namespace camp {
 
+const double scale3D=1.0/settings::cm;
+extern const double pixelfactor; // Adaptive rendering constant.
+extern const double pixelfactor2; // Adaptive rendering constant.
+  
 class box {
   pair p[4];
 public:
@@ -132,8 +136,20 @@ public:
     return true;
   }
 
+  // Compute fraction of 3D bounding box occupied by each surface.
+  virtual void fraction(double& n, const triple& size3) {}
+
+  // Render with OpenGL
+  virtual bool render(int n, double size2, const triple& size3) {
+    return true;
+  }
+
   // Transform as part of a picture.
   virtual drawElement *transformed(const transform&) {
+    return this;
+  }
+  
+  virtual drawElement *transformed(vm::array*) {
     return this;
   }
 };

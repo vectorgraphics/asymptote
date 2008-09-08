@@ -255,6 +255,40 @@ struct max {
   T operator() (T x, T y, size_t=0) {return x > y ? x : y;}
 };
 
+template<class T>
+inline T Min(T a, T b)
+{
+  return (a < b) ? a : b;
+}
+
+template<class T>
+inline T Max(T a, T b)
+{
+  return (a > b) ? a : b;
+}
+
+template <typename T>
+struct minbound {
+  camp::pair operator() (camp::pair z, camp::pair w) {
+    return camp::pair(Min(z.getx(),w.getx()),Min(z.gety(),w.gety()));
+  }
+  camp::triple operator() (camp::triple u, camp::triple v) {
+    return camp::triple(Min(u.getx(),v.getx()),Min(u.gety(),v.gety()),
+		  Min(u.getz(),v.getz()));
+  }
+};
+
+template <typename T>
+struct maxbound {
+  camp::pair operator() (camp::pair z, camp::pair w) {
+    return camp::pair(Max(z.getx(),w.getx()),Max(z.gety(),w.gety()));
+  }
+  camp::triple operator() (camp::triple u, camp::triple v) {
+    return camp::triple(Max(u.getx(),v.getx()),Max(u.gety(),v.gety()),
+			Max(u.getz(),v.getz()));
+  }
+};
+
 template <double (*func)(double)>
 void realReal(vm::stack *s) 
 {

@@ -33,8 +33,6 @@
 #include "util.h"
 #include "interact.h"
 
-char **args(const char *command);
-  
 // bidirectional stream for reading and writing to pipes
 class iopipestream {
 protected:

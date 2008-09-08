@@ -11,9 +11,10 @@
 #include "util.h"
 #include "camperror.h"
 #include "mathop.h"
-#include "arrayop.h"
 
 namespace camp {
+
+using run::operator *;
 
 path3 nullpath3;
   
@@ -661,21 +662,24 @@ path3 concat(const path3& p1, const path3& p2)
   return path3(nodes, i+1);
 }
 
+path3 transformed(vm::array *t, const path3& p)
+{
+  Int n = p.size();
+  mem::vector<solvedKnot3> nodes(n);
+
+  for (Int i = 0; i < n; ++i) {
+    nodes[i].pre = t * p.precontrol(i);
+    nodes[i].point = t * p.point(i);
+    nodes[i].post = t * p.postcontrol(i);
+    nodes[i].straight = p.straight(i);
+  }
+
+  return path3(nodes, n, p.cyclic());
+}
+
 struct Split {
   double m0,m1,m2,m3,m4,m5;
   Split(double z0, double c0, double c1, double z1) {
-    m0=0.5*(z0+c0);
-    m1=0.5*(c0+c1);
-    m2=0.5*(c1+z1);
-    m3=0.5*(m0+m1);
-    m4=0.5*(m1+m2);
-    m5=0.5*(m3+m4);
-  }
-};
-  
-struct Split3 {
-  triple m0,m1,m2,m3,m4,m5;
-  Split3(triple z0, triple c0, triple c1, triple z1) {
     m0=0.5*(z0+c0);
     m1=0.5*(c0+c1);
     m2=0.5*(c1+z1);
@@ -752,16 +756,16 @@ double bound(double *p, double (*m)(double, double), double b, int depth)
 
   // Check all 4 Bezier subpatches.
   double s0[]={c4.m5,c5.m5,c6.m5,c7.m5,c4.m3,c5.m3,c6.m3,c7.m3,
-                 c4.m0,c5.m0,c6.m0,c7.m0,p[12],c3.m0,c3.m3,c3.m5};
+	       c4.m0,c5.m0,c6.m0,c7.m0,p[12],c3.m0,c3.m3,c3.m5};
   b=bound(s0,m,b,depth);
   double s1[]={p[0],c0.m0,c0.m3,c0.m5,c4.m2,c5.m2,c6.m2,c7.m2,
-                 c4.m4,c5.m4,c6.m4,c7.m4,c4.m5,c5.m5,c6.m5,c7.m5};
+	       c4.m4,c5.m4,c6.m4,c7.m4,c4.m5,c5.m5,c6.m5,c7.m5};
   b=bound(s1,m,b,depth);
   double s2[]={c0.m5,c0.m4,c0.m2,p[3],c7.m2,c8.m2,c9.m2,c10.m2,
-                 c7.m4,c8.m4,c9.m4,c10.m4,c7.m5,c8.m5,c9.m5,c10.m5};
+	       c7.m4,c8.m4,c9.m4,c10.m4,c7.m5,c8.m5,c9.m5,c10.m5};
   b=bound(s2,m,b,depth);
   double s3[]={c7.m5,c8.m5,c9.m5,c10.m5,c7.m3,c8.m3,c9.m3,c10.m3,
-                 c7.m0,c8.m0,c9.m0,c10.m0,c3.m5,c3.m4,c3.m2,p[15]};
+	       c7.m0,c8.m0,c9.m0,c10.m0,c3.m5,c3.m4,c3.m2,p[15]};
   return bound(s3,m,b,depth);
 }
   
@@ -782,7 +786,6 @@ double bound(triple *p, double (*m)(double, double), double (*f)(triple),
   Split3 c5(c3.m0,c2.m0,c1.m0,c0.m0);
   Split3 c6(c3.m3,c2.m3,c1.m3,c0.m3);
   Split3 c7(c3.m5,c2.m5,c1.m5,c0.m5);
-
   Split3 c8(c3.m4,c2.m4,c1.m4,c0.m4);
   Split3 c9(c3.m5,c2.m5,c1.m5,c0.m5);
   Split3 c10(p[15],p[11],p[7],p[3]);
