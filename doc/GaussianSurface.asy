@@ -14,7 +14,7 @@ surface s=surface(f,(-1,-1),(1,1));
 
 xaxis3(Label("$x$",1,-X-Y),red,Arrow3);
 yaxis3(Label("$y$",1,-X-Y),red,Arrow3);
-zaxis3(red,Arrow3);
+zaxis3(XYZero(extend=true),red,Arrow3);
 
 draw(s,meshpen=black,nolight);
 
