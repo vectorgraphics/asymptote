@@ -115,7 +115,7 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 {
   if(!uptodate()) {
     frame f=pic.fit(options,P);
-    if(pic.nodes.length > 0 || (!settings.render || prc()))
+    if(!settings.render || prc())
       shipout(prefix,orientation(f),format,wait,view);
   }
   pic.uptodate=true;

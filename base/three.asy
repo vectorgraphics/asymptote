@@ -1870,7 +1870,7 @@ embed3=new object(picture pic, real xsize, real ysize,
 currentpicture.fitter=new frame(picture pic, real xsize, real ysize,
                                 bool keepAspect, string options, projection P) {
   frame f;
-  add(f,pic.fit2(xsize,ysize,keepAspect));
+  if(!settings.render) add(f,pic.fit2(xsize,ysize,keepAspect));
   if(pic.nodes3.length > 0) {
     object F=embed(pic,xsize,ysize,keepAspect,options,P);
     if(prc())
@@ -1886,15 +1886,15 @@ currentpicture.fitter=new frame(picture pic, real xsize, real ysize,
 void add(picture dest=currentpicture, object src, pair position, pair align,
          bool group=true, filltype filltype=NoFill, bool put=Above)
 {
-  if(is3D())
+  if(prc())
     label(dest,src,position,align);
-  else
+  else if(!settings.render)
     plain.add(dest,src,position,align,group,filltype,put);
 }
 
 string cameralink(string label, string text="View Parameters")
 {
-  if(!is3D() || plain.link == null) return "";
+  if(!prc() || plain.link == null) return "";
   return plain.link(label,text,"3Dgetview");
 }
 

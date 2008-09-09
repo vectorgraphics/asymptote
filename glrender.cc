@@ -157,6 +157,8 @@ void display(void)
   }
 }
 
+Arcball arcball;
+  
 void setProjection()
 {
   glMatrixMode(GL_PROJECTION);
@@ -180,10 +182,9 @@ void setProjection()
     xmax=r*Aspect-X0;
     glFrustum(xmin,xmax,ymin,ymax,-Max.getz(),-Min.getz());
   }
+  arcball.set_params(vec2(0.5*Width,0.5*Height),arcballRadius/Zoom);
 }
 
-Arcball arcball;
-  
 void reshape(int width, int height)
 {
   bool Reshape=false;
@@ -203,13 +204,12 @@ void reshape(int width, int height)
   
   setProjection();
   glViewport(0,0,Width,Height);
-  arcball.set_params(vec2(0.5*Width,0.5*Height),arcballRadius/Zoom);
 }
   
 void keyboard(unsigned char key, int x, int y)
 {
   switch(key) {
-  case 17:
+  case 17: // Ctrl-q
   case 'q':
     {
       glReadBuffer(GL_FRONT_LEFT);
