@@ -9,6 +9,7 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include <zlib.h>
 
 #include "psfile.h"
 #include "settings.h"
@@ -434,7 +435,8 @@ void psfile::writeHex(pen *p, Int ncomponents)
   }
 }
 
-void psfile::imageheader(size_t width, size_t height, ColorSpace colorspace)
+void psfile::imageheader(size_t width, size_t height, ColorSpace colorspace,
+			 const string& filter)
 {
   unsigned ncomponents=ColorComponents[colorspace];
   *out << "/Device" << ColorDeviceSuffix[colorspace] << " setcolorspace" 
@@ -451,7 +453,7 @@ void psfile::imageheader(size_t width, size_t height, ColorSpace colorspace)
   
   *out << "]" << newl
        << "/ImageMatrix [" << width << " 0 0 " << height << " 0 0]" << newl
-       << "/DataSource currentfile /ASCIIHexDecode filter" << newl
+       << "/DataSource currentfile " << filter << " filter" << newl
        << ">>" << newl
        << "image" << newl;
 }
@@ -549,27 +551,43 @@ void psfile::rgbimage(const unsigned char *a, size_t width, size_t height)
   
   unsigned ncomponents=ColorComponents[colorspace];
   
-  imageheader(width,height,colorspace);
+  if(colorspace != RGB || settings::getSetting<Int>("level") < 3) {
+    imageheader(width,height,colorspace);
+    beginHex();
+    for(size_t i=0; i < width; ++i) {
+      for(size_t j=0; j < height; ++j) {
+	size_t index=3*(height*i+j);
+	if(colorspace == RGB) {
+	  for(size_t k=0; k < 3; ++k)
+	    write2(a[index+k]);
+	  *out << newl;
+	} else {
+	  pen p(a[index]/255.0,a[index+1]/255.0,a[index+2]/255.0);
+	  p.convert();
+	  if(!p.promote(colorspace))
+	    reportError(inconsistent);
+	  writeHex(&p,ncomponents);
+	}
+      }	
+    }
+    endHex();
+    *out << ">" << endl;
+  } else {
+    imageheader(width,height,colorspace,"/FlateDecode");
     
-  beginHex();
-  for(size_t i=0; i < width; ++i) {
-    for(size_t j=0; j < height; ++j) {
-      size_t index=3*(height*i+j);
-      if(colorspace == RGB) {
-	for(size_t k=0; k < 3; ++k)
-	  write2(a[index+k]);
-      } else {
-	pen p(a[index]/255.0,a[index+1]/255.0,a[index+2]/255.0);
-	p.convert();
-	if(!p.promote(colorspace))
-	  reportError(inconsistent);
-	writeHex(&p,ncomponents);
-      }
-      *out << newl;
-    }	
+    unsigned long size= 3*width*height;
+    /* Bound calculation taken from zlib. */
+    unsigned long compressedSize=size+(size >> 12)+(size >> 14)+11;
+    Bytef *compressed=new Bytef[compressedSize];
+
+    compress(compressed,&compressedSize,a,size);
+    
+    for(size_t i=0; i < compressedSize; ++i)
+      *out << compressed[i];
+    *out << endl;
+    
+    delete[] compressed;
   }
-  endHex();
-  *out << ">" << endl;
 }
-  
+
 } //namespace camp

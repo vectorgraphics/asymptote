@@ -179,7 +179,8 @@ public:
   void tensorshade(const vm::array& pens, const vm::array& boundaries,
 		   const vm::array& z);
 
-  void imageheader(size_t width, size_t height, ColorSpace colorspace);
+  void imageheader(size_t width, size_t height, ColorSpace colorspace,
+		   const string& filter="/ASCIIHexDecode");
   
   void image(const vm::array& a, const vm::array& p);
   void image(const vm::array& a);
