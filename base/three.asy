@@ -1870,7 +1870,7 @@ embed3=new object(picture pic, real xsize, real ysize,
 currentpicture.fitter=new frame(picture pic, real xsize, real ysize,
                                 bool keepAspect, string options, projection P) {
   frame f;
-  if(!settings.render) add(f,pic.fit2(xsize,ysize,keepAspect));
+  add(f,pic.fit2(xsize,ysize,keepAspect));
   if(pic.nodes3.length > 0) {
     object F=embed(pic,xsize,ysize,keepAspect,options,P);
     if(prc())
