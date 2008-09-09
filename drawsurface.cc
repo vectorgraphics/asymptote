@@ -69,11 +69,11 @@ void drawSurface::fraction(double &F, const triple& size3)
   if(f > F) F=f;
 }
   
-bool drawSurface::render(int n, double size2, const triple&)
+bool drawSurface::render(int n, double size2, const triple&, bool transparent)
 {
-  if(invisible)
+  if(invisible || ((diffuse.A < 1.0) ^ transparent))
     return true;
-
+  
   if(localsub) n=camp::min(n,(int) ceil(sqrt(f*size2)));
 
   GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
@@ -81,11 +81,11 @@ bool drawSurface::render(int n, double size2, const triple&)
   GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
   GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
     
-  glMaterialfv(GL_FRONT,GL_DIFFUSE,Diffuse);
-  glMaterialfv(GL_FRONT,GL_AMBIENT,Ambient);
-  glMaterialfv(GL_FRONT,GL_EMISSION,Emissive);
-  glMaterialfv(GL_FRONT,GL_SPECULAR,Specular);
-  glMaterialf(GL_FRONT,GL_SHININESS,100.0*shininess);
+  glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
+  glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
+  glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
+  glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
+  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
   glMap2d(GL_MAP2_VERTEX_3,0,1,3,4,0,1,12,4,(GLdouble*) &controls);
   glMapGrid2d(n,0.0,1.0,n,0.0,1.0);

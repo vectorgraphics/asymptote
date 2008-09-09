@@ -26,7 +26,8 @@ namespace gl {
 void glrender(const char *prefix, unsigned char* &data,
 	      const camp::picture *pic, int& width, int& height,
 	      const camp::triple& light, double angle,
-	      const camp::triple& m, const camp::triple& M, bool interactive);
+	      const camp::triple& m, const camp::triple& M, bool interactive,
+	      bool save);
 }
 #endif
 
@@ -678,7 +679,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 }
 
 // render viewport with width x height pixels.
-bool picture::render(int width, int height, double zoom) const
+bool picture::render(int width, int height, double zoom, bool transparent) const
 {  
   bool status = true;
   double size2=hypot(width,height);
@@ -694,7 +695,7 @@ bool picture::render(int width, int height, double zoom) const
 
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    if(!(*p)->render(n,size2,size3))
+    if(!(*p)->render(n,size2,size3,transparent))
       status = false;
   }
   return status;
@@ -725,12 +726,16 @@ bool picture::shipout3(const string& prefix, const string& format,
   int Height=(int) floor(expand*height);
   unsigned char *data;
   bool View=settings::view() && view;
-  gl::glrender(prefix.c_str(),data,this,Width,Height,light,angle,m,M,View);
-  double f=1.0/expand;
-  append(new drawImage(data,Width,Height,colorspace,
-		       transform(0.0,0.0,Width*f,0.0,0.0,Height*f)));
-  shipout(NULL,prefix,format);
-  delete[] data;
+  string outputformat=format.empty() ? getSetting<string>("outformat") : format;
+  gl::glrender(prefix.c_str(),data,this,Width,Height,light,angle,m,M,View,
+	       !outputformat.empty());
+  if(data) {
+    double f=1.0/expand;
+    append(new drawImage(data,Width,Height,colorspace,
+			 transform(0.0,0.0,Width*f,0.0,0.0,Height*f)));
+    shipout(NULL,prefix,format);
+    delete[] data;
+  }
   return true;
 #else
   return false;

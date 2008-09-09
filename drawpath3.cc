@@ -52,20 +52,17 @@ bool drawPath3::write(prcfile *out)
   return true;
 }
 
-bool drawPath3::render(int, double size2, const triple& size3)
+bool drawPath3::render(int, double size2, const triple& size3, bool transparent)
 {
   Int n=g.length();
-  if(n == 0 || pentype.invisible())
+  double opacity=pentype.opacity();
+  if(n == 0 || pentype.invisible() || ((opacity < 1.0) ^ transparent))
     return true;
 
-  GLfloat p[]={pentype.red(),pentype.green(),pentype.blue(),pentype.opacity()};
-  static GLfloat black[] = {0.0,0.0,0.0,1.0};
-  glMaterialfv(GL_FRONT,GL_DIFFUSE,p);
-  glMaterialfv(GL_FRONT,GL_AMBIENT,black);
-  glMaterialfv(GL_FRONT,GL_EMISSION,p);
-  glMaterialfv(GL_FRONT,GL_SPECULAR,black);
-  glMaterialf(GL_FRONT,GL_SHININESS,100.0);
-    
+  pentype.torgb();
+  glDisable(GL_LIGHTING);
+  glColor4d(pentype.red(),pentype.green(),pentype.blue(),opacity);	
+
   if(g.piecewisestraight()) {
     controls=new Triple[n+1];
     glBegin(GL_LINE_STRIP);
@@ -97,6 +94,8 @@ bool drawPath3::render(int, double size2, const triple& size3)
       glEvalMesh1(GL_LINE,0,n);
     }
   }
+  glEnable(GL_LIGHTING);
+
   return true;
 }
 

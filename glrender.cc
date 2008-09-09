@@ -71,6 +71,7 @@ inline T max(T a, T b)
 }
 
 bool Interactive;
+bool Save;
 const picture* Picture;
 int Width=0;
 int Height=0;
@@ -102,34 +103,51 @@ int window;
   
 void initlights(void)
 {
-  GLfloat ambient[] = {0.1, 0.1, 0.1, 1.0};
-  GLfloat position[] = {Light.getx(), Light.gety(), Light.getz(), 0.0};
-   
-  glEnable(GL_LIGHTING);
+  GLfloat ambient[]={0.1, 0.1, 0.1, 1.0};
+  GLfloat position[]={Light.getx(), Light.gety(), Light.getz(), 0.0};
+
+  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE);
   
+  glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
   glLightfv(GL_LIGHT0,GL_AMBIENT,ambient);
   glLightfv(GL_LIGHT0,GL_POSITION,position);
 }
 
-void quit() 
-{
+void save()
+{  
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
   size_t ndata=3*Width*Height; // Use ColorComponents[colorspace]
   Data=new unsigned char[ndata];
   glReadPixels(0,0,Width,Height,GL_RGB,GL_UNSIGNED_BYTE,Data);
+}
+  
+void quit() 
+{
+  if(Save) save();
   glutDestroyWindow(window);
   glutLeaveMainLoop();
 }
-  
+
 void display(void)
 {
   if(!Interactive && !first)
     return;
   
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  // Render opaque objects
+  Picture->render(Width,Height,Zoom,false);
   
-  Picture->render(Width,Height,Zoom);
+  // Enable transparency
+  glEnable(GL_BLEND);
+  glDepthMask(GL_FALSE);
+  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  
+  // Render transparent objects
+  Picture->render(Width,Height,Zoom,true);
+  glDepthMask(GL_TRUE);
+  glDisable(GL_BLEND);
   
   if(Interactive)
     glutSwapBuffers();
@@ -315,9 +333,11 @@ void mouse(int button, int state, int x, int y)
 
 void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
 	      int& width, int& height, const triple& light,
-	      double angle, const triple& m, const triple& M, bool interactive)
+	      double angle, const triple& m, const triple& M,
+	      bool interactive, bool save)
 {
   Interactive=interactive;
+  Save=save;
   Picture=pic;
   Light=light;
   Min=m;
@@ -362,9 +382,8 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
   glEnable(GL_MAP2_VERTEX_3);
   glEnable(GL_AUTO_NORMAL);
   
-  // Enable transparency
-  glEnable (GL_BLEND);
-  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  // GL_LIGHT_MODEL_TWO_SIDE seems to require CW orientation.  
+  glFrontFace(GL_CW);
   
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -378,6 +397,7 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
   glutMouseWheelFunc(mousewheel);
    
   glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_CONTINUE_EXECUTION);
+  Data=NULL;
   glutMainLoop();
   width=Width;
   height=Height;

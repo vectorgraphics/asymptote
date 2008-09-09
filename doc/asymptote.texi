@@ -7348,10 +7348,6 @@ picture surface(real f(pair z), pair a, pair b, int nx=nmesh,
                 int ny=nx, bool cond(pair z)=null, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
-picture surface(real f(pair z), int nsub, pair a, pair b, int nx=nmesh,
-                int ny=nx, bool cond(pair z)=null, bool outward=false,
-                pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection);
 @end verbatim
 @noindent
 The boolean array or function @code{cond} can be used to control which
@@ -7364,18 +7360,11 @@ picture surface(triple f(pair z), pair a, pair b, int nu=nmesh,
                 int nv=nu, bool cond(pair z)=null, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
-picture surface(triple f(pair z), int nsub, pair a, pair b, int nu=nmesh,
-                int nv=nu, bool cond(pair z)=null, bool outward=false,
-                pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection);
 @end verbatim
 @noindent
 as illustrated in the example @code{parametricsurface.asy}.
-The optional argument @code{nsub} allows one to subsample the function
-@code{nsub} times along the cell edges. However, smoother Gouraud shading
-is used for lighting effects when this parameter is omitted. Lighting can be
-disabled by setting @code{light=O}, as in this example of a Gaussian
-surface subsampled 4 times:
+Lighting can be disabled by setting @code{light=nolight}, as in this example
+of a Gaussian:
 @anchor{GaussianSurface}
 @verbatiminclude GaussianSurface.asy
 @image{GaussianSurface}
@@ -8322,7 +8311,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  ticklabel popup UnFill markroutine marknodes markuniform erf
 @c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis Datadir ds
 @c  LocalWords:  resetdefaultpen latticeshade axialshade radialshade erfc det
-@c  LocalWords:  gouraudshade unescaped nmesh nsub surfacepen getpair MikTeX dw
+@c  LocalWords:  gouraudshade unescaped nmesh surfacepen getpair MikTeX dw
 @c  LocalWords:  lightgray meshpen localhistory axisT roundedpath unitsize aSin
 @c  LocalWords:  fontcommand makepen aCos aTan Knorr roundpath BeginPoint nView
 @c  LocalWords:  MidPoint EndPoint nmask antialiasing autoplain batchMask libgc

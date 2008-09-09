@@ -35,7 +35,7 @@ public:
   
   bool write(prcfile *out);
   
-  bool render(int, double size2, const triple& size3);
+  bool render(int, double size2, const triple& size3, bool transparent);
 
   drawElement *transformed(vm::array *t);
 };

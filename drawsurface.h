@@ -94,7 +94,7 @@ public:
   bool write(prcfile *out);
   
   void fraction(double &f, const triple& size3);
-  bool render(int n, double, const triple&);
+  bool render(int n, double, const triple&, bool transparent);
   
   drawElement *transformed(vm::array *t);
 };
