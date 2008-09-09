@@ -720,7 +720,6 @@ bool picture::shipout3(const string& prefix, const string& format,
       (*p)->fraction(fraction,size3);
     }
   }
-  ColorSpace colorspace=RGB;
   if(expand <= 0) expand=1;
   int Width=(int) ceil(expand*width);
   int Height=(int) floor(expand*height);
@@ -731,7 +730,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 	       !outputformat.empty());
   if(data) {
     double f=1.0/expand;
-    append(new drawImage(data,Width,Height,colorspace,
+    append(new drawImage(data,Width,Height,
 			 transform(0.0,0.0,Width*f,0.0,0.0,Height*f)));
     shipout(NULL,prefix,format);
     delete[] data;

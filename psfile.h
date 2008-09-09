@@ -183,8 +183,7 @@ public:
   
   void image(const vm::array& a, const vm::array& p);
   void image(const vm::array& a);
-  void image(const unsigned char *a, size_t width, size_t height,
-	     ColorSpace colorspace);
+  void rgbimage(const unsigned char *a, size_t width, size_t height);
 
   void gsave(bool tex=false) {
     if(pdf) *out << "q";

@@ -540,10 +540,13 @@ void psfile::image(const array& a)
   *out << ">" << endl;
 }
   
-void psfile::image(const unsigned char *a, size_t width, size_t height,
-		   ColorSpace colorspace)
+void psfile::rgbimage(const unsigned char *a, size_t width, size_t height)
 {
+  pen p(0.0,0.0,0.0);
+  p.convert();
+  ColorSpace colorspace=p.colorspace();
   checkColorSpace(colorspace);
+  
   unsigned ncomponents=ColorComponents[colorspace];
   
   imageheader(width,height,colorspace);
@@ -551,9 +554,17 @@ void psfile::image(const unsigned char *a, size_t width, size_t height,
   beginHex();
   for(size_t i=0; i < width; ++i) {
     for(size_t j=0; j < height; ++j) {
-      size_t index=ncomponents*(height*i+j);
-      for(size_t k=0; k < ncomponents; ++k)
-	write2(a[index+k]);
+      size_t index=3*(height*i+j);
+      if(colorspace == RGB) {
+	for(size_t k=0; k < 3; ++k)
+	  write2(a[index+k]);
+      } else {
+	pen p(a[index]/255.0,a[index+1]/255.0,a[index+2]/255.0);
+	p.convert();
+	if(!p.promote(colorspace))
+	  reportError(inconsistent);
+	writeHex(&p,ncomponents);
+      }
       *out << newl;
     }	
   }
