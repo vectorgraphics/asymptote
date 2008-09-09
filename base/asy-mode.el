@@ -105,6 +105,8 @@ Some variables can be customized: M-x customize-group <RET> asymptote <RET>."
 (require 'compile)
 (require 'wid-edit)
 
+(load "cc-mode.el");; Force use of new c-lang-defconst.
+
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.asy$" . asy-mode))
 
