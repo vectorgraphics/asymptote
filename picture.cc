@@ -690,8 +690,9 @@ bool picture::render(int width, int height, double zoom, bool transparent) const
     n=camp::max(n,(int) ceil(sqrt(fraction*size2/zoom)));
   if(maxsub > 0 && n > maxsub) n=maxsub;
   
-  if(verbose > 1) 
-    cout << "Using " << n << "x" << n << " surface sampling." << endl;
+  if(verbose > 1 && !transparent) 
+    cout << "Using " << n << "x" << n << " surface sampling" 
+	 << " of " << width << "x" << height << " image" << endl;
 
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);

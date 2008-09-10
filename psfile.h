@@ -29,13 +29,80 @@ inline void BoundingBox(std::ostream& s, const bbox& box)
   s << "%%HiResBoundingBox: " << std::setprecision(9) << box << newl;
 }
 
+// An ASCII85Encode filter.
+class encode85 {
+  ostream *out;
+  int tuple;
+  int pos;
+  int count;
+  static const int width=72;
+public:
+  encode85(ostream *out) : out(out), tuple(0), pos(0), count(0) {}
+  
+  ~encode85() {
+    if(count > 0)
+      encode(tuple, count);
+    if(pos+2 > width)
+      *out << '\n';
+    *out << "~>\n";
+  }
+private:  
+  void encode(unsigned int tuple, int count) {
+    unsigned char buf[5], *s=buf;
+    int i=5;
+    do {
+      *s++=tuple % 85;
+      tuple /= 85;
+    } while(--i > 0);
+    i=count;
+    do {
+      *out << (unsigned char) (*--s + '!');
+      if(pos++ >= width) {
+	pos=0;
+	*out << '\n';
+      }
+    } while(i-- > 0);
+  }
+
+public:  
+  void put(unsigned char c) {
+    switch (count++) {
+      case 0:
+	tuple |= (c << 24);
+	break;
+      case 1:
+	tuple |= (c << 16);
+	break;
+      case 2:
+	tuple |= (c <<  8);
+	break;
+      case 3:
+	tuple |= c;
+	if(tuple == 0) {
+	  *out << 'z';
+	  if(pos++ >= width) {
+	    pos=0;
+	    *out << '\n';
+	  }
+	} else
+	  encode(tuple, count);
+	tuple=0;
+	count=0;
+	break;
+    }
+  }
+};
+
 class psfile {
   string filename;
   bool pdfformat;    // Is final output format PDF?
   bool pdf;          // Output direct PDF?
   bool transparency; // Is transparency used?
+  unsigned char *buffer;
+  size_t count;
   mem::stack<pen> pens;
-
+  encode85 *e;
+  
   void write(transform t) {
     if(!pdf) *out << "[";
     *out << " " << t.getxx() << " " << t.getyx()
@@ -44,7 +111,13 @@ class psfile {
     if(!pdf) *out << "]";
   }
 
+  void writeHex(pen *p, size_t ncomponents);
+  void write(pen *p, size_t ncomponents);
+  
+  void writeCompressed(const unsigned char *a, size_t size);
+  
   void beginHex() {
+    buffer=NULL;
     out->setf(std::ios::hex,std::ios::basefield);
     out->fill('0');
   }
@@ -52,10 +125,36 @@ class psfile {
   void endHex() {
     out->setf(std::ios::dec,std::ios::basefield);
     out->fill();
+    *out << ">" << endl;
+  }
+  
+  void beginImage(size_t n) {
+    if(settings::getSetting<Int>("level") >= 3) {
+      buffer=new unsigned char[n];
+      count=0;
+    } else e=new encode85(out);
+  }
+  
+  void endImage() {
+    if(buffer) {
+      writeCompressed(buffer,count);
+      delete[] buffer;
+    } else delete e;
+  }
+  
+  void writeByte(unsigned char n) {
+    if(buffer)
+      buffer[count++]=n;
+    else
+      e->put(n);
   }
   
   void write2(unsigned n) {
     *out << std::setw(2) << n;
+  }
+  
+  void writenewl() {
+    *out << newl;
   }
   
 protected:
@@ -64,6 +163,7 @@ protected:
   
 public: 
   psfile(const string& filename, bool pdfformat);
+  
   psfile() {pdf=settings::pdf(settings::getSetting<string>("tex"));}
 
   ~psfile();
@@ -90,8 +190,6 @@ public:
     *out << " " << z.getx() << " " << z.gety();
   }
 
-  void writeHex(pen *p, Int ncomponents);
-  
   void resetpen() {
     lastpen=pen(initialpen);
     lastpen.convert();
@@ -179,12 +277,11 @@ public:
   void tensorshade(const vm::array& pens, const vm::array& boundaries,
 		   const vm::array& z);
 
-  void imageheader(size_t width, size_t height, ColorSpace colorspace,
-		   const string& filter="/ASCIIHexDecode");
+  void imageheader(size_t width, size_t height, ColorSpace colorspace);
   
   void image(const vm::array& a, const vm::array& p);
   void image(const vm::array& a);
-  void rgbimage(const unsigned char *a, size_t width, size_t height);
+  void rawimage(const unsigned char *a, size_t width, size_t height);
 
   void gsave(bool tex=false) {
     if(pdf) *out << "q";

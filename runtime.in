@@ -214,7 +214,7 @@ function *realTripleFunction()
   return new function(primReal(),primTriple());
 }
 
-const unsigned camp::ColorComponents[]={0,0,1,3,4,0};
+const size_t camp::ColorComponents[]={0,0,1,3,4,0};
 
 namespace vm {
   const void checkequal(size_t i, size_t j) {
@@ -1629,7 +1629,7 @@ pen gray(real gray)
 
 realarray *colors(pen p)
 {  
-  Int n=ColorComponents[p.colorspace()];
+  size_t n=ColorComponents[p.colorspace()];
   array *a=new array(n);
   
   switch(n) {

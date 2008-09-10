@@ -372,8 +372,7 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
   window=glutCreateWindow(prefix);
   
   if(settings::verbose > 1) 
-    cout << "Rendering " << prefix << " as " << Width << "x" << Height
-	 << " image." << endl;
+    cout << "Rendering " << prefix << endl;
     
   glClearColor(1.0,1.0,1.0,0.0);
    

@@ -304,7 +304,7 @@ struct control {
   }
 }
 
-  control nocontrol;
+control nocontrol;
   
 control operator * (transform3 t, control c) 
 {
@@ -339,7 +339,7 @@ struct Tension {
   }
 }
 
-  Tension operator init()
+Tension operator init()
 {
   Tension t=new Tension;
   t.init(false);
@@ -391,7 +391,7 @@ struct dir {
   }
 }
 
-  void write(file file, dir d)
+void write(file file, dir d)
 {
   if(d.dir != O) {
     write(file,"{"); write(file,unit(d.dir)); write(file,"}");
@@ -498,7 +498,7 @@ struct flatguide3 {
   }
 }
 
-  void write(file file, string s="", explicit flatguide3 x, suffix suffix=none)
+void write(file file, string s="", explicit flatguide3 x, suffix suffix=none)
 {
   write(file,s);
   if(x.size() == 0) write(file,"<nullpath3>");
@@ -674,7 +674,7 @@ struct Controls {
   }
 }
 
-  private triple cross(triple d0, triple d1, triple reference)
+private triple cross(triple d0, triple d1, triple reference)
 {
   triple normal=cross(d0,d1);
   return normal == O ? reference : normal;

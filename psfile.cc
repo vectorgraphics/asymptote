@@ -26,20 +26,20 @@ namespace camp {
 void checkColorSpace(ColorSpace colorspace)
 {
   switch(colorspace) {
-  case DEFCOLOR:
-  case INVISIBLE:
-    reportError("Cannot shade with invisible pen");
-  case PATTERN:
-    reportError("Cannot shade with pattern");
-    break;
-  default:
-    break;
+    case DEFCOLOR:
+    case INVISIBLE:
+      reportError("Cannot shade with invisible pen");
+    case PATTERN:
+      reportError("Cannot shade with pattern");
+      break;
+    default:
+      break;
   }
 }
     
-  psfile::psfile(const string& filename, bool pdfformat)
-    : filename(filename), pdfformat(pdfformat), pdf(false),
-      transparency(false), out(NULL)
+psfile::psfile(const string& filename, bool pdfformat)
+  : filename(filename), pdfformat(pdfformat), pdf(false),
+    transparency(false), buffer(NULL), out(NULL) 
 {
   if(filename.empty()) out=&cout;
   else out=new ofstream(filename.c_str());
@@ -49,6 +49,19 @@ void checkColorSpace(ColorSpace colorspace)
   }
 }
 
+void psfile::writeCompressed(const unsigned char *a, size_t size)
+{  
+  uLongf compressedSize=compressBound(size);
+  Bytef *compressed=new Bytef[compressedSize];
+  
+  if(compress(compressed,&compressedSize,a,size) != Z_OK)
+    reportError("image compression failed");
+
+  encode85 e(out);
+  for(size_t i=0; i < compressedSize; ++i)
+    e.put(compressed[i]);
+}
+  
 void psfile::close()
 {
   if(out) {
@@ -96,7 +109,10 @@ void psfile::prologue(const bbox& box)
   *out << "%%Page: 1 1" << newl;
   
   if(!pdfformat)
-    *out << "/Setlinewidth {0 exch dtransform dup abs 1 lt {pop 0}{round} ifelse idtransform setlinewidth pop} bind def" << newl;
+    *out 
+      << "/Setlinewidth {0 exch dtransform dup abs 1 lt {pop 0}{round} ifelse"
+      << newl
+      << "idtransform setlinewidth pop} bind def" << newl;
 }
 
 void psfile::epilogue()
@@ -188,7 +204,7 @@ void psfile::write(path p, bool newPath)
 
   if(newPath) newpath();
 
-  if (n == 1) {
+  if(n == 1) {
     moveto(p.point((Int) 0));
     lineto(p.point((Int) 0));
     return;
@@ -196,12 +212,12 @@ void psfile::write(path p, bool newPath)
 
   // Draw points
   moveto(p.point((Int) 0));
-  for (Int i = 1; i < n; i++) {
+  for(Int i = 1; i < n; i++) {
     if(p.straight(i-1)) lineto(p.point(i));
     else curveto(p.postcontrol(i-1), p.precontrol(i), p.point(i));
   }
 
-  if (p.cyclic()) {
+  if(p.cyclic()) {
     if(p.straight(n-1)) lineto(p.point((Int) 0));
     else curveto(p.postcontrol(n-1), p.precontrol((Int) 0), p.point((Int) 0));
     closepath();
@@ -223,7 +239,7 @@ void psfile::latticeshade(const vm::array& a, const bbox& b)
   ColorSpace colorspace=maxcolorspace2(a);
   checkColorSpace(colorspace);
   
-  unsigned ncomponents=ColorComponents[colorspace];
+  size_t ncomponents=ColorComponents[colorspace];
   
   *out << "<< /ShadingType 1" << newl
        << "/Matrix ";
@@ -236,17 +252,17 @@ void psfile::latticeshade(const vm::array& a, const bbox& b)
        << "/Order 1" << newl
        << "/Domain [0 1 0 1]" << newl
        << "/Range [" << newl;
-  for(unsigned i=0; i < ncomponents; ++i)
+  for(size_t i=0; i < ncomponents; ++i)
     *out << "0 1 ";
   *out << "]" << newl
        << "/Decode [";
-  for(unsigned i=0; i < ncomponents; ++i)
+  for(size_t i=0; i < ncomponents; ++i)
     *out << "0 1 ";
   *out << "]" << newl;
   *out << "/BitsPerSample 8" << newl;
   *out << "/Size [" << m << " " << n << "]" << newl
        << "/DataSource <" << newl;
-  
+
   beginHex();
   for(size_t i=n; i > 0;) {
     array *ai=read<array *>(a,--i);
@@ -263,8 +279,7 @@ void psfile::latticeshade(const vm::array& a, const bbox& b)
   }
   endHex();
 
-  *out << ">" << newl
-       << ">>" << newl
+  *out << ">>" << newl
        << ">>" << newl
        << "shfill" << newl;
 }
@@ -400,7 +415,7 @@ void psfile::tensorshade(const array& pens, const array& boundaries,
        << "shfill" << newl;
 }
  
-inline unsigned byte(double r) // Map [0,1] to [0,255]
+inline unsigned char byte(double r) // Map [0,1] to [0,255]
 {
   if(r < 0.0) r=0.0;
   else if(r > 1.0) r=1.0;
@@ -409,36 +424,65 @@ inline unsigned byte(double r) // Map [0,1] to [0,255]
   return a;
 }
 
-void psfile::writeHex(pen *p, Int ncomponents) 
+void psfile::write(pen *p, size_t ncomponents) 
 {
   switch(ncomponents) {
-  case 0:
-    break;
-  case 1: 
-    write2(byte(p->gray())); 
-    *out << newl;
-    break;
-  case 3:
-    write2(byte(p->red())); 
-    write2(byte(p->green())); 
-    write2(byte(p->blue())); 
-    *out << newl;
-    break;
-  case 4:
-    write2(byte(p->cyan())); 
-    write2(byte(p->magenta())); 
-    write2(byte(p->yellow())); 
-    write2(byte(p->black())); 
-    *out << newl;
-  default:
-    break;
+    case 0:
+      break;
+    case 1: 
+      writeByte(byte(p->gray())); 
+      break;
+    case 3:
+      writeByte(byte(p->red())); 
+      writeByte(byte(p->green())); 
+      writeByte(byte(p->blue())); 
+      break;
+    case 4:
+      writeByte(byte(p->cyan())); 
+      writeByte(byte(p->magenta())); 
+      writeByte(byte(p->yellow())); 
+      writeByte(byte(p->black())); 
+    default:
+      break;
   }
 }
 
-void psfile::imageheader(size_t width, size_t height, ColorSpace colorspace,
-			 const string& filter)
+void psfile::writeHex(pen *p, size_t ncomponents) 
 {
-  unsigned ncomponents=ColorComponents[colorspace];
+  switch(ncomponents) {
+    case 0:
+      break;
+    case 1: 
+      write2(byte(p->gray())); 
+      writenewl();
+      break;
+    case 3:
+      write2(byte(p->red())); 
+      write2(byte(p->green())); 
+      write2(byte(p->blue())); 
+      writenewl();
+      break;
+    case 4:
+      write2(byte(p->cyan())); 
+      write2(byte(p->magenta())); 
+      write2(byte(p->yellow())); 
+      write2(byte(p->black())); 
+      writenewl();
+    default:
+      break;
+  }
+}
+
+string filter() 
+{
+  return settings::getSetting<Int>("level") >= 3 ? 
+    "1 (~>) /SubFileDecode filter /ASCII85Decode filter\n/FlateDecode" :
+    "1 (~>) /SubFileDecode filter /ASCII85Decode";
+}
+
+void psfile::imageheader(size_t width, size_t height, ColorSpace colorspace)
+{
+  size_t ncomponents=ColorComponents[colorspace];
   *out << "/Device" << ColorDeviceSuffix[colorspace] << " setcolorspace" 
        << newl
        << "<<" << newl
@@ -448,12 +492,12 @@ void psfile::imageheader(size_t width, size_t height, ColorSpace colorspace,
        << "/BitsPerComponent 8" << newl
        << "/Decode [";
   
-  for(unsigned i=0; i < ncomponents; ++i)
+  for(size_t i=0; i < ncomponents; ++i)
     *out << "0 1 ";
   
   *out << "]" << newl
        << "/ImageMatrix [" << width << " 0 0 " << height << " 0 0]" << newl
-       << "/DataSource currentfile " << filter << " filter" << newl
+       << "/DataSource currentfile " << filter() << " filter" << newl
        << ">>" << newl
        << "image" << newl;
 }
@@ -473,7 +517,7 @@ void psfile::image(const array& a, const array& P)
   ColorSpace colorspace=maxcolorspace(P);
   checkColorSpace(colorspace);
   
-  unsigned ncomponents=ColorComponents[colorspace];
+  size_t ncomponents=ColorComponents[colorspace];
   
   imageheader(a0size,asize,colorspace);
     
@@ -482,15 +526,15 @@ void psfile::image(const array& a, const array& P)
   for(size_t i=0; i < asize; i++) {
     array *ai=read<array *>(a,i);
     for(size_t j=0; j < a0size; j++) {
-	double val=read<double>(ai,j);
-	if(val > max) max=val;
-	else if(val < min) min=val;
+      double val=read<double>(ai,j);
+      if(val > max) max=val;
+      else if(val < min) min=val;
     }
   }
   
   double step=(max == min) ? 0.0 : (Psize-1)/(max-min);
   
-  beginHex();
+  beginImage(ncomponents*a0size*asize);
   for(size_t i=0; i < asize; i++) {
     array *ai=read<array *>(a,i);
     for(size_t j=0; j < a0size; j++) {
@@ -500,12 +544,10 @@ void psfile::image(const array& a, const array& P)
       p->convert();
       if(!p->promote(colorspace))
 	reportError(inconsistent);
-      writeHex(p,ncomponents);
+      write(p,ncomponents);
     }
   }
-  endHex();
-  
-  *out << ">" << endl;
+  endImage();
 }
 
 void psfile::image(const array& a)
@@ -522,11 +564,11 @@ void psfile::image(const array& a)
   ColorSpace colorspace=maxcolorspace2(a);
   checkColorSpace(colorspace);
   
-  unsigned ncomponents=ColorComponents[colorspace];
+  size_t ncomponents=ColorComponents[colorspace];
   
   imageheader(a0size,asize,colorspace);
     
-  beginHex();
+  beginImage(ncomponents*a0size*asize);
   for(size_t i=0; i < asize; i++) {
     array *ai=read<array *>(a,i);
     for(size_t j=0; j < a0size; j++) {
@@ -534,59 +576,41 @@ void psfile::image(const array& a)
       p->convert();
       if(!p->promote(colorspace))
 	reportError(inconsistent);
-      writeHex(p,ncomponents);
+      write(p,ncomponents);
     }
   }
-  endHex();
-  
-  *out << ">" << endl;
+  endImage();
 }
   
-void psfile::rgbimage(const unsigned char *a, size_t width, size_t height)
+void psfile::rawimage(const unsigned char *a, size_t width, size_t height)
 {
   pen p(0.0,0.0,0.0);
   p.convert();
   ColorSpace colorspace=p.colorspace();
   checkColorSpace(colorspace);
   
-  unsigned ncomponents=ColorComponents[colorspace];
+  size_t ncomponents=ColorComponents[colorspace];
   
-  if(colorspace != RGB || settings::getSetting<Int>("level") < 3) {
-    imageheader(width,height,colorspace);
-    beginHex();
+  imageheader(width,height,colorspace);
+  
+  size_t size=ncomponents*width*height;
+
+  if(colorspace == RGB && settings::getSetting<Int>("level") >= 3)
+    writeCompressed(a,size);
+  else {
+    beginImage(size);
     for(size_t i=0; i < width; ++i) {
       for(size_t j=0; j < height; ++j) {
 	size_t index=3*(height*i+j);
-	if(colorspace == RGB) {
-	  for(size_t k=0; k < 3; ++k)
-	    write2(a[index+k]);
-	  *out << newl;
-	} else {
-	  pen p(a[index]/255.0,a[index+1]/255.0,a[index+2]/255.0);
-	  p.convert();
-	  if(!p.promote(colorspace))
-	    reportError(inconsistent);
-	  writeHex(&p,ncomponents);
-	}
+	static const double factor=1.0/255.0;
+	pen p(a[index]*factor,a[index+1]*factor,a[index+2]*factor);
+	p.convert();
+	if(!p.promote(colorspace))
+	  reportError(inconsistent);
+	write(&p,ncomponents);
       }	
     }
-    endHex();
-    *out << ">" << endl;
-  } else {
-    imageheader(width,height,colorspace,"/FlateDecode");
-    
-    unsigned long size= 3*width*height;
-    /* Bound calculation taken from zlib. */
-    unsigned long compressedSize=size+(size >> 12)+(size >> 14)+11;
-    Bytef *compressed=new Bytef[compressedSize];
-
-    compress(compressed,&compressedSize,a,size);
-    
-    for(size_t i=0; i < compressedSize; ++i)
-      *out << compressed[i];
-    *out << endl;
-    
-    delete[] compressed;
+    endImage();
   }
 }
 

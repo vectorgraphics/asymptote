@@ -52,7 +52,7 @@ public:
       out->image(image);    
       break;
     case RAW:
-      out->rgbimage(raw,width,height);
+      out->rawimage(raw,width,height);
       break;
     }
     
