@@ -77,7 +77,10 @@ int Width=0;
 int Height=0;
 triple Max;
 triple Min;
-double cy,cz;
+double miny;
+double maxy;
+double hy;
+double cz;
 
 double H;
 unsigned char *Data;
@@ -164,14 +167,13 @@ void setProjection()
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   double Aspect=((double) Width)/Height;
-  double X0=X*(xmax-xmin)/Width;
-  double Y0=Y*(ymax-ymin)/Height;
-  ymin=Min.gety()*Zoom;
-  ymax=Max.gety()*Zoom;
-  xmin=(ymin-Zoom*cy)*Aspect-X0;
-  xmax=(ymax-Zoom*cy)*Aspect-X0;
-  ymin -= Y0;
-  ymax -= Y0;
+  double X0=X*(xmax-xmin)/(Zoom*Width);
+  double Y0=Y*(ymax-ymin)/(Zoom*Height);
+  ymin=miny*Zoom-Y0;
+  ymax=maxy*Zoom-Y0;
+  double factor=Zoom*Aspect;
+  xmin=-hy*factor-X0;
+  xmax=hy*factor-X0;
   if(H == 0.0)
     glOrtho(xmin,xmax,ymin,ymax,-Max.getz(),-Min.getz());
   else {
@@ -198,6 +200,9 @@ void reshape(int width, int height)
   }
   if(Reshape)
     glutReshapeWindow(width,height);
+  
+  X=X/Width*width;
+  Y=Y/Height*height;
   
   Width=width;
   Height=height;
@@ -243,8 +248,8 @@ void update()
 void move(int x, int y)
 {
   if(x > 0 && y > 0) {
-    X += x-x0;
-    Y += y0-y;
+    X += (x-x0)*Zoom;
+    Y += (y0-y)*Zoom;
     x0=x; y0=y;
     update();
   }
@@ -331,6 +336,7 @@ void mouse(int button, int state, int x, int y)
   }
 }
 
+// angle=0 means orthographic.
 void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
 	      int& width, int& height, const triple& light,
 	      double angle, const triple& m, const triple& M,
@@ -342,7 +348,9 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
   Light=light;
   Min=m;
   Max=M;
-  cy=0.5*(Min.gety()+Max.gety());
+  miny=Min.gety();
+  maxy=Max.gety();
+  hy=0.5*(maxy-miny);
   cz=0.5*(Min.getz()+Max.getz());
   H=angle != 0.0 ? -tan(0.5*angle*radians)*Max.getz() : 0.0;
   first=true;
