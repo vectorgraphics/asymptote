@@ -162,13 +162,15 @@ void display(void)
 
 Arcball arcball;
   
+double lastzoom=1.0;
+
 void setProjection()
 {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   double Aspect=((double) Width)/Height;
-  double X0=X*(xmax-xmin)/(Zoom*Width);
-  double Y0=Y*(ymax-ymin)/(Zoom*Height);
+  double X0=X*(xmax-xmin)/(lastzoom*Width);
+  double Y0=Y*(ymax-ymin)/(lastzoom*Height);
   ymin=miny*Zoom-Y0;
   ymax=maxy*Zoom-Y0;
   double factor=Zoom*Aspect;
@@ -209,6 +211,7 @@ void reshape(int width, int height)
   
   setProjection();
   glViewport(0,0,Width,Height);
+  
 }
   
 void keyboard(unsigned char key, int x, int y)
@@ -225,7 +228,6 @@ void keyboard(unsigned char key, int x, int y)
 }
  
 int x0,y0;
-double lastzoom;
 int mod;
 
 double zangle;
@@ -247,6 +249,7 @@ void update()
 
 void move(int x, int y)
 {
+  lastzoom=Zoom;
   if(x > 0 && y > 0) {
     X += (x-x0)*Zoom;
     Y += (y0-y)*Zoom;
@@ -270,10 +273,12 @@ void zoom(int x, int y)
   
 void mousewheel(int wheel, int direction, int x, int y) 
 {
+  lastzoom=Zoom;
   if(direction > 0)
     Zoom /= zoomFactor;
-  else 
+  else
     Zoom *= zoomFactor;
+  
   setProjection();
   glutPostRedisplay();
 }
