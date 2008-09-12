@@ -11,6 +11,7 @@ real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
 real anglefactor=1.03;       // Factor used to expand PRC viewing angle.
+real fovfactor=0.6;          // PRC field of view factor.
 
 string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
 bool thicklocalsub=true; // Set to false for high-quality thick lines.
@@ -1728,7 +1729,7 @@ string embed3D(string prefix=defaultfilename, frame f, string label="",
   }
 
   string options3="poster,text="+text+",label="+label+
-    ",3Daac="+format(P.absolute ? P.angle : angle)+
+    ",3Daac="+format(P.absolute ? P.angle*fovfactor : angle)+
     ",3Dc2c="+format(unit(v))+
     ",3Dcoo="+format(P.target/cm)+
     ",3Droll="+format(roll)+
@@ -1780,10 +1781,12 @@ object embed(string prefix=defaultfilename, picture pic,
   picture pic2;
   transform3 t=pic.scaling(xsize3,ysize3,zsize3,keepAspect);
 
-  P.adjust(inverse(t)*pic.max(t));
-  P.adjust(inverse(t)*pic.min(t));
-  P=t*P;
-
+  if(!P.absolute) {
+    P.adjust(inverse(t)*pic.max(t));
+    P.adjust(inverse(t)*pic.min(t));
+    P=t*P;
+  }
+  
   frame f=pic.fit3(t,pic.bounds3.exact ? pic2 : null,P);
 
   if(!pic.bounds3.exact) {
@@ -1831,8 +1834,8 @@ object embed(string prefix=defaultfilename, picture pic,
       if(is3D && angle == 0)
         // Choose the angle to be just large enough to view the entire image:
         angle=2*anglefactor*aTan((M.y-c.y)/(abs(P.vector())));
-    } 
-
+    }    
+    
     if(settings.render && !prc()) {
       transform3 T=P.projector(P.camera,P.up,P.target).modelview;
       f=T*f;
@@ -1840,11 +1843,11 @@ object embed(string prefix=defaultfilename, picture pic,
       triple M=max3(f)/cm;
       real r=0.5*abs(M-m);
       triple center=0.5*(M+m);
-      M=(M.x,M.y,center.z+r);
-      m=(m.x,m.y,center.z-r);
+      M=(0,M.y,center.z+r);
+      m=(0,m.y,center.z-r);
       if(prefix == "") prefix=outprefix();
       shipout3(prefix,f,width,height,P.antialias,currentlight.source,
-	       P.infinity ? 0 : angle,m,M);
+	       P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M);
       return F;
     }
 
@@ -1883,7 +1886,7 @@ currentpicture.fitter=new frame(picture pic, real xsize, real ysize,
   return f;
 };
 
-void add(picture dest=currentpicture, object src, pair position, pair align,
+void add(picture dest=currentpicture, object src, pair position=0, pair align=0,
          bool group=true, filltype filltype=NoFill, bool put=Above)
 {
   if(prc())
@@ -1917,7 +1920,7 @@ projection perspective(string s)
 {
   viewpoint v=viewpoint(s);
   projection P=perspective(v.camera,v.up,v.target);
-  P.angle=v.angle;
+  P.angle=v.angle/fovfactor;
   P.absolute=true;
   return P;
 }
