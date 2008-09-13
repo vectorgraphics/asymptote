@@ -262,9 +262,11 @@ void zoom(int x, int y)
 {
   static const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
   if(x > 0 && y > 0) {
-    double s=zoomFactorStep*(y0-y);
+    lastzoom=Zoom;
+    double s=zoomFactorStep*(y-y0);
     if(fabs(s) < limit) {
-      Zoom=lastzoom*pow(zoomFactor,s);
+      Zoom *= pow(zoomFactor,s);
+      y0=y;
       setProjection();
       glutPostRedisplay();
     }
@@ -287,7 +289,7 @@ void rotate(int x, int y)
 {
   arcball.mouse_motion(x,Height-y,0,
 		       mod == GLUT_ACTIVE_SHIFT, // X rotation only
-		       mod == GLUT_ACTIVE_ALT);  // Y rotation only
+		       mod == GLUT_ACTIVE_CTRL);  // Y rotation only
 
   for(int i=0; i < 4; ++i) {
     vec4 roti=arcball.rot[i];
@@ -311,34 +313,38 @@ void rotateZ(int x, int y)
   update();
 }
 
+// Mouse bindings.
+// LEFT: rotate
+// SHIFT LEFT: zoom
+// CTRL LEFT: shift
+// RIGHT: zoom
+// SHIFT RIGHT: rotateX
+// CTRL RIGHT: rotateY
+// ALT RIGHT: rotateZ
 void mouse(int button, int state, int x, int y)
 {
   mod=glutGetModifiers();
-  if(button == GLUT_LEFT_BUTTON) {
-    if(mod == GLUT_ACTIVE_CTRL) {
-      if(state == GLUT_DOWN) {
-	x0=x; y0=y;
-	glutMotionFunc(move);
-      }
-    } else {
-      if(state == GLUT_DOWN) {
-	arcball.mouse_down(x,Height-y);
-	glutMotionFunc(rotate);
-      } else
-	arcball.mouse_up();
+  if(state == GLUT_DOWN) {
+    if(button == GLUT_LEFT_BUTTON && mod == GLUT_ACTIVE_CTRL) {
+      x0=x; y0=y;
+      glutMotionFunc(move);
+      return;
+    } 
+    if((button == GLUT_LEFT_BUTTON && mod == GLUT_ACTIVE_SHIFT) ||
+       (button == GLUT_RIGHT_BUTTON && mod == 0)) {
+      y0=y;
+      glutMotionFunc(zoom);
+      return;
     }
-  } else if(button == GLUT_RIGHT_BUTTON) {
-    if(mod == GLUT_ACTIVE_SHIFT) {
+    if(button == GLUT_RIGHT_BUTTON && mod == GLUT_ACTIVE_ALT) {
       lastangle=Degrees(x,y);
       glutMotionFunc(rotateZ);
-    } else {
-      if(state == GLUT_DOWN) {
-	x0=x; y0=y;
-	lastzoom=Zoom;
-	glutMotionFunc(zoom);
-      }
-    }	
-  }
+      return;
+    }
+    arcball.mouse_down(x,Height-y);
+    glutMotionFunc(rotate);
+  } else
+    arcball.mouse_up();
 }
 
 // angle=0 means orthographic.
