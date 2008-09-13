@@ -1767,7 +1767,8 @@ include three_light;
 object embed(string prefix=defaultfilename, picture pic,
              real xsize=pic.xsize, real ysize=pic.ysize,
              bool keepAspect=pic.keepAspect,
-             string label="", string text=label, string options="",
+             string label="", string text=label,
+	     bool wait=false, bool view=true, string options="",
              real angle=0, pen background=white, projection P=currentprojection)
 {
   object F;
@@ -1846,7 +1847,7 @@ object embed(string prefix=defaultfilename, picture pic,
       m=(0,m.y,center.z-r);
       if(prefix == "") prefix=outprefix();
       shipout3(prefix,f,width,height,P.antialias,currentlight.source,
-	       P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M);
+	       P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M,wait,view);
       return F;
     }
 
@@ -1864,17 +1865,13 @@ embed3=new object(string prefix, frame f, string options="", projection P) {
   return embed(prefix,f,options,P);
 };
 
-embed3=new object(picture pic, real xsize, real ysize,
-                  bool keepAspect, string options="", projection P) {
-  return embed(pic,xsize,ysize,keepAspect,options,P);
-};
-
 currentpicture.fitter=new frame(picture pic, real xsize, real ysize,
-                                bool keepAspect, string options, projection P) {
+                                bool keepAspect, bool wait, bool view,
+				string options, projection P) {
   frame f;
   add(f,pic.fit2(xsize,ysize,keepAspect));
   if(pic.nodes3.length > 0) {
-    object F=embed(pic,xsize,ysize,keepAspect,options,P);
+    object F=embed(pic,xsize,ysize,keepAspect,wait,view,options,P);
     if(prc())
       label(f,F.L);
     else {

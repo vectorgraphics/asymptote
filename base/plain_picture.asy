@@ -1236,12 +1236,12 @@ struct picture {
     return fit(s*t);
   }
 
-  static frame fitter(picture,real,real,bool,string,projection);
+  static frame fitter(picture,real,real,bool,bool,bool,string,projection);
   frame fit(real xsize=this.xsize, real ysize=this.ysize,
-	    bool keepAspect=this.keepAspect, string options="",
-	    projection P=currentprojection) {
+	    bool keepAspect=this.keepAspect, bool wait=false, bool view=true,
+	    string options="", projection P=currentprojection) {
     return fitter == null ? fit2(xsize,ysize,keepAspect) :
-      fitter(this,xsize,ysize,keepAspect,options,P);
+      fitter(this,xsize,ysize,keepAspect,wait,view,options,P);
   }
   
   // In case only an approximate picture size estimate is available, return the

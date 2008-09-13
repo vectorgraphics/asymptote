@@ -27,7 +27,7 @@ void glrender(const char *prefix, unsigned char* &data,
 	      const camp::picture *pic, int& width, int& height,
 	      const camp::triple& light, double angle,
 	      const camp::triple& m, const camp::triple& M, bool interactive,
-	      bool save);
+	      bool save, int oldpid);
 }
 #endif
 
@@ -706,7 +706,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 		       double width, double height, double expand,
 		       const triple& light, double angle,
 		       const triple& m, const triple& M,
-		       Int Minsub, Int Maxsub, bool view)
+		       Int Minsub, Int Maxsub, bool wait, bool view)
 {
 #ifdef HAVE_LIBGLUT
   bounds3();
@@ -725,10 +725,32 @@ bool picture::shipout3(const string& prefix, const string& format,
   int Width=(int) ceil(expand*width);
   int Height=(int) floor(expand*height);
   unsigned char *data=NULL;
-  bool View=settings::view() && view;
   string outputformat=format.empty() ? getSetting<string>("outformat") : format;
+  
+  bool View=settings::view() && view;
+  
+  int oldpid=0;
+  static mem::map<CONST string,int> pids;
+  if(interact::interactive) {
+    mem::map<CONST string,int>::iterator p=pids.find(prefix);
+    if(p != pids.end())
+      oldpid=p->second;
+  }
+  
+  if(View && !wait) {
+    int pid=fork();
+    if(pid == -1)
+      camp::reportError("Cannot fork process");
+    if(pid != 0)  {
+      pids[prefix]=pid;
+      waitpid(-1,NULL,WNOHANG);
+      return true;
+    }
+  }
+
   gl::glrender(prefix.c_str(),data,this,Width,Height,light,angle,m,M,View,
-	       !outputformat.empty());
+	       !View || !outputformat.empty(),oldpid);
+
   if(data) {
     double f=1.0/expand;
     append(new drawImage(data,Width,Height,
@@ -736,6 +758,9 @@ bool picture::shipout3(const string& prefix, const string& format,
     shipout(NULL,prefix,format);
     delete[] data;
   }
+  if(View && !wait)
+    exit(0);
+  
   return true;
 #else
   return false;

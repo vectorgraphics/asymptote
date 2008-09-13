@@ -9,9 +9,6 @@ return stripdirectory(stripextension(s));
 
 bool shipped; // Was a picture or frame already shipped out?
 
-restricted bool Wait=true;                         
-restricted bool NoWait=false;
-
 frame currentpatterns;
 
 frame Portrait(frame f) {return f;};
@@ -22,7 +19,6 @@ typedef frame orientation(frame);
 orientation orientation=Portrait;
 
 object embed3(string, frame, string, projection);
-object embed3(picture, real, real, bool, string, projection);
 string embed(string name, string options="", real width=0, real height=0);
 string link(string label, string text, string options="");
 
@@ -79,7 +75,7 @@ try{silentPrint(pp);} catch(e){this.print(pp);}";
 }
 
 void shipout(string prefix=defaultfilename, frame f,
-             string format="", bool wait=NoWait, bool view=true,
+             string format="", bool wait=false, bool view=true,
 	     string options="", projection P=currentprojection)
 {
   if(is3D(f)) {
@@ -110,11 +106,11 @@ void shipout(string prefix=defaultfilename, frame f,
 
 void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     orientation orientation=orientation,
-	     string format="", bool wait=NoWait, bool view=true,
+	     string format="", bool wait=false, bool view=true,
 	     string options="", projection P=currentprojection)
 {
   if(!uptodate()) {
-    frame f=pic.fit(options,P);
+    frame f=pic.fit(wait=wait,view=view,options,P);
     if(currentpicture.nodes3.length == 0 || !settings.render || prc())
       shipout(prefix,orientation(f),format,wait,view);
   }

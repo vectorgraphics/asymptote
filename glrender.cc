@@ -75,13 +75,13 @@ inline T max(T a, T b)
 
 bool Interactive;
 bool Save;
+int Oldpid;
 const picture* Picture;
 int Width=0;
 int Height=0;
 
 double H;
 unsigned char **Data;
-bool first;  
 GLint viewportLimit[2];
 triple Light; 
 double xmin,xmax;
@@ -160,9 +160,6 @@ triple transform(double x, double y, double z)
 
 void display(void)
 {
-  if(!Interactive && !first)
-    return;
-  
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   bbox3 b(transform(xmin,ymin,zmax));
@@ -195,9 +192,14 @@ void display(void)
   glDepthMask(GL_TRUE);
   glDisable(GL_BLEND);
   
-  if(Interactive)
+  if(Interactive) {
     glutSwapBuffers();
-  else {
+    int status;
+    if(Oldpid != 0 && waitpid(Oldpid, &status, WNOHANG) != Oldpid) {
+      kill(Oldpid,SIGHUP);
+      Oldpid=0;
+    }
+  } else {
     glReadBuffer(GL_BACK_LEFT);
     quit();
   }
@@ -386,10 +388,11 @@ void mouse(int button, int state, int x, int y)
 void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
 	      int& width, int& height, const triple& light,
 	      double angle, const triple& m, const triple& M,
-	      bool interactive, bool save)
+	      bool interactive, bool save, int oldpid)
 {
   Interactive=interactive;
   Save=save;
+  Oldpid=oldpid;
   Picture=pic;
   Light=light;
   Ymin=m.gety();
@@ -397,7 +400,6 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
   zmin=m.getz();
   zmax=M.getz();
   H=angle != 0.0 ? -tan(0.5*angle*radians)*zmax : 0.0;
-  first=true;
    
   X=Y=0.0;
   
@@ -449,6 +451,7 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
   glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_CONTINUE_EXECUTION);
 
   Data=&data;
+  
   glutMainLoop();
   
   width=Width;

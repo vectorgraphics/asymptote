@@ -91,7 +91,7 @@ public:
   bool shipout3(const string& prefix, const string& format,
 		double width, double height, double expand, const triple& light,
 		double angle, const triple& m, const triple& M,
-		Int Minsub=1, Int Maxsub=0, bool view=true);
+		Int Minsub=1, Int Maxsub=0, bool wait=false, bool view=true);
   
   bool shipout3(const string& prefix); // Embedded PRC
   

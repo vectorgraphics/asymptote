@@ -1384,10 +1384,10 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 void shipout3(string prefix, picture *f, string format=emptystring,
 	      double width, double height, double expand=1,
 	      triple light, double angle, triple m, triple M,
-	      Int minsub=1, Int maxsub=0, bool view=true)
+	      Int minsub=1, Int maxsub=0, bool wait=false, bool view=true)
 {
   f->shipout3(prefix,format,width,height,expand,light,angle,m,M,minsub,maxsub,
-	      view);
+	      wait,view);
 }
 
 void shipout3(string prefix, picture *f)

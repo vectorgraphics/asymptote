@@ -3045,10 +3045,10 @@ by calling the function @code{shipout}:
 @verbatim
 void shipout(string prefix=defaultfilename, picture pic,
              orientation orientation=orientation,
-             string format="", bool wait=NoWait, bool view=true);
+             string format="", bool wait=false, bool view=true);
 void shipout(string prefix=defaultfilename,
              orientation orientation=orientation,
-             string format="", bool wait=NoWait, bool view=true);
+             string format="", bool wait=false, bool view=true);
 @end verbatim
 @noindent
 A @code{shipout()} command is added implicitly at file exit if no
@@ -8259,7 +8259,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  dirtime currentpen colorspaces grayscale cmyk defaultpen x cx
 @c  LocalWords:  linetype longdashed dashdotted longdashdotted linewidth y XP
 @c  LocalWords:  fontsize defaultfilename keepAspect IgnoreAspect ise flushleft
-@c  LocalWords:  NoWait src dest XDR txt getc fout stdin stdout endl xinput eof
+@c  LocalWords:  src dest XDR txt getc fout stdin stdout endl xinput eof
 @c  LocalWords:  xoutput Microsystem's eol exponentials postfix sayhi th Ubuntu
 @c  LocalWords:  sqr intop addby libm asin acos atan sinh tanh asinh acosh cbrt
 @c  LocalWords:  atanh fabs hypot fmod ceil srand dereferenced alice pete sqrtx
