@@ -14,7 +14,6 @@ real anglefactor=1.03;       // Factor used to expand PRC viewing angle.
 real fovfactor=0.6;          // PRC field of view factor.
 
 string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
-bool thicklocalsub=true; // Set to false for high-quality thick lines.
 
 triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
@@ -1985,7 +1984,7 @@ draw=new void(frame f, path3 g,
     }
     pen q=(pen) p;
     void drawthick(path3 g) {
-      if(settings.thick) {
+      if(settings.linequality > 0) {
         real width=linewidth(q);
         if(width > 0) {
           surface s=tube(g,width);
@@ -2010,7 +2009,7 @@ draw=new void(frame f, path3 g,
             }
           }
           for(int i=0; i < s.s.length; ++i)
-            draw3D(f,s.s[i],p,light,localsub=thicklocalsub);
+            draw3D(f,s.s[i],p,light,localsub=settings.linequality < 2);
         }
       }
       _draw(f,g,q);

@@ -724,7 +724,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   if(expand <= 0) expand=1;
   int Width=(int) ceil(expand*width);
   int Height=(int) floor(expand*height);
-  unsigned char *data;
+  unsigned char *data=NULL;
   bool View=settings::view() && view;
   string outputformat=format.empty() ? getSetting<string>("outformat") : format;
   gl::glrender(prefix.c_str(),data,this,Width,Height,light,angle,m,M,View,

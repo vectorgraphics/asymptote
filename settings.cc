@@ -926,8 +926,10 @@ void initSettings() {
                             "Embed 3D PRC graphics in PDF output", true));
   addOption(new boolSetting("render", 0,
                             "Render 3D graphics with OpenGL",haveglut));
-  addOption(new boolSetting("thick", 0,
-                            "Render thick PRC lines", true));
+  addOption(new boolSetting("twosided", 0,
+                            "Use two-sided lighting OpenGL model",true));
+  addOption(new IntSetting("linequality", 0, "0-2",
+                            "PRC/OpenGL line quality", 1));
   addOption(new boolSetting("psimage", 0,
                             "Output ps image of 3D PRC graphics", false));
   addOption(new stringOutnameSetting("outname", 'o', "name",

@@ -59,6 +59,7 @@ using camp::triple;
 using vm::array;
 using camp::scale3D;
 using camp::bbox3;
+using settings::getSetting;
 
 template<class T>
 inline T min(T a, T b)
@@ -79,7 +80,7 @@ int Width=0;
 int Height=0;
 
 double H;
-unsigned char *Data;
+unsigned char **Data;
 bool first;  
 GLint viewportLimit[2];
 triple Light; 
@@ -118,7 +119,11 @@ void initlights(void)
   GLfloat ambient[]={0.1, 0.1, 0.1, 1.0};
   GLfloat position[]={Light.getx(), Light.gety(), Light.getz(), 0.0};
 
-  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE);
+  if(getSetting<bool>("twosided")) {
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE);
+    // GL_LIGHT_MODEL_TWO_SIDE seems to require CW orientation.  
+    glFrontFace(GL_CW);
+  }
   
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
@@ -130,8 +135,8 @@ void save()
 {  
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
   size_t ndata=3*Width*Height; // Use ColorComponents[colorspace]
-  Data=new unsigned char[ndata];
-  glReadPixels(0,0,Width,Height,GL_RGB,GL_UNSIGNED_BYTE,Data);
+  *Data=new unsigned char[ndata];
+  glReadPixels(0,0,Width,Height,GL_RGB,GL_UNSIGNED_BYTE,*Data);
 }
   
 void quit() 
@@ -428,9 +433,6 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
   glEnable(GL_MAP2_VERTEX_3);
   glEnable(GL_AUTO_NORMAL);
   
-  // GL_LIGHT_MODEL_TWO_SIDE seems to require CW orientation.  
-  glFrontFace(GL_CW);
-  
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
@@ -446,11 +448,11 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
    
   glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_CONTINUE_EXECUTION);
 
-  Data=NULL;
+  Data=&data;
   glutMainLoop();
+  
   width=Width;
   height=Height;
-  data=Data;
 }
   
 } // namespace gl
