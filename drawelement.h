@@ -140,8 +140,7 @@ public:
   virtual void fraction(double& n, const triple& size3) {}
 
   // Render with OpenGL
-  virtual bool render(int n, double size2, const triple& size3,
-		      bool transparent) {
+  virtual bool render(int n, double size2, const bbox3& b, bool transparent) {
     return true;
   }
 

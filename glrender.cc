@@ -46,6 +46,7 @@
 #include "picture.h"
 #include "common.h"
 #include "arcball.h"
+#include "bbox3.h"
 
 #ifdef HAVE_LIBGLUT
 #include <GL/glut.h>
@@ -57,6 +58,7 @@ using camp::picture;
 using camp::triple;
 using vm::array;
 using camp::scale3D;
+using camp::bbox3;
 
 template<class T>
 inline T min(T a, T b)
@@ -75,12 +77,6 @@ bool Save;
 const picture* Picture;
 int Width=0;
 int Height=0;
-triple Max;
-triple Min;
-double miny;
-double maxy;
-double hy;
-double cz;
 
 double H;
 unsigned char *Data;
@@ -89,8 +85,9 @@ GLint viewportLimit[2];
 triple Light; 
 double xmin,xmax;
 double ymin,ymax;
-  
-double Zoom=1.0;
+double zmin,zmax;
+
+double Ymin,Ymax;
 double X,Y;
 
 const double moveFactor=1.0;  
@@ -101,6 +98,18 @@ const float arcballRadius=500.0;
 
 const double degrees=180.0/M_PI;
 const double radians=1.0/degrees;
+
+int x0,y0;
+int mod;
+
+double zangle;
+double lastangle;
+
+double Zoom=1.0;
+double lastzoom=1.0;
+
+float Rotate[16];
+float Modelview[16];
 
 int window;
   
@@ -132,6 +141,18 @@ void quit()
   glutLeaveMainLoop();
 }
 
+triple transform(double x, double y, double z) 
+{
+  x -= Modelview[12];
+  y -= Modelview[13];
+  z -= Modelview[14];
+
+  static const double f=1.0/scale3D;
+  return triple((Modelview[0]*x+Modelview[1]*y+Modelview[2]*z)*f,
+		(Modelview[4]*x+Modelview[5]*y+Modelview[6]*z)*f,
+		(Modelview[8]*x+Modelview[9]*y+Modelview[10]*z)*f);
+}
+
 void display(void)
 {
   if(!Interactive && !first)
@@ -139,8 +160,25 @@ void display(void)
   
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  bbox3 b(transform(xmin,ymin,zmax));
+    b.addnonempty(transform(xmin,ymax,zmax));
+    b.addnonempty(transform(xmax,ymin,zmax));
+    b.addnonempty(transform(xmax,ymax,zmax));
+  if(H == 0) {
+    b.addnonempty(transform(xmin,ymin,zmin));
+    b.addnonempty(transform(xmin,ymax,zmin));
+    b.addnonempty(transform(xmax,ymin,zmin));
+    b.addnonempty(transform(xmax,ymax,zmin));
+  } else {
+    double f=zmin/zmax;
+    b.addnonempty(transform(xmin*f,ymin*f,zmin));
+    b.addnonempty(transform(xmin*f,ymax*f,zmin));
+    b.addnonempty(transform(xmax*f,ymin*f,zmin));
+    b.addnonempty(transform(xmax*f,ymax*f,zmin));
+  }
+  
   // Render opaque objects
-  Picture->render(Width,Height,Zoom,false);
+  Picture->render(Width,Height,Zoom,b,false);
   
   // Enable transparency
   glEnable(GL_BLEND);
@@ -148,7 +186,7 @@ void display(void)
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   
   // Render transparent objects
-  Picture->render(Width,Height,Zoom,true);
+  Picture->render(Width,Height,Zoom,b,true);
   glDepthMask(GL_TRUE);
   glDisable(GL_BLEND);
   
@@ -162,8 +200,6 @@ void display(void)
 
 Arcball arcball;
   
-double lastzoom=1.0;
-
 void setProjection()
 {
   glMatrixMode(GL_PROJECTION);
@@ -171,20 +207,20 @@ void setProjection()
   double Aspect=((double) Width)/Height;
   double X0=X*(xmax-xmin)/(lastzoom*Width);
   double Y0=Y*(ymax-ymin)/(lastzoom*Height);
-  ymin=miny*Zoom-Y0;
-  ymax=maxy*Zoom-Y0;
-  double factor=Zoom*Aspect;
-  xmin=-hy*factor-X0;
-  xmax=hy*factor-X0;
-  if(H == 0.0)
-    glOrtho(xmin,xmax,ymin,ymax,-Max.getz(),-Min.getz());
-  else {
+  if(H == 0.0) {
+    double factor=0.5*(Ymax-Ymin)*Zoom*Aspect;
+    xmin=-factor-X0;
+    xmax=factor-X0;
+    ymin=Ymin*Zoom-Y0;
+    ymax=Ymax*Zoom-Y0;
+    glOrtho(xmin,xmax,ymin,ymax,-zmax,-zmin);
+  } else {
     double r=H*Zoom;
-    ymin=-r-Y0;
-    ymax=r-Y0;
     xmin=-r*Aspect-X0;
     xmax=r*Aspect-X0;
-    glFrustum(xmin,xmax,ymin,ymax,-Max.getz(),-Min.getz());
+    ymin=-r-Y0;
+    ymax=r-Y0;
+    glFrustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
   }
   arcball.set_params(vec2(0.5*Width,0.5*Height),arcballRadius/Zoom);
 }
@@ -227,22 +263,16 @@ void keyboard(unsigned char key, int x, int y)
   }
 }
  
-int x0,y0;
-int mod;
-
-double zangle;
-double lastangle;
-
-float Rotate[16];
-
 void update() 
 {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
+  double cz=0.5*(zmin+zmax);
   glTranslatef(0,0,cz);
   glRotatef(zangle,0,0,1);
   glMultMatrixf(Rotate);
   glTranslatef(0,0,-cz);
+  glGetFloatv(GL_MODELVIEW_MATRIX,Modelview);
   setProjection();
   glutPostRedisplay();
 }
@@ -357,13 +387,11 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
   Save=save;
   Picture=pic;
   Light=light;
-  Min=m;
-  Max=M;
-  miny=Min.gety();
-  maxy=Max.gety();
-  hy=0.5*(maxy-miny);
-  cz=0.5*(Min.getz()+Max.getz());
-  H=angle != 0.0 ? -tan(0.5*angle*radians)*Max.getz() : 0.0;
+  Ymin=m.gety();
+  Ymax=M.gety();
+  zmin=m.getz();
+  zmax=M.getz();
+  H=angle != 0.0 ? -tan(0.5*angle*radians)*zmax : 0.0;
   first=true;
    
   X=Y=0.0;
@@ -406,8 +434,10 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
+  glGetFloatv(GL_MODELVIEW_MATRIX,Modelview);
   
   initlights();
+  
   glutReshapeFunc(reshape);
   glutDisplayFunc(display);
   glutKeyboardFunc(keyboard);
@@ -415,6 +445,7 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
   glutMouseWheelFunc(mousewheel);
    
   glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_CONTINUE_EXECUTION);
+
   Data=NULL;
   glutMainLoop();
   width=Width;

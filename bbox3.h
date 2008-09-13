@@ -29,6 +29,13 @@ struct bbox3 {
   {
   }
 
+  bbox3(double left, double bottom, double lower,
+       double right, double top, double upper)
+    : empty(false), left(left), bottom(bottom), lower(lower),
+      right(right), top(top), upper(upper)
+  {
+  }
+
   // Start a bbox3 with a point
   bbox3(const triple& v)
     : empty(false), left(v.getx()), bottom(v.gety()), lower(v.getz()),

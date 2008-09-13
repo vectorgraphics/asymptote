@@ -12,6 +12,32 @@ namespace camp {
 
 using vm::array;
 
+void drawSurface::bounds(bbox3& b)
+{
+    double xmin,xmax;
+    double ymin,ymax;
+    double zmin,zmax;
+    double c[16];
+    
+    for(int i=0; i < 16; ++i)
+      c[i]=controls[i][0];
+    bounds(xmin,xmax,c);
+    
+    for(int i=0; i < 16; ++i)
+      c[i]=controls[i][1];
+    bounds(ymin,ymax,c);
+    
+    for(int i=0; i < 16; ++i)
+      c[i]=controls[i][2];
+    bounds(zmin,zmax,c);
+    
+    Min=triple(xmin,ymin,zmin);
+    Max=triple(xmax,ymax,zmax);
+    
+    b.add(Min);
+    b.add(Max);
+}
+  
 bool drawSurface::write(prcfile *out)
 {
   if(invisible)
@@ -69,12 +95,17 @@ void drawSurface::fraction(double &F, const triple& size3)
   if(f > F) F=f;
 }
   
-bool drawSurface::render(int n, double size2, const triple&, bool transparent)
+bool drawSurface::render(int n, double size2, const bbox3& b, bool transparent)
 {
   if(invisible || ((diffuse.A < 1.0) ^ transparent))
     return true;
   
-  if(localsub) n=camp::min(n,(int) ceil(sqrt(f*size2)));
+  if(b.left > Max.getx() || b.right < Min.getx() ||
+     b.bottom > Max.gety() || b.top < Min.gety() ||
+     b.lower > Max.getz() || b.upper < Min.getz()) return true;
+
+  
+  if(localsub) n=min(n,(int) ceil(sqrt(f*size2)));
 
   GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
   GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};

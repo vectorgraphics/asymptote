@@ -2660,11 +2660,9 @@ void _draw(picture *f, path3 g, pen p)
 }
 
 void draw(picture *f, triplearray2 *g, penarray *p, real opacity,
-	  real shininess, real granularity, bool localsub=false,
-	  triple min, triple max)
+	  real shininess, real granularity, bool localsub=false)
 {
-  f->append(new drawSurface(*g,*p,opacity,shininess,granularity,localsub,
-			    min,max));
+  f->append(new drawSurface(*g,*p,opacity,shininess,granularity,localsub));
 }
 
 triple min3(picture *f)

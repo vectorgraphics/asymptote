@@ -679,11 +679,11 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 }
 
 // render viewport with width x height pixels.
-bool picture::render(int width, int height, double zoom, bool transparent) const
+bool picture::render(int width, int height, double zoom, const bbox3& b,
+		     bool transparent) const
 {  
   bool status = true;
   double size2=hypot(width,height);
-  triple size3=(b3.Max()-b3.Min())*scale3D;
   
   int n=minsub;
   if(maxsub == 0 || n < maxsub)
@@ -696,7 +696,7 @@ bool picture::render(int width, int height, double zoom, bool transparent) const
 
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    if(!(*p)->render(n,size2,size3,transparent))
+    if(!(*p)->render(n,size2,b,transparent))
       status = false;
   }
   return status;

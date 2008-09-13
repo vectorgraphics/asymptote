@@ -19,6 +19,7 @@ protected:
   path3 g;
   pen pentype;
   Triple *controls;
+  triple Min,Max;
 public:
   drawPath3(path3 g, pen pentype) : g(g), pentype(pentype), controls(NULL) {}
     
@@ -29,13 +30,15 @@ public:
   bool is3D() {return true;}
   
   void bounds(bbox3& b) {
-    b.add(g.min());
-    b.add(g.max());
+    Min=g.min();
+    Max=g.max();
+    b.add(Min);
+    b.add(Max);
   }
   
   bool write(prcfile *out);
   
-  bool render(int, double size2, const triple& size3, bool transparent);
+  bool render(int, double size2, const bbox3& b, bool transparent);
 
   drawElement *transformed(vm::array *t);
 };

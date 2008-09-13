@@ -11,13 +11,11 @@ namespace camp {
 
 using vm::array;
   
-static const double factor=1.0/settings::cm;
-  
 inline void store(Triple& control, const triple& v)
 {
-  control[0]=v.getx()*factor;
-  control[1]=v.gety()*factor;
-  control[2]=v.getz()*factor;
+  control[0]=v.getx()*scale3D;
+  control[1]=v.gety()*scale3D;
+  control[2]=v.getz()*scale3D;
 }
   
 bool drawPath3::write(prcfile *out)
@@ -52,13 +50,19 @@ bool drawPath3::write(prcfile *out)
   return true;
 }
 
-bool drawPath3::render(int, double size2, const triple& size3, bool transparent)
+bool drawPath3::render(int, double size2, const bbox3& b, bool transparent)
 {
   Int n=g.length();
   double opacity=pentype.opacity();
   if(n == 0 || pentype.invisible() || ((opacity < 1.0) ^ transparent))
     return true;
 
+  if(b.left > Max.getx() || b.right < Min.getx() ||
+     b.bottom > Max.gety() || b.top < Min.gety() ||
+     b.lower > Max.getz() || b.upper < Min.getz()) return true;
+  
+  triple size3=(b.Max()-b.Min())*scale3D;
+  
   pentype.torgb();
   glDisable(GL_LIGHTING);
   glColor4d(pentype.red(),pentype.green(),pentype.blue(),opacity);	
@@ -68,7 +72,7 @@ bool drawPath3::render(int, double size2, const triple& size3, bool transparent)
     glBegin(GL_LINE_STRIP);
     for(Int i=0; i <= n; ++i) {
       triple v=g.point(i);
-      glVertex3d(v.getx()*factor,v.gety()*factor,v.getz()*factor);
+      glVertex3d(v.getx()*scale3D,v.gety()*scale3D,v.getz()*scale3D);
     }
     glEnd();
   } else {
@@ -78,7 +82,7 @@ bool drawPath3::render(int, double size2, const triple& size3, bool transparent)
       triple c1=g.precontrol(i+1)*scale3D;
       triple z1=g.point(i+1)*scale3D;
       double f=max(camp::fraction(displacement(c0,z0,z1),size3),
-		   camp::fraction(displacement(c1,z0,z1),size3));
+		     camp::fraction(displacement(c1,z0,z1),size3));
       int n=max(1,(int) ceil(pixelfactor*f*size2));
       triple controls[]={z0,c0,c1,z1};
       GLdouble controlpoints[12];
