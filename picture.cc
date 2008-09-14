@@ -14,7 +14,6 @@
 #include "settings.h"
 #include "interact.h"
 #include "drawverbatim.h"
-#include "drawimage.h"
 
 using std::ifstream;
 using std::ofstream;
@@ -23,11 +22,11 @@ using namespace settings;
 
 #ifdef HAVE_LIBGLUT
 namespace gl {
-void glrender(const char *prefix, unsigned char* &data,
-	      const camp::picture *pic, int& width, int& height,
+void glrender(const string& prefix, camp::picture *pic,
+	      const string& format, int& width, int& height,
 	      const camp::triple& light, double angle,
-	      const camp::triple& m, const camp::triple& M, bool interactive,
-	      bool save, int oldpid);
+	      const camp::triple& m, const camp::triple& M, bool view,
+	      int oldpid);
 }
 #endif
 
@@ -725,7 +724,6 @@ bool picture::shipout3(const string& prefix, const string& format,
   if(expand <= 0) expand=1;
   int Width=(int) ceil(expand*width);
   int Height=(int) floor(expand*height);
-  unsigned char *data=NULL;
   string outputformat=format.empty() ? getSetting<string>("outformat") : format;
   
   bool View=settings::view() && view;
@@ -749,16 +747,9 @@ bool picture::shipout3(const string& prefix, const string& format,
     }
   }
 
-  gl::glrender(prefix.c_str(),data,this,Width,Height,light,angle,m,M,View,
-	       !View || !outputformat.empty(),oldpid);
+  gl::glrender(prefix.c_str(),this,outputformat,Width,Height,light,angle,m,M,
+	       View,oldpid);
 
-  if(data) {
-    double f=1.0/expand;
-    append(new drawImage(data,Width,Height,
-			 transform(0.0,0.0,Width*f,0.0,0.0,Height*f)));
-    shipout(NULL,prefix,format);
-    delete[] data;
-  }
   if(View && !wait)
     exit(0);
   

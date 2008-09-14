@@ -19,4 +19,4 @@ pen p=rgb(0.2,0.5,0.7);
 //draw(surface(f,(0,0),(2pi,2pi),30,15),nullpen,meshpen=p);
 
 // surface & mesh
-draw(surface(f,(0,0),(2pi,2pi),30,15),meshpen=p+thick());
+draw(surface(f,(0,0),(2pi,2pi),30,15),meshpen=p);

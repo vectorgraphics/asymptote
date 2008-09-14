@@ -47,6 +47,7 @@
 #include "common.h"
 #include "arcball.h"
 #include "bbox3.h"
+#include "drawimage.h"
 
 #ifdef HAVE_LIBGLUT
 #include <GL/glut.h>
@@ -55,6 +56,8 @@
 namespace gl {
   
 using camp::picture;
+using camp::drawImage;
+using camp::transform;
 using camp::triple;
 using vm::array;
 using camp::bbox3;
@@ -72,10 +75,12 @@ inline T max(T a, T b)
   return (a > b) ? a : b;
 }
 
-bool Interactive;
+bool View;
 bool Save;
 int Oldpid;
-const picture* Picture;
+const char* Prefix;
+picture* Picture;
+string Format;
 int Width=0;
 int Height=0;
 
@@ -139,13 +144,18 @@ void save()
 {  
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
   size_t ndata=3*Width*Height; // Use ColorComponents[colorspace]
-  *Data=new unsigned char[ndata];
-  glReadPixels(0,0,Width,Height,GL_RGB,GL_UNSIGNED_BYTE,*Data);
+  unsigned char data[ndata];
+  glReadPixels(0,0,Width,Height,GL_RGB,GL_UNSIGNED_BYTE,data);
+  Int expand=getSetting<Int>("render");
+  if(expand <= 0) expand=1;
+  double f=1.0/expand;
+  Picture->append(new drawImage(data,Width,Height,
+				transform(0.0,0.0,Width*f,0.0,0.0,Height*f)));
+  Picture->shipout(NULL,Prefix,Format);
 }
   
 void quit() 
 {
-  if(Save) save();
   glutDestroyWindow(window);
   glutLeaveMainLoop();
 }
@@ -195,7 +205,7 @@ void display(void)
   glDepthMask(GL_TRUE);
   glDisable(GL_BLEND);
   
-  if(Interactive) {
+  if(View) {
     glutSwapBuffers();
     int status;
     if(Oldpid != 0 && waitpid(Oldpid, &status, WNOHANG) != Oldpid) {
@@ -204,6 +214,7 @@ void display(void)
     }
   } else {
     glReadBuffer(GL_BACK_LEFT);
+    if(Save) save();
     quit();
   }
 }
@@ -264,10 +275,17 @@ void reshape(int width, int height)
 void keyboard(unsigned char key, int x, int y)
 {
   switch(key) {
+    case 'x':
+    {
+      glReadBuffer(GL_FRONT_LEFT);
+      save();
+      break;
+    }
     case 17: // Ctrl-q
     case 'q':
     {
       glReadBuffer(GL_FRONT_LEFT);
+      if(Save) save();
       quit();
       break;
     }
@@ -452,15 +470,15 @@ void menu(int choice)
       xangle=yangle=zangle=0.0;
       update();
       break;
-    case 2: //X spin
+    case 2: // X spin
       spinning=true;
       glutIdleFunc(Xspin);
       break;
-    case 3: //Y spin
+    case 3: // Y spin
       spinning=true;
       glutIdleFunc(Yspin);
       break;
-    case 4: //Z spin
+    case 4: // Z spin
       spinning=true;
       glutIdleFunc(Zspin);
       break;
@@ -473,19 +491,28 @@ void menu(int choice)
 	  arcball.rot[i][j]=Rotate[i4+j];
       }
       break;
+    case 6: // Export
+      glReadBuffer(GL_FRONT_LEFT);
+      save();
+      break;
+    case 7: // Quit
+      quit();
+      break;
   }
 }
 
 // angle=0 means orthographic.
-void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
+void glrender(const string& prefix, picture *pic, const string& format,
 	      int& width, int& height, const triple& light,
-	      double angle, const triple& m, const triple& M,
-	      bool interactive, bool save, int oldpid)
+	      double angle, const triple& m, const triple& M, bool view,
+	      int oldpid)
 {
-  Interactive=interactive;
-  Save=save;
-  Oldpid=oldpid;
+  Prefix=prefix.c_str();
   Picture=pic;
+  Format=format;
+  View=view;
+  Save=!view || !format.empty();
+  Oldpid=oldpid;
   Light=light;
   cx=0.5*(m.getx()+M.getx());
   Ymin=m.gety();
@@ -499,7 +526,7 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
   spinning=false;
   
   string options=string(settings::argv0)+" ";
-  if(!Interactive) options += "-iconic ";
+  if(!View) options += "-iconic ";
   options += settings::getSetting<string>("glOptions");
   char **argv=args(options.c_str(),true);
   int argc=0;
@@ -510,7 +537,7 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
   glutInitWindowPosition(0,0);
   
   glutInitWindowSize(1,1);
-  window=glutCreateWindow(prefix);
+  window=glutCreateWindow(Prefix);
   glGetIntegerv(GL_MAX_VIEWPORT_DIMS, viewportLimit);
   glutDestroyWindow(window);
 
@@ -518,7 +545,7 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
   Height=min(height,viewportLimit[1]);
   
   glutInitWindowSize(Width,Height);
-  window=glutCreateWindow(prefix);
+  window=glutCreateWindow(Prefix);
   
   if(settings::verbose > 1) 
     cout << "Rendering " << prefix << endl;
@@ -545,14 +572,14 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
    
   glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_CONTINUE_EXECUTION);
 
-  Data=&data;
-  
   glutCreateMenu(menu);
   glutAddMenuEntry("Home",1);
   glutAddMenuEntry("X spin",2);
   glutAddMenuEntry("Y spin",3);
   glutAddMenuEntry("Z spin",4);
   glutAddMenuEntry("Stop",5);
+  glutAddMenuEntry("Export",6);
+  glutAddMenuEntry("Quit",7);
   glutAttachMenu(GLUT_MIDDLE_BUTTON);
 
   glutMainLoop();
