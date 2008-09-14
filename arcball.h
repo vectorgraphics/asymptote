@@ -73,7 +73,6 @@ public:
     void  mouse_motion(int x, int y);
     void  set_constraints(bool constrain_x, bool constrain_y);
     void  set_params(const vec2 &center, float radius);  
-    void  reset_mouse();
     void  init();
 
     vec3  constrain_vector(const vec3 &vector, const vec3 &axis);

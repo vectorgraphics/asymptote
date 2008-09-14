@@ -10,7 +10,7 @@ real defaultshininess=0.25;
 real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
-real anglefactor=1.03;       // Factor used to expand PRC viewing angle.
+real anglefactor=1.05;       // Factor used to expand PRC viewing angle.
 real fovfactor=0.6;          // PRC field of view factor.
 
 string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
@@ -232,10 +232,10 @@ projection oblique(real angle=45)
   real s2=1-c2;
   t[0][2]=-c2;
   t[1][2]=-s2;
-  t[2][2]=0;
-  return projection((c2,s2,1),up=Y,
+  t[2][2]=1;
+  return projection((0,0,1),up=Y,
                     new transformation(triple,triple,triple) {
-		      return transformation(t);});
+		      return transformation(t,oblique=true);});
 }
 
 projection obliqueZ(real angle=45) {return oblique(angle);}
@@ -251,9 +251,10 @@ projection obliqueX(real angle=45)
   t[0][1]=1;
   t[1][2]=1;
   t[2][2]=0;
-  return projection((1,c2,s2),
+  t[2][0]=1;
+  return projection((1,0,0),
                     new transformation(triple,triple,triple) {
-		      return transformation(t);});
+		      return transformation(t,oblique=true);});
 }
 
 projection obliqueY(real angle=45)
@@ -264,10 +265,11 @@ projection obliqueY(real angle=45)
   t[0][1]=c2;
   t[1][1]=s2;
   t[1][2]=1;
+  t[2][1]=-1;
   t[2][2]=0;
-  return projection((c2,-1,s2),
+  return projection((0,-1,0),
                     new transformation(triple,triple,triple) {
-		      return transformation(t);});
+		      return transformation(t,oblique=true);});
 }
 
 projection oblique=oblique();
@@ -1468,7 +1470,7 @@ transform3 align(triple u)
 // return a rotation that maps X,Y to the projection plane.
 transform3 transform3(projection P)
 {
-  triple v=unit(P.vector());
+  triple v=P.oblique ? unit(P.camera) : unit(P.vector());
   triple u=unit(P.up-dot(P.up,v)*v);
   return transform3(cross(u,v),u);
 }
@@ -1836,17 +1838,18 @@ object embed(string prefix=defaultfilename, picture pic,
         angle=2*anglefactor*aTan((M.y-c.y)/(abs(P.vector())));
     }    
     
-    if(settings.render && !prc()) {
+    if(settings.render > 0 && !prc()) {
       transform3 T=P.projector(P.camera,P.up,P.target).modelview;
       f=T*f;
       triple m=min3(f)/cm;
       triple M=max3(f)/cm;
       real r=0.5*abs(M-m);
       triple center=0.5*(M+m);
-      M=(0,M.y,center.z+r);
-      m=(0,m.y,center.z-r);
+      if(P.oblique) r *= 2; // Fix clipping for oblique projections.
+      M=(M.x,M.y,center.z+r);
+      m=(m.x,m.y,center.z-r);
       if(prefix == "") prefix=outprefix();
-      shipout3(prefix,f,width,height,P.antialias,currentlight.source,
+      shipout3(prefix,f,width,height,currentlight.source,
 	       P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M,wait,view);
       return F;
     }
@@ -1875,7 +1878,7 @@ currentpicture.fitter=new frame(picture pic, real xsize, real ysize,
     if(prc())
       label(f,F.L);
     else {
-      if(settings.render) return f;
+      if(settings.render > 0) return f;
       else add(f,F.f);
     }
   }
@@ -1887,7 +1890,7 @@ void add(picture dest=currentpicture, object src, pair position=0, pair align=0,
 {
   if(prc())
     label(dest,src,position,align);
-  else if(!settings.render)
+  else if(settings.render == 0)
     plain.add(dest,src,position,align,group,filltype,put);
 }
 
@@ -1981,7 +1984,7 @@ draw=new void(frame f, path3 g,
     }
     pen q=(pen) p;
     void drawthick(path3 g) {
-      if(settings.linequality > 0) {
+      if(settings.path3quality > 0) {
         real width=linewidth(q);
         if(width > 0) {
           surface s=tube(g,width);
@@ -2006,7 +2009,7 @@ draw=new void(frame f, path3 g,
             }
           }
           for(int i=0; i < s.s.length; ++i)
-            draw3D(f,s.s[i],p,light,localsub=settings.linequality < 2);
+            draw3D(f,s.s[i],p,light,localsub=settings.path3quality < 2);
         }
       }
       _draw(f,g,q);

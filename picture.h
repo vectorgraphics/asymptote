@@ -89,7 +89,7 @@ public:
   bool render(int width, int height, double zoom, const bbox3& b,
 	      bool transparent) const;
   bool shipout3(const string& prefix, const string& format,
-		double width, double height, double expand, const triple& light,
+		double width, double height, const triple& light,
 		double angle, const triple& m, const triple& M,
 		Int Minsub=1, Int Maxsub=0, bool wait=false, bool view=true);
   

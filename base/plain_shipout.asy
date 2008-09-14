@@ -32,7 +32,7 @@ bool prc() {
 
 bool is3D()
 {
-  return prc() || settings.render;
+  return prc() || settings.render > 0;
 }
 
 frame enclose(string prefix=defaultfilename, object F)
@@ -80,7 +80,7 @@ void shipout(string prefix=defaultfilename, frame f,
 {
   if(is3D(f)) {
     f=enclose(prefix,embed3(prefix,f,options,P));
-    if(settings.render && !prc()) {
+    if(settings.render > 0 && !prc()) {
       shipped=true;
       return;
     }
@@ -111,7 +111,7 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 {
   if(!uptodate()) {
     frame f=pic.fit(wait=wait,view=view,options,P);
-    if(currentpicture.nodes3.length == 0 || !settings.render || prc())
+    if(currentpicture.nodes3.length == 0 || settings.render == 0 || prc())
       shipout(prefix,orientation(f),format,wait,view);
   }
   pic.uptodate=true;

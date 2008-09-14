@@ -374,15 +374,18 @@ struct transformation {
   transform3 modelview;  // For orientation and positioning
   transform3 projection; // For 3D to 2D projection
   bool infinity;
-  void operator init(transform3 modelview) {
+  bool oblique;
+  void operator init(transform3 modelview, bool oblique=false) {
     this.modelview=modelview;
     this.projection=identity4;
     infinity=true;
+    this.oblique=oblique;
   }
   void operator init(transform3 modelview, transform3 projection) {
     this.modelview=modelview;
     this.projection=projection;
     infinity=false;
+    oblique=false;
   }
   transform3 compute() {
     return projection*modelview;
@@ -390,8 +393,9 @@ struct transformation {
 }
 
 struct projection {
-  transform3 t;          // T.projection*T.modelview (cached)
+  transform3 t; // T.projection*T.modelview (cached)
   bool infinity;
+  bool oblique;
   bool absolute=false;
   triple camera;
   triple target;
@@ -400,12 +404,12 @@ struct projection {
   projector projector;
   real angle; // Lens angle (currently only used by PRC viewpoint).
   int ninterpolate=16; // Used for non-PRC approximation of nurbs
-  real antialias=1;  // Antialiasing factor for 3D OpenGL rendering
 
   void calculate() {
     transformation T=projector(camera,up,target);
     t=T.compute();
     infinity=T.infinity;
+    oblique=T.oblique;
   }
 
   transformation transformation() {
@@ -418,7 +422,6 @@ struct projection {
 
   void operator init(triple camera, triple target=(0,0,0), triple up=(0,0,1),
 		     projector projector) {
-    this.infinity=infinity;
     if(infinity) {
       this.camera=unit(camera);
       this.target=(0,0,0);
@@ -436,6 +439,7 @@ struct projection {
     P.t=t;
     P.infinity=infinity;
     P.absolute=absolute;
+    P.oblique=oblique;
     P.camera=camera;
     P.target=target;
     P.up=up;

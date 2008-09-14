@@ -88,6 +88,7 @@ double xmin,xmax;
 double ymin,ymax;
 double zmin,zmax;
 
+double cx;
 double Ymin,Ymax;
 double X,Y;
 
@@ -167,9 +168,9 @@ void display(void)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   bbox3 b(transform(xmin,ymin,zmax));
-    b.addnonempty(transform(xmin,ymax,zmax));
-    b.addnonempty(transform(xmax,ymin,zmax));
-    b.addnonempty(transform(xmax,ymax,zmax));
+  b.addnonempty(transform(xmin,ymax,zmax));
+  b.addnonempty(transform(xmax,ymin,zmax));
+  b.addnonempty(transform(xmax,ymax,zmax));
   if(H == 0) {
     b.addnonempty(transform(xmin,ymin,zmin));
     b.addnonempty(transform(xmin,ymax,zmin));
@@ -220,6 +221,7 @@ void setProjection()
   double Y0=Y*(ymax-ymin)/(lastzoom*Height);
   if(H == 0.0) {
     double factor=0.5*(Ymax-Ymin)*Zoom*Aspect;
+    X0 -= cx;
     xmin=-factor-X0;
     xmax=factor-X0;
     ymin=Ymin*Zoom-Y0;
@@ -264,8 +266,8 @@ void reshape(int width, int height)
 void keyboard(unsigned char key, int x, int y)
 {
   switch(key) {
-  case 17: // Ctrl-q
-  case 'q':
+    case 17: // Ctrl-q
+    case 'q':
     {
       glReadBuffer(GL_FRONT_LEFT);
       quit();
@@ -338,7 +340,7 @@ void rotate(int x, int y)
     for(int j=0; j < 4; ++j)
       Rotate[i4+j]=roti[j];
   }
- update();
+  update();
 }
   
 double Degrees(int x, int y) 
@@ -433,10 +435,17 @@ void Zspin()
   rotateZ(spinStep);
 }
 
+void stopSpinning() 
+{
+  glutIdleFunc(NULL);
+  spinning=false;
+}
+
 void menu(int choice)
 {
   switch (choice) {
     case 1: // Home
+      stopSpinning();
       X=Y=0.0;
       arcball.init();
       glMatrixMode(GL_MODELVIEW);
@@ -444,29 +453,28 @@ void menu(int choice)
       glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
       xangle=yangle=zangle=0.0;
       update();
-    break;
-  case 2:
-    spinning=true;
-    glutIdleFunc(Xspin);
-    break;
-  case 3:
-    spinning=true;
-    glutIdleFunc(Yspin);
-    break;
-  case 4:
-    spinning=true;
-    glutIdleFunc(Zspin);
-    break;
-  case 5:
-    glutIdleFunc(NULL);
-    spinning=false;
-    // Update arcball
-    for(int i=0; i < 4; ++i) {
-      int i4=4*i;
-      for(int j=0; j < 4; ++j)
-	arcball.rot[i][j]=Rotate[i4+j];
-    }
-    break;
+      break;
+    case 2: //X spin
+      spinning=true;
+      glutIdleFunc(Xspin);
+      break;
+    case 3: //Y spin
+      spinning=true;
+      glutIdleFunc(Yspin);
+      break;
+    case 4: //Z spin
+      spinning=true;
+      glutIdleFunc(Zspin);
+      break;
+    case 5: // Stop
+      stopSpinning();
+      // Update arcball
+      for(int i=0; i < 4; ++i) {
+	int i4=4*i;
+	for(int j=0; j < 4; ++j)
+	  arcball.rot[i][j]=Rotate[i4+j];
+      }
+      break;
   }
 }
 
@@ -481,6 +489,7 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
   Oldpid=oldpid;
   Picture=pic;
   Light=light;
+  cx=0.5*(m.getx()+M.getx());
   Ymin=m.gety();
   Ymax=M.gety();
   zmin=m.getz();

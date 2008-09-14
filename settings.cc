@@ -924,12 +924,13 @@ void initSettings() {
 			      ""));
   addOption(new boolSetting("prc", 0,
                             "Embed 3D PRC graphics in PDF output", true));
-  addOption(new boolSetting("render", 0,
-                            "Render 3D graphics with OpenGL",haveglut));
+  addOption(new IntSetting("render", 0, "n",
+			   "Render 3D graphics using n pixels per bp",
+			   haveglut ? 1 : 0));
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided lighting OpenGL model",true));
-  addOption(new IntSetting("linequality", 0, "0-2",
-                            "PRC/OpenGL line quality", 1));
+  addOption(new IntSetting("path3quality", 0, "0-2",
+                            "line quality for PRC/OpenGL rendering", 1));
   addOption(new boolSetting("psimage", 0,
                             "Output ps image of 3D PRC graphics", false));
   addOption(new stringOutnameSetting("outname", 'o', "name",
@@ -1037,7 +1038,7 @@ void initSettings() {
   addOption(new boolSetting("pdfreload", 0,
                             "Automatically reload document in pdfviewer",
 			    false));
-  addOption(new IntSetting("pdfreloaddelay", 0, "useconds",
+  addOption(new IntSetting("pdfreloaddelay", 0, "usec",
 			   "Delay before attempting initial pdf reload"
 			   ,750000));
   addOption(new stringSetting("autoimport", 0, "string",

@@ -703,7 +703,7 @@ bool picture::render(int width, int height, double zoom, const bbox3& b,
 }
   
 bool picture::shipout3(const string& prefix, const string& format,
-		       double width, double height, double expand,
+		       double width, double height,
 		       const triple& light, double angle,
 		       const triple& m, const triple& M,
 		       Int Minsub, Int Maxsub, bool wait, bool view)
@@ -721,6 +721,7 @@ bool picture::shipout3(const string& prefix, const string& format,
       (*p)->fraction(fraction,size3);
     }
   }
+  Int expand=getSetting<Int>("render");
   if(expand <= 0) expand=1;
   int Width=(int) ceil(expand*width);
   int Height=(int) floor(expand*height);

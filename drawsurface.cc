@@ -14,28 +14,28 @@ using vm::array;
 
 void drawSurface::bounds(bbox3& b)
 {
-    double xmin,xmax;
-    double ymin,ymax;
-    double zmin,zmax;
-    double c[16];
+  double xmin,xmax;
+  double ymin,ymax;
+  double zmin,zmax;
+  double c[16];
     
-    for(int i=0; i < 16; ++i)
-      c[i]=controls[i][0];
-    bounds(xmin,xmax,c);
+  for(int i=0; i < 16; ++i)
+    c[i]=controls[i][0];
+  bounds(xmin,xmax,c);
     
-    for(int i=0; i < 16; ++i)
-      c[i]=controls[i][1];
-    bounds(ymin,ymax,c);
+  for(int i=0; i < 16; ++i)
+    c[i]=controls[i][1];
+  bounds(ymin,ymax,c);
     
-    for(int i=0; i < 16; ++i)
-      c[i]=controls[i][2];
-    bounds(zmin,zmax,c);
+  for(int i=0; i < 16; ++i)
+    c[i]=controls[i][2];
+  bounds(zmin,zmax,c);
     
-    Min=triple(xmin,ymin,zmin);
-    Max=triple(xmax,ymax,zmax);
+  Min=triple(xmin,ymin,zmin);
+  Max=triple(xmax,ymax,zmax);
     
-    b.add(Min);
-    b.add(Max);
+  b.add(Min);
+  b.add(Max);
 }
   
 bool drawSurface::write(prcfile *out)
@@ -102,26 +102,25 @@ bool drawSurface::render(int n, double size2, const bbox3& b, bool transparent)
   
   if(b.left > Max.getx() || b.right < Min.getx() ||
      b.bottom > Max.gety() || b.top < Min.gety() ||
-     b.lower > Max.getz() || b.upper < Min.getz()) return true;
-
+    b.lower > Max.getz() || b.upper < Min.getz()) return true;
   
-  if(localsub) n=min(n,(int) ceil(sqrt(f*size2)));
+if(localsub) n=min(n,(int) ceil(sqrt(f*size2)));
 
-  GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
-  GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
-  GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
-  GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
+GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
+GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
+GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
+GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
     
-  glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
-  glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
-  glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
-  glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
-  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
+glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
+glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
+glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
+glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
+glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
-  glMap2d(GL_MAP2_VERTEX_3,0,1,3,4,0,1,12,4,(GLdouble*) &controls);
-  glMapGrid2d(n,0.0,1.0,n,0.0,1.0);
-  glEvalMesh2(GL_FILL,0,n,0,n);
-  return true;
+glMap2d(GL_MAP2_VERTEX_3,0,1,3,4,0,1,12,4,(GLdouble*) &controls);
+glMapGrid2d(n,0.0,1.0,n,0.0,1.0);
+glEvalMesh2(GL_FILL,0,n,0,n);
+return true;
 }
 
 drawElement *drawSurface::transformed(array *t)
