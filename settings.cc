@@ -928,9 +928,12 @@ void initSettings() {
 			   "Render 3D graphics using n pixels per bp",
 			   haveglut ? 1 : 0));
   addOption(new boolSetting("twosided", 0,
-                            "Use two-sided lighting OpenGL model",true));
+                            "Use two-sided 3D lighting model for rendering",
+			    true));
+  addOption(new pairSetting("position", 0, "pair", 
+			    "Initial 3D rendering screen position"));
   addOption(new IntSetting("path3quality", 0, "0-2",
-                            "line quality for PRC/OpenGL rendering", 1));
+                            "Line quality for 3D rendering", 1));
   addOption(new boolSetting("psimage", 0,
                             "Output ps image of 3D PRC graphics", false));
   addOption(new stringOutnameSetting("outname", 'o', "name",

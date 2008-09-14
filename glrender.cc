@@ -58,6 +58,7 @@ namespace gl {
 using camp::picture;
 using camp::drawImage;
 using camp::transform;
+using camp::pair;
 using camp::triple;
 using vm::array;
 using camp::bbox3;
@@ -527,14 +528,19 @@ void glrender(const string& prefix, picture *pic, const string& format,
   
   string options=string(settings::argv0)+" ";
   if(!View) options += "-iconic ";
-  options += settings::getSetting<string>("glOptions");
+  options += getSetting<string>("glOptions");
   char **argv=args(options.c_str(),true);
   int argc=0;
   while(argv[argc] != NULL)
     ++argc;
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-  glutInitWindowPosition(0,0);
+  pair z=getSetting<pair>("position");
+  Int x=(Int) z.getx();
+  Int y=(Int) z.gety();
+  if(x < 0) x += glutGet(GLUT_SCREEN_WIDTH)-width;
+  if(y < 0) y += glutGet(GLUT_SCREEN_HEIGHT)-height;
+  glutInitWindowPosition(x,y);
   
   glutInitWindowSize(1,1);
   window=glutCreateWindow(Prefix);
