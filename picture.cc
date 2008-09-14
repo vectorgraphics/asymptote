@@ -46,8 +46,8 @@ texstream::~texstream() {
 
 namespace camp {
 
-const double pixelfactor=0.3; // Adaptive rendering constant.
-const double pixelfactor2=0.1;
+const double pixelfactor=0.5; // Adaptive rendering constant.
+const double pixelfactor2=0.75;
 
 const char *texpathmessage() {
   ostringstream buf;
@@ -713,7 +713,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   
   minsub=Minsub;
   maxsub=Maxsub;
-  triple size3=(b3.Max()-b3.Min())*scale3D;
+  triple size3=b3.Max()-b3.Min();
   fraction=0;
   if(maxsub == 0 || minsub < maxsub) {
     for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
