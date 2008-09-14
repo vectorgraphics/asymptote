@@ -94,7 +94,7 @@ double X,Y;
 const double moveFactor=1.0;  
 const double zoomFactor=1.05;
 const double zoomFactorStep=0.25;
-const float rotateStep=0.25;
+const double spinStep=5.0;
 const float arcballRadius=500.0;
 
 const double degrees=180.0/M_PI;
@@ -103,6 +103,10 @@ const double radians=1.0/degrees;
 int x0,y0;
 int mod;
 
+bool spinning;
+
+double xangle;
+double yangle;
 double zangle;
 double lastangle;
 
@@ -276,7 +280,6 @@ void update()
   glLoadIdentity();
   double cz=0.5*(zmin+zmax);
   glTranslatef(0,0,cz);
-  glRotatef(zangle,0,0,1);
   glMultMatrixf(Rotate);
   glTranslatef(0,0,-cz);
   glGetFloatv(GL_MODELVIEW_MATRIX,Modelview);
@@ -324,6 +327,7 @@ void mousewheel(int wheel, int direction, int x, int y)
 
 void rotate(int x, int y)
 {
+  if(spinning) return;
   arcball.mouse_motion(x,Height-y,0,
 		       mod == GLUT_ACTIVE_SHIFT, // X rotation only
 		       mod == GLUT_ACTIVE_CTRL);  // Y rotation only
@@ -342,18 +346,48 @@ double Degrees(int x, int y)
   return atan2(0.5*Height-y-Y,x-0.5*Width-X)*degrees;
 }
 
+void rotateX(double step) 
+{
+  xangle += step;
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glRotatef(xangle,1,0,0);
+  glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
+  update();
+}
+
+void rotateY(double step) 
+{
+  yangle += step;
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glRotatef(yangle,0,1,0);
+  glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
+  update();
+}
+
+void rotateZ(double step) 
+{
+  zangle += step;
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glRotatef(zangle,0,0,1);
+  glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
+  update();
+}
+
 void rotateZ(int x, int y)
 {
   double angle=Degrees(x,y);
-  zangle += angle-lastangle;
+  rotateZ(angle-lastangle);
   lastangle=angle;
-  update();
 }
 
 // Mouse bindings.
 // LEFT: rotate
 // SHIFT LEFT: zoom
 // CTRL LEFT: shift
+// MIDDLE: menu
 // RIGHT: zoom
 // SHIFT RIGHT: rotateX
 // CTRL RIGHT: rotateY
@@ -384,6 +418,58 @@ void mouse(int button, int state, int x, int y)
     arcball.mouse_up();
 }
 
+void Xspin()
+{
+  rotateX(spinStep);
+}
+
+void Yspin()
+{
+  rotateY(spinStep);
+}
+
+void Zspin()
+{
+  rotateZ(spinStep);
+}
+
+void menu(int choice)
+{
+  switch (choice) {
+    case 1: // Home
+      X=Y=0.0;
+      arcball.init();
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity();
+      glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
+      xangle=yangle=zangle=0.0;
+      update();
+    break;
+  case 2:
+    spinning=true;
+    glutIdleFunc(Xspin);
+    break;
+  case 3:
+    spinning=true;
+    glutIdleFunc(Yspin);
+    break;
+  case 4:
+    spinning=true;
+    glutIdleFunc(Zspin);
+    break;
+  case 5:
+    glutIdleFunc(NULL);
+    spinning=false;
+    // Update arcball
+    for(int i=0; i < 4; ++i) {
+      int i4=4*i;
+      for(int j=0; j < 4; ++j)
+	arcball.rot[i][j]=Rotate[i4+j];
+    }
+    break;
+  }
+}
+
 // angle=0 means orthographic.
 void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
 	      int& width, int& height, const triple& light,
@@ -402,6 +488,8 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
   H=angle != 0.0 ? -tan(0.5*angle*radians)*zmax : 0.0;
    
   X=Y=0.0;
+  xangle=yangle=zangle=0.0;
+  spinning=false;
   
   string options=string(settings::argv0)+" ";
   if(!Interactive) options += "-iconic ";
@@ -452,6 +540,14 @@ void glrender(const char *prefix, unsigned char* &data,  const picture *pic,
 
   Data=&data;
   
+  glutCreateMenu(menu);
+  glutAddMenuEntry("Home",1);
+  glutAddMenuEntry("X spin",2);
+  glutAddMenuEntry("Y spin",3);
+  glutAddMenuEntry("Z spin",4);
+  glutAddMenuEntry("Stop",5);
+  glutAttachMenu(GLUT_MIDDLE_BUTTON);
+
   glutMainLoop();
   
   width=Width;
