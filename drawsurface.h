@@ -58,9 +58,9 @@ public:
 	reportError(wrongsize);
       for(size_t j=0; j < 4; ++j) {
 	triple v=vm::read<triple>(gi,j);
-	controls[k][0]=v.getx()*scale3D;
-	controls[k][1]=v.gety()*scale3D;
-	controls[k][2]=v.getz()*scale3D;
+	controls[k][0]=v.getx();
+	controls[k][1]=v.gety();
+	controls[k][2]=v.getz();
 	++k;
       }
     }
@@ -73,19 +73,18 @@ public:
     invisible(s->invisible) {
     for(size_t i=0; i < 16; ++i) {
       const double *c=s->controls[i];
-      static const double factor=1.0/scale3D;
-      triple v=run::operator *(t,triple(c[0]*factor,c[1]*factor,c[2]*factor));
-      controls[i][0]=v.getx()*scale3D;
-      controls[i][1]=v.gety()*scale3D;
-      controls[i][2]=v.getz()*scale3D;
+      triple v=run::operator *(t,triple(c[0],c[1],c[2]));
+      controls[i][0]=v.getx();
+      controls[i][1]=v.gety();
+      controls[i][2]=v.getz();
     }
   }
   
   bool is3D() {return true;}
   
   void bounds(double &Min, double &Max, double *c) {
-    Min=bound(c,min,c[0])/scale3D;
-    Max=bound(c,max,c[0])/scale3D;
+    Min=bound(c,min,c[0]);
+    Max=bound(c,max,c[0]);
   }
   
   void bounds(bbox3& b);

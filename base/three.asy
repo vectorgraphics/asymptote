@@ -1841,8 +1841,8 @@ object embed(string prefix=defaultfilename, picture pic,
     if(settings.render > 0 && !prc()) {
       transform3 T=P.projector(P.camera,P.up,P.target).modelview;
       f=T*f;
-      triple m=min3(f)/cm;
-      triple M=max3(f)/cm;
+      triple m=min3(f);
+      triple M=max3(f);
       real r=0.5*abs(M-m);
       triple center=0.5*(M+m);
       if(P.oblique) r *= 2; // Fix clipping for oblique projections.

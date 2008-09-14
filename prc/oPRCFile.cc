@@ -84,7 +84,7 @@ void PRCline::writeTopologicalContext(PRCbitStream &out)
 
   // points
   for(uint32_t i = 0; i < numberOfPoints; ++i)
-    out << points[i][0] << points[i][1] << points[i][2];
+    out << points[i][0]*scale << points[i][1]*scale << points[i][2]*scale;
 
   // ending of wire edge
   out << false; // trim surface domain
@@ -152,7 +152,8 @@ void PRCcurve::writeTopologicalContext(PRCbitStream &out)
   // control points
   for(uint32_t i = 0; i < numberOfControlPoints; ++i)
   {
-    out << controlPoints[i][0] << controlPoints[i][1] << controlPoints[i][2];
+    out << controlPoints[i][0]*scale << controlPoints[i][1]*scale 
+	<< controlPoints[i][2]*scale;
     if(isRational)
       out << weights[i];
   }
@@ -244,7 +245,8 @@ void PRCsurface::writeTopologicalContext(PRCbitStream &out)
   // control points
   for(uint32_t i = 0; i < numberOfControlPointsU*numberOfControlPointsV; ++i)
   {
-    out << controlPoints[i][0] << controlPoints[i][1] << controlPoints[i][2];
+    out << controlPoints[i][0]*scale << controlPoints[i][1]*scale
+	<< controlPoints[i][2]*scale;
     if(isRational)
       out << weights[i];
   }

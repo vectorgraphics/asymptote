@@ -31,6 +31,7 @@ restricted pen basealign=basealign(1);
 
 pen invisible=invisible();
 pen thin=linewidth(0);
+pen thick(pen p=currentpen) {return linewidth(linewidth(p));}
 pen nullpen=thin+invisible;
 
 pen black=gray(0);

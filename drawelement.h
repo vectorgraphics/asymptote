@@ -20,7 +20,6 @@
 
 namespace camp {
 
-const double scale3D=1.0/settings::cm;
 extern const double pixelfactor; // Adaptive rendering constant.
 extern const double pixelfactor2; // Adaptive rendering constant.
   

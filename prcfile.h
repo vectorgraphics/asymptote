@@ -5,6 +5,8 @@
 
 namespace camp {
 
+const double scale3D=1.0/settings::cm;
+
 inline RGBAColour rgba(pen p) {
   p.torgb();
   return RGBAColour(p.red(),p.green(),p.blue(),p.opacity());
@@ -44,10 +46,10 @@ class PRCBezierCurve : public PRCcurve
 public:
   PRCBezierCurve(oPRCFile *p, uint32_t d, uint32_t n, double cP[][3],
 		 const RGBAColour &c) :
-    PRCcurve(p,d,n,cP,NULL,c,false,NULL), d(d), n(n) {}
+    PRCcurve(p,d,n,cP,NULL,c,scale3D,false,NULL), d(d), n(n) {}
   PRCBezierCurve(oPRCFile *p, uint32_t d, uint32_t n, double cP[][3],
 		 const PRCMaterial &m) :
-      PRCcurve(p,d,n,cP,NULL,m,false,NULL), d(d), n(n) {}
+    PRCcurve(p,d,n,cP,NULL,m,scale3D,false,NULL), d(d), n(n) {}
 private:
   void writeKnots(PRCbitStream &out) {
     writeBezierKnots(out,d,n);
@@ -62,13 +64,13 @@ public:
   PRCBezierSurface(oPRCFile *p, uint32_t dU, uint32_t dV, uint32_t nU,
 		   uint32_t nV, double cP[][3], const RGBAColour &c,
 		   double g=0.0) :
-    PRCsurface(p,dU,dV,nU,nV,cP,NULL,NULL,c,false,NULL,g), dU(dU), dV(dV),
-    nU(nU), nV(nV) {}
+    PRCsurface(p,dU,dV,nU,nV,cP,NULL,NULL,c,scale3D,false,NULL,g), dU(dU),
+    dV(dV), nU(nU), nV(nV) {}
   PRCBezierSurface(oPRCFile *p, uint32_t dU, uint32_t dV, uint32_t nU,
 		   uint32_t nV, double cP[][3], const PRCMaterial &m,
 		   double g=0.0) :
-    PRCsurface(p,dU,dV,nU,nV,cP,NULL,NULL,m,false,NULL,g), dU(dU), dV(dV),
-    nU(nU), nV(nV) {}
+    PRCsurface(p,dU,dV,nU,nV,cP,NULL,NULL,m,scale3D,false,NULL,g), dU(dU),
+    dV(dV), nU(nU), nV(nV) {}
 private:
   void writeKnots(PRCbitStream &out) {
     writeBezierKnots(out,dU,nU);

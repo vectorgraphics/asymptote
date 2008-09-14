@@ -46,9 +46,9 @@ texstream::~texstream() {
 
 namespace camp {
 
-const double pixelfactor=1.5; // Adaptive rendering constant.
-const double pixelfactor2=pixelfactor*pixelfactor;
-  
+const double pixelfactor=0.3; // Adaptive rendering constant.
+const double pixelfactor2=0.1;
+
 const char *texpathmessage() {
   ostringstream buf;
   buf << "the directory containing your " << getSetting<string>("tex")

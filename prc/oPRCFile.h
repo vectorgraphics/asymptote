@@ -63,10 +63,10 @@ struct PRCMaterial
 class PRCentity
 {
   public:
-    PRCentity(oPRCFile *p,const RGBAColour &c) : colour(c),useMaterial(false),
-              parent(p) {}
-    PRCentity(oPRCFile *p,const PRCMaterial &m) : material(m),useMaterial(true),
-              parent(p) {}
+    PRCentity(oPRCFile *p,const RGBAColour &c, double scale = 1.0) : 
+      colour(c), useMaterial(false), scale(scale), parent(p) {}
+    PRCentity(oPRCFile *p,const PRCMaterial &m, double scale = 1.0) : 
+      material(m), useMaterial(true), scale(scale), parent(p) {}
     uint32_t getGraphicsIndex();
     virtual void writeRepresentationItem(PRCbitStream&,uint32_t) = 0;
     virtual void writeTopologicalContext(PRCbitStream&) = 0;
@@ -74,6 +74,7 @@ class PRCentity
     RGBAColour colour;
     PRCMaterial material;
     bool useMaterial;
+    double scale;
   virtual ~PRCentity() {}
   protected:
     oPRCFile *parent;
@@ -85,16 +86,20 @@ class PRCsurface : public PRCentity
     // contructor with colour
     PRCsurface(oPRCFile *p, uint32_t dU, uint32_t dV, uint32_t nU, uint32_t nV,
 	       double cP[][3], double *kU, double *kV, const RGBAColour &c,
-	       bool iR = false, double w[] = 0, double g = 0) :
-      PRCentity(p,c), degreeU(dU), degreeV(dV), numberOfControlPointsU(nU),
-      numberOfControlPointsV(nV), knotsU(kU), knotsV(kV), controlPoints(cP),
+	       double scale = 1.0, bool iR = false, double w[] = 0,
+	       double g = 0) :
+      PRCentity(p,c,scale), degreeU(dU), degreeV(dV),
+      numberOfControlPointsU(nU), numberOfControlPointsV(nV),
+      knotsU(kU), knotsV(kV), controlPoints(cP),
       isRational(iR), weights(w), granularity(g) {}
     // contructor with material
     PRCsurface(oPRCFile *p, uint32_t dU, uint32_t dV, uint32_t nU, uint32_t nV,
 	       double cP[][3], double *kU, double *kV, const PRCMaterial &m,
-	       bool iR = false, double w[] = 0, double g = 0) :
-      PRCentity(p,m), degreeU(dU), degreeV(dV), numberOfControlPointsU(nU),
-      numberOfControlPointsV(nV), knotsU(kU), knotsV(kV), controlPoints(cP),
+	       double scale = 1.0, bool iR = false, double w[] = 0,
+	       double g = 0) :
+      PRCentity(p,m,scale), degreeU(dU), degreeV(dV),
+      numberOfControlPointsU(nU), numberOfControlPointsV(nV),
+      knotsU(kU), knotsV(kV), controlPoints(cP),
       isRational(iR), weights(w), granularity(g) {}
     virtual void writeRepresentationItem(PRCbitStream&,uint32_t);
     virtual void writeTopologicalContext(PRCbitStream&);
@@ -120,11 +125,13 @@ class PRCline : public PRCentity
 {
   public:
     // constructor with colour
-    PRCline(oPRCFile *p, uint32_t n, double P[][3], const RGBAColour &c) :
-      PRCentity(p,c), numberOfPoints(n), points(P) {}
+    PRCline(oPRCFile *p, uint32_t n, double P[][3], const RGBAColour &c,
+      double scale = 1.0) :
+      PRCentity(p,c,scale), numberOfPoints(n), points(P) {}
     // constructor with material
-    PRCline(oPRCFile *p, uint32_t n, double P[][3], const PRCMaterial &m) :
-        PRCentity(p,m), numberOfPoints(n), points(P) {}
+    PRCline(oPRCFile *p, uint32_t n, double P[][3], const PRCMaterial &m,
+      double scale = 1.0) :
+      PRCentity(p,m,scale), numberOfPoints(n), points(P) {}
       virtual void writeRepresentationItem(PRCbitStream&,uint32_t);
       virtual void writeTopologicalContext(PRCbitStream&);
       virtual void writeExtraGeometryContext(PRCbitStream&);
@@ -138,13 +145,15 @@ class PRCcurve : public PRCentity
   public:
     // constructor with colour
     PRCcurve(oPRCFile *p, uint32_t d, uint32_t n, double cP[][3], double *k,
-            const RGBAColour &c, bool iR = false, double w[] = 0) :
-      PRCentity(p,c), degree(d), numberOfControlPoints(n), knots(k),
+	     const RGBAColour &c, double scale = 1.0, bool iR = false,
+	     double w[] = 0) :
+      PRCentity(p,c,scale), degree(d), numberOfControlPoints(n), knots(k),
       controlPoints(cP), isRational(iR), weights(w) {}
     // constructor with material
     PRCcurve(oPRCFile *p, uint32_t d, uint32_t n, double cP[][3], double *k,
-            const PRCMaterial &m, bool iR = false, double w[] = 0) :
-      PRCentity(p,m), degree(d), numberOfControlPoints(n), knots(k),
+	     const PRCMaterial &m, double scale = 1.0, bool iR = false,
+	     double w[] = 0) :
+      PRCentity(p,m,scale), degree(d), numberOfControlPoints(n), knots(k),
       controlPoints(cP), isRational(iR), weights(w) {}
     virtual void writeRepresentationItem(PRCbitStream&,uint32_t);
     virtual void writeTopologicalContext(PRCbitStream&);

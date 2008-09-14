@@ -13,9 +13,9 @@ using vm::array;
   
 inline void store(Triple& control, const triple& v)
 {
-  control[0]=v.getx()*scale3D;
-  control[1]=v.gety()*scale3D;
-  control[2]=v.getz()*scale3D;
+  control[0]=v.getx();
+  control[1]=v.gety();
+  control[2]=v.getz();
 }
   
 bool drawPath3::write(prcfile *out)
@@ -30,7 +30,7 @@ bool drawPath3::write(prcfile *out)
     controls=new Triple[n+1];
     for(Int i=0; i <= n; ++i)
       store(controls[i],g.point(i));
-    out->add(new PRCline(out,n+1,controls,color));
+    out->add(new PRCline(out,n+1,controls,color,scale3D));
   } else {
     int m=3*n+1;
     controls=new Triple[m];
@@ -61,7 +61,7 @@ bool drawPath3::render(int, double size2, const bbox3& b, bool transparent)
      b.bottom > Max.gety() || b.top < Min.gety() ||
      b.lower > Max.getz() || b.upper < Min.getz()) return true;
   
-  triple size3=(b.Max()-b.Min())*scale3D;
+  triple size3=b.Max()-b.Min();
   
   pentype.torgb();
   glDisable(GL_LIGHTING);
@@ -72,15 +72,15 @@ bool drawPath3::render(int, double size2, const bbox3& b, bool transparent)
     glBegin(GL_LINE_STRIP);
     for(Int i=0; i <= n; ++i) {
       triple v=g.point(i);
-      glVertex3d(v.getx()*scale3D,v.gety()*scale3D,v.getz()*scale3D);
+      glVertex3d(v.getx(),v.gety(),v.getz());
     }
     glEnd();
   } else {
     for(Int i=0; i < n; ++i) {
-      triple z0=g.point(i)*scale3D;
-      triple c0=g.postcontrol(i)*scale3D;
-      triple c1=g.precontrol(i+1)*scale3D;
-      triple z1=g.point(i+1)*scale3D;
+      triple z0=g.point(i);
+      triple c0=g.postcontrol(i);
+      triple c1=g.precontrol(i+1);
+      triple z1=g.point(i+1);
       double f=max(camp::fraction(displacement(c0,z0,z1),size3),
 		     camp::fraction(displacement(c1,z0,z1),size3));
       int n=max(1,(int) ceil(pixelfactor*f*size2));

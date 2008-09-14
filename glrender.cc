@@ -57,7 +57,6 @@ namespace gl {
 using camp::picture;
 using camp::triple;
 using vm::array;
-using camp::scale3D;
 using camp::bbox3;
 using settings::getSetting;
 
@@ -157,10 +156,9 @@ triple transform(double x, double y, double z)
   y -= Modelview[13];
   z -= Modelview[14];
 
-  static const double f=1.0/scale3D;
-  return triple((Modelview[0]*x+Modelview[1]*y+Modelview[2]*z)*f,
-		(Modelview[4]*x+Modelview[5]*y+Modelview[6]*z)*f,
-		(Modelview[8]*x+Modelview[9]*y+Modelview[10]*z)*f);
+  return triple((Modelview[0]*x+Modelview[1]*y+Modelview[2]*z),
+		(Modelview[4]*x+Modelview[5]*y+Modelview[6]*z),
+		(Modelview[8]*x+Modelview[9]*y+Modelview[10]*z));
 }
 
 void display(void)
