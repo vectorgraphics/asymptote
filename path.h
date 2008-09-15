@@ -189,15 +189,21 @@ public:
 
   pair postcontrol(double t) const;
   
+  inline double norm(const pair& z0, const pair& c0, const pair& c1,
+		     const pair& z1) const {
+    return Fuzz2*camp::max((c0-z0).abs2(),
+			   camp::max((c1-z0).abs2(),(z1-z0).abs2()));
+  }
+
   pair predir(Int t) const {
     if(!cycles && t <= 0) return pair(0,0);
     pair z1=point(t);
     pair c1=precontrol(t);
     pair dir=z1-c1;
     pair z0=point(t-1);
-    double epsilon=Fuzz2*(z0-z1).abs2();
-    if(dir.abs2() > epsilon) return unit(dir);
     pair c0=postcontrol(t-1);
+    double epsilon=norm(z0,c0,c1,z1);
+    if(dir.abs2() > epsilon) return unit(dir);
     dir=2*c1-c0-z1;
     if(dir.abs2() > epsilon) return unit(dir);
     return unit(z1-z0+3*(c0-c1));
@@ -209,9 +215,9 @@ public:
     pair z0=point(t);
     pair dir=c0-z0;
     pair z1=point(t+1);
-    double epsilon=Fuzz2*(z0-z1).abs2();
-    if(dir.abs2() > epsilon) return unit(dir);
     pair c1=precontrol(t+1);
+    double epsilon=norm(z0,c0,c1,z1);
+    if(dir.abs2() > epsilon) return unit(dir);
     dir=z0-2*c0+c1;
     if(dir.abs2() > epsilon) return unit(dir);
     return unit(z1-z0+3*(c0-c1));
@@ -239,7 +245,7 @@ public:
     pair b=2.0*(z0+c1)-4.0*c0;
     pair c=c0-z0;
     pair dir=a*t*t+b*t+c;
-    double epsilon=Fuzz2*(z0-z1).abs2();
+    double epsilon=norm(z0,c0,c1,z1);
     if(dir.abs2() > epsilon) return unit(dir);
     dir=2.0*a*t+b;
     if(dir.abs2() > epsilon) return unit(dir);

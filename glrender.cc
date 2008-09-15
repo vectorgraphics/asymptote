@@ -295,6 +295,7 @@ void keyboard(unsigned char key, int x, int y)
  
 void update() 
 {
+  lastzoom=Zoom;
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   double cz=0.5*(zmin+zmax);
@@ -308,7 +309,6 @@ void update()
 
 void move(int x, int y)
 {
-  lastzoom=Zoom;
   if(x > 0 && y > 0) {
     X += (x-x0)*Zoom;
     Y += (y0-y)*Zoom;

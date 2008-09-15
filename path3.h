@@ -156,15 +156,21 @@ public:
 
   triple postcontrol(double t) const;
   
+  inline double norm(const triple& z0, const triple& c0, const triple& c1,
+		     const triple& z1) const {
+    return Fuzz2*camp::max((c0-z0).abs2(),
+			   camp::max((c1-z0).abs2(),(z1-z0).abs2()));
+  }
+
   triple predir(Int t) const {
     if(!cycles && t <= 0) return triple(0,0,0);
     triple z1=point(t);
     triple c1=precontrol(t);
     triple dir=z1-c1;
     triple z0=point(t-1);
-    double epsilon=Fuzz2*(z0-z1).abs2();
-    if(dir.abs2() > epsilon) return unit(dir);
     triple c0=postcontrol(t-1);
+    double epsilon=norm(z0,c0,c1,z1);
+    if(dir.abs2() > epsilon) return unit(dir);
     dir=2*c1-c0-z1;
     if(dir.abs2() > epsilon) return unit(dir);
     return unit(z1-z0+3*(c0-c1));
@@ -176,9 +182,9 @@ public:
     triple z0=point(t);
     triple dir=c0-z0;
     triple z1=point(t+1);
-    double epsilon=Fuzz2*(z0-z1).abs2();
-    if(dir.abs2() > epsilon) return unit(dir);
     triple c1=precontrol(t+1);
+    double epsilon=norm(z0,c0,c1,z1);
+    if(dir.abs2() > epsilon) return unit(dir);
     dir=z0-2*c0+c1;
     if(dir.abs2() > epsilon) return unit(dir);
     return unit(z1-z0+3*(c0-c1));
@@ -206,7 +212,7 @@ public:
     triple b=2.0*(z0+c1)-4.0*c0;
     triple c=c0-z0;
     triple dir=a*t*t+b*t+c;
-    double epsilon=Fuzz2*(z0-z1).abs2();
+    double epsilon=norm(z0,c0,c1,z1);
     if(dir.abs2() > epsilon) return unit(dir);
     dir=2.0*a*t+b;
     if(dir.abs2() > epsilon) return unit(dir);
