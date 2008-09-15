@@ -32,7 +32,7 @@ EXTRA = asy-mode.el asy-keywords.el asy-init.el asy.vim asymptote.py \
  silentPrint.js reload.js
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
 LATEXFILES = asymptote.sty asycolors.sty
-ASY = ./asy -dir base -config "" -norender
+ASY = ./asy -dir base -config "" -render=0
 
 DEFS = @DEFS@ @OPTIONS@
 CFLAGS = @CPPFLAGS@ @CFLAGS@ 
