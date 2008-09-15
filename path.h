@@ -191,10 +191,10 @@ public:
   
   pair predir(Int t) const {
     if(!cycles && t <= 0) return pair(0,0);
-    pair z0=point(t-1);
     pair z1=point(t);
     pair c1=precontrol(t);
     pair dir=z1-c1;
+    pair z0=point(t-1);
     double epsilon=Fuzz2*(z0-z1).abs2();
     if(dir.abs2() > epsilon) return unit(dir);
     pair c0=postcontrol(t-1);
@@ -203,21 +203,12 @@ public:
     return unit(z1-z0+3*(c0-c1));
   }
 
-  pair predir(double t) const {
-    if(!cycles) {
-      if(t <= 0) return pair(0,0);
-      if(t >= n-1) return predir(n-1);
-    }
-    Int a=Floor(t);
-    return (t-a < sqrtFuzz) ? predir(a) : subpath((double) a,t).predir((Int) 1);
-  }
-
   pair postdir(Int t) const {
     if(!cycles && t >= n-1) return pair(0,0);
-    pair z0=point(t);
-    pair z1=point(t+1);
     pair c0=postcontrol(t);
+    pair z0=point(t);
     pair dir=c0-z0;
+    pair z1=point(t+1);
     double epsilon=Fuzz2*(z0-z1).abs2();
     if(dir.abs2() > epsilon) return unit(dir);
     pair c1=precontrol(t+1);
@@ -226,24 +217,33 @@ public:
     return unit(z1-z0+3*(c0-c1));
   }
 
-  pair postdir(double t) const {
-    if(!cycles) {
-      if(t >= n-1) return pair(0,0);
-      if(t <= 0) return postdir((Int) 0);
-    }
-    Int b=Ceil(t);
-    return (b-t < sqrtFuzz) ? postdir(b) : 
-      subpath(t,(double) b).postdir((Int) 0);
-  }
-
-  pair dir(double t) const {
-    return unit(predir(t)+postdir(t));
-  }
-
   pair dir(Int t, Int sign) const {
     if(sign == 0) return unit(predir(t)+postdir(t));
     else if(sign > 0) return postdir(t);
     else return predir(t);
+  }
+
+  pair dir(double t) const {
+    if(!cycles) {
+      if(t <= 0) return postdir((Int) 0);
+      if(t >= n-1) return predir(n-1);
+    }
+    Int i=Floor(t);
+    t -= i;
+    if(t == 0) return unit(postdir(i)+predir(i));
+    pair z0=point(i);
+    pair c0=postcontrol(i);
+    pair c1=precontrol(i+1);
+    pair z1=point(i+1);
+    pair a=z1-z0+3.0*(c0-c1);
+    pair b=2.0*(z0+c1)-4.0*c0;
+    pair c=c0-z0;
+    pair dir=a*t*t+b*t+c;
+    double epsilon=Fuzz2*(z0-z1).abs2();
+    if(dir.abs2() > epsilon) return unit(dir);
+    dir=2.0*a*t+b;
+    if(dir.abs2() > epsilon) return unit(dir);
+    return unit(a);
   }
 
   // Returns the path traced out in reverse.

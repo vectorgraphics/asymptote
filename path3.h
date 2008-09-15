@@ -158,10 +158,10 @@ public:
   
   triple predir(Int t) const {
     if(!cycles && t <= 0) return triple(0,0,0);
-    triple z0=point(t-1);
     triple z1=point(t);
     triple c1=precontrol(t);
     triple dir=z1-c1;
+    triple z0=point(t-1);
     double epsilon=Fuzz2*(z0-z1).abs2();
     if(dir.abs2() > epsilon) return unit(dir);
     triple c0=postcontrol(t-1);
@@ -170,21 +170,12 @@ public:
     return unit(z1-z0+3*(c0-c1));
   }
 
-  triple predir(double t) const {
-    if(!cycles) {
-      if(t <= 0) return triple(0,0,0);
-      if(t >= n-1) return predir(n-1);
-    }
-    Int a=Floor(t);
-    return (t-a < sqrtFuzz) ? predir(a) : subpath((double) a,t).predir((Int) 1);
-  }
-
   triple postdir(Int t) const {
     if(!cycles && t >= n-1) return triple(0,0,0);
-    triple z0=point(t);
-    triple z1=point(t+1);
     triple c0=postcontrol(t);
+    triple z0=point(t);
     triple dir=c0-z0;
+    triple z1=point(t+1);
     double epsilon=Fuzz2*(z0-z1).abs2();
     if(dir.abs2() > epsilon) return unit(dir);
     triple c1=precontrol(t+1);
@@ -193,24 +184,33 @@ public:
     return unit(z1-z0+3*(c0-c1));
   }
 
-  triple postdir(double t) const {
-    if(!cycles) {
-      if(t >= n-1) return triple(0,0,0);
-      if(t <= 0) return postdir((Int) 0);
-    }
-    Int b=Ceil(t);
-    return (b-t < sqrtFuzz) ? postdir(b) : 
-      subpath(t,(double) b).postdir((Int) 0);
-  }
-
-  triple dir(double t) const {
-    return unit(predir(t)+postdir(t));
-  }
-
   triple dir(Int t, Int sign) const {
     if(sign == 0) return unit(predir(t)+postdir(t));
     else if(sign > 0) return postdir(t);
     else return predir(t);
+  }
+
+  triple dir(double t) const {
+    if(!cycles) {
+      if(t <= 0) return postdir((Int) 0);
+      if(t >= n-1) return predir(n-1);
+    }
+    Int i=Floor(t);
+    t -= i;
+    if(t == 0) return unit(postdir(i)+predir(i));
+    triple z0=point(i);
+    triple c0=postcontrol(i);
+    triple c1=precontrol(i+1);
+    triple z1=point(i+1);
+    triple a=z1-z0+3.0*(c0-c1);
+    triple b=2.0*(z0+c1)-4.0*c0;
+    triple c=c0-z0;
+    triple dir=a*t*t+b*t+c;
+    double epsilon=Fuzz2*(z0-z1).abs2();
+    if(dir.abs2() > epsilon) return unit(dir);
+    dir=2.0*a*t+b;
+    if(dir.abs2() > epsilon) return unit(dir);
+    return unit(a);
   }
 
   triple postaccel(Int t) const {
@@ -227,37 +227,28 @@ public:
     triple c0=postcontrol(t-1);
     triple c1=precontrol(t);
     triple z1=point(t);
-    return 6.0*(z1-z0)+18.0*(c0-c1);
+    return 6.0*(z1+c0)-12.0*c1;
   }
   
-  triple preaccel(double t) const {
-    if(!cycles) {
-      if(t <= 0) return triple(0,0,0);
-      if(t >= n-1) return preaccel(n-1);
-    }
-    Int a=Floor(t);
-    return (t-a < sqrtFuzz) ? preaccel(a) : 
-      subpath((double) a,t).preaccel((Int) 1);
-  }
-
-  triple postaccel(double t) const {
-    if(!cycles) {
-      if(t >= n-1) return triple(0,0,0);
-      if(t <= 0) return postaccel((Int) 0);
-    }
-    Int b=Ceil(t);
-    return (b-t < sqrtFuzz) ? postaccel(b) : 
-      subpath(t,(double) b).postaccel((Int) 0);
+  triple accel(Int t, Int sign) const {
+    if(sign == 0) return 0.5*(preaccel(t)+postaccel(t));
+    else if(sign > 0) return postaccel(t);
+    else return preaccel(t);
   }
 
   triple accel(double t) const {
-    return preaccel(t)+postaccel(t);
-  }
-
-  triple accel(Int t, Int sign) const {
-    if(sign == 0) return preaccel(t)+postaccel(t);
-    else if(sign > 0) return postaccel(t);
-    else return preaccel(t);
+    if(!cycles) {
+      if(t <= 0) return postaccel((Int) 0);
+      if(t >= n-1) return preaccel(n-1);
+    }
+    Int i=Floor(t);
+    t -= i;
+    if(t == 0) return 0.5*(postaccel(i)+preaccel(i));
+    triple z0=point(i);
+    triple c0=postcontrol(i);
+    triple c1=precontrol(i+1);
+    triple z1=point(i+1);
+    return 6.0*t*(z1-z0+3.0*(c0-c1))+6.0*(z0+c1)-12.0*c0;
   }
 
   // Returns the path3 traced out in reverse.
