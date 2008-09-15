@@ -471,6 +471,11 @@ void Zspin()
   rotateZ(spinstep());
 }
 
+void initTimer() 
+{
+  gettimeofday(&lasttime,NULL);
+}
+
 void menu(int choice)
 {
   switch (choice) {
@@ -485,12 +490,15 @@ void menu(int choice)
       update();
       break;
     case 2: // X spin
+      initTimer();
       glutIdleFunc(Xspin);
       break;
     case 3: // Y spin
+      initTimer();
       glutIdleFunc(Yspin);
       break;
     case 4: // Z spin
+      initTimer();
       glutIdleFunc(Zspin);
       break;
     case 5: // Stop
@@ -527,8 +535,6 @@ void glrender(const string& prefix, picture *pic, const string& format,
   H=angle != 0.0 ? -tan(0.5*angle*radians)*zmax : 0.0;
    
   X=Y=0.0;
-  
-  gettimeofday(&lasttime,NULL);
   
   string options=string(settings::argv0)+" ";
   if(!View) options += "-iconic ";
