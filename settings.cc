@@ -936,6 +936,8 @@ void initSettings() {
 			    "Initial 3D rendering screen position"));
   addOption(new boolSetting("thick", 0,
                             "Render thick 3D lines", true));
+  addOption(new boolSetting("fullscreen", 0,
+                            "Use fullscreen rendering", true));
   addOption(new boolSetting("psimage", 0,
                             "Output ps image of 3D PRC graphics", false));
   addOption(new stringOutnameSetting("outname", 'o', "name",

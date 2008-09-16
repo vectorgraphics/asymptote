@@ -79,7 +79,7 @@ inline T max(T a, T b)
 bool View;
 bool Save;
 int Oldpid;
-const char* Prefix;
+const string* Prefix;
 picture* Picture;
 string Format;
 int Width=0;
@@ -103,7 +103,7 @@ const double moveFactor=1.0;
 const double zoomFactor=1.05;
 const double zoomFactorStep=0.25;
 const double spinStep=60.0; // Degrees per second
-const float arcballRadius=500.0;
+const float arcballRadius=750.0;
 
 const double degrees=180.0/M_PI;
 const double radians=1.0/degrees;
@@ -146,7 +146,7 @@ void save()
   double f=1.0/expand;
   Picture->append(new drawImage(data,Width,Height,
 				transform(0.0,0.0,Width*f,0.0,0.0,Height*f)));
-  Picture->shipout(NULL,Prefix,Format);
+  Picture->shipout(NULL,*Prefix,Format);
 }
   
 void quit() 
@@ -583,7 +583,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
 	      double angle, const triple& m, const triple& M, bool view,
 	      int oldpid)
 {
-  Prefix=prefix.c_str();
+  Prefix=&prefix;
   Picture=pic;
   Format=format;
   View=view;
@@ -611,7 +611,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
   
   glutInitWindowSize(1,1);
-  window=glutCreateWindow(Prefix);
+  window=glutCreateWindow("");
   glGetIntegerv(GL_MAX_VIEWPORT_DIMS, viewportLimit);
   glutDestroyWindow(window);
   glFinish();
@@ -624,7 +624,8 @@ void glrender(const string& prefix, picture *pic, const string& format,
   glutInitWindowPosition(x,y);
   
   glutInitWindowSize(Width,Height);
-  window=glutCreateWindow(Prefix);
+  window=glutCreateWindow((prefix+" [Click middle button for menu]").c_str());
+  if(getSetting<bool>("fullscreen")) fullscreen();
   
   if(settings::verbose > 1) 
     cout << "Rendering " << prefix << endl;
