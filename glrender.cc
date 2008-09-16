@@ -85,6 +85,8 @@ string Format;
 int Width=0;
 int Height=0;
 
+bool Fullscreen;
+
 double H;
 unsigned char **Data;
 GLint viewportLimit[2];
@@ -268,26 +270,6 @@ void reshape(int width, int height)
   
 }
   
-void keyboard(unsigned char key, int x, int y)
-{
-  switch(key) {
-    case 'x':
-    {
-      glReadBuffer(GL_FRONT_LEFT);
-      save();
-      break;
-    }
-    case 17: // Ctrl-q
-    case 'q':
-    {
-      glReadBuffer(GL_FRONT_LEFT);
-      if(Save) save();
-      quit();
-      break;
-    }
-  }
-}
- 
 void update() 
 {
   lastzoom=Zoom;
@@ -476,39 +458,119 @@ void initTimer()
   gettimeofday(&lasttime,NULL);
 }
 
+void windowposition(int& x, int& y, int width, int height) 
+{
+  pair z=getSetting<pair>("position");
+  x=(int) z.getx();
+  y=(int) z.gety();
+  if(x < 0) x += glutGet(GLUT_SCREEN_WIDTH)-width;
+  if(y < 0) y += glutGet(GLUT_SCREEN_HEIGHT)-height;
+}
+
+void fullscreen() 
+{
+  Fullscreen=!Fullscreen;
+  static int oldwidth,oldheight;
+  if(Fullscreen) {
+    oldwidth=Width;
+    oldheight=Height;
+    glutFullScreen();
+    glutPositionWindow(0,0);
+  } else {
+    int x,y;
+    glutReshapeWindow(oldwidth,oldheight);
+    windowposition(x,y,oldwidth,oldheight);
+    glutPositionWindow(x,y);
+  }
+}
+
+void home() 
+{
+  glutIdleFunc(NULL);
+  X=Y=0.0;
+  arcball.init();
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
+  Zoom=1.0;
+  update();
+}
+
+void Export() 
+{
+  glReadBuffer(GL_FRONT_LEFT);
+  save();
+}
+
+void idleFunc(void (*f)())
+{
+  initTimer();
+  glutIdleFunc(f);
+}
+
+
+void keyboard(unsigned char key, int x, int y)
+{
+  switch(key) {
+    case 'h':
+      home();
+      break;
+    case 'f':
+      fullscreen();
+      glutPostRedisplay();
+      break;
+    case 'x':
+      idleFunc(Xspin);
+      break;
+    case 'y':
+      idleFunc(Yspin);
+      break;
+    case 'z':
+      idleFunc(Zspin);
+      break;
+    case 'e':
+      Export();
+      break;
+    case 's':
+      glutIdleFunc(NULL);
+      break;
+    case 17: // Ctrl-q
+    case 'q':
+      glReadBuffer(GL_FRONT_LEFT);
+      if(Save) save();
+      quit();
+      break;
+  }
+}
+ 
+enum Menu {HOME,FULLSCREEN,XSPIN,YSPIN,ZSPIN,STOP,EXPORT,QUIT};
+
 void menu(int choice)
 {
   switch (choice) {
-    case 1: // Home
-      glutIdleFunc(NULL);
-      X=Y=0.0;
-      arcball.init();
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
-      glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
-      Zoom=1.0;
-      update();
+    case HOME: // Home
+      home();
       break;
-    case 2: // X spin
-      initTimer();
-      glutIdleFunc(Xspin);
+    case FULLSCREEN:
+      fullscreen();
       break;
-    case 3: // Y spin
-      initTimer();
-      glutIdleFunc(Yspin);
+    case XSPIN:
+      idleFunc(Xspin);
       break;
-    case 4: // Z spin
-      initTimer();
-      glutIdleFunc(Zspin);
+    case YSPIN:
+      idleFunc(Yspin);
       break;
-    case 5: // Stop
+    case ZSPIN:
+      idleFunc(Zspin);
+      break;
+    case STOP:
       glutIdleFunc(NULL);
       break;
-    case 6: // Export
-      glReadBuffer(GL_FRONT_LEFT);
-      save();
+    case EXPORT:
+      glFinish();
+      Export();
       break;
-    case 7: // Quit
+    case QUIT:
       quit();
       break;
   }
@@ -535,6 +597,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
   H=angle != 0.0 ? -tan(0.5*angle*radians)*zmax : 0.0;
    
   X=Y=0.0;
+  Fullscreen=false;
   
   string options=string(settings::argv0)+" ";
   if(!View) options += "-iconic ";
@@ -545,12 +608,6 @@ void glrender(const string& prefix, picture *pic, const string& format,
     ++argc;
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-  pair z=getSetting<pair>("position");
-  Int x=(Int) z.getx();
-  Int y=(Int) z.gety();
-  if(x < 0) x += glutGet(GLUT_SCREEN_WIDTH)-width;
-  if(y < 0) y += glutGet(GLUT_SCREEN_HEIGHT)-height;
-  glutInitWindowPosition(x,y);
   
   glutInitWindowSize(1,1);
   window=glutCreateWindow(Prefix);
@@ -559,6 +616,10 @@ void glrender(const string& prefix, picture *pic, const string& format,
 
   Width=min(width,viewportLimit[0]);
   Height=min(height,viewportLimit[1]);
+  
+  int x,y;
+  windowposition(x,y,Width,Height);
+  glutInitWindowPosition(x,y);
   
   glutInitWindowSize(Width,Height);
   window=glutCreateWindow(Prefix);
@@ -589,13 +650,14 @@ void glrender(const string& prefix, picture *pic, const string& format,
   glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_CONTINUE_EXECUTION);
 
   glutCreateMenu(menu);
-  glutAddMenuEntry("Home",1);
-  glutAddMenuEntry("X spin",2);
-  glutAddMenuEntry("Y spin",3);
-  glutAddMenuEntry("Z spin",4);
-  glutAddMenuEntry("Stop",5);
-  glutAddMenuEntry("Export",6);
-  glutAddMenuEntry("Quit",7);
+  glutAddMenuEntry("(h) Home",HOME);
+  glutAddMenuEntry("(f) Toggle fullscreen",FULLSCREEN);
+  glutAddMenuEntry("(x) X spin",XSPIN);
+  glutAddMenuEntry("(y) Y spin",YSPIN);
+  glutAddMenuEntry("(z) Z spin",ZSPIN);
+  glutAddMenuEntry("(s) Stop",STOP);
+  glutAddMenuEntry("(e) Export",EXPORT);
+  glutAddMenuEntry("(q) Quit" ,QUIT);
   glutAttachMenu(GLUT_MIDDLE_BUTTON);
 
   glutMainLoop();
