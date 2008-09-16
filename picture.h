@@ -28,8 +28,6 @@ private:
   bboxlist bboxstack;
   bool transparency;
   
-  int minsub;   // Minimum number of rendering subdivisions
-  int maxsub;   // Maximum number of rendering subdivisions (0 means no limit)
   double fraction; // Maximum fraction of 3D bounding box occupied by surfaces
   
   static bool epsformat,pdfformat,xobject,pdf,Labels;
@@ -91,7 +89,7 @@ public:
   bool shipout3(const string& prefix, const string& format,
 		double width, double height, const triple& light,
 		double angle, const triple& m, const triple& M,
-		Int Minsub=1, Int Maxsub=0, bool wait=false, bool view=true);
+		bool wait=false, bool view=true);
   
   bool shipout3(const string& prefix); // Embedded PRC
   

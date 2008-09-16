@@ -31,6 +31,10 @@ struct patch {
 
   triple Bu(int j, real u) {return bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
   triple BuP(int j, real u) {return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);}
+  triple BuPP(int j, real u) {
+    return bezierPP(P[0][j],P[1][j],P[2][j],P[3][j],u);
+  }
+  triple BuPPP(int j) {return bezierPPP(P[0][j],P[1][j],P[2][j],P[3][j]);}
 
   path3 uequals(real u) {
     return straight ? Bu(0,u)--Bu(3,u) :
@@ -39,6 +43,10 @@ struct patch {
 
   triple Bv(int i, real v) {return bezier(P[i][0],P[i][1],P[i][2],P[i][3],v);}
   triple BvP(int i, real v) {return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);}
+  triple BvPP(int i, real v) {
+    return bezierPP(P[i][0],P[i][1],P[i][2],P[i][3],v);
+  }
+  triple BvPPP(int i) {return bezierPPP(P[i][0],P[i][1],P[i][2],P[i][3]);}
 
   path3 vequals(real v) {
     return straight ? Bv(0,v)--Bv(3,v) :
@@ -50,8 +58,28 @@ struct patch {
   }
 
   triple normal(real u, real v) {
-    return cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
-		 bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u));
+    triple w=cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
+		   bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u));
+    static real fuzz=1000realEpsilon;
+    real epsilon=fuzz*change(P);
+    if(abs(w) > epsilon) return w;
+    w=0.5*(cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),
+		 bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))+
+	   cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
+		 bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u)));
+    if(abs(w) > epsilon) return w;
+    return 1/6*cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
+		     bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))+
+      0.25*cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),   
+		 bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u))+
+      1/6*cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
+		bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u))+
+      1/12*(cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
+		  bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u))+
+	    cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),   
+		  bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u)))+
+      1/36*cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),   
+		 bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u));
   }
 
   pen[] colors(pen surfacepen=lightgray, light light=currentlight,
@@ -388,12 +416,12 @@ triple point(patch s, real u, real v)
   return s.point(u,v);
 }
 
-void draw3D(frame f, patch s, material m=lightgray, light light=currentlight,
-	    bool localsub=false)
+void draw3D(frame f, patch s, material m=lightgray, light light=currentlight)
 {
   if(!light.on) m=emissive(m.p[0],m.granularity);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
-  draw(f,s.P,m.p,m.opacity,m.shininess,granularity,localsub);
+    
+  draw(f,s.P,m.p,m.opacity,m.shininess,granularity);
 }
 
 void tensorshade(transform t=identity(), frame f, patch s, bool outward=false,

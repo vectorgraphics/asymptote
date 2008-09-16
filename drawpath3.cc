@@ -57,9 +57,11 @@ bool drawPath3::render(int, double size2, const bbox3& b, bool transparent)
   if(n == 0 || pentype.invisible() || ((opacity < 1.0) ^ transparent))
     return true;
 
-  if(b.left > Max.getx() || b.right < Min.getx() ||
-     b.bottom > Max.gety() || b.top < Min.gety() ||
-     b.lower > Max.getz() || b.upper < Min.getz()) return true;
+  if(!transparent)
+    hidden=(b.left > Max.getx() || b.right < Min.getx() || 
+	    b.bottom > Max.gety() || b.top < Min.gety() ||
+    b.lower > Max.getz() || b.upper < Min.getz());
+  if(hidden) return true;
   
   triple size3=b.Max()-b.Min();
   

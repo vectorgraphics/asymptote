@@ -25,17 +25,17 @@ protected:
   double opacity;
   double shininess;
   double granularity;
-  bool localsub; // Use minimum of local and global number of subdivisions
   triple Min,Max;
   Triple controls[16];
   bool invisible;
   double f; // Fraction of 3D bounding box occupied by surface.
+  float c[48];
+  bool hidden;
 
 public:
   drawSurface(const vm::array& g, const vm::array&p, double opacity,
-	      double shininess, double granularity, bool localsub) : 
-    opacity(opacity), shininess(shininess), granularity(granularity),
-    localsub(localsub) {
+	      double shininess, double granularity) : 
+    opacity(opacity), shininess(shininess), granularity(granularity) {
     
     string wrongsize=
       "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
@@ -69,8 +69,7 @@ public:
   drawSurface(vm::array *t, const drawSurface *s) :
     diffuse(s->diffuse), ambient(s->ambient), emissive(s->emissive),
     specular(s->specular), opacity(s->opacity), shininess(s->shininess),
-    granularity(s->granularity), localsub(s->localsub), 
-    invisible(s->invisible) {
+    granularity(s->granularity), invisible(s->invisible) {
     for(size_t i=0; i < 16; ++i) {
       const double *c=s->controls[i];
       triple v=run::operator *(t,triple(c[0],c[1],c[2]));

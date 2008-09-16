@@ -684,10 +684,7 @@ bool picture::render(int width, int height, double zoom, const bbox3& b,
   bool status = true;
   double size2=hypot(width,height);
   
-  int n=minsub;
-  if(maxsub == 0 || n < maxsub)
-    n=camp::max(n,(int) ceil(sqrt(fraction*size2/zoom)));
-  if(maxsub > 0 && n > maxsub) n=maxsub;
+  int n=(int) ceil(sqrt(fraction*size2/zoom));
   
   if(verbose > 1 && !transparent) 
     cout << "Using " << n << "x" << n << " surface sampling" 
@@ -705,21 +702,18 @@ bool picture::shipout3(const string& prefix, const string& format,
 		       double width, double height,
 		       const triple& light, double angle,
 		       const triple& m, const triple& M,
-		       Int Minsub, Int Maxsub, bool wait, bool view)
+		       bool wait, bool view)
 {
 #ifdef HAVE_LIBGLUT
   bounds3();
   
-  minsub=Minsub;
-  maxsub=Maxsub;
   triple size3=b3.Max()-b3.Min();
   fraction=0;
-  if(maxsub == 0 || minsub < maxsub) {
-    for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
-      assert(*p);
-      (*p)->fraction(fraction,size3);
-    }
+  for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
+    assert(*p);
+    (*p)->fraction(fraction,size3);
   }
+
   Int expand=getSetting<Int>("render");
   if(expand <= 0) expand=1;
   int Width=(int) ceil(expand*width);

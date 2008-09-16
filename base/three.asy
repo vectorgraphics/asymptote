@@ -1984,7 +1984,7 @@ draw=new void(frame f, path3 g,
     }
     pen q=(pen) p;
     void drawthick(path3 g) {
-      if(settings.path3quality > 0) {
+      if(settings.thick) {
         real width=linewidth(q);
         if(width > 0) {
           surface s=tube(g,width);
@@ -2009,7 +2009,7 @@ draw=new void(frame f, path3 g,
             }
           }
           for(int i=0; i < s.s.length; ++i)
-            draw3D(f,s.s[i],p,light,localsub=settings.path3quality < 2);
+            draw3D(f,s.s[i],p,light);
         }
       }
       _draw(f,g,q);

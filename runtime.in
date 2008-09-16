@@ -1383,11 +1383,9 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 
 void shipout3(string prefix, picture *f, string format=emptystring,
 	      double width, double height, triple light,
-	      double angle, triple m, triple M,
-	      Int minsub=1, Int maxsub=0, bool wait=false, bool view=true)
+	      double angle, triple m, triple M, bool wait=false, bool view=true)
 {
-  f->shipout3(prefix,format,width,height,light,angle,m,M,minsub,maxsub,
-	      wait,view);
+  f->shipout3(prefix,format,width,height,light,angle,m,M,wait,view);
 }
 
 void shipout3(string prefix, picture *f)
@@ -2660,9 +2658,9 @@ void _draw(picture *f, path3 g, pen p)
 }
 
 void draw(picture *f, triplearray2 *g, penarray *p, real opacity,
-	  real shininess, real granularity, bool localsub=false)
+	  real shininess, real granularity)
 {
-  f->append(new drawSurface(*g,*p,opacity,shininess,granularity,localsub));
+  f->append(new drawSurface(*g,*p,opacity,shininess,granularity));
 }
 
 triple min3(picture *f)
@@ -2711,21 +2709,31 @@ double maxbound(triplearray *a, callableProject *f, double b)
   return b;
 }
 
+real change(triplearray2 *a)
+{
+  size_t n=checkArray(a);
+  if(n == 0) return 0.0;
+  
+  vm::array *a0=vm::read<vm::array*>(a,0);
+  size_t m=checkArray(a0);
+  if(m == 0) return 0.0;
+  triple a00=vm::read<triple>(a0,0);
+  double M=0.0;
+    
+  for(size_t i=0; i < n; ++i) {
+    vm::array *ai=vm::read<vm::array*>(a,i);
+    size_t m=checkArray(ai);
+    for(size_t j=0; j < m; ++j) {
+      double a=(vm::read<triple>(ai,j)-a00).abs2();
+      if(a > M) M=a;
+    }
+  }
+  return sqrt(M);
+}
+
 bool is3D(picture *f)
 {
   return f->have3D();
-}
-
-pair bezier(pair a, pair b, pair c, pair d, real t) 
-{
-  real onemt=1-t;
-  real onemt2=onemt*onemt;
-  return onemt2*onemt*a+t*(3.0*(onemt2*b+t*onemt*c)+t*t*d);
-}
-
-pair bezierP(pair a, pair b, pair c, pair d, real t) 
-{
-  return 3.0*(t*t*(d-a+3.0*(b-c))+t*(2.0*(a+c)-4.0*b)+b-a);
 }
 
 triple bezier(triple a, triple b, triple c, triple d, real t) 
@@ -2738,6 +2746,16 @@ triple bezier(triple a, triple b, triple c, triple d, real t)
 triple bezierP(triple a, triple b, triple c, triple d, real t) 
 {
   return 3.0*(t*t*(d-a+3.0*(b-c))+t*(2.0*(a+c)-4.0*b)+b-a);
+}
+
+triple bezierPP(triple a, triple b, triple c, triple d, real t) 
+{
+  return 6.0*t*(d-a+3.0*(b-c))+6.0*(a+c)-12.0*b;
+}
+
+triple bezierPPP(triple a, triple b, triple c, triple d) 
+{
+  return 6.0*(d-a+3.0*(b-c));
 }
 
 

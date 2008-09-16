@@ -126,11 +126,8 @@ void initlights(void)
   GLfloat ambient[]={0.1, 0.1, 0.1, 1.0};
   GLfloat position[]={Light.getx(), Light.gety(), Light.getz(), 0.0};
 
-  if(getSetting<bool>("twosided")) {
+  if(getSetting<bool>("twosided"))
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE);
-    // GL_LIGHT_MODEL_TWO_SIDE seems to require CW orientation.  
-    glFrontFace(GL_CW);
-  }
   
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
@@ -296,8 +293,8 @@ void move(int x, int y)
   
 void zoom(int x, int y)
 {
-  static const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
   if(x > 0 && y > 0) {
+    static const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
     lastzoom=Zoom;
     double s=zoomFactorStep*(y-y0);
     if(fabs(s) < limit) {
@@ -323,17 +320,19 @@ void mousewheel(int wheel, int direction, int x, int y)
 
 void rotate(int x, int y)
 {
-  arcball.mouse_motion(x,Height-y,0,
-		       mod == GLUT_ACTIVE_SHIFT, // X rotation only
-		       mod == GLUT_ACTIVE_CTRL);  // Y rotation only
+  if(x > 0 && y > 0) {
+    arcball.mouse_motion(x,Height-y,0,
+			 mod == GLUT_ACTIVE_SHIFT, // X rotation only
+			 mod == GLUT_ACTIVE_CTRL);  // Y rotation only
 
-  for(int i=0; i < 4; ++i) {
-    const vec4& roti=arcball.rot[i];
-    int i4=4*i;
-    for(int j=0; j < 4; ++j)
-      Rotate[i4+j]=roti[j];
+    for(int i=0; i < 4; ++i) {
+      const vec4& roti=arcball.rot[i];
+      int i4=4*i;
+      for(int j=0; j < 4; ++j)
+	Rotate[i4+j]=roti[j];
+    }
+    update();
   }
-  update();
 }
   
 double Degrees(int x, int y) 
@@ -384,9 +383,11 @@ void rotateZ(double step)
 
 void rotateZ(int x, int y)
 {
-  double angle=Degrees(x,y);
-  rotateZ(angle-lastangle);
-  lastangle=angle;
+  if(x > 0 && y > 0) {
+    double angle=Degrees(x,y);
+    rotateZ(angle-lastangle);
+    lastangle=angle;
+  }
 }
 
 // Mouse bindings.
@@ -528,11 +529,11 @@ void keyboard(unsigned char key, int x, int y)
     case 'z':
       idleFunc(Zspin);
       break;
-    case 'e':
-      Export();
-      break;
     case 's':
       glutIdleFunc(NULL);
+      break;
+    case 'e':
+      Export();
       break;
     case 17: // Ctrl-q
     case 'q':
