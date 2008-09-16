@@ -20,7 +20,6 @@ protected:
   pen pentype;
   Triple *controls;
   triple Min,Max;
-  bool hidden;
 public:
   drawPath3(path3 g, pen pentype) : g(g), pentype(pentype), controls(NULL) {}
     

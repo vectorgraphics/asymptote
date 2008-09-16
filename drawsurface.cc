@@ -106,11 +106,9 @@ bool drawSurface::render(int n, double size2, const bbox3& b, bool transparent)
   if(invisible || ((diffuse.A < 1.0) ^ transparent))
     return true;
   
-  if(!transparent)
-    hidden=(b.left > Max.getx() || b.right < Min.getx() || 
-	    b.bottom > Max.gety() || b.top < Min.gety() ||
-    b.lower > Max.getz() || b.upper < Min.getz());
-  if(hidden) return true;
+  if(b.left > Max.getx() || b.right < Min.getx() || 
+     b.bottom > Max.gety() || b.top < Min.gety() ||
+     b.lower > Max.getz() || b.upper < Min.getz()) return true;
   
   GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
   GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
@@ -124,21 +122,20 @@ bool drawSurface::render(int n, double size2, const bbox3& b, bool transparent)
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
   if(n >= settings::getSetting<Int>("threshold")) {
-    static GLUnurbsObj *theNurb=NULL;
-    if(!theNurb) {
-      theNurb = gluNewNurbsRenderer();
-      gluNurbsProperty(theNurb,GLU_SAMPLING_METHOD,GLU_PARAMETRIC_ERROR);
-      gluNurbsProperty(theNurb,GLU_PARAMETRIC_TOLERANCE,1.0);
-      gluNurbsProperty(theNurb,GLU_DISPLAY_MODE,GLU_FILL);
-      gluNurbsProperty(theNurb,GLU_CULLING,GLU_TRUE);
+    static GLUnurbsObj *nurb=NULL;
+    if(!nurb) {
+      nurb=gluNewNurbsRenderer();
+      gluNurbsProperty(nurb,GLU_SAMPLING_METHOD,GLU_PARAMETRIC_ERROR);
+      gluNurbsProperty(nurb,GLU_PARAMETRIC_TOLERANCE,1.0);
+      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_FILL);
+      gluNurbsProperty(nurb,GLU_CULLING,GLU_TRUE);
     }
   
-    GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
-    gluBeginSurface(theNurb);
-   
-    gluNurbsSurface(theNurb,8,knots,8,knots,3,12,(GLfloat*) &c,4,4,
+    static GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
+    gluBeginSurface(nurb);
+    gluNurbsSurface(nurb,8,knots,8,knots,3,12,(GLfloat*) &c,4,4,
 		    GL_MAP2_VERTEX_3);
-    gluEndSurface(theNurb);
+    gluEndSurface(nurb);
   } else {
     bool twosided=settings::getSetting<bool>("twosided");
     if(twosided) glFrontFace(GL_CW); // Work around GL_LIGHT_MODEL_TWO_SIDE bug.

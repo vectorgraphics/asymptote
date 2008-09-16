@@ -614,6 +614,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
   window=glutCreateWindow(Prefix);
   glGetIntegerv(GL_MAX_VIEWPORT_DIMS, viewportLimit);
   glutDestroyWindow(window);
+  glFinish();
 
   Width=min(width,viewportLimit[0]);
   Height=min(height,viewportLimit[1]);

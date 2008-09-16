@@ -30,7 +30,6 @@ protected:
   bool invisible;
   double f; // Fraction of 3D bounding box occupied by surface.
   float c[48];
-  bool hidden;
 
 public:
   drawSurface(const vm::array& g, const vm::array&p, double opacity,
