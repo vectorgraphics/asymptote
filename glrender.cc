@@ -82,13 +82,12 @@ int Oldpid;
 const string* Prefix;
 picture* Picture;
 string Format;
-int Width=0;
-int Height=0;
+int Width;
+int Height;
 
-bool Fullscreen;
+int Fullscreen;
 
 double H;
-unsigned char **Data;
 GLint viewportLimit[2];
 triple Light; 
 double xmin,xmax;
@@ -113,8 +112,8 @@ int mod;
 
 double lastangle;
 
-double Zoom=1.0;
-double lastzoom=1.0;
+double Zoom;
+double lastzoom;
 
 float Rotate[16];
 float Modelview[16];
@@ -123,8 +122,8 @@ int window;
   
 void initlights(void)
 {
-  GLfloat ambient[]={0.1, 0.1, 0.1, 1.0};
-  GLfloat position[]={Light.getx(), Light.gety(), Light.getz(), 0.0};
+  GLfloat ambient[]={0.1,0.1,0.1,1.0};
+  GLfloat position[]={Light.getx(),Light.gety(),Light.getz(),0.0};
 
   if(getSetting<bool>("twosided"))
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE);
@@ -138,8 +137,8 @@ void initlights(void)
 void save()
 {  
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
-  size_t ndata=3*Width*Height; // Use ColorComponents[colorspace]
-  unsigned char data[ndata];
+  size_t ndata=3*Width*Height;
+  unsigned char *data=new unsigned char[ndata];
   glReadPixels(0,0,Width,Height,GL_RGB,GL_UNSIGNED_BYTE,data);
   Int expand=getSetting<Int>("render");
   if(expand <= 0) expand=1;
@@ -147,6 +146,7 @@ void save()
   Picture->append(new drawImage(data,Width,Height,
 				transform(0.0,0.0,Width*f,0.0,0.0,Height*f)));
   Picture->shipout(NULL,*Prefix,Format);
+  delete[] data;
 }
   
 void quit() 
@@ -180,7 +180,7 @@ void display(void)
     b.addnonempty(transform(xmax,ymin,zmin));
     b.addnonempty(transform(xmax,ymax,zmin));
   } else {
-    double f=zmin/zmax;
+    double f=zmax != 0 ? zmin/zmax : 1.0;
     b.addnonempty(transform(xmin*f,ymin*f,zmin));
     b.addnonempty(transform(xmin*f,ymax*f,zmin));
     b.addnonempty(transform(xmax*f,ymin*f,zmin));
@@ -264,7 +264,6 @@ void reshape(int width, int height)
   
   setProjection();
   glViewport(0,0,Width,Height);
-  
 }
   
 void update() 
@@ -291,6 +290,15 @@ void move(int x, int y)
   }
 }
   
+void capzoom() 
+{
+  static double maxzoom=sqrt(DBL_MAX);
+  static double minzoom=1/maxzoom;
+  if(Zoom <= minzoom) Zoom=minzoom;
+  if(Zoom >= maxzoom) Zoom=maxzoom;
+  
+}
+
 void zoom(int x, int y)
 {
   if(x > 0 && y > 0) {
@@ -299,6 +307,7 @@ void zoom(int x, int y)
     double s=zoomFactorStep*(y-y0);
     if(fabs(s) < limit) {
       Zoom *= pow(zoomFactor,s);
+      capzoom();
       y0=y;
       setProjection();
       glutPostRedisplay();
@@ -314,6 +323,7 @@ void mousewheel(int wheel, int direction, int x, int y)
   else
     Zoom *= zoomFactor;
   
+  capzoom();
   setProjection();
   glutPostRedisplay();
 }
@@ -470,18 +480,39 @@ void windowposition(int& x, int& y, int width, int height)
 
 void fullscreen() 
 {
-  Fullscreen=!Fullscreen;
+  if(Fullscreen >= 2) Fullscreen=0;
+  else ++Fullscreen;
   static int oldwidth,oldheight;
-  if(Fullscreen) {
-    oldwidth=Width;
-    oldheight=Height;
-    glutFullScreen();
-    glutPositionWindow(0,0);
-  } else {
-    int x,y;
-    glutReshapeWindow(oldwidth,oldheight);
-    windowposition(x,y,oldwidth,oldheight);
-    glutPositionWindow(x,y);
+  switch(Fullscreen) {
+    case 0:
+    {
+      int x,y;
+      glutReshapeWindow(oldwidth,oldheight);
+      windowposition(x,y,oldwidth,oldheight);
+      glutPositionWindow(x,y);
+     break;
+    }
+    case 1:
+    {
+      oldwidth=Width;
+      oldheight=Height;
+      double Aspect=((double) Width)/Height;
+      int w=glutGet(GLUT_SCREEN_WIDTH);
+      int h=glutGet(GLUT_SCREEN_HEIGHT);
+      if(w > 0 && h > 0) {
+	if(w > h*Aspect) w=(int)(h/Aspect);
+	if(h*Aspect > w) h=(int)(w/Aspect);
+	glutReshapeWindow(w,h);
+	glutPositionWindow(0,0);
+      }
+      break;
+    }
+    case 2:
+    {
+      glutFullScreen();
+      glutPositionWindow(0,0);
+      break;
+    }
   }
 }
 
@@ -579,7 +610,7 @@ void menu(int choice)
 
 // angle=0 means orthographic.
 void glrender(const string& prefix, picture *pic, const string& format,
-	      int& width, int& height, const triple& light,
+	      int width, int height, const triple& light,
 	      double angle, const triple& m, const triple& M, bool view,
 	      int oldpid)
 {
@@ -598,7 +629,8 @@ void glrender(const string& prefix, picture *pic, const string& format,
   H=angle != 0.0 ? -tan(0.5*angle*radians)*zmax : 0.0;
    
   X=Y=0.0;
-  Fullscreen=false;
+  Fullscreen=0;
+  lastzoom=Zoom=1.0;
   
   string options=string(settings::argv0)+" ";
   if(!View) options += "-iconic ";
@@ -614,10 +646,14 @@ void glrender(const string& prefix, picture *pic, const string& format,
   window=glutCreateWindow("");
   glGetIntegerv(GL_MAX_VIEWPORT_DIMS, viewportLimit);
   glutDestroyWindow(window);
-  glFinish();
 
   Width=min(width,viewportLimit[0]);
   Height=min(height,viewportLimit[1]);
+
+  // Work around direct rendering allocation bugs.
+  const int limit=2048;
+  Width=min(Width,limit);
+  Height=min(Height,limit);
   
   int x,y;
   windowposition(x,y,Width,Height);
@@ -625,7 +661,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
   
   glutInitWindowSize(Width,Height);
   window=glutCreateWindow((prefix+" [Click middle button for menu]").c_str());
-  if(getSetting<bool>("fullscreen")) fullscreen();
+  if(getSetting<bool>("fitscreen")) fullscreen();
   
   if(settings::verbose > 1) 
     cout << "Rendering " << prefix << endl;
@@ -654,7 +690,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
 
   glutCreateMenu(menu);
   glutAddMenuEntry("(h) Home",HOME);
-  glutAddMenuEntry("(f) Toggle fullscreen",FULLSCREEN);
+  glutAddMenuEntry("(f) Fitscreen",FULLSCREEN);
   glutAddMenuEntry("(x) X spin",XSPIN);
   glutAddMenuEntry("(y) Y spin",YSPIN);
   glutAddMenuEntry("(z) Z spin",ZSPIN);
@@ -664,9 +700,6 @@ void glrender(const string& prefix, picture *pic, const string& format,
   glutAttachMenu(GLUT_MIDDLE_BUTTON);
 
   glutMainLoop();
-  
-  width=Width;
-  height=Height;
 }
   
 } // namespace gl
