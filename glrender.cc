@@ -687,20 +687,23 @@ void glrender(const string& prefix, picture *pic, const string& format,
   glGetIntegerv(GL_MAX_VIEWPORT_DIMS, viewportLimit);
   glutDestroyWindow(window);
 
+  // Work around direct rendering allocation bugs.
+  int limit=(int) getSetting<Int>("maxviewport");
+  if(limit > 0) {
+    viewportLimit[0]=min(viewportLimit[0],limit);
+    viewportLimit[1]=min(viewportLimit[1],limit);
+  }
+
   Width=min(width,viewportLimit[0]);
   Height=min(height,viewportLimit[1]);
 
-  // Work around direct rendering allocation bugs.
-  const int limit=2048;
-  Width=min(Width,limit);
-  Height=min(Height,limit);
-  
   int x,y;
   windowposition(x,y,Width,Height);
   glutInitWindowPosition(x,y);
   
   glutInitWindowSize(Width,Height);
   window=glutCreateWindow((prefix+" [Click middle button for menu]").c_str());
+  
   if(getSetting<bool>("fitscreen"))
     fitscreen();
   
