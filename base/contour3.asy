@@ -470,17 +470,15 @@ vertex[][] contour3(real f(real, real, real), triple a, triple b,
   return contour3(dat,midpoint,a,b,P);
 }
 
-// Draw contour surface for a 3D data array, using a pyramid mesh
-surface surface(vertex[][] g, pen p=lightgray, light light=currentlight)
+// Draw contour surface for a 3D data array, using a pyramid mesh.
+surface surface(vertex[][] g)
 {
   surface s=surface(g.length);
   for(int i=0; i < g.length; ++i) {
     vertex[] cur=g[i];
-    pen pen0=light.intensity(cur[0].normal)*p;
-    pen pen1=light.intensity(cur[1].normal)*p;
-    pen pen2=light.intensity(cur[2].normal)*p;
     s.s[i]=patch(cur[0].v--cur[0].v--cur[1].v--cur[2].v--cycle,
-		 new pen[] {pen0,pen0,pen1,pen2});
+		 normals=new triple[] {cur[0].normal,cur[0].normal,
+				       cur[1].normal,cur[2].normal});
   }
   return s;
 }

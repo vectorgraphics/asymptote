@@ -203,8 +203,8 @@ projection perspective(triple camera, triple up=Z, triple target=O)
 {
   return projection(camera,target,up,
                     new transformation(triple camera, triple up, triple target)
-		    {	return transformation(look(camera,up,target),
-					      distort(camera-target));});
+                    {   return transformation(look(camera,up,target),
+                                              distort(camera-target));});
 }
 
 projection perspective(real x, real y, real z, triple up=Z, triple target=O)
@@ -215,9 +215,9 @@ projection perspective(real x, real y, real z, triple up=Z, triple target=O)
 projection orthographic(triple camera, triple up=Z, triple target=O)
 {
   return projection(camera,target,up,
-		    new transformation(triple camera, triple up,
-				       triple target) {
-		      return transformation(look(camera,up,target));});
+                    new transformation(triple camera, triple up,
+                                       triple target) {
+                      return transformation(look(camera,up,target));});
 }
 
 projection orthographic(real x, real y, real z, triple up=Z)
@@ -235,7 +235,7 @@ projection oblique(real angle=45)
   t[2][2]=1;
   return projection((0,0,1),up=Y,
                     new transformation(triple,triple,triple) {
-		      return transformation(t,oblique=true);});
+                      return transformation(t,oblique=true);});
 }
 
 projection obliqueZ(real angle=45) {return oblique(angle);}
@@ -254,7 +254,7 @@ projection obliqueX(real angle=45)
   t[2][0]=1;
   return projection((1,0,0),
                     new transformation(triple,triple,triple) {
-		      return transformation(t,oblique=true);});
+                      return transformation(t,oblique=true);});
 }
 
 projection obliqueY(real angle=45)
@@ -269,7 +269,7 @@ projection obliqueY(real angle=45)
   t[2][2]=0;
   return projection((0,-1,0),
                     new transformation(triple,triple,triple) {
-		      return transformation(t,oblique=true);});
+                      return transformation(t,oblique=true);});
 }
 
 projection oblique=oblique();
@@ -1131,7 +1131,7 @@ path nurb(path3 p, projection P, int ninterpolate=P.ninterpolate)
 }
 
 path project(path3 p, projection P=currentprojection,
-	     int ninterpolate=P.ninterpolate)
+             int ninterpolate=P.ninterpolate)
 {
   guide g;
 
@@ -1697,9 +1697,9 @@ triple size3(frame f)
 private string[] file3;
 
 string embed3D(string prefix=defaultfilename, frame f, string label="",
-	       string text=label,  string options="",
-	       real width=0, real height=0, real angle=30,
-	       pen background=white, projection P=currentprojection)
+               string text=label,  string options="",
+               real width=0, real height=0, real angle=30,
+               pen background=white, projection P=currentprojection)
 {
   if(!prc() || plain.embed == null) return "";
 
@@ -1770,7 +1770,7 @@ object embed(string prefix=defaultfilename, picture pic,
              real xsize=pic.xsize, real ysize=pic.ysize,
              bool keepAspect=pic.keepAspect,
              string label="", string text=label,
-	     bool wait=false, bool view=true, string options="",
+             bool wait=false, bool view=true, string options="",
              real angle=0, pen background=white, projection P=currentprojection)
 {
   object F;
@@ -1821,7 +1821,7 @@ object embed(string prefix=defaultfilename, picture pic,
       transform3 s=identity4;
       if(scale) {
         s=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z));
-	P=s*P;
+        P=s*P;
       }
       pair c=0.5*(M+m);
       if(is3D) {
@@ -1850,12 +1850,12 @@ object embed(string prefix=defaultfilename, picture pic,
       m=(m.x,m.y,center.z-r);
       if(prefix == "") prefix=outprefix();
       shipout3(prefix,f,width,height,currentlight.source,
-	       P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M,wait,view);
+               P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M,wait,view);
       return F;
     }
 
     if(prc()) F.L=embed3D(prefix,f,label,text,options,width,height,angle,
-			  background,P);
+                          background,P);
   }
 
   if(!is3D)
@@ -1870,7 +1870,7 @@ embed3=new object(string prefix, frame f, string options="", projection P) {
 
 currentpicture.fitter=new frame(picture pic, real xsize, real ysize,
                                 bool keepAspect, bool wait, bool view,
-				string options, projection P) {
+                                string options, projection P) {
   frame f;
   add(f,pic.fit2(xsize,ysize,keepAspect));
   if(pic.nodes3.length > 0) {
@@ -1952,8 +1952,8 @@ include three_surface;
 
 void draw(picture pic=currentpicture, Label L="", path3 g,
           align align=NoAlign,
-	  material p=emissive(currentpen,granularity=linegranularity),
-	  light light=nolight)
+          material p=emissive(currentpen,granularity=linegranularity),
+          light light=nolight)
 {
   pen q=(pen) p;
   Label L=L.copy();
@@ -2019,20 +2019,20 @@ draw=new void(frame f, path3 g,
     else {
       real[] dash=(real[]) split(type," ");
       if(sum(dash) > 0) {
-	dash.cyclic(true);
-	real offset=0;
-	real L=arclength(g);
-	int i=0;
-	real l=offset;
-	while(l <= L) {
-	  real t1=arctime(g,l);
-	  l += dash[i];
-	  real t2=arctime(g,l);
-	  drawthick(subpath(g,t1,t2));
-	  ++i;
-	  l += dash[i];
-	  ++i;
-	}
+        dash.cyclic(true);
+        real offset=0;
+        real L=arclength(g);
+        int i=0;
+        real l=offset;
+        while(l <= L) {
+          real t1=arctime(g,l);
+          l += dash[i];
+          real t2=arctime(g,l);
+          drawthick(subpath(g,t1,t2));
+          ++i;
+          l += dash[i];
+          ++i;
+        }
       }
     }
   }
@@ -2040,13 +2040,13 @@ draw=new void(frame f, path3 g,
 };
 
 void draw(frame f, explicit path3[] g, material p=currentpen,
-	  light light=nolight, projection P=currentprojection)
+          light light=nolight, projection P=currentprojection)
 {
   for(int i=0; i < g.length; ++i) draw(f,g[i],p,light,P);
 }
 
 void draw(picture pic=currentpicture, explicit path3[] g,
-	  material p=currentpen, light light=nolight)
+          material p=currentpen, light light=nolight)
 {
   for(int i=0; i < g.length; ++i) draw(pic,g[i],p,light);
 }
@@ -2063,7 +2063,7 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
 }
 
 void draw(frame f, path3 g, material p=currentpen, arrowbar3 arrow,
-	  light light=nolight, projection P=currentprojection)
+          light light=nolight, projection P=currentprojection)
 {
   picture pic;
   if(arrow(pic,g,p,light))
@@ -2072,7 +2072,7 @@ void draw(frame f, path3 g, material p=currentpen, arrowbar3 arrow,
 }
 
 void add(picture pic=currentpicture, void d(picture,transform3),
-	 bool exact=false)
+         bool exact=false)
 {
   pic.add(d,exact);
 }
