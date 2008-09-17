@@ -50,7 +50,8 @@ bool drawPath3::write(prcfile *out)
   return true;
 }
 
-bool drawPath3::render(int, double size2, const bbox3& b, bool transparent)
+bool drawPath3::render(GLUnurbsObj *, int, double size2, const bbox3& b,
+		       bool transparent, int)
 {
   Int n=g.length();
   double opacity=pentype.opacity();

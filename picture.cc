@@ -46,7 +46,7 @@ texstream::~texstream() {
 namespace camp {
 
 const double pixelfactor=0.5; // Adaptive rendering constant.
-const double pixelfactor2=0.75;
+const double pixelfactor2=1.5;
 
 const char *texpathmessage() {
   ostringstream buf;
@@ -678,29 +678,37 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 }
 
 // render viewport with width x height pixels.
-bool picture::render(int width, int height, double zoom, const bbox3& b,
-		     bool transparent) const
+bool picture::render(GLUnurbsObj *nurb, int width, int height, double zoom,
+		     const bbox3& b, bool transparent, int threshold) const
 {  
   bool status = true;
-  double size2=hypot(width,height);
+  double size2=sqrt((width*width+height*height)/zoom);
   
-  int n=(int) ceil(sqrt(fraction*size2/zoom));
+  int n=(int) ceil(sqrt(fraction*size2));
   
   if(verbose > 1 && !transparent) 
     cout << "Using " << n << "x" << n << " surface sampling" 
 	 << " of " << width << "x" << height << " image" << endl;
 
+  bool twosided=false;
+  if(n < threshold) {
+    twosided=settings::getSetting<bool>("twosided");
+    if(twosided) glFrontFace(GL_CW); // Work around GL_LIGHT_MODEL_TWO_SIDE bug.
+  }
+  
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    if(!(*p)->render(n,size2,b,transparent))
+    if(!(*p)->render(nurb,n,size2,b,transparent,threshold))
       status = false;
   }
+  
+  if(twosided) glFrontFace(GL_CCW);
+  
   return status;
 }
   
 bool picture::shipout3(const string& prefix, const string& format,
-		       double width, double height,
-		       const triple& light, double angle,
+		       Int width, Int height, const triple& light, double angle,
 		       const triple& m, const triple& M,
 		       bool wait, bool view)
 {
@@ -714,12 +722,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     (*p)->fraction(fraction,size3);
   }
 
-  Int expand=getSetting<Int>("render");
-  if(expand <= 0) expand=1;
-  int Width=(int) ceil(expand*width);
-  int Height=(int) floor(expand*height);
   string outputformat=format.empty() ? getSetting<string>("outformat") : format;
-  
   bool View=settings::view() && view;
   
   int oldpid=0;
@@ -741,7 +744,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     }
   }
 
-  gl::glrender(prefix.c_str(),this,outputformat,Width,Height,light,angle,m,M,
+  gl::glrender(prefix.c_str(),this,outputformat,width,height,light,angle,m,M,
 	       View,oldpid);
 
   if(View && !wait)

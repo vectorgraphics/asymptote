@@ -18,6 +18,10 @@
 #include "texfile.h"
 #include "prcfile.h"
 
+#ifdef HAVE_LIBGLUT
+#include <GL/glut.h>
+#endif
+
 namespace camp {
 
 extern const double pixelfactor; // Adaptive rendering constant.
@@ -139,7 +143,8 @@ public:
   virtual void fraction(double& n, const triple& size3) {}
 
   // Render with OpenGL
-  virtual bool render(int n, double size2, const bbox3& b, bool transparent) {
+  virtual bool render(GLUnurbsObj *nurb, int n, double size2,
+		      const bbox3& b, bool transparent, int threshold) {
     return true;
   }
 

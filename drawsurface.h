@@ -30,7 +30,7 @@ protected:
   bool invisible;
   double f; // Fraction of 3D bounding box occupied by surface.
   float c[48];
-
+  
 public:
   drawSurface(const vm::array& g, const vm::array&p, double opacity,
 	      double shininess, double granularity) : 
@@ -92,7 +92,8 @@ public:
   bool write(prcfile *out);
   
   void fraction(double &f, const triple& size3);
-  bool render(int n, double, const bbox3& b, bool transparent);
+  bool render(GLUnurbsObj *nurb, int n, double, const bbox3& b,
+	      bool transparent, int threshold);
   
   drawElement *transformed(vm::array *t);
 };

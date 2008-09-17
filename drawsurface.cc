@@ -97,11 +97,12 @@ void drawSurface::fraction(double &F, const triple& size3)
   for(int i=0; i < 4; ++i)
     f=camp::max(f,camp::fraction(controls[i],controls[i+4],controls[i+8],
 				 controls[i+12],size3));
-  f=2*pixelfactor2*f;
+  f=pixelfactor2*f;
   if(f > F) F=f;
 }
   
-bool drawSurface::render(int n, double size2, const bbox3& b, bool transparent)
+bool drawSurface::render(GLUnurbsObj *nurb, int n, double size2,
+			 const bbox3& b, bool transparent, int threshold)
 {
   if(invisible || ((diffuse.A < 1.0) ^ transparent))
     return true;
@@ -111,39 +112,29 @@ bool drawSurface::render(int n, double size2, const bbox3& b, bool transparent)
      b.lower > Max.getz() || b.upper < Min.getz()) return true;
   
   GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
-  GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
-  GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
-  GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
-    
   glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
+  
+  GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
   glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
+  
+  GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
   glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
+  
+  GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
   glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
+  
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
-  if(n >= settings::getSetting<Int>("threshold")) {
-    static GLUnurbsObj *nurb=NULL;
-    if(!nurb) {
-      nurb=gluNewNurbsRenderer();
-      gluNurbsProperty(nurb,GLU_SAMPLING_METHOD,GLU_PARAMETRIC_ERROR);
-      gluNurbsProperty(nurb,GLU_PARAMETRIC_TOLERANCE,1.0);
-      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_FILL);
-      gluNurbsProperty(nurb,GLU_CULLING,GLU_TRUE);
-    }
-  
+  if(n >= threshold) {
     static GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
     gluBeginSurface(nurb);
     gluNurbsSurface(nurb,8,knots,8,knots,3,12,(GLfloat*) &c,4,4,
 		    GL_MAP2_VERTEX_3);
     gluEndSurface(nurb);
   } else {
-    bool twosided=settings::getSetting<bool>("twosided");
-    if(twosided) glFrontFace(GL_CW); // Work around GL_LIGHT_MODEL_TWO_SIDE bug.
     glMap2d(GL_MAP2_VERTEX_3,0,1,3,4,0,1,12,4,(GLdouble*) &controls);
-
     glMapGrid2d(n,0.0,1.0,n,0.0,1.0);
     glEvalMesh2(GL_FILL,0,n,0,n);
-    if(twosided) glFrontFace(GL_CCW);
   }
   
   return true;

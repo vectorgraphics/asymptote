@@ -85,7 +85,9 @@ string Format;
 int Width;
 int Height;
 
-int Fullscreen;
+int Fitscreen;
+int Mode;
+int threshold;
 
 double H;
 GLint viewportLimit[2];
@@ -117,6 +119,8 @@ double lastzoom;
 
 float Rotate[16];
 float Modelview[16];
+
+GLUnurbsObj *nurb;
 
 int window;
   
@@ -188,7 +192,7 @@ void display(void)
   }
   
   // Render opaque objects
-  Picture->render(Width,Height,Zoom,b,false);
+  Picture->render(nurb,Width,Height,Zoom,b,false,threshold);
   
   // Enable transparency
   glEnable(GL_BLEND);
@@ -196,7 +200,7 @@ void display(void)
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   
   // Render transparent objects
-  Picture->render(Width,Height,Zoom,b,true);
+  Picture->render(nurb,Width,Height,Zoom,b,true,threshold);
   glDepthMask(GL_TRUE);
   glDisable(GL_BLEND);
   
@@ -478,12 +482,10 @@ void windowposition(int& x, int& y, int width, int height)
   if(y < 0) y += glutGet(GLUT_SCREEN_HEIGHT)-height;
 }
 
-void fullscreen() 
+void fitscreen() 
 {
-  if(Fullscreen >= 2) Fullscreen=0;
-  else ++Fullscreen;
   static int oldwidth,oldheight;
-  switch(Fullscreen) {
+  switch(Fitscreen) {
     case 0:
     {
       int x,y;
@@ -492,6 +494,7 @@ void fullscreen()
       glutPositionWindow(x,y);
       Width=oldwidth;
       Height=oldheight;
+     ++Fitscreen;
      break;
     }
     case 1:
@@ -508,12 +511,14 @@ void fullscreen()
 	glutPositionWindow(0,0);
 	reshape(w,h);
       }
+      ++Fitscreen;
       break;
     }
     case 2:
     {
       glutFullScreen();
       glutPositionWindow(0,0);
+      Fitscreen=0;
       break;
     }
   }
@@ -543,6 +548,32 @@ void idleFunc(void (*f)())
   glutIdleFunc(f);
 }
 
+void mode() 
+{
+  switch(Mode) {
+    case 0:
+      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_FILL);
+      threshold=getSetting<Int>("threshold");
+      ++Mode;
+    break;
+    case 1:
+      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_POLYGON);
+      threshold=getSetting<Int>("threshold");
+      ++Mode;
+    break;
+    case 2:
+      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_POLYGON);
+      threshold=0;
+      ++Mode;
+     break;
+    case 3:
+      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_PATCH);
+      threshold=0;
+      Mode=0;
+    break;
+  }
+  glutPostRedisplay();
+}
 
 void keyboard(unsigned char key, int x, int y)
 {
@@ -551,7 +582,7 @@ void keyboard(unsigned char key, int x, int y)
       home();
       break;
     case 'f':
-      fullscreen();
+      fitscreen();
       glutPostRedisplay();
       break;
     case 'x':
@@ -566,6 +597,9 @@ void keyboard(unsigned char key, int x, int y)
     case 's':
       glutIdleFunc(NULL);
       break;
+    case 'm':
+      mode();
+      break;
     case 'e':
       Export();
       break;
@@ -578,7 +612,7 @@ void keyboard(unsigned char key, int x, int y)
   }
 }
  
-enum Menu {HOME,FULLSCREEN,XSPIN,YSPIN,ZSPIN,STOP,EXPORT,QUIT};
+enum Menu {HOME,FITSCREEN,XSPIN,YSPIN,ZSPIN,STOP,MODE,EXPORT,QUIT};
 
 void menu(int choice)
 {
@@ -586,8 +620,8 @@ void menu(int choice)
     case HOME: // Home
       home();
       break;
-    case FULLSCREEN:
-      fullscreen();
+    case FITSCREEN:
+      fitscreen();
       break;
     case XSPIN:
       idleFunc(Xspin);
@@ -600,6 +634,9 @@ void menu(int choice)
       break;
     case STOP:
       glutIdleFunc(NULL);
+      break;
+    case MODE:
+      mode();
       break;
     case EXPORT:
       glFinish();
@@ -632,8 +669,10 @@ void glrender(const string& prefix, picture *pic, const string& format,
   H=angle != 0.0 ? -tan(0.5*angle*radians)*zmax : 0.0;
    
   X=Y=0.0;
-  Fullscreen=0;
   lastzoom=Zoom=1.0;
+  
+  Fitscreen=1;
+  Mode=0;
   
   string options=string(settings::argv0)+" ";
   if(!View) options += "-iconic ";
@@ -664,7 +703,8 @@ void glrender(const string& prefix, picture *pic, const string& format,
   
   glutInitWindowSize(Width,Height);
   window=glutCreateWindow((prefix+" [Click middle button for menu]").c_str());
-  if(getSetting<bool>("fitscreen")) fullscreen();
+  if(getSetting<bool>("fitscreen"))
+    fitscreen();
   
   if(settings::verbose > 1) 
     cout << "Rendering " << prefix << endl;
@@ -675,6 +715,12 @@ void glrender(const string& prefix, picture *pic, const string& format,
   glEnable(GL_MAP1_VERTEX_3);
   glEnable(GL_MAP2_VERTEX_3);
   glEnable(GL_AUTO_NORMAL);
+  
+  nurb=gluNewNurbsRenderer();
+  gluNurbsProperty(nurb,GLU_SAMPLING_METHOD,GLU_PARAMETRIC_ERROR);
+  gluNurbsProperty(nurb,GLU_PARAMETRIC_TOLERANCE,1.0);
+  gluNurbsProperty(nurb,GLU_CULLING,GLU_TRUE);
+  mode();
   
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -693,11 +739,12 @@ void glrender(const string& prefix, picture *pic, const string& format,
 
   glutCreateMenu(menu);
   glutAddMenuEntry("(h) Home",HOME);
-  glutAddMenuEntry("(f) Fitscreen",FULLSCREEN);
+  glutAddMenuEntry("(f) Fitscreen",FITSCREEN);
   glutAddMenuEntry("(x) X spin",XSPIN);
   glutAddMenuEntry("(y) Y spin",YSPIN);
   glutAddMenuEntry("(z) Z spin",ZSPIN);
   glutAddMenuEntry("(s) Stop",STOP);
+  glutAddMenuEntry("(m) Mode",MODE);
   glutAddMenuEntry("(e) Export",EXPORT);
   glutAddMenuEntry("(q) Quit" ,QUIT);
   glutAttachMenu(GLUT_MIDDLE_BUTTON);
