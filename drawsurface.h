@@ -28,7 +28,6 @@ protected:
   triple Min,Max;
   Triple controls[16];
   bool invisible;
-  double f; // Fraction of 3D bounding box occupied by surface.
   float c[48];
   
 public:

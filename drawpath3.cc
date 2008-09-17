@@ -84,7 +84,7 @@ bool drawPath3::render(GLUnurbsObj *, int, double size2, const bbox3& b,
       triple z1=g.point(i+1);
       double f=max(camp::fraction(displacement(c0,z0,z1),size3),
 		     camp::fraction(displacement(c1,z0,z1),size3));
-      int n=max(1,(int) ceil(pixelfactor*f*size2));
+      int n=max(1,(int) (pixelfactor*f*size2+0.5));
       triple controls[]={z0,c0,c1,z1};
       GLdouble controlpoints[12];
       for(size_t i=0; i < 4; ++i) {

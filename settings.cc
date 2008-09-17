@@ -928,7 +928,7 @@ void initSettings() {
 			   "Render 3D graphics using n pixels per bp",
 			   haveglut ? 1 : 0));
   addOption(new IntSetting("threshold", 0, "n",
-			   "Parametric sampling threshold for rendering",4));
+			   "Parametric rendering threshold",6));
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
 			    true));

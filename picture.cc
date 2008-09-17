@@ -681,10 +681,10 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 bool picture::render(GLUnurbsObj *nurb, int width, int height, double zoom,
 		     const bbox3& b, bool transparent, int threshold) const
 {  
-  bool status = true;
-  double size2=sqrt((width*width+height*height)/zoom);
+  bool status=true;
+  double size2=sqrt(width*width+height*height)/zoom;
   
-  int n=(int) ceil(sqrt(fraction*size2));
+  int n=max(1,(int) (sqrt(pixelfactor2*fraction*size2)+0.5));
   
   if(verbose > 1 && !transparent) 
     cout << "Using " << n << "x" << n << " surface sampling" 

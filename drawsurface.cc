@@ -76,7 +76,7 @@ inline double fraction(const Triple& z0, const Triple& c0,
 			    size3));
 }
 
-void drawSurface::fraction(double &F, const triple& size3)
+void drawSurface::fraction(double &f, const triple& size3)
 {
   for(int i=0; i < 16; ++i) {
     Triple& C=controls[i];
@@ -87,7 +87,6 @@ void drawSurface::fraction(double &F, const triple& size3)
   Triple& v0=controls[0];
   triple N=unit(normal(v0,controls[3],controls[15])+
 		normal(v0,controls[15],controls[12]));
-  f=0;
   for(int i=1; i < 16; ++i) 
     f=camp::max(f,camp::fraction(displacement2(controls[i],v0,N),size3));
   
@@ -97,11 +96,9 @@ void drawSurface::fraction(double &F, const triple& size3)
   for(int i=0; i < 4; ++i)
     f=camp::max(f,camp::fraction(controls[i],controls[i+4],controls[i+8],
 				 controls[i+12],size3));
-  f=pixelfactor2*f;
-  if(f > F) F=f;
 }
   
-bool drawSurface::render(GLUnurbsObj *nurb, int n, double size2,
+bool drawSurface::render(GLUnurbsObj *nurb, int n, double,
 			 const bbox3& b, bool transparent, int threshold)
 {
   if(invisible || ((diffuse.A < 1.0) ^ transparent))

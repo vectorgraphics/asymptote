@@ -552,23 +552,21 @@ void mode()
 {
   switch(Mode) {
     case 0:
-      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_FILL);
       threshold=getSetting<Int>("threshold");
+      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_FILL);
       ++Mode;
     break;
     case 1:
       gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_POLYGON);
-      threshold=getSetting<Int>("threshold");
       ++Mode;
     break;
     case 2:
-      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_POLYGON);
       threshold=0;
+      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_POLYGON);
       ++Mode;
      break;
     case 3:
       gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_PATCH);
-      threshold=0;
       Mode=0;
     break;
   }
