@@ -490,6 +490,8 @@ void fullscreen()
       glutReshapeWindow(oldwidth,oldheight);
       windowposition(x,y,oldwidth,oldheight);
       glutPositionWindow(x,y);
+      Width=oldwidth;
+      Height=oldheight;
      break;
     }
     case 1:
@@ -500,10 +502,11 @@ void fullscreen()
       int w=glutGet(GLUT_SCREEN_WIDTH);
       int h=glutGet(GLUT_SCREEN_HEIGHT);
       if(w > 0 && h > 0) {
-	if(w > h*Aspect) w=(int)(h/Aspect);
-	if(h*Aspect > w) h=(int)(w/Aspect);
+	if(w > h*Aspect) w=(int) (h*Aspect);
+	else h=(int) (w/Aspect);
 	glutReshapeWindow(w,h);
 	glutPositionWindow(0,0);
+	reshape(w,h);
       }
       break;
     }
