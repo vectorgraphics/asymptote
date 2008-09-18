@@ -183,7 +183,7 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
           addval(w.kpb0,w.kpb1,w.kpb2,val2,w.v);
         }
 
-	triple dir=P.camera-P.target;
+	triple dir=P.vector();
 
         void addnormals(weighted[] pts) {
           triple vec2=pts[1].v-pts[0].v;
@@ -289,8 +289,7 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
           if(s > 2) {
             obj.active=true;
             obj.pts=pts;
-          }
-          else obj.active=false;
+          } else obj.active=false;
 
           return obj;
         }
@@ -470,7 +469,7 @@ vertex[][] contour3(real f(real, real, real), triple a, triple b,
   return contour3(dat,midpoint,a,b,P);
 }
 
-// Draw contour surface for a 3D data array, using a pyramid mesh.
+// Construct contour surface for a 3D data array, using a pyramid mesh.
 surface surface(vertex[][] g)
 {
   surface s=surface(g.length);

@@ -50,10 +50,16 @@ bool drawSurface::write(prcfile *out)
 }
 
 // return a normal vector for the plane through u, v, and w.
-inline triple normal(const Triple& u, const Triple& v, const Triple& w) 
+triple drawSurface::normal(const Triple& u, const Triple& v, const Triple& w)
 {
-  return cross(triple(v[0]-u[0],v[1]-u[1],v[2]-u[2]),
-	       triple(w[0]-u[0],w[1]-u[1],w[2]-u[2]));
+  triple n=cross(triple(v[0]-u[0],v[1]-u[1],v[2]-u[2]),
+		 triple(w[0]-u[0],w[1]-u[1],w[2]-u[2]));
+  if(lighton) {
+    static double fuzz=1000*DBL_EPSILON;
+    double norm=fuzz*(Max-Min).abs2();
+    if(n.abs2() < norm*norm) degenerate=true;
+  }
+  return n;
 }
 
 // return the perpendicular displacement of a point z from the plane
@@ -85,7 +91,9 @@ void drawSurface::fraction(double &F, const triple& size3)
     c[3*i+2]=C[2];
   }
   f=0;
+
   Triple& v0=controls[0];
+  degenerate=false;
   triple N=unit(normal(v0,controls[3],controls[15])+
 		normal(v0,controls[15],controls[12]));
   for(int i=1; i < 16; ++i) 
@@ -124,7 +132,7 @@ bool drawSurface::render(GLUnurbsObj *nurb, int n, double size2,
   
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
-  if(n >= 2) {
+  if(n >= 2 || degenerate) {
     static GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
     gluBeginSurface(nurb);
     gluNurbsSurface(nurb,8,knots,8,knots,3,12,(GLfloat*) &c,4,4,
@@ -134,8 +142,8 @@ bool drawSurface::render(GLUnurbsObj *nurb, int n, double size2,
     if(twosided) glFrontFace(GL_CW); // Work around GL_LIGHT_MODEL_TWO_SIDE bug.
     
     glMap2f(GL_MAP2_VERTEX_3,0,1,3,4,0,1,12,4,(GLfloat*) &c);
-    glMapGrid2f(1,0.0,1.0,1,0.0,1.0);
-    glEvalMesh2(GL_FILL,0,1,0,1);
+    glMapGrid2f(n,0.0,1.0,n,0.0,1.0);
+    glEvalMesh2(GL_FILL,0,n,0,n);
     
     if(twosided) glFrontFace(GL_CCW);
   }
