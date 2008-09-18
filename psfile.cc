@@ -49,6 +49,25 @@ psfile::psfile(const string& filename, bool pdfformat)
   }
 }
 
+void antialias(unsigned char *dealiased, const unsigned char *a,
+	       size_t width, size_t height, size_t n) 
+{
+  size_t nwidth=n*width;
+  for(size_t j=0; j < height; ++j) {
+    size_t widthj=width*j;
+    for(size_t i=0; i < width; ++i) {
+      size_t index=n*(widthj+i);
+      for(size_t k=0; k < n; ++k) {
+	size_t indexk=index+k;
+	dealiased[indexk]=(unsigned char) (((unsigned) a[indexk]+
+					   (unsigned) a[indexk+n]+
+					   (unsigned) a[indexk+nwidth]+
+					   (unsigned) a[indexk+nwidth+n])/4);
+      }
+    }
+  }
+}
+
 void psfile::writeCompressed(const unsigned char *a, size_t size)
 {  
   uLongf compressedSize=compressBound(size);
@@ -595,13 +614,22 @@ void psfile::rawimage(const unsigned char *a, size_t width, size_t height)
   
   size_t size=ncomponents*width*height;
 
-  if(colorspace == RGB && settings::getSetting<Int>("level") >= 3)
-    writeCompressed(a,size);
-  else {
+  bool Antialias=true;
+  
+  if(colorspace == RGB && settings::getSetting<Int>("level") >= 3) {
+    if(Antialias) {
+      unsigned char *dealiased=new unsigned char[size];
+      antialias(dealiased,a,width,height,ncomponents);
+      writeCompressed(dealiased,size);
+      delete[] dealiased;
+    } else
+      writeCompressed(a,size);
+  } else {
     beginImage(size);
     for(size_t i=0; i < width; ++i) {
+      int heighti=height*i;
       for(size_t j=0; j < height; ++j) {
-	size_t index=3*(height*i+j);
+	size_t index=3*(heighti+j);
 	static const double factor=1.0/255.0;
 	pen p(a[index]*factor,a[index+1]*factor,a[index+2]*factor);
 	p.convert();
