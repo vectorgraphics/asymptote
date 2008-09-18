@@ -39,7 +39,7 @@ public:
   bool write(prcfile *out);
   
   bool render(GLUnurbsObj *, int, double size2, const bbox3& b,
-	      bool transparent, int);
+	      bool transparent, bool);
 
   drawElement *transformed(vm::array *t);
 };

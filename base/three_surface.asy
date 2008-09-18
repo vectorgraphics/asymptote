@@ -435,7 +435,6 @@ void draw3D(frame f, patch s, material m=lightgray, light light=currentlight)
 {
   if(!light.on) m=emissive(m.p[0],m.granularity);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
-    
   draw(f,s.P,m.p,m.opacity,m.shininess,granularity);
 }
 
@@ -688,8 +687,8 @@ restricted surface unitsphere=surface(octant1,t*octant1,t2*octant1,t3*octant1,
                                       i*t3*octant1);
 
 private patch unitcone1=patch(X--Z--Z--Y{X}..{-Y}cycle,
-                              new triple[] {(2/3,2/3*a,1/3),Z,Z,
-                                            (2/3*a,2/3,1/3)});
+                              new triple[] {(2/3,2/3*a,1/3),(1/3,1/3*a,2/3),
+					    (1/3*a,1/3,2/3),(2/3*a,2/3,1/3)});
 
 restricted surface unitcone=surface(unitcone1,t*unitcone1,t2*unitcone1,
                                     t3*unitcone1);

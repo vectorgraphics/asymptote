@@ -144,7 +144,7 @@ public:
 
   // Render with OpenGL
   virtual bool render(GLUnurbsObj *nurb, int n, double size2,
-		      const bbox3& b, bool transparent, int threshold) {
+		      const bbox3& b, bool transparent, bool twosided) {
     return true;
   }
 

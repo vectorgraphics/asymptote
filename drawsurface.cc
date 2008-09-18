@@ -76,7 +76,7 @@ inline double fraction(const Triple& z0, const Triple& c0,
 			    size3));
 }
 
-void drawSurface::fraction(double &f, const triple& size3)
+void drawSurface::fraction(double &F, const triple& size3)
 {
   for(int i=0; i < 16; ++i) {
     Triple& C=controls[i];
@@ -84,6 +84,7 @@ void drawSurface::fraction(double &f, const triple& size3)
     c[3*i+1]=C[1];
     c[3*i+2]=C[2];
   }
+  f=0;
   Triple& v0=controls[0];
   triple N=unit(normal(v0,controls[3],controls[15])+
 		normal(v0,controls[15],controls[12]));
@@ -96,18 +97,19 @@ void drawSurface::fraction(double &f, const triple& size3)
   for(int i=0; i < 4; ++i)
     f=camp::max(f,camp::fraction(controls[i],controls[i+4],controls[i+8],
 				 controls[i+12],size3));
+  f=pixelfactor2*f;
+  if(f > F) F=f;
 }
   
-bool drawSurface::render(GLUnurbsObj *nurb, int n, double,
-			 const bbox3& b, bool transparent, int threshold)
+bool drawSurface::render(GLUnurbsObj *nurb, int n, double size2,
+			 const bbox3& b, bool transparent, bool twosided)
 {
-  if(invisible || ((diffuse.A < 1.0) ^ transparent))
-    return true;
-  
-  if(b.left > Max.getx() || b.right < Min.getx() || 
+  if(invisible || ((diffuse.A < 1.0) ^ transparent) || 
+     b.left > Max.getx() || b.right < Min.getx() || 
      b.bottom > Max.gety() || b.top < Min.gety() ||
      b.lower > Max.getz() || b.upper < Min.getz()) return true;
   
+  n=max(1,min(n,(int) (sqrt(f*size2)+0.5)));
   GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
   glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
   
@@ -122,16 +124,20 @@ bool drawSurface::render(GLUnurbsObj *nurb, int n, double,
   
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
-  if(n >= threshold) {
+  if(n >= 2) {
     static GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
     gluBeginSurface(nurb);
     gluNurbsSurface(nurb,8,knots,8,knots,3,12,(GLfloat*) &c,4,4,
 		    GL_MAP2_VERTEX_3);
     gluEndSurface(nurb);
   } else {
-    glMap2d(GL_MAP2_VERTEX_3,0,1,3,4,0,1,12,4,(GLdouble*) &controls);
-    glMapGrid2d(n,0.0,1.0,n,0.0,1.0);
-    glEvalMesh2(GL_FILL,0,n,0,n);
+    if(twosided) glFrontFace(GL_CW); // Work around GL_LIGHT_MODEL_TWO_SIDE bug.
+    
+    glMap2f(GL_MAP2_VERTEX_3,0,1,3,4,0,1,12,4,(GLfloat*) &c);
+    glMapGrid2f(1,0.0,1.0,1,0.0,1.0);
+    glEvalMesh2(GL_FILL,0,1,0,1);
+    
+    if(twosided) glFrontFace(GL_CCW);
   }
   
   return true;

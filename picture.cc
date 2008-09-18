@@ -46,7 +46,7 @@ texstream::~texstream() {
 namespace camp {
 
 const double pixelfactor=0.5; // Adaptive rendering constant.
-const double pixelfactor2=1.5;
+const double pixelfactor2=1.0;
 
 const char *texpathmessage() {
   ostringstream buf;
@@ -679,30 +679,20 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 
 // render viewport with width x height pixels.
 bool picture::render(GLUnurbsObj *nurb, int width, int height, double zoom,
-		     const bbox3& b, bool transparent, int threshold) const
-{  
+		     const bbox3& b, bool transparent) const
+{
   bool status=true;
   double size2=sqrt(width*width+height*height)/zoom;
   
-  int n=max(1,(int) (sqrt(pixelfactor2*fraction*size2)+0.5));
+  int n=(int) (sqrt(fraction*size2)+0.5);
   
-  if(verbose > 1 && !transparent) 
-    cout << "Using " << n << "x" << n << " surface sampling" 
-	 << " of " << width << "x" << height << " image" << endl;
-
-  bool twosided=false;
-  if(n < threshold) {
-    twosided=settings::getSetting<bool>("twosided");
-    if(twosided) glFrontFace(GL_CW); // Work around GL_LIGHT_MODEL_TWO_SIDE bug.
-  }
+  bool twosided=settings::getSetting<bool>("twosided");
   
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    if(!(*p)->render(nurb,n,size2,b,transparent,threshold))
+    if(!(*p)->render(nurb,n,size2,b,transparent,twosided))
       status = false;
   }
-  
-  if(twosided) glFrontFace(GL_CCW);
   
   return status;
 }

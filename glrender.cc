@@ -87,7 +87,6 @@ int Height;
 
 int Fitscreen;
 int Mode;
-int threshold;
 
 double H;
 GLint viewportLimit[2];
@@ -104,7 +103,7 @@ const double moveFactor=1.0;
 const double zoomFactor=1.05;
 const double zoomFactorStep=0.25;
 const double spinStep=60.0; // Degrees per second
-const float arcballRadius=750.0;
+const double arcballRadius=750.0;
 
 const double degrees=180.0/M_PI;
 const double radians=1.0/degrees;
@@ -192,7 +191,7 @@ void display(void)
   }
   
   // Render opaque objects
-  Picture->render(nurb,Width,Height,Zoom,b,false,threshold);
+  Picture->render(nurb,Width,Height,Zoom,b,false);
   
   // Enable transparency
   glEnable(GL_BLEND);
@@ -200,7 +199,7 @@ void display(void)
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   
   // Render transparent objects
-  Picture->render(nurb,Width,Height,Zoom,b,true,threshold);
+  Picture->render(nurb,Width,Height,Zoom,b,true);
   glDepthMask(GL_TRUE);
   glDisable(GL_BLEND);
   
@@ -485,10 +484,10 @@ void windowposition(int& x, int& y, int width, int height)
 void fitscreen() 
 {
   static int oldwidth,oldheight;
+  int x,y;
   switch(Fitscreen) {
     case 0:
     {
-      int x,y;
       glutReshapeWindow(oldwidth,oldheight);
       windowposition(x,y,oldwidth,oldheight);
       glutPositionWindow(x,y);
@@ -508,7 +507,8 @@ void fitscreen()
 	if(w > h*Aspect) w=(int) (h*Aspect);
 	else h=(int) (w/Aspect);
 	glutReshapeWindow(w,h);
-	glutPositionWindow(0,0);
+	windowposition(x,y,w,h);
+	glutPositionWindow(x,y);
 	reshape(w,h);
       }
       ++Fitscreen;
@@ -552,20 +552,16 @@ void mode()
 {
   switch(Mode) {
     case 0:
-      threshold=getSetting<Int>("threshold");
+      glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
       gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_FILL);
       ++Mode;
     break;
     case 1:
       gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_POLYGON);
+      glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       ++Mode;
     break;
     case 2:
-      threshold=0;
-      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_POLYGON);
-      ++Mode;
-     break;
-    case 3:
       gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_PATCH);
       Mode=0;
     break;
@@ -721,6 +717,15 @@ void glrender(const string& prefix, picture *pic, const string& format,
   gluNurbsProperty(nurb,GLU_SAMPLING_METHOD,GLU_PARAMETRIC_ERROR);
   gluNurbsProperty(nurb,GLU_PARAMETRIC_TOLERANCE,1.0);
   gluNurbsProperty(nurb,GLU_CULLING,GLU_TRUE);
+  
+  // The callback tesselation algorithm avoids artifacts at degenerate control
+  // points.
+  gluNurbsProperty(nurb,GLU_NURBS_MODE,GLU_NURBS_TESSELLATOR);
+  gluNurbsCallback(nurb,GLU_NURBS_BEGIN,(_GLUfuncptr) glBegin);
+  gluNurbsCallback(nurb,GLU_NURBS_VERTEX,(_GLUfuncptr) glVertex3fv);
+  gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
+  gluNurbsCallback(nurb,GLU_NURBS_END,(_GLUfuncptr) glEnd);
+  
   mode();
   
   glMatrixMode(GL_MODELVIEW);

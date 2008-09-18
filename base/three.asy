@@ -10,9 +10,9 @@ real defaultshininess=0.25;
 real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
-real anglefactor=1.05;       // Factor used to expand PRC viewing angle.
+real anglefactor=1.06;       // Factor used to expand PRC viewing angle.
 real fovfactor=0.6;          // PRC field of view factor.
-int minimumsize=50;              // Minimum rendering window width and height
+int minimumsize=50;          // Minimum rendering window width and height
 
 string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
 
@@ -1847,8 +1847,9 @@ object embed(string prefix=defaultfilename, picture pic,
       real r=0.5*abs(M-m);
       triple center=0.5*(M+m);
       if(P.oblique) r *= 2; // Fix clipping for oblique projections.
-      M=(M.x,M.y,center.z+r);
-      m=(m.x,m.y,center.z-r);
+      real margin=1;
+      M=(M.x+margin,M.y+margin,center.z+r);
+      m=(m.x-margin,m.y-margin,center.z-r);
       if(prefix == "") prefix=outprefix();
       shipout3(prefix,f,
 	       max(ceil(settings.render*width),minimumsize),
