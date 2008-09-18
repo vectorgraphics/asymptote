@@ -50,7 +50,7 @@ bool drawPath3::write(prcfile *out)
   return true;
 }
 
-bool drawPath3::render(GLUnurbsObj *, int, double size2, const bbox3& b,
+bool drawPath3::render(GLUnurbsObj *, double size2, const bbox3& b,
 		       bool transparent, bool)
 {
   Int n=g.length();

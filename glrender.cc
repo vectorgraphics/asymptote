@@ -713,6 +713,8 @@ void glrender(const string& prefix, picture *pic, const string& format,
   glEnable(GL_MAP2_VERTEX_3);
   glEnable(GL_AUTO_NORMAL);
   
+  glMapGrid2f(1,0.0,1.0,1,0.0,1.0);
+
   nurb=gluNewNurbsRenderer();
   gluNurbsProperty(nurb,GLU_SAMPLING_METHOD,GLU_PARAMETRIC_ERROR);
   gluNurbsProperty(nurb,GLU_PARAMETRIC_TOLERANCE,1.0);

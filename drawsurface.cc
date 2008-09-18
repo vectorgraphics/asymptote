@@ -82,20 +82,24 @@ inline double fraction(const Triple& z0, const Triple& c0,
 			    size3));
 }
 
-void drawSurface::fraction(double &F, const triple& size3)
+inline void store(float *f, double *C)
 {
-  for(int i=0; i < 16; ++i) {
-    Triple& C=controls[i];
-    c[3*i]=C[0];
-    c[3*i+1]=C[1];
-    c[3*i+2]=C[2];
-  }
-  f=0;
+  f[0]=C[0];
+  f[1]=C[1];
+  f[2]=C[2];
+}
+
+void drawSurface::fraction(const triple& size3)
+{
+  for(int i=0; i < 16; ++i)
+    store(c+3*i,controls[i]);
 
   Triple& v0=controls[0];
   degenerate=false;
   triple N=unit(normal(v0,controls[3],controls[15])+
 		normal(v0,controls[15],controls[12]));
+  f=0;
+
   for(int i=1; i < 16; ++i) 
     f=camp::max(f,camp::fraction(displacement2(controls[i],v0,N),size3));
   
@@ -105,11 +109,19 @@ void drawSurface::fraction(double &F, const triple& size3)
   for(int i=0; i < 4; ++i)
     f=camp::max(f,camp::fraction(controls[i],controls[i+4],controls[i+8],
 				 controls[i+12],size3));
-  f=pixelfactor2*f;
-  if(f > F) F=f;
+  
+  f *= pixelfactor2;
+  
+  if(!degenerate) {
+    store(d,controls[0]);
+    store(d+3,controls[3]);
+    store(d+6,controls[12]);
+    store(d+9,controls[15]);
+  }
+  
 }
   
-bool drawSurface::render(GLUnurbsObj *nurb, int n, double size2,
+bool drawSurface::render(GLUnurbsObj *nurb, double size2,
 			 const bbox3& b, bool transparent, bool twosided)
 {
   if(invisible || ((diffuse.A < 1.0) ^ transparent) || 
@@ -117,7 +129,6 @@ bool drawSurface::render(GLUnurbsObj *nurb, int n, double size2,
      b.bottom > Max.gety() || b.top < Min.gety() ||
      b.lower > Max.getz() || b.upper < Min.getz()) return true;
   
-  n=max(1,min(n,(int) (sqrt(f*size2)+0.5)));
   GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
   glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
   
@@ -132,19 +143,15 @@ bool drawSurface::render(GLUnurbsObj *nurb, int n, double size2,
   
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
-  if(n >= 2 || degenerate) {
+  if(degenerate || sqrt(f*size2) >= 1.5) {
     static GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
     gluBeginSurface(nurb);
-    gluNurbsSurface(nurb,8,knots,8,knots,3,12,(GLfloat*) &c,4,4,
-		    GL_MAP2_VERTEX_3);
+    gluNurbsSurface(nurb,8,knots,8,knots,3,12,c,4,4,GL_MAP2_VERTEX_3);
     gluEndSurface(nurb);
   } else {
     if(twosided) glFrontFace(GL_CW); // Work around GL_LIGHT_MODEL_TWO_SIDE bug.
-    
-    glMap2f(GL_MAP2_VERTEX_3,0,1,3,4,0,1,12,4,(GLfloat*) &c);
-    glMapGrid2f(n,0.0,1.0,n,0.0,1.0);
-    glEvalMesh2(GL_FILL,0,n,0,n);
-    
+    glMap2f(GL_MAP2_VERTEX_3,0,1,3,2,0,1,6,2,d);
+    glEvalMesh2(GL_FILL,0,1,0,1);
     if(twosided) glFrontFace(GL_CCW);
   }
   

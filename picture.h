@@ -28,8 +28,6 @@ private:
   bboxlist bboxstack;
   bool transparency;
   
-  double fraction; // Maximum fraction of 3D bounding box occupied by surfaces
-  
   static bool epsformat,pdfformat,xobject,pdf,Labels;
   static double paperWidth,paperHeight;
 

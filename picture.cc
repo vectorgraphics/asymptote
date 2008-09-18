@@ -684,13 +684,11 @@ bool picture::render(GLUnurbsObj *nurb, int width, int height, double zoom,
   bool status=true;
   double size2=sqrt(width*width+height*height)/zoom;
   
-  int n=(int) (sqrt(fraction*size2)+0.5);
-  
   bool twosided=settings::getSetting<bool>("twosided");
   
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    if(!(*p)->render(nurb,n,size2,b,transparent,twosided))
+    if(!(*p)->render(nurb,size2,b,transparent,twosided))
       status = false;
   }
   
@@ -706,10 +704,9 @@ bool picture::shipout3(const string& prefix, const string& format,
   bounds3();
   
   triple size3=b3.Max()-b3.Min();
-  fraction=0;
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->fraction(fraction,size3);
+    (*p)->fraction(size3);
   }
 
   string outputformat=format.empty() ? getSetting<string>("outformat") : format;

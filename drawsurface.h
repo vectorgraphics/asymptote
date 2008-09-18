@@ -30,9 +30,10 @@ protected:
   bool invisible;
   triple Min,Max;
   Triple controls[16];
-  float c[48];
-  double f; // Fraction of 3D bounding box occupied by surface.
+  GLfloat c[48];
+  GLfloat d[12];
   bool degenerate;
+  double f; // Fraction of 3D bounding box occupied by surface.
   
 public:
   drawSurface(const vm::array& g, const vm::array&p, double opacity,
@@ -97,9 +98,9 @@ public:
   
   triple normal(const Triple& u, const Triple& v, const Triple& w);
   
-  void fraction(double &f, const triple& size3);
-  bool render(GLUnurbsObj *nurb, int n, double, const bbox3& b,
-	      bool transparent, bool twosided);
+  void fraction(const triple& size3);
+  bool render(GLUnurbsObj *nurb, double, const bbox3& b, bool transparent,
+	      bool twosided);
   
   drawElement *transformed(vm::array *t);
 };
