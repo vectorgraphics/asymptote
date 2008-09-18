@@ -77,13 +77,13 @@ inline T max(T a, T b)
 }
 
 bool View;
-bool Save;
 int Oldpid;
 const string* Prefix;
 picture* Picture;
 string Format;
-int Width;
-int Height;
+int Width,Height;
+
+int oWidth,oHeight;
 
 int Fitscreen;
 int Mode;
@@ -104,6 +104,8 @@ const double zoomFactor=1.05;
 const double zoomFactorStep=0.25;
 const double spinStep=60.0; // Degrees per second
 const double arcballRadius=750.0;
+
+int minimumsize=50; // Minimum rendering window width and height
 
 const double degrees=180.0/M_PI;
 const double radians=1.0/degrees;
@@ -139,15 +141,13 @@ void initlights(void)
 
 void save()
 {  
+  glFinish();
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
   size_t ndata=3*Width*Height;
   unsigned char *data=new unsigned char[ndata];
   glReadPixels(0,0,Width,Height,GL_RGB,GL_UNSIGNED_BYTE,data);
-  Int expand=getSetting<Int>("render");
-  if(expand <= 0) expand=1;
-  double f=1.0/expand;
   Picture->append(new drawImage(data,Width,Height,
-				transform(0.0,0.0,Width*f,0.0,0.0,Height*f)));
+				transform(0.0,0.0,oWidth,0.0,0.0,oHeight)));
   Picture->shipout(NULL,*Prefix,Format);
   delete[] data;
 }
@@ -212,7 +212,7 @@ void display(void)
     }
   } else {
     glReadBuffer(GL_BACK_LEFT);
-    if(Save) save();
+    save();
     quit();
   }
 }
@@ -599,8 +599,7 @@ void keyboard(unsigned char key, int x, int y)
       break;
     case 17: // Ctrl-q
     case 'q':
-      glReadBuffer(GL_FRONT_LEFT);
-      if(Save) save();
+      if(!Format.empty()) Export();
       quit();
       break;
   }
@@ -633,7 +632,6 @@ void menu(int choice)
       mode();
       break;
     case EXPORT:
-      glFinish();
       Export();
       break;
     case QUIT:
@@ -652,7 +650,6 @@ void glrender(const string& prefix, picture *pic, const string& format,
   Picture=pic;
   Format=format;
   View=view;
-  Save=!view || !format.empty();
   Oldpid=oldpid;
   Light=light;
   cx=0.5*(m.getx()+M.getx());
@@ -690,9 +687,22 @@ void glrender(const string& prefix, picture *pic, const string& format,
     viewportLimit[1]=min(viewportLimit[1],limit);
   }
 
+  int expand=getSetting<Int>("render");
+  if(expand <= 0) expand=1;
+  
+  oWidth=width;
+  oHeight=height;
+  double Aspect=((double) width)/height;
+  
+  width=max((int) (expand*width),minimumsize);
+  height=max((int) (expand*height),minimumsize);
+  
   Width=min(width,viewportLimit[0]);
   Height=min(height,viewportLimit[1]);
-
+  
+  if(Width > Height*Aspect) Width=(int) (Height*Aspect);
+  else Height=(int) (Width/Aspect);
+  
   int x,y;
   windowposition(x,y,Width,Height);
   glutInitWindowPosition(x,y);
@@ -700,7 +710,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
   glutInitWindowSize(Width,Height);
   window=glutCreateWindow((prefix+" [Click middle button for menu]").c_str());
   
-  if(getSetting<bool>("fitscreen"))
+  if(View && getSetting<bool>("fitscreen"))
     fitscreen();
   
   if(settings::verbose > 1) 

@@ -12,7 +12,6 @@ real linegranularity=0.01;
 real dotgranularity=0.0001;
 real anglefactor=1.06;       // Factor used to expand PRC viewing angle.
 real fovfactor=0.6;          // PRC field of view factor.
-int minimumsize=50;          // Minimum rendering window width and height
 
 string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
 
@@ -1851,10 +1850,7 @@ object embed(string prefix=defaultfilename, picture pic,
       M=(M.x+margin,M.y+margin,center.z+r);
       m=(m.x-margin,m.y-margin,center.z-r);
       if(prefix == "") prefix=outprefix();
-      shipout3(prefix,f,
-	       max(ceil(settings.render*width),minimumsize),
-	       max(ceil(settings.render*height),minimumsize),
-	       currentlight.source,
+      shipout3(prefix,f,round(width),round(height),currentlight.source,
                P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M,wait,view);
       return F;
     }
