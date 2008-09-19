@@ -84,7 +84,7 @@ picture* Picture;
 string Format;
 int Width,Height;
 
-int oWidth,oHeight;
+double oWidth,oHeight;
 
 int Fitscreen;
 int Mode;
@@ -643,7 +643,7 @@ void menu(int choice)
 
 // angle=0 means orthographic.
 void glrender(const string& prefix, picture *pic, const string& format,
-	      int width, int height, const triple& light,
+	      double width, double height, const triple& light,
 	      double angle, const triple& m, const triple& M, bool view,
 	      int oldpid)
 {
@@ -673,6 +673,10 @@ void glrender(const string& prefix, picture *pic, const string& format,
   int argc=0;
   while(argv[argc] != NULL)
     ++argc;
+  
+  if(settings::verbose > 1) 
+    cout << "Rendering " << prefix << endl;
+    
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
   
@@ -691,15 +695,13 @@ void glrender(const string& prefix, picture *pic, const string& format,
   double expand=getSetting<double>("render");
   if(expand < 0) expand=Format.empty() ? 1.0 : 
 		   (Format == "eps" || Format == "pdf" ? 4.0 : 2.0);
+  
   oWidth=width;
   oHeight=height;
   double Aspect=((double) width)/height;
   
-  width=max((int) (expand*width),minimumsize);
-  height=max((int) (expand*height),minimumsize);
-  
-  Width=min(width,viewportLimit[0]);
-  Height=min(height,viewportLimit[1]);
+  Width=min(max((int) (expand*width),minimumsize),viewportLimit[0]);
+  Height=min(max((int) (expand*height),minimumsize),viewportLimit[1]);
   
   if(Width > Height*Aspect) Width=(int) (Height*Aspect);
   else Height=(int) (Width/Aspect);
@@ -714,9 +716,6 @@ void glrender(const string& prefix, picture *pic, const string& format,
   if(View && Format.empty() && getSetting<bool>("fitscreen"))
     fitscreen();
   
-  if(settings::verbose > 1) 
-    cout << "Rendering " << prefix << endl;
-    
   glClearColor(1.0,1.0,1.0,0.0);
    
   glEnable(GL_DEPTH_TEST);

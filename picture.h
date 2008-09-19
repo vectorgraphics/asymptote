@@ -85,7 +85,7 @@ public:
   bool render(GLUnurbsObj *nurb, int width, int height, double zoom,
 	      const bbox3& b, bool transparent) const;
   bool shipout3(const string& prefix, const string& format,
-		Int width, Int height, const triple& light,
+		double width, double height, const triple& light,
 		double angle, const triple& m, const triple& M,
 		bool wait=false, bool view=true);
   

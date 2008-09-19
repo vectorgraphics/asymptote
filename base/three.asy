@@ -1850,7 +1850,7 @@ object embed(string prefix=defaultfilename, picture pic,
       M=(M.x+margin,M.y+margin,center.z+r);
       m=(m.x-margin,m.y-margin,center.z-r);
       if(prefix == "") prefix=outprefix();
-      shipout3(prefix,f,round(width),round(height),currentlight.source,
+      shipout3(prefix,f,width,height,currentlight.source,
                P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M,wait,view);
       return F;
     }

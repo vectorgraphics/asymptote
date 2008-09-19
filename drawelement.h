@@ -20,6 +20,8 @@
 
 #ifdef HAVE_LIBGLUT
 #include <GL/glut.h>
+#else
+typedef void GLUnurbsObj;
 #endif
 
 namespace camp {

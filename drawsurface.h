@@ -28,12 +28,14 @@ protected:
   bool lighton;
   
   bool invisible;
+  bool degenerate;
   triple Min,Max;
   Triple controls[16];
+#ifdef HAVE_LIBGLUT
   GLfloat c[48];
   GLfloat d[12];
-  bool degenerate;
   double f; // Fraction of 3D bounding box occupied by surface.
+#endif  
   
 public:
   drawSurface(const vm::array& g, const vm::array&p, double opacity,

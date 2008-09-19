@@ -1383,7 +1383,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 }
 
 void shipout3(string prefix, picture *f, string format=emptystring,
-	      Int width, Int height, triple light,
+	      double width, double height, triple light,
 	      double angle, triple m, triple M, bool wait=false, bool view=true)
 {
   f->shipout3(prefix,format,width,height,light,angle,m,M,wait,view);

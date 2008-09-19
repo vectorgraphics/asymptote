@@ -6,7 +6,6 @@
 
 #include "drawsurface.h"
 #include "path3.h"
-#include <GL/glut.h>
 
 namespace camp {
 
@@ -91,6 +90,7 @@ inline void store(float *f, double *C)
 
 void drawSurface::fraction(const triple& size3)
 {
+#ifdef HAVE_LIBGLUT
   for(int i=0; i < 16; ++i)
     store(c+3*i,controls[i]);
 
@@ -118,12 +118,13 @@ void drawSurface::fraction(const triple& size3)
     store(d+6,controls[12]);
     store(d+9,controls[15]);
   }
-  
+#endif  
 }
   
 bool drawSurface::render(GLUnurbsObj *nurb, double size2,
 			 const bbox3& b, bool transparent, bool twosided)
 {
+#ifdef HAVE_LIBGLUT
   if(invisible || ((diffuse.A < 1.0) ^ transparent) || 
      b.left > Max.getx() || b.right < Min.getx() || 
      b.bottom > Max.gety() || b.top < Min.gety() ||
@@ -155,6 +156,7 @@ bool drawSurface::render(GLUnurbsObj *nurb, double size2,
     if(twosided) glFrontFace(GL_CCW);
   }
   
+#endif
   return true;
 }
 

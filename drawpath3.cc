@@ -4,7 +4,6 @@
  * Stores a path3 that has been added to a picture.
  *****/
 
-#include <GL/glut.h>
 #include "drawpath3.h"
 
 namespace camp {
@@ -18,6 +17,13 @@ inline void store(Triple& control, const triple& v)
   control[2]=v.getz();
 }
   
+inline void store(float *control, const triple& v)
+{
+  control[0]=v.getx();
+  control[1]=v.gety();
+  control[2]=v.getz();
+}
+
 bool drawPath3::write(prcfile *out)
 {
   Int n=g.length();
@@ -53,6 +59,7 @@ bool drawPath3::write(prcfile *out)
 bool drawPath3::render(GLUnurbsObj *, double size2, const bbox3& b,
 		       bool transparent, bool)
 {
+#ifdef HAVE_LIBGLUT
   Int n=g.length();
   double opacity=pentype.opacity();
   if(n == 0 || pentype.invisible() || ((opacity < 1.0) ^ transparent) ||
@@ -64,14 +71,14 @@ bool drawPath3::render(GLUnurbsObj *, double size2, const bbox3& b,
   
   pentype.torgb();
   glDisable(GL_LIGHTING);
-  glColor4d(pentype.red(),pentype.green(),pentype.blue(),opacity);	
+  glColor4f(pentype.red(),pentype.green(),pentype.blue(),opacity);	
 
   if(g.piecewisestraight()) {
     controls=new Triple[n+1];
     glBegin(GL_LINE_STRIP);
     for(Int i=0; i <= n; ++i) {
       triple v=g.point(i);
-      glVertex3d(v.getx(),v.gety(),v.getz());
+      glVertex3f(v.getx(),v.gety(),v.getz());
     }
     glEnd();
   } else {
@@ -84,21 +91,18 @@ bool drawPath3::render(GLUnurbsObj *, double size2, const bbox3& b,
 		     camp::fraction(displacement(c1,z0,z1),size3));
       int n=max(1,(int) (pixelfactor*f*size2+0.5));
       triple controls[]={z0,c0,c1,z1};
-      GLdouble controlpoints[12];
-      for(size_t i=0; i < 4; ++i) {
-	triple& c=controls[i];
-	size_t i3=3*i;
-	controlpoints[i3]=c.getx();
-	controlpoints[i3+1]=c.gety();
-	controlpoints[i3+2]=c.getz();
-      }
-      glMap1d(GL_MAP1_VERTEX_3,0.0,1.0,3,4,controlpoints);
-      glMapGrid1d(n,0.0,1.0);
+      GLfloat controlpoints[12];
+      for(size_t i=0; i < 4; ++i)
+	store(controlpoints+3*i,controls[i]);
+
+      glMap1f(GL_MAP1_VERTEX_3,0.0,1.0,3,4,controlpoints);
+      glMapGrid1f(n,0.0,1.0);
       glEvalMesh1(GL_LINE,0,n);
     }
   }
   glEnable(GL_LIGHTING);
 
+#endif
   return true;
 }
 
