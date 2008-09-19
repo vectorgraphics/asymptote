@@ -63,6 +63,7 @@ using camp::triple;
 using vm::array;
 using camp::bbox3;
 using settings::getSetting;
+using settings::Setting;
 
 template<class T>
 inline T min(T a, T b)
@@ -687,9 +688,9 @@ void glrender(const string& prefix, picture *pic, const string& format,
     viewportLimit[1]=min(viewportLimit[1],limit);
   }
 
-  int expand=getSetting<Int>("render");
-  if(expand < 0) expand=Format.empty() ? 1 : 4;
-    
+  double expand=getSetting<double>("render");
+  if(expand < 0) expand=Format.empty() ? 1.0 : 
+		   (Format == "eps" || Format == "pdf" ? 4.0 : 2.0);
   oWidth=width;
   oHeight=height;
   double Aspect=((double) width)/height;

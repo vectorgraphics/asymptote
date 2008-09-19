@@ -382,7 +382,8 @@ bool picture::postprocess(const string& prename, const string& outname,
       else status=epstopdf(prename,outname);
     } else {
       ostringstream cmd;
-      double expand=2.0;
+      double expand=getSetting<double>("render");
+      if(expand <= 0) expand=2.0;
       double res=expand*72.0;
       cmd << "'" << getSetting<string>("convert") 
 	  << "' -density " << res << "x" << res
