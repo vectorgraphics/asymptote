@@ -1305,19 +1305,20 @@ void layer(picture *f)
 }
 
 void _image(picture *f, realarray2 *data, pair initial, pair final,
-	    penarray *palette=NULL, transform t=identity, bool copy=true)
+	    penarray *palette=NULL, transform t=identity, bool copy=true,
+	    bool antialias=false)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
   f->append(new drawImage(*copyarray2(data),*copyarray(palette),
-			  t*matrix(initial,final)));
+			  t*matrix(initial,final),antialias));
 }
 
 void _image(picture *f, penarray2 *data, pair initial, pair final,
-	    transform t=identity, bool copy=true)
+	    transform t=identity, bool copy=true, bool antialias=false)
 {
   array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
-  f->append(new drawImage(*copyarray2(data),t*matrix(initial,final)));
+  f->append(new drawImage(*copyarray2(data),t*matrix(initial,final),antialias));
 }
 
 string nativeformat()

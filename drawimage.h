@@ -18,21 +18,22 @@ enum imagetype {PALETTE, NOPALETTE, RAW};
   
 class drawImage : public drawElement {
   vm::array image,palette;
-   unsigned char *raw; // For internal use; not buffered.
+  unsigned char *raw; // For internal use; not buffered, may be overwritten.
   size_t width,height;
   transform t;
+  bool antialias;
   imagetype type;
 public:
   drawImage(const vm::array& image, const vm::array& palette,
-	    const transform& t)
-    : image(image), palette(palette), t(t), type(PALETTE) {}
+	    const transform& t, bool antialias, imagetype type=PALETTE)
+    : image(image), palette(palette), t(t), antialias(antialias), type(type) {}
   
-  drawImage(const vm::array& image, const transform& t)
-    : image(image), t(t), type(NOPALETTE) {}
-  drawImage(unsigned char *raw, size_t width, size_t height,
-	    const transform& t)
-    : raw(raw), width(width), height(height), t(t), type(RAW) {}
-  
+  drawImage(const vm::array& image, const transform& t, bool antialias)
+    : image(image), t(t), antialias(antialias), type(NOPALETTE) {}
+  drawImage(unsigned char *raw, size_t width, size_t height, const transform& t,
+	    bool antialias)
+    : raw(raw), width(width), height(height), t(t), antialias(antialias),
+       type(RAW) {}
   
   virtual ~drawImage() {}
 
@@ -46,13 +47,13 @@ public:
     out->concat(t);
     switch(type) {
     case PALETTE:
-      out->image(image,palette,false);
+      out->image(image,palette,antialias);
       break;
     case NOPALETTE:
-      out->image(image,false);    
+      out->image(image,antialias);
       break;
     case RAW:
-      out->rawimage(raw,width,height,true);
+      out->rawimage(raw,width,height,antialias);
       break;
     }
     
@@ -62,7 +63,7 @@ public:
   }
 
   drawElement *transformed(const transform& T) {
-    return new drawImage(image,palette,T*t);
+    return new drawImage(image,palette,T*t,antialias,type);
   }
 };
 

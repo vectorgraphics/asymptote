@@ -147,7 +147,7 @@ void save()
   unsigned char *data=new unsigned char[ndata];
   glReadPixels(0,0,Width,Height,GL_RGB,GL_UNSIGNED_BYTE,data);
   Picture->append(new drawImage(data,Width,Height,
-				transform(0.0,0.0,oWidth,0.0,0.0,oHeight)));
+				transform(0.0,0.0,oWidth,0.0,0.0,oHeight),true));
   Picture->shipout(NULL,*Prefix,Format);
   delete[] data;
 }

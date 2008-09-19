@@ -6873,7 +6873,7 @@ a function @code{f}(@math{x},@math{y}) and added to a picture @code{pic}:
 @verbatim
 bounds image(picture pic=currentpicture, real f(real,real),
              range range=Full, pair initial, pair final,
-             int nx=ngraph, int ny=nx, pen[] palette);
+             int nx=ngraph, int ny=nx, pen[] palette, bool antialias=false)
 @end verbatim
 The function @code{f} will be sampled at @code{nx} and @code{ny}
 evenly spaced points over a rectangle defined by the points
@@ -6906,7 +6906,8 @@ array @code{data}:
 @verbatim
 bounds image(picture pic=currentpicture, real[][] f, range range=Full,
              pair initial, pair final, pen[] palette,
-             bool transpose=(initial.x < final.x && initial.y < final.y));
+             bool transpose=(initial.x < final.x && initial.y < final.y),
+             bool copy=true, bool antialias=false);
 @end verbatim
 @noindent
 If the initial point is to the left and below the final point,
@@ -6928,7 +6929,8 @@ An optionally labelled palette bar may be generated with the routine
 @verbatim
 void palette(picture pic=currentpicture, Label L="", bounds bounds,
              pair initial, pair final, axis axis=Right, pen[] palette,
-             pen p=currentpen, paletteticks ticks=PaletteTicks);
+             pen p=currentpen, paletteticks ticks=PaletteTicks,
+             bool copy=true, bool antialias=false);
 @end verbatim
 The color space of @code{palette} is taken to be over bounds @code{bounds} with
 scaling given by the @math{z} scaling of @code{pic}.
@@ -6961,7 +6963,8 @@ One can also draw an image directly from a two-dimensional pen array:
 @verbatim
 void image(picture pic=currentpicture, pen[][] data,
            pair initial, pair final,
-           bool transpose=(initial.x < final.x && initial.y < final.y));
+           bool transpose=(initial.x < final.x && initial.y < final.y),
+           bool copy=true, bool antialias=false);
 @end verbatim
 @noindent
 as illustrated in the following example:
