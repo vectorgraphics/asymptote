@@ -32,7 +32,7 @@ bool prc() {
 
 bool is3D()
 {
-  return prc() || settings.render > 0;
+  return prc() || settings.render != 0;
 }
 
 frame enclose(string prefix=defaultfilename, object F)
@@ -80,7 +80,7 @@ void shipout(string prefix=defaultfilename, frame f,
 {
   if(is3D(f)) {
     f=enclose(prefix,embed3(prefix,f,options,P));
-    if(settings.render > 0 && !prc()) {
+    if(settings.render != 0 && !prc()) {
       shipped=true;
       return;
     }

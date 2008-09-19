@@ -1838,7 +1838,7 @@ object embed(string prefix=defaultfilename, picture pic,
         angle=2*anglefactor*aTan((M.y-c.y)/(abs(P.vector())));
     }    
     
-    if(settings.render > 0 && !prc()) {
+    if(settings.render != 0 && !prc()) {
       transform3 T=P.projector(P.camera,P.up,P.target).modelview;
       f=T*f;
       triple m=min3(f);
@@ -1879,7 +1879,7 @@ currentpicture.fitter=new frame(picture pic, real xsize, real ysize,
     if(prc())
       label(f,F.L);
     else {
-      if(settings.render > 0) return f;
+      if(settings.render != 0) return f;
       else add(f,F.f);
     }
   }

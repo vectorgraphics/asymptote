@@ -925,8 +925,8 @@ void initSettings() {
   addOption(new boolSetting("prc", 0,
                             "Embed 3D PRC graphics in PDF output", true));
   addOption(new IntSetting("render", 0, "n",
-			   "Render 3D graphics using n pixels per bp",
-			   haveglut ? 1 : 0));
+			   "Render 3D graphics using n pixels per bp (-1=auto)",
+			   haveglut ? -1 : 0));
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
 			    true));

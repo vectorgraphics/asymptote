@@ -688,8 +688,8 @@ void glrender(const string& prefix, picture *pic, const string& format,
   }
 
   int expand=getSetting<Int>("render");
-  if(expand <= 0) expand=1;
-  
+  if(expand < 0) expand=Format.empty() ? 1 : 4;
+    
   oWidth=width;
   oHeight=height;
   double Aspect=((double) width)/height;
@@ -710,7 +710,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
   glutInitWindowSize(Width,Height);
   window=glutCreateWindow((prefix+" [Click middle button for menu]").c_str());
   
-  if(View && getSetting<bool>("fitscreen"))
+  if(View && Format.empty() && getSetting<bool>("fitscreen"))
     fitscreen();
   
   if(settings::verbose > 1) 
