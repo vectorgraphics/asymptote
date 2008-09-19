@@ -1295,11 +1295,20 @@ void setOptions(int argc, char *argv[])
   // Read command-line options initially to obtain CONFIG and DIR.
   getOptions(argc,argv);
   
+  Int Verbose=verbose;
   resetOptions();
   
   // Read user configuration file.
   setPath();
-  doConfig(getSetting<string>("config"));
+  string filename=getSetting<string>("config");
+  if(!filename.empty()) {
+    string file=locateFile(filename);
+    if(!file.empty()) {
+      if(Verbose > 1)
+	cerr << "Loading " << filename << " from " << file << endl;
+      doConfig(file);
+    }
+  }
   
   // Read command-line options again to override configuration file defaults.
   getOptions(argc,argv);
