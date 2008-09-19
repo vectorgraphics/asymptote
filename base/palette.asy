@@ -24,16 +24,18 @@ range Full=Range();
 
 void image(frame f, real[][] data, pair initial, pair final, pen[] palette,
            bool transpose=(initial.x < final.x && initial.y < final.y),
-           transform t=identity())
+           transform t=identity(), bool copy=true, bool antialias=false)
 {
-  _image(f,transpose ? transpose(data) : data,initial,final,palette,t);
+  _image(f,transpose ? transpose(data) : copy ? copy(data) : data,
+	 initial,final,palette,t,copy=false,antialias=antialias);
 }
 
 void image(frame f, pen[][] data, pair initial, pair final,
            bool transpose=(initial.x < final.x && initial.y < final.y),
-           transform t=identity())
+           transform t=identity(), bool copy=true, bool antialias=false)
 {
-  _image(f,transpose ? transpose(data) : data,initial,final,t);
+  _image(f,transpose ? transpose(data) : copy ? copy(data) : data,
+	 initial,final,t,copy=false,antialias=antialias);
 }
 
 // Reduce color palette to approximate range of data relative to "display"
@@ -61,7 +63,7 @@ private real[] sequencereal;
 bounds image(picture pic=currentpicture, real[][] f, range range=Full,
              pair initial, pair final, pen[] palette,
              bool transpose=(initial.x < final.x && initial.y < final.y),
-	     bool copy=true)
+	     bool copy=true, bool antialias=false)
 {
   if(transpose) f=transpose(f);
   else if(copy) f=copy(f);
@@ -88,7 +90,7 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
   final=Scale(pic,final);
 
   pic.add(new void(frame F, transform t) {
-      _image(F,f,initial,final,palette,t,copy=false);
+      _image(F,f,initial,final,palette,t,copy=false,antialias=antialias);
     },true);
   pic.addBox(initial,final);
   return bounds; // Return bounds used for color space
@@ -96,7 +98,7 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
 
 bounds image(picture pic=currentpicture, real f(real,real),
              range range=Full, pair initial, pair final,
-             int nx=ngraph, int ny=nx, pen[] palette)
+             int nx=ngraph, int ny=nx, pen[] palette, bool antialias=false)
 {
   // Generate data, taking scaling into account
   real xmin=pic.scale.x.T(initial.x);
@@ -112,12 +114,13 @@ bounds image(picture pic=currentpicture, real f(real,real),
         return f(Tinv(interp(xmin,xmax,(i+0.5)/ny)),y);
       },nx);
   }
-  return image(pic,data,range,initial,final,palette,false);
+  return image(pic,data,range,initial,final,palette,transpose=false,
+	       copy=false,antialias=antialias);
 }
 
 void image(picture pic=currentpicture, pen[][] data, pair initial, pair final,
            bool transpose=(initial.x < final.x && initial.y < final.y),
-	   bool copy=true)
+	   bool copy=true, bool antialias=false)
 {
   if(transpose) data=transpose(data);
   else if(copy) data=copy(data);
@@ -126,7 +129,7 @@ void image(picture pic=currentpicture, pen[][] data, pair initial, pair final,
   final=Scale(pic,final);
 
   pic.add(new void(frame F, transform t) {
-      _image(F,data,initial,final,t,copy=false);
+      _image(F,data,initial,final,t,copy=false,antialias=antialias);
     },true);
   pic.addBox(initial,final);
 }
@@ -220,7 +223,7 @@ paletteticks PaletteTicks=PaletteTicks();
 void palette(picture pic=currentpicture, Label L="", bounds bounds, 
              pair initial, pair final, axis axis=Right, pen[] palette, 
              pen p=currentpen, paletteticks ticks=PaletteTicks,
-	     bool copy=true)
+	     bool copy=true, bool antialias=false)
 {
   real initialz=pic.scale.z.T(bounds.min);
   real finalz=pic.scale.z.T(bounds.max);
@@ -263,7 +266,7 @@ void palette(picture pic=currentpicture, Label L="", bounds bounds,
   if(vertical) pdata=transpose(pdata);
   
   pic.add(new void(frame f, transform t) {
-      _image(f,pdata,initial,final,palette,t,copy=false);
+      _image(f,pdata,initial,final,palette,t,copy=false,antialias=antialias);
     },true);
   
   ticklocate locate=ticklocate(initialz,finalz,pic.scale.z,mz.min,mz.max);
