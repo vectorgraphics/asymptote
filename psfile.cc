@@ -49,8 +49,7 @@ psfile::psfile(const string& filename, bool pdfformat)
   }
 }
 
-void antialias(unsigned char *dealiased, const unsigned char *a,
-	       size_t width, size_t height, size_t n) 
+void dealias(unsigned char *a, size_t width, size_t height, size_t n) 
 {
   size_t nwidth=n*width;
   for(size_t j=0; j < height; ++j) {
@@ -59,10 +58,10 @@ void antialias(unsigned char *dealiased, const unsigned char *a,
       size_t index=n*(widthj+i);
       for(size_t k=0; k < n; ++k) {
 	size_t indexk=index+k;
-	dealiased[indexk]=(unsigned char) (((unsigned) a[indexk]+
-					   (unsigned) a[indexk+n]+
-					   (unsigned) a[indexk+nwidth]+
-					   (unsigned) a[indexk+nwidth+n])/4);
+	a[indexk]=(unsigned char) (((unsigned) a[indexk]+
+				    (unsigned) a[indexk+n]+
+				    (unsigned) a[indexk+nwidth]+
+				    (unsigned) a[indexk+nwidth+n])/4);
       }
     }
   }
@@ -521,7 +520,7 @@ void psfile::imageheader(size_t width, size_t height, ColorSpace colorspace)
        << "image" << newl;
 }
 
-void psfile::image(const array& a, const array& P)
+void psfile::image(const array& a, const array& P, bool antialias)
 {
   size_t asize=a.size();
   size_t Psize=P.size();
@@ -566,10 +565,10 @@ void psfile::image(const array& a, const array& P)
       write(p,ncomponents);
     }
   }
-  endImage();
+  endImage(antialias,a0size,asize,ncomponents);
 }
 
-void psfile::image(const array& a)
+void psfile::image(const array& a, bool antialias)
 {
   size_t asize=a.size();
   if(asize == 0) return;
@@ -598,10 +597,11 @@ void psfile::image(const array& a)
       write(p,ncomponents);
     }
   }
-  endImage();
+  endImage(antialias,a0size,asize,ncomponents);
 }
   
-void psfile::rawimage(const unsigned char *a, size_t width, size_t height)
+void psfile::rawimage(unsigned char *a, size_t width, size_t height,
+		      bool antialias)
 {
   pen p(0.0,0.0,0.0);
   p.convert();
@@ -614,16 +614,9 @@ void psfile::rawimage(const unsigned char *a, size_t width, size_t height)
   
   size_t size=ncomponents*width*height;
 
-  bool Antialias=true;
-  
   if(colorspace == RGB && settings::getSetting<Int>("level") >= 3) {
-    if(Antialias) {
-      unsigned char *dealiased=new unsigned char[size];
-      antialias(dealiased,a,width,height,ncomponents);
-      writeCompressed(dealiased,size);
-      delete[] dealiased;
-    } else
-      writeCompressed(a,size);
+    if(antialias) dealias(a,width,height,ncomponents);
+    writeCompressed(a,size);
   } else {
     beginImage(size);
     for(size_t i=0; i < width; ++i) {
@@ -638,7 +631,7 @@ void psfile::rawimage(const unsigned char *a, size_t width, size_t height)
 	write(&p,ncomponents);
       }	
     }
-    endImage();
+    endImage(antialias,width,height,ncomponents);
   }
 }
 

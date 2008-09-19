@@ -18,7 +18,7 @@ enum imagetype {PALETTE, NOPALETTE, RAW};
   
 class drawImage : public drawElement {
   vm::array image,palette;
-  const unsigned char *raw; // For internal use; not buffered.
+   unsigned char *raw; // For internal use; not buffered.
   size_t width,height;
   transform t;
   imagetype type;
@@ -29,7 +29,7 @@ public:
   
   drawImage(const vm::array& image, const transform& t)
     : image(image), t(t), type(NOPALETTE) {}
-  drawImage(const unsigned char *raw, size_t width, size_t height,
+  drawImage(unsigned char *raw, size_t width, size_t height,
 	    const transform& t)
     : raw(raw), width(width), height(height), t(t), type(RAW) {}
   
@@ -46,13 +46,13 @@ public:
     out->concat(t);
     switch(type) {
     case PALETTE:
-      out->image(image,palette);
+      out->image(image,palette,false);
       break;
     case NOPALETTE:
-      out->image(image);    
+      out->image(image,false);    
       break;
     case RAW:
-      out->rawimage(raw,width,height);
+      out->rawimage(raw,width,height,true);
       break;
     }
     

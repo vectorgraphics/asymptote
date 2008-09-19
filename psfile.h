@@ -93,6 +93,8 @@ public:
   }
 };
 
+void dealias(unsigned char *a, size_t width, size_t height, size_t n);
+
 class psfile {
   string filename;
   bool pdfformat;    // Is final output format PDF?
@@ -101,7 +103,6 @@ class psfile {
   unsigned char *buffer;
   size_t count;
   mem::stack<pen> pens;
-  encode85 *e;
   
   void write(transform t) {
     if(!pdf) *out << "[";
@@ -117,7 +118,6 @@ class psfile {
   void writeCompressed(const unsigned char *a, size_t size);
   
   void beginHex() {
-    buffer=NULL;
     out->setf(std::ios::hex,std::ios::basefield);
     out->fill('0');
   }
@@ -129,24 +129,25 @@ class psfile {
   }
   
   void beginImage(size_t n) {
-    if(settings::getSetting<Int>("level") >= 3) {
-      buffer=new unsigned char[n];
-      count=0;
-    } else e=new encode85(out);
+    buffer=new unsigned char[n];
+    count=0;
   }
   
-  void endImage() {
-    if(buffer) {
+  void endImage(bool antialias, size_t width, size_t height, 
+		size_t ncomponents) {
+    if(antialias) dealias(buffer,width,height,ncomponents);
+    if(settings::getSetting<Int>("level") >= 3)
       writeCompressed(buffer,count);
-      delete[] buffer;
-    } else delete e;
+    else {
+      encode85 e(out);
+      for(size_t i=0; i < count; ++i)
+	e.put(buffer[i]);
+    }
+    delete[] buffer;
   }
   
   void writeByte(unsigned char n) {
-    if(buffer)
       buffer[count++]=n;
-    else
-      e->put(n);
   }
   
   void write2(unsigned n) {
@@ -279,9 +280,9 @@ public:
 
   void imageheader(size_t width, size_t height, ColorSpace colorspace);
   
-  void image(const vm::array& a, const vm::array& p);
-  void image(const vm::array& a);
-  void rawimage(const unsigned char *a, size_t width, size_t height);
+  void image(const vm::array& a, const vm::array& p, bool antialias);
+  void image(const vm::array& a, bool antialias);
+  void rawimage(unsigned char *a, size_t width, size_t height, bool antialias);
 
   void gsave(bool tex=false) {
     if(pdf) *out << "q";
