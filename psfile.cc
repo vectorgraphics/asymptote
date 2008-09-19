@@ -52,7 +52,7 @@ psfile::psfile(const string& filename, bool pdfformat)
 void dealias(unsigned char *a, size_t width, size_t height, size_t n) 
 {
   size_t nwidth=n*width;
-  for(size_t j=0; j < height; ++j) {
+  for(size_t j=0; j < height-1; ++j) {// Don't dealias the top row of pixels
     size_t widthj=width*j;
     for(size_t i=0; i < width; ++i) {
       size_t index=n*(widthj+i);
