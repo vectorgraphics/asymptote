@@ -76,8 +76,8 @@ struct animation {
 
   int merge(int loops=0, real delay=animationdelay, string format="gif",
             string options="", bool keep=settings.keep) {
-    string args="-loop " +(string) loops+" -delay "+(string)(delay/10)+" "
-      +options;
+    string args="-loop " +(string) loops+" -delay "+(string)(delay/10)+
+      " -alpha Off -dispose Background -layers optimize "+options;
       for(int i=0; i < files.length; ++i)
         args += " " +files[i];
       int rc=convert(args,format=format);

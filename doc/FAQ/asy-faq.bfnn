@@ -1280,17 +1280,21 @@ features not available in PostScript (e.g. general function shading).
 \question 28jun:bigpictures How to I produce large pictures of high quality in raster format (e.g. png, giff etc). 
 
 Try using some of the options to convert, mainly -geometry and -density. For example: 
+\verbatim
 convert -geometry 1000x3000 example.eps example.png 
+\endverbatim
 should give you the number of pixels you are looking for. 
  
 You can also change the default resolution of the image with: 
-convert -geometry 1000x3000 -density 300 -units PixelsPerInch example.eps 
-example.png 
+\verbatim
+convert -geometry 1000x3000 -density 300 -units PixelsPerInch example.eps example.png 
+\endverbatim
 This does not change the number of pixels in the image, but just gives a hint 
-as to how large a pixel should be displayed.
+as to how large each pixel should be displayed.
  
 If you include the -density option without the -geometry option, convert will 
-keep the image size constant (so a 4"x3" eps figure will generate a 4"x3" png 
+keep the image size constant (so a 4cm x 3cm eps figure will generate a 4cm x
+3cm png 
 image). 
 
 \question 28jun:multipage Is it possible to produce multi-page documents with asymptote? 

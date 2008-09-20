@@ -386,8 +386,9 @@ bool picture::postprocess(const string& prename, const string& outname,
       if(expand <= 0) expand=2.0;
       double res=expand*72.0;
       cmd << "'" << getSetting<string>("convert") 
-	  << "' -density " << res << "x" << res
+	  << "' -alpha Off -density " << res << "x" << res
 	  << " +antialias -geometry " << 100.0/expand << "%x"
+	  << " " << getSetting<string>("convertOptions")
 	  << " '" << nativeformat()+":" << prename << "'"
           << " '" << outputformat << ":" << outname << "'";
       status=System(cmd,0,true,"convert");

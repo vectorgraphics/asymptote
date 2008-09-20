@@ -7774,11 +7774,11 @@ by the @code{ImageMagick} @code{convert} program (version 6.2.4 or
 later recommended; an @code{Invalid Parameter} error message indicates
 that the @code{MSDOS} utility @code{convert} is being used instead of
 the one that comes with @code{ImageMagick}).
-To give specific options to the @code{convert}
-program, call convert manually. This example enables antialiasing and 
-produces a @code{tiff} format at double the usual size:
+To give specific options to @code{convert}, use the
+@code{convertOptions} setting or call convert manually. This example
+enables antialiasing and produces a @code{tiff} format at double the usual size:
 @verbatim
-asy -o - venn | convert -density 288x288 -geometry 100%x eps:- venn.tiff
+asy -o - venn | convert -alpha Off -density 288x288 -geometry 100%x eps:- venn.tiff
 @end verbatim
 
 If the option @code{-unsafe} is given, @code{Asymptote} runs
