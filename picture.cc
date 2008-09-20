@@ -46,7 +46,7 @@ texstream::~texstream() {
 namespace camp {
 
 const double pixelfactor=0.5; // Adaptive rendering constant.
-const double pixelfactor2=1.0;
+const double pixelfactor2=1.25;
 
 const char *texpathmessage() {
   ostringstream buf;
