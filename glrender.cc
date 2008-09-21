@@ -659,7 +659,7 @@ void menu(int choice)
       spiny();
       break;
     case ZSPIN:
-      zspin();
+      spinz();
       break;
     case STOP:
       glutIdleFunc(NULL);
