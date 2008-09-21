@@ -53,8 +53,10 @@ void drawSurface::bounds(bbox3& b)
   double zmin,zmax;
   bounds(zmin,zmax,c);
     
+#ifdef HAVE_LIBGLUT
   initMatrix(v1,xmin,ymin,zmin,ymax,zmax);
   initMatrix(v2,xmax,ymin,zmin,ymax,zmax);
+#endif  
   
   Min=triple(xmin,ymin,zmin);
   Max=triple(xmax,ymax,zmax);
