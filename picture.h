@@ -82,8 +82,9 @@ public:
 	       const string& format, double magnification=0.0,
 	       bool wait=false, bool view=true);
  
-  bool render(GLUnurbsObj *nurb, int width, int height, double zoom,
-	      const bbox3& b, bool transparent) const;
+  void render(GLUnurbsObj *nurb, double size2,
+	      const triple &Min, const triple& Max, double perspective,
+	      bool transparent, bool twosided) const;
   bool shipout3(const string& prefix, const string& format,
 		double width, double height, const triple& light,
 		double angle, const triple& m, const triple& M,

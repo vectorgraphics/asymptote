@@ -21,14 +21,12 @@
 #ifdef HAVE_LIBGLUT
 #include <GL/glut.h>
 #else
-typedef void GLUnurbsObj;
+typedef void GLUnurbs;
+typedef float GLfloat;
 #endif
 
 namespace camp {
 
-extern const double pixelfactor; // Adaptive rendering constant.
-extern const double pixelfactor2; // Adaptive rendering constant.
-  
 class box {
   pair p[4];
 public:
@@ -145,10 +143,9 @@ public:
   virtual void fraction(const triple& size3) {}
 
   // Render with OpenGL
-  virtual bool render(GLUnurbsObj *nurb, double size2,
-		      const bbox3& b, bool transparent, bool twosided) {
-    return true;
-  }
+  virtual void render(GLUnurbs *nurb, double size2, 
+		      const triple& Min, const triple& Max,
+		      double perspective, bool transparent, bool twosided) {}
 
   // Transform as part of a picture.
   virtual drawElement *transformed(const transform&) {

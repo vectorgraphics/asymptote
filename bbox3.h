@@ -37,6 +37,12 @@ struct bbox3 {
   }
 
   // Start a bbox3 with a point
+  bbox3(double x, double y, double z)
+    : empty(false), left(x), bottom(y), lower(z), right(x), top(y), upper(z)
+  {
+  }
+
+  // Start a bbox3 with a point
   bbox3(const triple& v)
     : empty(false), left(v.getx()), bottom(v.gety()), lower(v.getz()),
       right(v.getx()), top(v.gety()), upper(v.getz())
@@ -44,7 +50,7 @@ struct bbox3 {
   }
 
   // Add a point to a bbox3
-  bbox3 add(const triple& v)
+  void add(const triple& v)
   {
     double x = v.getx(), y = v.gety(), z = v.getz();
 
@@ -68,15 +74,11 @@ struct bbox3 {
       else if(z > upper)
         upper = z;
     }
-
-    return *this;
   }
 
   // Add a point to a nonempty bbox3
-  bbox3 addnonempty(const triple& v)
+  void addnonempty(double x, double y, double z)
   {
-    double x = v.getx(), y = v.gety(), z = v.getz();
-
     if(x < left)
       left = x;  
     else if(x > right)
@@ -89,12 +91,16 @@ struct bbox3 {
       lower = z;
     else if(z > upper)
       upper = z;
+  }
 
-    return *this;
+  // Add a point to a nonempty bbox3
+  void addnonempty(const triple& v)
+  {
+    addnonempty(v.getx(),v.gety(),v.getz());
   }
 
   // Add a point to a nonempty bbox, updating bounding times
-  bbox3 addnonempty(const triple& v, bbox3& times, double t)
+  void addnonempty(const triple& v, bbox3& times, double t)
   {
     double x = v.getx(), y = v.gety(), z = v.getz();
 
@@ -122,13 +128,12 @@ struct bbox3 {
       upper = z;
       times.upper=t;
     }
-
-    return *this;
   }
 
   bbox3 operator+= (const triple& v)
   {
-    return add(v);
+    add(v);
+    return *this;
   }
 
   triple Min() const {

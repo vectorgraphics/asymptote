@@ -45,9 +45,6 @@ texstream::~texstream() {
 
 namespace camp {
 
-const double pixelfactor=0.5; // Adaptive rendering constant.
-const double pixelfactor2=1.25;
-
 const char *texpathmessage() {
   ostringstream buf;
   buf << "the directory containing your " << getSetting<string>("tex")
@@ -680,21 +677,14 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 }
 
 // render viewport with width x height pixels.
-bool picture::render(GLUnurbsObj *nurb, int width, int height, double zoom,
-		     const bbox3& b, bool transparent) const
+void picture::render(GLUnurbs *nurb, double size2,
+		     const triple& Min, const triple& Max,
+		     double perspective, bool transparent, bool twosided) const
 {
-  bool status=true;
-  double size2=sqrt(width*width+height*height)/zoom;
-  
-  bool twosided=settings::getSetting<bool>("twosided");
-  
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    if(!(*p)->render(nurb,size2,b,transparent,twosided))
-      status = false;
+    (*p)->render(nurb,size2,Min,Max,perspective,transparent,twosided);
   }
-  
-  return status;
 }
   
 bool picture::shipout3(const string& prefix, const string& format,

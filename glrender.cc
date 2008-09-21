@@ -48,10 +48,9 @@
 #include "arcball.h"
 #include "bbox3.h"
 #include "drawimage.h"
+#include "glrender.h"
 
 #ifdef HAVE_LIBGLUT
-#include <GL/glut.h>
-#include <GL/freeglut_ext.h>
 
 namespace gl {
   
@@ -86,6 +85,7 @@ int Width,Height;
 
 double oWidth,oHeight;
 
+bool Xspin,Yspin,Zspin;
 int Fitscreen;
 int Mode;
 
@@ -122,7 +122,7 @@ double lastzoom;
 float Rotate[16];
 float Modelview[16];
 
-GLUnurbsObj *nurb;
+GLUnurbs *nurb;
 
 int window;
   
@@ -148,7 +148,8 @@ void save()
   unsigned char *data=new unsigned char[ndata];
   glReadPixels(0,0,Width,Height,GL_RGB,GL_UNSIGNED_BYTE,data);
   Picture->append(new drawImage(data,Width,Height,
-				transform(0.0,0.0,oWidth,0.0,0.0,oHeight),true));
+				transform(0.0,0.0,oWidth,0.0,0.0,oHeight),
+				true));
   Picture->shipout(NULL,*Prefix,Format);
   delete[] data;
 }
@@ -159,40 +160,22 @@ void quit()
   glutLeaveMainLoop();
 }
 
-triple transform(double x, double y, double z) 
-{
-  x -= Modelview[12];
-  y -= Modelview[13];
-  z -= Modelview[14];
-
-  return triple((Modelview[0]*x+Modelview[1]*y+Modelview[2]*z),
-		(Modelview[4]*x+Modelview[5]*y+Modelview[6]*z),
-		(Modelview[8]*x+Modelview[9]*y+Modelview[10]*z));
-}
-
 void display(void)
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  bbox3 b(transform(xmin,ymin,zmax));
-  b.addnonempty(transform(xmin,ymax,zmax));
-  b.addnonempty(transform(xmax,ymin,zmax));
-  b.addnonempty(transform(xmax,ymax,zmax));
-  if(H == 0) {
-    b.addnonempty(transform(xmin,ymin,zmin));
-    b.addnonempty(transform(xmin,ymax,zmin));
-    b.addnonempty(transform(xmax,ymin,zmin));
-    b.addnonempty(transform(xmax,ymax,zmin));
-  } else {
-    double f=zmax != 0 ? zmin/zmax : 1.0;
-    b.addnonempty(transform(xmin*f,ymin*f,zmin));
-    b.addnonempty(transform(xmin*f,ymax*f,zmin));
-    b.addnonempty(transform(xmax*f,ymin*f,zmin));
-    b.addnonempty(transform(xmax*f,ymax*f,zmin));
-  }
+  glMatrixMode(GL_MODELVIEW);
+  
+  triple m(xmin,ymin,zmin);
+  triple M(xmax,ymax,zmax);
+  double perspective=H == 0.0 ? 0.0 : 1.0/zmax;
+  
+  bool twosided=settings::getSetting<bool>("twosided");
+  
+  double size2=hypot(Width,Height)/Zoom;
   
   // Render opaque objects
-  Picture->render(nurb,Width,Height,Zoom,b,false);
+  Picture->render(nurb,size2,m,M,perspective,false,twosided);
   
   // Enable transparency
   glEnable(GL_BLEND);
@@ -200,7 +183,7 @@ void display(void)
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   
   // Render transparent objects
-  Picture->render(nurb,Width,Height,Zoom,b,true);
+  Picture->render(nurb,size2,m,M,perspective,true,twosided);
   glDepthMask(GL_TRUE);
   glDisable(GL_BLEND);
   
@@ -453,17 +436,17 @@ double spinstep()
   return step;
 }
 
-void Xspin()
+void xspin()
 {
   rotateX(spinstep());
 }
 
-void Yspin()
+void yspin()
 {
   rotateY(spinstep());
 }
 
-void Zspin()
+void zspin()
 {
   rotateZ(spinstep());
 }
@@ -570,6 +553,45 @@ void mode()
   glutPostRedisplay();
 }
 
+void idle() 
+{
+  glutIdleFunc(NULL);
+  Xspin=Yspin=Zspin=false;
+}
+
+void spinx() 
+{
+  if(Xspin)
+    idle();
+  else {
+    idleFunc(xspin);
+    Xspin=true;
+    Yspin=Zspin=false;
+  }
+}
+
+void spiny()
+{
+  if(Yspin)
+    idle();
+  else {
+    idleFunc(yspin);
+    Yspin=true;
+    Xspin=Zspin=false;
+  }
+}
+
+void spinz()
+{
+  if(Zspin)
+    idle();
+  else {
+    idleFunc(zspin);
+    Zspin=true;
+    Xspin=Yspin=false;
+  }
+}
+
 void keyboard(unsigned char key, int x, int y)
 {
   switch(key) {
@@ -581,13 +603,13 @@ void keyboard(unsigned char key, int x, int y)
       glutPostRedisplay();
       break;
     case 'x':
-      idleFunc(Xspin);
+      spinx();
       break;
     case 'y':
-      idleFunc(Yspin);
+      spiny();
       break;
     case 'z':
-      idleFunc(Zspin);
+      spinz();
       break;
     case 's':
       glutIdleFunc(NULL);
@@ -618,13 +640,13 @@ void menu(int choice)
       fitscreen();
       break;
     case XSPIN:
-      idleFunc(Xspin);
+      spinx();
       break;
     case YSPIN:
-      idleFunc(Yspin);
+      spiny();
       break;
     case ZSPIN:
-      idleFunc(Zspin);
+      zspin();
       break;
     case STOP:
       glutIdleFunc(NULL);
@@ -662,6 +684,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
    
   X=Y=0.0;
   lastzoom=Zoom=1.0;
+  Xspin=Yspin=Zspin=false;
   
   Fitscreen=1;
   Mode=0;
@@ -727,6 +750,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
 
   nurb=gluNewNurbsRenderer();
   gluNurbsProperty(nurb,GLU_SAMPLING_METHOD,GLU_PARAMETRIC_ERROR);
+  gluNurbsProperty(nurb,GLU_SAMPLING_TOLERANCE,1.0);
   gluNurbsProperty(nurb,GLU_PARAMETRIC_TOLERANCE,1.0);
   gluNurbsProperty(nurb,GLU_CULLING,GLU_TRUE);
   
@@ -737,7 +761,6 @@ void glrender(const string& prefix, picture *pic, const string& format,
   gluNurbsCallback(nurb,GLU_NURBS_VERTEX,(_GLUfuncptr) glVertex3fv);
   gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
   gluNurbsCallback(nurb,GLU_NURBS_END,(_GLUfuncptr) glEnd);
-  
   mode();
   
   glMatrixMode(GL_MODELVIEW);

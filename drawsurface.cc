@@ -9,27 +9,53 @@
 
 namespace camp {
 
+const double pixelfactor2=1.25; // Adaptive rendering constant.
+
 using vm::array;
+
+inline void initMatrix(GLfloat *v, double x, double ymin, double zmin,
+		       double ymax, double zmax)
+{
+  v[0]=x;
+  v[1]=ymin;
+  v[2]=zmin;
+  v[3]=1.0;
+  v[4]=x;
+  v[5]=ymin;
+  v[6]=zmax;
+  v[7]=1.0;
+  v[8]=x;
+  v[9]=ymax;
+  v[10]=zmin;
+  v[11]=1.0;
+  v[12]=x;
+  v[13]=ymax;
+  v[14]=zmax;
+  v[15]=1.0;
+}
 
 void drawSurface::bounds(bbox3& b)
 {
-  double xmin,xmax;
-  double ymin,ymax;
-  double zmin,zmax;
-  double c[16];
+  static double c[16];
     
   for(int i=0; i < 16; ++i)
     c[i]=controls[i][0];
+  double xmin,xmax;
   bounds(xmin,xmax,c);
     
   for(int i=0; i < 16; ++i)
     c[i]=controls[i][1];
+  double ymin,ymax;
   bounds(ymin,ymax,c);
     
   for(int i=0; i < 16; ++i)
     c[i]=controls[i][2];
+  double zmin,zmax;
   bounds(zmin,zmax,c);
     
+  initMatrix(v1,xmin,ymin,zmin,ymax,zmax);
+  initMatrix(v2,xmax,ymin,zmin,ymax,zmax);
+  
   Min=triple(xmin,ymin,zmin);
   Max=triple(xmax,ymax,zmax);
     
@@ -99,20 +125,19 @@ void drawSurface::fraction(const triple& size3)
   triple N=unit(normal(v0,controls[3],controls[15])+
 		normal(v0,controls[15],controls[12]));
   f=0;
-
-  for(int i=1; i < 16; ++i) 
-    f=camp::max(f,camp::fraction(displacement2(controls[i],v0,N),size3));
-  
-  for(int i=0; i < 4; ++i)
-    f=camp::max(f,camp::fraction(controls[4*i],controls[4*i+1],controls[4*i+2],
-				 controls[4*i+3],size3));
-  for(int i=0; i < 4; ++i)
-    f=camp::max(f,camp::fraction(controls[i],controls[i+4],controls[i+8],
-				 controls[i+12],size3));
-  
-  f *= pixelfactor2;
-  
   if(!degenerate) {
+    if(!straight) {
+      for(int i=1; i < 16; ++i) 
+	f=camp::max(f,camp::fraction(displacement2(controls[i],v0,N),size3));
+  
+      for(int i=0; i < 4; ++i)
+	f=camp::max(f,camp::fraction(controls[4*i],controls[4*i+1],
+				     controls[4*i+2],controls[4*i+3],size3));
+      for(int i=0; i < 4; ++i)
+	f=camp::max(f,camp::fraction(controls[i],controls[i+4],controls[i+8],
+				     controls[i+12],size3));
+      f *= pixelfactor2;
+    }
     store(d,controls[0]);
     store(d+3,controls[3]);
     store(d+6,controls[12]);
@@ -121,14 +146,51 @@ void drawSurface::fraction(const triple& size3)
 #endif  
 }
   
-bool drawSurface::render(GLUnurbsObj *nurb, double size2,
-			 const bbox3& b, bool transparent, bool twosided)
+void drawSurface::render(GLUnurbs *nurb, double size2,
+			 const triple& Min, const triple& Max,
+			 double perspective, bool transparent, bool twosided)
 {
 #ifdef HAVE_LIBGLUT
-  if(invisible || ((diffuse.A < 1.0) ^ transparent) || 
-     b.left > Max.getx() || b.right < Min.getx() || 
-     b.bottom > Max.gety() || b.top < Min.gety() ||
-     b.lower > Max.getz() || b.upper < Min.getz()) return true;
+  if(invisible || ((diffuse.A < 1.0) ^ transparent)) return;
+  
+  static GLfloat v[16];
+
+  glPushMatrix();
+  glMultMatrixf(v1);
+  glGetFloatv(GL_MODELVIEW_MATRIX,v);
+  glPopMatrix();
+  
+  bbox3 B(v[0],v[1],v[2]);
+  B.addnonempty(v[4],v[5],v[6]);
+  B.addnonempty(v[8],v[9],v[10]);
+  B.addnonempty(v[12],v[13],v[14]);
+  
+  glPushMatrix();
+  glMultMatrixf(v2);
+  glGetFloatv(GL_MODELVIEW_MATRIX,v);
+  glPopMatrix();
+  
+  B.addnonempty(v[0],v[1],v[2]);
+  B.addnonempty(v[4],v[5],v[6]);
+  B.addnonempty(v[8],v[9],v[10]);
+  B.addnonempty(v[12],v[13],v[14]);
+  
+  triple M=B.Max();
+  triple m=B.Min();
+  
+  if(perspective) {
+    double f=m.getz()*perspective;
+    double F=M.getz()*perspective;
+    if(M.getx() < min(f*Min.getx(),F*Min.getx()) || 
+       m.getx() > max(f*Max.getx(),F*Max.getx()) ||
+       M.gety() < min(f*Min.gety(),F*Min.gety()) ||
+       m.gety() > max(f*Max.gety(),F*Max.gety()) ||
+       M.getz() < Min.getz() ||
+       m.getz() > Max.getz()) return;
+  } else if(M.getx() < Min.getx() || m.getx() > Max.getx() ||
+	    M.gety() < Min.gety() || m.gety() > Max.gety() ||
+	    M.getz() < Min.getz() || m.getz() > Max.getz()) return;
+    
   
   GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
   glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
@@ -144,7 +206,7 @@ bool drawSurface::render(GLUnurbsObj *nurb, double size2,
   
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
-  if(degenerate || sqrt(f*size2) >= 1.5) {
+  if(degenerate || (!straight && sqrt(f*size2) >= 1.5)) {
     static GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
     gluBeginSurface(nurb);
     gluNurbsSurface(nurb,8,knots,8,knots,3,12,c,4,4,GL_MAP2_VERTEX_3);
@@ -157,7 +219,6 @@ bool drawSurface::render(GLUnurbsObj *nurb, double size2,
   }
   
 #endif
-  return true;
 }
 
 drawElement *drawSurface::transformed(array *t)

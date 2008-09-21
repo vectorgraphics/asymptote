@@ -5,6 +5,7 @@
  *****/
 
 #include "drawpath3.h"
+#include "glrender.h"
 
 namespace camp {
 
@@ -17,12 +18,14 @@ inline void store(Triple& control, const triple& v)
   control[2]=v.getz();
 }
   
-inline void store(float *control, const triple& v)
+#ifdef HAVE_LIBGLUT
+inline void store(GLfloat *control, const triple& v)
 {
   control[0]=v.getx();
   control[1]=v.gety();
   control[2]=v.getz();
 }
+#endif
 
 bool drawPath3::write(prcfile *out)
 {
@@ -32,7 +35,7 @@ bool drawPath3::write(prcfile *out)
 
   RGBAColour color=rgba(pentype);
     
-  if(g.piecewisestraight()) {
+  if(straight) {
     controls=new Triple[n+1];
     for(Int i=0; i <= n; ++i)
       store(controls[i],g.point(i));
@@ -56,24 +59,20 @@ bool drawPath3::write(prcfile *out)
   return true;
 }
 
-bool drawPath3::render(GLUnurbsObj *, double size2, const bbox3& b,
-		       bool transparent, bool)
+void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
+		       double, bool transparent, bool)
 {
 #ifdef HAVE_LIBGLUT
   Int n=g.length();
   double opacity=pentype.opacity();
-  if(n == 0 || pentype.invisible() || ((opacity < 1.0) ^ transparent) ||
-     b.left > Max.getx() || b.right < Min.getx() || 
-     b.bottom > Max.gety() || b.top < Min.gety() ||
-     b.lower > Max.getz() || b.upper < Min.getz()) return true;
-  
-  triple size3=b.Max()-b.Min();
-  
+  if(n == 0 || pentype.invisible() || ((opacity < 1.0) ^ transparent))
+    return;
+
   pentype.torgb();
   glDisable(GL_LIGHTING);
   glColor4f(pentype.red(),pentype.green(),pentype.blue(),opacity);	
 
-  if(g.piecewisestraight()) {
+  if(straight) {
     controls=new Triple[n+1];
     glBegin(GL_LINE_STRIP);
     for(Int i=0; i <= n; ++i) {
@@ -82,28 +81,22 @@ bool drawPath3::render(GLUnurbsObj *, double size2, const bbox3& b,
     }
     glEnd();
   } else {
-    for(Int i=0; i < n; ++i) {
-      triple z0=g.point(i);
-      triple c0=g.postcontrol(i);
-      triple c1=g.precontrol(i+1);
-      triple z1=g.point(i+1);
-      double f=max(camp::fraction(displacement(c0,z0,z1),size3),
-		     camp::fraction(displacement(c1,z0,z1),size3));
-      int n=max(1,(int) (pixelfactor*f*size2+0.5));
-      triple controls[]={z0,c0,c1,z1};
-      GLfloat controlpoints[12];
-      for(size_t i=0; i < 4; ++i)
-	store(controlpoints+3*i,controls[i]);
-
-      glMap1f(GL_MAP1_VERTEX_3,0.0,1.0,3,4,controlpoints);
-      glMapGrid1f(n,0.0,1.0);
-      glEvalMesh1(GL_LINE,0,n);
+    for(Int i=0; i <= n; ++i) {
+      static GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
+      static GLfloat controlpoints[12];
+      store(controlpoints,g.point(i));
+      store(controlpoints+3,g.postcontrol(i));
+      store(controlpoints+6,g.precontrol(i+1));
+      store(controlpoints+9,g.point(i+1));
+    
+      gluBeginCurve(nurb);
+      gluNurbsCurve(nurb,8,knots,3,controlpoints,4,GL_MAP1_VERTEX_3);
+      gluEndSurface(nurb);
     }
   }
   glEnable(GL_LIGHTING);
 
 #endif
-  return true;
 }
 
 drawElement *drawPath3::transformed(array *t)

@@ -19,9 +19,10 @@ protected:
   path3 g;
   pen pentype;
   Triple *controls;
-  triple Min,Max;
+  bool straight;
 public:
-  drawPath3(path3 g, pen pentype) : g(g), pentype(pentype), controls(NULL) {}
+  drawPath3(path3 g, pen pentype) : g(g), pentype(pentype), controls(NULL),
+				    straight(g.piecewisestraight()) {}
     
   virtual ~drawPath3() {
     if(controls) delete controls;
@@ -29,17 +30,15 @@ public:
 
   bool is3D() {return true;}
   
-  void bounds(bbox3& b) {
-    Min=g.min();
-    Max=g.max();
-    b.add(Min);
-    b.add(Max);
+  void bounds(bbox3& B) {
+    B.add(g.min());
+    B.add(g.max());
   }
   
   bool write(prcfile *out);
   
-  bool render(GLUnurbsObj *, double size2, const bbox3& b, bool transparent,
-	      bool);
+  void render(GLUnurbs*, double, const triple&, const triple&, double,
+	      bool transparent, bool);
 
   drawElement *transformed(vm::array *t);
 };

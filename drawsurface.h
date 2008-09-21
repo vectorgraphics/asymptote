@@ -26,6 +26,7 @@ protected:
   double shininess;
   double granularity;
   bool lighton;
+  bool straight;
   
   bool invisible;
   bool degenerate;
@@ -35,13 +36,16 @@ protected:
   GLfloat c[48];
   GLfloat d[12];
   double f; // Fraction of 3D bounding box occupied by surface.
+  GLfloat v1[16];
+  GLfloat v2[16];
 #endif  
   
 public:
   drawSurface(const vm::array& g, const vm::array&p, double opacity,
-	      double shininess, double granularity, bool lighton) : 
+	      double shininess, double granularity, bool lighton,
+	      bool straight) : 
     opacity(opacity), shininess(shininess), granularity(granularity),
-    lighton(lighton) {
+    lighton(lighton), straight(straight) {
     
     string wrongsize=
       "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
@@ -75,7 +79,8 @@ public:
   drawSurface(vm::array *t, const drawSurface *s) :
     diffuse(s->diffuse), ambient(s->ambient), emissive(s->emissive),
     specular(s->specular), opacity(s->opacity), shininess(s->shininess),
-    granularity(s->granularity), lighton(s->lighton), invisible(s->invisible) {
+    granularity(s->granularity), lighton(s->lighton), straight(s->straight),
+    invisible(s->invisible) {
     for(size_t i=0; i < 16; ++i) {
       const double *c=s->controls[i];
       triple v=run::operator *(t,triple(c[0],c[1],c[2]));
@@ -101,8 +106,8 @@ public:
   triple normal(const Triple& u, const Triple& v, const Triple& w);
   
   void fraction(const triple& size3);
-  bool render(GLUnurbsObj *nurb, double, const bbox3& b, bool transparent,
-	      bool twosided);
+  void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
+	      double perspective, bool transparent, bool twosided);
   
   drawElement *transformed(vm::array *t);
 };

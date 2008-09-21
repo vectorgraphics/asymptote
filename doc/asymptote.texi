@@ -2473,7 +2473,8 @@ lies in the interval [0,1].
 @cindex @code{invisible}
 This special pen writes in invisible ink, but adjusts the bounding
 box as if something had been drawn (like the @code{\phantom}
-command in @TeX{}).
+command in @TeX{}). The function @code{bool invisible(pen)} can be used
+to test whether a pen is invisible.
 
 @end table
 

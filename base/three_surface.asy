@@ -435,7 +435,7 @@ void draw3D(frame f, patch s, material m=lightgray, light light=currentlight)
 {
   if(!light.on) m=emissive(m.p[0],m.granularity);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
-  draw(f,s.P,m.p,m.opacity,m.shininess,granularity,light.on);
+  draw(f,s.P,m.p,m.opacity,m.shininess,granularity,light.on,s.straight);
 }
 
 void tensorshade(transform t=identity(), frame f, patch s, bool outward=false,
@@ -452,11 +452,13 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
           pen meshpen=nullpen, light light=currentlight,
           projection P=currentprojection)
 {
-  bool mesh=meshpen != nullpen;
+  bool mesh=!invisible(meshpen);
+  bool surface=!invisible((pen) surfacepen);
 
   if(is3D()) {
-    for(int i=0; i < s.s.length; ++i)
-      draw3D(f,s.s[i],surfacepen,light);
+    if(surface)
+      for(int i=0; i < s.s.length; ++i)
+        draw3D(f,s.s[i],surfacepen,light);
     if(mesh) {
       for(int k=0; k < s.s.length; ++k) {
         real step=nu == 0 ? 0 : 1/nu;
@@ -468,7 +470,6 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
       }
     }
   } else {
-    bool surface=surfacepen != nullpen;
     begingroup(f);
     // Sort patches by mean distance from camera
     triple camera=P.camera;
@@ -521,7 +522,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   pic.addPoint(min(s));
   pic.addPoint(max(s));
 
-  if(meshpen != nullpen) {
+  if(!invisible(meshpen)) {
     if(is3D()) meshpen=thin+meshpen;
     for(int k=0; k < s.s.length; ++k) {
       real step=nu == 0 ? 0 : 1/nu;
@@ -679,8 +680,9 @@ private transform3 t2=t*t;
 private transform3 t3=t2*t;
 private transform3 i=xscale3(-1)*zscale3(-1);
 
-private patch octant1=patch(X{Z}..{-X}Z..Z{Y}..{-Z}Y{X}..{-Y}cycle,
-                            new triple[] {(1,a,a),(a,a^2,1),(a^2,a,1),(a,1,a)});
+restricted patch octant1=patch(X{Z}..{-X}Z..Z{Y}..{-Z}Y{X}..{-Y}cycle,
+                               new triple[] {(1,a,a),(a,a^2,1),(a^2,a,1),
+                                             (a,1,a)});
 
 restricted surface unitsphere=surface(octant1,t*octant1,t2*octant1,t3*octant1,
                                       i*octant1,i*t*octant1,i*t2*octant1,
@@ -688,12 +690,11 @@ restricted surface unitsphere=surface(octant1,t*octant1,t2*octant1,t3*octant1,
 
 private patch unitcone1=patch(X--Z--Z--Y{X}..{-Y}cycle,
                               new triple[] {(2/3,2/3*a,1/3),(1/3,1/3*a,2/3),
-					    (1/3*a,1/3,2/3),(2/3*a,2/3,1/3)});
+                                            (1/3*a,1/3,2/3),(2/3*a,2/3,1/3)});
 
 restricted surface unitcone=surface(unitcone1,t*unitcone1,t2*unitcone1,
                                     t3*unitcone1);
-restricted surface solidcone=surface(...unitcone.s);
-solidcone.push(unitcircle3);
+restricted surface solidcone=surface(patch(unitcircle3)...unitcone.s);
 
 private patch unitcylinder1=patch(X--X+Z{Y}..{-X}Y+Z--Y{X}..{-Y}cycle);
 

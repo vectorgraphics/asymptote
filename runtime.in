@@ -1592,6 +1592,11 @@ pen defaultpen()
   return processData().defaultpen;
 }
 
+bool invisible(pen p)
+{
+  return p.invisible();
+}
+
 pen invisible()
 {
   return pen(invisiblepen);
@@ -2659,9 +2664,10 @@ void _draw(picture *f, path3 g, pen p)
 }
 
 void draw(picture *f, triplearray2 *g, penarray *p, real opacity,
-	  real shininess, real granularity, bool lighton)
+	  real shininess, real granularity, bool lighton, bool straight)
 {
-  f->append(new drawSurface(*g,*p,opacity,shininess,granularity,lighton));
+  f->append(new drawSurface(*g,*p,opacity,shininess,granularity,lighton,
+			    straight));
 }
 
 triple min3(picture *f)
