@@ -1843,8 +1843,13 @@ object embed(string prefix=defaultfilename, picture pic,
       f=T*f;
       triple m=min3(f);
       triple M=max3(f);
+      if(P.infinity) {
+	triple s=(-0.5*(m.x+M.x),-0.5*(m.y+M.y),0); // Eye will be at (0,0,0).
+	m += s;
+	M += s;
+	f=shift(s)*f;
+      }
       real r=0.5*abs(M-m);
-      if(P.oblique) r *= 2; // Fix clipping for oblique projections.
       real zcenter=0.5*(M.z+m.z);
       M=(M.x,M.y,zcenter+r);
       m=(m.x,m.y,zcenter-r);
