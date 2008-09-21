@@ -199,7 +199,8 @@ void drawarrow(frame f, arrowhead arrowhead=DefaultHead,
   path r=subpath(g,position,0);
   size=min(arrowsizelimit*arclength(r),size);
   path head=arrowhead.head(g,position,p,size,angle);
-  if(cyclic(head) && (filltype == NoFill || position == L)) {
+  static real fuzz=10*realEpsilon;
+  if(cyclic(head) && (filltype == NoFill || position > L-fuzz)) {
     if(position > 0)
       draw(f,subpath(r,arctime(r,size),length(r)),p);
     if(position < L)

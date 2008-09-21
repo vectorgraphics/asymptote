@@ -58,19 +58,16 @@ struct patch {
     return bezier(Bu(0,u),Bu(1,u),Bu(2,u),Bu(3,u),v);
   }
 
-  triple normal(real u, real v) {
-    triple w=cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
-                   bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u));
-    static real fuzz=1000realEpsilon;
-    real epsilon=fuzz*change(P);
-    if(abs(w) > epsilon) return w;
-    w=0.5*(cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),
-                 bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))+
-           cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
-                 bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u)));
-    if(abs(w) > epsilon) return w;
-    return 1/6*cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
-                     bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))+
+// compute normal vectors for degenerate cases
+  private triple normal0(real u, real v, real epsilon) {
+    triple n=0.5*(cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),
+			bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))+
+		  cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
+			bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u)));
+    return n;
+    return (abs(n) > epsilon) ? n :
+      1/6*cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
+		bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))+
       0.25*cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),   
                  bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u))+
       1/6*cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
@@ -83,6 +80,39 @@ struct patch {
                  bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u));
   }
 
+  static real fuzz=1000*realEpsilon;
+
+  triple normal(real u, real v) {
+    triple n=cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
+                   bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u));
+    real epsilon=fuzz*change(P);
+    return (abs(n) > epsilon) ? n : normal0(u,v,epsilon);
+  }
+  
+  triple normal00() {
+    triple n=9*cross(P[1][0]-P[0][0],P[0][1]-P[0][0]);
+    real epsilon=fuzz*change(P);
+    return abs(n) > epsilon ? n : normal0(0,0,epsilon);
+  }
+
+  triple normal01() {
+    triple n=9*cross(P[1][3]-P[0][3],P[0][3]-P[0][2]);
+    real epsilon=fuzz*change(P);
+    return abs(n) > epsilon ? n : normal0(0,1,epsilon);
+  }
+
+  triple normal11() {
+    triple n=9*cross(P[3][3]-P[2][3],P[3][3]-P[3][2]);
+    real epsilon=fuzz*change(P);
+    return abs(n) > epsilon ? n : normal0(1,1,epsilon);
+  }
+
+  triple normal10() {
+    triple n=9*cross(P[3][0]-P[2][0],P[3][1]-P[3][0]);
+    real epsilon=fuzz*change(P);
+    return abs(n) > epsilon ? n : normal0(1,0,epsilon);
+  }
+
   pen[] colors(pen surfacepen=lightgray, light light=currentlight,
                bool outward=false, projection Q=null) {
     if(normals.length != 0)
@@ -92,14 +122,14 @@ struct patch {
     if(colors.length != 0)
       return colors;
     
-    pen color(real u, real v) {
-      triple n=normal(u,v);
+    pen color(triple n) {
       if(!outward)
         n *= sgn(dot(n,Q.vector()));
       return light.intensity(n)*surfacepen;
     }
 
-    return new pen[] {color(0,0),color(0,1),color(1,1),color(1,0)};
+    return new pen[] {color(normal00()),color(normal01()),color(normal11()),
+	color(normal10())};
   }
   
   triple bound(real m(real[], real), triple b) {
