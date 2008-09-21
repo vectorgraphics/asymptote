@@ -48,9 +48,11 @@
 #include "arcball.h"
 #include "bbox3.h"
 #include "drawimage.h"
-#include "glrender.h"
 
 #ifdef HAVE_LIBGLUT
+
+#include <GL/glut.h>
+#include <GL/freeglut_ext.h>
 
 namespace gl {
   

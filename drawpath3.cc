@@ -5,7 +5,6 @@
  *****/
 
 #include "drawpath3.h"
-#include "glrender.h"
 
 namespace camp {
 
