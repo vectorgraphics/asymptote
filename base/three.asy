@@ -1844,11 +1844,10 @@ object embed(string prefix=defaultfilename, picture pic,
       triple m=min3(f);
       triple M=max3(f);
       real r=0.5*abs(M-m);
-      triple center=0.5*(M+m);
       if(P.oblique) r *= 2; // Fix clipping for oblique projections.
-      real margin=0.5;
-      M=(M.x+margin,M.y+margin,center.z+r);
-      m=(m.x-margin,m.y-margin,center.z-r);
+      real zcenter=0.5*(M.z+m.z);
+      M=(M.x,M.y,zcenter+r);
+      m=(m.x,m.y,zcenter-r);
       if(prefix == "") prefix=outprefix();
       shipout3(prefix,f,width,height,currentlight.source,
                P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M,wait,view);

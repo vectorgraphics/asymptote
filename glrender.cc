@@ -96,7 +96,7 @@ double xmin,xmax;
 double ymin,ymax;
 double zmin,zmax;
 
-double cx;
+double Xmin,Xmax;
 double Ymin,Ymax;
 double X,Y;
 
@@ -211,12 +211,23 @@ void setProjection()
   double X0=X*(xmax-xmin)/(lastzoom*Width);
   double Y0=Y*(ymax-ymin)/(lastzoom*Height);
   if(H == 0.0) {
-    double factor=0.5*(Ymax-Ymin)*Zoom*Aspect;
-    X0 -= cx;
-    xmin=-factor-X0;
-    xmax=factor-X0;
-    ymin=Ymin*Zoom-Y0;
-    ymax=Ymax*Zoom-Y0;
+    double xsize=Xmax-Xmin;
+    double ysize=Ymax-Ymin;
+    if(xsize < ysize*Aspect) {
+      double r=0.5*ysize*Zoom*Aspect;
+      X0 -= 0.5*(Xmin+Xmax);
+      xmin=-r-X0;
+      xmax=r-X0;
+      ymin=Ymin*Zoom-Y0;
+      ymax=Ymax*Zoom-Y0;
+    } else {
+      double r=0.5*xsize*Zoom/Aspect;
+      Y0 -= 0.5*(Ymin+Ymax);
+      xmin=Xmin*Zoom-X0;
+      xmax=Xmax*Zoom-X0;
+      ymin=-r-Y0;
+      ymax=r-Y0;
+    }
     glOrtho(xmin,xmax,ymin,ymax,-zmax,-zmin);
   } else {
     double r=H*Zoom;
@@ -675,7 +686,8 @@ void glrender(const string& prefix, picture *pic, const string& format,
   View=view;
   Oldpid=oldpid;
   Light=light;
-  cx=0.5*(m.getx()+M.getx());
+  Xmin=m.getx();
+  Xmax=M.getx();
   Ymin=m.gety();
   Ymax=M.gety();
   zmin=m.getz();
