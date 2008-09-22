@@ -7342,14 +7342,13 @@ Surface plots of matrices and functions over the region
 @code{box(a,b)} in the @math{XY} plane are also implemented: 
 @verbatim
 picture surface(real[][] f, pair a, pair b, bool[][] cond={}, 
-                bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
-picture surface(triple[][] f, bool[][] cond={}, bool outward=false,
+picture surface(triple[][] f, bool[][] cond={},
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 picture surface(real f(pair z), pair a, pair b, int nx=nmesh,
-                int ny=nx, bool cond(pair z)=null, bool outward=false,
+                int ny=nx, bool cond(pair z)=null,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 @end verbatim
@@ -7361,7 +7360,7 @@ A parametric surface for a function @math{f(u,v)} over the parameter
 space @code{box(a,b)} may be drawn with
 @verbatim
 picture surface(triple f(pair z), pair a, pair b, int nu=nmesh,
-                int nv=nu, bool cond(pair z)=null, bool outward=false,
+                int nv=nu, bool cond(pair z)=null,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 @end verbatim
@@ -7377,10 +7376,7 @@ Surface lighting is illustrated in the example files
 @code{parametricsurface.asy} and @code{sinc.asy}.
 A mesh can be drawn without solid fills by specifying @code{nullpen}
 for the surfacepen. A mesh is always drawn in the absence of lighting, unless 
-@code{meshpen=invisible}. For closed orientable surfaces parametrized
-such that @math{df/du \times df/dv} points in the direction of the
-outward normal, one can force all surfaces to be shaded using their
-outward normal by specifying @code{outward=true}.
+@code{meshpen=invisible}.
 
 @node grid3
 @section @code{grid3}

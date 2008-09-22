@@ -113,7 +113,7 @@ struct patch {
   }
 
   pen[] colors(pen surfacepen=lightgray, light light=currentlight,
-               bool outward=false, projection Q=null) {
+               projection Q=null) {
     if(normals.length != 0)
       return sequence(new pen(int i) {
           return light.intensity(normals[i])*surfacepen;
@@ -122,9 +122,7 @@ struct patch {
       return colors;
     
     pen color(triple n) {
-      if(!outward)
-        n *= sgn(dot(n,Q.vector()));
-      return light.intensity(n)*surfacepen;
+      return light.intensity(n*sgn(dot(n,Q.vector())))*surfacepen;
     }
 
     return new pen[] {color(normal00()),color(normal01()),color(normal11()),
@@ -467,19 +465,18 @@ void draw3D(frame f, patch s, material m=lightgray, light light=currentlight)
   draw(f,s.P,m.p,m.opacity,m.shininess,granularity,light.on,s.straight);
 }
 
-void tensorshade(transform t=identity(), frame f, patch s, bool outward=false,
+void tensorshade(transform t=identity(), frame f, patch s,
                  pen surfacepen=lightgray, light light=currentlight,
                  projection P)
 {
   tensorshade(f,box(t*s.min(P),t*s.max(P)),surfacepen,
-              s.colors(surfacepen,light,outward,P),t*project(s.external(),P,1),
+              s.colors(surfacepen,light,P),t*project(s.external(),P,1),
               t*project(s.internal(),P));
 }
 
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
-          bool outward=false, material surfacepen=lightgray,
-          pen meshpen=nullpen, light light=currentlight,
-          projection P=currentprojection)
+          material surfacepen=lightgray, pen meshpen=nullpen,
+	  light light=currentlight, projection P=currentprojection)
 {
   bool mesh=!invisible(meshpen);
   bool surface=!invisible((pen) surfacepen);
@@ -521,7 +518,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
       real[] a=depth.pop();
       int i=round(a[1]);
       if(surface)
-        tensorshade(t,f,s.s[i],outward,surfacepen.p[0],light,P);
+        tensorshade(t,f,s.s[i],surfacepen.p[0],light,P);
       if(mesh)
         draw(f,project(s.s[i].external(),P),meshpen);
     }
@@ -530,8 +527,8 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-          bool outward=false, material surfacepen=lightgray,
-          pen meshpen=nullpen, light light=currentlight)
+          material surfacepen=lightgray, pen meshpen=nullpen,
+	  light light=currentlight)
 {
   if(s.empty()) return;
 
@@ -541,7 +538,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
         draw(f,S,nu,nv,surfacepen,meshpen,light);
       } else if(pic != null)
         pic.add(new void(frame f, transform T) {
-            draw(T,f,S,nu,nv,outward,surfacepen,meshpen,light,P);
+            draw(T,f,S,nu,nv,surfacepen,meshpen,light,P);
           },true);
       if(pic != null) {
         pic.addPoint(min(S,P));
