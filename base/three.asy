@@ -1845,7 +1845,7 @@ object embed(string prefix=defaultfilename, picture pic,
   frame f=pic.fit3(t,pic.bounds3.exact ? pic2 : null,P);
 
   if(!pic.bounds3.exact) {
-    transform3 s=pic.scale3(f,xsize3,ysize3,zsize3,keepAspect);
+    transform3 s=pic.scale3(f,xsize3,ysize3,zsize3,keepAspect,warn);
     t=s*t;
     P=s*P;
     f=pic.fit3(t,pic2,P);
