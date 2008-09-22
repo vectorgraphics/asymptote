@@ -15,7 +15,7 @@ frame NoBox(picture pic) {
 }
 
 fit BBox(real xmargin=0, real ymargin=xmargin,
-	 pen p=currentpen, filltype filltype=NoFill) {
+         pen p=currentpen, filltype filltype=NoFill) {
   return new frame(picture pic) {
     return bbox(pic,xmargin,ymargin,p,filltype);
   };
@@ -78,18 +78,18 @@ struct animation {
             string options="", bool keep=settings.keep) {
     string args="-loop " +(string) loops+" -delay "+(string)(delay/10)+
       " -alpha Off -dispose Background -layers optimize "+options;
-      for(int i=0; i < files.length; ++i)
-        args += " " +files[i];
-      int rc=convert(args,format=format);
-      this.purge(keep);
-      if(rc == 0) animate(format=format);
-      else abort("merge failed");
-      return rc;
+    for(int i=0; i < files.length; ++i)
+      args += " " +files[i];
+    int rc=convert(args,format=format);
+    this.purge(keep);
+    if(rc == 0) animate(format=format);
+    else abort("merge failed");
+    return rc;
   }
 
   // Export all frames with the same scaling.
   void export(string prefix=prefix, fit fit=NoBox,
-	      bool multipage=false, bool view=false) {
+              bool multipage=false, bool view=false) {
     if(pictures.length == 0) return;
     picture all;
     size(all,pictures[0]);
@@ -103,10 +103,10 @@ struct animation {
       draw(pictures[i],m,nullpen);
       draw(pictures[i],M,nullpen);
       if(multipage) {
-	add(multi,fit(pictures[i]));
-	newpage(multi);
+        add(multi,fit(pictures[i]));
+        newpage(multi);
       } else
-	this.shipout(name(prefix,i),fit(pictures[i]));
+        this.shipout(name(prefix,i),fit(pictures[i]));
     }
     if(multipage) {
       bool inlinetex=settings.inlinetex;
@@ -138,7 +138,7 @@ struct animation {
     if(!settings.keep && !settings.inlinetex) {
       exitfcn currentexitfunction=atexit();
       void exitfunction() {
-	if(currentexitfunction != null) currentexitfunction();
+        if(currentexitfunction != null) currentexitfunction();
         this.purge();
         if(!keep && single)
           delete(pdfname);

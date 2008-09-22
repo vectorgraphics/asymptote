@@ -10,7 +10,7 @@ real defaultshininess=0.25;
 real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
-real anglefactor=1.05;       // Factor used to expand PRC viewing angle.
+real anglefactor=1.08;       // Factor used to expand PRC viewing angle.
 real fovfactor=0.6;          // PRC field of view factor.
 
 string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
@@ -1696,6 +1696,34 @@ triple size3(frame f)
 
 private string[] file3;
 
+void writeOrthographic(string name) 
+{
+  file ortho=output(name);
+  write(ortho,"
+activeCamera=scene.cameras.getByIndex(0);
+function orthographic() 
+{
+activeCamera.projectionType=\"orthographic\";
+bounds=scene.computeBoundingBox();
+d=bounds.max.x-bounds.min.x;
+dy=bounds.max.y-bounds.min.y;
+if(dy > d) d=dy;
+activeCamera.viewPlaneSize=d;
+activeCamera.binding=\"max\";
+}
+
+orthographic();
+
+handler=new CameraEventHandler();
+runtime.addEventHandler(handler);
+handler.onEvent=function(event) 
+{
+  orthographic();
+  scene.update();
+}");
+  close(ortho);
+}
+
 string embed3D(string prefix=defaultfilename, frame f, string label="",
                string text=label,  string options="",
                real width=0, real height=0, real angle=30,
@@ -1707,7 +1735,29 @@ string embed3D(string prefix=defaultfilename, frame f, string label="",
   if(height == 0) height=settings.paperheight;
   if(prefix == "") prefix=outprefix();
   prefix += "-"+(string) file3.length;
-  shipout3(prefix,f);
+
+  if(P.infinity) {
+      transform3 T=P.projector(P.camera,P.up,P.target).modelview;
+      frame g=T*f;
+      triple m=min3(g);
+      triple M=max3(g);
+      real r=0.5*abs(M-m);
+      triple center=0.5*(M+m);
+
+      P=P.copy();
+      P.camera=O; // Eye is at (0,0,0).
+      P.target=(0,0,-r);
+      triple s=-center+P.target;
+      m += s;
+      M += s;
+      g=shift(s)*g;
+
+      string name=prefix+".js";
+      writeOrthographic(name);
+      options += ",3Djscript="+name;
+      file3.push(name);
+      shipout3(prefix,g);
+  } else shipout3(prefix,f);
   prefix += ".prc";
   file3.push(prefix);
 
@@ -1836,25 +1886,25 @@ object embed(string prefix=defaultfilename, picture pic,
       if(is3D && angle == 0)
         // Choose the angle to be just large enough to view the entire image:
         angle=2*anglefactor*aTan((M.y-c.y)/(abs(P.vector())));
-    }    
+    }
     
     if(settings.render != 0 && !prc()) {
       transform3 T=P.projector(P.camera,P.up,P.target).modelview;
-      f=T*f;
-      triple m=min3(f);
-      triple M=max3(f);
+      frame g=T*f;
+      triple m=min3(g);
+      triple M=max3(g);
       if(P.infinity) {
 	triple s=(-0.5*(m.x+M.x),-0.5*(m.y+M.y),0); // Eye will be at (0,0,0).
 	m += s;
 	M += s;
-	f=shift(s)*f;
+	g=shift(s)*g;
       }
       real r=0.5*abs(M-m);
       real zcenter=0.5*(M.z+m.z);
       M=(M.x,M.y,zcenter+r);
       m=(m.x,m.y,zcenter-r);
       if(prefix == "") prefix=outprefix();
-      shipout3(prefix,f,width,height,currentlight.source,
+      shipout3(prefix,g,width,height,-(shiftless(T)*(-currentlight.source)),
                P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M,wait,view);
       return F;
     }

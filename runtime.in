@@ -1855,6 +1855,11 @@ Int system(string *s)
   else return System(s->c_str());
 }
 
+string asydir() 
+{
+  return ASYMPTOTE_SYSDIR;	
+}
+
 string locale(string s=emptystring)
 {
   char *L=setlocale(LC_ALL,s.empty() ? NULL : s.c_str());

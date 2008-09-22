@@ -217,14 +217,12 @@ void setProjection()
     double ysize=Ymax-Ymin;
     if(xsize < ysize*Aspect) {
       double r=0.5*ysize*Zoom*Aspect;
-      X0 -= 0.5*(Xmin+Xmax);
       xmin=-r-X0;
       xmax=r-X0;
       ymin=Ymin*Zoom-Y0;
       ymax=Ymax*Zoom-Y0;
     } else {
       double r=0.5*xsize*Zoom/Aspect;
-      Y0 -= 0.5*(Ymin+Ymax);
       xmin=Xmin*Zoom-X0;
       xmax=Xmax*Zoom-X0;
       ymin=-r-Y0;
@@ -764,7 +762,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
 
   nurb=gluNewNurbsRenderer();
   gluNurbsProperty(nurb,GLU_SAMPLING_METHOD,GLU_PARAMETRIC_ERROR);
-  gluNurbsProperty(nurb,GLU_SAMPLING_TOLERANCE,1.0);
+  gluNurbsProperty(nurb,GLU_SAMPLING_TOLERANCE,0.5);
   gluNurbsProperty(nurb,GLU_PARAMETRIC_TOLERANCE,1.0);
   gluNurbsProperty(nurb,GLU_CULLING,GLU_TRUE);
   

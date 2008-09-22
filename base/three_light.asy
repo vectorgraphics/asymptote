@@ -73,5 +73,5 @@ pen operator ecast(material m)
 
 material emissive(pen p, real granularity=0)
 {
-  return material(p,black,p,black,opacity(p),1,granularity);
+  return material(black,black,p,black,opacity(p),1,granularity);
 }
