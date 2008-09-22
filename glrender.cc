@@ -152,7 +152,7 @@ void save()
   Picture->append(new drawImage(data,Width,Height,
 				transform(0.0,0.0,oWidth,0.0,0.0,oHeight),
 				true));
-  Picture->shipout(NULL,*Prefix,Format);
+  Picture->shipout(NULL,*Prefix,Format,0.0,false,View);
   delete[] data;
 }
   

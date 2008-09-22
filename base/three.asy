@@ -1724,7 +1724,7 @@ handler.onEvent=function(event)
   close(ortho);
 }
 
-string embed3D(string prefix=defaultfilename, frame f, string label="",
+string embed3D(string prefix, frame f, string label="",
                string text=label,  string options="",
                real width=0, real height=0, real angle=30,
                pen background=white, projection P=currentprojection)
@@ -1733,30 +1733,28 @@ string embed3D(string prefix=defaultfilename, frame f, string label="",
 
   if(width == 0) width=settings.paperwidth;
   if(height == 0) height=settings.paperheight;
-  if(prefix == "") prefix=outprefix();
-  prefix += "-"+(string) file3.length;
 
   if(P.infinity) {
-      transform3 T=P.projector(P.camera,P.up,P.target).modelview;
-      frame g=T*f;
-      triple m=min3(g);
-      triple M=max3(g);
-      real r=0.5*abs(M-m);
-      triple center=0.5*(M+m);
+    transform3 T=P.projector(P.camera,P.up,P.target).modelview;
+    frame g=T*f;
+    triple m=min3(g);
+    triple M=max3(g);
+    real r=0.5*abs(M-m);
+    triple center=0.5*(M+m);
 
-      P=P.copy();
-      P.camera=O; // Eye is at (0,0,0).
-      P.target=(0,0,-r);
-      triple s=-center+P.target;
-      m += s;
-      M += s;
-      g=shift(s)*g;
+    P=P.copy();
+    P.camera=O; // Eye is at (0,0,0).
+    P.target=(0,0,-r);
+    triple s=-center+P.target;
+    m += s;
+    M += s;
+    g=shift(s)*g;
 
-      string name=prefix+".js";
-      writeOrthographic(name);
-      options += ",3Djscript="+name;
-      file3.push(name);
-      shipout3(prefix,g);
+    string name=prefix+".js";
+    writeOrthographic(name);
+    options += ",3Djscript="+name;
+    file3.push(name);
+    shipout3(prefix,g);
   } else shipout3(prefix,f);
   prefix += ".prc";
   file3.push(prefix);
@@ -1891,7 +1889,15 @@ object embed(string prefix=defaultfilename, picture pic,
         angle=2*anglefactor*aTan((M.y-c.y)/(abs(P.vector())));
     }
     
-    if(settings.render != 0 && !prc()) {
+    if(prefix == "") prefix=outprefix();
+    bool preview=settings.preview;
+    bool prc=prc();
+    if(prc)
+      prefix += "-"+(string) file3.length;
+    else
+      preview=false;
+    string Prefix;
+    if(settings.render != 0 && (preview || !prc)) {
       transform3 T=P.projector(P.camera,P.up,P.target).modelview;
       frame g=T*f;
       triple m=min3(g);
@@ -1906,14 +1912,18 @@ object embed(string prefix=defaultfilename, picture pic,
       real zcenter=0.5*(M.z+m.z);
       M=(M.x,M.y,zcenter+r);
       m=(m.x,m.y,zcenter-r);
-      if(prefix == "") prefix=outprefix();
-      shipout3(prefix,g,width,height,-(shiftless(T)*(-currentlight.source)),
-               P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M,wait,view);
-      return F;
+      if(preview)
+	file3.push(prefix+".eps");
+      shipout3(Prefix,g,preview ? "eps" : "",width,height,
+	       -(shiftless(T)*(-currentlight.source)),
+               P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M,
+	       wait,view && !preview);
+      if(!preview) return F;
     }
 
-    if(prc()) F.L=embed3D(prefix,f,label,text,options,width,height,angle,
-                          background,P);
+    if(prc) F.L=embed3D(prefix,f,label,
+			  text=preview ? graphic(Prefix) : "",options,
+			  width,height,angle,background,P);
   }
 
   if(!is3D)
