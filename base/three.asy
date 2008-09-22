@@ -1826,12 +1826,15 @@ object embed(string prefix=defaultfilename, picture pic,
   object F;
   if(pic.empty3()) return F;
   real xsize3=pic.xsize3, ysize3=pic.ysize3, zsize3=pic.zsize3;
-  if(xsize3 == 0 && ysize3 == 0 && zsize3 == 0)
+  bool warn=true;
+  if(xsize3 == 0 && ysize3 == 0 && zsize3 == 0) {
     xsize3=ysize3=zsize3=max(xsize,ysize);
+    warn=false;
+  }
 
   projection P=P.copy();
   picture pic2;
-  transform3 t=pic.scaling(xsize3,ysize3,zsize3,keepAspect);
+  transform3 t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
 
   if(!P.absolute) {
     P.adjust(inverse(t)*pic.max(t));
