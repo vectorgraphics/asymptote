@@ -110,10 +110,11 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     string options="", projection P=currentprojection)
 {
   if(!uptodate()) {
-    frame f=pic.fit(wait=wait,view=view,options,P);
-    if(currentpicture.nodes3.length == 0 || settings.render == 0 || prc())
+    frame f=pic.fit(wait=wait,view=view,options,P);    
+    if(!pic.empty2() || settings.render == 0 || prc())
       shipout(prefix,orientation(f),format,wait,view);
   }
+  
   pic.uptodate=true;
 }
 

@@ -302,6 +302,7 @@ struct Label {
   }
   
   void label(picture pic=currentpicture, pair position, pair align) {
+    if(s == "") return;
     pic.add(new void (frame f, transform t) {
         if(filltype == NoFill)
           label(f,t,position,align);

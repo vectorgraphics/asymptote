@@ -709,9 +709,11 @@ void glrender(const string& prefix, picture *pic, const string& format,
   while(argv[argc] != NULL)
     ++argc;
   
-  if(settings::verbose > 1) 
-    cout << "Rendering " << prefix << endl;
-    
+  double expand=getSetting<double>("render");
+  if(expand < 0)
+    expand *= Format.empty() ? -1.0 : 
+      (Format == "eps" || Format == "pdf" ? -4.0 : -2.0);
+  
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
   
@@ -727,10 +729,6 @@ void glrender(const string& prefix, picture *pic, const string& format,
     viewportLimit[1]=min(viewportLimit[1],limit);
   }
 
-  double expand=getSetting<double>("render");
-  if(expand < 0) expand=Format.empty() ? 1.0 : 
-		   (Format == "eps" || Format == "pdf" ? 4.0 : 2.0);
-  
   oWidth=width;
   oHeight=height;
   double Aspect=((double) width)/height;
@@ -741,6 +739,10 @@ void glrender(const string& prefix, picture *pic, const string& format,
   if(Width > Height*Aspect) Width=(int) (Height*Aspect);
   else Height=(int) (Width/Aspect);
   
+  if(settings::verbose > 1) 
+    cout << "Rendering " << prefix << " as " << Width << "x" << Height
+	 << " image" << endl;
+    
   int x,y;
   windowposition(x,y,Width,Height);
   glutInitWindowPosition(x,y);

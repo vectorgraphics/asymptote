@@ -47,11 +47,11 @@ struct material {
     this.shininess=shininess;
     this.granularity=granularity;
   }
-  void operator init(material m) {
+  void operator init(material m, real granularity=m.granularity) {
     p=copy(m.p);
     opacity=m.opacity;
     shininess=m.shininess;
-    granularity=m.granularity;
+    granularity=granularity;
   }
 }
 
