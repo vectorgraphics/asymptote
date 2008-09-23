@@ -2041,11 +2041,8 @@ include three_arrows;
 draw=new void(frame f, path3 g, material p=currentpen,
               light light=nolight, projection P=currentprojection) {
   if(is3D()) {
-    real granularity=(p.granularity == -1) ? linegranularity : p.granularity;
-    p=(light == nolight) ? emissive((pen) p,granularity=granularity) :
-    material(p,granularity=granularity);
-
-    pen q=p.emissive();
+    p=material(p,(p.granularity >= 0) ? p.granularity : linegranularity);
+    pen q=(pen) p;
     void drawthick(path3 g) {
       if(settings.thick) {
         real width=linewidth(q);

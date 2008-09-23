@@ -18,7 +18,7 @@ struct light {
   bool on=false;
   
   void operator init(triple source, shadefcn shade=defaultshade,
-		     transform3 T=identity(4)) {
+                     transform3 T=identity(4)) {
     this.source=unit(source);
     this.shade=shade;
     this.T=shiftless(T);
@@ -41,10 +41,10 @@ struct material {
   real shininess;  
   real granularity;
   void operator init(pen diffusepen=lightgray, pen ambientpen=black,
-		     pen emissivepen=black, pen specularpen=mediumgray,
-		     real opacity=opacity(diffusepen),
-		     real shininess=defaultshininess,
-		     real granularity=-1) {
+                     pen emissivepen=black, pen specularpen=mediumgray,
+                     real opacity=opacity(diffusepen),
+                     real shininess=defaultshininess,
+                     real granularity=-1) {
     p=new pen[] {diffusepen,ambientpen,emissivepen,specularpen};
     this.opacity=opacity;
     this.shininess=shininess;
@@ -54,14 +54,37 @@ struct material {
     p=copy(m.p);
     opacity=m.opacity;
     shininess=m.shininess;
-    granularity=granularity;
+    this.granularity=granularity;
   }
   pen diffuse() {return p[0];}
   pen ambient() {return p[1];}
   pen emissive() {return p[2];}
   pen specular() {return p[3];}
+  void diffuse(pen q) {p[0]=q;}
+  void ambient(pen q) {p[1]=q;}
+  void emissive(pen q) {p[2]=q;}
+  void specular(pen q) {p[3]=q;}
 }
 
+void write(file file, string s="", material x, suffix suffix=none)
+{
+  write(file,s);
+  write(file,"{");
+  write(file,"diffuse=",x.diffuse());
+  write(file,", ambient=",x.ambient());
+  write(file,", emissive=",x.emissive());
+  write(file,", specular=",x.specular());
+  write(file,", opacity=",x.opacity);
+  write(file,", shininess=",x.shininess);
+  write(file,", granularity=",x.granularity);
+  write(file,"}",suffix);
+}
+
+void write(string s="", material x, suffix suffix=endl)
+{
+  write(stdout,s,x,suffix);
+}
+  
 bool operator == (material m, material n)
 {
   return all(m.p == n.p) && m.opacity == n.opacity &&
@@ -75,10 +98,11 @@ material operator cast(pen p)
 
 pen operator ecast(material m)
 {
-  return m.p.length > 0 ? m.p[0] : nullpen;
+  return m.p.length > 0 ? m.diffuse() : nullpen;
 }
 
-material emissive(pen p, real granularity=0)
+material emissive(material m, real granularity=m.granularity)
 {
-  return material(black,black,p,black,opacity(p),1,granularity);
+  return material(black+opacity(m.opacity),black,m.diffuse(),black,m.opacity,1,
+                  granularity);
 }

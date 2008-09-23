@@ -84,31 +84,31 @@ struct patch {
   triple normal(real u, real v) {
     triple n=cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
                    bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u));
-    real epsilon=fuzz*change(P);
+    real epsilon=fuzz*change2(P);
     return (abs(n) > epsilon) ? n : normal0(u,v,epsilon);
   }
   
   triple normal00() {
     triple n=9*cross(P[1][0]-P[0][0],P[0][1]-P[0][0]);
-    real epsilon=fuzz*change(P);
+    real epsilon=fuzz*change2(P);
     return abs(n) > epsilon ? n : normal0(0,0,epsilon);
   }
 
   triple normal01() {
     triple n=9*cross(P[1][3]-P[0][3],P[0][3]-P[0][2]);
-    real epsilon=fuzz*change(P);
+    real epsilon=fuzz*change2(P);
     return abs(n) > epsilon ? n : normal0(0,1,epsilon);
   }
 
   triple normal11() {
     triple n=9*cross(P[3][3]-P[2][3],P[3][3]-P[3][2]);
-    real epsilon=fuzz*change(P);
+    real epsilon=fuzz*change2(P);
     return abs(n) > epsilon ? n : normal0(1,1,epsilon);
   }
 
   triple normal10() {
     triple n=9*cross(P[3][0]-P[2][0],P[3][1]-P[3][0]);
-    real epsilon=fuzz*change(P);
+    real epsilon=fuzz*change2(P);
     return abs(n) > epsilon ? n : normal0(1,0,epsilon);
   }
 
@@ -513,7 +513,8 @@ triple point(patch s, real u, real v)
 
 void draw3D(frame f, patch s, material m=lightgray, light light=currentlight)
 {
-  if(!light.on) m=emissive(m.p[0],m.granularity);
+  if(!light.on)
+    m=emissive(m);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
   draw(f,s.P,m.p,m.opacity,m.shininess,granularity,light.on,s.straight);
 }
@@ -792,58 +793,65 @@ restricted surface unitcube=surface(unitplane,
 restricted surface unitplane=surface(unitplane);
 restricted surface unitdisk=surface(unitcircle3);
 
-void dot(frame f, triple v, pen p=currentpen,
+void dot(frame f, triple v, material p=currentpen,
          light light=nolight, projection P=currentprojection)
 {
-  if(is3D())
+  pen q=(pen) p;
+  if(is3D()) {
+    material m=material(p,p.granularity >= 0 ? p.granularity : dotgranularity);
     for(patch s : unitsphere.s)
-      draw3D(f,shift(v)*scale3(0.5*dotsize(p))*s,
-             material(p,granularity=dotgranularity),light);
-  else dot(f,project(v,P.t),p);
+      draw3D(f,shift(v)*scale3(0.5*dotsize(q))*s,m,light);
+  } else dot(f,project(v,P.t),q);
 }
 
-void dot(frame f, path3 g, pen p=currentpen, projection P=currentprojection)
+void dot(frame f, path3 g, material p=currentpen,
+	 projection P=currentprojection)
 {
   for(int i=0; i <= length(g); ++i) dot(f,point(g,i),p,P);
 }
 
-void dot(frame f, path3[] g, pen p=currentpen, projection P=currentprojection)
+void dot(frame f, path3[] g, material p=currentpen,
+	 projection P=currentprojection)
 {
   for(int i=0; i < g.length; ++i) dot(f,g[i],p,P);
 }
 
-void dot(picture pic=currentpicture, triple v, pen p=currentpen,
+void dot(picture pic=currentpicture, triple v, material p=currentpen,
          light light=nolight)
 {
+  pen q=(pen) p;
+  real size=dotsize(q);
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
-      if(is3D())
+      if(is3D()) {
+	material m=material(p,p.granularity >= 0 ? p.granularity :
+			    dotgranularity);
         for(patch s : unitsphere.s)
-          draw3D(f,shift(t*v)*scale3(0.5*linewidth(dotsize(p)+p))*s,
-                 material(p,granularity=dotgranularity),light);
+          draw3D(f,shift(t*v)*scale3(0.5*linewidth(size+q))*s,m,light);
+      }
       if(pic != null)
-        dot(pic,project(t*v,P.t),p);
+        dot(pic,project(t*v,P.t),q);
     },true);
-  triple R=0.5*dotsize(p)*(1,1,1);
+  triple R=0.5*size*(1,1,1);
   pic.addBox(v,v,-R,R);
 }
 
-void dot(picture pic=currentpicture, triple[] v, pen p=currentpen)
+void dot(picture pic=currentpicture, triple[] v, material p=currentpen)
 {
   for(int i=0; i < v.length; ++i) dot(pic,v[i],p);
 }
 
-void dot(picture pic=currentpicture, path3 g, pen p=currentpen)
+void dot(picture pic=currentpicture, path3 g, material p=currentpen)
 {
   for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p);
 }
 
-void dot(picture pic=currentpicture, path3[] g, pen p=currentpen)
+void dot(picture pic=currentpicture, path3[] g, material p=currentpen)
 {
   for(int i=0; i < g.length; ++i) dot(pic,g[i],p);
 }
 
 void dot(picture pic=currentpicture, Label L, triple v, align align=NoAlign,
-         string format=defaultformat, pen p=currentpen)
+         string format=defaultformat, material p=currentpen)
 {
   Label L=L.copy();
   if(L.s == "") {
@@ -852,7 +860,7 @@ void dot(picture pic=currentpicture, Label L, triple v, align align=NoAlign,
       format(format,v.z)+")";
   }
   L.align(align,E);
-  L.p(p);
+  L.p((pen) p);
   dot(pic,v,p);
   label(pic,L,v);
 }

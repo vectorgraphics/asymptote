@@ -700,7 +700,11 @@ public:
   }
   
   friend ostream& operator << (ostream& out, const pen& p) {
-    out << "([" << p.line.pattern << "]";
+    out << "(";
+    if(p.line == DEFLINE)
+      out << p.line.pattern;
+    else
+      out << "[" << p.line.pattern << "]";
     if(p.line.offset)
       out << p.line.offset;
     if(!p.line.scale)

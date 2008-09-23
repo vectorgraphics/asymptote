@@ -2721,7 +2721,7 @@ double maxbound(triplearray *a, callableProject *f, double b)
   return b;
 }
 
-real change(triplearray2 *a)
+real change2(triplearray2 *a)
 {
   size_t n=checkArray(a);
   if(n == 0) return 0.0;
@@ -2740,7 +2740,7 @@ real change(triplearray2 *a)
       if(a > M) M=a;
     }
   }
-  return sqrt(M);
+  return M;
 }
 
 bool is3D(picture *f)
