@@ -112,8 +112,7 @@ struct patch {
     return abs(n) > epsilon ? n : normal0(1,0,epsilon);
   }
 
-  pen[] colors(pen surfacepen=lightgray, light light=currentlight,
-               projection Q=null) {
+  pen[] colors(pen surfacepen=lightgray, light light=currentlight) {
     if(normals.length != 0)
       return sequence(new pen(int i) {
           return light.intensity(normals[i])*surfacepen;
@@ -122,7 +121,8 @@ struct patch {
       return colors;
     
     pen color(triple n) {
-      return light.intensity(n*sgn(dot(n,Q.vector())))*surfacepen;
+      n=light.T*n;
+      return light.intensity(n*sgn(n.z))*surfacepen;
     }
 
     return new pen[] {color(normal00()),color(normal01()),color(normal11()),
@@ -206,6 +206,10 @@ struct patch {
     operator init(s.P,s.normals,s.colors,s.straight);
   }
   
+  static real nineth=1/9;
+
+  // A constructor for a convex cyclic path of length 4 with optional
+  // arrays of 4 internal points, and for the corners, 4 normals and 4 pens.
   void operator init(path3 external, triple[] internal=new triple[],
                      triple[] normals=new triple[], pen[] colors=new pen[]) {
     if(!cyclic(external) || length(external) != 4)
@@ -222,13 +226,12 @@ struct patch {
 
       internal=new triple[4];
       for(int j=0; j < 4; ++j) {
-        static real nineth=1.0/9.0;
-        internal[j]=nineth*(-4.0*point(external,j)
-                            +6.0*(precontrol(external,j)+
-                                  postcontrol(external,j))
-                            -2.0*(point(external,j-1)+point(external,j+1))
-                            +3.0*(precontrol(external,j-1)+
-                                  postcontrol(external,j+1))-
+        internal[j]=nineth*(-4*point(external,j)
+                            +6*(precontrol(external,j)+
+				postcontrol(external,j))
+                            -2*(point(external,j-1)+point(external,j+1))
+                            +3*(precontrol(external,j-1)+
+				postcontrol(external,j+1))-
                             point(external,j+2));
       }
     }
@@ -252,6 +255,56 @@ struct patch {
     P[3][0]=point(external,3);
     P[2][0]=postcontrol(external,3);
     P[2][1]=internal[3];
+  }
+
+  // A constructor for a convex quadrilateral.
+  void operator init(triple[] external, triple[] internal=new triple[],
+		     triple[] normals=new triple[], pen[] colors=new pen[]) {
+    init();
+    if(normals.length != 0)
+      this.normals=copy(normals);
+    if(colors.length != 0)
+      this.colors=copy(colors);
+
+    straight=true;
+
+    if(internal.length == 0) {
+      bool cyclicflag=external.cyclicflag;
+      external.cyclic(true);
+      internal=new triple[4];
+      for(int j=0; j < 4; ++j) {
+	internal[j]=nineth*(4*external[j]+2*external[j+1]+external[j+2]+
+			    2*external[j+3]);
+      }
+      external.cyclic(cyclicflag);
+    }
+
+    triple delta;
+
+    P[0][0]=external[0];
+    delta=(external[1]-external[0])/3;
+    P[0][1]=external[0]+delta;
+    P[1][1]=internal[0];
+
+    P[0][2]=external[1]-delta;
+    P[0][3]=external[1];
+    delta=(external[2]-external[1])/3;
+    P[1][3]=external[1]+delta;
+    P[1][2]=internal[1];
+
+    P[2][3]=external[2]-delta;
+    P[3][3]=external[2];
+    delta=(external[3]-external[2])/3;
+    P[3][2]=external[2]+delta;
+    P[2][2]=internal[2];
+
+    P[3][1]=external[3]-delta;
+    P[3][0]=external[3];
+    delta=(external[0]-external[3])/3;
+    P[2][0]=external[3]+delta;
+    P[2][1]=internal[3];
+
+    P[1][0]=external[0]-delta;
   }
 }
 
@@ -470,7 +523,7 @@ void tensorshade(transform t=identity(), frame f, patch s,
                  projection P)
 {
   tensorshade(f,box(t*s.min(P),t*s.max(P)),surfacepen,
-              s.colors(surfacepen,light,P),t*project(s.external(),P,1),
+              s.colors(surfacepen,light),t*project(s.external(),P,1),
               t*project(s.internal(),P));
 }
 
@@ -513,12 +566,14 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 
     depth=sort(depth);
 
+    light Light=light(light.source,light.shade,P.modelview());
+
     // Draw from farthest to nearest
     while(depth.length > 0) {
       real[] a=depth.pop();
       int i=round(a[1]);
       if(surface)
-        tensorshade(t,f,s.s[i],surfacepen.p[0],light,P);
+        tensorshade(t,f,s.s[i],surfacepen.p[0],Light,P);
       if(mesh)
         draw(f,project(s.s[i].external(),P),meshpen);
     }
@@ -727,7 +782,7 @@ private patch unitcylinder1=patch(X--X+Z{Y}..{-X}Y+Z--Y{X}..{-Y}cycle);
 restricted surface unitcylinder=surface(unitcylinder1,t*unitcylinder1,
                                         t2*unitcylinder1,t3*unitcylinder1);
 
-private patch unitplane=patch(O--X--(X+Y)--Y--cycle);
+private patch unitplane=patch(new triple[] {O,X,X+Y,Y});
 restricted surface unitcube=surface(unitplane,
                                     rotate(90,O,X)*unitplane,
                                     rotate(-90,O,Y)*unitplane,

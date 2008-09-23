@@ -1735,7 +1735,7 @@ string embed3D(string prefix, frame f, string label="",
   if(height == 0) height=settings.paperheight;
 
   if(P.infinity) {
-    transform3 T=P.projector(P.camera,P.up,P.target).modelview;
+    transform3 T=P.modelview();
     frame g=T*f;
     triple m=min3(g);
     triple M=max3(g);
@@ -1897,7 +1897,7 @@ object embed(string prefix=defaultfilename, picture pic,
     else
       preview=false;
     if(preview || (!prc && settings.render != 0)) {
-      transform3 T=P.projector(P.camera,P.up,P.target).modelview;
+      transform3 T=P.modelview();
       frame g=T*f;
       triple m=min3(g);
       triple M=max3(g);
@@ -1913,8 +1913,7 @@ object embed(string prefix=defaultfilename, picture pic,
       m=(m.x,m.y,zcenter-r);
       if(preview)
         file3.push(prefix+".eps");
-      shipout3(prefix,g,preview ? "eps" : "",width,height,
-               -(shiftless(T)*(-currentlight.source)),
+      shipout3(prefix,g,preview ? "eps" : "",width,height,currentlight.source,
                P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M,
                wait,view && !preview);
       if(!preview) return F;
@@ -2039,14 +2038,14 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
 
 include three_arrows;
 
-draw=new void(frame f, path3 g,material p=currentpen,
+draw=new void(frame f, path3 g, material p=currentpen,
               light light=nolight, projection P=currentprojection) {
   if(is3D()) {
     real granularity=(p.granularity == -1) ? linegranularity : p.granularity;
     p=(light == nolight) ? emissive((pen) p,granularity=granularity) :
     material(p,granularity=granularity);
 
-    pen q=(pen) p;
+    pen q=p.emissive();
     void drawthick(path3 g) {
       if(settings.thick) {
         real width=linewidth(q);

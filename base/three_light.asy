@@ -14,11 +14,14 @@ real defaultshade(real x) {
 struct light {
   triple source;
   shadefcn shade;
+  transform3 T;
   bool on=false;
   
-  void operator init(triple source, shadefcn shade=defaultshade) {
+  void operator init(triple source, shadefcn shade=defaultshade,
+		     transform3 T=identity(4)) {
     this.source=unit(source);
     this.shade=shade;
+    this.T=shiftless(T);
     on=true;
   }
 
@@ -33,16 +36,16 @@ light currentlight=(0.25,-0.25,1);
 light nolight;
 
 struct material {
-  pen[] p; // surfacepen,ambientpen,emissivepen,specularpen
+  pen[] p; // diffusepen,ambientpen,emissivepen,specularpen
   real opacity;
   real shininess;  
   real granularity;
-  void operator init(pen surfacepen=lightgray, pen ambientpen=black,
+  void operator init(pen diffusepen=lightgray, pen ambientpen=black,
 		     pen emissivepen=black, pen specularpen=mediumgray,
-		     real opacity=opacity(surfacepen),
+		     real opacity=opacity(diffusepen),
 		     real shininess=defaultshininess,
 		     real granularity=-1) {
-    p=new pen[] {surfacepen,ambientpen,emissivepen,specularpen};
+    p=new pen[] {diffusepen,ambientpen,emissivepen,specularpen};
     this.opacity=opacity;
     this.shininess=shininess;
     this.granularity=granularity;
@@ -53,6 +56,10 @@ struct material {
     shininess=m.shininess;
     granularity=granularity;
   }
+  pen diffuse() {return p[0];}
+  pen ambient() {return p[1];}
+  pen emissive() {return p[2];}
+  pen specular() {return p[3];}
 }
 
 bool operator == (material m, material n)

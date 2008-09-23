@@ -547,11 +547,13 @@ void mode()
 {
   switch(Mode) {
     case 0:
+      glEnable(GL_LIGHT0);
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
       gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_FILL);
       ++Mode;
     break;
     case 1:
+      glDisable(GL_LIGHT0);
       gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_POLYGON);
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       ++Mode;
@@ -709,9 +711,11 @@ void glrender(const string& prefix, picture *pic, const string& format,
   while(argv[argc] != NULL)
     ++argc;
   
+  bool interactive=View && Format.empty();
+  
   double expand=getSetting<double>("render");
   if(expand < 0)
-    expand *= Format.empty() ? -1.0 : 
+    expand *= interactive ? -1.0 : 
       (Format == "eps" || Format == "pdf" ? -4.0 : -2.0);
   
   glutInit(&argc,argv);
@@ -750,7 +754,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
   glutInitWindowSize(Width,Height);
   window=glutCreateWindow((prefix+" [Click middle button for menu]").c_str());
   
-  if(View && Format.empty() && getSetting<bool>("fitscreen"))
+  if(interactive && getSetting<bool>("fitscreen"))
     fitscreen();
   
   glClearColor(1.0,1.0,1.0,0.0);

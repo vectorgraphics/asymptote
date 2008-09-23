@@ -416,6 +416,8 @@ struct projection {
     return projector(camera,up,target);
   }
 
+  transform3 modelview() {return transformation().modelview;}
+
   triple vector() {
     return camera-target;
   }
