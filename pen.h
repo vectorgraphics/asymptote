@@ -593,6 +593,9 @@ public:
     if(P.color == PATTERN && P.pattern.empty()) P.color=DEFCOLOR;
     ColorSpace colorspace=(ColorSpace) max((Int) P.color,(Int) Q.color);
     
+    if(!(p.transparency == DEFTRANSP && q.transparency == DEFTRANSP))
+      P.transparency.opacity=max(p.opacity(),q.opacity());
+    
   switch(colorspace) {
     case PATTERN:
     case INVISIBLE:
