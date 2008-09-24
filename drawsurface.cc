@@ -208,7 +208,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
-  if(degenerate || (!straight && sqrt(f*size2) >= 1.5)) {
+  if(degenerate || (!straight && (lighton || sqrt(f*size2) >= 1.5))) {
     static GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
     gluBeginSurface(nurb);
     gluNurbsSurface(nurb,8,knots,8,knots,3,12,c,4,4,GL_MAP2_VERTEX_3);

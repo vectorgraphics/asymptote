@@ -112,21 +112,20 @@ struct patch {
     return abs(n) > epsilon ? n : normal0(1,0,epsilon);
   }
 
-  pen[] colors(pen surfacepen=lightgray, light light=currentlight) {
-    if(normals.length != 0)
-      return sequence(new pen(int i) {
-          return light.intensity(normals[i])*surfacepen;
-        },normals.length);
-    if(colors.length != 0)
-      return colors;
-    
-    pen color(triple n) {
-      n=light.T*n;
-      return light.intensity(n*sgn(n.z))*surfacepen;
+  pen[] colors(material m, light light=currentlight) {
+    pen color(triple n, triple v) {
+      return light.color(shiftless(light.T)*n,-(light.T*(-v)),m);
     }
 
-    return new pen[] {color(normal00()),color(normal01()),color(normal11()),
-	color(normal10())};
+    if(normals.length != 0)
+      return new pen[] {color(normals[0],P[0][0]),color(normals[1],P[0][3]),
+	  color(normals[2],P[3][3]),color(normals[3],P[3][0])};
+    
+    if(colors.length == 0)
+      return new pen[] {color(normal00(),P[0][0]),color(normal01(),P[0][3]),
+	  color(normal11(),P[3][3]),color(normal10(),P[3][0])};
+
+    return colors;
   }
   
   triple bound(real m(real[], real), triple b) {
@@ -513,18 +512,17 @@ triple point(patch s, real u, real v)
 
 void draw3D(frame f, patch s, material m=lightgray, light light=currentlight)
 {
-  if(!light.on)
+  if(!light.on())
     m=emissive(m);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
-  draw(f,s.P,m.p,m.opacity,m.shininess,granularity,light.on,s.straight);
+  draw(f,s.P,m.p,m.opacity,m.shininess,granularity,light.on(),s.straight);
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,
-                 pen surfacepen=lightgray, light light=currentlight,
-                 projection P)
+                 material m, light light=currentlight, projection P)
 {
-  tensorshade(f,box(t*s.min(P),t*s.max(P)),surfacepen,
-              s.colors(surfacepen,light),t*project(s.external(),P,1),
+  tensorshade(f,box(t*s.min(P),t*s.max(P)),m.diffuse(),
+              s.colors(m,light),t*project(s.external(),P,1),
               t*project(s.internal(),P));
 }
 
@@ -567,14 +565,14 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 
     depth=sort(depth);
 
-    light Light=light(light.source,light.shade,P.modelview());
+    light.T=P.modelview();
 
     // Draw from farthest to nearest
     while(depth.length > 0) {
       real[] a=depth.pop();
       int i=round(a[1]);
       if(surface)
-        tensorshade(t,f,s.s[i],surfacepen.p[0],Light,P);
+        tensorshade(t,f,s.s[i],surfacepen.p[0],light,P);
       if(mesh)
         draw(f,project(s.s[i].external(),P),meshpen);
     }
@@ -703,7 +701,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
     for(patch S : surface(L,position).s)
       draw3D(f,S,L.p,light);
   } else fill(f,path(L,project(position,P.t),P),
-              light.intensity(L.T3*Z)*L.p);
+	     light.color(shiftless(P.modelview())*L.T3*Z,L.p));
 }
 
 void label(picture pic=currentpicture, Label L, triple position,
@@ -725,7 +723,8 @@ void label(picture pic=currentpicture, Label L, triple position,
 
       }
       if(pic != null)
-        fill(project(v,P.t),pic,path(L,P),light.intensity(L.T3*Z)*L.p);
+        fill(project(v,P.t),pic,path(L,P),
+	     light.color(shiftless(P.modelview())*L.T3*Z,L.p));
     },!L.defaulttransform);
 
   if(L.defaulttransform)

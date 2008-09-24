@@ -716,7 +716,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
   double expand=getSetting<double>("render");
   if(expand < 0)
     expand *= interactive ? -1.0 : 
-      (Format == "eps" || Format == "pdf" ? -4.0 : -2.0);
+      (Format.empty() || Format == "eps" || Format == "pdf" ? -4.0 : -2.0);
   
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);

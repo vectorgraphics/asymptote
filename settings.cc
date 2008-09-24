@@ -934,6 +934,8 @@ void initSettings() {
 			    "Initial 3D rendering screen position"));
   addOption(new boolSetting("thick", 0,
                             "Render thick 3D lines", true));
+  addOption(new boolSetting("thin", 0,
+                            "Render thin 3D lines", true));
   addOption(new boolSetting("fitscreen", 0,
                             "Fit rendered image to screen", true));
   addOption(new IntSetting("maxviewport", 0, "n",

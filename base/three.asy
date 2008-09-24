@@ -13,7 +13,8 @@ real dotgranularity=0.0001;
 real anglefactor=1.08;       // Factor used to expand PRC viewing angle.
 real fovfactor=0.6;          // PRC field of view factor.
 
-string defaultembed3options="3Drender=Solid,3Dlights=White,toolbar=true,";
+string defaultembed3options="3Drender=Solid,3Dlights=CAD,toolbar=true,";
+string defaultembed3script=""; // Example: lights.js with 3Dlights=File
 
 triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
@@ -1696,20 +1697,17 @@ triple size3(frame f)
 
 private string[] file3;
 
-void writeOrthographic(string name) 
-{
-  file ortho=output(name);
-  write(ortho,"
+string orthographic="
 activeCamera=scene.cameras.getByIndex(0);
 function orthographic() 
 {
-activeCamera.projectionType=\"orthographic\";
+activeCamera.projectionType=activeCamera.TYPE_ORTHOGRAPHIC;
 bounds=scene.computeBoundingBox();
 d=bounds.max.x-bounds.min.x;
 dy=bounds.max.y-bounds.min.y;
 if(dy > d) d=dy;
 activeCamera.viewPlaneSize=d;
-activeCamera.binding=\"max\";
+activeCamera.binding=activeCamera.BINDING_MAX;
 }
 
 orthographic();
@@ -1720,12 +1718,26 @@ handler.onEvent=function(event)
 {
   orthographic();
   scene.update();
-}");
-  close(ortho);
+}";
+
+void writeJavaScript(string name, string preamble, string script) 
+{
+  file out=output(name);
+  write(out,preamble);
+  if(script != "") {
+    file in=input(script);
+    while(true) {
+      string line=in;
+      if(eof(in)) break;
+      write(out,line,endl);
+    }
+  }
+  close(out);
+  file3.push(name);
 }
 
 string embed3D(string prefix, frame f, string label="",
-               string text=label,  string options="",
+               string text=label,  string options="", string script="",
                real width=0, real height=0, real angle=30,
                pen background=white, projection P=currentprojection)
 {
@@ -1733,6 +1745,8 @@ string embed3D(string prefix, frame f, string label="",
 
   if(width == 0) width=settings.paperwidth;
   if(height == 0) height=settings.paperheight;
+
+  if(script == "") script=defaultembed3script;
 
   if(P.infinity) {
     transform3 T=P.modelview();
@@ -1751,11 +1765,12 @@ string embed3D(string prefix, frame f, string label="",
     g=shift(s)*g;
 
     string name=prefix+".js";
-    writeOrthographic(name);
-    options += ",3Djscript="+name;
-    file3.push(name);
+    writeJavaScript(name,orthographic,script);
+    script=name;
     shipout3(prefix,g);
-  } else shipout3(prefix,f);
+  } else {
+    shipout3(prefix,f);
+  }
   prefix += ".prc";
   file3.push(prefix);
 
@@ -1786,19 +1801,21 @@ string embed3D(string prefix, frame f, string label="",
     ",3Dbg="+format(background)+
     ","+defaultembed3options;
   if(options != "") options3 += ","+options;
+  if(script != "") options3 += ",3Djscript="+script;
 
   return plain.embed(prefix,options3,width,height);
 }
 
 object embed(string prefix=defaultfilename, frame f, string label="",
-             string text=label, string options="",
+             string text=label, string options="", string script="",
              real width=0, real height=0, real angle=30,
              pen background=white, projection P=currentprojection)
 {
   object F;
 
   if(is3D())
-    F.L=embed3D(prefix,f,label,text,options,width,height,angle,background,P);
+    F.L=embed3D(prefix,f,label,text,options,script,width,height,angle,
+                background,P);
   else
     F.f=f;
   return F;
@@ -1819,7 +1836,8 @@ object embed(string prefix=defaultfilename, picture pic,
              bool keepAspect=pic.keepAspect,
              string label="", string text=label,
              bool wait=false, bool view=true, string options="",
-             real angle=0, pen background=white, projection P=currentprojection)
+             string script="", real angle=0, pen background=white,
+             projection P=currentprojection)
 {
   object F;
   if(pic.empty3()) return F;
@@ -1913,7 +1931,8 @@ object embed(string prefix=defaultfilename, picture pic,
       m=(m.x,m.y,zcenter-r);
       if(preview)
         file3.push(prefix+".eps");
-      shipout3(prefix,g,preview ? "eps" : "",width,height,currentlight.source,
+      shipout3(prefix,g,preview ? "eps" : "",width,height,
+	       currentlight.position[0],
                P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M,
                wait,view && !preview);
       if(!preview) return F;
@@ -1921,7 +1940,7 @@ object embed(string prefix=defaultfilename, picture pic,
 
     if(prc) F.L=embed3D(prefix,f,label,
                         text=preview ? graphic(prefix+".eps") : "",options,
-                        width,height,angle,background,P);
+                        script,width,height,angle,background,P);
   }
 
   if(!is3D)
@@ -1930,17 +1949,18 @@ object embed(string prefix=defaultfilename, picture pic,
   return F;
 }
 
-embed3=new object(string prefix, frame f, string options="", projection P) {
-  return embed(prefix,f,options,P);
+embed3=new object(string prefix, frame f, string options="", string script="",
+                  projection P) {
+  return embed(prefix,f,options,script,P);
 };
 
 currentpicture.fitter=new frame(picture pic, real xsize, real ysize,
                                 bool keepAspect, bool wait, bool view,
-                                string options, projection P) {
+                                string options, string script, projection P) {
   frame f;
   add(f,pic.fit2(xsize,ysize,keepAspect));
   if(!pic.empty3()) {
-    object F=embed(pic,xsize,ysize,keepAspect,wait,view,options,P);
+    object F=embed(pic,xsize,ysize,keepAspect,wait,view,options,script,P);
     if(prc())
       label(f,F.L);
     else {

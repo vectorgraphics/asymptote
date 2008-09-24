@@ -18,7 +18,7 @@ frame Seascape(frame f) {return rotate(-90)*f;};
 typedef frame orientation(frame);
 orientation orientation=Portrait;
 
-object embed3(string, frame, string, projection);
+object embed3(string, frame, string, string, projection);
 string embed(string name, string options="", real width=0, real height=0);
 string link(string label, string text, string options="");
 
@@ -76,10 +76,11 @@ try{silentPrint(pp);} catch(e){this.print(pp);}";
 
 void shipout(string prefix=defaultfilename, frame f,
              string format="", bool wait=false, bool view=true,
-	     string options="", projection P=currentprojection)
+	     string options="", string script="",
+	     projection P=currentprojection)
 {
   if(is3D(f)) {
-    f=enclose(prefix,embed3(prefix,f,options,P));
+    f=enclose(prefix,embed3(prefix,f,options,script,P));
     if(settings.render != 0 && !prc()) {
       shipped=true;
       return;
@@ -107,10 +108,11 @@ void shipout(string prefix=defaultfilename, frame f,
 void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     orientation orientation=orientation,
 	     string format="", bool wait=false, bool view=true,
-	     string options="", projection P=currentprojection)
+	     string options="", string script="",
+	     projection P=currentprojection)
 {
   if(!uptodate()) {
-    frame f=pic.fit(wait=wait,view=view,options,P);    
+    frame f=pic.fit(wait=wait,view=view,options,script,P);    
     if(!pic.empty2() || settings.render == 0 || prc())
       shipout(prefix,orientation(f),format,wait,view);
   }

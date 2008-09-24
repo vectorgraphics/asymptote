@@ -187,7 +187,7 @@ void drawarrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
 {
   pen q=(pen) p;
   if(arrowheadpen == nullpen) arrowheadpen=p;
-  if(!arrowheadlight.on) arrowheadlight=light;
+  if(!arrowheadlight.on()) arrowheadlight=light;
   if(size == 0) size=arrowhead.size(q);
   size=min(arrowsizelimit*arclength(g),size);
   real position=position(position,size,g,center);
@@ -213,7 +213,7 @@ void drawarrow2(picture pic, arrowhead3 arrowhead=DefaultHead3,
 {
   pen q=(pen) p;
   if(arrowheadpen == nullpen) arrowheadpen=p;
-  if(!arrowheadlight.on) arrowheadlight=light;
+  if(!arrowheadlight.on()) arrowheadlight=light;
   if(size == 0) size=arrowhead.size(q);
   size=min(arrow2sizelimit*arclength(g),size);
 
