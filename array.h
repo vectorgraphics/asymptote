@@ -79,13 +79,19 @@ inline size_t checkArray(const vm::array *a)
   return a->size();
 }
 
-extern const void checkequal(size_t i, size_t j);
+inline void checkEqual(size_t i, size_t j) {
+  if(i == j) return;
+  ostringstream buf;
+  buf << "operation attempted on arrays of different lengths: "
+      << i << " != " << j;
+  vm::error(buf);
+}
 
 inline size_t checkArrays(vm::array *a, vm::array *b) 
 {
   size_t asize=checkArray(a);
   size_t bsize=checkArray(b);
-  checkequal(asize,bsize);
+  checkEqual(asize,bsize);
   return asize;
 }
  

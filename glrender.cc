@@ -66,17 +66,12 @@ using camp::bbox3;
 using settings::getSetting;
 using settings::Setting;
 
-template<class T>
-inline T min(T a, T b)
-{
-  return (a < b) ? a : b;
-}
-
-template<class T>
-inline T max(T a, T b)
-{
-  return (a > b) ? a : b;
-}
+const double moveFactor=1.0;  
+const double zoomFactor=1.05;
+const double zoomFactorStep=0.25;
+const double spinStep=60.0; // Degrees per second
+const double arcballRadius=750.0;
+const double resizeStep=1.5;
 
 bool View;
 int Oldpid;
@@ -93,7 +88,6 @@ int Mode;
 
 double H;
 GLint viewportLimit[2];
-triple Light; 
 double xmin,xmax;
 double ymin,ymax;
 double zmin,zmax;
@@ -102,16 +96,17 @@ double Xmin,Xmax;
 double Ymin,Ymax;
 double X,Y;
 
-const double moveFactor=1.0;  
-const double zoomFactor=1.05;
-const double zoomFactorStep=0.25;
-const double spinStep=60.0; // Degrees per second
-const double arcballRadius=750.0;
-
 int minimumsize=50; // Minimum rendering window width and height
 
 const double degrees=180.0/M_PI;
 const double radians=1.0/degrees;
+
+size_t Nlights;
+triple *Lights; 
+double *Diffuse;
+double *Ambient;
+double *Specular;
+bool ViewportLighting;
 
 int x0,y0;
 int mod;
@@ -128,18 +123,40 @@ GLUnurbs *nurb;
 
 int window;
   
-void initlights(void)
+template<class T>
+inline T min(T a, T b)
 {
-  GLfloat ambient[]={0.1,0.1,0.1,1.0};
-  GLfloat position[]={Light.getx(),Light.gety(),Light.getz(),0.0};
+  return (a < b) ? a : b;
+}
 
-  if(getSetting<bool>("twosided"))
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE);
-  
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  glLightfv(GL_LIGHT0,GL_AMBIENT,ambient);
-  glLightfv(GL_LIGHT0,GL_POSITION,position);
+template<class T>
+inline T max(T a, T b)
+{
+  return (a > b) ? a : b;
+}
+
+void lighting(void)
+{
+  for(size_t i=0; i < Nlights; ++i) {
+    GLenum index=GL_LIGHT0+i;
+    glEnable(index);
+    
+    triple Lighti=Lights[i];
+    GLfloat position[]={Lighti.getx(),Lighti.gety(),Lighti.getz(),0.0};
+    glLightfv(index,GL_POSITION,position);
+    
+    size_t i4=4*i;
+    
+    GLfloat diffuse[]={Diffuse[i4],Diffuse[i4+1],Diffuse[i4+2],Diffuse[i4+3]};
+    glLightfv(index,GL_DIFFUSE,diffuse);
+    
+    GLfloat ambient[]={Ambient[i4],Ambient[i4+1],Ambient[i4+2],Ambient[i4+3]};
+    glLightfv(index,GL_AMBIENT,ambient);
+    
+    GLfloat specular[]={Specular[i4],Specular[i4+1],Specular[i4+2],
+			Specular[i4+3]};
+    glLightfv(index,GL_SPECULAR,specular);
+  }
 }
 
 void save()
@@ -168,6 +185,9 @@ void display(void)
 
   glMatrixMode(GL_MODELVIEW);
   
+  if(!ViewportLighting) 
+    lighting();
+    
   triple m(xmin,ymin,zmin);
   triple M(xmax,ymax,zmax);
   double perspective=H == 0.0 ? 0.0 : 1.0/zmax;
@@ -240,18 +260,22 @@ void setProjection()
   arcball.set_params(vec2(0.5*Width,0.5*Height),arcballRadius/Zoom);
 }
 
-void reshape(int width, int height)
+bool capsize(int& width, int& height) 
 {
-  bool Reshape=false;
   if(width > viewportLimit[0]) {
     width=viewportLimit[0];
-    Reshape=true;
+    return true;
   }
   if(height > viewportLimit[1]) {
     height=viewportLimit[1];
-    Reshape=true;
+    return true;
   }
-  if(Reshape)
+  return false;
+}
+
+void reshape(int width, int height)
+{
+  if(capsize(width,height))
     glutReshapeWindow(width,height);
   
   X=X/Width*width;
@@ -472,8 +496,38 @@ void windowposition(int& x, int& y, int width, int height)
   pair z=getSetting<pair>("position");
   x=(int) z.getx();
   y=(int) z.gety();
-  if(x < 0) x += glutGet(GLUT_SCREEN_WIDTH)-width;
-  if(y < 0) y += glutGet(GLUT_SCREEN_HEIGHT)-height;
+  if(x < 0) {
+    x += glutGet(GLUT_SCREEN_WIDTH)-width;
+    if(x < 0) x=0;
+  }
+  if(y < 0) {
+    y += glutGet(GLUT_SCREEN_HEIGHT)-height;
+    if(y < 0) y=0;
+  }
+}
+
+void expand() 
+{
+  int x,y;
+  int w=(int) (Width*resizeStep);
+  int h=(int) (Height*resizeStep);
+  capsize(w,h);
+  glutReshapeWindow(w,h);
+  windowposition(x,y,w,h);
+  glutPositionWindow(x,y);
+  glutPostRedisplay();
+}
+
+void shrink() 
+{
+  int x,y;
+  int w=(int) (Width/resizeStep);
+  int h=(int) (Height/resizeStep);
+  capsize(w,h);
+  glutReshapeWindow(w,h);
+  windowposition(x,y,w,h);
+  glutPositionWindow(x,y);
+  glutPostRedisplay();
 }
 
 void fitscreen() 
@@ -481,17 +535,15 @@ void fitscreen()
   static int oldwidth,oldheight;
   int x,y;
   switch(Fitscreen) {
-    case 0:
+    case 0: // Original size
     {
       glutReshapeWindow(oldwidth,oldheight);
       windowposition(x,y,oldwidth,oldheight);
       glutPositionWindow(x,y);
-      Width=oldwidth;
-      Height=oldheight;
      ++Fitscreen;
      break;
     }
-    case 1:
+    case 1: // Fit to screen in one dimension
     {
       oldwidth=Width;
       oldheight=Height;
@@ -509,7 +561,7 @@ void fitscreen()
       ++Fitscreen;
       break;
     }
-    case 2:
+    case 2: // Full screen
     {
       glutFullScreen();
       glutPositionWindow(0,0);
@@ -633,6 +685,14 @@ void keyboard(unsigned char key, int x, int y)
     case 'e':
       Export();
       break;
+    case '+':
+    case '=':
+      expand();
+      break;
+    case '-':
+    case '_':
+      shrink();
+      break;
     case 17: // Ctrl-q
     case 'q':
       if(!Format.empty()) Export();
@@ -678,16 +738,24 @@ void menu(int choice)
 
 // angle=0 means orthographic.
 void glrender(const string& prefix, picture *pic, const string& format,
-	      double width, double height, const triple& light,
-	      double angle, const triple& m, const triple& M, bool view,
-	      int oldpid)
+	      double width, double height,
+	      double angle, const triple& m, const triple& M,
+	      size_t nlights, triple *lights, double *diffuse,
+	      double *ambient, double *specular, bool viewportlighting,
+	      bool view, int oldpid)
 {
   Prefix=&prefix;
   Picture=pic;
   Format=format;
   View=view;
   Oldpid=oldpid;
-  Light=light;
+  Nlights=min(nlights,(size_t) GL_MAX_LIGHTS);
+  Lights=lights;
+  Diffuse=diffuse;
+  Ambient=ambient;
+  Specular=specular;
+  ViewportLighting=viewportlighting;
+    
   Xmin=m.getx();
   Xmax=M.getx();
   Ymin=m.gety();
@@ -786,7 +854,12 @@ void glrender(const string& prefix, picture *pic, const string& format,
   glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
   glGetFloatv(GL_MODELVIEW_MATRIX,Modelview);
   
-  initlights();
+  glEnable(GL_LIGHTING);
+  if(getSetting<bool>("twosided"))
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE);
+  
+  if(ViewportLighting)
+    lighting();
   
   glutReshapeFunc(reshape);
   glutDisplayFunc(display);

@@ -217,13 +217,6 @@ function *realTripleFunction()
 const size_t camp::ColorComponents[]={0,0,1,3,4,0};
 
 namespace vm {
-  const void checkequal(size_t i, size_t j) {
-    if(i == j) return;
-    ostringstream buf;
-    buf << "operation attempted on arrays of different lengths: "
-	<< i << " != " << j;
-    error(buf);
-  }
 }
 
 namespace run {
@@ -304,21 +297,29 @@ array *copyArray(array *a)
   return c;
 }
 
-double *copyArrayC(array *a)
+inline size_t checkdimension(array *a, size_t dim)
 {
   size_t size=checkArray(a);
+  if(dim && size != dim) {
+    ostringstream buf;
+    buf << "array of length " << dim << " expected" << endl;
+    error(buf);
+  }
+  return size;
+}
+
+double *copyArrayC(array *a, size_t dim=0)
+{
+  size_t size=checkdimension(a,dim);
   double *c=new double[size];
   for(size_t i=0; i < size; i++) 
     c[i]=read<double>(a,i);
   return c;
 }
 
-static const char *notlength16="array of length 16 expected";
-
-triple *copyTripleArray16C(array *a)
+triple *copyTripleArrayC(array *a, size_t dim=0)
 {
-  size_t size=checkArray(a);
-  if(size != 16) error(notlength16);
+  size_t size=checkdimension(a,dim);
   triple *c=new triple[size];
   for(size_t i=0; i < size; i++) 
     c[i]=read<triple>(a,i);
@@ -361,10 +362,16 @@ array *copyArray3(array *a)
   return c;
 }
 
-double *copyArray2C(array *a, bool square=true)
+double *copyArray2C(array *a, bool square=true, size_t dim2=0)
 {
   size_t n=checkArray(a);
   size_t m=(square || n == 0) ? n : checkArray(read<array*>(a,0));
+  if(dim2 && m != dim2) {
+    ostringstream buf;
+    buf << "second matrix dimension must be " << dim2 << endl;
+    error(buf);
+  }
+  
   double *c=new double[n*m];
   for(size_t i=0; i < n; i++) {
     array *ai=read<array*>(a,i);
@@ -1195,7 +1202,7 @@ void tensorshade(picture *f, patharray *g, bool stroke=false, pen fillrule,
   size_t n=checkArrays(p,b);
   size_t nz=checkArray(z);
   if(nz != 0)
-    checkequal(nz,n);
+    checkEqual(nz,n);
   f->append(new drawTensorShade(*copyarray(g),stroke,fillrule,*copyarray2(p),
 				*copyarray(b),*copyarray2(z)));
 }
@@ -1383,10 +1390,19 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 }
 
 void shipout3(string prefix, picture *f, string format=emptystring,
-	      double width, double height, triple light,
-	      double angle, triple m, triple M, bool wait=false, bool view=true)
+	      double width, double height, double angle, triple m, triple M,
+	      triplearray *lights, realarray2 *diffuse, realarray2 *ambient,
+	      realarray2 *specular, bool viewportlighting,
+	      bool wait=false, bool view=true)
 {
-  f->shipout3(prefix,format,width,height,light,angle,m,M,wait,view);
+  size_t n=checkArrays(lights,diffuse);
+  checkEqual(n,checkArray(ambient));
+  checkEqual(n,checkArray(specular));
+  
+  f->shipout3(prefix,format,width,height,angle,m,M,n,
+	      copyTripleArrayC(lights),copyArray2C(diffuse,false,4),
+	      copyArray2C(ambient,false,4),copyArray2C(specular,false,4),
+	      viewportlighting,wait,view);
 }
 
 void shipout3(string prefix, picture *f)
@@ -2202,8 +2218,8 @@ path3 path3(triplearray *pre, triplearray *point, triplearray *post,
 	    boolarray *straight, bool cyclic)
 {
   size_t n=checkArrays(pre,point);
-  checkequal(n,checkArray(post));
-  checkequal(n,checkArray(straight));
+  checkEqual(n,checkArray(post));
+  checkEqual(n,checkArray(straight));
   mem::vector<solvedKnot3> nodes(n);
   for(size_t i=0; i < n; ++i) {
     nodes[i].pre=read<triple>(pre,i);
@@ -2687,7 +2703,7 @@ triple max3(picture *f)
 
 double minbound(realarray *a, double b)
 {
-  real *A=copyArrayC(a);
+  real *A=copyArrayC(a,16);
   b=bound(A,::min,b);
   delete[] A;
   return b;
@@ -2695,7 +2711,7 @@ double minbound(realarray *a, double b)
 
 double maxbound(realarray *a, double b)
 {
-  real *A=copyArrayC(a);
+  real *A=copyArrayC(a,16);
   b=bound(A,::max,b);
   delete[] A;
   return b;
@@ -2703,7 +2719,7 @@ double maxbound(realarray *a, double b)
 
 double minbound(triplearray *a, callableProject *f, double b)
 {
-  triple *A=copyTripleArray16C(a);
+  triple *A=copyTripleArrayC(a,16);
   Func=f;
   FuncStack=Stack;
   b=bound(A,::min,project,b);
@@ -2713,7 +2729,7 @@ double minbound(triplearray *a, callableProject *f, double b)
 
 double maxbound(triplearray *a, callableProject *f, double b)
 {
-  triple *A=copyTripleArray16C(a);
+  triple *A=copyTripleArrayC(a,16);
   Func=f;
   FuncStack=Stack;
   b=bound(A,::max,project,b);
@@ -4727,8 +4743,8 @@ real dot(realarray *a, realarray *b)
 realarray *tridiagonal(realarray *a, realarray *b, realarray *c, realarray *f)
 {
   size_t n=checkArrays(a,b);
-  checkequal(n,checkArray(c));
-  checkequal(n,checkArray(f));
+  checkEqual(n,checkArray(c));
+  checkEqual(n,checkArray(f));
   
   array *up=new array(n);
   array& u=*up;

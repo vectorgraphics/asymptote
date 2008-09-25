@@ -29,7 +29,7 @@ NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output asy.list svnrevision.cc doc/version.texi GUI/xasyVersion.py $(XNAME)
 EXTRA = asy-mode.el asy-keywords.el asy-init.el asy.vim asymptote.py \
- silentPrint.js reload.js lights.js
+ silentPrint.js reload.js
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
 LATEXFILES = asymptote.sty asycolors.sty
 ASY = ./asy -dir base -config "" -render=0

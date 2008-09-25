@@ -13,8 +13,8 @@ real dotgranularity=0.0001;
 real anglefactor=1.08;       // Factor used to expand PRC viewing angle.
 real fovfactor=0.6;          // PRC field of view factor.
 
-string defaultembed3options="3Drender=Solid,3Dlights=CAD,toolbar=true,";
-string defaultembed3script=""; // Example: lights.js with 3Dlights=File
+string defaultembed3Doptions="3Drender=Solid,toolbar=true,";
+string defaultembed3Dscript="";
 
 triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
@@ -1697,8 +1697,7 @@ triple size3(frame f)
 
 private string[] file3;
 
-string orthographic="
-activeCamera=scene.cameras.getByIndex(0);
+string orthographic="activeCamera=scene.cameras.getByIndex(0);
 function orthographic() 
 {
 activeCamera.projectionType=activeCamera.TYPE_ORTHOGRAPHIC;
@@ -1720,6 +1719,44 @@ handler.onEvent=function(event)
   scene.update();
 }";
 
+include three_light;
+
+private string format(real x)
+{
+  assert(abs(x) < 1e18,"Number too large: "+string(x));
+  return format("%.18f",x,"C");
+}
+
+private string format(triple v, string sep=" ")
+{
+  return format(v.x)+sep+format(v.y)+sep+format(v.z);
+}
+
+private string format(pen p)
+{
+  real[] c=colors(rgb(p));
+  return format((c[0],c[1],c[2]));
+}
+
+string lightscript(light light, transform3 T) {
+ // Adobe Reader doesn't appear to support user-specified viewport lights.
+  if(!light.on() || light.viewport) return "";
+  string script="for(var i=scene.lights.count-1; i >= 0; i--)
+  scene.lights.removeByIndex(i);"+'\n\n';
+    for(int i=0; i < light.position.length; ++i) {
+      string Li="L"+string(i);
+      real[] diffuse=light.diffuse[i];
+      script += Li+"=scene.createLight();"+'\n'+
+	Li+".direction.set("+format(-(T*light.position[i]),",")+");"+'\n'+
+      Li+".color.set("+format((diffuse[0],diffuse[1],diffuse[2]),",")+");"+'\n';
+    }
+// Work around initialization bug in Adobe Reader 8.0:
+    return script +"
+scene.lightScheme=scene.LIGHT_MODE_HEADLAMP;
+scene.lightScheme=scene.LIGHT_MODE_FILE;
+";
+}
+
 void writeJavaScript(string name, string preamble, string script) 
 {
   file out=output(name);
@@ -1739,17 +1776,27 @@ void writeJavaScript(string name, string preamble, string script)
 string embed3D(string prefix, frame f, string label="",
                string text=label,  string options="", string script="",
                real width=0, real height=0, real angle=30,
-               pen background=white, projection P=currentprojection)
+               pen background=white, light light=currentlight,
+	       projection P=currentprojection)
 {
   if(!prc() || plain.embed == null) return "";
 
   if(width == 0) width=settings.paperwidth;
   if(height == 0) height=settings.paperheight;
 
-  if(script == "") script=defaultembed3script;
+  if(script == "") script=defaultembed3Dscript;
+
+  transform3 T=P.modelview();
+  string lightscript=lightscript(light,shiftless(T));
+
+  if(P.infinity || lightscript != "") {
+    string name=prefix+".js";
+    writeJavaScript(name,P.infinity ? lightscript+orthographic:
+		    lightscript,script);
+    script=name;
+  }
 
   if(P.infinity) {
-    transform3 T=P.modelview();
     frame g=T*f;
     triple m=min3(g);
     triple M=max3(g);
@@ -1763,14 +1810,10 @@ string embed3D(string prefix, frame f, string label="",
     m += s;
     M += s;
     g=shift(s)*g;
-
-    string name=prefix+".js";
-    writeJavaScript(name,orthographic,script);
-    script=name;
     shipout3(prefix,g);
-  } else {
+  } else
     shipout3(prefix,f);
-  }
+  
   prefix += ".prc";
   file3.push(prefix);
 
@@ -1780,26 +1823,14 @@ string embed3D(string prefix, frame f, string label="",
   triple up=unit(P.up-dot(P.up,u)*u);
   real roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));
 
-  string format(real x) {
-    assert(abs(x) < 1e18,"Number too large: "+string(x));
-    return format("%.18f",x,"C");
-  }
-  string format(triple v) {
-    return format(v.x)+" "+format(v.y)+" "+format(v.z);
-  }
-  string format(pen p) {
-    real[] c=colors(rgb(p));
-    return format((c[0],c[1],c[2]));
-  }
-
-  string options3="poster,text="+text+",label="+label+
+  string options3=light.viewport ? "3Dlights=Headlamp" : "3Dlights=File";
+  options3 += ","+defaultembed3Doptions+",poster,text="+text+",label="+label+
     ",3Daac="+format(P.absolute ? P.angle*fovfactor : angle)+
     ",3Dc2c="+format(unit(v))+
     ",3Dcoo="+format(P.target/cm)+
     ",3Droll="+format(roll)+
     ",3Droo="+format(abs(v))+
-    ",3Dbg="+format(background)+
-    ","+defaultembed3options;
+    ",3Dbg="+format(background);
   if(options != "") options3 += ","+options;
   if(script != "") options3 += ",3Djscript="+script;
 
@@ -1829,15 +1860,13 @@ triple rectify(triple dir)
   return dir;
 }
 
-include three_light;
-
 object embed(string prefix=defaultfilename, picture pic,
              real xsize=pic.xsize, real ysize=pic.ysize,
              bool keepAspect=pic.keepAspect,
              string label="", string text=label,
              bool wait=false, bool view=true, string options="",
              string script="", real angle=0, pen background=white,
-             projection P=currentprojection)
+             light light=currentlight, projection P=currentprojection)
 {
   object F;
   if(pic.empty3()) return F;
@@ -1932,15 +1961,16 @@ object embed(string prefix=defaultfilename, picture pic,
       if(preview)
         file3.push(prefix+".eps");
       shipout3(prefix,g,preview ? "eps" : "",width,height,
-	       currentlight.position[0],
                P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M,
-               wait,view && !preview);
+	       light.viewport ? light.position : light.position(shiftless(T)),
+	       light.diffuse,light.ambient,light.specular,
+	       light.viewport,wait,view && !preview);
       if(!preview) return F;
     }
 
     if(prc) F.L=embed3D(prefix,f,label,
                         text=preview ? graphic(prefix+".eps") : "",options,
-                        script,width,height,angle,background,P);
+                        script,width,height,angle,background,light,P);
   }
 
   if(!is3D)

@@ -24,9 +24,10 @@ using namespace settings;
 namespace gl {
 void glrender(const string& prefix, camp::picture *pic,
 	      const string& format, double width, double height,
-	      const camp::triple& light, double angle,
-	      const camp::triple& m, const camp::triple& M, bool view,
-	      int oldpid);
+	      double angle, const camp::triple& m, const camp::triple& M,
+	      size_t nlights, camp::triple *lights, double *diffuse,
+	      double *ambient, double *specular, bool viewportlighting,
+	      bool view, int oldpid);
 }
 #endif
 
@@ -688,8 +689,10 @@ void picture::render(GLUnurbs *nurb, double size2,
 }
   
 bool picture::shipout3(const string& prefix, const string& format,
-		       double width, double height, const triple& light,
+		       double width, double height,
 		       double angle, const triple& m, const triple& M,
+		       size_t nlights, triple *lights, double *diffuse,
+		       double *ambient, double *specular, bool viewportlighting,
 		       bool wait, bool view)
 {
 #ifdef HAVE_LIBGLUT
@@ -723,7 +726,8 @@ bool picture::shipout3(const string& prefix, const string& format,
     }
   }
 
-  gl::glrender(prefix.c_str(),this,outputformat,width,height,light,angle,m,M,
+  gl::glrender(prefix.c_str(),this,outputformat,width,height,angle,m,M,
+	       nlights,lights,diffuse,ambient,specular,viewportlighting,
 	       View,oldpid);
 
   if(View && !wait)

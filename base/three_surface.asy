@@ -113,17 +113,14 @@ struct patch {
   }
 
   pen[] colors(material m, light light=currentlight) {
-    pen color(triple n, triple v) {
-      return light.color(shiftless(light.T)*n,-(light.T*(-v)),m);
-    }
-
     if(normals.length != 0)
-      return new pen[] {color(normals[0],P[0][0]),color(normals[1],P[0][3]),
-	  color(normals[2],P[3][3]),color(normals[3],P[3][0])};
+      return new pen[] {light.color(normals[0],m),
+	  light.color(normals[1],m),light.color(normals[2],m),
+	  light.color(normals[3],m)};
     
     if(colors.length == 0)
-      return new pen[] {color(normal00(),P[0][0]),color(normal01(),P[0][3]),
-	  color(normal11(),P[3][3]),color(normal10(),P[3][0])};
+      return new pen[] {light.color(normal00(),m),light.color(normal01(),m),
+	  light.color(normal11(),m),light.color(normal10(),m)};
 
     return colors;
   }
@@ -510,7 +507,7 @@ triple point(patch s, real u, real v)
   return s.point(u,v);
 }
 
-void draw3D(frame f, patch s, material m=lightgray, light light=currentlight)
+void draw3D(frame f, patch s, material m, light light=currentlight)
 {
   if(!light.on())
     m=emissive(m);
@@ -565,7 +562,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 
     depth=sort(depth);
 
-    light.T=P.modelview();
+    light.T=shiftless(P.modelview());
 
     // Draw from farthest to nearest
     while(depth.length > 0) {
@@ -700,8 +697,9 @@ void label(frame f, Label L, triple position, align align=NoAlign,
   if(is3D()) {
     for(patch S : surface(L,position).s)
       draw3D(f,S,L.p,light);
-  } else fill(f,path(L,project(position,P.t),P),
-	     light.color(shiftless(P.modelview())*L.T3*Z,L.p));
+  } else
+    fill(f,path(L,project(position,P.t),P),
+	 light.color(L.T3*Z,L.p,shiftless(P.modelview())));
 }
 
 void label(picture pic=currentpicture, Label L, triple position,
@@ -724,7 +722,7 @@ void label(picture pic=currentpicture, Label L, triple position,
       }
       if(pic != null)
         fill(project(v,P.t),pic,path(L,P),
-	     light.color(shiftless(P.modelview())*L.T3*Z,L.p));
+	     light.color(L.T3*Z,L.p,shiftless(P.modelview())));
     },!L.defaulttransform);
 
   if(L.defaulttransform)
