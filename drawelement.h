@@ -19,6 +19,7 @@
 #include "prcfile.h"
 
 #ifdef HAVE_LIBGLUT
+#include <GL/glu.h>
 #include <GL/glut.h>
 #else
 typedef void GLUnurbs;

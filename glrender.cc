@@ -14,7 +14,6 @@
 
 #ifdef HAVE_LIBGLUT
 
-#include <GL/glut.h>
 #include <GL/freeglut_ext.h>
 
 namespace gl {
@@ -735,7 +734,9 @@ void glrender(const string& prefix, picture *pic, const string& format,
   Mode=0;
   
   string options=string(settings::argv0)+" ";
+#ifndef __CYGWIN__
   if(!View) options += "-iconic ";
+#endif  
   options += getSetting<string>("glOptions");
   char **argv=args(options.c_str(),true);
   int argc=0;
