@@ -940,8 +940,6 @@ void initSettings() {
                             "Fit rendered image to screen", true));
   addOption(new IntSetting("maxviewport", 0, "n",
 			   "Maximum viewport width/height",2048));
-  addOption(new boolSetting("psimage", 0,
-                            "Output ps image of 3D PRC graphics", false));
   addOption(new stringOutnameSetting("outname", 'o', "name",
 				     "Alternative output name for first file",
 				     ""));

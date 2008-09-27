@@ -31,9 +31,6 @@ void glrender(const string& prefix, camp::picture *pic,
 }
 #endif
 
-// Give up on waiting for acroread to finish after this much time.
-unsigned psimagelimit=60;
-
 texstream::~texstream() {
   if(!getSetting<bool>("keep")) {
     unlink("texput.log");
@@ -398,8 +395,7 @@ bool picture::postprocess(const string& prename, const string& outname,
   if(verbose > 0)
     cout << "Wrote " << outname << endl;
   bool View=settings::view() && view;
-  if(View || (pdfformat && getSetting<bool>("psimage") && 
-	      getSetting<bool>("prc"))) {
+  if(View) {
     if(epsformat || pdfformat) {
       // Check to see if there is an existing viewer for this outname.
       mem::map<CONST string,int>::iterator p=pids.find(outname);
@@ -435,32 +431,12 @@ bool picture::postprocess(const string& prename, const string& outname,
 	
 	pids[outname]=pid;
 
-	if(View) {
-	  if(pdfreload) {
-	    // Work around race conditions in acroread initialization script
-	    usleep(getSetting<Int>("pdfreloaddelay"));
-	    // Only reload if pdf viewer process is already running.
-	    if(waitpid(pid, &status, WNOHANG) == pid)
-	      reloadPDF(Viewer,outname);
-	  }
-	} else { // Kill acroread psimage process.
-	  unsigned count=0;
-	  while(true) {
-	    ifstream psfile((stripExt(outname)+".ps").c_str());
-	    if(psfile.good()) {
-	      string eof="%%EOF";
-	      psfile.seekg(-((int) eof.size()+1),std::ios_base::end);
-	      string s;
-	      psfile >> s;
-	      if(s == eof) break;
-	    }
-	    ++count;
-	    if(count > psimagelimit) break;
-	    sleep(1);
-	  }
-	  kill(pid,SIGINT);
-	  while(waitpid(pid, &status, 0) != pid);
-	  running=false;
+	if(pdfreload) {
+	  // Work around race conditions in acroread initialization script
+	  usleep(getSetting<Int>("pdfreloaddelay"));
+	  // Only reload if pdf viewer process is already running.
+	  if(waitpid(pid, &status, WNOHANG) == pid)
+	    reloadPDF(Viewer,outname);
 	}
       }
     } else {

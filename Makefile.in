@@ -28,8 +28,7 @@ DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc keywords.cc \
 NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output asy.list svnrevision.cc doc/version.texi GUI/xasyVersion.py $(XNAME)
-EXTRA = asy-mode.el asy-keywords.el asy-init.el asy.vim asymptote.py \
- silentPrint.js reload.js
+EXTRA = asy-mode.el asy-keywords.el asy-init.el asy.vim asymptote.py reload.js
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
 LATEXFILES = asymptote.sty asycolors.sty
 ASY = ./asy -dir base -config "" -render=0
