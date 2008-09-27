@@ -833,6 +833,7 @@ interconnected with
 @cindex @code{..}
 @code{--}, which denotes a straight line segment, or @code{..}, which
 denotes a cubic spline.
+@anchor{unitcircle}
 @cindex @code{unitcircle}
 Specifying a final node @code{cycle} creates a cyclic path that
 connects smoothly back to the initial node, as in this approximation
@@ -1749,7 +1750,6 @@ Here are the built-in functions for triples:
 returns the length @code{|v|} of the vector @code{v}. 
 A synonym for @code{length(triple)} is @code{abs(triple)};
 
-
 @item real polar(triple v)
 @cindex @code{polar}
 returns the colatitude of @code{v} measured from the @math{z} axis in radians;
@@ -2022,42 +2022,51 @@ The implicit initializer for paths is @code{nullpath}.
 
 @cindex @code{circle}
 @anchor{circle}
-The routine @code{circle(pair c, real r)}, which returns a Bezier curve
-approximating a circle of radius @code{r} centered on @code{c},
-is based on unitcircle: 
+For example, the routine @code{circle(pair c, real r)}, which returns a
+Bezier curve approximating a circle of radius @code{r} centered on @code{c},
+is based on @code{unitcircle} (@pxref{unitcircle}):
 @verbatim
 path circle(pair c, real r)
 {
   return shift(c)*scale(r)*unitcircle;
 }
 @end verbatim
-If high accuracy is needed, a true circle may be produced with this
-routine, defined in the module @code{graph.asy}:
+If high accuracy is needed, a true circle may be produced with the
+routine @code{Circle} defined in the module @code{graph.asy}:
 @verbatim
-path Circle(pair c, real r, int n=400);
+import graph;
+path Circle(pair c, real r, int n=nCircle);
 @end verbatim
 
-A circular arc consistent with the above approximation centered on
+A circular arc consistent with @code{circle} centered on
 @code{c} with radius @code{r} from @code{angle1} to @code{angle2}
 degrees, drawing counterclockwise if @code{angle2 >= angle1}, can be
 constructed with
 @verbatim
 path arc(pair c, real r, real angle1, real angle2);
 @end verbatim
-If @code{r} < 0, the complementary arc of radius @code{|r|} is constructed.
-For convenience, an arc centered at @code{c} from pair @code{z1} to
-@code{z2} (assuming @code{|z2-c|=|z1-c|}) in the direction CCW
-(counter-clockwise) or CW (clockwise) may also be constructed with
+One may also specify the direction explicitly:
 @verbatim
+path arc(pair c, real r, real angle1, real angle2, bool direction);
+@end verbatim
+Here the direction can be specified as CCW (counter-clockwise) or CW
+(clockwise). For convenience, an arc centered at @code{c} from pair
+@code{z1} to @code{z2} (assuming @code{|z2-c|=|z1-c|}) in the may also
+be constructed with @verbatim
 path arc(pair c, explicit pair z1, explicit pair z2,
          bool direction=CCW)
 @end verbatim
 
-If high accuracy is needed, a true arc may be produced with this
-routine, defined in the module @code{graph.asy}:
+If high accuracy is needed, true arcs may be produced with routines
+in the module @code{graph.asy} that produce Bezier curves with @code{n}
+control points:
 @verbatim
-path Arc(pair c, real r, real angle1, real angle2,
-         int n=400);
+import graph;
+path Arc(pair c, real r, real angle1, real angle2, bool direction,
+         int n=nCircle);
+path Arc(pair c, real r, real angle1, real angle2, int n=nCircle);
+path Arc(pair c, explicit pair z1, explicit pair z2,
+         bool direction=CCW, int n=nCircle);
 @end verbatim
 
 An ellipse can be drawn with the routine
@@ -2068,7 +2077,8 @@ path ellipse(pair c, real a, real b)
 }
 @end verbatim
 
-Here is an example of all five path connectors discussed in @ref{Tutorial}:
+This example illustrates the use of all five path connectors discussed
+in @ref{Tutorial}:
 @verbatiminclude join.asy
 @image{join}
 
@@ -8316,7 +8326,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  fontcommand makepen aCos aTan Knorr roundpath BeginPoint nView
 @c  LocalWords:  MidPoint EndPoint nmask antialiasing autoplain batchMask libgc
 @c  LocalWords:  batchView clearGUI ignoreGUI interactiveMask interactiveView
-@c  LocalWords:  listvariables outformat parseonly prepending psviewer
+@c  LocalWords:  listvariables outformat parseonly prepending psviewer nCircle
 @c  LocalWords:  pdfviewer papertype tabcompletion noautoplain plugins Teixeira
 @c  LocalWords:  embeddedmovie historylines RadialShade penc penr CJK tgz GPL
 @c  LocalWords:  legendlinelength legendskip USERPROFILE LDFLAGS currentlight
@@ -8361,5 +8371,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  atLeast intMin globalwrite quarticroots deconsruct substrings
 @c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt DefaultHead
 @c  LocalWords:  SimpleHead HookHead TeXHead multipage nurbs inlinemovie dxmax
-@c  LocalWords:  simpson NoBox truesize autoscale shadestroke recurses
-@c  LocalWords:  nonoverlapping Shewchuk's
+@c  LocalWords:  simpson NoBox truesize autoscale shadestroke recurses mintimes
+@c  LocalWords:  nonoverlapping Shewchuk's texdvicommand texengine maxtimes
+@c  LocalWords:  piecewisestraight unitrand graphmarkers antialias nolight
+@c  LocalWords:  Delaunay Shewchuk convertOptions

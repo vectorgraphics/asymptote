@@ -1641,13 +1641,11 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
 // relative to the normal vector cross(dir(theta1,phi1),dir(theta2,phi2))
 // iff theta2 > theta1 or (theta2 == theta1 and phi2 >= phi1).
 // The normal must be explicitly specified if c and the endpoints are colinear.
-// If r < 0, draw the complementary arc of radius |r|.
 path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
           triple normal=O)
 {
-  bool pos=theta2 > theta1 || (theta2 == theta1 && phi2 >= phi1);
-  if(r > 0) return arc(c,r,theta1,phi1,theta2,phi2,normal,pos ? CCW : CW);
-  else return arc(c,-r,theta1,phi1,theta2,phi2,normal,pos ? CW : CCW);
+  return arc(c,r,theta1,phi1,theta2,phi2,normal,
+	     theta2 > theta1 || (theta2 == theta1 && phi2 >= phi1) ? CCW : CW);
 }
 
 private real epsilon=1000*realEpsilon;

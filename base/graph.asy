@@ -2046,12 +2046,26 @@ picture vectorfield(path vector(pair), pair a, pair b,
 }
 
 // True arc
-path Arc(pair c, real r, real angle1, real angle2, int n=nCircle)
+path Arc(pair c, real r, real angle1, real angle2, bool direction,
+	 int n=nCircle)
 {
   angle1=radians(angle1);
   angle2=radians(angle2);
+  if(angle1 >= angle2 && direction) angle1 -= 2pi;
+  if(angle2 >= angle1 && !direction) angle2 -= 2pi;
   return shift(c)*polargraph(new real(real t){return r;},angle1,angle2,n,
 			     operator ..);
+}
+
+path Arc(pair c, real r, real angle1, real angle2, int n=nCircle)
+{
+  return Arc(c,r,angle1,angle2,angle2 >= angle1 ? CCW : CW,n);
+}
+
+path Arc(pair c, explicit pair z1, explicit pair z2, bool direction=CCW,
+	 int n=nCircle)
+{
+  return Arc(c,abs(z1-c),degrees(z1-c),degrees(z2-c),direction,n);
 }
 
 // True circle

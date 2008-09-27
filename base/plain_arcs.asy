@@ -37,10 +37,7 @@ path arc(pair c, real r, real angle1, real angle2, bool direction)
   
 // return an arc centered at c with radius r > 0 from angle1 to angle2 in
 // degrees, drawing counterclockwise if angle2 >= angle1 (otherwise clockwise).
-// If r < 0, draw the complementary arc of radius |r|.
 path arc(pair c, real r, real angle1, real angle2)
 {
-  bool pos=angle2 >= angle1;
-  if(r > 0) return arc(c,r,angle1,angle2,pos ? CCW : CW);
-  else return arc(c,-r,angle1,angle2,pos ? CW : CCW);
+  return arc(c,r,angle1,angle2,angle2 >= angle1 ? CCW : CW);
 }
