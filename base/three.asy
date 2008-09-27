@@ -1574,9 +1574,9 @@ path3[] box(triple v1, triple v2)
     (v1.x,v1.y,v2.z);
 }
 
-path3[] unitbox=box(O,(1,1,1));
-
-path3 unitcircle3=X..Y..-X..-Y..cycle;
+restricted path3[] unitbox=box(O,(1,1,1));
+restricted path3 unitcircle3=X..Y..-X..-Y..cycle;
+restricted path3 unitsquare3=O--X--X+Y--Y--cycle;
 
 path3 circle(triple c, real r, triple normal=Z)
 {
@@ -1586,31 +1586,37 @@ path3 circle(triple c, real r, triple normal=Z)
   return shift(c)*p;
 }
 
-// return an arc centered at c with radius r from c+r*dir(theta1,phi1) to
-// c+r*dir(theta2,phi2) in degrees, drawing in the given direction
-// relative to the normal vector cross(dir(theta1,phi1),dir(theta2,phi2)).
+// return an arc centered at c from triple v1 to v2 (assuming |v2-c|=|v1-c|),
+// drawing in the given direction.
 // The normal must be explicitly specified if c and the endpoints are colinear.
-path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
-          triple normal=O, bool direction)
+path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
 {
-  triple v1=dir(theta1,phi1);
-  triple v2=dir(theta2,phi2);
+  v1 -= c;
+  real r=abs(v1);
+  v1=unit(v1);
+  v2=unit(v2-c);
 
   if(normal == O) {
     normal=cross(v1,v2);
     if(normal == O) abort("explicit normal required for these endpoints");
   }
 
-  normal=unit(normal);
-  transform3 T=align(normal);
+  transform3 T=align(unit(normal));
   transform3 Tinv=transpose(T);
   v1=Tinv*v1;
   v2=Tinv*v2;
-
+  
+  string invalidnormal="invalid normal vector";
+  static real fuzz=100*realEpsilon;
+  if(abs(v1.z) > fuzz || abs(v2.z) > fuzz)
+    abort(invalidnormal);
+  
   real[] t1=intersect(unitcircle3,O--2*(v1.x,v1.y,0));
   real[] t2=intersect(unitcircle3,O--2*(v2.x,v2.y,0));
+  
   if(t1.length == 0 || t2.length == 0)
-    abort("invalid normal vector");
+    abort(invalidnormal);
+
   real t1=t1[0];
   real t2=t2[0];
   int n=length(unitcircle3);
@@ -1618,6 +1624,16 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
   if(t2 >= t1 && !direction) t2 -= n;
 
   return shift(c)*scale3(r)*T*subpath(unitcircle3,t1,t2);
+}
+
+// return an arc centered at c with radius r from c+r*dir(theta1,phi1) to
+// c+r*dir(theta2,phi2) in degrees, drawing in the given direction
+// relative to the normal vector cross(dir(theta1,phi1),dir(theta2,phi2)).
+// The normal must be explicitly specified if c and the endpoints are colinear.
+path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
+          triple normal=O, bool direction)
+{
+  return arc(c,c+r*dir(theta1,phi1),c+r*dir(theta2,phi2),normal,direction);
 }
 
 // return an arc centered at c with radius r from c+r*dir(theta1,phi1) to
@@ -1632,16 +1648,6 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
   bool pos=theta2 > theta1 || (theta2 == theta1 && phi2 >= phi1);
   if(r > 0) return arc(c,r,theta1,phi1,theta2,phi2,normal,pos ? CCW : CW);
   else return arc(c,-r,theta1,phi1,theta2,phi2,normal,pos ? CW : CCW);
-}
-
-// return an arc centered at c from triple v1 to v2 (assuming |v2-c|=|v1-c|),
-// drawing in the given direction.
-// The normal must be explicitly specified if c and the endpoints are colinear.
-path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
-{
-  v1 -= c; v2 -= c;
-  return arc(c,abs(v1),colatitude(v1),longitude(v1,warn=false),
-             colatitude(v2),longitude(v2,warn=false),normal,direction);
 }
 
 private real epsilon=1000*realEpsilon;

@@ -22,13 +22,13 @@ for(int i=1; i <= n; ++i) {
     (left,0,0)--(left,height,0)--(right,height,0)--(right,0,0)--cycle;
 }
 
-path p=graph(F,0,2,n)--cycle;
+path p=graph(F,0,2,n,operator ..)--cycle;
 surface s=surface(bezulate(p));
 path3 p3=path3(p);
 
 revolution a=revolution(p3,Y,0,alpha);
 draw(surface(a),color);
-draw(a,blue);
+//draw(a,blue);
 draw(s,color);
 draw(rotate(alpha,Y)*s,color);
 for(int i=0; i < n; ++i)

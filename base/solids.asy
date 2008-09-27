@@ -139,8 +139,11 @@ struct revolution {
     triple v=point(g,position);
     triple center=c+dot(v-c,axis)*axis;
     triple perp=v-center;
-    real o=longitude(T*perp,warn=false);
-    path3 p=Arc(center,abs(v-center),90,angle1+o,90,angle2+o,axis);
+    static real fuzz=100*realEpsilon;
+    if(abs(perp) <= fuzz*max(abs(center),abs(v))) return center;
+    triple v1=center+rotate(angle1,axis)*perp;
+    triple v2=center+rotate(angle2,axis)*perp;
+    path3 p=Arc(center,v1,v2,axis);
     return (angle2-angle1) % 360 == 0 ? p&cycle : p;
   }
   

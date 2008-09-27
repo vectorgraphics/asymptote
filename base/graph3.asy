@@ -1778,35 +1778,45 @@ guide3 polargraph(real r(real,real), real theta(real), real phi(real),
 }
 
 // True arc
-path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
-	  triple normal=O, bool direction, int n=nCircle)
+path3 Arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW,
+	  int n=nCircle)
 {
-  triple v1=dir(theta1,phi1);
-  triple v2=dir(theta2,phi2);
+  v1 -= c;
+  real r=abs(v1);
+  v1=unit(v1);
+  v2=unit(v2-c);
 
   if(normal == O) {
     normal=cross(v1,v2);
     if(normal == O) abort("explicit normal required for these endpoints");
   }
 
-  normal=unit(normal);
-  transform3 T=align(normal);
+  transform3 T=align(unit(normal));
   transform3 Tinv=transpose(T);
   v1=Tinv*v1;
   v2=Tinv*v2;
 
-  phi1=radians(longitude(v1,warn=false));
-  phi2=radians(longitude(v2,warn=false));
+  static real fuzz=100*realEpsilon;
+  if(abs(v1.z) > fuzz || abs(v2.z) > fuzz)
+    abort("invalid normal vector");
+
+  real phi1=radians(longitude(v1,warn=false));
+  real phi2=radians(longitude(v2,warn=false));
   if(phi1 >= phi2 && direction) phi1 -= 2pi;
   if(phi2 >= phi1 && !direction) phi2 -= 2pi;
 
   real piby2=pi/2;
 
-  return shift(c)*T*
-    polargraph(new real(real theta, real phi) {return r;},
-	       new real(real t) {return piby2;},
-	       new real(real t) {return interp(phi1,phi2,t);},
-	       n,operator ..);
+  return shift(c)*T*polargraph(new real(real theta, real phi) {return r;},
+			       new real(real t) {return piby2;},
+			       new real(real t) {return interp(phi1,phi2,t);},
+			       n,operator ..);
+}
+
+path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
+	  triple normal=O, bool direction, int n=nCircle)
+{
+  return Arc(c,c+r*dir(theta1,phi1),c+r*dir(theta2,phi2),normal,direction,n);
 }
 
 path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
@@ -1815,14 +1825,6 @@ path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
   bool pos=theta2 > theta1 || (theta2 == theta1 && phi2 >= phi1);
   if(r > 0) return Arc(c,r,theta1,phi1,theta2,phi2,normal,pos ? CCW : CW,n);
   else return Arc(c,-r,theta1,phi1,theta2,phi2,normal,pos ? CW : CCW,n);
-}
-
-path3 Arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW,
-	  int n=nCircle)
-{
-  v1 -= c; v2 -= c;
-  return Arc(c,abs(v1),colatitude(v1),longitude(v1,warn=false),
-             colatitude(v2),longitude(v2,warn=false),normal,direction,n);
 }
 
 // True circle

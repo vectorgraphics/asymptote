@@ -11,6 +11,7 @@
 #include "arcball.h"
 #include "bbox3.h"
 #include "drawimage.h"
+#include "interact.h"
 
 #ifdef HAVE_LIBGLUT
 
@@ -743,11 +744,11 @@ void glrender(const string& prefix, picture *pic, const string& format,
   while(argv[argc] != NULL)
     ++argc;
   
-  bool interactive=View && Format.empty();
+  bool screen=View && Format.empty();
   
   double expand=getSetting<double>("render");
   if(expand < 0)
-    expand *= interactive ? -1.0 : 
+    expand *= screen ? -1.0 : 
       (Format.empty() || Format == "eps" || Format == "pdf" ? -4.0 : -2.0);
   
   glutInit(&argc,argv);
@@ -786,7 +787,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
   glutInitWindowSize(Width,Height);
   window=glutCreateWindow((prefix+" [Click middle button for menu]").c_str());
   
-  if(interactive && getSetting<bool>("fitscreen"))
+  if(screen && !interact::interactive && getSetting<bool>("fitscreen"))
     fitscreen();
   
   glClearColor(1.0,1.0,1.0,0.0);
