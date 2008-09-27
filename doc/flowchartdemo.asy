@@ -27,5 +27,4 @@ add(new void(picture pic, transform t) {
          Arrow,PenMargin);
     draw(pic,path(new pair[]{block4.bottom(t),block5.right(t)},Vertical),
          Arrow,PenMargin);
-
   });

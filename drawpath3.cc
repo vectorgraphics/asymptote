@@ -29,11 +29,9 @@ inline void store(GLfloat *control, const triple& v)
 bool drawPath3::write(prcfile *out)
 {
   Int n=g.length();
-  if(n == 0 || pentype.invisible())
+  if(n == 0 || invisible)
     return true;
 
-  RGBAColour color=rgba(pentype);
-    
   if(straight) {
     controls=new Triple[n+1];
     for(Int i=0; i <= n; ++i)
@@ -54,7 +52,6 @@ bool drawPath3::write(prcfile *out)
     store(controls[++k],g.point((Int) n));
     out->add(new PRCBezierCurve(out,3,m,controls,color));
   }
-
   return true;
 }
 
@@ -63,16 +60,15 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
 {
 #ifdef HAVE_LIBGLUT
   Int n=g.length();
-  double opacity=pentype.opacity();
-  if(n == 0 || pentype.invisible() || ((opacity < 1.0) ^ transparent))
+  if(n == 0 || invisible || ((color.A < 1.0) ^ transparent))
     return;
 
-  pentype.torgb();
-  glDisable(GL_LIGHTING);
-  glColor4f(pentype.red(),pentype.green(),pentype.blue(),opacity);	
-
+  bool lightEnabled=glIsEnabled(GL_LIGHTING);
+  if(lightEnabled)
+    glDisable(GL_LIGHTING);
+  
   if(straight) {
-    controls=new Triple[n+1];
+    glColor4f(color.R,color.G,color.B,color.A);
     glBegin(GL_LINE_STRIP);
     for(Int i=0; i <= n; ++i) {
       triple v=g.point(i);
@@ -80,7 +76,7 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
     }
     glEnd();
   } else {
-    for(Int i=0; i <= n; ++i) {
+    for(Int i=0; i < n; ++i) {
       static GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
       static GLfloat controlpoints[12];
       store(controlpoints,g.point(i));
@@ -89,18 +85,21 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
       store(controlpoints+9,g.point(i+1));
     
       gluBeginCurve(nurb);
+      glColor4f(color.R,color.G,color.B,color.A);
       gluNurbsCurve(nurb,8,knots,3,controlpoints,4,GL_MAP1_VERTEX_3);
       gluEndSurface(nurb);
     }
   }
-  glEnable(GL_LIGHTING);
-
+  if(lightEnabled) 
+    glEnable(GL_LIGHTING);
+  else 
+    glColor4f(0.0,0.0,0.0,1.0);
 #endif
 }
 
-drawElement *drawPath3::transformed(array *t)
+drawElement *drawPath3::transformed(const array& t)
 {
-  return new drawPath3(camp::transformed(t,g),pentype);
+  return new drawPath3(t,this);
 }
   
 } //namespace camp

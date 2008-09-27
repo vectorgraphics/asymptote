@@ -18,6 +18,8 @@ typedef double Triple[3];
   
 class drawSurface : public drawElement {
 protected:
+  Triple controls[16];
+  bool straight;
   RGBAColour diffuse;
   RGBAColour ambient;
   RGBAColour emissive;
@@ -26,12 +28,10 @@ protected:
   double shininess;
   double granularity;
   bool lighton;
-  bool straight;
   
   bool invisible;
   bool degenerate;
   triple Min,Max;
-  Triple controls[16];
 #ifdef HAVE_LIBGLUT
   GLfloat c[48];
   GLfloat d[12];
@@ -41,11 +41,11 @@ protected:
 #endif  
   
 public:
-  drawSurface(const vm::array& g, const vm::array&p, double opacity,
-	      double shininess, double granularity, bool lighton,
-	      bool straight) : 
-    opacity(opacity), shininess(shininess), granularity(granularity),
-    lighton(lighton), straight(straight) {
+  drawSurface(const vm::array& g, bool straight, const vm::array&p,
+	      double opacity, double shininess, double granularity,
+	      bool lighton) : 
+    straight(straight), opacity(opacity), shininess(shininess),
+    granularity(granularity), lighton(lighton) {
     
     string wrongsize=
       "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
@@ -76,10 +76,10 @@ public:
     }
   }
   
-  drawSurface(vm::array *t, const drawSurface *s) :
-    diffuse(s->diffuse), ambient(s->ambient), emissive(s->emissive),
-    specular(s->specular), opacity(s->opacity), shininess(s->shininess),
-    granularity(s->granularity), lighton(s->lighton), straight(s->straight),
+  drawSurface(const vm::array& t, const drawSurface *s) :
+    straight(s->straight), diffuse(s->diffuse), ambient(s->ambient),
+    emissive(s->emissive), specular(s->specular), opacity(s->opacity),
+    shininess(s->shininess), granularity(s->granularity), lighton(s->lighton),
     invisible(s->invisible) {
     for(size_t i=0; i < 16; ++i) {
       const double *c=s->controls[i];
@@ -109,7 +109,7 @@ public:
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
 	      double perspective, bool transparent, bool twosided);
   
-  drawElement *transformed(vm::array *t);
+  drawElement *transformed(const vm::array& t);
 };
   
 }

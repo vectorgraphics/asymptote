@@ -775,7 +775,7 @@ picture *picture::transformed(const transform& t)
   return pic;
 }
 
-picture *picture::transformed(vm::array *t)
+picture *picture::transformed(const vm::array& t)
 {
   picture *pic = new picture;
 

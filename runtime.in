@@ -390,9 +390,9 @@ static const char *incommensurate="Incommensurate matrices";
 static const char *singular="Singular matrix";
 static size_t *pivot,*Row,*Col;
 
-triple operator *(array *a, triple v)
+triple operator *(const array& a, const triple& v)
 {
-  size_t n=checkArray(a);
+  size_t n=checkArray(&a);
   if(n != 4) error(incommensurate);
   real B[4]={v.getx(),v.gety(),v.getz(),1};
   real C[4];
@@ -2417,7 +2417,7 @@ realarray *maxtimes(path3 p)
 
 path3 Operator *(realarray2 *t, path3 g)
 {
-  return transformed(t,g);
+  return transformed(*t,g);
 }
 
 
@@ -2684,11 +2684,11 @@ void _draw(picture *f, path3 g, pen p)
   f->append(new drawPath3(g,p));
 }
 
-void draw(picture *f, triplearray2 *g, penarray *p, real opacity,
-	  real shininess, real granularity, bool lighton, bool straight)
+void draw(picture *f, triplearray2 *g, bool straight, penarray *p, real opacity,
+	  real shininess, real granularity, bool lighton)
 {
-  f->append(new drawSurface(*g,*p,opacity,shininess,granularity,lighton,
-			    straight));
+  f->append(new drawSurface(*g,straight,*p,opacity,shininess,granularity,
+			    lighton));
 }
 
 triple min3(picture *f)
@@ -3276,7 +3276,7 @@ picture * Operator *(transform t, picture *f)
 
 picture * Operator *(realarray2 *t, picture *f)
 {
-  return transformed(copyArray2(t),f);
+  return transformed(*copyArray2(t),f);
 }
 
 transform ^(transform t, Int n)
@@ -4696,7 +4696,7 @@ realarray2 *Operator *(realarray2 *a, realarray2 *b)
 
 triple Operator *(realarray2 *a, triple v)
 {
-  return a*v;
+  return *a*v;
 }
 
 pair project(triple v, realarray2 *a)

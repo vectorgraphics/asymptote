@@ -152,7 +152,7 @@ public:
     return this;
   }
   
-  virtual drawElement *transformed(vm::array*) {
+  virtual drawElement *transformed(const vm::array&) {
     return this;
   }
 };

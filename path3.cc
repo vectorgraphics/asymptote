@@ -662,7 +662,7 @@ path3 concat(const path3& p1, const path3& p2)
   return path3(nodes, i+1);
 }
 
-path3 transformed(vm::array *t, const path3& p)
+path3 transformed(const vm::array& t, const path3& p)
 {
   Int n = p.size();
   mem::vector<solvedKnot3> nodes(n);

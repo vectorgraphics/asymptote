@@ -2094,6 +2094,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
     p=material(p,(p.granularity >= 0) ? p.granularity : linegranularity);
     pen q=(pen) p;
     void drawthick(path3 g) {
+      _draw(f,g,q);
       if(settings.thick) {
         real width=linewidth(q);
         if(width > 0) {
@@ -2122,7 +2123,6 @@ draw=new void(frame f, path3 g, material p=currentpen,
             draw3D(f,s.s[i],p,light);
         }
       }
-      _draw(f,g,q);
     }
     string type=linetype(adjust(q,arclength(g),cyclic(g)));
     if(length(type) == 0) drawthick(g);

@@ -512,7 +512,7 @@ void draw3D(frame f, patch s, material m, light light=currentlight)
   if(!light.on())
     m=emissive(m);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
-  draw(f,s.P,m.p,m.opacity,m.shininess,granularity,light.on(),s.straight);
+  draw(f,s.P,s.straight,m.p,m.opacity,m.shininess,granularity,light.on());
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,
@@ -525,7 +525,8 @@ void tensorshade(transform t=identity(), frame f, patch s,
 
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
           material surfacepen=lightgray, pen meshpen=nullpen,
-	  light light=currentlight, projection P=currentprojection)
+	  light light=currentlight, light meshlight=nolight,
+	  projection P=currentprojection)
 {
   bool mesh=!invisible(meshpen);
   bool surface=!invisible((pen) surfacepen);
@@ -538,10 +539,10 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
       for(int k=0; k < s.s.length; ++k) {
         real step=nu == 0 ? 0 : 1/nu;
         for(int i=0; i <= nu; ++i)
-          draw(f,s.s[k].uequals(i*step),thin+meshpen);
+          draw(f,s.s[k].uequals(i*step),thin+meshpen,meshlight);
         step=nv == 0 ? 0 : 1/nv;
         for(int j=0; j <= nv; ++j)
-          draw(f,s.s[k].vequals(j*step),thin+meshpen);
+          draw(f,s.s[k].vequals(j*step),thin+meshpen,meshlight);
       }
     }
   } else {
@@ -579,17 +580,17 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=lightgray, pen meshpen=nullpen,
-	  light light=currentlight)
+	  light light=currentlight, light meshlight=nolight)
 {
   if(s.empty()) return;
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
       if(is3D()) {
-        draw(f,S,nu,nv,surfacepen,meshpen,light);
+        draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight);
       } else if(pic != null)
         pic.add(new void(frame f, transform T) {
-            draw(T,f,S,nu,nv,surfacepen,meshpen,light,P);
+            draw(T,f,S,nu,nv,surfacepen,meshpen,light,meshlight,P);
           },true);
       if(pic != null) {
         pic.addPoint(min(S,P));

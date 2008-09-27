@@ -83,21 +83,21 @@ real[] unpack(pen p)
 }
 
 struct light {
-  triple[] position;
   real[][] diffuse;
   real[][] ambient;
   real[][] specular;
   real specularfactor;
   bool viewport; // Are the lights specified (and fixed) in the viewport frame?
+  triple[] position;
+
   transform3 T=identity(4); // Transform to apply to normal vectors.
 
   bool on() {return position.length > 0;}
   
-  void operator init(triple[] position,
-		     pen[] diffuse=array(position.length,white),
+  void operator init(pen[] diffuse=array(position.length,white),
 		     pen[] ambient=array(position.length,black),
 		     pen[] specular=diffuse, real specularfactor=1,
-		     bool viewport=true) {
+		     bool viewport=true, triple[] position) {
     this.position=new triple[position.length];
     this.diffuse=new real[position.length][];
     this.ambient=new real[position.length][];
@@ -112,17 +112,18 @@ struct light {
     this.viewport=viewport;
   }
 
-  void operator init(triple position, pen diffuse=white,
-		     pen ambient=black, pen specular=diffuse,
-		     real specularfactor=1, bool viewport=true) {
-    operator init(new triple[] {position},new pen[] {diffuse},
-		  new pen[] {ambient},new pen[] {specular},specularfactor,
-		  viewport);
+  void operator init(pen diffuse=white, pen ambient=black, pen specular=diffuse,
+		     real specularfactor=1,
+		     bool viewport=true...triple[] position) {
+    int n=position.length;
+    operator init(array(n,diffuse),array(n,ambient),array(n,specular),
+		  specularfactor,viewport,position);
   }
 
-  void operator init(real x, real y, real z,
-		     real specularfactor=1, bool viewport=true) {
-    operator init((x,y,z),specularfactor,viewport);
+  void operator init(pen diffuse=white, pen ambient=black, pen specular=diffuse,
+		     real specularfactor=1, bool viewport=true,
+		     real x, real y, real z) {
+    operator init(diffuse,ambient,specular,specularfactor,viewport,(x,y,z));
   }
 
   triple[] position(transform3 T) {
@@ -142,7 +143,7 @@ struct light {
       triple L=viewport ? position[i] : T*position[i];
       real Ldotn=max(dot(normal,L),0);
       p += ambient[i]*Ambient+Ldotn*diffuse[i]*Diffuse;
-// Apply a factor of 3 to partially account for the non-pixel-based rendering.
+// Apply specularfactor to partially compensate non-pixel-based rendering.
       if(Ldotn > 0) // Phong-Blinn model of specular reflection
 	p += dot(normal,unit(L+Z))^s*specularfactor*specular[i]*Specular;
     }
@@ -152,11 +153,9 @@ struct light {
 
 light operator cast(triple v) {return light(v);}
 
-light currentlight=light((0.25,-0.25,1),white,ambient=rgb(0.1,0.1,0.1),
-			 specularfactor=3,viewport=true);
+light currentlight=light(ambient=rgb(0.1,0.1,0.1),(0.25,-0.25,1),
+			 specularfactor=3);
 
-light adobe=light(new triple[] {(0,1,-0.25),(0,-1,-0.25),
-				      (0.5,0,0.5),(-0.5,0,-0.5)},
-  array(4,gray(0.45)),specularfactor=3,viewport=false);
-
+light adobe=light(gray(0.45),specularfactor=3,viewport=false,
+		  (0,1,-0.25),(0,-1,-0.25),(0.5,0,0.5),(-0.5,0,-0.5));
 light nolight;

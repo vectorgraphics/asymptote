@@ -87,7 +87,7 @@ inline void checkEqual(size_t i, size_t j) {
   vm::error(buf);
 }
 
-inline size_t checkArrays(vm::array *a, vm::array *b) 
+inline size_t checkArrays(const vm::array *a, const vm::array *b) 
 {
   size_t asize=checkArray(a);
   size_t bsize=checkArray(b);

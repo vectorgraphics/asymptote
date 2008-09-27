@@ -96,7 +96,7 @@ public:
   bool reloadPDF(const string& Viewer, const string& outname) const;
   
   picture *transformed(const transform& t);
-  picture *transformed(vm::array *t);
+  picture *transformed(const vm::array& t);
   
   bool null() {
     return nodes.empty();
@@ -109,7 +109,7 @@ inline picture *transformed(const transform& t, picture *p)
   return p->transformed(t);
 }
 
-inline picture *transformed(vm::array *t, picture *p)
+inline picture *transformed(const vm::array& t, picture *p)
 {
   return p->transformed(t);
 }

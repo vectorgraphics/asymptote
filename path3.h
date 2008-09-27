@@ -314,7 +314,7 @@ public:
 
 };
 
-path3 transformed(vm::array *t, const path3& p);
+path3 transformed(const vm::array& t, const path3& p);
   
 extern path3 nullpath3;
 extern const unsigned maxdepth;

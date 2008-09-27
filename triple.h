@@ -18,7 +18,7 @@
 
 namespace camp {
 
-class triple : public gc {
+class triple : virtual public gc {
   double x;
   double y;
   double z;
@@ -27,6 +27,8 @@ public:
   triple() : x(0.0), y(0.0), z(0.0) {}
   triple(double x, double y=0.0, double z=0.0) : x(x), y(y), z(z) {}
 
+  virtual ~triple() {}
+  
   double getx() const { return x; }
   double gety() const { return y; }
   double getz() const { return z; }
