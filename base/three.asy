@@ -1926,11 +1926,13 @@ object embed(string prefix=defaultfilename, picture pic,
         P=s*P;
       }
       pair c=0.5*(M+m);
-      if(is3D) {
+
+      if(is3D && !P.infinity) {
         triple shift=invert(c,unit(P.vector()),P.target,P);
         P.target += shift;
         P.calculate();
       }
+
       if(scale) {
         pic2.erase();
         f=pic.fit3(s*t,is3D ? null : pic2,P);
