@@ -50,7 +50,7 @@ double Aspect;
 bool View;
 int Oldpid;
 const string* Prefix;
-picture* Picture;
+const picture* Picture;
 string Format;
 int Width,Height;
 
@@ -760,7 +760,7 @@ void menu(int choice)
 }
 
 // angle=0 means orthographic.
-void glrender(const string& prefix, picture *pic, const string& format,
+void glrender(const string& prefix, const picture *pic, const string& format,
 	      double width, double height,
 	      double angle, const triple& m, const triple& M,
 	      size_t nlights, triple *lights, double *diffuse,

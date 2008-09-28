@@ -22,7 +22,7 @@ using namespace settings;
 
 #ifdef HAVE_LIBGLUT
 namespace gl {
-void glrender(const string& prefix, camp::picture *pic,
+void glrender(const string& prefix, const camp::picture* pic,
 	      const string& format, double width, double height,
 	      double angle, const camp::triple& m, const camp::triple& M,
 	      size_t nlights, camp::triple *lights, double *diffuse,
