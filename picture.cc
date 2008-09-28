@@ -405,7 +405,7 @@ bool picture::postprocess(const string& prename, const string& outname,
       int pid;
       if(running) {
 	pid=p->second;
-	if(interact::interactive && pid)
+	if(pid)
 	  running=(waitpid(pid, &status, WNOHANG) != pid);
       }
 	

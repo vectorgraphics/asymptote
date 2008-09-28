@@ -616,7 +616,7 @@ void psfile::rawimage(unsigned char *a, size_t width, size_t height,
   size_t size=ncomponents*width*height;
 
   if(colorspace == RGB && settings::getSetting<Int>("level") >= 3) {
-    if(antialias) dealias(a,width,height,ncomponents);
+    if(antialias) dealias(a,width,height,3);
     writeCompressed(a,size);
   } else {
     beginImage(size);

@@ -6,6 +6,8 @@
 
 #include <stdlib.h>
 #include <fstream>
+#include <cstring>
+
 #include "picture.h"
 #include "common.h"
 #include "arcball.h"
@@ -14,6 +16,14 @@
 #include "interact.h"
 
 #ifdef HAVE_LIBGLUT
+
+// For CYGWIN
+#ifndef FGAPI
+#define FGAPI GLUTAPI
+#endif
+#ifndef FGAPIENTRY
+#define FGAPIENTRY APIENTRY
+#endif
 
 #include <GL/freeglut_ext.h>
 
@@ -31,7 +41,7 @@ using settings::Setting;
 
 const double moveFactor=1.0;  
 const double zoomFactor=1.05;
-const double zoomFactorStep=0.25;
+const double zoomFactorStep=0.1;
 const double spinStep=60.0; // Degrees per second
 const double arcballRadius=750.0;
 const double resizeStep=1.5;
@@ -46,6 +56,8 @@ int Width,Height;
 double oWidth,oHeight;
 
 bool Xspin,Yspin,Zspin;
+bool Menu;
+bool Motion;
 int Fitscreen;
 int Mode;
 
@@ -70,6 +82,7 @@ double *Diffuse;
 double *Ambient;
 double *Specular;
 bool ViewportLighting;
+bool queueExport=false;
 
 int x0,y0;
 int mod;
@@ -128,22 +141,41 @@ void save()
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
   size_t ndata=3*Width*Height;
   unsigned char *data=new unsigned char[ndata];
-  glReadPixels(0,0,Width,Height,GL_RGB,GL_UNSIGNED_BYTE,data);
-  Picture->append(new drawImage(data,Width,Height,
-				transform(0.0,0.0,oWidth,0.0,0.0,oHeight),
-				true));
-  Picture->shipout(NULL,*Prefix,Format,0.0,false,View);
-  delete[] data;
+  if(data) {
+    picture pic;
+    glReadPixels(0,0,Width,Height,GL_RGB,GL_UNSIGNED_BYTE,data);
+    drawImage Image(data,Width,Height,transform(0.0,0.0,oWidth,0.0,0.0,oHeight),
+		    true);
+    pic.append(&Image);
+    pic.shipout(NULL,*Prefix,Format,0.0,false,View);
+    if(data)
+      delete[] data;
+   }
 }
   
+void Export() 
+{
+  glReadBuffer(GL_FRONT_LEFT);
+  save();
+}
+
 void quit() 
 {
   glutDestroyWindow(window);
   glutLeaveMainLoop();
 }
 
+void disableMenu() 
+{
+  glutDetachMenu(GLUT_RIGHT_BUTTON);
+  Menu=false;
+}
+
 void display(void)
 {
+  if(Menu) disableMenu();
+  Motion=true;
+  
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glMatrixMode(GL_MODELVIEW);
@@ -174,6 +206,11 @@ void display(void)
   
   if(View) {
     glutSwapBuffers();
+    if(queueExport) {
+      Export();
+      queueExport=false;
+    }
+    
     int status;
     if(Oldpid != 0 && waitpid(Oldpid, &status, WNOHANG) != Oldpid) {
       kill(Oldpid,SIGHUP);
@@ -287,6 +324,8 @@ void capzoom()
 void zoom(int x, int y)
 {
   if(x > 0 && y > 0) {
+    if(Menu) disableMenu();
+    Motion=true;
     static const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
     lastzoom=Zoom;
     double s=zoomFactorStep*(y-y0);
@@ -316,6 +355,7 @@ void mousewheel(int wheel, int direction, int x, int y)
 void rotate(int x, int y)
 {
   if(x > 0 && y > 0) {
+    Motion=true;
     arcball.mouse_motion(x,Height-y,0,
 			 mod == GLUT_ACTIVE_SHIFT, // X rotation only
 			 mod == GLUT_ACTIVE_CTRL);  // Y rotation only
@@ -397,6 +437,16 @@ void rotateZ(int x, int y)
 void mouse(int button, int state, int x, int y)
 {
   mod=glutGetModifiers();
+  
+  if(button == GLUT_RIGHT_BUTTON) {
+    if(state == GLUT_UP && !Motion) {
+      glutAttachMenu(GLUT_RIGHT_BUTTON);
+      Menu=true;
+    }
+  }
+  
+  Motion=false;
+  
   if(state == GLUT_DOWN) {
     if(button == GLUT_LEFT_BUTTON && mod == GLUT_ACTIVE_CTRL) {
       x0=x; y0=y;
@@ -486,7 +536,6 @@ void shrink()
   int x,y;
   int w=(int) (Width/resizeStep);
   int h=(int) (Height/resizeStep);
-  capsize(w,h);
   glutReshapeWindow(w,h);
   windowposition(x,y,w,h);
   glutPositionWindow(x,y);
@@ -534,24 +583,6 @@ void fitscreen()
   }
 }
 
-void home() 
-{
-  glutIdleFunc(NULL);
-  X=Y=0.0;
-  arcball.init();
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
-  Zoom=1.0;
-  update();
-}
-
-void Export() 
-{
-  glReadBuffer(GL_FRONT_LEFT);
-  save();
-}
-
 void idleFunc(void (*f)())
 {
   initTimer();
@@ -562,13 +593,15 @@ void mode()
 {
   switch(Mode) {
     case 0:
-      glEnable(GL_LIGHTING);
+      for(size_t i=0; i < Nlights; ++i) 
+	glEnable(GL_LIGHT0+i);
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
       gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_FILL);
       ++Mode;
     break;
     case 1:
-      glDisable(GL_LIGHTING);
+      for(size_t i=0; i < Nlights; ++i) 
+	glDisable(GL_LIGHT0+i);
       gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_POLYGON);
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       ++Mode;
@@ -620,11 +653,24 @@ void spinz()
   }
 }
 
+void home() 
+{
+  idle();
+  X=Y=0.0;
+  arcball.init();
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
+  glGetFloatv(GL_MODELVIEW_MATRIX,Modelview);
+  lastzoom=Zoom=1.0;
+}
+
 void keyboard(unsigned char key, int x, int y)
 {
   switch(key) {
     case 'h':
       home();
+      update();
       break;
     case 'f':
       fitscreen();
@@ -640,7 +686,7 @@ void keyboard(unsigned char key, int x, int y)
       spinz();
       break;
     case 's':
-      glutIdleFunc(NULL);
+      idle();
       break;
     case 'm':
       mode();
@@ -671,6 +717,7 @@ void menu(int choice)
   switch (choice) {
     case HOME: // Home
       home();
+      update();
       break;
     case FITSCREEN:
       fitscreen();
@@ -685,13 +732,13 @@ void menu(int choice)
       spinz();
       break;
     case STOP:
-      glutIdleFunc(NULL);
+      idle();
       break;
     case MODE:
       mode();
       break;
     case EXPORT:
-      Export();
+      queueExport=true;
       break;
     case QUIT:
       quit();
@@ -727,10 +774,8 @@ void glrender(const string& prefix, picture *pic, const string& format,
   zmax=M.getz();
   H=angle != 0.0 ? -tan(0.5*angle*radians)*zmax : 0.0;
    
-  X=Y=0.0;
-  lastzoom=Zoom=1.0;
-  Xspin=Yspin=Zspin=false;
-  
+  Menu=false;
+  Motion=true;
   Fitscreen=1;
   Mode=0;
   
@@ -753,6 +798,8 @@ void glrender(const string& prefix, picture *pic, const string& format,
   
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+  
+  home();
   
   glutInitWindowSize(1,1);
   window=glutCreateWindow("");
@@ -785,7 +832,8 @@ void glrender(const string& prefix, picture *pic, const string& format,
   glutInitWindowPosition(x,y);
   
   glutInitWindowSize(Width,Height);
-  window=glutCreateWindow((prefix+" [Click middle button for menu]").c_str());
+  window=glutCreateWindow((prefix+
+			   " [Double click right button for menu]").c_str());
   
   if(screen && !interact::interactive && getSetting<bool>("fitscreen"))
     fitscreen();
@@ -814,11 +862,6 @@ void glrender(const string& prefix, picture *pic, const string& format,
   gluNurbsCallback(nurb,GLU_NURBS_END,(_GLUfuncptr) glEnd);
   mode();
   
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
-  glGetFloatv(GL_MODELVIEW_MATRIX,Modelview);
-  
   glEnable(GL_LIGHTING);
   if(getSetting<bool>("twosided"))
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE);
@@ -844,6 +887,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
   glutAddMenuEntry("(m) Mode",MODE);
   glutAddMenuEntry("(e) Export",EXPORT);
   glutAddMenuEntry("(q) Quit" ,QUIT);
+  
   glutAttachMenu(GLUT_MIDDLE_BUTTON);
 
   glutMainLoop();
