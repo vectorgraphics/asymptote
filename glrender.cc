@@ -46,6 +46,7 @@ const double spinStep=60.0; // Degrees per second
 const double arcballRadius=750.0;
 const double resizeStep=1.5;
 
+double Aspect;
 bool View;
 int Oldpid;
 const string* Prefix;
@@ -62,7 +63,7 @@ int Fitscreen;
 int Mode;
 
 double H;
-GLint viewportLimit[2];
+GLint ViewportLimit[2];
 double xmin,xmax;
 double ymin,ymax;
 double zmin,zmax;
@@ -71,7 +72,7 @@ double Xmin,Xmax;
 double Ymin,Ymax;
 double X,Y;
 
-int minimumsize=50; // Minimum rendering window width and height
+int minimumsize=50; // Minimum initial rendering window width and height
 
 const double degrees=180.0/M_PI;
 const double radians=1.0/degrees;
@@ -144,8 +145,13 @@ void save()
   if(data) {
     picture pic;
     glReadPixels(0,0,Width,Height,GL_RGB,GL_UNSIGNED_BYTE,data);
-    drawImage Image(data,Width,Height,transform(0.0,0.0,oWidth,0.0,0.0,oHeight),
-		    true);
+    double w=oWidth;
+    double h=oHeight;
+    double Aspect=((double) Width)/Height;
+    if(w > h*Aspect) w=(int) (h*Aspect);
+    else h=(int) (w/Aspect);
+    // Render an antialiased image.
+    drawImage Image(data,Width,Height,transform(0.0,0.0,w,0.0,0.0,h),true);
     pic.append(&Image);
     pic.shipout(NULL,*Prefix,Format,0.0,false,View);
     if(data)
@@ -262,12 +268,12 @@ void setProjection()
 
 bool capsize(int& width, int& height) 
 {
-  if(width > viewportLimit[0]) {
-    width=viewportLimit[0];
+  if(width > ViewportLimit[0]) {
+    width=ViewportLimit[0];
     return true;
   }
-  if(height > viewportLimit[1]) {
-    height=viewportLimit[1];
+  if(height > ViewportLimit[1]) {
+    height=ViewportLimit[1];
     return true;
   }
   return false;
@@ -275,8 +281,8 @@ bool capsize(int& width, int& height)
 
 void reshape(int width, int height)
 {
-  if(capsize(width,height))
-    glutReshapeWindow(width,height);
+ if(capsize(width,height))
+   glutReshapeWindow(width,height);
   
   X=X/Width*width;
   Y=Y/Height*height;
@@ -504,6 +510,16 @@ void initTimer()
   gettimeofday(&lasttime,NULL);
 }
 
+int screenWidth() 
+{
+  return min(glutGet(GLUT_SCREEN_WIDTH),ViewportLimit[0]);
+}
+
+int screenHeight() 
+{
+  return min(glutGet(GLUT_SCREEN_HEIGHT),ViewportLimit[1]);
+}
+
 void windowposition(int& x, int& y, int width, int height) 
 {
   pair z=getSetting<pair>("position");
@@ -519,27 +535,25 @@ void windowposition(int& x, int& y, int width, int height)
   }
 }
 
-void expand() 
+void setsize(int w, int h) 
 {
   int x,y;
-  int w=(int) (Width*resizeStep);
-  int h=(int) (Height*resizeStep);
   capsize(w,h);
   glutReshapeWindow(w,h);
-  windowposition(x,y,w,h);
+  reshape(w,h);
+  windowposition(x,y,Width,Height);
   glutPositionWindow(x,y);
   glutPostRedisplay();
 }
 
+void expand() 
+{
+  setsize((int) (Width*resizeStep),(int) (Height*resizeStep));
+}
+
 void shrink() 
 {
-  int x,y;
-  int w=(int) (Width/resizeStep);
-  int h=(int) (Height/resizeStep);
-  glutReshapeWindow(w,h);
-  windowposition(x,y,w,h);
-  glutPositionWindow(x,y);
-  glutPostRedisplay();
+  setsize(max((int) (Width/resizeStep),1),max((int) (Height/resizeStep),1));
 }
 
 void fitscreen() 
@@ -559,9 +573,8 @@ void fitscreen()
     {
       oldwidth=Width;
       oldheight=Height;
-      double Aspect=((double) Width)/Height;
-      int w=glutGet(GLUT_SCREEN_WIDTH);
-      int h=glutGet(GLUT_SCREEN_HEIGHT);
+      int w=screenWidth();
+      int h=screenHeight();
       if(w > 0 && h > 0) {
 	if(w > h*Aspect) w=(int) (h*Aspect);
 	else h=(int) (w/Aspect);
@@ -751,7 +764,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
 	      double width, double height,
 	      double angle, const triple& m, const triple& M,
 	      size_t nlights, triple *lights, double *diffuse,
-	      double *ambient, double *specular, bool viewportlighting,
+	      double *ambient, double *specular, bool Viewportlighting,
 	      bool view, int oldpid)
 {
   Prefix=&prefix;
@@ -764,7 +777,7 @@ void glrender(const string& prefix, picture *pic, const string& format,
   Diffuse=diffuse;
   Ambient=ambient;
   Specular=specular;
-  ViewportLighting=viewportlighting;
+  ViewportLighting=Viewportlighting;
     
   Xmin=m.getx();
   Xmax=M.getx();
@@ -803,22 +816,24 @@ void glrender(const string& prefix, picture *pic, const string& format,
   
   glutInitWindowSize(1,1);
   window=glutCreateWindow("");
-  glGetIntegerv(GL_MAX_VIEWPORT_DIMS, viewportLimit);
+  glGetIntegerv(GL_MAX_VIEWPORT_DIMS, ViewportLimit);
   glutDestroyWindow(window);
 
-  // Work around direct rendering allocation bugs.
+  // Force a hard viewport limit to work around direct rendering bugs.
+  // Alternatively, one can use -glOptions=-indirect (with a performance
+  // penalty).
   int limit=(int) getSetting<Int>("maxviewport");
   if(limit > 0) {
-    viewportLimit[0]=min(viewportLimit[0],limit);
-    viewportLimit[1]=min(viewportLimit[1],limit);
+    ViewportLimit[0]=min(ViewportLimit[0],limit);
+    ViewportLimit[1]=min(ViewportLimit[1],limit);
   }
 
   oWidth=width;
   oHeight=height;
-  double Aspect=((double) width)/height;
+  Aspect=((double) width)/height;
   
-  Width=min(max((int) (expand*width),minimumsize),viewportLimit[0]);
-  Height=min(max((int) (expand*height),minimumsize),viewportLimit[1]);
+  Width=min(max((int) (expand*width),minimumsize),ViewportLimit[0]);
+  Height=min(max((int) (expand*height),minimumsize),ViewportLimit[1]);
   
   if(Width > Height*Aspect) Width=(int) (Height*Aspect);
   else Height=(int) (Width/Aspect);
