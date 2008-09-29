@@ -212,22 +212,20 @@ int screenHeight()
 
 bool capsize(int& width, int& height) 
 {
+  bool resize=false;
   if(width > ViewportLimit[0]) {
     width=ViewportLimit[0];
-    return true;
+    resize=true;
   }
   if(height > ViewportLimit[1]) {
     height=ViewportLimit[1];
-    return true;
+    resize=true;
   }
-  return false;
+  return resize;
 }
 
-void reshape(int width, int height)
+void reshape0(int width, int height)
 {
- if(capsize(width,height))
-   glutReshapeWindow(width,height);
-  
   X=X/Width*width;
   Y=Y/Height*height;
   
@@ -236,6 +234,14 @@ void reshape(int width, int height)
   
   setProjection();
   glViewport(0,0,Width,Height);
+}
+  
+void reshape(int width, int height)
+{
+ if(capsize(width,height))
+   glutReshapeWindow(width,height);
+ 
+ reshape0(width,height);
 }
   
 void windowposition(int& x, int& y, int width=Width, int height=Height)
@@ -253,20 +259,15 @@ void windowposition(int& x, int& y, int width=Width, int height=Height)
   }
 }
 
-void setsize(int w, int h, int width, int height) 
+void setsize(int w, int h)
 {
   int x,y;
   capsize(w,h);
-  windowposition(x,y,width,height);
+  windowposition(x,y,w,h);
   glutPositionWindow(x,y);
   glutReshapeWindow(w,h);
-  reshape(w,h);
+  reshape0(w,h);
   glutPostRedisplay();
-}
-
-void setsize(int w, int h)
-{
-  setsize(w,h,w,h);
 }
 
 void fullscreen() 
@@ -589,7 +590,7 @@ void fitscreen()
   switch(Fitscreen) {
     case 0: // Original size
     {
-      setsize(oldwidth,oldheight,oldwidth,oldheight);
+      setsize(oldwidth,oldheight);
       ++Fitscreen;
       break;
     }
@@ -607,7 +608,7 @@ void fitscreen()
       if(w > 0 && h > 0) {
 	if(w > h*Aspect) w=(int) (h*Aspect);
 	else h=(int) (w/Aspect);
-	setsize(w,h,w,h);
+	setsize(w,h);
       }
       ++Fitscreen;
       break;
