@@ -252,7 +252,7 @@ void windowposition(int& x, int& y, int width=Width, int height=Height)
   }
 }
 
-void setsize(int w, int h, int width=Width, int height=Height) 
+void setsize(int w, int h, int width, int height) 
 {
   int x,y;
   capsize(w,h);
@@ -261,6 +261,11 @@ void setsize(int w, int h, int width=Width, int height=Height)
   glutReshapeWindow(w,h);
   reshape(w,h);
   glutPostRedisplay();
+}
+
+void setsize(int w, int h)
+{
+  setsize(w,h,w,h);
 }
 
 void fullscreen() 
