@@ -142,8 +142,8 @@ void lighting(void)
 void save()
 {  
   glFinish();
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
-  size_t ndata=4*Width*Height;
+  glPixelStorei(GL_PACK_ALIGNMENT,1);
+  size_t ndata=3*Width*Height;
   unsigned char *data=new unsigned char[ndata];
   if(data) {
     picture pic;
@@ -154,11 +154,12 @@ void save()
     if(w > h*Aspect) w=(int) (h*Aspect);
     else h=(int) (w/Aspect);
     // Render an antialiased image.
-    drawImage Image(data,Width,Height,transform(0.0,0.0,w,0.0,0.0,h),true);
-    pic.append(&Image);
+    drawImage *Image=new drawImage(data,Width,Height,
+				   transform(0.0,0.0,w,0.0,0.0,h),true);
+    pic.append(Image);
     pic.shipout(NULL,*Prefix,Format,0.0,false,View);
-    if(data)
-      delete[] data;
+    delete Image;
+    delete[] data;
    }
 }
   
