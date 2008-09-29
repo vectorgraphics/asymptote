@@ -67,8 +67,9 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
   if(lightEnabled)
     glDisable(GL_LIGHTING);
   
+  glColor4f(color.R,color.G,color.B,color.A);
+      
   if(straight) {
-    glColor4f(color.R,color.G,color.B,color.A);
     glBegin(GL_LINE_STRIP);
     for(Int i=0; i <= n; ++i) {
       triple v=g.point(i);
@@ -85,9 +86,8 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
       store(controlpoints+9,g.point(i+1));
     
       gluBeginCurve(nurb);
-      glColor4f(color.R,color.G,color.B,color.A);
       gluNurbsCurve(nurb,8,knots,3,controlpoints,4,GL_MAP1_VERTEX_3);
-      gluEndSurface(nurb);
+      gluEndCurve(nurb);
     }
   }
   if(lightEnabled) 
