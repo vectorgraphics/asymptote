@@ -139,15 +139,12 @@ void lighting(void)
   }
 }
 
-extern "C" void bzero(void *, size_t);
-
 void save()
 {  
   glFinish();
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
   size_t ndata=4*Width*Height;
   unsigned char *data=new unsigned char[ndata];
-   bzero(data,ndata);
   if(data) {
     picture pic;
     glReadPixels(0,0,Width,Height,GL_RGB,GL_UNSIGNED_BYTE,data);
