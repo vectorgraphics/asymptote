@@ -1,7 +1,6 @@
 import graph3;
 
 size(200);
-size3(200);
 
 currentprojection=orthographic(500,-500,500);
 

@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <fstream>
 #include <cstring>
+#include <sys/time.h>
 
 #include "picture.h"
 #include "common.h"
@@ -53,6 +54,7 @@ const string* Prefix;
 const picture* Picture;
 string Format;
 int Width,Height;
+int oldWidth,oldHeight;
 
 double oWidth,oHeight;
 
@@ -95,7 +97,8 @@ double lastzoom;
 
 float Rotate[16];
 float Modelview[16];
-
+Arcball arcball;
+  
 GLUnurbs *nurb;
 
 int window;
@@ -136,12 +139,15 @@ void lighting(void)
   }
 }
 
+extern "C" void bzero(void *, size_t);
+
 void save()
 {  
   glFinish();
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
-  size_t ndata=3*Width*Height;
+  size_t ndata=4*Width*Height;
   unsigned char *data=new unsigned char[ndata];
+   bzero(data,ndata);
   if(data) {
     picture pic;
     glReadPixels(0,0,Width,Height,GL_RGB,GL_UNSIGNED_BYTE,data);
@@ -159,6 +165,118 @@ void save()
    }
 }
   
+void setProjection()
+{
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  double Aspect=((double) Width)/Height;
+  double X0=X*(xmax-xmin)/(lastzoom*Width);
+  double Y0=Y*(ymax-ymin)/(lastzoom*Height);
+  if(H == 0.0) {
+    double xsize=Xmax-Xmin;
+    double ysize=Ymax-Ymin;
+    if(xsize < ysize*Aspect) {
+      double r=0.5*ysize*Zoom*Aspect;
+      xmin=-r-X0;
+      xmax=r-X0;
+      ymin=Ymin*Zoom-Y0;
+      ymax=Ymax*Zoom-Y0;
+    } else {
+      double r=0.5*xsize*Zoom/Aspect;
+      xmin=Xmin*Zoom-X0;
+      xmax=Xmax*Zoom-X0;
+      ymin=-r-Y0;
+      ymax=r-Y0;
+    }
+    glOrtho(xmin,xmax,ymin,ymax,-zmax,-zmin);
+  } else {
+    double r=H*Zoom;
+    xmin=-r*Aspect-X0;
+    xmax=r*Aspect-X0;
+    ymin=-r-Y0;
+    ymax=r-Y0;
+    glFrustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
+  }
+  glMatrixMode(GL_MODELVIEW);
+  
+  arcball.set_params(vec2(0.5*Width,0.5*Height),arcballRadius/Zoom);
+}
+
+int screenWidth() 
+{
+  return min(glutGet(GLUT_SCREEN_WIDTH),ViewportLimit[0]);
+}
+
+int screenHeight() 
+{
+  return min(glutGet(GLUT_SCREEN_HEIGHT),ViewportLimit[1]);
+}
+
+bool capsize(int& width, int& height) 
+{
+  if(width > ViewportLimit[0]) {
+    width=ViewportLimit[0];
+    return true;
+  }
+  if(height > ViewportLimit[1]) {
+    height=ViewportLimit[1];
+    return true;
+  }
+  return false;
+}
+
+void reshape(int width, int height)
+{
+ if(capsize(width,height))
+   glutReshapeWindow(width,height);
+  
+  X=X/Width*width;
+  Y=Y/Height*height;
+  
+  Width=width;
+  Height=height;
+  
+  setProjection();
+  glViewport(0,0,Width,Height);
+}
+  
+void windowposition(int& x, int& y, int width=Width, int height=Height)
+{
+  pair z=getSetting<pair>("position");
+  x=(int) z.getx();
+  y=(int) z.gety();
+  if(x < 0) {
+    x += glutGet(GLUT_SCREEN_WIDTH)-width;
+    if(x < 0) x=0;
+  }
+  if(y < 0) {
+    y += glutGet(GLUT_SCREEN_HEIGHT)-height;
+    if(y < 0) y=0;
+  }
+}
+
+void setsize(int w, int h, int width=Width, int height=Height) 
+{
+  int x,y;
+  capsize(w,h);
+  windowposition(x,y,width,height);
+  glutPositionWindow(x,y);
+  glutReshapeWindow(w,h);
+  reshape(w,h);
+  glutPostRedisplay();
+}
+
+void fullscreen() 
+{
+  int w=screenWidth();
+  int h=screenHeight();
+  if(w > 0 && h > 0) {
+    Width=w;
+    Height=h;
+    glutFullScreen();
+  }
+}
+
 void Export() 
 {
   glReadBuffer(GL_FRONT_LEFT);
@@ -179,13 +297,8 @@ void disableMenu()
 
 void display(void)
 {
-  if(Menu) disableMenu();
-  Motion=true;
-  
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glMatrixMode(GL_MODELVIEW);
-  
   if(!ViewportLighting) 
     lighting();
     
@@ -229,75 +342,9 @@ void display(void)
   }
 }
 
-Arcball arcball;
-  
-void setProjection()
-{
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  double Aspect=((double) Width)/Height;
-  double X0=X*(xmax-xmin)/(lastzoom*Width);
-  double Y0=Y*(ymax-ymin)/(lastzoom*Height);
-  if(H == 0.0) {
-    double xsize=Xmax-Xmin;
-    double ysize=Ymax-Ymin;
-    if(xsize < ysize*Aspect) {
-      double r=0.5*ysize*Zoom*Aspect;
-      xmin=-r-X0;
-      xmax=r-X0;
-      ymin=Ymin*Zoom-Y0;
-      ymax=Ymax*Zoom-Y0;
-    } else {
-      double r=0.5*xsize*Zoom/Aspect;
-      xmin=Xmin*Zoom-X0;
-      xmax=Xmax*Zoom-X0;
-      ymin=-r-Y0;
-      ymax=r-Y0;
-    }
-    glOrtho(xmin,xmax,ymin,ymax,-zmax,-zmin);
-  } else {
-    double r=H*Zoom;
-    xmin=-r*Aspect-X0;
-    xmax=r*Aspect-X0;
-    ymin=-r-Y0;
-    ymax=r-Y0;
-    glFrustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
-  }
-  arcball.set_params(vec2(0.5*Width,0.5*Height),arcballRadius/Zoom);
-}
-
-bool capsize(int& width, int& height) 
-{
-  if(width > ViewportLimit[0]) {
-    width=ViewportLimit[0];
-    return true;
-  }
-  if(height > ViewportLimit[1]) {
-    height=ViewportLimit[1];
-    return true;
-  }
-  return false;
-}
-
-void reshape(int width, int height)
-{
- if(capsize(width,height))
-   glutReshapeWindow(width,height);
-  
-  X=X/Width*width;
-  Y=Y/Height*height;
-  
-  Width=width;
-  Height=height;
-  
-  setProjection();
-  glViewport(0,0,Width,Height);
-}
-  
 void update() 
 {
   lastzoom=Zoom;
-  glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   double cz=0.5*(zmin+zmax);
   glTranslatef(0,0,cz);
@@ -330,7 +377,11 @@ void capzoom()
 void zoom(int x, int y)
 {
   if(x > 0 && y > 0) {
-    if(Menu) disableMenu();
+    if(Menu) {
+      disableMenu();
+      y0=y;
+      return;
+    }
     Motion=true;
     static const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
     lastzoom=Zoom;
@@ -361,6 +412,11 @@ void mousewheel(int wheel, int direction, int x, int y)
 void rotate(int x, int y)
 {
   if(x > 0 && y > 0) {
+    if(Menu) {
+      disableMenu();
+      arcball.mouse_down(x,Height-y);
+      return;
+    }
     Motion=true;
     arcball.mouse_motion(x,Height-y,0,
 			 mod == GLUT_ACTIVE_SHIFT, // X rotation only
@@ -394,7 +450,6 @@ void updateArcball()
   
 void rotateX(double step) 
 {
-  glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glRotatef(step,1,0,0);
   glMultMatrixf(Rotate);
@@ -404,7 +459,6 @@ void rotateX(double step)
 
 void rotateY(double step) 
 {
-  glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glRotatef(step,0,1,0);
   glMultMatrixf(Rotate);
@@ -414,7 +468,6 @@ void rotateY(double step)
 
 void rotateZ(double step) 
 {
-  glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glRotatef(step,0,0,1);
   glMultMatrixf(Rotate);
@@ -425,6 +478,12 @@ void rotateZ(double step)
 void rotateZ(int x, int y)
 {
   if(x > 0 && y > 0) {
+    if(Menu) {
+      disableMenu();
+      x=x0; y=y0;
+      return;
+    }
+    Motion=true;
     double angle=Degrees(x,y);
     rotateZ(angle-lastangle);
     lastangle=angle;
@@ -448,10 +507,12 @@ void mouse(int button, int state, int x, int y)
     if(state == GLUT_UP && !Motion) {
       glutAttachMenu(GLUT_RIGHT_BUTTON);
       Menu=true;
+      return;
     }
   }
   
-  Motion=false;
+  if(Menu) disableMenu();
+  else Motion=false;
   
   if(state == GLUT_DOWN) {
     if(button == GLUT_LEFT_BUTTON && mod == GLUT_ACTIVE_CTRL) {
@@ -475,8 +536,6 @@ void mouse(int button, int state, int x, int y)
   } else
     arcball.mouse_up();
 }
-
-#include <sys/time.h>
 
 timeval lasttime;
 
@@ -510,42 +569,6 @@ void initTimer()
   gettimeofday(&lasttime,NULL);
 }
 
-int screenWidth() 
-{
-  return min(glutGet(GLUT_SCREEN_WIDTH),ViewportLimit[0]);
-}
-
-int screenHeight() 
-{
-  return min(glutGet(GLUT_SCREEN_HEIGHT),ViewportLimit[1]);
-}
-
-void windowposition(int& x, int& y, int width, int height) 
-{
-  pair z=getSetting<pair>("position");
-  x=(int) z.getx();
-  y=(int) z.gety();
-  if(x < 0) {
-    x += glutGet(GLUT_SCREEN_WIDTH)-width;
-    if(x < 0) x=0;
-  }
-  if(y < 0) {
-    y += glutGet(GLUT_SCREEN_HEIGHT)-height;
-    if(y < 0) y=0;
-  }
-}
-
-void setsize(int w, int h) 
-{
-  int x,y;
-  capsize(w,h);
-  glutReshapeWindow(w,h);
-  reshape(w,h);
-  windowposition(x,y,Width,Height);
-  glutPositionWindow(x,y);
-  glutPostRedisplay();
-}
-
 void expand() 
 {
   setsize((int) (Width*resizeStep),(int) (Height*resizeStep));
@@ -556,40 +579,39 @@ void shrink()
   setsize(max((int) (Width/resizeStep),1),max((int) (Height/resizeStep),1));
 }
 
+int oldwidth,oldheight;
+
 void fitscreen() 
 {
-  static int oldwidth,oldheight;
-  int x,y;
   switch(Fitscreen) {
     case 0: // Original size
     {
-      glutReshapeWindow(oldwidth,oldheight);
-      windowposition(x,y,oldwidth,oldheight);
-      glutPositionWindow(x,y);
-     ++Fitscreen;
-     break;
+      setsize(oldwidth,oldheight,oldwidth,oldheight);
+      ++Fitscreen;
+      break;
     }
     case 1: // Fit to screen in one dimension
-    {
+    {       
       oldwidth=Width;
       oldheight=Height;
       int w=screenWidth();
       int h=screenHeight();
+#ifdef __CYGWIN__
+      int margin=50;
+      w -= margin;
+      h -= margin;
+#endif      
       if(w > 0 && h > 0) {
 	if(w > h*Aspect) w=(int) (h*Aspect);
 	else h=(int) (w/Aspect);
-	glutReshapeWindow(w,h);
-	windowposition(x,y,w,h);
-	glutPositionWindow(x,y);
-	reshape(w,h);
+	setsize(w,h,w,h);
       }
       ++Fitscreen;
       break;
     }
     case 2: // Full screen
     {
-      glutFullScreen();
-      glutPositionWindow(0,0);
+      fullscreen();
       Fitscreen=0;
       break;
     }
@@ -671,7 +693,6 @@ void home()
   idle();
   X=Y=0.0;
   arcball.init();
-  glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
   glGetFloatv(GL_MODELVIEW_MATRIX,Modelview);
@@ -687,7 +708,6 @@ void keyboard(unsigned char key, int x, int y)
       break;
     case 'f':
       fitscreen();
-      glutPostRedisplay();
       break;
     case 'x':
       spinx();
@@ -727,6 +747,8 @@ enum Menu {HOME,FITSCREEN,XSPIN,YSPIN,ZSPIN,STOP,MODE,EXPORT,QUIT};
 
 void menu(int choice)
 {
+  disableMenu();
+  Motion=true;
   switch (choice) {
     case HOME: // Home
       home();
@@ -812,8 +834,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
   
-  home();
-  
   glutInitWindowSize(1,1);
   window=glutCreateWindow("");
   glGetIntegerv(GL_MAX_VIEWPORT_DIMS, ViewportLimit);
@@ -838,16 +858,22 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(Width > Height*Aspect) Width=(int) (Height*Aspect);
   else Height=(int) (Width/Aspect);
   
+  oldWidth=Width;
+  oldHeight=Height;
+  
   if(settings::verbose > 1) 
     cout << "Rendering " << prefix << " as " << Width << "x" << Height
 	 << " image" << endl;
     
+  glMatrixMode(GL_MODELVIEW);
+  home();
+  
   int x,y;
-  windowposition(x,y,Width,Height);
+  windowposition(x,y);
   glutInitWindowPosition(x,y);
   
   glutInitWindowSize(Width,Height);
-  window=glutCreateWindow((prefix+
+  window=glutCreateWindow(((prefix == "out" ? "Asymptote" : prefix)+
 			   " [Double click right button for menu]").c_str());
   
   if(screen && !interact::interactive && getSetting<bool>("fitscreen"))
