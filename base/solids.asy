@@ -111,9 +111,10 @@ struct revolution {
     surface s=three.surface(L*n);
     int m=-1;
     transform3[] T=new transform3[n+1];
-    real j=angle1;
-    for(int k=0; k <= n; ++k, j += w)
-      T[k]=rotate(j,c,c+axis);
+    transform3 t=rotate(w,c,c+axis);
+    T[0]=rotate(angle1,c,c+axis);
+    for(int k=1; k <= n; ++k)
+      T[k]=T[k-1]*t;
 
     for(int i=0; i < L; ++i) {
       path3 h=subpath(g,i,i+1);
@@ -122,16 +123,21 @@ struct revolution {
       if(perp == O) perp=min(h)-c;
       perp=unit(perp-dot(perp,axis)*axis);
       triple normal=cross(axis,perp);
-      triple dir(real j) {return -Sin(j)*perp+Cos(j)*normal;}
-      j=angle1;
+      triple dir(real j) {return Cos(j)*normal-Sin(j)*perp;}
+      real j=angle1;
+      transform3 Tk=T[0];
+      triple dirj=dir(j);
       for(int k=0; k < n; ++k, j += w) {
-	path3 G=T[k]*h{dir(j)}..{dir(j+w)}T[k+1]*r{-dir(j+w)}..{-dir(j)}cycle;
+	transform3 Tp=T[k+1];
+	triple dirp=dir(j+w);
+	path3 G=Tk*h{dirj}..{dirp}Tp*r{-dirp}..{-dirj}cycle;
+	Tk=Tp;
+	dirj=dirp;
         s.s[++m]=color == null ? patch(G) :
-          patch(G,new pen[] {color(i,j),color(i+1,j),color(i+1,j+w),
-                             color(i,j+w)});
+	  patch(G,new pen[] {color(i,j),color(i+1,j),color(i+1,j+w),
+			     color(i,j+w)});
       }
     }
-
     return s;
   }
 
@@ -148,8 +154,7 @@ struct revolution {
   }
   
   // add transverse slice to skeleton s
-  void transverse(skeleton s, real t,
-                  projection P=currentprojection) {
+  void transverse(skeleton s, real t, projection P=currentprojection) {
     path3 S=slice(t);
     if(is3D()) {
       s.front.push(S);
@@ -213,8 +218,7 @@ struct revolution {
   }
 
   // add m evenly spaced transverse slices to skeleton s
-  void transverse(skeleton s, int m=0,
-                  projection P=currentprojection) {
+  void transverse(skeleton s, int m=0, projection P=currentprojection) {
     int N=size(g);
     int n=(m == 0) ? N : m;
     real factor=m == 1 ? 0 : 1/(m-1);
