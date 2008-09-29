@@ -45,7 +45,7 @@ const double zoomFactor=1.05;
 const double zoomFactorStep=0.1;
 const double spinStep=60.0; // Degrees per second
 const double arcballRadius=750.0;
-const double resizeStep=1.5;
+const double resizeStep=1.2;
 
 double Aspect;
 bool View;
@@ -600,11 +600,6 @@ void fitscreen()
       oldheight=Height;
       int w=screenWidth();
       int h=screenHeight();
-#ifdef __CYGWIN__
-      int margin=50;
-      w -= margin;
-      h -= margin;
-#endif      
       if(w > 0 && h > 0) {
 	if(w > h*Aspect) w=(int) (h*Aspect);
 	else h=(int) (w/Aspect);
@@ -852,6 +847,12 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     ViewportLimit[1]=min(ViewportLimit[1],limit);
   }
 
+#ifdef __CYGWIN__
+  int margin=60;
+  ViewportLimit[0]=min(ViewportLimit[0],screenWidth()-margin);
+  ViewportLimit[1]=min(ViewportLimit[1],screenHeight()-margin);
+#endif
+  
   oWidth=width;
   oHeight=height;
   Aspect=((double) width)/height;
