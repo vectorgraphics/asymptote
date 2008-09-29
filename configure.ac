@@ -184,16 +184,6 @@ AC_CHECK_LIB([m], [sqrt])
 AC_CHECK_LIB([z], [deflate])
 AC_CHECK_LIB([sigsegv], [stackoverflow_install_handler])
 
-case "$HOSTTYPE" in
-     *-*-cygwin) AC_CHECK_LIB([freeglut], [glutLeaveMainLoop],
-                                [AC_DEFINE(HAVE_LIBGLUT,1,
-		   [Define if you have the `freeglut' library (-lfreeglut)]),
-				 LIBS=$LIBS"-lfreeglut -lglu32 -lopengl32 "],
-				 AC_MSG_NOTICE(*** Could not find freeglut; will compile without OpenGL support ***),[-lglu32 -lopengl32]);;
-     *) AC_CHECK_LIB([glut], [glutLeaveMainLoop],,
-				 AC_MSG_NOTICE(*** Could not find freeglut; will compile without OpenGL support ***));;
-esac
-
 AC_CHECK_LIB([readline], [rl_completion_matches],,
 AC_MSG_NOTICE(*** Could not find GNU readline 4.2 or later: will compile without readline support ***))
 
@@ -214,6 +204,17 @@ AC_CHECK_HEADER(gsl/gsl_sf.h,
    [Define to 1 if you have the 'gsl' library (-lgsl). ]) LIBS=$LIBS"-lgsl -lgslcblas "],
            AC_MSG_NOTICE([*** Could not find libgsl: will compile without optional special functions. ***]),[-lgslcblas]),
      AC_MSG_NOTICE([*** Header file gsl_sf.h not found: will compile without optional special functions. ***]))
+
+case "$MACHTYPE" in
+     *-*-cygwin) AC_CHECK_HEADER(GL/glut.h,
+                                [AC_DEFINE(HAVE_LIBGLUT, 1,
+		   [Define if you have the `freeglut' library (-lfreeglut).])
+			   LIBS=$LIBS"-lfreeglut -lglu32 -lopengl32 "],
+				 AC_MSG_NOTICE([*** Could not find freeglut: will compile without OpenGL support ***]));;
+     *) AC_CHECK_LIB([glut], [glutLeaveMainLoop],,
+				 AC_MSG_NOTICE([*** Could not find freeglut: will compile without OpenGL support ***]));;
+esac
+
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_PID_T
