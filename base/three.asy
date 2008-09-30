@@ -1952,7 +1952,7 @@ object embed(string prefix=defaultfilename, picture pic,
       preview=false;
     if(preview || (!prc && settings.render != 0)) {
       transform3 T=P.modelview();
-      f=T*f;
+      frame f=T*f;
       triple m=min3(f);
       triple M=max3(f);
       if(P.infinity) {
