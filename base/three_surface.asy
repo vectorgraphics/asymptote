@@ -149,15 +149,10 @@ struct patch {
             m(Q,new real(triple v) {return project(v,t).y;},b.y));
   }
 
-  pair min2,max2;
-  bool havemin2,havemax2;
-
   triple min3,max3;
   bool havemin3,havemax3;
 
   void init() {
-    havemin2=false;
-    havemax2=false;
     havemin3=false;
     havemax3=false;
     straight=false;
@@ -176,15 +171,11 @@ struct patch {
   }
 
   pair min(projection P, pair bound=project(this.P[0][0],P.t)) {
-    if(havemin2) return minbound(min2,bound);
-    havemin2=true;
-    return min2=bound(minbound,P,bound);
+    return bound(minbound,P,bound);
   }
 
   pair max(projection P, pair bound=project(this.P[0][0],P.t)) {
-    if(havemax2) return maxbound(max2,bound);
-    havemax2=true;
-    return max2=bound(maxbound,P,bound);
+    return bound(maxbound,P,bound);
   }
 
   void operator init(triple[][] P, triple[] normals=new triple[],
