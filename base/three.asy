@@ -1790,7 +1790,7 @@ string embed3D(string prefix, frame f, string label="",
 
  // Adobe Reader doesn't appear to support user-specified viewport lights.
   string lightscript=light.on() && !light.viewport ?
-  lightscript(light,shiftless(P.modelview())) : "";
+    lightscript(light,shiftless(P.modelview())) : "";
 
   if(P.infinity || lightscript != "") {
     triple lambda=max3(f)-min3(f);
@@ -1926,9 +1926,9 @@ object embed(string prefix=defaultfilename, picture pic,
       M=max3(f);
       triple s=(-0.5(m.x+M.x),-0.5*(m.y+M.y),0);
       f=shift(s)*f;  // Eye will be at (0,0,0).
-      M += s;
       m += s;
-
+      M += s;
+    
       // Choose the angle to be large enough to view the entire image:
       if(is3D && angle == 0)
 	angle=2*aTan(max(M.x*height/width,M.y)/-M.z);
@@ -1942,10 +1942,20 @@ object embed(string prefix=defaultfilename, picture pic,
     else
       preview=false;
     if(preview || (!prc && settings.render != 0)) {
+      frame f=f;
+      if(P.absolute) {
+	modelview=P.modelview();
+	f=modelview*f;
+	P=modelview*P;
+	m=min3(f);
+	M=max3(f);
+      }
+      
       real r=0.5*abs(M-m);
       real zcenter=0.5*(M.z+m.z);
       M=(M.x,M.y,zcenter+r);
       m=(m.x,m.y,zcenter-r);
+
       if(preview)
         file3.push(prefix+".eps");
       shipout3(prefix,f,preview ? "eps" : "",width,height,
