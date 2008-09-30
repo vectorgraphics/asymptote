@@ -1886,8 +1886,9 @@ object embed(string prefix=defaultfilename, picture pic,
   transform3 t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
 
   if(!P.absolute) {
-    P.adjust(inverse(t)*pic.max(t));
-    P.adjust(inverse(t)*pic.min(t));
+    transform3 tinv=inverse(t);
+    P.adjust(tinv*pic.max(t));
+    P.adjust(tinv*pic.min(t));
     P=t*P;
   }
   
@@ -1951,14 +1952,14 @@ object embed(string prefix=defaultfilename, picture pic,
       preview=false;
     if(preview || (!prc && settings.render != 0)) {
       transform3 T=P.modelview();
-      frame g=T*f;
-      triple m=min3(g);
-      triple M=max3(g);
+      f=T*f;
+      triple m=min3(f);
+      triple M=max3(f);
       if(P.infinity) {
         triple s=(-0.5*(m.x+M.x),-0.5*(m.y+M.y),0); // Eye will be at (0,0,0).
         m += s;
         M += s;
-        g=shift(s)*g;
+        f=shift(s)*f;
       }
       real r=0.5*abs(M-m);
       real zcenter=0.5*(M.z+m.z);
@@ -1966,7 +1967,7 @@ object embed(string prefix=defaultfilename, picture pic,
       m=(m.x,m.y,zcenter-r);
       if(preview)
         file3.push(prefix+".eps");
-      shipout3(prefix,g,preview ? "eps" : "",width,height,
+      shipout3(prefix,f,preview ? "eps" : "",width,height,
                P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M,
 	       light.viewport ? light.position : light.position(shiftless(T)),
 	       light.diffuse,light.ambient,light.specular,
