@@ -10,7 +10,6 @@ real defaultshininess=0.25;
 real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
-real anglefactor=1.08;       // Factor used to expand PRC viewing angle.
 real fovfactor=0.6;          // PRC field of view factor.
 
 string defaultembed3Doptions="3Drender=Solid,toolbar=true,";
@@ -1701,16 +1700,14 @@ triple size3(frame f)
 
 private string[] file3;
 
-string orthographic="activeCamera=scene.cameras.getByIndex(0);
+string orthographic(real viewplanesize) {
+  return"activeCamera=scene.cameras.getByIndex(0);
 function orthographic() 
 {
 activeCamera.projectionType=activeCamera.TYPE_ORTHOGRAPHIC;
 bounds=scene.computeBoundingBox();
-d=bounds.max.x-bounds.min.x;
-dy=bounds.max.y-bounds.min.y;
-if(dy > d) d=dy;
-activeCamera.viewPlaneSize=d;
-activeCamera.binding=activeCamera.BINDING_MAX;
+activeCamera.viewPlaneSize="+string(viewplanesize)+";
+activeCamera.binding=activeCamera.BINDING_MIN;
 }
 
 orthographic();
@@ -1722,11 +1719,14 @@ handler.onEvent=function(event)
   orthographic();
   scene.update();
 }";
+}
 
 include three_light;
 
 private string format(real x)
 {
+// Work around movie15.sty division by zero bug; e.g. u=unit((1e-10,1e-10,0.9));
+  if(abs(x) < 1e-9) x=0; 
   assert(abs(x) < 1e18,"Number too large: "+string(x));
   return format("%.18f",x,"C");
 }
@@ -1743,8 +1743,6 @@ private string format(pen p)
 }
 
 string lightscript(light light, transform3 T) {
- // Adobe Reader doesn't appear to support user-specified viewport lights.
-  if(!light.on() || light.viewport) return "";
   string script="for(var i=scene.lights.count-1; i >= 0; i--)
   scene.lights.removeByIndex(i);"+'\n\n';
     for(int i=0; i < light.position.length; ++i) {
@@ -1790,33 +1788,20 @@ string embed3D(string prefix, frame f, string label="",
 
   if(script == "") script=defaultembed3Dscript;
 
-  transform3 T=P.modelview();
-  string lightscript=lightscript(light,shiftless(T));
+ // Adobe Reader doesn't appear to support user-specified viewport lights.
+  string lightscript=light.on() && !light.viewport ?
+  lightscript(light,shiftless(P.modelview())) : "";
 
   if(P.infinity || lightscript != "") {
+    triple lambda=max3(f)-min3(f);
+    real viewplanesize=min(lambda.x,lambda.y)/cm;
     string name=prefix+".js";
-    writeJavaScript(name,P.infinity ? lightscript+orthographic:
+    writeJavaScript(name,P.infinity ? lightscript+orthographic(viewplanesize):
 		    lightscript,script);
     script=name;
   }
 
-  if(P.infinity) {
-    frame g=T*f;
-    triple m=min3(g);
-    triple M=max3(g);
-    real r=0.5*abs(M-m);
-    triple center=0.5*(M+m);
-
-    P=P.copy();
-    P.camera=O; // Eye is at (0,0,0).
-    P.target=(0,0,-r);
-    triple s=-center+P.target;
-    m += s;
-    M += s;
-    g=shift(s)*g;
-    shipout3(prefix,g);
-  } else
-    shipout3(prefix,f);
+  shipout3(prefix,f);
   
   prefix += ".prc";
   file3.push(prefix);
@@ -1826,11 +1811,11 @@ string embed3D(string prefix, frame f, string label="",
   triple w=unit(Z-u.z*u);
   triple up=unit(P.up-dot(P.up,u)*u);
   real roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));
-
+  
   string options3=light.viewport ? "3Dlights=Headlamp" : "3Dlights=File";
   options3 += ","+defaultembed3Doptions+",poster,text="+text+",label="+label+
     ",3Daac="+format(P.absolute ? P.angle*fovfactor : angle)+
-    ",3Dc2c="+format(unit(v))+
+    ",3Dc2c="+format(u)+
     ",3Dcoo="+format(P.target/cm)+
     ",3Droll="+format(roll)+
     ",3Droo="+format(abs(v))+
@@ -1881,8 +1866,9 @@ object embed(string prefix=defaultfilename, picture pic,
     warn=false;
   }
 
+  transform3 modelview;
+
   projection P=P.copy();
-  picture pic2;
   transform3 t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
 
   if(!P.absolute) {
@@ -1891,6 +1877,8 @@ object embed(string prefix=defaultfilename, picture pic,
     P.adjust(tinv*pic.min(t));
     P=t*P;
   }
+  
+  picture pic2;
   
   frame f=pic.fit3(t,pic.bounds3.exact ? pic2 : null,P);
 
@@ -1906,12 +1894,13 @@ object embed(string prefix=defaultfilename, picture pic,
   if(is3D || scale) {
     pic2.bounds.exact=true;
     transform s=pic2.scaling(xsize,ysize,keepAspect);
-    pair M=pic2.max(s);
-    pair m=pic2.min(s);
-    pair lambda=M-m;
+    pair m2=pic2.min(s);
+    pair M2=pic2.max(s);
+    pair lambda=M2-m2;
     real width=lambda.x;
     real height=lambda.y;
 
+    triple m,M;
     if(!P.absolute) {
       pair v=(s.xx,s.yy);
       transform3 T=P.t;
@@ -1925,22 +1914,24 @@ object embed(string prefix=defaultfilename, picture pic,
       if(scale) {
         s=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z));
         P=s*P;
-      }
-      pair c=0.5*(M+m);
-
-      if(is3D && !P.infinity) {
-        triple shift=invert(c,unit(P.vector()),P.target,P);
-        P.target += shift;
-        P.calculate();
-      }
-
-      if(scale) {
         pic2.erase();
         f=pic.fit3(s*t,is3D ? null : pic2,P);
       }
+
+      modelview=P.modelview();
+      f=modelview*f;
+      P=modelview*P;
+
+      m=min3(f);
+      M=max3(f);
+      triple s=(-0.5(m.x+M.x),-0.5*(m.y+M.y),0);
+      f=shift(s)*f;  // Eye will be at (0,0,0).
+      M += s;
+      m += s;
+
+      // Choose the angle to be large enough to view the entire image:
       if(is3D && angle == 0)
-        // Choose the angle to be just large enough to view the entire image:
-        angle=2*anglefactor*aTan((M.y-c.y)/(abs(P.vector())));
+	angle=2*aTan(max(M.x*height/width,M.y)/-M.z);
     }
     
     if(prefix == "") prefix=outprefix();
@@ -1951,16 +1942,6 @@ object embed(string prefix=defaultfilename, picture pic,
     else
       preview=false;
     if(preview || (!prc && settings.render != 0)) {
-      transform3 T=P.modelview();
-      frame f=T*f;
-      triple m=min3(f);
-      triple M=max3(f);
-      if(P.infinity) {
-        triple s=(-0.5*(m.x+M.x),-0.5*(m.y+M.y),0); // Eye will be at (0,0,0).
-        m += s;
-        M += s;
-        f=shift(s)*f;
-      }
       real r=0.5*abs(M-m);
       real zcenter=0.5*(M.z+m.z);
       M=(M.x,M.y,zcenter+r);
@@ -1969,7 +1950,8 @@ object embed(string prefix=defaultfilename, picture pic,
         file3.push(prefix+".eps");
       shipout3(prefix,f,preview ? "eps" : "",width,height,
                P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M,
-	       light.viewport ? light.position : light.position(shiftless(T)),
+	       light.viewport ? light.position :
+	       light.position(shiftless(modelview)),
 	       light.diffuse,light.ambient,light.specular,
 	       light.viewport,wait,view && !preview);
       if(!preview) return F;
