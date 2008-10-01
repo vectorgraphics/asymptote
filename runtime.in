@@ -999,7 +999,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   string dviname=auxname(prefix,"dvi");
   string psname=auxname(prefix,"ps");
   bbox b;
-  texfile tex(texname,b);
+  texfile tex(texname,b,true);
   tex.miniprologue();
   
   tex.setfont(p);
@@ -1011,7 +1011,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   
   tex.verbatim(*s);
   tex.verbatimline("\\special{ps: (E) print}");
-  tex.epilogue();
+  tex.epilogue(true);
   tex.close();
   
   ostringstream cmd;

@@ -126,12 +126,12 @@ class texfile : public psfile {
 public:
   string texengine;
   
-  texfile(const string& texname, const bbox& box);
+  texfile(const string& texname, const bbox& box, bool pipe=false);
   ~texfile();
 
   void prologue();
 
-  void epilogue();
+  void epilogue(bool pipe=false);
 
   void setlatexcolor(pen p);
   void setpen(pen p);

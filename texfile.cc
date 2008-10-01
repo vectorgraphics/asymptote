@@ -17,7 +17,8 @@ using settings::getSetting;
   
 namespace camp {
 
-texfile::texfile(const string& texname, const bbox& box) : box(box)
+texfile::texfile(const string& texname, const bbox& box, bool pipe) 
+  : box(box)
 {
   texengine=getSetting<string>("tex");
   inlinetex=getSetting<bool>("inlinetex");
@@ -29,7 +30,7 @@ texfile::texfile(const string& texname, const bbox& box) : box(box)
   }
   out->setf(std::ios::fixed);
   out->precision(6);
-  texdocumentclass(*out);
+  texdocumentclass(*out,pipe);
   resetpen();
 }
 
@@ -230,10 +231,10 @@ void texfile::put(const string& label, const transform& T, const pair& z,
        << "}{" << label << "}" << newl;
 }
 
-void texfile::epilogue()
+void texfile::epilogue(bool pipe)
 {
   if(settings::latex(texengine)) {
-    if(!inlinetex)
+    if(!inlinetex || pipe)
       *out << "\\end{document}" << newl;
   } else {
       *out << "\\bye" << newl;
