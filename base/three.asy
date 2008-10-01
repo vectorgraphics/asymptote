@@ -10,6 +10,8 @@ real defaultshininess=0.25;
 real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
+real viewportfactor=1.001;   // Factor used to expand orthographic viewport.
+real anglefactor=1.01;       // Factor used to expand perspective viewport.
 real fovfactor=0.6;          // PRC field of view factor.
 
 string defaultembed3Doptions="3Drender=Solid,toolbar=true,";
@@ -1707,7 +1709,7 @@ function orthographic()
 activeCamera.projectionType=activeCamera.TYPE_ORTHOGRAPHIC;
 bounds=scene.computeBoundingBox();
 activeCamera.viewPlaneSize="+string(viewplanesize)+";
-activeCamera.binding=activeCamera.BINDING_MIN;
+activeCamera.binding=activeCamera.BINDING_VERTICAL;
 }
 
 orthographic();
@@ -1794,7 +1796,7 @@ string embed3D(string prefix, frame f, string label="",
 
   if(P.infinity || lightscript != "") {
     triple lambda=max3(f)-min3(f);
-    real viewplanesize=min(lambda.x,lambda.y)/cm;
+    real viewplanesize=lambda.y/cm;
     string name=prefix+".js";
     writeJavaScript(name,P.infinity ? lightscript+orthographic(viewplanesize):
 		    lightscript,script);
@@ -1900,38 +1902,49 @@ object embed(string prefix=defaultfilename, picture pic,
     real width=lambda.x;
     real height=lambda.y;
 
-    triple m,M;
     if(!P.absolute) {
-      pair v=(s.xx,s.yy);
-      transform3 T=P.t;
-      pair x=project(X,T);
-      pair y=project(Y,T);
-      pair z=project(Z,T);
-      real f(pair a, pair b) {
-        return b == 0 ? (0.5*(a.x+a.y)) : (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
-      }
-      transform3 s=identity4;
       if(scale) {
-        s=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z));
+	pair v=(s.xx,s.yy);
+	transform3 T=P.t;
+	pair x=project(X,T);
+	pair y=project(Y,T);
+	pair z=project(Z,T);
+	real f(pair a, pair b) {
+	  return b == 0 ? (0.5*(a.x+a.y)) : (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
+	}
+	transform3 s=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z));
         P=s*P;
         pic2.erase();
         f=pic.fit3(s*t,is3D ? null : pic2,P);
+      }
+
+      if(is3D && !P.infinity) {
+        triple shift=invert(0.5*(m2+M2),unit(P.vector()),P.target,P);
+        P.target += shift;
+        P.calculate();
       }
 
       modelview=P.modelview();
       f=modelview*f;
       P=modelview*P;
 
-      m=min3(f);
-      M=max3(f);
-      triple s=(-0.5(m.x+M.x),-0.5*(m.y+M.y),0);
-      f=shift(s)*f;  // Eye will be at (0,0,0).
-      m += s;
-      M += s;
-    
-      // Choose the angle to be large enough to view the entire image:
-      if(is3D && angle == 0)
-	angle=2*aTan(max(M.x*height/width,M.y)/-M.z);
+      if(P.infinity) {
+	triple m=min3(f);
+	triple M=max3(f);
+	triple s=(-0.5(m.x+M.x),-0.5*(m.y+M.y),0);
+	f=shift(s)*f;  // Eye will be at (0,0,0).
+      } else {
+      // Choose the angle to be just large enough to view the entire image:
+	if(is3D && angle == 0 && !P.infinity) {
+	  pair r=minratio(f);
+	  pair R=maxratio(f);
+	  real aspect=width > 0 ? height/width : 1;
+	  angle=anglefactor*max(aTan(-r.x*aspect)+aTan(R.x*aspect),
+				aTan(-r.y)+aTan(R.y));
+	  real h=0.5*P.target.z;
+	  f=shift(h*(abs(r.x)-abs(R.x)),h*(abs(r.y)-abs(R.y)),0)*f;
+	}
+      }
     }
     
     if(prefix == "") prefix=outprefix();
@@ -1947,19 +1960,24 @@ object embed(string prefix=defaultfilename, picture pic,
 	modelview=P.modelview();
 	f=modelview*f;
 	P=modelview*P;
-	m=min3(f);
-	M=max3(f);
+	angle=P.angle;
       }
       
+      triple m=min3(f);
+      triple M=max3(f);
       real r=0.5*abs(M-m);
       real zcenter=0.5*(M.z+m.z);
       M=(M.x,M.y,zcenter+r);
       m=(m.x,m.y,zcenter-r);
+      real factor=r*(viewportfactor-1.0);
+      triple margin=(factor,factor,0);
+      M += margin; 
+      m -= margin;
 
       if(preview)
         file3.push(prefix+".eps");
       shipout3(prefix,f,preview ? "eps" : "",width,height,
-               P.infinity ? 0 : (P.absolute ? P.angle : angle),m,M,
+               P.infinity ? 0 : angle,m,M,
 	       light.viewport ? light.position :
 	       light.position(shiftless(modelview)),
 	       light.diffuse,light.ambient,light.specular,
@@ -2077,10 +2095,15 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
   }
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
-      if(is3D())
-        draw(f,t*g,p,light,null);
-      if(pic != null)
-        draw(pic,project(t*g,P),q);
+      path3 G=t*g;
+      if(is3D()) {
+        draw(f,G,p,light,null);
+	if(pic != null) {
+	  pic.addPoint(min(G,P.t));
+	  pic.addPoint(max(G,P.t));
+	}
+      } else if(pic != null)
+        draw(pic,project(G,P),q);
     },true);
   addPath(pic,g,q);
 }

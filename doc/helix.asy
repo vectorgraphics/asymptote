@@ -13,6 +13,8 @@ path3 p=graph(x,y,z,0,2.7,operator ..);
 
 draw(p,Arrow3);
 
+scale(true);
+
 xaxis3(XZ()*"$x$",Bounds(),red,LeftTicks3(Label,2,2));
 yaxis3(YZ()*"$y$",Bounds(),red,LeftTicks3(beginlabel=false,Label,2,2));
 zaxis3(XZ()*"$z$",Bounds(),red,LeftTicks3);

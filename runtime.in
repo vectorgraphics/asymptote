@@ -41,7 +41,6 @@ callable* => voidFunction()
 callableBp* => breakpointFunction()
 callableReal* => realRealFunction()
 callableTransform* => transformFunction()
-callableProject* => realTripleFunction()
 runnable* => primCode()
 boolarray* => boolArray()
 Intarray*  => IntArray()
@@ -158,7 +157,6 @@ typedef array stringarray2;
   
 typedef callable callableBp;
 typedef callable callableReal;
-typedef callable callableProject;
 typedef callable callableTransform;
 }
 
@@ -390,24 +388,34 @@ static const char *incommensurate="Incommensurate matrices";
 static const char *singular="Singular matrix";
 static size_t *pivot,*Row,*Col;
 
-triple operator *(const array& a, const triple& v)
+triple operator *(const array& t, const triple& v)
 {
-  size_t n=checkArray(&a);
+  size_t n=checkArray(&t);
   if(n != 4) error(incommensurate);
-  real B[4]={v.getx(),v.gety(),v.getz(),1};
-  real C[4];
-  for(size_t i=0; i < 4; ++i) {
-    array *ai=read<array*>(a,i);
-    if(checkArray(ai) != 4) error(incommensurate);
-    real sum=0.0;
-    for(size_t j=0; j < 4; ++j)
-      sum += read<real>(ai,j)*B[j];
-    C[i]=sum;
-  }
-  real f=C[3];
-  if(f == 0) dividebyzero();
-  f=1/f;
-  return camp::triple(C[0]*f,C[1]*f,C[2]*f);
+  array *t0=read<array*>(t,0);
+  array *t1=read<array*>(t,1);
+  array *t2=read<array*>(t,2);
+  array *t3=read<array*>(t,3);
+  
+  if(checkArray(t0) != 4 || checkArray(t1) != 4 || 
+     checkArray(t2) != 4 || checkArray(t3) != 4)
+    error(incommensurate);
+
+  double x=v.getx();
+  double y=v.gety();
+  double z=v.getz();
+  
+  double f=read<real>(t3,0)*x+read<real>(t3,1)*y+read<real>(t3,2)*z+
+    read<real>(t3,3);
+  if(f == 0.0) run::dividebyzero();
+  f=1.0/f;
+  
+  return triple((read<real>(t0,0)*x+read<real>(t0,1)*y+read<real>(t0,2)*z+
+		 read<real>(t0,3))*f,
+		(read<real>(t1,0)*x+read<real>(t1,1)*y+read<real>(t1,2)*z+
+		 read<real>(t1,3))*f,
+		(read<real>(t2,0)*x+read<real>(t2,1)*y+read<real>(t2,2)*z+
+		 read<real>(t2,3))*f);
 }
 
 static inline void inverseAllocate(size_t n)
@@ -801,13 +809,6 @@ bool compareFunction(const vm::item& i, const vm::item& j)
   FuncStack->push(j);
   compareFunc->call(FuncStack);
   return pop<bool>(FuncStack);
-}
-
-double project(triple v) 
-{
-  FuncStack->push(v);
-  Func->call(FuncStack);
-  return pop<double>(FuncStack);
 }
 
 void unused(void *)
@@ -1399,10 +1400,16 @@ void shipout3(string prefix, picture *f, string format=emptystring,
   checkEqual(n,checkArray(ambient));
   checkEqual(n,checkArray(specular));
   
+  triple *Lights=copyTripleArrayC(lights);
+  double *Diffuse=copyArray2C(diffuse,false,4);  
+  double *Ambient=copyArray2C(ambient,false,4);
+  double *Specular=copyArray2C(specular,false,4);
   f->shipout3(prefix,format,width,height,angle,m,M,n,
-	      copyTripleArrayC(lights),copyArray2C(diffuse,false,4),
-	      copyArray2C(ambient,false,4),copyArray2C(specular,false,4),
-	      viewportlighting,wait,view);
+	      Lights,Diffuse,Ambient,Specular,viewportlighting,wait,view);
+  delete[] Specular;
+  delete[] Ambient;
+  delete[] Diffuse;
+  delete[] Lights;
 }
 
 void shipout3(string prefix, picture *f)
@@ -2701,6 +2708,32 @@ triple max3(picture *f)
   return f->bounds3().Max();
 }
 
+pair min(picture *f, realarray2 *t)
+{
+  double *T=copyArray2C(t,4);
+  pair m=f->bounds(::min,xproject,yproject,T);
+  delete[] T;
+  return m;
+}
+
+pair max(picture *f, realarray2 *t)
+{
+  double *T=copyArray2C(t,4);
+  pair M=f->bounds(::max,xproject,yproject,T);
+  delete[] T;
+  return M;
+}
+
+pair minratio(picture *f)
+{
+  return f->bounds(::min,xratio,yratio);
+}
+
+pair maxratio(picture *f)
+{
+  return f->bounds(::max,xratio,yratio);
+}
+
 double minbound(realarray *a, double b)
 {
   real *A=copyArrayC(a,16);
@@ -2717,23 +2750,41 @@ double maxbound(realarray *a, double b)
   return b;
 }
 
-double minbound(triplearray *a, callableProject *f, double b)
+pair minbound(triplearray *a, realarray2 *t, pair b)
 {
   triple *A=copyTripleArrayC(a,16);
-  Func=f;
-  FuncStack=Stack;
-  b=bound(A,::min,project,b);
+  double *T=copyArray2C(t,4);
+  b=pair(bound(A,::min,xproject,T,b.getx()),
+	 bound(A,::min,yproject,T,b.gety()));
+  delete[] T;
   delete[] A;
   return b;
 }
 
-double maxbound(triplearray *a, callableProject *f, double b)
+pair maxbound(triplearray *a, realarray2 *t, pair b)
 {
   triple *A=copyTripleArrayC(a,16);
-  Func=f;
-  FuncStack=Stack;
-  b=bound(A,::max,project,b);
+  double *T=copyArray2C(t,4);
+  b=pair(bound(A,::max,xproject,T,b.getx()),
+	 bound(A,::max,yproject,T,b.gety()));
+  delete[] T;
   delete[] A;
+  return b;
+}
+
+pair max(path3 g, realarray2 *t)
+{
+  double *T=copyArray2C(t,4);
+  pair b=g.bounds(::max,xproject,yproject,T);
+  delete[] T;
+  return b;
+}
+
+pair min(path3 g, realarray2 *t)
+{
+  double *T=copyArray2C(t,4);
+  pair b=g.bounds(::min,xproject,yproject,T);
+  delete[] T;
   return b;
 }
 
@@ -3276,7 +3327,7 @@ picture * Operator *(transform t, picture *f)
 
 picture * Operator *(realarray2 *t, picture *f)
 {
-  return transformed(*copyArray2(t),f);
+  return transformed(*t,f);
 }
 
 transform ^(transform t, Int n)
@@ -4694,33 +4745,34 @@ realarray2 *Operator *(realarray2 *a, realarray2 *b)
   return c;
 }
 
-triple Operator *(realarray2 *a, triple v)
+triple Operator *(realarray2 *t, triple v)
 {
-  return *a*v;
+  return *t*v;
 }
 
-pair project(triple v, realarray2 *a)
+pair project(triple v, realarray2 *t)
 {
-  size_t n=checkArray(a);
+  size_t n=checkArray(t);
   if(n != 4) error(incommensurate);
-  real B[4]={v.getx(),v.gety(),v.getz(),1};
-  real C[2];
-  for(size_t i=0; i < 2; ++i) {
-    array *ai=read<array*>(a,i);
-    if(checkArray(ai) != 4) error(incommensurate);
-    real sum=0.0;
-    for(size_t j=0; j < 4; ++j)
-      sum += read<real>(ai,j)*B[j];
-    C[i]=sum;
-  }
-  array *ai=read<array*>(a,3);
-  if(checkArray(ai) != 4) error(incommensurate);
-  real f=0.0;
-  for(size_t j=0; j < 4; ++j)
-      f += read<real>(ai,j)*B[j];
-  if(f == 0) dividebyzero();
-  f=1/f;
-  return pair(C[0]*f,C[1]*f);
+  array *t0=read<array*>(t,0);
+  array *t1=read<array*>(t,1);
+  array *t3=read<array*>(t,3);
+  if(checkArray(t0) != 4 || checkArray(t1) != 4 || checkArray(t3) != 4)
+    error(incommensurate);
+  
+  double x=v.getx();
+  double y=v.gety();
+  double z=v.getz();
+  
+  double f=read<real>(t3,0)*x+read<real>(t3,1)*y+read<real>(t3,2)*z+
+    read<real>(t3,3);
+  if(f == 0.0) dividebyzero();
+  f=1.0/f;
+  
+  return pair((read<real>(t0,0)*x+read<real>(t0,1)*y+read<real>(t0,2)*z+
+	       read<real>(t0,3))*f,
+	      (read<real>(t1,0)*x+read<real>(t1,1)*y+read<real>(t1,2)*z+
+	       read<real>(t1,3))*f);
 }
 
 // Compute the dot product of vectors a and b.

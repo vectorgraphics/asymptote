@@ -42,6 +42,17 @@ public:
     B.add(Max);
   }
   
+  void bounds(pair &b, double (*m)(double, double),
+	      double (*x)(const triple&, double*),
+	      double (*y)(const triple&, double*),
+	      double *t, bool &first) {
+    pair z=g.bounds(m,x,y,t);
+    if(first) {
+      b=z;
+      first=false;
+    } else b=pair(m(b.getx(),z.getx()),m(b.gety(),z.gety()));
+  }
+  
   bool write(prcfile *out);
   
   void render(GLUnurbs*, double, const triple&, const triple&, double,

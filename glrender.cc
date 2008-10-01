@@ -151,8 +151,8 @@ void save()
     double w=oWidth;
     double h=oHeight;
     double Aspect=((double) Width)/Height;
-    if(w > h*Aspect) w=(int) (h*Aspect);
-    else h=(int) (w/Aspect);
+    if(w > h*Aspect) w=(int) (h*Aspect+0.5);
+    else h=(int) (w/Aspect+0.5);
     // Render an antialiased image.
     drawImage *Image=new drawImage(data,Width,Height,
 				   transform(0.0,0.0,w,0.0,0.0,h),true);
@@ -575,12 +575,13 @@ void initTimer()
 
 void expand() 
 {
-  setsize((int) (Width*resizeStep),(int) (Height*resizeStep));
+  setsize((int) (Width*resizeStep+0.5),(int) (Height*resizeStep+0.5));
 }
 
 void shrink() 
 {
-  setsize(max((int) (Width/resizeStep),1),max((int) (Height/resizeStep),1));
+  setsize(max((int) (Width/resizeStep+0.5),1),
+	  max((int) (Height/resizeStep+0.5),1));
 }
 
 int oldwidth,oldheight;
@@ -601,8 +602,8 @@ void fitscreen()
       int w=screenWidth();
       int h=screenHeight();
       if(w > 0 && h > 0) {
-	if(w > h*Aspect) w=(int) (h*Aspect);
-	else h=(int) (w/Aspect);
+	if(w > h*Aspect) w=(int) (h*Aspect+0.5);
+	else h=(int) (w/Aspect+0.5);
 	setsize(w,h);
       }
       ++Fitscreen;
@@ -857,11 +858,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   oHeight=height;
   Aspect=((double) width)/height;
   
-  Width=min(max((int) (expand*width),minimumsize),ViewportLimit[0]);
-  Height=min(max((int) (expand*height),minimumsize),ViewportLimit[1]);
+  Width=min(max((int) (expand*width+0.5),minimumsize),ViewportLimit[0]);
+  Height=min(max((int) (expand*height+0.5),minimumsize),ViewportLimit[1]);
   
-  if(Width > Height*Aspect) Width=(int) (Height*Aspect);
-  else Height=(int) (Width/Aspect);
+  if(Width > Height*Aspect) Width=(int) (Height*Aspect+0.5);
+  else Height=(int) (Width/Aspect+0.5);
   
   oldWidth=Width;
   oldHeight=Height;

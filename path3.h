@@ -301,6 +301,11 @@ public:
     return bounds().Min();
   }
   
+  pair bounds(double (*m)(double, double), 
+	      double (*x)(const triple&, double*),
+	      double (*y)(const triple&, double*), double *t) const;
+  
+  
 // Increment count if the path3 has a vertical component at t.
   bool Count(Int& count, double t) const;
   
@@ -311,7 +316,6 @@ public:
 // Return the winding number of the region bounded by the (cyclic) path3
 // relative to the point z.
   Int windingnumber(const triple& z) const;
-
 };
 
 path3 transformed(const vm::array& t, const path3& p);
@@ -359,10 +363,21 @@ struct Split3 {
   }
 };
   
+double xproject(const triple& v, double *t);
+double yproject(const triple& v, double *t);
+
+double xratio(const triple& v, double *t);
+double yratio(const triple& v, double *t);
+
+double bound(triple z0, triple c0, triple c1, triple z1,
+	     double (*m)(double, double),
+	     double (*f)(const triple&, double*), double *t,
+	     double b, int depth=maxdepth);
 double bound(double *p, double (*m)(double, double), double b,
 	     int depth=maxdepth);
-double bound(triple *p, double (*m)(double, double), double (*f)(triple),
-	     double b, int depth=maxdepth);
+double bound(triple *p, double (*m)(double, double),
+	     double (*f)(const triple&, double*), double* t, double b,
+	     int depth=maxdepth);
 }
 
 // Delete the following line to work around problems with old broken compilers.

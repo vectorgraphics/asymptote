@@ -32,6 +32,7 @@ protected:
   bool invisible;
   bool degenerate;
   triple Min,Max;
+  static triple c3[16];
 #ifdef HAVE_LIBGLUT
   GLfloat c[48];
   GLfloat d[12];
@@ -92,12 +93,12 @@ public:
   
   bool is3D() {return true;}
   
-  void bounds(double &Min, double &Max, double *c) {
-    Min=bound(c,min,c[0]);
-    Max=bound(c,max,c[0]);
-  }
-  
   void bounds(bbox3& b);
+  
+  void bounds(pair &b, double (*m)(double, double),
+	      double (*x)(const triple&, double*),
+	      double (*y)(const triple&, double*),
+	      double *t, bool &first);
   
   virtual ~drawSurface() {}
 

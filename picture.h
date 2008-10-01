@@ -62,6 +62,12 @@ public:
   bbox bounds();
   bbox3 bounds3();
 
+  // Projected bounds of 3d picture given transform3 t (not cached).
+  pair bounds(double (*m)(double, double),
+	       double (*x)(const triple&, double*),
+	       double (*y)(const triple&, double*),
+	       double *t=NULL);
+  
   void texinit();
 
   bool Transparency() {

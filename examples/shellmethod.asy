@@ -28,7 +28,6 @@ path3 p3=path3(p);
 
 revolution a=revolution(p3,Y,0,alpha);
 draw(surface(a),color);
-//draw(a,blue);
 draw(s,color);
 draw(rotate(alpha,Y)*s,color);
 for(int i=0; i < n; ++i)

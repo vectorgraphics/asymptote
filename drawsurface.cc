@@ -12,6 +12,7 @@ namespace camp {
 const double pixelfactor2=1.25; // Adaptive rendering constant.
 
 using vm::array;
+triple drawSurface::c3[];
 
 inline void initMatrix(GLfloat *v, double x, double ymin, double zmin,
 		       double ymax, double zmax)
@@ -36,22 +37,25 @@ inline void initMatrix(GLfloat *v, double x, double ymin, double zmin,
 
 void drawSurface::bounds(bbox3& b)
 {
-  static double c[16];
+  static double c1[16];
+
+  for(int i=0; i < 16; ++i)
+    c1[i]=controls[i][0];
+  double c0=c1[0];
+  double xmin=bound(c1,min,b.empty ? c0 : min(c0,b.left));
+  double xmax=bound(c1,max,b.empty ? c0 : max(c0,b.right));
     
   for(int i=0; i < 16; ++i)
-    c[i]=controls[i][0];
-  double xmin,xmax;
-  bounds(xmin,xmax,c);
+    c1[i]=controls[i][1];
+  c0=c1[0];
+  double ymin=bound(c1,min,b.empty ? c0 : min(c0,b.bottom));
+  double ymax=bound(c1,max,b.empty ? c0 : max(c0,b.top));
     
   for(int i=0; i < 16; ++i)
-    c[i]=controls[i][1];
-  double ymin,ymax;
-  bounds(ymin,ymax,c);
-    
-  for(int i=0; i < 16; ++i)
-    c[i]=controls[i][2];
-  double zmin,zmax;
-  bounds(zmin,zmax,c);
+    c1[i]=controls[i][2];
+  c0=c1[0];
+  double zmin=bound(c1,min,b.empty ? c0 : min(c0,b.lower));
+  double zmax=bound(c1,max,b.empty ? c0 : max(c0,b.upper));
     
 #ifdef HAVE_LIBGLUT
   initMatrix(v1,xmin,ymin,zmin,ymax,zmax);
@@ -64,7 +68,26 @@ void drawSurface::bounds(bbox3& b)
   b.add(Min);
   b.add(Max);
 }
+
+void drawSurface::bounds(pair &b, double (*m)(double, double),
+			 double (*x)(const triple&, double*),
+			 double (*y)(const triple&, double*),
+			 double *t, bool &first)
+{
+  for(int i=0; i < 16; ++i) {
+    double *ci=controls[i];
+    c3[i]=triple(ci[0],ci[1],ci[2]);
+  }
   
+  if(first) {
+    triple v=c3[0];
+    b=pair(x(v,t),y(v,t));
+    first=false;
+  }
+  
+  b=pair(bound(c3,m,x,t,b.getx()),bound(c3,m,y,t,b.gety()));
+}
+
 bool drawSurface::write(prcfile *out)
 {
   if(invisible)

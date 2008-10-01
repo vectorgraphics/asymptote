@@ -15,12 +15,35 @@
 namespace camp {
 
 using run::operator *;
+using vm::array;
 
 path3 nullpath3;
   
 void checkEmpty3(Int n) {
   if(n == 0)
     reportError("nullpath3 has no points");
+}
+
+double bound(triple z0, triple c0, triple c1, triple z1,
+	     double (*m)(double, double),
+	     double (*f)(const triple&, double*), double *t,
+	     double b, int depth)
+{
+  b=m(b,m(f(z0,t),f(z1,t)));
+  if(m(-1.0,1.0)*(b-m(f(c0,t),f(c1,t))) >= -sqrtFuzz || depth == 0)
+    return b;
+  --depth;
+
+  triple m0=0.5*(z0+c0);
+  triple m1=0.5*(c0+c1);
+  triple m2=0.5*(c1+z1);
+  triple m3=0.5*(m0+m1);
+  triple m4=0.5*(m1+m2);
+  triple m5=0.5*(m3+m4);
+
+  // Check both Bezier subpaths.
+  b=bound(z0,m0,m3,m5,m,f,t,b,depth);
+  return bound(m5,m4,m2,z1,m,f,t,b,depth);
 }
 
 triple path3::point(double t) const
@@ -301,6 +324,32 @@ bbox3 path3::bounds() const
       addpoint(box,i+z.t2);
   }
   return box;
+}
+
+pair path3::bounds(double (*m)(double, double), 
+		   double (*x)(const triple&, double*),
+		   double (*y)(const triple&, double*), double *t) const
+{
+  checkEmpty3(n);
+  
+  triple v=point((Int) 0);
+  pair B=pair(x(v,t),y(v,t));
+  
+  Int n=length();
+  for(Int i=0; i <= n; ++i) {
+    if(straight(i)) {
+      triple v=point(i);
+      B=pair(m(B.getx(),x(v,t)),m(B.gety(),y(v,t)));
+    } else {
+      triple z0=point(i);
+      triple c0=postcontrol(i);
+      triple c1=precontrol(i+1);
+      triple z1=point(i+1);
+      B=pair(bound(z0,c0,c1,z1,m,x,t,B.getx()),
+	     bound(z0,c0,c1,z1,m,y,t,B.gety()));
+    }
+  }
+  return B;
 }
 
 // {{{ Arclength Calculations
@@ -662,7 +711,7 @@ path3 concat(const path3& p1, const path3& p2)
   return path3(nodes, i+1);
 }
 
-path3 transformed(const vm::array& t, const path3& p)
+path3 transformed(const array& t, const path3& p)
 {
   Int n = p.size();
   mem::vector<solvedKnot3> nodes(n);
@@ -675,6 +724,40 @@ path3 transformed(const vm::array& t, const path3& p)
   }
 
   return path3(nodes, n, p.cyclic());
+}
+
+double xproject(const triple& v, double *t)
+{
+  double x=v.getx();
+  double y=v.gety();
+  double z=v.getz();
+  double f=t[12]*x+t[13]*y+t[14]*z+t[15];
+  if(f == 0.0) run::dividebyzero();
+  return (t[0]*x+t[1]*y+t[2]*z+t[3])/f;
+}
+
+double yproject(const triple& v, double *t)
+{
+  double x=v.getx();
+  double y=v.gety();
+  double z=v.getz();
+  double f=t[12]*x+t[13]*y+t[14]*z+t[15];
+  if(f == 0.0) run::dividebyzero();
+  return (t[4]*x+t[5]*y+t[6]*z+t[7])/f;
+}
+
+double xratio(const triple& v, double *)
+{
+  double z=v.getz();
+  return v.getx()/z;
+  return (z != 0.0) ? v.getx()/z : 0.0;
+}
+
+double yratio(const triple& v, double *)
+{
+  double z=v.getz();
+  return v.gety()/z;
+  return (z != 0.0) ? v.gety()/z : 0.0;
 }
 
 struct Split {
@@ -711,27 +794,28 @@ double controlbound(double *p, double (*m)(double, double))
   return m(b,p[14]);
 }
 
-double cornerbound(triple *p, double (*m)(double, double), double (*f)(triple)) 
+double cornerbound(triple *p, double (*m)(double, double),
+		   double (*f)(const triple&, double*), double *t) 
 {
-  double b=m(f(p[0]),f(p[3]));
-  b=m(b,f(p[12]));
-  return m(b,f(p[15]));
+  double b=m(f(p[0],t),f(p[3],t));
+  b=m(b,f(p[12],t));
+  return m(b,f(p[15],t));
 }
 
 double controlbound(triple *p, double (*m)(double, double),
-		    double (*f)(triple)) 
+		    double (*f)(const triple&, double*), double *t) 
 {
-  double b=m(f(p[1]),f(p[2]));
-  b=m(b,f(p[4]));
-  b=m(b,f(p[5]));
-  b=m(b,f(p[6]));
-  b=m(b,f(p[7]));
-  b=m(b,f(p[8]));
-  b=m(b,f(p[9]));
-  b=m(b,f(p[10]));
-  b=m(b,f(p[11]));
-  b=m(b,f(p[13]));
-  return m(b,f(p[14]));
+  double b=m(f(p[1],t),f(p[2],t));
+  b=m(b,f(p[4],t));
+  b=m(b,f(p[5],t));
+  b=m(b,f(p[6],t));
+  b=m(b,f(p[7],t));
+  b=m(b,f(p[8],t));
+  b=m(b,f(p[9],t));
+  b=m(b,f(p[10],t));
+  b=m(b,f(p[11],t));
+  b=m(b,f(p[13],t));
+  return m(b,f(p[14],t));
 }
 
 double bound(double *p, double (*m)(double, double), double b, int depth)
@@ -769,11 +853,12 @@ double bound(double *p, double (*m)(double, double), double b, int depth)
   return bound(s3,m,b,depth);
 }
   
-double bound(triple *p, double (*m)(double, double), double (*f)(triple),
+double bound(triple *p, double (*m)(double, double),
+	     double (*f)(const triple&, double*), double *t,
 	     double b, int depth)
 {
-  b=m(b,cornerbound(p,m,f));
-  if(m(-1.0,1.0)*(b-controlbound(p,m,f)) >= -sqrtFuzz || depth == 0)
+  b=m(b,cornerbound(p,m,f,t));
+  if(m(-1.0,1.0)*(b-controlbound(p,m,f,t)) >= -sqrtFuzz || depth == 0)
     return b;
   --depth;
 
@@ -794,16 +879,16 @@ double bound(triple *p, double (*m)(double, double), double (*f)(triple),
   
   triple s0[]={c4.m5,c5.m5,c6.m5,c7.m5,c4.m3,c5.m3,c6.m3,c7.m3,
 	       c4.m0,c5.m0,c6.m0,c7.m0,p[12],c3.m0,c3.m3,c3.m5};
-  b=bound(s0,m,f,b,depth);
+  b=bound(s0,m,f,t,b,depth);
   triple s1[]={p[0],c0.m0,c0.m3,c0.m5,c4.m2,c5.m2,c6.m2,c7.m2,
 	       c4.m4,c5.m4,c6.m4,c7.m4,c4.m5,c5.m5,c6.m5,c7.m5};
-  b=bound(s1,m,f,b,depth);
+  b=bound(s1,m,f,t,b,depth);
   triple s2[]={c0.m5,c0.m4,c0.m2,p[3],c7.m2,c8.m2,c9.m2,c10.m2,
 	       c7.m4,c8.m4,c9.m4,c10.m4,c7.m5,c8.m5,c9.m5,c10.m5};
-  b=bound(s2,m,f,b,depth);
+  b=bound(s2,m,f,t,b,depth);
   triple s3[]={c7.m5,c8.m5,c9.m5,c10.m5,c7.m3,c8.m3,c9.m3,c10.m3,
                  c7.m0,c8.m0,c9.m0,c10.m0,c3.m5,c3.m4,c3.m2,p[15]};
-  return bound(s3,m,f,b,depth);
+  return bound(s3,m,f,t,b,depth);
 }
 
 } //namespace camp
