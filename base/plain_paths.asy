@@ -22,23 +22,17 @@ guide operator controls(pair z)
 
 guide[] operator cast(pair[] z)
 {
-  guide[] g=new guide[z.length];
-  for(int i=0; i < z.length; ++i) g[i]=z[i];
-  return g;
+  return sequence(new guide(int i) {return z[i];},z.length);
 }
 
 path[] operator cast(pair[] z)
 {
-  path[] g=new path[z.length];
-  for(int i=0; i < z.length; ++i) g[i]=z[i];
-  return g;
+  return sequence(new path(int i) {return z[i];},z.length);
 }
 
 path[] operator cast(guide[] g)
 {
-  path[] p=new path[g.length];
-  for(int i=0; i < g.length; ++i) p[i]=g[i];
-  return p;
+  return sequence(new guide(int i) {return g[i];},g.length);
 }
 
 path[] operator cast(path p)
@@ -73,16 +67,12 @@ path[] operator ^^ (explicit path[] p, explicit path[] q)
 
 path[] operator * (transform t, explicit path[] p) 
 {
-  path[] P;
-  for(int i=0; i < p.length; ++i) P[i]=t*p[i];
-  return P;
+  return sequence(new path(int i) {return t*p[i];},p.length);
 }
 
 pair[] operator * (transform t, pair[] z) 
 {
-  pair[] Z;
-  for(int i=0; i < z.length; ++i) Z[i]=t*z[i];
-  return Z;
+  return sequence(new pair(int i) {return t*z[i];},z.length);
 }
 
 void write(file file, string s="", explicit path[] x, suffix suffix=none)
@@ -152,10 +142,7 @@ pair intersectionpoint(path p, path q, real fuzz=0)
 pair[] intersectionpoints(path p, path q, real fuzz=0)
 {
   real[][] t=intersections(p,q,fuzz);
-  pair[] z=new pair[t.length];
-  for(int i=0; i < t.length; ++i)
-    z[i]=point(p,t[i][0]);
-  return z;
+  return sequence(new pair(int i) {return point(p,t[i][0]);},t.length);
 }
 
 pair[] intersectionpoints(explicit path[] p, explicit path[] q, real fuzz=0)

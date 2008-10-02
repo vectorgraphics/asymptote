@@ -14,8 +14,8 @@ real viewportfactor=1.001;   // Factor used to expand orthographic viewport.
 real anglefactor=1.01;       // Factor used to expand perspective viewport.
 real fovfactor=0.6;          // PRC field of view factor.
 
-string defaultembed3Doptions="3Drender=Solid,toolbar=true,";
-string defaultembed3Dscript="";
+string defaultembed3Doptions;
+string defaultembed3Dscript;
 
 triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
@@ -766,10 +766,9 @@ real[] theta(triple[] v, real[] alpha, real[] beta,
 
 triple reference(triple[] v, int n, triple d0, triple d1)
 {
-  triple[] V;
-  
-  for(int i=1; i < n; ++i)
-    V.push(cross(v[i]-v[i-1],v[i+1]-v[i])); 
+  triple[] V=sequence(new triple(int i) {
+      return cross(v[i-1]-v[i-2],v[i]-v[i-1]);
+    },n-1);
   if(n > 0) {
     V.push(cross(d0,v[1]-v[0]));
     V.push(cross(v[n]-v[n-1],d1));
@@ -911,30 +910,16 @@ path3 path3(triple v)
 path3 path3(path p, triple plane(pair)=XYplane)
 {
   int n=size(p);
-  triple[] pre=new triple[n];
-  triple[] point=new triple[n];
-  triple[] post=new triple[n];
-  bool[] straight=new bool[n];
-  for(int i=0; i < n; ++i) {
-    pre[i]=plane(precontrol(p,i));
-    point[i]=plane(point(p,i));
-    post[i]=plane(postcontrol(p,i));
-    straight[i]=straight(p,i);
-  }
-  return path3(pre,point,post,straight,cyclic(p));
+  return path3(sequence(new triple(int i) {return plane(precontrol(p,i));},n),
+	       sequence(new triple(int i) {return plane(point(p,i));},n),
+	       sequence(new triple(int i) {return plane(postcontrol(p,i));},n),
+	       sequence(new bool(int i) {return straight(p,i);},n),
+	       cyclic(p));
 }
 
 path3[] path3(path[] g, triple plane(pair)=XYplane)
 {
   return sequence(new path3(int i) {return path3(g[i],plane);},g.length);
-}
-
-path3[] operator * (transform3 t, path3[] p) 
-{
-  path3[] g=new path3[p.length];
-  for(int i=0; i < p.length; ++i)
-    g[i]=t*p[i];
-  return g;
 }
 
 void write(file file, string s="", explicit path3 x, suffix suffix=none)
@@ -1165,20 +1150,12 @@ path project(path3 p, projection P=currentprojection,
 
 pair[] project(triple[] v, projection P=currentprojection)
 {
-  transform3 t=P.t;
-  int n=v.length;
-  pair[] z=new pair[n];
-  for(int i=0; i < n; ++i)
-    z[i]=project(v[i],t);
-  return z;
+  return sequence(new pair(int i) {return project(v[i],P.t);},v.length);
 }
 
 path[] project(path3[] g, projection P=currentprojection)
 {
-  path[] p=new path[g.length];
-  for(int i=0; i < g.length; ++i) 
-    p[i]=project(g[i],P);
-  return p;
+  return sequence(new path(int i) {return project(g[i],P);},g.length);
 }
   
 guide3 operator cast(path3 p)
@@ -1298,18 +1275,12 @@ path3 operator cast(triple v) {return path3(v);}
 
 guide3[] operator cast(triple[] v)
 {
-  guide3[] g=new guide3[v.length];
-  for(int i=0; i < v.length; ++i)
-    g[i]=v[i];
-  return g;
+  return sequence(new guide3(int i) {return v[i];},v.length);
 }
 
 path3[] operator cast(triple[] v)
 {
-  path3[] g=new path3[v.length];
-  for(int i=0; i < v.length; ++i)
-    g[i]=v[i];
-  return g;
+  return sequence(new path3(int i) {return v[i];},v.length);
 }
 
 triple point(explicit guide3 g, int t) {
@@ -1375,9 +1346,15 @@ triple intersectionpoint(path3 p, path3 q, real fuzz=0)
 triple[] intersectionpoints(path3 p, path3 q, real fuzz=0)
 {
   real[][] t=intersections(p,q,fuzz);
-  triple[] v=new triple[t.length];
-  for(int i=0; i < t.length; ++i)
-    v[i]=point(p,t[i][0]);
+  return sequence(new triple(int i) {return point(p,t[i][0]);},t.length);
+}
+
+triple[] intersectionpoints(explicit path3[] p, explicit path3[] q, real fuzz=0)
+{
+  triple[] v;
+  for(int i=0; i < p.length; ++i)
+    for(int j=0; j < q.length; ++j)
+      v.append(intersectionpoints(p[i],q[j],fuzz));
   return v;
 }
 
@@ -1516,9 +1493,12 @@ path3[] operator ^^ (explicit path3[] p, explicit path3[] q)
 
 path3[] operator * (transform3 t, explicit path3[] p) 
 {
-  path3[] P;
-  for(int i=0; i < p.length; ++i) P[i]=t*p[i];
-  return P;
+  return sequence(new path3(int i) {return t*p[i];},p.length);
+}
+
+triple[] operator * (transform3 t, triple[] v) 
+{
+  return sequence(new triple(int i) {return t*v[i];},v.length);
 }
 
 triple min(explicit path3[] p)
@@ -1744,14 +1724,14 @@ private string format(pen p)
   return format((c[0],c[1],c[2]));
 }
 
-string lightscript(light light, transform3 T) {
+string lightscript(light light) {
   string script="for(var i=scene.lights.count-1; i >= 0; i--)
   scene.lights.removeByIndex(i);"+'\n\n';
     for(int i=0; i < light.position.length; ++i) {
       string Li="L"+string(i);
       real[] diffuse=light.diffuse[i];
       script += Li+"=scene.createLight();"+'\n'+
-	Li+".direction.set("+format(-(T*light.position[i]),",")+");"+'\n'+
+	Li+".direction.set("+format(-light.position[i],",")+");"+'\n'+
       Li+".color.set("+format((diffuse[0],diffuse[1],diffuse[2]),",")+");"+'\n';
     }
 // Work around initialization bug in Adobe Reader 8.0:
@@ -1774,7 +1754,8 @@ void writeJavaScript(string name, string preamble, string script)
     }
   }
   close(out);
-  file3.push(name);
+  if(!settings.inlinetex)
+    file3.push(name);
 }
 
 string embed3D(string prefix, frame f, string label="",
@@ -1791,8 +1772,7 @@ string embed3D(string prefix, frame f, string label="",
   if(script == "") script=defaultembed3Dscript;
 
  // Adobe Reader doesn't appear to support user-specified viewport lights.
-  string lightscript=light.on() && !light.viewport ?
-    lightscript(light,shiftless(P.modelview())) : "";
+  string lightscript=light.on() && !light.viewport ? lightscript(light) : "";
 
   if(P.infinity || lightscript != "") {
     triple lambda=max3(f)-min3(f);
@@ -1806,7 +1786,8 @@ string embed3D(string prefix, frame f, string label="",
   shipout3(prefix,f);
   
   prefix += ".prc";
-  file3.push(prefix);
+  if(!settings.inlinetex)
+    file3.push(prefix);
 
   triple v=P.vector()/cm;
   triple u=unit(v);
@@ -1816,6 +1797,7 @@ string embed3D(string prefix, frame f, string label="",
   
   string options3=light.viewport ? "3Dlights=Headlamp" : "3Dlights=File";
   options3 += ","+defaultembed3Doptions+",poster,text="+text+",label="+label+
+    ",toolbar="+(settings.toolbar ? "true" : "false")+
     ",3Daac="+format(P.absolute ? P.angle*fovfactor : angle)+
     ",3Dc2c="+format(u)+
     ",3Dcoo="+format(P.target/cm)+
@@ -1867,8 +1849,6 @@ object embed(string prefix=defaultfilename, picture pic,
     xsize3=ysize3=zsize3=max(xsize,ysize);
     warn=false;
   }
-
-  transform3 modelview;
 
   projection P=P.copy();
   transform3 t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
@@ -1924,9 +1904,10 @@ object embed(string prefix=defaultfilename, picture pic,
         P.calculate();
       }
 
-      modelview=P.modelview();
+      transform3 modelview=P.modelview();
       f=modelview*f;
       P=modelview*P;
+      light=modelview*light;
 
       if(P.infinity) {
 	triple m=min3(f);
@@ -1957,9 +1938,10 @@ object embed(string prefix=defaultfilename, picture pic,
     if(preview || (!prc && settings.render != 0)) {
       frame f=f;
       if(P.absolute) {
-	modelview=P.modelview();
+	transform3 modelview=P.modelview();
 	f=modelview*f;
 	P=modelview*P;
+	light=modelview*light;
 	angle=P.angle;
       }
       
@@ -1977,9 +1959,7 @@ object embed(string prefix=defaultfilename, picture pic,
       if(preview)
         file3.push(prefix+".eps");
       shipout3(prefix,f,preview ? "eps" : "",width,height,
-               P.infinity ? 0 : angle,m,M,
-	       light.viewport ? light.position :
-	       light.position(shiftless(modelview)),
+               P.infinity ? 0 : angle,m,M,light.position,
 	       light.diffuse,light.ambient,light.specular,
 	       light.viewport,wait,view && !preview);
       if(!preview) return F;
@@ -2010,10 +1990,7 @@ currentpicture.fitter=new frame(picture pic, real xsize, real ysize,
     object F=embed(pic,xsize,ysize,keepAspect,wait,view,options,script,P);
     if(prc())
       label(f,F.L);
-    else {
-      if(settings.render != 0) return f;
-      else add(f,F.f);
-    }
+    else if(settings.render == 0) add(f,F.f);
   }
   return f;
 };

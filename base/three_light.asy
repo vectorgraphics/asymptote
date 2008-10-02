@@ -88,7 +88,7 @@ struct light {
   real[][] specular;
   real specularfactor;
   bool viewport; // Are the lights specified (and fixed) in the viewport frame?
-  triple[] position;
+  triple[] position; // Only directional lights are implemented.
 
   transform3 T=identity(4); // Transform to apply to normal vectors.
 
@@ -121,13 +121,17 @@ struct light {
   }
 
   void operator init(pen diffuse=white, pen ambient=black, pen specular=diffuse,
-		     real specularfactor=1, bool viewport=true,
-		     real x, real y, real z) {
-    operator init(diffuse,ambient,specular,specularfactor,viewport,(x,y,z));
+		     bool viewport=true, real x, real y, real z) {
+    operator init(diffuse,ambient,specular,viewport,(x,y,z));
   }
 
-  triple[] position(transform3 T) {
-    return sequence(new triple(int i) {return T*position[i];},position.length);
+  void operator init(explicit light light) {
+    diffuse=copy(light.diffuse);
+    ambient=copy(light.ambient);
+    specular=copy(light.specular);
+    specularfactor=light.specularfactor;
+    viewport=light.viewport;
+    position=copy(light.position);
   }
 
   pen color(triple normal, material m, transform3 T=T) {
@@ -149,6 +153,13 @@ struct light {
     }
     return pack(p);
   }
+}
+
+light operator * (transform3 t, light light)
+{
+  light light=light(light);
+  if(!light.viewport) light.position=shiftless(t)*light.position;
+  return light;
 }
 
 light operator cast(triple v) {return light(v);}
