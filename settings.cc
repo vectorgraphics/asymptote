@@ -970,7 +970,9 @@ void initSettings() {
 			      "latex"));
   addOption(new boolSetting("twice", 0,
 			    "Run LaTeX twice (to resolve references)"));
-  addOption(new boolSetting("inlinetex", 0, "Generate inline tex code"));
+  addOption(new boolSetting("inlinetex", 0, "Generate inline TeX code"));
+  addOption(new boolSetting("inlineimage", 0,
+			    "Generate inline embedded image"));
   addOption(new boolSetting("parseonly", 'p', "Parse file"));
   addOption(new boolSetting("translate", 's',
 			    "Show translated virtual machine code"));

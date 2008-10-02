@@ -13,32 +13,28 @@
 \fixstar#1_#2\relax\fi}
 \expandafter\fixstar\jobname*\relax
 
-\ifinline
 \RequirePackage{color,graphicx}
-\else
-\RequirePackage{graphics}
-\fi
 
 \def\makeinnocent#1{\catcode`#1=12 }
 \def\csarg#1#2{\expandafter#1\csname#2\endcsname}
 \newwrite\AsyStream
 \newread\AsyTestStream
+\newread\AsyTestTeXStream
 \def\AsyFile{\jobname.asy}
 
-\ifinline
 \openin\AsyTestStream=\jobname_.pre
 \ifeof\AsyTestStream
 \else
 \input \jobname_.pre
 \fi
 \closein\AsyTestStream%
-\fi
 
 \immediate\openout\AsyStream=\AsyFile
 \immediate\write\AsyStream{access settings;}%
 \immediate\write\AsyStream{if(!settings.multipleView)}%
 \immediate\write\AsyStream{  settings.batchView=false;}%
 \immediate\write\AsyStream{settings.toolbar=false;}%
+\immediate\write\AsyStream{settings.inlineimage=true;}%
 
 \newif\ifAsyPDF
 \ifx\pdfoutput\undefined
@@ -121,11 +117,18 @@
     \ifinline
       \PackageWarning{asymptote}{file \Jobname_\the\c@asy_.tex does not exist}%
     \else
-      \ifAsyPDF
+      \openin\AsyTestTeXStream=\Jobname_\the\c@asy_.tex
+      \ifeof\AsyTestTeXStream
+        \ifAsyPDF
         \PackageWarning{asymptote}{file \Jobname_\the\c@asy.pdf does not exist}%
-      \else
+        \else
         \PackageWarning{asymptote}{file \Jobname_\the\c@asy.eps does not exist}%
+        \fi
+      \else
+        \catcode`:=12
+        \input \Jobname_\the\c@asy_.tex%
       \fi
+      \closein\AsyTestTeXStream%
     \fi
     \closein\AsyTestStream%
   \else

@@ -23,7 +23,8 @@ string embed(string name, string options="", real width=0, real height=0);
 string link(string label, string text, string options="");
 
 bool prc0() {
-  return settings.prc && (settings.outformat == "pdf" || pdf());
+  return (settings.prc && (settings.outformat == "pdf" || pdf())) ||
+    settings.inlineimage || settings.outformat == "prc";
 }
 
 bool prc() {
@@ -81,9 +82,12 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     projection P=currentprojection)
 {
   if(!uptodate()) {
+    bool inlinetex=settings.inlinetex;
+    settings.inlinetex=settings.inlineimage;
     frame f=pic.fit(wait=wait,view=view,options,script,P);    
     if(!pic.empty2() || settings.render == 0 || prc())
       shipout(prefix,orientation(f),format,wait,view);
+    settings.inlinetex=inlinetex;
   }
   
   pic.uptodate=true;
