@@ -1942,14 +1942,14 @@ object embed(string prefix=defaultfilename, picture pic,
       preview=false;
     if(preview || (!prc && settings.render != 0)) {
       frame f=f;
+      transform3 modelview;
       if(P.absolute) {
-	transform3 modelview=P.modelview();
+	modelview=P.modelview();
 	f=modelview*f;
 	P=modelview*P;
-	light=modelview*light;
 	angle=P.angle;
       }
-      
+
       triple m=min3(f);
       triple M=max3(f);
       real r=0.5*abs(M-m);
@@ -1961,18 +1961,24 @@ object embed(string prefix=defaultfilename, picture pic,
       M += margin; 
       m -= margin;
 
-      if(preview)
-        file3.push(prefix+".eps");
-      shipout3(prefix,f,preview ? "eps" : "",width,height,
-               P.infinity ? 0 : angle,m,M,light.position,
+      if(preview && !settings.inlinetex)
+        file3.push(prefix+nativeformat());
+      shipout3(prefix,f,preview ? nativeformat() : "",width,height,
+               P.infinity ? 0 : angle,m,M,
+	       P.absolute ? (modelview*light).position : light.position,
 	       light.diffuse,light.ambient,light.specular,
 	       light.viewport,wait,view && !preview);
       if(!preview) return F;
     }
 
-    if(prc) F.L=embed3D(prefix,f,label,
-                        text=preview ? graphic(prefix+".eps") : "",options,
-                        script,width,height,angle,background,light,P);
+    string image;
+    if(preview) {
+      image=prefix;
+      if(settings.inlinetex) image += "_0";
+      image=graphic(image+"."+nativeformat());
+    }
+    if(prc) F.L=embed3D(prefix,f,label,text=image,options,script,width,height,
+			angle,background,light,P);
   }
 
   if(!is3D)

@@ -87,11 +87,14 @@ One can also scale the figure to the full line width:
 \begin{center}
 \begin{asy}[\the\linewidth]
 settings.thick=false;
+settings.render=4;
+
 import graph3;
 import solids;
 
 currentprojection=perspective(0,0,30,up=Y);
-currentlight=light(gray(0.75),(0.25,-0.25,1),(0,1,0));
+currentlight=light(gray(0.75),specularfactor=3,viewport=false,
+                   (0.25,0.5,1),(0,-0.5,-0.5));
 
 pen color=green;
 real alpha=240;

@@ -1,7 +1,7 @@
 import graph3;
 import solids;
 size(0,150);
-currentprojection=orthographic(0,2,10,up=Y);
+currentprojection=perspective(0,2,10,up=Y);
 currentlight=(0.25,-0.25,5);
 
 pen color=green;

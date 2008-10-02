@@ -167,6 +167,7 @@ light operator cast(triple v) {return light(v);}
 light currentlight=light(ambient=rgb(0.1,0.1,0.1),(0.25,-0.25,1),
 			 specularfactor=3);
 
-light adobe=light(gray(0.45),specularfactor=3,viewport=false,
-		  (0,1,-0.25),(0,-1,-0.25),(0.5,0,0.5),(-0.5,0,-0.5));
+light adobe=light(gray(0.4),specularfactor=3,viewport=false,
+		  (0.5,-0.5,-0.25),(0.5,0.5,0.25),
+		  (0.5,-0.5,0.2),(-0.5,0.5,-0.2));
 light nolight;

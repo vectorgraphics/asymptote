@@ -1017,7 +1017,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   ostringstream cmd;
   cmd << "'" << texprogram(true) << "'"
       << " \\nonstopmode\\input '" << texname << "'";
-  bool quiet=verbose <= 1;
+  bool quiet=verbose <= 2;
   int status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
   if(!status && getSetting<bool>("twice"))
     status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
@@ -1034,7 +1034,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
     ostringstream cmd;
     cmd << "'" << getSetting<string>("dvips") << "' -R -Pdownload35 -D600 "
 	<< getSetting<string>("dvipsOptions");
-    if(verbose <= 1) cmd << " -q";
+    if(verbose <= 2) cmd << " -q";
     cmd  << " -o '" << psname << "' '" << dviname << "'";
     
     status=System(cmd,0,true,"dvips");
@@ -1057,6 +1057,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
     string s=buf.str();
     if(gs.tailequals(s.c_str(),s.size(),"E",1)) break;
   }
+  if(verbose > 2) cout << endl;
     
   mem::vector<solvedKnot> nodes;
   solvedKnot node;
