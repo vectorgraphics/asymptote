@@ -12,6 +12,7 @@ real linegranularity=0.01;
 real dotgranularity=0.0001;
 real viewportfactor=1.001;   // Factor used to expand orthographic viewport.
 real anglefactor=1.01;       // Factor used to expand perspective viewport.
+int angleiterations=6;       // Iterations to find perspective field of view.
 real fovfactor=0.6;          // PRC field of view factor.
 
 string defaultembed3Doptions;
@@ -1898,12 +1899,6 @@ object embed(string prefix=defaultfilename, picture pic,
         f=pic.fit3(s*t,is3D ? null : pic2,P);
       }
 
-      if(is3D && !P.infinity) {
-        triple shift=invert(0.5*(m2+M2),unit(P.vector()),P.target,P);
-        P.target += shift;
-        P.calculate();
-      }
-
       transform3 modelview=P.modelview();
       f=modelview*f;
       P=modelview*P;
@@ -1917,13 +1912,15 @@ object embed(string prefix=defaultfilename, picture pic,
       } else {
       // Choose the angle to be just large enough to view the entire image:
 	if(is3D && angle == 0 && !P.infinity) {
-	  pair r=minratio(f);
-	  pair R=maxratio(f);
-	  real aspect=width > 0 ? height/width : 1;
-	  angle=anglefactor*max(aTan(-r.x*aspect)+aTan(R.x*aspect),
-				aTan(-r.y)+aTan(R.y));
-	  real h=0.5*P.target.z;
-	  f=shift(h*(abs(r.x)-abs(R.x)),h*(abs(r.y)-abs(R.y)),0)*f;
+	  for(int i=0; i < angleiterations; ++i) {
+	    pair r=minratio(f);
+	    pair R=maxratio(f);
+	    real aspect=width > 0 ? height/width : 1;
+	    angle=anglefactor*max(aTan(-r.x*aspect)+aTan(R.x*aspect),
+				  aTan(-r.y)+aTan(R.y));
+	    real h=0.5*P.target.z;
+	    f=shift(h*(-r.x-R.x),h*(-r.y-R.y),0)*f;
+	  }
 	}
       }
     }
@@ -1950,7 +1947,7 @@ object embed(string prefix=defaultfilename, picture pic,
       real r=0.5*abs(M-m);
       real zcenter=0.5*(M.z+m.z);
       M=(M.x,M.y,zcenter+r);
-      m=(m.x,m.y,zcenter-r);
+      m=(m.x,m.y,zcenter-2r);
       real factor=r*(viewportfactor-1.0);
       triple margin=(factor,factor,0);
       M += margin; 
