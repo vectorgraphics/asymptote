@@ -767,7 +767,7 @@ real[] theta(triple[] v, real[] alpha, real[] beta,
 triple reference(triple[] v, int n, triple d0, triple d1)
 {
   triple[] V=sequence(new triple(int i) {
-      return cross(v[i-1]-v[i-2],v[i]-v[i-1]);
+      return cross(v[i+1]-v[i],v[i+2]-v[i+1]); 
     },n-1);
   if(n > 0) {
     V.push(cross(d0,v[1]-v[0]));
