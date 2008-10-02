@@ -1,10 +1,10 @@
 \documentclass[12pt]{article}
 
 % Use this form to include eps (latex) or pdf (pdflatex) files:
-\usepackage{asymptote}
+%\usepackage{asymptote}
 
 % Use this form with latex or pdflatex to include inline LaTeX code:
-%\usepackage[inline]{asymptote}
+\usepackage[inline]{asymptote}
 
 % Enable this line to produce pdf hyperlinks with latex:
 %\usepackage[hypertex]{hyperref}
@@ -86,6 +86,7 @@ fill(circle((0,-0.5),0.125));
 One can also scale the figure to the full line width:
 \begin{center}
 \begin{asy}[\the\linewidth]
+settings.thick=false;
 import graph3;
 import solids;
 
@@ -115,10 +116,9 @@ path3 p3=path3(p);
 
 revolution a=revolution(p3,Y,0,alpha);
 draw(surface(a),color);
-draw(s,color);
 draw(rotate(alpha,Y)*s,color);
 for(int i=0; i < n; ++i)
-  draw(surface(blocks[i]),color,black+linewidth());
+  draw(surface(blocks[i]),color+opacity(0.5),black);
 draw(p3);
 
 xaxis3(Label("$x$",1,align=2X),Arrow3);

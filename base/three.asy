@@ -131,6 +131,13 @@ triple project(triple u, triple v)
   return dot(u,v)*v;
 }
 
+// Return a vector perpendicular to v.
+private triple perp(triple v)
+{
+  triple u=cross(v,Y);
+  return u == O ? cross(v,Z) : u;
+}
+
 // Return the transformation corresponding to moving the camera from the target
 // (looking in the negative z direction) to the point 'eye' (looking at target),
 // orienting the camera so that direction 'up' points upwards.
@@ -144,12 +151,12 @@ transform3 look(triple eye, triple up=Z, triple target=O)
     f=-Z; // The eye is already at the origin: look down.
 
   triple side=cross(f,up);
-  if(side == O) {
-    // The eye is pointing either directly up or down, so there is no
-    // preferred "up" direction to rotate it.  Pick one arbitrarily.
-    side=cross(f,Y);
-    if(side == O) side=cross(f,Z);
-  }
+
+  // If the eye is pointing either directly up or down, there is no
+  // preferred "up" direction to rotate it.  Pick one arbitrarily.
+  if(side == O)
+    side=perp(f);
+
   triple s=unit(side);
 
   triple u=cross(s,f);
@@ -1452,6 +1459,7 @@ transform3 transform3(projection P)
 {
   triple v=unit(P.oblique ? P.camera : P.vector());
   triple u=unit(P.up-dot(P.up,v)*v);
+  if(u == O) u=cross(perp(v),v);
   return transform3(cross(u,v),u);
 }
 

@@ -28,13 +28,12 @@ path3 p3=path3(p);
 
 revolution a=revolution(p3,Y,0,alpha);
 draw(surface(a),color);
-draw(s,color);
 draw(rotate(alpha,Y)*s,color);
 for(int i=0; i < n; ++i)
-  draw(surface(blocks[i]),color,black+linewidth());
+  draw(surface(blocks[i]),color+opacity(0.5),black);
 draw(p3);
 
 xaxis3(Label("$x$",1,align=2X),Arrow3);
 yaxis3(Label("$y$",1,align=2Y),ymax=1.25,dashed,Arrow3);
-arrow("$y=2x^2-x^3$",XYplane(F(1.8)),X+Z,1.5cm);
+arrow("$y=2x^2-x^3$",XYplane(F(1.8)),X+Z,1.5cm,red);
 draw(arc(1.22Y,0.3,90,0,7.5,180),Arrow3);
