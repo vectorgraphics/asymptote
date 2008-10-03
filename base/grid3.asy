@@ -230,14 +230,14 @@ struct ticksgridT {
 typedef ticksgridT ticksgrid();
 
 
-ticksgrid Ticks3(Label F="", ticklabel ticklabel=null,
-		 bool beginlabel=true, bool endlabel=true,
-		 int N=0, int n=0, real Step=0, real step=0,
-		 bool begin=true, bool end=true,
-		 real Size=0, real size=0,
-		 pen pTick=nullpen, pen ptick=nullpen,
-		 grid3routinetype gridroutine,
-		 pen pGrid=grey, pen pgrid=lightgrey)
+ticksgrid InOutTicks(Label F="", ticklabel ticklabel=null,
+		     bool beginlabel=true, bool endlabel=true,
+		     int N=0, int n=0, real Step=0, real step=0,
+		     bool begin=true, bool end=true,
+		     real Size=0, real size=0,
+		     pen pTick=nullpen, pen ptick=nullpen,
+		     grid3routinetype gridroutine,
+		     pen pGrid=grey, pen pgrid=lightgrey)
 {
   return new ticksgridT()
     {
@@ -252,14 +252,14 @@ ticksgrid Ticks3(Label F="", ticklabel ticklabel=null,
     };
 }
 
-ticksgrid LeftTicks3(Label F="", ticklabel ticklabel=null,
-                    bool beginlabel=true, bool endlabel=true,
-                    int N=0, int n=0, real Step=0, real step=0,
-                    bool begin=true, bool end=true,
-                    real Size=0, real size=0,
-                    pen pTick=nullpen, pen ptick=nullpen,
-                    grid3routinetype gridroutine,
-                    pen pGrid=grey, pen pgrid=lightgrey)
+ticksgrid InTicks(Label F="", ticklabel ticklabel=null,
+		  bool beginlabel=true, bool endlabel=true,
+		  int N=0, int n=0, real Step=0, real step=0,
+		  bool begin=true, bool end=true,
+		  real Size=0, real size=0,
+		  pen pTick=nullpen, pen ptick=nullpen,
+		  grid3routinetype gridroutine,
+		  pen pGrid=grey, pen pgrid=lightgrey)
 {
   return new ticksgridT()
     {
@@ -273,14 +273,14 @@ ticksgrid LeftTicks3(Label F="", ticklabel ticklabel=null,
     };
 }
 
-ticksgrid RightTicks3(Label F="", ticklabel ticklabel=null,
-                     bool beginlabel=true, bool endlabel=true,
-                     int N=0, int n=0, real Step=0, real step=0,
-                     bool begin=true, bool end=true,
-                     real Size=0, real size=0,
-                     pen pTick=nullpen, pen ptick=nullpen,
-                     grid3routinetype gridroutine,
-                     pen pGrid=grey, pen pgrid=lightgrey)
+ticksgrid OutTicks(Label F="", ticklabel ticklabel=null,
+		   bool beginlabel=true, bool endlabel=true,
+		   int N=0, int n=0, real Step=0, real step=0,
+		   bool begin=true, bool end=true,
+		   real Size=0, real size=0,
+		   pen pTick=nullpen, pen ptick=nullpen,
+		   grid3routinetype gridroutine,
+		   pen pGrid=grey, pen pgrid=lightgrey)
 {
   return new ticksgridT()
     {
@@ -318,7 +318,6 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
   ticks().grid3(pic,put);
 }
 
-
 /* Example:
 
    import grid3;
@@ -353,7 +352,7 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
    // Aliases: top=Relative(1), middle=Relative(0.5)
    // and bottom=Relative(0).
 
-   // These arguments are similar to those of Ticks3():
+   // These arguments are similar to those of InOutTicks():
    N=0,                // int
    n=0,                // int
    Step=0,             // real
@@ -365,9 +364,9 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
    put=Below,          // bool
    );
 
-   xaxis3(Label("$x$",position=EndPoint,align=S),RightTicks3());
-   yaxis3(Label("$y$",position=EndPoint,align=S),RightTicks3());
-   zaxis3(Label("$z$",position=EndPoint,align=(0,0.5)+W),b,RightTicks3());
+   xaxis3(Label("$x$",position=EndPoint,align=S),OutTicks());
+   yaxis3(Label("$y$",position=EndPoint,align=S),OutTicks());
+   zaxis3(Label("$z$",position=EndPoint,align=(0,0.5)+W),b,OutTicks());
 
 */
 
@@ -375,30 +374,30 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
 
    int N=10, n=2;
    grid3(b,N=N,n=n);
-   xaxis(Label("$x$",position=EndPoint,align=S),b,RightTicks3());
-   yaxis(Label("$y$",position=EndPoint,align=S),b,RightTicks3(N=N,n=n));
-   zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),b,RightTicks3());
+   xaxis(Label("$x$",position=EndPoint,align=S),b,OutTicks());
+   yaxis(Label("$y$",position=EndPoint,align=S),b,OutTicks(N=N,n=n));
+   zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),b,OutTicks());
 
 
    grid3(b,new grid3routines[] {XYXgrid(top),XZXgrid(0)});
-   xaxis(Label("$x$",position=EndPoint,align=S),b,RightTicks3());
-   yaxis(Label("$y$",position=EndPoint,align=S),b,RightTicks3());
-   zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),b,RightTicks3());
+   xaxis(Label("$x$",position=EndPoint,align=S),b,OutTicks());
+   yaxis(Label("$y$",position=EndPoint,align=S),b,OutTicks());
+   zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),b,OutTicks());
 
 
    grid3(b,new grid3routines[] {XYXgrid(-0.5),XYXgrid(1.5)},
    pGrid=new pen[] {red,blue},
    pgrid=new pen[] {0.5red,0.5blue});
-   xaxis(Label("$x$",position=EndPoint,align=S),b,RightTicks3());
-   yaxis(Label("$y$",position=EndPoint,align=S),b,RightTicks3());
-   zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),b,RightTicks3());
+   xaxis(Label("$x$",position=EndPoint,align=S),b,OutTicks());
+   yaxis(Label("$y$",position=EndPoint,align=S),b,OutTicks());
+   zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),b,OutTicks());
 
    // Axes with grids:
 
    xaxis(Label("$x$",position=EndPoint,align=S),b,
-   RightTicks3(Step=0.5,gridroutine=XYgrid));
+   OutTicks(Step=0.5,gridroutine=XYgrid));
    yaxis(Label("$y$",position=EndPoint,align=S),b,
-   Ticks3(Label("",align=0.5X),N=8,n=2,gridroutine=YX_YZgrid));
-   zaxis("$z$",b,RightTicks3(ZYgrid));
+   InOutTicks(Label("",align=0.5X),N=8,n=2,gridroutine=YX_YZgrid));
+   zaxis("$z$",b,OutTicks(ZYgrid));
 
 */

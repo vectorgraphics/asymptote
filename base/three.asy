@@ -1805,7 +1805,8 @@ string embed3D(string prefix, frame f, string label="",
   real roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));
   
   string options3=light.viewport ? "3Dlights=Headlamp" : "3Dlights=File";
-  options3 += ","+defaultembed3Doptions+",poster,text="+text+",label="+label+
+  if(defaultembed3Doptions != "") options3 += ","+defaultembed3Doptions;
+  options3 += ",poster,text="+text+",label="+label+
     ",toolbar="+(settings.toolbar ? "true" : "false")+
     ",3Daac="+format(P.absolute ? P.angle*fovfactor : angle)+
     ",3Dc2c="+format(u)+

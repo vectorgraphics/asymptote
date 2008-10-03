@@ -10,8 +10,8 @@ limits((-2,-2,1),(0,2,100));
 grid3(XYZgrid);
 
 xaxis3(Label("$x$",position=EndPoint,align=S),Bounds(Min,Min),
-       RightTicks3());
-yaxis3(Label("$y$",position=EndPoint,align=S),Bounds(Min,Min),RightTicks3());
+       OutTicks());
+yaxis3(Label("$y$",position=EndPoint,align=S),Bounds(Min,Min),OutTicks());
 zaxis3(Label("$z$",position=EndPoint,align=(0,0.5)+W),Bounds(Min,Min),
-       RightTicks3(beginlabel=false));
+       OutTicks(beginlabel=false));
 

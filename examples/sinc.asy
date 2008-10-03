@@ -14,6 +14,6 @@ real sinc(pair z) {
 draw(lift(sinc,contour(sinc,(-2,-2),(2,2),new real[] {0})),red);
 draw(surface(sinc,(-2,-2),(2,2),Spline),lightgray+opacity(0.5));
 
-xaxis3("$x$",Bounds,LeftTicks3(beginlabel=false,Label));
-yaxis3("$y$",Bounds,LeftTicks3(Label));
-zaxis3("$z$",Bounds,LeftTicks3());
+xaxis3("$x$",Bounds,InTicks(beginlabel=false,Label));
+yaxis3("$y$",Bounds,InTicks(Label));
+zaxis3("$z$",Bounds,InTicks());

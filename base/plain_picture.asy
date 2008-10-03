@@ -952,7 +952,7 @@ struct picture {
       return scaling.build(p.a(),p.b()).a;
     } else if(status == simplex.problem.UNBOUNDED) {
       if(warn) write("warning: "+dir+" scaling in picture unbounded");
-      return 1;
+      return 0;
     } else {
       if(!warn) return 1;
       bool userzero=true;

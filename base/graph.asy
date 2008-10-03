@@ -81,8 +81,7 @@ scaleT BrokenLog(real a, real b, bool automin=false, bool automax=false)
 
 Label Break=Label("$\approx$",UnFill(0.2mm));
 
-void scale(picture pic=currentpicture, scaleT x, scaleT y=Linear,
-           scaleT z=Linear)
+void scale(picture pic=currentpicture, scaleT x, scaleT y=x, scaleT z=y)
 {
   pic.scale.x.scale=x;
   pic.scale.y.scale=y;
@@ -848,7 +847,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     real limit=Step == 0 ? axiscoverage*arclength(T*g) : 0;
     tickvalues values=modify(generateticks(sign,F,ticklabel,N,n,Step,step,
                                            Size,size,T,side,g,
-					   limit,p,locate,divisor,opposite));
+                                           limit,p,locate,divisor,opposite));
 
     Ticks(sign,F,ticklabel,beginlabel,endlabel,values.major,values.minor,
           values.N,begin,end,Size,size,extend,pTick,ptick)
@@ -937,9 +936,9 @@ ticks Ticks(Label format="", ticklabel ticklabel=null,
 }
 
 ticks NoTicks=NoTicks(),
-LeftTicks=LeftTicks(),
-RightTicks=RightTicks(),
-Ticks=Ticks();
+  LeftTicks=LeftTicks(),
+  RightTicks=RightTicks(),
+  Ticks=Ticks();
 
 pair tickMin(picture pic)
 {
@@ -1089,18 +1088,17 @@ axis YZero(bool extend=true)
 }
 
 axis Bottom=Bottom(),
-Top=Top(),
-BottomTop=BottomTop(),
-Left=Left(),
-Right=Right(),
-LeftRight=LeftRight(),
-XZero=XZero(),
-YZero=YZero();
+  Top=Top(),
+  BottomTop=BottomTop(),
+  Left=Left(),
+  Right=Right(),
+  LeftRight=LeftRight(),
+  XZero=XZero(),
+  YZero=YZero();
 
 // Draw a general axis.
 void axis(picture pic=currentpicture, Label L="", path g, path g2=nullpath,
-          pen p=currentpen,
-          ticks ticks, ticklocate locate, arrowbar arrow=None,
+          pen p=currentpen, ticks ticks, ticklocate locate, arrowbar arrow=None,
           int[] divisor=new int[], bool put=Below, bool opposite=false) 
 {
   Label L=L.copy();
@@ -2047,14 +2045,14 @@ picture vectorfield(path vector(pair), pair a, pair b,
 
 // True arc
 path Arc(pair c, real r, real angle1, real angle2, bool direction,
-	 int n=nCircle)
+         int n=nCircle)
 {
   angle1=radians(angle1);
   angle2=radians(angle2);
   if(angle1 >= angle2 && direction) angle1 -= 2pi;
   if(angle2 >= angle1 && !direction) angle2 -= 2pi;
   return shift(c)*polargraph(new real(real t){return r;},angle1,angle2,n,
-			     operator ..);
+                             operator ..);
 }
 
 path Arc(pair c, real r, real angle1, real angle2, int n=nCircle)
@@ -2063,7 +2061,7 @@ path Arc(pair c, real r, real angle1, real angle2, int n=nCircle)
 }
 
 path Arc(pair c, explicit pair z1, explicit pair z2, bool direction=CCW,
-	 int n=nCircle)
+         int n=nCircle)
 {
   return Arc(c,abs(z1-c),degrees(z1-c),degrees(z2-c),direction,n);
 }

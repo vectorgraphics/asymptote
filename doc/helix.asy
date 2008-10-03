@@ -15,6 +15,6 @@ draw(p,Arrow3);
 
 scale(true);
 
-xaxis3(XZ()*"$x$",Bounds(),red,LeftTicks3(Label,2,2));
-yaxis3(YZ()*"$y$",Bounds(),red,LeftTicks3(beginlabel=false,Label,2,2));
-zaxis3(XZ()*"$z$",Bounds(),red,LeftTicks3);
+xaxis3(XZ()*"$x$",Bounds(),red,OutTicks(Label,2,2));
+yaxis3(YZ()*"$y$",Bounds(),red,OutTicks(beginlabel=false,Label,2,2));
+zaxis3(XZ()*"$z$",Bounds(),red,InOutTicks);
