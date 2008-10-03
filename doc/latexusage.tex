@@ -87,11 +87,12 @@ One can also scale the figure to the full line width:
 \begin{center}
 \begin{asy}[\the\linewidth]
 settings.thick=false;
+if(settings.render < 0) settings.render=4;
 
 import graph3;
 import solids;
 
-currentprojection=perspective(0,0,30,up=Y);
+currentprojection=perspective(0,1,30,up=Y);
 currentlight=light(gray(0.75),specularfactor=3,viewport=false,
                    (0.25,0.5,1),(0,-0.5,-0.5));
 
@@ -124,9 +125,9 @@ for(int i=0; i < n; ++i)
 draw(p3);
 
 xaxis3(Label("$x$",1,align=2X),Arrow3);
-yaxis3(Label("$y$",1,align=2Y),ymax=1.25,dashed,Arrow3);
+yaxis3(Label("$y$",1,align=2Y),ymax=1.3,dashed,Arrow3);
 arrow("$y=2x^2-x^3$",XYplane(F(1.8)),X+Z,1.5cm,red);
-draw(arc(1.22Y,0.3,90,0,7.5,180),Arrow3);
+draw(arc(1.17Y,0.3,90,0,7.5,180),Arrow3);
 \end{asy}
 \end{center}
 

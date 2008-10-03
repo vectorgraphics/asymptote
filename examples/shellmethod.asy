@@ -2,7 +2,7 @@ import graph3;
 import solids;
 
 size(0,150);
-currentprojection=perspective(0,0,30,up=Y);
+currentprojection=perspective(0,-1,30,up=Y);
 currentlight=light(gray(0.75),(0.25,-0.25,1),(0,1,0));
 
 pen color=green;
@@ -34,6 +34,6 @@ for(int i=0; i < n; ++i)
 draw(p3);
 
 xaxis3(Label("$x$",1,align=2X),Arrow3);
-yaxis3(Label("$y$",1,align=2Y),ymax=1.25,dashed,Arrow3);
+yaxis3(Label("$y$",1,align=2Y),ymax=1.3,dashed,Arrow3);
 arrow("$y=2x^2-x^3$",XYplane(F(1.8)),X+Z,1.5cm,red);
-draw(arc(1.22Y,0.3,90,0,7.5,180),Arrow3);
+draw(arc(1.17Y,0.3,90,0,7.5,180),Arrow3);
