@@ -217,7 +217,9 @@ bool application::complete() {
 }
 
 bool application::matchRest(env &e, formal &source, varinit *a) {
-  if (index==args.size())
+  // First make sure all non-rest arguments are matched (matching to defaults
+  // if necessary).
+  if (complete())
     // Match rest to rest.
     if (rest) {
       formal &target=sig->getRest();
