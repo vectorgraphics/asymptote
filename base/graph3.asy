@@ -511,7 +511,7 @@ real ztrans(transform3 t, real z)
 private triple defaultdir(triple X, triple Y, triple Z, bool opposite=false,
                           projection P) {
   triple u=cross(P.vector(),Z);
-  return abs(dot(u,X)) < abs(dot(u,Y)) ? -X : (opposite ? Y : -Y);
+  return abs(dot(u,X)) > abs(dot(u,Y)) ? -X : (opposite ? Y : -Y);
 }
 
 // An internal routine to draw an x axis at a particular y value.
