@@ -1,31 +1,34 @@
 import graph3;
 import solids;
 size(0,150);
-currentprojection=perspective(0,0,10);
-currentlight=(1,1,0);
+currentprojection=orthographic(1,0,10,up=Y);
 pen color=green;
-real alpha=240;
+real alpha=-240;
 
 real f(real x) {return sqrt(x);}
-triple F(real x) {return (x,f(x),0);}
+pair F(real x) {return (x,f(x));}
+triple F3(real x) {return (x,f(x),0);}
 
-path3 p=graph(F,0,1,n=30);
-revolution a=revolution(p,X,180,180+alpha);
-a.filldraw(8,color,blue,false);
-p=p--X--cycle;
-filldraw(p,color);
-filldraw(rotate(alpha,X)*p,color);
+path p=graph(F,0,1,n=30,Spline)--(1,0)--cycle;
+path3 p3=path3(p);
 
-bbox3 b=autolimits(O,1.7X+1.5*Y+Z);
+revolution a=revolution(p3,X,alpha,0);
+draw(surface(a),color);
+draw(p3,blue);
 
-xaxis(Label("$x$",1),b,dashed,Arrow);
-yaxis(Label("$y$",1),b,Arrow);
+surface s=surface(bezulate(p));
+draw(s,color);
+draw(rotate(alpha,X)*s,color);
+
+xaxis3(Label("$x$",1),xmax=1.25,dashed,Arrow3);
+yaxis3(Label("$y$",1),Arrow3);
+
 dot("$(1,1)$",(1,1,0));
-arrow("$y=\sqrt{x}$",F(0.8),N,0.75cm);
+arrow("$y=\sqrt{x}$",F3(0.8),Y,0.75cm,red);
 
 real r=0.4;
-draw(F(r)--(1,f(r),0),red);
+draw(F3(r)--(1,f(r),0),red);
 real x=(1+r)/2;
 
-draw("$r$",(x,0,0)--(x,f(r),0),red,Arrow);
-draw(arc(1.4X,0.4,90,90,3,-90),ArcArrow);
+draw("$r$",(x,0,0)--(x,f(r),0),X+0.1Z,red,Arrow3);
+draw(arc(1.1X,0.4,90,90,3,-90),Arrow3);

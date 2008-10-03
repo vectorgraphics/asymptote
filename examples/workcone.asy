@@ -18,25 +18,23 @@ real x2=r*s2/h;
 
 path3 p=(0,0,0)--(x,0,s);
 revolution a=revolution(p,Z);
-draw(surface(a),lightblue);
-draw(a,lightblue+white,false);
+draw(surface(a),lightblue+opacity(0.5));
 
 path3 q=(x,0,s)--(r,0,h);
 revolution b=revolution(q,Z);
-draw(surface(b),white);
-draw(a,black,false);
+draw(surface(b),white+opacity(0.5));
 
 draw((-r-1,0,0)--(r+1,0,0));
 draw((0,0,0)--(0,0,h+1),dashed);
 
 path3 w=(x1,0,s1)--(x2,0,s2)--(0,0,s2);
 revolution b=revolution(w,Z);
-draw(surface(b),blue);
-draw(b,black,false);
+draw(surface(b),blue+opacity(0.5));
 draw(circle((0,0,s2),x2));
+draw(circle((0,0,s1),x1));
 
-draw("$x$",(xr,0,0)--(xr,0,sr),red,Arrow,PenMargin);
+draw("$x$",(xr,0,0)--(xr,0,sr),red,Arrow3);
 draw("$r$",(0,0,sr)--(xr,0,sr),N,red);
 draw((string) r,(0,0,h)--(r,0,h),N,red);
-draw((string) h,(r,0,0)--(r,0,h),red,Arrow,PenMargin);
-draw((string) s,(-x,0,0)--(-x,0,s),W,red,Arrow,Bar,PenMargin);
+draw((string) h,(r,0,0)--(r,0,h),red,Arrow3);
+draw((string) s,(-x,0,0)--(-x,0,s),W,red,Arrow3);

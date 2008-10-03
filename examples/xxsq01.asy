@@ -13,13 +13,15 @@ triple F3(real x) {return (x,f(x),0);}
 pair H(real x) {return (x,x);}
 
 path p=graph(F,0,1,n=10,Spline)--graph(H,1,0,n=10,Spline)--cycle;
-surface s=surface(bezulate(p));
 path3 p3=path3(p);
 
 revolution a=revolution(p3,X,-alpha,0);
 draw(surface(a),color);
+
+surface s=surface(bezulate(p));
 draw(s,color);
 draw(rotate(-alpha,X)*s,color);
+
 draw(p3,blue);
 
 xaxis3(Label("$x$",1),xmax=1.25,dashed,Arrow3);

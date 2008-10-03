@@ -2,34 +2,35 @@ import graph3;
 import solids;
 size(0,150);
 currentprojection=perspective(0,0,10);
-currentlight=(2,0,0);
-pen color1=green;
-pen color2=red;
+
+pen color1=green+opacity(0.25);
+pen color2=red+opacity(0.75);
 real alpha=250;
 
 real f(real x) {return 2x^2-x^3;}
-triple F(real x) {return (x,f(x),0);}
+pair F(real x) {return (x,f(x));}
+triple F3(real x) {return (x,f(x),0);}
 
 ngraph=12;
-path3[] p=new path3[] {
-  graph(F,0.7476,1.8043)--cycle,
-  graph(F,0.7,0.7476)--graph(F,1.7787,1.8043)--cycle,
-  graph(F,0,0.7)--graph(F,1.8043,2)--cycle};
+path[] p={graph(F,0.7476,1.8043,Spline)--cycle,
+	  graph(F,0.7,0.7476,Spline)--graph(F,1.7787,1.8043,Spline)--cycle,
+	  graph(F,0,0.7,Spline)--graph(F,1.8043,2,Spline)--cycle};
 
 pen[] pn=new pen[] {color1,color2,color1};
 
 for(int i=0; i < p.length; ++i) {
-  revolution a=revolution(p[i],Y,0,alpha);
-  a.fill(10,pn[i]);
-  filldraw(p[i],pn[i]);
-  filldraw(rotate(alpha,Y)*p[i],pn[i]);
-}
-bbox3 b=autolimits(O,2.1*(X+Y/1.5)+Z);
+  revolution a=revolution(path3(p[i]),Y,0,alpha);
+  draw(surface(a),pn[i]);
 
-draw((4/3,0,0)--F(4/3),dashed);
+  surface s=surface(bezulate(p[i]));
+  draw(s,pn[i]);
+  draw(rotate(alpha,Y)*s,pn[i]);
+}
+
+draw((4/3,0,0)--F3(4/3),dashed);
 xtick("$\frac{4}{3}$",(4/3,0,0));
 
-xaxis(Label("$x$",1),b,Arrow);
-yaxis(Label("$y$",1),b,dashed,Arrow);
-arrow("$y=2x^2-x^3$",F(1.6),NE,0.4cm);
-draw(arc(1.18Y,0.3,90,0,7.5,180),ArcArrow);
+xaxis3(Label("$x$",1),Arrow3);
+yaxis3(Label("$y$",1),ymax=1.25,dashed,Arrow3);
+arrow("$y=2x^2-x^3$",F3(1.6),X+Y,0.75cm,red);
+draw(arc(1.1Y,0.3,90,0,7.5,180),Arrow3);

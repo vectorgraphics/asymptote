@@ -7012,6 +7012,12 @@ and then distorted into a saddle:
 @image{saddle}
 @noindent
 
+Asymptote can also draw Bezier surfaces, the natural two-dimensional
+generalizations of Bezier curves. The Phong-Blinn specular shading
+model (the algorithm used in @code{OpenGL}) is used for lighting effects. 
+A sample Bezier surface is contained in the example file
+@code{BezierSurface.asy}.
+
 @cindex @code{O}
 @cindex @code{X}
 @cindex @code{Y}
@@ -7069,11 +7075,14 @@ and @code{v2} may be drawn with the function
 path3[] box(triple v1, triple v2);
 @end verbatim
 @noindent
-For example, a unit cube is predefined as
-@cindex @code{unitcube}
+For example, a unit box is predefined as
+@cindex @code{unitbox}
 @verbatim
-path3[] unitcube=box((0,0,0),(1,1,1));
+path3[] unitbox=box(O,(1,1,1));
 @end verbatim
+@code{Asymptote} also defines @code{unitsquare3}, @code{unitcircle3},
+and the surfaces @code{unitdisk}, @code{unitplane}, @code{unitcube},
+@code{unitcylinder}, @code{unitcone}, @code{solidcone}, and @code{unitsphere}.
 
 These projections to two dimensions are predefined:
 @table @code
@@ -7116,8 +7125,8 @@ This is equivalent to @code{orthographic((x,y,z),up)}.
 This projects from three to two dimensions, taking account of
 perspective, as seen from the location @code{camera} looking at @code{target},
 orienting the camera so that, if possible, the vector @code{up} points upwards.
-Projection of three-dimensional cubic Bezier splines is implemented
-by approximating a two-dimensional nonuniform rational B-spline
+If @code{render=0}, projection of three-dimensional cubic Bezier splines
+is implemented by approximating a two-dimensional nonuniform rational B-spline
 (@acronym{nurbs}) with a two-dimensional Bezier curve containing
 additional nodes and control points. 
 
@@ -7129,10 +7138,9 @@ This is equivalent to @code{perspective((x,y,z),up,target)}.
 The default projection, @code{currentprojection}, is initially set to
 @code{perspective(5,4,2)}.
 
-A triple or path3 can be implicitly cast to a pair or path,
-respectively, using @code{currentprojection}. To use another
-projection, call @code{project(triple, projection P=currentprojection)} or
-@code{project(path, projection P=currentprojection)}.
+A triple or path3 can be projected to a pair or path,
+with @code{project(triple, projection P=currentprojection)} or
+@code{project(path3, projection P=currentprojection)}.
 
 It is occasionally useful to be able to invert a projection, sending
 a pair @code{z} onto the plane perpendicular to @code{normal} and passing
@@ -7244,92 +7252,30 @@ Further three-dimensional examples are provided in the files
 @code{near_earth.asy}, @code{conicurv.asy}, and (in the @code{animations}
 subdirectory) @code{cube.asy}.
 
-@node light
-@section @code{light}
-@cindex @code{light}
-This module provides a simple implementation of three-dimensional
-lighting effects. An illustration is provided in the solid geometry
-package @code{solids.asy}.
-
 @node graph3
 @section @code{graph3}
 @cindex @code{graph3}
 @cindex 3D graphs
 This module implements three-dimensional versions of the
-functions in @code{graph.asy}. They work much like their
-two-dimensional counterparts, except that the user has to keep track
-of the three-dimensional axes limits (which in two dimension are stored in
-the picture) in a @code{bbox3} bounding box. The function
-@cindex @code{bbox3}
-@cindex @code{autolimits}
-@verbatim
-bbox3 autolimits(picture pic=currentpicture, triple min, triple max);
-@end verbatim
-@noindent
-can be used to determine ``nice'' values for the bounding box corners.
-A user-space bounding box that takes into account of the axes scalings
-for picture @code{pic} is returned by
-@cindex @code{limits}
-@verbatim
-bbox3 limits(picture pic=currentpicture, triple min, triple max);
-@end verbatim
-
-To crop a bounding box to a given interval use:
-@cindex @code{xlimits}
-@cindex @code{ylimits}
-@cindex @code{zlimits}
-@cindex @code{limits}
-@verbatim
-void xlimits(bbox3 b, real min, real max);
-void ylimits(bbox3 b, real min, real max);
-void zlimits(bbox3 b, real min, real max);
-void limits(bbox3 b, triple min, triple max);
-@end verbatim
+functions in @code{graph.asy}.
 
 @cindex @code{xaxis}
 @cindex @code{yaxis}
 @cindex @code{zaxis}
-To draw an @math{x} axis in three dimensions from triple @code{min} to
-triple @code{max} with ticks in the direction @code{dir}, use the routine
+To draw an @math{x} axis in three dimensions, use the routine
 @verbatim
-void xaxis(picture pic=currentpicture, Label L="", triple min, triple max,
-           pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
-           arrowbar arrow=None, bool put=Above,
-           projection P=currentprojection, bool opposite=false);
+void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
+            real xmin=-infinity, real xmax=infinity, pen p=currentpen,
+            ticks3 ticks=NoTicks3, arrowbar3 arrow=None, bool put=Below);
 @end verbatim
-To draw an @math{x} axis in three dimensions from triple @code{min} to
-triple @code{(max,min.y,min.z)} with ticks in the direction
-@code{dir}, use the routine
-@verbatim
-void xaxis(picture pic=currentpicture, Label L="", triple min, real max,
-           pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
-           arrowbar arrow=None, bool put=Above,
-           projection P=currentprojection, bool opposite=false);
-@end verbatim
-To draw an @math{x} axis in three dimensions using @code{bbox3 b}
-with ticks in the direction @code{dir}, use the routine
-@verbatim
-void xaxis(picture pic=currentpicture, Label L="", bool all=false,
-           bbox3 b, pen p=currentpen, ticks ticks=NoTicks,
-           triple dir=Y, arrowbar arrow=None, bool put=Above,
-           projection P=currentprojection);
-@end verbatim
-@noindent
-If @code{all=true}, also draw opposing edges of the three-dimensional
-bounding box.
 @noindent
 Analogous routines @code{yaxis} and @code{zaxis} can be used to draw
 @math{y} and @math{z} axes in three dimensions.
-There are also some convenient routines for drawing all three axis:
+There is also a routine for drawing all three axis:
 @verbatim
-void axes(picture pic=currentpicture,
-          Label xlabel="", Label ylabel="", Label zlabel="", 
-          bbox3 b, pen p=currentpen, arrowbar arrow=None,
-          bool put=Below, projection P=currentprojection);
-void axes(picture pic=currentpicture,
-          Label xlabel="", Label ylabel="", Label zlabel="", 
-          triple min, triple max, pen p=currentpen, arrowbar arrow=None,
-          bool put=Below, projection P=currentprojection);
+void axes3(picture pic=currentpicture,
+           Label xlabel="", Label ylabel="", Label zlabel="", 
+           pen p=currentpen, arrowbar3 arrow=None);
 @end verbatim
 
 Here is an example of a helix and bounding box axes with rotated tick
@@ -7351,16 +7297,18 @@ One can also place ticks along a general three-dimensional axis:
 Surface plots of matrices and functions over the region
 @code{box(a,b)} in the @math{XY} plane are also implemented: 
 @verbatim
-picture surface(real[][] f, pair a, pair b, bool[][] cond={}, 
-                pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection);
-picture surface(triple[][] f, bool[][] cond={},
-                pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection);
-picture surface(real f(pair z), pair a, pair b, int nx=nmesh,
-                int ny=nx, bool cond(pair z)=null,
-                pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection);
+surface surface(real[][] f, pair a, pair b, bool[][] cond={});
+surface surface(real[][] f, pair a, pair b, splinetype splinetype,
+                bool[][] cond={});
+surface surface(real[][] f, real[] x, real[] y,
+                splinetype splinetype=null, bool[][] cond={})
+surface surface(triple[][] f, bool[][] cond={});
+surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
+                bool cond(pair z)=null);
+surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
+                splinetype splinetype, bool cond(pair z)=null);
+surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
+                bool cond(pair z)=null);
 @end verbatim
 @noindent
 The boolean array or function @code{cond} can be used to control which
@@ -7385,8 +7333,7 @@ of a Gaussian:
 Surface lighting is illustrated in the example files
 @code{parametricsurface.asy} and @code{sinc.asy}.
 A mesh can be drawn without solid fills by specifying @code{nullpen}
-for the surfacepen. A mesh is always drawn in the absence of lighting, unless 
-@code{meshpen=invisible}.
+for the surfacepen.
 
 @node grid3
 @section @code{grid3}
@@ -7410,8 +7357,7 @@ with axis @code{O--1.5unit(Y+Z)} with perspective projection:
 @image{cylinderskeleton}
 
 Further illustrations are provided in the example files @code{cylinder.asy},
-@code{sphere.asy}, @code{cones.asy}, @code{hyperboloid.asy}, and
-@code{torus.asy}.
+@code{cones.asy}, @code{hyperboloid.asy}, and @code{torus.asy}.
 
 The structure @code{skeleton} contains the three-dimensional wireframe
 used to visualize a volume of revolution (here longitudinal refers to
@@ -7426,14 +7372,6 @@ struct skeleton {
   front3[] longitudinal;
 }
 @end verbatim
-
-@node surface
-@section @code{surface}
-@cindex @code{surface}
-This is the beginnings of a package for drawing Bezier surfaces, the
-natural two-dimensional generalizations of a Bezier curve. An
-sample Bezier surface is contained in the example file
-@code{BezierSurface.asy}.
 
 @node featpost3D
 @section @code{featpost3D}

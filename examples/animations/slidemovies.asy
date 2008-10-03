@@ -10,8 +10,8 @@ import slide;
 
 // Optional movie modules:
 import animate;     // For portable embedded PDF movies
-import external;    // For portable external movies
-import embed;       // For non-portable embedded movies
+access external;    // For portable external movies
+access embed;       // For non-portable embedded movies
 
 usersetting();
 

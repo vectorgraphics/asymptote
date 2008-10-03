@@ -19,8 +19,8 @@ typedef frame orientation(frame);
 orientation orientation=Portrait;
 
 object embed3(string, frame, string, string, projection);
-string embed(string name, string options="", real width=0, real height=0);
-string link(string label, string text, string options="");
+string Embed(string name, string options="", real width=0, real height=0);
+string Link(string label, string text, string options="");
 
 bool prc0() {
   return (settings.prc && (settings.outformat == "pdf" || pdf())) ||
@@ -28,7 +28,7 @@ bool prc0() {
 }
 
 bool prc() {
-  return prc0() && embed != null;
+  return prc0() && Embed != null;
 }
 
 bool is3D()

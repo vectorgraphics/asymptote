@@ -2,8 +2,8 @@ private import math;
 
 if(prc0()) {
   access embed;
-  plain.embed=embed.embed;
-  plain.link=embed.link;
+  Embed=embed.embed;
+  Link=embed.link;
 }
 
 real defaultshininess=0.25;
@@ -1773,7 +1773,7 @@ string embed3D(string prefix, frame f, string label="",
                pen background=white, light light=currentlight,
 	       projection P=currentprojection)
 {
-  if(!prc() || plain.embed == null) return "";
+  if(!prc() || Embed == null) return "";
 
   if(width == 0) width=settings.paperwidth;
   if(height == 0) height=settings.paperheight;
@@ -1817,7 +1817,7 @@ string embed3D(string prefix, frame f, string label="",
   if(options != "") options3 += ","+options;
   if(script != "") options3 += ",3Djscript="+script;
 
-  return plain.embed(prefix,options3,width,height);
+  return Embed(prefix,options3,width,height);
 }
 
 object embed(string prefix=defaultfilename, frame f, string label="",
@@ -1956,7 +1956,7 @@ object embed(string prefix=defaultfilename, picture pic,
       real r=0.5*abs(M-m);
       real zcenter=0.5*(M.z+m.z);
       M=(M.x,M.y,zcenter+r);
-      m=(m.x,m.y,zcenter-2r);
+      m=(m.x,m.y,zcenter-r);
       real factor=r*(viewportfactor-1.0);
       triple margin=(factor,factor,0);
       M += margin; 
@@ -2018,8 +2018,8 @@ void add(picture dest=currentpicture, object src, pair position=0, pair align=0,
 
 string cameralink(string label, string text="View Parameters")
 {
-  if(!prc() || plain.link == null) return "";
-  return plain.link(label,text,"3Dgetview");
+  if(!prc() || Link == null) return "";
+  return Link(label,text,"3Dgetview");
 }
 
 private struct viewpoint {

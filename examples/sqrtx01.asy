@@ -2,25 +2,24 @@ import graph3;
 import solids;
 size(0,150);
 currentprojection=orthographic(1.5,0,10,up=Y);
-pen color=green;
+pen color=green+opacity(0.75);
 
 real f(real x){return sqrt(x);}
-triple F(real x){return (x,f(x),0);}
+pair F(real x){return (x,f(x));}
+triple F3(real x){return (x,f(x),0);}
 
-path3 p=graph(F,0,1,n=20);
-revolution a=revolution(p,X,0,360);
-a.filldraw(16,color,3,blue);
-draw(p,blue);
+path p=graph(F,0,1,n=20,Spline);
+path3 p3=path3(p);
 
-bbox3 b=autolimits(O,2X+1.25Y+Z);
-
-xtick((1,0,0));
+revolution a=revolution(p3,X,0,360);
+draw(surface(a),color);
+draw(p3,blue);
 
 real x=relpoint(p,0.5).x;
 
-xaxis(Label("$x$",1),b,dashed,Arrow);
-yaxis(Label("$y$",1),b,Arrow);
+xaxis3(Label("$x$",1),xmax=1.5,dashed,Arrow3);
+yaxis3(Label("$y$",1),Arrow3);
 dot(Label("$(1,1)$"),(1,1,0));
-arrow(Label("$y=\sqrt{x}$"),F(0.7),dir(75),0.6cm);
-draw(arc(1.43X,0.4,90,90,175,-40,CW),ArcArrow);
-draw("$r$",(x,0,0)--(x,f(x),0),red,Arrow,PenMargin);
+arrow(Label("$y=\sqrt{x}$"),F3(0.7),Y,0.75cm,red);
+draw(arc(1.2X,0.4,90,90,175,-40,CW),Arrow3);
+draw("$r$",(x,0,0)--(x,f(x),0),red,Arrow3);
