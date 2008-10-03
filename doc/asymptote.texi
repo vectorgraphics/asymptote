@@ -149,11 +149,9 @@ Base modules
 * graph::                       2D linear & logarithmic graphs
 * palette::                     Color density images and palettes
 * three::                       3D vector graphics
-* light::                       3D lighting effects
 * graph3::                      3D linear & logarithmic graphs
 * grid3::                       3D grids
 * solids::                      3D solid geometry
-* surface::                     Bezier surfaces
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
@@ -5692,11 +5690,9 @@ Here now is @code{latexusage.tex}:
 * graph::                       2D linear & logarithmic graphs
 * palette::                     Color density images and palettes
 * three::                       3D vector graphics
-* light::                       3D lighting effects
 * graph3::                      3D linear & logarithmic graphs
 * grid3::                       3D grids
 * solids::                      3D solid geometry
-* surface::                     Bezier surfaces
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
