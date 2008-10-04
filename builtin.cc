@@ -515,7 +515,8 @@ void addOrderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
 }
 
 template<class T>
-void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
+void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool integer=false,
+  bool Explicit=false)
 {
   addOps<T,plus>(ve,t1,"+",t2);
   addOps<T,minus>(ve,t1,"-",t2);
@@ -524,19 +525,21 @@ void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   addFunc(ve,&id,t2,"+",formal(t2,"a"));
   addFunc(ve,Negate<T>,t1,"-",formal(t1,"a"));
   addFunc(ve,arrayNegate<T>,t2,"-",formal(t2,"a"));
-  addFunc(ve,interp<T>,t1,"interp",formal(t1,"a"),formal(t1,"b"),
-	  formal(primReal(),"t"));
+  if(!integer) addFunc(ve,interp<T>,t1,"interp",formal(t1,"a",false,Explicit),
+		       formal(t1,"b",false,Explicit),
+		       formal(primReal(),"t"));
   
   addFunc(ve,sumArray<T>,t1,"sum",formal(t2,"a"));
   addUnorderedOps<T>(ve,t1,t2,t3,t4);
 }
 
 template<class T>
-void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool divide=true)
+void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool integer=false,
+  bool Explicit=false)
 {
-  addBasicOps<T>(ve,t1,t2,t3,t4);
+  addBasicOps<T>(ve,t1,t2,t3,t4,integer,Explicit);
   addOps<T,times>(ve,t1,"*",t2);
-  if(divide) addOps<T,run::divide>(ve,t1,"/",t2);
+  if(!integer) addOps<T,run::divide>(ve,t1,"/",t2);
   addOps<T,power>(ve,t1,"^",t2);
 }
 
@@ -609,9 +612,9 @@ void addOperators(venv &ve)
   
   addUnorderedOps<bool>(ve,primBoolean(),boolArray(),boolArray2(),
 			boolArray3());
-  addOps<Int>(ve,primInt(),IntArray(),IntArray2(),IntArray3(),false);
+  addOps<Int>(ve,primInt(),IntArray(),IntArray2(),IntArray3(),true);
   addOps<double>(ve,primReal(),realArray(),realArray2(),realArray3());
-  addOps<pair>(ve,primPair(),pairArray(),pairArray2(),pairArray3());
+  addOps<pair>(ve,primPair(),pairArray(),pairArray2(),pairArray3(),false,true);
   addBasicOps<triple>(ve,primTriple(),tripleArray(),tripleArray2(),
 		      tripleArray3());
   addFunc(ve,opArray<double,triple,times>,tripleArray(),"*",
