@@ -71,6 +71,8 @@ struct revolution {
   transform3 T;
   triple M;
   triple m;
+
+  static real epsilon=sqrt(realEpsilon);
   
   void operator init(triple c=O, path3 g, triple axis=Z, real angle1=0,
                      real angle2=360) {
@@ -149,8 +151,7 @@ struct revolution {
     triple v=point(g,position);
     triple center=c+dot(v-c,axis)*axis;
     triple perp=v-center;
-    static real fuzz=100*realEpsilon;
-    if(abs(perp) <= fuzz*max(abs(m),abs(M))) return center;
+    if(abs(perp) <= epsilon*max(abs(m),abs(M))) return center;
     triple v1=center+rotate(angle1,axis)*perp;
     triple v2=center+rotate(angle2,axis)*perp;
     path3 p=Arc(center,v1,v2,axis);
@@ -164,7 +165,6 @@ struct revolution {
       s.front.push(S);
       return;
     }
-    static real epsilon=sqrt(realEpsilon);
     triple camera=P.camera;
     if(P.infinity) {
       real s=abs(c-P.target)+max(abs(m-P.target),abs(M-P.target));
@@ -236,8 +236,6 @@ struct revolution {
   void longitudinal(skeleton s, projection P=currentprojection) {
     if(is3D()) return;
     real t, d=0;
-    static real epsilon=sqrt(realEpsilon);
-
     // Find a point on g of maximal distance from the axis.
     int N=size(g);
     for(int i=0; i < N; ++i) {
@@ -310,7 +308,6 @@ triple perp(triple axis)
 
 // Return a right circular cylinder of height h in the direction of axis
 // based on a circle centered at c with radius r.
-// Note: unitcylinder provides a smoother and more efficient surface.
 revolution cylinder(triple c=O, real r, real h, triple axis=Z)
 {
   triple C=c+r*perp(axis);

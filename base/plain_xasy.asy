@@ -1,5 +1,5 @@
-restricted bool inXasyMode = false;
-bool diagnostics = false;
+restricted bool inXasyMode=false;
+bool diagnostics=false;
 void report(string text)
 {
  if(diagnostics)
@@ -18,20 +18,20 @@ void report(int i)
 void initXasyMode()
 {
   size(0,0);
-  inXasyMode = true;
+  inXasyMode=true;
 }
 
 void exitXasyMode()
 {
-  inXasyMode = false;
+  inXasyMode=false;
 }
 private picture[] tempStore;
 private picture newPic;
 void startScript()
 {
   tempStore.push(currentpicture.copy());
-  newPic = new picture;
-  currentpicture = newPic;
+  newPic=new picture;
+  currentpicture=newPic;
 }
 
 void endScript()
@@ -39,10 +39,10 @@ void endScript()
   if(tempStore.length < 1) {
     abort("endScript() without matching beginScript()");
   } else {
-    currentpicture = tempStore.pop();
+    currentpicture=tempStore.pop();
     add(currentpicture,newPic.fit(),group=false);
   }
-  shipped = false;
+  shipped=false;
 }
 
 struct indexedTransform {
@@ -80,7 +80,7 @@ struct framedTransformStack {
     if(stack.length == 0)
       return identity();
     else {
-      transform popped = stack[0].t;
+      transform popped=stack[0].t;
       stack.delete(0);
       report("Popped");
       report(popped);
@@ -93,7 +93,7 @@ struct framedTransformStack {
       return identity();
     else {
       static transform zerotransform=(0,0,0,0,0,0);
-      transform popped = stack[0].active ? stack[0].t : zerotransform;
+      transform popped=stack[0].active ? stack[0].t : zerotransform;
       stack.delete(0);
       report("Popped");
       report(popped);

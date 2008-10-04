@@ -752,12 +752,32 @@ restricted surface unitsphere=surface(octant1,t*octant1,t2*octant1,t3*octant1,
                                       i*octant1,i*t*octant1,i*t2*octant1,
                                       i*t3*octant1);
 
-private patch unitcone1=patch(X--Z--Z--Y{X}..{-Y}cycle,
-                              new triple[] {(2/3,2/3*a,1/3),(1/3,1/3*a,2/3),
-                                            (1/3*a,1/3,2/3),(2/3*a,2/3,1/3)});
+restricted patch unitfrustum(real t1, real t2)
+{
+  real s1=interp(t1,t2,1/3);
+  real s2=interp(t1,t2,2/3);
+  return patch(interp(Z,X,t2)--interp(Z,X,t1){Y}..{-X}interp(Z,Y,t1)--
+	       interp(Z,Y,t2){X}..{-Y}cycle,
+	       new triple[] {(s2,s2*a,1-s2),(s1,s1*a,1-s1),(s1*a,s1,1-s1),
+					  (s2*a,s2,1-s2)});
+}
 
-restricted surface unitcone=surface(unitcone1,t*unitcone1,t2*unitcone1,
-                                    t3*unitcone1);
+// Return a unitcone constructed from n frusta (the final one being degenerate)
+surface unitcone(int n=8)
+{
+  surface unitcone;
+  unitcone.s=new patch[4*n];
+  for(int i=0; i < n; ++i) {
+    patch s=unitfrustum(i < n-1 ? 1/2^(i+1) : 0,1/2^i);
+    unitcone.s[i]=s;
+    unitcone.s[n+i]=t*s;
+    unitcone.s[2n+i]=t2*s;
+    unitcone.s[3n+i]=t3*s;
+  }
+  return unitcone;
+}
+
+restricted surface unitcone=unitcone();
 restricted surface solidcone=surface(patch(unitcircle3)...unitcone.s);
 
 private patch unitcylinder1=patch(X--X+Z{Y}..{-X}Y+Z--Y{X}..{-Y}cycle);
