@@ -1,5 +1,7 @@
 private import math;
 
+if(inXasyMode) settings.render=0;
+
 if(prc0()) {
   access embed;
   Embed=embed.embed;
