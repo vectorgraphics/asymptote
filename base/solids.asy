@@ -69,6 +69,8 @@ struct revolution {
   triple axis;
   real angle1,angle2;
   transform3 T;
+  triple M;
+  triple m;
   
   void operator init(triple c=O, path3 g, triple axis=Z, real angle1=0,
                      real angle2=360) {
@@ -78,6 +80,8 @@ struct revolution {
     this.angle1=angle1;
     this.angle2=angle2;
     T=transpose(align(axis));
+    M=max(g);
+    m=min(g);
   }
   
   // Return the surface of rotation obtain by rotating the path3 (x,0,f(x))
@@ -146,7 +150,7 @@ struct revolution {
     triple center=c+dot(v-c,axis)*axis;
     triple perp=v-center;
     static real fuzz=100*realEpsilon;
-    if(abs(perp) <= fuzz*max(abs(center),abs(v))) return center;
+    if(abs(perp) <= fuzz*max(abs(m),abs(M))) return center;
     triple v1=center+rotate(angle1,axis)*perp;
     triple v2=center+rotate(angle2,axis)*perp;
     path3 p=Arc(center,v1,v2,axis);
@@ -163,13 +167,13 @@ struct revolution {
     static real epsilon=sqrt(realEpsilon);
     triple camera=P.camera;
     if(P.infinity) {
-      real s=abs(c-P.target)+max(abs(min(g)-P.target),abs(max(g)-P.target));
+      real s=abs(c-P.target)+max(abs(m-P.target),abs(M-P.target));
       camera=P.target+camerafactor*s*unit(P.vector());
     }
     int L=length(g);
     real midtime=0.5*L;
     real sign=sgn(dot(axis,camera-P.target))*sgn(dot(axis,dir(g,midtime)));
-    if(dot(max(g)-min(g),axis) == 0 || (t <= epsilon && sign < 0) ||
+    if(dot(M-m,axis) == 0 || (t <= epsilon && sign < 0) ||
        (t >= L-epsilon && sign > 0))
       s.front.push(S);
     else {
@@ -306,7 +310,7 @@ triple perp(triple axis)
 
 // Return a right circular cylinder of height h in the direction of axis
 // based on a circle centered at c with radius r.
-// Note: unitcylinder provides a better surface.
+// Note: unitcylinder provides a smoother and more efficient surface.
 revolution cylinder(triple c=O, real r, real h, triple axis=Z)
 {
   triple C=c+r*perp(axis);
@@ -315,17 +319,24 @@ revolution cylinder(triple c=O, real r, real h, triple axis=Z)
 }
 
 // Return a right circular cone of height h in the direction of axis
-// based on a circle centered at c with radius r.
-// Note: unitcone provides a better surface.
-revolution cone(triple c=O, real r, real h, triple axis=Z)
+// based on a circle centered at c with radius r. The parameter n
+// controls the accuracy near the degenerate point at the apex.
+revolution cone(triple c=O, real r, real h, triple axis=Z, int n=nslice)
 {
   axis=unit(axis);
-  return revolution(c,c+r*perp(axis)--c+h*axis,axis);
+  triple a=c+r*perp(axis);
+  triple b=c+h*axis;
+  path3 g=a;
+  for(int i=1; i < n; ++i)
+    g=g--interp(b,a,1/2^i);
+  g=g--b;
+
+  return revolution(c,g,axis);
 }
 
 // Return an approximate sphere of radius r centered at c obtained by rotating
 // an (n+1)-point approximation to a half circle about the Z axis.
-// Note: unitsphere provides a better surface.
+// Note: unitsphere provides a smoother and more efficient surface.
 revolution sphere(triple c=O, real r, int n=nslice)
 {
   return revolution(c,Arc(c,r,180,0,0,0,Y,n),Z);

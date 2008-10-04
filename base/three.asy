@@ -132,7 +132,7 @@ triple project(triple u, triple v)
 }
 
 // Return a vector perpendicular to v.
-private triple perp(triple v)
+triple perp(triple v)
 {
   triple u=cross(v,Y);
   return u == O ? cross(v,Z) : u;

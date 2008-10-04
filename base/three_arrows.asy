@@ -57,7 +57,7 @@ surface tube(path3 g, real width)
       triple v=point(g,i);
       triple u=point(g,i+1)-v;
       tube.append(shift(v)*align(unit(u))*
-		  scale(r,r,abs(u)+s)*unitcylinder);
+		  scale(r,r,abs(u)+2s)*unitcylinder);
     } else {
       path3 s=subpath(g,i,i+1);
       real endtime=0;
