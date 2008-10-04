@@ -10,8 +10,8 @@ real defaultshininess=0.25;
 real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
-real viewportfactor=1.001;   // Factor used to expand orthographic viewport.
-real anglefactor=1.01;       // Factor used to expand perspective viewport.
+real viewportfactor=1.01;    // Factor used to expand orthographic viewport.
+real anglefactor=1.02;       // Factor used to expand perspective viewport.
 int angleiterations=6;       // Iterations to find perspective field of view.
 real fovfactor=0.6;          // PRC field of view factor.
 
@@ -1768,7 +1768,8 @@ void writeJavaScript(string name, string preamble, string script)
 }
 
 string embed3D(string prefix, frame f, string label="",
-               string text=label,  string options="", string script="",
+               string text=label,
+	       string options="", string script="",
                real width=0, real height=0, real angle=30,
                pen background=white, light light=currentlight,
 	       projection P=currentprojection)
@@ -1865,8 +1866,7 @@ object embed(string prefix=defaultfilename, picture pic,
 
   if(!P.absolute) {
     transform3 tinv=inverse(t);
-    P.adjust(tinv*pic.max(t));
-    P.adjust(tinv*pic.min(t));
+    P.adjust(tinv*pic.min(t),tinv*pic.max(t));
     P=t*P;
   }
   
@@ -1908,6 +1908,8 @@ object embed(string prefix=defaultfilename, picture pic,
         f=pic.fit3(s*t,is3D ? null : pic2,P);
       }
 
+      P.adjust(min3(f),max3(f));
+
       transform3 modelview=P.modelview();
       f=modelview*f;
       P=modelview*P;
@@ -1921,15 +1923,16 @@ object embed(string prefix=defaultfilename, picture pic,
       } else {
       // Choose the angle to be just large enough to view the entire image:
 	if(is3D && angle == 0 && !P.infinity) {
-	  for(int i=0; i < angleiterations; ++i) {
-	    pair r=minratio(f);
-	    pair R=maxratio(f);
+	    real h=0.5*P.target.z;
+	    pair r,R;
+	    for(int i=0; i < angleiterations; ++i) {
+	      r=minratio(f);
+	      R=maxratio(f);
+	      f=shift(h*(-r.x-R.x),h*(-r.y-R.y),0)*f;
+	    }
 	    real aspect=width > 0 ? height/width : 1;
 	    angle=anglefactor*max(aTan(-r.x*aspect)+aTan(R.x*aspect),
 				  aTan(-r.y)+aTan(R.y));
-	    real h=0.5*P.target.z;
-	    f=shift(h*(-r.x-R.x),h*(-r.y-R.y),0)*f;
-	  }
 	}
       }
     }
@@ -1953,11 +1956,11 @@ object embed(string prefix=defaultfilename, picture pic,
 
       triple m=min3(f);
       triple M=max3(f);
-      real r=0.5*abs(M-m);
-      real zcenter=0.5*(M.z+m.z);
-      M=(M.x,M.y,zcenter+r);
-      m=(m.x,m.y,zcenter-r);
-      real factor=r*(viewportfactor-1.0);
+      real zcenter=P.target.z;
+      real d=P.distance(m,M);
+      M=(M.x,M.y,zcenter+d);
+      m=(m.x,m.y,zcenter-d);
+      real factor=hypot(M.x-m.x,M.y-m.y)*(viewportfactor-1.0);
       triple margin=(factor,factor,0);
       M += margin; 
       m -= margin;
@@ -1988,8 +1991,8 @@ object embed(string prefix=defaultfilename, picture pic,
   return F;
 }
 
-embed3=new object(string prefix, frame f, string options="", string script="",
-                  projection P) {
+embed3=new object(string prefix, frame f, string options, string script,
+		  projection P) {
   return embed(prefix,f,options,script,P);
 };
 

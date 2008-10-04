@@ -5728,7 +5728,7 @@ sizing of pictures.
 @section @code{math}
 @cindex @code{math}
 This package extends @code{Asymptote}'s mathematical capabilities with
-point-in-polygon and intersection algorithms and matrix arithmetic.
+intersection algorithms and matrix arithmetic.
 
 @cindex @code{implicit linear solver}
 @cindex @code{MetaPost whatever}

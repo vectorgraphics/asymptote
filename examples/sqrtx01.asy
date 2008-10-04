@@ -8,7 +8,7 @@ real f(real x){return sqrt(x);}
 pair F(real x){return (x,f(x));}
 triple F3(real x){return (x,f(x),0);}
 
-path p=graph(F,0,1,n=20,Spline);
+path p=graph(F,0,1,n=20,operator ..);
 path3 p3=path3(p);
 
 revolution a=revolution(p3,X,0,360);

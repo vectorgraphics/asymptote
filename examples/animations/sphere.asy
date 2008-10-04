@@ -18,7 +18,7 @@ for(int i=0; i < nbpts; ++i) {
 
 transform3 t=rotate(angle,(0,0,0),(1,0.25,0.25));
 revolution r=sphere(O,3);
-r.filldraw(lightgrey);
+draw(surface(r),lightgrey);
 skeleton s;
 r.transverse(s,reltime(r.g,0.5));
 r.longitudinal(s);
@@ -34,7 +34,7 @@ for(int phi=0; phi < 360; phi += angle) {
     P[i]=t*P[i];
     front[i]=dot(P[i],currentprojection.camera) > 0;
   }
-  draw(segment(P,front,operator ..),1mm+blue);
+  draw(segment(P,front,operator ..),1mm+blue+extendcap);
   draw(segment(P,!front,operator ..),grey);
   A.add();
   restore();

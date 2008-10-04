@@ -1,8 +1,6 @@
 restricted bool Aspect=true;
 restricted bool IgnoreAspect=false;
 
-real camerafactor=1.2;
-
 pair size(frame f)
 {
   return max(f)-min(f);
@@ -450,6 +448,23 @@ struct projection {
     return P;
   }
 
+  // Return the maximum distance of box(m,M) from target.
+  real distance(triple m, triple M) {
+    triple[] c={m,(m.x,m.y,M.z),(m.x,M.y,m.z),(m.x,M.y,M.z),
+		(M.x,m.y,m.z),(M.x,m.y,M.z),(M.x,M.y,m.z),M};
+    real d=0;
+    for(int i=0; i < 8; ++i)
+      d=max(d,abs(c[i]-target));
+    return d;
+  }
+   
+  void update() {
+    if(!infinity) {
+      write("adjusting camera to ",camera);
+      calculate();
+    }
+  }
+  
   // Check if v is on or behind the clipping plane.
   bool behind(triple v) {
     return dot(camera-v,camera-target) <= 0;
@@ -458,11 +473,19 @@ struct projection {
   // Move the camera so that v is on or in front of clipping plane.
   void adjust(triple v) {
     if(!absolute && behind(v)) {
-      camera=target+camerafactor*abs(v-target)*unit(camera-target);
-      if(!infinity) {
-	write("adjusting camera to ",camera);
-	calculate();
-      }
+      camera=target+abs(v-target)*unit(camera-target);
+      update();
+    }
+  }
+  
+  // Move the camera so that the box(m,M) rotated about target will always
+  // lie in front of the clipping plane.
+  void adjust(triple m, triple M) {
+    triple v=camera-target;
+    real d=distance(m,M);
+    if(d > abs(v)) {
+      camera=target+d*unit(v);
+      update();
     }
   }
 }
@@ -1245,7 +1268,7 @@ struct picture {
   static frame fitter(picture,real,real,bool,bool,bool,string,string,
 		      projection);
   frame fit(real xsize=this.xsize, real ysize=this.ysize,
-	    bool keepAspect=this.keepAspect, bool wait=false, bool view=true,
+	    bool keepAspect=this.keepAspect, bool wait=false, bool view=false,
 	    string options="", string script="",
 	    projection P=currentprojection) {
     return fitter == null ? fit2(xsize,ysize,keepAspect) :

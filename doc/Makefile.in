@@ -1,7 +1,7 @@
 MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy) latexusage.asy
 SOURCE = asymptote.texi version.texi options
-ASY = ../asy -dir ../base -config "" -render=0 -noprc
+ASY = ../asy -dir ../base -config "" -render=0
 DOCFILES = asymptote.pdf CAD.pdf
 
 docdir = $(DESTDIR)@docdir@
@@ -30,13 +30,13 @@ doc:	asymptote.dvi asymptote.info html man faq
 	$(ASY) -f eps $<
 
 %.pdf:	%.asy
-	$(ASY) -f pdf $<
+	$(ASY) -f pdf -noprc $<
 
 latexusage.asy: latexusage.tex
 	latex latexusage
 
 latexusage.dvi: latexusage.asy
-	$(ASY) latexusage
+	$(ASY) -noprc latexusage
 	latex latexusage
 
 latexusage.eps: latexusage.dvi

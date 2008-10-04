@@ -1,6 +1,7 @@
 import bezulate;
 
 private real Fuzz=10.0*realEpsilon;
+real camerafactor=1.2;
 
 private void abortcyclic() {abort("cyclic path of length 4 expected");}
 

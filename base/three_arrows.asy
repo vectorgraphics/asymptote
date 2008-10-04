@@ -44,20 +44,6 @@ private real takeStep(path3 s, real endtime, real width)
   return min(endtime+step,length(s));
 }
 
-
-// return true iff segment i of path3 g is close to being straight
-private bool checkStraight(path3 g, int i, real straightEpsilon)
-{
-  triple a = point(g,i);
-  triple b = postcontrol(g,i)-a;
-  triple c = precontrol(g,i+1);
-  triple d = point(g,i+1);
-  c = d-c;
-  d = d-a;
-  return abs(b-project(b,d)) < straightEpsilon &&
-    abs(c-project(c,d)) < straightEpsilon;
-}
-
 surface tube(path3 g, real width)
 {
   surface tube;
@@ -66,10 +52,12 @@ surface tube(path3 g, real width)
   transform3 t=scale3(r);
 
   for(int i=0; i < length(g); ++i) {
-    if(straight(g,i) || checkStraight(g,i,0.5*r)) {
+    real s=straight(g,i) ? 0 : abs(accel(g,i+0.5));
+    if(s < 0.5*r) {
       triple v=point(g,i);
       triple u=point(g,i+1)-v;
-      tube.append(shift(v)*align(unit(u))*scale(r,r,abs(u))*unitcylinder);
+      tube.append(shift(v)*align(unit(u))*
+		  scale(r,r,abs(u)+s)*unitcylinder);
     } else {
       path3 s=subpath(g,i,i+1);
       real endtime=0;

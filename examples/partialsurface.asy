@@ -18,8 +18,8 @@ real f=1.2;
 
 draw(surface(plane(f*(b.x-a.x,0,z),(0,f*(b.y-a.y),z),(a.x,a.y,z))),
      lightgrey+opacity(0.5));
-draw(surface(V,a,b,Spline,activebelow),lightblue,black);
-draw(surface(V,a,b,Spline,activeabove),lightgreen,black);
+draw(surface(V,a,b,operator ..,activebelow),lightblue,black);
+draw(surface(V,a,b,operator ..,activeabove),lightgreen,black);
 
 xaxis3(Label("$\phi^\dagger\phi$",1),red,Arrow3);
 zaxis3(Label("$V(\phi^\dagger\phi)$",1),0,0.3,red,Arrow3);
