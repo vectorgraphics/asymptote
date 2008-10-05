@@ -36,7 +36,7 @@ latexusage.asy: latexusage.tex
 	latex latexusage
 
 latexusage.dvi: latexusage.asy
-	$(ASY) -noprc latexusage
+	$(ASY) latexusage
 	latex latexusage
 
 latexusage.eps: latexusage.dvi

@@ -23,7 +23,7 @@ real last=700;
 t=rho > 0 ? t : null;
 rho=rho > 0 ? rho : null;
     
-scale(Log,Linear);
+scale(Log(true),Linear(true));
 
 int n=step > 0 ? ceil((last-first)/step) : 0;
 

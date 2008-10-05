@@ -1975,8 +1975,6 @@ object embed(string prefix=defaultfilename, picture pic,
       M += margin; 
       m -= margin;
 
-      if(preview && !settings.inlinetex)
-        file3.push(prefix+nativeformat());
       shipout3(prefix,f,preview ? nativeformat() : "",width,height,
                P.infinity ? 0 : angle,m,M,
 	       P.absolute ? (modelview*light).position : light.position,
@@ -1989,11 +1987,13 @@ object embed(string prefix=defaultfilename, picture pic,
     if(preview) {
       image=prefix;
       if(settings.inlinetex) image += "_0";
-      image=graphic(image+"."+nativeformat());
+      image += "."+nativeformat();
+      if(!settings.inlinetex) file3.push(image);
+      image=graphic(image);
     }
     if(prc) F.L=embed3D(prefix,f,label,text=image,options,script,width,height,
 			angle,background,light,P);
-  }
+   }
 
   if(!is3D)
     F.f=pic2.fit2(xsize,ysize,keepAspect);

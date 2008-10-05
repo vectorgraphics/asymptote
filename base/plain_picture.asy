@@ -1051,8 +1051,12 @@ struct picture {
       if(ysize != 0) sy=calculateScaling("y",Coords.y,ysize,warn);
     } else sy=yunitsize;
 
-    if(sx == 0) sx=sy;
-    else if(sy == 0) sy=sx;
+    if(sx == 0) {
+      sx=sy;
+      if(sx == 0)
+	return identity();
+    } else if(sy == 0) sy=sx;
+
 
     if(keepAspect && (xunitsize == 0 || yunitsize == 0))
       return scale(min(sx,sy));
@@ -1090,7 +1094,11 @@ struct picture {
       if(zsize != 0) sz=calculateScaling("z",Coords.z,zsize,warn);
     } else sz=zunitsize;
 
-    if(sx == 0) sx=max(sy,sz);
+    if(sx == 0) {
+      sx=max(sy,sz);
+      if(sx == 0)
+	return identity(4);
+    }
     if(sy == 0) sy=max(sz,sx);
     if(sz == 0) sz=max(sx,sy);
 

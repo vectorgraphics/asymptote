@@ -1,7 +1,7 @@
 import graph3;
 import contour;
 
-currentprojection=perspective(1,-2,1);
+currentprojection=orthographic(1,-2,1);
 currentlight=(1,-1,0.5);
 
 size(12cm,0);

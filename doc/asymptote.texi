@@ -5654,7 +5654,7 @@ An excellent tutorial by Dario Teixeira on integrating @code{Asymptote} and
 Here now is @code{latexusage.tex}:
 @verbatiminclude latexusage.tex
 @page
-@image{latexusage,,25cm}
+@image{latexusage,,30cm}
 
 @node Base modules
 @chapter Base modules
@@ -6739,14 +6739,13 @@ real ScaleX(picture pic=currentpicture, real x);
 real ScaleY(picture pic=currentpicture, real y);
 @end verbatim
 
-
 The predefined scaling routines can be given two optional boolean arguments:
-@code{automin} and @code{automax}. These default to @code{true}, but can
-be respectively set to @code{false} to disable automatic selection of
-"nice" axis minimum and maximum values. @code{Linear}
-can also take as optional final arguments a multiplicative scaling
-factor and intercept (e.g.@ for a depth axis, @code{Linear(-1)} requests
-axis reversal).
+@code{automin=false} and @code{automax=automin}. These default to
+@code{false} but can be respectively set to @code{true} to enable
+automatic selection of "nice" axis minimum and maximum values. The
+@code{Linear} scaling can also take as optional final arguments a
+multiplicative scaling factor and intercept (e.g.@ for a depth axis,
+@code{Linear(-1)} requests axis reversal).
 
 @cindex logarithmic graph
 @cindex log-log graph
@@ -6990,7 +6989,7 @@ as illustrated in the following example:
 @cindex @code{tension}
 @cindex @code{controls}
 This module fully extends the notion of guides and paths in @code{Asymptote}
-to three dimensions, introducing the new types @code{guide3} and @code{path3}.
+to three dimensions, introducing the new types guide3, path3, and surface.
 Guides in three dimensions are specified with the same syntax as in two
 dimensions but using triples @code{(x,y,z)} in place of pairs @code{(x,y)} for
 the nodes and direction specifiers.  This generalization of John Hobby's spline
@@ -7008,11 +7007,11 @@ and then distorted into a saddle:
 @image{saddle}
 @noindent
 
-Asymptote can also draw Bezier surfaces, the natural two-dimensional
-generalizations of Bezier curves. The Phong-Blinn specular shading
-model (the algorithm used in @code{OpenGL}) is used for lighting effects. 
-A sample Bezier surface is contained in the example file
-@code{BezierSurface.asy}.
+Bezier surfaces, the natural two-dimensional generalization of Bezier
+curves, are shaded using the @code{OpenGL} lighting scheme, based on the
+Phong-Blinn specular model. Sample Bezier surfaces are contained in the
+example files @code{BezierSurface.asy}, @code{teapot.asy},
+and @code{parametricsurface.asy}.
 
 @cindex @code{O}
 @cindex @code{X}
@@ -7059,8 +7058,9 @@ When high accuracy is needed, the routines @code{Circle} and
 See @ref{GaussianSurface} for an example of a three-dimensional circular arc.
 
 @cindex @code{plane}
-A representation of the plane passing through point @code{O} with normal
-@code{cross(u,v)} is given by
+The representation @code{O--O+u--O+u+v--O+v--cycle}
+of the plane passing through point @code{O} with normal
+@code{cross(u,v)} is returned by
 @verbatim
 path3 plane(triple u, triple v, triple O=O);
 @end verbatim
@@ -7076,9 +7076,11 @@ For example, a unit box is predefined as
 @verbatim
 path3[] unitbox=box(O,(1,1,1));
 @end verbatim
-@code{Asymptote} also defines @code{unitsquare3}, @code{unitcircle3},
-and the surfaces @code{unitdisk}, @code{unitplane}, @code{unitcube},
-@code{unitcylinder}, @code{unitcone}, @code{solidcone}, and @code{unitsphere}.
+@code{Asymptote} also provides optimized definitions for the
+three-dimensional paths @code{unitsquare3} and @code{unitcircle3},
+along with the surfaces @code{unitdisk}, @code{unitplane}, @code{unitcube},
+@code{unitcylinder}, @code{unitcone}, @code{solidcone},
+@code{unitfrustum(real t1, real t2)}, and @code{unitsphere}.
 
 These projections to two dimensions are predefined:
 @table @code
@@ -7148,15 +7150,6 @@ triple invert(pair z, triple normal, triple point,
 @end verbatim
 
 @cindex @code{transform}
-To project a Label onto the plane passing through point @code{O} with
-normal @code{cross(u,v)} using projection @code{P}, multiply it by the
-transform 
-@verbatim
-transform transform(triple u, triple v, triple O=O,
-                    projection P=currentprojection);
-@end verbatim
-
-@cindex @code{transform}
 Three-dimensional objects may be transformed with one of the following
 built-in @code{transform3} types:
 
@@ -7189,6 +7182,16 @@ rotates by @code{angle} in degrees about the axis @code{u--v};
 reflects about the plane through @code{u}, @code{v}, and @code{w}.
 @end table
 
+@cindex @code{transform}
+Three-dimensional @code{TeX} Labels, which are by default drawn as
+Bezier surfaces directly on the projection plane, can be transformed
+from the @code{XY} plane by any of the above transforms or mapped to a
+specified two-dimensional plane with @code{XY}, @code{YZ}, @code{ZX},
+@code{YX}, @code{ZY}, @code{ZX}. There are also modified versions of
+these transforms that take an optional argument
+@code{projection P=currentprojection} that rotate and/or flip the
+label so that it is more easily readable using the given projection.
+
 @cindex @code{length}
 @cindex @code{size}
 @cindex @code{point}
@@ -7214,21 +7217,6 @@ Three-dimensional versions of the path functions @code{length},
 @code{intersectionpoints}, @code{min}, @code{max}, @code{cyclic}, and
 @code{straight} are also defined in the module @code{three}.
 
-@cindex hidden surface removal
-@cindex @code{face}
-Planar hidden surface removal is implemented with a binary space
-partition and picture clipping. A planar path is first converted to a
-structure @code{face} derived from @code{picture}. A @code{face} may be given to
-a drawing routine in place of any @code{picture} argument.  An array
-of such faces may then be drawn, removing hidden surfaces:
-@verbatim
-void add(picture pic=currentpicture, face[] faces,
-         projection P=currentprojection);
-@end verbatim
-Here is an example showing three orthogonal intersecting planes:
-@verbatiminclude planes.asy
-@image{planes}
-
 Here is an example showing all five path3 connectors:
 @verbatiminclude join3.asy
 @image{join3}
@@ -7247,6 +7235,36 @@ void aspect(picture pic=currentpicture, bbox3 b,
 Further three-dimensional examples are provided in the files
 @code{near_earth.asy}, @code{conicurv.asy}, and (in the @code{animations}
 subdirectory) @code{cube.asy}.
+
+Finally, limited support for projected vector graphics (without rendering) is 
+also available by specifying @code{settings.render=0}. This currently
+only works for piecewise planar surfaces, such as the produced by the
+parametric @code{surface} routines in the @code{graph3} module.
+Surfaces drawn with the @code{solids} package 
+the @code{surface} routines
+@cindex hidden surface removal
+@cindex @code{face}
+Hidden surface removal is implemented with a binary space
+partition and picture clipping. A planar path is first converted to a
+structure @code{face} derived from @code{picture}. A @code{face} may be given to
+a drawing routine in place of any @code{picture} argument.  An array
+of such faces may then be drawn, removing hidden surfaces:
+@verbatim
+void add(picture pic=currentpicture, face[] faces,
+         projection P=currentprojection);
+@end verbatim
+Labels may also be projected to two dimensions, using projection @code{P},
+onto the plane passing through point @code{O} with normal
+@code{cross(u,v)} by multiplying it on the left by the transform
+@verbatim
+transform transform(triple u, triple v, triple O=O,
+                    projection P=currentprojection);
+@end verbatim
+
+Here is an example showing three orthogonal intersecting planes:
+@verbatiminclude planes.asy
+@image{planes}
+
 
 @node graph3
 @section @code{graph3}

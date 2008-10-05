@@ -24,7 +24,8 @@ string Link(string label, string text, string options="");
 
 bool prc0() {
   return settings.prc &&
-    (settings.outformat == "pdf" || pdf() || settings.inlineimage);
+    ((settings.outformat == "pdf" || pdf()) ||
+     (settings.inlineimage && settings.render != 0));
 }
 
 bool prc() {

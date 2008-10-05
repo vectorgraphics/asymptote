@@ -12,7 +12,7 @@ Logarithmic=Log;
 
 // A linear scale, with optional autoscaling of minimum and maximum values,
 // scaling factor s and intercept.
-scaleT Linear(bool automin=false, bool automax=false, real s=1,
+scaleT Linear(bool automin=false, bool automax=automin, real s=1,
               real intercept=0)
 {
   real sinv=1/s;
@@ -30,7 +30,7 @@ scaleT Linear(bool automin=false, bool automax=false, real s=1,
 
 // A logarithmic scale, with optional autoscaling of minimum and maximum
 // values.
-scaleT Log(bool automin=false, bool automax=false)
+scaleT Log(bool automin=false, bool automax=automin)
 {
   scaleT scale;
   scale.init(Log.T,Log.Tinv,logarithmic=true,automin,automax);
@@ -38,7 +38,7 @@ scaleT Log(bool automin=false, bool automax=false)
 }
 
 // A "broken" linear axis omitting the segment [a,b].
-scaleT Broken(real a, real b, bool automin=false, bool automax=false)
+scaleT Broken(real a, real b, bool automin=false, bool automax=automin)
 {
   real skip=b-a;
   scaleT scale;
@@ -57,7 +57,7 @@ scaleT Broken(real a, real b, bool automin=false, bool automax=false)
 
 // A "broken" logarithmic axis omitting the segment [a,b], where a and b are
 // automatically rounded to the nearest integral power of the base.  
-scaleT BrokenLog(real a, real b, bool automin=false, bool automax=false)
+scaleT BrokenLog(real a, real b, bool automin=false, bool automax=automin)
 {
   real A=round(Log.T(a));
   real B=round(Log.T(b));

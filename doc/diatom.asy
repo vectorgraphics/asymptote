@@ -66,7 +66,7 @@ for(int taxon=0; taxon < n; ++taxon) {
   real x=1;
   if(maxP < minpercent) x=minpercent/maxP;
   if(maxP > 100) x=50/maxP;
-  scale(pic,Linear(x),Linear(false,-1));
+  scale(pic,Linear(true,x),Linear(-1));
   filldraw(pic,(0,depthmin)--graph(pic,P,depth)--(0,depthmax)--cycle,
            gray(0.9));
   xaxis(pic,Bottom,LeftTicks("$%.3g$",beginlabel=false,0,2),Above);

@@ -74,61 +74,36 @@ and height to \LaTeX\ explicitly:
 
 \begin{center}
 \begin{asy}[3cm,0]
-guide center = (0,1){W}..tension 0.8..(0,0){(1,-.5)}..tension 0.8..{W}(0,-1); 
-
-draw((0,1)..(-1,0)..(0,-1));
-filldraw(center{E}..{N}(1,0)..{W}cycle);
-fill(circle((0,0.5),0.125),white);
-fill(circle((0,-0.5),0.125));
+settings.thick=false;
+if(settings.render < 0) settings.render=4;
+import graph3;
+real R=2; real a=1.9;
+triple f(pair t) {
+  return ((R+a*cos(t.y))*cos(t.x),(R+a*cos(t.y))*sin(t.x),a*sin(t.y));
+}
+draw(surface(f,(0,0),(2pi,2pi),30,15),meshpen=rgb(0.2,0.5,0.7));
 \end{asy}
 \end{center}
 
 One can also scale the figure to the full line width:
 \begin{center}
 \begin{asy}[\the\linewidth]
-settings.thick=false;
-if(settings.render < 0) settings.render=4;
-
-import graph3;
-import solids;
-
-currentprojection=perspective(0,1,30,up=Y);
-currentlight=light(gray(0.75),specularfactor=3,viewport=false,
-                   (0.25,0.5,1),(0,-0.5,-0.5));
-
-pen color=green;
-real alpha=240;
-
-real f(real x) {return 2x^2-x^3;}
-pair F(real x) {return (x,f(x));}
-triple F3(real x) {return (x,f(x),0);}
-
-int n=10;
-path3[] blocks=new path3[n];
-for(int i=1; i <= n; ++i) {
-  real height=f((i-0.5)*2/n);
-  real left=(i-1)*2/n;
-  real right=i*2/n;
-  blocks[i-1]=
-    (left,0,0)--(left,height,0)--(right,height,0)--(right,0,0)--cycle;
-}
-
-path p=graph(F,0,2,n,operator ..)--cycle;
-surface s=surface(bezulate(p));
-path3 p3=path3(p);
-
-revolution a=revolution(p3,Y,0,alpha);
-draw(surface(a),color);
-draw(rotate(alpha,Y)*s,color);
-for(int i=0; i < n; ++i)
-  draw(surface(blocks[i]),color+opacity(0.5),black);
-draw(p3);
-
-xaxis3(Label("$x$",1,align=2X),Arrow3);
-yaxis3(Label("$y$",1,align=2Y),ymax=1.3,dashed,Arrow3);
-arrow("$y=2x^2-x^3$",XYplane(F(1.8)),X+Z,1.5cm,red);
-draw(arc(1.17Y,0.3,90,0,7.5,180),Arrow3);
+pair z0=(0,0);
+pair z1=(2,0);
+pair z2=(5,0);
+pair zf=z1+0.75*(z2-z1);
+draw(z1--z2);
+dot(z1,red+0.15cm);
+dot(z2,darkgreen+0.3cm);
+label("$m$",z1,1.2N,red);
+label("$M$",z2,1.5N,darkgreen);
+label("$\hat{\ }$",zf,0.2*S,fontsize(24)+blue);
+pair s=-0.2*I;
+draw("$x$",z0+s--z1+s,N,red,Arrows,Bars,PenMargins);
+s=-0.5*I;
+draw("$\bar{x}$",z0+s--zf+s,blue,Arrows,Bars,PenMargins);
+s=-0.95*I;
+draw("$X$",z0+s--z2+s,darkgreen,Arrows,Bars,PenMargins);
 \end{asy}
 \end{center}
-
 \end{document}
