@@ -6,7 +6,7 @@ currentprojection=perspective((4,2,3));
 
 real f(pair z) {return z.y^3/2-3z.x^2*z.y;}
 
-draw(surface(f,(-1,-1),(1,1),nx=10,operator ..),green);
+draw(surface(f,(-1,-1),(1,1),nx=10,Spline),green);
 draw(Label("$y$",1),(0,0,0)--(0,2,0),red,Arrow3);
 
 draw(Label("$x$",1),(0,0,0)--(2,0,0),red,Arrow3);

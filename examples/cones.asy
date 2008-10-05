@@ -1,5 +1,6 @@
-size(200);
 import solids;
+
+size(200);
 currentprojection=orthographic(5,4,2);
 
 revolution upcone=cone(-Z,1,1);
