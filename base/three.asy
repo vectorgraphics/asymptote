@@ -1949,19 +1949,27 @@ object embed(string prefix=defaultfilename, picture pic,
     if(preview || (!prc && settings.render != 0)) {
       frame f=f;
       transform3 modelview;
+      triple m,M;
       if(P.absolute) {
 	modelview=P.modelview();
 	f=modelview*f;
 	P=modelview*P;
 	angle=P.angle;
+	m=min3(f);
+	M=max3(f);
+	real r=0.5*abs(M-m);
+	real zcenter=0.5*(M.z+m.z);
+	M=(M.x,M.y,zcenter+r);
+	m=(m.x,m.y,zcenter-r);
+      } else {
+	m=min3(f);
+	M=max3(f);
+	real zcenter=P.target.z;
+	real d=P.distance(m,M);
+	M=(M.x,M.y,zcenter+d);
+	m=(m.x,m.y,zcenter-d);
       }
 
-      triple m=min3(f);
-      triple M=max3(f);
-      real zcenter=P.target.z;
-      real d=P.distance(m,M);
-      M=(M.x,M.y,zcenter+d);
-      m=(m.x,m.y,zcenter-d);
       real factor=hypot(M.x-m.x,M.y-m.y)*(viewportfactor-1.0);
       triple margin=(factor,factor,0);
       M += margin; 
