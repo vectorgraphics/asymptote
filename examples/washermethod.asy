@@ -14,7 +14,7 @@ triple F3(real x) {return (x,f(x),0);}
 ngraph=12;
 path[] p={graph(F,0.7476,1.8043,Spline)--cycle,
 	  graph(F,0.7,0.7476,Spline)--graph(F,1.7787,1.8043,Spline)--cycle,
-	  graph(F,0,0.7,Spline)--graph(F,1.8043,2,)--cycle};
+	  graph(F,0,0.7,Spline)--graph(F,1.8043,2,Spline)--cycle};
 
 pen[] pn=new pen[] {color1,color2,color1};
 
