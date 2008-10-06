@@ -1,0 +1,11 @@
+% Tex file for generating the reloadpdf.pdf utility to force Adobe Reader
+% to reload all currently loaded documents. Usage:
+%
+% pdflatex reloadpdf
+% acroread reloadpdf.pdf
+%
+\documentclass{article}
+\begin{document}
+\ \pdfannot width 0pt height 0pt { /AA << /PO << /S /JavaScript /JS
+  (try{reload();} catch(e) {} closeDoc(this);) >> >> }
+\end{document}
