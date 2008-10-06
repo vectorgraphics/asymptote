@@ -428,9 +428,26 @@ location of the @code{PostScript}-to-@acronym{PDF} processor @code{Ghostscript},
 available from @url{http://sourceforge.net/projects/ghostscript/}.
 
 The setting @code{pdfviewer} specifies the location of the @acronym{PDF}
-viewer.  The graphical user interface may also require setting the
-variable @code{python} if @code{Python} is installed in a nonstandard
-location.
+viewer. To optionally support automatic @acronym{PDF} reloading, we
+recommend copying the file @code{reload.js} from the @code{Asymptote}
+system directory (by default, @code{@value{Datadir}/asymptote} under
+@code{UNIX} and @code{C:\Program Files\Asymptote} under @code{MSDOS}) to
+@code{~/.adobe/Acrobat/x.x/JavaScripts/} under @code{UNIX}
+or @code{%APPDATA%/Adobe/Acrobat/x.x/JavaScripts/} under @code{MSDOS},
+where @code{x.x} represents the appropriate Acrobat Reader version number.
+This automatic document reload feature must then be explicitly enabled
+by putting
+@verbatim
+import settings;
+pdfreload=true;
+@end verbatim
+@noindent
+in the configuration file.
+For @code{UNIX} users, the setting @code{pdfreloadOptions="-tempFile";} is
+also recommended.
+
+The graphical user interface may also require setting the variable
+@code{python} if @code{Python} is installed in a nonstandard location.
 
 The configuration variable @code{dir} can be used to adjust the
 search path (@pxref{Search paths}).
@@ -533,6 +550,12 @@ tar -xf asymptote-x.xx.src.tar
 cd asymptote-x.xx
 @end verbatim
 
+@cindex @code{freeglut}
+@cindex @code{3D rendering}
+@noindent
+We recommend installing the @code{freeglut-devel} package to enable
+the fast @code{Asymptote} @code{OpenGL}-based 3D renderer.
+
 @noindent Then put
 @url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-7.1.tar.gz}
 in the current directory and
@@ -542,8 +565,8 @@ make all
 make install
 @end verbatim
 @noindent
-Be sure to use @acronym{GNU} @code{make} (on non-@acronym{GNU} systems this command
-may be called @code{gmake}). 
+Be sure to use @acronym{GNU} @code{make} (on non-@acronym{GNU} systems
+this command may be called @code{gmake}).
 To build the documentation, you may need to install the
 @code{texinfo-tex} package. If you get errors from a broken @code{texinfo}
 or @code{pdftex} installation, simply put
@@ -2075,7 +2098,7 @@ path ellipse(pair c, real a, real b)
 }
 @end verbatim
 
-This example illustrates the use of all five path connectors discussed
+This example illustrates the use of all five guide connectors discussed
 in @ref{Tutorial}:
 @verbatiminclude join.asy
 @image{join}
@@ -3040,7 +3063,7 @@ Alternatively, calling the routine
 @cindex @code{fixedscaling}
 @verbatim
 transform fixedscaling(picture pic=currentpicture, pair min,
-                       pair max, pen p=nullpen);
+                       pair max, pen p=nullpen, bool warn=false);
 @end verbatim
 will cause picture @code{pic} to use a fixed scaling to map user
 coordinates in @code{box(min,max)} to the (already specified) picture size,
@@ -5719,7 +5742,7 @@ option to disable this feature.
 @node simplex
 @section @code{simplex}
 @cindex @code{simplex}
-
+@cindex @code{deferred drawing}
 This package solves the two-variable linear programming problem using the
 simplex method. It is used by the module @code{plain} for automatic
 sizing of pictures.
@@ -6996,8 +7019,8 @@ dimensions except that triples @code{(x,y,z)} are used in place of pairs
 generalization of John Hobby's spline algorithm is shape-invariant under
 three-dimensional rotation, scaling, and shifting, and reduces in the
 planar case to the two-dimensional algorithm used in @code{Asymptote},
-@code{MetaPost}, and @code{MetaFont} [cf. John C. Bowman, Proceedings in Applied
-Mathematics and Mechanics</I>, <B>7:1</B>, 2010021-2010022 (2007)].
+@code{MetaPost}, and @code{MetaFont} [cf. J. C. Bowman, Proceedings in
+Applied Mathematics and Mechanics, 7:1, 2010021-2010022 (2007)].
 
 For example, a unit circle in the @math{XY} plane may be filled and
 drawn like this:
@@ -7010,10 +7033,85 @@ and then distorted into a saddle:
 @noindent
 
 Bezier surfaces, the natural two-dimensional generalization of Bezier
-curves, are shaded using the @code{OpenGL} lighting scheme, based on the
+curves, are shaded using the @code{OpenGL} lighting scheme, which uses the
 Phong-Blinn specular model. Sample Bezier surfaces are contained in the
 example files @code{BezierSurface.asy}, @code{teapot.asy},
-and @code{parametricsurface.asy}.
+and @code{parametricsurface.asy}. 
+
+@cindex @code{thin}
+@cindex @code{thick}
+Bezier surfaces are also used to draw arbitrary thick three-dimensional
+lines and line caps (which the @code{OpenGL} standard does not require
+implementations to provide). This can make files slow to render,
+especially with the @code{Adobe Reader} renderer. The setting
+@code{thick=false} can be used to disable this feature and force all
+lines to be drawn with @code{linewidth(0)} (one pixel wide, regardless
+of the resolution). By default mesh and contour lines in three-dimensions
+are always drawn thin, unless an explicit linewidth is given in the pen
+parameter or the setting @code{thin} is set to @code{false}. The pens
+@code{thin} and @code{thick()} defined in plain_pens.asy can also be used
+to override these defaults for specific draw commands.
+
+@cindex @code{bezulate}
+There is no @code{fill} command for three-dimensional cyclic paths
+(this would be an ill-posed operation). A three-dimensional planar path
+constructed from a two-dimensional cyclic path @code{p} can be filled by using
+Orest Shardt's @code{bezulate} routine to decompose @code{p} into an
+array of cyclic paths of length @code{4} or less; these can then be used to
+construct and draw a (filled) planar surface:
+@verbatim
+draw(surface(bezulate(polygon(5))),red);
+@end verbatim
+
+@noindent
+There are four choices for viewing 3D @code{Asymptote} output: 
+@enumerate
+@cindex @code{render}
+@cindex @code{outformat}
+@item use the default @code{Asymptote} @code{OpenGL}-based renderer (with the
+default settings @code{outformat=""} and @code{render=-1}).
+An initial screen position can be specified with the pair setting
+@code{position}, where negative values are interpreted as relative to
+the corresponding maximum screen dimension. A menu (with keyboard
+shortcuts) is shown on double-clicking the right mouse button.
+
+@item render the scene to a specified rasterized format @code{outformat}
+at the resolution of @code{n} pixels per @code{bp}, as specified by the
+setting @code{render=n}. 
+
+@cindex @code{prc}
+@item embed the 3D @acronym{PRC} format in a @acronym{PDF} file
+(using the setting @code{outformat="pdf"} and the default setting
+@code{prc=true}) and view the resulting @acronym{PDF} file with
+@code{Adobe Reader}. A stationary preview image with a resolution of
+@code{n} pixels per @code{bp} can be embedded with the setting
+@code{render=n}; this allows the file to be viewed with other @code{PDF}
+viewers. Alternatively, the file @code{externalprc.tex} illustrates how
+the resulting @code{PRC} and rendered image files can be easily extracted and
+processed in a separate @code{LaTeX} file.
+
+@item project the scene to a two-dimensional vector (@acronym{EPS} or
+@acronym{PDF}) format with @code{render=0}. Only limited hidden surface
+removal facilities are currently available with this approach
+(@pxref{3DPostScript}).
+
+@end enumerate
+
+@cindex @code{double deferred drawing}
+Automatic picture sizing in three dimensions is accomplished with double
+deferred drawing. The maximal desired dimensions of the scene in each of
+the three dimensions can optionally be specified with the routine
+@cindex @code{size3}
+@verbatim
+void size3(picture pic=currentpicture, real x, real y=x, real z=y,
+          bool keepAspect=pic.keepAspect);
+@end verbatim
+@noindent
+The resulting simplex linear programming problem is then solved to
+produce a 3D version of a frame (actually implemented as a 3D picture). 
+The result is then fit with another application of deferred drawing
+to the viewport dimensions corresponding to the usual two-dimensional
+picture @code{size} parameters.
 
 @cindex @code{O}
 @cindex @code{X}
@@ -7084,6 +7182,7 @@ along with the surfaces @code{unitdisk}, @code{unitplane}, @code{unitcube},
 @code{unitcylinder}, @code{unitcone}, @code{solidcone},
 @code{unitfrustum(real t1, real t2)}, and @code{unitsphere}.
 
+@noindent
 These projections to two dimensions are predefined:
 @table @code
 @item oblique
@@ -7135,6 +7234,7 @@ This is equivalent to @code{perspective((x,y,z),up,target)}.
 @end table
 
 @cindex @code{currentprojection}
+@noindent
 The default projection, @code{currentprojection}, is initially set to
 @code{perspective(5,4,2)}.
 
@@ -7151,9 +7251,9 @@ triple invert(pair z, triple normal, triple point,
               projection P=currentprojection);
 @end verbatim
 
-@cindex @code{transform}
+@cindex @code{transform3}
 Three-dimensional objects may be transformed with one of the following
-built-in @code{transform3} types:
+built-in transform3 types:
 
 @table @code
 @item shift(triple v)
@@ -7188,11 +7288,11 @@ reflects about the plane through @code{u}, @code{v}, and @code{w}.
 Three-dimensional @code{TeX} Labels, which are by default drawn as
 Bezier surfaces directly on the projection plane, can be transformed
 from the @code{XY} plane by any of the above transforms or mapped to a
-specified two-dimensional plane with @code{XY}, @code{YZ}, @code{ZX},
-@code{YX}, @code{ZY}, @code{ZX}. There are also modified versions of
-these transforms that take an optional argument
+specified two-dimensional plane with the transform3 types @code{XY},
+@code{YZ}, @code{ZX}, @code{YX}, @code{ZY}, @code{ZX}. There are also
+modified versions of these transforms that take an optional argument
 @code{projection P=currentprojection} that rotate and/or flip the
-label so that it is more easily readable using the given projection.
+label so that it is more readable from the initial viewpoint.
 
 @cindex @code{length}
 @cindex @code{size}
@@ -7219,43 +7319,36 @@ Three-dimensional versions of the path functions @code{length},
 @code{intersectionpoints}, @code{min}, @code{max}, @code{cyclic}, and
 @code{straight} are also defined in the module @code{three}.
 
-Here is an example showing all five path3 connectors:
+Here is an example showing all five guide3 connectors:
 @verbatiminclude join3.asy
 @image{join3}
-
-@cindex @code{bbox3}
-@cindex @code{aspect}
-A three-dimensional bounding box structure is returned by calling 
-@code{bbox3(triple min, triple max)} with the opposite corners
-@code{min} and @code{max}. This can be used to adjust the aspect ratio
-(see the example helix.asy):
-@verbatim
-void aspect(picture pic=currentpicture, bbox3 b,
-            real x=0, real y=0, real z=0);
-@end verbatim
 
 Further three-dimensional examples are provided in the files
 @code{near_earth.asy}, @code{conicurv.asy}, and (in the @code{animations}
 subdirectory) @code{cube.asy}.
 
-Finally, limited support for projected vector graphics (without rendering) is 
-also available by specifying @code{settings.render=0}. This currently
-only works for piecewise planar surfaces, such as the produced by the
-parametric @code{surface} routines in the @code{graph3} module.
-Surfaces drawn with the @code{solids} package 
-the @code{surface} routines
+@anchor{3DPostScript}
+Limited support for projected vector graphics (effectively three-dimensional
+nonrendered @code{PostScript}) is also available by specifying
+@code{settings.render=0}. This currently only works for piecewise planar
+surfaces, such as those produced by the parametric @code{surface}
+routines in the @code{graph3} module. Surfaces produced by the
+@code{solids} package will also be properly rendered if the parameter
+@code{nslices} is sufficiently large.
+
 @cindex hidden surface removal
 @cindex @code{face}
-Hidden surface removal is implemented with a binary space
-partition and picture clipping. A planar path is first converted to a
-structure @code{face} derived from @code{picture}. A @code{face} may be given to
-a drawing routine in place of any @code{picture} argument.  An array
-of such faces may then be drawn, removing hidden surfaces:
+In the module @code{bsp}, hidden surface removal of planar pictures is
+implemented using a binary space partition and picture clipping.
+A planar path is first converted to a structure @code{face} derived from
+@code{picture}. A @code{face} may be given to a two-dimensional drawing
+routine in place of any @code{picture} argument.  An array of such faces
+may then be drawn, removing hidden surfaces: 
 @verbatim
 void add(picture pic=currentpicture, face[] faces,
          projection P=currentprojection);
 @end verbatim
-Labels may also be projected to two dimensions, using projection @code{P},
+Labels may be projected to two dimensions, using projection @code{P},
 onto the plane passing through point @code{O} with normal
 @code{cross(u,v)} by multiplying it on the left by the transform
 @verbatim
@@ -7263,10 +7356,10 @@ transform transform(triple u, triple v, triple O=O,
                     projection P=currentprojection);
 @end verbatim
 
-Here is an example showing three orthogonal intersecting planes:
+Here is an example of the use of a binary space partition to draw a
+@code{PostScript} vector image of three orthogonal intersecting planes:
 @verbatiminclude planes.asy
 @image{planes}
-
 
 @node graph3
 @section @code{graph3}
@@ -7341,14 +7434,14 @@ picture surface(triple f(pair z), pair a, pair b, int nu=nmesh,
 @noindent
 as illustrated in the example @code{parametricsurface.asy}.
 Lighting can be disabled by setting @code{light=nolight}, as in this example
-of a Gaussian:
+of a Gaussian surface:
 @anchor{GaussianSurface}
 @verbatiminclude GaussianSurface.asy
 @image{GaussianSurface}
 @noindent
 Surface lighting is illustrated in the example files
 @code{parametricsurface.asy} and @code{sinc.asy}.
-A mesh can be drawn without solid fills by specifying @code{nullpen}
+A mesh can be drawn without surface filling by specifying @code{nullpen}
 for the surfacepen.
 
 @node grid3
@@ -7884,8 +7977,6 @@ g.clip("unitcircle")
 g.label("\"$O$\", (0,0), SW")
 @end verbatim
 
-
-
 @node GUI
 @chapter Graphical User Interface
 @cindex graphical user interface
@@ -8223,7 +8314,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  dirtime currentpen colorspaces grayscale cmyk defaultpen x cx
 @c  LocalWords:  linetype longdashed dashdotted longdashdotted linewidth y XP
 @c  LocalWords:  fontsize defaultfilename keepAspect IgnoreAspect ise flushleft
-@c  LocalWords:  src dest XDR txt getc fout stdin stdout endl xinput eof
+@c  LocalWords:  src dest XDR txt getc fout stdin stdout endl xinput eof js prc
 @c  LocalWords:  xoutput Microsystem's eol exponentials postfix sayhi th Ubuntu
 @c  LocalWords:  sqr intop addby libm asin acos atan sinh tanh asinh acosh cbrt
 @c  LocalWords:  atanh fabs hypot fmod ceil srand dereferenced alice pete sqrtx
@@ -8275,7 +8366,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  ticklabel popup UnFill markroutine marknodes markuniform erf
 @c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis Datadir ds
 @c  LocalWords:  resetdefaultpen latticeshade axialshade radialshade erfc det
-@c  LocalWords:  gouraudshade unescaped nmesh surfacepen getpair MikTeX dw
+@c  LocalWords:  gouraudshade unescaped nmesh surfacepen getpair MikTeX dw YZ
 @c  LocalWords:  lightgray meshpen localhistory axisT roundedpath unitsize aSin
 @c  LocalWords:  fontcommand makepen aCos aTan Knorr roundpath BeginPoint nView
 @c  LocalWords:  MidPoint EndPoint nmask antialiasing autoplain batchMask libgc
@@ -8313,12 +8404,12 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  crossframe tildeframe markangle StickIntervalMarker gswin expm
 @c  LocalWords:  CrossIntervalMarker CircleBarIntervalMarker Ghostscript syzygy
 @c  LocalWords:  TildeIntervalMarker autoimport calculateTransform bitwise tk
-@c  LocalWords:  headersize bodysize minheaderwidth minheaderheight minwidth
+@c  LocalWords:  headersize bodysize minheaderwidth minheaderheight minwidth ZX
 @c  LocalWords:  minbodywidth minbodyheight minheight mindiameter reltime PNG
-@c  LocalWords:  relpoint Syzygy syzygies seekeof splinetype notaknot slopea
+@c  LocalWords:  relpoint Syzygy syzygies seekeof splinetype notaknot slopea ZY
 @c  LocalWords:  slopeb nonperiodic circlescale MarkFill ScaleX ScaleY xformat
 @c  LocalWords:  onecontour multicontour irregularcontour dvipsOptions saveline
-@c  LocalWords:  dirSpecifier controlSpecifier tensionSpecifier atleastflag
+@c  LocalWords:  dirSpecifier controlSpecifier tensionSpecifier atleastflag bsp
 @c  LocalWords:  curlSpecifier cputimeformat initializers arbitary redeclaring
 @c  LocalWords:  firstname lastname multdiagonal Raphson OmitTick OmitFormat
 @c  LocalWords:  NoZero NoZeroFormat abbrevation gsOptions namespace redeclared
@@ -8328,4 +8419,8 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  simpson NoBox truesize autoscale shadestroke recurses mintimes
 @c  LocalWords:  nonoverlapping Shewchuk's texdvicommand texengine maxtimes
 @c  LocalWords:  piecewisestraight unitrand graphmarkers antialias nolight
-@c  LocalWords:  Delaunay Shewchuk convertOptions
+@c  LocalWords:  Delaunay Shewchuk convertOptions APPDATA pdfreload tempFile
+@c  LocalWords:  pdfreloadOptions deferred OpenGL Phong Blinn renderer unitbox
+@c  LocalWords:  bezulate Shardt's rasterized viewport unitdisk unitplane devel
+@c  LocalWords:  unitcylinder unitcone solidcone unitfrustum unitsphere nslices
+@c  LocalWords:  DPostScript YZZero freeglut externalprc nonrendered

@@ -20,6 +20,7 @@ BuildRequires:  tetex-latex
 BuildRequires:  ghostscript
 BuildRequires:  texinfo >= 4.7
 BuildRequires:  ImageMagick
+BuildRequires:  freeglut-devel >= 2.4.0
 
 Requires:       tetex-latex
 Requires:       tkinter

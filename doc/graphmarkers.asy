@@ -31,5 +31,7 @@ pair[] f={(5,5),(40,20),(55,51),(90,30)};
 
 draw(graph(f),marker(marks()));
 
+scale(true);
+
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);

@@ -14,6 +14,8 @@ real[] number=A[0], survival=A[1];
 path g=graph(number,survival);
 draw(g);
 
+scale(true);
+
 xaxis("Initial no.\ of mosquitoes per bird ($S_{M_0}/N_{B_0}$)",
       Bottom,LeftTicks);
 xaxis(Top);

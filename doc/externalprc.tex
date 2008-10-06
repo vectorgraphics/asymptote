@@ -1,12 +1,11 @@
 % Generate inline PRC images for latex with
-% asy -inlineimage ex/teapot -render=4
+% asy -inlineimage teapot -render=4
 %
 % Generate inline PRC images for pdflatex with
-% asy -inlineimage ex/teapot -render=4 -tex pdflatex
+% asy -inlineimage teapot -render=4 -tex pdflatex
 %
 \documentclass[12pt]{article}
 \input teapot_.pre
-\usepackage[3D]{movie15}
 \RequirePackage{color,graphicx}
 \begin{document}
 \input teapot_.tex
