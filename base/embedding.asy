@@ -1,6 +1,27 @@
 usepackage("movie15","3D");
 usepackage("hyperref","setpagesize=false");
 
+// Fix missing BBox bug in movie15 version 2008/01/16
+texpreamble("\makeatletter
+        \ifthenelse{\isundefined{\@MXV@apdict}}{%
+          \pdfmark{%
+            pdfmark=/OBJ,%
+            Raw={%
+              /_objdef {apdict}%
+              /type/stream%
+            }%
+          }%
+          \pdfmark{%
+            pdfmark=/PUT,%
+            Raw={%
+              {apdict}%
+              <</BBox[0 0 1 1]>>
+            }%
+          }%
+          \xdef\@MXV@apdict{/AP << /N {apdict}>>}%
+        }{}%
+\makeatother");
+
 // See http://www.ctan.org/tex-archive/macros/latex/contrib/movie15/README
 // for documentation of the options.
 
