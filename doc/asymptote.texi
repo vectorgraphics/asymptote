@@ -7019,7 +7019,7 @@ dimensions except that triples @code{(x,y,z)} are used in place of pairs
 generalization of John Hobby's spline algorithm is shape-invariant under
 three-dimensional rotation, scaling, and shifting, and reduces in the
 planar case to the two-dimensional algorithm used in @code{Asymptote},
-@code{MetaPost}, and @code{MetaFont} [cf. J. C. Bowman, Proceedings in
+@code{MetaPost}, and @code{MetaFont} [cf.@ J. C. Bowman, Proceedings in
 Applied Mathematics and Mechanics, 7:1, 2010021-2010022 (2007)].
 
 For example, a unit circle in the @math{XY} plane may be filled and
@@ -7053,7 +7053,7 @@ parameter or the setting @code{thin} is set to @code{false}. The pens
 to override these defaults for specific draw commands.
 
 @cindex @code{bezulate}
-There is no @code{fill} command for three-dimensional cyclic paths
+There is no @code{fill} command for arbitrary three-dimensional cyclic paths
 (this would be an ill-posed operation). A three-dimensional planar path
 constructed from a two-dimensional cyclic path @code{p} can be filled by using
 Orest Shardt's @code{bezulate} routine to decompose @code{p} into an
@@ -7068,29 +7068,37 @@ There are four choices for viewing 3D @code{Asymptote} output:
 @enumerate
 @cindex @code{render}
 @cindex @code{outformat}
-@item use the default @code{Asymptote} @code{OpenGL}-based renderer (with the
-default settings @code{outformat=""} and @code{render=-1}).
+@item Use the default @code{Asymptote} @code{OpenGL}-based renderer (with the
+the command-line option @code{-V} and the default settings
+@code{outformat=""} and @code{render=-1}).
 An initial screen position can be specified with the pair setting
 @code{position}, where negative values are interpreted as relative to
 the corresponding maximum screen dimension. A menu (with keyboard
 shortcuts) is shown on double-clicking the right mouse button.
 
-@item render the scene to a specified rasterized format @code{outformat}
+@item Render the scene to a specified rasterized format @code{outformat}
 at the resolution of @code{n} pixels per @code{bp}, as specified by the
-setting @code{render=n}. 
+setting @code{render=n}. A negative value of @code{n} is interpreted
+indicates @code{|4n|} for @acronym{EPS} and @acronym{PDF} formats and
+@code{|2n|} for other formats. The default value of @code{render} is -1.
 
 @cindex @code{prc}
-@item embed the 3D @acronym{PRC} format in a @acronym{PDF} file
+@item Embed the 3D @acronym{PRC} format in a @acronym{PDF} file
 (using the setting @code{outformat="pdf"} and the default setting
 @code{prc=true}) and view the resulting @acronym{PDF} file with
-@code{Adobe Reader}. A stationary preview image with a resolution of
-@code{n} pixels per @code{bp} can be embedded with the setting
-@code{render=n}; this allows the file to be viewed with other @code{PDF}
-viewers. Alternatively, the file @code{externalprc.tex} illustrates how
-the resulting @code{PRC} and rendered image files can be easily extracted and
-processed in a separate @code{LaTeX} file.
+@code{Adobe Reader}. This requires the @code{movie15} package from
+@quotation
+@url{http://www.ctan.org/tex-archive/macros/latex/contrib/movie15}
+@end quotation
+A stationary preview image with a resolution of @code{n} pixels per
+@code{bp} can be embedded with the setting @code{render=n}; this allows
+the file to be viewed with other @code{PDF} viewers. Alternatively, the
+file @code{externalprc.tex} illustrates how the resulting @code{PRC} and
+rendered image files can be extracted and processed in a separate
+@code{LaTeX} file. However, see @ref{LaTeX usage} for an easier way
+to embed three-dimensional @code{Asymptote} pictures within @code{LaTeX}.
 
-@item project the scene to a two-dimensional vector (@acronym{EPS} or
+@item Project the scene to a two-dimensional vector (@acronym{EPS} or
 @acronym{PDF}) format with @code{render=0}. Only limited hidden surface
 removal facilities are currently available with this approach
 (@pxref{3DPostScript}).
