@@ -842,7 +842,7 @@ void dot(picture pic=currentpicture, triple[] v, material p=currentpen)
   for(int i=0; i < v.length; ++i) dot(pic,v[i],p);
 }
 
-void dot(picture pic=currentpicture, path3 g, material p=currentpen)
+void dot(picture pic=currentpicture, explicit path3 g, material p=currentpen)
 {
   for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p);
 }

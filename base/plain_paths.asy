@@ -32,7 +32,7 @@ path[] operator cast(pair[] z)
 
 path[] operator cast(guide[] g)
 {
-  return sequence(new guide(int i) {return g[i];},g.length);
+  return sequence(new path(int i) {return g[i];},g.length);
 }
 
 path[] operator cast(path p)

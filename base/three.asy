@@ -1163,7 +1163,7 @@ pair[] project(triple[] v, projection P=currentprojection)
   return sequence(new pair(int i) {return project(v[i],P.t);},v.length);
 }
 
-path[] project(path3[] g, projection P=currentprojection)
+path[] project(explicit path3[] g, projection P=currentprojection)
 {
   return sequence(new path(int i) {return project(g[i],P);},g.length);
 }
@@ -1291,6 +1291,11 @@ guide3[] operator cast(triple[] v)
 path3[] operator cast(triple[] v)
 {
   return sequence(new path3(int i) {return v[i];},v.length);
+}
+
+path3[] operator cast(guide3[] g)
+{
+  return sequence(new path3(int i) {return solve(g[i]);},g.length);
 }
 
 triple point(explicit guide3 g, int t) {
