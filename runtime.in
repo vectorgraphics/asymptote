@@ -1047,7 +1047,12 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   pipe << "'" << getSetting<string>("gs")
        << "' -q -dNOPAUSE -dBATCH";
   if(safe) pipe << " -dSAFER";
-  pipe << " -sDEVICE=epswrite -sOutputFile=/dev/null '" << psname << "'";
+#ifdef __CYGWIN__
+  string null="NUL";
+#else
+  string null="/dev/null";
+#endif
+  pipe << " -sDEVICE=epswrite -sOutputFile="+null+" '" << psname << "'";
   iopipestream gs(pipe.str().c_str(),"gs","Ghostscript");
   stringstream buf;
   while(true) {
