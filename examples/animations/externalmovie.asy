@@ -2,6 +2,9 @@
 
 import external;
 
+// External movies require the pdflatex engine.
+settings.tex="pdflatex";
+
 // Generated needed mpeg file if it doesn't already exist.
 asy("mpg","wheel");
 

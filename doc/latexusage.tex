@@ -70,18 +70,16 @@ shipout(bbox(0.25cm));
 %\end{figure}
 
 Each graph is drawn in its own environment. One can specify the width
-and height to \LaTeX\ explicitly:
-
+and height to \LaTeX\ explicitly. This 3D example can be viewed
+interactively either with Adobe Reader or Asymptote's fast OpenGL-based
+renderer.
 \begin{center}
-\begin{asy}[3cm,0]
-settings.thick=false;
-if(settings.render < 0) settings.render=4;
-import graph3;
-real R=2; real a=1.9;
-triple f(pair t) {
-  return ((R+a*cos(t.y))*cos(t.x),(R+a*cos(t.y))*sin(t.x),a*sin(t.y));
-}
-draw(surface(f,(0,0),(2pi,2pi),30,15),meshpen=rgb(0.2,0.5,0.7));
+\begin{asy}[0,4cm]
+import three;
+if(settings.render < 0) settings.render=8;
+
+draw(unitcube,blue);
+label("$V-E+F=2$",(0,1,0.5),3Y,blue+fontsize(20));
 \end{asy}
 \end{center}
 
@@ -92,12 +90,14 @@ pair z0=(0,0);
 pair z1=(2,0);
 pair z2=(5,0);
 pair zf=z1+0.75*(z2-z1);
+
 draw(z1--z2);
 dot(z1,red+0.15cm);
 dot(z2,darkgreen+0.3cm);
 label("$m$",z1,1.2N,red);
 label("$M$",z2,1.5N,darkgreen);
 label("$\hat{\ }$",zf,0.2*S,fontsize(24)+blue);
+
 pair s=-0.2*I;
 draw("$x$",z0+s--z1+s,N,red,Arrows,Bars,PenMargins);
 s=-0.5*I;
