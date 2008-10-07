@@ -279,7 +279,8 @@ ticks3 NoTicks3()
                   path3, pen p, arrowbar3 arrow, ticklocate, int[],
                   bool opposite, bool primary) {
     path3 G=T*g;
-    draw(pic,G,p);
+    if(primary) draw(pic,G,p,arrow);
+    else draw(pic,G,p);
     if(L.s != "" && primary) {
       Label L=L.copy();
       L.p(p);
