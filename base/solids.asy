@@ -147,20 +147,21 @@ struct revolution {
     return s;
   }
 
-  path3 slice(real position) {
+  path3 slice(real position, int n=nCircle) {
     triple v=point(g,position);
     triple center=c+dot(v-c,axis)*axis;
     triple perp=v-center;
     if(abs(perp) <= epsilon*max(abs(m),abs(M))) return center;
     triple v1=center+rotate(angle1,axis)*perp;
     triple v2=center+rotate(angle2,axis)*perp;
-    path3 p=Arc(center,v1,v2,axis);
+    path3 p=Arc(center,v1,v2,axis,n);
     return (angle2-angle1) % 360 == 0 ? p&cycle : p;
   }
   
   // add transverse slice to skeleton s
-  void transverse(skeleton s, real t, projection P=currentprojection) {
-    path3 S=slice(t);
+  void transverse(skeleton s, real t, int n=nslice,
+		  projection P=currentprojection) {
+    path3 S=slice(t,n);
     if(is3D()) {
       s.front.push(S);
       return;
@@ -177,8 +178,8 @@ struct revolution {
        (t >= L-epsilon && sign > 0))
       s.front.push(S);
     else {
-      path3 Sp=slice(t+epsilon);
-      path3 Sm=slice(t-epsilon);
+      path3 Sp=slice(t+epsilon,n);
+      path3 Sm=slice(t-epsilon,n);
       path sp=project(Sp,P,1);
       path sm=project(Sm,P,1);
       real[] t1=tangent(sp,sm,true);
@@ -222,18 +223,19 @@ struct revolution {
   }
 
   // add m evenly spaced transverse slices to skeleton s
-  void transverse(skeleton s, int m=0, projection P=currentprojection) {
+  void transverse(skeleton s, int m=0, int n=nslice,
+		  projection P=currentprojection) {
     int N=size(g);
     int n=(m == 0) ? N : m;
     real factor=m == 1 ? 0 : 1/(m-1);
     for(int i=0; i < n; ++i) {
       real t=(m == 0) ? i : reltime(g,i*factor);
-      transverse(s,t,P);
+      transverse(s,t,n,P);
     }
   }
 
   // add longitudinal curves to skeleton
-  void longitudinal(skeleton s, projection P=currentprojection) {
+  void longitudinal(skeleton s, int n=nslice, projection P=currentprojection) {
     if(is3D()) return;
     static real epsilon=10*epsilon;
     real t, d=0;
@@ -249,9 +251,9 @@ struct revolution {
       }
     }
     triple v=point(g,t);
-    path3 S=slice(t);
-    path3 Sm=slice(t+epsilon);
-    path3 Sp=slice(t-epsilon);
+    path3 S=slice(t,n);
+    path3 Sm=slice(t+epsilon,n);
+    path3 Sp=slice(t-epsilon,n);
     path sp=project(Sp,P,1);
     path sm=project(Sm,P,1);
     real[] t1=tangent(sp,sm,true);
@@ -264,10 +266,10 @@ struct revolution {
       s.longitudinal.push(rotate(angle(t2[0]),c,c+axis)*g);
   }
   
-  skeleton skeleton(int m=0, projection P=currentprojection) {
+  skeleton skeleton(int m=0, int n=nslice, projection P=currentprojection) {
     skeleton s;
-    transverse(s,m,P);
-    longitudinal(s,P);
+    transverse(s,m,n,P);
+    longitudinal(s,n,P);
     return s;
   }
 }
@@ -279,13 +281,14 @@ surface surface(revolution r, int n=nslice, pen color(int i, real j)=null)
 
 // Draw on picture pic the skeleton of the surface of revolution r.
 // Draw the front portion of each of the m transverse slices with pen p and
-// the back portion with pen backpen.
-void draw(picture pic=currentpicture, revolution r, int m=0, pen p=currentpen,
-          pen backpen=p, bool longitudinal=true, pen longitudinalpen=p,
-          projection P=currentprojection)
+// the back portion with pen backpen. Rotational arcs are based on
+// n-point approximations to the unit circle.
+void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
+	  pen p=currentpen, pen backpen=p, bool longitudinal=true,
+	  pen longitudinalpen=p, projection P=currentprojection)
 {
   pen thin=is3D() ? thin : defaultpen;
-  skeleton s=r.skeleton(m,P);
+  skeleton s=r.skeleton(m,n,P);
   begingroup3(pic);
   draw(pic,s.back,linetype("8 8",8)+backpen);
   draw(pic,s.front,thin+p);
