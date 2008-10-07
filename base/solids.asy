@@ -235,6 +235,7 @@ struct revolution {
   // add longitudinal curves to skeleton
   void longitudinal(skeleton s, projection P=currentprojection) {
     if(is3D()) return;
+    static real epsilon=10*epsilon;
     real t, d=0;
     // Find a point on g of maximal distance from the axis.
     int N=size(g);
