@@ -226,9 +226,9 @@ struct revolution {
   void transverse(skeleton s, int m=0, int n=nslice,
 		  projection P=currentprojection) {
     int N=size(g);
-    int n=(m == 0) ? N : m;
+    int M=(m == 0) ? N : m;
     real factor=m == 1 ? 0 : 1/(m-1);
-    for(int i=0; i < n; ++i) {
+    for(int i=0; i < M; ++i) {
       real t=(m == 0) ? i : reltime(g,i*factor);
       transverse(s,t,n,P);
     }
