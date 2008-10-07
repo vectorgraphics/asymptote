@@ -7188,7 +7188,7 @@ path3[] unitbox=box(O,(1,1,1));
 @code{Asymptote} also provides optimized definitions for the
 three-dimensional paths @code{unitsquare3} and @code{unitcircle3},
 along with the surfaces @code{unitdisk}, @code{unitplane}, @code{unitcube},
-@code{unitcylinder}, @code{unitcone}, @code{solidcone},
+@code{unitcylinder}, @code{unitcone}, @code{unitsolidcone},
 @code{unitfrustum(real t1, real t2)}, and @code{unitsphere}.
 
 @noindent

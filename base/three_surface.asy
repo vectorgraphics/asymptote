@@ -763,12 +763,12 @@ restricted patch unitfrustum(real t1, real t2)
 }
 
 // Return a unitcone constructed from n frusta (the final one being degenerate)
-surface unitcone(int n=8)
+surface unitcone(int n=6)
 {
   surface unitcone;
   unitcone.s=new patch[4*n];
   for(int i=0; i < n; ++i) {
-    patch s=unitfrustum(i < n-1 ? 1/2^(i+1) : 0,1/2^i);
+    patch s=unitfrustum(i < n-1 ? 1/3^(i+1) : 0,1/3^i);
     unitcone.s[i]=s;
     unitcone.s[n+i]=t*s;
     unitcone.s[2n+i]=t2*s;
@@ -778,7 +778,7 @@ surface unitcone(int n=8)
 }
 
 restricted surface unitcone=unitcone();
-restricted surface solidcone=surface(patch(unitcircle3)...unitcone.s);
+restricted surface unitsolidcone=surface(patch(unitcircle3)...unitcone.s);
 
 private patch unitcylinder1=patch(X--X+Z{Y}..{-X}Y+Z--Y{X}..{-Y}cycle);
 

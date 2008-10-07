@@ -63,9 +63,7 @@ surface tube(path3 g, real width)
       real endtime=0;
       while(endtime < 1) {
         real newend=takeStep(s,endtime,r);
-
         path3 si=subpath(s,endtime,newend);
-
         real L=arclength(si);
         surface segment=scale(r,r,L)*unitcylinder;
         path3 circle=t*unitcircle3;
@@ -81,7 +79,6 @@ surface tube(path3 g, real width)
           }
         }
         tube.s.append(segment.s);
-
         endtime=newend;
       }
     }
@@ -105,12 +102,14 @@ arrowhead3 DefaultHead3;
 
 DefaultHead3.head=new surface(path3 g, position position=EndPoint,
 			      pen p=currentpen, real size=0,
-			      real angle=arrowangle) {
+			      real angle=arrowangle)
+{
   if(size == 0) size=DefaultHead3.size(p);
   bool relative=position.relative;
   real position=position.position.x;
   if(relative) position=reltime(g,position);
 
+  bool straight=length(g) == 1 ? straight(g,0) : false;
   path3 r=subpath(g,position,0);
   real t=arctime(r,size);
   path3 s=subpath(r,t,0);
@@ -120,37 +119,37 @@ DefaultHead3.head=new surface(path3 g, position position=EndPoint,
   real remainL=L;
 
   surface head;
-
-  for(int i=0; i < length(s); ++i) {
-    path3 s=subpath(s,i,i+1);
-
-    real endtime=0;
-    while(endtime < 1) {
-      real newend=takeStep(s,endtime,width);
-
-      path3 si=subpath(s,endtime,newend);
-
-      real l=arclength(si);
-      real w=remainL*wl;
-      surface segment=scale(w,w,l)*unitcylinder;
-      if(endtime == 0) // add base
-        segment.append(scale(w,w,1)*unitdisk);
-      for(patch p : segment.s) {
-        for(int i=0; i < 4; ++i) {
-          for(int j=0; j < 4; ++j) {
-            real k=1-p.P[i][j].z/remainL;
-            p.P[i][j]=(k*p.P[i][j].x,k*p.P[i][j].y,p.P[i][j].z);
-            p.P[i][j]=bend(p.P[i][j],si,l,1);
-          }
-        }
+  if(straight) {
+    triple v=point(s,0);
+    triple u=point(s,1)-v;
+    return shift(v)*align(unit(u))*scale(width,width,abs(u))*unitsolidcone;
+  } else {
+    for(int i=0; i < length(s); ++i) {
+      path3 s=subpath(s,i,i+1);
+      real endtime=0;
+      while(endtime < 1) {
+	real newend=takeStep(s,endtime,width);
+	path3 si=subpath(s,endtime,newend);
+	real l=arclength(si);
+	real w=remainL*wl;
+	surface segment=scale(w,w,l)*unitcylinder;
+	if(endtime == 0) // add base
+	  segment.append(scale(w,w,1)*unitdisk);
+	for(patch p : segment.s) {
+	  for(int i=0; i < 4; ++i) {
+	    for(int j=0; j < 4; ++j) {
+	      real k=1-p.P[i][j].z/remainL;
+	      p.P[i][j]=(k*p.P[i][j].x,k*p.P[i][j].y,p.P[i][j].z);
+	      p.P[i][j]=bend(p.P[i][j],si,l,1);
+	    }
+	  }
+	}
+	head.append(segment);
+	endtime=newend;
+	remainL -= l;
       }
-      head.append(segment);
-
-      endtime=newend;
-      remainL -= l;
     }
   }
-
   return head;
 };
 
@@ -187,7 +186,7 @@ void drawarrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
   }
   path3 r=subpath(g,position,0);
   size=min(arrowsizelimit*arclength(r),size);
-  static real fuzz=10*realEpsilon;
+  static real fuzz=sqrt(realEpsilon);
   if(!cyclic(g) && position > L-fuzz)
     draw(pic,subpath(r,arctime(r,size),length(r)),p,light);
   else draw(pic,g,p,light);
