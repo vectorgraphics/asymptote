@@ -399,7 +399,7 @@ double path3::arclength() const {
 
 double path3::arctime(double goal) const {
   if (cycles) {
-    if (goal == 0) return 0;
+    if (goal == 0 || cached_length == 0) return 0;
     if (goal < 0)  {
       const path3 &rp = this->reverse();
       double result = -rp.arctime(-goal);
