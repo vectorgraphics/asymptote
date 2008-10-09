@@ -533,9 +533,11 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
     begingroup(f);
     // Sort patches by mean distance from camera
     triple camera=P.camera;
-    if(P.infinity)
-      camera=P.target+camerafactor*max(abs(min(s)),abs(max(s)))*
-        unit(P.vector());
+    if(P.infinity) {
+      triple m=min(s);
+      triple M=max(s);
+      camera=P.target+camerafactor*(abs(M-m)+abs(m-P.target))*unit(P.vector());
+    }
 
     real[][] depth;
     
@@ -554,7 +556,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
       real[] a=depth.pop();
       int i=round(a[1]);
       if(surface)
-        tensorshade(t,f,s.s[i],surfacepen.p[0],light,P);
+        tensorshade(t,f,s.s[i],surfacepen,light,P);
       if(mesh)
         draw(f,project(s.s[i].external(),P),meshpen);
     }

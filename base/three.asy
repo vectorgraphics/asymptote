@@ -213,10 +213,10 @@ pair project(triple v, projection P=currentprojection)
 // perpendicular to the vector camera-target.
 projection perspective(triple camera, triple up=Z, triple target=O)
 {
-  return projection(camera,target,up,
+  return projection(camera,up,target,infinity=false,
                     new transformation(triple camera, triple up, triple target)
-                    {   return transformation(look(camera,up,target),
-                                              distort(camera-target));});
+                    {return transformation(look(camera,up,target),
+					   distort(camera-target));});
 }
 
 projection perspective(real x, real y, real z, triple up=Z, triple target=O)
@@ -226,7 +226,7 @@ projection perspective(real x, real y, real z, triple up=Z, triple target=O)
 
 projection orthographic(triple camera, triple up=Z, triple target=O)
 {
-  return projection(camera,target,up,
+  return projection(camera,up,target,
                     new transformation(triple camera, triple up,
                                        triple target) {
                       return transformation(look(camera,up,target));});
@@ -1137,7 +1137,7 @@ path project(path3 p, projection P=currentprojection,
   
   transform3 t=P.t;
 
-  if(P.infinity || ninterpolate == 1 || piecewisestraight(p)) {
+  if(ninterpolate == 1 || piecewisestraight(p)) {
     g=project(point(p,0),t);
     // Construct the path.
     int stop=cyclic(p) ? last-1 : last;
@@ -1604,7 +1604,8 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
   v2=Tinv*v2;
   
   string invalidnormal="invalid normal vector";
-  static real fuzz=100*realEpsilon;
+  static real epsilon=sqrt(realEpsilon);
+  real fuzz=epsilon*max(abs(v1),abs(v2));
   if(abs(v1.z) > fuzz || abs(v2.z) > fuzz)
     abort(invalidnormal);
   
@@ -2119,9 +2120,9 @@ include three_arrows;
 
 draw=new void(frame f, path3 g, material p=currentpen,
               light light=nolight, projection P=currentprojection) {
+  pen q=(pen) p;
   if(is3D()) {
     p=material(p,(p.granularity >= 0) ? p.granularity : linegranularity);
-    pen q=(pen) p;
     void drawthick(path3 g) {
       _draw(f,g,q);
       if(settings.thick) {
@@ -2166,7 +2167,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
         while(l <= L) {
           real t1=arctime(g,l);
           l += dash[i];
-          real t2=arctime(g,l);
+          real t2=arctime(g,min(l,L));
           drawthick(subpath(g,t1,t2));
           ++i;
           l += dash[i];
@@ -2174,8 +2175,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
         }
       }
     }
-  }
-  else draw(f,project(g,P),(pen) p);
+  } else draw(f,project(g,P),q);
 };
 
 void draw(frame f, explicit path3[] g, material p=currentpen,

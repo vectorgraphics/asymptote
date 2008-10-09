@@ -396,12 +396,12 @@ struct projection {
   bool oblique;
   bool absolute=false;
   triple camera;
-  triple target;
   triple up;
-  typedef transformation projector(triple camera, triple target, triple up);
+  triple target;
+  typedef transformation projector(triple camera, triple up, triple target);
   projector projector;
   real angle; // Lens angle (currently only used by PRC viewpoint).
-  int ninterpolate=16; // Used for non-PRC approximation of nurbs
+  int ninterpolate; // Used for projecting nurbs to 2D Bezier curves.
 
   void calculate() {
     transformation T=projector(camera,up,target);
@@ -420,14 +420,16 @@ struct projection {
     return camera-target;
   }
 
-  void operator init(triple camera, triple target=(0,0,0), triple up=(0,0,1),
-		     projector projector) {
+  void operator init(triple camera, triple up=(0,0,1), triple target=(0,0,0),
+		     bool infinity=true, projector projector) {
     if(infinity) {
       this.camera=unit(camera);
       this.target=(0,0,0);
+      ninterpolate=1;
     } else {
       this.camera=camera;
       this.target=target;
+      ninterpolate=16;
     }
     this.up=up;
     this.projector=projector;
@@ -445,6 +447,7 @@ struct projection {
     P.up=up;
     P.projector=projector;
     P.angle=angle;
+    P.ninterpolate=ninterpolate;
     return P;
   }
 

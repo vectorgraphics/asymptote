@@ -70,11 +70,6 @@ material emissive(material m, real granularity=m.granularity)
                   granularity);
 }
 
-pen pack(real[] p) 
-{
-  return rgb(p[0],p[1],p[2])+opacity(p[3]);
-}
-
 real[] unpack(pen p)
 {
   real[] a=colors(rgb(p));
@@ -151,7 +146,7 @@ struct light {
       if(Ldotn > 0) // Phong-Blinn model of specular reflection
 	p += dot(normal,unit(L+Z))^s*specularfactor*specular[i]*Specular;
     }
-    return pack(p);
+    return rgb(p[0],p[1],p[2])+opacity(opacity(m.diffuse()));
   }
 }
 
