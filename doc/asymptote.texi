@@ -1539,6 +1539,10 @@ object draw(picture pic=currentpicture, Label L, envelope e, pair position,
 Here @code{envelope} is a boundary-drawing routine such as @code{box} or
 @code{ellipse} defined in @code{plain_boxes.asy} (@pxref{envelope}).
 
+@cindex @code{texpath}
+The function @code{path[] texpath(Label L)} returns the path array that
+@code{TeX} would fill to draw the Label @code{L}.
+
 @cindex @code{minipage}
 The @code{string minipage(string s, width=100pt)} function can be used
 to format string @code{s} into a paragraph of width @code{width}.
@@ -3591,7 +3595,7 @@ Int animate(string args="", string file="", string format="");
 @end verbatim
 @noindent
 call the @code{ImageMagick} commands @code{convert} and @code{animate},
-respectively, with arguments @code{args} and the file name constructed
+respectively, with the arguments @code{args} and the file name constructed
 from the strings @code{file} and @code{format}. 
 @cindex @code{system}
 If the setting @code{unsafe} is true, then the function 

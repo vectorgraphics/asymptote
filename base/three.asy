@@ -945,8 +945,8 @@ void write(file file, string s="", explicit path3 x, suffix suffix=none)
           write(file,".. controls ");
           write(file,postcontrol(x,i));
           write(file," and ");
-          write(file,precontrol(x,i+1));
-          write(file,"..",endl);
+          write(file,precontrol(x,i+1),endl);
+          write(file," ..");
         }
         if(i == n-1 && cyclic(x)) write(file,"cycle");
       }

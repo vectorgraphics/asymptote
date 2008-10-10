@@ -121,7 +121,6 @@ DefaultHead3.head=new surface(path3 g, position position=EndPoint,
     triple v=point(s,0);
     triple u=point(s,1)-v;
     return shift(v)*align(unit(u))*scale(width,width,abs(u))*unitsolidcone;
-    write("HI");
   } else {
     for(int i=0; i < n; ++i) {
       path3 s=subpath(s,i,i+1);
