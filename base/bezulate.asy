@@ -1,22 +1,60 @@
 // Bezier triangulation routines written by Orest Shardt, 2008.
 
-path patch(path p)
+path[] patch(path p)
 {
+  path[] result;
   if(length(p) == 2) {
-    p=subpath(p,0.0,0.5)&subpath(p,0.5,1.5)&subpath(p,1.5,2.0)&cycle;
-  } else if(length(p) == 3) {
-    // split the longest side
-    real splitTime=0.5;
-    real length1=arclength(subpath(p,0,1));
-    real length2=arclength(subpath(p,1,2));
-    real length3=arclength(subpath(p,2,3));
-    if(length2 > length1 && length2 > length3)
-      splitTime=1.5;
-    if(length3 > length1 && length3 > length2)
-      splitTime=2.5;
-    p=subpath(p,0.0,splitTime)&subpath(p,splitTime,3.0)&cycle;
+    result=subpath(p,0.0,0.5)&subpath(p,0.5,1.5)&subpath(p,1.5,2.0)&cycle;
   }
-  return p;
+  else if(length(p) == 3) {
+    // if possible, break up into three quads
+    bool splitup = false;
+    pair[] pt = {point(p,0),point(p,1),point(p,2)};
+    pair[] m = {pt[1]+pt[2],pt[2]+pt[0],pt[0]+pt[1]};
+    m = 0.5*m;
+    pair c = m[0]+(1/3)*(pt[0]-m[0]);
+    if(inside(p,c))
+    {
+      real L = abs(max(p)-min(p));
+      // check intersections with sides
+      real[] times;
+
+      for(int i = 0; i < 3; ++i)
+      {
+        pair t = m[i]-c;
+        real[][] ints = intersections(c--c+L*t/abs(t),p);
+        if(ints.length > 0) times.push(ints[0][1]);
+      }
+
+      if(times.length == 3 
+         && times[0] > 1 && times[0] < 2 
+         && times[1] > 2 && times[1] < 3
+         && times[2] > 0 && times[2] < 1)
+      {
+        splitup = true; // all checks passed
+        // now do the split
+        result = c--subpath(p,times[2],times[0])--cycle
+            ^^c--subpath(p,times[0],times[1])--cycle
+            ^^c--subpath(p,times[1],3+times[2])--cycle;
+      }
+    }
+    // otherwise split the longest side
+    if(!splitup)
+    {
+      real splitTime=0.5;
+      real length1=arclength(subpath(p,0,1));
+      real length2=arclength(subpath(p,1,2));
+      real length3=arclength(subpath(p,2,3));
+      if(length2 > length1 && length2 > length3)
+        splitTime=1.5;
+      if(length3 > length1 && length3 > length2)
+        splitTime=2.5;
+      result=subpath(p,0.0,splitTime)&subpath(p,splitTime,3.0)&cycle;
+    }
+  }
+  else
+    result = p;
+  return result;
 }
 
 // sort so that later paths in the array are contained in previous paths
@@ -242,6 +280,7 @@ path[] bezulate(path[] p)
 	    path p1=subpath(p,endi,i+length(p))--cycle;
 	    patch.append(patch(subpath(p,i,endi)--cycle));
 	    p=removeDuplicates(p1);
+            p = subpath(p,1,length(p)+1)&cycle; //shift indices
 	    i=-1; // increment will make i be 0
 	  }
 	}
