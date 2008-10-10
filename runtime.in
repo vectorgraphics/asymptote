@@ -3820,7 +3820,7 @@ Int convert(string args=emptystring, string file=emptystring,
   Int ret=System(cmd,2,true,"convert","your ImageMagick convert utility");
   
   if(ret == 0 && verbose > 0)
-    cout << "Wrote " << ((output.empty()) ? name : output) << endl;
+    cout << "Wrote " << ((file.empty()) ? name : file) << endl;
   
   return ret;
 }
