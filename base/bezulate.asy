@@ -21,8 +21,8 @@ path[] patch(path p)
 
       for(int i = 0; i < 3; ++i)
       {
-        pair t = m[i]-c;
-        real[][] ints = intersections(c--c+L*t/abs(t),p);
+        pair t=unit(m[i]-c);
+        real[][] ints = intersections(c--c+L*t,p);
         if(ints.length > 0) times.push(ints[0][1]);
       }
 
