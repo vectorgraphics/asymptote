@@ -3,7 +3,7 @@ struct material {
   real opacity;
   real shininess;  
   real granularity;
-  void operator init(pen diffusepen=lightgray, pen ambientpen=black,
+  void operator init(pen diffusepen=black, pen ambientpen=black,
                      pen emissivepen=black, pen specularpen=mediumgray,
                      real opacity=opacity(diffusepen),
                      real shininess=defaultshininess,
