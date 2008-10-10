@@ -1565,10 +1565,11 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
 
 // Draw x and y axes.
 void axes(picture pic=currentpicture, Label xlabel="", Label ylabel="",
+	  pair min=(-infinity,-infinity), pair max=(infinity,infinity),
           pen p=currentpen, arrowbar arrow=None, bool put=Below)
 {
-  xaxis(pic,xlabel,p,arrow,put);
-  yaxis(pic,ylabel,p,arrow,put);
+  xaxis(pic,xlabel,min.x,max.x,p,arrow,put);
+  yaxis(pic,ylabel,min.y,max.y,p,arrow,put);
 }
 
 // Draw a yaxis at x.

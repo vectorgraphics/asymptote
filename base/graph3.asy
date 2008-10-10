@@ -1149,11 +1149,13 @@ void limits(picture pic=currentpicture, triple min, triple max)
 // Draw x, y and z axes.
 void axes3(picture pic=currentpicture,
            Label xlabel="", Label ylabel="", Label zlabel="", 
+	   triple min=(-infinity,-infinity,-infinity),
+	   triple max=(infinity,infinity,infinity),
            pen p=currentpen, arrowbar3 arrow=None)
 {
-  xaxis3(pic,xlabel,p,arrow);
-  yaxis3(pic,ylabel,p,arrow);
-  zaxis3(pic,zlabel,p,arrow);
+  xaxis3(pic,xlabel,min.x,max.x,p,arrow);
+  yaxis3(pic,ylabel,min.y,max.y,p,arrow);
+  zaxis3(pic,zlabel,min.z,max.z,p,arrow);
 }
 
 triple Scale(picture pic=currentpicture, triple v)

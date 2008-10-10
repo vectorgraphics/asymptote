@@ -6501,10 +6501,12 @@ or horizontal lines and axes at arbitrary locations.
 @item
 @verbatim 
 void axes(picture pic=currentpicture, Label xlabel="", Label ylabel="",
+          pair min=(-infinity,-infinity), pair max=(infinity,infinity),
           pen p=currentpen, arrowbar arrow=None, bool put=Below);
 @end verbatim
 This convenience routine draws both @math{x} and @math{y} axes 
-on picture @code{pic} with optional labels @code{xlabel} and @code{ylabel}
+on picture @code{pic} from @code{min} to @code{max],
+with optional labels @code{xlabel} and @code{ylabel}
 and any arrows specified by @code{arrow}. The axes are drawn on top of
 existing objects in the current picture only if @code{put} is @code{Above}.
 
