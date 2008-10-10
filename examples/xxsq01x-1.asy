@@ -9,14 +9,12 @@ pen color=green;
 real f(real x) {return x^2;}
 pair F(real x) {return (x,f(x));}
 triple F3(real x) {return (x,f(x),0);}
-pair H(real x) {return (x,x);}
 
-path p=graph(F,0,1,n=10)--graph(H,1,0,n=10)--cycle;
+path p=graph(F,0,1,n=10)--cycle;
 path3 p3=path3(p);
 
 revolution a=revolution(-X,p3,Y,0,180);
 draw(surface(a),color);
-draw(a,1,blue,false);
 surface s=surface(bezulate(p));
 draw(s,color);
 transform3 t=shift(-2X)*rotate(180,Y);

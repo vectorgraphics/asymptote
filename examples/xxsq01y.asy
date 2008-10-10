@@ -7,9 +7,8 @@ real alpha=240;
 real f(real x) {return x^2;}
 pair F(real x) {return (x,f(x));}
 triple F3(real x) {return (x,f(x),0);}
-pair H(real x) {return (x,x);}
 
-path p=graph(F,0,1,n=10,operator ..)--graph(H,1,0,n=10,operator ..)--cycle;
+path p=graph(F,0,1,n=10,operator ..)--cycle;
 
 revolution a=revolution(path3(p),Y,0,alpha);
 draw(surface(a),color);
