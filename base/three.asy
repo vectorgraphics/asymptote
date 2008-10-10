@@ -1350,7 +1350,7 @@ real[] curlSpecifier(guide3 g)
   return new real[] {f.out[0].gamma,f.in[f.nodes.length-2].gamma};
 }
 
-triple intersectionpoint(path3 p, path3 q, real fuzz=0)
+triple intersectionpoint(path3 p, path3 q, real fuzz=-1)
 {
   real[] t=intersect(p,q,fuzz);
   if(t.length == 0) abort("paths do not intersect");
@@ -1358,13 +1358,14 @@ triple intersectionpoint(path3 p, path3 q, real fuzz=0)
 }
 
 // return an array containing all intersection points of p and q
-triple[] intersectionpoints(path3 p, path3 q, real fuzz=0)
+triple[] intersectionpoints(path3 p, path3 q, real fuzz=-1)
 {
   real[][] t=intersections(p,q,fuzz);
   return sequence(new triple(int i) {return point(p,t[i][0]);},t.length);
 }
 
-triple[] intersectionpoints(explicit path3[] p, explicit path3[] q, real fuzz=0)
+triple[] intersectionpoints(explicit path3[] p, explicit path3[] q,
+			    real fuzz=-1)
 {
   triple[] v;
   for(int i=0; i < p.length; ++i)

@@ -2221,29 +2221,29 @@ time @code{b}, in the sense of @code{point(path, real)}. If @code{a} <
 @code{b}, the direction of the subpath is reversed.
 
 @cindex @code{intersect}
-@item real[] intersect(path p, path q, real fuzz=0);
+@item real[] intersect(path p, path q, real fuzz=-1);
 If @code{p} and @code{q} have at least one intersection point, return a
 real array of length 2 containing the times representing the respective
 path times along @code{p} and @code{q}, in the sense of 
 @code{point(path, real)}, for one such intersection point (as chosen by
 the algorithm described on page 137 of @code{The MetaFontbook}). 
 The computations are performed to the absolute error specified by @code{fuzz}, 
-or, if @code{fuzz} is 0, to machine precision. If the paths do not 
+or, if @code{fuzz < 0}, to machine precision. If the paths do not 
 intersect, return a real array of length 0.
 
 @cindex @code{intersections}
-@item real[][] intersections(path p, path q, real fuzz=0);
+@item real[][] intersections(path p, path q, real fuzz=-1);
 Return all (unless there are infinitely many) intersection times of
 paths @code{p} and @code{q} as a sorted array of real arrays of length 2
 (@pxref{sort}). The computations are performed to the absolute error
-specified by @code{fuzz}, or, if @code{fuzz} is 0, to machine precision.
+specified by @code{fuzz}, or, if @code{fuzz < 0}, to machine precision.
 
 @cindex @code{intersections}
-@item real[] intersections(path p, pair a, pair b, real fuzz=0);
+@item real[] intersections(path p, pair a, pair b, real fuzz=-1);
 Return all (unless there are infinitely many) intersection times of path
 @code{p} with the (infinite) line through points @code{a} and @code{b}
 as a sorted array. The computations are performed to the absolute error
-specified by @code{fuzz}, or, if @code{fuzz} is 0, to machine precision. 
+specified by @code{fuzz}, or, if @code{fuzz < 0}, to machine precision. 
 
 @cindex @code{times}
 @item real[] times(path p, real x)
@@ -2266,7 +2266,7 @@ returns an array of length 2 containing the times at which path @code{p}
 reaches its maximal horizontal and vertical extents, respectively.
 
 @cindex @code{intersectionpoint}
-@item pair intersectionpoint(path p, path q, real fuzz=0);
+@item pair intersectionpoint(path p, path q, real fuzz=-1);
 returns the intersection point @code{point(p,intersect(p,q,fuzz)[0])}.
 
 @cindex @code{intersectionpoints}

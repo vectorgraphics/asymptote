@@ -131,7 +131,7 @@ guide operator ---(... guide[] a)
 }
 
 // return an arbitrary intersection point of paths p and q
-pair intersectionpoint(path p, path q, real fuzz=0)
+pair intersectionpoint(path p, path q, real fuzz=-1)
 {
   real[] t=intersect(p,q,fuzz);
   if(t.length == 0) abort("paths do not intersect");
@@ -139,13 +139,13 @@ pair intersectionpoint(path p, path q, real fuzz=0)
 }
 
 // return an array containing all intersection points of the paths p and q
-pair[] intersectionpoints(path p, path q, real fuzz=0)
+pair[] intersectionpoints(path p, path q, real fuzz=-1)
 {
   real[][] t=intersections(p,q,fuzz);
   return sequence(new pair(int i) {return point(p,t[i][0]);},t.length);
 }
 
-pair[] intersectionpoints(explicit path[] p, explicit path[] q, real fuzz=0)
+pair[] intersectionpoints(explicit path[] p, explicit path[] q, real fuzz=-1)
 {
   pair[] z;
   for(int i=0; i < p.length; ++i)
