@@ -199,4 +199,4 @@ triple[][][] Q={
   }
 };
 
-draw(surface(Q),black);
+draw(surface(Q),blue);

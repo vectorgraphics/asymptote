@@ -3577,12 +3577,26 @@ outputs the interactive history to the file @code{transcript.asy}.
 The function @code{int delete(string s)} deletes the file named by the
 string @code{s}. Unless the @code{-globalwrite} (or @code{-unsafe})
 option is enabled, the file must reside in the current directory.
-
 @cindex @code{rename}
 The function @code{int rename(string from, string to)} may be used to
 rename file @code{from} to file @code{to}.
 Unless the @code{-globalwrite} (or @code{-unsafe}) option is enabled,
 this operation is restricted to the current directory.
+@cindex @code{convert}
+@cindex @code{animate}
+The functions
+@verbatim
+Int convert(string args="", string file="", string format="");
+Int animate(string args="", string file="", string format="");
+@end verbatim
+@noindent
+call the @code{ImageMagick} commands @code{convert} and @code{animate},
+respectively, with arguments @code{args} and the file name constructed
+from the strings @code{file} and @code{format}. 
+@cindex @code{system}
+If the setting @code{unsafe} is true, then the function 
+@code{Int system(string s)} can be used to call the arbitrary system
+command @code{s}.
 
 @node Variable initializers
 @section Variable initializers
@@ -6505,7 +6519,7 @@ void axes(picture pic=currentpicture, Label xlabel="", Label ylabel="",
           pen p=currentpen, arrowbar arrow=None, bool put=Below);
 @end verbatim
 This convenience routine draws both @math{x} and @math{y} axes 
-on picture @code{pic} from @code{min} to @code{max],
+on picture @code{pic} from @code{min} to @code{max},
 with optional labels @code{xlabel} and @code{ylabel}
 and any arrows specified by @code{arrow}. The axes are drawn on top of
 existing objects in the current picture only if @code{put} is @code{Above}.
@@ -7845,10 +7859,13 @@ enables antialiasing and produces a @code{tiff} format at double the usual size:
 asy -o - venn | convert -alpha Off -density 288x288 -geometry 100%x eps:- venn.tiff
 @end verbatim
 
+@cindex @code{unsafe}
+@cindex @code{safe}
+@cindex @code{system}
 If the option @code{-unsafe} is given, @code{Asymptote} runs
 in unsafe mode. This enables the @code{int system(string s)} call, allowing one
 to execute arbitrary shell commands. The default mode, @code{-safe},
-disables this call. 
+disables this call.
 
 @cindex offset
 @cindex @code{align}

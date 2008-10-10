@@ -1878,10 +1878,11 @@ bool uptodate()
 
 // System commands
 
-Int system(string *s)
+Int system(string s)
 {
   if(safe) error("system() call disabled; override with option -unsafe");
-  else return System(s->c_str());
+  if(s.empty()) return;
+  else return System(s.c_str());
 }
 
 string asydir() 
@@ -1897,7 +1898,7 @@ string locale(string s=emptystring)
 
 void abort(string s=emptystring)
 {
-  if(s == "") throw handled_error();
+  if(s.empty()) throw handled_error();
   error(s.c_str());
 }
 
@@ -3808,20 +3809,35 @@ string stripextension(string *s)
 }
 
 // Call ImageMagick convert.
-Int convert(string *args, string output=emptystring,
+Int convert(string args=emptystring, string file=emptystring,
 	    string format=emptystring)
 {
   ostringstream cmd;
   
-  string name=convertname(output,format);
-  cmd << "'" << getSetting<string>("convert") << "' " << *args
+  string name=convertname(file,format);
+  cmd << "'" << getSetting<string>("convert") << "' " << args
       << " '" << name << "'";
-  Int ret=System(cmd,2,true,"convert");
+  Int ret=System(cmd,2,true,"convert","your ImageMagick convert utility");
   
   if(ret == 0 && verbose > 0)
-    cout << "Wrote " << ((output == "") ? name : output) << endl;
+    cout << "Wrote " << ((output.empty()) ? name : output) << endl;
   
   return ret;
+}
+
+// Call ImageMagick animate.
+Int animate(string args=emptystring, string file=emptystring,
+	    string format=emptystring)
+{
+  string name=convertname(file,format,false);
+  if(view()) {
+    ostringstream cmd;
+    cmd << "'" << getSetting<string>("animate") << "' " << args
+	<< " '" << name << "'";
+    return System(cmd,0,false,"animate","your animated GIF viewer");
+  }
+  
+  return 0;
 }
 
 // Delete file named s.
@@ -3843,19 +3859,6 @@ Int rename(string *from, string *to)
   if(rc == 0 && verbose > 0) 
     cout << "Renamed " << *from << " to " << *to << endl;
   return rc;
-}
-
-// Call ImageMagick animate.
-Int animate(string output=emptystring, string format=emptystring)
-{
-  string name=convertname(output,format,false);
-  if(view()) {
-    ostringstream cmd;
-    cmd << "'" << getSetting<string>("animate") << "' '" << name << "'";
-    return System(cmd,0,false,"animate","your animated GIF viewer");
-  }
-  
-  return 0;
 }
 
 
@@ -5126,7 +5129,7 @@ file* :nullFile()
 
 file* input(string name, bool check=true, string comment=commentchar)
 {
-  char c=comment == "" ? (char) 0 : comment[0];
+  char c=comment.empty() ? (char) 0 : comment[0];
   file *f=new ifile(name,c,check);
   f->open();
   return f;
@@ -5136,7 +5139,7 @@ file* output(string name, bool update=false, string comment=commentchar)
 {
   file *f;
   if(update) {
-    char c=comment == "" ? (char) 0 : comment[0];
+    char c=comment.empty() ? (char) 0 : comment[0];
     f=new iofile(name,c);
   } else f=new ofile(name);
   f->open();
