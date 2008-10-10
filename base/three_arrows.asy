@@ -51,13 +51,15 @@ surface tube(path3 g, real width)
 
   transform3 t=scale3(r);
 
-  for(int i=0; i < length(g); ++i) {
-    real s=straight(g,i) ? 0 : abs(accel(g,i+0.5));
-    if(s < 0.5*r) {
+  int n=length(g);
+  for(int i=0; i < n; ++i) {
+    real S=straight(g,i) ? 0 : abs(accel(g,i+0.5));
+    if(S < 0.5*r) {
       triple v=point(g,i);
       triple u=point(g,i+1)-v;
-      tube.append(shift(v)*align(unit(u))*
-		  scale(r,r,abs(u)+2s)*unitcylinder);
+      real h=abs(u);
+      if(i < n-1) h += 2S;
+      tube.append(shift(v)*align(unit(u))*scale(r,r,h)*unitcylinder);
     } else {
       path3 s=subpath(g,i,i+1);
       real endtime=0;
@@ -66,11 +68,6 @@ surface tube(path3 g, real width)
         path3 si=subpath(s,endtime,newend);
         real L=arclength(si);
         surface segment=scale(r,r,L)*unitcylinder;
-        path3 circle=t*unitcircle3;
-        if(endtime == 0)
-          segment.push(circle);
-        if(newend == 1)
-          segment.push(shift((0,0,L))*circle);
         for(patch p : segment.s) {
           for(int i=0; i < 4; ++i) {
             for(int j=0; j < 4; ++j) {
@@ -86,7 +83,7 @@ surface tube(path3 g, real width)
     static real epsilon=sqrt(realEpsilon);
 
     if(i > 0 && abs(dir(g,i,1)-dir(g,i,-1)) > epsilon)
-      tube.append(shift(point(g,i))*t*unitsphere);
+      tube.append(shift(point(g,i))*t*align(dir(g,i,-1))*unithemisphere);
   }
   return tube;
 }
@@ -109,22 +106,24 @@ DefaultHead3.head=new surface(path3 g, position position=EndPoint,
   real position=position.position.x;
   if(relative) position=reltime(g,position);
 
-  bool straight=length(g) == 1 ? straight(g,0) : false;
   path3 r=subpath(g,position,0);
   real t=arctime(r,size);
   path3 s=subpath(r,t,0);
+  int n=length(s);	
+  bool straight1=n == 1 && straight(g,0);
   real L=arclength(s);
   real wl=Tan(angle);
   real width=L*wl; // make sure this is not zero
   real remainL=L;
 
   surface head;
-  if(straight) {
+  if(straight1) {
     triple v=point(s,0);
     triple u=point(s,1)-v;
     return shift(v)*align(unit(u))*scale(width,width,abs(u))*unitsolidcone;
+    write("HI");
   } else {
-    for(int i=0; i < length(s); ++i) {
+    for(int i=0; i < n; ++i) {
       path3 s=subpath(s,i,i+1);
       real endtime=0;
       while(endtime < 1) {

@@ -2125,7 +2125,6 @@ draw=new void(frame f, path3 g, material p=currentpen,
   if(is3D()) {
     p=material(p,(p.granularity >= 0) ? p.granularity : linegranularity);
     void drawthick(path3 g) {
-      _draw(f,g,q);
       if(settings.thick) {
         real width=linewidth(q);
         if(width > 0) {
@@ -2134,26 +2133,24 @@ draw=new void(frame f, path3 g, material p=currentpen,
             real r=0.5*width;
             int L=length(g);
             real linecap=linecap(q);
-            if(linecap == 0) {
-              surface disk=scale(r,r,1)*unitdisk;
-              s.append(shift(point(g,0))*align(dir(g,0))*disk);
-              s.append(shift(point(g,L))*align(dir(g,L))*disk);
-            } else if(linecap == 1) {
-              surface sphere=scale3(r)*unitsphere;
-              s.append(shift(point(g,0))*sphere);
-              s.append(shift(point(g,L))*sphere);
-            } else if(linecap == 2) {
-              surface cylinder=unitcylinder;
-              cylinder.append(shift(Z)*unitdisk);
-              cylinder=scale3(r)*cylinder;
-              s.append(shift(point(g,0))*align(-dir(g,0))*cylinder);
-              s.append(shift(point(g,L))*align(dir(g,L))*cylinder);
+	    surface cap;
+	    transform3 scale3r=scale3(r);
+            if(linecap == 0)
+              cap=scale(r,r,1)*unitdisk;
+            else if(linecap == 1)
+              cap=scale3r*unithemisphere;
+            else if(linecap == 2) {
+              cap=scale3r*unitcylinder;
+              cap.append(scale3r*shift(Z)*unitdisk);
             }
+	    s.append(shift(point(g,0))*align(-dir(g,0))*cap);
+	    s.append(shift(point(g,L))*align(dir(g,L))*cap);
           }
+	  if(opacity(q) == 1) _draw(f,g,q);
           for(int i=0; i < s.s.length; ++i)
             draw3D(f,s.s[i],p,light);
-        }
-      }
+        } else _draw(f,g,q);
+      } else _draw(f,g,q);
     }
     string type=linetype(adjust(q,arclength(g),cyclic(g)));
     if(length(type) == 0) drawthick(g);

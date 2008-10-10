@@ -305,7 +305,7 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
 	  pen longitudinalpen=frontpen, pen longitudinalbackpen=backpen,
 	  light light=nolight, projection P=currentprojection)
 {
-  pen thin=is3D() ? thin : defaultpen;
+  pen thin=is3D() ? thin() : defaultpen;
   skeleton s=r.skeleton(m,n,P);
   begingroup3(pic);
   static pen Dashed=linetype("4 4",4,scale=false);

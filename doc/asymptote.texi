@@ -554,7 +554,7 @@ cd asymptote-x.xx
 @cindex @code{3D rendering}
 @noindent
 We recommend installing the @code{freeglut-devel} package to enable
-the fast @code{Asymptote} @code{OpenGL}-based 3D renderer.
+the fast adaptive @code{Asymptote} @code{OpenGL}-based 3D renderer.
 
 @noindent Then put
 @url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-7.1.tar.gz}
@@ -7051,7 +7051,7 @@ lines to be drawn with @code{linewidth(0)} (one pixel wide, regardless
 of the resolution). By default mesh and contour lines in three-dimensions
 are always drawn thin, unless an explicit linewidth is given in the pen
 parameter or the setting @code{thin} is set to @code{false}. The pens
-@code{thin} and @code{thick()} defined in plain_pens.asy can also be used
+@code{thin()} and @code{thick()} defined in plain_pens.asy can also be used
 to override these defaults for specific draw commands.
 
 @cindex @code{bezulate}
@@ -7070,8 +7070,8 @@ There are four choices for viewing 3D @code{Asymptote} output:
 @enumerate
 @cindex @code{render}
 @cindex @code{outformat}
-@item Use the default @code{Asymptote} @code{OpenGL}-based renderer (with the
-the command-line option @code{-V} and the default settings
+@item Use the default @code{Asymptote} adaptive @code{OpenGL}-based
+renderer (with the the command-line option @code{-V} and the default settings
 @code{outformat=""} and @code{render=-1}).
 An initial screen position can be specified with the pair setting
 @code{position}, where negative values are interpreted as relative to
@@ -7191,7 +7191,8 @@ path3[] unitbox=box(O,(1,1,1));
 three-dimensional paths @code{unitsquare3} and @code{unitcircle3},
 along with the surfaces @code{unitdisk}, @code{unitplane}, @code{unitcube},
 @code{unitcylinder}, @code{unitcone}, @code{unitsolidcone},
-@code{unitfrustum(real t1, real t2)}, and @code{unitsphere}.
+@code{unitfrustum(real t1, real t2)}, @code{unitsphere}, and 
+@code{unithemisphere}.
 
 @noindent
 These projections to two dimensions are predefined:
@@ -7438,9 +7439,7 @@ A parametric surface for a function @math{f(u,v)} over the parameter
 space @code{box(a,b)} may be drawn with
 @verbatim
 picture surface(triple f(pair z), pair a, pair b, int nu=nmesh,
-                int nv=nu, bool cond(pair z)=null,
-                pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection);
+                int nv=nu, bool cond(pair z)=null)
 @end verbatim
 @noindent
 as illustrated in the example @code{parametricsurface.asy}.
@@ -8378,7 +8377,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis Datadir ds
 @c  LocalWords:  resetdefaultpen latticeshade axialshade radialshade erfc det
 @c  LocalWords:  gouraudshade unescaped nmesh surfacepen getpair MikTeX dw YZ
-@c  LocalWords:  lightgray meshpen localhistory axisT roundedpath unitsize aSin
+@c  LocalWords:  meshpen localhistory axisT roundedpath unitsize aSin
 @c  LocalWords:  fontcommand makepen aCos aTan Knorr roundpath BeginPoint nView
 @c  LocalWords:  MidPoint EndPoint nmask antialiasing autoplain batchMask libgc
 @c  LocalWords:  batchView clearGUI ignoreGUI interactiveMask interactiveView
@@ -8435,3 +8434,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  bezulate Shardt's rasterized viewport unitdisk unitplane devel
 @c  LocalWords:  unitcylinder unitcone solidcone unitfrustum unitsphere nslices
 @c  LocalWords:  DPostScript YZZero freeglut externalprc nonrendered
+@c  LocalWords:  unithemisphere

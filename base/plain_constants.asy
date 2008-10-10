@@ -1,5 +1,4 @@
 restricted real infinity=cbrt(realMax); // Reduced for tension atleast infinity
-restricted pair Infinity=(infinity,infinity);
 restricted int undefined=intMax+((intMax % 2)-1);
 
 restricted real inches=72;

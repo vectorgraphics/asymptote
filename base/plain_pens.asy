@@ -30,9 +30,9 @@ restricted pen nobasealign=basealign(0);
 restricted pen basealign=basealign(1);
 
 pen invisible=invisible();
-pen thin=settings.thin ? linewidth(0) : defaultpen;
+pen thin() {return settings.thin ? linewidth(0) : defaultpen;}
 pen thick(pen p=currentpen) {return linewidth(linewidth(p));}
-pen nullpen=thin+invisible;
+pen nullpen=linewidth(0)+invisible;
 
 pen black=gray(0);
 pen white=gray(1);

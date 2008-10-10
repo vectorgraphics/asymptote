@@ -508,7 +508,7 @@ void tensorshade(transform t=identity(), frame f, patch s,
 }
 
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
-          material surfacepen=lightgray, pen meshpen=nullpen,
+          material surfacepen=currentpen, pen meshpen=nullpen,
 	  light light=currentlight, light meshlight=nolight,
 	  projection P=currentprojection)
 {
@@ -520,13 +520,14 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
       for(int i=0; i < s.s.length; ++i)
         draw3D(f,s.s[i],surfacepen,light);
     if(mesh) {
+      meshpen=thin()+linecap(0)+meshpen;
       for(int k=0; k < s.s.length; ++k) {
         real step=nu == 0 ? 0 : 1/nu;
         for(int i=0; i <= nu; ++i)
-          draw(f,s.s[k].uequals(i*step),thin+meshpen,meshlight);
+          draw(f,s.s[k].uequals(i*step),meshpen,meshlight);
         step=nv == 0 ? 0 : 1/nv;
         for(int j=0; j <= nv; ++j)
-          draw(f,s.s[k].vequals(j*step),thin+meshpen,meshlight);
+          draw(f,s.s[k].vequals(j*step),meshpen,meshlight);
       }
     }
   } else {
@@ -565,7 +566,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-          material surfacepen=lightgray, pen meshpen=nullpen,
+          material surfacepen=currentpen, pen meshpen=nullpen,
 	  light light=currentlight, light meshlight=nolight)
 {
   if(s.empty()) return;
@@ -587,7 +588,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   pic.addPoint(max(s));
 
   if(!invisible(meshpen)) {
-    if(is3D()) meshpen=thin+meshpen;
+    if(is3D()) meshpen=thin()+linecap(0)+meshpen;
     for(int k=0; k < s.s.length; ++k) {
       real step=nu == 0 ? 0 : 1/nu;
       for(int i=0; i <= nu; ++i)
@@ -750,6 +751,8 @@ restricted patch octant1=patch(X{Z}..{-X}Z..Z{Y}..{-Z}Y{X}..{-Y}cycle,
                                new triple[] {(1,a,a),(a,a^2,1),(a^2,a,1),
                                              (a,1,a)});
 
+restricted surface unithemisphere=surface(octant1,t*octant1,t2*octant1,
+					  t3*octant1);
 restricted surface unitsphere=surface(octant1,t*octant1,t2*octant1,t3*octant1,
                                       i*octant1,i*t*octant1,i*t2*octant1,
                                       i*t3*octant1);
