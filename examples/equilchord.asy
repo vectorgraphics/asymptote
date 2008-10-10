@@ -12,8 +12,8 @@ real F(pair z) {
 real a=1.5;
 draw((-a,-a,0)--(-a,a,0)--(a,a,0)--(a,-a,0)--cycle,lightgray);
 
-xaxis(Label("$x$",1),red,Arrow);
-yaxis(Label("$y$",1),red,Arrow);
+xaxis3(Label("$x$",1),red,Arrow3);
+yaxis3(Label("$y$",1),red,Arrow3);
 draw(circle((0,0,0),1),dashed);
 draw(surface(F,(-1,-1),(t,1),20,monotonic),green,black);
 real y=sqrt(1-t^2);
