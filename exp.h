@@ -106,8 +106,13 @@ public:
   // only be used in one place, so the environment doesn't change between
   // calls.
   virtual types::ty *cgetType(coenv &e) {
+#ifdef DEBUG_CACHE
+    testCachedType(e);
+#endif
     return ct ? ct : ct = getType(e);
   }
+
+  void testCachedType(coenv &e);
 
   // The expression is being used as an address to write to.  This writes code
   // so that the value on top of stack is put into the address (but not popped

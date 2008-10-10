@@ -57,6 +57,17 @@ void exp::transToType(coenv &e, types::ty *target)
   }
 }
 
+void exp::testCachedType(coenv &e) {
+  if (ct != 0) {
+    types::ty *t = getType(e);
+    if (!equivalent(t, ct)) {
+      em.compiler(getPos());
+      em << "cached type '" << *ct 
+         << "' doesn't match actual type '" << *t;
+    }
+  }
+}
+
 void exp::transCall(coenv &e, types::ty *target)
 {
     transAsType(e, target);
@@ -680,6 +691,10 @@ types::ty *callExp::trans(coenv &e)
 
   argAmbiguity(e);
 
+#ifdef DEBUG_CACHE
+  if (ca)
+    assert(equivalent(ca->getType(), getApplication(e)->getType()));
+#endif
   application *a= ca ? ca : getApplication(e);
   
   // The cached application is no longer needed after translation, so
