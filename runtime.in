@@ -1881,7 +1881,7 @@ bool uptodate()
 Int system(string s)
 {
   if(safe) error("system() call disabled; override with option -unsafe");
-  if(s.empty()) return;
+  if(s.empty()) return 0;
   else return System(s.c_str());
 }
 
