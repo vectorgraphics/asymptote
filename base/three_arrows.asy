@@ -53,13 +53,11 @@ surface tube(path3 g, real width)
 
   int n=length(g);
   for(int i=0; i < n; ++i) {
-    real S=straight(g,i) ? 0 : abs(accel(g,i+0.5));
-    if(S < 0.5*r) {
+    if(straightness(g,i) < 0.5*r) {
       triple v=point(g,i);
       triple u=point(g,i+1)-v;
       real h=abs(u);
-      if(i < n-1) h += 2S;
-      tube.append(shift(v)*align(unit(u))*scale(r,r,h)*unitcylinder);
+      tube.append(shift(v)*align(unit(u))*scale(r,r,abs(u))*unitcylinder);
     } else {
       path3 s=subpath(g,i,i+1);
       real endtime=0;

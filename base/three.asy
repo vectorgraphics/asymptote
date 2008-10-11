@@ -2131,20 +2131,23 @@ draw=new void(frame f, path3 g, material p=currentpen,
           surface s=tube(g,width);
           if(!cyclic(g)) {
             real r=0.5*width;
-            int L=length(g);
             real linecap=linecap(q);
-	    surface cap;
+            int L=length(g);
 	    transform3 scale3r=scale3(r);
-            if(linecap == 0)
-              cap=scale(r,r,1)*unitdisk;
-            else if(linecap == 1)
-              cap=scale3r*unithemisphere;
-            else if(linecap == 2) {
-              cap=scale3r*unitcylinder;
-              cap.append(scale3r*shift(Z)*unitdisk);
-            }
-	    s.append(shift(point(g,0))*align(-dir(g,0))*cap);
-	    s.append(shift(point(g,L))*align(dir(g,L))*cap);
+	    if(L != 0) {
+	      surface cap;
+	      if(linecap == 0)
+		cap=scale(r,r,1)*unitdisk;
+	      else if(linecap == 1)
+		cap=scale3r*unithemisphere;
+	      else if(linecap == 2) {
+		cap=scale3r*unitcylinder;
+		cap.append(scale3r*shift(Z)*unitdisk);
+	      }
+	      s.append(shift(point(g,0))*align(-dir(g,0))*cap);
+	      s.append(shift(point(g,L))*align(dir(g,L))*cap);
+	    } else if(linecap == 1)
+	      s.append(shift(point(g,0))*scale3r*unitsphere);
           }
 	  if(opacity(q) == 1) _draw(f,g,q);
           for(int i=0; i < s.s.length; ++i)
