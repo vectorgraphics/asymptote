@@ -827,6 +827,7 @@ pair readpair(stringstream& s)
 // Ignore unclosed begingroups but not spurious endgroups.
 const char *nobegin="endgroup without matching begingroup";
   
+// Return the component of vector v perpendicular to a unit vector u.
 inline triple perp(triple v, triple u)
 {
   return v-dot(v,u)*u;

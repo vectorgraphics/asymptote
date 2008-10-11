@@ -927,7 +927,7 @@ path3 path3(path p, triple plane(pair)=XYplane)
 	       cyclic(p));
 }
 
-path3[] path3(path[] g, triple plane(pair)=XYplane)
+path3[] path3(explicit path[] g, triple plane(pair)=XYplane)
 {
   return sequence(new path3(int i) {return path3(g[i],plane);},g.length);
 }
@@ -1671,22 +1671,12 @@ triple normal(path3 p)
   }
 
   int L=length(p);
-  triple nextpre=precontrol(p,0);
-  triple nextpoint=point(p,0);
-  absnext=abs(nextpoint);
-  
+  abspoint=abs(point(p,0));
   for(int i=0; i < L; ++i) {
-    triple pre=nextpre;
-    triple point=nextpoint;
-    triple post=postcontrol(p,i);
-    nextpre=precontrol(p,i+1);
-    nextpoint=point(p,i+1);
-    
-    abspoint=abs(point);
-    absnext=abs(nextpoint);
-    
-    check(cross(point-pre,post-point));
-    check(cross(post-point,nextpoint-nextpre));
+    real absnext=abs(point(p,i+1));
+    check(cross(dir(p,i,-1),dir(p,i,1)));
+    check(cross(dir(p,i,1),dir(p,i+1,-1)));
+    abspoint=absnext;
   }
   return normal;
 }
