@@ -1655,14 +1655,14 @@ path3 plane(triple u, triple v, triple O=O)
   return O--O+u--O+u+v--O+v--cycle;
 }
 
-// Return the unit normal vector to a planar path p.
+// Return a unit normal vector to a planar path p.
 triple normal(path3 p)
 {
   triple normal;
-  real abspoint,absnext;
+  triple z0,z1;
   
   void check(triple n) {
-    if(abs(n) > epsilon*max(abspoint,absnext)) {
+    if(abs(n) > epsilon*max(abs(z0),abs(z1))) {
       n=unit(n);
       if(normal != O && abs(normal-n) > epsilon && abs(normal+n) > epsilon)
         abort("path is not planar");
@@ -1671,12 +1671,19 @@ triple normal(path3 p)
   }
 
   int L=length(p);
-  abspoint=abs(point(p,0));
+  z0=point(p,0);
   for(int i=0; i < L; ++i) {
-    real absnext=abs(point(p,i+1));
+    triple c0=postcontrol(p,i);
+    triple c1=precontrol(p,i+1);
+    z1=point(p,i+1);
+    triple a=z1-z0+3.0*(c0-c1);
+    triple b=2.0*(z0+c1)-4.0*c0;
+    triple c=c0-z0;
+    check(cross(a,b));
+    check(cross(a,c));
+    check(cross(b,c));
     check(cross(dir(p,i,-1),dir(p,i,1)));
-    check(cross(dir(p,i,1),dir(p,i+1,-1)));
-    abspoint=absnext;
+    z0=z1;
   }
   return normal;
 }
