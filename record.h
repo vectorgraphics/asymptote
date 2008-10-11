@@ -117,8 +117,10 @@ public:
   dummyRecord(string s);
 
   // Convenient functions for adding fields.
-  void add(string name, ty *t, trans::access *a);
-  void add(string name, function *t, vm::bltin f);
+  void add(string name, ty *t, trans::access *a,
+           trans::permission perm=trans::PUBLIC);
+  void add(string name, function *t, vm::bltin f,
+           trans::permission perm=trans::PUBLIC);
 };
 
 } //namespace types

@@ -297,3 +297,39 @@
   // line 222
   int x = "Hello";
 }
+
+// Read-only settings
+// Ensure that the safe and globalwrite options can't be modified inside the
+// code.
+{
+  access settings;
+  settings.safe=false;
+  settings.safe=true;
+  settings.globalwrite=false;
+  settings.globalwrite=true;
+}
+{
+  from settings access safe, globalwrite;
+  safe=false;
+  safe=true;
+  globalwrite=false;
+  globalwrite=true;
+}
+{
+  from settings access safe as x, globalwrite as y;
+  x=false;
+  x=true;
+  y=false;
+  y=true;
+}
+{
+  import settings;
+  settings.safe=false;
+  settings.safe=true;
+  settings.globalwrite=false;
+  settings.globalwrite=true;
+  safe=false;
+  safe=true;
+  globalwrite=false;
+  globalwrite=true;
+}

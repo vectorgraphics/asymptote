@@ -45,3 +45,23 @@ errortest.asy: 241.11: function must return a value
 errortest.asy: 244.11: function must return a value
 errortest.asy: 290.3: built-in functions cannot be modified
 errortest.asy: 298.18: cannot cast 'string' to 'int'
+errortest.asy: 306.11: modifying non-public field outside of structure
+errortest.asy: 307.11: modifying non-public field outside of structure
+errortest.asy: 308.11: modifying non-public field outside of structure
+errortest.asy: 309.11: modifying non-public field outside of structure
+errortest.asy: 313.3: modifying non-public field outside of structure
+errortest.asy: 314.3: modifying non-public field outside of structure
+errortest.asy: 315.3: modifying non-public field outside of structure
+errortest.asy: 316.3: modifying non-public field outside of structure
+errortest.asy: 320.3: modifying non-public field outside of structure
+errortest.asy: 321.3: modifying non-public field outside of structure
+errortest.asy: 322.3: modifying non-public field outside of structure
+errortest.asy: 323.3: modifying non-public field outside of structure
+errortest.asy: 327.11: modifying non-public field outside of structure
+errortest.asy: 328.11: modifying non-public field outside of structure
+errortest.asy: 329.11: modifying non-public field outside of structure
+errortest.asy: 330.11: modifying non-public field outside of structure
+errortest.asy: 331.3: modifying non-public field outside of structure
+errortest.asy: 332.3: modifying non-public field outside of structure
+errortest.asy: 333.3: modifying non-public field outside of structure
+errortest.asy: 334.3: modifying non-public field outside of structure

@@ -315,9 +315,22 @@ const string noarg;
 struct setting : public option {
   types::ty *t;
 
+private:
+  trans::permission perm;
+  bool added;
+
+  // Flag the setting as secure, so that it can only be set on the command-line,
+  // though it can still be read in Asymptote code.
+  void secure() {
+    assert(!added);
+    perm = trans::RESTRICTED;
+  }
+
+public:
   setting(string name, char code, string argname, string desc,
           types::ty *t, string Default)
-    : option(name, code, argname, desc, false,Default), t(t) {}
+    : option(name, code, argname, desc, false,Default),
+      t(t), perm(trans::PUBLIC), added(false) {}
 
   void reset() = 0;
 
@@ -325,9 +338,17 @@ struct setting : public option {
 
   // Add to the dictionaries of options and to the settings module.
   virtual void add() {
-    option::add();
+    assert(!added);
 
-    settingsModule->add(name, t, buildAccess());
+    option::add();
+    settingsModule->add(name, t, buildAccess(), perm);
+
+    added=true;
+  }
+
+  friend void addSecureSetting(setting *s) {
+    s->secure();
+    s->add();
   }
 };
 
@@ -998,16 +1019,25 @@ void initSettings() {
   addOption(new boolrefSetting("rgb", 0, "Convert cmyk colors to rgb",&rgb));
   addOption(new boolrefSetting("cmyk", 0, "Convert rgb colors to cmyk",&cmyk));
 
+  addSecureSetting(new boolrefSetting("safe", 0, "Disable system call",
+                                      &safe, true));
+#if 0
   addOption(new boolOption("safe", 0,
 			   "Disable system call", &safe, true, true));
+#endif
   addOption(new boolOption("unsafe", 0,
 			   "Enable system call (=> global)", &safe, false,
 			   false));
+  addSecureSetting(new boolrefSetting("globalwrite", 0,
+                                      "Allow write to other directory",
+                                      &globaloption, false));
+#if 0
   addOption(new boolOption("globalwrite", 0,
 			   "Allow write to other directory",
 			   &globaloption, true, false));
   addOption(new boolOption("noglobalwrite", 0,
 			   "", &globaloption, false, true));
+#endif
   addOption(new stringOption("cd", 0, "directory", "Set current directory",
 			     &startpath));
   

@@ -62,12 +62,15 @@ dummyRecord::dummyRecord(string s)
   c.closeRecord();
 }
 
-void dummyRecord::add(string name, ty *t, trans::access *a) {
-  e.addVar(symbol::trans(name), new trans::varEntry(t, a, this, position())); 
+void dummyRecord::add(string name, ty *t, trans::access *a,
+                      trans::permission perm) {
+  e.addVar(symbol::trans(name),
+           new trans::varEntry(t, a, perm, this, this, position())); 
 }
 
-void dummyRecord::add(string name, function *t, vm::bltin f) {
-  add(name, t, new trans::bltinAccess(f));
+void dummyRecord::add(string name, function *t, vm::bltin f,
+                      trans::permission perm) {
+  add(name, t, new trans::bltinAccess(f), perm);
 }
 
 } // namespace types
