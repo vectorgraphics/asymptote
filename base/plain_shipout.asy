@@ -18,28 +18,28 @@ frame Seascape(frame f) {return rotate(-90)*f;};
 typedef frame orientation(frame);
 orientation orientation=Portrait;
 
-object embed3(string, frame, string, string, projection);
+object embed3(string, frame, string, string, string, projection);
 string Embed(string name, string options="", real width=0, real height=0);
 string Link(string label, string text, string options="");
 
-bool prc0() {
-  return settings.prc &&
-    ((settings.outformat == "pdf" || pdf()) ||
+bool prc0(string format="") {
+  if(format == "") format=settings.outformat;
+  return settings.prc && ((format == "pdf" || pdf()) ||
      (settings.inlineimage && settings.render != 0));
 }
 
-bool prc() {
-  return prc0() && Embed != null;
+bool prc(string format="") {
+  return prc0(format) && Embed != null;
 }
 
-bool is3D()
+bool is3D(string format="")
 {
-  return prc() || settings.render != 0;
+  return prc(format) || settings.render != 0;
 }
 
-frame enclose(string prefix=defaultfilename, object F)
+frame enclose(string prefix=defaultfilename, object F, string format="")
 {
-  if(prc()) {
+  if(prc(format)) {
     frame f;
     label(f,F.L);
     return f;
@@ -54,8 +54,8 @@ void shipout(string prefix=defaultfilename, frame f,
 	     projection P=currentprojection)
 {
   if(is3D(f)) {
-    f=enclose(prefix,embed3(prefix,f,options,script,P));
-    if(settings.render != 0 && !prc()) {
+    f=enclose(prefix,embed3(prefix,f,format,options,script,P));
+    if(settings.render != 0 && !prc(format)) {
       shipped=true;
       return;
     }
@@ -86,8 +86,8 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
     bool inlinetex=settings.inlinetex;
     if(settings.prc && !pic.empty3() && settings.render != 0)
       settings.inlinetex=settings.inlineimage;
-    frame f=pic.fit(wait=wait,view=view,options,script,P);    
-    if(!pic.empty2() || settings.render == 0 || prc())
+    frame f=pic.fit(prefix,format,wait=wait,view=view,options,script,P);    
+    if(!pic.empty2() || settings.render == 0 || prc(format))
       shipout(prefix,orientation(f),format,wait,view);
     settings.inlinetex=inlinetex;
   }

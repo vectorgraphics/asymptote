@@ -1850,7 +1850,7 @@ triple rectify(triple dir)
   return dir;
 }
 
-object embed(string prefix=defaultfilename, picture pic,
+object embed(string prefix=defaultfilename, picture pic, string format="",
              real xsize=pic.xsize, real ysize=pic.ysize,
              bool keepAspect=pic.keepAspect,
              string label="", string text=label,
@@ -1944,7 +1944,7 @@ object embed(string prefix=defaultfilename, picture pic,
     }
     
     if(prefix == "") prefix=outprefix();
-    bool prc=prc();
+    bool prc=prc(format);
     bool preview=settings.render > 0;
     if(prc)
       prefix += "-"+(string) file3.length;
@@ -1979,7 +1979,7 @@ object embed(string prefix=defaultfilename, picture pic,
       M += margin; 
       m -= margin;
 
-      shipout3(prefix,f,preview ? nativeformat() : "",width,height,
+      shipout3(prefix,f,preview ? nativeformat() : format,width,height,
                P.infinity ? 0 : angle,m,M,
 	       P.absolute ? (modelview*light).position : light.position,
 	       light.diffuse,light.ambient,light.specular,
@@ -2005,19 +2005,21 @@ object embed(string prefix=defaultfilename, picture pic,
   return F;
 }
 
-embed3=new object(string prefix, frame f, string options, string script,
-		  projection P) {
-  return embed(prefix,f,options,script,P);
+embed3=new object(string prefix, frame f, string format, string options,
+		  string script, projection P) {
+  return embed(prefix,f,format,options,script,P);
 };
 
-currentpicture.fitter=new frame(picture pic, real xsize, real ysize,
+currentpicture.fitter=new frame(string prefix, picture pic, string format,
+				real xsize, real ysize,
                                 bool keepAspect, bool wait, bool view,
                                 string options, string script, projection P) {
   frame f;
   add(f,pic.fit2(xsize,ysize,keepAspect));
   if(!pic.empty3()) {
-    object F=embed(pic,xsize,ysize,keepAspect,wait,view,options,script,P);
-    if(prc())
+    object F=embed(prefix,pic,format,xsize,ysize,keepAspect,wait,view,options,
+		   script,P);
+    if(prc(format))
       label(f,F.L);
     else if(settings.render == 0) add(f,F.f);
   }
