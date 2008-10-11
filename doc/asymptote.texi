@@ -3401,7 +3401,7 @@ as a single literal comment character.
 @anchor{cd}
 @cindex @code{cd}
 @cindex directory
-If the @code{-globalwrite} (or @code{-unsafe}) option is enabled, one can
+If the @code{-globalwrite} (or @code{-nosafe}) option is enabled, one can
 change the current working directory to the contents of the string
 @code{s} with the function @code{string cd(string s)}, which returns the
 new working directory. If @code{string s} is empty, the path is reset to
@@ -3428,7 +3428,7 @@ If @code{update=true}, any existing data will be preserved, the position
 will be set to the end-of-file, and both reading and writing operations
 will be enabled. For security reasons, writing to files in directories
 other than the current directory is allowed only if the @code{-globalwrite}
-(or @code{-unsafe}) command-line option is specified.
+(or @code{-nosafe}) command-line option is specified.
 
 @cindex @code{stdin}
 @cindex @code{stdout}
@@ -3579,12 +3579,12 @@ outputs the interactive history to the file @code{transcript.asy}.
 
 @cindex @code{delete}
 The function @code{int delete(string s)} deletes the file named by the
-string @code{s}. Unless the @code{-globalwrite} (or @code{-unsafe})
+string @code{s}. Unless the @code{-globalwrite} (or @code{-nosafe})
 option is enabled, the file must reside in the current directory.
 @cindex @code{rename}
 The function @code{int rename(string from, string to)} may be used to
 rename file @code{from} to file @code{to}.
-Unless the @code{-globalwrite} (or @code{-unsafe}) option is enabled,
+Unless the @code{-globalwrite} (or @code{-nosafe}) option is enabled,
 this operation is restricted to the current directory.
 @cindex @code{convert}
 @cindex @code{animate}
@@ -3598,7 +3598,7 @@ call the @code{ImageMagick} commands @code{convert} and @code{animate},
 respectively, with the arguments @code{args} and the file name constructed
 from the strings @code{file} and @code{format}. 
 @cindex @code{system}
-If the setting @code{unsafe} is true, then the function 
+If the setting @code{safe} is false, then the function 
 @code{Int system(string s)} can be used to call the arbitrary system
 command @code{s}.
 
@@ -7785,8 +7785,7 @@ Type @code{asy -h} to see the full list of command-line options
 supported by @code{Asymptote}:
 @verbatiminclude options
 
-All boolean options, except for @code{-unsafe}, @code{-safe}, and
-@code{-help}, can be negated by prepending @code{no} to the option name. 
+All boolean options can be negated by prepending @code{no} to the option name.
 
 If no arguments are given, @code{Asymptote} runs in interactive mode
 (@pxref{Interactive mode}). In this case, the default output file
@@ -7863,10 +7862,10 @@ enables antialiasing and produces a @code{tiff} format at double the usual size:
 asy -o - venn | convert -alpha Off -density 288x288 -geometry 100%x eps:- venn.tiff
 @end verbatim
 
-@cindex @code{unsafe}
+@cindex @code{nosafe}
 @cindex @code{safe}
 @cindex @code{system}
-If the option @code{-unsafe} is given, @code{Asymptote} runs
+If the option @code{-nosafe} is given, @code{Asymptote} runs
 in unsafe mode. This enables the @code{int system(string s)} call, allowing one
 to execute arbitrary shell commands. The default mode, @code{-safe},
 disables this call.

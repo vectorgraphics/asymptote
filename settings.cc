@@ -820,21 +820,6 @@ struct versionOption : public option {
 };
 
 // For security reasons, these options aren't fields of the settings module.
-struct boolOption : public option {
-  bool *variable;
-  bool value;
-
-  boolOption(string name, char code, string desc,
-	     bool *variable, bool value, bool Default)
-    : option(name, code, noarg, desc, true, Default ? "true" : "false"),
-      variable(variable), value(value) {}
-
-  bool getOption() {
-    *variable=value;
-    return true;
-  }
-};
-
 struct stringOption : public option {
   char **variable;
   stringOption(string name, char code, string argname,
@@ -1021,23 +1006,9 @@ void initSettings() {
 
   addSecureSetting(new boolrefSetting("safe", 0, "Disable system call",
                                       &safe, true));
-#if 0
-  addOption(new boolOption("safe", 0,
-			   "Disable system call", &safe, true, true));
-#endif
-  addOption(new boolOption("unsafe", 0,
-			   "Enable system call (=> global)", &safe, false,
-			   false));
   addSecureSetting(new boolrefSetting("globalwrite", 0,
                                       "Allow write to other directory",
                                       &globaloption, false));
-#if 0
-  addOption(new boolOption("globalwrite", 0,
-			   "Allow write to other directory",
-			   &globaloption, true, false));
-  addOption(new boolOption("noglobalwrite", 0,
-			   "", &globaloption, false, true));
-#endif
   addOption(new stringOption("cd", 0, "directory", "Set current directory",
 			     &startpath));
   
