@@ -20,17 +20,6 @@ using std::ofstream;
 
 using namespace settings;
 
-#ifdef HAVE_LIBGLUT
-namespace gl {
-void glrender(const string& prefix, const camp::picture* pic,
-	      const string& format, double width, double height,
-	      double angle, const camp::triple& m, const camp::triple& M,
-	      size_t nlights, camp::triple *lights, double *diffuse,
-	      double *ambient, double *specular, bool viewportlighting,
-	      bool view, int oldpid);
-}
-#endif
-
 texstream::~texstream() {
   if(!getSetting<bool>("keep")) {
     unlink("texput.log");

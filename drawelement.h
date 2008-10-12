@@ -17,14 +17,7 @@
 #include "psfile.h"
 #include "texfile.h"
 #include "prcfile.h"
-
-#ifdef HAVE_LIBGLUT
-#include <GL/glu.h>
-#include <GL/glut.h>
-#else
-typedef void GLUnurbs;
-typedef float GLfloat;
-#endif
+#include "glrender.h"
 
 namespace camp {
 

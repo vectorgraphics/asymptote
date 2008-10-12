@@ -15,6 +15,7 @@
 #include "bbox3.h"
 #include "drawimage.h"
 #include "interact.h"
+#include "glrender.h"
 
 #ifdef HAVE_LIBGLUT
 
@@ -320,7 +321,6 @@ void display(void)
   // Enable transparency
   glEnable(GL_BLEND);
   glDepthMask(GL_FALSE);
-  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   
   // Render transparent objects
   Picture->render(nurb,size2,m,M,perspective,true,twosided);
@@ -892,8 +892,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glEnable(GL_MAP2_VERTEX_3);
   glEnable(GL_AUTO_NORMAL);
   
-  glMapGrid2f(1,0.0,1.0,1,0.0,1.0);
-
+  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  
   nurb=gluNewNurbsRenderer();
   gluNurbsProperty(nurb,GLU_SAMPLING_METHOD,GLU_PARAMETRIC_ERROR);
   gluNurbsProperty(nurb,GLU_SAMPLING_TOLERANCE,0.5);

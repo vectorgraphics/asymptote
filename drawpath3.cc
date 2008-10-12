@@ -16,15 +16,6 @@ inline void store(Triple& control, const triple& v)
   control[1]=v.gety();
   control[2]=v.getz();
 }
-  
-#ifdef HAVE_LIBGLUT
-inline void store(GLfloat *control, const triple& v)
-{
-  control[0]=v.getx();
-  control[1]=v.gety();
-  control[2]=v.getz();
-}
-#endif
 
 bool drawPath3::write(prcfile *out)
 {

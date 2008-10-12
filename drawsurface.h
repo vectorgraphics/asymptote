@@ -30,15 +30,14 @@ protected:
   bool lighton;
   
   bool invisible;
-  bool degenerate;
   triple Min,Max;
   static triple c3[16];
 #ifdef HAVE_LIBGLUT
   GLfloat c[48];
-  GLfloat d[12];
   double f; // Fraction of 3D bounding box occupied by surface.
   GLfloat v1[16];
   GLfloat v2[16];
+  GLfloat Normal[3];
 #endif  
   
 public:

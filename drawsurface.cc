@@ -5,7 +5,6 @@
  *****/
 
 #include "drawsurface.h"
-#include "path3.h"
 
 namespace camp {
 
@@ -102,14 +101,8 @@ bool drawSurface::write(prcfile *out)
 // return a normal vector for the plane through u, v, and w.
 triple drawSurface::normal(const Triple& u, const Triple& v, const Triple& w)
 {
-  triple n=cross(triple(v[0]-u[0],v[1]-u[1],v[2]-u[2]),
-		 triple(w[0]-u[0],w[1]-u[1],w[2]-u[2]));
-  if(lighton) {
-    static double fuzz=1000*DBL_EPSILON;
-    double norm=fuzz*(Max-Min).abs2();
-    if(n.abs2() < norm*norm) degenerate=true;
-  }
-  return n;
+  return cross(triple(v[0]-u[0],v[1]-u[1],v[2]-u[2]),
+	       triple(w[0]-u[0],w[1]-u[1],w[2]-u[2]));
 }
 
 // return the perpendicular displacement of a point z from the plane
@@ -132,13 +125,6 @@ inline double fraction(const Triple& z0, const Triple& c0,
 			    size3));
 }
 
-inline void store(float *f, double *C)
-{
-  f[0]=C[0];
-  f[1]=C[1];
-  f[2]=C[2];
-}
-
 void drawSurface::fraction(const triple& size3)
 {
 #ifdef HAVE_LIBGLUT
@@ -146,27 +132,21 @@ void drawSurface::fraction(const triple& size3)
     store(c+3*i,controls[i]);
 
   Triple& v0=controls[0];
-  degenerate=false;
   triple N=unit(normal(v0,controls[3],controls[15])+
 		normal(v0,controls[15],controls[12]));
+  store(Normal,N);
   f=0;
-  if(!degenerate) {
-    if(!straight) {
-      for(int i=1; i < 16; ++i) 
-	f=camp::max(f,camp::fraction(displacement2(controls[i],v0,N),size3));
+  if(!straight) {
+    for(int i=1; i < 16; ++i) 
+      f=camp::max(f,camp::fraction(displacement2(controls[i],v0,N),size3));
   
-      for(int i=0; i < 4; ++i)
-	f=camp::max(f,camp::fraction(controls[4*i],controls[4*i+1],
-				     controls[4*i+2],controls[4*i+3],size3));
-      for(int i=0; i < 4; ++i)
-	f=camp::max(f,camp::fraction(controls[i],controls[i+4],controls[i+8],
-				     controls[i+12],size3));
-      f *= pixelfactor2;
-    }
-    store(d,controls[0]);
-    store(d+3,controls[3]);
-    store(d+6,controls[12]);
-    store(d+9,controls[15]);
+    for(int i=0; i < 4; ++i)
+      f=camp::max(f,camp::fraction(controls[4*i],controls[4*i+1],
+				   controls[4*i+2],controls[4*i+3],size3));
+    for(int i=0; i < 4; ++i)
+      f=camp::max(f,camp::fraction(controls[i],controls[i+4],controls[i+8],
+				   controls[i+12],size3));
+    f *= pixelfactor2;
   }
 #endif  
 }
@@ -231,16 +211,19 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
-  if(degenerate || (!straight && (granularity == 0 || sqrt(f*size2) >= 1.5))) {
+  if(!straight && (granularity == 0 || sqrt(f*size2) >= 1.5)) {
     static GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
     gluBeginSurface(nurb);
     gluNurbsSurface(nurb,8,knots,8,knots,3,12,c,4,4,GL_MAP2_VERTEX_3);
     gluEndSurface(nurb);
   } else {
-    if(twosided) glFrontFace(GL_CW); // Work around GL_LIGHT_MODEL_TWO_SIDE bug.
-    glMap2f(GL_MAP2_VERTEX_3,0,1,3,2,0,1,6,2,d);
-    glEvalMesh2(GL_FILL,0,1,0,1);
-    if(twosided) glFrontFace(GL_CCW);
+    glBegin(GL_QUADS);
+    glNormal3fv(Normal);
+    glVertex3fv(c);
+    glVertex3fv(c+9);
+    glVertex3fv(c+45);
+    glVertex3fv(c+36);
+    glEnd();
   }
   
 #endif
