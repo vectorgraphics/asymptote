@@ -1832,14 +1832,14 @@ string embed3D(string prefix, frame f, string label="",
   return Embed(prefix,options3,width,height);
 }
 
-object embed(string prefix=defaultfilename, frame f, string label="",
-             string text=label, string options="", string script="",
-             real width=0, real height=0, real angle=30,
+object embed(string prefix=defaultfilename, frame f, string format="",
+	     string label="", string text=label, string options="",
+	     string script="", real width=0, real height=0, real angle=30,
              pen background=white, projection P=currentprojection)
 {
   object F;
 
-  if(is3D())
+  if(is3D(format))
     F.L=embed3D(prefix,f,label,text,options,script,width,height,angle,
                 background,P);
   else
@@ -1864,20 +1864,7 @@ object embed(string prefix=defaultfilename, picture pic, string format="",
              light light=currentlight, projection P=currentprojection)
 {
   object F;
-  if(pic.empty3()) return F;
-
-  bool is3D=is3D();
-
   real xsize3=pic.xsize3, ysize3=pic.ysize3, zsize3=pic.zsize3;
-
-  if(!is3D) {
-    pic.fit3(identity4,pic,P);
-    if(xsize == 0 && ysize == 0)
-      xsize=ysize=max(xsize3,ysize3,zsize3);
-    F.f=pic.fit2(xsize,ysize,keepAspect);
-    return F;
-  }
-  
   bool warn=true;
   if(xsize3 == 0 && ysize3 == 0 && zsize3 == 0) {
     xsize3=ysize3=zsize3=max(xsize,ysize);
@@ -1903,122 +1890,132 @@ object embed(string prefix=defaultfilename, picture pic, string format="",
     P=s*P;
     f=pic.fit3(t,pic2,P);
   }
-
-  pic2.bounds.exact=true;
-  transform s=pic2.scaling(xsize,ysize,keepAspect);
-  pair m2=pic2.min(s);
-  pair M2=pic2.max(s);
-  pair lambda=M2-m2;
-  real width=lambda.x;
-  real height=lambda.y;
-
+  bool is3D=is3D(format);
   bool scale=xsize != 0 || ysize != 0;
 
-  if(!P.absolute) {
-    if(scale) {
-      pair v=(s.xx,s.yy);
-      transform3 T=P.t;
-      pair x=project(X,T);
-      pair y=project(Y,T);
-      pair z=project(Z,T);
-      real f(pair a, pair b) {
-	return b == 0 ? (0.5*(a.x+a.y)) : (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
-      }
-      transform3 s=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z));
-      P=s*P;
-      pic2.erase();
-      f=pic.fit3(s*t,is3D ? null : pic2,P);
-    }
+  if(is3D || scale) {
+    pic2.bounds.exact=true;
+    transform s=pic2.scaling(xsize,ysize,keepAspect);
+    pair m2=pic2.min(s);
+    pair M2=pic2.max(s);
+    pair lambda=M2-m2;
+    real width=lambda.x;
+    real height=lambda.y;
 
-    P.adjust(min3(f),max3(f));
-
-    transform3 modelview=P.modelview();
-    f=modelview*f;
-    P=modelview*P;
-    light=modelview*light;
-
-    if(P.infinity) {
-      triple m=min3(f);
-      triple M=max3(f);
-      triple s=(-0.5(m.x+M.x),-0.5*(m.y+M.y),0);
-      f=shift(s)*f;  // Eye will be at (0,0,0).
-    } else {
-      // Choose the angle to be just large enough to view the entire image:
-      if(is3D && angle == 0 && !P.infinity) {
-	real h=0.5*P.target.z;
-	pair r,R;
-	for(int i=0; i < angleiterations; ++i) {
-	  r=minratio(f);
-	  R=maxratio(f);
-	  f=shift(h*(-r.x-R.x),h*(-r.y-R.y),0)*f;
+    if(!P.absolute) {
+      if(scale) {
+	pair v=(s.xx,s.yy);
+	transform3 T=P.t;
+	pair x=project(X,T);
+	pair y=project(Y,T);
+	pair z=project(Z,T);
+	real f(pair a, pair b) {
+	  return b == 0 ? (0.5*(a.x+a.y)) : (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
 	}
-	real aspect=width > 0 ? height/width : 1;
-	angle=anglefactor*max(aTan(-r.x*aspect)+aTan(R.x*aspect),
-			      aTan(-r.y)+aTan(R.y));
+	transform3 s=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z));
+        P=s*P;
+        pic2.erase();
+	t=s*t;
+        f=pic.fit3(t,is3D ? null : pic2,P);
       }
-    }
-  }
-    
-  if(prefix == "") prefix=outprefix();
-  bool prc=prc(format);
-  bool preview=settings.render > 0;
-  if(prc)
-    prefix += "-"+(string) file3.length;
-  else
-    preview=false;
-  if(preview || (!prc && settings.render != 0)) {
-    frame f=f;
-    transform3 modelview;
-    triple m,M;
-    if(P.absolute) {
-      modelview=P.modelview();
+
+      P.adjust(min3(f),max3(f));
+
+      transform3 modelview=P.modelview();
       f=modelview*f;
       P=modelview*P;
-      angle=P.angle;
-      m=min3(f);
-      M=max3(f);
-      real r=0.5*abs(M-m);
-      real zcenter=0.5*(M.z+m.z);
-      M=(M.x,M.y,zcenter+r);
-      m=(m.x,m.y,zcenter-r);
-    } else {
-      m=min3(f);
-      M=max3(f);
-      real zcenter=P.target.z;
-      real d=P.distance(m,M);
-      M=(M.x,M.y,zcenter+d);
-      m=(m.x,m.y,zcenter-d);
+      light=modelview*light;
+
+      if(P.infinity) {
+	triple m=min3(f);
+	triple M=max3(f);
+	triple s=(-0.5(m.x+M.x),-0.5*(m.y+M.y),0);
+	f=shift(s)*f;  // Eye will be at (0,0,0).
+      } else {
+      // Choose the angle to be just large enough to view the entire image:
+	if(is3D && angle == 0 && !P.infinity) {
+	    real h=0.5*P.target.z;
+	    pair r,R;
+	    for(int i=0; i < angleiterations; ++i) {
+	      r=minratio(f);
+	      R=maxratio(f);
+	      f=shift(h*(-r.x-R.x),h*(-r.y-R.y),0)*f;
+	    }
+	    real aspect=width > 0 ? height/width : 1;
+	    angle=anglefactor*max(aTan(-r.x*aspect)+aTan(R.x*aspect),
+				  aTan(-r.y)+aTan(R.y));
+	}
+      }
+    }
+    
+    if(prefix == "") prefix=outprefix();
+    bool prc=prc(format);
+    bool preview=settings.render > 0;
+    if(prc)
+      prefix += "-"+(string) file3.length;
+    else
+      preview=false;
+    if(preview || (!prc && settings.render != 0)) {
+      frame f=f;
+      transform3 modelview;
+      triple m,M;
+      if(P.absolute) {
+	modelview=P.modelview();
+	f=modelview*f;
+	P=modelview*P;
+	angle=P.angle;
+	m=min3(f);
+	M=max3(f);
+	real r=0.5*abs(M-m);
+	real zcenter=0.5*(M.z+m.z);
+	M=(M.x,M.y,zcenter+r);
+	m=(m.x,m.y,zcenter-r);
+      } else {
+	m=min3(f);
+	M=max3(f);
+	real zcenter=P.target.z;
+	real d=P.distance(m,M);
+	M=(M.x,M.y,zcenter+d);
+	m=(m.x,m.y,zcenter-d);
+      }
+
+      real factor=hypot(M.x-m.x,M.y-m.y)*(viewportfactor-1.0);
+      triple margin=(factor,factor,0);
+      M += margin; 
+      m -= margin;
+
+      shipout3(prefix,f,preview ? nativeformat() : format,width,height,
+               P.infinity ? 0 : angle,m,M,
+	       P.absolute ? (modelview*light).position : light.position,
+	       light.diffuse,light.ambient,light.specular,
+	       light.viewport,wait,view && !preview);
+      if(!preview) return F;
     }
 
-    real factor=hypot(M.x-m.x,M.y-m.y)*(viewportfactor-1.0);
-    triple margin=(factor,factor,0);
-    M += margin; 
-    m -= margin;
+    string image;
+    if(preview) {
+      image=prefix;
+      if(settings.inlinetex) image += "_0";
+      image += "."+nativeformat();
+      if(!settings.inlinetex) file3.push(image);
+      image=graphic(image);
+    }
+    if(prc) F.L=embed3D(prefix,f,label,text=image,options,script,width,height,
+			angle,background,light,P);
+   }
 
-    shipout3(prefix,f,preview ? nativeformat() : format,width,height,
-	     P.infinity ? 0 : angle,m,M,
-	     P.absolute ? (modelview*light).position : light.position,
-	     light.diffuse,light.ambient,light.specular,
-	     light.viewport,wait,view && !preview);
-    if(!preview) return F;
-  }
-
-  string image;
-  if(preview) {
-    image=prefix;
-    if(settings.inlinetex) image += "_0";
-    image += "."+nativeformat();
-    if(!settings.inlinetex) file3.push(image);
-    image=graphic(image);
-  }
-  if(prc) F.L=embed3D(prefix,f,label,text=image,options,script,width,height,
-		      angle,background,light,P);
+  if(!is3D) {
+    transform T=pic2.scaling(xsize,ysize,keepAspect);
+    F.f=pic.fit(scale(t[0][0])*T);
+    add(F.f,pic2.fit(T));
+   }
+      
   return F;
 }
 
 embed3=new object(string prefix, frame f, string format, string options,
 		  string script, projection P) {
-  return embed(prefix,f,format,options,script,P);
+  return embed(prefix,f,format=format,options=options,script=script,P);
 };
 
 currentpicture.fitter=new frame(string prefix, picture pic, string format,
@@ -2026,8 +2023,9 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
                                 bool keepAspect, bool wait, bool view,
                                 string options, string script, projection P) {
   frame f;
-  add(f,pic.fit2(xsize,ysize,keepAspect));
-  if(!pic.empty3()) {
+  bool empty3=pic.empty3();
+  if(is3D(format) || empty3) add(f,pic.fit2(xsize,ysize,keepAspect));
+  if(!empty3) {
     object F=embed(prefix,pic,format,xsize,ysize,keepAspect,wait,view,options,
 		   script,P);
     if(prc(format))
