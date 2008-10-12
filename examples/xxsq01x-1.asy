@@ -10,7 +10,7 @@ real f(real x) {return x^2;}
 pair F(real x) {return (x,f(x));}
 triple F3(real x) {return (x,f(x),0);}
 
-path p=graph(F,0,1,n=10)--cycle;
+path p=graph(F,0,1,n=10,operator ..)--cycle;
 path3 p3=path3(p);
 
 revolution a=revolution(-X,p3,Y,0,180);

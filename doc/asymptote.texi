@@ -3451,6 +3451,7 @@ write(file file, suffix suffix=none);
 @cindex @code{none}
 @cindex @code{flush}
 @cindex @code{endl}
+@cindex @code{newl}
 @cindex @code{tab}
 @cindex @code{comma}
 If @code{file} is not specified, @code{stdout} is used and
@@ -3460,6 +3461,7 @@ An arbitrary number of data values may be listed when writing scalars
 or one-dimensional arrays. The @code{suffix} may be one of the following:
 @code{none} (do nothing), @code{flush} (output buffered data),
 @code{endl} (terminate with a newline and flush),
+@code{newl} (terminate with a newline),
 @code{tab} (terminate with a tab), or @code{comma} (terminate with a
 comma). Here are some simple examples of data output:
 @verbatim

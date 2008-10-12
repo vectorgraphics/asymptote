@@ -27,7 +27,9 @@ protected:
   double opacity;
   double shininess;
   double granularity;
+  triple normal;
   bool lighton;
+  bool havenormal;
   
   bool invisible;
   triple Min,Max;
@@ -35,6 +37,7 @@ protected:
 #ifdef HAVE_LIBGLUT
   GLfloat c[48];
   double f; // Fraction of 3D bounding box occupied by surface.
+  double fperp;
   GLfloat v1[16];
   GLfloat v2[16];
   GLfloat Normal[3];
@@ -43,9 +46,9 @@ protected:
 public:
   drawSurface(const vm::array& g, bool straight, const vm::array&p,
 	      double opacity, double shininess, double granularity,
-	      bool lighton) : 
+	      triple normal, bool lighton) : 
     straight(straight), opacity(opacity), shininess(shininess),
-    granularity(granularity), lighton(lighton) {
+    granularity(granularity), normal(normal), lighton(lighton) {
     
     string wrongsize=
       "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
@@ -79,8 +82,8 @@ public:
   drawSurface(const vm::array& t, const drawSurface *s) :
     straight(s->straight), diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
-    shininess(s->shininess), granularity(s->granularity), lighton(s->lighton),
-    invisible(s->invisible) {
+    shininess(s->shininess), granularity(s->granularity), normal(s->normal),
+    lighton(s->lighton), invisible(s->invisible) {
     for(size_t i=0; i < 16; ++i) {
       const double *c=s->controls[i];
       triple v=run::operator *(t,triple(c[0],c[1],c[2]));
@@ -102,8 +105,6 @@ public:
   virtual ~drawSurface() {}
 
   bool write(prcfile *out);
-  
-  triple normal(const Triple& u, const Triple& v, const Triple& w);
   
   void fraction(const triple& size3);
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,

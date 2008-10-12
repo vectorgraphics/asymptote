@@ -890,7 +890,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_MAP1_VERTEX_3);
   glEnable(GL_MAP2_VERTEX_3);
-  glEnable(GL_AUTO_NORMAL);
   
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   
@@ -905,7 +904,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   gluNurbsProperty(nurb,GLU_NURBS_MODE,GLU_NURBS_TESSELLATOR);
   gluNurbsCallback(nurb,GLU_NURBS_BEGIN,(_GLUfuncptr) glBegin);
   gluNurbsCallback(nurb,GLU_NURBS_VERTEX,(_GLUfuncptr) glVertex3fv);
-  gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
   gluNurbsCallback(nurb,GLU_NURBS_END,(_GLUfuncptr) glEnd);
   mode();
   

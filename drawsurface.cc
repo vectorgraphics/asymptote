@@ -98,13 +98,6 @@ bool drawSurface::write(prcfile *out)
   return true;
 }
 
-// return a normal vector for the plane through u, v, and w.
-triple drawSurface::normal(const Triple& u, const Triple& v, const Triple& w)
-{
-  return cross(triple(v[0]-u[0],v[1]-u[1],v[2]-u[2]),
-	       triple(w[0]-u[0],w[1]-u[1],w[2]-u[2]));
-}
-
 // return the perpendicular displacement of a point z from the plane
 // through u with unit normal n.
 inline triple displacement2(const Triple& z, const Triple& u, const triple& n)
@@ -131,15 +124,20 @@ void drawSurface::fraction(const triple& size3)
   for(int i=0; i < 16; ++i)
     store(c+3*i,controls[i]);
 
-  Triple& v0=controls[0];
-  triple N=unit(normal(v0,controls[3],controls[15])+
-		normal(v0,controls[15],controls[12]));
-  store(Normal,N);
+  static const triple zero;
+  havenormal=normal != zero;
+  if(havenormal)
+    normal=unit(normal);
+
+  store(Normal,normal);
   f=0;
   if(!straight) {
     for(int i=1; i < 16; ++i) 
-      f=camp::max(f,camp::fraction(displacement2(controls[i],v0,N),size3));
+      f=camp::max(f,camp::fraction(displacement2(controls[i],controls[0],
+						 normal),size3));
   
+    fperp=f;
+    
     for(int i=0; i < 4; ++i)
       f=camp::max(f,camp::fraction(controls[4*i],controls[4*i+1],
 				   controls[4*i+2],controls[4*i+3],size3));
@@ -211,7 +209,12 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
-  if(!straight && (granularity == 0 || sqrt(f*size2) >= 1.5)) {
+  if(!straight && (granularity == 0 || f*size2 >= 2.25)) {
+    if(havenormal && fperp*size2 <= 1.0) {
+      glNormal3fv(Normal);
+      gluNurbsCallback(nurb,GLU_NURBS_NORMAL,NULL);
+    } else 
+      gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
     static GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
     gluBeginSurface(nurb);
     gluNurbsSurface(nurb,8,knots,8,knots,3,12,c,4,4,GL_MAP2_VERTEX_3);
