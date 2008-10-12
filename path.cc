@@ -1065,37 +1065,19 @@ bool intersections(double &s, double &t, std::vector<double>& S,
 ostream& operator<< (ostream& out, const path& p)
 {
   Int n = p.n;
-  switch(n) {
-  case 0:
+  if(n == 0)
     out << "<nullpath>";
-    break;
-    
-  case 1:
-    out << p.point((Int) 0);
-    break;
-
-  default:
-    out << p.point((Int) 0) << ".. controls " << p.postcontrol((Int) 0) 
-	<< " and ";
-
-    for (Int i = 1; i < n-1; i++) {
-      out << p.precontrol(i) << newl;
-
-      out << " .." << p.point(i);
-
-      out << ".. controls " << p.postcontrol(i) << " and ";
+  else for(Int i = 0; i < n-1; i++) {
+      out << p.point(i);
+      if(p.straight(i)) out << "--";
+      else
+	out << ".. controls " << p.postcontrol(i) << " and "
+	    << p.precontrol(i) << newl << " ..";
     }
-    
-    out << p.precontrol(n-1) << newl
-	<< " .." << p.point(n-1);
-
-    if (p.cycles) 
-      out << ".. controls " << p.postcontrol(n-1) << " and "
-	  << p.precontrol((Int) 0) << newl
-	  << " ..cycle";
-    break;
-  }
-
+  if(p.cycles) 
+    out << "cycle";
+  else
+    out << p.point(n-1);
   return out;
 }
 

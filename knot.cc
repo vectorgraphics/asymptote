@@ -777,8 +777,9 @@ struct controlDuplicates : public knoteffect {
   void mid(Int j) {
     knot &k1=l[j];
     knot &k2=l[j+1];
-    if (!k1.out->controlled() && k1.z==k2.z)
-      k1.out=k2.in=new controlSpec(k1.z);
+    if (!k1.out->controlled() && k1.z==k2.z) {
+      k1.out=k2.in=new controlSpec(k1.z,true);
+    }
   }
   void end(Int) { /* No next point to compare with. */ }
 };

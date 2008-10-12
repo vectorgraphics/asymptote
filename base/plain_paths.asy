@@ -244,7 +244,8 @@ path operator &(path p, cycleToken tok)
   if(n < 0) return nullpath;
   pair a=point(p,0);
   pair b=point(p,n);
-  return subpath(p,0,n-1)..controls postcontrol(p,n-1) and precontrol(p,n)..
+  return straight(p,n) ? subpath(p,0,n-1)--cycle :
+    subpath(p,0,n-1)..controls postcontrol(p,n-1) and precontrol(p,n)..
     cycle;
 }
 

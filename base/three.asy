@@ -311,10 +311,12 @@ pair xypart(triple v)
 struct control {
   triple post,pre;
   bool active=false;
-  void init(triple post, triple pre) {
+  bool straight=true;
+  void init(triple post, triple pre, bool straight=false) {
     this.post=post;
     this.pre=pre;
     active=true;
+    this.straight=straight;
   }
 }
 
@@ -326,6 +328,7 @@ control operator * (transform3 t, control c)
   C.post=t*c.post;
   C.pre=t*c.pre;
   C.active=c.active;
+  C.straight=c.straight;
   return C;
 }
 
@@ -937,7 +940,7 @@ void write(file file, string s="", explicit path3 x, suffix suffix=none)
   write(file,s);
   int n=size(x);
   if(n == 0) write("<nullpath3>");
-  else for(int i=0; i < n; ++i) {
+  else for(int i=0; i < n-1; ++i) {
       write(file,point(x,i));
       if(i < length(x)) {
         if(straight(x,i)) write(file,"--");
@@ -945,13 +948,15 @@ void write(file file, string s="", explicit path3 x, suffix suffix=none)
           write(file,".. controls ");
           write(file,postcontrol(x,i));
           write(file," and ");
-          write(file,precontrol(x,i+1),endl);
+          write(file,precontrol(x,i+1),newl);
           write(file," ..");
         }
-        if(i == n-1 && cyclic(x)) write(file,"cycle");
       }
     }
-  write(file,suffix);
+  if(cyclic(x))
+    write(file,"cycle",suffix);
+  else
+    write(file,point(x,n-1),suffix);
 }
 
 void write(string s="", explicit path3 x, suffix suffix=endl)
@@ -984,7 +989,7 @@ path3 solve(flatguide3 g)
   for(int i=0; i < n; ++i) {
     if(g.nodes[i] == g.nodes[i+1] && !g.control[i].active) {
       control c;
-      c.init(g.nodes[i],g.nodes[i]);
+      c.init(g.nodes[i],g.nodes[i],straight=true);
       g.control[i]=c;
     }
   }  
@@ -1053,8 +1058,7 @@ path3 solve(flatguide3 g)
          (g.out[i].dir == O && g.in[i].dir == O)) {
         // fill in straight control points for path3 functions
         triple delta=(g.nodes[i+1]-g.nodes[i])/3;
-        c.init(g.nodes[i]+delta,g.nodes[i+1]-delta);
-        c.active=false;
+        c.init(g.nodes[i]+delta,g.nodes[i+1]-delta,straight=true);
       } else {
         Controls C;
         C.init(g.nodes[i],g.nodes[next],g.out[i].dir,g.in[i].dir,
@@ -1076,24 +1080,25 @@ path3 solve(flatguide3 g)
   triple[] point=new triple[n];
   triple[] post=new triple[n];
   bool[] straight=new bool[n];
-  if(n == 0) return path3(pre,point,post,straight,cyclic);
-  for(int i=0; i < n-1; ++i) {
-    point[i]=g.nodes[i];
-    post[i]=g.control[i].post;
-    pre[i+1]=g.control[i].pre;
-    straight[i]=!g.control[i].active;
+  if(n > 0) {
+    for(int i=0; i < n-1; ++i) {
+      point[i]=g.nodes[i];
+      post[i]=g.control[i].post;
+      pre[i+1]=g.control[i].pre;
+      straight[i]=g.control[i].straight;
+    }
+    point[n-1]=g.nodes[n-1];
+    if(cyclic) {
+      pre[0]=g.control[n-1].pre;
+      post[n-1]=g.control[n-1].post;
+      straight[n-1]=g.control[n-1].straight;
+    } else {
+      pre[0]=point[0];
+      post[n-1]=point[n-1];
+      straight[n-1]=false;
+    }
   }
-  point[n-1]=g.nodes[n-1];
-  if(cyclic) {
-    pre[0]=g.control[n-1].pre;
-    post[n-1]=g.control[n-1].post;
-    straight[n-1]=!g.control[n-1].active;
-  } else {
-    pre[0]=point[0];
-    post[n-1]=point[n-1];
-    straight[n-1]=false;
-  }
-
+  
   return path3(pre,point,post,straight,cyclic);
 }
 
