@@ -83,10 +83,6 @@ extern "C" int fileno(FILE *);
 extern "C" char *strptime(const char *s, const char *format, struct tm *tm);
 #endif
 
-#if defined(__CYGWIN__)
-#define ARG_MAX _POSIX_ARG_MAX
-#endif
-
 extern bool False;
 
 // Strip blank lines (which would break the bidirectional TeX pipe)

@@ -24,8 +24,8 @@ BuildRequires:  freeglut-devel >= 2.4.0
 
 Requires:       tetex-latex
 Requires:       tkinter
-Requires(post): /usr/bin/texhash /sbin/install-info
-Requires(postun): /usr/bin/texhash /sbin/install-info
+Requires(post): info
+Requires(postun): info
 
 %define texpkgdir   %{_texmf}/tex/latex/%{name}
 
