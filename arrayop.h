@@ -403,6 +403,7 @@ void arrayFunc(vm::stack *s)
 
 vm::array *Identity(Int n);
 camp::triple operator *(const vm::array& a, const camp::triple& v);
+camp::triple multshiftless(const vm::array& t, const camp::triple& v);
 
 } // namespace run
 

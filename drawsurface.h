@@ -29,7 +29,6 @@ protected:
   double granularity;
   triple normal;
   bool lighton;
-  bool havenormal;
   
   bool invisible;
   triple Min,Max;
@@ -41,6 +40,7 @@ protected:
   GLfloat v1[16];
   GLfloat v2[16];
   GLfloat Normal[3];
+  bool havenormal;
 #endif  
   
 public:
@@ -48,7 +48,7 @@ public:
 	      double opacity, double shininess, double granularity,
 	      triple normal, bool lighton) : 
     straight(straight), opacity(opacity), shininess(shininess),
-    granularity(granularity), normal(normal), lighton(lighton) {
+    granularity(granularity), normal(unit(normal)), lighton(lighton) {
     
     string wrongsize=
       "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
@@ -82,7 +82,7 @@ public:
   drawSurface(const vm::array& t, const drawSurface *s) :
     straight(s->straight), diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
-    shininess(s->shininess), granularity(s->granularity), normal(s->normal),
+    shininess(s->shininess), granularity(s->granularity),
     lighton(s->lighton), invisible(s->invisible) {
     for(size_t i=0; i < 16; ++i) {
       const double *c=s->controls[i];
@@ -91,6 +91,7 @@ public:
       controls[i][1]=v.gety();
       controls[i][2]=v.getz();
     }
+    normal=run::multshiftless(t,s->normal);
   }
   
   bool is3D() {return true;}

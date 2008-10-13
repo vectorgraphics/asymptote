@@ -496,9 +496,8 @@ void draw3D(frame f, patch s, material m, light light=currentlight)
   if(!light.on())
     m=emissive(m);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
-  real t=0.1;
-  draw(f,s.P,s.straight,m.p,m.opacity,m.shininess,granularity,-s.normal(t,t),
-       light.on());
+  draw(f,s.P,s.straight,m.p,m.opacity,m.shininess,granularity,
+       -s.normal(0.5,0.5),light.on());
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,

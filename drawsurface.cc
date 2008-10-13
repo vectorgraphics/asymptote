@@ -127,15 +127,13 @@ void drawSurface::fraction(const triple& size3)
   static const triple zero;
   havenormal=normal != zero;
   if(havenormal)
-    normal=unit(normal);
-
-  store(Normal,normal);
+    store(Normal,normal);
+  
   f=0;
   if(!straight) {
     for(int i=1; i < 16; ++i) 
       f=camp::max(f,camp::fraction(displacement2(controls[i],controls[0],
 						 normal),size3));
-  
     fperp=f;
     
     for(int i=0; i < 4; ++i)
@@ -210,7 +208,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
   if((!straight && (granularity == 0 || f*size2 >= 2.25)) || !havenormal) {
-    if(havenormal && fperp*size2 <= 1.0) {
+    if(havenormal && fperp*size2 <= 0.1) {
       glNormal3fv(Normal);
       gluNurbsCallback(nurb,GLU_NURBS_NORMAL,NULL);
     } else 
