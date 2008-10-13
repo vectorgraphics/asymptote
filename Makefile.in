@@ -29,6 +29,7 @@ NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output asy.list svnrevision.cc doc/version.texi GUI/xasyVersion.py $(XNAME)
 EXTRA = asy-mode.el asy-keywords.el asy-init.el asy.vim asymptote.py reload.js
+DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
 LATEXFILES = asymptote.sty asycolors.sty
 ASY = ./asy -dir base -config "" -render=0
@@ -155,9 +156,8 @@ install-asy: asy asy-keywords.el
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) $(asydir)
 	${INSTALL} -p -m 755 GUI/*.py $(GUIdir)
 	ln -sf @datadir@/asymptote/GUI/xasy.py $(bindir)/$(XNAME)
-	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps doc/pixel.pdf \
-	  doc/*.asy doc/extra/*.asy doc/*.csv doc/*.dat doc/latexusage.tex \
-	  $(exampledir)
+	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps \
+	  doc/extra/*.asy $(addprefix doc/,$(DOCEXTRA)) $(exampledir)
 	${INSTALL} -p -m 644 examples/animations/*.asy $(animationsdir)
 	-${INSTALL} -p -m 644 $(addprefix doc/,$(LATEXFILES)) $(latexdir)
 	-if test -z "$(DESTDIR)"; then \
@@ -177,8 +177,7 @@ uninstall-all: uninstall-man uninstall-asy
 uninstall-asy:
 	-cd $(animationsdir); rm -f *.asy
 	-rmdir $(animationsdir)
-	-cd $(exampledir); rm -f *.asy *.csv *.dat piicon.eps pixel.pdf \
-          latexusage.tex
+	-cd $(exampledir); rm -f piicon.eps $(DOCEXTRA)
 	-rmdir $(exampledir)
 	-rmdir $(docdir)
 	-cd $(GUIdir); rm -f *.py
