@@ -5,7 +5,7 @@ path patch(path p)
   if(length(p) == 2)
     return subpath(p,0.0,0.5)&subpath(p,0.5,1.5)&subpath(p,1.5,2.0)&cycle;
   if(length(p) == 3)
-    return p=p--cycle;
+    return p--cycle;
   return p;
 }
 
@@ -190,8 +190,8 @@ int countIntersections(path g, pair p, pair q)
 bool checkSegment(path g, pair p, pair q)
 {
   pair mid=(p+q)/2;
-  return(countIntersections(g,p,q) == 4) && inside(g,mid) && 
-    intersections(g,mid).length == 0;
+  return (countIntersections(g,p,q) == 4 && inside(g,mid) && 
+      intersections(g,mid).length == 0);
 }
 
 path subdivide(path p)
@@ -217,35 +217,39 @@ path[] bezulate(path[] p)
     }
     p=removeDuplicates(p);
     if(length(p) > 4) {
-      for(int i=0; length(p) > 4 && i < length(p); ++i) {
-	bool found=false;
-	pair start=point(p,i);
-	//look for quadrilaterals and triangles with one line, 4 | 3 curves
-	for(int desiredSides=4; !found && desiredSides >= 3; --desiredSides) {
-	  if(desiredSides == 3 && length(p) <= 3)
-	    break;
-	  pair end;
-	  int endi=i+desiredSides-1;
-	  end=point(p,endi);
-	  found=checkSegment(p,start,end);
-	  if(found) {
-	    path p1=subpath(p,endi,i+length(p))--cycle;
-	    patch.append(patch(subpath(p,i,endi)--cycle));
-	    p=removeDuplicates(p1);
-            p=subpath(p,1,length(p)+1)&cycle; //shift indices
-	    i=-1; // increment will make i be 0
-	  }
-	}
-	if(!found && length(p) > 4 && i == length(p)-1) {
-	  // avoid infinite recursion
-	  ++refinements;
-	  if(refinements > maxR) {
-	    write("warning: too many subdivisions");
-	  } else {
-	    p=subdivide(p);
-	    i=-1;
-	  }
-	}
+      real SIZE_STEPS = 10;
+      for(int k=1; k <= SIZE_STEPS; ++k)
+      {
+        real L = k*1.05*abs(max(p)-min(p))/SIZE_STEPS;
+        for(int i=0; length(p) > 4 && i < length(p); ++i) {
+          bool found=false;
+          pair start=point(p,i);
+          //look for quadrilaterals and triangles with one line, 4 | 3 curves
+          for(int desiredSides=4; !found && desiredSides >= 3; --desiredSides) {
+            if(desiredSides == 3 && length(p) <= 3)
+              break;
+            pair end;
+            int endi=i+desiredSides-1;
+            end=point(p,endi);
+            found=checkSegment(p,start,end) && abs(end-start)<L;
+            if(found) {
+              path p1=subpath(p,endi,i+length(p))--cycle;
+              patch.append(patch(subpath(p,i,endi)--cycle));
+              p=removeDuplicates(p1);
+              i=-1; // increment will make i be 0
+            }
+          }
+          if(!found && k==SIZE_STEPS && length(p) > 4 && i == length(p)-1) {
+            // avoid infinite recursion
+            ++refinements;
+            if(refinements > maxR) {
+              write("warning: too many subdivisions");
+            } else {
+              p=subdivide(p);
+              i=-1;
+            }
+          }
+        }
       }
     }
     if(length(p) <= 4)
