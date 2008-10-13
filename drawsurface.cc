@@ -207,7 +207,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
-  if((!straight && (granularity == 0 || f*size2 >= 2.25)) || !havenormal) {
+  if((!straight && (granularity == 0 || f*size2 >= 1.5)) || !havenormal) {
     if(havenormal && fperp*size2 <= 0.1) {
       glNormal3fv(Normal);
       gluNurbsCallback(nurb,GLU_NURBS_NORMAL,NULL);

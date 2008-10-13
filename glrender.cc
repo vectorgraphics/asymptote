@@ -861,8 +861,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Width=min(max((int) (expand*width+0.5),minimumsize),ViewportLimit[0]);
   Height=min(max((int) (expand*height+0.5),minimumsize),ViewportLimit[1]);
   
-  if(Width > Height*Aspect) Width=(int) (Height*Aspect+0.5);
-  else Height=(int) (Width/Aspect+0.5);
+  if(Width > Height*Aspect) Width=min(max((int) (Height*Aspect+0.5),
+					  minimumsize),ViewportLimit[0]);
+  else Height=min(max((int) (Width/Aspect+0.5),minimumsize),ViewportLimit[1]);
+  
+  Aspect=((double) Width)/Height;
   
   oldWidth=Width;
   oldHeight=Height;
