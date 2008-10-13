@@ -2169,7 +2169,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
       real[] dash=(real[]) split(type," ");
       if(sum(dash) > 0) {
         dash.cyclic(true);
-        real offset=0;
+        real offset=offset(q);
         real L=arclength(g);
         int i=0;
         real l=offset;
