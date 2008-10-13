@@ -35,12 +35,12 @@ private real takeStep(path3 s, real endtime, real width)
   real a=abs(accel(s,endtime));
 
   // tweak this:
-  real K=1.25/width; // a different constant perhaps ?
+  real K=1.25/width; // a different constant perhaps?
   real minStep=1/50; // at most 1/minStep segments for a curve
   real step=max(1/(K*a+1),minStep); // or a different model
   a=abs(accel(s,(min(endtime+step,length(s))+endtime)/2));
   step=max(1/(K*a+1),minStep);
-  if(step > 0.25) step=0.25; // guarantee at least 4 segments per curve
+//  if(step > 0.25) step=0.25; // guarantee at least 4 segments per curve
   return min(endtime+step,length(s));
 }
 
@@ -51,12 +51,14 @@ surface tube(path3 g, real width)
 
   transform3 t=scale3(r);
 
+  static real epsilon=sqrt(realEpsilon);
+
   int n=length(g);
   for(int i=0; i < n; ++i) {
-    if(straightness(g,i) < 0.5*r) {
+    real S=straightness(g,i);
+    if(S < epsilon*r) {
       triple v=point(g,i);
       triple u=point(g,i+1)-v;
-      real h=abs(u);
       tube.append(shift(v)*align(unit(u))*scale(r,r,abs(u))*unitcylinder);
     } else {
       path3 s=subpath(g,i,i+1);
@@ -78,9 +80,7 @@ surface tube(path3 g, real width)
       }
     }
 
-    static real epsilon=sqrt(realEpsilon);
-
-    if(i > 0 && abs(dir(g,i,1)-dir(g,i,-1)) > epsilon)
+    if((cyclic(g) || i > 0) && abs(dir(g,i,1)-dir(g,i,-1)) > epsilon)
       tube.append(shift(point(g,i))*t*align(dir(g,i,-1))*unithemisphere);
   }
   return tube;

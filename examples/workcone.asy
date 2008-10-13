@@ -18,7 +18,7 @@ real x2=r*s2/h;
 
 path3 p=(0,0,0)--(x,0,s);
 revolution a=revolution(p,Z);
-draw(surface(a),lightblue+opacity(0.5));
+draw(surface(a,4),lightblue+opacity(0.5));
 
 path3 q=(x,0,s)--(r,0,h);
 revolution b=revolution(q,Z);
