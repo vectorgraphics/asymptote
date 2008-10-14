@@ -416,9 +416,14 @@ struct surface {
       path3 r=reverse(h);
       triple max=max(h);
       triple min=min(h);
-      triple perp=max-c;
-      if(abs(perp) < epsilon*max(abs(max),abs(min))) perp=min-c;
-      perp=unit(perp-dot(perp,axis)*axis);
+      triple perp(triple m) {
+	static real epsilon=sqrt(realEpsilon);
+	triple perp=m-c;
+	return unit(perp-dot(perp,axis)*axis);
+      }
+      triple perp=perp(max);
+      if(abs(perp) < epsilon*max(abs(max),abs(min)))
+	perp=perp(min);
       triple normal=cross(axis,perp);
       triple dir(real j) {return Cos(j)*normal-Sin(j)*perp;}
       real j=angle1;
