@@ -1,8 +1,6 @@
 import three;
 import graph3;
 
-int nslice=12;
-
 // A solid geometry package.
 
 // Try to find a bounding tangent line between two paths.
@@ -114,41 +112,7 @@ struct revolution {
   // An optional surface pen color(int i, real j) may be specified
   // to override the color at vertex(i,j).
   surface surface(int n=nslice, pen color(int i, real j)=null) {
-    real w=(angle2-angle1)/n;
-    int L=length(g);
-    surface s=three.surface(L*n);
-    int m=-1;
-    transform3[] T=new transform3[n+1];
-    transform3 t=rotate(w,c,c+axis);
-    T[0]=rotate(angle1,c,c+axis);
-    for(int k=1; k <= n; ++k)
-      T[k]=T[k-1]*t;
-
-    for(int i=0; i < L; ++i) {
-      path3 h=subpath(g,i,i+1);
-      path3 r=reverse(h);
-      triple max=max(h);
-      triple min=min(h);
-      triple perp=max-c;
-      if(abs(perp) < epsilon*max(abs(max),abs(min))) perp=min-c;
-      perp=unit(perp-dot(perp,axis)*axis);
-      triple normal=cross(axis,perp);
-      triple dir(real j) {return Cos(j)*normal-Sin(j)*perp;}
-      real j=angle1;
-      transform3 Tk=T[0];
-      triple dirj=dir(j);
-      for(int k=0; k < n; ++k, j += w) {
-	transform3 Tp=T[k+1];
-	triple dirp=dir(j+w);
-	path3 G=Tk*h{dirj}..{dirp}Tp*r{-dirp}..{-dirj}cycle;
-	Tk=Tp;
-	dirj=dirp;
-        s.s[++m]=color == null ? patch(G) :
-	  patch(G,new pen[] {color(i,j),color(i+1,j),color(i+1,j+w),
-			     color(i,j+w)});
-      }
-    }
-    return s;
+    return surface(c,g,axis,n,angle1,angle2,color);
   }
 
   path3 slice(real position, int n=nCircle) {

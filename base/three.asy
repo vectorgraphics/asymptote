@@ -935,6 +935,21 @@ path3[] path3(explicit path[] g, triple plane(pair)=XYplane)
   return sequence(new path3(int i) {return path3(g[i],plane);},g.length);
 }
 
+// Construct a path from a path3 by applying P to each control point.
+path path(path3 p, pair P(triple)=xypart)
+{
+  path op=P(point(p,0));
+  real n=length(p);
+  for(int i=1; i < n; ++i)
+    op=op..controls P(postcontrol(p,i-1)) and P(precontrol(p,i))
+      ..P(point(p,i));
+  
+  pair post=P(postcontrol(p,n-1));
+  pair pre=P(precontrol(p,n));
+  return cyclic(p) ? op..controls post and pre..cycle :
+    op..controls post and pre..P(point(p,n));
+}
+
 void write(file file, string s="", explicit path3 x, suffix suffix=none)
 {
   write(file,s);

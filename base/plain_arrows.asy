@@ -45,7 +45,8 @@ real[] arrowbasepoints(path base, path left, path right)
 
 path arrowbase(path r, pair y, real t, real size)
 {
-  return size == 0 ? y : y+2*size*I*dir(r,t)--y-2*size*I*dir(r,t);
+  pair perp=2*size*I*dir(r,t);
+  return size == 0 ? y : y+perp--y-perp;
 }
 
 arrowhead DefaultHead;
