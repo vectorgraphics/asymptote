@@ -365,10 +365,19 @@ static double ds(double t)
 }
 
 // Calculates arclength of a cubic using adaptive simpson integration.
-double cubiclength(const triple& z0, const triple& c0,
-		   const triple& c1, const triple& z1, double goal=-1)
+double path3::cubiclength(Int i, double goal) const
 {
-  double L,integral;
+  const triple& z0=point(i);
+  const triple& z1=point(i+1);
+  double L;
+  if(straight(i)) {
+    L=(z1-z0).length();
+    return (goal < 0 || goal >= L) ? L : -goal/L;
+  }
+  const triple& c0=postcontrol(i);
+  const triple& c1=precontrol(i+1);
+  
+  double integral;
   derivative(a,b,c,z0,c0,c1,z1);
   
   if(!simpson(integral,ds,0.0,1.0,DBL_EPSILON,1.0))
@@ -384,20 +393,21 @@ double cubiclength(const triple& z0, const triple& c0,
   return -t;
 }
 
-double path3::arclength() const {
+double path3::arclength() const
+{
   if (cached_length != -1) return cached_length;
 
   double L=0.0;
   for (Int i = 0; i < n-1; i++) {
-    L += cubiclength(point(i),postcontrol(i),precontrol(i+1),point(i+1));
+    L += cubiclength(i);
   }
-  if(cycles) L += cubiclength(point(n-1),postcontrol(n-1),precontrol(n),
-			      point(n));
+  if(cycles) L += cubiclength(n-1);
   cached_length = L;
   return cached_length;
 }
 
-double path3::arctime(double goal) const {
+double path3::arctime(double goal) const
+{
   if (cycles) {
     if (goal == 0 || cached_length == 0) return 0;
     if (goal < 0)  {
@@ -419,7 +429,7 @@ double path3::arctime(double goal) const {
     
   double l,L=0;
   for (Int i = 0; i < n-1; i++) {
-    l = cubiclength(point(i),postcontrol(i),precontrol(i+1),point(i+1),goal);
+    l = cubiclength(i,goal);
     if (l < 0)
       return (-l+i);
     else {
@@ -430,7 +440,7 @@ double path3::arctime(double goal) const {
     }
   }
   if (cycles) {
-    l = cubiclength(point(n-1),postcontrol(n-1),precontrol(n),point(n),goal);
+    l = cubiclength(n-1,goal);
     if (l < 0)
       return -l+n-1;
     if (cached_length > 0 && cached_length != L+l) {

@@ -288,6 +288,7 @@ public:
     box.addnonempty(point(i),times,(double) i);
   }
 
+  double cubiclength(Int i, double goal=-1) const;
   double arclength () const;
   double arctime (double l) const;
  
