@@ -364,7 +364,7 @@ double *copyArray2C(array *a, bool square=true, size_t dim2=0)
 {
   size_t n=checkArray(a);
   size_t m=(square || n == 0) ? n : checkArray(read<array*>(a,0));
-  if(dim2 && m != dim2) {
+  if(n > 0 && dim2 && m != dim2) {
     ostringstream buf;
     buf << "second matrix dimension must be " << dim2 << endl;
     error(buf);
@@ -2748,10 +2748,10 @@ void _draw(picture *f, path3 g, pen p)
 }
 
 void draw(picture *f, triplearray2 *g, bool straight, penarray *p, real opacity,
-	  real shininess, real granularity, triple normal, bool lighton)
+	  real shininess, real granularity, triple normal)
 {
   f->append(new drawSurface(*g,straight,*p,opacity,shininess,granularity,
-			    normal,lighton));
+			    normal));
 }
 
 triple min3(picture *f)

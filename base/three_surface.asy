@@ -497,7 +497,7 @@ void draw3D(frame f, patch s, material m, light light=currentlight)
     m=emissive(m);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
   draw(f,s.P,s.straight,m.p,m.opacity,m.shininess,granularity,
-       -s.normal(0.5,0.5),light.on());
+       -s.normal(0.5,0.5));
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,
@@ -510,7 +510,7 @@ void tensorshade(transform t=identity(), frame f, patch s,
 
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
-	  light light=currentlight, light meshlight=nolight,
+	  light light=currentlight, light meshlight=light,
 	  projection P=currentprojection)
 {
   bool mesh=!invisible(meshpen);
@@ -568,7 +568,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
-	  light light=currentlight, light meshlight=nolight)
+	  light light=currentlight, light meshlight=light)
 {
   if(s.empty()) return;
 

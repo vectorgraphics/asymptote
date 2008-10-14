@@ -303,7 +303,7 @@ surface surface(revolution r, int n=nslice, pen color(int i, real j)=null)
 void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
 	  pen frontpen=currentpen, pen backpen=frontpen,
 	  pen longitudinalpen=frontpen, pen longitudinalbackpen=backpen,
-	  light light=nolight, projection P=currentprojection)
+	  light light=currentlight, projection P=currentprojection)
 {
   pen thin=is3D() ? thin() : defaultpen;
   skeleton s=r.skeleton(m,n,P);

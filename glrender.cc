@@ -313,7 +313,7 @@ void display(void)
   
   bool twosided=settings::getSetting<bool>("twosided");
   
-  double size2=hypot(Width,Height)/Zoom;
+  double size2=hypot(Width,Height);
   
   // Render opaque objects
   Picture->render(nurb,size2,m,M,perspective,false,twosided);

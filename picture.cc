@@ -677,10 +677,9 @@ bool picture::shipout3(const string& prefix, const string& format,
 #ifdef HAVE_LIBGLUT
   bounds3();
   
-  triple size3=b3.Max()-b3.Min();
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->fraction(size3);
+    (*p)->displacement();
   }
 
   string outputformat=format.empty() ? getSetting<string>("outformat") : format;

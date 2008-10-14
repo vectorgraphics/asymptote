@@ -334,14 +334,6 @@ void intersections(std::vector<double>& S, path3& g,
 // Concatenates two path3s into a new one.
 path3 concat(const path3& p1, const path3& p2);
 
-// estimate the viewport fraction associated with the displacement d
-inline double fraction(const triple& d, const triple& size)
-{
-  double s=fabs(d.getx()*size.getx())+fabs(d.gety()*size.gety())+
-    fabs(d.getz()*size.getz());
-  return s != 0.0 ? min((d.abs2()/s),1.0) : 0.0;
-}
-
 // return the perpendicular displacement of a point z from the line through 
 // points p and q.
 inline triple displacement(const triple& z, const triple& p, const triple& q)

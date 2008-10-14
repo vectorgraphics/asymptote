@@ -8,7 +8,7 @@
 
 namespace camp {
 
-const double pixelfactor2=1.25; // Adaptive rendering constant.
+const double pixel=1.0; // Adaptive rendering constant.
 
 using vm::array;
 triple drawSurface::c3[];
@@ -106,19 +106,23 @@ inline triple displacement2(const Triple& z, const Triple& u, const triple& n)
   return n != triple(0,0,0) ? dot(Z,n)*n : Z;
 }
 
-inline double fraction(const Triple& z0, const Triple& c0,
-		       const Triple& c1, const Triple& z1,
-		       const triple& size3)
+inline triple maxabs(triple u, triple v)
+{
+  return triple(max(fabs(u.getx()),fabs(v.getx())),
+		max(fabs(u.gety()),fabs(v.gety())),
+		max(fabs(u.getz()),fabs(v.getz())));
+}
+
+inline triple displacement(const Triple& z0, const Triple& c0,
+			   const Triple& c1, const Triple& z1)
 {
   triple Z0(z0[0],z0[1],z0[2]);
   triple Z1(z1[0],z1[1],z1[2]);
-  return max(camp::fraction(displacement(triple(c0[0],c0[1],c0[2]),Z0,Z1),
-			    size3),
-	     camp::fraction(displacement(triple(c1[0],c1[1],c1[2]),Z0,Z1),
-			    size3));
+  return maxabs(displacement(triple(c0[0],c0[1],c0[2]),Z0,Z1),
+		displacement(triple(c1[0],c1[1],c1[2]),Z0,Z1));
 }
 
-void drawSurface::fraction(const triple& size3)
+void drawSurface::displacement()
 {
 #ifdef HAVE_LIBGLUT
   for(int i=0; i < 16; ++i)
@@ -126,27 +130,40 @@ void drawSurface::fraction(const triple& size3)
 
   static const triple zero;
   havenormal=normal != zero;
-  if(havenormal)
+  if(havenormal) {
     store(Normal,normal);
-  
-  f=0;
-  if(!straight) {
-    for(int i=1; i < 16; ++i) 
-      f=camp::max(f,camp::fraction(displacement2(controls[i],controls[0],
-						 normal),size3));
-    fperp=f;
+    d=zero;
     
-    for(int i=0; i < 4; ++i)
-      f=camp::max(f,camp::fraction(controls[4*i],controls[4*i+1],
-				   controls[4*i+2],controls[4*i+3],size3));
-    for(int i=0; i < 4; ++i)
-      f=camp::max(f,camp::fraction(controls[i],controls[i+4],controls[i+8],
-				   controls[i+12],size3));
-    f *= pixelfactor2;
+    if(!straight) {
+      for(int i=1; i < 16; ++i) 
+	d=camp::maxabs(d,camp::displacement2(controls[i],controls[0],normal));
+      
+      dperp=d;
+    
+      for(int i=0; i < 4; ++i)
+	d=camp::maxabs(d,camp::displacement(controls[4*i],controls[4*i+1],
+					    controls[4*i+2],controls[4*i+3]));
+      for(int i=0; i < 4; ++i)
+	d=camp::maxabs(d,camp::displacement(controls[i],controls[i+4],
+					    controls[i+8],controls[i+12]));
+    }
   }
 #endif  
 }
   
+inline double fraction(double d, double size)
+{
+  return size == 0 ? 1.0 : min(fabs(d)/size,1.0);
+}
+
+// estimate the viewport fraction associated with the displacement d
+inline double fraction(const triple& d, const triple& size)
+{
+  return max(max(fraction(d.getx(),size.getx()),
+		 fraction(d.gety(),size.gety())),
+	     fraction(d.getz(),size.getz()));
+}
+
 void drawSurface::render(GLUnurbs *nurb, double size2,
 			 const triple& Min, const triple& Max,
 			 double perspective, bool transparent, bool twosided)
@@ -207,11 +224,15 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
-  if((!straight && (granularity == 0 || f*size2 >= 1.5)) || !havenormal) {
+  triple size3=Max-Min;
+  double f=fraction(d,size3);
+  double fperp=fraction(dperp,size3);
+    
+  if(!havenormal || !straight && (f*size2 >= pixel || granularity == 0)) {
     if(havenormal && fperp*size2 <= 0.1) {
       glNormal3fv(Normal);
       gluNurbsCallback(nurb,GLU_NURBS_NORMAL,NULL);
-    } else 
+    } else
       gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
     static GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
     gluBeginSurface(nurb);

@@ -138,8 +138,8 @@ public:
     return true;
   }
 
-  // Compute fraction of 3D bounding box occupied by each surface.
-  virtual void fraction(const triple& size3) {}
+  // Used to compute deviation of a surface from a quadrilateral.
+  virtual void displacement() {}
 
   // Render with OpenGL
   virtual void render(GLUnurbs *nurb, double size2, 
