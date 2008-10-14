@@ -391,7 +391,7 @@ struct transformation {
 }
 
 struct projection {
-  transform3 t; // T.projection*T.modelview (cached)
+  transform3 t; // projection*modelview (cached)
   bool infinity;
   bool oblique;
   bool absolute=false;
@@ -408,6 +408,7 @@ struct projection {
     t=T.compute();
     infinity=T.infinity;
     oblique=T.oblique;
+    ninterpolate=infinity ? 1 : 16;
   }
 
   transformation transformation() {
@@ -421,16 +422,9 @@ struct projection {
   }
 
   void operator init(triple camera, triple up=(0,0,1), triple target=(0,0,0),
-		     bool infinity=true, projector projector) {
-    if(infinity) {
-      this.camera=unit(camera);
-      this.target=(0,0,0);
-      ninterpolate=1;
-    } else {
-      this.camera=camera;
-      this.target=target;
-      ninterpolate=16;
-    }
+		     projector projector) {
+    this.camera=camera;
+    this.target=target;
     this.up=up;
     this.projector=projector;
     calculate();
@@ -461,11 +455,10 @@ struct projection {
     return d;
   }
    
-  void update() {
-    if(!infinity) {
-      write("adjusting camera to ",camera);
-      calculate();
-    }
+  void update(transform3 t=null) {
+    if(!infinity)
+      write("adjusting camera to ",alias(t,null) ? camera : inverse(t)*camera);
+    calculate();
   }
   
   // Check if v is on or behind the clipping plane.
@@ -474,21 +467,21 @@ struct projection {
   }
 
   // Move the camera so that v is on or in front of clipping plane.
-  void adjust(triple v) {
+  void adjust(triple v, transform3 t=null) {
     if(!absolute && behind(v)) {
       camera=target+abs(v-target)*unit(camera-target);
-      update();
+      update(t);
     }
   }
   
   // Move the camera so that the box(m,M) rotated about target will always
   // lie in front of the clipping plane.
-  void adjust(triple m, triple M) {
+  void adjust(triple m, triple M, transform3 t=null) {
     triple v=camera-target;
     real d=distance(m,M);
     if(d > v.z) {
       camera=target+2*d*unit(v);
-      update();
+      update(t);
     }
   }
 }

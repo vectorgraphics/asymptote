@@ -213,7 +213,7 @@ pair project(triple v, projection P=currentprojection)
 // perpendicular to the vector camera-target.
 projection perspective(triple camera, triple up=Z, triple target=O)
 {
-  return projection(camera,up,target,infinity=false,
+  return projection(camera,up,target,
                     new transformation(triple camera, triple up, triple target)
                     {return transformation(look(camera,up,target),
 					   distort(camera-target));});
@@ -449,7 +449,7 @@ struct flatguide3 {
   Tension[] Tension; // Tension parameters for segment starting at node
   dir[] in,out;      // in and out directions for segment starting at node
 
-  bool cyclic() {return cyclic[cyclic.length-1];}
+  bool cyclic() {int n=cyclic.length; return n > 0 ? cyclic[n-1] : false;}
   
   int size() {
     return cyclic() ? nodes.length-1 : nodes.length;
@@ -938,16 +938,18 @@ path3[] path3(explicit path[] g, triple plane(pair)=XYplane)
 // Construct a path from a path3 by applying P to each control point.
 path path(path3 p, pair P(triple)=xypart)
 {
-  path op=P(point(p,0));
   real n=length(p);
+  if(n < 0) return nullpath;
+  guide g=P(point(p,0));
+  if(n == 0) return g;
   for(int i=1; i < n; ++i)
-    op=op..controls P(postcontrol(p,i-1)) and P(precontrol(p,i))
+    g=g..controls P(postcontrol(p,i-1)) and P(precontrol(p,i))
       ..P(point(p,i));
   
   pair post=P(postcontrol(p,n-1));
   pair pre=P(precontrol(p,n));
-  return cyclic(p) ? op..controls post and pre..cycle :
-    op..controls post and pre..P(point(p,n));
+  return cyclic(p) ? g..controls post and pre..cycle :
+    g..controls post and pre..P(point(p,n));
 }
 
 void write(file file, string s="", explicit path3 x, suffix suffix=none)
@@ -955,7 +957,8 @@ void write(file file, string s="", explicit path3 x, suffix suffix=none)
   write(file,s);
   int n=size(x);
   if(n == 0) write("<nullpath3>");
-  else for(int i=0; i < n-1; ++i) {
+  else {
+    for(int i=0; i < n-1; ++i) {
       write(file,point(x,i));
       if(i < length(x)) {
         if(straight(x,i)) write(file,"--");
@@ -968,10 +971,11 @@ void write(file file, string s="", explicit path3 x, suffix suffix=none)
         }
       }
     }
-  if(cyclic(x))
-    write(file,"cycle",suffix);
-  else
-    write(file,point(x,n-1),suffix);
+    if(cyclic(x))
+      write(file,"cycle",suffix);
+    else
+      write(file,point(x,n-1),suffix);
+  }
 }
 
 void write(string s="", explicit path3 x, suffix suffix=endl)
@@ -1691,6 +1695,7 @@ triple normal(path3 p)
   }
 
   int L=length(p);
+  if(L <= 0) return O;
   z0=point(p,0);
   for(int i=0; i < L; ++i) {
     triple c0=postcontrol(p,i);
@@ -1934,7 +1939,7 @@ object embed(string prefix=defaultfilename, picture pic, string format="",
         f=pic.fit3(t,is3D ? null : pic2,P);
       }
 
-      P.adjust(min3(f),max3(f));
+      P.adjust(min3(f),max3(f),t);
 
       transform3 modelview=P.modelview();
       f=modelview*f;

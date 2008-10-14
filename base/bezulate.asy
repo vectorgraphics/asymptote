@@ -212,9 +212,9 @@ path[] bezulate(path[] p)
     path p=result[i];
     int refinements=0;
     static int maxR=ceil(-log(realEpsilon)/log(2))+1;
-    if(!cyclic(p)) {
+    if(size(p) <= 1) return p;
+    if(!cyclic(p))
       abort("path must be cyclic and non-self-intersecting.");
-    }
     p=removeDuplicates(p);
     if(length(p) > 4) {
       real SIZE_STEPS = 10;

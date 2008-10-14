@@ -194,10 +194,12 @@ struct patch {
   // arrays of 4 internal points, and for the corners, 4 normals and 4 pens.
   void operator init(path3 external, triple[] internal=new triple[],
                      triple[] normals=new triple[], pen[] colors=new pen[]) {
-    if(!cyclic(external) || length(external) != 4)
+    init();
+    int L=length(external);
+    if(L == 0) return;
+    if(!cyclic(external) || L != 4)
       abortcyclic();
 
-    init();
     if(normals.length != 0)
       this.normals=copy(normals);
     if(colors.length != 0)
@@ -349,7 +351,9 @@ struct surface {
   // A constructor for a (possibly) nonconvex cyclic path of length 4 that
   // returns an array of one or two surfaces in a given plane.
   void operator init (path g, triple plane(pair)=XYplane) {
-    if(!cyclic(g) || length(g) != 4)
+    int L=length(g);
+    if(L == 0) return;
+    if(!cyclic(g) || L != 4)
       abortcyclic();
     for(int i=0; i < 4; ++i) {
       pair z=point(g,i);
@@ -470,13 +474,13 @@ surface operator * (transform3 t, surface s)
 }
 
 // Construct a surface from a planar path3.
-surface planar(path3 p3)
+surface planar(path3 p)
 {
-  transform3 T=align(normal(p3));
-  p3=transpose(T)*p3;
-  real h=point(p3,0).z;
-  path p2=path(shift(0,0,-h)*p3);
-  return T*shift(0,0,h)*surface(bezulate(p2));
+  if(length(p) < 0) return new surface;
+  transform3 T=align(normal(p));
+  p=transpose(T)*p;
+  real h=point(p,0).z;
+  return T*shift(0,0,h)*surface(bezulate(path(shift(0,0,-h)*p)));
 }
 
 private string nullsurface="null surface";

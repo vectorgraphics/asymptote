@@ -1067,17 +1067,19 @@ ostream& operator<< (ostream& out, const path& p)
   Int n = p.n;
   if(n == 0)
     out << "<nullpath>";
-  else for(Int i = 0; i < n-1; i++) {
+  else {
+    for(Int i = 0; i < n-1; i++) {
       out << p.point(i);
       if(p.straight(i)) out << "--";
       else
 	out << ".. controls " << p.postcontrol(i) << " and "
 	    << p.precontrol(i) << newl << " ..";
     }
-  if(p.cycles) 
-    out << "cycle";
-  else
-    out << p.point(n-1);
+    if(p.cycles) 
+      out << "cycle";
+    else
+      out << p.point(n-1);
+  }
   return out;
 }
 
