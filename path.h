@@ -298,6 +298,7 @@ public:
   // Return bounding box accounting for internal pen padding (but not pencap).
   bbox internalbounds(const bbox &padding) const;
   
+  double cubiclength(Int i, double goal=-1) const;
   double arclength () const;
   double arctime (double l) const;
   double directiontime(const pair& z) const;
