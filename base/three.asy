@@ -1983,6 +1983,7 @@ object embed(string prefix=defaultfilename, picture pic, string format="",
       triple margin=(factor,factor,0);
       M += margin; 
       m -= margin;
+      if(M.z >= 0) abort("camera too close");
 
       shipout3(prefix,f,preview ? nativeformat() : format,width,height,
                P.infinity ? 0 : angle,m,M,

@@ -486,8 +486,8 @@ struct projection {
   void adjust(triple m, triple M) {
     triple v=camera-target;
     real d=distance(m,M);
-    if(d > abs(v)) {
-      camera=target+d*unit(v);
+    if(d > v.z) {
+      camera=target+2*d*unit(v);
       update();
     }
   }
