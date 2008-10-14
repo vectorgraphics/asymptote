@@ -401,6 +401,7 @@ struct surface {
   void operator init(triple c, path3 g, triple axis, int n=nslice,
 		     real angle1=0, real angle2= 360,
 		     pen color(int i, real j)=null) {
+    axis=unit(axis);
     real w=(angle2-angle1)/n;
     int L=length(g);
     s=new patch[L*n];
@@ -419,11 +420,15 @@ struct surface {
       triple perp(triple m) {
 	static real epsilon=sqrt(realEpsilon);
 	triple perp=m-c;
-	return unit(perp-dot(perp,axis)*axis);
+	return perp-dot(perp,axis)*axis;
       }
       triple perp=perp(max);
-      if(abs(perp) < epsilon*max(abs(max),abs(min)))
+      real fuzz=epsilon*max(abs(max),abs(min));
+      if(abs(perp) < fuzz)
 	perp=perp(min);
+      if(abs(perp) < fuzz)
+	abort("Can't determine perpendicular vector");
+      perp=unit(perp);
       triple normal=cross(axis,perp);
       triple dir(real j) {return Cos(j)*normal-Sin(j)*perp;}
       real j=angle1;
