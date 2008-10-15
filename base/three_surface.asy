@@ -698,18 +698,6 @@ triple rectify(triple dir)
   return dir;
 }
 
-path[] align(path[] g, transform t=identity(), pair position,
-             pair align, pen p=currentpen)
-{
-  pair m=min(g);
-  pair M=max(g);
-  pair dir=rectify(inverse(t)*-align);
-  if(basealign(p) == 1)
-    dir -= (0,m.y/(M.y-m.y));
-  pair a=m+realmult(dir,M-m);
-  return shift(position+align*labelmargin(p))*t*shift(-a)*g;
-}
-
 path3[] align(path3[] g, transform3 t=identity4, triple position,
               triple align, pen p=currentpen)
 {

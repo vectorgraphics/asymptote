@@ -289,7 +289,7 @@ projection obliqueX=obliqueX(), obliqueY=obliqueY(), obliqueZ=obliqueZ();
 
 currentprojection=perspective(5,4,2);
 
-// Map pair z onto a triple by inverting the projection P onto the 
+// Map pair z to a triple by inverting the projection P onto the 
 // plane perpendicular to normal and passing through point.
 triple invert(pair z, triple normal, triple point,
               projection P=currentprojection)
@@ -301,6 +301,12 @@ triple invert(pair z, triple normal, triple point,
   real[] b={z.x*t[3][3]-t[0][3],z.y*t[3][3]-t[1][3],dot(normal,point)};
   real[] x=solve(A,b,warn=false);
   return x.length > 0 ? (x[0],x[1],x[2]) : P.camera;
+}
+
+// Map pair dir to a triple direction at point v on the projection plane.
+triple invert(pair dir, triple v, projection P=currentprojection)
+{
+  return invert(project(v,P)+dir,P.vector(),v,P)-v;
 }
 
 pair xypart(triple v)
@@ -2270,6 +2276,14 @@ void arrow(picture pic=currentpicture, Label L="", triple b, triple dir,
   picture opic;
   draw(opic,L,length*unit(dir)--O,align,p,arrow);
   add(pic,opic,b);
+}
+
+void arrow(picture pic=currentpicture, Label L="", triple b, pair dir,
+           real length=arrowlength, align align=NoAlign,
+           pen p=currentpen, arrowbar3 arrow=Arrow3,
+	   projection P=currentprojection)
+{
+  arrow(pic,L,b,invert(dir,b,P),length,align,p,arrow);
 }
 
 triple size3(picture pic, projection P=currentprojection)

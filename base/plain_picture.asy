@@ -356,6 +356,18 @@ pair point(frame f, pair dir)
   return m+realmult(rectify(dir),M-m);
 }
 
+path[] align(path[] g, transform t=identity(), pair position,
+             pair align, pen p=currentpen)
+{
+  pair m=min(g);
+  pair M=max(g);
+  pair dir=rectify(inverse(t)*-align);
+  if(basealign(p) == 1)
+    dir -= (0,m.y/(M.y-m.y));
+  pair a=m+realmult(dir,M-m);
+  return shift(position+align*labelmargin(p))*t*shift(-a)*g;
+}
+
 // Returns a transform for aligning frame f in the direction align
 transform shift(frame f, pair align) 
 {
