@@ -4,7 +4,7 @@ light arrowheadlight() {
 
 // transformation that bends points along a path
 // assumes that p.z is in [0,scale]
-private triple bend(triple p, path3 g, real scale=1, real endtime=length(g))
+triple bend(triple p, path3 g, real scale=1, real endtime=length(g))
 {
   real time=arctime(g,arclength(subpath(g,0,endtime))+(p.z-scale));
   triple dir=dir(g,time);
@@ -28,6 +28,17 @@ private triple bend(triple p, path3 g, real scale=1, real endtime=length(g))
     {0,0,0,1}
   };
   return shift(q-t*(0,0,p.z))*t*p;
+}
+
+void bend(surface s, path3 g, real L) 
+{
+  for(patch p : s.s) {
+    for(int i=0; i < 4; ++i) {
+      for(int j=0; j < 4; ++j) {
+	p.P[i][j]=bend(p.P[i][j],g,L,1);
+      }
+    }
+  }
 }
 
 private real takeStep(path3 s, real endtime, real width)
@@ -68,13 +79,7 @@ surface tube(path3 g, real width)
         path3 si=subpath(s,endtime,newend);
         real L=arclength(si);
         surface segment=scale(r,r,L)*unitcylinder;
-        for(patch p : segment.s) {
-          for(int i=0; i < 4; ++i) {
-            for(int j=0; j < 4; ++j) {
-              p.P[i][j]=bend(p.P[i][j],si,L,1);
-            }
-          }
-        }
+	bend(segment,si,L);
         tube.s.append(segment.s);
         endtime=newend;
       }
@@ -91,6 +96,7 @@ struct arrowhead3
   surface head(path3 g, position position, pen p=currentpen,
                real size=0, real angle=arrowangle);
   real size(pen p)=arrowsize;
+  real gap=1;
 }
 
 arrowhead3 DefaultHead3;
@@ -111,15 +117,14 @@ DefaultHead3.head=new surface(path3 g, position position=EndPoint,
   bool straight1=n == 1 && straight(g,0);
   real L=arclength(s);
   real wl=Tan(angle);
-  real width=L*wl; // make sure this is not zero
-  real remainL=L;
-
+  real width=L*wl;
   surface head;
   if(straight1) {
     triple v=point(s,0);
     triple u=point(s,1)-v;
     return shift(v)*align(unit(u))*scale(width,width,abs(u))*unitsolidcone;
   } else {
+    real remainL=L;
     for(int i=0; i < n; ++i) {
       path3 s=subpath(s,i,i+1);
       real endtime=0;
@@ -148,6 +153,119 @@ DefaultHead3.head=new surface(path3 g, position position=EndPoint,
   }
   return head;
 };
+
+real[] arrowbasepoints(path3 base, path3 left, path3 right)
+{
+  real[][] Tl=transpose(intersections(left,base));
+  real[][] Tr=transpose(intersections(right,base));
+  return new real[] {Tl.length > 0 ? Tl[0][0] : 1,
+      Tr.length > 0 ? Tr[0][0] : 1};
+}
+
+path3 arrowbase(path3 r, triple y, real t, real size)
+{
+  triple perp=2*size*perp(dir(r,t));
+  return size == 0 ? y : y+perp--y-perp;
+}
+
+// Refine a noncyclic path3 g so that it approaches its endpoint slowly.
+path3 approach(path3 g, int n, real radix=3)
+{
+  guide3 G;
+  real L=length(g);
+  real tlast=0;
+  real r=1/radix;
+  for(int i=1; i < n; ++i) {
+    real t=L*(1-r^i);
+    G=G&subpath(g,tlast,t);
+    tlast=t;
+ }
+  return G&subpath(g,tlast,L);
+}
+
+arrowhead3 TeXHead3;
+
+TeXHead.size=new real(pen p)
+{
+  static real hcoef=2.1; // 84/40=abs(base-hint)/base_height
+  return hcoef*arrowtexfactor*linewidth(p);
+};
+
+TeXHead3.gap=0.14;
+
+TeXHead3.head=new surface(path3 g, position position=EndPoint,
+			     pen p=currentpen, real size=0,
+			     real angle=arrowangle)
+{
+  if(size == 0) size=TeXHead3.size(p);
+  bool relative=position.relative;
+  real position=position.position.x;
+  if(relative) position=reltime(g,position);
+
+  path3 r=subpath(g,position,0);
+  real t=arctime(r,size);
+  path3 s=subpath(r,t,0);
+  int n=length(s);	
+  bool straight1=n == 1 && straight(g,0);
+
+  surface head(real h) {
+    return surface(O,approach(subpath(path3(TeXHead.head((0,0)--(0,h),1),
+					    YZplane),5,0),8,1.5),Z);
+  }
+
+  if(straight1) {
+    triple v=point(s,0);
+    triple u=point(s,1)-v;
+     return shift(v)*align(unit(u))*head(abs(u));
+  } else {
+    real l=arclength(s);
+    surface segment=head(l);
+    bend(segment,s,l);
+    return segment;
+  }
+};
+
+arrowhead3 HookHead3(real dir=arrowdir, real barb=arrowbarb)
+{
+  arrowhead3 a;
+  a.head=new surface(path3 g, position position=EndPoint,
+		     pen p=currentpen, real size=0, real angle=arrowangle)
+{
+  if(size == 0) size=a.size(p);
+
+  angle=min(angle*arrowhookfactor,45);
+  bool relative=position.relative;
+  real position=position.position.x;
+  if(relative) position=reltime(g,position);
+
+  path3 r=subpath(g,position,0);
+  real t=arctime(r,size);
+  path3 s=subpath(r,t,0);
+  int n=length(s);	
+  bool straight1=n == 1 && straight(g,0);
+
+  surface head(real h) {
+    path3 H=path3(HookHead.head((0,0)--(0,h),1),YZplane);
+    return surface(O,reverse(approach(subpath(H,1,0),7,1.5))&
+		   approach(subpath(H,1,2),4,2),Z);
+  }
+
+  if(straight1) {
+    triple v=point(s,0);
+    triple u=point(s,1)-v;
+    return shift(v)*align(unit(u))*head(abs(u));
+  } else {
+    real l=arclength(s);
+    surface segment=head(l);
+    bend(segment,s,l);
+    return segment;
+  }
+};
+  a.gap=0.93;
+  return a;
+}
+
+arrowhead3 HookHead3=HookHead3();
 
 private real position(position position, real size, path3 g, bool center)
 {
@@ -184,7 +302,7 @@ void drawarrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
   size=min(arrowsizelimit*arclength(r),size);
   static real fuzz=sqrt(realEpsilon);
   if(!cyclic(g) && position > L-fuzz)
-    draw(pic,subpath(r,arctime(r,size),length(r)),p,light);
+    draw(pic,subpath(r,arctime(r,size*arrowhead.gap),length(r)),p,light);
   else draw(pic,g,p,light);
   draw(pic,arrowhead.head(g,position,q,size,angle),arrowheadpen,arrowheadlight);
  }
@@ -202,7 +320,8 @@ void drawarrow2(picture pic, arrowhead3 arrowhead=DefaultHead3,
 
   path3 r=reverse(g);
   int L=length(g);
-  draw(pic,subpath(r,arctime(r,size),L-arctime(g,size)),p,light);
+  real Size=size*arrowhead.gap;
+  draw(pic,subpath(r,arctime(r,Size),L-arctime(g,Size)),p,light);
   draw(pic,arrowhead.head(g,L,q,size,angle),arrowheadpen,arrowheadlight);
   draw(pic,arrowhead.head(r,L,q,size,angle),arrowheadpen,arrowheadlight);
 }

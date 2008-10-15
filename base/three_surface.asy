@@ -426,8 +426,6 @@ struct surface {
       real fuzz=epsilon*max(abs(max),abs(min));
       if(abs(perp) < fuzz)
 	perp=perp(min);
-      if(abs(perp) < fuzz)
-	abort("Can't determine perpendicular vector");
       perp=unit(perp);
       triple normal=cross(axis,perp);
       triple dir(real j) {return Cos(j)*normal-Sin(j)*perp;}
@@ -854,8 +852,9 @@ surface unitcone(int n=6)
 {
   surface unitcone;
   unitcone.s=new patch[4*n];
+  real r=1/3;
   for(int i=0; i < n; ++i) {
-    patch s=unitfrustum(i < n-1 ? 1/3^(i+1) : 0,1/3^i);
+    patch s=unitfrustum(i < n-1 ? r^(i+1) : 0,r^i);
     unitcone.s[i]=s;
     unitcone.s[n+i]=t*s;
     unitcone.s[2n+i]=t2*s;

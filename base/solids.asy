@@ -317,14 +317,7 @@ revolution cylinder(triple c=O, real r, real h, triple axis=Z)
 revolution cone(triple c=O, real r, real h, triple axis=Z, int n=nslice)
 {
   axis=unit(axis);
-  triple a=c+r*perp(axis);
-  triple b=c+h*axis;
-  path3 g=a;
-  for(int i=1; i < n; ++i)
-    g=g--interp(b,a,1/3^i);
-  g=g--b;
-
-  return revolution(c,g,axis);
+  return revolution(c,approach(c+r*perp(axis)--c+h*axis,n),axis);
 }
 
 // Return an approximate sphere of radius r centered at c obtained by rotating

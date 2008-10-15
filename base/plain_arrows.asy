@@ -98,8 +98,8 @@ SimpleHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
 arrowhead HookHead(real dir=arrowdir, real barb=arrowbarb)
 {
   arrowhead a;
-  a.head=new path(path g, position position, pen p=currentpen, real size=0,
-                  real angle=arrowangle)
+  a.head=new path(path g, position position=EndPoint, pen p=currentpen,
+		  real size=0, real angle=arrowangle)
     {
       if(size == 0) size=a.size(p);
       angle=min(angle*arrowhookfactor,45);
