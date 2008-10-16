@@ -218,6 +218,7 @@ struct revolution {
         d=r;
       }
     }
+    static real epsilon=10*epsilon;
     path3 S=slice(t,n);
     path3 Sm=slice(t+epsilon,n);
     path3 Sp=slice(t-epsilon,n);
