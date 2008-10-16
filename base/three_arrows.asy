@@ -4,7 +4,7 @@ light arrowheadlight() {
 
 // transformation that bends points along a path
 // assumes that p.z is in [0,scale]
-triple bend(triple p, path3 g, real time)
+triple bend0(triple p, path3 g, real time)
 {
   triple dir=dir(g,time);
   triple dir2=unit(cross(dir(g,0),dir(g,1)));
@@ -28,12 +28,12 @@ triple bend(triple p, path3 g, real time)
 
 triple bend(triple p, path3 g, real scale, real endtime)
 {
-  return bend(p,g,arctime(g,arclength(subpath(g,0,endtime))+p.z-scale));
+  return bend0(p,g,arctime(g,arclength(subpath(g,0,endtime))+p.z-scale));
 }
 
-triple bend0(triple p, path3 g, real scale)
+triple bend(triple p, path3 g, real scale)
 {
-  return bend(p,g,arctime(g,arclength(g)+p.z-scale));
+  return bend0(p,g,arctime(g,arclength(g)+p.z-scale));
 }
 
 void bend(surface s, path3 g, real L) 
@@ -41,7 +41,7 @@ void bend(surface s, path3 g, real L)
   for(patch p : s.s) {
     for(int i=0; i < 4; ++i) {
       for(int j=0; j < 4; ++j) {
-	p.P[i][j]=bend0(p.P[i][j],g,L);
+	p.P[i][j]=bend(p.P[i][j],g,L);
       }
     }
   }
@@ -146,7 +146,7 @@ DefaultHead3.head=new surface(path3 g, position position=EndPoint,
 	    for(int j=0; j < 4; ++j) {
 	      real k=1-p.P[i][j].z/remainL;
 	      p.P[i][j]=(k*p.P[i][j].x,k*p.P[i][j].y,p.P[i][j].z);
-	      p.P[i][j]=bend(p.P[i][j],si,l,1);
+	      p.P[i][j]=bend(p.P[i][j],si,l);
 	    }
 	  }
 	}
