@@ -170,10 +170,10 @@ public:
     triple z0=point(t-1);
     triple c0=postcontrol(t-1);
     double epsilon=norm(z0,c0,c1,z1);
-    if(dir.abs2() > epsilon) return unit(dir);
+    if(dir.abs2() > epsilon) return dir;
     dir=2*c1-c0-z1;
-    if(dir.abs2() > epsilon) return unit(dir);
-    return unit(z1-z0+3*(c0-c1));
+    if(dir.abs2() > epsilon) return dir;
+    return z1-z0+3*(c0-c1);
   }
 
   triple postdir(Int t) const {
@@ -184,14 +184,14 @@ public:
     triple z1=point(t+1);
     triple c1=precontrol(t+1);
     double epsilon=norm(z0,c0,c1,z1);
-    if(dir.abs2() > epsilon) return unit(dir);
+    if(dir.abs2() > epsilon) return dir;
     dir=z0-2*c0+c1;
-    if(dir.abs2() > epsilon) return unit(dir);
-    return unit(z1-z0+3*(c0-c1));
+    if(dir.abs2() > epsilon) return dir;
+    return z1-z0+3*(c0-c1);
   }
 
   triple dir(Int t, Int sign) const {
-    if(sign == 0) return unit(predir(t)+postdir(t));
+    if(sign == 0) return 0.5*(predir(t)+postdir(t));
     else if(sign > 0) return postdir(t);
     else return predir(t);
   }
@@ -203,7 +203,7 @@ public:
     }
     Int i=Floor(t);
     t -= i;
-    if(t == 0) return unit(postdir(i)+predir(i));
+    if(t == 0) return 0.5*(postdir(i)+predir(i));
     triple z0=point(i);
     triple c0=postcontrol(i);
     triple c1=precontrol(i+1);
@@ -213,10 +213,10 @@ public:
     triple c=c0-z0;
     triple dir=a*t*t+b*t+c;
     double epsilon=norm(z0,c0,c1,z1);
-    if(dir.abs2() > epsilon) return unit(dir);
+    if(dir.abs2() > epsilon) return dir;
     dir=2.0*a*t+b;
-    if(dir.abs2() > epsilon) return unit(dir);
-    return unit(a);
+    if(dir.abs2() > epsilon) return dir;
+    return 2.0*a;
   }
 
   triple postaccel(Int t) const {

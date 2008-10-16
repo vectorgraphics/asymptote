@@ -203,10 +203,10 @@ public:
     pair z0=point(t-1);
     pair c0=postcontrol(t-1);
     double epsilon=norm(z0,c0,c1,z1);
-    if(dir.abs2() > epsilon) return unit(dir);
+    if(dir.abs2() > epsilon) return dir;
     dir=2*c1-c0-z1;
-    if(dir.abs2() > epsilon) return unit(dir);
-    return unit(z1-z0+3*(c0-c1));
+    if(dir.abs2() > epsilon) return dir;
+    return z1-z0+3*(c0-c1);
   }
 
   pair postdir(Int t) const {
@@ -217,14 +217,14 @@ public:
     pair z1=point(t+1);
     pair c1=precontrol(t+1);
     double epsilon=norm(z0,c0,c1,z1);
-    if(dir.abs2() > epsilon) return unit(dir);
+    if(dir.abs2() > epsilon) return dir;
     dir=z0-2*c0+c1;
-    if(dir.abs2() > epsilon) return unit(dir);
-    return unit(z1-z0+3*(c0-c1));
+    if(dir.abs2() > epsilon) return dir;
+    return z1-z0+3*(c0-c1);
   }
 
   pair dir(Int t, Int sign) const {
-    if(sign == 0) return unit(predir(t)+postdir(t));
+    if(sign == 0) return 0.5*(predir(t)+postdir(t));
     else if(sign > 0) return postdir(t);
     else return predir(t);
   }
@@ -236,7 +236,7 @@ public:
     }
     Int i=Floor(t);
     t -= i;
-    if(t == 0) return unit(postdir(i)+predir(i));
+    if(t == 0) return 0.5*(postdir(i)+predir(i));
     pair z0=point(i);
     pair c0=postcontrol(i);
     pair c1=precontrol(i+1);
@@ -246,10 +246,10 @@ public:
     pair c=c0-z0;
     pair dir=a*t*t+b*t+c;
     double epsilon=norm(z0,c0,c1,z1);
-    if(dir.abs2() > epsilon) return unit(dir);
+    if(dir.abs2() > epsilon) return dir;
     dir=2.0*a*t+b;
-    if(dir.abs2() > epsilon) return unit(dir);
-    return unit(a);
+    if(dir.abs2() > epsilon) return dir;
+    return 2.0*a;
   }
 
   // Returns the path traced out in reverse.

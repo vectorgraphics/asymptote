@@ -1123,7 +1123,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
     case 'L':
       {
 	pair point=readpair(buf)-offset;
-	static const double third=1.0/3.0;
+	static const real third=1.0/3.0;
 	pair delta=(point-node.point)*third;
 	node.post=node.point+delta;
 	nodes.push_back(node);
@@ -1430,7 +1430,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 }
 
 void shipout3(string prefix, picture *f, string format=emptystring,
-	      double width, double height, double angle, triple m, triple M,
+	      real width, real height, real angle, triple m, triple M,
 	      triplearray *lights, realarray2 *diffuse, realarray2 *ambient,
 	      realarray2 *specular, bool viewportlighting,
 	      bool wait=false, bool view=true)
@@ -1440,9 +1440,9 @@ void shipout3(string prefix, picture *f, string format=emptystring,
   checkEqual(n,checkArray(specular));
   
   triple *Lights=copyTripleArrayC(lights);
-  double *Diffuse=copyArray2C(diffuse,false,4);  
-  double *Ambient=copyArray2C(ambient,false,4);
-  double *Specular=copyArray2C(specular,false,4);
+  real *Diffuse=copyArray2C(diffuse,false,4);  
+  real *Ambient=copyArray2C(ambient,false,4);
+  real *Specular=copyArray2C(specular,false,4);
   f->shipout3(prefix,format,width,height,angle,m,M,n,
 	      Lights,Diffuse,Ambient,Specular,viewportlighting,wait,view);
   delete[] Specular;
@@ -1480,7 +1480,7 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
   
   // Enforce ghostscript limitations.
   magnification=::max(magnification,0.0001);
-  double res=::min(::max(magnification*72.0,2.0),8192.0);
+  real res=::min(::max(magnification*72.0,2.0),8192.0);
   
   const char *converter=NULL, *hint=NULL;
   
@@ -1793,7 +1793,7 @@ bool adjust(pen p)
   return p.linetype().adjust;
 }
 
-pen adjust(pen p, double arclength, bool cyclic)
+pen adjust(pen p, real arclength, bool cyclic)
 {
   return adjustdash(p,arclength,cyclic);
 }
@@ -2071,14 +2071,16 @@ pair postcontrol(path p, real t)
   return p.postcontrol(t);
 }
 
-pair dir(path p, Int t, Int sign=0)
+pair dir(path p, Int t, Int sign=0, bool normalize=true)
 {
-  return p.dir(t,sign);
+  pair v=p.dir(t,sign);
+  return normalize ? unit(v) : v;
 }
 
-pair dir(path p, real t)
+pair dir(path p, real t, bool normalize=true)
 {
-  return p.dir(t);
+  pair v=p.dir(t);
+  return normalize ? unit(v) : v;
 }
 
 path reverse(path p)
@@ -2097,7 +2099,7 @@ path subpath(path p, real a, real b)
 }
 
 path nurb(pair z0, pair z1, pair z2, pair z3,
-	  double w0, double w1, double w2, double w3, Int m)
+	  real w0, real w1, real w2, real w3, Int m)
 {
   return nurb(z0,z1,z2,z3,w0,w1,w2,w3,m);
 }
@@ -2326,14 +2328,16 @@ triple postcontrol(path3 p, real t)
   return p.postcontrol(t);
 }
 
-triple dir(path3 p, Int t, Int sign=0)
+triple dir(path3 p, Int t, Int sign=0, bool normalize=true)
 {
-  return p.dir(t,sign);
+  triple v=p.dir(t,sign);
+  return normalize ? unit(v) : v;
 }
 
-triple dir(path3 p, real t)
+triple dir(path3 p, real t, bool normalize=true)
 {
-  return p.dir(t);
+  triple v=p.dir(t);
+  return normalize ? unit(v) : v;
 }
 
 triple accel(path3 p, Int t, Int sign=0)
@@ -2341,9 +2345,21 @@ triple accel(path3 p, Int t, Int sign=0)
   return p.accel(t,sign);
 }
 
-triple accel(path3 p, double t)
+triple accel(path3 p, real t)
 {
   return p.accel(t);
+}
+
+real radius(path3 p, real t)
+{
+  triple v=p.dir(t);
+  triple a=p.accel(t);
+  real d=dot(a,v);
+  real v2=v.abs2();
+  real a2=a.abs2();
+  real denom=v2*a2-d*d;
+  real r=v2*sqrt(v2);
+  return denom > 0 ? r/sqrt(denom) : 0.0;
 }
 
 path3 reverse(path3 p)
@@ -2766,7 +2782,7 @@ triple max3(picture *f)
 
 pair min(picture *f, realarray2 *t)
 {
-  double *T=copyArray2C(t,4);
+  real *T=copyArray2C(t,4);
   pair m=f->bounds(::min,xproject,yproject,T);
   delete[] T;
   return m;
@@ -2774,7 +2790,7 @@ pair min(picture *f, realarray2 *t)
 
 pair max(picture *f, realarray2 *t)
 {
-  double *T=copyArray2C(t,4);
+  real *T=copyArray2C(t,4);
   pair M=f->bounds(::max,xproject,yproject,T);
   delete[] T;
   return M;
@@ -2790,7 +2806,7 @@ pair maxratio(picture *f)
   return f->bounds(::max,xratio,yratio);
 }
 
-double minbound(realarray *a, double b)
+real minbound(realarray *a, real b)
 {
   real *A=copyArrayC(a,16);
   b=bound(A,::min,b);
@@ -2798,7 +2814,7 @@ double minbound(realarray *a, double b)
   return b;
 }
 
-double maxbound(realarray *a, double b)
+real maxbound(realarray *a, real b)
 {
   real *A=copyArrayC(a,16);
   b=bound(A,::max,b);
@@ -2809,7 +2825,7 @@ double maxbound(realarray *a, double b)
 pair minbound(triplearray *a, realarray2 *t, pair b)
 {
   triple *A=copyTripleArrayC(a,16);
-  double *T=copyArray2C(t,4);
+  real *T=copyArray2C(t,4);
   b=pair(bound(A,::min,xproject,T,b.getx()),
 	 bound(A,::min,yproject,T,b.gety()));
   delete[] T;
@@ -2820,7 +2836,7 @@ pair minbound(triplearray *a, realarray2 *t, pair b)
 pair maxbound(triplearray *a, realarray2 *t, pair b)
 {
   triple *A=copyTripleArrayC(a,16);
-  double *T=copyArray2C(t,4);
+  real *T=copyArray2C(t,4);
   b=pair(bound(A,::max,xproject,T,b.getx()),
 	 bound(A,::max,yproject,T,b.gety()));
   delete[] T;
@@ -2830,7 +2846,7 @@ pair maxbound(triplearray *a, realarray2 *t, pair b)
 
 pair max(path3 g, realarray2 *t)
 {
-  double *T=copyArray2C(t,4);
+  real *T=copyArray2C(t,4);
   pair b=g.bounds(::max,xproject,yproject,T);
   delete[] T;
   return b;
@@ -2838,7 +2854,7 @@ pair max(path3 g, realarray2 *t)
 
 pair min(path3 g, realarray2 *t)
 {
-  double *T=copyArray2C(t,4);
+  real *T=copyArray2C(t,4);
   pair b=g.bounds(::min,xproject,yproject,T);
   delete[] T;
   return b;
@@ -2853,13 +2869,13 @@ real change2(triplearray2 *a)
   size_t m=checkArray(a0);
   if(m == 0) return 0.0;
   triple a00=vm::read<triple>(a0,0);
-  double M=0.0;
+  real M=0.0;
     
   for(size_t i=0; i < n; ++i) {
     vm::array *ai=vm::read<vm::array*>(a,i);
     size_t m=checkArray(ai);
     for(size_t j=0; j < m; ++j) {
-      double a=(vm::read<triple>(ai,j)-a00).abs2();
+      real a=(vm::read<triple>(ai,j)-a00).abs2();
       if(a > M) M=a;
     }
   }
@@ -3225,7 +3241,7 @@ void srand(Int seed)
 // a random number uniformly distributed in the interval [0,1]
 real unitrand()
 {                         
-  return ((double) rand())/RAND_MAX;
+  return ((real) rand())/RAND_MAX;
 }
 
 Int ceil(real x)
@@ -4818,11 +4834,11 @@ pair project(triple v, realarray2 *t)
   if(checkArray(t0) != 4 || checkArray(t1) != 4 || checkArray(t3) != 4)
     error(incommensurate);
   
-  double x=v.getx();
-  double y=v.gety();
-  double z=v.getz();
+  real x=v.getx();
+  real y=v.gety();
+  real z=v.getz();
   
-  double f=read<real>(t3,0)*x+read<real>(t3,1)*y+read<real>(t3,2)*z+
+  real f=read<real>(t3,0)*x+read<real>(t3,1)*y+read<real>(t3,2)*z+
     read<real>(t3,3);
   if(f == 0.0) dividebyzero();
   f=1.0/f;

@@ -2151,14 +2151,14 @@ in the case where @code{p} is cyclic or else converted to the corresponding
 endpoint of @code{p}.
 
 @cindex @code{dir}
-@item pair dir(path p, int t, int sign=0);
+@item pair dir(path p, int t, int sign=0, int normalize=true);
 If @code{sign < 0}, return the direction (as a pair) of the incoming tangent 
 to path @code{p} at node @code{t}; if @code{sign > 0}, return the
 direction of the outgoing tangent. If @code{sign=0}, the mean of these
 two directions is returned. If @code{p} contains only one point,
 @code{(0,0)} is returned.
 
-@item pair dir(path p, real t);
+@item pair dir(path p, real t, int normalize=true);
 Return the direction of the tangent to path @code{p} at the point
 between node @code{floor(t)} and @code{floor(t)+1} corresponding to the
 cubic spline parameter @code{t-floor(t)} (@pxref{Bezier}).

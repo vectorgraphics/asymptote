@@ -47,18 +47,19 @@ void bend(surface s, path3 g, real L)
   }
 }
 
-private real takeStep(path3 s, real endtime, real width)
+private real takeStep(path3 s, real t, real width)
 {
-  real a=abs(accel(s,endtime));
-
-  // tweak this:
-  real K=1.25/width; // a different constant perhaps?
-  real minStep=1/50; // at most 1/minStep segments for a curve
-  real step=max(1/(K*a+1),minStep); // or a different model
-  a=abs(accel(s,(min(endtime+step,length(s))+endtime)/2));
-  step=max(1/(K*a+1),minStep);
-//  if(step > 0.25) step=0.25; // guarantee at least 4 segments per curve
-  return min(endtime+step,length(s));
+  int L=length(s);
+  real step(real t) {
+    static real K=0.15;
+    static real minStep=1/50; // at most 1/minStep steps per curve
+    real r=radius(s,t)/width;
+    return r > 0 ? max(arctime(s,max(K*r)),minStep) : 1;
+  }
+  real step=step(0.5*(min(t+step(t),length(s))+t));
+  real w=L-t;
+  if(step > 0.5*w && step < w) step=0.5*w;
+  return min(t+step,L);
 }
 
 surface tube(path3 g, real width)

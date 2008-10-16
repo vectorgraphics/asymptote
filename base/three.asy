@@ -1945,7 +1945,7 @@ object embed(string prefix=defaultfilename, picture pic, string format="",
         f=pic.fit3(t,is3D ? null : pic2,P);
       }
 
-      P.adjust(min3(f),max3(f),t);
+//      P.adjust(min3(f),max3(f),t);
 
       transform3 modelview=P.modelview();
       f=modelview*f;
