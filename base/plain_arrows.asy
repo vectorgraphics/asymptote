@@ -29,7 +29,7 @@ real barsize(pen p=currentpen)
 
 struct arrowhead
 {
-  path head(path g, position position, pen p=currentpen,
+  path head(path g, position position=EndPoint, pen p=currentpen,
             real size=0, real angle=arrowangle);
   real size(pen p)=arrowsize;
   filltype defaultfilltype=FillDraw;
