@@ -195,21 +195,21 @@ public:
 			   camp::max((c1-z0).abs2(),(z1-z0).abs2()));
   }
 
-  pair predir(Int t) const {
+  pair predir(Int t, bool normalize=true) const {
     if(!cycles && t <= 0) return pair(0,0);
     pair z1=point(t);
     pair c1=precontrol(t);
-    pair dir=z1-c1;
+    pair dir=3.0*(z1-c1);
     pair z0=point(t-1);
     pair c0=postcontrol(t-1);
     double epsilon=norm(z0,c0,c1,z1);
-    if(dir.abs2() > epsilon) return dir;
+    if(dir.abs2() > epsilon || !normalize) return dir;
     dir=2*c1-c0-z1;
     if(dir.abs2() > epsilon) return dir;
     return z1-z0+3*(c0-c1);
   }
 
-  pair postdir(Int t) const {
+  pair postdir(Int t, bool normalize=true) const {
     if(!cycles && t >= n-1) return pair(0,0);
     pair c0=postcontrol(t);
     pair z0=point(t);
@@ -223,30 +223,30 @@ public:
     return z1-z0+3*(c0-c1);
   }
 
-  pair dir(Int t, Int sign) const {
-    if(sign == 0) return 0.5*(predir(t)+postdir(t));
-    else if(sign > 0) return postdir(t);
-    else return predir(t);
+  pair dir(Int t, Int sign, bool normalize=true) const {
+    if(sign == 0) return 0.5*(predir(t,normalize)+postdir(t,normalize));
+    if(sign > 0) return postdir(t,normalize);
+    return predir(t,normalize);
   }
 
-  pair dir(double t) const {
+  pair dir(double t, bool normalize=true) const {
     if(!cycles) {
-      if(t <= 0) return postdir((Int) 0);
-      if(t >= n-1) return predir(n-1);
+      if(t <= 0) return postdir((Int) 0,normalize);
+      if(t >= n-1) return predir(n-1,normalize);
     }
     Int i=Floor(t);
     t -= i;
-    if(t == 0) return 0.5*(postdir(i)+predir(i));
+    if(t == 0) return 0.5*(postdir(i,normalize)+predir(i,normalize));
     pair z0=point(i);
     pair c0=postcontrol(i);
     pair c1=precontrol(i+1);
     pair z1=point(i+1);
-    pair a=z1-z0+3.0*(c0-c1);
-    pair b=2.0*(z0+c1)-4.0*c0;
-    pair c=c0-z0;
+    pair a=3.0*(z1-z0)+9.0*(c0-c1);
+    pair b=6.0*(z0+c1)-12.0*c0;
+    pair c=3.0*(c0-z0);
     pair dir=a*t*t+b*t+c;
     double epsilon=norm(z0,c0,c1,z1);
-    if(dir.abs2() > epsilon) return dir;
+    if(dir.abs2() > epsilon || !normalize) return dir;
     dir=2.0*a*t+b;
     if(dir.abs2() > epsilon) return dir;
     return 2.0*a;

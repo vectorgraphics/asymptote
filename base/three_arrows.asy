@@ -51,7 +51,7 @@ private real takeStep(path3 s, real t, real width)
 {
   int L=length(s);
   real step(real t) {
-    static real K=0.15;
+    static real K=0.025;
     static real minStep=1/50; // at most 1/minStep steps per curve
     real r=radius(s,t)/width;
     return r > 0 ? max(arctime(s,max(K*r)),minStep) : 1;

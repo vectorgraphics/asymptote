@@ -56,11 +56,6 @@ void drawSurface::bounds(bbox3& b)
   double zmin=bound(c1,min,b.empty ? c0 : min(c0,b.lower));
   double zmax=bound(c1,max,b.empty ? c0 : max(c0,b.upper));
     
-#ifdef HAVE_LIBGLUT
-  initMatrix(v1,xmin,ymin,zmin,ymax,zmax);
-  initMatrix(v2,xmax,ymin,zmin,ymax,zmax);
-#endif  
-  
   Min=triple(xmin,ymin,zmin);
   Max=triple(xmax,ymax,zmax);
     
@@ -125,6 +120,9 @@ inline triple displacement(const Triple& z0, const Triple& c0,
 void drawSurface::displacement()
 {
 #ifdef HAVE_LIBGLUT
+  initMatrix(v1,Min.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
+  initMatrix(v2,Max.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
+  
   for(int i=0; i < 16; ++i)
     store(c+3*i,controls[i]);
 

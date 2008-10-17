@@ -162,58 +162,58 @@ public:
 			   camp::max((c1-z0).abs2(),(z1-z0).abs2()));
   }
 
-  triple predir(Int t) const {
+  triple predir(Int t, bool normalize=true) const {
     if(!cycles && t <= 0) return triple(0,0,0);
     triple z1=point(t);
     triple c1=precontrol(t);
-    triple dir=z1-c1;
+    triple dir=3.0*(z1-c1);
     triple z0=point(t-1);
     triple c0=postcontrol(t-1);
     double epsilon=norm(z0,c0,c1,z1);
+    if(dir.abs2() > epsilon || !normalize) return dir;
+    dir=2.0*c1-c0-z1;
     if(dir.abs2() > epsilon) return dir;
-    dir=2*c1-c0-z1;
-    if(dir.abs2() > epsilon) return dir;
-    return z1-z0+3*(c0-c1);
+    return z1-z0+3.0*(c0-c1);
   }
 
-  triple postdir(Int t) const {
+  triple postdir(Int t, bool normalize=true) const {
     if(!cycles && t >= n-1) return triple(0,0,0);
     triple c0=postcontrol(t);
     triple z0=point(t);
-    triple dir=c0-z0;
+    triple dir=3.0*(c0-z0);
     triple z1=point(t+1);
     triple c1=precontrol(t+1);
     double epsilon=norm(z0,c0,c1,z1);
+    if(dir.abs2() > epsilon || !normalize) return dir;
+    dir=z0-2.0*c0+c1;
     if(dir.abs2() > epsilon) return dir;
-    dir=z0-2*c0+c1;
-    if(dir.abs2() > epsilon) return dir;
-    return z1-z0+3*(c0-c1);
+    return z1-z0+3.0*(c0-c1);
   }
 
-  triple dir(Int t, Int sign) const {
-    if(sign == 0) return 0.5*(predir(t)+postdir(t));
-    else if(sign > 0) return postdir(t);
-    else return predir(t);
+  triple dir(Int t, Int sign, bool normalize=true) const {
+    if(sign == 0) return 0.5*(predir(t,normalize)+postdir(t,normalize));
+    if(sign > 0) return postdir(t,normalize);
+    return predir(t,normalize);
   }
 
-  triple dir(double t) const {
+  triple dir(double t, bool normalize=true) const {
     if(!cycles) {
-      if(t <= 0) return postdir((Int) 0);
-      if(t >= n-1) return predir(n-1);
+      if(t <= 0) return postdir((Int) 0,normalize);
+      if(t >= n-1) return predir(n-1,normalize);
     }
     Int i=Floor(t);
     t -= i;
-    if(t == 0) return 0.5*(postdir(i)+predir(i));
+    if(t == 0) return 0.5*(postdir(i,normalize)+predir(i,normalize));
     triple z0=point(i);
     triple c0=postcontrol(i);
     triple c1=precontrol(i+1);
     triple z1=point(i+1);
-    triple a=z1-z0+3.0*(c0-c1);
-    triple b=2.0*(z0+c1)-4.0*c0;
-    triple c=c0-z0;
+    triple a=3.0*(z1-z0)+9.0*(c0-c1);
+    triple b=6.0*(z0+c1)-12.0*c0;
+    triple c=3.0*(c0-z0);
     triple dir=a*t*t+b*t+c;
     double epsilon=norm(z0,c0,c1,z1);
-    if(dir.abs2() > epsilon) return dir;
+    if(dir.abs2() > epsilon || !normalize) return dir;
     dir=2.0*a*t+b;
     if(dir.abs2() > epsilon) return dir;
     return 2.0*a;
@@ -238,8 +238,8 @@ public:
   
   triple accel(Int t, Int sign) const {
     if(sign == 0) return 0.5*(preaccel(t)+postaccel(t));
-    else if(sign > 0) return postaccel(t);
-    else return preaccel(t);
+    if(sign > 0) return postaccel(t);
+    return preaccel(t);
   }
 
   triple accel(double t) const {
