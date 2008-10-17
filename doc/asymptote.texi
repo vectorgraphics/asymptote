@@ -7178,10 +7178,12 @@ version 2008/10/08 or later of the @code{movie15} package from
 A stationary preview image with a resolution of @code{n} pixels per
 @code{bp} can be embedded with the setting @code{render=n}; this allows
 the file to be viewed with other @code{PDF} viewers. Alternatively, the
-file @code{externalprc.tex} illustrates how the resulting @code{PRC} and
+file @code{externalprc.tex} illustrates how the resulting @acronym{PRC} and
 rendered image files can be extracted and processed in a separate
 @code{LaTeX} file. However, see @ref{LaTeX usage} for an easier way
 to embed three-dimensional @code{Asymptote} pictures within @code{LaTeX}.
+The open-source @acronym{PRC} specification is available from
+@url{http://www.adobe.com/cfusion/entitlement/index.cfm?e=acrobat_prc_spec}
 
 @item Project the scene to a two-dimensional vector (@acronym{EPS} or
 @acronym{PDF}) format with @code{render=0}. Only limited hidden surface
