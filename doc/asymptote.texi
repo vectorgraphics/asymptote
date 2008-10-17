@@ -1900,7 +1900,7 @@ of the string @code{s}), or -1 if @code{t} is not a substring of @code{s};
 
 @cindex @code{insert}
 @item string insert(string s, int pos, string t)
-return the string formed by inserting string @code{t} at position
+returns the string formed by inserting string @code{t} at position
 @code{pos} in @code{s};
 
 @cindex @code{erase}
@@ -1917,7 +1917,7 @@ string @code{s});
 
 @cindex @code{reverse}
 @item string reverse(string s)
-return the string formed by reversing string @code{s};
+returns the string formed by reversing string @code{s};
 
 @item string replace(string s, string before, string after) 
 @cindex @code{replace}
@@ -2155,14 +2155,27 @@ endpoint of @code{p}.
 If @code{sign < 0}, return the direction (as a pair) of the incoming tangent 
 to path @code{p} at node @code{t}; if @code{sign > 0}, return the
 direction of the outgoing tangent. If @code{sign=0}, the mean of these
-two directions is returned. If @code{p} contains only one point,
-@code{(0,0)} is returned.
+two directions is returned.
 
 @item pair dir(path p, real t, int normalize=true);
-Return the direction of the tangent to path @code{p} at the point
+returns the direction of the tangent to path @code{p} at the point
 between node @code{floor(t)} and @code{floor(t)+1} corresponding to the
 cubic spline parameter @code{t-floor(t)} (@pxref{Bezier}).
-If @code{p} contains only one point, @code{(0,0)} is returned.
+
+@cindex @code{accel}
+@item pair accel(path p, int t, int sign=0);
+If @code{sign < 0}, return the acceleration of the incoming path
+@code{p} at node @code{t}; if @code{sign > 0}, return the
+acceleration of the outgoing path. If @code{sign=0}, the mean of these
+two accelerations is returned.
+
+@cindex @code{accel}
+@item pair accel(path p, real t);
+returns the acceleration of the path @code{p} at the point @code{t}.
+
+@cindex @code{radius}
+@item pair radius(path p, real t);
+returns the radius of curvature of the path @code{p} at the point @code{t}.
 
 @cindex @code{precontrol}
 @item pair precontrol(path p, int t);
@@ -5800,7 +5813,7 @@ using pen @code{p}.
 
 @cindex @code{intersect}
 @item real intersect(triple P, triple Q, triple n, triple Z);
-Return the intersection time of the extension of the line segment @code{PQ}
+returns the intersection time of the extension of the line segment @code{PQ}
 with the plane perpendicular to @code{n} and passing through @code{Z}.
 
 @cindex @code{intersectionpoint}
@@ -5812,7 +5825,7 @@ respectively. If the planes are parallel, return
 
 @cindex @code{quarticroots}
 @item @code{pair[] quarticroots(real a, real b, real c, real d, real e);}
-This routine returns the four complex roots of the quartic equation
+returns the four complex roots of the quartic equation
 @math{ax^4+bx^3+cx^2+dx+e=0}.
 
 @end table
@@ -7330,6 +7343,8 @@ label so that it is more readable from the initial viewpoint.
 @cindex @code{size}
 @cindex @code{point}
 @cindex @code{dir}
+@cindex @code{accel}
+@cindex @code{radius}
 @cindex @code{precontrol}
 @cindex @code{postcontrol}
 @cindex @code{arclength}
@@ -7345,11 +7360,12 @@ label so that it is more readable from the initial viewpoint.
 @cindex @code{cyclic}
 @cindex @code{straight}
 Three-dimensional versions of the path functions @code{length},
-@code{size}, @code{point}, @code{dir}, @code{precontrol}, @code{postcontrol},
+@code{size}, @code{point}, @code{dir}, @code{accel}, @code{radius},
+@code{precontrol}, @code{postcontrol},
 @code{arclength}, @code{arctime}, @code{reverse}, @code{subpath},
 @code{intersect}, @code{intersections}, @code{intersectionpoint},
 @code{intersectionpoints}, @code{min}, @code{max}, @code{cyclic}, and
-@code{straight} are also defined in the module @code{three}.
+@code{straight} are also defined.
 
 Here is an example showing all five guide3 connectors:
 @verbatiminclude join3.asy

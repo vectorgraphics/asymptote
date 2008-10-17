@@ -2083,6 +2083,28 @@ pair dir(path p, real t, bool normalize=true)
   return normalize ? unit(v) : v;
 }
 
+pair accel(path p, Int t, Int sign=0)
+{
+  return p.accel(t,sign);
+}
+
+pair accel(path p, real t)
+{
+  return p.accel(t);
+}
+
+real radius(path p, real t)
+{
+  pair v=p.dir(t,false);
+  pair a=p.accel(t);
+  real d=dot(a,v);
+  real v2=v.abs2();
+  real a2=a.abs2();
+  real denom=v2*a2-d*d;
+  real r=v2*sqrt(v2);
+  return denom > 0 ? r/sqrt(denom) : 0.0;
+}
+
 path reverse(path p)
 {
   return p.reverse();

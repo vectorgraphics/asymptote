@@ -204,23 +204,23 @@ public:
     pair c0=postcontrol(t-1);
     double epsilon=norm(z0,c0,c1,z1);
     if(dir.abs2() > epsilon || !normalize) return dir;
-    dir=2*c1-c0-z1;
+    dir=2.0*c1-c0-z1;
     if(dir.abs2() > epsilon) return dir;
-    return z1-z0+3*(c0-c1);
+    return z1-z0+3.0*(c0-c1);
   }
 
   pair postdir(Int t, bool normalize=true) const {
     if(!cycles && t >= n-1) return pair(0,0);
     pair c0=postcontrol(t);
     pair z0=point(t);
-    pair dir=c0-z0;
+    pair dir=3.0*(c0-z0);
     pair z1=point(t+1);
     pair c1=precontrol(t+1);
     double epsilon=norm(z0,c0,c1,z1);
+    if(dir.abs2() > epsilon || !normalize) return dir;
+    dir=z0-2.0*c0+c1;
     if(dir.abs2() > epsilon) return dir;
-    dir=z0-2*c0+c1;
-    if(dir.abs2() > epsilon) return dir;
-    return z1-z0+3*(c0-c1);
+    return z1-z0+3.0*(c0-c1);
   }
 
   pair dir(Int t, Int sign, bool normalize=true) const {
@@ -250,6 +250,44 @@ public:
     dir=2.0*a*t+b;
     if(dir.abs2() > epsilon) return dir;
     return 2.0*a;
+  }
+
+  pair postaccel(Int t) const {
+    if(!cycles && t >= n-1) return pair(0,0);
+    pair z0=point(t);
+    pair c0=postcontrol(t);
+    pair c1=precontrol(t+1);
+    return 6.0*(z0+c1)-12.0*c0;
+  }
+
+  pair preaccel(Int t) const {
+    if(!cycles && t <= 0) return pair(0,0);
+    pair z0=point(t-1);
+    pair c0=postcontrol(t-1);
+    pair c1=precontrol(t);
+    pair z1=point(t);
+    return 6.0*(z1+c0)-12.0*c1;
+  }
+  
+  pair accel(Int t, Int sign) const {
+    if(sign == 0) return 0.5*(preaccel(t)+postaccel(t));
+    if(sign > 0) return postaccel(t);
+    return preaccel(t);
+  }
+
+  pair accel(double t) const {
+    if(!cycles) {
+      if(t <= 0) return postaccel((Int) 0);
+      if(t >= n-1) return preaccel(n-1);
+    }
+    Int i=Floor(t);
+    t -= i;
+    if(t == 0) return 0.5*(postaccel(i)+preaccel(i));
+    pair z0=point(i);
+    pair c0=postcontrol(i);
+    pair c1=precontrol(i+1);
+    pair z1=point(i+1);
+    return 6.0*t*(z1-z0+3.0*(c0-c1))+6.0*(z0+c1)-12.0*c0;
   }
 
   // Returns the path traced out in reverse.
