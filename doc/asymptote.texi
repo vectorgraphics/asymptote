@@ -995,10 +995,11 @@ cube, without retracing steps:
 @verbatiminclude cube.asy
 @image{cube}
 
-See section @ref{graph} (or the online @code{Asymptote} gallery at
-@url{http://asymptote.sourceforge.net}) for further examples, including
-two-dimensional scientific graphs. Additional examples have been posted
-by Philippe Ivaldi at @url{http://piprim.tuxfamily.org/asymptote/}.
+See section @ref{graph} (or the online @code{Asymptote} gallery and
+external links posted at @url{http://asymptote.sourceforge.net}) for
+further examples, including two and three-dimensional scientific
+graphs. Additional examples have been posted by Philippe Ivaldi at
+@url{http://piprim.tuxfamily.org/asymptote/}.
 
 @node Drawing commands
 @chapter Drawing commands
@@ -1087,6 +1088,7 @@ bar length is @code{barsize(p)}.
 @cindex @code{Fill}
 @cindex @code{Draw}
 @cindex @code{NoFill}
+@cindex @code{UnFill}
 @cindex @code{BeginArcArrow}
 @cindex @code{EndArcArrow}
 @cindex @code{ArcArrow}
@@ -1096,7 +1098,6 @@ bar length is @code{barsize(p)}.
 @cindex @code{SimpleHead}
 @cindex @code{HookHead}
 @cindex @code{TeXHead}
-
 The possible values of @code{arrow} are @code{None}, @code{Blank}
 (which draws no arrows or path), @code{BeginArrow}, @code{MidArrow},
 @code{EndArrow} (or equivalently @code{Arrow}),
@@ -1108,7 +1109,7 @@ the predefined arrowhead styles @code{DefaultHead}, @code{SimpleHead},
 real @code{size} (arrowhead size in @code{PostScript} coordinates),
 real @code{angle} (arrowhead angle
 in degrees), filltype @code{filltype} (one of @code{FillDraw}, @code{Fill},
-@code{NoFill}, @code{Draw}) 
+@code{NoFill}, @code{UnFill}, @code{Draw}) 
 and (except for @code{MidArrow} and @code{Arrows}) a
 relative real @code{position} along the path (an @code{arctime}) where
 the tip of the arrow should be placed. The default arrowhead size when drawn
@@ -5845,6 +5846,9 @@ interpolation in @code{Asymptote}, as illustrated in the example
 This module provides the beginnings of a geometry package.
 It currently includes a triangle structure and functions to draw
 interior arcs of triangles and perpendicular symbols.
+A link to a much more extensive, and well documented, geometry module by
+Philippe Ivaldi is posted at
+@url{http://asymptote.sourceforge.net/links.html}.
 
 @node stats
 @section @code{stats}
@@ -7096,11 +7100,25 @@ array of cyclic paths of length @code{4} or less; these can then be used to
 construct and draw a (filled) planar surface:
 @verbatim
 draw(surface(bezulate(polygon(5))),red);
+draw(surface(bezulate(unitcircle)),red);
+@end verbatim
+@noindent
+@cindex @code{planar}
+Alternatively, the routine @code{surface planar(path3 p)}
+can be used to convert any planar three-dimensional path to a surface.
+We also provide constructors for converting two-dimensional paths to
+three-dimensional ones, and vice-versa: 
+@cindex @code{path3}
+@cindex @code{path}
+@verbatim
+path3 path3(path p, triple plane(pair)=XYplane);
+path path(path3 p, pair P(triple)=xypart);
 @end verbatim
 
 @noindent
 There are four choices for viewing 3D @code{Asymptote} output: 
 @enumerate
+@cindex @code{OpenGL}
 @cindex @code{render}
 @cindex @code{outformat}
 @item Use the default @code{Asymptote} adaptive @code{OpenGL}-based
@@ -7108,8 +7126,39 @@ renderer (with the the command-line option @code{-V} and the default settings
 @code{outformat=""} and @code{render=-1}).
 An initial screen position can be specified with the pair setting
 @code{position}, where negative values are interpreted as relative to
-the corresponding maximum screen dimension. A menu (with keyboard
-shortcuts) is shown on double-clicking the right mouse button.
+the corresponding maximum screen dimension.
+The mouse bindings are:
+@cindex mouse bindings
+@itemize
+@item Left: rotate
+@item shift Left: zoom
+@item ctrl Left: shift
+@item Middle: menu
+@item Wheel: zoom
+@item Right: zoom
+@item Right double click: menu
+@item shift Right: rotate about the X axis
+@item ctrl Right: rotate about the Y axis
+@item alt Right: rotate about the Z axis
+@end itemize
+The keyboard shortcuts are:
+@cindex keyboard bindings:
+@itemize
+@item h: home
+@item f: toggle fitscreen
+@item x: spin about the X axis
+@item y: spin about the Y axis
+@item z: spin about the Z axis
+@item s: stop spinning
+@item m: rendering mode (solid/mesh/patch)
+@item e: export
+@item +: expand
+@item =: expand
+@item -: shrink
+@item _: shrink
+@item q: exit
+@item Ctrl-q: exit
+@end itemize
 
 @item Render the scene to a specified rasterized format @code{outformat}
 at the resolution of @code{n} pixels per @code{bp}, as specified by the
@@ -7371,6 +7420,20 @@ Here is an example showing all five guide3 connectors:
 @verbatiminclude join3.asy
 @image{join3}
 
+@cindex @code{BeginArrow3}
+@cindex @code{MidArrow3}
+@cindex @code{EndArrow3}
+@cindex @code{Arrow3}
+@cindex @code{Arrows3}
+@cindex @code{DefaultHead3}
+@cindex @code{HookHead3}
+@cindex @code{TeXHead3}
+Three-dimensional versions of arrows can be drawn with one of the specifiers 
+@code{None}, @code{Blank}, @code{BeginArrow3}, @code{MidArrow3},
+@code{EndArrow3} (or equivalently @code{Arrow3}), and @code{Arrows3}.
+The predefined three-dimensional arrowhead styles are
+@code{DefaultHead3}, @code{HookHead3}, @code{TeXHead3}.
+
 Further three-dimensional examples are provided in the files
 @code{near_earth.asy}, @code{conicurv.asy}, and (in the @code{animations}
 subdirectory) @code{cube.asy}.
@@ -7404,7 +7467,7 @@ transform transform(triple u, triple v, triple O=O,
                     projection P=currentprojection);
 @end verbatim
 
-Here is an example of the use of a binary space partition to draw a
+Here is an example that shows how a binary space partition may be used to draw a
 @code{PostScript} vector image of three orthogonal intersecting planes:
 @verbatiminclude planes.asy
 @image{planes}
@@ -7415,10 +7478,10 @@ Here is an example of the use of a binary space partition to draw a
 @cindex 3D graphs
 This module implements three-dimensional versions of the
 functions in @code{graph.asy}.
-
 @cindex @code{xaxis}
 @cindex @code{yaxis}
 @cindex @code{zaxis}
+@noindent
 To draw an @math{x} axis in three dimensions, use the routine
 @verbatim
 void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
@@ -7432,16 +7495,52 @@ There is also a routine for drawing all three axis:
 @verbatim
 void axes3(picture pic=currentpicture,
            Label xlabel="", Label ylabel="", Label zlabel="", 
+           triple min=(-infinity,-infinity,-infinity),
+           triple max=(infinity,infinity,infinity),
            pen p=currentpen, arrowbar3 arrow=None);
 @end verbatim
 
-Here is an example of a helix and bounding box axes with rotated tick
+@cindex @code{YZEquals}
+@cindex @code{XZEquals}
+@cindex @code{XYEquals}
+@cindex @code{YZZero}
+@cindex @code{XZZero}
+@cindex @code{XYZero}
+@cindex @code{Bounds}
+@noindent
+The predefined three-dimensional axis types are
+@verbatim
+axis YZEquals(real y, real z, triple align=O, bool extend=false);
+axis XZEquals(real x, real z, triple align=O, bool extend=false);
+axis XYEquals(real x, real y, triple align=O, bool extend=false);
+axis YZZero(triple align=O, bool extend=false);
+axis XZZero(triple align=O, bool extend=false);
+axis XYZero(triple align=O, bool extend=false);
+axis Bounds(int type=Both, int type2=Both, triple align=O, bool extend=false);
+@end verbatim
+@noindent
+The optional @code{align} parameter to these routines can be used to
+specify the default axis and tick label alignments. The @code{Bounds}
+axis accepts two type parameters, each of which must be one of
+@code{Min}, @code{Max}, or @code{Both}. These parameters specify which
+of the four possible three-dimensional bounding box edges should be drawn.
+
+@cindex @code{NoTicks3}
+@cindex @code{InTicks}
+@cindex @code{OutTicks}
+@cindex @code{InOutTicks}
+The three-dimensional tick options are @code{NoTicks3}, @code{InTicks},
+@code{OutTicks}, and @code{InOutTicks}. These specify the tick
+directions for the @code{Bounds} axis type; other axis types inherit
+the direction that would be used for the @code{Bounds(Min,Min)} axis.
+
+Here is an example of a helix and bounding box axes with ticks
 and axis labels, using orthographic projection:
 @verbatiminclude helix.asy
 @image{helix}
 
 The next example illustrates three-dimensional @math{x}, @math{y}, and
-@math{z} axes, with autoscaling of the upper @math{z} limit disabled:
+@math{z} axes, without autoscaling of the axis limits:
 @cindex @code{axis}
 @verbatiminclude axis3.asy
 @image{axis3}
@@ -7515,16 +7614,17 @@ Further illustrations are provided in the example files @code{cylinder.asy},
 @code{cones.asy}, @code{hyperboloid.asy}, and @code{torus.asy}.
 
 The structure @code{skeleton} contains the three-dimensional wireframe
-used to visualize a volume of revolution (here longitudinal refers to
-those segments that are parallel to the axis of revolution; transverse
-segments are perpendicular to the axis of revolution):
+used to visualize a volume of revolution:
 @verbatim
 struct skeleton {
-  // transverse skeleton
-  front3[] front;
-  front3[] back;
-  // longitudinal skeleton
-  front3[] longitudinal;
+  struct curve {
+    path3[] front;
+    path3[] back;
+  }
+  // transverse skeleton (perpendicular to axis of revolution)
+  curve transverse;
+  // longitudinal skeleton (parallel to axis of revolution)
+  curve longitudinal;
 }
 @end verbatim
 
@@ -7534,7 +7634,7 @@ struct skeleton {
 To facilitate the conversion of existing MetaPost programs,
 this module contains a partial port of the @code{MetaPost} 3D package
 @code{featpost3D}  of L. Nobre G., C. Barbarosie, and J. Schwaiger to
-@code{Asymptote}. However, much (but not all) of the functionality of
+@code{Asymptote}. However, much of the functionality of
 this port is now obsoleted by the package @code{three},
 which fully extends the notion of a path to three dimensions,
 together with the packages @code{solids} and @code{graph3}.
@@ -8415,7 +8515,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis Datadir ds
 @c  LocalWords:  resetdefaultpen latticeshade axialshade radialshade erfc det
 @c  LocalWords:  gouraudshade unescaped nmesh surfacepen getpair MikTeX dw YZ
-@c  LocalWords:  meshpen localhistory axisT roundedpath unitsize aSin
+@c  LocalWords:  meshpen localhistory axisT roundedpath unitsize aSin accel
 @c  LocalWords:  fontcommand makepen aCos aTan Knorr roundpath BeginPoint nView
 @c  LocalWords:  MidPoint EndPoint nmask antialiasing autoplain batchMask libgc
 @c  LocalWords:  batchView clearGUI ignoreGUI interactiveMask interactiveView
@@ -8466,10 +8566,12 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  SimpleHead HookHead TeXHead multipage nurbs inlinemovie dxmax
 @c  LocalWords:  simpson NoBox truesize autoscale shadestroke recurses mintimes
 @c  LocalWords:  nonoverlapping Shewchuk's texdvicommand texengine maxtimes
-@c  LocalWords:  piecewisestraight unitrand graphmarkers antialias nolight
+@c  LocalWords:  piecewisestraight unitrand graphmarkers antialias nolight newl
 @c  LocalWords:  Delaunay Shewchuk convertOptions APPDATA pdfreload tempFile
 @c  LocalWords:  pdfreloadOptions deferred OpenGL Phong Blinn renderer unitbox
 @c  LocalWords:  bezulate Shardt's rasterized viewport unitdisk unitplane devel
 @c  LocalWords:  unitcylinder unitcone solidcone unitfrustum unitsphere nslices
-@c  LocalWords:  DPostScript YZZero freeglut externalprc nonrendered
-@c  LocalWords:  unithemisphere
+@c  LocalWords:  DPostScript YZZero freeglut externalprc nonrendered nosafe
+@c  LocalWords:  unithemisphere versa XYplane xypart unitsolidcone YZEquals
+@c  LocalWords:  XZEquals XYEquals XZZero XYZero InTicks OutTicks InOutTicks
+@c  LocalWords:  fitscreen

@@ -56,7 +56,6 @@ struct skeleton {
     path3[] front;
     path3[] back;
   }
-
   // transverse skeleton (perpendicular to axis of revolution)
   curve transverse;
   // longitudinal skeleton (parallel to axis of revolution)

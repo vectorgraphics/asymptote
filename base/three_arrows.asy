@@ -123,7 +123,7 @@ DefaultHead3.head=new surface(path3 g, position position=EndPoint,
   int n=length(s);	
   bool straight1=n == 1 && straight(g,0);
   real aspect=Tan(angle);
-  real width=2*size*aspect;
+  real width=size*aspect;
   surface head;
   if(straight1) {
     triple v=point(s,0);
