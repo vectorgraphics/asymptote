@@ -417,7 +417,7 @@ void labelaxis(frame f, transform T, Label L, path g,
   pair offset;
   if(ticklabels) {
     if(piecewisestraight(g)) {
-      real angle=degrees(dir);
+      real angle=degrees(dir,warn=false);
       transform S=rotate(-angle,z);
       frame F=S*f;
       pair Align=rotate(-angle)*alignperp;

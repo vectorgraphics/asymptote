@@ -132,7 +132,7 @@ void labelaxis(picture pic, transform3 T, Label L, path3 g,
         pair z=project(v,P);
         pair Ppathdir=project(v+pathdir,P)-z;
         pair Perp=unit(I*Ppathdir);
-        real angle=degrees(Ppathdir);
+        real angle=degrees(Ppathdir,warn=false);
         transform S=rotate(-angle,z);
         path[] G=S*g;
         pair Palign=project(v+align,P)-z;

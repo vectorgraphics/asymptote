@@ -2073,14 +2073,12 @@ pair postcontrol(path p, real t)
 
 pair dir(path p, Int t, Int sign=0, bool normalize=true)
 {
-  pair v=p.dir(t,sign,normalize);
-  return normalize ? unit(v) : v;
+  return p.dir(t,sign,normalize);
 }
 
 pair dir(path p, real t, bool normalize=true)
 {
-  pair v=p.dir(t,normalize);
-  return normalize ? unit(v) : v;
+  return p.dir(t,normalize);
 }
 
 pair accel(path p, Int t, Int sign=0)
@@ -2352,14 +2350,12 @@ triple postcontrol(path3 p, real t)
 
 triple dir(path3 p, Int t, Int sign=0, bool normalize=true)
 {
-  triple v=p.dir(t,sign,normalize);
-  return normalize ? unit(v) : v;
+  return p.dir(t,sign,normalize);
 }
 
 triple dir(path3 p, real t, bool normalize=true)
 {
-  triple v=p.dir(t,normalize);
-  return normalize ? unit(v) : v;
+  return p.dir(t,normalize);
 }
 
 triple accel(path3 p, Int t, Int sign=0)

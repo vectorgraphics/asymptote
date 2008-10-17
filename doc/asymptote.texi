@@ -7171,7 +7171,7 @@ as @code{|4n|} for @acronym{EPS} and @acronym{PDF} formats and
 (using the setting @code{outformat="pdf"} and the default setting
 @code{prc=true}) and view the resulting @acronym{PDF} file with
 version @code{8.0} or later of @code{Adobe Reader}. This requires
-version 2008/01/16 or later of the @code{movie15} package from
+version 2008/10/08 or later of the @code{movie15} package from
 @quotation
 @url{http://www.ctan.org/tex-archive/macros/latex/contrib/movie15}
 @end quotation
