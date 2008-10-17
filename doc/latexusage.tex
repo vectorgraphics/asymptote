@@ -17,12 +17,13 @@
 \begin{asydef}
 // Global Asymptote definitions can be put here.
 usepackage("bm");
+texpreamble("\def\v#1{\bm{#1}}");
 \end{asydef}
 
 Here is a venn diagram produced with Asymptote, drawn to width 4cm:
 
 \def\A{A}
-\def\B{\bm{B}}
+\def\B{\v{B}}
 
 %\begin{figure}
 \begin{center}
@@ -52,7 +53,7 @@ draw(c2);
 //draw("$\A$",box,z1);              // Requires [inline] package option.
 //draw(Label("$\B$","$B$"),box,z2); // Requires [inline] package option.
 draw("$A$",box,z1);            
-draw("$\bm{B}$",box,z2);
+draw("$\v{B}$",box,z2);
 
 pair z=(0,-2);
 real m=3;
