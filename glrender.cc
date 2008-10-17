@@ -56,7 +56,6 @@ const picture* Picture;
 string Format;
 int Width,Height;
 int oldWidth,oldHeight;
-
 double oWidth,oHeight;
 
 bool Xspin,Yspin,Zspin;
@@ -260,9 +259,22 @@ void windowposition(int& x, int& y, int width=Width, int height=Height)
   }
 }
 
-void setsize(int w, int h)
+void setsize(int w, int h, int minsize=0)
 {
   int x,y;
+  
+  if(minsize) {
+    if(w < minsize) {
+      h=(int) (h*(double) minsize/w+0.5);
+      w=minsize;
+    }
+  
+    if(h < minsize) {
+      w=(int) (w*(double) minsize/h+0.5);
+      h=minsize;
+    }
+  }
+  
   capsize(w,h);
   windowposition(x,y,w,h);
   glutPositionWindow(x,y);
@@ -584,27 +596,25 @@ void shrink()
 	  max((int) (Height/resizeStep+0.5),1));
 }
 
-int oldwidth,oldheight;
-
 void fitscreen() 
 {
   switch(Fitscreen) {
     case 0: // Original size
     {
-      setsize(oldwidth,oldheight);
+      setsize(oldWidth,oldHeight,minimumsize);
       ++Fitscreen;
       break;
     }
     case 1: // Fit to screen in one dimension
     {       
-      oldwidth=Width;
-      oldheight=Height;
+      oldWidth=Width;
+      oldHeight=Height;
       int w=screenWidth();
       int h=screenHeight();
       if(w > 0 && h > 0) {
 	if(w > h*Aspect) w=(int) (h*Aspect+0.5);
 	else h=(int) (w/Aspect+0.5);
-	setsize(w,h);
+	setsize(w,h,minimumsize);
       }
       ++Fitscreen;
       break;
@@ -858,17 +868,15 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   oHeight=height;
   Aspect=((double) width)/height;
   
-  Width=min(max((int) (expand*width+0.5),minimumsize),ViewportLimit[0]);
-  Height=min(max((int) (expand*height+0.5),minimumsize),ViewportLimit[1]);
+  Width=min((int) (expand*width+0.5),ViewportLimit[0]);
+  Height=min((int) (expand*height+0.5),ViewportLimit[1]);
   
-  if(Width > Height*Aspect) Width=min(max((int) (Height*Aspect+0.5),
-					  minimumsize),ViewportLimit[0]);
-  else Height=min(max((int) (Width/Aspect+0.5),minimumsize),ViewportLimit[1]);
+  if(Width > Height*Aspect) 
+    Width=min((int) (Height*Aspect+0.5),ViewportLimit[0]);
+  else 
+    Height=min((int) (Width/Aspect+0.5),ViewportLimit[1]);
   
   Aspect=((double) Width)/Height;
-  
-  oldWidth=Width;
-  oldHeight=Height;
   
   if(settings::verbose > 1) 
     cout << "Rendering " << prefix << " as " << Width << "x" << Height
