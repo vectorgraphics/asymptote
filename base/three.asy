@@ -1692,6 +1692,8 @@ triple normal(path3 p)
   triple z0,z1;
   
   void check(triple n) {
+    static real epsilon=sqrt(realEpsilon);
+
     if(abs(n) > epsilon*max(abs(z0),abs(z1))) {
       n=unit(n);
       if(normal != O && abs(normal-n) > epsilon && abs(normal+n) > epsilon)
