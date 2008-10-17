@@ -7344,6 +7344,12 @@ through @code{point}:
 triple invert(pair z, triple normal, triple point,
               projection P=currentprojection);
 @end verbatim
+@noindent
+A pair direction @code{dir} can be inverted to a triple direction
+relative to a point @code{v} with the routine
+@verbatim
+triple invert(pair dir, triple v, projection P=currentprojection).
+@end verbatim
 
 @cindex @code{transform3}
 Three-dimensional objects may be transformed with one of the following
