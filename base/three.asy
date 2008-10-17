@@ -1804,14 +1804,14 @@ void writeJavaScript(string name, string preamble, string script)
     file3.push(name);
 }
 
-string embed3D(string prefix, frame f, string label="",
-               string text=label,
-	       string options="", string script="",
+string embed3D(string label="", string text=label, string prefix,
+	       frame f, string format="",
                real width=0, real height=0, real angle=30,
+	       string options="", string script="",
                pen background=white, light light=currentlight,
 	       projection P=currentprojection)
 {
-  if(!prc() || Embed == null) return "";
+  if(!prc(format) || Embed == null) return "";
 
   if(width == 0) width=settings.paperwidth;
   if(height == 0) height=settings.paperheight;
@@ -1858,16 +1858,19 @@ string embed3D(string prefix, frame f, string label="",
   return Embed(prefix,options3,width,height);
 }
 
-object embed(string prefix=defaultfilename, frame f, string format="",
-	     string label="", string text=label, string options="",
-	     string script="", real width=0, real height=0, real angle=30,
-             pen background=white, projection P=currentprojection)
+object embed(string label="", string text=label, 
+	     string prefix=defaultfilename, 
+	     frame f, string format="",
+	     real width=0, real height=0, real angle=30,
+	     string options="", string script="", 
+             pen background=white, light light=currentlight,
+	     projection P=currentprojection)
 {
   object F;
 
   if(is3D(format))
-    F.L=embed3D(prefix,f,label,text,options,script,width,height,angle,
-                background,P);
+    F.L=embed3D(label,text,prefix,f,format,width,height,angle,options,script,
+                background,light,P);
   else
     F.f=f;
   return F;
@@ -1881,10 +1884,11 @@ triple rectify(triple dir)
   return dir;
 }
 
-object embed(string prefix=defaultfilename, picture pic, string format="",
+object embed(string label="", string text=label,
+	     string prefix=defaultfilename,
+	     picture pic, string format="",
              real xsize=pic.xsize, real ysize=pic.ysize,
              bool keepAspect=pic.keepAspect,
-             string label="", string text=label,
              bool wait=false, bool view=true, string options="",
              string script="", real angle=0, pen background=white,
              light light=currentlight, projection P=currentprojection)
@@ -2027,8 +2031,8 @@ object embed(string prefix=defaultfilename, picture pic, string format="",
       if(!settings.inlinetex) file3.push(image);
       image=graphic(image);
     }
-    if(prc) F.L=embed3D(prefix,f,label,text=image,options,script,width,height,
-			angle,background,light,P);
+    if(prc) F.L=embed3D(label,text=image,prefix,f,format,
+			width,height,angle,options,script,background,light,P);
    }
 
   if(!is3D) {
@@ -2042,7 +2046,7 @@ object embed(string prefix=defaultfilename, picture pic, string format="",
 
 embed3=new object(string prefix, frame f, string format, string options,
 		  string script, projection P) {
-  return embed(prefix,f,format=format,options=options,script=script,P);
+  return embed(prefix,f,format,options,script,P);
 };
 
 currentpicture.fitter=new frame(string prefix, picture pic, string format,
@@ -2053,8 +2057,8 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
   bool empty3=pic.empty3();
   if(is3D(format) || empty3) add(f,pic.fit2(xsize,ysize,keepAspect));
   if(!empty3) {
-    object F=embed(prefix,pic,format,xsize,ysize,keepAspect,wait,view,options,
-		   script,P);
+    object F=embed(prefix,pic,format,xsize,ysize,keepAspect,wait,view,
+		   options,script,P);
     if(prc(format))
       label(f,F.L);
     else if(settings.render == 0) add(f,F.f);
