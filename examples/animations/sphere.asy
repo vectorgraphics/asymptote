@@ -6,7 +6,7 @@ currentlight=(0,5,5);
 
 int nbpts=200;
 real step=2*pi/nbpts;
-int angle=15;
+int angle=10;
 
 unitsize(1cm);
 

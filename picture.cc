@@ -713,8 +713,10 @@ bool picture::shipout3(const string& prefix, const string& format,
   
   return true;
 #else
+  reportError(
+    "Cannot render image; please install freeglut, run ./configure, and recompile"); 
   return false;
-#endif  
+#endif
 }
 
 bool picture::shipout3(const string& prefix)
