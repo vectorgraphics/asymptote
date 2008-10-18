@@ -290,7 +290,11 @@ void fullscreen()
   if(w > 0 && h > 0) {
     Width=w;
     Height=h;
+#ifdef __CYGWIN__
     glutFullScreen();
+#else    
+    setsize(w,h,0);
+#endif    
   }
 }
 
@@ -821,7 +825,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
    
   Menu=false;
   Motion=true;
-  Fitscreen=1;
+  Fitscreen=0;
   Mode=0;
   
   string options=string(settings::argv0)+" ";
@@ -892,9 +896,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glutInitWindowSize(Width,Height);
   window=glutCreateWindow(((prefix == "out" ? "Asymptote" : prefix)+
 			   " [Double click right button for menu]").c_str());
-  
-  if(screen && !interact::interactive && getSetting<bool>("fitscreen"))
-    fitscreen();
+  oldWidth=Width;
+  oldHeight=Height;
   
   glClearColor(1.0,1.0,1.0,0.0);
    
@@ -946,6 +949,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   glutAttachMenu(GLUT_MIDDLE_BUTTON);
 
+  if(screen && !interact::interactive && getSetting<bool>("fitscreen"))
+    Fitscreen=1;
+  
+  fitscreen();
+  
   glutMainLoop();
 }
   
