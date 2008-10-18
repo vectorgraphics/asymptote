@@ -1,7 +1,8 @@
 MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy) latexusage.asy
 SOURCE = asymptote.texi version.texi options
-ASY = ../asy -dir ../base -config "" -render=0
+ASY = ../asy -dir ../base -config ""
+ASY0 = $(ASY) -render=0
 DOCFILES = asymptote.pdf CAD.pdf
 
 docdir = $(DESTDIR)@docdir@
@@ -24,13 +25,13 @@ faq:
 doc:	asymptote.dvi asymptote.info html man faq
 
 %.png:	%.asy
-	$(ASY) -f png $<
+	$(ASY0) -f png $<
 
 %.eps:	%.asy
-	$(ASY) -f eps $<
+	$(ASY0) -f eps $<
 
 %.pdf:	%.asy
-	$(ASY) -f pdf -noprc $<
+	$(ASY0) -f pdf -noprc $<
 
 latexusage.dvi: latexusage.tex
 	rm -f latexusage_*
@@ -49,7 +50,7 @@ latexusage.pdf: latexusage.dvi
 	dvipdf latexusage
 
 options: ../settings.cc
-	$(ASY) -h 2>&1 | grep -iv Asymptote > options
+	$(ASY0) -h 2>&1 | grep -iv Asymptote > options
 
 asy.1: options asy.1.begin asy.1.end
 	cat options | grep \^- | sed -e "s/-\(.*\)  \([A-Z].*\)/.TP\n.B -\1\n\2\./" | sed -e "/^.B/ s/-/\\\\-/g" | cat asy.1.begin - asy.1.end > asy.1
