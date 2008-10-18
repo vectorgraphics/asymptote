@@ -22,8 +22,8 @@ draw(surface(r),lightgrey);
 skeleton s;
 r.transverse(s,reltime(r.g,0.5));
 r.longitudinal(s);
-draw(s.back,linetype("8 8",8));
-draw(s.front);
+draw(s.transverse.back,linetype("8 8",8));
+draw(s.transverse.front);
 
 animation A;
 
