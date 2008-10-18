@@ -1227,6 +1227,42 @@ guide3 operator cast(path3 p)
   };
 }
 
+// Return a unit normal vector to a planar path p.
+triple normal(path3 p)
+{
+  triple normal;
+  triple z0,z1;
+  
+  void check(triple n) {
+    static real epsilon=sqrt(realEpsilon);
+
+    if(abs(n) > epsilon*max(abs(z0),abs(z1))) {
+      n=unit(n);
+      if(normal != O && abs(normal-n) > epsilon && abs(normal+n) > epsilon)
+        abort("path is not planar");
+      normal=n;
+    }
+  }
+
+  int L=length(p);
+  if(L <= 0) return O;
+  z0=point(p,0);
+  for(int i=0; i < L; ++i) {
+    triple c0=postcontrol(p,i);
+    triple c1=precontrol(p,i+1);
+    z1=point(p,i+1);
+    triple a=z1-z0+3.0*(c0-c1);
+    triple b=2.0*(z0+c1)-4.0*c0;
+    triple c=c0-z0;
+    check(cross(a,b));
+    check(cross(a,c));
+    check(cross(b,c));
+    check(cross(dir(p,i,-1),dir(p,i,1)));
+    z0=z1;
+  }
+  return normal;
+}
+
 // Transforms that map XY plane to YX, YZ, ZY, ZX, and XZ planes.
 restricted transform3 XY=identity4;
 restricted transform3 YX=rotate(-90,O,Z);
@@ -1281,6 +1317,29 @@ restricted transform3 ZX(projection P=currentprojection)
 restricted transform3 XZ(projection P=currentprojection)
 {
   return flip(XZ,X,Z,Y,P);
+}
+
+// Transform3 that projects in direction dir onto plane with normal n
+// through point O.
+transform3 planeproject(triple n, triple O=O, triple dir=n)
+{
+  real a=n.x, b=n.y, c=n.z;
+  real u=dir.x, v=dir.y, w=dir.z;
+  real delta=1.0/(a*u+b*v+c*w);
+  real d=-(a*O.x+b*O.y+c*O.z)*delta;
+  return new real[][] {
+    {(b*v+c*w)*delta,-b*u*delta,-c*u*delta,-d*u},
+      {-a*v*delta,(a*u+c*w)*delta,-c*v*delta,-d*v},
+	{-a*w*delta,-b*w*delta,(a*u+b*v)*delta,-d*w},
+          {0,0,0,1}
+  };
+}
+
+// Transform3 that projects in direction dir onto plane defined by p.
+transform3 planeproject(path3 p, triple dir=O)
+{
+  triple n=normal(p);
+  return planeproject(n,point(p,0),dir == O ? n : dir);
 }
 
 // Transform for projecting onto plane through point O with normal cross(u,v).
@@ -1683,42 +1742,6 @@ private real epsilon=1000*realEpsilon;
 path3 plane(triple u, triple v, triple O=O)
 {
   return O--O+u--O+u+v--O+v--cycle;
-}
-
-// Return a unit normal vector to a planar path p.
-triple normal(path3 p)
-{
-  triple normal;
-  triple z0,z1;
-  
-  void check(triple n) {
-    static real epsilon=sqrt(realEpsilon);
-
-    if(abs(n) > epsilon*max(abs(z0),abs(z1))) {
-      n=unit(n);
-      if(normal != O && abs(normal-n) > epsilon && abs(normal+n) > epsilon)
-        abort("path is not planar");
-      normal=n;
-    }
-  }
-
-  int L=length(p);
-  if(L <= 0) return O;
-  z0=point(p,0);
-  for(int i=0; i < L; ++i) {
-    triple c0=postcontrol(p,i);
-    triple c1=precontrol(p,i+1);
-    z1=point(p,i+1);
-    triple a=z1-z0+3.0*(c0-c1);
-    triple b=2.0*(z0+c1)-4.0*c0;
-    triple c=c0-z0;
-    check(cross(a,b));
-    check(cross(a,c));
-    check(cross(b,c));
-    check(cross(dir(p,i,-1),dir(p,i,1)));
-    z0=z1;
-  }
-  return normal;
 }
 
 triple size3(frame f)

@@ -7399,6 +7399,20 @@ modified versions of these transforms that take an optional argument
 @code{projection P=currentprojection} that rotate and/or flip the
 label so that it is more readable from the initial viewpoint.
 
+@cindex @code{planeproject}
+A transform3 that projects in the direction @code{dir} onto the plane
+with normal @code{n} through point @code{O} is returned by
+@verbatim
+transform3 planeproject(triple n, triple O=O, triple dir=n);
+@end verbatim
+@noindent
+As illustrated in the example @code{planeproject.asy}, a transform3
+that projects in the direction @code{dir} onto the plane defined by a
+planar path @code{p} is returned by
+@verbatim
+transform3 planeproject(path3 p, triple dir=normal(p));
+@end verbatim
+
 @cindex @code{length}
 @cindex @code{size}
 @cindex @code{point}
@@ -8585,4 +8599,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  DPostScript YZZero freeglut externalprc nonrendered nosafe
 @c  LocalWords:  unithemisphere versa XYplane xypart unitsolidcone YZEquals
 @c  LocalWords:  XZEquals XYEquals XZZero XYZero InTicks OutTicks InOutTicks
-@c  LocalWords:  fitscreen
+@c  LocalWords:  fitscreen planeproject
