@@ -32,10 +32,10 @@ doc:	asymptote.dvi asymptote.info html man faq
 %.pdf:	%.asy
 	$(ASY) -f pdf -noprc $<
 
-latexusage.asy: latexusage.tex
+latexusage.dvi: latexusage.tex
+	rm -f latexusage_*
+	rm -f latexusage.aux
 	latex latexusage
-
-latexusage.dvi: latexusage.asy
 	$(ASY) latexusage
 	latex latexusage
 
@@ -43,7 +43,7 @@ latexusage.eps: latexusage.dvi
 	dvips -o latexusage.eps latexusage
 
 latexusage.png: latexusage.eps
-	convert -density 144x144 +antialias -geometry 50%x \
+	convert -alpha Off -density 144x144 +antialias -geometry 50%x \
 		latexusage.eps latexusage.png
 latexusage.pdf: latexusage.dvi
 	dvipdf latexusage

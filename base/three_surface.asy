@@ -771,11 +771,9 @@ void label(picture pic=currentpicture, Label L, triple position,
       triple v=t*position;
       if(L.defaulttransform)
         L.T3=transform3(P);
-      if(is3D()) {
+      if(is3D())
         for(patch S : surface(L,v).s)
           draw3D(f,S,L.p,light);
-
-      }
       if(pic != null)
         fill(project(v,P.t),pic,path(L,P),
 	     light.color(L.T3*Z,L.p,shiftless(P.modelview())));

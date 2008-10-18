@@ -428,23 +428,23 @@ location of the @code{PostScript}-to-@acronym{PDF} processor @code{Ghostscript},
 available from @url{http://sourceforge.net/projects/ghostscript/}.
 
 The setting @code{pdfviewer} specifies the location of the @acronym{PDF}
-viewer. To optionally support automatic @acronym{PDF} reloading, we
-recommend copying the file @code{reload.js} from the @code{Asymptote}
-system directory (by default, @code{@value{Datadir}/asymptote} under
-@code{UNIX} and @code{C:\Program Files\Asymptote} under @code{MSDOS}) to
-@code{~/.adobe/Acrobat/x.x/JavaScripts/} under @code{UNIX}
-or @code{%APPDATA%/Adobe/Acrobat/x.x/JavaScripts/} under @code{MSDOS},
-where @code{x.x} represents the appropriate Acrobat Reader version number.
-This automatic document reload feature must then be explicitly enabled
-by putting
+viewer. On @code{UNIX} systems, to support automatic document
+reloading in @code{Adobe Reader}, we recommend copying the file
+@code{reload.js} from the @code{Asymptote} system directory (by default,
+@code{@value{Datadir}/asymptote} under @code{UNIX} to
+@code{~/.adobe/Acrobat/x.x/JavaScripts/},
+where @code{x.x} represents the appropriate @code{Adobe Reader}
+version number. The automatic document reload feature must then be
+explicitly enabled by putting
 @verbatim
 import settings;
 pdfreload=true;
+pdfreloadOptions="-tempFile";
 @end verbatim
 @noindent
-in the configuration file.
-For @code{UNIX} users, the setting @code{pdfreloadOptions="-tempFile";} is
-also recommended.
+in the @code{Asymptote} configuration file. This reload feature is not
+useful under @code{MSDOS} since the document cannot be updated anyway on
+that operating system until it is first closed by @code{Adobe Reader}.
 
 The graphical user interface may also require setting the variable
 @code{python} if @code{Python} is installed in a nonstandard location.
@@ -5688,6 +5688,9 @@ pdflatex latexusage
 asy latexusage
 pdflatex latexusage
 @end verbatim
+
+To switch between using @code{latex} and @code{pdflatex} you may first need to
+remove the files @code{latexusage_.*} and @code{latexusage.aux}.
 
 If the @code{inline} option is given to the
 @code{asymptote.sty} package, inline @code{LaTeX} code is generated instead of
