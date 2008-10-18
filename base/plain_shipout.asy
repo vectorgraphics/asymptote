@@ -24,7 +24,7 @@ string Link(string label, string text, string options="");
 
 bool prc0(string format="") {
   if(format == "") format=settings.outformat;
-  return settings.prc && (format == "pdf" || pdf()) || settings.inlineimage;
+  return settings.prc && ((format == "pdf" || pdf()) || settings.inlineimage);
 }
 
 bool prc(string format="") {
@@ -83,10 +83,11 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 {
   if(!uptodate()) {
     bool inlinetex=settings.inlinetex;
-    if(settings.prc && !pic.empty3())
+    bool prc=prc(format);
+    if(prc && !pic.empty3())
       settings.inlinetex=settings.inlineimage;
     frame f=pic.fit(prefix,format,wait=wait,view=view,options,script,P);    
-    if(!pic.empty2() || settings.render == 0 || prc(format))
+    if(!pic.empty2() || settings.render == 0 || prc)
       shipout(prefix,orientation(f),format,wait,view);
     settings.inlinetex=inlinetex;
   }

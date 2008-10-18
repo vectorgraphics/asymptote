@@ -5672,6 +5672,8 @@ and enclose your @code{Asymptote} code within a
 must appear on a line by itself, with no leading spaces or trailing
 commands/comments.
 
+The current version of @code{asymptote.sty} even supports the direct
+embedding of 3D @acronym{PRC} files within @code{LaTeX}.
 The sample @code{LaTeX} file below, named @code{latexusage.tex}, can
 be run as follows:
 @verbatim
@@ -5689,8 +5691,9 @@ asy latexusage
 pdflatex latexusage
 @end verbatim
 
-To switch between using @code{latex} and @code{pdflatex} you may first need to
-remove the files @code{latexusage_.*} and @code{latexusage.aux}.
+To switch between using @code{latex} and
+@code{pdflatex} you may first need to remove the files
+@code{latexusage_.*} and @code{latexusage.aux}.
 
 If the @code{inline} option is given to the
 @code{asymptote.sty} package, inline @code{LaTeX} code is generated instead of
