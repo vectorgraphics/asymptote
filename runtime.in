@@ -860,6 +860,10 @@ inline triple perp(triple v, triple u)
   return v-dot(v,u)*u;
 }
 
+string ASYo="/ASYo {( ) print 12 string cvs print} bind def";
+string pathforall="{(M) print ASYo ASYo} {(L) print ASYo ASYo} {(C) print ASYo ASYo ASYo ASYo ASYo ASYo} {(c) print} pathforall";
+string currentpoint="print currentpoint ASYo ASYo ";
+
 array *readpath(const string& psname, bool keep)
 {
   array *P=new array(0);
@@ -1127,10 +1131,12 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   
   tex.setfont(p);
   tex.verbatimline("\\special{ps:");
-  tex.verbatimline("/ASYo {( ) print 12 string cvs print} bind def");
+  tex.verbatimline(ASYo);
   tex.verbatimline("/ASY1 true def");
   tex.verbatimline("/v {neg exch 4 copy 4 2 roll 2 copy 6 2 roll 2 copy (M) print ASYo ASYo (L) print ASYo add ASYo (L) print add ASYo add ASYo (L) print add ASYo ASYo (c) print} bind def");
-  tex.verbatimline("/show {ASY1 {(Z) print currentpoint ASYo ASYo /ASY1 false def} if currentpoint newpath moveto false charpath {(M) print ASYo ASYo} {(L) print ASYo ASYo} {(C) print ASYo ASYo ASYo ASYo ASYo ASYo} {(c) print} pathforall} bind def}");
+  tex.verbatimline("/show {ASY1 {(Z) "+currentpoint+
+		   "/ASY1 false def} if currentpoint newpath moveto false charpath "+
+		   pathforall+"} bind def}");
   tex.verbatim(*s);
   tex.verbatimline("\\special{ps: (E) print}");
   tex.epilogue(true);
@@ -1185,14 +1191,14 @@ patharray *strokepath(path g, pen p=CURRENTPEN)
   bbox b;
   psfile ps(psname, false);
   ps.prologue(b);
-  ps.verbatimline("/ASYo {( ) print 10 string cvs print} bind def");
-  ps.verbatimline("/stroke {(Z) print currentpoint ASYo ASYo {(M) print ASYo ASYo} {(L) print ASYo ASYo} {(C) print ASYo ASYo ASYo ASYo ASYo ASYo} {(c) print} pathforall} bind def");
+  ps.verbatimline(ASYo);
+  ps.verbatimline("/stroke {(Z) "+currentpoint+pathforall+"} bind def");
   ps.resetpen();
   ps.setpen(p);
   ps.write(g);
   ps.strokepath();
   ps.stroke();
-  ps.verbatimline("(M) print currentpoint ASYo ASYo (E) print");
+  ps.verbatimline("(M) "+currentpoint+"(E) print");
   ps.epilogue();
   ps.close();
   return readpath(psname,getSetting<bool>("keep"));
