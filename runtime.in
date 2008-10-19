@@ -1127,7 +1127,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   
   tex.setfont(p);
   tex.verbatimline("\\special{ps:");
-  tex.verbatimline("/ASYo {( ) print 10 string cvs print} bind def");
+  tex.verbatimline("/ASYo {( ) print 12 string cvs print} bind def");
   tex.verbatimline("/ASY1 true def");
   tex.verbatimline("/v {neg exch 4 copy 4 2 roll 2 copy 6 2 roll 2 copy (M) print ASYo ASYo (L) print ASYo add ASYo (L) print add ASYo add ASYo (L) print add ASYo ASYo (c) print} bind def");
   tex.verbatimline("/show {ASY1 {(Z) print currentpoint ASYo ASYo /ASY1 false def} if currentpoint newpath moveto false charpath {(M) print ASYo ASYo} {(L) print ASYo ASYo} {(C) print ASYo ASYo ASYo ASYo ASYo ASYo} {(c) print} pathforall} bind def}");

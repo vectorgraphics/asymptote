@@ -947,7 +947,7 @@ void initSettings() {
   addOption(new boolSetting("fitscreen", 0,
                             "Fit rendered image to screen", true));
   addOption(new IntSetting("maxviewport", 0, "n",
-			   "Maximum viewport width/height",2048));
+			   "Maximum viewport width and height",2048));
   addOption(new stringOutnameSetting("outname", 'o', "name",
 				     "Alternative output name for first file",
 				     ""));
