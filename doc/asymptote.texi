@@ -2357,7 +2357,7 @@ if the cyclic path @code{q} strictly contains @code{p}, and @code{0}
 otherwise.
 
 @cindex @code{strokepath}
-@item path[] strokepath(path g, pen p);
+@item path[] strokepath(path g, pen p=currentpen);
 returns the path array that @code{PostScript} would fill in drawing path
 @code{g} with pen @code{p}.
 
