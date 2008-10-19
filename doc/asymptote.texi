@@ -7052,6 +7052,13 @@ as illustrated in the following example:
 @verbatiminclude penimage.asy
 @image{penimage}
 
+For convenience, the module @code{palette} also defines functions
+that may be used to construct a pen array from a given function and palette:
+@verbatim
+pen[] palette(real[] f, pen[] palette);
+pen[][] palette(real[][] f, pen[] palette);
+@end verbatim
+
 @node three
 @section @code{three}
 @cindex @code{three}

@@ -165,9 +165,7 @@ bounds image(picture pic=currentpicture, pair[] z, real[] f,
   for(int i=0; i < trn.length; ++i) {
     int[] trni=trn[i];
     int i0=trni[0], i1=trni[1], i2=trni[2];
-    pen color(int i) {
-      return palette[round((f[i]-rmin)*step)];
-    }
+    pen color(int i) {return palette[round((f[i]-rmin)*step)];}
     gouraudshade(pic,z[i0]--z[i1]--z[i2]--cycle,
 		 new pen[] {color(i0),color(i1),color(i2)},edges);
   }
@@ -185,8 +183,18 @@ bounds image(picture pic=currentpicture, real[] x, real[] y, real[] f,
   return image(pic,z,f,range,palette);
 }
 
-// Use palette to construct a pen[][] array from f for use with latticeshade.
-pen[][] interpolate(real[][] f, pen[] palette)
+// Construct a pen[] array from f using the specified palette.
+pen[] palette(real[] f, pen[] palette)
+{
+  real Min=min(f);
+  real Max=max(f);
+  real step=Max == Min ? 0.0 : (palette.length-1)/(Max-Min);
+  return sequence(new pen(int i) {return palette[round((f[i]-Min)*step)];},
+		  f.length);
+}
+
+// Construct a pen[][] array from f using the specified palette.
+pen[][] palette(real[][] f, pen[] palette)
 {
   real Min=min(f);
   real Max=max(f);
@@ -196,10 +204,7 @@ pen[][] interpolate(real[][] f, pen[] palette)
   real step=(Max == Min) ? 0.0 : (palette.length-1)/(Max-Min);
   for(int i=0; i < n; ++i) {
     real[] fi=f[i];
-    pen[] pi=p[i];
-    for(int j=0; j < m; ++j) {
-      pi[j]=palette[round((fi[j]-Min)*step)];
-    }
+    p[i]=sequence(new pen(int j) {return palette[round((fi[j]-Min)*step)];},m);
   }
   return p;
 }
