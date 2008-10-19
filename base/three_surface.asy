@@ -165,6 +165,10 @@ struct patch {
     return max3=bound(maxbound,bound);
   }
 
+  triple center() {
+    return 0.5*(this.min()+this.max());
+  }
+
   pair min(projection P, pair bound=project(this.P[0][0],P.t)) {
     return minbound(controlpoints(),P.t,bound);
   }
@@ -588,17 +592,19 @@ void tensorshade(transform t=identity(), frame f, patch s,
 }
 
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
-          material surfacepen=currentpen, pen meshpen=nullpen,
+          material[] surfacepen, pen meshpen=nullpen,
 	  light light=currentlight, light meshlight=light,
 	  projection P=currentprojection)
 {
   bool mesh=!invisible(meshpen);
-  bool surface=!invisible((pen) surfacepen);
-
+  surfacepen.cyclic(true);
+  
   if(is3D()) {
-    if(surface)
-      for(int i=0; i < s.s.length; ++i)
-        draw3D(f,s.s[i],surfacepen,light);
+    for(int i=0; i < s.s.length; ++i) {
+      material p=surfacepen[i];
+      if(!invisible((pen) p))
+        draw3D(f,s.s[i],p,light);
+    }
     if(mesh) {
       meshpen=thin()+linecap(0)+meshpen;
       for(int k=0; k < s.s.length; ++k) {
@@ -623,8 +629,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
     real[][] depth;
     
     for(int i=0; i < s.s.length; ++i) {
-      triple[][] P=s.s[i].P;
-      real d=abs(camera-0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]));
+      real d=abs(camera-s.s[i].center());
       depth.push(new real[] {d,i});
     }
 
@@ -636,8 +641,9 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
     while(depth.length > 0) {
       real[] a=depth.pop();
       int i=round(a[1]);
-      if(surface)
-        tensorshade(t,f,s.s[i],surfacepen,light,P);
+      material p=surfacepen[i];
+      if(!invisible((pen) p))
+        tensorshade(t,f,s.s[i],p,light,P);
       if(mesh)
         draw(f,project(s.s[i].external(),P),meshpen);
     }
@@ -645,8 +651,17 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
   }
 }
 
-void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
+void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
+	  light light=currentlight, light meshlight=light,
+	  projection P=currentprojection)
+{
+  draw(t,f,s,nu,nv,new material[] {surfacepen},meshpen,light,
+       meshlight,P);
+}
+
+void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
+          material[] surfacepen, pen meshpen=nullpen,
 	  light light=currentlight, light meshlight=light)
 {
   if(s.empty()) return;
@@ -679,6 +694,14 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
     }
   }
 }
+
+void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
+          material surfacepen=currentpen, pen meshpen=nullpen,
+	  light light=currentlight, light meshlight=light)
+{
+  draw(pic,s,nu,nv,new material[] {surfacepen},meshpen,light,meshlight);
+}
+
 
 surface extrude(path g, triple elongation=Z)
 {

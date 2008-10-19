@@ -59,6 +59,11 @@ material operator cast(pen p)
   return material(p);
 }
 
+material[] operator cast(pen[] p)
+{
+  return sequence(new material(int i) {return p[i];},p.length);
+}
+
 pen operator ecast(material m)
 {
   return m.p.length > 0 ? m.diffuse() : nullpen;

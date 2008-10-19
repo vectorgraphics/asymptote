@@ -7467,6 +7467,21 @@ Three-dimensional versions of arrows can be drawn with one of the specifiers
 The predefined three-dimensional arrowhead styles are
 @code{DefaultHead3}, @code{HookHead3}, @code{TeXHead3}.
 
+@cindex @code{surface}
+A Bezier surface is defined in @code{three_surface.asy} as a structure
+containing an array of Bezier patches. Surfaces may drawn with one of
+the routines
+@verbatim
+void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
+          material surfacepen=currentpen, pen meshpen=nullpen,
+	  light light=currentlight, light meshlight=light);
+void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
+          material[] surfacepen, pen meshpen=nullpen,
+	  light light=currentlight, light meshlight=light);
+@end verbatim
+The parameters @code{nu} and @code{nv} specify the number of subdivisions
+for drawing optional mesh lines for each Bezier patch.
+
 Further three-dimensional examples are provided in the files
 @code{near_earth.asy}, @code{conicurv.asy}, and (in the @code{animations}
 subdirectory) @code{cube.asy}.
@@ -7604,10 +7619,10 @@ The boolean array or function @code{cond} can be used to control which
 surface mesh cells are actually drawn (by default all mesh cells over
 @code{box(a,b)} are drawn).
 A parametric surface for a function @math{f(u,v)} over the parameter
-space @code{box(a,b)} may be drawn with
+space @code{box(a,b)} may be created with
 @verbatim
-picture surface(triple f(pair z), pair a, pair b, int nu=nmesh,
-                int nv=nu, bool cond(pair z)=null)
+surface surface(triple f(pair z), pair a, pair b, int nu=nmesh,
+                int nv=nu, bool cond(pair z)=null);
 @end verbatim
 @noindent
 as illustrated in the example @code{parametricsurface.asy}.

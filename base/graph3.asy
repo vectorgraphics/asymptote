@@ -1643,7 +1643,7 @@ surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
 }
   
 // return the surface described by a real function f over box(a,b),
-// interpolated with splinetype (null means linear).
+// interpolated linearly.
 surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
                 bool cond(pair z)=null)
 {
