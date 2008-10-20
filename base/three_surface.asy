@@ -169,6 +169,10 @@ struct patch {
     return 0.5*(this.min()+this.max());
   }
 
+  triple cornermean() {
+    return 0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]);
+  }
+
   pair min(projection P, pair bound=project(this.P[0][0],P.t)) {
     return minbound(controlpoints(),P.t,bound);
   }
@@ -629,7 +633,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
     real[][] depth;
     
     for(int i=0; i < s.s.length; ++i) {
-      real d=abs(camera-s.s[i].center());
+      real d=abs(camera-s.s[i].cornermean());
       depth.push(new real[] {d,i});
     }
 
