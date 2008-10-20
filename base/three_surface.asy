@@ -205,7 +205,10 @@ struct patch {
     init();
     int L=length(external);
     if(L == 0) return;
-    if(!cyclic(external) || L != 4)
+    bool cyclic=cyclic(external);
+    if(cyclic && L == 3)
+      external=external--cycle;
+    else if(!cyclic || L != 4)
       abortcyclic();
 
     if(normals.length != 0)
@@ -343,12 +346,12 @@ struct surface {
 		     triple[][] internal=new triple[][],
                      triple[][] normals=new triple[][],
 		     pen[][] colors=new pen[][]) {
-    s=new patch[external.length];
-    for(int i=0; i < external.length; ++i)
-      s[i]=patch(external[i],
-		 internal.length == 0 ? new triple[] : internal[i],
-		 normals.length == 0 ? new triple[] : normals[i],
-		 colors.length == 0 ? new pen[] : colors[i]);
+    s=sequence(new patch(int i) {
+	return patch(external[i],
+		     internal.length == 0 ? new triple[] : internal[i],
+		     normals.length == 0 ? new triple[] : normals[i],
+		     colors.length == 0 ? new pen[] : colors[i]);},
+      external.length);
   }
 
   void push(path3 external, triple[] internal=new triple[],
@@ -361,7 +364,12 @@ struct surface {
   void operator init (path g, triple plane(pair)=XYplane) {
     int L=length(g);
     if(L == 0) return;
-    if(!cyclic(g) || L != 4)
+    bool cyclic=cyclic(g);
+    if(cyclic && L == 3) {
+      s=new patch[] {patch(path3(g,plane)--cycle)};
+      return;
+    }
+    if(!cyclic || L != 4)
       abortcyclic();
     for(int i=0; i < 4; ++i) {
       pair z=point(g,i);
