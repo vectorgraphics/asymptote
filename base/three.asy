@@ -2071,7 +2071,7 @@ object embed(string label="", string text=label,
 
 embed3=new object(string prefix, frame f, string format, string options,
 		  string script, projection P) {
-  return embed(prefix,f,format,options,script,P);
+  return embed(prefix=prefix,f,format,options,script,P);
 };
 
 currentpicture.fitter=new frame(string prefix, picture pic, string format,
@@ -2082,7 +2082,7 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
   bool empty3=pic.empty3();
   if(is3D(format) || empty3) add(f,pic.fit2(xsize,ysize,keepAspect));
   if(!empty3) {
-    object F=embed(prefix,pic,format,xsize,ysize,keepAspect,wait,view,
+    object F=embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,wait,view,
 		   options,script,P);
     if(prc(format))
       label(f,F.L);
