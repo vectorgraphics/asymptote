@@ -2152,12 +2152,14 @@ void addPath(picture pic, path3 g, pen p)
 }
 
 void draw(frame f, path3 g, material p=currentpen, light light=nolight,
-          projection P=currentprojection);
+	  projection P=currentprojection);
 
 include three_surface;
+include three_margins;
 
 void draw(picture pic=currentpicture, Label L="", path3 g,
-          align align=NoAlign, material p=currentpen, light light=nolight)
+          align align=NoAlign, material p=currentpen, margin3 margin=NoMargin3,
+	  light light=nolight)
 {
   pen q=(pen) p;
   Label L=L.copy();
@@ -2168,7 +2170,7 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
   }
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
-      path3 G=t*g;
+      path3 G=margin(t*g,q).g;
       if(is3D()) {
         draw(f,G,p,light,null);
 	if(pic != null) {
@@ -2250,19 +2252,19 @@ void draw(frame f, explicit path3[] g, material p=currentpen,
 }
 
 void draw(picture pic=currentpicture, explicit path3[] g,
-          material p=currentpen, light light=nolight)
+          material p=currentpen, margin3 margin=NoMargin3, light light=nolight)
 {
-  for(int i=0; i < g.length; ++i) draw(pic,g[i],p,light);
+  for(int i=0; i < g.length; ++i) draw(pic,g[i],p,margin,light);
 }
 
 void draw(picture pic=currentpicture, Label L="", path3 g, 
           align align=NoAlign, material p=currentpen, arrowbar3 arrow,
-          light light=nolight)
+          margin3 margin=NoMargin3, light light=nolight)
 {
   label(pic,L,g,align,(pen) p);
   begingroup3(pic);
-  if(arrow(pic,g,p,light))
-    draw(pic,L,g,align,p,light);
+  if(arrow(pic,g,p,margin,light))
+    draw(pic,L,g,align,p,margin,light);
   endgroup3(pic);
 }
 
@@ -2270,7 +2272,7 @@ void draw(frame f, path3 g, material p=currentpen, arrowbar3 arrow,
           light light=nolight, projection P=currentprojection)
 {
   picture pic;
-  if(arrow(pic,g,p,light))
+  if(arrow(pic,g,p,NoMargin3,light))
     draw(f,g,p,light,P);
   add(f,pic.fit());
 }
@@ -2296,23 +2298,26 @@ void add(picture dest, picture src, triple position, bool group=true,
 // 'length' PostScript units long.
 void arrow(picture pic=currentpicture, Label L="", triple b, triple dir,
            real length=arrowlength, align align=NoAlign,
-           pen p=currentpen, arrowbar3 arrow=Arrow3)
+           pen p=currentpen, arrowbar3 arrow=Arrow3, margin3 margin=EndMargin3,
+	   light light=currentlight)
 {
   Label L=L.copy();
   if(L.defaultposition) L.position(0);
   L.align(L.align,dir);
   L.p(p);
   picture opic;
-  draw(opic,L,length*unit(dir)--O,align,p,arrow);
+  marginT3 margin=margin(b--b,p); // Extract margin.begin and margin.end
+  triple a=(margin.begin+length+margin.end)*unit(dir);
+  draw(opic,L,a--O,align,p,arrow,margin,light);
   add(pic,opic,b);
 }
 
 void arrow(picture pic=currentpicture, Label L="", triple b, pair dir,
            real length=arrowlength, align align=NoAlign,
-           pen p=currentpen, arrowbar3 arrow=Arrow3,
-	   projection P=currentprojection)
+           pen p=currentpen, arrowbar3 arrow=Arrow3, margin3 margin=EndMargin3,
+	   light light=currentlight, projection P=currentprojection)
 {
-  arrow(pic,L,b,invert(dir,b,P),length,align,p,arrow);
+  arrow(pic,L,b,invert(dir,b,P),length,align,p,arrow,margin,light);
 }
 
 triple size3(picture pic, projection P=currentprojection)

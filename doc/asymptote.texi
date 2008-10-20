@@ -7473,6 +7473,27 @@ Three-dimensional versions of arrows can be drawn with one of the specifiers
 @code{EndArrow3} (or equivalently @code{Arrow3}), and @code{Arrows3}.
 The predefined three-dimensional arrowhead styles are
 @code{DefaultHead3}, @code{HookHead3}, @code{TeXHead3}.
+@cindex @code{NoMargin3}
+@cindex @code{BeginMargin3}
+@cindex @code{EndMargin3}
+@cindex @code{Margin3}
+@cindex @code{Margins3}
+@cindex @code{BeginPenMargin3}
+@cindex @code{EndPenMargin3}
+@cindex @code{PenMargin3}
+@cindex @code{PenMargins3}
+@cindex @code{BeginDotMargin3}
+@cindex @code{EndDotMargin3}
+@cindex @code{DotMargin3}
+@cindex @code{DotMargins3}
+@cindex @code{Margin3}
+@cindex @code{TrueMargin3}
+Module @code{three} also defines the three-dimensional margins
+@code{NoMargin3}, @code{BeginMargin3}, @code{EndMargin3},
+@code{Margin3}, @code{Margins3}, @code{BeginPenMargin3},
+@code{EndPenMargin3}, @code{PenMargin3}, @code{PenMargins3},
+@code{BeginDotMargin3}, @code{EndDotMargin3}, @code{DotMargin3},
+@code{DotMargins3}, @code{Margin3}, and @code{TrueMargin3}.
 
 @cindex @code{surface}
 A Bezier surface is defined in @code{three_surface.asy} as a structure
