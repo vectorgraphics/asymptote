@@ -649,7 +649,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
       if(!invisible((pen) p))
         tensorshade(t,f,s.s[i],p,light,P);
       if(mesh)
-        draw(f,project(s.s[i].external(),P),meshpen);
+        draw(f,t*project(s.s[i].external(),P),meshpen);
     }
     endgroup(f);
   }
