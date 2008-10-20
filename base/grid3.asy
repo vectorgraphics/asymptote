@@ -191,7 +191,7 @@ void grid3(picture pic=currentpicture,
           ticks(d,t,"",gt.axea,gt.axeb,nullpen,None,gt.locate,gt.bds.divisor,
                 opposite=true,primary=false);
 	  add(f,t*T*inverse(t)*d);
-	});
+	},put=put);
       addPath(pic,gt.axea,pGrid);
       addPath(pic,gt.axeb,pGrid);
     }
