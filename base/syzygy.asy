@@ -748,6 +748,7 @@ struct Syzygy { // {{{1
   string lsym, codename; 
 
   bool watched=false;
+  bool uptodate=true;
 
   struct Move {
     Braid action(Braid);
@@ -766,7 +767,7 @@ struct Syzygy { // {{{1
     };
     moves.push(m);
 
-    //    if (watched) uptodate(false);
+    uptodate = false;
   }
 
   void swap(int i, int j) {
@@ -777,7 +778,7 @@ struct Syzygy { // {{{1
     };
     moves.push(m);
 
-    //    if (watched) uptodate(false);
+    uptodate = false;
   }
 
   // Drawing {{{2
@@ -811,24 +812,31 @@ struct Syzygy { // {{{1
     pic.add(tableau(fit(drawMoves()), this.number));
   }
 
-  exitfcn currentexitfunction=atexit();
+  void updatefunction() {
+    if (!uptodate) {
+      picture pic; this.draw(pic);
+      shipout(pic);
+      uptodate = true;
+    }
+  }
+
+  void oldupdatefunction() = null;
 
   void watch() {
-    if(currentexitfunction != null) currentexitfunction();
-    watched=true;
-    atexit(new void () {
-        picture pic; this.draw(pic);
-        shipout(pic);
-      });
-    //    uptodate(false);
+    if (!watched) {
+      watched = true;
+      oldupdatefunction = atupdate();
+      atupdate(this.updatefunction);
+      uptodate = false;
+    }
   }
 
   void unwatch() {
-    assert(watched);
-    watched=false;
-    atexit(currentexitfunction);
-    //    uptodate(false);
+    assert(watched == true);
+    atupdate(oldupdatefunction);
+    uptodate = false;
   }
+
   // Writing {{{2
   string linearName() {
     assert(lsym!="");
