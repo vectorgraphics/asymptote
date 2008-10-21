@@ -7089,25 +7089,44 @@ and then distorted into a saddle:
 @image{saddle}
 @noindent
 
-Bezier surfaces, the natural two-dimensional generalization of Bezier
-curves, are shaded using the @code{OpenGL} lighting scheme, which uses the
-Phong-Blinn specular model. Sample Bezier surfaces are contained in the
-example files @code{BezierSurface.asy}, @code{teapot.asy},
-and @code{parametricsurface.asy}. 
+Module @code{three} provides constructors for converting two-dimensional
+paths to three-dimensional ones, and vice-versa: 
+@cindex @code{path3}
+@cindex @code{path}
+@verbatim
+path3 path3(path p, triple plane(pair)=XYplane);
+path path(path3 p, pair P(triple)=xypart);
+@end verbatim
 
-@cindex @code{thin}
-@cindex @code{thick}
-Bezier surfaces are also used to draw arbitrary thick three-dimensional
-lines and line caps (which the @code{OpenGL} standard does not require
-implementations to provide). This can make files slow to render,
-especially with the @code{Adobe Reader} renderer. The setting
-@code{thick=false} can be used to disable this feature and force all
-lines to be drawn with @code{linewidth(0)} (one pixel wide, regardless
-of the resolution). By default mesh and contour lines in three-dimensions
-are always drawn thin, unless an explicit linewidth is given in the pen
-parameter or the setting @code{thin} is set to @code{false}. The pens
-@code{thin()} and @code{thick()} defined in plain_pens.asy can also be used
-to override these defaults for specific draw commands.
+@cindex @code{surface}
+A Bezier surface, the natural two-dimensional generalization of Bezier
+curves, is defined in @code{three_surface.asy} as a structure
+containing an array of Bezier patches. Surfaces may drawn with one of
+the routines
+@verbatim
+void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
+          material surfacepen=currentpen, pen meshpen=nullpen,
+	  light light=currentlight, light meshlight=light);
+void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
+          material[] surfacepen, pen[] meshpen,
+	  light light=currentlight, light meshlight=light);
+@end verbatim
+The parameters @code{nu} and @code{nv} specify the number of subdivisions
+for drawing optional mesh lines for each Bezier patch.
+Here material is a structure defined in @code{three_light.asy}:
+@verbatim
+struct material {
+  pen[] p; // diffusepen,ambientpen,emissivepen,specularpen
+  real opacity;
+  real shininess;  
+  real granularity;
+...
+@end verbatim
+@noindent
+These material properties are used to implement @code{OpenGL}-style lighting,
+based on the Phong-Blinn specular model. Sample Bezier surfaces are
+contained in the example files @code{BezierSurface.asy}, @code{teapot.asy},
+and @code{parametricsurface.asy}. 
 
 @cindex @code{bezulate}
 There is no @code{fill} command for arbitrary three-dimensional cyclic paths
@@ -7122,16 +7141,22 @@ draw(surface(bezulate(unitcircle)),red);
 @end verbatim
 @noindent
 @cindex @code{planar}
-Alternatively, the routine @code{surface planar(path3 p)}
-can be used to convert any planar three-dimensional path to a surface.
-We also provide constructors for converting two-dimensional paths to
-three-dimensional ones, and vice-versa: 
-@cindex @code{path3}
-@cindex @code{path}
-@verbatim
-path3 path3(path p, triple plane(pair)=XYplane);
-path path(path3 p, pair P(triple)=xypart);
-@end verbatim
+Similarly, the routine @code{surface planar(path3 p)} can be used to convert
+a planar three-dimensional path to a surface.
+
+@cindex @code{thin}
+@cindex @code{thick}
+Bezier surfaces are also used to draw arbitrary thick three-dimensional
+lines and line caps (which the @code{OpenGL} standard does not require
+implementations to provide). This can make files slow to render,
+especially with the @code{Adobe Reader} renderer. The setting
+@code{thick=false} can be used to disable this feature and force all
+lines to be drawn with @code{linewidth(0)} (one pixel wide, regardless
+of the resolution). By default mesh and contour lines in three-dimensions
+are always drawn thin, unless an explicit linewidth is given in the pen
+parameter or the setting @code{thin} is set to @code{false}. The pens
+@code{thin()} and @code{thick()} defined in plain_pens.asy can also be used
+to override these defaults for specific draw commands.
 
 @noindent
 There are four choices for viewing 3D @code{Asymptote} output: 
@@ -7494,21 +7519,6 @@ Module @code{three} also defines the three-dimensional margins
 @code{EndPenMargin3}, @code{PenMargin3}, @code{PenMargins3},
 @code{BeginDotMargin3}, @code{EndDotMargin3}, @code{DotMargin3},
 @code{DotMargins3}, @code{Margin3}, and @code{TrueMargin3}.
-
-@cindex @code{surface}
-A Bezier surface is defined in @code{three_surface.asy} as a structure
-containing an array of Bezier patches. Surfaces may drawn with one of
-the routines
-@verbatim
-void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-          material surfacepen=currentpen, pen meshpen=nullpen,
-	  light light=currentlight, light meshlight=light);
-void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-          material[] surfacepen, pen meshpen=nullpen,
-	  light light=currentlight, light meshlight=light);
-@end verbatim
-The parameters @code{nu} and @code{nv} specify the number of subdivisions
-for drawing optional mesh lines for each Bezier patch.
 
 Further three-dimensional examples are provided in the files
 @code{near_earth.asy}, @code{conicurv.asy}, and (in the @code{animations}

@@ -602,28 +602,27 @@ void tensorshade(transform t=identity(), frame f, patch s,
 }
 
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
-          material[] surfacepen, pen meshpen=nullpen,
+          material[] surfacepen, pen[] meshpen,
 	  light light=currentlight, light meshlight=light,
 	  projection P=currentprojection)
 {
-  bool mesh=!invisible(meshpen);
-  surfacepen.cyclic(true);
-  
   if(is3D()) {
     for(int i=0; i < s.s.length; ++i) {
       material p=surfacepen[i];
       if(!invisible((pen) p))
         draw3D(f,s.s[i],p,light);
     }
-    if(mesh) {
-      meshpen=thin()+linecap(0)+meshpen;
-      for(int k=0; k < s.s.length; ++k) {
-        real step=nu == 0 ? 0 : 1/nu;
-        for(int i=0; i <= nu; ++i)
-          draw(f,s.s[k].uequals(i*step),meshpen,meshlight);
-        step=nv == 0 ? 0 : 1/nv;
-        for(int j=0; j <= nv; ++j)
-          draw(f,s.s[k].vequals(j*step),meshpen,meshlight);
+    pen modifiers=thin()+linecap(0);
+    for(int k=0; k < s.s.length; ++k) {
+      pen meshpen=meshpen[k];
+      if(!invisible(meshpen)) {
+	meshpen=modifiers+meshpen;
+	real step=nu == 0 ? 0 : 1/nu;
+	for(int i=0; i <= nu; ++i)
+	  draw(f,s.s[k].uequals(i*step),meshpen,meshlight);
+	step=nv == 0 ? 0 : 1/nv;
+	for(int j=0; j <= nv; ++j)
+	  draw(f,s.s[k].vequals(j*step),meshpen,meshlight);
       }
     }
   } else {
@@ -654,7 +653,8 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
       material p=surfacepen[i];
       if(!invisible((pen) p))
         tensorshade(t,f,s.s[i],p,light,P);
-      if(mesh)
+      pen meshpen=meshpen[i];
+      if(!invisible(meshpen))
         draw(f,t*project(s.s[i].external(),P),meshpen);
     }
     endgroup(f);
@@ -666,12 +666,15 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 	  light light=currentlight, light meshlight=light,
 	  projection P=currentprojection)
 {
-  draw(t,f,s,nu,nv,new material[] {surfacepen},meshpen,light,
-       meshlight,P);
+  material[] surfacepen=new material[] {surfacepen};
+  pen[] meshpen=new pen[] {meshpen};
+  surfacepen.cyclic(true);
+  meshpen.cyclic(true);
+  draw(t,f,s,nu,nv,surfacepen,meshpen,light,meshlight,P);
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-          material[] surfacepen, pen meshpen=nullpen,
+          material[] surfacepen, pen[] meshpen,
 	  light light=currentlight, light meshlight=light)
 {
   if(s.empty()) return;
@@ -692,15 +695,18 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   pic.addPoint(min(s));
   pic.addPoint(max(s));
 
-  if(!invisible(meshpen)) {
-    if(is3D()) meshpen=thin()+linecap(0)+meshpen;
-    for(int k=0; k < s.s.length; ++k) {
+  pen modifiers;
+  if(is3D()) modifiers=thin()+linecap(0);
+  for(int k=0; k < s.s.length; ++k) {
+    pen meshpen=meshpen[k];
+    if(!invisible(meshpen)) {
+      meshpen=modifiers+meshpen;
       real step=nu == 0 ? 0 : 1/nu;
       for(int i=0; i <= nu; ++i)
-        addPath(pic,s.s[k].uequals(i*step),meshpen);
+	addPath(pic,s.s[k].uequals(i*step),meshpen);
       step=nv == 0 ? 0 : 1/nv;
       for(int j=0; j <= nv; ++j)
-        addPath(pic,s.s[k].vequals(j*step),meshpen);
+	addPath(pic,s.s[k].vequals(j*step),meshpen);
     }
   }
 }
@@ -709,7 +715,11 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
 	  light light=currentlight, light meshlight=light)
 {
-  draw(pic,s,nu,nv,new material[] {surfacepen},meshpen,light,meshlight);
+  material[] surfacepen=new material[] {surfacepen};
+  pen[] meshpen=new pen[] {meshpen};
+  surfacepen.cyclic(true);
+  meshpen.cyclic(true);
+  draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight);
 }
 
 
