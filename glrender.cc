@@ -827,7 +827,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
    
   Menu=false;
   Motion=true;
-  Fitscreen=0;
+  Fitscreen=1;
   Mode=0;
   
   string options=string(settings::argv0)+" ";
@@ -951,8 +951,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   glutAttachMenu(GLUT_MIDDLE_BUTTON);
 
-  if(screen && !interact::interactive && getSetting<bool>("fitscreen"))
-    Fitscreen=1;
+  if(!getSetting<bool>("fitscreen"))
+    Fitscreen=0;
   
   fitscreen();
   
