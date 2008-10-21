@@ -1,7 +1,3 @@
-light arrowheadlight() {
-  return is3D() ? currentlight : nolight;
-}
-
 // transformation that bends points along a path
 // assumes that p.z is in [0,scale]
 triple bend0(triple p, path3 g, real time)
@@ -194,8 +190,7 @@ arrowhead3 HookHead3(real dir=arrowdir, real barb=arrowbarb)
 {
   arrowhead3 a;
   a.head=new surface(path3 g, position position=EndPoint,
-		     pen p=currentpen, real size=0, real angle=arrowangle)
-{
+		     pen p=currentpen, real size=0, real angle=arrowangle) {
   if(size == 0) size=a.size(p);
 
   angle=min(angle*arrowhookfactor,45);
@@ -245,7 +240,7 @@ TeXHead3.head=new surface(path3 g, position position=EndPoint,
   path3 s=subpath(r,t,0);
   bool straight1=length(s) == 1 && straight(g,0);
 
-  surface head=surface(O,approach(subpath(path3(TeXHead.head((0,0)--N,p,
+  surface head=surface(O,approach(subpath(path3(TeXHead.head((0,0)--(0,1),p,
 							     size=size),
 					      YZplane),5,0),8,1.5),Z);
   if(straight1) {
@@ -276,7 +271,7 @@ void drawarrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
 	       real size=0, real angle=arrowangle, position position=EndPoint,
 	       bool forwards=true, margin3 margin=NoMargin3,
 	       bool center=false, light light=nolight,
-	       light arrowheadlight=arrowheadlight())
+	       light arrowheadlight=currentlight)
 {
   pen q=(pen) p;
   if(arrowheadpen == nullpen) arrowheadpen=p;
@@ -303,7 +298,7 @@ void drawarrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
 void drawarrow2(picture pic, arrowhead3 arrowhead=DefaultHead3,
 		path3 g, material p=currentpen, material arrowheadpen=p,
 		real size=0, real angle=arrowangle, margin3 margin=NoMargin3,
-		light light=nolight, light arrowheadlight=arrowheadlight())
+		light light=nolight, light arrowheadlight=currentlight)
 {
   pen q=(pen) p;
   if(arrowheadpen == nullpen) arrowheadpen=p;
@@ -339,7 +334,7 @@ picture arrow(arrowhead3 arrowhead=DefaultHead3,
 	      real size=0, real angle=arrowangle, position position=EndPoint,
               bool forwards=true, margin3 margin=NoMargin3,
 	      bool center=false, light light=nolight,
-	      light arrowheadlight=arrowheadlight())
+	      light arrowheadlight=currentlight)
 {
   pen q=(pen) p;
   if(size == 0) size=arrowhead.size(q);
@@ -365,7 +360,7 @@ picture arrow(arrowhead3 arrowhead=DefaultHead3,
 picture arrow2(arrowhead3 arrowhead=DefaultHead3,
                path3 g, material p=currentpen, material arrowheadpen=p,
 	       real size=0, real angle=arrowangle, margin3 margin=NoMargin3,
-	       light light=nolight, light arrowheadlight=arrowheadlight())
+	       light light=nolight, light arrowheadlight=currentlight)
 {
   pen q=(pen) p;
   if(size == 0) size=arrowhead.size(q);
@@ -400,7 +395,7 @@ arrowbar3 BeginArrow3(arrowhead3 arrowhead=DefaultHead3,
 		      real size=0, real angle=arrowangle,
 		      position position=BeginPoint,
 		      material arrowheadpen=nullpen,
-		      light arrowheadlight=arrowheadlight())
+		      light arrowheadlight=currentlight)
 {
   return new bool(picture pic, path3 g, material p, margin3 margin,
 		  light light) {
@@ -414,7 +409,7 @@ arrowbar3 Arrow3(arrowhead3 arrowhead=DefaultHead3,
 		 real size=0, real angle=arrowangle,
 		 position position=EndPoint,
 		 material arrowheadpen=nullpen,
-		 light arrowheadlight=arrowheadlight())
+		 light arrowheadlight=currentlight)
 
 {
   return new bool(picture pic, path3 g, material p, margin3 margin,
@@ -429,12 +424,12 @@ arrowbar3 EndArrow3(arrowhead3 arrowhead=DefaultHead3,
 		    real size=0, real angle=arrowangle,
 		    position position=EndPoint,
 		    material arrowheadpen=nullpen,
-		    light arrowheadlight=arrowheadlight())=Arrow3;
+		    light arrowheadlight=currentlight)=Arrow3;
 
 arrowbar3 MidArrow3(arrowhead3 arrowhead=DefaultHead3,
 		    real size=0, real angle=arrowangle,
 		    material arrowheadpen=nullpen,
-		    light arrowheadlight=arrowheadlight())
+		    light arrowheadlight=currentlight)
 {
   return new bool(picture pic, path3 g, material p, margin3 margin,
 		  light light) {
@@ -447,7 +442,7 @@ arrowbar3 MidArrow3(arrowhead3 arrowhead=DefaultHead3,
 arrowbar3 Arrows3(arrowhead3 arrowhead=DefaultHead3,
 		  real size=0, real angle=arrowangle,
 		  material arrowheadpen=nullpen,
-		  light arrowheadlight=arrowheadlight())
+		  light arrowheadlight=currentlight)
 {
   return new bool(picture pic, path3 g, material p, margin3 margin,
 		  light light) {

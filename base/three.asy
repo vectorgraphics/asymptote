@@ -1974,8 +1974,6 @@ object embed(string label="", string text=label,
         f=pic.fit3(t,is3D ? null : pic2,P);
       }
 
-//      P.adjust(min3(f),max3(f),t);
-
       transform3 modelview=P.modelview();
       f=modelview*f;
       P=modelview*P;
@@ -2038,7 +2036,7 @@ object embed(string label="", string text=label,
       triple margin=(factor,factor,0);
       M += margin; 
       m -= margin;
-      if(M.z >= 0) abort("camera too close");
+      if(!P.infinity && M.z >= 0) abort("camera too close");
 
       shipout3(prefix,f,preview ? nativeformat() : format,width,height,
                P.infinity ? 0 : angle,m,M,

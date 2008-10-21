@@ -467,9 +467,9 @@ struct projection {
     return d;
   }
    
-  void update(transform3 t=null) {
-    if(!infinity)
-      write("adjusting camera to ",alias(t,null) ? camera : inverse(t)*camera);
+  void update() {
+    if(!infinity && settings.verbose > 0)
+      write("adjusting camera to ",camera);
     calculate();
   }
   
@@ -479,21 +479,21 @@ struct projection {
   }
 
   // Move the camera so that v is on or in front of clipping plane.
-  void adjust(triple v, transform3 t=null) {
+  void adjust(triple v) {
     if(!absolute && behind(v)) {
       camera=target+abs(v-target)*unit(camera-target);
-      update(t);
+      update();
     }
   }
   
   // Move the camera so that the box(m,M) rotated about target will always
   // lie in front of the clipping plane.
-  void adjust(triple m, triple M, transform3 t=null) {
+  void adjust(triple m, triple M) {
     triple v=camera-target;
     real d=distance(m,M);
     if(d > v.z) {
       camera=target+2*d*unit(v);
-      update(t);
+      update();
     }
   }
 }

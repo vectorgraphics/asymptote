@@ -3,7 +3,7 @@ import obj;
 size(15cm);
 currentprojection=orthographic(4,2,5,up=Y);
 
-// Compressed data may be obtained from:
+// A compressed version of the required data file may be obtained from:
 // http://www.cs.technion.ac.il/~irit/data/Viewpoint/galleon.obj.gz
 
 pen[] surfacepen={darkred,brown,darkred+orange,heavyred,heavyred,darkred+orange,
@@ -14,4 +14,4 @@ pen[] meshpen={darkgrey};
 surfacepen.cyclic(true);
 meshpen.cyclic(true);
 
-draw(obj("galleon.obj",true,surfacepen,meshpen));
+draw(obj("galleon.obj",verbose=false,surfacepen,meshpen));
