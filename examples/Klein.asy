@@ -1,7 +1,7 @@
 import graph3;
 
 size(200,0);
-currentprojection=perspective(50,-300,30);
+currentprojection=perspective(10,-50,5);
 
 // From http://local.wasp.uwa.edu.au/~pbourke/surfaces_curves/klein/
 triple f(pair t) {

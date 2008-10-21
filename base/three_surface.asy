@@ -501,8 +501,7 @@ surface planar(path3 p, bool warn=true)
   if(length(p) <= 3) return surface(p);
   transform3 T=align(normal(p,warn));
   p=transpose(T)*p;
-  real h=point(p,0).z;
-  return T*shift(0,0,h)*surface(bezulate(path(shift(0,0,-h)*p)));
+  return T*shift(0,0,point(p,0).z)*surface(bezulate(path(p)));
 }
 
 private string nullsurface="null surface";

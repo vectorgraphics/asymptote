@@ -12,9 +12,9 @@ real defaultshininess=0.25;
 real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
-real viewportfactor=1.01;    // Factor used to expand orthographic viewport.
-real anglefactor=1.02;       // Factor used to expand perspective viewport.
-int angleiterations=6;       // Iterations to find perspective field of view.
+real viewportfactor=1.00;    // Factor used to expand orthographic viewport.
+real anglefactor=1.01;       // Factor used to expand perspective viewport.
+int angleiterations=2;       // Iterations to find perspective field of view.
 real fovfactor=0.6;          // PRC field of view factor.
 
 string defaultembed3Doptions;
@@ -205,6 +205,11 @@ addSaveFunction(new restoreThunk() {
 pair project(triple v, projection P=currentprojection)
 {
   return project(v,P.t);
+}
+
+pair dir(triple v, triple dir, projection P)
+{
+  return unit(project(v+dir,P)-project(v,P));
 }
 
 // Uses the homogenous coordinate to perform perspective distortion.
@@ -2257,20 +2262,22 @@ void draw(picture pic=currentpicture, explicit path3[] g,
 
 void draw(picture pic=currentpicture, Label L="", path3 g, 
           align align=NoAlign, material p=currentpen, arrowbar3 arrow,
-          margin3 margin=NoMargin3, light light=nolight)
+          margin3 margin=NoMargin3, light light=nolight,
+	  light arrowheadlight=currentlight)
 {
   label(pic,L,g,align,(pen) p);
   begingroup3(pic);
-  if(arrow(pic,g,p,margin,light))
+  if(arrow(pic,g,p,margin,light,arrowheadlight))
     draw(pic,L,g,align,p,margin,light);
   endgroup3(pic);
 }
 
 void draw(frame f, path3 g, material p=currentpen, arrowbar3 arrow,
-          light light=nolight, projection P=currentprojection)
+          light light=nolight, light arrowheadlight=currentlight,
+	  projection P=currentprojection)
 {
   picture pic;
-  if(arrow(pic,g,p,NoMargin3,light))
+  if(arrow(pic,g,p,NoMargin3,light,arrowheadlight))
     draw(f,g,p,light,P);
   add(f,pic.fit());
 }
@@ -2297,7 +2304,7 @@ void add(picture dest, picture src, triple position, bool group=true,
 void arrow(picture pic=currentpicture, Label L="", triple b, triple dir,
            real length=arrowlength, align align=NoAlign,
            pen p=currentpen, arrowbar3 arrow=Arrow3, margin3 margin=EndMargin3,
-	   light light=currentlight)
+	   light light=nolight, light arrowheadlight=currentlight)
 {
   Label L=L.copy();
   if(L.defaultposition) L.position(0);
@@ -2306,16 +2313,18 @@ void arrow(picture pic=currentpicture, Label L="", triple b, triple dir,
   picture opic;
   marginT3 margin=margin(b--b,p); // Extract margin.begin and margin.end
   triple a=(margin.begin+length+margin.end)*unit(dir);
-  draw(opic,L,a--O,align,p,arrow,margin,light);
+  draw(opic,L,a--O,align,p,arrow,margin,light,arrowheadlight);
   add(pic,opic,b);
 }
 
 void arrow(picture pic=currentpicture, Label L="", triple b, pair dir,
            real length=arrowlength, align align=NoAlign,
            pen p=currentpen, arrowbar3 arrow=Arrow3, margin3 margin=EndMargin3,
-	   light light=currentlight, projection P=currentprojection)
+	   light light=nolight, light arrowheadlight=currentlight,
+	   projection P=currentprojection)
 {
-  arrow(pic,L,b,invert(dir,b,P),length,align,p,arrow,margin,light);
+  arrow(pic,L,b,invert(dir,b,P),length,align,p,arrow,margin,light,
+	arrowheadlight);
 }
 
 triple size3(picture pic, projection P=currentprojection)
