@@ -666,8 +666,8 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 	  light light=currentlight, light meshlight=light,
 	  projection P=currentprojection)
 {
-  material[] surfacepen=new material[] {surfacepen};
-  pen[] meshpen=new pen[] {meshpen};
+  material[] surfacepen={surfacepen};
+  pen[] meshpen={meshpen};
   surfacepen.cyclic(true);
   meshpen.cyclic(true);
   draw(t,f,s,nu,nv,surfacepen,meshpen,light,meshlight,P);
@@ -715,8 +715,8 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
 	  light light=currentlight, light meshlight=light)
 {
-  material[] surfacepen=new material[] {surfacepen};
-  pen[] meshpen=new pen[] {meshpen};
+  material[] surfacepen={surfacepen};
+  pen[] meshpen={meshpen};
   surfacepen.cyclic(true);
   meshpen.cyclic(true);
   draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight);
