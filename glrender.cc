@@ -803,6 +803,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 	      double *ambient, double *specular, bool Viewportlighting,
 	      bool view, int oldpid)
 {
+  if(width <= 0 || height <= 0) return;
+  
   Prefix=&prefix;
   Picture=pic;
   Format=format;

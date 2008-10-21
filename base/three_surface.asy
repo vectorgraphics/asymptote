@@ -204,12 +204,13 @@ struct patch {
                      triple[] normals=new triple[], pen[] colors=new pen[]) {
     init();
     int L=length(external);
-    if(L == 0) return;
-    bool cyclic=cyclic(external);
-    if(cyclic && L == 3)
+    if(!cyclic(external) || L > 4) abortcyclic();
+    if(L == 1)
+      external=external--cycle--cycle--cycle;
+    else if(L == 2)
+      external=external--cycle--cycle;
+    else if(L == 3)
       external=external--cycle;
-    else if(!cyclic || L != 4)
-      abortcyclic();
 
     if(normals.length != 0)
       this.normals=copy(normals);
@@ -363,14 +364,11 @@ struct surface {
   // returns an array of one or two surfaces in a given plane.
   void operator init (path g, triple plane(pair)=XYplane) {
     int L=length(g);
-    if(L == 0) return;
-    bool cyclic=cyclic(g);
-    if(cyclic && L == 3) {
-      s=new patch[] {patch(path3(g,plane)--cycle)};
+    if(!cyclic(g) || L > 4) abortcyclic();
+    if(L <= 3) {
+      s=new patch[] {patch(path3(g,plane))};
       return;
     }
-    if(!cyclic || L != 4)
-      abortcyclic();
     for(int i=0; i < 4; ++i) {
       pair z=point(g,i);
       int w=windingnumber(subpath(g,i+1,i+3)--cycle,z);
@@ -498,10 +496,10 @@ surface operator * (transform3 t, surface s)
 }
 
 // Construct a surface from a planar path3.
-surface planar(path3 p)
+surface planar(path3 p, bool warn=true)
 {
-  if(length(p) < 0) return new surface;
-  transform3 T=align(normal(p));
+  if(length(p) <= 3) return surface(p);
+  transform3 T=align(normal(p,warn));
   p=transpose(T)*p;
   real h=point(p,0).z;
   return T*shift(0,0,h)*surface(bezulate(path(shift(0,0,-h)*p)));

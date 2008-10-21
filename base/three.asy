@@ -1228,7 +1228,7 @@ guide3 operator cast(path3 p)
 }
 
 // Return a unit normal vector to a planar path p.
-triple normal(path3 p)
+triple normal(path3 p, bool warn=true)
 {
   triple normal;
   triple z0,z1;
@@ -1238,7 +1238,8 @@ triple normal(path3 p)
 
     if(abs(n) > epsilon*max(abs(z0),abs(z1))) {
       n=unit(n);
-      if(normal != O && abs(normal-n) > epsilon && abs(normal+n) > epsilon)
+      if(warn && normal != O && abs(normal-n) > epsilon &&
+	 abs(normal+n) > epsilon)
         abort("path is not planar");
       normal=n;
     }
