@@ -58,19 +58,6 @@ real Gaussian(real x)
   return exp(-0.5*x^2)*invsqrt2pi;
 }
 
-path randompath(int n, bool cumulate=true, interpolate join=operator ..)
-{
-  guide g;
-  pair w;
-  for(int i=0; i <= n; ++i) {
-    pair z=(unitrand()-0.5,unitrand()-0.5);
-    if(cumulate) w += z; 
-    else w=z;
-    g=join(g,w);
-  }
-  return g;
-}
-
 // Return frequency count of data in [bins[i],bins[i+1]) for i=0,...,n-1.
 int[] frequency(real[] data, real[] bins)
 {

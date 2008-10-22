@@ -316,3 +316,25 @@ real[] times(path p, explicit pair z)
 {
   return intersections(p,(0,z.y),(1,z.y));
 }
+
+path randompath(int n, bool cumulate=true, interpolate join=operator ..)
+{
+  guide g;
+  pair w;
+  for(int i=0; i <= n; ++i) {
+    pair z=(unitrand()-0.5,unitrand()-0.5);
+    if(cumulate) w += z; 
+    else w=z;
+    g=join(g,w);
+  }
+  return g;
+}
+
+path[] strokepath(path g, pen p=currentpen)
+{
+  path[] G=_strokepath(g,p);
+  if(G.length == 0) G;
+  pair center(path g) {return 0.5*(min(g)+max(g));}
+  pair center(path[] g) {return 0.5*(min(g)+max(g));}
+  return shift(center(g)-center(G))*G;
+}
