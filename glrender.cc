@@ -281,6 +281,7 @@ void setsize(int w, int h, int minsize=0)
   glutReshapeWindow(w,h);
   reshape0(w,h);
   glutPostRedisplay();
+  glFinish();
 }
 
 void fullscreen() 
@@ -884,6 +885,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   Aspect=((double) Width)/Height;
   
+  oldWidth=Width;
+  oldHeight=Height;
+  
   if(settings::verbose > 1) 
     cout << "Rendering " << prefix << " as " << Width << "x" << Height
 	 << " image" << endl;
@@ -898,8 +902,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glutInitWindowSize(Width,Height);
   window=glutCreateWindow(((prefix == "out" ? "Asymptote" : prefix)+
 			   " [Double click right button for menu]").c_str());
-  oldWidth=Width;
-  oldHeight=Height;
+  if(!screen || !getSetting<bool>("fitscreen"))
+    Fitscreen=0;
+  
+  fitscreen();
   
   glClearColor(1.0,1.0,1.0,0.0);
    
@@ -951,11 +957,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   glutAttachMenu(GLUT_MIDDLE_BUTTON);
 
-  if(!getSetting<bool>("fitscreen"))
-    Fitscreen=0;
-  
-  fitscreen();
-  
   glutMainLoop();
 }
   
