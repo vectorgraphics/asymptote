@@ -1536,7 +1536,7 @@ transform3 transform3(triple u, triple v, triple w=cross(u,v))
   };
 }
 
-// return the rotation that maps Z to u about cross(u,Z).
+// return the rotation that maps Z to a unit vector u about cross(u,Z),
 transform3 align(triple u)
 {
   real a=u.x;

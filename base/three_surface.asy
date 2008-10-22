@@ -499,7 +499,7 @@ surface operator * (transform3 t, surface s)
 surface planar(path3 p, bool warn=true)
 {
   if(length(p) <= 3) return surface(p);
-  transform3 T=align(normal(p,warn));
+  transform3 T=align(unit(normal(p,warn)));
   p=transpose(T)*p;
   return T*shift(0,0,point(p,0).z)*surface(bezulate(path(p)));
 }
