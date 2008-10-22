@@ -1075,11 +1075,11 @@ bool intersections(double &s, double &t, std::vector<double>& S,
 
 ostream& operator<< (ostream& out, const path& p)
 {
-  Int n = p.n;
-  if(n == 0)
+  Int n = p.length();
+  if(n < 0)
     out << "<nullpath>";
   else {
-    for(Int i = 0; i < n-1; i++) {
+    for(Int i = 0; i < n; i++) {
       out << p.point(i);
       if(p.straight(i)) out << "--";
       else
@@ -1089,7 +1089,7 @@ ostream& operator<< (ostream& out, const path& p)
     if(p.cycles) 
       out << "cycle";
     else
-      out << p.point(n-1);
+      out << p.point(n);
   }
   return out;
 }

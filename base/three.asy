@@ -966,10 +966,10 @@ path path(path3 p, pair P(triple)=xypart)
 void write(file file, string s="", explicit path3 x, suffix suffix=none)
 {
   write(file,s);
-  int n=size(x);
-  if(n == 0) write("<nullpath3>");
+  int n=length(x);
+  if(n < 0) write("<nullpath3>");
   else {
-    for(int i=0; i < n-1; ++i) {
+    for(int i=0; i < n; ++i) {
       write(file,point(x,i));
       if(i < length(x)) {
         if(straight(x,i)) write(file,"--");
@@ -985,7 +985,7 @@ void write(file file, string s="", explicit path3 x, suffix suffix=none)
     if(cyclic(x))
       write(file,"cycle",suffix);
     else
-      write(file,point(x,n-1),suffix);
+      write(file,point(x,n),suffix);
   }
 }
 
