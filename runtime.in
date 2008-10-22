@@ -942,7 +942,6 @@ array *readpath(const string& psname, bool tex, bool keep)
     case 'Z':
       {
 	offset=readpair(buf,tex);
-	cout << offset << endl;
 	break;
       }
     }
