@@ -333,7 +333,7 @@ path randompath(int n, bool cumulate=true, interpolate join=operator ..)
 path[] strokepath(path g, pen p=currentpen)
 {
   path[] G=_strokepath(g,p);
-  if(G.length == 0) G;
+  if(G.length == 0) return G;
   pair center(path g) {return 0.5*(min(g)+max(g));}
   pair center(path[] g) {return 0.5*(min(g)+max(g));}
   return shift(center(g)-center(G))*G;
