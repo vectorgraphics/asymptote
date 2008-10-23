@@ -726,6 +726,14 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight);
 }
 
+void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
+          material[] surfacepen, pen meshpen=nullpen,
+	  light light=currentlight, light meshlight=light)
+{
+  pen[] meshpen={meshpen};
+  meshpen.cyclic(true);
+  draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight);
+}
 
 surface extrude(path g, triple elongation=Z)
 {

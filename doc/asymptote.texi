@@ -7108,6 +7108,9 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
 	  light light=currentlight, light meshlight=light);
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
+          material[] surfacepen, pen meshpen=nullpen,
+	  light light=currentlight, light meshlight=light);
+void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
 	  light light=currentlight, light meshlight=light);
 @end verbatim
