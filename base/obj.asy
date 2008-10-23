@@ -74,7 +74,15 @@ struct obj {
     for(int i=0; i < g.length; ++i) {
       path3[] gi=g[i];
       for(int j=0; j < gi.length; ++j) {
-        surface s=planar(gi[j],warn=false);
+	path3 gij=gi[j];
+        surface s=planar(gij);
+	if(s.s.length == 0) {
+// Face is not planar! Decompose into (possibly nonplanar) quadrilaterals.
+	  int stop=length(gij)-1;
+	  triple v=point(gij,0);
+	  for(int k=1; k < stop; k += 2)
+	    s.append(surface(v--subpath(gij,k,min(k+2,stop))--cycle));
+	}
         this.s.append(s);
         this.surfacepen.append(array(s.s.length,surfacepen[i]));
         this.meshpen.append(array(s.s.length,meshpen[i]));
@@ -83,12 +91,12 @@ struct obj {
   }
 
   void operator init(string datafile, bool verbose=false,
-                     material[] surfacepen, pen[] meshpen) {
+                     material[] surfacepen, pen[] meshpen=nullpens) {
     operator init(read(datafile,verbose),surfacepen,meshpen);
   }
 
   void operator init(string datafile, bool verbose=false,
-                     material surfacepen, pen meshpen) {
+                     material surfacepen, pen meshpen=nullpen) {
     material[] surfacepen={surfacepen};
     pen[] meshpen={meshpen};
     surfacepen.cyclic(true);

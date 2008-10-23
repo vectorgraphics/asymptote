@@ -198,7 +198,7 @@ struct patch {
   
   static real nineth=1/9;
 
-  // A constructor for a convex cyclic path of length 4 with optional
+  // A constructor for a convex cyclic path of length <= 4 with optional
   // arrays of 4 internal points, and for the corners, 4 normals and 4 pens.
   void operator init(path3 external, triple[] internal=new triple[],
                      triple[] normals=new triple[], pen[] colors=new pen[]) {
@@ -360,7 +360,7 @@ struct surface {
     s.push(patch(external,internal,normals,colors));
   }
 
-  // A constructor for a (possibly) nonconvex cyclic path of length 4 that
+  // A constructor for a (possibly) nonconvex cyclic path of length <= 4 that
   // returns an array of one or two surfaces in a given plane.
   void operator init (path g, triple plane(pair)=XYplane) {
     int L=length(g);
@@ -496,10 +496,12 @@ surface operator * (transform3 t, surface s)
 }
 
 // Construct a surface from a planar path3.
-surface planar(path3 p, bool warn=true)
+surface planar(path3 p)
 {
   if(length(p) <= 4) return surface(p);
-  transform3 T=align(normal(p,warn));
+  triple n=normal(p);
+  if(n == O) return new surface; 
+  transform3 T=align(n);
   p=transpose(T)*p;
   return T*shift(0,0,point(p,0).z)*surface(bezulate(path(p)));
 }
@@ -600,8 +602,11 @@ void tensorshade(transform t=identity(), frame f, patch s,
               t*project(s.internal(),P));
 }
 
+restricted pen[] nullpens={nullpen};
+nullpens.cyclic(true);
+
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
-          material[] surfacepen, pen[] meshpen,
+          material[] surfacepen, pen[] meshpen=nullpens,
 	  light light=currentlight, light meshlight=light,
 	  projection P=currentprojection)
 {
@@ -673,7 +678,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-          material[] surfacepen, pen[] meshpen,
+          material[] surfacepen, pen[] meshpen=nullpens,
 	  light light=currentlight, light meshlight=light)
 {
   if(s.empty()) return;

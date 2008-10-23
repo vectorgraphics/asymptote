@@ -7108,7 +7108,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
 	  light light=currentlight, light meshlight=light);
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-          material[] surfacepen, pen[] meshpen,
+          material[] surfacepen, pen[] meshpen=nullpens,
 	  light light=currentlight, light meshlight=light);
 @end verbatim
 The parameters @code{nu} and @code{nv} specify the number of subdivisions
@@ -7121,6 +7121,7 @@ struct material {
   real shininess;  
   real granularity;
 ...
+}
 @end verbatim
 @noindent
 These material properties are used to implement @code{OpenGL}-style lighting,
@@ -7446,6 +7447,13 @@ with normal @code{n} through point @code{O} is returned by
 transform3 planeproject(triple n, triple O=O, triple dir=n);
 @end verbatim
 @noindent
+One can use
+@cindex @code{normal}
+@verbatim
+triple normal(path3 p);
+@end verbatim
+@noindent
+to find the unit normal vector to a planar three-dimensional path @code{p}.
 As illustrated in the example @code{planeproject.asy}, a transform3
 that projects in the direction @code{dir} onto the plane defined by a
 planar path @code{p} is returned by

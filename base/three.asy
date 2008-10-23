@@ -1232,40 +1232,50 @@ guide3 operator cast(path3 p)
   };
 }
 
-// Return a unit normal vector to a planar path p.
-triple normal(path3 p, bool warn=true)
+// Return a unit normal vector to a planar path p (or O if the path is
+// nonplanar).
+triple normal(path3 p)
 {
   triple normal;
-  triple z0,z1;
+  static real epsilon=sqrt(realEpsilon);
+  real fuzz=epsilon*abs(max(p)-min(p));
+  real absnormal;
+  bool planar=true;
   
-  void check(triple n) {
-    static real epsilon=sqrt(realEpsilon);
-    if(abs(n) > epsilon*max(abs(z0),abs(z1))) {
+  void Cross(triple a, triple b) {
+    if(abs(a) >= fuzz && abs(b) >= fuzz) {
+      triple n=cross(unit(a),unit(b));
+      real absn=abs(n);
       n=unit(n);
-      if(warn && normal != O && abs(normal-n) > epsilon &&
-	 abs(normal+n) > epsilon)
-        abort("path is not planar");
-      normal=n;
+      if(absnormal > 0 && absn > epsilon &&
+	 abs(normal-n) > epsilon && abs(normal+n) > epsilon)
+	planar=false;
+      else if(absn > absnormal) {
+	absnormal=absn;
+	normal=n;
+      }
     }
   }
-
+  
   int L=length(p);
   if(L <= 0) return O;
-  z0=point(p,0);
-  for(int i=0; i < L; ++i) {
+
+  triple zi=point(p,1);
+  triple v0=zi-point(p,0);
+  for(int i=1; i <= L; ++i) {
     triple c0=postcontrol(p,i);
     triple c1=precontrol(p,i+1);
-    z1=point(p,i+1);
-    triple a=z1-z0+3.0*(c0-c1);
-    triple b=2.0*(z0+c1)-4.0*c0;
-    triple c=c0-z0;
-    check(cross(a,b));
-    check(cross(a,c));
-    check(cross(b,c));
-    check(cross(dir(p,i,-1),dir(p,i,1)));
-    z0=z1;
+    triple zp=point(p,i+1);
+    triple v1=c0-zi;
+    triple v2=c1-c0;
+    triple v3=zp-c1;
+    Cross(v0,v1);
+    Cross(v1,v2);
+    Cross(v2,v3);
+    v0=v3;
+    zi=zp;
   }
-  return normal;
+  return planar ? normal : O;
 }
 
 // Transforms that map XY plane to YX, YZ, ZY, ZX, and XZ planes.
