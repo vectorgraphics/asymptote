@@ -72,7 +72,7 @@ struct revolution {
   triple M;
   triple m;
 
-  static real epsilon=sqrt(realEpsilon);
+  static real epsilon=10*sqrt(realEpsilon);
   
   void operator init(triple c=O, path3 g, triple axis=Z, real angle1=0,
                      real angle2=360) {
@@ -217,7 +217,6 @@ struct revolution {
         d=r;
       }
     }
-    static real epsilon=10*epsilon;
     path3 S=slice(t,n);
     path3 Sm=slice(t+epsilon,n);
     path3 Sp=slice(t-epsilon,n);
