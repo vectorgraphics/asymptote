@@ -614,7 +614,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
     for(int i=0; i < s.s.length; ++i) {
       material p=surfacepen[i];
       if(!invisible((pen) p))
-        draw3D(f,s.s[i],p,light);
+	draw3D(f,s.s[i],p,light);
     }
     pen modifiers=thin()+linecap(0);
     for(int k=0; k < s.s.length; ++k) {
@@ -727,7 +727,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-          material[] surfacepen, pen meshpen=nullpen,
+          material[] surfacepen, pen meshpen,
 	  light light=currentlight, light meshlight=light)
 {
   pen[] meshpen={meshpen};

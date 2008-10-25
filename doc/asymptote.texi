@@ -6941,6 +6941,12 @@ a rainbow spectrum tapering off to black/white at the ends;
 @item pen[] BWRainbow2(int NColors=65485)
 a double rainbow palette tapering off to black/white at the ends, with
 a linearly scaled intensity.
+
+@cindex @code{Gradient}
+@item pen[] Gradient(int NColors=256 ... pen[] p) 
+a palette varying linearly over the specified array of pens, using
+NColors in each interpolation interval;
+
 @end table
 
 The function @code{cmyk(pen[] Palette)} may be used to convert any
@@ -7108,7 +7114,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
 	  light light=currentlight, light meshlight=light);
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
-          material[] surfacepen, pen meshpen=nullpen,
+          material[] surfacepen, pen meshpen,
 	  light light=currentlight, light meshlight=light);
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,

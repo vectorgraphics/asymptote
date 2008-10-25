@@ -188,6 +188,7 @@ pen[] palette(real[] f, pen[] palette)
 {
   real Min=min(f);
   real Max=max(f);
+  if(palette.length == 0) return new pen[];
   real step=Max == Min ? 0.0 : (palette.length-1)/(Max-Min);
   return sequence(new pen(int i) {return palette[round((f[i]-Min)*step)];},
 		  f.length);
@@ -434,6 +435,22 @@ pen[] BWRainbow2(int NColors=32761)
   for(int i=0; i < n; ++i)
     Palette[i]=i*ninv*Palette[i];
   return Palette;
+}
+
+//A palette varying linearly over the specified array of pens, using
+// NColors in each interpolation interval.
+pen[] Gradient(int NColors=256 ... pen[] p) 
+{
+  pen[] P;
+  if(p.length < 2) abort("at least 2 colors must be specified");
+  for(int i=0; i < p.length-1; ++i) {
+    pen begin=p[i];
+    pen end=p[i+1];
+    P.append(sequence(new pen(int j) {
+	  return interp(begin,end,j/(NColors-1));
+	},NColors));
+  }
+  return P;
 }
 
 pen[] cmyk(pen[] Palette) 
