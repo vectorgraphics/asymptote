@@ -1732,9 +1732,9 @@ returns a unit vector in the direction of the pair @code{z};
 @cindex @code{expi}
 returns a unit vector in the direction @code{angle} measured in radians;
 
-@item pair dir(real angle)
+@item pair dir(real degrees)
 @cindex @code{dir}
-returns a unit vector in the direction @code{angle} measured in degrees;
+returns a unit vector in the direction @code{degrees} measured in degrees;
 
 @item real xpart(pair z)
 @cindex @code{xpart}
@@ -1802,9 +1802,9 @@ producing an error);
 @cindex @code{unit}
 returns a unit triple in the direction of the triple @code{v};
 
-@item triple expi(real colatitude, real longitude)
+@item triple expi(real polar, real azimuth)
 @cindex @code{expi}
-returns a unit triple in the direction @code{(colatitude,longitude)}
+returns a unit triple in the direction @code{(polar,azimuth)}
 measured in radians;
 
 @item triple dir(real colatitude, real longitude)

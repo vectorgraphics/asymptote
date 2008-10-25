@@ -607,8 +607,6 @@ the non-quiet types, but will not notify you which labels are overlapping. See:
 In the case of a user-specified tick array, you can change which labels get
 suppressed/moved by changing the order of array entries.
 
-Further examples of graphs are available at \docref{http://home.tele2.fr/phivaldi/asymptote/graph/index.html\}.
-
 \question 04nov:fixedsizegraphs How do I make the plot region of a graph, ignoring labels and legends, have a fixed size?
  
 Either:

@@ -3679,9 +3679,9 @@ pair unit(pair z)
   return unit(z);
 }
 
-pair dir(real theta)
+pair dir(real degrees)
 {
-  return expi(radians(theta));
+  return expi(radians(degrees));
 }
 
 pair dir(explicit pair z)
@@ -3689,9 +3689,9 @@ pair dir(explicit pair z)
   return unit(z);
 }
 
-pair expi(real theta)
+pair expi(real angle)
 {
-  return expi(theta);
+  return expi(angle);
 }
 
 pair exp(explicit pair z) 
@@ -3831,16 +3831,14 @@ triple cross(triple u, triple v)
   return cross(u,v);
 }
 
-triple expi(real theta, real phi)
+triple expi(real polar, real azimuth)
 {
-  return expi(theta,phi);
-  real sintheta=sin(theta);
-  return triple(sintheta*cos(phi),sintheta*sin(phi),cos(theta));
+  return expi(polar,azimuth);
 }
 
-triple dir(real theta, real phi)
+triple dir(real colatitude, real longitude)
 {
-  return expi(radians(theta),radians(phi));
+  return expi(radians(colatitude),radians(longitude));
 }
 
 
