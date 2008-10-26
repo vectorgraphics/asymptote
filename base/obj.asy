@@ -80,8 +80,10 @@ struct obj {
 // Face is not planar! Decompose into (possibly nonplanar) quadrilaterals.
 	  int stop=length(gij)-1;
 	  triple v=point(gij,0);
-	  for(int k=1; k < stop; k += 2)
-	    s.append(surface(v--subpath(gij,k,min(k+2,stop))--cycle));
+// Use triangles for PRC output to work around Adobe Reader rendering bugs:
+	  int step=prc0() ? 1 : 2;
+	  for(int k=1; k < stop; k += step)
+	    s.append(surface(v--subpath(gij,k,min(k+step,stop))--cycle));
 	}
         this.s.append(s);
         this.surfacepen.append(array(s.s.length,surfacepen[i]));
