@@ -141,7 +141,6 @@ void lighting(void)
 
 void save()
 {  
-  sleep(1);
   glFinish();
   glPixelStorei(GL_PACK_ALIGNMENT,1);
   size_t ndata=3*Width*Height;
@@ -282,7 +281,6 @@ void setsize(int w, int h, int minsize=0)
   glutReshapeWindow(w,h);
   reshape0(w,h);
   glutPostRedisplay();
-sleep(1);
   glFinish();
 }
 
