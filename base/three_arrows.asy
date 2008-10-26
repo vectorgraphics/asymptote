@@ -43,20 +43,32 @@ void bend(surface s, path3 g, real L)
   }
 }
 
-private real takeStep(path3 s, real T, real width)
+real takeStep(path3 s, real T, real width)
 {
   int L=length(s);
   path3 si=subpath(s,T,L);
-  static real K=0.05;
-  real R=radius(si,0);
-  real t=arctime(si,K*(width+R));
-  int nsamples=16;
-  real step=1.2*t/nsamples;
-  for(int i=1; i <= nsamples; ++i) {
-    real r=radius(si,i*step);
-    if(r >= 0) R=min(R,r);
+  // Find minimum radius over [0,t]
+  real minradius(real t) {
+    real R=infinity;
+    int nsamples=8;
+    real step=t/nsamples;
+    for(int i=0; i < nsamples; ++i) {
+      real r=radius(si,i*step);
+      if(r >= 0) R=min(R,r);
+    }
+    return R;
   }
-  t=T+arctime(si,(K*(width+R)));
+  int niterations=12;
+  static real K=0.15;
+  real R;
+  real lastt;
+  real t=0;
+  for(int i=0; i < niterations; ++ i) {
+    R=minradius(t);
+    t=0.5*(t+arctime(si,K*(width+R)));
+  }
+  // Compute new interval
+  real t=arctime(s,arclength(subpath(s,0,T))+K*(width+minradius(t)));
   if(t < L) t=min(t,0.5*(T+L));
   return t;
 }
