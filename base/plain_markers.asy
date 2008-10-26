@@ -182,14 +182,15 @@ picture legend(Legend[] Legend, int perline=1, real linelength,
   real totalwidth=0;
   for(int i=0; i < Legend.length; ++i) {
     picture pic=legenditem(Legend[i],linelength);
-    heightPerEntry=max(heightPerEntry,max(pic).y-min(pic).y);
-    widthPerEntry=max(widthPerEntry,max(pic).x-min(pic).x);
+    pair lambda=size(pic);
+    heightPerEntry=max(heightPerEntry,lambda.y);
+    widthPerEntry=max(widthPerEntry,lambda.x);
     if(Legend[i].p != invisible)
-      totalwidth += max(pic).x-min(pic).x;
+      totalwidth += lambda.x;
     else {
       // Legend entries without leading line need less space in one-line legends
       picture pic=legenditem(Legend[i],0);
-      totalwidth += max(pic).x-min(pic).x;
+      totalwidth += size(pic).x;
     }
   }
   // Does everything fit into one line? 
@@ -203,7 +204,7 @@ picture legend(Legend[] Legend, int perline=1, real linelength,
       picture pic=legenditem(Legend[i],
                              Legend[i].p == invisible ? 0 : linelength);
       add(inset,pic,(currPosX,0));
-      currPosX += max(pic).x-min(pic).x+itemDistance;
+      currPosX += size(pic).x+itemDistance;
     }
   } else {
     // multiline legend
@@ -229,7 +230,7 @@ frame legend(picture pic=currentpicture, int perline=1,
              real linelength=legendlinelength,
              real hskip=legendhskip, real vskip=legendvskip,
              real maxwidth=perline == 0 ?
-             legendmaxrelativewidth*(max(pic).x-min(pic).x) : 0,
+             legendmaxrelativewidth*size(pic).x : 0,
              pen p=currentpen)
 {
   frame F;

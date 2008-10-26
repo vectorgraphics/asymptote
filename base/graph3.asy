@@ -119,6 +119,7 @@ void labelaxis(picture pic, transform3 T, Label L, path3 g,
       real t=relative(L,g);
       triple v=point(g,t);
       picture F;
+      if(L.align.dir3 == O) align=invert(L.align.dir,v,P);
 
       if(ticklabels && locate != null && piecewisestraight(g)) {
         locateT locate1;
@@ -526,7 +527,7 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
   triple dir=axis.align.dir3 == O ?
     defaultdir(Y,Z,X,opposite^opposite2,currentprojection) : axis.align.dir3;
   Label L=L.copy();
-  if(L.align.dir3 == O) L.align(opposite ? -dir : dir);
+  if(L.align.dir3 == O && L.align.dir == 0) L.align(opposite ? -dir : dir);
 
   real y=axis.value;
   real z=axis.value2;
@@ -647,7 +648,7 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
   triple dir=axis.align.dir3 == O ?
     defaultdir(X,Z,Y,opposite^opposite2,currentprojection) : axis.align.dir3;
   Label L=L.copy();
-  if(L.align.dir3 == O) L.align(opposite ? -dir : dir);
+  if(L.align.dir3 == O && L.align.dir == 0) L.align(opposite ? -dir : dir);
 
   real x=axis.value;
   real z=axis.value2;
@@ -768,7 +769,7 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
   triple dir=axis.align.dir3 == O ?
     defaultdir(X,Y,Z,opposite^opposite2,currentprojection) : axis.align.dir3;
   Label L=L.copy();
-  if(L.align.dir3 == O) L.align(opposite ? -dir : dir);
+  if(L.align.dir3 == O && L.align.dir == 0) L.align(opposite ? -dir : dir);
 
   real x=axis.value;
   real y=axis.value2;
