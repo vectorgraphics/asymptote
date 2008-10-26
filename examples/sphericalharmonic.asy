@@ -1,5 +1,6 @@
 import graph3;
 import palette;
+size(200);
 
 currentprojection=orthographic(4,2,4);
 
