@@ -43,19 +43,22 @@ void bend(surface s, path3 g, real L)
   }
 }
 
-private real takeStep(path3 s, real t, real width)
+private real takeStep(path3 s, real T, real width)
 {
   int L=length(s);
-  real step(real t) {
-    static real K=0.025;
-    static real minStep=1/50; // at most 1/minStep steps per curve
-    real r=radius(s,t)/width;
-    return r > 0 ? max(arctime(s,max(K*r)),minStep) : 1;
+  path3 si=subpath(s,T,L);
+  static real K=0.05;
+  real R=radius(si,0);
+  real t=arctime(si,K*(width+R));
+  int nsamples=16;
+  real step=1.2*t/nsamples;
+  for(int i=1; i <= nsamples; ++i) {
+    real r=radius(si,i*step);
+    if(r >= 0) R=min(R,r);
   }
-  real step=step(0.5*(min(t+step(t),length(s))+t));
-  real w=L-t;
-  if(step > 0.5*w && step < w) step=0.5*w;
-  return min(t+step,L);
+  t=T+arctime(si,(K*(width+R)));
+  if(t < L) t=min(t,0.5*(T+L));
+  return t;
 }
 
 surface tube(path3 g, real width)
