@@ -58,8 +58,8 @@ real takeStep(path3 s, real T, real width)
     }
     return R;
   }
-  int niterations=12;
-  static real K=0.15;
+  int niterations=8;
+  static real K=0.08;
   real R;
   real lastt;
   real t=0;
@@ -114,6 +114,15 @@ struct arrowhead3
   surface head(path3 g, position position=EndPoint, pen p=currentpen,
                real size=0, real angle=arrowangle,
 	       projection P=currentprojection);
+
+  static surface surface(triple v, path3 s, path[] h, real size, pen p,
+			 filltype filltype, projection P) {
+    path3[] H=path3(rotate(degrees(dir(v,dir(s,arctime(s,0.5*size)),P),
+				  warn=false))*h);
+    return shift(v)*transform3(P)*(filltype != NoFill ?
+				   surface(H) : tube(H[0],linewidth(p)));
+  }
+
   real size(pen p)=arrowsize;
   real gap=1;
   bool lighting=true;
@@ -204,7 +213,33 @@ path3 approach(path3 g, int n, real radix=3)
   return G&subpath(g,tlast,L);
 }
 
-arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb)
+arrowhead3 DefaultHead2(filltype filltype=Fill)
+{
+  arrowhead3 a;
+  a.head=new surface(path3 g, position position=EndPoint,
+		     pen p=currentpen, real size=0, real angle=arrowangle,
+		     projection P=currentprojection) {
+    if(size == 0) size=DefaultHead.size(p);
+    bool relative=position.relative;
+    real position=position.position.x;
+    if(relative) position=reltime(g,position);
+
+    path3 r=subpath(g,position,0);
+    real t=arctime(r,size);
+    path3 s=subpath(r,t,0);
+    triple v=point(s,0);
+    size=abs(project(v+size*dir(s,0),P)-project(v,P));
+    return a.surface(v,s,DefaultHead.head((0,0)--(size,0),p,size,angle),size,p,
+		     filltype,P);
+  };
+  a.lighting=false;
+  a.gap=0.966;
+  return a;
+}
+arrowhead3 DefaultHead2=DefaultHead2();
+
+arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb,
+		     filltype filltype=Fill)
 {
   arrowhead3 a;
   a.head=new surface(path3 g, position position=EndPoint,
@@ -221,17 +256,19 @@ arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb)
   real t=arctime(r,size);
   path3 s=subpath(r,t,0);
   triple v=point(s,0);
-  return shift(v)*transform3(P)*
-  surface(bezulate(rotate(degrees(dir(v,dir(s,arctime(s,0.5*size)),P)))*
-		   HookHead.head((0,0)--(size,0),p,size,angle)));
+  size=abs(project(v+size*dir(s,0),P)-project(v,P));
+  return a.surface(v,s,HookHead.head((0,0)--(size,0),p,size,angle),size,p,
+		   filltype,P);
   };
-  a.gap=0.5;
   a.lighting=false;
+  a.gap=0.85;
   return a;
 }
+arrowhead3 HookHead2=HookHead2();
 
 arrowhead3 TeXHead2;
 TeXHead2.size=TeXHead.size;
+TeXHead2.gap=0.5;
 TeXHead2.lighting=false;
 TeXHead2.head=new surface(path3 g, position position=EndPoint,
 			  pen p=currentpen, real size=0,
@@ -246,12 +283,10 @@ TeXHead2.head=new surface(path3 g, position position=EndPoint,
   real t=arctime(r,size);
   path3 s=subpath(r,t,0);
   triple v=point(s,0);
-  return shift(v)*transform3(P)*
-  surface(bezulate(rotate(degrees(dir(v,dir(s,arctime(s,0.5*size)),P)))*
-		   TeXHead.head((0,0)--(1,0),p,size)));
+  size=abs(project(v+size*dir(s,0.5),P)-project(v,P));
+  return TeXHead2.surface(v,s,bezulate(TeXHead.head((0,0)--(1,0),p,size)),
+			  size,p,Fill,P);
 };
-
-arrowhead3 HookHead2=HookHead2();
 
 arrowhead3 HookHead3(real dir=arrowdir, real barb=arrowbarb)
 {
@@ -270,7 +305,6 @@ arrowhead3 HookHead3(real dir=arrowdir, real barb=arrowbarb)
   real t=arctime(r,size);
   path3 s=subpath(r,t,0);
   bool straight1=length(s) == 1 && straight(g,0);
-
   path3 H=path3(HookHead(dir,barb).head((0,0)--(0,size),p,size,angle),
 		YZplane);
   surface head=surface(O,reverse(approach(subpath(H,1,0),7,1.5))&
@@ -285,7 +319,7 @@ arrowhead3 HookHead3(real dir=arrowdir, real barb=arrowbarb)
     return head;
   }
 };
-  a.gap=0.924;
+  a.gap=0.85;
   return a;
 }
 

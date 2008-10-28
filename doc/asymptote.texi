@@ -7112,13 +7112,13 @@ the routines
 @verbatim
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
-	  light light=currentlight, light meshlight=light);
+          light light=currentlight, light meshlight=light);
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen meshpen,
-	  light light=currentlight, light meshlight=light);
+          light light=currentlight, light meshlight=light);
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
-	  light light=currentlight, light meshlight=light);
+          light light=currentlight, light meshlight=light);
 @end verbatim
 The parameters @code{nu} and @code{nv} specify the number of subdivisions
 for drawing optional mesh lines for each Bezier patch.
@@ -7140,19 +7140,20 @@ and @code{parametricsurface.asy}.
 
 @cindex @code{bezulate}
 There is no @code{fill} command for arbitrary three-dimensional cyclic paths
-(this would be an ill-posed operation). A three-dimensional planar path
-constructed from a two-dimensional cyclic path @code{p} can be filled by using
-Orest Shardt's @code{bezulate} routine to decompose @code{p} into an
-array of cyclic paths of length @code{4} or less; these can then be used to
-construct and draw a (filled) planar surface:
+(this would be an ill-posed operation). However, a three-dimensional planar path
+constructed from a two-dimensional cyclic nonselfintersecting path
+@code{p} can be filled by first using Orest Shardt's @code{bezulate} routine
+to decompose @code{p} into an array of cyclic paths of length @code{4}
+or less. This array can then be used to construct and draw a (filled) planar
+surface:
 @verbatim
 draw(surface(bezulate(polygon(5))),red);
 draw(surface(bezulate(unitcircle)),red);
 @end verbatim
 @noindent
 @cindex @code{planar}
-Similarly, the routine @code{surface planar(path3 p)} can be used to convert
-a planar three-dimensional path to a surface.
+Alternatively, the routine @code{surface planar(path3 p)} can be used to convert
+a three-dimensional planar cyclic nonselfintersecting path to a surface.
 
 @cindex @code{thin}
 @cindex @code{thick}
@@ -7241,7 +7242,7 @@ The open-source @acronym{PRC} specification is available from
 @item Project the scene to a two-dimensional vector (@acronym{EPS} or
 @acronym{PDF}) format with @code{render=0}. Only limited hidden surface
 removal facilities are currently available with this approach
-(@pxref{3DPostScript}).
+(@pxref{PostScript3D}).
 
 @end enumerate
 
@@ -7508,18 +7509,26 @@ Here is an example showing all five guide3 connectors:
 @cindex @code{Arrow3}
 @cindex @code{Arrows3}
 @cindex @code{DefaultHead3}
-@cindex @code{HookHead2}
-@cindex @code{TeXHead2}
 @cindex @code{HookHead3}
 @cindex @code{TeXHead3}
 Three-dimensional versions of arrows can be drawn with one of the specifiers 
 @code{None}, @code{Blank}, @code{BeginArrow3}, @code{MidArrow3},
 @code{EndArrow3} (or equivalently @code{Arrow3}), and @code{Arrows3}.
 The predefined three-dimensional arrowhead styles are
-@code{DefaultHead3}, @code{HookHead3}, @code{TeXHead3},
-@code{HookHead2}, and @code{TeXHead2}.
-The final two specifiers are 2D arrowheads lifted to 3D space and aligned
-according to the initial viewpoint.
+@code{DefaultHead3}, @code{HookHead3}, @code{TeXHead3}.
+Versions of the two-dimensional arrowheads lifted to three-dimensional
+space and aligned according to the initial viewpoint are also defined:
+@cindex @code{DefaultHead2}
+@cindex @code{HookHead2}
+@cindex @code{TeXHead2}
+@verbatim
+arrowhead3 DefaultHead2(filltype filltype=Fill);
+arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb,
+                     filltype filltype=Fill);
+arrowhead3 TeXHead2;
+@end verbatim
+@noindent
+An unfilled arrow will be drawn if @code{filltype=NoFill}.
 
 @cindex @code{NoMargin3}
 @cindex @code{BeginMargin3}
@@ -7547,7 +7556,7 @@ Further three-dimensional examples are provided in the files
 @code{near_earth.asy}, @code{conicurv.asy}, and (in the @code{animations}
 subdirectory) @code{cube.asy}.
 
-@anchor{3DPostScript}
+@anchor{PostScript3D}
 Limited support for projected vector graphics (effectively three-dimensional
 nonrendered @code{PostScript}) is also available by specifying
 @code{settings.render=0}. This currently only works for piecewise planar
@@ -8683,4 +8692,6 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  DPostScript YZZero freeglut externalprc nonrendered nosafe
 @c  LocalWords:  unithemisphere versa XYplane xypart unitsolidcone YZEquals
 @c  LocalWords:  XZEquals XYEquals XZZero XYZero InTicks OutTicks InOutTicks
-@c  LocalWords:  fitscreen planeproject
+@c  LocalWords:  fitscreen planeproject strokepath meshlight nullpens arrowdir
+@c  LocalWords:  diffusepen ambientpen emissivepen specularpen arrowbarb
+@c  LocalWords:  nonselfintersecting
