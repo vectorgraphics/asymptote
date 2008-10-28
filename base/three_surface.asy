@@ -271,14 +271,11 @@ struct patch {
     straight=true;
 
     if(internal.length == 0) {
-      bool cyclicflag=external.cyclicflag;
-      external.cyclic(true);
       internal=new triple[4];
       for(int j=0; j < 4; ++j) {
-	internal[j]=nineth*(4*external[j]+2*external[j+1]+external[j+2]+
-			    2*external[j+3]);
+	internal[j]=nineth*(4*external[j]+2*external[(j+1)%4]+
+			    external[(j+2)%4]+2*external[(j+3)%4]);
       }
-      external.cyclic(cyclicflag);
     }
 
     triple delta;
@@ -352,29 +349,41 @@ struct surface {
       return;
     }
     if(!cyclic(external)) abort("cyclic path expected");
-    triple n=normal(external);
-    int step= n == O ? 1 : 2; // Use triangles for nonplanar surfaces.
-    int k=step+1;
-    int stop=L-k;
-    bool nocolors=colors.length == 0;
-    bool nonormals=normals.length == 0;
+    real factor=1/L;
     pen[] p;
     triple[] n;
-    if(!nocolors)
-      p=new pen[]{colors[0]};
-    if(!nonormals)
-      n=new triple[]{normals[0]};
-    s.push(patch(subpath(external,0,k)--cycle,
-		 normals=nonormals ? n : normals[:k+1],
-		 nocolors ? p : colors[:k+1]));
-    triple v=point(external,0);
-    for(; k < stop; k += step)
-      s.push(patch(v--subpath(external,k,k+step)--cycle,
-		   nonormals ? n : concat(n,normals[k:k+step+1]),
-		   nocolors ? p : concat(p,colors[k:k+step+1])));
-    s.push(patch(v--subpath(external,k,L)&cycle,
-		 nonormals ? n : concat(n,normals[k:]),
-		 nocolors ? p : concat(p,colors[k:])));
+    bool nocolors=colors.length == 0;
+    bool nonormals=normals.length == 0;
+    triple center;
+    for(int i=0; i < L; ++i)
+      center += point(external,i);
+    center *= factor;
+    bool normalscyclic=normals.cyclicflag;
+    bool colorscyclic=colors.cyclicflag;
+   if(!nocolors) {
+     colors.cyclic(true);
+     real[] pcenter=rgba(colors[0]);
+     for(int i=1; i < L; ++i)
+       pcenter += rgba(colors[i]);
+     p=new pen[] {rgba(factor*pcenter)};
+   }
+    if(!nonormals) {
+      normals.cyclic(true);
+      triple ncenter;
+      for(int i=0; i < L; ++i)
+	ncenter += normals[i];
+      n=new triple[] {factor*ncenter};
+    }
+    // Use triangles for nonplanar surfaces.
+    int step=normal(external) == O ? 1 : 2;
+    for(int i=0; i < L; i += step) {
+      int end=min(i+step,L);
+      s.push(patch(subpath(external,i,end)--center--cycle,
+		   nonormals ? n : concat(normals[i:end+1],n),
+		   nocolors ? p : concat(colors[i:end+1],p)));
+    }
+    normals.cyclic(normalscyclic);
+    colors.cyclic(colorscyclic);
   }
 
   // A constructor for a convex path3.

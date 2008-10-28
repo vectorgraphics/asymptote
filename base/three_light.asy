@@ -75,11 +75,16 @@ material emissive(material m, real granularity=m.granularity)
                   granularity);
 }
 
-real[] unpack(pen p)
+real[] rgba(pen p)
 {
   real[] a=colors(rgb(p));
   a.push(opacity(p));
   return a;
+}
+
+pen rgba(real[] a)
+{
+  return rgb(a[0],a[1],a[2])+opacity(a[3]);
 }
 
 struct light {
@@ -104,9 +109,9 @@ struct light {
     this.specular=new real[position.length][];
     for(int i=0; i < position.length; ++i) {
       this.position[i]=unit(position[i]);
-      this.diffuse[i]=unpack(diffuse[i]);
-      this.ambient[i]=unpack(ambient[i]);
-      this.specular[i]=unpack(specular[i]);
+      this.diffuse[i]=rgba(diffuse[i]);
+      this.ambient[i]=rgba(ambient[i]);
+      this.specular[i]=rgba(specular[i]);
     }
     this.specularfactor=specularfactor;
     this.viewport=viewport;
@@ -139,10 +144,10 @@ struct light {
     normal=T*normal;
     normal=unit(normal)*sgn(normal.z);
     real s=m.shininess*128;
-    real[] Diffuse=unpack(m.diffuse());
-    real[] Ambient=unpack(m.ambient());
-    real[] Specular=unpack(m.specular());
-    real[] p=unpack(m.emissive());
+    real[] Diffuse=rgba(m.diffuse());
+    real[] Ambient=rgba(m.ambient());
+    real[] Specular=rgba(m.specular());
+    real[] p=rgba(m.emissive());
     for(int i=0; i < position.length; ++i) {
       triple L=viewport ? position[i] : T*position[i];
       real Ldotn=max(dot(normal,L),0);
