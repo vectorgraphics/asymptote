@@ -149,6 +149,7 @@ Base modules
 * graph::                       2D linear & logarithmic graphs
 * palette::                     Color density images and palettes
 * three::                       3D vector graphics
+* obj::                         3D obj files
 * graph3::                      3D linear & logarithmic graphs
 * grid3::                       3D grids
 * solids::                      3D solid geometry
@@ -5758,6 +5759,7 @@ Here now is @code{latexusage.tex}:
 * graph::                       2D linear & logarithmic graphs
 * palette::                     Color density images and palettes
 * three::                       3D vector graphics
+* obj::                         3D obj files
 * graph3::                      3D linear & logarithmic graphs
 * grid3::                       3D grids
 * solids::                      3D solid geometry
@@ -7138,22 +7140,39 @@ based on the Phong-Blinn specular model. Sample Bezier surfaces are
 contained in the example files @code{BezierSurface.asy}, @code{teapot.asy},
 and @code{parametricsurface.asy}. 
 
-@cindex @code{bezulate}
+@cindex @code{fill}
 There is no @code{fill} command for arbitrary three-dimensional cyclic paths
-(this would be an ill-posed operation). However, a three-dimensional planar path
-constructed from a two-dimensional cyclic nonselfintersecting path
+(this would be an ill-posed operation). 
+However, a surface can be constructed from a convex path3 with the
+constructor
+@cindex @code{surface}
+@verbatim
+surface surface(path3 external, triple[] internal=new triple[],
+                triple[] normals=new triple[], pen[] colors=new pen[]);
+@end verbatim
+@noindent
+and then filled:
+@verbatim
+draw(surface(path3(polygon(5))),red);
+draw(surface(unitcircle3),red);
+@end verbatim
+@noindent
+@cindex @code{bezulate}
+Alternatively, a three-dimensional planar path constructed from a
+two-dimensional (possibly nonconvex) cyclic and nonselfintersecting path 
 @code{p} can be filled by first using Orest Shardt's @code{bezulate} routine
 to decompose @code{p} into an array of cyclic paths of length @code{4}
-or less. This array can then be used to construct and draw a (filled) planar
+or less. This array can then be used to construct and draw a planar
 surface:
 @verbatim
-draw(surface(bezulate(polygon(5))),red);
-draw(surface(bezulate(unitcircle)),red);
+draw(surface(bezulate((0,0)--E+2N--2E--E+N..0.2E..cycle)),red);
 @end verbatim
 @noindent
 @cindex @code{planar}
-Alternatively, the routine @code{surface planar(path3 p)} can be used to convert
-a three-dimensional planar cyclic nonselfintersecting path to a surface.
+@noindent
+The routine @code{surface planar(path3 p)} uses @code{bezulate} to convert
+a three-dimensional planar (possibly nonconvex) cyclic and
+nonselfintersecting path to a surface.
 
 @cindex @code{thin}
 @cindex @code{thick}
@@ -7589,6 +7608,13 @@ Here is an example that shows how a binary space partition may be used to draw a
 @code{PostScript} vector image of three orthogonal intersecting planes:
 @verbatiminclude planes.asy
 @image{planes}
+
+@node obj
+@section @code{obj}
+@cindex @code{obj}
+This module allows one to construct surfaces from simple obj files,
+as illustrated in the example files @code{galleon.asy} and
+@code{triceratops.asy}.
 
 @node graph3
 @section @code{graph3}
@@ -8683,7 +8709,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt DefaultHead
 @c  LocalWords:  SimpleHead HookHead TeXHead multipage nurbs inlinemovie dxmax
 @c  LocalWords:  simpson NoBox truesize autoscale shadestroke recurses mintimes
-@c  LocalWords:  nonoverlapping Shewchuk's texdvicommand texengine maxtimes
+@c  LocalWords:  nonoverlapping texdvicommand texengine maxtimes
 @c  LocalWords:  piecewisestraight unitrand graphmarkers antialias nolight newl
 @c  LocalWords:  Delaunay Shewchuk convertOptions APPDATA pdfreload tempFile
 @c  LocalWords:  pdfreloadOptions deferred OpenGL Phong Blinn renderer unitbox

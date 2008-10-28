@@ -1,4 +1,4 @@
-// A module for reading simple obj-files with groups.
+// A module for reading simple obj files with groups.
 // Authors: Jens Schwaiger and John Bowman
 //
 // Here simple means that : 
@@ -74,20 +74,10 @@ struct obj {
     for(int i=0; i < g.length; ++i) {
       path3[] gi=g[i];
       for(int j=0; j < gi.length; ++j) {
-	path3 gij=gi[j];
-        surface s=planar(gij);
-	if(s.s.length == 0) {
-// Face is not planar! Decompose into (possibly nonplanar) quadrilaterals.
-	  int stop=length(gij)-1;
-	  triple v=point(gij,0);
-// Use triangles for PRC output to work around Adobe Reader rendering bugs:
-	  int step=prc0() ? 1 : 2;
-	  for(int k=1; k < stop; k += step)
-	    s.append(surface(v--subpath(gij,k,min(k+step,stop))--cycle));
-	}
-        this.s.append(s);
-        this.surfacepen.append(array(s.s.length,surfacepen[i]));
-        this.meshpen.append(array(s.s.length,meshpen[i]));
+        surface sij=surface(gi[j]);
+        s.append(sij);
+        this.surfacepen.append(array(sij.s.length,surfacepen[i]));
+        this.meshpen.append(array(sij.s.length,meshpen[i]));
       }
     }
   }

@@ -209,7 +209,7 @@ pair project(triple v, projection P=currentprojection)
 
 pair dir(triple v, triple dir, projection P)
 {
-  return unit(project(v+dir,P)-project(v,P));
+  return unit(project(v+0.5dir,P)-project(v-0.5*dir,P));
 }
 
 // Uses the homogenous coordinate to perform perspective distortion.
