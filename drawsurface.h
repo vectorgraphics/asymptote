@@ -43,6 +43,7 @@ protected:
   GLfloat v2[16];
   GLfloat Normal[3];
   bool havenormal;
+  bool havetransparency;
 #endif  
   
   void storecolor(int i, const vm::array &pens, int j) {

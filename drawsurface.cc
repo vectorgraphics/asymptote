@@ -128,6 +128,8 @@ void drawSurface::displacement()
 
   static const triple zero;
   havenormal=normal != zero;
+  havetransparency=havecolors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
+    : diffuse.A < 1.0;
   if(havenormal) {
     store(Normal,normal);
     d=zero;
@@ -167,7 +169,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
 			 double perspective, bool transparent, bool twosided)
 {
 #ifdef HAVE_LIBGLUT
-  if(invisible || ((diffuse.A < 1.0) ^ transparent)) return;
+  if(invisible || (havetransparency ^ transparent)) return;
   
   static GLfloat v[16];
 
