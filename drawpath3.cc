@@ -54,9 +54,7 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
   if(n == 0 || invisible || ((color.A < 1.0) ^ transparent))
     return;
 
-  bool lightEnabled=glIsEnabled(GL_LIGHTING);
-  if(lightEnabled)
-    glDisable(GL_LIGHTING);
+  glDisable(GL_LIGHTING);
   
   glColor4f(color.R,color.G,color.B,color.A);
       
@@ -81,10 +79,8 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
       gluEndCurve(nurb);
     }
   }
-  if(lightEnabled) 
-    glEnable(GL_LIGHTING);
-  else 
-    glColor4f(0.0,0.0,0.0,1.0);
+
+  glEnable(GL_LIGHTING);
 #endif
 }
 

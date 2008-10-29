@@ -208,44 +208,65 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
 	    M.getz() < Min.getz() || m.getz() > Max.getz()) return;
     
   
-  GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
+  if(havecolors)
+    glDisable(GL_LIGHTING);
+  else {
+    GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
   
-  GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
+    GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
   
-  GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
+    GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
   
-  GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
+    GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
   
-  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
+    glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
+  }
 
   triple size3=Max-Min;
   double f=fraction(d,size3);
   double fperp=fraction(dperp,size3);
-    
+  glEnable(GL_MAP2_COLOR_4);
+  
   if(!havenormal || !straight && (f*size2 >= pixel || granularity == 0)) {
-    if(havenormal && fperp*size2 <= 0.1) {
-      glNormal3fv(Normal);
-      gluNurbsCallback(nurb,GLU_NURBS_NORMAL,NULL);
-    } else
-      gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
-    static GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
+    if(!havecolors) {
+      if(havenormal && fperp*size2 <= 0.1) {
+	glNormal3fv(Normal);
+	gluNurbsCallback(nurb,GLU_NURBS_NORMAL,NULL);
+      } else
+	gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
+    }
+    static GLfloat linear[]={0.0,0.0,1.0,1.0};
+    static GLfloat bezier[]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
     gluBeginSurface(nurb);
-    gluNurbsSurface(nurb,8,knots,8,knots,3,12,c,4,4,GL_MAP2_VERTEX_3);
+    gluNurbsSurface(nurb,8,bezier,8,bezier,3,12,c,4,4,GL_MAP2_VERTEX_3);
+    if(havecolors)
+      gluNurbsSurface(nurb,4,linear,4,linear,4,8,colors,2,2,GL_MAP2_COLOR_4);
     gluEndSurface(nurb);
   } else {
     glBegin(GL_QUADS);
-    glNormal3fv(Normal);
+    if(!havecolors)
+      glNormal3fv(Normal);
+    if(havecolors) 
+      glColor4fv(colors);
     glVertex3fv(c);
+    if(havecolors) 
+      glColor4fv(colors+4);
     glVertex3fv(c+9);
+    if(havecolors) 
+      glColor4fv(colors+8);
     glVertex3fv(c+45);
+    if(havecolors) 
+      glColor4fv(colors+12);
     glVertex3fv(c+36);
     glEnd();
   }
   
+  if(havecolors)
+    glEnable(GL_LIGHTING);
 #endif
 }
 

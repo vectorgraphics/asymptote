@@ -7143,8 +7143,7 @@ and @code{parametricsurface.asy}.
 @cindex @code{fill}
 There is no @code{fill} command for arbitrary three-dimensional cyclic paths
 (this would be an ill-posed operation). 
-However, a surface can be constructed from a convex path3 with the
-constructor
+However, a surface constructed from a convex path3 with the constructor
 @cindex @code{surface}
 @verbatim
 surface surface(path3 external, triple[] internal=new triple[],
@@ -7152,11 +7151,17 @@ surface surface(path3 external, triple[] internal=new triple[],
 @end verbatim
 @noindent
 and then filled:
+@cindex vertex shading
 @verbatim
 draw(surface(path3(polygon(5))),red);
 draw(surface(unitcircle3),red);
+draw(surface(unitcircle3,new pen[] {red,green,blue,black}));
 @end verbatim
 @noindent
+Vertex shading, illustrated in the last example, is supported by
+@code{Asymptote's} @code{openGL} renderer and two-dimensional projections,
+but not by the @acronym{PRC} output format.
+
 @cindex @code{bezulate}
 Alternatively, a three-dimensional planar path constructed from a
 two-dimensional (possibly nonconvex) cyclic and nonselfintersecting path 

@@ -32,6 +32,9 @@ protected:
   bool invisible;
   triple Min,Max;
   static triple c3[16];
+  GLfloat *colors;
+  bool havecolors;
+  
 #ifdef HAVE_LIBGLUT
   GLfloat c[48];
   triple d; // Maximum deviation of surface from a quadrilateral.
@@ -42,10 +45,19 @@ protected:
   bool havenormal;
 #endif  
   
+  void storecolor(int i, const vm::array &pens, int j) {
+    pen p=vm::read<camp::pen>(pens,j);
+    p.torgb();
+    colors[i]=p.red();
+    colors[i+1]=p.green();
+    colors[i+2]=p.blue();
+    colors[i+3]=p.opacity();
+  }
+  
 public:
   drawSurface(const vm::array& g, bool straight, const vm::array&p,
 	      double opacity, double shininess, double granularity,
-	      triple normal) : 
+	      triple normal, const vm::array &pens) :
     straight(straight), opacity(opacity), shininess(shininess),
     granularity(granularity), normal(unit(normal)) {
     string wrongsize=
@@ -60,6 +72,19 @@ public:
     ambient=rgba(vm::read<camp::pen>(p,1));
     emissive=rgba(vm::read<camp::pen>(p,2));
     specular=rgba(vm::read<camp::pen>(p,3));
+    
+#ifdef HAVE_LIBGLUT
+    int size=checkArray(&pens);
+    havecolors=size > 0;
+    if(havecolors) {
+      colors=new GLfloat[16];
+      if(size != 4) reportError(wrongsize);
+      storecolor(0,pens,0);
+      storecolor(4,pens,1);
+      storecolor(12,pens,2);
+      storecolor(8,pens,3);
+    }
+#endif    
     
     size_t k=0;
     for(size_t i=0; i < 4; ++i) {
@@ -81,7 +106,7 @@ public:
     straight(s->straight), diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), granularity(s->granularity),
-    invisible(s->invisible) {
+    invisible(s->invisible), colors(s->colors), havecolors(s->havecolors) {
     for(size_t i=0; i < 16; ++i) {
       const double *c=s->controls[i];
       triple v=run::operator *(t,triple(c[0],c[1],c[2]));
@@ -101,7 +126,10 @@ public:
 	      double (*y)(const triple&, double*),
 	      double *t, bool &first);
   
-  virtual ~drawSurface() {}
+  virtual ~drawSurface() {
+    if(havecolors)
+      delete[] colors;
+  }
 
   bool write(prcfile *out);
   

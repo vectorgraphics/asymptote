@@ -927,6 +927,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   gluNurbsCallback(nurb,GLU_NURBS_BEGIN,(_GLUfuncptr) glBegin);
   gluNurbsCallback(nurb,GLU_NURBS_VERTEX,(_GLUfuncptr) glVertex3fv);
   gluNurbsCallback(nurb,GLU_NURBS_END,(_GLUfuncptr) glEnd);
+  gluNurbsCallback(nurb,GLU_NURBS_COLOR,(_GLUfuncptr) glColor4fv);
   mode();
   
   glEnable(GL_LIGHTING);

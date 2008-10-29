@@ -114,16 +114,14 @@ struct patch {
   }
 
   pen[] colors(material m, light light=currentlight) {
-    if(normals.length != 0)
+    if(colors.length > 0) return colors;
+    if(normals.length > 0)
       return new pen[] {light.color(normals[0],m),
 	  light.color(normals[1],m),light.color(normals[2],m),
 	  light.color(normals[3],m)};
     
-    if(colors.length == 0)
-      return new pen[] {light.color(normal00(),m),light.color(normal01(),m),
-	  light.color(normal11(),m),light.color(normal10(),m)};
-
-    return colors;
+    return new pen[] {light.color(normal00(),m),light.color(normal01(),m),
+	light.color(normal11(),m),light.color(normal10(),m)};
   }
   
   triple bound(real m(real[], real), triple b) {
@@ -358,17 +356,13 @@ struct surface {
     for(int i=0; i < L; ++i)
       center += point(external,i);
     center *= factor;
-    bool normalscyclic=normals.cyclicflag;
-    bool colorscyclic=colors.cyclicflag;
    if(!nocolors) {
-     colors.cyclic(true);
      real[] pcenter=rgba(colors[0]);
      for(int i=1; i < L; ++i)
        pcenter += rgba(colors[i]);
      p=new pen[] {rgba(factor*pcenter)};
    }
     if(!nonormals) {
-      normals.cyclic(true);
       triple ncenter;
       for(int i=0; i < L; ++i)
 	ncenter += normals[i];
@@ -376,14 +370,17 @@ struct surface {
     }
     // Use triangles for nonplanar surfaces.
     int step=normal(external) == O ? 1 : 2;
-    for(int i=0; i < L; i += step) {
-      int end=min(i+step,L);
+    int i=0;
+    int end;
+    while((end=i+step) < L) {
       s.push(patch(subpath(external,i,end)--center--cycle,
 		   nonormals ? n : concat(normals[i:end+1],n),
 		   nocolors ? p : concat(colors[i:end+1],p)));
+      i=end;
     }
-    normals.cyclic(normalscyclic);
-    colors.cyclic(colorscyclic);
+    s.push(patch(subpath(external,i,L)--center--cycle,
+		 nonormals ? n : concat(normals[i:],normals[0:1],n),
+		 nocolors ? p : concat(colors[i:],colors[0:1],p)));
   }
 
   // A constructor for a convex path3.
@@ -641,7 +638,7 @@ void draw3D(frame f, patch s, material m, light light=currentlight)
     m=emissive(m);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
   draw(f,s.P,s.straight,m.p,m.opacity,m.shininess,granularity,
-       -s.normal(0.5,0.5));
+       s.colors.length == 0 ? -s.normal(0.5,0.5) : O,s.colors);
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,
