@@ -7261,7 +7261,7 @@ rendered image files can be extracted and processed in a separate
 @code{LaTeX} file. However, see @ref{LaTeX usage} for an easier way
 to embed three-dimensional @code{Asymptote} pictures within @code{LaTeX}.
 The open-source @acronym{PRC} specification is available from
-@url{http://www.adobe.com/cfusion/entitlement/index.cfm?e=acrobat_prc_spec}
+@url{http://livedocs.adobe.com/acrobat_sdk/9/Acrobat9_HTMLHelp/API_References/PRCReference/PRC_Format_Specification/}
 
 @item Project the scene to a two-dimensional vector (@acronym{EPS} or
 @acronym{PDF}) format with @code{render=0}. Only limited hidden surface

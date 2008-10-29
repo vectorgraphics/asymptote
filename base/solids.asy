@@ -1,6 +1,8 @@
 import three;
 import graph3;
 
+pen defaultbackpen=linetype("4 4",4,scale=false);
+
 // A solid geometry package.
 
 // Try to find a bounding tangent line between two paths.
@@ -273,15 +275,12 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
   pen thin=is3D() ? thin() : defaultpen;
   skeleton s=r.skeleton(m,n,P);
   begingroup3(pic);
-  static pen Dashed=linetype("4 4",4,scale=false);
-  if(linetype(backpen) == "") backpen += Dashed;
-  if(linetype(longitudinalbackpen) == "") longitudinalbackpen += Dashed;
   if(frontpen != nullpen) {
-    draw(pic,s.transverse.back,thin+backpen,light);
+    draw(pic,s.transverse.back,thin+defaultbackpen+backpen,light);
     draw(pic,s.transverse.front,thin+frontpen,light);
   }
   if(longitudinalpen != nullpen) {
-    draw(pic,s.longitudinal.back,thin+longitudinalbackpen,light);
+    draw(pic,s.longitudinal.back,thin+defaultbackpen+longitudinalbackpen,light);
     draw(pic,s.longitudinal.front,thin+longitudinalpen,light);
   }
   endgroup3(pic);
