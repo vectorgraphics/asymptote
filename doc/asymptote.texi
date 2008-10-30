@@ -3231,31 +3231,24 @@ pair max(picture pic);
 calculate the @code{PostScript} bounds that picture @code{pic} would
 have if it were currently fit to a frame using its default size specification.
 
-The function 
+The function
 @verbatim
-pair point(picture pic=currentpicture, pair dir);
+pair point(picture pic=currentpicture, pair dir, bool user=true);
 @end verbatim
-is a convenient way of determining the point on the boundary of the
-user-coordinate bounding box of @code{pic}, ignoring the contributions
-from fixed-size objects (such as labels and arrowheads), in the direction
-@code{dir} relative to its center.
+is a convenient way of determining the point on the bounding box of
+@code{pic} in the direction @code{dir} relative to its center, ignoring
+the contributions from fixed-size objects (such as labels and arrowheads).
+If @code{user} is true the returned value is in user coordinates,
+otherwise it is in @code{PostScript} coordinates.
 
 The function
 @verbatim
-pair truepoint(picture pic=currentpicture, pair dir);
+pair truepoint(picture pic=currentpicture, pair dir, bool user=true);
 @end verbatim
 is identical to @code{point}, except that it also accounts for
 fixed-size objects, using the scaling transform that picture @code{pic}
 would have if currently fit to a frame using its default size
 specification.
-
-The function
-@verbatim
-pair framepoint(picture pic=currentpicture, pair dir);
-@end verbatim
-works similarly, except the result is a point in @code{PostScript}
-coordinates on the bounding box that picture @code{pic} would have if
-currently fit to a frame using its default size specification.
 
 @anchor{add}
 Sometimes it is useful to draw objects on separate pictures and add one
@@ -3612,8 +3605,8 @@ this operation is restricted to the current directory.
 @cindex @code{animate}
 The functions
 @verbatim
-Int convert(string args="", string file="", string format="");
-Int animate(string args="", string file="", string format="");
+int convert(string args="", string file="", string format="");
+int animate(string args="", string file="", string format="");
 @end verbatim
 @noindent
 call the @code{ImageMagick} commands @code{convert} and @code{animate},
@@ -3621,7 +3614,7 @@ respectively, with the arguments @code{args} and the file name constructed
 from the strings @code{file} and @code{format}. 
 @cindex @code{system}
 If the setting @code{safe} is false, then the function 
-@code{Int system(string s)} can be used to call the arbitrary system
+@code{int system(string s)} can be used to call the arbitrary system
 command @code{s}.
 
 @node Variable initializers

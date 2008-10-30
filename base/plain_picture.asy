@@ -1827,32 +1827,25 @@ void layer(picture pic=currentpicture)
     },true);
 }
 
-pair point(picture pic=currentpicture, pair dir)
+pair point(picture pic=currentpicture, pair dir, bool user=true)
 {
-  return pic.userMin()+realmult(rectify(dir),pic.userMax()-pic.userMin());
+  pair z=pic.userMin()+realmult(rectify(dir),pic.userMax()-pic.userMin());
+  return user ? z : pic.calculateTransform()*z;
 }
 
-pair framepoint(picture pic=currentpicture, pair dir,
-                transform t=pic.calculateTransform())
-{
-  if(pic.bounds.exact) {
-    pair m=pic.min(t);
-    pair M=pic.max(t);
-    return m+realmult(rectify(dir),M-m);
-  } else return point(pic.fit(),dir);
-}
-
-pair truepoint(picture pic=currentpicture, pair dir)
+pair truepoint(picture pic=currentpicture, pair dir, bool user=true)
 {
   transform t=pic.calculateTransform();
-  return inverse(t)*framepoint(pic,dir,t);
+  pair m=pic.min(t);
+  pair M=pic.max(t);
+  pair z=m+realmult(rectify(dir),M-m);
+  return user ? inverse(t)*z : z;
 }
 
 // Transform coordinate in [0,1]x[0,1] to current user coordinates.
 pair relative(picture pic=currentpicture, pair z)
 {
-  pair w=pic.userMax()-pic.userMin();
-  return pic.userMin()+(z.x*w.x,z.y*w.y);
+  return pic.userMin()+realmult(z,pic.userMax()-pic.userMin());
 }
 
 void erase(picture pic=currentpicture)
