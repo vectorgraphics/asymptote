@@ -246,11 +246,8 @@ frame legend(picture pic=currentpicture, int perline=1,
              real linelength=legendlinelength,
              real hskip=legendhskip, real vskip=legendvskip,
              real maxwidth=perline == 0 ? 
-             legendmaxrelativewidth*size(pic).x : 0,
-             real maxheight=0,
-             bool hstretch=false,
-             bool vstretch=false,
-             pen p=currentpen)
+             legendmaxrelativewidth*size(pic).x : 0, real maxheight=0,
+	     bool hstretch=false, bool vstretch=false, pen p=currentpen)
 {
   frame F;
   if(pic.legend.length == 0) return F;

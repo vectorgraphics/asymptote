@@ -9,7 +9,7 @@ struct patch {
   triple[][] P=new triple[4][4];
   triple[] normals; // Optionally specify 4 normal vectors at the corners.
   pen[] colors;     // Optionally specify 4 corner colors.
-  bool straight;
+  bool straight;    // Patch is planar and straight
 
   path3 external() {
     return
@@ -221,7 +221,7 @@ struct patch {
       this.colors=copy(colors);
 
     if(internal.length == 0) {
-      if(piecewisestraight(external)) straight=true;
+      straight=piecewisestraight(external) && normal(external) != O;
 
       internal=new triple[4];
       for(int j=0; j < 4; ++j) {
@@ -266,7 +266,7 @@ struct patch {
     if(colors.length != 0)
       this.colors=copy(colors);
 
-    straight=true;
+    straight=normal(external) != O;
 
     if(internal.length == 0) {
       internal=new triple[4];
@@ -805,9 +805,8 @@ path3[] align(path3[] g, transform3 t=identity4, triple position,
 {
   if(determinant(t) == 0) return g;
   triple m=min(g);
-  triple M=max(g);
   triple dir=rectify(inverse(t)*-align);
-  triple a=m+realmult(dir,M-m);
+  triple a=m+realmult(dir,max(g)-m);
   return shift(position+align*labelmargin(p))*t*shift(-a)*g;
 }
 
@@ -816,9 +815,8 @@ surface align(surface s, transform3 t=identity4, triple position,
 {
   if(determinant(t) == 0) return s;
   triple m=min(s);
-  triple M=max(s);
   triple dir=rectify(inverse(t)*-align);
-  triple a=m+realmult(dir,M-m);
+  triple a=m+realmult(dir,max(s)-m);
   return shift(position+align*labelmargin(p))*t*shift(-a)*s;
 }
 

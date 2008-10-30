@@ -1160,24 +1160,28 @@ The use of arrows, bars, and margins is illustrated by the examples
 
 The legend for a picture @code{pic} can be fit and aligned to a frame
 with the routine:
+@cindex @code{legend}
 @verbatim
 frame legend(picture pic=currentpicture, int perline=1,
              real xmargin=legendmargin, real ymargin=xmargin,
              real linelength=legendlinelength,
              real hskip=legendhskip, real vskip=legendvskip,
-             real maxwidth=0, pen p=currentpen);
+             real maxwidth=0, real maxheight=0, 
+             bool hstretch=false, bool vstretch=false, pen p=currentpen);
 @end verbatim
 @noindent
 Here @code{xmargin} and @code{ymargin} specify the surrounding @math{x}
 and @math{y} margins, @code{perline} specifies the number of entries
 per line (default 1; 0 means choose this number automatically),
 @code{linelength} specifies the length of the path lines, @code{hskip}
-and @code{vskip} specify the line skip (as a multiple of legend entry
-size), @code{maxwidth} specifies an optional upper limit
-on the width of the resulting legend (0 means unlimited), and @code{p}
-specifies the pen used to draw the bounding box. The legend frame can
-then be added and aligned about a point on a picture @code{dest} using
-@code{add} or @code{attach} (@pxref{add about}).
+and @code{vskip} specify the line skip (as a multiple of the legend entry
+size), @code{maxwidth} and @code{maxheight} specify optional upper limits
+on the width and height of the resulting legend (0 means unlimited),
+@code{hstretch} and @code{vstretch} allow the legend to stretch
+horizontally or vertically, and @code{p} specifies the pen used to draw
+the bounding box. The legend frame can then be added and aligned about a
+point on a picture @code{dest} using @code{add} or @code{attach}
+(@pxref{add about}).
 
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.

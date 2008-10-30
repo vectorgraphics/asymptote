@@ -1240,21 +1240,21 @@ triple normal(path3 p)
   static real epsilon=sqrt(realEpsilon);
   real fuzz=epsilon*abs(max(p)-min(p));
   real absnormal;
-  bool planar=true;
   
-  void Cross(triple a, triple b) {
+  bool Cross(triple a, triple b) {
     if(abs(a) >= fuzz && abs(b) >= fuzz) {
       triple n=cross(unit(a),unit(b));
       real absn=abs(n);
       n=unit(n);
       if(absnormal > 0 && absn > epsilon &&
 	 abs(normal-n) > epsilon && abs(normal+n) > epsilon)
-	planar=false;
+	return true;
       else if(absn > absnormal) {
 	absnormal=absn;
 	normal=n;
       }
     }
+    return false;
   }
   
   int L=length(p);
@@ -1269,13 +1269,11 @@ triple normal(path3 p)
     triple v1=c0-zi;
     triple v2=c1-c0;
     triple v3=zp-c1;
-    Cross(v0,v1);
-    Cross(v1,v2);
-    Cross(v2,v3);
+    if(Cross(v0,v1) || Cross(v1,v2) || Cross(v2,v3)) return O;
     v0=v3;
     zi=zp;
   }
-  return planar ? normal : O;
+  return normal;
 }
 
 // Transforms that map XY plane to YX, YZ, ZY, ZX, and XZ planes.
