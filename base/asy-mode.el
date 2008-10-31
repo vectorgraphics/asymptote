@@ -105,7 +105,11 @@ Some variables can be customized: M-x customize-group <RET> asymptote <RET>."
 (require 'compile)
 (require 'wid-edit)
 
-(load "cc-mode.el");; Force use of new c-lang-defconst (must not be byte-compiled).
+(if (locate-library "cc-mode.el")
+    (load "cc-mode.el") ;; Force use of new c-lang-defconst (must not be byte-compiled).
+  (let ((phantom
+         (read-char "For better functioning, asy-mode needs cc-mode source code.
+Press any key to continue.")))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.asy$" . asy-mode))
