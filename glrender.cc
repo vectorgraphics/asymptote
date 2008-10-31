@@ -829,6 +829,12 @@ void menu(int choice)
   }
 }
 
+void setosize()
+{
+  oldWidth=(int) ceil(oWidth);
+  oldHeight=(int) ceil(oHeight);
+}
+
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
 	      double width, double height,
@@ -934,10 +940,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   else if(!View || !Format.empty()) // Use a full screen tile.
     Fitscreen=2;
     
-  oldWidth=(int) ceil(oWidth);
-  oldHeight=(int) ceil(oHeight);
-  
+  setosize();
   fitscreen();
+  setosize();
   
   glClearColor(1.0,1.0,1.0,0.0);
    
