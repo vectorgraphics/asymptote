@@ -7251,9 +7251,9 @@ By default, if the setting @code{antialias} is true, the scene is
 internally rendered at twice the specified resolution. High resolution
 rendering is done by tiling the image. If your graphics card allows
 it, the rendering can be made more efficient by increasing the maximum
-tile size @code{maxtile} from its default value of @code{1000}.
-The tile size is also limited by the setting @code{maxviewport}, which
-restricts the maximum width and height of the viewport.
+tile size @code{maxtile}. The tile size is also limited by the setting
+@code{maxviewport}, which restricts the maximum width and height of the
+viewport.
 
 @cindex @code{prc}
 @item Embed the 3D @acronym{PRC} format in a @acronym{PDF} file

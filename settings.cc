@@ -942,16 +942,16 @@ void initSettings() {
 			    true));
   addOption(new pairSetting("position", 0, "pair", 
 			    "Initial 3D rendering screen position"));
+  addOption(new pairSetting("maxviewport", 0, "pair",
+			    "Maximum viewport size",pair(2048,2048)));
+  addOption(new pairSetting("maxtile", 0, "pair",
+			    "Maximum rendering tile size",pair(800,800)));
   addOption(new boolSetting("thick", 0,
                             "Render thick 3D lines", true));
   addOption(new boolSetting("thin", 0,
                             "Render thin 3D lines", true));
   addOption(new boolSetting("fitscreen", 0,
                             "Fit rendered image to screen", true));
-  addOption(new IntSetting("maxviewport", 0, "n",
-			   "Maximum viewport width and height",2048));
-  addOption(new IntSetting("maxtile", 0, "n",
-			   "Maximum rendering tile size",800));
   addOption(new stringOutnameSetting("outname", 'o', "name",
 				     "Alternative output name for first file",
 				     ""));

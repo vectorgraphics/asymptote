@@ -63,7 +63,8 @@ int fullWidth,fullHeight;
 int oldWidth,oldHeight;
 double oWidth,oHeight;
 int screenWidth,screenHeight;
-int maxViewport;
+int maxWidth;
+int maxHeight;
 
 bool Xspin,Yspin,Zspin;
 bool Menu;
@@ -192,12 +193,12 @@ void setProjection()
 bool capsize(int& width, int& height) 
 {
   bool resize=false;
-  if(width > maxViewport) {
-    width=maxViewport;
+  if(width > maxWidth) {
+    width=maxWidth;
     resize=true;
   }
-  if(height > maxViewport) {
-    height=maxViewport;
+  if(height > maxHeight) {
+    height=maxHeight;
     resize=true;
   }
   return resize;
@@ -321,11 +322,14 @@ void save()
 	   << fullHeight << " image" << endl;
 
     TRcontext *tr=trNew();
-    int width=Quotient(fullWidth,Quotient(fullWidth,Width));
-    int height=Quotient(fullHeight,Quotient(fullHeight,Height));
-	
-    int maxtile=(int) getSetting<Int>("maxtile");
-    trTileSize(tr,min(width,maxtile),min(height,maxtile),0);
+    pair maxtile=getSetting<pair>("maxtile");
+    int maxwidth=(int) maxtile.getx();
+    int maxheight=(int) maxtile.gety();
+    if(maxwidth <= 0) maxwidth=max(maxheight,1);
+    if(maxheight <= 0) maxheight=max(maxwidth,1);
+    int width=Quotient(fullWidth,Quotient(fullWidth,min(Width,maxwidth)));
+    int height=Quotient(fullHeight,Quotient(fullHeight,min(Height,maxheight)));
+    trTileSize(tr,width,height,0);
     trImageSize(tr,fullWidth,fullHeight);
     trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
 
@@ -921,9 +925,13 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   // Force a hard viewport limit to work around direct rendering bugs.
   // Alternatively, one can use -glOptions=-indirect (with a performance
   // penalty).
-  maxViewport=max((int) getSetting<Int>("maxviewport"),1);  
-  if(screenWidth <= 0) screenWidth=maxViewport;
-  if(screenHeight <= 0) screenHeight=maxViewport;
+  pair maxViewport=getSetting<pair>("maxviewport");
+  maxWidth=(int) ceil(maxViewport.getx());
+  maxHeight=(int) ceil(maxViewport.gety());
+  if(maxWidth <= 0) maxWidth=max(maxHeight,1);
+  if(maxHeight <= 0) maxHeight=max(maxWidth,1);
+  if(screenWidth <= 0) screenWidth=maxWidth;
+  if(screenHeight <= 0) screenHeight=maxHeight;
   
   oWidth=width;
   oHeight=height;
