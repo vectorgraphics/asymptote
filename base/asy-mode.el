@@ -43,7 +43,7 @@
 ;;
 ;; See also paragraph II of the documentation below to automate asy-insinuate-latex.
 
-(defvar asy-mode-version "1.5")
+(defvar asy-mode-version "1.4")
 
 ;;;###autoload
 (define-derived-mode asy-mode objc-mode "Asymptote"
@@ -105,7 +105,7 @@ Some variables can be customized: M-x customize-group <RET> asymptote <RET>."
 (require 'compile)
 (require 'wid-edit)
 
-(load "cc-mode");; Force use of new c-lang-defconst.
+(load "cc-mode.el");; Force use of new c-lang-defconst (must not be byte-compiled).
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.asy$" . asy-mode))
