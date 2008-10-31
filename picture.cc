@@ -697,7 +697,13 @@ bool picture::shipout3(const string& prefix, const string& format,
       oldpid=p->second;
   }
   
-  if(View && !wait) {
+  bool Fork;
+#ifndef FREEGLUT
+    Fork=true;
+#else    
+    Fork=View && !wait;
+#endif
+  if(Fork) {
     int pid=fork();
     if(pid == -1)
       camp::reportError("Cannot fork process");
@@ -711,8 +717,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   gl::glrender(prefix.c_str(),this,outputformat,width,height,angle,m,M,
 	       nlights,lights,diffuse,ambient,specular,viewportlighting,
 	       View,oldpid);
-
-  if(View && !wait)
+  if(Fork)
     exit(0);
   
   return true;

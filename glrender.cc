@@ -27,7 +27,10 @@
 #define FGAPIENTRY APIENTRY
 #endif
 
+#ifdef FREEGLUT
 #include <GL/freeglut_ext.h>
+#endif
+
 #include "tr.h"
 
 namespace gl {
@@ -362,7 +365,11 @@ void save()
 void quit() 
 {
   glutDestroyWindow(window);
+#ifdef FREEGLUT
   glutLeaveMainLoop();
+#else
+  exit(0);
+#endif
 }
 
 void update() 
@@ -546,6 +553,14 @@ void rotateZ(int x, int y)
   }
 }
 
+#ifndef GLUT_WHEEL_UP
+#define GLUT_WHEEL_UP 3
+#endif
+
+#ifndef GLUT_WHEEL_DOWN
+#define GLUT_WHEEL_DOWN 4
+#endif
+
 // Mouse bindings.
 // LEFT: rotate
 // SHIFT LEFT: zoom
@@ -557,6 +572,16 @@ void rotateZ(int x, int y)
 // ALT RIGHT: rotateZ
 void mouse(int button, int state, int x, int y)
 {
+#ifndef FREEGLUT  
+  if(button == GLUT_WHEEL_UP) {
+    mousewheel(0,1,x,y);
+    return;
+  } else if(button == GLUT_WHEEL_DOWN) {
+    mousewheel(0,-1,x,y);
+    return;
+  }	
+#endif
+  
   mod=glutGetModifiers();
   
   if(button == GLUT_RIGHT_BUTTON) {
@@ -978,9 +1003,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glutDisplayFunc(display);
   glutKeyboardFunc(keyboard);
   glutMouseFunc(mouse);
+  
+#ifdef FREEGLUT
   glutMouseWheelFunc(mousewheel);
-   
   glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_CONTINUE_EXECUTION);
+#endif  
 
   glutCreateMenu(menu);
   glutAddMenuEntry("(h) Home",HOME);
