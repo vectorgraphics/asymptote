@@ -1542,8 +1542,9 @@ object draw(picture pic=currentpicture, Label L, envelope e, pair position,
             filltype filltype=NoFill, bool put=Above);
 @end verbatim
 @noindent
-Here @code{envelope} is a boundary-drawing routine such as @code{box} or
-@code{ellipse} defined in @code{plain_boxes.asy} (@pxref{envelope}).
+Here @code{envelope} is a boundary-drawing routine such as @code{box},
+@code{roundbox}, or @code{ellipse} defined in @code{plain_boxes.asy}
+(@pxref{envelope}). 
 
 @cindex @code{texpath}
 The function @code{path[] texpath(Label L)} returns the path array that
@@ -3021,6 +3022,9 @@ boundary as a path, use one of the predefined @code{envelope} routines
 path box(frame f, Label L="", real xmargin=0,
          real ymargin=xmargin, pen p=currentpen,
          filltype filltype=NoFill, bool put=Above);
+path roundbox(frame f, Label L="", real xmargin=0,
+              real ymargin=xmargin, pen p=currentpen,
+              filltype filltype=NoFill, bool put=Above);
 path ellipse(frame f, Label L="", real xmargin=0,
              real ymargin=xmargin, pen p=currentpen,
              filltype filltype=NoFill, bool put=Above);
@@ -7235,11 +7239,14 @@ The keyboard shortcuts are:
 @item Ctrl-q: exit
 @end itemize
 
+@cindex @code{antialias}
 @item Render the scene to a specified rasterized format @code{outformat}
 at the resolution of @code{n} pixels per @code{bp}, as specified by the
 setting @code{render=n}. A negative value of @code{n} is interpreted
-as @code{|4n|} for @acronym{EPS} and @acronym{PDF} formats and
-@code{|2n|} for other formats. The default value of @code{render} is -1.
+as @code{|2n|} for @acronym{EPS} and @acronym{PDF} formats and
+@code{|n|} for other formats. The default value of @code{render} is -1.
+By default, if the setting @code{antialias} is true, the scene is
+internally rendered at twice the specified resolution.
 
 @cindex @code{prc}
 @item Embed the 3D @acronym{PRC} format in a @acronym{PDF} file
@@ -7579,8 +7586,8 @@ subdirectory) @code{cube.asy}.
 
 @anchor{PostScript3D}
 Limited support for projected vector graphics (effectively three-dimensional
-nonrendered @code{PostScript}) is also available by specifying
-@code{settings.render=0}. This currently only works for piecewise planar
+nonrendered @code{PostScript}) is available with the setting
+@code{render=0}. This currently only works for piecewise planar
 surfaces, such as those produced by the parametric @code{surface}
 routines in the @code{graph3} module. Surfaces produced by the
 @code{solids} package will also be properly rendered if the parameter
@@ -8108,22 +8115,27 @@ at the beginning of the configuration file, it can contain arbitrary
 @cindex @code{output}
 @cindex @code{format}
 @cindex @code{ImageMagick}
-@cindex @code{antialiasing}
+@cindex @code{render}
+@cindex @code{antialias}
 @cindex @code{size}
 @anchor{convert}
 The default output format is @acronym{EPS} for the (default)
 @code{latex} tex engine and @acronym{PDF} for the @code{pdflatex} tex engine.
-An alternative output format (without antialiasing) may be produced by
-using the @code{-f format} option. This supports any format supported
-by the @code{ImageMagick} @code{convert} program (version 6.2.4 or
+Alternative output formats may be produced using the @code{-f} option 
+(or @code{outformat} setting). The optional setting @code{-render n} requests
+an output resolution of @code{n} pixels per @code{bp}. Antialiasing is
+controlled by the setting @code{antialias} (enabled by default).
+@code{Asymptote} can produce any output format supported
+by the @code{ImageMagick} @code{convert} program (version 6.3.5 or
 later recommended; an @code{Invalid Parameter} error message indicates
 that the @code{MSDOS} utility @code{convert} is being used instead of
 the one that comes with @code{ImageMagick}).
 To give specific options to @code{convert}, use the
 @code{convertOptions} setting or call convert manually. This example
-enables antialiasing and produces a @code{tiff} format at double the usual size:
+emulates how @code{Asymptote} produces antialiased @code{tiff} output at
+one pixel per @code{bp}:
 @verbatim
-asy -o - venn | convert -alpha Off -density 288x288 -geometry 100%x eps:- venn.tiff
+asy -o - venn | convert -alpha Off -density 144x144 -geometry 50%x eps:- venn.tiff
 @end verbatim
 
 @cindex @code{nosafe}

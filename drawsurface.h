@@ -136,7 +136,7 @@ public:
   
   void displacement();
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
-	      double perspective, bool transparent, bool twosided);
+	      double perspective, bool transparent);
   
   drawElement *transformed(const vm::array& t);
 };

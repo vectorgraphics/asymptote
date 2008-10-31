@@ -47,7 +47,7 @@ bool drawPath3::write(prcfile *out)
 }
 
 void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
-		       double, bool transparent, bool)
+		       double, bool transparent)
 {
 #ifdef HAVE_LIBGLUT
   Int n=g.length();

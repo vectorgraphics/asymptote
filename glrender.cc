@@ -28,6 +28,7 @@
 #endif
 
 #include <GL/freeglut_ext.h>
+#include "tr.h"
 
 namespace gl {
   
@@ -55,8 +56,11 @@ const string* Prefix;
 const picture* Picture;
 string Format;
 int Width,Height;
+int fullWidth,fullHeight;
 int oldWidth,oldHeight;
 double oWidth,oHeight;
+int screenWidth,screenHeight;
+int maxWidth,maxHeight;
 
 bool Xspin,Yspin,Zspin;
 bool Menu;
@@ -65,7 +69,6 @@ int Fitscreen;
 int Mode;
 
 double H;
-GLint ViewportLimit[2];
 double xmin,xmax;
 double ymin,ymax;
 double zmin,zmax;
@@ -86,6 +89,7 @@ double *Ambient;
 double *Specular;
 bool ViewportLighting;
 bool queueExport=false;
+bool antialias;
 
 int x0,y0;
 int mod;
@@ -115,7 +119,7 @@ inline T max(T a, T b)
   return (a > b) ? a : b;
 }
 
-void lighting(void)
+void lighting()
 {
   for(size_t i=0; i < Nlights; ++i) {
     GLenum index=GL_LIGHT0+i;
@@ -139,34 +143,8 @@ void lighting(void)
   }
 }
 
-void save()
-{  
-  glFinish();
-  glPixelStorei(GL_PACK_ALIGNMENT,1);
-  size_t ndata=3*Width*Height;
-  unsigned char *data=new unsigned char[ndata];
-  if(data) {
-    picture pic;
-    glReadPixels(0,0,Width,Height,GL_RGB,GL_UNSIGNED_BYTE,data);
-    double w=oWidth;
-    double h=oHeight;
-    double Aspect=((double) Width)/Height;
-    if(w > h*Aspect) w=(int) (h*Aspect+0.5);
-    else h=(int) (w/Aspect+0.5);
-    // Render an antialiased image.
-    drawImage *Image=new drawImage(data,Width,Height,
-				   transform(0.0,0.0,w,0.0,0.0,h),true);
-    pic.append(Image);
-    pic.shipout(NULL,*Prefix,Format,0.0,false,View);
-    delete Image;
-    delete[] data;
-   }
-}
-  
-void setProjection()
+void setDimensions(double Width, double Height)
 {
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
   double Aspect=((double) Width)/Height;
   double X0=X*(xmax-xmin)/(lastzoom*Width);
   double Y0=Y*(ymax-ymin)/(lastzoom*Height);
@@ -186,39 +164,37 @@ void setProjection()
       ymin=-r-Y0;
       ymax=r-Y0;
     }
-    glOrtho(xmin,xmax,ymin,ymax,-zmax,-zmin);
   } else {
     double r=H*Zoom;
     xmin=-r*Aspect-X0;
     xmax=r*Aspect-X0;
     ymin=-r-Y0;
     ymax=r-Y0;
-    glFrustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
   }
+}
+
+void setProjection()
+{
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  setDimensions(Width,Height);
+  if(H == 0.0)
+    glOrtho(xmin,xmax,ymin,ymax,-zmax,-zmin);
+  else
+    glFrustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
   glMatrixMode(GL_MODELVIEW);
-  
   arcball.set_params(vec2(0.5*Width,0.5*Height),arcballRadius/Zoom);
-}
-
-int screenWidth() 
-{
-  return min(glutGet(GLUT_SCREEN_WIDTH),ViewportLimit[0]);
-}
-
-int screenHeight() 
-{
-  return min(glutGet(GLUT_SCREEN_HEIGHT),ViewportLimit[1]);
 }
 
 bool capsize(int& width, int& height) 
 {
   bool resize=false;
-  if(width > ViewportLimit[0]) {
-    width=ViewportLimit[0];
+  if(width > maxWidth) {
+    width=maxWidth;
     resize=true;
   }
-  if(height > ViewportLimit[1]) {
-    height=ViewportLimit[1];
+  if(height > maxHeight) {
+    height=maxHeight;
     resize=true;
   }
   return resize;
@@ -286,8 +262,8 @@ void setsize(int w, int h, int minsize=0)
 
 void fullscreen() 
 {
-  int w=screenWidth();
-  int h=screenHeight();
+  int w=screenWidth;
+  int h=screenHeight;
   if(w > 0 && h > 0) {
     Width=w;
     Height=h;
@@ -299,25 +275,7 @@ void fullscreen()
   }
 }
 
-void Export() 
-{
-  glReadBuffer(GL_FRONT_LEFT);
-  save();
-}
-
-void quit() 
-{
-  glutDestroyWindow(window);
-  glutLeaveMainLoop();
-}
-
-void disableMenu() 
-{
-  glutDetachMenu(GLUT_RIGHT_BUTTON);
-  Menu=false;
-}
-
-void display(void)
+void drawscene(double Width, double Height)
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -328,39 +286,83 @@ void display(void)
   triple M(xmax,ymax,zmax);
   double perspective=H == 0.0 ? 0.0 : 1.0/zmax;
   
-  bool twosided=settings::getSetting<bool>("twosided");
-  
   double size2=hypot(Width,Height);
   
   // Render opaque objects
-  Picture->render(nurb,size2,m,M,perspective,false,twosided);
+  Picture->render(nurb,size2,m,M,perspective,false);
   
   // Enable transparency
   glEnable(GL_BLEND);
   glDepthMask(GL_FALSE);
   
   // Render transparent objects
-  Picture->render(nurb,size2,m,M,perspective,true,twosided);
+  Picture->render(nurb,size2,m,M,perspective,true);
   glDepthMask(GL_TRUE);
   glDisable(GL_BLEND);
-  
-  if(View) {
-    glutSwapBuffers();
-    if(queueExport) {
-      Export();
-      queueExport=false;
-    }
-    
-    int status;
-    if(Oldpid != 0 && waitpid(Oldpid, &status, WNOHANG) != Oldpid) {
-      kill(Oldpid,SIGHUP);
-      Oldpid=0;
-    }
-  } else {
-    glReadBuffer(GL_BACK_LEFT);
-    save();
-    quit();
+}
+
+// Return x divided by y rounded up to the nearest integer.
+int Quotient(int x, int y) 
+{
+  return (x+y-1)/y;
+}
+
+void save()
+{
+  glReadBuffer(GL_BACK_LEFT);
+  glPixelStorei(GL_PACK_ALIGNMENT,1);
+  glFinish();
+  size_t ndata=3*fullWidth*fullHeight;
+  unsigned char *data=new unsigned char[ndata];
+  if(data) {
+    if(settings::verbose > 1) 
+      cout << "Exporting " << *Prefix << " as " << fullWidth << "x" 
+	   << fullHeight << " image" << endl;
+
+    TRcontext *tr=trNew();
+    int W=Quotient(fullWidth,Quotient(fullWidth,Width));
+    int H=Quotient(fullHeight,Quotient(fullHeight,Height));
+	
+    trTileSize(tr,W,H,0);
+    trImageSize(tr,fullWidth,fullHeight);
+    trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
+
+    setDimensions(fullWidth,fullHeight);
+    if(H == 0.0)
+      trOrtho(tr,xmin,xmax,ymin,ymax,-zmax,-zmin);
+    else
+      trFrustum(tr,xmin,xmax,ymin,ymax,-zmax,-zmin);
+   
+    size_t count=0;
+    do {
+      trBeginTile(tr);
+      drawscene(fullWidth,fullHeight);
+      ++count;
+    } while (trEndTile(tr));
+    if(settings::verbose > 1) 
+      cout << count << " tiles of size " << W << "x" << H << " drawn" << endl;
+    trDelete(tr);
+
+    picture pic;
+    double w=oWidth;
+    double h=oHeight;
+    double Aspect=((double) fullWidth)/fullHeight;
+    if(w > h*Aspect) w=(int) (h*Aspect+0.5);
+    else h=(int) (w/Aspect+0.5);
+    // Render an antialiased image.
+    drawImage *Image=new drawImage(data,fullWidth,fullHeight,
+				   transform(0.0,0.0,w,0.0,0.0,h),antialias);
+    pic.append(Image);
+    pic.shipout(NULL,*Prefix,Format,0.0,false,View);
+    delete Image;
+    delete[] data;
   }
+}
+  
+void quit() 
+{
+  glutDestroyWindow(window);
+  glutLeaveMainLoop();
 }
 
 void update() 
@@ -374,6 +376,33 @@ void update()
   glGetFloatv(GL_MODELVIEW_MATRIX,Modelview);
   setProjection();
   glutPostRedisplay();
+}
+
+void Export()
+{
+  save();
+  setProjection();
+}
+
+void display()
+{
+  if(View) {
+    drawscene(Width,Height);
+    glutSwapBuffers();
+    if(queueExport) {
+      Export();
+      queueExport=false;
+    }
+    
+    int status;
+    if(Oldpid != 0 && waitpid(Oldpid,&status,WNOHANG) != Oldpid) {
+      kill(Oldpid,SIGHUP);
+      Oldpid=0;
+    }
+  } else {
+    Export();
+    quit();
+  }
 }
 
 void move(int x, int y)
@@ -393,6 +422,12 @@ void capzoom()
   if(Zoom <= minzoom) Zoom=minzoom;
   if(Zoom >= maxzoom) Zoom=maxzoom;
   
+}
+
+void disableMenu() 
+{
+  glutDetachMenu(GLUT_RIGHT_BUTTON);
+  Menu=false;
 }
 
 void zoom(int x, int y)
@@ -614,8 +649,8 @@ void fitscreen()
     {       
       oldWidth=Width;
       oldHeight=Height;
-      int w=screenWidth();
-      int h=screenHeight();
+      int w=screenWidth;
+      int h=screenHeight;
       if(w > 0 && h > 0) {
 	if(w > h*Aspect) w=(int) (h*Aspect+0.5);
 	else h=(int) (w/Aspect+0.5);
@@ -841,52 +876,46 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   while(argv[argc] != NULL)
     ++argc;
   
-  bool screen=View && Format.empty();
-  
+  antialias=getSetting<bool>("antialias");
   double expand=getSetting<double>("render");
   if(expand < 0)
-    expand *= screen ? -1.0 : 
-      (Format.empty() || Format == "eps" || Format == "pdf" ? -4.0 : -2.0);
+    expand *= (Format.empty() || Format == "eps" || Format == "pdf") 
+      ? -2.0 : -1.0;
+  if(antialias) expand *= 2.0;
   
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
   
-  glutInitWindowSize(1,1);
-  window=glutCreateWindow("");
-  glGetIntegerv(GL_MAX_VIEWPORT_DIMS, ViewportLimit);
-  glutDestroyWindow(window);
-
+  screenWidth=glutGet(GLUT_SCREEN_WIDTH);
+  screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
+  
   // Force a hard viewport limit to work around direct rendering bugs.
   // Alternatively, one can use -glOptions=-indirect (with a performance
   // penalty).
-  int limit=(int) getSetting<Int>("maxviewport");
-  if(limit > 0) {
-    ViewportLimit[0]=min(ViewportLimit[0],limit);
-    ViewportLimit[1]=min(ViewportLimit[1],limit);
-  }
+  maxWidth=maxHeight=(int) getSetting<Int>("maxviewport");
 
 #ifdef __CYGWIN__
   int margin=60;
-  ViewportLimit[0]=min(ViewportLimit[0],screenWidth()-margin);
-  ViewportLimit[1]=min(ViewportLimit[1],screenHeight()-margin);
+  maxWidth=min(maxWidth,screenWidth-margin);
+  maxHeight=min(maxHeight,screenHeight-margin);
 #endif
   
   oWidth=width;
   oHeight=height;
   Aspect=((double) width)/height;
   
-  Width=min((int) (ceil(expand*width)),ViewportLimit[0]);
-  Height=min((int) (ceil(expand*height)),ViewportLimit[1]);
+  fullWidth=(int) ceil(expand*width);
+  fullHeight=(int) ceil(expand*height);
+  
+  Width=min(fullWidth,screenWidth);
+  Height=min(fullHeight,screenHeight);
   
   if(Width > Height*Aspect) 
-    Width=min((int) (ceil(Height*Aspect)),ViewportLimit[0]);
+    Width=min((int) (ceil(Height*Aspect)),screenWidth);
   else 
-    Height=min((int) (ceil(Width/Aspect)),ViewportLimit[1]);
+    Height=min((int) (ceil(Width/Aspect)),screenHeight);
   
   Aspect=((double) Width)/Height;
-  
-  oldWidth=Width;
-  oldHeight=Height;
   
   if(settings::verbose > 1) 
     cout << "Rendering " << prefix << " as " << Width << "x" << Height
@@ -899,11 +928,20 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   windowposition(x,y);
   glutInitWindowPosition(x,y);
   
-  glutInitWindowSize(Width,Height);
+  if(View)
+    glutInitWindowSize(1,1);
+  else
+    glutInitWindowSize(Width,Height);
   window=glutCreateWindow(((prefix == "out" ? "Asymptote" : prefix)+
 			   " [Double click right button for menu]").c_str());
-  if(!screen || !getSetting<bool>("fitscreen"))
+  
+  if(View && !getSetting<bool>("fitscreen"))
     Fitscreen=0;
+  else if(!View || !Format.empty()) // Use a full screen tile.
+    Fitscreen=2;
+    
+  oldWidth=(int) ceil(oWidth);
+  oldHeight=(int) ceil(oHeight);
   
   fitscreen();
   

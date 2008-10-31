@@ -56,7 +56,7 @@ public:
   bool write(prcfile *out);
   
   void render(GLUnurbs*, double, const triple&, const triple&, double,
-	      bool transparent, bool);
+	      bool transparent);
 
   drawElement *transformed(const vm::array& t);
 };

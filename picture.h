@@ -90,7 +90,7 @@ public:
  
   void render(GLUnurbs *nurb, double size2,
 	      const triple &Min, const triple& Max, double perspective,
-	      bool transparent, bool twosided) const;
+	      bool transparent) const;
   bool shipout3(const string& prefix, const string& format,
 		double width, double height, double angle, const triple& m,
 		const triple& M, size_t nlights, triple *lights,

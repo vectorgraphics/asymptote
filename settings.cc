@@ -934,7 +934,9 @@ void initSettings() {
                             "Show 3D toolbar in PDF output", true));
   addOption(new realSetting("render", 0, "n",
 			   "Render 3D graphics using n pixels per bp (-1=auto)",
-			   haveglut ? -1.0 : 0.0));
+			    haveglut ? -1.0 : 0.0));
+  addOption(new boolSetting("antialias", 0,
+			    "Antialias rendered output", true));
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
 			    true));

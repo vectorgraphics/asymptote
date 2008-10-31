@@ -166,7 +166,7 @@ inline double fraction(const triple& d, const triple& size)
 
 void drawSurface::render(GLUnurbs *nurb, double size2,
 			 const triple& Min, const triple& Max,
-			 double perspective, bool transparent, bool twosided)
+			 double perspective, bool transparent)
 {
 #ifdef HAVE_LIBGLUT
   if(invisible || (havetransparency ^ transparent)) return;

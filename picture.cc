@@ -380,12 +380,16 @@ bool picture::postprocess(const string& prename, const string& outname,
       else status=epstopdf(prename,outname);
     } else {
       ostringstream cmd;
-      double expand=getSetting<double>("render");
-      if(expand <= 0) expand=2.0;
-      double res=expand*72.0;
+      double render=fabs(getSetting<double>("render"));
+      if(render == 0) render=1.0;
+      bool antialias=getSetting<bool>("antialias");
+      double expand=antialias ? 2.0 : 1.0;
+      double res=expand*render*72.0;
       cmd << "'" << getSetting<string>("convert") 
-	  << "' -alpha Off -density " << res << "x" << res
-	  << " +antialias -geometry " << 100.0/expand << "%x"
+	  << "' -alpha Off -density " << res << "x" << res;
+      if(!antialias)
+	cmd << " +antialias";
+      cmd << " -geometry " << 100.0/expand << "%x"
 	  << " " << getSetting<string>("convertOptions")
 	  << " '" << nativeformat()+":" << prename << "'"
           << " '" << outputformat << ":" << outname << "'";
@@ -659,11 +663,11 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 // render viewport with width x height pixels.
 void picture::render(GLUnurbs *nurb, double size2,
 		     const triple& Min, const triple& Max,
-		     double perspective, bool transparent, bool twosided) const
+		     double perspective, bool transparent) const
 {
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->render(nurb,size2,Min,Max,perspective,transparent,twosided);
+    (*p)->render(nurb,size2,Min,Max,perspective,transparent);
   }
 }
   
