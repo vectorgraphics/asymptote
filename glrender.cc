@@ -143,7 +143,7 @@ void lighting()
   }
 }
 
-void setDimensions(double Width, double Height)
+void setDimensions(int Width, int Height)
 {
   double Aspect=((double) Width)/Height;
   double X0=X*(xmax-xmin)/(lastzoom*Width);
@@ -320,10 +320,10 @@ void save()
 	   << fullHeight << " image" << endl;
 
     TRcontext *tr=trNew();
-    int W=Quotient(fullWidth,Quotient(fullWidth,Width));
-    int H=Quotient(fullHeight,Quotient(fullHeight,Height));
+    int width=Quotient(fullWidth,Quotient(fullWidth,Width));
+    int height=Quotient(fullHeight,Quotient(fullHeight,Height));
 	
-    trTileSize(tr,W,H,0);
+    trTileSize(tr,width,height,0);
     trImageSize(tr,fullWidth,fullHeight);
     trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
 
@@ -340,7 +340,8 @@ void save()
       ++count;
     } while (trEndTile(tr));
     if(settings::verbose > 1) 
-      cout << count << " tiles of size " << W << "x" << H << " drawn" << endl;
+      cout << count << " tile" << (count > 1 ? "s" : "") <<  " of size " 
+	   << width << "x" << height << " drawn" << endl;
     trDelete(tr);
 
     picture pic;
@@ -902,7 +903,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   oWidth=width;
   oHeight=height;
-  Aspect=((double) width)/height;
+  Aspect=width/height;
   
   fullWidth=(int) ceil(expand*width);
   fullHeight=(int) ceil(expand*height);
