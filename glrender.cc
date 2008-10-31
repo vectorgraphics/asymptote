@@ -60,7 +60,7 @@ int fullWidth,fullHeight;
 int oldWidth,oldHeight;
 double oWidth,oHeight;
 int screenWidth,screenHeight;
-int maxWidth,maxHeight;
+int maxViewport;
 
 bool Xspin,Yspin,Zspin;
 bool Menu;
@@ -189,12 +189,12 @@ void setProjection()
 bool capsize(int& width, int& height) 
 {
   bool resize=false;
-  if(width > maxWidth) {
-    width=maxWidth;
+  if(width > maxViewport) {
+    width=maxViewport;
     resize=true;
   }
-  if(height > maxHeight) {
-    height=maxHeight;
+  if(height > maxViewport) {
+    height=maxViewport;
     resize=true;
   }
   return resize;
@@ -257,22 +257,20 @@ void setsize(int w, int h, int minsize=0)
   glutReshapeWindow(w,h);
   reshape0(w,h);
   glutPostRedisplay();
-  glFinish();
 }
 
 void fullscreen() 
 {
-  int w=screenWidth;
-  int h=screenHeight;
-  if(w > 0 && h > 0) {
-    Width=w;
-    Height=h;
+  Width=screenWidth;
+  Height=screenHeight;
 #ifdef __CYGWIN__
-    glutFullScreen();
-#else    
-    setsize(w,h,0);
+  glutFullScreen();
+#else
+  glutPositionWindow(0,0);
+  glutReshapeWindow(Width,Height);
+  reshape0(Width,Height);
+  glutPostRedisplay();
 #endif    
-  }
 }
 
 void drawscene(double Width, double Height)
@@ -323,7 +321,8 @@ void save()
     int width=Quotient(fullWidth,Quotient(fullWidth,Width));
     int height=Quotient(fullHeight,Quotient(fullHeight,Height));
 	
-    trTileSize(tr,width,height,0);
+    int maxtile=(int) getSetting<Int>("maxtile");
+    trTileSize(tr,min(width,maxtile),min(height,maxtile),0);
     trImageSize(tr,fullWidth,fullHeight);
     trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
 
@@ -652,11 +651,9 @@ void fitscreen()
       oldHeight=Height;
       int w=screenWidth;
       int h=screenHeight;
-      if(w > 0 && h > 0) {
-	if(w > h*Aspect) w=(int) (h*Aspect+0.5);
-	else h=(int) (w/Aspect+0.5);
-	setsize(w,h,minimumsize);
-      }
+      if(w >= h*Aspect) w=(int) (h*Aspect+0.5);
+      else h=(int) (w/Aspect+0.5);
+      setsize(w,h,minimumsize);
       ++Fitscreen;
       break;
     }
@@ -893,8 +890,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   // Force a hard viewport limit to work around direct rendering bugs.
   // Alternatively, one can use -glOptions=-indirect (with a performance
   // penalty).
-  maxWidth=maxHeight=(int) getSetting<Int>("maxviewport");
-
+  maxViewport=max((int) getSetting<Int>("maxviewport"),1);  
+  if(screenWidth <= 0) screenWidth=maxViewport;
+  if(screenHeight <= 0) screenHeight=maxViewport;
+  
   oWidth=width;
   oHeight=height;
   Aspect=width/height;

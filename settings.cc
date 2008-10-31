@@ -950,6 +950,8 @@ void initSettings() {
                             "Fit rendered image to screen", true));
   addOption(new IntSetting("maxviewport", 0, "n",
 			   "Maximum viewport width and height",2048));
+  addOption(new IntSetting("maxtile", 0, "n",
+			   "Maximum rendering tile size",1000));
   addOption(new stringOutnameSetting("outname", 'o', "name",
 				     "Alternative output name for first file",
 				     ""));
