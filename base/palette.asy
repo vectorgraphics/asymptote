@@ -414,8 +414,9 @@ pen[] quantize(pen[] Palette, int n)
 {
   if(Palette.length == 0) abort("cannot quantize empty palette");
   if(n <= 1) abort("palette must contain at least two pens");
+  real step=(Palette.length-1)/(n-1);
   return sequence(new pen(int i) {
-      return Palette[round(i/(n-1)*(Palette.length-1))];
+      return Palette[round(i*step)];
     },n); 
 }
 

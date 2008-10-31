@@ -339,6 +339,25 @@ struct surface {
       },P.length);
   }
 
+  void colors(pen[][] palette) {
+    for(int i=0; i < s.length; ++i)
+      s[i].colors=new pen[] {palette[0][i],palette[1][i],palette[2][i],
+			     palette[3][i]};
+  }
+
+  real[][] cornermap(real f(triple)) {
+    return new real[][] {
+      sequence(new real(int i) {return f(s[i].P[0][0]);},s.length),
+	sequence(new real(int i) {return f(s[i].P[0][3]);},s.length),
+	sequence(new real(int i) {return f(s[i].P[3][3]);},s.length),
+	sequence(new real(int i) {return f(s[i].P[3][0]);},s.length)
+	};
+  }
+
+  real[] cornermean(real f(triple)) {
+    return sequence(new real(int i) {return f(s[i].cornermean());},s.length);
+  }
+  
   void split(path3 external, triple[] internal=new triple[],
 	     triple[] normals=new triple[], pen[] colors=new pen[]) {
     int L=length(external);
