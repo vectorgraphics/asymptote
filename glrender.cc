@@ -99,8 +99,8 @@ double lastangle;
 double Zoom;
 double lastzoom;
 
-float Rotate[16];
-float Modelview[16];
+GLfloat Rotate[16];
+GLfloat Modelview[16];
 Arcball arcball;
   
 GLUnurbs *nurb;
@@ -143,7 +143,7 @@ void lighting()
   }
 }
 
-void setDimensions(int Width, int Height)
+void setDimensions(int Width, int Height, double X, double Y)
 {
   double Aspect=((double) Width)/Height;
   double X0=X*(xmax-xmin)/(lastzoom*Width);
@@ -177,7 +177,7 @@ void setProjection()
 {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  setDimensions(Width,Height);
+  setDimensions(Width,Height,X,Y);
   if(H == 0.0)
     glOrtho(xmin,xmax,ymin,ymax,-zmax,-zmin);
   else
@@ -226,11 +226,11 @@ void windowposition(int& x, int& y, int width=Width, int height=Height)
   x=(int) z.getx();
   y=(int) z.gety();
   if(x < 0) {
-    x += glutGet(GLUT_SCREEN_WIDTH)-width;
+    x += screenWidth-width;
     if(x < 0) x=0;
   }
   if(y < 0) {
-    y += glutGet(GLUT_SCREEN_HEIGHT)-height;
+    y += screenHeight-height;
     if(y < 0) y=0;
   }
 }
@@ -327,7 +327,7 @@ void save()
     trImageSize(tr,fullWidth,fullHeight);
     trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
 
-    setDimensions(fullWidth,fullHeight);
+    setDimensions(fullWidth,fullHeight,X/Width*fullWidth,Y/Width*fullWidth);
     if(H == 0.0)
       trOrtho(tr,xmin,xmax,ymin,ymax,-zmax,-zmin);
     else
@@ -895,12 +895,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   // penalty).
   maxWidth=maxHeight=(int) getSetting<Int>("maxviewport");
 
-#ifdef __CYGWIN__
-  int margin=60;
-  maxWidth=min(maxWidth,screenWidth-margin);
-  maxHeight=min(maxHeight,screenHeight-margin);
-#endif
-  
   oWidth=width;
   oHeight=height;
   Aspect=width/height;
@@ -922,9 +916,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     cout << "Rendering " << prefix << " as " << Width << "x" << Height
 	 << " image" << endl;
     
-  glMatrixMode(GL_MODELVIEW);
-  home();
-  
   int x,y;
   windowposition(x,y);
   glutInitWindowPosition(x,y);
@@ -935,6 +926,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutInitWindowSize(Width,Height);
   window=glutCreateWindow(((prefix == "out" ? "Asymptote" : prefix)+
 			   " [Double click right button for menu]").c_str());
+  
+  glMatrixMode(GL_MODELVIEW);
+  home();
   
   if(View && !getSetting<bool>("fitscreen"))
     Fitscreen=0;
