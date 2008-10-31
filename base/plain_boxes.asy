@@ -13,6 +13,29 @@ path box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
   return g;
 }
 
+path roundbox(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
+	      pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+{
+  pair m=min(src);
+  pair M=max(src);
+  pair bound=M-m;
+  int sign=filltype == NoFill ? 1 : -1;
+  real a=bound.x+2*xmargin;
+  real b=bound.y+2*ymargin;
+  real ds=0;
+  real dw=min(a,b)*0.3;
+  path g=shift(m-(xmargin,ymargin))*((0,dw)--(0,b-dw){up}..{right}
+  (dw,b)--(a-dw,b){right}..{down}
+  (a,b-dw)--(a,dw){down}..{left}
+  (a-dw,0)--(dw,0){left}..{up}cycle);
+  
+  frame F;
+  if(put == Below) {
+    filltype(F,g,p);
+    prepend(dest,F);
+  } else filltype(dest,g,p);
+  return g;
+}
 
 path ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
              pen p=currentpen, filltype filltype=NoFill, bool put=Above)
@@ -37,6 +60,13 @@ path box(frame f, Label L, real xmargin=0, real ymargin=xmargin,
 {
   add(f,L);
   return box(f,xmargin,ymargin,p,filltype,put);
+}
+
+path roundbox(frame f, Label L, real xmargin=0, real ymargin=xmargin,
+	      pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+{
+  add(f,L);
+  return roundbox(f,xmargin,ymargin,p,filltype,put);
 }
 
 path ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
