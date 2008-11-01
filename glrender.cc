@@ -317,18 +317,25 @@ void save()
   size_t ndata=3*fullWidth*fullHeight;
   unsigned char *data=new unsigned char[ndata];
   if(data) {
-    if(settings::verbose > 1) 
-      cout << "Exporting " << *Prefix << " as " << fullWidth << "x" 
-	   << fullHeight << " image" << endl;
-
     TRcontext *tr=trNew();
     pair maxtile=getSetting<pair>("maxtile");
     int maxwidth=(int) maxtile.getx();
     int maxheight=(int) maxtile.gety();
-    if(maxwidth <= 0) maxwidth=max(maxheight,1);
-    if(maxheight <= 0) maxheight=max(maxwidth,1);
+    maxwidth -= maxwidth % 2;
+    maxheight -= maxheight % 2;
+    if(maxwidth <= 0) maxwidth=max(maxheight,2);
+    if(maxheight <= 0) maxheight=max(maxwidth,2);
     int width=Quotient(fullWidth,Quotient(fullWidth,min(Width,maxwidth)));
     int height=Quotient(fullHeight,Quotient(fullHeight,min(Height,maxheight)));
+    // Round tile size up to next even size.
+    width += width % 2;
+    height += height % 2;
+    
+    if(settings::verbose > 1) 
+      cout << "Exporting " << *Prefix << " as " << fullWidth << "x" 
+	   << fullHeight << " image" << " using tiles of size "
+	   << width << "x" << height << endl;
+
     trTileSize(tr,width,height,0);
     trImageSize(tr,fullWidth,fullHeight);
     trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
@@ -345,9 +352,8 @@ void save()
       drawscene(fullWidth,fullHeight);
       ++count;
     } while (trEndTile(tr));
-    if(settings::verbose > 1) 
-      cout << count << " tile" << (count > 1 ? "s" : "") <<  " of size " 
-	   << width << "x" << height << " drawn" << endl;
+    if(settings::verbose > 1)
+      cout << count << " tile" << (count > 1 ? "s" : "") << " drawn" << endl;
     trDelete(tr);
 
     picture pic;
