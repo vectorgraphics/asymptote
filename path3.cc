@@ -760,14 +760,12 @@ double xratio(const triple& v, double *)
 {
   double z=v.getz();
   return v.getx()/z;
-  return (z != 0.0) ? v.getx()/z : 0.0;
 }
 
 double yratio(const triple& v, double *)
 {
   double z=v.getz();
   return v.gety()/z;
-  return (z != 0.0) ? v.gety()/z : 0.0;
 }
 
 struct Split {

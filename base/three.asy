@@ -12,10 +12,10 @@ real defaultshininess=0.25;
 real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
-real viewportfactor=1.01;    // Factor used to expand orthographic viewport.
-real anglefactor=1.02;       // Factor used to expand perspective viewport.
-int angleiterations=4;       // Iterations to find perspective field of view.
-real fovfactor=0.6;          // PRC field of view factor.
+real viewportfactor=1.01;  // Factor used to expand orthographic viewport.
+real anglefactor=1.02;     // Factor used to expand perspective viewport.
+real angleprecision=1e-3;  // Precision for centering perspective projections.
+real fovfactor=0.6;        // PRC field of view factor.
 
 string defaultembed3Doptions;
 string defaultembed3Dscript;
@@ -1999,14 +1999,23 @@ object embed(string label="", string text=label,
 	f=shift(s)*f;  // Eye will be at (0,0,0).
       } else {
       // Choose the angle to be just large enough to view the entire image:
+	int maxiterations=100;
 	if(is3D && angle == 0 && !P.infinity) {
 	    real h=0.5*P.target.z;
 	    pair r,R;
-	    for(int i=0; i < angleiterations; ++i) {
+	    real diff=realMax;
+	    pair s;
+	    int i;
+	    do {
 	      r=minratio(f);
 	      R=maxratio(f);
-	      f=shift(h*(-r.x-R.x),h*(-r.y-R.y),0)*f;
-	    }
+	      pair lasts=s;
+	      s=r+R;
+	      f=shift(-h*s.x,-h*s.y,0)*f;
+	      diff=abs(s-lasts);
+	      ++i;
+	    } while (diff > angleprecision && i < maxiterations);
+	      
 	    real aspect=width > 0 ? height/width : 1;
 	    angle=anglefactor*max(aTan(-r.x*aspect)+aTan(R.x*aspect),
 				  aTan(-r.y)+aTan(R.y));
