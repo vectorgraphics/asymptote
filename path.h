@@ -125,6 +125,14 @@ public:
       box(p.box)
   {}
 
+  path unstraighten() const
+  {
+    path P=path(*this);
+    for(int i=0; i < n; ++i)
+      P.nodes[i].straight=false;
+    return P;
+  }
+  
   virtual ~path()
   {
   }

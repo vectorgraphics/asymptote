@@ -2176,6 +2176,11 @@ bool straight(path p, Int t)
   return p.straight(t);
 }
 
+path unstraighten(path p)
+{
+  return p.unstraighten();
+}
+
 bool piecewisestraight(path p)
 {
   return p.piecewisestraight();
