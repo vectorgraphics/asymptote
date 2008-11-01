@@ -305,3 +305,25 @@ hsv operator cast(pen p)
 {
   return hsv(p);
 }
+
+real[] rgba(pen p)
+{
+  real[] a=colors(rgb(p));
+  a.push(opacity(p));
+  return a;
+}
+
+pen rgba(real[] a)
+{
+  return rgb(a[0],a[1],a[2])+opacity(a[3]);
+}
+
+pen mean(pen[] p)
+{
+  if(p.length == 0) return nullpen;
+  real[] a=rgba(p[0]);
+  for(int i=1; i < p.length; ++i)
+    a += rgba(p[i]);
+  real factor=1/p.length;
+  return rgba(factor*a);
+}

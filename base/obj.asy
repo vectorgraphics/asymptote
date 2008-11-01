@@ -75,9 +75,10 @@ struct obj {
       path3[] gi=g[i];
       for(int j=0; j < gi.length; ++j) {
         surface sij=surface(gi[j]);
-	// Force straight flag uniformly to avoid subdivision cracks.
+	// Treat all faces as planar to avoid subdivision cracks.
 	for(patch p : sij.s)
-	  p.straight=true;
+	  if(p.normal == O)
+	    p.normal=-p.normal(0.5,0.5);
         s.append(sij);
         this.surfacepen.append(array(sij.s.length,surfacepen[i]));
         this.meshpen.append(array(sij.s.length,meshpen[i]));

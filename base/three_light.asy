@@ -75,18 +75,6 @@ material emissive(material m, real granularity=m.granularity)
                   granularity);
 }
 
-real[] rgba(pen p)
-{
-  real[] a=colors(rgb(p));
-  a.push(opacity(p));
-  return a;
-}
-
-pen rgba(real[] a)
-{
-  return rgb(a[0],a[1],a[2])+opacity(a[3]);
-}
-
 struct light {
   real[][] diffuse;
   real[][] ambient;

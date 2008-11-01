@@ -9,7 +9,8 @@ struct patch {
   triple[][] P=new triple[4][4];
   triple[] normals; // Optionally specify 4 normal vectors at the corners.
   pen[] colors;     // Optionally specify 4 corner colors.
-  bool straight;    // Patch is planar and straight
+  triple normal;    // Normal vector for planar patch.
+  bool straight;    // Patch is based on a piecewise straight external path.
 
   path3 external() {
     return
@@ -114,14 +115,21 @@ struct patch {
   }
 
   pen[] colors(material m, light light=currentlight) {
-    if(colors.length > 0) return colors;
+    bool nocolors=colors.length == 0;
     if(normals.length > 0)
-      return new pen[] {light.color(normals[0],m),
-	  light.color(normals[1],m),light.color(normals[2],m),
-	  light.color(normals[3],m)};
-    
-    return new pen[] {light.color(normal00(),m),light.color(normal01(),m),
-	light.color(normal11(),m),light.color(normal10(),m)};
+      return new pen[] {light.color(normals[0],nocolors ? m : colors[0]),
+	  light.color(normals[1],nocolors ? m : colors[1]),
+	  light.color(normals[2],nocolors ? m : colors[2]),
+	  light.color(normals[3],nocolors ? m : colors[3])};
+    if(normal != O)
+      return new pen[] {light.color(normal,nocolors ? m : colors[0]),
+	  light.color(normal,nocolors ? m : colors[1]),
+	  light.color(normal,nocolors ? m : colors[2]),
+	  light.color(normal,nocolors ? m : colors[3])};
+    return new pen[] {light.color(normal00(),nocolors ? m : colors[0]),
+	light.color(normal01(),nocolors ? m : colors[1]),
+	light.color(normal11(),nocolors ? m : colors[2]),
+	light.color(normal10(),nocolors ? m : colors[3])};
   }
   
   triple bound(real m(real[], real), triple b) {
@@ -221,7 +229,7 @@ struct patch {
       this.colors=copy(colors);
 
     if(internal.length == 0) {
-      straight=piecewisestraight(external) && normal(external) != O;
+      straight=piecewisestraight(external);
 
       internal=new triple[4];
       for(int j=0; j < 4; ++j) {
@@ -255,6 +263,9 @@ struct patch {
     P[3][0]=point(external,3);
     P[2][0]=postcontrol(external,3);
     P[2][1]=internal[3];
+
+    if(normal(external) != O) // Path is planar
+	normal=-normal(0.5,0.5);
   }
 
   // A constructor for a convex quadrilateral.
@@ -266,7 +277,7 @@ struct patch {
     if(colors.length != 0)
       this.colors=copy(colors);
 
-    straight=normal(external) != O;
+    straight=true;
 
     if(internal.length == 0) {
       internal=new triple[4];
@@ -302,6 +313,9 @@ struct patch {
     P[2][1]=internal[3];
 
     P[1][0]=external[0]-delta;
+
+    if(normal(external) != O) // Path is planar
+      normal=-normal(0.5,0.5);
   }
 }
 
@@ -375,18 +389,10 @@ struct surface {
     for(int i=0; i < L; ++i)
       center += point(external,i);
     center *= factor;
-   if(!nocolors) {
-     real[] pcenter=rgba(colors[0]);
-     for(int i=1; i < L; ++i)
-       pcenter += rgba(colors[i]);
-     p=new pen[] {rgba(factor*pcenter)};
-   }
-    if(!nonormals) {
-      triple ncenter;
-      for(int i=0; i < L; ++i)
-	ncenter += normals[i];
-      n=new triple[] {factor*ncenter};
-    }
+   if(!nocolors)
+     p=new pen[] {mean(colors)};
+    if(!nonormals)
+      n=new triple[] {factor*sum(normals)};
     // Use triangles for nonplanar surfaces.
     int step=normal(external) == O ? 1 : 2;
     int i=0;
@@ -548,6 +554,7 @@ patch operator * (transform3 t, patch s)
     S.normals[i]=t*s.normals[i];
 
   S.colors=copy(s.colors);
+  S.normal=(triple) s.normal;
   S.straight=s.straight;
   return S;
 }
@@ -653,11 +660,15 @@ triple point(patch s, real u, real v)
 
 void draw3D(frame f, patch s, material m, light light=currentlight)
 {
-  if(!light.on())
+  if(s.colors.length > 0)
+    m=mean(s.colors);
+  bool lighton=light.on();
+  if(!lighton)
     m=emissive(m);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
-  draw(f,s.P,s.straight,m.p,m.opacity,m.shininess,granularity,
-       s.colors.length == 0 ? -s.normal(0.5,0.5) : O,s.colors);
+  draw(f,s.P,s.straight && s.normal != O,m.p,m.opacity,m.shininess,granularity,
+       s.normal != O || s.colors.length > 0 ? s.normal : -s.normal(0.5,0.5),
+       lighton,s.colors);
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,

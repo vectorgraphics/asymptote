@@ -1261,7 +1261,7 @@ triple normal(path3 p)
   if(L <= 0) return O;
 
   triple zi=point(p,1);
-  triple v0=zi-point(p,0);
+  triple v0=zi-precontrol(p,1);
   for(int i=1; i <= L; ++i) {
     triple c0=postcontrol(p,i);
     triple c1=precontrol(p,i+1);

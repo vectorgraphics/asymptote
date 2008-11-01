@@ -2,8 +2,7 @@ import graph3;
 import grid3;
 import palette;
 
-currentprojection=orthographic(0.8,1,1);
-
+currentprojection=orthographic(1,2,10);
 settings.prc=false;
 
 size(400,300,IgnoreAspect);

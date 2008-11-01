@@ -7159,9 +7159,10 @@ draw(surface(unitcircle3),red);
 draw(surface(unitcircle3,new pen[] {red,green,blue,black}));
 @end verbatim
 @noindent
-Vertex shading, illustrated in the last example, is supported by
-@code{Asymptote's} @code{openGL} renderer and two-dimensional projections,
-but not by the @acronym{PRC} output format.
+Vertex shading, illustrated in the last example, is supported for both
+the @code{openGL} renderer and two-dimensional projections.
+Since the @acronym{PRC} output format does not support vertex shading of
+Bezier surfaces, each patch is drawn with the mean of its four vertex colors.
 
 @cindex @code{bezulate}
 Alternatively, a three-dimensional planar path constructed from a
