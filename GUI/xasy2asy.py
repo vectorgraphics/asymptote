@@ -353,7 +353,7 @@ class asyPath(asyObj):
     syncQuickAsyOutput()
     quickAsy.stdin.write("path p="+self.getCode()+';\n')
     quickAsy.stdin.write("write(length(p));\n")
-    quickAsy.stdin.write("write(p);write(\"\");\n")
+    quickAsy.stdin.write("write(unstraighten(p));write(\"\");\n")
     quickAsy.stdin.flush()
     lengthStr = quickAsy.stdout.readline()
     pathSegments = eval(lengthStr.split()[-1])
