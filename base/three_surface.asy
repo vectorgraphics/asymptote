@@ -359,7 +359,16 @@ struct surface {
 			     palette[3][i]};
   }
 
-  real[][] cornermap(real f(triple)) {
+  triple[][] corner() {
+    return new triple[][] {
+      sequence(new triple(int i) {return s[i].P[0][0];},s.length),
+	sequence(new triple(int i) {return s[i].P[0][3];},s.length),
+	sequence(new triple(int i) {return s[i].P[3][3];},s.length),
+	sequence(new triple(int i) {return s[i].P[3][0];},s.length)
+	};
+  }
+
+  real[][] map(real f(triple)) {
     return new real[][] {
       sequence(new real(int i) {return f(s[i].P[0][0]);},s.length),
 	sequence(new real(int i) {return f(s[i].P[0][3]);},s.length),
@@ -368,7 +377,11 @@ struct surface {
 	};
   }
 
-  real[] cornermean(real f(triple)) {
+  triple[] cornermean() {
+    return sequence(new triple(int i) {return s[i].cornermean();},s.length);
+  }
+
+  real[] mapmean(real f(triple)) {
     return sequence(new real(int i) {return f(s[i].cornermean());},s.length);
   }
   
