@@ -321,15 +321,10 @@ void save()
     pair maxtile=getSetting<pair>("maxtile");
     int maxwidth=(int) maxtile.getx();
     int maxheight=(int) maxtile.gety();
-    maxwidth -= maxwidth % 2;
-    maxheight -= maxheight % 2;
     if(maxwidth <= 0) maxwidth=max(maxheight,2);
     if(maxheight <= 0) maxheight=max(maxwidth,2);
     int width=Quotient(fullWidth,Quotient(fullWidth,min(Width,maxwidth)));
     int height=Quotient(fullHeight,Quotient(fullHeight,min(Height,maxheight)));
-    // Round tile size up to next even size.
-    width += width % 2;
-    height += height % 2;
     
     if(settings::verbose > 1) 
       cout << "Exporting " << *Prefix << " as " << fullWidth << "x" 
