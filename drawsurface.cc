@@ -246,7 +246,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   double fperp=fraction(dperp,size3);
   
   if(!havenormal || !straight && (f*size2 >= pixel || granularity == 0)) {
-    if(!havecolors) {
+    if(lighton) {
       if(havenormal && fperp*size2 <= 0.1) {
 	glNormal3fv(Normal);
 	gluNurbsCallback(nurb,GLU_NURBS_NORMAL,NULL);
@@ -262,7 +262,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
     gluEndSurface(nurb);
   } else {
     glBegin(GL_QUADS);
-    if(!havecolors)
+    if(lighton)
       glNormal3fv(Normal);
     if(havecolors) 
       glColor4fv(colors);
