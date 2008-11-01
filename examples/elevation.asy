@@ -10,6 +10,6 @@ real f(pair z) {return cos(2*pi*z.x)*sin(2*pi*z.y);}
 
 surface s=surface(f,(-1/2,-1/2),(1/2,1/2),50,Spline);
 
-draw(s,palette(s.mapmean(zpart),Rainbow()),black);
+draw(s,mean(palette(s.map(zpart),Rainbow())),black);
 
 grid3(XYZgrid);

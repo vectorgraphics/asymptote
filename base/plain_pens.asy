@@ -327,3 +327,8 @@ pen mean(pen[] p)
   real factor=1/p.length;
   return rgba(factor*a);
 }
+
+pen[] mean(pen[][] palette) 
+{
+  return sequence(new pen(int i) {return mean(palette[i]);},palette.length);
+}

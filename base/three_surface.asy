@@ -24,6 +24,16 @@ struct patch {
     return new triple[] {P[1][1],P[1][2],P[2][2],P[2][1]};
   }
 
+  triple cornermean() {
+    return 0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]);
+  }
+
+  triple[] corners() {return new triple[] {P[0][0],P[0][3],P[3][3],P[3][0]};}
+
+  real[] map(real f(triple)) {
+    return new real[] {f(P[0][0]),f(P[0][3]),f(P[3][3]),f(P[3][0])};
+  }
+
   triple[] controlpoints() {
     return new triple[] {
       P[0][0],P[0][1],P[0][2],P[0][3],
@@ -171,10 +181,6 @@ struct patch {
 
   triple center() {
     return 0.5*(this.min()+this.max());
-  }
-
-  triple cornermean() {
-    return 0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]);
   }
 
   pair min(projection P, pair bound=project(this.P[0][0],P.t)) {
@@ -354,37 +360,26 @@ struct surface {
   }
 
   void colors(pen[][] palette) {
-    for(int i=0; i < s.length; ++i)
-      s[i].colors=new pen[] {palette[0][i],palette[1][i],palette[2][i],
-			     palette[3][i]};
+    for(int i=0; i < s.length; ++i) {
+      pen[] palettei=palette[i];
+      s[i].colors=new pen[] {palettei[0],palettei[1],palettei[2],palettei[3]};
+    }
   }
 
-  triple[][] corner() {
-    return new triple[][] {
-      sequence(new triple(int i) {return s[i].P[0][0];},s.length),
-	sequence(new triple(int i) {return s[i].P[0][3];},s.length),
-	sequence(new triple(int i) {return s[i].P[3][3];},s.length),
-	sequence(new triple(int i) {return s[i].P[3][0];},s.length)
-	};
+  triple[][] corners() {
+    triple[][] a=new triple[s.length][];
+    for(int i=0; i < s.length; ++i)
+      a[i]=s[i].corners();
+    return a;
   }
 
   real[][] map(real f(triple)) {
-    return new real[][] {
-      sequence(new real(int i) {return f(s[i].P[0][0]);},s.length),
-	sequence(new real(int i) {return f(s[i].P[0][3]);},s.length),
-	sequence(new real(int i) {return f(s[i].P[3][3]);},s.length),
-	sequence(new real(int i) {return f(s[i].P[3][0]);},s.length)
-	};
+    real[][] a=new real[s.length][];
+    for(int i=0; i < s.length; ++i)
+      a[i]=s[i].map(f);
+    return a;
   }
 
-  triple[] cornermean() {
-    return sequence(new triple(int i) {return s[i].cornermean();},s.length);
-  }
-
-  real[] mapmean(real f(triple)) {
-    return sequence(new real(int i) {return f(s[i].cornermean());},s.length);
-  }
-  
   void split(path3 external, triple[] internal=new triple[],
 	     triple[] normals=new triple[], pen[] colors=new pen[]) {
     int L=length(external);
