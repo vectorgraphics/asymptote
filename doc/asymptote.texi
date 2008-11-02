@@ -7217,8 +7217,10 @@ There are four choices for viewing 3D @code{Asymptote} output:
 @cindex @code{render}
 @cindex @code{outformat}
 @item Use the default @code{Asymptote} adaptive @code{OpenGL}-based
-renderer (with the the command-line option @code{-V} and the default settings
-@code{outformat=""} and @code{render=-1}).
+renderer (with the command-line option @code{-V} and the default settings
+@code{outformat=""} and @code{render=-1}). If you encounter warnings
+from your graphics card driver, try specifying @code{-glOptions=-indirect}
+on the command line.
 An initial screen position can be specified with the pair setting
 @code{position}, where negative values are interpreted as relative to
 the corresponding maximum screen dimension.
@@ -8120,10 +8122,15 @@ interactiveMask=true;
 Command-line options override these defaults. Most configuration
 variables may also be changed at runtime. 
 @cindex @code{dvipsOptions}
+@cindex @code{convertOptions}
 @cindex @code{gsOptions}
-The advanced configuration variables @code{dvipsOptions} and
-@code{gsOptions} allow specialized options to be passed as a string to
-@code{dvips} and @code{gs}, respectively. 
+@cindex @code{psviewerOptions}
+@cindex @code{pdfviewerOptions}
+@cindex @code{glOptions}
+The advanced configuration variables @code{dvipsOptions}, @code{convertOptions},
+@code{gsOptions}, @code{psviewerOptions}, @code{pdfviewerOptions}, and 
+@code{glOptions} allow specialized options to be passed as a string to
+the respective applications or libraries.
 
 If you insert
 @verbatim
