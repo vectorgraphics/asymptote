@@ -971,8 +971,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   if(View && !getSetting<bool>("fitscreen"))
     Fitscreen=0;
-  else if(!View || !Format.empty()) // Use a full screen tile.
-    Fitscreen=2;
     
   setosize();
   fitscreen();
