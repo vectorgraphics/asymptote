@@ -320,21 +320,24 @@ pen rgba(real[] a)
 
 // Interpolate an array of pens in rgb space using by default their minimum
 // opacity.
-pen mean(pen[] p, real opacity(real,real)=min)
+pen mean(pen[] p, real opacity(real[])=min)
 {
   if(p.length == 0) return nullpen;
   real[] a=rgba(p[0]);
-  real t=a[3];
+  real[] t=new real[p.length];
+  t[0]=a[3];
   for(int i=1; i < p.length; ++i) {
     real[] b=rgba(p[i]);
     a += b;
-    t=opacity(t,b[3]);
+    t[i]=b[3];
   }
   a /= p.length;
-  return rgb(a[0],a[1],a[2])+opacity(t);
+  return rgb(a[0],a[1],a[2])+opacity(opacity(t));
 }
 
-pen[] mean(pen[][] palette) 
+pen[] mean(pen[][] palette, real opacity(real[])=min)
 {
-  return sequence(new pen(int i) {return mean(palette[i]);},palette.length);
+  return sequence(new pen(int i) {
+      return mean(palette[i],opacity);
+    },palette.length);
 }
