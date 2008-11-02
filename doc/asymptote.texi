@@ -7160,7 +7160,7 @@ draw(surface(unitcircle3,new pen[] {red,green,blue,black}));
 @end verbatim
 @noindent
 Vertex shading, illustrated in the last example, is supported for both
-the @code{openGL} renderer and two-dimensional projections.
+the @code{OpenGL} renderer and two-dimensional projections.
 Since the @acronym{PRC} output format does not support vertex shading of
 Bezier surfaces, each patch is drawn with the mean of its four vertex colors.
 
@@ -7183,9 +7183,16 @@ nonselfintersecting path to a surface.
 
 @cindex @code{thin}
 @cindex @code{thick}
-Bezier surfaces are also used to draw arbitrary thick three-dimensional
-lines and line caps (which the @code{OpenGL} standard does not require
-implementations to provide). This can make files slow to render,
+@cindex @code{tube}
+Arbitrary thick three-dimensional curves and line caps (which the
+@code{OpenGL} standard does not require implementations to provide) are
+constructed with the routine 
+@verbatim
+surface tube(path3 g, real width);
+@end verbatim
+@noindent
+which returns a tube of diameter @code{width} centered on @code{g}.
+This can make files slow to render,
 especially with the @code{Adobe Reader} renderer. The setting
 @code{thick=false} can be used to disable this feature and force all
 lines to be drawn with @code{linewidth(0)} (one pixel wide, regardless
@@ -7193,7 +7200,7 @@ of the resolution). By default mesh and contour lines in three-dimensions
 are always drawn thin, unless an explicit linewidth is given in the pen
 parameter or the setting @code{thin} is set to @code{false}. The pens
 @code{thin()} and @code{thick()} defined in plain_pens.asy can also be used
-to override these defaults for specific draw commands.
+to override these defaults for specific draw commands. 
 
 @noindent
 There are four choices for viewing 3D @code{Asymptote} output: 
@@ -8731,7 +8738,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt DefaultHead
 @c  LocalWords:  SimpleHead HookHead TeXHead multipage nurbs inlinemovie dxmax
 @c  LocalWords:  simpson NoBox truesize autoscale shadestroke recurses mintimes
-@c  LocalWords:  nonoverlapping texdvicommand texengine maxtimes
+@c  LocalWords:  nonoverlapping texdvicommand texengine maxtimes maxheight
 @c  LocalWords:  piecewisestraight unitrand graphmarkers antialias nolight newl
 @c  LocalWords:  Delaunay Shewchuk convertOptions APPDATA pdfreload tempFile
 @c  LocalWords:  pdfreloadOptions deferred OpenGL Phong Blinn renderer unitbox
@@ -8742,4 +8749,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  XZEquals XYEquals XZZero XYZero InTicks OutTicks InOutTicks
 @c  LocalWords:  fitscreen planeproject strokepath meshlight nullpens arrowdir
 @c  LocalWords:  diffusepen ambientpen emissivepen specularpen arrowbarb
-@c  LocalWords:  nonselfintersecting
+@c  LocalWords:  nonselfintersecting hstretch vstretch roundbox nonconvex
+@c  LocalWords:  maxviewport maxtile antialiased
