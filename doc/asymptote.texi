@@ -7141,6 +7141,18 @@ based on the Phong-Blinn specular model. Sample Bezier surfaces are
 contained in the example files @code{BezierSurface.asy}, @code{teapot.asy},
 and @code{parametricsurface.asy}. 
 
+@cindex patch-dependent colors
+@cindex vertex-dependent colors
+The examples
+@code{elevation.asy} and @code{sphericalharmonic.asy} 
+illustrate how to draw a surface with patch-dependent colors.
+The examples @code{vertexshading} and @code{smoothelevation} illustrate
+vertex-dependent colors, which is supported for both
+the @code{OpenGL} renderer and two-dimensional projections.
+Since the @acronym{PRC} output format does not support vertex shading of
+Bezier surfaces, @acronym{PRC} patches are shaded with the mean of the
+four vertex colors.
+
 @cindex @code{fill}
 There is no @code{fill} command for arbitrary three-dimensional cyclic paths
 (this would be an ill-posed operation). 
@@ -7152,17 +7164,13 @@ surface surface(path3 external, triple[] internal=new triple[],
 @end verbatim
 @noindent
 and then filled:
-@cindex vertex shading
 @verbatim
 draw(surface(path3(polygon(5))),red);
 draw(surface(unitcircle3),red);
 draw(surface(unitcircle3,new pen[] {red,green,blue,black}));
 @end verbatim
 @noindent
-Vertex shading, illustrated in the last example, is supported for both
-the @code{OpenGL} renderer and two-dimensional projections.
-Since the @acronym{PRC} output format does not support vertex shading of
-Bezier surfaces, each patch is drawn with the mean of its four vertex colors.
+The last example constructs a patch with vertex-specific colors.
 
 @cindex @code{bezulate}
 Alternatively, a three-dimensional planar path constructed from a
@@ -8750,4 +8758,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  fitscreen planeproject strokepath meshlight nullpens arrowdir
 @c  LocalWords:  diffusepen ambientpen emissivepen specularpen arrowbarb
 @c  LocalWords:  nonselfintersecting hstretch vstretch roundbox nonconvex
-@c  LocalWords:  maxviewport maxtile antialiased
+@c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic
+@c  LocalWords:  vertexshading smoothelevation
