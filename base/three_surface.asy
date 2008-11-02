@@ -380,6 +380,10 @@ struct surface {
     return a;
   }
 
+  triple[] cornermean() {
+    return sequence(new triple(int i) {return s[i].cornermean();},s.length);
+  }
+
   void split(path3 external, triple[] internal=new triple[],
 	     triple[] normals=new triple[], pen[] colors=new pen[]) {
     int L=length(external);

@@ -318,14 +318,20 @@ pen rgba(real[] a)
   return rgb(a[0],a[1],a[2])+opacity(a[3]);
 }
 
-pen mean(pen[] p)
+// Interpolate an array of pens in rgb space using by default their minimum
+// opacity.
+pen mean(pen[] p, real opacity(real,real)=min)
 {
   if(p.length == 0) return nullpen;
   real[] a=rgba(p[0]);
-  for(int i=1; i < p.length; ++i)
-    a += rgba(p[i]);
-  real factor=1/p.length;
-  return rgba(factor*a);
+  real t=a[3];
+  for(int i=1; i < p.length; ++i) {
+    real[] b=rgba(p[i]);
+    a += b;
+    t=opacity(t,b[3]);
+  }
+  a /= p.length;
+  return rgb(a[0],a[1],a[2])+opacity(t);
 }
 
 pen[] mean(pen[][] palette) 
