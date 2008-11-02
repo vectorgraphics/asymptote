@@ -196,18 +196,23 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   triple M=B.Max();
   triple m=B.Min();
   
+  double s;
   if(perspective) {
     double f=m.getz()*perspective;
     double F=M.getz()*perspective;
+    s=max(f,F);
     if(M.getx() < min(f*Min.getx(),F*Min.getx()) || 
        m.getx() > max(f*Max.getx(),F*Max.getx()) ||
        M.gety() < min(f*Min.gety(),F*Min.gety()) ||
        m.gety() > max(f*Max.gety(),F*Max.gety()) ||
        M.getz() < Min.getz() ||
        m.getz() > Max.getz()) return;
-  } else if(M.getx() < Min.getx() || m.getx() > Max.getx() ||
-	    M.gety() < Min.gety() || m.gety() > Max.gety() ||
-	    M.getz() < Min.getz() || m.getz() > Max.getz()) return;
+  } else {
+    s=1.0;
+    if(M.getx() < Min.getx() || m.getx() > Max.getx() ||
+       M.gety() < Min.gety() || m.gety() > Max.gety() ||
+       M.getz() < Min.getz() || m.getz() > Max.getz()) return;
+  }
     
   bool ambientdiffuse=true;
   bool emission=true;
@@ -241,7 +246,8 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
-  triple size3=Max-Min;
+  triple size3=triple(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),
+		      Max.getz()-Min.getz());
   double f=fraction(d,size3);
   double fperp=fraction(dperp,size3);
   
