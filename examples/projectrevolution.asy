@@ -10,6 +10,6 @@ revolution r=revolution(new real(real x) {return sin(x)*exp(-x/2);},
 surface s=surface(r); 
  
 draw(s,lightgray); 
-draw(planeproject(shift(-Z)*unitsquare3)*s,
-     palette(sequence(new real(int i) {return s.s[i].cornermean().z;}, 
-		      s.s.length),Rainbow()));
+surface S=planeproject(shift(-Z)*unitsquare3)*s;
+S.colors(palette(s.map(zpart),Rainbow()));
+draw(S);
