@@ -1084,7 +1084,7 @@ ostream& operator<< (ostream& out, const path& p)
       if(p.straight(i)) out << "--";
       else
 	out << ".. controls " << p.postcontrol(i) << " and "
-	    << p.precontrol(i) << newl << " ..";
+	    << p.precontrol(i+1) << newl << " ..";
     }
     if(p.cycles) 
       out << "cycle";
