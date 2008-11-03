@@ -9,7 +9,7 @@ revolution r=revolution(new real(real x) {return sin(x)*exp(-x/2);},
 			  0,2pi,operator ..,Z); 
 surface s=surface(r); 
  
-draw(s,lightgray); 
 surface S=planeproject(shift(-Z)*unitsquare3)*s;
 S.colors(palette(s.map(zpart),Rainbow()));
 draw(S);
+draw(s,lightgray); 
