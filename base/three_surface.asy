@@ -566,7 +566,7 @@ patch operator * (transform3 t, patch s)
     S.normals[i]=t*s.normals[i];
 
   S.colors=copy(s.colors);
-  S.normal=(triple) s.normal;
+  S.normal=t*s.normal;
   S.straight=s.straight;
   return S;
 }
