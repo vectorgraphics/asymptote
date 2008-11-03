@@ -1171,7 +1171,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
     error("texpath failed");
     
   bool keep=getSetting<bool>("keep");
-  if(keep) { // Delete temporary files.
+  if(!keep) { // Delete temporary files.
     unlink(texname.c_str());
     if(!getSetting<bool>("keepaux")) unlink(auxname(prefix,"aux").c_str());
     unlink(auxname(prefix,"log").c_str());
