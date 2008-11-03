@@ -1,10 +1,10 @@
 import graph3;
 import solids;
 size(0,150);
-currentprojection=perspective(1,0,11,up=Y);
+currentprojection=perspective(0,0,11,up=Y);
 
 pen color1=green+opacity(0.25);
-pen color2=red+opacity(0.75);
+pen color2=red;
 real alpha=250;
 
 real f(real x) {return 2x^2-x^3;}
