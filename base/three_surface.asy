@@ -236,6 +236,7 @@ struct patch {
 
     if(internal.length == 0) {
       straight=piecewisestraight(external);
+      normal=normal(external);
 
       internal=new triple[4];
       for(int j=0; j < 4; ++j) {
@@ -248,7 +249,6 @@ struct patch {
                             point(external,j+2));
       }
     }
-
 
     P[1][0]=precontrol(external,0);
     P[0][0]=point(external,0);
@@ -270,8 +270,9 @@ struct patch {
     P[2][0]=postcontrol(external,3);
     P[2][1]=internal[3];
 
-    if(normal(external) != O) // Path is planar
-	normal=-normal(0.5,0.5);
+// Compute counterclockwise-oriented unit normal for planar paths.
+    if(normal != O) 
+      normal=-normal(0.5,0.5);
   }
 
   // A constructor for a convex quadrilateral.
@@ -286,6 +287,9 @@ struct patch {
     straight=true;
 
     if(internal.length == 0) {
+// Compute counterclockwise-oriented unit normal for planar paths.
+      normal=normal(external);
+
       internal=new triple[4];
       for(int j=0; j < 4; ++j) {
 	internal[j]=nineth*(4*external[j]+2*external[(j+1)%4]+
@@ -319,10 +323,41 @@ struct patch {
     P[2][1]=internal[3];
 
     P[1][0]=external[0]-delta;
-
-    if(normal(external) != O) // Path is planar
-      normal=-normal(0.5,0.5);
   }
+}
+
+patch operator * (transform3 t, patch s)
+{ 
+  patch S;
+  for(int i=0; i < 4; ++i) { 
+    triple[] si=s.P[i];
+    triple[] Si=S.P[i];
+    for(int j=0; j < 4; ++j)
+      Si[j]=t*si[j]; 
+  }
+  
+  transform3 t0=shiftless(t);
+  for(int i=0; i < s.normals.length; ++i)
+    S.normals[i]=t0*s.normals[i];
+
+  S.colors=copy(s.colors);
+  S.normal=t0*s.normal;
+  S.straight=s.straight;
+  return S;
+}
+ 
+patch reverse(patch s) 
+{
+  patch S;
+  S.P=transpose(s.P);
+  if(s.normals.length > 0) 
+    S.normals=
+      new triple[] {s.normals[0],s.normals[3],s.normals[2],s.normals[1]};
+  if(s.colors.length > 0) 
+    S.colors=new pen[] {s.colors[0],s.colors[3],s.colors[2],s.colors[1]};
+  S.normal=-s.normal;
+  S.straight=s.straight;
+  return S;
 }
 
 struct surface {
@@ -552,25 +587,6 @@ struct surface {
   }
 }
 
-patch operator * (transform3 t, patch s)
-{ 
-  patch S;
-  for(int i=0; i < 4; ++i) { 
-    triple[] si=s.P[i];
-    triple[] Si=S.P[i];
-    for(int j=0; j < 4; ++j)
-      Si[j]=t*si[j]; 
-  }
-  
-  for(int i=0; i < s.normals.length; ++i)
-    S.normals[i]=t*s.normals[i];
-
-  S.colors=copy(s.colors);
-  S.normal=t*s.normal;
-  S.straight=s.straight;
-  return S;
-}
- 
 surface operator * (transform3 t, surface s)
 { 
   surface S;
@@ -678,9 +694,8 @@ void draw3D(frame f, patch s, material m, light light=currentlight)
   if(!lighton)
     m=emissive(m);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
-  draw(f,s.P,s.straight && s.normal != O,m.p,m.opacity,m.shininess,granularity,
-       s.normal != O || s.colors.length > 0 ? s.normal : -s.normal(0.5,0.5),
-       lighton,s.colors);
+  draw(f,s.P,s.straight,m.p,m.opacity,m.shininess,granularity,
+       s.normal,lighton,s.colors);
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,
@@ -1000,7 +1015,7 @@ restricted surface unitcylinder=surface(unitcylinder1,t*unitcylinder1,
                                         t2*unitcylinder1,t3*unitcylinder1);
 
 private patch unitplane=patch(new triple[] {O,X,X+Y,Y});
-restricted surface unitcube=surface(unitplane,
+restricted surface unitcube=surface(reverse(unitplane),
                                     rotate(90,O,X)*unitplane,
                                     rotate(-90,O,Y)*unitplane,
                                     shift(Z)*unitplane,

@@ -671,12 +671,16 @@ flatguide3[] operator cast(guide3[] g)
   return p;
 }
 
+// A version of asin that tolerates numerical imprecision
+real asin1(real x)
+{
+  return asin(min(max(x,-1),1));
+}
+  
 // A version of acos that tolerates numerical imprecision
 real acos1(real x)
 {
-  if(x < -1) x=-1;
-  if(x > 1) x=1;
-  return acos(x);
+  return acos(min(max(x,-1),1));
 }
   
 struct Controls {
@@ -1232,26 +1236,33 @@ guide3 operator cast(path3 p)
   };
 }
 
+real sqrtepsilon=sqrt(realEpsilon);
+
 // Return a unit normal vector to a planar path p (or O if the path is
 // nonplanar).
 triple normal(path3 p)
 {
   triple normal;
-  static real epsilon=sqrt(realEpsilon);
-  real fuzz=epsilon*abs(max(p)-min(p));
+  real fuzz=sqrtepsilon*abs(max(p)-min(p));
   real absnormal;
+  real theta;
   
   bool Cross(triple a, triple b) {
     if(abs(a) >= fuzz && abs(b) >= fuzz) {
       triple n=cross(unit(a),unit(b));
       real absn=abs(n);
       n=unit(n);
-      if(absnormal > 0 && absn > epsilon &&
-	 abs(normal-n) > epsilon && abs(normal+n) > epsilon)
+      if(absnormal > 0 && absn > sqrtepsilon &&
+	 abs(normal-n) > sqrtepsilon && abs(normal+n) > sqrtepsilon)
 	return true;
-      else if(absn > absnormal) {
-	absnormal=absn;
-	normal=n;
+      else {
+	int sign=dot(n,normal) >= 0 ? 1 : -1;
+	theta += sign*asin1(absn);
+	if(absn > absnormal) {
+	  absnormal=absn;
+	  normal=n;
+	  theta=sign*theta;
+	}
       }
     }
     return false;
@@ -1260,9 +1271,9 @@ triple normal(path3 p)
   int L=length(p);
   if(L <= 0) return O;
 
-  triple zi=point(p,1);
-  triple v0=zi-precontrol(p,1);
-  for(int i=1; i <= L; ++i) {
+  triple zi=point(p,0);
+  triple v0=zi-precontrol(p,0);
+  for(int i=0; i < L; ++i) {
     triple c0=postcontrol(p,i);
     triple c1=precontrol(p,i+1);
     triple zp=point(p,i+1);
@@ -1273,7 +1284,50 @@ triple normal(path3 p)
     v0=v3;
     zi=zp;
   }
-  return normal;
+  return theta >= 0 ? normal : -normal;
+}
+
+// Return a unit normal vector to a polygon with vertices in p.
+triple normal(triple[] p)
+{
+  triple normal;
+  real fuzz=sqrtepsilon*abs(maxbound(p)-minbound(p));
+  real absnormal;
+  real theta;
+  
+  bool Cross(triple a, triple b) {
+    if(abs(a) >= fuzz && abs(b) >= fuzz) {
+      triple n=cross(unit(a),unit(b));
+      real absn=abs(n);
+      n=unit(n);
+      if(absnormal > 0 && absn > sqrtepsilon &&
+	 abs(normal-n) > sqrtepsilon && abs(normal+n) > sqrtepsilon)
+	return true;
+      else {
+	int sign=dot(n,normal) >= 0 ? 1 : -1;
+	theta += sign*asin1(absn);
+	if(absn > absnormal) {
+	  absnormal=absn;
+	  normal=n;
+	  theta=sign*theta;
+	}
+      }
+    }
+    return false;
+  }
+  
+  if(p.length <= 0) return O;
+
+  triple zi=p[0];
+  triple v0=zi-p[p.length-1];
+  for(int i=0; i < p.length-1; ++i) {
+    triple zp=p[i+1];
+    triple v1=zp-zi;
+    if(Cross(v0,v1)) return O;
+    v0=v1;
+    zi=zp;
+  }
+  return theta >= 0 ? normal : -normal;
 }
 
 // Transforms that map XY plane to YX, YZ, ZY, ZX, and XZ planes.
@@ -1707,8 +1761,7 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
   v2=Tinv*v2;
   
   string invalidnormal="invalid normal vector";
-  static real epsilon=sqrt(realEpsilon);
-  real fuzz=epsilon*max(abs(v1),abs(v2));
+  real fuzz=sqrtepsilon*max(abs(v1),abs(v2));
   if(abs(v1.z) > fuzz || abs(v2.z) > fuzz)
     abort(invalidnormal);
   

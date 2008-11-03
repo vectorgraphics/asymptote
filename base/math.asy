@@ -11,18 +11,18 @@ pair unityroot(int n, int k=1)
   return expi(2pi*k/n);
 }
 
-// Return an arbitrary point inside a cyclic path g.
-pair inside(path g)
+// Return an arbitrary point on or inside a cyclic path p.
+pair inside(path p)
 {
-  if(!cyclic(g)) abort("path is not cyclic");
-  pair c=point(g,0);
-  int n=length(g);
+  if(!cyclic(p)) abort("path is not cyclic");
+  pair c=point(p,0);
+  int n=length(p);
   real r;
   int i=0;
   do {
     ++i;
     if(i == n) return c;
-    r=abs(point(g,i)-c);
+    r=abs(point(p,i)-c);
   } while (r == 0);
   pair w=I*0.5*r;
   // Search in a circle of radius r about c.
@@ -30,7 +30,7 @@ pair inside(path g)
   while(true) {
     for(int k=0; k < n; ++k) {
       pair z=c+w*unityroot(n,k);
-      if(inside(g,z)) return z;
+      if(inside(p,z)) return z;
     }
     w *= 0.5; // Reduce the radius of the circle and try again with more points.
     if(w == 0) return c;
@@ -75,18 +75,6 @@ pair extension(pair P, pair Q, pair p, pair q)
   real det=(conj(ac)*bd).y;
   if(det == 0) return (infinity,infinity);
   return P+(conj(p-P)*bd).y*ac/det;
-}
-
-// Compute normal vector to the plane defined by the first 3 elements of p.
-triple normal(triple[] p)
-{
-  if(p.length < 3) abort("3 points are required to define a plane");
-  return cross(p[1]-p[0],p[2]-p[0]);
-}
-
-triple unitnormal(triple[] p)
-{
-  return unit(normal(p));
 }
 
 // Return the intersection time of the extension of the line segment PQ

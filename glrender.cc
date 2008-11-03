@@ -1001,9 +1001,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   mode();
   
   glEnable(GL_LIGHTING);
-  if(getSetting<bool>("twosided"))
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE);
-  
+  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,getSetting<bool>("twosided"));
+    
   if(ViewportLighting)
     lighting();
   

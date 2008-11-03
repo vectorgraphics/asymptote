@@ -1,7 +1,7 @@
 import graph3;
 import solids;
 size(0,150);
-currentprojection=perspective(0,0,10);
+currentprojection=perspective(1,0,11,up=Y);
 
 pen color1=green+opacity(0.25);
 pen color2=red+opacity(0.75);
