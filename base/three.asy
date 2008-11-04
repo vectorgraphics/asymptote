@@ -133,11 +133,13 @@ triple project(triple u, triple v)
   return dot(u,v)*v;
 }
 
-// Return a vector perpendicular to v.
+real sqrtepsilon=sqrt(realEpsilon);
+
+// Return a unit vector perpendicular to a given unit vector v.
 triple perp(triple v)
 {
   triple u=cross(v,Y);
-  return u == O ? cross(v,Z) : u;
+  return (abs(u) > sqrtepsilon) ? unit(u) : unit(cross(v,Z));
 }
 
 // Return the transformation corresponding to moving the camera from the target
@@ -152,14 +154,11 @@ transform3 look(triple eye, triple up=Z, triple target=O)
   if(f == O)
     f=-Z; // The eye is already at the origin: look down.
 
-  triple side=cross(f,up);
+  triple s=cross(f,up);
 
   // If the eye is pointing either directly up or down, there is no
-  // preferred "up" direction to rotate it.  Pick one arbitrarily.
-  if(side == O)
-    side=perp(f);
-
-  triple s=unit(side);
+  // preferred "up" direction.  Pick one arbitrarily.
+  s=s != O ? unit(s) : perp(f);
 
   triple u=cross(s,f);
 
@@ -1235,8 +1234,6 @@ guide3 operator cast(path3 p)
     }
   };
 }
-
-real sqrtepsilon=sqrt(realEpsilon);
 
 // Return a unit normal vector to a planar path p (or O if the path is
 // nonplanar).

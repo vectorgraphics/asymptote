@@ -292,14 +292,6 @@ revolution operator * (transform3 t, revolution r)
   return revolution(trc,t*r.g,t*(r.c+r.axis)-trc,r.angle1,r.angle2);
 }
 
-// Return a vector perpendicular to axis.
-triple perp(triple axis)
-{
-  triple v=cross(axis,X);
-  if(v == O) v=cross(axis,Y);
-  return v;
-}
-
 // Return a right circular cylinder of height h in the direction of axis
 // based on a circle centered at c with radius r.
 revolution cylinder(triple c=O, real r, real h, triple axis=Z)
