@@ -1029,7 +1029,7 @@ void dot(frame f, triple v, material p=currentpen,
   if(is3D()) {
     material m=material(p,p.granularity >= 0 ? p.granularity : dotgranularity);
     for(patch s : unitsphere.s)
-      draw3D(f,shift(v)*scale3(0.5*dotsize(q))*s,m,light);
+      draw3D(f,shift(v)*scale3(0.5*linewidth(dotsize(q)+q))*s,m,light);
   } else dot(f,project(v,P.t),q);
 }
 
@@ -1049,18 +1049,18 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
          light light=nolight)
 {
   pen q=(pen) p;
-  real size=dotsize(q);
+  real size=0.5*linewidth(dotsize(q)+q);
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       if(is3D()) {
 	material m=material(p,p.granularity >= 0 ? p.granularity :
 			    dotgranularity);
         for(patch s : unitsphere.s)
-          draw3D(f,shift(t*v)*scale3(0.5*linewidth(size+q))*s,m,light);
+          draw3D(f,shift(t*v)*scale3(size)*s,m,light);
       }
       if(pic != null)
         dot(pic,project(t*v,P.t),q);
     },true);
-  triple R=0.5*size*(1,1,1);
+  triple R=size*(1,1,1);
   pic.addBox(v,v,-R,R);
 }
 

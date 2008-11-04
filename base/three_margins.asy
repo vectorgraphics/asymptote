@@ -53,8 +53,8 @@ margin3 PenMargin3(real begin, real end)
   return new marginT3(path3 g, pen p) {
     marginT3 margin;
     real factor=linewidth(p);
-    margin.begin=(begin+0.5)*factor;
-    margin.end=(end+0.5)*factor;
+    margin.begin=begin*factor;
+    margin.end=end*factor;
     margin.g=trim(g,margin.begin,margin.end);
     return margin;
   };
@@ -66,8 +66,8 @@ margin3 DotMargin3(real begin, real end)
     marginT3 margin;
     real margindot(real x) {return x > 0 ? dotfactor*x : x;}
     real factor=linewidth(p);
-    margin.begin=(margindot(begin)+0.5)*factor;
-    margin.end=(margindot(end)+0.5)*factor;
+    margin.begin=margindot(begin)*factor;
+    margin.end=margindot(end)*factor;
     margin.g=trim(g,margin.begin,margin.end);
     return margin;
   };

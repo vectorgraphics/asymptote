@@ -22,4 +22,4 @@ yaxis3(Label("$y$",1),Arrow3);
 dot(Label("$(1,1)$"),(1,1,0));
 arrow(Label("$y=\sqrt{x}$"),F3(0.7),Y,0.75cm,red);
 draw(arc(1.2X,0.4,90,90,175,-40,CW),Arrow3);
-draw("$r$",(x,0,0)--(x,f(x),0),red,Arrow3);
+draw("$r$",(x,0,0)--F3(x),red,Arrow3);
