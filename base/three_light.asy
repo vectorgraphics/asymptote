@@ -129,8 +129,8 @@ struct light {
 
   pen color(triple normal, material m, transform3 T=T) {
     if(position.length == 0) return m.diffuse();
-    normal=T*normal;
-    normal=unit(normal)*sgn(normal.z);
+    normal=unit(T*normal);
+    if(settings.twosided) normal *= sgn(normal.z);
     real s=m.shininess*128;
     real[] Diffuse=rgba(m.diffuse());
     real[] Ambient=rgba(m.ambient());

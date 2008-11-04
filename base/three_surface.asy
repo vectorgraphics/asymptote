@@ -9,7 +9,7 @@ struct patch {
   triple[][] P=new triple[4][4];
   triple[] normals; // Optionally specify 4 normal vectors at the corners.
   pen[] colors;     // Optionally specify 4 corner colors.
-  triple normal;    // Normal vector for planar patch.
+  bool planar;      // Patch is planar.
   bool straight;    // Patch is based on a piecewise straight external path.
 
   path3 external() {
@@ -76,50 +76,50 @@ struct patch {
 			bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))+
 		  cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
 			bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u)));
-    return (abs(n) > epsilon) ? n :
-      1/6*cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
-		bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))+
-      0.25*cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),   
-                 bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u))+
-      1/6*cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
-                bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u))+
-      1/12*(cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
-                  bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u))+
-            cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),   
-                  bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u)))+
-      1/36*cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),   
-                 bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u));
+    return -((abs(n) > epsilon) ? n :
+	     1/6*cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
+		       bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))+
+	     0.25*cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),   
+			bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u))+
+	     1/6*cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
+		       bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u))+
+	     1/12*(cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
+			 bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u))+
+		   cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),   
+			 bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u)))+
+	     1/36*cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),   
+			bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u)));
   }
 
   static real fuzz=1000*realEpsilon;
 
   triple normal(real u, real v) {
-    triple n=cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
-                   bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u));
+    triple n=cross(bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u),
+		   bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v));
     real epsilon=fuzz*change2(P);
     return (abs(n) > epsilon) ? n : normal0(u,v,epsilon);
   }
   
   triple normal00() {
-    triple n=9*cross(P[1][0]-P[0][0],P[0][1]-P[0][0]);
+    triple n=9*cross(P[0][1]-P[0][0],P[1][0]-P[0][0]);
     real epsilon=fuzz*change2(P);
     return abs(n) > epsilon ? n : normal0(0,0,epsilon);
   }
 
   triple normal01() {
-    triple n=9*cross(P[1][3]-P[0][3],P[0][3]-P[0][2]);
+    triple n=9*cross(P[0][3]-P[0][2],P[1][3]-P[0][3]);
     real epsilon=fuzz*change2(P);
     return abs(n) > epsilon ? n : normal0(0,1,epsilon);
   }
 
   triple normal11() {
-    triple n=9*cross(P[3][3]-P[2][3],P[3][3]-P[3][2]);
+    triple n=9*cross(P[3][3]-P[3][2],P[3][3]-P[2][3]);
     real epsilon=fuzz*change2(P);
     return abs(n) > epsilon ? n : normal0(1,1,epsilon);
   }
 
   triple normal10() {
-    triple n=9*cross(P[3][0]-P[2][0],P[3][1]-P[3][0]);
+    triple n=9*cross(P[3][1]-P[3][0],P[3][0]-P[2][0]);
     real epsilon=fuzz*change2(P);
     return abs(n) > epsilon ? n : normal0(1,0,epsilon);
   }
@@ -131,11 +131,13 @@ struct patch {
 	  light.color(normals[1],nocolors ? m : colors[1]),
 	  light.color(normals[2],nocolors ? m : colors[2]),
 	  light.color(normals[3],nocolors ? m : colors[3])};
-    if(normal != O)
+    if(planar) {
+      triple normal=normal(0.5,0.5);
       return new pen[] {light.color(normal,nocolors ? m : colors[0]),
 	  light.color(normal,nocolors ? m : colors[1]),
 	  light.color(normal,nocolors ? m : colors[2]),
 	  light.color(normal,nocolors ? m : colors[3])};
+    }
     return new pen[] {light.color(normal00(),nocolors ? m : colors[0]),
 	light.color(normal01(),nocolors ? m : colors[1]),
 	light.color(normal11(),nocolors ? m : colors[2]),
@@ -165,6 +167,7 @@ struct patch {
     havemin3=false;
     havemax3=false;
     straight=false;
+    planar=false;
   }
 
   triple min(triple bound=P[0][0]) {
@@ -199,6 +202,7 @@ struct patch {
       this.normals=copy(normals);
     if(colors.length != 0)
       this.colors=copy(colors);
+    this.planar=planar;
     this.straight=straight;
   }
 
@@ -236,7 +240,7 @@ struct patch {
 
     if(internal.length == 0) {
       straight=piecewisestraight(external);
-      normal=normal(external);
+      planar=normal(external) != O;
 
       internal=new triple[4];
       for(int j=0; j < 4; ++j) {
@@ -269,10 +273,6 @@ struct patch {
     P[3][0]=point(external,3);
     P[2][0]=postcontrol(external,3);
     P[2][1]=internal[3];
-
-// Compute counterclockwise-oriented unit normal for planar paths.
-    if(normal != O) 
-      normal=-normal(0.5,0.5);
   }
 
   // A constructor for a convex quadrilateral.
@@ -287,9 +287,7 @@ struct patch {
     straight=true;
 
     if(internal.length == 0) {
-// Compute counterclockwise-oriented unit normal for planar paths.
-      normal=normal(external);
-
+      planar=normal(external) != O;
       internal=new triple[4];
       for(int j=0; j < 4; ++j) {
 	internal[j]=nineth*(4*external[j]+2*external[(j+1)%4]+
@@ -341,7 +339,7 @@ patch operator * (transform3 t, patch s)
     S.normals[i]=t0*s.normals[i];
 
   S.colors=copy(s.colors);
-  S.normal=t0*s.normal;
+  S.planar=s.planar;
   S.straight=s.straight;
   return S;
 }
@@ -355,7 +353,7 @@ patch reverse(patch s)
       new triple[] {s.normals[0],s.normals[3],s.normals[2],s.normals[1]};
   if(s.colors.length > 0) 
     S.colors=new pen[] {s.colors[0],s.colors[3],s.colors[2],s.colors[1]};
-  S.normal=-s.normal;
+  S.planar=s.planar;
   S.straight=s.straight;
   return S;
 }
@@ -695,7 +693,7 @@ void draw3D(frame f, patch s, material m, light light=currentlight)
     m=emissive(m);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
   draw(f,s.P,s.straight,m.p,m.opacity,m.shininess,granularity,
-       s.normal,lighton,s.colors);
+       s.planar ? s.normal(0.5,0.5) : O,lighton,s.colors);
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,

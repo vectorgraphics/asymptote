@@ -77,8 +77,7 @@ struct obj {
         surface sij=surface(gi[j]);
 	// Treat all faces as planar to avoid subdivision cracks.
 	for(patch p : sij.s)
-	  if(p.normal == O)
-	    p.normal=-p.normal(0.5,0.5);
+	  p.planar=true;
         s.append(sij);
         this.surfacepen.append(array(sij.s.length,surfacepen[i]));
         this.meshpen.append(array(sij.s.length,meshpen[i]));
