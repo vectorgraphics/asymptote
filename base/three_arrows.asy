@@ -14,9 +14,9 @@ triple bend0(triple p, path3 g, real time)
   triple w=cross(dir,dir2);
   triple q=point(g,time);
   transform3 t=new real[][] {
-    {w.x,dir2.x,dir.x,0},
-    {w.y,dir2.y,dir.y,0},
-    {w.z,dir2.z,dir.z,0},
+    {dir2.x,w.x,dir.x,0},
+    {dir2.y,w.y,dir.y,0},
+    {dir2.z,w.z,dir.z,0},
     {0,0,0,1}
   };
   return shift(q-t*(0,0,p.z))*t*p;
