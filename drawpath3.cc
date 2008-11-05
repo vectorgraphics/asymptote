@@ -54,11 +54,20 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
   if(n == 0 || invisible || ((color.A < 1.0) ^ transparent))
     return;
 
-  glDisable(GL_LIGHTING);
+  GLfloat Diffuse[]={0.0,0.0,0.0,color.A};
+  glMaterialfv(GL_FRONT,GL_DIFFUSE,Diffuse);
   
-  glColor4f(color.R,color.G,color.B,color.A);
-      
-  if(straight) {
+  static GLfloat Black[]={0.0,0.0,0.0,1.0};
+  glMaterialfv(GL_FRONT,GL_AMBIENT,Black);
+    
+  GLfloat Emissive[]={color.R,color.G,color.B,color.A};
+  glMaterialfv(GL_FRONT,GL_EMISSION,Emissive);
+    
+  glMaterialfv(GL_FRONT,GL_SPECULAR,Black);
+  
+  glMaterialf(GL_FRONT,GL_SHININESS,128.0);
+  
+ if(straight) {
     glBegin(GL_LINE_STRIP);
     for(Int i=0; i <= n; ++i) {
       triple v=g.point(i);
@@ -79,8 +88,6 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
       gluEndCurve(nurb);
     }
   }
-
-  glEnable(GL_LIGHTING);
 #endif
 }
 

@@ -499,7 +499,6 @@ void bar(picture pic, triple a, triple d, material p=currentpen,
       draw(opic,A-v--A+v,p,light);
       add(f,opic.fit3(identity4,pic2,P));
     });
-  picture opic;
   triple v=cross(currentprojection.vector(),d);
   pen q=(pen) p;
   triple m=min3(q);

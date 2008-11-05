@@ -41,8 +41,9 @@ margin3 Margin3(real begin, real end)
   return new marginT3(path3 g, pen p) {
     marginT3 margin;
     real factor=labelmargin(p);
-    margin.begin=begin*factor;
-    margin.end=end*factor;
+    real w=0.5*linewidth(p);
+    margin.begin=begin*factor-w;
+    margin.end=end*factor-w;
     margin.g=trim(g,margin.begin,margin.end);
     return margin;
   };

@@ -1,7 +1,7 @@
 import graph3;
 import solids;
 
-size(0,150);
+size(400);
 currentprojection=perspective(0,-1,30,up=Y);
 currentlight=light(gray(0.75),(0.25,-0.25,1),(0,1,0));
 
