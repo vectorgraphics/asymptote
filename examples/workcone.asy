@@ -33,8 +33,8 @@ draw(surface(b),blue+opacity(0.5));
 draw(circle((0,0,s2),x2));
 draw(circle((0,0,s1),x1));
 
-draw("$x$",(xr,0,0)--(xr,0,sr),red,Arrow3);
+draw("$x$",(xr,0,0)--(xr,0,sr),red,Arrow3,PenMargin3);
 draw("$r$",(0,0,sr)--(xr,0,sr),N,red);
 draw((string) r,(0,0,h)--(r,0,h),N,red);
-draw((string) h,(r,0,0)--(r,0,h),red,Arrow3);
-draw((string) s,(-x,0,0)--(-x,0,s),W,red,Arrow3);
+draw((string) h,(r,0,0)--(r,0,h),red,Arrow3,PenMargin3);
+draw((string) s,(-x,0,0)--(-x,0,s),W,red,Arrow3,Bar3,PenMargin3);

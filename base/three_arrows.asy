@@ -479,17 +479,41 @@ picture arrow2(arrowhead3 arrowhead=DefaultHead3,
       add(f,opic.fit3(identity4,pic2,P));
     });
 
-
-  pic.add(new void(picture f, transform3 t) {
-
-    });
-  
   addPath(pic,g,q);
 
   int L=length(g);
   addArrow(pic,arrowhead,g,q,size,angle,L);
   addArrow(pic,arrowhead,reverse(g),q,size,angle,L);
 
+  return pic;
+}
+
+void bar(picture pic, triple a, triple d, material p=currentpen,
+	 light light=nolight)
+{
+  d *= 0.5;
+  pic.add(new void(frame f, transform3 t, picture pic2, projection P) {
+      picture opic=new picture;
+      triple A=t*a;
+      triple v=abs(d)*unit(cross(P.vector(),d));
+      draw(opic,A-v--A+v,p,light);
+      add(f,opic.fit3(identity4,pic2,P));
+    });
+  picture opic;
+  triple v=cross(currentprojection.vector(),d);
+  pen q=(pen) p;
+  triple m=min3(q);
+  triple M=max3(q);
+  pic.addPoint(a,-v-m);
+  pic.addPoint(a,-v+m);
+  pic.addPoint(a,v-M);
+  pic.addPoint(a,v+M);
+}
+                                                      
+picture bar(triple a, triple d, material p=currentpen)
+{
+  picture pic;
+  bar(pic,a,d,p);
   return pic;
 }
 
@@ -560,8 +584,46 @@ arrowbar3 Arrows3(arrowhead3 arrowhead=DefaultHead3,
   };
 }
 
+arrowbar3 BeginBar3(real size=0) 
+{
+  return new bool(picture pic, path3 g, material p, margin3 margin, light light,
+		  light) {
+    real size=size == 0 ? barsize((pen) p) : size;
+    bar(pic,point(g,0),size*dir(g,0),p,light);
+    return true;
+  };
+}
+
+arrowbar3 Bar3(real size=0) 
+{
+  return new bool(picture pic, path3 g, material p, margin3 margin, light light,
+		  light) {
+    int L=length(g);
+    real size=size == 0 ? barsize((pen) p) : size;
+    bar(pic,point(g,L),size*dir(g,L),p,light);
+    return true;
+  };
+}
+
+arrowbar3 EndBar3(real size=0)=Bar3; 
+
+arrowbar3 Bars3(real size=0) 
+{
+  return new bool(picture pic, path3 g, material p, margin3 margin, light light,
+		  light) {
+    real size=size == 0 ? barsize((pen) p) : size;
+    BeginBar3(size)(pic,g,p,margin,light,nolight);
+    EndBar3(size)(pic,g,p,margin,light,nolight);
+    return true;
+  };
+}
+
 arrowbar3 BeginArrow3=BeginArrow3(),
 MidArrow3=MidArrow3(),
 Arrow3=Arrow3(),
 EndArrow3=Arrow3(),
-Arrows3=Arrows3();
+Arrows3=Arrows3(),
+BeginBar3=BeginBar3(),
+Bar3=Bar3(),
+EndBar3=Bar3(),
+Bars3=Bars3();

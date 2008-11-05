@@ -26,5 +26,5 @@ arrow("$y=x$",(0.8,0.8,0),Y,1cm,red);
 
 real r=0.4;
 draw((r,f(r),0)--(r,r,0),red);
-draw("$r$",(0,(f(r)+r)*0.5,0)--(r,(f(r)+r)*0.5,0),N,red,Arrows3);
+draw("$r$",(0,(f(r)+r)*0.5,0)--(r,(f(r)+r)*0.5,0),N,red,Arrows3,PenMargins3);
 draw(arc(1.1Y,0.3,90,0,7.5,180),Arrow3);

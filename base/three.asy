@@ -2218,7 +2218,8 @@ void endgroup3(picture pic=currentpicture)
 
 void addPath(picture pic, path3 g, pen p)
 {
-  pic.addBox(min(g),max(g),min3(p),max3(p));
+  if(size(g) > 0)
+    pic.addBox(min(g),max(g),min3(p),max3(p));
 }
 
 void draw(frame f, path3 g, material p=currentpen, light light=nolight,
@@ -2329,12 +2330,13 @@ void draw(picture pic=currentpicture, explicit path3[] g,
 
 void draw(picture pic=currentpicture, Label L="", path3 g, 
           align align=NoAlign, material p=currentpen, arrowbar3 arrow,
-          margin3 margin=NoMargin3, light light=nolight,
+	  arrowbar3 bar=None, margin3 margin=NoMargin3, light light=nolight,
 	  light arrowheadlight=currentlight)
 {
   label(pic,L,g,align,(pen) p);
   begingroup3(pic);
-  if(arrow(pic,g,p,margin,light,arrowheadlight))
+  bool drawpath=arrow(pic,g,p,margin,light,arrowheadlight);
+  if(bar(pic,g,p,margin,light,arrowheadlight) && drawpath)
     draw(pic,L,g,align,p,margin,light);
   endgroup3(pic);
 }
