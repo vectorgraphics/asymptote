@@ -959,10 +959,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   windowposition(x,y);
   glutInitWindowPosition(x,y);
   
-  if(View)
-    glutInitWindowSize(1,1);
-  else
-    glutInitWindowSize(Width,Height);
+  glutInitWindowSize(1,1);
   window=glutCreateWindow(((prefix == "out" ? "Asymptote" : prefix)+
 			   " [Double click right button for menu]").c_str());
   
