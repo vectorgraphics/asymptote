@@ -65,6 +65,8 @@ double oWidth,oHeight;
 int screenWidth,screenHeight;
 int maxWidth;
 int maxHeight;
+int maxTileWidth;
+int maxTileHeight;
 
 bool Xspin,Yspin,Zspin;
 bool Menu;
@@ -318,12 +320,6 @@ void save()
   unsigned char *data=new unsigned char[ndata];
   if(data) {
     TRcontext *tr=trNew();
-    pair maxtile=getSetting<pair>("maxtile");
-    int maxTileWidth=(int) maxtile.getx();
-    int maxTileHeight=(int) maxtile.gety();
-    if(maxTileWidth <= 0) maxTileWidth=screenWidth;
-    if(maxTileHeight <= 0) maxTileHeight=screenHeight;
-  
     int width=Quotient(fullWidth,Quotient(fullWidth,maxTileWidth));
     int height=Quotient(fullHeight,Quotient(fullHeight,maxTileHeight));
     if(settings::verbose > 1) 
@@ -957,12 +953,18 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   windowposition(x,y);
   glutInitWindowPosition(x,y);
   
+  pair maxtile=getSetting<pair>("maxtile");
+  maxTileWidth=(int) maxtile.getx();
+  maxTileHeight=(int) maxtile.gety();
+  if(maxTileWidth <= 0) maxTileWidth=screenWidth;
+  if(maxTileHeight <= 0) maxTileHeight=screenHeight;
+  
   if(View) {
     glutInitWindowSize(1,1);
     window=glutCreateWindow(((prefix == "out" ? "Asymptote" : prefix)+
 			     " [Double click right button for menu]").c_str());
   } else {
-    glutInitWindowSize(Width,Height);
+    glutInitWindowSize(maxTileWidth,maxTileHeight);
     window=glutCreateWindow("");
   }
   
