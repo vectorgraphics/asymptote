@@ -32,8 +32,8 @@ draw("$\lambda$",arc(O,0.15pQ,0.15*Z),N+0.3E);
 triple m=pQ-(0.26,-0.4,0.28);
 real width=5;
 dot("$m$",m,SE,linewidth(width));
-draw("$\bm{\rho}$",(0,0,0)--m,Arrow3);
-draw("$\bm{r}$",pQ--m,Arrow3);
+draw("$\bm{\rho}$",(0,0,0)--m,Arrow3,PenMargin3(0,width));
+draw("$\bm{r}$",pQ--m,Arrow3,PenMargin3(0,width));
 
 // Spherical octant
 real r=sqrt(pQ.x^2+pQ.y^2);
@@ -52,5 +52,5 @@ draw(Label("$x$",1),pQ--pQ+0.2*i,2W,red,Arrow3);
 draw(Label("$y$",1),pQ--pQ+0.32*j,red,Arrow3);
 draw(Label("$z$",1),pQ--pQ+0.26*k,red,Arrow3);
 
-draw("$\bm{R}$",O--pQ,Arrow3);
+draw("$\bm{R}$",O--pQ,Arrow3,PenMargin3);
 draw("$\omega\bm{K}$",arc(0.9Z,0.2,90,-120,90,160,CW),1.2N,Arrow3);
