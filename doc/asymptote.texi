@@ -7285,7 +7285,7 @@ and in a file @code{common.asy} (in the same directory as the
 configuration file) the lines 
 @verbatim
 import settings;
-if(!view()) glOptions="-iconic";
+if(!view()) glOptions += " -iconic";
 @end verbatim
 
 @cindex @code{prc}
