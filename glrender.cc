@@ -957,9 +957,14 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   windowposition(x,y);
   glutInitWindowPosition(x,y);
   
-  glutInitWindowSize(1,1);
-  window=glutCreateWindow(((prefix == "out" ? "Asymptote" : prefix)+
-			   " [Double click right button for menu]").c_str());
+  if(View) {
+    glutInitWindowSize(1,1);
+    window=glutCreateWindow(((prefix == "out" ? "Asymptote" : prefix)+
+			     " [Double click right button for menu]").c_str());
+  } else {
+    glutInitWindowSize(Width,Height);
+    window=glutCreateWindow("");
+  }
   
   glClearColor(1.0,1.0,1.0,1.0);
    
@@ -969,8 +974,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(View && !getSetting<bool>("fitscreen"))
     Fitscreen=0;
     
-  setosize();
-  fitscreen();
+  if(View) {
+    setosize();
+    fitscreen();
+  }
   setosize();
   
   glEnable(GL_DEPTH_TEST);
