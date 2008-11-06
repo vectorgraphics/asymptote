@@ -981,7 +981,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   fitscreen();
   setosize();
   
-  glClearColor(1.0,1.0,1.0,0.0);
+  glClearColor(1.0,1.0,1.0,1.0);
    
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_MAP1_VERTEX_3);
