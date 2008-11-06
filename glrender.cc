@@ -65,6 +65,8 @@ double oWidth,oHeight;
 int screenWidth,screenHeight;
 int maxWidth;
 int maxHeight;
+int maxTileWidth;
+int maxTileHeight;
 
 bool Xspin,Yspin,Zspin;
 bool Menu;
@@ -318,14 +320,9 @@ void save()
   unsigned char *data=new unsigned char[ndata];
   if(data) {
     TRcontext *tr=trNew();
-    pair maxtile=getSetting<pair>("maxtile");
-    int maxwidth=(int) maxtile.getx();
-    int maxheight=(int) maxtile.gety();
-    if(maxwidth <= 0) maxwidth=max(maxheight,2);
-    if(maxheight <= 0) maxheight=max(maxwidth,2);
-    int width=Quotient(fullWidth,Quotient(fullWidth,min(Width,maxwidth)));
-    int height=Quotient(fullHeight,Quotient(fullHeight,min(Height,maxheight)));
-    
+    int width=Quotient(fullWidth,Quotient(fullWidth,min(Width,maxTileWidth)));
+    int height=Quotient(fullHeight,Quotient(fullHeight,min(Height,
+							   maxTileHeight)));
     if(settings::verbose > 1) 
       cout << "Exporting " << *Prefix << " as " << fullWidth << "x" 
 	   << fullHeight << " image" << " using tiles of size "
@@ -959,7 +956,18 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   windowposition(x,y);
   glutInitWindowPosition(x,y);
   
-  glutInitWindowSize(1,1);
+  pair maxtile=getSetting<pair>("maxtile");
+  maxTileWidth=(int) maxtile.getx();
+  maxTileHeight=(int) maxtile.gety();
+  if(maxTileWidth <= 0) maxTileWidth=max(maxTileHeight,2);
+  if(maxTileHeight <= 0) maxTileHeight=max(maxTileWidth,2);
+  maxTileWidth=min(maxTileWidth,screenWidth);
+  maxTileHeight=min(maxTileHeight,screenHeight);
+  
+  if(View) 
+    glutInitWindowSize(1,1);
+  else
+    glutInitWindowSize(maxTileWidth,maxTileHeight);
   window=glutCreateWindow(((prefix == "out" ? "Asymptote" : prefix)+
 			   " [Double click right button for menu]").c_str());
   
