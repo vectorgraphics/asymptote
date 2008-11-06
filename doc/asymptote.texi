@@ -7260,6 +7260,8 @@ The keyboard shortcuts are:
 @cindex @code{antialias}
 @cindex @code{maxviewport}
 @cindex @code{maxtile}
+@cindex @code{glOptions}
+@cindex @code{iconic}
 @item Render the scene to a specified rasterized format @code{outformat}
 at the resolution of @code{n} pixels per @code{bp}, as specified by the
 setting @code{render=n}. A negative value of @code{n} is interpreted
@@ -7271,7 +7273,20 @@ rendering is done by tiling the image. If your graphics card allows
 it, the rendering can be made more efficient by increasing the maximum
 tile size @code{maxtile}. The tile size is also limited by the setting
 @code{maxviewport}, which restricts the maximum width and height of the
-viewport.
+viewport. On @code{UNIX} systems some graphics card drivers support
+batch mode (@code{-noV}) rendering in an iconified window; this can be
+enabled by putting in the @code{Asymptote} configuration file
+(@pxref{configuration file}) the commands
+@verbatim
+import settings;
+autoimport="common";
+@end verbatim
+and in a file @code{common.asy} (in the same directory as the
+configuration file) the lines 
+@verbatim
+import settings;
+if(!view()) glOptions="-iconic";
+@end verbatim
 
 @cindex @code{prc}
 @item Embed the 3D @acronym{PRC} format in a @acronym{PDF} file

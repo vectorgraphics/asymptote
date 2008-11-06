@@ -1955,6 +1955,11 @@ Int system(string s)
   else return System(s.c_str());
 }
 
+bool view()
+{
+  return view();
+}
+
 string asydir() 
 {
   return ASYMPTOTE_SYSDIR;	
