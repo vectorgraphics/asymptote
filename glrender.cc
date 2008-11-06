@@ -320,9 +320,8 @@ void save()
   unsigned char *data=new unsigned char[ndata];
   if(data) {
     TRcontext *tr=trNew();
-    int width=Quotient(fullWidth,Quotient(fullWidth,min(Width,maxTileWidth)));
-    int height=Quotient(fullHeight,Quotient(fullHeight,min(Height,
-							   maxTileHeight)));
+    int width=Quotient(fullWidth,Quotient(fullWidth,maxTileWidth));
+    int height=Quotient(fullHeight,Quotient(fullHeight,maxTileHeight));
     if(settings::verbose > 1) 
       cout << "Exporting " << *Prefix << " as " << fullWidth << "x" 
 	   << fullHeight << " image" << " using tiles of size "
@@ -926,8 +925,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   pair maxViewport=getSetting<pair>("maxviewport");
   maxWidth=(int) ceil(maxViewport.getx());
   maxHeight=(int) ceil(maxViewport.gety());
-  if(maxWidth <= 0) maxWidth=max(maxHeight,1);
-  if(maxHeight <= 0) maxHeight=max(maxWidth,1);
+  if(maxWidth <= 0) maxWidth=max(maxHeight,2);
+  if(maxHeight <= 0) maxHeight=max(maxWidth,2);
   if(screenWidth <= 0) screenWidth=maxWidth;
   if(screenHeight <= 0) screenHeight=maxHeight;
   
@@ -959,10 +958,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   pair maxtile=getSetting<pair>("maxtile");
   maxTileWidth=(int) maxtile.getx();
   maxTileHeight=(int) maxtile.gety();
-  if(maxTileWidth <= 0) maxTileWidth=max(maxTileHeight,2);
-  if(maxTileHeight <= 0) maxTileHeight=max(maxTileWidth,2);
-  maxTileWidth=min(maxTileWidth,screenWidth);
-  maxTileHeight=min(maxTileHeight,screenHeight);
+  if(maxTileWidth <= 0) maxTileWidth=screenWidth;
+  if(maxTileHeight <= 0) maxTileHeight=screenHeight;
   
   if(View) 
     glutInitWindowSize(1,1);
@@ -971,6 +968,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   window=glutCreateWindow(((prefix == "out" ? "Asymptote" : prefix)+
 			   " [Double click right button for menu]").c_str());
   
+  glClearColor(1.0,1.0,1.0,1.0);
+   
   glMatrixMode(GL_MODELVIEW);
   home();
   
@@ -981,8 +980,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   fitscreen();
   setosize();
   
-  glClearColor(1.0,1.0,1.0,1.0);
-   
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_MAP1_VERTEX_3);
   glEnable(GL_MAP2_VERTEX_3);
