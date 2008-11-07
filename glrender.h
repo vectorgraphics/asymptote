@@ -10,8 +10,14 @@
 
 #ifdef HAVE_LIBGLUT
 
+#ifdef __APPLE__
+#include <OpenGL/glu.h>
+#include <OpenGL/glut.h>
+typedef GLvoid (* _GLUfuncptr)(...);
+#else
 #include <GL/glu.h>
 #include <GL/glut.h>
+#endif
 
 namespace camp {
   class picture;

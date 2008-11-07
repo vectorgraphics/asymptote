@@ -211,6 +211,11 @@ case "$MACHTYPE" in
 		   [Define if you have the `freeglut' library (-lfreeglut).])
 			   LIBS=$LIBS"-lfreeglut -lglu32 -lopengl32 "],
 				 AC_MSG_NOTICE([*** Could not find freeglut: will compile without OpenGL support ***]));;
+     *-apple-*) AC_CHECK_HEADER(OpenGL/glut.h,
+                                [AC_DEFINE(HAVE_LIBGLUT, 1,
+		   [Define if you have the `glut' library (-lglut).])
+			   LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa"],
+				 AC_MSG_NOTICE([*** Could not find glut: will compile without OpenGL support ***]));;
      *) AC_CHECK_LIB([glut], [glutMainLoop],,
 				 AC_MSG_NOTICE([*** Could not find freeglut: will compile without OpenGL support ***]));;
 esac
