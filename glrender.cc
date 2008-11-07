@@ -960,6 +960,12 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(maxTileHeight <= 0) maxTileHeight=screenHeight;
   
   if(View) {
+    setosize();
+    if(!getSetting<bool>("fitscreen")) {
+      maxTileWidth=min(maxTileWidth,oldWidth);
+      maxTileHeight=min(maxTileHeight,oldHeight);
+      Fitscreen=0;
+    }
     glutInitWindowSize(1,1);
     window=glutCreateWindow(((prefix == "out" ? "Asymptote" : prefix)+
 			     " [Double click right button for menu]").c_str());
@@ -973,13 +979,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glMatrixMode(GL_MODELVIEW);
   home();
   
-  if(View && !getSetting<bool>("fitscreen"))
-    Fitscreen=0;
-    
-  if(View) {
-    setosize();
+  if(View)
     fitscreen();
-  }
   setosize();
   
   glEnable(GL_DEPTH_TEST);
