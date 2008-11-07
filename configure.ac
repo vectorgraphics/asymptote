@@ -211,7 +211,7 @@ case "$OSTYPE" in
 		   [Define if you have the `freeglut' library (-lfreeglut).])
 			   LIBS=$LIBS"-lfreeglut -lglu32 -lopengl32 "],
 				 AC_MSG_NOTICE([*** Could not find freeglut: will compile without OpenGL support ***]));;
-     darwin*) AC_CHECK_HEADER(OpenGL/glut.h,
+     darwin*) AC_CHECK_HEADER(GLUT/glut.h,
                                 [AC_DEFINE(HAVE_LIBGLUT, 1,
 		   [Define if you have the `glut' library (-lglut).])
 			   LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa"],
