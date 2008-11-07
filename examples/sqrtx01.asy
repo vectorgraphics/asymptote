@@ -1,7 +1,7 @@
 import graph3;
 import solids;
 size(0,150);
-currentprojection=orthographic(1.5,0,10,up=Y);
+currentprojection=perspective(1.5,0,10,Y);
 pen color=green+opacity(0.75);
 
 real f(real x){return sqrt(x);}

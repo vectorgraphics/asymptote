@@ -13,7 +13,7 @@ real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
 real viewportfactor=1.01;  // Factor used to expand orthographic viewport.
-real anglefactor=1.02;     // Factor used to expand perspective viewport.
+real anglefactor=1.03;     // Factor used to expand perspective viewport.
 real angleprecision=1e-3;  // Precision for centering perspective projections.
 real fovfactor=0.6;        // PRC field of view factor.
 
@@ -1926,7 +1926,8 @@ string embed3D(string label="", string text=label, string prefix,
 
   triple v=P.vector()/cm;
   triple u=unit(v);
-  triple w=unit(Z-u.z*u);
+  triple w=Z-u.z*u;
+  w=abs(w) > sqrtepsilon ? unit(w) : P.up;
   triple up=unit(P.up-dot(P.up,u)*u);
   real roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));
   
