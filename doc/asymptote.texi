@@ -7276,8 +7276,8 @@ By default, if the setting @code{antialias} is true, the scene is
 internally rendered at twice the specified resolution. High resolution
 rendering is done by tiling the image. If your graphics card allows
 it, the rendering can be made more efficient by increasing the maximum
-tile size @code{maxtile} or by setting @code{maxtile=(0,0)}, which means to
-use the screen dimensions. The tile size is also limited by the setting
+tile size @code{maxtile} beyond the screen dimensions (indicated by
+@code{maxtile=(0,0)}. The tile size is also limited by the setting
 @code{maxviewport}, which restricts the maximum width and height of the
 viewport. On @code{UNIX} systems some graphics card drivers support
 batch mode (@code{-noV}) rendering in an iconified window; this can be

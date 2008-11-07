@@ -945,7 +945,7 @@ void initSettings() {
   addOption(new pairSetting("maxviewport", 0, "pair",
 			    "Maximum viewport size",pair(2048,2048)));
   addOption(new pairSetting("maxtile", 0, "pair",
-			    "Maximum rendering tile size",pair(800,800)));
+			    "Maximum rendering tile size",pair(0,0)));
   addOption(new boolSetting("thick", 0,
                             "Render thick 3D lines", true));
   addOption(new boolSetting("thin", 0,
