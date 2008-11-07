@@ -3268,7 +3268,7 @@ void add(picture src, bool group=true,
 void add(picture dest, picture src, bool group=true,
          filltype filltype=NoFill, bool put=Above);
 @end verbatim
-
+@noindent
 The first example adds @code{src} to @code{currentpicture}; the second
 one adds @code{src} to @code{dest}. 
 The @code{group} option specifies whether or not the graphical user
@@ -3278,17 +3278,22 @@ background filling or clipping, and @code{put} specifies
 whether to add @code{src} above or below existing objects.
 
 There are also routines to add a picture or frame @code{src} specified
-in postscript coordinates to another picture about the user coordinate
+in postscript coordinates to another picture @code{dest} (or
+@code{currentpicture}) about the user coordinate
 @code{position}:
 @anchor{add about}
 @cindex @code{add}
 @cindex picture alignment
 @verbatim
-void add(picture dest=currentpicture, picture src, pair position,
+void add(picture src, pair position, bool group=true,
+         filltype filltype=NoFill, bool put=Above);
+void add(picture dest, picture src, pair position,
          bool group=true, filltype filltype=NoFill, bool put=Above);
 void add(picture dest=currentpicture, frame src, pair position=0,
          bool group=true, filltype filltype=NoFill, bool put=Above);
-void add(picture dest=currentpicture, picture src, pair position,
+void add(picture src, pair position, pair align, bool group=true,
+         filltype filltype=NoFill, bool put=Above);
+void add(picture dest, picture src, pair position,
          pair align, bool group=true, filltype filltype=NoFill,
          bool put=Above);
 void add(picture dest=currentpicture, frame src, pair position,
@@ -3296,7 +3301,7 @@ void add(picture dest=currentpicture, frame src, pair position,
          bool put=Above);
 @end verbatim
 
-The optional @code{align} argument in the last two forms specifies a
+The optional @code{align} argument in the last three forms specifies a
 direction to use for aligning the frame, in a manner analogous to the
 @code{align} argument of @code{label} (@pxref{label}). However, one key
 difference is that when @code{align} is not specified, labels are
