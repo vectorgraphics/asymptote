@@ -1927,9 +1927,12 @@ string embed3D(string label="", string text=label, string prefix,
   triple v=P.vector()/cm;
   triple u=unit(v);
   triple w=Z-u.z*u;
-  w=abs(w) > sqrtepsilon ? unit(w) : P.up;
-  triple up=unit(P.up-dot(P.up,u)*u);
-  real roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));
+  real roll;
+  if(abs(w) > sqrtepsilon) {
+    w=unit(w);
+    triple up=unit(P.up-dot(P.up,u)*u);
+    roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));
+  } else roll=0;
   
   string options3=light.viewport ? "3Dlights=Headlamp" : "3Dlights=File";
   if(defaultembed3Doptions != "") options3 += ","+defaultembed3Doptions;

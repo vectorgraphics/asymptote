@@ -956,7 +956,7 @@ void label(picture pic=currentpicture, Label L, path3 g, align align=NoAlign,
     Align=position <= 0 ? S : position >= length(g) ? N : E;
   }
   label(pic,L,point(g,position),
-        alignrelative ?
+        alignrelative && determinant(currentprojection.t) != 0 ?
         -Align*project(dir(g,position),currentprojection.t)*I : L.align);
 }
 
