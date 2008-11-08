@@ -946,6 +946,8 @@ void initSettings() {
 			    "Maximum viewport size",pair(2048,2048)));
   addOption(new pairSetting("maxtile", 0, "pair",
 			    "Maximum rendering tile size",pair(0,0)));
+  addOption(new boolSetting("iconify", 0,
+                            "Iconify rendering window", false));
   addOption(new boolSetting("thick", 0,
                             "Render thick 3D lines", true));
   addOption(new boolSetting("thin", 0,
@@ -981,6 +983,7 @@ void initSettings() {
   addOption(new boolSetting("twice", 0,
 			    "Run LaTeX twice (to resolve references)"));
   addOption(new boolSetting("inlinetex", 0, "Generate inline TeX code"));
+  addOption(new boolSetting("embed", 0, "Embed rendered preview image", true));
   addOption(new boolSetting("inlineimage", 0,
 			    "Generate inline embedded image"));
   addOption(new boolSetting("parseonly", 'p', "Parse file"));

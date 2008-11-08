@@ -1,20 +1,23 @@
 \documentclass[12pt]{article}
 
-% Use this form to include eps (latex) or pdf (pdflatex) files:
+% Use this form to include EPS (latex) or PDF (pdflatex) files:
 \usepackage{asymptote}
 
 % Use this form with latex or pdflatex to include inline LaTeX code:
 %\usepackage[inline]{asymptote}
 
-% Enable this line to support pdf hyperlinks:
+% Enable this line to support PDF hyperlinks:
 %\usepackage[setpagesize=false]{hyperref}
+
+% Enable this line to support PDF attachments:
+%\usepackage[dvips]{attachfile2}
 
 \begin{document}
 
 \begin{asydef}
 // Global Asymptote definitions can be put here.
 usepackage("bm");
-texpreamble("\def\v#1{\bm{#1}}");
+texpreamble("\def\V#1{\bm{#1}}");
 // Uncomment the next line to show the toolbar
 // settings.toolbar=true;
 \end{asydef}
@@ -22,7 +25,7 @@ texpreamble("\def\v#1{\bm{#1}}");
 Here is a venn diagram produced with Asymptote, drawn to width 4cm:
 
 \def\A{A}
-\def\B{\v{B}}
+\def\B{\V{B}}
 
 %\begin{figure}
 \begin{center}
@@ -52,7 +55,7 @@ draw(c2);
 //draw("$\A$",box,z1);              // Requires [inline] package option.
 //draw(Label("$\B$","$B$"),box,z2); // Requires [inline] package option.
 draw("$A$",box,z1);            
-draw("$\v{B}$",box,z2);
+draw("$\V{B}$",box,z2);
 
 pair z=(0,-2);
 real m=3;
@@ -72,16 +75,17 @@ shipout(bbox(0.25cm));
 Each graph is drawn in its own environment. One can specify the width
 and height to \LaTeX\ explicitly. This 3D example can be viewed
 interactively either with Adobe Reader or Asymptote's fast OpenGL-based
-renderer:
+renderer. It is often desirable to embed such files as annotated attachments;
+this requires the optional \verb+\usepackage{attachfile2}+ package:
+%\begin{asyattach}
 \begin{center}
 \begin{asy}[0,4cm]
 import three;
-if(settings.render < 0) settings.render=8;
-
 draw(unitcube,blue);
 label("$V-E+F=2$",(0,1,0.5),3Y,blue+fontsize(17));
 \end{asy}
 \end{center}
+%\end{asyattach}
 
 One can also scale the figure to the full line width:
 \begin{center}

@@ -897,7 +897,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Mode=0;
   
   string options=string(settings::argv0)+" ";
-
+#ifndef __CYGWIN__
+  if(!View && getSetting<bool>("iconify"))
+    options += "-iconic ";
+#endif     
   options += getSetting<string>("glOptions");
   char **argv=args(options.c_str(),true);
   int argc=0;

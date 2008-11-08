@@ -5684,8 +5684,9 @@ and enclose your @code{Asymptote} code within a
 must appear on a line by itself, with no leading spaces or trailing
 commands/comments.
 
-The current version of @code{asymptote.sty} even supports the direct
-embedding of 3D @acronym{PRC} files within @code{LaTeX}.
+The current (1.01) version of @code{asymptote.sty} even supports the direct
+embedding of 3D @acronym{PRC} files within @code{LaTeX}, either inline
+or (using the @code{attachfile2} package) as annotated attachments.
 The sample @code{LaTeX} file below, named @code{latexusage.tex}, can
 be run as follows:
 @verbatim
@@ -5705,7 +5706,7 @@ pdflatex latexusage
 
 To switch between using @code{latex} and
 @code{pdflatex} you may first need to remove the files
-@code{latexusage_.*} and @code{latexusage.aux}.
+@code{latexusage-.*} and @code{latexusage.aux}.
 
 If the @code{inline} option is given to the
 @code{asymptote.sty} package, inline @code{LaTeX} code is generated instead of
@@ -7281,18 +7282,7 @@ tile size @code{maxtile} beyond the screen dimensions (indicated by
 @code{maxviewport}, which restricts the maximum width and height of the
 viewport. On @code{UNIX} systems some graphics card drivers support
 batch mode (@code{-noV}) rendering in an iconified window; this can be
-enabled by putting in the @code{Asymptote} configuration file
-(@pxref{configuration file}) the commands
-@verbatim
-import settings;
-autoimport="common";
-@end verbatim
-and in a file @code{common.asy} (in the same directory as the
-configuration file) the lines 
-@verbatim
-import settings;
-if(!view()) glOptions += " -iconic";
-@end verbatim
+enabled with the setting @code{iconify=true}.
 
 @cindex @code{prc}
 @item Embed the 3D @acronym{PRC} format in a @acronym{PDF} file

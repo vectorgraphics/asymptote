@@ -3,15 +3,16 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2)
 
-\ProvidesPackage{asymptote}[2008/10/29 v1.0 Asymptote style file for LaTeX]
-\newif\ifinline
-\DeclareOption{inline}{\inlinetrue}
+\ProvidesPackage{asymptote}[2008/11/08 v1.01 Asymptote style file for LaTeX]
+\newif\ifASYinline
+\newif\ifASYattach
+\DeclareOption{inline}{\ASYinlinetrue}
 \ProcessOptions*
 
 % Work around jobname bug in MiKTeX 2.5 and 2.6:
-% Turn stars in file names (resulting from spaces, etc.) into underscores
+% Turn stars in file names (resulting from spaces, etc.) into minus signs
 \def\fixstar#1*#2\relax{\def\argtwo{#2}\ifx\argtwo\empty\gdef\Jobname{#1}\else
-\fixstar#1_#2\relax\fi}
+\fixstar#1-#2\relax\fi}
 \expandafter\fixstar\jobname*\relax
 
 \RequirePackage{color,graphicx}
@@ -35,29 +36,29 @@
 \immediate\write\AsyStream{if(!settings.multipleView)}%
 \immediate\write\AsyStream{  settings.batchView=false;}%
 \immediate\write\AsyStream{settings.toolbar=false;}%
-\immediate\write\AsyStream{settings.inlineimage=true;}%
 
-\newif\ifAsyPDF
+\newif\ifASYPDF
 \ifx\pdfoutput\undefined
 \else
 \ifcase\pdfoutput
 \else
-\AsyPDFtrue
+\ASYPDFtrue
 \fi
 \fi
 \ifx\XeTeXversion\undefined
 \else
-\AsyPDFtrue
+\ASYPDFtrue
 \immediate\write\AsyStream{settings.texcommand="xelatex";}%
 \fi
-\ifAsyPDF
+\ifASYPDF
 \immediate\write\AsyStream{settings.tex="pdflatex";}%
 \fi
 
-\ifinline
+\ifASYinline
 \immediate\write\AsyStream{settings.inlinetex=true;}%
 \immediate\write\AsyStream{deletepreamble();}%
 \fi
+
 \newcounter{asy}
 
 \def\ProcessAsymptote#1% start it all off
@@ -103,42 +104,58 @@
   }}
 
 \def\AfterasyAsymptote{%
+  \ifx\@optarg\empty
+  \else
+    \immediate\write\AsyStream{size(\@optarg);}%
+  \fi
   \immediate\write\AsyStream{\@charrb);}%
   \immediate\write\AsyStream{// End of Asymptote Figure \the\c@asy}%
-  \ifinline
-    \openin\AsyTestStream=\Jobname_\the\c@asy_.tex
+  \ifASYinline
+    \openin\AsyTestStream=\Jobname-\the\c@asy_.tex
   \else
-    \ifAsyPDF
-      \openin\AsyTestStream=\Jobname_\the\c@asy.pdf
+    \ifASYPDF
+      \openin\AsyTestStream=\Jobname-\the\c@asy.pdf
     \else
-      \openin\AsyTestStream=\Jobname_\the\c@asy.eps
+      \openin\AsyTestStream=\Jobname-\the\c@asy.eps
     \fi
   \fi
   \ifeof\AsyTestStream
-    \ifinline
-      \PackageWarning{asymptote}{file \Jobname_\the\c@asy_.tex does not exist}%
+    \ifASYinline
+      \PackageWarning{asymptote}{file \Jobname-\the\c@asy_.tex does not exist}%
     \else
-      \openin\AsyTestTeXStream=\Jobname_\the\c@asy_.tex
+      \openin\AsyTestTeXStream=\Jobname-\the\c@asy_.tex
       \ifeof\AsyTestTeXStream
-        \ifAsyPDF
-        \PackageWarning{asymptote}{file \Jobname_\the\c@asy.pdf does not exist}%
+        \ifASYPDF
+        \PackageWarning{asymptote}{file \Jobname-\the\c@asy.pdf does not exist}%
         \else
-        \PackageWarning{asymptote}{file \Jobname_\the\c@asy.eps does not exist}%
+        \PackageWarning{asymptote}{file \Jobname-\the\c@asy.eps does not exist}%
         \fi
       \else
         \catcode`:=12
-        \input \Jobname_\the\c@asy_.tex%
+        \input \Jobname-\the\c@asy_.tex%
       \fi
       \closein\AsyTestTeXStream%
     \fi
     \closein\AsyTestStream%
   \else
     \closein\AsyTestStream%
-    \ifinline
-    \catcode`:=12
-    \input \Jobname_\the\c@asy_.tex%
+    \ifASYinline
+      \catcode`:=12
+      \input \Jobname-\the\c@asy_.tex%
     \else
-    \includegraphics{\Jobname_\the\c@asy}%
+      \ifASYattach
+        \ifASYPDF
+          \openin\AsyTestStream=\Jobname-\the\c@asy-0.pdf
+        \fi
+        \ifeof\AsyTestStream
+          \textattachfile{\Jobname-\the\c@asy.pdf}{\includegraphics{\Jobname-\the\c@asy}}%
+        \else
+          \textattachfile{\Jobname-\the\c@asy.pdf}{\includegraphics{\Jobname-\the\c@asy-0}}%
+        \fi
+        \closein\AsyTestStream%
+      \else
+        \includegraphics{\Jobname-\the\c@asy}%
+      \fi
     \fi
   \fi
   \relax%
@@ -147,22 +164,30 @@
   \begingroup
   \let\par\empty
   \stepcounter{asy}%
-  \def\@optarg{#1}%
+  \gdef\@optarg{#1}%
    \immediate\write\AsyStream{}%
    \immediate\write\AsyStream{// Beginning of Asymptote Figure \the\c@asy}%
    \immediate\write\AsyStream{eval(quote\@charlb}%
-   \immediate\write\AsyStream{defaultfilename='\Jobname_\the\c@asy';}%
-  \ifx\@optarg\empty
-  \else
-    \immediate\write\AsyStream{size(#1);}%
-  \fi
+   \immediate\write\AsyStream{defaultfilename='\Jobname-\the\c@asy';}%
+   \immediate\write\AsyStream{if(settings.render < 0) settings.render=8;}%
+   \ifASYattach
+     \immediate\write\AsyStream{settings.inlineimage=false;}%
+     \immediate\write\AsyStream{settings.embed=false;}%
+     \immediate\write\AsyStream{settings.outformat='pdf';}%
+   \else
+     \immediate\write\AsyStream{settings.inlineimage=true;}%
+     \immediate\write\AsyStream{settings.embed=true;}%
+     \immediate\write\AsyStream{settings.outformat='';}%
+   \fi
   \immediate\write\AsyStream{\globalASYdefs}%
   \let\ThisAsymptote\WriteAsyLine%
-  \ProcessAsymptote{asy}}
+  \ProcessAsymptote{asy}
+}
 \AsymptoteEndDef{asy}
 \def\asydef{%
   \let\ThisAsymptote\WriteGlobalAsyLine%
   \ProcessAsymptote{asydef}}
+\def\asyattach{\ASYattachtrue\ASYinlinefalse}
 \AsymptoteEndDef{asydef}
 \def\AfterasydefAsymptote{}
 

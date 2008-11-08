@@ -2080,9 +2080,10 @@ object embed(string label="", string text=label,
     if(prefix == "") prefix=outprefix();
     bool prc=prc(format);
     bool preview=settings.render > 0;
-    if(prc)
-      prefix += "-"+(string) file3.length;
-    else
+    if(prc) {
+      if(settings.embed || nativeformat() == "pdf")
+	prefix += "-"+(string) file3.length;
+    } else
       preview=false;
     if(preview || (!prc && settings.render != 0)) {
       frame f=f;
@@ -2123,7 +2124,7 @@ object embed(string label="", string text=label,
     }
 
     string image;
-    if(preview) {
+    if(preview && settings.embed) {
       image=prefix;
       if(settings.inlinetex) image += "_0";
       image += "."+nativeformat();
