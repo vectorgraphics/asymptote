@@ -33,8 +33,8 @@ for(int i=0; i < Cvals.length-1; ++i)
   cvals.append(uniform(Cvals[i],Cvals[i+1],divs)[1:divs]);
 draw(contour(f,a,b,cvals,N,operator --),tickpen);
 
-xaxis("$x$",BottomTop,LeftTicks,Above);
-yaxis("$y$",LeftRight,RightTicks,Above);
+xaxis("$x$",BottomTop,LeftTicks,above=true);
+yaxis("$y$",LeftRight,RightTicks,above=true);
 
 palette("$f(x,y)$",range,point(NW)+(0,0.5),point(NE)+(0,1),Top,Palette,
         PaletteTicks(N=Divs,n=divs,Tickpen,tickpen));

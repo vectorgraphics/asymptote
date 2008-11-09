@@ -33,7 +33,7 @@ doc:	asymptote.dvi asymptote.info html man faq
 	$(ASY) -f pdf -noprc $<
 
 latexusage.dvi: latexusage.tex
-	rm -f latexusage_*
+	rm -f latexusage-*
 	rm -f latexusage.aux
 	latex latexusage
 	$(ASY) -noprc latexusage

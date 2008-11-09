@@ -13,8 +13,8 @@ pen[] Palette=BWRainbow();
 
 bounds range=image(f,Automatic,(0,1),(100,100),nx=200,Palette);
 
-xaxis("$x$",BottomTop,LeftTicks,Above);
-yaxis("$y$",LeftRight,RightTicks,Above);
+xaxis("$x$",BottomTop,LeftTicks,above=true);
+yaxis("$y$",LeftRight,RightTicks,above=true);
 
 palette("$f(x,y)$",range,(0,200),(100,250),Top,Palette,
         PaletteTicks(ptick=linewidth(0.5*linewidth())));

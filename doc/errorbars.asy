@@ -9,7 +9,7 @@ pair[] df={(0,0),(5,7),(0,5)};
 
 errorbars(pic,f,df,red);
 draw(pic,graph(pic,f),"legend",
-     marker(scale(0.8mm)*unitcircle,red,FillDraw(blue),Below));
+     marker(scale(0.8mm)*unitcircle,red,FillDraw(blue),above=false));
 
 scale(pic,true);
 

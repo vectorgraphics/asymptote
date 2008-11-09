@@ -330,14 +330,14 @@ struct Legend {
   pen plabel;
   pen p;
   frame mark;
-  bool put;
+  bool above;
   void init(string label, pen plabel=currentpen, pen p=nullpen,
-            frame mark=newframe, bool put=Above) {
+            frame mark=newframe, bool above=true) {
     this.label=label;
     this.plabel=plabel;
     this.p=(p == nullpen) ? plabel : p;
     this.mark=mark;
-    this.put=put;
+    this.above=above;
   }
 }
 
@@ -762,7 +762,7 @@ struct picture {
     nodes.push(d);
   }
 
-  void add(drawer d, bool exact=false, bool put=Above) {
+  void add(drawer d, bool exact=false, bool above=true) {
     uptodate=false;
     if(!exact) bounds.exact=false;
     nodes.push(new void(frame f, transform t, transform T, pair, pair) {
@@ -770,20 +770,20 @@ struct picture {
       });
   }
 
-  void add(drawerBound3 d, bool exact=false, bool put=Above) {
+  void add(drawerBound3 d, bool exact=false, bool above=true) {
     uptodate=false;
     if(!exact) bounds.exact=false;
-    if(put)
+    if(above)
       nodes3.push(d);
     else
       nodes3.insert(0,d);
   }
 
-  void add(drawer3 d, bool exact=false, bool put=Above) {
+  void add(drawer3 d, bool exact=false, bool above=true) {
     add(new void(frame f, transform3 t, transform3 T, picture pic,
 		 projection P, triple, triple) {
 	  d(f,t*T,pic,P);
-	},exact,put);
+	},exact,above);
   }
 
   void clip(drawer d, bool exact=false) {
@@ -1153,22 +1153,22 @@ struct picture {
 	},exact);
   }
 
-  void add(void d(picture, transform3), bool exact=false, bool put=Above) {
+  void add(void d(picture, transform3), bool exact=false, bool above=true) {
     add(new void(frame f, transform3 t, picture pic2, projection P) {
 	  picture opic=new picture;
 	  d(opic,t);
 	  add(f,opic.fit3(identity4,pic2,P));
-      },exact,put);
+      },exact,above);
   }
 
   void add(void d(picture, transform3, transform3, triple, triple),
-	   bool exact=false, bool put=Above) {
+	   bool exact=false, bool above=true) {
     add(new void(frame f, transform3 t, transform3 T, picture pic2,
 		 projection P, triple lb, triple rt) {
 	  picture opic=new picture;
 	  d(opic,t,T,lb,rt);
 	  add(f,opic.fit3(identity4,pic2,P));
-	},exact,put);
+	},exact,above);
   }
 
   frame scaled() {
@@ -1341,7 +1341,7 @@ struct picture {
   // Add a picture to this picture, such that the user coordinates will be
   // scaled identically when fitted
   void add(picture src, bool group=true, filltype filltype=NoFill,
-           bool put=Above) {
+           bool above=true) {
     // Copy the picture.  Only the drawing function closures are needed, so we
     // only copy them.  This needs to be a deep copy, as src could later have
     // objects added to it that should not be included in this picture.
@@ -1354,13 +1354,13 @@ struct picture {
     // Draw by drawing the copied picture.
     if(srcCopy.nodes.length > 0)
       nodes.push(new void(frame f, transform t, transform T, pair m, pair M) {
-	  add(f,srcCopy.fit(t,T*srcCopy.T,m,M),group,filltype,put);
+	  add(f,srcCopy.fit(t,T*srcCopy.T,m,M),group,filltype,above);
 	});
     
     if(srcCopy.nodes3.length > 0) {
       nodes3.push(new void(frame f, transform3 t, transform3 T3, picture pic,
 			   projection P, triple m, triple M) {
-		    add(f,srcCopy.fit3(t,T3*srcCopy.T3,pic,P,m,M),group,put);
+		    add(f,srcCopy.fit3(t,T3*srcCopy.T3,pic,P,m,M),group,above);
 		  });
     }
     
@@ -1709,14 +1709,14 @@ transform fixedscaling(picture pic=currentpicture, pair min, pair max,
 
 // Add frame src about position to frame dest with optional grouping.
 void add(frame dest, frame src, pair position, bool group=false,
-         filltype filltype=NoFill, bool put=Above)
+         filltype filltype=NoFill, bool above=true)
 {
-  add(dest,shift(position)*src,group,filltype,put);
+  add(dest,shift(position)*src,group,filltype,above);
 }
 
 // Add frame src about position to picture dest with optional grouping.
 void add(picture dest=currentpicture, frame src, pair position=0,
-         bool group=true, filltype filltype=NoFill, bool put=Above)
+         bool group=true, filltype filltype=NoFill, bool above=true)
 {
   if(is3D(src)) {
     dest.add(new void(frame f, transform3, picture, projection) {
@@ -1725,7 +1725,7 @@ void add(picture dest=currentpicture, frame src, pair position=0,
     dest.addBox((0,0,0),(0,0,0),min3(src),max3(src));
   } else {
     dest.add(new void(frame f, transform t) {
-	add(f,shift(t*position)*src,group,filltype,put);
+	add(f,shift(t*position)*src,group,filltype,above);
       },true);
     dest.addBox(position,position,min(src),max(src));
   }
@@ -1733,55 +1733,55 @@ void add(picture dest=currentpicture, frame src, pair position=0,
 
 // Like add(picture,frame,pair) but extend picture to accommodate frame.
 void attach(picture dest=currentpicture, frame src, pair position=0,
-            bool group=true, filltype filltype=NoFill, bool put=Above)
+            bool group=true, filltype filltype=NoFill, bool above=true)
 {
   transform t=dest.calculateTransform();
-  add(dest,src,position,group,filltype,put);
+  add(dest,src,position,group,filltype,above);
   pair s=size(dest.fit(t));
   size(dest,dest.xsize != 0 ? s.x : 0,dest.ysize != 0 ? s.y : 0);
 }
 
 // Like add(picture,frame,pair) but align frame in direction align.
 void add(picture dest=currentpicture, frame src, pair position, pair align,
-         bool group=true, filltype filltype=NoFill, bool put=Above)
+         bool group=true, filltype filltype=NoFill, bool above=true)
 {
-  add(dest,align(src,align),position,group,filltype,put);
+  add(dest,align(src,align),position,group,filltype,above);
 }
 
 // Like attach(picture,frame,pair) but extend picture to accommodate frame;
 void attach(picture dest=currentpicture, frame src, pair position,
             pair align, bool group=true, filltype filltype=NoFill,
-            bool put=Above)
+            bool above=true)
 {
-  attach(dest,align(src,align),position,group,filltype,put);
+  attach(dest,align(src,align),position,group,filltype,above);
 }
 
 // Add a picture to another such that user coordinates in both will be scaled
 // identically in the shipout.
 void add(picture dest, picture src, bool group=true, filltype filltype=NoFill,
-         bool put=Above)
+         bool above=true)
 {
-  dest.add(src,group,filltype,put);
+  dest.add(src,group,filltype,above);
 }
 
-void add(picture src, bool group=true, filltype filltype=NoFill, bool put=Above)
+void add(picture src, bool group=true, filltype filltype=NoFill, bool above=true)
 {
-  currentpicture.add(src,group,filltype,put);
+  currentpicture.add(src,group,filltype,above);
 }
 
 // Fit the picture src using the identity transformation (so user
 // coordinates and truesize coordinates agree) and add it about the point
 // position to picture dest.
 void add(picture dest, picture src, pair position, bool group=true,
-         filltype filltype=NoFill, bool put=Above)
+         filltype filltype=NoFill, bool above=true)
 {
-  add(dest,src.fit(identity()),position,group,filltype,put);
+  add(dest,src.fit(identity()),position,group,filltype,above);
 }
 
 void add(picture src, pair position, bool group=true, filltype filltype=NoFill,
-         bool put=Above)
+         bool above=true)
 {
-  add(currentpicture,src,position,group,filltype,put);
+  add(currentpicture,src,position,group,filltype,above);
 }
 
 // Fill a region about the user-coordinate 'origin'.

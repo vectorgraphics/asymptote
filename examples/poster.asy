@@ -13,7 +13,7 @@ real a=1.2/pi;
 draw(background,graph(background,f,-a,a,10000),grey);
 label(background,"$x\sin\frac{1}{x}$",F(0.92/pi),3SE,grey+fontsize(14));
 frame f=background.fit();
-box(f,RadialShade(yellow,0.6*yellow+red),Below);
+box(f,RadialShade(yellow,0.6*yellow+red),above=false);
 background.erase();
 add(background,f);  
 

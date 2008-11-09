@@ -277,7 +277,7 @@ void palette(picture pic=currentpicture, Label L="", bounds bounds,
   
   ticklocate locate=ticklocate(initialz,finalz,pic.scale.z,mz.min,mz.max);
   axis(pic,L,g,g2,p,ticks(sgn(axis.side.x*dot(lambda,par))),locate,mz.divisor,
-       Above);
+       true);
 
   pic.add(new void(frame f, transform t) {
       pair Z0=t*initial;

@@ -80,7 +80,7 @@ markroutine markuniform(bool centered=false, int n, bool rotated=false) {
 
 struct marker {
   frame f;
-  bool put=Above;
+  bool above=true;
   markroutine markroutine=marknodes;
   void mark(picture pic, path g) {
     markroutine(pic,f,g);
@@ -88,21 +88,21 @@ struct marker {
 }
   
 marker marker(frame f=newframe, markroutine markroutine=marknodes,
-              bool put=Above) 
+              bool above=true) 
 {
   marker m=new marker;
   m.f=f;
-  m.put=put;
+  m.above=above;
   m.markroutine=markroutine;
   return m;
 }
 
 marker marker(path[] g, markroutine markroutine=marknodes, pen p=currentpen,
-              filltype filltype=NoFill, bool put=Above)
+              filltype filltype=NoFill, bool above=true)
 {
   frame f;
   filltype(f,g,p);
-  return marker(f,markroutine,put);
+  return marker(f,markroutine,above);
 }
 
 marker nomarker;
@@ -134,11 +134,11 @@ picture legenditem(Legend legenditem, real linelength)
   picture pic;
   pair z1=(0,0);
   pair z2=z1+(linelength,0);
-  if(!legenditem.put && !empty(legenditem.mark))
+  if(!legenditem.above && !empty(legenditem.mark))
     marknodes(pic,legenditem.mark,interp(z1,z2,0.5));
   if(linelength > 0)
     Draw(pic,z1--z2,legenditem.p);
-  if(legenditem.put && !empty(legenditem.mark))
+  if(legenditem.above && !empty(legenditem.mark))
     marknodes(pic,legenditem.mark,interp(z1,z2,0.5));
   if(legenditem.plabel != invisible)
     label(pic,legenditem.label,z2,E,legenditem.plabel);

@@ -479,7 +479,7 @@ void draw(picture pic=currentpicture, Label L="", path g, align align=NoAlign,
 {
   Label L=L.copy();
   L.align(align);
-  if(marker != nomarker && !marker.put) marker.mark(pic,g);
+  if(marker != nomarker && !marker.above) marker.mark(pic,g);
   bool drawpath=arrow(pic,g,p,margin);
   if(bar(pic,g,p,margin) && drawpath) _draw(pic,g,p,margin);
   if(L.s != "") {
@@ -488,10 +488,10 @@ void draw(picture pic=currentpicture, Label L="", path g, align align=NoAlign,
   }
   if(legend.s != "") {
     legend.p(p);
-    Legend l; l.init(legend.s,legend.p,p,marker.f,marker.put);
+    Legend l; l.init(legend.s,legend.p,p,marker.f,marker.above);
     pic.legend.push(l);
   }
-  if(marker != nomarker && marker.put) marker.mark(pic,g);
+  if(marker != nomarker && marker.above) marker.mark(pic,g);
 }
 
 // Draw a fixed-size line about the user-coordinate 'origin'.

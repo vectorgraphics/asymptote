@@ -42,6 +42,6 @@ pen[] InvGrayscale(int NColors=256) {
 bounds range=image(points,values,Range(0,40),InvGrayscale()); 
 draw(contour(points,values,new real[] {1,2,3,4,8,12,16,20,24,28,32,36,40},
              operator--),blue); 
-xaxis("$x$",BottomTop,LeftTicks,Above); 
-yaxis("$y$",LeftRight,RightTicks,Above); 
+xaxis("$x$",BottomTop,LeftTicks,above=true); 
+yaxis("$y$",LeftRight,RightTicks,above=true); 
 

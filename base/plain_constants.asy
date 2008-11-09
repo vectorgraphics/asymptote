@@ -33,9 +33,6 @@ restricted pair SSW=unit(S+SW);
 restricted pair SSE=unit(S+SE);
 restricted pair ESE=unit(E+SE);
   
-restricted bool Above=true;
-restricted bool Below=false;
-
 int min(... int[] a) {return min(a);}
 int max(... int[] a) {return max(a);}
 

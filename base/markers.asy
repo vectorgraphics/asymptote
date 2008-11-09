@@ -4,7 +4,7 @@ marker operator * (transform T, marker m)
 {
   marker M=new marker;
   M.f=T*m.f;
-  M.put=m.put;
+  M.above=m.above;
   M.markroutine=m.markroutine;
   return M;
 }
@@ -175,38 +175,39 @@ void markangle(picture pic=currentpicture, Label L="",
 marker StickIntervalMarker(int i=2, int n=1, real size=0, real space=0,
                            real angle=0, pair offset=0, bool rotated=true,
                            pen p=currentpen, frame uniform=newframe,
-                           bool put=Above)
+                           bool above=true)
 {
   return marker(uniform,markinterval(i,stickframe(n,size,space,angle,offset,p),
-                                     rotated),put);
+                                     rotated),above);
 }
 
 
 marker CrossIntervalMarker(int i=2, int n=3, real size=0, real space=0,
                            real angle=0, pair offset=0, bool rotated=true,
                            pen p=currentpen, frame uniform=newframe,
-                           bool put=Above)
+                           bool above=true)
 {
   return marker(uniform,markinterval(i,crossframe(n,size,space,angle,offset,p),
-                                     rotated=rotated),put);
+                                     rotated=rotated),above);
 }
 
 marker CircleBarIntervalMarker(int i=2, int n=1, real barsize=0, real radius=0,
                                real angle=0, pair offset=0, bool rotated=true,
                                pen p=currentpen, filltype filltype=NoFill,
-                               bool above=false, frame uniform=newframe,
-                               bool put=Above)
+                               bool circleabove=false, frame uniform=newframe,
+                               bool above=true)
 {
   return marker(uniform,markinterval(i,circlebarframe(n,barsize,radius,angle,
-                                                      offset,p,filltype,above),
-                                     rotated),put);
+						      offset,p,filltype,
+						      circleabove),
+				     rotated),above);
 }
 
 marker TildeIntervalMarker(int i=2, int n=1, real size=0, real space=0,
                            real angle=0, pair offset=0, bool rotated=true,
                            pen p=currentpen, frame uniform=newframe,
-                           bool put=Above)
+                           bool above=true)
 {
   return marker(uniform,markinterval(i,tildeframe(n,size,space,angle,offset,p),
-                                     rotated),put);
+                                     rotated),above);
 }

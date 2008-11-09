@@ -2167,12 +2167,12 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
 };
 
 void add(picture dest=currentpicture, object src, pair position=0, pair align=0,
-         bool group=true, filltype filltype=NoFill, bool put=Above)
+         bool group=true, filltype filltype=NoFill, bool above=true)
 {
   if(prc())
     label(dest,src,position,align);
   else if(settings.render == 0)
-    plain.add(dest,src,position,align,group,filltype,put);
+    plain.add(dest,src,position,align,group,filltype,above);
 }
 
 string cameralink(string label, string text="View Parameters")
@@ -2366,10 +2366,10 @@ void add(picture pic=currentpicture, void d(picture,transform3),
 // coordinates and truesize coordinates agree) and add it about the point
 // position to picture dest.
 void add(picture dest, picture src, triple position, bool group=true,
-         bool put=Above)
+         bool above=true)
 {
   dest.add(new void(picture f, transform3 t) {
-      f.add(shift(t*position)*src,group,put);
+      f.add(shift(t*position)*src,group,above);
     });
 }
 

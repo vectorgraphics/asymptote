@@ -1099,7 +1099,7 @@ axis Bottom=Bottom(),
 // Draw a general axis.
 void axis(picture pic=currentpicture, Label L="", path g, path g2=nullpath,
           pen p=currentpen, ticks ticks, ticklocate locate, arrowbar arrow=None,
-          int[] divisor=new int[], bool put=Below, bool opposite=false) 
+          int[] divisor=new int[], bool above=false, bool opposite=false) 
 {
   Label L=L.copy();
   real t=reltime(g,0.5);
@@ -1109,7 +1109,7 @@ void axis(picture pic=currentpicture, Label L="", path g, path g2=nullpath,
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
       frame d;
       ticks(d,t,L,0,g,g2,p,arrow,locate,divisor,opposite);
-      (put ? add : prepend)(f,t*T*inverse(t)*d);
+      (above ? add : prepend)(f,t*T*inverse(t)*d);
     });
   
   pic.addPath(g,p);
@@ -1137,7 +1137,7 @@ real ytrans(transform t, real y)
 // An internal routine to draw an x axis at a particular y value.
 void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
              real xmin=-infinity, real xmax=infinity, pen p=currentpen,
-             ticks ticks=NoTicks, arrowbar arrow=None, bool put=Above,
+             ticks ticks=NoTicks, arrowbar arrow=None, bool above=true,
              bool opposite=false)
 {
   real y=axis.value;
@@ -1168,7 +1168,7 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
       frame d;
       ticks(d,t,L,side,a--b,finite(y2) ? a2--b2 : nullpath,p,arrow,
             ticklocate(a.x,b.x,pic.scale.x),divisor,opposite);
-      (put ? add : prepend)(f,t*T*tinv*d);
+      (above ? add : prepend)(f,t*T*tinv*d);
     });
 
   void bounds() {
@@ -1231,7 +1231,7 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
 // An internal routine to draw a y axis at a particular x value.
 void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
              real ymin=-infinity, real ymax=infinity, pen p=currentpen,
-             ticks ticks=NoTicks, arrowbar arrow=None, bool put=Above,
+             ticks ticks=NoTicks, arrowbar arrow=None, bool above=true,
              bool opposite=false)
 {
   real x=axis.value;
@@ -1262,7 +1262,7 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
       frame d;
       ticks(d,t,L,side,a--b,finite(x2) ? a2--b2 : nullpath,p,arrow,
             ticklocate(a.y,b.y,pic.scale.y),divisor,opposite);
-      (put ? add : prepend)(f,t*T*tinv*d);
+      (above ? add : prepend)(f,t*T*tinv*d);
     });
   
   void bounds() {
@@ -1441,7 +1441,7 @@ void autoscale(picture pic=currentpicture, axis axis)
 // Draw an x axis.
 void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
            real xmin=-infinity, real xmax=infinity, pen p=currentpen,
-           ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below)
+           ticks ticks=NoTicks, arrowbar arrow=None, bool above=false)
 {
   if(xmin > xmax) return;
   
@@ -1492,15 +1492,15 @@ void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
   if(L.defaultposition) L.position(axis.position);
   L.align(L.align,axis.align);
   
-  xaxisAt(pic,L,axis,xmin,xmax,p,ticks,arrow,put);
+  xaxisAt(pic,L,axis,xmin,xmax,p,ticks,arrow,above);
   if(axis.type == Both)
-    xaxisAt(pic,L,axis,xmin,xmax,p,ticks,arrow,put,true);
+    xaxisAt(pic,L,axis,xmin,xmax,p,ticks,arrow,above,true);
 }
 
 // Draw a y axis.
 void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
            real ymin=-infinity, real ymax=infinity, pen p=currentpen,
-           ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below)
+           ticks ticks=NoTicks, arrowbar arrow=None, bool above=false)
 {
   if(ymin > ymax) return;
 
@@ -1558,36 +1558,36 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
       L.transform(rotate(90));
   }
   
-  yaxisAt(pic,L,axis,ymin,ymax,p,ticks,arrow,put);
+  yaxisAt(pic,L,axis,ymin,ymax,p,ticks,arrow,above);
   if(axis.type == Both)
-    yaxisAt(pic,L,axis,ymin,ymax,p,ticks,arrow,put,true);
+    yaxisAt(pic,L,axis,ymin,ymax,p,ticks,arrow,above,true);
 }
 
 // Draw x and y axes.
 void axes(picture pic=currentpicture, Label xlabel="", Label ylabel="",
 	  pair min=(-infinity,-infinity), pair max=(infinity,infinity),
-          pen p=currentpen, arrowbar arrow=None, bool put=Below)
+          pen p=currentpen, arrowbar arrow=None, bool above=false)
 {
-  xaxis(pic,xlabel,min.x,max.x,p,arrow,put);
-  yaxis(pic,ylabel,min.y,max.y,p,arrow,put);
+  xaxis(pic,xlabel,min.x,max.x,p,arrow,above);
+  yaxis(pic,ylabel,min.y,max.y,p,arrow,above);
 }
 
 // Draw a yaxis at x.
 void xequals(picture pic=currentpicture, Label L="", real x,
              bool extend=false, real ymin=-infinity, real ymax=infinity,
-             pen p=currentpen, ticks ticks=NoTicks, bool put=Above,
+             pen p=currentpen, ticks ticks=NoTicks, bool above=true,
              arrowbar arrow=None)
 {
-  yaxis(pic,L,XEquals(x,extend),ymin,ymax,p,ticks,arrow,put);
+  yaxis(pic,L,XEquals(x,extend),ymin,ymax,p,ticks,arrow,above);
 }
 
 // Draw an xaxis at y.
 void yequals(picture pic=currentpicture, Label L="", real y,
              bool extend=false, real xmin=-infinity, real xmax=infinity,
-             pen p=currentpen, ticks ticks=NoTicks, bool put=Above,
+             pen p=currentpen, ticks ticks=NoTicks, bool above=true,
              arrowbar arrow=None)
 {
-  xaxis(pic,L,YEquals(y,extend),xmin,xmax,p,ticks,arrow,put);
+  xaxis(pic,L,YEquals(y,extend),xmin,xmax,p,ticks,arrow,above);
 }
 
 pair Scale(picture pic=currentpicture, pair z)

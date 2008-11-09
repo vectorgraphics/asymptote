@@ -174,7 +174,7 @@ void grid3(picture pic=currentpicture,
            int N=0, int n=0, real Step=0, real step=0,
            bool begin=true, bool end=true,
            pen pGrid=grey, pen pgrid=lightgrey,
-           bool put=Below)
+           bool above=false)
 {
   for(int j=0; j < gridroutine.length; ++j) {
     grid3routines gridroutinej=gridroutine[j];
@@ -191,7 +191,7 @@ void grid3(picture pic=currentpicture,
           ticks(d,t,"",gt.axea,gt.axeb,nullpen,None,gt.locate,gt.bds.divisor,
                 opposite=true,primary=false);
 	  add(f,t*T*inverse(t)*d);
-	},put=put);
+	},above=above);
       addPath(pic,gt.axea,pGrid);
       addPath(pic,gt.axeb,pGrid);
     }
@@ -203,7 +203,7 @@ void grid3(picture pic=currentpicture,
            int N=0, int n=0, real Step=0, real step=0,
            bool begin=true, bool end=true,
            pen[] pGrid, pen[] pgrid,
-           bool put=Below)
+           bool above=false)
 {
   if(pGrid.length != gridroutine.length || pgrid.length != gridroutine.length)
     abort("pen array has different length than grid");
@@ -212,7 +212,7 @@ void grid3(picture pic=currentpicture,
           N=N,n=n,Step=Step,step=step,
           begin=begin,end=end,
           pGrid=pGrid[i],pgrid=pgrid[i],
-          put=put);
+          above=above);
   }
 }
 
@@ -245,8 +245,8 @@ ticksgrid InOutTicks(Label F="", ticklabel ticklabel=null,
       otg.ticks=Ticks3(0,F,ticklabel,beginlabel,endlabel,
 		       N,n,Step,step,begin,end,
 		       Size,size,false,pTick,ptick);
-      otg.grid3=new void(picture pic, bool put) {
-        grid3(pic,gridroutine,N,n,Step,step,begin,end,pGrid,pgrid,put);
+      otg.grid3=new void(picture pic, bool above) {
+        grid3(pic,gridroutine,N,n,Step,step,begin,end,pGrid,pgrid,above);
       };
       return otg;
     };
@@ -266,8 +266,8 @@ ticksgrid InTicks(Label F="", ticklabel ticklabel=null,
       ticksgridT otg;
       otg.ticks=Ticks3(-1,F,ticklabel,beginlabel,endlabel,N,n,Step,step,
 		       begin,end,Size,size,false,pTick,ptick);
-      otg.grid3=new void(picture pic, bool put) {
-        grid3(pic,gridroutine,N,n,Step,step,begin,end,pGrid,pgrid,put);
+      otg.grid3=new void(picture pic, bool above) {
+        grid3(pic,gridroutine,N,n,Step,step,begin,end,pGrid,pgrid,above);
       };
       return otg;
     };
@@ -287,8 +287,8 @@ ticksgrid OutTicks(Label F="", ticklabel ticklabel=null,
       ticksgridT otg;
       otg.ticks=Ticks3(1,F,ticklabel,beginlabel,endlabel,N,n,Step,step,
 		       begin,end,Size,size,false,pTick,ptick);
-      otg.grid3=new void(picture pic, bool put) {
-        grid3(pic,gridroutine,N,n,Step,step,begin,end,pGrid,pgrid,put);
+      otg.grid3=new void(picture pic, bool above) {
+        grid3(pic,gridroutine,N,n,Step,step,begin,end,pGrid,pgrid,above);
       };
       return otg;
     };
@@ -296,26 +296,26 @@ ticksgrid OutTicks(Label F="", ticklabel ticklabel=null,
 
 void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
 	    pen p=currentpen, ticksgrid ticks,
-	    arrowbar3 arrow=None, bool put=Below)
+	    arrowbar3 arrow=None, bool above=false)
 {
-  xaxis3(pic,L,axis,p,ticks().ticks,arrow,put);
-  ticks().grid3(pic,put);
+  xaxis3(pic,L,axis,p,ticks().ticks,arrow,above);
+  ticks().grid3(pic,above);
 }
 
 void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
 	    pen p=currentpen, ticksgrid ticks,
-	    arrowbar3 arrow=None, bool put=Below)
+	    arrowbar3 arrow=None, bool above=false)
 {
-  yaxis3(pic,L,axis,p,ticks().ticks,arrow,put);
-  ticks().grid3(pic,put);
+  yaxis3(pic,L,axis,p,ticks().ticks,arrow,above);
+  ticks().grid3(pic,above);
 }
 
 void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
 	    pen p=currentpen, ticksgrid ticks,
-	    arrowbar3 arrow=None, bool put=Below)
+	    arrowbar3 arrow=None, bool above=false)
 {
-  zaxis3(pic,L,axis,p,ticks().ticks,arrow,put);
-  ticks().grid3(pic,put);
+  zaxis3(pic,L,axis,p,ticks().ticks,arrow,above);
+  ticks().grid3(pic,above);
 }
 
 /* Example:
@@ -361,7 +361,7 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
    end=true,           // bool
    pGrid=grey,         // pen
    pgrid=lightgrey,    // pen
-   put=Below,          // bool
+   above=false,        // bool
    );
 
    xaxis3(Label("$x$",position=EndPoint,align=S),OutTicks());

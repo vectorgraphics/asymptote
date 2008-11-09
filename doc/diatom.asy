@@ -69,8 +69,8 @@ for(int taxon=0; taxon < n; ++taxon) {
   scale(pic,Linear(true,x),Linear(-1));
   filldraw(pic,(0,depthmin)--graph(pic,P,depth)--(0,depthmax)--cycle,
            gray(0.9));
-  xaxis(pic,Bottom,LeftTicks("$%.3g$",beginlabel=false,0,2),Above);
-  xaxis(pic,Top,Above);
+  xaxis(pic,Bottom,LeftTicks("$%.3g$",beginlabel=false,0,2),above=true);
+  xaxis(pic,Top,above=true);
 
   frame label;
   label(label,rotate(angle)*TeXify(taxa[taxon]),(0,0),N);
@@ -111,8 +111,8 @@ for(int taxon=0; taxon < n; ++taxon) {
 
   add(pic,label,point(pic,N));
 
-  if(taxon == 0) yaxis(pic,depthlabel,Left,RightTicks(0,10),Above);
-  if(taxon == final) yaxis(pic,Right,LeftTicks("%",0,10),Above);
+  if(taxon == 0) yaxis(pic,depthlabel,Left,RightTicks(0,10),above=true);
+  if(taxon == final) yaxis(pic,Right,LeftTicks("%",0,10),above=true);
  
   add(shift(location,0)*pic);
   location += pic.userMax.x;

@@ -1536,10 +1536,10 @@ return the bounding object, use one of the routines
 @verbatim
 object draw(picture pic=currentpicture, Label L, envelope e, 
             real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-            filltype filltype=NoFill, bool put=Above);
+            filltype filltype=NoFill, bool above=true);
 object draw(picture pic=currentpicture, Label L, envelope e, pair position,
             real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-            filltype filltype=NoFill, bool put=Above);
+            filltype filltype=NoFill, bool above=true);
 @end verbatim
 @noindent
 Here @code{envelope} is a boundary-drawing routine such as @code{box},
@@ -3021,13 +3021,13 @@ boundary as a path, use one of the predefined @code{envelope} routines
 @verbatim
 path box(frame f, Label L="", real xmargin=0,
          real ymargin=xmargin, pen p=currentpen,
-         filltype filltype=NoFill, bool put=Above);
+         filltype filltype=NoFill, bool above=true);
 path roundbox(frame f, Label L="", real xmargin=0,
               real ymargin=xmargin, pen p=currentpen,
-              filltype filltype=NoFill, bool put=Above);
+              filltype filltype=NoFill, bool above=true);
 path ellipse(frame f, Label L="", real xmargin=0,
              real ymargin=xmargin, pen p=currentpen,
-             filltype filltype=NoFill, bool put=Above);
+             filltype filltype=NoFill, bool above=true);
 @end verbatim
 
 @item picture
@@ -3264,9 +3264,9 @@ picture to another using the @code{add} function:
 @cindex @code{add}
 @verbatim
 void add(picture src, bool group=true,
-         filltype filltype=NoFill, bool put=Above);
+         filltype filltype=NoFill, bool above=true);
 void add(picture dest, picture src, bool group=true,
-         filltype filltype=NoFill, bool put=Above);
+         filltype filltype=NoFill, bool above=true);
 @end verbatim
 @noindent
 The first example adds @code{src} to @code{currentpicture}; the second
@@ -3274,7 +3274,7 @@ one adds @code{src} to @code{dest}.
 The @code{group} option specifies whether or not the graphical user
 interface @code{xasy} should treat all of the elements of @code{src}
 as a single entity (@pxref{GUI}), @code{filltype} requests optional
-background filling or clipping, and @code{put} specifies
+background filling or clipping, and @code{above} specifies
 whether to add @code{src} above or below existing objects.
 
 There are also routines to add a picture or frame @code{src} specified
@@ -3286,19 +3286,19 @@ in postscript coordinates to another picture @code{dest} (or
 @cindex picture alignment
 @verbatim
 void add(picture src, pair position, bool group=true,
-         filltype filltype=NoFill, bool put=Above);
+         filltype filltype=NoFill, bool above=true);
 void add(picture dest, picture src, pair position,
-         bool group=true, filltype filltype=NoFill, bool put=Above);
+         bool group=true, filltype filltype=NoFill, bool above=true);
 void add(picture dest=currentpicture, frame src, pair position=0,
-         bool group=true, filltype filltype=NoFill, bool put=Above);
+         bool group=true, filltype filltype=NoFill, bool above=true);
 void add(picture src, pair position, pair align, bool group=true,
-         filltype filltype=NoFill, bool put=Above);
+         filltype filltype=NoFill, bool above=true);
 void add(picture dest, picture src, pair position,
          pair align, bool group=true, filltype filltype=NoFill,
-         bool put=Above);
+         bool above=true);
 void add(picture dest=currentpicture, frame src, pair position,
          pair align, bool group=true, filltype filltype=NoFill,
-         bool put=Above);
+         bool above=true);
 @end verbatim
 
 The optional @code{align} argument in the last three forms specifies a
@@ -3319,10 +3319,10 @@ about the user coordinate @code{position}:
 @verbatim
 void attach(picture dest=currentpicture, frame src,
                  pair position=0, bool group=true,
-                 filltype filltype=NoFill, bool put=Above);
+                 filltype filltype=NoFill, bool above=true);
 void attach(picture dest=currentpicture, frame src,
                  pair position, pair align, bool group=true,
-                 filltype filltype=NoFill, bool put=Above);
+                 filltype filltype=NoFill, bool above=true);
 @end verbatim
 
 @cindex @code{erase}
@@ -6330,7 +6330,7 @@ An axis can be drawn on a picture with one of the following commands:
 @verbatim
 void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
            real xmin=-infinity, real xmax=infinity, pen p=currentpen, 
-           ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below);
+           ticks ticks=NoTicks, arrowbar arrow=None, bool above=false);
 @end verbatim
 
 Draw an @math{x} axis on picture @code{pic} from @math{x}=@code{xmin} to
@@ -6342,7 +6342,7 @@ or @code{xmax} specifies that the corresponding axis limit will be
 automatically determined from the picture limits. 
 The optional @code{arrow} argument takes the same values as in the
 @code{draw} command (@pxref{arrows}). The axis is drawn before any
-existing objects in the current picture unless @code{put}=@code{Above}.
+existing objects in the current picture unless @code{above=true}.
 The axis placement is determined by one of the following @code{axis} types:
 
 @table @code
@@ -6492,7 +6492,7 @@ ticks LeftTicks(Label format="", ticklabel ticklabel=null,
 @verbatim
 void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
            real ymin=-infinity, real ymax=infinity, pen p=currentpen,
-           ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below);
+           ticks ticks=NoTicks, arrowbar arrow=None, bool above=false);
 @end verbatim
 
 Draw a @math{y} axis on picture @code{pic} from @math{y}=@code{ymin} to
@@ -6503,7 +6503,7 @@ or @code{ymax} specifies that the corresponding axis limit will be
 automatically determined from the picture limits. 
 The optional @code{arrow} argument takes the same values as in the
 @code{draw} command (@pxref{arrows}). The axis is drawn before any
-existing objects in the current picture unless @code{put}=@code{Above}.
+existing objects in the current picture unless @code{above=true}.
 The tick type is specified by @code{ticks} and the axis placement is
 determined by one of the following @code{axis} types:
 
@@ -6540,14 +6540,14 @@ For convenience, the functions
 @verbatim
 void xequals(picture pic=currentpicture, Label L="", real x,
              bool extend=false, real ymin=-infinity, real ymax=infinity,
-             pen p=currentpen, ticks ticks=NoTicks, bool put=Above,
+             pen p=currentpen, ticks ticks=NoTicks, bool above=true,
              arrowbar arrow=None);
 @end verbatim
 and
 @verbatim
 void yequals(picture pic=currentpicture, Label L="", real y,
              bool extend=false, real xmin=-infinity, real xmax=infinity,
-             pen p=currentpen, ticks ticks=NoTicks, bool put=Above,
+             pen p=currentpen, ticks ticks=NoTicks, bool above=true,
              arrowbar arrow=None);
 @end verbatim
 can be respectively used to call @code{yaxis} and
@@ -6559,20 +6559,20 @@ or horizontal lines and axes at arbitrary locations.
 @verbatim 
 void axes(picture pic=currentpicture, Label xlabel="", Label ylabel="",
           pair min=(-infinity,-infinity), pair max=(infinity,infinity),
-          pen p=currentpen, arrowbar arrow=None, bool put=Below);
+          pen p=currentpen, arrowbar arrow=None, bool above=false);
 @end verbatim
 This convenience routine draws both @math{x} and @math{y} axes 
 on picture @code{pic} from @code{min} to @code{max},
 with optional labels @code{xlabel} and @code{ylabel}
 and any arrows specified by @code{arrow}. The axes are drawn on top of
-existing objects in the current picture only if @code{put} is @code{Above}.
+existing objects in the current picture only if @code{above=true}.
 
 @item
 @verbatim
 void axis(picture pic=currentpicture, Label L="", path g,
           pen p=currentpen, ticks ticks, ticklocate locate,
           arrowbar arrow=None, int[] divisor=new int[],
-          bool put=Below, bool opposite=false);
+          bool above=false, bool opposite=false);
 @end verbatim
 
 This routine can be used to draw on picture @code{pic} a general axis
@@ -6583,7 +6583,7 @@ The optional integer array @code{divisor} specifies what tick divisors
 to try in the attempt to produce uncrowded tick labels. A @code{true}
 value for the flag @code{opposite} identifies an unlabelled secondary
 axis (typically drawn opposite a primary axis). The axis is drawn before
-any existing objects in the current picture unless @code{put}=@code{Above}.
+any existing objects in the current picture unless @code{above=true}.
 The tick locator @code{ticklocate} is constructed by the routine
 @verbatim
 ticklocate ticklocate(real a, real b, autoscaleT S=defaultS,
@@ -6693,14 +6693,14 @@ markers, constructed with
 @verbatim
 marker marker(path g, markroutine markroutine=marknodes, 
               pen p=currentpen, filltype filltype=NoFill,
-              bool put=Above);
+              bool above=true);
 @end verbatim
 using the path @code{unitcircle} (@pxref{filltype}), are drawn
 below each node. Any frame can be converted to a marker, using
 @anchor{marker}
 @verbatim
 marker marker(frame f, markroutine markroutine=marknodes,
-              bool put=Above);
+              bool above=true);
 @end verbatim
 In the right-hand graph, the unit @math{n}-sided regular polygon 
 @code{polygon(int n)} and the unit @math{n}-point cyclic cross 
@@ -7681,7 +7681,7 @@ To draw an @math{x} axis in three dimensions, use the routine
 @verbatim
 void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
             real xmin=-infinity, real xmax=infinity, pen p=currentpen,
-            ticks3 ticks=NoTicks3, arrowbar3 arrow=None, bool put=Below);
+            ticks3 ticks=NoTicks3, arrowbar3 arrow=None, bool above=false);
 @end verbatim
 @noindent
 Analogous routines @code{yaxis} and @code{zaxis} can be used to draw
@@ -8782,5 +8782,6 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  fitscreen planeproject strokepath meshlight nullpens arrowdir
 @c  LocalWords:  diffusepen ambientpen emissivepen specularpen arrowbarb
 @c  LocalWords:  nonselfintersecting hstretch vstretch roundbox nonconvex
-@c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic
-@c  LocalWords:  vertexshading smoothelevation
+@c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
+@c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify
+@c  LocalWords:  psviewerOptions pdfviewerOptions

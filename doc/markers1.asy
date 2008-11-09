@@ -57,13 +57,14 @@ label("$9$",point(p,0),3W);
 //line 10 **********
 p=t*p;
 draw(p,CircleBarIntervalMarker(n=3,angle=30,barsize=8mm,radius=2mm,
-                               FillDraw(.8red),above=true,dotframe));
+                               FillDraw(.8red),circleabove=true,dotframe));
 label("$10$",point(p,0),3W);
 
 //line 11 **********
 p=T*p;
 draw(p,CircleBarIntervalMarker(n=3,angle=30,barsize=8mm,radius=2mm,
-                               FillDraw(.8red),above=true,dotframe,put=Below));
+                               FillDraw(.8red),circleabove=true,dotframe,
+			       above=false));
 label("$11$",point(p,0),3W);
 
 //line 12 **********
