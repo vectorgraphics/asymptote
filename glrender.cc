@@ -292,6 +292,7 @@ void drawscene(double Width, double Height)
   
   double size2=hypot(Width,Height);
   
+  glEnable(GL_BLEND);
   // Render opaque objects
   Picture->render(nurb,size2,m,M,perspective,false);
   
@@ -395,22 +396,17 @@ void Export()
 
 void display()
 {
-  if(View) {
-    drawscene(Width,Height);
-    glutSwapBuffers();
-    if(queueExport) {
-      Export();
-      queueExport=false;
-    }
-    
-    int status;
-    if(Oldpid != 0 && waitpid(Oldpid,&status,WNOHANG) != Oldpid) {
-      kill(Oldpid,SIGHUP);
-      Oldpid=0;
-    }
-  } else {
+  drawscene(Width,Height);
+  glutSwapBuffers();
+  if(queueExport) {
     Export();
-    quit();
+    queueExport=false;
+  }
+    
+  int status;
+  if(Oldpid != 0 && waitpid(Oldpid,&status,WNOHANG) != Oldpid) {
+    kill(Oldpid,SIGHUP);
+    Oldpid=0;
   }
 }
 
@@ -574,15 +570,14 @@ void rotateZ(int x, int y)
 // ALT RIGHT: rotateZ
 void mouse(int button, int state, int x, int y)
 {
-#ifndef FREEGLUT  
   if(button == GLUT_WHEEL_UP) {
     mousewheel(0,1,x,y);
     return;
-  } else if(button == GLUT_WHEEL_DOWN) {
+  } 
+  if(button == GLUT_WHEEL_DOWN) {
     mousewheel(0,-1,x,y);
     return;
   }	
-#endif
   
   mod=glutGetModifiers();
   
@@ -916,7 +911,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(antialias) expand *= 2.0;
   
   glutInit(&argc,argv);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE);
   
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
@@ -973,6 +968,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   } else {
     glutInitWindowSize(maxTileWidth,maxTileHeight);
     window=glutCreateWindow("");
+    glutHideWindow();
   }
   
   glClearColor(1.0,1.0,1.0,1.0);
@@ -988,6 +984,14 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glEnable(GL_MAP1_VERTEX_3);
   glEnable(GL_MAP2_VERTEX_3);
   glEnable(GL_MAP2_COLOR_4);
+  
+  if(settings::verbose > 1) {
+    GLint buf[1];
+    glGetIntegerv(GL_SAMPLES,buf);
+    int samples=buf[0];
+    if(samples > 0)
+      cout << "Antialiasing enabled with sample width " << samples << endl;
+  }
   
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   
@@ -1012,32 +1016,34 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(ViewportLighting)
     lighting();
   
-  glutReshapeFunc(reshape);
-  glutDisplayFunc(display);
-  glutKeyboardFunc(keyboard);
-  glutMouseFunc(mouse);
+  if(View) {
+    glutReshapeFunc(reshape);
+    glutDisplayFunc(display);
+    glutKeyboardFunc(keyboard);
+    glutMouseFunc(mouse);
   
 #ifdef FREEGLUT
-  glutMouseWheelFunc(mousewheel);
-  glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_CONTINUE_EXECUTION);
+//  glutMouseWheelFunc(mousewheel);
+    glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_CONTINUE_EXECUTION);
 #endif  
 
-  glutCreateMenu(menu);
-  glutAddMenuEntry("(h) Home",HOME);
-  glutAddMenuEntry("(f) Fitscreen",FITSCREEN);
-  glutAddMenuEntry("(x) X spin",XSPIN);
-  glutAddMenuEntry("(y) Y spin",YSPIN);
-  glutAddMenuEntry("(z) Z spin",ZSPIN);
-  glutAddMenuEntry("(s) Stop",STOP);
-  glutAddMenuEntry("(m) Mode",MODE);
-  glutAddMenuEntry("(e) Export",EXPORT);
-  glutAddMenuEntry("(q) Quit" ,QUIT);
+    glutCreateMenu(menu);
+    glutAddMenuEntry("(h) Home",HOME);
+    glutAddMenuEntry("(f) Fitscreen",FITSCREEN);
+    glutAddMenuEntry("(x) X spin",XSPIN);
+    glutAddMenuEntry("(y) Y spin",YSPIN);
+    glutAddMenuEntry("(z) Z spin",ZSPIN);
+    glutAddMenuEntry("(s) Stop",STOP);
+    glutAddMenuEntry("(m) Mode",MODE);
+    glutAddMenuEntry("(e) Export",EXPORT);
+    glutAddMenuEntry("(q) Quit" ,QUIT);
   
-  glutAttachMenu(GLUT_MIDDLE_BUTTON);
-
-  glutMainLoop();
+    glutAttachMenu(GLUT_MIDDLE_BUTTON);
+    glutMainLoop();
+  } else
+    Export();
 }
-  
+
 } // namespace gl
 
 #endif

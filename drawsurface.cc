@@ -251,7 +251,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   double f=fraction(d,size3);
   double fperp=fraction(dperp,size3);
   
-  if(!havenormal || !straight && (f*size2 >= pixel || granularity == 0)) {
+  if(!havenormal || (!straight && (f*size2 >= pixel || granularity == 0))) {
     if(lighton) {
       if(havenormal && fperp*size2 <= 0.1) {
 	glNormal3fv(Normal);
