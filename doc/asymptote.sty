@@ -169,7 +169,7 @@
    \immediate\write\AsyStream{// Beginning of Asymptote Figure \the\c@asy}%
    \immediate\write\AsyStream{eval(quote\@charlb}%
    \immediate\write\AsyStream{defaultfilename='\Jobname-\the\c@asy';}%
-   \immediate\write\AsyStream{if(settings.render < 0) settings.render=8;}%
+   \immediate\write\AsyStream{if(settings.render < 0) settings.render=4;}%
    \ifASYattach
      \immediate\write\AsyStream{settings.inlineimage=false;}%
      \immediate\write\AsyStream{settings.embed=false;}%
