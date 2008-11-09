@@ -320,8 +320,9 @@ void save()
   unsigned char *data=new unsigned char[ndata];
   if(data) {
     TRcontext *tr=trNew();
-    int width=Quotient(fullWidth,Quotient(fullWidth,maxTileWidth));
-    int height=Quotient(fullHeight,Quotient(fullHeight,maxTileHeight));
+    int width=Quotient(fullWidth,Quotient(fullWidth,min(maxTileWidth,Width)));
+    int height=Quotient(fullHeight,Quotient(fullHeight,
+					    min(maxTileHeight,Height)));
     if(settings::verbose > 1) 
       cout << "Exporting " << *Prefix << " as " << fullWidth << "x" 
 	   << fullHeight << " image" << " using tiles of size "
@@ -964,11 +965,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   if(View) {
     setosize();
-    if(!getSetting<bool>("fitscreen")) {
-      maxTileWidth=min(maxTileWidth,oldWidth);
-      maxTileHeight=min(maxTileHeight,oldHeight);
+    if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
-    }
     glutInitWindowSize(1,1);
     window=glutCreateWindow(((prefix == "out" ? "Asymptote" : prefix)+
 			     " [Double click right button for menu]").c_str());
