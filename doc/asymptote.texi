@@ -7320,11 +7320,15 @@ void size3(picture pic=currentpicture, real x, real y=x, real z=y,
           bool keepAspect=pic.keepAspect);
 @end verbatim
 @noindent
+@cindex margins
+@cindex @code{viewportmargin}
 The resulting simplex linear programming problem is then solved to
 produce a 3D version of a frame (actually implemented as a 3D picture). 
 The result is then fit with another application of deferred drawing
 to the viewport dimensions corresponding to the usual two-dimensional
-picture @code{size} parameters.
+picture @code{size} parameters. The global pair @code{viewportmargin}
+may be used to add horizontal and vertical margins to the viewport
+dimensions.
 
 @cindex @code{O}
 @cindex @code{X}
@@ -8784,4 +8788,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  nonselfintersecting hstretch vstretch roundbox nonconvex
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify
-@c  LocalWords:  psviewerOptions pdfviewerOptions
+@c  LocalWords:  psviewerOptions pdfviewerOptions viewportmargin

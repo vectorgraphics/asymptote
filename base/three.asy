@@ -12,6 +12,7 @@ real defaultshininess=0.25;
 real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
+pair viewportmargin=0;     // Viewport margin.
 real viewportfactor=1.01;  // Factor used to expand orthographic viewport.
 real anglefactor=1.03;     // Factor used to expand perspective viewport.
 real angleprecision=1e-3;  // Precision for centering perspective projections.
@@ -1892,6 +1893,13 @@ void writeJavaScript(string name, string preamble, string script)
     file3.push(name);
 }
 
+pair viewportmargin(projection P) 
+{
+  pair viewportmargin=(abs(viewportmargin.x),abs(viewportmargin.y));
+  if(P.infinity) return viewportmargin;
+  return (max(viewportmargin.x,viewportmargin.y),viewportmargin.y);
+}
+
 string embed3D(string label="", string text=label, string prefix,
 	       frame f, string format="",
                real width=0, real height=0, real angle=30,
@@ -1909,9 +1917,11 @@ string embed3D(string label="", string text=label, string prefix,
  // Adobe Reader doesn't appear to support user-specified viewport lights.
   string lightscript=light.on() && !light.viewport ? lightscript(light) : "";
 
+  pair viewportmargin=viewportmargin(P);
+
   if(P.infinity || lightscript != "") {
     triple lambda=max3(f)-min3(f);
-    real viewplanesize=lambda.y/cm;
+    real viewplanesize=(lambda.y+2*viewportmargin.y)/cm;
     string name=prefix+".js";
     writeJavaScript(name,P.infinity ? lightscript+orthographic(viewplanesize):
 		    lightscript,script);
@@ -1947,7 +1957,8 @@ string embed3D(string label="", string text=label, string prefix,
   if(options != "") options3 += ","+options;
   if(script != "") options3 += ",3Djscript="+script;
 
-  return Embed(prefix,options3,width,height);
+  return Embed(prefix,options3,width+2*viewportmargin.x,
+	       height+2*viewportmargin.y);
 }
 
 object embed(string label="", string text=label, 
@@ -2024,6 +2035,8 @@ object embed(string label="", string text=label,
     real width=lambda.x;
     real height=lambda.y;
 
+    pair viewportmargin=viewportmargin(P);
+
     if(!P.absolute) {
       if(scale) {
 	pair v=(s.xx,s.yy);
@@ -2055,7 +2068,7 @@ object embed(string label="", string text=label,
       // Choose the angle to be just large enough to view the entire image:
 	int maxiterations=100;
 	if(is3D && angle == 0 && !P.infinity) {
-	    real h=0.5*P.target.z;
+	    real h=-0.5*P.target.z;
 	    pair r,R;
 	    real diff=realMax;
 	    pair s;
@@ -2065,7 +2078,7 @@ object embed(string label="", string text=label,
 	      R=maxratio(f);
 	      pair lasts=s;
 	      s=r+R;
-	      f=shift(-h*s.x,-h*s.y,0)*f;
+	      f=shift(h*s.x,h*s.y,0)*f;
 	      diff=abs(s-lasts);
 	      ++i;
 	    } while (diff > angleprecision && i < maxiterations);
@@ -2073,6 +2086,7 @@ object embed(string label="", string text=label,
 	    real aspect=width > 0 ? height/width : 1;
 	    angle=anglefactor*max(aTan(-r.x*aspect)+aTan(R.x*aspect),
 				  aTan(-r.y)+aTan(R.y));
+	    angle=aTan((h*Tan(angle)+viewportmargin.y)/h);
 	}
       }
     }
@@ -2111,12 +2125,15 @@ object embed(string label="", string text=label,
 
       real factor=hypot(M.x-m.x,M.y-m.y)*(viewportfactor-1.0);
       triple margin=(factor,factor,0);
+      if(P.infinity)
+	margin += (0,viewportmargin.y,0);
       M += margin; 
       m -= margin;
       if(!P.infinity && M.z >= 0) abort("camera too close");
 
-      shipout3(prefix,f,preview ? nativeformat() : format,width,height,
-               P.infinity ? 0 : angle,m,M,
+      shipout3(prefix,f,preview ? nativeformat() : format,
+	       width+2*viewportmargin.x,height+2*viewportmargin.y,
+	       P.infinity ? 0 : angle,m,M,
 	       P.absolute ? (modelview*light).position : light.position,
 	       light.diffuse,light.ambient,light.specular,
 	       light.viewport,wait,view && !preview);
