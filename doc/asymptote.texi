@@ -5684,9 +5684,6 @@ and enclose your @code{Asymptote} code within a
 must appear on a line by itself, with no leading spaces or trailing
 commands/comments.
 
-The current (1.01) version of @code{asymptote.sty} even supports the direct
-embedding of 3D @acronym{PRC} files within @code{LaTeX}, either inline
-or (using the @code{attachfile2} package) as annotated attachments.
 The sample @code{LaTeX} file below, named @code{latexusage.tex}, can
 be run as follows:
 @verbatim
@@ -5704,9 +5701,15 @@ asy latexusage
 pdflatex latexusage
 @end verbatim
 
-To switch between using @code{latex} and
-@code{pdflatex} you may first need to remove the files
-@code{latexusage-.*} and @code{latexusage.aux}.
+To switch between using @code{latex} and @code{pdflatex} you may first
+need to remove the files @code{latexusage-.*} and @code{latexusage.aux}.
+
+@cindex @code{attachfile2}
+The current (1.01) version of @code{asymptote.sty} even supports the direct
+embedding of 3D @acronym{PRC} files within @code{LaTeX}, either inline
+or, using the @code{asyattach} environment, as annotated attachments;
+the latter requires the @code{attachfile2} or the older
+@code{attachfile} @code{LaTeX} package.
 
 If the @code{inline} option is given to the
 @code{asymptote.sty} package, inline @code{LaTeX} code is generated instead of
@@ -8788,4 +8791,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  nonselfintersecting hstretch vstretch roundbox nonconvex
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify
-@c  LocalWords:  psviewerOptions pdfviewerOptions viewportmargin
+@c  LocalWords:  psviewerOptions pdfviewerOptions viewportmargin asyattach
