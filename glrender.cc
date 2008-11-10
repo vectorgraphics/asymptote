@@ -911,7 +911,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(antialias) expand *= 2.0;
   
   glutInit(&argc,argv);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE);
+  unsigned int displaymode=GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH;
+  if(antialias) displaymode |= GLUT_MULTISAMPLE;
+  glutInitDisplayMode(displaymode);
   
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);

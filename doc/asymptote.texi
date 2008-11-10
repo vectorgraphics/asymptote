@@ -552,10 +552,24 @@ cd asymptote-x.xx
 @end verbatim
 
 @cindex @code{freeglut}
-@cindex @code{3D rendering}
+@cindex 3D rendering
+@cindex 3D antialiasing
+@anchor{multisampling}
 @noindent
-We recommend installing the @code{freeglut-devel} package to enable
-the fast adaptive @code{Asymptote} @code{OpenGL}-based 3D renderer.
+We recommend installing an up-to-date copy of @code{freeglut}, based on
+@code{SVN} revision 759, to enable the antialiased adaptive 
+@code{Asymptote} @code{OpenGL}-based 3D renderer. Place
+@url{http://prdownloads.sourceforge.net/freeglut/freeglut-2.4.0.tar.gz}
+in the @code{Asymptote} source directory, and type (as the root user):
+@verbatim
+tar -zxf freeglut-2.4.0.tar.gz
+cd freeglut-2.4.0
+patch -p1 < ../patches/freeglut-2.4.0-svn759.patch
+./autogen.sh
+./configure --prefix=/usr
+make install
+cd ..
+@end verbatim
 
 @noindent Then put
 @url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-7.1.tar.gz}
@@ -1979,7 +1993,7 @@ time("%a %b %d %H:%M:%S %Z %Y");
 
 @noindent
 are equivalent ways of returning the current time in the default
-format used by the UNIX @code{date} command;
+format used by the @code{UNIX} @code{date} command;
 
 @cindex @code{seconds}
 @cindex @code{strptime}
@@ -3509,7 +3523,8 @@ A file may also be opened with @code{xinput} or @code{xoutput}, instead of
 @code{input} or @code{output}, to read or write
 double precision (64-bit) real values and single precision (32-bit)
 integer values in Sun Microsystem's @acronym{XDR} (External
-Data Representation) portable binary format (available on all UNIX platforms).
+Data Representation) portable binary format (available on all
+@code{UNIX} platforms).
 A file may also be opened with @code{binput} or @code{boutput} to read
 or write double precision values in the native (nonportable)
 machine binary format. The function @code{file single(file,0.0)} may
@@ -7230,10 +7245,11 @@ There are four choices for viewing 3D @code{Asymptote} output:
 renderer (with the command-line option @code{-V} and the default settings
 @code{outformat=""} and @code{render=-1}). If you encounter warnings
 from your graphics card driver, try specifying @code{-glOptions=-indirect}
-on the command line.
-An initial screen position can be specified with the pair setting
-@code{position}, where negative values are interpreted as relative to
-the corresponding maximum screen dimension.
+on the command line. On @code{UNIX} systems, we recommend installing a patched
+version of the @code{freeglut} library to support antialiasing via
+multisampling (@pxref{multisampling}). An initial screen position can be
+specified with the pair setting @code{position}, where negative values
+are interpreted as relative to the corresponding maximum screen dimension.
 The mouse bindings are:
 @cindex mouse bindings
 @itemize
