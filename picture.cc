@@ -702,7 +702,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     camp::reportError("Cannot fork process");
   if(pid != 0)  {
     pids[prefix]=pid;
-    waitpid(-1,NULL,WNOHANG);
+    waitpid(-1,NULL,View && !wait ? WNOHANG : 0);
     return true;
   }
 
