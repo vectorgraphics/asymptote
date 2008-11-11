@@ -42,8 +42,6 @@ int sigsegv_handler (void *, int emergency)
   if(!emergency) return 0; // Really a stack overflow
   em.runtime(vm::getPos());
   cerr << "Segmentation fault" << endl;
-  cerr << "Please report this programming error to" << endl 
-       << BUGREPORT << endl;
   abort();
 }
 #endif 

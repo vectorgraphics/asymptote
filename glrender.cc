@@ -27,10 +27,6 @@
 #define FGAPIENTRY APIENTRY
 #endif
 
-#ifdef FREEGLUT
-#include <GL/freeglut_ext.h>
-#endif
-
 #include "tr.h"
 
 namespace gl {
@@ -368,11 +364,7 @@ void save()
 void quit() 
 {
   glutDestroyWindow(window);
-#ifdef FREEGLUT
-  glutLeaveMainLoop();
-#else
   exit(0);
-#endif
 }
 
 void update() 
@@ -910,11 +902,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       ? -2.0 : -1.0;
   if(antialias) expand *= 2.0;
   
-  static bool initialize=true;
-  if(initialize) {
-    glutInit(&argc,argv);
-    initialize=false;
-  }
+  glutInit(&argc,argv);
   
   unsigned int displaymode=GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH;
   if(getSetting<bool>("multisample") && View)
@@ -1030,11 +1018,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutKeyboardFunc(keyboard);
     glutMouseFunc(mouse);
   
-#ifdef FREEGLUT
-//  glutMouseWheelFunc(mousewheel);
-    glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_CONTINUE_EXECUTION);
-#endif  
-
     glutCreateMenu(menu);
     glutAddMenuEntry("(h) Home",HOME);
     glutAddMenuEntry("(f) Fitscreen",FITSCREEN);
@@ -1050,7 +1033,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutMainLoop();
   } else {
     Export();
-    glutDestroyWindow(window);
+    quit();
   }
 }
 

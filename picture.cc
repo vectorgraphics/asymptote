@@ -697,30 +697,19 @@ bool picture::shipout3(const string& prefix, const string& format,
       oldpid=p->second;
   }
   
-  bool Fork;
-#ifndef FREEGLUT
-    Fork=true;
-#else    
-    Fork=View && !wait;
-#endif
-  if(Fork) {
-    int pid=fork();
-    if(pid == -1)
-      camp::reportError("Cannot fork process");
-    if(pid != 0)  {
-      pids[prefix]=pid;
-      waitpid(-1,NULL,WNOHANG);
-      return true;
-    }
+  int pid=fork();
+  if(pid == -1)
+    camp::reportError("Cannot fork process");
+  if(pid != 0)  {
+    pids[prefix]=pid;
+    waitpid(-1,NULL,WNOHANG);
+    return true;
   }
 
   gl::glrender(prefix.c_str(),this,outputformat,width,height,angle,m,M,
 	       nlights,lights,diffuse,ambient,specular,viewportlighting,
 	       View,oldpid);
-  if(Fork)
-    exit(0);
-  
-  return true;
+  exit(0);
 #else
   reportError(
     "Cannot render image; please install freeglut, run ./configure, and recompile"); 
