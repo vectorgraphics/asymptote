@@ -15,10 +15,10 @@
 #include <OpenGL/glext.h>
 #include <OpenGL/glu.h>
 #include <GLUT/glut.h>
-#ifdef OSG_GLU_TESS_CALLBACK_TRIPLEDOT
-typedef GLvoid (* _GLUfuncptr)(...);
-#else
+#if __GNUC_PREREQ(4,3)
 typedef GLvoid (* _GLUfuncptr)();
+#else
+typedef GLvoid (* _GLUfuncptr)(...);
 #endif
 #else
 #include <GL/gl.h>
