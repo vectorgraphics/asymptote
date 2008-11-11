@@ -18,7 +18,7 @@
 #ifndef __GNUC_PREREQ
 #define __GNUC_PREREQ(maj, min) (0)
 # endif
-#if !defined(OSG_GLU_TESS_CALLBACK_TRIPLEDOT) || __GNUC_PREREQ(4,3)
+#if !defined(OSG_GLU_TESS_CALLBACK_TRIPLEDOT) && __GNUC_PREREQ(4,3)
 typedef GLvoid (* _GLUfuncptr)();
 #else
 typedef GLvoid (* _GLUfuncptr)(...);
