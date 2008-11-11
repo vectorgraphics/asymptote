@@ -710,10 +710,9 @@ bool picture::shipout3(const string& prefix, const string& format,
 	       nlights,lights,diffuse,ambient,specular,viewportlighting,
 	       View,oldpid);
 #else
-  reportError(
-    "Cannot render image; please install glut, run ./configure, and recompile"); 
-  return false;
+  reportError("Cannot render image; please install glut, run ./configure, and recompile"); 
 #endif
+  return false;
 }
 
 bool picture::shipout3(const string& prefix)
