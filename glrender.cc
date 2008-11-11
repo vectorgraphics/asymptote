@@ -991,7 +991,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     GLint buf[1];
     glGetIntegerv(GL_SAMPLES,buf);
     int samples=buf[0];
-    if(samples > 0)
+    if(samples > 1)
       cout << "Antialiasing enabled with sample width " << samples << endl;
   }
   
