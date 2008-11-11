@@ -553,13 +553,17 @@ cd asymptote-x.xx
 
 @cindex @code{freeglut}
 @cindex 3D rendering
-@cindex 3D antialiasing
+@cindex antialiasing
+@cindex multisampling
 @anchor{multisampling}
 @noindent
-We recommend installing an up-to-date copy of @code{freeglut}, based on
-@code{SVN} revision 759, to enable the antialiased adaptive 
-@code{Asymptote} @code{OpenGL}-based 3D renderer. Place
+We recommend patching @code{freeglut} to support antialiasing,
+via multisampling, in our adaptive @code{Asymptote} @code{OpenGL}-based
+3D renderer. Place
+@quotation
 @url{http://prdownloads.sourceforge.net/freeglut/freeglut-2.4.0.tar.gz}
+@end quotation
+@noindent
 in the @code{Asymptote} source directory, and type (as the root user):
 @verbatim
 tar -zxf freeglut-2.4.0.tar.gz
@@ -8809,3 +8813,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify
 @c  LocalWords:  psviewerOptions pdfviewerOptions viewportmargin asyattach
+@c  LocalWords:  multisampling

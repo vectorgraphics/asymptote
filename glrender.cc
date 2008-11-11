@@ -910,9 +910,15 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       ? -2.0 : -1.0;
   if(antialias) expand *= 2.0;
   
-  glutInit(&argc,argv);
+  static bool initialize=true;
+  if(initialize) {
+    glutInit(&argc,argv);
+    initialize=false;
+  }
+  
   unsigned int displaymode=GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH;
-  if(antialias && View) displaymode |= GLUT_MULTISAMPLE;
+  if(getSetting<bool>("multisample") && View)
+    displaymode |= GLUT_MULTISAMPLE;
   glutInitDisplayMode(displaymode);
   
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
@@ -1042,8 +1048,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
     glutAttachMenu(GLUT_MIDDLE_BUTTON);
     glutMainLoop();
-  } else
+  } else {
     Export();
+    glutDestroyWindow(window);
+  }
 }
 
 } // namespace gl

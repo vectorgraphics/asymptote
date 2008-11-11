@@ -937,6 +937,8 @@ void initSettings() {
 			    haveglut ? -1.0 : 0.0));
   addOption(new boolSetting("antialias", 0,
 			    "Antialias rendered output", true));
+  addOption(new boolSetting("multisample", 0,
+			    "Multisample rendered screen images", true));
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
 			    true));
