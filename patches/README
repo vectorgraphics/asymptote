@@ -23,7 +23,5 @@ transparency support in PIL for xasy (this supercedes an obsolete patch
 of the same name included in Asymptote 1.36, which resulted in very slow
 rendering). Application of this patch is strongly recommended.
 
-The file freeglut-2.4.0-svn759.patch brings the 2.4.0 release up to the
-current state of development as of 2008/11/09, which includes multisampling
-(antialiasing) support. The file cygwin_freeglut-2.4.0.patch adds
-multisampling suport for MSWindows.
+The file freeglut-2.4.0multisample.patch adds multisampling antialiasing
+support to freeglut-2.4.0.
