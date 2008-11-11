@@ -217,7 +217,7 @@ case "$OSTYPE" in
 			   LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa"],
 				 AC_MSG_NOTICE([*** Could not find glut: will compile without OpenGL support ***]));;
      *) AC_CHECK_LIB([glut], [glutMainLoop],,
-				 AC_MSG_NOTICE([*** Could not find freeglut: will compile without OpenGL support ***]));;
+				 AC_MSG_NOTICE([*** Could not find glut: will compile without OpenGL support ***]));;
 esac
 
 

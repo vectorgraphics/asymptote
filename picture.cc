@@ -709,10 +709,9 @@ bool picture::shipout3(const string& prefix, const string& format,
   gl::glrender(prefix.c_str(),this,outputformat,width,height,angle,m,M,
 	       nlights,lights,diffuse,ambient,specular,viewportlighting,
 	       View,oldpid);
-  exit(0);
 #else
   reportError(
-    "Cannot render image; please install freeglut, run ./configure, and recompile"); 
+    "Cannot render image; please install glut, run ./configure, and recompile"); 
   return false;
 #endif
 }
