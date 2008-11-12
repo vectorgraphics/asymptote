@@ -568,7 +568,8 @@ in the @code{Asymptote} source directory, and type (as the root user):
 @verbatim
 tar -zxf freeglut-2.4.0.tar.gz
 cd freeglut-2.4.0
-patch -p1 < ../patches/freeglut-2.4.0multisample.patch
+patch -p1 < ../patches/freeglut-2.4.0-svn759.patch
+./autogen.sh
 ./configure --prefix=/usr
 make install
 cd ..
