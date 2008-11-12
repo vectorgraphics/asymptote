@@ -885,8 +885,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Mode=0;
   
   string options=string(settings::argv0)+" ";
+  bool iconify=getSetting<bool>("iconify");
 #ifndef __CYGWIN__
-  if(!View && getSetting<bool>("iconify"))
+  if(!View && iconify)
     options += "-iconic ";
 #endif     
   options += getSetting<string>("glOptions");
@@ -964,7 +965,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   } else {
     glutInitWindowSize(maxTileWidth,maxTileHeight);
     window=glutCreateWindow("");
-    glutHideWindow();
+    if(iconify)
+      glutHideWindow();
   }
   
   glClearColor(1.0,1.0,1.0,1.0);
