@@ -2270,7 +2270,8 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
 	  pic.addPoint(min(G,P.t));
 	  pic.addPoint(max(G,P.t));
 	}
-      } else if(pic != null)
+      }
+      if(pic != null)
         draw(pic,project(G,P),q);
     },true);
   addPath(pic,g,q);
