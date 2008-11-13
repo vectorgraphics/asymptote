@@ -2294,20 +2294,20 @@ draw=new void(frame f, path3 g, material p=currentpen,
             real linecap=linecap(q);
             int L=length(g);
 	    transform3 scale3r=scale3(r);
-	    if(L != 0) {
-	      surface cap;
-	      if(linecap == 0)
-		cap=scale(r,r,1)*unitdisk;
-	      else if(linecap == 1)
-		cap=scale3r*unithemisphere;
-	      else if(linecap == 2) {
-		cap=scale3r*unitcylinder;
-		cap.append(scale3r*shift(Z)*unitdisk);
-	      }
-	      s.append(shift(point(g,0))*align(-dir(g,0))*cap);
-	      s.append(shift(point(g,L))*align(dir(g,L))*cap);
-	    } else if(linecap == 1)
-	      s.append(shift(point(g,0))*scale3r*unitsphere);
+	    surface cap;
+	    triple dirL=dir(g,L);
+	    triple dir0=dir(g,0);
+	    if(linecap == 0)
+	      cap=scale(r,r,1)*unitdisk;
+	    else if(linecap == 1)
+	      cap=scale3r*((dir0 == O || dirL == O) ?
+			   unitsphere : unithemisphere);
+	    else if(linecap == 2) {
+	      cap=scale3r*unitcylinder;
+	      cap.append(scale3r*shift(Z)*unitdisk);
+	    }
+	    s.append(shift(point(g,0))*align(-dir0)*cap);
+	    s.append(shift(point(g,L))*align(dirL)*cap);
           }
 	  if(opacity(q) == 1) _draw(f,g,q);
           for(int i=0; i < s.s.length; ++i)
