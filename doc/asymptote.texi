@@ -1745,7 +1745,7 @@ returns the angle of @code{z} in radians in the interval
 @item real degrees(pair z, bool warn=true)
 @cindex @code{degrees}
 returns the angle of @code{z} in degrees in the interval [0,360)
-or @code{0} if @code{warn} is false and @code{z.x=z.y=0} (rather than
+or @code{0} if @code{warn} is @code{false} and @code{z.x=z.y=0} (rather than
 producing an error);
 
 @item pair unit(pair z)
@@ -1819,7 +1819,7 @@ returns the latitude of @code{v} measured from the @math{xy} plane in degrees;
 @item real longitude(triple v, bool warn=true)
 @cindex @code{longitude}
 returns the longitude of @code{v} measured from the @math{x} axis in degrees;
-or @code{0} if @code{warn} is false and @code{v.x=v.y=0} (rather than
+or @code{0} if @code{warn} is @code{false} and @code{v.x=v.y=0} (rather than
 producing an error);
 
 @item triple unit(triple v)
@@ -3257,8 +3257,8 @@ pair size(picture pic, user=false);
 @end verbatim 
 calculate the @code{PostScript} bounds that picture @code{pic} would
 have if it were currently fit to a frame using its default size specification.
-If @code{user} is true the returned value is in user coordinates,
-otherwise it is in @code{PostScript} coordinates.
+If @code{user} is @code{false} the returned value is in
+@code{PostScript} coordinates, otherwise it is in user coordinates.
 
 The function
 @verbatim
@@ -3267,7 +3267,7 @@ pair point(picture pic=currentpicture, pair dir, bool user=true);
 is a convenient way of determining the point on the bounding box of
 @code{pic} in the direction @code{dir} relative to its center, ignoring
 the contributions from fixed-size objects (such as labels and arrowheads).
-If @code{user} is true the returned value is in user coordinates,
+If @code{user} is @code{true} the returned value is in user coordinates,
 otherwise it is in @code{PostScript} coordinates.
 
 The function
@@ -3277,7 +3277,8 @@ pair truepoint(picture pic=currentpicture, pair dir, bool user=true);
 is identical to @code{point}, except that it also accounts for
 fixed-size objects, using the scaling transform that picture @code{pic}
 would have if currently fit to a frame using its default size
-specification.
+specification. If @code{user} is @code{true} the returned value is in
+user coordinates, otherwise it is in @code{PostScript} coordinates.
 
 @anchor{add}
 Sometimes it is useful to draw objects on separate pictures and add one
