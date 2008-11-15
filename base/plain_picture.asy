@@ -1440,20 +1440,49 @@ void size(picture dest, picture src)
   dest.unitsize(src.xunitsize,src.yunitsize,src.zunitsize);
 }
 
-pair min(picture pic)
+pair min(picture pic, bool user=false)
 {
-  return pic.min();
+  transform t=pic.calculateTransform();
+  pair z=pic.min(t);
+  return user ? inverse(t)*z : z;
 }
   
-pair max(picture pic)
+pair max(picture pic, bool user=false)
 {
-  return pic.max();
+  transform t=pic.calculateTransform();
+  pair z=pic.max(t);
+  return user ? inverse(t)*z : z;
 }
   
-pair size(picture pic)
+pair size(picture pic, bool user=false)
 {
-  transform s=pic.calculateTransform();
-  return pic.max(s)-pic.min(s);
+  transform t=pic.calculateTransform();
+  pair M=pic.max(t);
+  pair m=pic.min(t);
+  if(!user) return M-m;
+  t=inverse(t);
+  return t*M-t*m;
+}
+
+pair point(picture pic=currentpicture, pair dir, bool user=true)
+{
+  pair z=pic.userMin()+realmult(rectify(dir),pic.userMax()-pic.userMin());
+  return user ? z : pic.calculateTransform()*z;
+}
+
+pair truepoint(picture pic=currentpicture, pair dir, bool user=true)
+{
+  transform t=pic.calculateTransform();
+  pair m=pic.min(t);
+  pair M=pic.max(t);
+  pair z=m+realmult(rectify(dir),M-m);
+  return user ? inverse(t)*z : z;
+}
+
+// Transform coordinate in [0,1]x[0,1] to current user coordinates.
+pair relative(picture pic=currentpicture, pair z)
+{
+  return pic.userMin()+realmult(z,pic.userMax()-pic.userMin());
 }
 
 void add(picture pic=currentpicture, drawer d, bool exact=false)
@@ -1825,27 +1854,6 @@ void layer(picture pic=currentpicture)
   pic.add(new void(frame f, transform) {
       layer(f);
     },true);
-}
-
-pair point(picture pic=currentpicture, pair dir, bool user=true)
-{
-  pair z=pic.userMin()+realmult(rectify(dir),pic.userMax()-pic.userMin());
-  return user ? z : pic.calculateTransform()*z;
-}
-
-pair truepoint(picture pic=currentpicture, pair dir, bool user=true)
-{
-  transform t=pic.calculateTransform();
-  pair m=pic.min(t);
-  pair M=pic.max(t);
-  pair z=m+realmult(rectify(dir),M-m);
-  return user ? inverse(t)*z : z;
-}
-
-// Transform coordinate in [0,1]x[0,1] to current user coordinates.
-pair relative(picture pic=currentpicture, pair z)
-{
-  return pic.userMin()+realmult(z,pic.userMax()-pic.userMin());
 }
 
 void erase(picture pic=currentpicture)

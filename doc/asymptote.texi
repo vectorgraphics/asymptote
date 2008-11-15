@@ -3251,11 +3251,14 @@ pen @code{p} with the function @code{bbox(p,Fill)}.
 
 The functions 
 @verbatim
-pair min(picture pic);
-pair max(picture pic);
+pair min(picture pic, user=false);
+pair max(picture pic, user=false);
+pair size(picture pic, user=false);
 @end verbatim 
 calculate the @code{PostScript} bounds that picture @code{pic} would
 have if it were currently fit to a frame using its default size specification.
+If @code{user} is true the returned value is in user coordinates,
+otherwise it is in @code{PostScript} coordinates.
 
 The function
 @verbatim
