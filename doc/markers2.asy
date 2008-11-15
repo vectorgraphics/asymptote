@@ -19,14 +19,15 @@ dot(Label("$F$",F,N+NW));
 
 markangle(A,C,B);
 
-markangle(scale(1.5)*"$\theta$",radius=40,A,B,C,ArcArrow(2mm),1mm+red);
+markangle(scale(1.5)*"$\theta$",radius=40,C,B,A,ArcArrow(2mm),1mm+red);
+markangle(scale(1.5)*"$-\theta$",radius=-70,A,B,C,ArcArrow,green);
 
 markangle(Label("$\gamma$",Relative(0.25)),n=2,radius=-30,A,C,B,p=0.7blue+2);
 
 markangle(n=3,B,A,C,marker(markinterval(stickframe(n=2),true)));
 
 pen RedPen=0.7red+1bp;
-markangle(D,A,C,RedPen,marker(markinterval(2,stickframe(3,4mm,RedPen),true)));
+markangle(C,A,D,RedPen,marker(markinterval(2,stickframe(3,4mm,RedPen),true)));
 drawline(A,A+dir(A--D,A--C),dotted);
 
 perpendicular(B,NE,F-B,size=10mm,1mm+red,

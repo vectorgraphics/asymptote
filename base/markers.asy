@@ -130,7 +130,8 @@ real markanglespace(pen p=currentpen)
   return markanglespacefactor*sqrt(linewidth(p));
 }
 real markanglespace=markanglespace();
-// Mark the angle AOB with optional Label, arrows, and markers.
+// Mark the oriented angle AOB counterclockwise with optional Label, arrows, and markers.
+// With radius < 0, AOB-2pi is marked clockwise.
 void markangle(picture pic=currentpicture, Label L="",
                int n=1, real radius=0, real space=0,
                pair A, pair O, pair B, arrowbar arrow=None,
@@ -143,13 +144,16 @@ void markangle(picture pic=currentpicture, Label L="",
   frame ff;
   path lpth;
   p=squarecap+p;
-  real xob=degrees(B-O,false);
-  real xoa=degrees(A-O,false);
-  if(abs(xob-xoa) > 180) radius=-radius;
-  bool drawarrow = !arrow(phantom,arc((0,0),radius,xoa,xob),p,margin);
+  pair OB=unit(B-O), OA=unit(A-O);
+  real xoa=degrees(OA,false);
+  real gle=degrees(acos(dot(OA,OB)));
+  if((conj(OA)*OB).y < 0) gle *= -1;
+  bool ccw=radius > 0;
+  if(!ccw) radius=-radius;
+  bool drawarrow = !arrow(phantom,arc((0,0),radius,xoa,xoa+gle,ccw),p,margin);
   if(drawarrow && margin == NoMargin) margin=TrueMargin(0,0.5linewidth(p));
   if(filltype != NoFill) {
-    lpth=margin(arc((0,0),radius+sgn(radius)*(n-1)*space,xoa,xob),p).g;
+    lpth=margin(arc((0,0),radius+(n-1)*space,xoa,xoa+gle,ccw),p).g;
     pair p0=relpoint(lpth,0), p1=relpoint(lpth,1);
     pair ac=p0-p0-A+O, bd=p1-p1-B+O, det=(conj(ac)*bd).y;
     pair op=(det == 0) ? O : p0+(conj(p1-p0)*bd).y*ac/det;
@@ -157,7 +161,7 @@ void markangle(picture pic=currentpicture, Label L="",
     add(lpic,ff);
   }
   for(int i=0; i < n; ++i) {
-    lpth=margin(arc((0,0),radius+sgn(radius)*i*space,xoa,xob),p).g;
+    lpth=margin(arc((0,0),radius+i*space,xoa,xoa+gle,ccw),p).g;
     draw(lpic,lpth,p=p,arrow=arrow,margin=NoMargin,marker=marker);
   }
   Label lL=L.copy();
