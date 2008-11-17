@@ -21,8 +21,7 @@ AC_ARG_WITH(latex,
 		     ],[
 AC_CHECK_PROG(kpsewhich,kpsewhich,true)
 if test "x$kpsewhich" = "xtrue"; then
-  latexdir=`kpsewhich base/latex.ltx`
-  latexdir=`echo $latexdir | sed -e 's;/base/latex.ltx;;'`
+  latexdir=`kpsewhich -expand-var='$TEXMFLOCAL'/tex/latex`
 else
   latexdir=$prefix/share/texmf/tex/latex
   AC_CHECK_FILE($latexdir/base/latex.ltx,,
