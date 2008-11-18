@@ -95,7 +95,7 @@ public:
 		double width, double height, double angle, const triple& m,
 		const triple& M, size_t nlights, triple *lights,
 		double *diffuse, double *ambient, double *specular,
-		bool viewportlighting, bool wait=false, bool view=true);
+		bool viewportlighting, bool view);
   
   bool shipout3(const string& prefix); // Embedded PRC
   

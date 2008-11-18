@@ -86,7 +86,7 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
     bool prc=prc(format);
     if(prc && !pic.empty3())
       settings.inlinetex=settings.inlineimage;
-    frame f=pic.fit(prefix,format,wait=wait,view=view,options,script,P);    
+    frame f=pic.fit(prefix,format,view=view,options,script,P);    
     if(!pic.empty2() || settings.render == 0 || prc)
       shipout(prefix,orientation(f),format,wait,view);
     settings.inlinetex=inlinetex;

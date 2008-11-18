@@ -6,8 +6,6 @@
  * PostScript. 
  *****/
 
-#include <csignal>
-
 #include "errormsg.h"
 #include "picture.h"
 #include "util.h"
@@ -671,12 +669,42 @@ void picture::render(GLUnurbs *nurb, double size2,
   }
 }
   
+#ifdef HAVE_LIBGLUT
+struct communicate : public gc {
+  string prefix;
+  picture* pic;
+  string format;
+  double width;
+  double height;
+  double angle;
+  triple m;
+  triple M;
+  size_t nlights;
+  triple *lights;
+  double *diffuse;
+  double *ambient;
+  double *specular;
+  bool viewportlighting;
+  bool view;
+};
+
+void *glrenderWrapper(void *a) 
+{
+  communicate *c=(communicate *) a;
+  gl::glrender(c->prefix.c_str(),c->pic,c->format,c->width,c->height,
+	       c->angle,c->m,c->M,c->nlights,c->lights,c->diffuse,c->ambient,
+	       c->specular,c->viewportlighting,c->view);
+  return NULL;
+}
+
+#endif
+
 bool picture::shipout3(const string& prefix, const string& format,
 		       double width, double height,
 		       double angle, const triple& m, const triple& M,
 		       size_t nlights, triple *lights, double *diffuse,
 		       double *ambient, double *specular, bool viewportlighting,
-		       bool wait, bool view)
+		       bool view)
 {
 #ifdef HAVE_LIBGLUT
   bounds3();
@@ -686,29 +714,68 @@ bool picture::shipout3(const string& prefix, const string& format,
     (*p)->displacement();
   }
 
-  string outputformat=format.empty() ? getSetting<string>("outformat") : format;
+  const string outputformat=format.empty() ? 
+    getSetting<string>("outformat") : format;
   bool View=settings::view() && view;
   
-  int oldpid=0;
-  static mem::map<CONST string,int> pids;
-  if(interact::interactive) {
-    mem::map<CONST string,int>::iterator p=pids.find(prefix);
-    if(p != pids.end())
-      oldpid=p->second;
+  communicate *com=new communicate;
+
+  com->prefix=prefix;
+  com->pic=this;
+  com->format=outputformat;
+  com->width=width;
+  com->height=height;
+  com->angle=angle;
+  com->m=m;
+  com->M=M;
+  com->nlights=nlights;
+  com->lights=lights;
+  com->diffuse=diffuse;
+  com->ambient=ambient;
+  com->specular=specular;
+  com->viewportlighting=viewportlighting;
+  com->view=View;
+  
+  static bool initialize=true;
+  static bool first=true;
+  
+  pthread_t *thread;
+  
+  if(initialize) {
+    sigemptyset(&gl::signalMask);
+    sigaddset(&gl::signalMask,SIGUSR1);
+    thread=&gl::glinit;
+    initialize=false;
+  } else 
+    thread=&gl::glupdate;
+  
+  if(pthread_create(thread,NULL,glrenderWrapper,com) != 0)
+    reportError("Cannot create thread");
+  
+  pthread_mutex_t lock=PTHREAD_MUTEX_INITIALIZER;
+
+  if(first) {
+    first=false;
+    if(View) {
+      gl::maskSignal(SIG_BLOCK);
+      pthread_mutex_lock(&lock);
+      pthread_cond_wait(&gl::readySignal,&lock);
+      pthread_mutex_unlock(&lock);
+    }
   }
   
-  int pid=fork();
-  if(pid == -1)
-    camp::reportError("Cannot fork process");
-  if(pid != 0)  {
-    pids[prefix]=pid;
-    waitpid(-1,NULL,View && !wait ? WNOHANG : 0);
-    return true;
+  if(View) {
+    if(!interact::interactive) {
+      pthread_mutex_lock(&lock);
+      pthread_cond_wait(&gl::quitSignal,&lock);
+      pthread_mutex_unlock(&lock);
+    }
+  } else {
+    if(pthread_join(*thread,NULL) != 0)
+      reportError("Cannot join thread");	
+    delete com;
   }
 
-  gl::glrender(prefix.c_str(),this,outputformat,width,height,angle,m,M,
-	       nlights,lights,diffuse,ambient,specular,viewportlighting,
-	       View,oldpid);
 #else
   reportError("Cannot render image; please install glut, run ./configure, and recompile"); 
 #endif

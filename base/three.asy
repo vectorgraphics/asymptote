@@ -1991,8 +1991,7 @@ object embed(string label="", string text=label,
 	     string prefix=defaultfilename,
 	     picture pic, string format="",
              real xsize=pic.xsize, real ysize=pic.ysize,
-             bool keepAspect=pic.keepAspect,
-             bool wait=false, bool view=true, string options="",
+             bool keepAspect=pic.keepAspect, bool view=true, string options="",
              string script="", real angle=0, pen background=white,
              light light=currentlight, projection P=currentprojection)
 {
@@ -2136,7 +2135,7 @@ object embed(string label="", string text=label,
 	       P.infinity ? 0 : angle,m,M,
 	       P.absolute ? (modelview*light).position : light.position,
 	       light.diffuse,light.ambient,light.specular,
-	       light.viewport,wait,view && !preview);
+	       light.viewport,view && !preview);
       if(!preview) return F;
     }
 
@@ -2168,13 +2167,13 @@ embed3=new object(string prefix, frame f, string format, string options,
 
 currentpicture.fitter=new frame(string prefix, picture pic, string format,
 				real xsize, real ysize,
-                                bool keepAspect, bool wait, bool view,
+                                bool keepAspect, bool view,
                                 string options, string script, projection P) {
   frame f;
   bool empty3=pic.empty3();
   if(is3D(format) || empty3) add(f,pic.fit2(xsize,ysize,keepAspect));
   if(!empty3) {
-    object F=embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,wait,view,
+    object F=embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
 		   options,script,P);
     if(prc(format))
       label(f,F.L);

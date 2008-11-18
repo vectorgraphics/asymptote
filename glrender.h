@@ -10,6 +10,9 @@
 
 #ifdef HAVE_LIBGLUT
 
+#include <csignal>
+#include <pthread.h>
+
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <OpenGL/glext.h>
@@ -50,12 +53,25 @@ inline void store(GLfloat *control, const camp::triple& v)
 }
 
 namespace gl {
+
 void glrender(const string& prefix, const camp::picture* pic,
 	      const string& format, double width, double height,
 	      double angle, const camp::triple& m, const camp::triple& M,
 	      size_t nlights, camp::triple *lights, double *diffuse,
 	      double *ambient, double *specular, bool viewportlighting,
-	      bool view, int oldpid);
+	      bool view);
+
+extern sigset_t signalMask;
+extern pthread_cond_t readySignal;
+extern pthread_cond_t quitSignal;
+extern pthread_t glinit;
+extern pthread_t glupdate;
+
+inline void maskSignal(int how) 
+{
+  pthread_sigmask(how,&signalMask,NULL);
+}
+
 }
 
 #else

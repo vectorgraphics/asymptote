@@ -1469,23 +1469,16 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 void shipout3(string prefix, picture *f, string format=emptystring,
 	      real width, real height, real angle, triple m, triple M,
 	      triplearray *lights, realarray2 *diffuse, realarray2 *ambient,
-	      realarray2 *specular, bool viewportlighting,
-	      bool wait=false, bool view=true)
+	      realarray2 *specular, bool viewportlighting, bool view=true)
 {
   size_t n=checkArrays(lights,diffuse);
   checkEqual(n,checkArray(ambient));
   checkEqual(n,checkArray(specular));
   
-  triple *Lights=copyTripleArrayC(lights);
-  real *Diffuse=copyArray2C(diffuse,false,4);  
-  real *Ambient=copyArray2C(ambient,false,4);
-  real *Specular=copyArray2C(specular,false,4);
   f->shipout3(prefix,format,width,height,angle,m,M,n,
-	      Lights,Diffuse,Ambient,Specular,viewportlighting,wait,view);
-  delete[] Specular;
-  delete[] Ambient;
-  delete[] Diffuse;
-  delete[] Lights;
+	      copyTripleArrayC(lights),copyArray2C(diffuse,false,4),
+	      copyArray2C(ambient,false,4),copyArray2C(specular,false,4),
+	      viewportlighting,view);
 }
 
 void shipout3(string prefix, picture *f)

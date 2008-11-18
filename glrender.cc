@@ -8,6 +8,7 @@
 #include <fstream>
 #include <cstring>
 #include <sys/time.h>
+#include <signal.h>
 
 #include "picture.h"
 #include "common.h"
@@ -25,6 +26,10 @@
 #endif
 #ifndef FGAPIENTRY
 #define FGAPIENTRY APIENTRY
+#endif
+
+#ifdef FREEGLUT
+#include <GL/freeglut_ext.h>
 #endif
 
 #include "tr.h"
@@ -51,7 +56,7 @@ const double resizeStep=1.2;
 double Aspect;
 bool View;
 int Oldpid;
-const string* Prefix;
+string Prefix;
 const picture* Picture;
 string Format;
 int Width,Height;
@@ -321,7 +326,7 @@ void save()
     int height=Quotient(fullHeight,Quotient(fullHeight,
 					    min(maxTileHeight,Height)));
     if(settings::verbose > 1) 
-      cout << "Exporting " << *Prefix << " as " << fullWidth << "x" 
+      cout << "Exporting " << Prefix << " as " << fullWidth << "x" 
 	   << fullHeight << " image" << " using tiles of size "
 	   << width << "x" << height << endl;
 
@@ -355,7 +360,7 @@ void save()
     drawImage *Image=new drawImage(data,fullWidth,fullHeight,
 				   transform(0.0,0.0,w,0.0,0.0,h),antialias);
     pic.append(Image);
-    pic.shipout(NULL,*Prefix,Format,0.0,false,View);
+    pic.shipout(NULL,Prefix,Format,0.0,false,View);
     delete Image;
     delete[] data;
   }
@@ -363,8 +368,8 @@ void save()
   
 void quit() 
 {
-  glutDestroyWindow(window);
-  exit(0);
+  glutHideWindow();
+  pthread_cond_signal(&quitSignal);
 }
 
 void update() 
@@ -393,12 +398,6 @@ void display()
   if(queueExport) {
     Export();
     queueExport=false;
-  }
-    
-  int status;
-  if(Oldpid != 0 && waitpid(Oldpid,&status,WNOHANG) != Oldpid) {
-    kill(Oldpid,SIGHUP);
-    Oldpid=0;
   }
 }
 
@@ -849,27 +848,51 @@ void setosize()
   oldHeight=(int) ceil(oHeight);
 }
 
+sigset_t signalMask;
+pthread_cond_t readySignal=PTHREAD_COND_INITIALIZER;
+pthread_cond_t quitSignal=PTHREAD_COND_INITIALIZER;
+pthread_t glinit;
+pthread_t glupdate;
+
+void init() 
+{
+  string options=string(settings::argv0)+" ";
+#ifndef __CYGWIN__
+  if(!View && getSetting<bool>("iconify"))
+    options += "-iconic ";
+#endif     
+  options += getSetting<string>("glOptions");
+  char **argv=args(options.c_str(),true);
+  int argc=0;
+  while(argv[argc] != NULL)
+    ++argc;
+  
+  glutInit(&argc,argv);
+}
+
+void updateHandler(int)
+{
+  update();
+}
+
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
 	      double width, double height,
 	      double angle, const triple& m, const triple& M,
 	      size_t nlights, triple *lights, double *diffuse,
 	      double *ambient, double *specular, bool Viewportlighting,
-	      bool view, int oldpid)
+	      bool view)
 {
   if(width <= 0 || height <= 0) return;
   
-  Prefix=&prefix;
+  Prefix=prefix;
   Picture=pic;
   Format=format;
-  View=view;
-  Oldpid=oldpid;
   Nlights=min(nlights,(size_t) GL_MAX_LIGHTS);
   Lights=lights;
   Diffuse=diffuse;
   Ambient=ambient;
   Specular=specular;
-  ViewportLighting=Viewportlighting;
     
   Xmin=m.getx();
   Xmax=M.getx();
@@ -879,22 +902,27 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   zmax=M.getz();
   H=angle != 0.0 ? -tan(0.5*angle*radians)*zmax : 0.0;
    
+  static bool initialized=false;
+  
+  if(View && initialized) {
+    glutShowWindow();
+    kill(0,SIGUSR1);
+    pthread_cond_signal(&readySignal);
+    return;
+  }
+  
+  View=view;
+  ViewportLighting=Viewportlighting;
+  
+  if(!initialized) {
+    init();
+    initialized=true;
+  }
+  
   Menu=false;
   Motion=true;
   Fitscreen=1;
   Mode=0;
-  
-  string options=string(settings::argv0)+" ";
-  bool iconify=getSetting<bool>("iconify");
-#ifndef __CYGWIN__
-  if(!View && iconify)
-    options += "-iconic ";
-#endif     
-  options += getSetting<string>("glOptions");
-  char **argv=args(options.c_str(),true);
-  int argc=0;
-  while(argv[argc] != NULL)
-    ++argc;
   
   antialias=getSetting<bool>("antialias");
   double expand=getSetting<double>("render");
@@ -902,13 +930,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     expand *= (Format.empty() || Format == "eps" || Format == "pdf") 
       ? -2.0 : -1.0;
   if(antialias) expand *= 2.0;
-  
-  glutInit(&argc,argv);
-  
-  unsigned int displaymode=GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH;
-  if(getSetting<bool>("multisample") && View)
-    displaymode |= GLUT_MULTISAMPLE;
-  glutInitDisplayMode(displaymode);
   
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
@@ -923,6 +944,51 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(maxHeight <= 0) maxHeight=max(maxWidth,2);
   if(screenWidth <= 0) screenWidth=maxWidth;
   if(screenHeight <= 0) screenHeight=maxHeight;
+  
+  unsigned int displaymode=GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH;
+  
+  if(View) {
+    int x,y;
+    windowposition(x,y);
+    glutInitWindowPosition(x,y);
+    glutInitWindowSize(1,1);
+    setosize();
+    if(!getSetting<bool>("fitscreen"))
+      Fitscreen=0;
+    Int multisample=getSetting<Int>("multisample");
+    if(multisample <= 1) multisample=0;
+    if(multisample)
+      displaymode |= GLUT_MULTISAMPLE;
+    glutInitDisplayMode(displaymode);
+    ostringstream buf;
+    int samples;
+    while(true) {
+#ifdef FREEGLUT
+      if(multisample > 0)
+	glutSetOption(GLUT_MULTISAMPLE,multisample);
+#endif      
+      string title=string(settings::PROGRAM)+": "+prefix+
+	" [Double click right button for menu]";
+      window=glutCreateWindow(title.c_str());
+      GLint buf[1];
+      glGetIntegerv(GL_SAMPLES,buf);
+      samples=buf[0];
+#ifdef FREEGLUT
+      if(samples < multisample) {
+	--multisample;
+	if(multisample > 1) {
+	  glutDestroyWindow(window);
+	  continue;
+	}
+      }
+#endif      
+      break;
+    }
+    if(samples > 1) {
+      if(settings::verbose > 1 && samples > 1)
+	cout << "Multisampling enabled with sample width " << samples << endl;
+    }
+  }
   
   oWidth=width;
   oHeight=height;
@@ -941,31 +1007,17 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   Aspect=((double) Width)/Height;
   
-  if(settings::verbose > 1) 
-    cout << "Rendering " << prefix << " as " << Width << "x" << Height
-	 << " image" << endl;
-    
-  int x,y;
-  windowposition(x,y);
-  glutInitWindowPosition(x,y);
-  
   pair maxtile=getSetting<pair>("maxtile");
   maxTileWidth=(int) maxtile.getx();
   maxTileHeight=(int) maxtile.gety();
   if(maxTileWidth <= 0) maxTileWidth=screenWidth;
   if(maxTileHeight <= 0) maxTileHeight=screenHeight;
   
-  if(View) {
-    setosize();
-    if(!getSetting<bool>("fitscreen"))
-      Fitscreen=0;
-    glutInitWindowSize(1,1);
-    window=glutCreateWindow(((prefix == "out" ? "Asymptote" : prefix)+
-			     " [Double click right button for menu]").c_str());
-  } else {
+  if(!View) {
     glutInitWindowSize(maxTileWidth,maxTileHeight);
+    glutInitDisplayMode(displaymode);
     window=glutCreateWindow("");
-    if(iconify)
+    if(getSetting<bool>("iconify"))
       glutHideWindow();
   }
   
@@ -982,14 +1034,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glEnable(GL_MAP1_VERTEX_3);
   glEnable(GL_MAP2_VERTEX_3);
   glEnable(GL_MAP2_COLOR_4);
-  
-  if(settings::verbose > 1) {
-    GLint buf[1];
-    glGetIntegerv(GL_SAMPLES,buf);
-    int samples=buf[0];
-    if(samples > 1)
-      cout << "Antialiasing enabled with sample width " << samples << endl;
-  }
   
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   
@@ -1015,6 +1059,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     lighting();
   
   if(View) {
+    if(settings::verbose > 1) 
+      cout << "Rendering " << prefix << " as " << Width << "x" << Height
+	   << " image" << endl;
+    
     glutReshapeFunc(reshape);
     glutDisplayFunc(display);
     glutKeyboardFunc(keyboard);
@@ -1032,11 +1080,14 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutAddMenuEntry("(q) Quit" ,QUIT);
   
     glutAttachMenu(GLUT_MIDDLE_BUTTON);
+
+    signal(SIGUSR1,updateHandler);
+    maskSignal(SIG_UNBLOCK);
+    pthread_cond_signal(&readySignal);
+    
     glutMainLoop();
-  } else {
+  } else
     Export();
-    quit();
-  }
 }
 
 } // namespace gl
