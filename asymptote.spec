@@ -1,7 +1,7 @@
-%{!?_texmf: %define _texmf %(eval "echo `kpsewhich -expand-var '$TEXMFMAIN'`")}
+%{!?_texmf: %define _texmf %(eval "echo `kpsewhich -expand-var '$TEXMFLOCAL'`")}
 
 Name:           asymptote
-Version:        1.51
+Version:        1.52
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 
@@ -43,7 +43,7 @@ that LaTeX does for scientific text.
 
 %build
 CFLAGS="`echo $RPM_OPT_FLAGS | sed s/-O2/-O3/`" \
-%configure
+%configure --with-latex=%{_texmf}/tex/latex/
 make %{?_smp_mflags}
 
 

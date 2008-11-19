@@ -114,6 +114,13 @@ GLUnurbs *nurb;
 
 int window;
   
+sigset_t signalMask;
+pthread_cond_t readySignal=PTHREAD_COND_INITIALIZER;
+pthread_cond_t quitSignal=PTHREAD_COND_INITIALIZER;
+pthread_t glinit;
+pthread_t glupdate;
+pthread_mutex_t lock=PTHREAD_MUTEX_INITIALIZER;
+
 template<class T>
 inline T min(T a, T b)
 {
@@ -366,10 +373,19 @@ void save()
   }
 }
   
+void wait(pthread_cond_t& signal)
+{
+  pthread_mutex_lock(&lock);
+  pthread_cond_signal(&signal);
+  pthread_cond_wait(&signal,&lock);
+  pthread_mutex_unlock(&lock);
+  pthread_cond_signal(&signal);
+}
+
 void quit() 
 {
   glutHideWindow();
-  pthread_cond_signal(&quitSignal);
+  wait(quitSignal);
 }
 
 void update() 
@@ -848,12 +864,6 @@ void setosize()
   oldHeight=(int) ceil(oHeight);
 }
 
-sigset_t signalMask;
-pthread_cond_t readySignal=PTHREAD_COND_INITIALIZER;
-pthread_cond_t quitSignal=PTHREAD_COND_INITIALIZER;
-pthread_t glinit;
-pthread_t glupdate;
-
 void init() 
 {
   string options=string(settings::argv0)+" ";
@@ -907,7 +917,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(View && initialized) {
     glutShowWindow();
     kill(0,SIGUSR1);
-    pthread_cond_signal(&readySignal);
+    wait(readySignal);
     return;
   }
   
@@ -1083,8 +1093,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
     signal(SIGUSR1,updateHandler);
     maskSignal(SIG_UNBLOCK);
-    pthread_cond_signal(&readySignal);
     
+    wait(readySignal);
     glutMainLoop();
   } else
     Export();

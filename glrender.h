@@ -63,6 +63,9 @@ extern pthread_cond_t readySignal;
 extern pthread_cond_t quitSignal;
 extern pthread_t glinit;
 extern pthread_t glupdate;
+extern pthread_mutex_t lock;
+
+void wait(pthread_cond_t& signal);
 
 inline void maskSignal(int how) 
 {

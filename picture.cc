@@ -17,6 +17,7 @@ using std::ifstream;
 using std::ofstream;
 
 using namespace settings;
+using namespace gl;
 
 texstream::~texstream() {
   if(!getSetting<bool>("keep")) {
@@ -691,9 +692,9 @@ struct communicate : public gc {
 void *glrenderWrapper(void *a) 
 {
   communicate *c=(communicate *) a;
-  gl::glrender(c->prefix.c_str(),c->pic,c->format,c->width,c->height,
-	       c->angle,c->m,c->M,c->nlights,c->lights,c->diffuse,c->ambient,
-	       c->specular,c->viewportlighting,c->view);
+  glrender(c->prefix.c_str(),c->pic,c->format,c->width,c->height,
+	   c->angle,c->m,c->M,c->nlights,c->lights,c->diffuse,c->ambient,
+	   c->specular,c->viewportlighting,c->view);
   return NULL;
 }
 
@@ -742,34 +743,27 @@ bool picture::shipout3(const string& prefix, const string& format,
   pthread_t *thread;
   
   if(initialize) {
-    sigemptyset(&gl::signalMask);
-    sigaddset(&gl::signalMask,SIGUSR1);
-    thread=&gl::glinit;
+    sigemptyset(&signalMask);
+    sigaddset(&signalMask,SIGUSR1);
+    thread=&glinit;
     initialize=false;
   } else 
-    thread=&gl::glupdate;
+    thread=&glupdate;
   
   if(pthread_create(thread,NULL,glrenderWrapper,com) != 0)
     reportError("Cannot create thread");
   
-  pthread_mutex_t lock=PTHREAD_MUTEX_INITIALIZER;
-
   if(first) {
     first=false;
     if(View) {
-      gl::maskSignal(SIG_BLOCK);
-      pthread_mutex_lock(&lock);
-      pthread_cond_wait(&gl::readySignal,&lock);
-      pthread_mutex_unlock(&lock);
+      maskSignal(SIG_BLOCK);
+      wait(readySignal);
     }
   }
   
   if(View) {
-    if(!interact::interactive) {
-      pthread_mutex_lock(&lock);
-      pthread_cond_wait(&gl::quitSignal,&lock);
-      pthread_mutex_unlock(&lock);
-    }
+    if(!interact::interactive)
+      wait(quitSignal);
   } else {
     if(pthread_join(*thread,NULL) != 0)
       reportError("Cannot join thread");	
