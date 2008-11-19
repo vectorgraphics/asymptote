@@ -74,10 +74,8 @@ struct obj {
     for(int i=0; i < g.length; ++i) {
       path3[] gi=g[i];
       for(int j=0; j < gi.length; ++j) {
-        surface sij=surface(gi[j]);
 	// Treat all faces as planar to avoid subdivision cracks.
-	for(patch p : sij.s)
-	  p.planar=true;
+        surface sij=surface(gi[j],planar=true);
         s.append(sij);
         this.surfacepen.append(array(sij.s.length,surfacepen[i]));
         this.meshpen.append(array(sij.s.length,meshpen[i]));

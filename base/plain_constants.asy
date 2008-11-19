@@ -80,3 +80,24 @@ restricted real circleprecision=0.0006;
 restricted transform invert=reflect((0,0),(1,0));
 
 restricted pen defaultpen;
+
+// A type that takes on one of the values true, false, or default.
+struct bool3 {
+  bool value;
+  bool set;
+}
+
+bool3 default;
+
+bool operator cast(bool3 b) 
+{
+  return b.set && b.value;
+}
+
+bool3 operator cast(bool b)
+{
+  bool3 B;
+  B.value=b;
+  B.set=true;
+  return B;
+}

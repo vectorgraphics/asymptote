@@ -9,7 +9,7 @@ struct patch {
   triple[][] P=new triple[4][4];
   triple[] normals; // Optionally specify 4 normal vectors at the corners.
   pen[] colors;     // Optionally specify 4 corner colors.
-  bool planar;      // Patch is planar.
+  bool3 planar;     // Patch is planar.
   bool straight;    // Patch is based on a piecewise straight external path.
 
   path3 external() {
@@ -167,7 +167,7 @@ struct patch {
     havemin3=false;
     havemax3=false;
     straight=false;
-    planar=false;
+    planar=default;
   }
 
   triple min(triple bound=P[0][0]) {
@@ -195,7 +195,8 @@ struct patch {
   }
 
   void operator init(triple[][] P, triple[] normals=new triple[],
-                     pen[] colors=new pen[], bool straight=false) {
+                     pen[] colors=new pen[], bool straight=false,
+		     bool3 planar=default) {
     init();
     this.P=copy(P);
     if(normals.length != 0)
@@ -215,7 +216,8 @@ struct patch {
   // A constructor for a convex cyclic path of length <= 4 with optional
   // arrays of 4 internal points, corner normals and pens.
   void operator init(path3 external, triple[] internal=new triple[],
-                     triple[] normals=new triple[], pen[] colors=new pen[]) {
+                     triple[] normals=new triple[], pen[] colors=new pen[],
+		     bool3 planar=default) {
     init();
     int L=length(external);
     if(L > 4 || !cyclic(external))
@@ -240,7 +242,7 @@ struct patch {
 
     if(internal.length == 0) {
       straight=piecewisestraight(external);
-      planar=normal(external) != O;
+      this.planar=planar.set ? planar.value : normal(external) != O;
 
       internal=new triple[4];
       for(int j=0; j < 4; ++j) {
@@ -277,7 +279,8 @@ struct patch {
 
   // A constructor for a convex quadrilateral.
   void operator init(triple[] external, triple[] internal=new triple[],
-		     triple[] normals=new triple[], pen[] colors=new pen[]) {
+		     triple[] normals=new triple[], pen[] colors=new pen[],
+		     bool3 planar=default) {
     init();
     if(normals.length != 0)
       this.normals=copy(normals);
@@ -287,7 +290,7 @@ struct patch {
     straight=true;
 
     if(internal.length == 0) {
-      planar=normal(external) != O;
+      this.planar=planar.set ? planar.value : normal(external) != O;
       internal=new triple[4];
       for(int j=0; j < 4; ++j) {
 	internal[j]=nineth*(4*external[j]+2*external[(j+1)%4]+
@@ -380,15 +383,15 @@ struct surface {
   }
 
   void operator init(triple[][] P, triple[] normals=new triple[],
-                     pen[] colors=new pen[]) {
-    s=new patch[] {patch(P,normals,colors)};
+                     pen[] colors=new pen[], bool3 planar=default) {
+    s=new patch[] {patch(P,normals,colors,planar)};
   }
 
   void operator init(triple[][][] P, triple[][] normals=new triple[][],
-                     pen[][] colors=new pen[][]) {
+                     pen[][] colors=new pen[][], bool3 planar=default) {
     s=sequence(new patch(int i) {
         return patch(P[i],normals.length == 0 ? new triple[] : normals[i],
-                     colors.length == 0 ? new pen[] : colors[i]);
+                     colors.length == 0 ? new pen[] : colors[i],planar);
       },P.length);
   }
 
@@ -418,10 +421,11 @@ struct surface {
   }
 
   void split(path3 external, triple[] internal=new triple[],
-	     triple[] normals=new triple[], pen[] colors=new pen[]) {
+	     triple[] normals=new triple[], pen[] colors=new pen[],
+	     bool3 planar=default) {
     int L=length(external);
     if(L <= 4 || internal.length > 0) {
-      s.push(patch(external,internal,normals,colors));
+      s.push(patch(external,internal,normals,colors,planar));
       return;
     }
     if(!cyclic(external)) abort("cyclic path expected");
@@ -445,35 +449,37 @@ struct surface {
     while((end=i+step) < L) {
       s.push(patch(subpath(external,i,end)--center--cycle,
 		   nonormals ? n : concat(normals[i:end+1],n),
-		   nocolors ? p : concat(colors[i:end+1],p)));
+		   nocolors ? p : concat(colors[i:end+1],p),planar));
       i=end;
     }
     s.push(patch(subpath(external,i,L)--center--cycle,
 		 nonormals ? n : concat(normals[i:],normals[0:1],n),
-		 nocolors ? p : concat(colors[i:],colors[0:1],p)));
+		 nocolors ? p : concat(colors[i:],colors[0:1],p),planar));
   }
 
   // A constructor for a convex path3.
   void operator init(path3 external, triple[] internal=new triple[],
-		     triple[] normals=new triple[], pen[] colors=new pen[]) {
+		     triple[] normals=new triple[], pen[] colors=new pen[],
+		     bool3 planar=default) {
     s=new patch[];
-    split(external,internal,normals,colors);
+    split(external,internal,normals,colors,planar);
   }
 
   void operator init(explicit path3[] external,
 		     triple[][] internal=new triple[][],
                      triple[][] normals=new triple[][],
-		     pen[][] colors=new pen[][]) {
+		     pen[][] colors=new pen[][], bool3 planar=default) {
     for(int i=0; i < external.length; ++i)
       split(external[i],
 	    internal.length == 0 ? new triple[] : internal[i],
 	    normals.length == 0 ? new triple[] : normals[i],
-	    colors.length == 0 ? new pen[] : colors[i]);
+	    colors.length == 0 ? new pen[] : colors[i],planar);
   }
 
   void push(path3 external, triple[] internal=new triple[],
-            triple[] normals=new triple[] ,pen[] colors=new pen[]) {
-    s.push(patch(external,internal,normals,colors));
+            triple[] normals=new triple[] ,pen[] colors=new pen[],
+	    bool3 planar=default) {
+    s.push(patch(external,internal,normals,colors,planar));
   }
 
   // A constructor for a (possibly) nonconvex cyclic path of length <= 4 that
@@ -483,7 +489,7 @@ struct surface {
     if(L > 4 || !cyclic(g))
       abort("cyclic path of length <= 4 expected");
     if(L <= 3) {
-      s=new patch[] {patch(path3(g,plane))};
+      s=new patch[] {patch(path3(g,plane),planar=true)};
       return;
     }
     for(int i=0; i < 4; ++i) {
@@ -513,11 +519,12 @@ struct surface {
           c=subpath(g,i-2,i)--m--cycle;
           d=subpath(g,i,i+2)--m--cycle;
         }
-        s=new patch[] {patch(path3(c,plane)),patch(path3(d,plane))};
+        s=new patch[] {patch(path3(c,plane),planar=true),
+		       patch(path3(d,plane),planar=true)};
         return;
       }
     }
-    s=new patch[] {patch(path3(g,plane))};
+    s=new patch[] {patch(path3(g,plane),planar=true)};
   }
 
   void operator init(explicit path[] g, triple plane(pair)=XYplane) {
@@ -597,7 +604,7 @@ surface operator * (transform3 t, surface s)
 // Construct a surface from a (possibly) nonconvex planar cyclic path3.
 surface planar(path3 p)
 {
-  if(length(p) <= 3) return surface(patch(p));
+  if(length(p) <= 3) return surface(patch(p,planar=true));
   triple n=normal(p);
   if(n == O) return new surface; // p is not planar!
   transform3 T=align(n);
