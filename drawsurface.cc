@@ -248,12 +248,11 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
 
   triple size3=triple(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),
 		      Max.getz()-Min.getz());
-  double f=fraction(d,size3);
-  double fperp=fraction(dperp,size3);
   
-  if(!havenormal || (!straight && (f*size2 >= pixel || granularity == 0))) {
+  if(!havenormal || (!straight && (fraction(d,size3)*size2 >= pixel || 
+				   granularity == 0))) {
     if(lighton) {
-      if(havenormal && fperp*size2 <= 0.1) {
+      if(havenormal && fraction(dperp,size3)*size2 <= 0.1) {
 	glNormal3fv(Normal);
 	gluNurbsCallback(nurb,GLU_NURBS_NORMAL,NULL);
       } else
@@ -277,10 +276,10 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
       glColor4fv(colors+4);
     glVertex3fv(c+9);
     if(havecolors) 
-      glColor4fv(colors+8);
+      glColor4fv(colors+12);
     glVertex3fv(c+45);
     if(havecolors) 
-      glColor4fv(colors+12);
+      glColor4fv(colors+8);
     glVertex3fv(c+36);
     glEnd();
   }
