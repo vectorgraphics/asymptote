@@ -965,35 +965,31 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     setosize();
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
-    Int multisample=getSetting<Int>("multisample");
+    
+    int multisample=(int) getSetting<Int>("multisample");
     if(multisample <= 1) multisample=0;
     if(multisample)
       displaymode |= GLUT_MULTISAMPLE;
     glutInitDisplayMode(displaymode);
-    ostringstream buf;
-    int samples;
-    while(true) {
+    
 #ifdef FREEGLUT
-      if(multisample > 0)
-	glutSetOption(GLUT_MULTISAMPLE,multisample);
-#endif      
-      string title=string(settings::PROGRAM)+": "+prefix+
-	" [Double click right button for menu]";
-      window=glutCreateWindow(title.c_str());
-      GLint buf[1];
-      glGetIntegerv(GL_SAMPLES,buf);
-      samples=buf[0];
-#ifdef FREEGLUT
-      if(samples < multisample) {
-	--multisample;
-	if(multisample > 1) {
-	  glutDestroyWindow(window);
-	  continue;
-	}
-      }
-#endif      
-      break;
+#ifdef GLUT_INIT_MAJOR_VERSION
+    int size;
+    int *sampleNumbers=glutGetModeValues(GLUT_MULTISAMPLE,&size);
+    if(sampleNumbers != NULL && size > 0) {
+       glutSetOption(GLUT_MULTISAMPLE,
+                     min(multisample,sampleNumbers[size-1]));
+       free(sampleNumbers);
     }
+#endif
+#endif
+    string title=string(settings::PROGRAM)+": "+prefix+
+      " [Double click right button for menu]";
+    window=glutCreateWindow(title.c_str());
+    GLint buf[1];
+    glGetIntegerv(GL_SAMPLES,buf);
+    int samples=buf[0];
+
     if(samples > 1) {
       if(settings::verbose > 1 && samples > 1)
 	cout << "Multisampling enabled with sample width " << samples << endl;
