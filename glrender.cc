@@ -1027,8 +1027,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutInitWindowSize(maxTileWidth,maxTileHeight);
     glutInitDisplayMode(displaymode);
     window=glutCreateWindow("");
-    if(getSetting<bool>("iconify"))
-      glutHideWindow();
+    glutHideWindow();
   }
   
   glClearColor(1.0,1.0,1.0,1.0);
