@@ -63,7 +63,8 @@ extern pthread_cond_t readySignal;
 extern pthread_cond_t quitSignal;
 extern pthread_t glinit;
 extern pthread_t glupdate;
-extern pthread_mutex_t lock;
+extern pthread_mutex_t waitLock;
+extern pthread_mutex_t readyLock;
 
 void wait(pthread_cond_t& signal);
 

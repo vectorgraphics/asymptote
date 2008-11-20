@@ -119,7 +119,8 @@ pthread_cond_t readySignal=PTHREAD_COND_INITIALIZER;
 pthread_cond_t quitSignal=PTHREAD_COND_INITIALIZER;
 pthread_t glinit;
 pthread_t glupdate;
-pthread_mutex_t lock=PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t readyLock=PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t waitLock=PTHREAD_MUTEX_INITIALIZER;
 
 template<class T>
 inline T min(T a, T b)
@@ -226,12 +227,39 @@ void reshape0(int width, int height)
   glViewport(0,0,Width,Height);
 }
   
+void update() 
+{
+  lastzoom=Zoom;
+  glLoadIdentity();
+  double cz=0.5*(zmin+zmax);
+  glTranslatef(0,0,cz);
+  glMultMatrixf(Rotate);
+  glTranslatef(0,0,-cz);
+  glGetFloatv(GL_MODELVIEW_MATRIX,Modelview);
+  setProjection();
+  glutPostRedisplay();
+}
+
+void updateHandler(int)
+{
+  glutShowWindow();
+  update();
+}
+
 void reshape(int width, int height)
 {
- if(capsize(width,height))
-   glutReshapeWindow(width,height);
+  static bool initialize=true;
+  if(initialize) {
+    initialize=false;
+    signal(SIGUSR1,updateHandler);
+    maskSignal(SIG_UNBLOCK);
+    pthread_mutex_unlock(&readyLock);
+  }
+  
+  if(capsize(width,height))
+    glutReshapeWindow(width,height);
  
- reshape0(width,height);
+  reshape0(width,height);
 }
   
 void windowposition(int& x, int& y, int width=Width, int height=Height)
@@ -320,7 +348,7 @@ int Quotient(int x, int y)
   return (x+y-1)/y;
 }
 
-void save()
+void Export()
 {
   glReadBuffer(GL_BACK_LEFT);
   glPixelStorei(GL_PACK_ALIGNMENT,1);
@@ -371,50 +399,37 @@ void save()
     delete Image;
     delete[] data;
   }
+  setProjection();
 }
   
 void wait(pthread_cond_t& signal)
 {
-  pthread_mutex_lock(&lock);
+  pthread_mutex_lock(&waitLock);
   pthread_cond_signal(&signal);
-  pthread_cond_wait(&signal,&lock);
-  pthread_mutex_unlock(&lock);
+  pthread_cond_wait(&signal,&waitLock);
+  pthread_mutex_unlock(&waitLock);
   pthread_cond_signal(&signal);
 }
 
 void quit() 
 {
   glutHideWindow();
-  wait(quitSignal);
-}
-
-void update() 
-{
-  lastzoom=Zoom;
-  glLoadIdentity();
-  double cz=0.5*(zmin+zmax);
-  glTranslatef(0,0,cz);
-  glMultMatrixf(Rotate);
-  glTranslatef(0,0,-cz);
-  glGetFloatv(GL_MODELVIEW_MATRIX,Modelview);
-  setProjection();
-  glutPostRedisplay();
-}
-
-void Export()
-{
-  save();
-  setProjection();
+  if(View && !interact::interactive)
+    wait(quitSignal);
 }
 
 void display()
 {
+  if(interact::interactive)
+    pthread_mutex_lock(&readyLock);
   drawscene(Width,Height);
   glutSwapBuffers();
   if(queueExport) {
     Export();
     queueExport=false;
   }
+  if(interact::interactive)
+    pthread_mutex_unlock(&readyLock);
 }
 
 void move(int x, int y)
@@ -776,6 +791,15 @@ void home()
   lastzoom=Zoom=1.0;
 }
 
+void LockedExport()
+{
+  if(interact::interactive)
+    pthread_mutex_lock(&readyLock);
+  Export();
+  if(interact::interactive)
+    pthread_mutex_unlock(&readyLock);
+}
+
 void keyboard(unsigned char key, int x, int y)
 {
   switch(key) {
@@ -802,7 +826,7 @@ void keyboard(unsigned char key, int x, int y)
       mode();
       break;
     case 'e':
-      Export();
+      LockedExport();
       break;
     case '+':
     case '=':
@@ -814,7 +838,7 @@ void keyboard(unsigned char key, int x, int y)
       break;
     case 17: // Ctrl-q
     case 'q':
-      if(!Format.empty()) Export();
+      if(!Format.empty()) LockedExport();
       quit();
       break;
   }
@@ -880,11 +904,6 @@ void init()
   glutInit(&argc,argv);
 }
 
-void updateHandler(int)
-{
-  update();
-}
-
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
 	      double width, double height,
@@ -894,6 +913,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 	      bool view)
 {
   if(width <= 0 || height <= 0) return;
+  
+  static bool initialized=false;
+  
+  if(View)
+    pthread_mutex_lock(&readyLock);
   
   Prefix=prefix;
   Picture=pic;
@@ -912,12 +936,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   zmax=M.getz();
   H=angle != 0.0 ? -tan(0.5*angle*radians)*zmax : 0.0;
    
-  static bool initialized=false;
-  
   if(View && initialized) {
-    glutShowWindow();
-    kill(0,SIGUSR1);
-    wait(readySignal);
+    pthread_mutex_unlock(&readyLock);
+    kill(0,SIGUSR1); // Request a screen update.
     return;
   }
   
@@ -1095,10 +1116,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
     glutAttachMenu(GLUT_MIDDLE_BUTTON);
 
-    signal(SIGUSR1,updateHandler);
-    maskSignal(SIG_UNBLOCK);
-    
-    wait(readySignal);
     glutMainLoop();
   } else
     Export();

@@ -573,11 +573,8 @@ patch -p1 < ../patches/freeglut-2.4.0-svn759.patch
 ./configure --prefix=/usr
 make install
 cd ..
-@end verbatim
 
-@noindent Then put
-@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-7.1.tar.gz}
-in the current directory and
+@noindent Then compile @code{Asymptote} with the commands
 @verbatim
 ./configure
 make all
@@ -602,14 +599,7 @@ done as the root user. To install without root privileges, change the
 @verbatim
 ./configure --prefix=$HOME/asymptote
 @end verbatim
-The above steps will compile an optimized single-threaded static
-version of the Boehm garbage collector
-(@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/}).
-Alternatively, one can request use of a slower, likely multithreaded,
-shared system version of the Boehm garbage collector by configuring
-instead with @code{./configure --enable-gc=system} (provided
-that your system has the @code{libgc} and @code{libgccpp}
-libraries). One can disable use of the garbage collector by configuring
+One can disable use of the Boehm garbage collector by configuring
 with @code{./configure --disable-gc}. For a list of other configuration
 options, say @code{./configure --help}. For example, one can tell
 configure to look for header files and libraries in nonstandard locations:
@@ -715,7 +705,6 @@ svn co https://asymptote.svn.sourceforge.net/svnroot/asymptote/trunk/asymptote
  
 cd asymptote
 ./autogen.sh
-wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-7.1.tar.gz
 ./configure
 make all
 make install

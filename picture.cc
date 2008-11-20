@@ -671,7 +671,7 @@ void picture::render(GLUnurbs *nurb, double size2,
 }
   
 #ifdef HAVE_LIBGLUT
-struct communicate : public gc {
+struct communicate {
   string prefix;
   picture* pic;
   string format;
@@ -695,6 +695,7 @@ void *glrenderWrapper(void *a)
   glrender(c->prefix.c_str(),c->pic,c->format,c->width,c->height,
 	   c->angle,c->m,c->M,c->nlights,c->lights,c->diffuse,c->ambient,
 	   c->specular,c->viewportlighting,c->view);
+  delete c;
   return NULL;
 }
 
@@ -753,12 +754,10 @@ bool picture::shipout3(const string& prefix, const string& format,
   if(pthread_create(thread,NULL,glrenderWrapper,com) != 0)
     reportError("Cannot create thread");
   
-  if(first) {
+  if(first) {	
     first=false;
-    if(View) {
+    if(View)
       maskSignal(SIG_BLOCK);
-      wait(readySignal);
-    }
   }
   
   if(View) {
@@ -767,7 +766,6 @@ bool picture::shipout3(const string& prefix, const string& format,
   } else {
     if(pthread_join(*thread,NULL) != 0)
       reportError("Cannot join thread");	
-    delete com;
   }
 
 #else
