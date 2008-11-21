@@ -671,7 +671,7 @@ void picture::render(GLUnurbs *nurb, double size2,
 }
   
 #ifdef HAVE_LIBGLUT
-struct communicate {
+struct communicate : public gc {
   string prefix;
   picture* pic;
   string format;
@@ -691,6 +691,7 @@ struct communicate {
 
 void *glrenderWrapper(void *a) 
 {
+  maskSignal(SIG_BLOCK);
   communicate *c=(communicate *) a;
   glrender(c->prefix.c_str(),c->pic,c->format,c->width,c->height,
 	   c->angle,c->m,c->M,c->nlights,c->lights,c->diffuse,c->ambient,
@@ -700,6 +701,8 @@ void *glrenderWrapper(void *a)
 }
 
 #endif
+
+static pthread_t *thread=NULL;
 
 bool picture::shipout3(const string& prefix, const string& format,
 		       double width, double height,
@@ -738,34 +741,40 @@ bool picture::shipout3(const string& prefix, const string& format,
   com->viewportlighting=viewportlighting;
   com->view=View;
   
+  static bool main=false;
   static bool initialize=true;
-  static bool first=true;
   
-  pthread_t *thread;
+  if(main)
+    main=false;
+  else {
+    if(thread != NULL) {
+      pthread_join(*thread,NULL);
+      delete thread;
+    }
+    thread=new pthread_t;
+  }
   
   if(initialize) {
     sigemptyset(&signalMask);
     sigaddset(&signalMask,SIGUSR1);
-    thread=&glinit;
     initialize=false;
-  } else 
-    thread=&glupdate;
+    main=true;
+  }
   
   if(pthread_create(thread,NULL,glrenderWrapper,com) != 0)
     reportError("Cannot create thread");
   
-  if(first) {	
-    first=false;
+  if(main) {	
     if(View)
       maskSignal(SIG_BLOCK);
   }
   
   if(View) {
     if(!interact::interactive)
-      wait(quitSignal);
+      wait();
   } else {
-    if(pthread_join(*thread,NULL) != 0)
-      reportError("Cannot join thread");	
+    pthread_join(*thread,NULL);
+    delete thread;
   }
 
 #else

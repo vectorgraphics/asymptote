@@ -59,14 +59,11 @@ void glrender(const string& prefix, const camp::picture* pic,
 	      bool view);
 
 extern sigset_t signalMask;
-extern pthread_cond_t readySignal;
 extern pthread_cond_t quitSignal;
-extern pthread_t glinit;
-extern pthread_t glupdate;
-extern pthread_mutex_t waitLock;
+extern pthread_mutex_t quitLock;
 extern pthread_mutex_t readyLock;
 
-void wait(pthread_cond_t& signal);
+void wait();
 
 inline void maskSignal(int how) 
 {

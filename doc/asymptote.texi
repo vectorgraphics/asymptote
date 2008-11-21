@@ -557,23 +557,22 @@ cd asymptote-x.xx
 @cindex multisampling
 @anchor{multisampling}
 @noindent
-We recommend patching @code{freeglut} to support antialiasing,
-via multisampling, in our adaptive @code{Asymptote} @code{OpenGL}-based
-3D renderer. Place
+We recommend using SVN revision 761 (or later) of @code{freeglut} to
+support antialiasing, via multisampling, in our adaptive
+@code{Asymptote} @code{OpenGL}-based 3D renderer. Place
 @quotation
-@url{http://prdownloads.sourceforge.net/freeglut/freeglut-2.4.0.tar.gz}
+@url{http://freeglut.svn.sourceforge.net/viewvc/freeglut/trunk/freeglut/freeglut.tar.gz}
 @end quotation
 @noindent
 in the @code{Asymptote} source directory, and type (as the root user):
 @verbatim
-tar -zxf freeglut-2.4.0.tar.gz
-cd freeglut-2.4.0
-patch -p1 < ../patches/freeglut-2.4.0-svn759.patch
-./autogen.sh
+tar -zxf freeglut.tar.gz
+cd freeglut
+sh autogen.sh
 ./configure --prefix=/usr
 make install
 cd ..
-
+@end verbatim
 @noindent Then compile @code{Asymptote} with the commands
 @verbatim
 ./configure

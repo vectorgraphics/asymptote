@@ -115,12 +115,9 @@ GLUnurbs *nurb;
 int window;
   
 sigset_t signalMask;
-pthread_cond_t readySignal=PTHREAD_COND_INITIALIZER;
 pthread_cond_t quitSignal=PTHREAD_COND_INITIALIZER;
-pthread_t glinit;
-pthread_t glupdate;
 pthread_mutex_t readyLock=PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t waitLock=PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t quitLock=PTHREAD_MUTEX_INITIALIZER;
 
 template<class T>
 inline T min(T a, T b)
@@ -242,6 +239,8 @@ void update()
 
 void updateHandler(int)
 {
+  if(settings::verbose > 1) 
+    cout << "update:" << pthread_self() << endl;
   glutShowWindow();
   update();
 }
@@ -402,20 +401,29 @@ void Export()
   setProjection();
 }
   
-void wait(pthread_cond_t& signal)
+void wait()
 {
-  pthread_mutex_lock(&waitLock);
-  pthread_cond_signal(&signal);
-  pthread_cond_wait(&signal,&waitLock);
-  pthread_mutex_unlock(&waitLock);
-  pthread_cond_signal(&signal);
+  bool verbose=settings::verbose > 1; 
+  pthread_mutex_lock(&quitLock);
+  if(verbose)
+    cout << "signal from " << pthread_self() << endl;
+  pthread_cond_signal(&quitSignal);
+  if(verbose)
+    cout << "wait in " << pthread_self() << endl;
+  pthread_cond_wait(&quitSignal,&quitLock);
+  if(verbose)
+    cout << "signal from " << pthread_self() << endl;
+  pthread_cond_signal(&quitSignal);
+  pthread_mutex_unlock(&quitLock);
+  if(verbose) 
+    cout << "wait over in " << pthread_self() << endl;
 }
 
 void quit() 
 {
   glutHideWindow();
   if(View && !interact::interactive)
-    wait(quitSignal);
+    wait();
 }
 
 void display()
@@ -902,6 +910,8 @@ void init()
     ++argc;
   
   glutInit(&argc,argv);
+  if(settings::verbose > 1) 
+    cout << "init:" << pthread_self() << endl;
 }
 
 // angle=0 means orthographic.
@@ -918,7 +928,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   if(View)
     pthread_mutex_lock(&readyLock);
-  
+    
   Prefix=prefix;
   Picture=pic;
   Format=format;
@@ -937,8 +947,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   H=angle != 0.0 ? -tan(0.5*angle*radians)*zmax : 0.0;
    
   if(View && initialized) {
-    pthread_mutex_unlock(&readyLock);
+    if(settings::verbose > 1)
+      cout << "send SIGUSR1" << endl;
     kill(0,SIGUSR1); // Request a screen update.
+    pthread_mutex_unlock(&readyLock);
     return;
   }
   
