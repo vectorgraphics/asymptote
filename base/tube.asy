@@ -1,9 +1,9 @@
 // Author: Philippe Ivaldi
-// Based on this paper: 
+// Based on this paper:
 // http: //www.cs.hku.hk/research/techreps/document/TR-2007-07.pdf
 // Note: the additional rotation for a cyclic smooth spine curve is not
 // yet properly determined.
-// Todo: Implement variational principles for RMF with boundary conditions: 
+// Todo: Implement variational principles for RMF with boundary conditions:
 //       minimum total angular speed OR minimum total squared angular speed
 
 import three;
@@ -33,11 +33,6 @@ path3 roundedpath(path3 A, real r) {
   } else rounded=rounded--point(A,len);
 
   return rounded;
-}
-
-real degrees(triple u, triple v, triple n=cross(u,v))
-{
-  return degrees(acos1(dot(unit(u),unit(v))));
 }
 
 real[] sample(path3 g, real r, real step=0)
@@ -93,6 +88,14 @@ struct Rmf
   }
 }
 
+real degrees(Rmf a, Rmf b)
+{
+  real d=degrees(acos1(dot(a.r,b.r)));
+  real dt=dot(cross(a.r,b.r),a.t);
+  d=dt > 0 ? d : 360-d;
+  return d%360;
+}
+
 private Rmf[] rmf(path3 g, Rmf U0=Rmf(O,O,O,0), real[] t)
 {
   static real epsilon=sqrt(realEpsilon);
@@ -102,7 +105,7 @@ private Rmf[] rmf(path3 g, Rmf U0=Rmf(O,O,O,0), real[] t)
     triple d=dir(g,0);
     U0=Rmf(point(g,0),perp(d),d,0);
   }
-  real l=length(g);
+  int l=length(g);
   Rmf[] R={U0};
   triple rp,v1,v2,tp,ti,p;
   real c;
@@ -119,7 +122,10 @@ private Rmf[] rmf(path3 g, Rmf U0=Rmf(O,O,O,0), real[] t)
       v2=ti-tp;
       rp=rp-2*dot(v2,rp)*v2/dot(v2,v2);
       R.push(Rmf(p,unit(rp),unit(ti),t[i+1]/l));
-    } else R.push(R[R.length-1]);
+    } else {
+      write("Warning: path3 has duplicated point in Rmf.");
+      R.push(R[R.length-1]);
+    }
   }
   return R;
 }
@@ -174,7 +180,7 @@ coloredpath operator cast(guide p)
 
 private surface surface(Rmf[] R, coloredpath cp,transform T(real)=
 			new transform(real t) {return identity();},
-			bool cyclic=false)
+			bool cyclic)
 {
   path g=cp.p;
   int l=length(g);
@@ -185,10 +191,7 @@ private surface surface(Rmf[] R, coloredpath cp,transform T(real)=
   surface s;
   path3 sec=path3(T(R[0].reltime)*g);
   real adjust=0;
-  if(cyclic)
-    adjust=degrees(R[0].r,sgn(dot(cross(R[0].t,R[0].r),
-				  cross(R[R.length-1].t,R[R.length-1].r)))
-		   *R[R.length-1].r)/R.length;
+  if(cyclic) adjust=-degrees(R[0],R[R.length-1])/(R.length-1);
   path3 sec1=shift(R[0].p)*transform3(R[0].r,cross(R[0].t,R[0].r),R[0].t)*sec,
     sec2;
 
