@@ -285,12 +285,13 @@ This variable must be modified only using the function 'asy-set-master-tex by M-
   ;; External definitions of keywords:
   ;; asy-function-name and asy-variable-name
   (if (locate-library "asy-keywords.el")
-      (load-library "asy-keywords.el"))
-  ;; Use dummy keyword definitions if asy-keywords.el is not found:
-  (defvar asy-keyword-name nil)
-  (defvar asy-type-name nil)
-  (defvar asy-function-name nil)
-  (defvar asy-variable-name nil)
+      (load "asy-keywords.el")
+    (progn
+      ;; Use dummy keyword definitions if asy-keywords.el is not found:
+      (defvar asy-keyword-name nil)
+      (defvar asy-type-name nil)
+      (defvar asy-function-name nil)
+      (defvar asy-variable-name nil)))
 
   (defcustom asy-extra-type-name '()
     "Extra user type names highlighted with 'font-lock-type-face"
