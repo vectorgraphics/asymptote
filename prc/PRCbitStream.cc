@@ -22,6 +22,7 @@
 #include <zlib.h>
 #include <stdlib.h>
 #include <string.h>
+#include <cassert>
 #include "PRCbitStream.h"
 #include "PRCdouble.h"
 
@@ -166,6 +167,7 @@ PRCbitStream& PRCbitStream::operator <<(double value)
   while(pcofdoe>acofdoe && EXPONENT(pcofdoe->u2uod.Value)==EXPONENT((pcofdoe-1)->u2uod.Value))
     pcofdoe--;
 
+  assert(pcofdoe);
   while(pcofdoe->Type==VT_double)
   {
     if(fabs(value)==pcofdoe->u2uod.Value)
