@@ -700,8 +700,7 @@ setlocal errorformat=%f:\ %l.%c:\ %m
 The following commands are needed to install the latest development version of
 @code{Asymptote} using @acronym{Subversion}:
 @verbatim
-svn co https://asymptote.svn.sourceforge.net/svnroot/asymptote/trunk/asymptote
- 
+svn co http://asymptote.svn.sourceforge.net/svnroot/asymptote/trunk/asymptote
 cd asymptote
 ./autogen.sh
 ./configure
