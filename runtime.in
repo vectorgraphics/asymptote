@@ -3108,6 +3108,7 @@ string format(string *format, real x, string locale=emptystring)
   const char *oldlocale=NULL;
   if(!locale.empty()) {
     oldlocale=setlocale(LC_ALL,NULL);
+    if(oldlocale) oldlocale=StrdupNoGC(oldlocale);
     setlocale(LC_ALL,locale.c_str());
   }
 
@@ -3116,8 +3117,10 @@ string format(string *format, real x, string locale=emptystring)
   char *buf=new char[size];
   snprintf(buf,size,f.c_str(),x);
 
-  if(!locale.empty())
+  if(oldlocale) {
     setlocale(LC_ALL,oldlocale);
+    delete[] oldlocale;
+  }
   
   bool trailingzero=f.find("#") < string::npos;
   bool plus=f.find("+") < string::npos;
