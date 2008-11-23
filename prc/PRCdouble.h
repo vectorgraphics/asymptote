@@ -6,7 +6,11 @@
 
 // from Adobe's documentation
 
+#ifdef BIG_ENDIAN
+#define TF_BIG_ENDIAN
+#else
 #define TF_LITTLE_ENDIAN
+#endif
 
 union ieee754_double
 {

@@ -722,26 +722,27 @@ bool picture::shipout3(const string& prefix, const string& format,
   static bool initialize=true;
   
   if(initialize) {
-  com.prefix=prefix;
-  com.pic=this;
-  com.format=outputformat;
-  com.width=width;
-  com.height=height;
-  com.angle=angle;
-  com.m=m;
-  com.M=M;
-  com.nlights=nlights;
-  com.lights=lights;
-  com.diffuse=diffuse;
-  com.ambient=ambient;
-  com.specular=specular;
-  com.viewportlighting=viewportlighting;
-  com.view=View;
+    initialize=false;
+    
+    com.prefix=prefix;
+    com.pic=this;
+    com.format=outputformat;
+    com.width=width;
+    com.height=height;
+    com.angle=angle;
+    com.m=m;
+    com.M=M;
+    com.nlights=nlights;
+    com.lights=lights;
+    com.diffuse=diffuse;
+    com.ambient=ambient;
+    com.specular=specular;
+    com.viewportlighting=viewportlighting;
+    com.view=View;
   
-  initialize=false;
-  pthread_mutex_lock(&readyLock);
-  pthread_cond_signal(&readySignal);
-  pthread_mutex_unlock(&readyLock);
+    pthread_mutex_lock(&readyLock);
+    pthread_cond_signal(&readySignal);
+    pthread_mutex_unlock(&readyLock);
   } else 
     glrender(prefix.c_str(),this,format,width,height,angle,m,M,
 	     nlights,lights,diffuse,ambient,specular,viewportlighting,view);
