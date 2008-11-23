@@ -38,6 +38,11 @@
  * Copyright (C) Brian Paul
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_LIBGLUT
 
 #include <assert.h>
 #include <math.h>
@@ -486,3 +491,4 @@ void trRasterPos3f(TRcontext *tr, GLfloat x, GLfloat y, GLfloat z)
    }
 }
 
+#endif
