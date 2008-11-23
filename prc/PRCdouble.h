@@ -4,9 +4,13 @@
 #include <cstdlib>
 #include <cmath>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 // from Adobe's documentation
 
-#ifdef BIG_ENDIAN
+#ifdef IS_BIG_ENDIAN
 #define TF_BIG_ENDIAN
 #else
 #define TF_LITTLE_ENDIAN
