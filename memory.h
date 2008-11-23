@@ -37,6 +37,7 @@
   
 #ifdef USEGC
 
+#define GC_THREADS
 #include <gc.h>
 
 #ifdef GC_DEBUG

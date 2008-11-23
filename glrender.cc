@@ -114,9 +114,12 @@ GLUnurbs *nurb;
 
 int window;
   
-sigset_t signalMask;
-pthread_cond_t quitSignal=PTHREAD_COND_INITIALIZER;
+void *glrenderWrapper(void *a);
+pthread_cond_t readySignal=PTHREAD_COND_INITIALIZER;
 pthread_mutex_t readyLock=PTHREAD_MUTEX_INITIALIZER;
+pthread_t mainthread;
+
+pthread_cond_t quitSignal=PTHREAD_COND_INITIALIZER;
 pthread_mutex_t quitLock=PTHREAD_MUTEX_INITIALIZER;
 
 template<class T>
@@ -239,8 +242,6 @@ void update()
 
 void updateHandler(int)
 {
-  if(settings::verbose > 1) 
-    cout << "update:" << pthread_self() << endl;
   glutShowWindow();
   update();
 }
@@ -251,7 +252,6 @@ void reshape(int width, int height)
   if(initialize) {
     initialize=false;
     signal(SIGUSR1,updateHandler);
-    maskSignal(SIG_UNBLOCK);
     pthread_mutex_unlock(&readyLock);
   }
   
@@ -403,20 +403,11 @@ void Export()
   
 void wait()
 {
-  bool verbose=settings::verbose > 1; 
   pthread_mutex_lock(&quitLock);
-  if(verbose)
-    cout << "signal from " << pthread_self() << endl;
   pthread_cond_signal(&quitSignal);
-  if(verbose)
-    cout << "wait in " << pthread_self() << endl;
   pthread_cond_wait(&quitSignal,&quitLock);
-  if(verbose)
-    cout << "signal from " << pthread_self() << endl;
   pthread_cond_signal(&quitSignal);
   pthread_mutex_unlock(&quitLock);
-  if(verbose) 
-    cout << "wait over in " << pthread_self() << endl;
 }
 
 void quit() 
@@ -910,8 +901,6 @@ void init()
     ++argc;
   
   glutInit(&argc,argv);
-  if(settings::verbose > 1) 
-    cout << "init:" << pthread_self() << endl;
 }
 
 // angle=0 means orthographic.
@@ -949,7 +938,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(View && initialized) {
     if(settings::verbose > 1)
       cout << "send SIGUSR1" << endl;
-    kill(0,SIGUSR1); // Request a screen update.
+    pthread_kill(mainthread,SIGUSR1);
     pthread_mutex_unlock(&readyLock);
     return;
   }

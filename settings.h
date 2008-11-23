@@ -18,6 +18,16 @@ namespace types {
   class record;
 }
 
+namespace camp {
+extern void glrenderWrapper();
+}
+
+namespace gl {
+extern pthread_cond_t readySignal;
+extern pthread_mutex_t readyLock;
+extern pthread_t mainthread;
+}
+
 namespace settings {
 extern const char PROGRAM[];
 extern const char VERSION[];

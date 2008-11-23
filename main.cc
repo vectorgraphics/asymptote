@@ -4,6 +4,7 @@
 #include <cerrno>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <pthread.h>
 
 #include "common.h"
 
@@ -86,12 +87,20 @@ void doConfig(string file)
   if(listvariables) Setting("listvariables")=true;
 }
 
-int main(int argc, char *argv[])
+struct Args 
 {
+  int argc;
+  char **argv;
+  Args(int argc, char **argv) : argc(argc), argv(argv) {}
+};
+
+void *asymain(void *A)
+{
+  Args *args=(Args *) A;
   setsignal(signalHandler);
 
   try {
-    setOptions(argc,argv);
+    setOptions(args->argc,args->argv);
   } catch(handled_error) {
     em.statusError();
   }
@@ -116,7 +125,7 @@ int main(int argc, char *argv[])
       processFile(string(getArg(ind)),n > 1);
       try {
         if(ind < n-1)
-          setOptions(argc,argv);
+	  setOptions(args->argc,args->argv);
       } catch(handled_error) {
         em.statusError();
       } 
@@ -127,6 +136,26 @@ int main(int argc, char *argv[])
     int status;
     while(wait(&status) > 0);
   }
-  
-  return em.processStatus() || interact::interactive ? 0 : 1;
+  exit(em.processStatus() || interact::interactive ? 0 : 1);  
 }
+
+using namespace gl;
+
+int main(int argc, char *argv[]) 
+{
+  Args args(argc,argv);
+#ifdef HAVE_LIBGLUT
+  pthread_t thread;
+  if(pthread_create(&thread,NULL,asymain,&args) == 0) {
+    mainthread=pthread_self();
+    pthread_mutex_lock(&readyLock);
+    pthread_cond_wait(&readySignal,&readyLock);
+    pthread_mutex_unlock(&readyLock);
+    camp::glrenderWrapper();
+    return 0;
+  }
+#else  
+    asymain(&args);
+#endif  
+}
+

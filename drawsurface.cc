@@ -258,12 +258,14 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
       } else
 	gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
     }
-    static GLfloat linear[]={0.0,0.0,1.0,1.0};
     static GLfloat bezier[]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
     gluBeginSurface(nurb);
     gluNurbsSurface(nurb,8,bezier,8,bezier,3,12,c,4,4,GL_MAP2_VERTEX_3);
-    if(havecolors)
+    if(havecolors) {
+      static GLfloat linear[]={0.0,0.0,1.0,1.0};
       gluNurbsSurface(nurb,4,linear,4,linear,4,8,colors,2,2,GL_MAP2_COLOR_4);
+    }
+    
     gluEndSurface(nurb);
   } else {
     glBegin(GL_QUADS);

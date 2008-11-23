@@ -671,7 +671,7 @@ void picture::render(GLUnurbs *nurb, double size2,
 }
   
 #ifdef HAVE_LIBGLUT
-struct communicate : public gc {
+struct Communicate : public gc {
   string prefix;
   picture* pic;
   string format;
@@ -689,20 +689,16 @@ struct communicate : public gc {
   bool view;
 };
 
-void *glrenderWrapper(void *a) 
+Communicate com;
+
+void glrenderWrapper()
 {
-  maskSignal(SIG_BLOCK);
-  communicate *c=(communicate *) a;
-  glrender(c->prefix.c_str(),c->pic,c->format,c->width,c->height,
-	   c->angle,c->m,c->M,c->nlights,c->lights,c->diffuse,c->ambient,
-	   c->specular,c->viewportlighting,c->view);
-  delete c;
-  return NULL;
+  glrender(com.prefix.c_str(),com.pic,com.format,com.width,com.height,com.angle,
+	   com.m,com.M,com.nlights,com.lights,com.diffuse,com.ambient,
+	   com.specular,com.viewportlighting,com.view);
 }
 
 #endif
-
-static pthread_t *thread=NULL;
 
 bool picture::shipout3(const string& prefix, const string& format,
 		       double width, double height,
@@ -723,60 +719,36 @@ bool picture::shipout3(const string& prefix, const string& format,
     getSetting<string>("outformat") : format;
   bool View=settings::view() && view;
   
-  communicate *com=new communicate;
-
-  com->prefix=prefix;
-  com->pic=this;
-  com->format=outputformat;
-  com->width=width;
-  com->height=height;
-  com->angle=angle;
-  com->m=m;
-  com->M=M;
-  com->nlights=nlights;
-  com->lights=lights;
-  com->diffuse=diffuse;
-  com->ambient=ambient;
-  com->specular=specular;
-  com->viewportlighting=viewportlighting;
-  com->view=View;
-  
-  static bool main=false;
   static bool initialize=true;
   
-  if(main)
-    main=false;
-  else {
-    if(thread != NULL) {
-      pthread_join(*thread,NULL);
-      delete thread;
-    }
-    thread=new pthread_t;
-  }
-  
   if(initialize) {
-    sigemptyset(&signalMask);
-    sigaddset(&signalMask,SIGUSR1);
-    initialize=false;
-    main=true;
-  }
+  com.prefix=prefix;
+  com.pic=this;
+  com.format=outputformat;
+  com.width=width;
+  com.height=height;
+  com.angle=angle;
+  com.m=m;
+  com.M=M;
+  com.nlights=nlights;
+  com.lights=lights;
+  com.diffuse=diffuse;
+  com.ambient=ambient;
+  com.specular=specular;
+  com.viewportlighting=viewportlighting;
+  com.view=View;
   
-  if(pthread_create(thread,NULL,glrenderWrapper,com) != 0)
-    reportError("Cannot create thread");
+  initialize=false;
+  pthread_mutex_lock(&readyLock);
+  pthread_cond_signal(&readySignal);
+  pthread_mutex_unlock(&readyLock);
+  } else 
+    glrender(prefix.c_str(),this,format,width,height,angle,m,M,
+	     nlights,lights,diffuse,ambient,specular,viewportlighting,view);
   
-  if(main) {	
-    if(View)
-      maskSignal(SIG_BLOCK);
-  }
-  
-  if(View) {
-    if(!interact::interactive)
+  if(View && !interact::interactive)
       wait();
-  } else {
-    pthread_join(*thread,NULL);
-    delete thread;
-  }
-
+  
 #else
   reportError("Cannot render image; please install glut, run ./configure, and recompile"); 
 #endif

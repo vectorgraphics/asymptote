@@ -46,7 +46,6 @@ inline void store(GLfloat *control, const camp::triple& v)
   control[1]=v.gety();
   control[2]=v.getz();
 }
-
 }
 
 namespace gl {
@@ -58,17 +57,10 @@ void glrender(const string& prefix, const camp::picture* pic,
 	      double *ambient, double *specular, bool viewportlighting,
 	      bool view);
 
-extern sigset_t signalMask;
 extern pthread_cond_t quitSignal;
 extern pthread_mutex_t quitLock;
-extern pthread_mutex_t readyLock;
 
 void wait();
-
-inline void maskSignal(int how) 
-{
-  pthread_sigmask(how,&signalMask,NULL);
-}
 
 }
 
