@@ -115,12 +115,13 @@ GLUnurbs *nurb;
 int window;
   
 void *glrenderWrapper(void *a);
-pthread_cond_t readySignal=PTHREAD_COND_INITIALIZER;
-pthread_mutex_t readyLock=PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t initSignal=PTHREAD_COND_INITIALIZER;
+pthread_mutex_t initLock=PTHREAD_MUTEX_INITIALIZER;
 pthread_t mainthread;
 
 pthread_cond_t quitSignal=PTHREAD_COND_INITIALIZER;
 pthread_mutex_t quitLock=PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t readyLock=PTHREAD_MUTEX_INITIALIZER;
 
 template<class T>
 inline T min(T a, T b)
@@ -401,20 +402,20 @@ void Export()
   setProjection();
 }
   
-void wait()
+void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
 {
-  pthread_mutex_lock(&quitLock);
-  pthread_cond_signal(&quitSignal);
-  pthread_cond_wait(&quitSignal,&quitLock);
-  pthread_cond_signal(&quitSignal);
-  pthread_mutex_unlock(&quitLock);
+  pthread_mutex_lock(&lock);
+  pthread_cond_signal(&signal);
+  pthread_cond_wait(&signal,&lock);
+  pthread_cond_signal(&signal);
+  pthread_mutex_unlock(&lock);
 }
 
 void quit() 
 {
   glutHideWindow();
   if(View && !interact::interactive)
-    wait();
+    wait(quitSignal,quitLock);
 }
 
 void display()

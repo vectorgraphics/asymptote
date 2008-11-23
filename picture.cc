@@ -739,16 +739,13 @@ bool picture::shipout3(const string& prefix, const string& format,
     com.specular=specular;
     com.viewportlighting=viewportlighting;
     com.view=View;
-  
-    pthread_mutex_lock(&readyLock);
-    pthread_cond_signal(&readySignal);
-    pthread_mutex_unlock(&readyLock);
+    gl::wait(initSignal,initLock);
   } else 
     glrender(prefix.c_str(),this,format,width,height,angle,m,M,
 	     nlights,lights,diffuse,ambient,specular,viewportlighting,view);
   
   if(View && !interact::interactive)
-      wait();
+    gl::wait(quitSignal,quitLock);
   
 #else
   reportError("Cannot render image; please install glut, run ./configure, and recompile"); 

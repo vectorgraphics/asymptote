@@ -59,9 +59,7 @@ void glrender(const string& prefix, const camp::picture* pic,
 
 extern pthread_cond_t quitSignal;
 extern pthread_mutex_t quitLock;
-
-void wait();
-
+extern pthread_mutex_t readyLock;
 }
 
 #else

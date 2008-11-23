@@ -148,9 +148,7 @@ int main(int argc, char *argv[])
   pthread_t thread;
   if(pthread_create(&thread,NULL,asymain,&args) == 0) {
     mainthread=pthread_self();
-    pthread_mutex_lock(&readyLock);
-    pthread_cond_wait(&readySignal,&readyLock);
-    pthread_mutex_unlock(&readyLock);
+    wait(initSignal,initLock);
     camp::glrenderWrapper();
     return 0;
   }

@@ -19,13 +19,14 @@ namespace types {
 }
 
 namespace camp {
-extern void glrenderWrapper();
+void glrenderWrapper();
 }
 
 namespace gl {
-extern pthread_cond_t readySignal;
-extern pthread_mutex_t readyLock;
+extern pthread_cond_t initSignal;
+extern pthread_mutex_t initLock;
 extern pthread_t mainthread;
+void wait(pthread_cond_t& signal, pthread_mutex_t& lock);
 }
 
 namespace settings {
@@ -39,7 +40,7 @@ extern const string docdir;
   
 extern bool safe;
   
-extern bool globalwrite();
+bool globalwrite();
 
 enum origin {CENTER,BOTTOM,TOP,ZERO};
   
