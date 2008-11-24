@@ -14,6 +14,10 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_LIBPTHREAD
+#include <pthread.h>
+#endif
+
 #include "memory.h"
 
 #if defined(HAVE_LONG_LONG) && defined(LONG_LONG_MAX) && defined(LONG_LONG_MIN)

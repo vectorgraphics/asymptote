@@ -18,6 +18,7 @@ namespace types {
   class record;
 }
 
+#ifdef HAVE_LIBPTHREAD
 namespace camp {
 void glrenderWrapper();
 }
@@ -28,6 +29,7 @@ extern pthread_mutex_t initLock;
 extern pthread_t mainthread;
 void wait(pthread_cond_t& signal, pthread_mutex_t& lock);
 }
+#endif
 
 namespace settings {
 extern const char PROGRAM[];

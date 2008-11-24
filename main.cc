@@ -4,7 +4,6 @@
 #include <cerrno>
 #include <sys/wait.h>
 #include <sys/types.h>
-#include <pthread.h>
 
 #include "common.h"
 
@@ -139,20 +138,19 @@ void *asymain(void *A)
   exit(em.processStatus() || interact::interactive ? 0 : 1);  
 }
 
-using namespace gl;
-
 int main(int argc, char *argv[]) 
 {
   Args args(argc,argv);
 #ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBPTHREAD  
   pthread_t thread;
   if(pthread_create(&thread,NULL,asymain,&args) == 0) {
-    mainthread=pthread_self();
-    wait(initSignal,initLock);
+    gl::mainthread=pthread_self();
+    gl::wait(gl::initSignal,gl::initLock);
     camp::glrenderWrapper();
-  }
-#else  
-    asymain(&args);
+  } else
+#endif
 #endif  
+    asymain(&args);
 }
 

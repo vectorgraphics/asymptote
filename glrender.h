@@ -11,7 +11,6 @@
 #ifdef HAVE_LIBGLUT
 
 #include <csignal>
-#include <pthread.h>
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
@@ -55,11 +54,15 @@ void glrender(const string& prefix, const camp::picture* pic,
 	      double angle, const camp::triple& m, const camp::triple& M,
 	      size_t nlights, camp::triple *lights, double *diffuse,
 	      double *ambient, double *specular, bool viewportlighting,
-	      bool view);
+	      bool view, int oldpid=0);
 
+#ifdef HAVE_LIBPTHREAD
 extern pthread_cond_t quitSignal;
 extern pthread_mutex_t quitLock;
+
+extern pthread_cond_t readySignal;
 extern pthread_mutex_t readyLock;
+#endif
 }
 
 #else

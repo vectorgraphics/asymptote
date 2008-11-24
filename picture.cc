@@ -693,7 +693,7 @@ Communicate com;
 
 void glrenderWrapper()
 {
-  glrender(com.prefix.c_str(),com.pic,com.format,com.width,com.height,com.angle,
+  glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
 	   com.m,com.M,com.nlights,com.lights,com.diffuse,com.ambient,
 	   com.specular,com.viewportlighting,com.view);
 }
@@ -718,7 +718,9 @@ bool picture::shipout3(const string& prefix, const string& format,
   const string outputformat=format.empty() ? 
     getSetting<string>("outformat") : format;
   bool View=settings::view() && view;
+  static int oldpid=0;
   
+#ifdef HAVE_LIBPTHREAD    
   static bool initialize=true;
   
   if(initialize) {
@@ -739,13 +741,30 @@ bool picture::shipout3(const string& prefix, const string& format,
     com.specular=specular;
     com.viewportlighting=viewportlighting;
     com.view=View;
-    gl::wait(initSignal,initLock);
-  } else 
-    glrender(prefix.c_str(),this,format,width,height,angle,m,M,
-	     nlights,lights,diffuse,ambient,specular,viewportlighting,view);
+    wait(initSignal,initLock);
+  } else {
+#else
+  int pid=fork();
+  if(pid == -1)
+    camp::reportError("Cannot fork process");
+  if(pid != 0)  {
+    oldpid=pid;
+    waitpid(-1,NULL,interact::interactive ? WNOHANG : 0);
+    return true;
+  }
+#endif
+  glrender(prefix,this,outputformat,width,height,angle,m,M,
+	   nlights,lights,diffuse,ambient,specular,viewportlighting,View,
+	   oldpid);
+#ifdef HAVE_LIBPTHREAD  
+  }
   
-  if(View && !interact::interactive)
-    gl::wait(quitSignal,quitLock);
+  if(!View)
+    wait(readySignal,readyLock);
+  
+  if(!interact::interactive)
+    wait(quitSignal,quitLock);
+#endif
   
 #else
   reportError("Cannot render image; please install glut, run ./configure, and recompile"); 

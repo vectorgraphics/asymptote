@@ -115,13 +115,34 @@ GLUnurbs *nurb;
 int window;
   
 void *glrenderWrapper(void *a);
+
+#ifdef HAVE_LIBPTHREAD
+pthread_t mainthread;
+
 pthread_cond_t initSignal=PTHREAD_COND_INITIALIZER;
 pthread_mutex_t initLock=PTHREAD_MUTEX_INITIALIZER;
-pthread_t mainthread;
 
 pthread_cond_t quitSignal=PTHREAD_COND_INITIALIZER;
 pthread_mutex_t quitLock=PTHREAD_MUTEX_INITIALIZER;
+
+pthread_cond_t readySignal=PTHREAD_COND_INITIALIZER;
 pthread_mutex_t readyLock=PTHREAD_MUTEX_INITIALIZER;
+#endif
+
+inline void lock() 
+{
+#ifdef HAVE_LIBPTHREAD
+  pthread_mutex_lock(&readyLock);
+#endif  
+}
+
+inline void unlock() 
+{
+#ifdef HAVE_LIBPTHREAD
+  pthread_mutex_unlock(&readyLock);
+#endif  
+
+}
 
 template<class T>
 inline T min(T a, T b)
@@ -241,80 +262,6 @@ void update()
   glutPostRedisplay();
 }
 
-void updateHandler(int)
-{
-  glutShowWindow();
-  update();
-}
-
-void reshape(int width, int height)
-{
-  static bool initialize=true;
-  if(initialize) {
-    initialize=false;
-    signal(SIGUSR1,updateHandler);
-    pthread_mutex_unlock(&readyLock);
-  }
-  
-  if(capsize(width,height))
-    glutReshapeWindow(width,height);
- 
-  reshape0(width,height);
-}
-  
-void windowposition(int& x, int& y, int width=Width, int height=Height)
-{
-  pair z=getSetting<pair>("position");
-  x=(int) z.getx();
-  y=(int) z.gety();
-  if(x < 0) {
-    x += screenWidth-width;
-    if(x < 0) x=0;
-  }
-  if(y < 0) {
-    y += screenHeight-height;
-    if(y < 0) y=0;
-  }
-}
-
-void setsize(int w, int h, int minsize=0)
-{
-  int x,y;
-  
-  if(minsize) {
-    if(w < minsize) {
-      h=(int) (h*(double) minsize/w+0.5);
-      w=minsize;
-    }
-  
-    if(h < minsize) {
-      w=(int) (w*(double) minsize/h+0.5);
-      h=minsize;
-    }
-  }
-  
-  capsize(w,h);
-  windowposition(x,y,w,h);
-  glutPositionWindow(x,y);
-  glutReshapeWindow(w,h);
-  reshape0(w,h);
-  glutPostRedisplay();
-}
-
-void fullscreen() 
-{
-  Width=screenWidth;
-  Height=screenHeight;
-#ifdef __CYGWIN__
-  glutFullScreen();
-#else
-  glutPositionWindow(0,0);
-  glutReshapeWindow(Width,Height);
-  reshape0(Width,Height);
-  glutPostRedisplay();
-#endif    
-}
-
 void drawscene(double Width, double Height)
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -402,6 +349,92 @@ void Export()
   setProjection();
 }
   
+void LockedExport()
+{
+  if(interact::interactive)
+    lock();
+  Export();
+  if(interact::interactive)
+    unlock();
+}
+
+void updateHandler(int)
+{
+  glutShowWindow();
+  update();
+}
+
+void reshape(int width, int height)
+{
+#ifdef HAVE_LIBPTHREAD  
+  static bool initialize=true;
+  if(initialize) {
+    initialize=false;
+    signal(SIGUSR1,updateHandler);
+    unlock();
+  }
+#endif  
+  
+  if(capsize(width,height))
+    glutReshapeWindow(width,height);
+ 
+  reshape0(width,height);
+}
+  
+void windowposition(int& x, int& y, int width=Width, int height=Height)
+{
+  pair z=getSetting<pair>("position");
+  x=(int) z.getx();
+  y=(int) z.gety();
+  if(x < 0) {
+    x += screenWidth-width;
+    if(x < 0) x=0;
+  }
+  if(y < 0) {
+    y += screenHeight-height;
+    if(y < 0) y=0;
+  }
+}
+
+void setsize(int w, int h, int minsize=0)
+{
+  int x,y;
+  
+  if(minsize) {
+    if(w < minsize) {
+      h=(int) (h*(double) minsize/w+0.5);
+      w=minsize;
+    }
+  
+    if(h < minsize) {
+      w=(int) (w*(double) minsize/h+0.5);
+      h=minsize;
+    }
+  }
+  
+  capsize(w,h);
+  windowposition(x,y,w,h);
+  glutPositionWindow(x,y);
+  glutReshapeWindow(w,h);
+  reshape0(w,h);
+  glutPostRedisplay();
+}
+
+void fullscreen() 
+{
+  Width=screenWidth;
+  Height=screenHeight;
+#ifdef __CYGWIN__
+  glutFullScreen();
+#else
+  glutPositionWindow(0,0);
+  glutReshapeWindow(Width,Height);
+  reshape0(Width,Height);
+  glutPostRedisplay();
+#endif    
+}
+
+#ifdef HAVE_LIBPTHREAD
 void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
 {
   pthread_mutex_lock(&lock);
@@ -410,18 +443,24 @@ void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
   pthread_cond_signal(&signal);
   pthread_mutex_unlock(&lock);
 }
+#endif
 
 void quit() 
 {
+#ifdef HAVE_LIBPTHREAD  
   glutHideWindow();
-  if(View && !interact::interactive)
+  if(!interact::interactive)
     wait(quitSignal,quitLock);
+#else
+  glutDestroyWindow(window);
+  exit(0);
+#endif
 }
 
 void display()
 {
   if(interact::interactive)
-    pthread_mutex_lock(&readyLock);
+    lock();
   drawscene(Width,Height);
   glutSwapBuffers();
   if(queueExport) {
@@ -429,7 +468,13 @@ void display()
     queueExport=false;
   }
   if(interact::interactive)
-    pthread_mutex_unlock(&readyLock);
+    unlock();
+#ifndef HAVE_LIBPTHREAD  
+  if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
+    kill(Oldpid,SIGHUP);
+    Oldpid=0;
+  }
+#endif  
 }
 
 void move(int x, int y)
@@ -791,15 +836,6 @@ void home()
   lastzoom=Zoom=1.0;
 }
 
-void LockedExport()
-{
-  if(interact::interactive)
-    pthread_mutex_lock(&readyLock);
-  Export();
-  if(interact::interactive)
-    pthread_mutex_unlock(&readyLock);
-}
-
 void keyboard(unsigned char key, int x, int y)
 {
   switch(key) {
@@ -902,6 +938,9 @@ void init()
     ++argc;
   
   glutInit(&argc,argv);
+  
+  screenWidth=glutGet(GLUT_SCREEN_WIDTH);
+  screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
 }
 
 // angle=0 means orthographic.
@@ -910,14 +949,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 	      double angle, const triple& m, const triple& M,
 	      size_t nlights, triple *lights, double *diffuse,
 	      double *ambient, double *specular, bool Viewportlighting,
-	      bool view)
+	      bool view, int oldpid)
 {
   if(width <= 0 || height <= 0) return;
   
-  static bool initialized=false;
-  
-  if(View)
-    pthread_mutex_lock(&readyLock);
+  if(view) lock();
     
   Prefix=prefix;
   Picture=pic;
@@ -927,7 +963,14 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Diffuse=diffuse;
   Ambient=ambient;
   Specular=specular;
-    
+  ViewportLighting=Viewportlighting;
+  View=view;
+  Oldpid=oldpid;
+  
+  static bool initialized=false;
+  if(!initialized)
+    init();
+  
   Xmin=m.getx();
   Xmax=M.getx();
   Ymin=m.gety();
@@ -936,22 +979,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   zmax=M.getz();
   H=angle != 0.0 ? -tan(0.5*angle*radians)*zmax : 0.0;
    
-  if(View && initialized) {
-    if(settings::verbose > 1)
-      cout << "send SIGUSR1" << endl;
-    pthread_kill(mainthread,SIGUSR1);
-    pthread_mutex_unlock(&readyLock);
-    return;
-  }
-  
-  View=view;
-  ViewportLighting=Viewportlighting;
-  
-  if(!initialized) {
-    init();
-    initialized=true;
-  }
-  
   Menu=false;
   Motion=true;
   Fitscreen=1;
@@ -964,9 +991,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       ? -2.0 : -1.0;
   if(antialias) expand *= 2.0;
   
-  screenWidth=glutGet(GLUT_SCREEN_WIDTH);
-  screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
-  
   // Force a hard viewport limit to work around direct rendering bugs.
   // Alternatively, one can use -glOptions=-indirect (with a performance
   // penalty).
@@ -978,6 +1002,44 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(screenWidth <= 0) screenWidth=maxWidth;
   if(screenHeight <= 0) screenHeight=maxHeight;
   
+  oWidth=width;
+  oHeight=height;
+  Aspect=width/height;
+  
+  fullWidth=(int) ceil(expand*width);
+  fullHeight=(int) ceil(expand*height);
+  
+  Width=min(fullWidth,screenWidth);
+  Height=min(fullHeight,screenHeight);
+  
+  if(Width > Height*Aspect) 
+    Width=min((int) (ceil(Height*Aspect)),screenWidth);
+  else 
+    Height=min((int) (ceil(Width/Aspect)),screenHeight);
+  
+  Aspect=((double) Width)/Height;
+  
+  pair maxtile=getSetting<pair>("maxtile");
+  maxTileWidth=(int) maxtile.getx();
+  maxTileHeight=(int) maxtile.gety();
+  if(maxTileWidth <= 0) maxTileWidth=screenWidth;
+  if(maxTileHeight <= 0) maxTileHeight=screenHeight;
+  
+  if(View && settings::verbose > 1) 
+    cout << "Rendering " << prefix << " as " << Width << "x" << Height
+	 << " image" << endl;
+
+#ifdef HAVE_LIBPTHREAD
+  if(initialized) {
+    if(View) {
+      pthread_kill(mainthread,SIGUSR1);
+      unlock();
+    }
+    return;
+  }
+#endif    
+  
+  initialized=true;
   unsigned int displaymode=GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH;
   
   if(View) {
@@ -985,9 +1047,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     windowposition(x,y);
     glutInitWindowPosition(x,y);
     glutInitWindowSize(1,1);
-    setosize();
-    if(!getSetting<bool>("fitscreen"))
-      Fitscreen=0;
     Int multisample=getSetting<Int>("multisample");
     if(multisample <= 1) multisample=0;
     if(multisample)
@@ -1025,32 +1084,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       if(settings::verbose > 1 && samples > 1)
 	cout << "Multisampling enabled with sample width " << samples << endl;
     }
-  }
-  
-  oWidth=width;
-  oHeight=height;
-  Aspect=width/height;
-  
-  fullWidth=(int) ceil(expand*width);
-  fullHeight=(int) ceil(expand*height);
-  
-  Width=min(fullWidth,screenWidth);
-  Height=min(fullHeight,screenHeight);
-  
-  if(Width > Height*Aspect) 
-    Width=min((int) (ceil(Height*Aspect)),screenWidth);
-  else 
-    Height=min((int) (ceil(Width/Aspect)),screenHeight);
-  
-  Aspect=((double) Width)/Height;
-  
-  pair maxtile=getSetting<pair>("maxtile");
-  maxTileWidth=(int) maxtile.getx();
-  maxTileHeight=(int) maxtile.gety();
-  if(maxTileWidth <= 0) maxTileWidth=screenWidth;
-  if(maxTileHeight <= 0) maxTileHeight=screenHeight;
-  
-  if(!View) {
+  } else {
     glutInitWindowSize(maxTileWidth,maxTileHeight);
     glutInitDisplayMode(displaymode);
     window=glutCreateWindow("");
@@ -1063,8 +1097,12 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glMatrixMode(GL_MODELVIEW);
   home();
   
-  if(View)
+  if(View) {
+    setosize();
+    if(!getSetting<bool>("fitscreen"))
+      Fitscreen=0;
     fitscreen();
+  }
   setosize();
   
   glEnable(GL_DEPTH_TEST);
@@ -1096,10 +1134,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     lighting();
   
   if(View) {
-    if(settings::verbose > 1) 
-      cout << "Rendering " << prefix << " as " << Width << "x" << Height
-	   << " image" << endl;
-    
     glutReshapeFunc(reshape);
     glutDisplayFunc(display);
     glutKeyboardFunc(keyboard);
@@ -1119,8 +1153,18 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutAttachMenu(GLUT_MIDDLE_BUTTON);
 
     glutMainLoop();
-  } else
+  } else {
+#ifdef HAVE_LIBPTHREAD    
+    while(true) {
+      wait(readySignal,readyLock);
+      Export();
+      wait(quitSignal,quitLock);
+    }
+#else    
     Export();
+    quit();
+#endif    
+  }
 }
 
 } // namespace gl
