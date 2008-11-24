@@ -7,8 +7,9 @@ AC_INIT([Asymptote],[1.52svn],[http://sourceforge.net/projects/asymptote])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 
-AC_C_BIGENDIAN(AC_DEFINE(IS_BIG_ENDIAN, 1,
-			   [Define if words are stored with the most significant byte first]),)
+AC_C_BIGENDIAN(AC_DEFINE(WORDS_BIG_ENDIAN, 1,
+			   [Define if words are stored with the most significant byte first.]),AC_DEFINE(WORDS_LITTLE_ENDIAN, 1 ,
+			   [Define if words are stored with the least significant byte first.]))
 
 test "$prefix" = NONE && prefix=/usr/local
 Datadir=$datadir

@@ -22,7 +22,7 @@ int stCOFDOECompare(const void* pcofdoe1,const void* pcofdoe2)
       EXPONENT(((const struct sCodageOfFrequentDoubleOrExponent *)pcofdoe2)->u2uod.Value));
 }
 
-#if defined(TF_BIG_ENDIAN)
+#if defined(WORDS_BIG_ENDIAN)
 void *memrchr(const void *buf,int c,size_t count)
 {
   unsigned char

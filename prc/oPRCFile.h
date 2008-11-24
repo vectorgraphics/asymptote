@@ -26,6 +26,10 @@
 #include <vector>
 #include <string>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "PRC.h"
 #include "PRCbitStream.h"
 #include "writePRC.h"

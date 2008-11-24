@@ -198,9 +198,9 @@ PRCbitStream& PRCbitStream::operator <<(double value)
 
   writeBit(1);
 
-#if defined(TF_LITTLE_ENDIAN)
+#if defined(WORDS_LITTLE_ENDIAN)
   pb=((PRCbyte *)&value)+6;
-#elif defined(TF_BIG_ENDIAN)
+#elif defined(WORDS_BIG_ENDIAN)
   pb=((PRCbyte *)&value)+1;
 #endif
   //add_bits((*pb)&0x0f,4 STAT_V STAT_DOUBLE);
@@ -208,10 +208,10 @@ PRCbitStream& PRCbitStream::operator <<(double value)
 
   NEXTBYTE(pb);
   pbStart=pb;
-#if defined(TF_LITTLE_ENDIAN)
+#if defined(WORDS_LITTLE_ENDIAN)
   pbEnd=
   pbStop= ((PRCbyte *)&value);
-#elif defined(TF_BIG_ENDIAN)
+#elif defined(WORDS_BIG_ENDIAN)
   pbEnd=
   pbStop= ((PRCbyte *)(&value+1))-1;
 #endif

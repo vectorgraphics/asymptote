@@ -557,10 +557,24 @@ void makeAppUUID(uint32_t *UUID)
   UUID[0] = UUID[1] = UUID[2] = UUID[3] = 0;
 }
 
+void writeUINT32_T(std::ostream &out, uint32_t data)
+{
+#ifdef WORDS_BIG_ENDIAN
+  out.write(((char*)&data)+3,1);
+  out.write(((char*)&data)+2,1);
+  out.write(((char*)&data)+1,1);
+  out.write(((char*)&data)+0,1);
+#elif WORDS_LITTLE_ENDIAN
+  out.write(((char*)&data)+0,1);
+  out.write(((char*)&data)+1,1);
+  out.write(((char*)&data)+2,1);
+  out.write(((char*)&data)+3,1);
+#endif
+}
 
 void PRCUncompressedFile::write(std::ostream &out)
 {
-  out.write((char*)&file_size,sizeof(file_size));
+  writeUINT32_T(out,file_size);
   out.write((char*)data,file_size);
 }
 
@@ -573,10 +587,17 @@ uint32_t PRCUncompressedFile::getSize()
 void PRCStartHeader::write(std::ostream &out)
 {
   out.write("PRC",3);
-  out.write((char*)&minimal_version_for_read,sizeof(minimal_version_for_read));
-  out.write((char*)&authoring_version,sizeof(authoring_version));
-  out.write((char*)fileStructureUUID,sizeof(fileStructureUUID));
-  out.write((char*)applicationUUID,sizeof(applicationUUID));
+  writeUINT32_T(out,minimal_version_for_read);
+  writeUINT32_T(out,authoring_version);
+  writeUINT32_T(out,fileStructureUUID[0]);
+  writeUINT32_T(out,fileStructureUUID[1]);
+  writeUINT32_T(out,fileStructureUUID[2]);
+  writeUINT32_T(out,fileStructureUUID[3]);
+
+  writeUINT32_T(out,applicationUUID[0]);
+  writeUINT32_T(out,applicationUUID[1]);
+  writeUINT32_T(out,applicationUUID[2]);
+  writeUINT32_T(out,applicationUUID[3]);
 }
 
 uint32_t PRCStartHeader::getSize()
@@ -588,7 +609,7 @@ uint32_t PRCStartHeader::getSize()
 void PRCFileStructure::write(std::ostream &out)
 {
   header.write(out);
-  out.write((char*)&number_of_uncompressed_files,sizeof(number_of_uncompressed_files));
+  writeUINT32_T(out,number_of_uncompressed_files);
   for(uint32_t i = 0; i < number_of_uncompressed_files; ++i)
   {
     uncompressedFiles[i].write(out);
@@ -636,12 +657,16 @@ uint32_t PRCFileStructure::getSize()
 
 void PRCFileStructureInformation::write(std::ostream &out)
 {
-  out.write((char*)UUID,sizeof(UUID));
-  out.write((char*)&reserved,sizeof(reserved));
-  out.write((char*)&number_of_offsets,sizeof(number_of_offsets));
+  writeUINT32_T(out,UUID[0]);
+  writeUINT32_T(out,UUID[1]);
+  writeUINT32_T(out,UUID[2]);
+  writeUINT32_T(out,UUID[3]);
+
+  writeUINT32_T(out,reserved);
+  writeUINT32_T(out,number_of_offsets);
   for(uint32_t i = 0; i < number_of_offsets; ++i)
   {
-    out.write((char*)(offsets+i),sizeof(uint32_t));
+    writeUINT32_T(out,offsets[i]);
   }
 }
 
@@ -653,14 +678,14 @@ uint32_t PRCFileStructureInformation::getSize()
 void PRCHeader::write(std::ostream &out)
 {
   startHeader.write(out);
-  out.write((char*)&number_of_file_structures,sizeof(number_of_file_structures));
+  writeUINT32_T(out,number_of_file_structures);
   for(uint32_t i = 0; i < number_of_file_structures; ++i)
   {
     fileStructureInformation[i].write(out);
   }
-  out.write((char*)&model_file_offset,sizeof(model_file_offset));
-  out.write((char*)&file_size,sizeof(file_size));
-  out.write((char*)&number_of_uncompressed_files,sizeof(number_of_uncompressed_files));
+  writeUINT32_T(out,model_file_offset);
+  writeUINT32_T(out,file_size);
+  writeUINT32_T(out,number_of_uncompressed_files);
   for(uint32_t i = 0; i < number_of_uncompressed_files; ++i)
   {
     uncompressedFiles[i].write(out);

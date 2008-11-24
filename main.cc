@@ -150,7 +150,6 @@ int main(int argc, char *argv[])
     mainthread=pthread_self();
     wait(initSignal,initLock);
     camp::glrenderWrapper();
-    return 0;
   }
 #else  
     asymain(&args);
