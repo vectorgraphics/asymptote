@@ -358,29 +358,6 @@ void LockedExport()
     unlock();
 }
 
-void updateHandler(int)
-{
-  glutShowWindow();
-  update();
-}
-
-void reshape(int width, int height)
-{
-#ifdef HAVE_LIBPTHREAD  
-  static bool initialize=true;
-  if(initialize) {
-    initialize=false;
-    signal(SIGUSR1,updateHandler);
-    unlock();
-  }
-#endif  
-  
-  if(capsize(width,height))
-    glutReshapeWindow(width,height);
- 
-  reshape0(width,height);
-}
-  
 void windowposition(int& x, int& y, int width=Width, int height=Height)
 {
   pair z=getSetting<pair>("position");
@@ -434,6 +411,63 @@ void fullscreen()
 #endif    
 }
 
+void fitscreen() 
+{
+  switch(Fitscreen) {
+    case 0: // Original size
+    {
+      setsize(oldWidth,oldHeight,minimumsize);
+      break;
+    }
+    case 1: // Fit to screen in one dimension
+    {       
+      oldWidth=Width;
+      oldHeight=Height;
+      int w=screenWidth;
+      int h=screenHeight;
+      if(w >= h*Aspect) w=(int) (h*Aspect+0.5);
+      else h=(int) (w/Aspect+0.5);
+      setsize(w,h,minimumsize);
+      break;
+    }
+    case 2: // Full screen
+    {
+      fullscreen();
+      break;
+    }
+  }
+}
+
+void togglefitscreen() 
+{
+  ++Fitscreen;
+  if(Fitscreen > 2) Fitscreen=0;
+  fitscreen();
+}
+
+void updateHandler(int)
+{
+  fitscreen();
+  glutShowWindow();
+}
+
+void reshape(int width, int height)
+{
+#ifdef HAVE_LIBPTHREAD  
+  static bool initialize=true;
+  if(initialize) {
+    initialize=false;
+    signal(SIGUSR1,updateHandler);
+    unlock();
+  }
+#endif  
+  
+  if(capsize(width,height))
+    glutReshapeWindow(width,height);
+ 
+  reshape0(width,height);
+}
+  
 #ifdef HAVE_LIBPTHREAD
 void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
 {
@@ -725,36 +759,6 @@ void shrink()
 	  max((int) (Height/resizeStep+0.5),1));
 }
 
-void fitscreen() 
-{
-  switch(Fitscreen) {
-    case 0: // Original size
-    {
-      setsize(oldWidth,oldHeight,minimumsize);
-      ++Fitscreen;
-      break;
-    }
-    case 1: // Fit to screen in one dimension
-    {       
-      oldWidth=Width;
-      oldHeight=Height;
-      int w=screenWidth;
-      int h=screenHeight;
-      if(w >= h*Aspect) w=(int) (h*Aspect+0.5);
-      else h=(int) (w/Aspect+0.5);
-      setsize(w,h,minimumsize);
-      ++Fitscreen;
-      break;
-    }
-    case 2: // Full screen
-    {
-      fullscreen();
-      Fitscreen=0;
-      break;
-    }
-  }
-}
-
 void idleFunc(void (*f)())
 {
   initTimer();
@@ -844,7 +848,7 @@ void keyboard(unsigned char key, int x, int y)
       update();
       break;
     case 'f':
-      fitscreen();
+      togglefitscreen();
       break;
     case 'x':
       spinx();
@@ -892,7 +896,7 @@ void menu(int choice)
       update();
       break;
     case FITSCREEN:
-      fitscreen();
+      togglefitscreen();
       break;
     case XSPIN:
       spinx();
@@ -1025,6 +1029,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(maxTileWidth <= 0) maxTileWidth=screenWidth;
   if(maxTileHeight <= 0) maxTileHeight=screenHeight;
   
+  setosize();
+  
   if(View && settings::verbose > 1) 
     cout << "Rendering " << prefix << " as " << Width << "x" << Height
 	 << " image" << endl;
@@ -1098,12 +1104,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   home();
   
   if(View) {
-    setosize();
     if(!getSetting<bool>("fitscreen"))
       Fitscreen=0;
     fitscreen();
+    setosize();
   }
-  setosize();
   
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_MAP1_VERTEX_3);
