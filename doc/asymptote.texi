@@ -7843,6 +7843,73 @@ struct skeleton {
 }
 @end verbatim
 
+@node tube
+@section @code{tube}
+@cindex @code{tube}
+This package extends the default routine @code{tube} in order to use
+arbitrary cross sections, colors and transformations of tube's
+components along the tubed curve.
+The routine @code{tube} provided by this package is as follow, where
+@code{coloredpath} is described further and can be replaced by a
+@code{path} through casting.
+@verbatim
+surface tube(path3 g, coloredpath section,
+             transform T(real)=new transform(real t) {return identity();},
+             real corner=1, real relstep=0)
+@end verbatim
+Draw a tube along @code{g} with the cross section @code{section} to
+which is applied the transformation @code{T(t)} at @code{relpoint(g,t)}.
+
+The parameter @code{corner} controls the number of elementary tubes at
+the angular points of @code{g}. If the parameter @code{relstep} is nonzero,
+its value represents the fixed step of the relative time (in the meaning of
+@code{relpoint(g,t)}) to construct the elementary tubes along @code{g}.
+
+The new type @code{coloredpath} defined by this package, and only used as cross
+section of tubes, has this simplified structure:
+@verbatim
+struct coloredpath
+{
+  path p;
+  pen[] pens(real);
+  int colortype=coloredSegments;
+}
+@end verbatim
+
+The property @code{p} is the cross section, the method @code{pens(real
+t)} returns an array of pens (becomes automatically cyclic) used for
+shading the tube's patches at @code{relpoint(g,t)}. The shading mode
+depends to the value of @code{colortype}; if
+@code{colortype=coloredSegments} the tube's patches are filled as if
+each segment of the section was colored with each pen returned by
+@code{pens(t)}, if @code{colortype=coloredNodes} the tube's components
+are vertex shaded as if the nodes of the section was colored.
+
+A @code{coloredpath} can be constructed with the following routines:
+@verbatim
+coloredpath coloredpath(path p, pen[] pens(real),
+                        int colortype=coloredSegments)
+@end verbatim
+@verbatim
+coloredpath coloredpath(path p, pen[] pens=new pen[] {currentpen},
+                        int colortype=coloredSegments)
+@end verbatim
+In this case, the pens are independent of the reltime.
+@verbatim
+coloredpath coloredpath(path p, pen pen(real))
+@end verbatim
+In this case, the array of pens contains only one pen which depends of the
+reltime.
+
+Notice that the casting of @code{path} to @code{coloredpath} allows to
+use a @code{path} instead of a @code{coloredpath} in a routine
+@code{tube}; in this case the shading behaviour is the default shading
+behavior for a surface.
+
+An example is provided in the file @code{trefoilknot.asy} and further
+examples can be found at
+@url{http://piprim.tuxfamily.org/asymptote/tube/}.
+
 @node featpost3D
 @section @code{featpost3D}
 @cindex @code{featpost3D}

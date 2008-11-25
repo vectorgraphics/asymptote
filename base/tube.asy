@@ -35,12 +35,12 @@ path3 roundedpath(path3 A, real r) {
   return rounded;
 }
 
-real[] sample(path3 g, real r, real step=0)
+real[] sample(path3 g, real r, real relstep=0)
 {
   static real epsilon=sqrt(realEpsilon);
   real[] t;
   int n=length(g);
-  if(step <= 0) {
+  if(relstep <= 0) {
     for(int i=0; i < n; ++i) {
       real S=straightness(g,i);
       if(S < epsilon*r) {
@@ -67,10 +67,10 @@ real[] sample(path3 g, real r, real step=0)
     }
     t.push(n);
   } else {
-    int nb=ceil(n/step);
-    step=n/nb;
+    int nb=ceil(1/relstep);
+    relstep=n/nb;
     for(int i=0; i <= nb; ++i)
-      t.push(i*step);
+      t.push(i*relstep);
   }
   return t;
 }
@@ -220,9 +220,10 @@ private surface surface(Rmf[] R, coloredpath cp,transform T(real)=
 
 surface tube(path3 g, coloredpath section,
              transform T(real)=new transform(real t) {return identity();},
-             real corner=1, real step=0)
+             real corner=1, real relstep=0)
 {
   pair M=max(section.p), m=min(section.p);
-  real[] t=sample(g,max(M.x-m.x,M.y-m.y)/max(realEpsilon,abs(corner)),step);
+  real[] t=sample(g,max(M.x-m.x,M.y-m.y)/max(realEpsilon,abs(corner)),
+                  min(abs(relstep),1));
   return surface(rmf(g,t),section,T,cyclic(g));
 }
