@@ -381,12 +381,12 @@ bool picture::postprocess(const string& prename, const string& outname,
       ostringstream cmd;
       double render=fabs(getSetting<double>("render"));
       if(render == 0) render=1.0;
-      bool antialias=getSetting<bool>("antialias");
-      double expand=antialias ? 2.0 : 1.0;
+      double expand=getSetting<Int>("antialias");
+      if(expand < 2.0) expand=1.0;
       double res=expand*render*72.0;
       cmd << "'" << getSetting<string>("convert") 
 	  << "' -alpha Off -density " << res << "x" << res;
-      if(!antialias)
+      if(expand == 1.0)
 	cmd << " +antialias";
       cmd << " -geometry " << 100.0/expand << "%x"
 	  << " " << getSetting<string>("convertOptions")

@@ -6023,8 +6023,8 @@ optional controls. This requires installing the package
 @end quotation
 @noindent
 (version 2007/11/30 or later) in a new directory @code{animate} in the
-@code{LaTeX} source directory (for example, in
-@code{/usr/share/texmf/tex/latex/animate}). On @code{UNIX} systems,
+local @code{LaTeX} source directory (for example, in
+@code{/usr/local/share/texmf/tex/latex/animate}). On @code{UNIX} systems,
 one must then execute the command @code{texhash}.
 
 The example @code{pdfmovie.asy} in the @code{animations}
@@ -6054,15 +6054,15 @@ This module provides an interface to the @code{LaTeX} package
 @end quotation
 @noindent
 for embedding movies, sounds, and 3D objects into a @acronym{PDF} document.
-The latest version of the @code{movie15} package requires both
+The latest version (2008/10/08) of the @code{movie15} package requires both
 @code{pdflatex} version 1.20 or later and the file
 @quotation
 @url{http://www.ctan.org/tex-archive/macros/latex/contrib/oberdiek/ifdraft.dtx}
 @end quotation
 @noindent
 which can be installed by placing it in a directory @code{ifdraft} in
-the @code{LaTeX} source directory
-(e.g.@ @code{/usr/share/texmf/tex/latex/ifdraft}) and executing in that
+the local @code{LaTeX} source directory
+(e.g.@ @code{/usr/local/share/texmf/tex/latex/ifdraft}) and executing in that
 directory the commands:
 @verbatim
 tex ifdraft.dtx
@@ -6109,8 +6109,8 @@ contributions here are welcome.
 Import this package at the beginning of the file to instruct
 @code{LaTeX} to accept @code{unicode} (UTF-8) standardized international
 characters. You will also need to set up @code{LaTeX} support for
-@code{unicode} by unpacking in your @code{LaTeX} source directory
-(e.g.@ @code{/usr/share/texmf/tex/latex}) the file
+@code{unicode} by unpacking in your local @code{LaTeX} source directory
+(e.g.@ @code{/usr/local/share/texmf/tex/latex}) the file
 @quotation
 @url{http://www.unruh.de/DniQ/latex/unicode/unicode.tgz}
 @end quotation
@@ -7236,16 +7236,18 @@ There are four choices for viewing 3D @code{Asymptote} output:
 @cindex @code{OpenGL}
 @cindex @code{render}
 @cindex @code{outformat}
+@cindex @code{multisample}
 @item Use the default @code{Asymptote} adaptive @code{OpenGL}-based
 renderer (with the command-line option @code{-V} and the default settings
 @code{outformat=""} and @code{render=-1}). If you encounter warnings
 from your graphics card driver, try specifying @code{-glOptions=-indirect}
 on the command line. On @code{UNIX} systems, we recommend installing a patched
 version of the @code{freeglut} library to support antialiasing via
-multisampling (@pxref{multisampling}). An initial screen position can be
-specified with the pair setting @code{position}, where negative values
-are interpreted as relative to the corresponding maximum screen dimension.
-The mouse bindings are:
+multisampling (@pxref{multisampling}); the sample width can be
+controlled with the setting @code{multisample}. An initial screen
+position can be specified with the pair setting @code{position}, where
+negative values are interpreted as relative to the corresponding
+maximum screen dimension. The mouse bindings are:
 @cindex mouse bindings
 @itemize
 @item Left: rotate
@@ -7288,26 +7290,25 @@ at the resolution of @code{n} pixels per @code{bp}, as specified by the
 setting @code{render=n}. A negative value of @code{n} is interpreted
 as @code{|2n|} for @acronym{EPS} and @acronym{PDF} formats and
 @code{|n|} for other formats. The default value of @code{render} is -1.
-By default, if the setting @code{antialias} is true, the scene is
-internally rendered at twice the specified resolution. High resolution
-rendering is done by tiling the image. If your graphics card allows
-it, the rendering can be made more efficient by increasing the maximum
-tile size @code{maxtile} beyond the screen dimensions (indicated by
-@code{maxtile=(0,0)}. The tile size is also limited by the setting
-@code{maxviewport}, which restricts the maximum width and height of the
-viewport. On @code{UNIX} systems some graphics card drivers support
-batch mode (@code{-noV}) rendering in an iconified window; this can be
-enabled with the setting @code{iconify=true}.
+By default, the scene is internally rendered at twice the specified
+resolution; this can be disabled by setting @code{antialias=1}.
+High resolution rendering is done by tiling the image. If your
+graphics card allows it, the rendering can be made more efficient by
+increasing the maximum tile size @code{maxtile} beyond the screen
+dimensions (indicated by @code{maxtile=(0,0)}. The tile size is also
+limited by the setting @code{maxviewport}, which restricts the maximum
+width and height of the viewport. On @code{UNIX} systems some graphics
+drivers support batch mode (@code{-noV}) rendering in an
+iconified window; this can be enabled with the setting @code{iconify=true}.
+Other @code{UNIX} graphics drivers may require the command line setting
+@code{-glOptions=-indirect}.
 
 @cindex @code{prc}
 @item Embed the 3D @acronym{PRC} format in a @acronym{PDF} file
 (using the setting @code{outformat="pdf"} and the default setting
 @code{prc=true}) and view the resulting @acronym{PDF} file with
 version @code{8.0} or later of @code{Adobe Reader}. This requires
-version 2008/10/08 or later of the @code{movie15} package from
-@quotation
-@url{http://www.ctan.org/tex-archive/macros/latex/contrib/movie15}
-@end quotation
+version 2008/10/08 or later of the @code{movie15} package (@pxref{embed}).
 A stationary preview image with a resolution of @code{n} pixels per
 @code{bp} can be embedded with the setting @code{render=n}; this allows
 the file to be viewed with other @code{PDF} viewers. Alternatively, the
@@ -8190,7 +8191,8 @@ The default output format is @acronym{EPS} for the (default)
 Alternative output formats may be produced using the @code{-f} option 
 (or @code{outformat} setting). The optional setting @code{-render n} requests
 an output resolution of @code{n} pixels per @code{bp}. Antialiasing is
-controlled by the setting @code{antialias} (enabled by default).
+controlled by the parameter @code{antialias}, which by default
+specifies a sampling width of 2 pixels.
 @code{Asymptote} can produce any output format supported
 by the @code{ImageMagick} @code{convert} program (version 6.3.5 or
 later recommended; an @code{Invalid Parameter} error message indicates

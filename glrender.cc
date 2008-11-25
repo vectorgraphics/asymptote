@@ -990,7 +990,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Fitscreen=1;
   Mode=0;
   
-  antialias=getSetting<bool>("antialias");
+  antialias=getSetting<Int>("antialias") > 1;
   double expand=getSetting<double>("render");
   if(expand < 0)
     expand *= (Format.empty() || Format == "eps" || Format == "pdf") 

@@ -935,8 +935,8 @@ void initSettings() {
   addOption(new realSetting("render", 0, "n",
 			   "Render 3D graphics using n pixels per bp (-1=auto)",
 			    haveglut ? -1.0 : 0.0));
-  addOption(new boolSetting("antialias", 0,
-			    "Antialias rendered output", true));
+  addOption(new IntSetting("antialias", 0, "n",
+			    "Antialiasing width for rasterized output", 2));
   addOption(new IntSetting("multisample", 0, "n",
 			   "Multisampling width for screen images", 4));
   addOption(new boolSetting("twosided", 0,
