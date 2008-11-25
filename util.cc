@@ -242,7 +242,7 @@ int System(const char *command, int quiet, bool wait,
     if(argv) {
       execvp(argv[0],argv);
       execError(argv[0],hint,application);
-      exit(-1);
+      _exit(-1);
     }
   }
 
