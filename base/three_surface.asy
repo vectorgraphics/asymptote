@@ -893,7 +893,7 @@ surface surface(Label L, triple position=O)
 path[] path(Label L, pair z=0, projection P)
 {
   path[] g=texpath(L);
-  if(L.defaulttransform) {
+  if(L.defaulttransform3) {
     return L.align.is3D ? align(g,z,project(L.align.dir3,P)-project(O,P),L.p) :
       shift(z)*g;
   } else {
@@ -910,7 +910,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
   Label L=L.copy();
   L.align(align);
   L.p(p);
-  if(L.defaulttransform)
+  if(L.defaulttransform3)
     L.T3=transform3(P);
   if(is3D()) {
     for(patch S : surface(L,position).s)
@@ -931,7 +931,7 @@ void label(picture pic=currentpicture, Label L, triple position,
   if(g.length == 0) return;
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       triple v=t*position;
-      if(L.defaulttransform)
+      if(L.defaulttransform3)
         L.T3=transform3(P);
       if(is3D())
         for(patch S : surface(L,v).s)
@@ -939,9 +939,9 @@ void label(picture pic=currentpicture, Label L, triple position,
       if(pic != null)
         fill(project(v,P.t),pic,path(L,P),
 	     light.color(L.T3*Z,L.p,shiftless(P.modelview())));
-    },!L.defaulttransform);
+    },!L.defaulttransform3);
 
-  if(L.defaulttransform)
+  if(L.defaulttransform3)
     L.T3=transform3(currentprojection);
   path3[] G=path3(g);
   G=L.align.is3D ? align(G,L.T3,O,L.align.dir3,L.p) : L.T3*G;

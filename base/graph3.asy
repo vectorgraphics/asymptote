@@ -101,7 +101,7 @@ void labeltick(picture pic, transform3 T, path3 g,
   triple v=locate1.V+shift;
   if(s != "") {
     s=baseline(s,align,"$10^4$");
-    label(pic,F.defaulttransform ? s : F.T3*s,v,align,F.p);
+    label(pic,F.defaulttransform3 ? s : F.T3*s,v,align,F.p);
   }
 }  
 
