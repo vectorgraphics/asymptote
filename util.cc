@@ -224,7 +224,7 @@ int System(const char *command, int quiet, bool wait,
     
   char **argv=args(command);
 
-  int pid = fork();
+  int pid=fork();
   if(pid == -1)
     camp::reportError("Cannot fork process");
   

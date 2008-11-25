@@ -1,6 +1,6 @@
 /* Pipestream: A simple C++ interface to UNIX pipes
-   Version 0.01
-   Copyright (C) 2005-2006 John C. Bowman
+   Version 0.02
+   Copyright (C) 2005-2008 John C. Bowman
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -61,56 +61,45 @@ public:
   void open(const char *command, const char *hint=NULL,
 	    const char *application="", int out_fileno=STDOUT_FILENO) {
     if(pipe(in) == -1) {
-      cerr << "in pipe failed: " << command << endl;
-      exit(-1);
+      ostringstream buf;
+      buf << "in pipe failed: " << command << endl;
+      camp::reportError(buf);
     }
 
     if(pipe(out) == -1) {
       ostringstream buf;
-      cerr << "out pipe failed: " << command << endl;
-      exit(-1);
+      buf << "out pipe failed: " << command << endl;
+      camp::reportError(buf);
     }
-    
     cout.flush(); // Flush stdout to avoid duplicate output.
     
-    int wrapperpid;
+    if((pid=fork()) < 0) {
+      ostringstream buf;
+      buf << "fork failed: " << command << endl;
+      camp::reportError(buf);
+    }
     
-    // Portable way of forking that avoids zombie child processes
-    if((wrapperpid=fork()) < 0) {
-      cerr << "fork failed: " << command << endl;
+    if(pid == 0) { 
+      if(interact::interactive) signal(SIGINT,SIG_IGN);
+      close(in[1]);
+      close(out[0]);
+      close(STDIN_FILENO);
+      close(out_fileno);
+      dup2(in[0],STDIN_FILENO);
+      dup2(out[1],out_fileno);
+      close(in[0]);
+      close(out[1]);
+      char **argv=args(command);
+      if(argv) execvp(argv[0],argv);
+      execError(command,hint,application);
+      kill(0,SIGTERM);
       exit(-1);
     }
-    
-    if(wrapperpid == 0) {
-      if((pid=fork()) < 0) {
-	cerr << "fork failed: " << command << endl;
-	exit(-1);
-      }
-    
-      if(pid == 0) { 
-	if(interact::interactive) signal(SIGINT,SIG_IGN);
-	close(in[1]);
-	close(out[0]);
-	close(STDIN_FILENO);
-	close(out_fileno);
-	dup2(in[0],STDIN_FILENO);
-	dup2(out[1],out_fileno);
-	close(in[0]);
-	close(out[1]);
-	char **argv=args(command);
-	if(argv) execvp(argv[0],argv);
-	execError(command,hint,application);
-	kill(0,SIGTERM);
-	exit(-1);
-      }
-      exit(0);
-    } else {
-      close(out[1]);
-      close(in[0]);
-      *buffer=0;
-      pipeopen=true;
-      waitpid(wrapperpid,NULL,0);
-    }
+    close(out[1]);
+    close(in[0]);
+    *buffer=0;
+    pipeopen=true;
+    waitpid(-1,NULL,WNOHANG);
   }
 
   bool isopen() {return pipeopen;}
@@ -126,7 +115,6 @@ public:
   virtual void pipeclose() {
     if(pipeopen) {
       close(in[1]);
-//      close(out[0]);
       pipeopen=false;
     }
   }

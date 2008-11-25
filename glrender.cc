@@ -447,7 +447,9 @@ void togglefitscreen()
 
 void updateHandler(int)
 {
-  fitscreen();
+  if(!interact::interactive) 
+    fitscreen();
+  update();
   glutShowWindow();
 }
 
