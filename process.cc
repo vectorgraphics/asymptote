@@ -186,8 +186,7 @@ public:
       postRun(e,s);
 
     } catch(std::bad_alloc&) {
-      cerr << "error: out of memory" << endl;
-      em.statusError();
+      outOfMemory();
     } catch(quit) {
     } catch(handled_error) {
       em.statusError();

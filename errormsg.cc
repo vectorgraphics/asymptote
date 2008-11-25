@@ -91,3 +91,8 @@ void errorstream::sync()
   floating = false;
 }
 
+void outOfMemory() 
+{
+  cerr << "error: out of memory" << endl;
+  exit(1);
+}

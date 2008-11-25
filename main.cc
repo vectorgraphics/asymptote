@@ -144,13 +144,16 @@ int main(int argc, char *argv[])
 #ifdef HAVE_LIBGLUT
 #ifdef HAVE_LIBPTHREAD  
   pthread_t thread;
-  if(pthread_create(&thread,NULL,asymain,&args) == 0) {
-    gl::mainthread=pthread_self();
-    gl::wait(gl::initSignal,gl::initLock);
-    camp::glrenderWrapper();
-  } else
+  try {
+    if(pthread_create(&thread,NULL,asymain,&args) == 0) {
+      gl::mainthread=pthread_self();
+      gl::wait(gl::initSignal,gl::initLock);
+      camp::glrenderWrapper();
+    }
+  } catch(std::bad_alloc&) {
+    outOfMemory();
+  }
 #endif
 #endif  
     asymain(&args);
 }
-

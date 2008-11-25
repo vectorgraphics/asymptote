@@ -194,6 +194,7 @@ public:
 };
 
 extern errorstream em;
+void outOfMemory();
 
 GC_DECLARE_PTRFREE(nullPosInitializer);
 
