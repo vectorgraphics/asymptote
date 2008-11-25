@@ -559,12 +559,12 @@ cd asymptote-x.xx
 @noindent
 We recommend using SVN revision 761 (or later) of @code{freeglut} to
 support antialiasing, via multisampling, in our adaptive
-@code{Asymptote} @code{OpenGL}-based 3D renderer. Place
+@code{Asymptote} @code{OpenGL}-based 3D renderer. Download
 @quotation
 @url{http://freeglut.svn.sourceforge.net/viewvc/freeglut/trunk/freeglut/freeglut.tar.gz}
 @end quotation
 @noindent
-in the @code{Asymptote} source directory, and type (as the root user):
+and type (as the root user):
 @verbatim
 tar -zxf freeglut.tar.gz
 cd freeglut
