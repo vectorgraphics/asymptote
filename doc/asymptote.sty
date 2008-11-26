@@ -3,7 +3,7 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2)
 
-\ProvidesPackage{asymptote}[2008/11/08 v1.01 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2008/11/25 v1.02 Asymptote style file for LaTeX]
 \newif\ifASYinline
 \newif\ifASYattach
 \DeclareOption{inline}{\ASYinlinetrue}
@@ -35,7 +35,6 @@
 \immediate\write\AsyStream{access settings;}%
 \immediate\write\AsyStream{if(!settings.multipleView)}%
 \immediate\write\AsyStream{  settings.batchView=false;}%
-\immediate\write\AsyStream{settings.toolbar=false;}%
 
 \newif\ifASYPDF
 \ifx\pdfoutput\undefined
@@ -174,10 +173,12 @@
      \immediate\write\AsyStream{settings.inlineimage=false;}%
      \immediate\write\AsyStream{settings.embed=false;}%
      \immediate\write\AsyStream{settings.outformat='pdf';}%
+     \immediate\write\AsyStream{settings.toolbar=true;}%
    \else
      \immediate\write\AsyStream{settings.inlineimage=true;}%
      \immediate\write\AsyStream{settings.embed=true;}%
      \immediate\write\AsyStream{settings.outformat='';}%
+     \immediate\write\AsyStream{settings.toolbar=false;}%
    \fi
   \immediate\write\AsyStream{\globalASYdefs}%
   \let\ThisAsymptote\WriteAsyLine%
