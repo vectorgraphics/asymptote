@@ -9,7 +9,8 @@
 import three;
 
 // A 3D version of roundedpath(path, real).
-path3 roundedpath(path3 A, real r) {
+path3 roundedpath(path3 A, real r)
+{
   // Author of this routine: Jens Schwaiger
   guide3 rounded;
   triple before, after, indir, outdir;
@@ -99,8 +100,6 @@ real degrees(Rmf a, Rmf b)
 private Rmf[] rmf(path3 g, Rmf U0=Rmf(O,O,O,0), real[] t)
 {
   static real epsilon=sqrt(realEpsilon);
-  bool cyclic=cyclic(g);
-  t.cyclic(cyclic);
   if(U0.t == O) {
     triple d=dir(g,0);
     U0=Rmf(point(g,0),perp(d),d,0);
@@ -225,5 +224,6 @@ surface tube(path3 g, coloredpath section,
   pair M=max(section.p), m=min(section.p);
   real[] t=sample(g,max(M.x-m.x,M.y-m.y)/max(realEpsilon,abs(corner)),
                   min(abs(relstep),1));
+  t.cyclic(cyclic(g));
   return surface(rmf(g,t),section,T,cyclic(g));
 }

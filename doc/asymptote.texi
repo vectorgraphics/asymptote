@@ -153,6 +153,7 @@ Base modules
 * graph3::                      3D linear & logarithmic graphs
 * grid3::                       3D grids
 * solids::                      3D solid geometry
+* tube::                        3D rotation minimizing tubes
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
@@ -5784,6 +5785,7 @@ Here now is @code{latexusage.tex}:
 * graph3::                      3D linear & logarithmic graphs
 * grid3::                       3D grids
 * solids::                      3D solid geometry
+* tube::                        3D rotation minimizing tubes
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
@@ -7846,27 +7848,24 @@ struct skeleton {
 @node tube
 @section @code{tube}
 @cindex @code{tube}
-This package extends the default routine @code{tube} in order to use
-arbitrary cross sections, colors and transformations of tube's
-components along the tubed curve.
-The routine @code{tube} provided by this package is as follow, where
-@code{coloredpath} is described further and can be replaced by a
-@code{path} through casting.
+This package extends the routine @code{tube} defined in @code{three_arrows.asy}
+to arbitrary cross sections, colors, and spine transformations.
+The routine
 @verbatim
 surface tube(path3 g, coloredpath section,
              transform T(real)=new transform(real t) {return identity();},
-             real corner=1, real relstep=0)
+             real corner=1, real relstep=0);
 @end verbatim
-Draw a tube along @code{g} with the cross section @code{section} to
-which is applied the transformation @code{T(t)} at @code{relpoint(g,t)}.
-
+@noindent
+draws a tube along @code{g} with cross section @code{section}, after
+applying the transformation @code{T(t)} at @code{relpoint(g,t)}.
 The parameter @code{corner} controls the number of elementary tubes at
-the angular points of @code{g}. If the parameter @code{relstep} is nonzero,
-its value represents the fixed step of the relative time (in the meaning of
-@code{relpoint(g,t)}) to construct the elementary tubes along @code{g}.
-
-The new type @code{coloredpath} defined by this package, and only used as cross
-section of tubes, has this simplified structure:
+the angular points of @code{g}. A nonzero value of @code{relstep}
+specifies a fixed relative time step (in the sense of
+@code{relpoint(g,t)}) to use in constructing elementary tubes along @code{g}. 
+The type @code{coloredpath} is a generalization of @code{path} to
+which a @code{path} can be cast:
+@cindex @code{coloredpath}
 @verbatim
 struct coloredpath
 {
@@ -7875,39 +7874,36 @@ struct coloredpath
   int colortype=coloredSegments;
 }
 @end verbatim
+@noindent
+@cindex @code{coloredSegments}
+@cindex @code{coloredNodes}
+Here @code{p} defines the cross section and
+the method @code{pens(real t)} returns an array of pens (interpreted
+as a cyclic array) used for shading the tube patches at
+@code{relpoint(g,t)}. If @code{colortype=coloredSegments}, the tube patches
+are filled as if each segment of the section was colored with the pen
+returned by @code{pens(t)}, whereas if @code{colortype=coloredNodes}, the
+tube components are vertex shaded as if the nodes of the section were colored.
 
-The property @code{p} is the cross section, the method @code{pens(real
-t)} returns an array of pens (becomes automatically cyclic) used for
-shading the tube's patches at @code{relpoint(g,t)}. The shading mode
-depends to the value of @code{colortype}; if
-@code{colortype=coloredSegments} the tube's patches are filled as if
-each segment of the section was colored with each pen returned by
-@code{pens(t)}, if @code{colortype=coloredNodes} the tube's components
-are vertex shaded as if the nodes of the section was colored.
-
-A @code{coloredpath} can be constructed with the following routines:
+A @code{coloredpath} can be constructed with one of the routines:
 @verbatim
 coloredpath coloredpath(path p, pen[] pens(real),
-                        int colortype=coloredSegments)
-@end verbatim
-@verbatim
+                        int colortype=coloredSegments);
 coloredpath coloredpath(path p, pen[] pens=new pen[] {currentpen},
-                        int colortype=coloredSegments)
+                        int colortype=coloredSegments);
+coloredpath coloredpath(path p, pen pen(real));
 @end verbatim
-In this case, the pens are independent of the reltime.
-@verbatim
-coloredpath coloredpath(path p, pen pen(real))
-@end verbatim
-In this case, the array of pens contains only one pen which depends of the
-reltime.
+@noindent
+In the second case, the pens are independent of the relative time.
+In the third case, the array of pens contains only one pen, which
+depends of the relative time.
 
-Notice that the casting of @code{path} to @code{coloredpath} allows to
-use a @code{path} instead of a @code{coloredpath} in a routine
-@code{tube}; in this case the shading behaviour is the default shading
-behavior for a surface.
+The casting of @code{path} to @code{coloredpath} allows the
+use of a @code{path} instead of a @code{coloredpath}; in this case the
+shading behaviour is the default shading behavior for a surface.
 
-An example is provided in the file @code{trefoilknot.asy} and further
-examples can be found at
+An example of @code{tube} is provided in the file
+@code{trefoilknot.asy}. Further examples can be found at
 @url{http://piprim.tuxfamily.org/asymptote/tube/}.
 
 @node featpost3D
@@ -8873,4 +8869,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify
 @c  LocalWords:  psviewerOptions pdfviewerOptions viewportmargin asyattach
-@c  LocalWords:  multisampling
+@c  LocalWords:  multisampling autogen multisample coloredpath relstep
+@c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot
