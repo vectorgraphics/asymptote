@@ -1822,7 +1822,6 @@ string orthographic(real viewplanesize) {
 function orthographic() 
 {
 activeCamera.projectionType=activeCamera.TYPE_ORTHOGRAPHIC;
-bounds=scene.computeBoundingBox();
 activeCamera.viewPlaneSize="+string(viewplanesize)+";
 activeCamera.binding=activeCamera.BINDING_VERTICAL;
 }
@@ -2085,7 +2084,8 @@ object embed(string label="", string text=label,
 	    real aspect=width > 0 ? height/width : 1;
 	    angle=anglefactor*max(aTan(-r.x*aspect)+aTan(R.x*aspect),
 				  aTan(-r.y)+aTan(R.y));
-	    angle=aTan((h*Tan(angle)+viewportmargin.y)/h);
+	    if(viewportmargin.y != 0)
+	      angle=aTan(Tan(angle)+viewportmargin.y/h);
 	}
       }
     }
