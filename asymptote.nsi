@@ -78,11 +78,7 @@ Section "Asymptote" SEC01
   FileWriteByte $0 "13" 
   FileWriteByte $0 "10" 
 
-  FileWrite $0 "set CYGWIN=nodosfilewarning"
-  FileWriteByte $0 "13" 
-  FileWriteByte $0 "10" 
-
-  FileWrite $0 '"$INSTDIR\asy.exe" %1'
+  FileWrite $0 '"$INSTDIR\asy.exe" %*'
   FileWriteByte $0 "13" 
   FileWriteByte $0 "10" 
 
