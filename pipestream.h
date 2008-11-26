@@ -92,6 +92,7 @@ public:
       char **argv=args(command);
       if(argv) execvp(argv[0],argv);
       execError(command,hint,application);
+      kill(0,SIGTERM);
       _exit(-1);
     }
     close(out[1]);
