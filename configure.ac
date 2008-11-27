@@ -7,6 +7,8 @@ AC_INIT([Asymptote],[1.53svn],[http://sourceforge.net/projects/asymptote])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 
+test "$CFLAGS" || CFLAGS="-g -O3"
+
 AC_C_BIGENDIAN(AC_DEFINE(WORDS_BIG_ENDIAN, 1,
 			   [Define if words are stored with the most significant byte first.]),AC_DEFINE(WORDS_LITTLE_ENDIAN, 1 ,
 			   [Define if words are stored with the least significant byte first.]))
@@ -61,8 +63,6 @@ AC_DEFINE_UNQUOTED(ASYMPTOTE_DOCDIR,"$docdir",
 AC_CONFIG_SRCDIR([absyn.cc])
 
 AC_LANG([C++])
-
-test "$CFLAGS" || CFLAGS="-g -O3"
 
 # Checks for programs.
 AC_PROG_LEX
