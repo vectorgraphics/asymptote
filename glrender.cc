@@ -451,7 +451,7 @@ void togglefitscreen()
 
 void updateHandler(int)
 {
-  if(!interact::interactive) 
+  if(!interact::interactive)
     fitscreen();
   update();
   glutShowWindow();
@@ -994,6 +994,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Fitscreen=1;
   Mode=0;
   
+  if(!initialized || !interact::interactive) {
   antialias=getSetting<Int>("antialias") > 1;
   double expand=getSetting<double>("render");
   if(expand < 0)
@@ -1040,7 +1041,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(View && settings::verbose > 1) 
     cout << "Rendering " << prefix << " as " << Width << "x" << Height
 	 << " image" << endl;
-
+  }
+  
 #ifdef HAVE_LIBPTHREAD
   if(initialized && glthread) {
     if(View) {

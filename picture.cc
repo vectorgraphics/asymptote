@@ -697,6 +697,17 @@ void glrenderWrapper()
 	   com.specular,com.viewportlighting,com.view);
 }
 
+void hold(bool View) 
+{
+  if(glthread) {
+    if(!View)
+      wait(readySignal,readyLock);
+  
+    if(!interact::interactive)
+      wait(quitSignal,quitLock);
+  }
+}
+
 bool picture::shipout3(const string& prefix, const string& format,
 		       double width, double height,
 		       double angle, const triple& m, const triple& M,
@@ -719,10 +730,8 @@ bool picture::shipout3(const string& prefix, const string& format,
   
   if(glthread) {
     static bool initialize=true;
-  
     if(initialize) {
       initialize=false;
-    
       com.prefix=prefix;
       com.pic=this;
       com.format=outputformat;
@@ -739,6 +748,7 @@ bool picture::shipout3(const string& prefix, const string& format,
       com.viewportlighting=viewportlighting;
       com.view=View;
       wait(initSignal,initLock);
+      hold(View);
       return true;
     }
   } else {
@@ -756,13 +766,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 	   nlights,lights,diffuse,ambient,specular,viewportlighting,View,
 	   oldpid);
   
-  if(glthread) {
-    if(!View)
-      wait(readySignal,readyLock);
-  
-    if(!interact::interactive)
-      wait(quitSignal,quitLock);
-  }
+  hold(View);
 #else
   reportError("Cannot render image; please install glut, run ./configure, and recompile"); 
 #endif
