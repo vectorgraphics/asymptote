@@ -13,6 +13,7 @@ XPStyle On
 
 ; MUI 1.67 compatible ------
 !include "MUI.nsh"
+!include "LogicLib.nsh"
 
 ; MUI Settings
 !define MUI_ABORTWARNING
@@ -40,7 +41,7 @@ var ICONS_GROUP
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
 ; Finish page
-!define MUI_FINISHPAGE_RUN "$INSTDIR\asy.exe"
+!define MUI_FINISHPAGE_RUN "$INSTDIR\asy.bat"
 !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\asymptote.pdf"
 !define MUI_FINISHPAGE_LINK ${PRODUCT_WEB_SITE}
 !define MUI_FINISHPAGE_LINK_LOCATION ${PRODUCT_WEB_SITE}
@@ -72,13 +73,21 @@ Section "Asymptote" SEC01
   SetOverwrite try
   File /r build-${PRODUCT_VERSION}\*
 
-  FileOpen $0 $INSTDIR\asy-console.bat w
+  CreateDirectory "$INSTDIR\..\etc"
+  FileOpen $0 $INSTDIR\..\etc\fstab w
+  FileClose $0
+
+  FileOpen $0 $INSTDIR\asy.bat w
 
   FileWrite $0 "@ECHO OFF"
   FileWriteByte $0 "13" 
   FileWriteByte $0 "10" 
 
-  FileWrite $0 '"$INSTDIR\asy.exe" %*'
+  FileWrite $0 "set CYGWIN=nodosfilewarning"
+  FileWriteByte $0 "13" 
+  FileWriteByte $0 "10" 
+
+  FileWrite $0 '"$INSTDIR\asy.exe" %1'
   FileWriteByte $0 "13" 
   FileWriteByte $0 "10" 
 
@@ -101,7 +110,7 @@ Section "Asymptote" SEC01
   CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Asymptote.lnk" "$INSTDIR\asy.exe"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Xasy.lnk" "$INSTDIR\xasy.py"
-  CreateShortCut "$DESKTOP\Asymptote.lnk" "$INSTDIR\asy-console.bat" "" "$INSTDIR\asy.ico"
+  CreateShortCut "$DESKTOP\Asymptote.lnk" "$INSTDIR\asy.bat" "" "$INSTDIR\asy.ico"
   CreateShortCut "$DESKTOP\Xasy.lnk" "$INSTDIR\xasy.py"
   !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
@@ -124,7 +133,12 @@ Section -Post
   WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\asy.exe"
   WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "Path" "$INSTDIR"
   WriteRegStr HKLM "${PRODUCT_FILE_TYPE_REGKEY1}" "" "ASYFile"
-  WriteRegStr HKLM "${PRODUCT_FILE_TYPE_REGKEY2}" "" '"$INSTDIR\asy-console.bat" "%1"'
+  WriteRegStr HKLM "${PRODUCT_FILE_TYPE_REGKEY2}" "" '"$INSTDIR\asy.bat" "%1"'
+  ReadRegStr $0 HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "CYGWIN"
+  ${If} $0 == ""
+    WriteRegExpandStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "CYGWIN" "nodosfilewarning"
+    SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
+  ${Endif}
   
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
@@ -144,7 +158,7 @@ Section Uninstall
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
   Delete "$INSTDIR\uninst.exe"
   !include AsymptoteUninstallList.nsi
-  Delete "$INSTDIR\asy-console.bat"
+  Delete "$INSTDIR\asy.bat"
   RMDir "$INSTDIR"
   
   Delete "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk"

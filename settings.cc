@@ -1132,8 +1132,6 @@ string outname() {
 }
 
 void initDir() {
-  if(msdos)
-    putenv("CYGWIN=nodosfilewarning");
   initdir=Getenv(HOME,msdos)+"/."+suffix;
   mkdir(initdir.c_str(),0777);
 }
