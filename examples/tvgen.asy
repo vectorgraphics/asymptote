@@ -97,8 +97,8 @@ void rimarkers(real rimage, int Nh, int Nhc, int os, int Nvc, int Nsy, pen pdef,
 
 /************************ topbw **************************************/
 void topbw(int[] coff, int Nhc, int os, int urow, int trow, int brow, 
-pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
-pen pdef, real xd, real yd, int Nv) {
+           pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
+           pen pdef, real xd, real yd, int Nv) {
   pen pblack=pdef+gray(0.0), pwhite=pdef+gray(1.0);
   pair[] ze;
   guide zext, zref, zint, zleft, zright;
@@ -173,7 +173,7 @@ real testcircy(real y, real crad, real xd, real yd) {
 
 /* brow>trow && xb>xt */
 void testtone(real Tt, int trow, int brow, 
-real ccol, real crow, real crad, pen pdef, real xd, real yd, int Nv) {
+              real ccol, real crow, real crad, pen pdef, real xd, real yd, int Nv) {
   int blocks, i;
   real yt, xt, yb, xb, Ttt=Tt/2;
   pair ccenter;
@@ -256,8 +256,8 @@ real ccol, real crow, real crad, pen pdef, real xd, real yd, int Nv) {
 
 /************************ color bars *************************************/
 void colorbars(int[] coff, int Nhc, int trow, int crow, int brow, 
-pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
-pen pdef, real xd, real yd, int Nv) {
+               pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
+               pen pdef, real xd, real yd, int Nv) {
   real cI=0.75;
   real[] cR={ cI,  0,  0,  cI, cI,  0 };
   real[] cG={ cI, cI, cI,   0,  0,  0 };
@@ -360,8 +360,8 @@ real addphase(real theta, real freq, real step) {
 }
 
 void testfreqs(real[] ftones, int[] coff, int Nhc, int trow,int crow,int brow, 
-pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
-pen pdef, real xd, real yd, int Nv) {
+               pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
+               pen pdef, real xd, real yd, int Nv) {
   int[] divc;
   real[] divfl, divfr;
   int i, divs, coffmax, off, divnext;
@@ -444,8 +444,8 @@ pen pdef, real xd, real yd, int Nv) {
 
 /************************ gray bars **************************************/
 void graybars(int[] coff, int Nhc, int trow, int brow, 
-pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
-pen pdef, real xd, real yd, int Nv) {
+              pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
+              pen pdef, real xd, real yd, int Nv) {
   int[] gs={0, 51, 102, 153, 204, 255};
   int cmax=2, poff, rows, i;
 
@@ -484,8 +484,8 @@ pen pdef, real xd, real yd, int Nv) {
 
 /************************ bottom bw **************************************/
 void bottombw(int off, int Nhc, int trow, int brow, 
-pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
-pen pdef, real xd, real yd, int Nv) {
+              pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
+              pen pdef, real xd, real yd, int Nv) {
   int rows;
   pair zt, zb;
   guide zz;
@@ -506,7 +506,7 @@ pen pdef, real xd, real yd, int Nv) {
 
 /************************ bottom circle **************************************/
 void bottomcirc(int off, int Nhc, int trow, real cx, real cy, real crad, 
-pair ccenter, pair rclt, pair rcrt, pen pdef, real xd, real yd, int Nv) {
+                pair ccenter, pair rclt, pair rcrt, pen pdef, real xd, real yd, int Nv) {
   real cI=0.75;
   real xl, yl, xr, yr, phil, phir;
   pair ccleft, ccright;
@@ -557,8 +557,8 @@ pair ccenter, pair rclt, pair rcrt, pen pdef, real xd, real yd, int Nv) {
  * in: dright=  -1 left ear, +1 right ear
  */
 void palears(int[] coff, int[] coffa, int[] coffb, int Nhc, 
-int[] rcrowt, int[] rcrowb, int Nvc, int divsy, int dright,
-pen pdef, real xd, real yd, int Nv) {
+             int[] rcrowt, int[] rcrowb, int Nvc, int divsy, int dright,
+             pen pdef, real xd, real yd, int Nv) {
   /* the amplitude of (u,v) as seen on a vectorscope, 
    * max 0.296 Vn for 100% saturation in W and V ears.
    * cvbs:   0.7*( y +/- |u+jv| ) = -0.24 .. 0.93 V 
@@ -653,7 +653,8 @@ pen pdef, real xd, real yd, int Nv) {
     R=Ry+y;
     G=Gy+y;
     B=By+y;
-    write(y,round(R*255),round(G*255),round(B*255));
+    if(settings.verbose > 1)
+      write(y,round(R*255),round(G*255),round(B*255));
 
     fill(zz[i], p=pdef+rgb(R,G,B));
   }
@@ -667,8 +668,8 @@ pen pdef, real xd, real yd, int Nv) {
  * right  0.5  0.17   60%  +Q?
  */
 void ntscbars(int[] coff, int[] coffa, int[] coffb, int Nhc, 
-int[] rcrowt, int[] rcrowb, int Nvc, int divsy, int dright,
-pen pdef, real xd, real yd, int Nv) {
+              int[] rcrowt, int[] rcrowb, int Nvc, int divsy, int dright,
+              pen pdef, real xd, real yd, int Nv) {
   /* The amplitude of (i,q) as seen on a vectorscope, 
    * max 0.292 Vn for 100% saturation in I==0 ears.
    * burst:    0.143 Vcvbs, 20 IRE or 0.200 V normalized.
@@ -722,7 +723,8 @@ pen pdef, real xd, real yd, int Nv) {
   R=Ry+cy;
   G=Gy+cy;
   B=By+cy;
-  write(cy,ci,cq,round(R*255),round(G*255),round(B*255));
+  if(settings.verbose > 1)
+    write(cy,ci,cq,round(R*255),round(G*255),round(B*255));
 
   for(i=-divsy; i<=divsy; ++i) {
     guide zz;
@@ -788,19 +790,19 @@ if(bsys<0 || bsys>12 || colortv<0 || colortv>3 || os<=0 || os>16) {
 }
 
 int[]  bNdot={ 12,   16,   12,   16,     1,    1,     1,   64,   10,   8,  10, 
-    1,    1};
+               1,    1};
 int[]  bDdot={ 11,   15,   11,   11,     1,    1,     1,   45,   11,   9,  11,
-    1,    1};
+               1,    1};
 int[]  bNh={  704,  720,  720,  720,   768,  768,   786,  720,  704, 720, 720,
- 1920, 1600};
+              1920, 1600};
 int[]  bNv={  576,  576,  576,  576,   576,  576,   576,  576,  480, 480, 480,
- 1080, 1200};
+              1080, 1200};
 real[] bfs={ 13.5, 13.5, 13.5, 13.5, 14.75, 14.4, 14.75, 13.5, 13.5,13.5,13.5,
-   36,   30};
+             36,   30};
 int[]  bNsy={  42,   42,   42,   42,    42,   42,    42,   42,   34,  34,  34,
-   78,   90};
+               78,   90};
 int[]  bNsh={   0,    0,    0,    0,     0,    0,     0,    0,    0,   0,   0,
-    0,    0};
+                0,    0};
 
 /* active lines for a 625 line frame
  *   The number of active video lines decreased around 1997.  
@@ -882,7 +884,8 @@ lx=Nh/(m*Dd);
 ysize=ly*1inch;
 xsize=lx*1inch;
 rimage=xsize/ysize;
-write('#Nd Dd m ri:\t', Nd, Dd, m, rimage);
+if(settings.verbose > 1)
+  write('#Nd Dd m ri:\t', Nd, Dd, m, rimage);
 //size(xsize,ysize,Aspect);  // should not have any effect
 
 Nsy=bNsy[bsys];       // grating size in lines 42,43, 34,35
@@ -910,7 +913,8 @@ divsy=floor(((Nv-Na-2)/Nsy-1)/2);   // (Nv-Na-2)/2-Nsy/2 dots for Nsy lengths
 rdisty=Na+Nsy*(1+2*divsy);
 Nt=Nvc-ceil(rdisty/2);
 Nb=Nv-Nt-rdisty;
-write('#divsy t b: \t',divsy,Nt,Nb);
+if(settings.verbose > 1)
+  write('#divsy t b: \t',divsy,Nt,Nb);
 
 /* Nsyc: center square height 
  *   line pairing test: verify distance of center to top and bot 
@@ -949,7 +953,8 @@ for(i=0; i<=divsy; ++i) {
 
   ou=offu+Nsy*i;
   od=offd-Nsy*i;
-  write(ou,od);
+  if(settings.verbose > 1)
+    write(ou,od);
   rcrowc[iu]=Nvc-ou;
   rcrowc[id]=Nvc-od;
   
@@ -964,7 +969,8 @@ for(i=0; i<=divsy; ++i) {
 }
 Nt=floor((rcrowt[0]+rcrowb[0])/2);
 Nb=Nv-Nt-Nsyc-2*Nsy*divsy;
-write('#st t b: \t',Nyst,Nt,Nb);
+if(settings.verbose > 1)
+  write('#st t b: \t',Nyst,Nt,Nb);
 
 /* vertical lines
  * (Nh-2*os)/2-Nsx/2 dots available for divisions of Nsx dots.
@@ -978,7 +984,8 @@ Nsx=lsq/xd;
 divsx=floor(((Nh-10*os)/Nsx-1)/2);  
 Nhc=round(Nh/2);
 Nl=Nhc-round((1+2*divsx)*Nsx/2);
-write('#Nsx divsx Nl:\t',Nsx,divsx,Nl);
+if(settings.verbose > 1)
+  write('#Nsx divsx Nl:\t',Nsx,divsx,Nl);
 
 guide zz;
 /**** draw gray background ****/
@@ -1150,10 +1157,10 @@ z[10]=tvps(col,rcrowc[divsy+1], xd,yd,Nv);
 
 z[11]=rcright[divsy+1]; 
 fill(z[1]--z[2]--z[3]--z[4] //--z[5]--z[6]
-  --arc(ccenter, z[5], z[6])
-  --z[7]--z[8]--z[9]--z[10] //--z[11]--z[0]
-  --arc(ccenter,z[11], z[0])
-  --cycle, p=pblack);
+     --arc(ccenter, z[5], z[6])
+     --z[7]--z[8]--z[9]--z[10] //--z[11]--z[0]
+     --arc(ccenter,z[11], z[0])
+     --cycle, p=pblack);
 
 int hy, maxoff;
 hy=floor(Nsyc/2);
@@ -1183,8 +1190,8 @@ fill(zz, p=pwhite);
 if(colortv>0) {
   /* topbw structure */
   topbw(coff, Nhc, os, rcrowc[divsy-5], rcrowc[divsy-4], rcrowc[divsy-3], 
-  ccenter, rcleft[divsy-4],rcleft[divsy-3],rcright[divsy-4],rcright[divsy-3], 
-  pdefault, xd, yd, Nv);
+        ccenter, rcleft[divsy-4],rcleft[divsy-3],rcright[divsy-4],rcright[divsy-3], 
+        pdefault, xd, yd, Nv);
 
   /* 250 kHz */
   testtone(Ttone, rcrowc[divsy-3], rcrowc[divsy-2], 
@@ -1192,18 +1199,18 @@ if(colortv>0) {
 
   /* color bars */ 
   colorbars(coff, Nhc, rcrowc[divsy-2], rcrowc[divsy-1], rcrowc[divsy], 
-  ccenter, rcleft[divsy-2], rcleft[divsy], rcright[divsy-2], rcright[divsy],
-  pdefault, xd,yd,Nv);
+            ccenter, rcleft[divsy-2], rcleft[divsy], rcright[divsy-2], rcright[divsy],
+            pdefault, xd,yd,Nv);
 
   /* test frequencies */
   testfreqs(ftones, coff, Nhc, rcrowc[divsy+1],rcrowc[divsy+2],rcrowc[divsy+3],
-  ccenter, rcleft[divsy+1],rcleft[divsy+3], rcright[divsy+1],rcright[divsy+3],
-  pdefault, xd, yd, Nv);
+            ccenter, rcleft[divsy+1],rcleft[divsy+3], rcright[divsy+1],rcright[divsy+3],
+            pdefault, xd, yd, Nv);
 
   /* gray bars */
   graybars(coff, Nhc, rcrowc[divsy+3], rcrowc[divsy+4], ccenter,
-  rcleft[divsy+3], rcleft[divsy+4], rcright[divsy+3], rcright[divsy+4],
-  pdefault, xd,yd,Nv);
+           rcleft[divsy+3], rcleft[divsy+4], rcright[divsy+3], rcright[divsy+4],
+           pdefault, xd,yd,Nv);
 
   /* PAL ears */
   if(colortv==1) {
@@ -1224,12 +1231,12 @@ if(colortv>0) {
 
   /* bottom wh - black - wh */
   bottombw(round((coff[2]+coff[3])/2), Nhc, rcrowc[divsy+4], rcrowc[divsy+5], 
-  ccenter, rcleft[divsy+4],rcleft[divsy+5], rcright[divsy+4],rcright[divsy+5],
-  pdefault, xd, yd, Nv);
+           ccenter, rcleft[divsy+4],rcleft[divsy+5], rcright[divsy+4],rcright[divsy+5],
+           pdefault, xd, yd, Nv);
 
   /* bottom yellow red circle */
   bottomcirc(coff[0], Nhc, rcrowc[divsy+5], cx, cy, crad, 
-  ccenter, rcleft[divsy+5], rcright[divsy+5], pdefault, xd, yd, Nv);
+             ccenter, rcleft[divsy+5], rcright[divsy+5], pdefault, xd, yd, Nv);
 }
 
 /********************** set id *********************/
@@ -1275,6 +1282,6 @@ if(colortv>0) {
   label(ires, rpos, p=pbw);
   label(itot, tpos, p=pbw);
   label(iNsy, Npos, p=pbw);
-  write('#res:\t', ires, itot, iNsy);
+  if(settings.verbose > 1)
+    write('#res:\t', ires, itot, iNsy);
 }
-
