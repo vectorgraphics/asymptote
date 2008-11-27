@@ -2,8 +2,14 @@
 
 private import math;
 
-restricted bool Horizontal=true;
-restricted bool Vertical=false;
+struct flowdir {}
+
+restricted flowdir Horizontal;
+restricted flowdir Vertical;
+
+real minblockwidth=0;
+real minblockheight=0;
+real mincirclediameter=0;
 
 struct block {
   // The absolute center of the block in user coordinates.
@@ -72,9 +78,11 @@ struct block {
 // Construct a rectangular block with header and body objects.
 block rectangle(object header=new object, object body, pair center=(0,0),
                 pen headerpen=mediumgray, pen bodypen=invisible,
-		pen drawpen=currentpen,
-                real dx=3, real minheaderwidth=0, real minheaderheight=0,
-                real minbodywidth=0, real minbodyheight=0)
+                pen drawpen=currentpen,
+                real dx=3, real minheaderwidth=minblockwidth,
+                real minheaderheight=minblockwidth,
+                real minbodywidth=minblockheight,
+                real minbodyheight=minblockheight)
 {
   frame fbody=body.f;
   frame fheader=header.f;
@@ -117,9 +125,10 @@ block rectangle(object header=new object, object body, pair center=(0,0),
 }
 
 // As above, but without the header.
-block rectangle(object body=new object, pair center=(0,0), pen fillpen=invisible,
-		pen drawpen=currentpen, real dx=3, real minwidth=0,
-		real minheight=0)
+block rectangle(object body=new object, pair center=(0,0),
+		pen fillpen=invisible, pen drawpen=currentpen,
+		real dx=3, real minwidth=minblockwidth,
+                real minheight=minblockheight)
 {
   frame f=body.f;
   pair m=min(f);
@@ -152,9 +161,10 @@ block rectangle(object body=new object, pair center=(0,0), pen fillpen=invisible
 }
 
 block diamond(object body=new object, pair center=(0,0),
-	      pen fillpen=invisible, pen drawpen=currentpen,
-	      real ds=5, real dw=1,
-              real height=20, real minwidth=0, real minheight=0)
+              pen fillpen=invisible, pen drawpen=currentpen,
+              real ds=5, real dw=1,
+              real height=20, real minwidth=minblockwidth,
+              real minheight=minblockheight)
 {
   frame f=body.f;
   pair m=min(f);
@@ -198,7 +208,8 @@ block diamond(object body=new object, pair center=(0,0),
 }
 
 block circle(object body=new object, pair center=(0,0), pen fillpen=invisible,
-	     pen drawpen=currentpen, real dr=3, real mindiameter=0)
+             pen drawpen=currentpen, real dr=3,
+             real mindiameter=mincirclediameter)
 {
   frame f=body.f;
   pair m=min(f);
@@ -232,9 +243,9 @@ block circle(object body=new object, pair center=(0,0), pen fillpen=invisible,
 }
 
 block roundrectangle(object body=new object, pair center=(0,0),
-		     pen fillpen=invisible, pen drawpen=currentpen,
-		     real ds=5, real dw=0, real minwidth=0,
-		     real minheight=0)
+                     pen fillpen=invisible, pen drawpen=currentpen,
+                     real ds=5, real dw=0, real minwidth=minblockwidth,
+                     real minheight=minblockheight)
 {
   frame f=body.f;
   pair m=min(f);
@@ -274,8 +285,8 @@ block roundrectangle(object body=new object, pair center=(0,0),
 }
 
 block bevel(object body=new object, pair center=(0,0), pen fillpen=invisible,
-	    pen drawpen=currentpen, real dh=5,
-	    real dw=5, real minwidth=0, real minheight=0)
+            pen drawpen=currentpen, real dh=5, real dw=5,
+            real minwidth=minblockwidth, real minheight=minblockheight)
 {
   frame f=body.f;
   pair m=min(f);
@@ -311,12 +322,12 @@ block bevel(object body=new object, pair center=(0,0), pen fillpen=invisible,
   return block;
 }
 
-path path(pair point[] ... bool horizontal[])
+path path(pair point[] ... flowdir dir[])
 {
   path line=point[0];
   pair current, prev=point[0];
   for(int i=1; i < point.length; ++i) {
-    if(horizontal[i-1])
+    if(dir[i-1] == Horizontal)
       current=(point[i].x,point[i-1].y);
     else 
       current=(point[i-1].x,point[i].y);

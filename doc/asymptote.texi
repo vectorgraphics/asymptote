@@ -7924,7 +7924,7 @@ The original @code{featpost3D} package is documented at
 @node flowchart
 @section @code{flowchart}
 @cindex @code{flowchart}
-This package provides routines to assist in drawing flowcharts. The primary
+This package provides routines for drawing flowcharts. The primary
 structure is a @code{block}, which represents a single block on the
 flowchart. The following eight functions return a position on the appropriate
 edge of the block, given picture transform @code{t}:
@@ -7976,47 +7976,52 @@ frame for their object argument:
 @item rectangular block with an optional header (and padding @code{dx} around header and body): 
 @cindex @code{rectangle}
 @verbatim
-block rectangle(object header, object body, pair center=(0,0),
+block rectangle(object header=new object, object body, pair center=(0,0),
                 pen headerpen=mediumgray, pen bodypen=invisible,
                 pen drawpen=currentpen,
-                real dx=3, real minheaderwidth=0, real minheaderheight=0,
-                real minbodywidth=0, real minbodyheight=0);
-block rectangle(object body, pair center=(0,0), pen fillpen=invisible,
-                pen drawpen=currentpen, real dx=3, real minwidth=0,
-                real minheight=0);
+                real dx=3, real minheaderwidth=minblockwidth,
+                real minheaderheight=minblockwidth,
+                real minbodywidth=minblockheight,
+                real minbodyheight=minblockheight);
+block rectangle(object body=new object, pair center=(0,0),
+		pen fillpen=invisible, pen drawpen=currentpen,
+		real dx=3, real minwidth=minblockwidth,
+                real minheight=minblockheight);
 @end verbatim
 
 @item diamond-shaped flowchart block:
 @cindex @code{diamond}
 @verbatim
-block diamond(object body, pair center=(0,0),
+block diamond(object body=new object, pair center=(0,0),
               pen fillpen=invisible, pen drawpen=currentpen,
               real ds=5, real dw=1,
-              real height=20, real minwidth=0, real minheight=0);
+              real height=20, real minwidth=minblockwidth,
+              real minheight=minblockheight);
 @end verbatim
 
 @item circular flowchart block:
 @cindex @code{circle}
 @verbatim
-block circle(object body, pair center=(0,0), pen fillpen=invisible,
-             pen drawpen=currentpen, real dr=3, real mindiameter=0);
+block circle(object body=new object, pair center=(0,0), pen fillpen=invisible,
+             pen drawpen=currentpen, real dr=3,
+             real mindiameter=mincirclediameter);
 @end verbatim
 
 @item rectangular flowchart block with rounded corners:
 @cindex @code{roundrectangle}
 @verbatim
-block roundrectangle(object body, pair center=(0,0),
+block roundrectangle(object body=new object, pair center=(0,0),
                      pen fillpen=invisible, pen drawpen=currentpen,
-                     real ds=5, real dw=0, real minwidth=0,
-                     real minheight=0);
+                     real ds=5, real dw=0, real minwidth=minblockwidth,
+                     real minheight=minblockheight);
 @end verbatim
 
 @item rectangular flowchart block with beveled edges:
 @cindex @code{bevel}
 @verbatim
-block bevel(object body, pair center=(0,0), pen fillpen=invisible,
-            pen drawpen=currentpen, real dh=5,
-            real dw=5, real minwidth=0, real minheight=0);
+block bevel(object body=new object, pair center=(0,0), pen fillpen=invisible,
+            pen drawpen=currentpen, real dh=5, real dw=5,
+            real minwidth=minblockwidth, real minheight=minblockheight);
 @end verbatim 
 
 @end table
@@ -8024,13 +8029,15 @@ block bevel(object body, pair center=(0,0), pen fillpen=invisible,
 To draw paths joining the pairs in @code{point} with right-angled lines,
 use the routine:
 @cindex @code{path}
+@cindex @code{Horizontal}
+@cindex @code{Vertical}
 @verbatim
-path path(pair point[] ... bool horizontal[]);
+path path(pair point[] ... flowdir dir[]);
 @end verbatim
 @noindent
-The entries in @code{horizontal} identify whether successive
+The entries in @code{dir} identify whether successive
 segments between the pairs specified by @code{point} should be drawn
-horizontal (@code{true}) or vertical (@code{false}).
+in the @code{Horizontal} or @code{Vertical} direction.
 
 Here is a simple flowchart example:
 
