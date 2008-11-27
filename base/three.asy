@@ -13,8 +13,8 @@ real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
 pair viewportmargin=0;     // Viewport margin.
-real viewportfactor=1.01;  // Factor used to expand orthographic viewport.
-real anglefactor=1.03;     // Factor used to expand perspective viewport.
+real viewportfactor=1.02;  // Factor used to expand orthographic viewport.
+real anglefactor=1.02;     // Factor used to expand perspective viewport.
 real angleprecision=1e-3;  // Precision for centering perspective projections.
 real fovfactor=0.6;        // PRC field of view factor.
 
@@ -1817,22 +1817,23 @@ triple size3(frame f)
 
 private string[] file3;
 
-string orthographic(real viewplanesize) {
-  return"activeCamera=scene.cameras.getByIndex(0);
-function orthographic() 
+private string projection(bool infinity, real viewplanesize)
 {
-activeCamera.projectionType=activeCamera.TYPE_ORTHOGRAPHIC;
+  return "activeCamera=scene.cameras.getByIndex(0);
+function asyProjection() {"+
+    (infinity ? "activeCamera.projectionType=activeCamera.TYPE_ORTHOGRAPHIC;" :
+     "activeCamera.projectionType=activeCamera.TYPE_PERSPECTIVE;")+"
 activeCamera.viewPlaneSize="+string(viewplanesize)+";
 activeCamera.binding=activeCamera.BINDING_VERTICAL;
 }
 
-orthographic();
+asyProjection();
 
 handler=new CameraEventHandler();
 runtime.addEventHandler(handler);
 handler.onEvent=function(event) 
 {
-  orthographic();
+  asyProjection();
   scene.update();
 }";
 }
@@ -1918,14 +1919,10 @@ string embed3D(string label="", string text=label, string prefix,
 
   pair viewportmargin=viewportmargin(P);
 
-  if(P.infinity || lightscript != "") {
-    triple lambda=max3(f)-min3(f);
-    real viewplanesize=(lambda.y+2*viewportmargin.y)/cm;
-    string name=prefix+".js";
-    writeJavaScript(name,P.infinity ? lightscript+orthographic(viewplanesize):
-		    lightscript,script);
-    script=name;
-  }
+  triple lambda=max3(f)-min3(f);
+  real viewplanesize=(viewportfactor*lambda.y+2*viewportmargin.y)/cm;
+  string name=prefix+".js";
+  writeJavaScript(name,lightscript+projection(P.infinity,viewplanesize),script);
 
   shipout3(prefix,f);
   
@@ -1954,7 +1951,7 @@ string embed3D(string label="", string text=label, string prefix,
     ",3Droo="+format(abs(v))+
     ",3Dbg="+format(background);
   if(options != "") options3 += ","+options;
-  if(script != "") options3 += ",3Djscript="+script;
+  if(name != "") options3 += ",3Djscript="+name;
 
   return Embed(prefix,options3,width+2*viewportmargin.x,
 	       height+2*viewportmargin.y);
