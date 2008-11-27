@@ -15,21 +15,23 @@
 #include "item.h"
 
 namespace types {
-  class record;
+class record;
 }
 
-#ifdef HAVE_LIBPTHREAD
 namespace camp {
 void glrenderWrapper();
 }
 
 namespace gl {
+extern bool glthread;
+
+#ifdef HAVE_LIBPTHREAD
 extern pthread_cond_t initSignal;
 extern pthread_mutex_t initLock;
 extern pthread_t mainthread;
 void wait(pthread_cond_t& signal, pthread_mutex_t& lock);
-}
 #endif
+}
 
 namespace settings {
 extern const char PROGRAM[];

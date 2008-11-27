@@ -670,7 +670,6 @@ void picture::render(GLUnurbs *nurb, double size2,
   }
 }
   
-#ifdef HAVE_LIBGLUT
 struct Communicate : public gc {
   string prefix;
   picture* pic;
@@ -698,8 +697,6 @@ void glrenderWrapper()
 	   com.specular,com.viewportlighting,com.view);
 }
 
-#endif
-
 bool picture::shipout3(const string& prefix, const string& format,
 		       double width, double height,
 		       double angle, const triple& m, const triple& M,
@@ -720,52 +717,52 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool View=settings::view() && view;
   static int oldpid=0;
   
-#ifdef HAVE_LIBPTHREAD    
-  static bool initialize=true;
+  if(glthread) {
+    static bool initialize=true;
   
-  if(initialize) {
-    initialize=false;
+    if(initialize) {
+      initialize=false;
     
-    com.prefix=prefix;
-    com.pic=this;
-    com.format=outputformat;
-    com.width=width;
-    com.height=height;
-    com.angle=angle;
-    com.m=m;
-    com.M=M;
-    com.nlights=nlights;
-    com.lights=lights;
-    com.diffuse=diffuse;
-    com.ambient=ambient;
-    com.specular=specular;
-    com.viewportlighting=viewportlighting;
-    com.view=View;
-    wait(initSignal,initLock);
+      com.prefix=prefix;
+      com.pic=this;
+      com.format=outputformat;
+      com.width=width;
+      com.height=height;
+      com.angle=angle;
+      com.m=m;
+      com.M=M;
+      com.nlights=nlights;
+      com.lights=lights;
+      com.diffuse=diffuse;
+      com.ambient=ambient;
+      com.specular=specular;
+      com.viewportlighting=viewportlighting;
+      com.view=View;
+      wait(initSignal,initLock);
+      return true;
+    }
   } else {
-#else
-  int pid=fork();
-  if(pid == -1)
-    camp::reportError("Cannot fork process");
-  if(pid != 0)  {
-    oldpid=pid;
-    waitpid(-1,NULL,interact::interactive ? WNOHANG : 0);
-    return true;
+    int pid=fork();
+    if(pid == -1)
+      camp::reportError("Cannot fork process");
+    if(pid != 0)  {
+      oldpid=pid;
+      waitpid(-1,NULL,interact::interactive ? WNOHANG : 0);
+      return true;
+    }
   }
-#endif
+  
   glrender(prefix,this,outputformat,width,height,angle,m,M,
 	   nlights,lights,diffuse,ambient,specular,viewportlighting,View,
 	   oldpid);
-#ifdef HAVE_LIBPTHREAD  
+  
+  if(glthread) {
+    if(!View)
+      wait(readySignal,readyLock);
+  
+    if(!interact::interactive)
+      wait(quitSignal,quitLock);
   }
-  
-  if(!View)
-    wait(readySignal,readyLock);
-  
-  if(!interact::interactive)
-    wait(quitSignal,quitLock);
-#endif
-  
 #else
   reportError("Cannot render image; please install glut, run ./configure, and recompile"); 
 #endif

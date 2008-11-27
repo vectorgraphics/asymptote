@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 {
   Args args(argc,argv);
 #ifdef HAVE_LIBGLUT
-#ifdef HAVE_LIBPTHREAD  
+#ifdef HAVE_LIBPTHREAD
   pthread_t thread;
   try {
     if(pthread_create(&thread,NULL,asymain,&args) == 0) {
@@ -155,5 +155,6 @@ int main(int argc, char *argv[])
   }
 #endif
 #endif  
-    asymain(&args);
+  gl::glthread=false;
+  asymain(&args);
 }

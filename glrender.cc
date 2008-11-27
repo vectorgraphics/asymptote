@@ -116,6 +116,8 @@ int window;
   
 void *glrenderWrapper(void *a);
 
+bool glthread=true;
+
 #ifdef HAVE_LIBPTHREAD
 pthread_t mainthread;
 
@@ -132,14 +134,16 @@ pthread_mutex_t readyLock=PTHREAD_MUTEX_INITIALIZER;
 inline void lock() 
 {
 #ifdef HAVE_LIBPTHREAD
-  pthread_mutex_lock(&readyLock);
+  if(glthread)
+    pthread_mutex_lock(&readyLock);
 #endif  
 }
 
 inline void unlock() 
 {
 #ifdef HAVE_LIBPTHREAD
-  pthread_mutex_unlock(&readyLock);
+  if(glthread)
+    pthread_mutex_unlock(&readyLock);
 #endif  
 
 }
@@ -455,14 +459,14 @@ void updateHandler(int)
 
 void reshape(int width, int height)
 {
-#ifdef HAVE_LIBPTHREAD  
-  static bool initialize=true;
-  if(initialize) {
-    initialize=false;
-    signal(SIGUSR1,updateHandler);
-    unlock();
+  if(glthread) {
+    static bool initialize=true;
+    if(initialize) {
+      initialize=false;
+      signal(SIGUSR1,updateHandler);
+      unlock();
+    }
   }
-#endif  
   
   if(capsize(width,height))
     glutReshapeWindow(width,height);
@@ -483,14 +487,14 @@ void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
 
 void quit() 
 {
-#ifdef HAVE_LIBPTHREAD  
-  glutHideWindow();
-  if(!interact::interactive)
-    wait(quitSignal,quitLock);
-#else
-  glutDestroyWindow(window);
-  exit(0);
-#endif
+  if(glthread) {
+    glutHideWindow();
+    if(!interact::interactive)
+      wait(quitSignal,quitLock);
+  } else {
+    glutDestroyWindow(window);
+    exit(0);
+  }
 }
 
 void display()
@@ -505,12 +509,12 @@ void display()
   }
   if(interact::interactive)
     unlock();
-#ifndef HAVE_LIBPTHREAD  
-  if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
-    kill(Oldpid,SIGHUP);
-    Oldpid=0;
+  if(!glthread) {
+    if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
+      kill(Oldpid,SIGHUP);
+      Oldpid=0;
+    }
   }
-#endif  
 }
 
 void move(int x, int y)
@@ -1038,7 +1042,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 	 << " image" << endl;
 
 #ifdef HAVE_LIBPTHREAD
-  if(initialized) {
+  if(initialized && glthread) {
     if(View) {
       pthread_kill(mainthread,SIGUSR1);
       unlock();
@@ -1161,16 +1165,16 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
     glutMainLoop();
   } else {
-#ifdef HAVE_LIBPTHREAD    
-    while(true) {
-      wait(readySignal,readyLock);
+    if(glthread) {
+      while(true) {
+	wait(readySignal,readyLock);
+	Export();
+	wait(quitSignal,quitLock);
+      }
+    } else {
       Export();
-      wait(quitSignal,quitLock);
+      quit();
     }
-#else    
-    Export();
-    quit();
-#endif    
   }
 }
 
