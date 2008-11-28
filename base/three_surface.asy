@@ -915,9 +915,17 @@ void label(frame f, Label L, triple position, align align=NoAlign,
   if(is3D()) {
     for(patch S : surface(L,position).s)
       draw3D(f,S,L.p,light);
-  } else
-    fill(f,path(L,project(position,P.t),P),
-	 light.color(L.T3*Z,L.p,shiftless(P.modelview())));
+  } else {
+    if(L.filltype == NoFill)
+      fill(f,path(L,project(position,P.t),P),
+	   light.color(L.T3*Z,L.p,shiftless(P.modelview())));
+    else {
+      frame d;
+      fill(d,path(L,project(position,P.t),P),
+	   light.color(L.T3*Z,L.p,shiftless(P.modelview())));
+      add(f,d,L.filltype);
+    }
+  }
 }
 
 void label(picture pic=currentpicture, Label L, triple position,
@@ -936,9 +944,17 @@ void label(picture pic=currentpicture, Label L, triple position,
       if(is3D())
         for(patch S : surface(L,v).s)
           draw3D(f,S,L.p,light);
-      if(pic != null)
-        fill(project(v,P.t),pic,path(L,P),
-	     light.color(L.T3*Z,L.p,shiftless(P.modelview())));
+      if(pic != null) {
+	if(L.filltype == NoFill)
+	  fill(project(v,P.t),pic,path(L,P),
+	       light.color(L.T3*Z,L.p,shiftless(P.modelview())));
+	else {
+	  picture d;
+	  fill(project(v,P.t),d,path(L,P),
+	       light.color(L.T3*Z,L.p,shiftless(P.modelview())));
+	  add(pic,d,L.filltype);
+	}
+      }
     },!L.defaulttransform3);
 
   if(L.defaulttransform3)

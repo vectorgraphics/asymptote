@@ -2251,13 +2251,6 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
 	  light light=nolight)
 {
   pen q=(pen) p;
-  Label L=L.copy();
-  L.align(align);
-  if(L.s != "") {
-    L.p(q);
-    label(pic,L,g);
-  }
-
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       path3 G=margin(t*g,q).g;
       if(is3D()) {
@@ -2270,6 +2263,12 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
       if(pic != null)
         draw(pic,project(G,P),q);
     },true);
+  Label L=L.copy();
+  L.align(align);
+  if(L.s != "") {
+    L.p(q);
+    label(pic,L,g);
+  }
   addPath(pic,g,q);
 }
 
@@ -2352,12 +2351,12 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
 	  arrowbar3 bar=None, margin3 margin=NoMargin3, light light=nolight,
 	  light arrowheadlight=currentlight)
 {
-  label(pic,L,g,align,(pen) p);
   begingroup3(pic);
   bool drawpath=arrow(pic,g,p,margin,light,arrowheadlight);
   if(bar(pic,g,p,margin,light,arrowheadlight) && drawpath)
     draw(pic,L,g,align,p,margin,light);
   endgroup3(pic);
+  label(pic,L,g,align,(pen) p);
 }
 
 void draw(frame f, path3 g, material p=currentpen, arrowbar3 arrow,

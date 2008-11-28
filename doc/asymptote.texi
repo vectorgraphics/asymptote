@@ -325,8 +325,8 @@ prebuilt @code{Asymptote} binaries from
 
 @node MacOS X binary distributions
 @section MacOS X binary distributions
-@cindex MacOS X binary distributions
-MacOS users can either compile the @code{UNIX} source code
+@cindex @code{MacOS X} binary distributions
+@code{MacOS X} users can either compile the @code{UNIX} source code
 (@pxref{Compiling from UNIX source})
 or install the contributed @code{Asymptote} binary available at
 
@@ -341,10 +341,10 @@ official source:
 @url{http://sourceforge.net/project/showfiles.php?group_id=120000}
 
 @noindent
-Note that many MacOS X (and FreeBSD) systems inexplicably ship with an extremely
-old @acronym{GNU} @code{readline} version (4.1, dated 21 March 2000).
-For full interactive functionality, @code{readline} version 4.2 or later
-(16 April 2001) is required.
+Note that many @code{MacOS X} (and FreeBSD) systems inexplicably ship
+with an extremely old @acronym{GNU} @code{readline} version (4.1,
+dated 21 March 2000). For full interactive functionality,
+@code{readline} version 4.2 or later (16 April 2001) is required.
 
 @node Microsoft Windows
 @section Microsoft Windows
@@ -561,7 +561,7 @@ cd asymptote-x.xx
 We recommend using SVN revision 761 (or later) of @code{freeglut} to
 support antialiasing, via multisampling, in our adaptive
 @code{Asymptote} @code{OpenGL}-based 3D renderer
-(MacOSX users can skip this step since @code{Asymptote} is configured
+(@code{MacOS X} users can skip this step since @code{Asymptote} is configured
 to use the native glut library on that platform.) Download
 @quotation
 @url{http://freeglut.svn.sourceforge.net/viewvc/freeglut/trunk/freeglut/freeglut.tar.gz}
@@ -7986,8 +7986,8 @@ block rectangle(object header=new object, object body, pair center=(0,0),
                 real minbodywidth=minblockheight,
                 real minbodyheight=minblockheight);
 block rectangle(object body=new object, pair center=(0,0),
-		pen fillpen=invisible, pen drawpen=currentpen,
-		real dx=3, real minwidth=minblockwidth,
+                pen fillpen=invisible, pen drawpen=currentpen,
+                real dx=3, real minwidth=minblockwidth,
                 real minheight=minblockheight);
 @end verbatim
 
@@ -8878,5 +8878,6 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify
 @c  LocalWords:  psviewerOptions pdfviewerOptions viewportmargin asyattach
-@c  LocalWords:  multisampling autogen multisample coloredpath relstep
+@c  LocalWords:  multisampling autogen multisample coloredpath relstep flowdir
 @c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot
+@c  LocalWords:  minblockwidth minblockheight mincirclediameter
