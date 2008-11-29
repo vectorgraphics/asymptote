@@ -910,7 +910,11 @@ void no_GCwarn(char *, GC_word)
 #endif
 
 void initSettings() {
-  queryRegistry();
+  static bool initialize=true;
+  if(initialize) {
+    queryRegistry();
+    initialize=false;
+  }
 
   settingsModule=new types::dummyRecord(symbol::trans("settings"));
   
