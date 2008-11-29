@@ -489,8 +489,10 @@ void quit()
 {
   if(glthread) {
     glutHideWindow();
+#ifdef HAVE_LIBPTHREAD
     if(!interact::interactive)
       wait(quitSignal,quitLock);
+#endif
   } else {
     glutDestroyWindow(window);
     exit(0);
@@ -1102,7 +1104,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutInitWindowSize(maxTileWidth,maxTileHeight);
     glutInitDisplayMode(displaymode);
     window=glutCreateWindow("");
+#ifndef __CYGWIN__    
     if(getSetting<bool>("iconify"))
+#endif      
       glutHideWindow();
   }
   
@@ -1169,9 +1173,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   } else {
     if(glthread) {
       while(true) {
+#ifdef HAVE_LIBPTHREAD
 	wait(readySignal,readyLock);
 	Export();
 	wait(quitSignal,quitLock);
+#endif	
       }
     } else {
       Export();

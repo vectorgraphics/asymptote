@@ -699,6 +699,7 @@ void glrenderWrapper()
 
 void hold(bool View) 
 {
+#ifdef HAVE_LIBPTHREAD
   if(glthread) {
     if(!View)
       wait(readySignal,readyLock);
@@ -706,6 +707,7 @@ void hold(bool View)
     if(!interact::interactive)
       wait(quitSignal,quitLock);
   }
+#endif  
 }
 
 bool picture::shipout3(const string& prefix, const string& format,
@@ -729,6 +731,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   static int oldpid=0;
   
   if(glthread) {
+#ifdef HAVE_LIBPTHREAD
     static bool initialize=true;
     if(initialize) {
       initialize=false;
@@ -751,6 +754,7 @@ bool picture::shipout3(const string& prefix, const string& format,
       hold(View);
       return true;
     }
+#endif
   } else {
     int pid=fork();
     if(pid == -1)
