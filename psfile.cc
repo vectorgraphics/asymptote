@@ -223,12 +223,6 @@ void psfile::write(path p, bool newPath)
 
   if(newPath) newpath();
 
-  if(n == 1) {
-    moveto(p.point((Int) 0));
-    lineto(p.point((Int) 0));
-    return;
-  }
-
   // Draw points
   moveto(p.point((Int) 0));
   for(Int i = 1; i < n; i++) {
