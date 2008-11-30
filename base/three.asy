@@ -1463,21 +1463,19 @@ triple[] dirSpecifier(guide3 g, int t)
 {
   flatguide3 f;
   g(f);
-  bool cyclic=f.cyclic();
   int n=f.size();
   checkEmpty(n);
-  if(cyclic) t=t % n;
-  else if(t < 0 || t >= n-1) return new triple[] {O,O};
+  if(f.cyclic()) t=t % n;
+  else if(t < 0 || t >= n-1) return new triple[];
   return new triple[] {f.out[t].dir,f.in[t].dir};
 }
 
 triple[] controlSpecifier(guide3 g, int t) {
   flatguide3 f;
   g(f);
-  bool cyclic=f.cyclic();
   int n=f.size();
   checkEmpty(n);
-  if(cyclic) t=t % n;
+  if(f.cyclic()) t=t % n;
   else if(t < 0 || t >= n-1) return new triple[];
   control c=f.control[t];
   if(c.active) return new triple[] {c.post,c.pre};
@@ -1488,20 +1486,55 @@ tensionSpecifier tensionSpecifier(guide3 g, int t)
 {
   flatguide3 f;
   g(f);
-  bool cyclic=f.cyclic();
   int n=f.size();
   checkEmpty(n);
-  if(cyclic) t=t % n;
+  if(f.cyclic()) t=t % n;
   else if(t < 0 || t >= n-1) return operator tension(1,1,false);
   Tension T=f.Tension[t];
   return operator tension(T.out,T.in,T.atLeast);
 }
 
-real[] curlSpecifier(guide3 g)
+real[] curlSpecifier(guide3 g, int t)
 {
   flatguide3 f;
   g(f);
-  return new real[] {f.out[0].gamma,f.in[f.nodes.length-2].gamma};
+  int n=f.size();
+  checkEmpty(n);
+  if(f.cyclic()) t=t % n;
+  else if(t < 0 || t >= n-1) return new real[];
+  return new real[] {f.out[t].gamma,f.in[t].gamma};
+}
+
+guide3 reverse(guide3 g)
+{
+  flatguide3 f;
+  bool cyclic=cyclic(g);
+  g(f);
+  int n=f.size();
+  checkEmpty(n);
+  guide3 G;
+  if(n >= 0) {
+    int start=cyclic ? n : n-1;
+    for(int i=start; i > 0; --i) {
+      G=G..f.nodes[i];
+      control c=f.control[i-1];
+      if(c.active)
+	G=G..operator controls(c.pre,c.post);
+      else {
+	dir in=f.in[i-1];
+	triple d=in.dir;
+	if(d != O) G=G..operator spec(d,JOIN_OUT);
+	else if(in.Curl) G=G..operator curl(in.gamma,JOIN_OUT);
+	dir out=f.out[i-1];
+	triple d=out.dir;
+	if(d != O) G=G..operator spec(d,JOIN_IN);
+	else if(out.Curl) G=G..operator curl(out.gamma,JOIN_IN);
+      }
+    }
+    if(cyclic) G=G..cycle;
+    else G=G..f.nodes[0];
+  }
+  return G;
 }
 
 triple intersectionpoint(path3 p, path3 q, real fuzz=-1)

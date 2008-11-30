@@ -5718,6 +5718,7 @@ To switch between using @code{latex} and @code{pdflatex} you may first
 need to remove the files @code{latexusage-.*} and @code{latexusage.aux}.
 
 @cindex @code{attachfile2}
+@cindex @code{asyattach}
 The current (1.01) version of @code{asymptote.sty} supports the
 embedding of 3D @acronym{PRC} files, either inline or, using the
 @code{asyattach} environment with the @code{attachfile2} (or older

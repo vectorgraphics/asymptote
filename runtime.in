@@ -2705,14 +2705,9 @@ pairarray *dirSpecifier(guide *g, Int t)
 {
   flatguide f;
   g->flatten(f,false);
-  array *c=new array(2);
   Int n=f.size();
-  if(g->cyclic()) t=t % n;
-  else if(t < 0 || t >= n-1) {
-    (*c)[0]=zero;
-    (*c)[1]=zero;
-    return c;
-  }
+  if(!g->cyclic() && (t < 0 || t >= n-1)) return new array(0);
+  array *c=new array(2);
   (*c)[0]=f.Nodes(t).out->dir();
   (*c)[1]=f.Nodes(t+1).in->dir();
   return c;
@@ -2723,14 +2718,12 @@ pairarray *controlSpecifier(guide *g, Int t)
   flatguide f;
   g->flatten(f,false);
   Int n=f.size();
-  if(g->cyclic()) t=t % n;
-  else if(t < 0 || t >= n-1) return new array(0);
+  if(!g->cyclic() && (t < 0 || t >= n-1)) return new array(0);
   knot curr=f.Nodes(t);
   knot next=f.Nodes(t+1);
   if(curr.out->controlled()) {
-    array *c;
     assert(next.in->controlled());
-    c=new array(2);
+    array *c=new array(2);
     (*c)[0]=curr.out->control();
     (*c)[1]=next.in->control();
     return c;
@@ -2742,21 +2735,20 @@ tensionSpecifier tensionSpecifier(guide *g, Int t)
   flatguide f;
   g->flatten(f,false);
   Int n=f.size();
-  if(g->cyclic()) t=t % n;
-  else if(t < 0 || t >= n-1) return tensionSpecifier(1.0,1.0,false);
+  if(!g->cyclic() && (t < 0 || t >= n-1)) return tensionSpecifier(1.0,1.0,false);
   knot curr=f.Nodes(t);
-  knot next=f.Nodes(t+1);
-  return tensionSpecifier(curr.tout.val,next.tin.val,curr.tout.atleast);
+  return tensionSpecifier(curr.tout.val,f.Nodes(t+1).tin.val,curr.tout.atleast);
 }
 
-realarray *curlSpecifier(guide *g)
+realarray *curlSpecifier(guide *g, Int t)
 {
   flatguide f;
   g->flatten(f,false);
+  Int n=f.size();
+  if(!g->cyclic() && (t < 0 || t >= n-1)) return new array(0);
   array *c=new array(2);
-  real c0=f.Nodes(0).out->curl();
-  real c1=f.Nodes(f.size()-1).in->curl();
-  if(c1 < 0.0) c1=f.Nodes(f.size()-1).out->curl();
+  real c0=f.Nodes(t).out->curl();
+  real c1=f.Nodes(t+1).in->curl();
   (*c)[0]=c0 >= 0.0 ? c0 : 1.0;
   (*c)[1]=c1 >= 0.0 ? c1 : 1.0;
   return c;
@@ -2765,50 +2757,56 @@ realarray *curlSpecifier(guide *g)
 guide *reverse(guide *g)
 {
   flatguide f;
+  bool cyclic=g->cyclic();
   bool precycle=g->flatten(f,false);
-  if(precycle && g->cyclic()) {
+  if(precycle && cyclic) {
     path p=g->solve();
     return new pathguide(p.reverse());
   }
+
   Int n=f.size();
 
   guidevector v;
   if(n >= 0) {
-    v.push_back(new pairguide(f.Nodes(n-1).z));
-    
-    real c0=f.Nodes(0).out->curl();
-    real c1=f.Nodes(f.size()-1).in->curl();
-    if(c1 < 0.0)
-      c1=f.Nodes(f.size()-1).out->curl();
-    if(c1 >= 0.0)
-      v.push_back(new specguide(new curlSpec(c1),camp::OUT));
-  
-    for(Int i=n-2; i >= 0; --i) {
-      knot curr=f.Nodes(i);
-      knot next=f.Nodes(i+1);
-      if(curr.out->controlled()) {
-	assert(next.in->controlled());
-	v.push_back(new controlguide(next.in->control(),curr.out->control()));
+    Int start=cyclic ? n : n-1;
+    knot curr=f.Nodes(start);
+    knot next;
+    for(Int i=start; i > 0; --i) {
+      next=f.Nodes(i-1);
+      v.push_back(new pairguide(curr.z));
+      if(next.out->controlled()) {
+	assert(curr.in->controlled());
+	v.push_back(new controlguide(curr.in->control(),next.out->control()));
       } else {
-	pair d=f.Nodes(i+1).in->dir();
+	pair d=curr.in->dir();
 	if(d != zero) 
 	  v.push_back(new specguide(new dirSpec(-d),camp::OUT));
-	real tout=next.tin.val;
-	real tin=curr.tout.val;
-	bool atleast=curr.tout.atleast;
-	if(tout != 1.0 || tin != 1.0 || curr.tout.atleast)
+	else {
+	  real C=curr.in->curl();
+	  if(C >= 0.0)
+	    v.push_back(new specguide(new curlSpec(C),camp::OUT));
+	}
+	real tout=curr.tin.val;
+	real tin=next.tout.val;
+	bool atleast=next.tout.atleast;
+	if(tout != 1.0 || tin != 1.0 || next.tout.atleast)
 	  v.push_back(new tensionguide(tensionSpecifier(tout,tin,atleast)));
-	d=f.Nodes(i).out->dir();	
+	d=next.out->dir();	
 	if(d != zero) 
 	  v.push_back(new specguide(new dirSpec(-d),camp::IN));
-
+	else {
+	  real C=next.out->curl();
+	  if(C >= 0.0)
+	    v.push_back(new specguide(new curlSpec(C),camp::IN));
+	}
       }
-      if(i == 0 && c0 >= 0.0)
-	v.push_back(new specguide(new curlSpec(c0),camp::IN));
-      v.push_back(new pairguide(f.Nodes(i).z));
+      curr=next;
     }
-    if(g->cyclic())
+    if(cyclic)
       v.push_back(new cycletokguide());
+    else
+      v.push_back(new pairguide(next.z));
+      
   }
   return new multiguide(v);
 }
