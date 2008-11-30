@@ -96,14 +96,6 @@ struct Args
 void *asymain(void *A)
 {
   Args *args=(Args *) A;
-  setsignal(signalHandler);
-
-  try {
-    setOptions(args->argc,args->argv);
-  } catch(handled_error) {
-    em.statusError();
-  }
-  
   fpu_trap(trap());
 
   if(interactive) {
@@ -140,18 +132,30 @@ void *asymain(void *A)
 
 int main(int argc, char *argv[]) 
 {
+  setsignal(signalHandler);
+
+  try {
+    setOptions(argc,argv);
+  } catch(handled_error) {
+    em.statusError();
+  }
+  
+  gl::glthread=getSetting<bool>("threads");
+  
   Args args(argc,argv);
 #ifdef HAVE_LIBGLUT
 #ifdef HAVE_LIBPTHREAD
-  pthread_t thread;
-  try {
-    if(pthread_create(&thread,NULL,asymain,&args) == 0) {
-      gl::mainthread=pthread_self();
-      gl::wait(gl::initSignal,gl::initLock);
-      camp::glrenderWrapper();
+  if(gl::glthread) {
+    pthread_t thread;
+    try {
+      if(pthread_create(&thread,NULL,asymain,&args) == 0) {
+	gl::mainthread=pthread_self();
+	gl::wait(gl::initSignal,gl::initLock);
+	camp::glrenderWrapper();
+      }
+    } catch(std::bad_alloc&) {
+      outOfMemory();
     }
-  } catch(std::bad_alloc&) {
-    outOfMemory();
   }
 #endif
 #endif  
