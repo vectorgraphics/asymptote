@@ -2757,21 +2757,18 @@ realarray *curlSpecifier(guide *g, Int t)
 guide *reverse(guide *g)
 {
   flatguide f;
+  g->flatten(f,false);
+  if(f.precyclic())
+    return new pathguide(g->solve().reverse());
+
+  size_t n=f.size();
   bool cyclic=g->cyclic();
-  bool precycle=g->flatten(f,false);
-  if(precycle && cyclic) {
-    path p=g->solve();
-    return new pathguide(p.reverse());
-  }
-
-  Int n=f.size();
-
   guidevector v;
   if(n >= 0) {
-    Int start=cyclic ? n : n-1;
+    size_t start=cyclic ? n : n-1;
     knot curr=f.Nodes(start);
     knot next;
-    for(Int i=start; i > 0; --i) {
+    for(size_t i=start; i > 0; --i) {
       next=f.Nodes(i-1);
       v.push_back(new pairguide(curr.z));
       if(next.out->controlled()) {

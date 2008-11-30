@@ -8,15 +8,19 @@
 
 namespace camp {
 
-bool multiguide::flatten(flatguide& g, bool allowsolve)
+void multiguide::flatten(flatguide& g, bool allowsolve)
 {
   size_t n=v.size();
-  if(n == 0) return false;
-  bool precycle=false;
-  for(size_t i=0; i+1 < n; ++i)
-    if(v[i]->flatten(g)) precycle=true;
-  v[n-1]->flatten(g,allowsolve);
-  return precycle;
+  if(n > 0) {
+    for(size_t i=0; i+1 < n; ++i) {
+      v[i]->flatten(g,allowsolve);
+      if(!allowsolve && v[i]->cyclic()) {
+	g.precyclic(true);
+	g.resolvecycle();
+      }
+    }
+    v[n-1]->flatten(g,allowsolve);
+  }
 }
 
 void multiguide::print(ostream& out) const

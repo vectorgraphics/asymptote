@@ -28,7 +28,7 @@ public:
   // Add the information in the guide to the flatguide, so that it can be
   // solved via the knotlist solving routines.
   // Returns true if guide has an interior cycle token. 
-  virtual bool flatten(flatguide&, bool allowsolve=true)=0;
+  virtual void flatten(flatguide&, bool allowsolve=true)=0;
   
   virtual bool cyclic() {return false;}
   
@@ -64,9 +64,8 @@ class pairguide : public guide {
   pair z;
 
 public:
-  bool flatten(flatguide& g, bool=true) {
+  void flatten(flatguide& g, bool=true) {
     g.add(z);
-    return false;
   }
 
   pairguide(pair z)
@@ -91,9 +90,8 @@ class pathguide : public guide {
   path p;
 
 public:
-  bool flatten(flatguide& g, bool=true) {
+  void flatten(flatguide& g, bool=true) {
     g.add(p);
-    return false;
   }
 
   pathguide(path p)
@@ -135,10 +133,9 @@ class tensionguide : public guide {
   tension tout,tin;
 
 public:
-  bool flatten(flatguide& g, bool=true) {
+  void flatten(flatguide& g, bool=true) {
     g.setTension(tin,IN);
     g.setTension(tout,OUT);
-    return false;
   }
 
   tensionguide(tensionSpecifier spec)
@@ -175,9 +172,8 @@ class specguide : public guide {
   side s;
 
 public:
-  bool flatten(flatguide& g, bool=true) {
+  void flatten(flatguide& g, bool=true) {
     g.setSpec(p,s);
-    return false;
   }
   
   specguide(spec *p, side s)
@@ -201,10 +197,9 @@ class controlguide : public guide {
   pair zout, zin;
 
 public:
-  bool flatten(flatguide& g, bool=true) {
+  void flatten(flatguide& g, bool=true) {
     g.setSpec(new controlSpec(zout), OUT);
     g.setSpec(new controlSpec(zin), IN);
-    return false;
   }
 
   controlguide(pair zout,pair zin)
@@ -232,7 +227,7 @@ class multiguide : public guide {
 
 public:
 
-  bool flatten(flatguide&, bool=true);
+  void flatten(flatguide&, bool=true);
   
   bool cyclic() {
     return v[v.size()-1]->cyclic();
@@ -269,15 +264,14 @@ struct cycleToken : public gc {};
 // A guide representing the cycle token.
 class cycletokguide : public guide {
 public:
-  bool flatten(flatguide& g, bool allowsolve=true) {
+  void flatten(flatguide& g, bool allowsolve=true) {
     // If cycles occur in the midst of a guide, the guide up to that point
     // should be solved as a path.  Any subsequent guide will work with that
     // path locked in place.
-    if(allowsolve) {
+    if(allowsolve)
       g.solve(true);
-      return true;
-    }
-    return false;
+    else
+      g.close();
   }
 
   bool cyclic() {return true;}

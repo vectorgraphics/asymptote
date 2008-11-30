@@ -461,6 +461,7 @@ struct flatguide3 {
   dir[] in,out;      // in and out directions for segment starting at node
 
   bool cyclic() {int n=cyclic.length; return n > 0 ? cyclic[n-1] : false;}
+  bool precyclic() {int i=find(cyclic); return i >= 0 && i < cyclic.length-1;}
   
   int size() {
     return cyclic() ? nodes.length-1 : nodes.length;
@@ -1031,8 +1032,8 @@ path3 solve(flatguide3 g)
   // Fill in empty direction specifiers inherited from explicit control points.
   for(int i=0; i < n; ++i) {
     if(g.control[i].active) {
-      g.out[i].default(g.control[i].post-g.nodes[i]);
-      g.in[i].default(g.nodes[i+1]-g.control[i].pre);
+      g.out[i].init(g.control[i].post-g.nodes[i]);
+      g.in[i].init(g.nodes[i+1]-g.control[i].pre);
     }
   }  
   
@@ -1510,6 +1511,10 @@ guide3 reverse(guide3 g)
   flatguide3 f;
   bool cyclic=cyclic(g);
   g(f);
+
+  if(f.precyclic())
+    return reverse(solve(g));
+
   int n=f.size();
   checkEmpty(n);
   guide3 G;
@@ -1523,11 +1528,11 @@ guide3 reverse(guide3 g)
       else {
 	dir in=f.in[i-1];
 	triple d=in.dir;
-	if(d != O) G=G..operator spec(d,JOIN_OUT);
+	if(d != O) G=G..operator spec(-d,JOIN_OUT);
 	else if(in.Curl) G=G..operator curl(in.gamma,JOIN_OUT);
 	dir out=f.out[i-1];
 	triple d=out.dir;
-	if(d != O) G=G..operator spec(d,JOIN_IN);
+	if(d != O) G=G..operator spec(-d,JOIN_IN);
 	else if(out.Curl) G=G..operator curl(out.gamma,JOIN_IN);
       }
     }

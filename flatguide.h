@@ -21,11 +21,16 @@ class flatguide
 {
   // A cached solution of the path.  When traversing through a tree of guides,
   // if a cycle tag is encountered, then the path is solved up to that point.
-  // If the guide continues from there (which rarely occurs in reality), all of
+  // If the guide continues from there (which rarely occurs in practice), all of
   // the control points solved are added as control specifiers, and then solved
   // into a path again.  In the (usual) case that a cycle ends a path, the
   // cached path avoids this second pass.
   bool solved;
+  
+  // Used by reverse(guide) to indicate the presence of an unresolved
+  // interior cycle.
+  bool precycle;
+  
   path p;
 
   cvector<knot> nodes;
@@ -95,7 +100,7 @@ class flatguide
       
 public:
   flatguide()
-    : solved(true), p(), out(&open), in(&open) {}
+    : solved(true), precycle(false), p(), out(&open), in(&open) {}
 
   Int size() const {
     return (Int) nodes.size();
@@ -141,12 +146,27 @@ public:
     clearPath();
   }
 
+  void close() {
+    nodes.front().in=in;
+    nodes.front().tin=tin;
+  }
+  
+  void resolvecycle() {
+    if(!nodes.empty())
+      nodes.push_back(nodes.front());
+  }
+  
+  void precyclic(bool b) {
+    precycle=b;
+  }
+  
+  bool precyclic() {
+    return precycle;
+  }
+  
   // Once all information has been added, release the flat result.
   simpleknotlist list(bool cycles=false) {
-    if (cycles && !nodes.empty()) {
-      nodes.front().in=in;
-      nodes.front().tin=tin;
-    }
+    if(cycles && !nodes.empty()) close();
     return simpleknotlist(nodes,cycles);
   }
 
