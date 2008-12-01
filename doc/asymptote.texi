@@ -5715,7 +5715,8 @@ pdflatex latexusage
 @end verbatim
 
 To switch between using @code{latex} and @code{pdflatex} you may first
-need to remove the files @code{latexusage-.*} and @code{latexusage.aux}.
+need to remove the files @code{latexusage-*}, @code{latexusage_.pre}, and
+@code{latexusage.aux}.
 
 @cindex @code{attachfile2}
 @cindex @code{asyattach}

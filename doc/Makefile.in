@@ -34,6 +34,7 @@ doc:	asymptote.dvi asymptote.info html man faq
 
 latexusage.dvi: latexusage.tex
 	rm -f latexusage-*
+	rm -f latexusage_.pre
 	rm -f latexusage.aux
 	latex latexusage
 	$(ASY) -noprc latexusage
