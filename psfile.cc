@@ -223,18 +223,23 @@ void psfile::write(path p, bool newPath)
 
   if(newPath) newpath();
 
+  pair z0=p.point((Int) 0);
+
   // Draw points
-  moveto(p.point((Int) 0));
+  moveto(z0);
+  
   for(Int i = 1; i < n; i++) {
     if(p.straight(i-1)) lineto(p.point(i));
-    else curveto(p.postcontrol(i-1), p.precontrol(i), p.point(i));
+    else curveto(p.postcontrol(i-1),p.precontrol(i),p.point(i));
   }
 
   if(p.cyclic()) {
-    if(p.straight(n-1)) lineto(p.point((Int) 0));
-    else curveto(p.postcontrol(n-1), p.precontrol((Int) 0), p.point((Int) 0));
+    if(p.straight(n-1)) lineto(z0);
+    else curveto(p.postcontrol(n-1),p.precontrol((Int) 0),z0);
     closepath();
-  }    
+  } else {
+    if(n == 1) lineto(z0);
+  }
 }
 
 static const char *inconsistent="inconsistent colorspaces";
