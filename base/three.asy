@@ -16,7 +16,6 @@ pair viewportmargin=0;     // Viewport margin.
 real viewportfactor=1.02;  // Factor used to expand orthographic viewport.
 real anglefactor=1.02;     // Factor used to expand perspective viewport.
 real angleprecision=1e-3;  // Precision for centering perspective projections.
-real fovfactor=0.6;        // PRC field of view factor.
 
 string defaultembed3Doptions;
 string defaultembed3Dscript;
@@ -1988,7 +1987,7 @@ string embed3D(string label="", string text=label, string prefix,
   if(defaultembed3Doptions != "") options3 += ","+defaultembed3Doptions;
   options3 += ",poster,text="+text+",label="+label+
     ",toolbar="+(settings.toolbar ? "true" : "false")+
-    ",3Daac="+format(P.absolute ? P.angle*fovfactor : angle)+
+    ",3Daac="+format(P.absolute ? P.angle : angle)+
     ",3Dc2c="+format(u)+
     ",3Dcoo="+format(P.target/cm)+
     ",3Droll="+format(roll)+
@@ -2257,7 +2256,7 @@ projection perspective(string s)
 {
   viewpoint v=viewpoint(s);
   projection P=perspective(v.camera,v.up,v.target);
-  P.angle=v.angle/fovfactor;
+  P.angle=v.angle;
   P.absolute=true;
   return P;
 }
