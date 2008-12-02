@@ -90,8 +90,8 @@ class pathguide : public guide {
   path p;
 
 public:
-  void flatten(flatguide& g, bool=true) {
-    g.add(p);
+  void flatten(flatguide& g, bool allowsolve=true) {
+    g.add(p,allowsolve);
   }
 
   pathguide(path p)
@@ -100,6 +100,8 @@ public:
   path solve() {
     return p;
   }
+
+  bool cyclic() {return p.cyclic();}
 
   void print(ostream& out) const {
     out << p;

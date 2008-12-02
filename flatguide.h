@@ -84,7 +84,7 @@ class flatguide
     solved=false;
   }
 
-  void uncheckedAdd(path p);
+  void uncheckedAdd(path p, bool allowsolve=true);
 
   // Sets solved to false, indicating that the path has been updated since last
   // being solved.  Also, copies a solved path back in as knots and control
@@ -136,9 +136,9 @@ public:
   }
 
   // Reverts to an empty state.
-  void add(path p) {
+  void add(path p, bool allowsolve=true) {
     update();
-    uncheckedAdd(p);
+    uncheckedAdd(p,allowsolve);
   }
 
   void clear() {
