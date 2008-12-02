@@ -294,7 +294,7 @@ projection obliqueX=obliqueX(), obliqueY=obliqueY(), obliqueZ=obliqueZ();
 
 currentprojection=perspective(5,4,2);
 
-// Map pair z to a triple by inverting the projection P onto the 
+// Map pair z to a triple by inverting the projection P onto the
 // plane perpendicular to normal and passing through point.
 triple invert(pair z, triple normal, triple point,
               projection P=currentprojection)
@@ -306,6 +306,12 @@ triple invert(pair z, triple normal, triple point,
   real[] b={z.x*t[3][3]-t[0][3],z.y*t[3][3]-t[1][3],dot(normal,point)};
   real[] x=solve(A,b,warn=false);
   return x.length > 0 ? (x[0],x[1],x[2]) : P.camera;
+}
+
+// Map pair to a triple on the projection plane.
+triple invert(pair z, projection P=currentprojection)
+{
+  return invert(z,P.vector(),P.target,P);
 }
 
 // Map pair dir to a triple direction at point v on the projection plane.
@@ -2452,12 +2458,6 @@ void arrow(picture pic=currentpicture, Label L="", triple b, pair dir,
 	arrowheadlight);
 }
 
-triple size3(picture pic, projection P=currentprojection)
-{
-  transform3 s=pic.calculateTransform3(P);
-  return pic.max(s)-pic.min(s);
-}
-
 triple min3(picture pic, projection P=currentprojection)
 {
   return pic.min3(P);
@@ -2468,6 +2468,16 @@ triple max3(picture pic, projection P=currentprojection)
   return pic.max3(P);
 }
   
+triple size3(picture pic, bool user=false, projection P=currentprojection)
+{
+  transform3 t=pic.calculateTransform3(P);
+  triple M=pic.max(t);
+  triple m=pic.min(t);
+  if(!user) return M-m;
+  t=inverse(t);
+  return t*M-t*m;
+}
+
 triple point(frame f, triple dir)
 {
   triple m=min3(f);
@@ -2475,9 +2485,21 @@ triple point(frame f, triple dir)
   return m+realmult(rectify(dir),M-m);
 }
 
-triple point(picture pic=currentpicture, triple dir)
+triple point(picture pic=currentpicture, triple dir, bool user=true,
+	     projection P=currentprojection)
 {
-  return pic.userMin+realmult(rectify(dir),pic.userMax-pic.userMin);
+  triple v=pic.userMin+realmult(rectify(dir),pic.userMax-pic.userMin);
+  return user ? v : pic.calculateTransform3(P)*v;
+}
+
+triple truepoint(picture pic=currentpicture, triple dir, bool user=true,
+		 projection P=currentprojection)
+{
+  transform3 t=pic.calculateTransform3(P);
+  triple m=pic.min(t);
+  triple M=pic.max(t);
+  triple v=m+realmult(rectify(dir),M-m);
+  return user ? inverse(t)*v : v;
 }
 
 exitfcn currentexitfunction=atexit();
