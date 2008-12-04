@@ -435,7 +435,7 @@ bool picture::postprocess(const string& prename, const string& outname,
 		      &pid);
 	if(status != 0) return false;
 	
-	pids[outname]=pid;
+	if(!wait) pids[outname]=pid;
 
 	if(pdfreload) {
 	  // Work around race conditions in acroread initialization script
