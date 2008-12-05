@@ -3,7 +3,7 @@
 ;; Copyright (C) 2006-8
 ;; Author: Philippe IVALDI 20 August 2006
 ;; Modified by: John Bowman
-;; Last modification: 16 November 2008 (John Bowman)
+;; Last modification: 05 December 2008 (P. Ivaldi)
 ;;
 ;; This program is free software ; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@
 ;;
 ;; See also paragraph II of the documentation below to automate asy-insinuate-latex.
 
-(defvar asy-mode-version "1.4")
+(defvar asy-mode-version "1.5")
 
 ;;;###autoload
 (define-derived-mode asy-mode objc-mode "Asymptote"
