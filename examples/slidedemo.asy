@@ -4,6 +4,7 @@
 
 orientation=Landscape;
 
+import three;
 import slide;
 usersetting();
 
@@ -73,5 +74,11 @@ skip(2);
 figure(new string[] {"log."+nativeformat(),"near_earth."+nativeformat()},
        "width=10cm",new string[] {"{\tt log.asy}","{\tt near\_earth.asy}"},
        "Examples of {\tt Asymptote} graphs.");
+
+title("\mbox{Asymptote: 2D \& 3D Vector Graphics Language}");
+asyinclude("logo3");
+skip();
+center("\tt http://asymptote.sf.net");
+center("(freely available under the GNU public license)");
 
 bibliography("refs");

@@ -14,3 +14,7 @@ s.colors(palette(s.map(zpart),Rainbow()));
 
 draw(s);
 grid3(XYZgrid);
+
+xaxis3(Label("$x$",0.5),Bounds,InTicks());
+yaxis3(Label("$y$",0.5),Bounds,InTicks());
+zaxis3(Label("$z$",0.5),Bounds,InTicks(beginlabel=false));

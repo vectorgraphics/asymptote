@@ -1,9 +1,12 @@
 import fontsize;
 usepackage("asycolors");
 
-bool reverse=false; // Set to true to enable reverse video
-bool stepping=false; // Set to true to enable stepping
-bool itemstep=true;  // Set to false to disable stepping on each item
+bool reverse=false;     // Set to true to enable reverse video.
+bool stepping=false;    // Set to true to enable stepping.
+bool itemstep=true;     // Set to false to disable stepping on each item.
+
+settings.toolbar=false; // Disable 3D toolbar by default.
+if(settings.render < 0) settings.render=4;
 
 bool allowstepping=false; // Allow stepping for current slide.
 
@@ -397,6 +400,19 @@ void figure(string s, string options="", string caption="", pair align=S,
             pen p=itempen, pen figuremattpen=figuremattpen)
 {
   figure(new string[] {s},options,caption,align,p,figuremattpen);
+}
+
+void asyinclude(string s)
+{
+  picture currentpictureSave=currentpicture;
+  currentpicture=new picture;
+  _eval("include \""+s+"\";",true);
+  frame f=currentpicture.fit(s);
+  currentpicture=currentpictureSave;
+  if(prc0())
+    display(f);
+  else if(settings.render >= 0)
+    figure(s+"."+nativeformat());
 }
 
 string cropcode(string s)
