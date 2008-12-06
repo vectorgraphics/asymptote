@@ -1202,8 +1202,7 @@ string defaultformat() {
 // TeX special command to set up currentmatrix for typesetting labels.
 const char *beginlabel(const string& texengine) {
   if(pdf(texengine))
-    return "\\special{pdf:q #5 0 0 cm}"
-      "\\wd\\ASYbox 0pt\\dp\\ASYbox 0pt\\ht\\ASYbox 0pt";
+    return "\\special{pdf:q #5 0 0 cm}";
   else 
     return "\\special{ps:gsave currentpoint currentpoint translate [#5 0 0] "
       "concat neg exch neg exch translate}";

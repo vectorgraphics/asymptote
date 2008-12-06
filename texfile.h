@@ -79,6 +79,7 @@ void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
 	<< "\\raise#4\\ASYdimen\\box\\ASYbox}%" << newl
 	<< "\\put(#1,#2){%" << newl
 	<< settings::beginlabel(texengine) << "%" << newl
+        << "\\wd\\ASYbox 0pt\\dp\\ASYbox 0pt\\ht\\ASYbox 0pt"
 	<< "\\box\\ASYbox%" << newl
 	<< settings::endlabel(texengine) << "%" << newl
 	<< "}}" << newl
