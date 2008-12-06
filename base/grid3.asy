@@ -329,10 +329,6 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
 
    scale(Linear, Linear, Log);
 
-   xaxis3(Label("$x$",position=EndPoint,align=S),OutTicks());
-   yaxis3(Label("$y$",position=EndPoint,align=S),OutTicks());
-   zaxis3(Label("$z$",position=EndPoint,align=(0,0.5)+W),OutTicks());
-
    grid3(pic=currentpicture, // picture
    gridroutine=XYZgrid(// grid3routine
    // or grid3routine[] (alias grid3routines)
@@ -365,36 +361,39 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
    end=true,           // bool
    pGrid=grey,         // pen
    pgrid=lightgrey,    // pen
-   above=false,        // bool
+   above=false         // bool
    );
 
+   xaxis3(Label("$x$",position=EndPoint,align=S),OutTicks());
+   yaxis3(Label("$y$",position=EndPoint,align=S),OutTicks());
+   zaxis3(Label("$z$",position=EndPoint,align=(0,0.5)+W),OutTicks());
 */
 
 /* Other examples:
 
    int N=10, n=2;
-   xaxis(Label("$x$",position=EndPoint,align=S),OutTicks());
-   yaxis(Label("$y$",position=EndPoint,align=S),OutTicks(N=N,n=n));
-   zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),OutTicks());
+   xaxis3(Label("$x$",position=EndPoint,align=S),OutTicks());
+   yaxis3(Label("$y$",position=EndPoint,align=S),OutTicks(N=N,n=n));
+   zaxis3(Label("$z$",position=EndPoint,align=(0,0.5)+W),OutTicks());
    grid3(N=N,n=n);
 
-   xaxis(Label("$x$",position=EndPoint,align=S),OutTicks());
-   yaxis(Label("$y$",position=EndPoint,align=S),OutTicks());
-   zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),OutTicks());
+   xaxis3(Label("$x$",position=EndPoint,align=S),OutTicks());
+   yaxis3(Label("$y$",position=EndPoint,align=S),OutTicks());
+   zaxis3(Label("$z$",position=EndPoint,align=(0,0.5)+W),OutTicks());
    grid3(new grid3routines[] {XYXgrid(top),XZXgrid(0)});
 
-   xaxis(Label("$x$",position=EndPoint,align=S),OutTicks());
-   yaxis(Label("$y$",position=EndPoint,align=S),OutTicks());
-   zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),OutTicks());
+   xaxis3(Label("$x$",position=EndPoint,align=S),OutTicks());
+   yaxis3(Label("$y$",position=EndPoint,align=S),OutTicks());
+   zaxis3(Label("$z$",position=EndPoint,align=(0,0.5)+W),OutTicks());
+   grid3(new grid3routines[] {XYXgrid(-0.5),XYXgrid(1.5)},
    pGrid=new pen[] {red,blue},
    pgrid=new pen[] {0.5red,0.5blue});
 
    // Axes with grids:
 
-   xaxis(Label("$x$",position=EndPoint,align=S),
+   xaxis3(Label("$x$",position=EndPoint,align=S),
    OutTicks(Step=0.5,gridroutine=XYgrid));
-   yaxis(Label("$y$",position=EndPoint,align=S),
+   yaxis3(Label("$y$",position=EndPoint,align=S),
    InOutTicks(Label("",align=0.5X),N=8,n=2,gridroutine=YX_YZgrid));
-   zaxis("$z$",OutTicks(ZYgrid));
-   grid3(new grid3routines[] {XYXgrid(-0.5),XYXgrid(1.5)},
+   zaxis3("$z$",OutTicks(ZYgrid));
 */
