@@ -2,7 +2,8 @@ import graph3;
 import grid3;
 import palette;
 
-currentprojection=orthographic(1,2,10);
+currentprojection=orthographic(1,2,13);
+
 settings.prc=false;
 
 size(400,300,IgnoreAspect);
@@ -13,8 +14,11 @@ surface s=surface(f,(-1/2,-1/2),(1/2,1/2),20,Spline);
 s.colors(palette(s.map(zpart),Rainbow()));
 
 draw(s);
-grid3(XYZgrid);
+
+scale(true);
 
 xaxis3(Label("$x$",0.5),Bounds,InTicks());
 yaxis3(Label("$y$",0.5),Bounds,InTicks());
 zaxis3(Label("$z$",0.5),Bounds,InTicks(beginlabel=false));
+
+grid3(XYZgrid);
