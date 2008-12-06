@@ -201,7 +201,7 @@ pen font(string name, real size)
   }
   return fontsize(size)+
     (basesize == "" ? font(name) :
-     font(name+" scaled "+(string) (1000*size/(int) basesize)));
+     font(name+" scaled "+(string) round(1000*size/(int) basesize)));
 }
 
 pen font(string encoding, string family, string series="m", string shape="n") 
