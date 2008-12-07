@@ -8466,12 +8466,14 @@ As @code{xasy} is written in the interactive scripting language
 (@url{http://www.pythonware.com/products/pil/}), and the @code{tkinter}
 package (included with s@code{Python} under @code{Microsoft Windows}) be
 installed. @code{Fedora Core Linux} users can either install
-@code{tkinter} with the command
+@code{tkinter} with the commands
 @verbatim
 yum install tkinter
+yum install tk-devel
 @end verbatim
 @noindent
-or manually install the @code{tkinter}, @code{tix}, and @code{tk} packages.
+or manually install the @code{tkinter}, @code{tix}, @code{tk},
+and @code{tk-devel} packages.
 
 Pictures are deconstructed into the @acronym{PNG} image format, which
 supports full alpha channel transparency. Under @code{Microsoft
