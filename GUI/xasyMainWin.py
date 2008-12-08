@@ -843,15 +843,19 @@ class xasyMainWin:
     self.updateSelectedButton(self.toolSelectButton)
     self.clearSelection()
     self.clearHighlight()
-    self.addItemToFile(xasyScript(self.mainCanvas))
     self.unbindGlobalEvents()
-    self.getNewText("// enter your code here")
-    text = self.newText
+    try:
+      self.getNewText("// enter your code here")
+    except Exception, e:
+      tkMessageBox.showerror('xasy Error',e.message)
+    else:
+      self.addItemToFile(xasyScript(self.mainCanvas))
+      text = self.newText
+      self.undoRedoStack.add(addScriptAction(self,self.fileItems[-1]))
+      self.fileItems[-1].setScript(text)
+      self.fileItems[-1].drawOnCanvas(self.mainCanvas,self.magnification)
+      self.bindItemEvents(self.fileItems[-1])
     self.bindGlobalEvents()
-    self.undoRedoStack.add(addScriptAction(self,self.fileItems[-1]))
-    self.fileItems[-1].setScript(text)
-    self.fileItems[-1].drawOnCanvas(self.mainCanvas,self.magnification)
-    self.bindItemEvents(self.fileItems[-1])
     self.releaseLock()
   def toolRaiseCmd(self):
     if(not self.testOrAcquireLock()):
@@ -1148,7 +1152,10 @@ class xasyMainWin:
     self.populatePropertyList()
 
   def scriptEditThread(self,oldText):
-    self.newText = xasyCodeEditor.getText(oldText)
+    try:
+      self.newText = xasyCodeEditor.getText(oldText)
+    except:
+      self.newText = -1
 
   def getNewText(self,oldText):
     editThread = threading.Thread(target=self.scriptEditThread,args=(oldText,))
@@ -1157,6 +1164,9 @@ class xasyMainWin:
       time.sleep(0.05)
       self.parent.update()
     editThread.join()
+    if type(self.newText)==type(-1):
+      self.newText = ''
+      raise Exception('Error launching external editor. Please check xasy options.')
 
   def itemEdit(self,item):
     # are we too busy?
@@ -1166,12 +1176,16 @@ class xasyMainWin:
     if isinstance(item,xasyScript):
       self.unbindGlobalEvents()
       oldText = item.script
-      self.getNewText(oldText)
-      if self.newText != oldText:
-        self.undoRedoStack.add(editScriptAction(self,item,self.newText,oldText))
-        item.setScript(self.newText)
-        item.drawOnCanvas(self.mainCanvas,self.magnification)
-        self.bindItemEvents(item)
+      try:
+        self.getNewText(oldText)
+      except Exception,e:
+        tkMessageBox.showerror('xasy Error',e.message)
+      else:
+        if self.newText != oldText:
+          self.undoRedoStack.add(editScriptAction(self,item,self.newText,oldText))
+          item.setScript(self.newText)
+          item.drawOnCanvas(self.mainCanvas,self.magnification)
+          self.bindItemEvents(item)
       self.bindGlobalEvents()
     elif isinstance(item,xasyText):
       theText = tkSimpleDialog.askstring(title="Xasy - Text",prompt="Enter text to display:",initialvalue=item.label.text,parent=self.parent)

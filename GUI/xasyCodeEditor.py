@@ -23,7 +23,10 @@ def getText(text=""):
   tempf = fdopen(temp[0],"r+w")
   tempf.write(text)
   tempf.flush()
-  call(split(xasyOptions.options['externalEditor'])+[temp[1]])
+  try:
+    call(split(xasyOptions.options['externalEditor'])+[temp[1]])
+  except:
+    raise Exception('Error launching external editor.')
   tempf.seek(0)
   text = tempf.read()
   remove(temp[1])
