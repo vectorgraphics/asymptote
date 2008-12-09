@@ -1932,6 +1932,7 @@ void writeJavaScript(string name, string preamble, string script)
     }
   }
   close(out);
+  if(settings.verbose > 1) write("Wrote "+name);
   if(!settings.inlinetex)
     file3.push(name);
 }
