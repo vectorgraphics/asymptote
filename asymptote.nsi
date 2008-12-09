@@ -87,6 +87,10 @@ Section "Asymptote" SEC01
   FileWriteByte $0 "13" 
   FileWriteByte $0 "10" 
 
+  FileWrite $0 "cd %USERPROFILE%"
+  FileWriteByte $0 "13" 
+  FileWriteByte $0 "10" 
+
   FileWrite $0 '"$INSTDIR\asy.exe" %1'
   FileWriteByte $0 "13" 
   FileWriteByte $0 "10" 
@@ -108,10 +112,12 @@ Section "Asymptote" SEC01
 ; Shortcuts
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
+  SetOutPath ""
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Asymptote.lnk" "$INSTDIR\asy.exe"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Xasy.lnk" "$INSTDIR\xasy.py"
   CreateShortCut "$DESKTOP\Asymptote.lnk" "$INSTDIR\asy.bat" "" "$INSTDIR\asy.ico"
   CreateShortCut "$DESKTOP\Xasy.lnk" "$INSTDIR\xasy.py"
+  SetOutPath "$INSTDIR"
   !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
 
