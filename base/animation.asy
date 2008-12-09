@@ -23,7 +23,7 @@ fit BBox(real xmargin=0, real ymargin=xmargin,
 
 struct animation {
   string outname() {
-    return "_"+outprefix();
+    return outprefix();
   }
 
   picture[] pictures;
@@ -41,7 +41,7 @@ struct animation {
   }
   
   string basename(string prefix=prefix) {
-    return stripextension(stripdirectory(prefix));
+    return stripextension(prefix);//stripdirectory(prefix));
   }
 
   string name(string prefix, int index) {

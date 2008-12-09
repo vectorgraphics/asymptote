@@ -4,7 +4,7 @@ string defaultfilename;
 string outprefix(string prefix=defaultfilename) {
   string s=prefix != "" ? prefix :
     (settings.outname == "" && interactive()) ? "out" : settings.outname;
-return stripdirectory(stripextension(s));
+  return stripextension(s);
 }
 
 bool shipped; // Was a picture or frame already shipped out?

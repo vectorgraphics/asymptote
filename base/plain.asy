@@ -191,16 +191,13 @@ void asy(string format, bool overwrite=false ... string[] s)
     int n=rfind(f,".asy");
     if(n != -1) f=erase(f,n,-1);
     if(overwrite || error(input(f+"."+format,check=false))) {
-      string outname=settings.outname;
       string outformat=settings.outformat;
       bool interactiveView=settings.interactiveView;
       bool batchView=settings.batchView;
-      settings.outname=f;
       settings.outformat=format;
       settings.interactiveView=false;
       settings.batchView=false;
-      eval("import \""+f+"\" as dummy; exitfunction()");
-      settings.outname=outname;
+      eval("import \""+f+"\" as dummy; shipout(\""+f+"\"); exitfunction()");
       settings.outformat=outformat;
       settings.interactiveView=interactiveView;
       settings.batchView=batchView;

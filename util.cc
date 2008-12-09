@@ -74,13 +74,21 @@ string stripDir(string name)
 string stripFile(string name)
 {
   size_t p;
+  bool dir=false;
 #ifdef __CYGWIN__  
   p=name.rfind('\\');
-  if(p < string::npos) name.erase(p+1);
+  if(p < string::npos) {
+    dir=true;
+    name.erase(p+1);
+  }
 #endif  
   p=name.rfind('/');
-  if(p < string::npos) name.erase(p+1);
-  return name;
+  if(p < string::npos) {
+    dir=true;
+    name.erase(p+1);
+  }
+  
+  return dir ? name : "";
 }
   
 string stripExt(string name, const string& ext)
@@ -121,9 +129,16 @@ void writeDisabled()
   camp::reportError("Write/cd to other directories disabled; override with option -globalwrite");
 }
 
+bool globalwrite(string name)
+{
+  string outname=settings::outname();
+  return (!outname.empty() && name.substr(0,outname.size()) == outname) ||
+    globalwrite(); 
+}
+
 void checkLocal(string name)
 {
-  if(globalwrite()) return;
+  if(globalwrite(name)) return;
 #ifdef __CYGWIN__  
   if(name.rfind('\\') < string::npos) writeDisabled();
 #endif  
@@ -131,9 +146,10 @@ void checkLocal(string name)
   return;
 }
 
-string buildname(string name, string suffix, string aux, bool stripdir) 
+string buildname(string name, string suffix, string aux) 
 {
-  if(stripdir) name=stripDir(name);
+  if(!globalwrite(name))
+    name=stripDir(name);
     
   name=stripExt(name,defaultformat());
   name += aux;

@@ -1995,9 +1995,9 @@ string embed3D(string label="", string text=label, string prefix,
     ",3Droo="+format(abs(v))+
     ",3Dbg="+format(background);
   if(options != "") options3 += ","+options;
-  if(name != "") options3 += ",3Djscript="+name;
+  if(name != "") options3 += ",3Djscript="+stripdirectory(name);
 
-  return Embed(prefix,options3,width+2*viewportmargin.x,
+  return Embed(stripdirectory(prefix),options3,width+2*viewportmargin.x,
 	       height+2*viewportmargin.y);
 }
 

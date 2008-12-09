@@ -407,6 +407,7 @@ void asyinclude(string s)
   picture currentpictureSave=currentpicture;
   currentpicture=new picture;
   _eval("include \""+s+"\";",true);
+  s=settings.outname+"_"+s;
   frame f=currentpicture.fit(s);
   currentpicture=currentpictureSave;
   if(prc0())
@@ -455,7 +456,7 @@ string[] codefile;
 string asywrite(string s, string preamble="")
 {
   static int count=0;
-  string name="_slide"+(string) count;
+  string name=settings.outname+"_slide"+(string) count;
   ++count;
   file temp=output(name+".asy");
   write(temp,preamble);

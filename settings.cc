@@ -192,7 +192,6 @@ bool cmyk;
 bool safe=true;
 // Enable writing to (or changing to) other directories
 bool globaloption=false;
-bool globaloutname=false;
   
 bool globalwrite() {return globaloption || !safe;}
   
@@ -489,20 +488,6 @@ struct stringSetting : public argumentSetting {
 
   bool getOption() {
     value=(item)(string)optarg;
-    return true;
-  }
-};
-
-struct stringOutnameSetting : public argumentSetting {
-  stringOutnameSetting(string name, char code,
-		       string argname, string desc,
-		       string defaultValue)
-    : argumentSetting(name, code, argname, desc,
-		      types::primString(), (item)defaultValue) {}
-
-  bool getOption() {
-    value=(item)(string)
-      ((globaloutname || globalwrite()) ? optarg : stripDir(optarg));
     return true;
   }
 };
@@ -864,7 +849,6 @@ void resetOptions()
   
 void getOptions(int argc, char *argv[])
 {
-  globaloutname=true;
   bool syntax=false;
   optind=0;
 
@@ -900,7 +884,6 @@ void getOptions(int argc, char *argv[])
   
   if (syntax)
     reportSyntax();
-  globaloutname=false;
 }
 
 #ifdef USEGC
@@ -962,9 +945,6 @@ void initSettings() {
                             "Use POSIX threads for 3D rendering", !msdos));
   addOption(new boolSetting("fitscreen", 0,
                             "Fit rendered image to screen", true));
-  addOption(new stringOutnameSetting("outname", 'o', "name",
-				     "Alternative output name for first file",
-				     ""));
   addOption(new boolSetting("interactiveWrite", 0,
                             "Write expressions entered at the prompt to stdout",
                             true));
@@ -1024,6 +1004,9 @@ void initSettings() {
   addSecureSetting(new boolrefSetting("globalwrite", 0,
                                       "Allow write to other directory",
                                       &globaloption, false));
+  addSecureSetting(new stringSetting("outname", 'o', "name",
+				     "Alternative output directory/filename",
+				     ""));
   addOption(new stringOption("cd", 0, "directory", "Set current directory",
 			     &startpath));
   
@@ -1282,7 +1265,10 @@ string texprogram(bool ps)
 {
   string path=getSetting<string>("texpath");
   string engine=texcommand(ps);
-  return (path == "") ? engine : (string) (path+"/"+engine);
+  if(!path.empty()) engine=(string) (path+"/"+engine);
+  string program="'"+engine+"'";
+  string dir=stripFile(outname());
+  return dir.empty() ? program : (program+" -output-directory="+dir);
 }
 
 Int getScroll() 

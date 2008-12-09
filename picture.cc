@@ -207,8 +207,15 @@ void picture::texinit()
     return;
   }
   
+  string name=stripFile(settings::outname())+buildname("texput","log");
+  ofstream writeable(name.c_str());
+  if(!writeable)
+    reportError("Cannot write to "+name);
+  else
+    writeable.close();
+  
   ostringstream cmd;
-  cmd << "'" << texprogram() << "'" << " \\scrollmode";
+  cmd << texprogram() << " \\scrollmode";
   pd.tex.open(cmd.str().c_str(),"texpath",texpathmessage());
   pd.tex.wait("\n*");
   pd.tex << "\n";
@@ -227,9 +234,9 @@ bool picture::texprocess(const string& texname, const string& outname,
   outfile.open(texname.c_str());
   if(outfile) {
     outfile.close();
+    string program=texprogram();
     ostringstream cmd;
-    cmd << "'" << texprogram() << "'"
-	<< " \\nonstopmode\\input '" << texname << "'";
+    cmd << program << " \\nonstopmode\\input '" << texname << "'";
     bool quiet=verbose <= 1;
     status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
     if(!status && getSetting<bool>("twice"))
@@ -237,8 +244,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     if(status) {
       if(quiet) {
 	ostringstream cmd;
-	cmd << "'" << texprogram() << "'"
-	    << " \\scrollmode\\input '" << texname << "'";
+	cmd << program << " \\scrollmode\\input '" << texname << "'";
 	System(cmd,0);
       }
       return false;
@@ -332,7 +338,17 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
       << " -dDEVICEHEIGHTPOINTS=" << max(b.top-b.bottom,3.0)
       << " " << getSetting<string>("gsOptions")
       << " -sOutputFile='" << pdfname << "' '" << epsname << "'";
-  return System(cmd,0,true,"gs","Ghostscript");
+
+  string dir=stripFile(pdfname);
+  char *oldPath=NULL;
+  if(!dir.empty()) {
+    oldPath=getPath();
+    setPath(dir.c_str());
+  }
+  int status=System(cmd,0,true,"gs","Ghostscript");
+  if(oldPath != NULL)
+    setPath(oldPath);
+  return status;
 }
   
 bool picture::reloadPDF(const string& Viewer, const string& outname) const 
@@ -461,9 +477,7 @@ bool picture::postprocess(const string& prename, const string& outname,
 string Outname(const string& prefix, const string& outputformat,
 	       bool standardout)
 {
-  return (standardout ? "-" : buildname(prefix,outputformat,"",
-					prefix != settings::outname() &&
-					!globalwrite()));
+  return standardout ? "-" : buildname(prefix,outputformat,"");
 }
 
 bool picture::shipout(picture *preamble, const string& Prefix,
