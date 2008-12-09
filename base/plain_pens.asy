@@ -190,17 +190,20 @@ pen font(string name)
   return fontcommand("\font\ASYfont="+name+"\ASYfont");
 }
 
-pen font(string name, real size) 
+pen font(string name, real size, real basesize=0) 
 {
   // Extract size of requested TeX font
-  string basesize;
-  for(int i=0; i < length(name); ++i) {
-    string c=substr(name,i,1);
-    if(c >= "0" && c <= "9") basesize += c;
-    else if(basesize != "") break;
+  if(basesize == 0) {
+    string size;
+    for(int i=0; i < length(name); ++i) {
+      string c=substr(name,i,1);
+      if(c >= "0" && c <= "9") size += c;
+      else if(size != "") break;
+    }
+    basesize=(real) size;
   }
   return fontsize(size)+
-    (basesize == "" ? font(name) :
+    (basesize == 0 ? font(name) :
      font(name+" scaled "+(string) round(1000*size/(int) basesize)));
 }
 
