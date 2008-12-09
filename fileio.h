@@ -144,7 +144,7 @@ public:
   void nowrite(const char *type) {unsupported("Write",type);}
   
   virtual void Read(bool&) {noread("bool");}
-  virtual void Read(Int&) {noread("Int");}
+  virtual void Read(Int&) {noread("int");}
   virtual void Read(double&) {noread("real");}
   virtual void Read(float&) {noread("real");}
   virtual void Read(pair&) {noread("pair");}
@@ -154,7 +154,7 @@ public:
   virtual void readwhite(string&) {noread("string");}
   
   virtual void write(bool) {nowrite("bool");}
-  virtual void write(Int) {nowrite("Int");}
+  virtual void write(Int) {nowrite("int");}
   virtual void write(double) {nowrite("real");}
   virtual void write(const pair&) {nowrite("pair");}
   virtual void write(const triple&) {nowrite("triple");}
