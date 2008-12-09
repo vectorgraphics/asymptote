@@ -1,4 +1,3 @@
-usepackage("babel","german");
 size(11.7cm,11.7cm);
 asy(nativeformat(),"logo");
 fill(unitcircle^^(scale(2/11.7)*unitcircle),
