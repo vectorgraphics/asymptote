@@ -2775,7 +2775,7 @@ Alternatively, one may select a fixed-size @code{TeX} font (on which
 @code{fontsize} has no effect) like @code{"cmr12"} (12pt Computer Modern
 Roman) or @code{"pcrr"} (Courier) using the function @code{pen font(string
 name)}. An optional size argument can also be given to scale the font
-to the requested size: @code{pen font(string name, real size, real basesize=0)}.
+to the requested size: @code{pen font(string name, real size)}.
 
 @cindex @code{fontcommand}
 A nonstandard font command can be generated with
