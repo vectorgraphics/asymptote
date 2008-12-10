@@ -137,7 +137,7 @@ void addToHistory(string line) {
 
 string getLastHistoryLine() {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-  if(tty) {
+  if(tty && history_length > 0) {
     HIST_ENTRY *entry=history_list()[history_length-1];
     if(!entry) {
       em.compiler();
@@ -153,16 +153,18 @@ string getLastHistoryLine() {
 void setLastHistoryLine(string line) {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   if(tty) {
-    HIST_ENTRY *entry=remove_history(history_length-1);
-    if(!entry) {
-      em.compiler();
-      em << "cannot modify last history line";
-    } else {
-      addToHistory(line);
+    if (history_length > 0) {
+      HIST_ENTRY *entry=remove_history(history_length-1);
 
-      free(entry->line);
-      free(entry);
+      if(!entry) {
+        em.compiler();
+        em << "cannot modify last history line";
+      } else {
+        free(entry->line);
+        free(entry);
+      }
     }
+    addToHistory(line);
   }
 #endif
 }
