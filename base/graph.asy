@@ -449,10 +449,10 @@ void labelaxis(frame f, transform T, Label L, path g,
   add(f,d);
 }
 
-// Compute the fractional coverage of a linear axis.
-real axiscoverage(int N, transform T, path g, ticklocate locate, real Step,
-                  pair side, int sign, real Size, Label F, ticklabel ticklabel,
-                  real norm, real limit)
+// Check the tick coverage of a linear axis.
+bool axiscoverage(int N, transform T, path g, ticklocate locate, real Step,
+		  pair side, int sign, real Size, Label F, ticklabel ticklabel,
+		  real norm, real limit)
 {
   real coverage=0;
   bool loop=cyclic(g);
@@ -460,21 +460,30 @@ real axiscoverage(int N, transform T, path g, ticklocate locate, real Step,
   real b=locate.S.Tinv(locate.b);
   real tickmin=finite(locate.S.tickMin) ? locate.S.Tinv(locate.S.tickMin) : a;
   if(Size > 0) {
+    int count=0;
+    if(loop) count=N+1;
+    else {
+      for(int i=0; i <= N; ++i) {
+	real val=tickmin+i*Step;
+	if(val >= a && val <= b)
+	  ++count;
+      }
+    }
+    if(count > 0) limit /= count;
     for(int i=0; i <= N; ++i) {
       real val=tickmin+i*Step;
       if(loop || (val >= a && val <= b)) {
         frame d;
         pair dir=labeltick(d,T,g,locate,val,side,sign,Size,ticklabel,F,norm);
-        coverage += abs(dot(size(d),dir));
-        if(coverage > limit) break;
+        if(abs(dot(size(d),dir)) > limit) return false;
       }
     }
   }
-  return coverage;
+  return true;
 }
 
-// Compute the fractional coverage of a logarithmic axis.
-real logaxiscoverage(int N, transform T, path g, ticklocate locate, pair side,
+// Check the tick coverage of a logarithmic axis.
+bool logaxiscoverage(int N, transform T, path g, ticklocate locate, pair side,
                      int sign, real Size, Label F, ticklabel ticklabel, 
                      real limit, int first, int last)
 {
@@ -482,15 +491,20 @@ real logaxiscoverage(int N, transform T, path g, ticklocate locate, pair side,
   real coverage=0;
   real a=locate.a;
   real b=locate.b;
+  int count=0;
+  for(int i=first-1; i <= last+1; i += N) {
+    if(loop || i >= a && i <= b)
+      ++count;
+  }
+  if(count > 0) limit /= count;
   for(int i=first-1; i <= last+1; i += N) {
     if(loop || i >= a && i <= b) {
       frame d;
       pair dir=labeltick(d,T,g,locate,i,side,sign,Size,ticklabel,F);
-      coverage += abs(dot(size(d),dir));
-      if(coverage > limit) return coverage;
+      if(abs(dot(size(d),dir)) > limit) return false;
     }
   }
-  return coverage;
+  return true;
 }
 
 struct tickvalues {
@@ -606,14 +620,14 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
             }
           }
           if(axiscoverage(N,T,g,locate,Step,side,sign,Size,F,ticklabel,norm,
-                          limit) <= limit) {
+                          limit)) {
             if(N == 1 && !autoscale && d < divisor.length-1) {
               // Try using 2 ticks (otherwise 1);
               int div=divisor[d+1];
               Step=quotient(div,2)*len/div;
               calcStep=false; 
               if(axiscoverage(2,T,g,locate,Step,side,sign,Size,F,ticklabel,
-                              norm,limit) <= limit) N=2;
+                              norm,limit)) N=2;
               else Step=len;
             }
             // Found a good divisor; now compute subtick divisor
@@ -680,7 +694,7 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
       N=1;
       while(N <= last-first) {
         if(logaxiscoverage(N,T,g,locate,side,sign,Size,F,ticklabel,limit,
-                           first,last) <= limit) break;
+                           first,last)) break;
         ++N;
       }
     }
