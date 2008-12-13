@@ -187,12 +187,16 @@ pen interp(pen a, pen b, real t)
 
 pen font(string name) 
 {
-  return fontcommand("\font\ASYfont="+name+"\ASYfont");
+  string s="\font\ASYfont="+name;
+  if(latex()) s += "\ASYfont";
+  return fontcommand(s);
 }
 
 pen font(string name, real size) 
 {
-  return fontsize(size)+font(name+" at "+(string) size+"pt");
+  string s=name;
+  if(latex()) s += " at "+(string) size+"pt";
+  return fontsize(size)+font(s);
 }
 
 pen font(string encoding, string family, string series="m", string shape="n") 

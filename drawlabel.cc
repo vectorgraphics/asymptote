@@ -122,21 +122,15 @@ void drawLabel::getbounds(iopipestream& tex, const string& texengine)
   havebounds=true;
   
   const char **abort=texabort(texengine);
-  if(pentype.size() != lastpen.size() ||
-     pentype.Lineskip() != lastpen.Lineskip()) {
-    if(latex(texengine)) {
-      tex <<  "\\fontsize{" << pentype.size() << "}{" << pentype.Lineskip()
-	  << "}\\selectfont\n";
+  bool Latex=latex(texengine);
+  
+  if(Latex) {
+    if(setlatexfont(tex,pentype,lastpen))
       wait(tex,"\n*",abort);
-    }
   }
-    
-  string font=pentype.Font();
-  if(font != lastpen.Font()) {
-    tex <<  font << "\n";
+  if(settexfont(tex,pentype,lastpen,Latex))
     wait(tex,"\n*",abort);
-  }
-    
+  
   lastpen=pentype;
     
   bool nullsize=size.empty();

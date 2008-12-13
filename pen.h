@@ -17,7 +17,7 @@ namespace camp {
 
 static const string DEFPAT="<default>";
 static const string DEFLATEXFONT="\\usefont{\\ASYencoding}{\\ASYfamily}{\\ASYseries}{\\ASYshape}";
-static const string DEFTEXFONT="\\font\\ASYfont=cmr12\\ASYfont";
+static const string DEFTEXFONT="\\font\\ASYfont=cmr12";
 static const double DEFWIDTH=-1;
 static const Int DEFCAP=-1;
 static const Int DEFJOIN=-1;

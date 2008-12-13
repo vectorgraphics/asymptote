@@ -119,6 +119,31 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
   }
 }
   
+template<class T>
+bool setlatexfont(T& out, const pen& p, const pen& lastpen)
+{
+  if(p.size() != lastpen.size() || p.Lineskip() != lastpen.Lineskip()) {
+    out <<  "\\fontsize{" << p.size() << "}{" << p.Lineskip()
+	<< "}\\selectfont\n";
+    return true;
+  }
+  return false;
+}
+
+template<class T>
+bool settexfont(T& out, const pen& p, const pen& lastpen, bool latex) 
+{
+  string font=p.Font();
+  if(font != lastpen.Font() || (!latex && p.size() != lastpen.size())) {
+    out << font;
+    if(!latex)
+      out << " at " << p.size() << " pt" << "\\ASYfont";
+    out << "%" << newl;
+    return true;
+  }
+  return false;
+}
+
 class texfile : public psfile {
   bbox box;
   bool inlinetex;

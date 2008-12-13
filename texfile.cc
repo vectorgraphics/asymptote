@@ -155,15 +155,10 @@ void texfile::setlatexcolor(pen p)
   
 void texfile::setfont(pen p)
 {
-  if((p.size() != lastpen.size() || p.Lineskip() != lastpen.Lineskip()) &&
-     settings::latex(texengine)) {
-    *out << "\\fontsize{" << p.size() << "}{" << p.Lineskip()
-	 << "}\\selectfont" << newl;
-  }
-
-  if(p.Font() != lastpen.Font()) {
-    *out << p.Font() << "%" << newl;
-  }
+  bool latex=settings::latex(texengine);
+  
+  if(latex) setlatexfont(*out,p,lastpen);
+  settexfont(*out,p,lastpen,latex);
   
   lastpen=p;
 }
