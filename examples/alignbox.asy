@@ -1,14 +1,9 @@
-real margin=1mm;
+real margin=1.5mm;
 
-void prodShapeIn(picture pic=currentpicture,
-                 string leftString, string rightString) {
-  object leftObject=align(object(leftString,ellipse,1.5*margin),W);
-  add(pic,leftObject);
-  object rightObject=align(object(rightString,ellipse,1.5*margin),4E);
-  add(pic,rightObject);
-  pic.add(new void(frame f, transform t) {
-      draw(f,point(leftObject,NE,t)--point(rightObject,W,t));
-    });
-}
-
-prodShapeIn("$x^2$", "$\sin x$");
+object leftObject=align(object("$x^2$",ellipse,margin),W);
+add(leftObject);
+object rightObject=align(object("$\sin x$",ellipse,margin),4E);
+add(rightObject);
+currentpicture.add(new void(frame f, transform t) {
+    draw(f,point(leftObject,NE,t)--point(rightObject,W,t));
+  });
