@@ -530,6 +530,27 @@ frame operator cast(object F)
   return F.f;
 }
 
+object operator * (transform t, object F)
+{
+  object f;
+  f.f=t*F.f;
+  f.L=t*F.L;
+  f.g=t*F.g;
+  return f;
+}
+
+// Returns a copy of object F aligned in the direction align
+object align(object F, pair align) 
+{
+  return shift(F.f,align)*F;
+}
+
+void add(picture dest=currentpicture, object F, pair position=0,
+         bool group=true, filltype filltype=NoFill, bool above=true)
+{
+  add(dest,F.f,position,group,filltype,above);
+}
+
 // Pack a list of objects into a frame.
 frame pack(pair align=2S ... object inset[])
 {

@@ -80,26 +80,31 @@ typedef path envelope(frame dest, frame src=dest, real xmargin=0,
                       real ymargin=xmargin, pen p=currentpen,
                       filltype filltype=NoFill, bool above=true);
 
+object object(Label L, envelope e, real xmargin=0, real ymargin=xmargin,
+	      pen p=currentpen, filltype filltype=NoFill, bool above=true) 
+{
+  object F;
+  F.L=L.copy();
+  Label L0=L.copy();
+  L0.position(0);
+  L0.p(p);
+  add(F.f,L0);
+  F.g=e(F.f,xmargin,ymargin,p,filltype);
+  return F;
+}
+
 object draw(picture pic=currentpicture, Label L, envelope e, 
 	    real xmargin=0, real ymargin=xmargin, pen p=currentpen,
 	    filltype filltype=NoFill, bool above=true) 
 {
-  object F;
-  Label L=L.copy();
-  F.L=L;
+  object F=object(L,e,xmargin,ymargin,p,filltype,above);
   pic.add(new void (frame f, transform t) {
       frame d;
-      add(d,t,L);
+      add(d,t,F.L);
       e(f,d,xmargin,ymargin,p,filltype,above);
       add(f,d);
     },true);
-  Label L0=L.copy();
-  L0.position(0);
-  L0.p(p);
-  frame f;
-  add(f,L0);
-  F.g=e(f,xmargin,ymargin,p,filltype);
-  pic.addBox(L.position,L.position,min(f),max(f));
+  pic.addBox(L.position,L.position,min(F.f),max(F.f));
   return F;
 }
 
