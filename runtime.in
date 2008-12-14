@@ -1292,9 +1292,11 @@ void clip(picture *f, patharray *g, bool stroke=false, pen fillrule,
   f->enclose(begin,new drawClipEnd(true,begin));
 }
 
-void beginclip(picture *f, patharray *g, bool stroke=false, pen fillrule)
+void beginclip(picture *f, patharray *g, bool stroke=false, pen fillrule,
+               bool copy=true)
 {
-  f->append(new drawClipBegin(*copyArray(g),stroke,fillrule,false));
+  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  f->append(new drawClipBegin(*copyarray(g),stroke,fillrule,false));
 }
 
 void endclip(picture *f)

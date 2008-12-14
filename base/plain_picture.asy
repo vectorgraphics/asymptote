@@ -1703,6 +1703,23 @@ void clip(picture pic=currentpicture, path[] g, bool stroke=false,
     },true);
 }
 
+void beginclip(picture pic=currentpicture, path[] g, bool stroke=false,
+	       pen fillrule=currentpen, bool copy=true) 
+{
+  if(copy)
+    g=copy(g);
+  pic.add(new void(frame f, transform t) {
+      beginclip(f,t*g,stroke,fillrule,false);
+    },true);
+}
+
+void endclip(picture pic=currentpicture)
+{
+  pic.add(new void(frame f, transform) {
+      endclip(f);
+    },true);
+}
+
 void unfill(picture pic=currentpicture, path[] g, bool copy=true)
 {
   if(copy)
