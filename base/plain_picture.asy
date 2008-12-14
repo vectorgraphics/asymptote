@@ -594,6 +594,9 @@ struct picture {
   ScaleT scale; // Needed by graph
   Legend[] legend;
 
+  pair[] clipmax; // Used by beginclip/endclip
+  pair[] clipmin;
+
   // The maximum sizes in the x, y, and z directions; zero means no restriction.
   real xsize=0, ysize=0;
 
@@ -1708,6 +1711,10 @@ void beginclip(picture pic=currentpicture, path[] g, bool stroke=false,
 {
   if(copy)
     g=copy(g);
+
+  pic.clipmin.push(min(g));
+  pic.clipmax.push(max(g));
+
   pic.add(new void(frame f, transform t) {
       beginclip(f,t*g,stroke,fillrule,false);
     },true);
@@ -1715,7 +1722,9 @@ void beginclip(picture pic=currentpicture, path[] g, bool stroke=false,
 
 void endclip(picture pic=currentpicture)
 {
-  pic.add(new void(frame f, transform) {
+  if(pic.clipmin.length > 0 && pic.clipmax.length > 0)
+    pic.userClip(pic.clipmin.pop(),pic.clipmax.pop());
+  pic.clip(new void(frame f, transform) {
       endclip(f);
     },true);
 }
