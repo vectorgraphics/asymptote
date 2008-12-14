@@ -25,9 +25,8 @@ public:
   bool endclip() {return true;}
   
   void bounds(bbox& b, iopipestream&, boxvector&, bboxlist& bboxstack) {
-    if(bboxstack.size() < 2) {
+    if(bboxstack.size() < 2)
       reportError("endclip without matching beginclip");
-    }
     b.clip(bboxstack.back());
     bboxstack.pop_back();
     b += bboxstack.back();

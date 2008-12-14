@@ -627,15 +627,15 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 	
 	if(status) {
 	  for (p=layerp; p != nodes.end(); ++p) {
+	    assert(*p);
+	    if(!(*p)->write(tex,b))
+	      status = false;
 	    if((*p)->islayer()) {
 	      tex->endlayer();
 	      layerp=++p;
 	      layer++;
 	      break;
 	    }
-	    assert(*p);
-	    if(!(*p)->write(tex,b))
-	      status = false;
 	  }
 	}
       }    

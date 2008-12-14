@@ -1386,6 +1386,11 @@ void layer(picture *f)
   f->append(new drawLayer());
 }
 
+void newpage(picture *f)
+{
+  f->append(new drawNewPage());
+}
+
 void _image(picture *f, realarray2 *data, pair initial, pair final,
 	    penarray *palette=NULL, transform t=identity, bool copy=true,
 	    bool antialias=false)

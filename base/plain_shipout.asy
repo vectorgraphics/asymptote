@@ -95,14 +95,9 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
   pic.uptodate=true;
 }
 
-void newpage(frame f)
+void newpage(picture pic=currentpicture)
 {
-  tex(f,"\newpage");
-  layer(f);
-}
-
-void newpage(picture pic=currentpicture) 
-{
-  tex(pic,"\newpage");
-  layer(pic);
+  pic.add(new void(frame f, transform) {
+      newpage(f);
+    },true);
 }
