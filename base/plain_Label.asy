@@ -530,7 +530,7 @@ frame operator cast(object F)
   return F.f;
 }
 
-object operator * (transform t, object F)
+object operator * (transform t, explicit object F)
 {
   object f;
   f.f=t*F.f;
