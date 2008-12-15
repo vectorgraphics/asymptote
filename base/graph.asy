@@ -616,7 +616,7 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
             while(Step > 0.5*(b-a)) {
               N=m*N0;
               Step=len/N;
-              ++m;
+              m *= 2;
             }
           }
           if(axiscoverage(N,T,g,locate,Step,side,sign,Size,F,ticklabel,norm,
