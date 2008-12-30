@@ -603,26 +603,20 @@ public:
       break;
     case GRAYSCALE:
       {
-	if(p.color != GRAYSCALE) greyval=q.grey;
+	if(P.color != GRAYSCALE) greyval=Q.grey;
 	else {
-	  if(q.color != GRAYSCALE) greyval=p.grey;
-	  else greyval=0.5*(p.grey+q.grey);
+	  if(Q.color != GRAYSCALE) greyval=P.grey;
+	  else greyval=0.5*(P.grey+Q.grey);
 	}
 	break;
       }
       
     case RGB:
       {
-	double sat;
-	if (P.color == GRAYSCALE) {
-	  P.greytorgb();
-	  sat=0.5*(P.rgbsaturation()+Q.rgbsaturation());
-	} else {
-	  if (Q.color == GRAYSCALE) {
-	    Q.greytorgb();
-	    sat=0.5*(P.rgbsaturation()+Q.rgbsaturation());
-	  } else sat=max(P.rgbsaturation(),Q.rgbsaturation());
-	}
+	if(P.color == GRAYSCALE) P.greytorgb();
+	else if(Q.color == GRAYSCALE) Q.greytorgb();
+	
+	double sat=0.5*(P.rgbsaturation()+Q.rgbsaturation());
 	// Mix colors
 	P.r += Q.r;
 	P.g += Q.g;
@@ -637,13 +631,13 @@ public:
       
     case CMYK:
       {
-	if (P.color == GRAYSCALE) P.greytocmyk();
-	else if (Q.color == GRAYSCALE) Q.greytocmyk();
+	if(P.color == GRAYSCALE) P.greytocmyk();
+	else if(Q.color == GRAYSCALE) Q.greytocmyk();
 	
-	if (P.color == RGB) P.rgbtocmyk();
-	else if (Q.color == RGB) Q.rgbtocmyk();
+	if(P.color == RGB) P.rgbtocmyk();
+	else if(Q.color == RGB) Q.rgbtocmyk();
 	
-	double sat=max(P.cmyksaturation(),Q.cmyksaturation());      
+	double sat=0.5*(P.cmyksaturation()+Q.cmyksaturation());      
 	// Mix colors
 	P.r += Q.r;
 	P.g += Q.g;
