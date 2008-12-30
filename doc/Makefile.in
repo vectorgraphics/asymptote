@@ -14,7 +14,7 @@ export docdir infodir INSTALL
 
 all:    doc
 
-htmlinfo:	
+htmlinfo: latexusage.eps
 	cd png; $(MAKE) all
 
 man:	$(DOCFILES) asy.1
