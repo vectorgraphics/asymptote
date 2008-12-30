@@ -616,7 +616,13 @@ public:
 	if(P.color == GRAYSCALE) P.greytorgb();
 	else if(Q.color == GRAYSCALE) Q.greytorgb();
 	
-	double sat=0.5*(P.rgbsaturation()+Q.rgbsaturation());
+	double sat;
+	if(P.color != RGB) sat=Q.rgbsaturation();
+	else {
+	  if(Q.color != RGB) sat=P.rgbsaturation();
+	  else sat=0.5*(P.rgbsaturation()+Q.rgbsaturation());
+	}
+	  
 	// Mix colors
 	P.r += Q.r;
 	P.g += Q.g;
@@ -637,7 +643,13 @@ public:
 	if(P.color == RGB) P.rgbtocmyk();
 	else if(Q.color == RGB) Q.rgbtocmyk();
 	
-	double sat=0.5*(P.cmyksaturation()+Q.cmyksaturation());      
+	double sat;
+	if(P.color != CMYK) sat=Q.cmyksaturation();
+	else {
+	  if(Q.color != CMYK) sat=P.cmyksaturation();
+	  else sat=0.5*(P.cmyksaturation()+Q.cmyksaturation());
+	}
+
 	// Mix colors
 	P.r += Q.r;
 	P.g += Q.g;
