@@ -264,7 +264,7 @@ AC_FUNC_FSEEKO
 
 AC_CONFIG_HEADERS(config.h)
 
-AC_CONFIG_FILES([Makefile doc/Makefile])
+AC_CONFIG_FILES([Makefile doc/Makefile doc/png/Makefile])
 AC_OUTPUT
 
 if test "x$GCDIR" != "x" ; then

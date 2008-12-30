@@ -1,4 +1,5 @@
 #!/bin/sh
+# $Id$
 # Convert DVI to PDF.
 #
 # Please contact Andrew Ford <A.Ford@ford-mason.co.uk> with any questions
@@ -6,18 +7,24 @@
 #
 # Based on ps2pdf
 
+# This definition is changed on install to match the
+# executable name set in the makefile
+GS_EXECUTABLE=gs
+
+
 OPTIONS=""
-DVIOPT=""
+DVIPSOPTIONS=""
 while true
 do
 	case "$1" in
-	-z) DVIOPT="$DVIOPT -z" ;;
-	-pp) shift; DVIOPT="$DVIOPT -pp $1" ;;
-	-p) shift; DVIOPT="$DVIOPT -p $1" ;;
-	-t) shift; DVIOPT="$DVIOPT -t $1" ;;
-	-T) shift; DVIOPT="$DVIOPT -T $1" ;;
-	-l) shift; DVIOPT="$DVIOPT -l $1" ;;
-	-*) OPTIONS="$OPTIONS $1" ;;
+	-R*) DVIPSOPTIONS="$DVIPSOPTIONS $1";;
+	-z) DVIPSOPTIONS="$DVIPSOPTIONS -z" ;;
+	-pp) shift; DVIPSOPTIONS="$DVIPSOPTIONS -pp $1" ;;
+	-p) shift; DVIPSOPTIONS="$DVIPSOPTIONS -p $1" ;;
+	-t) shift; DVIPSOPTIONS="$DVIPSOPTIONS -t $1" ;;
+	-T) shift; DVIPSOPTIONS="$DVIPSOPTIONS -T $1" ;;
+	-l) shift; DVIPSOPTIONS="$DVIPSOPTIONS -l $1" ;;
+	-?*) OPTIONS="$OPTIONS $1" ;;
 	*)  break ;;
 	esac
 	shift
@@ -43,4 +50,4 @@ fi
 
 # We have to include the options twice because -I only takes effect if it
 # appears before other options.
-exec dvips $DVIOPT -q -f "$infile" | gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile="$outfile" $OPTIONS -c .setpdfwrite -
+exec dvips $DVIPSOPTIONS -q -f "$infile" | $GS_EXECUTABLE -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile="$outfile" $OPTIONS -c .setpdfwrite -

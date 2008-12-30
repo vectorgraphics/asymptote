@@ -14,17 +14,15 @@ export docdir infodir INSTALL
 
 all:    doc
 
-html:	asymptote/index.html
+htmlinfo:	
+	cd png; $(MAKE) all
 
 man:	$(DOCFILES) asy.1
 
 faq:	
 	cd FAQ; $(MAKE) faq
 
-doc:	asymptote.dvi asymptote.info html man faq
-
-%.png:	%.asy
-	$(ASY) -f png $<
+doc:	asymptote.dvi htmlinfo man faq
 
 %.eps:	%.asy
 	$(ASY) -f eps $<
@@ -43,9 +41,6 @@ latexusage.dvi: latexusage.tex
 latexusage.eps: latexusage.dvi
 	dvips -o latexusage.eps latexusage
 
-latexusage.png: latexusage.eps
-	convert -alpha Off -density 144x144 +antialias -geometry 50%x \
-		latexusage.eps latexusage.png
 latexusage.pdf: latexusage.dvi
 	dvipdf latexusage
 
@@ -60,9 +55,6 @@ asymptote.dvi: $(SOURCE) $(ASYFILES:.asy=.eps)
 	$(TEXI2DVI) asymptote_.texi
 	mv asymptote_.dvi asymptote.dvi
 
-asymptote.info: $(SOURCE) $(ASYFILES:.asy=.png)
-	makeinfo asymptote
-
 asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf)
 	$(TEXI2DVI) --pdf asymptote.texi
 
@@ -72,18 +64,13 @@ CAD.pdf: CAD.tex CAD1.eps
 	latex CAD
 	dvipdf CAD
 
-asymptote/index.html: $(SOURCE) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
-	mkdir -p asymptote
-	cp *.png asymptote
-	makeinfo --html asymptote
-
 clean: FORCE
 	rm -f $(ASYFILES:.asy=.pdf) $(DOCFILES)
-	rm -f *.eps *.png latexusage.{asy,dvi,eps,png,log,aux,*.eps}
+	rm -f *.eps latexusage.{asy,dvi,eps,log,aux,*.eps}
 	rm -f {asymptote,asymptote_}.{aux,cp,cps,dvi,fn,info,ky,log,pg,pdf,toc,tp,vr} 
-	rm -f asymptote_.texi asymptote.info-*
+	rm -f asymptote_.texi
 	rm -f CAD.{aux,dvi,log,pdf,toc}
-	rm -rf asymptote
+	cd png; $(MAKE) clean
 
 install: man faq
 	cd FAQ; $(MAKE) install
@@ -93,21 +80,15 @@ install: man faq
 
 install-all: doc install
 	cd FAQ; $(MAKE) install-info
-	${INSTALL} -d -m 755 $(infodir)
-	${INSTALL} -p -m 644 asymptote.info $(infodir)
-	-${INSTALL} -p -m 644 asymptote.info-* $(infodir)
-	-if test -z "$(DESTDIR)"; then \
-		install-info --infodir=$(infodir) asymptote.info; \
-	fi
+	cd png; $(MAKE) install
 
 uninstall: uninstall-all
 
 uninstall-all:
 	cd FAQ; $(MAKE) uninstall
+	cd png; $(MAKE) uninstall
 	-cd $(mandir)/man1; rm -f $(MANFILES)
 	-rm -f $(addprefix $(docdir)/,$(DOCFILES))
-	-install-info --remove --infodir=$(infodir) asymptote.info
-	-rm -f $(infodir)/asymptote.info $(infodir)/asymptote.info-*
 
 distclean: FORCE clean
 	-rm -f version.texi
