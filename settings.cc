@@ -1031,6 +1031,8 @@ void initSettings() {
 			    "Wait for child processes to finish before exiting"));
   // Be interactive even in a pipe
   addOption(new boolSetting("interactive", 0, ""));
+  addOption(new boolSetting("exitonEOF", 0, "Exit interactive mode on EOF",
+			    true));
 			    
   addOption(new boolSetting("localhistory", 0,
 			    "Use a local interactive history file"));

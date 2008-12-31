@@ -120,7 +120,7 @@ string simpleline(string prompt) {
     return s;
   } else {
     cout << endl;
-    if(!tty)
+    if(!tty || getSetting<bool>("exitonEOF"))
       throw eof();
     return "\n";
   }
