@@ -12,8 +12,8 @@ $(FAQ): $(BFNNCONV) asy-faq.bfnn
 faq:	$(FAQ)
 
 clean: FORCE
-	rm -f *~ core a.out *.lout *.ps *.info *.ascii *.xrefdb *.post
-	rm -rf *.html
+	-rm -f *~ core a.out *.lout *.ps *.info *.ascii *.xrefdb *.post
+	-rm -rf *.html
 
 install-all: install install-info
 

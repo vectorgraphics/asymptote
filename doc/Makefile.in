@@ -65,11 +65,11 @@ CAD.pdf: CAD.tex CAD1.eps
 	dvipdf CAD
 
 clean: FORCE
-	rm -f $(ASYFILES:.asy=.pdf) $(DOCFILES)
-	rm -f *.eps latexusage.{asy,dvi,eps,log,aux,*.eps}
-	rm -f {asymptote,asymptote_}.{aux,cp,cps,dvi,fn,info,ky,log,pg,pdf,toc,tp,vr} 
-	rm -f asymptote_.texi
-	rm -f CAD.{aux,dvi,log,pdf,toc}
+	-rm -f $(ASYFILES:.asy=.pdf) $(DOCFILES)
+	-rm -f *.eps latexusage.{asy,dvi,eps,log,aux,*.eps}
+	-rm -f {asymptote,asymptote_}.{aux,cp,cps,dvi,fn,info,ky,log,pg,pdf,toc,tp,vr} 
+	-rm -f asymptote_.texi
+	-rm -f CAD.{aux,dvi,log,pdf,toc}
 	cd png; $(MAKE) clean
 
 install: man faq
@@ -91,6 +91,6 @@ uninstall-all:
 	-rm -f $(addprefix $(docdir)/,$(DOCFILES))
 
 distclean: FORCE clean
-	-rm -f version.texi
+	-rm -f version.texi Makefile
 	cd FAQ; make distclean
 FORCE:
