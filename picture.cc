@@ -706,13 +706,16 @@ Communicate com;
 
 void glrenderWrapper()
 {
+#ifdef HAVE_LIBGLUT  
   glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
 	   com.m,com.M,com.nlights,com.lights,com.diffuse,com.ambient,
 	   com.specular,com.viewportlighting,com.view);
+#endif  
 }
 
 void hold(bool View) 
 {
+#ifdef HAVE_LIBGLUT  
 #ifdef HAVE_LIBPTHREAD
   if(glthread) {
     if(!View)
@@ -721,6 +724,7 @@ void hold(bool View)
     if(!interact::interactive)
       wait(quitSignal,quitLock);
   }
+#endif  
 #endif  
 }
 

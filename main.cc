@@ -140,11 +140,11 @@ int main(int argc, char *argv[])
     em.statusError();
   }
   
-  gl::glthread=getSetting<bool>("threads");
-  
   Args args(argc,argv);
 #ifdef HAVE_LIBGLUT
+  gl::glthread=getSetting<bool>("threads");
 #ifdef HAVE_LIBPTHREAD
+  
   if(gl::glthread) {
     pthread_t thread;
     try {
@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
     }
   }
 #endif
-#endif  
   gl::glthread=false;
+#endif  
   asymain(&args);
 }
