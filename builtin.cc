@@ -780,6 +780,8 @@ void base_venv(venv &ve)
   addConstant<Int>(ve, DBL_DIG, primInt(), "realDigits");
   addConstant<Int>(ve, RAND_MAX, primInt(), "randMax");
   addConstant<double>(ve, PI, primReal(), "pi");
+  addConstant<string>(ve, string(settings::VERSION)+string(SVN_REVISION),
+		      primString(),"VERSION");
   
   addVariable<pen>(ve, &processData().currentpen, primPen(), "currentpen");
 

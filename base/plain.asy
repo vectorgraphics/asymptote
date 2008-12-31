@@ -19,7 +19,7 @@ if(settings.command != "") {
 include plain_constants;
 
 access version;             
-if(version.VERSION != VERSION()) {
+if(version.VERSION != VERSION) {
   write(stdout,"warning: using possibly incompatible version "+
         version.VERSION+" of plain.asy"+'\n');
 }

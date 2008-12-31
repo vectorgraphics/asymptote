@@ -3850,11 +3850,6 @@ triple dir(real colatitude, real longitude)
 
 // System routines
 
-string VERSION()
-{
-  return string(VERSION)+string(SVN_REVISION);
-}
-
 void atupdate(callable *f)
 {
   processData().atUpdateFunction=f;
