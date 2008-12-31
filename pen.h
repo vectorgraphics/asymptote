@@ -606,7 +606,7 @@ public:
 	if(P.color != GRAYSCALE) greyval=Q.grey;
 	else {
 	  if(Q.color != GRAYSCALE) greyval=P.grey;
-	  else greyval=0.5*(P.grey+Q.grey);
+	  else greyval=max(P.grey,Q.grey);
 	}
 	break;
       }
@@ -620,7 +620,7 @@ public:
 	if(P.color != RGB) sat=Q.rgbsaturation();
 	else {
 	  if(Q.color != RGB) sat=P.rgbsaturation();
-	  else sat=0.5*(P.rgbsaturation()+Q.rgbsaturation());
+	  else sat=max(P.rgbsaturation(),Q.rgbsaturation());
 	}
 	  
 	// Mix colors
@@ -647,7 +647,7 @@ public:
 	if(P.color != CMYK) sat=Q.cmyksaturation();
 	else {
 	  if(Q.color != CMYK) sat=P.cmyksaturation();
-	  else sat=0.5*(P.cmyksaturation()+Q.cmyksaturation());
+	  else sat=max(P.cmyksaturation(),Q.cmyksaturation());
 	}
 
 	// Mix colors
