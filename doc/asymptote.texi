@@ -6838,6 +6838,13 @@ within the given limits if @code{crop}=@code{Crop}. The function
 @sp 1
 @center @image{parametricgraph}
 
+@cindex scaled graph
+The next example illustrates how one can extract a common axis scaling
+factor.
+@verbatiminclude scaledgraph.asy
+@sp 1
+@center @image{scaledgraph}
+
 @anchor{automatic scaling}
 @cindex @code{scale}
 @cindex @code{Linear}
