@@ -1,3 +1,5 @@
+Andy: implement operator init(A a) copy constructors.
+
 Andy and John: (if possible) automatically turn expressions with array
 sub-expressions into iteration over the array(s)
 

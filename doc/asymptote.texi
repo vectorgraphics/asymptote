@@ -8943,7 +8943,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  onecontour multicontour irregularcontour dvipsOptions saveline
 @c  LocalWords:  dirSpecifier controlSpecifier tensionSpecifier atleastflag bsp
 @c  LocalWords:  curlSpecifier cputimeformat initializers arbitary redeclaring
-@c  LocalWords:  firstname lastname multdiagonal Raphson OmitTick OmitFormat
+@c  LocalWords:  firstname lastname multdiagonal Raphson OmitTick OmitFormat sp
 @c  LocalWords:  NoZero NoZeroFormat abbrevation gsOptions namespace redeclared
 @c  LocalWords:  atLeast intMin globalwrite quarticroots deconsruct substrings
 @c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt DefaultHead
@@ -8965,5 +8965,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify
 @c  LocalWords:  psviewerOptions pdfviewerOptions viewportmargin asyattach
 @c  LocalWords:  multisampling autogen multisample coloredpath relstep flowdir
-@c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot
+@c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot scaledgraph
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter
