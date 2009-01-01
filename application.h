@@ -37,9 +37,6 @@ typedef mem::vector<score> score_vector;
 // temporary.
 typedef mem::vector<tempExp *> temp_vector;
 
-// Forward declaration.
-struct arg;
-
 struct arg : public gc {
   virtual ~arg() {}
   varinit *v;
@@ -49,7 +46,14 @@ struct arg : public gc {
     : v(v), t(t) {}
 
   virtual void trans(coenv &e, temp_vector &) {
-    v->transToType(e, t);
+    // Open signatures can match overloaded variables, but there is no way to
+    // translate the result, so report an error.
+    if (t->kind == types::ty_overloaded) {
+      em.error(v->getPos());
+      em << "overloaded argument in function call";
+    }
+    else
+      v->transToType(e, t);
   }
 };
 
@@ -242,6 +246,10 @@ class application : public gc {
   // Match the argument represented in signature to the target signature.  On
   // success, all of the arguments in args will be properly set up.
   bool matchSignature(env &e, types::signature *source, arglist &al);
+
+  // Match a signature which is open, meaning that any sequence of arguments is
+  // matched.
+  bool matchOpen(env &e, signature *source, arglist &al);
 
   friend class maximizer;
 public:

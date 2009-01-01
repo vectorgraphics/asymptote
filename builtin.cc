@@ -109,6 +109,18 @@ void addFunc(venv &ve, access *a, ty *result, const char *name, formal f1)
   addFunc(ve,a,result,symbol::trans(name),f1);
 }
 
+void addOpenFunc(venv &ve, bltin f, ty *result, const char *name)
+{
+  function *fun = new function(result, signature::OPEN);
+
+  access *a= new bltinAccess(f);
+
+  varEntry *ent = new varEntry(fun, a, 0, position());
+  
+  ve.enter(symbol::trans(name), ent);
+}
+
+
 // Add a rest function with zero or more default/explicit arguments.
 void addRestFunc(venv &ve, bltin f, ty *result, const char *name, formal frest,
 		 formal f1=noformal, formal f2=noformal, formal f3=noformal,
@@ -676,6 +688,19 @@ dummyRecord *createDummyRecord(venv &ve, const char *name)
 double identity(double x) {return x;}
 double pow10(double x) {return run::pow(10.0,x);}
 
+// An example of an open function.
+#ifdef OPENFUNCEXAMPLE
+void openFunc(stack *Stack)
+{
+  vm::array *a=vm::pop<vm::array *>(Stack);
+  size_t numArgs=checkArray(a);
+  for (size_t k=0; k<numArgs; ++k)
+    cout << k << ": " << (*a)[k];
+  
+  Stack->push<Int>((Int)numArgs);
+}
+#endif
+
 // NOTE: We should move all of these into a "builtin" module.
 void base_venv(venv &ve)
 {
@@ -784,6 +809,10 @@ void base_venv(venv &ve)
 		      primString(),"VERSION");
   
   addVariable<pen>(ve, &processData().currentpen, primPen(), "currentpen");
+
+#ifdef OPENFUNCEXAMPLE
+  addOpenFunc(ve, openFunc, primInt(), "openFunc");
+#endif
 
   gen_base_venv(ve);
 }

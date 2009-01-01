@@ -360,6 +360,11 @@ bool argumentEquivalent(formal &f1, formal& f2) {
 
 ostream& operator<< (ostream& out, const signature& s)
 {
+  if (s.isOpen) {
+    out << "(<open>)";
+    return out;
+  }
+
   out << "(";
 
   formal_vector::const_iterator f = s.formals.begin();
@@ -389,6 +394,12 @@ bool equivalent(signature *s1, signature *s2)
   if (s1 == 0)
     return s2 == 0;
   else if (s2 == 0)
+    return false;
+
+  // Two open signatures are always equivalent, as the formals are ignored.
+  if (s1->isOpen)
+    return s2->isOpen;
+  else if (s2->isOpen)
     return false;
 
   if (s1->formals.size() != s2->formals.size())

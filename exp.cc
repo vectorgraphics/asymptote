@@ -610,6 +610,13 @@ application *callExp::resolve(coenv &e, overloaded *o, signature *source,
   }
 }
 
+bool hasNamedParameters(signature *sig) {
+  for (size_t i=0; i < sig->getNumFormals(); ++i)
+    if (sig->getFormal(i).name)
+      return true;
+  return false;
+}
+
 void callExp::reportMismatch(symbol *s, function *ft, signature *source)
 {
   const char *separator=ft->getSignature()->getNumFormals() > 1 ? "\n" : " ";
@@ -620,16 +627,19 @@ void callExp::reportMismatch(symbol *s, function *ft, signature *source)
     em << *s;
   em << *ft->getSignature() << "'" << separator;
 
-  switch(source->getNumFormals()) {
-    case 0:
-      em << "without parameters";
-      break;
-    case 1:
-      em << "with parameter '" << *source << "'";
-      break;
-    default:
-      em << "with parameters\n'" << *source << "'";
-  }
+  if (ft->getSignature()->isOpen && hasNamedParameters(source))
+    em << "with named parameters";
+  else
+    switch(source->getNumFormals()) {
+      case 0:
+        em << "without parameters";
+        break;
+      case 1:
+        em << "with parameter '" << *source << "'";
+        break;
+      default:
+        em << "with parameters\n'" << *source << "'";
+    }
 }
 
 application *callExp::getApplication(coenv &e)
