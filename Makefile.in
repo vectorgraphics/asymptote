@@ -158,7 +158,8 @@ install-asy: asy asy-keywords.el
 	ln -sf @datadir@/asymptote/GUI/xasy.py $(bindir)/$(XNAME)
 	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps \
 	  doc/extra/*.asy $(addprefix doc/,$(DOCEXTRA)) $(exampledir)
-	${INSTALL} -p -m 644 examples/animations/*.asy $(animationsdir)
+	${INSTALL} -p -m 644 examples/animations/*.asy \
+          examples/animations/inlinemovie.tex $(animationsdir)
 	-${INSTALL} -p -m 644 $(addprefix doc/,$(LATEXFILES)) $(latexdir)
 	-if test -z "$(DESTDIR)"; then \
 	  texhash; \
