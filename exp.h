@@ -650,6 +650,7 @@ private:
   void argAmbiguity(coenv &e);
 
   types::signature *argTypes(coenv& e);
+  void reportArgErrors(coenv &e);
   application *resolve(coenv &e,
                        types::overloaded *o,
                        types::signature *source,

@@ -642,21 +642,24 @@ void callExp::reportMismatch(symbol *s, function *ft, signature *source)
     }
 }
 
+void callExp::reportArgErrors(coenv &e)
+{
+  // Cycle through the parameters to report all errors.
+  // NOTE: This may report inappropriate ambiguity errors. 
+  for (size_t i = 0; i < args->size(); i++) {
+    (*args)[i].val->trans(e);
+  }
+  if (args->rest.val)
+    args->rest.val->trans(e);
+}
+
 application *callExp::getApplication(coenv &e)
 {
   // First figure out the signature of what we want to call.
   signature *source=argTypes(e);
 
-  if (!source) {
-    // Cycle through the parameters to report all errors.
-    // NOTE: This may report inappropriate ambiguity errors. 
-    for (size_t i = 0; i < args->size(); i++) {
-      (*args)[i].val->trans(e);
-    }
-    if (args->rest.val)
-      args->rest.val->trans(e);
+  if (!source)
     return 0;
-  }
 
   // Figure out what function types we can call.
   trans::ty *ft = callee->cgetType(e);
@@ -711,8 +714,10 @@ types::ty *callExp::trans(coenv &e)
   // let it be garbage collected.
   ca=0;
 
-  if (!a)
+  if (!a) {
+    reportArgErrors(e);
     return primError();
+  }
 
   // To simulate left-to-right order of evaluation, produce the
   // side-effects for the callee.
