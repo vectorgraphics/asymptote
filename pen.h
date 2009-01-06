@@ -475,15 +475,12 @@ public:
   
   void rgbtocmyk() {
     double sat=rgbsaturation();
-    r=1.0-r;
-    g=1.0-g;
-    b=1.0-b;
     grey=1.0-sat;
     if(sat) {
       double scale=1.0/sat;
-      r=(r-grey)*scale;
-      g=(g-grey)*scale;
-      b=(b-grey)*scale;
+      r=1.0-r*scale;
+      g=1.0-g*scale;
+      b=1.0-b*scale;
     }
     color=CMYK;
   }
@@ -586,7 +583,6 @@ public:
   }
   
   friend pen operator + (const pen& p, const pen& q) {
-    double R=0.0,G=0.0,B=0.0,greyval=0.0;
     pen P=p;
     pen Q=q;
     
@@ -603,11 +599,8 @@ public:
       break;
     case GRAYSCALE:
       {
-	if(P.color != GRAYSCALE) greyval=Q.grey;
-	else {
-	  if(Q.color != GRAYSCALE) greyval=P.grey;
-	  else greyval=max(P.grey,Q.grey);
-	}
+	P.grey += Q.grey;
+	P.greyrange();
 	break;
       }
       
@@ -616,22 +609,10 @@ public:
 	if(P.color == GRAYSCALE) P.greytorgb();
 	else if(Q.color == GRAYSCALE) Q.greytorgb();
 	
-	double sat;
-	if(P.color != RGB) sat=Q.rgbsaturation();
-	else {
-	  if(Q.color != RGB) sat=P.rgbsaturation();
-	  else sat=max(P.rgbsaturation(),Q.rgbsaturation());
-	}
-	  
-	// Mix colors
 	P.r += Q.r;
 	P.g += Q.g;
 	P.b += Q.b;
-	double newsat=P.rgbsaturation();
-	double scale=newsat ? sat/newsat: 1.0;
-	R=P.r*scale;
-	G=P.g*scale;
-	B=P.b*scale;
+	P.rgbrange();
 	break;
       }
       
@@ -643,24 +624,11 @@ public:
 	if(P.color == RGB) P.rgbtocmyk();
 	else if(Q.color == RGB) Q.rgbtocmyk();
 	
-	double sat;
-	if(P.color != CMYK) sat=Q.cmyksaturation();
-	else {
-	  if(Q.color != CMYK) sat=P.cmyksaturation();
-	  else sat=max(P.cmyksaturation(),Q.cmyksaturation());
-	}
-
-	// Mix colors
 	P.r += Q.r;
 	P.g += Q.g;
 	P.b += Q.b;
 	P.grey += Q.grey;
-	double newsat=P.cmyksaturation();
-	double scale=newsat ? sat/newsat: 1.0;
-	R=P.r*scale;
-	G=P.g*scale;
-	B=P.b*scale;
-	greyval=P.grey*scale;
+	P.cmykrange();
 	break;
       }
     }
@@ -671,7 +639,7 @@ public:
 	       q.font.empty() ? p.font : q.font,
 	       q.fontsize == 0.0 ? p.fontsize : q.fontsize,
 	       q.lineskip == 0.0 ? p.lineskip : q.lineskip,
-	       colorspace,R,G,B,greyval,
+	       colorspace,P.r,P.g,P.b,P.grey,
 	       q.pattern == DEFPAT ? p.pattern : q.pattern,
 	       q.fillrule == DEFFILL ? p.fillrule : q.fillrule,
 	       q.baseline == DEFBASE ? p.baseline : q.baseline,

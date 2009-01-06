@@ -185,6 +185,12 @@ pen interp(pen a, pen b, real t)
   return (1-t)*a+t*b;
 }
 
+void write(file file=stdout, string s="", pen[] p)
+{
+  for(int i=0; i < p.length; ++i)
+    write(file,s,p[i],endl);
+}
+
 pen font(string name) 
 {
   string s="\font\ASYfont="+name;

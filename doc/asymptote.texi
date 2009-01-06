@@ -2524,8 +2524,8 @@ The implicit initializer for pens is @code{defaultpen}.
 
 @cindex @code{+}
 @cindex @code{*}
-Pens may be added together with the binary operator @code{+}.
-This will mix the colors of the two pens.
+Pens may be added together with the nonassociative binary
+operator @code{+}. This will add the colors of the two pens.
 All other non-default attributes of the rightmost pen will
 override those of the leftmost pen. Thus, one can obtain a yellow
 dashed pen by saying @code{dashed+red+green} or @code{red+green+dashed}
@@ -4094,7 +4094,7 @@ bool positive=(pi >= 0) ? true : false;
 @end verbatim
 
 The function @code{T interp(T a, T b, real t)} returns @code{a+t*(b-a)}
-for all built-in arithmetic types @code{T}.
+for nonintegral built-in arithmetic types @code{T}.
 
 @cindex @code{AND}
 @cindex @code{OR}
@@ -4978,6 +4978,8 @@ returns the 3D transpose of @code{a} obtained by applying the permutation
 @cindex @code{sum}
 @item T sum(T[] a)
 For arithmetic types @code{T}, returns the sum of @code{a}.
+In the case where @code{T} is a boolean array, the number of true elements in
+@code{a} is returned.
 
 @cindex @code{min}
 @item T min(T[] a)
