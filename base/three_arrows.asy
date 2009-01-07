@@ -566,7 +566,7 @@ arrowbar3 MidArrow3(arrowhead3 arrowhead=DefaultHead3,
   return new bool(picture pic, path3 g, material p, margin3 margin,
 		  light light, light arrowheadlight) {
     add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,MidPoint,margin,
-		  center=true, light,arrowheadlight));
+		  center=true,light,arrowheadlight));
     return false;
   };
 }
@@ -577,6 +577,65 @@ arrowbar3 Arrows3(arrowhead3 arrowhead=DefaultHead3,
 {
   return new bool(picture pic, path3 g, material p, margin3 margin,
 		  light light, light arrowheadlight) {
+    add(pic,arrow2(arrowhead,g,p,arrowheadpen,size,angle,margin,light,
+		   arrowheadlight));
+    return false;
+  };
+}
+
+arrowbar3 BeginArcArrow3(arrowhead3 arrowhead=DefaultHead3,
+			 real size=0, real angle=arcarrowangle,
+			 position position=BeginPoint,
+			 material arrowheadpen=nullpen) {
+  return new bool(picture pic, path3 g, material p, margin3 margin,
+		  light light, light arrowheadlight) { 
+    real size=(size == 0) ? arcarrowsize((pen) p) : size; 
+    add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,position,
+		  forwards=false,margin,light,arrowheadlight)); 
+    return false; 
+  };
+}
+
+arrowbar3 ArcArrow3(arrowhead3 arrowhead=DefaultHead3,
+		    real size=0, real angle=arcarrowangle,
+		    position position=EndPoint,
+		    material arrowheadpen=nullpen)
+{
+  return new bool(picture pic, path3 g, material p, margin3 margin,
+		  light light, light arrowheadlight) {
+    real size=(size == 0) ? arcarrowsize((pen) p) : size; 
+    add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,position,margin,light,
+		  arrowheadlight));
+    return false;
+  };
+}
+
+arrowbar3 EndArcArrow3(arrowhead3 arrowhead=DefaultHead3,
+		       real size=0, real angle=arcarrowangle,
+		       position position=EndPoint,
+		       material arrowheadpen=nullpen)=ArcArrow3;
+
+
+arrowbar3 MidArcArrow3(arrowhead3 arrowhead=DefaultHead3,
+		    real size=0, real angle=arcarrowangle,
+		    material arrowheadpen=nullpen)
+{
+  return new bool(picture pic, path3 g, material p, margin3 margin,
+		  light light, light arrowheadlight) {
+    real size=(size == 0) ? arcarrowsize((pen) p) : size; 
+    add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,MidPoint,margin,
+		  center=true,light,arrowheadlight));
+    return false;
+  };
+}
+
+arrowbar3 ArcArrows3(arrowhead3 arrowhead=DefaultHead3,
+		  real size=0, real angle=arcarrowangle,
+		  material arrowheadpen=nullpen)
+{
+  return new bool(picture pic, path3 g, material p, margin3 margin,
+		  light light, light arrowheadlight) {
+    real size=(size == 0) ? arcarrowsize((pen) p) : size; 
     add(pic,arrow2(arrowhead,g,p,arrowheadpen,size,angle,margin,light,
 		   arrowheadlight));
     return false;
@@ -622,6 +681,11 @@ MidArrow3=MidArrow3(),
 Arrow3=Arrow3(),
 EndArrow3=Arrow3(),
 Arrows3=Arrows3(),
+BeginArcArrow3=BeginArcArrow3(),
+MidArcArrow3=MidArcArrow3(),
+ArcArrow3=ArcArrow3(),
+EndArcArrow3=ArcArrow3(),
+ArcArrows3=ArcArrows3(),
 BeginBar3=BeginBar3(),
 Bar3=Bar3(),
 EndBar3=Bar3(),

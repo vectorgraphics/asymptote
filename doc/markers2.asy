@@ -7,7 +7,7 @@ pair A=0, B=(1,0), C=(0.7,1), D=(-0.5,0), F=rotate(-90)*(C-B)/2+B;
 
 draw(A--B);
 draw(A--C);
-pen p=1mm;
+pen p=linewidth(1mm);
 draw(B--C,p);
 draw(A--D);
 draw(B--F,p);
