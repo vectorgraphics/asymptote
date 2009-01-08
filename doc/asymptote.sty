@@ -103,9 +103,9 @@
   }}
 
 \def\AfterasyAsymptote{%
-  \ifx\@optarg\empty
+  \ifx\@asyoptarg\empty
   \else
-    \immediate\write\AsyStream{size(\@optarg);}%
+    \immediate\write\AsyStream{size(\@asyoptarg);}%
   \fi
   \immediate\write\AsyStream{\@charrb);}%
   \immediate\write\AsyStream{// End of Asymptote Figure \the\c@asy}%
@@ -163,7 +163,7 @@
   \begingroup
   \let\par\empty
   \stepcounter{asy}%
-  \gdef\@optarg{#1}%
+  \gdef\@asyoptarg{#1}%
    \immediate\write\AsyStream{}%
    \immediate\write\AsyStream{// Beginning of Asymptote Figure \the\c@asy}%
    \immediate\write\AsyStream{eval(quote\@charlb}%
