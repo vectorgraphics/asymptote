@@ -27,10 +27,11 @@ pair gamma0(pair z)
 
 surface s=surface(new real(pair z) {return min(abs(gamma0(z)),M);},
 		  (-2.1,-2),(X,2),70,Spline);
-s.colors(palette(s.map(new real(triple v) {return angle(gamma0((v.x,v.y)));}),
-		 Wheel()));
+
+s.colors(palette(s.map(new real(triple v) {
+	return degrees(gamma0((v.x,v.y)),warn=false);}),Wheel()));
 draw(s);
 
-xaxis3("$x$",Bounds,InTicks(Label));
-yaxis3("$y$",Bounds,InTicks(beginlabel=false,Label));
-zaxis3("$z$",Bounds,InTicks());
+xaxis3("$\mathop{\rm Re} z$",Bounds,InTicks(Label));
+yaxis3("$\mathop{\rm Im} z$",Bounds,InTicks(beginlabel=false,Label));
+zaxis3("$|\Gamma(z)|$",Bounds,InTicks());
