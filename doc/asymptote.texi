@@ -7017,18 +7017,22 @@ and palettes. The following palettes are predefined in
 @item pen[] Grayscale(int NColors=256)
 a grayscale palette;
 
-@cindex @code{Rainbow}
-@item pen[] Rainbow(int NColors=65501)
+cindex @code{Rainbow}
+@item pen[] Rainbow(int NColors=32766)
 a rainbow spectrum;
 
 @cindex @code{BWRainbow}
-@item pen[] BWRainbow(int NColors=65485)
+@item pen[] BWRainbow(int NColors=32761)
 a rainbow spectrum tapering off to black/white at the ends;
 
 @cindex @code{BWRainbow2}
-@item pen[] BWRainbow2(int NColors=65485)
+@item pen[] BWRainbow2(int NColors=32761)
 a double rainbow palette tapering off to black/white at the ends, with
 a linearly scaled intensity.
+
+@@cindex @code{Wheel}
+@item pen[] Wheel(int NColors=32766)
+a full color wheel palette;
 
 @cindex @code{Gradient}
 @item pen[] Gradient(int NColors=256 ... pen[] p) 

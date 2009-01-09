@@ -295,6 +295,33 @@ pen[] Grayscale(int NColors=256)
   return sequence(new pen(int i) {return gray(i*ninv);},NColors);
 }
 
+// A color wheel palette
+pen[] Wheel(int NColors=32766)
+{
+  if(settings.gray) return Grayscale(NColors);
+  
+  int nintervals=6;
+  int n=quotient(NColors,nintervals);
+                
+  pen[] Palette;
+  if(n == 0) return Palette;
+  
+  Palette=new pen[n*nintervals];
+  real ninv=1.0/n;
+
+  for(int i=0; i < n; ++i) {
+    real ininv=i*ninv;
+    real ininv1=1.0-ininv;
+    Palette[i]=rgb(1.0,0.0,ininv);
+    Palette[n+i]=rgb(ininv1,0.0,1.0);
+    Palette[2n+i]=rgb(0.0,ininv,1.0);
+    Palette[3n+i]=rgb(0.0,1.0,ininv1);
+    Palette[4n+i]=rgb(ininv,1.0,0.0);    
+    Palette[5n+i]=rgb(1.0,ininv1,0.0);
+  }
+  return Palette;
+}
+
 // A rainbow palette
 pen[] Rainbow(int NColors=32766)
 {
@@ -310,19 +337,16 @@ pen[] Rainbow(int NColors=32766)
   Palette=new pen[n*nintervals+offset];
   real ninv=1.0/n;
 
-  int N2=2n;
-  int N3=3n;
-  int N4=4n;
   for(int i=0; i < n; ++i) {
     real ininv=i*ninv;
     real ininv1=1.0-ininv;
     Palette[i]=rgb(ininv1,0.0,1.0);
     Palette[n+i]=rgb(0.0,ininv,1.0);
-    Palette[N2+i]=rgb(0.0,1.0,ininv1);
-    Palette[N3+i]=rgb(ininv,1.0,0.0);    
-    Palette[N4+i]=rgb(1.0,ininv1,0.0);
+    Palette[2n+i]=rgb(0.0,1.0,ininv1);
+    Palette[3n+i]=rgb(ininv,1.0,0.0);    
+    Palette[4n+i]=rgb(1.0,ininv1,0.0);
   }
-  Palette[N4+n]=rgb(1.0,0.0,0.0);
+  Palette[4n+n]=rgb(1.0,0.0,0.0);
   
   return Palette;
 }
@@ -347,24 +371,18 @@ private pen[] BWRainbow(int NColors, bool two)
   Palette=new pen[NColors];
   real ninv=1.0/n;
 
-  int N1,N2,N3,N4,N5;
   int k=0;
   
   if(two) {
-    N1=n;
-    N2=2n;
-    N3=3n;
-    N4=4n;
-    N5=5n;
     for(int i=0; i < n; ++i) {
       real ininv=i*ninv;
       real ininv1=1.0-ininv;
       Palette[i]=rgb(ininv1,0.0,1.0);
-      Palette[N1+i]=rgb(0.0,ininv,1.0);
-      Palette[N2+i]=rgb(0.0,1.0,ininv1);
-      Palette[N3+i]=rgb(ininv,1.0,0.0);
-      Palette[N4+i]=rgb(1.0,ininv1,0.0);
-      Palette[N5+i]=rgb(1.0,0.0,ininv);
+      Palette[n+i]=rgb(0.0,ininv,1.0);
+      Palette[2n+i]=rgb(0.0,1.0,ininv1);
+      Palette[3n+i]=rgb(ininv,1.0,0.0);
+      Palette[4n+i]=rgb(1.0,ininv1,0.0);
+      Palette[5n+i]=rgb(1.0,0.0,ininv);
     }
     k += 6n;
   }
@@ -377,34 +395,25 @@ private pen[] BWRainbow(int NColors, bool two)
     int n23=2*n3;
     real third=n3*ninv;
     real twothirds=n23*ninv;
-    N1=k;
-    N2=k+n3;
-    N3=k+n23;
     for(int i=0; i < n3; ++i) {
       real ininv=i*ninv;
-      Palette[N1+i]=rgb(ininv,0.0,ininv);
-      Palette[N2+i]=rgb(third,0.0,third+ininv);
-      Palette[N3+i]=rgb(third-ininv,0.0,twothirds+ininv);
+      Palette[k+i]=rgb(ininv,0.0,ininv);
+      Palette[k+n3+i]=rgb(third,0.0,third+ininv);
+      Palette[k+n23+i]=rgb(third-ininv,0.0,twothirds+ininv);
     }
   }
   k += n;
 
-  N1=k;
-  N2=N1+n;
-  N3=N2+n;
-  N4=N3+n;
-  N5=N4+n;
   for(int i=0; i < n; ++i) {
     real ininv=i*ninv;
     real ininv1=1.0-ininv;
-    Palette[N1+i]=rgb(0.0,ininv,1.0);
-    Palette[N2+i]=rgb(0.0,1.0,ininv1);
-    Palette[N3+i]=rgb(ininv,1.0,0.0);    
-    Palette[N4+i]=rgb(1.0,ininv1,0.0);
-    Palette[N5+i]=rgb(1.0,ininv,ininv);
+    Palette[k+i]=rgb(0.0,ininv,1.0);
+    Palette[k+n+i]=rgb(0.0,1.0,ininv1);
+    Palette[k+2n+i]=rgb(ininv,1.0,0.0);    
+    Palette[k+3n+i]=rgb(1.0,ininv1,0.0);
+    Palette[k+4n+i]=rgb(1.0,ininv,ininv);
   }
-  k=N5+n;
-  Palette[k]=rgb(1.0,1.0,1.0);
+  Palette[k+5n]=rgb(1.0,1.0,1.0);
   
   return Palette;
 }
