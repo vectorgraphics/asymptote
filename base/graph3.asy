@@ -137,11 +137,8 @@ void labelaxis(picture pic, transform3 T, Label L, path3 g,
         transform S=rotate(-angle,z);
         path[] G=S*g;
         pair Palign=project(v+align,P)-z;
-        pair PalignPerp=dot(Palign,Perp)*Perp;
-        pair Align=rotate(-angle)*PalignPerp;
-        real factor=abs(PalignPerp);
-        if(factor != 0) factor=1/sqrt(factor);
-        pair offset=unit(Palign)*factor*
+        pair Align=rotate(-angle)*dot(Palign,Perp)*Perp;
+        pair offset=unit(Palign)*
           abs((Align.y >= 0 ? max(G).y : (Align.y < 0 ? min(G).y : 0))-z.y);
         triple normal=cross(pathdir,align);
         if(normal != O) v=invert(z+offset,normal,v,P);
