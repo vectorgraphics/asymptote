@@ -205,6 +205,35 @@ struct revolution {
     }
   }
 
+  // return approximate silhouette based on m evenly spaced transverse slices
+  path3[] silhouette(int m=64, projection P=currentprojection) {
+    path3[] G={nullpath3,nullpath3};
+    int N=size(g);
+    int M=(m == 0) ? N : m;
+    real factor=m == 1 ? 0 : 1/(m-1);
+    int n=nslice;
+    
+    for(int i=0; i < M; ++i) {
+      real t=(m == 0) ? i : reltime(g,i*factor);
+      path3 S=slice(t,n);
+      triple camera=camera(P);
+      path3 Sp=slice(t+epsilon,n);
+      path3 Sm=slice(t-epsilon,n);
+      path sp=project(Sp,P);
+      path sm=project(Sm,P);
+      real[] t1=tangent(sp,sm,true);
+      real[] t2=tangent(sp,sm,false);
+      if(t1.length > 1 && t2.length > 1) {
+	real t1=t1[0]/P.ninterpolate;
+	real t2=t2[0]/P.ninterpolate;
+	G[0]=G[0]..point(S,t1);
+	G[1]=G[1]..point(S,t2);
+	path3 P2=subpath(S,0,t1);
+      }
+    }
+    return G;
+  }
+
   // add longitudinal curves to skeleton
   void longitudinal(skeleton s, int n=nslice, projection P=currentprojection) {
     real t, d=0;
