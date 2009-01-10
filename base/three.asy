@@ -2299,7 +2299,7 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
       path3 G=margin(t*g,q).g;
       if(is3D()) {
         draw(f,G,p,light,null);
-	if(pic != null) {
+	if(pic != null && size(G) > 0) {
 	  pic.addPoint(min(G,P.t));
 	  pic.addPoint(max(G,P.t));
 	}
@@ -2328,27 +2328,29 @@ draw=new void(frame f, path3 g, material p=currentpen,
         real width=linewidth(q);
         if(width > 0) {
           surface s=tube(g,width);
-          if(!cyclic(g)) {
-            real r=0.5*width;
-            real linecap=linecap(q);
-            int L=length(g);
-	    transform3 scale3r=scale3(r);
-	    surface cap;
-	    triple dirL=dir(g,L);
-	    triple dir0=dir(g,0);
-	    if(linecap == 0)
-	      cap=scale(r,r,1)*unitdisk;
-	    else if(linecap == 1)
-	      cap=scale3r*((dir0 == O || dirL == O) ?
-			   unitsphere : unithemisphere);
-	    else if(linecap == 2) {
-	      cap=scale3r*unitcylinder;
-	      cap.append(scale3r*shift(Z)*unitdisk);
+	  int L=length(g);
+          if(L >= 0) {
+	    if(!cyclic(g)) {
+	      real r=0.5*width;
+	      real linecap=linecap(q);
+	      transform3 scale3r=scale3(r);
+	      surface cap;
+	      triple dirL=dir(g,L);
+	      triple dir0=dir(g,0);
+	      if(linecap == 0)
+		cap=scale(r,r,1)*unitdisk;
+	      else if(linecap == 1)
+		cap=scale3r*((dir0 == O || dirL == O) ?
+			     unitsphere : unithemisphere);
+	      else if(linecap == 2) {
+		cap=scale3r*unitcylinder;
+		cap.append(scale3r*shift(Z)*unitdisk);
+	      }
+	      s.append(shift(point(g,0))*align(-dir0)*cap);
+	      s.append(shift(point(g,L))*align(dirL)*cap);
 	    }
-	    s.append(shift(point(g,0))*align(-dir0)*cap);
-	    s.append(shift(point(g,L))*align(dirL)*cap);
-          }
-	  if(opacity(q) == 1) _draw(f,g,q);
+	    if(opacity(q) == 1) _draw(f,g,q);
+	  }
           for(int i=0; i < s.s.length; ++i)
             draw3D(f,s.s[i],p,light);
         } else _draw(f,g,q);
