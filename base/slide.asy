@@ -402,12 +402,15 @@ void figure(string s, string options="", string caption="", pair align=S,
   figure(new string[] {s},options,caption,align,p,figuremattpen);
 }
 
+string[] codefile;
+
 void asyinclude(string s)
 {
   picture currentpictureSave=currentpicture;
   currentpicture=new picture;
   _eval("include \""+s+"\";",true);
   s=settings.outname+"_"+s;
+  codefile.push(s);
   frame f=currentpicture.fit(s);
   currentpicture=currentpictureSave;
   if(prc0())
@@ -450,8 +453,6 @@ void asyfigure(string s, string options="", string caption="", pair align=S,
   }
   figure(s,options,caption,align,p,figuremattpen);
 }
-
-string[] codefile;
 
 string asywrite(string s, string preamble="")
 {
