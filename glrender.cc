@@ -10,6 +10,20 @@
 #include <sys/time.h>
 #include <signal.h>
 
+// For CYGWIN
+#ifndef FGAPI
+#define FGAPI GLUTAPI
+#endif
+#ifndef FGAPIENTRY
+#define FGAPIENTRY APIENTRY
+#endif
+
+#define GLUT_BUILDING_LIB
+
+#ifdef FREEGLUT
+#include <GL/freeglut_ext.h>
+#endif
+
 #include "picture.h"
 #include "common.h"
 #include "arcball.h"
@@ -19,18 +33,6 @@
 #include "glrender.h"
 
 #ifdef HAVE_LIBGLUT
-
-// For CYGWIN
-#ifndef FGAPI
-#define FGAPI GLUTAPI
-#endif
-#ifndef FGAPIENTRY
-#define FGAPIENTRY APIENTRY
-#endif
-
-#ifdef FREEGLUT
-#include <GL/freeglut_ext.h>
-#endif
 
 #include "tr.h"
 
