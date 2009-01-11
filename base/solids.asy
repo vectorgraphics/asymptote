@@ -207,12 +207,14 @@ struct revolution {
 
   // return approximate silhouette based on m evenly spaced transverse slices
   path3[] silhouette(int m=64, projection P=currentprojection) {
-    path3[] G={nullpath3,nullpath3};
+    path3 G,H;
     int N=size(g);
     int M=(m == 0) ? N : m;
     real factor=m == 1 ? 0 : 1/(m-1);
     int n=nslice;
     
+    real tfirst=-1;
+    real tlast;
     for(int i=0; i < M; ++i) {
       real t=(m == 0) ? i : reltime(g,i*factor);
       path3 S=slice(t,n);
@@ -226,12 +228,50 @@ struct revolution {
       if(t1.length > 1 && t2.length > 1) {
 	real t1=t1[0]/P.ninterpolate;
 	real t2=t2[0]/P.ninterpolate;
-	G[0]=G[0]..point(S,t1);
-	G[1]=G[1]..point(S,t2);
-	path3 P2=subpath(S,0,t1);
+	if(t1 != t2) {
+	  G=G..point(S,t1);
+	  H=point(S,t2)..H;
+	  if(tfirst < 0) tfirst=t;
+	  tlast=t;
+	}
       }
     }
-    return G;
+    int L=length(g);
+    real midtime=0.5*L;
+    triple camera=camera(P);
+    real sign=sgn(dot(axis,camera-P.target))*sgn(dot(axis,dir(g,midtime)));
+
+    skeleton sfirst;
+    transverse(sfirst,tfirst,n,P);
+    triple delta=this.M-this.m;
+    path3 cap;
+    if(dot(delta,axis) == 0 || (tfirst <= epsilon && sign < 0)) {
+      cap=sfirst.transverse.front[0];
+    } else {
+      if(sign > 0) {
+	if(sfirst.transverse.front.length > 0)
+	  G=reverse(sfirst.transverse.front[0])..G;
+      } else {
+      if(sfirst.transverse.back.length > 0)
+	G=sfirst.transverse.back[0]..G;
+      }
+    }
+    
+    skeleton slast;
+    transverse(slast,tlast,n,P);
+    if(dot(delta,axis) == 0 || (tlast >= L-epsilon && sign > 0)) {
+      cap=slast.transverse.front[0];
+    } else {
+      if(sign > 0) {
+	if(slast.transverse.back.length > 0)
+	  H=reverse(slast.transverse.back[0])..H;
+      } else {
+	if(slast.transverse.front.length > 0)
+	  H=slast.transverse.front[0]..H;
+      }
+    }
+
+    return size(cap) == 0 ? G^^H : G^^H^^cap;
   }
 
   // add longitudinal curves to skeleton
