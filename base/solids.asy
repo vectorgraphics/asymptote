@@ -196,12 +196,16 @@ struct revolution {
   // add m evenly spaced transverse slices to skeleton s
   void transverse(skeleton s, int m=0, int n=nslice,
 		  projection P=currentprojection) {
-    int N=size(g);
-    int M=(m == 0) ? N : m;
-    real factor=m == 1 ? 0 : 1/(m-1);
-    for(int i=0; i < M; ++i) {
-      real t=(m == 0) ? i : reltime(g,i*factor);
-      transverse(s,t,n,P);
+    if(m == 0) {
+      int N=size(g);
+      for(int i=0; i < N; ++i)
+	transverse(s,(real) i,n,P);
+    } else if(m == 1)
+      transverse(s,reltime(g,0.5),n,P);
+    else {
+      real factor=1/(m-1);
+      for(int i=0; i < m; ++i)
+	transverse(s,reltime(g,i*factor),n,P);
     }
   }
 
@@ -319,7 +323,7 @@ struct revolution {
     push(t2);
   }
   
-skeleton skeleton(int m=0, int n=nslice, projection P=currentprojection) {
+  skeleton skeleton(int m=0, int n=nslice, projection P=currentprojection) {
     skeleton s;
     transverse(s,m,n,P);
     longitudinal(s,n,P);
