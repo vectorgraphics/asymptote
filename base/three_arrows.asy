@@ -123,6 +123,7 @@ struct arrowhead3
 				   surface(H) : tube(H[0],linewidth(p)));
   }
 
+  arrowhead arrowhead2=DefaultHead;
   real size(pen p)=arrowsize;
   real gap=1;
   bool lighting=true;
@@ -232,8 +233,8 @@ arrowhead3 DefaultHead2(filltype filltype=Fill)
     return a.surface(v,s,DefaultHead.head((0,0)--(size,0),p,size,angle),size,p,
 		     filltype,P);
   };
-  a.lighting=false;
   a.gap=0.966;
+  a.lighting=false;
   return a;
 }
 arrowhead3 DefaultHead2=DefaultHead2();
@@ -260,8 +261,9 @@ arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb,
   return a.surface(v,s,HookHead.head((0,0)--(size,0),p,size,angle),size,p,
 		   filltype,P);
   };
-  a.lighting=false;
+  a.arrowhead2=HookHead;
   a.gap=0.85;
+  a.lighting=false;
   return a;
 }
 arrowhead3 HookHead2=HookHead2();
@@ -270,6 +272,7 @@ arrowhead3 TeXHead2;
 TeXHead2.size=TeXHead.size;
 TeXHead2.gap=0.5;
 TeXHead2.lighting=false;
+TeXHead2.arrowhead2=TeXHead;
 TeXHead2.head=new surface(path3 g, position position=EndPoint,
 			  pen p=currentpen, real size=0,
 			  real angle=arrowangle, projection P=currentprojection)
@@ -319,6 +322,7 @@ arrowhead3 HookHead3(real dir=arrowdir, real barb=arrowbarb)
     return head;
   }
 };
+  a.arrowhead2=HookHead;
   a.gap=0.85;
   return a;
 }
@@ -327,6 +331,7 @@ arrowhead3 HookHead3=HookHead3();
 
 arrowhead3 TeXHead3;
 TeXHead3.size=TeXHead.size;
+TeXHead3.arrowhead2=TeXHead;
 TeXHead3.head=new surface(path3 g, position position=EndPoint,
 			  pen p=currentpen, real size=0,
 			  real angle=arrowangle, projection P=currentprojection)
@@ -443,12 +448,13 @@ picture arrow(arrowhead3 arrowhead=DefaultHead3,
   pen q=(pen) p;
   if(size == 0) size=arrowhead.size(q);
   picture pic;
-  pic.add(new void(frame f, transform3 t, picture pic2, projection P) {
-      picture opic=new picture;
-      drawarrow(opic,arrowhead,t*g,p,arrowheadpen,size,angle,position,
-		forwards,margin,center,light,arrowheadlight,P);
-      add(f,opic.fit3(identity4,pic2,P));
-    });
+  if(is3D())
+    pic.add(new void(frame f, transform3 t, picture pic2, projection P) {
+	picture opic=new picture;
+	drawarrow(opic,arrowhead,t*g,p,arrowheadpen,size,angle,position,
+		  forwards,margin,center,light,arrowheadlight,P);
+	add(f,opic.fit3(identity4,pic2,P));
+      });
 
   addPath(pic,g,q);
 
@@ -472,12 +478,13 @@ picture arrow2(arrowhead3 arrowhead=DefaultHead3,
   if(size == 0) size=arrowhead.size(q);
   picture pic;
 
-  pic.add(new void(frame f, transform3 t, picture pic2, projection P) {
-      picture opic=new picture;
-      drawarrow2(opic,arrowhead,t*g,p,arrowheadpen,size,angle,margin,light,
-		 arrowheadlight,P);
-      add(f,opic.fit3(identity4,pic2,P));
-    });
+  if(is3D())
+    pic.add(new void(frame f, transform3 t, picture pic2, projection P) {
+	picture opic=new picture;
+	drawarrow2(opic,arrowhead,t*g,p,arrowheadpen,size,angle,margin,light,
+		   arrowheadlight,P);
+	add(f,opic.fit3(identity4,pic2,P));
+      });
 
   addPath(pic,g,q);
 
@@ -528,6 +535,43 @@ bool None(picture, path3, material, margin3, light, light)
   return true;
 }
 
+void add(picture pic, arrowhead3 arrowhead, real size, real angle,
+	 position position, material arrowheadpen, path3 g, material p,
+	 bool forwards=true, margin3 margin, bool center=false, light light,
+	 light arrowheadlight)
+{
+  add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,position,forwards,
+		margin,center,light,arrowheadlight));
+  if(!is3D()) {
+    pic.add(new void(frame f, transform3 t, picture pic, projection P) {
+	if(pic != null) {
+	  pen q=(pen) p;
+	  marginT3 m=margin(g,q);
+	  add(pic,arrow(arrowhead.arrowhead2,project(t*g,P),q,size,angle,
+			position,forwards,TrueMargin(m.begin,m.end),center));
+	}
+      },true);
+  }
+}
+
+void add2(picture pic, arrowhead3 arrowhead, real size, real angle,
+	  material arrowheadpen, path3 g, material p, margin3 margin,
+	  light light, light arrowheadlight)
+{
+  add(pic,arrow2(arrowhead,g,p,arrowheadpen,size,angle,margin,light,
+		 arrowheadlight));
+  if(!is3D()) {
+    pic.add(new void(frame f, transform3 t, picture pic, projection P) {
+	if(pic != null) {
+	  pen q=(pen) p;
+	  marginT3 m=margin(g,q);
+	  add(pic,arrow2(arrowhead.arrowhead2,project(t*g,P),q,size,angle,
+			 TrueMargin(m.begin,m.end)));
+	}
+      },true);
+  }
+}
+
 arrowbar3 BeginArrow3(arrowhead3 arrowhead=DefaultHead3,
 		      real size=0, real angle=arrowangle,
 		      position position=BeginPoint,
@@ -535,8 +579,8 @@ arrowbar3 BeginArrow3(arrowhead3 arrowhead=DefaultHead3,
 {
   return new bool(picture pic, path3 g, material p, margin3 margin,
 		  light light, light arrowheadlight) {
-    add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,position,
-		  forwards=false,margin,light,arrowheadlight));
+    add(pic,arrowhead,size,angle,position,arrowheadpen,g,p,forwards=false,
+	margin,light,arrowheadlight);
     return false;
   };
 }
@@ -548,8 +592,8 @@ arrowbar3 Arrow3(arrowhead3 arrowhead=DefaultHead3,
 {
   return new bool(picture pic, path3 g, material p, margin3 margin,
 		  light light, light arrowheadlight) {
-    add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,position,margin,light,
-		  arrowheadlight));
+    add(pic,arrowhead,size,angle,position,arrowheadpen,g,p,margin,light,
+	arrowheadlight);
     return false;
   };
 }
@@ -565,8 +609,8 @@ arrowbar3 MidArrow3(arrowhead3 arrowhead=DefaultHead3,
 {
   return new bool(picture pic, path3 g, material p, margin3 margin,
 		  light light, light arrowheadlight) {
-    add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,MidPoint,margin,
-		  center=true,light,arrowheadlight));
+    add(pic,arrowhead,size,angle,MidPoint,arrowheadpen,g,p,margin,center=true,
+	light,arrowheadlight);
     return false;
   };
 }
@@ -577,8 +621,7 @@ arrowbar3 Arrows3(arrowhead3 arrowhead=DefaultHead3,
 {
   return new bool(picture pic, path3 g, material p, margin3 margin,
 		  light light, light arrowheadlight) {
-    add(pic,arrow2(arrowhead,g,p,arrowheadpen,size,angle,margin,light,
-		   arrowheadlight));
+    add2(pic,arrowhead,size,angle,arrowheadpen,g,p,margin,light,arrowheadlight);
     return false;
   };
 }
@@ -590,8 +633,8 @@ arrowbar3 BeginArcArrow3(arrowhead3 arrowhead=DefaultHead3,
   return new bool(picture pic, path3 g, material p, margin3 margin,
 		  light light, light arrowheadlight) { 
     real size=(size == 0) ? arcarrowsize((pen) p) : size; 
-    add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,position,
-		  forwards=false,margin,light,arrowheadlight)); 
+    add(pic,arrowhead,size,angle,position,arrowheadpen,g,p,forwards=false,
+	margin,light,arrowheadlight);
     return false; 
   };
 }
@@ -604,8 +647,8 @@ arrowbar3 ArcArrow3(arrowhead3 arrowhead=DefaultHead3,
   return new bool(picture pic, path3 g, material p, margin3 margin,
 		  light light, light arrowheadlight) {
     real size=(size == 0) ? arcarrowsize((pen) p) : size; 
-    add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,position,margin,light,
-		  arrowheadlight));
+    add(pic,arrowhead,size,angle,position,arrowheadpen,g,p,margin,light,
+	arrowheadlight);
     return false;
   };
 }
@@ -623,8 +666,8 @@ arrowbar3 MidArcArrow3(arrowhead3 arrowhead=DefaultHead3,
   return new bool(picture pic, path3 g, material p, margin3 margin,
 		  light light, light arrowheadlight) {
     real size=(size == 0) ? arcarrowsize((pen) p) : size; 
-    add(pic,arrow(arrowhead,g,p,arrowheadpen,size,angle,MidPoint,margin,
-		  center=true,light,arrowheadlight));
+    add(pic,arrowhead,size,angle,MidPoint,arrowheadpen,g,p,margin,center=true,
+	light,arrowheadlight);
     return false;
   };
 }
@@ -636,8 +679,7 @@ arrowbar3 ArcArrows3(arrowhead3 arrowhead=DefaultHead3,
   return new bool(picture pic, path3 g, material p, margin3 margin,
 		  light light, light arrowheadlight) {
     real size=(size == 0) ? arcarrowsize((pen) p) : size; 
-    add(pic,arrow2(arrowhead,g,p,arrowheadpen,size,angle,margin,light,
-		   arrowheadlight));
+    add2(pic,arrowhead,size,angle,arrowheadpen,g,p,margin,light,arrowheadlight);
     return false;
   };
 }
