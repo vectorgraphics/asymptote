@@ -17,7 +17,7 @@ latexusage.png: ../latexusage.eps
 		../latexusage.eps latexusage.png
 
 index.html: $(SOURCE) $(ASYFILES:.asy=.png)
-	makeinfo --html ../asymptote
+	makeinfo --html ../asymptote -o .
 
 asymptote.info: $(SOURCE) $(ASYFILES:.asy=.png)
 	makeinfo ../asymptote
@@ -28,7 +28,6 @@ info:	asymptote.info
 
 clean: FORCE
 	-rm -f *.png asymptote.info* texput.aux texput.log
-	-rm -rf asymptote
 
 distclean:
 	-rm -f Makefile
