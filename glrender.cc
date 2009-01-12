@@ -4,6 +4,8 @@
  * Render 3D Bezier paths and surfaces.
  *****/
 
+#ifdef HAVE_LIBGLUT
+
 #include <stdlib.h>
 #include <fstream>
 #include <cstring>
@@ -31,8 +33,6 @@
 #include "drawimage.h"
 #include "interact.h"
 #include "glrender.h"
-
-#ifdef HAVE_LIBGLUT
 
 #include "tr.h"
 

@@ -50,7 +50,7 @@ def startQuickAsy():
     pass
   try:
     quickAsyFailed = False
-    AsyTempDir=mkdtemp(prefix="asy_")+os.sep
+    AsyTempDir=mkdtemp(prefix="asy_", dir="./")
     quickAsy = Popen([xasyOptions.options['asyPath']]+
                      split("-noV -multiline -interactive -o"+AsyTempDir),
                      stdin=PIPE,stdout=PIPE,stderr=STDOUT)
