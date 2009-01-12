@@ -4,13 +4,15 @@
  * Render 3D Bezier paths and surfaces.
  *****/
 
-#ifdef HAVE_LIBGLUT
-
 #include <stdlib.h>
 #include <fstream>
 #include <cstring>
 #include <sys/time.h>
 #include <signal.h>
+
+#include "common.h"
+
+#ifdef HAVE_LIBGLUT
 
 // For CYGWIN
 #ifndef FGAPI
@@ -27,13 +29,11 @@
 #endif
 
 #include "picture.h"
-#include "common.h"
 #include "arcball.h"
 #include "bbox3.h"
 #include "drawimage.h"
 #include "interact.h"
 #include "glrender.h"
-
 #include "tr.h"
 
 namespace gl {
