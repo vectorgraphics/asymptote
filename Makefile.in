@@ -138,10 +138,12 @@ keywords.cc: keywords.pl camp.l
 
 envcompleter.d: keywords.cc
 
-asy-keywords.el: asy asy-list.pl
+asy.list: asy
 	$(ASY) -l > asy.list
 	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | grep -v three_\* | grep -v featpost3D | xargs $(ASY) -l >> asy.list
 	./asy-list.pl asy.list @VERSION@
+
+asy-keywords.el: asy.list
 	ln -sf ../asy-keywords.el base/
 
 install: install-asy install-man
