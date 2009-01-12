@@ -114,9 +114,10 @@ Section "Asymptote" SEC01
   CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
   SetOutPath ""
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Asymptote.lnk" "$INSTDIR\asy.bat" "" "$INSTDIR\asy.ico"
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Xasy.lnk" "$INSTDIR\xasy.py"
   CreateShortCut "$DESKTOP\Asymptote.lnk" "$INSTDIR\asy.bat" "" "$INSTDIR\asy.ico"
+  SetOutPath "%USERPROFILE%"
   CreateShortCut "$DESKTOP\Xasy.lnk" "$INSTDIR\xasy.py"
+  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Xasy.lnk" "$INSTDIR\xasy.py"
   SetOutPath "$INSTDIR"
   !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
