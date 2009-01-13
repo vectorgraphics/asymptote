@@ -7017,7 +7017,7 @@ and palettes. The following palettes are predefined in
 @item pen[] Grayscale(int NColors=256)
 a grayscale palette;
 
-cindex @code{Rainbow}
+@cindex @code{Rainbow}
 @item pen[] Rainbow(int NColors=32766)
 a rainbow spectrum;
 
@@ -7030,7 +7030,7 @@ a rainbow spectrum tapering off to black/white at the ends;
 a double rainbow palette tapering off to black/white at the ends, with
 a linearly scaled intensity.
 
-@@cindex @code{Wheel}
+@cindex @code{Wheel}
 @item pen[] Wheel(int NColors=32766)
 a full color wheel palette;
 
