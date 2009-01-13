@@ -549,8 +549,9 @@ void add(picture pic, arrowhead3 arrowhead, real size, real angle,
     pic.add(new void(frame f, transform3 t, picture pic, projection P) {
 	if(pic != null) {
 	  pen q=(pen) p;
-	  marginT3 m=margin(g,q);
-	  add(pic,arrow(arrowhead.arrowhead2,project(t*g,P),q,size,angle,
+	  path3 G=t*g;
+	  marginT3 m=margin(G,q);
+	  add(pic,arrow(arrowhead.arrowhead2,project(G,P),q,size,angle,
 			arrowhead.filltype,position,forwards,
 			TrueMargin(m.begin,m.end),center));
 	}
@@ -568,8 +569,9 @@ void add2(picture pic, arrowhead3 arrowhead, real size, real angle,
     pic.add(new void(frame f, transform3 t, picture pic, projection P) {
 	if(pic != null) {
 	  pen q=(pen) p;
-	  marginT3 m=margin(g,q);
-	  add(pic,arrow2(arrowhead.arrowhead2,project(t*g,P),q,size,angle,
+	  path3 G=t*g;
+	  marginT3 m=margin(G,q);
+	  add(pic,arrow2(arrowhead.arrowhead2,project(G,P),q,size,angle,
 			 arrowhead.filltype,TrueMargin(m.begin,m.end)));
 	}
       },true);
