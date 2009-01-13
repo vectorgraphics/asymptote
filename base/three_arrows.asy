@@ -124,6 +124,7 @@ struct arrowhead3
   }
 
   arrowhead arrowhead2=DefaultHead;
+  filltype filltype=Fill;
   real size(pen p)=arrowsize;
   real gap=1;
   bool lighting=true;
@@ -233,6 +234,7 @@ arrowhead3 DefaultHead2(filltype filltype=Fill)
     return a.surface(v,s,DefaultHead.head((0,0)--(size,0),p,size,angle),size,p,
 		     filltype,P);
   };
+  a.filltype=filltype;
   a.gap=0.966;
   a.lighting=false;
   return a;
@@ -261,6 +263,7 @@ arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb,
   return a.surface(v,s,HookHead.head((0,0)--(size,0),p,size,angle),size,p,
 		   filltype,P);
   };
+  a.filltype=filltype;
   a.arrowhead2=HookHead;
   a.gap=0.85;
   a.lighting=false;
@@ -548,7 +551,8 @@ void add(picture pic, arrowhead3 arrowhead, real size, real angle,
 	  pen q=(pen) p;
 	  marginT3 m=margin(g,q);
 	  add(pic,arrow(arrowhead.arrowhead2,project(t*g,P),q,size,angle,
-			position,forwards,TrueMargin(m.begin,m.end),center));
+			arrowhead.filltype,position,forwards,
+			TrueMargin(m.begin,m.end),center));
 	}
       },true);
   }
@@ -566,7 +570,7 @@ void add2(picture pic, arrowhead3 arrowhead, real size, real angle,
 	  pen q=(pen) p;
 	  marginT3 m=margin(g,q);
 	  add(pic,arrow2(arrowhead.arrowhead2,project(t*g,P),q,size,angle,
-			 TrueMargin(m.begin,m.end)));
+			 arrowhead.filltype,TrueMargin(m.begin,m.end)));
 	}
       },true);
   }
