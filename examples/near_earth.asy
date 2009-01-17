@@ -11,16 +11,16 @@ currentprojection=perspective(4,1,2);
 
 // Planes
 pen bg=gray(0.9)+opacity(0.5);
-draw(surface((1.2,0,0)--(1.2,0,1.2)--(0,0,1.2)--(0,0,0)--cycle),bg,bg);
-draw(surface((0,1.2,0)--(0,1.2,1.2)--(0,0,1.2)--(0,0,0)--cycle),bg,bg);
-draw(surface((1.2,0,0)--(1.2,1.2,0)--(0,1.2,0)--(0,0,0)--cycle),bg,bg);
+draw(surface((1.2,0,0)--(1.2,0,1.2)--(0,0,1.2)--(0,0,0)--cycle),bg);
+draw(surface((0,1.2,0)--(0,1.2,1.2)--(0,0,1.2)--(0,0,0)--cycle),bg);
+draw(surface((1.2,0,0)--(1.2,1.2,0)--(0,1.2,0)--(0,0,0)--cycle),bg);
 
 real r=1.5;
 pen p=rgb(0,0.7,0);
 draw(Label("$x$",1),O--r*X,p,Arrow3);
 draw(Label("$y$",1),O--r*Y,p,Arrow3);
 draw(Label("$z$",1),O--r*Z,p,Arrow3);
-label("$\rm O$", (0,0,0),W);
+label("$\rm O$",(0,0,0),W);
   
 // Point Q
 triple pQ=radius*dir(lambda,aux);
