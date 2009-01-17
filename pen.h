@@ -17,7 +17,7 @@ namespace camp {
 
 static const string DEFPAT="<default>";
 static const string DEFLATEXFONT="\\usefont{\\ASYencoding}{\\ASYfamily}{\\ASYseries}{\\ASYshape}";
-static const string DEFTEXFONT="\\font\\ASYfont=cmr12";
+static const string DEFTEXFONT="cmr12";
 static const double DEFWIDTH=-1;
 static const Int DEFCAP=-1;
 static const Int DEFJOIN=-1;
@@ -350,18 +350,24 @@ public:
     return P.empty() ? defaultpen().P : P;
   }
   
+  double size() const {
+    return fontsize == 0.0 ? defaultpen().fontsize : fontsize;
+  }
+  
   string Font() const {
     if(font.empty()) {
       if(defaultpen().font.empty())
-	return settings::latex(settings::getSetting<string>("tex")) ? 
-	  DEFLATEXFONT : DEFTEXFONT;
+	if(settings::latex(settings::getSetting<string>("tex")))
+	  return DEFLATEXFONT;
+	else {
+	  ostringstream buf;
+	  buf << "\\font\\ASYfont=" << DEFTEXFONT << " at " << size() 
+	      << "pt\\ASYfont";
+	  return buf.str();
+	}
       else return defaultpen().font;
     }
     return font;
-  }
-  
-  double size() const {
-    return fontsize == 0.0 ? defaultpen().fontsize : fontsize;
   }
   
   double Lineskip() const {

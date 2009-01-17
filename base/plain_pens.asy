@@ -193,16 +193,12 @@ void write(file file=stdout, string s="", pen[] p)
 
 pen font(string name) 
 {
-  string s="\font\ASYfont="+name;
-  if(latex()) s += "\ASYfont";
-  return fontcommand(s);
+  return fontcommand("\font\ASYfont="+name+"\ASYfont");
 }
 
 pen font(string name, real size) 
 {
-  string s=name;
-  if(latex()) s += " at "+(string) size+"pt";
-  return fontsize(size)+font(s);
+  return fontsize(size)+font(name+" at "+(string) size+"pt");
 }
 
 pen font(string encoding, string family, string series="m", string shape="n") 

@@ -135,10 +135,7 @@ bool settexfont(T& out, const pen& p, const pen& lastpen, bool latex)
 {
   string font=p.Font();
   if(font != lastpen.Font() || (!latex && p.size() != lastpen.size())) {
-    out << font;
-    if(!latex)
-      out << " at " << p.size() << " pt" << "\\ASYfont";
-    out << "%" << newl;
+    out << font << "%" << newl;
     return true;
   }
   return false;
