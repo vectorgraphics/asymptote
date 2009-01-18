@@ -728,6 +728,8 @@ void hold(bool View)
 #endif  
 }
 
+extern bool glinitialize;
+
 bool picture::shipout3(const string& prefix, const string& format,
 		       double width, double height,
 		       double angle, const triple& m, const triple& M,
@@ -750,9 +752,8 @@ bool picture::shipout3(const string& prefix, const string& format,
   
   if(glthread) {
 #ifdef HAVE_LIBPTHREAD
-    static bool initialize=true;
-    if(initialize) {
-      initialize=false;
+    if(gl::initialize) {
+      gl::initialize=false;
       com.prefix=prefix;
       com.pic=this;
       com.format=outputformat;
@@ -779,7 +780,7 @@ bool picture::shipout3(const string& prefix, const string& format,
       camp::reportError("Cannot fork process");
     if(pid != 0)  {
       oldpid=pid;
-      waitpid(-1,NULL,interact::interactive ? WNOHANG : 0);
+      waitpid(pid,NULL,interact::interactive ? WNOHANG : 0);
       return true;
     }
   }
@@ -787,7 +788,6 @@ bool picture::shipout3(const string& prefix, const string& format,
   glrender(prefix,this,outputformat,width,height,angle,m,M,
 	   nlights,lights,diffuse,ambient,specular,viewportlighting,View,
 	   oldpid);
-  
   hold(View);
 #else
   reportError("Cannot render image; please install glut, run ./configure, and recompile"); 

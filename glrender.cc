@@ -57,6 +57,7 @@ const double resizeStep=1.2;
 
 double Aspect;
 bool View;
+bool Iconify=false;
 int Oldpid;
 string Prefix;
 const picture* Picture;
@@ -119,6 +120,7 @@ int window;
 void *glrenderWrapper(void *a);
 
 bool glthread=true;
+bool initialize=true;
 
 #ifdef HAVE_LIBPTHREAD
 pthread_t mainthread;
@@ -453,10 +455,30 @@ void togglefitscreen()
 
 void updateHandler(int)
 {
-  if(!interact::interactive)
-    fitscreen();
   update();
   glutShowWindow();
+  glutShowWindow(); // Call twice to work around apparent freeglut bug.
+}
+
+void autoExport()
+{
+  if(!Iconify)
+    glutShowWindow();
+  Export();
+  if(!Iconify)
+    glutHideWindow();
+}
+
+void exportHandler(int)
+{
+#ifdef HAVE_LIBPTHREAD
+  wait(readySignal,readyLock);
+#endif
+  autoExport();
+#ifdef HAVE_LIBPTHREAD
+  if(!interact::interactive)
+    wait(quitSignal,quitLock);
+#endif
 }
 
 void reshape(int width, int height)
@@ -466,6 +488,7 @@ void reshape(int width, int height)
     if(initialize) {
       initialize=false;
       signal(SIGUSR1,updateHandler);
+      signal(SIGUSR2,exportHandler);
       unlock();
     }
   }
@@ -941,10 +964,8 @@ void setosize()
 void init() 
 {
   string options=string(settings::argv0)+" ";
-#ifndef __CYGWIN__
-  if(!View && getSetting<bool>("iconify"))
+  if(Iconify)
     options += "-iconic ";
-#endif     
   options += getSetting<string>("glOptions");
   char **argv=args(options.c_str(),true);
   int argc=0;
@@ -965,9 +986,15 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 	      double *ambient, double *specular, bool Viewportlighting,
 	      bool view, int oldpid)
 {
+#ifndef __CYGWIN__    
+  Iconify=getSetting<bool>("iconify");
+#endif      
+  
   if(width <= 0 || height <= 0) return;
   
-  if(view) lock();
+  static bool initializedView=false;
+  
+  if(view || initializedView) lock();
     
   Prefix=prefix;
   Picture=pic;
@@ -982,6 +1009,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Oldpid=oldpid;
   
   static bool initialized=false;
+
   if(!initialized)
     init();
   
@@ -1048,11 +1076,12 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
   
 #ifdef HAVE_LIBPTHREAD
-  if(initialized && glthread) {
-    if(View) {
+  if(initializedView && glthread) {
+    if(View)
       pthread_kill(mainthread,SIGUSR1);
-      unlock();
-    }
+    else
+      pthread_kill(mainthread,SIGUSR2);
+    unlock();
     return;
   }
 #endif    
@@ -1102,14 +1131,12 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       if(settings::verbose > 1 && samples > 1)
 	cout << "Multisampling enabled with sample width " << samples << endl;
     }
+    glutShowWindow();
   } else {
     glutInitWindowSize(maxTileWidth,maxTileHeight);
     glutInitDisplayMode(displaymode);
     window=glutCreateWindow("");
-#ifndef __CYGWIN__    
-    if(getSetting<bool>("iconify"))
-#endif      
-      glutHideWindow();
+    glutHideWindow();
   }
   
   glClearColor(1.0,1.0,1.0,1.0);
@@ -1153,6 +1180,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     lighting();
   
   if(View) {
+    initializedView=true;
     glutReshapeFunc(reshape);
     glutDisplayFunc(display);
     glutKeyboardFunc(keyboard);
@@ -1174,15 +1202,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutMainLoop();
   } else {
     if(glthread) {
-      while(true) {
-#ifdef HAVE_LIBPTHREAD
-	wait(readySignal,readyLock);
-	Export();
-	wait(quitSignal,quitLock);
-#endif	
-      }
+      exportHandler(0);
     } else {
-      Export();
+      autoExport();
       quit();
     }
   }

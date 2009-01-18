@@ -150,8 +150,11 @@ int main(int argc, char *argv[])
     try {
       if(pthread_create(&thread,NULL,asymain,&args) == 0) {
 	gl::mainthread=pthread_self();
-	gl::wait(gl::initSignal,gl::initLock);
-	camp::glrenderWrapper();
+	while(true) {
+	  gl::wait(gl::initSignal,gl::initLock);
+	  camp::glrenderWrapper();
+	  gl::initialize=true;
+	}
       }
     } catch(std::bad_alloc&) {
       outOfMemory();

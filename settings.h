@@ -24,6 +24,7 @@ void glrenderWrapper();
 
 namespace gl {
 extern bool glthread;
+extern bool initialize;
 
 #ifdef HAVE_LIBPTHREAD
 extern pthread_cond_t initSignal;
