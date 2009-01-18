@@ -828,13 +828,17 @@ string build_optstring() {
 c_option *build_longopts() {
   size_t n=optionsMap.size();
 
-  c_option *longopts=new(UseGC) c_option[n];
-
+  c_option *longopts=new(UseGC) c_option[n+1];
   Int i=0;
   for (optionsMap_t::iterator p=optionsMap.begin();
        p !=optionsMap.end();
        ++p, ++i)
     p->second->longopt(longopts[i]);
+
+  longopts[n].name=NULL;
+  longopts[n].has_arg=0;
+  longopts[n].flag=NULL;
+  longopts[n].val=0;
 
   return longopts;
 }
