@@ -20,13 +20,12 @@ using namespace settings;
 using namespace gl;
 
 texstream::~texstream() {
-  if(!getSetting<bool>("keep")) {
-    unlink("texput.log");
-    unlink("texput.out");
-    unlink("texput.aux");
-    if(settings::pdf(getSetting<string>("tex")))
-      unlink("texput.pdf");
-  }
+  string name=stripFile(outname())+"texput.";
+  unlink((name+"aux").c_str());
+  unlink((name+"log").c_str());
+  unlink((name+"out").c_str());
+  if(settings::pdf(getSetting<string>("tex")))
+    unlink((name+"pdf").c_str());
 }
 
 namespace camp {
@@ -207,12 +206,14 @@ void picture::texinit()
     return;
   }
   
-  string name=stripFile(settings::outname())+buildname("texput","log");
-  ofstream writeable(name.c_str());
+  string name=stripFile(outname())+"texput.aux";
+  const char *cname=name.c_str();
+  ofstream writeable(cname);
   if(!writeable)
     reportError("Cannot write to "+name);
   else
     writeable.close();
+  unlink(cname);
   
   ostringstream cmd;
   cmd << texprogram() << " \\scrollmode";
