@@ -235,6 +235,8 @@ bool picture::texprocess(const string& texname, const string& outname,
   outfile.open(texname.c_str());
   if(outfile) {
     outfile.close();
+    string aux=auxname(prefix,"aux");
+    unlink(aux.c_str());
     string program=texprogram();
     ostringstream cmd;
     cmd << program << " \\nonstopmode\\input '" << texname << "'";
@@ -313,7 +315,8 @@ bool picture::texprocess(const string& texname, const string& outname,
       
     if(!getSetting<bool>("keep")) { // Delete temporary files.
       unlink(texname.c_str());
-      if(!getSetting<bool>("keepaux")) unlink(auxname(prefix,"aux").c_str());
+      if(!getSetting<bool>("keepaux"))
+	unlink(aux.c_str());
       unlink(auxname(prefix,"log").c_str());
       unlink(auxname(prefix,"out").c_str());
     }

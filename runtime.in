@@ -1143,6 +1143,8 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   tex.close();
   
   ostringstream cmd;
+  string aux=auxname(prefix,"aux");
+  unlink(aux.c_str());
   cmd << texprogram(true) << " \\nonstopmode\\input '" << texname << "'";
   bool quiet=verbose <= 2;
   int status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
@@ -1171,7 +1173,8 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   bool keep=getSetting<bool>("keep");
   if(!keep) { // Delete temporary files.
     unlink(texname.c_str());
-    if(!getSetting<bool>("keepaux")) unlink(auxname(prefix,"aux").c_str());
+    if(!getSetting<bool>("keepaux"))
+      unlink(aux.c_str());
     unlink(auxname(prefix,"log").c_str());
     unlink(dviname.c_str());
   }
