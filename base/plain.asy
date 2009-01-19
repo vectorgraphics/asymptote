@@ -197,8 +197,8 @@ void asy(string format, bool overwrite=false ... string[] s)
       settings.outformat=format;
       settings.interactiveView=false;
       settings.batchView=false;
-      eval("import \""+f+"\" as dummy; defaultfilename=\""+f+
-	   "\"; exitfunction()");
+      eval("defaultfilename=\""+f+"\"; import \""+f+
+	   "\" as dummy; exitfunction()");
       settings.outformat=outformat;
       settings.interactiveView=interactiveView;
       settings.batchView=batchView;
