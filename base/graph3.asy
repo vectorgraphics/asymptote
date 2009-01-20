@@ -1324,15 +1324,16 @@ void labelz3(picture pic=currentpicture, Label L="", real z,
                 pic.scale.y.scale.logarithmic ? 1 : 0,z),align,format,p);
 }
 
-typedef guide3 graph(triple F(real), real, real, int);
+typedef guide3 graph(triple F(real), real, real, int, bool cond(real)=all);
 
 graph graph(interpolate3 join)
 {
-  return new guide3(triple f(real), real a, real b, int n) {
+  return new guide3(triple f(real), real a, real b, int n, bool cond(real)=all) {
     real width=b-a;
-    return n == 0 ? join(f(a)) :
+    return n == 0 ? join(cond(a) ? f(a) : nullpath3) :
       join(...sequence(new guide3(int i) {
-            return f(a+(i/n)*width);
+	    real t=a+(i/n)*width;
+            return cond(t) ? f(t) : nullpath3;
           },n+1));
   };
 }
@@ -1342,48 +1343,68 @@ guide3 Spline(... guide3[])=operator ..;
                        
 guide3 graph(picture pic=currentpicture, real x(real), real y(real),
              real z(real), real a, real b, int n=ngraph,
-             interpolate3 join=operator --)
+             bool cond(real)=all, interpolate3 join=operator --)
 {
   return graph(join)(new triple(real t) {return Scale(pic,(x(t),y(t),z(t)));},
-                     a,b,n);
+                     a,b,n,cond);
 }
 
 guide3 graph(picture pic=currentpicture, triple v(real), real a, real b,
-             int n=ngraph, interpolate3 join=operator --)
+             int n=ngraph, bool cond(real)=all, interpolate3 join=operator --)
 {
-  return graph(join)(new triple(real t) {return Scale(pic,v(t));},a,b,n);
-}
-
-int[] conditional(triple[] v, bool[] cond)
-{
-  if(cond.length > 0) {
-    checklengths(cond.length,v.length,conditionlength);
-    return cond ? sequence(cond.length) : null;
-  } else return sequence(v.length);
+  return graph(join)(new triple(real t) {return Scale(pic,v(t));},a,b,n,cond);
 }
 
 guide3 graph(picture pic=currentpicture, triple[] v, bool[] cond={},
              interpolate3 join=operator --)
 {
-  int[] I=conditional(v,cond);
-  int k=0;
-  return graph(join)(new triple(real) {
-      int i=I[k]; ++k;
-      return Scale(pic,v[i]);}
-    ,0,0,I.length-1);
+  int n=v.length;
+  bool condition(real);
+  int i=0;
+  triple w;
+  if(cond.length > 0) {
+    checklengths(cond.length,n,conditionlength);
+    condition=new bool(real) {
+      bool b=cond[i];
+      if(b) w=Scale(pic,v[i]);
+      ++i;
+      return b;
+    };
+  } else {
+    condition=new bool(real) {
+      w=Scale(pic,v[i]);
+      ++i;
+      return true;
+    };
+  }
+  return graph(join)(new triple(real) {return w;},0,0,n-1,condition);
 }
 
 guide3 graph(picture pic=currentpicture, real[] x, real[] y, real[] z,
              bool[] cond={}, interpolate3 join=operator --)
 {
-  checklengths(x.length,y.length);
-  checklengths(x.length,z.length);
-  int[] I=conditional(x,cond);
-  int k=0;
-  return graph(join)(new triple(real) {
-      int i=I[k]; ++k;
-      return Scale(pic,(x[i],y[i],z[i]));
-    },0,0,I.length-1);
+  int n=x.length;
+  checklengths(n,y.length);
+  checklengths(n,z.length);
+  bool condition(real);
+  int i=0;
+  triple w;
+  if(cond.length > 0) {
+    checklengths(cond.length,n,conditionlength);
+    condition=new bool(real) {
+      bool b=cond[i];
+      if(b) w=Scale(pic,(x[i],y[i],z[i]));
+      ++i;
+      return b;
+    };
+  } else {
+    condition=new bool(real) {
+      w=Scale(pic,(x[i],y[i],z[i]));
+      ++i;
+      return true;
+    };
+  }
+  return graph(join)(new triple(real) {return w;},0,0,n-1,condition);
 }
 
 // The graph of a function along a path.

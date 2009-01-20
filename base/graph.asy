@@ -1807,15 +1807,17 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
   return pic;
 }
 
-typedef guide graph(pair f(real), real, real, int);
+typedef guide graph(pair f(real), real, real, int, bool cond(real)=null);
                        
 graph graph(interpolate join)
 {
-  return new guide(pair f(real), real a, real b, int n) {
+  return new guide(pair f(real), real a, real b, int n, bool cond(real)=null) {
     real width=b-a;
-    return n == 0 ? join(f(a)) :
+    bool all=cond == null;
+    return n == 0 ? join(all || cond(a) ? f(a) : nullpath) :
       join(...sequence(new guide(int i) {
-            return f(a+(i/n)*width);
+	    real t=a+(i/n)*width;
+            return all || cond(t) ? f(t) : nullpath;
           },n+1));
   };
 }
@@ -1851,23 +1853,25 @@ interpolate Hermite(splinetype splinetype)
 interpolate Hermite=Hermite(defaultspline);
 
 guide graph(picture pic=currentpicture, real f(real), real a, real b,
-            int n=ngraph, interpolate join=operator --)
+            int n=ngraph, bool cond(real)=null, interpolate join=operator --)
 {
   return graph(join)(new pair(real x) {
       return (x,pic.scale.y.T(f(pic.scale.x.Tinv(x))));},
-    pic.scale.x.T(a),pic.scale.x.T(b),n);
+    pic.scale.x.T(a),pic.scale.x.T(b),n,cond);
 }
 
 guide graph(picture pic=currentpicture, real x(real), real y(real), real a,
-            real b, int n=ngraph, interpolate join=operator --)
+            real b, int n=ngraph, bool cond(real)=null,
+	    interpolate join=operator --)
 {
-  return graph(join)(new pair(real t) {return Scale(pic,(x(t),y(t)));},a,b,n);
+  return graph(join)(new pair(real t) {return Scale(pic,(x(t),y(t)));},a,b,n,
+		     cond);
 }
 
 guide graph(picture pic=currentpicture, pair z(real), real a, real b,
-            int n=ngraph, interpolate join=operator --)
+            int n=ngraph, bool cond(real)=null, interpolate join=operator --)
 {
-  return graph(join)(new pair(real t) {return Scale(pic,z(t));},a,b,n);
+  return graph(join)(new pair(real t) {return Scale(pic,z(t));},a,b,n,cond);
 }
 
 string differentlengths="attempt to graph arrays of different lengths";
@@ -1879,35 +1883,55 @@ void checklengths(int x, int y, string text=differentlengths)
     abort(text+": "+string(x)+" != "+string(y));
 }
 
-int[] conditional(pair[] z, bool[] cond)
-{
-  if(cond.length > 0) {
-    checklengths(cond.length,z.length,conditionlength);
-    return cond ? sequence(cond.length) : null;
-  } else return sequence(z.length);
-}
-
 guide graph(picture pic=currentpicture, pair[] z, bool[] cond={},
             interpolate join=operator --)
 {
-  int[] I=conditional(z,cond);
-  int k=0;
-  return graph(join)(new pair(real) {
-      int i=I[k]; ++k;
-      return Scale(pic,z[i]);
-    },0,0,I.length-1);
+  int n=z.length;
+  bool condition(real);
+  int i=0;
+  pair w;
+  if(cond.length > 0) {
+    checklengths(cond.length,n,conditionlength);
+    condition=new bool(real) {
+      bool b=cond[i];
+      if(b) w=Scale(pic,z[i]);
+      ++i;
+      return b;
+    };
+  } else {
+    condition=new bool(real) {
+      w=Scale(pic,z[i]);
+      ++i;
+      return true;
+    };
+  }
+  return graph(join)(new pair(real) {return w;},0,0,n-1,condition);
 }
 
 guide graph(picture pic=currentpicture, real[] x, real[] y, bool[] cond={},
             interpolate join=operator --)
 {
-  checklengths(x.length,y.length);
-  int[] I=conditional(x,cond);
-  int k=0;
-  return graph(join)(new pair(real) {
-      int i=I[k]; ++k;
-      return Scale(pic,(x[i],y[i]));
-    },0,0,I.length-1);
+  int n=x.length;
+  checklengths(n,y.length);
+  bool condition(real);
+  int i=0;
+  pair w;
+  if(cond.length > 0) {
+    checklengths(cond.length,n,conditionlength);
+    condition=new bool(real) {
+      bool b=cond[i];
+      if(b) w=Scale(pic,(x[i],y[i]));
+      ++i;
+      return b;
+    };
+  } else {
+    condition=new bool(real) {
+      w=Scale(pic,(x[i],y[i]));
+      ++i;
+      return true;
+    };
+  }
+  return graph(join)(new pair(real) {return w;},0,0,n-1,condition);
 }
 
 guide graph(picture pic=currentpicture, real f(real), real a, real b,
@@ -1932,10 +1956,10 @@ guide graph(picture pic=currentpicture, pair z(real), real a, real b,
 
 // Connect points in z into segments corresponding to consecutive true elements
 // of b using interpolation operator join. 
-path[] segment(pair[] z, bool[] b, interpolate join=operator --)
+path[] segment(pair[] z, bool[] cond, interpolate join=operator --)
 {
-  checklengths(z.length,b.length,conditionlength);
-  int[][] segment=segment(b);
+  checklengths(z.length,cond.length,conditionlength);
+  int[][] segment=segment(cond);
   return sequence(new path(int i) {return join(... z[segment[i]]);},
                   segment.length);
 }
@@ -1970,14 +1994,15 @@ void errorbars(picture pic=currentpicture, pair[] z, pair[] dp, pair[] dm={},
                bool[] cond={}, pen p=currentpen, real size=0)
 {
   if(dm.length == 0) dm=dp;
-  checklengths(z.length,dm.length);
-  checklengths(z.length,dp.length);
-
-  int[] I=conditional(z,cond);
-  int i=0;
-  for(int k=0; k < I.length; ++k) {
-    int i=I[k];
-    errorbar(pic,z[i],dp[i],dm[i],p,size);
+  int n=z.length;
+  checklengths(n,dm.length);
+  checklengths(n,dp.length);
+  bool all=cond.length == 0;
+  if(!all)
+    checklengths(cond.length,n,conditionlength);
+  for(int i=0; i < n; ++i) {
+    if(all || cond[i])
+      errorbar(pic,z[i],dp[i],dm[i],p,size);
   }
 }
 
@@ -1987,15 +2012,18 @@ void errorbars(picture pic=currentpicture, real[] x, real[] y,
 {
   if(dmx.length == 0) dmx=dpx;
   if(dmy.length == 0) dmy=dpy;
-  checklengths(x.length,y.length);
-  checklengths(x.length,dpx.length);
-  checklengths(x.length,dpy.length);
-  checklengths(x.length,dmx.length);
-  checklengths(x.length,dmy.length);
-  int[] I=conditional(x,cond);
-  for(int k=0; k < I.length; ++k) {
-    int i=I[k];
-    errorbar(pic,(x[i],y[i]),(dpx[i],dpy[i]),(dmx[i],dmy[i]),p,size);
+  int n=x.length;
+  checklengths(n,y.length);
+  checklengths(n,dpx.length);
+  checklengths(n,dpy.length);
+  checklengths(n,dmx.length);
+  checklengths(n,dmy.length);
+  bool all=cond.length == 0;
+  if(!all)
+    checklengths(cond.length,n,conditionlength);
+  for(int i=0; i < n; ++i) {
+    if(all || cond[i])
+      errorbar(pic,(x[i],y[i]),(dpx[i],dpy[i]),(dmx[i],dmy[i]),p,size);
   }
 }
 

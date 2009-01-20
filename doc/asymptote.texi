@@ -6256,13 +6256,15 @@ the following routines:
 @item
 @verbatim
 guide graph(picture pic=currentpicture, real f(real), real a, real b,
-            int n=ngraph, interpolate join=operator --);
+            int n=ngraph, bool cond(real)=null,
+            interpolate join=operator --);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
 (@pxref{automatic scaling}) of the function @code{f} on the interval
-[@code{a},@code{b}], sampling at @code{n} evenly spaced points, with
-one of these interpolation types:
+[@code{a},@code{b}], sampling at @code{n} evenly spaced points,
+optionally restricted by the boolean function @code{cond} on [@code{a},@code{b}],
+using one of the interpolation types:
 @itemize @bullet 
 
 @cindex @code{operator --}
@@ -6289,26 +6291,29 @@ The abbreviation @code{Hermite} is equivalent to
 @item
 @verbatim
 guide graph(picture pic=currentpicture, real x(real), real y(real),
-            real a, real b, int n=ngraph,
+            real a, real b, int n=ngraph, bool cond(real)=null,
             interpolate join=operator --);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
 of the parametrized function
 (@code{x}(@math{t}),@code{y}(@math{t})) for @math{t} in
-[@code{a},@code{b}], sampling at @code{n} evenly spaced points, with
-the given interpolation type.
+[@code{a},@code{b}], sampling at @code{n} evenly spaced points,
+optionally restricted by the boolean function @code{cond},
+using the given interpolation type.
 
 @item
 @verbatim
 guide graph(picture pic=currentpicture, pair z(real), real a, real b,
-            int n=ngraph, interpolate join=operator --);
+            int n=ngraph, bool cond(real)=null, interpolate join=operator --);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
 of the parametrized function
 @code{z}(@math{t}) for @math{t} in [@code{a},@code{b}], sampling at
-@code{n} evenly spaced points, with the given interpolation type.
+@code{n} evenly spaced points,
+optionally restricted by the boolean function @code{cond},
+using the given interpolation type.
 
 @item
 @verbatim
