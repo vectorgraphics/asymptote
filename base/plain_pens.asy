@@ -42,7 +42,6 @@ pen red=rgb(1,0,0);
 pen green=rgb(0,1,0);
 pen blue=rgb(0,0,1);
 
-pen cmyk=cmyk(0,0,0,0);
 pen Cyan=cmyk(1,0,0,0);
 pen Magenta=cmyk(0,1,0,0);
 pen Yellow=cmyk(0,0,1,0);
@@ -123,11 +122,6 @@ pen heavygrey=gray;
 pen deepgrey=deepgray;
 pen darkgrey=darkgray;
 
-pen cmyk(pen p) 
-{
-  return p+cmyk;
-}
-
 real linewidth() 
 {
   return linewidth(currentpen);
@@ -178,11 +172,6 @@ real fontsize()
 real labelmargin(pen p=currentpen)
 {
   return labelmargin*fontsize(p);
-}
-
-pen interp(pen a, pen b, real t) 
-{
-  return (1-t)*a+t*b;
 }
 
 void write(file file=stdout, string s="", pen[] p)

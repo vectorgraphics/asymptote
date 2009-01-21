@@ -4094,8 +4094,10 @@ not
 bool positive=(pi >= 0) ? true : false;
 @end verbatim
 
-The function @code{T interp(T a, T b, real t)} returns @code{a+t*(b-a)}
-for nonintegral built-in arithmetic types @code{T}.
+@cindex @code{interp}
+The function @code{T interp(T a, T b, real t)} returns @code{(1-t)*a+t*b}
+for nonintegral built-in arithmetic types @code{T}. If @code{a} and
+@code{b} are pens, they are first promoted to the same color space.
 
 @cindex @code{AND}
 @cindex @code{OR}

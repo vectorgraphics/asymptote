@@ -656,6 +656,40 @@ public:
 	       q.t.isNull() ? p.t : q.t);
   }
 
+  friend pen interpolate(const pen& p, const pen& q, double t) {
+    pen P=p;
+    pen Q=q;
+  
+    if(P.color == PATTERN && P.pattern.empty()) P.color=DEFCOLOR;
+    ColorSpace colorspace=(ColorSpace) max((Int) P.color,(Int) Q.color);
+  
+    switch(colorspace) {
+      case PATTERN:
+      case INVISIBLE:
+      case DEFCOLOR:
+      case GRAYSCALE:
+      break;
+      case RGB:
+      {
+	if(P.color == GRAYSCALE) P.greytorgb();
+	else if(Q.color == GRAYSCALE) Q.greytorgb();
+	break;
+      }
+      
+      case CMYK:
+      {
+	if(P.color == GRAYSCALE) P.greytocmyk();
+	else if(Q.color == GRAYSCALE) Q.greytocmyk();
+	
+	if(P.color == RGB) P.rgbtocmyk();
+	else if(Q.color == RGB) Q.rgbtocmyk();
+	break;
+      }
+    }
+    
+    return (1-t)*P+t*Q;
+  }
+
   friend bool operator == (const pen& p, const pen& q) {
     return  p.linetype() == q.linetype() 
       && p.width() == q.width() 

@@ -310,7 +310,7 @@ void interp(vm::stack *s)
   double t=vm::pop<double>(s);
   T b=vm::pop<T>(s);
   T a=vm::pop<T>(s);
-  s->push(a+t*(b-a));
+  s->push((1-t)*a+t*b);
 }
 
 } // namespace run

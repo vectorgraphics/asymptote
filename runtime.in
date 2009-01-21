@@ -1704,15 +1704,27 @@ pen invisible()
 pen gray(pen p)
 {
   if(p.rgb()) p.rgbtogrey();
-  else if (p.cmyk()) p.cmyktogrey();
+  else if(p.cmyk()) p.cmyktogrey();
   return p;
 }
 
 pen rgb(pen p)
 {
   if(p.grayscale()) p.greytorgb();
-  else if (p.cmyk()) p.cmyktorgb();
+  else if(p.cmyk()) p.cmyktorgb();
   return p;
+}
+
+pen cmyk(pen p)
+{
+  if(p.grayscale()) p.greytocmyk();
+  else if(p.rgb()) p.rgbtocmyk();
+  return p;
+}
+
+pen interp(pen a, pen b, real t)
+{
+  return interpolate(a,b,t);
 }
 
 pen rgb(real r, real g, real b)
