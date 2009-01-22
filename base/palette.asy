@@ -467,6 +467,6 @@ pen[] cmyk(pen[] Palette)
 {
   int n=Palette.length;
   for(int i=0; i < n; ++i)
-    Palette[i]=cmyk+Palette[i];
+    Palette[i]=cmyk(Palette[i]);
   return Palette;
 }
