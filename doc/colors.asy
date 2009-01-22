@@ -111,6 +111,6 @@ col("Black");
 
 j -= 10;
 
-col("cmyk+red");
-col("cmyk+blue");
-col("cmyk+green");
+col("cmyk(red)");
+col("cmyk(blue)");
+col("cmyk(green)");
