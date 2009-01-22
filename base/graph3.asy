@@ -1324,11 +1324,11 @@ void labelz3(picture pic=currentpicture, Label L="", real z,
                 pic.scale.y.scale.logarithmic ? 1 : 0,z),align,format,p);
 }
 
-typedef guide3 graph(triple F(real), real, real, int, bool cond(real)=all);
+typedef guide3 graph(triple F(real), real, real, int, bool cond(real)=null);
 
 graph graph(interpolate3 join)
 {
-  return new guide3(triple f(real), real a, real b, int n, bool cond(real)=all) {
+  return new guide3(triple f(real), real a, real b, int n, bool cond(real)=null) {
     real width=b-a;
     return n == 0 ? join(cond(a) ? f(a) : nullpath3) :
       join(...sequence(new guide3(int i) {
@@ -1343,14 +1343,14 @@ guide3 Spline(... guide3[])=operator ..;
                        
 guide3 graph(picture pic=currentpicture, real x(real), real y(real),
              real z(real), real a, real b, int n=ngraph,
-             bool cond(real)=all, interpolate3 join=operator --)
+             bool cond(real)=null, interpolate3 join=operator --)
 {
   return graph(join)(new triple(real t) {return Scale(pic,(x(t),y(t),z(t)));},
                      a,b,n,cond);
 }
 
 guide3 graph(picture pic=currentpicture, triple v(real), real a, real b,
-             int n=ngraph, bool cond(real)=all, interpolate3 join=operator --)
+             int n=ngraph, bool cond(real)=null, interpolate3 join=operator --)
 {
   return graph(join)(new triple(real t) {return Scale(pic,v(t));},a,b,n,cond);
 }
