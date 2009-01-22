@@ -41,7 +41,11 @@ int sigsegv_handler (void *, int emergency)
 {
   if(!emergency) return 0; // Really a stack overflow
   em.runtime(vm::getPos());
-  cerr << "Segmentation fault" << endl;
+  if(gl::glthread)
+    cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
+	 << endl;
+  else
+    cerr << "Segmentation fault" << endl;
   abort();
 }
 #endif 
@@ -95,6 +99,8 @@ struct Args
 
 void *asymain(void *A)
 {
+  setsignal(signalHandler);
+  
   Args *args=(Args *) A;
   fpu_trap(trap());
 
