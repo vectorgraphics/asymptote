@@ -35,6 +35,34 @@ path[] operator cast(guide[] g)
   return sequence(new path(int i) {return g[i];},g.length);
 }
 
+guide[] operator cast(path[] g)
+{
+  return sequence(new guide(int i) {return g[i];},g.length);
+}
+
+path operator cast(path[] p)
+{
+  int n=p.length;
+  if(n == 1) return p[0];
+  if(n > 1)
+    abort("Cannot cast path array of length "+string(n)+" to path");
+  return nullpath;
+}
+
+guide operator cast(guide[] g)
+{
+  int n=g.length;
+  if(n == 1) return g[0];
+  if(n > 1)
+    abort("Cannot cast guide array of length "+string(n)+" to guide");
+  return nullpath;
+}
+
+path operator cast(guide[] g)
+{
+  return (guide) g;
+}
+
 path[] operator cast(path p)
 {
   return new path[] {p};
@@ -87,9 +115,19 @@ void write(file file, string s="", explicit path[] x, suffix suffix=none)
   write(file,suffix);
 }
 
+void write(file file, string s="", explicit guide[] x, suffix suffix=none)
+{
+  write(file,s,(path[]) x,suffix);
+}
+
 void write(string s="", explicit path[] x, suffix suffix=endl) 
 {
   write(stdout,s,x,suffix);
+}
+
+void write(string s="", explicit guide[] x, suffix suffix=endl) 
+{
+  write(stdout,s,(path[]) x,suffix);
 }
 
 private string nopoints="nullpath has no points";

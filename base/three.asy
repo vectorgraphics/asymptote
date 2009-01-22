@@ -1458,6 +1458,34 @@ path3[] operator cast(guide3[] g)
   return sequence(new path3(int i) {return solve(g[i]);},g.length);
 }
 
+guide[] operator cast(path[] g)
+{
+  return sequence(new guide(int i) {return g[i];},g.length);
+}
+
+path3 operator cast(path3[] p)
+{
+  int n=p.length;
+  if(n == 1) return p[0];
+  if(n > 1)
+    abort("Cannot cast path3 array of length "+string(n)+" to path3");
+  return nullpath3;
+}
+
+guide3 operator cast(guide3[] g)
+{
+  int n=g.length;
+  if(n == 1) return g[0];
+  if(n > 1)
+    abort("Cannot cast guide3 array of length "+string(n)+" to guide3");
+  return nullpath3;
+}
+
+path3 operator cast(guide3[] g)
+{
+  return (guide3) g;
+}
+
 triple point(explicit guide3 g, int t) {
   flatguide3 f;
   g(f);
