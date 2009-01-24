@@ -1,11 +1,18 @@
-import graph;
+import graph; 
 size(300,IgnoreAspect);
 
-real eps=0.001;
-draw(graph(gamma,eps,4,operator ..),red);
-for(int i=1; i < 5; ++i)
-  draw(graph(gamma,-i+eps,-i+1-eps,operator ..),red);
+bool3 branch(real x)
+{
+  static int lastsign=0; 
+  if(x <= 0 && x == floor(x)) {lastsign=0; return false;}
+  int sign=sgn(gamma(x)); 
+  bool b=lastsign == 0 || sign == lastsign; 
+  lastsign=sign; 
+  return b ? true : default; 
+}
 
+draw(graph(gamma,-4,4,n=2000,branch),red);
+ 
 scale(false);
 xlimits(-4,4);
 ylimits(-6,6);

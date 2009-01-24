@@ -40,29 +40,6 @@ guide[] operator cast(path[] g)
   return sequence(new guide(int i) {return g[i];},g.length);
 }
 
-path operator cast(path[] p)
-{
-  int n=p.length;
-  if(n == 1) return p[0];
-  if(n > 1)
-    abort("Cannot cast path array of length "+string(n)+" to path");
-  return nullpath;
-}
-
-guide operator cast(guide[] g)
-{
-  int n=g.length;
-  if(n == 1) return g[0];
-  if(n > 1)
-    abort("Cannot cast guide array of length "+string(n)+" to guide");
-  return nullpath;
-}
-
-path operator cast(guide[] g)
-{
-  return (guide) g;
-}
-
 path[] operator cast(path p)
 {
   return new path[] {p};

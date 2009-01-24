@@ -6258,14 +6258,18 @@ the following routines:
 @item
 @verbatim
 guide graph(picture pic=currentpicture, real f(real), real a, real b,
-            int n=ngraph, bool cond(real)=null,
+            int n=ngraph, real T(real)=identity,
             interpolate join=operator --);
+guide[] graph(picture pic=currentpicture, real f(real), real a, real b,
+             int n=ngraph, real T(real)=identity, bool3 cond(real),
+             interpolate join=operator --);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
 (@pxref{automatic scaling}) of the function @code{f} on the interval
-[@code{a},@code{b}], sampling at @code{n} evenly spaced points,
-optionally restricted by the boolean function @code{cond} on [@code{a},@code{b}],
+[@code{T}(@code{a}),@code{T}(@code{b})], sampling at @code{n} points
+evenly spaced in [@code{a},@code{b}], optionally restricted by the
+bool3 function @code{cond} on [@code{a},@code{b}], 
 using one of the interpolation types:
 @itemize @bullet 
 
@@ -6293,71 +6297,64 @@ The abbreviation @code{Hermite} is equivalent to
 @item
 @verbatim
 guide graph(picture pic=currentpicture, real x(real), real y(real),
-            real a, real b, int n=ngraph, bool cond(real)=null,
+            real a, real b, int n=ngraph, real T(real)=identity,
             interpolate join=operator --);
+guide[] graph(picture pic=currentpicture, real x(real), real y(real),
+              real a, real b, int n=ngraph, real T(real)=identity,
+              bool3 cond(real), interpolate join=operator --);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
 of the parametrized function
-(@code{x}(@math{t}),@code{y}(@math{t})) for @math{t} in
-[@code{a},@code{b}], sampling at @code{n} evenly spaced points,
-optionally restricted by the boolean function @code{cond},
-using the given interpolation type.
+(@code{x}(@math{t}),@code{y}(@math{t})) for @math{t} in the interval
+[@code{T}(@code{a}),@code{T}(@code{b})], sampling at @code{n} points
+evenly spaced in [@code{a},@code{b}], optionally restricted by the
+bool3 function @code{cond} on [@code{a},@code{b}], using the given
+interpolation type.
 
 @item
 @verbatim
 guide graph(picture pic=currentpicture, pair z(real), real a, real b,
-            int n=ngraph, bool cond(real)=null, interpolate join=operator --);
+            int n=ngraph, real T(real)=identity,
+            interpolate join=operator --);
+guide[] graph(picture pic=currentpicture, pair z(real), real a, real b,
+              int n=ngraph, real T(real)=identity, bool3 cond(real),
+              interpolate join=operator --);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
 of the parametrized function
-@code{z}(@math{t}) for @math{t} in [@code{a},@code{b}], sampling at
-@code{n} evenly spaced points,
-optionally restricted by the boolean function @code{cond},
-using the given interpolation type.
+@code{z}(@math{t}) for @math{t} in the interval
+[@code{T}(@code{a}),@code{T}(@code{b})], sampling at @code{n} points
+evenly spaced in [@code{a},@code{b}], optionally restricted by the
+bool3 function @code{cond} on [@code{a},@code{b}], using the given
+interpolation type.
 
 @item
 @verbatim
-guide graph(picture pic=currentpicture, pair[] z, bool[] cond={},
+guide graph(picture pic=currentpicture, pair[] z,
             interpolate join=operator --);
+guide[] graph(picture pic=currentpicture, pair[] z, bool[] cond,
+              interpolate join=operator --);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
-of those elements of the array
-@code{z} for which the corresponding elements of the boolean array
-@code{cond} are @code{true}, with the given interpolation type.
+of the elements of the array @code{z}, optionally restricted to
+those indices for which the elements of the boolean array @code{cond} are
+@code{true}, using the given interpolation type.
 
 @item
 @verbatim
 guide graph(picture pic=currentpicture, real[] x, real[] y,
-            bool[] cond={}, interpolate join=operator --);
-@end verbatim
-
-Returns a graph using the scaling information for picture @code{pic}
-of those elements of the arrays
-(@code{x},@code{y}) for which the corresponding elements of the boolean array
-@code{cond} are @code{true}, with the given interpolation type.
-
-@item
-@verbatim
-guide graph(picture pic=currentpicture, real f(real), real a, real b,
-            int n=ngraph, real T(real), interpolate join=operator --);
-@end verbatim
-
-Returns a graph using the scaling information for picture @code{pic}
-of the function @code{f} on the interval
-[@code{T}(@code{a}),@code{T}(@code{b})], sampling at @code{n} points evenly
-spaced in [@code{a},@code{b}], with the given interpolation
-type. These parametric versions also accept an arbitrary sampling
-function:
-@verbatim
-guide graph(picture pic=currentpicture, real x(real), real y(real),
-            real a, real b, int n=ngraph, real T(real),
             interpolate join=operator --);
-guide graph(picture pic=currentpicture, pair z(real), real a, real b,
-            int n=ngraph, real T(real), interpolate join=operator --)
+guide[] graph(picture pic=currentpicture, real[] x, real[] y,
+              bool[] cond, interpolate join=operator --);
 @end verbatim
+
+Returns a graph using the scaling information for picture @code{pic}
+of the elements of the arrays (@code{x},@code{y}), optionally
+restricted to those indices for which the elements of the boolean
+array @code{cond} are @code{true}, using the given interpolation type.
 
 @item
 @cindex @code{polargraph}

@@ -1807,27 +1807,35 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
   return pic;
 }
 
-typedef guide[] graph(pair f(real), real, real, int, bool cond(real)=null);
+typedef guide graph(pair f(real), real, real, int);
+typedef guide[] multigraph(pair f(real), real, real, int);
                        
 graph graph(interpolate join)
 {
-  return new guide[](pair f(real), real a, real b, int n,
-		     bool cond(real)=null) {
+  return new guide(pair f(real), real a, real b, int n) {
     real width=b-a;
-    bool all=cond == null;
-    if(n == 0) return new guide[] {join(all || cond(a) ? f(a) : nullpath)};
-    if(all) return new guide[] {
-	join(...sequence(new guide(int i) {return f(a+(i/n)*width);},n+1))};
+    return n == 0 ? join(f(a)) :
+      join(...sequence(new guide(int i) {return f(a+(i/n)*width);},n+1));
+  };
+}
 
+multigraph graph(interpolate join, bool3 cond(real))
+{
+  return new guide[](pair f(real), real a, real b, int n) {
+    real width=b-a;
+    if(n == 0) return new guide[] {join(cond(a) ? f(a) : nullpath)};
     guide[] G;
     guide[] g;
     for(int i=0; i < n+1; ++i) {
       real t=a+(i/n)*width;
-      if(cond(t))
-	g.push(f(t));
+      bool3 b=cond(t);
+      if(b) g.push(f(t));
       else {
 	G.push(join(...g));
-	g=new guide[];
+	if(b == default)
+	  g=new guide[] {f(t)};
+	else
+	  g=new guide[];
       }
     }
     if(g.length > 0)
@@ -1866,26 +1874,79 @@ interpolate Hermite(splinetype splinetype)
 
 interpolate Hermite=Hermite(defaultspline);
 
-guide[] graph(picture pic=currentpicture, real f(real), real a, real b,
-	      int n=ngraph, bool cond(real)=null, interpolate join=operator --)
+guide graph(picture pic=currentpicture, real f(real), real a, real b,
+	    int n=ngraph, real T(real)=identity, interpolate join=operator --)
 {
-  return graph(join)(new pair(real x) {
-      return (x,pic.scale.y.T(f(pic.scale.x.Tinv(x))));},
-    pic.scale.x.T(a),pic.scale.x.T(b),n,cond);
+  if(T == identity)
+    return graph(join)(new pair(real x) {
+	return (x,pic.scale.y.T(f(pic.scale.x.Tinv(x))));},
+      pic.scale.x.T(a),pic.scale.x.T(b),n);
+  else
+    return graph(join)(new pair(real x) {
+	return Scale(pic,(T(x),f(T(x))));},
+      a,b,n);
+}
+
+guide[] graph(picture pic=currentpicture, real f(real), real a, real b,
+	      int n=ngraph, real T(real)=identity,
+	      bool3 cond(real), interpolate join=operator --)
+{
+  if(T == identity)
+    return graph(join,cond)(new pair(real x) {
+	return (x,pic.scale.y.T(f(pic.scale.x.Tinv(x))));},
+      pic.scale.x.T(a),pic.scale.x.T(b),n);
+  else
+  return graph(join,cond)(new pair(real x) {
+      return Scale(pic,(T(x),f(T(x))));},
+    a,b,n);
+}
+
+guide graph(picture pic=currentpicture, real x(real), real y(real), real a,
+	    real b, int n=ngraph, real T(real)=identity,
+	    interpolate join=operator --)
+{
+  if(T == identity)
+    return graph(join)(new pair(real t) {return Scale(pic,(x(t),y(t)));},a,b,n);
+  else
+    return graph(join)(new pair(real t) {
+	return Scale(pic,(x(T(t)),y(T(t))));
+      },a,b,n);
 }
 
 guide[] graph(picture pic=currentpicture, real x(real), real y(real), real a,
-	      real b, int n=ngraph, bool cond(real)=null,
+	      real b, int n=ngraph, real T(real)=identity, bool3 cond(real),
 	      interpolate join=operator --)
 {
-  return graph(join)(new pair(real t) {return Scale(pic,(x(t),y(t)));},a,b,n,
-		     cond);
+  if(T == identity)
+    return graph(join,cond)(new pair(real t) {return Scale(pic,(x(t),y(t)));},
+			    a,b,n);
+  else
+    return graph(join,cond)(new pair(real t) {
+	return Scale(pic,(x(T(t)),y(T(t))));},
+      a,b,n);
+}
+
+guide graph(picture pic=currentpicture, pair z(real), real a, real b,
+	    int n=ngraph, real T(real)=identity, interpolate join=operator --)
+{
+  if(T == identity)
+    return graph(join)(new pair(real t) {return Scale(pic,z(t));},a,b,n);
+  else
+    return graph(join)(new pair(real t) {
+	return Scale(pic,z(T(t)));
+      },a,b,n);
 }
 
 guide[] graph(picture pic=currentpicture, pair z(real), real a, real b,
-	      int n=ngraph, bool cond(real)=null, interpolate join=operator --)
+	      int n=ngraph, real T(real)=identity, bool3 cond(real),
+	      interpolate join=operator --)
 {
-  return graph(join)(new pair(real t) {return Scale(pic,z(t));},a,b,n,cond);
+  if(T == identity)
+    return graph(join,cond)(new pair(real t) {return Scale(pic,z(t));},a,b,n);
+  else
+    return graph(join,cond)(new pair(real t) {
+	return Scale(pic,z(T(t)));
+      },a,b,n);
 }
 
 string differentlengths="attempt to graph arrays of different lengths";
@@ -1897,84 +1958,74 @@ void checklengths(int x, int y, string text=differentlengths)
     abort(text+": "+string(x)+" != "+string(y));
 }
 
-guide[] graph(picture pic=currentpicture, pair[] z, bool[] cond={},
+void checkconditionlength(int x, int y)
+{
+  checklengths(x,y,conditionlength);
+}
+
+guide graph(picture pic=currentpicture, pair[] z, interpolate join=operator --)
+{
+  int i=0;
+  return graph(join)(new pair(real) {
+      pair w=Scale(pic,z[i]);
+      ++i;
+      return w;
+    },0,0,z.length-1);
+}
+
+guide[] graph(picture pic=currentpicture, pair[] z, bool[] cond,
             interpolate join=operator --)
 {
   int n=z.length;
-  bool condition(real);
   int i=0;
   pair w;
-  if(cond.length > 0) {
-    checklengths(cond.length,n,conditionlength);
-    condition=new bool(real) {
-      bool b=cond[i];
-      if(b) w=Scale(pic,z[i]);
-      ++i;
-      return b;
-    };
-  } else {
-    condition=new bool(real) {
-      w=Scale(pic,z[i]);
-      ++i;
-      return true;
-    };
+  checkconditionlength(cond.length,n);
+  bool3 condition(real) {
+    bool b=cond[i];
+    if(b) w=Scale(pic,z[i]);
+    ++i;
+    return b;
   }
-  return graph(join)(new pair(real) {return w;},0,0,n-1,condition);
+  return graph(join,condition)(new pair(real) {return w;},0,0,n-1);
 }
 
-guide[] graph(picture pic=currentpicture, real[] x, real[] y, bool[] cond={},
+guide graph(picture pic=currentpicture, real[] x, real[] y,
+	    interpolate join=operator --)
+{
+  int n=x.length;
+  checklengths(n,y.length);
+  int i=0;
+  return graph(join)(new pair(real) {
+      pair w=Scale(pic,(x[i],y[i]));
+      ++i;
+      return w;
+    },0,0,n-1);
+}
+
+guide[] graph(picture pic=currentpicture, real[] x, real[] y, bool[] cond,
             interpolate join=operator --)
 {
   int n=x.length;
   checklengths(n,y.length);
-  bool condition(real);
   int i=0;
   pair w;
-  if(cond.length > 0) {
-    checklengths(cond.length,n,conditionlength);
-    condition=new bool(real) {
-      bool b=cond[i];
-      if(b) w=Scale(pic,(x[i],y[i]));
-      ++i;
-      return b;
-    };
-  } else {
-    condition=new bool(real) {
-      w=Scale(pic,(x[i],y[i]));
-      ++i;
-      return true;
-    };
+  checkconditionlength(cond.length,n);
+  bool3 condition(real) {
+    bool b=cond[i];
+    if(b) w=Scale(pic,(x[i],y[i]));
+    ++i;
+    return b;
   }
-  return graph(join)(new pair(real) {return w;},0,0,n-1,condition);
-}
-
-guide[] graph(picture pic=currentpicture, real f(real), real a, real b,
-            int n=ngraph, real T(real), interpolate join=operator --)
-{
-  return graph(join)(new pair(real x) {return Scale(pic,(T(x),f(T(x))));},
-                     a,b,n);
-}
-
-guide[] graph(picture pic=currentpicture, real x(real), real y(real), real a,
-            real b, int n=ngraph, real T(real), interpolate join=operator --)
-{
-  return graph(join)(new pair(real t) {return Scale(pic,(x(T(t)),y(T(t))));},
-                     a,b,n);
-}
-
-guide[] graph(picture pic=currentpicture, pair z(real), real a, real b,
-            int n=ngraph, real T(real), interpolate join=operator --)
-{
-  return graph(join)(new pair(real t) {return Scale(pic,z(T(t)));},a,b,n);
+  return graph(join,condition)(new pair(real) {return w;},0,0,n-1);
 }
 
 // Connect points in z into segments corresponding to consecutive true elements
 // of b using interpolation operator join. 
 path[] segment(pair[] z, bool[] cond, interpolate join=operator --)
 {
-  checklengths(z.length,cond.length,conditionlength);
+  checkconditionlength(cond.length,z.length);
   int[][] segment=segment(cond);
-  return sequence(new path(int i) {return join(... z[segment[i]]);},
+  return sequence(new path(int i) {return join(...z[segment[i]]);},
                   segment.length);
 }
 
@@ -1983,8 +2034,8 @@ pair polar(real r, real theta)
   return r*expi(theta);
 }
 
-guide[] polargraph(picture pic=currentpicture, real r(real), real a, real b,
-		   int n=ngraph, interpolate join=operator --)
+guide polargraph(picture pic=currentpicture, real r(real), real a, real b,
+		 int n=ngraph, interpolate join=operator --)
 {
   return graph(join)(new pair(real theta) {
       return Scale(pic,polar(r(theta),theta));
@@ -2013,7 +2064,7 @@ void errorbars(picture pic=currentpicture, pair[] z, pair[] dp, pair[] dm={},
   checklengths(n,dp.length);
   bool all=cond.length == 0;
   if(!all)
-    checklengths(cond.length,n,conditionlength);
+    checkconditionlength(cond.length,n);
   for(int i=0; i < n; ++i) {
     if(all || cond[i])
       errorbar(pic,z[i],dp[i],dm[i],p,size);
@@ -2034,7 +2085,7 @@ void errorbars(picture pic=currentpicture, real[] x, real[] y,
   checklengths(n,dmy.length);
   bool all=cond.length == 0;
   if(!all)
-    checklengths(cond.length,n,conditionlength);
+    checkconditionlength(cond.length,n);
   for(int i=0; i < n; ++i) {
     if(all || cond[i])
       errorbar(pic,(x[i],y[i]),(dpx[i],dpy[i]),(dmx[i],dmy[i]),p,size);

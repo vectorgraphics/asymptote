@@ -87,7 +87,7 @@ struct bool3 {
   bool set;
 }
 
-bool3 default;
+restricted bool3 default;
 
 bool operator cast(bool3 b) 
 {
@@ -101,3 +101,19 @@ bool3 operator cast(bool b)
   B.set=true;
   return B;
 }
+
+bool operator == (bool3 a, bool3 b) 
+{
+  return a.set == b.set && (!a.set || (a.value == b.value));
+}
+
+bool operator == (bool3 a, bool b) 
+{
+  return a.set && a.value == b;
+}
+
+bool operator == (bool a, bool3 b) 
+{
+  return b.set && b.value == a;
+}
+
