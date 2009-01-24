@@ -3605,6 +3605,8 @@ value, @code{settings.scroll=0}, specifies continuous scrolling.
 The routines
 @cindex @code{getstring}
 @cindex @code{getreal}
+@cindex @code{getpair}
+@cindex @code{gettriple}
 @verbatim
 string getstring(string name="", string default="", string prompt="",
                  bool store=true);
@@ -3613,7 +3615,9 @@ int getint(string name="", int default=0, string prompt="",
 real getreal(string name="", real default=0, string prompt="",
              bool store=true);
 pair getpair(string name="", pair default=0, string prompt="",
-             bool store=true)
+             bool store=true);
+triple gettriple(string name="", triple default=(0,0,0), string prompt="",
+		 bool store=true);
 @end verbatim
 @noindent
 defined in the module @code{plain} may be used to prompt for a value from

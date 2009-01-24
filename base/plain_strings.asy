@@ -39,6 +39,12 @@ pair getpair(string name="", pair default=0, string prompt="", bool store=true)
   return (pair) getstring(name,(string) default,prompt,store);
 }
 
+triple gettriple(string name="", triple default=(0,0,0), string prompt="",
+		 bool store=true)
+{
+  return (triple) getstring(name,(string) default,prompt,store);
+}
+
 // returns a string with all occurrences of string 'before' in string 's'
 // changed to string 'after'.
 string replace(string s, string before, string after) 
