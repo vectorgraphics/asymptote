@@ -2150,6 +2150,8 @@ object embed(string label="", string text=label,
     bool prc=prc(format);
     bool preview=settings.render > 0;
     if(prc) {
+      // The movie15.sty package cannot handle spaces in filenames.
+      prefix=replace(prefix," ","_");
       if(settings.embed || nativeformat() == "pdf")
 	prefix += "-"+(string) file3.length;
     } else
