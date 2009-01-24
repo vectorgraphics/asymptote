@@ -5754,7 +5754,7 @@ need to remove the files @code{latexusage-*}, @code{latexusage_.pre}, and
 
 @cindex @code{attachfile2}
 @cindex @code{asyattach}
-The current (1.01) version of @code{asymptote.sty} supports the
+The current version of @code{asymptote.sty} supports the
 embedding of 3D @acronym{PRC} files, either inline or, using the
 @code{asyattach} environment with the @code{attachfile2} (or older
 @code{attachfile}) @code{LaTeX} package, as annotated attachments.
@@ -7389,10 +7389,15 @@ Other @code{UNIX} graphics drivers may require the command line setting
 
 @cindex @code{prc}
 @item Embed the 3D @acronym{PRC} format in a @acronym{PDF} file
-(using the setting @code{outformat="pdf"} and the default setting
-@code{prc=true}) and view the resulting @acronym{PDF} file with
-version @code{8.0} or later of @code{Adobe Reader}. This requires
-version 2008/10/08 or later of the @code{movie15} package (@pxref{embed}).
+and view the resulting @acronym{PDF} file with
+version @code{8.0} or later of @code{Adobe Reader}. 
+In addition to the default @code{settings.prc=true}, this requires
+@code{settings.outformat="pdf"}, which can be specified by the command
+line option @code{-f pdf}, put in the @code{Asymptote} configuration
+file (@pxref{configuration file}), or specified in the script before
+@code{three.asy} (or @code{graph3.asy}) is imported. 
+Version 2008/10/08 or later of the @code{movie15} package is also
+required (@pxref{embed}).
 A stationary preview image with a resolution of @code{n} pixels per
 @code{bp} can be embedded with the setting @code{render=n}; this allows
 the file to be viewed with other @code{PDF} viewers. Alternatively, the
