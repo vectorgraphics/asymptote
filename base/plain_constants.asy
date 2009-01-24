@@ -87,6 +87,17 @@ struct bool3 {
   bool set;
 }
 
+void write(file file, string s="", bool3 b, suffix suffix=none)
+{
+  if(b.set) write(b.value);
+  else write("default");
+}
+
+void write(string s="", bool3 b, suffix suffix=endl) 
+{
+  write(stdout,s,b,suffix);
+}
+
 restricted bool3 default;
 
 bool operator cast(bool3 b) 
@@ -107,9 +118,19 @@ bool operator == (bool3 a, bool3 b)
   return a.set == b.set && (!a.set || (a.value == b.value));
 }
 
+bool operator != (bool3 a, bool3 b) 
+{
+  return a.set != b.set || (a.set && (a.value != b.value));
+}
+
 bool operator == (bool3 a, bool b) 
 {
   return a.set && a.value == b;
+}
+
+bool operator != (bool3 a, bool b) 
+{
+  return !a.set || a.value != b;
 }
 
 bool operator == (bool a, bool3 b) 
@@ -117,3 +138,17 @@ bool operator == (bool a, bool3 b)
   return b.set && b.value == a;
 }
 
+bool operator != (bool a, bool3 b) 
+{
+  return !b.set || b.value != a;
+}
+
+bool[] operator cast(bool3[] b)
+{
+  return sequence(new bool(int i) {return b[i];},b.length);
+}
+
+bool3[] operator cast(bool[] b)
+{
+  return sequence(new bool3(int i) {return b[i];},b.length);
+}

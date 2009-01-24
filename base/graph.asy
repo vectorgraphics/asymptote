@@ -451,8 +451,8 @@ void labelaxis(frame f, transform T, Label L, path g,
 
 // Check the tick coverage of a linear axis.
 bool axiscoverage(int N, transform T, path g, ticklocate locate, real Step,
-		  pair side, int sign, real Size, Label F, ticklabel ticklabel,
-		  real norm, real limit)
+                  pair side, int sign, real Size, Label F, ticklabel ticklabel,
+                  real norm, real limit)
 {
   real coverage=0;
   bool loop=cyclic(g);
@@ -464,9 +464,9 @@ bool axiscoverage(int N, transform T, path g, ticklocate locate, real Step,
     if(loop) count=N+1;
     else {
       for(int i=0; i <= N; ++i) {
-	real val=tickmin+i*Step;
-	if(val >= a && val <= b)
-	  ++count;
+        real val=tickmin+i*Step;
+        if(val >= a && val <= b)
+          ++count;
       }
     }
     if(count > 0) limit /= count;
@@ -950,9 +950,9 @@ ticks Ticks(Label format="", ticklabel ticklabel=null,
 }
 
 ticks NoTicks=NoTicks(),
-  LeftTicks=LeftTicks(),
-  RightTicks=RightTicks(),
-  Ticks=Ticks();
+LeftTicks=LeftTicks(),
+RightTicks=RightTicks(),
+Ticks=Ticks();
 
 pair tickMin(picture pic)
 {
@@ -1102,13 +1102,13 @@ axis YZero(bool extend=true)
 }
 
 axis Bottom=Bottom(),
-  Top=Top(),
-  BottomTop=BottomTop(),
-  Left=Left(),
-  Right=Right(),
-  LeftRight=LeftRight(),
-  XZero=XZero(),
-  YZero=YZero();
+Top=Top(),
+BottomTop=BottomTop(),
+Left=Left(),
+Right=Right(),
+LeftRight=LeftRight(),
+XZero=XZero(),
+YZero=YZero();
 
 // Draw a general axis.
 void axis(picture pic=currentpicture, Label L="", path g, path g2=nullpath,
@@ -1579,7 +1579,7 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
 
 // Draw x and y axes.
 void axes(picture pic=currentpicture, Label xlabel="", Label ylabel="",
-	  pair min=(-infinity,-infinity), pair max=(infinity,infinity),
+          pair min=(-infinity,-infinity), pair max=(infinity,infinity),
           pen p=currentpen, arrowbar arrow=None, bool above=false)
 {
   xaxis(pic,xlabel,min.x,max.x,p,arrow,above);
@@ -1831,11 +1831,11 @@ multigraph graph(interpolate join, bool3 cond(real))
       bool3 b=cond(t);
       if(b) g.push(f(t));
       else {
-	G.push(join(...g));
-	if(b == default)
-	  g=new guide[] {f(t)};
-	else
-	  g=new guide[];
+        G.push(join(...g));
+        if(b == default)
+          g=new guide[] {f(t)};
+        else
+          g=new guide[];
       }
     }
     if(g.length > 0)
@@ -1875,77 +1875,77 @@ interpolate Hermite(splinetype splinetype)
 interpolate Hermite=Hermite(defaultspline);
 
 guide graph(picture pic=currentpicture, real f(real), real a, real b,
-	    int n=ngraph, real T(real)=identity, interpolate join=operator --)
+            int n=ngraph, real T(real)=identity, interpolate join=operator --)
 {
   if(T == identity)
     return graph(join)(new pair(real x) {
-	return (x,pic.scale.y.T(f(pic.scale.x.Tinv(x))));},
+        return (x,pic.scale.y.T(f(pic.scale.x.Tinv(x))));},
       pic.scale.x.T(a),pic.scale.x.T(b),n);
   else
     return graph(join)(new pair(real x) {
-	return Scale(pic,(T(x),f(T(x))));},
+        return Scale(pic,(T(x),f(T(x))));},
       a,b,n);
 }
 
 guide[] graph(picture pic=currentpicture, real f(real), real a, real b,
-	      int n=ngraph, real T(real)=identity,
-	      bool3 cond(real), interpolate join=operator --)
+              int n=ngraph, real T(real)=identity,
+              bool3 cond(real), interpolate join=operator --)
 {
   if(T == identity)
     return graph(join,cond)(new pair(real x) {
-	return (x,pic.scale.y.T(f(pic.scale.x.Tinv(x))));},
+        return (x,pic.scale.y.T(f(pic.scale.x.Tinv(x))));},
       pic.scale.x.T(a),pic.scale.x.T(b),n);
   else
-  return graph(join,cond)(new pair(real x) {
-      return Scale(pic,(T(x),f(T(x))));},
-    a,b,n);
+    return graph(join,cond)(new pair(real x) {
+        return Scale(pic,(T(x),f(T(x))));},
+      a,b,n);
 }
 
 guide graph(picture pic=currentpicture, real x(real), real y(real), real a,
-	    real b, int n=ngraph, real T(real)=identity,
-	    interpolate join=operator --)
+            real b, int n=ngraph, real T(real)=identity,
+            interpolate join=operator --)
 {
   if(T == identity)
     return graph(join)(new pair(real t) {return Scale(pic,(x(t),y(t)));},a,b,n);
   else
     return graph(join)(new pair(real t) {
-	return Scale(pic,(x(T(t)),y(T(t))));
+        return Scale(pic,(x(T(t)),y(T(t))));
       },a,b,n);
 }
 
 guide[] graph(picture pic=currentpicture, real x(real), real y(real), real a,
-	      real b, int n=ngraph, real T(real)=identity, bool3 cond(real),
-	      interpolate join=operator --)
+              real b, int n=ngraph, real T(real)=identity, bool3 cond(real),
+              interpolate join=operator --)
 {
   if(T == identity)
     return graph(join,cond)(new pair(real t) {return Scale(pic,(x(t),y(t)));},
-			    a,b,n);
+                            a,b,n);
   else
     return graph(join,cond)(new pair(real t) {
-	return Scale(pic,(x(T(t)),y(T(t))));},
+        return Scale(pic,(x(T(t)),y(T(t))));},
       a,b,n);
 }
 
 guide graph(picture pic=currentpicture, pair z(real), real a, real b,
-	    int n=ngraph, real T(real)=identity, interpolate join=operator --)
+            int n=ngraph, real T(real)=identity, interpolate join=operator --)
 {
   if(T == identity)
     return graph(join)(new pair(real t) {return Scale(pic,z(t));},a,b,n);
   else
     return graph(join)(new pair(real t) {
-	return Scale(pic,z(T(t)));
+        return Scale(pic,z(T(t)));
       },a,b,n);
 }
 
 guide[] graph(picture pic=currentpicture, pair z(real), real a, real b,
-	      int n=ngraph, real T(real)=identity, bool3 cond(real),
-	      interpolate join=operator --)
+              int n=ngraph, real T(real)=identity, bool3 cond(real),
+              interpolate join=operator --)
 {
   if(T == identity)
     return graph(join,cond)(new pair(real t) {return Scale(pic,z(t));},a,b,n);
   else
     return graph(join,cond)(new pair(real t) {
-	return Scale(pic,z(T(t)));
+        return Scale(pic,z(T(t)));
       },a,b,n);
 }
 
@@ -1973,16 +1973,16 @@ guide graph(picture pic=currentpicture, pair[] z, interpolate join=operator --)
     },0,0,z.length-1);
 }
 
-guide[] graph(picture pic=currentpicture, pair[] z, bool[] cond,
-            interpolate join=operator --)
+guide[] graph(picture pic=currentpicture, pair[] z, bool3[] cond,
+              interpolate join=operator --)
 {
   int n=z.length;
   int i=0;
   pair w;
   checkconditionlength(cond.length,n);
   bool3 condition(real) {
-    bool b=cond[i];
-    if(b) w=Scale(pic,z[i]);
+    bool3 b=cond[i];
+    if(b != false) w=Scale(pic,z[i]);
     ++i;
     return b;
   }
@@ -1990,7 +1990,7 @@ guide[] graph(picture pic=currentpicture, pair[] z, bool[] cond,
 }
 
 guide graph(picture pic=currentpicture, real[] x, real[] y,
-	    interpolate join=operator --)
+            interpolate join=operator --)
 {
   int n=x.length;
   checklengths(n,y.length);
@@ -2002,8 +2002,8 @@ guide graph(picture pic=currentpicture, real[] x, real[] y,
     },0,0,n-1);
 }
 
-guide[] graph(picture pic=currentpicture, real[] x, real[] y, bool[] cond,
-            interpolate join=operator --)
+guide[] graph(picture pic=currentpicture, real[] x, real[] y, bool3[] cond,
+              interpolate join=operator --)
 {
   int n=x.length;
   checklengths(n,y.length);
@@ -2011,8 +2011,8 @@ guide[] graph(picture pic=currentpicture, real[] x, real[] y, bool[] cond,
   pair w;
   checkconditionlength(cond.length,n);
   bool3 condition(real) {
-    bool b=cond[i];
-    if(b) w=Scale(pic,(x[i],y[i]));
+    bool3 b=cond[i];
+    if(b != false) w=Scale(pic,(x[i],y[i]));
     ++i;
     return b;
   }
@@ -2035,7 +2035,7 @@ pair polar(real r, real theta)
 }
 
 guide polargraph(picture pic=currentpicture, real r(real), real a, real b,
-		 int n=ngraph, interpolate join=operator --)
+                 int n=ngraph, interpolate join=operator --)
 {
   return graph(join)(new pair(real theta) {
       return Scale(pic,polar(r(theta),theta));

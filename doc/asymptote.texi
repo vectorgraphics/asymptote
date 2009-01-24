@@ -1692,7 +1692,7 @@ the value @code{false} is assumed.
 @cindex @code{bool3}
 an extended boolean type that can take on the values
 @code{true}, @code{default}, or @code{false}. A bool3 type can be cast
-to or from a bool.
+to or from a bool. The default initializer for bool3 is @code{default}.
 
 @item int
 @cindex @code{int}
@@ -3617,7 +3617,7 @@ real getreal(string name="", real default=0, string prompt="",
 pair getpair(string name="", pair default=0, string prompt="",
              bool store=true);
 triple gettriple(string name="", triple default=(0,0,0), string prompt="",
-		 bool store=true);
+                 bool store=true);
 @end verbatim
 @noindent
 defined in the module @code{plain} may be used to prompt for a value from
@@ -6279,8 +6279,13 @@ Returns a graph using the scaling information for picture @code{pic}
 (@pxref{automatic scaling}) of the function @code{f} on the interval
 [@code{T}(@code{a}),@code{T}(@code{b})], sampling at @code{n} points
 evenly spaced in [@code{a},@code{b}], optionally restricted by the
-bool3 function @code{cond} on [@code{a},@code{b}], 
-using one of the interpolation types:
+bool3 function @code{cond} on [@code{a},@code{b}]. If @code{cond} is:
+@itemize @bullet 
+@item @code{true}, the point is added to the existing guide;
+@item @code{default}, the point is added to a new guide;
+@item @code{false}, the point is omitted.
+@end itemize
+Th points are connected using the interpolation specified by @code{join}:
 @itemize @bullet 
 
 @cindex @code{operator --}
@@ -6344,7 +6349,7 @@ interpolation type.
 @verbatim
 guide graph(picture pic=currentpicture, pair[] z,
             interpolate join=operator --);
-guide[] graph(picture pic=currentpicture, pair[] z, bool[] cond,
+guide[] graph(picture pic=currentpicture, pair[] z, bool3[] cond,
               interpolate join=operator --);
 @end verbatim
 
@@ -6358,7 +6363,7 @@ those indices for which the elements of the boolean array @code{cond} are
 guide graph(picture pic=currentpicture, real[] x, real[] y,
             interpolate join=operator --);
 guide[] graph(picture pic=currentpicture, real[] x, real[] y,
-              bool[] cond, interpolate join=operator --);
+              bool3[] cond, interpolate join=operator --);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -9001,4 +9006,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  multisampling autogen multisample coloredpath relstep flowdir
 @c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot scaledgraph
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
-@c  LocalWords:  nonintegral
+@c  LocalWords:  nonintegral gettriple

@@ -351,9 +351,9 @@ ticks3 InOutTicks(Label format="", ticklabel ticklabel=null,
 }
 
 ticks3 NoTicks3=NoTicks3(),
-  InTicks=InTicks(),
-  OutTicks=OutTicks(),
-  InOutTicks=InOutTicks();
+InTicks=InTicks(),
+OutTicks=OutTicks(),
+InOutTicks=InOutTicks();
 
 triple tickMin3(picture pic)
 {
@@ -458,9 +458,9 @@ axis XYZero(triple align=O, bool extend=false)
 
 axis
 Bounds=Bounds(),
-  YZZero=YZZero(),
-  XZZero=XZZero(),
-  XYZero=XYZero();
+YZZero=YZZero(),
+XZZero=XZZero(),
+XYZero=XYZero();
 
 // Draw a general three-dimensional axis.
 void axis(picture pic=currentpicture, Label L="", path3 g, path3 g2=nullpath3,
@@ -1147,8 +1147,8 @@ void limits(picture pic=currentpicture, triple min, triple max)
 // Draw x, y and z axes.
 void axes3(picture pic=currentpicture,
            Label xlabel="", Label ylabel="", Label zlabel="", 
-	   triple min=(-infinity,-infinity,-infinity),
-	   triple max=(infinity,infinity,infinity),
+           triple min=(-infinity,-infinity,-infinity),
+           triple max=(infinity,infinity,infinity),
            pen p=currentpen, arrowbar3 arrow=None)
 {
   xaxis3(pic,xlabel,min.x,max.x,p,arrow);
@@ -1347,13 +1347,13 @@ multigraph graph(interpolate3 join, bool3 cond(real))
       real t=a+(i/n)*width;
       bool3 b=cond(t);
       if(b)
-	g.push(f(t));
+        g.push(f(t));
       else {
-	G.push(join(...g));
-	if(b == default)
-	  g=new guide3[] {f(t)};
-	else
-	  g=new guide3[];
+        G.push(join(...g));
+        if(b == default)
+          g=new guide3[] {f(t)};
+        else
+          g=new guide3[];
       }
     }
     if(g.length > 0)
@@ -1366,16 +1366,16 @@ guide3 Straight(... guide3[])=operator --;
 guide3 Spline(... guide3[])=operator ..;
                        
 guide3 graph(picture pic=currentpicture, real x(real), real y(real),
-	     real z(real), real a, real b, int n=ngraph,
-	     interpolate3 join=operator --)
+             real z(real), real a, real b, int n=ngraph,
+             interpolate3 join=operator --)
 {
   return graph(join)(new triple(real t) {return Scale(pic,(x(t),y(t),z(t)));},
                      a,b,n);
 }
 
 guide3[] graph(picture pic=currentpicture, real x(real), real y(real),
-	       real z(real), real a, real b, int n=ngraph,
-	       bool3 cond(real), interpolate3 join=operator --)
+               real z(real), real a, real b, int n=ngraph,
+               bool3 cond(real), interpolate3 join=operator --)
 {
   return graph(join,cond)(new triple(real t) {
       return Scale(pic,(x(t),y(t),z(t)));
@@ -1383,13 +1383,13 @@ guide3[] graph(picture pic=currentpicture, real x(real), real y(real),
 }
 
 guide3 graph(picture pic=currentpicture, triple v(real), real a, real b,
-	     int n=ngraph, interpolate3 join=operator --)
+             int n=ngraph, interpolate3 join=operator --)
 {
   return graph(join)(new triple(real t) {return Scale(pic,v(t));},a,b,n);
 }
 
 guide3[] graph(picture pic=currentpicture, triple v(real), real a, real b,
-	       int n=ngraph, bool3 cond(real), interpolate3 join=operator --)
+               int n=ngraph, bool3 cond(real), interpolate3 join=operator --)
 {
   return graph(join,cond)(new triple(real t) {
       return Scale(pic,v(t));
@@ -1397,7 +1397,7 @@ guide3[] graph(picture pic=currentpicture, triple v(real), real a, real b,
 }
 
 guide3 graph(picture pic=currentpicture, triple[] v,
-	     interpolate3 join=operator --)
+             interpolate3 join=operator --)
 {
   int i=0;
   return graph(join)(new triple(real) {
@@ -1407,8 +1407,8 @@ guide3 graph(picture pic=currentpicture, triple[] v,
     },0,0,v.length-1);
 }
 
-guide3[] graph(picture pic=currentpicture, triple[] v, bool[] cond,
-	       interpolate3 join=operator --)
+guide3[] graph(picture pic=currentpicture, triple[] v, bool3[] cond,
+               interpolate3 join=operator --)
 {
   int n=v.length;
   int i=0;
@@ -1424,7 +1424,7 @@ guide3[] graph(picture pic=currentpicture, triple[] v, bool[] cond,
 }
 
 guide3 graph(picture pic=currentpicture, real[] x, real[] y, real[] z,
-	    interpolate3 join=operator --)
+             interpolate3 join=operator --)
 {
   int n=x.length;
   checklengths(n,y.length);
@@ -1438,7 +1438,7 @@ guide3 graph(picture pic=currentpicture, real[] x, real[] y, real[] z,
 }
 
 guide3[] graph(picture pic=currentpicture, real[] x, real[] y, real[] z,
-	       bool[] cond, interpolate3 join=operator --)
+               bool3[] cond, interpolate3 join=operator --)
 {
   int n=x.length;
   checklengths(n,y.length);
@@ -1447,8 +1447,8 @@ guide3[] graph(picture pic=currentpicture, real[] x, real[] y, real[] z,
   triple w;
   checkconditionlength(cond.length,n);
   bool3 condition(real) {
-    bool b=cond[i];
-    if(b) w=Scale(pic,(x[i],y[i],z[i]));
+    bool3 b=cond[i];
+    if(b != false) w=Scale(pic,(x[i],y[i],z[i]));
     ++i;
     return b;
   }
@@ -1457,7 +1457,7 @@ guide3[] graph(picture pic=currentpicture, real[] x, real[] y, real[] z,
 
 // The graph of a function along a path.
 guide3 graph(triple F(path, real), path p, int n=1,
-	     interpolate3 join=operator --)
+             interpolate3 join=operator --)
 {
   guide3 g=join(...sequence(new guide3(int i) {
         return F(p,i/n);
@@ -1472,14 +1472,14 @@ guide3 graph(triple F(pair), path p, int n=1, interpolate3 join=operator --)
 }
 
 guide3 graph(picture pic=currentpicture, real f(pair), path p, int n=1,
-	     interpolate3 join=operator --) 
+             interpolate3 join=operator --) 
 {
   return graph(new triple(pair z) {return Scale(pic,(z.x,z.y,f(z)));},p,n,
                join);
 }
 
 guide3 graph(real f(pair), path p, int n=1, real T(pair),
-	     interpolate3 join=operator --)
+             interpolate3 join=operator --)
 {
   return graph(new triple(pair z) {pair w=T(z); return (w.x,w.y,f(w));},p,n,
                join);
@@ -1840,7 +1840,7 @@ triple polar(real r, real theta, real phi)
 }
 
 guide3 polargraph(real r(real,real), real theta(real), real phi(real),
-		  int n=ngraph, interpolate3 join=operator --)
+                  int n=ngraph, interpolate3 join=operator --)
 {
   return graph(join)(new triple(real t) {
       return polar(r(theta(t),phi(t)),theta(t),phi(t));
