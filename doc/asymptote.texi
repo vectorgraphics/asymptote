@@ -1672,7 +1672,7 @@ The void type is used only by functions that take or return no arguments.
 
 @item bool
 @cindex @code{bool}
-a boolean type that can only take on the values @code{true} and
+a boolean type that can only take on the values @code{true} or
 @code{false}. For example:
 @verbatim
 bool b=true;
@@ -1687,6 +1687,12 @@ bool b;
 
 @noindent
 the value @code{false} is assumed.
+
+@item bool3
+@cindex @code{bool3}
+an extended boolean type that can take on the values
+@code{true}, @code{default}, or @code{false}. A bool3 type can be cast
+to or from a bool.
 
 @item int
 @cindex @code{int}

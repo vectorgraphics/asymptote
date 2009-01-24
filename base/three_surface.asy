@@ -242,8 +242,8 @@ struct patch {
 
     if(internal.length == 0) {
       straight=piecewisestraight(external);
-      this.planar=planar.set ? planar.value : normal(external) != O;
-
+      if(planar == default) this.planar=normal(external) != O;
+      else this.planar=planar;
       internal=new triple[4];
       for(int j=0; j < 4; ++j) {
         internal[j]=nineth*(-4*point(external,j)
@@ -290,7 +290,8 @@ struct patch {
     straight=true;
 
     if(internal.length == 0) {
-      this.planar=planar.set ? planar.value : normal(external) != O;
+      if(planar == default) this.planar=normal(external) != O;
+      else this.planar=planar;
       internal=new triple[4];
       for(int j=0; j < 4; ++j) {
 	internal[j]=nineth*(4*external[j]+2*external[(j+1)%4]+
