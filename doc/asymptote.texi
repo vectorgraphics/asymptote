@@ -563,11 +563,11 @@ in the @code{Asymptote} source directory.
 @cindex multisampling
 @anchor{multisampling}
 @noindent
-We recommend using SVN revision 761 (or later) of @code{freeglut} to
-support antialiasing, via multisampling, in our adaptive
-@code{Asymptote} @code{OpenGL}-based 3D renderer
+If your graphics card supports multisampling, we recommend using SVN
+revision 761 (or later) of @code{freeglut} to support antialiasing in
+our adaptive @code{Asymptote} @code{OpenGL}-based 3D renderer
 (@code{MacOS X} users can skip this step since @code{Asymptote} is configured
-to use the native glut library on that platform.) Download
+to use the native glut library on that platform). Download
 @quotation
 @url{http://freeglut.svn.sourceforge.net/viewvc/freeglut/trunk/freeglut/freeglut.tar.gz}
 @end quotation
@@ -7334,9 +7334,10 @@ There are four choices for viewing 3D @code{Asymptote} output:
 renderer (with the command-line option @code{-V} and the default settings
 @code{outformat=""} and @code{render=-1}). If you encounter warnings
 from your graphics card driver, try specifying @code{-glOptions=-indirect}
-on the command line. On @code{UNIX} systems, we recommend installing a patched
-version of the @code{freeglut} library to support antialiasing via
-multisampling (@pxref{multisampling}); the sample width can be
+on the command line. On @code{UNIX} systems with graphics support for
+multisampling, we recommend installing the latest SVN (antialiased)
+version of the @code{freeglut} library
+(@pxref{multisampling}); the sample width can be
 controlled with the setting @code{multisample}. An initial screen
 position can be specified with the pair setting @code{position}, where
 negative values are interpreted as relative to the corresponding
@@ -9006,4 +9007,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  multisampling autogen multisample coloredpath relstep flowdir
 @c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot scaledgraph
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
-@c  LocalWords:  nonintegral gettriple
+@c  LocalWords:  nonintegral gettriple enablerepo
