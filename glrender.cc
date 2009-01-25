@@ -308,54 +308,56 @@ void Export()
   glReadBuffer(GL_BACK_LEFT);
   glPixelStorei(GL_PACK_ALIGNMENT,1);
   glFinish();
-  size_t ndata=3*fullWidth*fullHeight;
-  unsigned char *data=new unsigned char[ndata];
-  if(data) {
-    TRcontext *tr=trNew();
-    int width=Quotient(fullWidth,Quotient(fullWidth,min(maxTileWidth,Width)));
-    int height=Quotient(fullHeight,Quotient(fullHeight,
-					    min(maxTileHeight,Height)));
-    if(settings::verbose > 1) 
-      cout << "Exporting " << Prefix << " as " << fullWidth << "x" 
-	   << fullHeight << " image" << " using tiles of size "
-	   << width << "x" << height << endl;
+  try {
+    size_t ndata=3*fullWidth*fullHeight;
+    unsigned char *data=new unsigned char[ndata];
+    if(data) {
+      TRcontext *tr=trNew();
+      int width=Quotient(fullWidth,Quotient(fullWidth,min(maxTileWidth,Width)));
+      int height=Quotient(fullHeight,Quotient(fullHeight,
+					      min(maxTileHeight,Height)));
+      if(settings::verbose > 1) 
+	cout << "Exporting " << Prefix << " as " << fullWidth << "x" 
+	     << fullHeight << " image" << " using tiles of size "
+	     << width << "x" << height << endl;
 
-    trTileSize(tr,width,height,0);
-    trImageSize(tr,fullWidth,fullHeight);
-    trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
+      trTileSize(tr,width,height,0);
+      trImageSize(tr,fullWidth,fullHeight);
+      trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
 
-    setDimensions(fullWidth,fullHeight,X/Width*fullWidth,Y/Width*fullWidth);
-    if(H == 0.0)
-      trOrtho(tr,xmin,xmax,ymin,ymax,-zmax,-zmin);
-    else
-      trFrustum(tr,xmin,xmax,ymin,ymax,-zmax,-zmin);
+      setDimensions(fullWidth,fullHeight,X/Width*fullWidth,Y/Width*fullWidth);
+      if(H == 0.0)
+	trOrtho(tr,xmin,xmax,ymin,ymax,-zmax,-zmin);
+      else
+	trFrustum(tr,xmin,xmax,ymin,ymax,-zmax,-zmin);
    
-    size_t count=0;
-    do {
-      trBeginTile(tr);
-      drawscene(fullWidth,fullHeight);
-      ++count;
-    } while (trEndTile(tr));
-    if(settings::verbose > 1)
-      cout << count << " tile" << (count > 1 ? "s" : "") << " drawn" << endl;
-    trDelete(tr);
+      size_t count=0;
+      do {
+	trBeginTile(tr);
+	drawscene(fullWidth,fullHeight);
+	++count;
+      } while (trEndTile(tr));
+      if(settings::verbose > 1)
+	cout << count << " tile" << (count > 1 ? "s" : "") << " drawn" << endl;
+      trDelete(tr);
 
-    picture pic;
-    double w=oWidth;
-    double h=oHeight;
-    double Aspect=((double) fullWidth)/fullHeight;
-    if(w > h*Aspect) w=(int) (h*Aspect+0.5);
-    else h=(int) (w/Aspect+0.5);
-    // Render an antialiased image.
-    drawImage *Image=new drawImage(data,fullWidth,fullHeight,
-				   transform(0.0,0.0,w,0.0,0.0,h),antialias);
-    pic.append(Image);
-    try {
+      picture pic;
+      double w=oWidth;
+      double h=oHeight;
+      double Aspect=((double) fullWidth)/fullHeight;
+      if(w > h*Aspect) w=(int) (h*Aspect+0.5);
+      else h=(int) (w/Aspect+0.5);
+      // Render an antialiased image.
+      drawImage *Image=new drawImage(data,fullWidth,fullHeight,
+				     transform(0.0,0.0,w,0.0,0.0,h),antialias);
+      pic.append(Image);
       pic.shipout(NULL,Prefix,Format,0.0,false,View);
-    } catch(handled_error) {
-    }
-    delete Image;
-    delete[] data;
+      delete Image;
+      delete[] data;
+    } 
+  } catch(handled_error) {
+  } catch(std::bad_alloc&) {
+    outOfMemory();
   }
   setProjection();
 }
@@ -1102,6 +1104,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     if(multisample)
       displaymode |= GLUT_MULTISAMPLE;
     glutInitDisplayMode(displaymode);
+
     ostringstream buf;
     int samples;
 #ifdef FREEGLUT
@@ -1162,6 +1165,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   
   nurb=gluNewNurbsRenderer();
+  if(nurb == NULL) 
+    outOfMemory();
   gluNurbsProperty(nurb,GLU_SAMPLING_METHOD,GLU_PARAMETRIC_ERROR);
   gluNurbsProperty(nurb,GLU_SAMPLING_TOLERANCE,0.5);
   gluNurbsProperty(nurb,GLU_PARAMETRIC_TOLERANCE,1.0);
