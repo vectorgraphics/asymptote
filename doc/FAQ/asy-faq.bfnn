@@ -1135,7 +1135,6 @@ decomposition.
 \question 23jun:lray What is the equivalent for the MetaPost command for \courier{lray - horiz*v - verti*u = whatever*(LightSource - R)\}, a system of three linear equations for three unknowns: \courier{horiz, verti, whatever\}?
 
 Since \courier{horiz*v+verti*u\} spans a plane, you could use
-
 \verbatim
 real intersect(vector P, vector Q, vector n, vector Z);
 \endverbatim
@@ -1281,7 +1280,6 @@ Try using some of the options to convert, mainly -geometry and -density. For exa
 \verbatim
 convert -geometry 1000x3000 example.eps example.png 
 \endverbatim
-should give you the number of pixels you are looking for. 
  
 You can also change the default resolution of the image with: 
 \verbatim
@@ -1302,30 +1300,3 @@ Yes, simply call the newpage() function. This is used by the
 (easier to use than Prosper).
 
 \comment Here it ends!
-
- LocalWords:  brieftitle href copyto endcopy faq whatisasy MetaPost Gouraud sep
- LocalWords:  colourspaces PostScript whereisasy MacOS docref RedHat Debian osx
- LocalWords:  beforeasking whyasy whycamp readline Schamschula osxbadCPU lgccpp
- LocalWords:  nogccpp gc Boehm nov brokenpdftex pdfetex pdftex cfg config qref
- LocalWords:  brokentexinfo texinfo arounds latexintegration latexusage tex EPS
- LocalWords:  Teixeira Ivaldi lasy pdflatex PDF inline endverbatim tkinter xasy
- LocalWords:  tkinterdepend Uvh nodeps windir USERPROFILE winglobal popup XP PQ
- LocalWords:  MSDOS miktex MikTex dvips texmf exe tensionsyntax greek pq
- LocalWords:  dotfactor prepending matlabels usepackage amsmath latexpackage
- LocalWords:  mathptmx internatfonts jul fourier textfamilyextension decsep pic
- LocalWords:  lineargraph rotatelabel fixedsize colorssaturation colour NoFill
- LocalWords:  doublearrows filltype arrowangle FillDraw EndPoint NoMargin xaxis
- LocalWords:  reversearrow arrowsize axisticks RightTicks yaxis LeftTicks rgval
- LocalWords:  threeaxispens xlimits ylimits MidPoint axislabelfont beginlabel
- LocalWords:  axisticklabelfont overlappingticklabels endlabel ticklabel NoZero
- LocalWords:  defaultformat SuppressQuiet MoveQuiet fixedsizegraphs
- LocalWords:  BottomTop LeftRight fixedscaling graphlimits NColors
- LocalWords:  custompalettes MyPalette Nongraphing dotloc dotlocs opic UnFill
- LocalWords:  PenMargins addBox xmin xmax yequals calculateTransform changeaxis
- LocalWords:  functioncolor latticeshade nonexplicitfun scalesecondaryaxis init
- LocalWords:  emptymarkers paletterange comporint pseudocode framepicture aug
- LocalWords:  unitsizes pathguide picarray genarrays cirdep someroutine interp
- LocalWords:  automaticscaling Metapost accomodate manualscaling mppickup lray
- LocalWords:  horiz verti LightSource unitsquare unitsize truesize psviewer noV
- LocalWords:  interactiveView batchView jpeg jpg embedbitmaps eps directpdf pdf
- LocalWords:  bigpictures png giff PixelsPerInch multipage newpage
