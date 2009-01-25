@@ -43,10 +43,8 @@ psfile::psfile(const string& filename, bool pdfformat)
 {
   if(filename.empty()) out=&cout;
   else out=new ofstream(filename.c_str());
-  if(!out || !*out) {
-    cerr << "Cannot write to " << filename << endl;
-    throw handled_error();
-  }
+  if(!out || !*out)
+    reportError("Cannot write to "+filename);
 }
 
 void dealias(unsigned char *a, size_t width, size_t height, size_t n) 
@@ -86,11 +84,8 @@ void psfile::close()
   if(out) {
     out->flush();
     if(!filename.empty()) {
-      if(!out->good()) {
-	ostringstream msg;
-	msg << "Cannot write to " << filename;
-	reportError(msg);
-      }
+      if(!out->good())
+	reportError("Cannot write to "+filename);
       delete out;
       out=NULL;
     }

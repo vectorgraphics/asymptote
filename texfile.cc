@@ -24,10 +24,8 @@ texfile::texfile(const string& texname, const bbox& box, bool pipe)
   inlinetex=getSetting<bool>("inlinetex");
   Hoffset=inlinetex ? box.right : box.left;
   out=new ofstream(texname.c_str());
-  if(!out || !*out) {
-    cerr << "Cannot write to " << texname << endl;
-    throw handled_error();
-  }
+  if(!out || !*out)
+    reportError("Cannot write to "+texname);
   out->setf(std::ios::fixed);
   out->precision(6);
   texdocumentclass(*out,pipe);

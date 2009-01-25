@@ -350,7 +350,10 @@ void Export()
     drawImage *Image=new drawImage(data,fullWidth,fullHeight,
 				   transform(0.0,0.0,w,0.0,0.0,h),antialias);
     pic.append(Image);
-    pic.shipout(NULL,Prefix,Format,0.0,false,View);
+    try {
+      pic.shipout(NULL,Prefix,Format,0.0,false,View);
+    } catch(handled_error) {
+    }
     delete Image;
     delete[] data;
   }
