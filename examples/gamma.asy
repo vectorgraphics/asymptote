@@ -1,14 +1,14 @@
-import graph; 
+import graph;
 size(300,IgnoreAspect);
 
 bool3 branch(real x)
 {
-  static int lastsign=0; 
-  if(x <= 0 && x == floor(x)) {lastsign=0; return false;}
-  int sign=sgn(gamma(x)); 
-  bool b=lastsign == 0 || sign == lastsign; 
-  lastsign=sign; 
-  return b ? true : default; 
+  static int lastsign=0;
+  if(x <= 0 && x == floor(x)) return false;
+  int sign=sgn(gamma(x));
+  bool b=lastsign == 0 || sign == lastsign;
+  lastsign=sign;
+  return b ? true : default;
 }
 
 draw(graph(gamma,-4,4,n=2000,branch),red);

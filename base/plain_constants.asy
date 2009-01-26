@@ -100,7 +100,7 @@ void write(string s="", bool3 b, suffix suffix=endl)
 
 restricted bool3 default;
 
-bool operator cast(bool3 b) 
+bool operator cast(bool3 b)
 {
   return b.set && b.value;
 }

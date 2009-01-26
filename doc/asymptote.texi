@@ -6283,7 +6283,7 @@ bool3 function @code{cond} on [@code{a},@code{b}]. If @code{cond} is:
 @itemize @bullet 
 @item @code{true}, the point is added to the existing guide;
 @item @code{default}, the point is added to a new guide;
-@item @code{false}, the point is omitted.
+@item @code{false}, the point is omitted and a new guide is begun.
 @end itemize
 Th points are connected using the interpolation specified by @code{join}:
 @itemize @bullet 
