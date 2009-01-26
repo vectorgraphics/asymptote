@@ -11,14 +11,15 @@ bool3 branch(real x) {
   static bool first=true;
   static pair last;
   int currint=floor(x);
+  pair z=(x,currint);
   bool samebranch=first || lastint == currint; 
+  lastint=currint;
   first=false;
-  if(samebranch) last=(x,currint);
+  if(samebranch) last=z;
   else {
-    open.push((x,currint));
+    open.push(z);
     close.push(last);
   }
-  lastint=currint;
   return samebranch ? true : default;
 };
 
