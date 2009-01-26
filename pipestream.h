@@ -99,7 +99,7 @@ public:
     close(in[0]);
     *buffer=0;
     pipeopen=true;
-    waitpid(-1,NULL,WNOHANG);
+    waitpid(pid,NULL,WNOHANG);
   }
 
   bool isopen() {return pipeopen;}
@@ -115,6 +115,7 @@ public:
   virtual void pipeclose() {
     if(pipeopen) {
       close(in[1]);
+      close(out[0]);
       pipeopen=false;
     }
   }
@@ -128,9 +129,8 @@ public:
     char *p=buffer;
     ssize_t size=BUFSIZE-1;
     for(;;) {
-      if((nc=read(out[0],p,size)) < 0) {
+      if((nc=read(out[0],p,size)) < 0)
 	camp::reportError("read from pipe failed");
-      }
       p[nc]=0;
       if(nc == 0) break;
       if(nc > 0) {
