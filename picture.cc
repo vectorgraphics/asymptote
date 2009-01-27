@@ -272,7 +272,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       dcmd << "'" << getSetting<string>("dvips") << "' -R -Pdownload35 -D600"
 	   << " -O " << hoffset << "bp," << voffset << "bp"
 	   << " -T " << paperWidth << "bp," << paperHeight << "bp "
-           << getSetting<string>("dvipsOptions");
+           << getSetting<string>("dvipsOptions") << " -t ''";
       if(verbose <= 1) dcmd << " -q";
       dcmd << " -o '" << psname << "' '" << dviname << "'";
       status=System(dcmd,0,true,"dvips");
