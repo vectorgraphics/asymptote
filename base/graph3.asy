@@ -1682,7 +1682,7 @@ surface surface(real[][] f, pair a, pair b, bool[][] cond={})
 // return the surface described by a parametric function f over box(a,b),
 // interpolated linearly.
 surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
-                bool3 cond(pair z)=null)
+                bool cond(pair z)=null)
 {
   if(nu <= 0 || nv <= 0) return nullsurface;
 
@@ -1713,7 +1713,7 @@ surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
 // return the surface described by a real function f over box(a,b),
 // interpolated linearly.
 surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
-                bool3 cond(pair z)=null)
+                bool cond(pair z)=null)
 {
   return surface(new triple(pair z) {return (z.x,z.y,f(z));},a,b,nx,ny,cond);
 }
@@ -1721,7 +1721,7 @@ surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
 // return the surface described by a real function f over box(a,b),
 // interpolated with splinetype.
 surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
-                splinetype splinetype, bool3 cond(pair z)=null)
+                splinetype splinetype, bool cond(pair z)=null)
 {
   bool[][] active;
   bool all=cond == null;
