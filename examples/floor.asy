@@ -3,21 +3,21 @@ unitsize(1cm);
 
 real Floor(real x) {return floor(x);}
 
-pair[] Open;
 pair[] Close;
+pair[] Open;
 
 bool3 branch(real x) {
-  static real last;
+  static real lasty;
   static bool first=true;
-  real current=floor(x);
-  bool samebranch=first || last == current; 
+  real y=floor(x);
+  bool samebranch=first || lasty == y; 
   first=false;
-  if(samebranch) last=x;
+  if(samebranch) lasty=x;
   else {
-    Close.push((x,last));
-    Open.push((x,current));
+    Close.push((x,lasty));
+    Open.push((x,y));
   }
-  last=current;
+  lasty=y;
   return samebranch ? true : default;
 };
 
