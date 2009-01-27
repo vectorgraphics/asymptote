@@ -3,28 +3,29 @@ unitsize(1cm);
 
 real Floor(real x) {return floor(x);}
 
-pair[] open;
-pair[] close;
+pair[] Open;
+pair[] Close;
 
 bool3 branch(real x) {
-  static int lastint;
+  static real last;
   static bool first=true;
-  static pair last;
-  int currint=floor(x);
-  pair z=(x,currint);
-  bool samebranch=first || lastint == currint; 
-  lastint=currint;
+  real current=floor(x);
+  bool samebranch=first || last == current; 
   first=false;
-  if(samebranch) last=z;
+  if(samebranch) last=x;
   else {
-    open.push(z);
-    close.push(last);
+    Close.push((x,last));
+    Open.push((x,current));
   }
+  last=current;
   return samebranch ? true : default;
 };
 
-draw(graph(Floor,-5.5,5.5,1000,branch)); 
+draw(graph(Floor,-5.5,5.5,500,branch)); 
 axes("$x$","$\lfloor x\rfloor$",red);
 
-dot(close);
-dot(open,UnFill);
+write(Close);
+write(Open);
+
+dot(Close);
+dot(Open,UnFill);
