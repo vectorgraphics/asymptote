@@ -1038,6 +1038,8 @@ void initSettings() {
   addOption(new boolSetting("exitonEOF", 0, "Exit interactive mode on EOF",
 			    true));
 			    
+  addOption(new boolSetting("quiet", 'q',
+			    "Suppress welcome message"));
   addOption(new boolSetting("localhistory", 0,
 			    "Use a local interactive history file"));
   addOption(new IntSetting("historylines", 0, "n",
