@@ -42,6 +42,7 @@ extern const char BUGREPORT[];
 extern char *argv0;
 
 extern const string docdir;
+extern const string dirsep;
   
 extern bool safe;
   

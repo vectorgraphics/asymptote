@@ -91,6 +91,7 @@ string defaultDisplay="display";
 string defaultPython;
 const string docdir=ASYMPTOTE_DOCDIR;
 void queryRegistry() {}
+const string dirsep="/";
   
 #else  
   
@@ -105,6 +106,7 @@ string defaultDisplay="imdisplay";
 #undef ASYMPTOTE_SYSDIR
 #define ASYMPTOTE_SYSDIR asyInstallDir
 const string docdir=".";
+const string dirsep="\\";
   
 #include <dirent.h>
   

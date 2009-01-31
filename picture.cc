@@ -269,10 +269,16 @@ bool picture::texprocess(const string& texname, const string& outname,
       voffset += paperHeight-height-b.bottom-bboxshift.gety();
     
       ostringstream dcmd;
+      
+      string dvipsrc=getSetting<string>("dir");
+      if(dvipsrc.empty()) dvipsrc=ASYMPTOTE_SYSDIR;
+      dvipsrc += dirsep+"nopapersize.ps";
+      setenv("DVIPSRC",dvipsrc.c_str(),1);
       dcmd << "'" << getSetting<string>("dvips") << "' -R -Pdownload35 -D600"
 	   << " -O " << hoffset << "bp," << voffset << "bp"
 	   << " -T " << paperWidth << "bp," << paperHeight << "bp "
-           << getSetting<string>("dvipsOptions") << " -t ''";
+           << " -t nosize"
+           << getSetting<string>("dvipsOptions");
       if(verbose <= 1) dcmd << " -q";
       dcmd << " -o '" << psname << "' '" << dviname << "'";
       status=System(dcmd,0,true,"dvips");
