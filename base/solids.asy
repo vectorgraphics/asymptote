@@ -211,6 +211,8 @@ struct revolution {
 
   // return approximate silhouette based on m evenly spaced transverse slices
   path3[] silhouette(int m=64, projection P=currentprojection) {
+    if(is3D())
+      write("warning: silhouette routine is intended only for 2d projections");
     path3 G,H;
     int N=size(g);
     int M=(m == 0) ? N : m;
