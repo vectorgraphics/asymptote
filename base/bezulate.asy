@@ -29,7 +29,7 @@ path[][] containmentTree(path[] paths)
     bool classified=false;
     for(int j=0; !classified && j < result.length; ++j) {
       for(int k=0; !classified && k < result[j].length; ++k) {
-        if(inside(paths[i],result[j][k]) != 0) {
+        if(inside(paths[i],result[j][k],zerowinding) != 0) {
           result[j].push(paths[i]);
           classified=true;
         }
@@ -75,11 +75,10 @@ path uncycle(path p, real t)
   return subpath(p,t,t+length(p));
 }
 
-// TODO: check if fillrule is respected
 // returns outer paths
 path[] connect(path[] paths, path[] result, path[] patch, int depth=0)
 {
-  bool flag=depth%2 == 0;
+  bool flag=depth % 2 == 0;
   path[][] tree=containmentTree(paths);
   path[] outers;
   for(path[] group : tree) {
@@ -110,7 +109,7 @@ path[] connect(path[] paths, path[] result, path[] patch, int depth=0)
           path inner=inners[i];
           pair direction=I*dir(inner,0);
           pair start=point(inner,0);
-          real starttime=0.0;
+          real starttime=0;
           // find an outer point on inner curve in the chosen direction
           starttime=intersections(start+d*direction--start,inner)[0][1];
           start=point(inner,starttime);
@@ -180,7 +179,7 @@ int countIntersections(path g, pair p, pair q)
 bool checkSegment(path g, pair p, pair q)
 {
   pair mid=(p+q)/2;
-  return(countIntersections(g,p,q) == 4 && inside(g,mid) && 
+  return(countIntersections(g,p,q) == 4 && inside(g,mid,zerowinding) && 
          intersections(g,mid).length == 0);
 }
 
