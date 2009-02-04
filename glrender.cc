@@ -24,10 +24,6 @@
 
 #define GLUT_BUILDING_LIB
 
-#ifdef FREEGLUT
-#include <GL/freeglut_ext.h>
-#endif
-
 #include "picture.h"
 #include "arcball.h"
 #include "bbox3.h"
@@ -35,6 +31,10 @@
 #include "interact.h"
 #include "glrender.h"
 #include "tr.h"
+
+#ifdef FREEGLUT
+#include <GL/freeglut_ext.h>
+#endif
 
 namespace gl {
   
