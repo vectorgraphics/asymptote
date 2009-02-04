@@ -1091,7 +1091,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
 #endif    
   
-  initialized=true;
   unsigned int displaymode=GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH;
   
   if(View) {
@@ -1138,16 +1137,19 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 	cout << "Multisampling enabled with sample width " << samples << endl;
     }
     glutShowWindow();
-  } else {
+  } else if(!initialized || !glthread) {
     glutInitWindowSize(maxTileWidth,maxTileHeight);
     glutInitDisplayMode(displaymode);
     window=glutCreateWindow("");
     glutHideWindow();
   }
   
+  initialized=true;
+  
   glClearColor(1.0,1.0,1.0,1.0);
    
   glMatrixMode(GL_MODELVIEW);
+    
   home();
   
   if(View) {
