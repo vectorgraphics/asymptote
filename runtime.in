@@ -3191,10 +3191,8 @@ string format(string *format, real x, string locale=emptystring)
       if(*q == '-') out << *(q++);
       while(*q == '0' && (zero || isdigit(*(q+1)))) q++;
       while(isdigit(*q)) out << *(q++);
-      if(!zero) {
-	if(plus) out << phantom;
+      if(!zero)
 	out << "}";
-      }
       break;
     }
     out << *(q++);
