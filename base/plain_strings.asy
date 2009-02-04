@@ -99,12 +99,14 @@ string[] split(string s, string delimiter)
   return S;
 }
 
+int[] operator ecast(string[] a)
+{
+  return sequence(new int(int i) {return (int) a[i];},a.length);
+}
+
 real[] operator ecast(string[] a)
 {
-  real[] b=new real[a.length];
-  for(int i=0; i < a.length; ++i)
-    b[i]=(real) a[i];
-  return b;
+  return sequence(new real(int i) {return (real) a[i];},a.length);
 }
 
 // Read contents of file as a string.
