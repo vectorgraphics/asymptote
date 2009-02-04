@@ -1974,7 +1974,7 @@ bool view()
 
 string asydir() 
 {
-  return ASYMPTOTE_SYSDIR;	
+  return systemDir;
 }
 
 string locale(string s=emptystring)

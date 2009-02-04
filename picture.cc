@@ -271,7 +271,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       ostringstream dcmd;
       
       string dvipsrc=getSetting<string>("dir");
-      if(dvipsrc.empty()) dvipsrc=ASYMPTOTE_SYSDIR;
+      if(dvipsrc.empty()) dvipsrc=systemDir;
       dvipsrc += dirsep+"nopapersize.ps";
       setenv("DVIPSRC",dvipsrc.c_str(),1);
       dcmd << "'" << getSetting<string>("dvips") << "' -R -Pdownload35 -D600"

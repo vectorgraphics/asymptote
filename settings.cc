@@ -66,7 +66,7 @@ namespace settings {
   
 using camp::pair;
   
-string asyInstallDir; // Used only by msdos
+string asyInstallDir;
 string defaultXasy="xasy";
 
 #ifdef HAVE_LIBGLUT
@@ -87,8 +87,9 @@ string defaultPDFViewer="open";
 string defaultPDFViewer="acroread";
 #endif  
 string defaultGhostscript="gs";
-string defaultDisplay="display";
 string defaultPython;
+string defaultDisplay="display";
+string systemDir=ASYMPTOTE_SYSDIR;
 const string docdir=ASYMPTOTE_DOCDIR;
 void queryRegistry() {}
 const string dirsep="/";
@@ -103,8 +104,7 @@ string defaultPDFViewer="AcroRd32.exe";
 string defaultGhostscript="gswin32c.exe";
 string defaultPython="python.exe";
 string defaultDisplay="imdisplay";
-#undef ASYMPTOTE_SYSDIR
-#define ASYMPTOTE_SYSDIR asyInstallDir
+string systemDir;
 const string docdir=".";
 const string dirsep="\\";
   
@@ -168,7 +168,7 @@ void queryRegistry()
     defaultPDFViewer;
   defaultPSViewer=getEntry("Ghostgum/GSview/*")+"\\gsview\\"+defaultPSViewer;
   defaultPython=getEntry("Python/PythonCore/*/InstallPath/@")+defaultPython;
-  asyInstallDir=getEntry("Microsoft/Windows/CurrentVersion/App Paths/Asymptote/Path");
+  systemDir=getEntry("Microsoft/Windows/CurrentVersion/App Paths/Asymptote/Path");
   defaultXasy=asyInstallDir+"\\"+defaultXasy;
 }
   
@@ -1148,9 +1148,7 @@ void setPath() {
     if(i < asydir.length()) searchPath.push_back(asydir.substr(i));
   }
   searchPath.push_back(initdir);
-#ifdef ASYMPTOTE_SYSDIR
-  searchPath.push_back(ASYMPTOTE_SYSDIR);
-#endif
+  searchPath.push_back(systemDir);
 }
 
 void SetPageDimensions() {
