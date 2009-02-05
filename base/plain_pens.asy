@@ -154,6 +154,11 @@ pen Pen(int n)
   return (settings.gray || settings.bw) ? monoPen[n] : colorPen[n];
 }
 
+pen Pentype(int n)
+{
+  return (settings.gray || settings.bw) ? monoPen[n] : monoPen[n]+colorPen[n];
+}
+
 real dotsize(pen p=currentpen) 
 {
   return dotfactor*linewidth(p);
