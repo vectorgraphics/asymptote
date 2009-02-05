@@ -183,7 +183,7 @@ void lighting()
     glLightfv(index,GL_AMBIENT,ambient);
     
     GLfloat specular[]={Specular[i4],Specular[i4+1],Specular[i4+2],
-			Specular[i4+3]};
+                        Specular[i4+3]};
     glLightfv(index,GL_SPECULAR,specular);
   }
 }
@@ -315,11 +315,11 @@ void Export()
       TRcontext *tr=trNew();
       int width=Quotient(fullWidth,Quotient(fullWidth,min(maxTileWidth,Width)));
       int height=Quotient(fullHeight,Quotient(fullHeight,
-					      min(maxTileHeight,Height)));
+                                              min(maxTileHeight,Height)));
       if(settings::verbose > 1) 
-	cout << "Exporting " << Prefix << " as " << fullWidth << "x" 
-	     << fullHeight << " image" << " using tiles of size "
-	     << width << "x" << height << endl;
+        cout << "Exporting " << Prefix << " as " << fullWidth << "x" 
+             << fullHeight << " image" << " using tiles of size "
+             << width << "x" << height << endl;
 
       trTileSize(tr,width,height,0);
       trImageSize(tr,fullWidth,fullHeight);
@@ -327,18 +327,18 @@ void Export()
 
       setDimensions(fullWidth,fullHeight,X/Width*fullWidth,Y/Width*fullWidth);
       if(H == 0.0)
-	trOrtho(tr,xmin,xmax,ymin,ymax,-zmax,-zmin);
+        trOrtho(tr,xmin,xmax,ymin,ymax,-zmax,-zmin);
       else
-	trFrustum(tr,xmin,xmax,ymin,ymax,-zmax,-zmin);
+        trFrustum(tr,xmin,xmax,ymin,ymax,-zmax,-zmin);
    
       size_t count=0;
       do {
-	trBeginTile(tr);
-	drawscene(fullWidth,fullHeight);
-	++count;
+        trBeginTile(tr);
+        drawscene(fullWidth,fullHeight);
+        ++count;
       } while (trEndTile(tr));
       if(settings::verbose > 1)
-	cout << count << " tile" << (count > 1 ? "s" : "") << " drawn" << endl;
+        cout << count << " tile" << (count > 1 ? "s" : "") << " drawn" << endl;
       trDelete(tr);
 
       picture pic;
@@ -349,7 +349,7 @@ void Export()
       else h=(int) (w/Aspect+0.5);
       // Render an antialiased image.
       drawImage *Image=new drawImage(data,fullWidth,fullHeight,
-				     transform(0.0,0.0,w,0.0,0.0,h),antialias);
+                                     transform(0.0,0.0,w,0.0,0.0,h),antialias);
       pic.append(Image);
       pic.shipout(NULL,Prefix,Format,0.0,false,View);
       delete Image;
@@ -620,14 +620,14 @@ void rotate(int x, int y)
     }
     Motion=true;
     arcball.mouse_motion(x,Height-y,0,
-			 mod == GLUT_ACTIVE_SHIFT, // X rotation only
-			 mod == GLUT_ACTIVE_CTRL);  // Y rotation only
+                         mod == GLUT_ACTIVE_SHIFT, // X rotation only
+                         mod == GLUT_ACTIVE_CTRL);  // Y rotation only
 
     for(int i=0; i < 4; ++i) {
       const vec4& roti=arcball.rot[i];
       int i4=4*i;
       for(int j=0; j < 4; ++j)
-	Rotate[i4+j]=roti[j];
+        Rotate[i4+j]=roti[j];
     }
     update();
   }
@@ -717,7 +717,7 @@ void mouse(int button, int state, int x, int y)
   if(button == GLUT_WHEEL_DOWN) {
     mousewheel(0,-1,x,y);
     return;
-  }	
+  }     
   
   mod=glutGetModifiers();
   
@@ -762,7 +762,7 @@ double spinstep()
   timeval tv;
   gettimeofday(&tv,NULL);
   double step=spinStep*(tv.tv_sec-lasttime.tv_sec+
-			((double) tv.tv_usec-lasttime.tv_usec)/1000000.0);
+                        ((double) tv.tv_usec-lasttime.tv_usec)/1000000.0);
   lasttime=tv;
   return step;
 }
@@ -795,7 +795,7 @@ void expand()
 void shrink() 
 {
   setsize(max((int) (Width/resizeStep+0.5),1),
-	  max((int) (Height/resizeStep+0.5),1));
+          max((int) (Height/resizeStep+0.5),1));
 }
 
 void idleFunc(void (*f)())
@@ -809,22 +809,22 @@ void mode()
   switch(Mode) {
     case 0:
       for(size_t i=0; i < Nlights; ++i) 
-	glEnable(GL_LIGHT0+i);
+        glEnable(GL_LIGHT0+i);
       glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
       gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_FILL);
       ++Mode;
-    break;
+      break;
     case 1:
       for(size_t i=0; i < Nlights; ++i) 
-	glDisable(GL_LIGHT0+i);
+        glDisable(GL_LIGHT0+i);
       gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_POLYGON);
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
       ++Mode;
-    break;
+      break;
     case 2:
       gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_PATCH);
       Mode=0;
-    break;
+      break;
   }
   glutPostRedisplay();
 }
@@ -986,11 +986,11 @@ void init()
 
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
-	      double width, double height,
-	      double angle, const triple& m, const triple& M,
-	      size_t nlights, triple *lights, double *diffuse,
-	      double *ambient, double *specular, bool Viewportlighting,
-	      bool view, int oldpid)
+              double width, double height,
+              double angle, const triple& m, const triple& M,
+              size_t nlights, triple *lights, double *diffuse,
+              double *ambient, double *specular, bool Viewportlighting,
+              bool view, int oldpid)
 {
 #ifndef __CYGWIN__    
   Iconify=getSetting<bool>("iconify");
@@ -1034,52 +1034,52 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Mode=0;
   
   if(!initialized || !interact::interactive) {
-  antialias=getSetting<Int>("antialias") > 1;
-  double expand=getSetting<double>("render");
-  if(expand < 0)
-    expand *= (Format.empty() || Format == "eps" || Format == "pdf") 
-      ? -2.0 : -1.0;
-  if(antialias) expand *= 2.0;
+    antialias=getSetting<Int>("antialias") > 1;
+    double expand=getSetting<double>("render");
+    if(expand < 0)
+      expand *= (Format.empty() || Format == "eps" || Format == "pdf") 
+        ? -2.0 : -1.0;
+    if(antialias) expand *= 2.0;
   
-  // Force a hard viewport limit to work around direct rendering bugs.
-  // Alternatively, one can use -glOptions=-indirect (with a performance
-  // penalty).
-  pair maxViewport=getSetting<pair>("maxviewport");
-  maxWidth=(int) ceil(maxViewport.getx());
-  maxHeight=(int) ceil(maxViewport.gety());
-  if(maxWidth <= 0) maxWidth=max(maxHeight,2);
-  if(maxHeight <= 0) maxHeight=max(maxWidth,2);
-  if(screenWidth <= 0) screenWidth=maxWidth;
-  if(screenHeight <= 0) screenHeight=maxHeight;
+    // Force a hard viewport limit to work around direct rendering bugs.
+    // Alternatively, one can use -glOptions=-indirect (with a performance
+    // penalty).
+    pair maxViewport=getSetting<pair>("maxviewport");
+    maxWidth=(int) ceil(maxViewport.getx());
+    maxHeight=(int) ceil(maxViewport.gety());
+    if(maxWidth <= 0) maxWidth=max(maxHeight,2);
+    if(maxHeight <= 0) maxHeight=max(maxWidth,2);
+    if(screenWidth <= 0) screenWidth=maxWidth;
+    if(screenHeight <= 0) screenHeight=maxHeight;
   
-  oWidth=width;
-  oHeight=height;
-  Aspect=width/height;
+    oWidth=width;
+    oHeight=height;
+    Aspect=width/height;
   
-  fullWidth=(int) ceil(expand*width);
-  fullHeight=(int) ceil(expand*height);
+    fullWidth=(int) ceil(expand*width);
+    fullHeight=(int) ceil(expand*height);
   
-  Width=min(fullWidth,screenWidth);
-  Height=min(fullHeight,screenHeight);
+    Width=min(fullWidth,screenWidth);
+    Height=min(fullHeight,screenHeight);
   
-  if(Width > Height*Aspect) 
-    Width=min((int) (ceil(Height*Aspect)),screenWidth);
-  else 
-    Height=min((int) (ceil(Width/Aspect)),screenHeight);
+    if(Width > Height*Aspect) 
+      Width=min((int) (ceil(Height*Aspect)),screenWidth);
+    else 
+      Height=min((int) (ceil(Width/Aspect)),screenHeight);
   
-  Aspect=((double) Width)/Height;
+    Aspect=((double) Width)/Height;
   
-  pair maxtile=getSetting<pair>("maxtile");
-  maxTileWidth=(int) maxtile.getx();
-  maxTileHeight=(int) maxtile.gety();
-  if(maxTileWidth <= 0) maxTileWidth=screenWidth;
-  if(maxTileHeight <= 0) maxTileHeight=screenHeight;
+    pair maxtile=getSetting<pair>("maxtile");
+    maxTileWidth=(int) maxtile.getx();
+    maxTileHeight=(int) maxtile.gety();
+    if(maxTileWidth <= 0) maxTileWidth=screenWidth;
+    if(maxTileHeight <= 0) maxTileHeight=screenHeight;
   
-  setosize();
+    setosize();
   
-  if(View && settings::verbose > 1) 
-    cout << "Rendering " << prefix << " as " << Width << "x" << Height
-	 << " image" << endl;
+    if(View && settings::verbose > 1) 
+      cout << "Rendering " << prefix << " as " << Width << "x" << Height
+           << " image" << endl;
   }
   
 #ifdef HAVE_LIBPTHREAD
@@ -1117,11 +1117,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #ifdef GLUT_INIT_MAJOR_VERSION
     while(true) {
       if(multisample > 0)
-	glutSetOption(GLUT_MULTISAMPLE,multisample);
+        glutSetOption(GLUT_MULTISAMPLE,multisample);
 #endif      
 #endif      
       string title=string(settings::PROGRAM)+": "+prefix+
-	" [Double click right button for menu]";
+        " [Double click right button for menu]";
       window=glutCreateWindow(title.c_str());
       GLint samplebuf[1];
       glGetIntegerv(GL_SAMPLES,samplebuf);
@@ -1129,11 +1129,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #ifdef FREEGLUT
 #ifdef GLUT_INIT_MAJOR_VERSION
       if(samples < multisample) {
-	--multisample;
-	if(multisample > 1) {
-	  glutDestroyWindow(window);
-	  continue;
-	}
+        --multisample;
+        if(multisample > 1) {
+          glutDestroyWindow(window);
+          continue;
+        }
       }
       break;
     }
@@ -1141,7 +1141,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif      
     if(samples > 1) {
       if(settings::verbose > 1 && samples > 1)
-	cout << "Multisampling enabled with sample width " << samples << endl;
+        cout << "Multisampling enabled with sample width " << samples << endl;
     }
     glutShowWindow();
   } else if(!havewindow) {
