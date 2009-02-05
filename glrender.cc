@@ -461,6 +461,7 @@ void togglefitscreen()
 void updateHandler(int)
 {
   update();
+  if(glthread && !interact::interactive) fitscreen();
   glutShowWindow();
   glutShowWindow(); // Call twice to work around apparent freeglut bug.
 }
@@ -1015,8 +1016,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   static bool initialized=false;
 
-  if(!initialized)
+  if(!initialized) {
     init();
+    Fitscreen=1;
+  }
   
   Xmin=m.getx();
   Xmax=M.getx();
@@ -1028,7 +1031,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
    
   Menu=false;
   Motion=true;
-  Fitscreen=1;
   Mode=0;
   
   if(!initialized || !interact::interactive) {

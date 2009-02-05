@@ -30,5 +30,5 @@ real r=0.4;
 draw(F3(r)--(1,f(r),0),red);
 real x=(1+r)/2;
 
-draw("$r$",(x,0,0)--(x,f(r),0),X+0.1Z,red,Arrow3);
+draw("$r$",(x,0,0)--(x,f(r),0),X+0.2Z,red,Arrow3);
 draw(arc(1.1X,0.4,90,90,3,-90),Arrow3);
