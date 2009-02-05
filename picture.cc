@@ -348,7 +348,8 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
       << " -dDEVICEWIDTHPOINTS=" << max(b.right-b.left,3.0)
       << " -dDEVICEHEIGHTPOINTS=" << max(b.top-b.bottom,3.0)
       << " " << getSetting<string>("gsOptions")
-      << " -sOutputFile='" << pdfname << "' '" << epsname << "'";
+      << " -sOutputFile='" << stripDir(pdfname) << "' '"
+      << stripDir(epsname) << "'";
 
   string dir=stripFile(pdfname);
   char *oldPath=NULL;
