@@ -82,7 +82,7 @@ struct marker {
   frame f;
   bool above=true;
   markroutine markroutine=marknodes;
-  void mark(picture pic, path g) {
+  void mark(picture pic=currentpicture, path g) {
     markroutine(pic,f,g);
   };
 }
