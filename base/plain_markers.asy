@@ -78,6 +78,18 @@ markroutine markuniform(bool centered=false, int n, bool rotated=false) {
   };
 }
 
+// On picture pic, add frame f at points z(t) for n evenly spaced values of
+// t in [a,b].
+markroutine markuniform(pair z(real t), real a, real b, int n)
+{
+  return new void(picture pic=currentpicture, frame f, path) {
+    real width=b-a;
+    for(int i=0; i <= n; ++i) {
+      add(pic,f,z(a+i/n*width));
+    }
+  };
+}
+
 struct marker {
   frame f;
   bool above=true;

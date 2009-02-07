@@ -6763,6 +6763,7 @@ the tick labels on the @math{y} axis.
 @cindex @code{marker}
 @cindex @code{marknodes}
 @cindex @code{markuniform}
+@cindex @code{mark}
 @anchor{pathmarkers}
 @item The next example draws two graphs of an array of coordinate pairs,
 using frame alignment and data markers. In the left-hand graph, the
@@ -6788,7 +6789,14 @@ Here @code{markuniform(bool centered=false, int n, bool rotated=false)}
 adds this frame at @code{n} uniformly spaced points along the arclength
 of the path, optionally rotated by the angle of the local tangent to the path
 (if centered is true, the frames will be centered within @code{n} evenly
-spaced arclength intervals). These markers are predefined:
+spaced arclength intervals). Alternatively, one can use
+markroutine @code{marknodes} to request that the marks be placed at each
+Bezier node of the path, or
+markroutine @code{markuniform(pair z(real t), real a, real b, int n)}
+to place marks at points @code{z(t)} for n evenly spaced values of
+@code{t} in @code{[a,b]}.
+
+These markers are predefined:
 @verbatim
 marker[] Mark={
   marker(scale(circlescale)*unitcircle),
