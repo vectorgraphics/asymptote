@@ -1987,6 +1987,10 @@ empty string is specified), following the behaviour of the C function
 zeros are removed by default (unless @code{#} is specified), and @TeX{}
 is used to typeset scientific notation;
 
+@cindex @code{hex}
+@item int hex(string s);
+casts a hexidecimal string @code{s} to an integer.
+
 @cindex @code{string}
 @item string string(real x, int digits=realDigits)
 casts @code{x} to a string using precision @code{digits} and the C locale;

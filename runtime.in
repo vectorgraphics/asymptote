@@ -3206,6 +3206,17 @@ string format(string *format, real x, string locale=emptystring)
   return out.str();
 }
 
+Int hex(string s)
+{
+  istringstream is(s);
+  is.setf(std::ios::hex,std::ios::basefield);
+  Int value;
+  if(is && is >> value && ((is >> std::ws).eof())) return value;
+  ostringstream buf;
+  buf << "invalid hexidecimal cast from string \"" << s << "\"";
+  error(buf);
+}
+
 string string(Int x)
 {
   ostringstream buf;
