@@ -1216,23 +1216,27 @@ default linewidth magnified by @code{dotfactor} (6 by default),
 using the specified filltype (@pxref{filltype}):
 @verbatim
 void dot(picture pic=currentpicture, pair z, pen p=currentpen,
-        filltype filltype=Fill);
-void dot(picture pic=currentpicture, pair[] z, pen p=currentpen
-        filltype filltype=Fill);
+         filltype filltype=Fill);
 void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
          string format=defaultformat, pen p=currentpen, filltype filltype=Fill);
-void dot(picture pic=currentpicture, Label L, pen p=currentpen
-        filltype filltype=Fill);
+void dot(picture pic=currentpicture, Label[] L=new Label[], pair[] z,
+         align align=NoAlign, string format=defaultformat, pen p=currentpen,
+         filltype filltype=Fill)
+void dot(picture pic=currentpicture, Label L, pen p=currentpen,
+         filltype filltype=Fill);
 @end verbatim
 
 @cindex @code{Label}
-The second routine draws a dot at every point of a pair array @code{z}.
-If the special variable @code{Label} is given as the @code{Label}
-argument to the fourth routine, the @code{format} argument will be
+If the variable @code{Label} is given as the @code{Label}
+argument to the second routine, the @code{format} argument will be
 used to format a string based on the dot location (here @code{defaultformat}
-is @code{"$%.4g$"}). One can also draw a dot at every node of a path:
+is @code{"$%.4g$"}). 
+The third routine draws a dot at every point of a pair array @code{z}.
+One can also draw a dot at every node of a path:
 @verbatim
-void dot(picture pic=currentpicture, path g, pen p=currentpen);
+void dot(picture pic=currentpicture, Label[] L=new Label[],
+         path g, align align=RightSide, string format=defaultformat,
+         pen p=currentpen, filltype filltype=Fill);
 @end verbatim
 See @ref{pathmarkers} and @ref{markers} for more general
 methods for marking path nodes.
@@ -6671,7 +6675,7 @@ returns the time corresponding to the value @code{v}, and
 function of @code{t} (zero means draw the tick perpendicular to the axis).
 
 @item These routines are useful for manually putting ticks and labels on axes
-(if the special variable @code{Label} is given as the @code{Label}
+(if the variable @code{Label} is given as the @code{Label}
 argument, the @code{format} argument will be used to format a string based on
 the tick location):
 @cindex xtick
@@ -9019,4 +9023,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  multisampling autogen multisample coloredpath relstep flowdir
 @c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot scaledgraph
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
-@c  LocalWords:  nonintegral gettriple enablerepo
+@c  LocalWords:  nonintegral gettriple enablerepo hexidecimal

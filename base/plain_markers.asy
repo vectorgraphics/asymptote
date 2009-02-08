@@ -47,7 +47,7 @@ typedef void markroutine(picture pic=currentpicture, frame f, path g);
 
 // On picture pic, add frame f about every node of path g.
 void marknodes(picture pic=currentpicture, frame f, path g) {
-  for(int i=0; i <= length(g); ++i)
+  for(int i=0; i < size(g); ++i)
     add(pic,f,point(g,i));
 }
 
@@ -300,24 +300,6 @@ void dot(picture pic=currentpicture, pair z, pen p=currentpen,
   pic.addPoint(z,dotsize(p)+p);
 }
 
-void dot(picture pic=currentpicture, pair[] z, pen p=currentpen,
-         filltype filltype=Fill)
-{
-  for(int i=0; i < z.length; ++i) dot(pic,z[i],p,filltype);
-}
-
-void dot(picture pic=currentpicture, explicit path g, pen p=currentpen,
-         filltype filltype=Fill)
-{
-  for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p,filltype);
-}
-
-void dot(picture pic=currentpicture, path[] g, pen p=currentpen,
-         filltype filltype=Fill)
-{
-  for(int i=0; i < g.length; ++i) dot(pic,g[i],p,Fill);
-}
-
 void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
          string format=defaultformat, pen p=currentpen, filltype filltype=Fill)
 {
@@ -331,6 +313,36 @@ void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
   L.p(p);
   dot(pic,z,p,filltype);
   add(pic,L);
+}
+
+void dot(picture pic=currentpicture, Label[] L=new Label[], pair[] z,
+	 align align=NoAlign, string format=defaultformat, pen p=currentpen,
+	 filltype filltype=Fill)
+{
+  int stop=min(L.length,z.length);
+  for(int i=0; i < stop; ++i)
+    dot(pic,L[i],z[i],align,format,p,filltype);
+  for(int i=stop; i < z.length; ++i)
+    dot(pic,z[i],p,filltype);
+}
+
+void dot(picture pic=currentpicture, Label[] L=new Label[],
+	 explicit path g, align align=RightSide, string format=defaultformat,
+	 pen p=currentpen, filltype filltype=Fill)
+{
+  int n=size(g);
+  int stop=min(L.length,n);
+  for(int i=0; i < stop; ++i)
+    dot(pic,L[i],point(g,i),-sgn(align.dir.x)*I*dir(g,i),format,p,filltype);
+  for(int i=stop; i < n; ++i)
+    dot(pic,point(g,i),p,filltype);
+}
+
+void dot(picture pic=currentpicture, path[] g, pen p=currentpen,
+         filltype filltype=Fill)
+{
+  for(int i=0; i < g.length; ++i)
+    dot(pic,g[i],p,filltype);
 }
 
 void dot(picture pic=currentpicture, Label L, pen p=currentpen,

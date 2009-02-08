@@ -353,3 +353,4 @@ path[] strokepath(path g, pen p=currentpen)
   pair center(path[] g) {return 0.5*(min(g)+max(g));}
   return shift(center(g)-center(G))*G;
 }
+
