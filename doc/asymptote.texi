@@ -1992,6 +1992,7 @@ zeros are removed by default (unless @code{#} is specified), and @TeX{}
 is used to typeset scientific notation;
 
 @cindex @code{hex}
+@cindex @code{hexidecimal}
 @item int hex(string s);
 casts a hexidecimal string @code{s} to an integer.
 
@@ -2593,6 +2594,14 @@ arguments to the respective color spaces.
 @cindex @code{colorless}
 The function @code{colorless(pen)} returns a copy of its argument
 with the color attributes stripped (to avoid color mixing).
+
+A 6-character RGB hexidecimal string can be converted to a pen with
+the routine
+@cindex @code{rgb}
+@cindex @code{hexidecimal}
+@verbatim
+pen rgb(string s);
+@end verbatim
 
 Various shades and mixtures of the grayscale primary colors
 @code{black} and @code{white}, @acronym{RGB} primary colors

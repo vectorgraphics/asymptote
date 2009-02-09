@@ -309,6 +309,13 @@ pen rgba(real[] a)
   return rgb(a[0],a[1],a[2])+opacity(a[3]);
 }
 
+// Return a pen corresponding to a given 6-character RGB hexidecimal string.
+pen rgb(string s) 
+{
+  real value(string s, int i) {return hex(substr(s,2i,2))/255;}
+  return rgb(value(s,0),value(s,1),value(s,2));
+}
+
 // Interpolate an array of pens in rgb space using by default their minimum
 // opacity.
 pen mean(pen[] p, real opacity(real[])=min)
@@ -331,3 +338,5 @@ pen[] mean(pen[][] palette, real opacity(real[])=min)
   return sequence(new pen(int i) {return mean(palette[i],opacity);},
 		  palette.length);
 }
+
+
