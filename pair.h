@@ -104,7 +104,7 @@ public:
 
     double t = 1.0 / (w.x*w.x + w.y*w.y);
     return pair(t*(z.x*w.x + z.y*w.y),
-		t*(-z.x*w.y + w.x*z.y));
+                t*(-z.x*w.y + w.x*z.y));
   }
 
   friend bool operator== (const pair& z, const pair& w)

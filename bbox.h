@@ -66,13 +66,13 @@ struct bbox {
     }
     else {
       if (x < left)
-	left = x;  
+        left = x;  
       else if (x > right)
-	right = x;  
+        right = x;  
       if (y < bottom)
-	bottom = y;
+        bottom = y;
       else if (y > top)
-	top = y;
+        top = y;
     }
 
     return *this;
@@ -139,9 +139,9 @@ struct bbox {
       return b1;
     else
       return bbox(min(b1.left, b2.left),
-	          max(b1.right, b2.right),
-		  min(b1.bottom, b2.bottom),
-		  max(b1.top, b2.top));
+                  max(b1.right, b2.right),
+                  min(b1.bottom, b2.bottom),
+                  max(b1.top, b2.top));
   }
 
   // Add one bounding box to another

@@ -67,7 +67,7 @@ double velocity(double theta, double phi, tension t)
   static const double d = 1.5*(3.0-sqrt(5.0));
 
   double st = sin(theta), ct = cos(theta),
-         sf = sin(phi),   cf = cos(phi);
+    sf = sin(phi),   cf = cos(phi);
 
   double denom = t.val * (3.0 + c*ct + d*cf);
 
@@ -80,16 +80,16 @@ double velocity(double theta, double phi, tension t)
 
   // Apply boundedness condition for tension atleast cases.
   if (t.atleast)
-  {
-    double sine = sin(theta + phi);
-    if ((st >= 0.0 && sf >= 0.0 && sine > 0.0) ||
-        (st <= 0.0 && sf <= 0.0 && sine < 0.0))
     {
-      double rmax = sf / sine;
-      if (r > rmax)
-        r = rmax;
+      double sine = sin(theta + phi);
+      if ((st >= 0.0 && sf >= 0.0 && sine > 0.0) ||
+          (st <= 0.0 && sf <= 0.0 && sine < 0.0))
+        {
+          double rmax = sf / sine;
+          if (r > rmax)
+            r = rmax;
+        }
     }
-  }
 
   return r;
 }
@@ -97,15 +97,15 @@ double velocity(double theta, double phi, tension t)
 double niceAngle(pair z)
 {
   return z.gety() == 0 ? z.getx() >= 0 ? 0 : PI
-                       : angle(z);
+    : angle(z);
 }
 
 // Ensures an angle is in the range between -PI and PI.
 double reduceAngle(double angle)
 {
   return angle >  PI ? angle - 2.0*PI :
-         angle < -PI ? angle + 2.0*PI :
-                       angle;
+    angle < -PI ? angle + 2.0*PI :
+    angle;
 }
 
 
@@ -153,7 +153,7 @@ eqn dirSpec::eqnIn(Int j, knotlist& l, cvector<double>&, cvector<double>&)
 }
 
 eqn curlSpec::eqnOut(Int j, knotlist& l, cvector<double>&,
-		     cvector<double>& psi)
+                     cvector<double>& psi)
 {
   double alpha=l[j].alpha();
   double beta=l[j+1].beta();
@@ -334,7 +334,7 @@ cvector<weqn> recalc(cvector<eqn>& e)
     // zero, then procede to scale it.
     eqn& q=e[j];
     lasteqn=scale(weqn(0,q.piv-q.pre*lasteqn.post,q.post,
-          q.aug-q.pre*lasteqn.aug,-q.pre*lasteqn.w));
+                       q.aug-q.pre*lasteqn.aug,-q.pre*lasteqn.w));
     we.push_back(lasteqn);
   }
   // To keep all of the infomation enocoded in the linear equations, we need
@@ -344,7 +344,7 @@ cvector<weqn> recalc(cvector<eqn>& e)
   {
     eqn& q=e[0];
     we.front()=scale(weqn(0,q.piv-q.pre*lasteqn.post,q.post,
-          q.aug-q.pre*lasteqn.aug,-q.pre*lasteqn.w));
+                          q.aug-q.pre*lasteqn.aug,-q.pre*lasteqn.w));
   }
   return we;
 }
@@ -388,13 +388,13 @@ cvector<double> backsubCyclic(cvector<weqn>& we, double theta0)
   cvector<double> thetas;
   double lastTheta=theta0;
   for (Int j=1;j<=n;++j)
-  {
-    weqn& q=we[n-j];
-    assert(q.pre == 0 && q.piv == 1);
-    double theta=-q.post*lastTheta+q.aug+q.w*theta0;
-    thetas.push_back(theta);
-    lastTheta=theta;
-  }
+    {
+      weqn& q=we[n-j];
+      assert(q.pre == 0 && q.piv == 1);
+      double theta=-q.post*lastTheta+q.aug+q.w*theta0;
+      thetas.push_back(theta);
+      lastTheta=theta;
+    }
   reverse(thetas.begin(),thetas.end());
   return thetas;
 }
@@ -424,7 +424,7 @@ struct ref : public knotprop<eqn> {
     // zero, then procede to scale it.
     eqn& q=e[j];
     return scale(eqn(0,q.piv-q.pre*lasteqn.post,q.post,
-          q.aug-q.pre*lasteqn.aug));
+                     q.aug-q.pre*lasteqn.aug));
   }
   // The end case is the same as the middle case.
 };
@@ -526,7 +526,7 @@ struct precontrolprop : public knotprop<pair> {
   cvector<double>& theta;
 
   precontrolprop(knotlist& l, cvector<pair>& dz,
-                  cvector<double>& psi, cvector<double>& theta)
+                 cvector<double>& psi, cvector<double>& theta)
     : knotprop<pair>(l), dz(dz), psi(psi), theta(theta) {}
 
   double phi(Int j) {
@@ -705,7 +705,7 @@ path solveSpecified(knotlist& l)
     // If the path is cyclic, we should stop where we started (modulo the
     // length of the path); otherwise, just stop at the end.
     Int last=l.cyclic() ? first+l.length()
-                        : l.length();
+      : l.length();
     Int a=first;
     while (a!=last) {
       if (l[a].out->controlled()) {

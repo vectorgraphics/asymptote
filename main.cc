@@ -26,7 +26,7 @@ errorstream em;
 using interact::interactive;
 
 namespace run {
-  void purge();
+void purge();
 }
   
 #ifdef HAVE_LIBSIGSEGV
@@ -43,7 +43,7 @@ int sigsegv_handler (void *, int emergency)
   em.runtime(vm::getPos());
   if(gl::glthread)
     cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
-	 << endl;
+         << endl;
   else
     cerr << "Segmentation fault" << endl;
   abort();
@@ -55,7 +55,7 @@ void setsignal(RETSIGTYPE (*handler)(int))
 #ifdef HAVE_LIBSIGSEGV
   char mystack[16384];
   stackoverflow_install_handler(&stackoverflow_handler,
-				mystack,sizeof (mystack));
+                                mystack,sizeof (mystack));
   sigsegv_install_handler(&sigsegv_handler);
 #endif
   signal(SIGBUS,handler);
@@ -118,15 +118,15 @@ void *asymain(void *A)
     if(n == 0) 
       processFile("-");
     else
-    for(int ind=0; ind < n; ind++) {
-      processFile(string(getArg(ind)),n > 1);
-      try {
-        if(ind < n-1)
-	  setOptions(args->argc,args->argv);
-      } catch(handled_error) {
-        em.statusError();
-      } 
-    }
+      for(int ind=0; ind < n; ind++) {
+        processFile(string(getArg(ind)),n > 1);
+        try {
+          if(ind < n-1)
+            setOptions(args->argc,args->argv);
+        } catch(handled_error) {
+          em.statusError();
+        } 
+      }
   }
 
   if(getSetting<bool>("wait")) {
@@ -155,12 +155,12 @@ int main(int argc, char *argv[])
     pthread_t thread;
     try {
       if(pthread_create(&thread,NULL,asymain,&args) == 0) {
-	gl::mainthread=pthread_self();
-	while(true) {
-	  gl::wait(gl::initSignal,gl::initLock);
-	  camp::glrenderWrapper();
-	  gl::initialize=true;
-	}
+        gl::mainthread=pthread_self();
+        while(true) {
+          gl::wait(gl::initSignal,gl::initLock);
+          camp::glrenderWrapper();
+          gl::initialize=true;
+        }
       }
     } catch(std::bad_alloc&) {
       outOfMemory();

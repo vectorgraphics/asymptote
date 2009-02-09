@@ -22,7 +22,7 @@ struct XYZ{
 };
 
 Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
-		bool presort=true, bool postsort=true);
+                bool presort=true, bool postsort=true);
 
 #endif
 

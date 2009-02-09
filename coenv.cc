@@ -16,7 +16,7 @@ static inline void castError(position pos, ty *target, ty *source)
 {
   em.error(pos);
   em << "cannot convert \'" << *source
-      << "\' to \'" << *target << "\'";
+     << "\' to \'" << *target << "\'";
 }
 
 static inline bool accessCast(position pos, ty *target, ty *source,

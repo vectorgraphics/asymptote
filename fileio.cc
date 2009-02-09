@@ -30,9 +30,9 @@ void ifile::ignoreComment()
     if(c == comment) {
       whitespace="";
       while((c=stream->peek()) != '\n' && c != EOF)
-	stream->ignore();
+        stream->ignore();
       if(c == '\n')
-	stream->ignore();
+        stream->ignore();
     } else {if(eol) stream->unget(); return;}
   }
 }
@@ -66,11 +66,11 @@ bool ifile::nexteol()
     stream->ignore();
     if(c == '\n') {
       while(isspace(c=stream->peek())) {
-	if(c == '\n') {nullfield=true; return true;}
+        if(c == '\n') {nullfield=true; return true;}
         else {
-	  stream->ignore();
-	  whitespace += (char) c;
-	}
+          stream->ignore();
+          whitespace += (char) c;
+        }
       }
       return true;
     }
@@ -108,18 +108,18 @@ void ifile::Read(string& val)
       int c=stream->peek();
       if(c == '"') {quote=!quote; stream->ignore(); continue;}
       if(!quote) {
-	if(comment && c == comment) {
-	  while((c=stream->peek()) != '\n' && c != EOF)
-	    stream->ignore();
-	  if(s.empty() && c == '\n') {
-	    stream->ignore();
-	    continue;
-	  }
-       }
-	if(csvmode && (c == ',' || c == '\n'))
-	  break;
-	if(wordmode && isspace(c))
-	  break;
+        if(comment && c == comment) {
+          while((c=stream->peek()) != '\n' && c != EOF)
+            stream->ignore();
+          if(s.empty() && c == '\n') {
+            stream->ignore();
+            continue;
+          }
+        }
+        if(csvmode && (c == ',' || c == '\n'))
+          break;
+        if(wordmode && isspace(c))
+          break;
       }
       s += (char) stream->get();
     }
@@ -130,11 +130,11 @@ void ifile::Read(string& val)
     size_t p=0;
     while((p=s.find(comment,p)) < string::npos) {
       if(p+1 < s.length() && s[p+1] == comment) {
-	s.erase(p,1);
-	++p;
+        s.erase(p,1);
+        ++p;
       } else {
-	s.erase(p);	
-	break;
+        s.erase(p);     
+        break;
       }
     }
   }
@@ -147,17 +147,17 @@ void ofile::writeline()
     Int scroll=settings::getScroll();
     if(scroll && interact::lines > 0 && interact::lines % scroll == 0) {
       for(;;) {
-	if(!cin.good()) {
-	  *stream << newline;
-	  cin.clear();
-	  break;
-	}
-	int c=cin.get();
-	if(c == '\n') break;
-	// Discard any additional characters
-	while(cin.good() && cin.get() != '\n');
-	if(c == 's') {interact::query=false; break;}
-	if(c == 'q') {interact::query=false; interact::lines=0; throw quit();}
+        if(!cin.good()) {
+          *stream << newline;
+          cin.clear();
+          break;
+        }
+        int c=cin.get();
+        if(c == '\n') break;
+        // Discard any additional characters
+        while(cin.good() && cin.get() != '\n');
+        if(c == 's') {interact::query=false; break;}
+        if(c == 'q') {interact::query=false; interact::lines=0; throw quit();}
       }
     } else *stream << newline;
     ++interact::lines;

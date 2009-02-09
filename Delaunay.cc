@@ -42,7 +42,7 @@ inline double hypot2(double *x)
 ///////////////////////////////////////////////////////////////////////////////
 
 Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
-		bool presort, bool postsort)
+                bool presort, bool postsort)
 {
   Int emax = 200;
 
@@ -108,7 +108,7 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
 */
     for(Int j = 0; j < ntri; j++) {
       if(complete[j])
-	continue;
+        continue;
       ITRIANGLE *vj=v+j;
 
       double *a=pxyz[vj->p1].p;
@@ -117,40 +117,40 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
       
       if(incircle(a,b,c,d) <= 0.0) { // Point d is inside or on circumcircle
 /* Check that we haven't exceeded the edge list size */
-	if(nedge + 3 >= emax) {
-	  emax += 100;
-	  IEDGE *p_EdgeTemp = new IEDGE[emax];
-	  for (Int i = 0; i < nedge; i++) {
-	    p_EdgeTemp[i] = edges[i];   
-	  }
-	  delete[] edges;
-	  edges = p_EdgeTemp;
-	}
-	ITRIANGLE *vj=v+j;
-	Int p1=vj->p1;
-	Int p2=vj->p2;
-	Int p3=vj->p3;
-	edges[nedge].p1 = p1;
-	edges[nedge].p2 = p2;
-	edges[++nedge].p1 = p2;
-	edges[nedge].p2 = p3;
-	edges[++nedge].p1 = p3;
-	edges[nedge].p2 = p1;
-	++nedge;
-	ntri--;
-	v[j] = v[ntri];
-	complete[j] = complete[ntri];
-	j--;
+        if(nedge + 3 >= emax) {
+          emax += 100;
+          IEDGE *p_EdgeTemp = new IEDGE[emax];
+          for (Int i = 0; i < nedge; i++) {
+            p_EdgeTemp[i] = edges[i];   
+          }
+          delete[] edges;
+          edges = p_EdgeTemp;
+        }
+        ITRIANGLE *vj=v+j;
+        Int p1=vj->p1;
+        Int p2=vj->p2;
+        Int p3=vj->p3;
+        edges[nedge].p1 = p1;
+        edges[nedge].p2 = p2;
+        edges[++nedge].p1 = p2;
+        edges[nedge].p2 = p3;
+        edges[++nedge].p1 = p3;
+        edges[nedge].p2 = p1;
+        ++nedge;
+        ntri--;
+        v[j] = v[ntri];
+        complete[j] = complete[ntri];
+        j--;
       } else {
-	double A=hypot2(a);
-	double B=hypot2(b);
-	double C=hypot2(c);
-	double a0=orient2d(a,b,c);
-	// Is d[0] > xc+r for circumcircle abc of radius r about (xc,yc)?
-	if(d[0]*a0 < 0.5*orient2d(A,a[1],B,b[1],C,c[1]))
-	  complete[j]=
-	    incircle(a[0]*a0,a[1]*a0,b[0]*a0,b[1]*a0,c[0]*a0,c[1]*a0,
-		     d[0]*a0,0.5*orient2d(a[0],A,b[0],B,c[0],C)) > 0.0;
+        double A=hypot2(a);
+        double B=hypot2(b);
+        double C=hypot2(c);
+        double a0=orient2d(a,b,c);
+        // Is d[0] > xc+r for circumcircle abc of radius r about (xc,yc)?
+        if(d[0]*a0 < 0.5*orient2d(A,a[1],B,b[1],C,c[1]))
+          complete[j]=
+            incircle(a[0]*a0,a[1]*a0,b[0]*a0,b[1]*a0,c[0]*a0,c[1]*a0,
+                     d[0]*a0,0.5*orient2d(a[0],A,b[0],B,c[0],C)) > 0.0;
       }
     }
 /*
@@ -160,12 +160,12 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
 */
     for(Int j = 0; j < nedge - 1; j++) {
       for(Int k = j + 1; k < nedge; k++) {
-	if((edges[j].p1 == edges[k].p2) && (edges[j].p2 == edges[k].p1)) {
-	  edges[j].p1 = -1;
-	  edges[j].p2 = -1;
-	  edges[k].p1 = -1;
-	  edges[k].p2 = -1;
-	}
+        if((edges[j].p1 == edges[k].p2) && (edges[j].p2 == edges[k].p1)) {
+          edges[j].p1 = -1;
+          edges[j].p2 = -1;
+          edges[k].p1 = -1;
+          edges[k].p2 = -1;
+        }
       }
     }
 /*
@@ -175,7 +175,7 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
 */
     for(Int j = 0; j < nedge; j++) {
       if(edges[j].p1 < 0 || edges[j].p2 < 0)
-	continue;
+        continue;
       v[ntri].p1 = edges[j].p1;
       v[ntri].p2 = edges[j].p2;
       v[ntri].p3 = i;

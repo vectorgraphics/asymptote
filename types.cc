@@ -17,8 +17,8 @@
 namespace types {
 
 /* Base types */
-#define PRIMITIVE(name,Name,asyName) \
-  primitiveTy p##Name(ty_##name); \
+#define PRIMITIVE(name,Name,asyName)            \
+  primitiveTy p##Name(ty_##name);               \
   ty *prim##Name() { return &p##Name; }
 #define PRIMERROR
 #include <primitives.h>
@@ -102,11 +102,11 @@ void ty::print(ostream& out) const
 
 trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
 {
-#define FIELD(Type, name, func) \
-  if (sig == 0 && id == symbol::trans(name)) { \
-    static trans::bltinAccess a(run::func); \
-    static trans::varEntry v(prim##Type(), &a, 0, position()); \
-    return &v; \
+#define FIELD(Type, name, func)                                 \
+  if (sig == 0 && id == symbol::trans(name)) {                  \
+    static trans::bltinAccess a(run::func);                     \
+    static trans::varEntry v(prim##Type(), &a, 0, position());  \
+    return &v;                                                  \
   }
 
   switch (kind) {
@@ -214,7 +214,7 @@ ty *array::deleteType()
 {
   if (deletetype == 0)
     deletetype = new function(primVoid(),formal(primInt(),"i",true),
-			      formal(primInt(),"j",true));
+                              formal(primInt(),"j",true));
 
   return deletetype;
 }
@@ -243,82 +243,82 @@ ty *array::virtualFieldGetType(symbol *id)
 trans::varEntry *array::virtualField(symbol *id, signature *sig)
 {
   if (sig == 0 && id == symbol::trans("length"))
-  {
-    static trans::bltinAccess a(run::arrayLength);
-    static trans::varEntry v(primInt(), &a, 0, position());
-    return &v;
-  }
+    {
+      static trans::bltinAccess a(run::arrayLength);
+      static trans::varEntry v(primInt(), &a, 0, position());
+      return &v;
+    }
   if (sig == 0 && id == symbol::trans("keys"))
-  {
-    static trans::bltinAccess a(run::arrayKeys);
-    static trans::varEntry v(IntArray(), &a, 0, position());
-    return &v;
-  }
+    {
+      static trans::bltinAccess a(run::arrayKeys);
+      static trans::varEntry v(IntArray(), &a, 0, position());
+      return &v;
+    }
   if (sig == 0 && id == symbol::trans("cyclicflag"))
-  {
-    static trans::bltinAccess a(run::arrayCyclicFlag);
-    static trans::varEntry v(primBoolean(), &a, 0, position());
-    return &v;
-  }
+    {
+      static trans::bltinAccess a(run::arrayCyclicFlag);
+      static trans::varEntry v(primBoolean(), &a, 0, position());
+      return &v;
+    }
   if (id == symbol::trans("cyclic") &&
       equivalent(sig, cyclicType()->getSignature()))
-  {
-    static trans::bltinAccess a(run::arrayCyclic);
-    static trans::varEntry v(cyclicType(), &a, 0, position());
-    return &v;
-  }
+    {
+      static trans::bltinAccess a(run::arrayCyclic);
+      static trans::varEntry v(cyclicType(), &a, 0, position());
+      return &v;
+    }
   if (id == symbol::trans("initialized") &&
       equivalent(sig, initializedType()->getSignature()))
-  {
-    static trans::bltinAccess a(run::arrayInitialized);
-    static trans::varEntry v(initializedType(), &a, 0, position());
-    return &v;
-  }
+    {
+      static trans::bltinAccess a(run::arrayInitialized);
+      static trans::varEntry v(initializedType(), &a, 0, position());
+      return &v;
+    }
   if (id == symbol::trans("push") &&
       equivalent(sig, pushType()->getSignature()))
-  {
-    static trans::bltinAccess a(run::arrayPush);
-    // v needs to be dynamic, as the push type differs among arrays.
-    trans::varEntry *v = new trans::varEntry(pushType(), &a, 0, position());
+    {
+      static trans::bltinAccess a(run::arrayPush);
+      // v needs to be dynamic, as the push type differs among arrays.
+      trans::varEntry *v = new trans::varEntry(pushType(), &a, 0, position());
 
-    return v;
-  }
+      return v;
+    }
   if (id == symbol::trans("pop") &&
       equivalent(sig, popType()->getSignature()))
-  {
-    static trans::bltinAccess a(run::arrayPop);
-    // v needs to be dynamic, as the pop type differs among arrays.
-    trans::varEntry *v = new trans::varEntry(popType(), &a, 0, position());
+    {
+      static trans::bltinAccess a(run::arrayPop);
+      // v needs to be dynamic, as the pop type differs among arrays.
+      trans::varEntry *v = new trans::varEntry(popType(), &a, 0, position());
 
-    return v;
-  }
+      return v;
+    }
   if (id == symbol::trans("append") &&
       equivalent(sig, appendType()->getSignature()))
-  {
-    static trans::bltinAccess a(run::arrayAppend);
-    // v needs to be dynamic, as the append type differs among arrays.
-    trans::varEntry *v = new trans::varEntry(appendType(), &a, 0, position());
+    {
+      static trans::bltinAccess a(run::arrayAppend);
+      // v needs to be dynamic, as the append type differs among arrays.
+      trans::varEntry *v = new trans::varEntry(appendType(), &a, 0, position());
 
-    return v;
-  }
+      return v;
+    }
   if (id == symbol::trans("insert") &&
       equivalent(sig, insertType()->getSignature()))
-  {
-    static trans::bltinAccess a(run::arrayInsert);
-    // v needs to be dynamic, as the insert type differs among arrays.
-    trans::varEntry *v = new trans::varEntry(insertType(), &a, 0, position());
+    {
+      static trans::bltinAccess a(run::arrayInsert);
+      // v needs to be dynamic, as the insert type differs among arrays.
+      trans::varEntry *v = new trans::varEntry(insertType(), &a, 0, position());
 
-    return v;
-  }
+      return v;
+    }
   if (id == symbol::trans("delete") &&
       equivalent(sig, deleteType()->getSignature()))
-  {
-    static trans::bltinAccess a(run::arrayDelete);
-    // v needs to be dynamic, as the delete type differs among arrays.
-    trans::varEntry *v = new trans::varEntry(deleteType(), &a, 0, position());
+    {
+      static trans::bltinAccess a(run::arrayDelete);
+      // v needs to be dynamic, as the delete type differs among arrays.
+      trans::varEntry *v = new trans::varEntry(deleteType(), &a, 0, position());
 
-    return v;
-  }
+      return v;
+    }
   else
     return ty::virtualField(id, sig);
 }
@@ -351,8 +351,8 @@ bool argumentEquivalent(formal &f1, formal& f2) {
       return false;
 
     return f1.t->kind != ty_overloaded &&
-           f2.t->kind != ty_overloaded &&
-           equivalent(f1.t, f2.t);
+      f2.t->kind != ty_overloaded &&
+      equivalent(f1.t, f2.t);
   }
   else
     return false;
@@ -407,7 +407,7 @@ bool equivalent(signature *s1, signature *s2)
 
   return std::equal(s1->formals.begin(),s1->formals.end(),s2->formals.begin(),
                     (bool (*)(formal&,formal&)) equivalent) &&
-         equivalent(s1->rest, s2->rest);
+    equivalent(s1->rest, s2->rest);
 }
 
 bool argumentEquivalent(signature *s1, signature *s2)
@@ -423,7 +423,7 @@ bool argumentEquivalent(signature *s1, signature *s2)
 
   return std::equal(s1->formals.begin(),s1->formals.end(),s2->formals.begin(),
                     (bool (*)(formal&,formal&)) argumentEquivalent) &&
-         argumentEquivalent(s1->rest, s2->rest);
+    argumentEquivalent(s1->rest, s2->rest);
 }
 
 size_t signature::hash() {
@@ -462,20 +462,20 @@ void overloaded::addDistinct(ty *t, bool special)
   if (t->kind == ty_overloaded) {
     overloaded *ot = (overloaded *)t;
     for (ty_vector::iterator st = ot->sub.begin();
-	 st != ot->sub.end();
-	 ++st)
-    {
-      this->addDistinct(*st, special);
-    }
+         st != ot->sub.end();
+         ++st)
+      {
+        this->addDistinct(*st, special);
+      }
   }
   else {
     for (ty_vector::iterator st = this->sub.begin();
-	 st != this->sub.end();
-	 ++st)
-    {
-      if (equivalent(t, *st, special))
-	return;
-    }
+         st != this->sub.end();
+         ++st)
+      {
+        if (equivalent(t, *st, special))
+          return;
+      }
 
     // Nonequivalent in signature - add it.
     this->add(t);
@@ -519,7 +519,7 @@ bool equivalent(ty *t1, ty *t2)
 
 bool equivalent(ty *t1, ty *t2, bool special) {
   return special ? equivalent(t1, t2) :
-                   equivalent(t1->getSignature(), t2->getSignature());
+    equivalent(t1->getSignature(), t2->getSignature());
 }
 
 } // namespace types

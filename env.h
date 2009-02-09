@@ -129,7 +129,7 @@ public:
            protoenv &source, varEntry *qualifier, coder &c)
   {
     return te.add(src, dest, source.te, qualifier, c) | 
-           ve.add(src, dest, source.ve, qualifier, c);
+      ve.add(src, dest, source.ve, qualifier, c);
   }
 
   // Add the standard functions for a new type.

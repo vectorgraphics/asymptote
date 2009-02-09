@@ -26,7 +26,7 @@
 using namespace settings;
 
 namespace run {
-  void init_readline(bool);
+void init_readline(bool);
 }
 
 namespace interact {
@@ -87,7 +87,7 @@ void pre_readline()
     Readline=readline;
   } else
 #endif
-  Readline=verbatimreadline;
+    Readline=verbatimreadline;
 }
 
 void init_interactive()
@@ -147,7 +147,7 @@ string getLastHistoryLine() {
       return entry->line;
   } else
 #endif
-  return "";
+    return "";
 }
 
 void setLastHistoryLine(string line) {

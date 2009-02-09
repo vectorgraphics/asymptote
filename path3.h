@@ -157,9 +157,9 @@ public:
   triple postcontrol(double t) const;
   
   inline double norm(const triple& z0, const triple& c0, const triple& c1,
-		     const triple& z1) const {
+                     const triple& z1) const {
     return Fuzz2*camp::max((c0-z0).abs2(),
-			   camp::max((c1-z0).abs2(),(z1-z0).abs2()));
+                           camp::max((c1-z0).abs2(),(z1-z0).abs2()));
   }
 
   triple predir(Int t, bool normalize=true) const {
@@ -309,8 +309,8 @@ public:
   }
   
   pair bounds(double (*m)(double, double), 
-	      double (*x)(const triple&, double*),
-	      double (*y)(const triple&, double*), double *t) const;
+              double (*x)(const triple&, double*),
+              double (*y)(const triple&, double*), double *t) const;
   
   
 // Increment count if the path3 has a vertical component at t.
@@ -318,7 +318,7 @@ public:
   
 // Count if t is in (begin,end] and z lies to the left of point(i+t).
   void countleft(Int& count, double x, Int i, double t,
-		 double begin, double end, double& mint, double& maxt) const;
+                 double begin, double end, double& mint, double& maxt) const;
 
 // Return the winding number of the region bounded by the (cyclic) path3
 // relative to the point z.
@@ -331,12 +331,12 @@ extern path3 nullpath3;
 extern const unsigned maxdepth;
  
 bool intersect(double& S, double& T, path3& p, path3& q, double fuzz,
-	       unsigned depth=maxdepth);
+               unsigned depth=maxdepth);
 bool intersections(double& s, double& t, std::vector<double>& S,
-		   std::vector<double>& T, path3& p, path3& q,
-		   double fuzz, bool single, unsigned depth=maxdepth);
+                   std::vector<double>& T, path3& p, path3& q,
+                   double fuzz, bool single, unsigned depth=maxdepth);
 void intersections(std::vector<double>& S, path3& g,
-		   const triple& p, const triple& q, double fuzz);
+                   const triple& p, const triple& q, double fuzz);
 
 // Concatenates two path3s into a new one.
 path3 concat(const path3& p1, const path3& p2);
@@ -369,14 +369,14 @@ double xratio(const triple& v, double *t);
 double yratio(const triple& v, double *t);
 
 double bound(triple z0, triple c0, triple c1, triple z1,
-	     double (*m)(double, double),
-	     double (*f)(const triple&, double*), double *t,
-	     double b, int depth=maxdepth);
+             double (*m)(double, double),
+             double (*f)(const triple&, double*), double *t,
+             double b, int depth=maxdepth);
 double bound(double *p, double (*m)(double, double), double b,
-	     int depth=maxdepth);
+             int depth=maxdepth);
 double bound(triple *p, double (*m)(double, double),
-	     double (*f)(const triple&, double*), double* t, double b,
-	     int depth=maxdepth);
+             double (*f)(const triple&, double*), double* t, double b,
+             int depth=maxdepth);
 }
 
 // Delete the following line to work around problems with old broken compilers.

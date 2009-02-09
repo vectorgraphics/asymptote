@@ -56,11 +56,11 @@ void dealias(unsigned char *a, size_t width, size_t height, size_t n)
     for(size_t i=0; i < width-1; ++i) {
       size_t index=n*(widthj+i);
       for(size_t k=0; k < n; ++k) {
-	size_t indexk=index+k;
-	a[indexk]=(unsigned char) (((unsigned) a[indexk]+
-				    (unsigned) a[indexk+n]+
-				    (unsigned) a[indexk+nwidth]+
-				    (unsigned) a[indexk+nwidth+n])/4);
+        size_t indexk=index+k;
+        a[indexk]=(unsigned char) (((unsigned) a[indexk]+
+                                    (unsigned) a[indexk+n]+
+                                    (unsigned) a[indexk+nwidth]+
+                                    (unsigned) a[indexk+nwidth+n])/4);
       }
     }
   }
@@ -85,7 +85,7 @@ void psfile::close()
     out->flush();
     if(!filename.empty()) {
       if(!out->good())
-	reportError("Cannot write to "+filename);
+        reportError("Cannot write to "+filename);
       delete out;
       out=NULL;
     }
@@ -136,23 +136,23 @@ void psfile::epilogue()
 }
 
 void psfile::setcolor(const pen& p, const string& begin="",
-		      const string& end="")
+                      const string& end="")
 {
   if(p.cmyk() && (!lastpen.cmyk() ||
-		  (p.cyan() != lastpen.cyan() || 
-		   p.magenta() != lastpen.magenta() || 
-		   p.yellow() != lastpen.yellow() ||
-		   p.black() != lastpen.black()))) {
+                  (p.cyan() != lastpen.cyan() || 
+                   p.magenta() != lastpen.magenta() || 
+                   p.yellow() != lastpen.yellow() ||
+                   p.black() != lastpen.black()))) {
     *out << begin << p.cyan() << " " << p.magenta() << " " << p.yellow() << " " 
-	 << p.black() << (pdf ? " k" : " setcmykcolor") << end << newl;
+         << p.black() << (pdf ? " k" : " setcmykcolor") << end << newl;
   } else if(p.rgb() && (!lastpen.rgb() || 
-			(p.red() != lastpen.red() || 
-			 p.green() != lastpen.green() || 
-			 p.blue() != lastpen.blue()))) {
+                        (p.red() != lastpen.red() || 
+                         p.green() != lastpen.green() || 
+                         p.blue() != lastpen.blue()))) {
     *out << begin << p.red() << " " << p.green() << " " << p.blue()
-	 << (pdf ? " rg" : " setrgbcolor") << end << newl;
+         << (pdf ? " rg" : " setrgbcolor") << end << newl;
   } else if(p.grayscale() && (!lastpen.grayscale() ||
-			      p.gray() != lastpen.gray())) {
+                              p.gray() != lastpen.gray())) {
     *out << begin << p.gray() << (pdf ? " g" : " setgray") << end << newl;
   }
 }
@@ -178,7 +178,7 @@ void psfile::setpen(pen p)
   // Defer dynamic linewidth until stroke time in case currentmatrix changes.
   if(p.width() != lastpen.width()) {
     *out << p.width() << (pdfformat ? " setlinewidth" : " Setlinewidth") 
-	 << newl;
+         << newl;
   }
     
   if(p.cap() != lastpen.cap()) {
@@ -193,7 +193,7 @@ void psfile::setpen(pen p)
      p.linetype().offset != lastpen.linetype().offset) {
     out->setf(std::ios::fixed);
     *out << "[" << p.stroke() << "] " << std::setprecision(6) 
-	 << p.linetype().offset << " setdash" << newl;
+         << p.linetype().offset << " setdash" << newl;
     out->unsetf(std::ios::fixed);
   }
     
@@ -204,7 +204,7 @@ void psfile::write(pen p)
 {
   if(p.cmyk())
     *out << p.cyan() << " " << p.magenta() << " " << p.yellow() << " " 
-	 << p.black();
+         << p.black();
   else if(p.rgb())
     *out << p.red() << " " << p.green() << " " << p.blue();
   else if(p.grayscale())
@@ -286,7 +286,7 @@ void psfile::latticeshade(const vm::array& a, const bbox& b)
       pen *p=read<pen *>(ai,j);
       p->convert();
       if(!p->promote(colorspace))
-	reportError(inconsistent);
+        reportError(inconsistent);
       writeHex(p,ncomponents);
     }
   }
@@ -299,8 +299,8 @@ void psfile::latticeshade(const vm::array& a, const bbox& b)
 
 // Axial and radial shading
 void psfile::gradientshade(bool axial, const ColorSpace &colorspace,
-			   const pen& pena, const pair& a, double ra,
-			   const pen& penb, const pair& b, double rb)
+                           const pen& pena, const pair& a, double ra,
+                           const pen& penb, const pair& b, double rb)
 {
   checkLevel();
   setpen(pena);
@@ -331,7 +331,7 @@ void psfile::gradientshade(bool axial, const ColorSpace &colorspace,
 }
   
 void psfile::gouraudshade(const array& pens, const array& vertices,
-			  const array& edges)
+                          const array& edges)
 {
   checkLevel();
   size_t size=pens.size();
@@ -361,7 +361,7 @@ void psfile::gouraudshade(const array& pens, const array& vertices,
  
 // Tensor-product patch shading
 void psfile::tensorshade(const array& pens, const array& boundaries,
-			 const array& z)
+                         const array& z)
 {
   checkLevel();
   size_t size=pens.size();
@@ -396,17 +396,17 @@ void psfile::tensorshade(const array& pens, const array& boundaries,
     if(nz == 0) { // Coons patch
       static double nineth=1.0/9.0;
       for(Int j=0; j < 4; ++j) {
-	write(nineth*(-4.0*g.point(j)+6.0*(g.precontrol(j)+g.postcontrol(j))
-		      -2.0*(g.point(j-1)+g.point(j+1))
-		      +3.0*(g.precontrol(j-1)+g.postcontrol(j+1))
-		      -g.point(j+2)));
+        write(nineth*(-4.0*g.point(j)+6.0*(g.precontrol(j)+g.postcontrol(j))
+                      -2.0*(g.point(j-1)+g.point(j+1))
+                      +3.0*(g.precontrol(j-1)+g.postcontrol(j+1))
+                      -g.point(j+2)));
       }
     } else {
       array *zi=read<array *>(z,i);
       if(checkArray(zi) != 4)
-	reportError("specify 4 internal control points for each path");
+        reportError("specify 4 internal control points for each path");
       for(Int j=0; j < 4; ++j)
-	write(read<pair>(zi,j));
+        write(read<pair>(zi,j));
     }
     
     array *pi=read<array *>(pens,i);
@@ -416,7 +416,7 @@ void psfile::tensorshade(const array& pens, const array& boundaries,
       pen *p=read<pen *>(pi,j);
       p->convert();
       if(!p->promote(colorspace))
-	reportError(inconsistent);
+        reportError(inconsistent);
       *out << " ";
       write(*p);
     }
@@ -556,7 +556,7 @@ void psfile::image(const array& a, const array& P, bool antialias)
       pen *p=read<pen *>(P,index < Psize ? index : Psize-1);
       p->convert();
       if(!p->promote(colorspace))
-	reportError(inconsistent);
+        reportError(inconsistent);
       write(p,ncomponents);
     }
   }
@@ -588,7 +588,7 @@ void psfile::image(const array& a, bool antialias)
       pen *p=read<pen *>(ai,j);
       p->convert();
       if(!p->promote(colorspace))
-	reportError(inconsistent);
+        reportError(inconsistent);
       write(p,ncomponents);
     }
   }
@@ -596,7 +596,7 @@ void psfile::image(const array& a, bool antialias)
 }
   
 void psfile::rawimage(unsigned char *a, size_t width, size_t height,
-		      bool antialias)
+                      bool antialias)
 {
   pen p(0.0,0.0,0.0);
   p.convert();
@@ -617,14 +617,14 @@ void psfile::rawimage(unsigned char *a, size_t width, size_t height,
     for(size_t i=0; i < width; ++i) {
       int heighti=height*i;
       for(size_t j=0; j < height; ++j) {
-	size_t index=3*(heighti+j);
-	static const double factor=1.0/255.0;
-	pen p(a[index]*factor,a[index+1]*factor,a[index+2]*factor);
-	p.convert();
-	if(!p.promote(colorspace))
-	  reportError(inconsistent);
-	write(&p,ncomponents);
-      }	
+        size_t index=3*(heighti+j);
+        static const double factor=1.0/255.0;
+        pen p(a[index]*factor,a[index+1]*factor,a[index+2]*factor);
+        p.convert();
+        if(!p.promote(colorspace))
+          reportError(inconsistent);
+        write(&p,ncomponents);
+      } 
     }
     endImage(antialias,width,height,ncomponents);
   }

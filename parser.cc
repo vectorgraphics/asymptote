@@ -93,7 +93,7 @@ absyntax::file *parseStdin()
 }
 
 absyntax::file *parseFile(const string& filename,
-			  const char *nameOfAction)
+                          const char *nameOfAction)
 {
   if(filename == "-")
     return parseStdin();

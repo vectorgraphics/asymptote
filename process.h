@@ -73,8 +73,8 @@ public:
   ~terminator() {
     for(typename Pointer::iterator p=pointer.begin(); p != pointer.end(); ++p) {
       if(*p != NULL) {
-	(*p)->~T();
-	(*p)=NULL;
+        (*p)->~T();
+        (*p)=NULL;
       }
     }
   }

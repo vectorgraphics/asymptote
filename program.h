@@ -52,7 +52,7 @@ private:
 // Prints one instruction (including arguments) and returns how many
 // positions in the code stream were shown.
 void printInst(std::ostream& out, const program::label& code,
-	       const program::label& base);
+               const program::label& base);
 
 // Prints code until a ret opcode is printed.
 void print(std::ostream& out, program *base);

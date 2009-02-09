@@ -144,7 +144,7 @@ struct times<Int> {
     if(y == 0) return 0;
     if(y < 0) {y=-y; x=-x;}
     if(x > Int_MAX/y || x < Int_MIN/y)
-       integeroverflow(i);
+      integeroverflow(i);
     return x*y;
   }
 };
@@ -190,11 +190,11 @@ T pow(T x, Int y)
   if(y == 0) return 1.0;
   if(x == 0.0 && y > 0) return 0.0;
   if(y < 0) {y=-y; x=1/x;}
-	
+        
   T r=1.0;
   for(;;) {
     if(y & 1) r *= x;
-    if((y >>= 1) == 0)	return r;
+    if((y >>= 1) == 0)  return r;
     x *= x;
   }
 }
@@ -217,14 +217,14 @@ struct power<Int> {
       if(x == 0) return 0;
       Int r = 1;
       for(;;) {
-	if(p & 1) {
-	  if(r > Int_MAX/x) integeroverflow(i);
-	  r *= x;
-	}
-	if((p >>= 1) == 0)
-	  return sign*r;
-	if(x > Int_MAX/x) integeroverflow(i);
-	x *= x;
+        if(p & 1) {
+          if(r > Int_MAX/x) integeroverflow(i);
+          r *= x;
+        }
+        if((p >>= 1) == 0)
+          return sign*r;
+        if(x > Int_MAX/x) integeroverflow(i);
+        x *= x;
       }
     } else {
       if(x == 1) return sign;
@@ -274,7 +274,7 @@ struct minbound {
   }
   camp::triple operator() (camp::triple u, camp::triple v) {
     return camp::triple(Min(u.getx(),v.getx()),Min(u.gety(),v.gety()),
-		  Min(u.getz(),v.getz()));
+                        Min(u.getz(),v.getz()));
   }
 };
 
@@ -285,7 +285,7 @@ struct maxbound {
   }
   camp::triple operator() (camp::triple u, camp::triple v) {
     return camp::triple(Max(u.getx(),v.getx()),Max(u.gety(),v.gety()),
-			Max(u.getz(),v.getz()));
+                        Max(u.getz(),v.getz()));
   }
 };
 

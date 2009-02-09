@@ -2,19 +2,19 @@
    Version 1.46
    Copyright (C) 1999-2007 John C. Bowman
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3 of the License, or
-(at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
 #ifndef __xstream_h__
 #define __xstream_h__ 1
@@ -62,9 +62,9 @@ public:
   enum io_state {goodbit=0, eofbit=1, failbit=2, badbit=4};
   enum open_mode {in=1, out=2, app=8, trunc=16};
   enum seekdir {beg=SEEK_SET, cur=SEEK_CUR, end=SEEK_END};
-private:	
+private:        
   int _state;
-public:	
+public: 
   int good() const { return _state == 0; }
   int eof() const { return _state & eofbit; }
   int fail() const { return !good();}
@@ -76,9 +76,9 @@ public:
 };
 
 class xstream : public xios {
- protected:
+protected:
   FILE *buf;
- public:
+public:
   virtual ~xstream() {}
   xstream() {buf=NULL;}
 
@@ -96,11 +96,11 @@ class xstream : public xios {
   }
 };
 
-#define IXSTREAM(T,N) ixstream& operator >> (T& x) \
-{if(!xdr_##N(&xdri, &x)) set(eofbit); return *this;}
+#define IXSTREAM(T,N) ixstream& operator >> (T& x)      \
+  {if(!xdr_##N(&xdri, &x)) set(eofbit); return *this;}
 
-#define OXSTREAM(T,N) oxstream& operator << (T x) \
-{if(!xdr_##N(&xdro, &x)) set(badbit); return *this;}
+#define OXSTREAM(T,N) oxstream& operator << (T x)       \
+  {if(!xdr_##N(&xdro, &x)) set(badbit); return *this;}
 
 class ixstream : virtual public xstream {
 protected:  
@@ -112,12 +112,12 @@ public:
     if(buf) xdrstdio_create(&xdri,buf,XDR_DECODE);
     else set(badbit);
   }
-	
+        
   void close() {
     if(buf) {
 #ifndef _CRAY
       xdr_destroy(&xdri);
-#endif			
+#endif                  
       fclose(buf);
       buf=NULL;
     }
@@ -127,10 +127,10 @@ public:
   ixstream(const char *filename) {open(filename);}
   ixstream(const char *filename, open_mode mode) {open(filename,mode);}
   virtual ~ixstream() {close();}
-	
+        
   typedef ixstream& (*imanip)(ixstream&);
   ixstream& operator >> (imanip func) { return (*func)(*this); }
-	
+        
   IXSTREAM(int,int);
   IXSTREAM(unsigned int,u_int);
   IXSTREAM(long,long);
@@ -139,12 +139,12 @@ public:
   IXSTREAM(short,short);
   IXSTREAM(unsigned short,u_short);
   IXSTREAM(char,char);
-#ifndef _CRAY		
+#ifndef _CRAY           
   IXSTREAM(unsigned char,u_char);
-#endif		
+#endif          
   IXSTREAM(float,float);
   IXSTREAM(double,double);
-	
+        
   ixstream& operator >> (xbyte& x) {
     x=fgetc(buf);
     if(x.byte() == EOF) set(eofbit);
@@ -162,12 +162,12 @@ public:
     if(buf) xdrstdio_create(&xdro,buf,XDR_ENCODE);
     else set(badbit);
   }
-	
+        
   void close() {
     if(buf) {
 #ifndef _CRAY
       xdr_destroy(&xdro);
-#endif			
+#endif                  
       fclose(buf);
       buf=NULL;
     }
@@ -179,10 +179,10 @@ public:
   virtual ~oxstream() {close();}
 
   oxstream& flush() {if(buf) fflush(buf); return *this;}
-	
+        
   typedef oxstream& (*omanip)(oxstream&);
   oxstream& operator << (omanip func) { return (*func)(*this); }
-	
+        
   OXSTREAM(int,int);
   OXSTREAM(unsigned int,u_int);
   OXSTREAM(long,long);
@@ -191,12 +191,12 @@ public:
   OXSTREAM(short,short);
   OXSTREAM(unsigned short,u_short);
   OXSTREAM(char,char);
-#ifndef _CRAY		
+#ifndef _CRAY           
   OXSTREAM(unsigned char,u_char);
-#endif		
+#endif          
   OXSTREAM(float,float);
   OXSTREAM(double,double);
-	
+        
   oxstream& operator << (xbyte x) {
     if(fputc(x.byte(),buf) == EOF) set(badbit);
     return *this;
@@ -214,21 +214,21 @@ public:
     else if(mode & out) {
       buf=fopen(filename,"r+");
       if(!buf)
-	buf=fopen(filename,"w+");
+        buf=fopen(filename,"w+");
     } else
-	buf=fopen(filename,"r");
+      buf=fopen(filename,"r");
     if(buf) {
       xdrstdio_create(&xdri,buf,XDR_DECODE);
       xdrstdio_create(&xdro,buf,XDR_ENCODE);
     } else set(badbit);
   }
-	
+        
   void close() {
     if(buf) {
 #ifndef _CRAY
       xdr_destroy(&xdri);
       xdr_destroy(&xdro);
-#endif			
+#endif                  
       fclose(buf);
       buf=NULL;
     }

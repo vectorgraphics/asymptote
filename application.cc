@@ -32,15 +32,15 @@ bool castable(env &e, formal& target, formal& source) {
 
 score castScore(env &e, formal& target, formal& source) {
   return equivalent(target.t,source.t) ? EXACT :
-         (!target.Explicit &&
-          e.castable(target.t,source.t, symbol::castsym)) ? CAST : FAIL;
+    (!target.Explicit &&
+     e.castable(target.t,source.t, symbol::castsym)) ? CAST : FAIL;
 }
 
 defaultArg::defaultArg(types::ty *t)
   : arg(new absyntax::callExp(position(), 
-            new absyntax::varEntryExp(position(),
-                new function(t),
-                run::pushDefault)),
+                              new absyntax::varEntryExp(position(),
+                                                        new function(t),
+                                                        run::pushDefault)),
         t)
 {}
 
@@ -48,7 +48,7 @@ void restArg::transMaker(coenv &e, Int size, bool rest) {
   // Push the number of cells and call the array maker.
   e.c.encode(inst::intpush, size);
   e.c.encode(inst::builtin, rest ? run::newAppendedArray :
-                                   run::newInitializedArray);
+             run::newInitializedArray);
 }
 
 void restArg::trans(coenv &e, temp_vector &temps)
@@ -207,7 +207,7 @@ bool application::matchArgument(env &e, formal &source,
     // Match here, or failing that use a default and try to match at the next
     // spot.
     return matchAtSpot(index, e, source, a, evalIndex) ||
-           (matchDefault() && matchArgument(e, source, a, evalIndex));
+      (matchDefault() && matchArgument(e, source, a, evalIndex));
 }
 
 bool application::matchNamedArgument(env &e, formal &source,

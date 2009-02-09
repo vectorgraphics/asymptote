@@ -59,7 +59,7 @@ public:
   }
   
   void open(const char *command, const char *hint=NULL,
-	    const char *application="", int out_fileno=STDOUT_FILENO) {
+            const char *application="", int out_fileno=STDOUT_FILENO) {
     if(pipe(in) == -1) {
       ostringstream buf;
       buf << "in pipe failed: " << command << endl;
@@ -107,7 +107,7 @@ public:
   iopipestream(): pid(0), pipeopen(false) {}
   
   iopipestream(const char *command, const char *hint=NULL,
-	       const char *application="", int out_fileno=STDOUT_FILENO) :
+               const char *application="", int out_fileno=STDOUT_FILENO) :
     pid(0), pipeopen(false) {
     open(command,hint,application,out_fileno);
   }
@@ -130,14 +130,14 @@ public:
     ssize_t size=BUFSIZE-1;
     for(;;) {
       if((nc=read(out[0],p,size)) < 0)
-	camp::reportError("read from pipe failed");
+        camp::reportError("read from pipe failed");
       p[nc]=0;
       if(nc == 0) break;
       if(nc > 0) {
-	if(settings::verbose > 2) cerr << p;
-	if(strchr(p,'\n')) break;
-	p += nc;
-	size -= nc;
+        if(settings::verbose > 2) cerr << p;
+        if(strchr(p,'\n')) break;
+        p += nc;
+        size -= nc;
       }
     }
     return p+nc-buffer;
@@ -153,7 +153,7 @@ public:
   }
   
   bool tailequals(const char *buf, size_t len, const char *prompt,
-		  size_t plen) {
+                  size_t plen) {
     const char *a=buf+len;
     const char *b=prompt+plen;
     while(b >= prompt) {
@@ -175,8 +175,8 @@ public:
     while((p=strchr(p,'\n')) != NULL) {
       ++p;
       if(strncmp(p,abort,alen) == 0) {
-	clear();
-	return true;
+        clear();
+        return true;
       }
     }
     return false;
@@ -190,15 +190,15 @@ public:
     unsigned int n=0;
     if(abort) {
       for(;;) {
-	if(abort[n]) n++;
-	else break;
+        if(abort[n]) n++;
+        else break;
       }
     }
     
     do {
       len=readbuffer();
       for(unsigned int i=0; i < n; ++i) 
-	if(checkabort(abort[i])) return i+1;
+        if(checkabort(abort[i])) return i+1;
     } while (!tailequals(buffer,len,prompt,plen));
     return 0;
   }
@@ -207,19 +207,19 @@ public:
     for(;;) {
       int status;
       if (waitpid(pid, &status, 0) == -1) {
-	if (errno == ECHILD) return 0;
-	if (errno != EINTR) {
-	  ostringstream buf;
-	  buf << "Process " << pid << " failed";
-	  camp::reportError(buf);
-	}
+        if (errno == ECHILD) return 0;
+        if (errno != EINTR) {
+          ostringstream buf;
+          buf << "Process " << pid << " failed";
+          camp::reportError(buf);
+        }
       } else {
-	if(WIFEXITED(status)) return WEXITSTATUS(status);
-	else {
-	  ostringstream buf;
-	  buf << "Process " << pid << " exited abnormally";
-	  camp::reportError(buf);
-	}
+        if(WIFEXITED(status)) return WEXITSTATUS(status);
+        else {
+          ostringstream buf;
+          buf << "Process " << pid << " exited abnormally";
+          camp::reportError(buf);
+        }
       }
     }
   }

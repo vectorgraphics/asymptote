@@ -31,16 +31,16 @@ void itemRefAccess::encode(action act, position, coder &e)
   e.encode(inst::constpush, (item)ref);
 
   switch (act) {
-  case READ:
-    e.encode(inst::builtin, itemPointerRead);
-    break;
-  case WRITE:
-    e.encode(inst::builtin, itemPointerWrite);
-    break;
-  case CALL:
-    e.encode(inst::builtin, itemPointerRead);
-    e.encode(inst::popcall);
-    break;
+    case READ:
+      e.encode(inst::builtin, itemPointerRead);
+      break;
+    case WRITE:
+      e.encode(inst::builtin, itemPointerWrite);
+      break;
+    case CALL:
+      e.encode(inst::builtin, itemPointerRead);
+      e.encode(inst::popcall);
+      break;
   };
 }
 

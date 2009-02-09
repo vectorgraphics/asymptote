@@ -18,7 +18,7 @@ protected:
   bool stroke;
 public:
   void noncyclic() {
-      reportError("non-cyclic path cannot be filled");
+    reportError("non-cyclic path cannot be filled");
   }
   
   drawFill(const vm::array& src, bool stroke, pen pentype)
@@ -49,7 +49,7 @@ public:
     : drawFill(src,stroke,pentype) {}
 
   void bounds(bbox& b, iopipestream& iopipe, boxvector& vbox,
-	      bboxlist& bboxstack) {
+              bboxlist& bboxstack) {
     if(stroke) strokebounds(b);
     else drawSuperPathPenBase::bounds(b,iopipe,vbox,bboxstack);
   }
@@ -68,7 +68,7 @@ protected:
   vm::array pens;
 public:  
   drawLatticeShade(const vm::array& src, bool stroke, pen pentype,
-		   const vm::array& pens)
+                   const vm::array& pens)
     : drawShade(src,stroke,pentype), pens(pens) {}
   
   void palette(psfile *out) {
@@ -90,7 +90,7 @@ protected:
   ColorSpace colorspace;
 public:  
   drawAxialShade(const vm::array& src, bool stroke, pen pentype,
-		 pair a, pen penb, pair b) 
+                 pair a, pen penb, pair b) 
     : drawShade(src,stroke,pentype), a(a), penb(penb), b(b) {}
   
   void palette(psfile *out);
@@ -108,7 +108,7 @@ protected:
   double rb;
 public:
   drawRadialShade(const vm::array& src, bool stroke,
-		  pen pentype, pair a, double ra, pen penb, pair b, double rb)
+                  pen pentype, pair a, double ra, pen penb, pair b, double rb)
     : drawAxialShade(src,stroke,pentype,a,penb,b), ra(ra), rb(rb) {}
   
   void shade(psfile *out) {
@@ -123,8 +123,8 @@ protected:
   vm::array pens,vertices,edges;
 public:  
   drawGouraudShade(const vm::array& src, bool stroke, pen pentype,
-		   const vm::array& pens, const vm::array& vertices,
-		   const vm::array& edges)
+                   const vm::array& pens, const vm::array& vertices,
+                   const vm::array& edges)
     : drawShade(src,stroke,pentype), pens(pens), vertices(vertices),
       edges(edges) {}
   
@@ -144,8 +144,8 @@ protected:
   vm::array pens,boundaries,z;
 public:  
   drawTensorShade(const vm::array& src, bool stroke,
-		  pen pentype, const vm::array& pens,
-		  const vm::array& boundaries, const vm::array& z)
+                  pen pentype, const vm::array& pens,
+                  const vm::array& boundaries, const vm::array& z)
     : drawShade(src,stroke,pentype), pens(pens), boundaries(boundaries), z(z) {}
   
   void palette(psfile *out) {

@@ -41,8 +41,8 @@ void name::forceEquivalency(action act, coenv &e,
   else if (!equivalent(target, source)) {
     em.compiler(getPos());
     em << "type mismatch in variable: "
-      << *target
-      << " vs " << *source;
+       << *target
+       << " vs " << *source;
   }
 }
 
@@ -173,7 +173,7 @@ bool qualifiedName::varTransVirtual(action act, coenv &e,
     if (act == WRITE) {
       em.error(getPos());
       em << "virtual field '" << *id << "' of '" << *qt
-          << "' cannot be modified";
+         << "' cannot be modified";
     }
     else {
       // Call instead of reading as it is a virtual field.
@@ -274,7 +274,7 @@ types::ty *qualifiedName::typeTrans(coenv &e, bool tacit)
     if (!tacit) {
       em.error(getPos());
       em << "no matching field or type of name \'" << *id << "\' in \'"
-          << *r << "\'";
+         << *r << "\'";
     }
     return primError();
   }
@@ -292,7 +292,7 @@ tyEntry *qualifiedName::tyEntryTrans(coenv &e)
   if (!ent) {
     em.error(getPos());
     em << "no matching type of name \'" << *id << "\' in \'"
-        << *r << "\'";
+       << *r << "\'";
     return new tyEntry(primError(), 0, 0, position());
   }
   ent->reportPerm(READ, getPos(), e.c);

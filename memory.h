@@ -51,9 +51,9 @@ inline void *asy_malloc(size_t n)
 #ifdef GC_DEBUG
   if(void *mem=GC_debug_malloc_ignore_off_page(n, GC_EXTRAS))
 #else
-  if(void *mem=GC_malloc_ignore_off_page(n))
+    if(void *mem=GC_malloc_ignore_off_page(n))
 #endif
-    return mem;
+      return mem;
   throw std::bad_alloc();
 }
 
@@ -62,9 +62,9 @@ inline void *asy_malloc_atomic(size_t n)
 #ifdef GC_DEBUG
   if(void *mem=GC_debug_malloc_atomic_ignore_off_page(n, GC_EXTRAS))
 #else
-  if(void *mem=GC_malloc_atomic_ignore_off_page(n))
+    if(void *mem=GC_malloc_atomic_ignore_off_page(n))
 #endif
-    return mem;
+      return mem;
   throw std::bad_alloc();
 }
 
@@ -98,19 +98,19 @@ inline void* operator new[](size_t size, GCPlacement) {
 template<class T>
 struct GC_type_traits {};
 
-#define GC_DECLARE_PTRFREE(T) \
-template<> struct GC_type_traits<T> {}
+#define GC_DECLARE_PTRFREE(T)                   \
+  template<> struct GC_type_traits<T> {}
 
 #endif // USEGC
 
 namespace mem {
 
-#define GC_CONTAINER(KIND)                                               \
-  template <typename T>                                                  \
-  struct KIND : public std::KIND<T, gc_allocator<T> >, public gc {       \
-    KIND() : std::KIND<T, gc_allocator<T> >() {}                         \
-    KIND(size_t n) : std::KIND<T, gc_allocator<T> >(n) {}                \
-    KIND(size_t n, const T& t) : std::KIND<T, gc_allocator<T> >(n,t) {}  \
+#define GC_CONTAINER(KIND)                                              \
+  template <typename T>                                                 \
+  struct KIND : public std::KIND<T, gc_allocator<T> >, public gc {      \
+    KIND() : std::KIND<T, gc_allocator<T> >() {}                        \
+    KIND(size_t n) : std::KIND<T, gc_allocator<T> >(n) {}               \
+    KIND(size_t n, const T& t) : std::KIND<T, gc_allocator<T> >(n,t) {} \
   }
 
 GC_CONTAINER(list);
@@ -122,11 +122,11 @@ struct stack : public std::stack<T, Container>, public gc {
 
 #undef GC_CONTAINER
 
-#define GC_CONTAINER(KIND)                                                    \
-  template <typename Key, typename T, typename Compare = std::less<Key> >     \
-  struct KIND : public                                                        \
-  std::KIND<Key,T,Compare,gc_allocator<std::pair<Key,T> > >, public gc {      \
-    KIND() : std::KIND<Key,T,Compare,gc_allocator<std::pair<Key,T> > > () {}  \
+#define GC_CONTAINER(KIND)                                              \
+  template <typename Key, typename T, typename Compare = std::less<Key> > \
+  struct KIND : public                                                  \
+  std::KIND<Key,T,Compare,gc_allocator<std::pair<Key,T> > >, public gc { \
+    KIND() : std::KIND<Key,T,Compare,gc_allocator<std::pair<Key,T> > > () {} \
   }
 
 GC_CONTAINER(map);
@@ -135,15 +135,15 @@ GC_CONTAINER(multimap);
 #undef GC_CONTAINER
 
 #ifndef NOHASH
-#define GC_CONTAINER(KIND)                                                    \
-  template <typename Key, typename T,                                         \
-            typename Hash = EXT::hash<Key>,                                   \
-            typename Eq = std::equal_to<Key> >                                \
-  struct KIND : public                                                        \
-  EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > >, public gc {     \
+#define GC_CONTAINER(KIND)                                              \
+  template <typename Key, typename T,                                   \
+            typename Hash = EXT::hash<Key>,                             \
+            typename Eq = std::equal_to<Key> >                          \
+  struct KIND : public                                                  \
+  EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > >, public gc { \
     KIND() : EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > > () {} \
-    KIND(size_t n)                                                            \
-      : EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > > (n) {}     \
+    KIND(size_t n)                                                      \
+      : EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > > (n) {} \
   }
 
 GC_CONTAINER(unordered_map);
@@ -157,7 +157,7 @@ GC_CONTAINER(unordered_multimap);
 typedef std::basic_string<char,std::char_traits<char>,
                           gc_allocator<char> > string;
 typedef std::basic_stringstream<char,std::char_traits<char>,
-				gc_allocator<char> > stringstream;
+                                gc_allocator<char> > stringstream;
 typedef std::basic_istringstream<char,std::char_traits<char>,
                                  gc_allocator<char> > istringstream;
 typedef std::basic_ostringstream<char,std::char_traits<char>,

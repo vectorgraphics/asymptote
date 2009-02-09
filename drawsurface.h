@@ -58,8 +58,8 @@ protected:
   
 public:
   drawSurface(const vm::array& g, bool straight, const vm::array&p,
-	      double opacity, double shininess, double granularity,
-	      triple normal, bool lighton, const vm::array &pens) :
+              double opacity, double shininess, double granularity,
+              triple normal, bool lighton, const vm::array &pens) :
     straight(straight), opacity(opacity), shininess(shininess),
     granularity(granularity), normal(unit(normal)), lighton(lighton) {
     string wrongsize=
@@ -93,13 +93,13 @@ public:
       vm::array *gi=vm::read<vm::array*>(g,i);
       size_t gisize=checkArray(gi);
       if(gisize != 4) 
-	reportError(wrongsize);
+        reportError(wrongsize);
       for(size_t j=0; j < 4; ++j) {
-	triple v=vm::read<triple>(gi,j);
-	controls[k][0]=v.getx();
-	controls[k][1]=v.gety();
-	controls[k][2]=v.getz();
-	++k;
+        triple v=vm::read<triple>(gi,j);
+        controls[k][0]=v.getx();
+        controls[k][1]=v.gety();
+        controls[k][2]=v.getz();
+        ++k;
       }
     }
   }
@@ -124,9 +124,9 @@ public:
   void bounds(bbox3& b);
   
   void bounds(pair &b, double (*m)(double, double),
-	      double (*x)(const triple&, double*),
-	      double (*y)(const triple&, double*),
-	      double *t, bool &first);
+              double (*x)(const triple&, double*),
+              double (*y)(const triple&, double*),
+              double *t, bool &first);
   
   virtual ~drawSurface() {
     if(havecolors)
@@ -137,7 +137,7 @@ public:
   
   void displacement();
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
-	      double perspective, bool transparent);
+              double perspective, bool transparent);
   
   drawElement *transformed(const vm::array& t);
 };

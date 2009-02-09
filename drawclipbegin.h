@@ -19,18 +19,18 @@ class drawClipBegin : public drawSuperPathPenBase {
   bool stroke;
 public:
   void noncyclic() {
-      reportError("cannot clip to non-cyclic path");
+    reportError("cannot clip to non-cyclic path");
   }
   
   drawClipBegin(const vm::array& src, bool stroke, pen pentype, bool gsave=true)
     : drawSuperPathPenBase(src,pentype), gsave(gsave), stroke(stroke) {
-      if(!stroke && !cyclic()) noncyclic();
+    if(!stroke && !cyclic()) noncyclic();
   }
 
   virtual ~drawClipBegin() {}
 
   void bounds(bbox& b, iopipestream& iopipe, boxvector& vbox,
-	      bboxlist& bboxstack) {
+              bboxlist& bboxstack) {
     bboxstack.push_back(b);
     bbox bpath;
     if(stroke) strokebounds(bpath);

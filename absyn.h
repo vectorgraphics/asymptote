@@ -14,7 +14,7 @@
 
 // Forward declaration for markPos.
 namespace trans {
-  class coenv;
+class coenv;
 }
 
 namespace absyntax {

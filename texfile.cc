@@ -70,7 +70,7 @@ void texfile::prologue()
     } else if(height < 10.0) voffset=height-10.0;
 
     *out << "\\pdfhorigin=0bp" << newl
-	 << "\\pdfvorigin=" << voffset << "bp" << newl;
+         << "\\pdfvorigin=" << voffset << "bp" << newl;
     if(width > 0) 
       *out << "\\pdfpagewidth=" << width << "bp" << newl;
     if(height > 0)
@@ -80,23 +80,23 @@ void texfile::prologue()
     *out << "\\setlength{\\unitlength}{1pt}" << newl;
     if(!inlinetex) {
       *out << "\\pagestyle{empty}" << newl
-	   << "\\textheight=" << height+18.0 << "bp" << newl
-	   << "\\textwidth=" << width+18.0 << "bp" << newl;
+           << "\\textheight=" << height+18.0 << "bp" << newl
+           << "\\textwidth=" << width+18.0 << "bp" << newl;
       if(settings::pdf(texengine))
-	*out << "\\oddsidemargin=-17.61pt" << newl
-	     << "\\evensidemargin=\\oddsidemargin" << newl
-	     << "\\topmargin=-37.01pt" << newl;
+        *out << "\\oddsidemargin=-17.61pt" << newl
+             << "\\evensidemargin=\\oddsidemargin" << newl
+             << "\\topmargin=-37.01pt" << newl;
       *out << "\\begin{document}" << newl;
     }
   } else {
     if(!inlinetex) {
       *out << "\\footline={}" << newl;
       if(settings::pdf(texengine)) {
-	*out << "\\hoffset=-20pt" << newl
-	     << "\\voffset=0pt" << newl;
+        *out << "\\hoffset=-20pt" << newl
+             << "\\voffset=0pt" << newl;
       } else {
-	*out << "\\hoffset=36.6pt" << newl
-	     << "\\voffset=54.0pt" << newl;
+        *out << "\\hoffset=36.6pt" << newl
+             << "\\voffset=54.0pt" << newl;
       }
     }
   }
@@ -108,7 +108,7 @@ void texfile::beginlayer(const string& psname)
     *out << "\\includegraphics";
     if(!settings::pdf(texengine))
       *out << "[bb=" << box.left << " " << box.bottom << " "
-	   << box.right << " " << box.top << "]";
+           << box.right << " " << box.top << "]";
     *out << "{" << psname << "}%" << newl;
     if(!inlinetex)
       *out << "\\kern-" << (box.right-box.left)*ps2tex << "pt%" << newl;
@@ -129,25 +129,25 @@ void texfile::writeshifted(path p, bool newPath)
 void texfile::setlatexcolor(pen p)
 {
   if(p.cmyk() && (!lastpen.cmyk() || 
-		  (p.cyan() != lastpen.cyan() || 
-		   p.magenta() != lastpen.magenta() || 
-		   p.yellow() != lastpen.yellow() ||
-		   p.black() != lastpen.black()))) {
+                  (p.cyan() != lastpen.cyan() || 
+                   p.magenta() != lastpen.magenta() || 
+                   p.yellow() != lastpen.yellow() ||
+                   p.black() != lastpen.black()))) {
     *out << "\\definecolor{ASYcolor}{cmyk}{" 
-	 << p.cyan() << "," << p.magenta() << "," << p.yellow() << "," 
-	 << p.black() << "}\\color{ASYcolor}" << newl;
+         << p.cyan() << "," << p.magenta() << "," << p.yellow() << "," 
+         << p.black() << "}\\color{ASYcolor}" << newl;
   } else if(p.rgb() && (!lastpen.rgb() ||
-			(p.red() != lastpen.red() ||
-			 p.green() != lastpen.green() || 
-			 p.blue() != lastpen.blue()))) {
+                        (p.red() != lastpen.red() ||
+                         p.green() != lastpen.green() || 
+                         p.blue() != lastpen.blue()))) {
     *out << "\\definecolor{ASYcolor}{rgb}{" 
-	 << p.red() << "," << p.green() << "," << p.blue()
-	 << "}\\color{ASYcolor}" << newl;
+         << p.red() << "," << p.green() << "," << p.blue()
+         << "}\\color{ASYcolor}" << newl;
   } else if(p.grayscale() && (!lastpen.grayscale() || 
-			      p.gray() != lastpen.gray())) {
+                              p.gray() != lastpen.gray())) {
     *out << "\\definecolor{ASYcolor}{gray}{" 
-	 << p.gray()
-	 << "}\\color{ASYcolor}" << newl;
+         << p.gray()
+         << "}\\color{ASYcolor}" << newl;
   }
 }
   
@@ -209,7 +209,7 @@ void texfile::endraw()
 }
   
 void texfile::put(const string& label, const transform& T, const pair& z,
-		  const pair& align)
+                  const pair& align)
 {
   double sign=settings::pdf(texengine) ? 1.0 : -1.0;
 
@@ -232,7 +232,7 @@ void texfile::epilogue(bool pipe)
     if(!inlinetex || pipe)
       *out << "\\end{document}" << newl;
   } else {
-      *out << "\\bye" << newl;
+    *out << "\\bye" << newl;
   }
   out->flush();
 }

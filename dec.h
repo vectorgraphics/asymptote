@@ -87,7 +87,7 @@ public:
   void prettyprint(ostream &out, Int indent);
 
   void increase()
-    { depth++; }
+  { depth++; }
   
   size_t size() {
     return depth;
@@ -177,12 +177,12 @@ public:
   // For functions that return a value, we must guarantee that they end
   // with a return statement.  This checks for that condition.
   virtual bool returns()
-    { return false; }
+  { return false; }
 
   // Returns true if it is syntatically allowable to modify this
   // runnable by a PUBLIC or PRIVATE modifier. 
   virtual bool allowPermissions()
-    { return false; }
+  { return false; }
 }; 
 
 class block : public runnable {
@@ -239,7 +239,7 @@ public:
     : absyn(pos) {}
 
   virtual ~modifierList()
-    {}
+  {}
 
   void prettyprint(ostream &out, Int indent);
 
@@ -288,7 +288,7 @@ public:
   void transAsField(coenv &e, record *r);
 
   bool returns()
-    { return body->returns(); }
+  { return body->returns(); }
 };
 
 
@@ -312,7 +312,7 @@ public:
   virtual void addOps(types::ty *base, coenv &e, record *r);
 
   virtual symbol *getName()
-    { return id; }
+  { return id; }
 };
 
 // Forward declaration.
@@ -324,8 +324,8 @@ class fundecidstart : public decidstart {
 public:
   fundecidstart(position pos,
                 symbol *id,
-		dimensions *dims = 0,
-		formals *params = 0)
+                dimensions *dims = 0,
+                formals *params = 0)
     : decidstart(pos, id, dims), params(params) {}
 
   void prettyprint(ostream &out, Int indent);
@@ -384,7 +384,7 @@ public:
 
   // Declarations can be public or private.
   bool allowPermissions()
-    { return true; }
+  { return true; }
 };
 
 void createVar(position pos, coenv &e, record *r,
@@ -615,7 +615,7 @@ public:
     : dec(pos), id(id), body(body) {}
 
   virtual ~recorddec()
-    {}
+  {}
 
   void prettyprint(ostream &out, Int indent);
 

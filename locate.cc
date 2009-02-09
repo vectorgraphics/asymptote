@@ -57,8 +57,8 @@ file_list_t mungeFileName(string id)
 string join(string dir, string file)
 {
   return dir == "." ?           file :
-         *dir.rbegin() == '/' ? dir + file :
-                                dir + "/" + file;
+    *dir.rbegin() == '/' ? dir + file :
+    dir + "/" + file;
 }
 
 // Find the appropriate file, first looking in the local directory, then the
@@ -88,7 +88,7 @@ string locateFile(string id)
       for (file_list_t::iterator dir = searchPath.begin();
            dir != searchPath.end();
            ++dir) {
-	string file = join(*dir,*leaf);
+        string file = join(*dir,*leaf);
         if (fs::exists(file))
           return file;
       }

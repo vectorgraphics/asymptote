@@ -118,7 +118,7 @@ class errorstream {
   ostream& out;
   bool anyErrors;
   bool anyWarnings;
-  bool floating;	// Was a message output without a terminating newline?
+  bool floating;        // Was a message output without a terminating newline?
   
   // Is there an error that warrants the asy process to return 1 instead of 0?
   bool anyStatusErrors;

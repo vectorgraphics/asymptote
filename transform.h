@@ -34,7 +34,7 @@ public:
 
   transform(double x, double y,
             double xx, double xy,
-	    double yx, double yy)
+            double yx, double yy)
     : x(x), y(y), xx(xx), xy(xy), yx(yx), yy(yy) {}
 
   double getx() const { return x; }
@@ -48,21 +48,21 @@ public:
   {
     return transform(t.x + s.x, t.y + s.y,
                      t.xx + s.xx, t.xy + s.xy,
-		     t.yx + s.yx, t.yy + s.yy);
+                     t.yx + s.yx, t.yy + s.yy);
   }
 
   friend transform operator- (const transform& t, const transform& s)
   {
     return transform(t.x - s.x, t.y - s.y,
                      t.xx - s.xx, t.xy - s.xy,
-		     t.yx - s.yx, t.yy - s.yy);
+                     t.yx - s.yx, t.yy - s.yy);
   }
 
   friend transform operator- (const transform& t)
   {
     return transform(-t.x, -t.y,
                      -t.xx, -t.xy,
-		     -t.yx, -t.yy);
+                     -t.yx, -t.yy);
   }
 
   friend pair operator* (const transform& t, const pair& z)
@@ -78,17 +78,17 @@ public:
   {
     return transform(t.x + t.xx * s.x  + t.xy * s.y,
                      t.y + t.yx * s.x  + t.yy * s.y,
-		           t.xx * s.xx + t.xy * s.yx,
-		           t.xx * s.xy + t.xy * s.yy,
-		           t.yx * s.xx + t.yy * s.yx,
-		           t.yx * s.xy + t.yy * s.yy);
+                     t.xx * s.xx + t.xy * s.yx,
+                     t.xx * s.xy + t.xy * s.yy,
+                     t.yx * s.xx + t.yy * s.yx,
+                     t.yx * s.xy + t.yy * s.yy);
   }
 
   friend bool operator== (const transform& t1, const transform& t2)
   {
     return t1.x  == t2.x  && t1.y  == t2.y  &&
-           t1.xx == t2.xx && t1.xy == t2.xy &&
-	   t1.yx == t2.yx && t1.yy == t2.yy;
+      t1.xx == t2.xx && t1.xy == t2.xy &&
+      t1.yx == t2.yx && t1.yy == t2.yy;
   }
 
   friend bool operator!= (const transform& t1, const transform& t2)
@@ -129,17 +129,17 @@ public:
     d=1.0/d;
     return transform((t.xy * t.y - t.yy * t.x)*d,
                      (t.yx * t.x - t.xx * t.y)*d,
-		     t.yy*d, -t.xy*d, -t.yx*d, t.xx*d);
+                     t.yy*d, -t.xy*d, -t.yx*d, t.xx*d);
   }
 
   friend ostream& operator<< (ostream& out, const transform& t)
   {
     return out << "(" << t.x  << ","
-                      << t.y  << ","
-		      << t.xx << ","
-		      << t.xy << ","
-		      << t.yx << ","
-		      << t.yy << ")";
+               << t.y  << ","
+               << t.xx << ","
+               << t.xy << ","
+               << t.yx << ","
+               << t.yy << ")";
   }
 };
 

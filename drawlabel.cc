@@ -26,7 +26,7 @@ void drawLabel::labelwarning(const char *action)
 }
  
 int drawLabel::wait(iopipestream &tex, const char *s, const char **abort,
-		    bool ignore)
+                    bool ignore)
 {
   int rc=tex.wait(s,abort);
   if(rc > 0) {
@@ -44,30 +44,30 @@ int drawLabel::wait(iopipestream &tex, const char *s, const char **abort,
       tex.shred();
       reportError(s);
     }
-   }
+  }
   tex.shred();
   return rc;
 }
  
 bool drawLabel::texbounds(iopipestream& tex, string& s, const char **abort,
-			  bool warn)
+                          bool warn)
 {
   string texbuf;
   tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(s) << "}\n\n";
   int rc=wait(tex,texready.c_str(),abort,getSetting<bool>("inlinetex"));
-   if(rc) {
-     tex << "\\show 0\n";
-     tex.wait("\n*");
-     if(warn) {
-       if(getSetting<bool>("debug")) {
-	 ostringstream buf;
-	 buf << "Cannot determine size of label \"" << s << "\"";
-	 reportWarning(buf);
-       }
-       return false;
-     }
-     return false;
-   }
+  if(rc) {
+    tex << "\\show 0\n";
+    tex.wait("\n*");
+    if(warn) {
+      if(getSetting<bool>("debug")) {
+        ostringstream buf;
+        buf << "Cannot determine size of label \"" << s << "\"";
+        reportWarning(buf);
+      }
+      return false;
+    }
+    return false;
+  }
 
   tex << "\\showthe\\wd\\ASYbox\n";
   tex >> texbuf;
@@ -87,7 +87,7 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, const char **abort,
   tex >> texbuf;
   if(texbuf[0] == '>' && texbuf[1] == ' ')
     try {
-    height=lexical::cast<double>(texbuf.c_str()+2,true)*tex2ps;
+      height=lexical::cast<double>(texbuf.c_str()+2,true)*tex2ps;
     } catch(lexical::bad_cast&) {
       reportError(cannotread+"height");
     }
@@ -99,7 +99,7 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, const char **abort,
   tex >> texbuf;
   if(texbuf[0] == '>' && texbuf[1] == ' ')
     try {
-    depth=lexical::cast<double>(texbuf.c_str()+2,true)*tex2ps;
+      depth=lexical::cast<double>(texbuf.c_str()+2,true)*tex2ps;
     } catch(lexical::bad_cast&) {
       reportError(cannotread+"depth");
     }
@@ -111,7 +111,7 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, const char **abort,
 }   
 
 inline double urand()
-{			  
+{                         
   static const double factor=2.0/RAND_MAX;
   return rand()*factor-1.0;
 }
@@ -151,7 +151,7 @@ void drawLabel::getbounds(iopipestream& tex, const string& texengine)
 }
 
 void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
-		       bboxlist&)
+                       bboxlist&)
 {
   string texengine=getSetting<string>("tex");
   if(texengine == "none") {b += position; return;}
@@ -172,34 +172,34 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
     box Box=box(A,B,C,D);
     for(size_t i=0; i < n; i++) {
       if(labelbounds[i].intersect(Box)) {
-	switch(pentype.Overwrite()) {
-	case SUPPRESS:
-	  labelwarning("suppressed");
-	case SUPPRESSQUIET:
-	  suppress=true; 
-	  return;
-	case MOVE:
-	  labelwarning("moved");
-	default:
-	  break;
-	}
+        switch(pentype.Overwrite()) {
+          case SUPPRESS:
+            labelwarning("suppressed");
+          case SUPPRESSQUIET:
+            suppress=true; 
+            return;
+          case MOVE:
+            labelwarning("moved");
+          default:
+            break;
+        }
 
-	pair Align=(align == pair(0,0)) ? unit(pair(urand(),urand())) :
-	  unit(align);
-	double s=0.1*pentype.size();
-	double dx=0, dy=0;
-	if(Align.getx() > 0.1) dx=labelbounds[i].xmax()-Box.xmin()+s;
-	if(Align.getx() < -0.1) dx=labelbounds[i].xmin()-Box.xmax()-s;
-	if(Align.gety() > 0.1) dy=labelbounds[i].ymax()-Box.ymin()+s;
-	if(Align.gety() < -0.1) dy=labelbounds[i].ymin()-Box.ymax()-s;
-	pair offset=pair(dx,dy);
-	position += offset;
-	A += offset;
-	B += offset;
-	C += offset;
-	D += offset;
-	Box=box(A,B,C,D);
-	i=0;
+        pair Align=(align == pair(0,0)) ? unit(pair(urand(),urand())) :
+          unit(align);
+        double s=0.1*pentype.size();
+        double dx=0, dy=0;
+        if(Align.getx() > 0.1) dx=labelbounds[i].xmax()-Box.xmin()+s;
+        if(Align.getx() < -0.1) dx=labelbounds[i].xmin()-Box.xmax()-s;
+        if(Align.gety() > 0.1) dy=labelbounds[i].ymax()-Box.ymin()+s;
+        if(Align.gety() < -0.1) dy=labelbounds[i].ymin()-Box.ymax()-s;
+        pair offset=pair(dx,dy);
+        position += offset;
+        A += offset;
+        B += offset;
+        C += offset;
+        D += offset;
+        Box=box(A,B,C,D);
+        i=0;
       }
     }
     labelbounds.resize(n+1);
@@ -233,7 +233,7 @@ bool drawLabel::write(texfile *out, const bbox&)
 drawElement *drawLabel::transformed(const transform& t)
 {
   return new drawLabel(label,size,t*T,t*position,
-		       length(align)*unit(shiftless(t)*align),pentype);
+                       length(align)*unit(shiftless(t)*align),pentype);
 }
 
 void drawLabelPath::bounds(bbox& b, iopipestream& tex, boxvector&, bboxlist&)
@@ -302,7 +302,7 @@ bool drawLabelPath::write(texfile *out, const bbox&)
 drawElement *drawLabelPath::transformed(const transform& t)
 {
   return new drawLabelPath(label,size,transpath(t),justify,shift,
-			   transpen(t));
+                           transpen(t));
 }
 
 } //namespace camp

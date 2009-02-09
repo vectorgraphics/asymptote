@@ -25,14 +25,14 @@ extern const types::formal noformal;
   
 // Add a function with one or more default arguments.
 void addFunc(venv &ve, vm::bltin f, types::ty *result, const char *name, 
-	     types::formal f1=noformal, types::formal f2=noformal,
-	     types::formal f3=noformal, types::formal f4=noformal,
-	     types::formal f5=noformal, types::formal f6=noformal,
-	     types::formal f7=noformal, types::formal f8=noformal,
-	     types::formal f9=noformal, types::formal fA=noformal,
-	     types::formal fB=noformal, types::formal fC=noformal,
-	     types::formal fD=noformal, types::formal fE=noformal,
-	     types::formal fF=noformal);
+             types::formal f1=noformal, types::formal f2=noformal,
+             types::formal f3=noformal, types::formal f4=noformal,
+             types::formal f5=noformal, types::formal f6=noformal,
+             types::formal f7=noformal, types::formal f8=noformal,
+             types::formal f9=noformal, types::formal fA=noformal,
+             types::formal fB=noformal, types::formal fC=noformal,
+             types::formal fD=noformal, types::formal fE=noformal,
+             types::formal fF=noformal);
   
 // Adds standard functions for a newly added types.
 void addArrayOps(venv &ve, types::array *t);
@@ -44,7 +44,7 @@ types::record *getGSLModule();
 } //namespace trans
 
 namespace run {
-  void arrayDeleteHelper(vm::stack *Stack);
+void arrayDeleteHelper(vm::stack *Stack);
 }
 
 #endif //BUILTIN_H

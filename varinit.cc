@@ -51,7 +51,7 @@ void arrayinit::transMaker(coenv &e, Int size, bool rest) {
   // Push the number of cells and call the array maker.
   e.c.encode(inst::intpush, size);
   e.c.encode(inst::builtin, rest ? run::newAppendedArray :
-                                   run::newInitializedArray);
+             run::newInitializedArray);
 }
 
 void arrayinit::transToType(coenv &e, types::ty *target)

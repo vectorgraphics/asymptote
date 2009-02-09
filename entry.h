@@ -24,7 +24,7 @@ using types::signature;
 
 // Forward declaration.
 namespace types {
-  class record;
+class record;
 }
 using types::record;
 
@@ -105,7 +105,7 @@ public:
   varEntry(varEntry &qv, varEntry &v);
 
   ty *getType()
-    { return t; }
+  { return t; }
 
   signature *getSignature()
   {
@@ -113,7 +113,7 @@ public:
   }
 
   access *getLocation()
-    { return location; }
+  { return location; }
 
   frame *getLevel();
 
@@ -166,7 +166,7 @@ inline tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent) {
 // The type environment.
 class tenv : public sym::table<tyEntry *> {
   bool add(symbol *dest, names_t::value_type &x, varEntry *qualifier,
-	   coder &c);
+           coder &c);
 public:
   // Add the entries in one environment to another, if qualifier is
   // non-null, it is a record and the source environment is its types.  The
@@ -264,7 +264,7 @@ class venv {
     }
     size_t operator()(const key k) const {
       return (size_t)(k.name) * 107 +
-             (k.name->special ? k.t->hash() : hashSig(k.t));
+        (k.name->special ? k.t->hash() : hashSig(k.t));
     }
   };
   struct keyeq {
@@ -272,9 +272,9 @@ class venv {
 #if TEST_COLLISION
     bool base(const key k, const key l) const {
       return k.name==l.name &&
-             (k.name->special ? equivalent(k.t, l.t) :
-                                equivalent(k.t->getSignature(),
-                                           l.t->getSignature()));
+        (k.name->special ? equivalent(k.t, l.t) :
+         equivalent(k.t->getSignature(),
+                    l.t->getSignature()));
     }
     bool operator()(const key k, const key l) const;
 #else

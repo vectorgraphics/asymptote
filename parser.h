@@ -22,7 +22,7 @@ absyntax::file *parseFile(const string& filename,
 // "extendable", then a parse error simply due to running out of input will not
 // throw an exception, but will return null.
 absyntax::file *parseString(const string& code,
-			    const string& filename,
+                            const string& filename,
                             bool extendable=false);
 } // namespace parser
 

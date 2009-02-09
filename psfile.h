@@ -24,7 +24,7 @@ namespace camp {
 inline void BoundingBox(std::ostream& s, const bbox& box) 
 {
   s << "%%BoundingBox: " << std::setprecision(0) << std::fixed 
-       << box.LowRes() << newl;
+    << box.LowRes() << newl;
   s.unsetf(std::ios::fixed);
   s << "%%HiResBoundingBox: " << std::setprecision(9) << box << newl;
 }
@@ -58,8 +58,8 @@ private:
     do {
       *out << (unsigned char) (*--s + '!');
       if(pos++ >= width) {
-	pos=0;
-	*out << '\n';
+        pos=0;
+        *out << '\n';
       }
     } while(i-- > 0);
   }
@@ -68,27 +68,27 @@ public:
   void put(unsigned char c) {
     switch (count++) {
       case 0:
-	tuple |= (c << 24);
-	break;
+        tuple |= (c << 24);
+        break;
       case 1:
-	tuple |= (c << 16);
-	break;
+        tuple |= (c << 16);
+        break;
       case 2:
-	tuple |= (c <<  8);
-	break;
+        tuple |= (c <<  8);
+        break;
       case 3:
-	tuple |= c;
-	if(tuple == 0) {
-	  *out << 'z';
-	  if(pos++ >= width) {
-	    pos=0;
-	    *out << '\n';
-	  }
-	} else
-	  encode(tuple, count);
-	tuple=0;
-	count=0;
-	break;
+        tuple |= c;
+        if(tuple == 0) {
+          *out << 'z';
+          if(pos++ >= width) {
+            pos=0;
+            *out << '\n';
+          }
+        } else
+          encode(tuple, count);
+        tuple=0;
+        count=0;
+        break;
     }
   }
 };
@@ -107,8 +107,8 @@ class psfile {
   void write(transform t) {
     if(!pdf) *out << "[";
     *out << " " << t.getxx() << " " << t.getyx()
-	 << " " << t.getxy() << " " << t.getyy()
-	 << " " << t.getx() << " " << t.gety();
+         << " " << t.getxy() << " " << t.getyy()
+         << " " << t.getx() << " " << t.gety();
     if(!pdf) *out << "]";
   }
 
@@ -134,20 +134,20 @@ class psfile {
   }
   
   void endImage(bool antialias, size_t width, size_t height, 
-		size_t ncomponents) {
+                size_t ncomponents) {
     if(antialias) dealias(buffer,width,height,ncomponents);
     if(settings::getSetting<Int>("level") >= 3)
       writeCompressed(buffer,count);
     else {
       encode85 e(out);
       for(size_t i=0; i < count; ++i)
-	e.put(buffer[i]);
+        e.put(buffer[i]);
     }
     delete[] buffer;
   }
   
   void writeByte(unsigned char n) {
-      buffer[count++]=n;
+    buffer[count++]=n;
   }
   
   void write2(unsigned n) {
@@ -270,13 +270,13 @@ public:
   void latticeshade(const vm::array& a, const bbox& b);
   
   void gradientshade(bool axial, const ColorSpace& colorspace,
-		     const pen& pena, const pair& a, double ra,
-		     const pen& penb, const pair& b, double rb);
+                     const pen& pena, const pair& a, double ra,
+                     const pen& penb, const pair& b, double rb);
   
   void gouraudshade(const vm::array& pens, const vm::array& vertices,
-		    const vm::array& edges);
+                    const vm::array& edges);
   void tensorshade(const vm::array& pens, const vm::array& boundaries,
-		   const vm::array& z);
+                   const vm::array& z);
 
   void imageheader(size_t width, size_t height, ColorSpace colorspace);
   
@@ -348,7 +348,7 @@ public:
     size_t size=penarray.size();
     for(size_t i=0; i < size; i++)
       colorspace=max(colorspace,
-		     maxcolorspace(vm::read<vm::array>(penarray,i)));
+                     maxcolorspace(vm::read<vm::array>(penarray,i)));
     return colorspace;
   }
 

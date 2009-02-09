@@ -135,8 +135,8 @@ public:
   friend triple cross(const triple& u, const triple& v) 
   {
     return triple(u.gety()*v.getz()-u.getz()*v.gety(),
-		  u.getz()*v.getx()-u.getx()*v.getz(),
-		  u.getx()*v.gety()-v.getx()*u.gety());
+                  u.getz()*v.getx()-u.getx()*v.getz(),
+                  u.getx()*v.gety()-v.getx()*u.gety());
   }
 
   // Returns a unit triple in the direction (theta,phi), in radians.

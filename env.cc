@@ -14,7 +14,7 @@
 using namespace types;
 
 namespace absyntax {
-  void clearCachedCalls();
+void clearCachedCalls();
 }
 
 namespace trans {

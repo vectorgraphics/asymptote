@@ -41,11 +41,11 @@ bool definesImplicitConstructor(coenv &e, record *r, varEntry *v, symbol *id)
       v->getType()->kind == ty_function &&
       e.c.isStatic() == false &&
       e.c.isTopLevel() == false)
-  {
-    function *ft=dynamic_cast<function *>(v->getType());
-    if (ft->getResult()->kind == ty_void)
-      return true;
-  }
+    {
+      function *ft=dynamic_cast<function *>(v->getType());
+      if (ft->getResult()->kind == ty_void)
+        return true;
+    }
   
   return false;
 }

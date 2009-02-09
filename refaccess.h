@@ -61,16 +61,16 @@ void refAccess<T>::encode(action act, position, coder &e)
   e.encode(vm::inst::constpush, (vm::item)ref);
 
   switch (act) {
-  case READ:
-    e.encode(vm::inst::builtin, (bltin) pointerRead<T>);
-    break;
-  case WRITE:
-    e.encode(vm::inst::builtin, (bltin) pointerWrite<T>);
-    break;
-  case CALL:
-    e.encode(vm::inst::builtin, (bltin) pointerRead<T>);
-    e.encode(vm::inst::popcall);
-    break;
+    case READ:
+      e.encode(vm::inst::builtin, (bltin) pointerRead<T>);
+      break;
+    case WRITE:
+      e.encode(vm::inst::builtin, (bltin) pointerWrite<T>);
+      break;
+    case CALL:
+      e.encode(vm::inst::builtin, (bltin) pointerRead<T>);
+      e.encode(vm::inst::popcall);
+      break;
   };
 }
 

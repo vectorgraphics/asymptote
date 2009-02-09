@@ -32,10 +32,10 @@ inline Int Floor(double t) {return (Int) floor(Intcap(t));}
 inline Int Ceil(double t) {return (Int) ceil(Intcap(t));}
 
 bool simpson(double& integral, double (*)(double), double a, double b,
-	     double acc, double dxmax);
+             double acc, double dxmax);
 
 bool unsimpson(double integral, double (*)(double), double a, double& b,
-	       double acc, double& area, double dxmax, double dxmin=0);
+               double acc, double& area, double dxmax, double dxmin=0);
 
 namespace camp {
 
@@ -198,9 +198,9 @@ public:
   pair postcontrol(double t) const;
   
   inline double norm(const pair& z0, const pair& c0, const pair& c1,
-		     const pair& z1) const {
+                     const pair& z1) const {
     return Fuzz2*camp::max((c0-z0).abs2(),
-			   camp::max((c1-z0).abs2(),(z1-z0).abs2()));
+                           camp::max((c1-z0).abs2(),(z1-z0).abs2()));
   }
 
   pair predir(Int t, bool normalize=true) const {
@@ -373,7 +373,7 @@ public:
   
 // Count if t is in (begin,end] and z lies to the left of point(i+t).
   void countleft(Int& count, double x, Int i, double t,
-		 double begin, double end, double& mint, double& maxt) const;
+                 double begin, double end, double& mint, double& maxt) const;
 
 // Return the winding number of the region bounded by the (cyclic) path
 // relative to the point z.
@@ -389,12 +389,12 @@ extern const unsigned maxdepth;
 extern const unsigned mindepth;
  
 bool intersect(double& S, double& T, path& p, path& q, double fuzz,
-	       unsigned depth=maxdepth);
+               unsigned depth=maxdepth);
 bool intersections(double& s, double& t, std::vector<double>& S,
-		   std::vector<double>& T, path& p, path& q,
-		   double fuzz, bool single, unsigned depth=maxdepth);
+                   std::vector<double>& T, path& p, path& q,
+                   double fuzz, bool single, unsigned depth=maxdepth);
 void intersections(std::vector<double>& S, path& g,
-		   const pair& p, const pair& q, double fuzz);
+                   const pair& p, const pair& q, double fuzz);
 
   
 // Concatenates two paths into a new one.
@@ -432,13 +432,13 @@ public:
 };
 
 path nurb(pair z0, pair z1, pair z2, pair z3,
-	  double w0, double w1, double w2, double w3, Int m);
+          double w0, double w1, double w2, double w3, Int m);
   
 double orient2d(const pair& a, const pair& b, const pair& c);
 
 void roots(std::vector<double> &roots, double a, double b, double c, double d);
 void roots(std::vector<double> &r, double x0, double c0, double c1, double x1,
-	   double x);
+           double x);
   
 inline bool goodroot(double t)
 {

@@ -39,15 +39,15 @@ static void bltinError(position pos)
 void bltinAccess::encode(action act, position pos, coder &e)
 {
   switch (act) {
-  case READ:
-    e.encode(inst::constpush,(item)(vm::callable*)new vm::bfunc(f));
-    break;
-  case WRITE:
-    bltinError(pos);
-    break;
-  case CALL:
-    e.encode(inst::builtin, f);
-    break;
+    case READ:
+      e.encode(inst::constpush,(item)(vm::callable*)new vm::bfunc(f));
+      break;
+    case WRITE:
+      bltinError(pos);
+      break;
+    case CALL:
+      e.encode(inst::builtin, f);
+      break;
   }
 }
 

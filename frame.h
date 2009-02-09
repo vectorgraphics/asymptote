@@ -55,7 +55,7 @@ public:
   {
     while (f != 0) {
       if (f == this)
-	return true;
+        return true;
       f = f->parent;
     }
     return false;

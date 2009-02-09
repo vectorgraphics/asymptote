@@ -15,8 +15,8 @@ void multiguide::flatten(flatguide& g, bool allowsolve)
     for(size_t i=0; i+1 < n; ++i) {
       v[i]->flatten(g,allowsolve);
       if(!allowsolve && v[i]->cyclic()) {
-	g.precyclic(true);
-	g.resolvecycle();
+        g.precyclic(true);
+        g.resolvecycle();
       }
     }
     v[n-1]->flatten(g,allowsolve);

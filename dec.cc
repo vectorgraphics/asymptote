@@ -209,15 +209,15 @@ void modifierList::prettyprint(ostream &out, Int indent)
       out << ", ";
     switch (*p) {
       case EXPLICIT_STATIC:
-	out << "static";
-	break;
-#if 0	
+        out << "static";
+        break;
+#if 0   
       case EXPLICIT_DYNAMIC:
-	out << "dynamic";
-	break;
-#endif	
+        out << "dynamic";
+        break;
+#endif  
       default:
-	out << "invalid code";
+        out << "invalid code";
     }
   }
   
@@ -226,13 +226,13 @@ void modifierList::prettyprint(ostream &out, Int indent)
       out << ", ";
     switch (*p) {
       case PUBLIC:
-	out << "public";
-	break;
+        out << "public";
+        break;
       case PRIVATE:
-	out << "private";
-	break;
+        out << "private";
+        break;
       default:
-	out << "invalid code";
+        out << "invalid code";
     }
   }
 
@@ -320,7 +320,7 @@ trans::tyEntry *decidstart::getTyEntry(trans::tyEntry *base, coenv &e,
 {
   return dims ? new trans::tyEntry(getType(base->t,e,false), 0,
                                    where, getPos()) :
-                base;
+    base;
 }
 
 void decidstart::addOps(types::ty *base, coenv &e, record *r)
@@ -392,10 +392,10 @@ varEntry *makeVarEntryWhere(coenv &e, record *r, types::ty *t,
                             record *where, position pos)
 {
   access *a = r ? r->allocField(e.c.isStatic()) :
-                  e.c.allocLocal();
+    e.c.allocLocal();
 
   return r ? new varEntry(t, a, e.c.getPermission(), r, where, pos) :
-             new varEntry(t, a, where, pos);
+    new varEntry(t, a, where, pos);
 }
 
 varEntry *makeVarEntry(position pos, coenv &e, record *r, types::ty *t) {
@@ -457,8 +457,8 @@ void addTypeWithPermission(coenv &e, record *r, tyEntry *base, symbol *id)
 {
   // Only bother encoding permissions for private types.
   tyEntry *ent = (r && e.c.getPermission()==PRIVATE) ?
-                     new trans::tyEntry(base, PRIVATE, r) :
-                     base;
+    new trans::tyEntry(base, PRIVATE, r) :
+    base;
 
   if (r)
     r->e.addType(id, ent);
@@ -580,7 +580,7 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol *id)
     // Create a varinit that evaluates to the module.
     // This is effectively the expression "loadModule(filename)".
     callExp init(pos, new loadModuleExp(pos, imp),
-                      new stringExp(pos, *id));
+                 new stringExp(pos, *id));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -790,7 +790,7 @@ void recorddec::addPostRecordEnvironment(coenv &e, record *r, record *parent) {
 void recorddec::transAsField(coenv &e, record *parent)
 {
   record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
-                       e.c.newRecord(id);
+    e.c.newRecord(id);
                      
   addTypeWithPermission(e, parent, new trans::tyEntry(r,0,parent,getPos()), id);
   e.e.addRecordOps(r);

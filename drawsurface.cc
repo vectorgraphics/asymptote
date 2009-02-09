@@ -14,7 +14,7 @@ using vm::array;
 triple drawSurface::c3[];
 
 inline void initMatrix(GLfloat *v, double x, double ymin, double zmin,
-		       double ymax, double zmax)
+                       double ymax, double zmax)
 {
   v[0]=x;
   v[1]=ymin;
@@ -64,9 +64,9 @@ void drawSurface::bounds(bbox3& b)
 }
 
 void drawSurface::bounds(pair &b, double (*m)(double, double),
-			 double (*x)(const triple&, double*),
-			 double (*y)(const triple&, double*),
-			 double *t, bool &first)
+                         double (*x)(const triple&, double*),
+                         double (*y)(const triple&, double*),
+                         double *t, bool &first)
 {
   for(int i=0; i < 16; ++i) {
     double *ci=controls[i];
@@ -104,17 +104,17 @@ inline triple displacement2(const Triple& z, const Triple& u, const triple& n)
 inline triple maxabs(triple u, triple v)
 {
   return triple(max(fabs(u.getx()),fabs(v.getx())),
-		max(fabs(u.gety()),fabs(v.gety())),
-		max(fabs(u.getz()),fabs(v.getz())));
+                max(fabs(u.gety()),fabs(v.gety())),
+                max(fabs(u.getz()),fabs(v.getz())));
 }
 
 inline triple displacement(const Triple& z0, const Triple& c0,
-			   const Triple& c1, const Triple& z1)
+                           const Triple& c1, const Triple& z1)
 {
   triple Z0(z0[0],z0[1],z0[2]);
   triple Z1(z1[0],z1[1],z1[2]);
   return maxabs(displacement(triple(c0[0],c0[1],c0[2]),Z0,Z1),
-		displacement(triple(c1[0],c1[1],c1[2]),Z0,Z1));
+                displacement(triple(c1[0],c1[1],c1[2]),Z0,Z1));
 }
 
 void drawSurface::displacement()
@@ -136,16 +136,16 @@ void drawSurface::displacement()
     
     if(!straight) {
       for(int i=1; i < 16; ++i) 
-	d=camp::maxabs(d,camp::displacement2(controls[i],controls[0],normal));
+        d=camp::maxabs(d,camp::displacement2(controls[i],controls[0],normal));
       
       dperp=d;
     
       for(int i=0; i < 4; ++i)
-	d=camp::maxabs(d,camp::displacement(controls[4*i],controls[4*i+1],
-					    controls[4*i+2],controls[4*i+3]));
+        d=camp::maxabs(d,camp::displacement(controls[4*i],controls[4*i+1],
+                                            controls[4*i+2],controls[4*i+3]));
       for(int i=0; i < 4; ++i)
-	d=camp::maxabs(d,camp::displacement(controls[i],controls[i+4],
-					    controls[i+8],controls[i+12]));
+        d=camp::maxabs(d,camp::displacement(controls[i],controls[i+4],
+                                            controls[i+8],controls[i+12]));
     }
   }
 #endif  
@@ -160,13 +160,13 @@ inline double fraction(double d, double size)
 inline double fraction(const triple& d, const triple& size)
 {
   return max(max(fraction(d.getx(),size.getx()),
-		 fraction(d.gety(),size.gety())),
-	     fraction(d.getz(),size.getz()));
+                 fraction(d.gety(),size.gety())),
+             fraction(d.getz(),size.getz()));
 }
 
 void drawSurface::render(GLUnurbs *nurb, double size2,
-			 const triple& Min, const triple& Max,
-			 double perspective, bool transparent)
+                         const triple& Min, const triple& Max,
+                         double perspective, bool transparent)
 {
 #ifdef HAVE_LIBGLUT
   if(invisible || (havetransparency ^ transparent)) return;
@@ -247,16 +247,16 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
   triple size3=triple(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),
-		      Max.getz()-Min.getz());
+                      Max.getz()-Min.getz());
   
   if(!havenormal || (!straight && (fraction(d,size3)*size2 >= pixel || 
-				   granularity == 0))) {
+                                   granularity == 0))) {
     if(lighton) {
       if(havenormal && fraction(dperp,size3)*size2 <= 0.1) {
-	glNormal3fv(Normal);
-	gluNurbsCallback(nurb,GLU_NURBS_NORMAL,NULL);
+        glNormal3fv(Normal);
+        gluNurbsCallback(nurb,GLU_NURBS_NORMAL,NULL);
       } else
-	gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
+        gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
     }
     static GLfloat bezier[]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
     gluBeginSurface(nurb);

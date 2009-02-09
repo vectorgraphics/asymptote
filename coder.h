@@ -130,13 +130,13 @@ public:
     switch(sord) {
       case DEFAULT_STATIC:
       case EXPLICIT_STATIC:
-	return true;
+        return true;
       case DEFAULT_DYNAMIC:
       case EXPLICIT_DYNAMIC:
-	return false;
+        return false;
       default:
-	assert(False);
-	return false;
+        assert(False);
+        return false;
     }
   }
 

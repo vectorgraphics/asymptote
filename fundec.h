@@ -22,7 +22,7 @@ class formal : public absyn {
 
 public:
   formal(position pos, ty *base, decidstart *start=0, varinit *defval=0,
-	 bool Explicit= false)
+         bool Explicit= false)
     : absyn(pos), base(base), start(start), Explicit(Explicit),
       defval(defval) {}
 

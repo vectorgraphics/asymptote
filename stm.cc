@@ -64,34 +64,34 @@ exp *tryToWriteExp(coenv &e, exp *body)
   // First check if it is the kind of expression that should be written.
   if (body->writtenToPrompt() &&
       settings::getSetting<bool>("interactiveWrite"))
-  {
-    types::ty *t=body->cgetType(e);
-    if (t->kind == ty_error) {
-      return body;
-    }
-    else {
-      exp *callee=new nameExp(body->getPos(), symbol::trans("write"));
-      exp *call=new callExp(body->getPos(), callee, body);
-
-      types::ty *ct=call->getType(e);
-      if (ct->kind == ty_error || ct->kind == ty_overloaded) {
+    {
+      types::ty *t=body->cgetType(e);
+      if (t->kind == ty_error) {
         return body;
       }
       else {
-        // Issue a warning if the act of writing turns an ambiguous expression
-        // into an unambiguous one.
-        if (t->kind == ty_overloaded) {
-          em.warning(body->getPos());
-          em << "writing overloaded";
-          if (body->getName())
-            em << " variable '" << *body->getName() << "'";
-          else
-            em << " expression";
+        exp *callee=new nameExp(body->getPos(), symbol::trans("write"));
+        exp *call=new callExp(body->getPos(), callee, body);
+
+        types::ty *ct=call->getType(e);
+        if (ct->kind == ty_error || ct->kind == ty_overloaded) {
+          return body;
         }
-        return call;
+        else {
+          // Issue a warning if the act of writing turns an ambiguous expression
+          // into an unambiguous one.
+          if (t->kind == ty_overloaded) {
+            em.warning(body->getPos());
+            em << "writing overloaded";
+            if (body->getName())
+              em << " variable '" << *body->getName() << "'";
+            else
+              em << " expression";
+          }
+          return call;
+        }
       }
     }
-  }
   else {
     return body;
   }
@@ -271,8 +271,8 @@ void extendedForStm::trans(coenv &e) {
   // { start var=a[i]; body }
   block b(pos);
   decid dec2(pos, new decidstart(pos, var), 
-                  new subscriptExp(pos, new nameExp(pos, a),
-                                       new nameExp(pos, i)));
+             new subscriptExp(pos, new nameExp(pos, a),
+                              new nameExp(pos, i)));
   b.add(new vardec(pos, start, &dec2));
   b.add(body);
 
@@ -281,15 +281,15 @@ void extendedForStm::trans(coenv &e) {
   // for (int i=0; i < a.length; ++i)
   //   <block>
   forStm(pos, new vardec(pos, new tyEntryTy(pos, primInt()),
-                              new decid(pos, new decidstart(pos, i),
-                                             new intExp(pos, 0))),
-              new binaryExp(pos, new nameExp(pos, i),
-                                 symbol::trans("<"),
-                                 new nameExp(pos, new qualifiedName(pos, new simpleName(pos, a),
-                                                                         symbol::trans("length")))),
-              new expStm(pos, new prefixExp(pos, new nameExp(pos, i),
-                                                 symbol::trans("+"))),
-              new blockStm(pos, &b)).trans(e);
+                         new decid(pos, new decidstart(pos, i),
+                                   new intExp(pos, 0))),
+         new binaryExp(pos, new nameExp(pos, i),
+                       symbol::trans("<"),
+                       new nameExp(pos, new qualifiedName(pos, new simpleName(pos, a),
+                                                          symbol::trans("length")))),
+         new expStm(pos, new prefixExp(pos, new nameExp(pos, i),
+                                       symbol::trans("+"))),
+         new blockStm(pos, &b)).trans(e);
 }
                               
 

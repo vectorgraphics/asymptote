@@ -135,7 +135,7 @@ types::ty *newArrayExp::trans(coenv &e)
     if (dimexps) {
       for (size_t i = 0; i < dimexps->size(); ++i) {
         (*dimexps)[i]->transToType(e, types::primInt());
-	c = new types::array(c);
+        c = new types::array(c);
       }
     }
     if (dims) {

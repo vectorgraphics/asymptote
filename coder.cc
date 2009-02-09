@@ -48,7 +48,7 @@ coder::coder(modifier sord)
 // Defines a new function environment.
 coder::coder(function *t, coder *parent, modifier sord, bool reframe)
   : level(reframe ? new frame(parent->getFrame(), t->sig.getNumFormals()) :
-                    parent->getFrame()),
+          parent->getFrame()),
     recordLevel(parent->recordLevel),
     recordType(parent->recordType),
     isCodelet(!reframe),
@@ -128,8 +128,8 @@ bool coder::encode(frame *f)
     frame *level = toplevel->getParent();
     while (level != f) {
       if (level == 0)
-	// Frame request was in an improper scope.
-	return false;
+        // Frame request was in an improper scope.
+        return false;
 
       encode(inst::fieldpush,0);
 
@@ -152,10 +152,10 @@ bool coder::encode(frame *dest, frame *top)
     frame *level = top;
     while (level != dest) {
       if (level == 0) {
-	// Frame request was in an improper scope.
-	//cerr << "failed\n";
-	
-	return false;
+        // Frame request was in an improper scope.
+        //cerr << "failed\n";
+        
+        return false;
       }
 
       encode(inst::fieldpush,0);

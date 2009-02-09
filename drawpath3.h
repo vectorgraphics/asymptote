@@ -43,9 +43,9 @@ public:
   }
   
   void bounds(pair &b, double (*m)(double, double),
-	      double (*x)(const triple&, double*),
-	      double (*y)(const triple&, double*),
-	      double *t, bool &first) {
+              double (*x)(const triple&, double*),
+              double (*y)(const triple&, double*),
+              double *t, bool &first) {
     pair z=g.bounds(m,x,y,t);
     if(first) {
       b=z;
@@ -56,7 +56,7 @@ public:
   bool write(prcfile *out);
   
   void render(GLUnurbs*, double, const triple&, const triple&, double,
-	      bool transparent);
+              bool transparent);
 
   drawElement *transformed(const vm::array& t);
 };

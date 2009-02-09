@@ -139,10 +139,10 @@ string getEntry(const string& key)
       string rdname=dname;
       reverse(rdname.begin(),rdname.end());
       if(dname != "." && dname != ".." && 
-	 dname.substr(0,file.size()) == file &&
-	 rdname.substr(0,suffix.size()) == rsuffix) {
-	head=directory+p->d_name;
-	break;
+         dname.substr(0,file.size()) == file &&
+         rdname.substr(0,suffix.size()) == rsuffix) {
+        head=directory+p->d_name;
+        break;
       }
     }
     if(p == NULL) return "";
@@ -234,7 +234,7 @@ struct option : public gc {
   string Default; // A string containing an optional default value.
 
   option(string name, char code, string argname, string desc,
-	 bool cmdlineonly=false, string Default="")
+         bool cmdlineonly=false, string Default="")
     : name(name), code(code), argument(!argname.empty()), argname(argname),
       desc(desc), cmdlineonly(cmdlineonly), Default(Default) {}
 
@@ -302,7 +302,7 @@ struct option : public gc {
       cerr << desc;
       if(cmdlineonly) cerr << "; command-line only";
       if(Default != "")
-	cerr << " [" << Default << "]";
+        cerr << " [" << Default << "]";
       cerr << endl;
     }
   }
@@ -386,7 +386,7 @@ struct boolSetting : public itemSetting {
               bool defaultValue=false)
     : itemSetting(name, code, noarg, desc,
                   types::primBoolean(), (item)defaultValue,
-		  defaultValue ? "true" : "false") {}
+                  defaultValue ? "true" : "false") {}
 
   bool getOption() {
     value=(item)true;
@@ -485,8 +485,8 @@ struct stringSetting : public argumentSetting {
                 string argname, string desc,
                 string defaultValue)
     : argumentSetting(name, code, argname, desc.empty() ? "" :
-		      desc+(defaultValue.empty() ? "" : " ["+defaultValue+"]"),
-		      types::primString(), (item)defaultValue) {}
+                      desc+(defaultValue.empty() ? "" : " ["+defaultValue+"]"),
+                      types::primString(), (item)defaultValue) {}
 
   bool getOption() {
     value=(item)(string)optarg;
@@ -496,10 +496,10 @@ struct stringSetting : public argumentSetting {
 
 struct userSetting : public argumentSetting {
   userSetting(string name, char code,
-	      string argname, string desc,
-	      string defaultValue)
+              string argname, string desc,
+              string defaultValue)
     : argumentSetting(name, code, argname, desc,
-		      types::primString(), (item)defaultValue) {}
+                      types::primString(), (item)defaultValue) {}
 
   bool getOption() {
     string s=vm::get<string>(value)+string(optarg);
@@ -524,10 +524,10 @@ template<class T>
 struct dataSetting : public argumentSetting {
   string text;
   dataSetting(const char *text, string name, char code,
-	      string argname, string desc, types::ty *type,
-	      T defaultValue)
+              string argname, string desc, types::ty *type,
+              T defaultValue)
     : argumentSetting(name, code, argname, desc,
-		      type, (item)defaultValue), text(text) {}
+                      type, (item)defaultValue), text(text) {}
 
   bool getOption() {
     try {
@@ -556,35 +556,35 @@ string description(string desc, T defaultValue)
 
 struct IntSetting : public dataSetting<Int> {
   IntSetting(string name, char code,
-	     string argname, string desc, Int defaultValue=0)
+             string argname, string desc, Int defaultValue=0)
     : dataSetting<Int>("an int", name, code, argname,
-		       description(desc,defaultValue),
-		       types::primInt(), defaultValue) {}
+                       description(desc,defaultValue),
+                       types::primInt(), defaultValue) {}
 };
   
 struct realSetting : public dataSetting<double> {
   realSetting(string name, char code,
-	      string argname, string desc, double defaultValue=0.0)
+              string argname, string desc, double defaultValue=0.0)
     : dataSetting<double>("a real", name, code, argname,
-			  description(desc,defaultValue),
-			  types::primReal(), defaultValue) {}
+                          description(desc,defaultValue),
+                          types::primReal(), defaultValue) {}
 };
   
 struct pairSetting : public dataSetting<pair> {
   pairSetting(string name, char code,
-	      string argname, string desc, pair defaultValue=0.0)
+              string argname, string desc, pair defaultValue=0.0)
     : dataSetting<pair>("a pair", name, code, argname,
-			  description(desc,defaultValue),
-			types::primPair(), defaultValue) {}
+                        description(desc,defaultValue),
+                        types::primPair(), defaultValue) {}
 };
   
 // For setting the alignment of a figure on the page.
 struct alignSetting : public argumentSetting {
   alignSetting(string name, char code,
-	       string argname, string desc,
-	       Int defaultValue=(Int) CENTER)
+               string argname, string desc,
+               Int defaultValue=(Int) CENTER)
     : argumentSetting(name, code, argname, desc,
-		      types::primInt(), (item)defaultValue) {}
+                      types::primInt(), (item)defaultValue) {}
 
   bool getOption() {
     string str=optarg;
@@ -622,7 +622,7 @@ struct refSetting : public setting {
 
   refSetting(string name, char code, string argname,
              string desc, types::ty *t, T *ref, T defaultValue,
-	     const char *text="")
+             const char *text="")
     : setting(name, code, argname, desc, t, stringCast(defaultValue)),
       ref(ref), defaultValue(defaultValue), text(text) {
     reset();
@@ -649,9 +649,9 @@ struct refSetting : public setting {
 
 struct boolrefSetting : public refSetting<bool> {
   boolrefSetting(string name, char code, string desc, bool *ref,
-		 bool Default=false)
+                 bool Default=false)
     : refSetting<bool>(name, code, noarg, desc,
-		       types::primBoolean(), ref, Default) {}
+                       types::primBoolean(), ref, Default) {}
   bool getOption() {
     *ref=true;
     return true;
@@ -684,14 +684,14 @@ struct boolrefSetting : public refSetting<bool> {
 
 struct boolintrefSetting : public boolrefSetting {
   boolintrefSetting(string name, char code, string desc, int *ref,
-		    bool Default=false)
+                    bool Default=false)
     : boolrefSetting(name, code, desc, (bool *) ref, Default) {}
 };
 
 struct incrementSetting : public refSetting<Int> {
   incrementSetting(string name, char code, string desc, Int *ref)
     : refSetting<Int>(name, code, noarg, desc,
-		      types::primInt(), ref, 0) {}
+                      types::primInt(), ref, 0) {}
 
   bool getOption() {
     // Increment the value.
@@ -729,7 +729,7 @@ struct incrementOption : public option {
   Int level;
   
   incrementOption(string name, char code, string desc, Int *ref,
-		  Int level=1)
+                  Int level=1)
     : option(name, code, noarg, desc, true), ref(ref), level(level) {}
 
   bool getOption() {
@@ -810,7 +810,7 @@ struct versionOption : public option {
 struct stringOption : public option {
   char **variable;
   stringOption(string name, char code, string argname,
-	       string desc, char **variable)
+               string desc, char **variable)
     : option(name, code, argname, desc, true), variable(variable) {}
 
   bool getOption() {
@@ -909,38 +909,38 @@ void initSettings() {
   
   multiOption *view=new multiOption("View", 'V', "View output");
   view->add(new boolSetting("batchView", 0, "View output in batch mode",
-			    msdos));
+                            msdos));
   view->add(new boolSetting("multipleView", 0,
-			    "View output from multiple batch-mode files",
-			    false));
+                            "View output from multiple batch-mode files",
+                            false));
   view->add(new boolSetting("interactiveView", 0,
-			    "View output in interactive mode", true));
+                            "View output in interactive mode", true));
   addOption(view);
   addOption(new stringSetting("xformat", 0, "format", 
-			      "GUI deconstruction format","png"));
+                              "GUI deconstruction format","png"));
   addOption(new stringSetting("outformat", 'f', "format",
-			      "Convert each output file to specified format",
-			      ""));
+                              "Convert each output file to specified format",
+                              ""));
   addOption(new boolSetting("prc", 0,
                             "Embed 3D PRC graphics in PDF output", true));
   addOption(new boolSetting("toolbar", 0,
                             "Show 3D toolbar in PDF output", true));
   addOption(new realSetting("render", 0, "n",
-			   "Render 3D graphics using n pixels per bp (-1=auto)",
-			    haveglut ? -1.0 : 0.0));
+                            "Render 3D graphics using n pixels per bp (-1=auto)",
+                            haveglut ? -1.0 : 0.0));
   addOption(new IntSetting("antialias", 0, "n",
-			    "Antialiasing width for rasterized output", 2));
+                           "Antialiasing width for rasterized output", 2));
   addOption(new IntSetting("multisample", 0, "n",
-			   "Multisampling width for screen images", 4));
+                           "Multisampling width for screen images", 4));
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
-			    true));
+                            true));
   addOption(new pairSetting("position", 0, "pair", 
-			    "Initial 3D rendering screen position"));
+                            "Initial 3D rendering screen position"));
   addOption(new pairSetting("maxviewport", 0, "pair",
-			    "Maximum viewport size",pair(2048,2048)));
+                            "Maximum viewport size",pair(2048,2048)));
   addOption(new pairSetting("maxtile", 0, "pair",
-			    "Maximum rendering tile size",pair(0,0)));
+                            "Maximum rendering tile size",pair(0,0)));
   addOption(new boolSetting("iconify", 0,
                             "Iconify rendering window", false));
   addOption(new boolSetting("thick", 0,
@@ -959,49 +959,49 @@ void initSettings() {
 
   addOption(new pairSetting("offset", 'O', "pair", "PostScript offset"));
   addOption(new alignSetting("align", 'a', "C|B|T|Z",
-			     "Center, Bottom, Top, or Zero page alignment [Center]"));
+                             "Center, Bottom, Top, or Zero page alignment [Center]"));
   
   addOption(new boolSetting("debug", 'd', "Enable debugging messages"));
   addOption(new incrementSetting("verbose", 'v',
-				 "Increase verbosity level", &verbose));
+                                 "Increase verbosity level", &verbose));
   // Resolve ambiguity with --version
   addOption(new incrementOption("vv", 0,"", &verbose,2));
   addOption(new incrementOption("novv", 0,"", &verbose,-2));
   
   addOption(new boolSetting("keep", 'k', "Keep intermediate files"));
   addOption(new boolSetting("keepaux", 0,
-			    "Keep intermediate LaTeX .aux files"));
+                            "Keep intermediate LaTeX .aux files"));
   addOption(new stringSetting("tex", 0,"engine",
-			      "TeX engine (\"latex|pdflatex|tex|pdftex|none\")",
-			      "latex"));
+                              "TeX engine (\"latex|pdflatex|tex|pdftex|none\")",
+                              "latex"));
   addOption(new boolSetting("twice", 0,
-			    "Run LaTeX twice (to resolve references)"));
+                            "Run LaTeX twice (to resolve references)"));
   addOption(new boolSetting("inlinetex", 0, "Generate inline TeX code"));
   addOption(new boolSetting("embed", 0, "Embed rendered preview image", true));
   addOption(new boolSetting("inlineimage", 0,
-			    "Generate inline embedded image"));
+                            "Generate inline embedded image"));
   addOption(new boolSetting("parseonly", 'p', "Parse file"));
   addOption(new boolSetting("translate", 's',
-			    "Show translated virtual machine code"));
+                            "Show translated virtual machine code"));
   addOption(new boolSetting("tabcompletion", 0,
                             "Interactive prompt auto-completion", true));
   addOption(new boolSetting("listvariables", 'l',
-			    "List available global functions and variables"));
+                            "List available global functions and variables"));
   addOption(new boolSetting("where", 0,
-			    "Show where listed variables are declared"));
+                            "Show where listed variables are declared"));
   
   multiOption *mask=new multiOption("mask", 'm',
-				    "Mask fpu exceptions");
+                                    "Mask fpu exceptions");
   mask->add(new boolSetting("batchMask", 0,
-			    "Mask fpu exceptions in batch mode", false));
+                            "Mask fpu exceptions in batch mode", false));
   mask->add(new boolSetting("interactiveMask", 0,
-			    "Mask fpu exceptions in interactive mode", true));
+                            "Mask fpu exceptions in interactive mode", true));
   addOption(mask);
 
   addOption(new boolrefSetting("bw", 0,
-			       "Convert all colors to black and white",&bw));
+                               "Convert all colors to black and white",&bw));
   addOption(new boolrefSetting("gray", 0, "Convert all colors to grayscale",
-			       &gray));
+                               &gray));
   addOption(new boolrefSetting("rgb", 0, "Convert cmyk colors to rgb",&rgb));
   addOption(new boolrefSetting("cmyk", 0, "Convert rgb colors to cmyk",&cmyk));
 
@@ -1011,62 +1011,62 @@ void initSettings() {
                                       "Allow write to other directory",
                                       &globaloption, false));
   addSecureSetting(new stringSetting("outname", 'o', "name",
-				     "Alternative output directory/filename",
-				     ""));
+                                     "Alternative output directory/filename",
+                                     ""));
   addOption(new stringOption("cd", 0, "directory", "Set current directory",
-			     &startpath));
+                             &startpath));
   
 #ifdef USEGC  
   addOption(new boolintrefSetting("compact", 0,
-				  "Conserve memory at the expense of speed",
-				  &GC_dont_expand));
+                                  "Conserve memory at the expense of speed",
+                                  &GC_dont_expand));
   addOption(new refSetting<GC_word>("divisor", 0, "n",
-			      "Free space divisor for garbage collection",
-				    types::primInt(),&GC_free_space_divisor,2,
-				    "an int"));
+                                    "Free space divisor for garbage collection",
+                                    types::primInt(),&GC_free_space_divisor,2,
+                                    "an int"));
 #endif  
   
   addOption(new stringSetting("prompt", 0,"string","Prompt","> "));
   addOption(new stringSetting("prompt2", 0,"string",
                               "Continuation prompt for multiline input ",
-			      ".."));
+                              ".."));
   addOption(new boolSetting("multiline", 0,
                             "Input code over multiple lines at the prompt"));
 
   addOption(new boolSetting("wait", 0,
-			    "Wait for child processes to finish before exiting"));
+                            "Wait for child processes to finish before exiting"));
   // Be interactive even in a pipe
   addOption(new boolSetting("interactive", 0, ""));
   addOption(new boolSetting("exitonEOF", 0, "Exit interactive mode on EOF",
-			    true));
-			    
+                            true));
+                            
   addOption(new boolSetting("quiet", 'q',
-			    "Suppress welcome message"));
+                            "Suppress welcome message"));
   addOption(new boolSetting("localhistory", 0,
-			    "Use a local interactive history file"));
+                            "Use a local interactive history file"));
   addOption(new IntSetting("historylines", 0, "n",
-			   "Retain n lines of history",1000));
+                           "Retain n lines of history",1000));
   addOption(new IntSetting("scroll", 0, "n",
-			   "Scroll standard output n lines at a time",0));
+                           "Scroll standard output n lines at a time",0));
   addOption(new IntSetting("level", 0, "n", "Postscript level",3));
   addOption(new boolSetting("autoplain", 0,
-			    "Enable automatic importing of plain",
-			    true));
+                            "Enable automatic importing of plain",
+                            true));
   addOption(new boolSetting("autorotate", 0,
-			    "Enable automatic PDF page rotation",
-			    false));
+                            "Enable automatic PDF page rotation",
+                            false));
   addOption(new boolSetting("pdfreload", 0,
                             "Automatically reload document in pdfviewer",
-			    false));
+                            false));
   addOption(new IntSetting("pdfreloaddelay", 0, "usec",
-			   "Delay before attempting initial pdf reload"
-			   ,750000));
+                           "Delay before attempting initial pdf reload"
+                           ,750000));
   addOption(new stringSetting("autoimport", 0, "string",
-			      "Module to automatically import", ""));
+                              "Module to automatically import", ""));
   addOption(new userSetting("command", 'c', "string",
-			    "Command to autoexecute", ""));
+                            "Command to autoexecute", ""));
   addOption(new userSetting("user", 'u', "string",
-			    "General purpose user string", ""));
+                            "General purpose user string", ""));
   
   addOption(new realSetting("paperwidth", 0, "bp", ""));
   addOption(new realSetting("paperheight", 0, "bp", ""));
@@ -1167,7 +1167,7 @@ void SetPageDimensions() {
     
     if(paperType != "a4") {
       cerr << "Unknown paper size \'" << paperType << "\'; assuming a4." 
-	   << endl;
+           << endl;
       Setting("papertype")=string("a4");
     }
   }
@@ -1319,7 +1319,7 @@ void setOptions(int argc, char *argv[])
     string file=locateFile(filename);
     if(!file.empty()) {
       if(Verbose > 1)
-	cerr << "Loading " << filename << " from " << file << endl;
+        cerr << "Loading " << filename << " from " << file << endl;
       doConfig(file);
     }
   }

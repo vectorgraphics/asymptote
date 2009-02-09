@@ -74,7 +74,7 @@ record *genv::loadModule(symbol *id, string filename) {
 
 void genv::checkRecursion(string filename) {
   if (find(inTranslation.begin(), inTranslation.end(), filename) !=
-         inTranslation.end()) {
+      inTranslation.end()) {
     em.sync();
     em << "error: recursive loading of module '" << filename << "'\n";
     em.sync();

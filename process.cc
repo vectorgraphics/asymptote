@@ -26,20 +26,20 @@
 #include "process.h"
 
 namespace camp {
-  pen& defaultpen() {
-    return processData().defaultpen;
-  }
+pen& defaultpen() {
+  return processData().defaultpen;
+}
 }
 
 namespace run {
-  void cleanup();
-  void exitFunction(vm::stack *Stack);
-  void updateFunction(vm::stack *Stack);
-  void purge();
+void cleanup();
+void exitFunction(vm::stack *Stack);
+void updateFunction(vm::stack *Stack);
+void purge();
 }
 
 namespace vm {
-  bool indebugger;  
+bool indebugger;  
 }
 
 using namespace settings;
@@ -70,7 +70,7 @@ void init(bool resetpath=true)
   uptodate=false;
   if(resetpath)
     setPath("");  /* On second and subsequent calls, sets the path
-		     to what it was when the program started. */
+                     to what it was when the program started. */
 }
 
 // This helper class does nothing but call the interactiveTrans method of the
@@ -110,8 +110,8 @@ bool runRunnable(runnable *r, coenv &e, istack &s, transMode tm=TRANS_NORMAL) {
   e.e.beginScope();
 
   lambda *codelet= tm==TRANS_INTERACTIVE ?
-                       interactiveRunnable(r).transAsCodelet(e) :
-                       r->transAsCodelet(e);
+    interactiveRunnable(r).transAsCodelet(e) :
+    r->transAsCodelet(e);
   em.sync();
   if(!em.errors()) {
     if(getSetting<bool>("translate")) print(cout,codelet->code);
@@ -206,9 +206,9 @@ public:
       processDataStack.push(&data);
       
       if (getSetting<bool>("listvariables"))
-	doList();
+        doList();
       else
-	doRun(purge);
+        doRun(purge);
 
       processDataStack.pop();
     }
@@ -317,7 +317,7 @@ public:
     : itree(filename),
       filename(filename),
       outname((string) (filename == "-" ? settings::outname() :
-			stripDir(stripExt(string(filename), suffix)))) {}
+                        stripDir(stripExt(string(filename), suffix)))) {}
   
   block *buildTree() {
     return !filename.empty() ? parser::parseFile(filename,"Loading") : 0;
@@ -358,7 +358,7 @@ public:
 void printGreeting() {
   if(!getSetting<bool>("quiet"))
     cout << "Welcome to " << PROGRAM << " version " << VERSION << SVN_REVISION
-	 << " (to view the manual, type help)" << endl;
+         << " (to view the manual, type help)" << endl;
 }
 
 
@@ -429,8 +429,8 @@ size_type stringPos(const string line, size_type start) {
   if (min(startComment,startLineComment) < pos)
     return stringPos(line,
                      startComment < startLineComment ?
-                         endOfComment(line, startComment+2) :
-                         npos);
+                     endOfComment(line, startComment+2) :
+                     npos);
   else
     // Nothing to skip over - the symbol actually starts a string.
     return pos;
@@ -468,8 +468,8 @@ string endString(const string line, size_type start) {
         case '\"':
           return line+"\" \'\\n\' \"";
         default:
-           assert(False);
-           return line;
+          assert(False);
+          return line;
       }
     }
     else {
@@ -494,8 +494,8 @@ size_type slashPos(const string line, size_type start) {
   if (min(startComment,startString) < pos)
     return slashPos(line,
                     startComment < startString ?
-                        endOfComment(line, startComment+2) :
-                        endOfString(line[startString], line, startString+1));
+                    endOfComment(line, startComment+2) :
+                    endOfString(line[startString], line, startString+1));
   else
     // Nothing to skip over - the // actually starts a comment.
     return pos;
@@ -657,7 +657,7 @@ class iprompt : public icore {
   }
 
   void initCommands() {
-#define ADDCOMMAND(name, func) \
+#define ADDCOMMAND(name, func)                  \
     commands[#name]=&iprompt::func
 
     // keywords.pl looks for ADDCOMMAND to identify special commands in the
@@ -720,7 +720,7 @@ class iprompt : public icore {
 
     // If the line ends in a slash, get more input.
     return isSlashed(line) ? line+"\n"+getline(true) :
-                             line;
+      line;
   }
 
   // Continue taking input for a line until it properly parses, or a syntax
@@ -817,14 +817,14 @@ public:
 
     do {
       try {
-	init(false);
-	restart=false;
-	icore::process();
+        init(false);
+        restart=false;
+        icore::process();
       } catch(interrupted&) {
-	em.Interrupt(false);
-	restart=true;
+        em.Interrupt(false);
+        restart=true;
       } catch(eof&) {
-	restart=false;
+        restart=false;
       }
     } while(restart);
       

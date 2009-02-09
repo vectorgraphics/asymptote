@@ -1,9 +1,9 @@
 /******
-  * fileio.h
-  * Tom Prince and John Bowman 2004/05/10
-  *
-  * Handle input/output
-  ******/
+ * fileio.h
+ * Tom Prince and John Bowman 2004/05/10
+ *
+ * Handle input/output
+ ******/
 
 #ifndef FILEIO_H
 #define FILEIO_H
@@ -30,7 +30,7 @@
 #include "process.h"
 
 namespace vm {
-  extern bool indebugger;  
+extern bool indebugger;  
 }
 
 namespace camp {
@@ -54,7 +54,7 @@ protected:
   
   bool nullfield;  // Used to detect a final null field in csv+line mode.
   string whitespace;
-  size_t index;	   // Terminator index.
+  size_t index;    // Terminator index.
 public: 
 
   bool Standard() {return standard;}
@@ -62,7 +62,7 @@ public:
   void standardEOF() {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
     cout << endl;
-#endif	
+#endif  
   }
   
   template<class T>
@@ -70,13 +70,13 @@ public:
     if(standard) {
       int c;
       if(cin.eof())
-	standardEOF();
+        standardEOF();
       else {
-	cin.clear();
-	while((c=cin.peek()) != EOF) {
-	  cin.ignore();
-	  if(c == '\n') break;
-	}
+        cin.clear();
+        while((c=cin.peek()) != EOF) {
+          cin.ignore();
+          if(c == '\n') break;
+        }
       }
     }
   }
@@ -119,7 +119,7 @@ public:
     }
     return true;
   }
-		
+                
   string filename() {return name;}
   virtual bool eol() {return false;}
   virtual bool nexteol() {return false;}
@@ -136,7 +136,7 @@ public:
   void unsupported(const char *rw, const char *type) {
     ostringstream buf;
     buf << rw << " of type " << type << " not supported in " << Mode()
-	<< " mode.";
+        << " mode.";
     reportError(buf);
   }
   
@@ -182,12 +182,12 @@ public:
       if(standard) clear();
       if(errorstream::interrupt) throw interrupted();
       else {
-	ignoreComment(val);
-	val=T();
-	if(!nullfield)
-	  Read(val);
-	csv();
-	whitespace="";
+        ignoreComment(val);
+        val=T();
+        if(!nullfield)
+          Read(val);
+        csv();
+        whitespace="";
       }
     }
   }
@@ -226,7 +226,7 @@ protected:
   
 public:
   ifile(const string& name, char comment, bool check=true,
-	std::ios::openmode mode=std::ios::in) :
+        std::ios::openmode mode=std::ios::in) :
     file(name,check), stream(NULL), fstream(NULL), comment(comment), mode(mode),
     comma(false) {
     stream=&cin;
@@ -234,7 +234,7 @@ public:
   
   // Binary file
   ifile(const string& name, bool check=true,
-	std::ios::openmode mode=std::ios::in) :
+        std::ios::openmode mode=std::ios::in) :
     file(name,check,true), mode(mode) {}
   
   ~ifile() {close();}
@@ -242,18 +242,18 @@ public:
   void open() {
     if(standard) {
       if(mode & std::ios::binary) 
-	reportError("Cannot open standard input in binary mode");
+        reportError("Cannot open standard input in binary mode");
       stream=&cin;
     } else {
       stream=fstream=new std::fstream(name.c_str(),mode);
       if(mode & std::ios::out) {
-	checkLocal(name);
-	if(error()) {
-	  delete fstream;
-	  std::ofstream f(name.c_str());
-	  f.close();
-	}
-	stream=fstream=new std::fstream(name.c_str(),mode);
+        checkLocal(name);
+        if(error()) {
+          delete fstream;
+          std::ofstream f(name.c_str());
+          f.close();
+        }
+        stream=fstream=new std::fstream(name.c_str(),mode);
       }
       index=processData().ifile.add(fstream);
       if(check) Check();
@@ -353,7 +353,7 @@ public:
   void open() {
     if(standard) {
       if(mode & std::ios::binary) 
-	reportError("Cannot open standard output in binary mode");
+        reportError("Cannot open standard output in binary mode");
       stream=&cout;
     } else {
       checkLocal(name);
@@ -414,7 +414,7 @@ public:
 class ibfile : public ifile {
 public:
   ibfile(const string& name, bool check=true,
-	 std::ios::openmode mode=std::ios::in) : 
+         std::ios::openmode mode=std::ios::in) : 
     ifile(name,check,mode | std::ios::binary) {}
   template<class T>
   void iread(T& val) {
@@ -516,7 +516,7 @@ protected:
   xdr::xios::open_mode mode;
 public:
   ixfile(const string& name, bool check=true,
-	 xdr::xios::open_mode mode=xdr::xios::in) :
+         xdr::xios::open_mode mode=xdr::xios::in) :
     file(name,check,true), fstream(NULL), mode(mode) {}
 
   void open() {

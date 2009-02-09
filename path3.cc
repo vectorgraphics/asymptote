@@ -25,9 +25,9 @@ void checkEmpty3(Int n) {
 }
 
 double bound(triple z0, triple c0, triple c1, triple z1,
-	     double (*m)(double, double),
-	     double (*f)(const triple&, double*), double *t,
-	     double b, int depth)
+             double (*m)(double, double),
+             double (*f)(const triple&, double*), double *t,
+             double b, int depth)
 {
   b=m(b,m(f(z0,t),f(z1,t)));
   if(m(-1.0,1.0)*(b-m(f(c0,t),f(c1,t))) >= -sqrtFuzz || depth == 0)
@@ -69,15 +69,15 @@ triple path3::point(double t) const
   double one_t = 1.0-t;
 
   triple a = nodes[i].point,
-       b = nodes[i].post,
-       c = nodes[iplus].pre,
-       d = nodes[iplus].point,
-       ab   = one_t*a   + t*b,
-       bc   = one_t*b   + t*c,
-       cd   = one_t*c   + t*d,
-       abc  = one_t*ab  + t*bc,
-       bcd  = one_t*bc  + t*cd,
-       abcd = one_t*abc + t*bcd;
+    b = nodes[i].post,
+    c = nodes[iplus].pre,
+    d = nodes[iplus].point,
+    ab   = one_t*a   + t*b,
+    bc   = one_t*b   + t*c,
+    cd   = one_t*c   + t*d,
+    abc  = one_t*ab  + t*bc,
+    bcd  = one_t*bc  + t*cd,
+    abcd = one_t*abc + t*bcd;
 
   return abcd;
 }
@@ -85,7 +85,7 @@ triple path3::point(double t) const
 triple path3::precontrol(double t) const
 {
   checkEmpty3(n);
-		     
+                     
   Int i = Floor(t);
   Int iplus;
   t = fmod(t,1);
@@ -105,11 +105,11 @@ triple path3::precontrol(double t) const
   double one_t = 1.0-t;
 
   triple a = nodes[i].point,
-       b = nodes[i].post,
-       c = nodes[iplus].pre,
-       ab   = one_t*a   + t*b,
-       bc   = one_t*b   + t*c,
-       abc  = one_t*ab  + t*bc;
+    b = nodes[i].post,
+    c = nodes[iplus].pre,
+    ab   = one_t*a   + t*b,
+    bc   = one_t*b   + t*c,
+    abc  = one_t*ab  + t*bc;
 
   return (abc == a) ? nodes[i].pre : abc;
 }
@@ -138,11 +138,11 @@ triple path3::postcontrol(double t) const
   double one_t = 1.0-t;
   
   triple b = nodes[i].post,
-       c = nodes[iplus].pre,
-       d = nodes[iplus].point,
-       bc   = one_t*b   + t*c,
-       cd   = one_t*c   + t*d,
-       bcd  = one_t*bc  + t*cd;
+    c = nodes[iplus].pre,
+    d = nodes[iplus].point,
+    bc   = one_t*b   + t*c,
+    cd   = one_t*c   + t*d,
+    bcd  = one_t*bc  + t*cd;
 
   return (bcd == d) ? nodes[iplus].post : bcd;
 }
@@ -198,7 +198,7 @@ inline triple split(double t, const triple& x, const triple& y) {
 }
 
 inline void splitCubic(solvedKnot3 sn[], double t, const solvedKnot3& left_,
-		       const solvedKnot3& right_)
+                       const solvedKnot3& right_)
 {
   solvedKnot3 &left=(sn[0]=left_), &mid=sn[1], &right=(sn[2]=right_);
   triple x=split(t,left.post,right.pre); // m1
@@ -224,12 +224,12 @@ path3 path3::subpath(double a, double b) const
     if (a < 0) {
       a = 0;
       if (b < 0)
-	b = 0;
-    }	
+        b = 0;
+    }   
     if (b > n-1) {
       b = n-1;
       if (a > n-1)
-	a = n-1;
+        a = n-1;
     }
     aL = nodes[(Int)floor(a)];
     aR = nodes[(Int)ceil(a)];
@@ -275,8 +275,8 @@ void path3::halve(path3 &first, path3 &second) const
   
 // Calculate the coefficients of a Bezier derivative divided by 3.
 static inline void derivative(triple& a, triple& b, triple& c,
-			      const triple& z0, const triple& c0,
-			      const triple& c1, const triple& z1)
+                              const triple& z0, const triple& c0,
+                              const triple& c1, const triple& z1)
 {
   a=z1-z0+3.0*(c0-c1);
   b=2.0*(z0+c1)-4.0*c0;
@@ -327,8 +327,8 @@ bbox3 path3::bounds() const
 }
 
 pair path3::bounds(double (*m)(double, double), 
-		   double (*x)(const triple&, double*),
-		   double (*y)(const triple&, double*), double *t) const
+                   double (*x)(const triple&, double*),
+                   double (*y)(const triple&, double*), double *t) const
 {
   checkEmpty3(n);
   
@@ -346,7 +346,7 @@ pair path3::bounds(double (*m)(double, double),
       triple c1=precontrol(i+1);
       triple z1=point(i+1);
       B=pair(bound(z0,c0,c1,z1,m,x,t,B.getx()),
-	     bound(z0,c0,c1,z1,m,y,t,B.gety()));
+             bound(z0,c0,c1,z1,m,y,t,B.gety()));
     }
   }
   return B;
@@ -464,7 +464,7 @@ double path3::arctime(double goal) const
 
 // Return all intersection times of path3 g with the triple v.
 void intersections(std::vector<double>& T, const path3& g, const triple& v,
-		   double fuzz)
+                   double fuzz)
 {
   double fuzz2=fuzz*fuzz;
   Int n=g.length();
@@ -473,21 +473,21 @@ void intersections(std::vector<double>& T, const path3& g, const triple& v,
     // Check all directions to circumvent degeneracy.
     std::vector<double> r;
     roots(r,g.point(i).getx(),g.postcontrol(i).getx(),
-	  g.precontrol(i+1).getx(),g.point(i+1).getx(),v.getx());
+          g.precontrol(i+1).getx(),g.point(i+1).getx(),v.getx());
     roots(r,g.point(i).gety(),g.postcontrol(i).gety(),
-	  g.precontrol(i+1).gety(),g.point(i+1).gety(),v.gety());
+          g.precontrol(i+1).gety(),g.point(i+1).gety(),v.gety());
     roots(r,g.point(i).getz(),g.postcontrol(i).getz(),
-	  g.precontrol(i+1).getz(),g.point(i+1).getz(),v.getz());
+          g.precontrol(i+1).getz(),g.point(i+1).getz(),v.getz());
     
     size_t m=r.size();
     for(size_t j=0 ; j < m; ++j) {
       double t=r[j];
       if(t >= -Fuzz && t <= 1.0+Fuzz) {
-	double s=i+t;
-	if((g.point(s)-v).abs2() <= fuzz2) {
-	  if(cycles && s >= n-Fuzz) s=0;
-	  T.push_back(s);
-	}
+        double s=i+t;
+        if((g.point(s)-v).abs2() <= fuzz2) {
+          if(cycles && s >= n-Fuzz) s=0;
+          T.push_back(s);
+        }
       }
     }
   }
@@ -497,7 +497,7 @@ void intersections(std::vector<double>& T, const path3& g, const triple& v,
 // if there are an infinite number of intersection points, the returned list is
 // only guaranteed to include the endpoint times of the intersection.
 void intersections(std::vector<double>& S, std::vector<double>& T,
-		   const path3& g, const triple& p, double fuzz)
+                   const path3& g, const triple& p, double fuzz)
 {
   std::vector<double> S1;
   intersections(S1,g,p,fuzz);
@@ -509,7 +509,7 @@ void intersections(std::vector<double>& S, std::vector<double>& T,
 }
 
 void add(std::vector<double>& S, std::vector<double>& T, double s, double t,
-	 const path3& p, const path3& q, double fuzz2)
+         const path3& p, const path3& q, double fuzz2)
 {
   triple P=p.point(s);
   for(size_t i=0; i < S.size(); ++i)
@@ -519,9 +519,9 @@ void add(std::vector<double>& S, std::vector<double>& T, double s, double t,
 }
   
 void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
-	 std::vector<double>& S1, std::vector<double>& T1,
-	 double pscale, double qscale, double poffset, double qoffset,
-	 const path3& p, const path3& q, double fuzz, bool single)
+         std::vector<double>& S1, std::vector<double>& T1,
+         double pscale, double qscale, double poffset, double qoffset,
+         const path3& p, const path3& q, double fuzz, bool single)
 {
   if(single) {
     s=s*pscale+poffset;
@@ -535,8 +535,8 @@ void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
 }
 
 void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
-	 std::vector<double>& S1, std::vector<double>& T1,
-	 const path3& p, const path3& q, double fuzz, bool single)
+         std::vector<double>& S1, std::vector<double>& T1,
+         const path3& p, const path3& q, double fuzz, bool single)
 {
   size_t n=S1.size();
   if(single) {
@@ -552,8 +552,8 @@ void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
 }
 
 bool intersections(double &s, double &t, std::vector<double>& S,
-		   std::vector<double>& T,
-		   path3& p, path3& q, double fuzz, bool single, unsigned depth)
+                   std::vector<double>& T,
+                   path3& p, path3& q, double fuzz, bool single, unsigned depth)
 {
   if(errorstream::interrupt) throw interrupted();
   
@@ -589,11 +589,11 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     --depth;
     if((maxp-minp).length()+(maxq-minq).length() <= fuzz || depth == 0) {
       if(single) {
-	s=0;
-	t=0;
+        s=0;
+        t=0;
       } else {
-	S.push_back(0.0);
-	T.push_back(0.0);
+        S.push_back(0.0);
+        T.push_back(0.0);
       }
       return true;
     }
@@ -604,10 +604,10 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     if(lp <= 1) {
       p.halve(p1,p2);
       if(p1 == p || p2 == p) {
-	std::vector<double> T1,S1;
-	intersections(T1,S1,q,p.point((Int) 0),fuzz);
-	add(s,t,S,T,S1,T1,p,q,fuzz,single);
-	return S1.size() > 0;
+        std::vector<double> T1,S1;
+        intersections(T1,S1,q,p.point((Int) 0),fuzz);
+        add(s,t,S,T,S1,T1,p,q,fuzz,single);
+        return S1.size() > 0;
       }
       pscale=poffset=0.5;
     } else {
@@ -624,10 +624,10 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     if(lq <= 1) {
       q.halve(q1,q2);
       if(q1 == q || q2 == q) {
-	std::vector<double> S1,T1;
-	intersections(S1,T1,p,q.point((Int) 0),fuzz);
-	add(s,t,S,T,S1,T1,p,q,fuzz,single);
-	return S1.size() > 0;
+        std::vector<double> S1,T1;
+        intersections(S1,T1,p,q.point((Int) 0),fuzz);
+        add(s,t,S,T,S1,T1,p,q,fuzz,single);
+        return S1.size() > 0;
       }
       qscale=qoffset=0.5;
     } else {
@@ -647,7 +647,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     if(intersections(s,t,S1,T1,p1,q1,fuzz,single,depth)) {
       add(s,t,S,T,S1,T1,pscale,qscale,0.0,0.0,p,q,fuzz,single);
       if(single || depth <= mindepth)
-	return true;
+        return true;
       count += S1.size();
       if(Short && count > maxcount) return true;
     }
@@ -657,7 +657,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     if(intersections(s,t,S1,T1,p1,q2,fuzz,single,depth)) {
       add(s,t,S,T,S1,T1,pscale,qscale,0.0,qoffset,p,q,fuzz,single);
       if(single || depth <= mindepth)
-	return true;
+        return true;
       count += S1.size();
       if(Short && count > maxcount) return true;
     }
@@ -667,7 +667,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     if(intersections(s,t,S1,T1,p2,q1,fuzz,single,depth)) {
       add(s,t,S,T,S1,T1,pscale,qscale,poffset,0.0,p,q,fuzz,single);
       if(single || depth <= mindepth)
-	return true;
+        return true;
       count += S1.size();
       if(Short && count > maxcount) return true;
     }
@@ -677,7 +677,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     if(intersections(s,t,S1,T1,p2,q2,fuzz,single,depth)) {
       add(s,t,S,T,S1,T1,pscale,qscale,poffset,qoffset,p,q,fuzz,single);
       if(single || depth <= mindepth)
-	return true;
+        return true;
       count += S1.size();
       if(Short && count > maxcount) return true;
     }
@@ -803,7 +803,7 @@ double controlbound(double *p, double (*m)(double, double))
 }
 
 double cornerbound(triple *p, double (*m)(double, double),
-		   double (*f)(const triple&, double*), double *t) 
+                   double (*f)(const triple&, double*), double *t) 
 {
   double b=m(f(p[0],t),f(p[3],t));
   b=m(b,f(p[12],t));
@@ -811,7 +811,7 @@ double cornerbound(triple *p, double (*m)(double, double),
 }
 
 double controlbound(triple *p, double (*m)(double, double),
-		    double (*f)(const triple&, double*), double *t) 
+                    double (*f)(const triple&, double*), double *t) 
 {
   double b=m(f(p[1],t),f(p[2],t));
   b=m(b,f(p[4],t));
@@ -848,22 +848,22 @@ double bound(double *p, double (*m)(double, double), double b, int depth)
 
   // Check all 4 Bezier subpatches.
   double s0[]={c4.m5,c5.m5,c6.m5,c7.m5,c4.m3,c5.m3,c6.m3,c7.m3,
-	       c4.m0,c5.m0,c6.m0,c7.m0,p[12],c3.m0,c3.m3,c3.m5};
+               c4.m0,c5.m0,c6.m0,c7.m0,p[12],c3.m0,c3.m3,c3.m5};
   b=bound(s0,m,b,depth);
   double s1[]={p[0],c0.m0,c0.m3,c0.m5,c4.m2,c5.m2,c6.m2,c7.m2,
-	       c4.m4,c5.m4,c6.m4,c7.m4,c4.m5,c5.m5,c6.m5,c7.m5};
+               c4.m4,c5.m4,c6.m4,c7.m4,c4.m5,c5.m5,c6.m5,c7.m5};
   b=bound(s1,m,b,depth);
   double s2[]={c0.m5,c0.m4,c0.m2,p[3],c7.m2,c8.m2,c9.m2,c10.m2,
-	       c7.m4,c8.m4,c9.m4,c10.m4,c7.m5,c8.m5,c9.m5,c10.m5};
+               c7.m4,c8.m4,c9.m4,c10.m4,c7.m5,c8.m5,c9.m5,c10.m5};
   b=bound(s2,m,b,depth);
   double s3[]={c7.m5,c8.m5,c9.m5,c10.m5,c7.m3,c8.m3,c9.m3,c10.m3,
-	       c7.m0,c8.m0,c9.m0,c10.m0,c3.m5,c3.m4,c3.m2,p[15]};
+               c7.m0,c8.m0,c9.m0,c10.m0,c3.m5,c3.m4,c3.m2,p[15]};
   return bound(s3,m,b,depth);
 }
   
 double bound(triple *p, double (*m)(double, double),
-	     double (*f)(const triple&, double*), double *t,
-	     double b, int depth)
+             double (*f)(const triple&, double*), double *t,
+             double b, int depth)
 {
   b=m(b,cornerbound(p,m,f,t));
   if(m(-1.0,1.0)*(b-controlbound(p,m,f,t)) >= -sqrtFuzz || depth == 0)
@@ -886,16 +886,16 @@ double bound(triple *p, double (*m)(double, double),
   // Check all 4 Bezier subpatches.
   
   triple s0[]={c4.m5,c5.m5,c6.m5,c7.m5,c4.m3,c5.m3,c6.m3,c7.m3,
-	       c4.m0,c5.m0,c6.m0,c7.m0,p[12],c3.m0,c3.m3,c3.m5};
+               c4.m0,c5.m0,c6.m0,c7.m0,p[12],c3.m0,c3.m3,c3.m5};
   b=bound(s0,m,f,t,b,depth);
   triple s1[]={p[0],c0.m0,c0.m3,c0.m5,c4.m2,c5.m2,c6.m2,c7.m2,
-	       c4.m4,c5.m4,c6.m4,c7.m4,c4.m5,c5.m5,c6.m5,c7.m5};
+               c4.m4,c5.m4,c6.m4,c7.m4,c4.m5,c5.m5,c6.m5,c7.m5};
   b=bound(s1,m,f,t,b,depth);
   triple s2[]={c0.m5,c0.m4,c0.m2,p[3],c7.m2,c8.m2,c9.m2,c10.m2,
-	       c7.m4,c8.m4,c9.m4,c10.m4,c7.m5,c8.m5,c9.m5,c10.m5};
+               c7.m4,c8.m4,c9.m4,c10.m4,c7.m5,c8.m5,c9.m5,c10.m5};
   b=bound(s2,m,f,t,b,depth);
   triple s3[]={c7.m5,c8.m5,c9.m5,c10.m5,c7.m3,c8.m3,c9.m3,c10.m3,
-                 c7.m0,c8.m0,c9.m0,c10.m0,c3.m5,c3.m4,c3.m2,p[15]};
+               c7.m0,c8.m0,c9.m0,c10.m0,c3.m5,c3.m4,c3.m2,p[15]};
   return bound(s3,m,f,t,b,depth);
 }
 

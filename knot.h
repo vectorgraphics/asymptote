@@ -52,9 +52,9 @@ class knotlist;
 /* A linear equation (one of a set of equations to solve for direction through
    knots in a path).  The i-th equation is:
   
-      pre*theta[i-1] + piv*theta[i] + post*theta[i+1] = aug
+   pre*theta[i-1] + piv*theta[i] + post*theta[i+1] = aug
   
-    where indices are taken mod n.
+   where indices are taken mod n.
 */
 struct eqn {
   double pre,piv,post,aug;

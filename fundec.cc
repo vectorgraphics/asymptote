@@ -91,7 +91,7 @@ signature *formals::getSignature(coenv &e, bool encodeDefVal, bool tacit)
 // value of types::ty *result.
 function *formals::getType(types::ty *result, coenv &e,
                            bool encodeDefVal,
-			   bool tacit)
+                           bool tacit)
 {
   function *ft = new function(result);
   addToSignature(ft->sig,e,encodeDefVal,tacit);
@@ -137,14 +137,14 @@ void transDefault(coenv &e, position pos, varEntry *v, varinit *init) {
   varEntryExp vee(pos, v);
   ifStm is(pos,
            new callExp(pos,
-               new varEntryExp(pos,
-                   new function(primBoolean(), v->getType()),
-                   run::isDefault),
-               &vee),
+                       new varEntryExp(pos,
+                                       new function(primBoolean(), v->getType()),
+                                       run::isDefault),
+                       &vee),
            new expStm(pos,
-               new basicAssignExp(pos,
-                   &vee,
-                   init)));
+                      new basicAssignExp(pos,
+                                         &vee,
+                                         init)));
   is.trans(e);                                        
 }
 

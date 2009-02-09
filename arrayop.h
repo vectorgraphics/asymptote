@@ -47,7 +47,7 @@ void opArray(vm::stack *s)
   size_t size=checkArray(a);
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
-      (*c)[i]=op<U>()(b,read<U>(a,i),i);
+    (*c)[i]=op<U>()(b,read<U>(a,i),i);
   s->push(c);
 }
 
@@ -59,7 +59,7 @@ void arrayArrayOp(vm::stack *s)
   size_t size=checkArrays(a,b);
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
-      (*c)[i]=op<T>()(read<T>(a,i),read<T>(b,i),i);
+    (*c)[i]=op<T>()(read<T>(a,i),read<T>(b,i),i);
   s->push(c);
 }
 
@@ -122,11 +122,11 @@ void binopArray2(vm::stack *s)
     size_t aisize=checkArray(ai);
     if(aisize) {
       if(empty) {
-	m=read<T>(ai,0);
-	empty=false;
+        m=read<T>(ai,0);
+        empty=false;
       }
       for(size_t j=0; j < aisize; j++)
-	m=op<T>()(m,read<T>(ai,j));
+        m=op<T>()(m,read<T>(ai,j));
     }
   }
   if(empty) vm::error(arrayempty);
@@ -147,13 +147,13 @@ void binopArray3(vm::stack *s)
       array *aij=read<array*>(ai,j);
       size_t aijsize=checkArray(aij);
       if(aijsize) {
-	if(empty) {
-	  m=read<T>(aij,0);
-	  empty=false;
-	}
-	for(size_t k=0; k < aijsize; k++) {
-	  m=op<T>()(m,read<T>(aij,k));
-	}
+        if(empty) {
+          m=read<T>(aij,0);
+          empty=false;
+        }
+        for(size_t k=0; k < aijsize; k++) {
+          m=op<T>()(m,read<T>(aij,k));
+        }
       }
     }
   }
@@ -219,7 +219,7 @@ void searchArray(vm::stack *s)
   Int u=size-1;
   if(key >= read<T>(a,u)) {s->push(u); return;}
   Int l=0;
-	
+        
   while (l < u) {
     Int i=(l+u)/2;
     if(read<T>(a,i) <= key && key < read<T>(a,i+1)) {s->push(i); return;}
@@ -258,7 +258,7 @@ void write(vm::stack *s)
       suffix->call(s);
     } else if(defaultfile) {
       try {
-	f->writeline();
+        f->writeline();
       } catch (quit&) {
       }
     }
@@ -288,30 +288,30 @@ void writeArray(vm::stack *s)
       cont=false;
       bool first=true;
       if(i < asize) {
-	vm::item& I=(*a)[i];
-	if(defaultfile) cout << i << ":\t";
-	if(!I.empty())
-	  f->write(vm::get<T>(I));
-	cont=true;
-	first=false;
+        vm::item& I=(*a)[i];
+        if(defaultfile) cout << i << ":\t";
+        if(!I.empty())
+          f->write(vm::get<T>(I));
+        cont=true;
+        first=false;
       }
       unsigned count=0;
       for(size_t j=0; j < Asize; ++j) {
-	array *Aj=read<array*>(A,j);
-	size_t Ajsize=checkArray(Aj);
-	if(i < Ajsize) {
-	  if(f->text()) {
-	    if(first && defaultfile) cout << i << ":\t";
-	    for(unsigned k=0; k <= count; ++k)
-	      f->write(tab);
-	    count=0;
-	  }
-	  vm::item& I=(*Aj)[i];
-	  if(!I.empty())
-	    f->write(vm::get<T>(I));
-	  cont=true;
-	  first=false;
-	} else count++;
+        array *Aj=read<array*>(A,j);
+        size_t Ajsize=checkArray(Aj);
+        if(i < Ajsize) {
+          if(f->text()) {
+            if(first && defaultfile) cout << i << ":\t";
+            for(unsigned k=0; k <= count; ++k)
+              f->write(tab);
+            count=0;
+          }
+          vm::item& I=(*Aj)[i];
+          if(!I.empty())
+            f->write(vm::get<T>(I));
+          cont=true;
+          first=false;
+        } else count++;
       }
       ++i;
       if(cont && f->text()) f->writeline();
@@ -332,20 +332,20 @@ void writeArray2(vm::stack *s)
   else if(!f->isOpen()) return;
   
   try {
-  for(size_t i=0; i < size; i++) {
-    vm::item& I=(*a)[i];
-    if(!I.empty()) {
-      array *ai=vm::get<array*>(I);
-      size_t aisize=checkArray(ai);
-      for(size_t j=0; j < aisize; j++) {
-	if(j > 0 && f->text()) f->write(tab);
-	vm::item& I=(*ai)[j];
-	if(!I.empty())
-	  f->write(vm::get<T>(I));
+    for(size_t i=0; i < size; i++) {
+      vm::item& I=(*a)[i];
+      if(!I.empty()) {
+        array *ai=vm::get<array*>(I);
+        size_t aisize=checkArray(ai);
+        for(size_t j=0; j < aisize; j++) {
+          if(j > 0 && f->text()) f->write(tab);
+          vm::item& I=(*ai)[j];
+          if(!I.empty())
+            f->write(vm::get<T>(I));
+        }
       }
+      if(f->text()) f->writeline();
     }
-    if(f->text()) f->writeline();
-  }
   } catch (quit&) {
   }
   f->flush();
@@ -362,29 +362,29 @@ void writeArray3(vm::stack *s)
   else if(!f->isOpen()) return;
   
   try {
-  for(size_t i=0; i < size;) {
-    vm::item& I=(*a)[i];
-    if(!I.empty()) {
-      array *ai=vm::get<array*>(I);
-      size_t aisize=checkArray(ai);
-      for(size_t j=0; j < aisize; j++) {
-	vm::item& I=(*ai)[j];
-	if(!I.empty()) {
-	  array *aij=vm::get<array*>(I);
-	  size_t aijsize=checkArray(aij);
-	  for(size_t k=0; k < aijsize; k++) {
-	    if(k > 0 && f->text()) f->write(tab);
-	    vm::item& I=(*aij)[k];
-	    if(!I.empty())
-	      f->write(vm::get<T>(I));
-	  }
-	}
-	if(f->text()) f->writeline();
+    for(size_t i=0; i < size;) {
+      vm::item& I=(*a)[i];
+      if(!I.empty()) {
+        array *ai=vm::get<array*>(I);
+        size_t aisize=checkArray(ai);
+        for(size_t j=0; j < aisize; j++) {
+          vm::item& I=(*ai)[j];
+          if(!I.empty()) {
+            array *aij=vm::get<array*>(I);
+            size_t aijsize=checkArray(aij);
+            for(size_t k=0; k < aijsize; k++) {
+              if(k > 0 && f->text()) f->write(tab);
+              vm::item& I=(*aij)[k];
+              if(!I.empty())
+                f->write(vm::get<T>(I));
+            }
+          }
+          if(f->text()) f->writeline();
+        }
       }
+      ++i;
+      if(i < size && f->text()) f->writeline();
     }
-    ++i;
-    if(i < size && f->text()) f->writeline();
-  }
   } catch (quit&) {
   }
   f->flush();

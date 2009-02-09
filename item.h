@@ -96,7 +96,7 @@ private:
     static T* unwrap(const item& it)
     {
       if (*it.kind == typeid(T))
-	return (T*) it.p;
+        return (T*) it.p;
       throw vm::bad_item_value();
     }
   };
@@ -106,7 +106,7 @@ private:
     static T& unwrap(const item& it)
     {
       if (*it.kind == typeid(T))
-	return *(T*) it.p;
+        return *(T*) it.p;
       throw vm::bad_item_value();
     }
   };
@@ -121,12 +121,12 @@ public:
   {}
 
   item& operator[] (size_t n)
-    { return vars[n]; }
+  { return vars[n]; }
   item operator[] (size_t n) const
-    { return vars[n]; }
+  { return vars[n]; }
 
   size_t size()
-    { return vars.size(); }
+  { return vars.size(); }
   
   // Extends vars to ensure it has a place for any variable indexed up to n.
   void extend(size_t n) {

@@ -25,7 +25,7 @@ public:
     language(language), text(text), havebounds(false) {}
   
   drawVerbatim(Language language, const string& text, pair min,
-	       pair max) : 
+               pair max) : 
     language(language), text(text), havebounds(true), min(min), max(max) {}
   
   virtual ~drawVerbatim() {}

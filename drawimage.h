@@ -25,15 +25,15 @@ class drawImage : public drawElement {
   imagetype type;
 public:
   drawImage(const vm::array& image, const vm::array& palette,
-	    const transform& t, bool antialias, imagetype type=PALETTE)
+            const transform& t, bool antialias, imagetype type=PALETTE)
     : image(image), palette(palette), t(t), antialias(antialias), type(type) {}
   
   drawImage(const vm::array& image, const transform& t, bool antialias)
     : image(image), t(t), antialias(antialias), type(NOPALETTE) {}
   drawImage(unsigned char *raw, size_t width, size_t height, const transform& t,
-	    bool antialias)
+            bool antialias)
     : raw(raw), width(width), height(height), t(t), antialias(antialias),
-       type(RAW) {}
+      type(RAW) {}
   
   virtual ~drawImage() {}
 
@@ -46,15 +46,15 @@ public:
     out->gsave();
     out->concat(t);
     switch(type) {
-    case PALETTE:
-      out->image(image,palette,antialias);
-      break;
-    case NOPALETTE:
-      out->image(image,antialias);
-      break;
-    case RAW:
-      out->rawimage(raw,width,height,antialias);
-      break;
+      case PALETTE:
+        out->image(image,palette,antialias);
+        break;
+      case NOPALETTE:
+        out->image(image,antialias);
+        break;
+      case RAW:
+        out->rawimage(raw,width,height,antialias);
+        break;
     }
     
     out->grestore();

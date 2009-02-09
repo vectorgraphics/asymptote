@@ -62,11 +62,11 @@ void base_tenv(tenv &te)
 const formal noformal(0);  
 
 void addFunc(venv &ve, access *a, ty *result, symbol *id,
-	     formal f1=noformal, formal f2=noformal, formal f3=noformal,
-	     formal f4=noformal, formal f5=noformal, formal f6=noformal,
-	     formal f7=noformal, formal f8=noformal, formal f9=noformal,
-	     formal fA=noformal, formal fB=noformal, formal fC=noformal,
-	     formal fD=noformal, formal fE=noformal, formal fF=noformal)
+             formal f1=noformal, formal f2=noformal, formal f3=noformal,
+             formal f4=noformal, formal f5=noformal, formal f6=noformal,
+             formal f7=noformal, formal f8=noformal, formal f9=noformal,
+             formal fA=noformal, formal fB=noformal, formal fC=noformal,
+             formal fD=noformal, formal fE=noformal, formal fF=noformal)
 {
   function *fun = new function(result);
 
@@ -95,13 +95,13 @@ void addFunc(venv &ve, access *a, ty *result, symbol *id,
 
 // Add a function with one or more default arguments.
 void addFunc(venv &ve, bltin f, ty *result, const char *name, 
-	     formal f1, formal f2, formal f3, formal f4, formal f5, formal f6,
-	     formal f7, formal f8, formal f9, formal fA, formal fB,
-	     formal fC, formal fD, formal fE, formal fF)
+             formal f1, formal f2, formal f3, formal f4, formal f5, formal f6,
+             formal f7, formal f8, formal f9, formal fA, formal fB,
+             formal fC, formal fD, formal fE, formal fF)
 {
   access *a = new bltinAccess(f);
   addFunc(ve,a,result,symbol::trans(name),f1,f2,f3,f4,f5,f6,f7,f8,f9,
-	  fA,fB,fC,fD,fE,fF);
+          fA,fB,fC,fD,fE,fF);
 }
   
 void addFunc(venv &ve, access *a, ty *result, const char *name, formal f1)
@@ -123,9 +123,9 @@ void addOpenFunc(venv &ve, bltin f, ty *result, const char *name)
 
 // Add a rest function with zero or more default/explicit arguments.
 void addRestFunc(venv &ve, bltin f, ty *result, const char *name, formal frest,
-		 formal f1=noformal, formal f2=noformal, formal f3=noformal,
-		 formal f4=noformal, formal f5=noformal, formal f6=noformal,
-		 formal f7=noformal, formal f8=noformal, formal f9=noformal)
+                 formal f1=noformal, formal f2=noformal, formal f3=noformal,
+                 formal f4=noformal, formal f5=noformal, formal f6=noformal,
+                 formal f7=noformal, formal f8=noformal, formal f9=noformal)
 {
   access *a = new bltinAccess(f);
   function *fun = new function(result);
@@ -157,7 +157,7 @@ void addRealFunc(venv &ve, const char* name)
 {
   addFunc(ve, realReal<fcn>, primReal(), name, formal(primReal(),"x"));
   addFunc(ve, arrayFunc<double,double,fcn>, realArray(), name,
-	  formal(realArray(),"a"));
+          formal(realArray(),"a"));
 }
 
 #define addRealFunc(fcn) addRealFunc<fcn>(ve, #fcn);
@@ -165,7 +165,7 @@ void addRealFunc(venv &ve, const char* name)
 void addRealFunc2(venv &ve, bltin fcn, const char *name)
 {
   addFunc(ve,fcn,primReal(),name,formal(primReal(),"a"),
-	  formal(primReal(),"b"));
+          formal(primReal(),"b"));
 }
 
 #ifdef HAVE_LIBGSL  
@@ -250,7 +250,7 @@ template<double (*fcn)(double)>
 void addGSLRealFunc(const char* name)
 {
   addFunc(GSLModule->e.ve, realRealGSL<fcn>, primReal(), name,
-	  formal(primReal(),"x"));
+          formal(primReal(),"x"));
 }
 
 // Add a GSL_PREC_DOUBLE GSL special function.
@@ -258,42 +258,42 @@ template<double (*fcn)(double, gsl_mode_t)>
 void addGSLDOUBLEFunc(const char* name)
 {
   addFunc(GSLModule->e.ve, realRealDOUBLE<fcn>, primReal(), name,
-	  formal(primReal(),"x"));
+          formal(primReal(),"x"));
 }
 
 template<double (*fcn)(double, double, gsl_mode_t)>
 void addGSLDOUBLE2Func(const char* name)
 {
   addFunc(GSLModule->e.ve, realRealRealDOUBLE<fcn>, primReal(), name, 
-	  formal(primReal(),"phi"), formal(primReal(),"k"));
+          formal(primReal(),"phi"), formal(primReal(),"k"));
 }
 
 template<double (*fcn)(unsigned)>
 void addGSLIntFunc(const char* name)
 {
   addFunc(GSLModule->e.ve, realIntGSL<fcn>, primReal(), name,
-	  formal(primInt(),"s"));
+          formal(primInt(),"s"));
 }
 
 template<double (*fcn)(int, double)>
 void addGSLIntRealFunc(const char* name, const char *arg1="n")
 {
   addFunc(GSLModule->e.ve, realIntRealGSL<fcn>, primReal(), name,
-	  formal(primInt(),arg1), formal(primReal(),"x"));
+          formal(primInt(),arg1), formal(primReal(),"x"));
 }
 
 template<double (*fcn)(double, double)>
 void addGSLRealRealFunc(const char* name)
 {
   addFunc(GSLModule->e.ve, realRealRealGSL<fcn>, primReal(), name,
-	  formal(primReal(),"nu"), formal(primReal(),"x"));
+          formal(primReal(),"nu"), formal(primReal(),"x"));
 }
 
 template<double (*fcn)(double, unsigned)>
 void addGSLRealIntFunc(const char* name)
 {
   addFunc(GSLModule->e.ve, realRealIntGSL<fcn>, primReal(), name, 
-	  formal(primReal(),"nu"), formal(primInt(),"s"));
+          formal(primReal(),"nu"), formal(primInt(),"s"));
 }
 
 // Handle GSL errors gracefully.
@@ -350,7 +350,7 @@ void addConstant(venv &ve, T value, ty *t, const char *name,
 
 template<class T>
 void addVariable(venv &ve, T *ref, ty *t, const char *name,
-		 record *module=settings::getSettingsModule()) {
+                 record *module=settings::getSettingsModule()) {
   access *a = new refAccess<T>(ref);
   varEntry *ent = new varEntry(t, a, PUBLIC, module, 0, position());
   ve.enter(symbol::trans(name), ent);
@@ -459,14 +459,14 @@ void addBooleanOps(venv &ve, ty *t1, const char *name, ty *t2)
   addFunc(ve,opArray<T,T,op>,boolArray(),name,formal(t1,"a"),formal(t2,"b"));
   addFunc(ve,arrayOp<T,T,op>,boolArray(),name,formal(t2,"a"),formal(t1,"b"));
   addFunc(ve,arrayArrayOp<T,op>,boolArray(),name,formal(t2,"a"),
-	  formal(t2,"b"));
+          formal(t2,"b"));
 }
 
 void addWrite(venv &ve, bltin f, ty *t1, ty *t2)
 {
   addRestFunc(ve,f,primVoid(),"write",t2,
-	      formal(primFile(),"file",true),formal(primString(),"s",true),
-	      formal(t1,"x"),formal(voidFileFunction(),"suffix",true));
+              formal(primFile(),"file",true),formal(primString(),"s",true),
+              formal(t1,"x"),formal(voidFileFunction(),"suffix",true));
 }
 
 template<class T>
@@ -482,20 +482,20 @@ void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   
   addWrite(ve,write<T>,t1,t2);
   addRestFunc(ve,writeArray<T>,primVoid(),"write",t3,
-	      formal(primFile(),"file",true),formal(primString(),"s",true),
-	      formal(t2,"a",false,true));
+              formal(primFile(),"file",true),formal(primString(),"s",true),
+              formal(t2,"a",false,true));
   addFunc(ve,writeArray2<T>,primVoid(),"write",
-	  formal(primFile(),"file",true),t3);
+          formal(primFile(),"file",true),t3);
   addFunc(ve,writeArray3<T>,primVoid(),"write",
-	  formal(primFile(),"file",true),t4);
+          formal(primFile(),"file",true),t4);
 }
 
 inline double abs(pair z) {
-    return z.length();
+  return z.length();
 }
 
 inline double abs(triple v) {
-    return v.length();
+  return v.length();
 }
 
 template<class T, template <class S> class op>
@@ -523,12 +523,12 @@ void addOrderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   addFunc(ve,sortArray2<T>,t3,"sort",formal(t3,"a"));
   
   addFunc(ve,searchArray<T>,primInt(),"search",formal(t2,"a"),
-	  formal(t1,"key"));
+          formal(t1,"key"));
 }
 
 template<class T>
 void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool integer=false,
-  bool Explicit=false)
+                 bool Explicit=false)
 {
   addOps<T,plus>(ve,t1,"+",t2);
   addOps<T,minus>(ve,t1,"-",t2);
@@ -538,8 +538,8 @@ void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool integer=false,
   addFunc(ve,Negate<T>,t1,"-",formal(t1,"a"));
   addFunc(ve,arrayNegate<T>,t2,"-",formal(t2,"a"));
   if(!integer) addFunc(ve,interp<T>,t1,"interp",formal(t1,"a",false,Explicit),
-		       formal(t1,"b",false,Explicit),
-		       formal(primReal(),"t"));
+                       formal(t1,"b",false,Explicit),
+                       formal(primReal(),"t"));
   
   addFunc(ve,sumArray<T>,t1,"sum",formal(t2,"a"));
   addUnorderedOps<T>(ve,t1,t2,t3,t4);
@@ -547,7 +547,7 @@ void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool integer=false,
 
 template<class T>
 void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool integer=false,
-  bool Explicit=false)
+            bool Explicit=false)
 {
   addBasicOps<T>(ve,t1,t2,t3,t4,integer,Explicit);
   addOps<T,times>(ve,t1,"*",t2);
@@ -566,33 +566,33 @@ void addArrayOps(venv &ve, types::array *t)
 
   addFunc(ve, run::newDuplicateArray,
           t, "array", formal(primInt(), "n"),
-                      formal(ct, "value"),
-                      formal(primInt(), "depth", /*optional=*/ true));
+          formal(ct, "value"),
+          formal(primInt(), "depth", /*optional=*/ true));
 
   switch (t->depth()) {
-  case 1:
-    addFunc(ve, run::arrayCopy, t, "copy", formal(t, "a"));
-    addRestFunc(ve, run::arrayConcat, t, "concat", new types::array(t));
-    addFunc(ve, run::arraySequence,
-            t, "sequence", formal(new function(ct, primInt()), "f"),
-                           formal(primInt(), "n"));
-    addFunc(ve, run::arrayFunction,
-            t, "map", formal(new function(ct, ct), "f"), formal(t, "a"));
-    addFunc(ve, run::arraySort,
-            t, "sort", formal(t, "a"),
-	    formal(new function(primBoolean(), ct, ct), "f"));
-    break;
-  case 2:
-    addFunc(ve, run::array2Copy, t, "copy", formal(t, "a"));
-    addFunc(ve, run::array2Transpose, t, "transpose", formal(t, "a"));
-    break;
-  case 3:
-    addFunc(ve, run::array3Copy, t, "copy", formal(t, "a"));
-    addFunc(ve, run::array3Transpose, t, "transpose", formal(t, "a"),
-	    formal(IntArray(),"perm"));
-    break;
-  default:
-    break;
+    case 1:
+      addFunc(ve, run::arrayCopy, t, "copy", formal(t, "a"));
+      addRestFunc(ve, run::arrayConcat, t, "concat", new types::array(t));
+      addFunc(ve, run::arraySequence,
+              t, "sequence", formal(new function(ct, primInt()), "f"),
+              formal(primInt(), "n"));
+      addFunc(ve, run::arrayFunction,
+              t, "map", formal(new function(ct, ct), "f"), formal(t, "a"));
+      addFunc(ve, run::arraySort,
+              t, "sort", formal(t, "a"),
+              formal(new function(primBoolean(), ct, ct), "f"));
+      break;
+    case 2:
+      addFunc(ve, run::array2Copy, t, "copy", formal(t, "a"));
+      addFunc(ve, run::array2Transpose, t, "transpose", formal(t, "a"));
+      break;
+    case 3:
+      addFunc(ve, run::array3Copy, t, "copy", formal(t, "a"));
+      addFunc(ve, run::array3Transpose, t, "transpose", formal(t, "a"),
+              formal(IntArray(),"perm"));
+      break;
+    default:
+      break;
   }
 }
 
@@ -623,53 +623,53 @@ void addOperators(venv &ve)
   addBooleanOps<bool,Xor>(ve,primBoolean(),"^",boolArray());
   
   addUnorderedOps<bool>(ve,primBoolean(),boolArray(),boolArray2(),
-			boolArray3());
+                        boolArray3());
   addOps<Int>(ve,primInt(),IntArray(),IntArray2(),IntArray3(),true);
   addOps<double>(ve,primReal(),realArray(),realArray2(),realArray3());
   addOps<pair>(ve,primPair(),pairArray(),pairArray2(),pairArray3(),false,true);
   addBasicOps<triple>(ve,primTriple(),tripleArray(),tripleArray2(),
-		      tripleArray3());
+                      tripleArray3());
   addFunc(ve,opArray<double,triple,times>,tripleArray(),"*",
-	  formal(primReal(),"a"),formal(tripleArray(),"b"));
+          formal(primReal(),"a"),formal(tripleArray(),"b"));
   addFunc(ve,arrayOp<triple,double,timesR>,tripleArray(),"*",
-	  formal(tripleArray(),"a"),formal(primReal(),"b"));
+          formal(tripleArray(),"a"),formal(primReal(),"b"));
   addFunc(ve,arrayOp<triple,double,divide>,tripleArray(),"/",
-	  formal(tripleArray(),"a"),formal(primReal(),"b"));
+          formal(tripleArray(),"a"),formal(primReal(),"b"));
 
   addUnorderedOps<string>(ve,primString(),stringArray(),stringArray2(),
-			  stringArray3());
+                          stringArray3());
   
   addSimpleOperator(ve,binaryOp<pair,minbound>,primPair(),"minbound");
   addSimpleOperator(ve,binaryOp<pair,maxbound>,primPair(),"maxbound");
   addSimpleOperator(ve,binaryOp<triple,minbound>,primTriple(),"minbound");
   addSimpleOperator(ve,binaryOp<triple,maxbound>,primTriple(),"maxbound");
   addBinOps<pair,minbound>(ve,primPair(),pairArray(),pairArray2(),pairArray3(),
-			   "minbound");
+                           "minbound");
   addBinOps<pair,maxbound>(ve,primPair(),pairArray(),pairArray2(),pairArray3(),
-			   "maxbound");
+                           "maxbound");
   addBinOps<triple,minbound>(ve,primTriple(),tripleArray(),tripleArray2(),
-			     tripleArray3(),"minbound");
+                             tripleArray3(),"minbound");
   addBinOps<triple,maxbound>(ve,primTriple(),tripleArray(),tripleArray2(),
-			     tripleArray3(),"maxbound");
+                             tripleArray3(),"maxbound");
   
   addFunc(ve,arrayFunc<double,pair,abs>,realArray(),"abs",
-	  formal(pairArray(),"a"));
+          formal(pairArray(),"a"));
   addFunc(ve,arrayFunc<double,triple,abs>,realArray(),"abs",
-	  formal(tripleArray(),"a"));
+          formal(tripleArray(),"a"));
   
   addFunc(ve,binaryOp<Int,divide>,primReal(),"/",
-	  formal(primInt(),"a"),formal(primInt(),"b"));
+          formal(primInt(),"a"),formal(primInt(),"b"));
   addFunc(ve,arrayOp<Int,Int,divide>,realArray(),"/",
-	  formal(IntArray(),"a"),formal(primInt(),"b"));
+          formal(IntArray(),"a"),formal(primInt(),"b"));
   addFunc(ve,opArray<Int,Int,divide>,realArray(),"/",
-	  formal(primInt(),"a"),formal(IntArray(),"b"));
+          formal(primInt(),"a"),formal(IntArray(),"b"));
   addFunc(ve,arrayArrayOp<Int,divide>,realArray(),"/",
-	  formal(IntArray(),"a"),formal(IntArray(),"b"));
+          formal(IntArray(),"a"),formal(IntArray(),"b"));
   
   addOrderedOps<Int>(ve,primInt(),IntArray(),IntArray2(),IntArray3());
   addOrderedOps<double>(ve,primReal(),realArray(),realArray2(),realArray3());
   addOrderedOps<string>(ve,primString(),stringArray(),stringArray2(),
-			stringArray3());
+                        stringArray3());
   
   addOps<Int,mod>(ve,primInt(),"%",IntArray());
   addOps<double,mod>(ve,primReal(),"%",realArray());
@@ -772,28 +772,28 @@ void base_venv(venv &ve)
 #endif
   
   addFunc(ve,writestring,primVoid(),"write",
-	  formal(primFile(),"file",true),
-	  formal(primString(),"s"),
-	  formal(voidFileFunction(),"suffix",true));
+          formal(primFile(),"file",true),
+          formal(primString(),"s"),
+          formal(voidFileFunction(),"suffix",true));
   
   addWrite(ve,write<transform>,primTransform(),transformArray());
   addWrite(ve,write<guide *>,primGuide(),guideArray());
   addWrite(ve,write<pen>,primPen(),penArray());
   addFunc(ve,arrayArrayOp<pen,equals>,boolArray(),"==",
-	  formal(penArray(),"a"),formal(penArray(),"b"));
+          formal(penArray(),"a"),formal(penArray(),"b"));
   addFunc(ve,arrayArrayOp<pen,notequals>,boolArray(),"!=",
-	  formal(penArray(),"a"),formal(penArray(),"b"));
+          formal(penArray(),"a"),formal(penArray(),"b"));
 
   addFunc(ve,arrayFunction,realArray(),"map",
-	  formal(realPairFunction(),"f"),
-	  formal(pairArray(),"a"));
+          formal(realPairFunction(),"f"),
+          formal(pairArray(),"a"));
   addFunc(ve,arrayFunction,IntArray(),"map",
-	  formal(IntRealFunction(),"f"),
-	  formal(realArray(),"a"));
+          formal(IntRealFunction(),"f"),
+          formal(realArray(),"a"));
   
 #ifdef HAVE_LIBFFTW3
   addFunc(ve,pairArrayFFT,pairArray(),"fft",formal(pairArray(),"a"),
-	  formal(primInt(),"sign",true));
+          formal(primInt(),"sign",true));
 #endif
 
   addConstant<Int>(ve, Int_MAX, primInt(), "intMax");
@@ -806,7 +806,7 @@ void base_venv(venv &ve)
   addConstant<Int>(ve, RAND_MAX, primInt(), "randMax");
   addConstant<double>(ve, PI, primReal(), "pi");
   addConstant<string>(ve, string(settings::VERSION)+string(SVN_REVISION),
-		      primString(),"VERSION");
+                      primString(),"VERSION");
   
   addVariable<pen>(ve, &processData().currentpen, primPen(), "currentpen");
 
@@ -857,7 +857,7 @@ void arrayDeleteHelper(vm::stack *Stack)
   if(i < 0 || i >= (Int) asize || i > j || j >= (Int) asize) {
     ostringstream buf;
     buf << "delete called on array of length " << (Int) asize 
-	<< " with out-of-bounds index range [" << i << "," << j << "]";
+        << " with out-of-bounds index range [" << i << "," << j << "]";
     error(buf);
   }
 

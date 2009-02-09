@@ -25,7 +25,7 @@ void draw(ostream& out, frame *v);
 #endif
 
 namespace run {
-  void breakpoint(vm::stack *Stack, absyntax::runnable *r);
+void breakpoint(vm::stack *Stack, absyntax::runnable *r);
 }
 
 namespace vm {
@@ -91,41 +91,41 @@ void stack::debug()
   if(indebugger) {em.clear(); return;}
   
   switch(debugOp) {
-  case 'i': // inst
+    case 'i': // inst
       breakpoint();
-    break;
-  case 's': // step
-    if((!curPos.match(lastPos.filename()) || !curPos.match(lastPos.Line())))
-      breakpoint();
-    break;
-  case 'n': // next
-    if(curPos.match(lastPos.filename()) && !curPos.match(lastPos.Line()))
-      breakpoint();
-    break;
-  case 'f': // file
-    if(!curPos.match(lastPos.filename()))
-      breakpoint();
-    break;
-  case 'r': // return
-    if(curPos.match(breakPos.filename()))
-      breakpoint();
-    break;
- case 'c': // continue
-  default:
-    for(mem::list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
-      if(curPos.match(p->f.name()) && curPos.match(p->f.line()) &&
-	 (newline || !curPos.match(breakPos.filename()) ||
-	  !curPos.match(breakPos.Line()))) {
-	breakPos=curPos;
-	breakpoint(p->r);
-	newline=false;
-	break;
+      break;
+    case 's': // step
+      if((!curPos.match(lastPos.filename()) || !curPos.match(lastPos.Line())))
+        breakpoint();
+      break;
+    case 'n': // next
+      if(curPos.match(lastPos.filename()) && !curPos.match(lastPos.Line()))
+        breakpoint();
+      break;
+    case 'f': // file
+      if(!curPos.match(lastPos.filename()))
+        breakpoint();
+      break;
+    case 'r': // return
+      if(curPos.match(breakPos.filename()))
+        breakpoint();
+      break;
+    case 'c': // continue
+    default:
+      for(mem::list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
+        if(curPos.match(p->f.name()) && curPos.match(p->f.line()) &&
+           (newline || !curPos.match(breakPos.filename()) ||
+            !curPos.match(breakPos.Line()))) {
+          breakPos=curPos;
+          breakpoint(p->r);
+          newline=false;
+          break;
+        }
+        if(!newline && 
+           (curPos.match(lastPos.filename()) && !curPos.match(lastPos.Line())))
+          newline=true;
       }
-    if(!newline && 
-       (curPos.match(lastPos.filename()) && !curPos.match(lastPos.Line())))
-       newline=true;
-    }
-    break;
+      break;
   }
 }
   
@@ -173,7 +173,7 @@ void stack::run(program *code, vars_t vars)
           case inst::fieldpush: {
             vars_t frame = pop<vars_t>();
             if (!frame)
-	      error("dereference of null pointer");
+              error("dereference of null pointer");
             push((*frame)[get<Int>(i)]);
             break;
           }
@@ -181,11 +181,11 @@ void stack::run(program *code, vars_t vars)
           case inst::fieldsave: {
             vars_t frame = pop<vars_t>();
             if (!frame)
-	      error("dereference of null pointer");
+              error("dereference of null pointer");
             (*frame)[get<Int>(i)] = top();
             break;
           }
-	
+        
           case inst::builtin: {
             bltin func = get<bltin>(i);
             func(this);
@@ -244,7 +244,7 @@ void stack::run(program *code, vars_t vars)
           }
 
           default:
-	    error("Internal VM error: Bad stack operand");
+            error("Internal VM error: Bad stack operand");
         }
 
 #ifdef DEBUG_STACK

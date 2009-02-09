@@ -78,11 +78,11 @@ quadraticroots::quadraticroots(double a, double b, double c)
       double r2=factor*sqrtm1;
       double r1=-r2-2.0*factor;
       if(r1 <= r2) {
-	t1=r1;
-	t2=r2;
+        t1=r1;
+        t2=r2;
       } else {
-	t1=r2;
-	t2=r1;
+        t1=r2;
+        t2=r1;
       }
     } else if(x == -1.0) {
       distinct=quadraticroots::ONE;
@@ -237,15 +237,15 @@ pair path::point(double t) const
   double one_t = 1.0-t;
 
   pair a = nodes[i].point,
-       b = nodes[i].post,
-       c = nodes[iplus].pre,
-       d = nodes[iplus].point,
-       ab   = one_t*a   + t*b,
-       bc   = one_t*b   + t*c,
-       cd   = one_t*c   + t*d,
-       abc  = one_t*ab  + t*bc,
-       bcd  = one_t*bc  + t*cd,
-       abcd = one_t*abc + t*bcd;
+    b = nodes[i].post,
+    c = nodes[iplus].pre,
+    d = nodes[iplus].point,
+    ab   = one_t*a   + t*b,
+    bc   = one_t*b   + t*c,
+    cd   = one_t*c   + t*d,
+    abc  = one_t*ab  + t*bc,
+    bcd  = one_t*bc  + t*cd,
+    abcd = one_t*abc + t*bcd;
 
   return abcd;
 }
@@ -253,7 +253,7 @@ pair path::point(double t) const
 pair path::precontrol(double t) const
 {
   checkEmpty(n);
-		     
+                     
   Int i = Floor(t);
   Int iplus;
   t = fmod(t,1);
@@ -273,11 +273,11 @@ pair path::precontrol(double t) const
   double one_t = 1.0-t;
 
   pair a = nodes[i].point,
-       b = nodes[i].post,
-       c = nodes[iplus].pre,
-       ab   = one_t*a   + t*b,
-       bc   = one_t*b   + t*c,
-       abc  = one_t*ab  + t*bc;
+    b = nodes[i].post,
+    c = nodes[iplus].pre,
+    ab   = one_t*a   + t*b,
+    bc   = one_t*b   + t*c,
+    abc  = one_t*ab  + t*bc;
 
   return (abc == a) ? nodes[i].pre : abc;
 }
@@ -306,11 +306,11 @@ pair path::postcontrol(double t) const
   double one_t = 1.0-t;
   
   pair b = nodes[i].post,
-       c = nodes[iplus].pre,
-       d = nodes[iplus].point,
-       bc   = one_t*b   + t*c,
-       cd   = one_t*c   + t*d,
-       bcd  = one_t*bc  + t*cd;
+    c = nodes[iplus].pre,
+    d = nodes[iplus].point,
+    bc   = one_t*b   + t*c,
+    cd   = one_t*c   + t*d,
+    bcd  = one_t*bc  + t*cd;
 
   return (bcd == d) ? nodes[iplus].post : bcd;
 }
@@ -364,7 +364,7 @@ path path::subpath(Int a, Int b) const
 inline pair split(double t, const pair& x, const pair& y) { return x+(y-x)*t; }
 
 inline void splitCubic(solvedKnot sn[], double t, const solvedKnot& left_,
-		       const solvedKnot& right_)
+                       const solvedKnot& right_)
 {
   solvedKnot &left=(sn[0]=left_), &mid=sn[1], &right=(sn[2]=right_);
   pair x=split(t,left.post,right.pre); // m1
@@ -390,12 +390,12 @@ path path::subpath(double a, double b) const
     if (a < 0) {
       a = 0;
       if (b < 0)
-	b = 0;
-    }	
+        b = 0;
+    }   
     if (b > n-1) {
       b = n-1;
       if (a > n-1)
-	a = n-1;
+        a = n-1;
     }
     aL = nodes[(Int)floor(a)];
     aR = nodes[(Int)ceil(a)];
@@ -441,8 +441,8 @@ void path::halve(path &first, path &second) const
   
 // Calculate the coefficients of a Bezier derivative divided by 3.
 static inline void derivative(pair& a, pair& b, pair& c,
-			      const pair& z0, const pair& c0,
-			      const pair& c1, const pair& z1)
+                              const pair& z0, const pair& c0,
+                              const pair& c1, const pair& z1)
 {
   a=z1-z0+3.0*(c0-c1);
   b=2.0*(z0+c1)-4.0*c0;
@@ -518,8 +518,8 @@ bbox path::bounds(double min, double max) const
   
 inline void add(bbox& box, const pair& z, const pair& min, const pair& max)
 {
-    box += z+min;
-    box += z+max;
+  box += z+min;
+  box += z+max;
 }
 
 bbox path::internalbounds(const bbox& padding) const
@@ -535,12 +535,12 @@ bbox path::internalbounds(const bbox& padding) const
     // Check node x coordinate
     if((pre.getx() >= 0.0) ^ (post.getx() >= 0))
       add(box,point(i),padding.left,padding.right);
-			      
+                              
     // Check node y coordinate
     if((pre.gety() >= 0.0) ^ (post.gety() >= 0))
       add(box,point(i),pair(0,padding.bottom),pair(0,padding.top));
   }
-			      
+                              
   // Check interior segments.
   for (Int i = 0; i < len; i++) {
     if(straight(i)) continue;
@@ -676,7 +676,7 @@ double path::arctime(double goal) const
 // {{{ Direction Time Calulation
 // Algorithm Stolen from Knuth's MetaFont
 inline double cubicDir(const solvedKnot& left, const solvedKnot& right,
-		       const pair& rot)
+                       const pair& rot)
 {
   pair a,b,c;
   derivative(a,b,c,left.point,left.post,right.pre,right.point);
@@ -686,15 +686,15 @@ inline double cubicDir(const solvedKnot& left, const solvedKnot& right,
   switch(ret.distinct) {
     case quadraticroots::MANY:
     case quadraticroots::ONE:
-      {
+    {
       if(goodroot(a.getx(),b.getx(),c.getx(),ret.t1)) return ret.t1;
-      } break;
+    } break;
 
     case quadraticroots::TWO:
-      {
+    {
       if(goodroot(a.getx(),b.getx(),c.getx(),ret.t1)) return ret.t1;
       if(goodroot(a.getx(),b.getx(),c.getx(),ret.t2)) return ret.t2;
-      } break;
+    } break;
 
     case quadraticroots::NONE:
       break;
@@ -719,11 +719,11 @@ double path::directiontime(const pair& dir) const {
       pair Post = (postcontrol(i)-point(i))*rot;
       static pair zero(0.0,0.0);
       if(Pre != zero && Post != zero) {
-	pre = angle(Pre);
-	post = angle(Post);
-	if ((pre <= 0 && post >= 0 && pre >= post - PI) ||
-	    (pre >= 0 && post <= 0 && pre <= post + PI))
-	  return i;
+        pre = angle(Pre);
+        post = angle(Post);
+        if ((pre <= 0 && post >= 0 && pre >= post - PI) ||
+            (pre >= 0 && post <= 0 && pre <= post + PI))
+          return i;
       }
     }
   }
@@ -746,7 +746,7 @@ void roots(std::vector<double> &roots, double a, double b, double c, double d)
 }
   
 void roots(std::vector<double> &r, double x0, double c0, double c1, double x1,
-	   double x)
+           double x)
 {
   double a=x1-x0+3.0*(c0-c1);
   double b=3.0*(x0+c1)-6.0*c0;
@@ -757,7 +757,7 @@ void roots(std::vector<double> &r, double x0, double c0, double c1, double x1,
 
 // Return all intersection times of path g with the pair z.
 void intersections(std::vector<double>& T, const path& g, const pair& z,
-		   double fuzz)
+                   double fuzz)
 {
   double fuzz2=fuzz*fuzz;
   Int n=g.length();
@@ -766,19 +766,19 @@ void intersections(std::vector<double>& T, const path& g, const pair& z,
     // Check both directions to circumvent degeneracy.
     std::vector<double> r;
     roots(r,g.point(i).getx(),g.postcontrol(i).getx(),
-	  g.precontrol(i+1).getx(),g.point(i+1).getx(),z.getx());
+          g.precontrol(i+1).getx(),g.point(i+1).getx(),z.getx());
     roots(r,g.point(i).gety(),g.postcontrol(i).gety(),
-	  g.precontrol(i+1).gety(),g.point(i+1).gety(),z.gety());
+          g.precontrol(i+1).gety(),g.point(i+1).gety(),z.gety());
     
     size_t m=r.size();
     for(size_t j=0 ; j < m; ++j) {
       double t=r[j];
       if(t >= -Fuzz && t <= 1.0+Fuzz) {
-	double s=i+t;
-	if((g.point(s)-z).abs2() <= fuzz2) {
-	  if(cycles && s >= n-Fuzz) s=0;
-	  T.push_back(s);
-	}
+        double s=i+t;
+        if((g.point(s)-z).abs2() <= fuzz2) {
+          if(cycles && s >= n-Fuzz) s=0;
+          T.push_back(s);
+        }
       }
     }
   }
@@ -796,8 +796,8 @@ inline bool online(const pair&p, const pair& q, const pair& z, double fuzz)
 // the returned list is guaranteed to include the endpoint times of
 // the intersection if endpoints=true.
 void lineintersections(std::vector<double>& T, const path& g,
-		       const pair& p, const pair& q, double fuzz,
-		       bool endpoints=false)
+                       const pair& p, const pair& q, double fuzz,
+                       bool endpoints=false)
 {
   Int n=g.length();
   if(n == 0) {
@@ -836,9 +836,9 @@ void lineintersections(std::vector<double>& T, const path& g,
     for(size_t j=0 ; j < m; ++j) {
       double t=r[j];
       if(t >= -Fuzz && t <= 1.0+Fuzz) {
-	double s=i+t;
-	if(cycles && s >= n-Fuzz) s=0;
-	T.push_back(s);
+        double s=i+t;
+        if(cycles && s >= n-Fuzz) s=0;
+        T.push_back(s);
       }
     }
   }
@@ -848,7 +848,7 @@ void lineintersections(std::vector<double>& T, const path& g,
 // if there are an infinite number of intersection points, the returned list is
 // only guaranteed to include the endpoint times of the intersection.
 void intersections(std::vector<double>& S, std::vector<double>& T,
-		   const path& g, const pair& p, const pair& q, double fuzz)
+                   const path& g, const pair& p, const pair& q, double fuzz)
 {
   if(q == p) {
     std::vector<double> S1;
@@ -868,8 +868,8 @@ void intersections(std::vector<double>& S, std::vector<double>& T,
       pair z=g.point(s);
       double t=dot(g.point(s)-p,factor);
       if(t >= -Fuzz && t <= 1.0+Fuzz) {
-	S.push_back(s);
-	T.push_back(t);
+        S.push_back(s);
+        T.push_back(t);
       }
     }
   }
@@ -884,7 +884,7 @@ void add(std::vector<double>& S, double s, const path& p, double fuzz2)
 }
   
 void add(std::vector<double>& S, std::vector<double>& T, double s, double t,
-	 const path& p, const path& q, double fuzz2)
+         const path& p, const path& q, double fuzz2)
 {
   pair P=p.point(s);
   for(size_t i=0; i < S.size(); ++i)
@@ -894,9 +894,9 @@ void add(std::vector<double>& S, std::vector<double>& T, double s, double t,
 }
   
 void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
-	 std::vector<double>& S1, std::vector<double>& T1,
-	 double pscale, double qscale, double poffset, double qoffset,
-	 const path& p, const path& q, double fuzz, bool single)
+         std::vector<double>& S1, std::vector<double>& T1,
+         double pscale, double qscale, double poffset, double qoffset,
+         const path& p, const path& q, double fuzz, bool single)
 {
   if(single) {
     s=s*pscale+poffset;
@@ -910,8 +910,8 @@ void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
 }
 
 void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
-	 std::vector<double>& S1, std::vector<double>& T1,
-	 const path& p, const path& q, double fuzz, bool single)
+         std::vector<double>& S1, std::vector<double>& T1,
+         const path& p, const path& q, double fuzz, bool single)
 {
   size_t n=S1.size();
   if(single) {
@@ -927,8 +927,8 @@ void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
 }
 
 void intersections(std::vector<double>& S, path& g,
-		   const pair& p, const pair& q, double fuzz)
-{	
+                   const pair& p, const pair& q, double fuzz)
+{       
   double fuzz2=fuzz*fuzz;
   std::vector<double> S1;
   lineintersections(S1,g,p,q,fuzz);
@@ -938,8 +938,8 @@ void intersections(std::vector<double>& S, path& g,
 }
 
 bool intersections(double &s, double &t, std::vector<double>& S,
-		   std::vector<double>& T,
-		   path& p, path& q, double fuzz, bool single, unsigned depth)
+                   std::vector<double>& T,
+                   path& p, path& q, double fuzz, bool single, unsigned depth)
 {
   if(errorstream::interrupt) throw interrupted();
   
@@ -973,11 +973,11 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     --depth;
     if((maxp-minp).length()+(maxq-minq).length() <= fuzz || depth == 0) {
       if(single) {
-	s=0;
-	t=0;
+        s=0;
+        t=0;
       } else {
-	S.push_back(0.0);
-	T.push_back(0.0);
+        S.push_back(0.0);
+        T.push_back(0.0);
       }
       return true;
     }
@@ -988,10 +988,10 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     if(lp <= 1) {
       p.halve(p1,p2);
       if(p1 == p || p2 == p) {
-	std::vector<double> T1,S1;
-	intersections(T1,S1,q,p.point((Int) 0),p.point((Int) 0),fuzz);
-	add(s,t,S,T,S1,T1,p,q,fuzz,single);
-	return S1.size() > 0;
+        std::vector<double> T1,S1;
+        intersections(T1,S1,q,p.point((Int) 0),p.point((Int) 0),fuzz);
+        add(s,t,S,T,S1,T1,p,q,fuzz,single);
+        return S1.size() > 0;
       }
       pscale=poffset=0.5;
     } else {
@@ -1008,10 +1008,10 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     if(lq <= 1) {
       q.halve(q1,q2);
       if(q1 == q || q2 == q) {
-	std::vector<double> S1,T1;
-	intersections(S1,T1,p,q.point((Int) 0),q.point((Int) 0),fuzz);
-	add(s,t,S,T,S1,T1,p,q,fuzz,single);
-	return S1.size() > 0;
+        std::vector<double> S1,T1;
+        intersections(S1,T1,p,q.point((Int) 0),q.point((Int) 0),fuzz);
+        add(s,t,S,T,S1,T1,p,q,fuzz,single);
+        return S1.size() > 0;
       }
       qscale=qoffset=0.5;
     } else {
@@ -1031,7 +1031,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     if(intersections(s,t,S1,T1,p1,q1,fuzz,single,depth)) {
       add(s,t,S,T,S1,T1,pscale,qscale,0.0,0.0,p,q,fuzz,single);
       if(single || depth <= mindepth)
-	return true;
+        return true;
       count += S1.size();
       if(Short && count > maxcount) return true;
     }
@@ -1041,7 +1041,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     if(intersections(s,t,S1,T1,p1,q2,fuzz,single,depth)) {
       add(s,t,S,T,S1,T1,pscale,qscale,0.0,qoffset,p,q,fuzz,single);
       if(single || depth <= mindepth)
-	return true;
+        return true;
       count += S1.size();
       if(Short && count > maxcount) return true;
     }
@@ -1051,7 +1051,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     if(intersections(s,t,S1,T1,p2,q1,fuzz,single,depth)) {
       add(s,t,S,T,S1,T1,pscale,qscale,poffset,0.0,p,q,fuzz,single);
       if(single || depth <= mindepth)
-	return true;
+        return true;
       count += S1.size();
       if(Short && count > maxcount) return true;
     }
@@ -1061,7 +1061,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     if(intersections(s,t,S1,T1,p2,q2,fuzz,single,depth)) {
       add(s,t,S,T,S1,T1,pscale,qscale,poffset,qoffset,p,q,fuzz,single);
       if(single || depth <= mindepth)
-	return true;
+        return true;
       count += S1.size();
       if(Short && count > maxcount) return true;
     }
@@ -1083,8 +1083,8 @@ ostream& operator<< (ostream& out, const path& p)
       out << p.point(i);
       if(p.straight(i)) out << "--";
       else
-	out << ".. controls " << p.postcontrol(i) << " and "
-	    << p.precontrol(i+1) << newl << " ..";
+        out << ".. controls " << p.postcontrol(i) << " and "
+            << p.precontrol(i+1) << newl << " ..";
     }
     if(p.cycles) 
       out << "cycle";
@@ -1176,7 +1176,7 @@ double orient2d(const pair& a, const pair& b, const pair& c)
 // Returns true iff the point z lies strictly inside the bounding box
 // of a,b,c, and d.
 bool insidebbox(const pair& a, const pair& b, const pair& c, const pair& d,
-		const pair& z)
+                const pair& z)
 {
   bbox B(a);
   B.addnonempty(b);
@@ -1194,7 +1194,7 @@ inline bool inrange(double x0, double x1, double x)
 // returns true if point is on curve; otherwise compute contribution to 
 // winding number.
 bool checkside(const pair& z0, const pair& c0, const pair& c1,
-	       const pair& z1, const pair& z, Int& count, unsigned depth) 
+               const pair& z1, const pair& z, Int& count, unsigned depth) 
 {
   if(depth == 0) return true;
   --depth;
@@ -1211,13 +1211,13 @@ bool checkside(const pair& z0, const pair& c0, const pair& c1,
     if(z0.gety() <= z.gety() && z.gety() <= z1.gety()) {
       double side=orient2d(z0,z1,z);
       if(side == 0.0 && inrange(z0.getx(),z1.getx(),z.getx()))
-	return true;
+        return true;
       if(z.gety() < z1.gety() && side > 0) ++count;
     }
     else if(z1.gety() <= z.gety() && z.gety() <= z0.gety()) {
       double side=orient2d(z0,z1,z);
       if(side == 0.0 && inrange(z0.getx(),z1.getx(),z.getx()))
-	return true;
+        return true;
       if(z.gety() < z0.gety() && side < 0) --count;
     }
   }
@@ -1242,7 +1242,7 @@ Int path::windingnumber(const pair& z) const
   Int count=0;
   for(Int i=0; i < n; ++i)
     if(checkside(point(i),postcontrol(i),precontrol(i+1),point(i+1),z,count,
-		 maxdepth)) return infinity;
+                 maxdepth)) return infinity;
   return count;
 }
 
@@ -1277,7 +1277,7 @@ path transformed(const transform& t, const path& p)
 }
 
 path nurb(pair z0, pair z1, pair z2, pair z3,
-	  double w0, double w1, double w2, double w3, Int m)
+          double w0, double w1, double w2, double w3, Int m)
 {
   mem::vector<solvedKnot> nodes(m+1);
 

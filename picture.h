@@ -38,7 +38,7 @@ public:
   nodelist nodes;
   
   picture() : labels(false), lastnumber(0), lastnumber3(0), T(identity),
-	      transparency(false) {}
+              transparency(false) {}
   
   // Destroy all of the owned picture objects.
   ~picture();
@@ -64,9 +64,9 @@ public:
 
   // Projected bounds of 3d picture given transform3 t (not cached).
   pair bounds(double (*m)(double, double),
-	       double (*x)(const triple&, double*),
-	       double (*y)(const triple&, double*),
-	       double *t=NULL);
+              double (*x)(const triple&, double*),
+              double (*y)(const triple&, double*),
+              double *t=NULL);
   
   void texinit();
 
@@ -77,25 +77,25 @@ public:
   int epstopdf(const string& epsname, const string& pdfname);
   
   bool texprocess(const string& texname, const string& tempname,
-		  const string& prefix, const pair& bboxshift); 
+                  const string& prefix, const pair& bboxshift); 
     
   bool postprocess(const string& prename, const string& outname, 
-		   const string& outputformat, double magnification,
-		   bool wait, bool view);
+                   const string& outputformat, double magnification,
+                   bool wait, bool view);
     
   // Ship the picture out to PostScript & TeX files.
   bool shipout(picture* preamble, const string& prefix,
-	       const string& format, double magnification=0.0,
-	       bool wait=false, bool view=true);
+               const string& format, double magnification=0.0,
+               bool wait=false, bool view=true);
  
   void render(GLUnurbs *nurb, double size2,
-	      const triple &Min, const triple& Max, double perspective,
-	      bool transparent) const;
+              const triple &Min, const triple& Max, double perspective,
+              bool transparent) const;
   bool shipout3(const string& prefix, const string& format,
-		double width, double height, double angle, const triple& m,
-		const triple& M, size_t nlights, triple *lights,
-		double *diffuse, double *ambient, double *specular,
-		bool viewportlighting, bool view);
+                double width, double height, double angle, const triple& m,
+                const triple& M, size_t nlights, triple *lights,
+                double *diffuse, double *ambient, double *specular,
+                bool viewportlighting, bool view);
   
   bool shipout3(const string& prefix); // Embedded PRC
   

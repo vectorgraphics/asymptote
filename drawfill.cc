@@ -14,24 +14,24 @@ void drawAxialShade::palette(psfile *out)
   colorspace=(ColorSpace) max(pentype.colorspace(),penb.colorspace());
   
   switch(colorspace) {
-  case RGB:
+    case RGB:
     {
       if (pentype.grayscale()) pentype.greytorgb();
       else if (penb.grayscale()) penb.greytorgb();
       break;
     }
       
-  case CMYK:
+    case CMYK:
     {
       if (pentype.grayscale()) pentype.greytocmyk();
       else if (penb.grayscale()) penb.greytocmyk();
-	
+        
       if (pentype.rgb()) pentype.rgbtocmyk();
       else if (penb.rgb()) penb.rgbtocmyk();
       break;
     }
-  default:
-    break;
+    default:
+      break;
   }
   
   out->gsave();

@@ -32,7 +32,7 @@ using namespace settings;
 bool False=false;
 
 namespace vm {
-  void error(const char* message);
+void error(const char* message);
 }
 
 char *Strdup(string s)
@@ -178,18 +178,18 @@ char **args(const char *command, bool quiet)
     char c;
     while((c=*(p++))) {
       if(!quote && c == ' ') {
-	if(!empty) {
-	  if(pass) {
-	    argv[n]=StrdupNoGC(buf.str());
-	    buf.str("");
-	  }
-	  empty=true;
-	  n++;
-	}
+        if(!empty) {
+          if(pass) {
+            argv[n]=StrdupNoGC(buf.str());
+            buf.str("");
+          }
+          empty=true;
+          n++;
+        }
       } else {
-	empty=false;
-	if(c == '\'') quote=!quote;
-	else if(pass) buf << c;
+        empty=false;
+        if(c == '\'') quote=!quote;
+        else if(pass) buf << c;
       }
     }
     if(!empty) {
@@ -210,27 +210,27 @@ char **args(const char *command, bool quiet)
 
 void execError(const char *command, const char *hint, const char *application)
 {
-    cerr << "Cannot execute " << command << endl;
-    if(*application == 0) application=hint;
-    if(hint) {
-      string s=string(hint);
-      transform(s.begin(), s.end(), s.begin(), toupper);        
-      cerr << "Please put in " << getSetting<string>("config")
-	   << ": " << endl << endl
-	   << "import settings;" << endl
-           << hint << "=\"PATH\";" << endl << endl
-	   << "where PATH denotes the correct path to " 
-	   << application << "." << endl << endl
-	   << "Alternatively, set the environment variable ASYMPTOTE_" << s 
-	   << endl << "or use the command line option -" << hint 
-	   << "=\"PATH\"" << endl;
-    }
+  cerr << "Cannot execute " << command << endl;
+  if(*application == 0) application=hint;
+  if(hint) {
+    string s=string(hint);
+    transform(s.begin(), s.end(), s.begin(), toupper);        
+    cerr << "Please put in " << getSetting<string>("config")
+         << ": " << endl << endl
+         << "import settings;" << endl
+         << hint << "=\"PATH\";" << endl << endl
+         << "where PATH denotes the correct path to " 
+         << application << "." << endl << endl
+         << "Alternatively, set the environment variable ASYMPTOTE_" << s 
+         << endl << "or use the command line option -" << hint 
+         << "=\"PATH\"" << endl;
+  }
 }
-						    
+                                                    
 // quiet: 0=none; 1=suppress stdout; 2=suppress stdout+stderr.
 
 int System(const char *command, int quiet, bool wait,
-	   const char *hint, const char *application, int *ppid)
+           const char *hint, const char *application, int *ppid)
 {
   int status;
 
@@ -251,8 +251,8 @@ int System(const char *command, int quiet, bool wait,
       close(STDOUT_FILENO);
       dup2(null,STDOUT_FILENO);
       if(quiet == 2) {
-	close(STDERR_FILENO);
-	dup2(null,STDERR_FILENO);
+        close(STDERR_FILENO);
+        dup2(null,STDERR_FILENO);
       }
     }
     if(argv) {
@@ -267,36 +267,36 @@ int System(const char *command, int quiet, bool wait,
     if(waitpid(pid, &status, wait ? 0 : WNOHANG) == -1) {
       if(errno == ECHILD) return 0;
       if(errno != EINTR) {
-	if(quiet < 2) {
-	  ostringstream msg;
-	  msg << "Command failed: " << command;
-	  camp::reportError(msg);
-	}
+        if(quiet < 2) {
+          ostringstream msg;
+          msg << "Command failed: " << command;
+          camp::reportError(msg);
+        }
       }
     } else {
       if(!wait) return 0;
       if(WIFEXITED(status)) {
-	if(argv) {
-	  char **p=argv;
-	  char *s;
-	  while((s=*(p++)) != NULL)
-	    delete [] s;
-	  delete [] argv;
-	}
-	return WEXITSTATUS(status);
+        if(argv) {
+          char **p=argv;
+          char *s;
+          while((s=*(p++)) != NULL)
+            delete [] s;
+          delete [] argv;
+        }
+        return WEXITSTATUS(status);
       } else {
-	if(quiet < 2) {
-	  ostringstream msg;
-	  msg << "Command exited abnormally: " << command;
-	  camp::reportError(msg);
-	}
+        if(quiet < 2) {
+          ostringstream msg;
+          msg << "Command exited abnormally: " << command;
+          camp::reportError(msg);
+        }
       }
     }
   }
 }
 
 int System(const ostringstream& command, int quiet, bool wait,
-	   const char *hint, const char *application, int *pid)
+           const char *hint, const char *application, int *pid)
 {
   return System(command.str().c_str(),quiet,wait,hint,application,pid);
 }
@@ -330,11 +330,11 @@ char *getPath(char *p)
   if(!p) p=new(UseGC) char[size];
   if(!p) noPath();
   else while(getcwd(p,size) == NULL) {
-    if(errno == ERANGE) {
-      size *= 2;
-      p=new(UseGC) char[size];
-    } else {noPath(); p=NULL;}
-  }
+      if(errno == ERANGE) {
+        size *= 2;
+        p=new(UseGC) char[size];
+      } else {noPath(); p=NULL;}
+    }
   return p;
 }
 
@@ -366,7 +366,7 @@ void popupHelp() {
   if (pid==0 || (waitpid(pid, &status, WNOHANG) == pid)) {
     ostringstream cmd;
     cmd << "'" << getSetting<string>("pdfviewer") << "' " 
-      << docdir << "/asymptote.pdf";
+        << docdir << "/asymptote.pdf";
     status=System(cmd,0,false,"pdfviewer","your PDF viewer",&pid);
   }
 }
@@ -381,6 +381,6 @@ unsigned unsignedcast(Int n)
 int intcast(Int n)
 {
   if(Abs(n) > INT_MAX)
-  vm::error("Integer argument is outside valid range");
+    vm::error("Integer argument is outside valid range");
   return (int) n;
 }

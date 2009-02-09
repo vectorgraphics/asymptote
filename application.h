@@ -74,7 +74,7 @@ public:
     : rest(0) {}
 
   virtual ~restArg() 
-    {}
+  {}
 
   // Encodes the instructions to make an array from size elements on the stack.
   static void transMaker(coenv &e, Int size, bool rest);
@@ -187,7 +187,7 @@ class application : public gc {
       rest(0),
       rf(0),
       index(0)
-    { assert(sig); initRest(); }
+  { assert(sig); initRest(); }
 
   application(types::function *t)
     : sig(t->getSignature()),
@@ -196,7 +196,7 @@ class application : public gc {
       rest(0),
       rf(0),
       index(0)
-    { assert(sig); initRest(); }
+  { assert(sig); initRest(); }
 
   types::formal &getTarget() {
     return sig->getFormal(index);

@@ -47,7 +47,7 @@ bool drawPath3::write(prcfile *out)
 }
 
 void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
-		       double, bool transparent)
+                       double, bool transparent)
 {
 #ifdef HAVE_LIBGLUT
   Int n=g.length();
@@ -67,7 +67,7 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
   
   glMaterialf(GL_FRONT,GL_SHININESS,128.0);
   
- if(straight) {
+  if(straight) {
     glBegin(GL_LINE_STRIP);
     for(Int i=0; i <= n; ++i) {
       triple v=g.point(i);

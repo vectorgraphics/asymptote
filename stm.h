@@ -113,8 +113,8 @@ public:
 };
 
 class whileStm : public stm {
-   exp *test;
-   stm *body;
+  exp *test;
+  stm *body;
 
 public:
   whileStm(position pos, exp *test, stm *body)

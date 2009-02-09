@@ -23,7 +23,7 @@ bool entry::pr::check(action act, coder &c) {
   // stored.
   assert(perm!=PUBLIC && r!=0);
   return c.inTranslation(r->getLevel()) ||
-         (perm == RESTRICTED && act != WRITE);
+    (perm == RESTRICTED && act != WRITE);
 }
 
 void entry::pr::report(action act, position pos, coder &c) {
@@ -172,9 +172,9 @@ void venv::list(record *module)
     name_t &list=names[s];
     for(name_iterator p = list.begin(); p != list.end(); ++p) {
       if(!module || (*p)->whereDefined() == module) {
-	if(where) cout << (*p)->getPos();
-	(*p)->getType()->printVar(cout, s);
-	cout << ";\n";
+        if(where) cout << (*p)->getPos();
+        (*p)->getType()->printVar(cout, s);
+        cout << ";\n";
       }
     }
   }
@@ -204,7 +204,7 @@ ty *venv::getType(symbol *name)
   for(name_iterator p = list.begin();
       p != list.end();
       ++p) {
-      set.addDistinct((*p)->getType(), name->special);
+    set.addDistinct((*p)->getType(), name->special);
   }
 
   return set.simplify();
@@ -239,8 +239,8 @@ bool venv::keyeq::operator()(const key k, const key l) const {
 #endif
   return k.name==l.name &&
     (k.name->special ? equivalent(k.t, l.t) :
-                       equivalent(k.t->getSignature(),
-                                  l.t->getSignature()));
+     equivalent(k.t->getSignature(),
+                l.t->getSignature()));
 }
 #endif
 
@@ -338,7 +338,7 @@ void venv::listValues(symbol *name, values &vals, record *module)
     if(!module || (*p)->v->whereDefined() == module) {
       if(where) out << (*p)->v->getPos();
       if ((*p)->shadowed)
-	out << "  <shadowed> ";
+        out << "  <shadowed> ";
       (*p)->v->getType()->printVar(out, name);
       out << ";\n";
     }

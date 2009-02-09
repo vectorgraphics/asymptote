@@ -38,10 +38,10 @@ public:
       pair B=p[i < 3 ? i+1 : 0];
       double de=(b.x-a.x)*(A.y-B.y)-(A.x-B.x)*(b.y-a.y);
       if(de != 0.0) {
-	de=1.0/de;
-	double t=((A.x-a.x)*(A.y-B.y)-(A.x-B.x)*(A.y-a.y))*de;
-	double T=((b.x-a.x)*(A.y-a.y)-(A.x-a.x)*(b.y-a.y))*de;
-	if(0 <= t && t <= 1 && 0 <= T && T <= 1) return true;
+        de=1.0/de;
+        double t=((A.x-a.x)*(A.y-B.y)-(A.x-B.x)*(A.y-a.y))*de;
+        double T=((b.x-a.x)*(A.y-a.y)-(A.x-a.x)*(b.y-a.y))*de;
+        if(0 <= t && t <= 1 && 0 <= T && T <= 1) return true;
       }
     }
     return false;
@@ -65,7 +65,7 @@ public:
       pair pi=p[i];
       pair pj=p[i < 3 ? i+1 : 0];
       if(((pi.y <= z.y && z.y < pj.y) || (pj.y <= z.y && z.y < pi.y)) &&
-	 z.x < pi.x+(pj.x-pi.x)*(z.y-pi.y)/(pj.y-pi.y)) c=!c;
+         z.x < pi.x+(pj.x-pi.x)*(z.y-pi.y)/(pj.y-pi.y)) c=!c;
     }
     return c;
   }
@@ -105,9 +105,9 @@ public:
   virtual void bounds(bbox3&) {}
 
   virtual void bounds(pair &b, double (*m)(double, double),
-		      double (*x)(const triple&, double*),
-		      double (*y)(const triple&, double*),
-		      double *t, bool &first){}
+                      double (*x)(const triple&, double*),
+                      double (*y)(const triple&, double*),
+                      double *t, bool &first){}
 
   virtual bool islabel() {return false;}
   
@@ -143,8 +143,8 @@ public:
 
   // Render with OpenGL
   virtual void render(GLUnurbs *nurb, double size2, 
-		      const triple& Min, const triple& Max,
-		      double perspective, bool transparent) {}
+                      const triple& Min, const triple& Max,
+                      double perspective, bool transparent) {}
 
   // Transform as part of a picture.
   virtual drawElement *transformed(const transform&) {

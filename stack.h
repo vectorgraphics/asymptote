@@ -27,7 +27,7 @@ struct bpinfo : public gc {
   absyntax::runnable *r;
   
   bpinfo(const string& filename, size_t lineNum,
-	 absyntax::runnable *r=NULL) :
+         absyntax::runnable *r=NULL) :
     f(fileinfo(filename,lineNum)), r(r) {}
 };
   
@@ -82,7 +82,7 @@ private:
   
 public:
   stack() : e(0), debugOp(0), lastPos(nullPos),
-	    breakPos(nullPos), newline(false) {};
+            breakPos(nullPos), newline(false) {};
   
   virtual ~stack() {};
 

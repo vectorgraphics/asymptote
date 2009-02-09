@@ -30,7 +30,7 @@ struct bbox3 {
   }
 
   bbox3(double left, double bottom, double lower,
-       double right, double top, double upper)
+        double right, double top, double upper)
     : empty(false), left(left), bottom(bottom), lower(lower),
       right(right), top(top), upper(upper)
   {

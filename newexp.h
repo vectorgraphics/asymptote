@@ -42,9 +42,9 @@ class newArrayExp : public exp {
 public:
   newArrayExp(position pos,
               ty *celltype,
-	      explist *dimexps,
-	      dimensions *dims,
-	      arrayinit *ai)
+              explist *dimexps,
+              dimensions *dims,
+              arrayinit *ai)
     : exp(pos), celltype(celltype), dimexps(dimexps), dims(dims), ai(ai) {}
 
   void prettyprint(ostream &out, Int indent);

@@ -70,8 +70,8 @@ void exp::testCachedType(coenv &e) {
 
 void exp::transCall(coenv &e, types::ty *target)
 {
-    transAsType(e, target);
-    e.c.encode(inst::popcall);
+  transAsType(e, target);
+  e.c.encode(inst::popcall);
 }
 
 exp *exp::evaluate(coenv &e, types::ty *target) {
@@ -237,7 +237,7 @@ types::ty *subscriptExp::trans(coenv &e)
     index->transToType(e, types::primInt());
     e.c.encode(inst::builtin,
                a->celltype->kind==ty_array ? run::arrayArrayRead :
-                                             run::arrayRead);
+               run::arrayRead);
     return a->celltype;
   }
 }
@@ -246,7 +246,7 @@ types::ty *subscriptExp::getType(coenv &e)
 {
   array *a = getArrayType(e);
   return a ? (isAnArray(e, index) ? a : a->celltype) :
-             primError();
+    primError();
 }
      
 void subscriptExp::transWrite(coenv &e, types::ty *t)
@@ -303,7 +303,7 @@ types::ty *sliceExp::trans(coenv &e)
   index->trans(e);
 
   e.c.encode(inst::builtin, index->getRight() ? run::arraySliceRead :
-                                                run::arraySliceReadToEnd);
+             run::arraySliceReadToEnd);
 
   return a;
 }
@@ -324,7 +324,7 @@ void sliceExp::transWrite(coenv &e, types::ty *t)
   index->trans(e);
 
   e.c.encode(inst::builtin, index->getRight() ? run::arraySliceWrite :
-                                                run::arraySliceWriteToEnd);
+             run::arraySliceWriteToEnd);
 }
 
 void thisExp::prettyprint(ostream &out, Int indent)
@@ -945,9 +945,9 @@ types::ty *promote(coenv &e, types::ty *x, types::ty *y)
         bool castToSecond=e.castable(y, x, symbol::castsym);
 
         return (castToFirst && castToSecond) ? both(x,y) : 
-                                 castToFirst ? x :
-                                castToSecond ? y :
-                                               0;
+          castToFirst ? x :
+          castToSecond ? y :
+          0;
       }
     }
   };
@@ -1051,7 +1051,7 @@ void specExp::prettyprint(ostream &out, Int indent)
   out << "specExp '" << *op << "' " 
       << (s==camp::OUT ? "out" :
           s==camp::IN  ? "in" :
-	  "invalid side") << '\n';
+          "invalid side") << '\n';
 
   arg->prettyprint(out, indent+1);
 }

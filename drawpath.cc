@@ -17,7 +17,7 @@ namespace camp {
 
 
 double PatternLength(double arclength, const std::vector<double>& pat,
-		     bool cyclic, double penwidth)
+                     bool cyclic, double penwidth)
 {
   double sum=0.0;
       
@@ -63,10 +63,10 @@ pen adjustdash(pen& p, double arclength, bool cyclic)
     
     if(q.linetype().adjust) {
       if(arclength) {
-	if(n == 0) return q;
+        if(n == 0) return q;
       
-	double denom=PatternLength(arclength,pat,cyclic,penwidth);
-	if(denom != 0.0) factor *= arclength/denom;
+        double denom=PatternLength(arclength,pat,cyclic,penwidth);
+        if(denom != 0.0) factor *= arclength/denom;
       }
     }
     
@@ -76,7 +76,7 @@ pen adjustdash(pen& p, double arclength, bool cyclic)
     buf.setf(std::ios::fixed);
     if(n > 0) {
       for(size_t i=0; i < n-1; i++)
-	buf << pat[i]*factor << " ";
+        buf << pat[i]*factor << " ";
       buf << pat[n-1]*factor;
     }
     q.setstroke(buf.str());
@@ -101,14 +101,14 @@ void cap(bbox& b, double t, path p, pen pentype) {
   pair z=shift(T)*p.point(t);
   
   switch(pentype.cap()) {
-  case 0:
+    case 0:
     {
       pair d=rotate(v)*pair(x,y)*h;
       b += z+d;
       b += z-d;
       break;
     }
-  case 2:
+    case 2:
     {
       transform R=rotate(v);
       double w=(xx*yy-xy*yx)/y;
@@ -118,7 +118,7 @@ void cap(bbox& b, double t, path p, pen pentype) {
       b += z+dm;
       b += z-dp;
       b += z-dm;
-    break;
+      break;
     }
   }
 }
