@@ -39,8 +39,8 @@ private struct object
 // f:         three-dimensional arrays of real data values
 // midpoint:  optional array containing estimate of f at midpoint values
 vertex[][] contour3(triple[][][] v, real[][][] f,
-		    real[][][] midpoint=new real[][][],
-		    projection P=currentprojection)
+                    real[][][] midpoint=new real[][][],
+                    projection P=currentprojection)
 {
   int nx=v.length-1;
   if(nx == 0)
@@ -166,7 +166,7 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
             if(length(cur[q].v-v) < eps) {
               cur[q].val += add;
               ++cur[q].count;
-	      return;
+              return;
             }
           }
           bucket newbuck;
@@ -183,19 +183,19 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
           addval(w.kpb0,w.kpb1,w.kpb2,val2,w.v);
         }
 
-	triple dir=P.vector();
+        triple dir=P.vector();
 
         void addnormals(weighted[] pts) {
           triple vec2=pts[1].v-pts[0].v;
           triple vec1=pts[0].v-pts[2].v;
-	  triple vec0=-vec2-vec1;
-	  vec2=unit(vec2);
-	  vec1=unit(vec1);
-	  vec0=unit(vec0);
+          triple vec0=-vec2-vec1;
+          vec2=unit(vec2);
+          vec1=unit(vec1);
+          vec0=unit(vec0);
           triple normal=cross(vec2,vec1);
-	  normal *= sgn(dot(normal,dir));
-	  real angle0=acos(-dot(vec1,vec2));
-	  real angle1=acos(-dot(vec2,vec0));
+          normal *= sgn(dot(normal,dir));
+          real angle0=acos(-dot(vec1,vec2));
+          real angle1=acos(-dot(vec2,vec0));
           pts[0].normal=normal*angle0;
           pts[1].normal=normal*angle1;
           pts[2].normal=normal*(pi-angle0-angle1);
@@ -418,7 +418,7 @@ vertex[][] contour3(real[][][] f, real[][][] midpoint=new real[][][],
       triple[] vij=v[i][j];
       real yj=interp(a.y,b.y,j/ny);
       for(int k=0; k <= nz; ++k) {
-	vij[k]=(xi,yj,interp(a.z,b.z,k/nz));
+        vij[k]=(xi,yj,interp(a.z,b.z,k/nz));
       }
     }
   }
@@ -431,7 +431,7 @@ vertex[][] contour3(real[][][] f, real[][][] midpoint=new real[][][],
 // nx,ny,nz   number of subdivisions in x, y, and z directions
 vertex[][] contour3(real f(real, real, real), triple a, triple b,
                     int nx=ncell, int ny=nx, int nz=nx,
-		    projection P=currentprojection)
+                    projection P=currentprojection)
 {
   // evaluate function at points and midpoints
   real[][][] dat=new real[nx+1][ny+1][nz+1];
@@ -476,8 +476,8 @@ surface surface(vertex[][] g)
   for(int i=0; i < g.length; ++i) {
     vertex[] cur=g[i];
     s.s[i]=patch(new triple[] {cur[0].v,cur[0].v,cur[1].v,cur[2].v},
-		 normals=new triple[] {cur[0].normal,cur[0].normal,
-				       cur[1].normal,cur[2].normal});
+                 normals=new triple[] {cur[0].normal,cur[0].normal,
+                                       cur[1].normal,cur[2].normal});
   }
   return s;
 }

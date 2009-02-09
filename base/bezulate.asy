@@ -210,38 +210,38 @@ path[] bezulate(path[] p)
       static real SIZE_STEPS=10;
       static real factor=1.05/SIZE_STEPS;
       for(int k=1; k <= SIZE_STEPS; ++k) {
-          real L=factor*k*abs(max(p)-min(p));
-          for(int i=0; length(p) > 4 && i < length(p); ++i) {
-            bool found=false;
-            pair start=point(p,i);
-            //look for quadrilaterals and triangles with one line, 4 | 3 curves
-            for(int desiredSides=4; !found && desiredSides >= 3;
-                --desiredSides) {
-              if(desiredSides == 3 && length(p) <= 3)
-                break;
-              pair end;
-              int endi=i+desiredSides-1;
-              end=point(p,endi);
-              found=checkSegment(p,start,end) && abs(end-start) < L;
-              if(found) {
-                path p1=subpath(p,endi,i+length(p))--cycle;
-                patch.append(subpath(p,i,endi)--cycle);
-                p=removeDuplicates(p1);
-                i=-1; // increment will make i be 0
-              }
+        real L=factor*k*abs(max(p)-min(p));
+        for(int i=0; length(p) > 4 && i < length(p); ++i) {
+          bool found=false;
+          pair start=point(p,i);
+          //look for quadrilaterals and triangles with one line, 4 | 3 curves
+          for(int desiredSides=4; !found && desiredSides >= 3;
+              --desiredSides) {
+            if(desiredSides == 3 && length(p) <= 3)
+              break;
+            pair end;
+            int endi=i+desiredSides-1;
+            end=point(p,endi);
+            found=checkSegment(p,start,end) && abs(end-start) < L;
+            if(found) {
+              path p1=subpath(p,endi,i+length(p))--cycle;
+              patch.append(subpath(p,i,endi)--cycle);
+              p=removeDuplicates(p1);
+              i=-1; // increment will make i be 0
             }
-            if(!found && k == SIZE_STEPS && length(p) > 4 && i == length(p)-1) {
-              // avoid infinite recursion
-              ++refinements;
-              if(refinements > maxR) {
-                write("warning: too many subdivisions");
-              } else {
-                p=subdivide(p);
-                i=-1;
-              }
+          }
+          if(!found && k == SIZE_STEPS && length(p) > 4 && i == length(p)-1) {
+            // avoid infinite recursion
+            ++refinements;
+            if(refinements > maxR) {
+              write("warning: too many subdivisions");
+            } else {
+              p=subdivide(p);
+              i=-1;
             }
           }
         }
+      }
     }
     if(length(p) <= 4)
       patch.append(p);

@@ -1830,12 +1830,12 @@ multigraph graph(interpolate join, bool3 cond(real))
       real t=a+(i/n)*width;
       bool3 b=cond(t);
       if(b)
-	g.push(f(t));
+        g.push(f(t));
       else {
-	if(g.length > 0) {
-	  G.push(join(...g));
-	  g=new guide[] {};
-	}
+        if(g.length > 0) {
+          G.push(join(...g));
+          g=new guide[] {};
+        }
         if(b == default)
           g.push(f(t));
       }

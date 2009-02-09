@@ -26,7 +26,7 @@ struct grid3 {
     this.axeb=shift(level)*axeb;
     bds=autoscale(min,max,t.scale);
     locate=ticklocate(min,max,t,bds.min,bds.max,
-		      Dir(point(axeb,0)-point(axea,0)));
+                      Dir(point(axeb,0)-point(axea,0)));
   }
 };
 
@@ -181,17 +181,17 @@ void grid3(picture pic=currentpicture,
     for(int i=0; i < gridroutinej.length; ++i) {
       grid3 gt=gridroutinej[i](pic);
       pic.add(new void(picture f, transform3 t, transform3 T, triple, triple) {
-	  picture d;
+          picture d;
           ticks3 ticks=Ticks3(1,F="%",ticklabel=null,
-			      beginlabel=false,endlabel=false,
-			      N=N,n=n,Step=Step,step=step,
-			      begin=begin,end=end,
-			      Size=0,size=0,extend=true,
-			      pTick=pGrid,ptick=pgrid);
+                              beginlabel=false,endlabel=false,
+                              N=N,n=n,Step=Step,step=step,
+                              begin=begin,end=end,
+                              Size=0,size=0,extend=true,
+                              pTick=pGrid,ptick=pgrid);
           ticks(d,t,"",gt.axea,gt.axeb,nullpen,None,gt.locate,gt.bds.divisor,
                 opposite=true,primary=false);
-	  add(f,t*T*inverse(t)*d);
-	},above=above);
+          add(f,t*T*inverse(t)*d);
+        },above=above);
       addPath(pic,gt.axea,pGrid);
       addPath(pic,gt.axeb,pGrid);
     }
@@ -231,20 +231,20 @@ typedef ticksgridT ticksgrid();
 
 
 ticksgrid InOutTicks(Label F="", ticklabel ticklabel=null,
-		     bool beginlabel=true, bool endlabel=true,
-		     int N=0, int n=0, real Step=0, real step=0,
-		     bool begin=true, bool end=true,
-		     real Size=0, real size=0,
-		     pen pTick=nullpen, pen ptick=nullpen,
-		     grid3routinetype gridroutine,
-		     pen pGrid=grey, pen pgrid=lightgrey)
+                     bool beginlabel=true, bool endlabel=true,
+                     int N=0, int n=0, real Step=0, real step=0,
+                     bool begin=true, bool end=true,
+                     real Size=0, real size=0,
+                     pen pTick=nullpen, pen ptick=nullpen,
+                     grid3routinetype gridroutine,
+                     pen pGrid=grey, pen pgrid=lightgrey)
 {
   return new ticksgridT()
     {
       ticksgridT otg;
       otg.ticks=Ticks3(0,F,ticklabel,beginlabel,endlabel,
-		       N,n,Step,step,begin,end,
-		       Size,size,false,pTick,ptick);
+                       N,n,Step,step,begin,end,
+                       Size,size,false,pTick,ptick);
       otg.grid3=new void(picture pic, bool above) {
         grid3(pic,gridroutine,N,n,Step,step,begin,end,pGrid,pgrid,above);
       };
@@ -253,19 +253,19 @@ ticksgrid InOutTicks(Label F="", ticklabel ticklabel=null,
 }
 
 ticksgrid InTicks(Label F="", ticklabel ticklabel=null,
-		  bool beginlabel=true, bool endlabel=true,
-		  int N=0, int n=0, real Step=0, real step=0,
-		  bool begin=true, bool end=true,
-		  real Size=0, real size=0,
-		  pen pTick=nullpen, pen ptick=nullpen,
-		  grid3routinetype gridroutine,
-		  pen pGrid=grey, pen pgrid=lightgrey)
+                  bool beginlabel=true, bool endlabel=true,
+                  int N=0, int n=0, real Step=0, real step=0,
+                  bool begin=true, bool end=true,
+                  real Size=0, real size=0,
+                  pen pTick=nullpen, pen ptick=nullpen,
+                  grid3routinetype gridroutine,
+                  pen pGrid=grey, pen pgrid=lightgrey)
 {
   return new ticksgridT()
     {
       ticksgridT otg;
       otg.ticks=Ticks3(-1,F,ticklabel,beginlabel,endlabel,N,n,Step,step,
-		       begin,end,Size,size,false,pTick,ptick);
+                       begin,end,Size,size,false,pTick,ptick);
       otg.grid3=new void(picture pic, bool above) {
         grid3(pic,gridroutine,N,n,Step,step,begin,end,pGrid,pgrid,above);
       };
@@ -274,19 +274,19 @@ ticksgrid InTicks(Label F="", ticklabel ticklabel=null,
 }
 
 ticksgrid OutTicks(Label F="", ticklabel ticklabel=null,
-		   bool beginlabel=true, bool endlabel=true,
-		   int N=0, int n=0, real Step=0, real step=0,
-		   bool begin=true, bool end=true,
-		   real Size=0, real size=0,
-		   pen pTick=nullpen, pen ptick=nullpen,
-		   grid3routinetype gridroutine,
-		   pen pGrid=grey, pen pgrid=lightgrey)
+                   bool beginlabel=true, bool endlabel=true,
+                   int N=0, int n=0, real Step=0, real step=0,
+                   bool begin=true, bool end=true,
+                   real Size=0, real size=0,
+                   pen pTick=nullpen, pen ptick=nullpen,
+                   grid3routinetype gridroutine,
+                   pen pGrid=grey, pen pgrid=lightgrey)
 {
   return new ticksgridT()
     {
       ticksgridT otg;
       otg.ticks=Ticks3(1,F,ticklabel,beginlabel,endlabel,N,n,Step,step,
-		       begin,end,Size,size,false,pTick,ptick);
+                       begin,end,Size,size,false,pTick,ptick);
       otg.grid3=new void(picture pic, bool above) {
         grid3(pic,gridroutine,N,n,Step,step,begin,end,pGrid,pgrid,above);
       };
@@ -295,24 +295,24 @@ ticksgrid OutTicks(Label F="", ticklabel ticklabel=null,
 }
 
 void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
-	    pen p=currentpen, ticksgrid ticks,
-	    arrowbar3 arrow=None, bool above=false)
+            pen p=currentpen, ticksgrid ticks,
+            arrowbar3 arrow=None, bool above=false)
 {
   xaxis3(pic,L,axis,p,ticks().ticks,arrow,above);
   ticks().grid3(pic,above);
 }
 
 void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
-	    pen p=currentpen, ticksgrid ticks,
-	    arrowbar3 arrow=None, bool above=false)
+            pen p=currentpen, ticksgrid ticks,
+            arrowbar3 arrow=None, bool above=false)
 {
   yaxis3(pic,L,axis,p,ticks().ticks,arrow,above);
   ticks().grid3(pic,above);
 }
 
 void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
-	    pen p=currentpen, ticksgrid ticks,
-	    arrowbar3 arrow=None, bool above=false)
+            pen p=currentpen, ticksgrid ticks,
+            arrowbar3 arrow=None, bool above=false)
 {
   zaxis3(pic,L,axis,p,ticks().ticks,arrow,above);
   ticks().grid3(pic,above);

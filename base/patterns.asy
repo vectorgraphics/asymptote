@@ -9,7 +9,7 @@ frame tiling(string name, picture pic, pair lb=0, pair rt=0)
   string s="%.6f";
   postscript(tiling,"<< /PaintType 1 /PatternType 1 /TilingType 1 
 /BBox ["+format(s,pmin.x,"C")+" "+format(s,pmin.y,"C")+" "+
-	     format(s,pmax.x,"C")+" "+format(s,pmax.y,"C")+"]
+             format(s,pmax.x,"C")+" "+format(s,pmax.y,"C")+"]
 /XStep "+format(s,pmax.x-pmin.x,"C")+"
 /YStep "+format(s,pmax.y-pmin.y,"C")+"
 /PaintProc {pop");

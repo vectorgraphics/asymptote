@@ -5,56 +5,56 @@ struct sCAD
   pen
   // A
   pA,
-    pVisibleEdge,            // Sichtbare Kanten
-    pVisibleContour,        // Sichtbarer Umriss
-    pUsableWindingLength,    // Nitzbare Gewindel‰nge
-    pSystemLine,            // Systemlinie (Stahlbau)
-    pDiagramCurve,            // Kurve in Diagrammen
-    pSurfaceStructure,        // Oberfl‰chenstrukturen
+  pVisibleEdge,            // Sichtbare Kanten
+  pVisibleContour,        // Sichtbarer Umriss
+  pUsableWindingLength,    // Nitzbare Gewindel‰nge
+  pSystemLine,            // Systemlinie (Stahlbau)
+  pDiagramCurve,            // Kurve in Diagrammen
+  pSurfaceStructure,        // Oberfl‰chenstrukturen
   // B
-    pB,
-    pLightEdge,                // Lichtkante
-    pMeasureLine,            // Maﬂlinie
-    pMeasureHelpLine,        // Maﬂhilfslinie
-    pMeasureLineBound,        // Maﬂlinienbegrenzung
-    pReferenceLine,            // Hinweislinie
-    pHatch,                    // Schraffur
-    pWindingGround,            // Gewindegrund
-    pDiagonalCross,            // Diagonalkreuz
-    pBendLine,                // Biegelinie
-    pProjectionLine,        // Projektionslinie
-    pGrid,                    // Rasterlinien
+  pB,
+  pLightEdge,                // Lichtkante
+  pMeasureLine,            // Maﬂlinie
+  pMeasureHelpLine,        // Maﬂhilfslinie
+  pMeasureLineBound,        // Maﬂlinienbegrenzung
+  pReferenceLine,            // Hinweislinie
+  pHatch,                    // Schraffur
+  pWindingGround,            // Gewindegrund
+  pDiagonalCross,            // Diagonalkreuz
+  pBendLine,                // Biegelinie
+  pProjectionLine,        // Projektionslinie
+  pGrid,                    // Rasterlinien
   // C
-    pC,
-    pFreehand,                // Begrenzung abgebrochener oder unterbrochener
+  pC,
+  pFreehand,                // Begrenzung abgebrochener oder unterbrochener
   // Schnitte, wenn die Begrenzung
   // keine Mittellinie ist
   // E
-    pE,
-    pSurfaceTreatmentAllowed,    // Bereich zul‰ssiger Oberfl‰chenbehandlung
+  pE,
+  pSurfaceTreatmentAllowed,    // Bereich zul‰ssiger Oberfl‰chenbehandlung
   // F
-    pF,
-    pInvisibleEdge,            // unsichtbare Kante
-    pInvisibleContour,        // unsichtbarer Umriss
+  pF,
+  pInvisibleEdge,            // unsichtbare Kante
+  pInvisibleContour,        // unsichtbarer Umriss
   // G
-    pG,
-    pMiddleLine,            // Mittellinie
-    pSymmetryLine,            // Symmetrielinie
-    pPartialCircle,            // Teilkreis
-    pCircularHole,            // Lochkreis
-    pDivisionPlane,            // Teilungsebene
-    pTransferLine,            // Trajektorien (‹bertragunslinien)
+  pG,
+  pMiddleLine,            // Mittellinie
+  pSymmetryLine,            // Symmetrielinie
+  pPartialCircle,            // Teilkreis
+  pCircularHole,            // Lochkreis
+  pDivisionPlane,            // Teilungsebene
+  pTransferLine,            // Trajektorien (‹bertragunslinien)
   // J
-    pJ,
-    pCuttingPlane,                // Schnittebene
-    pSurfaceTreatmentRequested,    // Bereich geforderter Behandlungen
+  pJ,
+  pCuttingPlane,                // Schnittebene
+  pSurfaceTreatmentRequested,    // Bereich geforderter Behandlungen
   // K
-    pK,
-    pContourBeforeDeformation,    // Umrisse vor Verformung
-    pAdjacentPartContour,        // Umrisse angrenzender Teile
-    pEndShapeRawMaterial,        // Fertigformen in Rohteilen
-    pContourEligibleType,        // Umrisse wahlweiser Ausf¸hrungen
-    pPartInFrontOfCuttingPlane;    // Teile vor der Schnittebene
+  pK,
+  pContourBeforeDeformation,    // Umrisse vor Verformung
+  pAdjacentPartContour,        // Umrisse angrenzender Teile
+  pEndShapeRawMaterial,        // Fertigformen in Rohteilen
+  pContourEligibleType,        // Umrisse wahlweiser Ausf¸hrungen
+  pPartInFrontOfCuttingPlane;    // Teile vor der Schnittebene
 
 
 

@@ -399,7 +399,7 @@ pair[] quarticroots(real a, real b, real c, real d, real e)
   real Fuzz=10.0*realEpsilon;
 
   if(abs(a) <= Fuzz*(abs(b)+Fuzz*(abs(c)+Fuzz*(abs(d)+Fuzz*abs(e)))))
-     return cubicroots(b,c,d,e);
+    return cubicroots(b,c,d,e);
 
   real ainv=1/a;
   b *= ainv;

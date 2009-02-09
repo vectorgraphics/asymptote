@@ -13,7 +13,7 @@ string embed(string name, string options="", real width=0, real height=0,
     if(!settings.keep) {
       exitfcn currentexitfunction=atexit();
       void exitfunction() {
-	if(currentexitfunction != null) currentexitfunction();
+        if(currentexitfunction != null) currentexitfunction();
         delete(image);
       }
       atexit(exitfunction);

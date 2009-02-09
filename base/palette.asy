@@ -27,7 +27,7 @@ void image(frame f, real[][] data, pair initial, pair final, pen[] palette,
            transform t=identity(), bool copy=true, bool antialias=false)
 {
   _image(f,transpose ? transpose(data) : copy ? copy(data) : data,
-	 initial,final,palette,t,copy=false,antialias=antialias);
+         initial,final,palette,t,copy=false,antialias=antialias);
 }
 
 void image(frame f, pen[][] data, pair initial, pair final,
@@ -35,7 +35,7 @@ void image(frame f, pen[][] data, pair initial, pair final,
            transform t=identity(), bool copy=true, bool antialias=false)
 {
   _image(f,transpose ? transpose(data) : copy ? copy(data) : data,
-	 initial,final,t,copy=false,antialias=antialias);
+         initial,final,t,copy=false,antialias=antialias);
 }
 
 // Reduce color palette to approximate range of data relative to "display"
@@ -63,7 +63,7 @@ private real[] sequencereal;
 bounds image(picture pic=currentpicture, real[][] f, range range=Full,
              pair initial, pair final, pen[] palette,
              bool transpose=(initial.x < final.x && initial.y < final.y),
-	     bool copy=true, bool antialias=false)
+             bool copy=true, bool antialias=false)
 {
   if(transpose) f=transpose(f);
   else if(copy) f=copy(f);
@@ -115,12 +115,12 @@ bounds image(picture pic=currentpicture, real f(real,real),
       },nx);
   }
   return image(pic,data,range,initial,final,palette,transpose=false,
-	       copy=false,antialias=antialias);
+               copy=false,antialias=antialias);
 }
 
 void image(picture pic=currentpicture, pen[][] data, pair initial, pair final,
            bool transpose=(initial.x < final.x && initial.y < final.y),
-	   bool copy=true, bool antialias=false)
+           bool copy=true, bool antialias=false)
 {
   if(transpose) data=transpose(data);
   else if(copy) data=copy(data);
@@ -167,7 +167,7 @@ bounds image(picture pic=currentpicture, pair[] z, real[] f,
     int i0=trni[0], i1=trni[1], i2=trni[2];
     pen color(int i) {return palette[round((f[i]-rmin)*step)];}
     gouraudshade(pic,z[i0]--z[i1]--z[i2]--cycle,
-		 new pen[] {color(i0),color(i1),color(i2)},edges);
+                 new pen[] {color(i0),color(i1),color(i2)},edges);
   }
   return bounds; // Return bounds used for color space
 }
@@ -191,7 +191,7 @@ pen[] palette(real[] f, pen[] palette)
   if(palette.length == 0) return new pen[];
   real step=Max == Min ? 0.0 : (palette.length-1)/(Max-Min);
   return sequence(new pen(int i) {return palette[round((f[i]-Min)*step)];},
-		  f.length);
+                  f.length);
 }
 
 // Construct a pen[][] array from f using the specified palette.
@@ -229,7 +229,7 @@ paletteticks PaletteTicks=PaletteTicks();
 void palette(picture pic=currentpicture, Label L="", bounds bounds, 
              pair initial, pair final, axis axis=Right, pen[] palette, 
              pen p=currentpen, paletteticks ticks=PaletteTicks,
-	     bool copy=true, bool antialias=false)
+             bool copy=true, bool antialias=false)
 {
   real initialz=pic.scale.z.T(bounds.min);
   real finalz=pic.scale.z.T(bounds.max);
@@ -457,8 +457,8 @@ pen[] Gradient(int NColors=256 ... pen[] p)
     pen begin=p[i];
     pen end=p[i+1];
     P.append(sequence(new pen(int j) {
-	  return interp(begin,end,j/(NColors-1));
-	},NColors));
+          return interp(begin,end,j/(NColors-1));
+        },NColors));
   }
   return P;
 }

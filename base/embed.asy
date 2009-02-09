@@ -4,7 +4,7 @@ usepackage("hyperref","setpagesize=false");
 // Fix missing BBox bug in movie15 version 2008/01/16
 texpreamble("\begingroup\makeatletter%
         \ifpdf%
-	  \let\@MXV@iiidstream\relax
+          \let\@MXV@iiidstream\relax
           \xdef\@MXV@apdict{/AP << /N \@MXV@iiidstream>>}%
         \else
           \pdfmark{%

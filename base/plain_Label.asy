@@ -129,16 +129,16 @@ struct align {
     if(!default) {
       if(relative) {
         write(file,"Relative(");
-	if(is3D)
-	  write(file,dir3);
-	else
-	  write(file,dir);
+        if(is3D)
+          write(file,dir3);
+        else
+          write(file,dir);
         write(file,")",suffix);
       } else {
-	if(is3D)
-	  write(file,dir3,suffix);
-	else
-	  write(file,dir,suffix);
+        if(is3D)
+          write(file,dir3,suffix);
+        else
+          write(file,dir,suffix);
       }
     }
   }
@@ -228,9 +228,9 @@ struct Label {
   
   void init(string s="", string size="", position position=0, 
             bool defaultposition=true, align align=NoAlign, pen p=nullpen,
-	    transform T=identity(), transform3 T3=identity4,
-	    bool defaulttransform=true, bool defaulttransform3=true,
-	    embed embed=Rotate, filltype filltype=NoFill) {
+            transform T=identity(), transform3 T3=identity4,
+            bool defaulttransform=true, bool defaulttransform3=true,
+            embed embed=Rotate, filltype filltype=NoFill) {
     this.s=s;
     this.size=size;
     this.position=position;
@@ -262,8 +262,8 @@ struct Label {
 
   Label copy(transform3 T3=this.T3) {
     Label L=new Label;
-     L.init(s,size,position,defaultposition,align,p,T,T3,defaulttransform,
-	    defaulttransform3,embed,filltype);
+    L.init(s,size,position,defaultposition,align,p,T,T3,defaulttransform,
+           defaulttransform3,embed,filltype);
     return L;
   }
   

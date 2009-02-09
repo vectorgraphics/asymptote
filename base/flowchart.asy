@@ -126,8 +126,8 @@ block rectangle(object header=new object, object body, pair center=(0,0),
 
 // As above, but without the header.
 block rectangle(object body=new object, pair center=(0,0),
-		pen fillpen=invisible, pen drawpen=currentpen,
-		real dx=3, real minwidth=minblockwidth,
+                pen fillpen=invisible, pen drawpen=currentpen,
+                real dx=3, real minwidth=minblockwidth,
                 real minheight=minblockheight)
 {
   frame f=body.f;

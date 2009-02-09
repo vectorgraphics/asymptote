@@ -212,7 +212,7 @@ private guide[][] connect(pair[][][] points, real[] c, interpolate join)
 // c:         array of contour values
 // join:      interpolation operator (e.g. operator -- or operator ..)
 guide[][] contour(pair[][] z, real[][] f,
-		  real[][] midpoint=new real[][], real[] c,
+                  real[][] midpoint=new real[][], real[] c,
                   interpolate join=operator --)
 {
   int nx=z.length-1;

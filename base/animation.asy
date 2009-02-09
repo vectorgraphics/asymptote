@@ -106,18 +106,18 @@ struct animation {
         add(multi,fit(pictures[i]));
         newpage(multi);
       } else {
-	if(pictures[i].empty3() || settings.render <= 0) {
-	  real render=settings.render;
-	  settings.render=0;
-	  this.shipout(name(prefix,i),fit(pictures[i]));
-	  settings.render=render;
-	} else { // Render 3D frames
-	  string name=defaultfilename;
-	  defaultfilename=name(prefix,i);
-	  files.push(defaultfilename+"."+nativeformat());
-	  fit(pictures[i]);
-	  defaultfilename=name;
-	}
+        if(pictures[i].empty3() || settings.render <= 0) {
+          real render=settings.render;
+          settings.render=0;
+          this.shipout(name(prefix,i),fit(pictures[i]));
+          settings.render=render;
+        } else { // Render 3D frames
+          string name=defaultfilename;
+          defaultfilename=name(prefix,i);
+          files.push(defaultfilename+"."+nativeformat());
+          fit(pictures[i]);
+          defaultfilename=name;
+        }
       }
     }
     if(multipage) {

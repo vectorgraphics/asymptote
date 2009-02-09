@@ -202,9 +202,9 @@ marker CircleBarIntervalMarker(int i=2, int n=1, real barsize=0, real radius=0,
                                bool above=true)
 {
   return marker(uniform,markinterval(i,circlebarframe(n,barsize,radius,angle,
-						      offset,p,filltype,
-						      circleabove),
-				     rotated),above);
+                                                      offset,p,filltype,
+                                                      circleabove),
+                                     rotated),above);
 }
 
 marker TildeIntervalMarker(int i=2, int n=1, real size=0, real space=0,
