@@ -11,5 +11,5 @@ scale(Linear,LogDown);
 
 draw(graph(exp,-5,5));
 
-xaxis("$x$",LeftTicks(),EndArrow);
-yaxis("$y$",RightTicks(DefaultLogFormat),BeginArrow);
+yaxis("$y$",RightTicks(Label(Fill(white)),DefaultLogFormat),BeginArrow);
+xaxis("$x$",LeftTicks(NoZero),EndArrow);
