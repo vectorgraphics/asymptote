@@ -90,10 +90,12 @@ void read(vm::stack *s)
 inline Int Limit(Int nx) {return nx == 0 ? Int_MAX : nx;}
 inline void reportEof(camp::file *f, Int count) 
 {
-  ostringstream buf;
-  buf << "EOF after reading " << count
-      << " values from file '" << f->filename() << "'.";
-  vm::error(buf);
+  if(count > 0) {
+    ostringstream buf;
+    buf << "EOF after reading " << count
+        << " values from file '" << f->filename() << "'.";
+    vm::error(buf);
+  }
 }
 
 template<class T>
