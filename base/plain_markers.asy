@@ -244,10 +244,17 @@ picture legend(Legend[] Legend, int perline=1, real linelength,
       vskip=(maxheight/heightPerEntry-rows)/(rows-1)+1;
     }
 
-    for(int i=0; i < Legend.length; ++i)
-      add(inset,legenditem(Legend[i],linelength),
-          ((i%perline)*widthPerEntry*hskip,
-           -floor(i/perline)*heightPerEntry*vskip));
+    if(hstretch && (perline == 1)) {
+      Draw(inset,(0,0)--(maxwidth,0),invisible());
+      for(int i=0; i < Legend.length; ++i)
+        add(inset,legenditem(Legend[i],linelength),
+            (0.5*(maxwidth-widthPerEntry),
+             -floor(i/perline)*heightPerEntry*vskip));
+    } else
+      for(int i=0; i < Legend.length; ++i)
+        add(inset,legenditem(Legend[i],linelength),
+            ((i%perline)*widthPerEntry*hskip,
+             -floor(i/perline)*heightPerEntry*vskip));
   }
 
   return inset;
@@ -367,3 +374,4 @@ marker dot(pen p=currentpen, filltype filltype=Fill)
 }
 
 marker dot=dot();
+    
