@@ -6172,18 +6172,8 @@ contributions here are welcome.
 @cindex international characters
 Import this package at the beginning of the file to instruct
 @code{LaTeX} to accept @code{unicode} (UTF-8) standardized international
-characters. You will also need to set up @code{LaTeX} support for
-@code{unicode} by unpacking in your local @code{LaTeX} source directory
-(e.g.@ @code{/usr/local/share/texmf/tex/latex}) the file
-@quotation
-@url{http://www.unruh.de/DniQ/latex/unicode/unicode.tgz}
-@end quotation
-
-and then running the command 
-@verbatim
-texhash
-@end verbatim
-
+characters.
+@noindent
 @cindex Cyrillic
 @cindex Russian
 To use Cyrillic fonts, you will need to change the font encoding:
@@ -6192,7 +6182,7 @@ import unicode;
 texpreamble("\usepackage{mathtext}\usepackage[russian]{babel}");
 defaultpen(font("T2A","cmr"));
 @end verbatim
-
+@noindent
 @cindex Chinese
 @cindex Japanese
 @cindex Korean
