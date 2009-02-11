@@ -72,17 +72,21 @@ void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
         << "\\ASYdimen=\\ht\\ASYbox%" << newl
         << "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl;
   if(ASYalign)
-    out << "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{\\leavevmode%" << newl
-        << "\\setbox\\ASYbox=\\hbox{#6}%" << newl
+    out << "\\def\\ASYaligned(#1,#2)(#3,#4)#5#6#7{\\leavevmode%" << newl
+        << "\\setbox\\ASYbox=\\hbox{#7}%" << newl
         << "\\setbox\\ASYbox\\hbox{\\ASYdimen=\\ht\\ASYbox%" << newl
         << "\\advance\\ASYdimen by\\dp\\ASYbox\\kern#3\\wd\\ASYbox"
         << "\\raise#4\\ASYdimen\\box\\ASYbox}%" << newl
-        << "\\put(#1,#2){%" << newl
+        << "\\put(#1,#2){#5\\wd\\ASYbox 0pt\\dp\\ASYbox 0pt\\ht\\ASYbox 0pt"
+        << "\\box\\ASYbox#6}}" << newl
+        << "\\def\\ASYalignT(#1,#2)(#3,#4)#5#6{%" << newl
+        << "\\ASYaligned(#1,#2)(#3,#4){%" << newl
         << settings::beginlabel(texengine) << "%" << newl
-        << "\\wd\\ASYbox 0pt\\dp\\ASYbox 0pt\\ht\\ASYbox 0pt"
-        << "\\box\\ASYbox%" << newl
+        << "}{" << newl
         << settings::endlabel(texengine) << "%" << newl
-        << "}}" << newl
+        << "}{#6}}" << newl
+        << "\\def\\ASYalign(#1,#2)(#3,#4)#5{"
+        << "\\ASYaligned(#1,#2)(#3,#4){}{}{#5}}" << newl
         << settings::rawpostscript(texengine) << newl;
 }
 
@@ -193,5 +197,3 @@ public:
 } //namespace camp
 
 #endif
-
-

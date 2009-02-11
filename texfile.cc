@@ -69,12 +69,23 @@ void texfile::prologue()
       if(height < 12.0) voffset=height-12.0;
     } else if(height < 10.0) voffset=height-10.0;
 
-    *out << "\\pdfhorigin=0bp" << newl
-         << "\\pdfvorigin=" << voffset << "bp" << newl;
+    // Work around an apparent xelatex dimension bug
+    double xelatexBug=ps2tex;
+
     if(width > 0) 
       *out << "\\pdfpagewidth=" << width << "bp" << newl;
+    *out << "\\ifx\\pdfhorigin\\undefined" << newl
+         << "\\hoffset=-1in" << newl
+         << "\\voffset=" << voffset-72.0*xelatexBug << "bp" << newl;
+    if(height > 0)
+      *out << "\\pdfpageheight=" << height*0.5*(1.0+xelatexBug) << "bp" 
+           << newl;
+    *out << "\\else" << newl
+         << "\\pdfhorigin=0bp" << newl
+         << "\\pdfvorigin=" << voffset << "bp" << newl;
     if(height > 0)
       *out << "\\pdfpageheight=" << height << "bp" << newl;
+    *out << "\\fi" << endl;
   }
   if(settings::latex(texengine)) {
     *out << "\\setlength{\\unitlength}{1pt}" << newl;
@@ -215,15 +226,19 @@ void texfile::put(const string& label, const transform& T, const pair& z,
 
   if(label.empty()) return;
   
-  *out << "\\ASYalign"
-       << "(" << (z.getx()-Hoffset)*ps2tex
+  bool trans=!T.isIdentity();
+  
+  *out << "\\ASYalign";
+  if(trans) *out << "T";
+  *out << "(" << (z.getx()-Hoffset)*ps2tex
        << "," << (z.gety()-box.bottom)*ps2tex
        << ")(" << align.getx()
        << "," << align.gety() 
-       << "){";
-  *out << T.getxx() << " " << sign*T.getyx()
-       << " " << sign*T.getxy() << " " << T.getyy()
-       << "}{" << label << "}" << newl;
+       << ")";
+  if(trans)
+    *out << "{" << T.getxx() << " " << sign*T.getyx()
+         << " " << sign*T.getxy() << " " << T.getyy() << "}";
+  *out << "{" << label << "}" << newl;
 }
 
 void texfile::epilogue(bool pipe)
