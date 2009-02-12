@@ -328,7 +328,7 @@ struct control {
   triple post,pre;
   bool active=false;
   bool straight=true;
-  void init(triple post, triple pre, bool straight=false) {
+  void operator init(triple post, triple pre, bool straight=false) {
     this.post=post;
     this.pre=pre;
     active=true;
@@ -360,7 +360,8 @@ struct Tension {
   real out,in;
   bool atLeast;
   bool active;
-  void init(real out=1, real in=1, bool atLeast=false, bool active=true) {
+  void operator init(real out=1, real in=1, bool atLeast=false,
+                     bool active=true) {
     real check(real val) {
       if(val < 0.75) abort("tension cannot be less than 3/4");
       return val;
@@ -374,9 +375,7 @@ struct Tension {
 
 Tension operator init()
 {
-  Tension t=new Tension;
-  t.init(false);
-  return t;
+  return Tension();
 }
 
 Tension noTension;
@@ -483,18 +482,14 @@ struct flatguide3 {
 
   void control(triple post, triple pre) {
     if(control.length > 0) {
-      control c;
-      c.init(post,pre);
+      control c=control(post,pre,false);
       control[control.length-1]=c;
     }
   }
 
   void Tension(real out, real in, bool atLeast) {
-    if(Tension.length > 0) {
-      Tension t;
-      t.init(out,in,atLeast);
-      Tension[Tension.length-1]=t;
-    }
+    if(Tension.length > 0)
+      Tension[Tension.length-1]=Tension(out,in,atLeast,true);
   }
 
   void in(triple v) {
@@ -697,8 +692,8 @@ struct Controls {
   // as described in John C. Bowman and A. Hammerlindl,
   // TUGBOAT: The Communications of th TeX Users Group 29:2 (2008).
 
-  void init(triple v0, triple v1, triple d0, triple d1, real tout, real tin,
-            bool atLeast) {
+  void operator init(triple v0, triple v1, triple d0, triple d1, real tout,
+                     real tin, bool atLeast) {
     triple v=v1-v0;
     triple u=unit(v);
     real L=length(v);
@@ -1027,11 +1022,8 @@ path3 solve(flatguide3 g)
 
   // If duplicate points occur consecutively, add dummy controls (if absent).
   for(int i=0; i < n; ++i) {
-    if(g.nodes[i] == g.nodes[i+1] && !g.control[i].active) {
-      control c;
-      c.init(g.nodes[i],g.nodes[i],straight=true);
-      g.control[i]=c;
-    }
+    if(g.nodes[i] == g.nodes[i+1] && !g.control[i].active)
+      g.control[i]=control(g.nodes[i],g.nodes[i],straight=true);
   }  
   
   // Fill in empty direction specifiers inherited from explicit control points.
@@ -1064,11 +1056,8 @@ path3 solve(flatguide3 g)
       if(g.cyclic[j]) {
         g.in[j-1].default(v);
         g.out[j].default(v);
-        if(g.nodes[j-1] == g.nodes[j] && !g.control[j-1].active) {
-          control c;
-          c.init(g.nodes[j-1],g.nodes[j-1]);
-          g.control[j-1]=c;
-        }
+        if(g.nodes[j-1] == g.nodes[j] && !g.control[j-1].active)
+          g.control[j-1]=control(g.nodes[j-1],g.nodes[j-1]);
       }
     }
   }
@@ -1098,12 +1087,12 @@ path3 solve(flatguide3 g)
          (g.out[i].dir == O && g.in[i].dir == O)) {
         // fill in straight control points for path3 functions
         triple delta=(g.nodes[i+1]-g.nodes[i])/3;
-        c.init(g.nodes[i]+delta,g.nodes[i+1]-delta,straight=true);
+        c=control(g.nodes[i]+delta,g.nodes[i+1]-delta,straight=true);
       } else {
-        Controls C;
-        C.init(g.nodes[i],g.nodes[next],g.out[i].dir,g.in[i].dir,
-               g.Tension[i].out,g.Tension[i].in,g.Tension[i].atLeast);
-        c.init(C.c0,C.c1);
+        Controls C=Controls(g.nodes[i],g.nodes[next],g.out[i].dir,g.in[i].dir,
+                            g.Tension[i].out,g.Tension[i].in,
+                            g.Tension[i].atLeast);
+        c=control(C.c0,C.c1);
       }
       g.control[i]=c;
     }

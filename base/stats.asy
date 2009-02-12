@@ -193,8 +193,7 @@ void histogram(picture pic=currentpicture, real[] bins, real[] count,
 		    drawpen,fillpen == nullpen ? Draw :
 		    (drawpen == nullpen ? Fill(fillpen) : FillDraw(fillpen)));
     legend.p(drawpen);
-    Legend l; l.init(legend.s,legend.p,invisible,m.f);
-    pic.legend.push(l);
+    pic.legend.push(Legend(legend.s,legend.p,invisible,m.f));
   }
 }
 

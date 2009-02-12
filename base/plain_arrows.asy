@@ -488,8 +488,7 @@ void draw(picture pic=currentpicture, Label L="", path g, align align=NoAlign,
   }
   if(legend.s != "") {
     legend.p(p);
-    Legend l; l.init(legend.s,legend.p,p,marker.f,marker.above);
-    pic.legend.push(l);
+    pic.legend.push(Legend(legend.s,legend.p,p,marker.f,marker.above));
   }
   if(marker != nomarker && marker.above) marker.mark(pic,g);
 }

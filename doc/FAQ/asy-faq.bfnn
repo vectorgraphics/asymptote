@@ -960,27 +960,21 @@ both structure definitions. For example:
  
 \verbatim
 struct B { 
-typedef void someroutine(B b);
+  typedef void someroutine(B b);
  
-static struct A { 
-someroutine routine;
-void init(someroutine routine) { 
-this.routine=routine;
-} 
-} 
+  static struct A { 
+    someroutine routine;
+    void operator init(someroutine routine) { 
+      this.routine=routine;
+    } 
+  } 
  
-A a=new A;
-string test="Testing";
+  string test="Testing";
 } 
  
 typedef B.A A;
  
-A operator init() {return new A;} 
-B operator init() {return new B;} 
- 
- 
-A a;
-a.init(new void(B b){write(b.test);});
+A a=B.A(new void(B b){write(b.test);});
  
 B b;
 a.routine(b);

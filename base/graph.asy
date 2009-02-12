@@ -5,10 +5,8 @@ import graph_settings;
 
 scaleT Linear;
 
-scaleT Log;
-scaleT Logarithmic;
-Log.init(log10,pow10,logarithmic=true);
-Logarithmic=Log;
+scaleT Log=scaleT(log10,pow10,logarithmic=true);
+scaleT Logarithmic=Log;
 
 // A linear scale, with optional autoscaling of minimum and maximum values,
 // scaling factor s and intercept.
@@ -16,7 +14,6 @@ scaleT Linear(bool automin=false, bool automax=automin, real s=1,
               real intercept=0)
 {
   real sinv=1/s;
-  scaleT scale;
   scalefcn T,Tinv;
   if(s == 1 && intercept == 0)
     T=Tinv=identity;
@@ -24,24 +21,20 @@ scaleT Linear(bool automin=false, bool automax=automin, real s=1,
     T=new real(real x) {return (x-intercept)*s;};
     Tinv=new real(real x) {return x*sinv+intercept;};
   }
-  scale.init(T,Tinv,logarithmic=false,automin,automax);
-  return scale;
+  return scaleT(T,Tinv,logarithmic=false,automin,automax);
 }
 
 // A logarithmic scale, with optional autoscaling of minimum and maximum
 // values.
 scaleT Log(bool automin=false, bool automax=automin)
 {
-  scaleT scale;
-  scale.init(Log.T,Log.Tinv,logarithmic=true,automin,automax);
-  return scale;
+  return scaleT(Log.T,Log.Tinv,logarithmic=true,automin,automax);
 }
 
 // A "broken" linear axis omitting the segment [a,b].
 scaleT Broken(real a, real b, bool automin=false, bool automax=automin)
 {
   real skip=b-a;
-  scaleT scale;
   real T(real x) {
     if(x <= a) return x;
     if(x <= b) return a;
@@ -51,8 +44,7 @@ scaleT Broken(real a, real b, bool automin=false, bool automax=automin)
     if(x <= a) return x; 
     return x+skip; 
   }
-  scale.init(T,Tinv,logarithmic=false,automin,automax);
-  return scale;
+  return scaleT(T,Tinv,logarithmic=false,automin,automax);
 }
 
 // A "broken" logarithmic axis omitting the segment [a,b], where a and b are
@@ -64,7 +56,6 @@ scaleT BrokenLog(real a, real b, bool automin=false, bool automax=automin)
   a=Log.Tinv(A);
   b=Log.Tinv(B);
   real skip=B-A;
-  scaleT scale;
   real T(real x) {
     if(x <= a) return Log.T(x);
     if(x <= b) return A;
@@ -75,8 +66,7 @@ scaleT BrokenLog(real a, real b, bool automin=false, bool automax=automin)
     if(X <= a) return X;
     return Log.Tinv(x+skip);
   }
-  scale.init(T,Tinv,logarithmic=true,automin,automax);
-  return scale;
+  return scaleT(T,Tinv,logarithmic=true,automin,automax);
 }
 
 Label Break=Label("$\approx$",UnFill(0.2mm));

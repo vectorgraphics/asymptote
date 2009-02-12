@@ -2,12 +2,11 @@ import graph;
 size(200,IgnoreAspect);
 
 // Base-2 logarithmic scale on y-axis:
-scaleT yscale;
 
 real log2(real x) {static real log2=log(2); return log(x)/log2;}
 real pow2(real x) {return 2^x;}
 
-yscale.init(log2,pow2,logarithmic=true);
+scaleT yscale=scaleT(log2,pow2,logarithmic=true);
 scale(Linear,yscale);
 
 real f(real x) {return 1+x^2;}

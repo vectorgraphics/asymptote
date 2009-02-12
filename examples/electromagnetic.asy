@@ -9,8 +9,8 @@ real nm=1e-9;
 real freq(real lambda) {return c/(lambda*nm);} 
 real lambda(real f) {return c/(f*nm);} 
  
-real fmin = 10; 
-real fmax = 1e23; 
+real fmin=10; 
+real fmax=1e23; 
  
 scale(Log(true),Linear(true)); 
 xlimits(fmin,fmax); 
@@ -24,12 +24,10 @@ palette(visible,uv,ir+(0,2),Bottom,Rainbow(),invisible);
 
 xaxis(Label("\hertz",1),Bottom,RightTicks,above=true); 
  
-scaleT LogLeft;
-
 real log10Left(real x) {return -log10(x);}
 real pow10Left(real x) {return pow10(-x);}
 
-LogLeft.init(log10Left,pow10Left,logarithmic=true);
+scaleT LogLeft=scaleT(log10Left,pow10Left,logarithmic=true);
 
 picture q=secondaryX(new void(picture p) { 
     scale(p,LogLeft,Linear); 

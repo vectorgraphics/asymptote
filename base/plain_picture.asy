@@ -259,8 +259,8 @@ struct scaleT {
   scalefcn T,Tinv;
   bool logarithmic;
   bool automin,automax;
-  void init(scalefcn T, scalefcn Tinv, bool logarithmic=false,
-            bool automin=false, bool automax=false) {
+  void operator init(scalefcn T, scalefcn Tinv, bool logarithmic=false,
+                     bool automin=false, bool automax=false) {
     this.T=T;
     this.Tinv=Tinv;
     this.logarithmic=logarithmic;
@@ -268,16 +268,14 @@ struct scaleT {
     this.automax=automax;
   }
   scaleT copy() {
-    scaleT dest=new scaleT;
-    dest.init(T,Tinv,logarithmic,automin,automax);
+    scaleT dest=scaleT(T,Tinv,logarithmic,automin,automax);
     return dest;
   }
 };
 
 scaleT operator init()
 {
-  scaleT S=new scaleT;
-  S.init(identity,identity);
+  scaleT S=scaleT(identity,identity);
   return S;
 }
                                   
@@ -331,8 +329,8 @@ struct Legend {
   pen p;
   frame mark;
   bool above;
-  void init(string label, pen plabel=currentpen, pen p=nullpen,
-            frame mark=newframe, bool above=true) {
+  void operator init(string label, pen plabel=currentpen, pen p=nullpen,
+                     frame mark=newframe, bool above=true) {
     this.label=label;
     this.plabel=plabel;
     this.p=(p == nullpen) ? plabel : p;
