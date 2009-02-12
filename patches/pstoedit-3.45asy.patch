@@ -1,3 +1,24 @@
+diff -ru pstoedit-3.45/src/cppcomp.h pstoedit-3.45J/src/cppcomp.h
+--- pstoedit-3.45/src/cppcomp.h	2007-07-22 05:27:40.000000000 -0600
++++ pstoedit-3.45J/src/cppcomp.h	2009-02-11 23:20:06.000000000 -0700
+@@ -22,6 +22,8 @@
+ 
+ */
+ 
++#include <cstring>
++
+ #ifdef _MSC_VER
+ # ifndef DLLEXPORT
+ # define DLLEXPORT __declspec( dllexport )
+@@ -242,7 +244,7 @@
+ 		*de = 0;
+ 	} else {
+ 		cerr << "buffer overflow in strcpy_s. Input string: '" << so << "' count: " << count  << " sourcelen " << sourcelen << " buffersize " << de_size << endl;
+-		exit(1);
++		_exit(1);
+ 	}
+ }
+ static inline void strcpy_s(char * de, size_t de_size, const char * so) {
 diff -ru pstoedit-3.45/src/drvasy.cpp pstoedit-3.45J/src/drvasy.cpp
 --- pstoedit-3.45/src/drvasy.cpp	2007-07-22 05:27:30.000000000 -0600
 +++ pstoedit-3.45J/src/drvasy.cpp	2007-12-08 16:22:58.000000000 -0700
@@ -147,3 +168,15 @@ diff -ru pstoedit-3.45/src/drvasy.h pstoedit-3.45J/src/drvasy.h
    std::list<bool> clipstack;
    std::list<bool> gsavestack;
  };
+diff -ru pstoedit-3.45/src/dynload.cpp pstoedit-3.45J/src/dynload.cpp
+--- pstoedit-3.45/src/dynload.cpp	2007-07-22 05:27:36.000000000 -0600
++++ pstoedit-3.45J/src/dynload.cpp	2009-02-11 15:28:59.000000000 -0700
+@@ -93,7 +93,7 @@
+ {
+ 	if (handle) {
+ 		cerr << "error: DynLoader has already opened a library" << endl;
+-		exit(1);
++		_exit(1);
+ 	}
+ 	const unsigned int size = strlen(libname_P) + 1; 
+ 	char *fulllibname = new char[size];
