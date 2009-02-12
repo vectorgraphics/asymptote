@@ -687,8 +687,8 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
     real b=locate.S.postscale.Tinv(locate.b);
     if(a > b) {real temp=a; a=b; b=temp;}
       
-    int first=ceil(a-epsilon);
-    int last=floor(b+epsilon);
+    int first=floor(a-epsilon);
+    int last=ceil(b+epsilon);
       
     if(N == 0) {
       N=1;

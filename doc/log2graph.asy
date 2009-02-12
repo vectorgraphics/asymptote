@@ -14,5 +14,5 @@ real f(real x) {return 1+x^2;}
 
 draw(graph(f,-4,4));
 
+yaxis("$y$",ymin=1,ymax=f(5),RightTicks(Label(Fill(white))),EndArrow);
 xaxis("$x$",xmin=-5,xmax=5,LeftTicks,EndArrow);
-yaxis("$y$",ymin=1,ymax=f(5),RightTicks,EndArrow);
