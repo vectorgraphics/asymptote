@@ -413,10 +413,7 @@ void asyinclude(string s)
   codefile.push(s);
   frame f=currentpicture.fit(s);
   currentpicture=currentpictureSave;
-  if(prc0())
-    display(f);
-  else if(settings.render >= 0)
-    figure(s+"."+nativeformat());
+  display(f);
 }
 
 string cropcode(string s)

@@ -2220,11 +2220,16 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
   bool empty3=pic.empty3();
   if(is3D(format) || empty3) add(f,pic.fit2(xsize,ysize,keepAspect));
   if(!empty3) {
+    bool prc=prc(format);
+    if(!prc) prefix=outprefix()+"_";
     object F=embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
                    options,script,P);
-    if(prc(format))
+    if(prc)
       label(f,F.L);
-    else if(settings.render == 0) add(f,F.f);
+    else {
+      if(settings.render == 0) add(f,F.f);
+      else label(f,graphic(prefix));
+    }
   }
   return f;
 };
