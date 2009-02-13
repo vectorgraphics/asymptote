@@ -7,6 +7,14 @@ string outprefix(string prefix=defaultfilename) {
   return stripextension(s);
 }
 
+string outformat(string format) 
+{
+  if(format == "") format=settings.outformat;
+  if(format == "") format=nativeformat();
+  return format;
+}
+
+
 bool shipped; // Was a picture or frame already shipped out?
 
 frame currentpatterns;
@@ -22,9 +30,9 @@ object embed3(string, frame, string, string, string, projection);
 string Embed(string name, string options="", real width=0, real height=0);
 string Link(string label, string text, string options="");
 
-bool prc0(string format="") {
-  if(format == "") format=settings.outformat;
-  return settings.prc && ((format == "pdf" || pdf()) || settings.inlineimage);
+bool prc0(string format="")
+{
+  return settings.prc && (outformat(format) == "pdf" || settings.inlineimage);
 }
 
 bool prc(string format="") {
