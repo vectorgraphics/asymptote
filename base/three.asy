@@ -2221,14 +2221,22 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
   if(is3D(format) || empty3) add(f,pic.fit2(xsize,ysize,keepAspect));
   if(!empty3) {
     bool prc=prc(format);
-    if(!prc) prefix=outprefix()+"_";
+    if(!prc && settings.render != 0) {
+      static int previewcount=0;
+      prefix=outprefix(prefix)+"-"+(string) previewcount;
+      ++previewcount;
+      format=nativeformat();
+      file3.push(prefix+"."+format);
+    }
     object F=embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
                    options,script,P);
     if(prc)
       label(f,F.L);
     else {
-      if(settings.render == 0) add(f,F.f);
-      else label(f,graphic(prefix));
+      if(settings.render == 0)
+        add(f,F.f);
+      else
+        label(f,graphic(prefix));
     }
   }
   return f;
