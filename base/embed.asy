@@ -1,6 +1,8 @@
-usepackage("movie15","3D");
 usepackage("hyperref","setpagesize=false");
-
+texpreamble("\ifx\pdfhorigin\undefined");
+usepackage("movie15","3D,dvipdfmx");
+texpreamble("\else");
+usepackage("movie15","3D");
 // Fix missing BBox bug in movie15 version 2008/01/16
 texpreamble("\begingroup\makeatletter%
         \ifpdf%
@@ -18,12 +20,13 @@ texpreamble("\begingroup\makeatletter%
             pdfmark=/PUT,%
             Raw={%
               {apdict}%
-              <</BBox[0 0 1 1]>>%
+              <</BBox[0 0 0.001 0.001]>>%
             }%
           }%
           \xdef\@MXV@apdict{/AP << /N {apdict}>>}%
         \fi%
-\endgroup%");
+        \endgroup%");
+texpreamble("\fi");
 
 // See http://www.ctan.org/tex-archive/macros/latex/contrib/movie15/README
 // for documentation of the options.
