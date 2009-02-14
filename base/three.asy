@@ -2221,7 +2221,7 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
   if(is3D(format) || empty3) add(f,pic.fit2(xsize,ysize,keepAspect));
   if(!empty3) {
     bool prc=prc(format);
-    if(!prc && settings.render != 0) {
+    if(!prc && settings.render != 0 && !view) {
       static int previewcount=0;
       prefix=outprefix(prefix)+"-"+(string) previewcount;
       ++previewcount;
@@ -2235,7 +2235,7 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
     else {
       if(settings.render == 0)
         add(f,F.f);
-      else
+      else if(!view)
         label(f,graphic(prefix));
     }
   }
