@@ -4626,7 +4626,7 @@ For convenience, @code{Asymptote} defines variants @code{Sin},
 @code{Cos}, @code{Tan}, @code{aSin}, @code{aCos}, and @code{aTan} of
 the standard trigonometric functions that use degrees rather than radians.
 We also define complex versions of the @code{sqrt}, @code{sin}, @code{cos},
-@code{exp}, and @code{log} functions.
+@code{exp}, @code{log}, and @code{gamma} functions.
 
 @cindex @code{floor}
 @cindex @code{ceil}
