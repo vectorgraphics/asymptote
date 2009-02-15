@@ -1,5 +1,3 @@
-int ncell=10;
-
 import graph_settings;
 import three;
 
@@ -430,7 +428,7 @@ vertex[][] contour3(real[][][] f, real[][][] midpoint=new real[][][],
 // a,b:       diagonally opposite points of rectangular parellelpiped domain
 // nx,ny,nz   number of subdivisions in x, y, and z directions
 vertex[][] contour3(real f(real, real, real), triple a, triple b,
-                    int nx=ncell, int ny=nx, int nz=nx,
+                    int nx=nmesh, int ny=nx, int nz=nx,
                     projection P=currentprojection)
 {
   // evaluate function at points and midpoints

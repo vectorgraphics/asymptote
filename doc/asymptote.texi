@@ -8207,7 +8207,7 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
 @end verbatim
 
 To construct contours for an array of data values on a nonoverlapping
-mesh specified by the two-dimensional array @code{z}, optionally
+regular mesh specified by the two-dimensional array @code{z}, optionally
 specifying an estimate for the values of @code{f} at the mesh midpoints, use
 @verbatim
 guide[][] contour(pair[][] z, real[][] f,

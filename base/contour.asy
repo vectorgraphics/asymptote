@@ -242,7 +242,8 @@ guide[][] contour(pair[][] z, real[][] f,
       pair bright=zp[j];
       pair tleft=zi[j+1];
       pair tright=zp[j+1];
-      pair middle=0.5*(bleft+tright);
+      pair middle;
+      if(midpoints) middle=0.25*(bleft+bright+tleft+tright);
    
       real f00=fi[j];
       real f01=fi[j+1];
@@ -278,10 +279,6 @@ guide[][] contour(pair[][] z, real[][] f,
         if(countp == 4) return -1; // nothing to do 
         if((countm == 3 || countp == 3) && countz == 1) return 0;
 
-        // evaluate point at middle of rectangle (to set up triangles)
-        real vertdat4=midpoints ? midpoint[i][j]-C :
-          0.25*(vertdat0+vertdat1+vertdat2+vertdat3);
-      
         // go through the triangles
         
         void addseg(segment seg) { 
@@ -291,14 +288,23 @@ guide[][] contour(pair[][] z, real[][] f,
           }
         }
 
-        addseg(checktriangle(bright,tright,middle,
-                             vertdat1,vertdat3,vertdat4,0));
-        addseg(checktriangle(tright,tleft,middle,
-                             vertdat3,vertdat2,vertdat4,1));
-        addseg(checktriangle(tleft,bleft,middle,
-                             vertdat2,vertdat0,vertdat4,2));
-        addseg(checktriangle(bleft,bright,middle,
-                             vertdat0,vertdat1,vertdat4,3));
+        if(midpoints) {
+          real vertdat4=midpoint[i][j]-C;
+          addseg(checktriangle(bright,tright,middle,
+                               vertdat1,vertdat3,vertdat4,0));
+          addseg(checktriangle(tright,tleft,middle,
+                               vertdat3,vertdat2,vertdat4,1));
+          addseg(checktriangle(tleft,bleft,middle,
+                               vertdat2,vertdat0,vertdat4,2));
+          addseg(checktriangle(bleft,bright,middle,
+                               vertdat0,vertdat1,vertdat4,3));
+        } else {
+          addseg(checktriangle(bright,tright,tleft,
+                               vertdat1,vertdat3,vertdat2,0));
+          addseg(checktriangle(tleft,bleft,bright,
+                               vertdat2,vertdat0,vertdat1,2));
+        }
+
         return 0;
       }
       
@@ -317,7 +323,6 @@ guide[][] contour(pair[][] z, real[][] f,
       process(0,c.length);
     }
   }
-
 
   // set up return value
   pair[][][] points=new pair[c.length][][];
