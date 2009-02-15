@@ -996,7 +996,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Iconify=getSetting<bool>("iconify");
 #endif      
   
-  if(width <= 0 || height <= 0) return;
+  width=max(width,1.0);
+  height=max(height,1.0);
   
   static bool initializedView=false;
   
