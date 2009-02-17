@@ -697,7 +697,7 @@ void draw3D(frame f, patch s, material m, light light=currentlight)
   if(s.colors.length > 0)
     m=mean(s.colors);
   bool lighton=light.on();
-  if(!lighton)
+  if(!lighton && !invisible((pen) m))
     m=emissive(m);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
   draw(f,s.P,s.straight,m.p,m.opacity,m.shininess,granularity,
@@ -721,11 +721,8 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
           projection P=currentprojection)
 {
   if(is3D()) {
-    for(int i=0; i < s.s.length; ++i) {
-      material p=surfacepen[i];
-      if(!invisible((pen) p))
-        draw3D(f,s.s[i],p,light);
-    }
+    for(int i=0; i < s.s.length; ++i)
+      draw3D(f,s.s[i],surfacepen[i],light);
     pen modifiers=thin()+linecap(0);
     for(int k=0; k < s.s.length; ++k) {
       pen meshpen=meshpen[k];
@@ -764,9 +761,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
     while(depth.length > 0) {
       real[] a=depth.pop();
       int i=round(a[1]);
-      material p=surfacepen[i];
-      if(!invisible((pen) p))
-        tensorshade(t,f,s.s[i],p,light,P);
+      tensorshade(t,f,s.s[i],surfacepen[i],light,P);
       pen meshpen=meshpen[i];
       if(!invisible(meshpen))
         draw(f,t*project(s.s[i].external(),P),meshpen);
