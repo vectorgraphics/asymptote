@@ -486,6 +486,14 @@ display
 animate
 xasy
 @end verbatim
+@noindent
+@cindex @code{XeLaTeX}
+For example, the @code{XeLaTeX} tex engine can be invoked with the
+command line settings
+@verbatim
+asy -texcommand xelatex -tex pdflatex
+@end verbatim
+@noindent
 The @code{texdvicommand} is used for @code{3D} label typesetting, which
 requires @code{dvips} output. An empty string indicates the default setting
 of @code{latex}/@code{tex}, depending on the setting of @code{texengine}.
@@ -6087,7 +6095,7 @@ optional controls. This requires installing the package
 @end quotation
 @noindent
 (version 2007/11/30 or later) in a new directory @code{animate} in the
-local @code{LaTeX} source directory (for example, in
+local @code{LaTeX} directory (for example, in
 @code{/usr/local/share/texmf/tex/latex/animate}). On @code{UNIX} systems,
 one must then execute the command @code{texhash}.
 
@@ -6118,6 +6126,15 @@ This module provides an interface to the @code{LaTeX} package
 @end quotation
 @noindent
 for embedding movies, sounds, and 3D objects into a @acronym{PDF} document.
+@noindent
+@cindex @code{XeLaTeX}
+However, @code{XeLaTeX} users need to rename the modified version
+@code{movie15_dvipdfmx.sty} from
+@quotation
+@url{http://asymptote.svn.sourceforge.net/viewvc/asymptote/trunk/asymptote/patches/}
+@end quotation
+to @code{movie15.sty} and place it in their local @code{LaTeX} directory. 
+
 The latest version (2008/10/08) of the @code{movie15} package requires both
 @code{pdflatex} version 1.20 or later and the file
 @quotation
@@ -6125,7 +6142,7 @@ The latest version (2008/10/08) of the @code{movie15} package requires both
 @end quotation
 @noindent
 which can be installed by placing it in a directory @code{ifdraft} in
-the local @code{LaTeX} source directory
+the local @code{LaTeX} directory
 (e.g.@ @code{/usr/local/share/texmf/tex/latex/ifdraft}) and executing in that
 directory the commands:
 @verbatim
@@ -8208,7 +8225,7 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
 
 To construct contours for an array of data values on a nonoverlapping
 regular mesh specified by the two-dimensional array @code{z}, optionally
-specifying an estimate for the values of @code{f} at the mesh midpoints, use
+specifying the values of @code{f} at the mesh midpoints, use
 @verbatim
 guide[][] contour(pair[][] z, real[][] f,
                   real[][] midpoint=new real[][], real[] c,

@@ -189,7 +189,7 @@ public:
   void put(const string& label, const transform& T, const pair& z,
            const pair& Align);
 
-  void beginlayer(const string& psname);
+  void beginlayer(const string& psname, bool postscript);
   void endlayer();
   
 };

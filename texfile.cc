@@ -113,23 +113,30 @@ void texfile::prologue()
   }
 }
     
-void texfile::beginlayer(const string& psname)
+void texfile::beginlayer(const string& psname, bool postscript)
 {
   if(box.right > box.left && box.top > box.bottom) {
-    *out << "\\includegraphics";
-    if(!settings::pdf(texengine))
-      *out << "[bb=" << box.left << " " << box.bottom << " "
-           << box.right << " " << box.top << "]";
-    *out << "{" << psname << "}%" << newl;
-    if(!inlinetex)
-      *out << "\\kern-" << (box.right-box.left)*ps2tex << "pt%" << newl;
+    if(postscript) {
+      *out << "\\includegraphics";
+      if(!settings::pdf(texengine))
+        *out << "[bb=" << box.left << " " << box.bottom << " "
+             << box.right << " " << box.top << "]";
+      *out << "{" << psname << "}%" << newl;
+      if(!inlinetex)
+        *out << "\\kern -" << (box.right-box.left)*ps2tex << "pt%" << newl;
+    } else {
+      *out << "\\leavevmode\\vbox to " << (box.top-box.bottom)*ps2tex 
+           << "pt{}%" << newl;
+      if(inlinetex)
+        *out << "\\kern " << (box.right-box.left)*ps2tex << "pt%" << newl;
+    }
   }
 }
 
 void texfile::endlayer()
 {
   if(inlinetex && (box.right > box.left && box.top > box.bottom))
-    *out << "\\kern-" << (box.right-box.left)*ps2tex << "pt%" << newl;
+    *out << "\\kern -" << (box.right-box.left)*ps2tex << "pt%" << newl;
 }
 
 void texfile::writeshifted(path p, bool newPath)

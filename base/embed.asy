@@ -1,10 +1,11 @@
 usepackage("hyperref","setpagesize=false");
-texpreamble("\ifx\pdfhorigin\undefined");
-usepackage("movie15","3D,dvipdfmx");
-texpreamble("\else");
-usepackage("movie15","3D");
-// Fix missing BBox bug in movie15 version 2008/01/16
-texpreamble("\begingroup\makeatletter%
+texpreamble("
+\ifx\pdfhorigin\undefined%
+\usepackage[3D,dvipdfmx]{movie15}
+\else%
+\usepackage[3D]{movie15}
+%Fix missing BBox bug in movie15 version 2008/01/16
+\begingroup\makeatletter%
         \ifpdf%
           \let\@MXV@iiidstream\relax
           \xdef\@MXV@apdict{/AP << /N \@MXV@iiidstream>>}%
@@ -25,8 +26,9 @@ texpreamble("\begingroup\makeatletter%
           }%
           \xdef\@MXV@apdict{/AP << /N {apdict}>>}%
         \fi%
-        \endgroup%");
-texpreamble("\fi");
+\endgroup%
+\fi%
+");
 
 // See http://www.ctan.org/tex-archive/macros/latex/contrib/movie15/README
 // for documentation of the options.

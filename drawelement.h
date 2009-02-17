@@ -125,17 +125,17 @@ public:
   
   // Output to a PostScript file
   virtual bool draw(psfile *) {
-    return true;
+    return false;
   }
 
   // Output to a TeX file
   virtual bool write(texfile *, const bbox&) {
-    return true;
+    return false;
   }
 
   // Output to a PRC file
   virtual bool write(prcfile *) {
-    return true;
+    return false;
   }
 
   // Used to compute deviation of a surface from a quadrilateral.

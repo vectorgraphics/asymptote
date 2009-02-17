@@ -557,7 +557,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     }
   }
   
-  bool status = true;
+  bool status=true;
   
   string texname;
   texfile *tex=NULL;
@@ -594,8 +594,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     psfile out(psname,pdfformat);
     out.prologue(bshift);
   
-    if(Labels) tex->beginlayer(pdf ? pdfname : psname);
-    else {
+    if(!Labels) {
       out.gsave();
       out.translate(bboxshift);
     }
@@ -608,20 +607,22 @@ bool picture::shipout(picture *preamble, const string& Prefix,
         out.resetpen();
         for(; P != Nodes.end(); ++P) {
           assert(*P);
-          if(!(*P)->draw(&out))
-            status = false;
+          (*P)->draw(&out);
         }
       }
     }
     out.resetpen();
     
+    bool postscript=false;
     for(; p != nodes.end(); ++p) {
       assert(*p);
       if(Labels && (*p)->islayer()) break;
-      if(!(*p)->draw(&out))
-        status = false;
+      postscript |= (*p)->draw(&out);
     }
-    if(!Labels) out.grestore();
+    
+    if(Labels) {
+      tex->beginlayer(pdf ? pdfname : psname,postscript);
+    } else out.grestore();
     
     out.epilogue();
     out.close();
@@ -631,23 +632,20 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     
     if(Labels) {
       tex->resetpen();
-      if(status) {
-        if(pdf && !b.empty) {
-          status=(epstopdf(psname,pdfname) == 0);
-          if(!getSetting<bool>("keep")) unlink(psname.c_str());
-        }
+      if(pdf && !b.empty) {
+        status=(epstopdf(psname,pdfname) == 0);
+        if(!getSetting<bool>("keep")) unlink(psname.c_str());
+      }
         
-        if(status) {
-          for (p=layerp; p != nodes.end(); ++p) {
-            assert(*p);
-            if(!(*p)->write(tex,b))
-              status = false;
-            if((*p)->islayer()) {
-              tex->endlayer();
-              layerp=++p;
-              layer++;
-              break;
-            }
+      if(status) {
+        for (p=layerp; p != nodes.end(); ++p) {
+          assert(*p);
+          (*p)->write(tex,b);
+          if((*p)->islayer()) {
+            tex->endlayer();
+            layerp=++p;
+            layer++;
+            break;
           }
         }
       }    
@@ -816,8 +814,7 @@ bool picture::shipout3(const string& prefix)
   prcfile prc(prcname);
   for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    if(!(*p)->write(&prc))
-      status = false;
+    (*p)->write(&prc);
   }
   if(status)
     status=prc.finish();
