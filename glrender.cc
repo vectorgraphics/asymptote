@@ -482,7 +482,7 @@ void exportHandler(int)
 #endif
   autoExport();
 #ifdef HAVE_LIBPTHREAD
-  if(!interact::interactive)
+  if(!interact::interactive || !View)
     wait(quitSignal,quitLock);
 #endif
 }

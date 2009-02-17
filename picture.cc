@@ -731,7 +731,7 @@ void hold(bool View)
     if(!View)
       wait(readySignal,readyLock);
   
-    if(!interact::interactive)
+    if(!interact::interactive || !View)
       wait(quitSignal,quitLock);
   }
 #endif  
@@ -790,7 +790,7 @@ bool picture::shipout3(const string& prefix, const string& format,
       camp::reportError("Cannot fork process");
     if(pid != 0)  {
       oldpid=pid;
-      waitpid(pid,NULL,interact::interactive ? WNOHANG : 0);
+      waitpid(pid,NULL,interact::interactive && View ? WNOHANG : 0);
       return true;
     }
   }
