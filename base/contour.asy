@@ -74,7 +74,7 @@ private segment case3(pair p0, pair p1, pair p2,
 
 // Check if a line passes through a triangle, and draw the required line.
 private segment checktriangle(pair p0, pair p1, pair p2,
-                              real v0, real v1, real v2, int edge)
+                              real v0, real v1, real v2, int edge=-1)
 {
   // default null return  
   static segment dflt;
@@ -207,8 +207,8 @@ private guide[][] connect(pair[][][] points, real[] c, interpolate join)
 
 // Return contour guides for a 2D data array.
 // z:         two-dimensional array of nonoverlapping mesh points
-// f:         two-dimensional array of corresponding f(x,y) data values
-// midpoint:  optional array containing estimate of f at midpoint values
+// f:         two-dimensional array of corresponding f(z) data values
+// midpoint:  optional array containing values of f at cell midpoints
 // c:         array of contour values
 // join:      interpolation operator (e.g. operator -- or operator ..)
 guide[][] contour(pair[][] z, real[][] f,
@@ -233,6 +233,8 @@ guide[][] contour(pair[][] z, real[][] f,
     pair[] zp=z[i+1];
     real[] fi=f[i];
     real[] fp=f[i+1];
+    real[] midpointi;
+    if(midpoints) midpointi=midpoint[i];
     segment[][] segmentsi=segments[i];
     for(int j=0; j < ny; ++j) {
       segment[] segmentsij=segmentsi[j];
@@ -243,19 +245,25 @@ guide[][] contour(pair[][] z, real[][] f,
       pair tleft=zi[j+1];
       pair tright=zp[j+1];
       pair middle;
-      if(midpoints) middle=0.25*(bleft+bright+tleft+tright);
-   
+
       real f00=fi[j];
       real f01=fi[j+1];
       real f10=fp[j];
       real f11=fp[j+1];
-      
+      real fmm;
+
+      if(midpoints) {
+        middle=0.25*(bleft+bright+tleft+tright);
+        fmm=midpointi[j];
+      }
+
+      // optimization: we make sure we don't work with empty rectangles
       int checkcell(int cnt) {
         real C=c[cnt];
-        real vertdat0=f00-C;  // lower-left vertex
-        real vertdat1=f10-C;  // lower-right vertex
-        real vertdat2=f01-C;  // upper-left vertex
-        real vertdat3=f11-C;  // upper-right vertex
+        real vertdat0=f00-C;  // bottom-left vertex
+        real vertdat1=f10-C;  // bottom-right vertex
+        real vertdat2=f01-C;  // top-left vertex
+        real vertdat3=f11-C;  // top-right vertex
 
         // optimization: we make sure we don't work with empty rectangles
         int countm=0;
@@ -281,15 +289,14 @@ guide[][] contour(pair[][] z, real[][] f,
 
         // go through the triangles
         
-        void addseg(segment seg) { 
-          if(seg.active) {
-            seg.c=cnt;
-            segmentsij.push(seg);
-          }
-        }
-
         if(midpoints) {
-          real vertdat4=midpoint[i][j]-C;
+          void addseg(segment seg) {
+            if(seg.active) {
+              seg.c=cnt;
+              segmentsij.push(seg);
+            }
+          }
+          real vertdat4=fmm-C;
           addseg(checktriangle(bright,tright,middle,
                                vertdat1,vertdat3,vertdat4,0));
           addseg(checktriangle(tright,tleft,middle,
@@ -299,12 +306,18 @@ guide[][] contour(pair[][] z, real[][] f,
           addseg(checktriangle(bleft,bright,middle,
                                vertdat0,vertdat1,vertdat4,3));
         } else {
+          void addseg(segment seg) {
+            if(seg.active) {
+              seg.c=cnt;
+              seg.edge=9; // Force a search of all 8 surrounding cells
+              segmentsij.push(seg);
+            }
+          }
           addseg(checktriangle(bright,tright,tleft,
-                               vertdat1,vertdat3,vertdat2,0));
+                               vertdat1,vertdat3,vertdat2));
           addseg(checktriangle(tleft,bleft,bright,
-                               vertdat2,vertdat0,vertdat1,2));
+                               vertdat2,vertdat0,vertdat1));
         }
-
         return 0;
       }
       
@@ -456,7 +469,7 @@ guide[][] contour(pair[][] z, real[][] f,
 
 // Return contour guides for a 2D data array on a uniform lattice
 // f:         two-dimensional array of real data values
-// midpoint:  optional array containing estimate of f at midpoint values
+// midpoint:  optional array containing data values at cell midpoints
 // a,b:       diagonally opposite vertices of rectangular domain
 // c:         array of contour values
 // join:      interpolation operator (e.g. operator -- or operator ..)
@@ -678,7 +691,7 @@ guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
       int[] trni=trn[i];
       int i0=trni[0], i1=trni[1], i2=trni[2];
       addseg(pointscnt,checktriangle(z[i0],z[i1],z[i2],
-                                     f[i0]-C,f[i1]-C,f[i2]-C,0));
+                                     f[i0]-C,f[i1]-C,f[i2]-C));
     }
   }
 
