@@ -16,7 +16,7 @@ usersetting();
 bibliographystyle("alpha");
 
 // Generated needed files if they don't already exist.
-asy(nativeformat(),"Pythagoras","log","near_earth");
+asy(nativeformat(),"Pythagoras","log","PythagoreanTree");
 
 // Optional background color or header:
 // import x11colors;
