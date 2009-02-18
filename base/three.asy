@@ -2321,7 +2321,8 @@ object embed(string label="", string text=label,
     warn=false;
   }
 
-  draw(pic,P.target,nullpen);
+  if(!P.absolute)
+    draw(pic,P.target,nullpen);
 
   projection P=P.copy();
   transform3 t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
