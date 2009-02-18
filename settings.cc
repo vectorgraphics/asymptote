@@ -1193,7 +1193,7 @@ string defaultformat() {
 // TeX special command to set up currentmatrix for typesetting labels.
 const char *beginlabel(const string& texengine) {
   if(pdf(texengine))
-    return "\\special{pdf:q #5 0 0 cm}";
+    return "\\special{pdf: literal q #5 0 0 cm}";
   else 
     return "\\special{ps:gsave currentpoint currentpoint translate [#5 0 0] "
       "concat neg exch neg exch translate}";
@@ -1202,7 +1202,7 @@ const char *beginlabel(const string& texengine) {
 // TeX special command to restore currentmatrix after typesetting labels.
 const char *endlabel(const string& texengine) {
   if(pdf(texengine))
-    return "\\special{pdf:Q}";
+    return "\\special{pdf: literal Q}";
   else
     return "\\special{ps:currentpoint grestore moveto}";
 }
@@ -1238,7 +1238,7 @@ const char *endpicture(const string& texengine) {
 // Begin TeX special command.
 const char *beginspecial(const string& texengine) {
   if(pdf(texengine))
-    return "\\special{pdf:";
+    return "\\special{pdf: literal ";
   return "\\special{ps:";
 }
 
