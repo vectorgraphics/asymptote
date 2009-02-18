@@ -1862,424 +1862,10 @@ triple size3(frame f)
 
 // PRC/OpenGL support
 
-private string[] file3;
-
-private string projection(bool infinity, real viewplanesize)
-{
-  return "activeCamera=scene.cameras.getByIndex(0);
-function asyProjection() {"+
-    (infinity ? "activeCamera.projectionType=activeCamera.TYPE_ORTHOGRAPHIC;" :
-     "activeCamera.projectionType=activeCamera.TYPE_PERSPECTIVE;")+"
-activeCamera.viewPlaneSize="+string(viewplanesize)+";
-activeCamera.binding=activeCamera.BINDING_VERTICAL;
-}
-
-asyProjection();
-
-handler=new CameraEventHandler();
-runtime.addEventHandler(handler);
-handler.onEvent=function(event) 
-{
-  asyProjection();
-  scene.update();
-}";
-}
-
 include three_light;
 
-private string format(real x)
-{
-  // Work around movie15.sty division by zero bug; e.g. u=unit((1e-10,1e-10,0.9));
-  if(abs(x) < 1e-9) x=0; 
-  assert(abs(x) < 1e18,"Number too large: "+string(x));
-  return format("%.18f",x,"C");
-}
-
-private string format(triple v, string sep=" ")
-{
-  return format(v.x)+sep+format(v.y)+sep+format(v.z);
-}
-
-private string format(pen p)
-{
-  real[] c=colors(rgb(p));
-  return format((c[0],c[1],c[2]));
-}
-
-string lightscript(light light) {
-  string script="for(var i=scene.lights.count-1; i >= 0; i--)
-  scene.lights.removeByIndex(i);"+'\n\n';
-  for(int i=0; i < light.position.length; ++i) {
-    string Li="L"+string(i);
-    real[] diffuse=light.diffuse[i];
-    script += Li+"=scene.createLight();"+'\n'+
-      Li+".direction.set("+format(-light.position[i],",")+");"+'\n'+
-      Li+".color.set("+format((diffuse[0],diffuse[1],diffuse[2]),",")+");"+'\n';
-  }
-  // Work around initialization bug in Adobe Reader 8.0:
-  return script +"
-scene.lightScheme=scene.LIGHT_MODE_HEADLAMP;
-scene.lightScheme=scene.LIGHT_MODE_FILE;
-";
-}
-
-void writeJavaScript(string name, string preamble, string script) 
-{
-  file out=output(name);
-  write(out,preamble);
-  if(script != "") {
-    file in=input(script);
-    while(true) {
-      string line=in;
-      if(eof(in)) break;
-      write(out,line,endl);
-    }
-  }
-  close(out);
-  if(settings.verbose > 1) write("Wrote "+name);
-  if(!settings.inlinetex)
-    file3.push(name);
-}
-
-pair viewportmargin(projection P) 
-{
-  pair viewportmargin=(abs(viewportmargin.x),abs(viewportmargin.y));
-  if(P.infinity) return viewportmargin;
-  return (max(viewportmargin.x,viewportmargin.y),viewportmargin.y);
-}
-
-string embed3D(string label="", string text=label, string prefix,
-               frame f, string format="",
-               real width=0, real height=0, real angle=30,
-               string options="", string script="",
-               pen background=white, light light=currentlight,
-               projection P=currentprojection)
-{
-  if(!prc(format) || Embed == null) return "";
-
-  if(width == 0) width=settings.paperwidth;
-  if(height == 0) height=settings.paperheight;
-
-  if(script == "") script=defaultembed3Dscript;
-
-  // Adobe Reader doesn't appear to support user-specified viewport lights.
-  string lightscript=light.on() && !light.viewport ? lightscript(light) : "";
-
-  pair viewportmargin=viewportmargin(P);
-
-  triple lambda=max3(f)-min3(f);
-  real viewplanesize=(viewportfactor*lambda.y+2*viewportmargin.y)/cm;
-  string name=prefix+".js";
-  writeJavaScript(name,lightscript+projection(P.infinity,viewplanesize),script);
-
-  shipout3(prefix,f);
-  
-  prefix += ".prc";
-  if(!settings.inlinetex)
-    file3.push(prefix);
-
-  triple v=P.vector()/cm;
-  triple u=unit(v);
-  triple w=Z-u.z*u;
-  real roll;
-  if(abs(w) > sqrtepsilon) {
-    w=unit(w);
-    triple up=unit(P.up-dot(P.up,u)*u);
-    roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));
-  } else roll=0;
-  
-  string options3=light.viewport ? "3Dlights=Headlamp" : "3Dlights=File";
-  if(defaultembed3Doptions != "") options3 += ","+defaultembed3Doptions;
-  options3 += ",poster,text="+text+",label="+label+
-    ",toolbar="+(settings.toolbar ? "true" : "false")+
-    ",3Daac="+format(P.absolute ? P.angle : angle)+
-    ",3Dc2c="+format(u)+
-    ",3Dcoo="+format(P.target/cm)+
-    ",3Droll="+format(roll)+
-    ",3Droo="+format(abs(v))+
-    ",3Dbg="+format(background);
-  if(options != "") options3 += ","+options;
-  if(name != "") options3 += ",3Djscript="+stripdirectory(name);
-
-  return Embed(stripdirectory(prefix),options3,width+2*viewportmargin.x,
-               height+2*viewportmargin.y);
-}
-
-object embed(string label="", string text=label, 
-             string prefix=defaultfilename, 
-             frame f, string format="",
-             real width=0, real height=0, real angle=30,
-             string options="", string script="", 
-             pen background=white, light light=currentlight,
-             projection P=currentprojection)
-{
-  object F;
-
-  if(is3D(format))
-    F.L=embed3D(label,text,prefix,f,format,width,height,angle,options,script,
-                background,light,P);
-  else
-    F.f=f;
-  return F;
-}
-
-triple rectify(triple dir) 
-{
-  real scale=max(abs(dir.x),abs(dir.y),abs(dir.z));
-  if(scale != 0) dir *= 0.5/scale;
-  dir += (0.5,0.5,0.5);
-  return dir;
-}
-
-object embed(string label="", string text=label,
-             string prefix=defaultfilename,
-             picture pic, string format="",
-             real xsize=pic.xsize, real ysize=pic.ysize,
-             bool keepAspect=pic.keepAspect, bool view=true, string options="",
-             string script="", real angle=0, pen background=white,
-             light light=currentlight, projection P=currentprojection)
-{
-  object F;
-  real xsize3=pic.xsize3, ysize3=pic.ysize3, zsize3=pic.zsize3;
-  bool warn=true;
-  if(xsize3 == 0 && ysize3 == 0 && zsize3 == 0) {
-    xsize3=ysize3=zsize3=max(xsize,ysize);
-    warn=false;
-  }
-
-  projection P=P.copy();
-  transform3 t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
-
-  if(!P.absolute) {
-    transform3 tinv=inverse(t);
-    P.adjust(tinv*pic.min(t),tinv*pic.max(t));
-    P=t*P;
-  }
-  
-  picture pic2;
-  
-  frame f=pic.fit3(t,pic.bounds3.exact ? pic2 : null,P);
-
-  if(!pic.bounds3.exact) {
-    transform3 s=pic.scale3(f,xsize3,ysize3,zsize3,keepAspect);
-    t=s*t;
-    P=s*P;
-    f=pic.fit3(t,pic2,P);
-  }
-  bool is3D=is3D(format);
-  bool scale=xsize != 0 || ysize != 0;
-
-  if(is3D || scale) {
-    pic2.bounds.exact=true;
-    transform s=pic2.scaling(xsize,ysize,keepAspect);
-    pair m2=pic2.min(s);
-    pair M2=pic2.max(s);
-    pair lambda=M2-m2;
-    real width=lambda.x;
-    real height=lambda.y;
-
-    pair viewportmargin=viewportmargin(P);
-
-    if(!P.absolute) {
-      if(scale) {
-        pair v=(s.xx,s.yy);
-        transform3 T=P.t;
-        pair x=project(X,T);
-        pair y=project(Y,T);
-        pair z=project(Z,T);
-        real f(pair a, pair b) {
-          return b == 0 ? (0.5*(a.x+a.y)) : (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
-        }
-        transform3 s=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z));
-        P=s*P;
-        pic2.erase();
-        t=s*t;
-        f=pic.fit3(t,is3D ? null : pic2,P);
-      }
-
-      transform3 modelview=P.modelview();
-      f=modelview*f;
-      P=modelview*P;
-      light=modelview*light;
-
-      if(P.infinity) {
-        triple m=min3(f);
-        triple M=max3(f);
-        triple s=(-0.5(m.x+M.x),-0.5*(m.y+M.y),0);
-        f=shift(s)*f;  // Eye will be at (0,0,0).
-      } else {
-        // Choose the angle to be just large enough to view the entire image:
-        int maxiterations=100;
-        if(is3D && angle == 0 && !P.infinity) {
-          real h=-0.5*P.target.z;
-          pair r,R;
-          real diff=realMax;
-          pair s;
-          int i;
-          do {
-            r=minratio(f);
-            R=maxratio(f);
-            pair lasts=s;
-            s=r+R;
-            f=shift(h*s.x,h*s.y,0)*f;
-            diff=abs(s-lasts);
-            ++i;
-          } while (diff > angleprecision && i < maxiterations);
-              
-          real aspect=width > 0 ? height/width : 1;
-          angle=anglefactor*max(aTan(-r.x*aspect)+aTan(R.x*aspect),
-                                aTan(-r.y)+aTan(R.y));
-          if(viewportmargin.y != 0)
-            angle=aTan(Tan(angle)+viewportmargin.y/h);
-        }
-      }
-    }
-    
-    if(prefix == "") prefix=outprefix();
-    bool prc=prc(format);
-    bool preview=settings.render > 0;
-    if(prc) {
-      // The movie15.sty package cannot handle spaces in filenames.
-      prefix=replace(prefix," ","_");
-      if(settings.embed || nativeformat() == "pdf")
-        prefix += "-"+(string) file3.length;
-    } else
-      preview=false;
-    if(preview || (!prc && settings.render != 0)) {
-      frame f=f;
-      transform3 modelview;
-      triple m,M;
-      if(P.absolute) {
-        modelview=P.modelview();
-        f=modelview*f;
-        P=modelview*P;
-        angle=P.angle;
-        m=min3(f);
-        M=max3(f);
-        real r=0.5*abs(M-m);
-        real zcenter=0.5*(M.z+m.z);
-        M=(M.x,M.y,zcenter+r);
-        m=(m.x,m.y,zcenter-r);
-      } else {
-        m=min3(f);
-        M=max3(f);
-        real zcenter=P.target.z;
-        real d=P.distance(m,M);
-        M=(M.x,M.y,zcenter+d);
-        m=(m.x,m.y,zcenter-d);
-      }
-
-      real factor=hypot(M.x-m.x,M.y-m.y)*(viewportfactor-1.0);
-      triple margin=(factor,factor,0);
-      if(P.infinity)
-        margin += (0,viewportmargin.y,0);
-      M += margin; 
-      m -= margin;
-      if(!P.infinity && M.z >= 0) abort("camera too close");
-
-      shipout3(prefix,f,preview ? nativeformat() : format,
-               width+2*viewportmargin.x,height+2*viewportmargin.y,
-               P.infinity ? 0 : angle,m,M,
-               P.absolute ? (modelview*light).position : light.position,
-               light.diffuse,light.ambient,light.specular,
-               light.viewport,view && !preview);
-      if(!preview) return F;
-    }
-
-    string image;
-    if(preview && settings.embed) {
-      image=prefix;
-      if(settings.inlinetex) image += "_0";
-      image += "."+nativeformat();
-      if(!settings.inlinetex) file3.push(image);
-      image=graphic(image);
-    }
-    if(prc) F.L=embed3D(label,text=image,prefix,f,format,
-                        width,height,angle,options,script,background,light,P);
-  }
-
-  if(!is3D) {
-    transform T=pic2.scaling(xsize,ysize,keepAspect);
-    F.f=pic.fit(scale(t[0][0])*T);
-    add(F.f,pic2.fit(T));
-  }
-      
-  return F;
-}
-
-embed3=new object(string prefix, frame f, string format, string options,
-                  string script, projection P) {
-  return embed(prefix=prefix,f,format,options,script,P);
-};
-
-currentpicture.fitter=new frame(string prefix, picture pic, string format,
-                                real xsize, real ysize,
-                                bool keepAspect, bool view,
-                                string options, string script, projection P) {
-  frame f;
-  bool empty3=pic.empty3();
-  if(is3D(format) || empty3) add(f,pic.fit2(xsize,ysize,keepAspect));
-  if(!empty3) {
-    bool prc=prc(format);
-    if(!prc && settings.render != 0 && !view) {
-      static int previewcount=0;
-      prefix=outprefix(prefix)+"-"+(string) previewcount;
-      ++previewcount;
-      format=nativeformat();
-      file3.push(prefix+"."+format);
-    }
-    object F=embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
-                   options,script,P);
-    if(prc)
-      label(f,F.L);
-    else {
-      if(settings.render == 0)
-        add(f,F.f);
-      else if(!view)
-        label(f,graphic(prefix));
-    }
-  }
-  return f;
-};
-
-void add(picture dest=currentpicture, object src, pair position=0, pair align=0,
-         bool group=true, filltype filltype=NoFill, bool above=true)
-{
-  if(prc())
-    label(dest,src,position,align);
-  else if(settings.render == 0)
-    plain.add(dest,src,position,align,group,filltype,above);
-}
-
-string cameralink(string label, string text="View Parameters")
-{
-  if(!prc() || Link == null) return "";
-  return Link(label,text,"3Dgetview");
-}
-
-private struct viewpoint {
-  triple target,camera,up;
-  real angle;
-  void operator init(string s) {
-    s=replace(s,new string[][] {{" ",","},{"}{",","},{"{",""},{"}",""},});
-    string[] S=split(s,",");
-    target=((real) S[0],(real) S[1],(real) S[2])*cm;
-    camera=target+(real) S[6]*((real) S[3],(real) S[4],(real) S[5])*cm;
-    triple u=unit(target-camera);
-    triple w=unit(Z-u.z*u);
-    up=rotate((real) S[7],O,u)*w;
-    angle=S[8] == "" ? 30 : (real) S[8];
-  }
-}
-
-projection perspective(string s)
-{
-  viewpoint v=viewpoint(s);
-  projection P=perspective(v.camera,v.up,v.target);
-  P.angle=v.angle;
-  P.absolute=true;
-  return P;
-}
+void draw(frame f, path3 g, material p=currentpen, light light=nolight,
+          projection P=currentprojection);
 
 void begingroup3(picture pic=currentpicture)
 {
@@ -2302,9 +1888,6 @@ void addPath(picture pic, path3 g, pen p)
   if(size(g) > 0)
     pic.addBox(min(g),max(g),min3(p),max3(p));
 }
-
-void draw(frame f, path3 g, material p=currentpen, light light=nolight,
-          projection P=currentprojection);
 
 include three_surface;
 include three_margins;
@@ -2522,6 +2105,418 @@ triple truepoint(picture pic=currentpicture, triple dir, bool user=true,
   triple v=m+realmult(rectify(dir),M-m);
   return user ? inverse(t)*v : v;
 }
+
+void add(picture dest=currentpicture, object src, pair position=0, pair align=0,
+         bool group=true, filltype filltype=NoFill, bool above=true)
+{
+  if(prc())
+    label(dest,src,position,align);
+  else if(settings.render == 0)
+    plain.add(dest,src,position,align,group,filltype,above);
+}
+
+string cameralink(string label, string text="View Parameters")
+{
+  if(!prc() || Link == null) return "";
+  return Link(label,text,"3Dgetview");
+}
+
+private struct viewpoint {
+  triple target,camera,up;
+  real angle;
+  void operator init(string s) {
+    s=replace(s,new string[][] {{" ",","},{"}{",","},{"{",""},{"}",""},});
+    string[] S=split(s,",");
+    target=((real) S[0],(real) S[1],(real) S[2])*cm;
+    camera=target+(real) S[6]*((real) S[3],(real) S[4],(real) S[5])*cm;
+    triple u=unit(target-camera);
+    triple w=unit(Z-u.z*u);
+    up=rotate((real) S[7],O,u)*w;
+    angle=S[8] == "" ? 30 : (real) S[8];
+  }
+}
+
+projection perspective(string s)
+{
+  viewpoint v=viewpoint(s);
+  projection P=perspective(v.camera,v.up,v.target);
+  P.angle=v.angle;
+  P.absolute=true;
+  return P;
+}
+
+private string format(real x)
+{
+  // Work around movie15.sty division by zero bug;
+  // e.g. u=unit((1e-10,1e-10,0.9));
+  if(abs(x) < 1e-9) x=0; 
+  assert(abs(x) < 1e18,"Number too large: "+string(x));
+  return format("%.18f",x,"C");
+}
+
+private string format(triple v, string sep=" ")
+{
+  return format(v.x)+sep+format(v.y)+sep+format(v.z);
+}
+
+private string format(pen p)
+{
+  real[] c=colors(rgb(p));
+  return format((c[0],c[1],c[2]));
+}
+
+private string[] file3;
+
+private string projection(bool infinity, real viewplanesize)
+{
+  return "activeCamera=scene.cameras.getByIndex(0);
+function asyProjection() {"+
+    (infinity ? "activeCamera.projectionType=activeCamera.TYPE_ORTHOGRAPHIC;" :
+     "activeCamera.projectionType=activeCamera.TYPE_PERSPECTIVE;")+"
+activeCamera.viewPlaneSize="+string(viewplanesize)+";
+activeCamera.binding=activeCamera.BINDING_VERTICAL;
+}
+
+asyProjection();
+
+handler=new CameraEventHandler();
+runtime.addEventHandler(handler);
+handler.onEvent=function(event) 
+{
+  asyProjection();
+  scene.update();
+}";
+}
+
+string lightscript(light light) {
+  string script="for(var i=scene.lights.count-1; i >= 0; i--)
+  scene.lights.removeByIndex(i);"+'\n\n';
+  for(int i=0; i < light.position.length; ++i) {
+    string Li="L"+string(i);
+    real[] diffuse=light.diffuse[i];
+    script += Li+"=scene.createLight();"+'\n'+
+      Li+".direction.set("+format(-light.position[i],",")+");"+'\n'+
+      Li+".color.set("+format((diffuse[0],diffuse[1],diffuse[2]),",")+");"+'\n';
+  }
+  // Work around initialization bug in Adobe Reader 8.0:
+  return script +"
+scene.lightScheme=scene.LIGHT_MODE_HEADLAMP;
+scene.lightScheme=scene.LIGHT_MODE_FILE;
+";
+}
+
+void writeJavaScript(string name, string preamble, string script) 
+{
+  file out=output(name);
+  write(out,preamble);
+  if(script != "") {
+    file in=input(script);
+    while(true) {
+      string line=in;
+      if(eof(in)) break;
+      write(out,line,endl);
+    }
+  }
+  close(out);
+  if(settings.verbose > 1) write("Wrote "+name);
+  if(!settings.inlinetex)
+    file3.push(name);
+}
+
+pair viewportmargin(projection P) 
+{
+  pair viewportmargin=(abs(viewportmargin.x),abs(viewportmargin.y));
+  if(P.infinity) return viewportmargin;
+  return (max(viewportmargin.x,viewportmargin.y),viewportmargin.y);
+}
+
+string embed3D(string label="", string text=label, string prefix,
+               frame f, string format="",
+               real width=0, real height=0, real angle=30,
+               string options="", string script="",
+               pen background=white, light light=currentlight,
+               projection P=currentprojection)
+{
+  if(!prc(format) || Embed == null) return "";
+
+  if(width == 0) width=settings.paperwidth;
+  if(height == 0) height=settings.paperheight;
+
+  if(script == "") script=defaultembed3Dscript;
+
+  // Adobe Reader doesn't appear to support user-specified viewport lights.
+  string lightscript=light.on() && !light.viewport ? lightscript(light) : "";
+
+  pair viewportmargin=viewportmargin(P);
+
+  triple lambda=max3(f)-min3(f);
+  real viewplanesize=(viewportfactor*lambda.y+2*viewportmargin.y)/cm;
+  string name=prefix+".js";
+  writeJavaScript(name,lightscript+projection(P.infinity,viewplanesize),script);
+
+  shipout3(prefix,f);
+  
+  prefix += ".prc";
+  if(!settings.inlinetex)
+    file3.push(prefix);
+
+  triple v=P.vector()/cm;
+  triple u=unit(v);
+  triple w=Z-u.z*u;
+  real roll;
+  if(abs(w) > sqrtepsilon) {
+    w=unit(w);
+    triple up=unit(P.up-dot(P.up,u)*u);
+    roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));
+  } else roll=0;
+  
+  string options3=light.viewport ? "3Dlights=Headlamp" : "3Dlights=File";
+  if(defaultembed3Doptions != "") options3 += ","+defaultembed3Doptions;
+  options3 += ",poster,text="+text+",label="+label+
+    ",toolbar="+(settings.toolbar ? "true" : "false")+
+    ",3Daac="+format(P.absolute ? P.angle : angle)+
+    ",3Dc2c="+format(u)+
+    ",3Dcoo="+format(P.target/cm)+
+    ",3Droll="+format(roll)+
+    ",3Droo="+format(abs(v))+
+    ",3Dbg="+format(background);
+  if(options != "") options3 += ","+options;
+  if(name != "") options3 += ",3Djscript="+stripdirectory(name);
+
+  return Embed(stripdirectory(prefix),options3,width+2*viewportmargin.x,
+               height+2*viewportmargin.y);
+}
+
+object embed(string label="", string text=label, 
+             string prefix=defaultfilename, 
+             frame f, string format="",
+             real width=0, real height=0, real angle=30,
+             string options="", string script="", 
+             pen background=white, light light=currentlight,
+             projection P=currentprojection)
+{
+  object F;
+
+  if(is3D(format))
+    F.L=embed3D(label,text,prefix,f,format,width,height,angle,options,script,
+                background,light,P);
+  else
+    F.f=f;
+  return F;
+}
+
+object embed(string label="", string text=label,
+             string prefix=defaultfilename,
+             picture pic, string format="",
+             real xsize=pic.xsize, real ysize=pic.ysize,
+             bool keepAspect=pic.keepAspect, bool view=true, string options="",
+             string script="", real angle=0, pen background=white,
+             light light=currentlight, projection P=currentprojection)
+{
+  object F;
+  real xsize3=pic.xsize3, ysize3=pic.ysize3, zsize3=pic.zsize3;
+  bool warn=true;
+  if(xsize3 == 0 && ysize3 == 0 && zsize3 == 0) {
+    xsize3=ysize3=zsize3=max(xsize,ysize);
+    warn=false;
+  }
+
+  draw(pic,P.target,nullpen);
+
+  projection P=P.copy();
+  transform3 t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
+
+  if(!P.absolute) {
+    transform3 tinv=inverse(t);
+    P.adjust(tinv*pic.min(t),tinv*pic.max(t));
+    P=t*P;
+  }
+  
+  picture pic2;
+  
+  frame f=pic.fit3(t,pic.bounds3.exact ? pic2 : null,P);
+
+  if(!pic.bounds3.exact) {
+    transform3 s=pic.scale3(f,xsize3,ysize3,zsize3,keepAspect);
+    t=s*t;
+    P=s*P;
+    f=pic.fit3(t,pic2,P);
+  }
+  bool is3D=is3D(format);
+  bool scale=xsize != 0 || ysize != 0;
+
+  if(is3D || scale) {
+    pic2.bounds.exact=true;
+    transform s=pic2.scaling(xsize,ysize,keepAspect);
+    pair m2=pic2.min(s);
+    pair M2=pic2.max(s);
+    pair lambda=M2-m2;
+    real width=lambda.x;
+    real height=lambda.y;
+
+    pair viewportmargin=viewportmargin(P);
+
+    if(!P.absolute) {
+      if(scale) {
+        pair v=(s.xx,s.yy);
+        transform3 T=P.t;
+        pair x=project(X,T);
+        pair y=project(Y,T);
+        pair z=project(Z,T);
+        real f(pair a, pair b) {
+          return b == 0 ? (0.5*(a.x+a.y)) : (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
+        }
+        transform3 s=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z));
+        P=s*P;
+        pic2.erase();
+        t=s*t;
+        f=pic.fit3(t,is3D ? null : pic2,P);
+      }
+
+      transform3 modelview=P.modelview();
+      f=modelview*f;
+      P=modelview*P;
+      light=modelview*light;
+
+      if(P.infinity) {
+        triple m=min3(f);
+        triple M=max3(f);
+        triple s=(-0.5(m.x+M.x),-0.5*(m.y+M.y),0);
+        f=shift(s)*f;  // Eye will be at (0,0,0).
+      } else {
+        // Choose the angle to be just large enough to view the entire image:
+        int maxiterations=100;
+        if(is3D && angle == 0 && !P.infinity) {
+          real h=-0.5*P.target.z;
+          pair r,R;
+          real diff=realMax;
+          pair s;
+          int i;
+          do {
+            r=minratio(f);
+            R=maxratio(f);
+            pair lasts=s;
+            s=r+R;
+            f=shift(h*s.x,h*s.y,0)*f;
+            diff=abs(s-lasts);
+            ++i;
+          } while (diff > angleprecision && i < maxiterations);
+              
+          real aspect=width > 0 ? height/width : 1;
+          angle=anglefactor*max(aTan(-r.x*aspect)+aTan(R.x*aspect),
+                                aTan(-r.y)+aTan(R.y));
+          if(viewportmargin.y != 0)
+            angle=aTan(Tan(angle)+viewportmargin.y/h);
+        }
+      }
+    }
+    
+    if(prefix == "") prefix=outprefix();
+    bool prc=prc(format);
+    bool preview=settings.render > 0;
+    if(prc) {
+      // The movie15.sty package cannot handle spaces in filenames.
+      prefix=replace(prefix," ","_");
+      if(settings.embed || nativeformat() == "pdf")
+        prefix += "-"+(string) file3.length;
+    } else
+      preview=false;
+    if(preview || (!prc && settings.render != 0)) {
+      frame f=f;
+      transform3 modelview;
+      triple m,M;
+      if(P.absolute) {
+        modelview=P.modelview();
+        f=modelview*f;
+        P=modelview*P;
+        angle=P.angle;
+        m=min3(f);
+        M=max3(f);
+        real r=0.5*abs(M-m);
+        real zcenter=0.5*(M.z+m.z);
+        M=(M.x,M.y,zcenter+r);
+        m=(m.x,m.y,zcenter-r);
+      } else {
+        m=min3(f);
+        M=max3(f);
+        real zcenter=P.target.z;
+        real d=P.distance(m,M);
+        M=(M.x,M.y,zcenter+d);
+        m=(m.x,m.y,zcenter-d);
+      }
+
+      real factor=hypot(M.x-m.x,M.y-m.y)*(viewportfactor-1.0);
+      triple margin=(factor,factor,0);
+      if(P.infinity)
+        margin += (0,viewportmargin.y,0);
+      M += margin; 
+      m -= margin;
+      if(!P.infinity && M.z >= 0) abort("camera too close");
+
+      shipout3(prefix,f,preview ? nativeformat() : format,
+               width+2*viewportmargin.x,height+2*viewportmargin.y,
+               P.infinity ? 0 : angle,m,M,
+               P.absolute ? (modelview*light).position : light.position,
+               light.diffuse,light.ambient,light.specular,
+               light.viewport,view && !preview);
+      if(!preview) return F;
+    }
+
+    string image;
+    if(preview && settings.embed) {
+      image=prefix;
+      if(settings.inlinetex) image += "_0";
+      image += "."+nativeformat();
+      if(!settings.inlinetex) file3.push(image);
+      image=graphic(image);
+    }
+    if(prc) F.L=embed3D(label,text=image,prefix,f,format,
+                        width,height,angle,options,script,background,light,P);
+  }
+
+  if(!is3D) {
+    transform T=pic2.scaling(xsize,ysize,keepAspect);
+    F.f=pic.fit(scale(t[0][0])*T);
+    add(F.f,pic2.fit(T));
+  }
+      
+  return F;
+}
+
+embed3=new object(string prefix, frame f, string format, string options,
+                  string script, projection P) {
+  return embed(prefix=prefix,f,format,options,script,P);
+};
+
+currentpicture.fitter=new frame(string prefix, picture pic, string format,
+                                real xsize, real ysize,
+                                bool keepAspect, bool view,
+                                string options, string script, projection P) {
+  frame f;
+  bool empty3=pic.empty3();
+  if(is3D(format) || empty3) add(f,pic.fit2(xsize,ysize,keepAspect));
+  if(!empty3) {
+    bool prc=prc(format);
+    if(!prc && settings.render != 0 && !view) {
+      static int previewcount=0;
+      prefix=outprefix(prefix)+"-"+(string) previewcount;
+      ++previewcount;
+      format=nativeformat();
+      file3.push(prefix+"."+format);
+    }
+    object F=embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
+                   options,script,P);
+    if(prc)
+      label(f,F.L);
+    else {
+      if(settings.render == 0)
+        add(f,F.f);
+      else if(!view)
+        label(f,graphic(prefix));
+    }
+  }
+  return f;
+};
 
 exitfcn currentexitfunction=atexit();
 
