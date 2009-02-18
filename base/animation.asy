@@ -35,13 +35,14 @@ struct animation {
   // extra memory since the actual shipout is deferred until all frames have
   // been generated. 
 
-  void operator init(string s=outname(), bool global=true) {
-    this.prefix=s;
+  void operator init(string prefix="", bool global=true) {
+    prefix=(prefix == "") ? outname() : stripdirectory(prefix);
+    this.prefix=prefix;
     this.global=global;
   }
   
   string basename(string prefix=prefix) {
-    return stripextension(prefix);//stripdirectory(prefix));
+    return stripextension(prefix);
   }
 
   string name(string prefix, int index) {
@@ -141,7 +142,6 @@ struct animation {
     
     string filename=basename();
     string pdfname=filename+".pdf";
-    bool single=global && multipage;
 
     if(global)
       export(filename,fit,multipage=multipage);
@@ -152,13 +152,11 @@ struct animation {
       void exitfunction() {
         if(currentexitfunction != null) currentexitfunction();
         this.purge();
-        if(!keep && single)
-          delete(pdfname);
       }
       atexit(exitfunction);
     }
 
-    if(!single)
+    if(!global || !multipage)
       delete(pdfname);
 
     return load(pictures.length,delay,options);
