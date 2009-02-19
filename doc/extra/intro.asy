@@ -2,9 +2,10 @@
 
 orientation=Landscape;
 
-import slide;
-
 settings.tex="pdflatex";
+
+import three;
+import slide;
 import animate;
 
 usersetting();
@@ -310,14 +311,14 @@ item("Functions are first-class values.  They can be passed to other
 code("real f(real x) {
     return x*sin(10x);
 }
-draw(graph(f,-3,3),red);");
+draw(graph(f,-3,3,300),red);");
 asyfigure(asywrite("
 import graph;
 size(300,0);
 real f(real x) {
     return x*sin(10x);
 }
-draw(graph(f,-3,3),red);
+draw(graph(f,-3,3,300),red);
 "));
 
 title("Higher-Order Functions");
@@ -610,7 +611,7 @@ equations("x'_i(t)&=&\sum_{k=0}^3 B_k(t) A_{ij}(P_k)_j+C_i\nonumber\\
 &=&\sum_{k=0}^3 B_k(t) P'_k,");
 
 remark("where $P'_k$ is the transformed $k^{\rm th}$ control point, noting
-						 $\sum_{k=0}^3 B_k(t)=1.$");
+$\displaystyle\sum_{k=0}^3 B_k(t)=1.$");
 
 title("3D Generalization of Hobby's algorithm");
 
@@ -636,29 +637,29 @@ remark("interpreting $\theta$ and $\phi$ as the angle between the corresponding 
 
 item("In this case there is an unambiguous reference vector for determining the relative sign of the angles $\phi$ and $\theta$.");
 
-title("3D saddle example");
-
+viewportmargin=(4cm,0.5cm);
+defaultpen(1.0);
+title("Interactive 3D Saddle");
 item("A unit circle in the $X$--$Y$ plane may be filled and drawn with:
 (1,0,0)..(0,1,0)..(-1,0,0)..(0,-1,0)..cycle");
-
-asyfigure("unitcircle3","height=5cm");
-
+asyinclude("unitcircle3",8cm);
 remark("and then distorted into a saddle:\\ (1,0,0)..(0,1,1)..(-1,0,0)..(0,-1,1)..cycle");
+asyinclude("saddle",8cm);
 
-asyfigure("saddle","height=5cm");
-
-title("3D surfaces");
-
-asyfigure("../examples/parametricsurface","height=12cm");
+viewportmargin=(4cm,2cm);
+title("Smooth 3D surfaces");
+asyinclude("GaussianSurface",15cm);
+defaultpen(0.5);
+viewportmargin=0;
 
 title("Slide Presentations");
 item("Asymptote has a package for preparing slides.");
-item("It even supports embedded hi-resolution PDF movies.");
+item("It even supports embedded high-resolution PDF movies.");
 
 code('
 title("Slide Presentations");
 item("Asymptote has a package for preparing slides.");
-item("It even supports embedded hi-resolution PDF movies.");
+item("It even supports embedded high-resolution PDF movies.");
 ');
 remark("\quad\ldots");
 
@@ -699,7 +700,7 @@ int n=25;
 real dt=(t2-t1)/n;
 for(int i=0; i <= n; ++i) {
   picture pic;
-  size(pic,25cm);
+  size(pic,24cm);
   real t=t1+dt*i;
   add(pic,base);
   draw(pic,circle((t,0),1),p+red);
@@ -899,8 +900,8 @@ size(5inch,0);
 
 bibliography("refs");
 
-title("Asymptote: The Vector Graphics Language");
-asyfigure("logo","height=11cm","{\tt http://asymptote.sf.net}",
-          figuremattpen=invisible);
+title("\mbox{Asymptote: 2D \& 3D Vector Graphics Language}");
+asyinclude("logo3");
 skip();
+center("\tt http://asymptote.sf.net");
 center("(freely available under the GNU public license)");

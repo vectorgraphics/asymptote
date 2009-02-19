@@ -404,14 +404,15 @@ void figure(string s, string options="", string caption="", pair align=S,
 
 string[] codefile;
 
-void asyinclude(string s)
+void asyinclude(string s, real xsize=0, real ysize=0)
 {
   picture currentpictureSave=currentpicture;
   currentpicture=new picture;
   _eval("include \""+s+"\";",true);
-  s=settings.outname+"_"+s;
+  s=stripdirectory(settings.outname+"_"+s);
   codefile.push(s);
-  frame f=currentpicture.fit(s);
+  frame f=(xsize > 0 || ysize > 0) ?
+    currentpicture.fit(xsize,ysize) : currentpicture.fit();
   currentpicture=currentpictureSave;
   display(f);
 }
