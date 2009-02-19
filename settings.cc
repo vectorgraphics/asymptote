@@ -972,7 +972,7 @@ void initSettings() {
   addOption(new boolSetting("keepaux", 0,
                             "Keep intermediate LaTeX .aux files"));
   addOption(new stringSetting("tex", 0,"engine",
-                              "TeX engine (\"latex|pdflatex|tex|pdftex|none\")",
+                              "latex|pdflatex|xelatex|tex|pdftex|none",
                               "latex"));
   addOption(new boolSetting("twice", 0,
                             "Run LaTeX twice (to resolve references)"));
@@ -1173,12 +1173,16 @@ void SetPageDimensions() {
   }
 }
 
+bool xelatex(const string& texengine) {
+  return texengine == "xelatex";
+}
+
 bool pdf(const string& texengine) {
-  return texengine == "pdflatex" || texengine == "pdftex";
+  return texengine == "pdflatex" || texengine == "pdftex" || xelatex(texengine);
 }
 
 bool latex(const string& texengine) {
-  return texengine == "latex" || texengine == "pdflatex";
+  return texengine == "latex" || texengine == "pdflatex" || xelatex(texengine);
 }
 
 string nativeformat() {
@@ -1193,7 +1197,8 @@ string defaultformat() {
 // TeX special command to set up currentmatrix for typesetting labels.
 const char *beginlabel(const string& texengine) {
   if(pdf(texengine))
-    return "\\special{pdf: literal q #5 0 0 cm}";
+    return xelatex(texengine) ? "\\special{pdf:literal q #5 0 0 cm}" :
+      "\\special{pdf:q #5 0 0 cm}";
   else 
     return "\\special{ps:gsave currentpoint currentpoint translate [#5 0 0] "
       "concat neg exch neg exch translate}";
@@ -1202,7 +1207,7 @@ const char *beginlabel(const string& texengine) {
 // TeX special command to restore currentmatrix after typesetting labels.
 const char *endlabel(const string& texengine) {
   if(pdf(texengine))
-    return "\\special{pdf: literal Q}";
+    return xelatex(texengine) ? "\\special{pdf:literal Q}" : "\\special{pdf:Q}";
   else
     return "\\special{ps:currentpoint grestore moveto}";
 }
@@ -1238,7 +1243,7 @@ const char *endpicture(const string& texengine) {
 // Begin TeX special command.
 const char *beginspecial(const string& texengine) {
   if(pdf(texengine))
-    return "\\special{pdf: literal ";
+    return xelatex(texengine) ? "\\special{pdf:literal " : "\\special{pdf:";
   return "\\special{ps:";
 }
 
@@ -1246,6 +1251,13 @@ const char *beginspecial(const string& texengine) {
 const char *endspecial() {
   return "}%";
 }
+
+// Default TeX units.
+const char *texunits(const string& texengine) 
+{
+  return xelatex(texengine) ? "bp" : "pt";
+}
+
 
 bool fataltex[]={false,true};
 const char *pdftexerrors[]={"! "," ==> Fatal error",NULL};

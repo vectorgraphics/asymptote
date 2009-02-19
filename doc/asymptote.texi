@@ -487,13 +487,6 @@ animate
 xasy
 @end verbatim
 @noindent
-@cindex @code{XeLaTeX}
-For example, the @code{XeLaTeX} tex engine can be invoked with the
-command line settings
-@verbatim
-asy -texcommand xelatex -tex pdflatex
-@end verbatim
-@noindent
 The @code{texdvicommand} is used for @code{3D} label typesetting, which
 requires @code{dvips} output. An empty string indicates the default setting
 of @code{latex}/@code{tex}, depending on the setting of @code{texengine}.
@@ -6134,7 +6127,7 @@ However, @code{XeLaTeX} users need to rename the modified version
 @quotation
 @url{http://asymptote.svn.sourceforge.net/viewvc/asymptote/trunk/asymptote/patches/}
 @end quotation
-to @code{movie15.sty} and place it in their local @code{LaTeX} directory. 
+to @code{movie15.sty} and place it in their @code{LaTeX} path.
 
 The latest version (2008/10/08) of the @code{movie15} package requires both
 @code{pdflatex} version 1.20 or later and the file
@@ -8419,7 +8412,8 @@ at the beginning of the configuration file, it can contain arbitrary
 @cindex @code{size}
 @anchor{convert}
 The default output format is @acronym{EPS} for the (default)
-@code{latex} tex engine and @acronym{PDF} for the @code{pdflatex} tex engine.
+@code{latex} tex engine and @acronym{PDF} for the @code{pdflatex} and
+@code{xelatex} tex engines.
 Alternative output formats may be produced using the @code{-f} option 
 (or @code{outformat} setting). The optional setting @code{-render n} requests
 an output resolution of @code{n} pixels per @code{bp}. Antialiasing is
@@ -9043,5 +9037,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  multisampling autogen multisample coloredpath relstep flowdir
 @c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot scaledgraph
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
-@c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
+@c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX
 @c  LocalWords:  dvipdfmx
