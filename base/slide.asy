@@ -404,7 +404,7 @@ void figure(string s, string options="", string caption="", pair align=S,
 
 string[] codefile;
 
-void asyinclude(string s, real xsize=0, real ysize=0)
+void asyinclude(string s, real xsize=0, real ysize=xsize)
 {
   picture currentpictureSave=currentpicture;
   currentpicture=new picture;
