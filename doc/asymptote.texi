@@ -7295,7 +7295,7 @@ four vertex colors.
 @cindex @code{fill}
 There is no @code{fill} command for arbitrary three-dimensional cyclic paths
 (this would be an ill-posed operation). 
-However, a surface constructed from a convex path3 with the constructor
+However, a surface can be constructed from a convex path3 with the constructor
 @cindex @code{surface}
 @verbatim
 surface surface(path3 external, triple[] internal=new triple[],
@@ -9037,5 +9037,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  multisampling autogen multisample coloredpath relstep flowdir
 @c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot scaledgraph
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
-@c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX
+@c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
 @c  LocalWords:  dvipdfmx
