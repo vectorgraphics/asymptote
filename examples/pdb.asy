@@ -1,0 +1,156 @@
+import three;
+import cpkcolors;
+
+// A sample Protein Data Bank file for this example is available from
+// http://ndbserver.rutgers.edu/ftp/NDB/coordinates/na-biol/100d.pdb1
+
+bool getviews=true;
+
+currentlight=adobe;
+//currentlight=nolight;
+
+size(200);
+
+// Uncomment this line for more accurate (but slower) PDF rendering
+//dotgranularity=0;
+
+pen chainpen=green;
+pen hetpen=purple;
+
+string filename="100d.pdb1";
+//string filename=getstring("filename");
+
+string prefix=stripextension(filename);
+file data=input(filename);
+
+pen color(string e) 
+{
+  e=replace(e," ","");
+  int n=length(e);
+  if(n < 1) return currentpen;
+  if(n > 1) e=substr(e,0,1)+downcase(substr(e,1,n-1));
+  int index=find(Element == e);
+  if(index < 0) return currentpen;
+  return rgb(Hexcolor[index]);
+}	
+
+// ATOM
+string[] name,altLoc,resName,chainID,iCode,element,charge;
+int[] serial,resSeq;
+real[][] occupancy,tempFactor;
+
+bool newchain=true;
+
+struct bond 
+{
+  int i,j;
+  void operator init(int i, int j) {
+    this.i=i;
+    this.j=j;
+  }
+}
+
+bond[] bonds;
+
+struct atom 
+{
+  string name;
+  triple v;
+  void operator init(string name, triple v) {
+    this.name=name;
+    this.v=v;
+  }
+}
+
+struct chain
+{
+  int[] serial;
+  atom[] a;
+}
+
+int[] serials;
+chain[] chains;
+atom[] atoms;
+
+while(true) {
+  string line=data;
+  if(eof(data)) break;
+  string record=replace(substr(line,0,6)," ","");
+  if(record == "TER") {newchain=true; continue;}
+  bool ATOM=record == "ATOM";
+  bool HETATOM=record == "HETATM";
+  int serial;
+
+  atom a;
+  if(ATOM || HETATOM) {
+    serial=(int) substr(line,6,5);
+    a.name=substr(line,76,2);
+    a.v=((real) substr(line,30,8),
+	 (real) substr(line,38,8),
+	 (real) substr(line,46,8));
+  }
+  if(ATOM) {
+    if(newchain) {
+      chains.push(new chain);
+      newchain=false;
+    }
+    chain c=chains[chains.length-1];
+    c.serial.push(serial);
+    c.a.push(a);
+    continue;
+  }
+  if(HETATOM) {
+    serials.push(serial);
+    atoms.push(a);
+  }
+  if(record == "CONECT") {
+    int k=0;
+    int i=(int) substr(line,6,5);
+    while(true) {
+      string s=replace(substr(line,11+k,5)," ","");
+     if(s == "") break;
+      k += 5;
+      int j=(int) s;
+      if(j <= i) continue;
+      bonds.push(bond(i,j));
+     }
+  }
+}
+
+write("Number of atomic chains: ",chains.length);
+
+int natoms;
+for(chain c : chains) {
+  for(int i=0; i < c.a.length-1; ++i)
+    draw(c.a[i].v--c.a[i+1].v,chainpen,currentlight);
+  for(atom a : c.a)
+    dot(a.v,color(a.name),currentlight);
+  natoms += c.a.length;
+}
+
+write("Number of chained atoms: ",natoms);
+write("Number of hetero atoms: ",atoms.length);
+
+for(atom h : atoms)
+  dot(h.v,color(h.name),currentlight);
+
+write("Number of hetero bonds: ",bonds.length);
+
+for(bond b : bonds) {
+  triple v(int i) {return atoms[find(serials == i)].v;}
+  draw(v(b.i)--v(b.j),hetpen,currentlight);
+}
+
+string options;
+string viewfilename=prefix+".views";
+
+if(!error(input(viewfilename,check=false)))
+  options="3Dviews="+viewfilename;
+
+if(getviews) {
+  picture pic;
+  add(pic,embed("label",currentpicture,options=options),(0,0),N);
+  label(pic,cameralink("label"),(0,0),S,fontsize(12pt));
+  shipout(prefix,pic,options=options);
+} else
+  shipout(prefix,options=options);

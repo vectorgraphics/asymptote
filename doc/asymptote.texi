@@ -1021,9 +1021,10 @@ orientation of the paths:
 filldraw(unitcircle^^reverse(g),yellow,black);
 @end verbatim
 
-The @code{^^} operator is used by the @code{box3d} function in
-@code{three.asy} to construct a two-dimensional projection of the edges of a 3D
-cube, without retracing steps:
+@cindex @code{unitbox}
+The @code{^^} operator is used by the @code{box(triple, triple)} function in
+@code{three.asy} to construct the edges of a cube @code{unitbox}
+without retracing steps:
 @verbatiminclude cube.asy
 @sp 1
 @center @image{cube}
@@ -7430,6 +7431,7 @@ Other @code{UNIX} graphics drivers may require the command line setting
 @code{-glOptions=-indirect}.
 
 @cindex @code{prc}
+@cindex @code{views}
 @item Embed the 3D @acronym{PRC} format in a @acronym{PDF} file
 and view the resulting @acronym{PDF} file with
 version @code{8.0} or later of @code{Adobe Reader}. 
@@ -7439,7 +7441,8 @@ line option @code{-f pdf}, put in the @code{Asymptote} configuration
 file (@pxref{configuration file}), or specified in the script before
 @code{three.asy} (or @code{graph3.asy}) is imported. 
 Version 2008/10/08 or later of the @code{movie15} package is also
-required (@pxref{embed}).
+required (@pxref{embed}). The example @code{pdb.asy} illustrates
+how one can generate a list of predefined views (see @code{100d.views}).
 A stationary preview image with a resolution of @code{n} pixels per
 @code{bp} can be embedded with the setting @code{render=n}; this allows
 the file to be viewed with other @code{PDF} viewers. Alternatively, the
@@ -7536,6 +7539,7 @@ path3[] box(triple v1, triple v2);
 @end verbatim
 @noindent
 For example, a unit box is predefined as
+@cindex @code{box}
 @cindex @code{unitbox}
 @verbatim
 path3[] unitbox=box(O,(1,1,1));
@@ -9021,7 +9025,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt DefaultHead
 @c  LocalWords:  SimpleHead HookHead TeXHead multipage nurbs inlinemovie dxmax
 @c  LocalWords:  simpson NoBox truesize autoscale shadestroke recurses mintimes
-@c  LocalWords:  nonoverlapping texdvicommand texengine maxtimes maxheight
+@c  LocalWords:  nonoverlapping texdvicommand texengine maxtimes maxheight pdb
 @c  LocalWords:  piecewisestraight unitrand graphmarkers antialias nolight newl
 @c  LocalWords:  Delaunay Shewchuk convertOptions APPDATA pdfreload tempFile
 @c  LocalWords:  pdfreloadOptions deferred OpenGL Phong Blinn renderer unitbox
@@ -9039,4 +9043,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  multisampling autogen multisample coloredpath relstep flowdir
 @c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot scaledgraph
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
-@c  LocalWords:  nonintegral gettriple enablerepo hexidecimal
+@c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
+@c  LocalWords:  dvipdfmx
