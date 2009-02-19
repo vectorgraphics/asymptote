@@ -199,12 +199,13 @@ Version: ImageMagick 6.2.8 06/27/06 Q16 http://www.imagemagick.org
 \question 26jun:miktex Why does Asymptote freeze upon trying to draw a label with my MikTex installation under Microsoft Windows?
 
 Likely, this means that latex and dvips are not in your default path.
-Try adding the following lines to your \courier{config.asy\} file: 
+Try adding the appropriate paths in your \courier{config.asy\} file, 
+for example:
 
 \verbatim
 import settings;
-latex="C:\texmf\miktex\bin\latex.exe";
-dvips="C:\texmf\miktex\bin\dvips.exe";
+latex="C:\Program Files\MiKTeX 2.7\miktex\bin\latex.exe";
+dvips="C:\Program Files\MiKTeX 2.7\miktex\bin\dvips.exe";
 \endverbatim
 
 \comment #####################################################################
