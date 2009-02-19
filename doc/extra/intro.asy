@@ -901,7 +901,7 @@ size(5inch,0);
 bibliography("refs");
 
 title("\mbox{Asymptote: 2D \& 3D Vector Graphics Language}");
-asyinclude("logo3");
+asyinclude("../examples/logo3");
 skip();
 center("\tt http://asymptote.sf.net");
 center("(freely available under the GNU public license)");
