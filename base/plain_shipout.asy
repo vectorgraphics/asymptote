@@ -7,7 +7,7 @@ string outprefix(string prefix=defaultfilename) {
   return stripextension(s);
 }
 
-string outformat(string format) 
+string outformat(string format="") 
 {
   if(format == "") format=settings.outformat;
   if(format == "") format=nativeformat();
@@ -101,6 +101,7 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
   }
   
   pic.uptodate=true;
+  shipped=true;
 }
 
 void newpage(picture pic=currentpicture)

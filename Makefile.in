@@ -29,6 +29,7 @@ NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output asy.list svnrevision.cc doc/version.texi GUI/xasyVersion.py $(XNAME)
 EXTRA = asy-mode.el asy-keywords.el asy-init.el asy.vim asymptote.py reload.js nopapersize.ps
+EXEXTRA = piicon.eps *.views
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
 LATEXFILES = asymptote.sty asycolors.sty
@@ -158,7 +159,7 @@ install-asy: asy
 	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) $(asydir)
 	${INSTALL} -p -m 755 GUI/*.py $(GUIdir)
 	ln -sf @datadir@/asymptote/GUI/xasy.py $(bindir)/$(XNAME)
-	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps \
+	${INSTALL} -p -m 644 examples/*.asy $(addprefix examples/,$(EXEXTRA)) \
 	  doc/extra/*.asy $(addprefix doc/,$(DOCEXTRA)) $(exampledir)
 	${INSTALL} -p -m 644 examples/animations/*.asy \
           examples/animations/inlinemovie.tex $(animationsdir)
@@ -180,7 +181,7 @@ uninstall-all: uninstall-man uninstall-asy
 uninstall-asy:
 	-cd $(animationsdir); rm -f *.asy
 	-rmdir $(animationsdir)
-	-cd $(exampledir); rm -f piicon.eps $(DOCEXTRA)
+	-cd $(exampledir); rm -f $(EXEXTRA) $(DOCEXTRA)
 	-rmdir $(exampledir)
 	-rmdir $(docdir)
 	-cd $(GUIdir); rm -f *.py
