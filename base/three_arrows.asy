@@ -3,20 +3,33 @@
 triple bend0(triple p, path3 g, real time)
 {
   triple dir=dir(g,time);
-  triple dir2=unit(cross(dir(g,0),dir(g,1)));
-  if(abs(dir2) < 1000*realEpsilon) {
-    if(abs(dir-X) < 1000*realEpsilon || abs(dir+X) < 1000*realEpsilon)
-      dir2=Y;
-    else dir2=X;
-  }
-  dir2=unit(dir2-dot(dir2,dir)*dir);
+  triple a = point(g,0), b = postcontrol(g,0);
+  triple c = precontrol(g,1), d = point(g,1);
+  triple dir1 = b-a;
+  triple dir2 = c-b;
+  triple dir3 = d-c;
 
-  triple w=cross(dir,dir2);
+  triple u = unit(cross(dir1,dir3));
+  if(abs(u) < 1000*realEpsilon) {
+    u = unit(cross(dir1,dir2));
+    if(abs(u) < 1000*realEpsilon) {
+      u = unit(cross(dir2,dir3));
+      if(abs(u) < 1000*realEpsilon) {
+        // segment is linear
+        // so use any direction perpendicular to initial direction
+        u = perp(dir1);
+      }
+    }
+  }
+  //u = unit(cross(u,dir));
+  u = unit(u-dot(u,dir)*dir);
+
+  triple w=cross(dir,u);
   triple q=point(g,time);
   transform3 t=new real[][] {
-    {dir2.x,w.x,dir.x,0},
-    {dir2.y,w.y,dir.y,0},
-    {dir2.z,w.z,dir.z,0},
+    {u.x,w.x,dir.x,0},
+    {u.y,w.y,dir.y,0},
+    {u.z,w.z,dir.z,0},
     {0,0,0,1}
   };
   return shift(q-t*(0,0,p.z))*t*p;
