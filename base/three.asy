@@ -216,20 +216,20 @@ pair dir(triple v, triple dir, projection P)
 // points in three space to a plane through target and
 // perpendicular to the vector camera-target.
 projection perspective(triple camera, triple up=Z, triple target=O,
-                       bool showtarget=true)
+                       bool showtarget=true, bool autoadjust=true)
 {
   if(camera == target)
     abort("camera cannot be at target");
-  return projection(camera,up,target,showtarget,
+  return projection(camera,up,target,showtarget,autoadjust,
                     new transformation(triple camera, triple up, triple target)
                     {return transformation(look(camera,up,target),
                                            distort(camera-target));});
 }
 
 projection perspective(real x, real y, real z, triple up=Z, triple target=O,
-                       bool showtarget=true)
+                       bool showtarget=true, bool autoadjust=true)
 {
-  return perspective((x,y,z),up,target,showtarget);
+  return perspective((x,y,z),up,target,showtarget,autoadjust);
 }
 
 projection orthographic(triple camera, triple up=Z, triple target=O,

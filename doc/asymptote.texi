@@ -7572,6 +7572,9 @@ positive @math{y} axis is drawn at this angle in degrees.
 
 @item @w{orthographic(triple camera, triple up=Z, triple target=O, bool showtarget=true)}
 @cindex @code{orthographic}
+@cindex @code{up}
+@cindex @code{target}
+@cindex @code{showtarget}
 This projects from three to two dimensions using the view as seen at a point
 infinitely far away in the direction @code{unit(camera)}, orienting the camera
 so that, if possible, the vector @code{up} points upwards. Parallel
@@ -7581,8 +7584,9 @@ to include @code{target} if @code{showtarget=true}.
 @item @w{orthographic(real x, real y, real z, triple up=Z, triple target=O, bool showtarget=true)}
 This is equivalent to @code{orthographic((x,y,z),up,target,showtarget)}.
 
-@item @w{perspective(triple camera, triple up=Z, triple target=O, bool showtarget=true)}
+@item perspective(triple camera, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool autoadjust=true)
 @cindex @code{perspective}
+@cindex @code{autoadjust}
 @cindex @code{nurbs}
 This projects from three to two dimensions, taking account of
 perspective, as seen from the location @code{camera} looking at @code{target},
@@ -7590,10 +7594,12 @@ orienting the camera so that, if possible, the vector @code{up} points upwards.
 If @code{render=0}, projection of three-dimensional cubic Bezier splines
 is implemented by approximating a two-dimensional nonuniform rational B-spline
 (@acronym{nurbs}) with a two-dimensional Bezier curve containing
-additional nodes and control points. 
+additional nodes and control points. If @code{autoadjust=true},
+the camera will automatically be adjusted to lie outside the bounding volume
+for all possible interactive rotations about @code{target}.
 
-@item @w{perspective(real x, real y, real z, triple up=Z, triple target=O, bool showtarget=true)}
-This is equivalent to @code{perspective((x,y,z),up,target,showtarget)}.
+@item perspective(real x, real y, real z, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool autoadjust=true)
+This is equivalent to @code{perspective((x,y,z),up,target,showtarget,autoadjust)}.
 @end table
 
 @cindex @code{currentprojection}

@@ -434,11 +434,13 @@ struct projection {
   }
 
   void operator init(triple camera, triple up=(0,0,1), triple target=(0,0,0),
-		     bool showtarget=true, projector projector) {
+		     bool showtarget=true, bool autoadjust=true,
+                     projector projector) {
     this.camera=camera;
     this.up=up;
     this.target=target;
     this.showtarget=showtarget;
+    this.autoadjust=autoadjust;
     this.projector=projector;
     calculate();
   }
@@ -453,8 +455,8 @@ struct projection {
     P.up=up;
     P.target=target;
     P.showtarget=showtarget;
-    P.projector=projector;
     P.autoadjust=autoadjust;
+    P.projector=projector;
     P.angle=angle;
     P.ninterpolate=ninterpolate;
     return P;
