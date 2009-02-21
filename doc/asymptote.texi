@@ -7548,7 +7548,7 @@ along with the surfaces @code{unitdisk}, @code{unitplane}, @code{unitcube},
 These projections to two dimensions are predefined:
 @table @code
 @item oblique
-@item oblique(real angle)
+@item oblique(real angle);
 @cindex @code{oblique}
 @cindex @code{obliqueZ}
 The point @code{(x,y,z)} is projected to @code{(x-0.5z,y-0.5z)}.
@@ -7570,17 +7570,18 @@ The point @code{(x,y,z)} is projected to @code{(x+0.5y,z+0.5y)}.
 If an optional real argument is given, the
 positive @math{y} axis is drawn at this angle in degrees.
 
-@item orthographic(triple camera, triple up=Z)
+@item @w{orthographic(triple camera, triple up=Z, triple target=O, bool showtarget=true)}
 @cindex @code{orthographic}
 This projects from three to two dimensions using the view as seen at a point
 infinitely far away in the direction @code{unit(camera)}, orienting the camera
 so that, if possible, the vector @code{up} points upwards. Parallel
-lines are projected to parallel lines.
+lines are projected to parallel lines. The bounding volume is expanded
+to include @code{target} if @code{showtarget=true}.
 
-@item orthographic(real x, real y, real z, triple up=Z)
-This is equivalent to @code{orthographic((x,y,z),up)}.
+@item @w{orthographic(real x, real y, real z, triple up=Z, triple target=O, bool showtarget=true)}
+This is equivalent to @code{orthographic((x,y,z),up,target,showtarget)}.
 
-@item perspective(triple camera, triple up=Z, triple target=O)
+@item @w{perspective(triple camera, triple up=Z, triple target=O, bool showtarget=true)}
 @cindex @code{perspective}
 @cindex @code{nurbs}
 This projects from three to two dimensions, taking account of
@@ -7591,8 +7592,8 @@ is implemented by approximating a two-dimensional nonuniform rational B-spline
 (@acronym{nurbs}) with a two-dimensional Bezier curve containing
 additional nodes and control points. 
 
-@item perspective(real x, real y, real z, triple up=Z, triple target=O)
-This is equivalent to @code{perspective((x,y,z),up,target)}.
+@item @w{perspective(real x, real y, real z, triple up=Z, triple target=O, bool showtarget=true)}
+This is equivalent to @code{perspective((x,y,z),up,target,showtarget)}.
 @end table
 
 @cindex @code{currentprojection}

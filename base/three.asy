@@ -215,30 +215,36 @@ pair dir(triple v, triple dir, projection P)
 // When combined with a projection to the XY plane, this effectively maps
 // points in three space to a plane through target and
 // perpendicular to the vector camera-target.
-projection perspective(triple camera, triple up=Z, triple target=O)
+projection perspective(triple camera, triple up=Z, triple target=O,
+                       bool showtarget=true)
 {
-  return projection(camera,up,target,
+  if(camera == target)
+    abort("camera cannot be at target");
+  return projection(camera,up,target,showtarget,
                     new transformation(triple camera, triple up, triple target)
                     {return transformation(look(camera,up,target),
                                            distort(camera-target));});
 }
 
-projection perspective(real x, real y, real z, triple up=Z, triple target=O)
+projection perspective(real x, real y, real z, triple up=Z, triple target=O,
+                       bool showtarget=true)
 {
-  return perspective((x,y,z),up,target);
+  return perspective((x,y,z),up,target,showtarget);
 }
 
-projection orthographic(triple camera, triple up=Z, triple target=O)
+projection orthographic(triple camera, triple up=Z, triple target=O,
+                        bool showtarget=true)
 {
-  return projection(camera,up,target,
+  return projection(camera,up,target,showtarget,
                     new transformation(triple camera, triple up,
                                        triple target) {
                       return transformation(look(camera,up,target));});
 }
 
-projection orthographic(real x, real y, real z, triple up=Z)
+projection orthographic(real x, real y, real z, triple up=Z,
+                        triple target=O, bool showtarget=true)
 {
-  return orthographic((x,y,z),up);
+  return orthographic((x,y,z),up,target,showtarget);
 }
 
 projection oblique(real angle=45)
@@ -2321,7 +2327,7 @@ object embed(string label="", string text=label,
     warn=false;
   }
 
-  if(!P.absolute)
+  if(!P.absolute && P.showtarget)
     draw(pic,P.target,nullpen);
 
   projection P=P.copy();

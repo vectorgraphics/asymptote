@@ -412,6 +412,7 @@ struct projection {
   projector projector;
   real angle; // Lens angle (currently only used by PRC viewpoint).
   int ninterpolate; // Used for projecting nurbs to 2D Bezier curves.
+  bool showtarget=true;
 
   void calculate() {
     transformation T=projector(camera,up,target);
@@ -432,10 +433,11 @@ struct projection {
   }
 
   void operator init(triple camera, triple up=(0,0,1), triple target=(0,0,0),
-		     projector projector) {
+		     bool showtarget=true, projector projector) {
     this.camera=camera;
-    this.target=target;
     this.up=up;
+    this.target=target;
+    this.showtarget=showtarget;
     this.projector=projector;
     calculate();
   }
@@ -447,8 +449,9 @@ struct projection {
     P.absolute=absolute;
     P.oblique=oblique;
     P.camera=camera;
-    P.target=target;
     P.up=up;
+    P.target=target;
+    P.showtarget=showtarget;
     P.projector=projector;
     P.angle=angle;
     P.ninterpolate=ninterpolate;
@@ -488,9 +491,9 @@ struct projection {
   // lie in front of the clipping plane.
   void adjust(triple m, triple M) {
     triple v=camera-target;
-    real d=distance(m,M);
-    if(d > v.z) {
-      camera=target+2*d*unit(v);
+    real d=2*distance(m,M);
+    if(d >= abs(v)) {
+      camera=target+d*unit(v);
       update();
     }
   }
