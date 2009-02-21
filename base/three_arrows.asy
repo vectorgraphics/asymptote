@@ -245,7 +245,7 @@ arrowhead3 DefaultHead2(filltype filltype=null)
 		     filltype,P);
   };
   a.filltype=filltype;
-  a.gap=0.93;
+  a.gap=0.969;
   a.lighting=false;
   return a;
 }
@@ -273,7 +273,7 @@ arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb,
   };
   a.filltype=filltype;
   a.arrowhead2=HookHead;
-  a.gap=0.83;
+  a.gap=0.833;
   a.lighting=false;
   return a;
 }
