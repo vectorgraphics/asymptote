@@ -10,11 +10,12 @@ triple bend0(triple p, path3 g, real time)
   triple dir3 = d-c;
 
   triple u = unit(cross(dir1,dir3));
-  if(abs(u) < 1000*realEpsilon) {
+  real eps=1000*realEpsilon;
+  if(abs(u) < eps) {
     u = unit(cross(dir1,dir2));
-    if(abs(u) < 1000*realEpsilon) {
+    if(abs(u) < eps) {
       u = unit(cross(dir2,dir3));
-      if(abs(u) < 1000*realEpsilon) {
+      if(abs(u) < eps) {
         // segment is linear
         // so use any direction perpendicular to initial direction
         u = perp(dir1);
@@ -130,14 +131,13 @@ struct arrowhead3
 
   static surface surface(triple v, path3 s, path[] h, real size, pen p,
 			 filltype filltype, projection P) {
-    path3[] H=path3(rotate(degrees(dir(v,dir(s,arctime(s,0.5*size)),P),
-				  warn=false))*h);
-    return shift(v)*transform3(P)*(filltype != NoFill ?
-				   surface(H) : tube(H[0],linewidth(p)));
+    triple u=dir(s,arctime(s,0.5*size));
+    path3[] H=transform3(u,unit(cross(u,P.vector())))*path3(h);
+    return shift(v)*(filltype != NoFill ? surface(H) : tube(H[0],linewidth(p)));
   }
 
   arrowhead arrowhead2=DefaultHead;
-  filltype filltype=Fill;
+  filltype filltype;
   real size(pen p)=arrowsize;
   real gap=1;
   bool lighting=true;
@@ -156,8 +156,7 @@ DefaultHead3.head=new surface(path3 g, position position=EndPoint,
   if(relative) position=reltime(g,position);
 
   path3 r=subpath(g,position,0);
-  real t=arctime(r,size);
-  path3 s=subpath(r,t,0);
+  path3 s=subpath(r,arctime(r,size),0);
   int n=length(s);	
   bool straight1=n == 1 && straight(g,0);
   real aspect=Tan(angle);
@@ -228,7 +227,7 @@ path3 approach(path3 g, int n, real radix=3)
   return G&subpath(g,tlast,L);
 }
 
-arrowhead3 DefaultHead2(filltype filltype=Fill)
+arrowhead3 DefaultHead2(filltype filltype=null)
 {
   arrowhead3 a;
   a.head=new surface(path3 g, position position=EndPoint,
@@ -240,22 +239,20 @@ arrowhead3 DefaultHead2(filltype filltype=Fill)
     if(relative) position=reltime(g,position);
 
     path3 r=subpath(g,position,0);
-    real t=arctime(r,size);
-    path3 s=subpath(r,t,0);
+    path3 s=subpath(r,arctime(r,size),0);
     triple v=point(s,0);
-    size=abs(project(v+size*dir(s,0),P)-project(v,P));
     return a.surface(v,s,DefaultHead.head((0,0)--(size,0),p,size,angle),size,p,
 		     filltype,P);
   };
   a.filltype=filltype;
-  a.gap=0.966;
+  a.gap=0.93;
   a.lighting=false;
   return a;
 }
 arrowhead3 DefaultHead2=DefaultHead2();
 
 arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb,
-		     filltype filltype=Fill)
+		     filltype filltype=null)
 {
   arrowhead3 a;
   a.head=new surface(path3 g, position position=EndPoint,
@@ -269,16 +266,14 @@ arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb,
   if(relative) position=reltime(g,position);
 
   path3 r=subpath(g,position,0);
-  real t=arctime(r,size);
-  path3 s=subpath(r,t,0);
+  path3 s=subpath(r,arctime(r,size),0);
   triple v=point(s,0);
-  size=abs(project(v+size*dir(s,0),P)-project(v,P));
   return a.surface(v,s,HookHead.head((0,0)--(size,0),p,size,angle),size,p,
 		   filltype,P);
   };
   a.filltype=filltype;
   a.arrowhead2=HookHead;
-  a.gap=0.85;
+  a.gap=0.83;
   a.lighting=false;
   return a;
 }
@@ -286,7 +281,7 @@ arrowhead3 HookHead2=HookHead2();
 
 arrowhead3 TeXHead2;
 TeXHead2.size=TeXHead.size;
-TeXHead2.gap=0.5;
+TeXHead2.gap=0.96;
 TeXHead2.lighting=false;
 TeXHead2.arrowhead2=TeXHead;
 TeXHead2.head=new surface(path3 g, position position=EndPoint,
@@ -299,10 +294,8 @@ TeXHead2.head=new surface(path3 g, position position=EndPoint,
   if(relative) position=reltime(g,position);
 
   path3 r=subpath(g,position,0);
-  real t=arctime(r,size);
-  path3 s=subpath(r,t,0);
+  path3 s=subpath(r,arctime(r,size),0);
   triple v=point(s,0);
-  size=abs(project(v+size*dir(s,0.5),P)-project(v,P));
   return TeXHead2.surface(v,s,bezulate(TeXHead.head((0,0)--(1,0),p,size)),
 			  size,p,Fill,P);
 };
@@ -321,8 +314,7 @@ arrowhead3 HookHead3(real dir=arrowdir, real barb=arrowbarb)
   if(relative) position=reltime(g,position);
 
   path3 r=subpath(g,position,0);
-  real t=arctime(r,size);
-  path3 s=subpath(r,t,0);
+  path3 s=subpath(r,arctime(r,size),0);
   bool straight1=length(s) == 1 && straight(g,0);
   path3 H=path3(HookHead(dir,barb).head((0,0)--(0,size),p,size,angle),
 		YZplane);
@@ -352,14 +344,14 @@ TeXHead3.head=new surface(path3 g, position position=EndPoint,
 			  pen p=currentpen, real size=0,
 			  real angle=arrowangle, projection P=currentprojection)
 {
-  if(size == 0) size=TeXHead3.size(p);
+  real texsize=TeXHead3.size(p);
+  if(size == 0) size=texsize;
   bool relative=position.relative;
   real position=position.position.x;
   if(relative) position=reltime(g,position);
 
   path3 r=subpath(g,position,0);
-  real t=arctime(r,size);
-  path3 s=subpath(r,t,0);
+  path3 s=subpath(r,arctime(r,size),0);
   bool straight1=length(s) == 1 && straight(g,0);
 
   surface head=surface(O,approach(subpath(path3(TeXHead.head((0,0)--(0,1),p,
@@ -370,6 +362,7 @@ TeXHead3.head=new surface(path3 g, position position=EndPoint,
     triple u=point(s,1)-v;
     return shift(v)*align(unit(u))*head;
   } else {
+    path3 s=subpath(r,arctime(r,size/texsize*arrowsize(p)),0);
     bend(head,s,size);
     return head;
   }
@@ -565,8 +558,9 @@ void add(picture pic, arrowhead3 arrowhead, real size, real angle,
 	  path3 G=t*g;
 	  marginT3 m=margin(G,q);
 	  add(pic,arrow(arrowhead.arrowhead2,project(G,P),q,size,angle,
-			arrowhead.filltype,position,forwards,
-			TrueMargin(m.begin,m.end),center));
+			arrowhead.filltype == null ? Fill((pen) arrowheadpen) :
+                        arrowhead.filltype,position,forwards,
+                        TrueMargin(m.begin,m.end),center));
 	}
       },true);
   }
@@ -583,8 +577,9 @@ void add2(picture pic, arrowhead3 arrowhead, real size, real angle,
 	if(pic != null) {
 	  pen q=(pen) p;
 	  path3 G=t*g;
-	  marginT3 m=margin(G,q);
+          marginT3 m=margin(G,q);
 	  add(pic,arrow2(arrowhead.arrowhead2,project(G,P),q,size,angle,
+                         arrowhead.filltype == null ? Fill((pen) arrowheadpen) :
 			 arrowhead.filltype,TrueMargin(m.begin,m.end)));
 	}
       },true);

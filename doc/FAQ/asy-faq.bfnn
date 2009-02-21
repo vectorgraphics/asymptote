@@ -415,7 +415,7 @@ void arrow(frame f, arrowhead arrowhead=DefaultHead,
 
 \question 02sep:reversearrow How do I reverse the direction of an arrowhead?
 
-Simply the reverse the direction of the path.
+Simply reverse the direction of the path.
 
 \verbatim
 path g=((0,0)--(5cm,0));
@@ -440,13 +440,12 @@ arrowhead styles in \courier{plain_arrows.asy\} for further examples):
 \verbatim
 arrowhead DotHead;
 DotHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
-		      real size=0, real angle=0)
-{
+		      real size=0, real angle=arrowangle) {
   if(size == 0) size=DotHead.size(p);
   bool relative=position.relative;
   real position=position.position.x;
   if(relative) position=reltime(g,position);
-  path r=subpath(g,position,0.0);
+  path r=subpath(g,position,0);
   pair x=point(r,0);
   real t=arctime(r,size);
   pair y=point(r,t);
