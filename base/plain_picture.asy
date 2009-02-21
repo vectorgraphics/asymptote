@@ -469,7 +469,7 @@ struct projection {
   }
    
   void update() {
-    if(!infinity && settings.verbose > 0)
+    if(!infinity)
       write("adjusting camera to ",camera);
     calculate();
   }
@@ -491,9 +491,10 @@ struct projection {
   // lie in front of the clipping plane.
   void adjust(triple m, triple M) {
     triple v=camera-target;
-    real d=2*distance(m,M);
-    if(d >= abs(v)) {
-      camera=target+d*unit(v);
+    real d=distance(m,M);
+    static real lambda=2-1000*realEpsilon;
+    if(lambda*d >= abs(v)) {
+      camera=target+2d*unit(v);
       update();
     }
   }

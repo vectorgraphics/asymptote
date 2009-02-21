@@ -136,7 +136,8 @@ struct revolution {
     return camera;
   }
 
-  // add transverse slice to skeleton s
+  // add transverse slice to skeleton s;
+  // must be recomputed if camera is adjusted
   void transverse(skeleton s, real t, int n=nslice,
 		  projection P=currentprojection) {
     skeleton.curve s=s.transverse;
@@ -209,7 +210,8 @@ struct revolution {
     }
   }
 
-  // return approximate silhouette based on m evenly spaced transverse slices
+  // return approximate silhouette based on m evenly spaced transverse slices;
+  // must be recomputed if camera is adjusted
   path3[] silhouette(int m=64, projection P=currentprojection) {
     if(is3D())
       write("warning: silhouette routine is intended only for 2d projections");
@@ -280,7 +282,8 @@ struct revolution {
     return size(cap) == 0 ? G^^H : G^^H^^cap;
   }
 
-  // add longitudinal curves to skeleton
+  // add longitudinal curves to skeleton;
+  // must be recomputed if camera is adjusted
   void longitudinal(skeleton s, int n=nslice, projection P=currentprojection) {
     real t, d=0;
     // Find a point on g of maximal distance from the axis.
@@ -313,8 +316,8 @@ struct revolution {
 	path3 p2=subpath(p,t,length(p));
 	if(length(p1) > 0 &&
 	   abs(midpoint(p1)-camera) <= abs(midpoint(p2)-camera)) {
-	  s.transverse.front.push(p1);
-	  s.transverse.back.push(p2);
+	  s.longitudinal.front.push(p1);
+          s.longitudinal.back.push(p2);
 	} else {
 	  s.longitudinal.back.push(p1);
 	  s.longitudinal.front.push(p2);
