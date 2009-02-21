@@ -408,11 +408,12 @@ struct projection {
   triple camera;
   triple up;
   triple target;
+  bool showtarget=true; // Expand bounding volume to include target?
   typedef transformation projector(triple camera, triple up, triple target);
   projector projector;
+  bool autoadjust=true;
   real angle; // Lens angle (currently only used by PRC viewpoint).
   int ninterpolate; // Used for projecting nurbs to 2D Bezier curves.
-  bool showtarget=true;
 
   void calculate() {
     transformation T=projector(camera,up,target);
@@ -453,6 +454,7 @@ struct projection {
     P.target=target;
     P.showtarget=showtarget;
     P.projector=projector;
+    P.autoadjust=autoadjust;
     P.angle=angle;
     P.ninterpolate=ninterpolate;
     return P;

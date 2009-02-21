@@ -2335,7 +2335,7 @@ object embed(string label="", string text=label,
 
   if(!P.absolute) {
     transform3 tinv=inverse(t);
-    P.adjust(tinv*pic.min(t),tinv*pic.max(t));
+    if(P.autoadjust) P.adjust(tinv*pic.min(t),tinv*pic.max(t));
     P=t*P;
   }
   
