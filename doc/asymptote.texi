@@ -8061,21 +8061,6 @@ An example of @code{tube} is provided in the file
 @code{trefoilknot.asy}. Further examples can be found at
 @url{http://piprim.tuxfamily.org/asymptote/tube/}.
 
-@node featpost3D
-@section @code{featpost3D}
-@cindex @code{featpost3D}
-To facilitate the conversion of existing MetaPost programs,
-this module contains a partial port of the @code{MetaPost} 3D package
-@code{featpost3D}  of L. Nobre G., C. Barbarosie, and J. Schwaiger to
-@code{Asymptote}. However, much of the functionality of
-this port is now obsoleted by the package @code{three},
-which fully extends the notion of a path to three dimensions,
-together with the packages @code{solids} and @code{graph3}.
-The original @code{featpost3D} package is documented at
-@quotation
-@url{http://matagalatlante.org/nobre/featpost/doc/featpost.html}
-@end quotation
-
 @node flowchart
 @section @code{flowchart}
 @cindex @code{flowchart}
