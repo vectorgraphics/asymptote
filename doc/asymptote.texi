@@ -155,7 +155,6 @@ Base modules
 * grid3::                       3D grids
 * solids::                      3D solid geometry
 * tube::                        3D rotation minimizing tubes
-* featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
 * contour3::                    Contour surfaces
@@ -5847,7 +5846,6 @@ Here now is @code{latexusage.tex}:
 * grid3::                       3D grids
 * solids::                      3D solid geometry
 * tube::                        3D rotation minimizing tubes
-* featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
 * contour3::                    Contour surfaces
@@ -7753,22 +7751,11 @@ the specifiers @code{None}, @code{Blank},
 @code{EndArrow3} (or equivalently @code{Arrow3}), @code{Arrows3},
 @code{BeginArcArrow3}, @code{EndArcArrow3} (or equivalently
 @code{ArcArrow3}), @code{MidArcArrow3}, and @code{ArcArrows3}.
-
 The predefined three-dimensional arrowhead styles are
 @code{DefaultHead3}, @code{HookHead3}, @code{TeXHead3}.
 Versions of the two-dimensional arrowheads lifted to three-dimensional
 space and aligned according to the initial viewpoint are also defined:
-@cindex @code{DefaultHead2}
-@cindex @code{HookHead2}
-@cindex @code{TeXHead2}
-@verbatim
-arrowhead3 DefaultHead2(filltype filltype=Fill);
-arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb,
-                     filltype filltype=Fill);
-arrowhead3 TeXHead2;
-@end verbatim
-@noindent
-An unfilled arrow will be drawn if @code{filltype=NoFill}.
+@code{DefaultHead2}, @code{HookHead2}, @code{TeXHead2}.
 
 @cindex @code{NoMargin3}
 @cindex @code{BeginMargin3}
@@ -8917,7 +8904,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  ticksize subintervals xlimits filetype plugin setlocal makeprg
 @c  LocalWords:  ylimits uncommented automin automax cp uninstall reals ecast
 @c  LocalWords:  scaleT unicode RightSide yx yy NoAlign legendmargin opic CCW
-@c  LocalWords:  arrowbar LeftSide EndBar BeginArrow lly featpost feynman isi
+@c  LocalWords:  arrowbar LeftSide EndBar BeginArrow lly feynman isi showtarget
 @c  LocalWords:  EndArrow BeginArcArrow EndArcArrow ArcArrow ArcArrows NoFill
 @c  LocalWords:  filldraw fillpen drawpen errorformat bigsquare bezier darkblue
 @c  LocalWords:  quartercircle darkgreen lightblue urx ury texpreamble sgn texi
@@ -9030,4 +9017,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot scaledgraph
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
 @c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
-@c  LocalWords:  dvipdfmx
+@c  LocalWords:  dvipdfmx autoadjust

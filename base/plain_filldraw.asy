@@ -85,8 +85,29 @@ void filloutside(frame f, path[] g, pen p=currentpen, bool copy=true)
   fill(f,complement(f,g),p+evenodd,copy);
 }
 
-// Return value is used to detect UnFill filltypes. 
-typedef bool filltype(frame, path[], pen);
+struct filltype 
+{
+  typedef void fill2(frame f, path[] g, pen fillpen);
+  fill2 fill2;
+  pen fillpen;
+  pen drawpen;
+
+  int type;
+  static int Fill=1;
+  static int FillDraw=2;
+  static int Draw=3;
+  static int NoFill=4;
+  static int UnFill=5;
+      
+  void operator init(int type=0, pen fillpen=nullpen, pen drawpen=nullpen,
+                     fill2 fill2) {
+    this.type=type;
+    this.fillpen=fillpen;
+    this.drawpen=drawpen;
+    this.fill2=fill2;
+  }
+  void fill(frame f, path[] g, pen p) {fill2(f,g,p);}
+}
 
 path[] margin(path[] g, real xmargin, real ymargin) 
 {
@@ -105,18 +126,18 @@ path[] margin(path[] g, real xmargin, real ymargin)
 
 filltype Fill(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
 {
-  return new bool(frame f, path[] g, pen fillpen) {
-    if(p != nullpen) fillpen=p;
-    if(fillpen == nullpen) fillpen=currentpen;
-    fill(f,margin(g,xmargin,ymargin),fillpen);
-    return true;
-  };
+  return filltype(filltype.Fill,p,new void(frame f, path[] g, pen fillpen) {
+      if(p != nullpen) fillpen=p;
+      if(fillpen == nullpen) fillpen=currentpen;
+      fill(f,margin(g,xmargin,ymargin),fillpen);
+    });
 }
 
 filltype FillDraw(real xmargin=0, real ymargin=xmargin,
 		  pen fillpen=nullpen, pen drawpen=nullpen)
 {
-  return new bool(frame f, path[] g, pen Drawpen) {
+  return filltype(filltype.FillDraw,fillpen,drawpen,
+                  new void(frame f, path[] g, pen Drawpen) {
     if(drawpen != nullpen) Drawpen=drawpen;
     pen Fillpen=fillpen == nullpen ? Drawpen : fillpen;
     if(Fillpen == nullpen) Fillpen=currentpen;
@@ -125,31 +146,29 @@ filltype FillDraw(real xmargin=0, real ymargin=xmargin,
       filldraw(f,margin(g,xmargin,ymargin),Fillpen,Drawpen);
     else
       draw(f,margin(g,xmargin,ymargin),Drawpen);
-    return true;
-  };
+    });
 }
 
 filltype Draw(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
 {
-  return new bool(frame f, path[] g, pen drawpen) {
+  return filltype(filltype.Draw,drawpen=p,
+                  new void(frame f, path[] g, pen drawpen) {
     pen drawpen=p == nullpen ? drawpen : p;
     if(drawpen == nullpen) drawpen=currentpen;
     draw(f,margin(g,xmargin,ymargin),drawpen);
-    return true;
-  };
+    });
 }
 
-filltype NoFill=new bool(frame f, path[] g, pen p) {
-  draw(f,g,p);
-  return true;
-};
+filltype NoFill=filltype(filltype.NoFill,new void(frame f, path[] g, pen p) {
+    draw(f,g,p);
+  });
+
 
 filltype UnFill(real xmargin=0, real ymargin=xmargin)
 {
-  return new bool(frame f, path[] g, pen) {
+  return filltype(filltype.UnFill,new void(frame f, path[] g, pen) {
     unfill(f,margin(g,xmargin,ymargin));
-    return false;
-  };
+    });
 }
 
 filltype FillDraw=FillDraw(), Fill=Fill(), Draw=Draw(), UnFill=UnFill(); 
@@ -158,11 +177,10 @@ filltype FillDraw=FillDraw(), Fill=Fill(), Draw=Draw(), UnFill=UnFill();
 // penr at the edge.
 filltype RadialShade(pen penc, pen penr)
 {
-  return new bool(frame f, path[] g, pen) {
+  return filltype(new void(frame f, path[] g, pen) {
     pair c=(min(g)+max(g))/2;
     radialshade(f,g,penc,c,0,penr,c,abs(max(g)-min(g))/2);
-    return true;
-  };
+    });
 }
 
 // Fill the region in frame dest underneath frame src and return the
@@ -172,7 +190,7 @@ path fill(frame dest, frame src, filltype filltype=NoFill,
 {
   pair z=(xmargin,ymargin);
   path g=box(min(src)-z,max(src)+z);
-  filltype(dest,g,nullpen);
+  filltype.fill(dest,g,nullpen);
   return g;
 }
 
@@ -206,7 +224,7 @@ void add(frame dest, frame src, bool group, filltype filltype=NoFill,
 }
 
 void add(frame dest, frame src, filltype filltype,
-	 bool above=filltype(newframe,(0,0)--cycle,nullpen))
+	 bool above=filltype.type != filltype.UnFill)
 {
   if(filltype != NoFill) fill(dest,src,filltype);
   (above ? add : prepend)(dest,src);

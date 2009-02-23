@@ -34,7 +34,7 @@ picture tile(real Hx=5mm, real Hy=0, pen p=currentpen,
   if(Hy == 0) Hy=Hx;
   path tile=box((0,0),(Hx,Hy));
   tiling.add(new void (frame f, transform t) {
-      filltype(f,t*tile,p);
+      filltype.fill(f,t*tile,p);
     });
   clip(tiling,tile);
   return tiling;

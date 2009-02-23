@@ -96,9 +96,9 @@ frame circlebarframe(int n=1, real barsize=0,
   frame f=stickframe(n,barsize,space=2*radius/(n+1),angle,offset,p);
   if(above) {
     add(opic,f);
-    filltype(opic,g,p);
+    filltype.fill(opic,g,p);
   } else {
-    filltype(opic,g,p);
+    filltype.fill(opic,g,p);
     add(opic,f);
   }
   return opic;
@@ -157,7 +157,7 @@ void markangle(picture pic=currentpicture, Label L="",
     pair p0=relpoint(lpth,0), p1=relpoint(lpth,1);
     pair ac=p0-p0-A+O, bd=p1-p1-B+O, det=(conj(ac)*bd).y;
     pair op=(det == 0) ? O : p0+(conj(p1-p0)*bd).y*ac/det;
-    filltype(ff,op--lpth--relpoint(lpth,1)--cycle,p);
+    filltype.fill(ff,op--lpth--relpoint(lpth,1)--cycle,p);
     add(lpic,ff);
   }
   for(int i=0; i < n; ++i) {

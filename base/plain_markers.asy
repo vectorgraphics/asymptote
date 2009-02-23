@@ -113,7 +113,7 @@ marker marker(path[] g, markroutine markroutine=marknodes, pen p=currentpen,
               filltype filltype=NoFill, bool above=true)
 {
   frame f;
-  filltype(f,g,p);
+  filltype.fill(f,g,p);
   return marker(f,markroutine,above);
 }
 
@@ -292,7 +292,7 @@ void dot(frame f, pair z, pen p=currentpen, filltype filltype=Fill)
     transform t=shift(z);
     path g=t*scale(0.5*(dotsize(p)-linewidth(p)))*unitcircle;
     begingroup(f);
-    filltype(f,g,p);
+    filltype.fill(f,g,p);
     draw(f,g,p);
     endgroup(f);
   }

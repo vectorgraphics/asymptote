@@ -10,6 +10,8 @@ real arrowbarb=3;
 real arrowhookfactor=1.5;
 real arrowtexfactor=1;
 
+real arrowfuzz=sqrt(realEpsilon);
+
 real barfactor=arrowfactor;
 
 real arrowsize(pen p=currentpen) 
@@ -32,6 +34,7 @@ struct arrowhead
   path head(path g, position position=EndPoint, pen p=currentpen,
             real size=0, real angle=arrowangle);
   real size(pen p)=arrowsize;
+  real arcsize(pen p)=arcarrowsize;
   filltype defaultfilltype(pen) {return FillDraw;}
 }
 
@@ -140,6 +143,7 @@ TeXHead.size=new real(pen p)
   static real hcoef=2.1; // 84/40=abs(base-hint)/base_height
   return hcoef*arrowtexfactor*linewidth(p);
 };
+TeXHead.arcsize=TeXHead.size;
 
 TeXHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
                       real size=0, real angle=arrowangle) {
@@ -201,14 +205,13 @@ void drawarrow(frame f, arrowhead arrowhead=DefaultHead,
   path r=subpath(g,position,0);
   size=min(arrowsizelimit*arclength(r),size);
   path head=arrowhead.head(g,position,p,size,angle);
-  static real fuzz=sqrt(realEpsilon);
-  if(cyclic(head) && (filltype == NoFill || position > L-fuzz)) {
+  if(cyclic(head) && (filltype == NoFill || position > L-arrowfuzz)) {
     if(position > 0)
       draw(f,subpath(r,arctime(r,size),length(r)),p);
     if(position < L)
       draw(f,subpath(g,arctime(r,size),L-arctime(g,size)),p);
   } else draw(f,g,p);
-  filltype(f,head,p+solid);
+  filltype.fill(f,head,p+solid);
 }
 
 void drawarrow2(frame f, arrowhead arrowhead=DefaultHead,
@@ -228,8 +231,8 @@ void drawarrow2(frame f, arrowhead arrowhead=DefaultHead,
   if(cyclic(head))
     draw(f,subpath(r,arctime(r,size),L-arctime(g,size)),p);
   else draw(f,g,p);
-  filltype(f,head,p+solid);
-  filltype(f,tail,p+solid);
+  filltype.fill(f,head,p+solid);
+  filltype.fill(f,tail,p+solid);
 }
 
 // Add to picture an estimate of the bounding box contribution of arrowhead
@@ -241,7 +244,7 @@ void addArrow(picture pic, arrowhead arrowhead, path g, pen p, real size,
   pair z=point(g,position);
   path g=z-(size+linewidth(p))*dir(g,position)--z;
   frame f;
-  filltype(f,arrowhead.head(g,position,p,size,angle),p);
+  filltype.fill(f,arrowhead.head(g,position,p,size,angle),p);
   pic.addBox(z,z,min(f)-z,max(f)-z);
 }
 
@@ -367,7 +370,7 @@ arrowbar BeginArcArrow(arrowhead arrowhead=DefaultHead,
                        filltype filltype=null, position position=BeginPoint)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
-    real size=size == 0 ? arcarrowsize(p) : size;
+    real size=size == 0 ? arrowhead.arcsize(p) : size;
     add(pic,arrow(arrowhead,g,p,size,angle,filltype,position,
                   forwards=false,margin));
     return false;
@@ -379,7 +382,7 @@ arrowbar ArcArrow(arrowhead arrowhead=DefaultHead,
                   filltype filltype=null, position position=EndPoint)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
-    real size=size == 0 ? arcarrowsize(p) : size;
+    real size=size == 0 ? arrowhead.arcsize(p) : size;
     add(pic,arrow(arrowhead,g,p,size,angle,filltype,position,margin));
     return false;
   };
@@ -395,7 +398,7 @@ arrowbar MidArcArrow(arrowhead arrowhead=DefaultHead,
                      filltype filltype=null)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
-    real size=size == 0 ? arcarrowsize(p) : size;
+    real size=size == 0 ? arrowhead.arcsize(p) : size;
     add(pic,arrow(arrowhead,g,p,size,angle,filltype,MidPoint,margin,
                   center=true));
     return false;
@@ -407,7 +410,7 @@ arrowbar ArcArrows(arrowhead arrowhead=DefaultHead,
                    filltype filltype=null)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
-    real size=size == 0 ? arcarrowsize(p) : size;
+    real size=size == 0 ? arrowhead.arcsize(p) : size;
     add(pic,arrow2(arrowhead,g,p,size,angle,filltype,margin));
     return false;
   };

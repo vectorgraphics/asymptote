@@ -7,9 +7,9 @@ path box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
   path g=box(min(src)+0.5*sign*min(p)-z,max(src)+0.5*sign*max(p)+z);
   frame F;
   if(above == false) {
-    filltype(F,g,p);
+    filltype.fill(F,g,p);
     prepend(dest,F);
-  } else filltype(dest,g,p);
+  } else filltype.fill(dest,g,p);
   return g;
 }
 
@@ -31,9 +31,9 @@ path roundbox(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
   
   frame F;
   if(above == false) {
-    filltype(F,g,p);
+    filltype.fill(F,g,p);
     prepend(dest,F);
-  } else filltype(dest,g,p);
+  } else filltype.fill(dest,g,p);
   return g;
 }
 
@@ -49,9 +49,9 @@ path ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
                  factor*D.y+0.5*sign*max(p).y+ymargin);
   frame F;
   if(above == false) {
-    filltype(F,g,p);
+    filltype.fill(F,g,p);
     prepend(dest,F);
-  } else filltype(dest,g,p);
+  } else filltype.fill(dest,g,p);
   return g;
 }
 
