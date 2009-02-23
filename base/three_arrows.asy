@@ -1,3 +1,5 @@
+real arrow3thinfactor=0.45;
+
 // transformation that bends points along a path
 // assumes that p.z is in [0,scale]
 triple bend0(triple p, path3 g, real time)
@@ -165,17 +167,15 @@ struct arrowhead3
     path3[] H=t*path3(h);
     surface s;
     real width=linewidth(p);
+    if(thin) width *= arrow3thinfactor;
     if(filltype != NoFill && filltype != UnFill) {
       triple w=0.5*width*unit(t*Z);
-      if(thin)
-        s=surface(H);
-      else {
-        s=surface(shift(w)*H);
-        s.append(surface(shift(-w)*H));
-        if(!draw)
-          for(path g : h)
-            s.append(shift(-w)*t*extrude(g,width*Z));
-      }
+      triple n=0.5*width*unit(t*Z);
+      s=surface(shift(n)*H);
+      s.append(surface(shift(-n)*H));
+      if(!draw)
+        for(path g : h)
+          s.append(shift(-n)*t*extrude(g,width*Z));
     }
     if(draw)
       for(path3 g : H)
