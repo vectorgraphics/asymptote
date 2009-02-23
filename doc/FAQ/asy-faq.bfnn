@@ -10,7 +10,7 @@
 \copyto ASCII
             ASYMPTOTE FREQUENTLY ASKED QUESTIONS
                             `date '+%d %h %Y'`
-			   
+                           
 \endcopy
 \copyto INFO
 START-INFO-DIR-ENTRY
@@ -22,7 +22,7 @@ File: $prefix.info, Node: Top, Next: Question 1.1, Up: (dir)
 
             ASYMPTOTE FREQUENTLY ASKED QUESTIONS
                             `date '+%d %h %Y'`
-			  
+                          
 \endcopy
 
 This is the list of Frequently Asked Questions about Asymptote (asy).
@@ -440,7 +440,7 @@ arrowhead styles in \courier{plain_arrows.asy\} for further examples):
 \verbatim
 arrowhead DotHead;
 DotHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
-		      real size=0, real angle=arrowangle) {
+                      real size=0, real angle=arrowangle) {
   if(size == 0) size=DotHead.size(p);
   bool relative=position.relative;
   real position=position.position.x;
@@ -729,7 +729,7 @@ Here's an easy way to do this.
 size(12cm,0);
  
 void distance(picture pic=currentpicture, pair A, pair B, Label L="", real n=0,
-	      pen p=currentpen) 
+              pen p=currentpen) 
 {
   real d=3mm;
   path g=A--B;
