@@ -10,8 +10,6 @@ real arrowbarb=3;
 real arrowhookfactor=1.5;
 real arrowtexfactor=1;
 
-real arrowfuzz=sqrt(realEpsilon);
-
 real barfactor=arrowfactor;
 
 real arrowsize(pen p=currentpen) 
@@ -205,11 +203,12 @@ void drawarrow(frame f, arrowhead arrowhead=DefaultHead,
   path r=subpath(g,position,0);
   size=min(arrowsizelimit*arclength(r),size);
   path head=arrowhead.head(g,position,p,size,angle);
-  if(cyclic(head) && (filltype == NoFill || position > L-arrowfuzz)) {
+  static real fuzz=sqrt(realEpsilon);
+  if(cyclic(head) && (filltype == NoFill || position > L-fuzz)) {
     if(position > 0)
       draw(f,subpath(r,arctime(r,size),length(r)),p);
     if(position < L)
-      draw(f,subpath(g,arctime(r,size),L-arctime(g,size)),p);
+      draw(f,subpath(g,position,L),p);
   } else draw(f,g,p);
   filltype.fill(f,head,p+solid);
 }

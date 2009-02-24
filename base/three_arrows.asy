@@ -1,5 +1,3 @@
-real arrow3thinfactor=0.45;
-
 // transformation that bends points along a path
 // assumes that p.z is in [0,scale]
 triple bend0(triple p, path3 g, real time)
@@ -147,29 +145,30 @@ struct arrowhead3
   real size(pen p)=arrowsize;
   real arcsize(pen p)=arcarrowsize;
   real gap=1;
-  real gap0=1;
+  bool splitpath=true;
 
   surface head(path3 g, position position=EndPoint,
                pen p=currentpen, real size=0, real angle=arrowangle,
                filltype filltype=null, bool forwards=true,
                projection P=currentprojection);
 
-  surface surface(path3 s, path[] h, pen p, filltype filltype,
-                  bool thin=false, projection P) {
+  static surface surface(path3 g, position position, real size,
+                         path[] h, pen p, filltype filltype, projection P) {
+    bool relative=position.relative;
+    real position=position.position.x;
+    if(relative) position=reltime(g,position);
+    path3 r=subpath(g,position,0);
+    path3 s=subpath(r,arctime(r,size),0);
     if(filltype == null) filltype=FillDraw(p);
     bool draw=filltype.type != filltype.Fill;
     triple v=point(s,length(s));
-    triple u=dir(s,length(s));
     triple N=P.vector();
     triple w=unit(v-point(s,0));
-    u += project(w-u,N);
-    transform3 t=transform3(u,unit(cross(u,N)));
+    transform3 t=transform3(w,unit(cross(w,N)));
     path3[] H=t*path3(h);
     surface s;
     real width=linewidth(p);
-    if(thin) width *= arrow3thinfactor;
     if(filltype != NoFill && filltype != UnFill) {
-      triple w=0.5*width*unit(t*Z);
       triple n=0.5*width*unit(t*Z);
       s=surface(shift(n)*H);
       s.append(surface(shift(-n)*H));
@@ -182,13 +181,24 @@ struct arrowhead3
         s.append(tube(g,width));
     return shift(v)*s;
   }
+
+  static path project(path3 g, bool forwards, projection P) {
+    path h=project(forwards ? g : reverse(g),P);
+    return shift(-point(h,length(h)))*h;
+  }
+
+  static path[] align(path H, path h) {
+    static real fuzz=1000*realEpsilon;
+    real[][] t=intersections(H,h,fuzz*max(abs(max(h)),abs(min(h))));
+    return rotate(-degrees(point(H,t[0][0])-point(H,t[1][0]),warn=false))*H;
+  }
 }
 
 arrowhead3 DefaultHead3;
 DefaultHead3.head=new surface(path3 g, position position=EndPoint,
                               pen p=currentpen, real size=0,
-                              real angle=arrowangle,
-                              filltype filltype=null, bool forwards=true,
+                              real angle=arrowangle, filltype filltype=null,
+                              bool forwards=true,
                               projection P=currentprojection)
 {
   if(size == 0) size=DefaultHead3.size(p);
@@ -270,7 +280,7 @@ arrowhead3 HookHead3(real dir=arrowdir, real barb=arrowbarb)
     }
   };
   a.arrowhead2=HookHead;
-  a.gap=a.gap0=0.7;
+  a.gap=0.7;
   return a;
 }
 
@@ -331,21 +341,11 @@ DefaultHead2.head=new surface(path3 g, position position=EndPoint,
                               projection P=currentprojection)
 {
   if(size == 0) size=DefaultHead.size(p);
-  bool relative=position.relative;
-  real position=position.position.x;
-  if(relative) position=reltime(g,position);
-
-  path3 R=reverse(g);
-  path h=forwards ? project(subpath(R,0,arctime(R,size)),P) : project(R,P);
-  real t=length(h);
-  h=rotate(-degrees(dir(h,t),warn=false))*shift(-point(h,t))*h;
-  path3 r=subpath(g,position,0);
-  path3 s=subpath(r,arctime(r,size),0);
-  return DefaultHead2.surface(s,DefaultHead.head(h,p,size,angle),p,filltype,
-                     position <= length(g)-arrowfuzz,P);
-
+  path h=DefaultHead2.project(g,forwards,P);
+  path[] H=DefaultHead2.align(DefaultHead.head(h,p,size,angle),h);
+  H=forwards ? yscale(-1)*H : H;
+  return DefaultHead2.surface(g,position,size,H,p,filltype,P);
 };
-DefaultHead2.gap=0.83;
 
 arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb)
 {
@@ -355,30 +355,21 @@ arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb)
                      filltype filltype=null, bool forwards=true,
                      projection P=currentprojection) {
     if(size == 0) size=a.size(p);
-
     angle=min(angle*arrowhookfactor,45);
-    bool relative=position.relative;
-    real position=position.position.x;
-    if(relative) position=reltime(g,position);
-
-    path3 R=reverse(g);
-    path h=forwards ? project(subpath(R,0,arctime(R,size)),P) : project(R,P);
-    real t=length(h);
-    h=rotate(-degrees(dir(h,t),warn=false))*shift(-point(h,t))*h;
-    path3 r=subpath(g,position,0);
-    path3 s=subpath(r,arctime(r,size),0);
-    return a.surface(s,HookHead.head(h,p,size,angle),p,filltype,
-                     position <= length(g)-arrowfuzz,P);
+    path h=a.project(g,forwards,P);
+    path[] H=a.align(HookHead.head(h,p,size,angle),h);
+    H=forwards ? yscale(-1)*H : H;
+    return a.surface(g,position,size,H,p,filltype,P);
   };
   a.arrowhead2=HookHead;
-  a.gap=0.722;
   return a;
 }
 arrowhead3 HookHead2=HookHead2();
 
 arrowhead3 TeXHead2;
 TeXHead2.size=TeXHead.size;
-TeXHead2.gap=TeXHead2.gap0=0.83;
+TeXHead2.splitpath=false;
+TeXHead2.gap=0.83;
 TeXHead2.arrowhead2=TeXHead;
 TeXHead2.head=new surface(path3 g, position position=EndPoint,
                           pen p=currentpen, real size=0,
@@ -386,17 +377,11 @@ TeXHead2.head=new surface(path3 g, position position=EndPoint,
                           bool forwards=true, projection P=currentprojection)
 {
   if(size == 0) size=TeXHead2.size(p);
-  bool relative=position.relative;
-  real position=position.position.x;
-  if(relative) position=reltime(g,position);
-
-  path3 R=reverse(g);
-  path h=forwards ? project(subpath(R,0,arctime(R,size)),P) : project(R,P);
-  real t=length(h);
-  h=rotate(-degrees(dir(h,t),warn=false))*shift(-point(h,t))*h;
-  path3 r=subpath(g,position,0);
-  path3 s=subpath(r,arctime(r,size),0);
-  return TeXHead2.surface(s,bezulate(TeXHead.head(h,p,size)),p,
+  path h=TeXHead2.project(g,forwards,P);
+  h=rotate(-degrees(dir(h,length(h)),warn=false))*h;
+  path[] H=TeXHead.head(h,p,size,angle);
+  H=forwards ? yscale(-1)*H : H;
+  return TeXHead2.surface(g,position,size,bezulate(H),p,
                           filltype == null ? TeXHead.defaultfilltype(p) :
                           filltype,P);
 };
@@ -437,12 +422,16 @@ void drawarrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
   }
   path3 r=subpath(g,position,0);
   size=min(arrowsizelimit*arclength(r),size);
-  if(!cyclic(g) && position > L-arrowfuzz) {
-    real Size=size*(forwards ? arrowhead.gap : arrowhead.gap0);
-    draw(pic,subpath(r,arctime(r,Size),length(r)),p,light);
+  surface head=arrowhead.head(g,position,q,size,angle,filltype,forwards,P);
+  if(arrowhead.splitpath) {
+    if(position > 0) {
+      real Size=size*arrowhead.gap;
+      draw(pic,subpath(r,arctime(r,Size),length(r)),p,light);
+    }
+    if(position < L)
+      draw(pic,subpath(g,position,L),p,light);
   } else draw(pic,g,p,light);
-  draw(pic,arrowhead.head(g,position,q,size,angle,filltype,forwards,P),
-       arrowheadpen,arrowheadlight);
+  draw(pic,head,arrowheadpen,arrowheadlight);
 }
 
 void drawarrow2(picture pic, arrowhead3 arrowhead=DefaultHead3,
@@ -462,8 +451,7 @@ void drawarrow2(picture pic, arrowhead3 arrowhead=DefaultHead3,
   path3 r=reverse(g);
   int L=length(g);
   real Size=size*arrowhead.gap;
-  real Size0=size*arrowhead.gap0;
-  draw(pic,subpath(r,arctime(r,Size),L-arctime(g,Size0)),p,light);
+  draw(pic,subpath(r,arctime(r,Size),L-arctime(g,Size)),p,light);
   draw(pic,arrowhead.head(g,L,q,size,angle,filltype,forwards=true,P),
        arrowheadpen,arrowheadlight);
   draw(pic,arrowhead.head(r,L,q,size,angle,filltype,forwards=false,P),
