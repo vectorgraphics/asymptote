@@ -7754,8 +7754,10 @@ the specifiers @code{None}, @code{Blank},
 The predefined three-dimensional arrowhead styles are
 @code{DefaultHead3}, @code{HookHead3}, @code{TeXHead3}.
 Versions of the two-dimensional arrowheads lifted to three-dimensional
-space and aligned according to the initial viewpoint are also defined:
-@code{DefaultHead2}, @code{HookHead2}, @code{TeXHead2}.
+space and aligned according to the initial viewpoint (or an optionally
+specified @code{normal} vector) are also defined:
+@code{DefaultHead2(triple normal=O)}, @code{HookHead2(triple normal=O)},
+@code{TeXHead2(triple normal=O)}.
 
 @cindex @code{NoMargin3}
 @cindex @code{BeginMargin3}

@@ -16,4 +16,4 @@ draw(scale3(6)*g,red,Arrows3(DefaultHead3),currentlight);
 
 draw(t*g,blue,Arrows3(TeXHead2),currentlight);
 draw(t*scale3(3)*g,green,ArcArrows3(HookHead2,NoFill),currentlight);
-draw(t*scale3(6)*g,red,Arrows3(DefaultHead2),currentlight);
+draw(t*scale3(6)*g,red,Arrows3(DefaultHead2(normal=Z)),currentlight);
