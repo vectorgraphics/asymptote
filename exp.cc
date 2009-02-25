@@ -515,14 +515,6 @@ void argument::prettyprint(ostream &out, Int indent)
   val->prettyprint(out, indent+1);
 }
 
-void argument::assignAmbiguity(coenv &e) {
-  if (name && e.e.varGetType(name) && settings::getSetting<bool>("debug")) {
-    em.warning(val->getPos());
-    em << "named argument may be mistaken for assignment";
-  }
-}
-
-
 void arglist::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "arglist",indent);
@@ -537,13 +529,6 @@ void callExp::prettyprint(ostream &out, Int indent)
 
   callee->prettyprint(out, indent+1);
   args->prettyprint(out, indent+1);
-}
-
-void callExp::argAmbiguity(coenv &e)
-{
-  size_t n = args->size();
-  for (size_t i = 0; i < n; i++)
-    (*args)[i].assignAmbiguity(e);
 }
 
 signature *callExp::argTypes(coenv &e)
@@ -701,8 +686,6 @@ types::ty *callExp::trans(coenv &e)
     cerr << *callee->getName();
   cerr << endl;
 #endif
-
-  argAmbiguity(e);
 
 #ifdef DEBUG_CACHE
   if (ca)

@@ -583,10 +583,6 @@ struct argument {
 #endif
 
   void prettyprint(ostream &out, Int indent);
-
-  // Tests if a named argument could be mistaken for an assignment, and
-  // prints a warning if so.
-  void assignAmbiguity(coenv &e);
 };
 
 class arglist : public gc {
@@ -645,9 +641,6 @@ protected:
 private:
   // Per object caching - Cache the application when it's determined.
   application *ca;
-
-  // Warns of ambiguity with assign expression in named arguments.
-  void argAmbiguity(coenv &e);
 
   types::signature *argTypes(coenv& e);
   void reportArgErrors(coenv &e);
