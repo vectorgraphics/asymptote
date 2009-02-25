@@ -244,18 +244,13 @@ guide[][] contour(pair[][] z, real[][] f,
       pair bright=zp[j];
       pair tleft=zi[j+1];
       pair tright=zp[j+1];
-      pair middle;
+      pair middle=0.25*(bleft+bright+tleft+tright);
 
       real f00=fi[j];
       real f01=fi[j+1];
       real f10=fp[j];
       real f11=fp[j+1];
-      real fmm;
-
-      if(midpoints) {
-        middle=0.25*(bleft+bright+tleft+tright);
-        fmm=midpointi[j];
-      }
+      real fmm=midpoints ? midpoint[i][j] : 0.25*(f00+f01+f10+f11);
 
       // optimization: we make sure we don't work with empty rectangles
       int checkcell(int cnt) {
@@ -289,35 +284,21 @@ guide[][] contour(pair[][] z, real[][] f,
 
         // go through the triangles
         
-        if(midpoints) {
-          void addseg(segment seg) {
-            if(seg.active) {
-              seg.c=cnt;
-              segmentsij.push(seg);
-            }
+        void addseg(segment seg) {
+          if(seg.active) {
+            seg.c=cnt;
+            segmentsij.push(seg);
           }
-          real vertdat4=fmm-C;
-          addseg(checktriangle(bright,tright,middle,
-                               vertdat1,vertdat3,vertdat4,0));
-          addseg(checktriangle(tright,tleft,middle,
-                               vertdat3,vertdat2,vertdat4,1));
-          addseg(checktriangle(tleft,bleft,middle,
-                               vertdat2,vertdat0,vertdat4,2));
-          addseg(checktriangle(bleft,bright,middle,
-                               vertdat0,vertdat1,vertdat4,3));
-        } else {
-          void addseg(segment seg) {
-            if(seg.active) {
-              seg.c=cnt;
-              seg.edge=9; // Force a search of all 8 surrounding cells
-              segmentsij.push(seg);
-            }
-          }
-          addseg(checktriangle(bright,tright,tleft,
-                               vertdat1,vertdat3,vertdat2));
-          addseg(checktriangle(tleft,bleft,bright,
-                               vertdat2,vertdat0,vertdat1));
         }
+        real vertdat4=fmm-C;
+        addseg(checktriangle(bright,tright,middle,
+                             vertdat1,vertdat3,vertdat4,0));
+        addseg(checktriangle(tright,tleft,middle,
+                             vertdat3,vertdat2,vertdat4,1));
+        addseg(checktriangle(tleft,bleft,middle,
+                             vertdat2,vertdat0,vertdat4,2));
+        addseg(checktriangle(bleft,bright,middle,
+                             vertdat0,vertdat1,vertdat4,3));
         return 0;
       }
       
