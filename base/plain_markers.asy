@@ -249,12 +249,12 @@ picture legend(Legend[] Legend, int perline=1, real linelength,
       for(int i=0; i < Legend.length; ++i)
         add(inset,legenditem(Legend[i],linelength),
             (0.5*(maxwidth-widthPerEntry),
-             -floor(i/perline)*heightPerEntry*vskip));
+             -quotient(i,perline)*heightPerEntry*vskip));
     } else
       for(int i=0; i < Legend.length; ++i)
         add(inset,legenditem(Legend[i],linelength),
             ((i%perline)*widthPerEntry*hskip,
-             -floor(i/perline)*heightPerEntry*vskip));
+             -quotient(i,perline)*heightPerEntry*vskip));
   }
 
   return inset;
