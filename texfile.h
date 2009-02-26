@@ -82,7 +82,7 @@ void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
         << "\\def\\ASYalignT(#1,#2)(#3,#4)#5#6{%" << newl
         << "\\ASYaligned(#1,#2)(#3,#4){%" << newl
         << settings::beginlabel(texengine) << "%" << newl
-        << "}{" << newl
+        << "}{%" << newl
         << settings::endlabel(texengine) << "%" << newl
         << "}{#6}}" << newl
         << "\\def\\ASYalign(#1,#2)(#3,#4)#5{"
