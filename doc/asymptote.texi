@@ -1094,13 +1094,14 @@ use in constructing an optional legend entry.
 @cindex @code{EndBar}
 @cindex @code{Bar}
 @cindex @code{Bars}
+@cindex @code{barsize}
 Bars are useful for indicating dimensions. The possible values of
 @code{bar} are @code{None}, @code{BeginBar}, @code{EndBar} (or
 equivalently @code{Bar}), and @code{Bars} (which draws a bar at both
 ends of the path). Each of these bar specifiers (except for
 @code{None}) will accept an optional real argument that denotes the
 length of the bar in @code{PostScript} coordinates. The default
-bar length is @code{barsize(p)}.
+bar length is @code{barsize(pen)}.
 
 @anchor{arrows}
 @cindex @code{None}
@@ -7751,8 +7752,11 @@ the specifiers @code{None}, @code{Blank},
 @code{EndArrow3} (or equivalently @code{Arrow3}), @code{Arrows3},
 @code{BeginArcArrow3}, @code{EndArcArrow3} (or equivalently
 @code{ArcArrow3}), @code{MidArcArrow3}, and @code{ArcArrows3}.
-The predefined three-dimensional arrowhead styles are
-@code{DefaultHead3}, @code{HookHead3}, @code{TeXHead3}.
+Three-dimensional bars accept the optional arguments @code{(real size=0,
+triple dir=O)}. If @code{size=O}, the default bar length is used; if
+@code{dir=O}, the bar is drawn perpendicular to the path
+and the initial viewing direction. The predefined three-dimensional
+arrowhead styles are @code{DefaultHead3}, @code{HookHead3}, @code{TeXHead3}.
 Versions of the two-dimensional arrowheads lifted to three-dimensional
 space and aligned according to the initial viewpoint (or an optionally
 specified @code{normal} vector) are also defined:

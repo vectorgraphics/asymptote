@@ -136,7 +136,7 @@ struct animation {
   }
 
   string pdf(fit fit=NoBox, real delay=animationdelay, string options="",
-             bool keep=false, bool multipage=true) {
+             bool multipage=true) {
     if(settings.tex != "pdflatex")
       abort("inline pdf animations require -tex pdflatex");
     
@@ -164,7 +164,7 @@ struct animation {
 
   int movie(fit fit=NoBox, int loops=0, real delay=animationdelay,
             string format=settings.outformat == "" ? "gif" : settings.outformat,
-            string options="", bool keep=false) {
+            string options="", bool keep=settings.keep) {
     if(global && format == "pdf") {
       export(settings.outname,fit,multipage=true,view=true);
       return 0;
