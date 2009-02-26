@@ -1,22 +1,22 @@
 /* tvgen - draw pm5544-like television test cards.
- * Copyright (C) 2007, Servaas Vandenberghe.
+ * Copyright (C) 2007, 2009, Servaas Vandenberghe.
  *
- * The tvgen code below is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as published
- * by the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * The tvgen code below is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with Octave; see the file COPYING.  If not, write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with tvgen: see the file COPYING.  If not, write to the
+ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
- * tvgen-1.0/tvgen.asy
+ * tvgen-1.1/tvgen.asy
  * This asy script generates pm5544-like television test cards.  The image 
  * parameters were derived from a 1990 recording.  The basic parameters 
  * conform to itu-r bt.470, bt.601, and bt.709.  There is no unique image 
@@ -24,30 +24,15 @@
  */
 //papertype="a4";
 import plain;
+int verbose=settings.verbose/*+2*/;  /* uncomment for debug info */
 
 /* tv dot coordinates --> PS points */
-pair tvps(real col, real row, real xd, real yd, int Nv) 
-{ 
+pair tvps(real col, real row, real xd, real yd, int Nv) { 
   real psx, psy; 
   psx=col*xd; psy=(Nv-row)*yd; 
   return (psx,psy); 
 }
-guide tvps(int col, int row, int cwidth, int rheight, real xd, real yd, int Nv)
-{ 
-  real tlx, tly, brx, bry; 
-  pair[] z; 
-  
-  tlx=col*xd; tly=(Nv-row)*yd; 
-  brx=(col+cwidth)*xd; bry=(Nv-row-rheight)*yd; 
-  z[0]=(tlx, bry); 
-  z[1]=(brx, bry); 
-  z[2]=(brx, tly); 
-  z[3]=(tlx, tly); 
-  
-  return z[0]--z[1]--z[2]--z[3]--cycle; 
-}
-guide tvrect(int lc, int tr, int rc, int br, real xd, real yd, int Nv)
-{ 
+path tvrect(int lc, int tr, int rc, int br, real xd, real yd, int Nv) {
   real lx, ty, rx, by; 
   pair[] z; 
   
@@ -81,13 +66,17 @@ void rimarkers(real rimage, int Nh, int Nhc, int os, int Nvc, int Nsy, pen pdef,
       // write(offa,offb);
 
       if(2*offa<Nh) {
-        int hy=floor(Nsy/3);
-
-        guide zz;
-        zz=tvrect(Nhc+offb,Nvc-hy, Nhc+offa,Nvc+hy, xd,yd,Nv);
+        int hy, tr, br;
+        path zz;
+	
+	hy=floor(Nsy/3);
+	tr=Nvc-hy;
+	br=Nvc+hy;
+	
+        zz=tvrect(Nhc+offb, tr, Nhc+offa, br, xd,yd,Nv);
         //dot(zz);
         fill(zz, p=pdef);
-        zz=tvrect(Nhc-offa,Nvc-hy, Nhc-offb,Nvc+hy, xd,yd,Nv);
+        zz=tvrect(Nhc-offa, tr, Nhc-offb, br, xd,yd,Nv);
         fill(zz, p=pdef);
       }
     }
@@ -95,13 +84,87 @@ void rimarkers(real rimage, int Nh, int Nhc, int os, int Nvc, int Nsy, pen pdef,
   return;
 }
 
+/************* cross hatch: line pairing, center interlace test *************/
+void centerline(int[] coff, int[] coffa, int[] coffb, int Nhc, int divsx,
+		int os, int[] rcrowc, int Nvc, int divsy,
+		pair ccenter, real[] rcoff, pair[] rcright, pair[] rcleft,
+		pen pdef, real xd, real yd, int Nv) {
+  pair[] z;
+  int col;
+  pen pblack=pdef+gray(0.0), pwhite=pdef+gray(1.0);
+  
+  z[0]=rcright[divsy];
+
+  col=Nhc+coff[0];
+  z[1]=tvps(col,rcrowc[divsy], xd,yd,Nv);
+  z[2]=tvps(col,rcrowc[divsy-1], xd,yd,Nv);
+  col=Nhc-coff[0];
+  z[3]=tvps(col,rcrowc[divsy-1], xd,yd,Nv);
+  z[4]=tvps(col,rcrowc[divsy], xd,yd,Nv);
+
+  z[5]=rcleft[divsy]; 
+  z[6]=rcleft[divsy+1];
+
+  z[7]=tvps(col,rcrowc[divsy+1], xd,yd,Nv);
+  z[8]=tvps(col,rcrowc[divsy+2], xd,yd,Nv);
+  col=Nhc+coff[0];
+  z[9]=tvps(col,rcrowc[divsy+2], xd,yd,Nv);
+  z[10]=tvps(col,rcrowc[divsy+1], xd,yd,Nv);
+
+  z[11]=rcright[divsy+1]; 
+  fill(z[1]--z[2]--z[3]--z[4] //--z[5]--z[6]
+       --arc(ccenter, z[5], z[6])
+       --z[7]--z[8]--z[9]--z[10] //--z[11]--z[0]
+       --arc(ccenter,z[11], z[0])
+       --cycle, p=pblack);
+
+  int i, maxoff, rows, tr, br;
+  path zz;
+
+  maxoff=floor(rcoff[divsy]);
+
+  /* center cross: vertical and horizontal centerline */
+  rows=min(Nvc-rcrowc[divsy-1], rcrowc[divsy+2]-Nvc);
+  tr=Nvc-rows;
+  br=Nvc+rows;
+  //write("centerline long: rows tr br ", rows, tr, br);
+  zz=tvrect(Nhc-os, tr, Nhc+os, br, xd,yd,Nv);
+  fill(zz, p=pwhite);
+  zz=tvrect(Nhc-maxoff,Nvc-1, Nhc+maxoff,Nvc+1, xd,yd,Nv);
+  fill(zz, p=pwhite);
+
+  /* vertical short lines */
+  rows=min(Nvc-rcrowc[divsy], rcrowc[divsy+1]-Nvc);
+  tr=Nvc-rows;
+  br=Nvc+rows;
+  if(verbose>1)
+    write("centerline: rows tr br ", rows, tr, br);
+  for(i=0; i<=divsx; ++i) {
+    int off;
+    
+    off=coff[i];
+    if(off<maxoff) {
+      int offa, offb;
+      path zzv;
+      offa=coffa[i];
+      offb=coffb[i];
+
+      zzv=tvrect(Nhc+offb, tr, Nhc+offa, br, xd,yd,Nv); 
+      fill(zzv, p=pwhite);
+      zzv=tvrect(Nhc-offa, tr, Nhc-offb, br, xd,yd,Nv); 
+      fill(zzv, p=pwhite);
+    }
+  }
+  return;
+}
+
 /************************ topbw **************************************/
 void topbw(int[] coff, int Nhc, int os, int urow, int trow, int brow, 
-           pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
-           pen pdef, real xd, real yd, int Nv) {
+	   pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
+	   pen pdef, real xd, real yd, int Nv) {
   pen pblack=pdef+gray(0.0), pwhite=pdef+gray(1.0);
   pair[] ze;
-  guide zext, zref, zint, zleft, zright;
+  path zext, zref, zint;
   int off, col, cr;
 
   off=ceil((coff[2]+coff[3])/2);
@@ -113,7 +176,7 @@ void topbw(int[] coff, int Nhc, int os, int urow, int trow, int brow,
   col=Nhc-coff[2]-os;
   ze[5]=tvps(col,brow, xd,yd,Nv);
   ze[6]=tvps(col,trow, xd,yd,Nv);
-  cr=col+3*os; /* reflection test black pulse */
+  cr=col+3*os;    /* reflection test black pulse */
   zref=tvrect(col,trow, cr,brow, xd,yd,Nv);
   ze[7]=tvps(cr,trow, xd,yd,Nv);
   ze[8]=tvps(cr,brow, xd,yd,Nv);
@@ -127,21 +190,21 @@ void topbw(int[] coff, int Nhc, int os, int urow, int trow, int brow,
   off=ceil((coff[1]+coff[2])/2);
   zint=tvrect(Nhc-off,urow, Nhc+off,trow, xd,yd,Nv); 
 
+  /* paths are completely resolved; no free endpoint conditions */
   fill(zext^^reverse(zint), p=pwhite);
   fill(zint, p=pblack);
   fill(zref, p=pblack);
 
-  fill(arc(ccenter,rclt,rclb)--ze[4]--ze[3]--cycle, 
-       p=pblack);
-  fill(arc(ccenter,rcrb,rcrt)--ze[0]--ze[9]--cycle, 
-       p=pblack);
+  fill(arc(ccenter,rclt,rclb)--ze[4]--ze[3]--cycle, p=pblack);
+  fill(arc(ccenter,rcrb,rcrt)--ze[0]--ze[9]--cycle, p=pblack);
   return;
 }
 
 /************************ testtone **************************************/
 /* x on circle -> return y>=0 
- * x     x-coordinate relative to origin
- * crad  circle radius in y units, true size=crad*yd
+ * in:
+ *   x     x-coordinate relative to origin
+ *   crad  circle radius in y units, true size=crad*yd
  */
 real testcircx(real x, real crad, real xd, real yd) {
   real relx, phi, y;
@@ -173,7 +236,8 @@ real testcircy(real y, real crad, real xd, real yd) {
 
 /* brow>trow && xb>xt */
 void testtone(real Tt, int trow, int brow, 
-              real ccol, real crow, real crad, pen pdef, real xd, real yd, int Nv) {
+	      real ccol, real crow, real crad,
+	      pen pdef, real xd, real yd, int Nv) {
   int blocks, i;
   real yt, xt, yb, xb, Ttt=Tt/2;
   pair ccenter;
@@ -190,7 +254,7 @@ void testtone(real Tt, int trow, int brow,
 
   for(i=-blocks-1; i<=blocks; ++i) {
     real tl, tr;
-    guide zz;
+    path zz;
 
     tl=max(-xb,min(i*Ttt,xb));      /* limit [-xb..xb] */
     tr=max(-xb,min((i+1)*Ttt,xb));
@@ -256,8 +320,8 @@ void testtone(real Tt, int trow, int brow,
 
 /************************ color bars *************************************/
 void colorbars(int[] coff, int Nhc, int trow, int crow, int brow, 
-               pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
-               pen pdef, real xd, real yd, int Nv) {
+	       pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
+	       pen pdef, real xd, real yd, int Nv) {
   real cI=0.75;
   real[] cR={ cI,  0,  0,  cI, cI,  0 };
   real[] cG={ cI, cI, cI,   0,  0,  0 };
@@ -269,7 +333,7 @@ void colorbars(int[] coff, int Nhc, int trow, int crow, int brow,
   for(i=0; i<=cmax; ++i) {
     int off;
     int ii=2*i, il=cmax-i, ir=i+cmax+1;
-    guide zzl, zzr;
+    path zzl, zzr;
   
     off=ceil((coff[1+ii]+coff[2+ii])/2);
     if(i!=0 && i<cmax) {
@@ -360,8 +424,8 @@ real addphase(real theta, real freq, real step) {
 }
 
 void testfreqs(real[] ftones, int[] coff, int Nhc, int trow,int crow,int brow, 
-               pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
-               pen pdef, real xd, real yd, int Nv) {
+	       pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
+	       pen pdef, real xd, real yd, int Nv) {
   int[] divc;
   real[] divfl, divfr;
   int i, divs, coffmax, off, divnext;
@@ -396,7 +460,7 @@ void testfreqs(real[] ftones, int[] coff, int Nhc, int trow,int crow,int brow,
   for(off=0; off<coffmax; ++off) {
     real ampl, ampr;
     int col;
-    guide zz;
+    path zz;
 
     if(off==trowlim) {
       tr=trow;
@@ -444,8 +508,8 @@ void testfreqs(real[] ftones, int[] coff, int Nhc, int trow,int crow,int brow,
 
 /************************ gray bars **************************************/
 void graybars(int[] coff, int Nhc, int trow, int brow, 
-              pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
-              pen pdef, real xd, real yd, int Nv) {
+	      pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
+	      pen pdef, real xd, real yd, int Nv) {
   int[] gs={0, 51, 102, 153, 204, 255};
   int cmax=2, poff, rows, i;
 
@@ -454,7 +518,7 @@ void graybars(int[] coff, int Nhc, int trow, int brow,
   for(i=0; i<=cmax; ++i) {
     int off;
     int ii=2*i, il=cmax-i, ir=i+cmax+1;
-    guide zzl, zzr;
+    path zzl, zzr;
   
     off=ceil((coff[1+ii]+coff[2+ii])/2);
     if(i<cmax) {
@@ -484,11 +548,11 @@ void graybars(int[] coff, int Nhc, int trow, int brow,
 
 /************************ bottom bw **************************************/
 void bottombw(int off, int Nhc, int trow, int brow, 
-              pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
-              pen pdef, real xd, real yd, int Nv) {
+	      pair ccenter, pair rclt, pair rclb, pair rcrt, pair rcrb, 
+	      pen pdef, real xd, real yd, int Nv) {
   int rows;
   pair zt, zb;
-  guide zz;
+  path zz;
 
   rows=brow-trow;
   zz=tvrect(Nhc-off,trow, Nhc+off,brow, xd,yd,Nv); 
@@ -506,7 +570,8 @@ void bottombw(int off, int Nhc, int trow, int brow,
 
 /************************ bottom circle **************************************/
 void bottomcirc(int off, int Nhc, int trow, real cx, real cy, real crad, 
-                pair ccenter, pair rclt, pair rcrt, pen pdef, real xd, real yd, int Nv) {
+		pair ccenter, pair rclt, pair rcrt,
+		pen pdef, real xd, real yd, int Nv) {
   real cI=0.75;
   real xl, yl, xr, yr, phil, phir;
   pair ccleft, ccright;
@@ -557,8 +622,8 @@ void bottomcirc(int off, int Nhc, int trow, real cx, real cy, real crad,
  * in: dright=  -1 left ear, +1 right ear
  */
 void palears(int[] coff, int[] coffa, int[] coffb, int Nhc, 
-             int[] rcrowt, int[] rcrowb, int Nvc, int divsy, int dright,
-             pen pdef, real xd, real yd, int Nv) {
+	     int[] rcrowt, int[] rcrowb, int Nvc, int divsy, int dright,
+	     pen pdef, real xd, real yd, int Nv) {
   /* the amplitude of (u,v) as seen on a vectorscope, 
    * max 0.296 Vn for 100% saturation in W and V ears.
    * cvbs:   0.7*( y +/- |u+jv| ) = -0.24 .. 0.93 V 
@@ -586,7 +651,7 @@ void palears(int[] coff, int[] coffa, int[] coffb, int Nhc,
 
   real[] cy, cu, cv;
   pair[] z;
-  guide[] zz;
+  path[] zz;
   int lcol, ccol, cicol, rcol, i;
 
   if(dright>0) {
@@ -653,7 +718,7 @@ void palears(int[] coff, int[] coffa, int[] coffb, int Nhc,
     R=Ry+y;
     G=Gy+y;
     B=By+y;
-    if(settings.verbose > 1)
+    if(verbose > 1)
       write(y,round(R*255),round(G*255),round(B*255));
 
     fill(zz[i], p=pdef+rgb(R,G,B));
@@ -668,8 +733,8 @@ void palears(int[] coff, int[] coffa, int[] coffb, int Nhc,
  * right  0.5  0.17   60%  +Q?
  */
 void ntscbars(int[] coff, int[] coffa, int[] coffb, int Nhc, 
-              int[] rcrowt, int[] rcrowb, int Nvc, int divsy, int dright,
-              pen pdef, real xd, real yd, int Nv) {
+	      int[] rcrowt, int[] rcrowb, int Nvc, int divsy, int dright,
+	      pen pdef, real xd, real yd, int Nv) {
   /* The amplitude of (i,q) as seen on a vectorscope, 
    * max 0.292 Vn for 100% saturation in I==0 ears.
    * burst:    0.143 Vcvbs, 20 IRE or 0.200 V normalized.
@@ -723,11 +788,11 @@ void ntscbars(int[] coff, int[] coffa, int[] coffb, int Nhc,
   R=Ry+cy;
   G=Gy+cy;
   B=By+cy;
-  if(settings.verbose > 1)
+  if(verbose > 1)
     write(cy,ci,cq,round(R*255),round(G*255),round(B*255));
 
   for(i=-divsy; i<=divsy; ++i) {
-    guide zz;
+    path zz;
     int brow, trow;
     
     if(i>-divsy) {
@@ -751,7 +816,13 @@ void ntscbars(int[] coff, int[] coffa, int[] coffb, int Nhc,
 
 
 /****************************** main ***********************************/
-/* $ asy -u bsys=2 -u colortv=1 -u os=1 tvgen */
+/* Conversion to bitmap:
+ *   EPSPNG='gs -dQUIET -dNOPAUSE -dBATCH -sDEVICE=png16m'
+ *   asy -u bsys=2 -u colortv=1 -u os=1 -a Z tvgen
+ *   $EPSPNG -r132x144 -g720x576 -sOutputFile=tvgen.png tvgen.eps
+ *
+ * asy -u bsys=2 -u colortv=1 -u os=1 tvgen
+ */
 int bsys=2, colortv=1, os=1;
 
 /* bsys: broadcast system
@@ -789,20 +860,20 @@ if(bsys<0 || bsys>12 || colortv<0 || colortv>3 || os<=0 || os>16) {
   abort('Bad option  -u bsys=N  ?');
 }
 
-int[]  bNdot={ 12,   16,   12,   16,     1,    1,     1,   64,   10,   8,  10, 
-               1,    1};
-int[]  bDdot={ 11,   15,   11,   11,     1,    1,     1,   45,   11,   9,  11,
-               1,    1};
-int[]  bNh={  704,  720,  720,  720,   768,  768,   786,  720,  704, 720, 720,
-              1920, 1600};
-int[]  bNv={  576,  576,  576,  576,   576,  576,   576,  576,  480, 480, 480,
-              1080, 1200};
-real[] bfs={ 13.5, 13.5, 13.5, 13.5, 14.75, 14.4, 14.75, 13.5, 13.5,13.5,13.5,
-             36,   30};
-int[]  bNsy={  42,   42,   42,   42,    42,   42,    42,   42,   34,  34,  34,
-               78,   90};
-int[]  bNsh={   0,    0,    0,    0,     0,    0,     0,    0,    0,   0,   0,
-                0,    0};
+int[] bNdot=
+  {   12,  16,  12,  16,     1,   1,    1,  64,   10,   8,  10,    1,    1 };
+int[] bDdot=
+  {   11,  15,  11,  11,     1,   1,    1,  45,   11,   9,  11,    1,    1 };
+int[] bNh=
+  {  704, 720, 720, 720,   768, 768,  786, 720,  704, 720, 720, 1920, 1600 };
+int[] bNv=
+  {  576, 576, 576, 576,   576, 576,  576, 576,  480, 480, 480, 1080, 1200 };
+real[] bfs=
+  { 13.5,13.5,13.5,13.5, 14.75,14.4,14.75,13.5, 13.5,13.5,13.5,   36,   30 };
+int[] bNsy=
+  {   42,  42,  42,  42,    42,  42,   42,  42,   34,  34,  34,   78,   90 };
+int[] bNsh=
+  {    0,   0,   0,   0,     0,   0,    0,   0,    0,   0,   0,    0,    0 };
 
 /* active lines for a 625 line frame
  *   The number of active video lines decreased around 1997.  
@@ -884,7 +955,7 @@ lx=Nh/(m*Dd);
 ysize=ly*1inch;
 xsize=lx*1inch;
 rimage=xsize/ysize;
-if(settings.verbose > 1)
+if(verbose > 1)
   write('#Nd Dd m ri:\t', Nd, Dd, m, rimage);
 //size(xsize,ysize,Aspect);  // should not have any effect
 
@@ -913,7 +984,7 @@ divsy=floor(((Nv-Na-2)/Nsy-1)/2);   // (Nv-Na-2)/2-Nsy/2 dots for Nsy lengths
 rdisty=Na+Nsy*(1+2*divsy);
 Nt=Nvc-ceil(rdisty/2);
 Nb=Nv-Nt-rdisty;
-if(settings.verbose > 1)
+if(verbose > 1)
   write('#divsy t b: \t',divsy,Nt,Nb);
 
 /* Nsyc: center square height 
@@ -953,7 +1024,7 @@ for(i=0; i<=divsy; ++i) {
 
   ou=offu+Nsy*i;
   od=offd-Nsy*i;
-  if(settings.verbose > 1)
+  if(verbose > 1)
     write(ou,od);
   rcrowc[iu]=Nvc-ou;
   rcrowc[id]=Nvc-od;
@@ -969,7 +1040,7 @@ for(i=0; i<=divsy; ++i) {
 }
 Nt=floor((rcrowt[0]+rcrowb[0])/2);
 Nb=Nv-Nt-Nsyc-2*Nsy*divsy;
-if(settings.verbose > 1)
+if(verbose > 1)
   write('#st t b: \t',Nyst,Nt,Nb);
 
 /* vertical lines
@@ -984,16 +1055,18 @@ Nsx=lsq/xd;
 divsx=floor(((Nh-10*os)/Nsx-1)/2);  
 Nhc=round(Nh/2);
 Nl=Nhc-round((1+2*divsx)*Nsx/2);
-if(settings.verbose > 1)
+if(verbose > 1)
   write('#Nsx divsx Nl:\t',Nsx,divsx,Nl);
 
-guide zz;
 /**** draw gray background ****/
-//zz=tvrect(0,0, Nh,Nv, xd,yd,Nv);
-zz=tvrect(Nl,Nt, Nh-Nl,Nv-Nb, xd,yd,Nv);
-fill(zz, p=pdefault+gray(0.5));
-//dot(zz);
-
+{ 
+  path zz;
+  //zz=tvrect(0,0, Nh,Nv, xd,yd,Nv);
+  /* keep white canvas for castellations */
+  zz=tvrect(Nl,Nt, Nh-Nl,Nv-Nb, xd,yd,Nv);
+  fill(zz, p=pdefault+gray(0.5));
+  //dot(zz);
+}
 /**** draw center circle ****/
 real cx, cy, crad;
 pair ccenter;
@@ -1015,27 +1088,27 @@ real[] rcang, rcoff;
 pair[] rcright, rcleft;
 int i, iend=2*divsy+1;
 for(i=0; i<=iend; ++i) {
-  int row=rcrowc[i];
-  real roff, phi, coff;
+  real y, phi, x;
+  path zzh;
   pair zd;
 
-  zz=tvrect(0,rcrowt[i], Nh,rcrowb[i], xd,yd,Nv); 
-  fill(zz, p=pwhite); 
+  zzh=tvrect(0,rcrowt[i], Nh,rcrowb[i], xd,yd,Nv); 
+  fill(zzh, p=pwhite); 
 
-  roff=cy-row;
+  y=cy-rcrowc[i];
   //write(roff);
-  if(abs(roff)<crad) {
-    phi=asin(roff/crad);
+  if(abs(y)<crad) {
+    phi=asin(y/crad);
   } else {
     phi=pi/2;
   }
   rcang[i]=phi;
-  coff=(crad*cos(phi))*yd/xd;
-  rcoff[i]=coff;
-  zd=tvps(cx+coff,cy-roff, xd,yd,Nv);
+  x=(crad*cos(phi))*yd/xd;
+  rcoff[i]=x;
+  zd=tvps(cx+x,cy-y, xd,yd,Nv);
   rcright[i]=zd;
   //dot(zd);
-  zd=tvps(cx-coff,cy-roff, xd,yd,Nv);
+  zd=tvps(cx-x,cy-y, xd,yd,Nv);
   rcleft[i]=zd;
 }
 
@@ -1045,7 +1118,8 @@ int poffa=0, ccenterwhite=divsx%2;
 for(i=0; i<=divsx; ++i) {
   real cdist=(1+2*i)*Nsx;
   int off, offa, offb;
-
+  path zzv;
+  
   off=round(cdist/2);
   //write(cdist,off);
   offa=off+os;
@@ -1056,10 +1130,10 @@ for(i=0; i<=divsx; ++i) {
   coffb[i]=offb;
 
   //write(Nhc-offa);
-  zz=tvrect(Nhc+offb,0, Nhc+offa,Nv, xd,yd,Nv); 
-  fill(zz, p=pwhite); 
-  zz=tvrect(Nhc-offa,0, Nhc-offb,Nv, xd,yd,Nv); 
-  fill(zz, p=pwhite); 
+  zzv=tvrect(Nhc+offb,0, Nhc+offa,Nv, xd,yd,Nv); 
+  fill(zzv, p=pwhite); 
+  zzv=tvrect(Nhc-offa,0, Nhc-offb,Nv, xd,yd,Nv); 
+  fill(zzv, p=pwhite); 
 
   /** top castellations, must end with black **/
   if(i%2 == ccenterwhite) { 
@@ -1074,7 +1148,8 @@ for(i=0; i<=divsx; ++i) {
 
     for(j=0; j<jnum; ++j) {
       int lc, rc;
-
+      path zzc;
+      
       if(j==0) {
         lc=Nhc+poffa;
         rc=Nhc+offb;
@@ -1083,10 +1158,10 @@ for(i=0; i<=divsx; ++i) {
         rc=Nhc-poffa;
       }
 
-      zz=tvrect(lc,0, rc,Nt-1, xd,yd,Nv); 
-      fill(zz, p=pblack); 
-      zz=tvrect(lc,Nv-Nb+1, rc,Nv, xd,yd,Nv); 
-      fill(zz, p=pblack); 
+      zzc=tvrect(lc,0, rc,Nt-1, xd,yd,Nv); 
+      fill(zzc, p=pblack); 
+      zzc=tvrect(lc,Nv-Nb+1, rc,Nv, xd,yd,Nv); 
+      fill(zzc, p=pblack); 
     }
   }
 
@@ -1120,78 +1195,30 @@ for(i=1; i<=iend; ++i) {
   }
   if(i%2 == 1) {
     int tr, br;
-
+    path zzc;
+    
     tr=rcrowb[i-1];
     br=rcrowt[i];    
-    zz=tvrect( 0,tr, lc,br, xd,yd,Nv);
-    fill(zz, p=pblack); 
-    zz=tvrect(rc,tr, Nh,br, xd,yd,Nv); 
-    fill(zz, p=pcast);
+    zzc=tvrect( 0,tr, lc,br, xd,yd,Nv);
+    fill(zzc, p=pblack); 
+    zzc=tvrect(rc,tr, Nh,br, xd,yd,Nv); 
+    fill(zzc, p=pcast);
   }
 }
 
-/**** markers for 4/3 aspect ratio ****/
+/****** markers for 4/3 aspect ratio ******/
 if(rimage>4/3)
   rimarkers(rimage, Nh, Nhc, os, Nvc, Nsy, pwhite, xd, yd, Nv);
 
-/******** line pairing center ********************************************/
-pair[] z;
-int col;
-z[0]=rcright[divsy];
-
-col=Nhc+coff[0];
-z[1]=tvps(col,rcrowc[divsy], xd,yd,Nv);
-z[2]=tvps(col,rcrowc[divsy-1], xd,yd,Nv);
-col=Nhc-coff[0];
-z[3]=tvps(col,rcrowc[divsy-1], xd,yd,Nv);
-z[4]=tvps(col,rcrowc[divsy], xd,yd,Nv);
-
-z[5]=rcleft[divsy]; 
-z[6]=rcleft[divsy+1];
-
-z[7]=tvps(col,rcrowc[divsy+1], xd,yd,Nv);
-z[8]=tvps(col,rcrowc[divsy+2], xd,yd,Nv);
-col=Nhc+coff[0];
-z[9]=tvps(col,rcrowc[divsy+2], xd,yd,Nv);
-z[10]=tvps(col,rcrowc[divsy+1], xd,yd,Nv);
-
-z[11]=rcright[divsy+1]; 
-fill(z[1]--z[2]--z[3]--z[4] //--z[5]--z[6]
-     --arc(ccenter, z[5], z[6])
-     --z[7]--z[8]--z[9]--z[10] //--z[11]--z[0]
-     --arc(ccenter,z[11], z[0])
-     --cycle, p=pblack);
-
-int hy, maxoff;
-hy=floor(Nsyc/2);
-maxoff=floor(rcoff[divsy]);
-for(i=0; i<=divsx; ++i) {
-  int off;
-
-  off=coff[i];
-  if(off<maxoff) {
-    int offa, offb;
-    offa=coffa[i];
-    offb=coffb[i];
-
-    zz=tvrect(Nhc+offb,Nvc-hy, Nhc+offa,Nvc+hy, xd,yd,Nv); 
-    fill(zz, p=pwhite);
-
-    zz=tvrect(Nhc-offa,Nvc-hy, Nhc-offb,Nvc+hy, xd,yd,Nv); 
-    fill(zz, p=pwhite);
-  }
-}
-
-zz=tvps(Nhc-os,Nvc-hy-Nsy, 2*os,2*(hy+Nsy), xd,yd,Nv); // vertical centerline
-fill(zz, p=pwhite);
-zz=tvps(Nhc-maxoff,Nvc-1, 2*maxoff,2, xd,yd,Nv);       // horizontal centerline
-fill(zz, p=pwhite);
+/****** line pairing center ******/
+centerline(coff, coffa, coffb, Nhc, divsx, os, rcrowc, Nvc, divsy,
+	   ccenter, rcoff, rcright, rcleft, pdefault, xd, yd, Nv);
 
 if(colortv>0) {
   /* topbw structure */
   topbw(coff, Nhc, os, rcrowc[divsy-5], rcrowc[divsy-4], rcrowc[divsy-3], 
-        ccenter, rcleft[divsy-4],rcleft[divsy-3],rcright[divsy-4],rcright[divsy-3], 
-        pdefault, xd, yd, Nv);
+	ccenter, rcleft[divsy-4], rcleft[divsy-3], rcright[divsy-4],
+	rcright[divsy-3], pdefault, xd, yd, Nv);
 
   /* 250 kHz */
   testtone(Ttone, rcrowc[divsy-3], rcrowc[divsy-2], 
@@ -1199,18 +1226,18 @@ if(colortv>0) {
 
   /* color bars */ 
   colorbars(coff, Nhc, rcrowc[divsy-2], rcrowc[divsy-1], rcrowc[divsy], 
-            ccenter, rcleft[divsy-2], rcleft[divsy], rcright[divsy-2], rcright[divsy],
-            pdefault, xd,yd,Nv);
+	    ccenter, rcleft[divsy-2], rcleft[divsy], rcright[divsy-2],
+	    rcright[divsy], pdefault, xd, yd, Nv);
 
   /* test frequencies */
-  testfreqs(ftones, coff, Nhc, rcrowc[divsy+1],rcrowc[divsy+2],rcrowc[divsy+3],
-            ccenter, rcleft[divsy+1],rcleft[divsy+3], rcright[divsy+1],rcright[divsy+3],
-            pdefault, xd, yd, Nv);
+  testfreqs(ftones, coff, Nhc, rcrowc[divsy+1], rcrowc[divsy+2],
+	    rcrowc[divsy+3], ccenter, rcleft[divsy+1], rcleft[divsy+3],
+	    rcright[divsy+1],rcright[divsy+3], pdefault, xd, yd, Nv);
 
   /* gray bars */
   graybars(coff, Nhc, rcrowc[divsy+3], rcrowc[divsy+4], ccenter,
-           rcleft[divsy+3], rcleft[divsy+4], rcright[divsy+3], rcright[divsy+4],
-           pdefault, xd,yd,Nv);
+	   rcleft[divsy+3], rcleft[divsy+4],
+	   rcright[divsy+3], rcright[divsy+4], pdefault, xd,yd,Nv);
 
   /* PAL ears */
   if(colortv==1) {
@@ -1231,17 +1258,16 @@ if(colortv>0) {
 
   /* bottom wh - black - wh */
   bottombw(round((coff[2]+coff[3])/2), Nhc, rcrowc[divsy+4], rcrowc[divsy+5], 
-           ccenter, rcleft[divsy+4],rcleft[divsy+5], rcright[divsy+4],rcright[divsy+5],
-           pdefault, xd, yd, Nv);
+	   ccenter, rcleft[divsy+4], rcleft[divsy+5],
+	   rcright[divsy+4], rcright[divsy+5], pdefault, xd, yd, Nv);
 
   /* bottom yellow red circle */
   bottomcirc(coff[0], Nhc, rcrowc[divsy+5], cx, cy, crad, 
-             ccenter, rcleft[divsy+5], rcright[divsy+5], pdefault, xd, yd, Nv);
+	     ccenter, rcleft[divsy+5], rcright[divsy+5], pdefault, xd, yd, Nv);
 }
 
 /********************** set id *********************/
-{
-  /* dpi */
+{ /* dpi */
   pair rpos=tvps(Nhc,round((rcrowc[divsy-4]+rcrowc[divsy-5])/2), xd,yd,Nv);
   string iRhor, iRver, ires;
   real Rh, Rv;
@@ -1282,6 +1308,7 @@ if(colortv>0) {
   label(ires, rpos, p=pbw);
   label(itot, tpos, p=pbw);
   label(iNsy, Npos, p=pbw);
-  if(settings.verbose > 1)
+  if(verbose > 1)
     write('#res:\t', ires, itot, iNsy);
 }
+
