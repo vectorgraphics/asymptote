@@ -453,11 +453,12 @@ pen[] Gradient(int NColors=256 ... pen[] p)
 {
   pen[] P;
   if(p.length < 2) abort("at least 2 colors must be specified");
+  real step=NColors > 1 ? (1/(NColors-1)) : 1;
   for(int i=0; i < p.length-1; ++i) {
     pen begin=p[i];
     pen end=p[i+1];
     P.append(sequence(new pen(int j) {
-          return interp(begin,end,j/(NColors-1));
+          return interp(begin,end,j*step);
         },NColors));
   }
   return P;
