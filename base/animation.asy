@@ -22,10 +22,6 @@ fit BBox(real xmargin=0, real ymargin=xmargin,
 }
 
 struct animation {
-  string outname() {
-    return outprefix();
-  }
-
   picture[] pictures;
   string[] files;
   int index;
@@ -36,7 +32,7 @@ struct animation {
   // been generated. 
 
   void operator init(string prefix="", bool global=true) {
-    prefix=(prefix == "") ? outname() : stripdirectory(prefix);
+    prefix="_"+((prefix == "") ? outprefix() : stripdirectory(prefix));
     this.prefix=prefix;
     this.global=global;
   }
@@ -136,27 +132,30 @@ struct animation {
   }
 
   string pdf(fit fit=NoBox, real delay=animationdelay, string options="",
-             bool multipage=true) {
+             bool keep=settings.keep, bool multipage=true) {
     if(settings.tex != "pdflatex")
       abort("inline pdf animations require -tex pdflatex");
     
     string filename=basename();
     string pdfname=filename+".pdf";
+    bool single=global && multipage;
 
     if(global)
       export(filename,fit,multipage=multipage);
     shipped=false;
 
-    if(!settings.keep && !settings.inlinetex) {
+    if(!keep && !settings.inlinetex) {
       exitfcn currentexitfunction=atexit();
       void exitfunction() {
         if(currentexitfunction != null) currentexitfunction();
         this.purge();
+        if(single)
+          delete(pdfname);
       }
       atexit(exitfunction);
     }
 
-    if(!global || !multipage)
+    if(!single)
       delete(pdfname);
 
     return load(pictures.length,delay,options);
