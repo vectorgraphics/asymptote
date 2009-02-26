@@ -4006,6 +4006,7 @@ Int convert(string args=emptystring, string file=emptystring,
 Int animate(string args=emptystring, string file=emptystring,
             string format=emptystring)
 {
+#ifndef __CYGWIN__
   string name=convertname(file,format,false);
   if(view()) {
     ostringstream cmd;
@@ -4013,7 +4014,7 @@ Int animate(string args=emptystring, string file=emptystring,
         << " '" << name << "'";
     return System(cmd,0,false,"animate","your animated GIF viewer");
   }
-  
+#endif  
   return 0;
 }
 
