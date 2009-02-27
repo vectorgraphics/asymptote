@@ -1,6 +1,8 @@
 import three;
 
 size(15cm);
+viewportmargin=2cm;
+
 currentprojection=perspective(24,14,13,showtarget=false);
 currentlight=light(gray(0.5),specularfactor=3,viewport=false,
                    (0.5,-0.5,-0.25),(0.5,0.5,0.25),(0.5,0.5,1),(-0.5,-0.5,-1));
@@ -8,7 +10,7 @@ currentlight=light(gray(0.5),specularfactor=3,viewport=false,
 defaultpen(0.75mm);
 
 path3 g=arc(O,1,90,-60,90,60);
-transform3 t=shift(invert(10E,O));
+transform3 t=shift(invert(3S,O));
 
 draw(g,blue,Arrows3(TeXHead3),currentlight);
 draw(scale3(3)*g,green,ArcArrows3(HookHead3),currentlight);
