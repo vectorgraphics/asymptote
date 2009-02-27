@@ -3994,7 +3994,8 @@ Int convert(string args=emptystring, string file=emptystring,
   string name=convertname(file,format);
   cmd << "'" << getSetting<string>("convert") << "' " << args
       << " '" << name << "'";
-  Int ret=System(cmd,2,true,"convert","your ImageMagick convert utility");
+  bool quiet=verbose <= 1;
+  Int ret=System(cmd,quiet ? 1 : 0,true,"convert","your ImageMagick convert utility");
   
   if(ret == 0 && verbose > 0)
     cout << "Wrote " << ((file.empty()) ? name : file) << endl;
