@@ -567,8 +567,7 @@ void add(picture pic, arrowhead3 arrowhead, real size, real angle,
           add(pic,arrow(arrowhead.arrowhead2,project(G,P),q,size,angle,
                         filltype == null ?
                         arrowhead.arrowhead2.defaultfilltype
-                        ((pen) arrowheadpen) : filltype,
-                        position(position,size,g,center),
+                        ((pen) arrowheadpen) : filltype,position,
                         forwards,TrueMargin(m.begin,m.end),center));
         }
       },true);
