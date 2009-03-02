@@ -32,13 +32,13 @@ struct animation {
   // been generated. 
 
   void operator init(string prefix="", bool global=true) {
-    prefix="_"+((prefix == "") ? outprefix() : stripdirectory(prefix));
+    prefix=(prefix == "") ? outprefix() : stripdirectory(prefix);
     this.prefix=prefix;
     this.global=global;
   }
   
   string basename(string prefix=prefix) {
-    return stripextension(prefix);
+    return "_"+stripextension(prefix);
   }
 
   string name(string prefix, int index) {
@@ -77,7 +77,7 @@ struct animation {
       " -alpha Off -dispose Background "+options;
     for(int i=0; i < files.length; ++i)
       args += " " +files[i];
-    int rc=convert(args,format=format);
+    int rc=convert(args,prefix+"."+format,format=format);
     this.purge(keep);
     if(rc == 0) animate(format=format);
     else abort("merge failed");
@@ -165,7 +165,7 @@ struct animation {
             string format=settings.outformat == "" ? "gif" : settings.outformat,
             string options="", bool keep=settings.keep) {
     if(global && format == "pdf") {
-      export(settings.outname,fit,multipage=true,view=true);
+      export(fit,multipage=true,view=true);
       return 0;
     }
 
