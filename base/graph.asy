@@ -317,7 +317,7 @@ private struct locateT {
   pair dir;     // tick direction in frame coordinates
   
   void dir(transform T, path g, ticklocate locate, real t) {
-    pathdir=unit(T*dir(g,t));
+    pathdir=unit(shiftless(T)*dir(g,t));
     pair Dir=locate.dir(t);
     dir=Dir == 0 ? -I*pathdir : unit(Dir);
   }
