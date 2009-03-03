@@ -17,7 +17,7 @@ real viewportfactor=1.02;  // Factor used to expand orthographic viewport.
 real anglefactor=1.02;     // Factor used to expand perspective viewport.
 real angleprecision=1e-3;  // Precision for centering perspective projections.
 
-string defaultembed3Doptions="poster";
+string defaultembed3Doptions;
 string defaultembed3Dscript;
 
 triple O=(0,0,0);
@@ -2278,6 +2278,7 @@ string embed3D(string label="", string text=label, string prefix,
   
   string options3=light.viewport ? "3Dlights=Headlamp" : "3Dlights=File";
   if(defaultembed3Doptions != "") options3 += ","+defaultembed3Doptions;
+  if(settings.render < 0 || !settings.inlineimage) options3 += ",poster";
   options3 += ",text="+text+",label="+label+
     ",toolbar="+(settings.toolbar ? "true" : "false")+
     ",3Daac="+format(P.absolute ? P.angle : angle)+
@@ -2374,7 +2375,6 @@ object embed(string label="", string text=label,
           return b == 0 ? (0.5*(a.x+a.y)) : (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
         }
         transform3 s=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z));
-        P=s*P;
         pic2.erase();
         t=s*t;
         f=pic.fit3(t,is3D ? null : pic2,P);
@@ -2413,7 +2413,7 @@ object embed(string label="", string text=label,
           angle=anglefactor*max(aTan(-r.x*aspect)+aTan(R.x*aspect),
                                 aTan(-r.y)+aTan(R.y));
           if(viewportmargin.y != 0)
-            angle=aTan(Tan(angle)+viewportmargin.y/h);
+            angle=2.0*aTan(Tan(0.5*angle)-viewportmargin.y/P.target.z);
         }
       }
     }
