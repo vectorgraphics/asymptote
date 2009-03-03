@@ -5777,12 +5777,12 @@ need to remove the files @code{latexusage-*}, @code{latexusage_.pre}, and
 
 @cindex @code{attachfile2}
 @cindex @code{asyattach}
-The current version of @code{asymptote.sty} supports the
+The current version (1.03) of @code{asymptote.sty} supports the
 embedding of 3D @acronym{PRC} files, either inline or, using the
 @code{asyattach} environment with the @code{attachfile2} (or older
-@code{attachfile}) @code{LaTeX} package, as annotated attachments.
-For most applications, the annotated attachment method tends to be more
-convenient.
+@code{attachfile}) @code{LaTeX} package, as annotated (but printable)
+attachments. For most applications, the annotated attachment method
+tends to be more convenient.
 
 If the @code{inline} option is given to the
 @code{asymptote.sty} package, inline @code{LaTeX} code is generated instead of

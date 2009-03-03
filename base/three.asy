@@ -2413,7 +2413,7 @@ object embed(string label="", string text=label,
           angle=anglefactor*max(aTan(-r.x*aspect)+aTan(R.x*aspect),
                                 aTan(-r.y)+aTan(R.y));
           if(viewportmargin.y != 0)
-            angle=2.0*aTan(Tan(0.5*angle)-viewportmargin.y/P.target.z);
+            angle=2*aTan(Tan(0.5*angle)-viewportmargin.y/P.target.z);
         }
       }
     }

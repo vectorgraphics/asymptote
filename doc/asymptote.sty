@@ -3,7 +3,7 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2)
 
-\ProvidesPackage{asymptote}[2008/11/25 v1.02 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2009/03/03 v1.03 Asymptote style file for LaTeX]
 \newif\ifASYinline
 \newif\ifASYattach
 \DeclareOption{inline}{\ASYinlinetrue}
@@ -56,6 +56,8 @@
 \ifASYinline
 \immediate\write\AsyStream{settings.inlinetex=true;}%
 \immediate\write\AsyStream{deletepreamble();}%
+\else
+\newbox\ASYbox%
 \fi
 
 \newcounter{asy}
@@ -147,10 +149,14 @@
           \openin\AsyTestStream=\Jobname-\the\c@asy-0.pdf
         \fi
         \ifeof\AsyTestStream
-          \textattachfile{\Jobname-\the\c@asy.pdf}{\includegraphics{\Jobname-\the\c@asy}}%
+          \setbox\ASYbox=\hbox{\includegraphics{\Jobname-\the\c@asy}}%
         \else
-          \textattachfile{\Jobname-\the\c@asy.pdf}{\includegraphics{\Jobname-\the\c@asy-0}}%
+          \setbox\ASYbox=\hbox{\includegraphics{\Jobname-\the\c@asy-0}}%
         \fi
+        \textattachfile{\Jobname-\the\c@asy.pdf}{\phantom{\copy\ASYbox}}%
+        \vskip-\ht\ASYbox%
+        \indent%
+        \box\ASYbox%
         \closein\AsyTestStream%
       \else
         \includegraphics{\Jobname-\the\c@asy}%
