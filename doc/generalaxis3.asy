@@ -3,6 +3,7 @@ import graph3;
 size(0,100);
 
 path3 g=yscale3(2)*unitcircle3;
+currentprojection=perspective(4,4,4);
 
 scale(true);
 

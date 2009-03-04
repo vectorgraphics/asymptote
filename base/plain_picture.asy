@@ -440,9 +440,9 @@ struct projection {
     this.up=up;
     this.target=target;
     this.showtarget=showtarget;
-    this.autoadjust=autoadjust;
     this.projector=projector;
     calculate();
+    this.autoadjust=infinity ? false : autoadjust;
   }
 
   projection copy() {
@@ -465,41 +465,26 @@ struct projection {
   // Return the maximum distance of box(m,M) from target.
   real distance(triple m, triple M) {
     triple[] c={m,(m.x,m.y,M.z),(m.x,M.y,m.z),(m.x,M.y,M.z),
-		(M.x,m.y,m.z),(M.x,m.y,M.z),(M.x,M.y,m.z),M};
-    real d=0;
-    for(int i=0; i < 8; ++i)
-      d=max(d,abs(c[i]-target));
-    return d;
+                (M.x,m.y,m.z),(M.x,m.y,M.z),(M.x,M.y,m.z),M};
+    return max(abs(c-target));
   }
    
-  void update() {
+  void update(transform3 t=identity4) {
     if(!infinity)
-      write("adjusting camera to ",camera);
+      write("adjusting camera to ",inverse(t)*camera);
     calculate();
-  }
-  
-  // Check if v is on or behind the clipping plane.
-  bool behind(triple v) {
-    return dot(camera-v,camera-target) <= 0;
-  }
-
-  // Move the camera so that v is on or in front of clipping plane.
-  void adjust(triple v) {
-    if(!absolute && behind(v)) {
-      camera=target+abs(v-target)*unit(camera-target);
-      update();
-    }
   }
   
   // Move the camera so that the box(m,M) rotated about target will always
   // lie in front of the clipping plane.
-  void adjust(triple m, triple M) {
+  void adjust(triple m, triple M, transform3 t=identity4) {
     triple v=camera-target;
     real d=distance(m,M);
-    static real lambda=2-1000*realEpsilon;
+    static real factor=1.1;
+    static real lambda=factor*(1-sqrt(realEpsilon));
     if(lambda*d >= abs(v)) {
-      camera=target+2d*unit(v);
-      update();
+      camera=target+factor*d*unit(v);
+      update(t);
     }
   }
 }

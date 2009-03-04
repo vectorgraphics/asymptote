@@ -10,6 +10,7 @@ currentlight=adobe;
 //currentlight=nolight;
 
 size(200);
+currentprojection=perspective(30,30,15);
 
 // Uncomment this line for more accurate (but slower) PDF rendering
 //dotgranularity=0;

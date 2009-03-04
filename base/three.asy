@@ -2350,6 +2350,7 @@ object embed(string label="", string text=label,
     P=s*P;
     f=pic.fit3(t,pic2,P);
   }
+
   bool is3D=is3D(format);
   bool scale=xsize != 0 || ysize != 0;
 
@@ -2363,7 +2364,7 @@ object embed(string label="", string text=label,
     real height=lambda.y;
 
     pair viewportmargin=viewportmargin(P);
-
+    projection Q;
     if(!P.absolute) {
       if(scale) {
         pair v=(s.xx,s.yy);
@@ -2374,15 +2375,17 @@ object embed(string label="", string text=label,
         real f(pair a, pair b) {
           return b == 0 ? (0.5*(a.x+a.y)) : (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
         }
-        transform3 s=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z));
         pic2.erase();
-        t=s*t;
-        f=pic.fit3(t,is3D ? null : pic2,P);
+        f=pic.fit3(xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z))*t,
+                   is3D ? null : pic2,P);
       }
+
+      if(P.autoadjust) P.adjust(min3(f),max3(f),t);
 
       transform3 modelview=P.modelview();
       f=modelview*f;
       P=modelview*P;
+      Q=P.copy();
       light=modelview*light;
 
       if(P.infinity) {
@@ -2404,7 +2407,9 @@ object embed(string label="", string text=label,
             R=maxratio(f);
             pair lasts=s;
             s=r+R;
-            f=shift(h*s.x,h*s.y,0)*f;
+            transform3 t=shift(h*s.x,h*s.y,0);
+            f=t*f;
+            P=t*P;
             diff=abs(s-lasts);
             ++i;
           } while (diff > angleprecision && i < maxiterations);
@@ -2478,7 +2483,8 @@ object embed(string label="", string text=label,
       image=graphic(image);
     }
     if(prc) F.L=embed3D(label,text=image,prefix,f,format,
-                        width,height,angle,options,script,background,light,P);
+                        width,height,angle,options,script,background,light,
+                        P.absolute ? P : Q);
   }
 
   if(!is3D) {
