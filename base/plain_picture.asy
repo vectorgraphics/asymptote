@@ -1,3 +1,5 @@
+real camerafactor=1.2;
+
 restricted bool Aspect=true;
 restricted bool IgnoreAspect=false;
 
@@ -480,10 +482,9 @@ struct projection {
   void adjust(triple m, triple M, transform3 t=identity4) {
     triple v=camera-target;
     real d=distance(m,M);
-    static real factor=1.1;
-    static real lambda=factor*(1-sqrt(realEpsilon));
+    static real lambda=camerafactor*(1-sqrt(realEpsilon));
     if(lambda*d >= abs(v)) {
-      camera=target+factor*d*unit(v);
+      camera=target+camerafactor*d*unit(v);
       update(t);
     }
   }
