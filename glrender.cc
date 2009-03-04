@@ -519,11 +519,13 @@ void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
 void quit() 
 {
   if(glthread) {
-    glutHideWindow();
 #ifdef HAVE_LIBPTHREAD
-    if(!interact::interactive)
+    if(!interact::interactive) {
       wait(quitSignal,quitLock);
+      usleep(100000);
+    }
 #endif
+    glutHideWindow();
   } else {
     glutDestroyWindow(window);
     exit(0);
