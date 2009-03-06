@@ -12,7 +12,8 @@ real defaultshininess=0.25;
 real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
-pair viewportmargin=0;     // Viewport margin.
+pair viewportmargin=0;     // Horizontal and vertical viewport margins.
+pair viewportsize=0;       // Horizontal and vertical viewport limits.
 real viewportfactor=1.02;  // Factor used to expand orthographic viewport.
 real anglefactor=1.02;     // Factor used to expand perspective viewport.
 real angleprecision=1e-3;  // Precision for centering perspective projections.
@@ -2229,9 +2230,13 @@ void writeJavaScript(string name, string preamble, string script)
     file3.push(name);
 }
 
-pair viewportmargin(projection P) 
+pair viewportmargin(projection P, real width, real height) 
 {
-  pair viewportmargin=(abs(viewportmargin.x),abs(viewportmargin.y));
+  pair viewportmargin=viewportmargin;
+  if(viewportmargin == 0)
+    viewportmargin=(max(0.5*(viewportsize.x-width),0),
+                    max(0.5*(viewportsize.y-height),0));
+  viewportmargin=(abs(viewportmargin.x),abs(viewportmargin.y));
   if(P.infinity) return viewportmargin;
   return (max(viewportmargin.x,viewportmargin.y),viewportmargin.y);
 }
@@ -2253,9 +2258,8 @@ string embed3D(string label="", string text=label, string prefix,
   // Adobe Reader doesn't appear to support user-specified viewport lights.
   string lightscript=light.on() && !light.viewport ? lightscript(light) : "";
 
-  pair viewportmargin=viewportmargin(P);
-
   triple lambda=max3(f)-min3(f);
+  pair viewportmargin=viewportmargin(P,lambda.x,lambda.y);
   real viewplanesize=(viewportfactor*lambda.y+2*viewportmargin.y)/cm;
   string name=prefix+".js";
   writeJavaScript(name,lightscript+projection(P.infinity,viewplanesize),script);
@@ -2363,7 +2367,7 @@ object embed(string label="", string text=label,
     real width=lambda.x;
     real height=lambda.y;
 
-    pair viewportmargin=viewportmargin(P);
+    pair viewportmargin=viewportmargin(P,width,height);
     projection Q;
     if(!P.absolute) {
       if(scale) {

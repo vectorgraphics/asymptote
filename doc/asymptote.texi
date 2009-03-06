@@ -7464,13 +7464,14 @@ void size3(picture pic=currentpicture, real x, real y=x, real z=y,
 @noindent
 @cindex margins
 @cindex @code{viewportmargin}
+@cindex @code{viewportsize}
 The resulting simplex linear programming problem is then solved to
 produce a 3D version of a frame (actually implemented as a 3D picture). 
 The result is then fit with another application of deferred drawing
 to the viewport dimensions corresponding to the usual two-dimensional
 picture @code{size} parameters. The global pair @code{viewportmargin}
 may be used to add horizontal and vertical margins to the viewport
-dimensions.
+dimensions. Alternatively, a minimum @code{viewportsize} may be specified.
 
 @cindex @code{O}
 @cindex @code{X}
@@ -9023,4 +9024,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot scaledgraph
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
 @c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
-@c  LocalWords:  dvipdfmx autoadjust
+@c  LocalWords:  dvipdfmx autoadjust viewportsize
