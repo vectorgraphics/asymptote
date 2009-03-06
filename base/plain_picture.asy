@@ -786,6 +786,11 @@ struct picture {
     this.add(d,exact);
   }
 
+  void clip(drawerBound d, bool exact=false) {
+    bounds.clip(userMin,userMax);
+    this.add(d,exact);
+  }
+
   // Add a point to the sizing.
   void addPoint(pair user, pair truesize=0) {
     bounds.point.push(user,truesize);

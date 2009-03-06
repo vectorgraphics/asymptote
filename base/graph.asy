@@ -1351,8 +1351,10 @@ void xlimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
     pair userMin=pic.userMin();
     pair userMax=pic.userMax();
     pic.bounds.xclip(userMin.x,userMax.x);
-    pic.clip(new void (frame f, transform t) {
-        clip(f,box(((t*userMin).x,min(f).y),((t*userMax).x,max(f).y)));
+    pic.clip(new void (frame f, transform t, transform T, pair, pair) {
+        frame Tinvf=T == identity() ? f : t*inverse(T)*inverse(t)*f;
+        clip(f,T*box(((t*userMin).x,(min(Tinvf)).y),
+                     ((t*userMax).x,(max(Tinvf)).y)));
       });
   }
 }
@@ -1382,8 +1384,10 @@ void ylimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
     pair userMin=pic.userMin();
     pair userMax=pic.userMax();
     pic.bounds.yclip(userMin.y,userMax.y);
-    pic.clip(new void (frame f, transform t) {
-        clip(f,box((min(f).x,(t*userMin).y),(max(f).x,(t*userMax).y)));
+    pic.clip(new void (frame f, transform t, transform T, pair, pair) {
+        frame Tinvf=T == identity() ? f : t*inverse(T)*inverse(t)*f;
+        clip(f,T*box(((min(Tinvf)).x,(t*userMin).y),
+                     ((max(Tinvf)).x,(t*userMax).y)));
       });
   }
 }
