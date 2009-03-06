@@ -1404,8 +1404,10 @@ void crop(picture pic=currentpicture)
 // Restrict the x and y limits to box(min,max).
 void limits(picture pic=currentpicture, pair min, pair max, bool crop=NoCrop)
 {
-  xlimits(pic,min.x,max.x,crop);
-  ylimits(pic,min.y,max.y,crop);
+  xlimits(pic,min.x,max.x);
+  ylimits(pic,min.y,max.y);
+  if(pic.userSetx && pic.userSety)
+    clip(pic,box(pic.userMin(),pic.userMax()));
 }
   
 // Internal routine to autoscale the user limits of a picture.
