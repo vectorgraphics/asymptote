@@ -3,9 +3,10 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2)
 
-\ProvidesPackage{asymptote}[2009/03/03 v1.03 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2009/03/07 v1.04 Asymptote style file for LaTeX]
+\RequirePackage{keyval}
+\RequirePackage{ifthen}
 \newif\ifASYinline
-\newif\ifASYattach
 \DeclareOption{inline}{\ASYinlinetrue}
 \ProcessOptions*
 
@@ -35,6 +36,9 @@
 \immediate\write\AsyStream{access settings;}%
 \immediate\write\AsyStream{if(!settings.multipleView)}%
 \immediate\write\AsyStream{  settings.batchView=false;}%
+
+\newif\ifASYattach
+\newif\ifASYtex
 
 \newif\ifASYPDF
 \ifx\pdfoutput\undefined
@@ -105,13 +109,45 @@
   }}
 
 \def\AfterasyAsymptote{%
-  \ifx\@asyoptarg\empty
+  \ifx\ASYwidth\empty
+    \ifx\ASYheight\empty
+    \else
+      \immediate\write\AsyStream{size(0,\ASYheight);}%
+    \fi
   \else
-    \immediate\write\AsyStream{size(\@asyoptarg);}%
+    \ifx\ASYheight\empty
+      \immediate\write\AsyStream{size(\ASYwidth,0);}%
+    \else
+      \immediate\write\AsyStream{size(\ASYwidth,\ASYheight);}%
+    \fi
   \fi
+  \ifx\ASYviewportwidth\empty
+    \ifx\ASYviewportheight\empty
+    \else
+      \immediate\write\AsyStream{viewportsize=(0,\ASYviewportheight);}%
+    \fi
+  \else
+    \ifx\ASYviewportheight\empty
+      \immediate\write\AsyStream{viewportsize=(\ASYviewportwidth,0);}%
+    \else
+      \immediate\write%
+        \AsyStream{viewportsize=(\ASYviewportwidth,\ASYviewportheight);}%
+    \fi
+  \fi
+  \ASYtexfalse
+  \ifASYattach
+  \else
+    \ifASYinline
+      \ASYtextrue
+    \fi
+  \fi
+  \gdef\ASYwidth{}
+  \gdef\ASYheight{}
+  \gdef\ASYviewportwidth{}
+  \gdef\ASYviewportheight{}
   \immediate\write\AsyStream{\@charrb);}%
   \immediate\write\AsyStream{// End of Asymptote Figure \the\c@asy}%
-  \ifASYinline
+  \ifASYtex
     \openin\AsyTestStream=\Jobname-\the\c@asy_.tex
   \else
     \ifASYPDF
@@ -121,7 +157,7 @@
     \fi
   \fi
   \ifeof\AsyTestStream
-    \ifASYinline
+    \ifASYtex
       \PackageWarning{asymptote}{file \Jobname-\the\c@asy_.tex does not exist}%
     \else
       \openin\AsyTestTeXStream=\Jobname-\the\c@asy_.tex
@@ -140,7 +176,7 @@
     \closein\AsyTestStream%
   \else
     \closein\AsyTestStream%
-    \ifASYinline
+    \ifASYtex
       \catcode`:=12
       \input \Jobname-\the\c@asy_.tex%
     \else
@@ -163,13 +199,33 @@
       \fi
     \fi
   \fi
+  \global\ASYattachfalse
   \relax%
   \endgroup}
+\gdef\ASYwidth{}%
+\define@key{ASYkeys}{width}{%
+  \gdef\ASYwidth{#1}%
+}
+\gdef\ASYheight{}%
+\define@key{ASYkeys}{height}{%
+  \gdef\ASYheight{#1}%
+}
+\gdef\ASYviewportwidth{}%
+\define@key{ASYkeys}{viewportwidth}{%
+  \gdef\ASYviewportwidth{#1}%
+}
+\gdef\ASYviewportheight{}%
+\define@key{ASYkeys}{viewportheight}{%
+  \gdef\ASYviewportheight{#1}%
+}
+\define@key{ASYkeys}{attach}[true]{%
+  \ifthenelse{\equal{#1}{true}}{\global\ASYattachtrue}{\global\ASYattachfalse}%
+}
 \newcommand\asy[1][]{%
   \begingroup
   \let\par\empty
   \stepcounter{asy}%
-  \gdef\@asyoptarg{#1}%
+  \setkeys{ASYkeys}{#1}%
    \immediate\write\AsyStream{}%
    \immediate\write\AsyStream{// Beginning of Asymptote Figure \the\c@asy}%
    \immediate\write\AsyStream{eval(quote\@charlb}%
@@ -194,7 +250,6 @@
 \def\asydef{%
   \let\ThisAsymptote\WriteGlobalAsyLine%
   \ProcessAsymptote{asydef}}
-\def\asyattach{\ASYattachtrue\ASYinlinefalse}
 \AsymptoteEndDef{asydef}
 \def\AfterasydefAsymptote{}
 
