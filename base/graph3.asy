@@ -940,13 +940,13 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
   axis(pic,axis);
   
   if(xmin == -infinity && !axis.extend) {
-    if(pic.scale.set && pic.scale.x.automin())
+    if(pic.scale.set)
       xmin=pic.scale.x.tickMin;
     else xmin=pic.userMin.x;
   }
   
   if(xmax == infinity && !axis.extend) {
-    if(pic.scale.set && pic.scale.x.automax())
+    if(pic.scale.set)
       xmax=pic.scale.x.tickMax;
     else xmax=pic.userMax.x;
   }
@@ -1011,13 +1011,13 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
   axis(pic,axis);
   
   if(ymin == -infinity && !axis.extend) {
-    if(pic.scale.set && pic.scale.y.automin())
+    if(pic.scale.set)
       ymin=pic.scale.y.tickMin;
     else ymin=pic.userMin.y;
   }
   
   if(ymax == infinity && !axis.extend) {
-    if(pic.scale.set && pic.scale.y.automax())
+    if(pic.scale.set)
       ymax=pic.scale.y.tickMax;
     else ymax=pic.userMax.y;
   }
@@ -1082,13 +1082,13 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
   axis(pic,axis);
   
   if(zmin == -infinity && !axis.extend) {
-    if(pic.scale.set && pic.scale.z.automin())
+    if(pic.scale.set)
       zmin=pic.scale.z.tickMin;
     else zmin=pic.userMin.z;
   }
   
   if(zmax == infinity && !axis.extend) {
-    if(pic.scale.set && pic.scale.z.automax())
+    if(pic.scale.set)
       zmax=pic.scale.z.tickMax;
     else zmax=pic.userMax.z;
   }
