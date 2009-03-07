@@ -444,7 +444,7 @@ struct projection {
     this.showtarget=showtarget;
     this.projector=projector;
     calculate();
-    this.autoadjust=infinity ? false : autoadjust;
+    this.autoadjust=absolute ? false : autoadjust;
   }
 
   projection copy() {
@@ -471,21 +471,17 @@ struct projection {
     return max(abs(c-target));
   }
    
-  void update(transform3 t=identity4) {
-    if(!infinity)
-      write("adjusting camera to ",inverse(t)*camera);
-    calculate();
-  }
-  
   // Move the camera so that the box(m,M) rotated about target will always
   // lie in front of the clipping plane.
   void adjust(triple m, triple M, transform3 t=identity4) {
+    if(infinity) return;
     triple v=camera-target;
     real d=distance(m,M);
     static real lambda=camerafactor*(1-sqrt(realEpsilon));
     if(lambda*d >= abs(v)) {
       camera=target+camerafactor*d*unit(v);
-      update(t);
+      write("adjusting camera to ",inverse(t)*camera);
+      calculate();
     }
   }
 }

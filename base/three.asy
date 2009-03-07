@@ -234,18 +234,19 @@ projection perspective(real x, real y, real z, triple up=Z, triple target=O,
 }
 
 projection orthographic(triple camera, triple up=Z, triple target=O,
-                        bool showtarget=true)
+                        bool showtarget=true,  bool autoadjust=true)
 {
-  return projection(camera,up,target,showtarget,
+  return projection(camera,up,target,showtarget,autoadjust,
                     new transformation(triple camera, triple up,
                                        triple target) {
                       return transformation(look(camera,up,target));});
 }
 
 projection orthographic(real x, real y, real z, triple up=Z,
-                        triple target=O, bool showtarget=true)
+                        triple target=O, bool showtarget=true,
+                        bool autoadjust=true)
 {
-  return orthographic((x,y,z),up,target,showtarget);
+  return orthographic((x,y,z),up,target,showtarget,autoadjust);
 }
 
 projection oblique(real angle=45)
@@ -2332,15 +2333,41 @@ object embed(string label="", string text=label,
     warn=false;
   }
 
-  if(!P.absolute && P.showtarget)
+  projection P=P.copy();
+
+  transform3 t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
+  transform3 tinv=inverse(t);
+
+  triple m,M;
+
+  if(P.autoadjust) {
+    m=tinv*pic.min(t);
+    M=tinv*pic.max(t);
+    bool adjusted=false;
+    if(P.target.x < m.x ||
+       P.target.y < m.y ||
+       P.target.z < m.z ||
+       P.target.x > M.x ||
+       P.target.y > M.y ||
+       P.target.z > M.z) {
+      triple target=0.5*(m+M);
+      P.camera += target-P.target;
+      P.target=target;
+      adjusted=true;
+      write("adjusting target to ",P.target);
+    }
+    if(!keepAspect) {
+      triple v=P.camera-P.target;
+      P.camera=P.target+abs(v)*unit(realmult(v,M-m));
+      adjusted=true;
+      write("adjusting camera to ",P.camera);
+    }
+    if(adjusted) P.calculate();
+  } else if(!P.absolute && P.showtarget)
     draw(pic,P.target,nullpen);
 
-  projection P=P.copy();
-  transform3 t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
-
   if(!P.absolute) {
-    transform3 tinv=inverse(t);
-    if(P.autoadjust) P.adjust(tinv*pic.min(t),tinv*pic.max(t));
+    if(P.autoadjust) P.adjust(tinv*m,tinv*M,t);
     P=t*P;
   }
   
