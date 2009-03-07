@@ -1406,7 +1406,7 @@ void limits(picture pic=currentpicture, pair min, pair max, bool crop=NoCrop)
 {
   xlimits(pic,min.x,max.x);
   ylimits(pic,min.y,max.y);
-  if(pic.userSetx && pic.userSety)
+  if(crop && pic.userSetx && pic.userSety)
     clip(pic,box(pic.userMin(),pic.userMax()));
 }
   
