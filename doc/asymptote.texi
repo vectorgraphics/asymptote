@@ -6858,29 +6858,30 @@ positive and negative extents of the error are assumed to be equal.
 @sp 1
 @center @image{monthaxis}
 
-@item This example draws a graph of a parametrized curve. 
+@item The next example draws a graph of a parametrized curve. 
 @cindex parametrized curve
 @cindex cropping graphs
-@cindex @code{limits}
 @cindex @code{xlimits}
 @cindex @code{ylimits}
+@cindex @code{limits}
 @cindex @code{crop}
-
 The calls to 
 @verbatim
 xlimits(picture pic=currentpicture, real min=-infinity,
         real max=infinity, bool crop=NoCrop);
 @end verbatim 
-
+@noindent
 and the analogous function @code{ylimits} can be uncommented
 to set the respective axes limits for picture @code{pic} to the
-specified @code{min} and @code{max} values (alternatively, the function
-@code{limits(pair, pair)} can be used to limit the axes to the
-box having opposite vertices at the given pairs).
-Existing objects in picture @code{pic} will be cropped to lie
+specified @code{min} and @code{max} values. Alternatively, the function
+@verbatim
+void limits(picture pic=currentpicture, pair min, pair max, bool crop=NoCrop);
+@end verbatim 
+can be used to limit the axes to the box having opposite vertices at
+the given pairs). Existing objects in picture @code{pic} will be cropped to lie
 within the given limits if @code{crop}=@code{Crop}. The function
-@code{crop(picture pic)} is equivalent to calling both
-@code{xlimits(Crop)} and @code{ylimits(Crop)}.
+@code{crop(picture pic)} can be used to crop a graph to the current
+graph limits.
 @verbatiminclude parametricgraph.asy
 @sp 1
 @center @image{parametricgraph}
