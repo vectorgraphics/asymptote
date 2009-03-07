@@ -1,4 +1,4 @@
-real camerafactor=1.2;
+real camerafactor=2; // Factor used for camera adjustment.
 
 restricted bool Aspect=true;
 restricted bool IgnoreAspect=false;
@@ -473,16 +473,18 @@ struct projection {
    
   // Move the camera so that the box(m,M) rotated about target will always
   // lie in front of the clipping plane.
-  void adjust(triple m, triple M, transform3 t=identity4) {
-    if(infinity) return;
-    triple v=camera-target;
-    real d=distance(m,M);
-    static real lambda=camerafactor*(1-sqrt(realEpsilon));
-    if(lambda*d >= abs(v)) {
-      camera=target+camerafactor*d*unit(v);
-      write("adjusting camera to ",inverse(t)*camera);
-      calculate();
+  bool adjust(triple m, triple M, transform3 t=identity4) {
+    if(!infinity) {
+      triple v=camera-target;
+      real d=distance(m,M);
+      static real lambda=camerafactor*(1-sqrt(realEpsilon));
+      if(lambda*d >= abs(v)) {
+        camera=target+camerafactor*d*unit(v);
+        calculate();
+        return true;
+      }
     }
+    return false;
   }
 }
 

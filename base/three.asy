@@ -2336,14 +2336,16 @@ object embed(string label="", string text=label,
   projection P=P.copy();
 
   transform3 t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
-  transform3 tinv=inverse(t);
-
+  transform3 tinv;
   triple m,M;
 
+  bool adjusted=false;
+
   if(P.autoadjust) {
+    tinv=inverse(t);
     m=tinv*pic.min(t);
     M=tinv*pic.max(t);
-    bool adjusted=false;
+    bool recalculate=false;
     if(P.target.x < m.x ||
        P.target.y < m.y ||
        P.target.z < m.z ||
@@ -2353,21 +2355,21 @@ object embed(string label="", string text=label,
       triple target=0.5*(m+M);
       P.camera += target-P.target;
       P.target=target;
-      adjusted=true;
+      recalculate=true;
       write("adjusting target to ",P.target);
     }
     if(!keepAspect) {
       triple v=P.camera-P.target;
       P.camera=P.target+abs(v)*unit(realmult(v,M-m));
+      recalculate=true;
       adjusted=true;
-      write("adjusting camera to ",P.camera);
     }
-    if(adjusted) P.calculate();
+    if(recalculate) P.calculate();
   } else if(!P.absolute && P.showtarget)
     draw(pic,P.target,nullpen);
 
   if(!P.absolute) {
-    if(P.autoadjust) P.adjust(tinv*m,tinv*M,t);
+    if(P.autoadjust) adjusted=adjusted | P.adjust(tinv*m,tinv*M,t);
     P=t*P;
   }
   
@@ -2411,7 +2413,7 @@ object embed(string label="", string text=label,
                    is3D ? null : pic2,P);
       }
 
-      if(P.autoadjust) P.adjust(min3(f),max3(f),t);
+      if(P.autoadjust) adjusted=adjusted | P.adjust(min3(f),max3(f),t);
 
       transform3 modelview=P.modelview();
       f=modelview*f;

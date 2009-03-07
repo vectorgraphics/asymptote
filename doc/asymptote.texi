@@ -7570,7 +7570,7 @@ The point @code{(x,y,z)} is projected to @code{(x+0.5y,z+0.5y)}.
 If an optional real argument is given, the
 positive @math{y} axis is drawn at this angle in degrees.
 
-@item @w{orthographic(triple camera, triple up=Z, triple target=O, bool showtarget=true)}
+@item orthographic(triple camera, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool autoadjust=true)
 @cindex @code{orthographic}
 @cindex @code{up}
 @cindex @code{target}
@@ -7581,8 +7581,9 @@ so that, if possible, the vector @code{up} points upwards. Parallel
 lines are projected to parallel lines. The bounding volume is expanded
 to include @code{target} if @code{showtarget=true}.
 
-@item @w{orthographic(real x, real y, real z, triple up=Z, triple target=O, bool showtarget=true)}
-This is equivalent to @code{orthographic((x,y,z),up,target,showtarget)}.
+@item orthographic(real x, real y, real z, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool autoadjust=true)
+This is equivalent to 
+@code{orthographic((x,y,z),up,target,showtarget,autoadjust)}.
 
 @item perspective(triple camera, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool autoadjust=true)
 @cindex @code{perspective}
@@ -7930,17 +7931,14 @@ surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
                 bool cond(pair z)=null);
 @end verbatim
 @noindent
+The final version draws a parametric surface for a function
+@math{f(u,v)} over the parameter space @code{box(a,b)},
+as illustrated in the example @code{parametricsurface.asy}.
 The boolean array or function @code{cond} can be used to control which
 surface mesh cells are actually drawn (by default all mesh cells over
 @code{box(a,b)} are drawn).
-A parametric surface for a function @math{f(u,v)} over the parameter
-space @code{box(a,b)} may be created with
-@verbatim
-surface surface(triple f(pair z), pair a, pair b, int nu=nmesh,
-                int nv=nu, bool cond(pair z)=null);
-@end verbatim
-@noindent
-as illustrated in the example @code{parametricsurface.asy}.
+Surface lighting is illustrated in the example files
+@code{parametricsurface.asy} and @code{sinc.asy}.
 Lighting can be disabled by setting @code{light=nolight}, as in this example
 of a Gaussian surface:
 @anchor{GaussianSurface}
@@ -7948,8 +7946,6 @@ of a Gaussian surface:
 @sp 1
 @center @image{GaussianSurface}
 @noindent
-Surface lighting is illustrated in the example files
-@code{parametricsurface.asy} and @code{sinc.asy}.
 A mesh can be drawn without surface filling by specifying @code{nullpen}
 for the surfacepen.
 
