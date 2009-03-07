@@ -1488,14 +1488,16 @@ void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
   axis(pic,axis);
   
   if(xmin == -infinity && !axis.extend) {
-    if(pic.scale.set && pic.scale.x.automin())
-      xmin=pic.scale.x.tickMin;
+    if(pic.scale.set)
+      xmin=pic.scale.x.automin() ? pic.scale.x.tickMin :
+        max(pic.scale.x.tickMin,pic.userMin.x);
     else xmin=pic.userMin.x;
   }
   
   if(xmax == infinity && !axis.extend) {
-    if(pic.scale.set && pic.scale.x.automax())
-      xmax=pic.scale.x.tickMax;
+    if(pic.scale.set)
+      xmax=pic.scale.x.automax() ? pic.scale.x.tickMax :
+        min(pic.scale.x.tickMax,pic.userMax.x);
     else xmax=pic.userMax.x;
   }
 
@@ -1547,14 +1549,17 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
   axis(pic,axis);
   
   if(ymin == -infinity && !axis.extend) {
-    if(pic.scale.set && pic.scale.y.automin())
-      ymin=pic.scale.y.tickMin;
+    if(pic.scale.set)
+      ymin=pic.scale.y.automin() ? pic.scale.y.tickMin :
+        max(pic.scale.y.tickMin,pic.userMin.y);
     else ymin=pic.userMin.y;
   }
   
+  
   if(ymax == infinity && !axis.extend) {
-    if(pic.scale.set && pic.scale.y.automax())
-      ymax=pic.scale.y.tickMax;
+    if(pic.scale.set)
+      ymax=pic.scale.y.automax() ? pic.scale.y.tickMax :
+        min(pic.scale.y.tickMax,pic.userMax.y);
     else ymax=pic.userMax.y;
   }
 

@@ -940,14 +940,16 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
   axis(pic,axis);
   
   if(xmin == -infinity && !axis.extend) {
-    if(pic.scale.set && pic.scale.x.automin())
-      xmin=pic.scale.x.tickMin;
+    if(pic.scale.set)
+      xmin=pic.scale.x.automin() ? pic.scale.x.tickMin :
+        max(pic.scale.x.tickMin,pic.userMin.x);
     else xmin=pic.userMin.x;
   }
   
   if(xmax == infinity && !axis.extend) {
-    if(pic.scale.set && pic.scale.x.automax())
-      xmax=pic.scale.x.tickMax;
+    if(pic.scale.set)
+      xmax=pic.scale.x.automax() ? pic.scale.x.tickMax :
+        min(pic.scale.x.tickMax,pic.userMax.x);
     else xmax=pic.userMax.x;
   }
 
@@ -1011,14 +1013,17 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
   axis(pic,axis);
   
   if(ymin == -infinity && !axis.extend) {
-    if(pic.scale.set && pic.scale.y.automin())
-      ymin=pic.scale.y.tickMin;
+    if(pic.scale.set)
+      ymin=pic.scale.y.automin() ? pic.scale.y.tickMin :
+        max(pic.scale.y.tickMin,pic.userMin.y);
     else ymin=pic.userMin.y;
   }
   
+  
   if(ymax == infinity && !axis.extend) {
-    if(pic.scale.set && pic.scale.y.automax())
-      ymax=pic.scale.y.tickMax;
+    if(pic.scale.set)
+      ymax=pic.scale.y.automax() ? pic.scale.y.tickMax :
+        min(pic.scale.y.tickMax,pic.userMax.y);
     else ymax=pic.userMax.y;
   }
 
@@ -1082,14 +1087,16 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
   axis(pic,axis);
   
   if(zmin == -infinity && !axis.extend) {
-    if(pic.scale.set && pic.scale.z.automin())
-      zmin=pic.scale.z.tickMin;
+    if(pic.scale.set)
+      zmin=pic.scale.z.automin() ? pic.scale.z.tickMin :
+        max(pic.scale.z.tickMin,pic.userMin.z);
     else zmin=pic.userMin.z;
   }
   
   if(zmax == infinity && !axis.extend) {
-    if(pic.scale.set && pic.scale.z.automax())
-      zmax=pic.scale.z.tickMax;
+    if(pic.scale.set)
+      zmax=pic.scale.z.automax() ? pic.scale.z.tickMax :
+        min(pic.scale.z.tickMax,pic.userMax.z);
     else zmax=pic.userMax.z;
   }
 
