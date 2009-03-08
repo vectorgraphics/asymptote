@@ -594,13 +594,15 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
 
     bool calcStep=true;
     real len=tickmax-tickmin;
+    
     if(Step == 0 && N == 0) {
+      N=1;
       if(divisor.length > 0) {
         bool autoscale=locate.S.automin && locate.S.automax;
-        for(int d=divisor.length-1; d >= 0; --d) {
-          N=divisor[d];
-          Step=len/N;
-          if(b > a && !autoscale) {
+        int[] divisor0=copy(divisor);
+        if(b > a && !autoscale) {
+          for(int N : divisor0) {
+            Step=len/N;
             int N0=N;
             int m=2;
             while(Step > 0.5*(b-a)) {
@@ -608,10 +610,16 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
               Step=len/N;
               m *= 2;
             }
+            if(find(divisor == N) < 0) divisor.insert(0,N);
           }
-          if(axiscoverage(N,T,g,locate,Step,side,sign,Size,F,ticklabel,norm,
+        }
+        for(int d=divisor.length-1; d >= 0; --d) {
+          int N0=divisor[d];
+          Step=len/N0;
+          if(axiscoverage(N0,T,g,locate,Step,side,sign,Size,F,ticklabel,norm,
                           limit)) {
-            if(N == 1 && !autoscale && d < divisor.length-1) {
+            N=N0;
+            if(N0 == 1 && !autoscale && d < divisor.length-1) {
               // Try using 2 ticks (otherwise 1);
               int div=divisor[d+1];
               Step=quotient(div,2)*len/div;
@@ -629,7 +637,7 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
             break;
           }
         }
-      } else N=1;
+      }
     }
       
     if(inStep != 0 && !locate.S.automin) {
@@ -641,7 +649,7 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
       if(N == 0) N=(int) (len/Step);
       else Step=len/N;
     }
-
+    
     if(n == 0) {
       if(step != 0) n=ceil(Step/step);
     } else step=Step/n;

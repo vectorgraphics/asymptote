@@ -2,7 +2,6 @@ import graph3;
 import palette;
 
 size3(200,IgnoreAspect);
-currentprojection=perspective(dir(70,215));
 
 file in=line(input("filesurface.dat"));
 real[] x=in;
@@ -17,6 +16,9 @@ triple f(pair t) {
 }
 
 surface s=surface(f,(0,0),(x.length-1,y.length-1),x.length-1,y.length-1);
+
+triple target=0.5*(min(s)+max(s));
+currentprojection=perspective(camera=target+dir(70,215),target=target);
 
 real epsilon=sqrt(realEpsilon);
 real[] level=uniform(min(f)*(1-epsilon),max(f)*(1+epsilon),4);
