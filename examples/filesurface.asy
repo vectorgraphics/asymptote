@@ -28,6 +28,6 @@ s.colors(palette(s.map(new real(triple v) {return find(level >= v.z);}),
 
 draw(s,meshpen=thick());
 
-xaxis3("$x$",Bounds(),red,InTicks);
-yaxis3("$y$",Bounds(),red,InTicks(Step=1,step=0.1));
-zaxis3("$z$",Bounds(),red,InTicks);
+xaxis3("$x$",Bounds(),InTicks);
+yaxis3("$y$",Bounds(),InTicks(Step=1,step=0.1));
+zaxis3("$z$",Bounds(),InTicks);

@@ -594,28 +594,21 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
 
     bool calcStep=true;
     real len=tickmax-tickmin;
-    
     if(Step == 0 && N == 0) {
       N=1;
       if(divisor.length > 0) {
         bool autoscale=locate.S.automin && locate.S.automax;
-        int[] divisor0=copy(divisor);
-        if(b > a && !autoscale) {
-          for(int N : divisor0) {
-            Step=len/N;
-            int N0=N;
-            int m=2;
-            while(Step > 0.5*(b-a)) {
-              N=m*N0;
-              Step=len/N;
-              m *= 2;
-            }
-            if(find(divisor == N) < 0) divisor.insert(0,N);
-          }
-        }
+        real h=0.5*(b-a);
         for(int d=divisor.length-1; d >= 0; --d) {
           int N0=divisor[d];
           Step=len/N0;
+          int N1=N0;
+          int m=2;
+          while(Step > h) {
+            N0=m*N1;
+            Step=len/N0;
+            m *= 2;
+          }
           if(axiscoverage(N0,T,g,locate,Step,side,sign,Size,F,ticklabel,norm,
                           limit)) {
             N=N0;
