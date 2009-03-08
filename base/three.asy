@@ -13,7 +13,7 @@ real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
 pair viewportmargin=0;     // Horizontal and vertical viewport margins.
-real viewportfactor=1.02;  // Factor used to expand orthographic viewport.
+real viewportfactor=1.01;  // Factor used to expand orthographic viewport.
 real anglefactor=1.02;     // Factor used to expand perspective viewport.
 real angleprecision=1e-3;  // Precision for centering perspective projections.
 
@@ -2334,44 +2334,46 @@ object embed(string label="", string text=label,
 
   projection P=P.copy();
 
+  if(!P.autoadjust && !P.absolute && P.showtarget)
+    draw(pic,P.target,nullpen);
+
   transform3 t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
   transform3 tinv;
   triple m,M;
-
   bool adjusted=false;
 
-  if(P.autoadjust) {
-    tinv=inverse(t);
-    m=tinv*pic.min(t);
-    M=tinv*pic.max(t);
-    bool recalculate=false;
-    if(P.target.x < m.x ||
-       P.target.y < m.y ||
-       P.target.z < m.z ||
-       P.target.x > M.x ||
-       P.target.y > M.y ||
-       P.target.z > M.z) {
-      triple target=0.5*(m+M);
-      P.camera += target-P.target;
-      P.target=target;
-      recalculate=true;
-      write("adjusting target to ",P.target);
-    }
-    if(!keepAspect) {
-      triple v=P.camera-P.target;
-      P.camera=P.target+abs(v)*unit(realmult(v,M-m));
-      recalculate=true;
-      adjusted=true;
-    }
-    if(recalculate) P.calculate();
-  } else if(!P.absolute && P.showtarget)
-    draw(pic,P.target,nullpen);
-
   if(!P.absolute) {
-    if(P.autoadjust) adjusted=adjusted | P.adjust(tinv*m,tinv*M,t);
+    if(P.autoadjust) {
+      tinv=inverse(t);
+      m=tinv*pic.min(t);
+      M=tinv*pic.max(t);
+      bool recalculate=false;
+      if(P.target.x < m.x ||
+         P.target.y < m.y ||
+         P.target.z < m.z ||
+         P.target.x > M.x ||
+         P.target.y > M.y ||
+         P.target.z > M.z) {
+        triple target=0.5*(m+M);
+        P.camera += target-P.target;
+        P.target=target;
+        recalculate=true;
+        write("adjusting target to ",P.target);
+      }
+      if(!keepAspect) {
+        triple v=P.camera-P.target;
+        P.camera=P.target+abs(v)*unit(realmult(v,M-m));
+        recalculate=true;
+        adjusted=true;
+      }
+      if(recalculate) P.calculate();
+    }
+  
+    if(P.autoadjust || P.infinity) 
+      adjusted=adjusted | P.adjust(m,M);
     P=t*P;
   }
-  
+
   picture pic2;
   
   frame f=pic.fit3(t,pic.bounds3.exact ? pic2 : null,P);
@@ -2408,11 +2410,15 @@ object embed(string label="", string text=label,
           return b == 0 ? (0.5*(a.x+a.y)) : (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
         }
         pic2.erase();
-        f=pic.fit3(xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z))*t,
-                   is3D ? null : pic2,P);
+        t=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z))*t;
+        f=pic.fit3(t,is3D ? null : pic2,P);
       }
 
-      if(P.autoadjust) adjusted=adjusted | P.adjust(min3(f),max3(f),t);
+      if(P.autoadjust || P.infinity)
+        adjusted=adjusted | P.adjust(min3(f),max3(f));
+
+      if(adjusted && !P.infinity)
+        write("adjusting camera to ",inverse(t)*P.camera);
 
       transform3 modelview=P.modelview();
       f=modelview*f;
@@ -2489,8 +2495,8 @@ object embed(string label="", string text=label,
         m=(m.x,m.y,zcenter-d);
       }
 
-      real factor=hypot(M.x-m.x,M.y-m.y)*(viewportfactor-1.0);
-      triple margin=(factor,factor,0);
+      real factor=viewportfactor-1.0;
+      triple margin=(factor*abs(M.x-m.x),factor*abs(M.y-m.y),0);
       if(P.infinity)
         margin += (0,viewportmargin.y,0);
       M += margin; 

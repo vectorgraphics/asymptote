@@ -1,6 +1,4 @@
 import graph3;
-settings.thick=false;
-
 size3(200,IgnoreAspect);
 
 file in=line(input("filesurface.dat"));
