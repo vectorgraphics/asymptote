@@ -1,9 +1,8 @@
 import three;
 
 size(15cm);
-viewportmargin=2cm;
 
-currentprojection=perspective(24,14,13,showtarget=false);
+currentprojection=perspective(24,14,13,showtarget=false,autoadjust=false);
 currentlight=light(gray(0.5),specularfactor=3,viewport=false,
                    (0.5,-0.5,-0.25),(0.5,0.5,0.25),(0.5,0.5,1),(-0.5,-0.5,-1));
 

@@ -77,12 +77,12 @@ struct patch {
                   cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
                         bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u)));
     return -((abs(n) > epsilon) ? n :
-             1/6*cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
-                       bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))+
              0.25*cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),   
                         bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u))+
-             1/6*cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
-                       bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u))+
+             1/6*(cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
+                        bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))+
+                  cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
+                        bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u)))+
              1/12*(cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
                          bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u))+
                    cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),   

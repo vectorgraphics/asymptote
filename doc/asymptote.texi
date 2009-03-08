@@ -7772,7 +7772,8 @@ Versions of the two-dimensional arrowheads lifted to three-dimensional
 space and aligned according to the initial viewpoint (or an optionally
 specified @code{normal} vector) are also defined:
 @code{DefaultHead2(triple normal=O)}, @code{HookHead2(triple normal=O)},
-@code{TeXHead2(triple normal=O)}.
+@code{TeXHead2(triple normal=O)}. These are illustrated in the example
+@code{arrows3.asy}. 
 
 @cindex @code{NoMargin3}
 @cindex @code{BeginMargin3}
