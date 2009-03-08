@@ -121,6 +121,15 @@
       \immediate\write\AsyStream{size(\ASYwidth,\ASYheight);}%
     \fi
   \fi
+  \ASYtexfalse
+  \ifASYattach
+    \def\ASYdefaultviewportwidth{0}
+  \else
+    \def\ASYdefaultviewportwidth{\the\linewidth}
+    \ifASYinline
+      \ASYtextrue
+    \fi
+  \fi
   \ifx\ASYviewportwidth\empty
     \ifx\ASYviewportheight\empty
     \else
@@ -134,16 +143,9 @@
         \AsyStream{viewportsize=(\ASYviewportwidth,\ASYviewportheight);}%
     \fi
   \fi
-  \ASYtexfalse
-  \ifASYattach
-  \else
-    \ifASYinline
-      \ASYtextrue
-    \fi
-  \fi
   \gdef\ASYwidth{}
   \gdef\ASYheight{}
-  \gdef\ASYviewportwidth{}
+  \gdef\ASYviewportwidth{\ASYdefaultviewportwidth}
   \gdef\ASYviewportheight{}
   \immediate\write\AsyStream{\@charrb);}%
   \immediate\write\AsyStream{// End of Asymptote Figure \the\c@asy}%
@@ -210,7 +212,7 @@
 \define@key{ASYkeys}{height}{%
   \gdef\ASYheight{#1}%
 }
-\gdef\ASYviewportwidth{}%
+\gdef\ASYviewportwidth{\ASYdefaultviewportwidth}%
 \define@key{ASYkeys}{viewportwidth}{%
   \gdef\ASYviewportwidth{#1}%
 }
