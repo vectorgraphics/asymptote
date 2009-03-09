@@ -898,25 +898,40 @@ array *readpath(const string& psname, bool tex, bool keep)
     char c;
     buf >> c;
     switch(c) {
+      static const double third=1.0/3.0;
       case 'M':
       {
         if(active) {
-          node.post=node.point;
-          nodes.push_back(node);
+          if(cyclic) {
+            if(node.point == nodes[0].point)
+              nodes[0].pre=node.pre;
+            else {
+              pair delta=(nodes[0].point-node.point)*third;
+              node.post=node.point+delta;
+              nodes[0].pre=nodes[0].point-delta;
+              node.straight=true;
+              nodes.push_back(node);
+            }
+          } else {
+            node.post=node.point;
+            node.straight=false;
+            nodes.push_back(node);
+          }
           P->push(path(nodes,nodes.size(),cyclic));
           nodes.clear();
         }
         active=false;
         cyclic=false;
         node.pre=node.point=readpair(buf,tex)-offset;
+        node.straight=false;
         break;
       }
       case 'L':
       {
         pair point=readpair(buf,tex)-offset;
-        static const double third=1.0/3.0;
         pair delta=(point-node.point)*third;
         node.post=node.point+delta;
+        node.straight=true;
         nodes.push_back(node);
         active=true;
         node.pre=point-delta;
@@ -928,6 +943,7 @@ array *readpath(const string& psname, bool tex, bool keep)
         pair point=readpair(buf,tex)-offset;
         pair pre=readpair(buf,tex)-offset;
         node.post=readpair(buf,tex)-offset;
+        node.straight=false;
         nodes.push_back(node);
         active=true;
         node.pre=pre;
