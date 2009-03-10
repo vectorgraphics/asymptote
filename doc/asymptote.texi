@@ -7307,7 +7307,8 @@ However, a surface can be constructed from a convex path3 with the constructor
 @cindex @code{surface}
 @verbatim
 surface surface(path3 external, triple[] internal=new triple[],
-                triple[] normals=new triple[], pen[] colors=new pen[]);
+                triple[] normals=new triple[], pen[] colors=new pen[],
+                bool3 planar=default);
 @end verbatim
 @noindent
 and then filled:
@@ -7319,22 +7320,27 @@ draw(surface(unitcircle3,new pen[] {red,green,blue,black}));
 @noindent
 The last example constructs a patch with vertex-specific colors.
 
-@cindex @code{bezulate}
-Alternatively, a three-dimensional planar path constructed from a
-two-dimensional (possibly nonconvex) cyclic and nonselfintersecting path 
-@code{p} can be filled by first using Orest Shardt's @code{bezulate} routine
-to decompose @code{p} into an array of cyclic paths of length @code{4}
-or less. This array can then be used to construct and draw a planar
-surface:
+Alternatively, a three-dimensional planar surface in the plane
+@code{plane} can be constructed from a two-dimensional (possibly
+nonconvex) cyclic and nonselfintersecting path @code{g} with the constructor
+@cindex @code{surface}
 @verbatim
-draw(surface(bezulate((0,0)--E+2N--2E--E+N..0.2E..cycle)),red);
+surface surface(path p, triple plane(pair)=XYplane);
 @end verbatim
 @noindent
-@cindex @code{planar}
+For example,
+@verbatim
+draw(surface((0,0)--E+2N--2E--E+N..0.2E..cycle),red);
+@end verbatim
 @noindent
-The routine @code{surface planar(path3 p)} uses @code{bezulate} to convert
-a three-dimensional planar (possibly nonconvex) cyclic and
-nonselfintersecting path to a surface.
+@cindex @code{bezulate}
+calls Orest Shardt's @code{bezulate} routine to decompose the given
+path into an array of cyclic paths of length @code{4} or less
+and then lifts it to a planar Bezier surface.
+@cindex @code{planar}
+For convenience, the routine @code{surface planar(path3 p)} may be
+used to convert a three-dimensional planar (possibly nonconvex) cyclic and
+nonselfintersecting path directly to a surface.
 
 @cindex @code{thin}
 @cindex @code{thick}

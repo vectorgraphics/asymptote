@@ -213,8 +213,8 @@ struct patch {
   
   static real nineth=1/9;
 
-  // A constructor for a convex cyclic path of length <= 4 with optional
-  // arrays of 4 internal points, corner normals and pens.
+  // A constructor for a convex cyclic path3 of length <= 4 with optional
+  // arrays of 4 internal points, corner normals, and pens.
   void operator init(path3 external, triple[] internal=new triple[],
                      triple[] normals=new triple[], pen[] colors=new pen[],
                      bool3 planar=default) {
@@ -483,49 +483,80 @@ struct surface {
     s.push(patch(external,internal,normals,colors,planar));
   }
 
-  // A constructor for a (possibly) nonconvex cyclic path of length <= 4 that
-  // returns an array of one or two surfaces in a given plane.
-  void operator init (path g, triple plane(pair)=XYplane) {
-    int L=length(g);
-    if(L > 4 || !cyclic(g))
-      abort("cyclic path of length <= 4 expected");
-    if(L <= 3) {
-      s=new patch[] {patch(path3(g,plane),planar=true)};
+  // A constructor for a possibly nonconvex cyclic path in a given plane.
+  void operator init (path p, triple plane(pair)=XYplane) {
+    if(!cyclic(p))
+      abort("cyclic path expected");
+
+    int L=length(p);
+    bool straight=piecewisestraight(p);
+    
+    if(L <= 3 && straight) {
+      s=new patch[] {patch(path3(p,plane),planar=true)};
       return;
     }
-    for(int i=0; i < 4; ++i) {
-      pair z=point(g,i);
-      int w=windingnumber(subpath(g,i+1,i+3)--cycle,z);
-      if(w != 0 && w != undefined) {
-        pair w=point(g,i+2);
-        real[][] T=intersections(z--w,g);
-        path c,d;
-        if(T.length > 2) {
-          real t=T[1][1];
-          real s=t-i;
-          if(s < -1) s += 4;
-          else if(s > 3) s -= 4;
-          path close(path p, pair m) {
-            return length(p) == 3 ? p--cycle : p--0.5*(m+point(g,t))--cycle;
+    
+    if(L > 4) {
+      for(path g : bezulate(p))
+        s.append(surface(g,plane).s);
+      return;
+    }
+        
+    int sign=sgn(windingnumber(p,inside(p)));
+    for(int i=0; i < L; ++i) {
+      if(sign*(conj(dir(p,i,-1))*dir(p,i,1)).y < 0) {
+        pair z=point(p,i);
+        real[] t=intersections(p,z,z+I*dir(p,i));
+        static real epsilon=cbrt(realEpsilon);
+        if(t.length > 1) {
+          real cut=t[1];
+          if(fabs(cut-i) < epsilon) cut=t[0];
+          if(cut < i) cut += L;
+          if(cut < i+L-epsilon) {
+            s.append(surface(subpath(p,i,cut)--cycle).s);
+            s.append(surface(subpath(p,cut,i+L)--cycle).s);
+            return;
           }
-          if(s < 1) {
-            c=close(subpath(g,i+s,i+2),w);
-            d=close(subpath(g,i-2,i+s),w);
-          } else {
-            c=close(subpath(g,i+s,i+4),z);
-            d=close(subpath(g,i,i+s),z);
-          }
-        } else {
-          pair m=0.5*(z+w);
-          c=subpath(g,i-2,i)--m--cycle;
-          d=subpath(g,i,i+2)--m--cycle;
         }
-        s=new patch[] {patch(path3(c,plane),planar=true),
-                       patch(path3(d,plane),planar=true)};
-        return;
       }
     }
-    s=new patch[] {patch(path3(g,plane),planar=true)};
+
+    // Split nonconvex nonstraight patches.
+    if(L == 4 && !straight) {
+      for(int i=0; i < 4; ++i) {
+        pair z=point(p,i);
+        int w=windingnumber(subpath(p,i+1,i+3)--cycle,z);
+        if(w != 0 && w != undefined) {
+          pair w=point(p,i+2);
+          real[][] T=intersections(z--w,p);
+          path c,d;
+          if(T.length > 2) {
+            real t=T[1][1];
+            real s=t-i;
+            if(s < -1) s += 4;
+            else if(s > 3) s -= 4;
+            path close(path g, pair m) {
+              return length(g) == 3 ? g--cycle : g--0.5*(m+point(p,t))--cycle;
+            }
+            if(s < 1) {
+              c=close(subpath(p,i+s,i+2),w);
+              d=close(subpath(p,i-2,i+s),w);
+            } else {
+              c=close(subpath(p,i+s,i+4),z);
+              d=close(subpath(p,i,i+s),z);
+            }
+          } else {
+            pair m=0.5*(z+w);
+            c=subpath(p,i-2,i)--m--cycle;
+            d=subpath(p,i,i+2)--m--cycle;
+          }
+          s=new patch[] {patch(path3(c,plane),planar=true),
+                         patch(path3(d,plane),planar=true)};
+          return;
+        }
+      }
+    }
+    s=new patch[] {patch(path3(p,plane),planar=true)};
   }
 
   void operator init(explicit path[] g, triple plane(pair)=XYplane) {
@@ -602,15 +633,16 @@ surface operator * (transform3 t, surface s)
   return S;
 }
 
-// Construct a surface from a (possibly) nonconvex planar cyclic path3.
+// Construct a surface from a possibly nonconvex planar cyclic path3.
 surface planar(path3 p)
 {
-  if(length(p) <= 3) return surface(patch(p,planar=true));
+  if(length(p) <= 3 && piecewisestraight(p))
+    return surface(patch(p,planar=true));
   triple n=normal(p);
   if(n == O) return new surface; // p is not planar!
   transform3 T=align(n);
   p=transpose(T)*p;
-  return T*shift(0,0,point(p,0).z)*surface(bezulate(path(p)));
+  return T*shift(0,0,point(p,0).z)*surface(path(p));
 }
 
 private string nullsurface="null surface";
@@ -840,10 +872,10 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight);
 }
 
-surface extrude(path g, triple elongation=Z)
+surface extrude(path p, triple elongation=Z)
 {
   static patch[] allocate;
-  path3 G=path3(g);
+  path3 G=path3(p);
   path3 G2=shift(elongation)*G;
   return surface(...sequence(new patch(int i) {
         return patch(subpath(G,i,i+1)--subpath(G2,i+1,i)--cycle);
@@ -880,8 +912,7 @@ surface align(surface s, transform3 t=identity4, triple position,
 
 surface surface(Label L, triple position=O)
 {
-  path[] g=texpath(L);
-  surface s=surface(bezulate(g));
+  surface s=surface(bezulate(texpath(L)));
   return L.align.is3D ? align(s,L.T3,position,L.align.dir3,L.p) :
     shift(position)*L.T3*s;
 }
