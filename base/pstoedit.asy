@@ -1,5 +1,5 @@
 pen textpen=basealign;
-pair align=1e-10*NE; 
+pair align=Align;
 
 // Compatibility routines for the pstoedit (version 3.43 or later) backend.
 void gsave(picture pic=currentpicture)

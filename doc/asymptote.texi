@@ -1432,6 +1432,9 @@ Draw Label @code{L} on picture @code{pic} using pen @code{p}. If
 coordinate @code{position}; otherwise it will be aligned in the
 direction of @code{align} and displaced from @code{position} by
 the @code{PostScript} offset @code{align*labelmargin(p)}.
+@cindex @code{Align}
+The constant @code{Align} can be used to align the
+bottom-left corner of the label at @code{position}.
 @cindex @code{nullpen}
 If @code{p} is @code{nullpen}, the pen specified within the
 Label, which defaults to @code{currentpen}, will be used.
@@ -8440,8 +8443,8 @@ disables this call.
 
 @cindex offset
 @cindex @code{align}
-A @code{PostScript} offset may be specified as a pair (in bp units) with the
-@code{-O} option:
+A @code{PostScript} offset may be specified as a pair (in @code{bp}
+units) with the @code{-O} option:
 @verbatim
 asy -O 0,0 file
 @end verbatim
