@@ -11,6 +11,9 @@ namespace camp {
 
 void drawAxialShade::palette(psfile *out)
 {
+  pentype.convert();
+  penb.convert();
+  
   colorspace=(ColorSpace) max(pentype.colorspace(),penb.colorspace());
   
   switch(colorspace) {

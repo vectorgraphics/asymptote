@@ -510,6 +510,10 @@ public:
     else if(gray()) greytorgb();
   }
   
+  void settransparency(const pen& p) {
+    transparency=p.transparency;
+  }
+                                                               
   void convert() {
     if(settings::gray || settings::bw) {
       if(rgb()) rgbtogrey();

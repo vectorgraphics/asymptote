@@ -197,10 +197,11 @@ public:
   }
   
   void setcolor(const pen& p, const string& begin, const string& end);
+  void setopacity(const pen& p);
 
   void setpen(pen p);
   
-  void write(pen p);
+  void write(const pen& p);
   
   void write(path p, bool newPath=true);
   
@@ -325,10 +326,10 @@ public:
   }
 
   // Determine shading and image transparency based on first pen.
-  void setfirstpen(const vm::array& pens) {
+  void setfirstopacity(const vm::array& pens) {
     if(pens.size() > 0) {
       pen *p=vm::read<pen *>(pens,0);
-      setpen(*p);
+      setopacity(*p);
     }
   }
   

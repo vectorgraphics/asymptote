@@ -157,10 +157,8 @@ void psfile::setcolor(const pen& p, const string& begin="",
   }
 }
   
-void psfile::setpen(pen p)
+void psfile::setopacity(const pen& p)
 {
-  p.convert();
-    
   if(p.blend() != lastpen.blend()) {
     *out << "/" << p.blend() << " .setblendmode" << newl;
     transparency=true;
@@ -170,6 +168,16 @@ void psfile::setpen(pen p)
     *out << p.opacity() << " .setopacityalpha" << newl;
     transparency=true;
   }
+  
+  lastpen.settransparency(p);
+}
+
+  
+void psfile::setpen(pen p)
+{
+  p.convert();
+    
+  setopacity(p);
   
   if(!p.fillpattern().empty() && p.fillpattern() != lastpen.fillpattern()) 
     *out << p.fillpattern() << " setpattern" << newl;
@@ -200,7 +208,7 @@ void psfile::setpen(pen p)
   lastpen=p;
 }
 
-void psfile::write(pen p)
+void psfile::write(const pen& p)
 {
   if(p.cmyk())
     *out << p.cyan() << " " << p.magenta() << " " << p.yellow() << " " 
@@ -247,7 +255,7 @@ void psfile::latticeshade(const vm::array& a, const bbox& b)
   
   array *a0=read<array *>(a,0);
   size_t m=a0->size();
-  setfirstpen(*a0);
+  setfirstopacity(*a0);
   
   ColorSpace colorspace=maxcolorspace2(a);
   checkColorSpace(colorspace);
@@ -303,7 +311,7 @@ void psfile::gradientshade(bool axial, const ColorSpace &colorspace,
                            const pen& penb, const pair& b, double rb)
 {
   checkLevel();
-  setpen(pena);
+  setopacity(pena);
   checkColorSpace(colorspace);
   
   *out << "<< /ShadingType " << (axial ? "2" : "3") << newl
@@ -337,7 +345,7 @@ void psfile::gouraudshade(const array& pens, const array& vertices,
   size_t size=pens.size();
   if(size == 0) return;
   
-  setfirstpen(pens);
+  setfirstopacity(pens);
   ColorSpace colorspace=maxcolorspace(pens);
 
   *out << "<< /ShadingType 4" << newl
@@ -371,7 +379,7 @@ void psfile::tensorshade(const array& pens, const array& boundaries,
   array *p0=read<array *>(pens,0);
   if(checkArray(p0) != 4)
     reportError("4 pens required");
-  setfirstpen(*p0);
+  setfirstopacity(*p0);
   
   ColorSpace colorspace=maxcolorspace2(pens);
   checkColorSpace(colorspace);
@@ -525,7 +533,7 @@ void psfile::image(const array& a, const array& P, bool antialias)
   size_t a0size=a0->size();
   if(a0size == 0) return;
   
-  setfirstpen(P);
+  setfirstopacity(P);
   
   ColorSpace colorspace=maxcolorspace(P);
   checkColorSpace(colorspace);
@@ -572,7 +580,7 @@ void psfile::image(const array& a, bool antialias)
   size_t a0size=a0->size();
   if(a0size == 0) return;
   
-  setfirstpen(*a0);
+  setfirstopacity(*a0);
   
   ColorSpace colorspace=maxcolorspace2(a);
   checkColorSpace(colorspace);
