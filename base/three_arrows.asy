@@ -172,8 +172,8 @@ struct arrowhead3
     if(filltype != NoFill && filltype.type != filltype.UnFill &&
        filltype.type != filltype.Draw) {
       triple n=0.5*width*unit(t*Z);
-      s=surface(shift(n)*H);
-      s.append(surface(shift(-n)*H));
+      s=surface(shift(n)*H,planar=true);
+      s.append(surface(shift(-n)*H,planar=true));
       if(!draw)
         for(path g : h)
           s.append(shift(-n)*t*extrude(g,width*Z));
