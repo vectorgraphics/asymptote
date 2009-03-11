@@ -421,68 +421,6 @@ struct surface {
     return sequence(new triple(int i) {return s[i].cornermean();},s.length);
   }
 
-  void split(path3 external, triple[] internal=new triple[],
-             triple[] normals=new triple[], pen[] colors=new pen[],
-             bool3 planar=default) {
-    int L=length(external);
-    if(L <= 4 || internal.length > 0) {
-      s.push(patch(external,internal,normals,colors,planar));
-      return;
-    }
-    if(!cyclic(external)) abort("cyclic path expected");
-    real factor=1/L;
-    pen[] p;
-    triple[] n;
-    bool nocolors=colors.length == 0;
-    bool nonormals=normals.length == 0;
-    triple center;
-    for(int i=0; i < L; ++i)
-      center += point(external,i);
-    center *= factor;
-    if(!nocolors)
-      p=new pen[] {mean(colors)};
-    if(!nonormals)
-      n=new triple[] {factor*sum(normals)};
-    // Use triangles for nonplanar surfaces.
-    int step=normal(external) == O ? 1 : 2;
-    int i=0;
-    int end;
-    while((end=i+step) < L) {
-      s.push(patch(subpath(external,i,end)--center--cycle,
-                   nonormals ? n : concat(normals[i:end+1],n),
-                   nocolors ? p : concat(colors[i:end+1],p),planar));
-      i=end;
-    }
-    s.push(patch(subpath(external,i,L)--center--cycle,
-                 nonormals ? n : concat(normals[i:],normals[0:1],n),
-                 nocolors ? p : concat(colors[i:],colors[0:1],p),planar));
-  }
-
-  // A constructor for a convex path3.
-  void operator init(path3 external, triple[] internal=new triple[],
-                     triple[] normals=new triple[], pen[] colors=new pen[],
-                     bool3 planar=default) {
-    s=new patch[];
-    split(external,internal,normals,colors,planar);
-  }
-
-  void operator init(explicit path3[] external,
-                     triple[][] internal=new triple[][],
-                     triple[][] normals=new triple[][],
-                     pen[][] colors=new pen[][], bool3 planar=default) {
-    for(int i=0; i < external.length; ++i)
-      split(external[i],
-            internal.length == 0 ? new triple[] : internal[i],
-            normals.length == 0 ? new triple[] : normals[i],
-            colors.length == 0 ? new pen[] : colors[i],planar);
-  }
-
-  void push(path3 external, triple[] internal=new triple[],
-            triple[] normals=new triple[] ,pen[] colors=new pen[],
-            bool3 planar=default) {
-    s.push(patch(external,internal,normals,colors,planar));
-  }
-
   // A constructor for a possibly nonconvex cyclic path in a given plane.
   void operator init (path p, triple plane(pair)=XYplane) {
     if(!cyclic(p))
@@ -571,6 +509,89 @@ struct surface {
       s.append(surface(g[i],plane).s);
   }
 
+  // A general surface constructor for both planar and nonplanar 3D paths.
+  void construct(path3 external, triple[] internal=new triple[],
+                 triple[] normals=new triple[], pen[] colors=new pen[],
+                 bool3 planar=default) {
+    int L=length(external);
+    if(L <= 4 || internal.length > 0) {
+      s.push(patch(external,internal,normals,colors,planar));
+      return;
+    }
+    if(!cyclic(external)) abort("cyclic path expected");
+
+    // Construct a surface from a possibly nonconvex planar cyclic path3.
+    if(L <= 3 && piecewisestraight(external)) {
+      s.append(surface(patch(external,planar=true)).s);
+      return;
+    }
+
+    if(planar != false) {
+      triple n=normal(external);
+      if(n != O) {
+        transform3 T=align(n);
+        external=transpose(T)*external;
+        T *= shift(0,0,point(external,0).z);
+        for(patch p : surface(path(external)).s)
+          s.push(T*p);
+        return;
+      }
+    }
+    
+    // Path is not planar; split into patches.
+    real factor=1/L;
+    pen[] p;
+    triple[] n;
+    bool nocolors=colors.length == 0;
+    bool nonormals=normals.length == 0;
+    triple center;
+    for(int i=0; i < L; ++i)
+      center += point(external,i);
+    center *= factor;
+    if(!nocolors)
+      p=new pen[] {mean(colors)};
+    if(!nonormals)
+      n=new triple[] {factor*sum(normals)};
+    // Use triangles for nonplanar surfaces.
+    int step=normal(external) == O ? 1 : 2;
+    int i=0;
+    int end;
+    while((end=i+step) < L) {
+      s.push(patch(subpath(external,i,end)--center--cycle,
+                   nonormals ? n : concat(normals[i:end+1],n),
+                   nocolors ? p : concat(colors[i:end+1],p),planar));
+      i=end;
+    }
+    s.push(patch(subpath(external,i,L)--center--cycle,
+                 nonormals ? n : concat(normals[i:],normals[0:1],n),
+                 nocolors ? p : concat(colors[i:],colors[0:1],p),planar));
+  }
+
+  void operator init(path3 external, triple[] internal=new triple[],
+                     triple[] normals=new triple[], pen[] colors=new pen[],
+                     bool3 planar=default) {
+    s=new patch[];
+    construct(external,internal,normals,colors,planar);
+  }
+
+  void operator init(explicit path3[] external,
+                     triple[][] internal=new triple[][],
+                     triple[][] normals=new triple[][],
+                     pen[][] colors=new pen[][], bool3 planar=default) {
+    s=new patch[];
+    for(int i=0; i < external.length; ++i)
+      construct(external[i],
+                internal.length == 0 ? new triple[] : internal[i],
+                normals.length == 0 ? new triple[] : normals[i],
+                colors.length == 0 ? new pen[] : colors[i],planar);
+  }
+
+  void push(path3 external, triple[] internal=new triple[],
+            triple[] normals=new triple[] ,pen[] colors=new pen[],
+            bool3 planar=default) {
+    s.push(patch(external,internal,normals,colors,planar));
+  }
+
   // Construct the surface of rotation generated by rotating g
   // from angle1 to angle2 sampled n times about the line c--c+axis.
   // An optional surface pen color(int i, real j) may be specified
@@ -638,18 +659,6 @@ surface operator * (transform3 t, surface s)
   for(int i=0; i < s.s.length; ++i)
     S.s[i]=t*s.s[i];
   return S;
-}
-
-// Construct a surface from a possibly nonconvex planar cyclic path3.
-surface planar(path3 p)
-{
-  if(length(p) <= 3 && piecewisestraight(p))
-    return surface(patch(p,planar=true));
-  triple n=normal(p);
-  if(n == O) return new surface; // p is not planar!
-  transform3 T=align(n);
-  p=transpose(T)*p;
-  return T*shift(0,0,point(p,0).z)*surface(path(p));
 }
 
 private string nullsurface="null surface";

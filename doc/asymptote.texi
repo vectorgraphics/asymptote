@@ -7303,11 +7303,10 @@ projections. Since the @acronym{PRC} output format does not currently support
 vertex shading of Bezier surfaces, @acronym{PRC} patches are shaded
 with the mean of the four vertex colors.
 
-@cindex @code{fill}
-There is no @code{fill} command for arbitrary three-dimensional cyclic paths
-(this would be an ill-posed operation). 
-However, a surface can be constructed from a convex path3 with the constructor
 @cindex @code{surface}
+@cindex @code{planar}
+A surface can be constructed from a cyclic nonselfintersecting
+@code{path3} with the constructor
 @verbatim
 surface surface(path3 external, triple[] internal=new triple[],
                 triple[] normals=new triple[], pen[] colors=new pen[],
@@ -7322,28 +7321,23 @@ draw(surface(unitcircle3,new pen[] {red,green,blue,black}));
 @end verbatim
 @noindent
 The last example constructs a patch with vertex-specific colors.
-
-Alternatively, a three-dimensional planar surface in the plane
-@code{plane} can be constructed from a two-dimensional (possibly
-nonconvex) cyclic and nonselfintersecting path @code{g} with the constructor
+A three-dimensional planar surface in the plane @code{plane} can be
+constructed from a two-dimensional cyclic and nonselfintersecting path
+@code{g} with the constructor
 @cindex @code{surface}
 @verbatim
 surface surface(path p, triple plane(pair)=XYplane);
 @end verbatim
 @noindent
-For example,
+and then filled:
 @verbatim
 draw(surface((0,0)--E+2N--2E--E+N..0.2E..cycle),red);
 @end verbatim
 @noindent
 @cindex @code{bezulate}
-calls Orest Shardt's @code{bezulate} routine to decompose the given
-path into an array of cyclic paths of length @code{4} or less
-and then lifts it to a planar Bezier surface.
-@cindex @code{planar}
-For convenience, the routine @code{surface planar(path3 p)} may be
-used to convert a three-dimensional planar (possibly nonconvex) cyclic and
-nonselfintersecting path directly to a surface.
+Planar Bezier surfaces patches are constructed using Orest Shardt's
+@code{bezulate} routine, which decomposes a given path into an array
+of cyclic paths of length @code{4} or less. 
 
 @cindex @code{thin}
 @cindex @code{thick}
