@@ -4,8 +4,10 @@
 
 orientation=Landscape;
 
-import three;
 import slide;
+import three;
+
+viewportsize=pagewidth-2pagemargin;
 
 usersetting();
 
@@ -80,7 +82,7 @@ title("Embedded Interactive 3D Graphics");
 picture pic;
 import graph3;
 import solids;
-viewportmargin=(4cm,1cm);
+viewportmargin=(0,1cm);
 currentprojection=orthographic(1,0,10,up=Y);
 pen color=green;
 real alpha=-240;
@@ -92,7 +94,7 @@ path3 p3=path3(p);
 revolution a=revolution(p3,X,alpha,0);
 draw(pic,surface(a),color);
 draw(pic,p3,blue);
-surface s=surface(bezulate(p));
+surface s=surface(p);
 draw(pic,s,color);
 draw(pic,rotate(alpha,X)*s,color);
 xaxis3(pic,Label("$x$",1),xmax=1.25,dashed,Arrow3);
@@ -105,8 +107,8 @@ real x=(1+r)/2;
 draw(pic,"$r$",(x,0,0)--(x,f(r),0),X+0.2Z,red,Arrow3);
 draw(pic,arc(1.1X,0.4,90,90,3,-90),Arrow3);
 add(pic.fit(8.5cm));
-viewportmargin=0;
 
+viewportsize=viewportmargin=0;
 title("\mbox{Asymptote: 2D \& 3D Vector Graphics Language}");
 asyinclude("logo3");
 skip();

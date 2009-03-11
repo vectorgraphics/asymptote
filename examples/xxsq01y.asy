@@ -9,13 +9,16 @@ pair F(real x) {return (x,f(x));}
 triple F3(real x) {return (x,f(x),0);}
 
 path p=graph(F,0,1,n=10,operator ..)--cycle;
+path3 p3=path3(p);
 
 revolution a=revolution(path3(p),Y,0,alpha);
 draw(surface(a),color);
 
-surface s=surface(bezulate(p));
+surface s=surface(p);
 draw(s,color);
 draw(rotate(alpha,(0,1,0))*s,color);
+
+draw(p3,blue);
 
 xaxis3(Label("$x$",1),Arrow3);
 yaxis3(Label("$y$",1),ymax=1.25,dashed,Arrow3);

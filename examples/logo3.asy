@@ -2,7 +2,7 @@ import three;
 
 size(560,320,IgnoreAspect);
 size3(140,80,15);
-currentprojection=perspective(-3,20,10,up=Y);
+currentprojection=perspective(-1,2,80,up=Y);
 currentlight=adobe;
 
 path[] outline;
@@ -30,3 +30,4 @@ for(path p : outline)
 draw(path3(outline),red+linewidth(0));
 
 draw(surface(bezulate(text)),red,nolight);
+

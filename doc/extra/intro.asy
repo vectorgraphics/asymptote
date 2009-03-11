@@ -4,11 +4,13 @@ orientation=Landscape;
 
 settings.tex="pdflatex";
 
-import three;
 import slide;
+import three;
 import animate;
 
 usersetting();
+
+viewportsize=pagewidth-2pagemargin;
 
 // To generate bibliographic references:
 // asy -k goysr
@@ -637,7 +639,7 @@ remark("interpreting $\theta$ and $\phi$ as the angle between the corresponding 
 
 item("In this case there is an unambiguous reference vector for determining the relative sign of the angles $\phi$ and $\theta$.");
 
-viewportmargin=(4cm,0.5cm);
+viewportmargin=(0,0.5cm);
 defaultpen(1.0);
 title("Interactive 3D Saddle");
 item("A unit circle in the $X$--$Y$ plane may be filled and drawn with:
@@ -646,11 +648,10 @@ asyinclude("unitcircle3",8cm);
 remark("and then distorted into a saddle:\\ (1,0,0)..(0,1,1)..(-1,0,0)..(0,-1,1)..cycle");
 asyinclude("saddle",8cm);
 
-viewportmargin=(4cm,2cm);
+viewportmargin=(0,2cm);
 title("Smooth 3D surfaces");
 asyinclude("GaussianSurface",15cm);
 defaultpen(0.5);
-viewportmargin=0;
 
 title("Slide Presentations");
 item("Asymptote has a package for preparing slides.");
@@ -900,6 +901,7 @@ size(5inch,0);
 
 bibliography("refs");
 
+viewportsize=viewportmargin=0;
 title("\mbox{Asymptote: 2D \& 3D Vector Graphics Language}");
 asyinclude("../examples/logo3");
 skip();

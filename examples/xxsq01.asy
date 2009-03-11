@@ -16,7 +16,7 @@ path3 p3=path3(p);
 revolution a=revolution(p3,X,-alpha,0);
 draw(surface(a),color);
 
-surface s=surface(bezulate(p));
+surface s=surface(p);
 draw(s,color);
 draw(rotate(-alpha,X)*s,color);
 

@@ -16,7 +16,7 @@ revolution a=revolution(p3,X,alpha,0);
 draw(surface(a),color);
 draw(p3,blue);
 
-surface s=surface(bezulate(p));
+surface s=surface(p);
 draw(s,color);
 draw(rotate(alpha,X)*s,color);
 

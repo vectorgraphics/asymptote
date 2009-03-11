@@ -22,7 +22,7 @@ for(int i=0; i < p.length; ++i) {
   revolution a=revolution(path3(p[i]),Y,0,alpha);
   draw(surface(a),pn[i]);
 
-  surface s=surface(bezulate(p[i]));
+  surface s=surface(p[i]);
   draw(s,pn[i]);
   draw(rotate(alpha,Y)*s,pn[i]);
 }

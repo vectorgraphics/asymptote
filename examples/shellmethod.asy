@@ -23,7 +23,7 @@ for(int i=1; i <= n; ++i) {
 }
 
 path p=graph(F,0,2,n,operator ..)--cycle;
-surface s=surface(bezulate(p));
+surface s=surface(p);
 path3 p3=path3(p);
 
 revolution a=revolution(p3,Y,0,alpha);
@@ -34,6 +34,6 @@ for(int i=0; i < n; ++i)
 draw(p3);
 
 xaxis3(Label("$x$",1,align=2X),Arrow3);
-yaxis3(Label("$y$",1,align=2Y),ymax=1.3,dashed,Arrow3);
-arrow("$y=2x^2-x^3$",XYplane(F(1.8)),X+Z,1.5cm,red);
-draw(arc(1.17Y,0.3,90,0,7.5,180),Arrow3);
+yaxis3(Label("$y$",1,align=2Y),ymax=1.4,dashed,Arrow3);
+arrow("$y=2x^2-x^3$",XYplane(F(1.8)),X+Z,1.5cm,red,Arrow3(DefaultHead2));
+draw(arc(1.17Y,0.3,90,0,7.5,180),ArcArrow3);
