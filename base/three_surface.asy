@@ -514,19 +514,16 @@ struct surface {
                  triple[] normals=new triple[], pen[] colors=new pen[],
                  bool3 planar=default) {
     int L=length(external);
-    if(L <= 4 || internal.length > 0) {
-      s.push(patch(external,internal,normals,colors,planar));
-      return;
-    }
     if(!cyclic(external)) abort("cyclic path expected");
 
-    // Construct a surface from a possibly nonconvex planar cyclic path3.
     if(L <= 3 && piecewisestraight(external)) {
-      s.append(surface(patch(external,planar=true)).s);
+      s.push(patch(external,internal,normals,colors,planar=true));
       return;
     }
 
-    if(planar != false) {
+    // Construct a surface from a possibly nonconvex planar cyclic path3.
+    if(planar != false && internal.length == 0 && normals.length == 0 &&
+       colors.length == 0) {
       triple n=normal(external);
       if(n != O) {
         transform3 T=align(n);
@@ -538,6 +535,11 @@ struct surface {
       }
     }
     
+    if(L <= 4 || internal.length > 0) {
+      s.push(patch(external,internal,normals,colors,planar));
+      return;
+    }
+      
     // Path is not planar; split into patches.
     real factor=1/L;
     pen[] p;
