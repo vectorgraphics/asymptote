@@ -44,7 +44,7 @@ path[][] containmentTree(path[] paths)
   return result;
 }
 
-private real fuzz=10*realEpsilon;
+private real fuzz=sqrt(realEpsilon);
 
 bool isDuplicate(pair a, pair b)
 {

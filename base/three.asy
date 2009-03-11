@@ -2233,10 +2233,11 @@ void writeJavaScript(string name, string preamble, string script)
 pair viewportmargin(projection P, real width, real height) 
 {
   pair viewportmargin=viewportmargin;
-  if(viewportmargin == 0)
-    viewportmargin=(max(0.5*(viewportsize.x-width),0),
-                    max(0.5*(viewportsize.y-height),0));
-  viewportmargin=(abs(viewportmargin.x),abs(viewportmargin.y));
+  real xmargin=viewportmargin.x;
+  real ymargin=viewportmargin.y;
+  if(xmargin <= 0) xmargin=max(0.5*(viewportsize.x-width),0);
+  if(ymargin <= 0) ymargin=max(0.5*(viewportsize.y-height),0);
+  viewportmargin=(xmargin,ymargin);
   if(P.infinity) return viewportmargin;
   return (max(viewportmargin.x,viewportmargin.y),viewportmargin.y);
 }
@@ -2364,7 +2365,6 @@ object embed(string label="", string text=label,
         triple v=P.camera-P.target;
         P.camera=P.target+abs(v)*unit(realmult(v,M-m));
         recalculate=true;
-        adjusted=true;
       }
       if(recalculate) P.calculate();
     }
@@ -2417,8 +2417,18 @@ object embed(string label="", string text=label,
       if(P.autoadjust || P.infinity)
         adjusted=adjusted | P.adjust(min3(f),max3(f));
 
-      if(adjusted && !P.infinity)
-        write("adjusting camera to ",inverse(t)*P.camera);
+      if(adjusted && !P.infinity) {
+        transform3 tinv=inverse(t);
+        triple camera=tinv*P.camera;
+        real inv(real x) {return x != 0 ? 1/x : 1;}
+        if(!keepAspect) {
+          triple target=tinv*P.target;
+          camera=target+abs(camera-target)*
+            unit(realmult((inv(M.x-m.x),inv(M.y-m.y),inv(M.z-m.z)),
+                          unit(camera-target)));
+          }
+        write("adjusting camera to ",camera);
+      }
 
       transform3 modelview=P.modelview();
       f=modelview*f;
