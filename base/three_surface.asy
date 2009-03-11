@@ -506,16 +506,23 @@ struct surface {
     for(int i=0; i < L; ++i) {
       if(sign*(conj(dir(p,i,-1))*dir(p,i,1)).y < 0) {
         pair z=point(p,i);
-        real[] t=intersections(p,z,z+I*dir(p,i));
-        static real epsilon=cbrt(realEpsilon);
-        if(t.length > 1) {
-          real cut=t[1];
-          if(fabs(cut-i) < epsilon) cut=t[0];
-          if(cut < i) cut += L;
-          if(cut < i+L-epsilon) {
-            s.append(surface(subpath(p,i,cut)--cycle).s);
-            s.append(surface(subpath(p,cut,i+L)--cycle).s);
-            return;
+        pair dir=dir(p,i);
+        if(dir != 0) {
+          real[] t=intersections(p,z,z+I*dir);
+          if(t.length > 1) {
+            real cut=t[1];
+            static real epsilon=cbrt(realEpsilon);
+            if(fabs(cut-i) < epsilon) cut=t[0];
+            if(cut < i) cut += L;
+            if(cut < i+L-epsilon) {
+              path p1=subpath(p,i,cut)--cycle;
+              path p2=subpath(p,cut,i+L)--cycle;
+              if(p1 != p && p2 != p) {
+                s.append(surface(p1).s);
+                s.append(surface(p2).s);
+                return;
+              }
+            }
           }
         }
       }
