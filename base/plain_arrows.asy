@@ -129,7 +129,7 @@ arrowhead HookHead(real dir=arrowdir, real barb=arrowbarb)
       pl1=pl1+v; pr0=pr0+v;
       left=pl0{dir(-dir+degrees(M-pl0,false))}..pl1--M;
       right=M--pr0..pr1{dir(dir+degrees(pr1-M,false))};
-      return left--right--cycle;
+      return left--right&cycle;
     };
   return a;
 }
