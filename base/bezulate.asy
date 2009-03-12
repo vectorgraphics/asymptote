@@ -46,16 +46,17 @@ path[][] containmentTree(path[] paths)
 
 private real fuzz=sqrt(realEpsilon);
 
-bool isDuplicate(pair a, pair b)
+bool isDuplicate(pair a, pair b, real relSize)
 {
-  return abs(a-b) <= fuzz*max(abs(a),abs(b));
+  return abs(a-b) <= fuzz*relSize;
 }
 
 path removeDuplicates(path p)
 {
+  real relSize = abs(max(p)-min(p));
   bool cyclic=cyclic(p);
   for(int i=0; i < length(p); ++i) {
-    if(isDuplicate(point(p,i),point(p,i+1))) {
+    if(isDuplicate(point(p,i),point(p,i+1),relSize)) {
       p=subpath(p,0,i)&subpath(p,i+1,length(p));
       --i;
     }
