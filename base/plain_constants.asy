@@ -33,7 +33,7 @@ restricted pair SSW=unit(S+SW);
 restricted pair SSE=unit(S+SE);
 restricted pair ESE=unit(E+SE);
   
-pair Align=sqrt(realEpsilon)*NE; 
+restricted pair Align=sqrt(realEpsilon)*NE; 
 
 int min(... int[] a) {return min(a);}
 int max(... int[] a) {return max(a);}

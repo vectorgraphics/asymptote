@@ -297,13 +297,16 @@ path buildcycle(... path[] p)
 
   path G;
   for(int i=0; i < n ; ++i) {
+    real Ta=ta[i];
     real Tb=tb[i];
     if(cyclic(p[i])) {
-      real t=Tb-length(p[i]);
-      if(abs(c-point(p[i],0.5(ta[i]+t))) <
-	 abs(c-point(p[i],0.5(ta[i]+tb[i])))) Tb=t;
+      int L=length(p[i]);
+      real t=Tb-L;
+      if(abs(c-point(p[i],0.5(Ta+t))) <
+	 abs(c-point(p[i],0.5(Ta+Tb)))) Tb=t;
+      while(Tb < Ta) Tb += L;
     }
-    G=G&subpath(p[i],ta[i],Tb);
+    G=G&subpath(p[i],Ta,Tb);
   }
   return G&cycle;
 }
