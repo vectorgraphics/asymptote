@@ -147,8 +147,10 @@ public:
   }
 
   void close() {
-    nodes.front().in=in;
-    nodes.front().tin=tin;
+    if(!nodes.empty()) {
+      nodes.front().in=in;
+      nodes.front().tin=tin;
+    }
   }
   
   void resolvecycle() {

@@ -155,7 +155,7 @@ cubicroots::cubicroots(double a, double b, double c, double d)
   static const double fiftyfourth=1.0/54.0;
   
   // Remove roots at numerical infinity.
-  if(fabs(a) <= Fuzz*(fabs(b)+fabs(c)*Fuzz+fabs(d)*Fuzz*Fuzz)) {
+  if(fabs(a) <= Fuzz*(fabs(b)+fabs(c)*Fuzz+fabs(d)*Fuzz2)) {
     quadraticroots q(b,c,d);
     roots=q.roots;
     if(q.roots >= 1) t1=q.t1;
@@ -164,7 +164,7 @@ cubicroots::cubicroots(double a, double b, double c, double d)
   }
   
   // Detect roots at numerical zero.
-  if(fabs(d) <= Fuzz*(fabs(c)+fabs(b)*Fuzz+fabs(a)*Fuzz*Fuzz)) {
+  if(fabs(d) <= Fuzz*(fabs(c)+fabs(b)*Fuzz+fabs(a)*Fuzz2)) {
     quadraticroots q(a,b,c);
     roots=q.roots+1;
     t1=0;

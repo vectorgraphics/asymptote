@@ -232,7 +232,9 @@ public:
   void flatten(flatguide&, bool=true);
   
   bool cyclic() {
-    return v[v.size()-1]->cyclic();
+    size_t n=v.size();
+    if(n < 1) return false;
+    return v[n-1]->cyclic();
   }
   
   multiguide(guidevector& v)
