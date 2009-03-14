@@ -1,19 +1,5 @@
 // Bezier triangulation routines written by Orest Shardt, 2008.
 
-// sort so that later paths in the array are contained in previous paths
-void sortByInside(path[] p)
-{
-  for(int i=p.length-1; i > 0; --i) {
-    for(int j=0; j < i; ++j) {
-      if(inside(p[j+1],p[j]) == 1) {
-        path temp=p[j+1];
-        p[j+1]=p[j];
-        p[j]=temp;
-      }
-    }
-  }
-}
-
 int countIntersections(path[] p, pair start, pair end)
 {
   int intersects=0;
@@ -27,19 +13,31 @@ path[][] containmentTree(path[] paths)
   path[][] result;
   for(int i=0; i < paths.length; ++i) {
     bool classified=false;
-    for(int j=0; !classified && j < result.length; ++j) {
-      for(int k=0; !classified && k < result[j].length; ++k) {
-        if(inside(paths[i],result[j][k],zerowinding) != 0) {
-          result[j].push(paths[i]);
-          classified=true;
-        }
+    // check if current curve contains or is contained in a group of curves
+    for(int j=0; !classified && j < result.length; ++j)
+    {
+      int test = inside(paths[i],result[j][0],zerowinding);
+      if(test == 1) // current curve contains group's toplevel curve
+      {
+        // replace toplevel curve with current curve
+        result[j].insert(0,paths[i]);
+        classified = true;
+      }
+      else if(test == -1) // current curve contained in group's toplevel curve
+      {
+        result[j].push(paths[i]);
+        classified = true;
       }
     }
+    // create a new group if this curve does not belong to another group
     if(!classified)
       result.push(new path[] {paths[i]});
   }
+
+  // sort group so that later paths in the array are contained in previous paths
+  bool comparepaths(path i, path j) {return inside(i,j,zerowinding)==1;}
   for(int i=0; i < result.length; ++i)
-    sortByInside(result[i]);
+    result[i] = sort(result[i],comparepaths);
 
   return result;
 }
@@ -92,7 +90,7 @@ path[] connect(path[] paths, path[] result, path[] patch, int depth=0)
       path[][] tree=containmentTree(group[1:]);
       path[] inners;
       for(path[] subgroup : tree) {
-        //connect outer to result of connecting inner
+        //connect outer curve to result of connecting inner curves
         if(!flag) {
           outers.append(connect(subgroup,result,patch,depth+1));
         } else {
