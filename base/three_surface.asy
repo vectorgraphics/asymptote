@@ -442,7 +442,7 @@ struct surface {
 
     int sign=sgn(windingnumber(p,inside(p)));
     for(int i=0; i < L; ++i) {
-      static real fuzz=sqrt(realEpsilon);
+      static real fuzz=sqrt(sqrt(realEpsilon));
       if(sign*(conj(dir(p,i,-1))*dir(p,i,1)).y < -fuzz) {
         if(split(p,i)) return;
       }
