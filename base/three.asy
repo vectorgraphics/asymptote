@@ -2283,7 +2283,7 @@ string embed3D(string label="", string text=label, string prefix,
   
   string options3=light.viewport ? "3Dlights=Headlamp" : "3Dlights=File";
   if(defaultembed3Doptions != "") options3 += ","+defaultembed3Doptions;
-  if(settings.render < 0 || !settings.embed)
+  if((settings.render < 0 || !settings.embed) && settings.auto3D)
     options3 += ",poster";
   options3 += ",text="+text+",label="+label+
     ",toolbar="+(settings.toolbar ? "true" : "false")+

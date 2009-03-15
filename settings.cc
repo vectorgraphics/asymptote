@@ -978,6 +978,8 @@ void initSettings() {
                             "Run LaTeX twice (to resolve references)"));
   addOption(new boolSetting("inlinetex", 0, "Generate inline TeX code"));
   addOption(new boolSetting("embed", 0, "Embed rendered preview image", true));
+  addOption(new boolSetting("auto3D", 0, "Automatically activate 3D scene",
+                            true));
   addOption(new boolSetting("inlineimage", 0,
                             "Generate inline embedded image"));
   addOption(new boolSetting("parseonly", 'p', "Parse file"));
