@@ -396,10 +396,15 @@ real slope(path g, explicit pair z, int n=0)
 // Oxford (1965).
 pair[] quarticroots(real a, real b, real c, real d, real e)
 {
-  real Fuzz=10.0*realEpsilon;
+  real Fuzz=sqrt(realEpsilon);
 
+  // Remove roots at numerical infinity.
   if(abs(a) <= Fuzz*(abs(b)+Fuzz*(abs(c)+Fuzz*(abs(d)+Fuzz*abs(e)))))
     return cubicroots(b,c,d,e);
+  
+  // Detect roots at numerical zero.
+  if(abs(e) <= Fuzz*(abs(d)+Fuzz*(abs(c)+Fuzz*(abs(b)+Fuzz*abs(a)))))
+    return cubicroots(a,b,c,d);
 
   real ainv=1/a;
   b *= ainv;
@@ -407,7 +412,11 @@ pair[] quarticroots(real a, real b, real c, real d, real e)
   d *= ainv;
   e *= ainv;
   
-  real t0=cubicroots(1,-2c,c^2+b*d-4e,d^2+b^2*e-b*c*d)[0];
+  pair[] roots;
+  real[] T=cubicroots(1,-2c,c^2+b*d-4e,d^2+b^2*e-b*c*d);
+  if(T.length == 0) return roots;
+
+  real t0=T[0];
   pair[] sum=quadraticroots((1,0),(b,0),(t0,0));
   pair[] product=quadraticroots((1,0),(t0-c,0),(e,0));
 
@@ -415,7 +424,6 @@ pair[] quarticroots(real a, real b, real c, real d, real e)
      abs(sum[0]*product[1]+sum[1]*product[0]+d))
     product=reverse(product);
 
-  pair[] roots;
   for(int i=0; i < 2; ++i)
     roots.append(quadraticroots((1,0),-sum[i],product[i]));
 
