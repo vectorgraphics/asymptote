@@ -23,6 +23,7 @@ const double BigFuzz=10000.0*DBL_EPSILON;
 const double Fuzz=1000.0*DBL_EPSILON;
 const double Fuzz2=Fuzz*Fuzz;
 const double sqrtFuzz=sqrt(Fuzz);
+const double third=1.0/3.0;
 
 path nullpath;
   
@@ -150,7 +151,6 @@ static inline double costhetapi3(double w)
 // Solve for the real roots of the cubic equation ax^3+bx^2+cx+d=0.
 cubicroots::cubicroots(double a, double b, double c, double d) 
 {
-  static const double third=1.0/3.0;
   static const double ninth=1.0/9.0;
   static const double fiftyfourth=1.0/54.0;
   
@@ -367,12 +367,23 @@ inline void splitCubic(solvedKnot sn[], double t, const solvedKnot& left_,
                        const solvedKnot& right_)
 {
   solvedKnot &left=(sn[0]=left_), &mid=sn[1], &right=(sn[2]=right_);
-  pair x=split(t,left.post,right.pre); // m1
-  left.post=split(t,left.point,left.post); // m0
-  right.pre=split(t,right.pre,right.point); // m2
-  mid.pre=split(t,left.post,x); // m3
-  mid.post=split(t,x,right.pre); // m4 
-  mid.point=split(t,mid.pre,mid.post); // m5
+  if(left.straight) {
+    mid.point=split(t,left.point,right.point);
+    pair deltaL=third*(mid.point-left.point);
+    left.post=left.point+deltaL;
+    mid.pre=mid.point-deltaL;
+    pair deltaR=third*(right.point-mid.point);
+    mid.post=mid.point+deltaR;
+    right.pre=right.point-deltaR;
+    mid.straight=true;
+  } else {
+    pair x=split(t,left.post,right.pre); // m1
+    left.post=split(t,left.point,left.post); // m0
+    right.pre=split(t,right.pre,right.point); // m2
+    mid.pre=split(t,left.post,x); // m3
+    mid.post=split(t,x,right.pre); // m4 
+    mid.point=split(t,mid.pre,mid.post); // m5
+  }
 }
 
 path path::subpath(double a, double b) const
@@ -598,7 +609,6 @@ double path::cubiclength(Int i, double goal) const
   L=3.0*integral;
   if(goal < 0 || goal >= L) return L;
   
-  static const double third=1.0/3.0;
   double t=goal/L;
   goal *= third;
   if(!unsimpson(goal,ds,0.0,t,10.0*DBL_EPSILON,integral,1.0,sqrt(DBL_EPSILON)))
@@ -1296,23 +1306,22 @@ path nurb(pair z0, pair z1, pair z2, pair z3,
     nodes[i].point=(W0*z0+W1*z1+W2*z2+W3*z3)/(W0+W1+W2+W3);
   }
   
-  static const double onethird=1.0/3.0;
   static const double twothirds=2.0/3.0;
   pair z=nodes[0].point;
   nodes[0].pre=z;
-  nodes[0].post=twothirds*z+onethird*nodes[1].point;
+  nodes[0].post=twothirds*z+third*nodes[1].point;
   for(int i=1; i < m; ++i) {
     pair z0=nodes[i].point;
     pair zm=nodes[i-1].point;
     pair zp=nodes[i+1].point;
-    pair pre=twothirds*z0+onethird*zm;
-    pair pos=twothirds*z0+onethird*zp;
+    pair pre=twothirds*z0+third*zm;
+    pair pos=twothirds*z0+third*zp;
     pair dir=unit(pos-pre);
     nodes[i].pre=z0-length(z0-pre)*dir;
     nodes[i].post=z0+length(pos-z0)*dir;
   }
   z=nodes[m].point;
-  nodes[m].pre=twothirds*z+onethird*nodes[m-1].point;
+  nodes[m].pre=twothirds*z+third*nodes[m-1].point;
   nodes[m].post=z;
   return path(nodes,m+1);
 }

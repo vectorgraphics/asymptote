@@ -898,7 +898,6 @@ array *readpath(const string& psname, bool tex, bool keep)
     char c;
     buf >> c;
     switch(c) {
-      static const double third=1.0/3.0;
       case 'M':
       {
         if(active) {
@@ -3001,6 +3000,28 @@ real change2(triplearray2 *a)
 bool is3D(picture *f)
 {
   return f->have3D();
+}
+
+pair bezier(pair a, pair b, pair c, pair d, real t) 
+{
+  real onemt=1-t;
+  real onemt2=onemt*onemt;
+  return onemt2*onemt*a+t*(3.0*(onemt2*b+t*onemt*c)+t*t*d);
+}
+
+pair bezierP(pair a, pair b, pair c, pair d, real t) 
+{
+  return 3.0*(t*t*(d-a+3.0*(b-c))+t*(2.0*(a+c)-4.0*b)+b-a);
+}
+
+pair bezierPP(pair a, pair b, pair c, pair d, real t) 
+{
+  return 6.0*(t*(d-a+3.0*(b-c))+a+c-2.0*b);
+}
+
+pair bezierPPP(pair a, pair b, pair c, pair d) 
+{
+  return 6.0*(d-a+3.0*(b-c));
 }
 
 triple bezier(triple a, triple b, triple c, triple d, real t) 

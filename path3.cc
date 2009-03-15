@@ -201,12 +201,23 @@ inline void splitCubic(solvedKnot3 sn[], double t, const solvedKnot3& left_,
                        const solvedKnot3& right_)
 {
   solvedKnot3 &left=(sn[0]=left_), &mid=sn[1], &right=(sn[2]=right_);
-  triple x=split(t,left.post,right.pre); // m1
-  left.post=split(t,left.point,left.post); // m0
-  right.pre=split(t,right.pre,right.point); // m2
-  mid.pre=split(t,left.post,x); // m3
-  mid.post=split(t,x,right.pre); // m4 
-  mid.point=split(t,mid.pre,mid.post); // m5
+  if(left.straight) {
+    mid.point=split(t,left.point,right.point);
+    triple deltaL=third*(mid.point-left.point);
+    left.post=left.point+deltaL;
+    mid.pre=mid.point-deltaL;
+    triple deltaR=third*(right.point-mid.point);
+    mid.post=mid.point+deltaR;
+    right.pre=right.point-deltaR;
+    mid.straight=true;
+  } else {
+    triple x=split(t,left.post,right.pre); // m1
+    left.post=split(t,left.point,left.post); // m0
+    right.pre=split(t,right.pre,right.point); // m2
+    mid.pre=split(t,left.post,x); // m3
+    mid.post=split(t,x,right.pre); // m4 
+    mid.point=split(t,mid.pre,mid.post); // m5
+  }
 }
 
 path3 path3::subpath(double a, double b) const
@@ -385,7 +396,6 @@ double path3::cubiclength(Int i, double goal) const
   L=3.0*integral;
   if(goal < 0 || goal >= L) return L;
   
-  static const double third=1.0/3.0;
   double t=goal/L;
   goal *= third;
   if(!unsimpson(goal,ds,0.0,t,10.0*DBL_EPSILON,integral,1.0,sqrt(DBL_EPSILON)))

@@ -445,6 +445,8 @@ inline bool goodroot(double t)
   return 0.0 <= t && t <= 1.0;
 }
 
+extern const double third;
+
 }
 
 // Delete the following line to work around problems with old broken compilers.

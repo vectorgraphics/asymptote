@@ -257,11 +257,10 @@ path operator &(path p, cycleToken tok)
 {
   int n=length(p);
   if(n < 0) return nullpath;
-  pair a=point(p,0);
-  pair b=point(p,n);
-  return straight(p,n) ? subpath(p,0,n-1)--cycle :
-    subpath(p,0,n-1)..controls postcontrol(p,n-1) and precontrol(p,n)..
-    cycle;
+  if(n == 0) return p--cycle;
+  if(cyclic(p)) return p;
+  return straight(p,n-1) ? subpath(p,0,n-1)--cycle :
+    subpath(p,0,n-1)..controls postcontrol(p,n-1) and precontrol(p,n)..cycle;
 }
 
 // return a cyclic path enclosing a region bounded by a list of two or more
