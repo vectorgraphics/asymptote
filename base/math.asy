@@ -396,7 +396,7 @@ real slope(path g, explicit pair z, int n=0)
 // Oxford (1965).
 pair[] quarticroots(real a, real b, real c, real d, real e)
 {
-  real Fuzz=sqrt(realEpsilon);
+  real Fuzz=100000*realEpsilon;
 
   // Remove roots at numerical infinity.
   if(abs(a) <= Fuzz*(abs(b)+Fuzz*(abs(c)+Fuzz*(abs(d)+Fuzz*abs(e)))))
