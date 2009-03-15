@@ -4,6 +4,7 @@ int nslice=12;
 real camerafactor=1.2;
 
 private real Fuzz=10.0*realEpsilon;
+private real nineth=1/9;
 
 struct patch {
   triple[][] P=new triple[4][4];
@@ -211,8 +212,6 @@ struct patch {
     operator init(s.P,s.normals,s.colors,s.straight);
   }
   
-  static real nineth=1/9;
-
   // A constructor for a convex cyclic path3 of length <= 4 with optional
   // arrays of 4 internal points, corner normals, and pens.
   void operator init(path3 external, triple[] internal=new triple[],
@@ -247,34 +246,22 @@ struct patch {
       internal=new triple[4];
       for(int j=0; j < 4; ++j) {
         internal[j]=nineth*(-4*point(external,j)
-                            +6*(precontrol(external,j)+
-                                postcontrol(external,j))
+                            +6*(precontrol(external,j)+postcontrol(external,j))
                             -2*(point(external,j-1)+point(external,j+1))
                             +3*(precontrol(external,j-1)+
-                                postcontrol(external,j+1))-
-                            point(external,j+2));
+                                postcontrol(external,j+1))
+                            -point(external,j+2));
       }
     }
 
-    P[1][0]=precontrol(external,0);
-    P[0][0]=point(external,0);
-    P[0][1]=postcontrol(external,0);
-    P[1][1]=internal[0];
-
-    P[0][2]=precontrol(external,1);
-    P[0][3]=point(external,1);
-    P[1][3]=postcontrol(external,1);
-    P[1][2]=internal[1];
-
-    P[2][3]=precontrol(external,2);
-    P[3][3]=point(external,2);
-    P[3][2]=postcontrol(external,2);
-    P[2][2]=internal[2];
-
-    P[3][1]=precontrol(external,3);
-    P[3][0]=point(external,3);
-    P[2][0]=postcontrol(external,3);
-    P[2][1]=internal[3];
+    P=new triple[][] {
+      {point(external,0),postcontrol(external,0),precontrol(external,1),
+       point(external,1)},
+      {precontrol(external,0),internal[0],internal[1],postcontrol(external,1)},
+      {postcontrol(external,3),internal[3],internal[2],precontrol(external,2)},
+      {point(external,3),precontrol(external,3),postcontrol(external,2),
+       point(external,2)}
+    };
   }
 
   // A constructor for a convex quadrilateral.
@@ -299,32 +286,16 @@ struct patch {
       }
     }
 
-    triple delta;
+    triple delta[]=new triple[4];
+    for(int j=0; j < 4; ++j)
+      delta[j]=(external[(j+1)% 4]-external[j])/3;
 
-    P[0][0]=external[0];
-    delta=(external[1]-external[0])/3;
-    P[0][1]=external[0]+delta;
-    P[1][1]=internal[0];
-
-    P[0][2]=external[1]-delta;
-    P[0][3]=external[1];
-    delta=(external[2]-external[1])/3;
-    P[1][3]=external[1]+delta;
-    P[1][2]=internal[1];
-
-    P[2][3]=external[2]-delta;
-    P[3][3]=external[2];
-    delta=(external[3]-external[2])/3;
-    P[3][2]=external[2]+delta;
-    P[2][2]=internal[2];
-
-    P[3][1]=external[3]-delta;
-    P[3][0]=external[3];
-    delta=(external[0]-external[3])/3;
-    P[2][0]=external[3]+delta;
-    P[2][1]=internal[3];
-
-    P[1][0]=external[0]-delta;
+    P=new triple[][] {
+      {external[0],external[0]+delta[0],external[1]-delta[0],external[1]},
+      {external[0]-delta[3],internal[0],internal[1],external[1]+delta[1]},
+      {external[3]+delta[3],internal[3],internal[2],external[2]-delta[1]},
+      {external[3],external[3]-delta[2],external[2]+delta[2],external[2]}
+    };
   }
 }
 
@@ -440,25 +411,121 @@ struct surface {
       return;
     }
         
+    int straightcount(path p) {
+      int count=0;
+      for(int i=0; i < length(p); ++i)
+        if(straight(p,i)) ++count;
+      return count;
+    }
+
+    bool split(path p, real t) {
+      pair dir=dir(p,t);
+      if(dir != 0) {
+        path g=subpath(p,t,t+length(p));
+        int L=length(g);
+        pair z=point(g,0);
+        real[] T=intersections(g,z,z+I*dir);
+        static real eps=sqrt(realEpsilon);
+        for(int i=0; i < T.length; ++i) {
+          real cut=T[i];
+          if(cut > eps && cut < L-eps) {
+            path p1=subpath(g,0,cut)--cycle;
+            path p2=subpath(g,cut,L)--cycle;
+            s.append(surface(p1).s);
+            s.append(surface(p2).s);
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
     int sign=sgn(windingnumber(p,inside(p)));
     for(int i=0; i < L; ++i) {
-      if(sign*(conj(dir(p,i,-1))*dir(p,i,1)).y < 0) {
-        pair z=point(p,i);
-        pair dir=dir(p,i);
-        if(dir != 0) {
-          real[] t=intersections(p,z,z+I*dir);
-          if(t.length > 1) {
-            real cut=t[1];
-            static real epsilon=cbrt(realEpsilon);
-            if(fabs(cut-i) < epsilon) cut=t[0];
-            if(cut < i) cut += L;
-            if(cut < i+L-epsilon) {
-              path p1=subpath(p,i,cut)--cycle;
-              path p2=subpath(p,cut,i+L)--cycle;
-              if(p1 != p && p2 != p) {
-                s.append(surface(p1).s);
-                s.append(surface(p2).s);
-                return;
+      static real fuzz=sqrt(realEpsilon);
+      if(sign*(conj(dir(p,i,-1))*dir(p,i,1)).y < -fuzz) {
+        if(split(p,i)) return;
+      }
+    }
+
+    if(!straight) {
+      pair[] internal=new pair[4];
+      for(int j=0; j < 4; ++j) {
+        internal[j]=nineth*(-4*point(p,j)
+                            +6*(precontrol(p,j)+postcontrol(p,j))
+                            -2*(point(p,j-1)+point(p,j+1))
+                            +3*(precontrol(p,j-1)+postcontrol(p,j+1))
+                            -point(p,j+2));
+      }
+    
+      pair[][] P={
+        {point(p,0),postcontrol(p,0),precontrol(p,1),point(p,1)},
+        {precontrol(p,0),internal[0],internal[1],postcontrol(p,1)},
+        {postcontrol(p,3),internal[3],internal[2],precontrol(p,2)},
+        {point(p,3),precontrol(p,3),postcontrol(p,2),point(p,2)}
+      };
+
+      static real[][][] fpv0={
+        {{5, -20, 30, -20, 5},
+         {-3, 24, -54, 48, -15},
+         {0, -6, 27, -36, 15},
+         {0, 0, -3, 8, -5}},
+        {{-7, 36, -66, 52, -15},
+         {3, -36, 108, -120, 45},
+         {0, 6, -45, 84, -45},
+         {0, 0, 3, -16, 15}},
+        {{2, -18, 45, -44, 15},
+         {0, 12, -63, 96, -45},
+         {0, 0, 18, -60, 45},
+         {0, 0, 0, 8, -15}},
+        {{0, 2, -9, 12, -5},
+         {0, 0, 9, -24, 15},
+         {0, 0, 0, 12, -15},
+         {0, 0, 0, 0, 5}}
+      };
+
+      real[][] c=array(4,array(5,0.0));
+      for(int i=0; i < 4; ++i) {
+        for(int k=0; k < 4; ++k) {
+          real[] w=fpv0[i][k];
+          c[0] += w*(conj(P[1][k]-P[0][k])*P[0][i]).y;   // u=0
+          c[1] += w*(conj(P[i][3])*(P[k][3]-P[k][2])).y; // v=1
+          c[2] += w*(conj(P[3][k]-P[2][k])*P[3][i]).y;   // u=1
+          c[3] += w*(conj(P[i][0])*(P[k][1]-P[k][0])).y; // v=0
+        }
+      }
+    
+      pair BuP(int j, real u) {
+        return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);
+      }
+
+      pair BvP(int i, real v) {
+        return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);
+      }
+
+      real normal(real u, real v) {
+        return (conj(bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))*
+                bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v)).y;
+      }
+
+      static real fuzz=sqrt(realEpsilon);
+      real M=max(abs(P[0]));
+      for(int i=1; i < 4; ++i)
+        M=max(M,max(abs(P[i])));
+      real eps=fuzz*M;
+      
+      for(int m=0; m < 4; ++m) {
+        if(!straight(p,m)) {
+          real[] c=c[m];
+          pair[] R=quarticroots(c[4],c[3],c[2],c[1],c[0]);
+          for(pair r : R) {
+            if(fabs(r.y) < fuzz) {
+              real t=r.x;
+              if(0 <= t && t <= 1) {
+                real[] U={0,t,1,t};
+                real[] V={t,1,t,0};
+                real[] T={t,t,1-t,1-t};
+                if(sign*normal(U[m],V[m]) < -eps && split(p,m+T[m])) return;
               }
             }
           }
@@ -466,41 +533,6 @@ struct surface {
       }
     }
 
-    // Split nonconvex nonstraight patches.
-    if(L == 4 && !straight) {
-      for(int i=0; i < 4; ++i) {
-        pair z=point(p,i);
-        int w=windingnumber(subpath(p,i+1,i+3)--cycle,z);
-        if(w != 0 && w != undefined) {
-          pair w=point(p,i+2);
-          real[][] T=intersections(z--w,p);
-          path c,d;
-          if(T.length > 2) {
-            real t=T[1][1];
-            real s=t-i;
-            if(s < -1) s += 4;
-            else if(s > 3) s -= 4;
-            path close(path g, pair m) {
-              return length(g) == 3 ? g--cycle : g--0.5*(m+point(p,t))--cycle;
-            }
-            if(s < 1) {
-              c=close(subpath(p,i+s,i+2),w);
-              d=close(subpath(p,i-2,i+s),w);
-            } else {
-              c=close(subpath(p,i+s,i+4),z);
-              d=close(subpath(p,i,i+s),z);
-            }
-          } else {
-            pair m=0.5*(z+w);
-            c=subpath(p,i-2,i)--m--cycle;
-            d=subpath(p,i,i+2)--m--cycle;
-          }
-          s=new patch[] {patch(path3(c,plane),planar=true),
-                         patch(path3(d,plane),planar=true)};
-          return;
-        }
-      }
-    }
     s=new patch[] {patch(path3(p,plane),planar=true)};
   }
 
