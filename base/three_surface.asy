@@ -252,7 +252,7 @@ struct patch {
                                 postcontrol(external,j+1))
                             -point(external,j+2));
       }
-    }
+    } else this.planar=planar;
 
     P=new triple[][] {
       {point(external,0),postcontrol(external,0),precontrol(external,1),
@@ -284,7 +284,7 @@ struct patch {
         internal[j]=nineth*(4*external[j]+2*external[(j+1)%4]+
                             external[(j+2)%4]+2*external[(j+3)%4]);
       }
-    }
+    } else this.planar=planar;
 
     triple delta[]=new triple[4];
     for(int j=0; j < 4; ++j)
@@ -449,6 +449,13 @@ struct surface {
     }
 
     if(!straight) {
+      if(L == 1)
+        p=p--cycle--cycle--cycle;
+      else if(L == 2)
+        p=p--cycle--cycle;
+      else if(L == 3)
+        p=p--cycle;
+ 
       pair[] internal=new pair[4];
       for(int j=0; j < 4; ++j) {
         internal[j]=nineth*(-4*point(p,j)
@@ -531,6 +538,12 @@ struct surface {
           }
         }
       }
+      
+      s=new patch[] {patch(path3(p,plane),
+                           new triple[] {plane(internal[0]),plane(internal[1]),
+                                     plane(internal[2]),plane(internal[3])},
+                           planar=true)};
+      return;
     }
 
     s=new patch[] {patch(path3(p,plane),planar=true)};
