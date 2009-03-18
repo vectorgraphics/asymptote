@@ -516,10 +516,6 @@ struct surface {
       }
 
       static real fuzz=sqrt(realEpsilon);
-      real M=max(abs(P[0]));
-      for(int i=1; i < 4; ++i)
-        M=max(M,max(abs(P[i])));
-      real eps=fuzz*M;
       
       for(int m=0; m < 4; ++m) {
         if(!straight(p,m)) {
@@ -532,7 +528,7 @@ struct surface {
                 real[] U={0,t,1,t};
                 real[] V={t,1,t,0};
                 real[] T={t,t,1-t,1-t};
-                if(sign*normal(U[m],V[m]) < -eps && split(p,m+T[m])) return;
+                if(sign*normal(U[m],V[m]) < 0 && split(p,m+T[m])) return;
               }
             }
           }
