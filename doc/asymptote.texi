@@ -273,7 +273,7 @@ please see also @ref{Configuring}.
 @noindent
 We recommend subscribing to new release announcements at
 @quotation
-@url{http://freshmeat.net/subscribe/50750}
+@url{http://freshmeat.net/projects/asy}
 @end quotation
 @noindent
 Users may also wish to monitor the @code{Asymptote} forum:
@@ -281,10 +281,6 @@ Users may also wish to monitor the @code{Asymptote} forum:
 @url{http://sourceforge.net/forum/monitor.php?forum_id=409349}
 @end quotation
 @noindent
-and provide guidance to others by rating the @code{Asymptote} project:
-@quotation
-@url{http://freshmeat.net/projects/asy}
-@end quotation
 
 @node UNIX binary distributions
 @section UNIX binary distributions
@@ -2312,8 +2308,9 @@ specified by @code{fuzz}, or, if @code{fuzz < 0}, to machine precision.
 @item real[] intersections(path p, pair a, pair b, real fuzz=-1);
 Return all (unless there are infinitely many) intersection times of path
 @code{p} with the (infinite) line through points @code{a} and @code{b}
-as a sorted array. The computations are performed to the absolute error
-specified by @code{fuzz}, or, if @code{fuzz < 0}, to machine precision. 
+as a sorted array. The intersections returned are guaranteed to be
+correct to within the absolute error specified by @code{fuzz}, or, if
+@code{fuzz < 0}, to machine precision.
 
 @cindex @code{times}
 @item real[] times(path p, real x)
@@ -7336,8 +7333,9 @@ draw(surface((0,0)--E+2N--2E--E+N..0.2E..cycle),red);
 @noindent
 @cindex @code{bezulate}
 Planar Bezier surfaces patches are constructed using Orest Shardt's
-@code{bezulate} routine, which decomposes a given path into an array
-of cyclic paths of length @code{4} or less. 
+@code{bezulate} routine, which decomposes regions bounded
+by cyclic nonselfintersecting paths (according to the zerowinding fill
+rule) into subregions bounded by cyclic paths of length @code{4} or less.
 
 @cindex @code{thin}
 @cindex @code{thick}
@@ -8740,7 +8738,7 @@ posted here:
 To receive announcements of upcoming releases, please subscribe to
 @code{Asymptote} at
 @quotation
-@url{http://freshmeat.net/subscribe/50750}
+@url{http://freshmeat.net/projects/asy}
 @end quotation
 @cindex bug reports
 @noindent
