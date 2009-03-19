@@ -42,7 +42,7 @@ struct animation {
   }
 
   string name(string prefix, int index) {
-    return basename(prefix)+string(index);
+    return stripextension(prefix)+"-"+string(index);
   }
 
   private string nextname() {
