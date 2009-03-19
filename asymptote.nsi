@@ -41,8 +41,8 @@ var ICONS_GROUP
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
 ; Finish page
-!define MUI_FINISHPAGE_RUN "$INSTDIR\asy.bat"
-!define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\asymptote.pdf"
+;!define MUI_FINISHPAGE_RUN "$INSTDIR\asy.bat"
+;!define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\asymptote.pdf"
 !define MUI_FINISHPAGE_LINK ${PRODUCT_WEB_SITE}
 !define MUI_FINISHPAGE_LINK_LOCATION ${PRODUCT_WEB_SITE}
 !insertmacro MUI_PAGE_FINISH
@@ -87,10 +87,6 @@ Section "Asymptote" SEC01
   FileWriteByte $0 "13" 
   FileWriteByte $0 "10" 
 
-  FileWrite $0 "cd %USERPROFILE%"
-  FileWriteByte $0 "13" 
-  FileWriteByte $0 "10" 
-
   FileWrite $0 '"$INSTDIR\asy.exe" %1'
   FileWriteByte $0 "13" 
   FileWriteByte $0 "10" 
@@ -112,10 +108,9 @@ Section "Asymptote" SEC01
 ; Shortcuts
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
-  SetOutPath ""
+  SetOutPath "%USERPROFILE%"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Asymptote.lnk" "$INSTDIR\asy.bat" "" "$INSTDIR\asy.ico"
   CreateShortCut "$DESKTOP\Asymptote.lnk" "$INSTDIR\asy.bat" "" "$INSTDIR\asy.ico"
-  SetOutPath "%USERPROFILE%"
   CreateShortCut "$DESKTOP\Xasy.lnk" "$INSTDIR\xasy.py"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Xasy.lnk" "$INSTDIR\xasy.py"
   SetOutPath "$INSTDIR"
