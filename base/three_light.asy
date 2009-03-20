@@ -128,6 +128,7 @@ struct light {
   }
 
   pen color(triple normal, material m, transform3 T=T) {
+    if(invisible((pen) m)) return invisible;
     if(position.length == 0) return m.diffuse();
     normal=unit(T*normal);
     if(settings.twosided) normal *= sgn(normal.z);
