@@ -623,9 +623,12 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
             }
             // Found a good divisor; now compute subtick divisor
             if(n == 0) {
-              n=quotient(divisor[divisor.length-1],N);
-              if(N == 1) n=(a*b >= 0) ? 2 : 1;
-              if(n == 1) n=2;
+              if(step != 0) n=ceil(Step/step);
+              else {
+                n=quotient(divisor[divisor.length-1],N);
+                if(N == 1) n=(a*b >= 0) ? 2 : 1;
+                if(n == 1) n=2;
+              }
             }
             break;
           }
