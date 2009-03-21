@@ -392,7 +392,8 @@ bool intersect(double& S, double& T, path& p, path& q, double fuzz,
                unsigned depth=maxdepth);
 bool intersections(double& s, double& t, std::vector<double>& S,
                    std::vector<double>& T, path& p, path& q,
-                   double fuzz, bool single, unsigned depth=maxdepth);
+                   double fuzz, bool single, bool exact,
+                   unsigned depth=maxdepth);
 void intersections(std::vector<double>& S, path& g,
                    const pair& p, const pair& q, double fuzz);
 

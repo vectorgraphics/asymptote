@@ -2262,12 +2262,16 @@ real dirtime(path p, pair z)
 
 realarray* intersect(path p, path q, real fuzz=-1)
 {
-  if(fuzz < 0)
-    fuzz=-BigFuzz*::max(::max(length(p.max()),length(p.min())),
+  bool exact;
+  if(fuzz < 0) {
+    fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
                         ::max(length(q.max()),length(q.min())));
+    exact=true;
+  } else exact=false;
+
   std::vector<real> S,T;
   real s,t;
-  if(intersections(s,t,S,T,p,q,fuzz,true)) {
+  if(intersections(s,t,S,T,p,q,fuzz,true,exact)) {
     array *V=new array(2);
     (*V)[0]=s;
     (*V)[1]=t;
@@ -2278,13 +2282,27 @@ realarray* intersect(path p, path q, real fuzz=-1)
 
 realarray2* intersections(path p, path q, real fuzz=-1)
 {
-  if(fuzz < 0)
-    fuzz=-BigFuzz*::max(::max(length(p.max()),length(p.min())),
-                        ::max(length(q.max()),length(q.min())));
+  bool exact;
+  if(fuzz < 0) {
+    fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
+                       ::max(length(q.max()),length(q.min())));
+    exact=true;
+  } else exact=false;
+  
   real s,t;
   std::vector<real> S,T;
-  intersections(s,t,S,T,p,q,fuzz,false);
+  intersections(s,t,S,T,p,q,fuzz,false,true);
   size_t n=S.size();
+  if(n == 0 && !exact) {
+    if(intersections(s,t,S,T,p,q,fuzz,true,false)) {
+      array *V=new array(1);
+      array *Vi=new array(2);
+      (*V)[0]=Vi;
+      (*Vi)[0]=s;
+      (*Vi)[1]=t;
+      return V;
+    }
+  }
   array *V=new array(n);
   for(size_t i=0; i < n; ++i) {
     array *Vi=new array(2);
@@ -2296,7 +2314,7 @@ realarray2* intersections(path p, path q, real fuzz=-1)
   return V;
 }
 
-realarray* intersections(path p, pair a, pair b, real fuzz=-1)
+realarray* intersections(path p, explicit pair a, explicit pair b, real fuzz=-1)
 {
   if(fuzz < 0)
     fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
@@ -2539,12 +2557,16 @@ real arctime(path3 p, real dval)
 
 realarray* intersect(path3 p, path3 q, real fuzz=-1)
 {
-  if(fuzz < 0) 
+  bool exact;
+  if(fuzz < 0) {
     fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
                        ::max(length(q.max()),length(q.min())));
+    exact=true;
+  } else exact=false;
+  
   std::vector<real> S,T;
   real s,t;
-  if(intersections(s,t,S,T,p,q,fuzz,true)) {
+  if(intersections(s,t,S,T,p,q,fuzz,true,exact)) {
     array *V=new array(2);
     (*V)[0]=s;
     (*V)[1]=t;
@@ -2555,19 +2577,34 @@ realarray* intersect(path3 p, path3 q, real fuzz=-1)
 
 realarray2* intersections(path3 p, path3 q, real fuzz=-1)
 {
-  if(fuzz < 0)
+  bool exact;
+  if(fuzz < 0) {
     fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
                        ::max(length(q.max()),length(q.min())));
+    exact=true;
+  } else exact=false;
+  bool single=!exact;
+  
   real s,t;
   std::vector<real> S,T;
-  intersections(s,t,S,T,p,q,fuzz,false);
-  size_t n=S.size();
-  array *V=new array(n);
-  for(size_t i=0; i < n; ++i) {
+  bool found=intersections(s,t,S,T,p,q,fuzz,single,exact);
+  if(!found) return new array(0);
+  array *V;
+  if(single) {
+    V=new array(1);
     array *Vi=new array(2);
-    (*V)[i]=Vi;
-    (*Vi)[0]=S[i];
-    (*Vi)[1]=T[i];
+    (*V)[0]=Vi;
+    (*Vi)[0]=s;
+    (*Vi)[1]=t;
+  } else {
+    size_t n=S.size();
+    V=new array(n);
+    for(size_t i=0; i < n; ++i) {
+      array *Vi=new array(2);
+      (*V)[i]=Vi;
+      (*Vi)[0]=S[i];
+      (*Vi)[1]=T[i];
+    }
   }
   stable_sort(V->begin(),V->end(),run::compare2<real>());
   return V;
