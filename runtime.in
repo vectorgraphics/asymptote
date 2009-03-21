@@ -2262,13 +2262,10 @@ real dirtime(path p, pair z)
 
 realarray* intersect(path p, path q, real fuzz=-1)
 {
-  bool exact;
-  if(fuzz < 0) {
+  bool exact=fuzz <= 0.0;
+  if(fuzz < 0)
     fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
-                        ::max(length(q.max()),length(q.min())));
-    exact=true;
-  } else exact=false;
-
+                       ::max(length(q.max()),length(q.min())));
   std::vector<real> S,T;
   real s,t;
   if(intersections(s,t,S,T,p,q,fuzz,true,exact)) {
@@ -2282,13 +2279,10 @@ realarray* intersect(path p, path q, real fuzz=-1)
 
 realarray2* intersections(path p, path q, real fuzz=-1)
 {
-  bool exact;
-  if(fuzz < 0) {
+  bool exact=fuzz <= 0.0;
+  if(fuzz < 0.0)
     fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
                        ::max(length(q.max()),length(q.min())));
-    exact=true;
-  } else exact=false;
-  
   real s,t;
   std::vector<real> S,T;
   intersections(s,t,S,T,p,q,fuzz,false,true);
@@ -2557,12 +2551,10 @@ real arctime(path3 p, real dval)
 
 realarray* intersect(path3 p, path3 q, real fuzz=-1)
 {
-  bool exact;
-  if(fuzz < 0) {
+  bool exact=fuzz <= 0.0;
+  if(fuzz < 0)
     fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
                        ::max(length(q.max()),length(q.min())));
-    exact=true;
-  } else exact=false;
   
   std::vector<real> S,T;
   real s,t;
@@ -2577,12 +2569,10 @@ realarray* intersect(path3 p, path3 q, real fuzz=-1)
 
 realarray2* intersections(path3 p, path3 q, real fuzz=-1)
 {
-  bool exact;
-  if(fuzz < 0) {
+  bool exact=fuzz <= 0.0;
+  if(fuzz < 0)
     fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
                        ::max(length(q.max()),length(q.min())));
-    exact=true;
-  } else exact=false;
   bool single=!exact;
   
   real s,t;
