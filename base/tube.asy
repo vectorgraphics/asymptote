@@ -38,13 +38,12 @@ path3 roundedpath(path3 A, real r)
 
 real[] sample(path3 g, real r, real relstep=0)
 {
-  static real epsilon=sqrt(realEpsilon);
   real[] t;
   int n=length(g);
   if(relstep <= 0) {
     for(int i=0; i < n; ++i) {
       real S=straightness(g,i);
-      if(S < epsilon*r) {
+      if(S < sqrtEpsilon*r) {
 	t.push(i);
       } else {
 	if(cyclic(g) && i == n-1) {
@@ -99,7 +98,6 @@ real degrees(Rmf a, Rmf b)
 
 private Rmf[] rmf(path3 g, Rmf U0=Rmf(O,O,O,0), real[] t)
 {
-  static real epsilon=sqrt(realEpsilon);
   if(U0.t == O) {
     triple d=dir(g,0);
     U0=Rmf(point(g,0),perp(d),d,0);

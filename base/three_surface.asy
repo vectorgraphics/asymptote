@@ -411,12 +411,7 @@ struct surface {
       return;
     }
         
-    int straightcount(path p) {
-      int count=0;
-      for(int i=0; i < length(p); ++i)
-        if(straight(p,i)) ++count;
-      return count;
-    }
+    static real fuzz=sqrt(sqrtEpsilon);
 
     bool split(path p, real t) {
       pair dir=dir(p,t);
@@ -425,10 +420,9 @@ struct surface {
         int L=length(g);
         pair z=point(g,0);
         real[] T=intersections(g,z,z+I*dir);
-        static real eps=sqrt(realEpsilon);
         for(int i=0; i < T.length; ++i) {
           real cut=T[i];
-          if(cut > eps && cut < L-eps) {
+          if(cut > fuzz && cut < L-fuzz) {
             path p1=subpath(g,0,cut)--cycle;
             path p2=subpath(g,cut,L)--cycle;
             s.append(surface(p1).s);
@@ -442,7 +436,6 @@ struct surface {
 
     int sign=sgn(windingnumber(p,inside(p)));
     for(int i=0; i < L; ++i) {
-      static real fuzz=sqrt(sqrt(realEpsilon));
       if(sign*(conj(dir(p,i,-1))*dir(p,i,1)).y < -fuzz) {
         if(split(p,i)) return;
       }
@@ -515,13 +508,12 @@ struct surface {
                 bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v)).y;
       }
 
-      static real fuzz=sqrt(realEpsilon);
-      
       for(int m=0; m < 4; ++m) {
         if(!straight(p,m)) {
           real[] c=c[m];
           pair[] R=quarticroots(c[4],c[3],c[2],c[1],c[0]);
           for(pair r : R) {
+            static real fuzz=sqrtEpsilon;
             if(fabs(r.y) < fuzz) {
               real t=r.x;
               if(0 <= t && t <= 1) {
@@ -659,7 +651,6 @@ struct surface {
       triple max=max(h);
       triple min=min(h);
       triple perp(triple m) {
-        static real epsilon=sqrt(realEpsilon);
         triple perp=m-c;
         return perp-dot(perp,axis)*axis;
       }

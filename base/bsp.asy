@@ -96,7 +96,7 @@ splitface split(face a, face cut, projection P)
 
   if(P.infinity) {
     P=P.copy();
-    static real factor=1/sqrt(realEpsilon);
+    static real factor=1/sqrtEpsilon;
     P.camera *= factor*max(abs(a.min),abs(a.max),
                            abs(cut.min),abs(cut.max));
   }

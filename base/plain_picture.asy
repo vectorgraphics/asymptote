@@ -477,7 +477,7 @@ struct projection {
   bool adjust(triple m, triple M) {
     triple v=camera-target;
     real d=distance(m,M);
-    static real lambda=camerafactor*(1-sqrt(realEpsilon));
+    static real lambda=camerafactor*(1-sqrtEpsilon);
     if(lambda*d >= abs(v)) {
       camera=target+camerafactor*d*unit(v);
       calculate();

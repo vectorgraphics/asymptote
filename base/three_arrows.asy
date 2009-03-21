@@ -94,12 +94,10 @@ surface tube(path3 g, real width)
 
   transform3 t=scale3(r);
 
-  static real epsilon=sqrt(realEpsilon);
-
   int n=length(g);
   for(int i=0; i < n; ++i) {
     real S=straightness(g,i);
-    if(S < epsilon*r) {
+    if(S < sqrtEpsilon*r) {
       triple v=point(g,i);
       triple u=point(g,i+1)-v;
       tube.append(shift(v)*align(unit(u))*scale(r,r,abs(u))*unitcylinder);
@@ -117,7 +115,7 @@ surface tube(path3 g, real width)
       }
     }
 
-    if((cyclic(g) || i > 0) && abs(dir(g,i,1)-dir(g,i,-1)) > epsilon)
+    if((cyclic(g) || i > 0) && abs(dir(g,i,1)-dir(g,i,-1)) > sqrtEpsilon)
       tube.append(shift(point(g,i))*t*align(dir(g,i,-1))*unithemisphere);
   }
   return tube;
@@ -437,8 +435,7 @@ void drawarrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
   path3 r=subpath(g,position,0);
   size=min(arrowsizelimit*arclength(r),size);
   surface head=arrowhead.head(g,position,q,size,angle,filltype,forwards,P);
-  static real fuzz=sqrt(realEpsilon);
-  if(arrowhead.splitpath || position > L-fuzz) {
+  if(arrowhead.splitpath || position > L-sqrtEpsilon) {
     if(position > 0) {
       real Size=size*arrowhead.gap;
       draw(pic,subpath(r,arctime(r,Size),length(r)),p,light);

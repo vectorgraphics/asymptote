@@ -133,13 +133,11 @@ triple project(triple u, triple v)
   return dot(u,v)*v;
 }
 
-real sqrtepsilon=sqrt(realEpsilon);
-
 // Return a unit vector perpendicular to a given unit vector v.
 triple perp(triple v)
 {
   triple u=cross(v,Y);
-  return (abs(u) > sqrtepsilon) ? unit(u) : unit(cross(v,Z));
+  return (abs(u) > sqrtEpsilon) ? unit(u) : unit(cross(v,Z));
 }
 
 // Return the transformation corresponding to moving the camera from the target
@@ -1243,7 +1241,7 @@ guide3 operator cast(path3 p)
 triple normal(path3 p)
 {
   triple normal;
-  real fuzz=sqrtepsilon*abs(max(p)-min(p));
+  real fuzz=sqrtEpsilon*abs(max(p)-min(p));
   real absnormal;
   real theta;
   
@@ -1252,8 +1250,8 @@ triple normal(path3 p)
       triple n=cross(unit(a),unit(b));
       real absn=abs(n);
       n=unit(n);
-      if(absnormal > 0 && absn > sqrtepsilon &&
-         abs(normal-n) > sqrtepsilon && abs(normal+n) > sqrtepsilon)
+      if(absnormal > 0 && absn > sqrtEpsilon &&
+         abs(normal-n) > sqrtEpsilon && abs(normal+n) > sqrtEpsilon)
         return true;
       else {
         int sign=dot(n,normal) >= 0 ? 1 : -1;
@@ -1291,7 +1289,7 @@ triple normal(path3 p)
 triple normal(triple[] p)
 {
   triple normal;
-  real fuzz=sqrtepsilon*abs(maxbound(p)-minbound(p));
+  real fuzz=sqrtEpsilon*abs(maxbound(p)-minbound(p));
   real absnormal;
   real theta;
   
@@ -1300,8 +1298,8 @@ triple normal(triple[] p)
       triple n=cross(unit(a),unit(b));
       real absn=abs(n);
       n=unit(n);
-      if(absnormal > 0 && absn > sqrtepsilon &&
-         abs(normal-n) > sqrtepsilon && abs(normal+n) > sqrtepsilon)
+      if(absnormal > 0 && absn > sqrtEpsilon &&
+         abs(normal-n) > sqrtEpsilon && abs(normal+n) > sqrtEpsilon)
         return true;
       else {
         int sign=dot(n,normal) >= 0 ? 1 : -1;
@@ -1813,7 +1811,7 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
   v2=Tinv*v2;
   
   string invalidnormal="invalid normal vector";
-  real fuzz=sqrtepsilon*max(abs(v1),abs(v2));
+  real fuzz=sqrtEpsilon*max(abs(v1),abs(v2));
   if(abs(v1.z) > fuzz || abs(v2.z) > fuzz)
     abort(invalidnormal);
   
@@ -2275,7 +2273,7 @@ string embed3D(string label="", string text=label, string prefix,
   triple u=unit(v);
   triple w=Z-u.z*u;
   real roll;
-  if(abs(w) > sqrtepsilon) {
+  if(abs(w) > sqrtEpsilon) {
     w=unit(w);
     triple up=unit(P.up-dot(P.up,u)*u);
     roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));

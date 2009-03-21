@@ -28,8 +28,7 @@ transform scaleless(transform t)
   pair l1=0.5(trace+delta);
   pair l2=0.5(trace-delta);
   
-  static real epsilon=sqrt(realEpsilon);
-  if(abs(delta) < epsilon*max(abs(l1),abs(l2))) {
+  if(abs(delta) < sqrtEpsilon*max(abs(l1),abs(l2))) {
     real s=abs(0.5trace);
     return (s != 0) ? scale(1/s)*t : t;
   }

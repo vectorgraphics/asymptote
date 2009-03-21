@@ -14,15 +14,13 @@ real[] tangent(path p, path q, bool side)
       cyclic(q) && inside(q,point(p,0))) &&
      intersect(p,q,fuzz).length == 0) return new real[];
 
-  static real epsilon=sqrt(realEpsilon);
-  
   for(int i=0; i < 100; ++i) {
     real ta=side ? mintimes(p)[1] : maxtimes(p)[1];
     real tb=side ? mintimes(q)[1] : maxtimes(q)[1];
     pair a=point(p,ta);
     pair b=point(q,tb);
     real angle=angle(b-a,warn=false);
-    if(abs(angle) <= epsilon || abs(abs(0.5*angle)-pi) <= epsilon)
+    if(abs(angle) <= sqrtEpsilon || abs(abs(0.5*angle)-pi) <= sqrtEpsilon)
       return new real[] {ta,tb};
     transform t=rotate(-degrees(angle));
     p=t*p;
@@ -74,7 +72,7 @@ struct revolution {
   triple M;
   triple m;
 
-  static real epsilon=10*sqrt(realEpsilon);
+  static real epsilon=10*sqrtEpsilon;
   
   void operator init(triple c=O, path3 g, triple axis=Z, real angle1=0,
                      real angle2=360) {

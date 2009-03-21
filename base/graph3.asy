@@ -1874,8 +1874,7 @@ path3 Arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW,
   v1=Tinv*v1;
   v2=Tinv*v2;
 
-  static real epsilon=sqrt(realEpsilon);
-  real fuzz=epsilon*max(abs(v1),abs(v2));
+  real fuzz=sqrtEpsilon*max(abs(v1),abs(v2));
   if(abs(v1.z) > fuzz || abs(v2.z) > fuzz)
     abort("invalid normal vector");
 

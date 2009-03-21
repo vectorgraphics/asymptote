@@ -42,11 +42,9 @@ path[][] containmentTree(path[] paths)
   return result;
 }
 
-private real fuzz=sqrt(realEpsilon);
-
 bool isDuplicate(pair a, pair b, real relSize)
 {
-  return abs(a-b) <= fuzz*relSize;
+  return abs(a-b) <= sqrtEpsilon*relSize;
 }
 
 path removeDuplicates(path p)
@@ -131,7 +129,7 @@ path[] connect(path[] paths, path[] result, path[] patch, int depth=0)
 
           real timeoffset=2;
           bool found=false;
-          while(!found && timeoffset > fuzz) {
+          while(!found && timeoffset > sqrtEpsilon) {
             timeoffset /= 2;
             if(countIntersections(allCurves,start,
                                   point(allCurves[curveIndex],
@@ -139,7 +137,7 @@ path[] connect(path[] paths, path[] result, path[] patch, int depth=0)
               found=true;
           }
           if(!found)timeoffset=-2;
-          while(!found && timeoffset > fuzz) {
+          while(!found && timeoffset > sqrtEpsilon) {
             timeoffset /= 2;
             if(countIntersections(allCurves,start,
                                   point(allCurves[curveIndex],
@@ -177,9 +175,9 @@ int countIntersections(path g, pair p, pair q)
 
 bool checkSegment(path g, pair p, pair q)
 {
-  pair mid=(p+q)/2;
-  return(countIntersections(g,p,q) == 4 && inside(g,mid,zerowinding) && 
-         intersections(g,mid).length == 0);
+  pair mid=0.5*(p+q);
+  return countIntersections(g,p,q) == 4 && inside(g,mid,zerowinding) && 
+    intersections(g,mid).length == 0;
 }
 
 path subdivide(path p)

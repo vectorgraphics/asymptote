@@ -2305,7 +2305,8 @@ paths @code{p} and @code{q} as a sorted array of real arrays of length 2
 specified by @code{fuzz}, or, if @code{fuzz < 0}, to machine precision.
 
 @cindex @code{intersections}
-@item real[] intersections(path p, pair a, pair b, real fuzz=-1);
+@item real[] intersections(path p, explicit pair a, explicit pair b,
+                           real fuzz=-1);
 Return all (unless there are infinitely many) intersection times of path
 @code{p} with the (infinite) line through points @code{a} and @code{b}
 as a sorted array. The intersections returned are guaranteed to be
@@ -2337,7 +2338,7 @@ reaches its maximal horizontal and vertical extents, respectively.
 returns the intersection point @code{point(p,intersect(p,q,fuzz)[0])}.
 
 @cindex @code{intersectionpoints}
-@item pair[] intersectionpoints(path p, path q);
+@item pair[] intersectionpoints(path p, path q, real fuzz=-1);
 returns an array containing all intersection points of the paths
 @code{p} and @code{q}.
 
@@ -7832,7 +7833,8 @@ transform transform(triple u, triple v, triple O=O,
 @end verbatim
 
 Here is an example that shows how a binary space partition may be used to draw a
-@code{PostScript} vector image of three orthogonal intersecting planes:
+two-dimensional vector graphics projection of three orthogonal
+intersecting planes:
 @verbatiminclude planes.asy
 @sp 1
 @center @image{planes}
