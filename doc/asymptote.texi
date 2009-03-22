@@ -1544,11 +1544,10 @@ layer();
 @end verbatim
 
 @cindex @code{baseline}
-The @code{string baseline(string s, align align=S, string template="M")} 
-function can be used to enlarge the bounding box of letters aligned
-below a horizontal line to match a given template, so that their
-baselines lie on a horizontal line. See @code{Pythagoras.asy} for an
-example.
+The @code{string baseline(string s, string template="\strut")} 
+function can be used to enlarge the bounding box of labels to match a
+given template, so that their baselines will be typeset on a
+horizontal line. See @code{Pythagoras.asy} for an example.
 
 One can prevent labels from overwriting one another with the
 @code{overwrite} pen attribute (@pxref{overwrite}).

@@ -99,10 +99,8 @@ void labeltick(picture pic, transform3 T, path3 g,
 
   string s=ticklabel(label);
   triple v=locate1.V+shift;
-  if(s != "") {
-    s=baseline(s,align,"$10^4$");
-    label(pic,F.defaulttransform3 ? s : F.T3*s,v,align,F.p);
-  }
+  if(s != "")
+    label(pic,F.defaulttransform3 ? baseline(s) : F.T3*s,v,align,F.p);
 }  
 
 // Add axis label L to frame f.
@@ -1235,7 +1233,7 @@ void tick(picture pic=currentpicture, Label L, real value, triple v,
   }
   L.p(p);
   if(L.s == "") L.s=format(format == "" ? defaultformat : format,value);
-  L.s=baseline(L.s,L.align,"$10^4$");
+  L.s=baseline(L.s);
   label(pic,L,v);
   xtick(pic,v,dir,size,p);
 }
@@ -1288,7 +1286,7 @@ private void label(picture pic, Label L, triple v, real x, align align,
   if(shift(L.T3)*O == O)
     L.T3=shift(ticklabelshift(L.align.dir3,L.p))*L.T3;
   if(L.s == "") L.s=format(format == "" ? defaultformat : format,x);
-  L.s=baseline(L.s,L.align,"$10^4$");
+  L.s=baseline(L.s);
   label(pic,L,v);
 }
 

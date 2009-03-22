@@ -380,10 +380,8 @@ pair labeltick(frame d, transform T, path g, ticklocate locate, real val,
   }
 
   string s=ticklabel(label);
-  if(s != "") {
-    s=baseline(s,align,"$10^4$");
-    label(d,F.T*s,locate1.Z+shift,align,F.p,F.filltype);
-  }
+  if(s != "")
+    label(d,F.T*baseline(s),locate1.Z+shift,align,F.p,F.filltype);
   return locate1.pathdir;
 }  
 
@@ -1671,7 +1669,7 @@ void tick(picture pic=currentpicture, Label L, real value, explicit pair z,
               ticklabelshift(L.align.dir,p))*L.T;
   L.p(p);
   if(L.s == "") L.s=format(format == "" ? defaultformat : format,value);
-  L.s=baseline(L.s,L.align,"$10^4$");
+  L.s=baseline(L.s);
   add(pic,L);
   xtick(pic,z,dir,size,p);
 }
@@ -1710,7 +1708,7 @@ private void label(picture pic, Label L, pair z, real x, align align,
   if(shift(L.T)*0 == 0)
     L.T=shift(ticklabelshift(L.align.dir,L.p))*L.T;
   if(L.s == "") L.s=format(format == "" ? defaultformat : format,x);
-  L.s=baseline(L.s,L.align,"$10^4$");
+  L.s=baseline(L.s);
   add(pic,L);
 }
 

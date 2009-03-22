@@ -122,21 +122,17 @@ string file(string s)
 
 string italic(string s)
 {
-  if(s == "") return s;
-  return "{\it "+s+"}";
+  return s != "" ? "{\it "+s+"}" : s;
 }
 
-string baseline(string s, align align=S, string template="M") 
-{
-  if(s == "") return s;
-  return align.dir.y <= -0.5*abs(align.dir.x) ? 
-    "\ASYbase{"+template+"}{"+s+"}" : s;
+string baseline(string s, string template="\strut") 
+{ 
+  return s != "" ? "\vphantom{"+template+"}"+s : s;
 }
 
 string math(string s)
 {
-  if(s == "") return s;
-  return "$"+s+"$";
+  return s != "" ? "$"+s+"$" : s;
 }
 
 string graphic(string name, string options="")
