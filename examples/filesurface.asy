@@ -17,8 +17,11 @@ triple f(pair t) {
 
 surface s=surface(f,(0,0),(x.length-1,y.length-1),x.length-1,y.length-1);
 
-triple target=0.5*(min(s)+max(s));
-currentprojection=perspective(camera=target+dir(70,215),target=target);
+triple m=min(s);
+triple M=max(s);
+triple target=0.5*(m+M);
+currentprojection=perspective(camera=target+realmult(dir(70,225),M-m),
+                              target=target);
 
 real epsilon=sqrt(realEpsilon);
 real[] level=uniform(min(f)*(1-epsilon),max(f)*(1+epsilon),4);
