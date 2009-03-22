@@ -2070,7 +2070,7 @@ pauses for the given number of seconds;
 pauses for the given number of microseconds;
 
 @cindex @code{beep}
-@item void beep
+@item void beep()
 produces a beep on the console;
 
 @end table
@@ -2199,13 +2199,13 @@ in the case where @code{p} is cyclic or else converted to the corresponding
 endpoint of @code{p}.
 
 @cindex @code{dir}
-@item pair dir(path p, int t, int sign=0, int normalize=true);
+@item pair dir(path p, int t, int sign=0, bool normalize=true);
 If @code{sign < 0}, return the direction (as a pair) of the incoming tangent 
 to path @code{p} at node @code{t}; if @code{sign > 0}, return the
 direction of the outgoing tangent. If @code{sign=0}, the mean of these
 two directions is returned.
 
-@item pair dir(path p, real t, int normalize=true);
+@item pair dir(path p, real t, bool normalize=true);
 returns the direction of the tangent to path @code{p} at the point
 between node @code{floor(t)} and @code{floor(t)+1} corresponding to the
 cubic spline parameter @code{t-floor(t)} (@pxref{Bezier}).
@@ -3351,11 +3351,6 @@ void add(picture dest, picture src, pair position,
          bool group=true, filltype filltype=NoFill, bool above=true);
 void add(picture dest=currentpicture, frame src, pair position=0,
          bool group=true, filltype filltype=NoFill, bool above=true);
-void add(picture src, pair position, pair align, bool group=true,
-         filltype filltype=NoFill, bool above=true);
-void add(picture dest, picture src, pair position,
-         pair align, bool group=true, filltype filltype=NoFill,
-         bool above=true);
 void add(picture dest=currentpicture, frame src, pair position,
          pair align, bool group=true, filltype filltype=NoFill,
          bool above=true);
@@ -4929,7 +4924,7 @@ returns the complement of the integer array @code{a} in
 complement of @code{b[a]}.
 
 @cindex @code{uniform}
-@item int[] uniform(real a, real b, int n)
+@item real[] uniform(real a, real b, int n)
 if @code{n >= 1} returns a uniform partition of @code{[a,b]} into
 @code{n} subintervals (otherwise returns a null array);
 
@@ -5010,7 +5005,7 @@ returns the 3D transpose of @code{a} obtained by applying the permutation
 @cindex @code{sum}
 @item T sum(T[] a)
 For arithmetic types @code{T}, returns the sum of @code{a}.
-In the case where @code{T} is a boolean array, the number of true elements in
+In the case where @code{T} is @code{bool}, the number of true elements in
 @code{a} is returned.
 
 @cindex @code{min}
@@ -9023,7 +9018,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  unithemisphere versa XYplane xypart unitsolidcone YZEquals
 @c  LocalWords:  XZEquals XYEquals XZZero XYZero InTicks OutTicks InOutTicks
 @c  LocalWords:  fitscreen planeproject strokepath meshlight nullpens arrowdir
-@c  LocalWords:  diffusepen ambientpen emissivepen specularpen arrowbarb
+@c  LocalWords:  diffusepen ambientpen emissivepen specularpen arrowbarb keyval
 @c  LocalWords:  nonselfintersecting hstretch vstretch roundbox nonconvex
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify
@@ -9032,4 +9027,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot scaledgraph
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
 @c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
-@c  LocalWords:  dvipdfmx autoadjust viewportsize
+@c  LocalWords:  dvipdfmx autoadjust viewportsize viewportwidth viewportheight
+@c  LocalWords:  subregions
