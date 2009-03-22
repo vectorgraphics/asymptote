@@ -1812,7 +1812,8 @@ void add(picture dest, picture src, bool group=true, filltype filltype=NoFill,
   dest.add(src,group,filltype,above);
 }
 
-void add(picture src, bool group=true, filltype filltype=NoFill, bool above=true)
+void add(picture src, bool group=true, filltype filltype=NoFill,
+         bool above=true)
 {
   currentpicture.add(src,group,filltype,above);
 }

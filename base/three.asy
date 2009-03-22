@@ -2343,10 +2343,11 @@ object embed(string label="", string text=label,
   bool adjusted=false;
 
   if(!P.absolute) {
+    P=t*P;
     if(P.autoadjust) {
       tinv=inverse(t);
-      m=tinv*pic.min(t);
-      M=tinv*pic.max(t);
+      m=pic.min(t);
+      M=pic.max(t);
       bool recalculate=false;
       if(P.target.x < m.x ||
          P.target.y < m.y ||
@@ -2355,22 +2356,19 @@ object embed(string label="", string text=label,
          P.target.y > M.y ||
          P.target.z > M.z) {
         triple target=0.5*(m+M);
-        P.camera += target-P.target;
+        triple v=P.camera-P.target;
+        if(keepAspect)
+          P.camera=target+v;
+        else
+          P.camera=target+abs(v)*unit(realmult(v,M-m));
         P.target=target;
         recalculate=true;
-        write("adjusting target to ",P.target);
-      }
-      if(!keepAspect) {
-        triple v=P.camera-P.target;
-        P.camera=P.target+abs(v)*unit(realmult(v,M-m));
-        recalculate=true;
+        write("adjusting target to ",tinv*P.target);
       }
       if(recalculate) P.calculate();
     }
-  
     if(P.autoadjust || P.infinity) 
       adjusted=adjusted | P.adjust(m,M);
-    P=t*P;
   }
 
   picture pic2;

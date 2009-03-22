@@ -4,7 +4,7 @@ import palette;
 
 if(settings.render <= 0) settings.prc=false;
 
-currentprojection=orthographic(5,10,13);
+currentprojection=orthographic(1,2,13);
 
 size(400,300,IgnoreAspect);
 
