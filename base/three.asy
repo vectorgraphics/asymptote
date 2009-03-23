@@ -2355,13 +2355,7 @@ object embed(string label="", string text=label,
          P.target.x > M.x ||
          P.target.y > M.y ||
          P.target.z > M.z) {
-        triple target=0.5*(m+M);
-        triple v=P.camera-P.target;
-        if(keepAspect)
-          P.camera=target+v;
-        else
-          P.camera=target+abs(v)*unit(realmult(v,M-m));
-        P.target=target;
+        P.target=0.5*(m+M);
         recalculate=true;
         write("adjusting target to ",tinv*P.target);
       }
