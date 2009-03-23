@@ -42,7 +42,7 @@ struct animation {
   }
 
   string name(string prefix, int index) {
-    return stripextension(prefix)+"-"+string(index);
+    return stripextension(prefix)+string(index);
   }
 
   private string nextname() {
@@ -96,6 +96,9 @@ struct animation {
     pair m=t*min(all);
     pair M=t*max(all);
     frame multi;
+    bool inlinetex=settings.inlinetex;
+    if(multipage)
+      settings.inlinetex=false;
     for(int i=0; i < pictures.length; ++i) {
       draw(pictures[i],m,nullpen);
       draw(pictures[i],M,nullpen);
@@ -118,8 +121,6 @@ struct animation {
       }
     }
     if(multipage) {
-      bool inlinetex=settings.inlinetex;
-      settings.inlinetex=false;
       plain.shipout(prefix,multi,view=view);
       settings.inlinetex=inlinetex;
     }
@@ -133,6 +134,7 @@ struct animation {
 
   string pdf(fit fit=NoBox, real delay=animationdelay, string options="",
              bool keep=settings.keep, bool multipage=true) {
+    if(settings.inlinetex) multipage=true;
     if(settings.tex != "pdflatex")
       abort("inline pdf animations require -tex pdflatex");
     
@@ -142,6 +144,7 @@ struct animation {
 
     if(global)
       export(filename,fit,multipage=multipage);
+    
     shipped=false;
 
     if(!keep && !settings.inlinetex) {

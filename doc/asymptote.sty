@@ -3,7 +3,7 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2)
 
-\ProvidesPackage{asymptote}[2009/03/07 v1.04 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2009/03/23 v1.05 Asymptote style file for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
 \newif\ifASYinline
@@ -257,10 +257,10 @@
 \AtEndDocument{\immediate\closeout\AsyStream}
 
 \newcommand{\ASYanimategraphics}[5][]{%
-\openin\AsyTestStream=#3.pdf
+\openin\AsyTestStream=_#3.pdf
 \ifeof\AsyTestStream%
 \else%
-\animategraphics[{#1}]{#2}{#3}{#4}{#5}%
+\animategraphics[{#1}]{#2}{_#3}{#4}{#5}%
 \fi%
 }
 

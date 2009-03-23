@@ -17,4 +17,4 @@ for(int i=0; i < 3.5n; ++i) {
   a.add(pic);
 }
 
-label(a.pdf("controls"));
+label(a.pdf("controls",multipage=false));

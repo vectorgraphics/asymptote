@@ -6098,12 +6098,13 @@ one must then execute the command @code{texhash}.
 The example @code{pdfmovie.asy} in the @code{animations}
 directory, along with the slide presentations @code{slidemovies.asy}
 and @code{intro.asy}, illustrate the use of embedded @acronym{PDF} movies.
-The example @code{inlinemovie.tex} shows how to generate and embed @acronym{PDF}
-movies directly within a @code{LaTeX} file (@pxref{LaTeX usage}).
+The examples @code{inlinemovie.tex} and @code{inlinemovie3.tex} 
+show how to generate and embed @acronym{PDF} movies directly within a
+@code{LaTeX} file (@pxref{LaTeX usage}).
 The member function
 @verbatim
 string pdf(fit fit=NoBox, real delay=animationdelay, string options="",
-           bool keep=false, bool multipage=true);
+           bool keep=settings.keep, bool multipage=true);
 @end verbatim
 @noindent
 of the @code{animate} structure accepts any of the @code{animate.sty} options,

@@ -162,7 +162,8 @@ install-asy: asy
 	${INSTALL} -p -m 644 examples/*.asy $(addprefix examples/,$(EXEXTRA)) \
 	  doc/extra/*.asy $(addprefix doc/,$(DOCEXTRA)) $(exampledir)
 	${INSTALL} -p -m 644 examples/animations/*.asy \
-          examples/animations/inlinemovie.tex $(animationsdir)
+          examples/animations/inlinemovie.tex \
+	  examples/animations/inlinemovie3.tex $(animationsdir)
 	-${INSTALL} -p -m 644 $(addprefix doc/,$(LATEXFILES)) $(latexdir)
 	-if test -z "$(DESTDIR)"; then \
 	  texhash; \
@@ -179,7 +180,7 @@ uninstall: uninstall-all
 uninstall-all: uninstall-man uninstall-asy
 
 uninstall-asy:
-	-cd $(animationsdir); rm -f *.asy
+	-cd $(animationsdir); rm -f *.asy *.tex
 	-rmdir $(animationsdir)
 	-cd $(exampledir); rm -f $(EXEXTRA) $(DOCEXTRA)
 	-rmdir $(exampledir)
