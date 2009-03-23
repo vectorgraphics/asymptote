@@ -29,8 +29,13 @@ extern bool initialize;
 #ifdef HAVE_LIBPTHREAD
 extern pthread_cond_t initSignal;
 extern pthread_mutex_t initLock;
+extern pthread_cond_t readySignal;
+extern pthread_mutex_t readyLock;
+extern pthread_cond_t quitSignal;
+extern pthread_mutex_t quitLock;
 extern pthread_t mainthread;
 void wait(pthread_cond_t& signal, pthread_mutex_t& lock);
+void endwait(pthread_cond_t& signal, pthread_mutex_t& lock);
 #endif
 }
 

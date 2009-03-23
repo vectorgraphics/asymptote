@@ -481,10 +481,6 @@ void exportHandler(int)
   wait(readySignal,readyLock);
 #endif
   autoExport();
-#ifdef HAVE_LIBPTHREAD
-  if(!interact::interactive || !View)
-    wait(quitSignal,quitLock);
-#endif
 }
 
 void reshape(int width, int height)
@@ -506,24 +502,27 @@ void reshape(int width, int height)
 }
   
 #ifdef HAVE_LIBPTHREAD
+void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
+{
+  pthread_cond_signal(&signal);
+}
 void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
 {
   pthread_mutex_lock(&lock);
   pthread_cond_signal(&signal);
   pthread_cond_wait(&signal,&lock);
-  pthread_cond_signal(&signal);
+  endwait(signal,lock);
   pthread_mutex_unlock(&lock);
 }
+
 #endif
 
 void quit() 
 {
   if(glthread) {
 #ifdef HAVE_LIBPTHREAD
-    if(!interact::interactive) {
+    if(!interact::interactive)
       wait(quitSignal,quitLock);
-      usleep(100000);
-    }
 #endif
     glutHideWindow();
   } else {

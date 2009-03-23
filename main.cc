@@ -178,6 +178,8 @@ int main(int argc, char *argv[])
       if(pthread_create(&thread,NULL,asymain,&args) == 0) {
         gl::mainthread=pthread_self();
         while(true) {
+          gl::endwait(gl::readySignal,gl::readyLock);
+          gl::endwait(gl::quitSignal,gl::quitLock);
           gl::wait(gl::initSignal,gl::initLock);
           camp::glrenderWrapper();
           gl::initialize=true;
