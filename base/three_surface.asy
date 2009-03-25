@@ -684,6 +684,11 @@ struct surface {
   void append(surface s) {
     this.s.append(s.s);
   }
+
+  void operator init(... surface[] s) {
+    for(surface S : s)
+      this.s.append(S.s);
+  }
 }
 
 surface operator * (transform3 t, surface s)
