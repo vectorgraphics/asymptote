@@ -1,5 +1,6 @@
 import graph3;
 
+currentprojection=orthographic(5,4,2);
 currentlight=adobe;
 
 size(12cm,0);
