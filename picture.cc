@@ -723,21 +723,6 @@ void glrenderWrapper()
 #endif  
 }
 
-void hold(bool View) 
-{
-#ifdef HAVE_LIBGLUT  
-#ifdef HAVE_LIBPTHREAD
-  if(glthread) {
-    if(!View)
-      wait(readySignal,readyLock);
-  
-    if(!interact::interactive || !View)
-      wait(quitSignal,quitLock);
-  }
-#endif  
-#endif  
-}
-
 extern bool glinitialize;
 
 bool picture::shipout3(const string& prefix, const string& format,
@@ -780,7 +765,15 @@ bool picture::shipout3(const string& prefix, const string& format,
       com.viewportlighting=viewportlighting;
       com.view=View;
       wait(initSignal,initLock);
-      hold(View);
+#ifdef HAVE_LIBGLUT  
+#ifdef HAVE_LIBPTHREAD
+    if(!View)
+      wait(readySignal,readyLock);
+  
+    if(!interact::interactive || !View)
+      wait(quitSignal,quitLock);
+#endif  
+#endif  
       return true;
     }
 #endif
@@ -795,10 +788,23 @@ bool picture::shipout3(const string& prefix, const string& format,
     }
   }
   
+#ifdef HAVE_LIBPTHREAD
+  if(glthread)
+    pthread_mutex_lock(&quitLock);
+#endif  
   glrender(prefix,this,outputformat,width,height,angle,m,M,
            nlights,lights,diffuse,ambient,specular,viewportlighting,View,
            oldpid);
-  hold(View);
+#ifdef HAVE_LIBPTHREAD
+  if(glthread) {
+    if(!View)
+      wait(readySignal,readyLock);
+    
+    pthread_cond_wait(&quitSignal,&quitLock);
+    pthread_mutex_unlock(&quitLock);
+  }
+  return true;
+#endif  
 #else
   reportError("Cannot render image; please install glut, run ./configure, and recompile"); 
 #endif
