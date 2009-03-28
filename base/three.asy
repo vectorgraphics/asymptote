@@ -959,14 +959,17 @@ path3[] path3(explicit path[] g, triple plane(pair)=XYplane)
 // Construct a path from a path3 by applying P to each control point.
 path path(path3 p, pair P(triple)=xypart)
 {
-  real n=length(p);
+  int n=length(p);
   if(n < 0) return nullpath;
   guide g=P(point(p,0));
   if(n == 0) return g;
   for(int i=1; i < n; ++i)
-    g=g..controls P(postcontrol(p,i-1)) and P(precontrol(p,i))
-      ..P(point(p,i));
+    g=straight(p,i-1) ? g--P(point(p,i)) :
+      g..controls P(postcontrol(p,i-1)) and P(precontrol(p,i))..P(point(p,i));
   
+  if(straight(p,n-1))
+    return cyclic(p) ? g--cycle : g--P(point(p,n));
+
   pair post=P(postcontrol(p,n-1));
   pair pre=P(precontrol(p,n));
   return cyclic(p) ? g..controls post and pre..cycle :
