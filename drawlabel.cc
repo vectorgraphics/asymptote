@@ -161,7 +161,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
   // alignment point
   pair p=position+Align;
   const double vertical=height+depth;
-  const double fuzz=pentype.size()*0.05+0.3;
+  const double fuzz=pentype.size()*0.1+0.3;
   pair A=p+T*pair(-fuzz,-fuzz);
   pair B=p+T*pair(-fuzz,vertical+fuzz);
   pair C=p+T*pair(width+fuzz,vertical+fuzz);
