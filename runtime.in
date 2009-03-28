@@ -219,7 +219,19 @@ namespace vm {
 
 namespace run {
   
+const char *invalidargument="invalid argument";
 const char *arrayempty="cannot take min or max of empty array";
+
+// Return the factorial of a non-negative integer.
+Int factorial(Int n) 
+{
+  Int f=1;
+  for(Int i=2; i <= n; ++i) {
+    if(f > Int_MAX/i) integeroverflow(0);
+    f *= i;
+  }
+  return f;
+}
 
 static inline Int Round(double x) 
 {
@@ -3490,6 +3502,21 @@ real erf(real x)
 real erfc(real x)
 {
   return erfc(x);
+}
+
+Int factorial(Int n) {
+  if(n < 0) error(invalidargument);
+  return factorial(n);
+}
+
+Int choose(Int n, Int k) {
+  Int f=1;
+  if(n < 0 || k < 0 || k > n) error(invalidargument);
+  for(Int i=n-k+1; i <= n; ++i) {
+    if(f > Int_MAX/i) integeroverflow(0);
+    f *= i;
+  }
+  return f/factorial(k);
 }
 
 real gamma(real x)

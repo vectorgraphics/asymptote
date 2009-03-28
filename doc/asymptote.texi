@@ -4651,6 +4651,8 @@ function (equivalent to @code{fabs(real)}), an @code{abs(pair)} function
 @cindex @code{unitrand}
 @cindex @code{Gaussrand}
 @cindex @code{histogram}
+@cindex @code{factorial}
+@cindex @code{choose}
 Random numbers can be seeded with @code{srand(int)} and generated with
 the @code{int rand()} function, which returns a random integer between 0
 and the integer @code{randMax}. The @code{unitrand()} function returns
@@ -4658,6 +4660,9 @@ a random number uniformly distributed in the interval [0,1].
 A Gaussian random number generator
 @code{Gaussrand} and a collection of statistics routines, including
 @code{histogram}, are provided in the base file @code{stats.asy}.
+The functions @code{factorial(int n)}, which returns @math{n!}, and
+@code{choose(int n, int k)}, which returns @math{n!/(k!(n-k)!)}, are
+also defined.
 
 @cindex @acronym{GNU} Scientific Library
 @cindex @code{gsl}
