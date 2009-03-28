@@ -10,8 +10,8 @@ struct patch {
   triple[][] P=new triple[4][4];
   triple[] normals; // Optionally specify 4 normal vectors at the corners.
   pen[] colors;     // Optionally specify 4 corner colors.
-  bool3 planar;     // Patch is planar.
   bool straight;    // Patch is based on a piecewise straight external path.
+  bool3 planar;     // Patch is planar.
 
   path3 external() {
     return
@@ -167,8 +167,6 @@ struct patch {
   void init() {
     havemin3=false;
     havemax3=false;
-    straight=false;
-    planar=default;
   }
 
   triple min(triple bound=P[0][0]) {
@@ -208,6 +206,17 @@ struct patch {
     this.straight=straight;
   }
 
+  void operator init(pair[][] P, triple plane(pair)=XYplane,
+                     bool straight=false) {
+    triple[][] Q=new triple[4][];
+    for(int i=0; i < 4; ++i) {
+      pair[] Pi=P[i];
+      Q[i]=sequence(new triple(int j) {return plane(Pi[j]);},4);
+    }
+    operator init(Q,straight);
+    planar=true;
+  }
+
   void operator init(patch s) {
     operator init(s.P,s.normals,s.colors,s.straight);
   }
@@ -218,6 +227,11 @@ struct patch {
                      triple[] normals=new triple[], pen[] colors=new pen[],
                      bool3 planar=default) {
     init();
+
+    if(internal.length == 0 && planar == default)
+      this.planar=normal(external) != O;
+    else this.planar=planar;
+
     int L=length(external);
     if(L > 4 || !cyclic(external))
       abort("cyclic path3 of length <= 4 expected");
@@ -241,18 +255,15 @@ struct patch {
 
     if(internal.length == 0) {
       straight=piecewisestraight(external);
-      if(planar == default) this.planar=normal(external) != O;
-      else this.planar=planar;
       internal=new triple[4];
-      for(int j=0; j < 4; ++j) {
+      for(int j=0; j < 4; ++j)
         internal[j]=nineth*(-4*point(external,j)
                             +6*(precontrol(external,j)+postcontrol(external,j))
                             -2*(point(external,j-1)+point(external,j+1))
                             +3*(precontrol(external,j-1)+
                                 postcontrol(external,j+1))
                             -point(external,j+2));
-      }
-    } else this.planar=planar;
+    } else straight=false;
 
     P=new triple[][] {
       {point(external,0),postcontrol(external,0),precontrol(external,1),
@@ -269,22 +280,24 @@ struct patch {
                      triple[] normals=new triple[], pen[] colors=new pen[],
                      bool3 planar=default) {
     init();
+
+    if(internal.length == 0 && planar == default)
+      this.planar=normal(external) != O;
+    else this.planar=planar;
+
     if(normals.length != 0)
       this.normals=copy(normals);
     if(colors.length != 0)
       this.colors=copy(colors);
 
-    straight=true;
-
     if(internal.length == 0) {
-      if(planar == default) this.planar=normal(external) != O;
-      else this.planar=planar;
       internal=new triple[4];
-      for(int j=0; j < 4; ++j) {
+      for(int j=0; j < 4; ++j)
         internal[j]=nineth*(4*external[j]+2*external[(j+1)%4]+
                             external[(j+2)%4]+2*external[(j+3)%4]);
-      }
-    } else this.planar=planar;
+    }
+
+    straight=true;
 
     triple delta[]=new triple[4];
     for(int j=0; j < 4; ++j)
@@ -397,51 +410,16 @@ struct surface {
     if(!cyclic(p))
       abort("cyclic path expected");
 
-    int L=length(p);
     bool straight=piecewisestraight(p);
-    
-    if(L <= 3 && straight) {
-      s=new patch[] {patch(path3(p,plane),planar=true)};
-      return;
-    }
-    
+    int L=length(p);
+
     if(L > 4) {
       for(path g : bezulate(p))
         s.append(surface(g,plane).s);
       return;
     }
         
-    static real fuzz=sqrt(sqrtEpsilon);
-
-    bool split(path p, real t) {
-      pair dir=dir(p,t);
-      if(dir != 0) {
-        path g=subpath(p,t,t+length(p));
-        int L=length(g);
-        pair z=point(g,0);
-        real[] T=intersections(g,z,z+I*dir);
-        for(int i=0; i < T.length; ++i) {
-          real cut=T[i];
-          if(cut > fuzz && cut < L-fuzz) {
-            path p1=subpath(g,0,cut)--cycle;
-            path p2=subpath(g,cut,L)--cycle;
-            s.append(surface(p1).s);
-            s.append(surface(p2).s);
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-
-    int sign=sgn(windingnumber(p,inside(p)));
-    for(int i=0; i < L; ++i) {
-      if(sign*(conj(dir(p,i,-1))*dir(p,i,1)).y < -fuzz) {
-        if(split(p,i)) return;
-      }
-    }
-
-    if(!straight) {
+    pair[][] P(path p) {
       if(L == 1)
         p=p--cycle--cycle--cycle;
       else if(L == 2)
@@ -458,83 +436,180 @@ struct surface {
                             -point(p,j+2));
       }
     
-      pair[][] P={
+      return new pair[][] {
         {point(p,0),postcontrol(p,0),precontrol(p,1),point(p,1)},
         {precontrol(p,0),internal[0],internal[1],postcontrol(p,1)},
         {postcontrol(p,3),internal[3],internal[2],precontrol(p,2)},
         {point(p,3),precontrol(p,3),postcontrol(p,2),point(p,2)}
       };
+    }
 
-      static real[][][] fpv0={
-        {{5, -20, 30, -20, 5},
-         {-3, 24, -54, 48, -15},
-         {0, -6, 27, -36, 15},
-         {0, 0, -3, 8, -5}},
-        {{-7, 36, -66, 52, -15},
-         {3, -36, 108, -120, 45},
-         {0, 6, -45, 84, -45},
-         {0, 0, 3, -16, 15}},
-        {{2, -18, 45, -44, 15},
-         {0, 12, -63, 96, -45},
-         {0, 0, 18, -60, 45},
-         {0, 0, 0, 8, -15}},
-        {{0, 2, -9, 12, -5},
-         {0, 0, 9, -24, 15},
-         {0, 0, 0, 12, -15},
-         {0, 0, 0, 0, 5}}
-      };
+    if(L <= 3 && straight) {
+      s=new patch[] {patch(P(p),plane,straight)};
+      return;
+    }
+    
+    static real fuzz=sqrt(sqrtEpsilon);
 
-      real[][] c=array(4,array(5,0.0));
-      for(int i=0; i < 4; ++i) {
-        for(int k=0; k < 4; ++k) {
-          real[] w=fpv0[i][k];
-          c[0] += w*(conj(P[1][k]-P[0][k])*P[0][i]).y;   // u=0
-          c[1] += w*(conj(P[i][3])*(P[k][3]-P[k][2])).y; // v=1
-          c[2] += w*(conj(P[3][k]-P[2][k])*P[3][i]).y;   // u=1
-          c[3] += w*(conj(P[i][0])*(P[k][1]-P[k][0])).y; // v=0
+    bool split(path p, real t) {
+      pair dir=dir(p,t);
+      if(dir != 0) {
+        path g=subpath(p,t,t+length(p));
+        int L=length(g);
+        pair z=point(g,0);
+        real[] T=intersections(g,z,z+I*dir);
+        for(int i=0; i < T.length; ++i) {
+          real cut=T[i];
+          if(cut > fuzz && cut < L-fuzz) {
+            pair w=point(g,cut);
+            if(!inside(p,0.5*(z+w))) continue;
+            if(intersections(g,z--w).length != 2) continue;
+            s=surface(subpath(g,0,cut)--cycle).s;
+            s.append(surface(subpath(g,cut,L)--cycle).s);
+            return true;
+          }
         }
       }
+      return false;
+    }
+
+    // Ensure that all interior angles are less than 180 degrees.
+    int sign=sgn(windingnumber(p,inside(p)));
+    for(int i=0; i < L; ++i) {
+      if(sign*(conj(dir(p,i,-1))*dir(p,i,1)).y < -fuzz) {
+        if(split(p,i)) return;
+      }
+    }
+
+    pair[][] P=P(p);
+
+    if(straight) {
+      s=new patch[] {patch(P,plane,straight)};
+      return;
+    }
     
-      pair BuP(int j, real u) {
-        return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);
-      }
+    // Check for internal degeneracy.
 
-      pair BvP(int i, real v) {
-        return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);
-      }
+    pair[][] U=new pair[3][4];
+    pair[][] V=new pair[4][3];
 
-      real normal(real u, real v) {
-        return (conj(bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))*
-                bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v)).y;
-      }
+    for(int i=0; i < 3; ++i) {
+      for(int j=0; j < 4; ++j)
+        U[i][j]=P[i+1][j]-P[i][j];
+    }
+      
+    for(int i=0; i < 4; ++i) {
+      for(int j=0; j < 3; ++j)
+        V[i][j]=P[i][j+1]-P[i][j];
+    }
+      
+    int[] choose2={1,2,1};
+    int[] choose3={1,3,3,1};
 
-      for(int m=0; m < 4; ++m) {
-        if(!straight(p,m)) {
-          real[] c=c[m];
-          pair[] R=quarticroots(c[4],c[3],c[2],c[1],c[0]);
-          for(pair r : R) {
-            static real fuzz=sqrtEpsilon;
-            if(fabs(r.y) < fuzz) {
-              real t=r.x;
-              if(0 <= t && t <= 1) {
-                real[] U={0,t,1,t};
-                real[] V={t,1,t,0};
-                real[] T={t,t,1-t,1-t};
-                if(sign*normal(U[m],V[m]) < 0 && split(p,m+T[m])) return;
-              }
+    real T[][]=new real[6][6];
+
+    for(int p=0; p < 6; ++p) {
+      int kstart=max(p-2,0);
+      int kstop=min(p,3);
+      for(int q=0; q < 6; ++q) {
+        real Tpq;
+        int jstop=min(q,3);
+        int jstart=max(q-2,0);
+        for(int k=kstart; k <= kstop; ++k) {
+          int choose3k=choose3[k];
+          for(int j=jstart; j <= jstop; ++j) {
+            int i=p-k;
+            int l=q-j;
+            Tpq += (conj(U[i][j])*V[k][l]).y*
+              choose2[i]*choose3k*choose3[j]*choose2[l];
+          }
+        }
+        T[p][q]=Tpq;
+      }
+    }
+
+    bool3 aligned=default;
+    bool degenerate=false;
+
+    for(int p=0; p < 6; ++p) {
+      for(int q=0; q < 6; ++q) {
+        if(aligned == default) {
+          if(T[p][q] < -sqrtEpsilon) aligned=true;
+          if(T[p][q] > sqrtEpsilon) aligned=false;
+        } else {
+          if((T[p][q] < -sqrtEpsilon && aligned == false) ||
+             (T[p][q] > sqrtEpsilon && aligned == true)) degenerate=true;
+        }
+      }
+    }
+
+    if(!degenerate && aligned == (sign >= 0 ? false : true)) return;
+    
+    // Polynomial coefficients of b_i''(u) b_j(u) + b_i'(u) b_j'(u) times 1/3.
+    static real[][][] fpv0={
+      {{5, -20, 30, -20, 5},
+       {-3, 24, -54, 48, -15},
+       {0, -6, 27, -36, 15},
+       {0, 0, -3, 8, -5}},
+      {{-7, 36, -66, 52, -15},
+       {3, -36, 108, -120, 45},
+       {0, 6, -45, 84, -45},
+       {0, 0, 3, -16, 15}},
+      {{2, -18, 45, -44, 15},
+       {0, 12, -63, 96, -45},
+       {0, 0, 18, -60, 45},
+       {0, 0, 0, 8, -15}},
+      {{0, 2, -9, 12, -5},
+       {0, 0, 9, -24, 15},
+       {0, 0, 0, 12, -15},
+       {0, 0, 0, 0, 5}}
+    };
+
+    // Compute one-ninth of the derivative of the Jacobian along the boundary.
+    real[][] c=array(4,array(5,0.0));
+    for(int i=0; i < 4; ++i) {
+      for(int k=0; k < 4; ++k) {
+        real[] w=fpv0[i][k];
+        c[0] += w*(conj(P[1][k]-P[0][k])*P[0][i]).y;   // u=0
+        c[1] += w*(conj(P[i][3])*(P[k][3]-P[k][2])).y; // v=1
+        c[2] += w*(conj(P[3][k]-P[2][k])*P[3][i]).y;   // u=1
+        c[3] += w*(conj(P[i][0])*(P[k][1]-P[k][0])).y; // v=0
+      }
+    }
+    
+    pair BuP(int j, real u) {return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);}
+    pair BvP(int i, real v) {return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);}
+
+    real normal(real u, real v) {
+      return (conj(bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))*
+              bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v)).y;
+    }
+
+    // Use Rolle's theorem to check for degeneracy on the boundary.
+    for(int m=0; m < 4; ++m) {
+      if(!straight(p,m)) {
+        real[] c=c[m];
+        pair[] R=quarticroots(c[4],c[3],c[2],c[1],c[0]);
+        for(pair r : R) {
+          if(fabs(r.y) < sqrtEpsilon) {
+            real t=r.x;
+            if(0 <= t && t <= 1) {
+              real[] U={0,t,1,t};
+              real[] V={t,1,t,0};
+              real[] T={t,t,1-t,1-t};
+              if(sign*normal(U[m],V[m]) < 0 && split(p,m+T[m])) return;
             }
           }
         }
       }
-      
-      s=new patch[] {patch(path3(p,plane),
-                           new triple[] {plane(internal[0]),plane(internal[1]),
-                                     plane(internal[2]),plane(internal[3])},
-                           planar=true)};
-      return;
     }
 
-    s=new patch[] {patch(path3(p,plane),planar=true)};
+    // Split to resolve internal degeneracy.
+    if(degenerate)
+      for(int i=0; i < L; ++i)
+        if(!straight(p,i) && split(p,i+0.5)) return;
+
+    s=new patch[] {patch(P,plane)};
   }
 
   void operator init(explicit path[] g, triple plane(pair)=XYplane) {
@@ -742,36 +817,76 @@ pair max(surface s, projection P)
   return bound;
 }
 
-patch subpatchu(patch s, real ua, real ub)
+private triple[] split(triple z0, triple c0, triple c1, triple z1, real t=0.5)
 {
-  path3 G=s.uequals(ua)&subpath(s.vequals(1),ua,ub)&reverse(s.uequals(ub));
-  path3 w=subpath(s.vequals(0),ub,ua);
-  path3 i1=s.P[0][1]..controls s.P[1][1] and s.P[2][1]..s.P[3][1];
-  path3 i2=s.P[0][2]..controls s.P[1][2] and s.P[2][2]..s.P[3][2];
-  path3 s1=subpath(i1,ua,ub);
-  path3 s2=subpath(i2,ua,ub);
-  return patch(G..controls postcontrol(w,0) and precontrol(w,1)..cycle,
-               new triple[] {postcontrol(s1,0),postcontrol(s2,0),
-                   precontrol(s2,1),precontrol(s1,1)});
+  triple m0=interp(z0,c0,t);
+  triple m1=interp(c0,c1,t);
+  triple m2=interp(c1,z1,t);
+  triple m3=interp(m0,m1,t);
+  triple m4=interp(m1,m2,t);
+  triple m5=interp(m3,m4,t);
+
+  return new triple[] {m0,m3,m5,m4,m2};
 }
 
-patch subpatchv(patch s, real va, real vb)
+// Return the control points for a subpatch of P on [u,1] x [v,1].
+triple[][] subpatchbegin(triple[][] P, real u, real v)
 {
-  path3 G=subpath(s.uequals(0),va,vb)&s.vequals(vb)&subpath(s.uequals(1),vb,va);
-  path3 w=s.vequals(va);
-  path3 j1=s.P[1][0]..controls s.P[1][1] and s.P[1][2]..s.P[1][3];
-  path3 j2=s.P[2][0]..controls s.P[2][1] and s.P[2][2]..s.P[2][3];
-  path3 t1=subpath(j1,va,vb);
-  path3 t2=subpath(j2,va,vb);
+  triple[] P0=P[0];
+  triple[] P1=P[1];
+  triple[] P2=P[2];
+  triple[] P3=P[3];
 
-  return patch(G..controls precontrol(w,1) and postcontrol(w,0)..cycle,
-               new triple[] {postcontrol(t1,0),precontrol(t1,1),
-                   precontrol(t2,1),postcontrol(t2,0)});
+  triple[] c0=split(P0[0],P0[1],P0[2],P0[3],v);
+  triple[] c1=split(P1[0],P1[1],P1[2],P1[3],v);
+  triple[] c2=split(P2[0],P2[1],P2[2],P2[3],v);
+  triple[] c3=split(P3[0],P3[1],P3[2],P3[3],v);
+
+  u=1.0-u;
+  
+  triple[] c7=split(c3[2],c2[2],c1[2],c0[2],u);
+  triple[] c8=split(c3[3],c2[3],c1[3],c0[3],u);
+  triple[] c9=split(c3[4],c2[4],c1[4],c0[4],u);
+  triple[] c10=split(P3[3],P2[3],P1[3],P0[3],u);
+
+  return new triple[][] {{c7[2],c8[2],c9[2],c10[2]},
+      {c7[1],c8[1],c9[1],c10[1]},
+        {c7[0],c8[0],c9[0],c10[0]},
+          {c3[2],c3[3],c3[4],P3[3]}};
 }
 
-patch subpatch(patch s, real ua, real ub, real va, real vb)
+// Return the control points for a subpatch of P on [0,u] x [0,v].
+triple[][] subpatchend(triple[][] P, real u, real v)
 {
-  return subpatchu(subpatchv(s,va,vb),ua,ub);
+  triple[] P0=P[0];
+  triple[] P1=P[1];
+  triple[] P2=P[2];
+  triple[] P3=P[3];
+
+  triple[] c0=split(P0[0],P0[1],P0[2],P0[3],v);
+  triple[] c1=split(P1[0],P1[1],P1[2],P1[3],v);
+  triple[] c2=split(P2[0],P2[1],P2[2],P2[3],v);
+  triple[] c3=split(P3[0],P3[1],P3[2],P3[3],v);
+
+  u=1.0-u;
+  
+  triple[] c4=split(P3[0],P2[0],P1[0],P0[0],u);
+  triple[] c5=split(c3[0],c2[0],c1[0],c0[0],u);
+  triple[] c6=split(c3[1],c2[1],c1[1],c0[1],u);
+  triple[] c7=split(c3[2],c2[2],c1[2],c0[2],u);
+
+  return new triple[][] {
+    {P0[0],c0[0],c0[1],c0[2]},
+      {c4[4],c5[4],c6[4],c7[4]},
+        {c4[3],c5[3],c6[3],c7[3]},
+          {c4[2],c5[2],c6[2],c7[2]}};
+}
+
+patch subpatch(patch s, real ua, real va, real ub, real vb)
+{
+  assert(ua >= 0 && va >= 0 && ub <= 1 && vb <= 1 && ua < ub && va < vb);
+  return patch(subpatchbegin(subpatchend(s.P,ub,vb),ua/ub,va/vb),
+               s.straight,s.planar);
 }
 
 triple point(patch s, real u, real v)
