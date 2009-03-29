@@ -11,31 +11,24 @@ pair unityroot(int n, int k=1)
   return expi(2pi*k/n);
 }
 
-// Return an arbitrary point on or inside a cyclic path p.
-pair inside(path p)
+// Return an arbitrary point strictly inside a cyclic path p according to
+// the specified fill rule.
+pair inside(path p, pen fillrule=currentpen)
 {
   if(!cyclic(p)) abort("path is not cyclic");
-  pair c=point(p,0);
   int n=length(p);
-  real r;
-  int i=0;
-  do {
-    ++i;
-    if(i == n) return c;
-    r=abs(point(p,i)-c);
-  } while (r == 0);
-  pair w=I*0.5*r;
-  // Search in a circle of radius r about c.
-  int n=2;
-  while(true) {
-    for(int k=0; k < n; ++k) {
-      pair z=c+w*unityroot(n,k);
-      if(inside(p,z)) return z;
+  for(int i=0; i < n; ++i) {
+    pair z=point(p,i);
+    real[] T=intersections(p,z,z+I*dir(p,i));
+    // Check midpoints of line segments formed between the
+    // corresponding intersection points and z.
+    for(int j=0; j < T.length; ++j) {
+      pair w=point(p,T[j]);
+      pair m=0.5*(z+w);
+      if(inside(p,m,fillrule)) return m;
     }
-    w *= 0.5; // Reduce the radius of the circle and try again with more points.
-    if(w == 0) return c;
-    ++n;
   }
+  abort("cannot find interior point");
   return 0;
 }
 
