@@ -145,7 +145,8 @@ path[] connect(path[] paths, path[] result, path[] patch, int depth=0)
               // check if an inner curve is inside the portion
               for(int k = 0; found && k < inners.length; ++k)
               {
-                if(k!=curveIndex && inside(portion,point(inners[k],0)))
+                if(k!=curveIndex &&
+                   inside(portion,point(inners[k],0),zerowinding))
                   found = false;
               }
             }
@@ -162,7 +163,8 @@ path[] connect(path[] paths, path[] result, path[] patch, int depth=0)
               // check if an inner curve is inside the portion
               for(int k = 0; found && k < inners.length; ++k)
               {
-                if(k!=curveIndex && inside(portion,point(inners[k],0)))
+                if(k!=curveIndex &&
+                   inside(portion,point(inners[k],0),zerowinding))
                   found = false;
               }
             }

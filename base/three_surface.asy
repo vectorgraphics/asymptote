@@ -462,7 +462,7 @@ struct surface {
           real cut=T[i];
           if(cut > fuzz && cut < L-fuzz) {
             pair w=point(g,cut);
-            if(!inside(p,0.5*(z+w))) continue;
+            if(!inside(p,0.5*(z+w),zerowinding)) continue;
             if(intersections(g,z--w).length != 2) continue;
             s=surface(subpath(g,0,cut)--cycle).s;
             s.append(surface(subpath(g,cut,L)--cycle).s);
@@ -474,7 +474,7 @@ struct surface {
     }
 
     // Ensure that all interior angles are less than 180 degrees.
-    int sign=sgn(windingnumber(p,inside(p)));
+    int sign=sgn(windingnumber(p,inside(p,zerowinding)));
     for(int i=0; i < L; ++i) {
       if(sign*(conj(dir(p,i,-1))*dir(p,i,1)).y < -fuzz) {
         if(split(p,i)) return;
@@ -613,8 +613,8 @@ struct surface {
   }
 
   void operator init(explicit path[] g, triple plane(pair)=XYplane) {
-    for(int i=0; i < g.length; ++i)
-      s.append(surface(g[i],plane).s);
+    for(path p : g)
+      s.append(surface(p,plane).s);
   }
 
   // A general surface constructor for both planar and nonplanar 3D paths.
@@ -948,12 +948,9 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
       camera=P.target+camerafactor*(abs(M-m)+abs(m-P.target))*unit(P.vector());
     }
 
-    real[][] depth;
-    
-    for(int i=0; i < s.s.length; ++i) {
-      real d=abs(camera-s.s[i].cornermean());
-      depth.push(new real[] {d,i});
-    }
+    real[][] depth=new real[s.s.length][];
+    for(int i=0; i < depth.length; ++i)
+      depth[i]=new real[] {abs(camera-s.s[i].cornermean()),i};
 
     depth=sort(depth);
 
