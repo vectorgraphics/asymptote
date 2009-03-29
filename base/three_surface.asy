@@ -613,7 +613,7 @@ struct surface {
   }
 
   void operator init(explicit path[] g, triple plane(pair)=XYplane) {
-    for(path p : g)
+    for(path p : bezulate(g))
       s.append(surface(p,plane).s);
   }
 
@@ -1079,7 +1079,7 @@ surface align(surface s, transform3 t=identity4, triple position,
 
 surface surface(Label L, triple position=O)
 {
-  surface s=surface(bezulate(texpath(L)));
+  surface s=surface(texpath(L));
   return L.align.is3D ? align(s,L.T3,position,L.align.dir3,L.p) :
     shift(position)*L.T3*s;
 }

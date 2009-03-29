@@ -7334,9 +7334,10 @@ draw(surface((0,0)--E+2N--2E--E+N..0.2E..cycle),red);
 @noindent
 @cindex @code{bezulate}
 Planar Bezier surfaces patches are constructed using Orest Shardt's
-@code{bezulate} routine, which decomposes regions bounded
-by cyclic nonselfintersecting paths (according to the zerowinding fill
-rule) into subregions bounded by cyclic paths of length @code{4} or less.
+@code{bezulate} routine, which decomposes (possibly nonsimply
+connected) regions bounded by cyclic nonselfintersecting paths
+(according to the @code{zerowinding} fill rule) into subregions
+bounded by cyclic paths of length @code{4} or less.
 
 @cindex @code{thin}
 @cindex @code{thick}
