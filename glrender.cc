@@ -12,6 +12,11 @@
 
 #include "common.h"
 
+namespace gl {
+bool glthread=false;
+bool initialize=true;
+}
+
 #ifdef HAVE_LIBGLUT
 
 // For CYGWIN
@@ -118,9 +123,6 @@ GLUnurbs *nurb;
 int window;
   
 void *glrenderWrapper(void *a);
-
-bool glthread=true;
-bool initialize=true;
 
 #ifdef HAVE_LIBPTHREAD
 pthread_t mainthread;
