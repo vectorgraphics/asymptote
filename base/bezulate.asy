@@ -75,117 +75,105 @@ path uncycle(path p, real t)
 }
 
 // returns outer paths
-path[] connect(path[] paths, path[] result, path[] patch, int depth=0)
+void connect(path[] paths, path[] result, path[] patch)
 {
-  bool flag=depth % 2 == 0;
   path[][] tree=containmentTree(paths);
-  path[] outers;
   for(path[] group : tree) {
-    if(group.length == 1) {
-      if(flag)
-        result.push(group[0]);
-      else
-        outers.push(group[0]);
-    } else { // optimize case where group.length == 2 to avoid call to connect
-      path[][] tree=containmentTree(group[1:]);
-      path[] inners;
-      for(path[] subgroup : tree) {
-        //connect outer curve to result of connecting inner curves
-        if(!flag) {
-          outers.append(connect(subgroup,result,patch,depth+1));
-        } else {
-          path[] conn=connect(subgroup,result,patch,depth+1);
-          inners.append(conn);
-        }
-      }
-      path outer=group[0];
-      if(flag) {
-        real d=2*abs(max(outer)-min(outer));
-        while(inners.length > 0) {
-          int curveIndex = 0;
-          real starttime = 0; // starttime is time on inners[curveIndex]
-          pair direction=I*dir(inners[curveIndex],starttime);
-          pair start=point(inners[curveIndex],starttime);
-
-          // find first intersection of line segment with outer curve
-          path line = start--start+d*direction;
-          real[][] ints=intersections(line,outer,fuzz);
-          assert(ints.length != 0);
-          real endtime=ints[0][1]; // endtime is time on outer
-          pair end = point(outer,endtime);
-          line = start--end;
-          path rline = reverse(line);
-
-          // find first intersection of rline segment with any inner curve
-          real earliestTime=1;
-          for(int j=0; j < inners.length; ++j) {
-            real[][] ints=intersections(rline,inners[j],fuzz);
-            if(ints.length > 0 && ints[0][0] < earliestTime) {
-              earliestTime=ints[0][0]; // time on rline
-              starttime=ints[0][1]; // time on inner curve
-              curveIndex=j;
-            }
-          }
-          start=point(inners[curveIndex],starttime);
-          line = start--end;
-
-          real timeoffset=2;
-          bool found=false;
-          path portion;
-          path[] allCurves = {outer};
-          allCurves.append(inners);
-
-          while(!found && timeoffset > fuzz) {
-            timeoffset /= 2;
-            if(countIntersections(allCurves,start,
-               point(outer,endtime+timeoffset)) == 2)
-            {
-              portion = subpath(outer,endtime,endtime+timeoffset)--start--cycle;
-              found=true;
-              // check if an inner curve is inside the portion
-              for(int k = 0; found && k < inners.length; ++k)
-              {
-                if(k!=curveIndex &&
-                   inside(portion,point(inners[k],0),zerowinding))
-                  found = false;
-              }
-            }
-          }
-
-          if(!found)timeoffset=-2;
-          while(!found && timeoffset < -fuzz) {
-            timeoffset /= 2;
-            if(countIntersections(allCurves,start,
-               point(outer,endtime+timeoffset))==2)
-            {
-              portion = subpath(outer,endtime+timeoffset,endtime)--start--cycle;
-              found = true;
-              // check if an inner curve is inside the portion
-              for(int k = 0; found && k < inners.length; ++k)
-              {
-                if(k!=curveIndex &&
-                   inside(portion,point(inners[k],0),zerowinding))
-                  found = false;
-              }
-            }
-          }
-          assert(found);
-          endtime=min(endtime,endtime+timeoffset);
-          timeoffset=abs(timeoffset);
-
-          // depends on the curves having opposite orientations
-          path remainder=section(outer,endtime+timeoffset,endtime)
-                                 --uncycle(inners[curveIndex],
-                                 starttime)--cycle;
-          inners.delete(curveIndex);
-          outer = remainder;
-          patch.append(portion);
-        }
-      }
-      outers.push(outer);
+    path outer = group[0];
+    group.delete(0);
+    path[][] innerTree = containmentTree(group);
+    path[] remainingCurves;
+    path[] inners;
+    for(path[] innerGroup:innerTree)
+    {
+      inners.push(innerGroup[0]);
+      if(innerGroup.length>1)
+        remainingCurves.append(innerGroup[1:]);
     }
+    connect(remainingCurves,result,patch);
+    real d=2*abs(max(outer)-min(outer));
+    while(inners.length > 0) {
+      int curveIndex = 0;
+      real starttime = 0; // starttime is time on inners[curveIndex]
+      pair direction=I*dir(inners[curveIndex],starttime);
+      pair start=point(inners[curveIndex],starttime);
+
+      // find first intersection of line segment with outer curve
+      path line = start--start+d*direction;
+      real[][] ints=intersections(line,outer,fuzz);
+      assert(ints.length != 0);
+      real endtime=ints[0][1]; // endtime is time on outer
+      pair end = point(outer,endtime);
+      line = start--end;
+      path rline = reverse(line);
+
+      // find first intersection of rline segment with any inner curve
+      real earliestTime=1;
+      for(int j=0; j < inners.length; ++j) {
+        real[][] ints=intersections(rline,inners[j],fuzz);
+        if(ints.length > 0 && ints[0][0] < earliestTime) {
+          earliestTime=ints[0][0]; // time on rline
+          starttime=ints[0][1]; // time on inner curve
+          curveIndex=j;
+        }
+      }
+      start=point(inners[curveIndex],starttime);
+      line = start--end;
+
+      real timeoffset=2;
+      bool found=false;
+      path portion;
+      path[] allCurves = {outer};
+      allCurves.append(inners);
+
+      while(!found && timeoffset > fuzz) {
+        timeoffset /= 2;
+        if(countIntersections(allCurves,start,
+            point(outer,endtime+timeoffset)) == 2)
+        {
+          portion = subpath(outer,endtime,endtime+timeoffset)--start--cycle;
+          found=true;
+          // check if an inner curve is inside the portion
+          for(int k = 0; found && k < inners.length; ++k)
+          {
+            if(k!=curveIndex &&
+               inside(portion,point(inners[k],0),zerowinding))
+              found = false;
+          }
+        }
+      }
+
+      if(!found)timeoffset=-2;
+      while(!found && timeoffset < -fuzz) {
+        timeoffset /= 2;
+        if(countIntersections(allCurves,start,
+            point(outer,endtime+timeoffset))==2)
+        {
+          portion = subpath(outer,endtime+timeoffset,endtime)--start--cycle;
+          found = true;
+          // check if an inner curve is inside the portion
+          for(int k = 0; found && k < inners.length; ++k)
+          {
+            if(k!=curveIndex &&
+               inside(portion,point(inners[k],0),zerowinding))
+              found = false;
+          }
+        }
+      }
+      assert(found);
+      endtime=min(endtime,endtime+timeoffset);
+      timeoffset=abs(timeoffset);
+
+      // depends on the curves having opposite orientations
+      path remainder=section(outer,endtime+timeoffset,endtime)
+                              --uncycle(inners[curveIndex],
+                              starttime)--cycle;
+      inners.delete(curveIndex);
+      outer = remainder;
+      patch.append(portion);
+    }
+    result.append(outer);
   }
-  return outers;
 }
 
 int countIntersections(path g, pair p, pair q)
@@ -218,7 +206,7 @@ path[] bezulate(path[] p)
   if(p.length == 1 && length(p[0]) <= 4) return p;
   path[] patch;
   path[] result;
-  result.append(connect(p,result,patch));
+  connect(p,result,patch);
   for(int i=0; i < result.length; ++i) {
     path p=result[i];
     int refinements=0;
