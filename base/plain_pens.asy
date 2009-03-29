@@ -25,6 +25,10 @@ restricted pen beveljoin=linejoin(2);
 
 restricted pen zerowinding=fillrule(0);
 restricted pen evenodd=fillrule(1);
+bool inside(int windingnumber, pen fillrule) {
+  return windingnumber != undefined &&
+    (fillrule(fillrule) == 1 ? windingnumber % 2 == 1 : windingnumber != 0);
+}
 
 restricted pen nobasealign=basealign(0);
 restricted pen basealign=basealign(1);

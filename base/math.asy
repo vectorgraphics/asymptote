@@ -23,9 +23,11 @@ pair inside(path p, pen fillrule=currentpen)
     // Check midpoints of line segments formed between the
     // corresponding intersection points and z.
     for(int j=0; j < T.length; ++j) {
-      pair w=point(p,T[j]);
-      pair m=0.5*(z+w);
-      if(inside(p,m,fillrule)) return m;
+      if(T[j] != i) {
+        pair w=point(p,T[j]);
+        pair m=0.5*(z+w);
+        if(inside(windingnumber(p,m),fillrule)) return m;
+      }
     }
   }
   abort("cannot find interior point");
