@@ -3,7 +3,7 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2)
 
-\ProvidesPackage{asymptote}[2009/03/23 v1.05 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2009/03/29 v1.06 Asymptote style file for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
 \newif\ifASYinline
@@ -59,10 +59,9 @@
 \ifASYinline
 \immediate\write\AsyStream{settings.inlinetex=true;}%
 \immediate\write\AsyStream{deletepreamble();}%
-\else
-\newbox\ASYbox%
 \fi
 
+\newbox\ASYbox
 \newcounter{asy}
 
 \def\ProcessAsymptote#1% start it all off
