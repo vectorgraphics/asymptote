@@ -2405,6 +2405,11 @@ according to the fill rule @code{fillrule} (@pxref{fillrule}), @code{-1}
 if the cyclic path @code{q} strictly contains @code{p}, and @code{0}
 otherwise.
 
+@cindex @code{inside}
+@item pair inside(path p, pen fillrule=currentpen);
+returns an arbitrary point strictly inside a cyclic path @code{p}
+according to the fill rule @code{fillrule} (@pxref{fillrule}).
+
 @cindex @code{strokepath}
 @item path[] strokepath(path g, pen p=currentpen);
 returns the path array that @code{PostScript} would fill in drawing path

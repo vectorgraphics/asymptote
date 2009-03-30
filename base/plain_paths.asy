@@ -321,6 +321,29 @@ int inside(path p, path q, pen fillrule=currentpen)
   return 0;
 }
 
+// Return an arbitrary point strictly inside a cyclic path p according to
+// the specified fill rule.
+pair inside(path p, pen fillrule=currentpen)
+{
+  if(!cyclic(p)) abort("path is not cyclic");
+  int n=length(p);
+  for(int i=0; i < n; ++i) {
+    pair z=point(p,i);
+    real[] T=intersections(p,z,z+I*dir(p,i));
+    // Check midpoints of line segments formed between the
+    // corresponding intersection points and z.
+    for(int j=0; j < T.length; ++j) {
+      if(T[j] != i) {
+        pair w=point(p,T[j]);
+        pair m=0.5*(z+w);
+        if(inside(windingnumber(p,m),fillrule)) return m;
+      }
+    }
+  }
+  abort("cannot find an interior point");
+  return 0;
+}
+
 // Return all intersection times of path g with the vertical line through (x,0).
 real[] times(path p, real x)
 {
