@@ -79,7 +79,7 @@ struct animation {
       args += " " +files[i];
     int rc=convert(args,prefix+"."+format,format=format);
     this.purge(keep);
-    if(rc == 0) animate(format=format);
+    if(rc == 0) animate(file=prefix+"."+format,format=format);
     else abort("merge failed");
     return rc;
   }
