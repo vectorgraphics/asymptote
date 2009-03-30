@@ -275,7 +275,7 @@ path3 path3::subpath(double a, double b) const
   return p;
 }
 
-// Special case of subpath used by intersect.
+// Special case of subpath for paths of length 1 used by intersect.
 void path3::halve(path3 &first, path3 &second) const
 {
   solvedKnot3 sn[3];
@@ -612,8 +612,8 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     double pscale,poffset;
     
     if(lp <= 1) {
-      p.halve(p1,p2);
-      if(p1 == p || p2 == p) {
+      if(lp == 1) p.halve(p1,p2);
+      if(lp == 0 || p1 == p || p2 == p) {
         std::vector<double> T1,S1;
         intersections(T1,S1,q,p.point((Int) 0),fuzz);
         add(s,t,S,T,S1,T1,p,q,fuzz,single);
@@ -632,8 +632,8 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     double qscale,qoffset;
     
     if(lq <= 1) {
-      q.halve(q1,q2);
-      if(q1 == q || q2 == q) {
+      if(lq == 1) q.halve(q1,q2);
+      if(lq == 0 || q1 == q || q2 == q) {
         std::vector<double> S1,T1;
         intersections(S1,T1,p,q.point((Int) 0),fuzz);
         add(s,t,S,T,S1,T1,p,q,fuzz,single);
