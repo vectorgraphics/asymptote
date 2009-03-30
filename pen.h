@@ -394,7 +394,7 @@ public:
   }
   
   bool evenodd() const {
-    return fillrule == EVENODD;
+    return Fillrule() == EVENODD;
   }
   
   bool inside(Int count) const {
