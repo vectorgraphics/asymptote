@@ -1,4 +1,4 @@
-usepackage("hyperref","setpagesize=false");
+usepackage("hyperref","setpagesize=false,unicode");
 
 // Embed object to be run in an external window. An image file name can be
 // specified; if not given one will be automatically generated.

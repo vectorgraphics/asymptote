@@ -1,4 +1,4 @@
-usepackage("hyperref","setpagesize=false");
+usepackage("hyperref","setpagesize=false,unicode");
 texpreamble("
 \ifx\pdfhorigin\undefined%
 \usepackage[3D,dvipdfmx]{movie15}
