@@ -406,7 +406,8 @@ struct surface {
   }
 
   // A constructor for a possibly nonconvex cyclic path in a given plane.
-  void operator init (path p, triple plane(pair)=XYplane) {
+  void operator init (path p, triple plane(pair)=XYplane,
+                      bool checkboundary=true) {
     if(!cyclic(p))
       abort("cyclic path expected");
 
@@ -415,7 +416,7 @@ struct surface {
 
     if(L > 4) {
       for(path g : bezulate(p))
-        s.append(surface(g,plane).s);
+        s.append(surface(g,plane,checkboundary).s);
       return;
     }
         
@@ -465,8 +466,8 @@ struct surface {
             pair w=point(g,cut);
             if(!inside(p,0.5*(z+w),zerowinding)) continue;
             if(intersections(g,z--w).length != 2) continue;
-            s=surface(subpath(g,0,cut)--cycle).s;
-            s.append(surface(subpath(g,cut,L)--cycle).s);
+            s=surface(subpath(g,0,cut)--cycle,plane,checkboundary).s;
+            s.append(surface(subpath(g,cut,L)--cycle,plane,checkboundary).s);
             return true;
           }
         }
@@ -545,78 +546,81 @@ struct surface {
     if(!degenerate && aligned == (sign >= 0 ? false : true)) return;
     
     if(degenerate) {
-      // Polynomial coefficients of (B_i'' B_j + B_i' B_j')/3.
-      static real[][][] fpv0={
-        {{5, -20, 30, -20, 5},
-         {-3, 24, -54, 48, -15},
-         {0, -6, 27, -36, 15},
-         {0, 0, -3, 8, -5}},
-        {{-7, 36, -66, 52, -15},
-         {3, -36, 108, -120, 45},
-         {0, 6, -45, 84, -45},
-         {0, 0, 3, -16, 15}},
-        {{2, -18, 45, -44, 15},
-         {0, 12, -63, 96, -45},
-         {0, 0, 18, -60, 45},
-         {0, 0, 0, 8, -15}},
-        {{0, 2, -9, 12, -5},
-         {0, 0, 9, -24, 15},
-         {0, 0, 0, 12, -15},
-         {0, 0, 0, 0, 5}}
-      };
+      if(checkboundary) {
+        // Polynomial coefficients of (B_i'' B_j + B_i' B_j')/3.
+        static real[][][] fpv0={
+          {{5, -20, 30, -20, 5},
+           {-3, 24, -54, 48, -15},
+           {0, -6, 27, -36, 15},
+           {0, 0, -3, 8, -5}},
+          {{-7, 36, -66, 52, -15},
+           {3, -36, 108, -120, 45},
+           {0, 6, -45, 84, -45},
+           {0, 0, 3, -16, 15}},
+          {{2, -18, 45, -44, 15},
+           {0, 12, -63, 96, -45},
+           {0, 0, 18, -60, 45},
+           {0, 0, 0, 8, -15}},
+          {{0, 2, -9, 12, -5},
+           {0, 0, 9, -24, 15},
+           {0, 0, 0, 12, -15},
+           {0, 0, 0, 0, 5}}
+        };
 
-      // Compute one-ninth of the derivative of the Jacobian along the boundary.
-      real[][] c=array(4,array(5,0.0));
-      for(int i=0; i < 4; ++i) {
-        real[][] fpv0i=fpv0[i];
-        for(int j=0; j < 4; ++j) {
-          real[] w=fpv0i[j];
-          c[0] += w*(conj(P[0][j]-P[1][j])*P[0][i]).y;   // u=0
-          c[1] += w*(conj(P[i][3])*(P[j][3]-P[j][2])).y; // v=1
-          c[2] += w*(conj(P[3][j]-P[2][j])*P[3][i]).y;   // u=1
-          c[3] += w*(conj(P[i][0])*(P[j][1]-P[j][0])).y; // v=0
+        // Compute one-ninth of the derivative of the Jacobian along the boundary.
+        real[][] c=array(4,array(5,0.0));
+        for(int i=0; i < 4; ++i) {
+          real[][] fpv0i=fpv0[i];
+          for(int j=0; j < 4; ++j) {
+            real[] w=fpv0i[j];
+            c[0] += w*(conj(P[0][j]-P[1][j])*P[0][i]).y;   // u=0
+            c[1] += w*(conj(P[i][3])*(P[j][3]-P[j][2])).y; // v=1
+            c[2] += w*(conj(P[3][j]-P[2][j])*P[3][i]).y;   // u=1
+            c[3] += w*(conj(P[i][0])*(P[j][1]-P[j][0])).y; // v=0
+          }
         }
-      }
     
-      pair BuP(int j, real u) {
-        return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);
-      }
-      pair BvP(int i, real v) {
-        return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);
-      }
-      real normal(real u, real v) {
-        return (conj(bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))*
-                bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v)).y;
-      }
+        pair BuP(int j, real u) {
+          return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);
+        }
+        pair BvP(int i, real v) {
+          return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);
+        }
+        real normal(real u, real v) {
+          return (conj(bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))*
+                  bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v)).y;
+        }
 
-      // Use Rolle's theorem to check for degeneracy on the boundary.
-      real M=0;
-      real cut;
-      for(int i=0; i < 4; ++i) {
-        if(!straight(p,i)) {
-          real[] ci=c[i];
-          pair[] R=quarticroots(ci[4],ci[3],ci[2],ci[1],ci[0]);
-          for(pair r : R) {
-            if(fabs(r.y) < sqrtEpsilon) {
-              real t=r.x;
-              if(0 <= t && t <= 1) {
-                real[] U={0,t,1,t};
-                real[] V={t,1,t,0};
-                real[] T={t,t,1-t,1-t};
-                real N=sign*normal(U[i],V[i]);
-                if(N < M) {
-                  M=N; cut=i+T[i];
+        // Use Rolle's theorem to check for degeneracy on the boundary.
+        real M=0;
+        real cut;
+        for(int i=0; i < 4; ++i) {
+          if(!straight(p,i)) {
+            real[] ci=c[i];
+            pair[] R=quarticroots(ci[4],ci[3],ci[2],ci[1],ci[0]);
+            for(pair r : R) {
+              if(fabs(r.y) < sqrtEpsilon) {
+                real t=r.x;
+                if(0 <= t && t <= 1) {
+                  real[] U={0,t,1,t};
+                  real[] V={t,1,t,0};
+                  real[] T={t,t,1-t,1-t};
+                  real N=sign*normal(U[i],V[i]);
+                  if(N < M) {
+                    M=N; cut=i+T[i];
+                  }
                 }
               }
             }
           }
         }
-      }
 
-      // Split at the worst boundary degeneracy.
-      if(M < 0 && split(p,cut)) return;
+        // Split at the worst boundary degeneracy.
+        if(M < 0 && split(p,cut)) return;
+      }
     
       // Split arbitrarily to resolve any remaining (internal) degeneracy.
+      checkboundary=false;
       for(int i=0; i < L; ++i)
         if(!straight(p,i) && split(p,i+0.5)) return;
     }
