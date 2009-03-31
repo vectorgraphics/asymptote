@@ -450,8 +450,6 @@ struct surface {
       return;
     }
     
-    static real fuzz=sqrt(sqrtEpsilon);
-
     // Split p along the angle bisector at t.
     bool split(path p, real t) {
       pair dir=dir(p,t);
@@ -462,7 +460,7 @@ struct surface {
         real[] T=intersections(g,z,z+I*dir);
         for(int i=0; i < T.length; ++i) {
           real cut=T[i];
-          if(cut > fuzz && cut < L-fuzz) {
+          if(cut > sqrtEpsilon && cut < L-sqrtEpsilon) {
             pair w=point(g,cut);
             if(!inside(p,0.5*(z+w),zerowinding)) continue;
             if(intersections(g,z--w).length != 2) continue;
@@ -476,6 +474,7 @@ struct surface {
     }
 
     // Ensure that all interior angles are less than 180 degrees.
+    real fuzz=1e-3;
     int sign=sgn(windingnumber(p,inside(p,zerowinding)));
     for(int i=0; i < L; ++i) {
       if(sign*(conj(dir(p,i,-1))*dir(p,i,1)).y < -fuzz) {
@@ -543,89 +542,93 @@ struct surface {
       }
     }
 
-    if(!degenerate && aligned == (sign >= 0 ? false : true)) return;
-    
-    if(degenerate) {
-      if(checkboundary) {
-        // Polynomial coefficients of (B_i'' B_j + B_i' B_j')/3.
-        static real[][][] fpv0={
-          {{5, -20, 30, -20, 5},
-           {-3, 24, -54, 48, -15},
-           {0, -6, 27, -36, 15},
-           {0, 0, -3, 8, -5}},
-          {{-7, 36, -66, 52, -15},
-           {3, -36, 108, -120, 45},
-           {0, 6, -45, 84, -45},
-           {0, 0, 3, -16, 15}},
-          {{2, -18, 45, -44, 15},
-           {0, 12, -63, 96, -45},
-           {0, 0, 18, -60, 45},
-           {0, 0, 0, 8, -15}},
-          {{0, 2, -9, 12, -5},
-           {0, 0, 9, -24, 15},
-           {0, 0, 0, 12, -15},
-           {0, 0, 0, 0, 5}}
-        };
+    if(!degenerate) {
+      if(aligned == (sign >= 0))
+        s=new patch[] {patch(P,plane)};
+      return;
+    }
 
-        // Compute one-ninth of the derivative of the Jacobian along the boundary.
-        real[][] c=array(4,array(5,0.0));
-        for(int i=0; i < 4; ++i) {
-          real[][] fpv0i=fpv0[i];
-          for(int j=0; j < 4; ++j) {
-            real[] w=fpv0i[j];
-            c[0] += w*(conj(P[0][j]-P[1][j])*P[0][i]).y;   // u=0
-            c[1] += w*(conj(P[i][3])*(P[j][3]-P[j][2])).y; // v=1
-            c[2] += w*(conj(P[3][j]-P[2][j])*P[3][i]).y;   // u=1
-            c[3] += w*(conj(P[i][0])*(P[j][1]-P[j][0])).y; // v=0
-          }
-        }
-    
-        pair BuP(int j, real u) {
-          return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);
-        }
-        pair BvP(int i, real v) {
-          return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);
-        }
-        real normal(real u, real v) {
-          return (conj(bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))*
-                  bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v)).y;
-        }
+    if(checkboundary) {
+      // Polynomial coefficients of (B_i'' B_j + B_i' B_j')/3.
+      static real[][][] fpv0={
+        {{5, -20, 30, -20, 5},
+         {-3, 24, -54, 48, -15},
+         {0, -6, 27, -36, 15},
+         {0, 0, -3, 8, -5}},
+        {{-7, 36, -66, 52, -15},
+         {3, -36, 108, -120, 45},
+         {0, 6, -45, 84, -45},
+         {0, 0, 3, -16, 15}},
+        {{2, -18, 45, -44, 15},
+         {0, 12, -63, 96, -45},
+         {0, 0, 18, -60, 45},
+         {0, 0, 0, 8, -15}},
+        {{0, 2, -9, 12, -5},
+         {0, 0, 9, -24, 15},
+         {0, 0, 0, 12, -15},
+         {0, 0, 0, 0, 5}}
+      };
 
-        // Use Rolle's theorem to check for degeneracy on the boundary.
-        real M=0;
-        real cut;
-        for(int i=0; i < 4; ++i) {
-          if(!straight(p,i)) {
-            real[] ci=c[i];
-            pair[] R=quarticroots(ci[4],ci[3],ci[2],ci[1],ci[0]);
-            for(pair r : R) {
-              if(fabs(r.y) < sqrtEpsilon) {
-                real t=r.x;
-                if(0 <= t && t <= 1) {
-                  real[] U={0,t,1,t};
-                  real[] V={t,1,t,0};
-                  real[] T={t,t,1-t,1-t};
-                  real N=sign*normal(U[i],V[i]);
-                  if(N < M) {
-                    M=N; cut=i+T[i];
-                  }
+      // Compute one-ninth of the derivative of the Jacobian along the boundary.
+      real[][] c=array(4,array(5,0.0));
+      for(int i=0; i < 4; ++i) {
+        real[][] fpv0i=fpv0[i];
+        for(int j=0; j < 4; ++j) {
+          real[] w=fpv0i[j];
+          c[0] += w*(conj(P[0][j]-P[1][j])*P[0][i]).y;   // u=0
+          c[1] += w*(conj(P[i][3])*(P[j][3]-P[j][2])).y; // v=1
+          c[2] += w*(conj(P[3][j]-P[2][j])*P[3][i]).y;   // u=1
+          c[3] += w*(conj(P[i][0])*(P[j][1]-P[j][0])).y; // v=0
+        }
+      }
+    
+      pair BuP(int j, real u) {
+        return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);
+      }
+      pair BvP(int i, real v) {
+        return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);
+      }
+      real normal(real u, real v) {
+        return (conj(bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))*
+                bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v)).y;
+      }
+
+      // Use Rolle's theorem to check for degeneracy on the boundary.
+      real M=0;
+      real cut;
+      for(int i=0; i < 4; ++i) {
+        if(!straight(p,i)) {
+          real[] ci=c[i];
+          pair[] R=quarticroots(ci[4],ci[3],ci[2],ci[1],ci[0]);
+          for(pair r : R) {
+            if(fabs(r.y) < sqrtEpsilon) {
+              real t=r.x;
+              if(0 <= t && t <= 1) {
+                real[] U={0,t,1,t};
+                real[] V={t,1,t,0};
+                real[] T={t,t,1-t,1-t};
+                real N=sign*normal(U[i],V[i]);
+                if(N < M) {
+                  M=N; cut=i+T[i];
                 }
               }
             }
           }
         }
-
-        // Split at the worst boundary degeneracy.
-        if(M < 0 && split(p,cut)) return;
       }
-    
-      // Split arbitrarily to resolve any remaining (internal) degeneracy.
-      checkboundary=false;
-      for(int i=0; i < L; ++i)
-        if(!straight(p,i) && split(p,i+0.5)) return;
-    }
 
-    s=new patch[] {patch(P,plane)};
+      // Split at the worst boundary degeneracy.
+      if(M < 0 && split(p,cut)) return;
+    }
+    
+    // Split arbitrarily to resolve any remaining (internal) degeneracy.
+    checkboundary=false;
+    for(int i=0; i < L; ++i)
+      if(!straight(p,i) && split(p,i+0.5)) return;
+
+    while(true)
+      for(int i=0; i < L; ++i)
+        if(!straight(p,i) && split(p,i+unitrand())) return;
   }
 
   void operator init(explicit path[] g, triple plane(pair)=XYplane) {
