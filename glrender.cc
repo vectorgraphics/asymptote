@@ -463,7 +463,10 @@ void togglefitscreen()
 void updateHandler(int)
 {
   update();
-  if(glthread && !interact::interactive) fitscreen();
+  if(interact::interactive) {
+    glutShowWindow();
+    glutShowWindow(); // Call twice to work around apparent freeglut bug.
+  } else if(glthread) fitscreen();
 }
 
 void autoExport()
@@ -520,8 +523,12 @@ void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
 void quit() 
 {
   if(glthread) {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glutSwapBuffers();
+    if(interact::interactive) {
+      glutHideWindow();
+    } else {
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      glutSwapBuffers();
+    }
 #ifdef HAVE_LIBPTHREAD
     if(!interact::interactive) {
       pthread_mutex_lock(&quitLock);

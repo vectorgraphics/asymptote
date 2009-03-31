@@ -789,7 +789,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
   
 #ifdef HAVE_LIBPTHREAD
-  if(glthread)
+  if(glthread && !interact::interactive)
     pthread_mutex_lock(&quitLock);
 #endif  
   glrender(prefix,this,outputformat,width,height,angle,m,M,
@@ -800,8 +800,10 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(!View)
       wait(readySignal,readyLock);
     
-    pthread_cond_wait(&quitSignal,&quitLock);
-    pthread_mutex_unlock(&quitLock);
+    if(!interact::interactive) {
+      pthread_cond_wait(&quitSignal,&quitLock);
+      pthread_mutex_unlock(&quitLock);
+    }
   }
   return true;
 #endif  
