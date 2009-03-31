@@ -438,9 +438,9 @@ struct surface {
     
       return new pair[][] {
         {point(p,0),postcontrol(p,0),precontrol(p,1),point(p,1)},
-        {precontrol(p,0),internal[0],internal[1],postcontrol(p,1)},
-        {postcontrol(p,3),internal[3],internal[2],precontrol(p,2)},
-        {point(p,3),precontrol(p,3),postcontrol(p,2),point(p,2)}
+          {precontrol(p,0),internal[0],internal[1],postcontrol(p,1)},
+            {postcontrol(p,3),internal[3],internal[2],precontrol(p,2)},
+              {point(p,3),precontrol(p,3),postcontrol(p,2),point(p,2)}
       };
     }
 
@@ -451,6 +451,7 @@ struct surface {
     
     static real fuzz=sqrt(sqrtEpsilon);
 
+    // Split p along the angle bisector at t.
     bool split(path p, real t) {
       pair dir=dir(p,t);
       if(dir != 0) {
@@ -488,8 +489,7 @@ struct surface {
       return;
     }
     
-    // Check for internal degeneracy.
-
+    // Check for degeneracy.
     pair[][] U=new pair[3][4];
     pair[][] V=new pair[4][3];
 
@@ -507,7 +507,6 @@ struct surface {
     int[] choose3={1,3,3,1};
 
     real T[][]=new real[6][6];
-
     for(int p=0; p < 6; ++p) {
       int kstart=max(p-2,0);
       int kstop=min(p,3);
@@ -545,69 +544,82 @@ struct surface {
 
     if(!degenerate && aligned == (sign >= 0 ? false : true)) return;
     
-    // Polynomial coefficients of b_i''(u) b_j(u) + b_i'(u) b_j'(u) times 1/3.
-    static real[][][] fpv0={
-      {{5, -20, 30, -20, 5},
-       {-3, 24, -54, 48, -15},
-       {0, -6, 27, -36, 15},
-       {0, 0, -3, 8, -5}},
-      {{-7, 36, -66, 52, -15},
-       {3, -36, 108, -120, 45},
-       {0, 6, -45, 84, -45},
-       {0, 0, 3, -16, 15}},
-      {{2, -18, 45, -44, 15},
-       {0, 12, -63, 96, -45},
-       {0, 0, 18, -60, 45},
-       {0, 0, 0, 8, -15}},
-      {{0, 2, -9, 12, -5},
-       {0, 0, 9, -24, 15},
-       {0, 0, 0, 12, -15},
-       {0, 0, 0, 0, 5}}
-    };
+    if(degenerate) {
+      // Polynomial coefficients of (B_i'' B_j + B_i' B_j')/3.
+      static real[][][] fpv0={
+        {{5, -20, 30, -20, 5},
+         {-3, 24, -54, 48, -15},
+         {0, -6, 27, -36, 15},
+         {0, 0, -3, 8, -5}},
+        {{-7, 36, -66, 52, -15},
+         {3, -36, 108, -120, 45},
+         {0, 6, -45, 84, -45},
+         {0, 0, 3, -16, 15}},
+        {{2, -18, 45, -44, 15},
+         {0, 12, -63, 96, -45},
+         {0, 0, 18, -60, 45},
+         {0, 0, 0, 8, -15}},
+        {{0, 2, -9, 12, -5},
+         {0, 0, 9, -24, 15},
+         {0, 0, 0, 12, -15},
+         {0, 0, 0, 0, 5}}
+      };
 
-    // Compute one-ninth of the derivative of the Jacobian along the boundary.
-    real[][] c=array(4,array(5,0.0));
-    for(int i=0; i < 4; ++i) {
-      for(int k=0; k < 4; ++k) {
-        real[] w=fpv0[i][k];
-        c[0] += w*(conj(P[1][k]-P[0][k])*P[0][i]).y;   // u=0
-        c[1] += w*(conj(P[i][3])*(P[k][3]-P[k][2])).y; // v=1
-        c[2] += w*(conj(P[3][k]-P[2][k])*P[3][i]).y;   // u=1
-        c[3] += w*(conj(P[i][0])*(P[k][1]-P[k][0])).y; // v=0
+      // Compute one-ninth of the derivative of the Jacobian along the boundary.
+      real[][] c=array(4,array(5,0.0));
+      for(int i=0; i < 4; ++i) {
+        real[][] fpv0i=fpv0[i];
+        for(int j=0; j < 4; ++j) {
+          real[] w=fpv0i[j];
+          c[0] += w*(conj(P[0][j]-P[1][j])*P[0][i]).y;   // u=0
+          c[1] += w*(conj(P[i][3])*(P[j][3]-P[j][2])).y; // v=1
+          c[2] += w*(conj(P[3][j]-P[2][j])*P[3][i]).y;   // u=1
+          c[3] += w*(conj(P[i][0])*(P[j][1]-P[j][0])).y; // v=0
+        }
       }
-    }
     
-    pair BuP(int j, real u) {return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);}
-    pair BvP(int i, real v) {return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);}
+      pair BuP(int j, real u) {
+        return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);
+      }
+      pair BvP(int i, real v) {
+        return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);
+      }
+      real normal(real u, real v) {
+        return (conj(bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))*
+                bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v)).y;
+      }
 
-    real normal(real u, real v) {
-      return (conj(bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))*
-              bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v)).y;
-    }
-
-    // Use Rolle's theorem to check for degeneracy on the boundary.
-    for(int m=0; m < 4; ++m) {
-      if(!straight(p,m)) {
-        real[] c=c[m];
-        pair[] R=quarticroots(c[4],c[3],c[2],c[1],c[0]);
-        for(pair r : R) {
-          if(fabs(r.y) < sqrtEpsilon) {
-            real t=r.x;
-            if(0 <= t && t <= 1) {
-              real[] U={0,t,1,t};
-              real[] V={t,1,t,0};
-              real[] T={t,t,1-t,1-t};
-              if(sign*normal(U[m],V[m]) < 0 && split(p,m+T[m])) return;
+      // Use Rolle's theorem to check for degeneracy on the boundary.
+      real M=0;
+      real cut;
+      for(int i=0; i < 4; ++i) {
+        if(!straight(p,i)) {
+          real[] ci=c[i];
+          pair[] R=quarticroots(ci[4],ci[3],ci[2],ci[1],ci[0]);
+          for(pair r : R) {
+            if(fabs(r.y) < sqrtEpsilon) {
+              real t=r.x;
+              if(0 <= t && t <= 1) {
+                real[] U={0,t,1,t};
+                real[] V={t,1,t,0};
+                real[] T={t,t,1-t,1-t};
+                real N=sign*normal(U[i],V[i]);
+                if(N < M) {
+                  M=N; cut=i+T[i];
+                }
+              }
             }
           }
         }
       }
-    }
 
-    // Split to resolve internal degeneracy.
-    if(degenerate)
+      // Split at the worst boundary degeneracy.
+      if(M < 0 && split(p,cut)) return;
+    
+      // Split arbitrarily to resolve any remaining (internal) degeneracy.
       for(int i=0; i < L; ++i)
         if(!straight(p,i) && split(p,i+0.5)) return;
+    }
 
     s=new patch[] {patch(P,plane)};
   }

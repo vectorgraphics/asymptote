@@ -61,7 +61,7 @@ real takeStep(path3 s, real T, real width)
 {
   int L=length(s);
   path3 si=subpath(s,T,L);
-  // Find minimum radius over [0,t]
+  // Find minimum radius of curvature over [0,t]
   real minradius(real t) {
     real R=infinity;
     int nsamples=8;
