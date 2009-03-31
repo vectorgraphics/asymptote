@@ -414,12 +414,6 @@ struct surface {
     bool straight=piecewisestraight(p);
     int L=length(p);
 
-    if(L > 4) {
-      for(path g : bezulate(p))
-        s.append(surface(g,plane,checkboundary).s);
-      return;
-    }
-        
     pair[][] P(path p) {
       if(L == 1)
         p=p--cycle--cycle--cycle;
@@ -450,6 +444,12 @@ struct surface {
       return;
     }
     
+    if(L > 4) {
+      for(path g : bezulate(p))
+        s.append(surface(g,plane,checkboundary).s);
+      return;
+    }
+        
     // Split p along the angle bisector at t.
     bool split(path p, real t) {
       pair dir=dir(p,t);
