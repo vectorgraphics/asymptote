@@ -611,7 +611,8 @@ double path::cubiclength(Int i, double goal) const
   
   double t=goal/L;
   goal *= third;
-  if(!unsimpson(goal,ds,0.0,t,10.0*DBL_EPSILON,integral,1.0,sqrt(DBL_EPSILON)))
+  static double dxmin=sqrt(DBL_EPSILON);
+  if(!unsimpson(goal,ds,0.0,t,100.0*DBL_EPSILON,integral,1.0,dxmin))
     reportError("nesting capacity exceeded in computing arctime");
   return -t;
 }
