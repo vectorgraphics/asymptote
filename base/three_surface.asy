@@ -463,7 +463,8 @@ struct surface {
           if(cut > sqrtEpsilon && cut < L-sqrtEpsilon) {
             pair w=point(g,cut);
             if(!inside(p,0.5*(z+w),zerowinding)) continue;
-            if(intersections(g,z--w).length != 2) continue;
+            pair delta=sqrtEpsilon*(w-z);
+            if(intersections(g,z-delta--w+delta).length != 2) continue;
             s=surface(subpath(g,0,cut)--cycle,plane,checkboundary).s;
             s.append(surface(subpath(g,cut,L)--cycle,plane,checkboundary).s);
             return true;
@@ -474,7 +475,7 @@ struct surface {
     }
 
     // Ensure that all interior angles are less than 180 degrees.
-    real fuzz=1e-3;
+    real fuzz=1e-4;
     int sign=sgn(windingnumber(p,inside(p,zerowinding)));
     for(int i=0; i < L; ++i) {
       if(sign*(conj(dir(p,i,-1))*dir(p,i,1)).y < -fuzz) {
