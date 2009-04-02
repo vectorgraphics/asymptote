@@ -1,9 +1,9 @@
 // Author: Philippe Ivaldi
 // Based on this paper:
-// http: //www.cs.hku.hk/research/techreps/document/TR-2007-07.pdf
+// http://www.cs.hku.hk/research/techreps/document/TR-2007-07.pdf
 // Note: the additional rotation for a cyclic smooth spine curve is not
 // yet properly determined.
-// Todo: Implement variational principles for RMF with boundary conditions:
+// TODO: Implement variational principles for RMF with boundary conditions:
 //       minimum total angular speed OR minimum total squared angular speed
 
 import three;

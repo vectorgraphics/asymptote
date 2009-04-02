@@ -2042,6 +2042,11 @@ void add(picture dest, picture src, triple position, bool group=true,
     });
 }
 
+void add(picture src, triple position, bool group=true, bool above=true)
+{
+  add(currentpicture,src,position,group,above);
+}
+
 // Align an arrow pointing to b from the direction dir. The arrow is
 // 'length' PostScript units long.
 void arrow(picture pic=currentpicture, Label L="", triple b, triple dir,

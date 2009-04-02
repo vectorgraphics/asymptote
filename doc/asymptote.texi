@@ -7308,8 +7308,7 @@ with the mean of the four vertex colors.
 
 @cindex @code{surface}
 @cindex @code{planar}
-A surface can be constructed from a cyclic nonselfintersecting
-@code{path3} with the constructor
+A surface can be constructed from a cyclic @code{path3} with the constructor
 @verbatim
 surface surface(path3 external, triple[] internal=new triple[],
                 triple[] normals=new triple[], pen[] colors=new pen[],
@@ -7325,8 +7324,7 @@ draw(surface(unitcircle3,new pen[] {red,green,blue,black}));
 @noindent
 The last example constructs a patch with vertex-specific colors.
 A three-dimensional planar surface in the plane @code{plane} can be
-constructed from a two-dimensional cyclic and nonselfintersecting path
-@code{g} with the constructor
+constructed from a two-dimensional cyclic path @code{g} with the constructor
 @cindex @code{surface}
 @verbatim
 surface surface(path p, triple plane(pair)=XYplane);
@@ -7340,9 +7338,9 @@ draw(surface((0,0)--E+2N--2E--E+N..0.2E..cycle),red);
 @cindex @code{bezulate}
 Planar Bezier surfaces patches are constructed using Orest Shardt's
 @code{bezulate} routine, which decomposes (possibly nonsimply
-connected) regions bounded by cyclic nonselfintersecting paths
-(according to the @code{zerowinding} fill rule) into subregions
-bounded by cyclic paths of length @code{4} or less.
+connected) regions bounded by cyclic paths (according to the
+@code{zerowinding} fill rule) into subregions bounded by cyclic paths
+of length @code{4} or less.
 
 @cindex @code{thin}
 @cindex @code{thick}
@@ -9031,7 +9029,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  XZEquals XYEquals XZZero XYZero InTicks OutTicks InOutTicks
 @c  LocalWords:  fitscreen planeproject strokepath meshlight nullpens arrowdir
 @c  LocalWords:  diffusepen ambientpen emissivepen specularpen arrowbarb keyval
-@c  LocalWords:  nonselfintersecting hstretch vstretch roundbox nonconvex
+@c  LocalWords:  hstretch vstretch roundbox nonconvex
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify
 @c  LocalWords:  psviewerOptions pdfviewerOptions viewportmargin asyattach
