@@ -35,7 +35,7 @@ namespace run {
 void cleanup();
 void exitFunction(vm::stack *Stack);
 void updateFunction(vm::stack *Stack);
-void purge();
+void purge(Int divisor=0);
 }
 
 namespace vm {

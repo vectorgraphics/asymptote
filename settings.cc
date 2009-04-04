@@ -682,12 +682,6 @@ struct boolrefSetting : public refSetting<bool> {
   }
 };
 
-struct boolintrefSetting : public boolrefSetting {
-  boolintrefSetting(string name, char code, string desc, int *ref,
-                    bool Default=false)
-    : boolrefSetting(name, code, desc, (bool *) ref, Default) {}
-};
-
 struct incrementSetting : public refSetting<Int> {
   incrementSetting(string name, char code, string desc, Int *ref)
     : refSetting<Int>(name, code, noarg, desc,
@@ -802,6 +796,22 @@ struct versionOption : public option {
     exit(0);
 
     // Unreachable code.
+    return true;
+  }
+};
+
+struct divisorOption : public option {
+  divisorOption(string name, char code, string argname, string desc)
+    : option(name, code, argname, desc) {}
+
+  bool getOption() {
+    try {
+      Int n=lexical::cast<Int>(optarg);
+      if(n > 0) GC_set_free_space_divisor((GC_word) n);
+    } catch (lexical::bad_cast&) {
+      error("option requires an int as an argument");
+      return false;
+    }
     return true;
   }
 };
@@ -1019,13 +1029,11 @@ void initSettings() {
                              &startpath));
   
 #ifdef USEGC  
-  addOption(new boolintrefSetting("compact", 0,
-                                  "Conserve memory at the expense of speed",
-                                  &GC_dont_expand));
-  addOption(new refSetting<GC_word>("divisor", 0, "n",
-                                    "Free space divisor for garbage collection",
-                                    types::primInt(),&GC_free_space_divisor,2,
-                                    "an int"));
+  addOption(new boolrefSetting("compact", 0,
+                               "Conserve memory at the expense of speed",
+                               (bool *) &GC_dont_expand));
+  addOption(new divisorOption("divisor", 0, "n",
+                              "Garbage collect using purge(divisor=n) [2]"));
 #endif  
   
   addOption(new stringSetting("prompt", 0,"string","Prompt","> "));

@@ -13,7 +13,9 @@
 
 namespace sym {
 
+int defaultFreeSpaceDivisor=2;
 GCInit symbol::initialize;
+
 mem::map<CONST string,symbol> symbol::dict;
 symbol *symbol::initsym=symbol::specialTrans(string("operator init"));
 symbol *symbol::castsym=symbol::specialTrans(string("operator cast"));

@@ -669,9 +669,10 @@ void cleanup()
 #endif
 }
 
-void purge()
+void purge(Int divisor=0)
 {
 #ifdef USEGC
+  if(divisor > 0) GC_set_free_space_divisor((GC_word) divisor);
   GC_gcollect();
 #endif
 }
@@ -1681,9 +1682,9 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
   }
 }
 
-void purge()
+void purge(Int divisor=0)
 {
-  purge();
+  purge(divisor);
 }
 
 
