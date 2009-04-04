@@ -21,6 +21,7 @@ static const string DEFTEXFONT="cmr12";
 static const double DEFWIDTH=-1;
 static const Int DEFCAP=-1;
 static const Int DEFJOIN=-1;
+static const double DEFMITER=0;
   
 static const struct invisiblepen_t {} invisiblepen={};
 static const struct setlinewidth_t {} setlinewidth={};
@@ -29,6 +30,7 @@ static const struct setfontsize_t {} setfontsize={};
 static const struct setpattern_t {} setpattern={};
 static const struct setlinecap_t {} setlinecap={};
 static const struct setlinejoin_t {} setlinejoin={};
+static const struct setmiterlimit_t {} setmiterlimit={};
 static const struct setoverwrite_t {} setoverwrite={};
 static const struct initialpen_t {} initialpen={};
 static const struct resolvepen_t {} resolvepen={};
@@ -126,6 +128,7 @@ class pen : public gc {
   Transparency transparency;
   Int linecap;
   Int linejoin;
+  double miterlimit;
   overwrite_t overwrite;
   
   // The transformation applied to the pen nib for calligraphic effects.
@@ -169,20 +172,23 @@ public:
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
+    overwrite(DEFWRITE), t(nullTransform) {}
 
   pen(const LineType& line, double linewidth, const path& P,
       const string& font, double fontsize, double lineskip,
       ColorSpace color, double r, double g, double b,  double grey,
       const string& pattern, FillRule fillrule, BaseLine baseline,
       const Transparency& transparency,
-      Int linecap, Int linejoin, overwrite_t overwrite, const transform& t) :
+      Int linecap, Int linejoin, double miterlimit,
+      overwrite_t overwrite, const transform& t) :
     line(line), linewidth(linewidth), P(P),
     font(font), fontsize(fontsize), lineskip(lineskip), color(color),
     r(r), g(g), b(b), grey(grey),
     pattern(pattern), fillrule(fillrule), baseline(baseline),
     transparency(transparency),
-    linecap(linecap), linejoin(linejoin), overwrite(overwrite), t(t) {}
+    linecap(linecap), linejoin(linejoin), miterlimit(miterlimit),
+    overwrite(overwrite), t(t) {}
       
   pen(invisiblepen_t) : 
     line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
@@ -190,7 +196,8 @@ public:
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
+    linecap(DEFCAP), linejoin(DEFJOIN),
+    overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setlinewidth_t, double linewidth) : 
     line(DEFLINE), linewidth(linewidth), P(nullpath),
@@ -198,7 +205,8 @@ public:
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
+    overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(path P) : 
     line(DEFLINE), linewidth(DEFWIDTH), P(P),
@@ -206,7 +214,8 @@ public:
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
+    overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(const LineType& line) :
     line(line), linewidth(DEFWIDTH), P(nullpath),
@@ -214,7 +223,8 @@ public:
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
+    overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setfont_t, string font) :
     line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
@@ -222,7 +232,8 @@ public:
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
+    overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setfontsize_t, double fontsize, double lineskip) :
     line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
@@ -230,7 +241,8 @@ public:
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
+    overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setpattern_t, const string& pattern) :
     line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
@@ -238,7 +250,8 @@ public:
     r(0), g(0), b(0), grey(0),
     pattern(pattern), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
+    overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(FillRule fillrule) :
     line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
@@ -246,7 +259,8 @@ public:
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(fillrule), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
+    overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(BaseLine baseline) :
     line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
@@ -254,7 +268,8 @@ public:
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(baseline),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
+    overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(const Transparency& transparency) :
     line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
@@ -262,7 +277,8 @@ public:
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(transparency),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
+    overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setlinecap_t, Int linecap) :
     line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
@@ -270,7 +286,8 @@ public:
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(linecap), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
+    linecap(linecap), linejoin(DEFJOIN), miterlimit(DEFMITER),
+    overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setlinejoin_t, Int linejoin) :
     line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
@@ -278,7 +295,17 @@ public:
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(linejoin), overwrite(DEFWRITE), t(nullTransform) {}
+    linecap(DEFCAP), linejoin(linejoin), overwrite(DEFWRITE),
+    t(nullTransform) {}
+  
+  pen(setmiterlimit_t, double miterlimit) :
+    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
+    font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
+    r(0), g(0), b(0), grey(0),
+    pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
+    transparency(DEFTRANSP),
+    linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(miterlimit),
+    overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setoverwrite_t, overwrite_t overwrite) :
     line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
@@ -286,7 +313,8 @@ public:
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(overwrite), t(nullTransform) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
+    overwrite(overwrite), t(nullTransform) {}
   
   explicit pen(double grey) :
     line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
@@ -294,7 +322,8 @@ public:
     r(0.0), g(0.0), b(0.0), grey(pos0(grey)),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform)
+    linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
+    overwrite(DEFWRITE), t(nullTransform)
   {greyrange();}
   
   pen(double r, double g, double b) : 
@@ -303,7 +332,8 @@ public:
     r(pos0(r)), g(pos0(g)), b(pos0(b)),  grey(0.0), 
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform)
+    linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
+    overwrite(DEFWRITE), t(nullTransform)
   {rgbrange();}
   
   pen(double c, double m, double y, double k) :
@@ -312,7 +342,8 @@ public:
     r(pos0(c)), g(pos0(m)), b(pos0(y)), grey(pos0(k)),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform)
+    linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
+    overwrite(DEFWRITE), t(nullTransform)
   {cmykrange();}
   
   // Construct one pen from another, resolving defaults
@@ -324,14 +355,14 @@ public:
     r(p.red()), g(p.green()), b(p.blue()), grey(p.gray()),
     pattern(""), fillrule(p.Fillrule()), baseline(p.Baseline()),
     transparency(Transparency(p.blend(), p.opacity())),
-    linecap(p.cap()), linejoin(p.join()), overwrite(p.Overwrite()),
-    t(p.getTransform()) {}
+    linecap(p.cap()), linejoin(p.join()), miterlimit(p.miter()),
+    overwrite(p.Overwrite()), t(p.getTransform()) {}
   
   static pen initialpen() {
     return pen(LineType("",0,true,true),0.5,nullpath,"",12.0,12.0*1.2,
                GRAYSCALE,
                0.0,0.0,0.0,0.0,"",ZEROWINDING,NOBASEALIGN,
-               DEFTRANSP,1,1,ALLOW,identity);
+               DEFTRANSP,1,1,10.0,ALLOW,identity);
   }
   
   pen(initialpen_t) : 
@@ -339,8 +370,8 @@ public:
     font("<invalid>"), fontsize(-1.0), lineskip(-1.0), color(INVISIBLE),
     r(0.0), g(0.0), b(0.0), grey(0.0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(NOBASEALIGN),
-    transparency(DEFTRANSP),linecap(-2), linejoin(-2), overwrite(DEFWRITE),
-    t(nullTransform) {}
+    transparency(DEFTRANSP),linecap(-2), linejoin(-2), miterlimit(-1.0),
+    overwrite(DEFWRITE), t(nullTransform) {}
   
   double width() const {
     return linewidth == DEFWIDTH ? defaultpen().linewidth : linewidth;
@@ -425,6 +456,10 @@ public:
   
   Int join() const {
     return linejoin == DEFJOIN ? defaultpen().linejoin : linejoin;
+  }
+  
+  double miter() const {
+    return miterlimit == DEFMITER ? defaultpen().miterlimit : miterlimit;
   }
   
   overwrite_t Overwrite() const {
@@ -656,6 +691,7 @@ public:
                q.transparency == DEFTRANSP ? p.transparency : q.transparency,
                q.linecap == DEFCAP ? p.linecap : q.linecap,
                q.linejoin == DEFJOIN ? p.linejoin : q.linejoin,
+               q.miterlimit == DEFMITER ? p.miterlimit : q.miterlimit,
                q.overwrite == DEFWRITE ? p.overwrite : q.overwrite,
                q.t.isNull() ? p.t : q.t);
   }
@@ -712,6 +748,7 @@ public:
       && p.transp() == q.transp()
       && p.cap() == q.cap()
       && p.join() == q.join()
+      && p.miter() == q.miter()
       && p.Overwrite() == q.Overwrite()
       && p.t == q.t;
   }
@@ -740,6 +777,8 @@ public:
       out << ", linecap=" << Cap[p.linecap];
     if(p.linejoin != DEFJOIN)
       out << ", linejoin=" << Join[p.linejoin];
+    if(p.miterlimit != DEFJOIN)
+      out << ", miterlimit=" << p.miterlimit;
     if(!p.font.empty())
       out << ", font=\"" << p.font << "\"";
     if(p.fontsize)

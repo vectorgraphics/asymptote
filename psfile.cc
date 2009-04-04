@@ -197,6 +197,10 @@ void psfile::setpen(pen p)
     *out << p.join() << " setlinejoin" << newl;
   }
     
+  if(p.miter() != lastpen.miter()) {
+    *out << p.miter() << " setmiterlimit" << newl;
+  }
+    
   if(p.stroke() != lastpen.stroke() || 
      p.linetype().offset != lastpen.linetype().offset) {
     out->setf(std::ios::fixed);

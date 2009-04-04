@@ -1877,7 +1877,7 @@ pen linetype(string *s, real offset=0, bool scale=true, bool adjust=true)
   return pen(LineType(*s,offset,scale,adjust)); 
 }
 
-string linetype(pen p)
+string linetype(pen p=CURRENTPEN)
 {
   return p.stroke();  
 }
@@ -1907,7 +1907,7 @@ pen linecap(Int n)
   return pen(setlinecap,n >= 0 && n < nCap ? n : DEFCAP);
 }
 
-Int linecap(pen p)
+Int linecap(pen p=CURRENTPEN)
 {
   return p.cap();  
 }
@@ -1917,9 +1917,19 @@ pen linejoin(Int n)
   return pen(setlinejoin,n >= 0 && n < nJoin ? n : DEFJOIN);
 }
 
-Int linejoin(pen p)
+Int linejoin(pen p=CURRENTPEN)
 {
   return p.join();  
+}
+
+pen miterlimit(real x)
+{
+  return pen(setmiterlimit,x >= 1.0 ? x : DEFJOIN);
+}
+
+real miterlimit(pen p=CURRENTPEN)
+{
+  return p.miter();  
 }
 
 pen linewidth(real x)
@@ -1927,7 +1937,7 @@ pen linewidth(real x)
   return pen(setlinewidth,x >= 0.0 ? x : DEFWIDTH);
 }
 
-real linewidth(pen p)
+real linewidth(pen p=CURRENTPEN)
 {
   return p.width();  
 }
@@ -1937,7 +1947,7 @@ pen fontcommand(string *s)
   return pen(setfont,*s);
 }
 
-string font(pen p)
+string font(pen p=CURRENTPEN)
 {
   return p.Font();
 }
@@ -1948,12 +1958,12 @@ pen fontsize(real size, real lineskip)
              lineskip > 0.0 ? lineskip : 0.0);
 }
 
-real fontsize(pen p)
+real fontsize(pen p=CURRENTPEN)
 {
   return p.size();
 }
 
-real lineskip(pen p)
+real lineskip(pen p=CURRENTPEN)
 {
   return p.Lineskip();  
 }
@@ -1964,7 +1974,7 @@ pen overwrite(Int n)
              DEFWRITE);
 }
 
-Int overwrite(pen p)
+Int overwrite(pen p=CURRENTPEN)
 {
   return p.Overwrite();  
 }
@@ -1974,7 +1984,7 @@ pen basealign(Int n)
   return pen(n >= 0 && n < nBaseLine ? (BaseLine) n : DEFBASE);
 }
 
-Int basealign(pen p)
+Int basealign(pen p=CURRENTPEN)
 {
   return p.Baseline();
 }

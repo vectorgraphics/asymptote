@@ -1168,7 +1168,7 @@ in multiples of the units @code{labelmargin(p)} used for aligning labels.
 Alternatively, @code{BeginPenMargin}, @code{EndPenMargin}
 (or equivalently @code{PenMargin}), @code{PenMargins},
 @code{PenMargin(real begin, real end)} specify a margin in units of
-the pen linewidth, taking account of the pen linewidth when drawing
+the pen line width, taking account of the pen line width when drawing
 the path or arrow. For example, use @code{DotMargin}, an
 abbreviation for @code{PenMargin(-0.5*dotfactor,0.5*dotfactor)},
 to draw from the usual beginning point just up to the boundary of an
@@ -1176,7 +1176,7 @@ end dot of width @code{dotfactor*linewidth(p)}.  The qualifiers
 @code{BeginDotMargin}, @code{EndDotMargin}, and @code{DotMargins} work
 similarly. The qualifier @code{TrueMargin(real begin, real end)} allows one to
 specify a margin directly in @code{PostScript} units, independent of
-the pen linewidth.
+the pen line width.
 
 The use of arrows, bars, and margins is illustrated by the examples
 @code{Pythagoras.asy}, @code{sqrtx01.asy}, and @code{triads.asy}.
@@ -1209,8 +1209,8 @@ point on a picture @code{dest} using @code{add} or @code{attach}
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.
 The @code{dot} command defined in the module @code{plain} draws a
-dot having a diameter equal to an explicit pen linewidth or the
-default linewidth magnified by @code{dotfactor} (6 by default),
+dot having a diameter equal to an explicit pen line width or the
+default line width magnified by @code{dotfactor} (6 by default),
 using the specified filltype (@pxref{filltype}):
 @verbatim
 void dot(picture pic=currentpicture, pair z, pen p=currentpen,
@@ -2599,7 +2599,7 @@ The functions @code{pen gray(pen)}, @code{pen rgb(pen)},  and
 @code{pen cmyk(pen)} return new pens obtained by converting their
 arguments to the respective color spaces. 
 @cindex @code{colorless}
-The function @code{colorless(pen)} returns a copy of its argument
+The function @code{colorless(pen=currentpen)} returns a copy of its argument
 with the color attributes stripped (to avoid color mixing).
 
 A 6-character RGB hexidecimal string can be converted to a pen with
@@ -2668,7 +2668,7 @@ write(q.h,q.s,q.v); // 180     0.5     0.75
 where @code{s} is a string of integer or real numbers separated by spaces.
 The optional parameter @code{offset} specifies where in the pattern
 to begin. The first number specifies how far (if @code{scale} is
-@code{true}, in units of the pen linewidth; otherwise in
+@code{true}, in units of the pen line width; otherwise in
 @code{PostScript} units) to draw with the pen on, the second number
 specifies how far to draw with the pen off, and so on. If
 @code{adjust} is @code{true}, these spacings are automatically
@@ -2688,27 +2688,27 @@ pen Dotted(pen p=currentpen) {return dotted+2*linewidth(p);}
 @center @image{linetype}
 
 @cindex @code{defaultpen}
-The default linetype is @code{solid}; this may be changed with
+The default line type is @code{solid}; this may be changed with
 @code{defaultpen(pen)}.
+The line type of a pen is returned by @code{int linetype(pen p=currentpen)}.
 
 @cindex @code{linewidth}
 @cindex @code{defaultpen}
 @item The pen line width is specified in @code{PostScript} units with
 @code{pen linewidth(real)}. The default line width is 0.5 bp; this value
 may be changed with @code{defaultpen(pen)}. The line width of a pen
-is returned by @code{real linewidth(pen p=currentpen);}.
+is returned by @code{real linewidth(pen p=currentpen)}.
 For convenience, in the module @code{plain} we define
 @verbatim
 static void defaultpen(real w) {defaultpen(linewidth(w));}
 static pen operator +(pen p, real w) {return p+linewidth(w);}
 static pen operator +(real w, pen p) {return linewidth(w)+p;}
 @end verbatim
-so that one may set the linewidth like this:
+so that one may set the line width like this:
 @verbatim
 defaultpen(2);
 pen p=red+0.5;
 @end verbatim
-
 
 @cindex @code{linecap}
 @cindex @code{squarecap}
@@ -2725,8 +2725,8 @@ pen extendcap=linecap(2);
 
 @noindent
 The default line cap, @code{roundcap}, may be changed with
-@code{defaultpen(pen)}.
-
+@code{defaultpen(pen)}. The line cap of a pen is returned by
+@code{int linecap(pen p=currentpen)}.
 
 @cindex @code{linejoin}
 @cindex @code{miterjoin}
@@ -2742,7 +2742,15 @@ pen beveljoin=linejoin(2);
 
 @noindent
 The default join style, @code{roundjoin}, may be changed with
-@code{defaultpen(pen)}.
+@code{defaultpen(pen)}.The join style of a pen is returned by
+@code{int linejoin(pen p=currentpen)}.
+
+@cindex @code{miterlimit}
+@item A pen with a specific @code{PostScript} miter limit is returned by
+calling @code{miterlimit(real)}.
+The default miterlimit, @code{10.0}, may be changed with
+@code{defaultpen(pen)}. The miter limit of a pen is returned by
+@code{real miterlimit(pen p=currentpen)}.
 
 @cindex @code{fillrule}
 @cindex @code{zerowinding}
@@ -2765,7 +2773,8 @@ line @code{z--z+infinity} minus the number of downward intersections
 is zero. For the @code{evenodd} fill rule, @code{z} is considered to
 be outside the region if the total number of such intersections is even.
 The default fill rule, @code{zerowinding}, may be changed with
-@code{defaultpen(pen)}.
+@code{defaultpen(pen)}. The fill rule of a pen is returned by
+@code{int fillrule(pen p=currentpen)}.
 
 @cindex @code{nobasealign}
 @cindex @code{basealign}
@@ -2782,6 +2791,8 @@ The default setting, @code{nobasealign},which may be changed with
 @code{defaultpen(pen)}, causes the label alignment routines to use the
 full label bounding box for alignment. In contrast, @code{basealign}
 requests that the @TeX{} baseline be respected.
+The base align setting of a pen is returned by
+@code{int basealigin(pen p=currentpen)}.
 
 @cindex @code{fontsize}
 @cindex @code{lineskip}
@@ -2800,8 +2811,9 @@ available from
 @url{http://www.ctan.org/tex-archive/help/Catalogue/entries/fix-cm}
 @end quotation
 and included in recent @code{LaTeX} distributions). The font size and line
-skip of a pen can be examined with the routines @code{real fontsize(pen
-p=currentpen)} and @code{real lineskip(pen p=currentpen)}, respectively.
+skip of a pen can be examined with the routines 
+@code{real fontsize(pen p=currentpen)} and 
+@code{real lineskip(pen p=currentpen)}, respectively.
 
 @cindex @code{font}
 @cindex @code{LaTeX fonts}
@@ -2811,8 +2823,10 @@ p=currentpen)} and @code{real lineskip(pen p=currentpen)}, respectively.
 by calling the function @code{pen font(string encoding, string family,
 string series="m", string shape="n")}. The default setting,
 @code{font("OT1","cmr","m","n")}, corresponds to 12pt Computer Modern Roman;
-this may be changed with @code{defaultpen(pen)}. Support for
-standardized international characters is provided by the
+this may be changed with @code{defaultpen(pen)}. 
+The font setting of a pen is returned by
+@code{string font(pen p=currentpen)}.
+Support for standardized international characters is provided by the
 @code{unicode} package (@pxref{unicode}).
 
 @cindex @code{TeX fonts}
@@ -7358,7 +7372,7 @@ especially with the @code{Adobe Reader} renderer. The setting
 @code{thick=false} can be used to disable this feature and force all
 lines to be drawn with @code{linewidth(0)} (one pixel wide, regardless
 of the resolution). By default mesh and contour lines in three-dimensions
-are always drawn thin, unless an explicit linewidth is given in the pen
+are always drawn thin, unless an explicit line width is given in the pen
 parameter or the setting @code{thin} is set to @code{false}. The pens
 @code{thin()} and @code{thick()} defined in plain_pens.asy can also be used
 to override these defaults for specific draw commands. 
