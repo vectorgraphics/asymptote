@@ -8,6 +8,8 @@ scaleT Linear;
 scaleT Log=scaleT(log10,pow10,logarithmic=true);
 scaleT Logarithmic=Log;
 
+string baselinetemplate="$10^4$";
+
 // A linear scale, with optional autoscaling of minimum and maximum values,
 // scaling factor s and intercept.
 scaleT Linear(bool automin=false, bool automax=automin, real s=1,
@@ -381,7 +383,8 @@ pair labeltick(frame d, transform T, path g, ticklocate locate, real val,
 
   string s=ticklabel(label);
   if(s != "")
-    label(d,F.T*baseline(s),locate1.Z+shift,align,F.p,F.filltype);
+    label(d,F.T*baseline(s,baselinetemplate),locate1.Z+shift,align,F.p,
+          F.filltype);
   return locate1.pathdir;
 }  
 
@@ -1669,7 +1672,7 @@ void tick(picture pic=currentpicture, Label L, real value, explicit pair z,
               ticklabelshift(L.align.dir,p))*L.T;
   L.p(p);
   if(L.s == "") L.s=format(format == "" ? defaultformat : format,value);
-  L.s=baseline(L.s);
+  L.s=baseline(L.s,baselinetemplate);
   add(pic,L);
   xtick(pic,z,dir,size,p);
 }
@@ -1708,7 +1711,7 @@ private void label(picture pic, Label L, pair z, real x, align align,
   if(shift(L.T)*0 == 0)
     L.T=shift(ticklabelshift(L.align.dir,L.p))*L.T;
   if(L.s == "") L.s=format(format == "" ? defaultformat : format,x);
-  L.s=baseline(L.s);
+  L.s=baseline(L.s,baselinetemplate);
   add(pic,L);
 }
 
