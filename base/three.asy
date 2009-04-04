@@ -13,7 +13,7 @@ real defaultgranularity=0;
 real linegranularity=0.01;
 real dotgranularity=0.0001;
 pair viewportmargin=0;     // Horizontal and vertical viewport margins.
-real viewportfactor=1.01;  // Factor used to expand orthographic viewport.
+real viewportfactor=1.02;  // Factor used to expand orthographic viewport.
 real anglefactor=1.02;     // Factor used to expand perspective viewport.
 real angleprecision=1e-3;  // Precision for centering perspective projections.
 
