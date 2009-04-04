@@ -22,11 +22,10 @@ struct GCInit {
 #ifdef _AIX
   typedef char * GC_PTR;
 #endif
-  
   GCInit() {
 #ifdef USEGC
-    GC_free_space_divisor = 2;
-    GC_dont_expand = 0;
+    GC_set_free_space_divisor(2);
+    GC_dont_expand=0;
     GC_INIT();
 #endif  
   }

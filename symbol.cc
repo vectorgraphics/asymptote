@@ -13,7 +13,6 @@
 
 namespace sym {
 
-int defaultFreeSpaceDivisor=2;
 GCInit symbol::initialize;
 
 mem::map<CONST string,symbol> symbol::dict;
