@@ -170,11 +170,20 @@ void lighting()
 {
   for(size_t i=0; i < Nlights; ++i) {
     GLenum index=GL_LIGHT0+i;
-    glEnable(index);
-    
     triple Lighti=Lights[i];
     GLfloat position[]={Lighti.getx(),Lighti.gety(),Lighti.getz(),0.0};
     glLightfv(index,GL_POSITION,position);
+  }
+}
+
+void initlighting() 
+{
+  glEnable(GL_LIGHTING);
+  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,getSetting<bool>("twosided"));
+    
+  for(size_t i=0; i < Nlights; ++i) {
+    GLenum index=GL_LIGHT0+i;
+    glEnable(index);
     
     size_t i4=4*i;
     
@@ -188,6 +197,16 @@ void lighting()
                         Specular[i4+3]};
     glLightfv(index,GL_SPECULAR,specular);
   }
+  
+  static size_t lastNlights=0;
+  for(size_t i=Nlights; i < lastNlights; ++i) {
+    GLenum index=GL_LIGHT0+i;
+    glDisable(index);
+  }
+  lastNlights=Nlights;
+  
+  if(ViewportLighting)
+    lighting();
 }
 
 void setDimensions(int Width, int Height, double X, double Y)
@@ -462,6 +481,7 @@ void togglefitscreen()
 
 void updateHandler(int)
 {
+  initlighting();
   update();
   if(interact::interactive) {
     glutShowWindow();
@@ -481,8 +501,10 @@ void autoExport()
 void exportHandler(int)
 {
 #ifdef HAVE_LIBPTHREAD
-  wait(readySignal,readyLock);
+  if(glthread)
+    wait(readySignal,readyLock);
 #endif
+  initlighting();
   autoExport();
 }
 
@@ -1203,11 +1225,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   gluNurbsCallback(nurb,GLU_NURBS_COLOR,(_GLUfuncptr) glColor4fv);
   mode();
   
-  glEnable(GL_LIGHTING);
-  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,getSetting<bool>("twosided"));
-    
-  if(ViewportLighting)
-    lighting();
+  initlighting();
   
   if(View) {
     initializedView=true;
