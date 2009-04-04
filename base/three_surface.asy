@@ -511,6 +511,7 @@ struct surface {
     for(int p=0; p < 6; ++p) {
       int kstart=max(p-2,0);
       int kstop=min(p,3);
+      real[] Tp=T[p];
       for(int q=0; q < 6; ++q) {
         real Tpq;
         int jstop=min(q,3);
@@ -524,7 +525,7 @@ struct surface {
               choose2[i]*choose3k*choose3[j]*choose2[l];
           }
         }
-        T[p][q]=Tpq;
+        Tp[q]=Tpq;
       }
     }
 
