@@ -807,7 +807,9 @@ struct divisorOption : public option {
   bool getOption() {
     try {
       Int n=lexical::cast<Int>(optarg);
+#ifdef USEGC
       if(n > 0) GC_set_free_space_divisor((GC_word) n);
+#endif      
     } catch (lexical::bad_cast&) {
       error("option requires an int as an argument");
       return false;
