@@ -806,8 +806,8 @@ struct divisorOption : public option {
 
   bool getOption() {
     try {
-      Int n=lexical::cast<Int>(optarg);
 #ifdef USEGC
+      Int n=lexical::cast<Int>(optarg);
       if(n > 0) GC_set_free_space_divisor((GC_word) n);
 #endif      
     } catch (lexical::bad_cast&) {
