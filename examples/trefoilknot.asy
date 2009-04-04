@@ -1,8 +1,9 @@
 import tube;
 import graph3;
 import palette;
+currentlight=adobe;
 
-size(10cm,0);
+size(0,8cm);
 currentprojection=perspective(1,1,1,up=-Y);
 
 int e=1;
@@ -17,6 +18,6 @@ pens.push(yellow);
 for (int i=pens.length-2; i >= 0 ; --i)
   pens.push(pens[i]);
 
-path sec=subpath(Circle(0,1.5,2*pens.length),0,pens.length);
+path sec=scale(0.25)*texpath("$\pi$")[0];
 coloredpath colorsec=coloredpath(sec, pens,colortype=coloredNodes);
 draw(tube(p,colorsec));
