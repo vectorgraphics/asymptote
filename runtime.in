@@ -222,15 +222,25 @@ namespace run {
 const char *invalidargument="invalid argument";
 const char *arrayempty="cannot take min or max of empty array";
 
-// Return the factorial of a non-negative integer.
-Int factorial(Int n) 
+// Return the factorial of a non-negative integer using a lookup table.
+Int factorial(Int n)
 {
-  Int f=1;
-  for(Int i=2; i <= n; ++i) {
-    if(f > Int_MAX/i) integeroverflow(0);
-    f *= i;
+  static Int *table;
+  static size_t size=0;
+  if(size == 0) {
+    Int f=1;
+    size=2;
+    while(f <= Int_MAX/size)
+      f *= (size++);
+    table=new Int[size];
+    table[0]=f=1;
+    for(Int i=1; i < size; ++i) {
+      f *= i;
+      table[i]=f;
+    }
   }
-  return f;
+  if(n >= size) integeroverflow(0);
+  return table[n];
 }
 
 static inline Int Round(double x) 
