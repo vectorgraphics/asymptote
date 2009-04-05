@@ -27,13 +27,12 @@ for(int i=0; i < n; ++i) {
   size3(pic,12cm,12cm,8cm);
   limits((-2,-2,-2),(2,2,2));
   real k=i/n*pi;
-  real f(pair z){return 4cos(abs(z)-k)*exp(-abs(z)/6);}
+  real f(pair z) {return 4cos(abs(z)-k)*exp(-abs(z)/6);}
   draw(pic,surface(f,(-4pi,-4pi),(4pi,4pi),Spline),paleblue);
-  draw(pic,shift(6Z)*surface(unitsphere),invisible);
   draw(pic,shift(i*6Z/n)*unitsphere,yellow);
   A.add(pic);
 }
-label(A.pdf("autoplay,loop",keep=true,delay=50));
+label(A.pdf("autoplay,loop",delay=20));
 \end{asy}
 %Uncomment the following line when not using the [inline] package option:
 %\ASYanimategraphics[autoplay,loop]{50}{movie3}{}{}

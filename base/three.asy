@@ -2559,7 +2559,7 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
     bool prc=prc(format);
     if(!prc && settings.render != 0 && !view) {
       static int previewcount=0;
-      prefix=outprefix(prefix)+"-"+(string) previewcount;
+      prefix=outprefix(prefix)+(string) previewcount;
       ++previewcount;
       format=nativeformat();
       file3.push(prefix+"."+format);

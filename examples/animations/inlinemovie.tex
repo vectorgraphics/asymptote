@@ -19,7 +19,7 @@ real h=2pi/10;
 
 picture pic;
 unitsize(pic,2cm);
-for (int i=0; i < 10; ++i) {
+for(int i=0; i < 10; ++i) {
   draw(pic,expi(i*h)--expi((i+1)*h));
   A.add(pic);
 }
@@ -38,7 +38,7 @@ real h=2pi/10;
 
 picture pic;
 unitsize(pic,2cm);
-for (int i=0; i < 10; ++i) {
+for(int i=0; i < 10; ++i) {
   draw(pic,expi(-i*h)--expi(-(i+1)*h),red);
   A.add(pic);
 }
