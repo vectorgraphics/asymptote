@@ -32,7 +32,7 @@ for(int i=0; i < n; ++i) {
   draw(pic,shift(i*6Z/n)*unitsphere,yellow);
   A.add(pic);
 }
-label(A.pdf("autoplay,loop",delay=20,keep=true));
+label(A.pdf("autoplay,loop",delay=20,keep=!settings.inlinetex));
 \end{asy}
 %Uncomment the following line when not using the [inline] package option:
 %\ASYanimategraphics[autoplay,loop]{50}{movie3}{}{}

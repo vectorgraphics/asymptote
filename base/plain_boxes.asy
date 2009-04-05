@@ -126,10 +126,11 @@ pair point(object F, pair dir, transform t=identity())
   return z+point(F.g,T[0]);
 }
 
-frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=xmargin,
+frame bbox(string prefix="", picture pic=currentpicture,
+           real xmargin=0, real ymargin=xmargin,
            pen p=currentpen, filltype filltype=NoFill)
 {
-  frame f=pic.fit(max(pic.xsize-2*xmargin,0),max(pic.ysize-2*ymargin,0));
+  frame f=pic.fit(prefix,max(pic.xsize-2*xmargin,0),max(pic.ysize-2*ymargin,0));
   box(f,xmargin,ymargin,p,filltype,false);
   return f;
 }

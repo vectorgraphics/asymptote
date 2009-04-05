@@ -29,8 +29,8 @@ for(int i=0; i < 2n; ++i) {
   a.add(pic);
   if(i < 1.5n) b.add(rotate(45)*pic);
 }
-display(a.pdf("autoplay,loop,controls"));
-display(b.pdf("controls"));
+display(a.pdf("autoplay,loop,controls",multipage=false));
+display(b.pdf("controls",multipage=false));
 
 title("External Movie (portable)");
 display(external.embed("wheel.mpg",

@@ -1,8 +1,7 @@
 // Default file prefix used for inline LaTeX mode
 string defaultfilename;
 
-string outprefix(string prefix="") {
-  if(prefix == "") prefix=defaultfilename;
+string outprefix(string prefix=defaultfilename) {
   string s=prefix != "" ? prefix :
     (settings.outname == "" && interactive()) ? "out" : settings.outname;
   return stripextension(s);

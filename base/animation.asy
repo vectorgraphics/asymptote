@@ -8,16 +8,16 @@
 // animation delay is in milliseconds
 real animationdelay=50;
 
-typedef frame fit(picture);
+typedef frame fit(string prefix="",picture);
 
-frame NoBox(picture pic) {
-  return pic.fit();
+frame NoBox(string prefix="", picture pic) {
+  return pic.fit(prefix);
 }
 
-fit BBox(real xmargin=0, real ymargin=xmargin,
+fit BBox(string prefix="", real xmargin=0, real ymargin=xmargin,
          pen p=currentpen, filltype filltype=NoFill) {
-  return new frame(picture pic) {
-    return bbox(pic,xmargin,ymargin,p,filltype);
+  return new frame(string prefix, picture pic) {
+    return bbox(prefix,pic,xmargin,ymargin,p,filltype);
   };
 }
 
@@ -42,7 +42,7 @@ struct animation {
   }
 
   string name(string prefix, int index) {
-    return stripextension(prefix)+string(index);
+    return stripextension(prefix)+"-"+string(index);
   }
 
   private string nextname() {
@@ -104,11 +104,8 @@ struct animation {
           this.shipout(name(prefix,i),fit(pictures[i]));
           settings.render=render;
         } else { // Render 3D frames
-          string name=defaultfilename;
-          defaultfilename=prefix;
           files.push(name(prefix,i)+"."+nativeformat());
-          fit(pictures[i]);
-          defaultfilename=name;
+          fit(prefix,pictures[i]);
         }
       }
     }
@@ -119,13 +116,18 @@ struct animation {
     shipped=true;
   }
 
-  string load(int frames, real delay=animationdelay, string options="") {
-    return "\animategraphics["+options+"]{"+format("%.18f",1000/delay,"C")+"}{"+
-      basename()+"}{0}{"+string(frames-1)+"}";
+  string load(int frames, real delay=animationdelay, string options="",
+              bool multipage=false) {
+    string s="\animategraphics["+options+"]{"+format("%.18f",1000/delay,"C")+
+      "}{"+basename();
+    if(!multipage) s += "-";
+    s += "}{0}{"+string(frames-1)+"}";
+    return s;
   }
 
   string pdf(fit fit=NoBox, real delay=animationdelay, string options="",
              bool keep=settings.keep, bool multipage=true) {
+    if(settings.inlinetex) multipage=true;
     if(settings.tex != "pdflatex")
       abort("inline pdf animations require -tex pdflatex");
     
@@ -152,7 +154,7 @@ struct animation {
     if(!single)
       delete(pdfname);
 
-    return load(pictures.length,delay,options);
+    return load(pictures.length,delay,options,multipage);
   }
 
   int movie(fit fit=NoBox, int loops=0, real delay=animationdelay,

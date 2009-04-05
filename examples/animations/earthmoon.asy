@@ -73,5 +73,4 @@ for(int i=0; i < n; ++i) {
   erase(); 
 } 
 
-label(A.pdf(BBox(1mm,Fill(Black)),delay=500)); 
-
+label(A.pdf(BBox(1mm,Fill(Black)),delay=500,multipage=false)); 

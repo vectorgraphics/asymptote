@@ -23,7 +23,7 @@ for(int i=0; i < 10; ++i) {
   draw(pic,expi(i*h)--expi((i+1)*h));
   A.add(pic);
 }
-label(A.pdf("controls",delay=50,keep=true));
+label(A.pdf("controls",delay=50,keep=!settings.inlinetex));
 \end{asy}
 %Uncomment the following line when not using the [inline] package option:
 %\ASYanimategraphics[controls,loop]{20}{movie1}{}{}
@@ -42,7 +42,7 @@ for(int i=0; i < 10; ++i) {
   draw(pic,expi(-i*h)--expi(-(i+1)*h),red);
   A.add(pic);
 }
-label(A.pdf(keep=true));
+label(A.pdf(keep=!settings.inlinetex));
 \end{asy}
 %Uncomment the following line when not using the [inline] package option:
 %\ASYanimategraphics[controls,loop]{10}{movie2}{}{}
