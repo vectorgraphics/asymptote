@@ -2578,6 +2578,31 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
   return f;
 };
 
+// Force an array of 3D pictures to be as least as large as picture all.
+void rescale3(picture[] pictures, picture all, projection P=currentprojection)
+{
+  if(!all.empty3()) {
+    transform3 t=inverse(all.calculateTransform3(P)*pictures[0].T3);
+    triple m=t*min3(all);
+    triple M=t*max3(all);
+    for(int i=0; i < pictures.length; ++i) {
+      draw(pictures[i],m,nullpen);
+      draw(pictures[i],M,nullpen);
+    }
+  }
+}
+
+// Force an array of pictures to have a uniform scaling using currenprojection.
+rescale=new void(picture[] pictures) {
+  if(pictures.length == 0) return;
+  picture all;
+  size(all,pictures[0]);
+  for(picture pic : pictures)
+    add(all,pic);
+  rescale2(pictures,all);
+  rescale3(pictures,all);
+};
+
 exitfcn currentexitfunction=atexit();
 
 void exitfunction()

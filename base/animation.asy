@@ -2,7 +2,7 @@
  * animation.asy
  * Andy Hammerlindl and John Bowman 2005/11/06
  *
- * Produce animated gifs.
+ * Produce GIF, inline PDF, or other animations.
  *****/
 
 // animation delay is in milliseconds
@@ -88,29 +88,7 @@ struct animation {
   void export(string prefix=prefix, fit fit=NoBox,
               bool multipage=false, bool view=false) {
     if(pictures.length == 0) return;
-    picture all;
-    size(all,pictures[0]);
-    for(int i=0; i < pictures.length; ++i)
-      add(all,pictures[i]);
-    if(all.empty3()) {
-      transform t=inverse(all.calculateTransform()*pictures[0].T);
-      pair m=t*min(all);
-      pair M=t*max(all);
-      for(int i=0; i < pictures.length; ++i) {
-        draw(pictures[i],m,nullpen);
-        draw(pictures[i],M,nullpen);
-      }
-    } else {
-      import three;
-      transform3 t=inverse(all.calculateTransform3(currentprojection)*
-                           pictures[0].T3);
-      triple m=t*min3(all);
-      triple M=t*max3(all);
-      for(int i=0; i < pictures.length; ++i) {
-        draw(pictures[i],m,nullpen);
-        draw(pictures[i],M,nullpen);
-      }
-    }
+    rescale(pictures);
     frame multi;
     bool inlinetex=settings.inlinetex;
     if(multipage)

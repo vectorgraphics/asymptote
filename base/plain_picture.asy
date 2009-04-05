@@ -1239,7 +1239,7 @@ struct picture {
   transform3 calculateTransform3(real xsize=xsize3, real ysize=ysize3,
                                  real zsize=zsize3,
                                  bool keepAspect=true, bool warn=true,
-                                 projection P) {
+                                 projection P=currentprojection) {
     transform3 t=scaling(xsize,ysize,zsize,keepAspect,warn);
     return scale3(fit3(t,null,P),keepAspect)*t;
   }

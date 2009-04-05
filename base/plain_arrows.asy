@@ -541,3 +541,28 @@ void arrow(picture pic=currentpicture, Label L="", pair b, pair dir,
   pair a=(margin.begin+length+margin.end)*unit(dir);
   draw(b,pic,L,a--(0,0),align,p,arrow,margin);
 }
+
+// Force an array of 2D pictures to be as least as large as picture all.
+void rescale2(picture[] pictures, picture all)
+{
+  if(!all.empty2()) {
+    transform t=inverse(all.calculateTransform()*pictures[0].T);
+    pair m=t*min(all);
+    pair M=t*max(all);
+    for(int i=0; i < pictures.length; ++i) {
+      draw(pictures[i],m,nullpen);
+      draw(pictures[i],M,nullpen);
+    }
+  }
+}
+
+// Force an array of pictures to have a uniform scaling.
+void rescale(picture[] pictures)
+{
+  if(pictures.length == 0) return;
+  picture all;
+  size(all,pictures[0]);
+  for(picture pic : pictures)
+    add(all,pic);
+  rescale2(pictures,all);
+}
