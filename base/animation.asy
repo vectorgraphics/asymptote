@@ -121,7 +121,7 @@ struct animation {
 
   string load(int frames, real delay=animationdelay, string options="") {
     return "\animategraphics["+options+"]{"+format("%.18f",1000/delay,"C")+"}{"+
-      "_"+stripextension(prefix)+"}{0}{"+string(frames-1)+"}";
+      basename()+"}{0}{"+string(frames-1)+"}";
   }
 
   string pdf(fit fit=NoBox, real delay=animationdelay, string options="",
