@@ -44,6 +44,8 @@ types::record *getGSLModule();
 } //namespace trans
 
 namespace run {
+extern double infinity;
+
 void arrayDeleteHelper(vm::stack *Stack);
 }
 

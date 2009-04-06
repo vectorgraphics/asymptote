@@ -799,6 +799,7 @@ void base_venv(venv &ve)
   addConstant<Int>(ve, Int_MAX, primInt(), "intMax");
   addConstant<Int>(ve, Int_MIN, primInt(), "intMin");
   addConstant<double>(ve, HUGE_VAL, primReal(), "inf");
+  addConstant<double>(ve, infinity, primReal(), "infinity");
   addConstant<double>(ve, DBL_MAX, primReal(), "realMax");
   addConstant<double>(ve, DBL_MIN, primReal(), "realMin");
   addConstant<double>(ve, DBL_EPSILON, primReal(), "realEpsilon");
@@ -824,6 +825,8 @@ void base_menv(menv&)
 } //namespace trans
 
 namespace run {
+
+double infinity=cbrt(DBL_MAX); // Reduced for tension atleast infinity
 
 void arrayDeleteHelper(vm::stack *Stack)
 {

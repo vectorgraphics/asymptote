@@ -2341,6 +2341,14 @@ returns the intersection point @code{point(p,intersect(p,q,fuzz)[0])}.
 returns an array containing all intersection points of the paths
 @code{p} and @code{q}.
 
+@anchor{extension}
+@cindex @code{whatever}
+@cindex @code{extension}
+@item pair extension(pair P, pair Q, pair p, pair q);
+returns the intersection point of the extensions of the line segments 
+@code{P--Q} and @code{p--q}, or, if the lines are parallel,
+@code{(infinity,infinity)}.
+
 @cindex @code{cut}
 @cindex @code{slice}
 @item slice cut(path p, path knife, int n);
@@ -5908,24 +5916,7 @@ sizing of pictures.
 @section @code{math}
 @cindex @code{math}
 This package extends @code{Asymptote}'s mathematical capabilities with
-intersection algorithms and matrix arithmetic.
-
-@cindex @code{implicit linear solver}
-@cindex @code{MetaPost whatever}
-@cindex @code{extension}
-Unlike @code{MetaPost}, @code{Asymptote} does not implicitly solve
-linear equations and therefore does not have the notion of a
-@code{whatever} unknown. Use the built-in explicit linear equation
-solver @code{solve} instead. The following routine provides a useful
-replacement for a common use of @code{whatever}: finding the
-intersection point of the lines through @code{P}, @code{Q} and
-@code{p}, @code{q}, respectively:
-
-@verbatim
-pair extension(pair P, pair Q, pair p, pair q);
-@end verbatim
-
-Here are some additional routines provided in the @code{math} package:
+intersection algorithms and matrix arithmetic:
 
 @table @code
 
@@ -6203,6 +6194,17 @@ the file @code{slidemovies.asy}). A simple example is provided in the file
 This package provides some useful routines to help @code{MetaPost} users
 migrate old @code{MetaPost} code to @code{Asymptote}. Further
 contributions here are welcome.
+
+@cindex @code{implicit linear solver}
+@cindex @code{MetaPost whatever}
+@cindex @code{extension}
+Unlike @code{MetaPost}, @code{Asymptote} does not implicitly solve
+linear equations and therefore does not have the notion of a
+@code{whatever} unknown. The routine @code{extension} (@pxref{extension})
+provides a useful replacement for a common use of @code{whatever}: finding the
+intersection point of the lines through @code{P}, @code{Q} and
+@code{p}, @code{q}. For less common occurrences of @code{whatever}, one
+can use the built-in explicit linear equation solver @code{solve} instead. 
 
 @node unicode
 @section @code{unicode}
@@ -9043,7 +9045,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  XZEquals XYEquals XZZero XYZero InTicks OutTicks InOutTicks
 @c  LocalWords:  fitscreen planeproject strokepath meshlight nullpens arrowdir
 @c  LocalWords:  diffusepen ambientpen emissivepen specularpen arrowbarb keyval
-@c  LocalWords:  hstretch vstretch roundbox nonconvex
+@c  LocalWords:  hstretch vstretch roundbox nonconvex miterlimit basealigin
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify
 @c  LocalWords:  psviewerOptions pdfviewerOptions viewportmargin asyattach
@@ -9052,4 +9054,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
 @c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
 @c  LocalWords:  dvipdfmx autoadjust viewportsize viewportwidth viewportheight
-@c  LocalWords:  subregions
+@c  LocalWords:  subregions nonsimply

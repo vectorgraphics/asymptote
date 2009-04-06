@@ -38,17 +38,6 @@ bool polygon(path p)
   return cyclic(p) && piecewisestraight(p);
 }
 
-// Return the intersection point of the extensions of the line segments 
-// PQ and pq.
-pair extension(pair P, pair Q, pair p, pair q)
-{
-  pair ac=P-Q;
-  pair bd=q-p;
-  real det=(conj(ac)*bd).y;
-  if(det == 0) return (infinity,infinity);
-  return P+(conj(p-P)*bd).y*ac/det;
-}
-
 // Return the intersection time of the extension of the line segment PQ
 // with the plane perpendicular to n and passing through Z.
 real intersect(triple P, triple Q, triple n, triple Z)

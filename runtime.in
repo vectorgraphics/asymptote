@@ -2356,6 +2356,17 @@ realarray* intersections(path p, explicit pair a, explicit pair b, real fuzz=-1)
   return V;
 }
 
+// Return the intersection point of the extensions of the line segments 
+// PQ and pq.
+pair extension(pair P, pair Q, pair p, pair q)
+{
+  pair ac=P-Q;
+  pair bd=q-p;
+  real det=ac.getx()*bd.gety()-ac.gety()*bd.getx();
+  if(det == 0) return pair(infinity,infinity);
+  return P+((p.getx()-P.getx())*bd.gety()-(p.gety()-P.gety())*bd.getx())*ac/det;
+}
+
 Int size(path p)
 {
   return p.size();
