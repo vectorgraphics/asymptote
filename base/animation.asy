@@ -130,6 +130,7 @@ struct animation {
     if(settings.inlinetex) multipage=true;
     if(settings.tex != "pdflatex")
       abort("inline pdf animations require -tex pdflatex");
+    if(settings.outformat != "") settings.outformat="pdf";
     
     string filename=basename();
     string pdfname=filename+".pdf";

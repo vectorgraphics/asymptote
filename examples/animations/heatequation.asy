@@ -72,5 +72,5 @@ for(int fr=0; fr < endframe; ++fr) {
   advanceZ(30);
 };
 
-label(a.pdf(delay=200,"controls,loop"));
+label(a.pdf(delay=400,"controls,loop"));
 shipout(bbox(3mm,darkblue+3bp+miterjoin,FillDraw(fillpen=paleblue)),"pdf");
