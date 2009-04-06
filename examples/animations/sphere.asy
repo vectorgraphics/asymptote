@@ -3,6 +3,7 @@ import animation;
 
 currentprojection=orthographic((0,5,2));
 currentlight=(0,5,5);
+settings.thick=false;
 
 int nbpts=200;
 real step=2*pi/nbpts;
