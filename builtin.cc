@@ -799,7 +799,7 @@ void base_venv(venv &ve)
   addConstant<Int>(ve, Int_MAX, primInt(), "intMax");
   addConstant<Int>(ve, Int_MIN, primInt(), "intMin");
   addConstant<double>(ve, HUGE_VAL, primReal(), "inf");
-  addConstant<double>(ve, infinity, primReal(), "infinity");
+  addConstant<double>(ve, run::infinity, primReal(), "infinity");
   addConstant<double>(ve, DBL_MAX, primReal(), "realMax");
   addConstant<double>(ve, DBL_MIN, primReal(), "realMin");
   addConstant<double>(ve, DBL_EPSILON, primReal(), "realEpsilon");
