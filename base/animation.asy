@@ -42,7 +42,7 @@ struct animation {
   }
 
   string name(string prefix, int index) {
-    return stripextension(prefix)+"-"+string(index);
+    return stripextension(prefix)+"+"+string(index);
   }
 
   private string nextname() {
@@ -120,7 +120,7 @@ struct animation {
               bool multipage=false) {
     string s="\animategraphics["+options+"]{"+format("%.18f",1000/delay,"C")+
       "}{"+basename();
-    if(!multipage) s += "-";
+    if(!multipage) s += "+";
     s += "}{0}{"+string(frames-1)+"}";
     return s;
   }

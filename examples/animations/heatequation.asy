@@ -12,12 +12,11 @@ animation a;
 currentprojection=perspective(-20,-18,18);
 currentlight=light(1,1,10);
 
-int n=50;
+int n=26;
 real L=2.5;
 real dx=2*L/n;
 real CFL=0.125;
 real dt=CFL*dx^2;
-real plot_dt=0.004;
 
 real[][] Z=new real[n][n];
 real[][] W=new real[n][n];
@@ -58,9 +57,9 @@ void advanceZ(int iter=20) {
 
 pen[] Pal=Rainbow(96);
 
-int endframe=22;
+int endframe=40;
 
-for(int fr=0; fr < endframe+1; ++fr) { 
+for(int fr=0; fr < endframe; ++fr) { 
   if(fr == 0) {// smoothing of initial state; no Spline, but full grid
     advanceZ(3);
     sf=surface(f,(-L,-L),(L,L),nx=n);
@@ -73,5 +72,5 @@ for(int fr=0; fr < endframe+1; ++fr) {
   advanceZ(30);
 };
 
-label(a.pdf(delay=100,"controls, loop"));
+label(a.pdf(delay=200,"controls,loop"));
 shipout(bbox(3mm,darkblue+3bp+miterjoin,FillDraw(fillpen=paleblue)),"pdf");

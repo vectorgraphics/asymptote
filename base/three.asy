@@ -2477,7 +2477,7 @@ object embed(string label="", string text=label,
       // The movie15.sty package cannot handle spaces or dots in filenames.
       prefix=replace(prefix,new string[][]{{" ","_"},{".","_"}});
       if(settings.embed || nativeformat() == "pdf")
-        prefix += "-"+(string) file3.length;
+        prefix += "+"+(string) file3.length;
     } else
       preview=false;
     if(preview || (!prc && settings.render != 0)) {
@@ -2560,7 +2560,7 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
     if(!prc && settings.render != 0 && !view) {
       static int previewcount=0;
       bool keep=prefix != "";
-      prefix=outprefix(prefix)+"-"+(string) previewcount;
+      prefix=outprefix(prefix)+"+"+(string) previewcount;
       ++previewcount;
       format=nativeformat();
       if(!keep) file3.push(prefix+"."+format);
