@@ -367,11 +367,6 @@ struct surface {
       this.s[i]=patch(s.s[i]);
   }
 
-  void operator init(triple[][] P, triple[] normals=new triple[],
-                     pen[] colors=new pen[], bool3 planar=default) {
-    s=new patch[] {patch(P,normals,colors,planar)};
-  }
-
   void operator init(triple[][][] P, triple[][] normals=new triple[][],
                      pen[][] colors=new pen[][], bool3 planar=default) {
     s=sequence(new patch(int i) {
