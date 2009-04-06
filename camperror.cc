@@ -23,7 +23,10 @@ void reportError(const string& desc)
   em.runtime(vm::getPos());
   em << desc;
   em.sync();
-  throw handled_error(); 
+  try {
+    throw handled_error(); 
+  } catch(handled_error) {
+  }
 }
 
 // Used internally to report a warning in an operation.
