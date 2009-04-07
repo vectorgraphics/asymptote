@@ -292,8 +292,8 @@ defaultpen(font("T1","fut\textfamilyextension","m","n"));
 Just set your locale appropriately:
  
 \verbatim
-usepackage("icomma");
 locale("it_IT");
+usepackage("icomma");
 label(format(0.5));
 \endverbatim
 
