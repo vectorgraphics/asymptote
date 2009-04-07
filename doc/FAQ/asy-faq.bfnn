@@ -289,12 +289,12 @@ defaultpen(font("T1","fut\textfamilyextension","m","n"));
 
 \question 26jun:decsep Is there any way to change the default appearance of the decimal separator, using a comma instead of a dot?
 
-Just set your locale appropriately. Here are two examples (under the UNIX bash shell):
+Just set your locale appropriately:
  
 \verbatim
-echo "label(format(0.5));" | LC_NUMERIC=it_IT asy -V -
-
-LC_NUMERIC=it_IT asy -V lineargraph 
+usepackage("icomma");
+locale("it_IT");
+label(format(0.5));
 \endverbatim
 
 \question 02sep:rotatelabel How can I get a rotated label with the filled box rotated as well so that it fits the text? 
