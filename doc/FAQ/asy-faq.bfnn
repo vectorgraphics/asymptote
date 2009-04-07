@@ -42,7 +42,7 @@ technical graphics, inspired by MetaPost but with IEEE floating-point numerics,
 native three-dimensional graphics, Grayscale/RGB/CMYK colourspaces, and a
 C++-like syntax. Unlike MetaPost, it natively supports multiple-segment paths
 (and hence regions other than simply connected ones), tiling patterns, Gouraud
-shading, and PostScript images. 
+ shading, tensor patch shading, and PostScript images. 
 
 \question 22jun:whereisasy How do I obtain Asymptote?
 
@@ -360,7 +360,7 @@ Alternatively, work in cmyk colour space, which is nicer in that it handles
 saturation separately from hue: 
  
 0.1*Cyan is light and 0.9*Cyan is dark. 
-You can also say things like 0.1*(red+cmyk) 
+You can also say 0.1*cmyk(red).
 
 \question 05mar:commadecimalseparator Why is the space after the comma decimal separator in my locale so large?
 
