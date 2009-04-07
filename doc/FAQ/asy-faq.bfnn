@@ -373,7 +373,7 @@ usepackage("icomma");
 \question 11mar:hyperref How can I prevent \courier{texpreamble("\\usepackage[pdftex]{hyperref}")\} from changing the page size?
 
 \verbatim
-texpreamble("\\usepackage[pdftex,setpagesize=false]{hyperref}");
+texpreamble("\usepackage[pdftex,setpagesize=false]{hyperref}");
 \endverbatim
 
 \comment #####################################################################
@@ -701,7 +701,7 @@ draw(graph(factorial,0,10));
 pair F(int t) {return (t,factorial(t));} 
 // Graph of factorial function from 0 to 10
 pair[] z=sequence(F,11);
-draw(graph(z),invisible,marker(scale(0.8mm)*unitcircle,blue,Fill,Below));
+draw(graph(z),invisible,marker(scale(0.8mm)*unitcircle,blue,Fill));
  
 // Method 2: Nongraphing routines require explicit scaling:
 pair dotloc(int t) {return Scale(F(t));} 
@@ -806,7 +806,7 @@ transform t2=pic2.calculateTransform();
 transform T=xscale(scale*t1.xx)*yscale(t2.yy);
 
 add(pic1.fit());
-real height=framepoint(N).y-framepoint(S).y;
+real height=truepoint(N,user=false).y-truepoint(S,user=false).y;
 add(shift(0,-height)*(shift(shift)*pic2).fit(T));
 \endverbatim
 
@@ -1199,11 +1199,11 @@ fill((0,0)--(1,1)--(2,0)--cycle);
  
 void clip(picture pic=currentpicture, real width, real height) 
 {
-pic.clip(new void (frame f, transform) { 
-pair center=0.5(min(f)+max(f));
-pair delta=0.5(width,height);
-clip(f,box(center-delta,center+delta));
-});
+  pic.clip(new void (frame f, transform) { 
+    pair center=0.5(min(f)+max(f));
+    pair delta=0.5(width,height);
+    clip(f,box(center-delta,center+delta));
+  });
 } 
  
 clip(100,100);
