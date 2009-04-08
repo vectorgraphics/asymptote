@@ -1194,7 +1194,7 @@ However, drawing in PostScript coordinates is often inconvenient. Here's the
 Asymptote way of doing the same thing, using deferred drawing: 
  
 \verbatim
-size(200,0);
+size(200,100);
 fill((0,0)--(1,1)--(2,0)--cycle);
  
 void clip(picture pic=currentpicture, real width, real height) 
@@ -1254,10 +1254,8 @@ See the example \docref{http://asymptote.sourceforge.net/gallery/orthocenter.asy
 
 \question 28jun:directpdf Does Asymptote support direct PDF output?
 
-Currently, PDF conversion is possible with the -f pdf option,
-which supports transparency, annotations, and embedded movies and u3d images.
-However, we plan to eventually produce direct PDF output to support
-features not available in PostScript (e.g. general function shading).
+Yes, PDF output can be produced by the -f pdf option or -tex pdflatex option.
+This supports transparency, annotations, embedded movies, and U3D/PRC content.
 
 \question 28jun:bigpictures How to I produce large pictures of high quality in raster format (e.g. png, giff etc). 
 
