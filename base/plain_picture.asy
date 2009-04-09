@@ -414,7 +414,8 @@ struct projection {
   bool showtarget=true; // Expand bounding volume to include target?
   typedef transformation projector(triple camera, triple up, triple target);
   projector projector;
-  bool autoadjust=true;
+  bool autoadjust=true; // Adjust camera to lie outside bounding volume?
+  bool center=false; // Center target within bounding volume?
   real angle; // Lens angle (currently only used by PRC viewpoint).
   int ninterpolate; // Used for projecting nurbs to 2D Bezier curves.
 
@@ -438,12 +439,13 @@ struct projection {
 
   void operator init(triple camera, triple up=(0,0,1), triple target=(0,0,0),
                      bool showtarget=true, bool autoadjust=true,
-                     projector projector) {
+                     bool center=false, projector projector) {
     this.camera=camera;
     this.up=up;
     this.target=target;
     this.showtarget=showtarget;
     this.autoadjust=autoadjust;
+    this.center=center;
     this.projector=projector;
     calculate();
   }
@@ -459,6 +461,7 @@ struct projection {
     P.target=target;
     P.showtarget=showtarget;
     P.autoadjust=autoadjust;
+    P.center=center;
     P.projector=projector;
     P.angle=angle;
     P.ninterpolate=ninterpolate;

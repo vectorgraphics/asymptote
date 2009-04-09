@@ -214,26 +214,29 @@ pair dir(triple v, triple dir, projection P)
 // points in three space to a plane through target and
 // perpendicular to the vector camera-target.
 projection perspective(triple camera, triple up=Z, triple target=O,
-                       bool showtarget=true, bool autoadjust=true)
+                       bool showtarget=true, bool autoadjust=true,
+                       bool center=false)
 {
   if(camera == target)
     abort("camera cannot be at target");
-  return projection(camera,up,target,showtarget,autoadjust,
+  return projection(camera,up,target,showtarget,autoadjust,center,
                     new transformation(triple camera, triple up, triple target)
                     {return transformation(look(camera,up,target),
                                            distort(camera-target));});
 }
 
 projection perspective(real x, real y, real z, triple up=Z, triple target=O,
-                       bool showtarget=true, bool autoadjust=true)
+                       bool showtarget=true, bool autoadjust=true,
+                       bool center=false)
 {
-  return perspective((x,y,z),up,target,showtarget,autoadjust);
+  return perspective((x,y,z),up,target,showtarget,autoadjust,center);
 }
 
 projection orthographic(triple camera, triple up=Z, triple target=O,
-                        bool showtarget=true,  bool autoadjust=true)
+                        bool showtarget=true,  bool autoadjust=true,
+                        bool center=false)
 {
-  return projection(camera,up,target,showtarget,autoadjust,
+  return projection(camera,up,target,showtarget,autoadjust,center,
                     new transformation(triple camera, triple up,
                                        triple target) {
                       return transformation(look(camera,up,target));});
@@ -241,9 +244,9 @@ projection orthographic(triple camera, triple up=Z, triple target=O,
 
 projection orthographic(real x, real y, real z, triple up=Z,
                         triple target=O, bool showtarget=true,
-                        bool autoadjust=true)
+                        bool autoadjust=true, bool center=false)
 {
-  return orthographic((x,y,z),up,target,showtarget,autoadjust);
+  return orthographic((x,y,z),up,target,showtarget,autoadjust,center);
 }
 
 projection oblique(real angle=45)
@@ -2352,12 +2355,12 @@ object embed(string label="", string text=label,
 
   if(!P.absolute) {
     P=t*P;
-    if(P.autoadjust) {
+    if(P.autoadjust || P.center) {
       tinv=inverse(t);
       m=pic.min(t);
       M=pic.max(t);
       bool recalculate=false;
-      if(P.target.x < m.x ||
+      if(P.center || P.target.x < m.x ||
          P.target.y < m.y ||
          P.target.z < m.z ||
          P.target.x > M.x ||
@@ -2365,7 +2368,7 @@ object embed(string label="", string text=label,
          P.target.z > M.z) {
         P.target=0.5*(m+M);
         recalculate=true;
-        write("adjusting target to ",tinv*P.target);
+        if(!P.center) write("adjusting target to ",tinv*P.target);
       }
       if(recalculate) P.calculate();
     }

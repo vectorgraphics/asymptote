@@ -226,7 +226,7 @@ const char *arrayempty="cannot take min or max of empty array";
 Int factorial(Int n)
 {
   static Int *table;
-  static size_t size=0;
+  static Int size=0;
   if(size == 0) {
     Int f=1;
     size=2;

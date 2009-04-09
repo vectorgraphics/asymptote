@@ -17,8 +17,8 @@ draw(s);
 
 scale(true);
 
-xaxis3(Label("$x$",0.5),Bounds,InTicks());
-yaxis3(Label("$y$",0.5),Bounds,InTicks());
+xaxis3(Label("$x$",0.5),Bounds,InTicks);
+yaxis3(Label("$y$",0.5),Bounds,InTicks);
 zaxis3(Label("$z$",0.5),Bounds,InTicks(beginlabel=false));
 
 grid3(XYZgrid);
