@@ -6279,6 +6279,13 @@ All other Label transforms are ignored. This package requires the
 @code{latex} tex engine and inherits the limitations of the
 @code{PSTricks} @code{\pstextpath} macro.
 
+@node labelpath3
+@section @code{labelpath3}
+@cindex @code{labelpath3}
+This module, contributed by Jens Schwaiger, implements a 3D version of
+@code{labelpath} that does not require the @code{PSTricks} package.
+An example is provided in @code{curvedlabel3.asy}.
+
 @node annotate
 @section @code{annotate}
 @cindex @code{annotate}
