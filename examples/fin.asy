@@ -131,17 +131,21 @@ draw(shift(12,2,0)*SWcorner,lookupColour(13,3));
 draw(shift(12,0,0)*NWcorner,lookupColour(13,1));
 
 // annotations
-draw("$x$",(0,-h/2,w)--(L/4,-h/2,w),Y,EndArrow3(HookHead2(normal=Z)),BeginBar3(Y));
-draw("$y$",(0,0,1.05*w)--(0,2t,1.05*w),Z,EndArrow3(HookHead2(normal=X)),BeginBar3(Z));
-draw("$z$",(L,-h/2,0)--(L,-h/2,w/4),Y,EndArrow3(HookHead2(normal=X)),BeginBar3(Y));
+draw("$x$",(0,-h/2,w)--(L/4,-h/2,w),Y,Arrow3(HookHead2(normal=Z)),BeginBar3(Y));
+draw("$y$",(0,0,1.05*w)--(0,2t,1.05*w),Z,Arrow3(HookHead2(normal=X)),
+     BeginBar3(Z));
+draw("$z$",(L,-h/2,0)--(L,-h/2,w/4),Y,Arrow3(HookHead2(normal=X)),BeginBar3(Y));
 
-draw("$L$",(0,-h/4,w)--(L,-h/4,w),-Y,Arrows3(HookHead2(normal=Z)),Bars3(Y));
-draw("$w$",(L,-h/4,0)--(L,-h/4,w),-Y,Arrows3(HookHead2(normal=X)),Bars3(Y));
-draw("$t$",(1.05*L,0,0)--(1.05*L,t,0),X,Arrows3(HookHead2(normal=Z)),Bars3(X));
+draw("$L$",(0,-h/4,w)--(L,-h/4,w),-Y,Arrows3(HookHead2(normal=Z)),
+     Bars3(Y),PenMargins2);
+draw("$w$",(L,-h/4,0)--(L,-h/4,w),-Y,Arrows3(HookHead2(normal=X)),
+     Bars3(Y),PenMargins2);
+draw("$t$",(1.05*L,0,0)--(1.05*L,t,0),-2Z,Arrows3(HookHead2(normal=Z)),
+     Bars3(X),PenMargins2);
 
 label(ZY()*"$T_b$",(0,t+h/2,wo2));
 
-label("$h$,$T_\infty$",(L/2,t+h/2,0));
+label("$h$,$T_\infty$",(L/2,t+h/2,0),Y);
 path3 air = (L/2,t+h/3,w/3.5)--(1.5*L/2,t+2*h/3,w/8);
 draw(air,EndArrow3(TeXHead2));
 draw(shift(0.5,0,0)*air,EndArrow3(TeXHead2));

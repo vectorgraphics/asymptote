@@ -158,8 +158,8 @@ light operator * (transform3 t, light light)
 
 light operator cast(triple v) {return light(v);}
 
-light currentlight=light(ambient=rgb(0.1,0.1,0.1),(0.25,-0.25,1),
-			 specularfactor=3);
+light currentlight=light(ambient=rgb(0.1,0.1,0.1),specularfactor=3,
+                         (0.25,-0.25,1));
 
 light adobe=light(gray(0.4),specularfactor=3,viewport=false,
 		  (0.5,-0.5,-0.25),(0.5,0.5,0.25),

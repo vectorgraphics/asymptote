@@ -7818,6 +7818,10 @@ specified @code{normal} vector) are also defined:
 @cindex @code{EndMargin3}
 @cindex @code{Margin3}
 @cindex @code{Margins3}
+@cindex @code{BeginPenMargin2}
+@cindex @code{EndPenMargin2}
+@cindex @code{PenMargin2}
+@cindex @code{PenMargins2}
 @cindex @code{BeginPenMargin3}
 @cindex @code{EndPenMargin3}
 @cindex @code{PenMargin3}
@@ -7830,8 +7834,11 @@ specified @code{normal} vector) are also defined:
 @cindex @code{TrueMargin3}
 Module @code{three} also defines the three-dimensional margins
 @code{NoMargin3}, @code{BeginMargin3}, @code{EndMargin3},
-@code{Margin3}, @code{Margins3}, @code{BeginPenMargin3},
-@code{EndPenMargin3}, @code{PenMargin3}, @code{PenMargins3},
+@code{Margin3}, @code{Margins3},
+@code{BeginPenMargin2}, @code{EndPenMargin2}, @code{PenMargin2},
+@code{PenMargins2},
+@code{BeginPenMargin3}, @code{EndPenMargin3}, @code{PenMargin3},
+@code{PenMargins3},
 @code{BeginDotMargin3}, @code{EndDotMargin3}, @code{DotMargin3},
 @code{DotMargins3}, @code{Margin3}, and @code{TrueMargin3}.
 
