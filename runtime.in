@@ -3542,13 +3542,14 @@ Int factorial(Int n) {
 }
 
 Int choose(Int n, Int k) {
-  Int f=1;
   if(n < 0 || k < 0 || k > n) error(invalidargument);
-  for(Int i=n-k+1; i <= n; ++i) {
+  Int f=1;
+  Int r=n-k;
+  for(Int i=n; i > r; --i) {
     if(f > Int_MAX/i) integeroverflow(0);
-    f *= i;
+    f=(f*i)/(n-i+1);
   }
-  return f/factorial(k);
+  return f;
 }
 
 real gamma(real x)
