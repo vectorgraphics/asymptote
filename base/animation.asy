@@ -32,21 +32,18 @@ struct animation {
   // been generated. 
 
   void operator init(string prefix="", bool global=true) {
-    prefix=(prefix == "") ? outprefix() : stripdirectory(prefix);
+    prefix=replace((prefix == "") ? outprefix() : stripdirectory(prefix),
+                   " ","_");
     this.prefix=prefix;
     this.global=global;
   }
   
-  string cleanprefix(string prefix=prefix) {
-    return replace(stripextension(prefix)," ","_");
-  }
-
   string basename(string prefix=prefix) {
-    return "_"+cleanprefix(prefix);
+    return "_"+stripextension(prefix);
   }
 
   string name(string prefix, int index) {
-    return cleanprefix(prefix)+"+"+string(index);
+    return stripextension(prefix)+"+"+string(index);
   }
 
   private string nextname() {
@@ -65,7 +62,7 @@ struct animation {
   void add(picture pic=currentpicture, fit fit=NoBox) {
     if(global) {
       pictures.push(pic.copy());
-    } else this.shipout(nextname(),fit(pic));
+    } else this.shipout(nextname(),fit(prefix,pic));
   }
   
   void purge(bool keep=settings.keep) {
@@ -99,13 +96,13 @@ struct animation {
       settings.inlinetex=false;
     for(int i=0; i < pictures.length; ++i) {
       if(multipage) {
-        add(multi,fit(pictures[i]));
+        add(multi,fit(prefix,pictures[i]));
         newpage(multi);
       } else {
         if(pictures[i].empty3() || settings.render <= 0) {
           real render=settings.render;
           settings.render=0;
-          this.shipout(name(prefix,i),fit(pictures[i]));
+          this.shipout(name(prefix,i),fit(prefix,pictures[i]));
           settings.render=render;
         } else { // Render 3D frames
           files.push(name(prefix,i)+"."+nativeformat());
