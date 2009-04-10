@@ -145,6 +145,7 @@ Base modules
 * latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Interface to @code{LaTeX} @code{babel} package
 * labelpath::                   Drawing curved labels
+* labelpath3::                  Drawing curved labels in 3D
 * annotate::                    Annotate your @acronym{PDF} files
 * CAD::                         2D CAD pen and measurement functions (DIN 15)
 * graph::                       2D linear & logarithmic graphs
@@ -5872,6 +5873,7 @@ Here now is @code{latexusage.tex}:
 * latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Interface to @code{LaTeX} @code{babel} package
 * labelpath::                   Drawing curved labels
+* labelpath3::                  Drawing curved labels in 3D
 * annotate::                    Annotate your @acronym{PDF} files
 * CAD::                         2D CAD pen and measurement functions (DIN 15)
 * graph::                       2D linear & logarithmic graphs
