@@ -37,12 +37,16 @@ struct animation {
     this.global=global;
   }
   
+  string cleanprefix(string prefix=prefix) {
+    return replace(stripextension(prefix)," ","_");
+  }
+
   string basename(string prefix=prefix) {
-    return "_"+stripextension(prefix);
+    return "_"+cleanprefix(prefix);
   }
 
   string name(string prefix, int index) {
-    return stripextension(prefix)+"+"+string(index);
+    return cleanprefix(prefix)+"+"+string(index);
   }
 
   private string nextname() {
