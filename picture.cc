@@ -403,8 +403,11 @@ bool picture::postprocess(const string& prename, const string& outname,
   
   if((pdf && Labels) || !epsformat) {
     if(pdfformat) {
-      if(pdf && Labels) status=rename(prename.c_str(),outname.c_str());
-      else status=epstopdf(prename,outname);
+      if(pdf && Labels) {
+        status=rename(prename.c_str(),outname.c_str());
+        if(status != 0)
+          reportError("Cannot rename "+prename+" to "+outname);
+      } else status=epstopdf(prename,outname);
     } else {
       ostringstream cmd;
       double render=fabs(getSetting<double>("render"));
@@ -514,6 +517,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   string outname=Outname(prefix,outputformat,standardout);
   string epsname=epsformat ? (standardout ? "" : outname) :
     auxname(prefix,"eps");
+  if(Labels)
+    spaceToUnderscore(prefix);
   string prename=((epsformat && !pdf) || !Labels) ? epsname : 
     auxname(prefix,preformat);
   
@@ -563,7 +568,6 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   texfile *tex=NULL;
   
   if(Labels) {
-    spaceToUnderscore(prefix);
     texname=auxname(prefix,"tex");
     tex=new texfile(texname,b);
     tex->prologue();
