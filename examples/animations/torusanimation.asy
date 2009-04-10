@@ -14,7 +14,7 @@ triple f(pair t) {
   return ((R+a*cos(t.y))*cos(t.x),(R+a*cos(t.y))*sin(t.x),a*sin(t.y)); 
 } 
 
-int n=4; 
+int n=8; 
 path3[] p=new path3[n]; 
  
 animation A; 
@@ -33,8 +33,9 @@ surface s=surface(f,(0,0),(2pi,2pi),30,20);
 for(int i=0; i < n; ++i){ 
   picture fig; 
   size3(fig,400); 
-  draw(fig,s,green); 
-  draw(fig,p[i],red+linewidth(2)); 
+  draw(fig,s,yellow); 
+  for(int j=0;j <= i; ++j)
+    draw(fig,p[j],blue+linewidth(4)); 
   A.add(fig); 
 } 
 
