@@ -1146,7 +1146,7 @@ void label(picture pic=currentpicture, Label L, triple position,
   L.p(p);
   L.position(0);
   path[] g=texpath(L);
-  if(g.length == 0) return;
+  if(g.length == 0 || (g.length == 1 && size(g[0]) == 0)) return;
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       triple v=t*position;
       if(L.defaulttransform3)
