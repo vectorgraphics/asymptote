@@ -7,7 +7,7 @@ settings.render=2;
 settings.tex="pdflatex"; 
 settings.prc=false;
 settings.thick=false;
-settings.outformat="pdf";
+settings.outformat="gif";
 currentprojection=orthographic(5,4,2); 
 currentlight=light(specular=black,(0.1,-0.1,1));
  
@@ -73,4 +73,4 @@ for(int i=0; i < n; ++i) {
   erase(); 
 } 
 
-label(A.pdf(BBox(1mm,Fill(Black)),delay=500,multipage=false)); 
+A.movie(BBox(1mm,Fill(Black)),delay=500,options="-density 288x288 -geometry 50%x");
