@@ -7,7 +7,7 @@ settings.render=2;
 settings.tex="pdflatex"; 
 settings.prc=false;
 settings.thick=false;
-settings.outformat="gif";
+settings.outformat="mpg";
 currentprojection=orthographic(5,4,2); 
 currentlight=light(specular=black,(0.1,-0.1,1));
  
