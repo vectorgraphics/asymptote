@@ -305,6 +305,16 @@ pen rgb(string s)
   return rgb(value(s,0),value(s,1),value(s,2));
 }
 
+pen[] operator +(pen[] a, pen b)
+{
+  return sequence(new pen(int i) {return a[i]+b;},a.length);
+}
+
+pen[] operator +(pen a, pen[] b)
+{
+  return sequence(new pen(int i) {return a+b[i];},b.length);
+}
+
 // Interpolate an array of pens in rgb space using by default their minimum
 // opacity.
 pen mean(pen[] p, real opacity(real[])=min)

@@ -73,4 +73,5 @@ for(int i=0; i < n; ++i) {
   erase(); 
 } 
 
-A.movie(BBox(1mm,Fill(Black)),delay=500,options="-density 288x288 -geometry 50%x");
+A.movie(BBox(1mm,Fill(Black)),delay=500,
+        options="-density 288x288 -geometry 50%x");
