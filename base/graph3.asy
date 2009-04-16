@@ -1519,19 +1519,24 @@ surface surface(triple[][] f, bool[][] cond={})
     count=0;
     for(int i=0; i < nx; ++i) {
       bool[] condi=cond[i];
+      bool[] condp=cond[i+1];
       for(int j=0; j < ny; ++j)
-        if(condi[j]) ++count;
+        if(condi[j] && condi[j+1] && condp[j] && condp[j+1]) ++count;
     }
   }
 
   surface s=surface(count);
   int k=-1;
   for(int i=0; i < nx; ++i) {
-    bool[] condi=all ? null : cond[i];
+    bool[] condi,condp;
+    if(!all) {
+      condi=cond[i];
+      condp=cond[i+1];
+    }
     triple[] fi=f[i];
     triple[] fp=f[i+1];
     for(int j=0; j < ny; ++j) {
-      if(all || condi[j])
+      if(all || (condi[j] && condi[j+1] && condp[j] && condp[j+1]))
         s.s[++k]=patch(new triple[] {fi[j],fp[j],fp[j+1],fi[j+1]});
     }
   }
@@ -1675,12 +1680,17 @@ surface surface(real[][] f, pair a, pair b, bool[][] cond={})
 
   if(nx == 0 || ny == 0) return nullsurface;
 
+  bool all=cond.length == 0;
+
   triple[][] v=new triple[nx+1][ny+1];
   for(int i=0; i <= nx; ++i) {
     real x=interp(a.x,b.x,i/nx);
-    for(int j=0; j <= ny; ++j) {
-      v[i][j]=(x,interp(a.y,b.y,j/ny),f[i][j]);
-    }
+    bool[] condi=all ? null : cond[i];
+    triple[] vi=v[i];
+    real[] fi=f[i];
+    for(int j=0; j <= ny; ++j)
+      if(all || condi[j])
+        vi[j]=(x,interp(a.y,b.y,j/ny),fi[j]);
   }
   return surface(v,cond);
 }
@@ -1704,13 +1714,12 @@ surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
   triple[][] v=new triple[nu+1][nv+1];
 
   for(int i=0; i <= nu; ++i) {
-    bool[] activei=all ? null : active[i];
     real x=interp(a.x,b.x,i*du);
+    bool[] activei=all ? null : active[i];
+    triple[] vi=v[i];
     for(int j=0; j <= nv; ++j) {
       pair z=(x,interp(a.y,b.y,j*dv));
-      v[i][j]=f(z);
-      if(!all)
-        activei[j]=cond(z) || cond(z+du) || cond(z+Idv) || cond(z+dz);
+      if(all || (activei[j]=cond(z))) vi[j]=f(z);
     }
   }
   return surface(v,active);
@@ -1743,12 +1752,12 @@ surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
   real[] y=uniform(a.y,b.y,ny);
   for(int i=0; i <= nx; ++i) {
     bool[] activei=all ? null : active[i];
+    real[] Fi=F[i];
     real x=x[i];
     for(int j=0; j <= ny; ++j) {
       pair z=(x,y[j]);
-      F[i][j]=f(z);
-      if(!all)
-        activei[j]=cond(z) || cond(z+dx) || cond(z+Idy) || cond(z+dz);
+      Fi[j]=f(z);
+      if(!all) activei[j]=cond(z);
     }
   }
   return surface(F,x,y,splinetype,active);
