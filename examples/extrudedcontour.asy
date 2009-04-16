@@ -18,5 +18,5 @@ draw(lift(f,g),red+2pt);
 surface s=surface(f,(0,0),(10,10),20,Spline);
 s.colors(palette(s.map(zpart),Rainbow()+opacity(0.5)));
 draw(s);
-axes3("$x$","$y$","$z$",Arrow3());
+axes3("$x$","$y$","$z$",Arrow3);
 
