@@ -11,6 +11,7 @@ if(prc0()) {
 real defaultshininess=0.25;
 real defaultgranularity=0;
 real linegranularity=0.01;
+real tubegranularity=0.003;
 real dotgranularity=0.0001;
 pair viewportmargin=0;     // Horizontal and vertical viewport margins.
 real viewportfactor=1.02;  // Factor used to expand orthographic viewport.
@@ -1351,7 +1352,7 @@ private transform3 flip(transform3 t, triple X, triple Y, triple Z,
   }
 
   triple u=unit(P.vector());
-  triple up=unit(P.up-dot(P.up,u)*u);
+  triple up=unit(perp(P.up,u));
   bool upright=dot(Z,u) >= 0;
   if(dot(Y,up) < 0) {
     t=flip(Y)*t;
@@ -1678,7 +1679,7 @@ transform3 align(triple u)
 transform3 transform3(projection P)
 {
   triple v=unit(P.oblique ? P.camera : P.vector());
-  triple u=unit(P.up-dot(P.up,v)*v);
+  triple u=unit(perp(P.up,v));
   if(u == O) u=cross(perp(v),v);
   return transform3(cross(u,v),u);
 }
@@ -2286,7 +2287,7 @@ string embed3D(string label="", string text=label, string prefix,
   real roll;
   if(abs(w) > sqrtEpsilon) {
     w=unit(w);
-    triple up=unit(P.up-dot(P.up,u)*u);
+    triple up=unit(perp(P.up,u));
     roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));
   } else roll=0;
   

@@ -1,13 +1,12 @@
-// transformation that bends points along a path
-// assumes that p.z is in [0,scale]
-triple bend0(triple p, path3 g, real time)
+// A transformation that bends points along a path
+transform3 bend(path3 g, real t)
 {
-  triple dir=dir(g,time);
-  triple a = point(g,0), b = postcontrol(g,0);
-  triple c = precontrol(g,1), d = point(g,1);
-  triple dir1 = b-a;
-  triple dir2 = c-b;
-  triple dir3 = d-c;
+  triple dir=dir(g,t);
+  triple a=point(g,0), b=postcontrol(g,0);
+  triple c=precontrol(g,1), d=point(g,1);
+  triple dir1=b-a;
+  triple dir2=c-b;
+  triple dir3=d-c;
 
   triple u = unit(cross(dir1,dir3));
   real eps=1000*realEpsilon;
@@ -15,35 +14,27 @@ triple bend0(triple p, path3 g, real time)
     u = unit(cross(dir1,dir2));
     if(abs(u) < eps) {
       u = unit(cross(dir2,dir3));
-      if(abs(u) < eps) {
-        // segment is linear
-        // so use any direction perpendicular to initial direction
+      if(abs(u) < eps)
+        // linear segment: use any direction perpendicular to initial direction
         u = perp(dir1);
-      }
     }
   }
-  //u = unit(cross(u,dir));
-  u = unit(u-dot(u,dir)*dir);
+  u = unit(perp(u,dir));
 
   triple w=cross(dir,u);
-  triple q=point(g,time);
-  transform3 t=new real[][] {
-    {u.x,w.x,dir.x,0},
-    {u.y,w.y,dir.y,0},
-    {u.z,w.z,dir.z,0},
+  triple q=point(g,t);
+  return new real[][] {
+    {u.x,w.x,dir.x,q.x},
+    {u.y,w.y,dir.y,q.y},
+    {u.z,w.z,dir.z,q.z},
     {0,0,0,1}
   };
-  return shift(q-t*(0,0,p.z))*t*p;
 }
 
-triple bend(triple p, path3 g, real scale, real endtime)
-{
-  return bend0(p,g,arctime(g,arclength(subpath(g,0,endtime))+p.z-scale));
-}
-
+// bend a point along a path; assumes that p.z is in [0,scale]
 triple bend(triple p, path3 g, real scale)
 {
-  return bend0(p,g,arctime(g,arclength(g)+p.z-scale));
+  return bend(g,arctime(g,arclength(g)+p.z-scale))*(p.x,p.y,0);
 }
 
 void bend(surface s, path3 g, real L) 
@@ -57,34 +48,30 @@ void bend(surface s, path3 g, real L)
   }
 }
 
-real takeStep(path3 s, real T, real width)
+void render(path3 s, void f(path3, real))
 {
-  int L=length(s);
-  path3 si=subpath(s,T,L);
-  // Find minimum radius of curvature over [0,t]
-  real minradius(real t) {
+  void Split(triple z0, triple c0, triple c1, triple z1, real t0=0, real t1=1) {
+    real S=straightness(z0,c0,c1,z1);
     real R=infinity;
-    int nsamples=32;
-    real step=t/nsamples;
-    for(int i=0; i < nsamples; ++i) {
-      real r=radius(si,i*step);
-      if(r >= 0) R=min(R,r);
+    int nintervals=3;
+    for(int i=0; i <= nintervals; ++i) {
+      R=min(R,radius(z0,c0,c1,z1,i/nintervals));
+      if(S >= tubegranularity*R) {
+        triple m0=0.5*(z0+c0);
+        triple m1=0.5*(c0+c1);
+        triple m2=0.5*(c1+z1);
+        triple m3=0.5*(m0+m1);
+        triple m4=0.5*(m1+m2);
+        triple m5=0.5*(m3+m4);
+        real tm=0.5*(t0+t1);
+        Split(z0,m0,m3,m5,t0,tm);
+        Split(m5,m4,m2,z1,tm,t1);
+        return;
+      }
     }
-    return R;
+    f(z0..controls c0 and c1..z1,t0);
   }
-  int niterations=8;
-  static real K=0.08;
-  real R;
-  real lastt;
-  real t=0;
-  for(int i=0; i < niterations; ++ i) {
-    R=minradius(t);
-    t=0.5*(t+arctime(si,K*(width+R)));
-  }
-  // Compute new interval
-  real t=arctime(s,arclength(subpath(s,0,T))+K*(width+minradius(t)));
-  if(t < L) t=min(t,0.5*(T+L));
-  return t;
+  Split(point(s,0),postcontrol(s,0),precontrol(s,1),point(s,1));
 }
 
 surface tube(path3 g, real width)
@@ -102,17 +89,12 @@ surface tube(path3 g, real width)
       triple u=point(g,i+1)-v;
       tube.append(shift(v)*align(unit(u))*scale(r,r,abs(u))*unitcylinder);
     } else {
-      path3 s=subpath(g,i,i+1);
-      real endtime=0;
-      while(endtime < 1) {
-        real newend=takeStep(s,endtime,r);
-        path3 si=subpath(s,endtime,newend);
-        real L=arclength(si);
-        surface segment=scale(r,r,L)*unitcylinder;
-        bend(segment,si,L);
-        tube.s.append(segment.s);
-        endtime=newend;
-      }
+      render(subpath(g,i,i+1),new void(path3 q, real) {
+          real L=arclength(q);
+          surface segment=scale(r,r,L)*unitcylinder;
+          bend(segment,q,L);
+          tube.s.append(segment.s);
+        });
     }
 
     if((cyclic(g) || i > 0) && abs(dir(g,i,1)-dir(g,i,-1)) > sqrtEpsilon)
@@ -219,30 +201,28 @@ DefaultHead3.head=new surface(path3 g, position position=EndPoint,
     return shift(v)*align(unit(u))*scale(width,width,size)*unitsolidcone;
   } else {
     real remainL=size;
+    bool first=true;
     for(int i=0; i < n; ++i) {
-      path3 s=subpath(s,i,i+1);
-      real endtime=0;
-      while(endtime < 1) {
-        real newend=takeStep(s,endtime,width);
-        path3 si=subpath(s,endtime,newend);
-        real l=arclength(si);
+      render(subpath(s,i,i+1),new void(path3 q, real) {
+        real l=arclength(q);
         real w=remainL*aspect;
         surface segment=scale(w,w,l)*unitcylinder;
-        if(endtime == 0) // add base
+        if(first) { // add base
+          first=false;
           segment.append(scale(w,w,1)*unitdisk);
+        }
         for(patch p : segment.s) {
           for(int i=0; i < 4; ++i) {
             for(int j=0; j < 4; ++j) {
               real k=1-p.P[i][j].z/remainL;
               p.P[i][j]=(k*p.P[i][j].x,k*p.P[i][j].y,p.P[i][j].z);
-              p.P[i][j]=bend(p.P[i][j],si,l);
+              p.P[i][j]=bend(p.P[i][j],q,l);
             }
           }
         }
         head.append(segment);
-        endtime=newend;
         remainL -= l;
-      }
+        });
     }
   }
   return head;

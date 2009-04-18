@@ -741,14 +741,10 @@ struct surface {
       path3 r=reverse(h);
       triple max=max(h);
       triple min=min(h);
-      triple perp(triple m) {
-        triple perp=m-c;
-        return perp-dot(perp,axis)*axis;
-      }
-      triple perp=perp(max);
+      triple perp=perp(max-c,axis);
       real fuzz=epsilon*max(abs(max),abs(min));
       if(abs(perp) < fuzz)
-        perp=perp(min);
+        perp=perp(min-c,axis);
       perp=unit(perp);
       triple normal=cross(axis,perp);
       triple dir(real j) {return Cos(j)*normal-Sin(j)*perp;}
@@ -941,7 +937,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
   if(is3D()) {
     for(int i=0; i < s.s.length; ++i)
       draw3D(f,s.s[i],surfacepen[i],light);
-    pen modifiers=thin()+linecap(0);
+    pen modifiers=thin()+squarecap;
     for(int k=0; k < s.s.length; ++k) {
       pen meshpen=meshpen[k];
       if(!invisible(meshpen)) {
@@ -1020,7 +1016,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   pic.addPoint(max(s));
 
   pen modifiers;
-  if(is3D()) modifiers=thin()+linecap(0);
+  if(is3D()) modifiers=thin()+squarecap;
   for(int k=0; k < s.s.length; ++k) {
     pen meshpen=meshpen[k];
     if(!invisible(meshpen)) {

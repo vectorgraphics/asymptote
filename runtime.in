@@ -2537,6 +2537,18 @@ real radius(path3 p, real t)
   return denom > 0 ? r/sqrt(denom) : 0.0;
 }
 
+real radius(triple z0, triple c0, triple c1, triple z1, real t)
+{
+  triple v=(3.0*(z1-z0)+9.0*(c0-c1))*t*t+(6.0*(z0+c1)-12.0*c0)*t+3.0*(c0-z0);
+  triple a=6.0*(z1-z0+3.0*(c0-c1))*t+6.0*(z0+c1)-12.0*c0;
+  real d=dot(a,v);
+  real v2=v.abs2();
+  real a2=a.abs2();
+  real denom=v2*a2-d*d;
+  real r=v2*sqrt(v2);
+  return denom > 0 ? r/sqrt(denom) : 0.0;
+}
+
 path3 reverse(path3 p)
 {
   return p.reverse();
@@ -2567,6 +2579,12 @@ bool straight(path3 p, Int t)
   return p.straight(t);
 }
 
+// Return the component of vector v perpendicular to a unit vector u.
+triple perp(triple v, triple u)
+{
+  return v-dot(v,u)*u;
+}
+
 // Return the maximum perpendicular deviation of segment i of path3 g
 // from a straight line.
 real straightness(path3 p, Int t) 
@@ -2576,6 +2594,14 @@ real straightness(path3 p, Int t)
   triple u=unit(p.point(t+1)-z0);
   return ::max(length(perp(p.postcontrol(t)-z0,u)),
                length(perp(p.precontrol(t+1)-z0,u)));
+}
+
+// Return the maximum perpendicular deviation of z0..controls c0 and c1..z1
+// from a straight line.
+real straightness(triple z0, triple c0, triple c1, triple z1)
+{
+  triple u=unit(z1-z0);
+  return ::max(length(perp(c0-z0,u)),length(perp(c1-z0,u)));
 }
 
 bool piecewisestraight(path3 p)

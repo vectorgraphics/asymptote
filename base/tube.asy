@@ -46,23 +46,9 @@ real[] sample(path3 g, real r, real relstep=0)
       if(S < sqrtEpsilon*r) {
 	t.push(i);
       } else {
-	if(cyclic(g) && i == n-1) {
-	  path3 s=subpath(g,i+1,i);
-	  real[] tt;
-	  real endtime=0;
-	  while(endtime < 1) {
-	    endtime=takeStep(s,endtime,r);
-	    tt.push(i+1-endtime);
-	  }
-	  for(int j=0; j < tt.length; ++j) t.push(tt[tt.length-1-j]);
-	} else {
-	  path3 s=subpath(g,i,i+1);
-	  real endtime=0;
-	  while(endtime < 1) {
-	    t.push(i+endtime);
-	    endtime=takeStep(s,endtime,r);
-	  }
-	}
+        render(subpath(g,i,i+1),new void(path3, real s) {
+            t.push(i+s);
+          });
       }
     }
     t.push(n);
