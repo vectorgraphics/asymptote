@@ -5,6 +5,7 @@ import palette;
 import graph3;
 
 size(300,300,IgnoreAspect);
+currentprojection=orthographic(0,-1,0);
 currentlight=adobe;
 real K=7;
 
@@ -25,7 +26,7 @@ triple condor(pair t)
           log(d)*((-B-1)/2));
 }
 
-surface s=surface(condor,(-1,0),(1,K),50);
+surface s=surface(condor,(-1,0),(1,K),64);
 s.colors(palette(s.map(zpart),Rainbow()));
 
 draw(s,meshpen=black);
