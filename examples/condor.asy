@@ -1,5 +1,5 @@
 // Peter Luschny's Condor function
-// Reference: http: //www.luschny.de/math/asy/ElCondorYElGamma.html
+// http://www.luschny.de/math/asy/ElCondorYElGamma.html
 
 import palette;
 import graph3;
