@@ -50,23 +50,30 @@ void bend(surface s, path3 g, real L)
 
 void render(path3 s, void f(path3, real))
 {
-  void Split(triple z0, triple c0, triple c1, triple z1, real t0=0, real t1=1) {
-    real S=straightness(z0,c0,c1,z1);
-    real R=infinity;
-    int nintervals=3;
-    for(int i=0; i <= nintervals; ++i) {
-      R=min(R,radius(z0,c0,c1,z1,i/nintervals));
-      if(R > 0 && S > tubegranularity*R) {
-        triple m0=0.5*(z0+c0);
-        triple m1=0.5*(c0+c1);
-        triple m2=0.5*(c1+z1);
-        triple m3=0.5*(m0+m1);
-        triple m4=0.5*(m1+m2);
-        triple m5=0.5*(m3+m4);
-        real tm=0.5*(t0+t1);
-        Split(z0,m0,m3,m5,t0,tm);
-        Split(m5,m4,m2,z1,tm,t1);
-        return;
+  static int maxdepth=ceil(-log(realEpsilon)/log(2))+1;
+  void Split(triple z0, triple c0, triple c1, triple z1, real t0=0, real t1=1,
+             real depth=maxdepth) {
+    if(depth > 0) {
+      real S=straightness(z0,c0,c1,z1);
+      real R=infinity;
+      int nintervals=3;
+      if(S > 0) {
+        --depth;
+        for(int i=0; i <= nintervals; ++i) {
+          R=min(R,radius(z0,c0,c1,z1,i/nintervals));
+          if(R > 0 && S > tubegranularity*R) {
+            triple m0=0.5*(z0+c0);
+            triple m1=0.5*(c0+c1);
+            triple m2=0.5*(c1+z1);
+            triple m3=0.5*(m0+m1);
+            triple m4=0.5*(m1+m2);
+            triple m5=0.5*(m3+m4);
+            real tm=0.5*(t0+t1);
+            Split(z0,m0,m3,m5,t0,tm,depth);
+            Split(m5,m4,m2,z1,tm,t1,depth);
+            return;
+          }
+        }
       }
     }
     f(z0..controls c0 and c1..z1,t0);

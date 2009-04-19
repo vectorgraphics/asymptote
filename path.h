@@ -208,10 +208,10 @@ public:
     pair z1=point(t);
     pair c1=precontrol(t);
     pair dir=3.0*(z1-c1);
+    if(!normalize) return dir;
     pair z0=point(t-1);
     pair c0=postcontrol(t-1);
     double epsilon=norm(z0,c0,c1,z1);
-    if(!normalize) return dir;
     if(dir.abs2() > epsilon) return unit(dir);
     dir=2.0*c1-c0-z1;
     if(dir.abs2() > epsilon) return unit(dir);
@@ -223,10 +223,10 @@ public:
     pair c0=postcontrol(t);
     pair z0=point(t);
     pair dir=3.0*(c0-z0);
+    if(!normalize) return dir;
     pair z1=point(t+1);
     pair c1=precontrol(t+1);
     double epsilon=norm(z0,c0,c1,z1);
-    if(!normalize) return dir;
     if(dir.abs2() > epsilon) return unit(dir);
     dir=z0-2.0*c0+c1;
     if(dir.abs2() > epsilon) return unit(dir);
@@ -258,8 +258,8 @@ public:
     pair b=6.0*(z0+c1)-12.0*c0;
     pair c=3.0*(c0-z0);
     pair dir=a*t*t+b*t+c;
-    double epsilon=norm(z0,c0,c1,z1);
     if(!normalize) return dir;
+    double epsilon=norm(z0,c0,c1,z1);
     if(dir.abs2() > epsilon) return unit(dir);
     dir=2.0*a*t+b;
     if(dir.abs2() > epsilon) return unit(dir);
