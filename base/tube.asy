@@ -43,13 +43,10 @@ real[] sample(path3 g, real r, real relstep=0)
   if(relstep <= 0) {
     for(int i=0; i < n; ++i) {
       real S=straightness(g,i);
-      if(S < sqrtEpsilon*r) {
+      if(S < sqrtEpsilon*r)
 	t.push(i);
-      } else {
-        render(subpath(g,i,i+1),new void(path3, real s) {
-            t.push(i+s);
-          });
-      }
+      else
+        render(subpath(g,i,i+1),new void(path3, real s) {t.push(i+s);});
     }
     t.push(n);
   } else {

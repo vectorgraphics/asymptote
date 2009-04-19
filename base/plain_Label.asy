@@ -594,7 +594,7 @@ path[] texpath(Label L)
   pair M=max(g);
   pair dir=rectify(inverse(L.T)*-L.align.dir);
   if(basealign(p) == 1)
-    dir -= (0,m.y/(M.y-m.y));
+    dir -= (0,(1-dir.y)*m.y/(M.y-m.y));
   a=m+realmult(dir,M-m);
 
   return shift(L.position+L.align.dir*labelmargin(p))*L.T*shift(-a)*g;

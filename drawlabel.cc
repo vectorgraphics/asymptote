@@ -142,10 +142,12 @@ void drawLabel::getbounds(iopipestream& tex, const string& texengine)
   double scale0=max(fabs(Align.getx()),fabs(Align.gety()));
   if(scale0) Align *= 0.5/scale0;
   Align -= pair(0.5,0.5);
-  double Depth=(pentype.Baseline() == NOBASEALIGN) ? depth : 0.0;
+  double Depth=(pentype.Baseline() == NOBASEALIGN) ? depth : 
+    -depth*Align.gety();
   texAlign=Align;
-  if(Depth > 0) texAlign += pair(0.0,Depth/(height+Depth));
-  Align.scale(width,height+depth);
+  const double vertical=height+depth;
+  if(Depth > 0) texAlign += pair(0.0,Depth/vertical);
+  Align.scale(width,vertical);
   Align += pair(0.0,Depth-depth);
   Align=T*Align;
 }
