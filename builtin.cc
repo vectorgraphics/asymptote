@@ -780,7 +780,7 @@ void base_venv(venv &ve)
   
 #ifdef STRUCTEXAMPLE
   dummyRecord *fun=createDummyRecord(ve, "test");
-  addFunc(fun->e.ve,realReal<sin>,primReal(),"sin",formal(primReal(),"x"));
+  addFunc(fun->e.ve,realReal<sin>,primReal(),"f",formal(primReal(),"x"));
   addVariable<Int>(fun->e.ve,1,primInt(),"x");
 #endif
   
