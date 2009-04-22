@@ -11,19 +11,18 @@ triple F3(real x) {return (x,f(x),0);}
 path p=graph(F,0,1,n=10,operator ..)--cycle;
 path3 p3=path3(p);
 
-revolution a=revolution(path3(p),Y,0,alpha);
-draw(surface(a),color);
+draw(surface(revolution(p3,Y,0,alpha)),color);
 
 surface s=surface(p);
 draw(s,color);
-draw(rotate(alpha,(0,1,0))*s,color);
+draw(rotate(alpha,Y)*s,color);
 
 draw(p3,blue);
 
 xaxis3(Label("$x$",1),Arrow3);
 yaxis3(Label("$y$",1),ymax=1.25,dashed,Arrow3);
 
-dot(Label("$(1,1)$"),(1,1,0),X);
+dot("$(1,1)$",(1,1,0),X);
 arrow("$y=x^{2}$",F3(0.7),X,0.75cm,red); 
 arrow("$y=x$",(0.8,0.8,0),Y,1cm,red); 
 

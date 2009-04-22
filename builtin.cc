@@ -778,6 +778,12 @@ void base_venv(venv &ve)
   addGSLRealFunc<gsl_sf_zeta>("zeta");
 #endif
   
+#ifdef STRUCTEXAMPLE
+  dummyRecord *fun=createDummyRecord(ve, "test");
+  addFunc(fun->e.ve,realReal<sin>,primReal(),"sin",formal(primReal(),"x"));
+  addVariable<Int>(fun->e.ve,1,primInt(),"x");
+#endif
+  
   addFunc(ve,writestring,primVoid(),"write",
           formal(primFile(),"file",true),
           formal(primString(),"s"),
