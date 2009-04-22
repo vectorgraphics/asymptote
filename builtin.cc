@@ -339,21 +339,28 @@ void addCast(venv &ve, ty *target, ty *source, bltin f) {
 }
 
 template<class T>
-void addConstant(venv &ve, T value, ty *t, const char *name,
-                 record *module=settings::getSettingsModule()) {
-  item* ref=new item;
-  *ref=value;
-  access *a = new itemRefAccess(ref);
-  varEntry *ent = new varEntry(t, a, RESTRICTED, module, 0, position());
-  ve.enter(symbol::trans(name), ent);
-}
-
-template<class T>
 void addVariable(venv &ve, T *ref, ty *t, const char *name,
                  record *module=settings::getSettingsModule()) {
   access *a = new refAccess<T>(ref);
   varEntry *ent = new varEntry(t, a, PUBLIC, module, 0, position());
   ve.enter(symbol::trans(name), ent);
+}
+
+template<class T>
+void addVariable(venv &ve, T value, ty *t, const char *name,
+                 record *module=settings::getSettingsModule(),
+                 permission perm=PUBLIC) {
+  item* ref=new item;
+  *ref=value;
+  access *a = new itemRefAccess(ref);
+  varEntry *ent = new varEntry(t, a, perm, module, 0, position());
+  ve.enter(symbol::trans(name), ent);
+}
+
+template<class T>
+void addConstant(venv &ve, T value, ty *t, const char *name,
+                 record *module=settings::getSettingsModule()) {
+  addVariable(ve,value,t,name,module,RESTRICTED);
 }
 
 // The identity access, i.e. no instructions are encoded for a cast or
