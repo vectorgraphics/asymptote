@@ -112,8 +112,8 @@ class psfile {
 
   void writeHex(pen *p, size_t ncomponents);
   void write(pen *p, size_t ncomponents);
-  void writefromRGB(unsigned char *b, ColorSpace colorspace,
-                    size_t ncomponents);
+  void writefromRGB(unsigned char r, unsigned char g, unsigned char b, 
+                    ColorSpace colorspace, size_t ncomponents);
   
   void writeCompressed(const unsigned char *a, size_t size);
   void dealias(unsigned char *a, size_t width, size_t height, size_t n,

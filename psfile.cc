@@ -49,51 +49,53 @@ psfile::psfile(const string& filename, bool pdfformat)
 
 static const char *inconsistent="inconsistent colorspaces";
   
-void psfile::writefromRGB(unsigned char *b, ColorSpace colorspace,
-                          size_t ncomponents) 
+void psfile::writefromRGB(unsigned char r, unsigned char g, unsigned char b, 
+                          ColorSpace colorspace, size_t ncomponents) 
 {
   static const double factor=1.0/255.0;
-  pen p(b[0]*factor,b[1]*factor,b[2]*factor);
+  pen p(r*factor,g*factor,b*factor);
   p.convert();
   if(!p.promote(colorspace))
     reportError(inconsistent);
   write(&p,ncomponents);
 }
 
-void psfile::dealias(unsigned char *a, size_t width, size_t height, size_t nout,
+inline unsigned char average(unsigned char *a, size_t dx, size_t dy)
+{
+  return ((unsigned) a[0]+(unsigned) a[dx]+(unsigned) a[dy]+
+          (unsigned) a[dy+dx])/4;
+}
+
+void psfile::dealias(unsigned char *a, size_t width, size_t height, size_t n,
                      bool convertrgb, ColorSpace colorspace)
 {
   // Dealias all but the last row and column of pixels.
-  static unsigned char *buf=new unsigned char[3];
-  unsigned char *b=buf;
-  size_t n,istop,jstop;
+  size_t istop=width-1;
+  size_t jstop=height-1;
   if(convertrgb) {
-    n=3;
-    istop=width;
-    jstop=height;
+    size_t nwidth=3*width;
+    for(size_t j=0; j < height; ++j) {
+      size_t widthj=width*j;
+      for(size_t i=0; i < width; ++i) {
+        unsigned char *ai=a+3*(widthj+i);
+        if(j == jstop || i == istop)
+          writefromRGB(ai[0],ai[1],ai[2],colorspace,n);
+        else
+          writefromRGB(average(ai,3,nwidth),
+                       average(ai+1,3,nwidth),
+                       average(ai+2,3,nwidth),colorspace,n);
+      }
+    }
   } else {
-    n=nout;
-    istop=width-1;
-    jstop=height-1;
-  }
-  size_t nwidth=n*width;
-  for(size_t j=0; j < jstop; ++j) {
-    size_t widthj=width*j;
-    for(size_t i=0; i < istop; ++i) {
-      size_t index=n*(widthj+i);
-      if(!convertrgb) b=a+index;
-      if(j == height-1 || i == width-1)
-        for(size_t k=0; k < n; ++k) b[k]=a[index+k];
-      else
+    size_t nwidth=n*width;
+    for(size_t j=0; j < jstop; ++j) {
+      size_t widthj=width*j;
+      for(size_t i=0; i < istop; ++i) {
+        unsigned char *ai=a+n*(widthj+i);
         for(size_t k=0; k < n; ++k) {
-          size_t indexk=index+k;
-          b[k]=(unsigned char) (((unsigned) a[indexk]+
-                                 (unsigned) a[indexk+n]+
-                                 (unsigned) a[indexk+nwidth]+
-                                 (unsigned) a[indexk+nwidth+n])/4);
+          ai[k]=average(ai+k,n,nwidth);
         }
-      if(convertrgb)
-        writefromRGB(b,colorspace,nout);
+      }
     }
   }
 }
@@ -671,10 +673,13 @@ void psfile::rawimage(unsigned char *a, size_t width, size_t height,
     if(antialias)
       dealias(a,width,height,ncomponents,true,colorspace);
     else {
+      size_t height3=3*height;
       for(size_t i=0; i < width; ++i) {
-        int heighti=height*i;
-        for(size_t j=0; j < height; ++j)
-          writefromRGB(a+3*(heighti+j),colorspace,ncomponents);
+        unsigned char *ai=a+height3*i;
+        for(size_t j=0; j < height; ++j) {
+          unsigned char *aij=ai+3*j;
+          writefromRGB(aij[0],aij[1],aij[2],colorspace,ncomponents);
+        }
       }
     }
     endImage(false,width,height,ncomponents);
