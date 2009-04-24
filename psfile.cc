@@ -75,26 +75,25 @@ void psfile::dealias(unsigned char *a, size_t width, size_t height, size_t n,
   if(convertrgb) {
     size_t nwidth=3*width;
     for(size_t j=0; j < height; ++j) {
-      size_t widthj=width*j;
+      unsigned char *aj=a+nwidth*j;
       for(size_t i=0; i < width; ++i) {
-        unsigned char *ai=a+3*(widthj+i);
-        if(j == jstop || i == istop)
-          writefromRGB(ai[0],ai[1],ai[2],colorspace,n);
-        else
+        unsigned char *ai=aj+3*i;
+        if(i < istop && j < jstop)
           writefromRGB(average(ai,3,nwidth),
                        average(ai+1,3,nwidth),
                        average(ai+2,3,nwidth),colorspace,n);
+        else
+          writefromRGB(ai[0],ai[1],ai[2],colorspace,n);
       }
     }
   } else {
     size_t nwidth=n*width;
     for(size_t j=0; j < jstop; ++j) {
-      size_t widthj=width*j;
+      unsigned char *aj=a+nwidth*j;
       for(size_t i=0; i < istop; ++i) {
-        unsigned char *ai=a+n*(widthj+i);
-        for(size_t k=0; k < n; ++k) {
+        unsigned char *ai=aj+n*i;
+        for(size_t k=0; k < n; ++k)
           ai[k]=average(ai+k,n,nwidth);
-        }
       }
     }
   }
