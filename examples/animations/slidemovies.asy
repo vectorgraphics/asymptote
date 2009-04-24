@@ -32,14 +32,15 @@ for(int i=0; i < 2n; ++i) {
 display(a.pdf("autoplay,loop,controls",multipage=false));
 display(b.pdf("controls",multipage=false));
 
+// Generated needed files if they don't already exist.
+asy("mpg","wheel");
+
 title("External Movie (portable)");
 display(external.embed("wheel.mpg",
                        "poster,text=wheel.mpg,label=wheel.mpg",20cm,5.6cm));
 display(external.link("wheel.mpg","Play","play"));
 
 title("Embedded Movie (not portable)");
-// Generated needed files if they don't already exist.
-asy("mpg","wheel");
 display(embed.embed("wheel.mpg",
                     "poster,text=wheel.mpg,label=wheel.mpg",
                     20cm,5.6cm));
