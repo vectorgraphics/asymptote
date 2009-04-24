@@ -70,6 +70,12 @@ void errorstream::warning(position pos)
   anyWarnings = true;
 }
 
+void errorstream::fatal(position pos)
+{
+  message(pos,"abort: ");
+  anyErrors = true;
+}
+
 void errorstream::trace(position pos)
 {
   static position lastpos;

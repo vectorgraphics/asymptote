@@ -24,6 +24,9 @@ void reportError(const ostringstream& desc);
 void reportWarning(const string& desc);
 void reportWarning(const ostringstream& desc);
   
+void reportFatal(const string& desc);
+void reportFatal(const ostringstream& desc);
+
 inline std::ostream& newl(std::ostream& s) {s << '\n'; return s;}
 
 } // namespace camp

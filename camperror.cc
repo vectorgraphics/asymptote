@@ -37,6 +37,17 @@ void reportWarning(const string& desc)
   em.sync();
 }
 
+void reportFatal(const string& desc)
+{
+  em.fatal(vm::getPos());
+  em << desc;
+  em.sync();
+  try {
+    throw quit(); 
+  } catch(handled_error) {
+  }
+}
+
 void reportError(const ostringstream& desc)
 {
   reportError(desc.str());
@@ -45,6 +56,11 @@ void reportError(const ostringstream& desc)
 void reportWarning(const ostringstream& desc)
 {
   reportWarning(desc.str());
+}
+  
+void reportFatal(const ostringstream& desc)
+{
+  reportFatal(desc.str());
 }
   
 } // namespace camp

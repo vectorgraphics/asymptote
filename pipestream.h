@@ -227,8 +227,10 @@ public:
   void Write(const string &s) {
     ssize_t size=s.length();
     if(settings::verbose > 2) cerr << s;
-    if(write(in[1],s.c_str(),size) != size)
-      camp::reportError("write to pipe failed");
+    if(write(in[1],s.c_str(),size) != size) {
+      camp::reportFatal("write to pipe failed");
+    }
+    
   }
   
   iopipestream& operator << (const string& s) {
