@@ -8,7 +8,7 @@
 
 #include "common.h"
 
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGL
 
 #include <csignal>
 

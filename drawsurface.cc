@@ -119,7 +119,7 @@ inline triple displacement(const Triple& z0, const Triple& c0,
 
 void drawSurface::displacement()
 {
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGL
   initMatrix(v1,Min.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
   initMatrix(v2,Max.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
   
@@ -168,7 +168,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
                          const triple& Min, const triple& Max,
                          double perspective, bool transparent)
 {
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGL
   if(invisible || (havetransparency ^ transparent)) return;
   
   static GLfloat v[16];

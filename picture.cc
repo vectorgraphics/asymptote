@@ -720,7 +720,7 @@ Communicate com;
 
 void glrenderWrapper()
 {
-#ifdef HAVE_LIBGLUT  
+#ifdef HAVE_LIBGL  
   glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
            com.m,com.M,com.nlights,com.lights,com.diffuse,com.ambient,
            com.specular,com.viewportlighting,com.view);
@@ -736,7 +736,7 @@ bool picture::shipout3(const string& prefix, const string& format,
                        double *ambient, double *specular, bool viewportlighting,
                        bool view)
 {
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGL
   bounds3();
   
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
@@ -769,14 +769,12 @@ bool picture::shipout3(const string& prefix, const string& format,
       com.viewportlighting=viewportlighting;
       com.view=View;
       wait(initSignal,initLock);
-#ifdef HAVE_LIBGLUT  
 #ifdef HAVE_LIBPTHREAD
     if(!View)
       wait(readySignal,readyLock);
   
     if(!interact::interactive || !View)
       wait(quitSignal,quitLock);
-#endif  
 #endif  
       return true;
     }

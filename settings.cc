@@ -69,7 +69,7 @@ using camp::pair;
 string asyInstallDir;
 string defaultXasy="xasy";
 
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGL
 const bool haveglut=true;  
 #else
 const bool haveglut=false;

@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
   }
   
   Args args(argc,argv);
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGL
   gl::glthread=getSetting<bool>("threads");
 #ifdef HAVE_LIBPTHREAD
   

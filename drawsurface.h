@@ -36,7 +36,7 @@ protected:
   GLfloat *colors;
   bool havecolors;
   
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGL
   GLfloat c[48];
   triple d; // Maximum deviation of surface from a quadrilateral.
   triple dperp;
@@ -75,7 +75,7 @@ public:
     emissive=rgba(vm::read<camp::pen>(p,2));
     specular=rgba(vm::read<camp::pen>(p,3));
     
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGL
     int size=checkArray(&pens);
     havecolors=size > 0;
     if(havecolors) {

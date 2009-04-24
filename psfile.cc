@@ -63,7 +63,7 @@ void psfile::writefromRGB(unsigned char r, unsigned char g, unsigned char b,
 inline unsigned char average(unsigned char *a, size_t dx, size_t dy)
 {
   return ((unsigned) a[0]+(unsigned) a[dx]+(unsigned) a[dy]+
-          (unsigned) a[dy+dx])/4;
+          (unsigned) a[dx+dy])/4;
 }
 
 void psfile::dealias(unsigned char *a, size_t width, size_t height, size_t n,

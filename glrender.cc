@@ -17,7 +17,7 @@ bool glthread=false;
 bool initialize=true;
 }
 
-#ifdef HAVE_LIBGLUT
+#ifdef HAVE_LIBGL
 
 // For CYGWIN
 #ifndef FGAPI
@@ -34,7 +34,6 @@ bool initialize=true;
 #include "bbox3.h"
 #include "drawimage.h"
 #include "interact.h"
-#include "glrender.h"
 #include "tr.h"
 
 #ifdef FREEGLUT

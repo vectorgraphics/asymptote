@@ -14,6 +14,10 @@
 #include "config.h"
 #endif
 
+#if defined(HAVE_LIBGLU) && defined(HAVE_LIBGLUT)
+#define HAVE_LIBGL
+#endif
+
 #ifdef HAVE_LIBPTHREAD
 #include <pthread.h>
 #endif
