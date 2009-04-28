@@ -332,7 +332,8 @@ struct Label {
     if(relative) position=reltime(g,position);
     if(align.default) {
       alignrelative=true;
-      Align=position <= 0 ? S : position >= length(g) ? N : E;
+      Align=position <= sqrtEpsilon ? S :
+        position >= length(g)-sqrtEpsilon ? N : E;
     }
     label(pic,point(g,position),
           alignrelative ? -Align*dir(g,position)*I : Align);
