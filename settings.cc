@@ -32,6 +32,7 @@
 #include "env.h"
 #include "item.h"
 #include "refaccess.h"
+#include "pipestream.h"
 
 #ifdef HAVE_LIBCURSES
 extern "C" {
@@ -1106,6 +1107,7 @@ void initSettings() {
   addOption(new envSetting("xasy", defaultXasy));
   addOption(new envSetting("papertype", "letter"));
   addOption(new envSetting("dir", ""));
+  addOption(new envSetting("sysdir", systemDir));
 }
 
 // Access the arguments once options have been parsed.
@@ -1160,7 +1162,19 @@ void setPath() {
     if(i < asydir.length()) searchPath.push_back(asydir.substr(i));
   }
   searchPath.push_back(initdir);
-  searchPath.push_back(systemDir);
+  string sysdir=getSetting<string>("sysdir");
+  if(sysdir == "") {
+    iopipestream pipe("kpsewhich --var-value=SELFAUTOPARENT");
+    pipe >> sysdir;
+    size_t size=sysdir.size();
+    if(size > 2) {
+      sysdir.erase(size-1,1);
+      sysdir.append(dirsep+"texmf/asymptote");
+      Setting("sysdir")=sysdir;
+    }
+  }
+  if(sysdir != "")
+    searchPath.push_back(sysdir);
 }
 
 void SetPageDimensions() {

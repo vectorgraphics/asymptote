@@ -55,7 +55,16 @@ AC_ARG_WITH(docdir,
 		     ])
 AC_SUBST(docdir)
 
-AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$Datadir/asymptote",
+sysdir=$Datadir/asymptote
+
+AC_ARG_ENABLE(tetex-build,
+[  --enable-tetex-build    automatically determine settings.sysdir from kpsewhich],
+[ if test "x$enableval" = "xyes" ; then
+    sysdir=""
+  fi
+])
+
+AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$sysdir",
 	[System directory for global .asy files])
 AC_DEFINE_UNQUOTED(ASYMPTOTE_DOCDIR,"$docdir",
 	[Directory for documentation])
