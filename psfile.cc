@@ -307,7 +307,7 @@ void psfile::latticeshade(const vm::array& a, const bbox& b)
        << "<< /FunctionType 0" << newl
        << "/Order 1" << newl
        << "/Domain [0 1 0 1]" << newl
-       << "/Range [" << newl;
+       << "/Range [";
   for(size_t i=0; i < ncomponents; ++i)
     *out << "0 1 ";
   *out << "]" << newl

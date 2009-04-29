@@ -159,6 +159,28 @@ public:
   drawElement *transformed(const transform& t);
 };
   
+class drawFunctionShade : public drawFill {
+protected:  
+  string shading;
+public:
+  drawFunctionShade(const vm::array& src, bool stroke, pen pentype,
+                    const string& shading)
+    : drawFill(src,stroke,pentype), shading(shading) {
+    if(!settings::pdf(settings::getSetting<string>("tex")))
+      reportError("functionshade requires -tex pdftex or -tex pdflatex");
+  }
+
+  virtual ~drawFunctionShade() {}
+
+  bool draw(psfile *out) {return false;}
+  
+  bool write(texfile *, const bbox&);
+  
+  bool islabel() {return true;}
+  
+  drawElement *transformed(const transform& t);
+};
+  
 }
 
 #endif

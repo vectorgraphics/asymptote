@@ -1350,6 +1350,13 @@ void tensorshade(picture *f, patharray *g, bool stroke=false, pen fillrule,
                                 *copyarray(b),*copyarray2(z)));
 }
 
+void functionshade(picture *f, patharray *g, bool stroke=false, pen fillrule,
+                   string shading=emptystring, bool copy=true)
+{
+  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  f->append(new drawFunctionShade(*copyarray(g),stroke,fillrule,shading));
+}
+
 // Clip a picture to a superpath using the given fill rule.
 // Subsequent additions to the picture will not be affected by the clipping.
 void clip(picture *f, patharray *g, bool stroke=false, pen fillrule,

@@ -106,4 +106,26 @@ drawElement *drawTensorShade::transformed(const transform& t)
   return new drawTensorShade(transpath(t),stroke,pentype,pens,*Boundaries,*Z);
 }
 
+bool drawFunctionShade::write(texfile *out, const bbox&)
+{
+  if(empty()) return true;
+  out->gsave();
+  out->beginspecial();
+  out->beginraw();
+  writeshiftedpath(out);
+  if(stroke) strokepath(out);
+  out->clip(pentype);
+  out->verbatimline("/"+shading+" sh");
+  out->endraw();
+  out->endspecial();
+  out->grestore();
+  
+  return true;
+}
+
+drawElement *drawFunctionShade::transformed(const transform& t)
+{
+  return new drawFunctionShade(transpath(t),stroke,pentype,shading);
+}
+
 } // namespace camp
