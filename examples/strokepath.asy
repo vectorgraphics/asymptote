@@ -4,7 +4,8 @@ pen p=linewidth(1cm);
 frame f;
 // Equivalent to draw(g,p):
 fill(f,strokepath(g,p),red);
-shipout("strokepathA.asy",f);
+shipout("strokepathframe",f);
+shipped=false;
 
 size(400);
 
@@ -13,7 +14,4 @@ currentpicture.add(new void(frame f, transform t) {
     fill(f,strokepath(t*g,p),red);
   });
 currentpicture.addPath(g);
-
-shipout("strokepathB.asy");
-
 
