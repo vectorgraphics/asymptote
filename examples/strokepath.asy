@@ -2,7 +2,7 @@ path g=scale(100)*unitcircle;
 pen p=linewidth(1cm);
 
 frame f;
-// Equivalent to draw(g,p):
+// Equivalent to draw(f,g,p):
 fill(f,strokepath(g,p),red);
 shipout("strokepathframe",f);
 shipped=false;
