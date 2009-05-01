@@ -3186,8 +3186,9 @@ coordinates in @code{box(min,max)} to the (already specified) picture size,
 taking account of the width of pen @code{p}. A warning will be issued if
 the final picture exceeds the specified size.
 
-A picture can be fit to a frame and converted into a @code{PostScript} image
-by calling the function @code{shipout}:
+A picture @code{pic} can be fit to a frame and output to a file
+@code{prefix}.@code{format} using image format @code{format}
+by calling the @code{shipout} function:
 @anchor{shipout}
 @cindex @code{shipout}
 @verbatim
@@ -3199,8 +3200,26 @@ void shipout(string prefix=defaultfilename,
              string format="", bool wait=false, bool view=true);
 @end verbatim
 @noindent
+The default output format, @code{PostScript}, may be changed
+with the @code{-f} or @code{-tex} command-line options.
 A @code{shipout()} command is added implicitly at file exit if no
 previous @code{shipout} commands have been executed.
+@cindex @code{orientation}
+@cindex @code{Portrait}
+@cindex @code{Landscape}
+@cindex @code{UpsideDown}
+The default page orientation is @code{Portrait}; this may be modified
+by changing the variable @code{orientation}. To output in landscape
+mode, simply set the variable @code{orientation=Landscape} or issue
+with the @code{-f} optionthe command 
+@verbatim
+shipout(Landscape);
+@end verbatim
+
+@cindex @code{Seascape}
+To rotate the page by @math{-90} degrees, use the orientation @code{Seascape}.
+@cindex @code{UpsideDown}
+The orientation @code{UpsideDown} rotates the page by 180 degrees.
 
 @cindex subpictures
 @cindex @code{fit}
@@ -3226,22 +3245,6 @@ frame pic.scale(real xsize=this.xsize, real ysize=this.ysize,
 (which scales the resulting frame, including labels and fixed-size
 objects) will enforce perfect compliance with the requested size
 specification, but should not normally be required.
-
-@cindex @code{orientation}
-@cindex @code{Portrait}
-@cindex @code{Landscape}
-@cindex @code{UpsideDown}
-The default page orientation is @code{Portrait}; this may be modified
-by changing the variable @code{orientation}. To output in landscape
-mode, simply set @code{orientation=Landscape} or issue the command
-@verbatim
-shipout(Landscape);
-@end verbatim
-
-@cindex @code{Seascape}
-To rotate the page by @math{-90} degrees, use the orientation @code{Seascape}.
-@cindex @code{UpsideDown}
-To rotate the page by 180 degrees, use the orientation @code{UpsideDown}.
 
 @cindex @code{box}
 To draw a bounding box with margins around a picture, fit the
