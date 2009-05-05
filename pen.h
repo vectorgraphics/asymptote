@@ -777,7 +777,7 @@ public:
       out << ", linecap=" << Cap[p.linecap];
     if(p.linejoin != DEFJOIN)
       out << ", linejoin=" << Join[p.linejoin];
-    if(p.miterlimit != DEFJOIN)
+    if(p.miterlimit != DEFMITER)
       out << ", miterlimit=" << p.miterlimit;
     if(!p.font.empty())
       out << ", font=\"" << p.font << "\"";
