@@ -1035,7 +1035,7 @@ at least until the end of the file or prompt's run.
 
 Yes, Asymptote includes a line-based debugger:
 
-\docref{http://asymptote.sourceforge.net/doc/Debugger\}
+\docref{http://asymptote.sourceforge.net/doc/Debugger.html\}
 
 \question 27jun:patches Do you accept patches for Asymptote?
 
@@ -1114,7 +1114,7 @@ this returns the intersection point of the extensions of the line segments
 could be persuaded to add something similar if someone can justify the
 need. In the meantime, one can always use the explicit built-in linear
 solver \courier{solve\} (see
-\docref{http://asymptote.sourceforge.net/doc/solve.html#solve\}), which uses LU
+\docref{http://asymptote.sourceforge.net/doc/solve.html\}), which uses LU
 decomposition. 
 
 \question 23jun:lray What is the equivalent for the MetaPost command for \courier{lray - horiz*v - verti*u = whatever*(LightSource - R)\}, a system of three linear equations for three unknowns: \courier{horiz, verti, whatever\}?

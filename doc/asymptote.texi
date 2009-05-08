@@ -2106,6 +2106,7 @@ path circle(pair c, real r)
 @end verbatim
 If high accuracy is needed, a true circle may be produced with the
 routine @code{Circle} defined in the module @code{graph.asy}:
+@cindex @code{Circle}
 @verbatim
 import graph;
 path Circle(pair c, real r, int n=nCircle);
@@ -2115,6 +2116,7 @@ A circular arc consistent with @code{circle} centered on
 @code{c} with radius @code{r} from @code{angle1} to @code{angle2}
 degrees, drawing counterclockwise if @code{angle2 >= angle1}, can be
 constructed with
+@cindex @code{arc}
 @verbatim
 path arc(pair c, real r, real angle1, real angle2);
 @end verbatim
@@ -2133,6 +2135,7 @@ path arc(pair c, explicit pair z1, explicit pair z2,
 If high accuracy is needed, true arcs may be produced with routines
 in the module @code{graph.asy} that produce Bezier curves with @code{n}
 control points:
+@cindex @code{Arc}
 @verbatim
 import graph;
 path Arc(pair c, real r, real angle1, real angle2, bool direction,
@@ -2144,6 +2147,7 @@ path Arc(pair c, explicit pair z1, explicit pair z2,
 
 An ellipse can be drawn with the routine
 @verbatim
+@cindex @code{ellipse}
 path ellipse(pair c, real a, real b)
 {
   return shift(c)*scale(a,b)*unitcircle;
