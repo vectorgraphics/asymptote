@@ -422,12 +422,13 @@ void drawarrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
   path3 r=subpath(g,position,0);
   size=min(arrowsizelimit*arclength(r),size);
   surface head=arrowhead.head(g,position,q,size,angle,filltype,forwards,P);
-  if(arrowhead.splitpath || position > L-sqrtEpsilon) {
+  bool endpoint=position > L-sqrtEpsilon;
+  if(arrowhead.splitpath || endpoint) {
     if(position > 0) {
       real Size=size*arrowhead.gap;
       draw(pic,subpath(r,arctime(r,Size),length(r)),p,light);
     }
-    if(position < L)
+    if(!endpoint)
       draw(pic,subpath(g,position,L),p,light);
   } else draw(pic,g,p,light);
   draw(pic,head,arrowheadpen,arrowheadlight);

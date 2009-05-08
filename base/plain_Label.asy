@@ -222,7 +222,7 @@ struct Label {
   transform3 T3=identity(4);
   bool defaulttransform=true;
   bool defaulttransform3=true;
-  embed embed=Rotate; // Fixed, Rotate, Rotate, or Scale with embedded picture
+  embed embed=Rotate; // Shift, Rotate, Slant, or Scale with embedded picture
   filltype filltype=NoFill;
   
   void init(string s="", string size="", position position=0, 

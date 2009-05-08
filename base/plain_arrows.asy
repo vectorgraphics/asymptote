@@ -203,10 +203,11 @@ void drawarrow(frame f, arrowhead arrowhead=DefaultHead,
   path r=subpath(g,position,0);
   size=min(arrowsizelimit*arclength(r),size);
   path head=arrowhead.head(g,position,p,size,angle);
-  if(cyclic(head) && (filltype == NoFill || position > L-sqrtEpsilon)) {
+  bool endpoint=position > L-sqrtEpsilon;
+  if(cyclic(head) && (filltype == NoFill || endpoint)) {
     if(position > 0)
       draw(f,subpath(r,arctime(r,size),length(r)),p);
-    if(position < L)
+    if(!endpoint)
       draw(f,subpath(g,position,L),p);
   } else draw(f,g,p);
   filltype.fill(f,head,p+solid);
