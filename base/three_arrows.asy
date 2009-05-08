@@ -61,7 +61,7 @@ void render(path3 s, void f(path3, real))
         --depth;
         for(int i=0; i <= nintervals; ++i) {
           R=min(R,radius(z0,c0,c1,z1,i/nintervals));
-          if(R > 0 && S > tubegranularity*R) {
+          if(S > tubegranularity*R) {
             triple m0=0.5*(z0+c0);
             triple m1=0.5*(c0+c1);
             triple m2=0.5*(c1+z1);
