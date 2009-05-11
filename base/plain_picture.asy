@@ -1698,11 +1698,6 @@ void filldraw(picture pic=currentpicture, path[] g, pen fillpen=currentpen,
   endgroup(pic);
 }
 
-void clip(frame f, path[] g, bool stroke=false)
-{
-  clip(f,g,stroke,currentpen);
-}
-
 void clip(picture pic=currentpicture, path[] g, bool stroke=false,
           pen fillrule=currentpen, bool copy=true)
 {

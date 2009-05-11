@@ -2,6 +2,7 @@ size(200);
 
 settings.tex="pdflatex";
 
+// PostScript Calculator routine to convert from [0,1]x[0,1] to RG:
 string redgreen="0";
 
 // PostScript Calculator routine to convert from [0,1]x[0,1] to HS to RGB:
@@ -28,4 +29,3 @@ path g=shift(2*dir(-45))*p;
 functionshade(g,rgb(zerowinding),hsv);
 layer();
 draw(g);
-
