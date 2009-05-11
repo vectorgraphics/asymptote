@@ -204,8 +204,7 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
 
     real norm=max(abs(a),abs(b));
     
-    string format=F.s == "" ? autoformat(norm...Ticks) :
-      (F.s == trailingzero ? autoformat(true,norm...Ticks) : F.s);
+    string format=autoformat(F.s,norm...Ticks);
     if(F.s == "%") F.s="";
     if(ticklabel == null) {
       if(locate.S.scale.logarithmic) {
