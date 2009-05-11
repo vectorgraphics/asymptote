@@ -5782,8 +5782,10 @@ void saveline(string name, string value, bool store=true)
   
   if(value != "") {
     add_history(value.c_str());
-    std::ofstream hout(historyfilename(name).c_str(),std::ios::app);
-    hout << value << endl;
+    if(store) {
+      std::ofstream hout(historyfilename(name).c_str(),std::ios::app);
+      hout << value << endl;
+    }
   }
   
   store_history(&history);
