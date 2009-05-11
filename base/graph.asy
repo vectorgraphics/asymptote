@@ -242,6 +242,7 @@ ticklabel OmitFormat(string s=defaultformat ... real[] x)
 }
 
 string trailingzero="$%#$";
+string signedtrailingzero="$%+#$";
 
 ticklabel DefaultFormat=Format();
 ticklabel NoZeroFormat=OmitFormat(0);
@@ -506,10 +507,16 @@ struct tickvalues {
 
 // Determine a format that distinguishes adjacent pairs of ticks, optionally
 // adding trailing zeros.
-string autoformat(bool trailingzero=false, real norm ... real[] a)
+string autoformat(string format="", real norm ... real[] a)
 {
+  bool trailingzero=(format == trailingzero);
+  bool signedtrailingzero=(format == signedtrailingzero);
+  if(!trailingzero && !signedtrailingzero && format != "") return format;
+
   real[] A=sort(a);
   real[] a=abs(A);
+
+  bool signchange=(A.length > 1 && A[0] < 0 && A[A.length-1] >= 0);
 
   for(int i=0; i < A.length-1; ++i)
     if(a[i] < zerotickfuzz*norm) A[i]=a[i]=0;
@@ -522,12 +529,15 @@ string autoformat(bool trailingzero=false, real norm ... real[] a)
   if(Fixed && n < 4) {
     for(int i=0; i < A.length-1; ++i) {
       real a=A[i];
-      while(format(defaultformat(n,fixed=Fixed),a) !=
-            format(Format,a)) ++n;
+      while(format(defaultformat(n,fixed=Fixed),a) != format(Format,a))
+        ++n;
     }
   }
 
-  string format=defaultformat(n,trailingzero,Fixed);
+  string trailing=trailingzero ? (signchange ? "# " : "#") :
+    signedtrailingzero ? "#+" : "";
+
+  string format=defaultformat(n,trailing,Fixed);
 
   for(int i=0; i < A.length-1; ++i) {
     real a=A[i];
@@ -542,12 +552,11 @@ string autoformat(bool trailingzero=false, real norm ... real[] a)
     }
     if(a != b) {
       while(format(format,a) == format(format,b))
-        format=defaultformat(++n,trailingzero,Fixed);
+        format=defaultformat(++n,trailing,Fixed);
     }
   }
 
   if(n == 0) return defaultformat;
-
   return format;
 }
 
@@ -576,8 +585,7 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
     real a=locate.S.Tinv(locate.a);
     real b=locate.S.Tinv(locate.b);
     real norm=max(abs(a),abs(b));
-    string format=F.s == "" ? autoformat(norm,a,b) :
-      (F.s == trailingzero ? autoformat(true,norm,a,b) : F.s);
+    string format=autoformat(F.s,norm,a,b);
     if(F.s == "%") F.s="";
     if(ticklabel == null) ticklabel=Format(format);
 
@@ -771,8 +779,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
 
     real norm=max(abs(a),abs(b));
     
-    string format=F.s == "" ? autoformat(norm...Ticks) :
-      (F.s == trailingzero ? autoformat(true,norm...Ticks) : F.s);
+    string format=autoformat(F.s,norm...Ticks);
     if(F.s == "%") F.s="";
     if(ticklabel == null) {
       if(locate.S.scale.logarithmic) {

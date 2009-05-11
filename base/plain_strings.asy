@@ -1,6 +1,7 @@
-string defaultformat(int n, bool trailingzero=false, bool fixed=false)
+string defaultformat(int n, string trailingzero="", bool fixed=false,
+                     bool signed=true)
 {
-  return "$%"+(trailingzero ? "#" : "")+"."+string(n)+(fixed ? "f" : "g")+"$";
+  return "$%"+trailingzero+"."+string(n)+(fixed ? "f" : "g")+"$";
 }
 
 string defaultformat=defaultformat(4);
