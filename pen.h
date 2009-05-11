@@ -540,9 +540,19 @@ public:
     rgbtogrey();
   }
   
+  void togrey() {
+    if(rgb()) rgbtogrey();
+    else if(cmyk()) cmyktogrey();
+  }
+  
   void torgb() {
     if(cmyk()) cmyktorgb();
-    else if(gray()) greytorgb();
+    else if(grayscale()) greytorgb();
+  }
+  
+  void tocmyk() {
+    if(rgb()) rgbtocmyk();
+    else if(grayscale()) greytocmyk();
   }
   
   void settransparency(const pen& p) {

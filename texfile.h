@@ -184,6 +184,7 @@ public:
   void miniprologue();
   
   void writeshifted(path p, bool newPath=true);
+  double hoffset() {return Hoffset;}
   
   // Draws label transformed by T at position z.
   void put(const string& label, const transform& T, const pair& z,
@@ -191,7 +192,6 @@ public:
 
   void beginlayer(const string& psname, bool postscript);
   void endlayer();
-  
 };
 
 } //namespace camp

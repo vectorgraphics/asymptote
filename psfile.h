@@ -102,14 +102,6 @@ class psfile {
   size_t count;
   mem::stack<pen> pens;
   
-  void write(transform t) {
-    if(!pdf) *out << "[";
-    *out << " " << t.getxx() << " " << t.getyx()
-         << " " << t.getxy() << " " << t.getyy()
-         << " " << t.getx() << " " << t.gety();
-    if(!pdf) *out << "]";
-  }
-
   void writeHex(pen *p, size_t ncomponents);
   void write(pen *p, size_t ncomponents);
   void writefromRGB(unsigned char r, unsigned char g, unsigned char b, 
@@ -152,10 +144,6 @@ class psfile {
     *out << std::setw(2) << n;
   }
   
-  void writenewl() {
-    *out << newl;
-  }
-  
 protected:
   pen lastpen;
   std::ostream *out;
@@ -181,12 +169,24 @@ public:
     *out << " " << x;
   }
 
+  void writenewl() {
+    *out << newl;
+  }
+  
   bool Transparency() {
     return transparency;
   }
   
   void write(pair z) {
     *out << " " << z.getx() << " " << z.gety();
+  }
+
+  void write(transform t) {
+    if(!pdf) *out << "[";
+    *out << " " << t.getxx() << " " << t.getyx()
+         << " " << t.getxy() << " " << t.getyy()
+         << " " << t.getx() << " " << t.gety();
+    if(!pdf) *out << "]";
   }
 
   void resetpen() {

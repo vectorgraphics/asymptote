@@ -106,26 +106,69 @@ drawElement *drawTensorShade::transformed(const transform& t)
   return new drawTensorShade(transpath(t),stroke,pentype,pens,*Boundaries,*Z);
 }
 
-bool drawFunctionShade::write(texfile *out, const bbox&)
+bool drawFunctionShade::write(texfile *out, const bbox& box)
 {
   if(empty()) return true;
+  
+  const char *units=
+    settings::texunits(settings::getSetting<string>("tex"));
+   
+  ColorSpace colorspace=pentype.colorspace();
+  size_t ncomponents=ColorComponents[colorspace];
+  
+  out->verbatim("\\pdfobj stream attr {/FunctionType 4");
+  out->verbatim("/Domain [0 1 0 1]");
+  out->verbatim("/Range [");
+  for(size_t i=0; i < ncomponents; ++i)
+    out->verbatim("0 1 ");
+  out->verbatim("]}{{");
+  out->verbatimline(shader);
+  out->verbatimline("}}%");
+  out->verbatimline("\\edef\\lastobj{\\the\\pdflastobj}\\pdfrefobj\\lastobj");
+   
+  out->verbatim("\\setbox\\ASYbox=\\hbox to ");
+  double Hoffset=out->hoffset();
+  double hoffset=(bpath.Max().getx()-Hoffset)*ps2tex;
+  out->write(hoffset);
+  out->verbatim(units);
+  out->verbatim(" {");
+  out->verbatim("\\vbox to ");
+  out->write((box.top-box.bottom)*ps2tex);
+  out->verbatim(units);
+  out->verbatimline(" {\\vfil%");
   out->gsave();
   out->beginspecial();
   out->beginraw();
   writeshiftedpath(out);
   if(stroke) strokepath(out);
   out->clip(pentype);
-  out->verbatimline("/"+shading+" sh");
+  out->verbatimline("/Sh sh");
   out->endraw();
   out->endspecial();
   out->grestore();
+  out->verbatimline("}\\hfil}%");
   
+  out->verbatimline("\\pdfxform resources {");
+  out->verbatimline("/Shading << /Sh << /ShadingType 1");
+  out->verbatim("/Matrix [");
+
+  out->write(shift(pair(-Hoffset,-box.bottom))*matrix(bpath.Min(),bpath.Max()));
+  out->verbatimline("]");
+  out->verbatim("/Domain [0 1 0 1]");
+  out->verbatimline("/ColorSpace /Device"+ColorDeviceSuffix[colorspace]);
+  out->verbatimline("/Function \\lastobj\\space 0 R >> >>}\\ASYbox");
+  
+  out->verbatimline("\\pdfrefxform\\the\\pdflastxform");
+  out->verbatim("\\kern");
+  out->write(-hoffset);
+  out->verbatim(units);
+  out->verbatimline("%");
   return true;
 }
 
 drawElement *drawFunctionShade::transformed(const transform& t)
 {
-  return new drawFunctionShade(transpath(t),stroke,pentype,shading);
+  return new drawFunctionShade(transpath(t),stroke,pentype,shader);
 }
 
 } // namespace camp

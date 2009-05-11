@@ -161,11 +161,11 @@ public:
   
 class drawFunctionShade : public drawFill {
 protected:  
-  string shading;
+  string shader;
 public:
   drawFunctionShade(const vm::array& src, bool stroke, pen pentype,
-                    const string& shading)
-    : drawFill(src,stroke,pentype), shading(shading) {
+                    const string& shader)
+    : drawFill(src,stroke,pentype), shader(shader) {
     if(!settings::pdf(settings::getSetting<string>("tex")))
       reportError("functionshade requires -tex pdftex or -tex pdflatex");
   }

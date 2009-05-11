@@ -1678,6 +1678,17 @@ void draw(picture pic=currentpicture, path[] g, pen[] p)
   tensorshade(pic,G,P);
 }
 
+void functionshade(picture pic=currentpicture, path[] g, bool stroke=false,
+                   pen fillrule=currentpen, string shader, bool copy=true)
+{
+  if(copy)
+    g=copy(g);
+  pic.add(new void(frame f, transform t) {
+      functionshade(f,t*g,stroke,fillrule,shader);
+    },true);
+  pic.addPath(g);
+}
+
 void filldraw(picture pic=currentpicture, path[] g, pen fillpen=currentpen,
               pen drawpen=currentpen)
 {

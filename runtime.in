@@ -1282,7 +1282,7 @@ void fill(picture *f, patharray *g, pen p=CURRENTPEN, bool copy=true)
 }
 
 void latticeshade(picture *f, patharray *g, bool stroke=false,
-                  pen fillrule, penarray2 *p, bool copy=true)
+                  pen fillrule=CURRENTPEN, penarray2 *p, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   f->append(new drawLatticeShade(*copyarray(g),stroke,fillrule,*copyarray(p)));
@@ -1302,8 +1302,9 @@ void radialshade(picture *f, patharray *g, bool stroke=false, pen pena,
   f->append(new drawRadialShade(*copyarray(g),stroke,pena,a,ra,penb,b,rb));
 }
 
-void gouraudshade(picture *f, patharray *g, bool stroke=false, pen fillrule,
-                  penarray *p, pairarray *z, Intarray *edges, bool copy=true)
+void gouraudshade(picture *f, patharray *g, bool stroke=false,
+                  pen fillrule=CURRENTPEN, penarray *p, pairarray *z,
+                  Intarray *edges, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   checkArrays(p,z);
@@ -1312,8 +1313,9 @@ void gouraudshade(picture *f, patharray *g, bool stroke=false, pen fillrule,
                                  *copyarray(z),*copyarray(edges)));
 }
 
-void gouraudshade(picture *f, patharray *g, bool stroke=false, pen fillrule,
-                  penarray *p, Intarray *edges, bool copy=true)
+void gouraudshade(picture *f, patharray *g, bool stroke=false,
+                  pen fillrule=CURRENTPEN, penarray *p, Intarray *edges,
+                  bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   size_t n=checkArrays(p,edges);
@@ -1335,9 +1337,9 @@ void gouraudshade(picture *f, patharray *g, bool stroke=false, pen fillrule,
                                  *z,*copyarray(edges)));
 }
 
-void tensorshade(picture *f, patharray *g, bool stroke=false, pen fillrule,
-                 penarray2 *p, patharray *b=NULL, pairarray2 *z=emptyarray,
-                 bool copy=true)
+void tensorshade(picture *f, patharray *g, bool stroke=false,
+                 pen fillrule=CURRENTPEN, penarray2 *p, patharray *b=NULL,
+                 pairarray2 *z=emptyarray, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
@@ -1350,25 +1352,26 @@ void tensorshade(picture *f, patharray *g, bool stroke=false, pen fillrule,
                                 *copyarray(b),*copyarray2(z)));
 }
 
-void functionshade(picture *f, patharray *g, bool stroke=false, pen fillrule,
-                   string shading=emptystring, bool copy=true)
+void functionshade(picture *f, patharray *g, bool stroke=false,
+                   pen fillrule=CURRENTPEN, string shader=emptystring,
+                   bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  f->append(new drawFunctionShade(*copyarray(g),stroke,fillrule,shading));
+  f->append(new drawFunctionShade(*copyarray(g),stroke,fillrule,shader));
 }
 
 // Clip a picture to a superpath using the given fill rule.
 // Subsequent additions to the picture will not be affected by the clipping.
-void clip(picture *f, patharray *g, bool stroke=false, pen fillrule,
-          bool copy=true)
+void clip(picture *f, patharray *g, bool stroke=false,
+          pen fillrule=CURRENTPEN, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   drawClipBegin *begin=new drawClipBegin(*copyarray(g),stroke,fillrule,true);
   f->enclose(begin,new drawClipEnd(true,begin));
 }
 
-void beginclip(picture *f, patharray *g, bool stroke=false, pen fillrule,
-               bool copy=true)
+void beginclip(picture *f, patharray *g, bool stroke=false,
+               pen fillrule=CURRENTPEN, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   f->append(new drawClipBegin(*copyarray(g),stroke,fillrule,false));
@@ -1775,22 +1778,19 @@ pen invisible()
 
 pen gray(pen p)
 {
-  if(p.rgb()) p.rgbtogrey();
-  else if(p.cmyk()) p.cmyktogrey();
+  p.togrey();
   return p;
 }
 
 pen rgb(pen p)
 {
-  if(p.grayscale()) p.greytorgb();
-  else if(p.cmyk()) p.cmyktorgb();
+  p.torgb();
   return p;
 }
 
 pen cmyk(pen p)
 {
-  if(p.grayscale()) p.greytocmyk();
-  else if(p.rgb()) p.rgbtocmyk();
+  p.tocmyk();
   return p;
 }
 

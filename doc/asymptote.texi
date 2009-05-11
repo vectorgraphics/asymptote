@@ -350,7 +350,7 @@ Users of the @code{Microsoft Windows} operating system can install the
 self-extracting @code{Asymptote} executable @code{asymptote-x.xx-setup.exe},
 where @code{x.xx} denotes the latest version.
 
-A working @code{TeX} implementation (such as the one available at
+A working @TeX{} implementation (such as the one available at
 @url{http://www.miktex.org}) will be required to typeset labels.
 You will also need to install @code{GPL Ghostscript} from
 @url{http://sourceforge.net/projects/ghostscript/}.
@@ -1391,6 +1391,22 @@ void draw(picture pic=currentpicture, path[] g, pen[] p);
 Illustrations of tensor product and Coons shading are provided in the
 example files @code{tensor.asy}, @code{Coons.asy}, @code{BezierSurface.asy},
 and @code{rainbow.asy}.
+    
+@cindex Function shading
+@cindex function shading
+@cindex @code{functionshade}
+More general shading possibilities are available with the @code{pdflatex},
+@code{xetex}, and @code{pdftex} @TeX{} engines: the routine
+@verbatim
+void functionshade(picture pic=currentpicture, path[] g, bool stroke=false,
+                   pen fillrule=currentpen, string shader);
+@end verbatim
+@noindent
+shades on picture @code{pic} the interior of path @code{g} according
+to fill rule @code{fillrule} using the @code{PostScript} calculator routine
+specified by the string @code{shader}; this routine takes 2 arguments,
+each in [0,1], and returns @code{colors(fillrule).length} color components.
+Function shading is illustrated in the example @code{functionshading.asy}.
 
 @cindex unfill
 The following routine uses @code{evenodd} clipping together with the
@@ -1578,7 +1594,7 @@ Here @code{envelope} is a boundary-drawing routine such as @code{box},
 
 @cindex @code{texpath}
 The function @code{path[] texpath(Label L)} returns the path array that
-@code{TeX} would fill to draw the Label @code{L}.
+@TeX{} would fill to draw the Label @code{L}.
 
 @cindex @code{minipage}
 The @code{string minipage(string s, width=100pt)} function can be used
@@ -2843,7 +2859,7 @@ Support for standardized international characters is provided by the
 @code{unicode} package (@pxref{unicode}).
 
 @cindex @code{TeX fonts}
-Alternatively, one may select a fixed-size @code{TeX} font (on which
+Alternatively, one may select a fixed-size @TeX{} font (on which
 @code{fontsize} has no effect) like @code{"cmr12"} (12pt Computer Modern
 Roman) or @code{"pcrr"} (Courier) using the function @code{pen font(string
 name)}. An optional size argument can also be given to scale the font
@@ -3455,7 +3471,7 @@ void tex(picture pic=currentpicture, string s);
 void tex(picture pic=currentpicture, string s, pair min, pair max)
 @end verbatim
 Here @code{min} and @code{max} can be used to specify explicit bounds
-associated with the resulting @code{TeX} code.
+associated with the resulting @TeX{} code.
 
 To issue a global @TeX{} command (such as a @TeX{} macro definition) in the
 @TeX{} preamble (valid for the remainder of the top-level module) use:
@@ -4618,6 +4634,7 @@ i(3,4); // ambiguous; the first candidate is better for the first argument,
 @cindex @code{cbrt}
 @cindex @code{fabs}
 @cindex @code{expm1}
+@cindex @code{log1p}
 @cindex @code{identity}
 @cindex @code{J}
 @cindex @code{Y}
@@ -4633,7 +4650,7 @@ real(real) functions @code{sin}, @code{cos}, @code{tan}, @code{asin},
 @code{acos}, @code{atan}, @code{exp}, @code{log}, @code{pow10},
 @code{log10}, @code{sinh}, @code{cosh}, @code{tanh}, @code{asinh},
 @code{acosh}, @code{atanh}, @code{sqrt}, @code{cbrt}, @code{fabs}, @code{expm1},
-as well as the identity function @code{identity}. 
+@code{log1p}, as well as the identity function @code{identity}. 
 @code{Asymptote} also defines the order @code{n} Bessel functions of
 the first kind @code{J(int n, real)} and second kind
 @code{Y(int n, real)}, as well as the gamma function @code{gamma},
@@ -7723,7 +7740,7 @@ reflects about the plane through @code{u}, @code{v}, and @code{w}.
 @end table
 
 @cindex @code{transform}
-Three-dimensional @code{TeX} Labels, which are by default drawn as
+Three-dimensional @TeX{} Labels, which are by default drawn as
 Bezier surfaces directly on the projection plane, can be transformed
 from the @code{XY} plane by any of the above transforms or mapped to a
 specified two-dimensional plane with the transform3 types @code{XY},
