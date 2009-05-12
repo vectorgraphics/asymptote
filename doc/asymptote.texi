@@ -5983,12 +5983,12 @@ interpolation in @code{Asymptote}, as illustrated in the example
 @cindex @code{geometry}
 @cindex @code{triangle}
 @cindex @code{perpendicular}
-This module provides the beginnings of a geometry package.
-It currently includes a triangle structure and functions to draw
-interior arcs of triangles and perpendicular symbols.
-A link to a much more extensive, and well documented, geometry module by
-Philippe Ivaldi is posted at
-@url{http://asymptote.sourceforge.net/links.html}.
+This module, written by Philippe Ivaldi, provides an extensive set of
+geometry routines, including @code{perpendicular} symbols and a @code{triangle}
+structure. It is documented here:
+@url{http://piprim.tuxfamily.org/asymptote/geometry_en.pdf},
+including an extensive set of examples:
+@url{http://piprim.tuxfamily.org/asymptote/travaux/}.
 
 @node stats
 @section @code{stats}
