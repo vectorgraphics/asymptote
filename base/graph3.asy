@@ -118,8 +118,9 @@ void labelaxis(picture pic, transform3 T, Label L, path3 g,
       real t=relative(L,g);
       triple v=point(g,t);
       picture F;
-      if(L.align.dir3 == O) align=unit(invert(L.align.dir,v,P))*abs(align);
-
+      if(L.align.dir3 == O)
+        align=unit(invert(L.align.dir,v,P))*abs(L.align.dir);
+      
       if(ticklabels && locate != null && piecewisestraight(g)) {
         locateT locate1;
         locate1.dir(T,g,locate,t);

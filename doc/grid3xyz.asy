@@ -12,6 +12,6 @@ grid3(XYZgrid);
 xaxis3(Label("$x$",position=EndPoint,align=S),Bounds(Min,Min),
        OutTicks());
 yaxis3(Label("$y$",position=EndPoint,align=S),Bounds(Min,Min),OutTicks());
-zaxis3(Label("$z$",position=EndPoint,align=(0,0.5)+W),Bounds(Min,Min),
+zaxis3(Label("$z$",position=EndPoint,align=(-1,0.5)),Bounds(Min,Min),
        OutTicks(beginlabel=false));
 
