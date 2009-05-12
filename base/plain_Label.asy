@@ -293,11 +293,13 @@ struct Label {
           t*position+align*labelmargin(p0)+shift(T)*0,align,p0);
   }
 
-  void out(frame f, transform t=identity()) {
-    if(filltype == NoFill) label(f,t,position.position,align.dir);
+  void out(frame f, transform t=identity(), pair position=position.position,
+           pair align=align.dir) {
+    if(filltype == NoFill)
+      label(f,t,position,align);
     else {
       frame d;
-      label(d,t,position.position,align.dir);
+      label(d,t,position,align);
       add(f,d,filltype);
     }
   }
@@ -305,13 +307,7 @@ struct Label {
   void label(picture pic=currentpicture, pair position, pair align) {
     if(s == "") return;
     pic.add(new void (frame f, transform t) {
-        if(filltype == NoFill)
-          label(f,t,position,align);
-        else {
-          frame d;
-          label(d,t,position,align);
-          add(f,d,filltype);
-        }
+        out(f,t,position,align);
       },true);
     frame f;
     // Create a picture with label at the origin to extract its bbox truesize.
@@ -335,8 +331,11 @@ struct Label {
       Align=position <= sqrtEpsilon ? S :
         position >= length(g)-sqrtEpsilon ? N : E;
     }
-    label(pic,point(g,position),
-          alignrelative ? -Align*dir(g,position)*I : Align);
+
+    pic.add(new void (frame f, transform t) {
+        out(f,t,point(g,position),
+            alignrelative ? -Align*dir(t*g,position)*I : Align);
+      },true);
   }
   
   void write(file file=stdout, suffix suffix=endl) {
