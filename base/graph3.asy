@@ -69,7 +69,7 @@ triple ticklabelshift(triple align, pen p=currentpen)
 
 // Signature of routines that draw labelled paths with ticks and tick labels.
 typedef void ticks3(picture, transform3, Label, path3, path3, pen,
-                    arrowbar3, ticklocate, int[], bool opposite=false,
+                    arrowbar3, margin3, ticklocate, int[], bool opposite=false,
                     bool primary=true);
 
 // Label a tick on a frame.
@@ -161,8 +161,8 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
               real Size=0, real size=0, bool extend=false,
               pen pTick=nullpen, pen ptick=nullpen)
 {
-  return new void(picture pic, transform3 t, Label L,
-                  path3 g, path3 g2, pen p, arrowbar3 arrow, ticklocate locate,
+  return new void(picture pic, transform3 t, Label L, path3 g, path3 g2, pen p,
+                  arrowbar3 arrow, margin3 margin, ticklocate locate,
                   int[] divisor, bool opposite, bool primary) {
     // Use local copy of context variables:
     int Sign=opposite ? -1 : 1;
@@ -214,7 +214,7 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
     }
 
     begingroup3(pic);
-    if(primary) draw(pic,G,p,arrow);
+    if(primary) draw(pic,margin(G,p).g,p,arrow);
     else draw(pic,G,p);
 
     for(int i=(begin ? 0 : 1); i < (end ? Ticks.length : Ticks.length-1); ++i) {
@@ -254,7 +254,8 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
               pen pTick=nullpen, pen ptick=nullpen)
 {
   return new void(picture pic, transform3 T, Label L,
-                  path3 g, path3 g2, pen p, arrowbar3 arrow, ticklocate locate,
+                  path3 g, path3 g2, pen p,
+                  arrowbar3 arrow, margin3 margin=NoMargin3, ticklocate locate,
                   int[] divisor, bool opposite, bool primary) {
     path3 G=T*g;
     real limit=Step == 0 ? axiscoverage*arclength(G) : 0;
@@ -265,17 +266,17 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
                                            opposite));
     Ticks3(sign,F,ticklabel,beginlabel,endlabel,values.major,values.minor,
            values.N,begin,end,Size,size,extend,pTick,ptick)
-      (pic,T,L,g,g2,p,arrow,locate,divisor,opposite,primary);
+      (pic,T,L,g,g2,p,arrow,margin,locate,divisor,opposite,primary);
   };
 }
 
 ticks3 NoTicks3()
 {
   return new void(picture pic, transform3 T, Label L, path3 g,
-                  path3, pen p, arrowbar3 arrow, ticklocate, int[],
-                  bool opposite, bool primary) {
+                  path3, pen p, arrowbar3 arrow, margin3 margin,
+                  ticklocate, int[], bool opposite, bool primary) {
     path3 G=T*g;
-    if(primary) draw(pic,G,p,arrow);
+    if(primary) draw(pic,margin(G,p).g,p,arrow,margin);
     else draw(pic,G,p);
     if(L.s != "" && primary) {
       Label L=L.copy();
@@ -463,8 +464,8 @@ XYZero=XYZero();
 // Draw a general three-dimensional axis.
 void axis(picture pic=currentpicture, Label L="", path3 g, path3 g2=nullpath3,
           pen p=currentpen, ticks3 ticks, ticklocate locate,
-          arrowbar3 arrow=None, int[] divisor=new int[], bool above=false,
-          bool opposite=false) 
+          arrowbar3 arrow=None, margin3 margin=NoMargin3,
+          int[] divisor=new int[], bool above=false, bool opposite=false) 
 {
   Label L=L.copy();
   real t=reltime(g,0.5);
@@ -474,7 +475,7 @@ void axis(picture pic=currentpicture, Label L="", path3 g, path3 g2=nullpath3,
   
   pic.add(new void (picture f, transform3 t, transform3 T, triple, triple) {
       picture d;
-      ticks(d,t,L,g,g2,p,arrow,locate,divisor,opposite,true);
+      ticks(d,t,L,g,g2,p,arrow,margin,locate,divisor,opposite,true);
       add(f,t*T*inverse(t)*d);
     },above=above);
   
@@ -514,7 +515,8 @@ private triple defaultdir(triple X, triple Y, triple Z, bool opposite=false,
 // An internal routine to draw an x axis at a particular y value.
 void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
               real xmin=-infinity, real xmax=infinity, pen p=currentpen,
-              ticks3 ticks=NoTicks3, arrowbar3 arrow=None, bool above=true,
+              ticks3 ticks=NoTicks3,
+              arrowbar3 arrow=None, margin3 margin=NoMargin3, bool above=true,
               bool opposite=false, bool opposite2=false, bool primary=true)
 {
   int type=axis.type;
@@ -553,7 +555,7 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
             b += fuzz;
 
             picture d;
-            ticks(d,t,L,a--b,finite(y2) ? a2--b2 : nullpath3,p,arrow,
+            ticks(d,t,L,a--b,finite(y2) ? a2--b2 : nullpath3,p,arrow,margin,
                   ticklocate(a.x,b.x,pic.scale.x,Dir(dir)),divisor,
                   opposite,primary);
             add(f,t*T*tinv*d);
@@ -601,7 +603,7 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
     if(finite(a) && finite(b)) {
       picture d;
       ticks(d,pic.scaling3(warn=false),L,
-            (a.x,0,0)--(b.x,0,0),(a2.x,0,0)--(b2.x,0,0),p,arrow,
+            (a.x,0,0)--(b.x,0,0),(a2.x,0,0)--(b2.x,0,0),p,arrow,margin,
             ticklocate(a.x,b.x,pic.scale.x,Dir(dir)),divisor,
             opposite,primary);
       frame f;
@@ -635,7 +637,8 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
 // An internal routine to draw an x axis at a particular y value.
 void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
               real ymin=-infinity, real ymax=infinity, pen p=currentpen,
-              ticks3 ticks=NoTicks3, arrowbar3 arrow=None, bool above=true,
+              ticks3 ticks=NoTicks3,
+              arrowbar3 arrow=None, margin3 margin=NoMargin3, bool above=true,
               bool opposite=false, bool opposite2=false, bool primary=true)
 {
   int type=axis.type;
@@ -674,7 +677,7 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
             b += fuzz;
 
             picture d;
-            ticks(d,t,L,a--b,finite(x2) ? a2--b2 : nullpath3,p,arrow,
+            ticks(d,t,L,a--b,finite(x2) ? a2--b2 : nullpath3,p,arrow,margin,
                   ticklocate(a.y,b.y,pic.scale.y,Dir(dir)),divisor,
                   opposite,primary);
             add(f,t*T*tinv*d);
@@ -722,7 +725,7 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
     if(finite(a) && finite(b)) {
       picture d;
       ticks(d,pic.scaling3(warn=false),L,
-            (0,a.y,0)--(0,b.y,0),(0,a2.y,0)--(0,a2.y,0),p,arrow,
+            (0,a.y,0)--(0,b.y,0),(0,a2.y,0)--(0,a2.y,0),p,arrow,margin,
             ticklocate(a.y,b.y,pic.scale.y,Dir(dir)),divisor,
             opposite,primary);
       frame f;
@@ -756,7 +759,8 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
 // An internal routine to draw an x axis at a particular y value.
 void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
               real zmin=-infinity, real zmax=infinity, pen p=currentpen,
-              ticks3 ticks=NoTicks3, arrowbar3 arrow=None, bool above=true,
+              ticks3 ticks=NoTicks3,
+              arrowbar3 arrow=None, margin3 margin=NoMargin3, bool above=true,
               bool opposite=false, bool opposite2=false, bool primary=true)
 {
   int type=axis.type;
@@ -795,7 +799,7 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
             b += fuzz;
 
             picture d;
-            ticks(d,t,L,a--b,finite(x2) ? a2--b2 : nullpath3,p,arrow,
+            ticks(d,t,L,a--b,finite(x2) ? a2--b2 : nullpath3,p,arrow,margin,
                   ticklocate(a.z,b.z,pic.scale.z,Dir(dir)),divisor,
                   opposite,primary);
             add(f,t*T*tinv*d);
@@ -843,7 +847,7 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
     if(finite(a) && finite(b)) {
       picture d;
       ticks(d,pic.scaling3(warn=false),L,
-            (0,0,a.z)--(0,0,b.z),(0,0,a2.z)--(0,0,a2.z),p,arrow,
+            (0,0,a.z)--(0,0,b.z),(0,0,a2.z)--(0,0,a2.z),p,arrow,margin,
             ticklocate(a.z,b.z,pic.scale.z,Dir(dir)),divisor,
             opposite,primary);
       frame f;
@@ -902,7 +906,8 @@ void autoscale3(picture pic=currentpicture, axis axis)
 // Draw an x axis in three dimensions.
 void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
             real xmin=-infinity, real xmax=infinity, pen p=currentpen,
-            ticks3 ticks=NoTicks3, arrowbar3 arrow=None, bool above=false)
+            ticks3 ticks=NoTicks3,
+            arrowbar3 arrow=None, margin3 margin=NoMargin3, bool above=false)
 {
   if(xmin > xmax) return;
   
@@ -962,20 +967,21 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
     back=dot((0,pic.userMax.y-pic.userMin.y,0),v)*sgn(v.z) > 0;
   }
 
-  xaxis3At(pic,L,axis,xmin,xmax,p,ticks,arrow,above,false,false,!back);
+  xaxis3At(pic,L,axis,xmin,xmax,p,ticks,arrow,margin,above,false,false,!back);
   if(axis.type == Both)
-    xaxis3At(pic,L,axis,xmin,xmax,p,ticks,arrow,above,true,false,back);
+    xaxis3At(pic,L,axis,xmin,xmax,p,ticks,arrow,margin,above,true,false,back);
   if(axis.type2 == Both) {
-    xaxis3At(pic,L,axis,xmin,xmax,p,ticks,arrow,above,false,true,false);
+    xaxis3At(pic,L,axis,xmin,xmax,p,ticks,arrow,margin,above,false,true,false);
     if(axis.type == Both)
-      xaxis3At(pic,L,axis,xmin,xmax,p,ticks,arrow,above,true,true,false);
+      xaxis3At(pic,L,axis,xmin,xmax,p,ticks,arrow,margin,above,true,true,false);
   }
 }
 
 // Draw a y axis in three dimensions.
 void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
             real ymin=-infinity, real ymax=infinity, pen p=currentpen,
-            ticks3 ticks=NoTicks3, arrowbar3 arrow=None, bool above=false)
+            ticks3 ticks=NoTicks3,
+            arrowbar3 arrow=None, margin3 margin=NoMargin3, bool above=false)
 {
   if(ymin > ymax) return;
 
@@ -1036,20 +1042,21 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
     back=dot((pic.userMax.x-pic.userMin.x,0,0),v)*sgn(v.z) > 0;
   }
 
-  yaxis3At(pic,L,axis,ymin,ymax,p,ticks,arrow,above,false,false,!back);
+  yaxis3At(pic,L,axis,ymin,ymax,p,ticks,arrow,margin,above,false,false,!back);
 
   if(axis.type == Both)
-    yaxis3At(pic,L,axis,ymin,ymax,p,ticks,arrow,above,true,false,back);
+    yaxis3At(pic,L,axis,ymin,ymax,p,ticks,arrow,margin,above,true,false,back);
   if(axis.type2 == Both) {
-    yaxis3At(pic,L,axis,ymin,ymax,p,ticks,arrow,above,false,true,false);
+    yaxis3At(pic,L,axis,ymin,ymax,p,ticks,arrow,margin,above,false,true,false);
     if(axis.type == Both)
-      yaxis3At(pic,L,axis,ymin,ymax,p,ticks,arrow,above,true,true,false);
+      yaxis3At(pic,L,axis,ymin,ymax,p,ticks,arrow,margin,above,true,true,false);
   }
 }
 // Draw a z axis in three dimensions.
 void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
             real zmin=-infinity, real zmax=infinity, pen p=currentpen,
-            ticks3 ticks=NoTicks3, arrowbar3 arrow=None, bool above=false)
+            ticks3 ticks=NoTicks3,
+            arrowbar3 arrow=None, margin3 margin=NoMargin3, bool above=false)
 {
   if(zmin > zmax) return;
 
@@ -1109,13 +1116,13 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
     back=dot((pic.userMax.x-pic.userMin.x,0,0),v)*sgn(v.y) > 0;
   }
 
-  zaxis3At(pic,L,axis,zmin,zmax,p,ticks,arrow,above,false,false,!back);
+  zaxis3At(pic,L,axis,zmin,zmax,p,ticks,arrow,margin,above,false,false,!back);
   if(axis.type == Both)
-    zaxis3At(pic,L,axis,zmin,zmax,p,ticks,arrow,above,true,false,back);
+    zaxis3At(pic,L,axis,zmin,zmax,p,ticks,arrow,margin,above,true,false,back);
   if(axis.type2 == Both) {
-    zaxis3At(pic,L,axis,zmin,zmax,p,ticks,arrow,above,false,true,false);
+    zaxis3At(pic,L,axis,zmin,zmax,p,ticks,arrow,margin,above,false,true,false);
     if(axis.type == Both)
-      zaxis3At(pic,L,axis,zmin,zmax,p,ticks,arrow,above,true,true,false);
+      zaxis3At(pic,L,axis,zmin,zmax,p,ticks,arrow,margin,above,true,true,false);
   }
 }
 
@@ -1154,11 +1161,11 @@ void axes3(picture pic=currentpicture,
            Label xlabel="", Label ylabel="", Label zlabel="", 
            triple min=(-infinity,-infinity,-infinity),
            triple max=(infinity,infinity,infinity),
-           pen p=currentpen, arrowbar3 arrow=None)
+           pen p=currentpen, arrowbar3 arrow=None, margin3 margin=NoMargin3)
 {
-  xaxis3(pic,xlabel,min.x,max.x,p,arrow);
-  yaxis3(pic,ylabel,min.y,max.y,p,arrow);
-  zaxis3(pic,zlabel,min.z,max.z,p,arrow);
+  xaxis3(pic,xlabel,min.x,max.x,p,arrow,margin);
+  yaxis3(pic,ylabel,min.y,max.y,p,arrow,margin);
+  zaxis3(pic,zlabel,min.z,max.z,p,arrow,margin);
 }
 
 triple Scale(picture pic=currentpicture, triple v)
@@ -1817,8 +1824,8 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
 
 picture vectorfield(path3 vector(pair z), triple f(pair z),
                     pair a, pair b, int nx=nmesh, int ny=nx,
-                    bool autoscale=true,
-                    pen p=currentpen, arrowbar3 arrow=Arrow3)
+                    bool autoscale=true, pen p=currentpen,
+                    arrowbar3 arrow=Arrow3, margin3 margin=PenMargin3)
 {
   picture pic;
   real dx=1/nx;
@@ -1843,7 +1850,7 @@ picture vectorfield(path3 vector(pair z), triple f(pair z),
     for(int j=0; j <= ny; ++j) {
       real y=interp(a.y,b.y,j*dy);
       pair z=(x,y);
-      draw(pic,shift(f(z))*scale3(scale)*vector(z),p,arrow);
+      draw(pic,shift(f(z))*scale3(scale)*vector(z),p,arrow,margin);
     }
   }
   return pic;
