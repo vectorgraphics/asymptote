@@ -188,8 +188,8 @@ void grid3(picture pic=currentpicture,
                               begin=begin,end=end,
                               Size=0,size=0,extend=true,
                               pTick=pGrid,ptick=pgrid);
-          ticks(d,t,"",gt.axea,gt.axeb,nullpen,None,gt.locate,gt.bds.divisor,
-                opposite=true,primary=false);
+          ticks(d,t,"",gt.axea,gt.axeb,nullpen,None,NoMargin3,gt.locate,
+                gt.bds.divisor,opposite=true,primary=false);
           add(f,t*T*inverse(t)*d);
         },above=above);
       addPath(pic,gt.axea,pGrid);
