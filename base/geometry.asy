@@ -1,5 +1,5 @@
 // Copyright (c) 2007, Philippe Ivaldi.
-// Version: : geometry_pi.asy,v 0.1 2007/09/01 Philippe Ivaldi Exp $
+// Version: : geometry.asy,v 0.1 2007/09/01 Philippe Ivaldi Exp $
 
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,21 +16,15 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 // 02110-1301, USA.
 
-// Commentary:
-// Extension du paquet geometry.asy
-// Extension of the package geometry.asy
+// COMMENTARY:
+// An Asymptote geometry module.
 
 // THANKS:
-
 // Special thanks to Olivier Guibé for his help in mathematical issues.
 
 // BUGS:
 
-// INSTALLATION:
-// Copier ce fichier dans le sous-répertoire HOME/.asy
-// Paste this file in the sub-directory HOME/.asy
-
-// Code:
+// CODE:
 
 import math;
 import markers;
