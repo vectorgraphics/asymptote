@@ -9,7 +9,7 @@ This file documents @code{Asymptote}, version @value{VERSION}.
 
 @url{http://asymptote.sourceforge.net}
      
-Copyright @copyright{} 2004-8 Andy Hammerlindl, John Bowman, and Tom Prince.
+Copyright @copyright{} 2004-9 Andy Hammerlindl, John Bowman, and Tom Prince.
      
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -128,6 +128,7 @@ Base modules
 * math::                        Extend @code{Asymptote}'s math capabilities
 * interpolate::                 Interpolation routines
 * geometry::                    Geometry routines
+* trembling::                   Wavy lines
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
 * markers::                     Custom path marker routines
@@ -3231,7 +3232,7 @@ previous @code{shipout} commands have been executed.
 The default page orientation is @code{Portrait}; this may be modified
 by changing the variable @code{orientation}. To output in landscape
 mode, simply set the variable @code{orientation=Landscape} or issue
-with the @code{-f} optionthe command 
+the command 
 @verbatim
 shipout(Landscape);
 @end verbatim
@@ -5880,6 +5881,7 @@ Here now is @code{latexusage.tex}:
 * math::                        Extend @code{Asymptote}'s math capabilities
 * interpolate::                 Interpolation routines
 * geometry::                    Geometry routines
+* trembling::                   Wavy lines
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
 * markers::                     Custom path marker routines
@@ -5987,8 +5989,19 @@ This module, written by Philippe Ivaldi, provides an extensive set of
 geometry routines, including @code{perpendicular} symbols and a @code{triangle}
 structure. It is documented here:
 @url{http://piprim.tuxfamily.org/asymptote/geometry_en.pdf},
-including an extensive set of examples:
-@url{http://piprim.tuxfamily.org/asymptote/travaux/}.
+including an extensive set of examples,
+@url{http://piprim.tuxfamily.org/asymptote/travaux/}, and an index:
+@quotation
+@url{http://piprim.tuxfamily.org/asymptote/travaux/modules/geometry_dev.asy.index.type.html}
+@end quotation
+
+@node trembling
+@section @code{trembling}
+@cindex @code{trembling}
+This module, written by Philippe Ivaldi and illustrated in the example
+@code{floatingdisk.asy}, allows one to draw wavy lines, as if drawn by
+hand. Further examples are posted at 
+@url{http://piprim.tuxfamily.org/asymptote/modules}
 
 @node stats
 @section @code{stats}
@@ -9103,4 +9116,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
 @c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
 @c  LocalWords:  dvipdfmx autoadjust viewportsize viewportwidth viewportheight
-@c  LocalWords:  subregions nonsimply
+@c  LocalWords:  subregions nonsimply functionshade xetex shader floatingdisk
+@c  LocalWords:  functionshading
