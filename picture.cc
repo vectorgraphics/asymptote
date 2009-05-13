@@ -707,6 +707,7 @@ struct Communicate : public gc {
   double angle;
   triple m;
   triple M;
+  double *t;
   size_t nlights;
   triple *lights;
   double *diffuse;
@@ -722,7 +723,7 @@ void glrenderWrapper()
 {
 #ifdef HAVE_LIBGL  
   glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
-           com.m,com.M,com.nlights,com.lights,com.diffuse,com.ambient,
+           com.m,com.M,com.t,com.nlights,com.lights,com.diffuse,com.ambient,
            com.specular,com.viewportlighting,com.view);
 #endif  
 }
@@ -732,9 +733,9 @@ extern bool glinitialize;
 bool picture::shipout3(const string& prefix, const string& format,
                        double width, double height,
                        double angle, const triple& m, const triple& M,
-                       size_t nlights, triple *lights, double *diffuse,
-                       double *ambient, double *specular, bool viewportlighting,
-                       bool view)
+                       double *t, size_t nlights, triple *lights,
+                       double *diffuse, double *ambient, double *specular,
+                       bool viewportlighting, bool view)
 {
 #ifdef HAVE_LIBGL
   bounds3();
@@ -761,6 +762,7 @@ bool picture::shipout3(const string& prefix, const string& format,
       com.angle=angle;
       com.m=m;
       com.M=M;
+      com.t=t;
       com.nlights=nlights;
       com.lights=lights;
       com.diffuse=diffuse;
@@ -794,7 +796,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   if(glthread && !interact::interactive)
     pthread_mutex_lock(&quitLock);
 #endif  
-  glrender(prefix,this,outputformat,width,height,angle,m,M,
+  glrender(prefix,this,outputformat,width,height,angle,m,M,t,
            nlights,lights,diffuse,ambient,specular,viewportlighting,View,
            oldpid);
 #ifdef HAVE_LIBPTHREAD

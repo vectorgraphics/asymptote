@@ -93,7 +93,7 @@ public:
               bool transparent) const;
   bool shipout3(const string& prefix, const string& format,
                 double width, double height, double angle, const triple& m,
-                const triple& M, size_t nlights, triple *lights,
+                const triple& M, double *t, size_t nlights, triple *lights,
                 double *diffuse, double *ambient, double *specular,
                 bool viewportlighting, bool view);
   

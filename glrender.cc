@@ -76,6 +76,8 @@ int maxHeight;
 int maxTileWidth;
 int maxTileHeight;
 
+double *T;
+
 bool Xspin,Yspin,Zspin;
 bool Menu;
 bool Motion;
@@ -114,7 +116,6 @@ double Zoom;
 double lastzoom;
 
 GLfloat Rotate[16];
-GLfloat Modelview[16];
 Arcball arcball;
   
 GLUnurbs *nurb;
@@ -285,7 +286,6 @@ void update()
   glTranslatef(0,0,cz);
   glMultMatrixf(Rotate);
   glTranslatef(0,0,-cz);
-  glGetFloatv(GL_MODELVIEW_MATRIX,Modelview);
   setProjection();
   glutPostRedisplay();
 }
@@ -662,6 +662,7 @@ void rotate(int x, int y)
       for(int j=0; j < 4; ++j)
         Rotate[i4+j]=roti[j];
     }
+    
     update();
   }
 }
@@ -908,8 +909,21 @@ void home()
   arcball.init();
   glLoadIdentity();
   glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
-  glGetFloatv(GL_MODELVIEW_MATRIX,Modelview);
   lastzoom=Zoom=1.0;
+}
+
+void camera() 
+{
+  double cz=0.5*(zmin+zmax);
+  cout << "(";
+    for(int i=0; i < 3; ++i) {
+      double sum=0.0;
+      for(int j=0; j < 4; ++j)
+        sum += T[4*i+j]*(Rotate[4*j+3]-cz*Rotate[4*j+2]);
+      cout << sum;
+      if(i < 2) cout << ",";
+    }
+    cout << ")" << endl;
 }
 
 void keyboard(unsigned char key, int x, int y)
@@ -940,6 +954,9 @@ void keyboard(unsigned char key, int x, int y)
     case 'e':
       LockedExport();
       break;
+    case 'c':
+      camera();
+      break;
     case '+':
     case '=':
       expand();
@@ -956,7 +973,7 @@ void keyboard(unsigned char key, int x, int y)
   }
 }
  
-enum Menu {HOME,FITSCREEN,XSPIN,YSPIN,ZSPIN,STOP,MODE,EXPORT,QUIT};
+enum Menu {HOME,FITSCREEN,XSPIN,YSPIN,ZSPIN,STOP,MODE,EXPORT,CAMERA,QUIT};
 
 void menu(int choice)
 {
@@ -987,6 +1004,9 @@ void menu(int choice)
       break;
     case EXPORT:
       queueExport=true;
+      break;
+    case CAMERA:
+      camera();
       break;
     case QUIT:
       quit();
@@ -1020,7 +1040,7 @@ void init()
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
               double width, double height,
-              double angle, const triple& m, const triple& M,
+              double angle, const triple& m, const triple& M, double *t,
               size_t nlights, triple *lights, double *diffuse,
               double *ambient, double *specular, bool Viewportlighting,
               bool view, int oldpid)
@@ -1039,6 +1059,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Prefix=prefix;
   Picture=pic;
   Format=format;
+  T=t;
   Nlights=min(nlights,(size_t) GL_MAX_LIGHTS);
   Lights=lights;
   Diffuse=diffuse;
@@ -1242,6 +1263,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutAddMenuEntry("(s) Stop",STOP);
     glutAddMenuEntry("(m) Mode",MODE);
     glutAddMenuEntry("(e) Export",EXPORT);
+    glutAddMenuEntry("(c) Camera",CAMERA);
     glutAddMenuEntry("(q) Quit" ,QUIT);
   
     glutAttachMenu(GLUT_MIDDLE_BUTTON);

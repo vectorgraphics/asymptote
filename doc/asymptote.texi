@@ -7468,6 +7468,7 @@ The keyboard shortcuts are:
 @item s: stop spinning
 @item m: rendering mode (solid/mesh/patch)
 @item e: export
+@item c: display camera position
 @item +: expand
 @item =: expand
 @item -: shrink

@@ -2339,6 +2339,8 @@ object embed(string label="", string text=label,
   object F;
   real xsize3=pic.xsize3, ysize3=pic.ysize3, zsize3=pic.zsize3;
   bool warn=true;
+  transform3 modelview;
+        
   if(xsize3 == 0 && ysize3 == 0 && zsize3 == 0) {
     xsize3=ysize3=zsize3=max(xsize,ysize);
     warn=false;
@@ -2350,16 +2352,14 @@ object embed(string label="", string text=label,
     draw(pic,P.target,nullpen);
 
   transform3 t=pic.scaling(xsize3,ysize3,zsize3,keepAspect,warn);
-  transform3 tinv;
-  triple m,M;
   bool adjusted=false;
+  transform3 tinv=inverse(t);
+  triple m=pic.min(t);
+  triple M=pic.max(t);
 
   if(!P.absolute) {
     P=t*P;
     if(P.autoadjust || P.center) {
-      tinv=inverse(t);
-      m=pic.min(t);
-      M=pic.max(t);
       bool recalculate=false;
       if(P.center || P.target.x < m.x ||
          P.target.y < m.y ||
@@ -2384,6 +2384,7 @@ object embed(string label="", string text=label,
   if(!pic.bounds3.exact) {
     transform3 s=pic.scale3(f,xsize3,ysize3,zsize3,keepAspect);
     t=s*t;
+    tinv=inverse(t);
     P=s*P;
     f=pic.fit3(t,pic2,P);
   }
@@ -2420,20 +2421,10 @@ object embed(string label="", string text=label,
       if(P.autoadjust || P.infinity)
         adjusted=adjusted | P.adjust(min3(f),max3(f));
 
-      if(adjusted && !P.infinity) {
-        transform3 tinv=inverse(t);
-        triple camera=tinv*P.camera;
-        real inv(real x) {return x != 0 ? 1/x : 1;}
-        if(!keepAspect) {
-          triple target=tinv*P.target;
-          camera=target+abs(camera-target)*
-            unit(realmult((inv(M.x-m.x),inv(M.y-m.y),inv(M.z-m.z)),
-                          unit(camera-target)));
-          }
-        write("adjusting camera to ",camera);
-      }
+      if(adjusted && !P.infinity)
+        write("adjusting camera to ",tinv*P.camera);
 
-      transform3 modelview=P.modelview();
+      modelview=P.modelview();
       f=modelview*f;
       P=modelview*P;
       Q=P.copy();
@@ -2486,8 +2477,8 @@ object embed(string label="", string text=label,
       preview=false;
     if(preview || (!prc && settings.render != 0)) {
       frame f=f;
-      transform3 modelview;
       triple m,M;
+      real zcenter;
       if(P.absolute) {
         modelview=P.modelview();
         f=modelview*f;
@@ -2496,13 +2487,13 @@ object embed(string label="", string text=label,
         m=min3(f);
         M=max3(f);
         real r=0.5*abs(M-m);
-        real zcenter=0.5*(M.z+m.z);
+        zcenter=0.5*(M.z+m.z);
         M=(M.x,M.y,zcenter+r);
         m=(m.x,m.y,zcenter-r);
       } else {
         m=min3(f);
         M=max3(f);
-        real zcenter=P.target.z;
+        zcenter=P.target.z;
         real d=P.distance(m,M);
         M=(M.x,M.y,zcenter+d);
         m=(m.x,m.y,zcenter-d);
@@ -2519,6 +2510,7 @@ object embed(string label="", string text=label,
       shipout3(prefix,f,preview ? nativeformat() : format,
                width+2*viewportmargin.x,height+2*viewportmargin.y,
                P.infinity ? 0 : angle,m,M,
+               tinv*inverse(modelview)*shift(0,0,zcenter),
                P.absolute ? (modelview*light).position : light.position,
                light.diffuse,light.ambient,light.specular,
                light.viewport,view && !preview);
