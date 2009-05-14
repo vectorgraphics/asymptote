@@ -210,7 +210,6 @@ path[] bezulate(path[] p)
   for(int i=0; i < result.length; ++i) {
     path p=result[i];
     int refinements=0;
-    static int maxR=ceil(-log(realEpsilon)/log(2))+1;
     if(size(p) <= 1) return p;
     if(!cyclic(p))
       abort("path must be cyclic and nonselfintersecting.");
@@ -242,7 +241,7 @@ path[] bezulate(path[] p)
           if(!found && k == SIZE_STEPS && length(p) > 4 && i == length(p)-1) {
             // avoid infinite recursion
             ++refinements;
-            if(refinements > maxR) {
+            if(refinements > mantissaBits) {
               write("warning: too many subdivisions");
             } else {
               p=subdivide(p);
