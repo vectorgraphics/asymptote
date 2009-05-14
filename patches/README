@@ -29,3 +29,6 @@ up-to-date with the latest official 2008/10/08 version. For convenience the
 patched version is also included as movie15_dvipdfmx.sty; it should be
 renamed to movie15.sty and installed in the local latex directory.
 
+The file movie15_20090323.patch works around a problem with 3Dgetview that
+shows up under Windows XP in the 2009/03/23 version of movie15.sty.
+

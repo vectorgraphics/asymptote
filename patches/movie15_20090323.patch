@@ -1,0 +1,11 @@
+--- old/movie15.sty	2009-05-14 16:21:46.437500000 -0700
++++ movie15.sty	2009-05-14 17:09:00.984375000 -0700
+@@ -2796,7 +2796,7 @@
+                   var spc=String.fromCharCode(32);%
+                   var nl=String.fromCharCode(10);%
+                   var charht=2;%
+-                  var res='VIEW\%={<insert descriptive name here (optional)>}'+nl;%
++                  var res='VIEW\%={<insert\ descriptive\ name\ here\ (optional)>}'+nl;%
+                   var x = (Math.abs(coo.x) < 1e-12 ? 0 : coo.x);%
+                   var y = (Math.abs(coo.y) < 1e-12 ? 0 : coo.y);%
+                   var z = (Math.abs(coo.z) < 1e-12 ? 0 : coo.z);%
