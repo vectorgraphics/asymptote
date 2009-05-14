@@ -1,5 +1,5 @@
 /* Pipestream: A simple C++ interface to UNIX pipes
-   Version 0.02
+   Version 0.03
    Copyright (C) 2005-2009 John C. Bowman
 
    This program is free software; you can redistribute it and/or modify
@@ -73,35 +73,47 @@ public:
     }
     cout.flush(); // Flush stdout to avoid duplicate output.
     
-    if((pid=fork()) < 0) {
-      ostringstream buf;
-      buf << "fork failed: " << command << endl;
-      camp::reportError(buf);
+    int wrapperpid;
+    
+    // Portable way of forking that avoids zombie child processes
+    if((wrapperpid=fork()) < 0) {
+      cerr << "fork failed: " << command << endl;
+      exit(-1);
     }
     
-    if(pid == 0) { 
-      if(interact::interactive) signal(SIGINT,SIG_IGN);
-      close(in[1]);
-      close(out[0]);
-      close(STDIN_FILENO);
-      close(out_fileno);
-      dup2(in[0],STDIN_FILENO);
-      dup2(out[1],out_fileno);
-      close(in[0]);
+    if(wrapperpid == 0) {
+      if((pid=fork()) < 0) {
+        ostringstream buf;
+        buf << "fork failed: " << command << endl;
+        camp::reportError(buf);
+      }
+    
+      if(pid == 0) { 
+        if(interact::interactive) signal(SIGINT,SIG_IGN);
+        close(in[1]);
+        close(out[0]);
+        close(STDIN_FILENO);
+        close(out_fileno);
+        dup2(in[0],STDIN_FILENO);
+        dup2(out[1],out_fileno);
+        close(in[0]);
+        close(out[1]);
+        char **argv=args(command);
+        if(argv) execvp(argv[0],argv);
+        execError(command,hint,application);
+        kill(0,SIGTERM);
+        _exit(-1);
+      }
+      _exit(0);
+    } else {
       close(out[1]);
-      char **argv=args(command);
-      if(argv) execvp(argv[0],argv);
-      execError(command,hint,application);
-      kill(0,SIGTERM);
-      _exit(-1);
+      close(in[0]);
+      *buffer=0;
+      pipeopen=true;
+      waitpid(wrapperpid,NULL,0);
     }
-    close(out[1]);
-    close(in[0]);
-    *buffer=0;
-    pipeopen=true;
-    waitpid(pid,NULL,WNOHANG);
   }
-
+  
   bool isopen() {return pipeopen;}
   
   iopipestream(): pid(0), pipeopen(false) {}
