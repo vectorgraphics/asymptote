@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ(2)
-AC_INIT([Asymptote],[1.71svn],[http://sourceforge.net/projects/asymptote])
+AC_INIT([Asymptote],[1.71],[http://sourceforge.net/projects/asymptote])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 
@@ -222,8 +222,11 @@ case "$OSTYPE" in
      cygwin) AC_CHECK_HEADER(GL/glut.h,
                                 [AC_DEFINE(HAVE_LIBGLUT, 1,
 		   [Define if you have the `freeglut' library (-lfreeglut).])
-			   LIBS=$LIBS"-lfreeglut -lglu32 -lopengl32 "],
+			   LIBS=$LIBS"-lfreeglut -lopengl32 "],
 				 AC_MSG_NOTICE([*** Could not find freeglut: will compile without OpenGL support ***]))
+             AC_CHECK_LIB([GLU], [gluNewNurbsRenderer],[AC_DEFINE(HAVE_LIBGLU, 1,
+                   [Define to 1 if you have the 'glu32' library (-lglu32). ]) LIBS=$LIBS"-lglu32 "],
+             AC_MSG_NOTICE([*** Could not find libglu32: will compile without OpenGL support ***]))
         ;;                                 
      darwin*) AC_CHECK_HEADER(GLUT/glut.h,
                                 [AC_DEFINE(HAVE_LIBGLUT, 1,
@@ -240,12 +243,14 @@ void f(void) {
 ]),[AC_DEFINE(GLU_TESS_CALLBACK_TRIPLEDOT, 1, [Define if gluNurbsCallback expects a variadic function.])])
 			   LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa"],
 				 AC_MSG_NOTICE([*** Could not find glut: will compile without OpenGL support ***]))
+             AC_CHECK_LIB([GLU], [gluNewNurbsRenderer],[AC_DEFINE(HAVE_LIBGLU, 1,
+                   [Define to 1 if you have the 'GLU' library. ])],
+             AC_MSG_NOTICE([*** Could not find libGLU: will compile without OpenGL support ***]))
         ;;                                 
      *) AC_CHECK_LIB([glut], [glutMainLoop],,
-				 AC_MSG_NOTICE([*** Could not find glut: will compile without OpenGL support ***]))
+				 AC_MSG_NOTICE([*** Could not find libglut: will compile without OpenGL support ***]))
         AC_CHECK_LIB([GLU], [gluNewNurbsRenderer],,
- 				 AC_MSG_NOTICE([*** Could not find GLU: will compile without OpenGL support ***]))
-        ;;                                 
+ 				 AC_MSG_NOTICE([*** Could not find libGLU: will compile without OpenGL support ***]))
 esac
 
 
