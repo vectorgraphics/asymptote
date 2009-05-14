@@ -231,6 +231,8 @@ case "$OSTYPE" in
      darwin*) AC_CHECK_HEADER(GLUT/glut.h,
                                 [AC_DEFINE(HAVE_LIBGLUT, 1,
 		   [Define if you have the `glut' library (-lglut).])
+              AC_DEFINE(HAVE_LIBGLU, 1,
+                   [Define to 1 if you have the 'GLU' library. ])
 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
@@ -243,9 +245,6 @@ void f(void) {
 ]),[AC_DEFINE(GLU_TESS_CALLBACK_TRIPLEDOT, 1, [Define if gluNurbsCallback expects a variadic function.])])
 			   LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa"],
 				 AC_MSG_NOTICE([*** Could not find glut: will compile without OpenGL support ***]))
-             AC_CHECK_LIB([GLU], [gluNewNurbsRenderer],[AC_DEFINE(HAVE_LIBGLU, 1,
-                   [Define to 1 if you have the 'GLU' library. ])],
-             AC_MSG_NOTICE([*** Could not find libGLU: will compile without OpenGL support ***]))
         ;;                                 
      *) AC_CHECK_LIB([glut], [glutMainLoop],,
 				 AC_MSG_NOTICE([*** Could not find libglut: will compile without OpenGL support ***]))
