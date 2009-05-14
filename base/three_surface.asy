@@ -1061,7 +1061,7 @@ surface extrude(path p, triple axis=Z)
       },length(G)));
 }
 
-surface extrude(path[] p, triple axis=Z)
+surface extrude(explicit path[] p, triple axis=Z)
 {
   surface s;
   for(path g:p)
