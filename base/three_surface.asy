@@ -1051,21 +1051,21 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight);
 }
 
-surface extrude(path p, triple elongation=Z)
+surface extrude(path p, triple axis=Z)
 {
   static patch[] allocate;
   path3 G=path3(p);
-  path3 G2=shift(elongation)*G;
+  path3 G2=shift(axis)*G;
   return surface(...sequence(new patch(int i) {
         return patch(subpath(G,i,i+1)--subpath(G2,i+1,i)--cycle);
       },length(G)));
 }
 
-surface extrude(path[] p, triple elongation=Z)
+surface extrude(path[] p, triple axis=Z)
 {
   surface s;
   for(path g:p)
-    s.append(extrude(g,elongation));
+    s.append(extrude(g,axis));
   return s;
 }
 
@@ -1197,16 +1197,15 @@ void label(picture pic=currentpicture, Label L, path3 g, align align=NoAlign,
         -Align*project(dir(g,position),currentprojection.t)*I : L.align);
 }
 
-void label3(picture pic=currentpicture, Label L, triple position,
-            triple elongation, pen p=currentpen, light light=currentlight)
+surface extrude(Label L, triple axis=Z)
 {
   Label L=L.copy();
   path[] g=texpath(L);
-  transform3 t=shift(position);
-  draw(pic,extrude(g,elongation),p,light);
+  surface S=extrude(g,axis);
   surface s=surface(g);
-  draw(pic,t*s,p,light);
-  draw(pic,shift(position+elongation)*s,p,light);
+  S.append(s);
+  S.append(shift(axis)*s);
+  return S;
 }
 
 restricted surface nullsurface;

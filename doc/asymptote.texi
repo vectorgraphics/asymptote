@@ -7400,7 +7400,7 @@ draw(surface((0,0)--E+2N--2E--E+N..0.2E..cycle),red);
 @cindex @code{bezulate}
 Planar Bezier surfaces patches are constructed using Orest Shardt's
 @code{bezulate} routine, which decomposes (possibly nonsimply
-connected) regions bounded by cyclic nonselfintersecting paths
+connected) regions bounded by nonselfintersecting cyclic paths
 (according to the @code{zerowinding} fill rule) into subregions
 bounded by cyclic paths of length @code{4} or less.
 
@@ -7783,6 +7783,16 @@ planar path @code{p} is returned by
 @verbatim
 transform3 planeproject(path3 p, triple dir=normal(p));
 @end verbatim
+
+The functions
+@cindex @code{extrude}
+@verbatim
+surface extrude(path p, triple axis=Z);
+surface extrude(Label L, triple axis=Z);
+@end verbatim
+@noindent
+return the surface obtained by extruding path @code{p} or 
+Label @code{L} along @code{axis}.
 
 @cindex @code{length}
 @cindex @code{size}
