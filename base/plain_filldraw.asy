@@ -1,6 +1,9 @@
 // Draw path g on frame f with user-constructed pen p.
-void makedraw(frame f, path g, pen p)
+void makedraw(frame f, path g, pen p, int depth=mantissaBits)
 {
+  if(depth == 0) return;
+  --depth;
+  
   path n=nib(p);
   for(int i=0; i < size(g); ++i)
     fill(f,shift(point(g,i))*n,p);
@@ -18,15 +21,15 @@ void makedraw(frame f, path g, pen p)
     real t=dirtime(g,-dir);
     if(straight(g,(int) t)) t=ceil(t);
     if(t > epsilon && t < stop) {
-      makedraw(f,subpath(g,0,t),p);
-      makedraw(f,subpath(g,t,L),p);
+      makedraw(f,subpath(g,0,t),p,depth);
+      makedraw(f,subpath(g,t,L),p,depth);
       return;
     }
     real t=dirtime(g,dir);
     if(straight(g,(int) t)) t=ceil(t);
     if(t > epsilon && t < stop) {
-      makedraw(f,subpath(g,0,t),p);
-      makedraw(f,subpath(g,t,L),p);
+      makedraw(f,subpath(g,0,t),p,depth);
+      makedraw(f,subpath(g,t,L),p,depth);
       return;
     }
     n0=n1;
