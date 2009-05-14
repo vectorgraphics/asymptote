@@ -12,8 +12,6 @@
 
 namespace camp {
 
-typedef double Triple[3];
-  
 class drawPath3 : public drawElement {
 protected:
   const path3 g;

@@ -912,18 +912,35 @@ void home()
   lastzoom=Zoom=1.0;
 }
 
-void camera() 
+void write(const char *text, const double *v)
+{
+  cout << text << "=(" << v[0] << "," << v[1] << "," << v[2] << ")";
+}
+
+void camera()
 {
   double cz=0.5*(zmin+zmax);
-  cout << "(";
-    for(int i=0; i < 3; ++i) {
-      double sum=0.0;
-      for(int j=0; j < 4; ++j)
-        sum += T[4*i+j]*(Rotate[4*j+3]-cz*Rotate[4*j+2]);
-      cout << sum;
-      if(i < 2) cout << ",";
+  camp::Triple vCamera,vTarget,vUp;
+  
+  for(int i=0; i < 3; ++i) {
+    double sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
+    for(int j=0; j < 4; ++j) {
+      sumCamera += T[4*i+j]*(Rotate[4*j+3]-cz*Rotate[4*j+2]);
+      sumUp += T[4*i+j]*(Rotate[4*j+3]+Rotate[4*j+1]);
+      sumTarget += T[4*i+j]*Rotate[4*j+3];
     }
-    cout << ")" << endl;
+    vCamera[i]=sumCamera;
+    vUp[i]=sumUp-sumTarget;
+    vTarget[i]=sumTarget;
+  }
+  
+  triple Camera=triple(vCamera);
+  triple Up=triple(vUp);
+  triple Target=triple(vTarget);
+  
+  cout << "camera=" << Camera << "," << endl
+       << "up=" << Up << "," << endl
+       << "target=" << Target << endl << endl;
 }
 
 void keyboard(unsigned char key, int x, int y)

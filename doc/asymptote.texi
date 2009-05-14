@@ -7400,9 +7400,9 @@ draw(surface((0,0)--E+2N--2E--E+N..0.2E..cycle),red);
 @cindex @code{bezulate}
 Planar Bezier surfaces patches are constructed using Orest Shardt's
 @code{bezulate} routine, which decomposes (possibly nonsimply
-connected) regions bounded by cyclic paths (according to the
-@code{zerowinding} fill rule) into subregions bounded by cyclic paths
-of length @code{4} or less.
+connected) regions bounded by cyclic nonselfintersecting paths
+(according to the @code{zerowinding} fill rule) into subregions
+bounded by cyclic paths of length @code{4} or less.
 
 @cindex @code{thin}
 @cindex @code{thick}
@@ -7468,7 +7468,7 @@ The keyboard shortcuts are:
 @item s: stop spinning
 @item m: rendering mode (solid/mesh/patch)
 @item e: export
-@item c: display camera position
+@item c: show camera parameters
 @item +: expand
 @item =: expand
 @item -: shrink
@@ -9118,4 +9118,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
 @c  LocalWords:  dvipdfmx autoadjust viewportsize viewportwidth viewportheight
 @c  LocalWords:  subregions nonsimply functionshade xetex shader floatingdisk
-@c  LocalWords:  functionshading
+@c  LocalWords:  functionshading nonselfintersecting

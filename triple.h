@@ -18,6 +18,8 @@
 
 namespace camp {
 
+typedef double Triple[3];
+  
 class triple : virtual public gc {
   double x;
   double y;
@@ -26,6 +28,7 @@ class triple : virtual public gc {
 public:
   triple() : x(0.0), y(0.0), z(0.0) {}
   triple(double x, double y=0.0, double z=0.0) : x(x), y(y), z(z) {}
+  triple(const Triple& v) : x(v[0]), y(v[1]), z(v[2]) {}
 
   virtual ~triple() {}
   

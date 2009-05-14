@@ -14,8 +14,6 @@
 
 namespace camp {
 
-typedef double Triple[3];
-  
 class drawSurface : public drawElement {
 protected:
   Triple controls[16];
