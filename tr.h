@@ -1,3 +1,7 @@
+/* This file is released under version 2 of the GNU Library General Public
+ * License (see the files LICENSE.LIBRARY and LICENSE).
+ */
+
 /* $Id: tr.h,v 1.5 1997/07/21 17:34:07 brianp Exp $ */
 
 /*

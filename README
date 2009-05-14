@@ -19,9 +19,10 @@ Questions and comments should be sent to the Asymptote Forum:
 
 http://sourceforge.net/forum/forum.php?forum_id=409349
 
-All files in the Asymptote project are released under the 
-GNU Lesser General Public License (see the files LICENSE.LESSER and LICENSE
-in the top-level source directory).
+All files in the Asymptote project, unless explicitly noted otherwise,
+are released under version 3 (or later) of the GNU Lesser General Public
+License (see the files LICENSE.LESSER and LICENSE in the top-level source
+directory).
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
