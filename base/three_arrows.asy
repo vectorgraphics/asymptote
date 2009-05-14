@@ -57,11 +57,12 @@ void render(path3 s, void f(path3, real))
       real S=straightness(z0,c0,c1,z1);
       real R=infinity;
       int nintervals=3;
+      real fuzz=sqrtEpsilon*max(abs(z0),abs(z1));
       if(S > 0) {
         --depth;
         for(int i=0; i <= nintervals; ++i) {
           R=min(R,radius(z0,c0,c1,z1,i/nintervals));
-          if(S > tubegranularity*R) {
+          if(S > max(tubegranularity*R,fuzz)) {
             triple m0=0.5*(z0+c0);
             triple m1=0.5*(c0+c1);
             triple m2=0.5*(c1+z1);
