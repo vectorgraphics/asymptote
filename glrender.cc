@@ -81,6 +81,8 @@ double *T;
 bool Xspin,Yspin,Zspin;
 bool Menu;
 bool Motion;
+bool ignorezoom;
+
 int Fitscreen;
 int Mode;
 
@@ -610,6 +612,7 @@ void disableMenu()
 
 void zoom(int x, int y)
 {
+  if(ignorezoom) {ignorezoom=false; y0=y; return;}
   if(x > 0 && y > 0) {
     if(Menu) {
       disableMenu();
@@ -995,6 +998,7 @@ enum Menu {HOME,FITSCREEN,XSPIN,YSPIN,ZSPIN,STOP,MODE,EXPORT,CAMERA,QUIT};
 void menu(int choice)
 {
   disableMenu();
+  ignorezoom=true;
   Motion=true;
   switch (choice) {
     case HOME: // Home
@@ -1103,6 +1107,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
    
   Menu=false;
   Motion=true;
+  ignorezoom=false;
   Mode=0;
   
   if(!initialized || !interact::interactive) {
