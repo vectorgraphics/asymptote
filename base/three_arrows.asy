@@ -52,7 +52,7 @@ void render(path3 s, void f(path3, real))
 {
   static int maxdepth=ceil(-log(realEpsilon)/log(2))+1;
   void Split(triple z0, triple c0, triple c1, triple z1, real t0=0, real t1=1,
-             real depth=maxdepth) {
+             real depth=mantissaBits) {
     if(depth > 0) {
       real S=straightness(z0,c0,c1,z1);
       real R=infinity;
@@ -368,7 +368,7 @@ arrowhead3 TeXHead2(triple normal=O) {
   h=rotate(-degrees(dir(h,length(h)),warn=false))*h;
   path[] H=TeXHead.head(h,p,size,angle);
   H=forwards ? yscale(-1)*H : H;
-  return a.surface(g,position,size,bezulate(H),p,
+  return a.surface(g,position,size,H,p,
                    filltype == null ? TeXHead.defaultfilltype(p) : filltype,
                    normal,P);
   };

@@ -1061,6 +1061,14 @@ surface extrude(path p, triple elongation=Z)
       },length(G)));
 }
 
+surface extrude(path[] p, triple elongation=Z)
+{
+  surface s;
+  for(path g:p)
+    s.append(extrude(g,elongation));
+  return s;
+}
+
 triple rectify(triple dir) 
 {
   real scale=max(abs(dir.x),abs(dir.y),abs(dir.z));
@@ -1187,6 +1195,18 @@ void label(picture pic=currentpicture, Label L, path3 g, align align=NoAlign,
   label(pic,L,point(g,position),
         alignrelative && determinant(currentprojection.t) != 0 ?
         -Align*project(dir(g,position),currentprojection.t)*I : L.align);
+}
+
+void label3(picture pic=currentpicture, Label L, triple position,
+            triple elongation, pen p=currentpen, light light=currentlight)
+{
+  Label L=L.copy();
+  path[] g=texpath(L);
+  transform3 t=shift(position);
+  draw(pic,extrude(g,elongation),p,light);
+  surface s=surface(g);
+  draw(pic,t*s,p,light);
+  draw(pic,shift(position+elongation)*s,p,light);
 }
 
 restricted surface nullsurface;
