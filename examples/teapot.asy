@@ -2,7 +2,7 @@ import three;
 
 size(20cm);
 
-currentprojection=perspective(250,-250,250,center=true);
+currentprojection=perspective(250,-250,250);
 
 triple[][][] Q={
   {

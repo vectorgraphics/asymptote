@@ -5,7 +5,7 @@ import palette;
 import graph3;
 
 size(300,300,IgnoreAspect);
-currentprojection=orthographic(0,-1,0,center=true);
+currentprojection=orthographic(0,-1,0);
 currentlight=adobe;
 real K=7;
 

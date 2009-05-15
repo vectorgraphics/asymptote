@@ -1,7 +1,7 @@
 import three;
 dotgranularity=0; // Render dots as spheres.
 
-currentprojection=orthographic(5,4,2,center=true);
+currentprojection=orthographic(5,4,2);
 
 size(5cm);
 size3(3cm,5cm,8cm);
