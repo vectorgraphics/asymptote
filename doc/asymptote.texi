@@ -3213,16 +3213,18 @@ by calling the @code{shipout} function:
 @anchor{shipout}
 @cindex @code{shipout}
 @verbatim
-void shipout(string prefix=defaultfilename, picture pic,
+void shipout(string prefix=defaultfilename, picture pic=currentpicture,
              orientation orientation=orientation,
-             string format="", bool wait=false, bool view=true);
-void shipout(string prefix=defaultfilename,
-             orientation orientation=orientation,
-             string format="", bool wait=false, bool view=true);
+             string format="", bool wait=false, bool view=true,
+	     string options="", string script="",
+	     projection P=currentprojection);
 @end verbatim
 @noindent
 The default output format, @code{PostScript}, may be changed
 with the @code{-f} or @code{-tex} command-line options.
+The @code{options}, @code{script}, and @code{projection} parameters
+are only relevant for 3D pictures.
+
 A @code{shipout()} command is added implicitly at file exit if no
 previous @code{shipout} commands have been executed.
 @cindex @code{orientation}
