@@ -829,12 +829,13 @@ yaxis("$y$",RightTicks);
 
 \question 27jun:functioncolor How can I fill a path with a function that defines the color of each location?
 
-General function shading is only supported by PDF, not PostScript, so this 
-will have to wait until we produce PDF code directly. 
+Use \courier{functionshade\} with a PDF tex engine, as illustrated
+by the example {functionshading.asy}.
  
-An approximate solution for now would be to superimpose a fine grid and 
-specify colors to latticeshade depending on position as a single pen[][]
-lattice. Or use Gouraud shading.
+If you want to produce PostScript output, an approximate solution for now
+would be to superimpose a fine grid and specify colors to 
+\courier{latticeshade\} that depend on position as a single pen[][]
+lattice. Alternatively, it may be more efficient to use \courier{tensorshade}.
 
 \question 27jun:nonexplicitfun Is there a way to draw a function that is not explicitly given, such as (y - 2)^2 = x - 1 ?
 

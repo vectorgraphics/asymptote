@@ -234,7 +234,7 @@ projection perspective(real x, real y, real z, triple up=Z, triple target=O,
 }
 
 projection orthographic(triple camera, triple up=Z, triple target=O,
-                        bool showtarget=true, bool center=true)
+                        bool showtarget=true, bool center=false)
 {
   return projection(camera,up,target,showtarget,center=center,
                     new transformation(triple camera, triple up,
@@ -244,7 +244,7 @@ projection orthographic(triple camera, triple up=Z, triple target=O,
 
 projection orthographic(real x, real y, real z, triple up=Z,
                         triple target=O, bool showtarget=true,
-                        bool center=true)
+                        bool center=false)
 {
   return orthographic((x,y,z),up,target,showtarget,center=center);
 }

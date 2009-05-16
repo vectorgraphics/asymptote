@@ -1823,35 +1823,51 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
   draw(pic,L,g,sequence(new pen(int) {return p;},g.length));
 }
 
-picture vectorfield(path3 vector(pair z), triple f(pair z),
-                    pair a, pair b, int nx=nmesh, int ny=nx,
-                    bool autoscale=true, pen p=currentpen,
+real maxlength(triple f(pair z), pair a, pair b, int nu, int nv) 
+{
+  return min(abs(f((b.x,a.y))-f(a))/nu,abs(f((a.x,b.y))-f(a))/nv);
+}
+
+// return a vector field on a parametric surface f over box(a,b).
+picture vectorfield(path3 vector(pair v), triple f(pair z), pair a, pair b,
+                    int nu=nmesh, int nv=nu, bool truesize=false,
+                    real maxlength=truesize ? 0 : maxlength(f,a,b,nu,nv),
+                    bool cond(pair z)=null, pen p=currentpen,
                     arrowbar3 arrow=Arrow3, margin3 margin=PenMargin3)
 {
   picture pic;
-  real dx=1/nx;
-  real dy=1/ny;
+  real du=1/nu;
+  real dv=1/nv;
+  bool all=cond == null;
   real scale;
-  if(autoscale) {
+
+  if(maxlength > 0) {
     real size(pair z) {
       path3 g=vector(z);
       return abs(point(g,size(g)-1)-point(g,0));
     }
     real max=size((0,0));
-    for(int i=0; i <= nx; ++i) {
-      real x=interp(a.x,b.x,i*dx);
-      for(int j=0; j <= ny; ++j)
-        max=max(max,size((x,interp(a.y,b.y,j*dy))));
+    for(int i=0; i <= nu; ++i) {
+      real x=interp(a.x,b.x,i*du);
+      for(int j=0; j <= nv; ++j)
+        max=max(max,size((x,interp(a.y,b.y,j*dv))));
     }
-    pair lambda=(abs(f((b.x,a.y))-f(a)),abs(f((a.x,b.y))-f(a)));
-    scale=min(lambda.x/nx,lambda.y/ny)/max;
+    scale=max > 0 ? maxlength/max : 1;
   } else scale=1;
-  for(int i=0; i <= nx; ++i) {
-    real x=interp(a.x,b.x,i*dx);
-    for(int j=0; j <= ny; ++j) {
-      real y=interp(a.y,b.y,j*dy);
-      pair z=(x,y);
-      draw(pic,shift(f(z))*scale3(scale)*vector(z),p,arrow,margin);
+
+  for(int i=0; i <= nu; ++i) {
+    real x=interp(a.x,b.x,i*du);
+    for(int j=0; j <= nv; ++j) {
+      pair z=(x,interp(a.y,b.y,j*dv));
+      if(all || cond(z)) {
+        path3 g=scale3(scale)*vector(z);
+        if(truesize) {
+          picture opic;
+          draw(opic,g,p,arrow,margin);
+          add(pic,opic,f(z));
+        } else
+          draw(pic,shift(f(z))*g,p,arrow,margin);
+      }
     }
   }
   return pic;

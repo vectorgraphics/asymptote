@@ -7105,9 +7105,10 @@ as illustrated in this simple example of a flow field:
 @cindex @code{vectorfield}
 @verbatim
 picture vectorfield(path vector(pair), pair a, pair b,
-                    int nx=nmesh, int ny=nx, 
-                    bool autoscale=true, bool truesize=false,
-                    pen p=currentpen, arrowbar arrow=Arrow);
+                    int nx=nmesh, int ny=nx, bool truesize=false,
+                    real maxlength=truesize ? 0 : maxlength(a,b,nx,ny),
+                    bool cond(pair z)=null, pen p=currentpen,
+                    arrowbar arrow=Arrow, margin margin=PenMargin)
 @end verbatim
 as illustrated in this example:
 @verbatiminclude vectorfield.asy
@@ -7655,7 +7656,7 @@ positive @math{y} axis is drawn at this angle in degrees.
 @cindex @code{target}
 @cindex @code{showtarget}
 @cindex @code{center}
-@item orthographic(triple camera, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool center=true)
+@item orthographic(triple camera, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool center=false)
 This projects from three to two dimensions using the view as seen at a point
 infinitely far away in the direction @code{unit(camera)}, orienting the camera
 so that, if possible, the vector @code{up} points upwards. Parallel
@@ -7664,7 +7665,7 @@ to include @code{target} if @code{showtarget=true}.
 If @code{center=true}, the target will be adjusted to the center of the 
 bounding volume. 
 
-@item orthographic(real x, real y, real z, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool center=true)
+@item orthographic(real x, real y, real z, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool center=false)
 This is equivalent to 
 @code{orthographic((x,y,z),up,target,showtarget,center)}.
 
@@ -8053,6 +8054,19 @@ of a Gaussian surface:
 @noindent
 A mesh can be drawn without surface filling by specifying @code{nullpen}
 for the surfacepen.
+
+A vector field of @code{nu}@math{\times}@code{nv} arrows on a
+parametric surface @code{f} over @code{box(a,b)} can be drawn with the routine
+@cindex @code{vectorfield3}
+@verbatim
+picture vectorfield(path3 vector(pair v), triple f(pair z), pair a, pair b,
+                    int nu=nmesh, int nv=nu, bool truesize=false,
+                    real maxlength=truesize ? 0 : maxlength(f,a,b,nu,nv),
+                    bool cond(pair z)=null, pen p=currentpen,
+                    arrowbar3 arrow=Arrow3, margin3 margin=PenMargin3)
+@end verbatim
+as illustrated in the examples @code{vectorfield3.asy} and
+@code{vectorfieldsphere.asy}.
 
 @node grid3
 @section @code{grid3}
