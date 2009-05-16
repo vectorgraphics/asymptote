@@ -5990,11 +5990,11 @@ interpolation in @code{Asymptote}, as illustrated in the example
 This module, written by Philippe Ivaldi, provides an extensive set of
 geometry routines, including @code{perpendicular} symbols and a @code{triangle}
 structure. It is documented here:
-@url{http://piprim.tuxfamily.org/asymptote/geometry_en.pdf},
+@url{http://asymptote.sourceforge.net/geometry_en.pdf},
 including an extensive set of examples,
-@url{http://piprim.tuxfamily.org/asymptote/travaux/}, and an index:
+@url{http://piprim.tuxfamily.org/asymptote/geometry/index.html}, and an index:
 @quotation
-@url{http://piprim.tuxfamily.org/asymptote/travaux/modules/geometry_dev.asy.index.type.html}
+@url{http://piprim.tuxfamily.org/asymptote/geometry/modules/geometry.asy.index.type.html}
 @end quotation
 
 @node trembling
@@ -6003,7 +6003,7 @@ including an extensive set of examples,
 This module, written by Philippe Ivaldi and illustrated in the example
 @code{floatingdisk.asy}, allows one to draw wavy lines, as if drawn by
 hand. Further examples are posted at 
-@url{http://piprim.tuxfamily.org/asymptote/modules}
+@url{http://piprim.tuxfamily.org/asymptote/trembling/index.html}
 
 @node stats
 @section @code{stats}
