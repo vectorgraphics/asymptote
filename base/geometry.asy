@@ -1,20 +1,21 @@
-// Copyright (c) 2007, Philippe Ivaldi.
-// Version: : geometry.asy,v 0.1 2007/09/01 Philippe Ivaldi Exp $
+// geometry.asy
 
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 3 of the License, or (at
-// your option) any later version.
+// Copyright (C) 2007
+// Author: Philippe IVALDI 2007/09/01
+
+// This program is free software ; you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation ; either version 3 of the License, or
+// (at your option) any later version.
 
 // This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of
+// WITHOUT ANY WARRANTY ; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// General Public License for more details.
+// Lesser General Public License for more details.
 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-// 02110-1301, USA.
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program ; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 // COMMENTARY:
 // An Asymptote geometry module.
@@ -54,10 +55,10 @@ void addMargins(picture pic=currentpicture,
 
 real approximate(real t)
 {
-    real ot=t;
-    if(abs(t-ceil(t)) < epsgeo) ot=ceil(t);
-    else if(abs(t-floor(t)) < epsgeo) ot=floor(t);
-    return ot;
+  real ot=t;
+  if(abs(t-ceil(t)) < epsgeo) ot=ceil(t);
+  else if(abs(t-floor(t)) < epsgeo) ot=floor(t);
+  return ot;
 }
 
 real[] approximate(real[] T)
@@ -151,7 +152,7 @@ real rd(real x, real y, real z)
   ed=ea-6*eb;
   ee=ed+ec+ec;
   return 3*sum+fac*(1.0+ed*(-C1+C5*ed-C6*delz*ee)
-                      +delz*(C2*ee+delz*(-C3*ec+delz*C4*ea)))/(ave*sqrt(ave));
+                    +delz*(C2*ee+delz*(-C3*ec+delz*C4*ea)))/(ave*sqrt(ave));
 }
 
 /*<asyxml><function type="real" signature="elle(real,real)"><code></asyxml>*/
@@ -166,7 +167,7 @@ real elle(real phi, real k)
     cc=cos(phi)^2;
     q=(1-s*k)*(1+s*k);
     result=s*(rf(cc,q,1)-(s*k)^2*rd(cc,q,1)/3);
-  } else 
+  } else
     if (phi <= pi && phi >= 0) {
       result=2*elle(pi/2,k)-elle(pi-phi,k);
     } else
@@ -218,9 +219,9 @@ pair[] intersectionpoints(pair A, pair B, real[] equation)
 {/*<asyxml></code><documentation>Return the intersection points of the line AB with
    the conic whose an equation is
    equation[0]*x^2+equation[1]*x*y+equation[2]*y^2+equation[3]*x+equation[4]*y+equation[5]=0</documentation></function></asyxml>*/
-    if(equation.length != 6) abort("intersectionpoints: bad length of array for a conic equation.");
-    return intersectionpoints(A, B, equation[0], equation[1], equation[2],
-                              equation[3], equation[4], equation[5]);
+  if(equation.length != 6) abort("intersectionpoints: bad length of array for a conic equation.");
+  return intersectionpoints(A, B, equation[0], equation[1], equation[2],
+                            equation[3], equation[4], equation[5]);
 }
 // *........................HEADER.........................*
 // *=======================================================*
@@ -314,13 +315,13 @@ coordsys cartesiansystem(pair O=(0,0), pair i, pair j)
   {
     return O+(P[0][0]*m.x+P[0][1]*m.y,P[1][0]*m.x+P[1][1]*m.y);
   }
-  
+
   pair dtr(pair m)
   {
     m-=O;
     return (iP[0][0]*m.x+iP[0][1]*m.y,iP[1][0]*m.x+iP[1][1]*m.y);
   }
-  
+
   pair polar(real r, real a)
   {
     real ca=sin(ij-a)/(ni*sin(ij));
@@ -382,7 +383,7 @@ pair operator *(coordsys R, pair p)
 /*<asyxml><operator type="path" signature="*(coordsys,path)"><code></asyxml>*/
 path operator *(coordsys R, path g)
 {/*<asyxml></code><documentation>Return the reconstructed path applying R*pair to each node, pre and post control point of 'g'.</documentation></operator></asyxml>*/
-  guide og=point(g,0);
+  guide og=R*point(g,0);
   real l=length(g);
   for(int i=1; i <= l; ++i)
     {
@@ -498,7 +499,7 @@ The operation will be done relatively to the default coordinate system.");
 
 /*<asyxml><function type="point[]" signature="standardizecoordsys(coordsys,bool...point[])"><code></asyxml>*/
 point[] standardizecoordsys(coordsys R=currentcoordsys,
-                                     bool warn=true ... point[] M)
+                            bool warn=true ... point[] M)
 {/*<asyxml></code><documentation>Return the points with the same coordinate system 'R'.
    If 'warn' is true and the coordinate systems are different, a warning is sent.</documentation></function></asyxml>*/
   point[] op=new point[];
@@ -1078,9 +1079,9 @@ vector conj(explicit vector u)
 /*<asyxml><function type="transform" signature="rotate(explicit vector)"><code></asyxml>*/
 transform rotate(explicit vector dir)
 {/*<asyxml></code><documentation>A rotation in the direction 'dir' limited to [-90,90]
-This is useful for rotating text along a line in the direction dir.
-rotate(explicit point dir) is also defined.
-</documentation></function></asyxml>*/
+   This is useful for rotating text along a line in the direction dir.
+   rotate(explicit point dir) is also defined.
+   </documentation></function></asyxml>*/
   return rotate(locate(dir));
 }
 transform rotate(explicit point dir){return rotate(locate(vector(dir)));}
@@ -1291,6 +1292,8 @@ void distance(picture pic=currentpicture, Label L="", point A, point B,
   pic.addBox(min(g),max(g),Tp*min(p),Tp*max(p));
 }
 
+// *=======================================================*
+// *.......From the original package 'geometry.asy'........*
 /*<asyxml><variable type="real" signature="perpfactor"><code></asyxml>*/
 real perpfactor=1;/*<asyxml></code><documentation>Factor for drawing perpendicular symbol.</documentation></variable></asyxml>*/
 /*<asyxml><function type="void" signature="perpendicularmark(picture,point,explicit pair,explicit pair,real,pen,margin,filltype)"><code></asyxml>*/
@@ -1312,7 +1315,7 @@ void perpendicularmark(picture pic=currentpicture, point z,
   g=margin(g,p).g;
   draw(apic,g,p);
   if(filltype != NoFill) filltype.fill(apic,(relpoint(g,0)-relpoint(g,0.5)+
-                                        relpoint(g,1))--g--cycle,p+solid);
+                                             relpoint(g,1))--g--cycle,p+solid);
   add(pic,apic,locate(z));
 }
 
@@ -1351,6 +1354,8 @@ void perpendicularmark(picture pic=currentpicture, point z, vector align, path g
    dir(45+n*90), where n in N, are common values for 'align'.</documentation></function></asyxml>*/
   perpendicularmark(pic,z,(pair)align,dir(g,0),size,p,margin,filltype);
 }
+// *.....End from the original package 'geometry.asy'......*
+// *=======================================================*
 
 /*<asyxml><function type="void" signature="markrightangle(picture,point,point,point,real,pen,margin,filltype)"><code></asyxml>*/
 void markrightangle(picture pic=currentpicture, point A, point O,
@@ -2304,8 +2309,8 @@ void markangle(picture pic=currentpicture,
 
 /*<asyxml><function type="void" signature="perpendicularmark(picture,line,line,real,pen,int,margin,filltype)"><code></asyxml>*/
 void perpendicularmark(picture pic=currentpicture, line l1, line l2,
-                    real size=0, pen p=currentpen, int quarter=1,
-                    margin margin=NoMargin, filltype filltype=NoFill)
+                       real size=0, pen p=currentpen, int quarter=1,
+                       margin margin=NoMargin, filltype filltype=NoFill)
 {/*<asyxml></code><documentation>Draw a right angle at the intersection point of lines and
    aligned in the 'quarter' nth quarter of circle formed by 'l1.u' and
    'l2.u'.</documentation></function></asyxml>*/
@@ -2956,16 +2961,16 @@ ellipse ellipse(point C, real a, real b, real angle=0)
   angle+=degrees(R.i);
   if(a < b) {angle += 90; real tmp=a; a=b; b=tmp;}
   if(finite(a) && finite(b)) {
-      real c=sqrt(abs(a^2-b^2));
-      point f1, f2;
-      if(abs(a-b) < epsgeo) {
-        f1=C; f2=C;
-      } else {
-        f1=point(R,(locate(C)+rotate(angle)*(-c,0))/R);
-        f2=point(R,(locate(C)+rotate(angle)*(c,0))/R);
-      }
-      oe.init(f1,f2,a);
+    real c=sqrt(abs(a^2-b^2));
+    point f1, f2;
+    if(abs(a-b) < epsgeo) {
+      f1=C; f2=C;
     } else {
+      f1=point(R,(locate(C)+rotate(angle)*(-c,0))/R);
+      f2=point(R,(locate(C)+rotate(angle)*(c,0))/R);
+    }
+    oe.init(f1,f2,a);
+  } else {
     if(finite(b) || !finite(a)) oe.init(C,C+R.polar(1,angle),infinity);
     else oe.init(C,C+R.polar(1,90+angle),infinity);
   }
@@ -5000,9 +5005,9 @@ arc operator *(real x, explicit arc a)
 {/*<asyxml></code><documentation>Provide real*arc.
    Return the arc subtracting and adding '(x-1)*degrees(a)/2' to 'a.angle1' and 'a.angle2' respectively.</documentation></operator></asyxml>*/
   real a1, a2, gle;
-    gle=(x-1)*degrees(a)/2;
-    a1=a.angle1-gle;
-    a2=a.angle2+gle;
+  gle=(x-1)*degrees(a)/2;
+  a1=a.angle1-gle;
+  a2=a.angle2+gle;
   arc oa;
   oa.init(a.el,a.angle0,a1,a2,a.polarconicroutine,a.direction);
   return oa;
@@ -6232,11 +6237,11 @@ point[] intersectionpoints(triangle t, line l, bool extended=false)
     }
   }
   if(extended) {
-    for (int i=0; i < 3; ++i) {
+    for (int i=1; i <= 3; ++i) {
       addpoint(intersectionpoint(t.line(i),l));
     }
   } else {
-    for (int i=0; i < 3; ++i) {
+    for (int i=1; i <= 3; ++i) {
       addpoint(intersectionpoint((segment)t.line(i),l));
     }
   }
@@ -6486,6 +6491,8 @@ circle operator *(inversion i, circle c)
 // *.......................INVERSIONS......................*
 // *=======================================================*
 
+// *=======================================================*
+// *........................FOOTER.........................*
 /*<asyxml><function type="point[]" signature="intersectionpoints(line,circle)"><code></asyxml>*/
 point[] intersectionpoints(line l, circle c)
 {/*<asyxml></code><documentation>Note that the line 'l' may be a segment by casting.
@@ -6534,7 +6541,7 @@ point[] intersectionpoints(line l, ellipse el)
       (perpendicular(ll,line(ell.F1,Ip[0])) ||
        perpendicular(ll,line(ell.F2,Ip[0])))) {
     // http://www.mathcurve.com/courbes2d/ellipse/ellipse.shtml
-    //  Définition tangentielle par antipodaire de cercle. 
+    //  Définition tangentielle par antipodaire de cercle.
     // 'l' is a tangent of 'el'
     transform t=scale(el.a/el.b,el.F1,el.F2,el.C,rotate(90,el.C)*el.F1);
     point inter=inverse(t)*intersectionpoints(C,t*ll)[0];
@@ -6664,11 +6671,11 @@ point[] intersectionpoints(triangle t, conic co, bool extended=false)
         if(!exist) OP.push(P[i]);
       }}}
   if(extended) {
-    for (int i=0; i < 3; ++i) {
+    for (int i=1; i <= 3; ++i) {
       addpoint(intersectionpoints(t.line(i),co));
     }
   } else {
-    for (int i=0; i < 3; ++i) {
+    for (int i=1; i <= 3; ++i) {
       addpoint(intersectionpoints((segment)t.line(i),co));
     }
   }
@@ -6919,14 +6926,14 @@ line[] tangents(hyperbola h, point M)
     point Mp=changecoordsys(cano,M);
     real x0=Mp.x, y0=Mp.y;
     if(abs(x0) > epsgeo) {
-        real c0=a*y0^2/(b*x0)^2-1/b,
-          c1=2*a*y0/(b*x0^2), c2=a/x0^2-1;
-        real[] sol=quadraticroots(c0,c1,c2);
-        for (real y:sol) {
-          point tmp=changecoordsys(coordsys(h), point(cano,(a*(1+y*y0/b)/x0,y)));
-          ol.push(line(M,tmp));
-        }
-      } else if(abs(y0) > epsgeo) {
+      real c0=a*y0^2/(b*x0)^2-1/b,
+        c1=2*a*y0/(b*x0^2), c2=a/x0^2-1;
+      real[] sol=quadraticroots(c0,c1,c2);
+      for (real y:sol) {
+        point tmp=changecoordsys(coordsys(h), point(cano,(a*(1+y*y0/b)/x0,y)));
+        ol.push(line(M,tmp));
+      }
+    } else if(abs(y0) > epsgeo) {
       real y=-b/y0, x=sqrt(a*(1+b/y0^2));
       ol.push(line(M,changecoordsys(coordsys(h),point(cano,(x,y)))));
       ol.push(line(M,changecoordsys(coordsys(h),point(cano,(-x,y)))));
@@ -7104,47 +7111,5 @@ line tangent(explicit arc a, point M)
    The points 'M' must belong to the arc 'a'.</documentation></function></asyxml>*/
   return tangent(a, angabscissa(a,M));
 }
-
-// *=======================================================*
-// *.......Routines for compatibility with original geometry module........*
-
-path square(pair z1, pair z2)
-{
-  pair v=z2-z1;
-  pair z3=z2+I*v;
-  pair z4=z3-v;
-  return z1--z2--z3--z4--cycle;
-}
-
-// Draw a perpendicular symbol at z aligned in the direction align
-// relative to the path z--z+dir.
-void perpendicular(picture pic=currentpicture, pair z, pair align,
-                   pair dir=E, real size=0, pen p=currentpen,
-                   margin margin=NoMargin, filltype filltype=NoFill) 
-{
-  perpendicularmark(pic,(point) z,align,dir,size,p,margin,filltype);
-}
-
-
-// Draw a perpendicular symbol at z aligned in the direction align
-// relative to the path z--z+dir(g,0)
-void perpendicular(picture pic=currentpicture, pair z, pair align, path g,
-                   real size=0, pen p=currentpen, margin margin=NoMargin,
-                   filltype filltype=NoFill) 
-{
-  perpendicularmark(pic,(point) z,align,dir(g,0),size,p,margin,filltype);
-}
-
-// Return an interior arc BAC of triangle ABC, given a radius r > 0.
-// If r < 0, return the corresponding exterior arc of radius |r|.
-path arc(explicit pair B, explicit pair A, explicit pair C,
-         real r=arrowfactor)
-{
-  return arc(A,r,degrees(B-A),degrees(C-A));
-}
-
-// *.......End of compatibility routines........*
-// *=======================================================*
-
 // *........................FOOTER.........................*
 // *=======================================================*
