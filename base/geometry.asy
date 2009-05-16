@@ -1292,8 +1292,6 @@ void distance(picture pic=currentpicture, Label L="", point A, point B,
   pic.addBox(min(g),max(g),Tp*min(p),Tp*max(p));
 }
 
-// *=======================================================*
-// *.......From the original package 'geometry.asy'........*
 /*<asyxml><variable type="real" signature="perpfactor"><code></asyxml>*/
 real perpfactor=1;/*<asyxml></code><documentation>Factor for drawing perpendicular symbol.</documentation></variable></asyxml>*/
 /*<asyxml><function type="void" signature="perpendicularmark(picture,point,explicit pair,explicit pair,real,pen,margin,filltype)"><code></asyxml>*/
@@ -1354,8 +1352,6 @@ void perpendicularmark(picture pic=currentpicture, point z, vector align, path g
    dir(45+n*90), where n in N, are common values for 'align'.</documentation></function></asyxml>*/
   perpendicularmark(pic,z,(pair)align,dir(g,0),size,p,margin,filltype);
 }
-// *.....End from the original package 'geometry.asy'......*
-// *=======================================================*
 
 /*<asyxml><function type="void" signature="markrightangle(picture,point,point,point,real,pen,margin,filltype)"><code></asyxml>*/
 void markrightangle(picture pic=currentpicture, point A, point O,
@@ -7111,5 +7107,47 @@ line tangent(explicit arc a, point M)
    The points 'M' must belong to the arc 'a'.</documentation></function></asyxml>*/
   return tangent(a, angabscissa(a,M));
 }
+
+// *=======================================================*
+// *.......Routines for compatibility with original geometry module........*
+
+path square(pair z1, pair z2)
+{
+  pair v=z2-z1;
+  pair z3=z2+I*v;
+  pair z4=z3-v;
+  return z1--z2--z3--z4--cycle;
+}
+
+// Draw a perpendicular symbol at z aligned in the direction align
+// relative to the path z--z+dir.
+void perpendicular(picture pic=currentpicture, pair z, pair align,
+                   pair dir=E, real size=0, pen p=currentpen,
+                   margin margin=NoMargin, filltype filltype=NoFill) 
+{
+  perpendicularmark(pic,(point) z,align,dir,size,p,margin,filltype);
+}
+
+
+// Draw a perpendicular symbol at z aligned in the direction align
+// relative to the path z--z+dir(g,0)
+void perpendicular(picture pic=currentpicture, pair z, pair align, path g,
+                   real size=0, pen p=currentpen, margin margin=NoMargin,
+                   filltype filltype=NoFill) 
+{
+  perpendicularmark(pic,(point) z,align,dir(g,0),size,p,margin,filltype);
+}
+
+// Return an interior arc BAC of triangle ABC, given a radius r > 0.
+// If r < 0, return the corresponding exterior arc of radius |r|.
+path arc(explicit pair B, explicit pair A, explicit pair C,
+         real r=arrowfactor)
+{
+  return arc(A,r,degrees(B-A),degrees(C-A));
+}
+
+// *.......End of compatibility routines........*
+// *=======================================================*
+
 // *........................FOOTER.........................*
 // *=======================================================*
