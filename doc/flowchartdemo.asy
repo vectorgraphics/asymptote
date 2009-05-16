@@ -19,8 +19,6 @@ draw(block5);
 add(new void(picture pic, transform t) {
     draw(pic,path(new pair[]{block1.right(t),block2.top(t)},Horizontal),
          Arrow,PenMargin);
-    draw(pic,block1.right(t){N}..{W}block2.bottom(t),blue);
-    
     draw(pic,Label("Yes",0.5,NW),path(new pair[]{block2.left(t),block3.top(t)},
                                    Horizontal),Arrow,PenMargin);
     draw(pic,Label("No",0.5,NE),path(new pair[]{block2.right(t),block4.top(t)},
