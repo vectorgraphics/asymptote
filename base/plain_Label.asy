@@ -563,7 +563,7 @@ frame pack(pair align=2S ... object inset[])
   return F;
 }
 
-path[] texpath(Label L)
+path[] texpath(Label L, bool tex=settings.tex != "none")
 {
   static string[] stringcache;
   static pen[] pencache;
@@ -582,7 +582,7 @@ path[] texpath(Label L)
   }
 
   if(i == -1) {
-    g=settings.tex == "none" ? textpath(s,p) : _texpath(s,p);
+    g=tex ? _texpath(s,p) : textpath(s,p);
     stringcache.push(s);
     pencache.push(p);
     pathcache.push(g);

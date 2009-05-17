@@ -867,13 +867,15 @@ void unused(void *)
 {
 }
 
-pair readpair(stringstream& s, bool tex)
+static const double twelvepercent=0.12;
+static const double tenpercent=0.1;
+
+pair readpair(stringstream& s, double hscale=1.0, double vscale=1.0)
 {
-  static const double f=12.0/100.0;
   double x,y;
   s >> y;
   s >> x;
-  return tex ? pair(f*x,-f*y) : pair(x,y);
+  return pair(hscale*x,vscale*y);
 }
 
 // Ignore unclosed begingroups but not spurious endgroups.
@@ -889,7 +891,8 @@ string ASYo="/ASYo {( ) print 12 string cvs print} bind def";
 string pathforall="{(M) print ASYo ASYo} {(L) print ASYo ASYo} {(C) print ASYo ASYo ASYo ASYo ASYo ASYo} {(c) print} pathforall";
 string currentpoint="print currentpoint ASYo ASYo ";
 
-array *readpath(const string& psname, bool tex, bool keep)
+array *readpath(const string& psname, bool keep,
+                double hscale=1.0, double vscale=1.0)
 {
   array *P=new array(0);
   ostringstream pipe;
@@ -946,13 +949,13 @@ array *readpath(const string& psname, bool tex, bool keep)
         }
         active=false;
         cyclic=false;
-        node.pre=node.point=readpair(buf,tex)-offset;
+        node.pre=node.point=readpair(buf,hscale,vscale)-offset;
         node.straight=false;
         break;
       }
       case 'L':
       {
-        pair point=readpair(buf,tex)-offset;
+        pair point=readpair(buf,hscale,vscale)-offset;
         pair delta=(point-node.point)*third;
         node.post=node.point+delta;
         node.straight=true;
@@ -964,9 +967,9 @@ array *readpath(const string& psname, bool tex, bool keep)
       }
       case 'C':
       {
-        pair point=readpair(buf,tex)-offset;
-        pair pre=readpair(buf,tex)-offset;
-        node.post=readpair(buf,tex)-offset;
+        pair point=readpair(buf,hscale,vscale)-offset;
+        pair pre=readpair(buf,hscale,vscale)-offset;
+        node.post=readpair(buf,hscale,vscale)-offset;
         node.straight=false;
         nodes.push_back(node);
         active=true;
@@ -981,7 +984,7 @@ array *readpath(const string& psname, bool tex, bool keep)
       }
       case 'Z':
       {
-        offset=readpair(buf,tex);
+        offset=readpair(buf,hscale,vscale);
         break;
       }
     }
@@ -1259,7 +1262,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
     unlink(auxname(prefix,"log").c_str());
     unlink(dviname.c_str());
   }
-  return readpath(psname,true,keep);
+  return readpath(psname,keep,twelvepercent,-twelvepercent);
 }
 
 patharray *textpath(string *s, pen p=CURRENTPEN)
@@ -1278,9 +1281,8 @@ patharray *textpath(string *s, pen p=CURRENTPEN)
   if(!text) cannotwrite(textname);
 
   text << getSetting<string>("textprologue");
-  text << getSetting<string>("textstart");
+  text << p.Font() << endl;
   text << *s;
-  text << getSetting<string>("textstop");
   text << getSetting<string>("textepilogue");
   text.close();
   
@@ -1313,10 +1315,15 @@ patharray *textpath(string *s, pen p=CURRENTPEN)
   if(!eps) cannotread(epsname);
   if(!ps) cannotwrite(psname);
 
-  ps << "/ASYo {( ) print 100.0 div 12 string cvs print} bind def" << endl
+  ps << ASYo << endl
      << "/ASY1 true def" << endl
-     << "/fill {ASY1 {(Z) print currentpoint ASYo ASYo /ASY1 false def} if {(M) print ASYo ASYo} {(L) print ASYo ASYo} {(C) print ASYo ASYo ASYo ASYo ASYo ASYo} {(c) print} pathforall (M) print currentpoint ASYo ASYo currentpoint newpath moveto } bind def" << endl
-     << "/stroke {ASY1 {(Z) print currentpoint ASYo ASYo /ASY1 false def} if strokepath {(M) print ASYo ASYo} {(L) print ASYo ASYo} {(C) print ASYo ASYo ASYo ASYo ASYo ASYo} {(c) print} pathforall (M) print currentpoint ASYo ASYo currentpoint newpath moveto } bind def" << endl ;
+     << "/fill {ASY1 {(Z) " << currentpoint << "/ASY1 false def} if "
+     << pathforall << " (M) " << currentpoint
+     << "currentpoint newpath moveto } bind def" << endl
+     << "/stroke {ASY1 {(Z) " << currentpoint 
+     << "/ASY1 false def} if strokepath "
+     << pathforall << " (M) " << currentpoint
+     << "currentpoint newpath moveto } bind def" << endl;
   string line;
   while(getline(eps,line))
     ps << line << endl;
@@ -1330,7 +1337,7 @@ patharray *textpath(string *s, pen p=CURRENTPEN)
     unlink(outputname.c_str());
     unlink(epsname.c_str());
   }
-  return readpath(psname,false,keep);
+  return readpath(psname,keep,tenpercent,tenpercent);
 }
 
 patharray *_strokepath(path g, pen p=CURRENTPEN)
@@ -1354,7 +1361,7 @@ patharray *_strokepath(path g, pen p=CURRENTPEN)
   ps.verbatimline("(M) "+currentpoint+"(E) print");
   ps.epilogue();
   ps.close();
-  return readpath(psname,false,getSetting<bool>("keep"));
+  return readpath(psname,getSetting<bool>("keep"));
 }
 
 void _draw(picture *f, path g, pen p)

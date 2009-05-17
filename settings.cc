@@ -1113,8 +1113,6 @@ void initSettings() {
   addOption(new envSetting("textoutputtype", "ps"));
   addOption(new envSetting("textprologue", ".EQ\ndelim $$\n.EN\n"));
   addOption(new envSetting("textepilogue", ""));
-  addOption(new envSetting("textstart", ""));
-  addOption(new envSetting("textstop", ""));
 }
 
 // Access the arguments once options have been parsed.
