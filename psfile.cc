@@ -117,8 +117,11 @@ void psfile::close()
   if(out) {
     out->flush();
     if(!filename.empty()) {
-      if(!out->good())
-        reportError("Cannot write to "+filename);
+      if(!out->good()) {
+        // Don't call reportError since this may be called on handled_error.
+        reportWarning("Cannot write to "+filename);
+        throw quit();
+      }
       delete out;
       out=NULL;
     }
