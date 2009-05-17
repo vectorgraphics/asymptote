@@ -39,6 +39,7 @@ void reportFatal(const string& desc)
   em.fatal(vm::getPos());
   em << desc;
   em.sync();
+  em.statusError();
   try {
     throw quit(); 
   } catch(handled_error) {
