@@ -227,9 +227,8 @@ protected:
 public:
   ifile(const string& name, char comment, bool check=true,
         std::ios::openmode mode=std::ios::in) :
-    file(name,check), stream(NULL), fstream(NULL), comment(comment), mode(mode),
+    file(name,check), stream(&cin), fstream(NULL), comment(comment), mode(mode),
     comma(false) {
-    stream=&cin;
   }
   
   // Binary file
@@ -344,8 +343,7 @@ protected:
   std::ios::openmode mode;
 public:
   ofile(const string& name, std::ios::openmode mode=std::ios::trunc) :
-    file(name), stream(NULL), fstream(NULL), mode(mode) {
-    stream=&cout;
+    file(name), stream(&cout), fstream(NULL), mode(mode) {
   }
   
   ~ofile() {close();}
@@ -419,7 +417,7 @@ public:
   template<class T>
   void iread(T& val) {
     val=T();
-    fstream->read((char *) &val,sizeof(T));
+    if(fstream) fstream->read((char *) &val,sizeof(T));
   }
   
   void Read(bool& val) {iread(val);}
@@ -445,7 +443,7 @@ public:
   
   template<class T>
   void iwrite(T val) {
-    fstream->write((char *) &val,sizeof(T));
+    if(fstream) fstream->write((char *) &val,sizeof(T));
   }
   
   void write(bool val) {iwrite(val);}
@@ -479,7 +477,7 @@ public:
 
   template<class T>
   void iwrite(T val) {
-    fstream->write((char *) &val,sizeof(T));
+    if(fstream) fstream->write((char *) &val,sizeof(T));
   }
   
   void write(bool val) {iwrite(val);}
