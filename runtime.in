@@ -4104,28 +4104,32 @@ real abs(triple v)
   return v.length();
 }
 
-real polar(triple v) 
+real polar(triple v, bool warn=true) 
 {
+  if(!warn && v.getx() == 0.0 && v.gety() == 0.0 && v.getz() == 0.0) return 0.0;
   return v.polar();
 }
 
-real azimuth(triple v) 
+real azimuth(triple v, bool warn=true) 
 {
+  if(!warn && v.getx() == 0.0 && v.gety() == 0.0) return 0.0;
   return v.azimuth();
 }
 
-real colatitude(triple v) 
+real colatitude(triple v, bool warn=true) 
 {
+  if(!warn && v.getx() == 0.0 && v.gety() == 0.0 && v.getz() == 0.0) return 0.0;
   return degrees(v.polar());
 }
 
-real latitude(triple v) 
+real latitude(triple v, bool warn=true) 
 {
+  if(!warn && v.getx() == 0.0 && v.gety() == 0.0 && v.getz() == 0.0) return 0.0;
   return 90.0-degrees(v.polar());
 }
 
 // Return the longitude of v in [0,360).
-real longitude(triple v, bool warn=true) 
+real longitude(triple v, bool warn=true)
 {
   if(!warn && v.getx() == 0.0 && v.gety() == 0.0) return 0.0;
   return principalBranch(degrees(v.azimuth()));

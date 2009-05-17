@@ -1772,15 +1772,16 @@ length(z);
 @end example
 returns the result 5. A synonym for @code{length(pair)} is @code{abs(pair)};
 
-@item real angle(pair z)
+@item real angle(pair z, bool warn=true)
 @cindex @code{angle}
 returns the angle of @code{z} in radians in the interval 
-[-@code{pi},@code{pi}];
+[-@code{pi},@code{pi}] or @code{0} if @code{warn} is @code{false} and
+@code{z=(0,0)} (rather than producing an error);
 
 @item real degrees(pair z, bool warn=true)
 @cindex @code{degrees}
 returns the angle of @code{z} in degrees in the interval [0,360)
-or @code{0} if @code{warn} is @code{false} and @code{z.x=z.y=0} (rather than
+or @code{0} if @code{warn} is @code{false} and @code{z=(0,0)} (rather than
 producing an error);
 
 @item pair unit(pair z)
@@ -1835,25 +1836,33 @@ Here are the built-in functions for triples:
 returns the length @code{|v|} of the vector @code{v}. 
 A synonym for @code{length(triple)} is @code{abs(triple)};
 
-@item real polar(triple v)
+@item real polar(triple v, bool warn=true)
 @cindex @code{polar}
-returns the colatitude of @code{v} measured from the @math{z} axis in radians;
+returns the colatitude of @code{v} measured from the @math{z} axis in radians
+or @code{0} if @code{warn} is @code{false} and @code{v=O} (rather than
+producing an error);
 
-@item real azimuth(triple v)
+@item real azimuth(triple v, bool warn=true)
 @cindex @code{azimuth}
-returns the longitude of @code{v} measured from the @math{x} axis in radians;
+returns the longitude of @code{v} measured from the @math{x} axis in radians
+or @code{0} if @code{warn} is @code{false} and @code{v.x=v.y=0} (rather than
+producing an error);
 
-@item real colatitude(triple v)
+@item real colatitude(triple v, bool warn=true)
 @cindex @code{colatitude}
-returns the colatitude of @code{v} measured from the @math{z} axis in degrees;
+returns the colatitude of @code{v} measured from the @math{z} axis in degrees
+or @code{0} if @code{warn} is @code{false} and @code{v=O} (rather than
+producing an error);
 
-@item real latitude(triple v)
+@item real latitude(triple v, bool warn=true)
 @cindex @code{latitude}
-returns the latitude of @code{v} measured from the @math{xy} plane in degrees;
+returns the latitude of @code{v} measured from the @math{xy} plane in degrees
+or @code{0} if @code{warn} is @code{false} and @code{v=O} (rather than
+producing an error);
 
 @item real longitude(triple v, bool warn=true)
 @cindex @code{longitude}
-returns the longitude of @code{v} measured from the @math{x} axis in degrees;
+returns the longitude of @code{v} measured from the @math{x} axis in degrees
 or @code{0} if @code{warn} is @code{false} and @code{v.x=v.y=0} (rather than
 producing an error);
 
