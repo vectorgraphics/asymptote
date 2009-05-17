@@ -1108,6 +1108,13 @@ void initSettings() {
   addOption(new envSetting("papertype", "letter"));
   addOption(new envSetting("dir", ""));
   addOption(new envSetting("sysdir", systemDir));
+  addOption(new envSetting("textcommand", "sh -c 'groff -e -P-b16 $1 > $2' groff "));
+  addOption(new envSetting("textextension", "roff"));
+  addOption(new envSetting("textoutputtype", "ps"));
+  addOption(new envSetting("textprologue", ".EQ\ndelim $$\n.EN\n"));
+  addOption(new envSetting("textepilogue", ""));
+  addOption(new envSetting("textstart", ""));
+  addOption(new envSetting("textstop", ""));
 }
 
 // Access the arguments once options have been parsed.

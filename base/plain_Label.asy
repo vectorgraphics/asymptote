@@ -582,7 +582,7 @@ path[] texpath(Label L)
   }
 
   if(i == -1) {
-    g=_texpath(s,p);
+    g=settings.tex == "none" ? textpath(s,p) : _texpath(s,p);
     stringcache.push(s);
     pencache.push(p);
     pathcache.push(g);
