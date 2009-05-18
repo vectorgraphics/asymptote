@@ -105,7 +105,7 @@ string defaultPDFViewer="AcroRd32.exe";
 string defaultGhostscript="gswin32c.exe";
 string defaultPython="python.exe";
 string defaultDisplay="imdisplay";
-string systemDir;
+string systemDir=ASYMPTOTE_SYSDIR;
 const string docdir=".";
 const string dirsep="\\";
   
@@ -169,7 +169,9 @@ void queryRegistry()
     defaultPDFViewer;
   defaultPSViewer=getEntry("Ghostgum/GSview/*")+"\\gsview\\"+defaultPSViewer;
   defaultPython=getEntry("Python/PythonCore/*/InstallPath/@")+defaultPython;
-  systemDir=getEntry("Microsoft/Windows/CurrentVersion/App Paths/Asymptote/Path");
+  if(!systemDir.empty()) // An empty systemDir indicates a TeXLive build
+    systemDir=
+      getEntry("Microsoft/Windows/CurrentVersion/App Paths/Asymptote/Path");
   defaultXasy=asyInstallDir+"\\"+defaultXasy;
 }
   
