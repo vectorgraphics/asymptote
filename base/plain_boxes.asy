@@ -131,6 +131,6 @@ frame bbox(string prefix="", picture pic=currentpicture,
            pen p=currentpen, filltype filltype=NoFill)
 {
   frame f=pic.fit(prefix,max(pic.xsize-2*xmargin,0),max(pic.ysize-2*ymargin,0));
-  box(f,xmargin,ymargin,p,filltype,false);
+  box(f,xmargin,ymargin,p,filltype,above=false);
   return f;
 }

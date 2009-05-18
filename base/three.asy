@@ -2175,9 +2175,8 @@ private string format(triple v, string sep=" ")
   return format(v.x)+sep+format(v.y)+sep+format(v.z);
 }
 
-private string format(pen p)
+private string format(real[] c)
 {
-  real[] c=colors(rgb(p));
   return format((c[0],c[1],c[2]));
 }
 
@@ -2255,8 +2254,7 @@ string embed3D(string label="", string text=label, string prefix,
                frame f, string format="",
                real width=0, real height=0, real angle=30,
                string options="", string script="",
-               pen background=white, light light=currentlight,
-               projection P=currentprojection)
+               light light=currentlight, projection P=currentprojection)
 {
   if(!prc(format) || Embed == null) return "";
 
@@ -2301,7 +2299,7 @@ string embed3D(string label="", string text=label, string prefix,
     ",3Dcoo="+format(P.target/cm)+
     ",3Droll="+format(roll)+
     ",3Droo="+format(abs(v))+
-    ",3Dbg="+format(background);
+    ",3Dbg="+format(light.background());
   if(options != "") options3 += ","+options;
   if(name != "") options3 += ",3Djscript="+stripdirectory(name);
 
@@ -2314,14 +2312,13 @@ object embed(string label="", string text=label,
              frame f, string format="",
              real width=0, real height=0, real angle=30,
              string options="", string script="", 
-             pen background=white, light light=currentlight,
-             projection P=currentprojection)
+             light light=currentlight, projection P=currentprojection)
 {
   object F;
 
   if(is3D(format))
     F.L=embed3D(label,text,prefix,f,format,width,height,angle,options,script,
-                background,light,P);
+                light,P);
   else
     F.f=f;
   return F;
@@ -2332,7 +2329,7 @@ object embed(string label="", string text=label,
              picture pic, string format="",
              real xsize=pic.xsize, real ysize=pic.ysize,
              bool keepAspect=pic.keepAspect, bool view=true, string options="",
-             string script="", real angle=0, pen background=white,
+             string script="", real angle=0,
              light light=currentlight, projection P=currentprojection)
 {
   object F;
@@ -2526,7 +2523,7 @@ object embed(string label="", string text=label,
       shipout3(prefix,f,preview ? nativeformat() : format,
                width+2*viewportmargin.x,height+2*viewportmargin.y,
                P.infinity ? 0 : angle,m,M,
-               tinv*inverse(modelview)*shift(0,0,zcenter),
+               tinv*inverse(modelview)*shift(0,0,zcenter),light.background(),
                P.absolute ? (modelview*light).position : light.position,
                light.diffuse,light.ambient,light.specular,
                light.viewport,view && !preview);
@@ -2542,7 +2539,7 @@ object embed(string label="", string text=label,
       image=graphic(image);
     }
     if(prc) F.L=embed3D(label,text=image,prefix,f,format,
-                        width,height,angle,options,script,background,light,
+                        width,height,angle,options,script,light,
                         P.absolute ? P : Q);
   }
 
@@ -2578,13 +2575,15 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
       if(!keep) file3.push(prefix+"."+format);
     }
     object F=embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
-                   options,script,P);
+                   options,script,currentlight,P);
     if(prc)
       label(f,F.L);
     else {
-      if(settings.render == 0)
+      if(settings.render == 0) {
         add(f,F.f);
-      else if(!view)
+        if(currentlight.background != nullpen)
+          box(f,currentlight.background,Fill,above=false);
+      } else if(!view)
         label(f,graphic(prefix));
     }
   }

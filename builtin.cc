@@ -67,7 +67,8 @@ void addFunc(venv &ve, access *a, ty *result, symbol *id,
              formal f4=noformal, formal f5=noformal, formal f6=noformal,
              formal f7=noformal, formal f8=noformal, formal f9=noformal,
              formal fA=noformal, formal fB=noformal, formal fC=noformal,
-             formal fD=noformal, formal fE=noformal, formal fF=noformal)
+             formal fD=noformal, formal fE=noformal, formal fF=noformal,
+             formal fG=noformal)
 {
   function *fun = new function(result);
 
@@ -86,6 +87,7 @@ void addFunc(venv &ve, access *a, ty *result, symbol *id,
   if (fD.t) fun->add(fD);
   if (fE.t) fun->add(fE);
   if (fF.t) fun->add(fF);
+  if (fG.t) fun->add(fG);
 
   // NOTE: If the function is a field, we should encode the defining record in
   // the entry
@@ -98,11 +100,11 @@ void addFunc(venv &ve, access *a, ty *result, symbol *id,
 void addFunc(venv &ve, bltin f, ty *result, const char *name, 
              formal f1, formal f2, formal f3, formal f4, formal f5, formal f6,
              formal f7, formal f8, formal f9, formal fA, formal fB,
-             formal fC, formal fD, formal fE, formal fF)
+             formal fC, formal fD, formal fE, formal fF, formal fG)
 {
   access *a = new bltinAccess(f);
   addFunc(ve,a,result,symbol::trans(name),f1,f2,f3,f4,f5,f6,f7,f8,f9,
-          fA,fB,fC,fD,fE,fF);
+          fA,fB,fC,fD,fE,fF,fG);
 }
   
 void addFunc(venv &ve, access *a, ty *result, const char *name, formal f1)

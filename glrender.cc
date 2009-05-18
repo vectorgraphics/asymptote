@@ -100,6 +100,7 @@ int minimumsize=50; // Minimum initial rendering window width and height
 const double degrees=180.0/M_PI;
 const double radians=1.0/degrees;
 
+double *Background;
 size_t Nlights;
 triple *Lights; 
 double *Diffuse;
@@ -180,6 +181,7 @@ void lighting()
 
 void initlighting() 
 {
+  glClearColor(Background[0],Background[1],Background[2],Background[3]);
   glEnable(GL_LIGHTING);
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,getSetting<bool>("twosided"));
     
@@ -1062,9 +1064,9 @@ void init()
 void glrender(const string& prefix, const picture *pic, const string& format,
               double width, double height,
               double angle, const triple& m, const triple& M, double *t,
-              size_t nlights, triple *lights, double *diffuse,
-              double *ambient, double *specular, bool Viewportlighting,
-              bool view, int oldpid)
+              double *background, size_t nlights, triple *lights,
+              double *diffuse, double *ambient, double *specular,
+              bool Viewportlighting, bool view, int oldpid)
 {
 #ifndef __CYGWIN__    
   Iconify=getSetting<bool>("iconify");
@@ -1081,6 +1083,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Picture=pic;
   Format=format;
   T=t;
+  Background=background;
   Nlights=min(nlights,(size_t) GL_MAX_LIGHTS);
   Lights=lights;
   Diffuse=diffuse;
@@ -1230,8 +1233,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   initialized=true;
   
-  glClearColor(1.0,1.0,1.0,1.0);
-   
   glMatrixMode(GL_MODELVIEW);
     
   home();

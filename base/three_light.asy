@@ -79,6 +79,7 @@ struct light {
   real[][] diffuse;
   real[][] ambient;
   real[][] specular;
+  pen background; // Background color of the 3D canvas.
   real specularfactor;
   bool viewport; // Are the lights specified (and fixed) in the viewport frame?
   triple[] position; // Only directional lights are implemented.
@@ -89,12 +90,14 @@ struct light {
   
   void operator init(pen[] diffuse=array(position.length,white),
 		     pen[] ambient=array(position.length,black),
-		     pen[] specular=diffuse, real specularfactor=1,
+		     pen[] specular=diffuse, pen background=nullpen,
+                     real specularfactor=1,
 		     bool viewport=true, triple[] position) {
     this.position=new triple[position.length];
     this.diffuse=new real[position.length][];
     this.ambient=new real[position.length][];
     this.specular=new real[position.length][];
+    this.background=background;
     for(int i=0; i < position.length; ++i) {
       this.position[i]=unit(position[i]);
       this.diffuse[i]=rgba(diffuse[i]);
@@ -106,22 +109,24 @@ struct light {
   }
 
   void operator init(pen diffuse=white, pen ambient=black, pen specular=diffuse,
-		     real specularfactor=1,
+		     pen background=nullpen, real specularfactor=1,
 		     bool viewport=true...triple[] position) {
     int n=position.length;
     operator init(array(n,diffuse),array(n,ambient),array(n,specular),
-		  specularfactor,viewport,position);
+		  background,specularfactor,viewport,position);
   }
 
   void operator init(pen diffuse=white, pen ambient=black, pen specular=diffuse,
-		     bool viewport=true, real x, real y, real z) {
-    operator init(diffuse,ambient,specular,viewport,(x,y,z));
+		     pen background=nullpen, bool viewport=true,
+                     real x, real y, real z) {
+    operator init(diffuse,ambient,specular,background,viewport,(x,y,z));
   }
 
   void operator init(explicit light light) {
     diffuse=copy(light.diffuse);
     ambient=copy(light.ambient);
     specular=copy(light.specular);
+    background=light.background;
     specularfactor=light.specularfactor;
     viewport=light.viewport;
     position=copy(light.position);
@@ -147,6 +152,8 @@ struct light {
     }
     return rgb(p[0],p[1],p[2])+opacity(opacity(m.diffuse()));
   }
+
+  real[] background() {return rgba(background == nullpen ? white : background);}
 }
 
 light operator * (transform3 t, light light)
