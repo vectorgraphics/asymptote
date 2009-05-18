@@ -515,7 +515,7 @@ struct userSetting : public argumentSetting {
 string GetEnv(string s, string Default) {
   transform(s.begin(), s.end(), s.begin(), toupper);        
   string t=Getenv(("ASYMPTOTE_"+s).c_str(),msdos);
-  return t != "" ? string(t) : Default;
+  return t.empty() ? Default : t;
 }
   
 struct envSetting : public stringSetting {
@@ -864,7 +864,7 @@ void resetOptions()
 {
   for(optionsMap_t::iterator opt=optionsMap.begin(); opt != optionsMap.end();
       ++opt)
-    if(opt->first != "config" && opt->first != "dir")
+    if(opt->first != "config" && opt->first != "dir" && opt->first != "sysdir")
       opt->second->reset();
 }
   
