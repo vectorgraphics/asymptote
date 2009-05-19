@@ -48,7 +48,8 @@ AC_SUBST(latexdir)
 docdir=$Datadir/doc/asymptote
 
 AC_ARG_WITH(docdir,
-	[  --with-docdir=PATH      alternate documentation installation directory],
+	[AS_HELP_STRING(--with-docdir=PATH,
+alternate documentation installation directory)],
                      [if test "x$withval" != "x" ; then
 			docdir=$withval
 		      fi
@@ -58,7 +59,8 @@ AC_SUBST(docdir)
 sysdir=$Datadir/asymptote
 
 AC_ARG_ENABLE(tetex-build,
-[  --enable-tetex-build    automatically determine settings.sysdir from kpsewhich],
+[AS_HELP_STRING(--enable-tetex-build,
+automatically determine sysdir from kpsewhich)],
 [ if test "x$enableval" = "xyes" ; then
     sysdir=""
   fi
@@ -100,7 +102,8 @@ ac_cv_use_gc=$GCVERSION,
 [GC_SYSTEM="$GCVERSION.tar.gz not found: using system Boehm garbage collector"
 ac_cv_use_gc="system"])
 AC_ARG_ENABLE(gc,
-	[  --enable-gc[[=system]]    enable system Boehm garbage collector]
+	[AS_HELP_STRING(--enable-gc[[[=system]]],
+enable system Boehm garbage collector)]
 	[     [[=VERSION]]   enable local VERSION of Boehm garbage collector]
 	[     [[=PREFIX]]    use Boehm garbage collector installed in PREFIX],
 			[
@@ -153,7 +156,7 @@ else
 fi
 
 AC_ARG_ENABLE(gc-debug,
-[  --enable-gc-debug       enable (slow) garbage collector debugging],
+[AS_HELP_STRING(--enable-gc-debug,enable (slow) garbage collector debugging)],
 [ if test "x$ac_cv_use_gc" != "xno" ; then
     if test "x$enableval" = "xyes" ; then
        OPTIONS=$OPTIONS"-DGC_DEBUG "
@@ -164,7 +167,7 @@ AC_ARG_ENABLE(gc-debug,
 ])
 
 AC_ARG_ENABLE(gc-full-debug,
-[  --enable-gc-full-debug  enable (very slow) garbage collector backtrace],
+[AS_HELP_STRING(--enable-gc-full-debug,enable (very slow) garbage collector backtrace)],
 [ if test "x$ac_cv_use_gc" != "xno" ; then
     if test "x$enableval" = "xyes" ; then
        OPTIONS=$OPTIONS"-DGC_DEBUG -DGC_BACKTRACE "
@@ -212,12 +215,23 @@ AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include "xstream.h"]),
 		   [Define if you have a working <rpc/rpc.h> header file])],
    AC_MSG_WARN([*** Broken rpc headers; XDR support disabled ***]))
 
-AC_CHECK_HEADER(gsl/gsl_sf.h,
-   AC_CHECK_LIB([gsl], gsl_sf_Si, [AC_DEFINE(HAVE_LIBGSL, 1,
+AC_ARG_ENABLE(gsl,
+[AS_HELP_STRING(--enable-gsl[[[=yes]]],enable GNU Scientific Library)],
+)
+
+if test "x$enable_gsl" != "xno"; then
+  AC_CHECK_HEADER(gsl/gsl_sf.h,
+   AC_CHECK_LIB([gsl], gsl_sf_debye_6, [AC_DEFINE(HAVE_LIBGSL, 1,
    [Define to 1 if you have the 'gsl' library (-lgsl). ]) LIBS=$LIBS"-lgsl -lgslcblas "],
            AC_MSG_NOTICE([*** Could not find libgsl: will compile without optional special functions. ***]),[-lgslcblas]),
      AC_MSG_NOTICE([*** Header file gsl_sf.h not found: will compile without optional special functions. ***]))
+fi
 
+AC_ARG_ENABLE(gl,
+[AS_HELP_STRING(--enable-gl[[[=yes]]],enable OpenGL Library)],
+)
+
+if test "x$enable_gl" != "xno"; then
 case "$OSTYPE" in
      cygwin) AC_CHECK_HEADER(GL/glut.h,
                                 [AC_DEFINE(HAVE_LIBGLUT, 1,
@@ -251,7 +265,7 @@ void f(void) {
         AC_CHECK_LIB([GLU], [gluNewNurbsRenderer],,
  				 AC_MSG_NOTICE([*** Could not find libGLU: will compile without OpenGL support ***]))
 esac
-
+fi
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_PID_T
