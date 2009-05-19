@@ -93,4 +93,5 @@ uninstall-all:
 distclean: FORCE clean
 	-rm -f version.texi Makefile
 	cd FAQ; make distclean
+	cd png; make distclean
 FORCE:

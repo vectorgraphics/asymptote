@@ -29,7 +29,7 @@ info:	asymptote.info
 clean: FORCE
 	-rm -f *.png *.html asymptote.info* texput.aux texput.log
 
-distclean:
+distclean: FORCE clean
 	-rm -f Makefile
 
 install: 
