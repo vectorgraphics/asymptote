@@ -1192,7 +1192,6 @@ void label(picture pic=currentpicture, Label L, path3 g, align align=NoAlign,
   L.p(p);
   bool relative=L.position.relative;
   real position=L.position.position.x;
-  pair Align=L.align.dir;
   if(L.defaultposition) {relative=true; position=0.5;}
   if(relative) position=reltime(g,position);
   if(L.align.default) {
@@ -1202,7 +1201,7 @@ void label(picture pic=currentpicture, Label L, path3 g, align align=NoAlign,
     a.dir3=dir(g,position); // Pass 3D direction via unused field.
     L.align(a);             
   }
-  label(pic,L,point(g,position),L.align);
+  label(pic,L,point(g,position));
 }
 
 surface extrude(Label L, triple axis=Z)
