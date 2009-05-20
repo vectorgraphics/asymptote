@@ -1152,6 +1152,12 @@ void label(picture pic=currentpicture, Label L, triple position,
   path[] g=texpath(L);
   if(g.length == 0 || (g.length == 1 && size(g[0]) == 0)) return;
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
+      // Handle relative projected 3D alignments.
+      Label L=L.copy();
+      if(!align.is3D && L.align.relative && L.align.dir3 != O &&
+         determinant(P.t) != 0)
+        L.align(L.align.dir*project(L.align.dir3,P.t)); 
+      
       triple v=t*position;
       if(L.defaulttransform3)
         L.T3=transform3(P);
@@ -1181,20 +1187,22 @@ void label(picture pic=currentpicture, Label L, triple position,
 void label(picture pic=currentpicture, Label L, path3 g, align align=NoAlign,
            pen p=currentpen)
 {
-  Label L=Label(L,align,p);
+  Label L=L.copy();
+  L.align(align);
+  L.p(p);
   bool relative=L.position.relative;
   real position=L.position.position.x;
   pair Align=L.align.dir;
-  bool alignrelative=L.align.relative;
   if(L.defaultposition) {relative=true; position=0.5;}
   if(relative) position=reltime(g,position);
   if(L.align.default) {
-    alignrelative=true;
-    Align=position <= 0 ? S : position >= length(g) ? N : E;
+    align a;
+    a.init(-I*(position <= sqrtEpsilon ? S :
+                   position >= length(g)-sqrtEpsilon ? N : E),relative=true);
+    a.dir3=dir(g,position); // Pass 3D direction via unused field.
+    L.align(a);             
   }
-  label(pic,L,point(g,position),
-        alignrelative && determinant(currentprojection.t) != 0 ?
-        -Align*project(dir(g,position),currentprojection.t)*I : L.align);
+  label(pic,L,point(g,position),L.align);
 }
 
 surface extrude(Label L, triple axis=Z)

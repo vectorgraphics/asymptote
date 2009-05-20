@@ -172,7 +172,7 @@ side operator * (real x, side s)
 align operator cast(pair dir) {align A; A.init(dir,false); return A;}
 align operator cast(triple dir) {align A; A.init(dir,false); return A;}
 align operator cast(side side) {align A; A.init(side.align,true); return A;}
-align NoAlign;
+restricted align NoAlign;
 
 void write(file file=stdout, align align, suffix suffix=endl)
 {
