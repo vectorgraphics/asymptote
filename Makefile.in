@@ -24,13 +24,12 @@ FILES = $(CAMP) runtime env genv main stm dec errormsg \
 	$(PRC) glrender tr arcball algebra3 quaternion svnrevision
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc keywords.cc \
-       asy-keywords.el
+	asy-keywords.el base/asy-keywords.el
 NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output asy.list svnrevision.cc doc/version.texi \
-        GUI/xasyVersion.py $(XNAME)  base/asy-keywords.el
-EXTRA = asy-mode.el asy-keywords.el asy-init.el asy.vim asymptote.py reload.js \
-	nopapersize.ps
+        GUI/xasyVersion.py $(XNAME)
+EXTRA = asy-mode.el asy-keywords.el asy-init.el asy.vim asymptote.py reload.js \	nopapersize.ps
 EXEXTRA = piicon.eps *.views *.dat
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
@@ -148,7 +147,7 @@ asy.list: asy
 	./asy-list.pl asy.list @VERSION@
 
 asy-keywords.el: asy.list
-	ln -sf ../asy-keywords.el base/
+	cp asy-keywords.el base/
 
 install: asy-keywords.el install-asy install-man
 
