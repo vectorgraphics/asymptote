@@ -10,6 +10,9 @@ draw(pic,Label("$x$",1),O--X);
 draw(pic,Label("$y$",1),O--Y);
 draw(pic,Label("$z$",1),O--Z);
 
-add(pic.fit(orthographic(Z)),(0,0),N);
-add(pic.fit(orthographic(X)),(0,0),S);
-
+frame Front=pic.fit(orthographic(-Y));
+add(Front);
+frame Top=pic.fit(orthographic(Z));
+add(shift(0,min(Front).y-max(Top).y)*Top);
+frame Right=pic.fit(orthographic(X));
+add(shift(min(Front).x-max(Right).x)*Right);
