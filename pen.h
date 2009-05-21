@@ -17,6 +17,7 @@ namespace camp {
 
 static const string DEFPAT="<default>";
 static const string DEFLATEXFONT="\\usefont{\\ASYencoding}{\\ASYfamily}{\\ASYseries}{\\ASYshape}";
+static const string DEFCONTEXTFONT="lmr12";
 static const string DEFTEXFONT="cmr12";
 static const double DEFWIDTH=-1;
 static const Int DEFCAP=-1;
@@ -395,8 +396,11 @@ public:
           return settings::getSetting<string>("textinitialfont");
         else {
           ostringstream buf;
-          buf << "\\font\\ASYfont=" << DEFTEXFONT << " at " << size() 
-              << "pt\\ASYfont";
+          buf << "\\font\\ASYfont=" << 
+            (settings::context(texengine) ? DEFCONTEXTFONT : DEFTEXFONT)
+              << " at " << size() << "pt\\ASYfont";
+          if(texengine == "context")
+            buf << "\\switchtobodyfont[" << size() << "pt]%" << newl;
           return buf.str();
         }
       }

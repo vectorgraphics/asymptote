@@ -136,29 +136,38 @@ string math(string s)
   return s != "" ? "$"+s+"$" : s;
 }
 
+private void notimplemented(string text) 
+{
+  abort(text+" is not implemented for the '"+settings.tex+"' TeX engine");
+}
+
 string graphic(string name, string options="")
 {
-  if(options != "") options="["+options+"]";
-  return "\includegraphics"+options+"{"+name+"}";
+  if(latex()) {
+    if(options != "") options="["+options+"]";
+    return "\includegraphics"+options+"{"+name+"}";
+  }
+  if(settings.tex != "context")
+    notimplemented("graphic");
+  return "\externalfigure["+name+"]["+options+"]";
 }
 
 string minipage(string s, real width=100bp)
 {
   if(latex())
     return "\begin{minipage}{"+(string) (width*pt)+"pt}"+s+"\end{minipage}";
-  write("warning: minipage requires -tex latex or -tex pdflatex");
-  return "";
+  if(settings.tex != "context")
+    notimplemented("minipage");
+  return "\startframedtext[none][frame=off,width="+(string) (width*pt)+
+    "pt]"+s+"\stopframedtext";
 }
 
 void usepackage(string s, string options="")
 {
-  if(latex()) {
-    string usepackage="\usepackage";
-    if(options != "") usepackage += "["+options+"]";
-    texpreamble(usepackage+"{"+s+"}");
-    return;
-  }
-  write("warning: usepackage requires -tex latex or -tex pdflatex");
+  if(!latex()) notimplemented("usepackage");
+  string usepackage="\usepackage";
+  if(options != "") usepackage += "["+options+"]";
+  texpreamble(usepackage+"{"+s+"}");
 }
 
 void pause(string w="Hit enter to continue") 

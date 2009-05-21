@@ -216,7 +216,10 @@ void picture::texinit()
   unlink(cname);
   
   ostringstream cmd;
-  cmd << texprogram() << " \\scrollmode";
+  if(context(getSetting<string>("tex")))
+    cmd << texprogram() << " misc/null";
+  else
+    cmd << texprogram() << " \\scrollmode";
   pd.tex.open(cmd.str().c_str(),"texpath",texpathmessage());
   pd.tex.wait("\n*");
   pd.tex << "\n";

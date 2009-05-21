@@ -58,14 +58,16 @@ public:
     if(gsave) out->gsave();
     if(empty()) return true;
     
-    out->verbatim(settings::beginpicture(out->texengine));
-    out->verbatim("(");
-    double width=bpath.right-bpath.left;
-    double height=bpath.top-bpath.bottom;
-    out->write(width*ps2tex);
-    out->verbatim(",");
-    out->write(height*ps2tex);
-    out->verbatimline(")%");
+    if(!settings::context(out->texengine)) {
+      out->verbatim(settings::beginpicture(out->texengine));
+      out->verbatim("(");
+      double width=bpath.right-bpath.left;
+      double height=bpath.top-bpath.bottom;
+      out->write(width*ps2tex);
+      out->verbatim(",");
+      out->write(height*ps2tex);
+      out->verbatimline(")%");
+    }
 
     out->beginspecial();
     out->beginraw();

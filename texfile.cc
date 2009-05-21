@@ -63,30 +63,37 @@ void texfile::prologue()
   texdefines(*out,processData().TeXpreamble,false);
   double width=box.right-box.left;
   double height=box.top-box.bottom;
-  if(settings::pdf(texengine) && !inlinetex) {
-    double voffset=0.0;
-    if(settings::latex(texengine)) {
-      if(height < 12.0) voffset=height-12.0;
-    } else if(height < 10.0) voffset=height-10.0;
+  if(!inlinetex) {
+    if(settings::context(texengine)) {
+      *out << "\\definepapersize[asy][width=" << width << "bp,height=" 
+           << height << "bp]" << newl
+           << "\\setuppapersize[asy][asy]" << newl;
+    } else if(settings::pdf(texengine)) {
+      double voffset=0.0;
+      if(settings::latex(texengine)) {
+        if(height < 12.0) voffset=height-12.0;
+      } else if(height < 10.0) voffset=height-10.0;
 
-    // Work around an apparent xelatex dimension bug
-    double xelatexBug=ps2tex;
+      // Work around an apparent xelatex dimension bug
+      double xelatexBug=ps2tex;
 
-    if(width > 0) 
-      *out << "\\pdfpagewidth=" << width << "bp" << newl;
-    *out << "\\ifx\\pdfhorigin\\undefined" << newl
-         << "\\hoffset=-1in" << newl
-         << "\\voffset=" << voffset-72.0*xelatexBug << "bp" << newl;
-    if(height > 0)
-      *out << "\\pdfpageheight=" << height*0.5*(1.0+xelatexBug) << "bp" 
-           << newl;
-    *out << "\\else" << newl
-         << "\\pdfhorigin=0bp" << newl
-         << "\\pdfvorigin=" << voffset << "bp" << newl;
-    if(height > 0)
-      *out << "\\pdfpageheight=" << height << "bp" << newl;
-    *out << "\\fi" << endl;
+      if(width > 0) 
+        *out << "\\pdfpagewidth=" << width << "bp" << newl;
+      *out << "\\ifx\\pdfhorigin\\undefined" << newl
+           << "\\hoffset=-1in" << newl
+           << "\\voffset=" << voffset-72.0*xelatexBug << "bp" << newl;
+      if(height > 0)
+        *out << "\\pdfpageheight=" << height*0.5*(1.0+xelatexBug) << "bp" 
+             << newl;
+      *out << "\\else" << newl
+           << "\\pdfhorigin=0bp" << newl
+           << "\\pdfvorigin=" << voffset << "bp" << newl;
+      if(height > 0)
+        *out << "\\pdfpageheight=" << height << "bp" << newl;
+      *out << "\\fi" << newl;
+    }
   }
+  
   if(settings::latex(texengine)) {
     *out << "\\setlength{\\unitlength}{1pt}" << newl;
     if(!inlinetex) {
@@ -101,13 +108,20 @@ void texfile::prologue()
     }
   } else {
     if(!inlinetex) {
-      *out << "\\footline={}" << newl;
-      if(settings::pdf(texengine)) {
-        *out << "\\hoffset=-20pt" << newl
-             << "\\voffset=0pt" << newl;
+      if(settings::context(texengine)) {
+        *out << "\\setuplayout[width=16383pt,height=16383pt,"
+             << "backspace=0pt,topspace=0pt,"
+             << "header=0pt,headerdistance=0pt,footer=0pt]" << newl
+             << "\\starttext\\hbox{%" << newl;
       } else {
-        *out << "\\hoffset=36.6pt" << newl
-             << "\\voffset=54.0pt" << newl;
+        *out << "\\footline={}" << newl;
+        if(settings::pdf(texengine)) {
+          *out << "\\hoffset=-20pt" << newl
+               << "\\voffset=0pt" << newl;
+        } else {
+          *out << "\\hoffset=36.6pt" << newl
+               << "\\voffset=54.0pt" << newl;
+        }
       }
     }
   }
@@ -118,13 +132,17 @@ void texfile::beginlayer(const string& psname, bool postscript)
   const char *units=settings::texunits(texengine);
   if(box.right > box.left && box.top > box.bottom) {
     if(postscript) {
-      *out << "\\includegraphics";
-      if(!settings::pdf(texengine))
-        *out << "[bb=" << box.left << " " << box.bottom << " "
-             << box.right << " " << box.top << "]";
-      *out << "{" << psname << "}%" << newl;
+      if(settings::context(texengine))
+        *out << "\\externalfigure[" << psname << "]%" << newl;
+      else {
+        *out << "\\includegraphics";
+        if(!settings::pdf(texengine))
+          *out << "[bb=" << box.left << " " << box.bottom << " "
+               << box.right << " " << box.top << "]";
+        *out << "{" << psname << "}%" << newl;
+      }
       if(!inlinetex)
-        *out << "\\kern -" << (box.right-box.left)*ps2tex << units
+        *out << "\\kern " << (box.left-box.right)*ps2tex << units
              << "%" << newl;
     } else {
       *out << "\\leavevmode\\vbox to " << (box.top-box.bottom)*ps2tex 
@@ -139,7 +157,7 @@ void texfile::beginlayer(const string& psname, bool postscript)
 void texfile::endlayer()
 {
   if(inlinetex && (box.right > box.left && box.top > box.bottom))
-    *out << "\\kern -" << (box.right-box.left)*ps2tex
+    *out << "\\kern " << (box.left-box.right)*ps2tex
          << settings::texunits(texengine) << "%" << newl;
 }
 
@@ -258,6 +276,8 @@ void texfile::epilogue(bool pipe)
     if(!inlinetex || pipe)
       *out << "\\end{document}" << newl;
   } else {
+    if(settings::context(texengine))
+      *out << "}\\stoptext" << newl;
     *out << "\\bye" << newl;
   }
   out->flush();

@@ -30,7 +30,9 @@ public:
   bool islabel() {return true;}
   
   bool write(texfile *out, const bbox&) {
-    out->verbatimline("\\newpage");
+    out->verbatimline(settings::latex(out->texengine) ? "\\newpage" : 
+                      settings::context(out->texengine) ? "}\\eject\\hbox{%" :
+                      "\\eject");
     return true;
   }
 };

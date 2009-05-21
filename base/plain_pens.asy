@@ -174,13 +174,17 @@ void write(file file=stdout, string s="", pen[] p)
     write(file,s,p[i],endl);
 }
 
-pen font(string name) 
+pen font(string name, string options="") 
 {
-  return fontcommand("\font\ASYfont="+name+"\ASYfont");
+  return fontcommand(settings.tex == "context" ? "\switchtobodyfont["+name+
+                     (options == "" ? "" : ","+options)+"]" : 
+                     "\font\ASYfont="+name+"\ASYfont");
 }
 
-pen font(string name, real size) 
+pen font(string name, real size, string options="") 
 {
+  if(settings.tex == "context")
+    return fontsize(size)+font(name+","+(string) size+"pt",options);
   return fontsize(size)+font(name+" at "+(string) size+"pt");
 }
 

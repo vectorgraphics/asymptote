@@ -77,8 +77,9 @@ void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
         << "\\setbox\\ASYbox\\hbox{\\ASYdimen=\\ht\\ASYbox%" << newl
         << "\\advance\\ASYdimen by\\dp\\ASYbox\\kern#3\\wd\\ASYbox"
         << "\\raise#4\\ASYdimen\\box\\ASYbox}%" << newl
-        << "\\put(#1,#2){#5\\wd\\ASYbox 0pt\\dp\\ASYbox 0pt\\ht\\ASYbox 0pt"
-        << "\\box\\ASYbox#6}}" << newl
+        << settings::beginput(texengine) 
+        << "{#5\\wd\\ASYbox 0pt\\dp\\ASYbox 0pt\\ht\\ASYbox 0pt\\box\\ASYbox#6}"
+        << settings::endput(texengine) << "}%" << newl
         << "\\long\\def\\ASYalignT(#1,#2)(#3,#4)#5#6{%" << newl
         << "\\ASYaligned(#1,#2)(#3,#4){%" << newl
         << settings::beginlabel(texengine) << "%" << newl
@@ -109,13 +110,17 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
     }
   }
   texfontencoding(out);
-  if(settings::latex(settings::getSetting<string>("tex"))) {
+  string texengine=settings::getSetting<string>("tex");
+  if(settings::latex(texengine)) {
     if(pipe || !settings::getSetting<bool>("inlinetex")) {
       out << "\\usepackage{graphicx}" << newl;
       if(!pipe) out << "\\usepackage{color}" << newl;
     }
     if(pipe)
       out << "\\begin{document}" << newl;
+  } else if(settings::context(texengine)) {
+    if(!pipe)
+      out << "\\usemodule[pictex]" << newl;
   } else {
     out << "\\input graphicx" << newl;
     if(!pipe)

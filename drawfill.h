@@ -166,8 +166,10 @@ public:
   drawFunctionShade(const vm::array& src, bool stroke, pen pentype,
                     const string& shader)
     : drawFill(src,stroke,pentype), shader(shader) {
-    if(!settings::pdf(settings::getSetting<string>("tex")))
-      reportError("functionshade requires -tex pdftex or -tex pdflatex");
+    string texengine=settings::getSetting<string>("tex");
+    if(!settings::pdf(texengine))
+      reportError("functionshade is not implemented for the '"+texengine+
+                  "' tex engine");
   }
 
   virtual ~drawFunctionShade() {}

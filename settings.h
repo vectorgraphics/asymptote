@@ -93,10 +93,13 @@ Int getScroll();
   
 bool pdf(const string& texengine);
 bool latex(const string& texengine);
+bool context(const string& texengine);
   
 string nativeformat();
 string defaultformat();
   
+const char *beginput(const string& texengine);
+const char *endput(const string& texengine);
 const char *beginlabel(const string& texengine);
 const char *endlabel(const string& texengine);
 const char *rawpostscript(const string& texengine);

@@ -1397,7 +1397,7 @@ and @code{rainbow.asy}.
 @cindex function shading
 @cindex @code{functionshade}
 More general shading possibilities are available with the @code{pdflatex},
-@code{xetex}, and @code{pdftex} @TeX{} engines: the routine
+@code{context}, and @code{pdftex} @TeX{} engines: the routine
 @verbatim
 void functionshade(picture pic=currentpicture, path[] g, bool stroke=false,
                    pen fillrule=currentpen, string shader);
@@ -6189,7 +6189,7 @@ This module provides an interface to the @code{LaTeX} package
 @noindent
 for embedding movies, sounds, and 3D objects into a @acronym{PDF} document.
 @noindent
-@cindex @code{XeLaTeX}
+@cindex @code{xelatex}
 However, @code{XeLaTeX} users need to rename the modified version
 @code{movie15_dvipdfmx.sty} from
 @quotation
@@ -8520,10 +8520,15 @@ at the beginning of the configuration file, it can contain arbitrary
 @cindex @code{render}
 @cindex @code{antialias}
 @cindex @code{size}
+@cindex @code{latex}
+@cindex @code{tex}
+@cindex @code{pdflatex}
+@cindex @code{xelatex}
+@cindex @code{context}
 @anchor{convert}
 The default output format is @acronym{EPS} for the (default)
-@code{latex} tex engine and @acronym{PDF} for the @code{pdflatex} and
-@code{xelatex} tex engines.
+@code{latex} and @code{tex} tex engine and @acronym{PDF} for the
+@code{pdflatex}, @code{xelatex}, and @code{context} tex engines.
 Alternative output formats may be produced using the @code{-f} option 
 (or @code{outformat} setting). The optional setting @code{-render n} requests
 an output resolution of @code{n} pixels per @code{bp}. Antialiasing is
@@ -9149,5 +9154,6 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
 @c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
 @c  LocalWords:  dvipdfmx autoadjust viewportsize viewportwidth viewportheight
-@c  LocalWords:  subregions nonsimply functionshade xetex shader floatingdisk
-@c  LocalWords:  functionshading nonselfintersecting
+@c  LocalWords:  subregions nonsimply functionshade shader floatingdisk
+@c  LocalWords:  functionshading nonselfintersecting maxlength
+@c  LocalWords:  vectorfieldsphere
