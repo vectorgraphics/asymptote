@@ -450,7 +450,9 @@ extern const double third;
 
 }
 
+#ifndef BROKEN_COMPILER
 // Delete the following line to work around problems with old broken compilers.
 GC_DECLARE_PTRFREE(camp::solvedKnot);
+#endif
 
 #endif

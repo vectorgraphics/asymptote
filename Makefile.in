@@ -96,6 +96,7 @@ asy.o:	asy.rc asy.ico Makefile
 
 all:  	asy man faq asy-keywords.el
 
+GCLIB_CHECK = $(MAKE) check
 $(GCLIB): $(GC).tar.gz
 	gunzip -c $(GC).tar.gz > $(GC).tar
 	tar -xf $(GC).tar
@@ -108,7 +109,7 @@ $(GCLIB): $(GC).tar.gz
 	fi
 	cd $(GC); \
 	./configure $(GCOPTIONS); \
-	$(MAKE) check
+       $(GCLIB_CHECK)
 
 $(GCPPLIB): $(GCLIB)
 

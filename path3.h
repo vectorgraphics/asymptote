@@ -380,7 +380,9 @@ double bound(triple *p, double (*m)(double, double),
              int depth=maxdepth);
 }
 
+#ifndef BROKEN_COMPILER
 // Delete the following line to work around problems with old broken compilers.
 GC_DECLARE_PTRFREE(camp::solvedKnot3);
+#endif
 
 #endif
