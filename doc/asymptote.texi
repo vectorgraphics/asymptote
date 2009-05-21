@@ -7704,6 +7704,31 @@ autoadjust,center)}.
 The default projection, @code{currentprojection}, is initially set to
 @code{perspective(5,4,2)}.
 
+@cindex @code{LeftView}
+@cindex @code{RightView}
+@cindex @code{FrontView}
+@cindex @code{BackView}
+@cindex @code{BottomView}
+@cindex @code{TopView}
+We also define standard orthographic views used in technical drawing:
+@verbatim
+projection LeftView=orthographic(-X,showtarget=true);
+projection RightView=orthographic(X,showtarget=true);
+projection FrontView=orthographic(-Y,showtarget=true);
+projection BackView=orthographic(Y,showtarget=true);
+projection BottomView=orthographic(-Z,showtarget=true);
+projection TopView=orthographic(Z,showtarget=true);
+@end verbatim
+@noindent
+The function
+@verbatim
+void addViews(picture dest=currentpicture, picture src, bool group=true,
+              filltype filltype=NoFill, bool above=true);
+@end verbatim
+@noindent
+adds picture @code{pic} as seen with @code{FrontView} aligned above the
+projection @code{TopView} and to the right of the projection @code{RightView}. 
+
 A triple or path3 can be projected to a pair or path,
 with @code{project(triple, projection P=currentprojection)} or
 @code{project(path3, projection P=currentprojection)}.
@@ -9154,6 +9179,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
 @c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
 @c  LocalWords:  dvipdfmx autoadjust viewportsize viewportwidth viewportheight
-@c  LocalWords:  subregions nonsimply functionshade shader floatingdisk
-@c  LocalWords:  functionshading nonselfintersecting maxlength
-@c  LocalWords:  vectorfieldsphere
+@c  LocalWords:  subregions nonsimply functionshade shader floatingdisk TopView
+@c  LocalWords:  functionshading nonselfintersecting maxlength LeftView
+@c  LocalWords:  vectorfieldsphere RightView FrontView BackView BottomView
+@c  LocalWords:  addViews

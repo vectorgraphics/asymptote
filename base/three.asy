@@ -299,6 +299,13 @@ projection obliqueY(real angle=45)
 projection oblique=oblique();
 projection obliqueX=obliqueX(), obliqueY=obliqueY(), obliqueZ=obliqueZ();
 
+projection LeftView=orthographic(-X,showtarget=true);
+projection RightView=orthographic(X,showtarget=true);
+projection FrontView=orthographic(-Y,showtarget=true);
+projection BackView=orthographic(Y,showtarget=true);
+projection BottomView=orthographic(-Z,showtarget=true);
+projection TopView=orthographic(Z,showtarget=true);
+
 currentprojection=perspective(5,4,2);
 
 // Map pair z to a triple by inverting the projection P onto the
@@ -2469,7 +2476,7 @@ object embed(string label="", string text=label,
           transform3 inv=inverse(modelview);
           if(adjusted) 
             write("adjusting camera to ",tinv*inv*P.camera);
-            target=inv*P.target;
+          target=inv*P.target;
         }
         P=T*P;
       }
@@ -2589,6 +2596,23 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
   }
   return f;
 };
+
+void addViews(picture dest, picture src, bool group=true,
+              filltype filltype=NoFill, bool above=true)
+{
+  frame Front=src.fit(FrontView);
+  add(dest,Front,group,filltype,above);
+  frame Top=src.fit(TopView);
+  add(dest,shift(0,min(Front).y-max(Top).y)*Top,group,filltype,above);
+  frame Right=src.fit(RightView);
+  add(dest,shift(min(Front).x-max(Right).x)*Right,group,filltype,above);
+}
+
+void addViews(picture src, bool group=true, filltype filltype=NoFill,
+              bool above=true)
+{
+  addViews(currentpicture,src,group,filltype,above);
+}
 
 // Force an array of 3D pictures to be as least as large as picture all.
 void rescale3(picture[] pictures, picture all, projection P=currentprojection)
