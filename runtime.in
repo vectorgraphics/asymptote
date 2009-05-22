@@ -3073,7 +3073,8 @@ guide *reverse(guide *g)
 
 void _draw(picture *f, path3 g, pen p)
 {
-  f->append(new drawPath3(g,p));
+  if(g.size() > 0)
+    f->append(new drawPath3(g,p));
 }
 
 void draw(picture *f, triplearray2 *g, bool straight, penarray *p, real opacity,
