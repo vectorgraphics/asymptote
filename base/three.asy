@@ -1840,7 +1840,7 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
   if(t1 >= t2 && direction) t1 -= n;
   if(t2 >= t1 && !direction) t2 -= n;
 
-  return shift(c)*scale3(r)*T*subpath(unitcircle3,t1,t2);
+  return shift(c)*scale3(r)*T*rotate(90*t1,O,Z)*subpath(unitcircle3,0,t2-t1);
 }
 
 // return an arc centered at c with radius r from c+r*dir(theta1,phi1) to
