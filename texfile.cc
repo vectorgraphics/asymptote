@@ -278,7 +278,8 @@ void texfile::epilogue(bool pipe)
   } else {
     if(settings::context(texengine))
       *out << "}\\stoptext" << newl;
-    *out << "\\bye" << newl;
+    else
+      *out << "\\bye" << newl;
   }
   out->flush();
 }
