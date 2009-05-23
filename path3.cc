@@ -515,7 +515,7 @@ void intersections(std::vector<double>& S, std::vector<double>& T,
   size_t n=S1.size();
   for(size_t i=0; i < n; ++i) {
     S.push_back(S1[i]);
-    T.push_back(0);
+    T.push_back(0.0);
   }
 }
 
@@ -600,8 +600,8 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     --depth;
     if((maxp-minp).length()+(maxq-minq).length() <= fuzz || depth == 0) {
       if(single) {
-        s=0;
-        t=0;
+        s=0.0;
+        t=0.0;
       } else {
         S.push_back(0.0);
         T.push_back(0.0);
