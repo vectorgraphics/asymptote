@@ -36,14 +36,31 @@ else
 fi
 ])
 
+AC_ARG_WITH(context,
+	[  --with-context=PATH       specify path to Context installation ],
+                     [if test "x$withval" != "x" ; then
+			contextdir=$withval
+		      fi
+		     ],[
+AC_CHECK_PROG(kpsewhich,kpsewhich,true)
+if test "x$kpsewhich" = "xtrue"; then
+  contextdir=`kpsewhich -expand-var='$TEXMFLOCAL'/tex/context/third`
+else
+  contextdir=$prefix/share/texmf/tex/context/third
+fi
+])
+
 AC_CHECK_PROGS(TEXI2DVI,[texi2dvi texi2dvi4a2ps])
 AC_SUBST(TEXI2DVI)
 
 latexdir=$latexdir/asymptote
+contextdir=$contextdir/asymptote
 
 AC_MSG_NOTICE([Using $latexdir for LaTeX style file])
+AC_MSG_NOTICE([Using $contextdir for ConTeXT style file])
 
 AC_SUBST(latexdir)
+AC_SUBST(contextdir)
 
 docdir=$Datadir/doc/asymptote
 

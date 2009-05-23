@@ -24,15 +24,16 @@ FILES = $(CAMP) runtime env genv main stm dec errormsg \
 	$(PRC) glrender tr arcball algebra3 quaternion svnrevision
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc keywords.cc \
-	asy-keywords.el base/asy-keywords.el
+	asy-keywords.el
 NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output asy.list svnrevision.cc doc/version.texi GUI/xasyVersion.py $(XNAME)
-EXTRA = asy-mode.el asy-keywords.el asy-init.el asy.vim asymptote.py reload.js nopapersize.ps
+EXTRA = asy-mode.el asy-init.el asy.vim asymptote.py reload.js nopapersize.ps
 EXEXTRA = piicon.eps *.views *.dat
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
 LATEXFILES = asymptote.sty asycolors.sty
+CONTEXTFILES = colo-asy.tex
 ASY = ./asy -dir base -config "" -render=0
 
 DEFS = @DEFS@ @OPTIONS@
@@ -59,6 +60,7 @@ docdir = $(DESTDIR)@docdir@
 exampledir = $(docdir)/examples
 animationsdir = $(exampledir)/animations
 latexdir = $(DESTDIR)@latexdir@
+contextdir = $(DESTDIR)@contextdir@
 INSTALL = @INSTALL@
 REVISION = "const char *SVN_REVISION="
 revision = `svn info 2>/dev/null | grep "Revision" | sed -e "s/Revision: \(.*\)/-r\1/"`
@@ -140,14 +142,11 @@ keywords.cc: keywords.pl camp.l
 
 envcompleter.d: keywords.cc
 
-asy.list: asy
+asy-keywords.el: asy
 	$(ASY) -l > asy.list
 	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | \
           grep -v three_\* | grep -v featpost3D | xargs $(ASY) -l >> asy.list
 	./asy-list.pl asy.list @VERSION@
-
-asy-keywords.el: asy.list
-	cp asy-keywords.el base/
 
 install: asy-keywords.el install-asy install-man
 
@@ -157,8 +156,9 @@ install-asy: asy
 	${INSTALL} -d $(bindir) $(asydir) $(GUIdir) $(exampledir) \
           $(animationsdir)
 	-${INSTALL} -d $(latexdir)
+	-${INSTALL} -d $(contextdir)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
-	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) $(asydir)
+	${INSTALL} -p -m 644 asy-keywords.el base/*.asy $(addprefix base/,$(EXTRA)) $(asydir)
 	${INSTALL} -p -m 755 GUI/*.py $(GUIdir)
 	ln -sf @datadir@/asymptote/GUI/xasy.py $(bindir)/$(XNAME)
 	${INSTALL} -p -m 644 examples/*.asy $(addprefix examples/,$(EXEXTRA)) \
@@ -167,6 +167,7 @@ install-asy: asy
           examples/animations/inlinemovie.tex \
 	  examples/animations/inlinemovie3.tex $(animationsdir)
 	-${INSTALL} -p -m 644 $(addprefix doc/,$(LATEXFILES)) $(latexdir)
+	-${INSTALL} -p -m 644 $(addprefix doc/,$(CONTEXTFILES)) $(contextdir)
 	-if test -z "$(DESTDIR)"; then \
 	  texhash; \
 	fi
@@ -193,6 +194,8 @@ uninstall-asy:
 	-rmdir $(asydir)
 	-cd $(latexdir); rm -f $(LATEXFILES)
 	-rmdir $(latexdir)
+	-cd $(contextdir); rm -f $(CONTEXTFILES)
+	-rmdir $(contextdir)
 	-cd $(bindir); rm -f $(NAME) $(XNAME)
 
 uninstall-man: 
