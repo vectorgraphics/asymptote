@@ -174,10 +174,18 @@ void write(file file=stdout, string s="", pen[] p)
     write(file,s,p[i],endl);
 }
 
+void usetypescript(string s, string encoding="")
+{
+  texpreamble("\usetypescript["+s+"]["+encoding+"]");
+}
+
 pen font(string name, string options="") 
 {
-  return fontcommand(settings.tex == "context" ? "\switchtobodyfont["+name+
-                     (options == "" ? "" : ","+options)+"]" : 
+  // Protect context switchtobodyfont with gsave/grestore to prevent
+  // misalignment if font is not found.
+  return fontcommand(settings.tex == "context" ?
+                     "\special{pdf:q}\switchtobodyfont["+name+
+                     (options == "" ? "" : ","+options)+"]\special{pdf:Q}%" :
                      "\font\ASYfont="+name+"\ASYfont");
 }
 

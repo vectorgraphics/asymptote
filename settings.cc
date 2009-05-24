@@ -999,7 +999,7 @@ void initSettings() {
   
   addOption(new boolSetting("debug", 'd', "Enable debugging messages"));
   addOption(new incrementSetting("verbose", 'v',
-                                 "Increase verbosity level", &verbose));
+                                 "Increase verbosity level (can specify multiple times)", &verbose));
   // Resolve ambiguity with --version
   addOption(new incrementOption("vv", 0,"", &verbose,2));
   addOption(new incrementOption("novv", 0,"", &verbose,-2));

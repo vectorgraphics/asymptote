@@ -112,6 +112,7 @@ void texfile::prologue()
         *out << "\\setuplayout[width=16383pt,height=16383pt,"
              << "backspace=0pt,topspace=0pt,"
              << "header=0pt,headerdistance=0pt,footer=0pt]" << newl
+             << "\\usetypescript[modern]" << newl
              << "\\starttext\\hbox{%" << newl;
       } else {
         *out << "\\footline={}" << newl;
