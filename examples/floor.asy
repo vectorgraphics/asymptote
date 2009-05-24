@@ -22,7 +22,7 @@ bool3 branch(real x) {
 };
 
 draw(graph(Floor,-5.5,5.5,500,branch)); 
-axes("$x$","$\lfloor x\rfloor$",red);
+axes("$x$",rotate(0)*"$\lfloor x\rfloor$",red);
 
 dot(Close);
 dot(Open,UnFill);
