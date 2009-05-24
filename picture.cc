@@ -216,10 +216,9 @@ void picture::texinit()
   unlink(cname);
   
   ostringstream cmd;
-  if(context(getSetting<string>("tex")))
-    cmd << texprogram() << " misc/null";
-  else
-    cmd << texprogram() << " \\scrollmode";
+  bool context=settings::context(getSetting<string>("tex"));
+  cmd << texprogram() << (context ? " \"\\scrollmode\\relax\"" :
+                          " \\scrollmode");
   pd.tex.open(cmd.str().c_str(),"texpath",texpathmessage());
   pd.tex.wait("\n*");
   pd.tex << "\n";
@@ -242,7 +241,9 @@ bool picture::texprocess(const string& texname, const string& outname,
     unlink(aux.c_str());
     string program=texprogram();
     ostringstream cmd;
-    cmd << program << " \\nonstopmode\\input '" << texname << "'";
+    bool context=settings::context(getSetting<string>("tex"));
+    cmd << program << (context ? " --nonstopmode '" : 
+                       " \\nonstopmode\\input '") << texname << "'";
     bool quiet=verbose <= 1;
     status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
     if(!status && getSetting<bool>("twice"))
@@ -250,7 +251,8 @@ bool picture::texprocess(const string& texname, const string& outname,
     if(status) {
       if(quiet) {
         ostringstream cmd;
-        cmd << program << " \\scrollmode\\input '" << texname << "'";
+        cmd << program << (context ? " --scrollmode '" : 
+                           " \\scrollmode\\input '") << texname << "'";
         System(cmd,0);
       }
       return false;
