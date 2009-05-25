@@ -107,9 +107,14 @@ public:
     Running=true;
   }
 
-  void nonblocking() {
-    if(pipeopen)
-      fcntl(out[0],F_SETFL,fcntl(out[0],F_GETFL) | O_NONBLOCK);
+  void block(bool block=true) {
+    if(pipeopen) {
+      int flags=fcntl(out[0],F_GETFL);
+      if(block)
+        fcntl(out[0],F_SETFL,flags & ~O_NONBLOCK);
+      else
+        fcntl(out[0],F_SETFL,flags | O_NONBLOCK);
+    }
   }
   
   bool isopen() {return pipeopen;}
@@ -133,9 +138,9 @@ public:
     if(pipeopen) {
       eof();
       close(out[0]);
-      waitpid(pid,NULL,0); // Avoid zombies.
       Running=false;
       pipeopen=false;
+      waitpid(pid,NULL,0); // Avoid zombies.
     }
   }
   

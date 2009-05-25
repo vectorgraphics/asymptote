@@ -112,8 +112,8 @@ const char *texunits(const string& texengine);
 extern bool fataltex[];
 const char **texabort(const string& texengine);
   
-string texcommand(bool ps=false);
-string texprogram(bool ps=false);
+string texcommand();
+string texprogram();
   
 const double inches=72;
 const double cm=inches/2.54;

@@ -1123,7 +1123,6 @@ void initSettings() {
   addOption(new envSetting("gs", defaultGhostscript));
   addOption(new envSetting("texpath", ""));
   addOption(new envSetting("texcommand", ""));
-  addOption(new envSetting("texdvicommand", ""));
   addOption(new envSetting("dvips", "dvips"));
   addOption(new envSetting("convert", "convert"));
   addOption(new envSetting("display", defaultDisplay));
@@ -1353,22 +1352,16 @@ const char **texabort(const string& texengine)
   return settings::pdf(texengine) ? pdftexerrors : texerrors;
 }
 
-string texcommand(bool ps)
+string texcommand()
 {
-  string command;
-  if(ps) {
-    command=getSetting<string>("texdvicommand");
-    if(command == "")
-      command=latex(getSetting<string>("tex")) ? "latex" : "tex";
-  } else
-    command=getSetting<string>("texcommand");
+  string command=getSetting<string>("texcommand");
   return command.empty() ? getSetting<string>("tex") : command;
 }
   
-string texprogram(bool ps)
+string texprogram()
 {
   string path=getSetting<string>("texpath");
-  string engine=texcommand(ps);
+  string engine=texcommand();
   if(!path.empty()) engine=(string) (path+"/"+engine);
   string program="'"+engine+"'";
   string dir=stripFile(outname());

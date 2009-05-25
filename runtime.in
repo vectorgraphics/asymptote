@@ -1205,29 +1205,38 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   string prefix=outname();
   spaceToUnderscore(prefix);
   string psname=auxname(prefix,"ps");
-
   string texname=auxname(prefix,"tex");
   string dviname=auxname(prefix,"dvi");
   bbox b;
-  texfile tex(texname,b,true);
+  bool pdf=settings::pdf(getSetting<string>("tex"));
+  texfile tex(texname,b);
   tex.miniprologue();
-  
   tex.setfont(p);
-  tex.verbatimline("\\special{ps:");
-  tex.verbatimline(ASYo);
-  tex.verbatimline("/ASY1 true def");
-  tex.verbatimline("/v {neg exch 4 copy 4 2 roll 2 copy 6 2 roll 2 copy (M) print ASYo ASYo (L) print ASYo add ASYo (L) print add ASYo add ASYo (L) print add ASYo ASYo (c) print} bind def");
-  tex.verbatimline("/show {ASY1 {(Z) "+currentpoint+
-                   "/ASY1 false def} if currentpoint newpath moveto false charpath "+
-                   pathforall+"} bind def}");
+  
+  if(!pdf) {
+    tex.verbatimline("\\special{ps:");
+    tex.verbatimline(ASYo);
+    tex.verbatimline("/ASY1 true def");
+    tex.verbatimline("/v {neg exch 4 copy 4 2 roll 2 copy 6 2 roll 2 copy (M) print ASYo ASYo (L) print ASYo add ASYo (L) print add ASYo add ASYo (L) print add ASYo ASYo (c) print} bind def");
+    tex.verbatimline("/show {ASY1 {(Z) "+currentpoint+
+                     "/ASY1 false def} if currentpoint newpath moveto false charpath "+
+                     pathforall+"} bind def}");
+  }
   tex.verbatim(*s);
   tex.epilogue(true);
   tex.close();
   
-  ostringstream cmd;
+//  outfile.open(texname.c_str());
+//  if(outfile)
+
+  // TODO: Put in subproutine (cf. teprocess).
   string aux=auxname(prefix,"aux");
   unlink(aux.c_str());
-  cmd << texprogram(true) << " \\nonstopmode\\input '" << texname << "'";
+  string program=texprogram();
+  ostringstream cmd;
+  bool context=settings::context(getSetting<string>("tex"));
+  cmd << program << (context ? " --nonstopmode '" : 
+                     " \\nonstopmode\\input '") << texname << "'";
   bool quiet=verbose <= 2;
   int status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
   if(!status && getSetting<bool>("twice"))
@@ -1235,18 +1244,53 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   if(status) {
     if(quiet) {
       ostringstream cmd;
-      cmd << texprogram(true) << " \\scrollmode\\input '" << texname << "'";
+      cmd << program << (context ? " --scrollmode '" : 
+                         " \\scrollmode\\input '") << texname << "'";
       System(cmd,0);
     }
   }
     
-  if(!status) {  
-    ostringstream cmd;
-    cmd << "'" << getSetting<string>("dvips") << "' -R -Pdownload35 -D600 "
-        << getSetting<string>("dvipsOptions");
-    if(verbose <= 2) cmd << " -q";
-    cmd  << " -o '" << psname << "' '" << dviname << "'";
-    status=System(cmd,0,true,"dvips");
+  if(!status) {
+    if(pdf) {
+      string pdfname=auxname(prefix,"pdf");
+      string epsname=auxname(prefix,"eps");
+      std::ofstream ps(psname.c_str());
+      if(!ps) cannotwrite(psname);
+      
+      ps << ASYo << newl
+         << "/ASY1 true def" << newl
+         << "/fill {ASY1 {(Z) " << currentpoint << "/ASY1 false def} if "
+         << pathforall << " (M) " << currentpoint
+         << "currentpoint newpath moveto } bind def" << newl
+         << "/stroke {ASY1 {(Z) " << currentpoint 
+         << "/ASY1 false def} if strokepath "
+         << pathforall << " (M) " << currentpoint
+         << "currentpoint newpath moveto } bind def" << endl;
+      
+      ostringstream cmd;
+      cmd << "'" << getSetting<string>("gs")
+          << "' -q -dNOCACHE -dNOPAUSE -dBATCH";
+      if(safe) cmd << " -dSAFER";
+      cmd << " -sDEVICE=epswrite -sOutputFile='" << epsname << "' '" 
+          << pdfname << "'";
+      status=System(cmd,0,true,"gs");
+      
+      std::ifstream eps(epsname.c_str());
+      if(!eps) cannotread(epsname);
+      
+      string line;
+      while(getline(eps,line))
+        ps << line << endl;
+      eps.close();
+      ps.close();
+    } else {
+      ostringstream cmd;
+      cmd << "'" << getSetting<string>("dvips") << "' -R -Pdownload35 -D600 "
+          << getSetting<string>("dvipsOptions");
+      if(verbose <= 2) cmd << " -q";
+      cmd  << " -o '" << psname << "' '" << dviname << "'";
+      status=System(cmd,0,true,"dvips");
+    }
   }
 
   if(status != 0)
@@ -1260,7 +1304,8 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
     unlink(auxname(prefix,"log").c_str());
     unlink(dviname.c_str());
   }
-  return readpath(psname,keep,twelvepercent,-twelvepercent);
+  return readpath(psname,keep,twelvepercent,
+                  pdf ? twelvepercent : -twelvepercent);
 }
 
 patharray *textpath(string *s, pen p=CURRENTPEN)
@@ -1307,7 +1352,7 @@ patharray *textpath(string *s, pen p=CURRENTPEN)
   if(safe) pipe2 << " -dSAFER";
   pipe2 << " -sDEVICE=epswrite -sOutputFile=- -";
   iopipestream gs(pipe2.str().c_str(),"gs","Ghostscript");
-  gs.nonblocking();
+  gs.block(false);
 
   // TODO: Simplify by connecting the pipes directly.
   while(true) {
