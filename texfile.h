@@ -119,7 +119,7 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
     if(pipe)
       out << "\\begin{document}" << newl;
   } else if(settings::context(texengine)) {
-    if(!pipe)
+    if(!pipe && !settings::getSetting<bool>("inlinetex"))
       out << "\\usemodule[pictex]" << newl;
   } else {
     out << "\\input graphicx" << newl;
