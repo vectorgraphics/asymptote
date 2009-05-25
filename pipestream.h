@@ -1,5 +1,5 @@
 /* Pipestream: A simple C++ interface to UNIX pipes
-   Version 0.03
+   Version 0.04
    Copyright (C) 2005-2009 John C. Bowman
 
    This program is free software; you can redistribute it and/or modify
@@ -26,6 +26,7 @@
 #include <sstream>
 #include <unistd.h>
 #include <signal.h>
+#include <fcntl.h>
 
 #include "common.h"
 #include "errormsg.h"
@@ -41,7 +42,9 @@ protected:
   static const int BUFSIZE=SHRT_MAX;
   char buffer[BUFSIZE];
   int pid;
+  bool Running;
   bool pipeopen;
+  bool pipein;
   ostringstream transcript;
 public:
   
@@ -73,45 +76,40 @@ public:
     }
     cout.flush(); // Flush stdout to avoid duplicate output.
     
-    int wrapperpid;
-    
-    // Portable way of forking that avoids zombie child processes
-    if((wrapperpid=fork()) < 0) {
-      cerr << "fork failed: " << command << endl;
-      exit(-1);
+    if((pid=fork()) < 0) {
+      ostringstream buf;
+      buf << "fork failed: " << command << endl;
+      camp::reportError(buf);
     }
     
-    if(wrapperpid == 0) {
-      if((pid=fork()) < 0) {
-        ostringstream buf;
-        buf << "fork failed: " << command << endl;
-        camp::reportError(buf);
-      }
-    
-      if(pid == 0) { 
-        if(interact::interactive) signal(SIGINT,SIG_IGN);
-        close(in[1]);
-        close(out[0]);
-        close(STDIN_FILENO);
-        close(out_fileno);
-        dup2(in[0],STDIN_FILENO);
-        dup2(out[1],out_fileno);
-        close(in[0]);
-        close(out[1]);
-        char **argv=args(command);
-        if(argv) execvp(argv[0],argv);
-        execError(command,hint,application);
-        kill(0,SIGTERM);
-        _exit(-1);
-      }
-      _exit(0);
-    } else {
-      close(out[1]);
+    if(pid == 0) { 
+      if(interact::interactive) signal(SIGINT,SIG_IGN);
+      close(in[1]);
+      close(out[0]);
+      close(STDIN_FILENO);
+      close(out_fileno);
+      dup2(in[0],STDIN_FILENO);
+      dup2(out[1],out_fileno);
       close(in[0]);
-      *buffer=0;
-      pipeopen=true;
-      waitpid(wrapperpid,NULL,0);
+      close(out[1]);
+      char **argv=args(command);
+      if(argv) execvp(argv[0],argv);
+      execError(command,hint,application);
+      kill(0,SIGTERM);
+      _exit(-1);
     }
+    close(out[1]);
+    close(in[0]);
+    *buffer=0;
+    pipeopen=true;
+    pipein=true;
+    waitpid(pid,NULL,WNOHANG);
+    Running=true;
+  }
+
+  void nonblocking() {
+    if(pipeopen)
+      fcntl(out[0],F_SETFL,fcntl(out[0],F_GETFL) | O_NONBLOCK);
   }
   
   bool isopen() {return pipeopen;}
@@ -124,10 +122,19 @@ public:
     open(command,hint,application,out_fileno);
   }
   
+  void eof() {
+    if(pipeopen && pipein) {
+      close(in[1]);
+      pipein=false;
+    }
+  }
+  
   virtual void pipeclose() {
     if(pipeopen) {
-      close(in[1]);
+      eof();
       close(out[0]);
+      waitpid(pid,NULL,0); // Avoid zombies.
+      Running=false;
       pipeopen=false;
     }
   }
@@ -141,10 +148,16 @@ public:
     char *p=buffer;
     ssize_t size=BUFSIZE-1;
     for(;;) {
-      if((nc=read(out[0],p,size)) < 0)
-        camp::reportError("read from pipe failed");
+      if((nc=read(out[0],p,size)) < 0) {
+        if(errno == EAGAIN) {p[0]=0; break;}
+        else camp::reportError("read from pipe failed");
+      }
       p[nc]=0;
-      if(nc == 0) break;
+      if(nc == 0) {
+        if(waitpid(pid, NULL, WNOHANG) == pid)
+          Running=false;
+        break;
+      }
       if(nc > 0) {
         if(settings::verbose > 2) cerr << p;
         if(strchr(p,'\n')) break;
@@ -155,6 +168,8 @@ public:
     return p+nc-buffer;
   }
 
+  bool running() {return Running;}
+  
   typedef iopipestream& (*imanip)(iopipestream&);
   iopipestream& operator << (imanip func) { return (*func)(*this); }
   

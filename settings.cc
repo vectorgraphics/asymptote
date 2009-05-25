@@ -1133,11 +1133,10 @@ void initSettings() {
   addOption(new envSetting("papertype", "letter"));
   addOption(new envSetting("dir", ""));
   addOption(new envSetting("sysdir", systemDir));
-  addOption(new envSetting("textcommand",
-                           "sh -c 'groff -e -P-b16 $1 > $2' groff "));
+  addOption(new envSetting("textcommand","groff -e -P-b16"));
   addOption(new envSetting("textextension", "roff"));
   addOption(new envSetting("textoutputtype", "ps"));
-  addOption(new envSetting("textprologue", ".EQ\ndelim $$\n.EN\n"));
+  addOption(new envSetting("textprologue", ".EQ\ndelim $$\n.EN"));
   addOption(new envSetting("textinitialfont", ".fam T\n.ps 12"));
   addOption(new envSetting("textepilogue", ""));
 }

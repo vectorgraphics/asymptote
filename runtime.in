@@ -910,9 +910,8 @@ array *readpath(const string& psname, bool keep,
   while(true) {
     string out;
     gs >> out;
+    if(out.empty() && !gs.running()) break;
     buf << out;
-    string s=buf.str();
-    if(gs.tailequals(s.c_str(),s.size(),"E",1)) break;
   }
   if(verbose > 2) cout << endl;
     
@@ -1222,7 +1221,6 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
                    "/ASY1 false def} if currentpoint newpath moveto false charpath "+
                    pathforall+"} bind def}");
   tex.verbatim(*s);
-  tex.verbatimline("\\special{ps: (E) print}");
   tex.epilogue(true);
   tex.close();
   
@@ -1270,7 +1268,6 @@ patharray *textpath(string *s, pen p=CURRENTPEN)
   array *P=new array(0);
   if(s->empty()) return P;
   
-  int status=0;
   string prefix=outname();
   spaceToUnderscore(prefix);
   string outputname=auxname(prefix,getSetting<string>("textoutputtype"));
@@ -1280,63 +1277,61 @@ patharray *textpath(string *s, pen p=CURRENTPEN)
   
   if(!text) cannotwrite(textname);
 
-  text << getSetting<string>("textprologue");
-  text << p.Font() << endl;
-  text << *s;
-  text << getSetting<string>("textepilogue");
+  text << getSetting<string>("textprologue") << newl
+       << p.Font() << newl
+       << *s << newl
+       << getSetting<string>("textepilogue") << endl;
   text.close();
   
-  ostringstream cmd;
-  string textcommand=getSetting<string>("textcommand");
-  cmd << textcommand << " '" << textname << "' '" 
-      << outputname << "'";
-  bool quiet=verbose <= 2;
-  status=System(cmd,quiet ? 1 : 0);
-  
-  string epsname=auxname(prefix,"eps");
-  
-  if(status == 0) {
-    ostringstream cmd;
-    cmd << "'" << getSetting<string>("gs")
-        << "' -q -dNOCACHE -dNOPAUSE -dBATCH";
-    if(safe) cmd << " -dSAFER";
-    cmd << " -sDEVICE=epswrite -sOutputFile='" << epsname << "' '" 
-        << outputname << "'";
-    status=System(cmd,0,true,"gs");
-  }
-  
-  if(status != 0)
-    error("textpath failed");
- 
-  string psname=auxname(prefix+"_","ps");
-  std::ifstream eps(epsname.c_str());
+  string psname=auxname(prefix,"ps");
   std::ofstream ps(psname.c_str());
-  
-  if(!eps) cannotread(epsname);
   if(!ps) cannotwrite(psname);
 
-  ps << ASYo << endl
-     << "/ASY1 true def" << endl
+  ps << ASYo << newl
+     << "/ASY1 true def" << newl
      << "/fill {ASY1 {(Z) " << currentpoint << "/ASY1 false def} if "
      << pathforall << " (M) " << currentpoint
-     << "currentpoint newpath moveto } bind def" << endl
+     << "currentpoint newpath moveto } bind def" << newl
      << "/stroke {ASY1 {(Z) " << currentpoint 
      << "/ASY1 false def} if strokepath "
      << pathforall << " (M) " << currentpoint
      << "currentpoint newpath moveto } bind def" << endl;
-  string line;
-  while(getline(eps,line))
-    ps << line << endl;
-  ps << "(E) print" << endl;
-  eps.close();
-  ps.close();
+  
+  ostringstream pipe;
+  pipe << getSetting<string>("textcommand") << " '" << textname << "'";
+  iopipestream typesetter(pipe.str().c_str());
+  
+  ostringstream pipe2;
+  pipe2 << "'" << getSetting<string>("gs")
+       << "' -q -dNOCACHE -dNOPAUSE -dBATCH";
+  if(safe) pipe2 << " -dSAFER";
+  pipe2 << " -sDEVICE=epswrite -sOutputFile=- -";
+  iopipestream gs(pipe2.str().c_str(),"gs","Ghostscript");
+  gs.nonblocking();
 
-  bool keep=getSetting<bool>("keep");
-  if(!keep) { // Delete temporary files.
-    unlink(textname.c_str());
-    unlink(outputname.c_str());
-    unlink(epsname.c_str());
+  // TODO: Simplify by connecting the pipes directly.
+  while(true) {
+    string out;
+    if(typesetter.isopen()) {
+      typesetter >> out;
+      if(!out.empty()) gs << out;
+      else if(!typesetter.running()) {
+        typesetter.pipeclose();
+        gs.eof();
+      }
+    } 
+    string out2;
+    gs >> out2;
+    if(out2.empty() && !gs.running()) break;
+    ps << out2;
   }
+  ps.close();
+  
+  if(verbose > 2) cout << endl;
+  
+  bool keep=getSetting<bool>("keep");
+  if(!keep) // Delete temporary files.
+    unlink(textname.c_str());
   return readpath(psname,keep,tenpercent,tenpercent);
 }
 
@@ -1358,7 +1353,7 @@ patharray *_strokepath(path g, pen p=CURRENTPEN)
   ps.write(g);
   ps.strokepath();
   ps.stroke();
-  ps.verbatimline("(M) "+currentpoint+"(E) print");
+  ps.verbatimline("(M) "+currentpoint);
   ps.epilogue();
   ps.close();
   return readpath(psname,getSetting<bool>("keep"));
