@@ -1198,7 +1198,7 @@ void setPath() {
     pipe >> sysdir;
     size_t size=sysdir.size();
     if(size > 2) {
-// Workaround possibly broken header file on i386-solaris with g++ 3.4.3.
+// Workaround broken header file on i386-solaris with g++ 3.4.3.
 #ifdef erase
 #undef erase
 #endif

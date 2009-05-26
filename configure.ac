@@ -216,6 +216,7 @@ AC_CHECK_LIB([m], [sqrt])
 AC_CHECK_LIB([z], [deflate])
 AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([sigsegv], [stackoverflow_install_handler])
+AC_CHECK_LIB([rt], [sched_yield])
 
 AC_CHECK_LIB([readline], [rl_completion_matches],,
 AC_MSG_NOTICE(*** Could not find GNU readline 4.2 or later: will compile without readline support ***))
