@@ -1222,14 +1222,11 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
                      "/ASY1 false def} if currentpoint newpath moveto false charpath "+
                      pathforall+"} bind def}");
   }
-  tex.verbatim(*s);
+  tex.verbatimline(*s);
   tex.epilogue(true);
   tex.close();
   
-//  outfile.open(texname.c_str());
-//  if(outfile)
-
-  // TODO: Put in subproutine (cf. teprocess).
+  // TODO: Put in common subproutine (cf. teprocess).
   string aux=auxname(prefix,"aux");
   unlink(aux.c_str());
   string program=texprogram();
@@ -1250,10 +1247,10 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
     }
   }
     
+  string pdfname;
   if(!status) {
     if(pdf) {
-      string pdfname=auxname(prefix,"pdf");
-      string epsname=auxname(prefix,"eps");
+      pdfname=auxname(prefix,"pdf");
       std::ofstream ps(psname.c_str());
       if(!ps) cannotwrite(psname);
       
@@ -1265,23 +1262,22 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
          << "/stroke {ASY1 {(Z) " << currentpoint 
          << "/ASY1 false def} if strokepath "
          << pathforall << " (M) " << currentpoint
-         << "currentpoint newpath moveto } bind def" << endl;
+         << "currentpoint newpath moveto } bind def" << newl;
       
       ostringstream cmd;
       cmd << "'" << getSetting<string>("gs")
           << "' -q -dNOCACHE -dNOPAUSE -dBATCH";
       if(safe) cmd << " -dSAFER";
-      cmd << " -sDEVICE=epswrite -sOutputFile='" << epsname << "' '" 
-          << pdfname << "'";
-      status=System(cmd,0,true,"gs");
+      cmd << " -sDEVICE=epswrite -sOutputFile=- '" << pdfname << "'";
+      iopipestream gs(cmd.str().c_str(),"gs","Ghostscript");
       
-      std::ifstream eps(epsname.c_str());
-      if(!eps) cannotread(epsname);
-      
-      string line;
-      while(getline(eps,line))
-        ps << line << endl;
-      eps.close();
+      gs.block(false);
+      while(true) {
+        string line;
+        gs >> line;
+        if(line.empty() && !gs.running()) break;
+        ps << line;
+      }
       ps.close();
     } else {
       ostringstream cmd;
@@ -1302,7 +1298,15 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
     if(!getSetting<bool>("keepaux"))
       unlink(aux.c_str());
     unlink(auxname(prefix,"log").c_str());
-    unlink(dviname.c_str());
+    if(pdf)
+      unlink(pdfname.c_str());
+    else
+      unlink(dviname.c_str());
+    if(context) {
+      unlink(auxname(prefix,"top").c_str());
+      unlink(auxname(prefix,"tua").c_str());
+      unlink(auxname(prefix,"tui").c_str());
+    }
   }
   return readpath(psname,keep,twelvepercent,
                   pdf ? twelvepercent : -twelvepercent);

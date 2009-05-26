@@ -29,9 +29,9 @@ texstream::~texstream() {
     unlink((name+"pdf").c_str());
   if(settings::context(texengine)) {
     unlink((name+"tex").c_str());
+    unlink((name+"top").c_str());
     unlink((name+"tua").c_str());
     unlink((name+"tui").c_str());
-    unlink((name+"top").c_str());
   }
 }
 

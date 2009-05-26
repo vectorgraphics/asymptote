@@ -43,8 +43,12 @@ texfile::~texfile()
 void texfile::miniprologue()
 {
   texpreamble(*out,processData().TeXpreamble,false,true);
-  *out << "\\pagestyle{empty}" << newl;
-  *out << "\\begin{document}" << newl;
+  if(settings::latex(texengine)) {
+    *out << "\\pagestyle{empty}" << newl;
+    *out << "\\begin{document}" << newl;
+  } else if(settings::context(texengine)) {
+    *out << "\\setuppagenumbering[location=]" << endl;
+  }
   texfontencoding(*out);
 }
 
