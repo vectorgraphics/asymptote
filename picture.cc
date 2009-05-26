@@ -24,8 +24,15 @@ texstream::~texstream() {
   unlink((name+"aux").c_str());
   unlink((name+"log").c_str());
   unlink((name+"out").c_str());
-  if(settings::pdf(getSetting<string>("tex")))
+  string texengine=getSetting<string>("tex");
+  if(settings::pdf(texengine))
     unlink((name+"pdf").c_str());
+  if(settings::context(texengine)) {
+    unlink((name+"tex").c_str());
+    unlink((name+"tua").c_str());
+    unlink((name+"tui").c_str());
+    unlink((name+"top").c_str());
+  }
 }
 
 namespace camp {
@@ -217,8 +224,15 @@ void picture::texinit()
   
   ostringstream cmd;
   bool context=settings::context(getSetting<string>("tex"));
-  cmd << texprogram() << (context ? " \"\\scrollmode\\relax\"" :
-                          " \\scrollmode");
+  if(context) {
+    // Create a null texput.tex file as a portable way of tricking context
+    // to enter interactive mode (pending the implementation of --pipe).
+    string texput=stripFile(outname())+"texput.tex";
+    ofstream(texput.c_str());
+    cmd << texprogram() << " --scrollmode --purgeall " << texput;
+  } else
+    cmd << texprogram() << " \\scrollmode";
+  
   pd.tex.open(cmd.str().c_str(),"texpath",texpathmessage());
   pd.tex.wait("\n*");
   pd.tex << "\n";
@@ -242,7 +256,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     string program=texprogram();
     ostringstream cmd;
     bool context=settings::context(getSetting<string>("tex"));
-    cmd << program << (context ? " --nonstopmode '" : 
+    cmd << program << (context ? " --nonstopmode --purgeall '" : 
                        " \\nonstopmode\\input '") << texname << "'";
     bool quiet=verbose <= 1;
     status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
@@ -251,7 +265,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     if(status) {
       if(quiet) {
         ostringstream cmd;
-        cmd << program << (context ? " --scrollmode '" : 
+        cmd << program << (context ? " --scrollmode --purgeall '" : 
                            " \\scrollmode\\input '") << texname << "'";
         System(cmd,0);
       }
@@ -331,6 +345,13 @@ bool picture::texprocess(const string& texname, const string& outname,
         unlink(aux.c_str());
       unlink(auxname(prefix,"log").c_str());
       unlink(auxname(prefix,"out").c_str());
+      if(context) {
+        unlink(auxname(prefix,"top").c_str());
+        unlink(auxname(prefix,"tua").c_str());
+        unlink(auxname(prefix,"tuc").c_str());
+        unlink(auxname(prefix,"tui").c_str());
+        unlink(auxname(prefix,"tuo").c_str());
+      }
     }
     if(status == 0) return true;
   }
