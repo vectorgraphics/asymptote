@@ -1156,7 +1156,7 @@ void label(picture pic=currentpicture, Label L, triple position,
       Label L=L.copy();
       if(!align.is3D && L.align.relative && L.align.dir3 != O &&
          determinant(P.t) != 0)
-        L.align(L.align.dir*project(L.align.dir3,P.t)); 
+        L.align(L.align.dir*unit(project(L.align.dir3,P.t))); 
       
       triple v=t*position;
       if(L.defaulttransform3)
