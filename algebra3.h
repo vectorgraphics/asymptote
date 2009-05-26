@@ -104,10 +104,10 @@ class mat4;
 #define M_PI 3.141592654
 #endif
 
-enum {VX, VY, VZ, VW};           // axes
-enum {PA, PB, PC, PD};           // planes
-enum {RED, GREEN, BLUE, ALPHA};  // colors
-enum {KA, KD, KS, ES};           // phong coefficients
+enum axes {VX, VY, VZ, VW};
+enum planes {PA, PB, PC, PD};
+enum colors {RED, GREEN, BLUE, ALPHA};
+enum phong {KA, KD, KS, ES};
 
 /****************************************************************
  *                                                              *
