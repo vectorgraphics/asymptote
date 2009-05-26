@@ -1,11 +1,13 @@
-texpreamble("
+if(latex()) {
+  texpreamble("
 \ifx\pdfhorigin\undefined%
 \usepackage[3D,dvipdfmx]{movie15}
 \else%
 \usepackage[3D]{movie15}
 \fi%
 ");
-usepackage("hyperref","setpagesize=false,unicode");
+  usepackage("hyperref","setpagesize=false,unicode");
+}
 
 // See http://www.ctan.org/tex-archive/macros/latex/contrib/movie15/README
 // for documentation of the options.

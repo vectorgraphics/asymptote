@@ -1,6 +1,6 @@
 // Bezier triangulation routines written by Orest Shardt, 2008.
 
-private real fuzz = sqrtEpsilon;
+private real fuzz=sqrtEpsilon;
 
 int countIntersections(path[] p, pair start, pair end)
 {
@@ -46,7 +46,7 @@ path[][] containmentTree(path[] paths)
 
 bool isDuplicate(pair a, pair b, real relSize)
 {
-  return abs(a-b) <= sqrtEpsilon*relSize;
+  return abs(a-b) <= fuzz*relSize;
 }
 
 path removeDuplicates(path p)
