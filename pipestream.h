@@ -103,7 +103,6 @@ public:
     *buffer=0;
     pipeopen=true;
     pipein=true;
-    waitpid(pid,NULL,WNOHANG);
     Running=true;
   }
 
@@ -140,6 +139,7 @@ public:
       close(out[0]);
       Running=false;
       pipeopen=false;
+      kill(pid,SIGQUIT);
       waitpid(pid,NULL,0); // Avoid zombies.
     }
   }
