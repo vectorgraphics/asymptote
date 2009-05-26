@@ -1198,6 +1198,10 @@ void setPath() {
     pipe >> sysdir;
     size_t size=sysdir.size();
     if(size > 2) {
+// Workaround possibly broken header file on i386-solaris with g++ 3.4.3.
+#ifdef erase
+#undefine erase
+#endif
       sysdir.erase(size-1,1);
       sysdir.append(dirsep+"texmf/asymptote");
       Setting("sysdir")=sysdir;
