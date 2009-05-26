@@ -1200,7 +1200,7 @@ void setPath() {
     if(size > 2) {
 // Workaround possibly broken header file on i386-solaris with g++ 3.4.3.
 #ifdef erase
-#undefine erase
+#undef erase
 #endif
       sysdir.erase(size-1,1);
       sysdir.append(dirsep+"texmf/asymptote");
