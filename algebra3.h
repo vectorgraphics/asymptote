@@ -105,9 +105,11 @@ class mat4;
 #endif
 
 enum axes {VX, VY, VZ, VW};
+/*
 enum planes {PA, PB, PC, PD};
 enum colors {RED, GREEN, BLUE, ALPHA};
 enum phong {KA, KD, KS, ES};
+*/
 
 /****************************************************************
  *                                                              *
