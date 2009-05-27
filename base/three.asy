@@ -1797,10 +1797,8 @@ restricted path3 unitsquare3=O--X--X+Y--Y--cycle;
 
 path3 circle(triple c, real r, triple normal=Z)
 {
-  path3 p=scale3(r)*unitcircle3;
-  if(normal != Z) 
-    p=align(unit(normal))*p;
-  return shift(c)*p;
+  path3 p=normal == Z ? unitcircle3 : align(unit(normal))*unitcircle3;
+  return shift(c)*scale3(r)*p;
 }
 
 // return an arc centered at c from triple v1 to v2 (assuming |v2-c|=|v1-c|),
@@ -1818,10 +1816,13 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
     if(normal == O) abort("explicit normal required for these endpoints");
   }
 
-  transform3 T=align(unit(normal));
-  transform3 Tinv=transpose(T);
-  v1=Tinv*v1;
-  v2=Tinv*v2;
+  transform3 T;
+  if(normal != Z) {
+    T=align(unit(normal));
+    transform3 Tinv=transpose(T);
+    v1=Tinv*v1;
+    v2=Tinv*v2;
+  }
   
   string invalidnormal="invalid normal vector";
   real fuzz=sqrtEpsilon*max(abs(v1),abs(v2));
@@ -1840,7 +1841,9 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
   if(t1 >= t2 && direction) t1 -= n;
   if(t2 >= t1 && !direction) t2 -= n;
 
-  return shift(c)*scale3(r)*T*rotate(90*t1,O,Z)*subpath(unitcircle3,0,t2-t1);
+  path3 p=subpath(unitcircle3,t1,t2);
+  if(normal != Z) p=T*p;
+  return shift(c)*scale3(r)*p;
 }
 
 // return an arc centered at c with radius r from c+r*dir(theta1,phi1) to
