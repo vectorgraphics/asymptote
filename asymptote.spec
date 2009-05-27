@@ -43,7 +43,7 @@ that LaTeX does for scientific text.
 
 %build
 CFLAGS="`echo $RPM_OPT_FLAGS | sed s/-O2/-O3/`" \
-%configure --with-latex=%{_texmf}/tex/latex/
+%configure --with-latex=%{_texmf}/tex/latex/ --with-context=%{_texmf}/tex/context/
 make %{?_smp_mflags}
 
 

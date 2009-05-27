@@ -20,7 +20,8 @@ test "$Datadir" = '${prefix}/share' && Datadir=$prefix/share
 AC_SUBST(Datadir)
 
 AC_ARG_WITH(latex,
-	[  --with-latex=PATH       specify path to LaTeX installation ],
+	[AS_HELP_STRING(--with-latex=PATH,
+                        specify path to LaTeX installation)],
                      [if test "x$withval" != "x" ; then
 			latexdir=$withval
 		      fi
@@ -37,7 +38,8 @@ fi
 ])
 
 AC_ARG_WITH(context,
-	[  --with-context=PATH       specify path to Context installation ],
+	[AS_HELP_STRING(--with-context=PATH,
+                        specify path to ConTeXt installation)],
                      [if test "x$withval" != "x" ; then
 			contextdir=$withval
 		      fi
