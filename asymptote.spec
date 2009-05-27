@@ -27,9 +27,6 @@ Requires:       freeglut-devel >= 2.4.0
 Requires(post): /usr/bin/texhash /sbin/install-info
 Requires(postun): /usr/bin/texhash /sbin/install-info
 
-%define texpkgdir   %{_texmf}/tex/latex/%{name}
-%define texpkgdir   %{_texmf}/tex/context/third/%{name}
-
 %description
 Asymptote is a powerful descriptive vector graphics language for technical
 drawings, inspired by MetaPost but with an improved C++-like syntax.
@@ -76,7 +73,8 @@ fi
 %doc %{_defaultdocdir}/%{name}/
 %{_bindir}/*
 %{_datadir}/%{name}/
-%{texpkgdir}/
+%{_texmf}/tex/latex/%{name}
+%{_texmf}/tex/context/third/%{name}
 %{_mandir}/man1/*.1*
 %{_infodir}/*.info*
 
