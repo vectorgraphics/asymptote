@@ -28,6 +28,7 @@ Requires(post): /usr/bin/texhash /sbin/install-info
 Requires(postun): /usr/bin/texhash /sbin/install-info
 
 %define texpkgdir   %{_texmf}/tex/latex/%{name}
+%define texpkgdir   %{_texmf}/tex/context/third/%{name}
 
 %description
 Asymptote is a powerful descriptive vector graphics language for technical
@@ -43,7 +44,7 @@ that LaTeX does for scientific text.
 
 %build
 CFLAGS="`echo $RPM_OPT_FLAGS | sed s/-O2/-O3/`" \
-%configure --with-latex=%{_texmf}/tex/latex/ --with-context=%{_texmf}/tex/context/
+%configure --with-latex=%{_texmf}/tex/latex --with-context=%{_texmf}/tex/context/third
 make %{?_smp_mflags}
 
 
