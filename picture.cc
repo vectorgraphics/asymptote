@@ -259,9 +259,9 @@ bool picture::texprocess(const string& texname, const string& outname,
     cmd << program << (context ? " --nonstopmode --purgeall '" : 
                        " \\nonstopmode\\input '") << texname << "'";
     bool quiet=verbose <= 1;
-    status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
+    status=System(cmd,quiet ? 1 : 0,true,"texpath",texpathmessage());
     if(!status && getSetting<bool>("twice"))
-      status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
+      status=System(cmd,quiet ? 1 : 0,true,"texpath",texpathmessage());
     if(status) {
       if(quiet) {
         ostringstream cmd;
