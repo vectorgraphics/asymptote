@@ -196,7 +196,7 @@ pen font(string name, real size, string options="")
   return fontsize(size)+font(name+" at "+(string) size+"pt");
 }
 
-pen font(string encoding, string family, string series="m", string shape="n") 
+pen font(string encoding, string family, string series, string shape) 
 {
   return fontcommand("\usefont{"+encoding+"}{"+family+"}{"+series+"}{"+shape+
                      "}");

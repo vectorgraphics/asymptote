@@ -2860,7 +2860,7 @@ skip of a pen can be examined with the routines
 @cindex @code{font command}
 @item A pen using a specific @code{LaTeX} @code{NFSS} font is returned
 by calling the function @code{pen font(string encoding, string family,
-string series="m", string shape="n")}. The default setting,
+string series, string shape)}. The default setting,
 @code{font("OT1","cmr","m","n")}, corresponds to 12pt Computer Modern Roman;
 this may be changed with @code{defaultpen(pen)}. 
 The font setting of a pen is returned by
@@ -6270,7 +6270,7 @@ To use Cyrillic fonts, you will need to change the font encoding:
 @verbatim
 import unicode;
 texpreamble("\usepackage{mathtext}\usepackage[russian]{babel}");
-defaultpen(font("T2A","cmr"));
+defaultpen(font("T2A","cmr","m","n"));
 @end verbatim
 @noindent
 @cindex Chinese
