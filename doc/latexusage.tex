@@ -81,6 +81,7 @@ the \verb+{attach=true}+ option:
 \begin{center}
 \begin{asy}[height=4cm,attach=false]
 import three;
+currentprojection=orthographic(5,4,2);
 draw(unitcube,blue);
 label("$V-E+F=2$",(0,1,0.5),3Y,blue+fontsize(17));
 \end{asy}
