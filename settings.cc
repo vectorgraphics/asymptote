@@ -91,7 +91,7 @@ string defaultGhostscript="gs";
 string defaultPython;
 string defaultDisplay="display";
 string systemDir=ASYMPTOTE_SYSDIR;
-const string docdir=ASYMPTOTE_DOCDIR;
+string docdir=ASYMPTOTE_DOCDIR;
 void queryRegistry() {}
 const string dirsep="/";
   
@@ -106,7 +106,7 @@ string defaultGhostscript="gswin32c.exe";
 string defaultPython="python.exe";
 string defaultDisplay="imdisplay";
 string systemDir=ASYMPTOTE_SYSDIR;
-const string docdir=".";
+string docdir;
 const string dirsep="\\";
   
 #include <dirent.h>
@@ -169,9 +169,9 @@ void queryRegistry()
     defaultPDFViewer;
   defaultPSViewer=getEntry("Ghostgum/GSview/*")+"\\gsview\\"+defaultPSViewer;
   defaultPython=getEntry("Python/PythonCore/*/InstallPath/@")+defaultPython;
+  docdir=getEntry("Microsoft/Windows/CurrentVersion/App Paths/Asymptote/Path");
   if(!systemDir.empty()) // An empty systemDir indicates a TeXLive build
-    systemDir=
-      getEntry("Microsoft/Windows/CurrentVersion/App Paths/Asymptote/Path");
+    systemDir=docdir;
   defaultXasy=asyInstallDir+"\\"+defaultXasy;
 }
   
