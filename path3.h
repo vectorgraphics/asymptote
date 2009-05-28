@@ -339,6 +339,12 @@ bool intersections(double& s, double& t, std::vector<double>& S,
 void intersections(std::vector<double>& S, path3& g,
                    const triple& p, const triple& q, double fuzz);
 
+void intersections(std::vector<double>& T, std::vector<double>& U,
+                   std::vector<double>& V, path3& p, triple *P,
+                   double fuzz, unsigned depth=maxdepth);
+bool intersections(double& U, double& V, const triple& v, triple *P,
+                   double fuzz, unsigned depth=maxdepth);
+
 // Concatenates two path3s into a new one.
 path3 concat(const path3& p1, const path3& p2);
 
@@ -351,18 +357,6 @@ inline triple displacement(const triple& z, const triple& p, const triple& q)
   return Z-dot(Z,Q)*Q;
 }
   
-struct Split3 {
-  triple m0,m1,m2,m3,m4,m5;
-  Split3(triple z0, triple c0, triple c1, triple z1) {
-    m0=0.5*(z0+c0);
-    m1=0.5*(c0+c1);
-    m2=0.5*(c1+z1);
-    m3=0.5*(m0+m1);
-    m4=0.5*(m1+m2);
-    m5=0.5*(m3+m4);
-  }
-};
-  
 double xproject(const triple& v, double *t);
 double yproject(const triple& v, double *t);
 
@@ -372,12 +366,12 @@ double yratio(const triple& v, double *t);
 double bound(triple z0, triple c0, triple c1, triple z1,
              double (*m)(double, double),
              double (*f)(const triple&, double*), double *t,
-             double b, int depth=maxdepth);
-double bound(double *p, double (*m)(double, double), double b,
-             int depth=maxdepth);
+             double b, double fuzz=sqrtFuzz, int depth=maxdepth);
+double bound(double *p, double (*m)(double, double),
+             double b, double fuzz=sqrtFuzz, int depth=maxdepth);
 double bound(triple *p, double (*m)(double, double),
-             double (*f)(const triple&, double*), double* t, double b,
-             int depth=maxdepth);
+             double (*f)(const triple&, double*), double* t,
+             double b, double fuzz=sqrtFuzz, int depth=maxdepth);
 }
 
 #ifndef BROKEN_COMPILER

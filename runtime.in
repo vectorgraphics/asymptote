@@ -408,6 +408,81 @@ double *copyArray2C(array *a, bool square=true, size_t dim2=0)
   return c;
 }
 
+triple *copyTripleArray2C(array *a, bool square=true, size_t dim2=0)
+{
+  size_t n=checkArray(a);
+  size_t m=(square || n == 0) ? n : checkArray(read<array*>(a,0));
+  if(n > 0 && dim2 && m != dim2) {
+    ostringstream buf;
+    buf << "second matrix dimension must be " << dim2 << endl;
+    error(buf);
+  }
+  
+  triple *c=new triple[n*m];
+  for(size_t i=0; i < n; i++) {
+    array *ai=read<array*>(a,i);
+    size_t aisize=checkArray(ai);
+    if(aisize == m) {
+      triple *ci=c+i*m;
+      for(size_t j=0; j < m; j++) 
+        ci[j]=read<triple>(ai,j);
+    } else
+      error(square ? "matrix must be square" : "matrix must be rectangular");
+  }
+  return c;
+}
+
+double *copyTripleArray2Components(array *a, bool square=true, size_t dim2=0)
+{
+  size_t n=checkArray(a);
+  size_t m=(square || n == 0) ? n : checkArray(read<array*>(a,0));
+  if(n > 0 && dim2 && m != dim2) {
+    ostringstream buf;
+    buf << "second matrix dimension must be " << dim2 << endl;
+    error(buf);
+  }
+  
+  size_t nm=n*m;
+  double *cx=new double[3*nm];
+  double *cy=cx+nm;
+  double *cz=cx+2*nm;
+  for(size_t i=0; i < n; i++) {
+    array *ai=read<array*>(a,i);
+    size_t aisize=checkArray(ai);
+    if(aisize == m) {
+      double *xi=cx+i*m;
+      double *yi=cy+i*m;
+      double *zi=cz+i*m;
+      for(size_t j=0; j < m; j++) {
+        triple v=read<triple>(ai,j);
+        xi[j]=v.getx();
+        yi[j]=v.gety();
+        zi[j]=v.getz();
+      }
+    } else
+      error(square ? "matrix must be square" : "matrix must be rectangular");
+  }
+  return cx;
+}
+
+double norm(double *a, size_t n) 
+{
+  if(n == 0) return 0.0;
+  double M=fabs(a[0]);
+  for(size_t i=1; i < n; ++i)
+    M=::max(M,fabs(a[i]));
+  return M;
+}
+
+double norm(triple *a, size_t n) 
+{
+  if(n == 0) return 0.0;
+  double M=a[0].abs2();
+  for(size_t i=1; i < n; ++i)
+    M=::max(M,a[i].abs2());
+  return sqrt(M);
+}
+
 static const char *incommensurate="Incommensurate matrices";
 static const char *singular="Singular matrix";
 static size_t *pivot,*Row,*Col;
@@ -1235,9 +1310,9 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   cmd << program << (context ? " --nonstopmode '" : 
                      " \\nonstopmode\\input '") << texname << "'";
   bool quiet=verbose <= 2;
-  int status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
+  int status=System(cmd,quiet ? 1 : 0,true,"texpath",texpathmessage());
   if(!status && getSetting<bool>("twice"))
-    status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
+    status=System(cmd,quiet ? 1 : 0,true,"texpath",texpathmessage());
   if(status) {
     if(quiet) {
       ostringstream cmd;
@@ -2452,8 +2527,8 @@ realarray* intersect(path p, path q, real fuzz=-1)
     (*V)[0]=s;
     (*V)[1]=t;
     return V;
-  } else
-    return new array(0);
+  }
+  return new array(0);
 }
 
 realarray2* intersections(path p, path q, real fuzz=-1)
@@ -2816,6 +2891,40 @@ realarray2* intersections(path3 p, path3 q, real fuzz=-1)
   return V;
 }
 
+realarray2* intersections(path3 p, triplearray2 *P, real fuzz=-1)
+{
+  triple *A=copyTripleArray2C(P,true,4);
+  if(fuzz <= 0) fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
+                                   norm(A,16));
+  std::vector<real> T,U,V;
+  intersections(T,U,V,p,A,fuzz);
+  delete[] A;
+  size_t n=T.size();
+  array *W=new array(n);
+  for(size_t i=0; i < n; ++i) {
+    array *Wi=new array(3);
+    (*W)[i]=Wi;
+    (*Wi)[0]=T[i];
+    (*Wi)[1]=U[i];
+    (*Wi)[2]=V[i];
+  }
+  return W; // Sorting will done in asy.
+}
+
+realarray* intersections(triple v, triplearray2 *P, real fuzz=-1)
+{
+  triple *A=copyTripleArray2C(P,true,4);
+  if(fuzz <= 0) fuzz=BigFuzz*::max(length(v),norm(A,16));
+  real U,V;
+  if(intersections(U,V,v,A,fuzz)) {
+    array *W=new array(2);    
+    (*W)[0]=U;
+    (*W)[1]=V;
+    return W;
+  }
+  return new array(0);
+}
+
 Int size(path3 p)
 {
   return p.size();
@@ -3165,39 +3274,45 @@ pair maxratio(picture *f)
   return f->bounds(::max,xratio,yratio);
 }
 
-real minbound(realarray *a, real b)
+triple minbound(triplearray2 *P, triple b)
 {
-  real *A=copyArrayC(a,16);
-  b=bound(A,::min,b);
+  real *A=copyTripleArray2Components(P,true,4);
+  b=triple(bound(A,::min,b.getx(),sqrtFuzz*norm(A,16)),
+           bound(A+16,::min,b.gety(),sqrtFuzz*norm(A+16,16)),
+           bound(A+32,::min,b.getz(),sqrtFuzz*norm(A+32,16)));
   delete[] A;
   return b;
 }
 
-real maxbound(realarray *a, real b)
+triple maxbound(triplearray2 *P, triple b)
 {
-  real *A=copyArrayC(a,16);
-  b=bound(A,::max,b);
+  real *A=copyTripleArray2Components(P,true,4);
+  b=triple(bound(A,::max,b.getx(),sqrtFuzz*norm(A,16)),
+           bound(A+16,::max,b.gety(),sqrtFuzz*norm(A+16,16)),
+           bound(A+32,::max,b.getz(),sqrtFuzz*norm(A+32,16)));
   delete[] A;
   return b;
 }
 
-pair minbound(triplearray *a, realarray2 *t, pair b)
+pair minbound(triplearray2 *P, realarray2 *t, pair b)
 {
-  triple *A=copyTripleArrayC(a,16);
+  triple *A=copyTripleArray2C(P,true,4);
   real *T=copyArray2C(t,4);
-  b=pair(bound(A,::min,xproject,T,b.getx()),
-         bound(A,::min,yproject,T,b.gety()));
+  real fuzz=sqrtFuzz*norm(A,16);
+  b=pair(bound(A,::min,xproject,T,b.getx(),fuzz),
+         bound(A,::min,yproject,T,b.gety(),fuzz));
   delete[] T;
   delete[] A;
   return b;
 }
 
-pair maxbound(triplearray *a, realarray2 *t, pair b)
+pair maxbound(triplearray2 *P, realarray2 *t, pair b)
 {
-  triple *A=copyTripleArrayC(a,16);
+  triple *A=copyTripleArray2C(P,true,4);
   real *T=copyArray2C(t,4);
-  b=pair(bound(A,::max,xproject,T,b.getx()),
-         bound(A,::max,yproject,T,b.gety()));
+  real fuzz=sqrtFuzz*norm(A,16);
+  b=pair(bound(A,::max,xproject,T,b.getx(),fuzz),
+         bound(A,::max,yproject,T,b.gety(),fuzz));
   delete[] T;
   delete[] A;
   return b;

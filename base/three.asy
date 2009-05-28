@@ -14,9 +14,10 @@ real linegranularity=0.01;
 real tubegranularity=0.003;
 real dotgranularity=0.0001;
 pair viewportmargin=0;     // Horizontal and vertical viewport margins.
-real viewportfactor=1.02;  // Factor used to expand orthographic viewport.
-real anglefactor=1.02;     // Factor used to expand perspective viewport.
+real viewportfactor=1.005; // Factor used to expand orthographic viewport.
 real angleprecision=1e-3;  // Precision for centering perspective projections.
+real anglefactor=max(1.005,1+angleprecision);
+                           // Factor used to expand perspective viewport.
 
 string defaultembed3Doptions;
 string defaultembed3Dscript;
@@ -1817,7 +1818,8 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
   }
 
   transform3 T;
-  if(normal != Z) {
+  bool align=normal != Z;
+  if(align) {
     T=align(unit(normal));
     transform3 Tinv=transpose(T);
     v1=Tinv*v1;
@@ -1842,7 +1844,7 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
   if(t2 >= t1 && !direction) t2 -= n;
 
   path3 p=subpath(unitcircle3,t1,t2);
-  if(normal != Z) p=T*p;
+  if(align) p=T*p;
   return shift(c)*scale3(r)*p;
 }
 

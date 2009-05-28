@@ -2324,7 +2324,7 @@ path times along @code{p} and @code{q}, in the sense of
 @code{point(path, real)}, for one such intersection point (as chosen by
 the algorithm described on page 137 of @code{The MetaFontbook}). 
 The computations are performed to the absolute error specified by @code{fuzz}, 
-or, if @code{fuzz < 0}, to machine precision. If the paths do not 
+or if @code{fuzz < 0}, to machine precision. If the paths do not 
 intersect, return a real array of length 0.
 
 @cindex @code{intersections}
@@ -2332,7 +2332,7 @@ intersect, return a real array of length 0.
 Return all (unless there are infinitely many) intersection times of
 paths @code{p} and @code{q} as a sorted array of real arrays of length 2
 (@pxref{sort}). The computations are performed to the absolute error
-specified by @code{fuzz}, or, if @code{fuzz < 0}, to machine precision.
+specified by @code{fuzz}, or if @code{fuzz < 0}, to machine precision.
 
 @cindex @code{intersections}
 @item real[] intersections(path p, explicit pair a, explicit pair b,
@@ -2340,7 +2340,7 @@ specified by @code{fuzz}, or, if @code{fuzz < 0}, to machine precision.
 Return all (unless there are infinitely many) intersection times of path
 @code{p} with the (infinite) line through points @code{a} and @code{b}
 as a sorted array. The intersections returned are guaranteed to be
-correct to within the absolute error specified by @code{fuzz}, or, if
+correct to within the absolute error specified by @code{fuzz}, or if
 @code{fuzz < 0}, to machine precision.
 
 @cindex @code{times}
@@ -2377,7 +2377,7 @@ returns an array containing all intersection points of the paths
 @cindex @code{extension}
 @item pair extension(pair P, pair Q, pair p, pair q);
 returns the intersection point of the extensions of the line segments 
-@code{P--Q} and @code{p--q}, or, if the lines are parallel,
+@code{P--Q} and @code{p--q}, or if the lines are parallel,
 @code{(infinity,infinity)}.
 
 @cindex @code{cut}
@@ -7854,7 +7854,24 @@ Three-dimensional versions of the path functions @code{length},
 @code{arclength}, @code{arctime}, @code{reverse}, @code{subpath},
 @code{intersect}, @code{intersections}, @code{intersectionpoint},
 @code{intersectionpoints}, @code{min}, @code{max}, @code{cyclic}, and
-@code{straight} are also defined.
+@code{straight} are also defined. 
+
+The routine
+@cindex @code{intersections}
+@verbatim
+real[][] intersections(path3 p, surface s, real fuzz=-1);
+@end verbatim
+@noindent
+returns the intersection times of a path @code{p} with a surface
+@code{s} as a sorted array of real arrays of length 2, and
+@cindex @code{intersectionpoints}
+@verbatim
+triple[] intersectionpoints(path3 p, surface s, real fuzz=-1);
+@end verbatim
+@noindent
+returns the corresponding intersection points.
+Here, the computations are performed to the absolute error specified by
+@code{fuzz}, or if @code{fuzz < 0}, to machine precision.
 
 Here is an example showing all five guide3 connectors:
 @verbatiminclude join3.asy

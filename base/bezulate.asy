@@ -1,7 +1,7 @@
 // Bezier triangulation routines written by Orest Shardt, 2008.
 
 private real fuzz=sqrtEpsilon;
-real duplicateFuzz=2e-4; // Work around font errors.
+real duplicateFuzz=1e-4; // Work around font errors.
 
 int countIntersections(path[] p, pair start, pair end)
 {

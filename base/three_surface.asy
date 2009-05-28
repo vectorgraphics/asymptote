@@ -35,14 +35,6 @@ struct patch {
     return new real[] {f(P[0][0]),f(P[0][3]),f(P[3][3]),f(P[3][0])};
   }
 
-  triple[] controlpoints() {
-    return new triple[] {
-      P[0][0],P[0][1],P[0][2],P[0][3],
-        P[1][0],P[1][1],P[1][2],P[1][3],
-        P[2][0],P[2][1],P[2][2],P[2][3],
-        P[3][0],P[3][1],P[3][2],P[3][3]};
-  }
-
   triple Bu(int j, real u) {return bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
   triple BuP(int j, real u) {return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);}
   triple BuPP(int j, real u) {
@@ -145,22 +137,6 @@ struct patch {
         light.color(normal10(),nocolors ? m : colors[3])};
   }
   
-  triple bound(real m(real[], real), triple b) {
-    real x=m(new real[] {P[0][0].x,P[0][1].x,P[0][2].x,P[0][3].x,
-                         P[1][0].x,P[1][1].x,P[1][2].x,P[1][3].x,
-                         P[2][0].x,P[2][1].x,P[2][2].x,P[2][3].x,
-                         P[3][0].x,P[3][1].x,P[3][2].x,P[3][3].x},b.x);
-    real y=m(new real[] {P[0][0].y,P[0][1].y,P[0][2].y,P[0][3].y,
-                         P[1][0].y,P[1][1].y,P[1][2].y,P[1][3].y,
-                         P[2][0].y,P[2][1].y,P[2][2].y,P[2][3].y,
-                         P[3][0].y,P[3][1].y,P[3][2].y,P[3][3].y},b.y);
-    real z=m(new real[] {P[0][0].z,P[0][1].z,P[0][2].z,P[0][3].z,
-                         P[1][0].z,P[1][1].z,P[1][2].z,P[1][3].z,
-                         P[2][0].z,P[2][1].z,P[2][2].z,P[2][3].z,
-                         P[3][0].z,P[3][1].z,P[3][2].z,P[3][3].z},b.z);
-    return (x,y,z);
-  }
-
   triple min3,max3;
   bool havemin3,havemax3;
 
@@ -172,13 +148,13 @@ struct patch {
   triple min(triple bound=P[0][0]) {
     if(havemin3) return minbound(min3,bound);
     havemin3=true;
-    return min3=bound(minbound,bound);
+    return min3=minbound(P,bound);
   }
 
   triple max(triple bound=P[0][0]) {
     if(havemax3) return maxbound(max3,bound);
     havemax3=true;
-    return max3=bound(maxbound,bound);
+    return max3=maxbound(P,bound);
   }
 
   triple center() {
@@ -186,11 +162,11 @@ struct patch {
   }
 
   pair min(projection P, pair bound=project(this.P[0][0],P.t)) {
-    return minbound(controlpoints(),P.t,bound);
+    return minbound(this.P,P.t,bound);
   }
 
   pair max(projection P, pair bound=project(this.P[0][0],P.t)) {
-    return maxbound(controlpoints(),P.t,bound);
+    return maxbound(this.P,P.t,bound);
   }
 
   void operator init(triple[][] P, triple[] normals=new triple[],
@@ -899,6 +875,45 @@ patch subpatch(patch s, real ua, real va, real ub, real vb)
   assert(ua >= 0 && va >= 0 && ub <= 1 && vb <= 1 && ua < ub && va < vb);
   return patch(subpatchbegin(subpatchend(s.P,ub,vb),ua/ub,va/vb),
                s.straight,s.planar);
+}
+
+// return an array containing all intersection times of path p and patch s.
+real[][] intersections(path3 p, patch s, real fuzz=-1)
+{
+  return sort(intersections(p,s.P,fuzz));
+}
+
+// return an array containing all intersection times of path p and surface s.
+real[][] intersections(path3 p, surface s, real fuzz=-1)
+{
+  real[][] T;
+  if(length(p) < 0) return T;
+  for(int i=0; i < s.s.length; ++i)
+    for(real[] s: intersections(p,s.s[i].P,fuzz))
+      T.push(s);
+
+  sort(T);
+
+  static real fuzzFactor=10.0;
+  static real Fuzz=1000.0*realEpsilon;
+  real fuzz=max(fuzzFactor*fuzz,Fuzz)*abs(max(s)-min(s));
+  
+  // Remove intrapatch duplicate points.
+  for(int i=0; i < T.length; ++i) {
+    for(int j=i+1; j < T.length;) {
+      if(abs(point(p,i)-point(p,j)) < fuzz)
+        T.delete(j);
+      else ++j;
+    }
+  }
+  return T;
+}
+
+// return an array containing all intersection points of path p and surface s.
+triple[] intersectionpoints(path3 p, surface s, real fuzz=-1)
+{
+  real[][] t=intersections(p,s,fuzz);
+  return sequence(new triple(int i) {return point(p,t[i][0]);},t.length);
 }
 
 triple point(patch s, real u, real v)

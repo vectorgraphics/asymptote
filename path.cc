@@ -23,6 +23,8 @@ const double BigFuzz=10000.0*DBL_EPSILON;
 const double Fuzz=1000.0*DBL_EPSILON;
 const double Fuzz2=Fuzz*Fuzz;
 const double sqrtFuzz=sqrt(Fuzz);
+const double fuzzFactor=10.0;
+
 const double third=1.0/3.0;
 
 path nullpath;
@@ -888,18 +890,20 @@ void intersections(std::vector<double>& S, std::vector<double>& T,
 
 void add(std::vector<double>& S, double s, const path& p, double fuzz2)
 {
-  pair P=p.point(s);
-  for(size_t i=0; i < S.size(); ++i)
-    if((p.point(S[i])-P).abs2() <= fuzz2) return;
+  pair z=p.point(s);
+  size_t n=S.size();
+  for(size_t i=0; i < n; ++i)
+    if((p.point(S[i])-z).abs2() <= fuzz2) return;
   S.push_back(s);
 }
   
 void add(std::vector<double>& S, std::vector<double>& T, double s, double t,
-         const path& p, const path& q, double fuzz2)
+         const path& p, double fuzz2)
 {
-  pair P=p.point(s);
-  for(size_t i=0; i < S.size(); ++i)
-    if((p.point(S[i])-P).abs2() <= fuzz2) return;
+  pair z=p.point(s);
+  size_t n=S.size();
+  for(size_t i=0; i < n; ++i)
+    if((p.point(S[i])-z).abs2() <= fuzz2) return;
   S.push_back(s);
   T.push_back(t);
 }
@@ -907,22 +911,21 @@ void add(std::vector<double>& S, std::vector<double>& T, double s, double t,
 void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
          std::vector<double>& S1, std::vector<double>& T1,
          double pscale, double qscale, double poffset, double qoffset,
-         const path& p, const path& q, double fuzz, bool single)
+         const path& p, double fuzz2, bool single)
 {
   if(single) {
     s=s*pscale+poffset;
     t=t*qscale+qoffset;
   } else {
-    double fuzz2=4.0*fuzz*fuzz;
     size_t n=S1.size();
     for(size_t i=0; i < n; ++i)
-      add(S,T,pscale*S1[i]+poffset,qscale*T1[i]+qoffset,p,q,fuzz2);
+      add(S,T,pscale*S1[i]+poffset,qscale*T1[i]+qoffset,p,fuzz2);
   }
 }
 
 void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
          std::vector<double>& S1, std::vector<double>& T1,
-         const path& p, const path& q, double fuzz, bool single)
+         const path& p, double fuzz2, bool single)
 {
   size_t n=S1.size();
   if(single) {
@@ -931,16 +934,16 @@ void add(double& s, double& t, std::vector<double>& S, std::vector<double>& T,
       t=T1[0];
     }
   } else {
-    double fuzz2=4.0*fuzz*fuzz;
     for(size_t i=0; i < n; ++i)
-      add(S,T,S1[i],T1[i],p,q,fuzz2);
+      add(S,T,S1[i],T1[i],p,fuzz2);
   }
 }
 
 void intersections(std::vector<double>& S, path& g,
                    const pair& p, const pair& q, double fuzz)
 {       
-  double fuzz2=fuzz*fuzz;
+  double fuzz2=max(fuzzFactor*fuzz,Fuzz);
+  fuzz2=fuzz2*fuzz2;
   std::vector<double> S1;
   lineintersections(S1,g,p,q,fuzz);
   size_t n=S1.size();
@@ -954,11 +957,14 @@ bool intersections(double &s, double &t, std::vector<double>& S,
 {
   if(errorstream::interrupt) throw interrupted();
   
+  double fuzz2=max(fuzzFactor*fuzz,Fuzz);
+  fuzz2=fuzz2*fuzz2;
+  
   Int lp=p.length();
   if(((lp == 1 && p.straight(0)) || lp == 0) && exact) {
     std::vector<double> T1,S1;
     intersections(T1,S1,q,p.point((Int) 0),p.point(lp),fuzz);
-    add(s,t,S,T,S1,T1,p,q,fuzz,single);
+    add(s,t,S,T,S1,T1,p,fuzz2,single);
     return S1.size() > 0;
   }
 
@@ -966,7 +972,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
   if(((lq == 1 && q.straight(0)) || lq == 0) && exact) {
     std::vector<double> S1,T1;
     intersections(S1,T1,p,q.point((Int) 0),q.point(lq),fuzz);
-    add(s,t,S,T,S1,T1,p,q,fuzz,single);
+    add(s,t,S,T,S1,T1,p,fuzz2,single);
     return S1.size() > 0;
   }
   
@@ -984,24 +990,24 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     --depth;
     if((maxp-minp).length()+(maxq-minq).length() <= fuzz || depth == 0) {
       if(single) {
-        s=0.0;
-        t=0.0;
+        s=0.5;
+        t=0.5;
       } else {
-        S.push_back(0.0);
-        T.push_back(0.0);
+        S.push_back(0.5);
+        T.push_back(0.5);
       }
       return true;
     }
     
     path p1,p2;
     double pscale,poffset;
+    std::vector<double> S1,T1;
     
     if(lp <= 1) {
       if(lp == 1) p.halve(p1,p2);
       if(lp == 0 || p1 == p || p2 == p) {
-        std::vector<double> T1,S1;
         intersections(T1,S1,q,p.point((Int) 0),p.point((Int) 0),fuzz);
-        add(s,t,S,T,S1,T1,p,q,fuzz,single);
+        add(s,t,S,T,S1,T1,p,fuzz2,single);
         return S1.size() > 0;
       }
       pscale=poffset=0.5;
@@ -1019,9 +1025,8 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     if(lq <= 1) {
       if(lq == 1) q.halve(q1,q2);
       if(lq == 0 || q1 == q || q2 == q) {
-        std::vector<double> S1,T1;
         intersections(S1,T1,p,q.point((Int) 0),q.point((Int) 0),fuzz);
-        add(s,t,S,T,S1,T1,p,q,fuzz,single);
+        add(s,t,S,T,S1,T1,p,fuzz2,single);
         return S1.size() > 0;
       }
       qscale=qoffset=0.5;
@@ -1038,9 +1043,8 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     static size_t maxcount=9;
     size_t count=0;
     
-    std::vector<double> S1,T1;
     if(intersections(s,t,S1,T1,p1,q1,fuzz,single,exact,depth)) {
-      add(s,t,S,T,S1,T1,pscale,qscale,0.0,0.0,p,q,fuzz,single);
+      add(s,t,S,T,S1,T1,pscale,qscale,0.0,0.0,p,fuzz2,single);
       if(single || depth <= mindepth)
         return true;
       count += S1.size();
@@ -1050,7 +1054,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     S1.clear();
     T1.clear();
     if(intersections(s,t,S1,T1,p1,q2,fuzz,single,exact,depth)) {
-      add(s,t,S,T,S1,T1,pscale,qscale,0.0,qoffset,p,q,fuzz,single);
+      add(s,t,S,T,S1,T1,pscale,qscale,0.0,qoffset,p,fuzz2,single);
       if(single || depth <= mindepth)
         return true;
       count += S1.size();
@@ -1060,7 +1064,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     S1.clear();
     T1.clear();
     if(intersections(s,t,S1,T1,p2,q1,fuzz,single,exact,depth)) {
-      add(s,t,S,T,S1,T1,pscale,qscale,poffset,0.0,p,q,fuzz,single);
+      add(s,t,S,T,S1,T1,pscale,qscale,poffset,0.0,p,fuzz2,single);
       if(single || depth <= mindepth)
         return true;
       count += S1.size();
@@ -1070,7 +1074,7 @@ bool intersections(double &s, double &t, std::vector<double>& S,
     S1.clear();
     T1.clear();
     if(intersections(s,t,S1,T1,p2,q2,fuzz,single,exact,depth)) {
-      add(s,t,S,T,S1,T1,pscale,qscale,poffset,qoffset,p,q,fuzz,single);
+      add(s,t,S,T,S1,T1,pscale,qscale,poffset,qoffset,p,fuzz2,single);
       if(single || depth <= mindepth)
         return true;
       count += S1.size();
