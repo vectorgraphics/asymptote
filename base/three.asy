@@ -6,6 +6,7 @@ if(prc0()) {
   access embed;
   Embed=embed.embed;
   Link=embed.link;
+  if(settings.tex == "context") settings.prc=false;
 }
 
 real defaultshininess=0.25;
