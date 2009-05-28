@@ -1,7 +1,7 @@
 // Bezier triangulation routines written by Orest Shardt, 2008.
 
 private real fuzz=sqrtEpsilon;
-real duplicateFuzz=1e-4; // Work around font errors.
+real duplicateFuzz=1e-3; // Work around font errors.
 
 int countIntersections(path[] p, pair start, pair end)
 {
@@ -102,8 +102,7 @@ void connect(path[] paths, path[] result, path[] patch)
       // find first intersection of line segment with outer curve
       path line = start--start+d*direction;
       real[][] ints=intersections(line,outer,fuzz);
-      assert(ints.length != 0);
-      real endtime=ints[0][1]; // endtime is time on outer
+      real endtime=ints.length > 0 ? ints[0][1] : 0; // endtime is time on outer
       pair end = point(outer,endtime);
       line = start--end;
       path rline = reverse(line);
