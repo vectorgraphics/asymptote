@@ -47,7 +47,8 @@ void texfile::miniprologue()
     *out << "\\pagestyle{empty}" << newl;
     *out << "\\begin{document}" << newl;
   } else if(settings::context(texengine)) {
-    *out << "\\setuppagenumbering[location=]" << endl;
+    *out << "\\setuppagenumbering[location=]" << endl
+         << "\\starttext\\hbox{%" << newl;
   }
   texfontencoding(*out);
 }
