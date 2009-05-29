@@ -2911,20 +2911,6 @@ realarray2* intersections(path3 p, triplearray2 *P, real fuzz=-1)
   return W; // Sorting will done in asy.
 }
 
-realarray* intersections(triple v, triplearray2 *P, real fuzz=-1)
-{
-  triple *A=copyTripleArray2C(P,true,4);
-  if(fuzz <= 0) fuzz=BigFuzz*::max(length(v),norm(A,16));
-  real U,V;
-  if(intersections(U,V,v,A,fuzz)) {
-    array *W=new array(2);    
-    (*W)[0]=U;
-    (*W)[1]=V;
-    return W;
-  }
-  return new array(0);
-}
-
 Int size(path3 p)
 {
   return p.size();
