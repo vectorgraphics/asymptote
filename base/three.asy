@@ -17,7 +17,7 @@ real dotgranularity=0.0001;
 pair viewportmargin=0;     // Horizontal and vertical viewport margins.
 real viewportfactor=1.005; // Factor used to expand orthographic viewport.
 real angleprecision=1e-3;  // Precision for centering perspective projections.
-real anglefactor=max(1.015,1+angleprecision);
+real anglefactor=max(1.02,1+angleprecision);
                            // Factor used to expand perspective viewport.
 
 string defaultembed3Doptions;

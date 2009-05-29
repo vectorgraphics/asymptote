@@ -47,7 +47,8 @@ void texfile::miniprologue()
     *out << "\\pagestyle{empty}" << newl;
     *out << "\\begin{document}" << newl;
   } else if(settings::context(texengine)) {
-    *out << "\\setuppagenumbering[location=]" << endl
+    *out << "\\setuppagenumbering[location=]" << newl
+         << "\\usetypescript[modern]" << newl
          << "\\starttext\\hbox{%" << newl;
   }
   texfontencoding(*out);
@@ -117,6 +118,7 @@ void texfile::prologue()
         *out << "\\setuplayout[width=16383pt,height=16383pt,"
              << "backspace=0pt,topspace=0pt,"
              << "header=0pt,headerdistance=0pt,footer=0pt]" << newl
+             << "\\setuppagenumbering[location=]" << endl
              << "\\usetypescript[modern]" << newl
              << "\\starttext\\hbox{%" << newl;
       } else {
@@ -283,7 +285,7 @@ void texfile::epilogue(bool pipe)
       *out << "\\end{document}" << newl;
   } else {
     if(settings::context(texengine))
-      *out << "}\\stoptext" << newl;
+      *out << "}%" << newl << "\\stoptext" << newl;
     else
       *out << "\\bye" << newl;
   }
