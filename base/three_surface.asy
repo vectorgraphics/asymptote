@@ -892,8 +892,6 @@ real[][] intersections(path3 p, surface s, real fuzz=-1)
     for(real[] s: intersections(p,s.s[i].P,fuzz))
       T.push(s);
 
-  sort(T);
-
   static real fuzzFactor=10.0;
   static real Fuzz=1000.0*realEpsilon;
   real fuzz=max(fuzzFactor*fuzz,Fuzz)*abs(max(s)-min(s));
@@ -907,7 +905,14 @@ real[][] intersections(path3 p, surface s, real fuzz=-1)
       else ++j;
     }
   }
-  return T;
+  return sort(T);
+}
+
+// return an array containing all intersection points of path p and surface s.
+triple[] intersectionpoints(path3 p, patch s, real fuzz=-1)
+{
+  real[][] t=intersections(p,s,fuzz);
+  return sequence(new triple(int i) {return point(p,t[i][0]);},t.length);
 }
 
 // return an array containing all intersection points of path p and surface s.
