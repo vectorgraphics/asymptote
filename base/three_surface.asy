@@ -900,8 +900,9 @@ real[][] intersections(path3 p, surface s, real fuzz=-1)
   
   // Remove intrapatch duplicate points.
   for(int i=0; i < T.length; ++i) {
+    triple v=point(p,T[i][0]);
     for(int j=i+1; j < T.length;) {
-      if(abs(point(p,i)-point(p,j)) < fuzz)
+      if(abs(v-point(p,T[j][0])) < fuzz)
         T.delete(j);
       else ++j;
     }
