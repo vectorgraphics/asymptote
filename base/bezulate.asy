@@ -95,19 +95,22 @@ void connect(path[] paths, path[] result, path[] patch)
     real d=2*abs(max(outer)-min(outer));
     while(inners.length > 0) {
       int curveIndex = 0;
-      real starttime = 0; // starttime is time on inners[curveIndex]
-      pair direction=I*dir(inners[curveIndex],starttime);
-      pair start=point(inners[curveIndex],starttime);
+      pair direction=I*dir(inners[curveIndex],0,1); // Use outgoing direction
+      if(direction == 0) // Try a random direction
+        direction=expi(2pi*unitrand());
+      pair start=point(inners[curveIndex],0);
 
       // find first intersection of line segment with outer curve
       path line = start--start+d*direction;
       real[][] ints=intersections(line,outer,fuzz);
-      real endtime=ints.length > 0 ? ints[0][1] : 0; // endtime is time on outer
+      assert(ints.length != 0);
+      real endtime=ints[0][1]; // endtime is time on outer
       pair end = point(outer,endtime);
       line = start--end;
       path rline = reverse(line);
 
       // find first intersection of rline segment with any inner curve
+      real starttime=0; // starttime is time on inners[curveIndex]
       real earliestTime=1;
       for(int j=0; j < inners.length; ++j) {
         real[][] ints=intersections(rline,inners[j],fuzz);
