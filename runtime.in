@@ -1297,7 +1297,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
                      "/ASY1 false def} if currentpoint newpath moveto false charpath "+
                      pathforall+"} bind def}");
   }
-  tex.verbatim(*s);
+  tex.verbatimline(*s+"%");
   tex.epilogue(true);
   tex.close();
   

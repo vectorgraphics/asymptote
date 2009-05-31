@@ -44,8 +44,8 @@ void texfile::miniprologue()
 {
   texpreamble(*out,processData().TeXpreamble,false,true);
   if(settings::latex(texengine)) {
-    *out << "\\pagestyle{empty}" << newl;
-    *out << "\\begin{document}" << newl;
+    *out << "\\pagestyle{empty}"
+         << "\\begin{document}" << newl;
   } else if(settings::context(texengine)) {
     *out << "\\setuppagenumbering[location=]" << newl
          << "\\usetypescript[modern]" << newl
@@ -280,15 +280,12 @@ void texfile::put(const string& label, const transform& T, const pair& z,
 
 void texfile::epilogue(bool pipe)
 {
-  if(settings::latex(texengine)) {
-    if(!inlinetex || pipe)
-      *out << "\\end{document}" << newl;
-  } else {
-    if(settings::context(texengine))
-      *out << "}%" << newl << "\\stoptext" << newl;
-    else
-      *out << "\\bye" << newl;
-  }
+  if(settings::latex(texengine))
+    *out << "\\end{document}" << newl;
+  else if(settings::context(texengine))
+    *out << "}\\stoptext" << newl;
+  else
+    *out << "\\bye" << newl;
   out->flush();
 }
 
