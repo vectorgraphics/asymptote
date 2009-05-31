@@ -396,12 +396,11 @@ public:
           return settings::getSetting<string>("textinitialfont");
         else {
           ostringstream buf;
-          // Protect context switchtobodyfont with gsave/grestore to prevent
-          // misalignment if font is not found.
+  // Work around misalignment in ConTeXt switchtobodyfont if font is not found.
           if(texengine == "context")
-            buf << "\\special{pdf:q}\\switchtobodyfont[" 
-                << DEFCONTEXTFONT << "," << size() << "pt]\\special{pdf:Q}%"
-                << newl;
+            buf << "\\switchtobodyfont[" 
+                << DEFCONTEXTFONT << "," << size() 
+                << "pt]\\removeunwantedspaces%" << newl;
           else
             buf << "\\font\\ASYfont=" << DEFTEXFONT
               << " at " << size() << "pt\\ASYfont";

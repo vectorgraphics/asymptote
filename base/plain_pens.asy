@@ -183,11 +183,11 @@ void usetypescript(string s, string encoding="")
 
 pen font(string name, string options="") 
 {
-  // Protect context switchtobodyfont with gsave/grestore to prevent
-  // misalignment if font is not found.
+  // Work around misalignment in ConTeXt switchtobodyfont if font is not found.
   return fontcommand(settings.tex == "context" ?
-                     "\special{pdf:q}\switchtobodyfont["+name+
-                     (options == "" ? "" : ","+options)+"]\special{pdf:Q}%" :
+                     "\switchtobodyfont["+name+
+                     (options == "" ? "" : ","+options)+
+                     "]\removeunwantedspaces" :
                      "\font\ASYfont="+name+"\ASYfont");
 }
 
