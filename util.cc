@@ -91,6 +91,11 @@ string stripFile(string name)
   return dir ? name : "";
 }
   
+string stripTeXFile(string name)
+{
+  return getSetting<string>("tex") == "context" ? "" : stripFile(name);
+}
+
 string stripExt(string name, const string& ext)
 {
   string suffix="."+ext;

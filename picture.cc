@@ -20,7 +20,7 @@ using namespace settings;
 using namespace gl;
 
 texstream::~texstream() {
-  string name=stripFile(outname())+"texput.";
+  string name=stripTeXFile(outname())+"texput.";
   unlink((name+"aux").c_str());
   unlink((name+"log").c_str());
   unlink((name+"out").c_str());
@@ -213,7 +213,7 @@ void picture::texinit()
     return;
   }
   
-  string name=stripFile(outname())+"texput.aux";
+  string name=stripTeXFile(outname())+"texput.aux";
   const char *cname=name.c_str();
   ofstream writeable(cname);
   if(!writeable)
@@ -227,7 +227,7 @@ void picture::texinit()
   if(context) {
     // Create a null texput.tex file as a portable way of tricking context
     // to enter interactive mode (pending the implementation of --pipe).
-    string texput=stripFile(outname())+"texput.tex";
+    string texput=stripTeXFile(outname())+"texput.tex";
     ofstream(texput.c_str());
     cmd << texprogram() << " --scrollmode " << texput;
   } else
@@ -531,7 +531,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     getSetting<string>("tex") != "none";
   Labels=labels || TeXmode;
   
-  pdf=settings::pdf(getSetting<string>("tex"));
+  string texengine=getSetting<string>("tex");
+  pdf=settings::pdf(texengine);
   
   bool standardout=Prefix == "-";
   string prefix=standardout ? "out" : Prefix;
@@ -682,6 +683,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     }
   }
   
+  bool context=settings::context(texengine);
   if(status) {
     if(TeXmode) {
       if(Labels && verbose > 0) cout << "Wrote " << texname << endl;
@@ -689,6 +691,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     } else {
       if(Labels) {
         tex->epilogue();
+        if(context) prefix=stripDir(prefix);
         status=texprocess(texname,prename,prefix,bboxshift);
         delete tex;
         if(!getSetting<bool>("keep")) {
@@ -701,9 +704,11 @@ bool picture::shipout(picture *preamble, const string& Prefix,
         if(xobject) {
           if(transparency && pngxformat)
             status=(epstopdf(prename,Outname(prefix,"pdf",standardout)) == 0);
-        } else
+        } else {
+          if(context) prename=stripDir(prename);
           status=postprocess(prename,outname,outputformat,magnification,wait,
                              view);
+        }
       }
     }
   }

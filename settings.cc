@@ -1368,7 +1368,7 @@ string texprogram()
   string engine=texcommand();
   if(!path.empty()) engine=(string) (path+"/"+engine);
   string program="'"+engine+"'";
-  string dir=stripFile(outname());
+  string dir=stripTeXFile(outname());
   return dir.empty() ? program : (program+" -output-directory="+dir);
 }
 
