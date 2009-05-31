@@ -176,7 +176,9 @@ void write(file file=stdout, string s="", pen[] p)
 
 void usetypescript(string s, string encoding="")
 {
-  texpreamble("\usetypescript["+s+"]["+encoding+"]");
+  string s="\usetypescript["+s+"]";
+  if(encoding != "") s +="["+encoding+"]";
+  texpreamble(s);
 }
 
 pen font(string name, string options="") 
