@@ -109,11 +109,6 @@ if test "$GXX" = yes ; then
    fi
 fi
 
-AC_CHECK_HEADER(fftw3.h,
-   AC_CHECK_LIB([fftw3], fftw_execute,,
-           AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
-     AC_MSG_NOTICE([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
-
 GCVERSION=gc-7.1
 
 AC_CHECK_FILE($GCVERSION.tar.gz,
@@ -220,8 +215,13 @@ AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([sigsegv], [stackoverflow_install_handler])
 AC_CHECK_LIB([rt], [sched_yield])
 
+AC_ARG_ENABLE(readline,
+[AS_HELP_STRING(--enable-readline[[[=yes]]],enable GNU Readline Library)])
+
+if test "x$enable_readline" != "xno"; then
 AC_CHECK_LIB([readline], [rl_completion_matches],,
 AC_MSG_NOTICE(*** Could not find GNU readline 4.2 or later: will compile without readline support ***))
+fi
 
 # Checks for header files.
 AC_HEADER_SYS_WAIT
@@ -236,8 +236,7 @@ AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include "xstream.h"]),
    AC_MSG_WARN([*** Broken rpc headers; XDR support disabled ***]))
 
 AC_ARG_ENABLE(gsl,
-[AS_HELP_STRING(--enable-gsl[[[=yes]]],enable GNU Scientific Library)],
-)
+[AS_HELP_STRING(--enable-gsl[[[=yes]]],enable GNU Scientific Library)])
 
 if test "x$enable_gsl" != "xno"; then
   AC_CHECK_HEADER(gsl/gsl_sf.h,
@@ -247,9 +246,18 @@ if test "x$enable_gsl" != "xno"; then
      AC_MSG_NOTICE([*** Header file gsl_sf.h not found: will compile without optional special functions. ***]))
 fi
 
+AC_ARG_ENABLE(fftw,
+[AS_HELP_STRING(--enable-fftw[[[=yes]]],enable FFTW Library)])
+
+if test "x$enable_fftw" != "xno"; then
+  AC_CHECK_HEADER(fftw3.h,
+    AC_CHECK_LIB([fftw3], fftw_execute,,
+           AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
+     AC_MSG_NOTICE([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
+fi
+
 AC_ARG_ENABLE(gl,
-[AS_HELP_STRING(--enable-gl[[[=yes]]],enable OpenGL Library)],
-)
+[AS_HELP_STRING(--enable-gl[[[=yes]]],enable OpenGL Library)])
 
 if test "x$enable_gl" != "xno"; then
 case "$OSTYPE" in
