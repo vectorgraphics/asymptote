@@ -16,8 +16,9 @@ real tubegranularity=0.003;
 real dotgranularity=0.0001;
 pair viewportmargin=0;     // Horizontal and vertical viewport margins.
 real viewportfactor=1.005; // Factor used to expand orthographic viewport.
+
 real angleprecision=1e-3;  // Precision for centering perspective projections.
-real anglefactor=max(1.02,1+angleprecision);
+real anglefactor=max(1.005,1+angleprecision);
                            // Factor used to expand perspective viewport.
 
 string defaultembed3Doptions;
@@ -2258,9 +2259,7 @@ pair viewportmargin(projection P, real width, real height)
   real ymargin=viewportmargin.y;
   if(xmargin <= 0) xmargin=max(0.5*(viewportsize.x-width),0);
   if(ymargin <= 0) ymargin=max(0.5*(viewportsize.y-height),0);
-  viewportmargin=(xmargin,ymargin);
-  if(P.infinity) return viewportmargin;
-  return (max(viewportmargin.x,viewportmargin.y),viewportmargin.y);
+  return (xmargin,ymargin);
 }
 
 string embed3D(string label="", string text=label, string prefix,
@@ -2279,9 +2278,13 @@ string embed3D(string label="", string text=label, string prefix,
   // Adobe Reader doesn't appear to support user-specified viewport lights.
   string lightscript=light.on() && !light.viewport ? lightscript(light) : "";
 
-  triple lambda=max3(f)-min3(f);
-  pair viewportmargin=viewportmargin(P,lambda.x,lambda.y);
-  real viewplanesize=(viewportfactor*lambda.y+2*viewportmargin.y)/cm;
+  real viewplanesize;
+  if(P.infinity) {
+    triple lambda=max3(f)-min3(f);
+    real margin=(viewportfactor-1.0)*lambda.y+
+      viewportmargin(P,lambda.x,lambda.y).y;
+    viewplanesize=(lambda.y+2*margin)/cm;
+  }
   string name=prefix+".js";
   writeJavaScript(name,lightscript+projection(P.infinity,viewplanesize),script);
 
@@ -2316,8 +2319,7 @@ string embed3D(string label="", string text=label, string prefix,
   if(options != "") options3 += ","+options;
   if(name != "") options3 += ",3Djscript="+stripdirectory(name);
 
-  return Embed(stripdirectory(prefix),options3,width+2*viewportmargin.x,
-               height+2*viewportmargin.y);
+  return Embed(stripdirectory(prefix),options3,width,height);
 }
 
 object embed(string label="", string text=label, 
@@ -2400,10 +2402,10 @@ object embed(string label="", string text=label,
     pair m2=pic2.min(s);
     pair M2=pic2.max(s);
     pair lambda=M2-m2;
-    real width=lambda.x;
-    real height=lambda.y;
+    pair viewportmargin=viewportmargin(P,lambda.x,lambda.y);
+    real width=ceil(lambda.x+2*viewportmargin.x);
+    real height=ceil(lambda.y+2*viewportmargin.y);
 
-    pair viewportmargin=viewportmargin(P,width,height);
     projection Q;
     if(!P.absolute) {
       if(scale) {
@@ -2452,10 +2454,12 @@ object embed(string label="", string text=label,
             pair lasts=s;
             if(P.autoadjust) {
               s=r+R;
-              transform3 t=shift(h*s.x,h*s.y,0);
-              f=t*f;
-              T=t*T;
-              adjusted=true;
+              if(s != 0) {
+                transform3 t=shift(h*s.x,h*s.y,0);
+                f=t*f;
+                T=t*T;
+                adjusted=true;
+              }
             }
             diff=abs(s-lasts);
             ++i;
@@ -2525,17 +2529,16 @@ object embed(string label="", string text=label,
         m=(m.x,m.y,zcenter-d);
       }
 
-      real factor=viewportfactor-1.0;
-      triple margin=(factor*abs(M.x-m.x),factor*abs(M.y-m.y),0);
-      if(P.infinity)
-        margin += (0,viewportmargin.y,0);
-      M += margin; 
-      m -= margin;
-      if(!P.infinity && M.z >= 0) abort("camera too close");
-
+      if(P.infinity) {
+        triple margin=(viewportfactor-1.0)*(abs(M.x-m.x),
+                                            abs(M.y-m.y),0)+
+                       viewportfactor*(0,viewportmargin.y,0);
+        M += margin; 
+        m -= margin;
+      } else if(M.z >= 0) abort("camera too close");
+      
       shipout3(prefix,f,preview ? nativeformat() : format,
-               width+2*viewportmargin.x,height+2*viewportmargin.y,
-               P.infinity ? 0 : angle,m,M,
+               width,height,P.infinity ? 0 : angle,m,M,
                tinv*inverse(modelview)*shift(0,0,zcenter),light.background(),
                P.absolute ? (modelview*light).position : light.position,
                light.diffuse,light.ambient,light.specular,
