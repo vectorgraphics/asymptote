@@ -229,7 +229,7 @@ void picture::texinit()
     // to enter interactive mode (pending the implementation of --pipe).
     string texput=stripFile(outname())+"texput.tex";
     ofstream(texput.c_str());
-    cmd << texprogram() << " --scrollmode --purgeall " << texput;
+    cmd << texprogram() << " --scrollmode " << texput;
   } else
     cmd << texprogram() << " \\scrollmode";
   
@@ -256,7 +256,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     string program=texprogram();
     ostringstream cmd;
     bool context=settings::context(getSetting<string>("tex"));
-    cmd << program << (context ? " --nonstopmode --purgeall '" : 
+    cmd << program << (context ? " --nonstopmode '" : 
                        " \\nonstopmode\\input '") << texname << "'";
     bool quiet=verbose <= 1;
     status=System(cmd,quiet ? 1 : 0,true,"texpath",texpathmessage());
@@ -265,7 +265,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     if(status) {
       if(quiet) {
         ostringstream cmd;
-        cmd << program << (context ? " --scrollmode --purgeall '" : 
+        cmd << program << (context ? " --scrollmode '" : 
                            " \\scrollmode\\input '") << texname << "'";
         System(cmd,0);
       }
