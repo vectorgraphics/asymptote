@@ -1284,7 +1284,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   string dviname=auxname(prefix,"dvi");
   bbox b;
   bool pdf=settings::pdf(getSetting<string>("tex"));
-  texfile tex(texname,b);
+  texfile tex(texname,b,true);
   tex.miniprologue();
   tex.setfont(p);
   
