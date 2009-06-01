@@ -29,8 +29,7 @@ install-prebuilt:
 		install-info --infodir=$(infodir) asy-faq.info; \
 	fi
 
-install-info: faq
-	install-prebuilt
+install-info: faq install-prebuilt
 
 uninstall: uninstall-all
 
