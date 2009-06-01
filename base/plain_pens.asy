@@ -351,5 +351,3 @@ pen[] mean(pen[][] palette, real opacity(real[])=min)
   return sequence(new pen(int i) {return mean(palette[i],opacity);},
 		  palette.length);
 }
-
-

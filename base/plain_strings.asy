@@ -190,3 +190,22 @@ string phantom(string s)
 {
   return "\phantom{"+s+"}";
 }
+
+restricted int ocgindex=0;
+
+void begin(picture pic=currentpicture, string name, string id="",
+           bool visible=true)
+{
+  if(!latex() || !pdf()) return;
+  settings.twice=true;
+  if(id == "") id=string(++ocgindex);
+  tex(pic,"\begin{ocg}{"+name+"}{"+id+"}{"+(visible ? "1" : "0")+"}");
+  layer(pic);
+}
+
+void end(picture pic=currentpicture)
+{
+  if(!latex() || !pdf()) return;
+  tex(pic,"\end{ocg}");
+  layer(pic);
+}

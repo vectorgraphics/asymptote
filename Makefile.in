@@ -32,7 +32,7 @@ EXTRA = asy-mode.el asy-init.el asy.vim asymptote.py reload.js nopapersize.ps
 EXEXTRA = piicon.eps *.views *.dat
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
-LATEXFILES = asymptote.sty asycolors.sty
+LATEXFILES = asymptote.sty asycolors.sty ocg.sty
 CONTEXTFILES = colo-asy.tex
 ASY = ./asy -dir base -config "" -render=0
 
