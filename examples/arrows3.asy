@@ -2,7 +2,7 @@ import three;
 
 size(15cm);
 
-currentprojection=perspective(24,14,13,showtarget=false,autoadjust=false);
+currentprojection=perspective(24,14,13);
 currentlight=light(gray(0.5),specularfactor=3,viewport=false,
                    (0.5,-0.5,-0.25),(0.5,0.5,0.25),(0.5,0.5,1),(-0.5,-0.5,-1));
 
