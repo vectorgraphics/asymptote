@@ -22,12 +22,15 @@ install: faq
 	${INSTALL} -p -m 644 asy-faq.ascii $(docdir)
 	${INSTALL} -p -m 644 asy-faq.html/* $(docdir)/asy-faq.html
 
-install-info: faq
+install-prebuilt:
 	${INSTALL} -d -m 755 $(infodir)
 	${INSTALL} -p -m 644 asy-faq.info $(infodir)
 	-if test -z "$(DESTDIR)"; then \
 		install-info --infodir=$(infodir) asy-faq.info; \
 	fi
+
+install-info: faq
+	install-prebuilt
 
 uninstall: uninstall-all
 

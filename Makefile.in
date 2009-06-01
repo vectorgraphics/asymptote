@@ -177,6 +177,9 @@ install-doc: html
 install-man: man
 	cd doc; $(MAKE) install
 
+install-prebuilt: install-asy
+	cd doc; $(MAKE) install-prebuilt
+
 uninstall: uninstall-all
 
 uninstall-all: uninstall-man uninstall-asy

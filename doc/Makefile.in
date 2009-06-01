@@ -72,11 +72,17 @@ clean: FORCE
 	-rm -f CAD.{aux,dvi,log,pdf,toc}
 	cd png; $(MAKE) clean
 
-install: man faq
-	cd FAQ; $(MAKE) install
+install-man:
 	${INSTALL} -d -m 755 $(docdir) $(mandir)/man1
 	${INSTALL} -p -m 644 $(DOCFILES) $(docdir)
 	${INSTALL} -p -m 644 $(MANFILES) $(mandir)/man1
+
+install: man faq install-man
+	cd FAQ; $(MAKE) install
+
+install-prebuilt:install-man
+	cd FAQ; $(MAKE) install-prebuilt
+	cd png; $(MAKE) install
 
 install-all: doc install
 	cd FAQ; $(MAKE) install-info
