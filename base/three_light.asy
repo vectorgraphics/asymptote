@@ -82,7 +82,7 @@ struct light {
   pen background; // Background color of the 3D canvas.
   real specularfactor;
   bool viewport; // Are the lights specified (and fixed) in the viewport frame?
-  triple[] position; // Only directional lights are implemented.
+  triple[] position; // Only directional lights are currently implemented.
 
   transform3 T=identity(4); // Transform to apply to normal vectors.
 
@@ -171,4 +171,8 @@ light currentlight=light(ambient=rgb(0.1,0.1,0.1),specularfactor=3,
 light adobe=light(gray(0.4),specularfactor=3,viewport=false,
 		  (0.5,-0.5,-0.25),(0.5,0.5,0.25),
 		  (0.5,-0.5,0.2),(-0.5,0.5,-0.2));
+
+light headlamp=light(gray(0.85),ambient=black,specularfactor=3,
+                     (0.5,0.5,1),specular=gray(0.6));
+
 light nolight;
