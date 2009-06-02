@@ -14,12 +14,12 @@ real defaultgranularity=0;
 real linegranularity=0.01;
 real tubegranularity=0.003;
 real dotgranularity=0.0001;
-pair viewportmargin=0;     // Horizontal and vertical viewport margins.
-real viewportfactor=1.005; // Factor used to expand orthographic viewport.
-
-real angleprecision=1e-3;  // Precision for centering perspective projections.
+pair viewportmargin=0;       // Horizontal and vertical viewport margins.
+real viewportfactor=1.002;   // Factor used to expand orthographic viewport.
+real viewportpadding=1.2;    // Offset used to expand PRC orthographic viewport.
+real angleprecision=1e-3;    // Precision for centering perspective projections.
 real anglefactor=max(1.005,1+angleprecision);
-                           // Factor used to expand perspective viewport.
+                             // Factor used to expand perspective viewport.
 
 string defaultembed3Doptions;
 string defaultembed3Dscript;
@@ -2203,7 +2203,7 @@ function asyProjection() {"+
     (infinity ? "activeCamera.projectionType=activeCamera.TYPE_ORTHOGRAPHIC;" :
      "activeCamera.projectionType=activeCamera.TYPE_PERSPECTIVE;")+"
 activeCamera.viewPlaneSize="+string(viewplanesize)+";
-activeCamera.binding=activeCamera.BINDING_VERTICAL;
+activeCamera.binding=activeCamera.BINDING_"+(infinity ? "MAX" : "VERTICAL")+";
 }
 
 asyProjection();
@@ -2252,7 +2252,7 @@ void writeJavaScript(string name, string preamble, string script)
     file3.push(name);
 }
 
-pair viewportmargin(projection P, real width, real height) 
+pair viewportmargin(real width, real height) 
 {
   pair viewportmargin=viewportmargin;
   real xmargin=viewportmargin.x;
@@ -2281,9 +2281,8 @@ string embed3D(string label="", string text=label, string prefix,
   real viewplanesize;
   if(P.infinity) {
     triple lambda=max3(f)-min3(f);
-    real margin=(viewportfactor-1.0)*lambda.y+
-      viewportmargin(P,lambda.x,lambda.y).y;
-    viewplanesize=(lambda.y+2*margin)/cm;
+    pair margin=viewportpadding*(1,1)+viewportmargin(lambda.x,lambda.y);
+    viewplanesize=(max(lambda.x+2*margin.x,lambda.y+2*margin.y))/cm;
   }
   string name=prefix+".js";
   writeJavaScript(name,lightscript+projection(P.infinity,viewplanesize),script);
@@ -2319,6 +2318,10 @@ string embed3D(string label="", string text=label, string prefix,
   if(options != "") options3 += ","+options;
   if(name != "") options3 += ",3Djscript="+stripdirectory(name);
 
+  if(!P.infinity) {
+    width=max(width-2,0);
+    height=max(height-2,0);
+  }
   return Embed(stripdirectory(prefix),options3,width,height);
 }
 
@@ -2402,7 +2405,7 @@ object embed(string label="", string text=label,
     pair m2=pic2.min(s);
     pair M2=pic2.max(s);
     pair lambda=M2-m2;
-    pair viewportmargin=viewportmargin(P,lambda.x,lambda.y);
+    pair viewportmargin=viewportmargin(lambda.x,lambda.y);
     real width=ceil(lambda.x+2*viewportmargin.x);
     real height=ceil(lambda.y+2*viewportmargin.y);
 
@@ -2435,6 +2438,11 @@ object embed(string label="", string text=label,
       if(P.infinity) {
         triple m=min3(f);
         triple M=max3(f);
+        triple lambda=M-m;
+        viewportmargin=viewportmargin(lambda.x,lambda.y);
+        width=lambda.x+2*viewportmargin.x;
+        height=lambda.y+2*viewportmargin.y;
+
         triple s=(-0.5(m.x+M.x),-0.5*(m.y+M.y),0);
         f=shift(s)*f;  // Eye will be at (0,0,0).
       } else {
@@ -2530,9 +2538,9 @@ object embed(string label="", string text=label,
       }
 
       if(P.infinity) {
-        triple margin=(viewportfactor-1.0)*(abs(M.x-m.x),
-                                            abs(M.y-m.y),0)+
-                       viewportfactor*(0,viewportmargin.y,0);
+        triple margin=(viewportfactor-1.0)*(abs(M.x-m.x),abs(M.y-m.y),0)
+          +(viewportmargin.x,viewportmargin.y,0);
+
         M += margin; 
         m -= margin;
       } else if(M.z >= 0) abort("camera too close");
