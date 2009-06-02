@@ -16,7 +16,7 @@ real tubegranularity=0.003;
 real dotgranularity=0.0001;
 pair viewportmargin=0;       // Horizontal and vertical viewport margins.
 real viewportfactor=1.002;   // Factor used to expand orthographic viewport.
-real viewportpadding=1.2;    // Offset used to expand PRC orthographic viewport.
+real viewportpadding=1.2;    // Offset used to expand PRC viewport.
 real angleprecision=1e-3;    // Precision for centering perspective projections.
 real anglefactor=max(1.005,1+angleprecision);
                              // Factor used to expand perspective viewport.
@@ -2283,7 +2283,9 @@ string embed3D(string label="", string text=label, string prefix,
     triple lambda=max3(f)-min3(f);
     pair margin=viewportpadding*(1,1)+viewportmargin(lambda.x,lambda.y);
     viewplanesize=(max(lambda.x+2*margin.x,lambda.y+2*margin.y))/cm;
-  }
+  } else
+    if(!P.absolute) angle=2*aTan(Tan(0.5*angle)-viewportpadding/P.target.z);
+
   string name=prefix+".js";
   writeJavaScript(name,lightscript+projection(P.infinity,viewplanesize),script);
 
@@ -2517,13 +2519,14 @@ object embed(string label="", string text=label,
       if(P.absolute) {
         modelview=P.modelview();
         f=modelview*f;
-        P=modelview*P;
+        Q=modelview*P;
         m=min3(f);
         M=max3(f);
         real r=0.5*abs(M-m);
         zcenter=0.5*(M.z+m.z);
         M=(M.x,M.y,zcenter+r);
         m=(m.x,m.y,zcenter-r);
+        angle=P.angle;
       } else {
         m=min3(f);
         M=max3(f);
@@ -2559,8 +2562,7 @@ object embed(string label="", string text=label,
       image=graphic(image,"hiresbb");
     }
     if(prc) F.L=embed3D(label,text=image,prefix,f,format,
-                        width,height,angle,options,script,light,
-                        P.absolute ? P : Q);
+                        width,height,angle,options,script,light,Q);
   }
 
   if(!is3D) {
