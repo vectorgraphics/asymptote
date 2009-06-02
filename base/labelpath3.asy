@@ -2,11 +2,7 @@
 // Author: Jens Schwaiger
 
 import three;
-size(7.5cm,0);
-real eps=100*realEpsilon;
-currentprojection=perspective(20,18,8);
-currentlight=light(8,10,2);
-//texpreamble("\textwidth=50cm"); // Avoid line breaking in long texts
+private real eps=100*realEpsilon;
 
 triple nextnormal(triple p, triple q)
 {
