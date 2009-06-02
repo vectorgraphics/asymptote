@@ -2307,7 +2307,7 @@ string embed3D(string label="", string text=label, string prefix,
   if(defaultembed3Doptions != "") options3 += ","+defaultembed3Doptions;
   if((settings.render < 0 || !settings.embed) && settings.auto3D)
     options3 += ",poster";
-  options3 += ",text="+text+",label="+label+
+  options3 += ",text={"+text+"},label="+label+
     ",toolbar="+(settings.toolbar ? "true" : "false")+
     ",3Daac="+format(P.absolute ? P.angle : angle)+
     ",3Dc2c="+format(u)+
@@ -2318,10 +2318,6 @@ string embed3D(string label="", string text=label, string prefix,
   if(options != "") options3 += ","+options;
   if(name != "") options3 += ",3Djscript="+stripdirectory(name);
 
-  if(!P.infinity) {
-    width=max(width-2,0);
-    height=max(height-2,0);
-  }
   return Embed(stripdirectory(prefix),options3,width,height);
 }
 
@@ -2560,7 +2556,7 @@ object embed(string label="", string text=label,
       if(settings.inlinetex) image += "_0";
       image += "."+nativeformat();
       if(!settings.inlinetex) file3.push(image);
-      image=graphic(image);
+      image=graphic(image,"hiresbb");
     }
     if(prc) F.L=embed3D(label,text=image,prefix,f,format,
                         width,height,angle,options,script,light,
@@ -2608,7 +2604,7 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
         if(currentlight.background != nullpen)
           box(f,currentlight.background,Fill,above=false);
       } else if(!view)
-        label(f,graphic(prefix));
+        label(f,graphic(prefix,"hiresbb"));
     }
   }
   return f;
