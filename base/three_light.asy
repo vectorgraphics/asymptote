@@ -172,7 +172,7 @@ light adobe=light(gray(0.4),specularfactor=3,viewport=false,
 		  (0.5,-0.5,-0.25),(0.5,0.5,0.25),
 		  (0.5,-0.5,0.2),(-0.5,0.5,-0.2));
 
-light headlamp=light(gray(0.85),ambient=black,specularfactor=3,
-                     (0.5,0.5,1),specular=gray(0.6));
+light headlamp=light(gray(0.9),ambient=black,specularfactor=3,
+                     (0.5,0.5,1/sqrt(2)),specular=gray(0.7));
 
 light nolight;
