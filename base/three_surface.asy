@@ -681,6 +681,22 @@ struct surface {
                      triple[][] normals=new triple[][],
                      pen[][] colors=new pen[][], bool3 planar=default) {
     s=new patch[];
+    if(planar == true) {// Assume all path3 elements share a common normal.
+      if(external.length != 0) {
+        triple n=normal(external[0]);
+        if(n != O) {
+          transform3 T=align(n);
+          external=transpose(T)*external;
+          T *= shift(0,0,point(external[0],0).z);
+          path[] g=sequence(new path(int i) {return path(external[i]);},
+                            external.length);
+          for(patch p : surface(g).s)
+            s.push(T*p);
+          return;
+        }
+      }
+    }
+
     for(int i=0; i < external.length; ++i)
       construct(external[i],
                 internal.length == 0 ? new triple[] : internal[i],
