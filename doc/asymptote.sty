@@ -3,7 +3,7 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2)
 
-\ProvidesPackage{asymptote}[2009/03/29 v1.06 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2009/06/03 v1.07 Asymptote style file for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
 \newif\ifASYinline
@@ -182,12 +182,12 @@
     \else
       \ifASYattach
         \ifASYPDF
-          \openin\AsyTestStream=\Jobname-\the\c@asy-0.pdf
+          \openin\AsyTestStream=\Jobname-\the\c@asy+0.pdf
         \fi
         \ifeof\AsyTestStream
-          \setbox\ASYbox=\hbox{\includegraphics{\Jobname-\the\c@asy}}%
+          \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{\Jobname-\the\c@asy}}%
         \else
-          \setbox\ASYbox=\hbox{\includegraphics{\Jobname-\the\c@asy-0}}%
+         \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{\Jobname-\the\c@asy+0}}%
         \fi
         \textattachfile{\Jobname-\the\c@asy.pdf}{\phantom{\copy\ASYbox}}%
         \vskip-\ht\ASYbox%
@@ -195,7 +195,7 @@
         \box\ASYbox%
         \closein\AsyTestStream%
       \else
-        \includegraphics{\Jobname-\the\c@asy}%
+        \includegraphics[hiresbb]{\Jobname-\the\c@asy}%
       \fi
     \fi
   \fi
