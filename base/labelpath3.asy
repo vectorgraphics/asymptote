@@ -30,13 +30,14 @@ triple[] nextframe(path3 p, real reltimestart, triple[] start, real
   real lg=reltimeend-reltimestart;
   if(lg <= 0) return start;
   bf[0]=start;
-  for(int i=1; i < subdiv+1; i=i+1) {
+  int n=subdiv+1;
+  for(int i=1; i < n; ++i)
     bf[i][0]=dir(p,reltime(p,reltimestart+(i/subdiv)*lg));
-  };
-  for(int i=1; i < subdiv+1; i=i+1) {
+
+  for(int i=1; i < n; ++i) {
     bf[i][1]=nextnormal(bf[i-1][1],bf[i][0]);
     bf[i][2]=cross(bf[i][0],bf[i][1]);
-  };
+  }
   return bf[subdiv];
 }
   
@@ -44,8 +45,7 @@ surface labelpath(string txt, path3 p, real angle=90, triple optional=O)
 {
   real Cos=Cos(angle);
   real Sin=Sin(angle);
-  path[] text=shift(-labelmargin(currentpen)*NE)*
-    texpath(Label(txt,(0,0),NE,basealign));
+  path[] text=texpath(Label(txt,(0,0),Align,basealign));
   text=scale(1/(max(text).x-min(text).x))*text;
   path[][] decompose=containmentTree(text);
 	
@@ -55,7 +55,7 @@ surface labelpath(string txt, path3 p, real angle=90, triple optional=O)
     xpos[i][1]=i;
     real pos0=0.5(max(decompose[i]).x+min(decompose[i]).x);
     xpos[i][0]=pos0;
-  };
+  }
   xpos=sort(xpos); // sort by distance from 0;
   triple[] pos=new triple[decompose.length];
   real lg=arclength(p);
@@ -66,17 +66,18 @@ surface labelpath(string txt, path3 p, real angle=90, triple optional=O)
   triple[][] bfr=new triple[decompose.length][3];
   for(int j=0; j < decompose.length; ++j) {
     bfr[j]=nextframe(p,tm0,t0,xpos[j][0]);
-    tm0=xpos[j][0]; t0=bfr[j];};
+    tm0=xpos[j][0]; t0=bfr[j];
+  }
   transform3[] mt=new transform3[bfr.length];
   for(int j=0; j < bfr.length; ++j) {
     triple f2=Cos*bfr[j][1]+Sin*bfr[j][2];
     triple f3=Sin*bfr[j][1]+Cos*bfr[j][2];
     mt[j]=shift(relpoint(p,xpos[j][0]))*transform3(bfr[j][0],f2,f3);
-  };
+  }
   for(int j=0; j < bfr.length; ++j) {
     path[] dc=decompose[(int) xpos[j][1]];
     pair pos0=(0.5(max(dc).x+min(dc).x),0);
     sf.append(mt[j]*surface(scale(lg)*shift(-pos0)*dc));
-  };
+  }
   return sf;
 }
