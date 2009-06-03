@@ -3,10 +3,12 @@ private import math;
 if(inXasyMode) settings.render=0;
 
 if(prc0()) {
-  access embed;
-  Embed=embed.embed;
-  Link=embed.link;
   if(settings.tex == "context") settings.prc=false;
+  else {
+    access embed;
+    Embed=embed.embed;
+    Link=embed.link;
+  }
 }
 
 real defaultshininess=0.25;
@@ -1690,7 +1692,8 @@ transform3 transform3(projection P)
   triple v=unit(P.oblique ? P.camera : P.vector());
   triple u=unit(perp(P.up,v));
   if(u == O) u=cross(perp(v),v);
-  return transform3(cross(u,v),u);
+  v=cross(u,v);
+  return v != O ? transform3(v,u) : identity(4);
 }
 
 triple[] triples(real[] x, real[] y, real[] z)
