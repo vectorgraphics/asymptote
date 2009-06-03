@@ -7391,9 +7391,9 @@ surface surface(path3 external, triple[] internal=new triple[],
 @noindent
 and then filled:
 @verbatim
-draw(surface(path3(polygon(5))),red);
-draw(surface(unitcircle3),red);
-draw(surface(unitcircle3,new pen[] {red,green,blue,black}));
+draw(surface(path3(polygon(5))),red,nolight);
+draw(surface(unitcircle3),red,nolight);
+draw(surface(unitcircle3,new pen[] {red,green,blue,black}),nolight);
 @end verbatim
 @noindent
 The last example constructs a patch with vertex-specific colors.
