@@ -68,8 +68,6 @@ public:
               double (*y)(const triple&, double*),
               double *t=NULL);
   
-  void texinit();
-
   bool Transparency() {
     return transparency;
   }
@@ -120,6 +118,8 @@ inline picture *transformed(const vm::array& t, picture *p)
 {
   return p->transformed(t);
 }
+
+void texinit();
 
 const char *texpathmessage();
   

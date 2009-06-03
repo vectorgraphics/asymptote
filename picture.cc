@@ -201,7 +201,7 @@ pair picture::bounds(double (*m)(double, double),
   return b;
 }
   
-void picture::texinit()
+void texinit()
 {
   drawElement::lastpen=pen(initialpen);
   processDataStruct &pd=processData();

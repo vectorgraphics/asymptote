@@ -26,9 +26,6 @@
 
 namespace camp {
 
-const double tex2ps=72.0/72.27;
-const double ps2tex=1.0/tex2ps;
-  
 template<class T>
 void texdocumentclass(T& out, bool pipe=false)
 {

@@ -46,11 +46,6 @@ public:
     
   void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&);
   
-  bool texbounds(iopipestream& tex, string& s, const char **abort, bool warn);
-    
-  int wait(iopipestream &tex, const char *s, const char **abort,
-           bool ignore=false);
-  
   bool islabel() {
     return true;
   }
@@ -80,6 +75,11 @@ public:
   
   drawElement *transformed(const transform& t);
 };
+
+void setpen(iopipestream& tex, const string& texengine, const pen& pentype);
+bool texbounds(double& width, double& height, double& depth,
+               iopipestream& tex, string& s, const char **abort,
+               bool warn, bool Inline=false);
 
 }
 

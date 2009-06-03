@@ -1272,6 +1272,26 @@ bool labels(picture *f)
   return f->havelabels();
 }
 
+realarray *texsize(string *s, pen p=CURRENTPEN)
+{
+  texinit();
+  processDataStruct &pd=processData();
+  
+  string texengine=getSetting<string>("tex");
+  const char **abort=texabort(texengine);
+  setpen(pd.tex,texengine,p);
+  
+  double width,height,depth;
+  if(!texbounds(width,height,depth,pd.tex,*s,abort,false,true))
+     return new array(0);
+  
+  array *t=new array(3);
+  (*t)[0]=width;
+  (*t)[1]=height;
+  (*t)[2]=depth;
+  return t;
+}
+
 patharray *_texpath(string *s, pen p=CURRENTPEN)
 {
   array *P=new array(0);

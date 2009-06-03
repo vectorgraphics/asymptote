@@ -14,7 +14,6 @@
 using std::ofstream;
 using settings::getSetting;
 
-  
 namespace camp {
 
 texfile::texfile(const string& texname, const bbox& box, bool pipe) 
