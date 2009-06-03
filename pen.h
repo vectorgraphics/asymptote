@@ -15,6 +15,9 @@
 
 namespace camp {
 
+static const double tex2ps=72.0/72.27;
+static const double ps2tex=1.0/tex2ps;
+  
 static const string DEFPAT="<default>";
 static const string DEFLATEXFONT="\\usefont{\\ASYencoding}{\\ASYfamily}{\\ASYseries}{\\ASYshape}";
 static const string DEFCONTEXTFONT="modern";
@@ -399,11 +402,11 @@ public:
   // Work around misalignment in ConTeXt switchtobodyfont if font is not found.
           if(texengine == "context")
             buf << "\\switchtobodyfont[" 
-                << DEFCONTEXTFONT << "," << size() 
+                << DEFCONTEXTFONT << "," << size()*ps2tex 
                 << "pt]\\removeunwantedspaces%" << newl;
           else
             buf << "\\font\\ASYfont=" << DEFTEXFONT
-              << " at " << size() << "pt\\ASYfont";
+              << " at " << size()*ps2tex << "pt\\ASYfont";
           return buf.str();
         }
       }
