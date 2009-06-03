@@ -1,1 +1,1 @@
-usepackage("fix-cm");
+if(latex()) usepackage("fix-cm");
