@@ -21,7 +21,7 @@ real viewportfactor=1.002;   // Factor used to expand orthographic viewport.
 real viewportpadding=1.2;    // Offset used to expand PRC viewport.
 real angleprecision=1e-3;    // Precision for centering perspective projections.
 real anglefactor=max(1.005,1+angleprecision);
-                             // Factor used to expand perspective viewport.
+// Factor used to expand perspective viewport.
 
 string defaultembed3Doptions;
 string defaultembed3Dscript;
@@ -2616,20 +2616,53 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
 };
 
 void addViews(picture dest, picture src, bool group=true,
-              filltype filltype=NoFill, bool above=true)
+              filltype filltype=NoFill)
 {
+  if(group) begingroup(dest);
   frame Front=src.fit(FrontView);
-  add(dest,Front,group,filltype,above);
+  add(dest,Front,filltype);
   frame Top=src.fit(TopView);
-  add(dest,shift(0,min(Front).y-max(Top).y)*Top,group,filltype,above);
+  add(dest,shift(0,min(Front).y-max(Top).y)*Top,filltype);
   frame Right=src.fit(RightView);
-  add(dest,shift(min(Front).x-max(Right).x)*Right,group,filltype,above);
+  add(dest,shift(min(Front).x-max(Right).x)*Right,filltype);
+  if(group) endgroup(dest);
 }
 
-void addViews(picture src, bool group=true, filltype filltype=NoFill,
-              bool above=true)
+void addViews(picture src, bool group=true, filltype filltype=NoFill)
 {
-  addViews(currentpicture,src,group,filltype,above);
+  addViews(currentpicture,src,group,filltype);
+}
+
+void addAllViews(picture dest, picture src,
+                 real xmargin=0, real ymargin=xmargin,
+                 bool group=true,
+                 filltype filltype=NoFill)
+{
+  picture picL,picM,picR,picLM;
+  if(xmargin == 0) xmargin=sqrtEpsilon;
+  if(ymargin == 0) ymargin=sqrtEpsilon;
+
+  add(picL,src.fit(FrontView),(0,0),ymargin*N);
+  add(picL,src.fit(BackView),(0,0),ymargin*S);
+
+  add(picM,src.fit(TopView),(0,0),ymargin*N);
+  add(picM,src.fit(BottomView),(0,0),ymargin*S);
+
+  add(picR,src.fit(RightView),(0,0),ymargin*N);
+  add(picR,src.fit(LeftView),(0,0),ymargin*S);
+
+  add(picLM,picL.fit(),(0,0),xmargin*W);
+  add(picLM,picM.fit(),(0,0),xmargin*E);
+
+  if(group) begingroup(dest);
+  add(dest,picLM.fit(),(0,0),xmargin*W,filltype);
+  add(dest,picR.fit(),(0,0),xmargin*E,filltype);
+  if(group) endgroup(dest);
+}
+
+void addAllViews(picture src, bool group=true, filltype filltype=NoFill)
+{
+  addAllViews(currentpicture,src,group,filltype);
 }
 
 // Force an array of 3D pictures to be as least as large as picture all.

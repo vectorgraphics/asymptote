@@ -7723,11 +7723,21 @@ projection TopView=orthographic(Z,showtarget=true);
 The function
 @verbatim
 void addViews(picture dest=currentpicture, picture src, bool group=true,
-              filltype filltype=NoFill, bool above=true);
+              filltype filltype=NoFill);
 @end verbatim
 @noindent
 adds picture @code{pic} as seen with @code{FrontView} aligned above the
 projection @code{TopView} and to the right of the projection @code{RightView}. 
+Alternatively, the function
+@verbatim
+void addAllViews(picture dest=currentpicture, picture src,
+                 real xmargin=0, real ymargin=xmargin,
+                 bool group=true, filltype filltype=NoFill);
+@end verbatim
+@noindent
+may be used to exhibit all six standard views, with FrontView,
+TopView, RightView in the upper row and BackView, BottomView, LeftView
+in the lower row.
 
 A triple or path3 can be projected to a pair or path,
 with @code{project(triple, projection P=currentprojection)} or
