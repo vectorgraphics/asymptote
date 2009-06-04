@@ -2431,9 +2431,14 @@ returns the winding number of the cyclic path @code{p} relative to the point
 counterclockwise direction. If @code{z} lies on @code{p} the constant
 @code{undefined} (defined to be the largest odd integer) is returned.
 
+@cindex @code{interior}}
+@item bool interior(int windingnumber, pen fillrule)
+returns true if @code{windingnumber} corresponds to an interior point
+according to @code{fillrule}.
+
 @cindex @code{inside}
 @item bool inside(path p, pair z, pen fillrule=currentpen);
-returns @code{true} iff the point @code{z} is inside or on the edge of
+returns @code{true} iff the point @code{z} lies inside or on the edge of
 the region bounded by the cyclic path @code{p} according to the fill
 rule @code{fillrule} (@pxref{fillrule}). 
 
