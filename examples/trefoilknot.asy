@@ -1,7 +1,7 @@
 import tube;
 import graph3;
 import palette;
-currentlight=adobe;
+currentlight=White;
 
 size(0,8cm);
 currentprojection=perspective(1,1,1,up=-Y);

@@ -5,7 +5,7 @@ string viewpoint="{-24.132780075073242 7.2992024421691895 7.695427417755127}{0.8
 //viewpoint=getstring("viewpoint",viewpoint);
 currentprojection=perspective(viewpoint);
 
-currentlight=adobe;
+currentlight=White;
 
 triple[][][] P={{
     {(-1.6,0,1.875),(-1.6,-0.3,1.875),(-1.5,-0.3,2.1),(-1.5,0,2.1)},

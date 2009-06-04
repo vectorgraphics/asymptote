@@ -3,7 +3,7 @@ import three;
 size(560,320,IgnoreAspect);
 size3(140,80,15);
 currentprojection=perspective(-3,20,10,up=Y);
-currentlight=adobe;
+currentlight=White;
 
 path[] outline;
 

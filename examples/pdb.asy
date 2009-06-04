@@ -6,7 +6,7 @@ import cpkcolors;
 
 bool getviews=true;
 
-currentlight=adobe;
+currentlight=White;
 //currentlight=nolight;
 
 size(200);

@@ -2,7 +2,7 @@ import graph3;
 import solids;
 size(0,150);
 currentprojection=perspective(8,10,2);
-currentlight=adobe;
+currentlight=White;
 
 draw(circle(O,4,Z));
 draw(shift(-4Z)*scale(4,4,8)*unitcylinder,green+opacity(0.2));
