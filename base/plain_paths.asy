@@ -329,19 +329,21 @@ pair inside(path p, pen fillrule=currentpen)
   int n=length(p);
   for(int i=0; i < n; ++i) {
     pair z=point(p,i);
-    real[] T=intersections(p,z,z+I*dir(p,i));
+    pair dir=dir(p,i);
+    if(dir == 0) continue;
+    real[] T=intersections(p,z,z+I*dir);
     // Check midpoints of line segments formed between the
     // corresponding intersection points and z.
     for(int j=0; j < T.length; ++j) {
       if(T[j] != i) {
         pair w=point(p,T[j]);
         pair m=0.5*(z+w);
-        if(inside(windingnumber(p,m),fillrule)) return m;
+        if(interior(windingnumber(p,m),fillrule)) return m;
       }
     }
   }
-  abort("cannot find an interior point");
-  return 0;
+  // cannot find an interior point: path is degenerate
+  return point(p,0);
 }
 
 // Return all intersection times of path g with the vertical line through (x,0).
