@@ -2,9 +2,8 @@ import three;
 
 size(20cm);
 
-currentprojection=perspective(Z);
-currentlight=White;
-
+currentprojection=perspective(250,-250,250);
+//currentlight=White;
 
 triple[][][] Q={
   {
