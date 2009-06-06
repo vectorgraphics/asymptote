@@ -220,7 +220,7 @@ void execError(const char *command, const char *hint, const char *application)
   if(hint) {
     string s=string(hint);
     transform(s.begin(), s.end(), s.begin(), toupper);        
-    cerr << "Please put in " << getSetting<string>("config")
+    cerr << "Please put in a file " << getSetting<string>("config")
          << ": " << endl << endl
          << "import settings;" << endl
          << hint << "=\"PATH\";" << endl << endl
@@ -228,7 +228,9 @@ void execError(const char *command, const char *hint, const char *application)
          << application << "." << endl << endl
          << "Alternatively, set the environment variable ASYMPTOTE_" << s 
          << endl << "or use the command line option -" << hint 
-         << "=\"PATH\"" << endl;
+         << "=\"PATH\". For further details, see" << endl
+         << "http://asymptote.sourceforge.net/doc/Configuring.html" << endl
+         << "http://asymptote.sourceforge.net/doc/Search-paths.html" << endl;
   }
 }
                                                     

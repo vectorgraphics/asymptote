@@ -403,7 +403,8 @@ pressing the @code{r} key).
 @cindex @code{settings}
 @cindex configuration file
 Configuration variables are most easily set as @code{Asymptote}
-variables in the configuration file (by default, @code{.asy/config.asy} in the 
+variables in an optional configuration file (by default,
+@code{.asy/config.asy} in the
 user's home directory or @code{%USERPROFILE%\.asy\config.asy} under
 @code{MSDOS}); @pxref{configuration file}. Here are the default values
 of several important configuration variables under @code{UNIX}:
@@ -6202,7 +6203,7 @@ However, @code{XeLaTeX} users need to rename the modified version
 @end quotation
 to @code{movie15.sty} and place it in their @code{LaTeX} path.
 
-The latest version (2008/10/08) of the @code{movie15} package requires both
+The latest version of the @code{movie15} package requires both
 @code{pdflatex} version 1.20 or later and the file
 @quotation
 @url{http://www.ctan.org/tex-archive/macros/latex/contrib/oberdiek/ifdraft.dtx}
