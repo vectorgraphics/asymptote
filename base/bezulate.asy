@@ -1,13 +1,19 @@
 // Bezier triangulation routines written by Orest Shardt, 2008.
 
-private real fuzz=1e-6;
+private real fuzz=sqrtEpsilon;
 real duplicateFuzz=1e-3; // Work around font errors.
+
+private real[][] intersections(pair a, pair b, path p)
+{
+  pair delta=fuzz*unit(b-a);
+  return intersections(a-delta--b+delta,p,fuzz);
+}
 
 int countIntersections(path[] p, pair start, pair end)
 {
   int intersects=0;
   for(path q : p)
-    intersects += intersections(q,start--end,fuzz).length;
+    intersects += intersections(start,end,q).length;
   return intersects;
 }
 
@@ -101,27 +107,23 @@ void connect(path[] paths, path[] result, path[] patch)
       pair start=point(inners[curveIndex],0);
 
       // find first intersection of line segment with outer curve
-      path line = start--start+d*direction;
-      real[][] ints=intersections(line,outer,fuzz);
+      real[][] ints=intersections(start,start+d*direction,outer);
       assert(ints.length != 0);
       real endtime=ints[0][1]; // endtime is time on outer
       pair end = point(outer,endtime);
-      line = start--end;
-      path rline = reverse(line);
 
-      // find first intersection of rline segment with any inner curve
+      // find first intersection of end--start with any inner curve
       real starttime=0; // starttime is time on inners[curveIndex]
       real earliestTime=1;
       for(int j=0; j < inners.length; ++j) {
-        real[][] ints=intersections(rline,inners[j],fuzz);
+        real[][] ints=intersections(end,start,inners[j]);
         if(ints.length > 0 && ints[0][0] < earliestTime) {
-          earliestTime=ints[0][0]; // time on rline
+          earliestTime=ints[0][0]; // time on end--start
           starttime=ints[0][1]; // time on inner curve
           curveIndex=j;
         }
       }
       start=point(inners[curveIndex],starttime);
-      line = start--end;
 
       real timeoffset=2;
       bool found=false;
@@ -146,7 +148,7 @@ void connect(path[] paths, path[] result, path[] patch)
         }
       }
 
-      if(!found)timeoffset=-2;
+      if(!found) timeoffset=-2;
       while(!found && timeoffset < -fuzz) {
         timeoffset /= 2;
         if(countIntersections(allCurves,start,
@@ -179,20 +181,11 @@ void connect(path[] paths, path[] result, path[] patch)
   }
 }
 
-int countIntersections(path g, pair p, pair q)
-{
-  int ints=0;
-  int l=length(g);
-  for(int i=1; i <= l; ++i)
-    ints += intersections(subpath(g,i-1,i),p--q,fuzz).length;
-  return ints;
-}
-
 bool checkSegment(path g, pair p, pair q)
 {
   pair mid=0.5*(p+q);
-  return countIntersections(g,p,q) == 4 && inside(g,mid,zerowinding) && 
-    intersections(g,mid).length == 0;
+  return intersections(p,q,g).length == 2 &&
+    inside(g,mid,zerowinding) && intersections(g,mid).length == 0;
 }
 
 path subdivide(path p)
