@@ -20,7 +20,7 @@ index.html: $(SOURCE) $(ASYFILES:.asy=.png)
 	makeinfo --html ../asymptote -o .
 
 asymptote.info: $(SOURCE) $(ASYFILES:.asy=.png)
-	makeinfo ../asymptote
+	makeinfo --no-split ../asymptote
 
 html:	index.html
 
@@ -35,7 +35,6 @@ distclean: FORCE clean
 install: 
 	${INSTALL} -d -m 755 $(infodir)
 	${INSTALL} -p -m 644 asymptote.info $(infodir)
-	-${INSTALL} -p -m 644 asymptote.info-* $(infodir)
 	-if test -z "$(DESTDIR)"; then \
 		install-info --infodir=$(infodir) asymptote.info; \
 	fi
