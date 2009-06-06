@@ -136,7 +136,6 @@ void texfile::prologue()
     
 void texfile::beginlayer(const string& psname, bool postscript)
 {
-  const char *units=settings::texunits(texengine);
   if(box.right > box.left && box.top > box.bottom) {
     if(postscript) {
       if(settings::context(texengine))
@@ -149,14 +148,12 @@ void texfile::beginlayer(const string& psname, bool postscript)
         *out << "{" << psname << "}%" << newl;
       }
       if(!inlinetex)
-        *out << "\\kern " << (box.left-box.right)*ps2tex << units
-             << "%" << newl;
+        *out << "\\kern " << (box.left-box.right)*ps2tex << "pt%" << newl;
     } else {
       *out << "\\leavevmode\\vbox to " << (box.top-box.bottom)*ps2tex 
-           << units << "{}%" << newl;
+           << "pt{}%" << newl;
       if(inlinetex)
-        *out << "\\kern " << (box.right-box.left)*ps2tex << units
-             << "%" << newl;
+        *out << "\\kern " << (box.right-box.left)*ps2tex << "pt%" << newl;
     }
   }
 }
@@ -164,8 +161,7 @@ void texfile::beginlayer(const string& psname, bool postscript)
 void texfile::endlayer()
 {
   if(inlinetex && (box.right > box.left && box.top > box.bottom))
-    *out << "\\kern " << (box.left-box.right)*ps2tex
-         << settings::texunits(texengine) << "%" << newl;
+    *out << "\\kern " << (box.left-box.right)*ps2tex << "pt%" << newl;
 }
 
 void texfile::writeshifted(path p, bool newPath)

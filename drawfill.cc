@@ -110,9 +110,6 @@ bool drawFunctionShade::write(texfile *out, const bbox& box)
 {
   if(empty()) return true;
   
-  const char *units=
-    settings::texunits(settings::getSetting<string>("tex"));
-   
   ColorSpace colorspace=pentype.colorspace();
   size_t ncomponents=ColorComponents[colorspace];
   
@@ -130,12 +127,10 @@ bool drawFunctionShade::write(texfile *out, const bbox& box)
   double Hoffset=out->hoffset();
   double hoffset=(bpath.Max().getx()-Hoffset)*ps2tex;
   out->write(hoffset);
-  out->verbatim(units);
-  out->verbatim(" {");
+  out->verbatim("pt {");
   out->verbatim("\\vbox to ");
   out->write((box.top-box.bottom)*ps2tex);
-  out->verbatim(units);
-  out->verbatimline(" {\\vfil%");
+  out->verbatimline("pt {\\vfil%");
   out->gsave();
   out->beginspecial();
   out->beginraw();
@@ -161,8 +156,7 @@ bool drawFunctionShade::write(texfile *out, const bbox& box)
   out->verbatimline("\\pdfrefxform\\the\\pdflastxform");
   out->verbatim("\\kern");
   out->write(-hoffset);
-  out->verbatim(units);
-  out->verbatimline("%");
+  out->verbatimline("pt%");
   return true;
 }
 

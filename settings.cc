@@ -1339,13 +1339,6 @@ const char *endspecial() {
   return "}%";
 }
 
-// Default TeX units.
-const char *texunits(const string& texengine) 
-{
-  return xe(texengine) ? "bp" : "pt";
-}
-
-
 bool fataltex[]={false,true};
 const char *pdftexerrors[]={"! "," ==> Fatal error",NULL};
 const char *texerrors[]={"! ",NULL};

@@ -107,7 +107,6 @@ const char *beginpicture(const string& texengine);
 const char *endpicture(const string& texengine);
 const char *beginspecial(const string& texengine);
 const char *endspecial();
-const char *texunits(const string& texengine);
   
 extern bool fataltex[];
 const char **texabort(const string& texengine);
