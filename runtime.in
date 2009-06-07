@@ -3515,6 +3515,8 @@ string format(string *format, Int x)
 
 string format(string *format, real x, string locale=emptystring) 
 {
+  bool tex=getSetting<string>("tex") != "none";
+  bool texify=false;
   ostringstream out;
   
   checkformat(format->c_str(),false);
@@ -3524,8 +3526,12 @@ string format(string *format, real x, string locale=emptystring)
   
   const char *p=p0;
   const char *start=NULL;
-  while (*p != 0) {
-    if(*p == '%') {
+  char prev=0;
+  while(*p != 0) {
+    char curr=*p;
+    if(tex && curr == '$' && prev != '\\') texify=true;
+    prev=curr;
+    if(curr == '%') {
       p++;
       if(*p != '%') {start=p-1; break;}
     }
@@ -3535,7 +3541,7 @@ string format(string *format, real x, string locale=emptystring)
   if(!start) return out.str();
   
   // Allow at most 1 argument  
-  while (*p != 0) {
+  while(*p != 0) {
     if(*p == '*' || *p == '$') return out.str();
     if(isupper(*p) || islower(*p)) {p++; break;}
     p++;
@@ -3608,7 +3614,8 @@ string format(string *format, real x, string locale=emptystring)
   
   // Translate "E+/E-/e+/e-" exponential notation to TeX
   while(*q != 0) {
-    if((*q == 'E' || *q == 'e') && (*(q+1) == '+' || *(q+1) == '-')) {
+    if(texify && (*q == 'E' || *q == 'e') && 
+       (*(q+1) == '+' || *(q+1) == '-')) {
       if(!zero) out << "\\!\\times\\!10^{";
       bool plus=(*(q+1) == '+');
       q++;

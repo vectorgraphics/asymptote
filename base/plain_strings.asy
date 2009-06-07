@@ -181,9 +181,9 @@ string math(real x)
   return math((string) x);
 }
 
-string format(real x)
+string format(real x, string locale="")
 {
-  return format(defaultformat,x);
+  return format(defaultformat,x,locale);
 }
 
 string phantom(string s)
