@@ -16,9 +16,8 @@ real defaultgranularity=0;
 real linegranularity=0.01;
 real tubegranularity=0.003;
 real dotgranularity=0.0001;
-pair viewportmargin=0;       // Horizontal and vertical viewport margins.
-real viewportfactor=1.002;   // Factor used to expand orthographic viewport.
-real viewportpadding=1.2;    // Offset used to expand PRC viewport.
+pair viewportmargin=(2,2);   // Horizontal and vertical viewport margins.
+real viewportpadding=1;      // Offset used to expand PRC viewport.
 real angleprecision=1e-3;    // Precision for centering perspective projections.
 real anglefactor=max(1.005,1+angleprecision);
 // Factor used to expand perspective viewport.
@@ -2255,14 +2254,9 @@ void writeJavaScript(string name, string preamble, string script)
     file3.push(name);
 }
 
-pair viewportmargin(real width, real height) 
+pair viewportmargin(pair lambda)
 {
-  pair viewportmargin=viewportmargin;
-  real xmargin=viewportmargin.x;
-  real ymargin=viewportmargin.y;
-  if(xmargin <= 0) xmargin=max(0.5*(viewportsize.x-width),0);
-  if(ymargin <= 0) ymargin=max(0.5*(viewportsize.y-height),0);
-  return (xmargin,ymargin);
+  return maxbound(0.5*(viewportsize-lambda),viewportmargin);
 }
 
 string embed3D(string label="", string text=label, string prefix,
@@ -2284,7 +2278,7 @@ string embed3D(string label="", string text=label, string prefix,
   real viewplanesize;
   if(P.infinity) {
     triple lambda=max3(f)-min3(f);
-    pair margin=viewportpadding*(1,1)+viewportmargin(lambda.x,lambda.y);
+    pair margin=viewportpadding*(1,1)+viewportmargin((lambda.x,lambda.y));
     viewplanesize=(max(lambda.x+2*margin.x,lambda.y+2*margin.y))/cm;
   } else
     if(!P.absolute) angle=2*aTan(Tan(0.5*angle)-viewportpadding/P.target.z);
@@ -2406,9 +2400,9 @@ object embed(string label="", string text=label,
     pair m2=pic2.min(s);
     pair M2=pic2.max(s);
     pair lambda=M2-m2;
-    pair viewportmargin=viewportmargin(lambda.x,lambda.y);
-    real width=ceil(lambda.x+2*viewportmargin.x);
-    real height=ceil(lambda.y+2*viewportmargin.y);
+    pair viewportmargin=viewportmargin(lambda);
+    real width=lambda.x+2*viewportmargin.x;
+    real height=lambda.y+2*viewportmargin.y;
 
     projection Q;
     if(!P.absolute) {
@@ -2440,7 +2434,7 @@ object embed(string label="", string text=label,
         triple m=min3(f);
         triple M=max3(f);
         triple lambda=M-m;
-        viewportmargin=viewportmargin(lambda.x,lambda.y);
+        viewportmargin=viewportmargin((lambda.x,lambda.y));
         width=lambda.x+2*viewportmargin.x;
         height=lambda.y+2*viewportmargin.y;
 
@@ -2540,9 +2534,7 @@ object embed(string label="", string text=label,
       }
 
       if(P.infinity) {
-        triple margin=(viewportfactor-1.0)*(abs(M.x-m.x),abs(M.y-m.y),0)
-          +(viewportmargin.x,viewportmargin.y,0);
-
+        triple margin=(viewportmargin.x,viewportmargin.y,0);
         M += margin; 
         m -= margin;
       } else if(M.z >= 0) abort("camera too close");
