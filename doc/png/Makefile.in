@@ -33,13 +33,14 @@ distclean: FORCE clean
 	-rm -f Makefile
 
 install: 
-	${INSTALL} -d -m 755 $(infodir)
-	${INSTALL} -p -m 644 asymptote.info $(infodir)
+	${INSTALL} -d -m 755 $(infodir)/asymptote
+	${INSTALL} -p -m 644 asymptote.info *.png $(infodir)/asymptote
 	-if test -z "$(DESTDIR)"; then \
 		install-info --infodir=$(infodir) asymptote.info; \
 	fi
 
 uninstall: 
 	-install-info --remove --infodir=$(infodir) asymptote.info
-	-rm -f $(infodir)/asymptote.info $(infodir)/asymptote.info-*
+	-cd $(infodir)/asymptote; rm -f asymptote.info *.png
+	-rmdir -f $(infodir)/asymptote
 FORCE:

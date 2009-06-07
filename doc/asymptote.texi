@@ -21,7 +21,7 @@ file LICENSE in the top-level source directory).
      
 @dircategory Languages
 @direntry
-* asymptote: (asymptote).               Vector graphics language.
+* asymptote: (asymptote/asymptote). Vector graphics language.
 @end direntry
 
 @titlepage
