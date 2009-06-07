@@ -2177,7 +2177,7 @@ projection perspective(string s)
   return P;
 }
 
-private string format(real x)
+private string Format(real x)
 {
   // Work around movie15.sty division by zero bug;
   // e.g. u=unit((1e-10,1e-10,0.9));
@@ -2186,14 +2186,14 @@ private string format(real x)
   return format("%.18f",x,"C");
 }
 
-private string format(triple v, string sep=" ")
+private string Format(triple v, string sep=" ")
 {
-  return format(v.x)+sep+format(v.y)+sep+format(v.z);
+  return Format(v.x)+sep+Format(v.y)+sep+Format(v.z);
 }
 
-private string format(real[] c)
+private string Format(real[] c)
 {
-  return format((c[0],c[1],c[2]));
+  return Format((c[0],c[1],c[2]));
 }
 
 private string[] file3;
@@ -2226,8 +2226,8 @@ string lightscript(light light) {
     string Li="L"+string(i);
     real[] diffuse=light.diffuse[i];
     script += Li+"=scene.createLight();"+'\n'+
-      Li+".direction.set("+format(-light.position[i],",")+");"+'\n'+
-      Li+".color.set("+format((diffuse[0],diffuse[1],diffuse[2]),",")+");"+'\n';
+      Li+".direction.set("+Format(-light.position[i],",")+");"+'\n'+
+      Li+".color.set("+Format((diffuse[0],diffuse[1],diffuse[2]),",")+");"+'\n';
   }
   // Work around initialization bug in Adobe Reader 8.0:
   return script +"
@@ -2308,12 +2308,12 @@ string embed3D(string label="", string text=label, string prefix,
     options3 += ",poster";
   options3 += ",text={"+text+"},label="+label+
     ",toolbar="+(settings.toolbar ? "true" : "false")+
-    ",3Daac="+format(P.absolute ? P.angle : angle)+
-    ",3Dc2c="+format(u)+
-    ",3Dcoo="+format(P.target/cm)+
-    ",3Droll="+format(roll)+
-    ",3Droo="+format(abs(v))+
-    ",3Dbg="+format(light.background());
+    ",3Daac="+Format(P.absolute ? P.angle : angle)+
+    ",3Dc2c="+Format(u)+
+    ",3Dcoo="+Format(P.target/cm)+
+    ",3Droll="+Format(roll)+
+    ",3Droo="+Format(abs(v))+
+    ",3Dbg="+Format(light.background());
   if(options != "") options3 += ","+options;
   if(name != "") options3 += ",3Djscript="+stripdirectory(name);
 
