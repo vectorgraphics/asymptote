@@ -473,6 +473,7 @@ bbox path::bounds() const
   
   Int len=length();
   box.add(point(len));
+  times=bbox(1,1,1,1);
 
   for (Int i = 0; i < len; i++) {
     addpoint(box,i);

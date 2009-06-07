@@ -8012,9 +8012,9 @@ as illustrated in the example files @code{galleon.asy} and
 @cindex 3D graphs
 This module implements three-dimensional versions of the
 functions in @code{graph.asy}.
-@cindex @code{xaxis}
-@cindex @code{yaxis}
-@cindex @code{zaxis}
+@cindex @code{xaxis3}
+@cindex @code{yaxis3}
+@cindex @code{zaxis3}
 @noindent
 To draw an @math{x} axis in three dimensions, use the routine
 @verbatim
