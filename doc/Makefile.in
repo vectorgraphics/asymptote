@@ -81,23 +81,23 @@ install: man faq install-man
 	cd FAQ; $(MAKE) install
 
 install-prebuilt: install-man
-	cd FAQ; $(MAKE) install-prebuilt
 	cd png; $(MAKE) install
+	cd FAQ; $(MAKE) install-prebuilt
 
 install-all: doc install
-	cd FAQ; $(MAKE) install-info
 	cd png; $(MAKE) install
+	cd FAQ; $(MAKE) install-info
 
 uninstall: uninstall-all
 
 uninstall-all:
-	cd FAQ; $(MAKE) uninstall
 	cd png; $(MAKE) uninstall
+	cd FAQ; $(MAKE) uninstall
 	-cd $(mandir)/man1; rm -f $(MANFILES)
 	-rm -f $(addprefix $(docdir)/,$(DOCFILES))
 
 distclean: FORCE clean
 	-rm -f version.texi Makefile
-	cd FAQ; make distclean
 	cd png; make distclean
+	cd FAQ; make distclean
 FORCE:
