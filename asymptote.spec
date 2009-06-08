@@ -59,12 +59,12 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 texhash >/dev/null 2>&1 || :
-/sbin/install-info %{_infodir}/%{name}.info.gz %{_infodir}/dir 2>/dev/null || :
+/sbin/install-info %{_infodir}/%{name}/%{name}.info.gz %{_infodir}/dir 2>/dev/null || :
 
 %postun
 texhash >/dev/null 2>&1 || :
 if [ $1 = 0 ]; then
-    /sbin/install-info --remove %{_infodir}/%{name}.info.gz %{_infodir}/dir 2>/dev/null || :
+    /sbin/install-info --remove %{_infodir}/%{name}/%{name}.info.gz %{_infodir}/dir 2>/dev/null || :
 fi
 
 
@@ -76,7 +76,8 @@ fi
 %{_texmf}/tex/latex/%{name}
 %{_texmf}/tex/context/third/%{name}
 %{_mandir}/man1/*.1*
-%{_infodir}/*.info*
+%{_infodir}/%{name}/*.info
+%{_infodir}/%{name}/
 
 
 %changelog
