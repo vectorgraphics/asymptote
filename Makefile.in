@@ -114,6 +114,9 @@ $(GCLIB): $(GC).tar.gz
 
 $(GCPPLIB): $(GCLIB)
 
+dvi:	asy
+	cd doc; $(MAKE) dvi
+
 html:	asy
 	cd doc; $(MAKE) doc
 
@@ -149,7 +152,7 @@ asy-keywords.el: asy
 
 install: asy-keywords.el install-asy install-man
 
-install-all: asy-keywords.el install-asy install-doc
+install-all: asy-keywords.el install-asy install-html
 
 install-asy: asy
 	${INSTALL} -d $(bindir) $(asydir) $(GUIdir) $(exampledir) \
@@ -171,7 +174,7 @@ install-asy: asy
 	  texhash; \
 	fi
 
-install-doc: html
+install-html: html
 	cd doc; $(MAKE) install-all
 
 install-man: man

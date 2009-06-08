@@ -1,7 +1,7 @@
 %{!?_texmf: %define _texmf %(eval "echo `kpsewhich -expand-var '$TEXMFLOCAL'`")}
 
 Name:           asymptote
-Version:        1.76
+Version:        1.77
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 
@@ -42,12 +42,12 @@ that LaTeX does for scientific text.
 %build
 CFLAGS="`echo $RPM_OPT_FLAGS | sed s/-O2/-O3/`" \
 %configure --with-latex=%{_texmf}/tex/latex --with-context=%{_texmf}/tex/context/third
-make all html %{?_smp_mflags}
+make %{?_smp_mflags}
 
 
 %install
 rm -rf $RPM_BUILD_ROOT
-make install-all DESTDIR=$RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT
 
 %{__install} -p -m 644 BUGS ChangeLog LICENSE README ReleaseNotes TODO \
     $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}/

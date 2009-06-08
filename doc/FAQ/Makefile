@@ -15,9 +15,9 @@ clean: FORCE
 	-rm -f *~ core a.out *.lout *.ps *.info *.ascii *.xrefdb *.post
 	-rm -rf *.html
 
-install-all: install install-info
+install-all: install
 
-install: faq
+install: faq install-prebuilt
 	${INSTALL} -d -m 755 $(docdir) $(docdir)/asy-faq.html
 	${INSTALL} -p -m 644 asy-faq.ascii $(docdir)
 	${INSTALL} -p -m 644 asy-faq.html/* $(docdir)/asy-faq.html
