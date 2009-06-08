@@ -195,7 +195,7 @@ uninstall-asy:
 	-rmdir $(docdir)
 	-cd $(GUIdir); rm -f *.py
 	-rmdir $(GUIdir)
-	-cd $(asydir); rm -f *.asy $(EXTRA)
+	-cd $(asydir); rm -f asy-keywords.el *.asy $(EXTRA)
 	-rmdir $(asydir)
 	-cd $(latexdir); rm -f $(LATEXFILES)
 	-rmdir $(latexdir)
