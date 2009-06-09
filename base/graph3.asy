@@ -1655,9 +1655,10 @@ surface surface(real[][] f, real[] x, real[] y,
   real[] d1=splinetype(x,qt[0]);
   real[] d2=splinetype(x,qt[m-1]);
   real[][] r=new real[n][];
+  real[][] p=transpose(tp);
   for(int i=0; i < n ; ++i)
-    r[i]=clamped(d1[i],d2[i])(y,f[i]);
-  return bispline(f,transpose(tp),q,r,x,y,cond);
+    r[i]=clamped(d1[i],d2[i])(y,p[i]);
+  return bispline(f,p,q,r,x,y,cond);
 }
 
 // return the surface described by a real matrix f, interpolated with
