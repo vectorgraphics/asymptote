@@ -170,10 +170,12 @@ real[][] finiteDifferenceJacobian(real[] f(real[]), real[] t)
 
   real[][] J=new real[t.length][ft.length];
   real[] ti=copy(t);
+  real tlast=ti[0];
   ti[0] += h;
   J[0]=(f(ti)-ft)/h;
   for(int i = 1; i < t.length; ++i) {
-    ti[i-1] -= h;
+    ti[i-1]=tlast;
+    tlast=ti[i];
     ti[i] += h;
     J[i]=(f(ti)-ft)/h;
   }

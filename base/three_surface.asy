@@ -1191,11 +1191,11 @@ void label(picture pic=currentpicture, Label L, triple position,
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       // Handle relative projected 3D alignments.
       Label L=L.copy();
+      triple v=t*position;
       if(!align.is3D && L.align.relative && L.align.dir3 != O &&
          determinant(P.t) != 0)
-        L.align(L.align.dir*unit(project(L.align.dir3,P.t))); 
+          L.align(L.align.dir*unit(project(v+L.align.dir3,P.t)-project(v,P.t)));
       
-      triple v=t*position;
       if(L.defaulttransform3)
         L.T3=transform3(P);
       if(is3D())
@@ -1233,7 +1233,7 @@ void label(picture pic=currentpicture, Label L, path3 g, align align=NoAlign,
   if(relative) position=reltime(g,position);
   if(L.align.default) {
     align a;
-    a.init(I*(position <= sqrtEpsilon ? S :
+    a.init(-I*(position <= sqrtEpsilon ? S :
               position >= length(g)-sqrtEpsilon ? N : E),relative=true);
     a.dir3=dir(g,position); // Pass 3D direction via unused field.
     L.align(a);             
