@@ -169,8 +169,14 @@ real[][] finiteDifferenceJacobian(real[] f(real[]), real[] t)
   if(h < sqrtEpsilon) h=sqrtEpsilon;
 
   real[][] J=new real[t.length][ft.length];
-  for(int i=0; i < t.length; ++i)
-    J[i]=(f(t+h)-f(t))/h;
+  real[] ti=copy(t);
+  ti[0] += h;
+  J[0]=(f(ti)-ft)/h;
+  for(int i = 1; i < t.length; ++i) {
+    ti[i-1] -= h;
+    ti[i] += h;
+    J[i]=(f(ti)-ft)/h;
+  }
   return transpose(J);
 }
 
