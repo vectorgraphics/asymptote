@@ -5328,6 +5328,34 @@ realarray *Operator *(realarray2 *a, realarray *b)
   return c;
 }
 
+realarray *Operator *(realarray *a, realarray2 *b)
+{
+  size_t n=checkArray(a);
+  if(n != checkArray(b)) error(incommensurate);
+  real *A=copyArrayC(a);
+
+  array **B=new array*[n];
+  array *bk=read<array *>(b,0);
+  B[0]=bk;
+  size_t m=bk->size();
+  for(size_t k=1; k < n; k++) {
+    array *bk=read<array *>(b,k);
+    if(bk->size() != m) error(incommensurate);
+    B[k]=bk;
+  }
+  array *c=new array(m);
+
+  for(size_t i=0; i < m; ++i) {
+    real sum=0.0;
+    for(size_t k=0; k < n; ++k)
+      sum += A[k]*read<real>(B[k],i);
+    (*c)[i]=sum;
+  }
+  delete[] B;
+  delete[] A;
+  return c;
+}
+
 realarray2 *Operator *(realarray2 *a, realarray2 *b)
 {
   size_t n=checkArray(a);

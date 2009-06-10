@@ -73,160 +73,124 @@ RKTableau DP45=RKTableau(5,new real[] {0,1/5,3/10,4/5,8/9,1,1},
                                         -92097/339200,187/2100,1/40}});
 // 5th order ? 
 
-
-triple RKstep(real x, real y, real f(real x, real y), real h,
+triple RKstep(real t, real y, real f(real t, real y), real h,
               bool dynamic, real tolmin, real tolmax, RKTableau tableau)
 {
   dynamic=(dynamic && tableau.finalWeights.length > 1);
-  real xinc=0, yinc=0;
-  real[] samplePositions=x+h*tableau.hSteps;
-  real[] predictions=new real[tableau.hSteps.length];
-  predictions[0]=f(samplePositions[0],y);
+  real[] samplePositions=t+h*tableau.hSteps;
+  real[] predictions=new real[] {f(samplePositions[0],y)};
   for(int i=1; i < tableau.hSteps.length; ++i)
-    predictions[i]=f(samplePositions[i],y+
-                     h*dot(predictions,tableau.weights[i-1]));
+    predictions.push(f(samplePositions[i],
+                       y+h*dot(tableau.weights[i-1],predictions)));
 
-  real[][] p={h*predictions};
-  real[][] yIncrement=tableau.finalWeights*transpose(p);
+  real[] yIncrement=tableau.finalWeights*(h*predictions);
 
+  real tinc=0, yinc=0;
   if(dynamic) {
     // check difference between highest order estimates
     real errorEstimate =
-      abs(yIncrement[yIncrement.length-1][0]-
-          yIncrement[yIncrement.length-2][0]);
+      abs(yIncrement[yIncrement.length-1]-
+          yIncrement[yIncrement.length-2]);
     if(errorEstimate > tolmax)
       h=max(h/stepfactor,minstep);
     else {
       if(errorEstimate < tolmin)
         h=min(h*stepfactor,maxstep);
-      xinc=h;
-      yinc=yIncrement[0][0];
+      tinc=h;
+      yinc=yIncrement[0];
     }
   } else {
-    xinc=h;
-    yinc=yIncrement[yIncrement.length-1][0]; // step forward with highest order
+    tinc=h;
+    yinc=yIncrement[yIncrement.length-1]; // step forward with highest order
   }
-  return(xinc,yinc,h);
+  return(tinc,yinc,h);
 }
 
-real RKbase(real y, real f(real x,real y), real a, real b=a, int n=0,
-            real h=0, bool dynamic=false, real tolmin=0, real tolmax=0,
-            RKTableau tableau)
+// integrate dy/dt=f(t,y) from a to b using initial conditions y,
+// specifying either n steps or the step size h.
+real integrate(real y, real f(real t, real y), real a, real b=a, int n=0,
+               real h=0, bool dynamic=false, real tolmin=0, real tolmax=0,
+               RKTableau tableau)
 {
   if(h == 0) {
     if(b == a) return y;
     if(n == 0) abort("Either n or h must be specified");
     else h=(b-a)/n;
   }
-  real x=a;
-  while(abs(x-b) > abs(h)) {
-    triple p=RKstep(x,y,f,h,dynamic,tolmin,tolmax,tableau);
-    x += p.x;
+  real t=a;
+  while(abs(t-b) > abs(h)) {
+    triple p=RKstep(t,y,f,h,dynamic,tolmin,tolmax,tableau);
+    t += p.x;
     y += p.y;
     h=p.z;
   }
-  h=b-x;
-  while(abs(x-b) > realEpsilon*abs(b)) {
-    triple p=RKstep(x,y,f,h,dynamic,tolmin,tolmax,tableau);
-    x += p.x;
+  h=b-t;
+  while(abs(t-b) > realEpsilon*abs(b)) {
+    triple p=RKstep(t,y,f,h,dynamic,tolmin,tolmax,tableau);
+    t += p.x;
     y += p.y;
     h=p.z;
   }
-
   return y;
 }
 
-real euler(real y, real f(real x, real y), real a, real b=a, int n=0,
-           real h=0, bool dynamic=false, real tolmin=0, real tolmax=0)
+// integrate a set of equations, dy/dt=f(t,y), from a to b using initial
+// conditions y, specifying either n steps or the step size h.
+real[] integrate(real[] y, real[] f(real, real[]), real a, real b=a, int n=0,
+                 real h=0, RKTableau tableau)
 {
-  return RKbase(y,f,a,b,n,h,dynamic,tolmin,tolmax,Euler);
-}
-
-real RK3(real y, real f(real x, real y), real a, real b=a, int n=0,
-         real h=0, bool dynamic=false, real tolmin=0, real tolmax=0)
-{
-  return RKbase(y,f,a,b,n,h,dynamic,tolmin,tolmax,RK3);
-}
-
-real RK4(real y, real f(real x, real y), real a, real b=a, int n=0,
-         real h=0, bool dynamic=false, real tolmin=0, real tolmax=0)
-{
-  return RKbase(y,f,a,b,n,h,dynamic,tolmin,tolmax,RK4);
-}
-
-real RKCK45(real y, real f(real x, real y), real a, real b=a, int n=0,
-            real h=0, bool dynamic=false, real tolmin=0, real tolmax=0)
-{
-  return RKbase(y,f,a,b,n,h,dynamic,tolmin,tolmax,RKCK45);
-}
-
-real RKF45(real y, real f(real x, real y), real a, real b=a, int n=0,
-           real h=0, bool dynamic=false, real tolmin=0, real tolmax=0)
-{
-  return RKbase(y,f,a,b,n,h,dynamic,tolmin,tolmax,RKF45);
-}
-
-real DP45(real y, real f(real x, real y), real a, real b=a, int n=0,
-          real h=0, bool dynamic=false, real tolmin=0, real tolmax=0)
-{
-  return RKbase(y,f,a,b,n,h,dynamic,tolmin,tolmax,DP45);
-}
-
-// integrate a set of equations, f, from a to b in n steps using initial
-// conditions y
-real[] integrate(real[] y, real[] f(real,real[] ), real a, real b, int n,
-                 RKTableau tableau)
-{
+  if(h == 0) {
+    if(b == a) return y;
+    if(n == 0) abort("Either n or h must be specified");
+    else h=(b-a)/n;
+  }
   real[] y=copy(y);
-  real h=(b-a)/n;
-  real x=a;
+  real t=a;
+  int m=tableau.hSteps.length;
+  
   for(int i=0; i < n; ++i) {
-    real[] samplePositions=x+h*tableau.hSteps;
-    real[][] derivatives={f(x,y)};
-    for(int i=1; i < tableau.hSteps.length; ++i) {
-      real[] ystep=((new real[][] {tableau.weights[i-1]})*derivatives)[0];
-      derivatives.push(f(samplePositions[i],y+h*ystep));
-    }
+    real[] samplePositions=t+h*tableau.hSteps;
+    real[][] derivatives={f(t,y)};
+    for(int i=1; i < tableau.hSteps.length; ++i)
+      derivatives.push(f(samplePositions[i],
+                         y+h*tableau.weights[i-1]*derivatives));
 
-    y += h*(tableau.finalWeights*derivatives) [tableau.finalWeights.length-1];
-    x += h;
+    y += h*tableau.finalWeights[tableau.finalWeights.length-1]*derivatives ;
+    t += h;
   }
   return y;
 }
 
-real[][] finiteDifferenceJacobian(real[] f(real[] ), real[] x)
+real[][] finiteDifferenceJacobian(real[] f(real[]), real[] t)
 {
-  real[] fx=f(x);
+  real[] ft=f(t);
 
-  real h=sqrtEpsilon*abs(fx[0]);
+  real h=sqrtEpsilon*abs(ft[0]);
   if(h < sqrtEpsilon) h=sqrtEpsilon;
 
-  real[][] J=new real[x.length][fx.length];
-  real[] xi=sequence(new real(int i) {return x[i]+h;},x.length);
-  for(int i=0; i < x.length; ++i)
-    J[i]=(f(xi)-f(x))/h;
+  real[][] J=new real[t.length][ft.length];
+  for(int i=0; i < t.length; ++i)
+    J[i]=(f(t+h)-f(t))/h;
   return transpose(J);
 }
 
 // solve simultaneous nonlinear system by newton's method
-real[] newton(int iterations=100, real[] f(real[] ), real[][] jacobian(real[]),
-              real[] x)
+real[] newton(int iterations=100, real[] f(real[]), real[][] jacobian(real[]),
+              real[] t)
 {
-  real[] x=copy(x);
+  real[] t=copy(t);
   for(int i=0; i < iterations; ++i)
-    x += solve(jacobian(x),-f(x));
-  return x;
+    t += solve(jacobian(t),-f(t));
+  return t;
 }
 
-real[] solveBVP(real[] f(real,real[] ), real a, real b,
-                real[] initial(real[] ), real[] discrepancy(real[] ),
+real[] solveBVP(real[] f(real, real[]), real a, real b,
+                real[] initial(real[]), real[] discrepancy(real[]),
                 real[] guess, int n, RKTableau tableau, int iterations=100)
 {
-  real[] g(real[] x) {
-    return discrepancy(integrate(initial(x),f,a,b,n,tableau));
+  real[] g(real[] t) {
+    return discrepancy(integrate(initial(t),f,a,b,n,tableau));
   }
-  real[][] jacobian(real[] x) {
-    return finiteDifferenceJacobian(g,x);
-  }
+  real[][] jacobian(real[] t) {return finiteDifferenceJacobian(g,t);}
   return initial(newton(iterations,g,jacobian,guess));
 }

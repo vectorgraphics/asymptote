@@ -148,7 +148,7 @@ real[][] zero(int n, int m)
   return M;
 }
 
-real[][] operator + (real[][] a, real[][] b)
+real[][] operator +(real[][] a, real[][] b)
 {
   int n=a.length;
   real[][] m=new real[n][];
@@ -157,7 +157,7 @@ real[][] operator + (real[][] a, real[][] b)
   return m;
 }
 
-real[][] operator - (real[][] a, real[][] b)
+real[][] operator -(real[][] a, real[][] b)
 {
   int n=a.length;
   real[][] m=new real[n][];
@@ -166,26 +166,7 @@ real[][] operator - (real[][] a, real[][] b)
   return m;
 }
 
-private string incommensurate=
-  "Multiplication of incommensurate matrices is undefined";
-
-real[] operator * (real[] b, real[][] a)
-{
-  int nb=b.length;
-  if(nb != a.length)
-    abort(incommensurate);
-  int na0=a[0].length;
-  real[] m=new real[na0];
-  for(int j=0; j < na0; ++j) {
-    real sum;
-    for(int k=0; k < nb; ++k)
-      sum += b[k]*a[k][j];
-    m[j]=sum;
-  }
-  return m;
-}
-
-real[][] operator * (real[][] a, real b)
+real[][] operator *(real[][] a, real b)
 {
   int n=a.length;
   real[][] m=new real[n][];
@@ -194,12 +175,12 @@ real[][] operator * (real[][] a, real b)
   return m;
 }
 
-real[][] operator * (real b, real[][] a)
+real[][] operator *(real b, real[][] a)
 {
   return a*b;
 }
 
-real[][] operator / (real[][] a, real b)
+real[][] operator /(real[][] a, real b)
 {
   return a*(1/b);
 }
