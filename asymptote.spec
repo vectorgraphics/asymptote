@@ -76,7 +76,9 @@ fi
 %{_texmf}/tex/latex/%{name}
 %{_texmf}/tex/context/third/%{name}
 %{_mandir}/man1/*.1*
+%{_infodir}/%{name}/
 %{_infodir}/%{name}/*.info*
+%{_infodir}/*.info*
 
 
 %changelog
