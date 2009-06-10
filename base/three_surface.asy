@@ -1233,8 +1233,8 @@ void label(picture pic=currentpicture, Label L, path3 g, align align=NoAlign,
   if(relative) position=reltime(g,position);
   if(L.align.default) {
     align a;
-    a.init(-I*(position <= sqrtEpsilon ? S :
-                   position >= length(g)-sqrtEpsilon ? N : E),relative=true);
+    a.init(I*(position <= sqrtEpsilon ? S :
+              position >= length(g)-sqrtEpsilon ? N : E),relative=true);
     a.dir3=dir(g,position); // Pass 3D direction via unused field.
     L.align(a);             
   }
