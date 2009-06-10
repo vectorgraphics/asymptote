@@ -8777,9 +8777,9 @@ The modified figure can then be saved as a normal @code{Asymptote} file.
 
 As @code{xasy} is written in the interactive scripting language
 @code{Python/TK}, it requires @code{Python}
-(@url{http://www.python.org}), the Python Imaging Library
+(@url{http://www.python.org}), the @code{Python Imaging Library}
 (@url{http://www.pythonware.com/products/pil/}), and the @code{tkinter}
-package (included with s@code{Python} under @code{Microsoft Windows}) be
+package (included with @code{Python} under @code{Microsoft Windows}) be
 installed. @code{Fedora Linux} users can either install
 @code{tkinter} with the commands
 @verbatim
