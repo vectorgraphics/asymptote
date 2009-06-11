@@ -1417,7 +1417,7 @@ patharray *textpath(string *s, pen p=CURRENTPEN)
   
   string prefix=outname();
   spaceToUnderscore(prefix);
-  string outputname=auxname(prefix,getSetting<string>("textoutputtype"));
+  string outputname=auxname(prefix,getSetting<string>("textoutformat"));
 
   string textname=auxname(prefix,getSetting<string>("textextension"));
   std::ofstream text(textname.c_str());
