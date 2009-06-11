@@ -7,6 +7,7 @@ orientation=Landscape;
 import slide;
 import three;
 
+settings.toolbar=false;
 viewportsize=pagewidth-2pagemargin;
 
 usersetting();

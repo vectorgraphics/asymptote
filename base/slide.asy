@@ -519,7 +519,6 @@ void bibliographystyle(string name)
 {
   settings.twice=true;
   settings.keepaux=true;
-  delete(outprefix()+"_.aux");
   texpreamble("\bibliographystyle{"+name+"}");
 }
 

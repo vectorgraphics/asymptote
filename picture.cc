@@ -213,7 +213,7 @@ void texinit()
     return;
   }
   
-  string name=stripTeXFile(outname())+"texput.aux";
+  string name=stripTeXFile(outname())+"texput.log";
   const char *cname=name.c_str();
   ofstream writeable(cname);
   if(!writeable)
