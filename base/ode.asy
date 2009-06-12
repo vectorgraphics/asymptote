@@ -5,37 +5,40 @@ real minstep=realEpsilon, maxstep=realMax;
 struct RKTableau
 {
   int order;
-  real[] hSteps;
+  real[] steps;
   real[][] weights;
   real[][] finalWeights;
 
-  void operator init(int order, real[] hSteps, real[][] weights,
-                     real[][] finalWeights) {
+  void operator init(int order, real[][] weights, real[][] finalWeights,
+                     real[] steps=sequence(new real(int i) {
+                         return sum(weights[i]);},weights.length)) {
     this.order=order;
-    this.hSteps=hSteps;
+    this.steps=steps;
     this.weights=weights;
     this.finalWeights=finalWeights;
   }
 }
 
-RKTableau Euler=RKTableau(1,new real[] {0.0},
-                          new real[][] {{}},
+RKTableau Euler=RKTableau(1,new real[][],
                           new real[][] {{1}});
 
-RKTableau RK3=RKTableau(3,new real[] {0,0.5,1},
-                        new real[][] {{0.5},{-1,2}},
+RKTableau RK2=RKTableau(2,new real[][] {{1/2}},
+                        new real[][] {{0,1}});
+
+RKTableau PC=RKTableau(2,new real[][] {{1}},
+                       new real[][] {{1/2,1/2}});
+
+RKTableau RK3=RKTableau(3,new real[][] {{1/2},{-1,2}},
                         new real[][] {{1/6,2/3,1/6}});
 
-RKTableau RK3=RKTableau(3,new real[] {0,0.5,1},
-                        new real[][] {{0.5},{-1,2}},
-                        new real[][] {{1/6,2/3,1/6}});
+RKTableau RK3BS=RKTableau(3,new real[][] {{1/2},{0,3/4}},
+                          new real[][] {{2/9,1/3,4/9}});
+                          // {7/24,1/4,1/3,1/8}});
 
-RKTableau RK4=RKTableau(4,new real[] {0,0.5,0.5,1},
-                        new real[][] {{0.5},{0,0.5},{0,0,1}},
+RKTableau RK4=RKTableau(4,new real[][] {{1/2},{0,1/2},{0,0,1}},
                         new real[][] {{1/6,1/3,1/3,1/6}});
 
-RKTableau RKCK45=RKTableau(5,new real[] {0,1/5,3/10,3/5,1,7/8},
-                           new real[][] {{1/5},
+RKTableau RKCK45=RKTableau(5,new real[][] {{1/5},
                                          {3/40,9/40},
                                          {3/10,-9/10,6/5},
                                          {-11/54,5/2,-70/27,35/27},
@@ -46,8 +49,7 @@ RKTableau RKCK45=RKTableau(5,new real[] {0,1/5,3/10,3/5,1,7/8},
                                          {37/378,0,250/621,125/594,
                                           0,512/1771}}); // 5th order
 
-RKTableau RKF45=RKTableau(5,new real[] {0,1/4,3/8,12/13,1,1/2},
-                          new real[][] {{1/4},
+RKTableau RKF45=RKTableau(5,new real[][] {{1/4},
                                         {3/32,9/32},
                                         {1932/2197,-7200/2197,7296/2197},
                                         {439/216,-8,3680/513,-845/4104},
@@ -57,8 +59,7 @@ RKTableau RKF45=RKTableau(5,new real[] {0,1/4,3/8,12/13,1,1/2},
                                         {16/135,0,6656/12825,28561/56430,-9/50,
                                          2/55}}); // 5th order
 
-RKTableau DP45=RKTableau(5,new real[] {0,1/5,3/10,4/5,8/9,1,1},
-                         new real[][] {{1/5},
+RKTableau DP45=RKTableau(5,new real[][] {{1/5},
                                        {3/40,9/40},
                                        {44/45,-56/15,32/9},
                                        {19372/6561,-25360/2187,64448/6561,
@@ -77,11 +78,11 @@ triple RKstep(real t, real y, real f(real t, real y), real h,
               bool dynamic, real tolmin, real tolmax, RKTableau tableau)
 {
   dynamic=(dynamic && tableau.finalWeights.length > 1);
-  real[] samplePositions=t+h*tableau.hSteps;
-  real[] predictions=new real[] {f(samplePositions[0],y)};
-  for(int i=1; i < tableau.hSteps.length; ++i)
+  real[] samplePositions=t+h*tableau.steps;
+  real[] predictions=new real[] {f(t,y)};
+  for(int i=0; i < tableau.steps.length; ++i)
     predictions.push(f(samplePositions[i],
-                       y+h*dot(tableau.weights[i-1],predictions)));
+                       y+h*dot(tableau.weights[i],predictions)));
 
   real[] yIncrement=tableau.finalWeights*(h*predictions);
 
@@ -146,14 +147,12 @@ real[] integrate(real[] y, real[] f(real, real[]), real a, real b=a, int n=0,
   }
   real[] y=copy(y);
   real t=a;
-  int m=tableau.hSteps.length;
-  
   for(int i=0; i < n; ++i) {
-    real[] samplePositions=t+h*tableau.hSteps;
+    real[] samplePositions=t+h*tableau.steps;
     real[][] derivatives={f(t,y)};
-    for(int i=1; i < tableau.hSteps.length; ++i)
+    for(int i=0; i < tableau.steps.length; ++i)
       derivatives.push(f(samplePositions[i],
-                         y+h*tableau.weights[i-1]*derivatives));
+                         y+h*tableau.weights[i]*derivatives));
 
     y += h*tableau.finalWeights[tableau.finalWeights.length-1]*derivatives ;
     t += h;
