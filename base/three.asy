@@ -17,9 +17,10 @@ real linegranularity=0.01;
 real tubegranularity=0.003;
 real dotgranularity=0.0001;
 pair viewportmargin=(0,0);   // Horizontal and vertical viewport margins.
+real viewportfactor=1.002;   // Factor used to expand orthographic viewport.
 real viewportpadding=1;      // Offset used to expand PRC viewport.
 real angleprecision=1e-3;    // Precision for centering perspective projections.
-real anglefactor=max(1.005,1+angleprecision);
+real anglefactor=max(1.01,1+angleprecision);
 // Factor used to expand perspective viewport.
 
 string defaultembed3Doptions;
@@ -2534,7 +2535,8 @@ object embed(string label="", string text=label,
       }
 
       if(P.infinity) {
-        triple margin=(viewportmargin.x,viewportmargin.y,0);
+        triple margin=(viewportfactor-1.0)*(abs(M.x-m.x),abs(M.y-m.y),0)
+          +(viewportmargin.x,viewportmargin.y,0);
         M += margin; 
         m -= margin;
       } else if(M.z >= 0) abort("camera too close");
