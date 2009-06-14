@@ -1202,8 +1202,13 @@ void setPath() {
 #ifdef erase
 #undef erase
 #endif
-      sysdir.erase(size-1,1);
-      sysdir.append(dirsep+"texmf/asymptote");
+      size_t n=sysdir.find('\r');
+      if(n != string::npos)
+	sysdir.erase(n,1);
+      n=sysdir.find('\n');
+      if(n != string::npos)
+	sysdir.erase(n,1);
+      sysdir.append(dirsep+"texmf"+dirsep+"asymptote");
       Setting("sysdir")=sysdir;
     }
   }
