@@ -1196,18 +1196,17 @@ void setPath() {
   if(sysdir == "") {
     iopipestream pipe("kpsewhich --var-value=SELFAUTOPARENT");
     pipe >> sysdir;
-    size_t size=sysdir.size();
-    if(size > 2) {
 // Workaround broken header file on i386-solaris with g++ 3.4.3.
 #ifdef erase
 #undef erase
 #endif
-      size_t n=sysdir.find('\r');
-      if(n != string::npos)
-	sysdir.erase(n,1);
-      n=sysdir.find('\n');
-      if(n != string::npos)
-	sysdir.erase(n,1);
+    size_t n=sysdir.find('\r');
+    if(n != string::npos)
+      sysdir.erase(n,1);
+    n=sysdir.find('\n');
+    if(n != string::npos)
+      sysdir.erase(n,1);
+    if(sysdir.size() > 1) {
       sysdir.append(dirsep+"texmf"+dirsep+"asymptote");
       Setting("sysdir")=sysdir;
     }
