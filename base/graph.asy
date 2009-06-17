@@ -518,16 +518,17 @@ string autoformat(string format="", real norm ... real[] a)
 
   bool signchange=(A.length > 1 && A[0] < 0 && A[A.length-1] >= 0);
 
-  for(int i=0; i < A.length-1; ++i)
+  for(int i=0; i < A.length; ++i)
     if(a[i] < zerotickfuzz*norm) A[i]=a[i]=0;
 
   int n=0;
 
   bool Fixed=find(a >= 1e4-epsilon | (a > 0 & a <= 1e-4-epsilon)) < 0;
+  
   string Format=defaultformat(4,fixed=Fixed);
 
   if(Fixed && n < 4) {
-    for(int i=0; i < A.length-1; ++i) {
+    for(int i=0; i < A.length; ++i) {
       real a=A[i];
       while(format(defaultformat(n,fixed=Fixed),a) != format(Format,a))
         ++n;
