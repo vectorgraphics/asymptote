@@ -77,8 +77,8 @@ AC_SUBST(docdir)
 
 sysdir=$Datadir/asymptote
 
-AC_ARG_ENABLE(tetex-build,
-[AS_HELP_STRING(--enable-tetex-build,
+AC_ARG_ENABLE(texlive-build,
+[AS_HELP_STRING(--enable-texlive-build,
 automatically determine sysdir from kpsewhich)],
 [ if test "x$enableval" = "xyes" ; then
     sysdir=""
