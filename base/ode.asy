@@ -128,16 +128,24 @@ real integrate(real y, real f(real t, real y), real a, real b=a, real h=0,
     else h=(b-a)/n;
   }
   real t=a;
+  real f0;
+  bool fsal=tableau.lowOrderWeights.length > tableau.highOrderWeights.length;
+  if(fsal) f0=f(t,y);
+  if(tableau.lowOrderWeights.length == 0) dynamic=false;
+
   while(t < b) {
-    real[] samples=t+h*tableau.steps;
-    real[] predictions={f(t,y)};
+    real[] predictions={fsal ? f0 : f(t,y)};
     for(int i=0; i < tableau.steps.length; ++i)
-      predictions.push(f(samples[i],y+h*dot(tableau.weights[i],predictions)));
+      predictions.push(f(t+h*tableau.steps[i],
+                         y+h*dot(tableau.weights[i],predictions)));
 
     real highOrder=h*dot(tableau.highOrderWeights,predictions);
-    if(dynamic && tableau.lowOrderWeights.length > 0) {
-      if(tableau.lowOrderWeights.length > tableau.highOrderWeights.length)
-        predictions.push(f(1,y+highOrder));
+    if(dynamic) {
+      real f1;
+      if(fsal) {
+        f1=f(t+h,y+highOrder);
+        predictions.push(f1);
+      }
       real lowOrder=h*dot(tableau.lowOrderWeights,predictions);
       real error;
       error=error(error,y,y+highOrder,y+lowOrder,highOrder-lowOrder);
@@ -146,6 +154,7 @@ real integrate(real y, real f(real t, real y), real a, real b=a, real h=0,
       if(h >= dt) {
         t += dt;
         y += highOrder;
+        f0=f1;
       }
     } else {
       t += h;
@@ -171,16 +180,24 @@ real[] integrate(real[] y, real[] f(real t, real[] y), real a, real b=a,
   }
   real[] y=copy(y);
   real t=a;
+  real[] f0;
+  bool fsal=tableau.lowOrderWeights.length > tableau.highOrderWeights.length;
+  if(fsal) f0=f(t,y);
+  if(tableau.lowOrderWeights.length == 0) dynamic=false;
+
   while(t < b) {
-    real[] samples=t+h*tableau.steps;
-    real[][] predictions={f(t,y)};
+    real[][] predictions={fsal ? f0 : f(t,y)};
     for(int i=0; i < tableau.steps.length; ++i)
-      predictions.push(f(samples[i],y+h*tableau.weights[i]*predictions));
+      predictions.push(f(t+h*tableau.steps[i],
+                         y+h*tableau.weights[i]*predictions));
 
     real[] highOrder=h*tableau.highOrderWeights*predictions;
-    if(dynamic && tableau.lowOrderWeights.length > 0) {
-      if(tableau.lowOrderWeights.length > tableau.highOrderWeights.length)
-        predictions.push(f(1,y+highOrder));
+    if(dynamic) {
+      real[] f1;
+      if(fsal) {
+        f1=f(t+h,y+highOrder);
+        predictions.push(f1);
+      }
       real[] lowOrder=h*tableau.lowOrderWeights*predictions;
       real error;
       for(int i=0; i < y.length; ++i)
@@ -191,6 +208,7 @@ real[] integrate(real[] y, real[] f(real t, real[] y), real a, real b=a,
       if(h >= dt) {
         t += dt;
         y += highOrder;
+        f0=f1;
       }
     } else {
       t += h;
