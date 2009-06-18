@@ -1591,15 +1591,11 @@ private surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
       real yj=y[j];
       real yp=y[j+1];
       if(all || condi[j]) {
-        triple[][] P={
-          {O,O,O,O},
-          {O,O,O,O},
-          {O,O,O,O},
-          {O,O,O,O}};
+        triple[][] P=array(4,array(4,O));
         real hy=(yp-yj)/3;
         real hxy=hx*hy;
         // first x and y  directions
-        for(int k=0 ; k < 4 ; ++k) {
+        for(int k=0; k < 4; ++k) {
           P[k][0] += xi*X;
           P[0][k] += yj*Y;
           P[k][1] += (xp+2*xi)/3*X;
@@ -1636,27 +1632,29 @@ private surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
 }
 
 // return the surface described by a real matrix f, interpolated with
-// splinetype.
+// xsplinetype and ysplinetype.
 surface surface(real[][] f, real[] x, real[] y,
-                splinetype splinetype=null, bool[][] cond={})
+                splinetype xsplinetype=null, splinetype ysplinetype=xsplinetype,
+                bool[][] cond={})
 {
-  if(splinetype == null)
-    splinetype=(x[0] == x[x.length-1] && y[0] == y[y.length-1]) ? 
-      periodic : notaknot;
+  if(xsplinetype == null)
+    xsplinetype=(x[0] == x[x.length-1]) ? periodic : notaknot;
+   if(ysplinetype == null)
+    ysplinetype=(y[0] == y[y.length-1]) ? periodic : notaknot;
   int n=x.length; int m=y.length;
   real[][] ft=transpose(f);
   real[][] tp=new real[m][];
-  for(int j=0; j < m ; ++j)
-    tp[j]=splinetype(x,ft[j]);
+  for(int j=0; j < m; ++j)
+    tp[j]=xsplinetype(x,ft[j]);
   real[][] q=new real[n][];
-  for(int i=0; i < n ; ++i)
-    q[i]=splinetype(y,f[i]);
+  for(int i=0; i < n; ++i)
+    q[i]=ysplinetype(y,f[i]);
   real[][] qt=transpose(q);
-  real[] d1=splinetype(x,qt[0]);
-  real[] d2=splinetype(x,qt[m-1]);
+  real[] d1=xsplinetype(x,qt[0]);
+  real[] d2=xsplinetype(x,qt[m-1]);
   real[][] r=new real[n][];
   real[][] p=transpose(tp);
-  for(int i=0; i < n ; ++i)
+  for(int i=0; i < n; ++i)
     r[i]=clamped(d1[i],d2[i])(y,p[i]);
   return bispline(f,p,q,r,x,y,cond);
 }
