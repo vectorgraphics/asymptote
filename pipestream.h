@@ -135,11 +135,11 @@ public:
   
   virtual void pipeclose() {
     if(pipeopen) {
+      kill(pid,SIGQUIT);
       eof();
       close(out[0]);
       Running=false;
       pipeopen=false;
-      kill(pid,SIGQUIT);
       waitpid(pid,NULL,0); // Avoid zombies.
     }
   }
