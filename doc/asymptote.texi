@@ -161,7 +161,7 @@ Base modules
 * contour::                     Contour lines
 * contour3::                    Contour surfaces
 * slopefield::                  Slope fields
-
+* ode::                         Ordinary differential equations
 
 Graphical User Interface
 
@@ -5934,7 +5934,7 @@ Here now is @code{latexusage.tex}:
 * contour::                     Contour lines
 * contour3::                    Contour surfaces
 * slopefield::                  Slope fields
-
+* ode::                         Ordinary differential equations
 @end menu
 
 @node plain
@@ -8516,6 +8516,13 @@ Both @code{slopefield} and @code{curve} alternatively accept a function
 @sp 1
 @center @image{slopefield1}
 
+@node ode
+@section @code{ode}
+@cindex @code{ode}
+The @code{ode} module, illustrated in the example @code{odetest.asy},
+implements a number of explicit numerical integration schemes for
+ordinary differential equations.
+
 @node Options
 @chapter Options
 @cindex options
@@ -9226,6 +9233,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
 @c  LocalWords:  dvipdfmx autoadjust viewportsize viewportwidth viewportheight
 @c  LocalWords:  subregions nonsimply functionshade shader floatingdisk TopView
-@c  LocalWords:  functionshading nonselfintersecting maxlength LeftView
+@c  LocalWords:  functionshading nonselfintersecting maxlength LeftView odetest
 @c  LocalWords:  vectorfieldsphere RightView FrontView BackView BottomView
-@c  LocalWords:  addViews
+@c  LocalWords:  addViews outprefix addAllViews xsplinetype ysplinetype
+@c  LocalWords:  usplinetype vsplinetype
