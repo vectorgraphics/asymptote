@@ -1,9 +1,7 @@
 import graph3; 
 size(400); 
-currentlight.background=palegreen+opacity(0.2); 
+currentlight.background=palegreen;
 
-linegranularity=1;
- 
 real c=(1+sqrt(5))/2; 
  
 triple[] z={(c,1,0),(-c,1,0),(-c,-1,0),(c,-1,0)}; 

@@ -48,7 +48,7 @@ void bend(surface s, path3 g, real L)
   }
 }
 
-void render(path3 s, void f(path3, real))
+void render(path3 s, real granularity=tubegranularity, void f(path3, real))
 {
   static int maxdepth=ceil(-log(realEpsilon)/log(2))+1;
   void Split(triple z0, triple c0, triple c1, triple z1, real t0=0, real t1=1,
@@ -62,7 +62,7 @@ void render(path3 s, void f(path3, real))
         --depth;
         for(int i=0; i <= nintervals; ++i) {
           R=min(R,radius(z0,c0,c1,z1,i/nintervals));
-          if(S > max(tubegranularity*R,fuzz)) {
+          if(S > max(granularity*R,fuzz)) {
             triple m0=0.5*(z0+c0);
             triple m1=0.5*(c0+c1);
             triple m2=0.5*(c1+z1);
@@ -82,7 +82,7 @@ void render(path3 s, void f(path3, real))
   Split(point(s,0),postcontrol(s,0),precontrol(s,1),point(s,1));
 }
 
-surface tube(path3 g, real width)
+surface tube(path3 g, real width, real granularity=tubegranularity)
 {
   surface tube;
   real r=0.5*width;
@@ -97,7 +97,7 @@ surface tube(path3 g, real width)
       triple u=point(g,i+1)-v;
       tube.append(shift(v)*align(unit(u))*scale(r,r,abs(u))*unitcylinder);
     } else {
-      render(subpath(g,i,i+1),new void(path3 q, real) {
+      render(subpath(g,i,i+1),granularity,new void(path3 q, real) {
           real L=arclength(q);
           surface segment=scale(r,r,L)*unitcylinder;
           bend(segment,q,L);

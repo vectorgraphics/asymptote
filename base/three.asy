@@ -1956,7 +1956,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
       if(settings.thick) {
         real width=linewidth(q);
         if(width > 0) {
-          surface s=tube(g,width);
+          surface s=tube(g,width,p.granularity);
           int L=length(g);
           if(L >= 0) {
             if(!cyclic(g)) {
