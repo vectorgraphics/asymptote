@@ -1,24 +1,39 @@
 real stepfactor=2.0; // Maximum dynamic step size adjustment factor.
 
+struct coefficients
+{
+  real[] factors;
+  real[][] weights;
+  real[] highOrderWeights;
+  real[] lowOrderWeights;
+}
+
 struct RKTableau
 {
   int order;
   real[] steps;
-  real[][] weights;
-  real[] highOrderWeights;
-  real[] lowOrderWeights;
+  coefficients a;
+  void stepDependence(real h, real c, coefficients a) {}
+   
   real pgrow;
   real pshrink;
+  bool exponential;
 
   void operator init(int order, real[][] weights, real[] highOrderWeights,
                      real[] lowOrderWeights=new real[],
                      real[] steps=sequence(new real(int i) {
-                         return sum(weights[i]);},weights.length)) {
+                         return sum(weights[i]);},weights.length),
+                     void stepDependence(real, real, coefficients)=null) {
     this.order=order;
     this.steps=steps;
-    this.weights=weights;
-    this.highOrderWeights=highOrderWeights;
-    this.lowOrderWeights=lowOrderWeights;
+    a.factors=array(steps.length+1,1);
+    a.weights=weights;
+    a.highOrderWeights=highOrderWeights;
+    a.lowOrderWeights=lowOrderWeights;
+    if(stepDependence != null) {
+      this.stepDependence=stepDependence;
+      exponential=true;
+    }
     pgrow=(order > 0) ? 1/order : 0;
     pshrink=(order > 1) ? 1/(order-1) : pgrow;
   }
@@ -27,6 +42,13 @@ struct RKTableau
 // First-Order Euler
 RKTableau Euler=RKTableau(1,new real[][],
                           new real[] {1});
+
+RKTableau E_Euler=RKTableau(1,new real[][], new real[] {1},
+                            new void (real h, real c, coefficients a) {
+                              real x=-c*h;
+                              a.factors[0]=exp(x);
+                              a.highOrderWeights[0]=x != 0 ? expm1(x)/x : 1;
+                            });
 
 // Second-Order Runge-Kutta
 RKTableau RK2=RKTableau(2,new real[][] {{1/2}},
@@ -50,12 +72,12 @@ RKTableau RK4=RKTableau(4,new real[][] {{1/2},{0,1/2},{0,0,1}},
                         new real[] {1/6,1/3,1/3,1/6});
 
 // Fifth-Order Cash-Karp Runge-Kutta
-RKTableau RK5CK=RKTableau(5,new real[][] {{1/5},
-                                          {3/40,9/40},
-                                          {3/10,-9/10,6/5},
-                                          {-11/54,5/2,-70/27,35/27},
-                                          {1631/55296,175/512,575/13824,
-                                           44275/110592,253/4096}},
+RKTableau RK5=RKTableau(5,new real[][] {{1/5},
+                                        {3/40,9/40},
+                                        {3/10,-9/10,6/5},
+                                        {-11/54,5/2,-70/27,35/27},
+                                        {1631/55296,175/512,575/13824,
+                                         44275/110592,253/4096}},
   new real[] {37/378,0,250/621,125/594,
               0,512/1771},  // 5th order
   new real[] {2825/27648,0,18575/48384,13525/55296,
@@ -84,7 +106,7 @@ RKTableau RK5DP=RKTableau(5,new real[][] {{1/5},
   new real[] {5179/57600,0,7571/16695,393/640,
               -92097/339200,187/2100,1/40}); // 4th order
 
-real error(real error, real initial, real norm, real lowOrder, real diff) 
+real error(real error, real initial, real lowOrder, real norm, real diff) 
 {
   if(initial != 0.0 && lowOrder != initial) {
     static real epsilon=realMin/realEpsilon;
@@ -94,73 +116,89 @@ real error(real error, real initial, real norm, real lowOrder, real diff)
   return error;
 }
 
-real adjust(real h, real error, real t, real tolmin, real tolmax,
+real adjust(real h, real error, real t, real c, real tolmin, real tolmax,
             real dtmin, real dtmax, RKTableau tableau, bool verbose=true) 
 {
   real dt=h;
   void report(real t) {
-    if(h != dt)
-      write("Time step changed from "+(string) dt+" to "+(string) h+" at t="+
-            (string) t+".");
+    if(h != dt) {
+      tableau.stepDependence(h,c,tableau.a);
+      if(verbose)
+        write("Time step changed from "+(string) dt+" to "+(string) h+" at t="+
+              (string) t+".");
+    }
   }
   if(error > tolmax) {
     h=max(h*max((tolmin/error)^tableau.pshrink,1/stepfactor),dtmin);
-    if(verbose) report(t);
+    report(t);
     return h;
   }
   if(error > 0 && error < tolmin) {
     h=min(h*min((tolmin/error)^tableau.pgrow,stepfactor),dtmax);
-    if(verbose) report(t+dt);
+    report(t+dt);
   }
   return h;
 }
 
-// Integrate dy/dt=f(t,y) from a to b using initial conditions y,
+// Integrate dy/dt+cy=f(t,y) from a to b using initial conditions y,
 // specifying either the step size h or the number of steps n.
-real integrate(real y, real f(real t, real y), real a, real b=a, real h=0,
-               int n=0, bool dynamic=false, real tolmin=0, real tolmax=0,
-               real dtmin=0, real dtmax=realMax, RKTableau tableau,
-               bool verbose=false)
+real integrate(real y, real c=0, real g(real t, real y), real a, real b=a,
+               real h=0, int n=0, bool dynamic=false, real tolmin=0,
+               real tolmax=0, real dtmin=0, real dtmax=realMax,
+               RKTableau tableau, bool verbose=false)
 {
+  real f(real t, real y)=(c == 0 || tableau.exponential) ? g :
+    new real(real t, real y) {return g(t,y)-c*y;};
+
   if(h == 0) {
     if(b == a) return y;
     if(n == 0) abort("Either n or h must be specified");
     else h=(b-a)/n;
   }
+
+  tableau.stepDependence(h,c,tableau.a);
+      
   real t=a;
   real f0;
-  bool fsal=tableau.lowOrderWeights.length > tableau.highOrderWeights.length;
+  if(tableau.a.lowOrderWeights.length == 0) dynamic=false;
+  bool fsal=dynamic &&
+    (tableau.a.lowOrderWeights.length > tableau.a.highOrderWeights.length);
   if(fsal) f0=f(t,y);
-  if(tableau.lowOrderWeights.length == 0) dynamic=false;
 
   while(t < b) {
     real[] predictions={fsal ? f0 : f(t,y)};
     for(int i=0; i < tableau.steps.length; ++i)
       predictions.push(f(t+h*tableau.steps[i],
-                         y+h*dot(tableau.weights[i],predictions)));
+                         tableau.a.factors[i]*y+h*dot(tableau.a.weights[i],
+                                                      predictions)));
 
-    real highOrder=h*dot(tableau.highOrderWeights,predictions);
+    real highOrder=h*dot(tableau.a.highOrderWeights,predictions);
+    real Y=tableau.a.factors[tableau.steps.length]*y;
     if(dynamic) {
       real f1;
       if(fsal) {
-        f1=f(t+h,y+highOrder);
+        f1=f(t+h,Y+highOrder);
         predictions.push(f1);
       }
-      real lowOrder=h*dot(tableau.lowOrderWeights,predictions);
+      real lowOrder=h*dot(tableau.a.lowOrderWeights,predictions);
       real error;
-      error=error(error,y,y+highOrder,y+lowOrder,highOrder-lowOrder);
+      error=error(error,y,Y+lowOrder,Y+highOrder,highOrder-lowOrder);
       real dt=h;
-      h=adjust(h,error,t,tolmin,tolmax,dtmin,min(dtmax,b-t-h),tableau,verbose);
+      h=adjust(h,error,t,c,tolmin,tolmax,dtmin,min(dtmax,b-t-h),tableau,verbose);
       if(h >= dt) {
         t += dt;
-        y += highOrder;
+        y=Y+highOrder;
         f0=f1;
       }
     } else {
       t += h;
-      y += highOrder;
+      y=Y+highOrder;
     }
-    h=min(h,b-t);
+    real remain=b-t;
+    if(h > remain) {
+      h=remain;
+      tableau.stepDependence(h,c,tableau.a);
+    }
     if(t >= b || t+h == t) break;
   }
   return y;
@@ -181,30 +219,31 @@ real[] integrate(real[] y, real[] f(real t, real[] y), real a, real b=a,
   real[] y=copy(y);
   real t=a;
   real[] f0;
-  bool fsal=tableau.lowOrderWeights.length > tableau.highOrderWeights.length;
+  if(tableau.a.lowOrderWeights.length == 0) dynamic=false;
+  bool fsal=dynamic &&
+    (tableau.a.lowOrderWeights.length > tableau.a.highOrderWeights.length);
   if(fsal) f0=f(t,y);
-  if(tableau.lowOrderWeights.length == 0) dynamic=false;
 
   while(t < b) {
     real[][] predictions={fsal ? f0 : f(t,y)};
     for(int i=0; i < tableau.steps.length; ++i)
       predictions.push(f(t+h*tableau.steps[i],
-                         y+h*tableau.weights[i]*predictions));
+                         y+h*tableau.a.weights[i]*predictions));
 
-    real[] highOrder=h*tableau.highOrderWeights*predictions;
+    real[] highOrder=h*tableau.a.highOrderWeights*predictions;
     if(dynamic) {
       real[] f1;
       if(fsal) {
         f1=f(t+h,y+highOrder);
         predictions.push(f1);
       }
-      real[] lowOrder=h*tableau.lowOrderWeights*predictions;
+      real[] lowOrder=h*tableau.a.lowOrderWeights*predictions;
       real error;
       for(int i=0; i < y.length; ++i)
-        error=error(error,y[i],y[i]+highOrder[i],y[i]+lowOrder[i],
+        error=error(error,y[i],y[i]+lowOrder[i],y[i]+highOrder[i],
                     highOrder[i]-lowOrder[i]);
       real dt=h;
-      h=adjust(h,error,t,tolmin,tolmax,dtmin,min(dtmax,b-t-h),tableau,verbose);
+      h=adjust(h,error,t,0,tolmin,tolmax,dtmin,min(dtmax,b-t-h),tableau,verbose);
       if(h >= dt) {
         t += dt;
         y += highOrder;
