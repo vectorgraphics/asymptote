@@ -16,7 +16,6 @@ real defaultgranularity=0;
 real linegranularity=0.01;
 real tubegranularity=0.003;
 real dotgranularity=0.0001;
-pair viewportmargin=(0,0);   // Horizontal and vertical viewport margins.
 real viewportfactor=1.002;   // Factor used to expand orthographic viewport.
 real viewportpadding=1;      // Offset used to expand PRC viewport.
 real angleprecision=1e-3;    // Precision for centering perspective projections.
@@ -2402,8 +2401,8 @@ object embed(string label="", string text=label,
     pair M2=pic2.max(s);
     pair lambda=M2-m2;
     pair viewportmargin=viewportmargin(lambda);
-    real width=lambda.x+2*viewportmargin.x;
-    real height=lambda.y+2*viewportmargin.y;
+    real width=ceil(lambda.x+2*viewportmargin.x);
+    real height=ceil(lambda.y+2*viewportmargin.y);
 
     projection Q;
     if(!P.absolute) {

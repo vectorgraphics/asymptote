@@ -3,7 +3,7 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2)
 
-\ProvidesPackage{asymptote}[2009/06/03 v1.07 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2009/06/18 v1.08 Asymptote style file for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
 \newif\ifASYinline
@@ -241,6 +241,7 @@
      \immediate\write\AsyStream{settings.embed=true;}%
      \immediate\write\AsyStream{settings.outformat='';}%
      \immediate\write\AsyStream{settings.toolbar=false;}%
+     \immediate\write\AsyStream{viewportmargin=(1,1);}%
    \fi
   \immediate\write\AsyStream{\globalASYdefs}%
   \let\ThisAsymptote\WriteAsyLine%
