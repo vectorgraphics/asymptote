@@ -854,14 +854,14 @@ void mode()
       ++Mode;
       break;
     case 1:
+      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_PATCH);
+      ++Mode;
+      break;
+    case 2:
       for(size_t i=0; i < Nlights; ++i) 
         glDisable(GL_LIGHT0+i);
       gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_POLYGON);
       glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-      ++Mode;
-      break;
-    case 2:
-      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_PATCH);
       Mode=0;
       break;
   }
