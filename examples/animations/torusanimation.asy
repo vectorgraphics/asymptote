@@ -26,8 +26,11 @@ for(int i=0; i < n; ++i) {
   p[i]=graph(g,0,1,operator ..); 
 }
 
-revolution torus=revolution(shift(R*X)*Circle(O,a,Y,32),Z);
-surface s=surface(torus);
+triple f(pair t) {
+  return ((R+a*cos(t.y))*cos(t.x),(R+a*cos(t.y))*sin(t.x),a*sin(t.y));
+}
+
+surface s=surface(f,(0,0),(2pi,2pi),8,8,Spline);
  
 for(int i=0; i < n; ++i){ 
   picture fig; 
