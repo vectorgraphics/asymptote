@@ -11,7 +11,7 @@ currentprojection=orthographic(10,10,30);
 currentlight=(10,10,5);
 triple f(pair t) {return (t.x*cos(t.y),t.x*sin(t.y),t.x^(1/n)*sin(t.y/n));}
  
-surface s=surface(f,(0,0),(1,2pi*n),30,60);
+surface s=surface(f,(0,0),(1,2pi*n),8,16,Spline);
 s.colors(palette(s.map(zpart),Rainbow()));
 
 draw(s,meshpen=black);

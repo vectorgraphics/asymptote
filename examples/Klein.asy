@@ -14,6 +14,4 @@ triple f(pair t) {
   return (x,y,z);
 }
 
-pen p=rgb(0.2,0.5,0.7);
-
-draw(surface(f,(0,0),(2pi,2pi),60,60),lightgray,meshpen=p);
+draw(surface(f,(0,0),(2pi,2pi),8,8,Spline),lightgray);

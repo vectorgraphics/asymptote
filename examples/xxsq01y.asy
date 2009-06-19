@@ -1,6 +1,6 @@
 import solids;
 size(0,150);
-currentprojection=perspective(0,0,10);
+currentprojection=perspective(0,0,10,up=Y);
 pen color=green;
 real alpha=240;
 

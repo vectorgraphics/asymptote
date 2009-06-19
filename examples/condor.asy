@@ -26,7 +26,7 @@ triple condor(pair t)
           log(d)*((-B-1)/2));
 }
 
-surface s=surface(condor,(-1,0),(1,K),64);
+surface s=surface(condor,(-1,0),(1,K),16,Spline);
 s.colors(palette(s.map(zpart),Rainbow()));
 
-draw(s,meshpen=black);
+draw(s);

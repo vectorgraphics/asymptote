@@ -2,6 +2,7 @@ typedef real[] splinetype(real[], real[]);
 
 restricted real[] defaultspline(real[] x, real[] y);
 restricted real[] Spline(real[] x, real[] y);
+restricted splinetype[] Spline;
 
 string morepoints="interpolation requires at least 2 points";
 string differentlengths="arrays have different lengths";
@@ -63,6 +64,8 @@ real[] periodic(real[] x, real[] y)
 {
   int n=x.length;
   checklengths(n,y.length);
+  if(abs(y[n-1]-y[0]) > sqrtEpsilon*max(abs(y)))
+    abort("function values are not periodic");
   real[] d;
   if(n > 2) {
     real[] a=new real[n-1];
