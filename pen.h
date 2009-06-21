@@ -200,7 +200,7 @@ public:
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN),
+    linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
     overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setlinewidth_t, double linewidth) : 
@@ -299,8 +299,8 @@ public:
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(linejoin), overwrite(DEFWRITE),
-    t(nullTransform) {}
+    linecap(DEFCAP), linejoin(linejoin), miterlimit(DEFMITER),
+    overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setmiterlimit_t, double miterlimit) :
     line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
