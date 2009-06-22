@@ -133,29 +133,23 @@ pthread_t mainthread;
 pthread_cond_t initSignal=PTHREAD_COND_INITIALIZER;
 pthread_mutex_t initLock=PTHREAD_MUTEX_INITIALIZER;
 
-pthread_cond_t quitSignal=PTHREAD_COND_INITIALIZER;
-pthread_mutex_t quitLock=PTHREAD_MUTEX_INITIALIZER;
-
 pthread_cond_t readySignal=PTHREAD_COND_INITIALIZER;
 pthread_mutex_t readyLock=PTHREAD_MUTEX_INITIALIZER;
+
+void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
+{
+  pthread_mutex_lock(&lock);
+  pthread_cond_signal(&signal);
+  pthread_mutex_unlock(&lock);
+}
+void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
+{
+  pthread_mutex_lock(&lock);
+  pthread_cond_signal(&signal);
+  pthread_cond_wait(&signal,&lock);
+  pthread_mutex_unlock(&lock);
+}
 #endif
-
-inline void lock() 
-{
-#ifdef HAVE_LIBPTHREAD
-  if(glthread)
-    pthread_mutex_lock(&readyLock);
-#endif  
-}
-
-inline void unlock() 
-{
-#ifdef HAVE_LIBPTHREAD
-  if(glthread)
-    pthread_mutex_unlock(&readyLock);
-#endif  
-
-}
 
 template<class T>
 inline T min(T a, T b)
@@ -296,6 +290,14 @@ void update()
 
 void drawscene(double Width, double Height)
 {
+#ifdef HAVE_LIBPTHREAD
+  static bool first=true;
+  if(glthread && first) {
+    wait(initSignal,initLock);
+    endwait(initSignal,initLock);
+    first=false;
+  }
+#endif
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   if(!ViewportLighting) 
@@ -362,7 +364,7 @@ void Export()
         ++count;
       } while (trEndTile(tr));
       if(settings::verbose > 1)
-        cout << count << " tile" << (count > 1 ? "s" : "") << " drawn" << endl;
+        cout << count << " tile" << (count != 1 ? "s" : "") << " drawn" << endl;
       trDelete(tr);
 
       picture pic;
@@ -384,17 +386,13 @@ void Export()
     outOfMemory();
   }
   setProjection();
+  
+#ifdef HAVE_LIBPTHREAD
+  if(glthread)
+    endwait(readySignal,readyLock);
+#endif
 }
   
-void LockedExport()
-{
-  if(interact::interactive)
-    lock();
-  Export();
-  if(interact::interactive)
-    unlock();
-}
-
 void windowposition(int& x, int& y, int width=Width, int height=Height)
 {
   pair z=getSetting<pair>("position");
@@ -486,29 +484,19 @@ void updateHandler(int)
 {
   initlighting();
   update();
-  if(interact::interactive) {
-    glutShowWindow();
-    glutShowWindow(); // Call twice to work around apparent freeglut bug.
-  } else if(glthread) fitscreen();
+  glutShowWindow();
+  glutShowWindow(); // Call twice to work around apparent freeglut bug.
+  if(glthread && !interact::interactive)
+    fitscreen();
 }
 
-void autoExport()
+void exportHandler(int)
 {
   if(!Iconify)
     glutShowWindow();
   Export();
   if(!Iconify)
     glutHideWindow();
-}
-
-void exportHandler(int)
-{
-#ifdef HAVE_LIBPTHREAD
-  if(glthread)
-    wait(readySignal,readyLock);
-#endif
-  initlighting();
-  autoExport();
 }
 
 void reshape(int width, int height)
@@ -519,7 +507,6 @@ void reshape(int width, int height)
       initialize=false;
       signal(SIGUSR1,updateHandler);
       signal(SIGUSR2,exportHandler);
-      unlock();
     }
   }
   
@@ -529,38 +516,14 @@ void reshape(int width, int height)
   reshape0(width,height);
 }
   
-#ifdef HAVE_LIBPTHREAD
-void endwait(pthread_cond_t& signal, pthread_mutex_t& lock)
-{
-  pthread_cond_signal(&signal);
-}
-void wait(pthread_cond_t& signal, pthread_mutex_t& lock)
-{
-  pthread_mutex_lock(&lock);
-  pthread_cond_signal(&signal);
-  pthread_cond_wait(&signal,&lock);
-  endwait(signal,lock);
-  pthread_mutex_unlock(&lock);
-}
-
-#endif
-
 void quit() 
 {
   if(glthread) {
-    if(interact::interactive) {
-      glutHideWindow();
-    } else {
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-      glutSwapBuffers();
-    }
+    glutHideWindow();
 #ifdef HAVE_LIBPTHREAD
-    if(!interact::interactive) {
-      pthread_mutex_lock(&quitLock);
-      pthread_cond_signal(&quitSignal);
-      pthread_mutex_unlock(&quitLock);
-    }
-#endif
+    if(!interact::interactive)
+      endwait(readySignal,readyLock);
+#endif    
   } else {
     glutDestroyWindow(window);
     exit(0);
@@ -569,16 +532,12 @@ void quit()
 
 void display()
 {
-  if(interact::interactive)
-    lock();
   drawscene(Width,Height);
   glutSwapBuffers();
   if(queueExport) {
     Export();
     queueExport=false;
   }
-  if(interact::interactive)
-    unlock();
   if(!glthread) {
     if(Oldpid != 0 && waitpid(Oldpid,NULL,WNOHANG) != Oldpid) {
       kill(Oldpid,SIGHUP);
@@ -974,7 +933,7 @@ void keyboard(unsigned char key, int x, int y)
       mode();
       break;
     case 'e':
-      LockedExport();
+      Export();
       break;
     case 'c':
       camera();
@@ -989,7 +948,7 @@ void keyboard(unsigned char key, int x, int y)
       break;
     case 17: // Ctrl-q
     case 'q':
-      if(!Format.empty()) LockedExport();
+      if(!Format.empty()) Export();
       quit();
       break;
   }
@@ -1077,8 +1036,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   static bool initializedView=false;
   
-  if(view || initializedView) lock();
-    
   Prefix=prefix;
   Picture=pic;
   Format=format;
@@ -1093,13 +1050,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   View=view;
   Oldpid=oldpid;
   
-  static bool initialized=false;
-
-  if(!initialized) {
-    init();
-    Fitscreen=1;
-  }
-  
   Xmin=m.getx();
   Xmax=M.getx();
   Ymin=m.gety();
@@ -1113,6 +1063,15 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   ignorezoom=false;
   Mode=0;
   
+  static bool initialize=true;
+
+  if(initialize) {
+    initialize=false;
+    init();
+    Fitscreen=1;
+  }
+  
+  static bool initialized=false;
   if(!initialized || !interact::interactive) {
     antialias=getSetting<Int>("antialias") > 1;
     double expand=getSetting<double>("render");
@@ -1168,7 +1127,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       pthread_kill(mainthread,SIGUSR1);
     else
       pthread_kill(mainthread,SIGUSR2);
-    unlock();
     return;
   }
 #endif    
@@ -1269,7 +1227,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   mode();
   
   initlighting();
-  
   if(View) {
     initializedView=true;
     glutReshapeFunc(reshape);
@@ -1290,15 +1247,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutAddMenuEntry("(q) Quit" ,QUIT);
   
     glutAttachMenu(GLUT_MIDDLE_BUTTON);
-
     glutMainLoop();
   } else {
-    if(glthread) {
-      exportHandler(0);
-    } else {
-      autoExport();
-      quit();
-    }
+    exportHandler(0);
+    if(!glthread) quit();
   }
 }
 
