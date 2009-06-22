@@ -17,18 +17,10 @@ out-of-memory errors.
 A patch to provide full functionality in the Asymptote backend to pstoedit
 (http://pstoedit.net) is provided in the file pstoedit-3.45asy.patch.
 
-The file TkAlpha-Imaging-1.1.6.patch is a revised patch that fixes
-transparency support in PIL for xasy (this supercedes an obsolete patch
-of the same name included in Asymptote 1.36, which resulted in very slow
-rendering). Application of this patch is strongly recommended.
-
 The file movie15_dvipdfmx.patch brings the xelatex/dvipdfmx-enhanced
 version of movie15.sty available at
 http://cvs.ktug.or.kr/viewcvs/dvipdfmx/contrib/latex/movie15.sty.sample?revision=1.1
-up-to-date with the latest official 2008/10/08 version. For convenience the
+up-to-date with the official 2008/10/08 version. For convenience the
 patched version is also included as movie15_dvipdfmx.sty; it should be
 renamed to movie15.sty and installed in the local latex directory.
-
-The file movie15_20090323.patch works around a problem with 3Dgetview that
-shows up under Windows XP in the 2009/03/23 version of movie15.sty.
 

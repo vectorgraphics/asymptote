@@ -57,13 +57,9 @@ class xasyMainWin:
     self.createWidgets()
     self.resetGUI()
     if sys.platform[:3] == "win":
-      site="http://effbot.org/downloads/PIL-1.1.6.win32-py2.5.exe"
-      if sys.version_info[0] != 2 or sys.version_info[1] != 5:
-        tkMessageBox.showerror("Failed Dependencies","Xasy requires Python 2.5 or 2.5.1. Please install http://www.python.org/ftp/python/2.5.1/python-2.5.1.msi")
-        self.parent.destroy()
-        sys.exit(1)
+      site="http://effbot.org/downloads/PIL-1.1.7b1.win32-py2.6.exe"
     else:
-      site="http://effbot.org/downloads/Imaging-1.1.6.tar.gz after applying the patch http://asymptote.svn.sourceforge.net/viewvc/asymptote/trunk/asymptote/patches/TkAlpha-Imaging-1.1.6.patch" 
+      site="http://effbot.org/downloads/Imaging-1.1.7b1.tar.gz" 
     if not PILAvailable:
       tkMessageBox.showerror("Failed Dependencies","An error occurred loading the required PIL library. Please install "+site)
       self.parent.destroy()

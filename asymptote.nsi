@@ -70,6 +70,7 @@ ShowUnInstDetails show
 
 Section "Asymptote" SEC01
   SetOutPath "$INSTDIR"
+  Delete "$INSTDIR\_imagingtk.pyd"
   SetOverwrite try
   File /r build-${PRODUCT_VERSION}\*
 
