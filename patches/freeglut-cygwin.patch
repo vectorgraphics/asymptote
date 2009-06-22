@@ -10,5 +10,3 @@ diff -ru freeglut-2.6.0/configure freeglut-2.6.0J/configure
  else
    GL_LIBS="-lGL -lXext -lX11"
    { echo "$as_me:$LINENO: checking for XF86VidModeSwitchToMode in -lXxf86vm" >&5
-Only in freeglut-2.6.0J: configure~
-Only in freeglut-2.6.0: freeglut-2.6.0cygwin.patch
