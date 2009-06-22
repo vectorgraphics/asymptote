@@ -83,7 +83,7 @@ install: man faq install-man
 	cd FAQ; $(MAKE) install
 
 install-prebuilt: install-man
-	cd png; $(MAKE) install-all
+	cd png; $(MAKE) install
 	cd FAQ; $(MAKE) install-prebuilt
 
 install-all: $(DOCFILES) asy.1 faq latexusage.eps install-man
