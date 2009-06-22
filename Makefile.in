@@ -150,9 +150,14 @@ asy-keywords.el: asy
           grep -v three_\* | grep -v featpost3D | xargs $(ASY) -l >> asy.list
 	./asy-list.pl asy.list @VERSION@
 
-install: asy-keywords.el install-asy install-man
+install: asy-keywords.el install-texhash install-man
 
-install-all: asy-keywords.el install-asy install-html
+install-all: asy-keywords.el install-texhash install-html
+
+install-texhash: install-asy
+	-if test -z "$(DESTDIR)"; then \
+	  texhash; \
+	fi
 
 install-asy: asy
 	${INSTALL} -d $(bindir) $(asydir) $(GUIdir) $(exampledir) \
@@ -170,9 +175,6 @@ install-asy: asy
 	  examples/animations/inlinemovie3.tex $(animationsdir)
 	-${INSTALL} -p -m 644 $(addprefix doc/,$(LATEXFILES)) $(latexdir)
 	-${INSTALL} -p -m 644 $(addprefix doc/,$(CONTEXTFILES)) $(contextdir)
-	-if test -z "$(DESTDIR)"; then \
-	  texhash; \
-	fi
 
 install-html: html
 	cd doc; $(MAKE) install-all
