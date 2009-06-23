@@ -1122,11 +1122,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
   
 #ifdef HAVE_LIBPTHREAD
-  if(initializedView && glthread) {
-    if(View)
-      pthread_kill(mainthread,SIGUSR1);
-    else
-      pthread_kill(mainthread,SIGUSR2);
+  if(glthread && initializedView) {
+    if(!View) queueExport=true;
+    pthread_kill(mainthread,SIGUSR1);
     return;
   }
 #endif    
