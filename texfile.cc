@@ -44,6 +44,8 @@ void texfile::miniprologue()
   texpreamble(*out,processData().TeXpreamble,false,true);
   if(settings::latex(texengine)) {
     *out << "\\pagestyle{empty}" << newl
+         << "\\textheight=2048pt" << newl
+         << "\\textwidth=2048pt" << newl
          << "\\begin{document}" << newl;
   } else if(settings::context(texengine)) {
     *out << "\\setuppagenumbering[location=]" << newl
