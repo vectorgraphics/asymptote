@@ -7466,20 +7466,31 @@ version of the @code{freeglut} library
 controlled with the setting @code{multisample}. An initial screen
 position can be specified with the pair setting @code{position}, where
 negative values are interpreted as relative to the corresponding
-maximum screen dimension. The mouse bindings are:
+maximum screen dimension. The default settings
 @cindex mouse bindings
+@verbatim
+import settings;
+leftbutton=new string[] {"rotate","zoom","shift",""};
+middlebutton=new string[] {"menu"};
+rightbutton=new string[] {"zoom/menu","rotateX","rotateY","rotateZ"};
+wheelup=new string[] {"zoomin"};
+wheeldown=new string[] {"zoomout"};
+@end verbatim
+bind the mouse buttons as follows:
 @itemize
 @item Left: rotate
-@item shift Left: zoom
-@item ctrl Left: shift
+@item Shift Left: zoom
+@item Ctrl Left: shift
 @item Middle: menu
-@item Wheel: zoom
+@item Wheel Up: zoom in
+@item Wheel Down: zoom out
 @item Right: zoom
 @item Right double click: menu
-@item shift Right: rotate about the X axis
-@item ctrl Right: rotate about the Y axis
-@item alt Right: rotate about the Z axis
+@item Shift Right: rotate about the X axis
+@item Ctrl Right: rotate about the Y axis
+@item Alt Right: rotate about the Z axis
 @end itemize
+
 The keyboard shortcuts are:
 @cindex keyboard bindings:
 @itemize

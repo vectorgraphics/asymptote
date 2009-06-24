@@ -7,6 +7,7 @@
 #define GLRENDER_H
 
 #include "common.h"
+#include "triple.h"
 
 #ifdef HAVE_LIBGL
 

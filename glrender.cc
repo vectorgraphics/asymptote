@@ -48,6 +48,7 @@ using camp::transform;
 using camp::pair;
 using camp::triple;
 using vm::array;
+using vm::read;
 using camp::bbox3;
 using settings::getSetting;
 using settings::Setting;
@@ -111,7 +112,8 @@ bool queueExport=false;
 bool antialias;
 
 int x0,y0;
-int mod;
+string Action;
+int MenuButton=0;
 
 double lastangle;
 
@@ -567,7 +569,8 @@ void capzoom()
 
 void disableMenu() 
 {
-  glutDetachMenu(GLUT_RIGHT_BUTTON);
+  if(MenuButton) 
+    glutDetachMenu(MenuButton);
   Menu=false;
 }
 
@@ -617,8 +620,8 @@ void rotate(int x, int y)
     }
     Motion=true;
     arcball.mouse_motion(x,Height-y,0,
-                         mod == GLUT_ACTIVE_SHIFT, // X rotation only
-                         mod == GLUT_ACTIVE_CTRL);  // Y rotation only
+                         Action == "rotateX", // X rotation only
+                         Action == "rotateY");  // Y rotation only
 
     for(int i=0; i < 4; ++i) {
       const vec4& roti=arcball.rot[i];
@@ -697,31 +700,81 @@ void rotateZ(int x, int y)
 #define GLUT_WHEEL_DOWN 4
 #endif
 
-// Mouse bindings.
-// LEFT: rotate
-// SHIFT LEFT: zoom
-// CTRL LEFT: shift
-// MIDDLE: menu
-// RIGHT: zoom
-// SHIFT RIGHT: rotateX
-// CTRL RIGHT: rotateY
-// ALT RIGHT: rotateZ
+string action(int button, int mod) 
+{
+  size_t Button;
+  size_t nButtons=5;
+  switch(button) {
+    case GLUT_LEFT_BUTTON:
+      Button=0;
+      break;
+    case GLUT_MIDDLE_BUTTON:
+      Button=1;
+      break;
+    case GLUT_RIGHT_BUTTON:
+      Button=2;
+      break;
+    case GLUT_WHEEL_UP:
+      Button=3;
+      break;
+    case GLUT_WHEEL_DOWN:
+      Button=4;
+      break;
+    default:
+      Button=nButtons;
+  }
+    
+  size_t Mod;
+  size_t nMods=4;
+  switch(mod) {
+    case 0:
+      Mod=0;
+      break;
+    case GLUT_ACTIVE_SHIFT:
+      Mod=1;
+      break;
+    case GLUT_ACTIVE_CTRL:
+      Mod=2;
+      break;
+    case GLUT_ACTIVE_ALT:
+      Mod=3;
+      break;
+    default:
+      Mod=nMods;
+  }
+    
+  if(Button >= 0 && Button < nButtons) {
+    array *left=getSetting<array *>("leftbutton");
+    array *middle=getSetting<array *>("middlebutton");
+    array *right=getSetting<array *>("rightbutton");
+    array *wheelup=getSetting<array *>("wheelup");
+    array *wheeldown=getSetting<array *>("wheeldown");
+    array *Buttons[]={left,middle,right,wheelup,wheeldown};
+    array *a=Buttons[button];
+    size_t size=checkArray(a);
+    if(Mod >= 0 && Mod < (Int) size)
+      return read<string>(a,Mod);
+  }
+  return "";
+}
+
 void mouse(int button, int state, int x, int y)
 {
-  if(button == GLUT_WHEEL_UP) {
+  string Action=action(button,glutGetModifiers());
+
+  if(Action == "zoomin") {
     mousewheel(0,1,x,y);
     return;
   } 
-  if(button == GLUT_WHEEL_DOWN) {
+  if(Action == "zoomout") {
     mousewheel(0,-1,x,y);
     return;
   }     
   
-  mod=glutGetModifiers();
-  
-  if(button == GLUT_RIGHT_BUTTON) {
+  if(Action == "zoom/menu") {
     if(state == GLUT_UP && !Motion) {
-      glutAttachMenu(GLUT_RIGHT_BUTTON);
+      MenuButton=button;
+      glutAttachMenu(button);
       Menu=true;
       return;
     }
@@ -731,24 +784,19 @@ void mouse(int button, int state, int x, int y)
   else Motion=false;
   
   if(state == GLUT_DOWN) {
-    if(button == GLUT_LEFT_BUTTON && mod == GLUT_ACTIVE_CTRL) {
+    if(Action == "rotate" || Action == "rotateX" || Action == "rotateY") {
+      arcball.mouse_down(x,Height-y);
+      glutMotionFunc(rotate);
+    } else if(Action == "shift") {
       x0=x; y0=y;
       glutMotionFunc(move);
-      return;
-    } 
-    if((button == GLUT_LEFT_BUTTON && mod == GLUT_ACTIVE_SHIFT) ||
-       (button == GLUT_RIGHT_BUTTON && mod == 0)) {
+    } else if(Action == "zoom" || Action == "zoom/menu") {
       y0=y;
       glutMotionFunc(zoom);
-      return;
-    }
-    if(button == GLUT_RIGHT_BUTTON && mod == GLUT_ACTIVE_ALT) {
+    } else if(Action == "rotateZ") {
       lastangle=Degrees(x,y);
       glutMotionFunc(rotateZ);
-      return;
     }
-    arcball.mouse_down(x,Height-y);
-    glutMotionFunc(rotate);
   } else
     arcball.mouse_up();
 }
@@ -1244,7 +1292,13 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutAddMenuEntry("(c) Camera",CAMERA);
     glutAddMenuEntry("(q) Quit" ,QUIT);
   
-    glutAttachMenu(GLUT_MIDDLE_BUTTON);
+    int buttons[]={GLUT_LEFT_BUTTON,GLUT_MIDDLE_BUTTON,GLUT_RIGHT_BUTTON};
+    for(size_t i=0; i < sizeof(buttons)/sizeof(int); ++i) {
+      int button=buttons[i];
+      if(action(button,0) == "menu")
+        glutAttachMenu(button);
+    }
+    
     glutMainLoop();
   } else {
     exportHandler(0);
