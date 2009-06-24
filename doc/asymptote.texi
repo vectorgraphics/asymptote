@@ -210,6 +210,8 @@ as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
 
 @item @code{LaTeX} typesetting of labels, for overall document consistency;
 
+@item the ability to generate and embed 3D vector @acronym{PRC} graphics into @acronym{PDF} files;
+
 @item a natural coordinate-based framework for technical drawings,
 inspired by @code{MetaPost}, with a much cleaner, powerful C++-like programming
 syntax;

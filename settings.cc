@@ -587,25 +587,18 @@ struct pairSetting : public dataSetting<pair> {
 struct alignSetting : public argumentSetting {
   alignSetting(string name, char code,
                string argname, string desc,
-               Int defaultValue=(Int) CENTER)
-    : argumentSetting(name, code, argname, desc,
-                      types::primInt(), (item)defaultValue) {}
+               string defaultValue)
+    : argumentSetting(name, code, argname, description(desc,defaultValue),
+                      types::primString(), (item)defaultValue) {}
 
   bool getOption() {
     string str=optarg;
-    if (str == "C")
-      value=(Int) CENTER;
-    else if (str == "T")
-      value=(Int) TOP;
-    else if (str == "B")
-      value=(Int) BOTTOM;
-    else if (str == "Z") {
-      value=(Int) ZERO;
-    } else {
-      error("invalid argument for option");
-      return false;
+    if(str == "C" || str == "T" || str == "B" || str == "Z") {
+      value=str;
+      return true;
     }
-    return true;
+    error("invalid argument for option");
+    return false;
   }
 };
 
@@ -1047,7 +1040,8 @@ void initSettings() {
 
   addOption(new pairSetting("offset", 'O', "pair", "PostScript offset"));
   addOption(new alignSetting("align", 'a', "C|B|T|Z",
-                             "Center, Bottom, Top, or Zero page alignment [Center]"));
+                             "Center, Bottom, Top, or Zero page alignment",
+                             "C"));
   
   addOption(new boolSetting("debug", 'd', "Enable debugging messages"));
   addOption(new incrementSetting("verbose", 'v',

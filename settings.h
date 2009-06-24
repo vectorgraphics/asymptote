@@ -52,8 +52,6 @@ extern bool safe;
   
 bool globalwrite();
 
-enum origin {CENTER,BOTTOM,TOP,ZERO};
-  
 extern const string suffix;
 extern const string guisuffix;
   

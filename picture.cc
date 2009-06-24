@@ -573,15 +573,15 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   paperWidth=getSetting<double>("paperwidth");
   paperHeight=getSetting<double>("paperheight");
-  Int origin=getSetting<Int>("align");
+  string origin=getSetting<string>("align");
     
-  pair bboxshift=(origin == ZERO && !pdfformat) ?
+  pair bboxshift=(origin == "Z" && !pdfformat) ?
     pair(0.0,0.0) : pair(-b.left,-b.bottom);
   if(!pdfformat) {
     bboxshift += getSetting<pair>("offset");
-    if(origin != ZERO && origin != BOTTOM) {
+    if(origin != "Z" && origin != "B") {
       double yexcess=max(paperHeight-(b.top-b.bottom+1.0),0.0);
-      if(origin == TOP) bboxshift += pair(0.0,yexcess);
+      if(origin == "T") bboxshift += pair(0.0,yexcess);
       else {
         double xexcess=max(paperWidth-(b.right-b.left+1.0),0.0);
         bboxshift += pair(0.5*xexcess,0.5*yexcess);
