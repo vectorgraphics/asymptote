@@ -701,7 +701,7 @@ setlocal errorformat=%f:\ %l.%c:\ %m
 @cindex @code{KDE editor}
 @cindex @code{Kate}
 @cindex @code{asymptote.xml}
-Support for syntax highlighting for the @acronym{KDE} editor @code{Kate}
+Syntax highlighting support for the @acronym{KDE} editor @code{Kate}
 can be enabled by running @code{asy-kate.sh} in the
 @code{@value{Datadir}/asymptote} directory and putting the generated
 @code{asymptote.xml} file in @code{~/.kde/share/apps/katepart/syntax/}.
@@ -9235,14 +9235,14 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  pdfreloadOptions deferred OpenGL Phong Blinn renderer unitbox
 @c  LocalWords:  bezulate Shardt's rasterized viewport unitdisk unitplane devel
 @c  LocalWords:  unitcylinder unitcone solidcone unitfrustum unitsphere nslices
-@c  LocalWords:  DPostScript YZZero freeglut externalprc nonrendered nosafe
-@c  LocalWords:  unithemisphere versa XYplane xypart unitsolidcone YZEquals
+@c  LocalWords:  DPostScript YZZero freeglut externalprc nonrendered nosafe KDE
+@c  LocalWords:  unithemisphere versa XYplane xypart unitsolidcone YZEquals xml
 @c  LocalWords:  XZEquals XYEquals XZZero XYZero InTicks OutTicks InOutTicks
 @c  LocalWords:  fitscreen planeproject strokepath meshlight nullpens arrowdir
 @c  LocalWords:  diffusepen ambientpen emissivepen specularpen arrowbarb keyval
 @c  LocalWords:  hstretch vstretch roundbox nonconvex miterlimit basealigin
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
-@c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify
+@c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify kate
 @c  LocalWords:  psviewerOptions pdfviewerOptions viewportmargin asyattach
 @c  LocalWords:  multisampling autogen multisample coloredpath relstep flowdir
 @c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot scaledgraph
@@ -9252,5 +9252,6 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  subregions nonsimply functionshade shader floatingdisk TopView
 @c  LocalWords:  functionshading nonselfintersecting maxlength LeftView odetest
 @c  LocalWords:  vectorfieldsphere RightView FrontView BackView BottomView
-@c  LocalWords:  addViews outprefix addAllViews xsplinetype ysplinetype
-@c  LocalWords:  usplinetype vsplinetype
+@c  LocalWords:  addViews outprefix addAllViews xsplinetype ysplinetype rotateX
+@c  LocalWords:  usplinetype vsplinetype leftbutton middlebutton rightbutton
+@c  LocalWords:  rotateY rotateZ wheelup zoomin wheeldown zoomout

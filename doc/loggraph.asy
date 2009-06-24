@@ -8,8 +8,8 @@ scale(Log,Log);
 
 draw(graph(f,0.1,10));
 
-//xlimits(1,10);
-//ylimits(0.1,1);
+//xlimits(1,10,Crop);
+//ylimits(0.1,1,Crop);
 
 dot(Label("(3,5)",align=S),Scale((3,5)));
 
