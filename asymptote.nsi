@@ -92,7 +92,7 @@ Section "Asymptote" SEC01
   FileWriteByte $0 "13" 
   FileWriteByte $0 "10" 
 
-  FileWrite $0 "if %errorlevel% == 0 exit"
+  FileWrite $0 "if %errorlevel% == 0 exit /b"
   FileWriteByte $0 "13" 
   FileWriteByte $0 "10" 
 
