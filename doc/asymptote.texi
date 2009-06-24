@@ -696,8 +696,15 @@ just add to @code{~/.vim/ftplugin/asy.vim}:
 @verbatim
 setlocal makeprg=asy\ %
 setlocal errorformat=%f:\ %l.%c:\ %m
-
 @end verbatim
+
+@cindex @code{KDE editor}
+@cindex @code{Kate}
+@cindex @code{asymptote.xml}
+Support for syntax highlighting for the @acronym{KDE} editor @code{Kate}
+can be enabled by running @code{asy-kate.sh} in the
+@code{@value{Datadir}/asymptote} directory and putting the generated
+@code{asymptote.xml} file in @code{~/.kde/share/apps/katepart/syntax/}.
 
 @node Subversion
 @section Subversion (SVN)
@@ -705,7 +712,7 @@ setlocal errorformat=%f:\ %l.%c:\ %m
 @cindex SVN
 
 The following commands are needed to install the latest development version of
-@code{Asymptote} using @acronym{Subversion}:
+@code{Asymptote} using @code{Subversion}:
 @verbatim
 svn co http://asymptote.svn.sourceforge.net/svnroot/asymptote/trunk/asymptote
 cd asymptote
@@ -8953,7 +8960,7 @@ To receive announcements of upcoming releases, please subscribe to
 @cindex bug reports
 @noindent
 If you find a bug in @code{Asymptote}, please check (if possible)
-whether the bug is still present in the latest @acronym{Subversion}
+whether the bug is still present in the latest @code{Subversion}
 developmental code (@pxref{Subversion}) before submitting a bug
 report. New bugs can be submitted using the Bug Tracking System at
 @quotation
