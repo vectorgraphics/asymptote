@@ -1181,6 +1181,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   bool havewindow=initialized && glthread;
   
+  int buttons[]={GLUT_LEFT_BUTTON,GLUT_MIDDLE_BUTTON,GLUT_RIGHT_BUTTON};
+  string buttonnames[]={"left","middle","right"};
+  size_t nbuttons=sizeof(buttons)/sizeof(int);
+  
   if(View) {
     int x,y;
     if(havewindow)
@@ -1204,8 +1208,13 @@ void glrender(const string& prefix, const picture *pic, const string& format,
         glutSetOption(GLUT_MULTISAMPLE,multisample);
 #endif      
 #endif      
-      string title=string(settings::PROGRAM)+": "+prefix+
-        " [Double click right button for menu]";
+      string title=string(settings::PROGRAM)+": "+prefix;
+      for(size_t i=0; i < nbuttons; ++i) {
+        int button=buttons[i];
+        if(action(button,0) == "zoom/menu")
+          title += " [Double click "+buttonnames[i]+" button for menu]";
+      }
+    
       window=glutCreateWindow(title.c_str());
       GLint samplebuf[1];
       glGetIntegerv(GL_SAMPLES,samplebuf);
@@ -1292,8 +1301,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutAddMenuEntry("(c) Camera",CAMERA);
     glutAddMenuEntry("(q) Quit" ,QUIT);
   
-    int buttons[]={GLUT_LEFT_BUTTON,GLUT_MIDDLE_BUTTON,GLUT_RIGHT_BUTTON};
-    for(size_t i=0; i < sizeof(buttons)/sizeof(int); ++i) {
+    for(size_t i=0; i < nbuttons; ++i) {
       int button=buttons[i];
       if(action(button,0) == "menu")
         glutAttachMenu(button);
