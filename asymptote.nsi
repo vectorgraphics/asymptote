@@ -74,10 +74,6 @@ Section "Asymptote" SEC01
   SetOverwrite try
   File /r build-${PRODUCT_VERSION}\*
 
-  CreateDirectory "$INSTDIR\..\etc"
-  FileOpen $0 $INSTDIR\..\etc\fstab w
-  FileClose $0
-
   FileOpen $0 $INSTDIR\asy.bat w
 
   FileWrite $0 "@ECHO OFF"
