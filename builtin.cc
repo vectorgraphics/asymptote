@@ -765,6 +765,9 @@ void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
 {
   addBooleanOps<T,equals>(ve,t1,"==",t2);
   addBooleanOps<T,notequals>(ve,t1,"!=",t2);
+   
+  addFunc(ve, run::array2Equals<T>, primBoolean(), "==", formal(t3, "a"),
+          formal(t3, "b"));
   
   addCast(ve,t1,primFile(),read<T>);
   addCast(ve,t2,primFile(),readArray<T>);
@@ -889,20 +892,20 @@ void addArrayOps(venv &ve, types::array *t)
 
 void addRecordOps(venv &ve, record *r)
 {
-  addFunc(ve, run::boolMemEq, primBoolean(), "alias", types::formal(r, "a"),
-          types::formal(r, "b"));
-  addFunc(ve, run::boolMemEq, primBoolean(), "==", types::formal(r, "a"),
-          types::formal(r, "b"));
-  addFunc(ve, run::boolMemNeq, primBoolean(), "!=", types::formal(r, "a"),
-          types::formal(r, "b"));
+  addFunc(ve, run::boolMemEq, primBoolean(), "alias", formal(r, "a"),
+          formal(r, "b"));
+  addFunc(ve, run::boolMemEq, primBoolean(), "==", formal(r, "a"),
+          formal(r, "b"));
+  addFunc(ve, run::boolMemNeq, primBoolean(), "!=", formal(r, "a"),
+          formal(r, "b"));
 }
 
 void addFunctionOps(venv &ve, function *f)
 {
-  addFunc(ve, run::boolFuncEq, primBoolean(), "==", types::formal(f, "a"),
-          types::formal(f, "b"));
-  addFunc(ve, run::boolFuncNeq, primBoolean(), "!=", types::formal(f, "a"),
-          types::formal(f, "b"));
+  addFunc(ve, run::boolFuncEq, primBoolean(), "==", formal(f, "a"),
+          formal(f, "b"));
+  addFunc(ve, run::boolFuncNeq, primBoolean(), "!=", formal(f, "a"),
+          formal(f, "b"));
 }
 
 void addOperators(venv &ve) 
@@ -1027,7 +1030,7 @@ void base_venv(venv &ve)
   addRealFunc(identity);
   
 #ifdef HAVE_LIBGSL  
-  GSLModule=new types::dummyRecord(symbol::trans("gsl"));
+  GSLModule=new dummyRecord(symbol::trans("gsl"));
   gsl_set_error_handler(GSLerrorhandler);
   
   // Common functions

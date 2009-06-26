@@ -162,6 +162,28 @@ void binopArray3(vm::stack *s)
 }
 
 template<class T>
+void array2Equals(vm::stack *s)
+{
+  array *b=pop<array*>(s);
+  array *a=pop<array*>(s);
+  size_t n=checkArray(a);
+  if(n != checkArray(b)) {s->push(false); return;}
+  if(n == 0) {s->push(true); return;}
+  size_t n0=checkArray(read<array*>(a,0));
+  if(n0 != checkArray(read<array*>(b,0))) {s->push(false); return;}
+    
+  for(size_t i=0; i < n; ++i) {
+    array *ai=read<array*>(a,i);
+    array *bi=read<array*>(b,i);
+    for(size_t j=0; j < n0; ++j) {
+      if(read<T>(ai,j) != read<T>(bi,j))
+        {s->push(false); return;}
+    }
+  }
+  s->push(true);
+}
+
+template<class T>
 struct compare {
   bool operator() (const vm::item& a, const vm::item& b)
   {
