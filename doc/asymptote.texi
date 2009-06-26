@@ -468,28 +468,21 @@ configuration variables @code{paperwidth} and @code{paperheight}.
 
 @cindex @code{texpath}
 @cindex @code{texcommand}
-@cindex @code{texdvicommand}
 @cindex @code{dvips}
 @cindex @code{convert}
 @cindex @code{display}
 @cindex @code{animate}
-@cindex @code{xasy}
 @cindex @code{ImageMagick}
 The following configuration variables normally do not require adjustment:
 @verbatim
 texpath
 texcommand
-texdvicommand
 dvips
 convert
 display
 animate
-xasy
 @end verbatim
 @noindent
-The @code{texdvicommand} is used for @code{3D} label typesetting, which
-requires @code{dvips} output. An empty string indicates the default setting
-of @code{latex}/@code{tex}, depending on the setting of @code{texengine}.
 
 @cindex command-line options
 Configuration variables may also be set or overwritten with a
@@ -9231,7 +9224,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt DefaultHead
 @c  LocalWords:  SimpleHead HookHead TeXHead multipage NURBS inlinemovie dxmax
 @c  LocalWords:  simpson NoBox truesize autoscale shadestroke recurses mintimes
-@c  LocalWords:  nonoverlapping texdvicommand texengine maxtimes maxheight pdb
+@c  LocalWords:  nonoverlapping texengine maxtimes maxheight pdb
 @c  LocalWords:  piecewisestraight unitrand graphmarkers antialias nolight newl
 @c  LocalWords:  Delaunay Shewchuk convertOptions APPDATA pdfreload tempFile
 @c  LocalWords:  pdfreloadOptions deferred OpenGL Phong Blinn renderer unitbox

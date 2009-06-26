@@ -69,9 +69,6 @@ namespace settings {
   
 using camp::pair;
   
-string asyInstallDir;
-string defaultXasy="xasy";
-
 #ifdef HAVE_LIBGL
 const bool haveglut=true;  
 #else
@@ -1174,7 +1171,6 @@ void initSettings() {
   addOption(new envSetting("display", defaultDisplay));
   addOption(new envSetting("animate", "animate"));
   addOption(new envSetting("python", defaultPython));
-  addOption(new envSetting("xasy", defaultXasy));
   addOption(new envSetting("papertype", "letter"));
   addOption(new envSetting("dir", ""));
   addOption(new envSetting("sysdir", systemDir));
