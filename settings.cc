@@ -78,7 +78,7 @@ const bool haveglut=false;
 #ifndef __CYGWIN__
   
 bool msdos=false;
-const char *HOME="HOME";
+string HOME="HOME";
 const char pathSeparator=':';
 string defaultPSViewer="gv";
 #ifdef __APPLE__
@@ -97,7 +97,7 @@ const string dirsep="/";
 #else  
   
 bool msdos=true;
-const char *HOME="USERPROFILE";
+string HOME="USERPROFILE";
 const char pathSeparator=';';
 string defaultPSViewer="gsview32.exe";
 string defaultPDFViewer="AcroRd32.exe";
@@ -1216,8 +1216,41 @@ string outname() {
   return name.empty() ? "out" : name;
 }
 
+string lookup(const string& symbol) 
+{
+  string s;
+  iopipestream pipe(("kpsewhich --var-value="+symbol).c_str());
+  pipe >> s;
+// Workaround broken header file on i386-solaris with g++ 3.4.3.
+#ifdef erase
+#undef erase
+#endif
+  size_t n=s.find('\r');
+  if(n != string::npos)
+    s.erase(n,1);
+  n=s.find('\n');
+  if(n != string::npos)
+    s.erase(n,1);
+  return s;
+}
+
 void initDir() {
-  initdir=Getenv(HOME,msdos)+"/."+suffix;
+  if(getSetting<string>("sysdir").empty()) {
+    string s=lookup("SELFAUTOPARENT");
+    if(s.size() > 1) {
+      s.append(dirsep+"texmf"+dirsep+"asymptote");
+      Setting("sysdir")=s;
+      s=lookup("TEXMFCONFIG");
+      if(s.size() > 1)
+        initdir=s+dirsep+"asymptote";
+    }
+  } 
+  
+  if(initdir.empty())
+    initdir=Getenv(HOME.c_str(),msdos)+dirsep+"."+suffix;
+  
+  if(verbose > 1)
+    cerr << "Using configuration directory " << initdir << endl;
   mkdir(initdir.c_str(),0777);
 }
   
@@ -1235,24 +1268,6 @@ void setPath() {
   }
   searchPath.push_back(initdir);
   string sysdir=getSetting<string>("sysdir");
-  if(sysdir == "") {
-    iopipestream pipe("kpsewhich --var-value=SELFAUTOPARENT");
-    pipe >> sysdir;
-// Workaround broken header file on i386-solaris with g++ 3.4.3.
-#ifdef erase
-#undef erase
-#endif
-    size_t n=sysdir.find('\r');
-    if(n != string::npos)
-      sysdir.erase(n,1);
-    n=sysdir.find('\n');
-    if(n != string::npos)
-      sysdir.erase(n,1);
-    if(sysdir.size() > 1) {
-      sysdir.append(dirsep+"texmf"+dirsep+"asymptote");
-      Setting("sysdir")=sysdir;
-    }
-  }
   if(sysdir != "")
     searchPath.push_back(sysdir);
 }
@@ -1260,7 +1275,7 @@ void setPath() {
 void SetPageDimensions() {
   string paperType=getSetting<string>("papertype");
 
-  if(paperType == "" &&
+  if(paperType.empty() &&
      getSetting<double>("paperwidth") != 0.0 &&
      getSetting<double>("paperheight") != 0.0) return;
   
@@ -1303,7 +1318,7 @@ string nativeformat() {
 
 string defaultformat() {
   string format=getSetting<string>("outformat");
-  return (format == "") ? nativeformat() : format;
+  return (format.empty()) ? nativeformat() : format;
 }
 
 // Begin TeX put command.
@@ -1432,14 +1447,14 @@ void setOptions(int argc, char *argv[])
 
   cout.precision(DBL_DIG);
   
-  // Make configuration and history directory
-  initDir();
-  
   // Build settings module.
   initSettings();
   
-  // Read command-line options initially to obtain CONFIG and DIR.
+  // Read command-line options initially to obtain config, dir, and verbose.
   getOptions(argc,argv);
+  
+  // Make configuration and history directory
+  initDir();
   
   Int Verbose=verbose;
   resetOptions();
