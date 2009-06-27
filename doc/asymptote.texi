@@ -406,9 +406,10 @@ pressing the @code{r} key).
 @cindex configuration file
 Configuration variables are most easily set as @code{Asymptote}
 variables in an optional configuration file (by default,
-@code{.asy/config.asy} in the
-user's home directory or @code{%USERPROFILE%\.asy\config.asy} under
-@code{MSDOS}); @pxref{configuration file}. Here are the default values
+@code{.asy/config.asy} in the user's home directory,
+@code{$TEXMFCONFIG/asymptote} under @code{TeXLive}, and
+@code{%USERPROFILE%\.asy\config.asy} under @code{MSDOS};
+@pxref{configuration file}). Here are the default values
 of several important configuration variables under @code{UNIX}:
 
 @cindex @code{python}

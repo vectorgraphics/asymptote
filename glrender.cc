@@ -87,6 +87,7 @@ bool ignorezoom;
 int Fitscreen;
 int Mode;
 
+double Angle;
 double H;
 double xmin,xmax;
 double ymin,ymax;
@@ -752,7 +753,7 @@ string action(int button, int mod)
     array *Buttons[]={left,middle,right,wheelup,wheeldown};
     array *a=Buttons[button];
     size_t size=checkArray(a);
-    if(Mod >= 0 && Mod < (Int) size)
+    if(Mod >= 0 && Mod < size)
       return read<string>(a,Mod);
   }
   return "";
@@ -763,10 +764,12 @@ void mouse(int button, int state, int x, int y)
   string Action=action(button,glutGetModifiers());
 
   if(Action == "zoomin") {
+    glutMotionFunc(NULL);
     mousewheel(0,1,x,y);
     return;
   } 
   if(Action == "zoomout") {
+    glutMotionFunc(NULL);
     mousewheel(0,-1,x,y);
     return;
   }     
@@ -774,6 +777,7 @@ void mouse(int button, int state, int x, int y)
   if(Action == "zoom/menu") {
     if(state == GLUT_UP && !Motion) {
       MenuButton=button;
+      glutMotionFunc(NULL);
       glutAttachMenu(button);
       Menu=true;
       return;
@@ -797,8 +801,10 @@ void mouse(int button, int state, int x, int y)
       lastangle=Degrees(x,y);
       glutMotionFunc(rotateZ);
     }
-  } else
+  } else {
     arcball.mouse_up();
+    glutMotionFunc(NULL);
+  }
 }
 
 timeval lasttime;
@@ -952,7 +958,10 @@ void camera()
   
   cout << "camera=" << Camera << "," << endl
        << "up=" << Up << "," << endl
-       << "target=" << Target << endl << endl;
+       << "target=" << Target;
+//  if(Angle != 0)
+//    cout << "," << endl << "angle=" << Angle;
+  cout << endl << endl;
 }
 
 void keyboard(unsigned char key, int x, int y)
@@ -1096,6 +1105,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Specular=specular;
   ViewportLighting=Viewportlighting;
   View=view;
+  Angle=angle;
   Oldpid=oldpid;
   
   Xmin=m.getx();
