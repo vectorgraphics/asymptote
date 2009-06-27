@@ -731,14 +731,22 @@ struct surface {
     for(int i=0; i < L; ++i) {
       path3 h=subpath(g,i,i+1);
       path3 r=reverse(h);
-      triple max=max(h);
-      triple min=min(h);
-      triple perp=perp(max-c,axis);
-      real fuzz=epsilon*max(abs(max),abs(min));
-      if(abs(perp) < fuzz)
-        perp=perp(min-c,axis);
+      path3 H=shift(-c)*h;
+      real M=0;
+      triple perp;
+      void test(real[] t) {
+        for(int i=0; i < 3; ++i) {
+          triple v=point(H,t[i]);
+          triple V=v-dot(v,axis)*axis;
+          real a=abs(V);
+          if(a > M) {M=a; perp=V;}
+        }
+      }
+      test(maxtimes(H));
+      test(mintimes(H));
+      
       perp=unit(perp);
-      triple normal=cross(axis,perp);
+      triple normal=unit(cross(axis,perp));
       triple dir(real j) {return Cos(j)*normal-Sin(j)*perp;}
       real j=angle1;
       transform3 Tk=T[0];
