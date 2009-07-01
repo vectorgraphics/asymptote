@@ -220,8 +220,8 @@ void initlighting()
 void setDimensions(int Width, int Height, double X, double Y)
 {
   double Aspect=((double) Width)/Height;
-  double X0=(X/Width+Shift.getx()*Xfactor)*(xmax-xmin)*lastzoom;
-  double Y0=(Y/Height+Shift.gety()*Yfactor)*(ymax-ymin)*lastzoom;
+  double X0=(X/Width*lastzoom+Shift.getx()*Xfactor)*(xmax-xmin);
+  double Y0=(Y/Height*lastzoom+Shift.gety()*Yfactor)*(ymax-ymin);
   double Zoominv=1.0/Zoom;
   if(orthographic) {
     double xsize=Xmax-Xmin;
@@ -563,13 +563,8 @@ void shift(int x, int y)
 {
   if(x > 0 && y > 0) {
     double Zoominv=1.0/Zoom;
-    if(orthographic) {
-      cx += (x-x0)*(xmax-xmin)/Width;
-      cy += (y0-y)*(ymax-ymin)/Height;
-    } else {
-      X += (x-x0)*Zoominv;
-      Y += (y0-y)*Zoominv;
-    }
+    X += (x-x0)*Zoominv;
+    Y += (y0-y)*Zoominv;
     x0=x; y0=y;
     update();
   }
@@ -578,8 +573,14 @@ void shift(int x, int y)
 void pan(int x, int y)
 {
   if(x > 0 && y > 0) {
-    cx += (x-x0)*(xmax-xmin)/Width;
-    cy += (y0-y)*(ymax-ymin)/Height;
+    if(orthographic) {
+      double Zoominv=1.0/Zoom;
+      X += (x-x0)*Zoominv;
+      Y += (y0-y)*Zoominv;
+    } else {
+      cx += (x-x0)*(xmax-xmin)/Width;
+      cy += (y0-y)*(ymax-ymin)/Height;
+    }
     x0=x; y0=y;
     update();
   }
@@ -969,9 +970,7 @@ void camera()
 {
   camp::Triple vCamera,vTarget,vUp;
   
-  double Cx=cx;
-  double Cy=cy;
-  double Cz=0.5*(zmin+zmax);
+  double cz=0.5*(zmin+zmax);
   
   for(int i=0; i < 3; ++i) {
     double sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
@@ -983,9 +982,9 @@ void camera()
       double R2=Rotate[j4+2];
       double R3=Rotate[j4+3];
       double T4ij=T[i4+j];
-      sumCamera += T4ij*(R3-Cx*R0-Cy*R1-Cz*R2);
+      sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
       sumUp += T4ij*R1;
-      sumTarget += T4ij*(R3-Cx*R0-Cy*R1);
+      sumTarget += T4ij*(R3-cx*R0-cy*R1);
     }
     vCamera[i]=sumCamera;
     vUp[i]=sumUp;
@@ -996,8 +995,8 @@ void camera()
   triple Up=triple(vUp);
   triple Target=triple(vTarget);
   
-  pair viewportshift((X/Width+Shift.getx()*Xfactor)*lastzoom,
-                     (Y/Height+Shift.gety()*Yfactor)*lastzoom);
+  pair viewportshift(X/Width*lastzoom+Shift.getx(),
+                     Y/Height*lastzoom+Shift.gety());
   
   cout << "currentprojection=" 
        << (orthographic ? "orthographic(" : "perspective(")  << endl
@@ -1005,13 +1004,14 @@ void camera()
        << "up=" << Up << "," << endl
        << "target=" << Target << "," << endl;
   if(orthographic)
-    cout << "zoom=" << Zoom << ",showtarget=false);" << endl;
-  else {
+    cout << "zoom=" << Zoom;
+  else
     cout << "angle=" << 2.0*atan(tan(0.5*Angle)/Zoom)/radians;
-    if(viewportshift != pair(0.0,0.0))
-      cout << "," << endl << "viewportshift=" << viewportshift;
-    cout << "," << endl << "autoadjust=false);" << endl;
-  }
+  if(viewportshift != pair(0.0,0.0))
+    cout << "," << endl << "viewportshift=" << viewportshift;
+  if(!orthographic)
+    cout << "," << endl << "autoadjust=false";
+  cout << ");" << endl << endl;
 }
 
 void keyboard(unsigned char key, int x, int y)
@@ -1162,6 +1162,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Angle=angle*radians;
   Zoom0=zoom;
   Oldpid=oldpid;
+  Shift=shift;
   
   Xmin=m.getx();
   Xmax=M.getx();
@@ -1171,13 +1172,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   zmax=M.getz();
   
   orthographic=Angle == 0.0;
-  if(orthographic) {
-    Shift=0.0;
-  } else {
-    H=-tan(0.5*Angle)*zmax;
-    Shift=shift/zoom;
-  }
-  
+  H=orthographic ? 0.0 : -tan(0.5*Angle)*zmax;
+    
   Menu=false;
   Motion=true;
   ignorezoom=false;

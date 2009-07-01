@@ -126,10 +126,6 @@ transform3 reflect(triple u, triple v, triple w)
   }*shift(-u);
 }
 
-bool operator != (real[][] a, real[][] b) {
-  return !(a == b);
-}
-
 // Project u onto v.
 triple project(triple u, triple v)
 {
@@ -241,20 +237,21 @@ projection perspective(real x, real y, real z, triple up=Z, triple target=O,
 }
 
 projection orthographic(triple camera, triple up=Z, triple target=O,
-                        real zoom=1, bool showtarget=true, bool center=false)
+                        real zoom=1, pair viewportshift=0,
+                        bool showtarget=true, bool center=false)
 {
-  return projection(camera,up,target,zoom,showtarget,
-                    center=center,
+  return projection(camera,up,target,zoom,viewportshift,showtarget,center=center,
                     new transformation(triple camera, triple up,
                                        triple target) {
                       return transformation(look(camera,up,target));});
 }
 
 projection orthographic(real x, real y, real z, triple up=Z,
-                        triple target=O, real zoom=1,
+                        triple target=O, real zoom=1, pair viewportshift=0,
                         bool showtarget=true, bool center=false)
 {
-  return orthographic((x,y,z),up,target,zoom,showtarget,center=center);
+  return orthographic((x,y,z),up,target,zoom,viewportshift,showtarget,
+                      center=center);
 }
 
 projection oblique(real angle=45)
@@ -2296,6 +2293,13 @@ string embed3D(string label="", string text=label, string prefix,
   if(!settings.inlinetex)
     file3.push(prefix);
 
+  triple target=P.target;
+  if(P.infinity && P.viewportshift != 0) {
+    triple lambda=max3(f)-min3(f);
+    target -= (P.viewportshift.x*lambda.x/P.zoom,
+               P.viewportshift.y*lambda.y/P.zoom,0);
+  }
+
   triple v=P.vector()/cm;
   triple u=unit(v);
   triple w=Z-u.z*u;
@@ -2314,7 +2318,7 @@ string embed3D(string label="", string text=label, string prefix,
     ",toolbar="+(settings.toolbar ? "true" : "false")+
     ",3Daac="+Format(P.absolute ? P.angle : angle)+
     ",3Dc2c="+Format(u)+
-    ",3Dcoo="+Format(P.target/cm)+
+    ",3Dcoo="+Format(target/cm)+
     ",3Droll="+Format(roll)+
     ",3Droo="+Format(abs(v))+
     ",3Dbg="+Format(light.background());
@@ -2544,7 +2548,7 @@ object embed(string label="", string text=label,
 
       shipout3(prefix,f,preview ? nativeformat() : format,
                width,height,P.infinity ? 0 : angle,P.zoom,m,M,
-               prc ? 0 : P.viewportshift,
+               prc && !P.infinity ? 0 : P.viewportshift,
                tinv*inverse(modelview)*shift(0,0,zcenter),light.background(),
                P.absolute ? (modelview*light).position : light.position,
                light.diffuse,light.ambient,light.specular,
@@ -2561,8 +2565,8 @@ object embed(string label="", string text=label,
       image=graphic(image,"hiresbb");
     }
     if(prc) {
-      if(P.viewportshift != 0)
-        write("warning: PRC output ignores viewportshift");
+      if(!P.infinity && P.viewportshift != 0)
+        write("warning: PRC does not support off-axis projections; use pan instead of shift");
       F.L=embed3D(label,text=image,prefix,f,format,
                         width,height,angle,options,script,light,Q);
     }
