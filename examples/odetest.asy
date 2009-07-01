@@ -2,7 +2,7 @@ import ode;
 
 write("integration test");
 real f(real t, real x) {return cos(x);}
-write(integrate(1,f,0,100,0.1,dynamic=true,0.0002,0.0004,RK3BS,verbose=true));
+write(integrate(1,f,0,10,0.1,dynamic=true,0.0002,0.0004,RK3BS,verbose=true));
 write();
 
 write("system integration test");

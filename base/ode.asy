@@ -246,19 +246,21 @@ real adjust(real h, real error, real tolmin, real tolmax, RKTableau tableau)
 
 // Integrate dy/dt+cy=f(t,y) from a to b using initial conditions y,
 // specifying either the step size h or the number of steps n.
-real integrate(real y, real c=0, real g(real t, real y), real a, real b=a,
-               real h=0, int n=0, bool dynamic=false, real tolmin=0,
-               real tolmax=0, real dtmin=0, real dtmax=realMax,
-               RKTableau tableau, bool verbose=false)
+real[] integrate(real y, real c=0, real g(real t, real y), real a, real b=a,
+                 real h=0, int n=0, bool dynamic=false, real tolmin=0,
+                 real tolmax=0, real dtmin=0, real dtmax=realMax,
+                 RKTableau tableau, bool verbose=false)
 {
-  real f(real t, real y)=(c == 0 || tableau.exponential) ? g :
-    new real(real t, real y) {return g(t,y)-c*y;};
+  real[] Y={y};
 
   if(h == 0) {
-    if(b == a) return y;
+    if(b == a) return Y;
     if(n == 0) abort("Either n or h must be specified");
     else h=(b-a)/n;
   }
+
+  real f(real t, real y)=(c == 0 || tableau.exponential) ? g :
+    new real(real t, real y) {return g(t,y)-c*y;};
 
   tableau.stepDependence(h,c,tableau.a);
       
@@ -286,44 +288,47 @@ real integrate(real y, real c=0, real g(real t, real y), real a, real b=a,
                                                       predictions)));
 
     real highOrder=h*dot(tableau.a.highOrderWeights,predictions);
-    real Y=tableau.a.factors[tableau.a.steps.length]*y;
+    real y0=tableau.a.factors[tableau.a.steps.length]*y;
     if(dynamic) {
       real f1;
       if(fsal) {
-        f1=f(t+h,Y+highOrder);
+        f1=f(t+h,y0+highOrder);
         predictions.push(f1);
       }
       real lowOrder=h*dot(tableau.a.lowOrderWeights,predictions);
       real error;
-      error=error(error,y,Y+lowOrder,Y+highOrder,highOrder-lowOrder);
+      error=error(error,y,y0+lowOrder,y0+highOrder,highOrder-lowOrder);
       h=adjust(h,error,tolmin,tolmax,tableau);
       if(h >= dt) {
         t += dt;
-        y=Y+highOrder;
+        y=y0+highOrder;
+        Y.push(y);
         f0=f1;
       }
       h=min(max(h,dtmin),dtmax);
     } else {
       t += h;
-      y=Y+highOrder;
+      y=y0+highOrder;
+      Y.push(y);
     }
   }
-  return y;
+  return Y;
 }
 
 // Integrate a set of equations, dy/dt=f(t,y), from a to b using initial
 // conditions y, specifying either the step size h or the number of steps n.
-real[] integrate(real[] y, real[] f(real t, real[] y), real a, real b=a,
-                 real h=0, int n=0, bool dynamic=false,
-                 real tolmin=0, real tolmax=0, real dtmin=0, real dtmax=realMax,
-                 RKTableau tableau, bool verbose=false)
+real[][] integrate(real[] y, real[] f(real t, real[] y), real a, real b=a,
+                   real h=0, int n=0, bool dynamic=false,
+                   real tolmin=0, real tolmax=0, real dtmin=0,
+                   real dtmax=realMax, RKTableau tableau, bool verbose=false)
 {
+  real[][] Y={copy(y)};
+      
   if(h == 0) {
-    if(b == a) return y;
+    if(b == a) return Y;
     if(n == 0) abort("Either n or h must be specified");
     else h=(b-a)/n;
   }
-  real[] y=copy(y);
   real t=a;
   real[] f0;
   if(tableau.a.lowOrderWeights.length == 0) dynamic=false;
@@ -361,15 +366,17 @@ real[] integrate(real[] y, real[] f(real t, real[] y), real a, real b=a,
       if(h >= dt) {
         t += dt;
         y += highOrder;
+        Y.push(y);
         f0=f1;
       }
       h=min(max(h,dtmin),dtmax);
     } else {
       t += h;
       y += highOrder;
+      Y.push(y);
     }
   }
-  return y;
+  return Y;
 }
 
 real[][] finiteDifferenceJacobian(real[] f(real[]), real[] t,
@@ -405,7 +412,8 @@ real[] solveBVP(real[] f(real, real[]), real a, real b=a, real h=0, int n=0,
                 real[] guess, RKTableau tableau, int iterations=100)
 {
   real[] g(real[] t) {
-    return discrepancy(integrate(initial(t),f,a,b,h,n,tableau));
+    real[][] y=integrate(initial(t),f,a,b,h,n,tableau);
+    return discrepancy(y[y.length-1]);
   }
   real[][] jacobian(real[] t) {return finiteDifferenceJacobian(g,t);}
   return initial(newton(iterations,g,jacobian,guess));
