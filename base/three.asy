@@ -2441,9 +2441,7 @@ object embed(string label="", string text=label,
         viewportmargin=viewportmargin((lambda.x,lambda.y));
         width=lambda.x+2*viewportmargin.x;
         height=lambda.y+2*viewportmargin.y;
-
-        triple s=(-0.5(m.x+M.x),-0.5*(m.y+M.y),0);
-        f=shift(s-target)*f;
+        f=shift((-0.5(m.x+M.x),-0.5*(m.y+M.y),0))*f;  // Eye will be at (0,0,0).
       } else {
         transform3 T=identity4;
         // Choose the angle to be just large enough to view the entire image:

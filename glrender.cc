@@ -126,6 +126,7 @@ double lastangle;
 
 double Zoom;
 double Zoom0;
+double lastzoom;
 
 GLfloat Rotate[16];
 Arcball arcball;
@@ -219,8 +220,8 @@ void initlighting()
 void setDimensions(int Width, int Height, double X, double Y)
 {
   double Aspect=((double) Width)/Height;
-  double X0=(X/Width+Shift.getx()*Xfactor)*(xmax-xmin)*Zoom;
-  double Y0=(Y/Height+Shift.gety()*Yfactor)*(ymax-ymin)*Zoom;
+  double X0=(X/Width+Shift.getx()*Xfactor)*(xmax-xmin)*lastzoom;
+  double Y0=(Y/Height+Shift.gety()*Yfactor)*(ymax-ymin)*lastzoom;
   double Zoominv=1.0/Zoom;
   if(orthographic) {
     double xsize=Xmax-Xmin;
@@ -288,6 +289,7 @@ void reshape0(int width, int height)
   
 void update() 
 {
+  lastzoom=Zoom;
   glLoadIdentity();
   double cz=0.5*(zmin+zmax);
   glTranslatef(cx,cy,cz);
@@ -610,6 +612,7 @@ void zoom(int x, int y)
     }
     Motion=true;
     static const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
+    lastzoom=Zoom;
     double s=zoomFactorStep*(y0-y);
     if(fabs(s) < limit) {
       Zoom *= pow(zoomFactor,s);
@@ -623,6 +626,7 @@ void zoom(int x, int y)
   
 void mousewheel(int wheel, int direction, int x, int y) 
 {
+  lastzoom=Zoom;
   if(direction > 0)
     Zoom *= zoomFactor;
   else
@@ -952,7 +956,7 @@ void home()
   arcball.init();
   glLoadIdentity();
   glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
-  Zoom=Zoom0;
+  lastzoom=Zoom=Zoom0;
   setDimensions(Width,Height,0,0);
 }
 
@@ -992,8 +996,8 @@ void camera()
   triple Up=triple(vUp);
   triple Target=triple(vTarget);
   
-  pair viewportshift((X/Width+Shift.getx()*Xfactor)*Zoom,
-                     (Y/Height+Shift.gety()*Yfactor)*Zoom);
+  pair viewportshift((X/Width+Shift.getx()*Xfactor)*lastzoom,
+                     (Y/Height+Shift.gety()*Yfactor)*lastzoom);
   
   cout << "currentprojection=" 
        << (orthographic ? "orthographic(" : "perspective(")  << endl
@@ -1001,14 +1005,13 @@ void camera()
        << "up=" << Up << "," << endl
        << "target=" << Target << "," << endl;
   if(orthographic)
-    cout << "zoom=" << Zoom;
+    cout << "zoom=" << Zoom << ",showtarget=false);" << endl;
   else {
     cout << "angle=" << 2.0*atan(tan(0.5*Angle)/Zoom)/radians;
     if(viewportshift != pair(0.0,0.0))
       cout << "," << endl << "viewportshift=" << viewportshift;
-    cout << "," << endl << "autoadjust=false";
+    cout << "," << endl << "autoadjust=false);" << endl;
   }
-  cout << ");" << endl << endl;
 }
 
 void keyboard(unsigned char key, int x, int y)
