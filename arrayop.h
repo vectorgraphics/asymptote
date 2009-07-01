@@ -162,25 +162,37 @@ void binopArray3(vm::stack *s)
 }
 
 template<class T>
-void array2Equals(vm::stack *s)
+bool Array2Equals(vm::stack *s)
 {
   array *b=pop<array*>(s);
   array *a=pop<array*>(s);
   size_t n=checkArray(a);
-  if(n != checkArray(b)) {s->push(false); return;}
-  if(n == 0) {s->push(true); return;}
+  if(n != checkArray(b)) return false;
+  if(n == 0) return true;
   size_t n0=checkArray(read<array*>(a,0));
-  if(n0 != checkArray(read<array*>(b,0))) {s->push(false); return;}
+  if(n0 != checkArray(read<array*>(b,0))) return false;
     
   for(size_t i=0; i < n; ++i) {
     array *ai=read<array*>(a,i);
     array *bi=read<array*>(b,i);
     for(size_t j=0; j < n0; ++j) {
       if(read<T>(ai,j) != read<T>(bi,j))
-        {s->push(false); return;}
+        return false;
     }
   }
-  s->push(true);
+  return true;
+}
+
+template<class T>
+void array2Equals(vm::stack *s)
+{
+  s->push(Array2Equals<T>(s));
+}
+
+template<class T>
+void array2NotEquals(vm::stack *s)
+{
+  s->push(!Array2Equals<T>(s));
 }
 
 template<class T>
