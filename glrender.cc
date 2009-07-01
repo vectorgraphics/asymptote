@@ -88,6 +88,7 @@ int Fitscreen;
 int Mode;
 
 double Angle;
+bool orthographic;
 double H;
 double xmin,xmax;
 double ymin,ymax;
@@ -95,7 +96,11 @@ double zmin,zmax;
 
 double Xmin,Xmax;
 double Ymin,Ymax;
+
+pair Shift;
 double X,Y;
+double cx,cy;
+double Xfactor,Yfactor;
 
 int minimumsize=50; // Minimum initial rendering window width and height
 
@@ -110,6 +115,7 @@ double *Ambient;
 double *Specular;
 bool ViewportLighting;
 bool queueExport=false;
+bool readyAfterExport=false;
 bool antialias;
 
 int x0,y0;
@@ -119,7 +125,7 @@ int MenuButton=0;
 double lastangle;
 
 double Zoom;
-double lastzoom;
+double Zoom0;
 
 GLfloat Rotate[16];
 Arcball arcball;
@@ -213,26 +219,27 @@ void initlighting()
 void setDimensions(int Width, int Height, double X, double Y)
 {
   double Aspect=((double) Width)/Height;
-  double X0=X*(xmax-xmin)/(lastzoom*Width);
-  double Y0=Y*(ymax-ymin)/(lastzoom*Height);
-  if(H == 0.0) {
+  double X0=(X/Width+Shift.getx()*Xfactor)*(xmax-xmin)*Zoom;
+  double Y0=(Y/Height+Shift.gety()*Yfactor)*(ymax-ymin)*Zoom;
+  double Zoominv=1.0/Zoom;
+  if(orthographic) {
     double xsize=Xmax-Xmin;
     double ysize=Ymax-Ymin;
     if(xsize < ysize*Aspect) {
-      double r=0.5*ysize*Zoom*Aspect;
+      double r=0.5*ysize*Aspect*Zoominv;
       xmin=-r-X0;
       xmax=r-X0;
-      ymin=Ymin*Zoom-Y0;
-      ymax=Ymax*Zoom-Y0;
+      ymin=Ymin*Zoominv-Y0;
+      ymax=Ymax*Zoominv-Y0;
     } else {
-      double r=0.5*xsize*Zoom/Aspect;
-      xmin=Xmin*Zoom-X0;
-      xmax=Xmax*Zoom-X0;
+      double r=0.5*xsize/(Aspect*Zoom);
+      xmin=Xmin*Zoominv-X0;
+      xmax=Xmax*Zoominv-X0;
       ymin=-r-Y0;
       ymax=r-Y0;
     }
   } else {
-    double r=H*Zoom;
+    double r=H*Zoominv;
     xmin=-r*Aspect-X0;
     xmax=r*Aspect-X0;
     ymin=-r-Y0;
@@ -245,12 +252,12 @@ void setProjection()
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   setDimensions(Width,Height,X,Y);
-  if(H == 0.0)
+  if(orthographic)
     glOrtho(xmin,xmax,ymin,ymax,-zmax,-zmin);
   else
     glFrustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
   glMatrixMode(GL_MODELVIEW);
-  arcball.set_params(vec2(0.5*Width,0.5*Height),arcballRadius/Zoom);
+  arcball.set_params(vec2(0.5*Width,0.5*Height),arcballRadius*Zoom);
 }
 
 bool capsize(int& width, int& height) 
@@ -269,8 +276,8 @@ bool capsize(int& width, int& height)
 
 void reshape0(int width, int height)
 {
-  X=X/Width*width;
-  Y=Y/Height*height;
+  X=(X/Width)*width;
+  Y=(Y/Height)*height;
   
   Width=width;
   Height=height;
@@ -281,10 +288,9 @@ void reshape0(int width, int height)
   
 void update() 
 {
-  lastzoom=Zoom;
   glLoadIdentity();
   double cz=0.5*(zmin+zmax);
-  glTranslatef(0,0,cz);
+  glTranslatef(cx,cy,cz);
   glMultMatrixf(Rotate);
   glTranslatef(0,0,-cz);
   setProjection();
@@ -308,7 +314,7 @@ void drawscene(double Width, double Height)
     
   triple m(xmin,ymin,zmin);
   triple M(xmax,ymax,zmax);
-  double perspective=H == 0.0 ? 0.0 : 1.0/zmax;
+  double perspective=orthographic ? 0.0 : 1.0/zmax;
   
   double size2=hypot(Width,Height);
   
@@ -355,10 +361,7 @@ void Export()
       trImageBuffer(tr,GL_RGB,GL_UNSIGNED_BYTE,data);
 
       setDimensions(fullWidth,fullHeight,X/Width*fullWidth,Y/Width*fullWidth);
-      if(H == 0.0)
-        trOrtho(tr,xmin,xmax,ymin,ymax,-zmax,-zmin);
-      else
-        trFrustum(tr,xmin,xmax,ymin,ymax,-zmax,-zmin);
+      (orthographic ? trOrtho : trFrustum)(tr,xmin,xmax,ymin,ymax,-zmax,-zmin);
    
       size_t count=0;
       do {
@@ -389,10 +392,12 @@ void Export()
     outOfMemory();
   }
   setProjection();
-  
+
 #ifdef HAVE_LIBPTHREAD
-  if(glthread)
+  if(glthread && readyAfterExport) {
     endwait(readySignal,readyLock);
+    readyAfterExport=false;        
+  }
 #endif
 }
   
@@ -439,12 +444,12 @@ void fullscreen()
 {
   Width=screenWidth;
   Height=screenHeight;
+  reshape0(Width,Height);
 #ifdef __CYGWIN__
   glutFullScreen();
 #else
   glutPositionWindow(0,0);
   glutReshapeWindow(Width,Height);
-  reshape0(Width,Height);
   glutPostRedisplay();
 #endif    
 }
@@ -454,6 +459,7 @@ void fitscreen()
   switch(Fitscreen) {
     case 0: // Original size
     {
+      Xfactor=Yfactor=1.0;
       setsize(oldWidth,oldHeight,minimumsize);
       break;
     }
@@ -470,6 +476,8 @@ void fitscreen()
     }
     case 2: // Full screen
     {
+      Xfactor=((double) screenHeight)/Height;
+      Yfactor=((double) screenWidth)/Width;
       fullscreen();
       break;
     }
@@ -493,10 +501,11 @@ void updateHandler(int)
     fitscreen();
 }
 
-void exportHandler(int)
+void autoExport()
 {
   if(!Iconify)
     glutShowWindow();
+  readyAfterExport=true;
   Export();
   if(!Iconify)
     glutHideWindow();
@@ -509,7 +518,6 @@ void reshape(int width, int height)
     if(initialize) {
       initialize=false;
       signal(SIGUSR1,updateHandler);
-      signal(SIGUSR2,exportHandler);
     }
   }
   
@@ -549,11 +557,27 @@ void display()
   }
 }
 
-void move(int x, int y)
+void shift(int x, int y)
 {
   if(x > 0 && y > 0) {
-    X += (x-x0)*Zoom;
-    Y += (y0-y)*Zoom;
+    double Zoominv=1.0/Zoom;
+    if(orthographic) {
+      cx += (x-x0)*(xmax-xmin)/Width;
+      cy += (y0-y)*(ymax-ymin)/Height;
+    } else {
+      X += (x-x0)*Zoominv;
+      Y += (y0-y)*Zoominv;
+    }
+    x0=x; y0=y;
+    update();
+  }
+}
+  
+void pan(int x, int y)
+{
+  if(x > 0 && y > 0) {
+    cx += (x-x0)*(xmax-xmin)/Width;
+    cy += (y0-y)*(ymax-ymin)/Height;
     x0=x; y0=y;
     update();
   }
@@ -586,8 +610,7 @@ void zoom(int x, int y)
     }
     Motion=true;
     static const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
-    lastzoom=Zoom;
-    double s=zoomFactorStep*(y-y0);
+    double s=zoomFactorStep*(y0-y);
     if(fabs(s) < limit) {
       Zoom *= pow(zoomFactor,s);
       capzoom();
@@ -600,11 +623,10 @@ void zoom(int x, int y)
   
 void mousewheel(int wheel, int direction, int x, int y) 
 {
-  lastzoom=Zoom;
   if(direction > 0)
-    Zoom /= zoomFactor;
-  else
     Zoom *= zoomFactor;
+  else
+    Zoom /= zoomFactor;
   
   capzoom();
   setProjection();
@@ -793,7 +815,10 @@ void mouse(int button, int state, int x, int y)
       glutMotionFunc(rotate);
     } else if(Action == "shift") {
       x0=x; y0=y;
-      glutMotionFunc(move);
+      glutMotionFunc(shift);
+    } else if(Action == "pan") {
+      x0=x; y0=y;
+      glutMotionFunc(pan);
     } else if(Action == "zoom" || Action == "zoom/menu") {
       y0=y;
       glutMotionFunc(zoom);
@@ -923,11 +948,12 @@ void spinz()
 void home() 
 {
   idle();
-  X=Y=0.0;
+  X=Y=cx=cy=0.0;
   arcball.init();
   glLoadIdentity();
   glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
-  lastzoom=Zoom=1.0;
+  Zoom=Zoom0;
+  setDimensions(Width,Height,0,0);
 }
 
 void write(const char *text, const double *v)
@@ -937,18 +963,28 @@ void write(const char *text, const double *v)
 
 void camera()
 {
-  double cz=0.5*(zmin+zmax);
   camp::Triple vCamera,vTarget,vUp;
+  
+  double Cx=cx;
+  double Cy=cy;
+  double Cz=0.5*(zmin+zmax);
   
   for(int i=0; i < 3; ++i) {
     double sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
+    int i4=4*i;
     for(int j=0; j < 4; ++j) {
-      sumCamera += T[4*i+j]*(Rotate[4*j+3]-cz*Rotate[4*j+2]);
-      sumUp += T[4*i+j]*(Rotate[4*j+3]+Rotate[4*j+1]);
-      sumTarget += T[4*i+j]*Rotate[4*j+3];
+      int j4=4*j;
+      double R0=Rotate[j4];
+      double R1=Rotate[j4+1];
+      double R2=Rotate[j4+2];
+      double R3=Rotate[j4+3];
+      double T4ij=T[i4+j];
+      sumCamera += T4ij*(R3-Cx*R0-Cy*R1-Cz*R2);
+      sumUp += T4ij*R1;
+      sumTarget += T4ij*(R3-Cx*R0-Cy*R1);
     }
     vCamera[i]=sumCamera;
-    vUp[i]=sumUp-sumTarget;
+    vUp[i]=sumUp;
     vTarget[i]=sumTarget;
   }
   
@@ -956,12 +992,23 @@ void camera()
   triple Up=triple(vUp);
   triple Target=triple(vTarget);
   
-  cout << "camera=" << Camera << "," << endl
+  pair viewportshift((X/Width+Shift.getx()*Xfactor)*Zoom,
+                     (Y/Height+Shift.gety()*Yfactor)*Zoom);
+  
+  cout << "currentprojection=" 
+       << (orthographic ? "orthographic(" : "perspective(")  << endl
+       << "camera=" << Camera << "," << endl
        << "up=" << Up << "," << endl
-       << "target=" << Target;
-//  if(Angle != 0)
-//    cout << "," << endl << "angle=" << Angle;
-  cout << endl << endl;
+       << "target=" << Target << "," << endl;
+  if(orthographic)
+    cout << "zoom=" << Zoom;
+  else {
+    cout << "angle=" << 2.0*atan(tan(0.5*Angle)/Zoom)/radians;
+    if(viewportshift != pair(0.0,0.0))
+      cout << "," << endl << "viewportshift=" << viewportshift;
+    cout << "," << endl << "autoadjust=false";
+  }
+  cout << ");" << endl << endl;
 }
 
 void keyboard(unsigned char key, int x, int y)
@@ -997,10 +1044,12 @@ void keyboard(unsigned char key, int x, int y)
       break;
     case '+':
     case '=':
+    case '>':
       expand();
       break;
     case '-':
     case '_':
+    case '<':
       shrink();
       break;
     case 17: // Ctrl-q
@@ -1078,8 +1127,8 @@ void init()
 
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
-              double width, double height,
-              double angle, const triple& m, const triple& M, double *t,
+              double width, double height, double angle, double zoom,
+              const triple& m, const triple& M, const pair& shift, double *t,
               double *background, size_t nlights, triple *lights,
               double *diffuse, double *ambient, double *specular,
               bool Viewportlighting, bool view, int oldpid)
@@ -1093,6 +1142,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   static bool initializedView=false;
   
+  if(zoom == 0.0) zoom=1.0;
+  
   Prefix=prefix;
   Picture=pic;
   Format=format;
@@ -1105,7 +1156,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Specular=specular;
   ViewportLighting=Viewportlighting;
   View=view;
-  Angle=angle;
+  Angle=angle*radians;
+  Zoom0=zoom;
   Oldpid=oldpid;
   
   Xmin=m.getx();
@@ -1114,12 +1166,20 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Ymax=M.gety();
   zmin=m.getz();
   zmax=M.getz();
-  H=angle != 0.0 ? -tan(0.5*angle*radians)*zmax : 0.0;
-   
+  
+  orthographic=Angle == 0.0;
+  if(orthographic) {
+    Shift=0.0;
+  } else {
+    H=-tan(0.5*Angle)*zmax;
+    Shift=shift/zoom;
+  }
+  
   Menu=false;
   Motion=true;
   ignorezoom=false;
   Mode=0;
+  Xfactor=Yfactor=1.0;
   
   static bool initialize=true;
 
@@ -1181,7 +1241,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
 #ifdef HAVE_LIBPTHREAD
   if(glthread && initializedView) {
-    if(!View) queueExport=true;
+    if(!View) {
+      readyAfterExport=queueExport=true;
+    }
+    
     pthread_kill(mainthread,SIGUSR1);
     return;
   }
@@ -1319,7 +1382,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     
     glutMainLoop();
   } else {
-    exportHandler(0);
+    autoExport();
     if(!glthread) quit();
   }
 }

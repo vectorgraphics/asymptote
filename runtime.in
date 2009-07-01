@@ -1779,16 +1779,18 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 }
 
 void shipout3(string prefix, picture *f, string format=emptystring,
-              real width, real height, real angle, triple m, triple M,
-              realarray2 *t, realarray *background, triplearray *lights,
-              realarray2 *diffuse, realarray2 *ambient, realarray2 *specular,
+              real width, real height, real angle, real zoom,
+              triple m, triple M, pair shift, realarray2 *t,
+              realarray *background, triplearray *lights, realarray2 *diffuse,
+              realarray2 *ambient, realarray2 *specular,
               bool viewportlighting, bool view=true)
 {
   size_t n=checkArrays(lights,diffuse);
   checkEqual(n,checkArray(ambient));
   checkEqual(n,checkArray(specular));
   
-  f->shipout3(prefix,format,width,height,angle,m,M,copyArray2C(t,true,4),
+  f->shipout3(prefix,format,width,height,angle,zoom,m,M,shift,
+              copyArray2C(t,true,4),
               copyArrayC(background),n,copyTripleArrayC(lights),
               copyArray2C(diffuse,false,4),copyArray2C(ambient,false,4),
               copyArray2C(specular,false,4),viewportlighting,view);

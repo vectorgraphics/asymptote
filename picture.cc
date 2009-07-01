@@ -736,8 +736,10 @@ struct Communicate : public gc {
   double width;
   double height;
   double angle;
+  double zoom;
   triple m;
   triple M;
+  pair shift;
   double *t;
   double *background;
   size_t nlights;
@@ -759,14 +761,15 @@ void glrenderWrapper()
   endwait(initSignal,initLock);
 #endif  
   glrender(com.prefix,com.pic,com.format,com.width,com.height,com.angle,
-           com.m,com.M,com.t,com.background,com.nlights,com.lights,com.diffuse,
-           com.ambient,com.specular,com.viewportlighting,com.view);
+           com.zoom,com.m,com.M,com.shift,com.t,com.background,com.nlights,
+           com.lights,com.diffuse,com.ambient,com.specular,com.viewportlighting,
+           com.view);
 #endif  
 }
 
 bool picture::shipout3(const string& prefix, const string& format,
-                       double width, double height,
-                       double angle, const triple& m, const triple& M,
+                       double width, double height, double angle, double zoom,
+                       const triple& m, const triple& M, const pair& shift,
                        double *t, double *background, size_t nlights,
                        triple *lights, double *diffuse, double *ambient,
                        double *specular, bool viewportlighting, bool view)
@@ -795,8 +798,10 @@ bool picture::shipout3(const string& prefix, const string& format,
       com.width=width;
       com.height=height;
       com.angle=angle;
+      com.zoom=zoom;
       com.m=m;
       com.M=M;
+      com.shift=shift;
       com.t=t;
       com.background=background;
       com.nlights=nlights;
@@ -840,9 +845,9 @@ bool picture::shipout3(const string& prefix, const string& format,
     }
   }
   
-    glrender(prefix,this,outputformat,width,height,angle,m,M,t,background,
-           nlights,lights,diffuse,ambient,specular,viewportlighting,View,
-           oldpid);
+  glrender(prefix,this,outputformat,width,height,angle,zoom,m,M,shift,t,
+           background,nlights,lights,diffuse,ambient,specular,viewportlighting,
+           View,oldpid);
 #ifdef HAVE_LIBPTHREAD
     if(glthread && Wait) {
     pthread_cond_wait(&readySignal,&readyLock);

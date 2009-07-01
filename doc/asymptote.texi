@@ -7473,7 +7473,7 @@ maximum screen dimension. The default settings
 @cindex mouse bindings
 @verbatim
 import settings;
-leftbutton=new string[] {"rotate","zoom","shift",""};
+leftbutton=new string[] {"rotate","zoom","shift","pan"};
 middlebutton=new string[] {"menu"};
 rightbutton=new string[] {"zoom/menu","rotateX","rotateY","rotateZ"};
 wheelup=new string[] {"zoomin"};
@@ -7483,7 +7483,8 @@ bind the mouse buttons as follows:
 @itemize
 @item Left: rotate
 @item Shift Left: zoom
-@item Ctrl Left: shift
+@item Ctrl Left: shift viewport
+@item Alt Left: pan
 @item Middle: menu
 @item Wheel Up: zoom in
 @item Wheel Down: zoom out
@@ -7508,8 +7509,10 @@ The keyboard shortcuts are:
 @item c: show camera parameters
 @item +: expand
 @item =: expand
+@item >: expand
 @item -: shrink
 @item _: shrink
+@item <: shrink
 @item q: exit
 @item Ctrl-q: exit
 @end itemize
@@ -7663,7 +7666,7 @@ along with the surfaces @code{unitdisk}, @code{unitplane}, @code{unitcube},
 These projections to two dimensions are predefined:
 @table @code
 @item oblique
-@item oblique(real angle);
+@item oblique(real angle)
 @cindex @code{oblique}
 @cindex @code{obliqueZ}
 The point @code{(x,y,z)} is projected to @code{(x-0.5z,y-0.5z)}.
@@ -7690,7 +7693,7 @@ positive @math{y} axis is drawn at this angle in degrees.
 @cindex @code{target}
 @cindex @code{showtarget}
 @cindex @code{center}
-@item orthographic(triple camera, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool center=false)
+@item orthographic(triple camera, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ real zoom=1, bool showtarget=true, bool center=false)
 This projects from three to two dimensions using the view as seen at a point
 infinitely far away in the direction @code{unit(camera)}, orienting the camera
 so that, if possible, the vector @code{up} points upwards. Parallel
@@ -7699,12 +7702,12 @@ to include @code{target} if @code{showtarget=true}.
 If @code{center=true}, the target will be adjusted to the center of the 
 bounding volume. 
 
-@item orthographic(real x, real y, real z, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool center=false)
+@item orthographic(real x, real y, real z, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ @ real zoom=1, bool showtarget=true, bool center=false)
 This is equivalent to 
-@code{orthographic((x,y,z),up,target,showtarget,center)}.
+@code{orthographic((x,y,z),up,target,zoom,showtarget,center)}.
 
 @cindex @code{autoadjust}
-@item perspective(triple camera, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool autoadjust=true, @*@ @ @ @ @ @ @ @ @ @ @ @ bool center=autoadjust)
+@item perspective(triple camera, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ real zoom=1, real angle=0, pair viewportshift=0, @*@ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool autoadjust=true, @*@ @ @ @ @ @ @ @ @ @ @ @ bool center=autoadjust)
 @cindex @code{perspective}
 @cindex @code{NURBS}
 This projects from three to two dimensions, taking account of
@@ -7719,9 +7722,12 @@ for all possible interactive rotations about @code{target}.
 If @code{center=true}, the target will be adjusted to the center of the 
 bounding volume. 
 
-@item perspective(real x, real y, real z, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool autoadjust=true, @*@ @ @ @ @ @ @ @ @ @ @ @ bool center=autoadjust)
-This is equivalent to @code{perspective((x,y,z),up,target,showtarget,
-autoadjust,center)}.
+@item perspective(real x, real y, real z, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ real zoom=1, real angle=0, pair viewportshift=0, @*@ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool autoadjust=true, @*@ @ @ @ @ @ @ @ @ @ @ @ bool center=autoadjust)
+This is equivalent to 
+@verbatim 
+perspective((x,y,z),up,target,zoom,angle,viewportshift,showtarget,
+            autoadjust,center)
+@end verbatim
 @end table
 
 @cindex @code{currentprojection}
@@ -9225,7 +9231,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt DefaultHead
 @c  LocalWords:  SimpleHead HookHead TeXHead multipage NURBS inlinemovie dxmax
 @c  LocalWords:  simpson NoBox truesize autoscale shadestroke recurses mintimes
-@c  LocalWords:  nonoverlapping texengine maxtimes maxheight pdb
+@c  LocalWords:  nonoverlapping texengine maxtimes maxheight pdb TEXMFCONFIG
 @c  LocalWords:  piecewisestraight unitrand graphmarkers antialias nolight newl
 @c  LocalWords:  Delaunay Shewchuk convertOptions APPDATA pdfreload tempFile
 @c  LocalWords:  pdfreloadOptions deferred OpenGL Phong Blinn renderer unitbox
@@ -9250,4 +9256,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  vectorfieldsphere RightView FrontView BackView BottomView
 @c  LocalWords:  addViews outprefix addAllViews xsplinetype ysplinetype rotateX
 @c  LocalWords:  usplinetype vsplinetype leftbutton middlebutton rightbutton
-@c  LocalWords:  rotateY rotateZ wheelup zoomin wheeldown zoomout
+@c  LocalWords:  rotateY rotateZ wheelup zoomin wheeldown zoomout TeXLive
+@c  LocalWords:  viewportshift

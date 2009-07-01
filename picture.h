@@ -90,11 +90,11 @@ public:
               const triple &Min, const triple& Max, double perspective,
               bool transparent) const;
   bool shipout3(const string& prefix, const string& format,
-                double width, double height, double angle, const triple& m,
-                const triple& M, double *t, double *background,
-                size_t nlights, triple *lights, double *diffuse,
-                double *ambient, double *specular, bool viewportlighting,
-                bool view);
+                double width, double height, double angle, double zoom,
+                const triple& m, const triple& M, const pair& shift, double *t,
+                double *background, size_t nlights, triple *lights,
+                double *diffuse, double *ambient, double *specular,
+                bool viewportlighting, bool view);
   
   bool shipout3(const string& prefix); // Embedded PRC
   

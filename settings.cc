@@ -947,11 +947,13 @@ void initSettings() {
 // LEFT: rotate
 // SHIFT LEFT: zoom
 // CTRL LEFT: shift
+// ALT LEFT: pan
   
-  array *leftbutton=new array(3);
+  array *leftbutton=new array(4);
   (*leftbutton)[0]=string("rotate");
   (*leftbutton)[1]=string("zoom");
   (*leftbutton)[2]=string("shift");
+  (*leftbutton)[3]=string("pan");
   
 // MIDDLE: menu
   
