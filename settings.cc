@@ -965,7 +965,7 @@ void initSettings() {
 // ALT RIGHT: rotateZ
   
   array *rightbutton=new array(4);
-  (*rightbutton)[0]=string("zoom/menu");
+  (*rightbutton)[0]=string("zoom");
   (*rightbutton)[1]=string("rotateX");
   (*rightbutton)[2]=string("rotateY");
   (*rightbutton)[3]=string("rotateZ");
@@ -1239,8 +1239,8 @@ void initDir() {
   if(getSetting<string>("sysdir").empty()) {
     string s=lookup("SELFAUTOPARENT");
     if(s.size() > 1) {
-      s.append(dirsep+"texmf"+dirsep+"asymptote");
-      Setting("sysdir")=s;
+      docdir=s+dirsep+"share"+dirsep+"doc"+dirsep+"asymptote";
+      Setting("sysdir")=s+dirsep+"texmf"+dirsep+"asymptote";
       s=lookup("TEXMFCONFIG");
       if(s.size() > 1)
         initdir=s+dirsep+"asymptote";
@@ -1451,13 +1451,15 @@ void setOptions(int argc, char *argv[])
   // Build settings module.
   initSettings();
   
-  // Read command-line options initially to obtain config, dir, and verbose.
+  // Read command-line options initially to obtain config, dir, sysdir, verbose.
   getOptions(argc,argv);
   
   // Make configuration and history directory
   initDir();
   
   Int Verbose=verbose;
+  string sysdir=getSetting<string>("sysdir");
+  
   resetOptions();
   
   // Read user configuration file.
@@ -1474,6 +1476,8 @@ void setOptions(int argc, char *argv[])
   
   // Read command-line options again to override configuration file defaults.
   getOptions(argc,argv);
+  
+  Setting("sysdir")=sysdir;
   
 #ifdef USEGC
   if(verbose == 0 && !getSetting<bool>("debug")) GC_set_warn_proc(no_GCwarn);
