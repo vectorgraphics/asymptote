@@ -1281,11 +1281,25 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif      
 #endif      
       string title=string(settings::PROGRAM)+": "+prefix;
+      string suffix;
       for(size_t i=0; i < nbuttons; ++i) {
         int button=buttons[i];
-        if(action(button,0) == "zoom/menu")
-          title += " [Double click "+buttonnames[i]+" button for menu]";
+        if(action(button,0) == "menu") {
+          suffix="Click "+buttonnames[i]+" button for menu";
+          break;
+        }
       }
+      if(suffix.empty()) {
+        for(size_t i=0; i < nbuttons; ++i) {
+          int button=buttons[i];
+          if(action(button,0) == "zoom/menu") {
+            suffix="Double click "+buttonnames[i]+" button for menu";
+            break;
+          }
+        }
+      }
+      
+      title += " ["+suffix+"]";
     
       window=glutCreateWindow(title.c_str());
       GLint samplebuf[1];
