@@ -171,7 +171,6 @@ void queryRegistry()
   docdir=getEntry("Microsoft/Windows/CurrentVersion/App Paths/Asymptote/Path");
   if(!systemDir.empty()) // An empty systemDir indicates a TeXLive build
     systemDir=docdir;
-  defaultXasy=asyInstallDir+"\\"+defaultXasy;
 }
   
 #endif  
