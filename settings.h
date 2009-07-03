@@ -44,6 +44,7 @@ extern const char BUGREPORT[];
 
 extern char *argv0;
 
+bool warn(const string& s);
 extern string systemDir;
 extern string docdir;
 extern const string dirsep;

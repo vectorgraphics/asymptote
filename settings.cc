@@ -67,6 +67,8 @@ void doConfig(string filename);
 
 namespace settings {
   
+mem::list<string> Warn;
+
 using camp::pair;
   
 #ifdef HAVE_LIBGL
@@ -214,6 +216,18 @@ types::dummyRecord *settingsModule;
 
 types::record *getSettingsModule() {
   return settingsModule;
+}
+
+mem::list<string>::iterator warnIterator(const string& s)
+{
+  for(mem::list<string>::iterator p=Warn.begin(); p != Warn.end(); ++p)
+    if(*p == s) return p;
+  return Warn.end();
+}
+
+bool warn(const string& s)
+{
+  return warnIterator(s) != Warn.end();
 }
 
 // The dictionaries of long options and short options.
@@ -510,6 +524,45 @@ struct userSetting : public argumentSetting {
   }
 };
 
+struct warnSetting : public argumentSetting {
+  warnSetting(string name, char code,
+              string argname, string desc,
+              string defaultValue)
+    : argumentSetting(name, code, argname, desc,
+                  types::primString(), (item)defaultValue) {}
+
+  bool getOption() {
+    mem::list<string>::iterator i=warnIterator(optarg);
+    if(i == Warn.end()) Warn.push_back(string(optarg));
+    return true;
+  }
+  
+  option *negation(string name) {
+    struct negOption : public option {
+      warnSetting &base;
+
+      negOption(warnSetting &base, string name, string argname)
+        : option(name, 0, argname, ""), base(base) {}
+
+      bool getOption() {
+        mem::list<string>::iterator i=warnIterator(optarg);
+        if(i != Warn.end()) Warn.erase(i);
+        return true;
+      }
+    };
+    return new negOption(*this, name, argname);
+  }
+  
+  void add() {
+    setting::add();
+    negation("no"+name)->add();
+    if (code) {
+      string nocode="no"; nocode.push_back(code);
+      negation(nocode)->add();
+    }
+  }
+};
+
 string GetEnv(string s, string Default) {
   transform(s.begin(), s.end(), s.begin(), toupper);        
   string t=Getenv(("ASYMPTOTE_"+s).c_str(),msdos);
@@ -598,8 +651,8 @@ struct alignSetting : public argumentSetting {
   }
 };
 
-struct ButtonSetting : public itemSetting {
-  ButtonSetting(string name, array *defaultValue)
+struct stringArraySetting : public itemSetting {
+  stringArraySetting(string name, array *defaultValue)
     : itemSetting(name, 0, "", "",
                   types::stringArray(), (item) defaultValue) {}
 
@@ -980,11 +1033,13 @@ void initSettings() {
   array *wheeldown=new array(1);
   (*wheeldown)[0]=string("zoomout");
   
-  addOption(new ButtonSetting("leftbutton", leftbutton));
-  addOption(new ButtonSetting("middlebutton", middlebutton));
-  addOption(new ButtonSetting("rightbutton", rightbutton));
-  addOption(new ButtonSetting("wheelup", wheelup));
-  addOption(new ButtonSetting("wheeldown", wheeldown));
+  addOption(new stringArraySetting("leftbutton", leftbutton));
+  addOption(new stringArraySetting("middlebutton", middlebutton));
+  addOption(new stringArraySetting("rightbutton", rightbutton));
+  addOption(new stringArraySetting("wheelup", wheelup));
+  addOption(new stringArraySetting("wheeldown", wheeldown));
+  
+  addOption(new warnSetting("warn", 'w', "string", "Enable warning", ""));
   
   multiOption *view=new multiOption("View", 'V', "View output");
   view->add(new boolSetting("batchView", 0, "View output in batch mode",

@@ -80,7 +80,7 @@ exp *tryToWriteExp(coenv &e, exp *body)
         else {
           // Issue a warning if the act of writing turns an ambiguous expression
           // into an unambiguous one.
-          if (t->kind == ty_overloaded) {
+          if (t->kind == ty_overloaded && settings::warn("writeoverloaded")) {
             em.warning(body->getPos());
             em << "writing overloaded";
             if (body->getName())
