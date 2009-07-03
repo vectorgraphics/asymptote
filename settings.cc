@@ -227,7 +227,7 @@ mem::list<string>::iterator warnIterator(const string& s)
 
 bool warn(const string& s)
 {
-  return warnIterator(s) != Warn.end();
+  return getSetting<bool>("debug") || warnIterator(s) != Warn.end();
 }
 
 // The dictionaries of long options and short options.
