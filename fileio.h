@@ -47,6 +47,7 @@ protected:
   bool wordmode;   // Delimit strings by white space instead of eol.
   bool singlereal; // Read/write single-precision XDR/binary reals.
   bool singleint;  // Read/write single-precision XDR/binary ints.
+  bool signedint;  // Read/write signed XDR/binary ints.
   bool closed;     // File has been closed.
   bool check;      // Check whether input file exists.
   bool standard;   // Standard input/output
@@ -91,7 +92,7 @@ public:
   file(const string& name, bool check=true, bool binary=false,
        bool closed=false) : 
     name(name), linemode(false), csvmode(false),
-    singlereal(false), singleint(true),
+    singlereal(false), singleint(true), signedint(true),
     closed(closed), check(check), standard(name.empty()),
     binary(binary), nullfield(false), whitespace("") {dimension();}
   
@@ -214,6 +215,9 @@ public:
   
   void SingleInt(bool b) {singleint=b;}
   bool SingleInt() {return singleint;}
+  
+  void SignedInt(bool b) {signedint=b;}
+  bool SignedInt() {return signedint;}
 };
 
 class ifile : public file {
@@ -422,8 +426,13 @@ public:
   
   void Read(bool& val) {iread(val);}
   void Read(Int& val) {
-    if(singleint) {int ival; iread(ival); val=ival;}
-    else iread(val);
+    if(signedint) {
+      if(singleint) {int ival; iread(ival); val=ival;}
+      else iread(val);
+    } else {
+      if(singleint) {unsigned ival; iread(ival); val=Intcast(ival);}
+      else {unsignedInt ival; iread(ival); val=Intcast(ival);}
+    }
   }
   void Read(char& val) {iread(val);}
   void Read(string& val) {iread(val);}
@@ -448,8 +457,13 @@ public:
   
   void write(bool val) {iwrite(val);}
   void write(Int val) {
-    if(singleint) iwrite(intcast(val));
-    else iwrite(val);
+    if(signedint) {
+      if(singleint) iwrite(intcast(val));
+      else iwrite(val);
+    } else {
+      if(singleint) iwrite(unsignedcast(val));
+      else iwrite(unsignedIntcast(val));
+    }
   }
   void write(const string& val) {iwrite(val);}
   void write(const pen& val) {iwrite(val);}
@@ -482,8 +496,13 @@ public:
   
   void write(bool val) {iwrite(val);}
   void write(Int val) {
-    if(singleint) iwrite(intcast(val));
-    else iwrite(val);
+    if(signedint) {
+      if(singleint) iwrite(intcast(val));
+      else iwrite(val);
+    } else {
+      if(singleint) iwrite(unsignedcast(val));
+      else iwrite(unsignedIntcast(val));
+    }
   }
   void write(const string& val) {iwrite(val);}
   void write(const pen& val) {iwrite(val);}
@@ -557,10 +576,12 @@ public:
   }
   
   void Read(Int& val) {
-    if(singleint) {int ival=0; *fstream >> ival; val=ival;}
-    else {
-      val=0;
-      *fstream >> val;
+    if(signedint) {
+      if(singleint) {int ival=0; *fstream >> ival; val=ival;}
+      else {val=0; *fstream >> val;}
+    } else {
+      if(singleint) {unsigned ival=0; *fstream >> ival; val=Intcast(ival);}
+      else {unsignedInt ival=0; *fstream >> ival; val=Intcast(ival);}
     }
   }
   void Read(double& val) {
@@ -592,8 +613,13 @@ public:
   void flush() {if(fstream) fstream->flush();}
   
   void write(Int val) {
-    if(singleint) *fstream << intcast(val);
-    else *fstream << val;
+    if(signedint) {
+      if(singleint) *fstream << intcast(val);
+      else *fstream << val;
+    } else {
+      if(singleint) *fstream << unsignedcast(val);
+      else *fstream << unsignedIntcast(val);
+    }
   }
   void write(double val) {
     if(singlereal) *fstream << (float) val;
@@ -655,8 +681,13 @@ public:
   }
   
   void write(Int val) {
-    if(singleint) *fstream << intcast(val);
-    else *fstream << val;
+    if(signedint) {
+      if(singleint) *fstream << intcast(val);
+      else *fstream << val;
+    } else {
+      if(singleint) *fstream << unsignedcast(val);
+      else *fstream << unsignedIntcast(val);
+    }
   }
   void write(double val) {
     if(singlereal) *fstream << (float) val;

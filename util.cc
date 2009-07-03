@@ -378,16 +378,33 @@ void popupHelp() {
   }
 }
 
+const char *intrange="integer argument is outside valid range";
+const char *uintrange="integer argument is outside valid unsigned range";
+
 unsigned unsignedcast(Int n)
 {
   if(n < 0 || n/2 > INT_MAX)
-    vm::error("Unsigned integer argument is outside valid range");
+    vm::error(uintrange);
   return (unsigned) n;
+}
+
+unsignedInt unsignedIntcast(Int n)
+{
+  if(n < 0)
+    vm::error(uintrange);
+  return (unsignedInt) n;
 }
 
 int intcast(Int n)
 {
   if(Abs(n) > INT_MAX)
-    vm::error("Integer argument is outside valid range");
+    vm::error(intrange);
   return (int) n;
+}
+
+Int Intcast(unsignedInt n)
+{
+  if(n > (unsignedInt) Int_MAX)
+    vm::error(intrange);
+  return (Int) n;
 }

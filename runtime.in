@@ -5911,45 +5911,36 @@ file* line(file *File, bool b=true)
   return File;
 }
 
-// Set file to read/write single-precision XDR values.
-file* single(file *File, bool b=true)
-{
-  File->SingleReal(b);
-  File->SingleInt(b);
-  return File;
-}
-
 // Set file to read/write single-precision real XDR values.
-file* single(file *File, real x, bool b=true)
+file* single(file *File, bool single=true)
 {
-  File->SingleReal(b);
-  unused(&x);
+  File->SingleReal(single);
   return File;
 }
 
-// Set file to read/write single-precision int XDR values.
-file* single(file *File, Int x, bool b=true)
+// Set file to read/write signed and/or single-precision int XDR values.
+file* single(bool signedint, file *File, bool single=true)
 {
-  File->SingleInt(b);
-  unused(&x);
+  File->SignedInt(signedint);
+  File->SingleInt(single);
   return File;
 }
 
-// Set file to read an array1 (1 Int size followed by a 1d array)
+// Set file to read an array1 (1 int size followed by a 1d array)
 file* read1(file *File) 
 {
   File->dimension(-2);
   return File;
 }
 
-// Set file to read an array2 (2 Int sizes followed by a 2d array)
+// Set file to read an array2 (2 int sizes followed by a 2d array)
 file* read2(file *File) 
 {
   File->dimension(-2,-2);
   return File;
 }
 
-// Set file to read an array3 (3 Int sizes followed by a 3d array)
+// Set file to read an array3 (3 int sizes followed by a 3d array)
 file* read3(file *File) 
 {
   File->dimension(-2,-2,-2);

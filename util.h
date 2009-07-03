@@ -122,6 +122,8 @@ inline Int Abs(Int x) {
 }
 
 unsigned unsignedcast(Int n);
+unsignedInt unsignedIntcast(Int n);
 int intcast(Int n);
-  
+Int Intcast(unsignedInt n);
+
 #endif

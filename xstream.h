@@ -134,8 +134,9 @@ public:
   IXSTREAM(int,int);
   IXSTREAM(unsigned int,u_int);
   IXSTREAM(long,long);
-  IXSTREAM(long long,longlong_t);
   IXSTREAM(unsigned long,u_long);
+  IXSTREAM(long long,longlong_t);
+  IXSTREAM(unsigned long long,u_longlong_t);
   IXSTREAM(short,short);
   IXSTREAM(unsigned short,u_short);
   IXSTREAM(char,char);
@@ -186,8 +187,9 @@ public:
   OXSTREAM(int,int);
   OXSTREAM(unsigned int,u_int);
   OXSTREAM(long,long);
-  OXSTREAM(long long,longlong_t);
   OXSTREAM(unsigned long,u_long);
+  OXSTREAM(long long,longlong_t);
+  OXSTREAM(unsigned long long,u_longlong_t);
   OXSTREAM(short,short);
   OXSTREAM(unsigned short,u_short);
   OXSTREAM(char,char);

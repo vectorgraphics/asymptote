@@ -28,16 +28,19 @@
 #define Int_MAX LONG_LONG_MAX
 #define Int_MIN LONG_LONG_MIN
 typedef long long Int;
+typedef unsigned long long unsignedInt;
 #else
 #undef HAVE_LONG_LONG
 #ifdef HAVE_LONG
 #define Int_MAX LONG_MAX
 #define Int_MIN LONG_MIN
 typedef long Int;
+typedef unsigned long unsignedInt;
 #else
 #define Int_MAX INT_MAX
 #define Int_MIN INT_MIN
-#define Int int
+typedef int Int;
+typedef unsigned int unsignedInt;
 #endif
 #endif
 

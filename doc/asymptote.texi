@@ -3643,15 +3643,13 @@ Data Representation) portable binary format (available on all
 @code{UNIX} platforms).
 A file may also be opened with @code{binput} or @code{boutput} to read
 or write double precision values in the native (nonportable)
-machine binary format. The function @code{file single(file,0.0)} may
-be used to set a file to read single precision real @acronym{XDR} or binary
-values; calling @code{file single(file,0.0,false)} sets it back to read
-doubles again. The functions @code{file single(file,0)} and
-@code{file single(file,0,false)} can be used to change the default
-integer precision (single). The functions @code{file 
-single(file)} and @code{file single(file,false)} may be used to set the
-precision for both real and integer values.
-
+machine binary format. The function @code{file single(file,false)} may
+be used to set a file to read and write double-precision real
+values in the @acronym{XDR} or binary format; calling @code{file single(file)}
+sets the file back to the default single-precision mode.
+The function @code{file single(bool signedint, file, bool single=false)}
+can be used to change both the input/output integer signedness and precision
+in the @acronym{XDR} or binary format.
 @cindex @code{eof}
 @cindex @code{eol}
 @cindex @code{error}
@@ -9259,4 +9257,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  addViews outprefix addAllViews xsplinetype ysplinetype rotateX
 @c  LocalWords:  usplinetype vsplinetype leftbutton middlebutton rightbutton
 @c  LocalWords:  rotateY rotateZ wheelup zoomin wheeldown zoomout TeXLive
-@c  LocalWords:  viewportshift
+@c  LocalWords:  viewportshift signedint signedness
