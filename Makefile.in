@@ -145,6 +145,7 @@ keywords.cc: keywords.pl camp.l
 envcompleter.d: keywords.cc
 
 asy-keywords.el: asy
+	@echo Creating $@;
 	$(ASY) -l > asy.list
 	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | \
           grep -v three_\* | grep -v featpost3D | xargs $(ASY) -l >> asy.list
