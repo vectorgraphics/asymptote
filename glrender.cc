@@ -500,7 +500,6 @@ void togglefitscreen()
 
 void updateHandler(int)
 {
-  initlighting();
   update();
   glutShowWindow();
   glutShowWindow(); // Call twice to work around apparent freeglut bug.
@@ -560,6 +559,7 @@ void home()
   glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
   lastzoom=Zoom=Zoom0;
   setDimensions(Width,Height,0,0);
+  initlighting();
 }
 
 void quit() 
@@ -1420,7 +1420,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   gluNurbsCallback(nurb,GLU_NURBS_COLOR,(_GLUfuncptr) glColor4fv);
   mode();
   
-  initlighting();
   if(View) {
     initializedView=true;
     glutReshapeFunc(reshape);
