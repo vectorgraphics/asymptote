@@ -53,9 +53,16 @@ using camp::bbox3;
 using settings::getSetting;
 using settings::Setting;
 
+// For now, don't use POSIX timers by default due to portability issues.
+#ifdef HAVE_POSIX_TIMERS
 static timer_t timerid;
-static struct itimerspec value;
-static const int milliseconds=1000000; // In nanoseconds.
+static struct itimerspec Timeout;
+#else
+static struct itimerval Timeout;
+#endif
+
+static const double milliseconds=1000.0; // In microseconds.
+timeval lasttime;
 
 double Aspect;
 bool View;
@@ -527,11 +534,40 @@ void reshape(int width, int height)
   reshape0(width,height);
 }
   
+void initTimer() 
+{
+  gettimeofday(&lasttime,NULL);
+}
+
+void idleFunc(void (*f)())
+{
+  initTimer();
+  glutIdleFunc(f);
+}
+
+void idle() 
+{
+  glutIdleFunc(NULL);
+  Xspin=Yspin=Zspin=false;
+}
+
+void home() 
+{
+  idle();
+  X=Y=cx=cy=0.0;
+  arcball.init();
+  glLoadIdentity();
+  glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
+  lastzoom=Zoom=Zoom0;
+  setDimensions(Width,Height,0,0);
+}
+
 void quit() 
 {
   if(glthread) {
+    home();
     glutHideWindow();
-#ifdef HAVE_LIBPTHREAD
+ #ifdef HAVE_LIBPTHREAD
     if(!interact::interactive)
       endwait(readySignal,readyLock);
 #endif    
@@ -797,22 +833,31 @@ void timeout(int)
 
 void init_timeout()
 {
-  struct sigaction action;
+  static struct sigaction action;
   action.sa_handler=timeout;
   sigemptyset(&action.sa_mask);
   action.sa_flags=0;
-  value.it_value.tv_sec=0;
-  value.it_interval.tv_sec=0;
-  value.it_interval.tv_nsec=0;
-  timer_create (CLOCK_REALTIME,NULL,&timerid);
   sigaction(SIGALRM,&action,NULL);
+  
+  Timeout.it_value.tv_sec=Timeout.it_interval.tv_sec=0;
+#ifdef HAVE_POSIX_TIMERS
+  timer_create (CLOCK_REALTIME,NULL,&timerid);
+  Timeout.it_interval.tv_nsec=0;
+#else  
+  Timeout.it_interval.tv_usec=0;
+#endif  
 }
 
-void set_timeout(int nanoseconds)
+void set_timeout(int microseconds)
 {
-  if(nanoseconds >= 0) {
-    value.it_value.tv_nsec=nanoseconds;
-    timer_settime(timerid,0,&value,NULL);
+  if(microseconds >= 0) {
+#ifdef HAVE_POSIX_TIMERS
+    Timeout.it_value.tv_nsec=1000*microseconds;
+    timer_settime(timerid,0,&Timeout,NULL);
+#else
+    Timeout.it_value.tv_usec=microseconds;
+    setitimer(ITIMER_REAL,&Timeout,NULL);
+#endif    
   }
 }
 
@@ -838,7 +883,7 @@ void mouse(int button, int state, int x, int y)
       glutMotionFunc(NULL);
       glutAttachMenu(button);
       Menu=true;
-      set_timeout(getSetting<Int>("doubleclick")*milliseconds);
+      set_timeout((int) (getSetting<double>("doubleclick")*milliseconds));
       return;
     }
   }
@@ -869,8 +914,6 @@ void mouse(int button, int state, int x, int y)
   }
 }
 
-timeval lasttime;
-
 double spinstep() 
 {
   timeval tv;
@@ -897,11 +940,6 @@ void zspin()
   rotateZ(spinstep());
 }
 
-void initTimer() 
-{
-  gettimeofday(&lasttime,NULL);
-}
-
 void expand() 
 {
   double resizeStep=getSetting<double>("resizestep");
@@ -915,12 +953,6 @@ void shrink()
  if(resizeStep > 0.0)
    setsize(max((int) (Width/resizeStep+0.5),1),
            max((int) (Height/resizeStep+0.5),1));
-}
-
-void idleFunc(void (*f)())
-{
-  initTimer();
-  glutIdleFunc(f);
 }
 
 void mode() 
@@ -946,12 +978,6 @@ void mode()
       break;
   }
   glutPostRedisplay();
-}
-
-void idle() 
-{
-  glutIdleFunc(NULL);
-  Xspin=Yspin=Zspin=false;
 }
 
 void spinx() 
@@ -985,17 +1011,6 @@ void spinz()
     Zspin=true;
     Xspin=Yspin=false;
   }
-}
-
-void home() 
-{
-  idle();
-  X=Y=cx=cy=0.0;
-  arcball.init();
-  glLoadIdentity();
-  glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
-  lastzoom=Zoom=Zoom0;
-  setDimensions(Width,Height,0,0);
 }
 
 void write(const char *text, const double *v)
@@ -1280,10 +1295,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
 #ifdef HAVE_LIBPTHREAD
   if(glthread && initializedView) {
-    if(!View) {
+    if(!View)
       readyAfterExport=queueExport=true;
-    }
-    
     pthread_kill(mainthread,SIGUSR1);
     return;
   }

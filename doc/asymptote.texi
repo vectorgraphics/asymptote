@@ -7535,8 +7535,8 @@ limited by the setting @code{maxviewport}, which restricts the maximum
 width and height of the viewport. On @code{UNIX} systems some graphics
 drivers support batch mode (@code{-noV}) rendering in an
 iconified window; this can be enabled with the setting @code{iconify=true}.
-Other @code{UNIX} graphics drivers may require the command line setting
-@code{-glOptions=-indirect}.
+Some (broken) @code{UNIX} graphics drivers may require the command line setting
+@code{-glOptions=-indirect}, which requests (slower) indirect rendering.
 
 @cindex @code{prc}
 @cindex @code{views}
