@@ -154,6 +154,8 @@ void *asymain(void *A)
     int status;
     while(wait(&status) > 0);
   }
+  if(gl::glthread)
+    pthread_kill(gl::mainthread,SIGINT);
   exit(em.processStatus() || interact::interactive ? 0 : 1);  
 }
 
