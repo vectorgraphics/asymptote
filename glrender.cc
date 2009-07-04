@@ -818,7 +818,8 @@ void set_timeout(int nanoseconds)
 
 void mouse(int button, int state, int x, int y)
 {
-  string Action=action(button,glutGetModifiers());
+  int mod=glutGetModifiers();
+  string Action=action(button,mod);
 
   if(Action == "zoomin") {
     glutMotionFunc(NULL);
@@ -831,7 +832,7 @@ void mouse(int button, int state, int x, int y)
     return;
   }     
   
-  if(Action == "zoom/menu") {
+  if(Action == "zoom/menu" && mod == 0) {
     if(state == GLUT_UP && !Motion) {
       MenuButton=button;
       glutMotionFunc(NULL);

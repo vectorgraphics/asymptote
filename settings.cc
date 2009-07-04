@@ -1007,12 +1007,12 @@ void initSettings() {
   (*leftbutton)[2]=string("shift");
   (*leftbutton)[3]=string("pan");
   
-// MIDDLE: menu (ignores Shift, Ctrl, and Alt modifiers)
+// MIDDLE: menu (must be unmodified; ignores Shift, Ctrl, and Alt)
   
   array *middlebutton=new array(1);
   (*middlebutton)[0]=string("menu");
   
-// RIGHT: zoom/menu
+// RIGHT: zoom/menu (must be unmodified)
 // SHIFT RIGHT: rotateX
 // CTRL RIGHT: rotateY
 // ALT RIGHT: rotateZ
