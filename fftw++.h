@@ -18,7 +18,7 @@
 #ifndef __fftwpp_h__
 #define __fftwpp_h__ 1
 
-#define __FFTWPP_H_VERSION__ 1.03
+#define __FFTWPP_H_VERSION__ 1.04
 
 #include <cstdlib>
 #include <fstream>
@@ -78,13 +78,13 @@ inline void FFTWdelete(T *p)
   fftw_free(alloc);
 }
 
-inline void fftw_export_wisdom(void (*emitter)(char c, std::ofstream& s),
+inline void fftwpp_export_wisdom(void (*emitter)(char c, std::ofstream& s),
                                std::ofstream& s)
 {
   fftw_export_wisdom((void (*) (char, void *)) emitter,(void *) &s);
 }
 
-inline int fftw_import_wisdom(int (*g)(std::ifstream& s), std::ifstream &s)
+inline int fftwpp_import_wisdom(int (*g)(std::ifstream& s), std::ifstream &s)
 {
   return fftw_import_wisdom((int (*) (void *)) g,(void *) &s);
 }
@@ -101,8 +101,8 @@ protected:
   double norm;
   bool shift;
 
-  bool inplace;
   fftw_plan plan;
+  bool inplace;
   
   static unsigned int effort;
   static bool Wise;
@@ -154,9 +154,10 @@ protected:
 
 public:
   fftw(unsigned int size, int sign, unsigned int n=0) : 
-    size(size), sign(sign), norm(1.0/(n ? n : size)), shift(false) {}
+    size(size), sign(sign), norm(1.0/(n ? n : size)), shift(false), plan(NULL)
+  {}
   
-  virtual ~fftw() {}
+  virtual ~fftw() {if(plan) fftw_destroy_plan(plan);}
   
   virtual fftw_plan Plan(Complex *in, Complex *out)=0;
   
@@ -193,14 +194,14 @@ public:
   
   void LoadWisdom() {
     ifWisdom.open(WisdomName);
-    fftw_import_wisdom(GetWisdom,ifWisdom);
+    fftwpp_import_wisdom(GetWisdom,ifWisdom);
     ifWisdom.close();
     Wise=true;
   }
 
   void SaveWisdom() {
     ofWisdom.open(WisdomName);
-    fftw_export_wisdom(PutWisdom,ofWisdom);
+    fftwpp_export_wisdom(PutWisdom,ofWisdom);
     ofWisdom.close();
   }
   
