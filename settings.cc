@@ -498,7 +498,7 @@ struct argumentSetting : public itemSetting {
 struct stringSetting : public argumentSetting {
   stringSetting(string name, char code,
                 string argname, string desc,
-                string defaultValue)
+                string defaultValue="")
     : argumentSetting(name, code, argname, desc.empty() ? "" :
                       desc+(defaultValue.empty() ? "" : " ["+defaultValue+"]"),
                       types::primString(), (item)defaultValue) {}
@@ -512,7 +512,7 @@ struct stringSetting : public argumentSetting {
 struct userSetting : public argumentSetting {
   userSetting(string name, char code,
               string argname, string desc,
-              string defaultValue)
+              string defaultValue="")
     : argumentSetting(name, code, argname, desc,
                       types::primString(), (item)defaultValue) {}
 
@@ -527,7 +527,7 @@ struct userSetting : public argumentSetting {
 struct warnSetting : public argumentSetting {
   warnSetting(string name, char code,
               string argname, string desc,
-              string defaultValue)
+              string defaultValue="")
     : argumentSetting(name, code, argname, desc,
                   types::primString(), (item)defaultValue) {}
 
@@ -1007,18 +1007,18 @@ void initSettings() {
   (*leftbutton)[2]=string("shift");
   (*leftbutton)[3]=string("pan");
   
-// MIDDLE: menu
+// MIDDLE: menu (ignores Shift, Ctrl, and Alt modifiers)
   
   array *middlebutton=new array(1);
   (*middlebutton)[0]=string("menu");
   
-// RIGHT: zoom
+// RIGHT: zoom/menu
 // SHIFT RIGHT: rotateX
 // CTRL RIGHT: rotateY
 // ALT RIGHT: rotateZ
   
   array *rightbutton=new array(4);
-  (*rightbutton)[0]=string("zoom");
+  (*rightbutton)[0]=string("zoom/menu");
   (*rightbutton)[1]=string("rotateX");
   (*rightbutton)[2]=string("rotateY");
   (*rightbutton)[3]=string("rotateZ");
@@ -1039,7 +1039,7 @@ void initSettings() {
   addOption(new stringArraySetting("wheelup", wheelup));
   addOption(new stringArraySetting("wheeldown", wheeldown));
   
-  addOption(new warnSetting("warn", 'w', "string", "Enable warning", ""));
+  addOption(new warnSetting("warn", 'w', "string", "Enable warning"));
   
   multiOption *view=new multiOption("View", 'V', "View output");
   view->add(new boolSetting("batchView", 0, "View output in batch mode",
@@ -1150,8 +1150,7 @@ void initSettings() {
                                       "Allow write to other directory",
                                       &globaloption, false));
   addSecureSetting(new stringSetting("outname", 'o', "name",
-                                     "Alternative output directory/filename",
-                                     ""));
+                                     "Alternative output directory/filename"));
   addOption(new stringOption("cd", 0, "directory", "Set current directory",
                              &startpath));
   
@@ -1199,22 +1198,34 @@ void initSettings() {
                            "Delay before attempting initial pdf reload"
                            ,750000));
   addOption(new stringSetting("autoimport", 0, "string",
-                              "Module to automatically import", ""));
+                              "Module to automatically import"));
   addOption(new userSetting("command", 'c', "string",
-                            "Command to autoexecute", ""));
+                            "Command to autoexecute"));
   addOption(new userSetting("user", 'u', "string",
-                            "General purpose user string", ""));
+                            "General purpose user string"));
+  
+  addOption(new realSetting("zoomfactor", 0, "factor", "Zoom step factor",
+                            1.05));
+  addOption(new realSetting("zoomstep", 0, "step", "Mouse motion zoom step",
+                            0.1));
+  addOption(new realSetting("spinstep", 0, "deg/sec", "Spin speed",
+                            60.0));
+  addOption(new realSetting("arcballradius", 0, "pixels",
+                            "Arcball radius", 750.0));
+  addOption(new realSetting("resizestep", 0, "step", "Resize step", 1.2));
+  addOption(new IntSetting("doubleclick", 0, "ms",
+                           "Emulated double-click timeout", 200));
   
   addOption(new realSetting("paperwidth", 0, "bp", ""));
   addOption(new realSetting("paperheight", 0, "bp", ""));
   
-  addOption(new stringSetting("dvipsOptions", 0, "string", "", ""));
-  addOption(new stringSetting("convertOptions", 0, "string", "", ""));
-  addOption(new stringSetting("gsOptions", 0, "string", "", ""));
-  addOption(new stringSetting("psviewerOptions", 0, "string", "", ""));
-  addOption(new stringSetting("pdfviewerOptions", 0, "string", "", ""));
-  addOption(new stringSetting("pdfreloadOptions", 0, "string", "", ""));
-  addOption(new stringSetting("glOptions", 0, "string", "", ""));
+  addOption(new stringSetting("dvipsOptions", 0, "string", ""));
+  addOption(new stringSetting("convertOptions", 0, "string", ""));
+  addOption(new stringSetting("gsOptions", 0, "string", ""));
+  addOption(new stringSetting("psviewerOptions", 0, "string", ""));
+  addOption(new stringSetting("pdfviewerOptions", 0, "string", ""));
+  addOption(new stringSetting("pdfreloadOptions", 0, "string", ""));
+  addOption(new stringSetting("glOptions", 0, "string", ""));
   
   addOption(new envSetting("config","config."+suffix));
   addOption(new envSetting("pdfviewer", defaultPDFViewer));
