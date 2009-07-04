@@ -29,6 +29,6 @@ triple target=0.5*(m+M);
 currentprojection=perspective(camera=target+realmult(dir(68,225),M-m),
                               target=target);
 
-xaxis3("$x$",Bounds(),InTicks);
-yaxis3("$y$",Bounds(),InTicks(Step=1,step=0.1));
-zaxis3("$z$",Bounds(),InTicks);
+xaxis3("$x$",Bounds,InTicks);
+yaxis3("$y$",Bounds,InTicks(Step=1,step=0.1));
+zaxis3("$z$",Bounds,InTicks);
