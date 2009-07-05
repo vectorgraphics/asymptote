@@ -47,6 +47,7 @@ types::record *getGSLModule();
 namespace run {
 extern double infinity;
 
+void single(vm::stack *Stack);
 void arrayDeleteHelper(vm::stack *Stack);
 }
 

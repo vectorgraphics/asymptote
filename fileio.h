@@ -38,9 +38,20 @@ namespace camp {
 extern string tab;
 extern string newline;
   
+enum Mode {NOMODE,INPUT,OUTPUT,UPDATE,BINPUT,BOUTPUT,BUPDATE,XINPUT,XOUTPUT,
+           XUPDATE};
+
+static const string FileModes[]={"none",
+                                 "input","output","ouptut(update=false)",
+                                 "binput","boutput","boutput(update=false)",
+                                 "xinput","xoutput","xoutput(update=false)"};
+
 class file : public gc {
 protected:  
   string name;
+  bool check;      // Check whether input file exists.
+  Mode type;
+  
   Int nx,ny,nz;    // Array dimensions
   bool linemode;   // Array reads will stop at eol instead of eof.
   bool csvmode;    // Read comma-separated values.
@@ -48,14 +59,15 @@ protected:
   bool singlereal; // Read/write single-precision XDR/binary reals.
   bool singleint;  // Read/write single-precision XDR/binary ints.
   bool signedint;  // Read/write signed XDR/binary ints.
+  
   bool closed;     // File has been closed.
-  bool check;      // Check whether input file exists.
   bool standard;   // Standard input/output
   bool binary;     // Read in binary mode.
   
   bool nullfield;  // Used to detect a final null field in csv+line mode.
   string whitespace;
   size_t index;    // Terminator index.
+
 public: 
 
   bool Standard() {return standard;}
@@ -89,11 +101,11 @@ public:
   
   void dimension(Int Nx=-1, Int Ny=-1, Int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
   
-  file(const string& name, bool check=true, bool binary=false,
+  file(const string& name, bool check=true, Mode type=NOMODE, bool binary=false,
        bool closed=false) : 
-    name(name), linemode(false), csvmode(false),
+    name(name), check(check), type(type), linemode(false), csvmode(false),
     singlereal(false), singleint(true), signedint(true),
-    closed(closed), check(check), standard(name.empty()),
+    closed(closed), standard(name.empty()),
     binary(binary), nullfield(false), whitespace("") {dimension();}
   
   virtual void open() {}
@@ -107,8 +119,6 @@ public:
   }
   
   virtual ~file() {}
-
-  virtual const char* Mode() {return "";}
 
   bool isOpen() {
     if(closed) {
@@ -134,9 +144,11 @@ public:
   virtual size_t tell() {return 0;}
   virtual void seek(Int, bool=true) {}
   
+  string FileMode() {return FileModes[type];}
+  
   void unsupported(const char *rw, const char *type) {
     ostringstream buf;
-    buf << rw << " of type " << type << " not supported in " << Mode()
+    buf << rw << " of type " << type << " not supported in " << FileMode()
         << " mode.";
     reportError(buf);
   }
@@ -229,16 +241,15 @@ protected:
   bool comma;
   
 public:
-  ifile(const string& name, char comment, bool check=true,
+  ifile(const string& name, char comment, bool check=true, Mode type=INPUT, 
         std::ios::openmode mode=std::ios::in) :
-    file(name,check), stream(&cin), fstream(NULL), comment(comment), mode(mode),
-    comma(false) {
-  }
+    file(name,check,type), stream(&cin), fstream(NULL), comment(comment),
+    mode(mode), comma(false) {}
   
   // Binary file
-  ifile(const string& name, bool check=true,
+  ifile(const string& name, bool check=true, Mode type=BINPUT,
         std::ios::openmode mode=std::ios::in) :
-    file(name,check,true), mode(mode) {}
+    file(name,check,type,true), mode(mode) {}
   
   ~ifile() {close();}
   
@@ -262,8 +273,6 @@ public:
       if(check) Check();
     }
   }
-  
-  const char* Mode() {return "input";}
   
   bool eol();
   bool nexteol();
@@ -317,7 +326,7 @@ public:
 class iofile : public ifile {
 public:
   iofile(const string& name, char comment=0) : 
-    ifile(name,true,comment,std::ios::in | std::ios::out) {}
+    ifile(name,comment,true,UPDATE,std::ios::in | std::ios::out) {}
 
   Int precision(Int p) {
     return p == 0 ? stream->precision() : stream->precision(p);
@@ -346,9 +355,9 @@ protected:
   std::ofstream *fstream;
   std::ios::openmode mode;
 public:
-  ofile(const string& name, std::ios::openmode mode=std::ios::trunc) :
-    file(name), stream(&cout), fstream(NULL), mode(mode) {
-  }
+  ofile(const string& name, Mode type=OUTPUT,
+        std::ios::openmode mode=std::ios::trunc) : 
+    file(name,true,type), stream(&cout), fstream(NULL), mode(mode) {}
   
   ~ofile() {close();}
   
@@ -365,8 +374,6 @@ public:
     }
   }
   
-  const char* Mode() {return "output";}
-
   bool text() {return true;}
   bool eof() {return stream->eof();}
   bool error() {return stream->fail();}
@@ -415,9 +422,9 @@ public:
 
 class ibfile : public ifile {
 public:
-  ibfile(const string& name, bool check=true,
+  ibfile(const string& name, bool check=true, Mode type=BINPUT,
          std::ios::openmode mode=std::ios::in) : 
-    ifile(name,check,mode | std::ios::binary) {}
+    ifile(name,check,type,mode | std::ios::binary) {}
   template<class T>
   void iread(T& val) {
     val=T();
@@ -445,8 +452,8 @@ public:
   
 class iobfile : public ibfile {
 public:
-  iobfile(const string& name) : ibfile(name,true,std::ios::in | std::ios::out)
-  {}
+  iobfile(const string& name) : 
+    ibfile(name,true,BUPDATE,std::ios::in | std::ios::out) {}
 
   void flush() {if(fstream) fstream->flush();}
   
@@ -487,7 +494,7 @@ public:
   
 class obfile : public ofile {
 public:
-  obfile(const string& name) : ofile(name,std::ios::binary) {}
+  obfile(const string& name) : ofile(name,BOUTPUT,std::ios::binary) {}
 
   template<class T>
   void iwrite(T val) {
@@ -532,9 +539,9 @@ protected:
   xdr::ioxstream *fstream;
   xdr::xios::open_mode mode;
 public:
-  ixfile(const string& name, bool check=true,
+  ixfile(const string& name, bool check=true, Mode type=XINPUT,
          xdr::xios::open_mode mode=xdr::xios::in) :
-    file(name,check,true), fstream(NULL), mode(mode) {}
+    file(name,check,type,true), fstream(NULL), mode(mode) {}
 
   void open() {
     fstream=new xdr::ioxstream(name.c_str(),mode);
@@ -553,8 +560,6 @@ public:
   }
   
   ~ixfile() {close();}
-  
-  const char* Mode() {return "xinput";}
   
   bool eof() {return fstream ? fstream->eof() : true;}
   bool error() {return fstream ? fstream->fail() : true;}
@@ -608,7 +613,7 @@ public:
 
 class ioxfile : public ixfile {
 public:
-  ioxfile(const string& name) : ixfile(name,true,xdr::xios::out) {}
+  ioxfile(const string& name) : ixfile(name,true,XUPDATE,xdr::xios::out) {}
 
   void flush() {if(fstream) fstream->flush();}
   
@@ -639,7 +644,7 @@ public:
 class oxfile : public file {
   xdr::oxstream *fstream;
 public:
-  oxfile(const string& name) : file(name), fstream(NULL) {}
+  oxfile(const string& name) : file(name,true,XOUTPUT), fstream(NULL) {}
 
   void open() {
     fstream=new xdr::oxstream((checkLocal(name),name.c_str()),xdr::xios::trunc);
@@ -658,8 +663,6 @@ public:
   }
   
   ~oxfile() {close();}
-  
-  const char* Mode() {return "xoutput";}
   
   bool eof() {return fstream ? fstream->eof() : true;}
   bool error() {return fstream ? fstream->fail() : true;}

@@ -14,7 +14,7 @@ string tab="\t";
 string newline="\n";
 
 ofile Stdout("");
-file nullfile("",false,false,true);
+file nullfile("",false,NOMODE,false,true);
 
 void ifile::ignoreComment()
 {

@@ -769,7 +769,7 @@ void recorddec::transRecordInitializer(coenv &e, record *parent)
   position here=getPos();
 
   // This is equivalent to the code
-  //   A operator init() { return new A; };
+  //   A operator init() { return new A; }
   // where A is the name of the record.
   formals formals(here);
   simpleName recordName(here, id);

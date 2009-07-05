@@ -105,37 +105,47 @@ trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
 #define FIELD(Type, name, func)                                 \
   if (sig == 0 && id == symbol::trans(name)) {                  \
     static trans::bltinAccess a(run::func);                     \
-    static trans::varEntry v(prim##Type(), &a, 0, position());  \
+    static trans::varEntry v(Type(), &a, 0, position());  \
     return &v;                                                  \
   }
 
   switch (kind) {
     case ty_pair:
-      FIELD(Real,"x",pairXPart);
-      FIELD(Real,"y",pairYPart);
+      FIELD(primReal,"x",pairXPart);
+      FIELD(primReal,"y",pairYPart);
       break;
     case ty_triple:
-      FIELD(Real,"x",tripleXPart);
-      FIELD(Real,"y",tripleYPart);
-      FIELD(Real,"z",tripleZPart);
+      FIELD(primReal,"x",tripleXPart);
+      FIELD(primReal,"y",tripleYPart);
+      FIELD(primReal,"z",tripleZPart);
       break;
     case ty_transform:
-      FIELD(Real,"x",transformXPart);
-      FIELD(Real,"y",transformYPart);
-      FIELD(Real,"xx",transformXXPart);
-      FIELD(Real,"xy",transformXYPart);
-      FIELD(Real,"yx",transformYXPart);
-      FIELD(Real,"yy",transformYYPart);
+      FIELD(primReal,"x",transformXPart);
+      FIELD(primReal,"y",transformYPart);
+      FIELD(primReal,"xx",transformXXPart);
+      FIELD(primReal,"xy",transformXYPart);
+      FIELD(primReal,"yx",transformYXPart);
+      FIELD(primReal,"yy",transformYYPart);
       break;
     case ty_tensionSpecifier:
-      FIELD(Real,"out",tensionSpecifierOutPart);
-      FIELD(Real,"in",tensionSpecifierInPart);
-      FIELD(Boolean,"atLeast",tensionSpecifierAtleastPart);
+      FIELD(primReal,"out",tensionSpecifierOutPart);
+      FIELD(primReal,"in",tensionSpecifierInPart);
+      FIELD(primBoolean,"atLeast",tensionSpecifierAtleastPart);
       break;
     case ty_curlSpecifier:
-      FIELD(Real,"value",curlSpecifierValuePart);
-      FIELD(Int,"side",curlSpecifierSidePart);
+      FIELD(primReal,"value",curlSpecifierValuePart);
+      FIELD(primInt,"side",curlSpecifierSidePart);
       break;
+    case ty_file:      
+      FIELD(primString,"name",namePart);
+      FIELD(primString,"mode",modePart);
+      FIELD(IntArray,"dimension",dimensionPart);
+      FIELD(primBoolean,"line",lineModePart);
+      FIELD(primBoolean,"csv",csvModePart);
+      FIELD(primBoolean,"word",wordModePart);
+      FIELD(primBoolean,"singlereal",singleRealModePart);
+      FIELD(primBoolean,"singleint",singleIntModePart);
+      FIELD(primBoolean,"signed",signedIntModePart);
     default:
       break;
   }

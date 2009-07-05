@@ -165,7 +165,7 @@ typedef callable callableTransform;
 using vm::array;
 using types::function;
 
-#define PRIMITIVE(name,Name,asyName)  using types::prim##Name;
+#define PRIMITIVE(name,Name,asyName) using types::prim##Name;
 #include <primitives.h>
 #undef PRIMITIVE
 
@@ -5811,140 +5811,181 @@ file* boutput(string name, bool update=false)
   return f;
 }
 
-bool eof(file *File)
+bool eof(file *f)
 {
-  return File->eof();
+  return f->eof();
 }
 
-bool eol(file *File)
+bool eol(file *f)
 {
-  return File->eol();
+  return f->eol();
 }
 
-bool error(file *File)
+bool error(file *f)
 {
-  return File->error();
+  return f->error();
 }
 
-void clear(file *File)
+void clear(file *f)
 {
-  File->clear();
+  f->clear();
 }
 
-void close(file *File)
+void close(file *f)
 {
-  File->close();
+  f->close();
 }
 
-Int precision(file *File=NULL, Int digits=0) 
+Int precision(file *f=NULL, Int digits=0) 
 {
-  if(File == 0) File=&camp::Stdout;
-  return File->precision(digits);
+  if(f == 0) f=&camp::Stdout;
+  return f->precision(digits);
 }
 
-void flush(file *File) 
+void flush(file *f) 
 {
-  File->flush();
+  f->flush();
 }
 
-string getc(file *File)
+string getc(file *f)
 {
   char c=0;
-  if(File->isOpen()) File->read(c);
+  if(f->isOpen()) f->read(c);
   static char str[1];
   str[0]=c;
   return string(str);
 }
 
-Int tell(file *File)
+Int tell(file *f)
 {
-  return File->tell();
+  return f->tell();
 }
 
-void seek(file *File, Int pos)
+void seek(file *f, Int pos)
 {
-  File->seek(pos,pos >= 0);
+  f->seek(pos,pos >= 0);
 }
 
-void seekeof(file *File)
+void seekeof(file *f)
 {
-  File->seek(0,false);
+  f->seek(0,false);
 }
 
 // Set file dimensions
-file* dimension(file *File, Int nx) 
+file* dimension(file *f, Int nx) 
 {
-  File->dimension(nx);
-  return File;
+  f->dimension(nx);
+  return f;
 }
 
-file* dimension(file *File, Int nx, Int ny) 
+file* dimension(file *f, Int nx, Int ny) 
 {
-  File->dimension(nx,ny);
-  return File;
+  f->dimension(nx,ny);
+  return f;
 }
 
-file* dimension(file *File, Int nx, Int ny, Int nz)
+file* dimension(file *f, Int nx, Int ny, Int nz)
 {
-  File->dimension(nx,ny,nz);
-  return File;
+  f->dimension(nx,ny,nz);
+  return f;
 }
 
 // Set file to read comma-separated values
-file* csv(file *File, bool b=true) 
+file* csv(file *f, bool b=true) 
 {
-  File->CSVMode(b);
-  return File;
+  f->CSVMode(b);
+  return f;
 }
 
 // Set file to read whitespace-separated values
-file* word(file *File, bool b=true) 
+file* word(file *f, bool b=true) 
 {
-  File->WordMode(b);
-  return File;
+  f->WordMode(b);
+  return f;
 }
 
 // Set file to read arrays in line-at-a-time mode
-file* line(file *File, bool b=true) 
+file* line(file *f, bool b=true) 
 {
-  File->LineMode(b);
-  return File;
+  f->LineMode(b);
+  return f;
 }
 
-// Set file to read/write single-precision real XDR values.
-file* single(file *File, bool single=true)
+// Set file to read/write signed int XDR values.
+file* signed(file *f, bool b=true)
 {
-  File->SingleReal(single);
-  return File;
+  f->SignedInt(b);
+  return f;
 }
 
-// Set file to read/write signed and/or single-precision int XDR values.
-file* single(bool signedint, file *File, bool single=true)
+string :namePart(file f)
 {
-  File->SignedInt(signedint);
-  File->SingleInt(single);
-  return File;
+  return f.filename();
+}
+
+string :modePart(file f)
+{
+  return f.FileMode();
+}
+
+array * :dimensionPart(file f)
+{
+  array *a=new array(3);
+  (*a)[0]=f.Nx();
+  (*a)[1]=f.Ny();
+  (*a)[2]=f.Nz();
+  return a;
+}
+
+bool :lineModePart(file f)
+{
+  return f.LineMode();
+}
+
+bool :csvModePart(file f)
+{
+  return f.CSVMode();
+}
+
+bool :wordModePart(file f)
+{
+  return f.WordMode();
+}
+
+bool :singleRealModePart(file f)
+{
+  return f.SingleReal();
+}
+
+bool :singleIntModePart(file f)
+{
+  return f.SingleInt();
+}
+
+bool :signedIntModePart(file f)
+{
+  return f.SignedInt();
 }
 
 // Set file to read an array1 (1 int size followed by a 1d array)
-file* read1(file *File) 
+file* read1(file *f) 
 {
-  File->dimension(-2);
-  return File;
+  f->dimension(-2);
+  return f;
 }
 
 // Set file to read an array2 (2 int sizes followed by a 2d array)
-file* read2(file *File) 
+file* read2(file *f) 
 {
-  File->dimension(-2,-2);
-  return File;
+  f->dimension(-2,-2);
+  return f;
 }
 
 // Set file to read an array3 (3 int sizes followed by a 3d array)
-file* read3(file *File) 
+file* read3(file *f) 
 {
-  File->dimension(-2,-2,-2);
-  return File;
+  f->dimension(-2,-2,-2);
+  return f;
 }
 
 // Return the last n lines of the history named name.
