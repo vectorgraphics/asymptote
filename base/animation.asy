@@ -38,8 +38,8 @@ struct animation {
     this.global=global;
   }
   
-  string basename(string prefix=prefix) {
-    return "_"+stripextension(prefix);
+  string basename(string prefix=stripextension(prefix)) {
+    return "_"+prefix;
   }
 
   string name(string prefix, int index) {
@@ -47,7 +47,7 @@ struct animation {
   }
 
   private string nextname() {
-    string name=name(prefix,index);
+    string name=basename(name(prefix,index));
     ++index;
     return name;
   }
@@ -61,8 +61,9 @@ struct animation {
   
   void add(picture pic=currentpicture, fit fit=NoBox) {
     if(global) {
+      ++index;
       pictures.push(pic.copy());
-    } else this.shipout(nextname(),fit(prefix,pic));
+    } else this.shipout(fit(prefix,pic));
   }
   
   void purge(bool keep=settings.keep) {
@@ -89,6 +90,7 @@ struct animation {
   void export(string prefix=prefix, fit fit=NoBox,
               bool multipage=false, bool view=false) {
     if(pictures.length == 0) return;
+    if(!global) multipage=false;
     rescale(pictures);
     frame multi;
     bool inlinetex=settings.inlinetex;
@@ -119,6 +121,7 @@ struct animation {
 
   string load(int frames, real delay=animationdelay, string options="",
               bool multipage=false) {
+    if(!global) multipage=false;
     string s="\animategraphics["+options+"]{"+format("%.18f",1000/delay,"C")+
       "}{"+basename();
     if(!multipage) s += "+";
@@ -129,13 +132,13 @@ struct animation {
   string pdf(fit fit=NoBox, real delay=animationdelay, string options="",
              bool keep=settings.keep, bool multipage=true) {
     if(settings.inlinetex) multipage=true;
+    if(!global) multipage=false;
     if(settings.tex != "pdflatex")
       abort("inline pdf animations require -tex pdflatex");
     if(settings.outformat != "") settings.outformat="pdf";
     
     string filename=basename();
     string pdfname=filename+".pdf";
-    bool single=global && multipage;
 
     if(global)
       export(filename,fit,multipage=multipage);
@@ -147,28 +150,28 @@ struct animation {
       void exitfunction() {
         if(currentexitfunction != null) currentexitfunction();
         this.purge();
-        if(single)
+        if(multipage)
           delete(pdfname);
       }
       atexit(exitfunction);
     }
 
-    if(!single)
+    if(!multipage)
       delete(pdfname);
 
-    return load(pictures.length,delay,options,multipage);
+    return load(index,delay,options,multipage);
   }
 
   int movie(fit fit=NoBox, int loops=0, real delay=animationdelay,
             string format=settings.outformat == "" ? "gif" : settings.outformat,
             string options="", bool keep=settings.keep) {
-    if(global && format == "pdf") {
-      export(fit,multipage=true,view=true);
-      return 0;
-    }
-
-    if(global)
+    if(global) {
+      if(format == "pdf") {
+        export(fit,multipage=true,view=true);
+        return 0;
+      }
       export(fit);
+    }
     return merge(loops,delay,format,options,keep);
   }
 }
