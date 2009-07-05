@@ -23,6 +23,18 @@
 */
 
 /*
+  Fitting $n$ data points $(x_1, y_1 \pm \Delta y_1), \dots, (x_n, y_n \pm \Delta y_n)$
+  to a function $f$ that depends on $m$ parameters $a_1, \dots, a_m$ means minimizing
+  the least-squares sum
+  %
+  \begin{equation*}
+    \sum_{i = 1}^n \left( \frac{y_i - f(a_1, \dots, a_m; x_i)}{\Delta y_i} \right)^2
+  \end{equation*}
+  %
+  with respect to the parameters $a_1, \dots, a_m$.
+*/
+
+/*
   This module provides an implementation of the Levenberg--Marquardt
   (LM) algorithm, converted from the C lmfit routine by Joachim Wuttke
   (see http://www.messen-und-deuten.de/lmfit/).
@@ -747,16 +759,20 @@ void lm_minimize(int m_dat, int n_par, real[] par, lm_evaluate_ftype evaluate, l
 
 
 // convenience functions; wrappers of lm_minimize
-struct FitControl {
-  real squareSumTolerance;
-  real approximationTolerance;
-  real desiredOrthogonality;
-  real epsilon;
-  real stepBound;
-  int maxIterations;
-  bool verbose;
 
-  void operator init(real squareSumTolerance, real approximationTolerance, real desiredOrthogonality, real epsilon, real stepBound, int maxIterations, bool verbose) {
+/*
+  The structure FitControl specifies various control parameters.
+*/
+struct FitControl {
+  real squareSumTolerance;      // relative error desired in the sum of squares
+  real approximationTolerance;  // relative error between last two approximations
+  real desiredOrthogonality;    // orthogonality desired between the residue vector and its derivatives
+  real epsilon;                 // step used to calculate the jacobian
+  real stepBound;               // initial bound to steps in the outer loop
+  int maxIterations;            // maximum number of iterations
+  bool verbose;                 // whether to print detailed information about every iteration, or nothing
+
+  void operator init(real squareSumTolerance=LM_USERTOL, real approximationTolerance=LM_USERTOL, real desiredOrthogonality=LM_USERTOL, real epsilon=LM_USERTOL, real stepBound=100, int maxIterations=100, bool verbose=false) {
     this.squareSumTolerance = squareSumTolerance;
     this.approximationTolerance = approximationTolerance;
     this.desiredOrthogonality = desiredOrthogonality;
@@ -779,30 +795,44 @@ struct FitControl {
   }
 };
 
+FitControl operator init() {
+  return FitControl();
+}
+
 FitControl defaultControl;
-defaultControl.squareSumTolerance = LM_USERTOL;
-defaultControl.approximationTolerance = LM_USERTOL;
-defaultControl.desiredOrthogonality = LM_USERTOL;
-defaultControl.epsilon = LM_USERTOL;
-defaultControl.stepBound = 100;
-defaultControl.maxIterations = 100;
-defaultControl.verbose = false;
 
 
+/*
+  Upon returning, this structure provides information about the fit.
+*/
 struct FitResult {
-  restricted real norm;
-  restricted int iterations;
-  restricted int status;
+  real norm;        // norm of the residue vector
+  int iterations;   // actual number of iterations
+  int status;       // status of minimization
 
-  void operator init(real norm, int status, int iterations) {
+  void operator init(real norm, int iterations, int status) {
     this.norm = norm;
-    this.status = status;
     this.iterations = iterations;
+    this.status = status;
   }
 };
 
 
-// Fits data points (xdata, ydata ± errors) to the given function using the given parameters.
+/*
+  Fits data points to a function that depends on some parameters.
+
+  Parameters:
+   - xdata: Array of x values.
+   - ydata: Array of y values.
+   - errors: Array of experimental errors; each element must be strictly positive
+   - function: Fit function.
+   - parameters: Parameter array. Before calling fit(), this must contain the initial guesses for the parameters.
+                 Upon return, it will contain the solution parameters.
+   - control: object of type FitControl that controls various aspects of the fitting procedure.
+
+  Returns:
+  An object of type FitResult that conveys information about the fitting process.
+*/
 FitResult fit(real[] xdata, real[] ydata, real[] errors, real function(real[], real), real[] parameters, FitControl control=defaultControl) {
   int m_dat = min(xdata.length, ydata.length);
   int n_par = parameters.length;
@@ -831,7 +861,20 @@ FitResult fit(real[] xdata, real[] ydata, real[] errors, real function(real[], r
 }
 
 
-// Fits data points (xdata, ydata) to the given function using the given parameters.
+/*
+  Fits data points to a function that depends on some parameters.
+
+  Parameters:
+   - xdata: Array of x values.
+   - ydata: Array of y values.
+   - function: Fit function.
+   - parameters: Parameter array. Before calling fit(), this must contain the initial guesses for the parameters.
+                 Upon return, it will contain the solution parameters.
+   - control: object of type FitControl that controls various aspects of the fitting procedure.
+
+  Returns:
+  An object of type FitResult that conveys information about the fitting process.
+*/
 FitResult fit(real[] xdata, real[] ydata, real function(real[], real), real[] parameters, FitControl control=defaultControl) {
   return fit(xdata, ydata, array(min(xdata.length, ydata.length), 1.0), function, parameters, control);
 }
