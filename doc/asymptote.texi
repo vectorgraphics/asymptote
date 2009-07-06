@@ -502,7 +502,7 @@ animate
 @noindent
 
 Warnings (such as "writeoverloaded") may be enabled or disabled with
-the commands
+the functions
 @verbatim
 warn(string s);
 nowarn(string s);

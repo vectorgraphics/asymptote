@@ -221,6 +221,7 @@ void Warn(const string& s)
 {
   array *Warn=getSetting<array *>("warnings");
   size_t size=checkArray(Warn);
+  if(s.empty()) return;
   for(size_t i=0; i < size; i++)
     if(vm::read<string>(Warn,i) == s) return;
   Warn->push(s);
@@ -235,14 +236,14 @@ void noWarn(const string& s)
       (*Warn).erase((*Warn).begin()+i,(*Warn).begin()+i+1);
 }
 
-bool warn(const string& s)
+string warn(const string& s)
 {
-  if(getSetting<bool>("debug")) return true;
+  if(getSetting<bool>("debug")) return s;
   array *Warn=getSetting<array *>("warnings");
   size_t size=checkArray(Warn);
   for(size_t i=0; i < size; i++)
-    if(vm::read<string>(Warn,i) == s) return true;
-  return false;
+    if(vm::read<string>(Warn,i) == s) return s;
+  return "";
 }
 
 // The dictionaries of long options and short options.

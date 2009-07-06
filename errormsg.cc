@@ -69,6 +69,11 @@ void errorstream::warning(position pos)
   anyWarnings = true;
 }
 
+void errorstream::disable(string s)
+{
+  out << ": to ignore, use nowarn(\""+s+"\");";
+}
+
 void errorstream::fatal(position pos)
 {
   message(pos,"abort: ");
