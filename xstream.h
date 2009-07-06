@@ -31,6 +31,11 @@
 #define quad_t long long
 #define u_quad_t unsigned long long
   
+#ifdef __CYGWIN__  
+#define xdr_longlong_t xdr_int64_t
+#define xdr_u_longlong_t xdr_uint64_t
+#endif  
+
 #ifdef _POSIX_SOURCE
 #undef _POSIX_SOURCE
 #include <rpc/rpc.h>
