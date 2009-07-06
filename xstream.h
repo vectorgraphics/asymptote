@@ -29,6 +29,7 @@
 #include <rpc/types.h>
   
 #define quad_t long long
+#define u_quad_t unsigned long long
   
 #ifdef __CYGWIN__  
 extern "C" int fseeko(FILE *, off_t, int);
