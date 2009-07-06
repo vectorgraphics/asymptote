@@ -83,6 +83,7 @@ install: man faq install-man
 	cd FAQ; $(MAKE) install
 
 install-prebuilt: install-man
+	touch png/asymptote.info
 	cd png; $(MAKE) install
 	cd FAQ; $(MAKE) install-prebuilt
 
