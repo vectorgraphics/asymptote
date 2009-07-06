@@ -14,6 +14,7 @@
 #include <locale.h>
 #include <unistd.h>
 #include <algorithm>
+#include <cstdarg>
 
 #include "common.h"
 
@@ -67,8 +68,6 @@ void doConfig(string filename);
 
 namespace settings {
   
-mem::list<string> Warn;
-
 using camp::pair;
   
 #ifdef HAVE_LIBGL
@@ -218,16 +217,32 @@ types::record *getSettingsModule() {
   return settingsModule;
 }
 
-mem::list<string>::iterator warnIterator(const string& s)
+void Warn(const string& s)
 {
-  for(mem::list<string>::iterator p=Warn.begin(); p != Warn.end(); ++p)
-    if(*p == s) return p;
-  return Warn.end();
+  array *Warn=getSetting<array *>("warnings");
+  size_t size=checkArray(Warn);
+  for(size_t i=0; i < size; i++)
+    if(vm::read<string>(Warn,i) == s) return;
+  Warn->push(s);
+}
+
+void noWarn(const string& s)
+{
+  array *Warn=getSetting<array *>("warnings");
+  size_t size=checkArray(Warn);
+  for(size_t i=0; i < size; i++)
+    if(vm::read<string>(Warn,i) == s) 
+      (*Warn).erase((*Warn).begin()+i,(*Warn).begin()+i+1);
 }
 
 bool warn(const string& s)
 {
-  return getSetting<bool>("debug") || warnIterator(s) != Warn.end();
+  if(getSetting<bool>("debug")) return true;
+  array *Warn=getSetting<array *>("warnings");
+  size_t size=checkArray(Warn);
+  for(size_t i=0; i < size; i++)
+    if(vm::read<string>(Warn,i) == s) return true;
+  return false;
 }
 
 // The dictionaries of long options and short options.
@@ -524,16 +539,13 @@ struct userSetting : public argumentSetting {
   }
 };
 
-struct warnSetting : public argumentSetting {
+struct warnSetting : public option {
   warnSetting(string name, char code,
-              string argname, string desc,
-              string defaultValue="")
-    : argumentSetting(name, code, argname, desc,
-                  types::primString(), (item)defaultValue) {}
+              string argname, string desc)
+    : option(name, code, argname, desc, true) {}
 
   bool getOption() {
-    mem::list<string>::iterator i=warnIterator(optarg);
-    if(i == Warn.end()) Warn.push_back(string(optarg));
+    Warn(string(optarg));
     return true;
   }
   
@@ -545,8 +557,7 @@ struct warnSetting : public argumentSetting {
         : option(name, 0, argname, ""), base(base) {}
 
       bool getOption() {
-        mem::list<string>::iterator i=warnIterator(optarg);
-        if(i != Warn.end()) Warn.erase(i);
+        noWarn(string(optarg));
         return true;
       }
     };
@@ -554,7 +565,7 @@ struct warnSetting : public argumentSetting {
   }
   
   void add() {
-    setting::add();
+    option::add();
     negation("no"+name)->add();
     if (code) {
       string nocode="no"; nocode.push_back(code);
@@ -985,6 +996,31 @@ void no_GCwarn(char *, GC_word)
 }
 #endif
 
+array* Array(const char *s ...) 
+{
+  va_list v;
+  size_t count=0;
+  const char *s0=s;
+  
+  va_start(v,s);
+  while(*s) {
+    ++count;
+    s=va_arg(v,char *);
+  }
+  va_end(v);
+  
+  array *a=new array(count);
+  s=s0;
+  va_start(v,s);
+  for(size_t i=0; i < count; ++i) {
+    (*a)[i]=string(s);
+    s=va_arg(v,char *);
+  }
+  va_end(v);
+  
+  return a;
+}
+
 void initSettings() {
   static bool initialize=true;
   if(initialize) {
@@ -1000,38 +1036,24 @@ void initSettings() {
 // SHIFT LEFT: zoom
 // CTRL LEFT: shift
 // ALT LEFT: pan
-  
-  array *leftbutton=new array(4);
-  (*leftbutton)[0]=string("rotate");
-  (*leftbutton)[1]=string("zoom");
-  (*leftbutton)[2]=string("shift");
-  (*leftbutton)[3]=string("pan");
+  array *leftbutton=Array("rotate","zoom","shift","pan","");
   
 // MIDDLE: menu (must be unmodified; ignores Shift, Ctrl, and Alt)
-  
-  array *middlebutton=new array(1);
-  (*middlebutton)[0]=string("menu");
+  array *middlebutton=Array("menu","");
   
 // RIGHT: zoom/menu (must be unmodified)
 // SHIFT RIGHT: rotateX
 // CTRL RIGHT: rotateY
 // ALT RIGHT: rotateZ
-  
-  array *rightbutton=new array(4);
-  (*rightbutton)[0]=string("zoom/menu");
-  (*rightbutton)[1]=string("rotateX");
-  (*rightbutton)[2]=string("rotateY");
-  (*rightbutton)[3]=string("rotateZ");
+  array *rightbutton=Array("zoom/menu","rotateX","rotateY","rotateZ","");
   
 // WHEEL_UP: zoomin
-  
-  array *wheelup=new array(1);
-  (*wheelup)[0]=string("zoomin");
+  array *wheelup=Array("zoomin","");
   
 // WHEEL_DOWN: zoomout
+  array *wheeldown=Array("zoomout","");
   
-  array *wheeldown=new array(1);
-  (*wheeldown)[0]=string("zoomout");
+  array *Warn=Array("writeoverloaded","");
   
   addOption(new stringArraySetting("leftbutton", leftbutton));
   addOption(new stringArraySetting("middlebutton", middlebutton));
@@ -1039,7 +1061,8 @@ void initSettings() {
   addOption(new stringArraySetting("wheelup", wheelup));
   addOption(new stringArraySetting("wheeldown", wheeldown));
   
-  addOption(new warnSetting("warn", 'w', "string", "Enable warning"));
+  addOption(new stringArraySetting("warnings", Warn));
+  addOption(new warnSetting("warn", 0, "string", "Enable warning"));
   
   multiOption *view=new multiOption("View", 'V', "View output");
   view->add(new boolSetting("batchView", 0, "View output in batch mode",

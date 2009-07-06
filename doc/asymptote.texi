@@ -501,6 +501,15 @@ animate
 @end verbatim
 @noindent
 
+Warnings (such as "writeoverloaded") may be enabled or disabled with
+the commands
+@verbatim
+warn(string s);
+nowarn(string s);
+@end verbatim
+@noindent
+or by directly modifying the string array @code{warnings}.
+
 @cindex command-line options
 Configuration variables may also be set or overwritten with a
 command-line option:

@@ -4394,6 +4394,16 @@ void clear()
   bplist.clear();
 }
 
+void warn(string s)
+{
+  Warn(s);
+}
+
+void nowarn(string s)
+{
+  noWarn(s);
+}
+
 // Strip directory from string
 string stripdirectory(string *s)
 {
@@ -5005,7 +5015,6 @@ array* :array3Transpose(array *a, array *perm)
 // If n is negative, search backwards.
 Int find(boolarray *a, Int n=1)
 {
-  
   size_t size=checkArray(a);
   Int j=-1;
   if(n > 0)

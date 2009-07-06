@@ -7,7 +7,6 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <cstdarg>
 
 #include "errormsg.h"
 

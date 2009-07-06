@@ -1386,13 +1386,18 @@ void arrayDeleteHelper(stack *Stack)
 {
   array *a=pop<array *>(Stack);
   item itj=pop(Stack);
+  bool jdefault=isdefault(itj);
   item iti=pop(Stack);
+  Int i,j;
   if(isdefault(iti)) {
+    if(jdefault) {
     (*a).clear();
     return;
+    } else i=j=get<Int>(itj);
+  } else {
+    i=get<Int>(iti);
+    j=jdefault ? i : get<Int>(itj);
   }
-  Int i=get<Int>(iti);
-  Int j=isdefault(itj) ? i : get<Int>(itj);
 
   size_t asize=checkArray(a);
   if(a->cyclic() && asize > 0) {
