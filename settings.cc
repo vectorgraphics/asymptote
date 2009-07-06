@@ -1329,8 +1329,9 @@ void initDir() {
   if(getSetting<string>("sysdir").empty()) {
     string s=lookup("SELFAUTOPARENT");
     if(s.size() > 1) {
-      docdir=s+dirsep+"texmf"+dirsep+"doc"+dirsep+"asymptote";
-      Setting("sysdir")=s+dirsep+"texmf"+dirsep+"asymptote";
+      string texmf=s+dirsep+"texmf"+dirsep;
+      docdir=texmf+"doc"+dirsep+"asymptote";
+      Setting("sysdir")=texmf+"asymptote";
       s=lookup("TEXMFCONFIG");
       if(s.size() > 1)
         initdir=s+dirsep+"asymptote";
