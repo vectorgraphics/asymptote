@@ -31,12 +31,6 @@
 #define quad_t long long
 #define u_quad_t unsigned long long
   
-#ifdef __CYGWIN__  
-extern "C" int fseeko(FILE *, off_t, int);
-extern "C" off_t ftello(FILE *);
-#define xdr_longlong_t xdr_int64_t
-#endif  
-
 #ifdef _POSIX_SOURCE
 #undef _POSIX_SOURCE
 #include <rpc/rpc.h>
