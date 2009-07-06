@@ -357,9 +357,24 @@ A working @TeX{} implementation (such as the one available at
 @url{http://www.miktex.org}) will be required to typeset labels.
 You will also need to install @code{GPL Ghostscript} from
 @url{http://sourceforge.net/projects/ghostscript/}.
+
 To view the default @code{PostScript} output, you can install the
 program @code{gsview} available from 
 @url{http://www.cs.wisc.edu/~ghost/gsview/}.
+@anchor{psview}
+A better (and free) @code{PostScript} viewer available at
+@url{http://psview.sourceforge.net/} (which in particular works properly
+in interactive mode) unfortunately currently requires some manual
+configuration. Specifically, if version @code{x.xx} of psview is
+extracted to the directory @code{c:\Program Files\psview-x.xx} one
+needs to put
+@verbatim
+import settings;
+psviewer="c:\Program Files\psview-x.xx\psv.exe";
+@end verbatim
+@noindent
+in the optional @code{Asymptote} configuration file;
+@pxref{configuration file}).
 
 The @code{ImageMagick} package from
 
@@ -400,7 +415,8 @@ Users of @code{ggv} will need to enable @code{Watch file} under
 Users of @code{gsview} will need to enable @code{Options/Auto Redisplay}
 (however, under @code{MSDOS} it is still necessary to click on the
 @code{gsview} window; under @code{UNIX} one must manually redisplay by
-pressing the @code{r} key).
+pressing the @code{r} key). A better (and free) multiplatform
+alternative to @code{gsview} is psview (@pxref{psview}).
 
 @cindex @code{settings}
 @cindex configuration file
@@ -3634,11 +3650,12 @@ write(fout,"List: ",1,2,3);     // Writes "List: 1     2     3"
 @cindex @code{binput}
 @cindex @code{boutput}
 @cindex @code{single}
-@cindex @code{double}
+@cindex double precision
+@cindex @code{signed}
 A file may also be opened with @code{xinput} or @code{xoutput}, instead of
 @code{input} or @code{output}, to read or write
-double precision (64-bit) real values and single precision (32-bit)
-integer values in Sun Microsystem's @acronym{XDR} (External
+double precision (64-bit) reals and single precision (32-bit)
+integers in Sun Microsystem's @acronym{XDR} (External
 Data Representation) portable binary format (available on all
 @code{UNIX} platforms).
 Alternatively, a file may also be opened with @code{binput} or
@@ -3646,11 +3663,22 @@ Alternatively, a file may also be opened with @code{binput} or
 precision integers in the native (nonportable) machine binary format.
 The function
 @code{file single(file f, bool real=true, bool int=true)} may
-be used to change the precision of real and integer read/write
+be used to change the precision of real and integer I/O
 operations, respectively, for an @acronym{XDR} or binary file @code{f}.  
 Similarly, the function @code{file signed(file f, bool b=true)}
 can be used to modify the signedness of integer reads and writes for
 an @acronym{XDR} or binary file @code{f}.
+Note that @code{single}, and @code{signed} modify and return their
+file arguments (to facilitate nested function calls).
+
+@cindex @code{name}
+@cindex @code{mode}
+@cindex @code{singlereal}
+@cindex @code{singleint}
+@cindex @code{signed}
+The virtual members @code{name}, @code{mode}, @code{singlereal},
+@code{singleint}, and @code{signed} may be used to query the
+respective parameters for a given file.
 
 @cindex @code{eof}
 @cindex @code{eol}
@@ -5325,12 +5353,17 @@ One, two, and three-dimensional arrays of the basic data types can be
 output with the functions @code{write(file,T[])},
 @code{write(file,T[][])}, @code{write(file,T[][][])}, respectively.
 
+@cindex @code{dimension}
+@cindex @code{line}
+@cindex @code{csv}
+@cindex @code{word}
+@cindex @code{single}
+@cindex @code{signed}
 Note that @code{dimension}, @code{line}, @code{csv},
 @code{word}, @code{single}, and @code{signed} modify and return their
-file arguments (to allow nesting).
-The virtual fields @code{name}, @code{mode}, @code{line}, @code{csv},
-@code{word}, @code{singlereal}, @code{singleint},  and @code{signed}
-may be used to query the respective file parameters.
+file arguments (to facilitate nested function calls).
+The virtual members @code{dimension}, @code{line}, @code{csv}, and
+@code{word} may be used to query the respective parameters for a given file.
 
 @node Slices
 @subsection Slices
@@ -9266,4 +9299,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  addViews outprefix addAllViews xsplinetype ysplinetype rotateX
 @c  LocalWords:  usplinetype vsplinetype leftbutton middlebutton rightbutton
 @c  LocalWords:  rotateY rotateZ wheelup zoomin wheeldown zoomout TeXLive
-@c  LocalWords:  viewportshift signedint signedness
+@c  LocalWords:  viewportshift signedint signedness psview multiplatform
+@c  LocalWords:  singlereal singleint
