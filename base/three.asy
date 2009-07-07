@@ -2414,7 +2414,7 @@ object embed(string label="", string text=label,
 
     projection Q;
     if(!P.absolute) {
-      if(scale) {
+      if(scale && P.autoadjust) {
         pair v=(s.xx,s.yy);
         transform3 T=P.t;
         pair x=project(X,T);
@@ -2424,7 +2424,11 @@ object embed(string label="", string text=label,
           return b == 0 ? (0.5*(a.x+a.y)) : (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
         }
         pic2.erase();
-        t=xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z))*t;
+        transform3 s=keepAspect ? scale3(min(f(v,x),f(v,y),f(v,z))) :
+          xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z));
+        s=shift(P.target)*s*shift(-P.target);
+        t=s*t;
+        P=s*P;
         f=pic.fit3(t,is3D ? null : pic2,P);
       }
 
