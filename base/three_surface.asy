@@ -1226,8 +1226,9 @@ void label(picture pic=currentpicture, Label L, triple position,
     },!L.defaulttransform3);
 
   Label L=L.copy();
-  L.T=L.T*scale(abs(currentprojection.camera-position)/
-                abs(currentprojection.vector()));
+  if(targetsize)
+    L.T=L.T*scale(abs(currentprojection.camera-position)/
+                  abs(currentprojection.vector()));
   path[] g=texpath(L);
   if(g.length == 0 || (g.length == 1 && size(g[0]) == 0)) return;
   if(L.defaulttransform3)
