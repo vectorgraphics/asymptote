@@ -32,6 +32,8 @@
 #define u_quad_t unsigned long long
   
 #ifdef __CYGWIN__  
+extern "C" int fseeko(FILE *, off_t, int);
+extern "C" off_t ftello(FILE *);
 #define xdr_longlong_t xdr_int64_t
 #define xdr_u_longlong_t xdr_uint64_t
 #endif  
