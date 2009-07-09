@@ -52,16 +52,6 @@ using vm::read;
 using camp::bbox3;
 using settings::getSetting;
 using settings::Setting;
-
-// For now, don't use POSIX timers by default due to portability issues.
-#ifdef HAVE_POSIX_TIMERS
-static timer_t timerid;
-static struct itimerspec Timeout;
-#else
-static struct itimerval Timeout;
-#endif
-
-static const double milliseconds=1000.0; // In microseconds.
 timeval lasttime;
 
 double Aspect;
@@ -85,7 +75,6 @@ double *T;
 
 bool Xspin,Yspin,Zspin;
 bool Menu;
-bool Motion;
 bool ignorezoom;
 
 int Fitscreen;
@@ -644,7 +633,6 @@ void zoom(int x, int y)
       y0=y;
       return;
     }
-    Motion=true;
     double zoomFactor=getSetting<double>("zoomfactor");
     if(zoomFactor > 0.0) {
       double zoomStep=getSetting<double>("zoomstep");
@@ -686,7 +674,6 @@ void rotate(int x, int y)
       arcball.mouse_down(x,Height-y);
       return;
     }
-    Motion=true;
     arcball.mouse_motion(x,Height-y,0,
                          Action == "rotateX", // X rotation only
                          Action == "rotateY");  // Y rotation only
@@ -753,7 +740,6 @@ void rotateZ(int x, int y)
       x=x0; y=y0;
       return;
     }
-    Motion=true;
     double angle=Degrees(x,y);
     rotateZ(angle-lastangle);
     lastangle=angle;
@@ -831,36 +817,6 @@ void timeout(int)
   if(Menu) disableMenu();
 }
 
-void init_timeout()
-{
-  static struct sigaction action;
-  action.sa_handler=timeout;
-  sigemptyset(&action.sa_mask);
-  action.sa_flags=0;
-  sigaction(SIGALRM,&action,NULL);
-  
-  Timeout.it_value.tv_sec=Timeout.it_interval.tv_sec=0;
-#ifdef HAVE_POSIX_TIMERS
-  timer_create (CLOCK_REALTIME,NULL,&timerid);
-  Timeout.it_interval.tv_nsec=0;
-#else  
-  Timeout.it_interval.tv_usec=0;
-#endif  
-}
-
-void set_timeout(int microseconds)
-{
-  if(microseconds >= 0) {
-#ifdef HAVE_POSIX_TIMERS
-    Timeout.it_value.tv_nsec=1000*microseconds;
-    timer_settime(timerid,0,&Timeout,NULL);
-#else
-    Timeout.it_value.tv_usec=microseconds;
-    setitimer(ITIMER_REAL,&Timeout,NULL);
-#endif    
-  }
-}
-
 void mouse(int button, int state, int x, int y)
 {
   int mod=glutGetModifiers();
@@ -877,19 +833,16 @@ void mouse(int button, int state, int x, int y)
     return;
   }     
   
-  if(Action == "zoom/menu" && mod == 0) {
-    if(state == GLUT_UP && !Motion) {
-      MenuButton=button;
-      glutMotionFunc(NULL);
-      glutAttachMenu(button);
-      Menu=true;
-      set_timeout((int) (getSetting<double>("doubleclick")*milliseconds));
-      return;
-    }
-  }
-  
   if(Menu) disableMenu();
-  else Motion=false;
+  else if(mod == 0 && state == GLUT_UP && Action == "zoom/menu") {
+    MenuButton=button;
+    glutMotionFunc(NULL);
+    glutAttachMenu(button);
+    Menu=true;
+    glutTimerFunc((unsigned int)
+                  (getSetting<double>("doubleclick")),timeout,0);
+    return;
+  }
   
   if(state == GLUT_DOWN) {
     if(Action == "rotate" || Action == "rotateX" || Action == "rotateY") {
@@ -1120,10 +1073,8 @@ enum Menu {HOME,FITSCREEN,XSPIN,YSPIN,ZSPIN,STOP,MODE,EXPORT,CAMERA,QUIT};
 
 void menu(int choice)
 {
-  set_timeout(0);
   if(Menu) disableMenu();
   ignorezoom=true;
-  Motion=true;
   switch (choice) {
     case HOME: // Home
       home();
@@ -1180,7 +1131,6 @@ void init()
   
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
-  init_timeout();
 }
 
 // angle=0 means orthographic.
@@ -1230,7 +1180,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   H=orthographic ? 0.0 : -tan(0.5*Angle)*zmax;
     
   Menu=false;
-  Motion=true;
   ignorezoom=false;
   Mode=0;
   Xfactor=Yfactor=1.0;
