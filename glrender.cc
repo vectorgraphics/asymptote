@@ -839,7 +839,7 @@ void mouse(int button, int state, int x, int y)
     glutMotionFunc(NULL);
     glutAttachMenu(button);
     Menu=true;
-    glutTimerFunc(getSetting<double>("doubleclick"),timeout,0);
+    glutTimerFunc(getSetting<Int>("doubleclick"),timeout,0);
     return;
   }
   
