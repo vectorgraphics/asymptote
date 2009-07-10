@@ -129,7 +129,7 @@ template<class T>
 bool setlatexfont(T& out, const pen& p, const pen& lastpen)
 {
   if(p.size() != lastpen.size() || p.Lineskip() != lastpen.Lineskip()) {
-    out <<  "\\fontsize{" << p.size() << "}{" << p.Lineskip()
+    out <<  "\\fontsize{" << p.size()*ps2tex << "}{" << p.Lineskip()
         << "}\\selectfont\n";
     return true;
   }

@@ -363,8 +363,8 @@ public:
     overwrite(p.Overwrite()), t(p.getTransform()) {}
   
   static pen initialpen() {
-    return pen(LineType("",0,true,true),0.5,nullpath,"",12.0,12.0*1.2,
-               GRAYSCALE,
+    return pen(LineType("",0,true,true),0.5,nullpath,"",12.0*tex2ps,
+               12.0*1.2*tex2ps,GRAYSCALE,
                0.0,0.0,0.0,0.0,"",ZEROWINDING,NOBASEALIGN,
                DEFTRANSP,1,1,10.0,ALLOW,identity);
   }
