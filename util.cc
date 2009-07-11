@@ -361,6 +361,16 @@ const char *setPath(const char *s, bool quiet)
   return p;
 }
 
+string command(const string& cmd)
+{
+  string s="'"+cmd+"' ";
+#ifdef __CYGWIN__
+    if(cmd == "cmd")
+      return s+"/c start \"\" ";
+#endif      
+    return s;
+}
+
 void popupHelp() {
   // If the popped-up help is already running, pid stores the pid of the viewer.
   static int pid=0;
@@ -371,9 +381,12 @@ void popupHelp() {
   // If the help viewer isn't running (or its last run has termined), launch the
   // viewer again.
   if (pid==0 || (waitpid(pid, &status, WNOHANG) == pid)) {
+    string viewerOptions=getSetting<string>("pdfviewerOptions"); 
     ostringstream cmd;
-    cmd << "'" << getSetting<string>("pdfviewer") << "' '" 
-        << docdir << dirsep << "asymptote.pdf'";
+    cmd << command(getSetting<string>("pdfviewer"));
+    if(!viewerOptions.empty())
+      cmd << viewerOptions << " ";
+    cmd << "'" << docdir << dirsep << "asymptote.pdf'";
     status=System(cmd,0,false,"pdfviewer","your PDF viewer",&pid);
   }
 }

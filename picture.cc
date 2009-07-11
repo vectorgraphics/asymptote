@@ -409,7 +409,7 @@ bool picture::reloadPDF(const string& Viewer, const string& outname) const
   }
   if(haveReload) {
     ostringstream cmd;
-    cmd << "'" << Viewer << "' ";
+    cmd << command(Viewer);
     string pdfreloadOptions=getSetting<string>("pdfreloadOptions");
     if(!pdfreloadOptions.empty())
       cmd << pdfreloadOptions << " ";
@@ -479,7 +479,7 @@ bool picture::postprocess(const string& prename, const string& outname,
         else if(pdfreload) reloadPDF(Viewer,outname);
       } else {
         ostringstream cmd;
-        cmd << "'" << Viewer << "' ";
+        cmd << command(Viewer);
         string viewerOptions=getSetting<string>(pdfformat ? 
                                                 "pdfviewerOptions" : 
                                                 "psviewerOptions");
@@ -504,8 +504,8 @@ bool picture::postprocess(const string& prename, const string& outname,
       }
     } else {
       ostringstream cmd;
-      cmd << "'" << getSetting<string>("display") << "' '"
-          << outname << "'";
+      cmd << command(getSetting<string>("display"))
+	  << "'" << outname << "'";
       string application="your "+outputformat+" viewer";
       status=System(cmd,0,wait,"display",application.c_str());
       if(status != 0) return false;

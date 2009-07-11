@@ -88,8 +88,8 @@ string defaultPDFViewer="open";
 string defaultPDFViewer="acroread";
 #endif  
 string defaultGhostscript="gs";
-string defaultPython;
 string defaultDisplay="display";
+string defaultAnimate="animate";
 string systemDir=ASYMPTOTE_SYSDIR;
 string docdir=ASYMPTOTE_DOCDIR;
 void queryRegistry() {}
@@ -101,10 +101,13 @@ bool msdos=true;
 string HOME="USERPROFILE";
 const char pathSeparator=';';
 string defaultPSViewer="gsview32.exe";
-string defaultPDFViewer="AcroRd32.exe";
+//string defaultPDFViewer="AcroRd32.exe";
+string defaultPDFViewer="cmd";
 string defaultGhostscript="gswin32c.exe";
-string defaultPython="python.exe";
-string defaultDisplay="imdisplay";
+//string defaultDisplay="imdisplay";
+string defaultDisplay="cmd";
+//string defaultAnimate="animate";
+string defaultAnimate="cmd";
 string systemDir=ASYMPTOTE_SYSDIR;
 string docdir;
 const string dirsep="\\";
@@ -112,9 +115,9 @@ const string dirsep="\\";
 #include <dirent.h>
   
 // Use key to look up an entry in the MSWindows registry, respecting wild cards
-string getEntry(const string& key)
+string getEntry(const string& location, const string& key)
 {
-  string path="/proc/registry/HKEY_LOCAL_MACHINE/SOFTWARE/"+key;
+  string path="/proc/registry/"+location+key;
   size_t star;
   string head;
   while((star=path.find("*")) < string::npos) {
@@ -159,16 +162,25 @@ string getEntry(const string& key)
   return "";
 }
   
+// Use key to look up an entry in the MSWindows registry, respecting wild cards
+string getEntry(const string& key)
+{
+  string entry=getEntry("HKEY_CURRENT_USER/Software/",key);
+  if(entry.empty()) entry=getEntry("HKEY_LOCAL_MACHINE/SOFTWARE/",key);
+  return entry;
+}
+
 void queryRegistry()
 {
   string gs=getEntry("GPL Ghostscript/*/GS_DLL");
   if(gs.empty())
     gs=getEntry("AFPL Ghostscript/*/GS_DLL");
   defaultGhostscript=stripFile(gs)+defaultGhostscript;
+  if(defaultPDFViewer != "cmd")
   defaultPDFViewer=getEntry("Adobe/Acrobat Reader/*/InstallPath/@")+"\\"+
     defaultPDFViewer;
-  defaultPSViewer=getEntry("Ghostgum/GSview/*")+"\\gsview\\"+defaultPSViewer;
-  defaultPython=getEntry("Python/PythonCore/*/InstallPath/@")+defaultPython;
+  if(defaultPSViewer != "cmd")
+    defaultPSViewer=getEntry("Ghostgum/GSview/*")+"\\gsview\\"+defaultPSViewer;
   docdir=getEntry("Microsoft/Windows/CurrentVersion/App Paths/Asymptote/Path");
   if(!systemDir.empty()) // An empty systemDir indicates a TeXLive build
     systemDir=docdir;
@@ -1260,8 +1272,7 @@ void initSettings() {
   addOption(new envSetting("dvips", "dvips"));
   addOption(new envSetting("convert", "convert"));
   addOption(new envSetting("display", defaultDisplay));
-  addOption(new envSetting("animate", "animate"));
-  addOption(new envSetting("python", defaultPython));
+  addOption(new envSetting("animate", defaultAnimate));
   addOption(new envSetting("papertype", "letter"));
   addOption(new envSetting("dir", ""));
   addOption(new envSetting("sysdir", systemDir));

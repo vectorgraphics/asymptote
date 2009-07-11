@@ -4448,7 +4448,7 @@ Int animate(string args=emptystring, string file=emptystring,
   string name=convertname(file,format,false);
   if(view()) {
     ostringstream cmd;
-    cmd << "'" << getSetting<string>("animate") << "' " << args
+    cmd << command(getSetting<string>("animate")) << args
         << " '" << name << "'";
     return System(cmd,0,false,"animate","your animated GIF viewer");
   }

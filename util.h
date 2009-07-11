@@ -58,6 +58,9 @@ int System(const char *command, int quiet=0, bool wait=true,
 int System(const ostringstream& command, int quiet=0, bool wait=true,
            const char *hint=NULL, const char *application="",
            int *pid=NULL); 
+
+// Wrapper to append /c start "" to MSDOS cmd.
+string command(const string& cmd);
   
 #if defined(__DECCXX_LIBCXX_RH70)
 extern "C" int kill(pid_t pid, Int sig) throw();
