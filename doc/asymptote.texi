@@ -428,20 +428,22 @@ variables in an optional configuration file (by default,
 @pxref{configuration file}). Here are the default values
 of several important configuration variables under @code{UNIX}:
 
-@cindex @code{python}
 @noindent
 @verbatim
 import settings;
 psviewer="gv";
 pdfviewer="acroread";
 gs="gs";
-python="";
 @end verbatim
 
 @noindent
-The (installation-dependent) default values of these configuration
-variables under @code{MSDOS} are determined automatically from the
-@code{Microsoft Windows} registry.
+@cindex @code{cmd}
+Under @code{MSDOS}, the (installation-dependent) default values of
+these configuration variables are determined automatically from the
+@code{Microsoft Windows} registry. Viewer settings (such as
+@code{psviewer} and @code{pdfviewer}) can be set to the string
+@code{cmd} to request the application normally associated with the
+corresponding file type.
 
 For @acronym{PDF} format output, the @code{gs} setting specifies the
 location of the @code{PostScript}-to-@acronym{PDF} processor @code{Ghostscript},
@@ -465,9 +467,6 @@ pdfreloadOptions="-tempFile";
 in the @code{Asymptote} configuration file. This reload feature is not
 useful under @code{MSDOS} since the document cannot be updated anyway on
 that operating system until it is first closed by @code{Adobe Reader}.
-
-The graphical user interface may also require setting the variable
-@code{python} if @code{Python} is installed in a nonstandard location.
 
 The configuration variable @code{dir} can be used to adjust the
 search path (@pxref{Search paths}).

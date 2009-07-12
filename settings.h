@@ -9,6 +9,7 @@
 #define SETTINGS_H
 
 #include <fstream>
+#include <sys/stat.h>
 
 #include "common.h"
 #include "pair.h"
@@ -89,6 +90,8 @@ int numArgs();
 char *getArg(int n);
  
 Int getScroll();
+  
+extern mode_t mask;
   
 bool pdf(const string& texengine);
 bool latex(const string& texengine);

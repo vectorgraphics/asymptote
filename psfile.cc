@@ -117,6 +117,9 @@ void psfile::close()
   if(out) {
     out->flush();
     if(!filename.empty()) {
+#ifdef __CYGWIN__  
+      chmod(filename.c_str(),~settings::mask & 0777);
+#endif	    
       if(!out->good())
         // Don't call reportError since this may be called on handled_error.
         reportFatal("Cannot write to "+filename);

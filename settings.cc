@@ -76,6 +76,8 @@ const bool haveglut=true;
 const bool haveglut=false;
 #endif
   
+mode_t mask;
+  
 #ifndef __CYGWIN__
   
 bool msdos=false;
@@ -100,7 +102,8 @@ const string dirsep="/";
 bool msdos=true;
 string HOME="USERPROFILE";
 const char pathSeparator=';';
-string defaultPSViewer="gsview32.exe";
+//string defaultPSViewer="gsview32.exe";
+string defaultPSViewer="cmd";
 //string defaultPDFViewer="AcroRd32.exe";
 string defaultPDFViewer="cmd";
 string defaultGhostscript="gswin32c.exe";
@@ -1352,6 +1355,11 @@ void initDir() {
   if(initdir.empty())
     initdir=Getenv(HOME.c_str(),msdos)+dirsep+"."+suffix;
   
+#ifdef __CYGWIN__  
+  mask=umask(0);
+  if(mask == 0) mask=0027;
+  umask(mask);
+#endif  
   if(verbose > 1)
     cerr << "Using configuration directory " << initdir << endl;
   mkdir(initdir.c_str(),0777);
