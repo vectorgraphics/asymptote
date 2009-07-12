@@ -950,6 +950,13 @@ bool cyclic(guide3 g) {flatguide3 f; g(f); return f.cyclic();}
 int size(guide3 g) {flatguide3 f; g(f); return f.size();}
 int length(guide3 g) {flatguide3 f; g(f); return f.nodes.length-1;}
 
+triple beginpoint(path3 p) {
+  return point(p, 0);
+}
+triple endpoint(path3 p) {
+  return point(p, length(p));
+}
+
 path3 path3(triple v)
 {
   triple[] point={v};
