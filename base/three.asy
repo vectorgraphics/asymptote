@@ -950,11 +950,62 @@ bool cyclic(guide3 g) {flatguide3 f; g(f); return f.cyclic();}
 int size(guide3 g) {flatguide3 f; g(f); return f.size();}
 int length(guide3 g) {flatguide3 f; g(f); return f.nodes.length-1;}
 
-triple beginpoint(path3 p) {
-  return point(p, 0);
+triple dir(path3 p)
+{
+  return dir(p,length(p));
 }
-triple endpoint(path3 p) {
-  return point(p, length(p));
+
+triple dir(path3 p, path3 h)
+{
+  return 0.5*(dir(p)+dir(h));
+}
+
+// return the point on path3 p at arclength L
+triple arcpoint(path3 p, real L)
+{
+  return point(p,arctime(p,L));
+}
+
+// return the direction on path3 p at arclength L
+triple arcdir(path3 p, real L)
+{
+  return dir(p,arctime(p,L));
+}
+
+// return the time on path3 p at the relative fraction l of its arclength
+real reltime(path3 p, real l)
+{
+  return arctime(p,l*arclength(p));
+}
+
+// return the point on path3 p at the relative fraction l of its arclength
+triple relpoint(path3 p, real l)
+{
+  return point(p,reltime(p,l));
+}
+
+// return the direction of path3 p at the relative fraction l of its arclength
+triple reldir(path3 p, real l)
+{
+  return dir(p,reltime(p,l));
+}
+
+// return the initial point of path3 p
+triple beginpoint(path3 p)
+{
+  return point(p,0);
+}
+
+// return the point on path3 p at half of its arclength
+triple midpoint(path3 p)
+{
+  return relpoint(p,0.5);
+}
+
+// return the final point of path3 p
+triple endpoint(path3 p)
+{
+  return point(p,length(p));
 }
 
 path3 path3(triple v)
