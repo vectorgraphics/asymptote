@@ -27,12 +27,9 @@ string stripDir(string name);
 // Strip the file from a filename, returning the directory.
 string stripFile(string name);
 
-// Like stripTeXFile except return "" for context TeX engine.
-string stripTeXFile(string name);
-
 // Strip the extension from a filename.
 string stripExt(string name, const string& suffix="");
-  
+
 void writeDisabled();
   
 // Check if global writes are disabled and name contains a directory.
@@ -46,22 +43,31 @@ string buildname(string filename, string suffix="", string aux="");
 // directory.
 string auxname(string filename, string suffix="");
 
+// Cast argument to a string.
+template<class T>
+string String(T x)
+{
+  ostringstream buf;
+  buf << x;
+  return buf.str();
+}
+
+// Split string S and push the pieces onto vector a.
+void push_split(mem::vector<string>& a, const string& S);
+  
+// Wrapper to append /c start "" to MSDOS cmd.
+void push_command(mem::vector<string>& a, const string& s);
+  
 // Return an argv array corresponding to the fields in command delimited
 // by spaces not within matching single quotes.
-char **args(const char *command, bool quiet=false);
+char **args(const mem::vector<string> &args, bool quiet=false);
   
 // Similar to the standard system call except allows interrupts and does
 // not invoke a shell.
-int System(const char *command, int quiet=0, bool wait=true,
+int System(const mem::vector<string> &command, int quiet=0, bool wait=true,
            const char *hint=NULL, const char *application="",
            int *pid=NULL);
-int System(const ostringstream& command, int quiet=0, bool wait=true,
-           const char *hint=NULL, const char *application="",
-           int *pid=NULL); 
 
-// Wrapper to append /c start "" to MSDOS cmd.
-string command(const string& cmd);
-  
 #if defined(__DECCXX_LIBCXX_RH70)
 extern "C" int kill(pid_t pid, Int sig) throw();
 extern "C" char *strsignal(Int sig);

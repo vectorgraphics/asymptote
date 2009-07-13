@@ -986,17 +986,21 @@ array *readpath(const string& psname, bool keep,
                 double hscale=1.0, double vscale=1.0)
 {
   array *P=new array(0);
-  ostringstream pipe;
-  pipe << "'" << getSetting<string>("gs")
-       << "' -q -dNOPAUSE -dBATCH";
-  if(safe) pipe << " -dSAFER";
+  mem::vector<string> cmd;
+  cmd.push_back(getSetting<string>("gs"));
+  cmd.push_back("-q");
+  cmd.push_back("-dNOPAUSE");
+  cmd.push_back("-dBATCH");
+  if(safe) cmd.push_back("-dSAFER");
 #ifdef __CYGWIN__
   const string null="NUL";
 #else
   const string null="/dev/null";
 #endif
-  pipe << " -sDEVICE=epswrite -sOutputFile="+null+" '" << psname << "'";
-  iopipestream gs(pipe.str().c_str(),"gs","Ghostscript");
+  cmd.push_back("-sDEVICE=epswrite");
+  cmd.push_back("-sOutputFile="+null);
+  cmd.push_back(psname);
+  iopipestream gs(cmd,"gs","Ghostscript");
   stringstream buf;
   while(true) {
     string out;
@@ -1313,7 +1317,8 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   string texname=auxname(prefix,"tex");
   string dviname=auxname(prefix,"dvi");
   bbox b;
-  bool pdf=settings::pdf(getSetting<string>("tex"));
+  string texengine=getSetting<string>("tex");
+  bool pdf=settings::pdf(texengine);
   texfile tex(texname,b,true);
   tex.miniprologue();
   tex.setfont(p);
@@ -1332,27 +1337,8 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   tex.epilogue(true);
   tex.close();
   
-  // TODO: Put in common subproutine (cf. texprocess).
-  string aux=auxname(prefix,"aux");
-  unlink(aux.c_str());
-  string program=texprogram();
-  ostringstream cmd;
-  bool context=settings::context(getSetting<string>("tex"));
-  cmd << program << (context ? " --nonstopmode '" : 
-                     " \\nonstopmode\\input '") << texname << "'";
-  bool quiet=verbose <= 2;
-  int status=System(cmd,quiet ? 1 : 0,true,"texpath",texpathmessage());
-  if(!status && getSetting<bool>("twice"))
-    status=System(cmd,quiet ? 1 : 0,true,"texpath",texpathmessage());
-  if(status) {
-    if(quiet) {
-      ostringstream cmd;
-      cmd << program << (context ? " --scrollmode '" : 
-                         " \\scrollmode\\input '") << texname << "'";
-      System(cmd,0);
-    }
-  }
-    
+  int status=opentex(texname,prefix);
+  
   string pdfname;
   if(!status) {
     if(pdf) {
@@ -1362,12 +1348,17 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
       
       showpath(ps);
 
-      ostringstream cmd;
-      cmd << "'" << getSetting<string>("gs")
-          << "' -q -dNOCACHE -dNOPAUSE -dBATCH";
-      if(safe) cmd << " -dSAFER";
-      cmd << " -sDEVICE=epswrite -sOutputFile=- '" << pdfname << "'";
-      iopipestream gs(cmd.str().c_str(),"gs","Ghostscript");
+      mem::vector<string> cmd;
+      cmd.push_back(getSetting<string>("gs"));
+      cmd.push_back("-q");
+      cmd.push_back("-dNOCACHE");
+      cmd.push_back("-dNOPAUSE");
+      cmd.push_back("-dBATCH");
+      if(safe) cmd.push_back("-dSAFER");
+      cmd.push_back("-sDEVICE=epswrite");
+      cmd.push_back("-sOutputFile=-");
+      cmd.push_back(pdfname);
+      iopipestream gs(cmd,"gs","Ghostscript");
       
       gs.block(false);
       while(true) {
@@ -1378,12 +1369,16 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
       }
       ps.close();
     } else {
-      ostringstream cmd;
-      cmd << "'" << getSetting<string>("dvips") << "' -R -Pdownload35 -D600 "
-          << getSetting<string>("dvipsOptions");
-      if(verbose <= 2) cmd << " -q";
-      cmd  << " -o '" << psname << "' '" << dviname << "'";
-      status=System(cmd,0,true,"dvips");
+      mem::vector<string> dcmd;
+      dcmd.push_back(getSetting<string>("dvips"));
+      dcmd.push_back("-R");
+      dcmd.push_back("-Pdownload35");
+      dcmd.push_back("-D600");
+      push_split(dcmd,getSetting<string>("dvipsOptions"));
+      if(verbose <= 2) dcmd.push_back("-q");
+      dcmd.push_back("-o"+psname);
+      dcmd.push_back(dviname);
+      status=System(dcmd,0,true,"dvips");
     }
   }
 
@@ -1394,13 +1389,13 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   if(!keep) { // Delete temporary files.
     unlink(texname.c_str());
     if(!getSetting<bool>("keepaux"))
-      unlink(aux.c_str());
+      unlink(auxname(prefix,"aux").c_str());
     unlink(auxname(prefix,"log").c_str());
     if(pdf)
       unlink(pdfname.c_str());
     else
       unlink(dviname.c_str());
-    if(context) {
+    if(settings::context(texengine)) {
       unlink(auxname(prefix,"top").c_str());
       unlink(auxname(prefix,"tua").c_str());
       unlink(auxname(prefix,"tui").c_str());
@@ -1436,16 +1431,23 @@ patharray *textpath(string *s, pen p=CURRENTPEN)
 
   showpath(ps);
   
-  ostringstream pipe;
-  pipe << getSetting<string>("textcommand") << " '" << textname << "'";
-  iopipestream typesetter(pipe.str().c_str());
+  mem::vector<string> cmd;
+  cmd.push_back(getSetting<string>("textcommand"));
+  push_split(cmd,getSetting<string>("textcommandOptions"));
+  cmd.push_back(textname);
+  iopipestream typesetter(cmd);
   
-  ostringstream pipe2;
-  pipe2 << "'" << getSetting<string>("gs")
-       << "' -q -dNOCACHE -dNOPAUSE -dBATCH";
-  if(safe) pipe2 << " -dSAFER";
-  pipe2 << " -sDEVICE=epswrite -sOutputFile=- -";
-  iopipestream gs(pipe2.str().c_str(),"gs","Ghostscript");
+  mem::vector<string> cmd2;
+  cmd2.push_back(getSetting<string>("gs"));
+  cmd2.push_back("-q");
+  cmd2.push_back("-dNOCACHE");
+  cmd2.push_back("-dNOPAUSE");
+  cmd2.push_back("-dBATCH");
+  if(safe) cmd2.push_back("-dSAFER");
+  cmd2.push_back("-sDEVICE=epswrite");
+  cmd2.push_back("-sOutputFile=-");
+  cmd2.push_back("-");
+  iopipestream gs(cmd2,"gs","Ghostscript");
   gs.block(false);
 
   // TODO: Simplify by connecting the pipes directly.
@@ -1821,7 +1823,7 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
   const string Done="Done";
   const string Error="Error";
   
-  ostringstream cmd;
+  mem::vector<string> cmd;
   
   // Enforce ghostscript limitations.
   magnification=::max(magnification,0.0001);
@@ -1839,25 +1841,31 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
     for(picture::nodelist::iterator p=f->nodes.begin();;) {
       if(p == f->nodes.end()) break;
       if(arg == 0) {
-        cmd.str("");
+        cmd.clear();
         ostringstream buf;
         buf << batch << "_";
         outname=buildname(prefix+buf.str()+"%d",xformat,"");
         if(png) {
-          cmd << "'" << getSetting<string>("gs")
-              << "' -q -dNOPAUSE -dBATCH -sDEVICE=pngalpha -dEPSCrop";
-          if(safe)
-            cmd << " -dSAFER";
-          cmd << " -r" << res << "x" << res
-              << " -sOutputFile='" << outname << "'";
           converter="gs";
           hint="Ghostscript";
+          cmd.push_back(getSetting<string>(converter));
+          cmd.push_back("-q");
+          cmd.push_back("-dNOPAUSE");
+          cmd.push_back("-dBATCH");
+          cmd.push_back("-sDEVICE=pngalpha");
+          cmd.push_back("-dEPSCrop");
+          if(safe)
+            cmd.push_back("-dSAFER");
+          cmd.push_back("-r"+String(res)+"x"+String(res));
+          cmd.push_back("-sOutputFile="+outname);
         } else {
-          cmd << "'" << getSetting<string>("convert") 
-              << "' -density " << res << "x" << res
-              << " -transparent white";
           hint=converter="convert";
-        }
+          cmd.push_back(getSetting<string>("convert")); 
+          cmd.push_back("-density");
+          cmd.push_back(String(res)+"x"+String(res));
+          cmd.push_back("-transparent");
+          cmd.push_back("white");
+         }
       }
       
       picture *group=new picture;
@@ -1897,9 +1905,7 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
         string Preformat=png && group->Transparency() ? "pdf" : preformat;
         string name=buildname(buf.str(),Preformat);
         nameStack.push_back(name);
-        cmd << " '";
-        if(!png) cmd << preformat+":";
-        cmd << name << "'";
+        cmd.push_back(png ? name : preformat+":"+name);
         b=group->bounds();
         b *= magnification;
       
@@ -1913,9 +1919,12 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
         arg=0;
         ++batch;
         cout.flush();
-        if(!png) 
-          cmd << " -scene 1 '" << xformat << ":" << outname << "'";
-    
+        if(!png) {
+          cmd.push_back("-scene");
+          cmd.push_back("1");
+          cmd.push_back(xformat+":"+outname);
+        }
+  
         int status=System(cmd,0,true,converter,hint);
         if(status) {
           cout << Error << endl;
@@ -2274,11 +2283,15 @@ bool uptodate()
 
 // System commands
 
-Int system(string s)
+Int system(stringarray *s)
 {
   if(safe) error("system() call disabled; override with option -nosafe");
-  if(s.empty()) return 0;
-  else return System(s.c_str());
+  size_t size=checkArray(s);
+  if(size == 0) return 0;
+  mem::vector<string> cmd;
+  for(size_t i=0; i < size; ++i)
+    cmd.push_back(read<string>(s,i));
+  return System(cmd);
 }
 
 bool view()
@@ -4426,13 +4439,14 @@ string stripextension(string *s)
 Int convert(string args=emptystring, string file=emptystring,
             string format=emptystring)
 {
-  ostringstream cmd;
-  
   string name=convertname(file,format);
-  cmd << "'" << getSetting<string>("convert") << "' " << args
-      << " '" << name << "'";
+  mem::vector<string> cmd;
+  cmd.push_back(getSetting<string>("convert"));
+  push_split(cmd,args);
+  cmd.push_back(name);
   bool quiet=verbose <= 1;
-  Int ret=System(cmd,quiet ? 1 : 0,true,"convert","your ImageMagick convert utility");
+  Int ret=System(cmd,quiet ? 1 : 0,true,"convert",
+                 "your ImageMagick convert utility");
   
   if(ret == 0 && verbose > 0)
     cout << "Wrote " << ((file.empty()) ? name : file) << endl;
@@ -4447,9 +4461,10 @@ Int animate(string args=emptystring, string file=emptystring,
 #ifndef __CYGWIN__
   string name=convertname(file,format,false);
   if(view()) {
-    ostringstream cmd;
-    cmd << command(getSetting<string>("animate")) << args
-        << " '" << name << "'";
+    mem::vector<string> cmd;
+    cmd.push_back(getSetting<string>("animate"));
+    push_split(cmd,args);
+    cmd.push_back(name);
     return System(cmd,0,false,"animate","your animated GIF viewer");
   }
 #endif  

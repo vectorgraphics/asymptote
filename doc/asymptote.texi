@@ -2027,7 +2027,7 @@ string pairs @{@code{before},@code{after}@} to the corresponding
 string @code{after};
 
 @cindex @code{split}
-@item string[] split(string s, string delimiter)
+@item string[] split(string s, string delimiter=" ")
 returns an array of strings obtained by splitting @code{s} into substrings
 delimited by @code{delimiter};
 
@@ -3797,9 +3797,9 @@ call the @code{ImageMagick} commands @code{convert} and @code{animate},
 respectively, with the arguments @code{args} and the file name constructed
 from the strings @code{file} and @code{format}. 
 @cindex @code{system}
-If the setting @code{safe} is false, then the function 
-@code{int system(string s)} can be used to call the arbitrary system
-command @code{s}.
+If the setting @code{safe} is false, then the functions 
+@code{int system(string s)} and @code{int system(string[] s)} can be
+used to call the arbitrary system command @code{s}.
 
 @node Variable initializers
 @section Variable initializers
@@ -8700,7 +8700,8 @@ asy -o - venn | convert -alpha Off -density 144x144 -geometry 50%x eps:- venn.ti
 @cindex @code{safe}
 @cindex @code{system}
 If the option @code{-nosafe} is given, @code{Asymptote} runs
-in unsafe mode. This enables the @code{int system(string s)} call, allowing one
+in unsafe mode. This enables the @code{int system(string s)} and 
+@code{int system(string[] s)} calls, allowing one
 to execute arbitrary shell commands. The default mode, @code{-safe},
 disables this call.
 

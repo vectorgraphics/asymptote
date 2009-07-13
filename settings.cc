@@ -621,14 +621,6 @@ struct dataSetting : public argumentSetting {
 };
 
 template<class T>
-string String(T x)
-{
-  ostringstream buf;
-  buf << x; 
-  return buf.str();
-}
-  
-template<class T>
 string description(string desc, T defaultValue) 
 {
   return desc.empty() ? "" : desc+" ["+String(defaultValue)+"]";
@@ -1264,7 +1256,8 @@ void initSettings() {
   addOption(new envSetting("papertype", "letter"));
   addOption(new envSetting("dir", ""));
   addOption(new envSetting("sysdir", systemDir));
-  addOption(new envSetting("textcommand","groff -e -P-b16"));
+  addOption(new envSetting("textcommand","groff"));
+  addOption(new envSetting("textcommandOptions","-e -P -b16"));
   addOption(new envSetting("textextension", "roff"));
   addOption(new envSetting("textoutformat", "ps"));
   addOption(new envSetting("textprologue", ".EQ\ndelim $$\n.EN"));
@@ -1309,7 +1302,10 @@ string outname() {
 string lookup(const string& symbol) 
 {
   string s;
-  iopipestream pipe(("kpsewhich --var-value="+symbol).c_str());
+  mem::vector<string> cmd;
+  cmd.push_back("kpsewhich");
+  cmd.push_back("--var-value="+symbol);
+  iopipestream pipe(cmd);
   pipe >> s;
 // Workaround broken header file on i386-solaris with g++ 3.4.3.
 #ifdef erase
@@ -1516,10 +1512,7 @@ string texprogram()
 {
   string path=getSetting<string>("texpath");
   string engine=texcommand();
-  if(!path.empty()) engine=(string) (path+"/"+engine);
-  string program="'"+engine+"'";
-  string dir=stripTeXFile(outname());
-  return dir.empty() ? program : (program+" -output-directory="+dir);
+  return path.empty() ? engine : (string) (path+"/"+engine);
 }
 
 Int getScroll() 

@@ -20,6 +20,7 @@
 #include <signal.h>
 #include <cstring>
 #include <algorithm>
+#include <cstdarg>
 
 #include "util.h"
 #include "settings.h"
@@ -91,11 +92,6 @@ string stripFile(string name)
   return dir ? name : "";
 }
   
-string stripTeXFile(string name)
-{
-  return getSetting<string>("tex") == "context" ? "" : stripFile(name);
-}
-
 string stripExt(string name, const string& ext)
 {
   string suffix="."+ext;
@@ -167,49 +163,39 @@ string auxname(string filename, string suffix)
   return buildname(filename,suffix,"_");
 }
   
-char **args(const char *command, bool quiet)
+void push_split(mem::vector<string>& a, const string& S) 
 {
-  if(command == NULL) return NULL;
-  
-  size_t n=0;
-  char **argv=NULL;  
-  for(int pass=0; pass < 2; ++pass) {
-    if(pass) argv=new char*[n+1];
-    ostringstream buf;
-    const char *p=command;
-    bool empty=true;
-    bool quote=false;
-    n=0;
-    char c;
-    while((c=*(p++))) {
-      if(!quote && c == ' ') {
-        if(!empty) {
-          if(pass) {
-            argv[n]=StrdupNoGC(buf.str());
-            buf.str("");
-          }
-          empty=true;
-          n++;
-        }
-      } else {
-        empty=false;
-        if(c == '\'') quote=!quote;
-        else if(pass) buf << c;
+  const char *p=S.c_str();
+  string s;
+  char c;
+  while((c=*(p++))) {
+    if(c == ' ') {
+      if(s.size() > 0) {
+        a.push_back(s);
+        s.clear();
       }
-    }
-    if(!empty) {
-      if(pass) argv[n]=StrdupNoGC(buf.str());
-      n++;
-    }
+    } else s += c;
   }
+  if(s.size() > 0)
+    a.push_back(s);
+}
+
+char **args(const mem::vector<string>& s, bool quiet)
+{
+  size_t count=s.size();
+  
+  char **argv=NULL;
+  argv=new char*[count+1];
+  for(size_t i=0; i < count; ++i)
+    argv[i]=StrdupNoGC(s[i]);
   
   if(!quiet && settings::verbose > 1) {
     cerr << argv[0];
-    for(size_t m=1; m < n; ++m) cerr << " " << argv[m];
+    for(size_t i=1; i < count; ++i) cerr << " " << argv[i];
     cerr << endl;
   }
   
-  argv[n]=NULL;
+  argv[count]=NULL;
   return argv;
 }
 
@@ -235,13 +221,10 @@ void execError(const char *command, const char *hint, const char *application)
 }
                                                     
 // quiet: 0=none; 1=suppress stdout; 2=suppress stdout+stderr.
-
-int System(const char *command, int quiet, bool wait,
+int System(const mem::vector<string> &command, int quiet, bool wait,
            const char *hint, const char *application, int *ppid)
 {
   int status;
-
-  if(!command) return 1;
 
   cout.flush(); // Flush stdout to avoid duplicate output.
     
@@ -276,7 +259,8 @@ int System(const char *command, int quiet, bool wait,
       if(errno != EINTR) {
         if(quiet < 2) {
           ostringstream msg;
-          msg << "Command failed: " << command;
+          msg << "Command failed: ";
+          for(size_t i=0; i < command.size(); ++i) msg << command[i];
           camp::reportError(msg);
         }
       }
@@ -294,18 +278,13 @@ int System(const char *command, int quiet, bool wait,
       } else {
         if(quiet < 2) {
           ostringstream msg;
-          msg << "Command exited abnormally: " << command;
+          msg << "Command exited abnormally: ";
+          for(size_t i=0; i < command.size(); ++i) msg << command[i];
           camp::reportError(msg);
         }
       }
     }
   }
-}
-
-int System(const ostringstream& command, int quiet, bool wait,
-           const char *hint, const char *application, int *pid)
-{
-  return System(command.str().c_str(),quiet,wait,hint,application,pid);
 }
 
 string stripblanklines(const string& s)
@@ -361,14 +340,16 @@ const char *setPath(const char *s, bool quiet)
   return p;
 }
 
-string command(const string& cmd)
+void push_command(mem::vector<string>& a, const string& s) 
 {
-  string s="'"+cmd+"' ";
+  a.push_back(s);
 #ifdef __CYGWIN__
-    if(cmd == "cmd")
-      return s+"/c start \"\" ";
+  if(s == "cmd") {
+    a.push_back("/c");
+    a.push_back("start");
+    a.push_back("\"\"");
+  }
 #endif      
-    return s;
 }
 
 void popupHelp() {
@@ -381,12 +362,12 @@ void popupHelp() {
   // If the help viewer isn't running (or its last run has termined), launch the
   // viewer again.
   if (pid==0 || (waitpid(pid, &status, WNOHANG) == pid)) {
+    mem::vector<string> cmd;
+    push_command(cmd,getSetting<string>("pdfviewer"));
     string viewerOptions=getSetting<string>("pdfviewerOptions"); 
-    ostringstream cmd;
-    cmd << command(getSetting<string>("pdfviewer"));
     if(!viewerOptions.empty())
-      cmd << viewerOptions << " ";
-    cmd << "'" << docdir << dirsep << "asymptote.pdf'";
+      cmd.push_back(viewerOptions);
+    cmd.push_back(docdir+dirsep+"asymptote.pdf");
     status=System(cmd,0,false,"pdfviewer","your PDF viewer",&pid);
   }
 }

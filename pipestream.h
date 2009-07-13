@@ -61,24 +61,27 @@ public:
     return transcript.str();
   }
   
-  void open(const char *command, const char *hint=NULL,
+  void open(const mem::vector<string> &command, const char *hint=NULL,
             const char *application="", int out_fileno=STDOUT_FILENO) {
     if(pipe(in) == -1) {
       ostringstream buf;
-      buf << "in pipe failed: " << command << endl;
+      buf << "in pipe failed: ";
+      for(size_t i=0; i < command.size(); ++i) buf << command[i];
       camp::reportError(buf);
     }
 
     if(pipe(out) == -1) {
       ostringstream buf;
-      buf << "out pipe failed: " << command << endl;
+      buf << "out pipe failed: ";
+      for(size_t i=0; i < command.size(); ++i) buf << command[i];
       camp::reportError(buf);
     }
     cout.flush(); // Flush stdout to avoid duplicate output.
     
     if((pid=fork()) < 0) {
       ostringstream buf;
-      buf << "fork failed: " << command << endl;
+      buf << "fork failed: ";
+      for(size_t i=0; i < command.size(); ++i) buf << command[i];
       camp::reportError(buf);
     }
     
@@ -94,7 +97,7 @@ public:
       close(out[1]);
       char **argv=args(command);
       if(argv) execvp(argv[0],argv);
-      execError(command,hint,application);
+      execError(argv[0],hint,application);
       kill(0,SIGTERM);
       _exit(-1);
     }
@@ -120,7 +123,7 @@ public:
   
   iopipestream(): pid(0), pipeopen(false) {}
   
-  iopipestream(const char *command, const char *hint=NULL,
+  iopipestream(const mem::vector<string> &command, const char *hint=NULL,
                const char *application="", int out_fileno=STDOUT_FILENO) :
     pid(0), pipeopen(false) {
     open(command,hint,application,out_fileno);

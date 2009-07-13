@@ -83,7 +83,7 @@ string verbatim(string s)
 }
 
 // Split a string into an array of substrings delimited by delimiter
-string[] split(string s, string delimiter)
+string[] split(string s, string delimiter=" ")
 {
   string[] S;
   int last=0;
@@ -98,6 +98,11 @@ string[] split(string s, string delimiter)
   if(n >= last)
     S.push(substr(s,last,n-last));
   return S;
+}
+
+int system(string s) 
+{
+  return system(split(s));
 }
 
 int[] operator ecast(string[] a)

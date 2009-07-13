@@ -1117,15 +1117,13 @@ void setosize()
 
 void init() 
 {
-  string options=string(settings::argv0)+" ";
+  mem::vector<string> cmd;
+  cmd.push_back(settings::argv0);
   if(Iconify)
-    options += "-iconic ";
-  options += getSetting<string>("glOptions");
-  char **argv=args(options.c_str(),true);
-  int argc=0;
-  while(argv[argc] != NULL)
-    ++argc;
-  
+    cmd.push_back("-iconic");
+  push_split(cmd,getSetting<string>("glOptions"));
+  char **argv=args(cmd,true);
+  int argc=cmd.size();
   glutInit(&argc,argv);
   
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);

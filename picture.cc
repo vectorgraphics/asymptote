@@ -20,14 +20,18 @@ using namespace settings;
 using namespace gl;
 
 texstream::~texstream() {
-  string name=stripTeXFile(outname())+"texput.";
+  string texengine=getSetting<string>("tex");
+  bool context=settings::context(texengine);
+  string name;
+  if(!context) 
+    name=stripFile(outname());
+  name += "texput.";
   unlink((name+"aux").c_str());
   unlink((name+"log").c_str());
   unlink((name+"out").c_str());
-  string texengine=getSetting<string>("tex");
   if(settings::pdf(texengine))
     unlink((name+"pdf").c_str());
-  if(settings::context(texengine)) {
+  if(context) {
     unlink((name+"tex").c_str());
     unlink((name+"top").c_str());
     unlink((name+"tua").c_str());
@@ -213,27 +217,37 @@ void texinit()
     return;
   }
   
-  string name=stripTeXFile(outname())+"texput.log";
-  const char *cname=name.c_str();
+  bool context=settings::context(getSetting<string>("tex"));
+  string name;
+  if(!context) 
+    name=stripFile(outname());
+  name += "texput";
+  string logname=name+".log";
+  const char *cname=logname.c_str();
   ofstream writeable(cname);
   if(!writeable)
-    reportError("Cannot write to "+name);
+    reportError("Cannot write to "+logname);
   else
     writeable.close();
   unlink(cname);
   
-  ostringstream cmd;
-  bool context=settings::context(getSetting<string>("tex"));
+  mem::vector<string> cmd;
+  cmd.push_back(texprogram());
   if(context) {
-    // Create a null texput.tex file as a portable way of tricking context
-    // to enter interactive mode (pending the implementation of --pipe).
-    string texput=stripTeXFile(outname())+"texput.tex";
+    // Create a null texput.tex file as a portable way of tricking ConTeXt
+    // into entering interactive mode (pending the implementation of --pipe).
+    string texput="texput.tex";
     ofstream(texput.c_str());
-    cmd << texprogram() << " --scrollmode " << texput;
-  } else
-    cmd << texprogram() << " \\scrollmode";
+    cmd.push_back("--scrollmode");
+    cmd.push_back(texput);
+  } else {
+    string dir=stripFile(outname());
+    if(!dir.empty()) 
+      cmd.push_back("-output-directory="+dir);
+    cmd.push_back("\\scrollmode");
+  }
   
-  pd.tex.open(cmd.str().c_str(),"texpath",texpathmessage());
+  pd.tex.open(cmd,"texpath",texpathmessage());
   pd.tex.wait("\n*");
   pd.tex << "\n";
   texdocumentclass(pd.tex,true);
@@ -242,6 +256,37 @@ void texinit()
   pd.TeXpipepreamble.clear();
 }
   
+int opentex(const string& texname, const string& prefix) 
+{
+  string aux=auxname(prefix,"aux");
+  unlink(aux.c_str());
+  bool context=settings::context(getSetting<string>("tex"));
+  mem::vector<string> cmd;
+  cmd.push_back(texprogram());
+  if(context)
+    cmd.push_back("--nonstopmode");
+  else {
+    string dir=stripFile(outname());
+    if(!dir.empty()) 
+      cmd.push_back("-output-directory="+dir);
+    cmd.push_back("\\nonstopmode\\input");
+  }
+    
+  cmd.push_back(texname);
+  bool quiet=verbose <= 1;
+  int status=System(cmd,quiet ? 1 : 0,true,"texpath",texpathmessage());
+  if(!status && getSetting<bool>("twice"))
+    status=System(cmd,quiet ? 1 : 0,true,"texpath",texpathmessage());
+  if(status) {
+    if(quiet) {
+      cmd[1]=context ? "--scrollmode" : "\\scrollmode\\input";
+      System(cmd,0);
+    }
+  }
+  return status;
+}
+
+
 bool picture::texprocess(const string& texname, const string& outname,
                          const string& prefix, const pair& bboxshift) 
 {
@@ -251,27 +296,10 @@ bool picture::texprocess(const string& texname, const string& outname,
   outfile.open(texname.c_str());
   if(outfile) {
     outfile.close();
-    string aux=auxname(prefix,"aux");
-    unlink(aux.c_str());
-    string program=texprogram();
-    ostringstream cmd;
-    bool context=settings::context(getSetting<string>("tex"));
-    cmd << program << (context ? " --nonstopmode '" : 
-                       " \\nonstopmode\\input '") << texname << "'";
-    bool quiet=verbose <= 1;
-    status=System(cmd,quiet ? 1 : 0,true,"texpath",texpathmessage());
-    if(!status && getSetting<bool>("twice"))
-      status=System(cmd,quiet ? 1 : 0,true,"texpath",texpathmessage());
-    if(status) {
-      if(quiet) {
-        ostringstream cmd;
-        cmd << program << (context ? " --scrollmode '" : 
-                           " \\scrollmode\\input '") << texname << "'";
-        System(cmd,0);
-      }
-      return false;
-    }
     
+    if(opentex(texname,prefix)) return false;
+    
+    string texengine=getSetting<string>("tex");
     if(!pdf) {
       string dviname=auxname(prefix,"dvi");
       string psname=auxname(prefix,"ps");
@@ -281,26 +309,30 @@ bool picture::texprocess(const string& texname, const string& outname,
       // Magic dvips offsets:
       double hoffset=-128.4;
       double vertical=height;
-      if(!latex(getSetting<string>("tex"))) vertical += 2.0;
+      if(!latex(texengine)) vertical += 2.0;
       double voffset=(vertical < 13.0) ? -137.8+vertical : -124.8;
 
       hoffset += b.left+bboxshift.getx();
       voffset += paperHeight-height-b.bottom-bboxshift.gety();
     
-      ostringstream dcmd;
-      
       string dvipsrc=getSetting<string>("dir");
       if(dvipsrc.empty()) dvipsrc=systemDir;
       dvipsrc += dirsep+"nopapersize.ps";
       setenv("DVIPSRC",dvipsrc.c_str(),1);
       string papertype=getSetting<string>("papertype") == "letter" ?
         "letterSize" : "a4size";
-      dcmd << "'" << getSetting<string>("dvips") << "' -R -Pdownload35 -D600"
-           << " -O" << hoffset << "bp," << voffset << "bp"
-           << " -T" << paperWidth << "bp," << paperHeight << "bp "
-           << getSetting<string>("dvipsOptions") << " -t" << papertype;
-      if(verbose <= 1) dcmd << " -q";
-      dcmd << " -o '" << psname << "' '" << dviname << "'";
+      mem::vector<string> dcmd;
+      dcmd.push_back(getSetting<string>("dvips"));
+      dcmd.push_back("-R");
+      dcmd.push_back("-Pdownload35");
+      dcmd.push_back("-D600");
+      dcmd.push_back("-O"+String(hoffset)+"bp,"+String(voffset)+"bp");
+      dcmd.push_back("-T"+String(paperWidth)+"bp,"+String(paperHeight)+"bp");
+      push_split(dcmd,getSetting<string>("dvipsOptions"));
+      dcmd.push_back("-t"+papertype);
+      if(verbose <= 1) dcmd.push_back("-q");
+      dcmd.push_back("-o"+psname);
+      dcmd.push_back(dviname);
       status=System(dcmd,0,true,"dvips");
       if(status != 0) return false;
     
@@ -342,10 +374,10 @@ bool picture::texprocess(const string& texname, const string& outname,
     if(!getSetting<bool>("keep")) { // Delete temporary files.
       unlink(texname.c_str());
       if(!getSetting<bool>("keepaux"))
-        unlink(aux.c_str());
+        unlink(auxname(prefix,"aux").c_str());
       unlink(auxname(prefix,"log").c_str());
       unlink(auxname(prefix,"out").c_str());
-      if(context) {
+      if(settings::context(texengine)) {
         unlink(auxname(prefix,"top").c_str());
         unlink(auxname(prefix,"tua").c_str());
         unlink(auxname(prefix,"tuc").c_str());
@@ -360,22 +392,29 @@ bool picture::texprocess(const string& texname, const string& outname,
 
 int picture::epstopdf(const string& epsname, const string& pdfname)
 {
-  ostringstream cmd;
-  
-  cmd << "'" << getSetting<string>("gs")
-      << "' -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
-      << " -dSubsetFonts=true -dEmbedAllFonts=true -dMaxSubsetPct=100"
-      << " -dPDFSETTINGS=/prepress -dCompatibilityLevel=1.4";
+  mem::vector<string> cmd;
+  cmd.push_back(getSetting<string>("gs"));
+  cmd.push_back("-q");
+  cmd.push_back("-dNOPAUSE");
+  cmd.push_back("-dBATCH");
+  cmd.push_back("-sDEVICE=pdfwrite");
+  cmd.push_back("-dEPSCrop");
+  cmd.push_back("-dSubsetFonts=true");
+  cmd.push_back("-dEmbedAllFonts=true");
+  cmd.push_back("-dMaxSubsetPct=100");
+  cmd.push_back("-dPDFSETTINGS=/prepress");
+  cmd.push_back("-dCompatibilityLevel=1.4");
   if(safe)
-    cmd << " -dSAFER";
+    cmd.push_back("-dSAFER");
   if(!getSetting<bool>("autorotate"))
-    cmd << " -dAutoRotatePages=/None";
-  cmd << " -g" << max(ceil(paperWidth),1.0) << "x" << max(ceil(paperHeight),1.0)
-      << " -dDEVICEWIDTHPOINTS=" << max(b.right-b.left,3.0)
-      << " -dDEVICEHEIGHTPOINTS=" << max(b.top-b.bottom,3.0)
-      << " " << getSetting<string>("gsOptions")
-      << " -sOutputFile='" << stripDir(pdfname) << "' '"
-      << stripDir(epsname) << "'";
+    cmd.push_back("-dAutoRotatePages=/None");
+  cmd.push_back("-g"+String(max(ceil(paperWidth),1.0))+"x"+
+                String(max(ceil(paperHeight),1.0)));
+  cmd.push_back("-dDEVICEWIDTHPOINTS="+String(max(b.right-b.left,3.0)));
+  cmd.push_back("-dDEVICEHEIGHTPOINTS="+String(max(b.top-b.bottom,3.0)));
+  push_split(cmd,getSetting<string>("gsOptions"));
+  cmd.push_back("-sOutputFile="+stripDir(pdfname));
+  cmd.push_back(stripDir(epsname));
 
   string dir=stripFile(pdfname);
   char *oldPath=NULL;
@@ -408,12 +447,12 @@ bool picture::reloadPDF(const string& Viewer, const string& outname) const
     Setting("tex")=texengine;
   }
   if(haveReload) {
-    ostringstream cmd;
-    cmd << command(Viewer);
+    mem::vector<string> cmd;
+    push_command(cmd,Viewer);
     string pdfreloadOptions=getSetting<string>("pdfreloadOptions");
     if(!pdfreloadOptions.empty())
-      cmd << pdfreloadOptions << " ";
-    cmd << "'" << reloadprefix << ".pdf'";
+      cmd.push_back(pdfreloadOptions);
+    cmd.push_back(reloadprefix+".pdf");
     System(cmd,0,false);
   }
   return true;
@@ -435,20 +474,24 @@ bool picture::postprocess(const string& prename, const string& outname,
           reportError("Cannot rename "+prename+" to "+outname);
       } else status=epstopdf(prename,outname);
     } else {
-      ostringstream cmd;
+      mem::vector<string> cmd;
       double render=fabs(getSetting<double>("render"));
       if(render == 0) render=1.0;
       double expand=getSetting<Int>("antialias");
       if(expand < 2.0) expand=1.0;
       double res=expand*render*72.0;
-      cmd << "'" << getSetting<string>("convert") 
-          << "' -alpha Off -density " << res << "x" << res;
+      cmd.push_back(getSetting<string>("convert")); 
+      cmd.push_back("-alpha");
+      cmd.push_back("Off");
+      cmd.push_back("-density");
+      cmd.push_back(String(res)+"x"+String(res));
       if(expand == 1.0)
-        cmd << " +antialias";
-      cmd << " -geometry " << 100.0/expand << "%x"
-          << " " << getSetting<string>("convertOptions")
-          << " '" << nativeformat()+":" << prename << "'"
-          << " '" << outputformat << ":" << outname << "'";
+        cmd.push_back("+antialias");
+      cmd.push_back("-geometry");
+      cmd.push_back(String(100.0/expand)+"%x");
+      push_split(cmd,getSetting<string>("convertOptions"));
+      cmd.push_back(nativeformat()+":"+prename);
+      cmd.push_back(outputformat+":"+outname);
       status=System(cmd,0,true,"convert");
     }
     if(!getSetting<bool>("keep")) unlink(prename.c_str());
@@ -478,14 +521,14 @@ bool picture::postprocess(const string& prename, const string& outname,
         if(Viewer == "gv") kill(pid,SIGHUP);
         else if(pdfreload) reloadPDF(Viewer,outname);
       } else {
-        ostringstream cmd;
-        cmd << command(Viewer);
+        mem::vector<string> cmd;
+        push_command(cmd,Viewer);
         string viewerOptions=getSetting<string>(pdfformat ? 
                                                 "pdfviewerOptions" : 
                                                 "psviewerOptions");
         if(!viewerOptions.empty())
-          cmd << viewerOptions << " ";
-        cmd << "'" << outname << "'";
+          push_split(cmd,viewerOptions);
+        push_split(cmd,outname);
         status=System(cmd,0,wait,
                       pdfformat ? "pdfviewer" : "psviewer",
                       pdfformat ? "your PDF viewer" : "your PostScript viewer",
@@ -503,9 +546,9 @@ bool picture::postprocess(const string& prename, const string& outname,
         }
       }
     } else {
-      ostringstream cmd;
-      cmd << command(getSetting<string>("display"))
-	  << "'" << outname << "'";
+      mem::vector<string> cmd;
+      push_command(cmd,getSetting<string>("display"));
+      cmd.push_back(outname);
       string application="your "+outputformat+" viewer";
       status=System(cmd,0,wait,"display",application.c_str());
       if(status != 0) return false;

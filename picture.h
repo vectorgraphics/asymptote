@@ -120,6 +120,7 @@ inline picture *transformed(const vm::array& t, picture *p)
 }
 
 void texinit();
+int opentex(const string& texname, const string& prefix);
 
 const char *texpathmessage();
   
