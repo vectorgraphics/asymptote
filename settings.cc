@@ -14,7 +14,6 @@
 #include <locale.h>
 #include <unistd.h>
 #include <algorithm>
-#include <cstdarg>
 
 #include "common.h"
 
@@ -1012,28 +1011,18 @@ void no_GCwarn(char *, GC_word)
 }
 #endif
 
-array* Array(const char *s ...) 
+array* Array(const string *s) 
 {
-  va_list v;
   size_t count=0;
-  const char *s0=s;
-  
-  va_start(v,s);
-  while(*s) {
+  while(!s[count].empty())
     ++count;
-    s=va_arg(v,char *);
-  }
-  va_end(v);
   
   array *a=new array(count);
-  s=s0;
-  va_start(v,s);
-  for(size_t i=0; i < count; ++i) {
-    (*a)[i]=string(s);
-    s=va_arg(v,char *);
+  size_t i=0;
+  while(!s[i].empty()) {
+    (*a)[i]=s[i];
+    ++i;
   }
-  va_end(v);
-  
   return a;
 }
 
@@ -1052,32 +1041,32 @@ void initSettings() {
 // SHIFT LEFT: zoom
 // CTRL LEFT: shift
 // ALT LEFT: pan
-  array *leftbutton=Array("rotate","zoom","shift","pan","");
+  string leftbutton[]={"rotate","zoom","shift","pan",""};
   
 // MIDDLE: menu (must be unmodified; ignores Shift, Ctrl, and Alt)
-  array *middlebutton=Array("menu","");
+  string middlebutton[]={"menu",""};
   
 // RIGHT: zoom/menu (must be unmodified)
 // SHIFT RIGHT: rotateX
 // CTRL RIGHT: rotateY
 // ALT RIGHT: rotateZ
-  array *rightbutton=Array("zoom/menu","rotateX","rotateY","rotateZ","");
+  string rightbutton[]={"zoom/menu","rotateX","rotateY","rotateZ",""};
   
 // WHEEL_UP: zoomin
-  array *wheelup=Array("zoomin","");
+  string wheelup[]={"zoomin",""};
   
 // WHEEL_DOWN: zoomout
-  array *wheeldown=Array("zoomout","");
+  string wheeldown[]={"zoomout",""};
   
-  array *Warn=Array("writeoverloaded","");
+  string Warn[]={"writeoverloaded",""};
   
-  addOption(new stringArraySetting("leftbutton", leftbutton));
-  addOption(new stringArraySetting("middlebutton", middlebutton));
-  addOption(new stringArraySetting("rightbutton", rightbutton));
-  addOption(new stringArraySetting("wheelup", wheelup));
-  addOption(new stringArraySetting("wheeldown", wheeldown));
+  addOption(new stringArraySetting("leftbutton", Array(leftbutton)));
+  addOption(new stringArraySetting("middlebutton", Array(middlebutton)));
+  addOption(new stringArraySetting("rightbutton", Array(rightbutton)));
+  addOption(new stringArraySetting("wheelup", Array(wheelup)));
+  addOption(new stringArraySetting("wheeldown", Array(wheeldown)));
   
-  addOption(new stringArraySetting("warnings", Warn));
+  addOption(new stringArraySetting("warnings", Array(Warn)));
   addOption(new warnSetting("warn", 0, "string", "Enable warning"));
   
   multiOption *view=new multiOption("View", 'V', "View output");
