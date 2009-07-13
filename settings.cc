@@ -1011,18 +1011,14 @@ void no_GCwarn(char *, GC_word)
 }
 #endif
 
-array* Array(const string *s) 
+array* stringArray(const char **s) 
 {
   size_t count=0;
-  while(!s[count].empty())
+  while(s[count])
     ++count;
-  
   array *a=new array(count);
-  size_t i=0;
-  while(!s[i].empty()) {
-    (*a)[i]=s[i];
-    ++i;
-  }
+  for(size_t i=0; i < count; ++i)
+    (*a)[i]=string(s[i]);
   return a;
 }
 
@@ -1041,32 +1037,32 @@ void initSettings() {
 // SHIFT LEFT: zoom
 // CTRL LEFT: shift
 // ALT LEFT: pan
-  string leftbutton[]={"rotate","zoom","shift","pan",""};
+  const char *leftbutton[]={"rotate","zoom","shift","pan",NULL};
   
 // MIDDLE: menu (must be unmodified; ignores Shift, Ctrl, and Alt)
-  string middlebutton[]={"menu",""};
+  const char *middlebutton[]={"menu",NULL};
   
 // RIGHT: zoom/menu (must be unmodified)
 // SHIFT RIGHT: rotateX
 // CTRL RIGHT: rotateY
 // ALT RIGHT: rotateZ
-  string rightbutton[]={"zoom/menu","rotateX","rotateY","rotateZ",""};
+  const char *rightbutton[]={"zoom/menu","rotateX","rotateY","rotateZ",NULL};
   
 // WHEEL_UP: zoomin
-  string wheelup[]={"zoomin",""};
+  const char *wheelup[]={"zoomin",NULL};
   
 // WHEEL_DOWN: zoomout
-  string wheeldown[]={"zoomout",""};
+  const char *wheeldown[]={"zoomout",NULL};
   
-  string Warn[]={"writeoverloaded",""};
+  const char *Warn[]={"writeoverloaded",NULL};
   
-  addOption(new stringArraySetting("leftbutton", Array(leftbutton)));
-  addOption(new stringArraySetting("middlebutton", Array(middlebutton)));
-  addOption(new stringArraySetting("rightbutton", Array(rightbutton)));
-  addOption(new stringArraySetting("wheelup", Array(wheelup)));
-  addOption(new stringArraySetting("wheeldown", Array(wheeldown)));
-  
-  addOption(new stringArraySetting("warnings", Array(Warn)));
+  addOption(new stringArraySetting("leftbutton", stringArray(leftbutton)));
+  addOption(new stringArraySetting("middlebutton", stringArray(middlebutton)));
+  addOption(new stringArraySetting("rightbutton", stringArray(rightbutton)));
+  addOption(new stringArraySetting("wheelup", stringArray(wheelup)));
+  addOption(new stringArraySetting("wheeldown", stringArray(wheeldown)));
+  addOption(new stringArraySetting("warnings", stringArray(Warn)));
+
   addOption(new warnSetting("warn", 0, "string", "Enable warning"));
   
   multiOption *view=new multiOption("View", 'V', "View output");
