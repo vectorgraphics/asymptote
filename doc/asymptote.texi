@@ -8900,17 +8900,6 @@ cd Imaging-1.1.7b1
 python setup.py install
 @end verbatim
 
-Alternatively, @code{xasy} can deconstruct pictures into the @acronym{GIF}
-image format (not recommended as this is very slow), using white as the
-transparent color. This requires the lines
-@verbatim
-import settings;
-xformat="gif";
-@end verbatim
-@noindent
-in the @code{Asymptote} configuration file (@pxref{configuration file}),
-along with the @code{ImageMagick} (@pxref{convert}) program.
-
 @node GUI Usage
 @section GUI Usage
 @cindex GUI usage

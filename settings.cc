@@ -1066,8 +1066,6 @@ void initSettings() {
   view->add(new boolSetting("interactiveView", 0,
                             "View output in interactive mode", true));
   addOption(view);
-  addOption(new stringSetting("xformat", 0, "format", 
-                              "GUI deconstruction format","png"));
   addOption(new stringSetting("outformat", 'f', "format",
                               "Convert each output file to specified format",
                               ""));

@@ -603,8 +603,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     return postprocess(epsname,outname,outputformat,1.0,wait,view);
   }
   
-  bool pngxformat=xobject && getSetting<string>("xformat") == "png";
-  if(pngxformat) {
+  if(xobject) {
     // Work around half-pixel bounding box bug in Ghostscript pngalpha driver
     double fuzz=0.5/magnification;
     b.top += fuzz;
@@ -745,7 +744,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       }
       if(status) {
         if(xobject) {
-          if(transparency && pngxformat)
+          if(transparency)
             status=(epstopdf(prename,Outname(prefix,"pdf",standardout)) == 0);
         } else {
           if(context) prename=stripDir(prename);

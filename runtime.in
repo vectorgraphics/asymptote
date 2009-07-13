@@ -1810,7 +1810,7 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
   unsigned n=0;
 
   string prefix=outname();
-  string xformat=getSetting<string>("xformat");
+  const string xformat="png";
 
   static long arg_max=sysconf(_SC_ARG_MAX);
   const unsigned maxargs=::min(arg_max/(prefix.size()+xformat.size()+25ul),
@@ -1831,8 +1831,6 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
   
   const char *converter=NULL, *hint=NULL;
   
-  bool png=xformat == "png";
-  
   if(magnification > 0.0) {
     mem::list<string> nameStack;
     string outname;
@@ -1845,27 +1843,18 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
         ostringstream buf;
         buf << batch << "_";
         outname=buildname(prefix+buf.str()+"%d",xformat,"");
-        if(png) {
-          converter="gs";
-          hint="Ghostscript";
-          cmd.push_back(getSetting<string>(converter));
-          cmd.push_back("-q");
-          cmd.push_back("-dNOPAUSE");
-          cmd.push_back("-dBATCH");
-          cmd.push_back("-sDEVICE=pngalpha");
-          cmd.push_back("-dEPSCrop");
-          if(safe)
-            cmd.push_back("-dSAFER");
-          cmd.push_back("-r"+String(res)+"x"+String(res));
-          cmd.push_back("-sOutputFile="+outname);
-        } else {
-          hint=converter="convert";
-          cmd.push_back(getSetting<string>("convert")); 
-          cmd.push_back("-density");
-          cmd.push_back(String(res)+"x"+String(res));
-          cmd.push_back("-transparent");
-          cmd.push_back("white");
-         }
+        converter="gs";
+        hint="Ghostscript";
+        cmd.push_back(getSetting<string>(converter));
+        cmd.push_back("-q");
+        cmd.push_back("-dNOPAUSE");
+        cmd.push_back("-dBATCH");
+        cmd.push_back("-sDEVICE=pngalpha");
+        cmd.push_back("-dEPSCrop");
+        if(safe)
+          cmd.push_back("-dSAFER");
+        cmd.push_back("-r"+String(res)+"x"+String(res));
+        cmd.push_back("-sOutputFile="+outname);
       }
       
       picture *group=new picture;
@@ -1902,10 +1891,10 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
         ostringstream buf;
         buf << prefix << "_" << n;
         group->shipout(preamble,buf.str(),preformat,magnification,false,false);
-        string Preformat=png && group->Transparency() ? "pdf" : preformat;
+        string Preformat=group->Transparency() ? "pdf" : preformat;
         string name=buildname(buf.str(),Preformat);
         nameStack.push_back(name);
-        cmd.push_back(png ? name : preformat+":"+name);
+        cmd.push_back(name);
         b=group->bounds();
         b *= magnification;
       
@@ -1919,11 +1908,6 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
         arg=0;
         ++batch;
         cout.flush();
-        if(!png) {
-          cmd.push_back("-scene");
-          cmd.push_back("1");
-          cmd.push_back(xformat+":"+outname);
-        }
   
         int status=System(cmd,0,true,converter,hint);
         if(status) {
