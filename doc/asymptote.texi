@@ -366,8 +366,7 @@ A better (and free) @code{PostScript} viewer available at
 @url{http://psview.sourceforge.net/} (which in particular works properly
 in interactive mode) unfortunately currently requires some manual
 configuration. Specifically, if version @code{x.xx} of psview is
-extracted to the directory @code{c:\Program Files\psview-x.xx} one
-needs to put
+extracted to the directory @code{c:\Program Files} one needs to put
 @verbatim
 import settings;
 psviewer="c:\Program Files\psview-x.xx\psv.exe";

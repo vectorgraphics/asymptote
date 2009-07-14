@@ -75,6 +75,7 @@ double *T;
 
 bool Xspin,Yspin,Zspin;
 bool Menu;
+bool Motion;
 bool ignorezoom;
 
 int Fitscreen;
@@ -633,6 +634,7 @@ void zoom(int x, int y)
       y0=y;
       return;
     }
+    Motion=true;
     double zoomFactor=getSetting<double>("zoomfactor");
     if(zoomFactor > 0.0) {
       double zoomStep=getSetting<double>("zoomstep");
@@ -674,6 +676,7 @@ void rotate(int x, int y)
       arcball.mouse_down(x,Height-y);
       return;
     }
+    Motion=true;
     arcball.mouse_motion(x,Height-y,0,
                          Action == "rotateX", // X rotation only
                          Action == "rotateY");  // Y rotation only
@@ -740,6 +743,7 @@ void rotateZ(int x, int y)
       x=x0; y=y0;
       return;
     }
+    Motion=true;
     double angle=Degrees(x,y);
     rotateZ(angle-lastangle);
     lastangle=angle;
@@ -834,7 +838,7 @@ void mouse(int button, int state, int x, int y)
   }     
   
   if(Menu) disableMenu();
-  else if(mod == 0 && state == GLUT_UP && Action == "zoom/menu") {
+  else if(mod == 0 && state == GLUT_UP && !Motion && Action == "zoom/menu") {
     MenuButton=button;
     glutMotionFunc(NULL);
     glutAttachMenu(button);
@@ -842,6 +846,7 @@ void mouse(int button, int state, int x, int y)
     glutTimerFunc(getSetting<Int>("doubleclick"),timeout,0);
     return;
   }
+  Motion=false;
   
   if(state == GLUT_DOWN) {
     if(Action == "rotate" || Action == "rotateX" || Action == "rotateY") {
@@ -1073,6 +1078,7 @@ void menu(int choice)
 {
   if(Menu) disableMenu();
   ignorezoom=true;
+  Motion=true;
   switch (choice) {
     case HOME: // Home
       home();
@@ -1176,6 +1182,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   H=orthographic ? 0.0 : -tan(0.5*Angle)*zmax;
     
   Menu=false;
+  Motion=true;
   ignorezoom=false;
   Mode=0;
   Xfactor=Yfactor=1.0;
