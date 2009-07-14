@@ -2352,7 +2352,7 @@ string embed3D(string label="", string text=label, string prefix,
     file3.push(prefix);
 
   triple target=P.target;
-  if(P.infinity && P.viewportshift != 0) {
+  if(P.viewportshift != 0) {
     triple lambda=max3(f)-min3(f);
     target -= (P.viewportshift.x*lambda.x/P.zoom,
                P.viewportshift.y*lambda.y/P.zoom,0);
@@ -2609,8 +2609,8 @@ object embed(string label="", string text=label,
       } else if(M.z >= 0) abort("camera too close");
 
       shipout3(prefix,f,preview ? nativeformat() : format,
-               width,height,P.infinity ? 0 : angle,P.zoom,m,M,
-               prc && !P.infinity ? 0 : P.viewportshift,
+               width,height,P.infinity ? 0 : angle,
+               P.infinity ? P.zoom : 1,m,M,P.viewportshift,
                tinv*inverse(modelview)*shift(0,0,zcenter),light.background(),
                P.absolute ? (modelview*light).position : light.position,
                light.diffuse,light.ambient,light.specular,

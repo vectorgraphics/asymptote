@@ -1007,13 +1007,12 @@ void camera()
        << (orthographic ? "orthographic(" : "perspective(")  << endl
        << "camera=" << Camera << "," << endl
        << "up=" << Up << "," << endl
-       << "target=" << Target << "," << endl;
-  if(orthographic)
-    cout << "zoom=" << Zoom;
-  else
-    cout << "angle=" << 2.0*atan(tan(0.5*Angle)/Zoom)/radians;
+       << "target=" << Target << "," << endl
+       << "zoom=" << Zoom << "," << endl;
+  if(!orthographic)
+    cout << "angle=" << 2.0*atan(tan(0.5*Angle)/Zoom)/radians << "," << endl;
   if(viewportshift != pair(0.0,0.0))
-    cout << "," << endl << "viewportshift=" << viewportshift;
+    cout << "viewportshift=" << viewportshift;
   if(!orthographic)
     cout << "," << endl << "autoadjust=false";
   cout << ");" << endl;
