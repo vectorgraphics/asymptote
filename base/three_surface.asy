@@ -148,13 +148,13 @@ struct patch {
   triple min(triple bound=P[0][0]) {
     if(havemin3) return minbound(min3,bound);
     havemin3=true;
-    return min3=minbound(P,bound);
+    return min3=minbezier(P,bound);
   }
 
   triple max(triple bound=P[0][0]) {
     if(havemax3) return maxbound(max3,bound);
     havemax3=true;
-    return max3=maxbound(P,bound);
+    return max3=maxbezier(P,bound);
   }
 
   triple center() {
@@ -162,11 +162,11 @@ struct patch {
   }
 
   pair min(projection P, pair bound=project(this.P[0][0],P.t)) {
-    return minbound(this.P,P.t,bound);
+    return minbezier(this.P,P.t,bound);
   }
 
   pair max(projection P, pair bound=project(this.P[0][0],P.t)) {
-    return maxbound(this.P,P.t,bound);
+    return maxbezier(this.P,P.t,bound);
   }
 
   void operator init(triple[][] P, triple[] normals=new triple[],

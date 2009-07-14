@@ -3274,7 +3274,7 @@ pair maxratio(picture *f)
   return f->bounds(::max,xratio,yratio);
 }
 
-triple minbound(triplearray2 *P, triple b)
+triple minbezier(triplearray2 *P, triple b)
 {
   real *A=copyTripleArray2Components(P,true,4);
   b=triple(bound(A,::min,b.getx(),sqrtFuzz*norm(A,16)),
@@ -3284,7 +3284,7 @@ triple minbound(triplearray2 *P, triple b)
   return b;
 }
 
-triple maxbound(triplearray2 *P, triple b)
+triple maxbezier(triplearray2 *P, triple b)
 {
   real *A=copyTripleArray2Components(P,true,4);
   b=triple(bound(A,::max,b.getx(),sqrtFuzz*norm(A,16)),
@@ -3294,7 +3294,7 @@ triple maxbound(triplearray2 *P, triple b)
   return b;
 }
 
-pair minbound(triplearray2 *P, realarray2 *t, pair b)
+pair minbezier(triplearray2 *P, realarray2 *t, pair b)
 {
   triple *A=copyTripleArray2C(P,true,4);
   real *T=copyArray2C(t,4);
@@ -3306,7 +3306,7 @@ pair minbound(triplearray2 *P, realarray2 *t, pair b)
   return b;
 }
 
-pair maxbound(triplearray2 *P, realarray2 *t, pair b)
+pair maxbezier(triplearray2 *P, realarray2 *t, pair b)
 {
   triple *A=copyTripleArray2C(P,true,4);
   real *T=copyArray2C(t,4);
