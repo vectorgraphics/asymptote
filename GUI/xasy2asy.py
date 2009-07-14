@@ -57,7 +57,6 @@ def startQuickAsy():
     quickAsy = Popen([xasyOptions.options['asyPath']]+
                      split("-noV -multiline -interactive -o"+AsyTempDir),
                      stdin=PIPE,stdout=PIPE,stderr=STDOUT)
-    quickAsy.stdin.write("settings.xformat;\n")
     if quickAsy.returncode != None:
       quickAsyFailed = True
   except:
@@ -480,8 +479,8 @@ class xasyItem:
     syncQuickAsyOutput(verbose=True,queue=self.imageHandleQueue);
     quickAsy.stdin.write("deconstruct(%f);\n"%mag)
     quickAsy.stdin.flush()
-    format = split(quickAsy.stdout.readline())[1]
-    maxargs = int(split(quickAsy.stdout.readline())[0])
+    format = "png"
+    maxargs = int(split(quickAsy.stdout.readline())[1])
     boxes=[]
     batch=0
     n=0

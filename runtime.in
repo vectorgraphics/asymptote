@@ -1816,7 +1816,6 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
   const unsigned maxargs=::min(arg_max/(prefix.size()+xformat.size()+25ul),
                                256ul);
   
-  cout << xformat << newl;
   cout << maxargs << newl;
   
   string preformat=nativeformat();
