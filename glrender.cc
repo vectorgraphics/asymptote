@@ -838,15 +838,16 @@ void mouse(int button, int state, int x, int y)
   }     
   
   if(Menu) disableMenu();
-  else if(mod == 0 && state == GLUT_UP && !Motion && Action == "zoom/menu") {
+  else {
+    if(mod == 0 && state == GLUT_UP && !Motion && Action == "zoom/menu") {
     MenuButton=button;
     glutMotionFunc(NULL);
     glutAttachMenu(button);
     Menu=true;
     glutTimerFunc(getSetting<Int>("doubleclick"),timeout,0);
     return;
+    } else Motion=false;
   }
-  Motion=false;
   
   if(state == GLUT_DOWN) {
     if(Action == "rotate" || Action == "rotateX" || Action == "rotateY") {
