@@ -20,7 +20,6 @@
 #include <signal.h>
 #include <cstring>
 #include <algorithm>
-#include <cstdarg>
 
 #include "util.h"
 #include "settings.h"
