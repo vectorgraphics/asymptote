@@ -1745,7 +1745,7 @@ transform3 align(triple u)
 }
 
 // return a rotation that maps X,Y to the projection plane.
-transform3 transform3(projection P)
+transform3 transform3(projection P=currentprojection)
 {
   triple v=unit(P.oblique ? P.camera : P.vector());
   triple u=unit(perp(P.up,v));
