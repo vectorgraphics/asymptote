@@ -7,7 +7,7 @@ pair F(real x) {return (x,f(x));}
 
 draw(polargraph(f,0,pi,operator ..));
 
-defaultpen(fontsize(10));
+defaultpen(fontsize(10pt));
 
 xaxis("$x$");
 yaxis("$y$");

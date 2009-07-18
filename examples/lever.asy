@@ -10,7 +10,7 @@ dot(z1,red+0.15cm);
 dot(z2,darkgreen+0.3cm);
 label("$m$",z1,1.2N,red);
 label("$M$",z2,1.5N,darkgreen);
-label("$\hat{\ }$",zf,0.2*S,fontsize(24)+blue);
+label("$\hat{\ }$",zf,0.2*S,fontsize(24pt)+blue);
 
 pair s=-0.2*I;
 draw("$x$",z0+s--z1+s,N,red,Arrows,Bars,PenMargins);

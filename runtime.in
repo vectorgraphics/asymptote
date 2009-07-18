@@ -942,9 +942,6 @@ void unused(void *)
 {
 }
 
-static const double twelvepercent=0.12;
-static const double tenpercent=0.1;
-
 pair readpair(stringstream& s, double hscale=1.0, double vscale=1.0)
 {
   double x,y;
@@ -983,8 +980,9 @@ void showpath(std::ofstream& ps)
 }
 
 array *readpath(const string& psname, bool keep,
-                double hscale=1.0, double vscale=1.0)
+                double hscale=1.0, double vsign=1.0)
 {
+  double vscale=vsign*hscale;
   array *P=new array(0);
   mem::vector<string> cmd;
   cmd.push_back(getSetting<string>("gs"));
@@ -1401,8 +1399,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
       unlink(auxname(prefix,"tui").c_str());
     }
   }
-  return readpath(psname,keep,twelvepercent,
-                  pdf ? twelvepercent : -twelvepercent);
+  return pdf ? readpath(psname,keep,0.1) : readpath(psname,keep,0.12,-1.0);
 }
 
 patharray *textpath(string *s, pen p=CURRENTPEN)
@@ -1473,7 +1470,7 @@ patharray *textpath(string *s, pen p=CURRENTPEN)
   bool keep=getSetting<bool>("keep");
   if(!keep) // Delete temporary files.
     unlink(textname.c_str());
-  return readpath(psname,keep,tenpercent,tenpercent);
+  return readpath(psname,keep,0.1);
 }
 
 patharray *_strokepath(path g, pen p=CURRENTPEN)

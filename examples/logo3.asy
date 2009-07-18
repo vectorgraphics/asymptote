@@ -17,7 +17,7 @@ outline.push((0,y1){dir(88.3)}::{dir(20)}(b,0));
 real c=0.5*a;
 pair z=(0,2.5);
 path[] text = shift(0,2)*scale(0.01,0.15)*
-  texpath(Label("{\it symptote}",z,0.25*E+0.169S,fontsize(24)));
+  texpath(Label("{\it symptote}",z,0.25*E+0.169S,fontsize(24pt)));
 outline.append(text);
 pair w=(0,1.7);
 outline.push(intersectionpoint(A,w-1--w)--w);
