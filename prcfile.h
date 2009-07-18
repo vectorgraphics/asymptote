@@ -8,6 +8,7 @@ namespace camp {
 const double scale3D=1.0/settings::cm;
 
 inline RGBAColour rgba(pen p) {
+  p.convert();
   p.torgb();
   return RGBAColour(p.red(),p.green(),p.blue(),p.opacity());
 }

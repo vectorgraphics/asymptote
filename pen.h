@@ -525,6 +525,7 @@ public:
   
   void greytocmyk() {
     grey=1.0-grey;
+    r=g=b=0.0;
     color=CMYK;
   }
   
@@ -578,7 +579,7 @@ public:
       if(rgb()) rgbtogrey();
       else if(cmyk()) cmyktogrey();
       if(settings::bw) {grey=(grey == 1.0) ? 1.0 : 0.0;}
-    }
+    } 
     else if(settings::rgb && cmyk()) cmyktorgb();
     else if(settings::cmyk && rgb()) rgbtocmyk();
   }   
