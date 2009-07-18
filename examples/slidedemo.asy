@@ -62,7 +62,7 @@ draw(pic,unitcircle);
 add(pic.fit(15cm));
 step();
 fill(pic2,unitcircle,paleblue);
-label(pic2,"$\pi$",(0,0),fontsize(500));
+label(pic2,"$\pi$",(0,0),fontsize(500pt));
 add(pic2.fit(15cm));
 
 newslide();

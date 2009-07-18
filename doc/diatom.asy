@@ -8,7 +8,7 @@ string data="diatom.csv";
 string[] group;
 int[] begin,end;
 
-defaultpen(fontsize(8)+overwrite(MoveQuiet));
+defaultpen(fontsize(8pt)+overwrite(MoveQuiet));
 
 file in=line(csv(input(data)));
 

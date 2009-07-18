@@ -3,7 +3,7 @@ size(140,80,IgnoreAspect);
 picture logo(pair s=0, pen q) 
 {
   picture pic;
-  pen p=linewidth(2)+fontsize(24)+q;
+  pen p=linewidth(2)+fontsize(24pt)+q;
   real a=-0.4;
   real b=0.95;
   real y1=-5;

@@ -28,9 +28,9 @@ pair zmax=polar(f(thetamax),thetamax);
 draw((0,0)--zmin,dotted+red);
 draw((0,0)--zmax,dotted+blue);
 
-draw("$\theta_*$",arc((0,0),0.5*rmin,0,degrees(thetamin)),red+fontsize(10),
+draw("$\theta_*$",arc((0,0),0.5*rmin,0,degrees(thetamin)),red+fontsize(10pt),
      PenMargins);
-draw("$\theta^*$",arc((0,0),0.5*rmax,0,degrees(thetamax)),blue+fontsize(10),
+draw("$\theta^*$",arc((0,0),0.5*rmax,0,degrees(thetamax)),blue+fontsize(10pt),
      PenMargins);
 
 draw(arc((0,0),rmin,degrees(theta1),degrees(theta2)),red,PenMargins);

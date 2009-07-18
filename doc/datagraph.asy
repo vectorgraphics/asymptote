@@ -9,4 +9,4 @@ draw(graph(x,y),red);
 
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,
-      RightTicks(Label(fontsize(8)),new real[]{0,4,9}));
+      RightTicks(Label(fontsize(8pt)),new real[]{0,4,9}));
