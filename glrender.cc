@@ -392,8 +392,8 @@ void Export()
 
 #ifdef HAVE_LIBPTHREAD
   if(glthread && readyAfterExport) {
-    endwait(readySignal,readyLock);
     readyAfterExport=false;        
+    endwait(readySignal,readyLock);
   }
 #endif
 }
@@ -497,7 +497,7 @@ void updateHandler(int)
     fitscreen();
 }
 
-void autoExport()
+void exportHandler(int=0)
 {
   if(!Iconify)
     glutShowWindow();
@@ -1400,8 +1400,20 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     
     glutMainLoop();
   } else {
-    autoExport();
-    if(!glthread) quit();
+    if(glthread) {
+      if(havewindow) {
+        readyAfterExport=true;
+        pthread_kill(mainthread,SIGUSR1);
+      } else {
+        initialized=true;
+        readyAfterExport=true;
+        signal(SIGUSR1,exportHandler);
+        exportHandler();
+      }
+    } else {
+      exportHandler();
+      quit();
+    }
   }
 }
 

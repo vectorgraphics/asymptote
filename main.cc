@@ -154,12 +154,6 @@ void *asymain(void *A)
     int status;
     while(wait(&status) > 0);
   }
-#ifdef HAVE_LIBGL
-#ifdef HAVE_LIBPTHREAD
-  if(gl::glthread)
-    pthread_join(gl::mainthread,NULL);
-#endif
-#endif
   exit(em.processStatus() || interact::interactive ? 0 : 1);  
 }
 
@@ -179,8 +173,10 @@ int main(int argc, char *argv[])
 #ifdef HAVE_LIBPTHREAD
   
   if(gl::glthread) {
+    pthread_t thread;
     try {
-      if(pthread_create(&gl::mainthread,NULL,asymain,&args) == 0) {
+      if(pthread_create(&thread,NULL,asymain,&args) == 0) {
+        gl::mainthread=pthread_self();
         while(true) {
           camp::glrenderWrapper();
           gl::initialize=true;

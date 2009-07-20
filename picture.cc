@@ -872,8 +872,8 @@ bool picture::shipout3(const string& prefix, const string& format,
       return true;
     }
 #ifdef HAVE_LIBPTHREAD
-  if(Wait)
-    pthread_mutex_lock(&readyLock);
+    if(Wait)
+      pthread_mutex_lock(&readyLock);
 #endif  
 #endif
   } else {
@@ -891,7 +891,7 @@ bool picture::shipout3(const string& prefix, const string& format,
            background,nlights,lights,diffuse,ambient,specular,viewportlighting,
            View,oldpid);
 #ifdef HAVE_LIBPTHREAD
-    if(glthread && Wait) {
+  if(glthread && Wait) {
     pthread_cond_wait(&readySignal,&readyLock);
     pthread_mutex_unlock(&readyLock);
   }
