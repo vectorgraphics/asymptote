@@ -82,33 +82,41 @@ void render(path3 s, real granularity=tubegranularity, void f(path3, real))
   Split(point(s,0),postcontrol(s,0),precontrol(s,1),point(s,1));
 }
 
-surface tube(path3 g, real width, real granularity=tubegranularity)
+struct tube 
 {
-  surface tube;
-  real r=0.5*width;
+  surface s;
+  path3 center;
 
-  transform3 t=scale3(r);
+  void operator init(path3 g, real width, real granularity=tubegranularity) {
+    real r=0.5*width;
 
-  int n=length(g);
-  for(int i=0; i < n; ++i) {
-    real S=straightness(g,i);
-    if(S < sqrtEpsilon*r) {
-      triple v=point(g,i);
-      triple u=point(g,i+1)-v;
-      tube.append(shift(v)*align(unit(u))*scale(r,r,abs(u))*unitcylinder);
-    } else {
-      render(subpath(g,i,i+1),granularity,new void(path3 q, real) {
-          real L=arclength(q);
-          surface segment=scale(r,r,L)*unitcylinder;
-          bend(segment,q,L);
-          tube.s.append(segment.s);
-        });
+    transform3 t=scale3(r);
+
+    int n=length(g);
+    for(int i=0; i < n; ++i) {
+      path3 gi=subpath(g,i,i+1);
+      real S=straightness(g,i);
+      if(S < sqrtEpsilon*r) {
+        triple v=point(g,i);
+        triple u=point(g,i+1)-v;
+        s.append(shift(v)*align(unit(u))*scale(r,r,abs(u))*unitcylinder);
+        center=center&gi;
+      } else {
+        render(gi,granularity,new void(path3 q, real) {
+            real L=arclength(q);
+            surface segment=scale(r,r,L)*unitcylinder;
+            bend(segment,q,L);
+            s.s.append(segment.s);
+            triple a=L*Z/3;
+            center=center&bend(O,q,L)..controls bend(a,q,L) and bend(2a,q,L)..
+              bend(3a,q,L);
+          });
+      }
+
+      if((cyclic(g) || i > 0) && abs(dir(g,i,1)-dir(g,i,-1)) > sqrtEpsilon)
+        s.append(shift(point(g,i))*t*align(dir(g,i,-1))*unithemisphere);
     }
-
-    if((cyclic(g) || i > 0) && abs(dir(g,i,1)-dir(g,i,-1)) > sqrtEpsilon)
-      tube.append(shift(point(g,i))*t*align(dir(g,i,-1))*unithemisphere);
   }
-  return tube;
 }
 
 // Refine a noncyclic path3 g so that it approaches its endpoint in
@@ -168,7 +176,7 @@ struct arrowhead3
     }
     if(draw)
       for(path3 g : H)
-        s.append(tube(g,width));
+        s.append(tube(g,width).s);
     return shift(v)*s;
   }
 

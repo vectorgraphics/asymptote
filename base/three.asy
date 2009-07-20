@@ -2015,7 +2015,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
       if(settings.thick) {
         real width=linewidth(q);
         if(width > 0) {
-          surface s=tube(g,width,p.granularity);
+          tube T=tube(g,width,p.granularity);
           int L=length(g);
           if(L >= 0) {
             if(!cyclic(g)) {
@@ -2034,13 +2034,14 @@ draw=new void(frame f, path3 g, material p=currentpen,
                 cap=scale3r*unitcylinder;
                 cap.append(scale3r*shift(Z)*unitdisk);
               }
-              s.append(shift(point(g,0))*align(-dir0)*cap);
-              s.append(shift(point(g,L))*align(dirL)*cap);
+              T.s.append(shift(point(g,0))*align(-dir0)*cap);
+              T.s.append(shift(point(g,L))*align(dirL)*cap);
             }
-            if(opacity(q) == 1) _draw(f,g,q);
+            if(opacity(q) == 1)
+              _draw(f,T.center,q);
           }
-          for(int i=0; i < s.s.length; ++i)
-            draw3D(f,s.s[i],p,light);
+          for(int i=0; i < T.s.s.length; ++i)
+            draw3D(f,T.s.s[i],p,light);
         } else _draw(f,g,q);
       } else _draw(f,g,q);
     }

@@ -7482,12 +7482,14 @@ bounded by cyclic paths of length @code{4} or less.
 @cindex @code{tube}
 Arbitrary thick three-dimensional curves and line caps (which the
 @code{OpenGL} standard does not require implementations to provide) are
-constructed with the routine 
+constructed with
 @verbatim
-surface tube(path3 g, real width);
+tube tube(path3 g, real width, real granularity=tubegranularity);
 @end verbatim
 @noindent
-which returns a tube of diameter @code{width} centered on @code{g}.
+this returns a tube structure representing a tube of diameter @code{width} 
+centered approximately on @code{g}. The tube structure consists of a
+surface @code{s} and the actual tube center, path3 @code{center}.
 This can make files slow to render,
 especially with the @code{Adobe Reader} renderer. The setting
 @code{thick=false} can be used to disable this feature and force all
@@ -8262,9 +8264,9 @@ struct skeleton {
 @node tube
 @section @code{tube}
 @cindex @code{tube}
-This package extends the routine @code{tube} defined in @code{three_arrows.asy}
-to arbitrary cross sections, colors, and spine transformations.
-The routine
+This package extends the @code{tube} surfaces constructed in
+@code{three_arrows.asy} to arbitrary cross sections, colors, and spine
+transformations. The routine
 @verbatim
 surface tube(path3 g, coloredpath section,
              transform T(real)=new transform(real t) {return identity();},
@@ -9281,7 +9283,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  XZEquals XYEquals XZZero XYZero InTicks OutTicks InOutTicks
 @c  LocalWords:  fitscreen planeproject strokepath meshlight nullpens arrowdir
 @c  LocalWords:  diffusepen ambientpen emissivepen specularpen arrowbarb keyval
-@c  LocalWords:  hstretch vstretch roundbox nonconvex miterlimit basealigin
+@c  LocalWords:  hstretch vstretch roundbox nonconvex miterlimit basealigin cmd
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify kate
 @c  LocalWords:  psviewerOptions pdfviewerOptions viewportmargin asyattach
@@ -9296,5 +9298,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  addViews outprefix addAllViews xsplinetype ysplinetype rotateX
 @c  LocalWords:  usplinetype vsplinetype leftbutton middlebutton rightbutton
 @c  LocalWords:  rotateY rotateZ wheelup zoomin wheeldown zoomout TeXLive
-@c  LocalWords:  viewportshift signedint signedness psview multiplatform
-@c  LocalWords:  singlereal singleint
+@c  LocalWords:  viewportshift signedint signedness psview multiplatform nowarn
+@c  LocalWords:  singlereal singleint writeoverloaded tubegranularity

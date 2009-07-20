@@ -21,7 +21,7 @@ triple[] firstframe(path3 p, triple optional=O)
 }
 
 // Modification of the bishop frame construction contained in
-// space_tube.asy(from Philippe Ivaldi's modules). 
+// space_tube.asy (from Philippe Ivaldi's modules). 
 // For noncyclic path3s only
 triple[] nextframe(path3 p, real reltimestart, triple[] start, real
                    reltimeend, int subdiv=20)

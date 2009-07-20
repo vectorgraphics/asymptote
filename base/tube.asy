@@ -15,9 +15,9 @@ path3 roundedpath(path3 A, real r)
   guide3 rounded;
   triple before, after, indir, outdir;
   int len=length(A);
-  bool guideclosed=cyclic(A);
+  bool cyclic=cyclic(A);
   if(len < 2) {return A;};
-  if(guideclosed) {rounded=point(point(A,0)--point(A,1),r);}
+  if(cyclic) {rounded=point(point(A,0)--point(A,1),r);}
   else {rounded=point(A,0);}
   for(int i=1; i < len; i=i+1) {
     before=point(point(A,i)--point(A,i-1),r);
@@ -26,7 +26,7 @@ path3 roundedpath(path3 A, real r)
     outdir=dir(point(A,i)--point(A,i+1),1);
     rounded=rounded--before{indir}..{outdir}after;
   }
-  if(guideclosed) {
+  if(cyclic) {
     before=point(point(A,0)--point(A,len-1),r);
     indir=dir(point(A,len-1)--point(A,0),1);
     outdir=dir(point(A,0)--point(A,1),1);
@@ -205,6 +205,7 @@ surface tube(path3 g, coloredpath section,
   pair M=max(section.p), m=min(section.p);
   real[] t=sample(g,max(M.x-m.x,M.y-m.y)/max(realEpsilon,abs(corner)),
                   min(abs(relstep),1));
-  t.cyclic(cyclic(g));
-  return surface(rmf(g,t),section,T,cyclic(g));
+  bool cyclic=cyclic(g);
+  t.cyclic(cyclic);
+  return surface(rmf(g,t),section,T,cyclic);
 }
