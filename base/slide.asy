@@ -217,11 +217,10 @@ bool checkposition()
   return true;
 }
 
-void step()
-{
+void erasestep(int erasenode) {
   if(!stepping || !allowstepping) return;
   if(!checkposition()) return;
-  lastnode.push(currentpicture.nodes.length-1);
+  lastnode.push(erasenode);
   nextpage(steppagenumberpen);
   for(int i=0; i < firstnode.length; ++i) {
     for(int j=firstnode[i]; j <= lastnode[i]; ++j) {
@@ -231,6 +230,12 @@ void step()
   }
   firstnode.push(currentpicture.nodes.length-1);
   tex(bulletcolor(newbulletcolor));
+}
+
+void step()
+{
+  // Step without erasing anything.
+  erasestep(currentpicture.nodes.length-1);
 }
 
 void incrementposition(pair z)
@@ -326,7 +331,7 @@ void skip(real n=1)
 }
 
 void display(frame[] f, real margin=0, pair align=S, pen p=itempen,
-             pen figuremattpen=figuremattpen)
+             pen figuremattpen=figuremattpen, bool final=true)
 {
   if(f.length == 0) return;
   real[] width=new real[f.length];
@@ -347,19 +352,22 @@ void display(frame[] f, real margin=0, pair align=S, pen p=itempen,
     pos += w;
   }
   add(F,(0,currentposition.y),align);
-  real a=0.5(unit(align).y-1);
-  incrementposition((0,(tinv*(a*(max(F)-min(F))-itemskip*I*lineskip(p)*pt)).y));
+  if (final) {
+    real a=0.5(unit(align).y-1);
+    incrementposition(
+        (0, (tinv*(a*(max(F)-min(F))-itemskip*I*lineskip(p)*pt)).y));
+  }
 }
 
 void display(frame f, real margin=0, pair align=S, pen p=itempen,
-             pen figuremattpen=figuremattpen)
+             pen figuremattpen=figuremattpen, bool final=true)
 {
-  display(new frame[] {f},margin,align,p,figuremattpen);
+  display(new frame[] {f},margin,align,p,figuremattpen, final);
 }
 
 void display(string[] s, real margin=0, string[] captions=new string[],
              string caption="", pair align=S, pen p=itempen,
-             pen figuremattpen=figuremattpen)
+             pen figuremattpen=figuremattpen, bool final=true)
 {
   frame[] f=new frame[s.length];
   frame F;
@@ -374,32 +382,59 @@ void display(string[] s, real margin=0, string[] captions=new string[],
     if(captions[i] != "")
       label(f[i],captions[i],point(f[i],S).x+I*y,S);
   }
-  display(f,margin,align,p,figuremattpen);
+  display(f,margin,align,p,figuremattpen, final);
   if(caption != "") center(caption,p);
 }
 
 void display(string s, string caption="", pair align=S, pen p=itempen,
-             pen figuremattpen=figuremattpen)
+             pen figuremattpen=figuremattpen, bool final=true)
 {
-  display(new string[] {s},caption,align,p,figuremattpen);
+  display(new string[] {s},caption,align,p,figuremattpen, final);
 }
 
 void figure(string[] s, string options="", real margin=0, 
             string[] captions=new string[], string caption="",
-            pair align=S, pen p=itempen, pen figuremattpen=figuremattpen)
+            pair align=S, pen p=itempen, pen figuremattpen=figuremattpen,
+            bool final=true)
 {
   string[] S;
   for(int i=0; i < s.length; ++i) {
     S[i]=graphic(s[i],options);
   }
 
-  display(S,margin,captions,caption,align,itempen,figuremattpen);
+  display(S,margin,captions,caption,align,itempen,figuremattpen, final);
 }
 
 void figure(string s, string options="", string caption="", pair align=S,
-            pen p=itempen, pen figuremattpen=figuremattpen)
+            pen p=itempen, pen figuremattpen=figuremattpen, bool final=true)
 {
-  figure(new string[] {s},options,caption,align,p,figuremattpen);
+  figure(new string[] {s},options,caption,align,p,figuremattpen, final);
+}
+
+void multifigure(string[] slist, string options="", string caption="",
+                 pair align=S, pen p=itempen, pen figuremattpen=figuremattpen)
+{
+  if (stepping) {
+    int lastnode = currentpicture.nodes.length-1;
+    for (int i=0; i<slist.length-1; ++i) {
+      figure(slist[i], options, caption, align, p, figuremattpen, final=false);
+      erasestep(lastnode);
+    }
+  }
+  figure(slist[slist.length-1], options, caption, align, p, figuremattpen,
+         final=true);
+
+  if(!firststep) step();
+  firststep=false;
+}
+
+void indexedfigure(string prefix, int n, string options="", string caption="",
+                 pair align=S, pen p=itempen, pen figuremattpen=figuremattpen)
+{
+  string[] s;
+  for (int i=0; i<n; ++i)
+    s.push(prefix+"+"+string(i));
+  multifigure(s, options, caption, align, p, figuremattpen);
 }
 
 string[] codefile;
