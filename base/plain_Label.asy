@@ -335,7 +335,13 @@ struct Label {
     pic.add(new void (frame f, transform t) {
         out(f,t,point(g,position),
             alignrelative ? -Align*dir(t*g,position)*I : Align);
-      },true);
+      },!alignrelative);
+
+    frame f;
+    pair align=alignrelative ? -Align*dir(g,position)*I : Align;
+    label(f,(0,0),align);
+    pair position=point(g,position);
+    pic.addBox(position,position,min(f),max(f));
   }
   
   void write(file file=stdout, suffix suffix=endl) {
