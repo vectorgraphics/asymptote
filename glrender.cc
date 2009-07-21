@@ -1014,11 +1014,11 @@ void camera()
        << "camera=" << Camera << "," << endl
        << "up=" << Up << "," << endl
        << "target=" << Target << "," << endl
-       << "zoom=" << Zoom << "," << endl;
+       << "zoom=" << Zoom;
   if(!orthographic)
-    cout << "angle=" << 2.0*atan(tan(0.5*Angle)/Zoom)/radians << "," << endl;
+    cout << "," << endl << "angle=" << 2.0*atan(tan(0.5*Angle)/Zoom)/radians;
   if(viewportshift != pair(0.0,0.0))
-    cout << "viewportshift=" << viewportshift;
+    cout << "," << endl << "viewportshift=" << viewportshift;
   if(!orthographic)
     cout << "," << endl << "autoadjust=false";
   cout << ");" << endl;
