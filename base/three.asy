@@ -2387,23 +2387,6 @@ string embed3D(string label="", string text=label, string prefix,
   return Embed(stripdirectory(prefix),options3,width,height);
 }
 
-object embed(string label="", string text=label, 
-             string prefix=defaultfilename, 
-             frame f, string format="",
-             real width=0, real height=0, real angle=30,
-             string options="", string script="", 
-             light light=currentlight, projection P=currentprojection)
-{
-  object F;
-
-  if(is3D(format))
-    F.L=embed3D(label,text,prefix,f,format,width,height,angle,options,script,
-                light,P);
-  else
-    F.f=f;
-  return F;
-}
-
 struct scene
 {
   frame f;
@@ -2412,11 +2395,15 @@ struct scene
   bool adjusted;
   real width,height;
   transform3 T;
+  picture pic2;
   
-  void operator init(string prefix=defaultfilename,
-                     picture pic, string format="",
-                     real xsize=pic.xsize, real ysize=pic.ysize,
-                     bool keepAspect=pic.keepAspect,
+  void operator init(frame f, projection P=currentprojection) {
+    this.f=f;
+    this.P=P;
+  }
+  
+  void operator init(picture pic, real xsize=pic.xsize, real ysize=pic.ysize,
+                     bool keepAspect=pic.keepAspect, bool is3D,
                      projection P=currentprojection) {
     real xsize3=pic.xsize3, ysize3=pic.ysize3, zsize3=pic.zsize3;
     bool warn=true;
@@ -2449,7 +2436,6 @@ struct scene
         adjusted=adjusted | this.P.adjust(m,M);
     }
 
-    picture pic2;
     f=pic.fit3(t,pic.bounds3.exact ? pic2 : null,this.P);
 
     if(!pic.bounds3.exact) {
@@ -2459,7 +2445,6 @@ struct scene
       f=pic.fit3(t,pic2,this.P);
     }
 
-    bool is3D=is3D(format);
     bool scale=xsize != 0 || ysize != 0;
 
     if(is3D || scale) {
@@ -2539,6 +2524,122 @@ struct scene
   }
 }
 
+object embed(string label="", string text=label, string prefix=defaultfilename,
+             scene S, string format="", bool view=true, string options="",
+             string script="", real angle=0, light light=currentlight)
+{
+  object F;
+  transform3 modelview;
+  projection P=S.P;
+  transform3 tinv=inverse(S.t);
+
+  projection Q;
+  if(P.absolute) {
+    modelview=P.modelview();
+    Q=modelview*P;
+  } else {
+    triple target=P.target;
+    modelview=P.modelview();
+    S.f=modelview*S.f;
+    P=modelview*P;
+    Q=P.copy();
+    light=modelview*light;
+
+    if(P.infinity) {
+      triple m=min3(S.f);
+      triple M=max3(S.f);
+      triple lambda=M-m;
+      viewportmargin=viewportmargin((lambda.x,lambda.y));
+      S.width=lambda.x+2*viewportmargin.x;
+      S.height=lambda.y+2*viewportmargin.y;
+      S.f=shift((-0.5(m.x+M.x),-0.5*(m.y+M.y),0))*S.f; // Eye will be at (0,0,0)
+    } else {
+      if(angle == 0) angle=P.angle;
+      if(angle == 0) {
+        angle=S.angle(P);
+        modelview=S.T*modelview;
+        if(viewportmargin.y != 0)
+          angle=2*aTan(Tan(0.5*angle)-viewportmargin.y/P.target.z);
+      }
+      if(settings.verbose > 0) {
+        transform3 inv=inverse(modelview);
+        if(S.adjusted) 
+          write("adjusting camera to ",tinv*inv*P.camera);
+        target=inv*P.target;
+      }
+      P=S.T*P;
+    }
+    if(settings.verbose > 0) {
+      if(P.center || (!P.infinity && P.autoadjust))
+        write("adjusting target to ",tinv*target);
+    }
+  }
+    
+  if(prefix == "") prefix=outprefix();
+  bool prc=prc(format);
+  bool preview=settings.render > 0;
+  if(prc) {
+    // The movie15.sty package cannot handle spaces or dots in filenames.
+    prefix=replace(prefix,new string[][]{{" ","_"},{".","_"}});
+    if(settings.embed || nativeformat() == "pdf")
+      prefix += "+"+(string) file3.length;
+  } else
+    preview=false;
+  if(preview || (!prc && settings.render != 0)) {
+    frame f=S.f;
+    triple m,M;
+    real zcenter;
+    real r;
+    if(P.absolute) {
+      f=modelview*f;
+      m=min3(f);
+      M=max3(f);
+      r=0.5*abs(M-m);
+      zcenter=0.5*(M.z+m.z);
+      angle=P.angle;
+    } else {
+      m=min3(f);
+      M=max3(f);
+      zcenter=P.target.z;
+      r=P.distance(m,M);
+    }
+    M=(M.x,M.y,zcenter+r);
+    m=(m.x,m.y,zcenter-r);
+
+    if(P.infinity) {
+      triple margin=(viewportfactor-1.0)*(abs(M.x-m.x),abs(M.y-m.y),0)
+        +(viewportmargin.x,viewportmargin.y,0);
+      M += margin; 
+      m -= margin;
+    } else if(M.z >= 0) abort("camera too close");
+
+    shipout3(prefix,f,preview ? nativeformat() : format,
+             S.width,S.height,P.infinity ? 0 : 2aTan(Tan(0.5*angle)*P.zoom),
+             P.zoom,m,M,P.viewportshift,
+             tinv*inverse(modelview)*shift(0,0,zcenter),light.background(),
+             P.absolute ? (modelview*light).position : light.position,
+             light.diffuse,light.ambient,light.specular,
+             light.viewport,view && !preview);
+    if(!preview) return F;
+  }
+
+  string image;
+  if(preview && settings.embed) {
+    image=prefix;
+    if(settings.inlinetex) image += "_0";
+    image += "."+nativeformat();
+    if(!settings.inlinetex) file3.push(image);
+    image=graphic(image,"hiresbb");
+  }
+  if(prc) {
+    if(!P.infinity && P.viewportshift != 0)
+      write("warning: PRC does not support off-axis projections; use pan instead of shift");
+    F.L=embed3D(label,text=image,prefix,S.f,format,
+                S.width,S.height,angle,options,script,light,Q);
+  }
+  return F;
+}
+
 object embed(string label="", string text=label,
              string prefix=defaultfilename,
              picture pic, string format="",
@@ -2547,127 +2648,33 @@ object embed(string label="", string text=label,
              string script="", real angle=0,
              light light=currentlight, projection P=currentprojection)
 {
-  object F;
-  
-  if(is3D(format)) {
-    transform3 modelview;
-    scene S=scene(prefix=prefix,pic,format,xsize,ysize,keepAspect,P);
-    projection P=S.P;
-    transform3 tinv=inverse(S.t);
-
-    projection Q;
-    if(P.absolute) {
-      modelview=P.modelview();
-      Q=modelview*P;
-    } else {
-      triple target=P.target;
-      modelview=P.modelview();
-      S.f=modelview*S.f;
-      P=modelview*P;
-      Q=P.copy();
-      light=modelview*light;
-
-      if(P.infinity) {
-        triple m=min3(S.f);
-        triple M=max3(S.f);
-        triple lambda=M-m;
-        viewportmargin=viewportmargin((lambda.x,lambda.y));
-        S.width=lambda.x+2*viewportmargin.x;
-        S.height=lambda.y+2*viewportmargin.y;
-        // Eye will be at (0,0,0):
-        S.f=shift((-0.5(m.x+M.x),-0.5*(m.y+M.y),0))*S.f;
-      } else {
-        if(angle == 0) angle=P.angle;
-        if(angle == 0) {
-          angle=S.angle(P);
-          modelview=S.T*modelview;
-          if(viewportmargin.y != 0)
-            angle=2*aTan(Tan(0.5*angle)-viewportmargin.y/P.target.z);
-        }
-        if(settings.verbose > 0) {
-          transform3 inv=inverse(modelview);
-          if(S.adjusted) 
-            write("adjusting camera to ",tinv*inv*P.camera);
-          target=inv*P.target;
-        }
-        P=S.T*P;
-     }
-      if(settings.verbose > 0) {
-        if(P.center || (!P.infinity && P.autoadjust))
-          write("adjusting target to ",tinv*target);
-      }
-    }
-    
-    if(prefix == "") prefix=outprefix();
-    bool prc=prc(format);
-    bool preview=settings.render > 0;
-    if(prc) {
-      // The movie15.sty package cannot handle spaces or dots in filenames.
-      prefix=replace(prefix,new string[][]{{" ","_"},{".","_"}});
-      if(settings.embed || nativeformat() == "pdf")
-        prefix += "+"+(string) file3.length;
-    } else
-      preview=false;
-    if(preview || (!prc && settings.render != 0)) {
-      frame f=S.f;
-      triple m,M;
-      real zcenter;
-      real r;
-      if(P.absolute) {
-        f=modelview*f;
-        m=min3(f);
-        M=max3(f);
-        r=0.5*abs(M-m);
-        zcenter=0.5*(M.z+m.z);
-        angle=P.angle;
-      } else {
-        m=min3(f);
-        M=max3(f);
-        zcenter=P.target.z;
-        r=P.distance(m,M);
-      }
-      M=(M.x,M.y,zcenter+r);
-      m=(m.x,m.y,zcenter-r);
-
-      if(P.infinity) {
-        triple margin=(viewportfactor-1.0)*(abs(M.x-m.x),abs(M.y-m.y),0)
-          +(viewportmargin.x,viewportmargin.y,0);
-        M += margin; 
-        m -= margin;
-      } else if(M.z >= 0) abort("camera too close");
-
-      shipout3(prefix,f,preview ? nativeformat() : format,
-               S.width,S.height,P.infinity ? 0 : 2aTan(Tan(0.5*angle)*P.zoom),
-               P.zoom,m,M,P.viewportshift,
-               tinv*inverse(modelview)*shift(0,0,zcenter),light.background(),
-               P.absolute ? (modelview*light).position : light.position,
-               light.diffuse,light.ambient,light.specular,
-               light.viewport,view && !preview);
-      if(!preview) return F;
-    }
-
-    string image;
-    if(preview && settings.embed) {
-      image=prefix;
-      if(settings.inlinetex) image += "_0";
-      image += "."+nativeformat();
-      if(!settings.inlinetex) file3.push(image);
-      image=graphic(image,"hiresbb");
-    }
-    if(prc) {
-      if(!P.infinity && P.viewportshift != 0)
-        write("warning: PRC does not support off-axis projections; use pan instead of shift");
-      F.L=embed3D(label,text=image,prefix,S.f,format,
-                  S.width,S.height,angle,options,script,light,Q);
-    }
-  } else {
-    picture pic2;
-    transform T=pic2.scaling(xsize,ysize,keepAspect);
+  bool is3D=is3D(format);
+  scene S=scene(pic,xsize,ysize,keepAspect,is3D,P);
+  if(is3D)
+    return embed(label,text,prefix,S,format,view,options,script,angle,light);
+  else {
+    object F;
+    transform T=S.pic2.scaling(xsize,ysize,keepAspect);
     F.f=pic.fit(scale(t[0][0])*T);
-    add(F.f,pic2.fit(T));
+    add(F.f,S.pic2.fit(T));
+    return F;
   }
-      
-  return F;
+}
+
+object embed(string label="", string text=label,
+             string prefix=defaultfilename,
+             frame f, string format="", real width=0, real height=0,
+             bool view=true, string options="", string script="", real angle=0,
+             light light=currentlight, projection P=currentprojection)
+{
+  if(is3D(format)) {
+    scene S=scene(f,P);
+    return embed(label,text,prefix,S,format,view,options,script,angle,light);
+  } else {
+    object F;
+    F.f=f;
+    return F;
+  }
 }
 
 embed3=new object(string prefix, frame f, string format, string options,
