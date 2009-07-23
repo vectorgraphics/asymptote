@@ -2394,16 +2394,17 @@ struct scene
   projection P;
   bool adjusted;
   real width,height;
-  transform3 T;
+  transform3 T=identity4;
   picture pic2;
   
   void operator init(frame f, projection P=currentprojection) {
     this.f=f;
+    this.t=identity4;
     this.P=P;
   }
   
   void operator init(picture pic, real xsize=pic.xsize, real ysize=pic.ysize,
-                     bool keepAspect=pic.keepAspect, bool is3D,
+                     bool keepAspect=pic.keepAspect, bool is3D=true,
                      projection P=currentprojection) {
     real xsize3=pic.xsize3, ysize3=pic.ysize3, zsize3=pic.zsize3;
     bool warn=true;
@@ -2655,7 +2656,7 @@ object embed(string label="", string text=label,
   else {
     object F;
     transform T=S.pic2.scaling(xsize,ysize,keepAspect);
-    F.f=pic.fit(scale(t[0][0])*T);
+    F.f=pic.fit(scale(S.t[0][0])*T);
     add(F.f,S.pic2.fit(T));
     return F;
   }
@@ -2667,10 +2668,10 @@ object embed(string label="", string text=label,
              bool view=true, string options="", string script="", real angle=0,
              light light=currentlight, projection P=currentprojection)
 {
-  if(is3D(format)) {
-    scene S=scene(f,P);
-    return embed(label,text,prefix,S,format,view,options,script,angle,light);
-  } else {
+  if(is3D(format))
+    return embed(label,text,prefix,scene(f,P),format,view,options,script,angle,
+                 light);
+  else {
     object F;
     F.f=f;
     return F;
@@ -2682,6 +2683,33 @@ embed3=new object(string prefix, frame f, string format, string options,
   return embed(prefix=prefix,f,format,options,script,P);
 };
 
+frame embedder(object embedder(string prefix, string format),
+               string prefix, frame f, string format="", bool view=true)
+{
+  frame g;
+  bool prc=prc(format);
+  if(!prc && settings.render != 0 && !view) {
+    static int previewcount=0;
+    bool keep=prefix != "";
+    prefix=outprefix(prefix)+"+"+(string) previewcount;
+    ++previewcount;
+    format=nativeformat();
+    if(!keep) file3.push(prefix+"."+format);
+  }
+  object F=embedder(prefix,format);
+  if(prc)
+    label(g,F.L);
+  else {
+    if(settings.render == 0) {
+      add(g,F.f);
+      if(currentlight.background != nullpen)
+        box(g,currentlight.background,Fill,above=false);
+    } else if(!view)
+      label(g,graphic(prefix,"hiresbb"));
+  }
+  return g;
+}
+
 currentpicture.fitter=new frame(string prefix, picture pic, string format,
                                 real xsize, real ysize,
                                 bool keepAspect, bool view,
@@ -2689,31 +2717,19 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
   frame f;
   bool empty3=pic.empty3();
   if(is3D(format) || empty3) add(f,pic.fit2(xsize,ysize,keepAspect));
-  if(!empty3) {
-    bool prc=prc(format);
-    if(!prc && settings.render != 0 && !view) {
-      static int previewcount=0;
-      bool keep=prefix != "";
-      prefix=outprefix(prefix)+"+"+(string) previewcount;
-      ++previewcount;
-      format=nativeformat();
-      if(!keep) file3.push(prefix+"."+format);
-    }
-    object F=embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
+  return empty3 ? f : embedder(new object(string prefix, string format) {
+      return embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
                    options,script,currentlight,P);
-    if(prc)
-      label(f,F.L);
-    else {
-      if(settings.render == 0) {
-        add(f,F.f);
-        if(currentlight.background != nullpen)
-          box(f,currentlight.background,Fill,above=false);
-      } else if(!view)
-        label(f,graphic(prefix,"hiresbb"));
-    }
-  }
-  return f;
+    },prefix,f,format,view);
 };
+
+frame embedder(string prefix, frame f, string format="", bool view=true,
+               string options="", string script="", projection P)
+{
+  return embedder(new object(string prefix, string format) {
+      return embed(prefix=prefix,f,format,view,options,script,currentlight,P);
+    },prefix,f,format,view);
+}
 
 void addViews(picture dest, picture src, bool group=true,
               filltype filltype=NoFill)
@@ -2765,29 +2781,52 @@ void addAllViews(picture src, bool group=true, filltype filltype=NoFill)
   addAllViews(currentpicture,src,group,filltype);
 }
 
-// Force an array of 3D pictures to be as least as large as picture all.
-void rescale3(picture[] pictures, picture all, projection P=currentprojection)
+// Fit an array of 3D pictures simultaneously using the sizing of picture all.
+frame[] fit3(string prefix="", picture[] pictures, picture all,
+             string format="", bool view=true, string options="",
+             string script="",projection P=currentprojection)
 {
-  if(!all.empty3()) {
-    transform3 t=inverse(all.calculateTransform3(P)*pictures[0].T3);
-    triple m=t*min3(all);
-    triple M=t*max3(all);
-    for(int i=0; i < pictures.length; ++i) {
-      draw(pictures[i],m,nullpen);
-      draw(pictures[i],M,nullpen);
+  frame[] out;
+  scene S=scene(all,P);
+  triple m=all.min(S.t);
+  triple M=all.max(S.t);
+  out=new frame[pictures.length];
+  int i=0;
+  void generate(bool loop=false) {
+    for(picture pic : pictures) {
+      picture pic2;
+      frame f=pic.fit3(S.t,pic2,S.P);
+      if(loop && !settings.loop) break;
+      add(f,pic2.fit2());
+      draw(f,m,nullpen);
+      draw(f,M,nullpen);
+      out[i]=embedder(prefix,f,format,view,options,script,S.P);
+      ++i;
     }
   }
+  if(settings.loop) {
+    while(settings.loop)
+      generate(settings.loop);
+  } else
+    generate();
+  
+  return out;
 }
 
-// Force an array of pictures to have a uniform scaling using currenprojection.
-rescale=new void(picture[] pictures) {
-  if(pictures.length == 0) return;
+// Fit an array of pictures simultaneously using the size of the first picture.
+fit=new frame[](string prefix="", picture[] pictures, string format="",
+                bool view=true, string options="", string script="",
+                projection P=currentprojection) {
+  if(pictures.length == 0)
+    return new frame[];
+
   picture all;
   size(all,pictures[0]);
   for(picture pic : pictures)
     add(all,pic);
-  rescale2(pictures,all);
-  rescale3(pictures,all);
+
+  return all.empty3() ? fit2(pictures,all) :
+  fit3(prefix,pictures,all,format,view,options,script,P);
 };
 
 exitfcn currentexitfunction=atexit();

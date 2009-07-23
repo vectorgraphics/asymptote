@@ -23,17 +23,17 @@ real xST(real t) {return ast*cos(t)+cst;}
 real yST(real t) {return bst*sin(t);} 
 real zST(real t) {return 0;} 
  
-real xTL(real t) {return atl*cos(27*t);} 
-real yTL(real t) {return btl*sin(27*t);} 
+real xTL(real t) {return atl*cos(27t);} 
+real yTL(real t) {return btl*sin(27t);} 
 real zTL(real t) {return 0;} 
  
  
-real xLl(real t) {return Rl*cos(27*t);} 
-real yLl(real t) {return Rl*sin(27*t);} 
+real xLl(real t) {return Rl*cos(27t);} 
+real yLl(real t) {return Rl*sin(27t);} 
 real zLl(real t) {return 0;} 
  
-real xTt(real t) {return Rtl*cos(100*(t))/5;} 
-real yTt(real t) {return Rtl*sin(100*(t))/5;} 
+real xTt(real t) {return Rtl*cos(100t)/5;} 
+real yTt(real t) {return Rtl*sin(100t)/5;} 
 real zTt(real t) {return 0;}
  
 real xl(real t) {return xST(t)+xTL(t)+xLl(t);} 
@@ -48,8 +48,8 @@ real xL(real t) {return xST(t)+xTL(t);}
 real yL(real t) {return yST(t)+yTL(t);} 
 real zL(real t) {return 0;} 
  
-path3 Pl=graph(xl,yl,zl,0,2*pi,1000),Pt=graph(xt,yt,zt,0,2*pi,3000), 
-Pts=graph(xST,yST,zST,0,2*pi,500); 
+path3 Pl=graph(xl,yl,zl,0,2pi,1000),Pt=graph(xt,yt,zt,0,2pi,3000), 
+Pts=graph(xST,yST,zST,0,2pi,500); 
  
 picture pic;
  
@@ -63,6 +63,7 @@ surface terre=scale3(Rtl/5)*unitsphere;
 surface lune=scale3(Rl)*unitsphere; 
  
 int n=100;
+
 real step=2pi/n; 
 for(int i=0; i < n; ++i) { 
   real k=i*step; 

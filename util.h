@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <iostream>
 #include <cstdlib>
+#include <csignal>
 
 #include "common.h"
 
@@ -51,6 +52,9 @@ string String(T x)
   buf << x;
   return buf.str();
 }
+
+// Portable signal (sigaction wrapper).
+sighandler_t Signal(int signum, sighandler_t handler);
 
 // Split string S and push the pieces onto vector a.
 void push_split(mem::vector<string>& a, const string& S);

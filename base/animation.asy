@@ -8,16 +8,17 @@
 // animation delay is in milliseconds
 real animationdelay=50;
 
-typedef frame fit(string prefix="",picture);
+typedef frame enclosure(frame);
 
-frame NoBox(string prefix="", picture pic) {
-  return pic.fit(prefix);
+frame NoBox(frame f) {
+  return f;
 }
 
-fit BBox(string prefix="", real xmargin=0, real ymargin=xmargin,
-         pen p=currentpen, filltype filltype=NoFill) {
-  return new frame(string prefix, picture pic) {
-    return bbox(prefix,pic,xmargin,ymargin,p,filltype);
+enclosure BBox(real xmargin=0, real ymargin=xmargin,
+               pen p=currentpen, filltype filltype=NoFill) {
+  return new frame(frame f) {
+    box(f,xmargin,ymargin,p,filltype,above=false);
+    return f;
   };
 }
 
@@ -59,11 +60,11 @@ struct animation {
     shipped=false;
   }
   
-  void add(picture pic=currentpicture, fit fit=NoBox) {
+  void add(picture pic=currentpicture, enclosure enclosure=NoBox) {
     if(global) {
       ++index;
       pictures.push(pic.copy());
-    } else this.shipout(fit(prefix,pic));
+    } else this.shipout(enclosure(pic.fit()));
   }
   
   void purge(bool keep=settings.keep) {
@@ -86,30 +87,31 @@ struct animation {
     return rc;
   }
 
+  void glmovie(string prefix=prefix, projection P=currentprojection) {
+    if(settings.render == 0) return;
+    fit(prefix,pictures,view=true,P);
+  }
+
   // Export all frames with the same scaling.
-  void export(string prefix=prefix, fit fit=NoBox,
-              bool multipage=false, bool view=false) {
+  void export(string prefix=prefix, enclosure enclosure=NoBox,
+              bool multipage=false, bool view=false,
+              projection P=currentprojection) {
     if(pictures.length == 0) return;
     if(!global) multipage=false;
-    rescale(pictures);
-    frame multi;
     bool inlinetex=settings.inlinetex;
     if(multipage)
       settings.inlinetex=false;
-    for(int i=0; i < pictures.length; ++i) {
+    frame multi;
+    frame[] fits=fit(prefix,pictures,view=false,P);
+    for(int i=0; i < fits.length; ++i) {
       if(multipage) {
-        add(multi,fit(prefix,pictures[i]));
+        add(multi,enclosure(fits[i]));
         newpage(multi);
       } else {
-        if(pictures[i].empty3() || settings.render <= 0) {
-          real render=settings.render;
-          settings.render=0;
-          this.shipout(name(prefix,i),fit(prefix,pictures[i]));
-          settings.render=render;
-        } else { // Render 3D frames
+        if(pictures[i].empty3() || settings.render <= 0)
+          this.shipout(name(prefix,i),enclosure(fits[i]));
+        else // 3D frames
           files.push(name(prefix,i)+"."+nativeformat());
-          fit(prefix,pictures[i]);
-        }
       }
     }
     if(multipage) {
@@ -129,8 +131,8 @@ struct animation {
     return s;
   }
 
-  string pdf(fit fit=NoBox, real delay=animationdelay, string options="",
-             bool keep=settings.keep, bool multipage=true) {
+  string pdf(enclosure enclosure=NoBox, real delay=animationdelay,
+             string options="", bool keep=settings.keep, bool multipage=true) {
     if(settings.inlinetex) multipage=true;
     if(!global) multipage=false;
     if(settings.tex != "pdflatex")
@@ -141,7 +143,7 @@ struct animation {
     string pdfname=filename+".pdf";
 
     if(global)
-      export(filename,fit,multipage=multipage);
+      export(filename,enclosure,multipage=multipage);
     
     shipped=false;
 
@@ -162,15 +164,15 @@ struct animation {
     return load(index,delay,options,multipage);
   }
 
-  int movie(fit fit=NoBox, int loops=0, real delay=animationdelay,
+  int movie(enclosure enclosure=NoBox, int loops=0, real delay=animationdelay,
             string format=settings.outformat == "" ? "gif" : settings.outformat,
             string options="", bool keep=settings.keep) {
     if(global) {
       if(format == "pdf") {
-        export(fit,multipage=true,view=true);
+        export(enclosure,multipage=true,view=true);
         return 0;
       }
-      export(fit);
+      export(enclosure);
     }
     return merge(loops,delay,format,options,keep);
   }

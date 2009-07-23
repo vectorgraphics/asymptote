@@ -20,7 +20,6 @@
 *************/
 
 #include <iostream>
-#include <csignal>
 #include <cstdlib>
 #include <cerrno>
 #include <sys/wait.h>
@@ -79,8 +78,8 @@ void setsignal(RETSIGTYPE (*handler)(int))
                                 mystack,sizeof (mystack));
   sigsegv_install_handler(&sigsegv_handler);
 #endif
-  signal(SIGBUS,handler);
-  signal(SIGFPE,handler);
+  Signal(SIGBUS,handler);
+  Signal(SIGFPE,handler);
 }
 
 void signalHandler(int)
@@ -88,8 +87,8 @@ void signalHandler(int)
   // Print the position and trust the shell to print an error message.
   em.runtime(vm::getPos());
 
-  signal(SIGBUS,SIG_DFL);
-  signal(SIGFPE,SIG_DFL);
+  Signal(SIGBUS,SIG_DFL);
+  Signal(SIGFPE,SIG_DFL);
 }
 
 void interruptHandler(int)
@@ -126,7 +125,7 @@ void *asymain(void *A)
   fpu_trap(trap());
 
   if(interactive) {
-    signal(SIGINT,interruptHandler);
+    Signal(SIGINT,interruptHandler);
     processPrompt();
   } else if (getSetting<bool>("listvariables") && numArgs()==0) {
     try {

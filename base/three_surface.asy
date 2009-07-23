@@ -1272,19 +1272,19 @@ surface extrude(Label L, triple axis=Z)
 restricted surface nullsurface;
 
 private real a=4/3*(sqrt(2)-1);
-private transform3 t=rotate(90,O,Z);
-private transform3 t2=t*t;
-private transform3 t3=t2*t;
+private transform3 t1=rotate(90,O,Z);
+private transform3 t2=t1*t1;
+private transform3 t3=t2*t1;
 private transform3 i=xscale3(-1)*zscale3(-1);
 
 restricted patch octant1=patch(X{Z}..{-X}Z..Z{Y}..{-Z}Y{X}..{-Y}cycle,
                                new triple[] {(1,a,a),(a,a^2,1),(a^2,a,1),
                                              (a,1,a)});
 
-restricted surface unithemisphere=surface(octant1,t*octant1,t2*octant1,
+restricted surface unithemisphere=surface(octant1,t1*octant1,t2*octant1,
                                           t3*octant1);
-restricted surface unitsphere=surface(octant1,t*octant1,t2*octant1,t3*octant1,
-                                      i*octant1,i*t*octant1,i*t2*octant1,
+restricted surface unitsphere=surface(octant1,t1*octant1,t2*octant1,t3*octant1,
+                                      i*octant1,i*t1*octant1,i*t2*octant1,
                                       i*t3*octant1);
 
 restricted patch unitfrustum(real t1, real t2)
@@ -1306,7 +1306,7 @@ surface unitcone(int n=6)
   for(int i=0; i < n; ++i) {
     patch s=unitfrustum(i < n-1 ? r^(i+1) : 0,r^i);
     unitcone.s[i]=s;
-    unitcone.s[n+i]=t*s;
+    unitcone.s[n+i]=t1*s;
     unitcone.s[2n+i]=t2*s;
     unitcone.s[3n+i]=t3*s;
   }
@@ -1318,7 +1318,7 @@ restricted surface unitsolidcone=surface(patch(unitcircle3)...unitcone.s);
 
 private patch unitcylinder1=patch(X--X+Z{Y}..{-X}Y+Z--Y{X}..{-Y}cycle);
 
-restricted surface unitcylinder=surface(unitcylinder1,t*unitcylinder1,
+restricted surface unitcylinder=surface(unitcylinder1,t1*unitcylinder1,
                                         t2*unitcylinder1,t3*unitcylinder1);
 
 private patch unitplane=patch(new triple[] {O,X,X+Y,Y});

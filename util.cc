@@ -17,7 +17,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <signal.h>
 #include <cstring>
 #include <algorithm>
 
@@ -162,6 +161,16 @@ string auxname(string filename, string suffix)
   return buildname(filename,suffix,"_");
 }
   
+sighandler_t Signal(int signum, sighandler_t handler)
+{
+  struct sigaction action,oldaction;
+  action.sa_handler=handler;
+  sigemptyset(&action.sa_mask);
+  action.sa_flags=0;
+  return sigaction(signum,&action,&oldaction) == 0 ? oldaction.sa_handler : 
+    SIG_ERR;
+}
+
 void push_split(mem::vector<string>& a, const string& S) 
 {
   const char *p=S.c_str();
