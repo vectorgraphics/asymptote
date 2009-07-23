@@ -669,16 +669,6 @@ Braid apply(Relation r, Braid b, int step, int place) {
 }
 
 // Tableau {{{1
-frame[] fit(picture[] pics) {
-  frame[] f;
-  for (int i=0; i<pics.length; ++i) {
-    frame ff=pics[i].fit();
-    //label(ff, (string)i, (10,10));
-    //f.push(pics[i].fit());
-    f.push(ff);
-  }
-  return f;
-}
 
 // Draw a number of frames in a nice circular arrangement.
 picture tableau(frame[] cards, bool number=false) {
