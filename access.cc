@@ -130,4 +130,6 @@ void qualifiedAccess::encode(action act, position pos, coder &e, frame *top)
   qualifier->encode(READ, pos, e, top);
   field->encode(act, pos, e, qualifierLevel);
 }
+
+    
 } // namespace trans

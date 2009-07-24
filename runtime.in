@@ -4640,6 +4640,13 @@ bool :arrayCyclicFlag(array *a)
   return a->cyclic();
 }
 
+bool :arraySetCyclicFlag(bool b, array *a)
+{
+  checkArray(a);
+  a->cyclic(b);
+  return b;
+}
+
 // Check to see if an array element is initialized.
 bool :arrayInitializedHelper(Int n, array *a)
 {

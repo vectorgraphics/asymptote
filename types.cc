@@ -13,6 +13,7 @@
 #include "types.h"
 #include "runtime.h"
 #include "access.h"
+#include "virtualfieldaccess.h"
 
 namespace types {
 
@@ -100,15 +101,23 @@ void ty::print(ostream& out) const
   out << names[kind];
 }
 
-trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
-{
+// Used for primitive virtual fields and array virtual fields.
 #define FIELD(Type, name, func)                                 \
   if (sig == 0 && id == symbol::trans(name)) {                  \
-    static trans::bltinAccess a(run::func);                     \
-    static trans::varEntry v(Type(), &a, 0, position());  \
+    static trans::virtualFieldAccess a(run::func);              \
+    static trans::varEntry v(Type(), &a, 0, position());        \
     return &v;                                                  \
   }
 
+#define RWFIELD(Type, name, getter, setter)                       \
+  if (sig == 0 && id == symbol::trans(name)) {                    \
+    static trans::virtualFieldAccess a(run::getter, run::setter); \
+    static trans::varEntry v(Type(), &a, 0, position());          \
+    return &v;                                                    \
+  }
+      
+trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
+{
   switch (kind) {
     case ty_pair:
       FIELD(primReal,"x",pairXPart);
@@ -150,8 +159,6 @@ trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
       break;
   }
   return 0;
-
-#undef FIELD
 }
 
 ty *ty::virtualFieldGetType(symbol *id)
@@ -233,105 +240,68 @@ ty *cyclicType() {
   return new function(primVoid(),formal(primBoolean(),"b"));
 }
 
+ty *overloadedCyclicType() {
+  overloaded *o=new overloaded;
+  o->add(cyclicType());
+  o->add(primBoolean());
+  return o;
+}
+
 ty *initializedType() {
   return new function(primBoolean(),formal(primInt(),"i"));
 }
 
+#define SIGFIELDLIST \
+  SIGFIELD(initialized, arrayInitialized); \
+  SIGFIELD(push, arrayPush); \
+  SIGFIELD(pop, arrayPop); \
+  SIGFIELD(append, arrayAppend); \
+  SIGFIELD(insert, arrayInsert); \
+  SIGFIELD(delete, arrayDelete); \
+
 ty *array::virtualFieldGetType(symbol *id)
 {
-  return
-    id == symbol::trans("cyclic") ? cyclicType() : 
-    id == symbol::trans("push") ? pushType() : 
-    id == symbol::trans("pop") ? popType() : 
-    id == symbol::trans("append") ? appendType() : 
-    id == symbol::trans("insert") ? insertType() : 
-    id == symbol::trans("delete") ? deleteType() : 
-    id == symbol::trans("initialized") ? initializedType() : 
-    ty::virtualFieldGetType(id);
+  #define SIGFIELD(name, func) \
+  if (id == symbol::trans(#name)) \
+    return name##Type();
+
+  SIGFIELDLIST
+
+  #undef SIGFIELD
+
+  if (id == symbol::trans("cyclic"))
+    return overloadedCyclicType();
+
+  return ty::virtualFieldGetType(id);
 }
 
 trans::varEntry *array::virtualField(symbol *id, signature *sig)
 {
-  if (sig == 0 && id == symbol::trans("length"))
-    {
-      static trans::bltinAccess a(run::arrayLength);
-      static trans::varEntry v(primInt(), &a, 0, position());
-      return &v;
-    }
-  if (sig == 0 && id == symbol::trans("keys"))
-    {
-      static trans::bltinAccess a(run::arrayKeys);
-      static trans::varEntry v(IntArray(), &a, 0, position());
-      return &v;
-    }
-  if (sig == 0 && id == symbol::trans("cyclicflag"))
-    {
-      static trans::bltinAccess a(run::arrayCyclicFlag);
-      static trans::varEntry v(primBoolean(), &a, 0, position());
-      return &v;
-    }
-  if (id == symbol::trans("cyclic") &&
-      equivalent(sig, cyclicType()->getSignature()))
-    {
-      static trans::bltinAccess a(run::arrayCyclic);
-      static trans::varEntry v(cyclicType(), &a, 0, position());
-      return &v;
-    }
-  if (id == symbol::trans("initialized") &&
-      equivalent(sig, initializedType()->getSignature()))
-    {
-      static trans::bltinAccess a(run::arrayInitialized);
-      static trans::varEntry v(initializedType(), &a, 0, position());
-      return &v;
-    }
-  if (id == symbol::trans("push") &&
-      equivalent(sig, pushType()->getSignature()))
-    {
-      static trans::bltinAccess a(run::arrayPush);
-      // v needs to be dynamic, as the push type differs among arrays.
-      trans::varEntry *v = new trans::varEntry(pushType(), &a, 0, position());
+  FIELD(primInt, "length", arrayLength);
+  FIELD(IntArray, "keys", arrayKeys);
+  RWFIELD(primBoolean, "cyclicflag", arrayCyclicFlag, arraySetCyclicFlag);
+  RWFIELD(primBoolean, "cyclic", arrayCyclicFlag, arraySetCyclicFlag);
 
-      return v;
+  #define SIGFIELD(name, func) \
+  if (id == symbol::trans(#name) && \
+      equivalent(sig, name##Type()->getSignature())) \
+    { \
+      static trans::virtualFieldAccess a(run::func); \
+      /* for some fields, v needs to be dynamic, as the function type */ \
+      /* depends on the array type. */ \
+      trans::varEntry *v = \
+          new trans::varEntry(name##Type(), &a, 0, position()); \
+      return v; \
     }
-  if (id == symbol::trans("pop") &&
-      equivalent(sig, popType()->getSignature()))
-    {
-      static trans::bltinAccess a(run::arrayPop);
-      // v needs to be dynamic, as the pop type differs among arrays.
-      trans::varEntry *v = new trans::varEntry(popType(), &a, 0, position());
-
-      return v;
-    }
-  if (id == symbol::trans("append") &&
-      equivalent(sig, appendType()->getSignature()))
-    {
-      static trans::bltinAccess a(run::arrayAppend);
-      // v needs to be dynamic, as the append type differs among arrays.
-      trans::varEntry *v = new trans::varEntry(appendType(), &a, 0, position());
-
-      return v;
-    }
-  if (id == symbol::trans("insert") &&
-      equivalent(sig, insertType()->getSignature()))
-    {
-      static trans::bltinAccess a(run::arrayInsert);
-      // v needs to be dynamic, as the insert type differs among arrays.
-      trans::varEntry *v = new trans::varEntry(insertType(), &a, 0, position());
-
-      return v;
-    }
-  if (id == symbol::trans("delete") &&
-      equivalent(sig, deleteType()->getSignature()))
-    {
-      static trans::bltinAccess a(run::arrayDelete);
-      // v needs to be dynamic, as the delete type differs among arrays.
-      trans::varEntry *v = new trans::varEntry(deleteType(), &a, 0, position());
-
-      return v;
-    }
-  else
-    return ty::virtualField(id, sig);
+  SIGFIELDLIST
+  SIGFIELD(cyclic, arrayCyclic);
+  #undef SIGFIELD
+  
+  // Fall back on base class to handle no match.
+  return ty::virtualField(id, sig);
 }
+
+#undef SIGFIELDLIST
 
 ostream& operator<< (ostream& out, const formal& f)
 {
@@ -531,5 +501,8 @@ bool equivalent(ty *t1, ty *t2, bool special) {
   return special ? equivalent(t1, t2) :
     equivalent(t1->getSignature(), t2->getSignature());
 }
+
+#undef FIELD
+#undef RWFIELD
 
 } // namespace types

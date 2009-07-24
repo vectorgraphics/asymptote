@@ -170,6 +170,9 @@ bool qualifiedName::varTransVirtual(action act, coenv &e,
     // Push qualifier onto stack.
     qualifier->varTrans(READ, e, qt);
 
+#if 1
+    v->encode(act, getPos(), e.c);
+#else
     if (act == WRITE) {
       em.error(getPos());
       em << "virtual field '" << *id << "' of '" << *qt
@@ -186,6 +189,7 @@ bool qualifiedName::varTransVirtual(action act, coenv &e,
         // Then, pop and call the function.
         e.c.encode(inst::popcall);
     }
+#endif
 
     // A virtual field was used.
     return true;
