@@ -62,43 +62,34 @@ void expStm::trans(coenv &e) {
 exp *tryToWriteExp(coenv &e, exp *body)
 {
   // First check if it is the kind of expression that should be written.
-  if (body->writtenToPrompt() &&
-      settings::getSetting<bool>("interactiveWrite"))
-    {
-      types::ty *t=body->cgetType(e);
-      if (t->kind == ty_error) {
-        return body;
-      }
-      else {
-        exp *callee=new nameExp(body->getPos(), symbol::trans("write"));
-        exp *call=new callExp(body->getPos(), callee, body);
-
-        types::ty *ct=call->getType(e);
-        if (ct->kind == ty_error || ct->kind == ty_overloaded) {
-          return body;
-        }
-        else {
-          // Issue a warning if the act of writing turns an ambiguous expression
-          // into an unambiguous one.
-          if (t->kind == ty_overloaded) {
-            string s=settings::warn("writeoverloaded");
-            if(!s.empty()) {
-              em.warning(body->getPos());
-              em << "writing overloaded";
-              if (body->getName())
-                em << " variable '" << *body->getName() << "'";
-              else
-                em << " expression";
-              em.disable(s);
-            }
-          }
-          return call;
-        }
-      }
-    }
-  else {
+  if (!body->writtenToPrompt() ||
+      !settings::getSetting<bool>("interactiveWrite"))
     return body;
+
+  types::ty *t=body->cgetType(e);
+  if (t->kind == ty_error)
+    return body;
+
+  exp *callee=new nameExp(body->getPos(), symbol::trans("write"));
+  exp *call=new callExp(body->getPos(), callee, body);
+
+  types::ty *ct=call->getType(e);
+  if (ct->kind == ty_error || ct->kind == ty_overloaded)
+    return body;
+
+  // If the exp is overloaded, but the act of writing makes it
+  // unambiguous, add a suffix to the output to warn the user of this.
+  if (t->kind == ty_overloaded) {
+    exp *suffix=new nameExp(body->getPos(),
+                            symbol::trans("overloaded_warning"));
+    exp *callWithSuffix=new callExp(body->getPos(),
+                                    callee, body, suffix);
+
+    if (callWithSuffix->getType(e)->kind != ty_error)
+      return callWithSuffix;
   }
+
+  return call;
 }
 
 void expStm::interactiveTrans(coenv &e)

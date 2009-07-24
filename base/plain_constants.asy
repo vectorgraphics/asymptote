@@ -67,6 +67,13 @@ void tab(file file) {write(file,'\t');}
 void comma(file file) {write(file,',');}
 typedef void suffix(file);
 
+// Used by interactive write to warn that the outputted type is the resolution
+// of an overloaded name.
+void overloaded_warning(file file) {
+  write(file,'    <overloaded>');
+  endl(file);
+}
+
 void write(suffix suffix=endl) {suffix(stdout);}
 void write(file file, suffix suffix=none) {suffix(file);}
 

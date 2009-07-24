@@ -1046,7 +1046,7 @@ void initSettings() {
 // WHEEL_DOWN: zoomout
   const char *wheeldown[]={"zoomout",NULL};
   
-  const char *Warn[]={"writeoverloaded",NULL};
+  const char *Warn[]={NULL};
   
   addOption(new stringArraySetting("leftbutton", stringArray(leftbutton)));
   addOption(new stringArraySetting("middlebutton", stringArray(middlebutton)));
