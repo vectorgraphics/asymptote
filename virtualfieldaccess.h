@@ -36,6 +36,7 @@ public:
       setter(setter ? new bltinAccess(setter) : 0) {}
 
   void encode(action act, position pos, coder &e);
+  void encode(action act, position pos, coder &e, frame *);
 
   // Attempting to WRITE a read-only field will give an error, but if the
   // error is caught at a higher level, a better error message (including the

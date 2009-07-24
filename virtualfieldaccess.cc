@@ -32,4 +32,10 @@ inline void virtualFieldAccess::encode(action act, position pos, coder &e)
   }
 }
 
+void virtualFieldAccess::encode(action act, position pos, coder &e, frame *)
+{
+  e.encode(inst::pop);
+  encode(act, pos, e);
+}
+
 } // namespace trans

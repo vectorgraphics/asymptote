@@ -170,26 +170,7 @@ bool qualifiedName::varTransVirtual(action act, coenv &e,
     // Push qualifier onto stack.
     qualifier->varTrans(READ, e, qt);
 
-#if 1
     v->encode(act, getPos(), e.c);
-#else
-    if (act == WRITE) {
-      em.error(getPos());
-      em << "virtual field '" << *id << "' of '" << *qt
-         << "' cannot be modified";
-    }
-    else {
-      // Call instead of reading as it is a virtual field.
-      v->encode(CALL, getPos(), e.c);
-      e.implicitCast(getPos(), target, v->getType());
-
-      if (act == CALL)
-        // In this case, the virtual field will construct a vm::func object
-        // and push it on the stack.
-        // Then, pop and call the function.
-        e.c.encode(inst::popcall);
-    }
-#endif
 
     // A virtual field was used.
     return true;
