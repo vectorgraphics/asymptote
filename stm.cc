@@ -59,6 +59,26 @@ void expStm::trans(coenv &e) {
   baseTrans(e, body);
 }
 
+// For an object such as currentpicture, write 'picture currentpicture' to
+// give some information.  Only do this when the object has a name.
+void tryToWriteTypeOfExp(types::ty *t, exp *body)
+{
+  overloaded *set = dynamic_cast<overloaded *>(t);
+  if (set) {
+    for(ty_vector::iterator ot=set->sub.begin(); ot!=set->sub.end(); ++ot)
+      tryToWriteTypeOfExp(*ot, body);
+    return;
+  }
+    
+  symbol *name=body->getName();
+  if (name) {
+    cout << "<";
+    t->printVar(cout, name);
+    cout << ">" << endl;
+  }
+}
+  
+
 exp *tryToWriteExp(coenv &e, exp *body)
 {
   // First check if it is the kind of expression that should be written.
@@ -74,8 +94,10 @@ exp *tryToWriteExp(coenv &e, exp *body)
   exp *call=new callExp(body->getPos(), callee, body);
 
   types::ty *ct=call->getType(e);
-  if (ct->kind == ty_error || ct->kind == ty_overloaded)
+  if (ct->kind == ty_error || ct->kind == ty_overloaded) {
+    tryToWriteTypeOfExp(t, body);
     return body;
+  }
 
   // If the exp is overloaded, but the act of writing makes it
   // unambiguous, add a suffix to the output to warn the user of this.
