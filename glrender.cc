@@ -215,20 +215,24 @@ void initlighting()
 void setDimensions(int Width, int Height, double X, double Y)
 {
   double Aspect=((double) Width)/Height;
-  double X0=(X/Width*lastzoom+Shift.getx()*Xfactor)*(xmax-xmin);
-  double Y0=(Y/Height*lastzoom+Shift.gety()*Yfactor)*(ymax-ymin);
+  double xshift=X/Width*lastzoom+Shift.getx()*Xfactor;
+  double yshift=Y/Height*lastzoom+Shift.gety()*Yfactor;
   double Zoominv=1.0/Zoom;
   if(orthographic) {
     double xsize=Xmax-Xmin;
     double ysize=Ymax-Ymin;
     if(xsize < ysize*Aspect) {
       double r=0.5*ysize*Aspect*Zoominv;
+      double X0=2.0*r*xshift;
+      double Y0=(Ymax-Ymin)*Zoominv*yshift;
       xmin=-r-X0;
       xmax=r-X0;
       ymin=Ymin*Zoominv-Y0;
       ymax=Ymax*Zoominv-Y0;
     } else {
       double r=0.5*xsize/(Aspect*Zoom);
+      double X0=(Xmax-Xmin)*Zoominv*xshift;
+      double Y0=2.0*r*yshift;
       xmin=Xmin*Zoominv-X0;
       xmax=Xmax*Zoominv-X0;
       ymin=-r-Y0;
@@ -236,8 +240,11 @@ void setDimensions(int Width, int Height, double X, double Y)
     }
   } else {
     double r=H*Zoominv;
-    xmin=-r*Aspect-X0;
-    xmax=r*Aspect-X0;
+    double rAspect=r*Aspect;
+    double X0=2.0*rAspect*xshift;
+    double Y0=2.0*r*yshift;
+    xmin=-rAspect-X0;
+    xmax=rAspect-X0;
     ymin=-r-Y0;
     ymax=r-Y0;
   }
