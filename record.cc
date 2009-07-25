@@ -70,6 +70,7 @@ void dummyRecord::add(string name, ty *t, trans::access *a,
 
 void dummyRecord::add(string name, function *t, vm::bltin f,
                       trans::permission perm) {
+  REGISTER_BLTIN(f, name);
   add(name, t, new trans::bltinAccess(f), perm);
 }
 

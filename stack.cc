@@ -141,7 +141,7 @@ void stack::run(program *code, vars_t vars)
       
 #ifdef DEBUG_STACK
       cerr << curPos << "\n";
-      printInst(cerr, ip, body->code->begin());
+      printInst(cerr, ip, code->begin());
       cerr << "\n";
 #endif
 
@@ -301,6 +301,16 @@ string demangle(const char* s)
 }
 #endif 
 
+string stringFromItem(item i)
+{
+  try {
+    return demangle(i.type().name());
+  } catch (bad_item_value&) {
+    assert(false);
+  }
+}
+
+
 void stack::draw(ostream& out)
 {
 //  out.setf(out.hex);
@@ -325,7 +335,11 @@ void draw(ostream& out, frame* v)
   out << "vars:    ";
   
   if (!!v) {
-    out << (!get<frame*>((*v)[0]) ? " 0" : " link");
+    try {
+      out << (!get<frame*>((*v)[0]) ? " 0" : " link");
+    } catch (bad_item_value&) {
+      out << " non-frame";
+    }
     for (size_t i = 1; i < 10 && i < v->size(); i++)
       out << " " << demangle((*v)[i].type().name());
     if (v->size() > 10)

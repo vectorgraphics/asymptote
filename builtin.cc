@@ -56,7 +56,7 @@ void addType(tenv &te, const char *name, ty *t)
 void base_tenv(tenv &te)
 {
 #define PRIMITIVE(name,Name,asyName)  addType(te, #asyName, prim##Name());
-#include <primitives.h>
+#include "primitives.h"
 #undef PRIMITIVE
 }
 
@@ -104,6 +104,7 @@ void addFunc(venv &ve, bltin f, ty *result, const char *name,
              formal f7, formal f8, formal f9, formal fA, formal fB, formal fC,
              formal fD, formal fE, formal fF, formal fG, formal fH, formal fI)
 {
+  REGISTER_BLTIN(f, name);
   access *a = new bltinAccess(f);
   addFunc(ve,a,result,symbol::trans(name),f1,f2,f3,f4,f5,f6,f7,f8,f9,
           fA,fB,fC,fD,fE,fF,fG,fH,fI);
@@ -118,6 +119,7 @@ void addOpenFunc(venv &ve, bltin f, ty *result, const char *name)
 {
   function *fun = new function(result, signature::OPEN);
 
+  REGISTER_BLTIN(f, name);
   access *a= new bltinAccess(f);
 
   varEntry *ent = new varEntry(fun, a, 0, position());
@@ -132,6 +134,7 @@ void addRestFunc(venv &ve, bltin f, ty *result, const char *name, formal frest,
                  formal f4=noformal, formal f5=noformal, formal f6=noformal,
                  formal f7=noformal, formal f8=noformal, formal f9=noformal)
 {
+  REGISTER_BLTIN(f, name);
   access *a = new bltinAccess(f);
   function *fun = new function(result);
 
@@ -599,6 +602,11 @@ void addInitializer(venv &ve, ty *t, access *a)
 
 void addInitializer(venv &ve, ty *t, bltin f)
 {
+#ifdef DEBUG_BLTIN
+  ostringstream s;
+  s << "initializer for " << *t;
+  REGISTER_BLTIN(f, s.str());
+#endif
   access *a = new bltinAccess(f);
   addInitializer(ve, t, a);
 }
@@ -617,10 +625,20 @@ void addCast(venv &ve, ty *target, ty *source, access *a) {
 }
 
 void addExplicitCast(venv &ve, ty *target, ty *source, bltin f) {
+#ifdef DEBUG_BLTIN
+  ostringstream s;
+  s << "explicit cast from " << *source << " to " << *target;
+  REGISTER_BLTIN(f, s.str());
+#endif
   addExplicitCast(ve, target, source, new bltinAccess(f));
 }
 
 void addCast(venv &ve, ty *target, ty *source, bltin f) {
+#ifdef DEBUG_BLTIN
+  ostringstream s;
+  s << "cast from " << *source << " to " << *target;
+  REGISTER_BLTIN(f, s.str());
+#endif
   addCast(ve, target, source, new bltinAccess(f));
 }
 
@@ -749,9 +767,11 @@ template<class T, template <class S> class op>
 void addBooleanOps(venv &ve, ty *t1, const char *name, ty *t2)
 {
   addBooleanOperator(ve,binaryOp<T,op>,t1,name);
-  addFunc(ve,opArray<T,T,op>,boolArray(),name,formal(t1,"a"),formal(t2,"b"));
-  addFunc(ve,arrayOp<T,T,op>,boolArray(),name,formal(t2,"a"),formal(t1,"b"));
-  addFunc(ve,arrayArrayOp<T,op>,boolArray(),name,formal(t2,"a"),
+  addFunc(ve,opArray<T,T,op>,
+      booleanArray(),name,formal(t1,"a"),formal(t2,"b"));
+  addFunc(ve,arrayOp<T,T,op>,
+      booleanArray(),name,formal(t2,"a"),formal(t1,"b"));
+  addFunc(ve,arrayArrayOp<T,op>,booleanArray(),name,formal(t2,"a"),
           formal(t2,"b"));
 }
 
@@ -916,12 +936,12 @@ void addOperators(venv &ve)
 {
   addSimpleOperator(ve,binaryOp<string,plus>,primString(),"+");
   
-  addBooleanOps<bool,And>(ve,primBoolean(),"&",boolArray());
-  addBooleanOps<bool,Or>(ve,primBoolean(),"|",boolArray());
-  addBooleanOps<bool,Xor>(ve,primBoolean(),"^",boolArray());
+  addBooleanOps<bool,And>(ve,primBoolean(),"&",booleanArray());
+  addBooleanOps<bool,Or>(ve,primBoolean(),"|",booleanArray());
+  addBooleanOps<bool,Xor>(ve,primBoolean(),"^",booleanArray());
   
-  addUnorderedOps<bool>(ve,primBoolean(),boolArray(),boolArray2(),
-                        boolArray3());
+  addUnorderedOps<bool>(ve,primBoolean(),booleanArray(),booleanArray2(),
+                        booleanArray3());
   addOps<Int>(ve,primInt(),IntArray(),IntArray2(),IntArray3(),true);
   addOps<double>(ve,primReal(),realArray(),realArray2(),realArray3());
   addOps<pair>(ve,primPair(),pairArray(),pairArray2(),pairArray3(),false,true);
@@ -1329,9 +1349,9 @@ void base_venv(venv &ve)
   addWrite(ve,write<transform>,primTransform(),transformArray());
   addWrite(ve,write<guide *>,primGuide(),guideArray());
   addWrite(ve,write<pen>,primPen(),penArray());
-  addFunc(ve,arrayArrayOp<pen,equals>,boolArray(),"==",
+  addFunc(ve,arrayArrayOp<pen,equals>,booleanArray(),"==",
           formal(penArray(),"a"),formal(penArray(),"b"));
-  addFunc(ve,arrayArrayOp<pen,notequals>,boolArray(),"!=",
+  addFunc(ve,arrayArrayOp<pen,notequals>,booleanArray(),"!=",
           formal(penArray(),"a"),formal(penArray(),"b"));
 
   addFunc(ve,arrayFunction,realArray(),"map",

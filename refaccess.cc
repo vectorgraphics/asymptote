@@ -28,6 +28,9 @@ void itemPointerWrite(stack *s) {
 
 void itemRefAccess::encode(action act, position, coder &e)
 {
+  REGISTER_BLTIN(itemPointerRead, "itemPointerRead");
+  REGISTER_BLTIN(itemPointerWrite, "itemPointerWrite");
+
   e.encode(inst::constpush, (item)ref);
 
   switch (act) {

@@ -896,7 +896,7 @@ void conditionalExp::transToType(coenv &e, types::ty *target)
       em.error(getPos());
       em << "cannot cast vectorized conditional to '" << *target << "'";
     }
-    test->transToType(e, types::boolArray());
+    test->transToType(e, types::booleanArray());
     onTrue->transToType(e, target);
     onFalse->transToType(e, target);
     e.c.encode(inst::builtin, run::arrayConditional);

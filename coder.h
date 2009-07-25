@@ -30,6 +30,10 @@ using vm::bltin;
 using vm::inst;
 using vm::item;
 
+#ifdef DEBUG_BLTIN
+void assertBltinLookup(inst::opcode op, item it);
+#endif
+
 class coder {
   // The frame of the function we are currently encoding.  This keeps
   // track of local variables, and parameters with respect to the stack.
@@ -253,6 +257,9 @@ public:
   }
   void encode(inst::opcode op, item it)
   {
+#ifdef DEBUG_BLTIN
+    assertBltinLookup(op, it);
+#endif
     inst i; i.op = op; i.pos = nullPos; i.ref = it;
     encode(i);
   }

@@ -111,6 +111,16 @@ coder coder::newRecordInit(record *r, modifier sord)
   return coder(r, this, sord);
 }
 
+#ifdef DEBUG_BLTIN
+void assertBltinLookup(inst::opcode op, item it)
+{
+  if (op == inst::builtin) {
+    string name=lookupBltin(vm::get<vm::bltin>(it));
+    assert(!name.empty());
+  }
+}
+#endif
+
 
 bool coder::encode(frame *f)
 {

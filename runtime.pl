@@ -133,6 +133,14 @@ while (<>) {
       . ");\n";
   }
 
+  # Build REGISTER_BLTIN command for builtin functions which are not added to
+  # the environment.
+  if (not $name and $cname) {
+    push @builtin, "#line $source_line \"runtime.in\"\n"
+      . "  REGISTER_BLTIN(run::" . $cname
+      . ',"' . $cname . '"' . ");\n";
+  }
+
   # Handle marshalling of values to/from stack
   $qualifier = ($type eq "item" ? "" : "<$type>");
   $code =~ s/\breturn ([^;]*);/{$stack->push$qualifier($1); return;}/g;

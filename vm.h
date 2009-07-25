@@ -15,6 +15,19 @@ namespace vm {
 class lambda; class stack;
 typedef void (*bltin)(stack *s);
 
+//#define DEBUG_BLTIN
+#ifdef DEBUG_BLTIN
+// This associates names to bltin functions, so that the output of 'asy -s'
+// can print the names of the bltin functions that appear in the bytecode.
+void registerBltin(bltin b, string s);
+string lookupBltin(bltin b);
+
+#define REGISTER_BLTIN(b, s) \
+    registerBltin((b), (s))
+#else
+#define REGISTER_BLTIN(b, s)
+#endif
+
 void run(lambda *l);
 position getPos();
 void errornothrow(const char* message);

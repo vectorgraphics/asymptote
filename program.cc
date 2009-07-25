@@ -8,6 +8,7 @@
 #include <iostream>
 #include "program.h"
 
+
 namespace vm {
 
 static const char* opnames[] = {
@@ -18,6 +19,17 @@ static const char* opnames[] = {
   "alloc", "pushframe", "popframe"
 };
 static const Int numOps = (Int)(sizeof(opnames)/sizeof(char *));
+
+#ifdef DEBUG_BLTIN
+mem::map<bltin,string> bltinRegistry;
+
+void registerBltin(bltin b, string s) {
+  bltinRegistry[b] = s;
+}
+string lookupBltin(bltin b) {
+  return bltinRegistry[b];
+}
+#endif
 
 void printInst(ostream& out, const program::label& code,
                const program::label& base)
@@ -44,11 +56,14 @@ void printInst(ostream& out, const program::label& code,
       break;
     }
 
+#ifdef DEBUG_BLTIN
     case inst::builtin:
-    {      
-      out << " " << get<bltin>(*code) << " ";
+    {
+      string s=lookupBltin(get<bltin>(*code));
+      out << " " << (!s.empty() ? s : "<unnamed>") << " ";
       break;
     }
+#endif
 
     case inst::jmp:
     case inst::cjmp:

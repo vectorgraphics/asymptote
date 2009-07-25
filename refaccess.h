@@ -58,6 +58,10 @@ void pointerWrite(vm::stack *s) {
 template <class T>
 void refAccess<T>::encode(action act, position, coder &e)
 {
+  // You may be able to use typeid(T).name() to get a better label.
+  REGISTER_BLTIN((bltin) pointerRead<T>, "pointerRead");
+  REGISTER_BLTIN((bltin) pointerWrite<T>, "pointerWrite");
+
   e.encode(vm::inst::constpush, (vm::item)ref);
 
   switch (act) {
