@@ -3228,11 +3228,11 @@ void _draw(picture *f, path3 g, pen p)
 }
 
 void draw(picture *f, triplearray2 *g, bool straight, penarray *p, real opacity,
-          real shininess, real granularity, triple normal, bool lighton,
-          penarray *colors)
+          real shininess, real PRCshininess, real granularity, triple normal,
+          bool lighton, penarray *colors)
 {
-  f->append(new drawSurface(*g,straight,*p,opacity,shininess,granularity,
-                            normal,lighton,*colors));
+  f->append(new drawSurface(*g,straight,*p,opacity,shininess,PRCshininess,
+                            granularity,normal,lighton,*colors));
 }
 
 triple min3(picture *f)

@@ -958,8 +958,18 @@ void draw3D(frame f, patch s, material m, light light=currentlight)
   bool lighton=light.on();
   if(!lighton && !invisible((pen) m))
     m=emissive(m);
+  real PRCshininess;
+  if(prc()) {
+    static import interpolate;
+    // Empirical translation table from Phong-Blinn to PRC shininess model:
+    static real[] x={0.015,0.025,0.05,0.07,0.1,0.14,0.23,0.5,0.65,0.75,0.85,
+                     0.875,0.9,1};
+    static real[] y={0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5,0.55,0.6,0.7,0.8,0.9,1};
+    static realfunction s=fspline(x,y,monotonic);
+    PRCshininess=s(m.shininess);
+  }
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
-  draw(f,s.P,s.straight,m.p,m.opacity,m.shininess,granularity,
+  draw(f,s.P,s.straight,m.p,m.opacity,m.shininess,PRCshininess,granularity,
        s.planar ? s.normal(0.5,0.5) : O,lighton,s.colors);
 }
 

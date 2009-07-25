@@ -24,6 +24,7 @@ protected:
   RGBAColour specular;
   double opacity;
   double shininess;
+  double PRCshininess;
   double granularity;
   triple normal;
   bool lighton;
@@ -56,10 +57,12 @@ protected:
   
 public:
   drawSurface(const vm::array& g, bool straight, const vm::array&p,
-              double opacity, double shininess, double granularity,
-              triple normal, bool lighton, const vm::array &pens) :
+              double opacity, double shininess, double PRCshininess,
+              double granularity, triple normal, bool lighton,
+              const vm::array &pens) :
     straight(straight), opacity(opacity), shininess(shininess),
-    granularity(granularity), normal(unit(normal)), lighton(lighton) {
+    PRCshininess(PRCshininess), granularity(granularity), normal(unit(normal)),
+    lighton(lighton) {
     string wrongsize=
       "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
     if(checkArray(&g) != 4 || checkArray(&p) != 4)
@@ -105,7 +108,8 @@ public:
   drawSurface(const vm::array& t, const drawSurface *s) :
     straight(s->straight), diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
-    shininess(s->shininess), granularity(s->granularity), lighton(s->lighton),
+    shininess(s->shininess), PRCshininess(s->PRCshininess), 
+    granularity(s->granularity), lighton(s->lighton),
     invisible(s->invisible), colors(s->colors), havecolors(s->havecolors) {
     for(size_t i=0; i < 16; ++i) {
       const double *c=s->controls[i];

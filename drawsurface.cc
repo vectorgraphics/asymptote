@@ -87,7 +87,7 @@ bool drawSurface::write(prcfile *out)
   if(invisible)
     return true;
 
-  PRCMaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  PRCMaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
   out->add(new PRCBezierSurface(out,3,3,4,4,controls,m,granularity));
   
   return true;
