@@ -53,6 +53,8 @@ string String(T x)
   return buf.str();
 }
 
+typedef void (*sighandler_t)(int);
+
 // Portable signal (sigaction wrapper).
 sighandler_t Signal(int signum, sighandler_t handler);
 
