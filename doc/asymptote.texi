@@ -506,7 +506,8 @@ warn(string s);
 nowarn(string s);
 @end verbatim
 @noindent
-or by directly modifying the string array @code{warnings}.
+or by directly modifying the string array @code{settings.suppress}, which lists
+all disabled warnings.
 
 @cindex command-line options
 Configuration variables may also be set or overwritten with a
