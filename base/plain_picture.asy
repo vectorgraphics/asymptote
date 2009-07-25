@@ -1138,11 +1138,8 @@ struct picture {
   frame fit3(transform3 t, transform3 T0=T3, picture pic, projection P,
              triple m, triple M) {
     frame f;
-    for(int i=0; i < nodes3.length; ++i) {
-      write(i);
+    for(int i=0; i < nodes3.length; ++i)
       nodes3[i](f,t,T0,pic,P,m,M);
-    }
-    
     return f;
   }
 
