@@ -42,7 +42,7 @@ callableBp* => breakpointFunction()
 callableReal* => realRealFunction()
 callableTransform* => transformFunction()
 runnable* => primCode()
-boolarray* => boolArray()
+boolarray* => booleanArray()
 Intarray*  => IntArray()
 Intarray2*  => IntArray2()
 realarray* => realArray()
@@ -169,7 +169,7 @@ using types::function;
 #include <primitives.h>
 #undef PRIMITIVE
 
-using types::boolArray;
+using types::booleanArray;
 using types::IntArray;
 using types::IntArray2;
 using types::realArray;

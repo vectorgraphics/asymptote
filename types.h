@@ -43,7 +43,7 @@ enum ty_kind {
  
 #define PRIMITIVE(name,Name,asyName) ty_##name,
 #define PRIMERROR
-#include <primitives.h>
+#include "primitives.h"
 #undef PRIMERROR
 #undef PRIMITIVE
 
@@ -254,41 +254,19 @@ struct array : public ty {
 };
 
 /* Base types */
-#define PRIMITIVE(name,Name,asyName) ty *prim##Name();
+#define PRIMITIVE(name,Name,asyName) \
+  ty *prim##Name(); \
+  ty *name##Array(); \
+  ty *name##Array2(); \
+  ty *name##Array3();
 #define PRIMERROR
-#include <primitives.h>
+#include "primitives.h"
 #undef PRIMERROR
 #undef PRIMITIVE
 
 ty *primNull();
-  
-ty *boolArray();
-ty *IntArray();
-ty *realArray();
-ty *pairArray();
-ty *tripleArray();
-ty *stringArray();
-ty *transformArray();
-ty *pathArray();
-ty *penArray();
-ty *guideArray();
 
-ty *boolArray2();
-ty *IntArray2();
-ty *realArray2();
-ty *pairArray2();
-ty *tripleArray2();
-ty *stringArray2();
-ty *pathArray2();
-ty *penArray2();
 
-ty *boolArray3();
-ty *IntArray3();
-ty *realArray3();
-ty *pairArray3();
-ty *tripleArray3();
-ty *stringArray3();
-  
 struct formal {
   ty *t;
   symbol *name;

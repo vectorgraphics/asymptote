@@ -20,65 +20,20 @@ namespace types {
 /* Base types */
 #define PRIMITIVE(name,Name,asyName)            \
   primitiveTy p##Name(ty_##name);               \
-  ty *prim##Name() { return &p##Name; }
+  ty *prim##Name() { return &p##Name; }         \
+  array name##Array_(prim##Name());             \
+  ty *name##Array() { return &name##Array_; }   \
+  array name##Array2_(name##Array());           \
+  ty *name##Array2() { return &name##Array2_; } \
+  array name##Array3_(name##Array2());          \
+  ty *name##Array3() { return &name##Array3_; }
 #define PRIMERROR
-#include <primitives.h>
+#include "primitives.h"
 #undef PRIMERROR
 #undef PRIMITIVE
                              
 nullTy pNull;
 ty *primNull() { return &pNull; }
-
-array boolArray_(primBoolean());
-ty *boolArray() { return &boolArray_; }
-array IntArray_(primInt());
-ty *IntArray() { return &IntArray_; }
-array realArray_(primReal());
-ty *realArray() { return &realArray_; }
-array pairArray_(primPair());
-ty *pairArray() { return &pairArray_; }
-array tripleArray_(primTriple());
-ty *tripleArray() { return &tripleArray_; }
-array stringArray_(primString());
-ty *stringArray() { return &stringArray_; }
-array transformArray_(primTransform());
-ty *transformArray() { return &transformArray_; }
-array pathArray_(primPath());
-ty *pathArray() { return &pathArray_; }
-array penArray_(primPen());
-ty *penArray() { return &penArray_; }
-array guideArray_(primGuide());
-ty *guideArray() { return &guideArray_; }
-  
-array boolArray2_(boolArray());
-ty *boolArray2() { return &boolArray2_; }
-array IntArray2_(IntArray());
-ty *IntArray2() { return &IntArray2_; }
-array realArray2_(realArray());
-ty *realArray2() { return &realArray2_; }
-array pairArray2_(pairArray());
-ty *pairArray2() { return &pairArray2_; }
-array tripleArray2_(tripleArray());
-ty *tripleArray2() { return &tripleArray2_; }
-array stringArray2_(stringArray());
-ty *stringArray2() { return &stringArray2_; }
-array pathArray2_(pathArray());
-ty *pathArray2() { return &pathArray2_; }
-array penArray2_(penArray());
-ty *penArray2() { return &penArray2_; }
-  
-array boolArray3_(boolArray2());
-ty *boolArray3() { return &boolArray3_; }
-array IntArray3_(IntArray2());
-ty *IntArray3() { return &IntArray3_; }
-array realArray3_(realArray2());
-ty *realArray3() { return &realArray3_; }
-array pairArray3_(pairArray2());
-ty *pairArray3() { return &pairArray3_; }
-array tripleArray3_(tripleArray2());
-ty *tripleArray3() { return &tripleArray3_; }
-array stringArray3_(stringArray2());
-ty *stringArray3() { return &stringArray3_; }
   
 const char *names[] = {
   "null",
@@ -86,7 +41,7 @@ const char *names[] = {
   
 #define PRIMITIVE(name,Name,asyName) #asyName,
 #define PRIMERROR
-#include <primitives.h>
+#include "primitives.h"
 #undef PRIMERROR
 #undef PRIMITIVE
 
@@ -167,19 +122,22 @@ ty *ty::virtualFieldGetType(symbol *id)
   return v ? v->getType() : 0;
 }
 
+#define RETURN_STATIC_BLTIN(func) \
+  { \
+    static trans::bltinAccess a(run::func); \
+    return &a; \
+  }
+
 trans::access *nullTy::castTo(ty *target, caster &) {
   switch (target->kind) {
     case ty_array: {
-      static trans::bltinAccess a(run::pushNullArray);
-      return &a;
+       RETURN_STATIC_BLTIN(pushNullArray);
     }
     case ty_record: {
-      static trans::bltinAccess a(run::pushNullRecord);
-      return &a;
+       RETURN_STATIC_BLTIN(pushNullRecord);
     } 
     case ty_function: {
-      static trans::bltinAccess a(run::pushNullFunction);
-      return &a;
+       RETURN_STATIC_BLTIN(pushNullFunction);
     }
     default:
       return 0;
@@ -188,8 +146,7 @@ trans::access *nullTy::castTo(ty *target, caster &) {
 
 trans::access *array::initializer()
 {
-  static trans::bltinAccess a(run::emptyArray);
-  return &a;
+  RETURN_STATIC_BLTIN(emptyArray)
 }
 
 ty *array::pushType()
@@ -418,8 +375,7 @@ size_t signature::hash() {
 }
 
 trans::access *function::initializer() {
-  static trans::bltinAccess a(run::pushNullFunction);
-  return &a;
+  RETURN_STATIC_BLTIN(pushNullFunction);
 }
 
 #if 0
