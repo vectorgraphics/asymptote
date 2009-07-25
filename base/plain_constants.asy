@@ -69,7 +69,7 @@ typedef void suffix(file);
 
 // Used by interactive write to warn that the outputted type is the resolution
 // of an overloaded name.
-void overloaded_warning(file file) {
+void overloadedMessage(file file) {
   write(file,'    <overloaded>');
   endl(file);
 }

@@ -63,15 +63,15 @@ void expStm::trans(coenv &e) {
 // give some information.  Only do this when the object has a name.
 void tryToWriteTypeOfExp(types::ty *t, exp *body)
 {
+  symbol *name=body->getName();
+  if (!name)
+    return;
+
   overloaded *set = dynamic_cast<overloaded *>(t);
-  if (set) {
+  if (set)
     for(ty_vector::iterator ot=set->sub.begin(); ot!=set->sub.end(); ++ot)
       tryToWriteTypeOfExp(*ot, body);
-    return;
-  }
-    
-  symbol *name=body->getName();
-  if (name) {
+  else {
     cout << "<";
     t->printVar(cout, name);
     cout << ">" << endl;
@@ -95,15 +95,29 @@ exp *tryToWriteExp(coenv &e, exp *body)
 
   types::ty *ct=call->getType(e);
   if (ct->kind == ty_error || ct->kind == ty_overloaded) {
-    tryToWriteTypeOfExp(t, body);
-    return body;
+    if (t->kind == ty_overloaded) {
+      // Translate the body in order to print the ambiguity error first.
+      body->trans(e);
+      em.sync();
+      assert(em.errors());
+      
+      // Then, write out all of the types.
+      tryToWriteTypeOfExp(t, body);
+
+      // Return an innocuous expression to avoid more errors.
+      return new nullExp(body->getPos());
+    }
+    else {
+      tryToWriteTypeOfExp(t, body);
+      return body;
+    }
   }
 
   // If the exp is overloaded, but the act of writing makes it
   // unambiguous, add a suffix to the output to warn the user of this.
   if (t->kind == ty_overloaded) {
     exp *suffix=new nameExp(body->getPos(),
-                            symbol::trans("overloaded_warning"));
+                            symbol::trans("overloadedMessage"));
     exp *callWithSuffix=new callExp(body->getPos(),
                                     callee, body, suffix);
 
