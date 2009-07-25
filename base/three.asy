@@ -2686,9 +2686,9 @@ embed3=new object(string prefix, frame f, string format, string options,
 };
 
 frame embedder(object embedder(string prefix, string format),
-               string prefix, frame f, string format="", bool view=true)
+               string prefix, string format="", bool view=true)
 {
-  frame g;
+  frame f;
   bool prc=prc(format);
   if(!prc && settings.render != 0 && !view) {
     static int previewcount=0;
@@ -2700,16 +2700,16 @@ frame embedder(object embedder(string prefix, string format),
   }
   object F=embedder(prefix,format);
   if(prc)
-    label(g,F.L);
+    label(f,F.L);
   else {
     if(settings.render == 0) {
-      add(g,F.f);
+      add(f,F.f);
       if(currentlight.background != nullpen)
-        box(g,currentlight.background,Fill,above=false);
+        box(f,currentlight.background,Fill,above=false);
     } else if(!view)
-      label(g,graphic(prefix,"hiresbb"));
+      label(f,graphic(prefix,"hiresbb"));
   }
-  return g;
+  return f;
 }
 
 currentpicture.fitter=new frame(string prefix, picture pic, string format,
@@ -2718,11 +2718,12 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
                                 string options, string script, projection P) {
   frame f;
   bool empty3=pic.empty3();
-  if(is3D(format) || empty3) add(f,pic.fit2(xsize,ysize,keepAspect));
-  return empty3 ? f : embedder(new object(string prefix, string format) {
+  if(!empty3) f=embedder(new object(string prefix, string format) {
       return embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
                    options,script,currentlight,P);
-    },prefix,f,format,view);
+      },prefix,format,view);
+  if(is3D(format) || empty3) add(f,pic.fit2(xsize,ysize,keepAspect));
+  return f;
 };
 
 frame embedder(string prefix, frame f, string format="", bool view=true,
@@ -2730,7 +2731,7 @@ frame embedder(string prefix, frame f, string format="", bool view=true,
 {
   return embedder(new object(string prefix, string format) {
       return embed(prefix=prefix,f,format,view,options,script,currentlight,P);
-    },prefix,f,format,view);
+    },prefix,format,view);
 }
 
 void addViews(picture dest, picture src, bool group=true,
@@ -2794,23 +2795,23 @@ frame[] fit3(string prefix="", picture[] pictures, picture all,
   triple M=all.max(S.t);
   out=new frame[pictures.length];
   int i=0;
-  void generate(bool loop=false) {
-    for(picture pic : pictures) {
-      picture pic2;
-      frame f=pic.fit3(S.t,pic2,S.P);
-      if(loop && !settings.loop) break;
-      add(f,pic2.fit2());
-      draw(f,m,nullpen);
-      draw(f,M,nullpen);
-      out[i]=embedder(prefix,f,format,view,options,script,S.P);
-      ++i;
-    }
+  bool loop=settings.loop;
+  for(picture pic : pictures) {
+    picture pic2;
+    frame f=pic.fit3(S.t,pic2,S.P);
+    if(loop && !settings.loop) break;
+    add(f,pic2.fit2());
+    draw(f,m,nullpen);
+    draw(f,M,nullpen);
+    out[i]=loop ? f : embedder(prefix,f,format,view,options,script,S.P);
+    ++i;
   }
-  if(settings.loop) {
-    while(settings.loop)
-      generate(settings.loop);
-  } else
-    generate();
+
+  while(settings.loop)
+    for(int i=0; i < pictures.length; ++i) {
+      if(!settings.loop) break;
+      embedder(prefix,out[i],format,view,options,script,S.P);
+    }
   
   return out;
 }

@@ -88,7 +88,7 @@ struct animation {
   }
 
   void glmovie(string prefix=prefix, projection P=currentprojection) {
-    if(settings.render == 0) return;
+    if(!view() || settings.render == 0) return;
     fit(prefix,pictures,view=true,P);
   }
 
