@@ -104,14 +104,16 @@ struct animation {
     frame multi;
     frame[] fits=fit(prefix,pictures,view=false,P);
     for(int i=0; i < fits.length; ++i) {
+      string s=name(prefix,i);
       if(multipage) {
         add(multi,enclosure(fits[i]));
         newpage(multi);
+        files.push(s+"."+nativeformat());
       } else {
         if(pictures[i].empty3() || settings.render <= 0)
-          this.shipout(name(prefix,i),enclosure(fits[i]));
+          this.shipout(s,enclosure(fits[i]));
         else // 3D frames
-          files.push(name(prefix,i)+"."+nativeformat());
+          files.push(s+"."+nativeformat());
       }
     }
     if(multipage) {
@@ -147,12 +149,13 @@ struct animation {
     
     shipped=false;
 
-    if(!keep && !settings.inlinetex) {
+    if(!keep) {
       exitfcn currentexitfunction=atexit();
       void exitfunction() {
         if(currentexitfunction != null) currentexitfunction();
-        this.purge();
-        if(multipage)
+        if(multipage || !settings.inlinetex)
+          this.purge();
+        if(multipage && !settings.inlinetex)
           delete(pdfname);
       }
       atexit(exitfunction);
