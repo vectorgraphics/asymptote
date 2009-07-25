@@ -4397,6 +4397,14 @@ void nowarn(string s)
   noWarn(s);
 }
 
+void warning(string s, string t, bool position=false)
+{
+  if(settings::warn(s)) {
+    em.warning(position ? getPos() : nullPos,s);
+    em << t;
+  }
+}
+
 // Strip directory from string
 string stripdirectory(string *s)
 {

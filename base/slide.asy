@@ -284,11 +284,13 @@ void remark(bool center=false, string s, pair align=0, pen p=itempen,
   pair M=tinv*min(f);
   
   if(abs(offset.x+M.x) > 1)
-    write("warning: slide too wide on page "+(string) page+':\n'+(string) s);
+    warning("slidetoowide","slide too wide on page "+(string) page+':\n'+
+            (string) s);
 
   if(abs(offset.y+M.y) > 1) {
     void toohigh() {
-      write("warning: slide too high on page "+(string) page+':\n'+(string) s);
+      warning("slidetoohigh","slide too high on page "+(string) page+':\n'+
+              (string) s);
     }
     if(M.y-m.y < 2) {
       newslide(); offset=(offset.x,currentposition.y);
@@ -341,7 +343,7 @@ void display(frame[] f, real margin=0, pair align=S, pen p=itempen,
     sum += width[i];
   }
   if(sum > pagewidth)
-    write("warning: slide too wide on page "+(string) page);
+    warning("toowide","slide too wide on page "+(string) page);
   else margin=(pagewidth-sum)/(f.length+1);
   real pos;
   frame F;

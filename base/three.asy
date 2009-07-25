@@ -2452,12 +2452,12 @@ struct scene
       pic2.bounds.exact=true;
       transform s=pic2.scaling(xsize,ysize,keepAspect);
 
-    pair m2=pic2.min(s);
-    pair M2=pic2.max(s);
-    pair lambda=M2-m2;
-    pair viewportmargin=viewportmargin(lambda);
-    width=ceil(lambda.x+2*viewportmargin.x);
-    height=ceil(lambda.y+2*viewportmargin.y);
+      pair m2=pic2.min(s);
+      pair M2=pic2.max(s);
+      pair lambda=M2-m2;
+      pair viewportmargin=viewportmargin(lambda);
+      width=ceil(lambda.x+2*viewportmargin.x);
+      height=ceil(lambda.y+2*viewportmargin.y);
 
       if(!this.P.absolute) {
         if(scale && this.P.autoadjust) {
@@ -2634,7 +2634,9 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
   }
   if(prc) {
     if(!P.infinity && P.viewportshift != 0)
-      write("warning: PRC does not support off-axis projections; use pan instead of shift");
+      warning("offaxis",
+              "PRC does not support off-axis projections; use pan instead of
+shift");
     F.L=embed3D(label,text=image,prefix,S.f,format,
                 S.width,S.height,angle,options,script,light,Q);
   }

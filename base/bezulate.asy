@@ -238,7 +238,7 @@ path[] bezulate(path[] p)
             // avoid infinite recursion
             ++refinements;
             if(refinements > mantissaBits) {
-              write("warning: too many subdivisions");
+              warning("subdivisions","too many subdivisions",position=true);
             } else {
               p=subdivide(p);
               i=-1;

@@ -20,8 +20,8 @@ include plain_constants;
 
 access version;             
 if(version.VERSION != VERSION) {
-  write(stdout,"warning: using possibly incompatible version "+
-        version.VERSION+" of plain.asy"+'\n');
+  warning("version","using possibly incompatible version "+
+          version.VERSION+" of plain.asy"+'\n');
 }
    
 include plain_pens;
@@ -68,7 +68,7 @@ saveFunction[] saveFunctions={};
 // When save is called, this will be redefined to do the corresponding restore.
 void restore()
 {
-  write("warning: restore called with no matching save");
+  warning("nomatchingsave","restore called with no matching save");
 }
 
 void addSaveFunction(saveFunction s)
@@ -113,7 +113,8 @@ restoreThunk save()
 
 void restoredefaults()
 {
-  write("warning: restoredefaults called with no matching savedefaults");
+  warning("nomatchingsavedefaults",
+          "restoredefaults called with no matching savedefaults");
 }
 
 restoreThunk buildRestoreDefaults()

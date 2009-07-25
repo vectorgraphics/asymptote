@@ -2199,8 +2199,8 @@ path Arc(pair c, explicit pair z1, explicit pair z2,
 @end verbatim
 
 An ellipse can be drawn with the routine
-@verbatim
 @cindex @code{ellipse}
+@verbatim
 path ellipse(pair c, real a, real b)
 {
   return shift(c)*scale(a,b)*unitcircle;
@@ -2761,7 +2761,14 @@ pen Dotted(pen p=currentpen) {return dotted+2*linewidth(p);}
 @cindex @code{defaultpen}
 The default line type is @code{solid}; this may be changed with
 @code{defaultpen(pen)}.
-The line type of a pen is returned by @code{int linetype(pen p=currentpen)}.
+@cindex @code{linetype}
+@cindex @code{offset}
+@cindex @code{scale}
+@cindex @code{adjust}
+The line type of a pen can be determined with the functions
+@code{string linetype(pen p=currentpen)}, 
+@code{real offset(pen p)}, @code{bool scale(pen p)}, and
+@code{bool adjust(pen p)}.
 
 @cindex @code{linewidth}
 @cindex @code{defaultpen}

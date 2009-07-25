@@ -47,7 +47,7 @@ extern char *argv0;
 
 void Warn(const string& s);
 void noWarn(const string& s);
-string warn(const string& s);
+bool warn(const string& s);
 extern string systemDir;
 extern string docdir;
 extern const string dirsep;

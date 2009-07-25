@@ -492,8 +492,9 @@ bool samecoordsys(bool warn=true ... point[] M)
     t=M[i].coordsys;
   }
   if(warn && !ret)
-    write("Warning, the coordinate system of two objects are not the same.
-The operation will be done relatively to the default coordinate system.");
+    warning("coodinatesystem",
+            "the coordinate system of two objects are not the same.
+The operation will be done relative to the default coordinate system.");
   return ret;
 }
 
@@ -2418,8 +2419,10 @@ bool samecoordsys(bool warn=true ... bqe[] bqes)
     t=bqes[i].coordsys;
   }
   if(warn && !ret)
-    write("Warning, the coordinate system of two  bivariate quadratic equations are not the same.
-The operation will be done relatively to the default coordinate system.");
+    warning("coodinatesystem",
+            "the coordinate system of two bivariate quadratic equations are not
+the same. The operation will be done relatively to the default coordinate
+system.");
   return ret;
 }
 
@@ -2710,7 +2713,9 @@ int circlenodesnumberfactor=100;/*<asyxml></code><documentation>Factor for the n
 /*<asyxml><function type="int" signature="circlenodesnumber(real)"><code></asyxml>*/
 int circlenodesnumber(real r)
 {/*<asyxml></code><documentation>Return the number of nodes for drawing a circle of radius 'r'.</documentation></function></asyxml>*/
-  if (circlenodesnumberfactor < 100) write("Warning: variable 'circlenodesnumberfactor' maybe too small.");
+  if (circlenodesnumberfactor < 100)
+    warning("circlenodesnumberfactor",
+            "variable 'circlenodesnumberfactor' may be too small.");
   int oi=ceil(circlenodesnumberfactor*abs(r)^0.1);
   oi=45*floor(oi/45);
   return oi == 0 ? 4 : conicnodesfactor*oi;
@@ -2729,7 +2734,9 @@ int ellipsenodesnumberfactor=250;/*<asyxml></code><documentation>Factor for the 
 /*<asyxml><function type="int" signature="ellipsenodesnumber(real,real)"><code></asyxml>*/
 int ellipsenodesnumber(real a, real b)
 {/*<asyxml></code><documentation>Return the number of nodes to draw a ellipse of axis 'a' and 'b'.</documentation></function></asyxml>*/
-  if (ellipsenodesnumberfactor < 250) write("Warning: variable 'ellipsenodesnumberfactor' maybe too small.");
+  if (ellipsenodesnumberfactor < 250)
+    write("ellipsenodesnumberfactor",
+          "variable 'ellipsenodesnumberfactor' maybe too small.");
   int tmp=circlenodesnumberfactor;
   circlenodesnumberfactor=ellipsenodesnumberfactor;
   int oi=circlenodesnumber(max(abs(a),abs(b))/min(abs(a),abs(b)));
@@ -6440,13 +6447,19 @@ point operator *(inversion i, point P)
   return inverse(i.k,i.C,P);
 }
 
+void lineinversion() 
+{
+    warning("lineinversion","the inversion of the line is not a circle.
+The returned circle has an infinite radius, circle.l has been set.");
+}
+
+
 /*<asyxml><function type="circle" signature="inverse(real,point,line)"><code></asyxml>*/
 circle inverse(real k, point A, line l)
 {/*<asyxml></code><documentation>Return the inverse circle of 'l' with
    respect to point 'A' and inversion radius 'k'.</documentation></function></asyxml>*/
   if(A @ l) {
-    write("Warning: the inversion of the line is not a circle.");
-    write("The returned circle has an infinite radius, cirlce.l have been set.");
+    lineinversion();
     circle C=circle(A, infinity);
     C.l=l;
     return C;
@@ -6467,8 +6480,7 @@ circle inverse(real k, point A, circle c)
    respect to point A and inversion radius 'k'.</documentation></function></asyxml>*/
   if(degenerate(c)) return inverse(k,A,c.l);
   if(A @ c) {
-    write("Warning: the inversion of the circle is not a circle.");
-    write("The returned circle has an infinite radius, cirlce.l have been set.");
+    lineinversion();
     point M=rotate(180,c.C)*A, Mp=rotate(90,c.C)*A;
     circle oc=circle(A,infinity);
     oc.l=line(inverse(k,A,M),inverse(k,A,Mp));

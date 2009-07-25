@@ -990,7 +990,7 @@ struct picture {
     if(status == simplex.problem.OPTIMAL) {
       return scaling.build(p.a(),p.b()).a;
     } else if(status == simplex.problem.UNBOUNDED) {
-      if(warn) write("warning: "+dir+" scaling in picture unbounded");
+      if(warn) warning("unbounded",dir+" scaling in picture unbounded");
       return 0;
     } else {
       if(!warn) return 1;
@@ -1001,8 +1001,8 @@ struct picture {
           abort("unbounded picture");
       }
       if(userzero) return 1;
-      write("warning: cannot fit picture to "+dir+"size "+(string) size
-            +"...enlarging...");
+      warning("cannotfit","cannot fit picture to "+dir+"size "+(string) size
+              +"...enlarging...");
       return calculateScaling(dir,coords,sqrt(2)*size,warn);
     }
   }
@@ -1138,8 +1138,11 @@ struct picture {
   frame fit3(transform3 t, transform3 T0=T3, picture pic, projection P,
              triple m, triple M) {
     frame f;
-    for(int i=0; i < nodes3.length; ++i)
+    for(int i=0; i < nodes3.length; ++i) {
+      write(i);
       nodes3[i](f,t,T0,pic,P,m,M);
+    }
+    
     return f;
   }
 
@@ -1184,11 +1187,11 @@ struct picture {
     pair d=size(f);
     static real epsilon=100*realEpsilon;
     if(d.x > xsize*(1+epsilon)) 
-      write("warning: frame exceeds xlimit: "+(string) d.x+" > "+
-            (string) xsize);
+      warning("xlimit","frame exceeds xlimit: "+(string) d.x+" > "+
+              (string) xsize);
     if(d.y > ysize*(1+epsilon))
-      write("warning: frame exceeds ylimit: "+(string) d.y+" > "+
-            (string) ysize);
+      warning("ylimit","frame exceeds ylimit: "+(string) d.y+" > "+
+              (string) ysize);
     return f;
   }
   

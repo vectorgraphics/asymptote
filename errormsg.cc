@@ -63,15 +63,16 @@ void errorstream::error(position pos)
   anyErrors = true;
 }
 
+void errorstream::warning(position pos, string s)
+{
+  message(pos,"warning ["+s+"]: ");
+  anyWarnings = true;
+}
+
 void errorstream::warning(position pos)
 {
   message(pos,"warning: ");
   anyWarnings = true;
-}
-
-void errorstream::disable(string s)
-{
-  out << ": to ignore, use nowarn(\""+s+"\");";
 }
 
 void errorstream::fatal(position pos)
