@@ -34,6 +34,31 @@ namespace vm {
 void error(const char* message);
 }
 
+#if __GNUC__
+#include <cxxabi.h>
+string demangle(const char *s)
+{
+  int status;
+  char *demangled = abi::__cxa_demangle(s,NULL,NULL,&status);
+  if (status == 0 && demangled) {
+    string str(demangled);
+    free(demangled);
+    return str;
+  } else if (status == -2) {
+    free(demangled);
+    return s;
+  } else {
+    free(demangled);
+    return string("Unknown(") + s + ")";
+  }
+};
+#else
+string demangle(const char* s)
+{
+  return s;
+}
+#endif 
+
 char *Strdup(string s)
 {
   size_t size=s.size()+1;

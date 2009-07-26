@@ -6,6 +6,7 @@
  *****/
 
 #include <iostream>
+#include "util.h"
 #include "program.h"
 
 
@@ -31,6 +32,21 @@ string lookupBltin(bltin b) {
 }
 #endif
 
+ostream& operator<< (ostream& out, const item& i)
+{
+  if (i.type() == typeid(void))
+    out << "uninitialized";
+  else if (i.type() == typeid(Int))
+    out << "Int, value = " << get<Int>(i);
+  else if (i.type() == typeid(double))
+    out << "real, value = " << get<double>(i);
+  else if (i.type() == typeid(string))
+    out << "string, value = " << get<string>(i);
+  else
+    out << "type " << demangle(i.type().name());
+  return out;
+}
+
 void printInst(ostream& out, const program::label& code,
                const program::label& base)
 {
@@ -53,6 +69,13 @@ void printInst(ostream& out, const program::label& code,
     case inst::alloc:
     {
       out << " " << get<Int>(*code);
+      break;
+    }
+
+    case inst::constpush:
+    {
+      item c = code->ref;
+      out << " " << c;
       break;
     }
 

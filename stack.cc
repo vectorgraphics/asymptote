@@ -276,40 +276,8 @@ void stack::load(string index) {
 
 
 #ifdef DEBUG_STACK
-#if __GNUC__
-#include <cxxabi.h>
-string demangle(const char *s)
-{
-  int status;
-  char *demangled = abi::__cxa_demangle(s,NULL,NULL,&status);
-  if (status == 0 && demangled) {
-    string str(demangled);
-    free(demangled);
-    return str;
-  } else if (status == -2) {
-    free(demangled);
-    return s;
-  } else {
-    free(demangled);
-    return string("Unknown(") + s + ")";
-  }
-};
-#else
-string demangle(const char* s)
-{
-  return s;
-}
-#endif 
 
-string stringFromItem(item i)
-{
-  try {
-    return demangle(i.type().name());
-  } catch (bad_item_value&) {
-    assert(false);
-  }
-}
-
+const size_t MAX_ITEMS=6;
 
 void stack::draw(ostream& out)
 {
@@ -317,14 +285,18 @@ void stack::draw(ostream& out)
 
   out << "operands:";
   stack_t::const_iterator left = theStack.begin();
-  if (theStack.size() > 10) {
-    left = theStack.end()-10;
+  if (theStack.size() > MAX_ITEMS) {
+    left = theStack.end()-MAX_ITEMS;
     out << " ...";
   }
+  else
+    out << " ";
   
   while (left != theStack.end())
     {
-      out << " " << demangle(left->type().name());
+      if (left != theStack.begin())
+        out << " | " ;
+      out << *left;
       left++;
     }
   out << "\n";
@@ -340,9 +312,11 @@ void draw(ostream& out, frame* v)
     } catch (bad_item_value&) {
       out << " non-frame";
     }
-    for (size_t i = 1; i < 10 && i < v->size(); i++)
-      out << " " << demangle((*v)[i].type().name());
-    if (v->size() > 10)
+    for (size_t i = 1; i < MAX_ITEMS && i < v->size(); i++) {
+      //out << " " << demangle((*v)[i].type().name());
+      out << " | " << i << ": " << (*v)[i];
+    }
+    if (v->size() > MAX_ITEMS)
       out << "...";
     out << "\n";
   }
@@ -374,7 +348,7 @@ void error(const ostringstream& message)
 }
 
 interactiveStack::interactiveStack()
-  : globals(new frame(1)) {}
+  : globals(new frame(0)) {}
 
 void interactiveStack::run(lambda *codelet) {
   stack::run(codelet->code, globals);

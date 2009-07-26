@@ -17,6 +17,9 @@
 
 #include <strings.h>
 
+// Demangle a typeid name (if the proper library is installed.
+string demangle(const char *s);
+
 // Duplicate a string.
 char *Strdup(string s);
 char *StrdupNoGC(string s);
