@@ -36,13 +36,6 @@ score castScore(env &e, formal& target, formal& source) {
      e.castable(target.t,source.t, symbol::castsym)) ? CAST : FAIL;
 }
 
-defaultArg::defaultArg(types::ty *t)
-  : arg(new absyntax::callExp(position(), 
-                              new absyntax::varEntryExp(position(),
-                                                        new function(t),
-                                                        run::pushDefault)),
-        t)
-{}
 
 void restArg::transMaker(coenv &e, Int size, bool rest) {
   // Push the number of cells and call the array maker.
@@ -237,7 +230,7 @@ bool application::matchRest(env &e, formal &source, varinit *a) {
       formal &target=sig->getRest();
       score s=castScore(e, target, source);
       if (s!=FAIL) {
-        rest->addRest(new arg(a, target.t));
+        rest->addRest(new varinitArg(a, target.t));
         scores.push_back(s);
         return true;
       }
@@ -297,7 +290,7 @@ bool application::matchOpen(env &e, signature *source, arglist &al) {
       rest->add(seq.addArg(al[i].val, f[i].t, i));
 
   if (source->hasRest())
-    rest->addRest(new arg(al.rest.val, source->getRest().t));
+    rest->addRest(new varinitArg(al.rest.val, source->getRest().t));
 
   return true;
 }
