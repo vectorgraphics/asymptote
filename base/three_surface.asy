@@ -1106,14 +1106,22 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight);
 }
 
-surface extrude(path p, triple axis=Z)
+surface extrude(path3 p, path3 q)
 {
   static patch[] allocate;
-  path3 G=path3(p);
-  path3 G2=shift(axis)*G;
   return surface(...sequence(new patch(int i) {
-        return patch(subpath(G,i,i+1)--subpath(G2,i+1,i)--cycle);
-      },length(G)));
+        return patch(subpath(p,i,i+1)--subpath(q,i+1,i)--cycle);
+      },length(p)));
+}
+
+surface extrude(path3 p, triple axis=Z)
+{
+  return extrude(p,shift(axis)*p);
+}
+
+surface extrude(path p, triple axis=Z)
+{
+  return extrude(path3(p),axis);
 }
 
 surface extrude(explicit path[] p, triple axis=Z)

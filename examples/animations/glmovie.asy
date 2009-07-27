@@ -11,7 +11,6 @@ int n=25;
 for(int i=0; i < n; ++i) {
   picture pic;
   size3(pic,6cm);
-  limits((-2,-2,-2),(2,2,2));
   real k=i/n*pi;
   real f(pair z) {return 4cos(abs(z)-k)*exp(-abs(z)/6);}
   draw(pic,surface(f,(-4pi,-4pi),(4pi,4pi),Spline),paleblue);
