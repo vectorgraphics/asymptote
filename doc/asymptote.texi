@@ -3390,7 +3390,7 @@ margin and output the resulting frame, use the command:
 shipout(bbox(0.25cm));
 @end verbatim
 A @code{picture} may be fit to a frame with the background color
-pen @code{p} using the function @code{bbox(p,Fill)}. 
+pen @code{p}, using the function @code{bbox(p,Fill)}. 
 
 The functions 
 @verbatim
@@ -6023,7 +6023,7 @@ sizing of pictures.
 @section @code{math}
 @cindex @code{math}
 This package extends @code{Asymptote}'s mathematical capabilities with
-intersection algorithms and matrix arithmetic:
+matrix arithmetic and intersection algorithms:
 
 @table @code
 
@@ -6203,7 +6203,6 @@ sharp corners of paths, as illustrated in the example file @code{roundpath.asy}.
 @node animation
 @section @code{animation}
 @cindex @code{animation}
-@cindex @code{merge}
 @cindex @code{convert}
 @cindex animation
 @cindex @code{ImageMagick}
@@ -6211,7 +6210,7 @@ This module allows one to generate animations, as illustrated by the
 files @code{wheel.asy}, @code{wavelet.asy}, and @code{cube.asy} in
 the @code{animations} subdirectory of the examples directory. These
 animations use the @code{ImageMagick} @code{convert} program to
-@code{merge} multiple images into a @acronym{GIF} or @acronym{MPEG}
+merge multiple images into a @acronym{GIF} or @acronym{MPEG}
 movie.
 
 @cindex @code{animate}
