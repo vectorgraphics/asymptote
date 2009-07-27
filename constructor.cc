@@ -92,8 +92,11 @@ varEntry *constructorFromInitializer(position pos, coenv &e, record *r,
 
   types::function *ft=new types::function(r, init->getSignature());
  
+  ostringstream out;
+  ft->printVar(out, symbol::trans("<constructor>"));
+
   // Create a new function environment.
-  coder fc = e.c.newFunction(ft);
+  coder fc = e.c.newFunction(out.str(), ft);
   coenv fe(fc,e.e);
 
   // Translate the function.

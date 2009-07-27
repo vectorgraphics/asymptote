@@ -24,15 +24,25 @@ function *inittype();
 function *bootuptype();
 }
 
+vm::lambda *newLambda(string name) {
+  assert(!name.empty());
+  vm::lambda *l = new vm::lambda;
+#ifdef DEBUG_FRAME
+  l->name = name;
+#endif
+  return l;
+}
+
+
 // The dummy environment of the global environment.
 // Used purely for global variables and static code blocks of file
 // level modules.
-coder::coder(modifier sord)
-  : level(new frame(0, 0)),
+coder::coder(string name, modifier sord)
+  : level(new frame(name, 0, 0)),
     recordLevel(0),
     recordType(0),
     isCodelet(false),
-    l(new vm::lambda),
+    l(newLambda(name)),
     funtype(bootuptype()),
     parent(0),
     sord(sord),
@@ -46,13 +56,16 @@ coder::coder(modifier sord)
 }
 
 // Defines a new function environment.
-coder::coder(function *t, coder *parent, modifier sord, bool reframe)
-  : level(reframe ? new frame(parent->getFrame(), t->sig.getNumFormals()) :
-          parent->getFrame()),
+coder::coder(string name, function *t, coder *parent,
+             modifier sord, bool reframe)
+  : level(reframe ? new frame(name,
+                              parent->getFrame(),
+                              t->sig.getNumFormals()) :
+                    parent->getFrame()),
     recordLevel(parent->recordLevel),
     recordType(parent->recordType),
     isCodelet(!reframe),
-    l(new vm::lambda),
+    l(newLambda(name)),
     funtype(t),
     parent(parent),
     sord(sord),
@@ -85,21 +98,22 @@ coder::coder(record *t, coder *parent, modifier sord)
   encodeAllocInstruction();
 }
 
-coder coder::newFunction(function *t, modifier sord)
+coder coder::newFunction(string name, function *t, modifier sord)
 {
-  return coder(t, this, sord);
+  return coder(name, t, this, sord);
 }
 
 coder coder::newCodelet()
 {
-  return coder(new function(primVoid()), this, DEFAULT_DYNAMIC, false);
+  return coder("<codelet>", new function(primVoid()), this,
+               DEFAULT_DYNAMIC, false);
 }
 
 record *coder::newRecord(symbol *id)
 {
   frame *underlevel = getFrame();
 
-  frame *level = new frame(underlevel, 0);
+  frame *level = new frame(*id, underlevel, 0);
   
   record *r = new record(id, level);
 

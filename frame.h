@@ -21,9 +21,18 @@ class frame : public gc {
   size_t numFormals;
   Int numLocals;
 
+#ifdef DEBUG_FRAME
+  string name;
+#endif
+
 public:
-  frame(frame *parent, size_t numFormals)
-    : parent(parent), numFormals(numFormals), numLocals(0) {}
+  frame(string name, frame *parent, size_t numFormals)
+    : parent(parent), numFormals(numFormals), numLocals(0)
+#ifdef DEBUG_FRAME
+      , name(name)
+#endif
+  
+  {}
 
   size_t getNumFormals() {
     return numFormals;

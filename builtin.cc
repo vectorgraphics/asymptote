@@ -998,7 +998,12 @@ void addOperators(venv &ve)
 dummyRecord *createDummyRecord(venv &ve, const char *name)
 {
   dummyRecord *r=new dummyRecord(name);
-  addConstant(ve, new vm::frame(0), r, name);
+#ifdef DEBUG_FRAME
+  vm::frame *f = new vm::frame("dummy record " + string(name), 0);
+#else
+  vm::frame *f = new vm::frame(0);
+#endif
+  addConstant(ve, f, r, name);
   addRecordOps(ve, r);
   return r;
 }

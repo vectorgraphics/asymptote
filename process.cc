@@ -169,7 +169,7 @@ public:
       
       genv ge;
       env base_env(ge);
-      coder base_coder;
+      coder base_coder("icore::doRun");
       coenv e(base_coder,base_env);
 
       vm::interactiveStack s;
@@ -871,7 +871,7 @@ void doUnrestrictedList() {
   
   genv ge;
   env base_env(ge);
-  coder base_coder;
+  coder base_coder("doUnrestictedList");
   coenv e(base_coder,base_env);
 
   if (getSetting<bool>("autoplain"))

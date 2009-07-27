@@ -21,7 +21,5 @@ Andy: Clean up processData and preRun
 Andy: Investigate adding unicode support for identifiers, using iswalpha,
 mbtowc, etc.
 
-Andy: Allow virtual members to be writeable and overloaded.
-
-Andy: Interactive write for variables without write functions should write
-signature (e.g. currentpicture).
+Andy: Implement defaultArg::trans to use produce less bytecode then is
+currently produced by arg::trans.

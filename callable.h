@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "item.h"
+#include "inst.h"
 
 namespace vm {
 
@@ -21,6 +22,9 @@ struct callable : public gc
   virtual void call(stack *) = 0;
   virtual ~callable();
   virtual bool compare(callable*) { return false; }
+
+  // For debugging:
+  virtual void print(ostream& out) = 0;
 };
 
 class nullfunc : public callable
@@ -32,6 +36,8 @@ public:
   virtual void call (stack*);
   virtual bool compare(callable*);
   static callable* instance() { return &func; }
+
+  void print(ostream& out);
 };
 
 // How a function reference to a non-builtin function is stored.
@@ -41,6 +47,8 @@ struct func : public callable {
   func () : body(), closure() {}
   virtual void call (stack*);
   virtual bool compare(callable*);
+
+  void print(ostream& out);
 };
 
 class bfunc : public callable 
@@ -49,6 +57,8 @@ public:
   bfunc(bltin b) : func(b) {}
   virtual void call (stack *s) { func(s); }
   virtual bool compare(callable*);
+
+  void print(ostream& out);
 private:
   bltin func;
 };
@@ -58,10 +68,17 @@ class thunk : public callable
 public:
   thunk(callable *f, item i) : func(f), arg(i) {}
   virtual void call (stack*);
+
+  void print(ostream& out);
 private:
   callable *func;
   item arg;
 };
+
+inline ostream& operator<< (ostream& out, callable &c) {
+  c.print(out);
+  return out;
+}
 
 } // namespace vm
 

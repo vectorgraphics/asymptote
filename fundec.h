@@ -100,10 +100,16 @@ class fundef : public exp {
   ty *result;
   formals *params;
   stm *body;
+
+  // If the fundef is part of a fundec, the name of the function is stored
+  // here for debugging purposes.
+  symbol *id;
+
+  friend class fundec;
   
 public:
   fundef(position pos, ty *result, formals *params, stm *body)
-    : exp(pos), result(result), params(params), body(body) {}
+    : exp(pos), result(result), params(params), body(body), id(0) {}
 
   virtual void prettyprint(ostream &out, Int indent);
 
@@ -124,7 +130,8 @@ class fundec : public dec {
 
 public:
   fundec(position pos, ty *result, symbol *id, formals *params, stm *body)
-    : dec(pos), id(id), fun(pos, result, params, body) {}
+    : dec(pos), id(id), fun(pos, result, params, body)
+  { fun.id = id; }
 
   void prettyprint(ostream &out, Int indent);
 

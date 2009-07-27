@@ -164,7 +164,7 @@ void block::transAsRecordBody(coenv &e, record *r)
 record *block::transAsFile(genv& ge, symbol *id)
 {
   // Create the new module.
-  record *r = new record(id, new frame(0,0));
+  record *r = new record(id, new frame(*id,0,0));
 
   // Create coder and environment to translate the module.
   // File-level modules have dynamic fields by default.

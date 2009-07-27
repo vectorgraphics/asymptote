@@ -230,8 +230,10 @@ varinit *fundef::makeVarInit(function *ft) {
 
 void fundef::baseTrans(coenv &e, types::function *ft)
 {
+  string name = id ? string(*id) : string("<anonymous function>");
+
   // Create a new function environment.
-  coder fc = e.c.newFunction(ft);
+  coder fc = e.c.newFunction(name, ft);
   coenv fe(fc,e.e);
 
   // Translate the function.

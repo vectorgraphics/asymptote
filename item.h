@@ -21,7 +21,7 @@ T get(const item&);
 
 class item : public gc {
 public:
-  bool empty()
+  bool empty() const
   { return *kind == typeid(void); }
   
   item()
@@ -112,12 +112,23 @@ private:
 };
   
 class frame : public gc {
+#ifdef DEBUG_FRAME
+  string name;
+#endif
   typedef mem::vector<item> vars_t;
   vars_t vars;
 public:
+#ifdef DEBUG_FRAME
+  frame(string name, size_t size)
+    : name(name), vars(size)
+  {}
+
+  string getName() { return name; }
+#else
   frame(size_t size)
     : vars(size)
   {}
+#endif
 
   item& operator[] (size_t n)
   { return vars[n]; }

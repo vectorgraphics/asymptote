@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include "util.h"
+#include "callable.h"
 #include "program.h"
 
 
@@ -32,16 +33,28 @@ string lookupBltin(bltin b) {
 }
 #endif
 
+
 ostream& operator<< (ostream& out, const item& i)
 {
-  if (i.type() == typeid(void))
-    out << "uninitialized";
+  // TODO: Make a data structure mapping typeids to print functions.
+  if (i.empty())
+    out << "empty";
+  else if (isdefault(i))
+    out << "default";
   else if (i.type() == typeid(Int))
     out << "Int, value = " << get<Int>(i);
   else if (i.type() == typeid(double))
     out << "real, value = " << get<double>(i);
   else if (i.type() == typeid(string))
     out << "string, value = " << get<string>(i);
+  else if (i.type() == typeid(callable))
+    out << *(get<callable *>(i));
+  else if (i.type() == typeid(frame)) {
+    out << "frame";
+#ifdef DEBUG_FRAME
+    out << " " << (get<frame *>(i))->getName();
+#endif
+  }
   else
     out << "type " << demangle(i.type().name());
   return out;
@@ -100,11 +113,13 @@ void printInst(ostream& out, const program::label& code,
       break;
     }
 
+#ifdef DEBUG_FRAME
     case inst::makefunc:
     {
-      out << " " << get<lambda*>(*code) << " ";
+      out << " " << get<lambda*>(*code)->name << " ";
       break;
     }
+#endif
     
     default: {
       /* nothing else to do */

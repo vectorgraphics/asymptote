@@ -21,8 +21,15 @@ namespace vm {
 struct inst; class stack; class program;
  
 // A function "lambda," that is, the code that runs a function.
-// It also need the closure of the enclosing module or function to run.
+// It also needs the closure of the enclosing module or function to run.
 struct lambda : public gc {
+#ifdef DEBUG_FRAME
+  lambda()
+    : name("<unnamed>") {}
+  virtual ~lambda() {}
+  string name;
+#endif
+
   // The instructions to follow.
   program *code;
 
