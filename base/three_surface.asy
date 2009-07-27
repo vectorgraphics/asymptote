@@ -322,6 +322,239 @@ patch reverse(patch s)
   return S;
 }
 
+// Return the Coons patch control points corresponding to path p.
+pair[][] coons(path p)
+{
+  int L=length(p);
+  if(L == 1)
+    p=p--cycle--cycle--cycle;
+  else if(L == 2)
+    p=p--cycle--cycle;
+  else if(L == 3)
+    p=p--cycle;
+ 
+  pair[] internal=new pair[4];
+  for(int j=0; j < 4; ++j) {
+    internal[j]=nineth*(-4*point(p,j)
+                        +6*(precontrol(p,j)+postcontrol(p,j))
+                        -2*(point(p,j-1)+point(p,j+1))
+                        +3*(precontrol(p,j-1)+postcontrol(p,j+1))
+                        -point(p,j+2));
+  }
+    
+  return new pair[][] {
+    {point(p,0),postcontrol(p,0),precontrol(p,1),point(p,1)},
+      {precontrol(p,0),internal[0],internal[1],postcontrol(p,1)},
+        {postcontrol(p,3),internal[3],internal[2],precontrol(p,2)},
+          {point(p,3),precontrol(p,3),postcontrol(p,2),point(p,2)}
+  };
+}
+
+// Decompose a possibly nonconvex cyclic path into an array of paths that
+// yield nondegenerate Coons patches.
+path[] regularize(path p, bool checkboundary=true)
+{
+  path[] s;
+
+  if(!cyclic(p))
+    abort("cyclic path expected");
+
+  int L=length(p);
+
+  if(L > 4) {
+    for(path g : bezulate(p))
+      s.append(regularize(g,checkboundary));
+    return s;
+  }
+        
+  bool straight=piecewisestraight(p);
+  if(L <= 3 && straight) {
+    return new path[] {p};
+  }
+    
+  // Split p along the angle bisector at t.
+  bool split(path p, real t) {
+    pair dir=dir(p,t);
+    if(dir != 0) {
+      path g=subpath(p,t,t+length(p));
+      int L=length(g);
+      pair z=point(g,0);
+      real[] T=intersections(g,z,z+I*dir);
+      for(int i=0; i < T.length; ++i) {
+        real cut=T[i];
+        if(cut > sqrtEpsilon && cut < L-sqrtEpsilon) {
+          pair w=point(g,cut);
+          if(!inside(p,0.5*(z+w),zerowinding)) continue;
+          pair delta=sqrtEpsilon*(w-z);
+          if(intersections(g,z-delta--w+delta).length != 2) continue;
+          s.append(regularize(subpath(g,0,cut)--cycle,checkboundary));
+          s.append(regularize(subpath(g,cut,L)--cycle,checkboundary));
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // Ensure that all interior angles are less than 180 degrees.
+  real fuzz=1e-4;
+  int sign=sgn(windingnumber(p,inside(p,zerowinding)));
+  for(int i=0; i < L; ++i) {
+    if(sign*(conj(dir(p,i,-1))*dir(p,i,1)).y < -fuzz) {
+      if(split(p,i)) return s;
+    }
+  }
+
+  if(straight)
+    return new path[] {p};
+    
+  pair[][] P=coons(p);
+
+  // Check for degeneracy.
+  pair[][] U=new pair[3][4];
+  pair[][] V=new pair[4][3];
+
+  for(int i=0; i < 3; ++i) {
+    for(int j=0; j < 4; ++j)
+      U[i][j]=P[i+1][j]-P[i][j];
+  }
+      
+  for(int i=0; i < 4; ++i) {
+    for(int j=0; j < 3; ++j)
+      V[i][j]=P[i][j+1]-P[i][j];
+  }
+      
+  int[] choose2={1,2,1};
+  int[] choose3={1,3,3,1};
+
+  real T[][]=new real[6][6];
+  for(int p=0; p < 6; ++p) {
+    int kstart=max(p-2,0);
+    int kstop=min(p,3);
+    real[] Tp=T[p];
+    for(int q=0; q < 6; ++q) {
+      real Tpq;
+      int jstop=min(q,3);
+      int jstart=max(q-2,0);
+      for(int k=kstart; k <= kstop; ++k) {
+        int choose3k=choose3[k];
+        for(int j=jstart; j <= jstop; ++j) {
+          int i=p-k;
+          int l=q-j;
+          Tpq += (conj(U[i][j])*V[k][l]).y*
+            choose2[i]*choose3k*choose3[j]*choose2[l];
+        }
+      }
+      Tp[q]=Tpq;
+    }
+  }
+
+  bool3 aligned=default;
+  bool degenerate=false;
+
+  for(int p=0; p < 6; ++p) {
+    for(int q=0; q < 6; ++q) {
+      if(aligned == default) {
+        if(T[p][q] < -sqrtEpsilon) aligned=true;
+        if(T[p][q] > sqrtEpsilon) aligned=false;
+      } else {
+        if((T[p][q] < -sqrtEpsilon && aligned == false) ||
+           (T[p][q] > sqrtEpsilon && aligned == true)) degenerate=true;
+      }
+    }
+  }
+
+  if(!degenerate) {
+    if(aligned == (sign >= 0))
+      return new path[] {p};
+    return s;
+  }
+
+  if(checkboundary) {
+    // Polynomial coefficients of (B_i'' B_j + B_i' B_j')/3.
+    static real[][][] fpv0={
+      {{5, -20, 30, -20, 5},
+       {-3, 24, -54, 48, -15},
+       {0, -6, 27, -36, 15},
+       {0, 0, -3, 8, -5}},
+      {{-7, 36, -66, 52, -15},
+       {3, -36, 108, -120, 45},
+       {0, 6, -45, 84, -45},
+       {0, 0, 3, -16, 15}},
+      {{2, -18, 45, -44, 15},
+       {0, 12, -63, 96, -45},
+       {0, 0, 18, -60, 45},
+       {0, 0, 0, 8, -15}},
+      {{0, 2, -9, 12, -5},
+       {0, 0, 9, -24, 15},
+       {0, 0, 0, 12, -15},
+       {0, 0, 0, 0, 5}}
+    };
+
+    // Compute one-ninth of the derivative of the Jacobian along the boundary.
+    real[][] c=array(4,array(5,0.0));
+    for(int i=0; i < 4; ++i) {
+      real[][] fpv0i=fpv0[i];
+      for(int j=0; j < 4; ++j) {
+        real[] w=fpv0i[j];
+        c[0] += w*(conj(P[0][j]-P[1][j])*P[0][i]).y;   // u=0
+        c[1] += w*(conj(P[i][3])*(P[j][3]-P[j][2])).y; // v=1
+        c[2] += w*(conj(P[3][j]-P[2][j])*P[3][i]).y;   // u=1
+        c[3] += w*(conj(P[i][0])*(P[j][1]-P[j][0])).y; // v=0
+      }
+    }
+    
+    pair BuP(int j, real u) {
+      return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);
+    }
+    pair BvP(int i, real v) {
+      return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);
+    }
+    real normal(real u, real v) {
+      return (conj(bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))*
+              bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v)).y;
+    }
+
+    // Use Rolle's theorem to check for degeneracy on the boundary.
+    real M=0;
+    real cut;
+    for(int i=0; i < 4; ++i) {
+      if(!straight(p,i)) {
+        real[] ci=c[i];
+        pair[] R=quarticroots(ci[4],ci[3],ci[2],ci[1],ci[0]);
+        for(pair r : R) {
+          if(fabs(r.y) < sqrtEpsilon) {
+            real t=r.x;
+            if(0 <= t && t <= 1) {
+              real[] U={0,t,1,t};
+              real[] V={t,1,t,0};
+              real[] T={t,t,1-t,1-t};
+              real N=sign*normal(U[i],V[i]);
+              if(N < M) {
+                M=N; cut=i+T[i];
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Split at the worst boundary degeneracy.
+    if(M < 0 && split(p,cut)) return s;
+  }
+    
+  // Split arbitrarily to resolve any remaining (internal) degeneracy.
+  checkboundary=false;
+  for(int i=0; i < L; ++i)
+    if(!straight(p,i) && split(p,i+0.5)) return s;
+
+  while(true)
+    for(int i=0; i < L; ++i)
+      if(!straight(p,i) && split(p,i+unitrand())) return s;
+
+  return s;
+}
+
 struct surface {
   patch[] s;
   
@@ -377,231 +610,10 @@ struct surface {
   }
 
   // A constructor for a possibly nonconvex cyclic path in a given plane.
-  void operator init (path p, triple plane(pair)=XYplane,
-                      bool checkboundary=true) {
-    if(!cyclic(p))
-      abort("cyclic path expected");
-
-    int L=length(p);
-
-    if(L > 4) {
-      for(path g : bezulate(p))
-        s.append(surface(g,plane,checkboundary).s);
-      return;
-    }
-        
-    pair[][] P(path p) {
-      if(L == 1)
-        p=p--cycle--cycle--cycle;
-      else if(L == 2)
-        p=p--cycle--cycle;
-      else if(L == 3)
-        p=p--cycle;
- 
-      pair[] internal=new pair[4];
-      for(int j=0; j < 4; ++j) {
-        internal[j]=nineth*(-4*point(p,j)
-                            +6*(precontrol(p,j)+postcontrol(p,j))
-                            -2*(point(p,j-1)+point(p,j+1))
-                            +3*(precontrol(p,j-1)+postcontrol(p,j+1))
-                            -point(p,j+2));
-      }
-    
-      return new pair[][] {
-        {point(p,0),postcontrol(p,0),precontrol(p,1),point(p,1)},
-          {precontrol(p,0),internal[0],internal[1],postcontrol(p,1)},
-            {postcontrol(p,3),internal[3],internal[2],precontrol(p,2)},
-              {point(p,3),precontrol(p,3),postcontrol(p,2),point(p,2)}
-      };
-    }
-
+  void operator init(path p, triple plane(pair)=XYplane) {
     bool straight=piecewisestraight(p);
-    if(L <= 3 && straight) {
-      s=new patch[] {patch(P(p),plane,straight)};
-      return;
-    }
-    
-    // Split p along the angle bisector at t.
-    bool split(path p, real t) {
-      pair dir=dir(p,t);
-      if(dir != 0) {
-        path g=subpath(p,t,t+length(p));
-        int L=length(g);
-        pair z=point(g,0);
-        real[] T=intersections(g,z,z+I*dir);
-        for(int i=0; i < T.length; ++i) {
-          real cut=T[i];
-          if(cut > sqrtEpsilon && cut < L-sqrtEpsilon) {
-            pair w=point(g,cut);
-            if(!inside(p,0.5*(z+w),zerowinding)) continue;
-            pair delta=sqrtEpsilon*(w-z);
-            if(intersections(g,z-delta--w+delta).length != 2) continue;
-            s=surface(subpath(g,0,cut)--cycle,plane,checkboundary).s;
-            s.append(surface(subpath(g,cut,L)--cycle,plane,checkboundary).s);
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-
-    // Ensure that all interior angles are less than 180 degrees.
-    real fuzz=1e-4;
-    int sign=sgn(windingnumber(p,inside(p,zerowinding)));
-    for(int i=0; i < L; ++i) {
-      if(sign*(conj(dir(p,i,-1))*dir(p,i,1)).y < -fuzz) {
-        if(split(p,i)) return;
-      }
-    }
-
-    pair[][] P=P(p);
-
-    if(straight) {
-      s=new patch[] {patch(P,plane,straight)};
-      return;
-    }
-    
-    // Check for degeneracy.
-    pair[][] U=new pair[3][4];
-    pair[][] V=new pair[4][3];
-
-    for(int i=0; i < 3; ++i) {
-      for(int j=0; j < 4; ++j)
-        U[i][j]=P[i+1][j]-P[i][j];
-    }
-      
-    for(int i=0; i < 4; ++i) {
-      for(int j=0; j < 3; ++j)
-        V[i][j]=P[i][j+1]-P[i][j];
-    }
-      
-    int[] choose2={1,2,1};
-    int[] choose3={1,3,3,1};
-
-    real T[][]=new real[6][6];
-    for(int p=0; p < 6; ++p) {
-      int kstart=max(p-2,0);
-      int kstop=min(p,3);
-      real[] Tp=T[p];
-      for(int q=0; q < 6; ++q) {
-        real Tpq;
-        int jstop=min(q,3);
-        int jstart=max(q-2,0);
-        for(int k=kstart; k <= kstop; ++k) {
-          int choose3k=choose3[k];
-          for(int j=jstart; j <= jstop; ++j) {
-            int i=p-k;
-            int l=q-j;
-            Tpq += (conj(U[i][j])*V[k][l]).y*
-              choose2[i]*choose3k*choose3[j]*choose2[l];
-          }
-        }
-        Tp[q]=Tpq;
-      }
-    }
-
-    bool3 aligned=default;
-    bool degenerate=false;
-
-    for(int p=0; p < 6; ++p) {
-      for(int q=0; q < 6; ++q) {
-        if(aligned == default) {
-          if(T[p][q] < -sqrtEpsilon) aligned=true;
-          if(T[p][q] > sqrtEpsilon) aligned=false;
-        } else {
-          if((T[p][q] < -sqrtEpsilon && aligned == false) ||
-             (T[p][q] > sqrtEpsilon && aligned == true)) degenerate=true;
-        }
-      }
-    }
-
-    if(!degenerate) {
-      if(aligned == (sign >= 0))
-        s=new patch[] {patch(P,plane)};
-      return;
-    }
-
-    if(checkboundary) {
-      // Polynomial coefficients of (B_i'' B_j + B_i' B_j')/3.
-      static real[][][] fpv0={
-        {{5, -20, 30, -20, 5},
-         {-3, 24, -54, 48, -15},
-         {0, -6, 27, -36, 15},
-         {0, 0, -3, 8, -5}},
-        {{-7, 36, -66, 52, -15},
-         {3, -36, 108, -120, 45},
-         {0, 6, -45, 84, -45},
-         {0, 0, 3, -16, 15}},
-        {{2, -18, 45, -44, 15},
-         {0, 12, -63, 96, -45},
-         {0, 0, 18, -60, 45},
-         {0, 0, 0, 8, -15}},
-        {{0, 2, -9, 12, -5},
-         {0, 0, 9, -24, 15},
-         {0, 0, 0, 12, -15},
-         {0, 0, 0, 0, 5}}
-      };
-
-      // Compute one-ninth of the derivative of the Jacobian along the boundary.
-      real[][] c=array(4,array(5,0.0));
-      for(int i=0; i < 4; ++i) {
-        real[][] fpv0i=fpv0[i];
-        for(int j=0; j < 4; ++j) {
-          real[] w=fpv0i[j];
-          c[0] += w*(conj(P[0][j]-P[1][j])*P[0][i]).y;   // u=0
-          c[1] += w*(conj(P[i][3])*(P[j][3]-P[j][2])).y; // v=1
-          c[2] += w*(conj(P[3][j]-P[2][j])*P[3][i]).y;   // u=1
-          c[3] += w*(conj(P[i][0])*(P[j][1]-P[j][0])).y; // v=0
-        }
-      }
-    
-      pair BuP(int j, real u) {
-        return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);
-      }
-      pair BvP(int i, real v) {
-        return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);
-      }
-      real normal(real u, real v) {
-        return (conj(bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))*
-                bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v)).y;
-      }
-
-      // Use Rolle's theorem to check for degeneracy on the boundary.
-      real M=0;
-      real cut;
-      for(int i=0; i < 4; ++i) {
-        if(!straight(p,i)) {
-          real[] ci=c[i];
-          pair[] R=quarticroots(ci[4],ci[3],ci[2],ci[1],ci[0]);
-          for(pair r : R) {
-            if(fabs(r.y) < sqrtEpsilon) {
-              real t=r.x;
-              if(0 <= t && t <= 1) {
-                real[] U={0,t,1,t};
-                real[] V={t,1,t,0};
-                real[] T={t,t,1-t,1-t};
-                real N=sign*normal(U[i],V[i]);
-                if(N < M) {
-                  M=N; cut=i+T[i];
-                }
-              }
-            }
-          }
-        }
-      }
-
-      // Split at the worst boundary degeneracy.
-      if(M < 0 && split(p,cut)) return;
-    }
-    
-    // Split arbitrarily to resolve any remaining (internal) degeneracy.
-    checkboundary=false;
-    for(int i=0; i < L; ++i)
-      if(!straight(p,i) && split(p,i+0.5)) return;
-
-    while(true)
-      for(int i=0; i < L; ++i)
-        if(!straight(p,i) && split(p,i+unitrand())) return;
+    for(path g : regularize(p))
+      s.push(patch(coons(g),plane,straight));
   }
 
   void operator init(explicit path[] g, triple plane(pair)=XYplane) {
