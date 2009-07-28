@@ -1893,7 +1893,7 @@ interpolate Hermite(splinetype splinetype)
   };
 }
 
-interpolate Hermite=Hermite(defaultspline);
+interpolate Hermite=Hermite(Spline);
 
 guide graph(picture pic=currentpicture, real f(real), real a, real b,
             int n=ngraph, real T(real)=identity, interpolate join=operator --)

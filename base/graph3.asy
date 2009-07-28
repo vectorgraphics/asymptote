@@ -1533,6 +1533,7 @@ surface surface(triple[][] f, bool[][] cond={})
   }
 
   surface s=surface(count);
+  s.index=new int[ny][nx];
   int k=-1;
   for(int i=0; i < nx; ++i) {
     bool[] condi,condp;
@@ -1545,7 +1546,8 @@ surface surface(triple[][] f, bool[][] cond={})
     for(int j=0; j < ny; ++j) {
       if(all || (condi[j] && condi[j+1] && condp[j] && condp[j+1]))
         s.s[++k]=patch(new triple[] {fi[j],fp[j],fp[j+1],fi[j+1]});
-    }
+        s.index[j][i]=k;
+      }
   }
   return s;
 }
@@ -1572,7 +1574,8 @@ private surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
     }
   }
 
-  surface g=surface(count);
+  surface s=surface(count);
+  s.index=new int[m][n];
   int k=-1;
   for(int i=0; i < n; ++i) {
     bool[] condi=all ? null : cond[i];
@@ -1624,11 +1627,12 @@ private surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
         P[2][1] += (P[2][0].z+P[3][1].z-P[3][0].z-hxy*ri[j+1])*Z;
         P[1][2] += (P[0][2].z+P[1][3].z-P[0][3].z-hxy*rp[j])*Z;
         P[2][2] += (P[3][2].z+P[2][3].z-P[3][3].z+hxy*rp[j+1])*Z;
-        g.s[++k]=patch(P);
+        s.s[++k]=patch(P);
+        s.index[j][i]=k;
       }
     }
   }
-  return g;
+  return s;
 }
 
 // return the surface described by a real matrix f, interpolated with
@@ -1732,33 +1736,33 @@ surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
   return surface(v,active);
 }
   
-// return the surface described by a parametric function f over box(a,b),
-// interpolated with usplinetype and vsplinetype.
-surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
+// return the surface described by a parametric function f evaluated at u and v
+// and interpolated with usplinetype and vsplinetype.
+surface surface(triple f(pair z), real[] u, real[] v,
                 splinetype[] usplinetype, splinetype[] vsplinetype=Spline,
                 bool cond(pair z)=null)
 {
-  real[] upt=uniform(a.x,b.x,nu);
-  real[] vpt=uniform(a.y,b.y,nv);
-  real[] ipt=sequence(nu+1);
-  real[] jpt=sequence(nv+1);
-  real[][] fx=new real[nu+1][nv+1];
-  real[][] fy=new real[nu+1][nv+1];
-  real[][] fz=new real[nu+1][nv+1];
+  int nu=u.length-1;
+  int nv=v.length-1;
+  real[] ipt=sequence(u.length);
+  real[] jpt=sequence(v.length);
+  real[][] fx=new real[u.length][v.length];
+  real[][] fy=new real[u.length][v.length];
+  real[][] fz=new real[u.length][v.length];
 
   bool[][] active;
   bool all=cond == null;
-  if(!all) active=new bool[nu+1][nv+1];
+  if(!all) active=new bool[u.length][v.length];
 
   real norm;
   for(int i=0; i <= nu; ++i) {
-    real upti=upt[i];
+    real ui=u[i];
     real[] fxi=fx[i];
     real[] fyi=fy[i];
     real[] fzi=fz[i];
     bool[] activei=all ? null : active[i];
     for(int j=0; j <= nv; ++j) {
-      pair z=(upti,vpt[j]);
+      pair z=(ui,v[j]);
       triple f=(all || (activei[j]=cond(z))) ? f(z) : O;
       norm=max(norm,abs(f));
       fxi[j]=f.x;
@@ -1796,16 +1800,33 @@ surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
   surface sz=surface(fz,ipt,jpt,usplinetype[2],vsplinetype[2],active);
 
   surface s=surface(sx.s.length);
-  for(int k=0; k < sx.s.length; ++k) {
-    triple[][] Q=new triple[4][4];
-    for(int i=0; i < 4 ; ++i) {
-      for(int j=0; j < 4 ; ++j) {
-        Q[i][j]=(sx.s[k].P[i][j].z,sy.s[k].P[i][j].z,sz.s[k].P[i][j].z);
-      }
-      s.s[k]=patch(Q);
+  s.index=new int[nv][nu];
+  int k=-1;
+  for(int i=0; i < nu; ++i) {
+    for(int j=0; j < nv; ++j) {
+      s.index[j][i]=++k;
     }
   }
+  
+  for(int k=0; k < sx.s.length; ++k) {
+    triple[][] Q=new triple[4][];
+    for(int i=0; i < 4 ; ++i)
+      Q[i]=sequence(new triple(int j) {
+          return (sx.s[k].P[i][j].z,sy.s[k].P[i][j].z,sz.s[k].P[i][j].z);
+        },4);
+    s.s[k]=patch(Q);
+  }
   return s;
+}
+
+// return the surface described by a parametric function f over box(a,b),
+// interpolated with usplinetype and vsplinetype.
+surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
+                splinetype[] usplinetype, splinetype[] vsplinetype=Spline,
+                bool cond(pair z)=null)
+{
+  return surface(f,uniform(a.x,b.x,nu),uniform(a.y,b.y,nv),
+                 usplinetype,vsplinetype,cond);
 }
 
 // return the surface described by a real function f over box(a,b),

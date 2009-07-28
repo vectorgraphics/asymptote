@@ -41,11 +41,11 @@ triple[] nextframe(path3 p, real reltimestart, triple[] start, real
   return bf[subdiv];
 }
   
-surface labelpath(string txt, path3 p, real angle=90, triple optional=O)
+surface labelpath(string s, path3 p, real angle=90, triple optional=O)
 {
   real Cos=Cos(angle);
   real Sin=Sin(angle);
-  path[] text=texpath(Label(txt,(0,0),Align,basealign));
+  path[] text=texpath(Label(s,(0,0),Align,basealign));
   text=scale(1/(max(text).x-min(text).x))*text;
   path[][] decompose=containmentTree(text);
 	

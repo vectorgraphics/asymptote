@@ -87,52 +87,53 @@ struct tube
   surface s;
   path3 center;
 
-  void operator init(path3 g, real width, real granularity=tubegranularity) {
+  void operator init(path3 p, real width, real granularity=tubegranularity) {
     real r=0.5*width;
 
     transform3 t=scale3(r);
 
-    int n=length(g);
+    int n=length(p);
     for(int i=0; i < n; ++i) {
-      path3 gi=subpath(g,i,i+1);
-      real S=straightness(g,i);
+      path3 gi=subpath(p,i,i+1);
+      real S=straightness(p,i);
       if(S < sqrtEpsilon*r) {
-        triple v=point(g,i);
-        triple u=point(g,i+1)-v;
+        triple v=point(p,i);
+        triple u=point(p,i+1)-v;
         s.append(shift(v)*align(unit(u))*scale(r,r,abs(u))*unitcylinder);
         center=center&gi;
       } else {
-        render(gi,granularity,new void(path3 q, real) {
-            real L=arclength(q);
+        render(gi,granularity,new void(path3 g, real) {
+            real L=arclength(g);
             surface segment=scale(r,r,L)*unitcylinder;
-            bend(segment,q,L);
+            bend(segment,g,L);
             s.s.append(segment.s);
             triple a=L*Z/3;
-            center=center&bend(O,q,L)..controls bend(a,q,L) and bend(2a,q,L)..
-              bend(3a,q,L);
+            center=center&bend(O,g,L)..controls bend(a,g,L) and bend(2a,g,L)..
+              bend(3a,g,L);
           });
       }
-
-      if((cyclic(g) || i > 0) && abs(dir(g,i,1)-dir(g,i,-1)) > sqrtEpsilon)
-        s.append(shift(point(g,i))*t*align(dir(g,i,-1))*unithemisphere);
     }
+    
+    for(int i=cyclic(p) ? 0 : 1; i < n; ++i)
+      if(abs(dir(p,i,1)-dir(p,i,-1)) > sqrtEpsilon)
+        s.append(shift(point(p,i))*t*align(dir(p,i,-1))*unithemisphere);
   }
 }
 
 // Refine a noncyclic path3 g so that it approaches its endpoint in
 // geometrically spaced steps.
-path3 approach(path3 g, int n, real radix=3)
+path3 approach(path3 p, int n, real radix=3)
 {
   guide3 G;
-  real L=length(g);
+  real L=length(p);
   real tlast=0;
   real r=1/radix;
   for(int i=1; i < n; ++i) {
     real t=L*(1-r^i);
-    G=G&subpath(g,tlast,t);
+    G=G&subpath(p,tlast,t);
     tlast=t;
   }
-  return G&subpath(g,tlast,L);
+  return G&subpath(p,tlast,L);
 }
 
 struct arrowhead3
@@ -231,8 +232,7 @@ DefaultHead3.head=new surface(path3 g, position position=EndPoint,
           for(int i=0; i < 4; ++i) {
             for(int j=0; j < 4; ++j) {
               real k=1-p.P[i][j].z/remainL;
-              p.P[i][j]=(k*p.P[i][j].x,k*p.P[i][j].y,p.P[i][j].z);
-              p.P[i][j]=bend(p.P[i][j],q,l);
+              p.P[i][j]=bend((k*p.P[i][j].x,k*p.P[i][j].y,p.P[i][j].z),q,l);
             }
           }
         }

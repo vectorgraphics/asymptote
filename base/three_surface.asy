@@ -557,6 +557,7 @@ path[] regularize(path p, bool checkboundary=true)
 
 struct surface {
   patch[] s;
+  int index[][];
   
   bool empty() {
     return s.length == 0;
@@ -574,6 +575,7 @@ struct surface {
     this.s=new patch[s.s.length];
     for(int i=0; i < s.s.length; ++i)
       this.s[i]=patch(s.s[i]);
+    this.index=copy(s.index);
   }
 
   void operator init(triple[][][] P, triple[][] normals=new triple[][],
@@ -609,6 +611,20 @@ struct surface {
     return sequence(new triple(int i) {return s[i].cornermean();},s.length);
   }
 
+  triple point(real u, real v) {
+    int U=floor(u);
+    int V=floor(v);
+    int index=index.length == 0 ? U+V : index[U][V];
+    return s[index].point(u-U,v-V);
+  }    
+
+  triple normal(real u, real v) {
+    int U=floor(u);
+    int V=floor(v);
+    int index=index.length == 0 ? U+V : index[U][V];
+    return s[index].normal(u-U,v-V);
+  }
+  
   // A constructor for a possibly nonconvex cyclic path in a given plane.
   void operator init(path p, triple plane(pair)=XYplane) {
     bool straight=piecewisestraight(p);
@@ -733,6 +749,7 @@ struct surface {
     real w=(angle2-angle1)/n;
     int L=length(g);
     s=new patch[L*n];
+    index=new int[n][L];
     int m=-1;
     transform3[] T=new transform3[n+1];
     transform3 t=rotate(w,c,c+axis);
@@ -772,6 +789,7 @@ struct surface {
         s[++m]=color == null ? patch(G) :
           patch(G,new pen[] {color(i,j),color(i+1,j),color(i+1,j+w),
                              color(i,j+w)});
+        index[k][i]=m;
       }
     }
   }
@@ -796,6 +814,7 @@ surface operator * (transform3 t, surface s)
   S.s=new patch[s.s.length];
   for(int i=0; i < s.s.length; ++i)
     S.s[i]=t*s.s[i];
+  S.index=copy(s.index);
   return S;
 }
 

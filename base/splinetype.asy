@@ -1,6 +1,5 @@
 typedef real[] splinetype(real[], real[]);
 
-restricted real[] defaultspline(real[] x, real[] y);
 restricted real[] Spline(real[] x, real[] y);
 restricted splinetype[] Spline;
 

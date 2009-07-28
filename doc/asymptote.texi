@@ -6457,7 +6457,7 @@ bool3 function @code{cond} on [@code{a},@code{b}]. If @code{cond} is:
 @item @code{default}, the point is added to a new guide;
 @item @code{false}, the point is omitted and a new guide is begun.
 @end itemize
-Th points are connected using the interpolation specified by @code{join}:
+The points are connected using the interpolation specified by @code{join}:
 @itemize @bullet 
 
 @cindex @code{operator --}
@@ -7491,17 +7491,17 @@ Arbitrary thick three-dimensional curves and line caps (which the
 @code{OpenGL} standard does not require implementations to provide) are
 constructed with
 @verbatim
-tube tube(path3 g, real width, real granularity=tubegranularity);
+tube tube(path3 p, real width, real granularity=tubegranularity);
 @end verbatim
 @noindent
 this returns a tube structure representing a tube of diameter @code{width} 
 centered approximately on @code{g}. The tube structure consists of a
 surface @code{s} and the actual tube center, path3 @code{center}.
-This can make files slow to render,
+Drawing thick lines as tubes can be slow to render,
 especially with the @code{Adobe Reader} renderer. The setting
 @code{thick=false} can be used to disable this feature and force all
 lines to be drawn with @code{linewidth(0)} (one pixel wide, regardless
-of the resolution). By default mesh and contour lines in three-dimensions
+of the resolution). By default, mesh and contour lines in three-dimensions
 are always drawn thin, unless an explicit line width is given in the pen
 parameter or the setting @code{thin} is set to @code{false}. The pens
 @code{thin()} and @code{thick()} defined in plain_pens.asy can also be used
@@ -8187,6 +8187,9 @@ surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
                 bool cond(pair z)=null);
 surface surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
                 splinetype xsplinetype, splinetype ysplinetype=xsplinetype,
+                bool cond(pair z)=null);
+surface surface(triple f(pair z), real[] u, real[] v,
+                splinetype[] usplinetype, splinetype[] vsplinetype=Spline,
                 bool cond(pair z)=null);
 surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
                 bool cond(pair z)=null);
