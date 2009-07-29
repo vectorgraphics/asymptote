@@ -625,6 +625,25 @@ struct surface {
     return s[index].normal(u-U,v-V);
   }
   
+  path3 uequals(real u) {
+    if(index.length == 0) return nullpath3;
+    int U=floor(u);
+    int[] index=index[U];
+    path3 g;
+    for(int i : index)
+      g=g&s[i].uequals(u-U);
+    return g;
+  }
+  
+  path3 vequals(real v) {
+    if(index.length == 0) return nullpath3;
+    int V=floor(v);
+    path3 g;
+    for(int[] i : index)
+      g=g&s[i[V]].vequals(v-V);
+    return g;
+  }
+  
   // A constructor for a possibly nonconvex cyclic path in a given plane.
   void operator init(path p, triple plane(pair)=XYplane) {
     bool straight=piecewisestraight(p);
