@@ -45,7 +45,8 @@ using run::minus;
 
 using namespace run;  
   
-void gen_base_venv(venv &ve);
+void gen_runtime_venv(venv &ve);
+void gen_backtrace_venv(venv &ve);
 
 void addType(tenv &te, const char *name, ty *t)
 {
@@ -1394,7 +1395,8 @@ void base_venv(venv &ve)
   addOpenFunc(ve, openFunc, primInt(), "openFunc");
 #endif
 
-  gen_base_venv(ve);
+  gen_runtime_venv(ve);
+  gen_backtrace_venv(ve);
 }
 
 void base_menv(menv&)

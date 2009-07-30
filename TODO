@@ -20,3 +20,5 @@ Andy: Clean up processData and preRun
 
 Andy: Investigate adding unicode support for identifiers, using iswalpha,
 mbtowc, etc.
+
+Andy: Remove menv fossils.

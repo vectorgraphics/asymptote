@@ -14,9 +14,11 @@ LIBS = $(LFLAGS) @LIBS@ $(GCLIBS)
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill path3 drawpath3 drawsurface
 
+RUNTIME_FILES = runtime backtrace
+
 PRC =  prc/PRCbitStream prc/oPRCFile prc/PRCdouble prc/writePRC
 
-FILES = $(CAMP) runtime env genv main stm dec errormsg \
+FILES = $(CAMP) $(RUNTIME_FILES) env genv main stm dec errormsg \
         callable name symbol types entry exp newexp stack camp.tab lex.yy \
 	access virtualfieldaccess absyn record interact fileio builtin fftw++ \
 	simpson coder coenv \
@@ -127,8 +129,8 @@ man:	asy
 faq:	asy
 	cd doc; $(MAKE) faq
 
-runtime.cc: runtime.pl runtime.in
-	./runtime.pl
+$(RUNTIME_FILES:=.cc): %.cc: runtime.pl runtimebase.in %.in
+	./runtime.pl $(@:.cc=)
 
 camp.tab.cc: camp.y
 	$(BISON) -dvt -b camp camp.y && mv camp.tab.c camp.tab.cc

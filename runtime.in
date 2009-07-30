@@ -17,14 +17,6 @@
 // Use Void f() instead of void f() to force an explicit Stack argument.
 
 
-void     => primVoid()
-Void     => primVoid() 
-Int      => primInt()
-bool     => primBoolean()
-double   => primReal()
-real     => primReal()
-string*  => primString()
-string   => primString() 
 pen      => primPen()
 pair     => primPair()
 triple   => primTriple()
@@ -6124,24 +6116,3 @@ void saveline(string name, string value, bool store=true)
   unused(&store);
 #endif   
 }
-
-void generate_random_backtrace()
-{
-#if defined(USEGC) && defined(GC_DEBUG) && defined(GC_BACKTRACE)
-  GC_generate_random_backtrace();
-#else
-  error("generate_random_backtrace() requires ./configure --enable-gc-debug");
-#endif
-}
-
-void print_random_addresses(Int n=1)
-{
-#if defined(USEGC) && defined(GC_DEBUG) && defined(GC_BACKTRACE)
-  GC_gcollect();
-  for (Int i=0; i < n; ++i)
-    GC_debug_print_heap_obj_proc(GC_base(GC_generate_random_valid_address()));
-#else
-  error("print_random_addresses() requires ./configure --enable-gc-debug");
-  unused(&n); // Avoid unused variable warning message.
-#endif
-}  

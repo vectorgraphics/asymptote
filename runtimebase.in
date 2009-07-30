@@ -1,0 +1,38 @@
+/*****
+ * runtimebase.in
+ * Andy Hammerlindl  2009/07/28
+ *
+ * Common declarations needed for all code-generating .in files.
+ *
+ *****/
+
+
+// Basic types need by almost all .in files.
+
+// Use Void f() instead of void f() to force an explicit Stack argument.
+void     => primVoid()
+Void     => primVoid() 
+
+Int      => primInt()
+bool     => primBoolean()
+double   => primReal()
+real     => primReal()
+string*  => primString()
+string   => primString() 
+
+#include "stack.h"
+#include "types.h"
+#include "builtin.h"
+#include "entry.h"
+#include "errormsg.h"
+
+using vm::stack;
+using vm::error;
+using types::formal;
+
+#define PRIMITIVE(name,Name,asyName) using types::prim##Name;
+#include <primitives.h>
+#undef PRIMITIVE
+
+void unused(void *);
+
