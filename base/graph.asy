@@ -1,6 +1,6 @@
 private import math;
 
-import splinetype;
+import graph_splinetype;
 import graph_settings;
 
 scaleT Linear;

@@ -29,7 +29,7 @@
 // Here s is a real function that is constant on (-infinity,a] and [b,infinity).
 
 private import math;
-import splinetype;
+import graph_splinetype;
 
 typedef real fhorner(real);
 
