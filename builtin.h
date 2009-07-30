@@ -14,12 +14,10 @@ namespace trans {
 
 class tenv;
 class venv;
-class menv;
 
 // The base environments for built-in types and functions
 void base_tenv(tenv &);
 void base_venv(venv &);
-void base_menv(menv &);
 
 extern const types::formal noformal;
   

@@ -1399,10 +1399,6 @@ void base_venv(venv &ve)
   gen_backtrace_venv(ve);
 }
 
-void base_menv(menv&)
-{
-}
-
 } //namespace trans
 
 namespace run {
