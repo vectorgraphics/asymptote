@@ -404,7 +404,7 @@ struct transformation {
 }
 
 struct projection {
-  transform3 t; // projection*modelview (cached)
+  transform3 t;         // projection*modelview (cached)
   bool infinity;
   bool oblique;
   bool absolute=false;

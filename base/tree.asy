@@ -7,8 +7,8 @@
 
 struct tree
 {
-  tree left = null;
-  tree right = null;
+  tree left;
+  tree right;
   int key = 0;
   int value = 0;
 }
