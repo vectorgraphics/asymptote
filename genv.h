@@ -29,7 +29,7 @@ using vm::lambda;
 
 namespace trans {
 
-class genv {
+class genv : public gc {
   // The initializer functions for imports, indexed by filename.
   typedef mem::map<CONST string,record *> importMap;
   importMap imap;

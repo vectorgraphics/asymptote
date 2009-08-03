@@ -60,7 +60,7 @@ genv::genv()
 record *genv::loadModule(symbol *id, string filename) {
   // Get the abstract syntax tree.
   absyntax::file *ast = parser::parseFile(filename,"Loading");
-  
+
   inTranslation.push_front(filename);
 
   em.sync();

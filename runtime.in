@@ -730,11 +730,6 @@ void init_readline(bool tabcompletion=true)
 
 void cleanup()
 {
-  processDataStruct &pd=processData();
-  pd.atExitFunction=NULL;
-  pd.atUpdateFunction=NULL;
-  pd.atBreakpointFunction=NULL;
-  
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   store_history(&history_save);
   int nlines=intcast(getSetting<Int>("historylines"));
@@ -768,7 +763,6 @@ void exitFunction(stack *Stack)
   callable *atExitFunction=processData().atExitFunction;
   if(atExitFunction && !nullfunc::instance()->compare(atExitFunction))
     atExitFunction->call(Stack);
-  cleanup();
 }
 
 default_t def;

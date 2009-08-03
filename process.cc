@@ -64,6 +64,34 @@ processDataStruct &processData() {
   return *processDataStack.top();
 }
 
+// A process environment.  Basically this just serves as short-hand to start a
+// new global environment (genv) and new process data at the same time.  When
+// it goes out of scope, the process data is popped off the stack.  This also
+// ensures that the data is popped even if an exception is thrown.
+class penv {
+  genv *_ge;
+  processDataStruct pd;
+
+  // Do not let this object be dynamically allocated.
+  void *operator new(size_t);
+
+public:
+  penv() : _ge(0), pd() {
+    // Push the processData first, as it needs to be on the stack before genv
+    // is initialized.
+    processDataStack.push(&pd);
+    _ge = new genv;
+  }
+
+  virtual ~penv() {
+    processDataStack.pop();
+    delete _ge;
+  }
+
+  genv &ge() { return *_ge; }
+};
+
+
 void init(bool resetpath=true)
 {
   vm::indebugger=false;
@@ -146,8 +174,8 @@ struct icore {
 public:
 
   // preRun and postRun are the optional activities that take place before and
-  // after running the code specified.  They can be overridden by derived class
-  // that wish different behaviour.
+  // after running the code specified.  They can be overridden by a derived
+  // class that wishes different behaviour.
   virtual void preRun(coenv &e, istack &s) {
     if(getSetting<bool>("autoplain"))
       runAutoplain(e,s);
@@ -167,13 +195,13 @@ public:
     try {
       if(purge) run::purge();
       
-      genv ge;
-      env base_env(ge);
+      penv pe;
+      env base_env(pe.ge());
       coder base_coder("icore::doRun");
       coenv e(base_coder,base_env);
 
       vm::interactiveStack s;
-      s.setInitMap(ge.getInitMap());
+      s.setInitMap(pe.ge().getInitMap());
       s.setEnvironment(&e);
 
       preRun(e,s);
@@ -200,18 +228,10 @@ public:
   virtual void process(bool purge=false) {
     if (!interactive && getSetting<bool>("parseonly"))
       doParse();
-    else {
-      // This is not done in preRun as it is not an optional step.
-      processDataStruct data;
-      processDataStack.push(&data);
-      
-      if (getSetting<bool>("listvariables"))
-        doList();
-      else
-        doRun(purge);
-
-      processDataStack.pop();
-    }
+    else if (getSetting<bool>("listvariables"))
+      doList();
+    else
+      doRun(purge);
   }
 };
 
@@ -253,8 +273,8 @@ public:
   void doList() {
     block *tree=getTree();
     if (tree) {
-      genv ge;
-      record *r=tree->transAsFile(ge, symbol::trans(getName()));
+      penv pe;
+      record *r=tree->transAsFile(pe.ge(), symbol::trans(getName()));
       r->e.list(r);
     }
   }
@@ -271,15 +291,8 @@ public:
 
   void doRun(transMode tm=TRANS_NORMAL) {
     // Don't prepare an environment to run the code if there isn't any code.
-    if (getTree()) {
-      // This is not done in preRun as it is not an optional step.
-      processDataStruct data;
-      processDataStack.push(&data);
-
+    if (getTree())
       icore::doRun(false,tm);
-
-      processDataStack.pop();
-    }
   }
 };
 
@@ -866,18 +879,14 @@ void runPromptEmbedded(trans::coenv &e, istack &s) {
 }
 
 void doUnrestrictedList() {
-  processDataStruct data;
-  processDataStack.push(&data);
-  
-  genv ge;
-  env base_env(ge);
+  penv pe;
+  env base_env(pe.ge());
   coder base_coder("doUnrestictedList");
   coenv e(base_coder,base_env);
 
   if (getSetting<bool>("autoplain"))
     absyntax::autoplainRunnable()->trans(e);
 
-  processDataStack.pop();
   e.e.list(0);
 }
 
