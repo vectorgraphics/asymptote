@@ -41,20 +41,23 @@ void drawSurface::bounds(bbox3& b)
   for(int i=0; i < 16; ++i)
     c1[i]=controls[i][0];
   double c0=c1[0];
-  double xmin=bound(c1,min,b.empty ? c0 : min(c0,b.left));
-  double xmax=bound(c1,max,b.empty ? c0 : max(c0,b.right));
+  double fuzz=sqrtFuzz*norm(c1,16);
+  double xmin=bound(c1,min,b.empty ? c0 : min(c0,b.left),fuzz);
+  double xmax=bound(c1,max,b.empty ? c0 : max(c0,b.right),fuzz);
     
   for(int i=0; i < 16; ++i)
     c1[i]=controls[i][1];
   c0=c1[0];
-  double ymin=bound(c1,min,b.empty ? c0 : min(c0,b.bottom));
-  double ymax=bound(c1,max,b.empty ? c0 : max(c0,b.top));
+  fuzz=sqrtFuzz*norm(c1,16);
+  double ymin=bound(c1,min,b.empty ? c0 : min(c0,b.bottom),fuzz);
+  double ymax=bound(c1,max,b.empty ? c0 : max(c0,b.top),fuzz);
     
   for(int i=0; i < 16; ++i)
     c1[i]=controls[i][2];
   c0=c1[0];
-  double zmin=bound(c1,min,b.empty ? c0 : min(c0,b.lower));
-  double zmax=bound(c1,max,b.empty ? c0 : max(c0,b.upper));
+  fuzz=sqrtFuzz*norm(c1,16);
+  double zmin=bound(c1,min,b.empty ? c0 : min(c0,b.lower),fuzz);
+  double zmax=bound(c1,max,b.empty ? c0 : max(c0,b.upper),fuzz);
     
   Min=triple(xmin,ymin,zmin);
   Max=triple(xmax,ymax,zmax);
@@ -63,10 +66,7 @@ void drawSurface::bounds(bbox3& b)
   b.add(Max);
 }
 
-void drawSurface::bounds(pair &b, double (*m)(double, double),
-                         double (*x)(const triple&, double*),
-                         double (*y)(const triple&, double*),
-                         double *t, bool &first)
+void drawSurface::ratio(pair &b, double (*m)(double, double), bool &first)
 {
   for(int i=0; i < 16; ++i) {
     double *ci=controls[i];
@@ -75,11 +75,12 @@ void drawSurface::bounds(pair &b, double (*m)(double, double),
   
   if(first) {
     triple v=c3[0];
-    b=pair(x(v,t),y(v,t));
+    b=pair(xratio(v),yratio(v));
     first=false;
   }
   
-  b=pair(bound(c3,m,x,t,b.getx()),bound(c3,m,y,t,b.gety()));
+  double fuzz=sqrtFuzz*norm(c3,16);
+  b=pair(bound(c3,m,xratio,b.getx(),fuzz),bound(c3,m,yratio,b.gety(),fuzz));
 }
 
 bool drawSurface::write(prcfile *out)
@@ -296,4 +297,22 @@ drawElement *drawSurface::transformed(const array& t)
   return new drawSurface(t,this);
 }
   
+double norm(double *a, size_t n) 
+{
+  if(n == 0) return 0.0;
+  double M=fabs(a[0]);
+  for(size_t i=1; i < n; ++i)
+    M=max(M,fabs(a[i]));
+  return M;
+}
+
+double norm(triple *a, size_t n) 
+{
+  if(n == 0) return 0.0;
+  double M=a[0].abs2();
+  for(size_t i=1; i < n; ++i)
+    M=max(M,a[i].abs2());
+  return sqrt(M);
+}
+
 } //namespace camp

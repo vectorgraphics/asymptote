@@ -62,11 +62,8 @@ public:
   bbox bounds();
   bbox3 bounds3();
 
-  // Projected bounds of 3d picture given transform3 t (not cached).
-  pair bounds(double (*m)(double, double),
-              double (*x)(const triple&, double*),
-              double (*y)(const triple&, double*),
-              double *t=NULL);
+  // Compute bounds on ratio (x,y)/z for 3d picture (not cached).
+  pair ratio(double (*m)(double, double));
   
   bool Transparency() {
     return transparency;

@@ -316,13 +316,25 @@ bbox3 path3::bounds() const
   return box;
 }
 
+// Return f evaluated at controlling vertex of bounding box of convex hull for
+// similiar-triangle transform x'=x/z, y'=y/z, where z < 0.
+double ratiobound(triple z0, triple c0, triple c1, triple z1,
+                  double (*m)(double, double), 
+                  double (*f)(const triple&))
+{
+  double MX=m(m(m(-z0.getx(),-c0.getx()),-c1.getx()),-z1.getx());
+  double MY=m(m(m(-z0.gety(),-c0.gety()),-c1.gety()),-z1.gety());
+  double Z=m(m(m(z0.getz(),c0.getz()),c1.getz()),z1.getz());
+  double MZ=m(m(m(-z0.getz(),-c0.getz()),-c1.getz()),-z1.getz());
+  return m(f(triple(-MX,-MY,Z)),f(triple(-MX,-MY,-MZ)));
+}
+
 double bound(triple z0, triple c0, triple c1, triple z1,
              double (*m)(double, double),
-             double (*f)(const triple&, double*), double *t,
-             double b, double fuzz, int depth)
+             double (*f)(const triple&), double b, double fuzz, int depth)
 {
-  b=m(b,m(f(z0,t),f(z1,t)));
-  if(m(-1.0,1.0)*(b-m(f(c0,t),f(c1,t))) >= -fuzz || depth == 0)
+  b=m(b,m(f(z0),f(z1)));
+  if(m(-1.0,1.0)*(b-ratiobound(z0,c0,c1,z1,m,f)) >= -fuzz || depth == 0)
     return b;
   --depth;
 
@@ -334,31 +346,32 @@ double bound(triple z0, triple c0, triple c1, triple z1,
   triple m5=0.5*(m3+m4);
 
   // Check both Bezier subpaths.
-  b=bound(z0,m0,m3,m5,m,f,t,b,fuzz,depth);
-  return bound(m5,m4,m2,z1,m,f,t,b,fuzz,depth);
+  b=bound(z0,m0,m3,m5,m,f,b,fuzz,depth);
+  return bound(m5,m4,m2,z1,m,f,b,fuzz,depth);
 }
 
-pair path3::bounds(double (*m)(double, double), 
-                   double (*x)(const triple&, double*),
-                   double (*y)(const triple&, double*), double *t) const
+pair path3::ratio(double (*m)(double, double)) const
 {
   checkEmpty3(n);
   
   triple v=point((Int) 0);
-  pair B=pair(x(v,t),y(v,t));
+  pair B=pair(xratio(v),yratio(v));
   
   Int n=length();
   for(Int i=0; i <= n; ++i) {
     if(straight(i)) {
       triple v=point(i);
-      B=pair(m(B.getx(),x(v,t)),m(B.gety(),y(v,t)));
+      B=pair(m(B.getx(),xratio(v)),m(B.gety(),yratio(v)));
     } else {
       triple z0=point(i);
       triple c0=postcontrol(i);
       triple c1=precontrol(i+1);
       triple z1=point(i+1);
-      B=pair(bound(z0,c0,c1,z1,m,x,t,B.getx()),
-             bound(z0,c0,c1,z1,m,y,t,B.gety()));
+      double fuzz=sqrtFuzz*camp::max(camp::max(camp::max(z0.length(),
+                                                         c0.length()),
+                                               c1.length()),z1.length());
+      B=pair(bound(z0,c0,c1,z1,m,xratio,B.getx(),fuzz),
+             bound(z0,c0,c1,z1,m,yratio,B.gety(),fuzz));
     }
   }
   return B;
@@ -748,36 +761,14 @@ path3 transformed(const array& t, const path3& p)
   return path3(nodes, n, p.cyclic());
 }
 
-double xproject(const triple& v, double *t)
+double xratio(const triple& v)
 {
-  double x=v.getx();
-  double y=v.gety();
-  double z=v.getz();
-  double f=t[12]*x+t[13]*y+t[14]*z+t[15];
-  if(f == 0.0) run::dividebyzero();
-  return (t[0]*x+t[1]*y+t[2]*z+t[3])/f;
+  return v.getx()/v.getz();
 }
 
-double yproject(const triple& v, double *t)
+double yratio(const triple& v)
 {
-  double x=v.getx();
-  double y=v.gety();
-  double z=v.getz();
-  double f=t[12]*x+t[13]*y+t[14]*z+t[15];
-  if(f == 0.0) run::dividebyzero();
-  return (t[4]*x+t[5]*y+t[6]*z+t[7])/f;
-}
-
-double xratio(const triple& v, double *)
-{
-  double z=v.getz();
-  return v.getx()/z;
-}
-
-double yratio(const triple& v, double *)
-{
-  double z=v.getz();
-  return v.gety()/z;
+  return v.gety()/v.getz();
 }
 
 template<class T>
@@ -813,30 +804,6 @@ double controlbound(double *P, double (*m)(double, double))
   b=m(b,P[11]);
   b=m(b,P[13]);
   return m(b,P[14]);
-}
-
-double cornerbound(triple *P, double (*m)(double, double),
-                   double (*f)(const triple&, double*), double *t) 
-{
-  double b=m(f(P[0],t),f(P[3],t));
-  b=m(b,f(P[12],t));
-  return m(b,f(P[15],t));
-}
-
-double controlbound(triple *P, double (*m)(double, double),
-                    double (*f)(const triple&, double*), double *t) 
-{
-  double b=m(f(P[1],t),f(P[2],t));
-  b=m(b,f(P[4],t));
-  b=m(b,f(P[5],t));
-  b=m(b,f(P[6],t));
-  b=m(b,f(P[7],t));
-  b=m(b,f(P[8],t));
-  b=m(b,f(P[9],t));
-  b=m(b,f(P[10],t));
-  b=m(b,f(P[11],t));
-  b=m(b,f(P[13],t));
-  return m(b,f(P[14],t));
 }
 
 double bound(double *P, double (*m)(double, double), double b,
@@ -875,12 +842,54 @@ double bound(double *P, double (*m)(double, double), double b,
   return bound(s3,m,b,fuzz,depth);
 }
   
-double bound(triple *P, double (*m)(double, double),
-             double (*f)(const triple&, double*), double *t,
-             double b, double fuzz, int depth)
+double cornerbound(triple *P, double (*m)(double, double),
+                   double (*f)(const triple&)) 
 {
-  b=m(b,cornerbound(P,m,f,t));
-  if(m(-1.0,1.0)*(b-controlbound(P,m,f,t)) >= -fuzz || depth == 0)
+  double b=m(f(P[0]),f(P[3]));
+  b=m(b,f(P[12]));
+  return m(b,f(P[15]));
+}
+
+// Return f evaluated at controlling vertex of bounding box of convex hull for
+// similiar-triangle transform x'=x/z, y'=y/z, where z < 0.
+double ratiobound(triple *P, double (*m)(double, double),
+                  double (*f)(const triple&))
+{
+  double MX=-P[0].getx();
+  double MY=-P[0].gety();
+  double Z=P[0].getz();
+  double MZ=-P[0].getz();
+  for(int i=1; i < 16; ++i) {
+    triple v=P[i];
+    MX=m(MX,-v.getx());
+    MY=m(MY,-v.gety());
+    Z=m(Z,v.getz());
+    MZ=m(MZ,-v.getz());
+  }
+  return m(f(triple(-MX,-MY,Z)),f(triple(-MX,-MY,-MZ)));
+}
+
+double controlbound(triple *P, double (*m)(double, double),
+                    double (*f)(const triple&))
+{
+  double b=m(f(P[1]),f(P[2]));
+  b=m(b,f(P[4]));
+  b=m(b,f(P[5]));
+  b=m(b,f(P[6]));
+  b=m(b,f(P[7]));
+  b=m(b,f(P[8]));
+  b=m(b,f(P[9]));
+  b=m(b,f(P[10]));
+  b=m(b,f(P[11]));
+  b=m(b,f(P[13]));
+  return m(b,f(P[14]));
+}
+
+double bound(triple *P, double (*m)(double, double),
+              double (*f)(const triple&), double b, double fuzz, int depth)
+{
+  b=m(b,cornerbound(P,m,f));
+  if(m(-1.0,1.0)*(b-ratiobound(P,m,f)) >= -fuzz || depth == 0)
     return b;
   --depth;
 
@@ -900,16 +909,16 @@ double bound(triple *P, double (*m)(double, double),
   // Check all 4 Bezier subpatches.
   triple s0[]={c4.m5,c5.m5,c6.m5,c7.m5,c4.m3,c5.m3,c6.m3,c7.m3,
                c4.m0,c5.m0,c6.m0,c7.m0,P[12],c3.m0,c3.m3,c3.m5};
-  b=bound(s0,m,f,t,b,fuzz,depth);
+  b=bound(s0,m,f,b,fuzz,depth);
   triple s1[]={P[0],c0.m0,c0.m3,c0.m5,c4.m2,c5.m2,c6.m2,c7.m2,
                c4.m4,c5.m4,c6.m4,c7.m4,c4.m5,c5.m5,c6.m5,c7.m5};
-  b=bound(s1,m,f,t,b,fuzz,depth);
+  b=bound(s1,m,f,b,fuzz,depth);
   triple s2[]={c0.m5,c0.m4,c0.m2,P[3],c7.m2,c8.m2,c9.m2,c10.m2,
                c7.m4,c8.m4,c9.m4,c10.m4,c7.m5,c8.m5,c9.m5,c10.m5};
-  b=bound(s2,m,f,t,b,fuzz,depth);
+  b=bound(s2,m,f,b,fuzz,depth);
   triple s3[]={c7.m5,c8.m5,c9.m5,c10.m5,c7.m3,c8.m3,c9.m3,c10.m3,
                c7.m0,c8.m0,c9.m0,c10.m0,c3.m5,c3.m4,c3.m2,P[15]};
-  return bound(s3,m,f,t,b,fuzz,depth);
+  return bound(s3,m,f,b,fuzz,depth);
 }
 
 inline void add(std::vector<double>& T, std::vector<double>& U,

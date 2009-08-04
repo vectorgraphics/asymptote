@@ -40,11 +40,8 @@ public:
     B.add(Max);
   }
   
-  void bounds(pair &b, double (*m)(double, double),
-              double (*x)(const triple&, double*),
-              double (*y)(const triple&, double*),
-              double *t, bool &first) {
-    pair z=g.bounds(m,x,y,t);
+  void ratio(pair &b, double (*m)(double, double), bool &first) {
+    pair z=g.ratio(m);
     if(first) {
       b=z;
       first=false;

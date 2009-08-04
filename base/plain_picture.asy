@@ -420,20 +420,15 @@ struct projection {
   bool autoadjust=true; // Adjust camera to lie outside bounding volume?
   bool center=false;    // Center target within bounding volume?
   int ninterpolate;     // Used for projecting nurbs to 2D Bezier curves.
+  transformation T;
 
   void calculate() {
-    transformation T=projector(camera,up,target);
+    T=projector(camera,up,target);
     t=T.compute();
     infinity=T.infinity;
     oblique=T.oblique;
     ninterpolate=infinity ? 1 : 16;
   }
-
-  transformation transformation() {
-    return projector(camera,up,target);
-  }
-
-  transform3 modelview() {return transformation().modelview;}
 
   triple vector() {
     return camera-target;

@@ -162,11 +162,19 @@ struct patch {
   }
 
   pair min(projection P, pair bound=project(this.P[0][0],P.t)) {
-    return minbezier(this.P,P.t,bound);
+    triple[][] Q=P.T.modelview*this.P;
+    if(P.infinity)
+      return xypart(minbezier(Q,(bound.x,bound.y,0)));
+    real d=P.T.projection[3][2];
+    return maxratio(Q,d*bound)/d; // d is negative
   }
 
   pair max(projection P, pair bound=project(this.P[0][0],P.t)) {
-    return maxbezier(this.P,P.t,bound);
+    triple[][] Q=P.T.modelview*this.P;
+    if(P.infinity)
+      return xypart(maxbezier(Q,(bound.x,bound.y,0)));
+    real d=P.T.projection[3][2];
+    return minratio(Q,d*bound)/d; // d is negative
   }
 
   void operator init(triple[][] P, triple[] normals=new triple[],
@@ -1071,7 +1079,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 
     depth=sort(depth);
 
-    light.T=shiftless(P.modelview());
+    light.T=shiftless(P.T.modelview);
 
     // Draw from farthest to nearest
     while(depth.length > 0) {
@@ -1247,11 +1255,11 @@ void label(frame f, Label L, triple position, align align=NoAlign,
   } else {
     if(L.filltype == NoFill)
       fill(f,path(L,project(position,P.t),P),
-           light.color(L.T3*Z,L.p,shiftless(P.modelview())));
+           light.color(L.T3*Z,L.p,shiftless(P.T.modelview)));
     else {
       frame d;
       fill(d,path(L,project(position,P.t),P),
-           light.color(L.T3*Z,L.p,shiftless(P.modelview())));
+           light.color(L.T3*Z,L.p,shiftless(P.T.modelview)));
       add(f,d,L.filltype);
     }
   }
@@ -1283,11 +1291,11 @@ void label(picture pic=currentpicture, Label L, triple position,
       if(pic != null) {
         if(L.filltype == NoFill)
           fill(project(v,P.t),pic,path(L,P),
-               light.color(L.T3*Z,L.p,shiftless(P.modelview())));
+               light.color(L.T3*Z,L.p,shiftless(P.T.modelview)));
         else {
           picture d;
           fill(project(v,P.t),d,path(L,P),
-               light.color(L.T3*Z,L.p,shiftless(P.modelview())));
+               light.color(L.T3*Z,L.p,shiftless(P.T.modelview)));
           add(pic,d,L.filltype);
         }
       }

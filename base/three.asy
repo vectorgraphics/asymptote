@@ -16,10 +16,7 @@ real defaultgranularity=0;
 real linegranularity=0.01;
 real tubegranularity=0.003;
 real dotgranularity=0.0001;
-real viewportfactor=1.002;   // Factor used to expand orthographic viewport.
-real angleprecision=1e-3;    // Precision for centering perspective projections.
-real anglefactor=max(1.01,1+angleprecision);
-// Factor used to expand perspective viewport.
+real angleprecision=1e-5;    // Precision for centering perspective projections.
 
 string defaultembed3Doptions;
 string defaultembed3Dscript;
@@ -1801,6 +1798,16 @@ triple[] operator * (transform3 t, triple[] v)
   return sequence(new triple(int i) {return t*v[i];},v.length);
 }
 
+triple[][] operator * (transform3 t, triple[][] v) 
+{
+  triple[][] V=new triple[v.length][];
+  for(int i=0; i < v.length; ++i) {
+    triple[] vi=v[i];
+    V[i]=sequence(new triple(int j) {return t*vi[j];},vi.length);
+  }
+  return V;
+}
+
 triple min(explicit path3[] p)
 {
   checkEmpty(p.length);
@@ -1978,6 +1985,22 @@ void addPath(picture pic, path3 g, pen p)
 include three_surface;
 include three_margins;
 
+pair min(path3 p, projection P) 
+{
+  path3 q=P.T.modelview*p;
+  if(P.infinity)
+    return xypart(min(q));
+  return maxratio(q)/P.T.projection[3][2]; // d is negative
+}
+
+pair max(path3 p, projection P) 
+{
+  path3 q=P.T.modelview*p;
+  if(P.infinity)
+    return xypart(max(q));
+  return minratio(q)/P.T.projection[3][2]; // d is negative
+}
+
 void draw(picture pic=currentpicture, Label L="", path3 g,
           align align=NoAlign, material p=currentpen, margin3 margin=NoMargin3,
           light light=nolight)
@@ -1988,8 +2011,8 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
       if(is3D()) {
         draw(f,G,p,light,null);
         if(pic != null && size(G) > 0) {
-          pic.addPoint(min(G,P.t));
-          pic.addPoint(max(G,P.t));
+          pic.addPoint(min(G,P));
+          pic.addPoint(max(G,P));
         }
       }
       if(pic != null)
@@ -2521,7 +2544,7 @@ struct scene
       if(ry > Ry) Ry=ry;
       else ry=Ry;
     }
-    return anglefactor*max(aTan(rx)+aTan(Rx),aTan(ry)+aTan(Ry));
+    return (1+angleprecision)*max(aTan(rx)+aTan(Rx),aTan(ry)+aTan(Ry));
   }
 }
 
@@ -2535,12 +2558,11 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
   transform3 tinv=inverse(S.t);
 
   projection Q;
+  modelview=P.T.modelview;
   if(P.absolute) {
-    modelview=P.modelview();
     Q=modelview*P;
   } else {
     triple target=P.target;
-    modelview=P.modelview();
     S.f=modelview*S.f;
     P=modelview*P;
     Q=P.copy();
@@ -2608,8 +2630,7 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
     m=(m.x,m.y,zcenter-r);
 
     if(P.infinity) {
-      triple margin=(viewportfactor-1.0)*(abs(M.x-m.x),abs(M.y-m.y),0)
-        +(viewportmargin.x,viewportmargin.y,0);
+      triple margin=(viewportmargin.x,viewportmargin.y,0);
       M += margin; 
       m -= margin;
     } else if(M.z >= 0) abort("camera too close");

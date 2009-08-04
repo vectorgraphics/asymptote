@@ -457,24 +457,6 @@ double *copyTripleArray2Components(array *a, bool square=true, size_t dim2=0)
   return cx;
 }
 
-double norm(double *a, size_t n) 
-{
-  if(n == 0) return 0.0;
-  double M=fabs(a[0]);
-  for(size_t i=1; i < n; ++i)
-    M=::max(M,fabs(a[i]));
-  return M;
-}
-
-double norm(triple *a, size_t n) 
-{
-  if(n == 0) return 0.0;
-  double M=a[0].abs2();
-  for(size_t i=1; i < n; ++i)
-    M=::max(M,a[i].abs2());
-  return sqrt(M);
-}
-
 static const char *incommensurate="Incommensurate matrices";
 static const char *singular="Singular matrix";
 static size_t *pivot,*Row,*Col;
@@ -3231,30 +3213,14 @@ triple max3(picture *f)
   return f->bounds3().Max();
 }
 
-pair min(picture *f, realarray2 *t)
-{
-  real *T=copyArray2C(t,4);
-  pair m=f->bounds(::min,xproject,yproject,T);
-  delete[] T;
-  return m;
-}
-
-pair max(picture *f, realarray2 *t)
-{
-  real *T=copyArray2C(t,4);
-  pair M=f->bounds(::max,xproject,yproject,T);
-  delete[] T;
-  return M;
-}
-
 pair minratio(picture *f)
 {
-  return f->bounds(::min,xratio,yratio);
+  return f->ratio(::min);
 }
 
 pair maxratio(picture *f)
 {
-  return f->bounds(::max,xratio,yratio);
+  return f->ratio(::max);
 }
 
 triple minbezier(triplearray2 *P, triple b)
@@ -3277,44 +3243,34 @@ triple maxbezier(triplearray2 *P, triple b)
   return b;
 }
 
-pair minbezier(triplearray2 *P, realarray2 *t, pair b)
+pair minratio(triplearray2 *P, pair b)
 {
   triple *A=copyTripleArray2C(P,true,4);
-  real *T=copyArray2C(t,4);
   real fuzz=sqrtFuzz*norm(A,16);
-  b=pair(bound(A,::min,xproject,T,b.getx(),fuzz),
-         bound(A,::min,yproject,T,b.gety(),fuzz));
-  delete[] T;
+  b=pair(bound(A,::min,xratio,b.getx(),fuzz),
+         bound(A,::min,yratio,b.gety(),fuzz));
   delete[] A;
   return b;
 }
 
-pair maxbezier(triplearray2 *P, realarray2 *t, pair b)
+pair maxratio(triplearray2 *P, pair b)
 {
   triple *A=copyTripleArray2C(P,true,4);
-  real *T=copyArray2C(t,4);
   real fuzz=sqrtFuzz*norm(A,16);
-  b=pair(bound(A,::max,xproject,T,b.getx(),fuzz),
-         bound(A,::max,yproject,T,b.gety(),fuzz));
-  delete[] T;
+  b=pair(bound(A,::max,xratio,b.getx(),fuzz),
+         bound(A,::max,yratio,b.gety(),fuzz));
   delete[] A;
   return b;
 }
 
-pair max(path3 g, realarray2 *t)
+pair minratio(path3 g)
 {
-  real *T=copyArray2C(t,4);
-  pair b=g.bounds(::max,xproject,yproject,T);
-  delete[] T;
-  return b;
+  return g.ratio(::min);
 }
 
-pair min(path3 g, realarray2 *t)
+pair maxratio(path3 g)
 {
-  real *T=copyArray2C(t,4);
-  pair b=g.bounds(::min,xproject,yproject,T);
-  delete[] T;
-  return b;
+  return g.ratio(::max);
 }
 
 real change2(triplearray2 *a)

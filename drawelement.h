@@ -104,10 +104,8 @@ public:
   virtual void bounds(bbox&, iopipestream&, boxvector&, bboxlist&) {}
   virtual void bounds(bbox3&) {}
 
-  virtual void bounds(pair &b, double (*m)(double, double),
-                      double (*x)(const triple&, double*),
-                      double (*y)(const triple&, double*),
-                      double *t, bool &first){}
+  // Compute bounds on ratio (x,y)/z for 3d picture (not cached).
+  virtual void ratio(pair &b, double (*m)(double, double), bool &first){}
 
   virtual bool islabel() {return false;}
   

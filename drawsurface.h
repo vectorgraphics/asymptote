@@ -125,10 +125,7 @@ public:
   
   void bounds(bbox3& b);
   
-  void bounds(pair &b, double (*m)(double, double),
-              double (*x)(const triple&, double*),
-              double (*y)(const triple&, double*),
-              double *t, bool &first);
+  void ratio(pair &b, double (*m)(double, double), bool &first);
   
   virtual ~drawSurface() {
     if(havecolors)
@@ -144,6 +141,9 @@ public:
   drawElement *transformed(const vm::array& t);
 };
   
+double norm(double *a, size_t n);
+double norm(triple *a, size_t n);
+
 }
 
 #endif

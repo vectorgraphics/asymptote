@@ -191,16 +191,13 @@ bbox3 picture::bounds3()
   return b3;
 }
   
-pair picture::bounds(double (*m)(double, double),
-                     double (*x)(const triple&, double*),
-                     double (*y)(const triple&, double*),
-                     double *t)
+pair picture::ratio(double (*m)(double, double))
 {
   bool first=true;
   pair b;
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->bounds(b,m,x,y,t,first);
+    (*p)->ratio(b,m,first);
   }
   return b;
 }

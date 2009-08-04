@@ -308,10 +308,7 @@ public:
     return bounds().Min();
   }
   
-  pair bounds(double (*m)(double, double), 
-              double (*x)(const triple&, double*),
-              double (*y)(const triple&, double*), double *t) const;
-  
+  pair ratio(double (*m)(double, double)) const;
   
 // Increment count if the path3 has a vertical component at t.
   bool Count(Int& count, double t) const;
@@ -357,21 +354,18 @@ inline triple displacement(const triple& z, const triple& p, const triple& q)
   return Z-dot(Z,Q)*Q;
 }
   
-double xproject(const triple& v, double *t);
-double yproject(const triple& v, double *t);
-
-double xratio(const triple& v, double *t);
-double yratio(const triple& v, double *t);
+double xratio(const triple& v);
+double yratio(const triple& v);
 
 double bound(triple z0, triple c0, triple c1, triple z1,
              double (*m)(double, double),
-             double (*f)(const triple&, double*), double *t,
-             double b, double fuzz=sqrtFuzz, int depth=maxdepth);
+             double (*f)(const triple&),
+             double b, double fuzz, int depth=maxdepth);
 double bound(double *p, double (*m)(double, double),
-             double b, double fuzz=sqrtFuzz, int depth=maxdepth);
-double bound(triple *p, double (*m)(double, double),
-             double (*f)(const triple&, double*), double* t,
-             double b, double fuzz=sqrtFuzz, int depth=maxdepth);
+             double b, double fuzz, int depth=maxdepth);
+double bound(triple *P, double (*m)(double, double),
+             double (*f)(const triple&), double b, double fuzz,
+             int depth=maxdepth);
 }
 
 #ifndef BROKEN_COMPILER
