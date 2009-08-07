@@ -1026,6 +1026,17 @@ path3[] path3(explicit path[] g, triple plane(pair)=XYplane)
   return sequence(new path3(int i) {return path3(g[i],plane);},g.length);
 }
 
+path3 invert(path p, triple normal, triple point,
+             projection P=currentprojection)
+{
+  return path3(p,new triple(pair z) {return invert(z,normal,point,P);});
+}
+
+path3 invert(path p, projection P=currentprojection)
+{
+  return path3(p,new triple(pair z) {return invert(z,P);});
+}
+
 // Construct a path from a path3 by applying P to each control point.
 path path(path3 p, pair P(triple)=xypart)
 {
@@ -1990,7 +2001,7 @@ pair min(path3 p, projection P)
   path3 q=P.T.modelview*p;
   if(P.infinity)
     return xypart(min(q));
-  return maxratio(q)/P.T.projection[3][2]; // d is negative
+  return maxratio(q)/P.T.projection[3][2];
 }
 
 pair max(path3 p, projection P) 
@@ -1998,7 +2009,23 @@ pair max(path3 p, projection P)
   path3 q=P.T.modelview*p;
   if(P.infinity)
     return xypart(max(q));
-  return minratio(q)/P.T.projection[3][2]; // d is negative
+  return minratio(q)/P.T.projection[3][2];
+}
+
+pair min(frame f, projection P) 
+{
+  frame g=P.T.modelview*f;
+  if(P.infinity)
+    return xypart(min3(g));
+  return maxratio(g)/P.T.projection[3][2];
+}
+
+pair max(frame f, projection P) 
+{
+  frame g=P.T.modelview*f;
+  if(P.infinity)
+    return xypart(max3(g));
+  return minratio(g)/P.T.projection[3][2];
 }
 
 void draw(picture pic=currentpicture, Label L="", path3 g,

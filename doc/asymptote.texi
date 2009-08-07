@@ -1162,10 +1162,10 @@ the predefined arrowhead styles @code{DefaultHead}, @code{SimpleHead},
 real @code{size} (arrowhead size in @code{PostScript} coordinates),
 real @code{angle} (arrowhead angle
 in degrees), filltype @code{filltype} (one of @code{FillDraw}, @code{Fill},
-@code{NoFill}, @code{UnFill}, @code{Draw}) 
-and (except for @code{MidArrow} and @code{Arrows}) a
-relative real @code{position} along the path (an @code{arctime}) where
-the tip of the arrow should be placed. The default arrowhead size when drawn
+@code{NoFill}, @code{UnFill}, @code{Draw}) and (except for
+@code{MidArrow} and @code{Arrows}) a real @code{position} (in the
+sense of @code{point(path p, real t)}) along the path where the tip of
+the arrow should be placed. The default arrowhead size when drawn
 with a pen @code{p} is @code{arrowsize(p)}. There are also arrow versions with
 slightly modified default values of @code{size} and @code{angle} suitable for
 curved arrows: @code{BeginArcArrow}, @code{EndArcArrow} (or equivalently
@@ -1530,11 +1530,11 @@ void label(picture pic=currentpicture, Label L, path g, align align=NoAlign,
 @end verbatim
 @cindex @code{Relative}
 By default the label will be positioned at the midpoint of the path.
-An alternative label location (an @code{arctime} value between 0 and
-@code{length(g)} @pxref{arctime}) may be specified as a real value for
-@code{position} in constructing the Label. The position
-@code{Relative(real)} specifies a location relative to the total
-arclength of the path. These convenient abbreviations are predefined:
+An alternative label position (in the sense of @code{point(path p, real t)})
+may be specified as a real value for @code{position} in constructing
+the Label. The position @code{Relative(real)} specifies a location
+relative to the total arclength of the path. These convenient
+abbreviations are predefined:
 @cindex @code{BeginPoint}
 @cindex @code{MidPoint}
 @cindex @code{EndPoint}

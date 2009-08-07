@@ -1345,6 +1345,41 @@ surface extrude(Label L, triple axis=Z)
   return S;
 }
 
+surface labelsurface(Label L, surface s, real uoffset, real voffset,
+                     real height=0, bool bottom=false, bool top=true)
+{
+  path[] g=texpath(L);
+  pair M=max(g);
+  pair m=min(g);
+  pair lambda=M-m;
+  path[] G=bezulate(g);
+
+  path3 transpath(path p, real height) {
+    return path3(unstraighten(p),new triple(pair z) {
+        real v=uoffset+(z.x-m.x)/s.index[0].length;
+        real u=voffset+(z.y-m.y)/s.index.length;
+        return s.point(u,v)+height*unit(s.normal(u,v));
+      });
+  }
+
+  surface s;
+  for(path p : G) {
+    for(path g : regularize(p)) {
+      path3 b;
+      bool extrude=height > 0;
+      if(bottom || extrude) 
+        b=transpath(g,0);
+      if(bottom) s.s.push(patch(b));
+      if(top || extrude) {
+        path3 h=transpath(g,height);
+        if(top) s.s.push(patch(h));
+        if(extrude) s.append(extrude(b,h));
+      }
+    }
+  }
+  return s;
+}
+
 restricted surface nullsurface;
 
 private real a=4/3*(sqrt(2)-1);
