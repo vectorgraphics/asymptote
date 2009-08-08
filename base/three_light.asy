@@ -175,7 +175,7 @@ light White=light(new pen[] {rgb(0.38,0.38,0.45),rgb(0.6,0.6,0.67),
                              rgb(0.5,0.5,0.57)},specularfactor=3,viewport=false,
   new triple[] {(-2,-1.5,-0.5),(2,1.1,-2.5),(-0.5,0,2)});
 
-light Headlamp=light(gray(0.9),ambient=gray(0.1),specularfactor=3,
-                     (0.5,0.5,1/sqrt(2)),specular=gray(0.7));
+light Headlamp=light(gray(0.8),ambient=gray(0.1),specularfactor=3,
+                     dir(42,48),specular=gray(0.6));
 
 light nolight;
