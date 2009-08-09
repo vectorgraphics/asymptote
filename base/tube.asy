@@ -79,7 +79,7 @@ real degrees(Rmf a, Rmf b)
   return d%360;
 }
 
-private Rmf[] rmf(path3 g, Rmf U0=Rmf(O,O,O,0), real[] t)
+Rmf[] rmf(path3 g, Rmf U0=Rmf(O,O,O,0), real[] t)
 {
   if(U0.t == O) {
     triple d=dir(g,0);
