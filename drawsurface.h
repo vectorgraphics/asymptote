@@ -83,9 +83,9 @@ public:
       colors=new GLfloat[16];
       if(size != 4) reportError(wrongsize);
       storecolor(0,pens,0);
-      storecolor(4,pens,1);
+      storecolor(8,pens,1);
       storecolor(12,pens,2);
-      storecolor(8,pens,3);
+      storecolor(4,pens,3);
     }
 #endif    
     

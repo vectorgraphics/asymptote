@@ -1509,6 +1509,44 @@ path3[] segment(triple[] v, bool[] cond, interpolate3 join=operator --)
                   segment.length);
 }
 
+bool uperiodic(real[][] a) {
+  int n=a.length;
+  if(n == 0) return false;
+  int m=a[0].length;
+  real[] a0=a[0];
+  real[] a1=a[n-1];
+  for(int j=0; j < m; ++j)
+    if(abs(a0[j]-a1[j]) > epsilon) return false;
+  return true;
+}
+bool vperiodic(real[][] a) {
+  int n=a.length;
+  if(n == 0) return false;
+  int m=a[0].length-1;
+  for(int i=0; i < n; ++i)
+    if(abs(a[i][0]-a[i][m]) > epsilon) return false;
+  return true;
+}
+
+bool uperiodic(triple[][] a) {
+  int n=a.length;
+  if(n == 0) return false;
+  int m=a[0].length;
+  triple[] a0=a[0];
+  triple[] a1=a[n-1];
+  for(int j=0; j < m; ++j)
+    if(abs(a0[j]-a1[j]) > epsilon) return false;
+  return true;
+}
+bool vperiodic(triple[][] a) {
+  int n=a.length;
+  if(n == 0) return false;
+  int m=a[0].length-1;
+  for(int i=0; i < n; ++i)
+    if(abs(a[i][0]-a[i][m]) > epsilon) return false;
+  return true;
+}
+
 // return the surface described by a matrix f
 surface surface(triple[][] f, bool[][] cond={})
 {
@@ -1533,7 +1571,7 @@ surface surface(triple[][] f, bool[][] cond={})
   }
 
   surface s=surface(count);
-  s.index=new int[ny][nx];
+  s.index=new int[nx][ny];
   int k=-1;
   for(int i=0; i < nx; ++i) {
     bool[] condi,condp;
@@ -1543,12 +1581,17 @@ surface surface(triple[][] f, bool[][] cond={})
     }
     triple[] fi=f[i];
     triple[] fp=f[i+1];
+    int[] indexi=s.index[i];
     for(int j=0; j < ny; ++j) {
       if(all || (condi[j] && condi[j+1] && condp[j] && condp[j+1]))
         s.s[++k]=patch(new triple[] {fi[j],fp[j],fp[j+1],fi[j+1]});
-        s.index[j][i]=k;
+        indexi[j]=k;
       }
   }
+
+  if(uperiodic(f)) s.ucyclic(true);
+  if(vperiodic(f)) s.vcyclic(true);
+  
   return s;
 }
 
@@ -1575,7 +1618,7 @@ private surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
   }
 
   surface s=surface(count);
-  s.index=new int[m][n];
+  s.index=new int[n][m];
   int k=-1;
   for(int i=0; i < n; ++i) {
     bool[] condi=all ? null : cond[i];
@@ -1590,6 +1633,7 @@ private surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
     real[] qp=q[i+1];
     real xp=x[i+1];
     real hx=(xp-xi)/3;
+    int[] indexi=s.index[i];
     for(int j=0; j < m; ++j) {
       real yj=y[j];
       real yp=y[j+1];
@@ -1599,39 +1643,40 @@ private surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
         real hxy=hx*hy;
         // first x and y  directions
         for(int k=0; k < 4; ++k) {
-          P[k][0] += xi*X;
-          P[0][k] += yj*Y;
-          P[k][1] += (xp+2*xi)/3*X;
-          P[1][k] += (yp+2*yj)/3*Y;
-          P[k][2] += (2*xp+xi)/3*X;
-          P[2][k] += (2*yp+yj)/3*Y;
-          P[k][3] += xp*X;
-          P[3][k] += yp*Y;
+          P[0][k] += xi*X;
+          P[k][0] += yj*Y;
+          P[1][k] += (xp+2*xi)/3*X;
+          P[k][1] += (yp+2*yj)/3*Y;
+          P[2][k] += (2*xp+xi)/3*X;
+          P[k][2] += (2*yp+yj)/3*Y;
+          P[3][k] += xp*X;
+          P[k][3] += yp*Y;
         }
         // now z, first the value 
         P[0][0] += zi[j]*Z;
-        P[0][3] += zp[j]*Z;
-        P[3][0] += zi[j+1]*Z;
+        P[3][0] += zp[j]*Z;
+        P[0][3] += zi[j+1]*Z;
         P[3][3] += zp[j+1]*Z;
         // 2nd, first derivative
-        P[0][1] += (P[0][0].z+hx*pi[j])*Z;
-        P[3][1] += (P[3][0].z+hx*pi[j+1])*Z;
-        P[0][2] += (P[0][3].z-hx*pp[j])*Z;
-        P[3][2] += (P[3][3].z-hx*pp[j+1])*Z;
-        P[1][0] += (P[0][0].z+hy*qi[j])*Z;
-        P[1][3] += (P[0][3].z+hy*qp[j])*Z;
-        P[2][0] += (P[3][0].z-hy*qi[j+1])*Z;
-        P[2][3] += (P[3][3].z-hy*qp[j+1])*Z;
+        P[1][0] += (P[0][0].z+hx*pi[j])*Z;
+        P[1][3] += (P[0][3].z+hx*pi[j+1])*Z;
+        P[2][0] += (P[3][0].z-hx*pp[j])*Z;
+        P[2][3] += (P[3][3].z-hx*pp[j+1])*Z;
+        P[0][1] += (P[0][0].z+hy*qi[j])*Z;
+        P[3][1] += (P[3][0].z+hy*qp[j])*Z;
+        P[0][2] += (P[0][3].z-hy*qi[j+1])*Z;
+        P[3][2] += (P[3][3].z-hy*qp[j+1])*Z;
         // 3nd, second derivative
-        P[1][1] += (P[1][0].z+P[0][1].z-P[0][0].z+hxy*ri[j])*Z;
-        P[2][1] += (P[2][0].z+P[3][1].z-P[3][0].z-hxy*ri[j+1])*Z;
-        P[1][2] += (P[0][2].z+P[1][3].z-P[0][3].z-hxy*rp[j])*Z;
-        P[2][2] += (P[3][2].z+P[2][3].z-P[3][3].z+hxy*rp[j+1])*Z;
+        P[1][1] += (P[0][1].z+P[1][0].z-P[0][0].z+hxy*ri[j])*Z;
+        P[1][2] += (P[0][2].z+P[1][3].z-P[0][3].z-hxy*ri[j+1])*Z;
+        P[2][1] += (P[2][0].z+P[3][1].z-P[3][0].z-hxy*rp[j])*Z;
+        P[2][2] += (P[2][3].z+P[3][2].z-P[3][3].z+hxy*rp[j+1])*Z;
         s.s[++k]=patch(P);
-        s.index[j][i]=k;
+        indexi[j]=k;
       }
     }
   }
+  
   return s;
 }
 
@@ -1661,7 +1706,10 @@ surface surface(real[][] f, real[] x, real[] y,
   real[][] p=transpose(tp);
   for(int i=0; i < n; ++i)
     r[i]=clamped(d1[i],d2[i])(y,p[i]);
-  return bispline(f,p,q,r,x,y,cond);
+  surface s=bispline(f,p,q,r,x,y,cond);
+  if(xsplinetype == periodic) s.ucyclic(true);
+  if(ysplinetype == periodic) s.vcyclic(true);
+  return s;
 }
 
 // return the surface described by a real matrix f, interpolated with
@@ -1774,22 +1822,12 @@ surface surface(triple f(pair z), real[] u, real[] v,
   real epsilon=sqrtEpsilon*norm;
 
   if(usplinetype.length == 0) {
-    bool uperiodic(real[][] a) {
-      for(int j=0; j < nv; ++j)
-        if(abs(a[0][j]-a[nu][j]) > epsilon) return false;
-      return true;
-    }
     usplinetype=new splinetype[] {uperiodic(fx) ? periodic : notaknot,
                                   uperiodic(fy) ? periodic : notaknot,
                                   uperiodic(fz) ? periodic : notaknot};
   } else if(usplinetype.length != 3) abort("usplinetype must have length 3");
 
   if(vsplinetype.length == 0) {
-    bool vperiodic(real[][] a) {
-      for(int i=0; i < nu; ++i)
-        if(abs(a[i][0]-a[i][nv]) > epsilon) return false;
-      return true;
-    }
     vsplinetype=new splinetype[] {vperiodic(fx) ? periodic : notaknot,
                                   vperiodic(fy) ? periodic : notaknot,
                                   vperiodic(fz) ? periodic : notaknot};
@@ -1800,14 +1838,14 @@ surface surface(triple f(pair z), real[] u, real[] v,
   surface sz=surface(fz,ipt,jpt,usplinetype[2],vsplinetype[2],active);
 
   surface s=surface(sx.s.length);
-  s.index=new int[nv][nu];
+  s.index=new int[nu][nv];
   int k=-1;
   for(int i=0; i < nu; ++i) {
-    for(int j=0; j < nv; ++j) {
-      s.index[j][i]=++k;
-    }
+    int[] indexi=s.index[i];
+    for(int j=0; j < nv; ++j)
+      indexi[j]=++k;
   }
-  
+
   for(int k=0; k < sx.s.length; ++k) {
     triple[][] Q=new triple[4][];
     for(int i=0; i < 4 ; ++i)
@@ -1816,6 +1854,13 @@ surface surface(triple f(pair z), real[] u, real[] v,
         },4);
     s.s[k]=patch(Q);
   }
+
+  if(usplinetype[0] == periodic && usplinetype[1] == periodic &&
+     usplinetype[1] == periodic) s.ucyclic(true);
+
+  if(vsplinetype[0] == periodic && vsplinetype[1] == periodic &&
+     vsplinetype[1] == periodic) s.vcyclic(true);
+  
   return s;
 }
 

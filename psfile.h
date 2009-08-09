@@ -268,7 +268,7 @@ public:
   
   void latticeshade(const vm::array& a, const bbox& b);
   
-  void gradientshade(bool axial, const ColorSpace& colorspace,
+  void gradientshade(bool axial, ColorSpace colorspace,
                      const pen& pena, const pair& a, double ra,
                      const pen& penb, const pair& b, double rb);
   
@@ -276,7 +276,9 @@ public:
                     const vm::array& edges);
   void tensorshade(const vm::array& pens, const vm::array& boundaries,
                    const vm::array& z);
-
+  
+  void vertexpen(vm::array *pi, int j, ColorSpace colorspace);
+  
   void imageheader(size_t width, size_t height, ColorSpace colorspace);
   
   void image(const vm::array& a, const vm::array& p, bool antialias);

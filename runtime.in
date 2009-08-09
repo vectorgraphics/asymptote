@@ -4256,6 +4256,11 @@ triple cross(triple u, triple v)
   return cross(u,v);
 }
 
+triple dir(explicit triple z)
+{
+  return unit(z);
+}
+
 triple expi(real polar, real azimuth)
 {
   return expi(polar,azimuth);

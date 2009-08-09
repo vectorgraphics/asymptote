@@ -261,10 +261,10 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
     }
     static GLfloat bezier[]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
     gluBeginSurface(nurb);
-    gluNurbsSurface(nurb,8,bezier,8,bezier,3,12,c,4,4,GL_MAP2_VERTEX_3);
+    gluNurbsSurface(nurb,8,bezier,8,bezier,12,3,c,4,4,GL_MAP2_VERTEX_3);
     if(havecolors) {
       static GLfloat linear[]={0.0,0.0,1.0,1.0};
-      gluNurbsSurface(nurb,4,linear,4,linear,4,8,colors,2,2,GL_MAP2_COLOR_4);
+      gluNurbsSurface(nurb,4,linear,4,linear,8,4,colors,2,2,GL_MAP2_COLOR_4);
     }
     
     gluEndSurface(nurb);
@@ -276,14 +276,14 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
       glColor4fv(colors);
     glVertex3fv(c);
     if(havecolors) 
-      glColor4fv(colors+4);
-    glVertex3fv(c+9);
+      glColor4fv(colors+8);
+    glVertex3fv(c+36);
     if(havecolors) 
       glColor4fv(colors+12);
     glVertex3fv(c+45);
     if(havecolors) 
-      glColor4fv(colors+8);
-    glVertex3fv(c+36);
+      glColor4fv(colors+4);
+    glVertex3fv(c+9);
     glEnd();
   }
   

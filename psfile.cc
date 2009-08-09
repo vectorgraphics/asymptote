@@ -345,7 +345,7 @@ void psfile::latticeshade(const vm::array& a, const bbox& b)
 }
 
 // Axial and radial shading
-void psfile::gradientshade(bool axial, const ColorSpace &colorspace,
+void psfile::gradientshade(bool axial, ColorSpace colorspace,
                            const pen& pena, const pair& a, double ra,
                            const pen& penb, const pair& b, double rb)
 {
@@ -406,6 +406,16 @@ void psfile::gouraudshade(const array& pens, const array& vertices,
        << "shfill" << newl;
 }
  
+void psfile::vertexpen(array *pi, int j, ColorSpace colorspace)
+{
+  pen *p=read<pen *>(pi,j);
+  p->convert();
+  if(!p->promote(colorspace))
+    reportError(inconsistent);
+  *out << " ";
+  write(*p);
+}
+
 // Tensor-product patch shading
 void psfile::tensorshade(const array& pens, const array& boundaries,
                          const array& z)
@@ -435,10 +445,10 @@ void psfile::tensorshade(const array& pens, const array& boundaries,
     path g=read<path>(boundaries,i);
     if(!(g.cyclic() && g.size() == 4))
       reportError("specify cyclic path of length 4");
-    for(Int j=0; j < 4; ++j) {
+    for(Int j=4; j > 0; --j) {
       write(g.point(j));
-      write(g.postcontrol(j));
-      write(g.precontrol(j+1));
+      write(g.precontrol(j));
+      write(g.postcontrol(j-1));
     }
     if(nz == 0) { // Coons patch
       static double nineth=1.0/9.0;
@@ -452,21 +462,19 @@ void psfile::tensorshade(const array& pens, const array& boundaries,
       array *zi=read<array *>(z,i);
       if(checkArray(zi) != 4)
         reportError("specify 4 internal control points for each path");
-      for(Int j=0; j < 4; ++j)
-        write(read<pair>(zi,j));
+      write(read<pair>(zi,0));
+      write(read<pair>(zi,3));
+      write(read<pair>(zi,2));
+      write(read<pair>(zi,1));
     }
     
     array *pi=read<array *>(pens,i);
     if(checkArray(pi) != 4)
       reportError("specify 4 pens for each path");
-    for(Int j=0; j < 4; ++j) {
-      pen *p=read<pen *>(pi,j);
-      p->convert();
-      if(!p->promote(colorspace))
-        reportError(inconsistent);
-      *out << " ";
-      write(*p);
-    }
+    vertexpen(pi,0,colorspace);
+    vertexpen(pi,3,colorspace);
+    vertexpen(pi,2,colorspace);
+    vertexpen(pi,1,colorspace);
     *out << newl;
   }
   

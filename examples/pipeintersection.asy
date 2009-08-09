@@ -1,7 +1,6 @@
 import graph3;
 
 currentprojection=orthographic(5,4,2);
-currentlight=Headlamp;
 
 size(12cm,0);
 

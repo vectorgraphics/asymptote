@@ -2,6 +2,8 @@ import graph3;
 import grid3;
 import palette;
 
+currentlight=Viewport;
+
 if(settings.render <= 0) settings.prc=false;
 
 currentprojection=orthographic(1,2,13);

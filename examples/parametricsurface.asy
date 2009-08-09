@@ -11,12 +11,13 @@ triple f(pair t) {
 }
 
 pen p=rgb(0.2,0.5,0.7);
+surface s=surface(f,(0,0),(2pi,2pi),8,8,Spline);
 
 // surface only
-draw(surface(f,(0,0),(2pi,2pi),8,8,Spline),lightgray);
+draw(s,lightgray);
 
 // mesh only
-//draw(surface(f,(0,0),(2pi,2pi),8,8,Spline),nullpen,meshpen=p);
+// draw(s,nullpen,meshpen=p);
 
 // surface & mesh
-//draw(surface(f,(0,0),(2pi,2pi),8,8,Spline),lightgray,meshpen=p);
+// draw(s,lightgray,meshpen=p);

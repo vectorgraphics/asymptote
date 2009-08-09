@@ -15,24 +15,24 @@ struct patch {
 
   path3 external() {
     return
-      P[0][0]..controls P[0][1] and P[0][2]..
-      P[0][3]..controls P[1][3] and P[2][3]..
-      P[3][3]..controls P[3][2] and P[3][1]..
-      P[3][0]..controls P[2][0] and P[1][0]..cycle;
+      P[0][0]..controls P[1][0] and P[2][0]..
+      P[3][0]..controls P[3][1] and P[3][2]..
+      P[3][3]..controls P[2][3] and P[1][3]..
+      P[0][3]..controls P[0][2] and P[0][1]..cycle;
   }
 
   triple[] internal() {
-    return new triple[] {P[1][1],P[1][2],P[2][2],P[2][1]};
+    return new triple[] {P[1][1],P[2][1],P[2][2],P[1][2]};
   }
 
   triple cornermean() {
-    return 0.25*(P[0][0]+P[0][3]+P[3][3]+P[3][0]);
+    return 0.25*(P[0][0]+P[0][3]+P[3][0]+P[3][3]);
   }
 
-  triple[] corners() {return new triple[] {P[0][0],P[0][3],P[3][3],P[3][0]};}
+  triple[] corners() {return new triple[] {P[0][0],P[3][0],P[3][3],P[0][3]};}
 
   real[] map(real f(triple)) {
-    return new real[] {f(P[0][0]),f(P[0][3]),f(P[3][3]),f(P[3][0])};
+    return new real[] {f(P[0][0]),f(P[3][0]),f(P[3][3]),f(P[0][3])};
   }
 
   triple Bu(int j, real u) {return bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
@@ -65,56 +65,56 @@ struct patch {
 
   // compute normal vectors for degenerate cases
   private triple normal0(real u, real v, real epsilon) {
-    triple n=0.5*(cross(bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u),
-                        bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v))+
-                  cross(bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u),   
-                        bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v)));
+    triple n=0.5*(cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),
+                        bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))+
+                  cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
+                        bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u)));
     return abs(n) > epsilon ? n :
-      0.25*cross(bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u),   
-                 bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v))+
-      1/6*(cross(bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u),
-                 bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v))+
-           cross(bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u),   
-                 bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v)))+
-      1/12*(cross(bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u),
-                  bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v))+
-            cross(bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u),   
-                  bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v)))+
-      1/36*cross(bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u),   
-                 bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v));
+      0.25*cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),   
+                 bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u))+
+      1/6*(cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),   
+                 bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u))+
+           cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
+                 bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u)))+
+      1/12*(cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),
+                  bezier(BvPP(0,v),BvPP(1,v),BvPP(2,v),BvPP(3,v),u))+
+            cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),   
+                  bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u)))+
+      1/36*cross(bezier(BuPPP(0),BuPPP(1),BuPPP(2),BuPPP(3),v),   
+                 bezier(BvPPP(0),BvPPP(1),BvPPP(2),BvPPP(3),u));
   }
 
   static real fuzz=1000*realEpsilon;
 
   triple normal(real u, real v) {
-    triple n=cross(bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u),
-                   bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v));
+    triple n=cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),
+                   bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u));
     real epsilon=fuzz*change2(P);
     return (abs(n) > epsilon) ? n : normal0(u,v,epsilon);
   }
   
   triple normal00() {
-    triple n=9*cross(P[0][1]-P[0][0],P[1][0]-P[0][0]);
+    triple n=9*cross(P[1][0]-P[0][0],P[0][1]-P[0][0]);
     real epsilon=fuzz*change2(P);
     return abs(n) > epsilon ? n : normal0(0,0,epsilon);
   }
 
-  triple normal01() {
-    triple n=9*cross(P[0][3]-P[0][2],P[1][3]-P[0][3]);
+  triple normal10() {
+    triple n=9*cross(P[3][0]-P[2][0],P[3][1]-P[3][0]);
     real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normal0(0,1,epsilon);
+    return abs(n) > epsilon ? n : normal0(1,0,epsilon);
   }
 
   triple normal11() {
-    triple n=9*cross(P[3][3]-P[3][2],P[3][3]-P[2][3]);
+    triple n=9*cross(P[3][3]-P[2][3],P[3][3]-P[3][2]);
     real epsilon=fuzz*change2(P);
     return abs(n) > epsilon ? n : normal0(1,1,epsilon);
   }
 
-  triple normal10() {
-    triple n=9*cross(P[3][1]-P[3][0],P[3][0]-P[2][0]);
+  triple normal01() {
+    triple n=9*cross(P[1][3]-P[0][3],P[0][3]-P[0][2]);
     real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normal0(1,0,epsilon);
+    return abs(n) > epsilon ? n : normal0(0,1,epsilon);
   }
 
   pen[] colors(material m, light light=currentlight) {
@@ -132,9 +132,9 @@ struct patch {
           light.color(normal,nocolors ? m : colors[3])};
     }
     return new pen[] {light.color(normal00(),nocolors ? m : colors[0]),
-        light.color(normal01(),nocolors ? m : colors[1]),
+        light.color(normal10(),nocolors ? m : colors[1]),
         light.color(normal11(),nocolors ? m : colors[2]),
-        light.color(normal10(),nocolors ? m : colors[3])};
+        light.color(normal01(),nocolors ? m : colors[3])};
   }
   
   triple min3,max3;
@@ -250,11 +250,11 @@ struct patch {
     } else straight=false;
 
     P=new triple[][] {
-      {point(external,0),postcontrol(external,0),precontrol(external,1),
-       point(external,1)},
-      {precontrol(external,0),internal[0],internal[1],postcontrol(external,1)},
-      {postcontrol(external,3),internal[3],internal[2],precontrol(external,2)},
-      {point(external,3),precontrol(external,3),postcontrol(external,2),
+      {point(external,0),precontrol(external,0),postcontrol(external,3),
+       point(external,3)},
+      {postcontrol(external,0),internal[0],internal[3],precontrol(external,3)},
+      {precontrol(external,1),internal[1],internal[2],postcontrol(external,2)},
+      {point(external,1),postcontrol(external,1),precontrol(external,2),
        point(external,2)}
     };
   }
@@ -288,10 +288,10 @@ struct patch {
       delta[j]=(external[(j+1)% 4]-external[j])/3;
 
     P=new triple[][] {
-      {external[0],external[0]+delta[0],external[1]-delta[0],external[1]},
-      {external[0]-delta[3],internal[0],internal[1],external[1]+delta[1]},
-      {external[3]+delta[3],internal[3],internal[2],external[2]-delta[1]},
-      {external[3],external[3]-delta[2],external[2]+delta[2],external[2]}
+      {external[0],external[0]-delta[3],external[3]+delta[3],external[3]},
+      {external[0]+delta[0],internal[0],internal[3],external[3]-delta[2]},
+      {external[1]-delta[0],internal[1],internal[2],external[2]+delta[2]},
+      {external[1],external[1]+delta[1],external[2]-delta[1],external[2]}
     };
   }
 }
@@ -351,10 +351,10 @@ pair[][] coons(path p)
   }
     
   return new pair[][] {
-    {point(p,0),postcontrol(p,0),precontrol(p,1),point(p,1)},
-      {precontrol(p,0),internal[0],internal[1],postcontrol(p,1)},
-        {postcontrol(p,3),internal[3],internal[2],precontrol(p,2)},
-          {point(p,3),precontrol(p,3),postcontrol(p,2),point(p,2)}
+    {point(p,0),precontrol(p,0),postcontrol(p,3),point(p,3)},
+      {postcontrol(p,0),internal[0],internal[3],precontrol(p,3)},
+        {precontrol(p,1),internal[1],internal[2],postcontrol(p,2)},
+          {point(p,1),postcontrol(p,1),precontrol(p,2),point(p,2)}
   };
 }
 
@@ -463,11 +463,11 @@ path[] regularize(path p, bool checkboundary=true)
   for(int p=0; p < 6; ++p) {
     for(int q=0; q < 6; ++q) {
       if(aligned == default) {
-        if(T[p][q] < -sqrtEpsilon) aligned=true;
-        if(T[p][q] > sqrtEpsilon) aligned=false;
+        if(T[p][q] > sqrtEpsilon) aligned=true;
+        if(T[p][q] < -sqrtEpsilon) aligned=false;
       } else {
-        if((T[p][q] < -sqrtEpsilon && aligned == false) ||
-           (T[p][q] > sqrtEpsilon && aligned == true)) degenerate=true;
+        if((T[p][q] > sqrtEpsilon && aligned == false) ||
+           (T[p][q] < -sqrtEpsilon && aligned == true)) degenerate=true;
       }
     }
   }
@@ -566,6 +566,7 @@ path[] regularize(path p, bool checkboundary=true)
 struct surface {
   patch[] s;
   int index[][];
+  bool vcyclic;
   
   bool empty() {
     return s.length == 0;
@@ -584,6 +585,7 @@ struct surface {
     for(int i=0; i < s.s.length; ++i)
       this.s[i]=patch(s.s[i]);
     this.index=copy(s.index);
+    this.vcyclic=s.vcyclic;
   }
 
   void operator init(triple[][][] P, triple[][] normals=new triple[][],
@@ -595,10 +597,8 @@ struct surface {
   }
 
   void colors(pen[][] palette) {
-    for(int i=0; i < s.length; ++i) {
-      pen[] palettei=palette[i];
-      s[i].colors=new pen[] {palettei[0],palettei[1],palettei[2],palettei[3]};
-    }
+    for(int i=0; i < s.length; ++i)
+      s[i].colors=copy(palette[i]);
   }
 
   triple[][] corners() {
@@ -633,6 +633,28 @@ struct surface {
     return s[index].normal(u-U,v-V);
   }
   
+  void ucyclic(bool f) 
+  {
+    index.cyclic=f;
+  }
+  
+  void vcyclic(bool f) 
+  {
+    for(int[] i : index)
+      i.cyclic=f;
+    vcyclic=f;
+  }
+  
+  bool ucyclic() 
+  {
+    return index.cyclic;
+  }
+  
+  bool vcyclic() 
+  {
+    return vcyclic;
+  }
+
   path3 uequals(real u) {
     if(index.length == 0) return nullpath3;
     int U=floor(u);
@@ -640,7 +662,7 @@ struct surface {
     path3 g;
     for(int i : index)
       g=g&s[i].uequals(u-U);
-    return g;
+    return vcyclic() ? g&cycle : g;
   }
   
   path3 vequals(real v) {
@@ -649,7 +671,7 @@ struct surface {
     path3 g;
     for(int[] i : index)
       g=g&s[i[V]].vequals(v-V);
-    return g;
+    return ucyclic() ? g&cycle : g;
   }
   
   // A constructor for a possibly nonconvex cyclic path in a given plane.
@@ -770,7 +792,7 @@ struct surface {
   // An optional surface pen color(int i, real j) may be specified
   // to override the color at vertex(i,j).
   void operator init(triple c, path3 g, triple axis, int n=nslice,
-                     real angle1=0, real angle2= 360,
+                     real angle1=0, real angle2=360,
                      pen color(int i, real j)=null) {
     axis=unit(axis);
     real w=(angle2-angle1)/n;
@@ -810,14 +832,16 @@ struct surface {
       for(int k=0; k < n; ++k, j += w) {
         transform3 Tp=T[k+1];
         triple dirp=dir(j+w);
-        path3 G=Tk*h{dirj}..{dirp}Tp*r{-dirp}..{-dirj}cycle;
+        path3 G=reverse(Tk*h{dirj}..{dirp}Tp*r{-dirp}..{-dirj}cycle);
         Tk=Tp;
         dirj=dirp;
         s[++m]=color == null ? patch(G) :
-          patch(G,new pen[] {color(i,j),color(i+1,j),color(i+1,j+w),
-                             color(i,j+w)});
+          patch(G,new pen[] {color(i,j),color(i,j+w),color(i+1,j+w),
+                             color(i+1,j)});
         index[k][i]=m;
       }
+      ucyclic((angle2-angle1) % 360 == 0);
+      vcyclic(cyclic(g));
     }
   }
 
@@ -842,6 +866,8 @@ surface operator * (transform3 t, surface s)
   for(int i=0; i < s.s.length; ++i)
     S.s[i]=t*s.s[i];
   S.index=copy(s.index);
+  S.vcyclic=(bool) s.vcyclic;
+  
   return S;
 }
 
@@ -952,10 +978,11 @@ triple[][] subpatchend(triple[][] P, real u, real v)
           {c4[2],c5[2],c6[2],c7[2]}};
 }
 
-patch subpatch(patch s, real ua, real va, real ub, real vb)
+patch subpatch(patch s, pair a, pair b)
 {
-  assert(ua >= 0 && va >= 0 && ub <= 1 && vb <= 1 && ua < ub && va < vb);
-  return patch(subpatchbegin(subpatchend(s.P,ub,vb),ua/ub,va/vb),
+  assert(a.x >= 0 && a.y >= 0 && b.x <= 1 && b.y <= 1 &&
+         a.x < b.x && a.y < b.y);
+  return patch(subpatchbegin(subpatchend(s.P,b.x,b.y),a.x/b.x,a.y/b.y),
                s.straight,s.planar);
 }
 
@@ -1345,19 +1372,30 @@ surface extrude(Label L, triple axis=Z)
   return S;
 }
 
+restricted surface nullsurface;
+
 surface labelsurface(Label L, surface s, real uoffset, real voffset,
                      real height=0, bool bottom=false, bool top=true)
 {
+  int nu=s.index.length;
+  if(nu == 0) return nullsurface;
+  int nv=s.index[0].length;
+  if(nv == 0) return nullsurface;
+
   path[] g=texpath(L);
-  pair M=max(g);
   pair m=min(g);
-  pair lambda=M-m;
+  pair M=max(g);
+  pair lambda=inverse(L.T*scale(nu-epsilon,nv-epsilon))*(M-m);
+  lambda=(abs(lambda.x),abs(lambda.y));
   path[] G=bezulate(g);
 
   path3 transpath(path p, real height) {
     return path3(unstraighten(p),new triple(pair z) {
-        real v=uoffset+(z.x-m.x)/s.index[0].length;
-        real u=voffset+(z.y-m.y)/s.index.length;
+        real u=uoffset+(z.x-m.x)/lambda.x;
+        real v=voffset+(z.y-m.y)/lambda.y;
+        if(((u < 0 || u >= nu) && !s.ucyclic()) ||
+           ((v < 0 || v >= nv) && !s.vcyclic()))
+          abort("cannot fit string to surface");
         return s.point(u,v)+height*unit(s.normal(u,v));
       });
   }
@@ -1380,17 +1418,15 @@ surface labelsurface(Label L, surface s, real uoffset, real voffset,
   return s;
 }
 
-restricted surface nullsurface;
-
 private real a=4/3*(sqrt(2)-1);
 private transform3 t1=rotate(90,O,Z);
 private transform3 t2=t1*t1;
 private transform3 t3=t2*t1;
 private transform3 i=xscale3(-1)*zscale3(-1);
 
-restricted patch octant1=patch(X{Z}..{-X}Z..Z{Y}..{-Z}Y{X}..{-Y}cycle,
-                               new triple[] {(1,a,a),(a,a^2,1),(a^2,a,1),
-                                             (a,1,a)});
+restricted patch octant1=patch(X{Y}..{-X}Y{Z}..{-Y}Z..Z{X}..{-Z}cycle,
+                               new triple[] {(1,a,a),(a,1,a),(a^2,a,1),
+                                             (a,a^2,1)});
 
 restricted surface unithemisphere=surface(octant1,t1*octant1,t2*octant1,
                                           t3*octant1);
@@ -1402,10 +1438,10 @@ restricted patch unitfrustum(real t1, real t2)
 {
   real s1=interp(t1,t2,1/3);
   real s2=interp(t1,t2,2/3);
-  return patch(interp(Z,X,t2)--interp(Z,X,t1){Y}..{-X}interp(Z,Y,t1)--
-               interp(Z,Y,t2){X}..{-Y}cycle,
-               new triple[] {(s2,s2*a,1-s2),(s1,s1*a,1-s1),(s1*a,s1,1-s1),
-                                          (s2*a,s2,1-s2)});
+  return patch(interp(Z,X,t2){Y}..{-X}interp(Z,Y,t2)--interp(Z,Y,t1){X}..{-Y}
+               interp(Z,X,t1)--cycle,
+               new triple[] {(s2,s2*a,1-s2),(s2*a,s2,1-s2),(s1*a,s1,1-s1),
+                                          (s1,s1*a,1-s1)});
 }
 
 // Return a unitcone constructed from n frusta (the final one being degenerate)
@@ -1427,7 +1463,7 @@ surface unitcone(int n=6)
 restricted surface unitcone=unitcone();
 restricted surface unitsolidcone=surface(patch(unitcircle3)...unitcone.s);
 
-private patch unitcylinder1=patch(X--X+Z{Y}..{-X}Y+Z--Y{X}..{-Y}cycle);
+private patch unitcylinder1=patch(X{Y}..{-X}Y--Y+Z{X}..{-Y}X+Z--cycle);
 
 restricted surface unitcylinder=surface(unitcylinder1,t1*unitcylinder1,
                                         t2*unitcylinder1,t3*unitcylinder1);

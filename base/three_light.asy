@@ -92,7 +92,7 @@ struct light {
                      pen[] ambient=array(diffuse.length,black),
                      pen[] specular=diffuse, pen background=nullpen,
                      real specularfactor=1,
-                     bool viewport=true, triple[] position) {
+                     bool viewport=false, triple[] position) {
     int n=diffuse.length;
     assert(ambient.length == n && specular.length == n && position.length == n);
     
@@ -113,14 +113,14 @@ struct light {
 
   void operator init(pen diffuse=white, pen ambient=black, pen specular=diffuse,
                      pen background=nullpen, real specularfactor=1,
-                     bool viewport=true...triple[] position) {
+                     bool viewport=false...triple[] position) {
     int n=position.length;
     operator init(array(n,diffuse),array(n,ambient),array(n,specular),
                   background,specularfactor,viewport,position);
   }
 
   void operator init(pen diffuse=white, pen ambient=black, pen specular=diffuse,
-                     pen background=nullpen, bool viewport=true,
+                     pen background=nullpen, bool viewport=false,
                      real x, real y, real z) {
     operator init(diffuse,ambient,specular,background,viewport,(x,y,z));
   }
@@ -168,14 +168,16 @@ light operator * (transform3 t, light light)
 
 light operator cast(triple v) {return light(v);}
 
-light currentlight=light(ambient=gray(0.1),specularfactor=3,
-                         (0.25,-0.25,1));
+light Viewport=light(ambient=gray(0.1),specularfactor=3,viewport=true,
+                     (0.25,-0.25,1));
 
 light White=light(new pen[] {rgb(0.38,0.38,0.45),rgb(0.6,0.6,0.67),
-                             rgb(0.5,0.5,0.57)},specularfactor=3,viewport=false,
+                             rgb(0.5,0.5,0.57)},specularfactor=3,
   new triple[] {(-2,-1.5,-0.5),(2,1.1,-2.5),(-0.5,0,2)});
 
-light Headlamp=light(gray(0.8),ambient=gray(0.1),specularfactor=3,
-                     dir(42,48),specular=gray(0.6));
+light Headlamp=light(gray(0.8),ambient=gray(0.1),specular=gray(0.7),
+                     specularfactor=3,viewport=true,dir(42,48));
+
+light currentlight=Headlamp;
 
 light nolight;

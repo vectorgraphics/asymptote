@@ -16,7 +16,8 @@ real defaultgranularity=0;
 real linegranularity=0.01;
 real tubegranularity=0.003;
 real dotgranularity=0.0001;
-real angleprecision=1e-5;    // Precision for centering perspective projections.
+real angleprecision=1e-5; // Precision for centering perspective projections.
+real rendermargin=0.02;
 
 string defaultembed3Doptions;
 string defaultembed3Dscript;
@@ -2663,7 +2664,8 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
     } else if(M.z >= 0) abort("camera too close");
 
     shipout3(prefix,f,preview ? nativeformat() : format,
-             S.width,S.height,P.infinity ? 0 : 2aTan(Tan(0.5*angle)*P.zoom),
+             S.width-rendermargin,S.height-rendermargin,
+             P.infinity ? 0 : 2aTan(Tan(0.5*angle)*P.zoom),
              P.zoom,m,M,P.viewportshift,
              tinv*inverse(modelview)*shift(0,0,zcenter),light.background(),
              P.absolute ? (modelview*light).position : light.position,
@@ -2686,7 +2688,7 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
               "PRC does not support off-axis projections; use pan instead of
 shift");
     F.L=embed3D(label,text=image,prefix,S.f,format,
-                S.width,S.height,angle,options,script,light,Q);
+                S.width-2,S.height-2,angle,options,script,light,Q);
   }
   return F;
 }
