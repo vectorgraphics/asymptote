@@ -401,6 +401,14 @@ struct transformation {
   transform3 compute() {
     return projection*modelview;
   }
+  transformation copy() {
+    transformation T=new transformation;
+    T.modelview=copy(modelview);
+    T.projection=copy(projection);
+    T.infinity=infinity;
+    T.oblique=oblique;
+    return T;
+  }
 }
 
 struct projection {
@@ -468,6 +476,7 @@ struct projection {
     P.center=center;
     P.projector=projector;
     P.ninterpolate=ninterpolate;
+    P.T=T.copy();
     return P;
   }
 

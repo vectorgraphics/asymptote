@@ -4,7 +4,7 @@ settings.loop=true;
 import graph3;
 import animate;
 currentprojection=orthographic(1,-2,0.5);
-currentlight=Headlamp;
+
 animation A;
 int n=25;
 
