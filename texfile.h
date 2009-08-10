@@ -151,7 +151,8 @@ class texfile : public psfile {
   bbox box;
   bool inlinetex;
   double Hoffset;
-
+  int level;
+  
 public:
   string texengine;
   
@@ -178,6 +179,12 @@ public:
   void beginraw();
   
   void endraw();
+  
+  void begingroup() {++level;}
+  
+  void endgroup() {--level;}
+  
+  bool toplevel() {return level == 0;}
   
   void writepair(pair z) {
     *out << z;

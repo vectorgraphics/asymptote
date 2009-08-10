@@ -29,6 +29,7 @@ texfile::texfile(const string& texname, const bbox& box, bool pipe)
   out->precision(6);
   texdocumentclass(*out,pipe);
   resetpen();
+  level=0;
 }
 
 texfile::~texfile()

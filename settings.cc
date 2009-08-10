@@ -1462,7 +1462,7 @@ const char *beginpicture(const string& texengine) {
   if(latex(texengine))
     return "\\begin{picture}";
   if(context(texengine))
-    return "%";
+    return "";
   else
     return "\\picture";
 }
