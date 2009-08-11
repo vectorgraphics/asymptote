@@ -1,6 +1,8 @@
 import graph3;
 size(200,0);
 
+currentlight=Viewport;
+
 triple f(pair t) {
   return(10*sin(t.y),cos(t.x)*(cos(t.y)+log(abs(tan(t.y/2)))),
          sin(t.x)*(cos(t.y)+log(abs(tan(t.y/2)))));

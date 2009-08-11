@@ -13,7 +13,7 @@ if(prc0()) {
 
 real defaultshininess=0.25;
 real defaultgranularity=0;
-real linegranularity=0.001;
+real linegranularity=0.005;
 int linesectors=8;        // Number of angular sectors.
 real dotgranularity=0.0001;
 real angleprecision=1e-5; // Precision for centering perspective projections.
