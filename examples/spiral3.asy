@@ -12,11 +12,8 @@ real z(real t) {return t;}
 
 path3 p=graph(x,y,z,0,6*pi,50,operator ..);
 
-surface s=tube(p,2).s;
-
+tube T=tube(p,2);
+surface s=T.s;
 s.colors(palette(s.map(zpart),BWRainbow()));
-
 draw(s);
-write(s.s.length);
-draw(tube(p,2).center);
-
+draw(T.center,thin());
