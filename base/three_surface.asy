@@ -510,10 +510,10 @@ path[] regularize(path p, bool checkboundary=true)
       real[][] fpv0i=fpv0[i];
       for(int j=0; j < 4; ++j) {
         real[] w=fpv0i[j];
-        c[0] += w*(conj(P[0][j]-P[1][j])*P[0][i]).y;   // u=0
-        c[1] += w*(conj(P[i][3])*(P[j][3]-P[j][2])).y; // v=1
-        c[2] += w*(conj(P[3][j]-P[2][j])*P[3][i]).y;   // u=1
-        c[3] += w*(conj(P[i][0])*(P[j][1]-P[j][0])).y; // v=0
+        c[0] += w*(conj(P[i][0])*(P[j][1]-P[j][0])).y; // v=0
+        c[1] += w*(conj(P[3][j]-P[2][j])*P[3][i]).y;   // u=1
+        c[2] += w*(conj(P[i][3])*(P[j][3]-P[j][2])).y; // v=1
+        c[3] += w*(conj(P[0][j]-P[1][j])*P[0][i]).y;   // u=0
       }
     }
     
@@ -539,8 +539,8 @@ path[] regularize(path p, bool checkboundary=true)
           if(fabs(r.y) < sqrtEpsilon) {
             real t=r.x;
             if(0 <= t && t <= 1) {
-              real[] U={0,t,1,t};
-              real[] V={t,1,t,0};
+              real[] U={t,1,t,0};
+              real[] V={0,t,1,t};
               real[] T={t,t,1-t,1-t};
               real N=sign*normal(U[i],V[i]);
               if(N < M) {
