@@ -58,56 +58,12 @@ real[] sample(path3 g, real r, real relstep=0)
   return t;
 }
 
-struct Rmf
-{
-  triple p,r,t; // s=cross(t,r);
-  real reltime;
-  void operator init(triple p, triple r, triple t, real reltime)
-  {
-    this.p=p;
-    this.r=r;
-    this.t=t;
-    this.reltime=reltime;
-  }
-}
-
-real degrees(Rmf a, Rmf b)
+real degrees(rmf a, rmf b)
 {
   real d=degrees(acos1(dot(a.r,b.r)));
   real dt=dot(cross(a.r,b.r),a.t);
   d=dt > 0 ? d : 360-d;
   return d%360;
-}
-
-Rmf[] rmf(path3 g, Rmf U0=Rmf(O,O,O,0), real[] t)
-{
-  if(U0.t == O) {
-    triple d=dir(g,0);
-    U0=Rmf(point(g,0),perp(d),d,0);
-  }
-  int l=length(g);
-  Rmf[] R={U0};
-  triple rp,v1,v2,tp,ti,p;
-  real c;
-
-  for(int i=0; i < t.length-1; ++i) {
-    p=point(g,t[i+1]);
-    v1=p-R[i].p;
-    c=dot(v1,v1);
-    if(c != 0) {
-      rp=R[i].r-2*dot(v1,R[i].r)*v1/c;
-      ti=R[i].t;
-      tp=ti-2*dot(v1,ti)*v1/c;
-      ti=dir(g,t[i+1]);
-      v2=ti-tp;
-      rp=rp-2*dot(v2,rp)*v2/dot(v2,v2);
-      R.push(Rmf(p,unit(rp),unit(ti),t[i+1]/l));
-    } else {
-      write("Warning: path3 has duplicated point in Rmf.");
-      R.push(R[R.length-1]);
-    }
-  }
-  return R;
 }
 
 restricted int coloredNodes=1;
@@ -158,8 +114,7 @@ coloredpath operator cast(guide p)
   return coloredpath(p);
 }
 
-private surface surface(Rmf[] R, coloredpath cp,transform T(real)=
-			new transform(real t) {return identity();},
+private surface surface(rmf[] R, real[] t, coloredpath cp, transform T(real),
 			bool cyclic)
 {
   path g=cp.p;
@@ -169,21 +124,21 @@ private surface surface(Rmf[] R, coloredpath cp,transform T(real)=
     planar[i]=straight(g,i);
 
   surface s;
-  path3 sec=path3(T(R[0].reltime)*g);
+  path3 sec=path3(T(t[0]/l)*g);
   real adjust=0;
   if(cyclic) adjust=-degrees(R[0],R[R.length-1])/(R.length-1);
-  path3 sec1=shift(R[0].p)*transform3(R[0].r,cross(R[0].t,R[0].r),R[0].t)*sec,
+  path3 sec1=shift(R[0].p)*transform3(R[0].r,R[0].s,R[0].t)*sec,
     sec2;
 
   for(int i=1; i < R.length; ++i) {
-    sec=path3(T(R[i].reltime)*g);
+    sec=path3(T(t[i]/l)*g);
     sec2=shift(R[i].p)*transform3(R[i].r,cross(R[i].t,R[i].r),R[i].t)*
       rotate(i*adjust,Z)*sec;
     for(int j=0; j < l; ++j) {
       surface st=surface(subpath(sec1,j,j+1)--subpath(sec2,j+1,j)--cycle,
 			 planar=planar[j]);
       if(cp.usepens) {
-        pen[] tp1=cp.pens(R[i-1].reltime), tp2=cp.pens(R[i].reltime);
+        pen[] tp1=cp.pens(t[i-1]/l), tp2=cp.pens(t[i]/l);
         tp1.cyclic(true); tp2.cyclic(true);
         if(cp.colortype == coloredSegments) {
           st.colors(new pen[][] {{tp1[j],tp1[j],tp2[j],tp2[j]}});
@@ -207,5 +162,5 @@ surface tube(path3 g, coloredpath section,
                   min(abs(relstep),1));
   bool cyclic=cyclic(g);
   t.cyclic(cyclic);
-  return surface(rmf(g,t),section,T,cyclic);
+  return surface(rmf(g,t),t,section,T,cyclic);
 }

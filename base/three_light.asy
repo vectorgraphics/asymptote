@@ -79,7 +79,7 @@ struct light {
   real[][] diffuse;
   real[][] ambient;
   real[][] specular;
-  pen background; // Background color of the 3D canvas.
+  pen background=nullpen; // Background color of the 3D canvas.
   real specularfactor;
   bool viewport; // Are the lights specified (and fixed) in the viewport frame?
   triple[] position; // Only directional lights are currently implemented.

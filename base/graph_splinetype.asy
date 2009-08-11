@@ -11,6 +11,18 @@ void checklengths(int x, int y, string text=differentlengths)
     abort(text+": "+string(x)+" != "+string(y));
 }
 
+// Linear interpolation
+real[] linear(real[] x, real[] y)
+{
+  int n=x.length;
+  checklengths(n,y.length);
+  real[] d=new real[n];
+  for(int i=0; i < n-1; ++i)
+    d[i]=(y[i+1]-y[i])/(x[i+1]-x[i]);
+  d[n-1]=d[n-2];
+  return d;
+}
+
 // Standard cubic spline interpolation with not-a-knot condition:
 // s'''(x_2^-)=s'''(x_2^+) et s'''(x_(n_2)^-)=s'''(x_(n-2)^+)
 // if n=2, linear interpolation is returned
@@ -63,7 +75,7 @@ real[] periodic(real[] x, real[] y)
 {
   int n=x.length;
   checklengths(n,y.length);
-  if(abs(y[n-1]-y[0]) > sqrtEpsilon*max(abs(y)))
+  if(abs(y[n-1]-y[0]) > sqrtEpsilon*norm(y))
     abort("function values are not periodic");
   real[] d;
   if(n > 2) {

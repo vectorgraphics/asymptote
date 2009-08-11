@@ -2782,7 +2782,7 @@ bool straight(path3 p, Int t)
 // Return the component of vector v perpendicular to a unit vector u.
 triple perp(triple v, triple u)
 {
-  return v-dot(v,u)*u;
+  return perp(v,u);
 }
 
 // Return the maximum perpendicular deviation of segment i of path3 g
@@ -3271,6 +3271,47 @@ pair minratio(path3 g)
 pair maxratio(path3 g)
 {
   return g.ratio(::max);
+}
+
+real norm(realarray *a)
+{
+  size_t n=checkArray(a);
+  real M=0.0;
+  for(size_t i=0; i < n; ++i) {
+    real x=fabs(vm::read<real>(a,i));
+    if(x > M) M=x;
+  }
+  return M;
+}
+
+real norm(realarray2 *a)
+{
+  size_t n=checkArray(a);
+  real M=0.0;
+  for(size_t i=0; i < n; ++i) {
+    vm::array *ai=vm::read<vm::array*>(a,i);
+    size_t m=checkArray(ai);
+    for(size_t j=0; j < m; ++j) {
+      real a=fabs(vm::read<real>(ai,j));
+      if(a > M) M=a;
+    }
+  }
+  return M;
+}
+
+real norm(triplearray2 *a)
+{
+  size_t n=checkArray(a);
+  real M=0.0;
+  for(size_t i=0; i < n; ++i) {
+    vm::array *ai=vm::read<vm::array*>(a,i);
+    size_t m=checkArray(ai);
+    for(size_t j=0; j < m; ++j) {
+      real a=vm::read<triple>(ai,j).abs2();
+      if(a > M) M=a;
+    }
+  }
+  return sqrt(M);
 }
 
 real change2(triplearray2 *a)

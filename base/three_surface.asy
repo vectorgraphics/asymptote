@@ -1,4 +1,5 @@
 import bezulate;
+private import interpolate;
 
 int nslice=12;
 real camerafactor=1.2;
@@ -43,8 +44,10 @@ struct patch {
   triple BuPPP(int j) {return bezierPPP(P[0][j],P[1][j],P[2][j],P[3][j]);}
 
   path3 uequals(real u) {
-    return straight ? Bu(0,u)--Bu(3,u) :
-      Bu(0,u)..controls Bu(1,u) and Bu(2,u)..Bu(3,u);
+    triple z0=Bu(0,u);
+    triple z1=Bu(3,u);
+    return path3(new triple[] {z0,Bu(2,u)},new triple[] {z0,z1},
+                 new triple[] {Bu(1,u),z1},new bool[] {straight,false},false);
   }
 
   triple Bv(int i, real v) {return bezier(P[i][0],P[i][1],P[i][2],P[i][3],v);}
@@ -55,8 +58,10 @@ struct patch {
   triple BvPPP(int i) {return bezierPPP(P[i][0],P[i][1],P[i][2],P[i][3]);}
 
   path3 vequals(real v) {
-    return straight ? Bv(0,v)--Bv(3,v) :
-      Bv(0,v)..controls Bv(1,v) and Bv(2,v)..Bv(3,v);
+    triple z0=Bv(0,v);
+    triple z1=Bv(3,v);
+    return path3(new triple[] {z0,Bv(2,v)},new triple[] {z0,z1},
+                 new triple[] {Bv(1,v),z1},new bool[] {straight,false},false);
   }
 
   triple point(real u, real v) {        
@@ -519,8 +524,8 @@ path[] regularize(path p, bool checkboundary=true)
       return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);
     }
     real normal(real u, real v) {
-      return (conj(bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u))*
-              bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v)).y;
+      return conj(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v)*
+                  bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u)).y;
     }
 
     // Use Rolle's theorem to check for degeneracy on the boundary.
@@ -1045,7 +1050,6 @@ void draw3D(frame f, patch s, material m, light light=currentlight)
     m=emissive(m);
   real PRCshininess;
   if(prc()) {
-    static import interpolate;
     // Empirical translation table from Phong-Blinn to PRC shininess model:
     static real[] x={0.015,0.025,0.05,0.07,0.1,0.14,0.23,0.5,0.65,0.75,0.85,
                      0.875,0.9,1};

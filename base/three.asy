@@ -13,8 +13,8 @@ if(prc0()) {
 
 real defaultshininess=0.25;
 real defaultgranularity=0;
-real linegranularity=0.01;
-real tubegranularity=0.003;
+real linegranularity=0.001;
+int linesectors=8;        // Number of angular sectors.
 real dotgranularity=0.0001;
 real angleprecision=1e-5; // Precision for centering perspective projections.
 real rendermargin=0.02;
@@ -135,7 +135,9 @@ triple project(triple u, triple v)
 triple perp(triple v)
 {
   triple u=cross(v,Y);
-  return (abs(u) > sqrtEpsilon) ? unit(u) : unit(cross(v,Z));
+  if(abs(u) > sqrtEpsilon) return unit(u);
+  u=cross(v,Z);
+  return (abs(u) > sqrtEpsilon) ? unit(u) : X;
 }
 
 // Return the transformation corresponding to moving the camera from the target
@@ -2055,7 +2057,7 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
   addPath(pic,g,q);
 }
 
-include three_arrows;
+include three_tube;
 
 draw=new void(frame f, path3 g, material p=currentpen,
               light light=nolight, projection P=currentprojection) {
@@ -2066,7 +2068,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
       if(settings.thick) {
         real width=linewidth(q);
         if(width > 0) {
-          tube T=tube(g,width,p.granularity);
+          tube T=tube(g,width,linesectors);
           int L=length(g);
           if(L >= 0) {
             if(!cyclic(g)) {
@@ -2131,6 +2133,8 @@ void draw(picture pic=currentpicture, explicit path3[] g,
 {
   for(int i=0; i < g.length; ++i) draw(pic,g[i],p,margin,light);
 }
+
+include three_arrows;
 
 void draw(picture pic=currentpicture, Label L="", path3 g, 
           align align=NoAlign, material p=currentpen, arrowbar3 arrow,

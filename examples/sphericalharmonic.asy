@@ -3,6 +3,7 @@ import palette;
 size(200);
 
 currentprojection=orthographic(4,2,4);
+currentlight=Viewport;
 
 real r(real theta, real phi) {return 1+0.5*(sin(2*theta)*sin(2*phi))^2;}
 

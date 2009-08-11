@@ -2,7 +2,7 @@ import three;
 
 string viewpoint="{-24.132780075073242 7.2992024421691895 7.695427417755127}{0.8244762420654297 -0.563306450843811 0.0540805421769619}{35.62141440580922}{17.392748820528627}{}";
 
-viewpoint=getstring("viewpoint",viewpoint);
+//viewpoint=getstring("viewpoint",viewpoint);
 currentprojection=perspective(viewpoint);
 
 triple[][][] P={
