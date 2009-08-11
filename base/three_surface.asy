@@ -524,8 +524,8 @@ path[] regularize(path p, bool checkboundary=true)
       return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);
     }
     real normal(real u, real v) {
-      return conj(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v)*
-                  bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u)).y;
+      return (conj(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v))*
+              bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u)).y;
     }
 
     // Use Rolle's theorem to check for degeneracy on the boundary.
