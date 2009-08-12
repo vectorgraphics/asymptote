@@ -361,11 +361,12 @@ You will also need to install @code{GPL Ghostscript} from
 To view the default @code{PostScript} output, you can install the
 program @code{gsview} available from 
 @url{http://www.cs.wisc.edu/~ghost/gsview/}.
+@cindex @code{psview}
 @anchor{psview}
 A better (and free) @code{PostScript} viewer available at
 @url{http://psview.sourceforge.net/} (which in particular works properly
 in interactive mode) unfortunately currently requires some manual
-configuration. Specifically, if version @code{x.xx} of psview is
+configuration. Specifically, if version @code{x.xx} of @code{psview} is
 extracted to the directory @code{c:\Program Files} one needs to put
 @verbatim
 import settings;
@@ -415,17 +416,15 @@ Users of @code{gsview} will need to enable @code{Options/Auto Redisplay}
 (however, under @code{MSDOS} it is still necessary to click on the
 @code{gsview} window; under @code{UNIX} one must manually redisplay by
 pressing the @code{r} key). A better (and free) multiplatform
-alternative to @code{gsview} is psview (@pxref{psview}).
+alternative to @code{gsview} is @code{psview} (@pxref{psview}).
 
 @cindex @code{settings}
 @cindex configuration file
 Configuration variables are most easily set as @code{Asymptote}
-variables in an optional configuration file (by default,
-@code{.asy/config.asy} in the user's home directory,
-@code{$TEXMFCONFIG/asymptote} under @code{TeXLive}, and
-@code{%USERPROFILE%\.asy\config.asy} under @code{MSDOS};
-@pxref{configuration file}). Here are the default values
-of several important configuration variables under @code{UNIX}:
+variables in an optional configuration file @code{config.asy}
+@pxref{configuration file}).
+Here are the default values of several important configuration
+variables under @code{UNIX}:
 
 @noindent
 @verbatim
@@ -551,8 +550,10 @@ variable @code{dir} (separated by @code{:} under UNIX and
 @code{;} under @code{MSDOS});
 @item
 @cindex @code{.asy}
-The directory @code{.asy} in the user's home directory 
-(@code{%USERPROFILE%\.asy} under @code{MSDOS});
+The directory specified by the environment variable
+@code{ASYMPTOTE_HOME}; if this variable is not set,
+the directory @code{.asy} in the user's home directory
+(@code{%USERPROFILE%\.asy} under @code{MSDOS}) is used;
 @item
 The @code{Asymptote} system directory (by default,
 @code{@value{Datadir}/asymptote} under @code{UNIX} and
@@ -899,6 +900,7 @@ interconnected with
 @cindex @code{..}
 @code{--}, which denotes a straight line segment, or @code{..}, which
 denotes a cubic spline.
+@cindex @code{unitcircle}
 @anchor{unitcircle}
 @cindex @code{unitcircle}
 Specifying a final node @code{cycle} creates a cyclic path that
@@ -908,6 +910,7 @@ connects smoothly back to the initial node, as in this approximation
 path unitcircle=E..N..W..S..cycle;
 @end verbatim
 
+@cindex Bezier
 @anchor{Bezier}
 @cindex direction specifier
 Each interior node of a cubic spline may be given a
@@ -1128,6 +1131,7 @@ ends of the path). Each of these bar specifiers (except for
 length of the bar in @code{PostScript} coordinates. The default
 bar length is @code{barsize(pen)}.
 
+@cindex arrows
 @anchor{arrows}
 @cindex @code{None}
 @cindex @code{Blank}
@@ -1479,6 +1483,7 @@ bottom-left corner of the label at @code{position}.
 @cindex @code{nullpen}
 If @code{p} is @code{nullpen}, the pen specified within the
 Label, which defaults to @code{currentpen}, will be used.
+@cindex @code{Label}
 @anchor{Label}
 The Label @code{L} can either be a string or the structure obtained by calling
 one of the functions
@@ -4475,6 +4480,7 @@ as variables, but allows overloading by distinguishing variables
 based on their signatures.  
 
 @cindex @code{libsigsegv}
+@cindex stack overflow
 @anchor{stack overflow}
 @cindex recursion
 @cindex stack overflow
@@ -5222,7 +5228,6 @@ If the matrix @code{a} is tridiagonal, the routine @code{tridiagonal} provides
 a more efficient algorithm (@pxref{tridiagonal}). 
 
 @anchor{solve}
-
 @cindex @code{solve}
 @item real[][] solve(real[][] a, real[][] b, bool warn=true)
 Solve the linear equation @math{@code{a}x=@code{b}} and return the
@@ -6932,6 +6937,7 @@ the tick labels on the @math{y} axis.
 @cindex @code{marknodes}
 @cindex @code{markuniform}
 @cindex @code{mark}
+@cindex path markers
 @anchor{pathmarkers}
 @item The next example draws two graphs of an array of coordinate pairs,
 using frame alignment and data markers. In the left-hand graph, the
@@ -6998,6 +7004,7 @@ absolute values of the elements of the pair array @code{dp} and the
 optional pair array @code{dm}. If @code{dm} is not specified, the
 positive and negative extents of the error are assumed to be equal.
 @anchor{errorbars}
+@cindex error bars
 @verbatiminclude errorbars.asy
 @sp 1
 @center @image{errorbars}
@@ -7049,6 +7056,7 @@ factor.
 @center @image{scaledgraph}
 
 @anchor{automatic scaling}
+@cindex automatic scaling
 @cindex @code{scale}
 @cindex @code{Linear}
 @cindex @code{Log}
@@ -7208,6 +7216,7 @@ data in @code{diatom.csv} and @code{westnile.csv}.
 @node palette
 @section @code{palette}
 @anchor{images}
+@cindex images
 @code{Asymptote} can also generate color density images
 and palettes. The following palettes are predefined in
 @code{palette.asy}: 
@@ -8047,6 +8056,7 @@ Further three-dimensional examples are provided in the files
 subdirectory) @code{cube.asy}.
 
 @anchor{PostScript3D}
+@cindex 3D @code{PostScript}
 Limited support for projected vector graphics (effectively three-dimensional
 nonrendered @code{PostScript}) is available with the setting
 @code{render=0}. This currently only works for piecewise planar
@@ -8631,6 +8641,7 @@ automatically imported for each run as the final step in loading module
 @code{plain}.
 
 @anchor{configuration file}
+@cindex configuration file
 @cindex @code{ASYMPTOTE_CONFIG}
 @cindex @code{config}
 @cindex @code{settings}
@@ -8638,8 +8649,8 @@ automatically imported for each run as the final step in loading module
 Default option values may be entered as @code{Asymptote} code in a
 configuration file named @code{config.asy} (or the file specified by
 the environment variable @code{ASYMPTOTE_CONFIG} or @code{-config} option).
-@code{Asymptote} will look for this file in its usual search path.
-Typically the configuration file is placed in the
+@code{Asymptote} will look for this file in its usual search path
+(@pxref{Search paths}). Typically the configuration file is placed in the
 @code{.asy} directory in the user's home directory
 (@code{%USERPROFILE%\.asy} under @code{MSDOS}).
 Configuration variables are accessed using the long form of the option names:
@@ -8814,6 +8825,7 @@ A trailing semi-colon followed by optional @code{Asymptote} commands may
 be entered on the same line.
 @cindex @code{quit}
 @cindex @code{exit}
+@cindex @code{history}
 @anchor{history}
 @item quit
 exit interactive mode (@code{exit} is a synonym; the abbreviation

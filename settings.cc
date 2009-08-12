@@ -1325,11 +1325,14 @@ void initDir() {
       string texmf=s+dirsep+"texmf"+dirsep;
       docdir=texmf+"doc"+dirsep+"asymptote";
       Setting("sysdir")=texmf+"asymptote";
-      s=lookup("TEXMFCONFIG");
+      s=lookup("ASYMPTOTE_HOME");
       if(s.size() > 1)
-        initdir=s+dirsep+"asymptote";
+        initdir=s;
     }
   } 
+  
+  if(initdir.empty())
+    initdir=Getenv("ASYMPTOTE_HOME",msdos);
   
   if(initdir.empty())
     initdir=Getenv(HOME.c_str(),msdos)+dirsep+"."+suffix;
