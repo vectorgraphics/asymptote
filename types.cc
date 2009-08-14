@@ -174,16 +174,18 @@ ty *overloadedModeType() {
 
 ty *ty::virtualFieldGetType(symbol *id)
 {
-  if (id == symbol::trans("dimension"))
-    return overloadedDimensionType();
+  if(kind == ty_file) {
+    if (id == symbol::trans("dimension"))
+      return overloadedDimensionType();
   
-  if (id == symbol::trans("line") || id == symbol::trans("csv") || 
-      id == symbol::trans("word") || id == symbol::trans("singlereal") || 
-      id == symbol::trans("singleint") || id == symbol::trans("signedint"))
-    return overloadedModeType();
+    if (id == symbol::trans("line") || id == symbol::trans("csv") || 
+        id == symbol::trans("word") || id == symbol::trans("singlereal") || 
+        id == symbol::trans("singleint") || id == symbol::trans("signedint"))
+      return overloadedModeType();
   
-  if (id == symbol::trans("read"))
-    return readType();
+    if (id == symbol::trans("read"))
+      return readType();
+  }
   
   trans::varEntry *v = virtualField(id, 0);
   

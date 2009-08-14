@@ -21,7 +21,7 @@ struct obj {
   pen[] meshpen;
 
   path3[][] read(string datafile, bool verbose=false) {
-    file in=word(line(input(datafile)));
+    file in=input(datafile).word().line();
     triple[] vert;
     path3[][] g;
     g[0]=new path3[] ;
