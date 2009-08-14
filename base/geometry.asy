@@ -228,24 +228,6 @@ pair[] intersectionpoints(pair A, pair B, real[] equation)
 
 // *=======================================================*
 // *......................COORDINATES......................*
-// Copyright (c) 2007, Philippe Ivaldi.
-// Version: $Id: coordinates.asy,v 0.0 2007/02/03 16:06:23 Philippe Ivaldi Exp$
-// Last modified: Wed Aug 15 15:53:01 CEST 2007
-
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 3 of the License, or
-// any later version.
-
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-// 02110-1301, USA.
 
 real EPS=sqrt(realEpsilon);
 
@@ -6447,7 +6429,7 @@ point operator *(inversion i, point P)
   return inverse(i.k,i.C,P);
 }
 
-void lineinversion() 
+void lineinversion()
 {
     warning("lineinversion","the inversion of the line is not a circle.
 The returned circle has an infinite radius, circle.l has been set.");
@@ -7135,7 +7117,7 @@ path square(pair z1, pair z2)
 // relative to the path z--z+dir.
 void perpendicular(picture pic=currentpicture, pair z, pair align,
                    pair dir=E, real size=0, pen p=currentpen,
-                   margin margin=NoMargin, filltype filltype=NoFill) 
+                   margin margin=NoMargin, filltype filltype=NoFill)
 {
   perpendicularmark(pic,(point) z,align,dir,size,p,margin,filltype);
 }
@@ -7145,7 +7127,7 @@ void perpendicular(picture pic=currentpicture, pair z, pair align,
 // relative to the path z--z+dir(g,0)
 void perpendicular(picture pic=currentpicture, pair z, pair align, path g,
                    real size=0, pen p=currentpen, margin margin=NoMargin,
-                   filltype filltype=NoFill) 
+                   filltype filltype=NoFill)
 {
   perpendicularmark(pic,(point) z,align,dir(g,0),size,p,margin,filltype);
 }
