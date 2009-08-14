@@ -2,8 +2,8 @@ import graph;
 
 size(200,150,IgnoreAspect);
 
-file in=line(input("filegraph.dat"));
-real[][] a=dimension(in,0,0);
+file in=input("filegraph.dat").line();
+real[][] a=in.dimension(0,0);
 a=transpose(a);
 
 real[] x=a[0];

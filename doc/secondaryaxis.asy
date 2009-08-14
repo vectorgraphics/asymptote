@@ -3,12 +3,12 @@ import graph;
 size(9cm,6cm,IgnoreAspect);
 string data="secondaryaxis.csv";
 
-file in=line(csv(input(data)));
+file in=input(data).line().csv();
 
 string[] titlelabel=in;
 string[] columnlabel=in;
 
-real[][] a=dimension(in,0,0);
+real[][] a=in.dimension(0,0);
 a=transpose(a);
 real[] t=a[0], susceptible=a[1], infectious=a[2], dead=a[3], larvae=a[4];
 real[] susceptibleM=a[5], exposed=a[6],infectiousM=a[7];

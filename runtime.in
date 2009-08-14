@@ -215,6 +215,7 @@ namespace run {
   
 const char *invalidargument="invalid argument";
 const char *arrayempty="cannot take min or max of empty array";
+const char *noruntime="no runtime environment for embedded eval";
 
 // Return the factorial of a non-negative integer using a lookup table.
 Int factorial(Int n)
@@ -316,7 +317,7 @@ inline size_t checkdimension(array *a, size_t dim)
   size_t size=checkArray(a);
   if(dim && size != dim) {
     ostringstream buf;
-    buf << "array of length " << dim << " expected" << endl;
+    buf << "array of length " << dim << " expected";
     error(buf);
   }
   return size;
@@ -382,7 +383,7 @@ double *copyArray2C(array *a, bool square=true, size_t dim2=0)
   size_t m=(square || n == 0) ? n : checkArray(read<array*>(a,0));
   if(n > 0 && dim2 && m != dim2) {
     ostringstream buf;
-    buf << "second matrix dimension must be " << dim2 << endl;
+    buf << "second matrix dimension must be " << dim2;
     error(buf);
   }
   
@@ -406,7 +407,7 @@ triple *copyTripleArray2C(array *a, bool square=true, size_t dim2=0)
   size_t m=(square || n == 0) ? n : checkArray(read<array*>(a,0));
   if(n > 0 && dim2 && m != dim2) {
     ostringstream buf;
-    buf << "second matrix dimension must be " << dim2 << endl;
+    buf << "second matrix dimension must be " << dim2;
     error(buf);
   }
   
@@ -430,7 +431,7 @@ double *copyTripleArray2Components(array *a, bool square=true, size_t dim2=0)
   size_t m=(square || n == 0) ? n : checkArray(read<array*>(a,0));
   if(n > 0 && dim2 && m != dim2) {
     ostringstream buf;
-    buf << "second matrix dimension must be " << dim2 << endl;
+    buf << "second matrix dimension must be " << dim2;
     error(buf);
   }
   
@@ -849,7 +850,6 @@ inline double principalBranch(double deg)
 }
 
 static string defaulttransparency=string("Compatible");
-
 static const string defaulttimeformat=string("%a %b %d %T %Z %Y");
 #ifdef HAVE_STRFTIME
 static const size_t nTime=256;
@@ -1080,14 +1080,14 @@ pair gamma(pair z)
 void cannotread(const string& s) 
 {
   ostringstream buf;
-  buf << "Cannot read from " << s << endl;
+  buf << "Cannot read from " << s;
   error(buf);
 }
 
 void cannotwrite(const string& s) 
 {
   ostringstream buf;
-  buf << "Cannot write to " << s << endl;
+  buf << "Cannot write to " << s;
   error(buf);
 }
 
@@ -2275,7 +2275,7 @@ void assert(bool b, string s=emptystring)
   if(!b) {
     ostringstream buf;
     buf << "assert FAILED";
-    if(s != "") buf << ": " << s << endl;
+    if(s != "") buf << ": " << s;
     error(buf);
   }
 }
@@ -2294,17 +2294,15 @@ void usleep(Int microseconds)
 
 void _eval(string *s, bool embedded, bool interactiveWrite=false)
 {
-  if (embedded) {
+  if(embedded) {
     trans::coenv *e=Stack->getEnvironment();
     vm::interactiveStack *is=dynamic_cast<vm::interactiveStack *>(Stack);
-    if (e && is) {
+    if(e && is)
       runStringEmbedded(*s, *e, *is);
-    } else {
-      cerr << "no runtime environment for embedded eval" << endl;
-    }
-  } else {
+    else
+      error(noruntime);
+  } else
     runString(*s,interactiveWrite);
-  }
 }
 
 void _eval(runnable *s, bool embedded)
@@ -2312,17 +2310,15 @@ void _eval(runnable *s, bool embedded)
   absyntax::block *ast=new absyntax::block(s->getPos(), false);
   ast->add(s);
 
-  if (embedded) {
+  if(embedded) {
     trans::coenv *e=Stack->getEnvironment();
     vm::interactiveStack *is=dynamic_cast<vm::interactiveStack *>(Stack);
-    if (e && is) {
+    if(e && is)
       runCodeEmbedded(ast, *e, *is);
-    } else {
-      cerr << "no runtime environment for embedded eval" << endl;
-    }
-  } else {
+    else
+      error(noruntime);
+  } else
     runCode(ast);
-  }
 }
 
 string location() {
@@ -5878,53 +5874,6 @@ void seekeof(file *f)
   f->seek(0,false);
 }
 
-// Set file dimensions
-file* dimension(file *f, Int nx) 
-{
-  f->dimension(nx);
-  return f;
-}
-
-file* dimension(file *f, Int nx, Int ny) 
-{
-  f->dimension(nx,ny);
-  return f;
-}
-
-file* dimension(file *f, Int nx, Int ny, Int nz)
-{
-  f->dimension(nx,ny,nz);
-  return f;
-}
-
-// Set file to read comma-separated values
-file* csv(file *f, bool b=true) 
-{
-  f->CSVMode(b);
-  return f;
-}
-
-// Set file to read whitespace-separated values
-file* word(file *f, bool b=true) 
-{
-  f->WordMode(b);
-  return f;
-}
-
-// Set file to read arrays in line-at-a-time mode
-file* line(file *f, bool b=true) 
-{
-  f->LineMode(b);
-  return f;
-}
-
-// Set file to read/write signed int XDR values.
-file* signed(file *f, bool b=true)
-{
-  f->SignedInt(b);
-  return f;
-}
-
 string :namePart(file f)
 {
   return f.filename();
@@ -5933,6 +5882,18 @@ string :namePart(file f)
 string :modePart(file f)
 {
   return f.FileMode();
+}
+
+// Set file dimensions
+file* :dimensionSetHelper(Int nx=-1, Int ny=-1, Int nz=-1, file *f)
+{
+  f->dimension(nx,ny,nz);
+  return f;
+}
+
+callable* :dimensionSet(file *f)
+{
+  return new thunk(new bfunc(dimensionSetHelper),f);
 }
 
 array * :dimensionPart(file f)
@@ -5944,55 +5905,134 @@ array * :dimensionPart(file f)
   return a;
 }
 
-bool :lineModePart(file f)
+// Set file f to read arrays in line-at-a-time mode
+file* :lineSetHelper(bool b=true, file *f)
+{
+  f->LineMode(b);
+  return f;
+}
+
+callable* :lineSet(file *f)
+{
+  return new thunk(new bfunc(lineSetHelper),f);
+}
+
+bool :linePart(file f)
 {
   return f.LineMode();
 }
 
-bool :csvModePart(file f)
+// Set file to read comma-separated values
+file* :csvSetHelper(bool b=true, file *f)
+{
+  f->CSVMode(b);
+  return f;
+}
+
+callable* :csvSet(file *f)
+{
+  return new thunk(new bfunc(csvSetHelper),f);
+}
+
+bool :csvPart(file f)
 {
   return f.CSVMode();
 }
 
-bool :wordModePart(file f)
+// Set file to read whitespace-separated values
+file* :wordSetHelper(bool b=true, file *f)
+{
+  f->WordMode(b);
+  return f;
+}
+
+callable* :wordSet(file *f)
+{
+  return new thunk(new bfunc(wordSetHelper),f);
+}
+
+bool :wordPart(file f)
 {
   return f.WordMode();
 }
 
-bool :singleRealModePart(file f)
+// Set file to read/write single precision real XDR values.
+file* :singlerealSetHelper(bool b=true, file *f)
+{
+  f->SingleReal(b);
+  return f;
+}
+
+callable* :singlerealSet(file *f)
+{
+  return new thunk(new bfunc(singlerealSetHelper),f);
+}
+
+bool :singlerealPart(file f)
 {
   return f.SingleReal();
 }
 
-bool :singleIntModePart(file f)
+// Set file to read/write single precision int XDR values.
+file* :singleintSetHelper(bool b=true, file *f)
+{
+  f->SingleInt(b);
+  return f;
+}
+
+callable* :singleintSet(file *f)
+{
+  return new thunk(new bfunc(singleintSetHelper),f);
+}
+
+bool :singleintPart(file f)
 {
   return f.SingleInt();
 }
 
-bool :signedIntModePart(file f)
+// Set file to read/write signed int XDR values.
+file* :signedintSetHelper(bool b=true, file *f)
+{
+  f->SignedInt(b);
+  return f;
+}
+
+callable* :signedintSet(file *f)
+{
+  return new thunk(new bfunc(signedintSetHelper),f);
+}
+
+bool :signedintPart(file f)
 {
   return f.SignedInt();
 }
 
-// Set file to read an array1 (1 int size followed by a 1d array)
-file* read1(file *f) 
+// Set file to read an arrayi (i int sizes followed by an i-dimensional array)
+file* :readSetHelper(Int i, file *f)
 {
-  f->dimension(-2);
+  switch(i) {
+    case 1:
+      f->dimension(-2);
+      break;
+      
+    case 2:
+      f->dimension(-2,-2);
+      break;
+      
+    case 3:
+      f->dimension(-2,-2,-2);
+      break;
+      
+    default:
+      f->dimension();
+  }
+  
   return f;
 }
 
-// Set file to read an array2 (2 int sizes followed by a 2d array)
-file* read2(file *f) 
+callable* :readSet(file *f)
 {
-  f->dimension(-2,-2);
-  return f;
-}
-
-// Set file to read an array3 (3 int sizes followed by a 3d array)
-file* read3(file *f) 
-{
-  f->dimension(-2,-2,-2);
-  return f;
+  return new thunk(new bfunc(readSetHelper),f);
 }
 
 // Return the last n lines of the history named name.

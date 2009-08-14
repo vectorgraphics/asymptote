@@ -10,7 +10,7 @@ int[] begin,end;
 
 defaultpen(fontsize(8pt)+overwrite(MoveQuiet));
 
-file in=line(csv(input(data)));
+file in=input(data).line().csv();
 
 string depthlabel=in;
 string yearlabel=in;

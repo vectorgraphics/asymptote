@@ -3669,9 +3669,11 @@ write(fout,"List: ",1,2,3);     // Writes "List: 1     2     3"
 @cindex @code{xoutput}
 @cindex @code{binput}
 @cindex @code{boutput}
-@cindex @code{single}
+@cindex single precision
 @cindex double precision
-@cindex @code{signed}
+@cindex @code{singlereal}
+@cindex @code{singleint}
+@cindex @code{signedint}
 A file may also be opened with @code{xinput} or @code{xoutput}, instead of
 @code{input} or @code{output}, to read or write
 double precision (64-bit) reals and single precision (32-bit)
@@ -3681,23 +3683,21 @@ Data Representation) portable binary format (available on all
 Alternatively, a file may also be opened with @code{binput} or
 @code{boutput} to read or write double precision reals and single
 precision integers in the native (nonportable) machine binary format.
-The function
-@code{file single(file f, bool real=true, bool int=true)} may
+The virtual member functions
+@code{file singlereal(bool b=false)} and @code{file singleint(bool b=true)}
 be used to change the precision of real and integer I/O
 operations, respectively, for an @acronym{XDR} or binary file @code{f}.  
-Similarly, the function @code{file signed(file f, bool b=true)}
+Similarly, the function @code{file signedint(bool b=true)}
 can be used to modify the signedness of integer reads and writes for
 an @acronym{XDR} or binary file @code{f}.
-Note that @code{single}, and @code{signed} modify and return their
-file arguments (to facilitate nested function calls).
 
 @cindex @code{name}
 @cindex @code{mode}
 @cindex @code{singlereal}
 @cindex @code{singleint}
-@cindex @code{signed}
+@cindex @code{signedint}
 The virtual members @code{name}, @code{mode}, @code{singlereal},
-@code{singleint}, and @code{signed} may be used to query the
+@code{singleint}, and @code{signedint} may be used to query the
 respective parameters for a given file.
 
 @cindex @code{eof}
@@ -5296,12 +5296,16 @@ real[] A=fin;
 @cindex line mode
 @noindent
 reads real values into @code{A} until the end-of-file is reached (or an
-I/O error occurs). If line mode is set with @code{line(file)}, then
+I/O error occurs). 
+
+The virtual members @code{dimension}, @code{line}, @code{csv},
+@code{word}, and @code{read} of a file are useful for reading arrays.
+@cindex @code{line}
+For example, if line mode is set with @code{file line(bool b=true)}, then
 reading will stop once the end of the line is reached instead
-(line mode may be cleared with @code{line(file,false)}):
 @verbatim
 file fin=input("test.txt");
-real[] A=line(fin);
+real[] A=fin.line();
 @end verbatim
 
 @cindex reading string arrays
@@ -5309,27 +5313,25 @@ real[] A=line(fin);
 @cindex white-space string delimiter mode
 Since string reads by default read up to the end of line anyway, line mode
 normally has no effect on string array reads.
-However, there is a white-space delimiter mode for reading strings, set with
-@code{word(file)} and cleared with @code{word(file,false)}, which causes
-string reads to respect white-space delimiters, instead of the default
-end-of-line delimiter:
+However, there is a white-space delimiter mode for reading strings,
+@code{file word(bool b=true)}, which causes string reads to respect
+white-space delimiters, instead of the default end-of-line delimiter:
 @verbatim
-file fin=word(line(input("test.txt")));
+file fin=input("test.txt").line().word();
 real[] A=fin;
 @end verbatim
 
 @cindex @code{csv}
 @cindex comma-separated-value mode
-Another useful mode is comma-separated-value mode, set with @code{csv(file)}
-and cleared with @code{csv(file,false)}, which causes reads to respect
-comma delimiters:
+Another useful mode is comma-separated-value mode,
+@code{file csv(bool b=true)}, which causes reads to respect comma delimiters:
 @verbatim
 file fin=csv(input("test.txt"));
 real[] A=fin;
 @end verbatim
 
 @cindex @code{dimension}
-To restrict the number of values read, use the @code{dimension(file,int)}
+To restrict the number of values read, use the @code{file dimension(int)}
 function: 
 @verbatim
 file fin=input("test.txt");
@@ -5346,41 +5348,28 @@ Two- and three-dimensional arrays of the basic data types can be read
 in like this:
 @verbatim
 file fin=input("test.txt");
-real[][] A=dimension(fin,2,3);
-real[][][] B=dimension(fin,2,3,4);
+real[][] A=fin.dimension(2,3);
+real[][][] B=fin.dimension(2,3,4);
 @end verbatim
 @noindent
 Again, an integer limit of zero means no restriction.
 
-@cindex @code{read1}
-@cindex @code{read2}
-@cindex @code{read3}
+@cindex @code{read}
 Sometimes the array dimensions are stored with the data as integer
-fields at the beginning of an array. Such arrays can be read in with the
-functions @code{read1}, @code{read2}, and @code{read3}, respectively:
+fields at the beginning of an array. Such 1, 2, or 3 dimensional
+arrays can be read in with the virtual member functions
+@code{read(1)}, @code{read(2)}, or @code{read(3)}, respectively:
 @verbatim
 file fin=input("test.txt");
-real[] A=read1(fin);
-real[][] B=read2(fin);
-real[][][] C=read3(fin);
+real[] A=fin.read(1);
+real[][] B=fin.read(2);
+real[][][] C=fin.read(3);
 @end verbatim
 
 @cindex @code{write}
 One, two, and three-dimensional arrays of the basic data types can be
 output with the functions @code{write(file,T[])},
 @code{write(file,T[][])}, @code{write(file,T[][][])}, respectively.
-
-@cindex @code{dimension}
-@cindex @code{line}
-@cindex @code{csv}
-@cindex @code{word}
-@cindex @code{single}
-@cindex @code{signed}
-Note that @code{dimension}, @code{line}, @code{csv},
-@code{word}, @code{single}, and @code{signed} modify and return their
-file arguments (to facilitate nested function calls).
-The virtual members @code{dimension}, @code{line}, @code{csv}, and
-@code{word} may be used to query the respective parameters for a given file.
 
 @node Slices
 @subsection Slices

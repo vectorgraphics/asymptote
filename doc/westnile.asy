@@ -3,11 +3,11 @@ import graph;
 size(9cm,8cm,IgnoreAspect);
 string data="westnile.csv";
 
-file in=line(csv(input(data)));
+file in=input(data).line().csv();
 
 string[] columnlabel=in;
 
-real[][] A=dimension(in,0,0);
+real[][] A=in.dimension(0,0);
 A=transpose(A);
 real[] number=A[0], survival=A[1];
 

@@ -3,11 +3,11 @@ import palette;
 
 size3(200,IgnoreAspect);
 
-file in=line(input("filesurface.dat"));
+file in=input("filesurface.dat").line();
 real[] x=in;
 real[] y=in;
 
-real[][] f=dimension(in,0,0);
+real[][] f=in.dimension(0,0);
 
 triple f(pair t) {
   int i=round(t.x);

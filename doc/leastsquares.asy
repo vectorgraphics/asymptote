@@ -3,9 +3,9 @@ size(400,200,IgnoreAspect);
 import graph;
 import stats;
 
-file fin=line(input("leastsquares.dat"));
+file fin=input("leastsquares.dat").line();
 
-real[][] a=dimension(fin,0,0);
+real[][] a=fin.dimension(0,0);
 a=transpose(a);
 
 real[] t=a[0], rho=a[1];

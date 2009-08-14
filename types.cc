@@ -71,6 +71,46 @@ void ty::print(ostream& out) const
     return &v;                                                    \
   }
       
+#define SIGFIELD(Type, name, func)                                      \
+  if (id == symbol::trans(name) &&                                     \
+      equivalent(sig, Type()->getSignature()))                          \
+    {                                                                   \
+      static trans::virtualFieldAccess a(run::func);                    \
+      static trans::varEntry v(Type(), &a, 0, position());        \
+      return &v;                                                        \
+    }
+
+#define DSIGFIELD(name, func)                                           \
+  if (id == symbol::trans(#name) &&                                     \
+      equivalent(sig, name##Type()->getSignature()))                    \
+    {                                                                   \
+      static trans::virtualFieldAccess a(run::func);                    \
+      /* for some fields, v needs to be dynamic */                      \
+      /* e.g. when the function type depends on an array type. */       \
+      trans::varEntry *v =                                              \
+        new trans::varEntry(name##Type(), &a, 0, position());           \
+      return v;                                                         \
+    }
+
+#define FILEFIELD(GetType, SetType, name) \
+  FIELD(GetType,#name,name##Part);        \
+  SIGFIELD(SetType,#name,name##Set);
+
+ty *dimensionType() {
+  return new function(primFile(),
+                      formal(primInt(),"nx",true),
+                      formal(primInt(),"ny",true),
+                      formal(primInt(),"nz",true));
+}
+
+ty *modeType() {
+  return new function(primFile(),formal(primBoolean(),"b", true));
+}
+
+ty *readType() {
+  return new function(primFile(), formal(primInt(), "i"));
+}
+
 trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
 {
   switch (kind) {
@@ -103,22 +143,50 @@ trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
     case ty_file:      
       FIELD(primString,"name",namePart);
       FIELD(primString,"mode",modePart);
-      FIELD(IntArray,"dimension",dimensionPart);
-      FIELD(primBoolean,"line",lineModePart);
-      FIELD(primBoolean,"csv",csvModePart);
-      FIELD(primBoolean,"word",wordModePart);
-      FIELD(primBoolean,"singlereal",singleRealModePart);
-      FIELD(primBoolean,"singleint",singleIntModePart);
-      FIELD(primBoolean,"signed",signedIntModePart);
+      FILEFIELD(IntArray,dimensionType,dimension);
+      FILEFIELD(primBoolean,modeType,line);
+      FILEFIELD(primBoolean,modeType,csv);
+      FILEFIELD(primBoolean,modeType,word);
+      FILEFIELD(primBoolean,modeType,singlereal);
+      FILEFIELD(primBoolean,modeType,singleint);
+      FILEFIELD(primBoolean,modeType,signedint);
+      SIGFIELD(readType,"read",readSet);
+      break;
     default:
       break;
   }
   return 0;
 }
 
+ty *overloadedDimensionType() {
+  overloaded *o=new overloaded;
+  o->add(dimensionType());
+  o->add(IntArray());
+  return o;
+}
+
+ty *overloadedModeType() {
+  overloaded *o=new overloaded;
+  o->add(modeType());
+  o->add(primBoolean());
+  return o;
+}
+
 ty *ty::virtualFieldGetType(symbol *id)
 {
+  if (id == symbol::trans("dimension"))
+    return overloadedDimensionType();
+  
+  if (id == symbol::trans("line") || id == symbol::trans("csv") || 
+      id == symbol::trans("word") || id == symbol::trans("singlereal") || 
+      id == symbol::trans("singleint") || id == symbol::trans("signedint"))
+    return overloadedModeType();
+  
+  if (id == symbol::trans("read"))
+    return readType();
+  
   trans::varEntry *v = virtualField(id, 0);
+  
   return v ? v->getType() : 0;
 }
 
@@ -198,22 +266,22 @@ ty *initializedType() {
 }
 
 #define SIGFIELDLIST \
-  SIGFIELD(initialized, arrayInitialized); \
-  SIGFIELD(push, arrayPush); \
-  SIGFIELD(pop, arrayPop); \
-  SIGFIELD(append, arrayAppend); \
-  SIGFIELD(insert, arrayInsert); \
-  SIGFIELD(delete, arrayDelete); \
+  ASIGFIELD(initialized, arrayInitialized); \
+  ASIGFIELD(push, arrayPush); \
+  ASIGFIELD(pop, arrayPop); \
+  ASIGFIELD(append, arrayAppend); \
+  ASIGFIELD(insert, arrayInsert); \
+  ASIGFIELD(delete, arrayDelete); \
 
 ty *array::virtualFieldGetType(symbol *id)
 {
-  #define SIGFIELD(name, func) \
+  #define ASIGFIELD(name, func) \
   if (id == symbol::trans(#name)) \
     return name##Type();
 
   SIGFIELDLIST
 
-  #undef SIGFIELD
+  #undef ASIGFIELD
 
   return ty::virtualFieldGetType(id);
 }
@@ -224,19 +292,11 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
   FIELD(IntArray, "keys", arrayKeys);
   RWFIELD(primBoolean, "cyclic", arrayCyclicFlag, arraySetCyclicFlag);
 
-  #define SIGFIELD(name, func) \
-  if (id == symbol::trans(#name) && \
-      equivalent(sig, name##Type()->getSignature())) \
-    { \
-      static trans::virtualFieldAccess a(run::func); \
-      /* for some fields, v needs to be dynamic, as the function type */ \
-      /* depends on the array type. */ \
-      trans::varEntry *v = \
-          new trans::varEntry(name##Type(), &a, 0, position()); \
-      return v; \
-    }
+  #define ASIGFIELD(name, func) DSIGFIELD(name,func)
+  
   SIGFIELDLIST
-  #undef SIGFIELD
+    
+  #undef ASIGFIELD
   
   // Fall back on base class to handle no match.
   return ty::virtualField(id, sig);
@@ -444,5 +504,7 @@ bool equivalent(ty *t1, ty *t2, bool special) {
 
 #undef FIELD
 #undef RWFIELD
+#undef SIGFIELD
+#undef DSIGFIELD
 
 } // namespace types
