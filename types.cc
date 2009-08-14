@@ -174,6 +174,12 @@ ty *overloadedModeType() {
 
 ty *ty::virtualFieldGetType(symbol *id)
 {
+  trans::varEntry *v = virtualField(id, 0);
+  return v ? v->getType() : 0;
+}
+
+ty *primitiveTy::virtualFieldGetType(symbol *id)
+{
   if(kind == ty_file) {
     if (id == symbol::trans("dimension"))
       return overloadedDimensionType();

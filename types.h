@@ -170,7 +170,8 @@ public:
     return false;
   }
   
-  virtual trans::varEntry *virtualField(symbol *, signature *);
+  ty *virtualFieldGetType(symbol *);
+  trans::varEntry *virtualField(symbol *, signature *);
 
   bool equiv(ty *other)
   {
