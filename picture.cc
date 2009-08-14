@@ -525,7 +525,7 @@ bool picture::postprocess(const string& prename, const string& outname,
                                                 "psviewerOptions");
         if(!viewerOptions.empty())
           push_split(cmd,viewerOptions);
-        push_split(cmd,outname);
+        cmd.push_back(outname);
         status=System(cmd,0,wait,
                       pdfformat ? "pdfviewer" : "psviewer",
                       pdfformat ? "your PDF viewer" : "your PostScript viewer",
