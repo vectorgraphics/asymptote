@@ -2600,6 +2600,7 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
     Q=P.copy();
     light=modelview*light;
 
+    pair viewportmargin=viewportmargin;
     if(P.infinity) {
       triple m=min3(S.f);
       triple M=max3(S.f);

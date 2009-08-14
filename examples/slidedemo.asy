@@ -21,6 +21,7 @@ bibliographystyle("alpha");
 
 // Generated needed files if they don't already exist.
 asy(nativeformat(),"Pythagoras","log","PythagoreanTree");
+usepackage("mflogo");
 
 // Optional background color or header:
 // import x11colors;

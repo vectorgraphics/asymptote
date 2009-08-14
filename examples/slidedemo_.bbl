@@ -7,7 +7,7 @@ John~D. Hobby.
 
 \bibitem[Knu86]{Knuth86b}
 Donald~E. Knuth.
-\newblock {\em The METAFONTbook}.
+\newblock {\em The \MF{}book}.
 \newblock Addison-Wesley, Reading, Massachusetts, 1986.
 
 \end{thebibliography}
