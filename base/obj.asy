@@ -92,8 +92,8 @@ struct obj {
                      material surfacepen, pen meshpen=nullpen) {
     material[] surfacepen={surfacepen};
     pen[] meshpen={meshpen};
-    surfacepen.cyclic(true);
-    meshpen.cyclic(true);
+    surfacepen.cyclic=true;
+    meshpen.cyclic=true;
     operator init(read(datafile,verbose),surfacepen,meshpen);
   }
 }

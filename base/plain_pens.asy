@@ -139,11 +139,11 @@ pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,
                 deepblue,deepgreen,chartreuse,fuchsia,lightred,
                 lightblue,black,pink,yellow,gray};
 
-colorPen.cyclic(true);
+colorPen.cyclic=true;
 
 pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,
                longdashdotted};
-monoPen.cyclic(true);
+monoPen.cyclic=true;
 
 pen Pen(int n) 
 {

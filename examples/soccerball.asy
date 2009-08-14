@@ -52,7 +52,7 @@ for(int i=0; i < P.length; ++i){
       path3 p=arc(O,P[i][0],P[i][k+1]); 
       return point(p,reltime(p,1/3)); 
     },5); 
-  pentagon.cyclic(true); 
+  pentagon.cyclic=true; 
   draw(sequence(new path3(int k) {
         return arc(O,pentagon[k],pentagon[k+1]);},5),linewidth(2pt)); 
   triple M=unit(sum(pentagon)/5); 
@@ -75,7 +75,7 @@ for(int i=0; i < P.length; ++i){
                       point(p[1],reltime(p[1],2/3)),
                       point(p[2],reltime(p[2],1/3)),
                       point(p[2],reltime(p[2],2/3))}; 
-    hexagon.cyclic(true); 
+    hexagon.cyclic=true; 
     triple M=unit(sum(hexagon)/6); 
     for(int i=0; i < 6; ++i){
       surface sf=sphericaltriangle(O,hexagon[i],M,hexagon[i+1]); 

@@ -9,6 +9,6 @@ currentprojection=orthographic(0,2,5,up=Y);
 pen[] surfacepen={darkred,brown,darkred+orange,heavyred,heavyred,darkred+orange,
                   palegreen+blue+lightgrey,darkred,darkred,yellow,darkred,white,
                   white,white,white,white,white};
-surfacepen.cyclic(true);
+surfacepen.cyclic=true;
 
 draw(obj("galleon.obj",verbose=false,surfacepen));

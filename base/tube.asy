@@ -139,7 +139,7 @@ private surface surface(rmf[] R, real[] t, coloredpath cp, transform T(real),
 			 planar=planar[j]);
       if(cp.usepens) {
         pen[] tp1=cp.pens(t[i-1]/l), tp2=cp.pens(t[i]/l);
-        tp1.cyclic(true); tp2.cyclic(true);
+        tp1.cyclic=true; tp2.cyclic=true;
         if(cp.colortype == coloredSegments) {
           st.colors(new pen[][] {{tp1[j],tp1[j],tp2[j],tp2[j]}});
 	} else {
@@ -161,6 +161,6 @@ surface tube(path3 g, coloredpath section,
   real[] t=sample(g,max(M.x-m.x,M.y-m.y)/max(realEpsilon,abs(corner)),
                   min(abs(relstep),1));
   bool cyclic=cyclic(g);
-  t.cyclic(cyclic);
+  t.cyclic=cyclic;
   return surface(rmf(g,t),t,section,T,cyclic);
 }

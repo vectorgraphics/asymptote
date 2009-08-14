@@ -178,7 +178,7 @@ slice cut(path p, path knife, int n)
   slice s;
   real[][] T=intersections(p,knife);
   if(T.length == 0) {s.before=p; s.after=nullpath; return s;}
-  T.cyclic(true);
+  T.cyclic=true;
   real t=T[n][0];
   s.before=subpath(p,0,t);
   s.after=subpath(p,t,length(p));

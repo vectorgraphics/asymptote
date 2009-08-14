@@ -321,7 +321,7 @@ struct tube
                    T.push(i+s);
                  });
         T.push(n);
-        T.cyclic(cyclic(p));
+        T.cyclic=cyclic(p);
         rmf[] rmf=rmf(p,T);
         triple f(pair t) {
           rmf R=rmf[round(t.x)];

@@ -5488,7 +5488,7 @@ circle excircle(point A, point B, point C)
 }
 
 private int[] numarray={1,2,3};
-numarray.cyclic(true);
+numarray.cyclic=true;
 
 /*<asyxml><struct signature="triangle"><code></asyxml>*/
 struct triangle {/*<asyxml></code><documentation></documentation></asyxml>*/

@@ -193,17 +193,6 @@ ty *array::deleteType()
   return deletetype;
 }
 
-ty *cyclicType() {
-  return new function(primVoid(),formal(primBoolean(),"b"));
-}
-
-ty *overloadedCyclicType() {
-  overloaded *o=new overloaded;
-  o->add(cyclicType());
-  o->add(primBoolean());
-  return o;
-}
-
 ty *initializedType() {
   return new function(primBoolean(),formal(primInt(),"i"));
 }
@@ -226,9 +215,6 @@ ty *array::virtualFieldGetType(symbol *id)
 
   #undef SIGFIELD
 
-  if (id == symbol::trans("cyclic"))
-    return overloadedCyclicType();
-
   return ty::virtualFieldGetType(id);
 }
 
@@ -236,7 +222,6 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
 {
   FIELD(primInt, "length", arrayLength);
   FIELD(IntArray, "keys", arrayKeys);
-  RWFIELD(primBoolean, "cyclicflag", arrayCyclicFlag, arraySetCyclicFlag);
   RWFIELD(primBoolean, "cyclic", arrayCyclicFlag, arraySetCyclicFlag);
 
   #define SIGFIELD(name, func) \
@@ -251,7 +236,6 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
       return v; \
     }
   SIGFIELDLIST
-  SIGFIELD(cyclic, arrayCyclic);
   #undef SIGFIELD
   
   // Fall back on base class to handle no match.

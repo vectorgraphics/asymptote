@@ -757,7 +757,7 @@ real[] theta(triple[] v, real[] alpha, real[] beta,
 {
   real[] a,b,c,f,l,psi;
   int n=alpha.length;
-  bool cyclic=v.cyclicflag;
+  bool cyclic=v.cyclic;
   for(int i=0; i < n; ++i)
     l[i]=1/length(v[i+1]-v[i]);
   int i0,in;
@@ -766,8 +766,8 @@ real[] theta(triple[] v, real[] alpha, real[] beta,
   for(int i=0; i < in; ++i)
     psi[i]=angle(v[i+1]-v[i],v[i+2]-v[i+1],reference);
   if(cyclic) {
-    l.cyclic(true);
-    psi.cyclic(true);
+    l.cyclic=true;
+    psi.cyclic=true;
   } else {
     psi[n-1]=0;
     if(dir0 == O) {
@@ -869,9 +869,9 @@ void aim(flatguide3 g, int N)
     beta[k]=g.Tension[K].in;
   }
   if(cyclic) {
-    v.cyclic(true);
-    alpha.cyclic(true);
-    beta.cyclic(true);
+    v.cyclic=true;
+    alpha.cyclic=true;
+    beta.cyclic=true;
   } else v[n]=g.nodes[(start+n) % N];
   int final=(end-1) % N;
 
@@ -883,8 +883,8 @@ void aim(flatguide3 g, int N)
   real[] theta=theta(v,alpha,beta,d0,d1,g.out[start].gamma,g.in[final].gamma,
                      reference);
 
-  v.cyclic(true);
-  theta.cyclic(true);
+  v.cyclic=true;
+  theta.cyclic=true;
     
   for(int k=1; k < (cyclic ? n+1 : n); ++k) {
     triple w=dir(theta[k],v[k]-v[k-1],v[k+1]-v[k],reference);
@@ -2103,7 +2103,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
     else {
       real[] dash=(real[]) split(type," ");
       if(sum(dash) > 0) {
-        dash.cyclic(true);
+        dash.cyclic=true;
         real offset=offset(q);
         real L=arclength(g);
         int i=0;

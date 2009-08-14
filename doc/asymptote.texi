@@ -4920,7 +4920,6 @@ The @code{copy} function listed below provides a deep copy of an array.
 
 @cindex @code{length}
 @cindex @code{cyclic}
-@cindex @code{cyclicflag}
 @cindex @code{keys}
 @cindex @code{push}
 @cindex @code{append}
@@ -4931,8 +4930,7 @@ The @code{copy} function listed below provides a deep copy of an array.
 Every array @code{A} of type @code{T[]} has the virtual members
 @itemize
 @item   @code{int length},
-@item   @code{void cyclic(bool b)},
-@item   @code{bool cyclicflag},
+@item   @code{int cyclic},
 @item   @code{int[] keys},
 @item   @code{T push(T x)},
 @item   @code{void append(T[] a)},
@@ -4944,10 +4942,9 @@ Every array @code{A} of type @code{T[]} has the virtual members
 @end itemize
 
 The member @code{A.length} evaluates to the length of the array.
-Setting @code{A.cyclic(true)} signifies that array indices should be reduced
+Setting @code{A.cyclic=true} signifies that array indices should be reduced
 modulo the current array length. Reading from or writing to a nonempty
-cyclic array never leads to out-of-bounds errors or array resizing. The member
-@code{A.cyclicflag} returns the current setting of the @code{cyclic} flag.
+cyclic array never leads to out-of-bounds errors or array resizing.
 
 The member @code{A.keys} evaluates to an array of integers containing the
 indices of initialized entries in the array in ascending order.  Hence, for an
@@ -4966,7 +4963,7 @@ elements down. If no arguments are given, @code{A.delete()} provides a
 convenient way of deleting all elements of @code{A}. The routine
 @code{A.initialized(int n)} can be used to examine whether the element
 at index @code{n} is initialized. Like all @code{Asymptote} functions,
-@code{cyclic}, @code{push}, @code{append}, @code{pop}, @code{insert},
+@code{push}, @code{append}, @code{pop}, @code{insert},
 @code{delete}, and @code{initialized} can be "pulled off" of the array
 and used on their own. For example,
 @verbatim
@@ -5423,7 +5420,7 @@ simply wrap around.  For example:
 
 @verbatim
 int[] x={0,1,2,3,4,5,6,7,8,9};
-x.cyclic(true);
+x.cyclic=true;
 int[] y=x[8:15];  // y={8,9,0,1,2,3,4}.
 int[] z=x[-5:5];  // z={5,6,7,8,9,0,1,2,3,4}
 int[] w=x[-3:17]; // w={7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6}
