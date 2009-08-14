@@ -10,10 +10,10 @@ StartTest("fields");
   for (int i; i<3; ++i)
     assert(keys[i] == i);
   for (int j = 0; j < 10; ++j) {
-    assert(z.cyclicflag == false);
-    z.cyclic(true);
-    assert(z.cyclicflag == true);
-    z.cyclic(false);
+    assert(z.cyclic == false);
+    z.cyclic=true;
+    assert(z.cyclic == true);
+    z.cyclic=false;
   }
 }
 {
@@ -35,7 +35,7 @@ StartTest("fields");
       assert(z.length == k);
     }
   }
-  z.cyclic(true);
+  z.cyclic=true;
   for (int i=0; i<10; ++i) {
     for (int k = 0; k <= 100; ++k) {
       assert(z.length == k);
