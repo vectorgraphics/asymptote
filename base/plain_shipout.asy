@@ -27,7 +27,7 @@ typedef frame orientation(frame);
 orientation orientation=Portrait;
 
 // Forward references to functions defined in module three.
-object embed3(string, frame, string, string, string, projection);
+object embed3(string, frame, string, string, string, light, projection);
 string Embed(string name, string options="", real width=0, real height=0);
 string Link(string label, string text, string options="");
 
@@ -59,10 +59,10 @@ include plain_xasy;
 void shipout(string prefix=defaultfilename, frame f,
              string format="", bool wait=false, bool view=true,
 	     string options="", string script="",
-	     projection P=currentprojection)
+	     light light=currentlight, projection P=currentprojection)
 {
   if(is3D(f)) {
-    f=enclose(prefix,embed3(prefix,f,format,options,script,P));
+    f=enclose(prefix,embed3(prefix,f,format,options,script,light,P));
     if(settings.render != 0 && !prc(format)) {
       shipped=true;
       return;
@@ -88,14 +88,14 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     orientation orientation=orientation,
 	     string format="", bool wait=false, bool view=true,
 	     string options="", string script="",
-	     projection P=currentprojection)
+	     light light=currentlight, projection P=currentprojection)
 {
   if(!uptodate()) {
     bool inlinetex=settings.inlinetex;
     bool prc=prc(format);
     if(prc && !pic.empty3())
       settings.inlinetex=settings.inlineimage;
-    frame f=pic.fit(prefix,format,view=view,options,script,P);    
+    frame f=pic.fit(prefix,format,view=view,options,script,light,P);
     if(!pic.empty2() || settings.render == 0 || prc)
       shipout(prefix,orientation(f),format,wait,view);
     settings.inlinetex=inlinetex;

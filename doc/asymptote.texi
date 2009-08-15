@@ -3272,7 +3272,7 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
              orientation orientation=orientation,
              string format="", bool wait=false, bool view=true,
              string options="", string script="",
-             projection P=currentprojection);
+             light light=currentlight, projection P=currentprojection)
 @end verbatim
 @noindent
 The default output format, @code{PostScript}, may be changed

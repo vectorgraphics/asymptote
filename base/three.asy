@@ -2724,8 +2724,7 @@ object embed(string label="", string text=label,
              light light=currentlight, projection P=currentprojection)
 {
   if(is3D(format))
-    return embed(label,text,prefix,scene(f,P),format,view,options,script,
-                 light);
+    return embed(label,text,prefix,scene(f,P),format,view,options,script,light);
   else {
     object F;
     F.f=f;
@@ -2734,12 +2733,12 @@ object embed(string label="", string text=label,
 }
 
 embed3=new object(string prefix, frame f, string format, string options,
-                  string script, projection P) {
-  return embed(prefix=prefix,f,format,options,script,P);
+                  string script, light light, projection P) {
+  return embed(prefix=prefix,f,format,options,script,light,P);
 };
 
 frame embedder(object embedder(string prefix, string format),
-               string prefix, string format="", bool view=true)
+               string prefix, string format, bool view, light light)
 {
   frame f;
   bool prc=prc(format);
@@ -2757,8 +2756,8 @@ frame embedder(object embedder(string prefix, string format),
   else {
     if(settings.render == 0) {
       add(f,F.f);
-      if(currentlight.background != nullpen)
-        box(f,currentlight.background,Fill,above=false);
+      if(light.background != nullpen)
+        box(f,light.background,Fill,above=false);
     } else if(!view)
       label(f,graphic(prefix,"hiresbb"));
   }
@@ -2766,25 +2765,25 @@ frame embedder(object embedder(string prefix, string format),
 }
 
 currentpicture.fitter=new frame(string prefix, picture pic, string format,
-                                real xsize, real ysize,
-                                bool keepAspect, bool view,
-                                string options, string script, projection P) {
+                                real xsize, real ysize, bool keepAspect,
+                                bool view, string options, string script,
+                                light light, projection P) {
   frame f;
   bool empty3=pic.empty3();
   if(!empty3) f=embedder(new object(string prefix, string format) {
       return embed(prefix=prefix,pic,format,xsize,ysize,keepAspect,view,
-                   options,script,currentlight,P);
-      },prefix,format,view);
+                   options,script,light,P);
+    },prefix,format,view,light);
   if(is3D(format) || empty3) add(f,pic.fit2(xsize,ysize,keepAspect));
   return f;
 };
 
-frame embedder(string prefix, frame f, string format="", bool view=true,
-               string options="", string script="", projection P)
+frame embedder(string prefix, frame f, string format, bool view,
+               string options, string script, light light, projection P)
 {
   return embedder(new object(string prefix, string format) {
-      return embed(prefix=prefix,f,format,view,options,script,currentlight,P);
-    },prefix,format,view);
+      return embed(prefix=prefix,f,format,view,options,script,light,P);
+    },prefix,format,view,light);
 }
 
 void addViews(picture dest, picture src, bool group=true,
@@ -2840,7 +2839,8 @@ void addAllViews(picture src, bool group=true, filltype filltype=NoFill)
 // Fit an array of 3D pictures simultaneously using the sizing of picture all.
 frame[] fit3(string prefix="", picture[] pictures, picture all,
              string format="", bool view=true, string options="",
-             string script="",projection P=currentprojection)
+             string script="", light light=currentlight,
+             projection P=currentprojection)
 {
   frame[] out;
   scene S=scene(all,P);
@@ -2856,14 +2856,14 @@ frame[] fit3(string prefix="", picture[] pictures, picture all,
     add(f,pic2.fit2());
     draw(f,m,nullpen);
     draw(f,M,nullpen);
-    out[i]=loop ? f : embedder(prefix,f,format,view,options,script,S.P);
+    out[i]=loop ? f : embedder(prefix,f,format,view,options,script,light,S.P);
     ++i;
   }
 
   while(settings.loop)
     for(int i=0; i < pictures.length; ++i) {
       if(!settings.loop) break;
-      embedder(prefix,out[i],format,view,options,script,S.P);
+      embedder(prefix,out[i],format,view,options,script,light,S.P);
     }
   
   return out;

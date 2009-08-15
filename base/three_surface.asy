@@ -125,21 +125,21 @@ struct patch {
   pen[] colors(material m, light light=currentlight) {
     bool nocolors=colors.length == 0;
     if(normals.length > 0)
-      return new pen[] {light.color(normals[0],nocolors ? m : colors[0]),
-          light.color(normals[1],nocolors ? m : colors[1]),
-          light.color(normals[2],nocolors ? m : colors[2]),
-          light.color(normals[3],nocolors ? m : colors[3])};
+      return new pen[] {color(normals[0],nocolors ? m : colors[0],light),
+          color(normals[1],nocolors ? m : colors[1],light),
+          color(normals[2],nocolors ? m : colors[2],light),
+          color(normals[3],nocolors ? m : colors[3],light)};
     if(planar) {
       triple normal=normal(0.5,0.5);
-      return new pen[] {light.color(normal,nocolors ? m : colors[0]),
-          light.color(normal,nocolors ? m : colors[1]),
-          light.color(normal,nocolors ? m : colors[2]),
-          light.color(normal,nocolors ? m : colors[3])};
+      return new pen[] {color(normal,nocolors ? m : colors[0],light),
+          color(normal,nocolors ? m : colors[1],light),
+          color(normal,nocolors ? m : colors[2],light),
+          color(normal,nocolors ? m : colors[3],light)};
     }
-    return new pen[] {light.color(normal00(),nocolors ? m : colors[0]),
-        light.color(normal10(),nocolors ? m : colors[1]),
-        light.color(normal11(),nocolors ? m : colors[2]),
-        light.color(normal01(),nocolors ? m : colors[3])};
+    return new pen[] {color(normal00(),nocolors ? m : colors[0],light),
+        color(normal10(),nocolors ? m : colors[1],light),
+        color(normal11(),nocolors ? m : colors[2],light),
+        color(normal01(),nocolors ? m : colors[3],light)};
   }
   
   triple min3,max3;
@@ -811,6 +811,9 @@ struct surface {
     for(int k=1; k <= n; ++k)
       T[k]=T[k-1]*t;
 
+    typedef pen colorfcn(int i, real j);
+    bool defaultcolors=(colorfcn) color == null;
+    
     for(int i=0; i < L; ++i) {
       path3 h=subpath(g,i,i+1);
       path3 r=reverse(h);
@@ -840,7 +843,7 @@ struct surface {
         path3 G=reverse(Tk*h{dirj}..{dirp}Tp*r{-dirp}..{-dirj}cycle);
         Tk=Tp;
         dirj=dirp;
-        s[++m]=color == null ? patch(G) :
+        s[++m]=defaultcolors ? patch(G) :
           patch(G,new pen[] {color(i,j),color(i,j+w),color(i+1,j+w),
                              color(i+1,j)});
         index[k][i]=m;
@@ -1286,11 +1289,11 @@ void label(frame f, Label L, triple position, align align=NoAlign,
   } else {
     if(L.filltype == NoFill)
       fill(f,path(L,project(position,P.t),P),
-           light.color(L.T3*Z,L.p,shiftless(P.T.modelview)));
+           color(L.T3*Z,L.p,light,shiftless(P.T.modelview)));
     else {
       frame d;
       fill(d,path(L,project(position,P.t),P),
-           light.color(L.T3*Z,L.p,shiftless(P.T.modelview)));
+           color(L.T3*Z,L.p,light,shiftless(P.T.modelview)));
       add(f,d,L.filltype);
     }
   }
@@ -1322,11 +1325,11 @@ void label(picture pic=currentpicture, Label L, triple position,
       if(pic != null) {
         if(L.filltype == NoFill)
           fill(project(v,P.t),pic,path(L,P),
-               light.color(L.T3*Z,L.p,shiftless(P.T.modelview)));
+               color(L.T3*Z,L.p,light,shiftless(P.T.modelview)));
         else {
           picture d;
           fill(project(v,P.t),d,path(L,P),
-               light.color(L.T3*Z,L.p,shiftless(P.T.modelview)));
+               color(L.T3*Z,L.p,light,shiftless(P.T.modelview)));
           add(pic,d,L.filltype);
         }
       }

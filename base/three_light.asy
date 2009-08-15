@@ -75,88 +75,27 @@ material emissive(material m, real granularity=m.granularity)
                   granularity);
 }
 
-struct light {
-  real[][] diffuse;
-  real[][] ambient;
-  real[][] specular;
-  pen background=nullpen; // Background color of the 3D canvas.
-  real specularfactor;
-  bool viewport; // Are the lights specified (and fixed) in the viewport frame?
-  triple[] position; // Only directional lights are currently implemented.
-
-  transform3 T=identity(4); // Transform to apply to normal vectors.
-
-  bool on() {return position.length > 0;}
-  
-  void operator init(pen[] diffuse,
-                     pen[] ambient=array(diffuse.length,black),
-                     pen[] specular=diffuse, pen background=nullpen,
-                     real specularfactor=1,
-                     bool viewport=false, triple[] position) {
-    int n=diffuse.length;
-    assert(ambient.length == n && specular.length == n && position.length == n);
-    
-    this.diffuse=new real[n][];
-    this.ambient=new real[n][];
-    this.specular=new real[n][];
-    this.background=background;
-    this.position=new triple[n];
-    for(int i=0; i < position.length; ++i) {
-      this.diffuse[i]=rgba(diffuse[i]);
-      this.ambient[i]=rgba(ambient[i]);
-      this.specular[i]=rgba(specular[i]);
-      this.position[i]=unit(position[i]);
-    }
-    this.specularfactor=specularfactor;
-    this.viewport=viewport;
+pen color(triple normal, material m, light light, transform3 T=light.T) {
+  triple[] position=light.position;
+  if(invisible((pen) m)) return invisible;
+  if(position.length == 0) return m.diffuse();
+  normal=unit(T*normal);
+  if(settings.twosided) normal *= sgn(normal.z);
+  real s=m.shininess*128;
+  real[] Diffuse=rgba(m.diffuse());
+  real[] Ambient=rgba(m.ambient());
+  real[] Specular=rgba(m.specular());
+  real[] p=rgba(m.emissive());
+  for(int i=0; i < position.length; ++i) {
+    triple L=light.viewport ? position[i] : T*position[i];
+    real Ldotn=max(dot(normal,L),0);
+    p += light.ambient[i]*Ambient+Ldotn*light.diffuse[i]*Diffuse;
+    // Apply specularfactor to partially compensate non-pixel-based rendering.
+    if(Ldotn > 0) // Phong-Blinn model of specular reflection
+      p += dot(normal,unit(L+Z))^s*light.specularfactor*
+        light.specular[i]*Specular;
   }
-
-  void operator init(pen diffuse=white, pen ambient=black, pen specular=diffuse,
-                     pen background=nullpen, real specularfactor=1,
-                     bool viewport=false...triple[] position) {
-    int n=position.length;
-    operator init(array(n,diffuse),array(n,ambient),array(n,specular),
-                  background,specularfactor,viewport,position);
-  }
-
-  void operator init(pen diffuse=white, pen ambient=black, pen specular=diffuse,
-                     pen background=nullpen, bool viewport=false,
-                     real x, real y, real z) {
-    operator init(diffuse,ambient,specular,background,viewport,(x,y,z));
-  }
-
-  void operator init(explicit light light) {
-    diffuse=copy(light.diffuse);
-    ambient=copy(light.ambient);
-    specular=copy(light.specular);
-    background=light.background;
-    specularfactor=light.specularfactor;
-    viewport=light.viewport;
-    position=copy(light.position);
-  }
-
-  pen color(triple normal, material m, transform3 T=T) {
-    if(invisible((pen) m)) return invisible;
-    if(position.length == 0) return m.diffuse();
-    normal=unit(T*normal);
-    if(settings.twosided) normal *= sgn(normal.z);
-    real s=m.shininess*128;
-    real[] Diffuse=rgba(m.diffuse());
-    real[] Ambient=rgba(m.ambient());
-    real[] Specular=rgba(m.specular());
-    real[] p=rgba(m.emissive());
-    for(int i=0; i < position.length; ++i) {
-      triple L=viewport ? position[i] : T*position[i];
-      real Ldotn=max(dot(normal,L),0);
-      p += ambient[i]*Ambient+Ldotn*diffuse[i]*Diffuse;
-      // Apply specularfactor to partially compensate non-pixel-based rendering.
-      if(Ldotn > 0) // Phong-Blinn model of specular reflection
-        p += dot(normal,unit(L+Z))^s*specularfactor*specular[i]*Specular;
-    }
-    return rgb(p[0],p[1],p[2])+opacity(opacity(m.diffuse()));
-  }
-
-  real[] background() {return rgba(background == nullpen ? white : background);}
+  return rgb(p[0],p[1],p[2])+opacity(opacity(m.diffuse()));
 }
 
 light operator * (transform3 t, light light)
@@ -178,6 +117,6 @@ light White=light(new pen[] {rgb(0.38,0.38,0.45),rgb(0.6,0.6,0.67),
 light Headlamp=light(gray(0.8),ambient=gray(0.1),specular=gray(0.7),
                      specularfactor=3,viewport=true,dir(42,48));
 
-light currentlight=Headlamp;
+currentlight=Headlamp;
 
 light nolight;
