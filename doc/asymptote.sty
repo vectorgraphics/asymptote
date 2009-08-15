@@ -3,18 +3,21 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2)
 
-\ProvidesPackage{asymptote}[2009/06/18 v1.08 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2009/08/14 v1.09 Asymptote style file for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
 \newif\ifASYinline
 \DeclareOption{inline}{\ASYinlinetrue}
 \ProcessOptions*
 
+\def\unquoteJobname#1"#2"#3\relax{\def\rawJobname{#1}%
+  \ifx\rawJobname\empty\def\rawJobname{#2}\fi}
+\expandafter\unquoteJobname\jobname""\relax
 % Work around jobname bug in MiKTeX 2.5 and 2.6:
 % Turn stars in file names (resulting from spaces, etc.) into minus signs
 \def\fixstar#1*#2\relax{\def\argtwo{#2}\ifx\argtwo\empty\gdef\Jobname{#1}\else
 \fixstar#1-#2\relax\fi}
-\expandafter\fixstar\jobname*\relax
+\expandafter\fixstar\rawJobname*\relax
 
 \RequirePackage{color,graphicx}
 
