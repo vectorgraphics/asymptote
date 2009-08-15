@@ -3,7 +3,7 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2)
 
-\ProvidesPackage{asymptote}[2009/08/14 v1.09 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2009/08/15 v1.10 Asymptote style file for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
 \newif\ifASYinline
@@ -122,13 +122,13 @@
       \immediate\write\AsyStream{size(\ASYwidth,\ASYheight);}%
     \fi
   \fi
-  \ASYtexfalse
+  \ASYtexfalse%
   \ifASYattach
-    \def\ASYdefaultviewportwidth{0}
+    \def\ASYdefaultviewportwidth{0}%
   \else
-    \def\ASYdefaultviewportwidth{\the\linewidth}
+    \def\ASYdefaultviewportwidth{\the\linewidth}%
     \ifASYinline
-      \ASYtextrue
+      \ASYtextrue%
     \fi
   \fi
   \ifx\ASYviewportwidth\empty
@@ -144,10 +144,10 @@
         \AsyStream{viewportsize=(\ASYviewportwidth,\ASYviewportheight);}%
     \fi
   \fi
-  \gdef\ASYwidth{}
-  \gdef\ASYheight{}
-  \gdef\ASYviewportwidth{\ASYdefaultviewportwidth}
-  \gdef\ASYviewportheight{}
+  \gdef\ASYwidth{}%
+  \gdef\ASYheight{}%
+  \gdef\ASYviewportwidth{\ASYdefaultviewportwidth}%
+  \gdef\ASYviewportheight{}%
   \immediate\write\AsyStream{\@charrb);}%
   \immediate\write\AsyStream{// End of Asymptote Figure \the\c@asy}%
   \ifASYtex
