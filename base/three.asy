@@ -2376,7 +2376,7 @@ pair viewportmargin(pair lambda)
 
 string embed3D(string label="", string text=label, string prefix,
                frame f, string format="",
-               real width=0, real height=0, real angle=30,
+               real width=0, real height=0,
                string options="", string script="",
                light light=currentlight, projection P=currentprojection)
 {
@@ -2396,7 +2396,7 @@ string embed3D(string label="", string text=label, string prefix,
     pair margin=viewportmargin((lambda.x,lambda.y));
     viewplanesize=(max(lambda.x+2*margin.x,lambda.y+2*margin.y))/(cm*P.zoom);
   } else
-    if(!P.absolute) angle=2*aTan(Tan(0.5*angle));
+    if(!P.absolute) P.angle=2*aTan(Tan(0.5*P.angle));
 
   string name=prefix+".js";
   writeJavaScript(name,lightscript+projection(P.infinity,viewplanesize),script);
@@ -2430,7 +2430,7 @@ string embed3D(string label="", string text=label, string prefix,
     options3 += ",poster";
   options3 += ",text={"+text+"},label="+label+
     ",toolbar="+(settings.toolbar ? "true" : "false")+
-    ",3Daac="+Format(P.absolute ? P.angle : angle)+
+    ",3Daac="+Format(P.angle)+
     ",3Dc2c="+Format(u)+
     ",3Dcoo="+Format(target/cm)+
     ",3Droll="+Format(roll)+
@@ -2582,7 +2582,7 @@ struct scene
 
 object embed(string label="", string text=label, string prefix=defaultfilename,
              scene S, string format="", bool view=true, string options="",
-             string script="", real angle=0, light light=currentlight)
+             string script="", light light=currentlight)
 {
   object F;
   transform3 modelview;
@@ -2610,12 +2610,11 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
       S.height=lambda.y+2*viewportmargin.y;
       S.f=shift((-0.5(m.x+M.x),-0.5*(m.y+M.y),0))*S.f; // Eye will be at (0,0,0)
     } else {
-      if(angle == 0) angle=P.angle;
-      if(angle == 0) {
-        angle=S.angle(P);
+      if(P.angle == 0) {
+        Q.angle=P.angle=S.angle(P);
         modelview=S.T*modelview;
         if(viewportmargin.y != 0)
-          angle=2*aTan(Tan(0.5*angle)-viewportmargin.y/P.target.z);
+          P.angle=2*aTan(Tan(0.5*P.angle)-viewportmargin.y/P.target.z);
       }
       if(settings.verbose > 0) {
         transform3 inv=inverse(modelview);
@@ -2652,7 +2651,6 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
       M=max3(f);
       r=0.5*abs(M-m);
       zcenter=0.5*(M.z+m.z);
-      angle=P.angle;
     } else {
       m=min3(f);
       M=max3(f);
@@ -2670,7 +2668,7 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
 
     shipout3(prefix,f,preview ? nativeformat() : format,
              S.width-rendermargin,S.height-rendermargin,
-             P.infinity ? 0 : 2aTan(Tan(0.5*angle)*P.zoom),
+             P.infinity ? 0 : 2aTan(Tan(0.5*P.angle)*P.zoom),
              P.zoom,m,M,P.viewportshift,
              tinv*inverse(modelview)*shift(0,0,zcenter),light.background(),
              P.absolute ? (modelview*light).position : light.position,
@@ -2693,7 +2691,7 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
               "PRC does not support off-axis projections; use pan instead of
 shift");
     F.L=embed3D(label,text=image,prefix,S.f,format,
-                S.width-2,S.height-2,angle,options,script,light,Q);
+                S.width-2,S.height-2,options,script,light,Q);
   }
   return F;
 }
@@ -2703,13 +2701,13 @@ object embed(string label="", string text=label,
              picture pic, string format="",
              real xsize=pic.xsize, real ysize=pic.ysize,
              bool keepAspect=pic.keepAspect, bool view=true, string options="",
-             string script="", real angle=0,
-             light light=currentlight, projection P=currentprojection)
+             string script="", light light=currentlight,
+             projection P=currentprojection)
 {
   bool is3D=is3D(format);
   scene S=scene(pic,xsize,ysize,keepAspect,is3D,P);
   if(is3D)
-    return embed(label,text,prefix,S,format,view,options,script,angle,light);
+    return embed(label,text,prefix,S,format,view,options,script,light);
   else {
     object F;
     transform T=S.pic2.scaling(xsize,ysize,keepAspect);
@@ -2722,11 +2720,11 @@ object embed(string label="", string text=label,
 object embed(string label="", string text=label,
              string prefix=defaultfilename,
              frame f, string format="", real width=0, real height=0,
-             bool view=true, string options="", string script="", real angle=0,
+             bool view=true, string options="", string script="",
              light light=currentlight, projection P=currentprojection)
 {
   if(is3D(format))
-    return embed(label,text,prefix,scene(f,P),format,view,options,script,angle,
+    return embed(label,text,prefix,scene(f,P),format,view,options,script,
                  light);
   else {
     object F;
