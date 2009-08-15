@@ -22,7 +22,7 @@ index.html: $(SOURCE) $(ASYFILES:.asy=.png)
 asymptote.info: $(SOURCE)
 	makeinfo --no-warn --no-split ../asymptote
 
-info:	$(SOURCE)
+info:	$(SOURCE) $(ASYFILES:.asy=.png)
 	makeinfo --no-split ../asymptote
 
 html:	index.html
