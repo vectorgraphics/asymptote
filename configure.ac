@@ -52,7 +52,9 @@ else
 fi
 ])
 
-AC_CHECK_PROGS(TEXI2DVI,[texi2dvi texi2dvi4a2ps])
+AC_CHECK_PROGS(TEXI2DVI,[texi2dvi texi2dvi4a2ps],
+[echo texi2dvi is missing! Please put http://asymptote.sourceforge.net/asymptote.pdf in the doc directory; exit -1;])
+
 AC_SUBST(TEXI2DVI)
 
 latexdir=$latexdir/asymptote
@@ -210,8 +212,10 @@ AC_SUBST(OPTIONS)
 AC_CHECK_LIB([ncurses], [setupterm], [AC_DEFINE(HAVE_LIBCURSES)
 			 LIBS=$LIBS"-lncurses "],
 			 AC_CHECK_LIB([curses], [setupterm]))
-AC_CHECK_LIB([m], [sqrt])
-AC_CHECK_LIB([z], [deflate])
+AC_CHECK_LIB([m], [sqrt],,
+AC_MSG_ERROR([*** Please install libm on your system ***]))
+AC_CHECK_LIB([z], [deflate],,
+AC_MSG_ERROR([*** Please install libz on your system ***]))
 AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([sigsegv], [stackoverflow_install_handler])
 AC_CHECK_LIB([rt], [sched_yield])
