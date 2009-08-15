@@ -1,9 +1,16 @@
 import graph3;
 
-size(200,0);
-currentprojection=perspective(20,-50,20);
+size(469pt);
 
-// From http://local.wasp.uwa.edu.au/~pbourke/geometry/klein/
+viewportmargin=0;
+
+currentprojection=perspective(
+camera=(25.0851928432063,-30.3337528952473,19.3728775115443),
+up=Z,
+target=(-0.590622314050054,0.692357205025578,-0.627122488455679),
+zoom=1,
+autoadjust=false);
+
 triple f(pair t) {
   real u=t.x;
   real v=t.y;
@@ -14,4 +21,24 @@ triple f(pair t) {
   return (x,y,z);
 }
 
-draw(surface(f,(0,0),(2pi,2pi),8,8,Spline),lightgray);
+surface s=surface(f,(0,0),(2pi,2pi),8,8,Spline);
+draw(s,lightolive+white);
+
+string lo="$\displaystyle u\in[0,\pi]: \cases{x=3\cos u(1+\sin u)+(2-\cos u)\cos u\cos v,\cr
+y=8\sin u+(2-\cos u)\sin u\cos v,\cr
+z=(2-\cos u)\sin v.\cr}$";
+
+string hi="$\displaystyle u\in[\pi,2\pi]:\\\cases{x=3\cos u(1+\sin u)-(2-\cos u)\cos v,\cr
+y=8\sin u,\cr
+z=(2-\cos u)\sin v.\cr}$";
+
+real h=0.0125;
+
+draw(labelsurface(xscale(-0.38)*yscale(-0.18)*lo,s,0,1.7,h));
+draw(labelsurface(xscale(0.26)*yscale(0.1)*rotate(90)*hi,s,4.9,1.4,h));
+draw(s.uequals(0),blue+dashed);
+draw(s.uequals(pi),blue+dashed);
+
+currentpicture.add(new void(frame f, transform3 t, picture pic, projection P) {
+    draw(f,invert(box(min(f,P),max(f,P)),P));
+  });
