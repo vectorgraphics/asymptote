@@ -10,7 +10,7 @@
 
 namespace trans {
 
-inline void virtualFieldAccess::encode(action act, position pos, coder &e)
+void virtualFieldAccess::encode(action act, position pos, coder &e)
 {
   switch(act) {
     case CALL:
