@@ -3199,6 +3199,16 @@ void draw(picture *f, triplearray2 *g, bool straight, penarray *p, real opacity,
                             granularity,normal,lighton,*colors));
 }
 
+void draw(picture *f, Int degreeu, Int degreev, Int nu, Int nv, triplearray2 *g,
+          realarray *knotu, realarray *knotv, realarray2 *weight, penarray *p,
+          real opacity, real shininess, real PRCshininess, real granularity)
+{
+  f->append(new drawNurb(degreeu,degreev,nu,nv,*g,
+                         copyArrayC(knotu,degreeu+nu+1),
+                         copyArrayC(knotv,degreev+nv+1),*weight,
+                         *p,opacity,shininess,PRCshininess,granularity));
+}
+
 triple min3(picture *f)
 {
   return f->bounds3().Min();

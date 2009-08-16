@@ -9,7 +9,7 @@ settings.prc=false;
 settings.thick=false;
 settings.outformat="mpg";
 currentprojection=orthographic(5,4,2); 
-currentlight=light(specular=black,(0.1,-0.1,1));
+currentlight=light(specular=black,(0.1,-0.1,1),viewport=true);
  
 size(15cm,0); 
  

@@ -297,6 +297,23 @@ drawElement *drawSurface::transformed(const array& t)
   return new drawSurface(t,this);
 }
   
+bool drawNurb::write(prcfile *out)
+{
+  if(invisible)
+    return true;
+
+  PRCMaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+  out->add(new PRCsurface(out,degreeu,degreev,nu,nv,controls,knotsu,knotsv,
+                          m,scale3D,false,weights,granularity));
+  
+  return true;
+}
+
+drawElement *drawNurb::transformed(const array& t)
+{
+  return new drawNurb(t,this);
+}
+
 double norm(double *a, size_t n) 
 {
   if(n == 0) return 0.0;

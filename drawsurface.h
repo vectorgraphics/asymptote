@@ -68,6 +68,20 @@ public:
     if(checkArray(&g) != 4 || checkArray(&p) != 4)
       reportError(wrongsize);
     
+    size_t k=0;
+    for(size_t i=0; i < 4; ++i) {
+      vm::array *gi=vm::read<vm::array*>(g,i);
+      if(checkArray(gi) != 4) 
+        reportError(wrongsize);
+      for(size_t j=0; j < 4; ++j) {
+        triple v=vm::read<triple>(gi,j);
+        controls[k][0]=v.getx();
+        controls[k][1]=v.gety();
+        controls[k][2]=v.getz();
+        ++k;
+      }
+    }
+    
     pen surfacepen=vm::read<camp::pen>(p,0);
     invisible=surfacepen.invisible();
     
@@ -88,21 +102,6 @@ public:
       storecolor(4,pens,3);
     }
 #endif    
-    
-    size_t k=0;
-    for(size_t i=0; i < 4; ++i) {
-      vm::array *gi=vm::read<vm::array*>(g,i);
-      size_t gisize=checkArray(gi);
-      if(gisize != 4) 
-        reportError(wrongsize);
-      for(size_t j=0; j < 4; ++j) {
-        triple v=vm::read<triple>(gi,j);
-        controls[k][0]=v.getx();
-        controls[k][1]=v.gety();
-        controls[k][2]=v.getz();
-        ++k;
-      }
-    }
   }
   
   drawSurface(const vm::array& t, const drawSurface *s) :
@@ -137,6 +136,105 @@ public:
   void displacement();
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
               double perspective, bool transparent);
+  
+  drawElement *transformed(const vm::array& t);
+};
+  
+class drawNurb : public drawElement {
+protected:
+  size_t degreeu,degreev;
+  size_t nu,nv;
+  Triple *controls;
+  double *weights;
+  double *knotsu, *knotsv;
+  RGBAColour diffuse;
+  RGBAColour ambient;
+  RGBAColour emissive;
+  RGBAColour specular;
+  double opacity;
+  double shininess;
+  double PRCshininess;
+  double granularity;
+  triple normal;
+  bool lighton;
+  
+  bool invisible;
+public:
+  drawNurb(size_t degreeu, size_t degreev, size_t nu, size_t nv,
+           const vm::array& g, double *knotsu, double *knotsv,
+           const vm::array& weight,
+           const vm::array&p, double opacity, double shininess,
+           double PRCshininess, double granularity) :
+    degreeu(degreeu), degreev(degreev), nu(nu), nv(nv),
+    knotsu(knotsu), knotsv(knotsv),
+    opacity(opacity), shininess(shininess), PRCshininess(PRCshininess),
+    granularity(granularity) {
+
+    string wrongsize="Inconsistent nurb parameters";
+    if(checkArray(&g) != nu || checkArray(&weight) != nu || checkArray(&p) != 4)
+      reportError(wrongsize);
+
+    size_t n=nu*nv;
+    controls=new double[n][3];
+    weights=new double[n];
+    
+    size_t k=0;
+    for(size_t i=0; i < nu; ++i) {
+      vm::array *gi=vm::read<vm::array*>(g,i);
+      vm::array *weighti=vm::read<vm::array*>(weight,i);
+      if(checkArray(gi) != nv || checkArray(weighti) != nv)  
+        reportError(wrongsize);
+      for(size_t j=0; j < nv; ++j) {
+        triple v=vm::read<triple>(gi,j);
+        controls[k][0]=v.getx();
+        controls[k][1]=v.gety();
+        controls[k][2]=v.getz();
+        weights[k]=vm::read<double>(weighti,j);
+        ++k;
+      }
+    }
+      
+    pen surfacepen=vm::read<camp::pen>(p,0);
+    invisible=surfacepen.invisible();
+    
+    diffuse=rgba(surfacepen);
+    ambient=rgba(vm::read<camp::pen>(p,1));
+    emissive=rgba(vm::read<camp::pen>(p,2));
+    specular=rgba(vm::read<camp::pen>(p,3));
+  }
+  
+  drawNurb(const vm::array& t, const drawNurb *s) :
+    degreeu(s->degreeu), degreev(s->degreev), nu(s->nu), nv(s->nv),
+    knotsu(s->knotsu), knotsv(s->knotsv),
+    diffuse(s->diffuse), ambient(s->ambient),
+    emissive(s->emissive), specular(s->specular), opacity(s->opacity),
+    shininess(s->shininess), PRCshininess(s->PRCshininess), 
+    granularity(s->granularity), invisible(s->invisible) {
+    
+    size_t n=nu*nv;
+    controls=new double[n][3];
+    weights=new double[n];
+    
+    for(size_t i=0; i < n; ++i) {
+      const double *c=s->controls[i];
+      triple v=run::operator *(t,triple(c[0],c[1],c[2]));
+      controls[i][0]=v.getx();
+      controls[i][1]=v.gety();
+      controls[i][2]=v.getz();
+      weights[i]=s->weights[i];
+    }
+  }
+  
+  bool is3D() {return true;}
+  
+  virtual ~drawNurb() {
+    delete[] controls;
+    delete[] knotsu;
+    delete[] knotsv;
+    delete[] weights;
+  }
+
+  bool write(prcfile *out);
   
   drawElement *transformed(const vm::array& t);
 };
