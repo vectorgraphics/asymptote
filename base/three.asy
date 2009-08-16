@@ -2449,6 +2449,7 @@ struct scene
   projection P;
   bool adjusted;
   real width,height;
+  pair viewportmargin;
   transform3 T=identity4;
   picture pic2;
   
@@ -2510,7 +2511,7 @@ struct scene
       pair m2=pic2.min(s);
       pair M2=pic2.max(s);
       pair lambda=M2-m2;
-      pair viewportmargin=viewportmargin(lambda);
+      viewportmargin=viewportmargin(lambda);
       width=ceil(lambda.x+2*viewportmargin.x);
       height=ceil(lambda.y+2*viewportmargin.y);
 
@@ -2600,22 +2601,23 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
     Q=P.copy();
     light=modelview*light;
 
-    pair viewportmargin=viewportmargin;
     if(P.infinity) {
       triple m=min3(S.f);
       triple M=max3(S.f);
+
       triple lambda=M-m;
-      viewportmargin=viewportmargin((lambda.x,lambda.y));
+      S.viewportmargin=viewportmargin((lambda.x,lambda.y));
       S.width=lambda.x+2*viewportmargin.x;
       S.height=lambda.y+2*viewportmargin.y;
       S.f=shift((-0.5(m.x+M.x),-0.5*(m.y+M.y),0))*S.f; // Eye will be at (0,0,0)
     } else {
       if(P.angle == 0) {
-        Q.angle=P.angle=S.angle(P);
+        P.angle=S.angle(P);
         modelview=S.T*modelview;
-        if(viewportmargin.y != 0)
-          P.angle=2*aTan(Tan(0.5*P.angle)-viewportmargin.y/P.target.z);
+        if(S.viewportmargin.y != 0)
+          P.angle=2*aTan(Tan(0.5*P.angle)-S.viewportmargin.y/P.target.z);
       }
+      Q.angle=P.angle;
       if(settings.verbose > 0) {
         transform3 inv=inverse(modelview);
         if(S.adjusted) 
@@ -2661,7 +2663,7 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
     m=(m.x,m.y,zcenter-r);
 
     if(P.infinity) {
-      triple margin=(viewportmargin.x,viewportmargin.y,0);
+      triple margin=(S.viewportmargin.x,S.viewportmargin.y,0);
       M += margin; 
       m -= margin;
     } else if(M.z >= 0) abort("camera too close");
