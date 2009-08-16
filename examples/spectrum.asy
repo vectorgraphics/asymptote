@@ -2,7 +2,7 @@ import graph;
 usepackage("ocg");
 settings.tex="pdflatex";
 
-// Dan Burton algorithm
+// Dan Bruton algorithm
 pen nm2rgb(real wl, real gamma=0.8, bool intensity=true) {
   triple rgb;
   if(wl >= 380 && wl <= 440) {rgb=((440-wl)/60,0,1);}
