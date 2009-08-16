@@ -1,6 +1,8 @@
 size(500);
 import graph3;
 
+currentprojection=perspective(-5,-4,2);
+
 path3 g=randompath3(10);
 
 draw(g,red+thin());

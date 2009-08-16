@@ -312,7 +312,7 @@ array *copyArray(array *a)
   return c;
 }
 
-inline size_t checkdimension(array *a, size_t dim)
+inline size_t checkdimension(const array *a, size_t dim)
 {
   size_t size=checkArray(a);
   if(dim && size != dim) {
@@ -323,7 +323,7 @@ inline size_t checkdimension(array *a, size_t dim)
   return size;
 }
 
-double *copyArrayC(array *a, size_t dim=0)
+double *copyArrayC(const array *a, size_t dim=0)
 {
   size_t size=checkdimension(a,dim);
   double *c=new double[size];
@@ -332,7 +332,7 @@ double *copyArrayC(array *a, size_t dim=0)
   return c;
 }
 
-triple *copyTripleArrayC(array *a, size_t dim=0)
+triple *copyTripleArrayC(const array *a, size_t dim=0)
 {
   size_t size=checkdimension(a,dim);
   triple *c=new triple[size];
@@ -377,7 +377,7 @@ array *copyArray3(array *a)
   return c;
 }
 
-double *copyArray2C(array *a, bool square=true, size_t dim2=0)
+double *copyArray2C(const array *a, bool square=true, size_t dim2=0)
 {
   size_t n=checkArray(a);
   size_t m=(square || n == 0) ? n : checkArray(read<array*>(a,0));
@@ -401,7 +401,7 @@ double *copyArray2C(array *a, bool square=true, size_t dim2=0)
   return c;
 }
 
-triple *copyTripleArray2C(array *a, bool square=true, size_t dim2=0)
+triple *copyTripleArray2C(const array *a, bool square=true, size_t dim2=0)
 {
   size_t n=checkArray(a);
   size_t m=(square || n == 0) ? n : checkArray(read<array*>(a,0));
@@ -1756,11 +1756,22 @@ void shipout3(string prefix, picture *f, string format=emptystring,
   checkEqual(n,checkArray(ambient));
   checkEqual(n,checkArray(specular));
   
-  f->shipout3(prefix,format,width,height,angle,zoom,m,M,shift,
-              copyArray2C(t,true,4),
-              copyArrayC(background),n,copyTripleArrayC(lights),
-              copyArray2C(diffuse,false,4),copyArray2C(ambient,false,4),
-              copyArray2C(specular,false,4),viewportlighting,view);
+  real *T=copyArray2C(t,true,4);
+  triple *Lights=copyTripleArrayC(lights);
+  real* Background=copyArrayC(background);
+  real *Diffuse=copyArray2C(diffuse,false,4);
+  real *Ambient=copyArray2C(ambient,false,4);
+  real *Specular=copyArray2C(specular,false,4);
+    
+  f->shipout3(prefix,format,width,height,angle,zoom,m,M,shift,T,Background,n,
+              Lights,Diffuse,Ambient,Specular,viewportlighting,view);
+  
+  delete[] Specular;
+  delete[] Ambient;
+  delete[] Diffuse;
+  delete[] Background;
+  delete[] Lights;
+  delete[] T;
 }
 
 void shipout3(string prefix, picture *f)
@@ -3191,21 +3202,22 @@ void _draw(picture *f, path3 g, pen p)
     f->append(new drawPath3(g,p));
 }
 
-void draw(picture *f, triplearray2 *g, bool straight, penarray *p, real opacity,
+// Bezier patch
+void draw(picture *f, triplearray2 *P, bool straight, penarray *p, real opacity,
           real shininess, real PRCshininess, real granularity, triple normal,
           bool lighton, penarray *colors)
 {
-  f->append(new drawSurface(*g,straight,*p,opacity,shininess,PRCshininess,
+  f->append(new drawSurface(*P,straight,*p,opacity,shininess,PRCshininess,
                             granularity,normal,lighton,*colors));
 }
 
-void draw(picture *f, Int degreeu, Int degreev, Int nu, Int nv, triplearray2 *g,
-          realarray *knotu, realarray *knotv, realarray2 *weight, penarray *p,
-          real opacity, real shininess, real PRCshininess, real granularity)
+// General NURBS surface
+void draw(picture *f, Int degreeu, Int degreev, Int nu, Int nv, triplearray2 *P,
+          realarray *knotu, realarray *knotv, realarray2 *weights=emptyarray,
+          penarray *p, real opacity, real shininess, real PRCshininess,
+          real granularity)
 {
-  f->append(new drawNurb(degreeu,degreev,nu,nv,*g,
-                         copyArrayC(knotu,degreeu+nu+1),
-                         copyArrayC(knotv,degreev+nv+1),*weight,
+  f->append(new drawNurb(degreeu,degreev,nu,nv,*P,knotu,knotv,weights,
                          *p,opacity,shininess,PRCshininess,granularity));
 }
 

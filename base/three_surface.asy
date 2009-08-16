@@ -1559,15 +1559,15 @@ void dot(picture pic=currentpicture, Label L, triple v, align align=NoAlign,
 
 // Draw a NURBS surface.
 void draw(picture pic=currentpicture, int degreeu, int degreev, int nu, int nv,
-          triple[][] P, real[] knotu, real[] knotv, real[][] weight,
-          material m)
+          triple[][] P, real[] knotu, real[] knotv,
+          real[][] weights=new real[][], material m)
 {
   pic.add(new void(frame f, transform3 t, picture, projection) {
       triple[][] Q=t*P;
       if(is3D()) {
         real granularity=m.granularity >= 0 ? m.granularity :
           defaultgranularity;
-        draw(f,degreeu,degreev,nu,nv,Q,knotu,knotv,weight,
+        draw(f,degreeu,degreev,nu,nv,Q,knotu,knotv,weights,
              m.p,m.opacity,m.shininess,m.shininess,granularity);
         // TODO: move to C++ code
         triple m=minbound(Q);

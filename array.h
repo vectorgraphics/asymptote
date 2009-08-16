@@ -62,7 +62,7 @@ public:
 };
 
 template <typename T>
-inline T read(array *a, size_t i)
+inline T read(const array *a, size_t i)
 {
   return a->array::read<T>(i);
 }

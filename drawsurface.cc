@@ -304,7 +304,7 @@ bool drawNurb::write(prcfile *out)
 
   PRCMaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
   out->add(new PRCsurface(out,degreeu,degreev,nu,nv,controls,knotsu,knotsv,
-                          m,scale3D,false,weights,granularity));
+                          m,scale3D,weights != NULL,weights,granularity));
   
   return true;
 }

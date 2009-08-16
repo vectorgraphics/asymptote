@@ -13,7 +13,7 @@ int nu=5;
 int nv=6;
 real[] knotu={5,5,5,5,6,7,7,7,7};
 real[] knotv={83.9,83.9,83.9,83.9,84.9,85.9,86.9,86.9,86.9,86.9};
-real[][] weight=array(nu,array(nv,1/(nu*nv)));
+real[][] weights;
 
 triple[][] P={{
   (-31.2061,12.001,6.45082),
@@ -52,4 +52,18 @@ triple[][] P={{
   (-8.51041,32.2839,6.52653)
   }};
 
-draw(degreeu,degreev,nu,nv,P,knotu,knotv,weight,blue);
+/*
+// Special case: Bezier patch
+int degreeu=3;
+int degreev=3;
+int nu=4;
+int nv=4;
+real[] knotu={0,0,0,0,1,1,1,1};
+real[] knotv={0,0,0,0,1,1,1,1};
+triple[][] P=octant1.P;
+*/
+
+// Optional weights:
+weights=array(nu,array(nv,1.0));
+
+draw(degreeu,degreev,nu,nv,P,knotu,knotv,weights,blue);

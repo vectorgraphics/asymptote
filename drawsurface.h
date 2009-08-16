@@ -12,6 +12,10 @@
 #include "arrayop.h"
 #include "path3.h"
 
+namespace run {
+extern double *copyArrayC(const array *a, size_t dim);
+}
+
 namespace camp {
 
 class drawSurface : public drawElement {
@@ -161,38 +165,54 @@ protected:
   bool invisible;
 public:
   drawNurb(size_t degreeu, size_t degreev, size_t nu, size_t nv,
-           const vm::array& g, double *knotsu, double *knotsv,
-           const vm::array& weight,
-           const vm::array&p, double opacity, double shininess,
-           double PRCshininess, double granularity) :
+           const vm::array& g, const vm::array* knotu, const vm::array* knotv,
+           const vm::array* weight, const vm::array&p, double opacity,
+           double shininess, double PRCshininess, double granularity) :
     degreeu(degreeu), degreev(degreev), nu(nu), nv(nv),
-    knotsu(knotsu), knotsv(knotsv),
     opacity(opacity), shininess(shininess), PRCshininess(PRCshininess),
     granularity(granularity) {
-
+    size_t weightsize=checkArray(weight);
+    
     string wrongsize="Inconsistent nurb parameters";
-    if(checkArray(&g) != nu || checkArray(&weight) != nu || checkArray(&p) != 4)
+    if(checkArray(&g) != nu || (weightsize != 0 && weightsize != nu) || 
+       checkArray(&p) != 4)
       reportError(wrongsize);
 
     size_t n=nu*nv;
     controls=new double[n][3];
-    weights=new double[n];
     
     size_t k=0;
     for(size_t i=0; i < nu; ++i) {
       vm::array *gi=vm::read<vm::array*>(g,i);
-      vm::array *weighti=vm::read<vm::array*>(weight,i);
-      if(checkArray(gi) != nv || checkArray(weighti) != nv)  
+      if(checkArray(gi) != nv)  
         reportError(wrongsize);
       for(size_t j=0; j < nv; ++j) {
         triple v=vm::read<triple>(gi,j);
         controls[k][0]=v.getx();
         controls[k][1]=v.gety();
         controls[k][2]=v.getz();
-        weights[k]=vm::read<double>(weighti,j);
         ++k;
       }
     }
+      
+    if(weightsize == 0)
+      weights=NULL;
+    else {
+      size_t k=0;
+      weights=new double[n];
+      for(size_t i=0; i < nu; ++i) {
+        vm::array *weighti=vm::read<vm::array*>(weight,i);
+        if(checkArray(weighti) != nv)  
+          reportError(wrongsize);
+        for(size_t j=0; j < nv; ++j) {
+          weights[k]=vm::read<double>(weighti,j);
+          ++k;
+        }
+      }
+    }
+      
+    knotsu=run::copyArrayC(knotu,degreeu+nu+1);
+    knotsv=run::copyArrayC(knotv,degreev+nv+1);
       
     pen surfacepen=vm::read<camp::pen>(p,0);
     invisible=surfacepen.invisible();
@@ -205,7 +225,6 @@ public:
   
   drawNurb(const vm::array& t, const drawNurb *s) :
     degreeu(s->degreeu), degreev(s->degreev), nu(s->nu), nv(s->nv),
-    knotsu(s->knotsu), knotsv(s->knotsv),
     diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
@@ -213,25 +232,43 @@ public:
     
     size_t n=nu*nv;
     controls=new double[n][3];
-    weights=new double[n];
-    
+      
     for(size_t i=0; i < n; ++i) {
       const double *c=s->controls[i];
       triple v=run::operator *(t,triple(c[0],c[1],c[2]));
       controls[i][0]=v.getx();
       controls[i][1]=v.gety();
       controls[i][2]=v.getz();
-      weights[i]=s->weights[i];
     }
+    
+    if(s->weights == NULL) 
+      weights=NULL;
+    else {
+      weights=new double[n];
+      for(size_t i=0; i < n; ++i)
+        weights[i]=s->weights[i];
+    }
+    
+    size_t nknotsu=degreeu+nu+1;
+    size_t nknotsv=degreev+nv+1;
+    
+    knotsu=new double[nknotsu];
+    knotsv=new double[nknotsv];
+    
+    for(size_t i=0; i < nknotsu; ++i)
+      knotsu[i]=s->knotsu[i];
+    
+    for(size_t i=0; i < nknotsv; ++i)
+      knotsv[i]=s->knotsv[i];
   }
   
   bool is3D() {return true;}
   
   virtual ~drawNurb() {
-    delete[] controls;
-    delete[] knotsu;
     delete[] knotsv;
+    delete[] knotsu;
     delete[] weights;
+    delete[] controls;
   }
 
   bool write(prcfile *out);
