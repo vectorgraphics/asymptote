@@ -975,6 +975,11 @@ void bounds(triple& Pmin, triple& Pmax, triple *P, double fuzz)
   Pmax=triple(xmax,ymax,zmax);
 }
 
+inline double abs2(double x, double y, double z) 
+{
+  return x*x+y*y+z*z;
+}
+
 bool intersections(double& U, double& V, const triple& v, triple *P,
                    double fuzz, unsigned depth)
 {
@@ -983,15 +988,32 @@ bool intersections(double& U, double& V, const triple& v, triple *P,
   triple Pmin,Pmax;
   bounds(Pmin,Pmax,P,fuzz);
   
-  if(Pmax.getx()+fuzz >= v.getx() &&
-     Pmax.gety()+fuzz >= v.gety() && 
-     Pmax.getz()+fuzz >= v.getz() && 
-     v.getx()+fuzz >= Pmin.getx() &&
-     v.gety()+fuzz >= Pmin.gety() &&
-     v.getz()+fuzz >= Pmin.getz()) { // Overlapping bounding boxes
+  double x=P[0].getx();
+  double y=P[0].gety();
+  double z=P[0].getz();
+  double X=x, Y=y, Z=z;
+  for(int i=1; i < 16; ++i) {
+    triple v=P[i];
+    double vx=v.getx();
+    x=min(x,vx);
+    X=max(X,vx);
+    double vy=v.gety();
+    y=min(y,vy);
+    Y=max(Y,vy);
+    double vz=v.getz();
+    z=min(z,vz);
+    Z=max(Z,vz);
+  }
+  
+  if(X+fuzz >= v.getx() &&
+     Y+fuzz >= v.gety() && 
+     Z+fuzz >= v.getz() && 
+     v.getx()+fuzz >= x &&
+     v.gety()+fuzz >= y &&
+     v.getz()+fuzz >= z) { // Overlapping bounding boxes
     
     --depth;
-    if((Pmax-Pmin).abs2() <= fuzz*fuzz || depth == 0) {
+    if(abs2(X-x,Y-y,Z-z) <= fuzz*fuzz || depth == 0) {
       U=0.5;
       V=0.5;
       return true;
@@ -1059,19 +1081,33 @@ void intersections(std::vector<double>& T, std::vector<double>& U,
   triple pmin=p.min();
   triple pmax=p.max();
   
-  triple Pmin,Pmax;
-  bounds(Pmin,Pmax,P,fuzz);
+  double x=P[0].getx();
+  double y=P[0].gety();
+  double z=P[0].getz();
+  double X=x, Y=y, Z=z;
+  for(int i=1; i < 16; ++i) {
+    triple v=P[i];
+    double vx=v.getx();
+    x=min(x,vx);
+    X=max(X,vx);
+    double vy=v.gety();
+    y=min(y,vy);
+    Y=max(Y,vy);
+    double vz=v.getz();
+    z=min(z,vz);
+    Z=max(Z,vz);
+  }
   
-  if(Pmax.getx()+fuzz >= pmin.getx() &&
-     Pmax.gety()+fuzz >= pmin.gety() && 
-     Pmax.getz()+fuzz >= pmin.getz() && 
-     pmax.getx()+fuzz >= Pmin.getx() &&
-     pmax.gety()+fuzz >= Pmin.gety() &&
-     pmax.getz()+fuzz >= Pmin.getz()) { // Overlapping bounding boxes
+  if(X+fuzz >= pmin.getx() &&
+     Y+fuzz >= pmin.gety() && 
+     Z+fuzz >= pmin.getz() && 
+     pmax.getx()+fuzz >= x &&
+     pmax.gety()+fuzz >= y &&
+     pmax.getz()+fuzz >= z) { // Overlapping bounding boxes
     
     --depth;
 
-    if(((pmax-pmin).length()+(Pmax-Pmin).length() <= fuzz) || depth == 0) {
+    if(((pmax-pmin).length()+sqrt(abs2(X-x,Y-y,Z-z)) <= fuzz) || depth == 0) {
       T.push_back(0.5);
       U.push_back(0.5);
       V.push_back(0.5);
