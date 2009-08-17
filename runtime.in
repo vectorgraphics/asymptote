@@ -3217,8 +3217,8 @@ void draw(picture *f, Int degreeu, Int degreev, Int nu, Int nv, triplearray2 *P,
           penarray *p, real opacity, real shininess, real PRCshininess,
           real granularity)
 {
-  f->append(new drawNurb(degreeu,degreev,nu,nv,*P,knotu,knotv,weights,
-                         *p,opacity,shininess,PRCshininess,granularity));
+  f->append(new drawNurbs(degreeu,degreev,nu,nv,*P,knotu,knotv,weights,
+                          *p,opacity,shininess,PRCshininess,granularity));
 }
 
 triple min3(picture *f)

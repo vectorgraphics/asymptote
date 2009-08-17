@@ -1569,16 +1569,8 @@ void draw(picture pic=currentpicture, int degreeu, int degreev, int nu, int nv,
           defaultgranularity;
         draw(f,degreeu,degreev,nu,nv,Q,knotu,knotv,weights,
              m.p,m.opacity,m.shininess,m.shininess,granularity);
-        // TODO: move to C++ code
-        triple m=minbound(Q);
-        triple M=maxbound(Q);
-        for(triple v : new triple[]
-              {m,(M.x,m.y,m.z),(m.x,M.y,m.z),(M.x,M.y,m.z),
-                  (m.x,m.y,M.z),(M.x,m.y,M.z),(m.x,M.y,M.z),M})
-          draw(f,v,nullpen);
       }
     },true);
   pic.addBox(minbound(P),maxbound(P));
 }
-
 

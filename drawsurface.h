@@ -144,7 +144,7 @@ public:
   drawElement *transformed(const vm::array& t);
 };
   
-class drawNurb : public drawElement {
+class drawNurbs : public drawElement {
 protected:
   size_t degreeu,degreev;
   size_t nu,nv;
@@ -164,7 +164,7 @@ protected:
   
   bool invisible;
 public:
-  drawNurb(size_t degreeu, size_t degreev, size_t nu, size_t nv,
+  drawNurbs(size_t degreeu, size_t degreev, size_t nu, size_t nv,
            const vm::array& g, const vm::array* knotu, const vm::array* knotv,
            const vm::array* weight, const vm::array&p, double opacity,
            double shininess, double PRCshininess, double granularity) :
@@ -223,7 +223,7 @@ public:
     specular=rgba(vm::read<camp::pen>(p,3));
   }
   
-  drawNurb(const vm::array& t, const drawNurb *s) :
+  drawNurbs(const vm::array& t, const drawNurbs *s) :
     degreeu(s->degreeu), degreev(s->degreev), nu(s->nu), nv(s->nv),
     diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
@@ -264,7 +264,9 @@ public:
   
   bool is3D() {return true;}
   
-  virtual ~drawNurb() {
+  void bounds(bbox3& b);
+  
+  virtual ~drawNurbs() {
     delete[] knotsv;
     delete[] knotsu;
     delete[] weights;

@@ -297,7 +297,7 @@ drawElement *drawSurface::transformed(const array& t)
   return new drawSurface(t,this);
 }
   
-bool drawNurb::write(prcfile *out)
+bool drawNurbs::write(prcfile *out)
 {
   if(invisible)
     return true;
@@ -309,9 +309,34 @@ bool drawNurb::write(prcfile *out)
   return true;
 }
 
-drawElement *drawNurb::transformed(const array& t)
+// Approximate bounds by bounding box of control polyhedron.
+void drawNurbs::bounds(bbox3& b)
 {
-  return new drawNurb(t,this);
+  double *v=controls[0];
+  double x=v[0];
+  double y=v[1];
+  double z=v[2];
+  double X=x, Y=y, Z=z;
+  size_t n=nu*nv;
+  for(size_t i=1; i < n; ++i) {
+    double *v=controls[i];
+    double vx=v[0];
+    x=min(x,vx);
+    X=max(X,vx);
+    double vy=v[1];
+    y=min(y,vy);
+    Y=max(Y,vy);
+    double vz=v[2];
+    z=min(z,vz);
+    Z=max(Z,vz);
+  }
+  b.add(triple(x,y,z));
+  b.add(triple(X,Y,Z));
+}
+
+drawElement *drawNurbs::transformed(const array& t)
+{
+  return new drawNurbs(t,this);
 }
 
 double norm(double *a, size_t n) 
