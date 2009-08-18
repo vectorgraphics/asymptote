@@ -1367,10 +1367,6 @@ void base_venv(venv &ve)
           formal(IntRealFunction(),"f"),
           formal(realArray(),"a"));
   
-  addFunc(ve,single,primFile(),"single",formal(primFile(),"file"),
-          formal(primBoolean(),"real",true),
-          formal(primBoolean(),"int",true));
-  
 #ifdef HAVE_LIBFFTW3
   addFunc(ve,pairArrayFFT,pairArray(),"fft",formal(pairArray(),"a"),
           formal(primInt(),"sign",true));
@@ -1447,17 +1443,6 @@ void arrayDeleteHelper(stack *Stack)
   }
 
   (*a).erase((*a).begin()+i,(*a).begin()+j+1);
-}
-
-// Set file to read/write single-precision real and int XDR values.
-void single(stack *Stack)
-{
-  bool integer=pop<bool>(Stack,true);
-  bool real=pop<bool>(Stack,true);
-  file *File=pop<file *>(Stack);
-  File->SingleReal(real);
-  File->SingleInt(integer);
-  Stack->push(File);
 }
 
 }
