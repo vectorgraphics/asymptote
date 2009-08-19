@@ -933,6 +933,61 @@ private triple[] split(triple z0, triple c0, triple c1, triple z1, real t=0.5)
   return new triple[] {m0,m3,m5,m4,m2};
 }
 
+// Return the control points of the subpatches
+// produced by a horizontal split of P
+triple[][][] hsplit(triple[][] P)
+{
+  // get control points in rows
+  triple[] P0=P[0];
+  triple[] P1=P[1];
+  triple[] P2=P[2];
+  triple[] P3=P[3];
+
+  triple[] c0=split(P0[0],P1[0],P2[0],P3[0]);
+  triple[] c1=split(P0[1],P1[1],P2[1],P3[1]);
+  triple[] c2=split(P0[2],P1[2],P2[2],P3[2]);
+  triple[] c3=split(P0[3],P1[3],P2[3],P3[3]);
+  // bottom, top
+  return new triple[][][] {
+    {{c0[2],c1[2],c2[2],c3[2]},
+        {c0[3],c1[3],c2[3],c3[3]},
+          {c0[4],c1[4],c2[4],c3[4]},
+            {P3[0],P3[1],P3[2],P3[3]}},
+      {{P0[0],P0[1],P0[2],P0[3]},
+          {c0[0],c1[0],c2[0],c3[0]},
+            {c0[1],c1[1],c2[1],c3[1]},
+              {c0[2],c1[2],c2[2],c3[2]}}
+  };
+}
+
+// Return the control points of the subpatches
+// produced by a vertical split of P
+triple[][][] vsplit(triple[][] P)
+{
+  // get control points in rows
+  triple[] P0=P[0];
+  triple[] P1=P[1];
+  triple[] P2=P[2];
+  triple[] P3=P[3];
+
+  triple[] c0=split(P0[0],P0[1],P0[2],P0[3]);
+  triple[] c1=split(P1[0],P1[1],P1[2],P1[3]);
+  triple[] c2=split(P2[0],P2[1],P2[2],P2[3]);
+  triple[] c3=split(P3[0],P3[1],P3[2],P3[3]);
+  // left, right
+  return new triple[][][] {
+    {{P0[0],c0[0],c0[1],c0[2]},
+	{P1[0],c1[0],c1[1],c1[2]},
+	  {P2[0],c2[0],c2[1],c2[2]},
+	    {P3[0],c3[0],c3[1],c3[2]}},
+      
+      {{c0[2],c0[3],c0[4],P0[3]},
+	  {c1[2],c1[3],c1[4],P1[3]},
+            {c2[2],c2[3],c2[4],P2[3]},
+              {c3[2],c3[3],c3[4],P3[3]}}
+  };		  
+}
+
 // Return the control points for a subpatch of P on [u,1] x [v,1].
 triple[][] subpatchbegin(triple[][] P, real u, real v)
 {
@@ -1037,6 +1092,28 @@ triple[] intersectionpoints(path3 p, surface s, real fuzz=-1)
 {
   real[][] t=intersections(p,s,fuzz);
   return sequence(new triple(int i) {return point(p,t[i][0]);},t.length);
+}
+
+// Return true iff the bounding boxes of patch p and q overlap.
+bool overlap(triple[][] p, triple[][] q, real fuzz=-1)
+{
+  triple p0=p[0][0];
+  triple q0=q[0][0];
+  triple pmin=minbezier(p,p0);
+  triple pmax=maxbezier(p,p0);
+  triple qmin=minbezier(q,q0);
+  triple qmax=maxbezier(q,q0);
+
+  static real Fuzz=1000*realEpsilon;
+  real fuzz=max(10*fuzz,Fuzz*max(abs(pmin),abs(pmax)));
+  
+  return
+    pmax.x+fuzz >= qmin.x &&
+    pmax.y+fuzz >= qmin.y &&
+    pmax.z+fuzz >= qmin.z &&
+    qmax.x+fuzz >= pmin.x &&
+    qmax.y+fuzz >= pmin.y &&
+    qmax.z+fuzz >= pmin.z; // Overlapping bounding boxes?
 }
 
 triple point(patch s, real u, real v)
@@ -1574,3 +1651,52 @@ void draw(picture pic=currentpicture, int degreeu, int degreev, int nu, int nv,
   pic.addBox(minbound(P),maxbound(P));
 }
 
+// Contains functions that subdivide two intersecting patches
+// about their intersection(s).
+struct split
+{
+  // Container for subpatches of p.
+  triple[][][] T;
+
+  struct tree {
+    tree[] tree=new tree[2];
+  }
+  // Default depth of subdivision (may be changed in function calls).
+  int n=23;
+
+  // Subdivide p and q to depth n if they overlap.
+  void write(tree t, triple[][] p, triple[][] q, int depth=n) {
+    --depth;
+    triple[][][] split(triple[][] P)=depth % 2 == 0 ? hsplit : vsplit;
+    triple[][][] P=split(p);
+    triple[][][] Q=split(q);
+
+    for(int i=0; i < 2; ++i) {
+      for(int j=0; j < 2; ++j) {
+        if(overlap(P[i],Q[j])) {
+          if(!t.tree.initialized(i)) t.tree[i]=new tree;
+          if(depth > 0) write(t.tree[i],P[i],Q[j],depth);
+        }
+      }
+    }    
+  }
+  
+  // Output the subpatches of p from subdivision.
+  void read(tree t, triple[][] p, int depth=n) {
+    --depth;
+    triple[][][] split(triple[][] P)=depth % 2 == 0 ? hsplit : vsplit;
+    triple[][][] P=split(p);
+
+    for(int i=0; i < 2; ++i) {
+      if(t.tree.initialized(i)) 
+        read(t.tree[i],P[i],depth);
+      else T.push(P[i]);
+    }
+  }
+
+  void operator init(triple[][] p, triple[][] q, int depth=n) {
+    tree trunk;
+    write(trunk,p,q,depth);
+    read(trunk,p,depth);  
+  }
+}
