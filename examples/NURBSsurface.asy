@@ -1,19 +1,13 @@
-settings.outformat="pdf";
-
 import three;
 
 size(10cm);
-viewportmargin=(1cm,1cm);
 
-currentprojection=orthographic(5,4,2);
+currentprojection=perspective(500,400,200);
 
-int degreeu=3;
-int degreev=3;
-int nu=5;
-int nv=6;
-real[] knotu={5,5,5,5,6,7,7,7,7};
-real[] knotv={83.9,83.9,83.9,83.9,84.9,85.9,86.9,86.9,86.9,86.9};
-real[][] weights;
+// Nonrational surface:
+// udegree=3, vdegree=3, nu=5, nv=6;
+real[] uknot={0,0,0,0,0.5,1,1,1,1};
+real[] vknot={0,0,0,0,0.4,0.6,1,1,1,1};
 
 triple[][] P={{
   (-31.2061,12.001,6.45082),
@@ -52,18 +46,18 @@ triple[][] P={{
   (-8.51041,32.2839,6.52653)
   }};
 
-/*
-// Special case: Bezier patch
-int degreeu=3;
-int degreev=3;
-int nu=4;
-int nv=4;
-real[] knotu={0,0,0,0,1,1,1,1};
-real[] knotv={0,0,0,0,1,1,1,1};
-triple[][] P=octant1.P;
-*/
+draw(P,uknot,vknot,new pen[] {red,green,blue,magenta});
+
+// Rational Bezier patch:
+// udegree=3, vdegree=3, nu=4, nv=4;
+real[] uknot={0,0,0,0,1,1,1,1};
+real[] vknot={0,0,0,0,1,1,1,1};
+triple[][] P=scale3(20)*octant1.P;
+
+draw(unitsphere,invisible);
 
 // Optional weights:
-weights=array(nu,array(nv,1.0));
+real[][] weights=array(P.length,array(P[0].length,1.0));
+weights[1][2]=0.8;
 
-draw(degreeu,degreev,nu,nv,P,knotu,knotv,weights,blue);
+draw(P,uknot,vknot,weights,blue);

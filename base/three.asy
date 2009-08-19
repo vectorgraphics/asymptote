@@ -2297,7 +2297,7 @@ private string Format(real x)
   // Work around movie15.sty division by zero bug;
   // e.g. u=unit((1e-10,1e-10,0.9));
   if(abs(x) < 1e-9) x=0; 
-  assert(abs(x) < 1e18,"Number too large: "+string(x));
+  assert(abs(x) < 1e17,"Number too large: "+string(x));
   return format("%.18f",x,"C");
 }
 

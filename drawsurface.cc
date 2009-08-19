@@ -13,6 +13,16 @@ const double pixel=1.0; // Adaptive rendering constant.
 using vm::array;
 triple drawSurface::c3[];
 
+void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
+{
+  pen p=vm::read<camp::pen>(pens,j);
+  p.torgb();
+  colors[i]=p.red();
+  colors[i+1]=p.green();
+  colors[i+2]=p.blue();
+  colors[i+3]=p.opacity();
+}
+
 inline void initMatrix(GLfloat *v, double x, double ymin, double zmin,
                        double ymax, double zmax)
 {
@@ -124,7 +134,7 @@ void drawSurface::displacement()
   initMatrix(v1,Min.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
   initMatrix(v2,Max.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
   
-  for(int i=0; i < 16; ++i)
+  for(size_t i=0; i < 16; ++i)
     store(c+3*i,controls[i]);
 
   static const triple zero;
@@ -136,15 +146,15 @@ void drawSurface::displacement()
     d=zero;
     
     if(!straight) {
-      for(int i=1; i < 16; ++i) 
+      for(size_t i=1; i < 16; ++i) 
         d=camp::maxabs(d,camp::displacement2(controls[i],controls[0],normal));
       
       dperp=d;
     
-      for(int i=0; i < 4; ++i)
+      for(size_t i=0; i < 4; ++i)
         d=camp::maxabs(d,camp::displacement(controls[4*i],controls[4*i+1],
                                             controls[4*i+2],controls[4*i+3]));
-      for(int i=0; i < 4; ++i)
+      for(size_t i=0; i < 4; ++i)
         d=camp::maxabs(d,camp::displacement(controls[i],controls[i+4],
                                             controls[i+8],controls[i+12]));
     }
@@ -303,7 +313,7 @@ bool drawNurbs::write(prcfile *out)
     return true;
 
   PRCMaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
-  out->add(new PRCsurface(out,degreeu,degreev,nu,nv,controls,knotsu,knotsv,
+  out->add(new PRCsurface(out,udegree,vdegree,nu,nv,controls,uknots,vknots,
                           m,scale3D,weights != NULL,weights,granularity));
   
   return true;
@@ -312,31 +322,210 @@ bool drawNurbs::write(prcfile *out)
 // Approximate bounds by bounding box of control polyhedron.
 void drawNurbs::bounds(bbox3& b)
 {
-  double *v=controls[0];
-  double x=v[0];
-  double y=v[1];
-  double z=v[2];
-  double X=x, Y=y, Z=z;
+  double x,y,z;
+  double X,Y,Z;
   size_t n=nu*nv;
-  for(size_t i=1; i < n; ++i) {
-    double *v=controls[i];
-    double vx=v[0];
-    x=min(x,vx);
-    X=max(X,vx);
-    double vy=v[1];
-    y=min(y,vy);
-    Y=max(Y,vy);
-    double vz=v[2];
-    z=min(z,vz);
-    Z=max(Z,vz);
+  double *v=controls[0];
+  if(weights == NULL) {
+    x=v[0];
+    y=v[1];
+    z=v[2];
+    X=x;
+    Y=y;
+    Z=z;
+    for(size_t i=1; i < n; ++i) {
+      double *v=controls[i];
+      double vx=v[0];
+      x=min(x,vx);
+      X=max(X,vx);
+      double vy=v[1];
+      y=min(y,vy);
+      Y=max(Y,vy);
+      double vz=v[2];
+      z=min(z,vz);
+      Z=max(Z,vz);
+    }
+  } else {
+    double w=weights[0];
+    x=v[0]/w;
+    y=v[1]/w;
+    z=v[2]/w;
+    X=x;
+    Y=y;
+    Z=z;
+    for(size_t i=1; i < n; ++i) {
+      double *v=controls[i];
+      double w=weights[i];
+      double vx=v[0]/w;
+      x=min(x,vx);
+      X=max(X,vx);
+      double vy=v[1]/w;
+      y=min(y,vy);
+      Y=max(Y,vy);
+      double vz=v[2]/w;
+      z=min(z,vz);
+      Z=max(Z,vz);
+    }
   }
-  b.add(triple(x,y,z));
-  b.add(triple(X,Y,Z));
+  Min=triple(x,y,z);
+  Max=triple(X,Y,Z);
+  b.add(Min);
+  b.add(Max);
 }
 
 drawElement *drawNurbs::transformed(const array& t)
 {
   return new drawNurbs(t,this);
+}
+
+void drawNurbs::ratio(pair &b, double (*m)(double, double), bool &first)
+{
+  size_t n=nu*nv;
+  if(first) {
+    first=false;
+    double *ci=controls[0];
+    triple v=triple(ci[0],ci[1],ci[2]);
+    b=pair(xratio(v),yratio(v));
+  }
+  
+  double x=b.getx();
+  double y=b.gety();
+  for(size_t i=0; i < n; ++i) {
+    double *ci=controls[i];
+    triple v=triple(ci[0],ci[1],ci[2]);
+    x=m(x,xratio(v));
+    y=m(y,yratio(v));
+  }
+  b=pair(x,y);
+}
+
+void drawNurbs::displacement()
+{
+#ifdef HAVE_LIBGL
+  initMatrix(v1,Min.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
+  initMatrix(v2,Max.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
+  
+  size_t n=nu*nv;
+  size_t stride=weights == NULL ? 3 : 4;
+  for(size_t i=0; i < n; ++i)
+    store(c+stride*i,controls[i]);
+  
+  if(weights != NULL)
+    for(size_t i=0; i < n; ++i)
+      c[4*i+3]=weights[i];
+
+  size_t nuknotsm1=udegree+nu;
+  size_t nvknotsm1=vdegree+nv;
+  for(size_t i=0; i <= nuknotsm1; ++i)
+    uKnots[i]=uknots[i];
+  for(size_t i=0; i <= nvknotsm1; ++i)
+    vKnots[i]=vknots[i];
+    
+  havetransparency=havecolors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
+    : diffuse.A < 1.0;
+#endif  
+}
+
+void drawNurbs::render(GLUnurbs *nurb, double size2,
+                       const triple& Min, const triple& Max,
+                       double perspective, bool transparent)
+{
+#ifdef HAVE_LIBGL
+  if(invisible || (havetransparency ^ transparent)) return;
+  
+  static GLfloat v[16];
+
+  glPushMatrix();
+  glMultMatrixf(v1);
+  glGetFloatv(GL_MODELVIEW_MATRIX,v);
+  glPopMatrix();
+  
+  bbox3 B(v[0],v[1],v[2]);
+  B.addnonempty(v[4],v[5],v[6]);
+  B.addnonempty(v[8],v[9],v[10]);
+  B.addnonempty(v[12],v[13],v[14]);
+  
+  glPushMatrix();
+  glMultMatrixf(v2);
+  glGetFloatv(GL_MODELVIEW_MATRIX,v);
+  glPopMatrix();
+  
+  B.addnonempty(v[0],v[1],v[2]);
+  B.addnonempty(v[4],v[5],v[6]);
+  B.addnonempty(v[8],v[9],v[10]);
+  B.addnonempty(v[12],v[13],v[14]);
+  
+  triple M=B.Max();
+  triple m=B.Min();
+  
+  double s;
+  if(perspective) {
+    double f=m.getz()*perspective;
+    double F=M.getz()*perspective;
+    s=max(f,F);
+    if(M.getx() < min(f*Min.getx(),F*Min.getx()) || 
+       m.getx() > max(f*Max.getx(),F*Max.getx()) ||
+       M.gety() < min(f*Min.gety(),F*Min.gety()) ||
+       m.gety() > max(f*Max.gety(),F*Max.gety()) ||
+       M.getz() < Min.getz() ||
+       m.getz() > Max.getz()) return;
+  } else {
+    s=1.0;
+    if(M.getx() < Min.getx() || m.getx() > Max.getx() ||
+       M.gety() < Min.gety() || m.gety() > Max.gety() ||
+       M.getz() < Min.getz() || m.getz() > Max.getz()) return;
+  }
+
+  bool ambientdiffuse=true;
+  bool emission=true;
+
+  if(havecolors) {
+    glEnable(GL_COLOR_MATERIAL);
+    if(lighton) {
+      glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
+      ambientdiffuse=false;
+    } else {
+      glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
+      emission=false;
+    }
+  }
+  
+  if(ambientdiffuse) {
+    GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
+  
+    GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
+  }
+  
+  if(emission) {
+    GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
+  }
+  
+  GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
+  glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
+  
+  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
+
+  gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
+  gluBeginSurface(nurb);
+  int uorder=udegree+1;
+  int vorder=vdegree+1;
+  size_t stride=weights == NULL ? 3 : 4;
+  gluNurbsSurface(nurb,uorder+nu,uKnots,vorder+nv,vKnots,stride*nv,stride,c,
+                  uorder,vorder,
+                  weights == NULL ? GL_MAP2_VERTEX_3 : GL_MAP2_VERTEX_4);
+  if(havecolors) {
+    static GLfloat linear[]={0.0,0.0,1.0,1.0};
+    gluNurbsSurface(nurb,4,linear,4,linear,8,4,colors,2,2,GL_MAP2_COLOR_4);
+  }
+    
+  gluEndSurface(nurb);
+  
+  if(havecolors)
+    glDisable(GL_COLOR_MATERIAL);
+#endif
 }
 
 double norm(double *a, size_t n) 

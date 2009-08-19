@@ -1064,9 +1064,8 @@ real[][] intersections(path3 p, surface s, real fuzz=-1)
     for(real[] s: intersections(p,s.s[i].P,fuzz))
       T.push(s);
 
-  static real fuzzFactor=10.0;
-  static real Fuzz=1000.0*realEpsilon;
-  real fuzz=max(fuzzFactor*fuzz,Fuzz)*abs(max(s)-min(s));
+  static real Fuzz=1000*realEpsilon;
+  real fuzz=max(10*fuzz,Fuzz*max(abs(min(s)),abs(max(s))));
   
   // Remove intrapatch duplicate points.
   for(int i=0; i < T.length; ++i) {
@@ -1121,6 +1120,16 @@ triple point(patch s, real u, real v)
   return s.point(u,v);
 }
 
+real PRCshininess(real shininess) 
+{
+  // Empirical translation table from Phong-Blinn to PRC shininess model:
+  static real[] x={0.015,0.025,0.05,0.07,0.1,0.14,0.23,0.5,0.65,0.75,0.85,
+                   0.875,0.9,1};
+  static real[] y={0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5,0.55,0.6,0.7,0.8,0.9,1};
+  static realfunction s=fspline(x,y,monotonic);
+  return s(shininess);
+}
+
 void draw3D(frame f, patch s, material m, light light=currentlight)
 {
   if(s.colors.length > 0)
@@ -1129,17 +1138,11 @@ void draw3D(frame f, patch s, material m, light light=currentlight)
   if(!lighton && !invisible((pen) m))
     m=emissive(m);
   real PRCshininess;
-  if(prc()) {
-    // Empirical translation table from Phong-Blinn to PRC shininess model:
-    static real[] x={0.015,0.025,0.05,0.07,0.1,0.14,0.23,0.5,0.65,0.75,0.85,
-                     0.875,0.9,1};
-    static real[] y={0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5,0.55,0.6,0.7,0.8,0.9,1};
-    static realfunction s=fspline(x,y,monotonic);
-    PRCshininess=s(m.shininess);
-  }
+  if(prc())
+    PRCshininess=PRCshininess(m.shininess);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
   draw(f,s.P,s.straight,m.p,m.opacity,m.shininess,PRCshininess,granularity,
-       s.planar ? s.normal(0.5,0.5) : O,lighton,s.colors);
+       s.planar ? s.normal(0.5,0.5) : O,s.colors,lighton);
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,
@@ -1635,19 +1638,25 @@ void dot(picture pic=currentpicture, Label L, triple v, align align=NoAlign,
 }
 
 // Draw a NURBS surface.
-void draw(picture pic=currentpicture, int degreeu, int degreev, int nu, int nv,
-          triple[][] P, real[] knotu, real[] knotv,
-          real[][] weights=new real[][], material m)
+void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
+          real[][] weights=new real[][], material m=currentpen,
+          pen[] colors=new pen[], light light=currentlight)
 {
+  if(colors.length > 0)
+    m=mean(colors);
+  bool lighton=light.on();
   pic.add(new void(frame f, transform3 t, picture, projection) {
       triple[][] Q=t*P;
       if(is3D()) {
         real granularity=m.granularity >= 0 ? m.granularity :
           defaultgranularity;
-        draw(f,degreeu,degreev,nu,nv,Q,knotu,knotv,weights,
-             m.p,m.opacity,m.shininess,m.shininess,granularity);
+        real PRCshininess;
+        if(prc())
+          PRCshininess=PRCshininess(m.shininess);
+        draw(f,Q,uknot,vknot,weights,m.p,m.opacity,m.shininess,PRCshininess,
+             granularity,colors,lighton);
       }
-    },true);
+    },false);
   pic.addBox(minbound(P),maxbound(P));
 }
 
