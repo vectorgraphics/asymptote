@@ -9,6 +9,7 @@
 #include "newexp.h"
 #include "stm.h"
 #include "runtime.h"
+#include "runarray.h"
 #include "coenv.h"
 #include "inst.h"
 

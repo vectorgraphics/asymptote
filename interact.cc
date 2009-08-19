@@ -14,6 +14,7 @@
 #include <csignal>
 
 #include "interact.h"
+#include "runhistory.h"
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 #include <readline/readline.h>

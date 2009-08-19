@@ -12,6 +12,7 @@
 #include "exp.h"
 #include "coenv.h"
 #include "runtime.h"
+#include "runarray.h"
 
 using namespace types;
 using absyntax::varinit;

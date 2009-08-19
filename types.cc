@@ -12,6 +12,7 @@
 #include "entry.h"
 #include "types.h"
 #include "runtime.h"
+#include "runarray.h"
 #include "access.h"
 #include "virtualfieldaccess.h"
 

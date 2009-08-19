@@ -25,14 +25,40 @@ string   => primString()
 #include "builtin.h"
 #include "entry.h"
 #include "errormsg.h"
+#include "array.h"
+#include "triple.h"
+#include "callable.h"
 
 using vm::stack;
 using vm::error;
+using vm::array;
+using vm::callable;
 using types::formal;
+using types::function;
+using camp::triple;
 
 #define PRIMITIVE(name,Name,asyName) using types::prim##Name;
 #include <primitives.h>
 #undef PRIMITIVE
 
+typedef double real;
+
 void unused(void *);
+
+namespace run {
+array *copyArray(array *a);
+array *copyArray2(array *a);
+array *copyArray3(array *a);
+
+double *copyArrayC(const array *a, size_t dim=0);
+double *copyArray2C(const array *a, bool square=true, size_t dim2=0);
+
+triple *copyTripleArrayC(const array *a, size_t dim=0);
+triple *copyTripleArray2C(const array *a, bool square=true, size_t dim2=0);
+double *copyTripleArray2Components(array *a, bool square=true, size_t dim2=0);
+}
+
+function *realRealFunction();
+
+#define CURRENTPEN processData().currentpen
 

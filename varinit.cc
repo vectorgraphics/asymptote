@@ -12,6 +12,7 @@
 #include "varinit.h"
 #include "coenv.h"
 #include "runtime.h"
+#include "runarray.h"
 
 namespace absyntax {
 

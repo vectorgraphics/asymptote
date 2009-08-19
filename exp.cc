@@ -10,6 +10,8 @@
 #include "exp.h"
 #include "errormsg.h"
 #include "runtime.h"
+#include "runpicture.h"
+#include "runarray.h"
 #include "coenv.h"
 #include "application.h"
 #include "dec.h"
