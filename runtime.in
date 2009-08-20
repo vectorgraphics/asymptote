@@ -96,7 +96,6 @@ stringarray2* => stringArray2()
 #include "lexical.h"
 #include "process.h"
 #include "arrayop.h"
-#include "predicates.h"
    
 #if defined(USEGC) && defined(GC_DEBUG) && defined(GC_BACKTRACE)
   extern "C" {
@@ -188,40 +187,8 @@ namespace vm {
 
 namespace run {
   
-const char *invalidargument="invalid argument";
 const char *arrayempty="cannot take min or max of empty array";
 const char *noruntime="no runtime environment for embedded eval";
-
-// Return the factorial of a non-negative integer using a lookup table.
-Int factorial(Int n)
-{
-  static Int *table;
-  static Int size=0;
-  if(size == 0) {
-    Int f=1;
-    size=2;
-    while(f <= Int_MAX/size)
-      f *= (size++);
-    table=new Int[size];
-    table[0]=f=1;
-    for(Int i=1; i < size; ++i) {
-      f *= i;
-      table[i]=f;
-    }
-  }
-  if(n >= size) integeroverflow(0);
-  return table[n];
-}
-
-static inline Int Round(double x) 
-{
-  return Int(x+((x >= 0) ? 0.5 : -0.5));
-}
-
-inline Int sgn(double x) 
-{
-  return (x > 0.0 ? 1 : (x < 0.0 ? -1 : 0));
-}
 
 array *nop(array *a) 
 {
@@ -252,93 +219,7 @@ pair zero;
 
 }
 
-namespace types {
-extern const char *names[];
-}
-
-void checkformat(const char *ptr, bool intformat) 
-{
-  while(*ptr != '\0') {
-    if(*ptr != '%') /* While we have regular characters, print them.  */
-      ptr++;
-    else { /* We've got a format specifier. */
-      ptr++;
-      
-      while(*ptr && strchr ("-+ #0'I", *ptr)) /* Move past flags.  */
-        *ptr++;
-
-      if(*ptr == '*')
-        ptr++;
-      else while(isdigit(*ptr)) /* Handle explicit numeric value.  */
-             ptr++;
-          
-      if(*ptr == '.') {
-        *ptr++; /* Go past the period.  */
-        if(*ptr == '*') {
-          ptr++;
-        } else
-          while(isdigit(*ptr)) /* Handle explicit numeric value.  */
-            *ptr++;
-      }
-      while(*ptr && strchr ("hlL", *ptr))
-        *ptr++;
-          
-      if(*ptr == '%') ++ptr;
-      else if(*ptr != '\0') {
-        if(intformat) {
-          switch(*ptr) {
-            case 'd':
-            case 'i':
-            case 'o':
-            case 'u':
-            case 'x':
-            case 'X':
-            case 'c':
-              break;
-            default:
-              ostringstream buf;
-              buf << "Invalid format '" << *ptr << "' for type " 
-                  << types::names[types::ty_Int];
-              error(buf);
-              break;
-          }
-        } else {
-          switch(*ptr) {
-            case 'f':
-            case 'F':
-            case 'e':
-            case 'E':
-            case 'g':
-            case 'G':
-              break;
-            default:
-              ostringstream buf;
-              buf << "Invalid format '" << *ptr << "' for type "
-                  << types::names[types::ty_real];
-              error(buf);
-              break;
-          }
-        }
-      }
-    } /* End of else statement */
-  }
-}
-  
 static string defaulttransparency=string("Compatible");
-static const string defaulttimeformat=string("%a %b %d %T %Z %Y");
-#ifdef HAVE_STRFTIME
-static const size_t nTime=256;
-static char Time[nTime];
-#endif  
-
-Int windingnumber(array *p, camp::pair z)
-{
-  size_t size=checkArray(p);
-  Int count=0;
-  for(size_t i=0; i < size; i++) 
-    count += read<path *>(p,i)->windingnumber(z);
-  return count;
-}
 
 void unused(void *)
 {
@@ -398,57 +279,6 @@ item :pushDefault()
 bool :isDefault(item i)
 {
   return isdefault(i);
-}
-
-
-// Logical operations
-
-bool !(bool b)
-{
-  return !b;
-}
-
-bool :boolMemEq(frame *a, frame *b)
-{
-  return a == b;
-}
-
-bool :boolMemNeq(frame *a, frame *b)
-{
-  return a != b;
-}
-
-bool :boolFuncEq(callable *a, callable *b)
-{
-  return a->compare(b);
-}
-
-bool :boolFuncNeq(callable *a, callable *b)
-{
-  return !(a->compare(b));
-}
-
-
-// Bit operations
-
-Int AND(Int a, Int b) 
-{
-  return a & b;
-}
-
-Int OR(Int a, Int b) 
-{
-  return a | b;
-}
-
-Int XOR(Int a, Int b) 
-{
-  return a ^ b;
-}
-
-Int NOT(Int a)
-{
-  return ~a;
 }
 
 
@@ -1358,583 +1188,6 @@ void list(string *s, bool imports=false)
 }
 
 
-// Path operations
-
-path :nullPath()
-{
-  return nullpath;
-}
-
-bool ==(path a, path b)
-{
-  return a == b;
-}
-
-bool !=(path a, path b)
-{
-  return !(a == b);
-}
-
-pair point(path p, Int t)
-{
-  return p.point((Int) t);
-}
-
-pair point(path p, real t)
-{
-  return p.point(t);
-}
-
-pair precontrol(path p, Int t)
-{
-  return p.precontrol((Int) t);
-}
-
-pair precontrol(path p, real t)
-{
-  return p.precontrol(t);
-}
-
-pair postcontrol(path p, Int t)
-{
-  return p.postcontrol((Int) t);
-}
-
-pair postcontrol(path p, real t)
-{
-  return p.postcontrol(t);
-}
-
-pair dir(path p, Int t, Int sign=0, bool normalize=true)
-{
-  return p.dir(t,sign,normalize);
-}
-
-pair dir(path p, real t, bool normalize=true)
-{
-  return p.dir(t,normalize);
-}
-
-pair accel(path p, Int t, Int sign=0)
-{
-  return p.accel(t,sign);
-}
-
-pair accel(path p, real t)
-{
-  return p.accel(t);
-}
-
-real radius(path p, real t)
-{
-  pair v=p.dir(t,false);
-  pair a=p.accel(t);
-  real d=dot(a,v);
-  real v2=v.abs2();
-  real a2=a.abs2();
-  real denom=v2*a2-d*d;
-  real r=v2*sqrt(v2);
-  return denom > 0 ? r/sqrt(denom) : 0.0;
-}
-
-path reverse(path p)
-{
-  return p.reverse();
-}
-
-path subpath(path p, Int a, Int b)
-{
-  return p.subpath((Int) a, (Int) b);
-}
-
-path subpath(path p, real a, real b)
-{
-  return p.subpath(a,b);
-}
-
-path nurb(pair z0, pair z1, pair z2, pair z3,
-          real w0, real w1, real w2, real w3, Int m)
-{
-  return nurb(z0,z1,z2,z3,w0,w1,w2,w3,m);
-}
-
-Int length(path p)
-{
-  return p.length();
-}
-
-bool cyclic(path p)
-{
-  return p.cyclic();
-}
-
-bool straight(path p, Int t)
-{
-  return p.straight(t);
-}
-
-path unstraighten(path p)
-{
-  return p.unstraighten();
-}
-
-bool piecewisestraight(path p)
-{
-  return p.piecewisestraight();
-}
-
-real arclength(path p)
-{
-  return p.arclength();
-}
-
-real arctime(path p, real dval)
-{
-  return p.arctime(dval);
-}
-
-real dirtime(path p, pair z)
-{
-  return p.directiontime(z);
-}
-
-realarray* intersect(path p, path q, real fuzz=-1)
-{
-  bool exact=fuzz <= 0.0;
-  if(fuzz < 0)
-    fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
-                       ::max(length(q.max()),length(q.min())));
-  std::vector<real> S,T;
-  real s,t;
-  if(intersections(s,t,S,T,p,q,fuzz,true,exact)) {
-    array *V=new array(2);
-    (*V)[0]=s;
-    (*V)[1]=t;
-    return V;
-  }
-  return new array(0);
-}
-
-realarray2* intersections(path p, path q, real fuzz=-1)
-{
-  bool exact=fuzz <= 0.0;
-  if(fuzz < 0.0)
-    fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
-                       ::max(length(q.max()),length(q.min())));
-  real s,t;
-  std::vector<real> S,T;
-  intersections(s,t,S,T,p,q,fuzz,false,true);
-  size_t n=S.size();
-  if(n == 0 && !exact) {
-    if(intersections(s,t,S,T,p,q,fuzz,true,false)) {
-      array *V=new array(1);
-      array *Vi=new array(2);
-      (*V)[0]=Vi;
-      (*Vi)[0]=s;
-      (*Vi)[1]=t;
-      return V;
-    }
-  }
-  array *V=new array(n);
-  for(size_t i=0; i < n; ++i) {
-    array *Vi=new array(2);
-    (*V)[i]=Vi;
-    (*Vi)[0]=S[i];
-    (*Vi)[1]=T[i];
-  }
-  stable_sort(V->begin(),V->end(),run::compare2<real>());
-  return V;
-}
-
-realarray* intersections(path p, explicit pair a, explicit pair b, real fuzz=-1)
-{
-  if(fuzz < 0)
-    fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
-                       ::max(length(a),length(b)));
-  std::vector<real> S;
-  intersections(S,p,a,b,fuzz);
-  sort(S.begin(),S.end());
-  size_t n=S.size();
-  array *V=new array(n);
-  for(size_t i=0; i < n; ++i)
-    (*V)[i]=S[i];
-  return V;
-}
-
-// Return the intersection point of the extensions of the line segments 
-// PQ and pq.
-pair extension(pair P, pair Q, pair p, pair q)
-{
-  pair ac=P-Q;
-  pair bd=q-p;
-  real det=ac.getx()*bd.gety()-ac.gety()*bd.getx();
-  if(det == 0) return pair(infinity,infinity);
-  return P+((p.getx()-P.getx())*bd.gety()-(p.gety()-P.gety())*bd.getx())*ac/det;
-}
-
-Int size(path p)
-{
-  return p.size();
-}
-
-path &(path p, path q)
-{
-  return camp::concat(p,q);
-}
-
-pair min(path p)
-{
-  return p.min();
-}
-
-pair max(path p)
-{
-  return p.max();
-}
-
-realarray *mintimes(path p)
-{
-  array *V=new array(2);
-  pair z=p.mintimes();
-  (*V)[0]=z.getx();
-  (*V)[1]=z.gety();
-  return V;
-}
-
-realarray *maxtimes(path p)
-{
-  array *V=new array(2);
-  pair z=p.maxtimes();
-  (*V)[0]=z.getx();
-  (*V)[1]=z.gety();
-  return V;
-}
-
-real relativedistance(real theta, real phi, real t, bool atleast)
-{
-  return camp::velocity(theta,phi,tension(t,atleast));
-}
-
-Int windingnumber(patharray *p, pair z)
-{
-  return windingnumber(p,z);
-}
-
-bool inside(explicit patharray *g, pair z, pen fillrule=CURRENTPEN)
-{
-  return fillrule.inside(windingnumber(g,z));
-}
-
-bool inside(path g, pair z, pen fillrule=CURRENTPEN)
-{
-  return fillrule.inside(g.windingnumber(z));
-}
-
-// Determine the side of a--b that c lies on
-// (negative=left, zero=on line, positive=right).
-real side(pair a, pair b, pair c) 
-{
-  return orient2d(a,b,c);
-}
-
-// Determine the side of the counterclockwise circle through a,b,c that d
-// lies on (negative=inside, 0=on circle, positive=right). 
-real incircle(pair a, pair b, pair c, pair d)
-{
-  return incircle(a.getx(),a.gety(),b.getx(),b.gety(),c.getx(),c.gety(),
-                  d.getx(),d.gety());
-}
-
-
-// Path3 operations
-
-path3 path3(triplearray *pre, triplearray *point, triplearray *post,
-            boolarray *straight, bool cyclic)
-{
-  size_t n=checkArrays(pre,point);
-  checkEqual(n,checkArray(post));
-  checkEqual(n,checkArray(straight));
-  mem::vector<solvedKnot3> nodes(n);
-  for(size_t i=0; i < n; ++i) {
-    nodes[i].pre=read<triple>(pre,i);
-    nodes[i].point=read<triple>(point,i);
-    nodes[i].post=read<triple>(post,i);
-    nodes[i].straight=read<bool>(straight,i);
-  }
-
-  return path3(nodes,(Int) n,cyclic);
-}
-
-path3 :nullPath3()
-{
-  return nullpath3;
-}
-
-bool ==(path3 a, path3 b)
-{
-  return a == b;
-}
-
-bool !=(path3 a, path3 b)
-{
-  return !(a == b);
-}
-
-triple point(path3 p, Int t)
-{
-  return p.point((Int) t);
-}
-
-triple point(path3 p, real t)
-{
-  return p.point(t);
-}
-
-triple precontrol(path3 p, Int t)
-{
-  return p.precontrol((Int) t);
-}
-
-triple precontrol(path3 p, real t)
-{
-  return p.precontrol(t);
-}
-
-triple postcontrol(path3 p, Int t)
-{
-  return p.postcontrol((Int) t);
-}
-
-triple postcontrol(path3 p, real t)
-{
-  return p.postcontrol(t);
-}
-
-triple dir(path3 p, Int t, Int sign=0, bool normalize=true)
-{
-  return p.dir(t,sign,normalize);
-}
-
-triple dir(path3 p, real t, bool normalize=true)
-{
-  return p.dir(t,normalize);
-}
-
-triple accel(path3 p, Int t, Int sign=0)
-{
-  return p.accel(t,sign);
-}
-
-triple accel(path3 p, real t)
-{
-  return p.accel(t);
-}
-
-real radius(path3 p, real t)
-{
-  triple v=p.dir(t,false);
-  triple a=p.accel(t);
-  real d=dot(a,v);
-  real v2=v.abs2();
-  real a2=a.abs2();
-  real denom=v2*a2-d*d;
-  real r=v2*sqrt(v2);
-  return denom > 0 ? r/sqrt(denom) : 0.0;
-}
-
-real radius(triple z0, triple c0, triple c1, triple z1, real t)
-{
-  triple v=(3.0*(z1-z0)+9.0*(c0-c1))*t*t+(6.0*(z0+c1)-12.0*c0)*t+3.0*(c0-z0);
-  triple a=6.0*(z1-z0+3.0*(c0-c1))*t+6.0*(z0+c1)-12.0*c0;
-  real d=dot(a,v);
-  real v2=v.abs2();
-  real a2=a.abs2();
-  real denom=v2*a2-d*d;
-  real r=v2*sqrt(v2);
-  return denom > 0 ? r/sqrt(denom) : 0.0;
-}
-
-path3 reverse(path3 p)
-{
-  return p.reverse();
-}
-
-path3 subpath(path3 p, Int a, Int b)
-{
-  return p.subpath((Int) a, (Int) b);
-}
-
-path3 subpath(path3 p, real a, real b)
-{
-  return p.subpath(a,b);
-}
-
-Int length(path3 p)
-{
-  return p.length();
-}
-
-bool cyclic(path3 p)
-{
-  return p.cyclic();
-}
-
-bool straight(path3 p, Int t)
-{
-  return p.straight(t);
-}
-
-// Return the maximum perpendicular deviation of segment i of path3 g
-// from a straight line.
-real straightness(path3 p, Int t) 
-{
-  if(p.straight(t)) return 0;
-  triple z0=p.point(t);
-  triple u=unit(p.point(t+1)-z0);
-  return ::max(length(perp(p.postcontrol(t)-z0,u)),
-               length(perp(p.precontrol(t+1)-z0,u)));
-}
-
-// Return the maximum perpendicular deviation of z0..controls c0 and c1..z1
-// from a straight line.
-real straightness(triple z0, triple c0, triple c1, triple z1)
-{
-  triple u=unit(z1-z0);
-  return ::max(length(perp(c0-z0,u)),length(perp(c1-z0,u)));
-}
-
-bool piecewisestraight(path3 p)
-{
-  return p.piecewisestraight();
-}
-
-real arclength(path3 p)
-{
-  return p.arclength();
-}
-
-real arctime(path3 p, real dval)
-{
-  return p.arctime(dval);
-}
-
-realarray* intersect(path3 p, path3 q, real fuzz=-1)
-{
-  bool exact=fuzz <= 0.0;
-  if(fuzz < 0)
-    fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
-                       ::max(length(q.max()),length(q.min())));
-  
-  std::vector<real> S,T;
-  real s,t;
-  if(intersections(s,t,S,T,p,q,fuzz,true,exact)) {
-    array *V=new array(2);
-    (*V)[0]=s;
-    (*V)[1]=t;
-    return V;
-  } else
-    return new array(0);
-}
-
-realarray2* intersections(path3 p, path3 q, real fuzz=-1)
-{
-  bool exact=fuzz <= 0.0;
-  if(fuzz < 0)
-    fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
-                       ::max(length(q.max()),length(q.min())));
-  bool single=!exact;
-  
-  real s,t;
-  std::vector<real> S,T;
-  bool found=intersections(s,t,S,T,p,q,fuzz,single,exact);
-  if(!found) return new array(0);
-  array *V;
-  if(single) {
-    V=new array(1);
-    array *Vi=new array(2);
-    (*V)[0]=Vi;
-    (*Vi)[0]=s;
-    (*Vi)[1]=t;
-  } else {
-    size_t n=S.size();
-    V=new array(n);
-    for(size_t i=0; i < n; ++i) {
-      array *Vi=new array(2);
-      (*V)[i]=Vi;
-      (*Vi)[0]=S[i];
-      (*Vi)[1]=T[i];
-    }
-  }
-  stable_sort(V->begin(),V->end(),run::compare2<real>());
-  return V;
-}
-
-realarray2* intersections(path3 p, triplearray2 *P, real fuzz=-1)
-{
-  triple *A=copyTripleArray2C(P,true,4);
-  if(fuzz <= 0) fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
-                                   norm(A,16));
-  std::vector<real> T,U,V;
-  intersections(T,U,V,p,A,fuzz);
-  delete[] A;
-  size_t n=T.size();
-  array *W=new array(n);
-  for(size_t i=0; i < n; ++i) {
-    array *Wi=new array(3);
-    (*W)[i]=Wi;
-    (*Wi)[0]=T[i];
-    (*Wi)[1]=U[i];
-    (*Wi)[2]=V[i];
-  }
-  return W; // Sorting will done in asy.
-}
-
-Int size(path3 p)
-{
-  return p.size();
-}
-
-path3 &(path3 p, path3 q)
-{
-  return camp::concat(p,q);
-}
-
-triple min(path3 p)
-{
-  return p.min();
-}
-
-triple max(path3 p)
-{
-  return p.max();
-}
-
-realarray *mintimes(path3 p)
-{
-  array *V=new array(3);
-  triple v=p.mintimes();
-  (*V)[0]=v.getx();
-  (*V)[1]=v.gety();
-  (*V)[2]=v.getz();
-  return V;
-}
-
-realarray *maxtimes(path3 p)
-{
-  array *V=new array(3);
-  triple v=p.maxtimes();
-  (*V)[0]=v.getx();
-  (*V)[1]=v.gety();
-  (*V)[2]=v.getz();
-  return V;
-}
-
-path3 Operator *(realarray2 *t, path3 g)
-{
-  return transformed(*t,g);
-}
-
-
 // Guide operations
 
 guide* :nullGuide()
@@ -2233,459 +1486,9 @@ pair maxratio(picture *f)
   return f->ratio(::max);
 }
 
-triple minbezier(triplearray2 *P, triple b)
-{
-  real *A=copyTripleArray2Components(P,true,4);
-  b=triple(bound(A,::min,b.getx(),sqrtFuzz*norm(A,16)),
-           bound(A+16,::min,b.gety(),sqrtFuzz*norm(A+16,16)),
-           bound(A+32,::min,b.getz(),sqrtFuzz*norm(A+32,16)));
-  delete[] A;
-  return b;
-}
-
-triple maxbezier(triplearray2 *P, triple b)
-{
-  real *A=copyTripleArray2Components(P,true,4);
-  b=triple(bound(A,::max,b.getx(),sqrtFuzz*norm(A,16)),
-           bound(A+16,::max,b.gety(),sqrtFuzz*norm(A+16,16)),
-           bound(A+32,::max,b.getz(),sqrtFuzz*norm(A+32,16)));
-  delete[] A;
-  return b;
-}
-
-pair minratio(triplearray2 *P, pair b)
-{
-  triple *A=copyTripleArray2C(P,true,4);
-  real fuzz=sqrtFuzz*norm(A,16);
-  b=pair(bound(A,::min,xratio,b.getx(),fuzz),
-         bound(A,::min,yratio,b.gety(),fuzz));
-  delete[] A;
-  return b;
-}
-
-pair maxratio(triplearray2 *P, pair b)
-{
-  triple *A=copyTripleArray2C(P,true,4);
-  real fuzz=sqrtFuzz*norm(A,16);
-  b=pair(bound(A,::max,xratio,b.getx(),fuzz),
-         bound(A,::max,yratio,b.gety(),fuzz));
-  delete[] A;
-  return b;
-}
-
-pair minratio(path3 g)
-{
-  return g.ratio(::min);
-}
-
-pair maxratio(path3 g)
-{
-  return g.ratio(::max);
-}
-
-real norm(realarray *a)
-{
-  size_t n=checkArray(a);
-  real M=0.0;
-  for(size_t i=0; i < n; ++i) {
-    real x=fabs(vm::read<real>(a,i));
-    if(x > M) M=x;
-  }
-  return M;
-}
-
-real norm(realarray2 *a)
-{
-  size_t n=checkArray(a);
-  real M=0.0;
-  for(size_t i=0; i < n; ++i) {
-    vm::array *ai=vm::read<vm::array*>(a,i);
-    size_t m=checkArray(ai);
-    for(size_t j=0; j < m; ++j) {
-      real a=fabs(vm::read<real>(ai,j));
-      if(a > M) M=a;
-    }
-  }
-  return M;
-}
-
-real norm(triplearray2 *a)
-{
-  size_t n=checkArray(a);
-  real M=0.0;
-  for(size_t i=0; i < n; ++i) {
-    vm::array *ai=vm::read<vm::array*>(a,i);
-    size_t m=checkArray(ai);
-    for(size_t j=0; j < m; ++j) {
-      real a=vm::read<triple>(ai,j).abs2();
-      if(a > M) M=a;
-    }
-  }
-  return sqrt(M);
-}
-
-real change2(triplearray2 *a)
-{
-  size_t n=checkArray(a);
-  if(n == 0) return 0.0;
-  
-  vm::array *a0=vm::read<vm::array*>(a,0);
-  size_t m=checkArray(a0);
-  if(m == 0) return 0.0;
-  triple a00=vm::read<triple>(a0,0);
-  real M=0.0;
-    
-  for(size_t i=0; i < n; ++i) {
-    vm::array *ai=vm::read<vm::array*>(a,i);
-    size_t m=checkArray(ai);
-    for(size_t j=0; j < m; ++j) {
-      real a=(vm::read<triple>(ai,j)-a00).abs2();
-      if(a > M) M=a;
-    }
-  }
-  return M;
-}
-
 bool is3D(picture *f)
 {
   return f->have3D();
-}
-
-pair bezier(pair a, pair b, pair c, pair d, real t) 
-{
-  real onemt=1-t;
-  real onemt2=onemt*onemt;
-  return onemt2*onemt*a+t*(3.0*(onemt2*b+t*onemt*c)+t*t*d);
-}
-
-pair bezierP(pair a, pair b, pair c, pair d, real t) 
-{
-  return 3.0*(t*t*(d-a+3.0*(b-c))+t*(2.0*(a+c)-4.0*b)+b-a);
-}
-
-pair bezierPP(pair a, pair b, pair c, pair d, real t) 
-{
-  return 6.0*(t*(d-a+3.0*(b-c))+a+c-2.0*b);
-}
-
-pair bezierPPP(pair a, pair b, pair c, pair d) 
-{
-  return 6.0*(d-a+3.0*(b-c));
-}
-
-triple bezier(triple a, triple b, triple c, triple d, real t) 
-{
-  real onemt=1-t;
-  real onemt2=onemt*onemt;
-  return onemt2*onemt*a+t*(3.0*(onemt2*b+t*onemt*c)+t*t*d);
-}
-
-triple bezierP(triple a, triple b, triple c, triple d, real t) 
-{
-  return 3.0*(t*t*(d-a+3.0*(b-c))+t*(2.0*(a+c)-4.0*b)+b-a);
-}
-
-triple bezierPP(triple a, triple b, triple c, triple d, real t) 
-{
-  return 6.0*(t*(d-a+3.0*(b-c))+a+c-2.0*b);
-}
-
-triple bezierPPP(triple a, triple b, triple c, triple d) 
-{
-  return 6.0*(d-a+3.0*(b-c));
-}
-
-
-// String operations
-
-string :emptyString()
-{
-  return emptystring;
-}
-
-Int length(string *s)
-{
-  return (Int) s->length();
-}
-
-Int find(string *s, string t, Int pos=0)
-{
-  size_t n=s->find(t,pos);
-  return n == string::npos ? (Int) -1 : (Int) n;
-}
-
-Int rfind(string *s, string t, Int pos=-1)
-{
-  size_t n=s->rfind(t,pos);
-  return n == string::npos ? (Int) -1 : (Int) n;
-}
-
-string reverse(string s)
-{
-  reverse(s.begin(),s.end());
-  return s;
-}
-
-string insert(string s, Int pos, string t)
-{
-  if ((size_t) pos < s.length())
-    return s.insert(pos,t);
-  return s;
-}
-
-string substr(string* s, Int pos, Int n=-1)
-{
-  if ((size_t) pos < s->length())
-    return s->substr(pos,n);
-  return emptystring;
-}
-
-string erase(string s, Int pos, Int n)
-{
-  if ((size_t) pos < s.length())
-    return s.erase(pos,n);
-  return s; 
-}
-
-string downcase(string s)
-{
-  std::transform(s.begin(),s.end(),s.begin(),tolower);
-  return s;
-}
-
-string upcase(string s)
-{
-  std::transform(s.begin(),s.end(),s.begin(),toupper);
-  return s;
-}
-
-// returns a string constructed by translating all occurrences of the string
-// from in an array of string pairs {from,to} to the string to in string s.
-string replace(string *S, stringarray2 *translate)
-{
-  size_t size=checkArray(translate);
-  for(size_t i=0; i < size; i++) {
-    array *a=read<array*>(translate,i);
-    checkArray(a);
-  }
-  const char *p=S->c_str();
-  ostringstream buf;
-  while(*p) {
-    for(size_t i=0; i < size;) {
-      array *a=read<array*>(translate,i);
-      string* from=read<string*>(a,0);
-      size_t len=from->length();
-      if(strncmp(p,from->c_str(),len) != 0) {i++; continue;}
-      buf << read<string>(a,1);
-      p += len;
-      if(*p == 0) return buf.str();
-      i=0;
-    }
-    buf << *(p++);
-  }
-  return buf.str();
-}
-
-string format(string *format, Int x)
-{
-  const char *f=format->c_str();
-  
-  checkformat(f,true);
-  
-  Int size=snprintf(NULL,0,f,x)+1;
-  if(size < 1) size=255; // Workaround for non-C99 compliant systems.
-  char *buf=new char[size];
-  snprintf(buf,size,f,x);
-  string s=string(buf);
-  delete[] buf;
-  return s;
-}
-
-string format(string *format, real x, string locale=emptystring) 
-{
-  bool tex=getSetting<string>("tex") != "none";
-  bool texify=false;
-  ostringstream out;
-  
-  checkformat(format->c_str(),false);
-
-  const char *phantom="\\phantom{+}";
-  const char *p0=format->c_str();
-  
-  const char *p=p0;
-  const char *start=NULL;
-  char prev=0;
-  while(*p != 0) {
-    char curr=*p;
-    if(tex && curr == '$' && prev != '\\') texify=true;
-    prev=curr;
-    if(curr == '%') {
-      p++;
-      if(*p != '%') {start=p-1; break;}
-    }
-    out << *(p++);
-  }
-  
-  if(!start) return out.str();
-  
-  // Allow at most 1 argument  
-  while(*p != 0) {
-    if(*p == '*' || *p == '$') return out.str();
-    if(isupper(*p) || islower(*p)) {p++; break;}
-    p++;
-  }
-  
-  const char *tail=p;
-  string f=format->substr(start-p0,tail-start);
-
-  const char *oldlocale=NULL;
-  if(!locale.empty()) {
-    oldlocale=setlocale(LC_ALL,NULL);
-    if(oldlocale) oldlocale=StrdupNoGC(oldlocale);
-    setlocale(LC_ALL,locale.c_str());
-  }
-
-  Int size=snprintf(NULL,0,f.c_str(),x)+1;
-  if(size < 1) size=255; // Workaround for non-C99 compliant systems.
-  char *buf=new char[size];
-  snprintf(buf,size,f.c_str(),x);
-
-  if(oldlocale) {
-    setlocale(LC_ALL,oldlocale);
-    delete[] oldlocale;
-  }
-  
-  bool trailingzero=f.find("#") < string::npos;
-  bool plus=f.find("+") < string::npos;
-  bool space=f.find(" ") < string::npos;
-  
-  char *q=buf; // beginning of formatted number
-
-  if(*q == ' ') {
-    out << phantom;
-    q++;
-  }
-  
-  const char decimal=*(localeconv()->decimal_point);
-
-  // Remove any spurious sign
-  if(*q == '-' || *q == '+') {
-    p=q+1;
-    bool zero=true;
-    while(*p != 0) {
-      if(!isdigit(*p) && *p != decimal) break;
-      if(isdigit(*p) && *p != '0') {zero=false; break;}
-      p++;
-    }
-    if(zero) {
-      q++;
-      if(plus || space) out << phantom;
-    }
-  }
-  
-  const char *r=p=q;
-  bool dp=false;
-  while(*r != 0 && (isdigit(*r) || *r == decimal || *r == '+' || *r == '-')) {
-    if(*r == decimal) dp=true;
-    r++;
-  }
-  if(dp) { // Remove trailing zeros and/or decimal point
-    r--;
-    unsigned n=0;
-    while(r > q && *r == '0') {r--; n++;}
-    if(*r == decimal) {r--; n++;}
-    while(q <= r) out << *(q++);
-    if(!trailingzero) q += n;
-  }
-  
-  bool zero=(r == p && *r == '0') && !trailingzero;
-  
-  // Translate "E+/E-/e+/e-" exponential notation to TeX
-  while(*q != 0) {
-    if(texify && (*q == 'E' || *q == 'e') && 
-       (*(q+1) == '+' || *(q+1) == '-')) {
-      if(!zero) out << "\\!\\times\\!10^{";
-      bool plus=(*(q+1) == '+');
-      q++;
-      if(plus) q++;
-      if(*q == '-') out << *(q++);
-      while(*q == '0' && (zero || isdigit(*(q+1)))) q++;
-      while(isdigit(*q)) out << *(q++);
-      if(!zero)
-        out << "}";
-      break;
-    }
-    out << *(q++);
-  }
-  
-  while(*tail != 0) 
-    out << *(tail++);
-  
-  delete[] buf;
-
-  return out.str();
-}
-
-Int hex(string s)
-{
-  istringstream is(s);
-  is.setf(std::ios::hex,std::ios::basefield);
-  Int value;
-  if(is && is >> value && ((is >> std::ws).eof())) return value;
-  ostringstream buf;
-  buf << "invalid hexidecimal cast from string \"" << s << "\"";
-  error(buf);
-}
-
-string string(Int x)
-{
-  ostringstream buf;
-  buf << x;
-  return buf.str();
-}
-
-string string(real x, Int digits=DBL_DIG)
-{
-  ostringstream buf;
-  buf.precision(digits);
-  buf << x;
-  return buf.str();
-}
-
-string time(string format=defaulttimeformat)
-{
-#ifdef HAVE_STRFTIME
-  const time_t bintime=time(NULL);
-  if(!strftime(Time,nTime,format.c_str(),localtime(&bintime))) return "";
-  return Time;
-#else
-  return format;
-#endif  
-}
-
-string time(Int seconds, string format=defaulttimeformat)
-{
-#ifdef HAVE_STRFTIME
-  const time_t bintime=seconds;
-  if(!strftime(Time,nTime,format.c_str(),localtime(&bintime))) return "";
-  return Time;
-#else
-// Avoid unused variable warning messages
-  unused(&seconds);
-  return format;
-#endif
-}
-
-Int seconds(string t=emptystring, string format=emptystring)
-{
-#if defined(HAVE_STRPTIME)
-  const time_t bintime=time(NULL);
-  tm tm=*localtime(&bintime);
-  if(t != "" && !strptime(t.c_str(),format.c_str(),&tm)) return -1;
-  return (Int) mktime(&tm);
-#else
-  return -1;
-#endif  
 }
 
 realarray *_cputime()
@@ -2703,179 +1506,6 @@ realarray *_cputime()
 }
 
 
-// Math
-
-real ^(real x, Int y)
-{
-  return pow(x,y);
-}
-
-pair ^(pair z, Int y)
-{
-  return pow(z,y);
-}
-
-Int quotient(Int x, Int y)
-{ 
-  if(y == 0) dividebyzero();
-  if(y == -1) return Negate(x);
-// Implementation-independent definition of integer division: round down
-  return (x-portableMod(x,y))/y;
-}  
-
-Int abs(Int x)
-{ 
-  return Abs(x);
-}  
-
-Int sgn(real x)
-{ 
-  return sgn(x);
-}  
-
-Int rand()
-{ 
-  return rand();
-}  
-
-void srand(Int seed)
-{ 
-  srand(intcast(seed));
-}  
-
-// a random number uniformly distributed in the interval [0,1]
-real unitrand()
-{                         
-  return ((real) rand())/RAND_MAX;
-}
-
-Int ceil(real x)
-{ 
-  return Intcast(ceil(x));
-}
-
-Int floor(real x)
-{ 
-  return Intcast(floor(x));
-}
-
-Int round(real x)
-{ 
-  if(validInt(x)) return Round(x);
-  integeroverflow(0);
-}
-
-Int Ceil(real x)
-{ 
-  return Ceil(x);
-}
-
-Int Floor(real x)
-{ 
-  return Floor(x);
-}
-
-Int Round(real x)
-{ 
-  return Round(Intcap(x));
-}
-
-real fmod(real x, real y)
-{
-  if (y == 0.0) dividebyzero();
-  return fmod(x,y);
-}
-
-real atan2(real y, real x)
-{ 
-  return atan2(y,x);
-}  
-
-real hypot(real x, real y)
-{ 
-  return hypot(x,y);
-}  
-
-real remainder(real x, real y)
-{ 
-  return remainder(x,y);
-}  
-
-real J(Int n, real x)
-{
-  return jn(n,x);
-}
-
-real Y(Int n, real x)
-{
-  return yn(n,x);
-}
-
-real erf(real x)
-{
-  return erf(x);
-}
-
-real erfc(real x)
-{
-  return erfc(x);
-}
-
-Int factorial(Int n) {
-  if(n < 0) error(invalidargument);
-  return factorial(n);
-}
-
-Int choose(Int n, Int k) {
-  if(n < 0 || k < 0 || k > n) error(invalidargument);
-  Int f=1;
-  Int r=n-k;
-  for(Int i=n; i > r; --i) {
-    if(f > Int_MAX/i) integeroverflow(0);
-    f=(f*i)/(n-i+1);
-  }
-  return f;
-}
-
-real gamma(real x)
-{
-#ifdef HAVE_TGAMMA
-  return tgamma(x);
-#else
-  real lg = lgamma(x);
-  return signgam*exp(lg);
-#endif
-}
-
-realarray *quadraticroots(real a, real b, real c)
-{
-  quadraticroots q(a,b,c);
-  array *roots=new array(q.roots);
-  if(q.roots >= 1) (*roots)[0]=q.t1;
-  if(q.roots == 2) (*roots)[1]=q.t2;
-  return roots;
-}
-
-pairarray *quadraticroots(explicit pair a, explicit pair b, explicit pair c)
-{
-  Quadraticroots q(a,b,c);
-  array *roots=new array(q.roots);
-  if(q.roots >= 1) (*roots)[0]=q.z1;
-  if(q.roots == 2) (*roots)[1]=q.z2;
-  return roots;
-}
-
-realarray *cubicroots(real a, real b, real c, real d)
-{
-  cubicroots q(a,b,c,d);
-  array *roots=new array(q.roots);
-  if(q.roots >= 1) (*roots)[0]=q.t1;
-  if(q.roots >= 2) (*roots)[1]=q.t2;
-  if(q.roots == 3) (*roots)[2]=q.t3;
-  return roots;
-}
-
-  
 // Transforms
 
 bool ==(transform a, transform b)

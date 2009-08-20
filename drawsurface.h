@@ -345,9 +345,6 @@ public:
   drawElement *transformed(const vm::array& t);
 };
   
-double norm(double *a, size_t n);
-double norm(triple *a, size_t n);
-
 }
 
 #endif

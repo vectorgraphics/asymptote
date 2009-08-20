@@ -14,6 +14,7 @@
 #include "runarray.h"
 #include "runpair.h"
 #include "runtriple.h"
+#include "runpath.h"
 #include "coenv.h"
 #include "application.h"
 #include "dec.h"

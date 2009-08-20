@@ -438,6 +438,8 @@ void arrayFunc(vm::stack *s)
 vm::array *Identity(Int n);
 camp::triple operator *(const vm::array& a, const camp::triple& v);
 camp::triple multshiftless(const vm::array& t, const camp::triple& v);
+double norm(double *a, size_t n);
+double norm(camp::triple *a, size_t n);
 
 } // namespace run
 
