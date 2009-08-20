@@ -36,6 +36,13 @@ inline double angle(double x, double y)
   return atan2(y,x);
 }
   
+// Return an angle in the interval [0,360).
+inline double principalBranch(double deg)
+{
+  if(deg < 0) deg += 360; 
+  return deg;
+}
+
 } //namespace camp
 
 #endif

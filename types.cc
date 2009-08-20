@@ -14,6 +14,8 @@
 #include "runtime.h"
 #include "runarray.h"
 #include "runfile.h"
+#include "runpair.h"
+#include "runtriple.h"
 #include "access.h"
 #include "virtualfieldaccess.h"
 

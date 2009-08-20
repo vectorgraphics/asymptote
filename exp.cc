@@ -12,6 +12,8 @@
 #include "runtime.h"
 #include "runpicture.h"
 #include "runarray.h"
+#include "runpair.h"
+#include "runtriple.h"
 #include "coenv.h"
 #include "application.h"
 #include "dec.h"

@@ -16,6 +16,8 @@
 #include "runarray.h"
 #include "runfile.h"
 #include "runsystem.h"
+#include "runpair.h"
+#include "runtriple.h"
 #include "types.h"
 
 #include "castop.h"
@@ -58,6 +60,8 @@ void gen_runhistory_venv(venv &ve);
 void gen_runarray_venv(venv &ve);
 void gen_runfile_venv(venv &ve);
 void gen_runsystem_venv(venv &ve);
+void gen_runpair_venv(venv &ve);
+void gen_runtriple_venv(venv &ve);
 
 void addType(tenv &te, const char *name, ty *t)
 {
@@ -1410,6 +1414,8 @@ void base_venv(venv &ve)
   gen_runarray_venv(ve);
   gen_runfile_venv(ve);
   gen_runsystem_venv(ve);
+  gen_runpair_venv(ve);
+  gen_runtriple_venv(ve);
 }
 
 } //namespace trans
