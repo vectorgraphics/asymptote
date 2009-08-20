@@ -166,17 +166,6 @@ using types::stringArray;
 using types::stringArray2;
 using types::formal;
 
-function *voidFunction()
-{
-  return new function(primVoid());
-}
-
-function *breakpointFunction()
-{
-  return new function(primString(),primString(),primInt(),primInt(),
-                      primCode());
-}
-
 function *realRealFunction()
 {
   return new function(primReal(),primReal());
@@ -256,47 +245,10 @@ void writestring(stack *s)
   }
 }
 
-void purge(Int divisor=0)
-{
-#ifdef USEGC
-  if(divisor > 0) GC_set_free_space_divisor((GC_word) divisor);
-  GC_gcollect();
-#endif
-}
-
-void updateFunction(stack *Stack)
-{
-  callable *atUpdateFunction=processData().atUpdateFunction;
-  if(atUpdateFunction && !nullfunc::instance()->compare(atUpdateFunction))
-    atUpdateFunction->call(Stack);
-}
-
-void exitFunction(stack *Stack)
-{
-  callable *atExitFunction=processData().atExitFunction;
-  if(atExitFunction && !nullfunc::instance()->compare(atExitFunction))
-    atExitFunction->call(Stack);
-}
-
 default_t def;
 array *emptyarray=new array(0);
-string commentchar="#";
 string emptystring;
 pair zero;
-
-void breakpoint(stack *Stack, runnable *r)
-{
-  callable *atBreakpointFunction=processData().atBreakpointFunction;
-  if(atBreakpointFunction &&
-     !nullfunc::instance()->compare(atBreakpointFunction)) {
-    position curPos=getPos();
-    Stack->push<string>(curPos.filename());
-    Stack->push<Int>((Int) curPos.Line());
-    Stack->push<Int>((Int) curPos.Column());
-    Stack->push(r ? r : item(def));
-    atBreakpointFunction->call(Stack); // returns a string
-  } else Stack->push<string>("");
-}
 
 }
 
@@ -386,20 +338,6 @@ static const size_t nTime=256;
 static char Time[nTime];
 #endif  
 
-void clear(string file, Int line, bool warn=false) 
-{
-  bpinfo bp(file,line);
-  for(mem::list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
-    if(*p == bp) {
-      cout << "cleared breakpoint at " << file << ": " << line << endl;
-      bplist.remove(bp);
-      return;
-    }
-  }
-  if(warn)
-    cout << "No such breakpoint at "  << file << ": " << line << endl;
-}
-
 Int windingnumber(array *p, camp::pair z)
 {
   size_t size=checkArray(p);
@@ -407,15 +345,6 @@ Int windingnumber(array *p, camp::pair z)
   for(size_t i=0; i < size; i++) 
     count += read<path *>(p,i)->windingnumber(z);
   return count;
-}
-
-string convertname(string name, const string& format, bool check=true)
-{
-  if(name.empty())
-    return buildname(outname(),format,"");
-  else
-    if(check) checkLocal(name);
-  return format.empty() ? name : format+":"+name;
 }
 
 void unused(void *)
@@ -1015,11 +944,6 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
     
     cout << Done << endl;
   }
-}
-
-void purge(Int divisor=0)
-{
-  purge(divisor);
 }
 
 
@@ -3445,466 +3369,3 @@ triple dir(real colatitude, real longitude)
   return expi(radians(colatitude),radians(longitude));
 }
 
-
-// System routines
-
-void atupdate(callable *f)
-{
-  processData().atUpdateFunction=f;
-}
-
-callable *atupdate()
-{
-  return processData().atUpdateFunction;
-}
-
-void atexit(callable *f)
-{
-  processData().atExitFunction=f;
-}
-
-callable *atexit()
-{
-  return processData().atExitFunction;
-}
-
-void atbreakpoint(callableBp *f)
-{
-  processData().atBreakpointFunction=f;
-}
-
-void breakpoint(runnable *s=NULL)
-{
-  breakpoint(Stack,s);
-}
-
-string locatefile(string file)
-{
-  return locateFile(file);
-}
-
-void stop(string file, Int line, runnable *s=NULL)
-{
-  file=locateFile(file);
-  clear(file,line);
-  cout << "setting breakpoint at " << file << ": " << line << endl;
-  bplist.push_back(bpinfo(file,line,s));
-}
-
-void breakpoints()
-{
-  for(mem::list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p)
-    cout << p->f.name() << ": " << p->f.line() << endl;
-}
-
-void clear(string file, Int line)
-{
-  file=locateFile(file);
-  clear(file,line,true);
-}
-
-void clear()
-{
-  bplist.clear();
-}
-
-void warn(string s)
-{
-  Warn(s);
-}
-
-void nowarn(string s)
-{
-  noWarn(s);
-}
-
-void warning(string s, string t, bool position=false)
-{
-  if(settings::warn(s)) {
-    em.warning(position ? getPos() : nullPos,s);
-    em << t;
-  }
-}
-
-// Strip directory from string
-string stripdirectory(string *s)
-{
-  return stripDir(*s);
-}
-
-// Strip directory from string
-string stripfile(string *s)
-{
-  return stripFile(*s);
-}
-
-// Strip file extension from string
-string stripextension(string *s)
-{
-  return stripExt(*s);
-}
-
-// Call ImageMagick convert.
-Int convert(string args=emptystring, string file=emptystring,
-            string format=emptystring)
-{
-  string name=convertname(file,format);
-  mem::vector<string> cmd;
-  cmd.push_back(getSetting<string>("convert"));
-  push_split(cmd,args);
-  cmd.push_back(name);
-  bool quiet=verbose <= 1;
-  Int ret=System(cmd,quiet ? 1 : 0,true,"convert",
-                 "your ImageMagick convert utility");
-  
-  if(ret == 0 && verbose > 0)
-    cout << "Wrote " << ((file.empty()) ? name : file) << endl;
-  
-  return ret;
-}
-
-// Call ImageMagick animate.
-Int animate(string args=emptystring, string file=emptystring,
-            string format=emptystring)
-{
-#ifndef __CYGWIN__
-  string name=convertname(file,format,false);
-  if(view()) {
-    mem::vector<string> cmd;
-    cmd.push_back(getSetting<string>("animate"));
-    push_split(cmd,args);
-    cmd.push_back(name);
-    return System(cmd,0,false,"animate","your animated GIF viewer");
-  }
-#endif  
-  return 0;
-}
-
-// Delete file named s.
-Int delete(string *s) 
-{
-  checkLocal(*s);
-  Int rc=unlink(s->c_str());
-  if(rc == 0 && verbose > 0) 
-    cout << "Deleted " << *s << endl;
-  return rc;
-}
-
-// Rename file "from" to file "to".
-Int rename(string *from, string *to) 
-{
-  checkLocal(*from);
-  checkLocal(*to);
-  Int rc=rename(from->c_str(),to->c_str());
-  if(rc == 0 && verbose > 0) 
-    cout << "Renamed " << *from << " to " << *to << endl;
-  return rc;
-}
-
-
-// File operations
-
-bool ==(file *a, file *b)
-{
-  return a == b;
-}
-
-bool !=(file *a, file *b)
-{
-  return a != b;
-}
-
-file* :nullFile()
-{
-  return &camp::nullfile;
-}
-
-file* input(string name, bool check=true, string comment=commentchar)
-{
-  char c=comment.empty() ? (char) 0 : comment[0];
-  file *f=new ifile(name,c,check);
-  f->open();
-  return f;
-}
-
-file* output(string name, bool update=false, string comment=commentchar)
-{
-  file *f;
-  if(update) {
-    char c=comment.empty() ? (char) 0 : comment[0];
-    f=new iofile(name,c);
-  } else f=new ofile(name);
-  f->open();
-  if(update) f->seek(0,false);
-  return f;
-}
-
-file* xinput(string name, bool check=true)
-{
-#ifdef HAVE_RPC_RPC_H
-  file *f=new ixfile(name,check);
-  f->open();
-  return f;
-#else  
-  ostringstream buf;
-  buf << name << ": XDR read support not enabled";
-  error(buf);
-  unused(&check); // Suppress unused variable warning
-#endif
-}
-
-file* xoutput(string name, bool update=false)
-{
-#ifdef HAVE_RPC_RPC_H
-  file *f;
-  if(update)
-    f=new ioxfile(name);
-  else f=new oxfile(name);
-  f->open();
-  if(update) f->seek(0,false);
-  return f;
-#else  
-  ostringstream buf;
-  buf << name << ": XDR write support not enabled";
-  error(buf);
-  unused(&update); // Suppress unused variable warning
-#endif
-}
-
-file* binput(string name, bool check=true)
-{
-  file *f=new ibfile(name,check);
-  f->open();
-  return f;
-}
-
-file* boutput(string name, bool update=false)
-{
-  file *f;
-  if(update) f=new iobfile(name);
-  else f=new obfile(name);
-  f->open();
-  if(update) f->seek(0,false);
-  return f;
-}
-
-bool eof(file *f)
-{
-  return f->eof();
-}
-
-bool eol(file *f)
-{
-  return f->eol();
-}
-
-bool error(file *f)
-{
-  return f->error();
-}
-
-void clear(file *f)
-{
-  f->clear();
-}
-
-void close(file *f)
-{
-  f->close();
-}
-
-Int precision(file *f=NULL, Int digits=0) 
-{
-  if(f == 0) f=&camp::Stdout;
-  return f->precision(digits);
-}
-
-void flush(file *f) 
-{
-  f->flush();
-}
-
-string getc(file *f)
-{
-  char c=0;
-  if(f->isOpen()) f->read(c);
-  static char str[1];
-  str[0]=c;
-  return string(str);
-}
-
-Int tell(file *f)
-{
-  return f->tell();
-}
-
-void seek(file *f, Int pos)
-{
-  f->seek(pos,pos >= 0);
-}
-
-void seekeof(file *f)
-{
-  f->seek(0,false);
-}
-
-string :namePart(file f)
-{
-  return f.filename();
-}
-
-string :modePart(file f)
-{
-  return f.FileMode();
-}
-
-// Set file dimensions
-file* :dimensionSetHelper(Int nx=-1, Int ny=-1, Int nz=-1, file *f)
-{
-  f->dimension(nx,ny,nz);
-  return f;
-}
-
-callable* :dimensionSet(file *f)
-{
-  return new thunk(new bfunc(dimensionSetHelper),f);
-}
-
-array * :dimensionPart(file f)
-{
-  array *a=new array(3);
-  (*a)[0]=f.Nx();
-  (*a)[1]=f.Ny();
-  (*a)[2]=f.Nz();
-  return a;
-}
-
-// Set file f to read arrays in line-at-a-time mode
-file* :lineSetHelper(bool b=true, file *f)
-{
-  f->LineMode(b);
-  return f;
-}
-
-callable* :lineSet(file *f)
-{
-  return new thunk(new bfunc(lineSetHelper),f);
-}
-
-bool :linePart(file f)
-{
-  return f.LineMode();
-}
-
-// Set file to read comma-separated values
-file* :csvSetHelper(bool b=true, file *f)
-{
-  f->CSVMode(b);
-  return f;
-}
-
-callable* :csvSet(file *f)
-{
-  return new thunk(new bfunc(csvSetHelper),f);
-}
-
-bool :csvPart(file f)
-{
-  return f.CSVMode();
-}
-
-// Set file to read whitespace-separated values
-file* :wordSetHelper(bool b=true, file *f)
-{
-  f->WordMode(b);
-  return f;
-}
-
-callable* :wordSet(file *f)
-{
-  return new thunk(new bfunc(wordSetHelper),f);
-}
-
-bool :wordPart(file f)
-{
-  return f.WordMode();
-}
-
-// Set file to read/write single precision real XDR values.
-file* :singlerealSetHelper(bool b=true, file *f)
-{
-  f->SingleReal(b);
-  return f;
-}
-
-callable* :singlerealSet(file *f)
-{
-  return new thunk(new bfunc(singlerealSetHelper),f);
-}
-
-bool :singlerealPart(file f)
-{
-  return f.SingleReal();
-}
-
-// Set file to read/write single precision int XDR values.
-file* :singleintSetHelper(bool b=true, file *f)
-{
-  f->SingleInt(b);
-  return f;
-}
-
-callable* :singleintSet(file *f)
-{
-  return new thunk(new bfunc(singleintSetHelper),f);
-}
-
-bool :singleintPart(file f)
-{
-  return f.SingleInt();
-}
-
-// Set file to read/write signed int XDR values.
-file* :signedintSetHelper(bool b=true, file *f)
-{
-  f->SignedInt(b);
-  return f;
-}
-
-callable* :signedintSet(file *f)
-{
-  return new thunk(new bfunc(signedintSetHelper),f);
-}
-
-bool :signedintPart(file f)
-{
-  return f.SignedInt();
-}
-
-// Set file to read an arrayi (i int sizes followed by an i-dimensional array)
-file* :readSetHelper(Int i, file *f)
-{
-  switch(i) {
-    case 1:
-      f->dimension(-2);
-      break;
-      
-    case 2:
-      f->dimension(-2,-2);
-      break;
-      
-    case 3:
-      f->dimension(-2,-2,-2);
-      break;
-      
-    default:
-      f->dimension();
-  }
-  
-  return f;
-}
-
-callable* :readSet(file *f)
-{
-  return new thunk(new bfunc(readSetHelper),f);
-}

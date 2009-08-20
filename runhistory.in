@@ -70,6 +70,7 @@ string historyfilename(const string &name)
 
 namespace run {
 extern string emptystring;
+
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 int readline_startup_hook()
 {
