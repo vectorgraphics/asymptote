@@ -1291,9 +1291,9 @@ surface extrude(path3 p, triple axis=Z)
   return extrude(p,shift(axis)*p);
 }
 
-surface extrude(path p, triple axis=Z)
+surface extrude(path p, triple plane(pair)=XYplane, triple axis=Z)
 {
-  return extrude(path3(p),axis);
+  return extrude(path3(p,plane),axis);
 }
 
 surface extrude(explicit path[] p, triple axis=Z)
@@ -1461,13 +1461,17 @@ surface extrude(Label L, triple axis=Z)
 
 restricted surface nullsurface;
 
-surface labelsurface(Label L, surface s, real uoffset, real voffset,
-                     real height=0, bool bottom=false, bool top=true)
+// Embed a Label onto a surface.
+surface surface(Label L, surface s, real uoffset, real voffset,
+                real height=0, bool bottom=false, bool top=true)
 {
   int nu=s.index.length;
-  if(nu == 0) return nullsurface;
-  int nv=s.index[0].length;
-  if(nv == 0) return nullsurface;
+  int nv;
+  if(nu == 0) nu=nv=1;
+  else {
+    nv=s.index[0].length;
+    if(nv == 0) nv=1;
+  }
 
   path[] g=texpath(L);
   pair m=min(g);
@@ -1482,7 +1486,7 @@ surface labelsurface(Label L, surface s, real uoffset, real voffset,
         real v=voffset+(z.y-m.y)/lambda.y;
         if(((u < 0 || u >= nu) && !s.ucyclic()) ||
            ((v < 0 || v >= nv) && !s.vcyclic()))
-          abort("cannot fit string to surface");
+          warning("cannotfit","cannot fit string to surface");
         return s.point(u,v)+height*unit(s.normal(u,v));
       });
   }
