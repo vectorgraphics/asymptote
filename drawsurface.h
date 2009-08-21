@@ -319,17 +319,17 @@ public:
   void bounds(bbox3& b);
   
   virtual ~drawNurbs() {
-    delete[] c;
     delete[] vknots;
     delete[] uknots;
     if(weights != NULL) 
       delete[] weights;
-#ifdef HAVE_LIBGL
     delete[] controls;
-    delete[] vKnots;
-    delete[] uKnots;
+#ifdef HAVE_LIBGL
     if(havecolors)
       delete[] colors; 
+    delete[] c;
+    delete[] vKnots;
+    delete[] uKnots;
 #endif    
   }
 
