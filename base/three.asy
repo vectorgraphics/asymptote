@@ -2040,10 +2040,8 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
       path3 G=margin(t*g,q).g;
       if(is3D()) {
         draw(f,G,p,light,null);
-        if(pic != null && size(G) > 0) {
-          pic.addPoint(min(G,P));
-          pic.addPoint(max(G,P));
-        }
+        if(pic != null && size(G) > 0)
+          pic.addBox(min(G,P),max(G,P),min(q),max(q));
       }
       if(pic != null)
         draw(pic,project(G,P),q);
