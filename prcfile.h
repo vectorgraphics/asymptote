@@ -35,9 +35,10 @@ public:
 inline void writeBezierKnots(PRCbitStream &out, uint32_t d, uint32_t n)
 {
   out << (double) 1;
-  for(uint32_t i=1; i < d+n; ++i)
+  uint32_t stop=d+n;
+  for(uint32_t i=1; i < stop; ++i)
     out << (double) ((i+2)/d); // integer division is intentional
-  out << (double) ((d+n+1)/d);
+  out << (double) ((stop+1)/d);
 }
     
 class PRCBezierCurve : public PRCcurve

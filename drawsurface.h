@@ -18,11 +18,14 @@ extern double *copyArrayC(const array *a, size_t dim);
 
 namespace camp {
 
+#ifdef HAVE_LIBGL
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j);
+#endif  
   
 class drawSurface : public drawElement {
 protected:
-  Triple controls[16];
+  Triple *controls;
+  Triple vertices[4];
   bool straight;
   RGBAColour diffuse;
   RGBAColour ambient;
@@ -34,21 +37,15 @@ protected:
   double granularity;
   triple normal;
   bool invisible;
-  bool havecolors;
   bool lighton;
+  bool havenormal;
   
   triple Min,Max;
-  static triple c3[16];
-  GLfloat *colors;
   
 #ifdef HAVE_LIBGL
-  GLfloat c[48];
+  GLfloat *colors;
   triple d; // Maximum deviation of surface from a quadrilateral.
   triple dperp;
-  GLfloat v1[16];
-  GLfloat v2[16];
-  GLfloat Normal[3];
-  bool havenormal;
   bool havetransparency;
 #endif  
   
@@ -59,25 +56,35 @@ public:
               bool lighton) :
     straight(straight), opacity(opacity), shininess(shininess),
     PRCshininess(PRCshininess), granularity(granularity), normal(unit(normal)),
-    havecolors(false), lighton(lighton) {
+    lighton(lighton) {
     string wrongsize=
       "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
     if(checkArray(&g) != 4 || checkArray(&p) != 4)
       reportError(wrongsize);
     
-    size_t k=0;
-    for(size_t i=0; i < 4; ++i) {
-      vm::array *gi=vm::read<vm::array*>(g,i);
-      if(checkArray(gi) != 4) 
-        reportError(wrongsize);
-      for(size_t j=0; j < 4; ++j) {
-        triple v=vm::read<triple>(gi,j);
-        controls[k][0]=v.getx();
-        controls[k][1]=v.gety();
-        controls[k][2]=v.getz();
-        ++k;
+    static const triple zero;
+    havenormal=normal != zero;
+  
+    vm::array *g0=vm::read<vm::array*>(g,0);
+    vm::array *g3=vm::read<vm::array*>(g,3);
+    if(checkArray(g0) != 4 || checkArray(g3) != 4)
+      reportError(wrongsize);
+    store(vertices[0],vm::read<triple>(g0,0));
+    store(vertices[1],vm::read<triple>(g0,3));
+    store(vertices[2],vm::read<triple>(g3,0));
+    store(vertices[3],vm::read<triple>(g3,3));
+    
+    if(!havenormal || !straight) {
+      size_t k=0;
+      controls=new Triple[16];
+      for(size_t i=0; i < 4; ++i) {
+        vm::array *gi=vm::read<vm::array*>(g,i);
+        if(checkArray(gi) != 4) 
+          reportError(wrongsize);
+        for(size_t j=0; j < 4; ++j)
+          store(controls[k++],vm::read<triple>(gi,j));
       }
-    }
+    } else controls=NULL;
     
     pen surfacepen=vm::read<camp::pen>(p,0);
     invisible=surfacepen.invisible();
@@ -91,13 +98,12 @@ public:
     int size=checkArray(&pens);
     if(size > 0) {
       if(size != 4) reportError(wrongsize);
-      havecolors=true;
       colors=new GLfloat[16];
       storecolor(colors,0,pens,0);
       storecolor(colors,8,pens,1);
       storecolor(colors,12,pens,2);
       storecolor(colors,4,pens,3);
-    }
+    } else colors=NULL;
 #endif    
   }
   
@@ -106,22 +112,30 @@ public:
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
     granularity(s->granularity), invisible(s->invisible),
-    havecolors(s->havecolors), lighton(s->lighton)
-  {
-    for(size_t i=0; i < 16; ++i) {
-      const double *c=s->controls[i];
-      triple v=run::operator *(t,triple(c[0],c[1],c[2]));
-      controls[i][0]=v.getx();
-      controls[i][1]=v.gety();
-      controls[i][2]=v.getz();
+    lighton(s->lighton), havenormal(s->havenormal) {
+    
+    for(size_t i=0; i < 4; ++i) {
+      const double *c=s->vertices[i];
+      store(vertices[i],run::operator *(t,triple(c[0],c[1],c[2])));
     }
+    
+    if(s->controls) {
+      controls=new Triple[16];
+      for(size_t i=0; i < 16; ++i) {
+        const double *c=s->controls[i];
+        store(controls[i],run::operator *(t,triple(c[0],c[1],c[2])));
+      }
+    } else controls=NULL;
+    
     normal=run::multshiftless(t,s->normal);
     
-    if(havecolors) {
+#ifdef HAVE_LIBGL
+    if(s->colors) {
       colors=new GLfloat[16];
       for(int i=0; i < 16; ++i)
         colors[i]=s->colors[i];
     }
+#endif    
   }
   
   bool is3D() {return true;}
@@ -131,8 +145,13 @@ public:
   void ratio(pair &b, double (*m)(double, double), bool &first);
   
   virtual ~drawSurface() {
-    if(havecolors)
+    if(controls)
+      delete[] controls;
+    
+#ifdef HAVE_LIBGL
+    if(colors)
       delete[] colors;
+#endif
   }
 
   bool write(prcfile *out);
@@ -161,15 +180,13 @@ protected:
   double granularity;
   triple normal;
   bool invisible;
-  bool havecolors;
   bool lighton;
   
   triple Min,Max;
-  GLfloat *colors;
+  
 #ifdef HAVE_LIBGL
-  GLfloat *c;
-  GLfloat v1[16];
-  GLfloat v2[16];
+  GLfloat *colors;
+  GLfloat *Controls;
   GLfloat *uKnots;
   GLfloat *vKnots;
   bool havetransparency;
@@ -177,11 +194,11 @@ protected:
   
 public:
   drawNurbs(const vm::array& g, const vm::array* uknot, const vm::array* vknot,
-           const vm::array* weight, const vm::array&p, double opacity,
+            const vm::array* weight, const vm::array&p, double opacity,
             double shininess, double PRCshininess, double granularity,
             const vm::array &pens, bool lighton) :
     opacity(opacity), shininess(shininess), PRCshininess(PRCshininess),
-    granularity(granularity), havecolors(false), lighton(lighton) {
+    granularity(granularity), lighton(lighton) {
     size_t weightsize=checkArray(weight);
     
     string wrongsize="Inconsistent NURBS data";
@@ -194,25 +211,18 @@ public:
     nv=checkArray(g0);
     
     size_t n=nu*nv;
-    controls=new double[n][3];
+    controls=new Triple[n];
     
     size_t k=0;
     for(size_t i=0; i < nu; ++i) {
       vm::array *gi=vm::read<vm::array*>(g,i);
       if(checkArray(gi) != nv)  
         reportError(wrongsize);
-      for(size_t j=0; j < nv; ++j) {
-        triple v=vm::read<triple>(gi,j);
-        controls[k][0]=v.getx();
-        controls[k][1]=v.gety();
-        controls[k][2]=v.getz();
-        ++k;
-      }
+      for(size_t j=0; j < nv; ++j)
+        store(controls[k++],vm::read<triple>(gi,j));
     }
       
-    if(weightsize == 0)
-      weights=NULL;
-    else {
+    if(weightsize > 0) {
       size_t k=0;
       weights=new double[n];
       for(size_t i=0; i < nu; ++i) {
@@ -224,7 +234,7 @@ public:
           ++k;
         }
       }
-    }
+    } else weights=NULL;
       
     size_t nuknots=checkArray(uknot);
     size_t nvknots=checkArray(vknot);
@@ -247,19 +257,18 @@ public:
     specular=rgba(vm::read<camp::pen>(p,3));
 #ifdef HAVE_LIBGL
     int size=checkArray(&pens);
-    havecolors=size > 0;
-    if(havecolors) {
+    if(size > 0) {
       colors=new GLfloat[16];
       if(size != 4) reportError(wrongsize);
       storecolor(colors,0,pens,0);
       storecolor(colors,8,pens,1);
       storecolor(colors,12,pens,2);
       storecolor(colors,4,pens,3);
-    }
+    } else colors=NULL;
     
     uKnots=new GLfloat[nuknots];
     vKnots=new GLfloat[nvknots];
-    c=new GLfloat[4*n];
+    Controls=new GLfloat[4*n];
 #endif  
   }
   
@@ -268,8 +277,7 @@ public:
     diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
-    granularity(s->granularity), invisible(s->invisible),
-    havecolors(s->havecolors), lighton(s->lighton) {
+    granularity(s->granularity), invisible(s->invisible), lighton(s->lighton) {
     
     size_t n=nu*nv;
     controls=new double[n][3];
@@ -282,13 +290,11 @@ public:
       controls[i][2]=v.getz();
     }
     
-    if(s->weights == NULL) 
-      weights=NULL;
-    else {
+    if(s->weights) {
       weights=new double[n];
       for(size_t i=0; i < n; ++i)
         weights[i]=s->weights[i];
-    }
+    } else weights=NULL;
     
     size_t nuknots=udegree+nu+1;
     size_t nvknots=vdegree+nv+1;
@@ -304,9 +310,9 @@ public:
 #ifdef HAVE_LIBGL
     uKnots=new GLfloat[nuknots];
     vKnots=new GLfloat[nvknots];
-    c=new GLfloat[(weights == NULL ? 3 : 4)*n];
+    Controls=new GLfloat[(weights ? 4 : 3)*n];
     
-    if(havecolors) {
+    if(s->colors) {
       colors=new GLfloat[16];
       for(int i=0; i < 16; ++i)
         colors[i]=s->colors[i];
@@ -321,13 +327,13 @@ public:
   virtual ~drawNurbs() {
     delete[] vknots;
     delete[] uknots;
-    if(weights != NULL) 
+    if(weights) 
       delete[] weights;
     delete[] controls;
 #ifdef HAVE_LIBGL
-    if(havecolors)
+    if(colors)
       delete[] colors; 
-    delete[] c;
+    delete[] Controls;
     delete[] vKnots;
     delete[] uKnots;
 #endif    

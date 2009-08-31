@@ -10,13 +10,6 @@ namespace camp {
 
 using vm::array;
   
-inline void store(Triple& control, const triple& v)
-{
-  control[0]=v.getx();
-  control[1]=v.gety();
-  control[2]=v.getz();
-}
-
 bool drawPath3::write(prcfile *out)
 {
   Int n=g.length();

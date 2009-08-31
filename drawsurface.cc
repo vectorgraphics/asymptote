@@ -12,8 +12,8 @@ namespace camp {
 const double pixel=1.0; // Adaptive rendering constant.
 
 using vm::array;
-triple drawSurface::c3[];
 
+#ifdef HAVE_LIBGL
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
 {
   pen p=vm::read<camp::pen>(pens,j);
@@ -23,6 +23,7 @@ void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
   colors[i+2]=p.blue();
   colors[i+3]=p.opacity();
 }
+#endif  
 
 inline void initMatrix(GLfloat *v, double x, double ymin, double zmin,
                        double ymax, double zmax)
@@ -47,31 +48,56 @@ inline void initMatrix(GLfloat *v, double x, double ymin, double zmin,
 
 void drawSurface::bounds(bbox3& b)
 {
-  static double c1[16];
+  double x,y,z;
+  double X,Y,Z;
+  
+  if(straight) {
+    double *v=vertices[0];
+    x=v[0];
+    y=v[1];
+    z=v[2];
+    X=x;
+    Y=y;
+    Z=z;
+    for(size_t i=1; i < 4; ++i) {
+      double *v=vertices[i];
+      double vx=v[0];
+      x=min(x,vx);
+      X=max(X,vx);
+      double vy=v[1];
+      y=min(y,vy);
+      Y=max(Y,vy);
+      double vz=v[2];
+      z=min(z,vz);
+      Z=max(Z,vz);
+    }
+  } else {
+    static double c1[16];
 
-  for(int i=0; i < 16; ++i)
-    c1[i]=controls[i][0];
-  double c0=c1[0];
-  double fuzz=sqrtFuzz*run::norm(c1,16);
-  double xmin=bound(c1,min,b.empty ? c0 : min(c0,b.left),fuzz);
-  double xmax=bound(c1,max,b.empty ? c0 : max(c0,b.right),fuzz);
+    for(int i=0; i < 16; ++i)
+      c1[i]=controls[i][0];
+    double c0=c1[0];
+    double fuzz=sqrtFuzz*run::norm(c1,16);
+    x=bound(c1,min,b.empty ? c0 : min(c0,b.left),fuzz);
+    X=bound(c1,max,b.empty ? c0 : max(c0,b.right),fuzz);
     
-  for(int i=0; i < 16; ++i)
-    c1[i]=controls[i][1];
-  c0=c1[0];
-  fuzz=sqrtFuzz*run::norm(c1,16);
-  double ymin=bound(c1,min,b.empty ? c0 : min(c0,b.bottom),fuzz);
-  double ymax=bound(c1,max,b.empty ? c0 : max(c0,b.top),fuzz);
+    for(int i=0; i < 16; ++i)
+      c1[i]=controls[i][1];
+    c0=c1[0];
+    fuzz=sqrtFuzz*run::norm(c1,16);
+    y=bound(c1,min,b.empty ? c0 : min(c0,b.bottom),fuzz);
+    Y=bound(c1,max,b.empty ? c0 : max(c0,b.top),fuzz);
     
-  for(int i=0; i < 16; ++i)
-    c1[i]=controls[i][2];
-  c0=c1[0];
-  fuzz=sqrtFuzz*run::norm(c1,16);
-  double zmin=bound(c1,min,b.empty ? c0 : min(c0,b.lower),fuzz);
-  double zmax=bound(c1,max,b.empty ? c0 : max(c0,b.upper),fuzz);
+    for(int i=0; i < 16; ++i)
+      c1[i]=controls[i][2];
+    c0=c1[0];
+    fuzz=sqrtFuzz*run::norm(c1,16);
+    z=bound(c1,min,b.empty ? c0 : min(c0,b.lower),fuzz);
+    Z=bound(c1,max,b.empty ? c0 : max(c0,b.upper),fuzz);
+  }
     
-  Min=triple(xmin,ymin,zmin);
-  Max=triple(xmax,ymax,zmax);
+  Min=triple(x,y,z);
+  Max=triple(X,Y,Z);
     
   b.add(Min);
   b.add(Max);
@@ -79,19 +105,39 @@ void drawSurface::bounds(bbox3& b)
 
 void drawSurface::ratio(pair &b, double (*m)(double, double), bool &first)
 {
-  for(int i=0; i < 16; ++i) {
-    double *ci=controls[i];
-    c3[i]=triple(ci[0],ci[1],ci[2]);
-  }
+  if(straight) {
+    if(first) {
+      first=false;
+      double *ci=vertices[0];
+      triple v=triple(ci[0],ci[1],ci[2]);
+      b=pair(xratio(v),yratio(v));
+    }
   
-  if(first) {
-    triple v=c3[0];
-    b=pair(xratio(v),yratio(v));
-    first=false;
-  }
+    double x=b.getx();
+    double y=b.gety();
+    for(size_t i=0; i < 4; ++i) {
+      double *ci=vertices[i];
+      triple v=triple(ci[0],ci[1],ci[2]);
+      x=m(x,xratio(v));
+      y=m(y,yratio(v));
+    }
+    b=pair(x,y);
+  } else {
+    static triple c3[16];
+    for(int i=0; i < 16; ++i) {
+      double *ci=controls[i];
+      c3[i]=triple(ci[0],ci[1],ci[2]);
+    }
   
-  double fuzz=sqrtFuzz*run::norm(c3,16);
-  b=pair(bound(c3,m,xratio,b.getx(),fuzz),bound(c3,m,yratio,b.gety(),fuzz));
+    if(first) {
+      triple v=c3[0];
+      b=pair(xratio(v),yratio(v));
+      first=false;
+    }
+  
+    double fuzz=sqrtFuzz*run::norm(c3,16);
+    b=pair(bound(c3,m,xratio,b.getx(),fuzz),bound(c3,m,yratio,b.gety(),fuzz));
+  }
 }
 
 bool drawSurface::write(prcfile *out)
@@ -100,7 +146,11 @@ bool drawSurface::write(prcfile *out)
     return true;
 
   PRCMaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
-  out->add(new PRCBezierSurface(out,3,3,4,4,controls,m,granularity));
+
+  if(straight)
+    out->add(new PRCBezierSurface(out,1,1,2,2,vertices,m,granularity));
+  else
+    out->add(new PRCBezierSurface(out,3,3,4,4,controls,m,granularity));        
   
   return true;
 }
@@ -132,18 +182,10 @@ inline triple displacement(const Triple& z0, const Triple& c0,
 void drawSurface::displacement()
 {
 #ifdef HAVE_LIBGL
-  initMatrix(v1,Min.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
-  initMatrix(v2,Max.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
-  
-  for(size_t i=0; i < 16; ++i)
-    store(c+3*i,controls[i]);
-
   static const triple zero;
-  havenormal=normal != zero;
-  havetransparency=havecolors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
+  havetransparency=colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
     : diffuse.A < 1.0;
   if(havenormal) {
-    store(Normal,normal);
     d=zero;
     
     if(!straight) {
@@ -184,6 +226,12 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   if(invisible || (havetransparency ^ transparent)) return;
   
   static GLfloat v[16];
+  static GLfloat v1[16];
+  static GLfloat v2[16];
+  static GLfloat Normal[3];
+  
+  initMatrix(v1,Min.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
+  initMatrix(v2,Max.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
 
   glPushMatrix();
   glMultMatrixf(v1);
@@ -229,7 +277,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   bool ambientdiffuse=true;
   bool emission=true;
 
-  if(havecolors) {
+  if(colors) {
     glEnable(GL_COLOR_MATERIAL);
     if(lighton) {
       glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
@@ -265,40 +313,51 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
                                    granularity == 0))) {
     if(lighton) {
       if(havenormal && fraction(dperp,size3)*size2 <= 0.1) {
+        store(Normal,normal);
         glNormal3fv(Normal);
         gluNurbsCallback(nurb,GLU_NURBS_NORMAL,NULL);
       } else
         gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
     }
+    static GLfloat Controls[48];
+    for(size_t i=0; i < 16; ++i)
+      store(Controls+3*i,controls[i]);
+    
     static GLfloat bezier[]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
     gluBeginSurface(nurb);
-    gluNurbsSurface(nurb,8,bezier,8,bezier,12,3,c,4,4,GL_MAP2_VERTEX_3);
-    if(havecolors) {
+    gluNurbsSurface(nurb,8,bezier,8,bezier,12,3,Controls,4,4,GL_MAP2_VERTEX_3);
+    if(colors) {
       static GLfloat linear[]={0.0,0.0,1.0,1.0};
       gluNurbsSurface(nurb,4,linear,4,linear,8,4,colors,2,2,GL_MAP2_COLOR_4);
     }
     
     gluEndSurface(nurb);
   } else {
+    GLfloat Vertices[12];
+    for(size_t i=0; i < 4; ++i)
+      store(Vertices+3*i,vertices[i]);
+    
+    store(Normal,normal);
+
     glBegin(GL_QUADS);
     if(lighton)
       glNormal3fv(Normal);
-    if(havecolors) 
+    if(colors) 
       glColor4fv(colors);
-    glVertex3fv(c);
-    if(havecolors) 
+    glVertex3fv(Vertices);
+    if(colors) 
       glColor4fv(colors+8);
-    glVertex3fv(c+36);
-    if(havecolors) 
+    glVertex3fv(Vertices+6);
+    if(colors) 
       glColor4fv(colors+12);
-    glVertex3fv(c+45);
-    if(havecolors) 
+    glVertex3fv(Vertices+9);
+    if(colors) 
       glColor4fv(colors+4);
-    glVertex3fv(c+9);
+    glVertex3fv(Vertices+3);
     glEnd();
   }
   
-  if(havecolors)
+  if(colors)
     glDisable(GL_COLOR_MATERIAL);
 #endif
 }
@@ -403,17 +462,14 @@ void drawNurbs::ratio(pair &b, double (*m)(double, double), bool &first)
 void drawNurbs::displacement()
 {
 #ifdef HAVE_LIBGL
-  initMatrix(v1,Min.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
-  initMatrix(v2,Max.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
-  
   size_t n=nu*nv;
   size_t stride=weights == NULL ? 3 : 4;
   for(size_t i=0; i < n; ++i)
-    store(c+stride*i,controls[i]);
+    store(Controls+stride*i,controls[i]);
   
   if(weights != NULL)
     for(size_t i=0; i < n; ++i)
-      c[4*i+3]=weights[i];
+      Controls[4*i+3]=weights[i];
 
   size_t nuknotsm1=udegree+nu;
   size_t nvknotsm1=vdegree+nv;
@@ -422,7 +478,7 @@ void drawNurbs::displacement()
   for(size_t i=0; i <= nvknotsm1; ++i)
     vKnots[i]=vknots[i];
     
-  havetransparency=havecolors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
+  havetransparency=colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
     : diffuse.A < 1.0;
 #endif  
 }
@@ -435,7 +491,12 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   if(invisible || (havetransparency ^ transparent)) return;
   
   static GLfloat v[16];
+  static GLfloat v1[16];
+  static GLfloat v2[16];
 
+  initMatrix(v1,Min.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
+  initMatrix(v2,Max.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
+  
   glPushMatrix();
   glMultMatrixf(v1);
   glGetFloatv(GL_MODELVIEW_MATRIX,v);
@@ -480,7 +541,7 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   bool ambientdiffuse=true;
   bool emission=true;
 
-  if(havecolors) {
+  if(colors) {
     glEnable(GL_COLOR_MATERIAL);
     if(lighton) {
       glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
@@ -514,17 +575,17 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   int uorder=udegree+1;
   int vorder=vdegree+1;
   size_t stride=weights == NULL ? 3 : 4;
-  gluNurbsSurface(nurb,uorder+nu,uKnots,vorder+nv,vKnots,stride*nv,stride,c,
-                  uorder,vorder,
+  gluNurbsSurface(nurb,uorder+nu,uKnots,vorder+nv,vKnots,stride*nv,stride,
+                  Controls,uorder,vorder,
                   weights == NULL ? GL_MAP2_VERTEX_3 : GL_MAP2_VERTEX_4);
-  if(havecolors) {
+  if(colors) {
     static GLfloat linear[]={0.0,0.0,1.0,1.0};
     gluNurbsSurface(nurb,4,linear,4,linear,8,4,colors,2,2,GL_MAP2_COLOR_4);
   }
     
   gluEndSurface(nurb);
   
-  if(havecolors)
+  if(colors)
     glDisable(GL_COLOR_MATERIAL);
 #endif
 }
