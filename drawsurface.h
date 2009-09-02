@@ -256,6 +256,10 @@ public:
     emissive=rgba(vm::read<camp::pen>(p,2));
     specular=rgba(vm::read<camp::pen>(p,3));
 #ifdef HAVE_LIBGL
+    uKnots=new GLfloat[nuknots];
+    vKnots=new GLfloat[nvknots];
+    Controls=new GLfloat[(weights ? 4 : 3)*n];
+    
     int size=checkArray(&pens);
     if(size > 0) {
       colors=new GLfloat[16];
@@ -265,10 +269,6 @@ public:
       storecolor(colors,12,pens,2);
       storecolor(colors,4,pens,3);
     } else colors=NULL;
-    
-    uKnots=new GLfloat[nuknots];
-    vKnots=new GLfloat[nvknots];
-    Controls=new GLfloat[4*n];
 #endif  
   }
   

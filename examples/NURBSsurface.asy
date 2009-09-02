@@ -1,6 +1,6 @@
 import three;
 
-//size(10cm);
+size(10cm);
 
 currentprojection=perspective(40,40,50);
 
