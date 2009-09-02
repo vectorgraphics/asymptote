@@ -1,8 +1,8 @@
 import three;
 
-size(10cm);
+//size(10cm);
 
-currentprojection=perspective(500,400,200);
+currentprojection=perspective(40,40,50);
 
 // Nonrational surface:
 // udegree=3, vdegree=3, nu=5, nv=6;
@@ -54,10 +54,8 @@ real[] uknot={0,0,0,0,1,1,1,1};
 real[] vknot={0,0,0,0,1,1,1,1};
 triple[][] P=scale3(20)*octant1.P;
 
-draw(unitsphere,invisible);
-
 // Optional weights:
 real[][] weights=array(P.length,array(P[0].length,1.0));
-weights[1][2]=0.8;
+weights[1][2]=0.5;
 
 draw(P,uknot,vknot,weights,blue);

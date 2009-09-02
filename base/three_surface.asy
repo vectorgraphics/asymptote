@@ -1641,6 +1641,39 @@ void dot(picture pic=currentpicture, Label L, triple v, align align=NoAlign,
   label(pic,L,v);
 }
 
+pair minbound(triple[][] A, projection P)
+{
+  pair b=project(A[0][0],P);
+  for(triple[] a : A) {
+    for(triple v : a) {
+      b=minbound(b,project(v,P));
+    }
+  }
+  return b;
+}
+
+pair maxbound(triple[][] A, projection P)
+{
+  pair b=project(A[0][0],P);
+  for(triple[] a : A) {
+    for(triple v : a) {
+      b=maxbound(b,project(v,P));
+    }
+  }
+  return b;
+}
+
+triple[][] operator / (triple[][] a, real[][] b) 
+{
+  triple[][] A=new triple[a.length][];
+  for(int i=0; i < a.length; ++i) {
+    triple[] ai=a[i];
+    real[] bi=b[i];
+    A[i]=sequence(new triple(int j) {return ai[j]/bi[j];},ai.length);
+  }
+  return A;
+}
+
 // Draw a NURBS surface.
 void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
           real[][] weights=new real[][], material m=currentpen,
@@ -1649,23 +1682,27 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
   if(colors.length > 0)
     m=mean(colors);
   bool lighton=light.on();
-  pic.add(new void(frame f, transform3 t, picture, projection) {
-      triple[][] Q=t*P;
+  pic.add(new void(frame f, transform3 t, picture pic, projection Q) {
       if(is3D()) {
+        triple[][] P=t*P;
         real granularity=m.granularity >= 0 ? m.granularity :
           defaultgranularity;
         real PRCshininess;
         if(prc())
           PRCshininess=PRCshininess(m.shininess);
-        draw(f,Q,uknot,vknot,weights,m.p,m.opacity,m.shininess,PRCshininess,
+        draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,PRCshininess,
              granularity,colors,lighton);
+        if(pic != null) {
+          triple[][] R=weights.length > 0 ? P/weights : P;
+          pic.addBox(minbound(R,Q),maxbound(R,Q));
+        }
       }
-    },false);
-  pic.addBox(minbound(P),maxbound(P));
+    },true);
+  triple[][] R=weights.length > 0 ? P/weights : P;
+  pic.addBox(minbound(R),maxbound(R));
 }
 
-// Contains functions that subdivide two intersecting patches
-// about their intersection(s).
+// A structure to subdivide two intersecting patches about their intersection.
 struct split
 {
   // Container for subpatches of p.
@@ -1674,7 +1711,7 @@ struct split
   struct tree {
     tree[] tree=new tree[2];
   }
-  // Default depth of subdivision (may be changed in function calls).
+  // Default subdivision depth.
   int n=23;
 
   // Subdivide p and q to depth n if they overlap.
