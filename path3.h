@@ -208,7 +208,7 @@ public:
     }
     Int i=Floor(t);
     t -= i;
-    if(t == 0) return dir(i,0);
+    if(t == 0) return dir(i,0,normalize);
     triple z0=point(i);
     triple c0=postcontrol(i);
     triple c1=precontrol(i+1);
