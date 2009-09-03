@@ -2286,7 +2286,7 @@ two accelerations is returned.
 returns the acceleration of the path @code{p} at the point @code{t}.
 
 @cindex @code{radius}
-@item pair radius(path p, real t);
+@item real radius(path p, real t);
 returns the radius of curvature of the path @code{p} at the point @code{t}.
 
 @cindex @code{precontrol}
