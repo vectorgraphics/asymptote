@@ -13,12 +13,19 @@
 namespace camp {
 
 class drawBegin : public drawElement {
+  string name;
 public:
-  drawBegin() {}
+  drawBegin(string name="") : name(name) {}
   
   virtual ~drawBegin() {}
 
   bool begingroup() {return true;}
+  
+  bool write(prcfile *out) {
+    out->begingroup(name);
+    return true;
+  }
+
 };
   
 class drawEnd : public drawElement {
@@ -28,6 +35,12 @@ public:
   virtual ~drawEnd() {}
 
   bool endgroup() {return true;}
+  
+  bool write(prcfile *out) {
+    out->endgroup();
+    return true;
+  }
+
 };
 
 }

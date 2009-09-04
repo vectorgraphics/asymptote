@@ -1979,19 +1979,23 @@ include three_light;
 void draw(frame f, path3 g, material p=currentpen, light light=nolight,
           string name="", projection P=currentprojection);
 
-void begingroup3(picture pic=currentpicture)
+void begingroup3(picture pic=currentpicture, string name="")
 {
-  pic.add(new void(frame f, transform3, picture opic, projection) {
-      if(opic != null)
-        begingroup(opic);
+  pic.add(new void(frame f, transform3, picture pic, projection) {
+      if(is3D())
+        begingroup(f,name);
+      if(pic != null)
+        begingroup(pic,name);
     },true);
 }
 
 void endgroup3(picture pic=currentpicture)
 {
-  pic.add(new void(frame f, transform3, picture opic, projection) {
-      if(opic != null)
-        endgroup(opic);
+  pic.add(new void(frame f, transform3, picture pic, projection) {
+      if(is3D())
+        endgroup(f);
+      if(pic != null)
+        endgroup(pic);
     },true);
 }
 

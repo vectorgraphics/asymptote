@@ -236,9 +236,9 @@ void grestore(picture *f)
   f->append(new drawGrestore());
 }
 
-void begingroup(picture *f)
+void begingroup(picture *f, string name=emptystring)
 {
-  f->append(new drawBegin());
+  f->append(new drawBegin(name));
 }
 
 void endgroup(picture *f)
