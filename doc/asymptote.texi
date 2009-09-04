@@ -7405,16 +7405,18 @@ the routines
 @verbatim
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
-          light light=currentlight, light meshlight=light);
+          light light=currentlight, light meshlight=light, string name="");
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen meshpen,
-          light light=currentlight, light meshlight=light);
+          light light=currentlight, light meshlight=light, string name="");
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
-          light light=currentlight, light meshlight=light);
+          light light=currentlight, light meshlight=light, string name="");
 @end verbatim
 The parameters @code{nu} and @code{nv} specify the number of subdivisions
-for drawing optional mesh lines for each Bezier patch.
+for drawing optional mesh lines for each Bezier patch. The optional
+@code{name} parameter is used as a prefix for naming the surface
+patches in the @acronym{PRC} model tree.
 Here material is a structure defined in @code{three_light.asy}:
 @verbatim
 struct material {

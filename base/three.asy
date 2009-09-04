@@ -22,6 +22,11 @@ real rendermargin=0.02;
 string defaultembed3Doptions;
 string defaultembed3Dscript;
 
+string partname(string s, int i=0) 
+{
+  return s == "" ? s : s+"-"+string(i);
+}
+
 triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
 
@@ -1972,7 +1977,7 @@ triple size3(frame f)
 include three_light;
 
 void draw(frame f, path3 g, material p=currentpen, light light=nolight,
-          projection P=currentprojection);
+          string name="", projection P=currentprojection);
 
 void begingroup3(picture pic=currentpicture)
 {
@@ -2033,13 +2038,13 @@ pair max(frame f, projection P)
 
 void draw(picture pic=currentpicture, Label L="", path3 g,
           align align=NoAlign, material p=currentpen, margin3 margin=NoMargin3,
-          light light=nolight)
+          light light=nolight, string name="")
 {
   pen q=(pen) p;
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       path3 G=margin(t*g,q).g;
       if(is3D()) {
-        draw(f,G,p,light,null);
+        draw(f,G,p,light,name,null);
         if(pic != null && size(G) > 0)
           pic.addBox(min(G,P),max(G,P),min(q),max(q));
       }
@@ -2058,7 +2063,8 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
 include three_tube;
 
 draw=new void(frame f, path3 g, material p=currentpen,
-              light light=nolight, projection P=currentprojection) {
+              light light=nolight, string name="",
+              projection P=currentprojection) {
   pen q=(pen) p;
   if(is3D()) {
     p=material(p,(p.granularity >= 0) ? p.granularity : linegranularity);
@@ -2089,12 +2095,12 @@ draw=new void(frame f, path3 g, material p=currentpen,
               T.s.append(shift(point(g,L))*align(dirL)*cap);
             }
             if(opacity(q) == 1)
-              _draw(f,T.center,q);
+              _draw(f,T.center,q,name);
           }
           for(int i=0; i < T.s.s.length; ++i)
-            draw3D(f,T.s.s[i],p,light);
-        } else _draw(f,g,q);
-      } else _draw(f,g,q);
+            draw3D(f,T.s.s[i],p,light,partname(name,i));
+        } else _draw(f,g,q,name);
+      } else _draw(f,g,q,name);
     }
     string type=linetype(adjust(q,arclength(g),cyclic(g)));
     if(length(type) == 0) drawthick(g);
@@ -2121,15 +2127,16 @@ draw=new void(frame f, path3 g, material p=currentpen,
 };
 
 void draw(frame f, explicit path3[] g, material p=currentpen,
-          light light=nolight, projection P=currentprojection)
+          light light=nolight, string name="", projection P=currentprojection)
 {
-  for(int i=0; i < g.length; ++i) draw(f,g[i],p,light,P);
+  for(int i=0; i < g.length; ++i) draw(f,g[i],p,light,name,P);
 }
 
 void draw(picture pic=currentpicture, explicit path3[] g,
-          material p=currentpen, margin3 margin=NoMargin3, light light=nolight)
+          material p=currentpen, margin3 margin=NoMargin3, light light=nolight,
+          string name="")
 {
-  for(int i=0; i < g.length; ++i) draw(pic,g[i],p,margin,light);
+  for(int i=0; i < g.length; ++i) draw(pic,g[i],p,margin,light,name);
 }
 
 include three_arrows;
@@ -2137,23 +2144,23 @@ include three_arrows;
 void draw(picture pic=currentpicture, Label L="", path3 g, 
           align align=NoAlign, material p=currentpen, arrowbar3 arrow,
           arrowbar3 bar=None, margin3 margin=NoMargin3, light light=nolight,
-          light arrowheadlight=currentlight)
+          light arrowheadlight=currentlight, string name="")
 {
   begingroup3(pic);
   bool drawpath=arrow(pic,g,p,margin,light,arrowheadlight);
   if(bar(pic,g,p,margin,light,arrowheadlight) && drawpath)
-    draw(pic,L,g,align,p,margin,light);
+    draw(pic,L,g,align,p,margin,light,name);
   endgroup3(pic);
   label(pic,L,g,align,(pen) p);
 }
 
 void draw(frame f, path3 g, material p=currentpen, arrowbar3 arrow,
           light light=nolight, light arrowheadlight=currentlight,
-          projection P=currentprojection)
+          string name="", projection P=currentprojection)
 {
   picture pic;
   if(arrow(pic,g,p,NoMargin3,light,arrowheadlight))
-    draw(f,g,p,light,P);
+    draw(f,g,p,light,name,P);
   add(f,pic.fit());
 }
 

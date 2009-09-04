@@ -38,7 +38,7 @@ protected:
   triple normal;
   bool invisible;
   bool lighton;
-  bool havenormal;
+  string name;
   
   triple Min,Max;
   
@@ -46,24 +46,24 @@ protected:
   GLfloat *colors;
   triple d; // Maximum deviation of surface from a quadrilateral.
   triple dperp;
-  bool havetransparency;
 #endif  
   
+  static const triple zero;
+
 public:
   drawSurface(const vm::array& g, bool straight, const vm::array&p,
               double opacity, double shininess, double PRCshininess,
               double granularity, triple normal, const vm::array &pens,
-              bool lighton) :
+              bool lighton, const string& name) :
     straight(straight), opacity(opacity), shininess(shininess),
     PRCshininess(PRCshininess), granularity(granularity), normal(unit(normal)),
-    lighton(lighton) {
+    lighton(lighton), name(name) {
     string wrongsize=
       "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
     if(checkArray(&g) != 4 || checkArray(&p) != 4)
       reportError(wrongsize);
     
-    static const triple zero;
-    havenormal=normal != zero;
+    bool havenormal=normal != zero;
   
     vm::array *g0=vm::read<vm::array*>(g,0);
     vm::array *g3=vm::read<vm::array*>(g,3);
@@ -112,7 +112,7 @@ public:
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
     granularity(s->granularity), invisible(s->invisible),
-    lighton(s->lighton), havenormal(s->havenormal) {
+    lighton(s->lighton), name(s->name) {
     
     for(size_t i=0; i < 4; ++i) {
       const double *c=s->vertices[i];
@@ -181,6 +181,7 @@ protected:
   triple normal;
   bool invisible;
   bool lighton;
+  string name;
   
   triple Min,Max;
   
@@ -189,16 +190,15 @@ protected:
   GLfloat *Controls;
   GLfloat *uKnots;
   GLfloat *vKnots;
-  bool havetransparency;
 #endif  
   
 public:
   drawNurbs(const vm::array& g, const vm::array* uknot, const vm::array* vknot,
             const vm::array* weight, const vm::array&p, double opacity,
             double shininess, double PRCshininess, double granularity,
-            const vm::array &pens, bool lighton) :
+            const vm::array &pens, bool lighton, const string& name) :
     opacity(opacity), shininess(shininess), PRCshininess(PRCshininess),
-    granularity(granularity), lighton(lighton) {
+    granularity(granularity), lighton(lighton), name(name) {
     size_t weightsize=checkArray(weight);
     
     string wrongsize="Inconsistent NURBS data";
@@ -277,7 +277,8 @@ public:
     diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
-    granularity(s->granularity), invisible(s->invisible), lighton(s->lighton) {
+    granularity(s->granularity), invisible(s->invisible), lighton(s->lighton),
+    name(s->name) {
     
     size_t n=nu*nv;
     controls=new double[n][3];

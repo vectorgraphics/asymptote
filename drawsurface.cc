@@ -10,6 +10,7 @@
 namespace camp {
 
 const double pixel=1.0; // Adaptive rendering constant.
+const triple drawSurface::zero;
 
 using vm::array;
 
@@ -148,9 +149,9 @@ bool drawSurface::write(prcfile *out)
   PRCMaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
 
   if(straight)
-    out->add(new PRCBezierSurface(out,1,1,2,2,vertices,m,granularity));
+    out->add(new PRCBezierSurface(out,1,1,2,2,vertices,m,granularity,name));
   else
-    out->add(new PRCBezierSurface(out,3,3,4,4,controls,m,granularity));        
+    out->add(new PRCBezierSurface(out,3,3,4,4,controls,m,granularity,name));
   
   return true;
 }
@@ -182,10 +183,7 @@ inline triple displacement(const Triple& z0, const Triple& c0,
 void drawSurface::displacement()
 {
 #ifdef HAVE_LIBGL
-  static const triple zero;
-  havetransparency=colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
-    : diffuse.A < 1.0;
-  if(havenormal) {
+  if(normal != zero) {
     d=zero;
     
     if(!straight) {
@@ -223,7 +221,8 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
                          double perspective, bool transparent)
 {
 #ifdef HAVE_LIBGL
-  if(invisible || (havetransparency ^ transparent)) return;
+  if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
+                    : diffuse.A < 1.0) ^ transparent)) return;
   
   static GLfloat v[16];
   static GLfloat v1[16];
@@ -309,6 +308,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   triple size3=triple(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),
                       Max.getz()-Min.getz());
   
+  bool havenormal=normal != zero;
   if(!havenormal || (!straight && (fraction(d,size3)*size2 >= pixel || 
                                    granularity == 0))) {
     if(lighton) {
@@ -374,7 +374,8 @@ bool drawNurbs::write(prcfile *out)
 
   PRCMaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
   out->add(new PRCsurface(out,udegree,vdegree,nu,nv,controls,uknots,vknots,
-                          m,scale3D,weights != NULL,weights,granularity));
+                          m,scale3D,weights != NULL,weights,granularity,
+                          name.c_str()));
   
   return true;
 }
@@ -477,9 +478,6 @@ void drawNurbs::displacement()
     uKnots[i]=uknots[i];
   for(size_t i=0; i <= nvknotsm1; ++i)
     vKnots[i]=vknots[i];
-    
-  havetransparency=colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
-    : diffuse.A < 1.0;
 #endif  
 }
 
@@ -488,7 +486,8 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
                        double perspective, bool transparent)
 {
 #ifdef HAVE_LIBGL
-  if(invisible || (havetransparency ^ transparent)) return;
+  if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
+                    : diffuse.A < 1.0) ^ transparent)) return;
   
   static GLfloat v[16];
   static GLfloat v1[16];

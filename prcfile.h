@@ -65,14 +65,14 @@ class PRCBezierSurface : public PRCsurface
 public:
   PRCBezierSurface(oPRCFile *p, uint32_t dU, uint32_t dV, uint32_t nU,
                    uint32_t nV, double cP[][3], const RGBAColour &c,
-                   double g=0.0) :
-    PRCsurface(p,dU,dV,nU,nV,cP,NULL,NULL,c,scale3D,false,NULL,g), dU(dU),
-    dV(dV), nU(nU), nV(nV) {}
+                   double g=0.0, string name="") :
+    PRCsurface(p,dU,dV,nU,nV,cP,NULL,NULL,c,scale3D,false,NULL,g,name.c_str()),
+    dU(dU), dV(dV), nU(nU), nV(nV) {}
   PRCBezierSurface(oPRCFile *p, uint32_t dU, uint32_t dV, uint32_t nU,
                    uint32_t nV, double cP[][3], const PRCMaterial &m,
-                   double g=0.0) :
-    PRCsurface(p,dU,dV,nU,nV,cP,NULL,NULL,m,scale3D,false,NULL,g), dU(dU),
-    dV(dV), nU(nU), nV(nV) {}
+                   double g=0.0, string name="") :
+    PRCsurface(p,dU,dV,nU,nV,cP,NULL,NULL,m,scale3D,false,NULL,g,name.c_str()),
+    dU(dU), dV(dV), nU(nU), nV(nV) {}
 private:
   void writeKnots(PRCbitStream &out) {
     writeBezierKnots(out,dU,nU);

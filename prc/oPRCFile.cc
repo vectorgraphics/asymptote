@@ -20,8 +20,22 @@
 
 #include "oPRCFile.h"
 #include <time.h>
+#include <sstream>
 
 using std::string;
+
+static const string EntityName[]={"line","curve","surface"};
+
+std::string Name(oPRCFile *p, Entity e, std::string s)
+{
+  if(s.empty()) {
+    uint32_t i=++(p->count[e]);
+    std::ostringstream buf;
+    buf << EntityName[e] << "-" << i;
+    return buf.str();
+  }
+  return s;
+}
 
 uint32_t PRCentity::getGraphicsIndex()
 {
@@ -34,7 +48,7 @@ uint32_t PRCentity::getGraphicsIndex()
 void PRCline::writeRepresentationItem(PRCbitStream &out,uint32_t index)
 {
   out << (uint32_t)(PRC_TYPE_RI_Curve);
-  ContentPRCBase(&EMPTY_ATTRIBUTES,"line",true,makeCADID(),0,makePRCID()).write(out);
+  ContentPRCBase(&EMPTY_ATTRIBUTES,name,true,makeCADID(),0,makePRCID()).write(out);
   writeGraphics(out,m1,getGraphicsIndex(),1);
   out << (uint32_t)0 // index_local_coordinate_system+1
       << (uint32_t)0; // index_tessellation
@@ -102,7 +116,7 @@ void PRCline::writeExtraGeometryContext(PRCbitStream &out)
 void PRCcurve::writeRepresentationItem(PRCbitStream &out,uint32_t index)
 {
   out << (uint32_t)(PRC_TYPE_RI_Curve);
-  ContentPRCBase(&EMPTY_ATTRIBUTES,"curve",true,makeCADID(),0,makePRCID()).write(out);
+  ContentPRCBase(&EMPTY_ATTRIBUTES,name,true,makeCADID(),0,makePRCID()).write(out);
   writeGraphics(out,m1,getGraphicsIndex(),1);
   out << (uint32_t)0 // index_local_coordinate_system+1
       << (uint32_t)0; // index_tessellation
@@ -180,7 +194,7 @@ void PRCcurve::writeExtraGeometryContext(PRCbitStream &out)
 void PRCsurface::writeRepresentationItem(PRCbitStream &out,uint32_t index)
 {
   out << (uint32_t)(PRC_TYPE_RI_BrepModel);
-  ContentPRCBase(&EMPTY_ATTRIBUTES,"surface",true,makeCADID(),0,makePRCID()).write(out);
+  ContentPRCBase(&EMPTY_ATTRIBUTES,name,true,makeCADID(),0,makePRCID()).write(out);
   writeGraphics(out,0,getGraphicsIndex(),1);
   out << (uint32_t)0 // index_local_coordinate_system+1
       << (uint32_t)0; // index_tessellation
@@ -440,7 +454,7 @@ void PRCTreeSection::writeData()
   at.text = "__PRC_RESERVED_ATTRIBUTE_A3DF_ProductInformation";
   Attribute attr(false,at,3,sas);
   Attributes attrs(1,&attr);
-  ContentPRCBase(&attrs,"Unknown",true,makeCADID(),0,makePRCID()).write(out);
+  ContentPRCBase(&attrs,"root",true,makeCADID(),0,makePRCID()).write(out);
 
   writeGraphics(out,m1,m1,1,true);
   out << (uint32_t)1 // index_part+1

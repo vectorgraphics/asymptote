@@ -1130,7 +1130,8 @@ real PRCshininess(real shininess)
   return s(shininess);
 }
 
-void draw3D(frame f, patch s, material m, light light=currentlight)
+void draw3D(frame f, patch s, material m, light light=currentlight,
+            string name="")
 {
   if(s.colors.length > 0)
     m=mean(s.colors);
@@ -1142,7 +1143,7 @@ void draw3D(frame f, patch s, material m, light light=currentlight)
     PRCshininess=PRCshininess(m.shininess);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
   draw(f,s.P,s.straight,m.p,m.opacity,m.shininess,PRCshininess,granularity,
-       s.planar ? s.normal(0.5,0.5) : O,s.colors,lighton);
+       s.planar ? s.normal(0.5,0.5) : O,s.colors,lighton,name);
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,
@@ -1158,12 +1159,12 @@ nullpens.cyclic=true;
 
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
-          light light=currentlight, light meshlight=light,
+          light light=currentlight, light meshlight=light, string name="",
           projection P=currentprojection)
 {
   if(is3D()) {
     for(int i=0; i < s.s.length; ++i)
-      draw3D(f,s.s[i],surfacepen[i],light);
+      draw3D(f,s.s[i],surfacepen[i],light,partname(name,i));
     pen modifiers=thin()+squarecap;
     for(int k=0; k < s.s.length; ++k) {
       pen meshpen=meshpen[k];
@@ -1210,26 +1211,26 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
-          light light=currentlight, light meshlight=light,
+          light light=currentlight, light meshlight=light, string name="",
           projection P=currentprojection)
 {
   material[] surfacepen={surfacepen};
   pen[] meshpen={meshpen};
   surfacepen.cyclic=true;
   meshpen.cyclic=true;
-  draw(t,f,s,nu,nv,surfacepen,meshpen,light,meshlight,P);
+  draw(t,f,s,nu,nv,surfacepen,meshpen,light,meshlight,name,P);
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
-          light light=currentlight, light meshlight=light)
+          light light=currentlight, light meshlight=light, string name="")
 {
   if(s.empty()) return;
 
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
       if(is3D()) {
-        draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight);
+        draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight,name);
       } else if(pic != null)
         pic.add(new void(frame f, transform T) {
             draw(T,f,S,nu,nv,surfacepen,meshpen,light,meshlight,P);
@@ -1260,22 +1261,22 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
-          light light=currentlight, light meshlight=light)
+          light light=currentlight, light meshlight=light, string name="")
 {
   material[] surfacepen={surfacepen};
   pen[] meshpen={meshpen};
   surfacepen.cyclic=true;
   meshpen.cyclic=true;
-  draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight);
+  draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight,name);
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen meshpen,
-          light light=currentlight, light meshlight=light)
+          light light=currentlight, light meshlight=light, string name="")
 {
   pen[] meshpen={meshpen};
   meshpen.cyclic=true;
-  draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight);
+  draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight,name);
 }
 
 surface extrude(path3 p, path3 q)
@@ -1677,7 +1678,7 @@ triple[][] operator / (triple[][] a, real[][] b)
 // Draw a NURBS surface.
 void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
           real[][] weights=new real[][], material m=currentpen,
-          pen[] colors=new pen[], light light=currentlight)
+          pen[] colors=new pen[], light light=currentlight, string name="")
 {
   if(colors.length > 0)
     m=mean(colors);
@@ -1691,7 +1692,7 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
         if(prc())
           PRCshininess=PRCshininess(m.shininess);
         draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,PRCshininess,
-             granularity,colors,lighton);
+             granularity,colors,lighton,name);
         if(pic != null) {
           triple[][] R=weights.length > 0 ? P/weights : P;
           pic.addBox(minbound(R,Q),maxbound(R,Q));

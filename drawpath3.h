@@ -20,14 +20,17 @@ protected:
   bool invisible;
   triple Min,Max;
   Triple *controls;
+  string name;
 public:
-  drawPath3(path3 g, const pen&p) :
+  drawPath3(path3 g, const pen&p, const string& name) :
     g(g), straight(g.piecewisestraight()), color(rgba(p)),
-    invisible(p.invisible()), Min(g.min()), Max(g.max()), controls(NULL) {}
+    invisible(p.invisible()), Min(g.min()), Max(g.max()), controls(NULL),
+    name(name) {}
     
   drawPath3(const vm::array& t, const drawPath3 *s) :
     g(camp::transformed(t,s->g)), straight(s->straight), color(s->color),
-    invisible(s->invisible), Min(g.min()), Max(g.max()), controls(NULL) {}
+    invisible(s->invisible), Min(g.min()), Max(g.max()), controls(NULL),
+    name(s->name) {}
   
   virtual ~drawPath3() {
     if(controls) delete controls;
