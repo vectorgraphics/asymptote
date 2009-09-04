@@ -224,8 +224,17 @@ AC_ARG_ENABLE(readline,
 [AS_HELP_STRING(--enable-readline[[[=yes]]],enable GNU Readline Library)])
 
 if test "x$enable_readline" != "xno"; then
-AC_CHECK_LIB([readline], [rl_completion_matches],,
-AC_MSG_NOTICE(*** Could not find GNU readline 4.2 or later: will compile without readline support ***))
+AC_COMPILE_IFELSE(AC_LANG_PROGRAM([
+#include <stdio.h>
+#include <unistd.h>
+#include <readline/readline.h>
+],[
+#ifndef RL_READLINE_VERSION
+abort
+#endif
+]),AC_DEFINE([HAVE_READLINE],1,
+[Define to 1 if you have the GNU `readline' library (-lreadline)]),
+AC_MSG_NOTICE(*** Could not find GNU readline 4.3 or later: will compile without readline support ***))
 fi
 
 # Checks for header files.
@@ -246,7 +255,7 @@ AC_ARG_ENABLE(gsl,
 if test "x$enable_gsl" != "xno"; then
   AC_CHECK_HEADER(gsl/gsl_sf.h,
    AC_CHECK_LIB([gsl], gsl_sf_debye_6, [AC_DEFINE(HAVE_LIBGSL, 1,
-   [Define to 1 if you have the 'gsl' library (-lgsl). ]) LIBS=$LIBS"-lgsl -lgslcblas "],
+   [Define to 1 if you have the `gsl' library (-lgsl). ]) LIBS=$LIBS"-lgsl -lgslcblas "],
            AC_MSG_NOTICE([*** Could not find libgsl: will compile without optional special functions. ***]),[-lgslcblas]),
      AC_MSG_NOTICE([*** Header file gsl_sf.h not found: will compile without optional special functions. ***]))
 fi
@@ -272,7 +281,7 @@ case "$OSTYPE" in
 			   LIBS=$LIBS"-lfreeglut -lopengl32 "],
 				 AC_MSG_NOTICE([*** Could not find freeglut: will compile without OpenGL support ***]))
              AC_CHECK_LIB([GLU], [gluNewNurbsRenderer],[AC_DEFINE(HAVE_LIBGLU, 1,
-                   [Define to 1 if you have the 'glu32' library (-lglu32). ]) LIBS=$LIBS"-lglu32 "],
+                   [Define to 1 if you have the `glu32' library (-lglu32). ]) LIBS=$LIBS"-lglu32 "],
              AC_MSG_NOTICE([*** Could not find libglu32: will compile without OpenGL support ***]))
         ;;                                 
      darwin*) AC_CHECK_HEADER(GLUT/glut.h,
@@ -312,11 +321,6 @@ AC_TYPE_SIGNAL
 
 AC_DEFUN([ac_FUNC_STRPTIME], [
     AC_CHECK_FUNCS(strptime)
-    AC_MSG_CHECKING(for strptime declaration in time.h)
-    AC_EGREP_HEADER(strptime, time.h, [
-        AC_DEFINE([HAVE_STRPTIME_DECL],,[Define if the function strptime is declared in <time.h>])
-    AC_MSG_RESULT(yes)], [AC_MSG_RESULT(no)
-    ])
 ])
 
 # Checks for library functions.
