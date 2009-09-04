@@ -28,7 +28,6 @@ public:
 
   void begingroup(string name) {}
   void endgroup() {}
-}
   
   void add(PRCentity* e) {
     entities.push_back(e);
