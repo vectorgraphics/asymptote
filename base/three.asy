@@ -1985,7 +1985,7 @@ void begingroup3(picture pic=currentpicture, string name="")
       if(is3D())
         begingroup(f,name);
       if(pic != null)
-        begingroup(pic,name);
+        begingroup(pic);
     },true);
 }
 
