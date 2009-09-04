@@ -388,6 +388,9 @@ class oPRCFile
         delete fout;
     }
 
+    void begingroup(string name) {}
+    void endgroup() {}
+  
     bool add(PRCentity*);
     bool finish();
     uint32_t getColourIndex(const RGBAColour&);
