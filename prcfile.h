@@ -1,6 +1,7 @@
 #ifndef PRCFILE_H
 #define PRCFILE_H
 
+#include "memory.h"
 #include "prc/oPRCFile.h"
 
 namespace camp {
@@ -47,11 +48,11 @@ class PRCBezierCurve : public PRCcurve
   uint32_t n;
 public:
   PRCBezierCurve(oPRCFile *p, uint32_t d, uint32_t n, double cP[][3],
-                 const RGBAColour &c) :
-    PRCcurve(p,d,n,cP,NULL,c,scale3D,false,NULL), d(d), n(n) {}
+                 const RGBAColour &c, string name="") :
+    PRCcurve(p,d,n,cP,NULL,c,scale3D,false,NULL,name.c_str()), d(d), n(n) {}
   PRCBezierCurve(oPRCFile *p, uint32_t d, uint32_t n, double cP[][3],
-                 const PRCMaterial &m) :
-    PRCcurve(p,d,n,cP,NULL,m,scale3D,false,NULL), d(d), n(n) {}
+                 const PRCMaterial &m, string name="") :
+    PRCcurve(p,d,n,cP,NULL,m,scale3D,false,NULL,name.c_str()), d(d), n(n) {}
 private:
   void writeKnots(PRCbitStream &out) {
     writeBezierKnots(out,d,n);

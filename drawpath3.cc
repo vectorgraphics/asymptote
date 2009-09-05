@@ -20,7 +20,7 @@ bool drawPath3::write(prcfile *out)
     controls=new Triple[n+1];
     for(Int i=0; i <= n; ++i)
       store(controls[i],g.point(i));
-    out->add(new PRCline(out,n+1,controls,color,scale3D));
+    out->add(new PRCline(out,n+1,controls,color,scale3D,name.c_str()));
   } else {
     int m=3*n+1;
     controls=new Triple[m];
@@ -34,7 +34,7 @@ bool drawPath3::write(prcfile *out)
     }
     store(controls[++k],g.precontrol((Int) n));
     store(controls[++k],g.point((Int) n));
-    out->add(new PRCBezierCurve(out,3,m,controls,color));
+    out->add(new PRCBezierCurve(out,3,m,controls,color,name));
   }
   return true;
 }

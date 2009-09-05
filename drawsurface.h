@@ -134,7 +134,7 @@ public:
       colors=new GLfloat[16];
       for(int i=0; i < 16; ++i)
         colors[i]=s->colors[i];
-    }
+    } else colors=NULL;
 #endif    
   }
   
@@ -317,7 +317,7 @@ public:
       colors=new GLfloat[16];
       for(int i=0; i < 16; ++i)
         colors[i]=s->colors[i];
-    }
+    } else colors=NULL;
 #endif    
   }
   
