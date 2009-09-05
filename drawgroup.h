@@ -22,7 +22,7 @@ public:
   bool begingroup() {return true;}
   
   bool write(prcfile *out) {
-    out->begingroup(name);
+    out->begingroup(name.c_str());
     return true;
   }
 
