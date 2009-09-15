@@ -8937,33 +8937,11 @@ elements will be individually deconstructed (@pxref{add}).
 @node PostScript to Asymptote
 @chapter @code{PostScript} to @code{Asymptote}
 @cindex @code{pstoedit}
-The excellent @code{PostScript} editor @code{pstoedit} (version 3.45 or later; 
-available from @url{http://pstoedit.net}) includes an
+The excellent @code{PostScript} editor @code{pstoedit} (version 3.50 or later; 
+available from @url{http://sourceforge.net/projects/pstoedit/}) includes an
 @code{Asymptote} backend. Unlike virtually all other @code{pstoedit}
 backends, this driver includes native clipping, even-odd fill rule,
-@code{PostScript} subpath, and full image support.
-
-For full functionality, the patch @code{pstoedit-3.45asy.patch}
-in the @code{patches} directory should be applied. On @code{UNIX} systems, as
-the root user, place
-@quotation
-@url{http://prdownloads.sourceforge.net/pstoedit/pstoedit-3.45.tar.gz}
-@end quotation
-@noindent
-in the @code{Asymptote} source directory, and type:
-
-@verbatim
-tar -zxf pstoedit-3.45.tar.gz
-cd pstoedit-3.45
-patch -p1 < ../patches/pstoedit-3.45asy.patch
-autoconf
-./configure --prefix=/usr
-make install
-@end verbatim
-
-@noindent
-Then try:
-
+@code{PostScript} subpath, and full image support. Here is an example:
 @noindent
 @code{asy -V @value{Datadir}/doc/asymptote/examples/venn.asy}
 @noindent
