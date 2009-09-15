@@ -45,15 +45,19 @@ pen[] adjust(picture pic, real min, real max, real rmin, real rmax,
 {
   real dmin=pic.scale.z.T(min);
   real dmax=pic.scale.z.T(max);
-  int minindex=floor((dmin-rmin)/(rmax-rmin)*palette.length);
-  if(minindex < 0) minindex=0;
-  int maxindex=floor((dmax-rmin)/(rmax-rmin)*palette.length);
-  if(maxindex > palette.length) maxindex=palette.length;
-  if(minindex > 0 || maxindex < palette.length) {
-    pen[] newpalette;
-    for(int i=minindex; i < maxindex; ++i)
-      newpalette.push(palette[i]);
-    return newpalette;
+  real delta=rmax-rmin;
+  if(delta > 0) {
+    real factor=palette.length/delta;
+    int minindex=floor(factor*(dmin-rmin));
+    if(minindex < 0) minindex=0;
+    int maxindex=floor(factor*(dmax-rmin));
+    if(maxindex > palette.length) maxindex=palette.length;
+    if(minindex > 0 || maxindex < palette.length) {
+      pen[] newpalette;
+      for(int i=minindex; i < maxindex; ++i)
+        newpalette.push(palette[i]);
+      return newpalette;
+    }
   }
   return palette;
 }
