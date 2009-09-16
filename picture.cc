@@ -52,7 +52,8 @@ picture::~picture()
 {
 }
 
-bool picture::epsformat,picture::pdfformat,picture::xobject, picture::pdf;
+bool picture::epsformat,picture::pdfformat, picture::svgformat;
+bool picture::xobject, picture::pdf;
 bool picture::Labels;
 double picture::paperWidth,picture::paperHeight;
   
@@ -297,74 +298,86 @@ bool picture::texprocess(const string& texname, const string& outname,
     if(opentex(texname,prefix)) return false;
     
     string texengine=getSetting<string>("tex");
-    if(!pdf) {
-      string dviname=auxname(prefix,"dvi");
-      string psname=auxname(prefix,"ps");
+    string dviname=auxname(prefix,"dvi");
     
-      double height=b.top-b.bottom+1.0;
-    
-      // Magic dvips offsets:
-      double hoffset=-128.4;
-      double vertical=height;
-      if(!latex(texengine)) vertical += 2.0;
-      double voffset=(vertical < 13.0) ? -137.8+vertical : -124.8;
-
-      hoffset += b.left+bboxshift.getx();
-      voffset += paperHeight-height-b.bottom-bboxshift.gety();
-    
-      string dvipsrc=getSetting<string>("dir");
-      if(dvipsrc.empty()) dvipsrc=systemDir;
-      dvipsrc += dirsep+"nopapersize.ps";
-      setenv("DVIPSRC",dvipsrc.c_str(),1);
-      string papertype=getSetting<string>("papertype") == "letter" ?
-        "letterSize" : "a4size";
-      mem::vector<string> dcmd;
-      dcmd.push_back(getSetting<string>("dvips"));
-      dcmd.push_back("-R");
-      dcmd.push_back("-Pdownload35");
-      dcmd.push_back("-D600");
-      dcmd.push_back("-O"+String(hoffset)+"bp,"+String(voffset)+"bp");
-      dcmd.push_back("-T"+String(paperWidth)+"bp,"+String(paperHeight)+"bp");
-      push_split(dcmd,getSetting<string>("dvipsOptions"));
-      dcmd.push_back("-t"+papertype);
-      if(verbose <= 1) dcmd.push_back("-q");
-      dcmd.push_back("-o"+psname);
-      dcmd.push_back(dviname);
-      status=System(dcmd,0,true,"dvips");
+    if(svgformat) {
+      mem::vector<string> cmd;
+      cmd.push_back(getSetting<string>("dvisvgm"));
+      cmd.push_back("-n");
+      cmd.push_back("--verbosity=2");
+      push_split(cmd,getSetting<string>("dvisvgmOptions"));
+      cmd.push_back("-o"+outname);
+      cmd.push_back(dviname);
+      status=System(cmd,0,true,"dvisvgm");
       if(status != 0) return false;
+    } else {
+      if(!pdf) {
+        string psname=auxname(prefix,"ps");
+        double height=b.top-b.bottom+1.0;
     
-      ifstream fin(psname.c_str());
-      psfile fout(outname,false);
+        // Magic dvips offsets:
+        double hoffset=-128.4;
+        double vertical=height;
+        if(!latex(texengine)) vertical += 2.0;
+        double voffset=(vertical < 13.0) ? -137.8+vertical : -124.8;
+
+        hoffset += b.left+bboxshift.getx();
+        voffset += paperHeight-height-b.bottom-bboxshift.gety();
     
-      string s;
-      bool first=true;
-      transform t=shift(bboxshift)*T;
-      bool shift=!t.isIdentity();
-      string beginspecial="TeXDict begin @defspecial";
-      string endspecial="@fedspecial end";
-      while(getline(fin,s)) {
-        if(s.find("%%DocumentPaperSizes:") == 0) continue;
-        if(s.find("%!PS-Adobe-") == 0) {
-          fout.header();
-        } else if(first && s.find("%%BoundingBox:") == 0) {
-          bbox box=b;
-          box.shift(bboxshift);
-          if(verbose > 2) BoundingBox(cout,box);
-          fout.BoundingBox(box);
-          first=false;
-        } else if(shift && s.find(beginspecial) == 0) {
-          fout.verbatimline(s);
-          fout.gsave();
-          fout.concat(t);
-        } else if(shift && s.find(endspecial) == 0) {
-          fout.grestore();
-          fout.verbatimline(s);
-        } else
-          fout.verbatimline(s);
-      }
-      if(!getSetting<bool>("keep")) { // Delete temporary files.
-        unlink(dviname.c_str());
-        unlink(psname.c_str());
+        string dvipsrc=getSetting<string>("dir");
+        if(dvipsrc.empty()) dvipsrc=systemDir;
+        dvipsrc += dirsep+"nopapersize.ps";
+        setenv("DVIPSRC",dvipsrc.c_str(),1);
+        string papertype=getSetting<string>("papertype") == "letter" ?
+          "letterSize" : "a4size";
+        mem::vector<string> dcmd;
+        dcmd.push_back(getSetting<string>("dvips"));
+        dcmd.push_back("-R");
+        dcmd.push_back("-Pdownload35");
+        dcmd.push_back("-D600");
+        dcmd.push_back("-O"+String(hoffset)+"bp,"+String(voffset)+"bp");
+        dcmd.push_back("-T"+String(paperWidth)+"bp,"+String(paperHeight)+"bp");
+        push_split(dcmd,getSetting<string>("dvipsOptions"));
+        dcmd.push_back("-t"+papertype);
+        if(verbose <= 1) dcmd.push_back("-q");
+        dcmd.push_back("-o"+psname);
+        dcmd.push_back(dviname);
+        status=System(dcmd,0,true,"dvips");
+        if(status != 0) return false;
+    
+        ifstream fin(psname.c_str());
+        psfile fout(outname,false);
+    
+        string s;
+        bool first=true;
+        transform t=shift(bboxshift)*T;
+        bool shift=!t.isIdentity();
+        string beginspecial="TeXDict begin @defspecial";
+        string endspecial="@fedspecial end";
+        while(getline(fin,s)) {
+          if(s.find("%%DocumentPaperSizes:") == 0) continue;
+          if(s.find("%!PS-Adobe-") == 0) {
+            fout.header();
+          } else if(first && s.find("%%BoundingBox:") == 0) {
+            bbox box=b;
+            box.shift(bboxshift);
+            if(verbose > 2) BoundingBox(cout,box);
+            fout.BoundingBox(box);
+            first=false;
+          } else if(shift && s.find(beginspecial) == 0) {
+            fout.verbatimline(s);
+            fout.gsave();
+            fout.concat(t);
+          } else if(shift && s.find(endspecial) == 0) {
+            fout.grestore();
+            fout.verbatimline(s);
+          } else
+            fout.verbatimline(s);
+        }
+        if(!getSetting<bool>("keep")) { // Delete temporary files.
+          unlink(dviname.c_str());
+          unlink(psname.c_str());
+        }
       }
     }
       
@@ -470,7 +483,7 @@ bool picture::postprocess(const string& prename, const string& outname,
         if(status != 0)
           reportError("Cannot rename "+prename+" to "+outname);
       } else status=epstopdf(prename,outname);
-    } else {
+    } else if(!svgformat) {
       mem::vector<string> cmd;
       double render=fabs(getSetting<double>("render"));
       if(render == 0) render=1.0;
@@ -569,7 +582,6 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   bool TeXmode=getSetting<bool>("inlinetex") && 
     getSetting<string>("tex") != "none";
-  Labels=labels || TeXmode;
   
   string texengine=getSetting<string>("tex");
   pdf=settings::pdf(texengine);
@@ -580,10 +592,16 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   string outputformat=format.empty() ? defaultformat() : format;
   epsformat=outputformat == "eps";
   pdfformat=outputformat == "pdf";
+  svgformat=outputformat == "svg" && !pdf &&
+    (!have3D() || getSetting<double>("render") == 0.0);
+  
   xobject=magnification > 0;
   string outname=Outname(prefix,outputformat,standardout);
   string epsname=epsformat ? (standardout ? "" : outname) :
     auxname(prefix,"eps");
+  
+  Labels=labels || TeXmode || svgformat;
+  
   if(Labels)
     spaceToUnderscore(prefix);
   string prename=((epsformat && !pdf) || !Labels) ? epsname : 
@@ -731,7 +749,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       if(Labels) {
         tex->epilogue();
         if(context) prefix=stripDir(prefix);
-        status=texprocess(texname,prename,prefix,bboxshift);
+        status=texprocess(texname,svgformat ? outname : prename,prefix,
+                          bboxshift);
         delete tex;
         if(!getSetting<bool>("keep")) {
           for(mem::list<string>::iterator p=psnameStack.begin();

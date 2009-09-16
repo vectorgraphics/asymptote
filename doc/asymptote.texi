@@ -483,6 +483,7 @@ configuration variables @code{paperwidth} and @code{paperheight}.
 @cindex @code{texpath}
 @cindex @code{texcommand}
 @cindex @code{dvips}
+@cindex @code{dvisvg}
 @cindex @code{convert}
 @cindex @code{display}
 @cindex @code{animate}
@@ -492,6 +493,7 @@ The following configuration variables normally do not require adjustment:
 texpath
 texcommand
 dvips
+dvisvg
 convert
 display
 animate

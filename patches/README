@@ -24,3 +24,4 @@ up-to-date with the official 2008/10/08 version. For convenience the
 patched version is also included as movie15_dvipdfmx.sty; it should be
 renamed to movie15.sty and installed in the local latex directory.
 
+The file dvisvgm-0.8.3.patch fixes a clipping bug in dvisvgm.

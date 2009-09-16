@@ -1234,6 +1234,7 @@ void initSettings() {
   addOption(new realSetting("paperheight", 0, "bp", ""));
   
   addOption(new stringSetting("dvipsOptions", 0, "string", ""));
+  addOption(new stringSetting("dvisvgmOptions", 0, "string", ""));
   addOption(new stringSetting("convertOptions", 0, "string", ""));
   addOption(new stringSetting("gsOptions", 0, "string", ""));
   addOption(new stringSetting("psviewerOptions", 0, "string", ""));
@@ -1248,6 +1249,7 @@ void initSettings() {
   addOption(new envSetting("texpath", ""));
   addOption(new envSetting("texcommand", ""));
   addOption(new envSetting("dvips", "dvips"));
+  addOption(new envSetting("dvisvgm", "dvisvgm"));
   addOption(new envSetting("convert", "convert"));
   addOption(new envSetting("display", defaultDisplay));
   addOption(new envSetting("animate", defaultAnimate));

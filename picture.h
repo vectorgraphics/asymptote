@@ -28,7 +28,7 @@ private:
   bboxlist bboxstack;
   bool transparency;
   
-  static bool epsformat,pdfformat,xobject,pdf,Labels;
+  static bool epsformat,pdfformat,svgformat,xobject,pdf,Labels;
   static double paperWidth,paperHeight;
 
 public:

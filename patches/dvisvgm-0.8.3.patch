@@ -1,0 +1,17 @@
+diff -ru dvisvgm-0.8.3/src/psdefs.psc dvisvgm-0.8.3J/src/psdefs.psc
+--- dvisvgm-0.8.3/src/psdefs.psc	2009-08-28 03:36:14.000000000 -0600
++++ dvisvgm-0.8.3J/src/psdefs.psc	2009-09-16 09:59:24.000000000 -0600
+@@ -32,9 +32,10 @@
+ "rcmd}if}def/stroke{@dodraw{0(newpath)prcmd prpath 0(stroke)prcmd newpath}{/strok"
+ "e sysexec}ifelse}def/fill{@dodraw{0(newpath)prcmd prpath 0(fill)prcmd newpath}{/"
+ "fill sysexec}ifelse}def/eofill{@dodraw{0(newpath)prcmd prpath 0(eofill)prcmd new"
+-"path}{/eofill sysexec}ifelse}def/clip{/clip sysexec :gsave clippath 0(newpath)pr"
+-"cmd prpath 0(clip)prcmd :grestore}def/eoclip{/eoclip sysexec :gsave clippath 0(n"
+-"ewpath)prcmd prpath 0(eoclip)prcmd :grestore}def/initclip 0 defpr/adddot{dup len"
++"path}{/eofill sysexec}ifelse}def/clip{@dodraw{0(newpath)prcmd prpath 0(clip)prcm"
++"d newpath}{/clip sysexec :gsave clippath :grestore}ifelse}def/eoclip{@dodraw{0(n"
++"ewpath)prcmd prpath 0(eoclip)prcmd newpath}{/eoclip sysexec :gsave clippath :gre"
++"store}ifelse}def/initclip 0 defpr/adddot{dup len"
+ "gth 1 add string dup 0 46 put dup 3 -1 roll 1 exch putinterval}def/setlinewidth "
+ "1 defpr/setlinecap 1 defpr/setlinejoin 1 defpr/setmiterlimit 1 defpr/setdash{mar"
+ "k 3 1 roll 2 copy/setdash sysexec exch aload length 1 add -1 roll counttomark(se"
