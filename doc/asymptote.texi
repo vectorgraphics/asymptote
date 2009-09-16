@@ -282,7 +282,7 @@ We recommend subscribing to new release announcements at
 @noindent
 Users may also wish to monitor the @code{Asymptote} forum:
 @quotation
-@url{http://sourceforge.net/forum/monitor.php?forum_id=409349}
+@url{http://sourceforge.net/projects/asymptote/forums/forum/409349}
 @end quotation
 @noindent
 
@@ -1053,7 +1053,7 @@ See section @ref{graph} (or the online @code{Asymptote} gallery and
 external links posted at @url{http://asymptote.sourceforge.net}) for
 further examples, including two and three-dimensional scientific
 graphs. Additional examples have been posted by Philippe Ivaldi at
-@url{http://piprim.tuxfamily.org/asymptote/}.
+@url{http://www.piprime.fr/asymptote/}.
 
 @node Drawing commands
 @chapter Drawing commands
@@ -3403,7 +3403,7 @@ pair min(picture pic, user=false);
 pair max(picture pic, user=false);
 pair size(picture pic, user=false);
 @end verbatim 
-calculate the @code{PostScript} bounds that picture @code{pic} would
+calculate the bounds that picture @code{pic} would
 have if it were currently fit to a frame using its default size specification.
 If @code{user} is @code{false} the returned value is in
 @code{PostScript} coordinates, otherwise it is in user coordinates.
@@ -6061,9 +6061,9 @@ structure. Link to the documentation for the @code{geometry} module
 are posted here:
 @url{http://asymptote.sourceforge.net/links.html},
 including an extensive set of examples,
-@url{http://piprim.tuxfamily.org/asymptote/geometry/index.html}, and an index:
+@url{http://www.piprime.fr/files/asymptote/geometry/}, and an index:
 @quotation
-@url{http://piprim.tuxfamily.org/asymptote/geometry/modules/geometry.asy.index.type.html}
+@url{http://www.piprime.fr/files/asymptote/geometry/modules/geometry.asy.index.type.html}
 @end quotation
 
 @node trembling
@@ -6072,7 +6072,7 @@ including an extensive set of examples,
 This module, written by Philippe Ivaldi and illustrated in the example
 @code{floatingdisk.asy}, allows one to draw wavy lines, as if drawn by
 hand. Further examples are posted at 
-@url{http://piprim.tuxfamily.org/asymptote/trembling/index.html}
+@url{http://www.piprime.fr/files/asymptote/trembling/}
 
 @node stats
 @section @code{stats}
@@ -8235,7 +8235,7 @@ as illustrated in the examples @code{vectorfield3.asy} and
 
 This module, contributed by Philippe Ivaldi, can be used for drawing
 3D grids. Here is an example (further examples can be found in
-@code{grid3.asy} and at @url{http://piprim.tuxfamily.org/asymptote/grid3/}):  
+@code{grid3.asy} and at @url{http://www.piprime.fr/files/asymptote/grid3/}):  
 @verbatiminclude grid3xyz.asy
 @sp 1
 @center @image{grid3xyz}
@@ -8328,7 +8328,7 @@ shading behaviour is the default shading behavior for a surface.
 
 An example of @code{tube} is provided in the file
 @code{trefoilknot.asy}. Further examples can be found at
-@url{http://piprim.tuxfamily.org/asymptote/tube/}.
+@url{http://www.piprime.fr/files/asymptote/tube/}.
 
 @node flowchart
 @section @code{flowchart}
@@ -8970,7 +8970,7 @@ Questions on installing and using @code{Asymptote} that are not
 addressed in the @acronym{FAQ} should be sent to the
 @code{Asymptote} forum: 
 @quotation
-@url{http://sourceforge.net/forum/forum.php?forum_id=409349}
+@url{http://sourceforge.net/projects/asymptote/forums/forum/409349}
 @end quotation
 @noindent
 Including an example that illustrates what you are trying to do will help
