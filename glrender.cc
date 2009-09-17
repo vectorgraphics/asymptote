@@ -74,6 +74,7 @@ double *T;
 
 bool Xspin,Yspin,Zspin;
 bool Animate;
+bool Step;
 bool Menu;
 bool Motion;
 bool ignorezoom;
@@ -550,7 +551,7 @@ void idleFunc(void (*f)())
 void idle() 
 {
   glutIdleFunc(NULL);
-  Xspin=Yspin=Zspin=Animate=false;
+  Xspin=Yspin=Zspin=Animate=Step=false;
 }
 
 void animate() 
@@ -581,6 +582,7 @@ void quit()
 {
   if(glthread) {
     Setting("loop")=false;
+    Setting("reverse")=false;
     home();
 #ifdef HAVE_LIBPTHREAD
     if(!interact::interactive)
@@ -611,6 +613,7 @@ void display()
   if(glthread && Animate) {
     queueExport=false;
     endwait(readySignal,readyLock);
+    if(Step) Animate=false;
   }
 #endif
   if(queueExport) {
@@ -1108,6 +1111,18 @@ void keyboard(unsigned char key, int x, int y)
       shrink();
       break;
     case 'p':
+      if(getSetting<bool>("reverse")) Animate=false;
+      Setting("reverse")=Step=false;
+      animate();
+      break;
+    case 'r':
+      if(!getSetting<bool>("reverse")) Animate=false;
+      Setting("reverse")=true;
+      Step=false;
+      animate();
+      break;
+    case ' ':
+      Step=true;
       animate();
       break;
     case 17: // Ctrl-q
@@ -1119,7 +1134,7 @@ void keyboard(unsigned char key, int x, int y)
 }
  
 enum Menu {HOME,FITSCREEN,XSPIN,YSPIN,ZSPIN,STOP,MODE,EXPORT,CAMERA,
-           ANIMATE,QUIT};
+           PLAY,STEP,REVERSE,QUIT};
 
 void menu(int choice)
 {
@@ -1155,7 +1170,19 @@ void menu(int choice)
     case CAMERA:
       camera();
       break;
-    case ANIMATE:
+    case PLAY:
+      if(getSetting<bool>("reverse")) Animate=false;
+      Setting("reverse")=Step=false;
+      animate();
+      break;
+    case REVERSE:
+      if(!getSetting<bool>("reverse")) Animate=false;
+      Setting("reverse")=true;
+      Step=false;
+      animate();
+      break;
+    case STEP:
+      Step=true;
       animate();
       break;
     case QUIT:
@@ -1440,7 +1467,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutAddMenuEntry("(m) Mode",MODE);
     glutAddMenuEntry("(e) Export",EXPORT);
     glutAddMenuEntry("(c) Camera",CAMERA);
-    glutAddMenuEntry("(p) Play",ANIMATE);
+    glutAddMenuEntry("(p) Play",PLAY);
+    glutAddMenuEntry("(r) Reverse",REVERSE);
+    glutAddMenuEntry("( ) Step",STEP);
     glutAddMenuEntry("(q) Quit" ,QUIT);
   
     for(size_t i=0; i < nbuttons; ++i) {

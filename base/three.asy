@@ -2872,8 +2872,9 @@ frame[] fit3(string prefix="", picture[] pictures, picture all,
   }
 
   while(settings.loop)
-    for(int i=0; i < pictures.length; ++i) {
-      if(!settings.loop) break;
+    for(int i=settings.reverse ? pictures.length-1 : 0;
+        i >= 0 && i < pictures.length && settings.loop;
+        settings.reverse ? --i : ++i) {
       embedder(prefix,out[i],format,view,options,script,light,S.P);
     }
   

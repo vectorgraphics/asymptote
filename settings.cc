@@ -1130,6 +1130,7 @@ void initSettings() {
                             true));
   addOption(new boolSetting("autoplay", 0, "Autoplay 3D animations", false));
   addOption(new boolSetting("loop", 0, "Loop 3D animations", false));
+  addOption(new boolSetting("reverse", 0, "reverse 3D animations", false));
 
   addOption(new boolSetting("inlineimage", 0,
                             "Generate inline embedded image"));

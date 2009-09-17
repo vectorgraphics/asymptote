@@ -7562,6 +7562,9 @@ The keyboard shortcuts are:
 @item m: rendering mode (solid/mesh/patch)
 @item e: export
 @item c: show camera parameters
+@item p: play animation
+@item r: reverse animation
+@item  : step animation
 @item +: expand
 @item =: expand
 @item >: expand
