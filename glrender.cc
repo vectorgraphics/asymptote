@@ -550,7 +550,7 @@ void idleFunc(void (*f)())
 void idle() 
 {
   glutIdleFunc(NULL);
-  Xspin=Yspin=Zspin=false;
+  Xspin=Yspin=Zspin=Animate=false;
 }
 
 void animate() 
