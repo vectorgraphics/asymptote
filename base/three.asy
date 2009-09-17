@@ -21,6 +21,7 @@ real rendermargin=0.02;
 
 string defaultembed3Doptions;
 string defaultembed3Dscript;
+real defaulteyetoview=63mm/500mm;
 
 string partname(string s, int i=0) 
 {
@@ -2845,6 +2846,31 @@ void addAllViews(picture dest, picture src,
 void addAllViews(picture src, bool group=true, filltype filltype=NoFill)
 {
   addAllViews(currentpicture,src,group,filltype);
+}
+
+void addStereoViews(picture dest, picture src,
+                    real margin=0, bool group=true,
+                    filltype filltype=NoFill, real eyetoview=defaulteyetoview,
+                    projection P=currentprojection)
+{
+  triple v=P.vector();
+  triple h=0.5*abs(v)*eyetoview*unit(cross(P.up,v));
+  projection leftEye=perspective(P.camera-h,P.up,P.target);
+  projection rightEye=perspective(P.camera+h,P.up,P.target);
+  if(group) begingroup(dest);
+  frame Left=src.fit(leftEye);
+  add(dest,Left,filltype);
+  frame Right=src.fit(rightEye);
+  add(dest,shift(min(Left).x-max(Right).x-margin)*Right,filltype);
+  if(group) endgroup(dest);
+}
+
+void addStereoViews(picture src, real margin=0, bool group=true,
+                    filltype filltype=NoFill,
+                    real eyetoview=defaulteyetoview,
+                    projection P=currentprojection)
+{
+  addStereoViews(currentpicture,src,margin,group,filltype,eyetoview,P);
 }
 
 // Fit an array of 3D pictures simultaneously using the sizing of picture all.
