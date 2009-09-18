@@ -1399,8 +1399,8 @@ bool context(const string& texengine) {
 }
 
 bool pdf(const string& texengine) {
-  return texengine == "pdflatex" || texengine == "pdftex" || xe(texengine)
-    || context(texengine);
+  return texengine == "pdflatex" || texengine == "pdftex" || xe(texengine) ||
+    context(texengine);
 }
 
 bool latex(const string& texengine) {

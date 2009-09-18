@@ -304,7 +304,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       mem::vector<string> cmd;
       cmd.push_back(getSetting<string>("dvisvgm"));
       cmd.push_back("-n");
-      cmd.push_back("--verbosity=2");
+      cmd.push_back("--verbosity=3");
       push_split(cmd,getSetting<string>("dvisvgmOptions"));
       cmd.push_back("-o"+outname);
       cmd.push_back(dviname);
