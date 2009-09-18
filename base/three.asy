@@ -2855,8 +2855,12 @@ void addStereoViews(picture dest, picture src,
 {
   triple v=P.vector();
   triple h=0.5*abs(v)*eyetoview*unit(cross(P.up,v));
-  projection leftEye=perspective(P.camera-h,P.up,P.target);
-  projection rightEye=perspective(P.camera+h,P.up,P.target);
+  projection leftEye=P.copy();
+  leftEye.camera -= h;
+  leftEye.calculate();
+  projection rightEye=P.copy();
+  rightEye.camera += h;
+  rightEye.calculate();
   if(group) begingroup(dest);
   frame Left=src.fit(leftEye);
   add(dest,Left,filltype);
