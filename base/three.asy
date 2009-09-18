@@ -2366,6 +2366,7 @@ void writeJavaScript(string name, string preamble, string script)
   file out=output(name);
   write(out,preamble);
   if(script != "") {
+    write(out,endl);
     file in=input(script);
     while(true) {
       string line=in;

@@ -1355,7 +1355,7 @@ path[] path(Label L, pair z=0, projection P)
 
 void label(frame f, Label L, triple position, align align=NoAlign,
            pen p=currentpen, bool targetsize=false, light light=nolight,
-           projection P=currentprojection)
+           string name="", projection P=currentprojection)
 {
   Label L=L.copy();
   L.align(align);
@@ -1366,7 +1366,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
     L.T3=transform3(P);
   if(is3D()) {
     for(patch S : surface(L,position).s)
-      draw3D(f,S,L.p,light);
+      draw3D(f,S,L.p,light,name);
   } else {
     if(L.filltype == NoFill)
       fill(f,path(L,project(position,P.t),P),
@@ -1382,7 +1382,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
 
 void label(picture pic=currentpicture, Label L, triple position,
            align align=NoAlign, pen p=currentpen, bool targetsize=false,
-           light light=nolight)
+           light light=nolight, string name="")
 {
   Label L=L.copy();
   L.align(align);
@@ -1402,7 +1402,7 @@ void label(picture pic=currentpicture, Label L, triple position,
         L.T3=transform3(P);
       if(is3D())
         for(patch S : surface(L,v).s)
-          draw3D(f,S,L.p,light);
+          draw3D(f,S,L.p,light,name);
       if(pic != null) {
         if(L.filltype == NoFill)
           fill(project(v,P.t),pic,path(L,P),
@@ -1571,13 +1571,13 @@ restricted surface unitplane=surface(unitplane);
 restricted surface unitdisk=surface(unitcircle3);
 
 void dot(frame f, triple v, material p=currentpen,
-         light light=nolight, projection P=currentprojection)
+         light light=nolight, string name="", projection P=currentprojection)
 {
   pen q=(pen) p;
   if(is3D()) {
     material m=material(p,p.granularity >= 0 ? p.granularity : dotgranularity);
     for(patch s : unitsphere.s)
-      draw3D(f,shift(v)*scale3(0.5*linewidth(dotsize(q)+q))*s,m,light);
+      draw3D(f,shift(v)*scale3(0.5*linewidth(dotsize(q)+q))*s,m,light,name);
   } else dot(f,project(v,P.t),q);
 }
 
@@ -1594,7 +1594,7 @@ void dot(frame f, path3[] g, material p=currentpen,
 }
 
 void dot(picture pic=currentpicture, triple v, material p=currentpen,
-         light light=nolight)
+         light light=nolight, string name="")
 {
   pen q=(pen) p;
   real size=0.5*linewidth(dotsize(q)+q);
@@ -1603,7 +1603,7 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
         material m=material(p,p.granularity >= 0 ? p.granularity :
                             dotgranularity);
         for(patch s : unitsphere.s)
-          draw3D(f,shift(t*v)*scale3(size)*s,m,light);
+          draw3D(f,shift(t*v)*scale3(size)*s,m,light,name);
       }
       if(pic != null)
         dot(pic,project(t*v,P.t),q);
