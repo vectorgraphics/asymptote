@@ -18,9 +18,9 @@ draw(pic,Label("$z$",1),O--Z);
 //addViews(pic,SixViewsFR);
 
 // United Kingdom, United States, Canada, and Australia:
-//addViews(pic,ThreeViewsUS);
+addViews(pic,ThreeViewsUS);
 //addViews(pic,SixViewsUS);
 
 // Front, Top, Right,
 // Back, Bottom, Left:
-addViews(pic,SixViews);
+//addViews(pic,SixViews);
