@@ -21,7 +21,7 @@ real rendermargin=0.02;
 
 string defaultembed3Doptions;
 string defaultembed3Dscript;
-real defaulteyetoview=63mm/500mm;
+real defaulteyetoview=63mm/1000mm;
 
 string partname(string s, int i=0) 
 {
@@ -246,9 +246,9 @@ projection orthographic(triple camera, triple up=Z, triple target=O,
                         real zoom=1, pair viewportshift=0,
                         bool showtarget=true, bool center=false)
 {
-  return projection(camera,up,target,zoom,viewportshift,showtarget,center=center,
-                    new transformation(triple camera, triple up,
-                                       triple target) {
+  return projection(camera,up,target,zoom,viewportshift,showtarget,
+                    center=center,new transformation(triple camera, triple up,
+                                                     triple target) {
                       return transformation(look(camera,up,target));});
 }
 
@@ -314,8 +314,8 @@ projection LeftView=orthographic(-X,showtarget=true);
 projection RightView=orthographic(X,showtarget=true);
 projection FrontView=orthographic(-Y,showtarget=true);
 projection BackView=orthographic(Y,showtarget=true);
-projection BottomView=orthographic(-Z,showtarget=true);
-projection TopView=orthographic(Z,showtarget=true);
+projection BottomView=orthographic(-Z,up=-Y,showtarget=true);
+projection TopView=orthographic(Z,up=Y,showtarget=true);
 
 currentprojection=perspective(5,4,2);
 
@@ -2799,60 +2799,99 @@ frame embedder(string prefix, frame f, string format, bool view,
     },prefix,format,view,light);
 }
 
-void addViews(picture dest, picture src, bool group=true,
+projection[][] ThreeViewsFR={{RightView,FrontView},
+                             {null,TopView}};
+
+projection[][] SixViewsFR={{null,BottomView},
+                           {RightView,FrontView,LeftView,BackView},
+                           {null,TopView}};
+
+projection[][] ThreeViewsUS={{TopView},
+                             {FrontView,RightView}};
+
+projection[][] SixViewsUS={{null,TopView},
+                           {LeftView,FrontView,RightView,BackView},
+                           {null,BottomView}};
+
+projection[][] ThreeViews={{FrontView,TopView,RightView}};
+
+projection[][] SixViews={{FrontView,TopView,RightView},
+                         {BackView,BottomView,LeftView}};
+
+void addViews(picture dest, picture src, projection[][] views=SixViewsUS,
+              bool group=true, filltype filltype=NoFill)
+{
+  frame[][] F=array(views.length,new frame[]);
+  pair[][] M=array(views.length,new pair[]);
+  pair[][] m=array(views.length,new pair[]);
+  
+  for(int i=0; i < views.length; ++i) {
+    projection[] viewsi=views[i];
+    frame[] Fi=F[i];
+    pair[] Mi=M[i];
+    pair[] mi=m[i];
+    for(projection P : viewsi) {
+      if(P != null) {
+        frame f=src.fit(P);
+        mi.push(min(f));
+        Mi.push(max(f));
+        Fi.push(f);
+      } else {
+        pair Infinity=(infinity,infinity);
+        mi.push(Infinity);
+        Mi.push(-Infinity);
+        Fi.push(newframe);
+      }
+    }
+  }
+  
+  real[] my=new real[views.length];
+  real[] My=new real[views.length];
+  
+  int Nj=0;
+  for(int i=0; i < views.length; ++i) {
+    my[i]=minbound(m[i]).y;
+    My[i]=maxbound(M[i]).y;
+    Nj=max(Nj,views[i].length);
+  }
+  
+  real[] mx=array(Nj,infinity);
+  real[] Mx=array(Nj,-infinity);
+  for(int i=0; i < views.length; ++i) {
+    pair[] mi=m[i];
+    pair[] Mi=M[i];
+    for(int j=0; j < views[i].length; ++j) {
+      mx[j]=min(mx[j],mi[j].x);
+      Mx[j]=max(Mx[j],Mi[j].x);
+    }
+  }
+
+  if(group) begingroup(dest);
+
+  real y;
+  for(int i=0; i < views.length; ++i) {
+    real x;
+    pair[] mi=m[i];
+    for(int j=0; j < views[i].length; ++j) {
+      if(size(F[i][j]) != 0)
+        add(dest,shift(x-mx[j],y+my[i])*F[i][j],filltype);
+      x += (Mx[j]-mx[j]);
+    }
+    y -= (My[i]-my[i]);
+  }
+
+  if(group) endgroup(dest);
+}
+
+void addViews(picture src, projection[][] views=SixViewsUS, bool group=true,
               filltype filltype=NoFill)
 {
-  if(group) begingroup(dest);
-  frame Front=src.fit(FrontView);
-  add(dest,Front,filltype);
-  frame Top=src.fit(TopView);
-  add(dest,shift(0,min(Front).y-max(Top).y)*Top,filltype);
-  frame Right=src.fit(RightView);
-  add(dest,shift(min(Front).x-max(Right).x)*Right,filltype);
-  if(group) endgroup(dest);
+  addViews(currentpicture,src,views,group,filltype);
 }
 
-void addViews(picture src, bool group=true, filltype filltype=NoFill)
-{
-  addViews(currentpicture,src,group,filltype);
-}
-
-void addAllViews(picture dest, picture src,
-                 real xmargin=0, real ymargin=xmargin,
-                 bool group=true,
-                 filltype filltype=NoFill)
-{
-  picture picL,picM,picR,picLM;
-  if(xmargin == 0) xmargin=sqrtEpsilon;
-  if(ymargin == 0) ymargin=sqrtEpsilon;
-
-  add(picL,src.fit(FrontView),(0,0),ymargin*N);
-  add(picL,src.fit(BackView),(0,0),ymargin*S);
-
-  add(picM,src.fit(TopView),(0,0),ymargin*N);
-  add(picM,src.fit(BottomView),(0,0),ymargin*S);
-
-  add(picR,src.fit(RightView),(0,0),ymargin*N);
-  add(picR,src.fit(LeftView),(0,0),ymargin*S);
-
-  add(picLM,picL.fit(),(0,0),xmargin*W);
-  add(picLM,picM.fit(),(0,0),xmargin*E);
-
-  if(group) begingroup(dest);
-  add(dest,picLM.fit(),(0,0),xmargin*W,filltype);
-  add(dest,picR.fit(),(0,0),xmargin*E,filltype);
-  if(group) endgroup(dest);
-}
-
-void addAllViews(picture src, bool group=true, filltype filltype=NoFill)
-{
-  addAllViews(currentpicture,src,group,filltype);
-}
-
-void addStereoViews(picture dest, picture src,
-                    real margin=0, bool group=true,
+void addStereoViews(picture dest, picture src, bool group=true,
                     filltype filltype=NoFill, real eyetoview=defaulteyetoview,
-                    projection P=currentprojection)
+                    bool leftright=true, projection P=currentprojection)
 {
   triple v=P.vector();
   triple h=0.5*abs(v)*eyetoview*unit(cross(P.up,v));
@@ -2862,20 +2901,17 @@ void addStereoViews(picture dest, picture src,
   projection rightEye=P.copy();
   rightEye.camera += h;
   rightEye.calculate();
-  if(group) begingroup(dest);
-  frame Left=src.fit(leftEye);
-  add(dest,Left,filltype);
-  frame Right=src.fit(rightEye);
-  add(dest,shift(min(Left).x-max(Right).x-margin)*Right,filltype);
-  if(group) endgroup(dest);
+  addViews(dest,src,leftright ?
+           new projection[][] {{leftEye,rightEye}} :
+           new projection[][] {{rightEye,leftEye}},group,filltype);
 }
 
-void addStereoViews(picture src, real margin=0, bool group=true,
+void addStereoViews(picture src, bool group=true,
                     filltype filltype=NoFill,
-                    real eyetoview=defaulteyetoview,
+                    real eyetoview=defaulteyetoview, bool leftright=true,
                     projection P=currentprojection)
 {
-  addStereoViews(currentpicture,src,margin,group,filltype,eyetoview,P);
+  addStereoViews(currentpicture,src,group,filltype,eyetoview,leftright,P);
 }
 
 // Fit an array of 3D pictures simultaneously using the sizing of picture all.

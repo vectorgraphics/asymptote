@@ -399,7 +399,7 @@ struct transformation {
     oblique=false;
   }
   transform3 compute() {
-    return projection*modelview;
+    return infinity ? modelview : projection*modelview;
   }
   transformation copy() {
     transformation T=new transformation;
