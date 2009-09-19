@@ -1,4 +1,5 @@
 // Contributed by Philippe Ivaldi.
+// http://www.piprime.fr/
 
 import graph3 ;
 import contour;

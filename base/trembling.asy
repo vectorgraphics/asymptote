@@ -1,4 +1,5 @@
 // Copyright (c) 2008, Philippe Ivaldi.
+// http://www.piprime.fr/
 // trembling.asy: handwriting package for the software Asymptote.
 
 // This program is free software ; you can redistribute it and/or modify

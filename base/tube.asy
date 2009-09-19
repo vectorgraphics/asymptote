@@ -1,4 +1,5 @@
 // Author: Philippe Ivaldi
+// http://www.piprime.fr/
 // Based on this paper:
 // http://www.cs.hku.hk/research/techreps/document/TR-2007-07.pdf
 // Note: the additional rotation for a cyclic smooth spine curve is not

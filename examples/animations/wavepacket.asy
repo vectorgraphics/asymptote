@@ -1,4 +1,5 @@
 // Author : Philippe Ivaldi
+// http://www.piprime.fr/
 // 2006/11/10
 
 import animation;

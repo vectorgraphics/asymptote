@@ -1,5 +1,6 @@
 // grid3.asy
 // Author: Philippe Ivaldi (Grids in 3D)
+// http://www.piprime.fr/
 // Created: 10 janvier 2007
 
 import graph3;

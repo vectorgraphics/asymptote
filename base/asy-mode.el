@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2006-8
 ;; Author: Philippe IVALDI 20 August 2006
+;; http://www.piprime.fr/
 ;; Modified by: John Bowman
-;; Last modification: 05 December 2008 (P. Ivaldi)
 ;;
 ;; This program is free software ; you can redistribute it and/or modify
 ;; it under the terms of the GNU Lesser General Public License as published by

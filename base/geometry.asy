@@ -2,6 +2,7 @@
 
 // Copyright (C) 2007
 // Author: Philippe IVALDI 2007/09/01
+// http://www.piprime.fr/
 
 // This program is free software ; you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by

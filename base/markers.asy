@@ -1,4 +1,5 @@
 // Mark routines and markers written by Philippe Ivaldi.
+// http://www.piprime.fr/
 
 marker operator * (transform T, marker m)
 {
