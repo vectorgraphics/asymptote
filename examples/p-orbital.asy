@@ -1,9 +1,9 @@
-import graph3; 
-import palette; 
-size(200); 
-currentprojection=orthographic(6,8,2); 
+import graph3;
+import palette;
+size(200);
+currentprojection=orthographic(6,8,2);
  
-real c0=0.1; 
+real c0=0.1;
 
 real f(real r) {return r*(1-r/6)*exp(-r/3);}
 
@@ -21,8 +21,8 @@ bool cond(pair t) {return f(t.x) != 0;}
 real R=abs((20,20,20));
 surface s=surface(f,(0,0),(R,2pi),100,8,Spline,cond);
 
-s.colors(palette(s.map(abs),Gradient(palegreen,heavyblue))); 
-draw(s); 
-draw(zscale3(-1)*s); 
+s.colors(palette(s.map(abs),Gradient(palegreen,heavyblue)));
+draw(s);
+draw(zscale3(-1)*s);
  
 axes3("$x$","$y$","$z$",Arrow3);

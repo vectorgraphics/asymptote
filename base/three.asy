@@ -2799,19 +2799,19 @@ frame embedder(string prefix, frame f, string format, bool view,
     },prefix,format,view,light);
 }
 
-projection[][] ThreeViewsFR={{RightView,FrontView},
-                             {null,TopView}};
-
-projection[][] SixViewsFR={{null,BottomView},
-                           {RightView,FrontView,LeftView,BackView},
-                           {null,TopView}};
-
 projection[][] ThreeViewsUS={{TopView},
                              {FrontView,RightView}};
 
 projection[][] SixViewsUS={{null,TopView},
                            {LeftView,FrontView,RightView,BackView},
                            {null,BottomView}};
+
+projection[][] ThreeViewsFR={{RightView,FrontView},
+                             {null,TopView}};
+
+projection[][] SixViewsFR={{null,BottomView},
+                           {RightView,FrontView,LeftView,BackView},
+                           {null,TopView}};
 
 projection[][] ThreeViews={{FrontView,TopView,RightView}};
 

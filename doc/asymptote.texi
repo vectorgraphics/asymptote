@@ -9292,4 +9292,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  usplinetype vsplinetype leftbutton middlebutton rightbutton
 @c  LocalWords:  rotateY rotateZ wheelup zoomin wheeldown zoomout TeXLive
 @c  LocalWords:  viewportshift signedint signedness psview multiplatform nowarn
-@c  LocalWords:  singlereal singleint writeoverloaded tubegranularity
+@c  LocalWords:  singlereal singleint writeoverloaded tubegranularity dvisvg
