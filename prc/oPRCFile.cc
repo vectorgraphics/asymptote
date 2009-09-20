@@ -573,12 +573,12 @@ void makeAppUUID(uint32_t *UUID)
 
 void writeUINT32_T(std::ostream &out, uint32_t data)
 {
-#ifdef WORDS_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
   out.write(((char*)&data)+3,1);
   out.write(((char*)&data)+2,1);
   out.write(((char*)&data)+1,1);
   out.write(((char*)&data)+0,1);
-#elif WORDS_LITTLE_ENDIAN
+#else
   out.write(((char*)&data)+0,1);
   out.write(((char*)&data)+1,1);
   out.write(((char*)&data)+2,1);
