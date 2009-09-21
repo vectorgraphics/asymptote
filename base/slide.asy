@@ -430,12 +430,13 @@ void multifigure(string[] slist, string options="", string caption="",
   firststep=false;
 }
 
-void indexedfigure(string prefix, int n, string options="", string caption="",
-                 pair align=S, pen p=itempen, pen figuremattpen=figuremattpen)
+void indexedfigure(string prefix, int first, int last, 
+                   string options="", string caption="",
+                   pair align=S, pen p=itempen, pen figuremattpen=figuremattpen)
 {
   string[] s;
-  for (int i=0; i<n; ++i)
-    s.push(prefix+"+"+string(i));
+  for(int i=first; i <= last; ++i)
+    s.push(prefix+string(i));
   multifigure(s, options, caption, align, p, figuremattpen);
 }
 
