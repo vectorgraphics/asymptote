@@ -216,11 +216,10 @@ void texinit()
   }
   
   bool context=settings::context(getSetting<string>("tex"));
-  string name;
-  if(!context) 
-    name=stripFile(outname());
-  name += "texput";
-  string logname=name+".log";
+  string dir=stripFile(outname());
+  string logname;
+  if(!context) logname=dir;
+  logname += "texput.log";
   const char *cname=logname.c_str();
   ofstream writeable(cname);
   if(!writeable)
@@ -239,7 +238,6 @@ void texinit()
     cmd.push_back("--scrollmode");
     cmd.push_back(texput);
   } else {
-    string dir=stripFile(outname());
     if(!dir.empty()) 
       cmd.push_back("-output-directory="+dir);
     cmd.push_back("\\scrollmode");
@@ -261,16 +259,17 @@ int opentex(const string& texname, const string& prefix)
   bool context=settings::context(getSetting<string>("tex"));
   mem::vector<string> cmd;
   cmd.push_back(texprogram());
-  if(context)
+  if(context) {
     cmd.push_back("--nonstopmode");
-  else {
-    string dir=stripFile(outname());
+    cmd.push_back(texname);
+  } else {
+    string dir=stripFile(texname);
     if(!dir.empty()) 
       cmd.push_back("-output-directory="+dir);
     cmd.push_back("\\nonstopmode\\input");
+    cmd.push_back(stripDir(texname));
   }
     
-  cmd.push_back(texname);
   bool quiet=verbose <= 1;
   int status=System(cmd,quiet ? 1 : 0,true,"texpath",texpathmessage());
   if(!status && getSetting<bool>("twice"))
@@ -426,8 +425,8 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd.push_back("-sOutputFile="+stripDir(pdfname));
   cmd.push_back(stripDir(epsname));
 
-  string dir=stripFile(pdfname);
   char *oldPath=NULL;
+  string dir=stripFile(pdfname);
   if(!dir.empty()) {
     oldPath=getPath();
     setPath(dir.c_str());

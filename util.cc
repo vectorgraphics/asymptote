@@ -153,16 +153,9 @@ void writeDisabled()
   camp::reportError("Write/cd to other directories disabled; override with option -globalwrite");
 }
 
-bool globalwrite(string name)
-{
-  string outname=settings::outname();
-  return (!outname.empty() && name.substr(0,outname.size()) == outname) ||
-    globalwrite(); 
-}
-
 void checkLocal(string name)
 {
-  if(globalwrite(name)) return;
+  if(globalwrite()) return;
 #ifdef __CYGWIN__  
   if(name.rfind('\\') < string::npos) writeDisabled();
 #endif  
@@ -172,8 +165,8 @@ void checkLocal(string name)
 
 string buildname(string name, string suffix, string aux) 
 {
-  if(!globalwrite(name))
-    name=stripDir(name);
+  string dir=stripFile(outname());
+  name=globalwrite() ? dir+name : dir+stripDir(name);
     
   name=stripExt(name,defaultformat());
   name += aux;

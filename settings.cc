@@ -1295,7 +1295,8 @@ bool trap() {
     return !getSetting<bool>("batchMask");
 }
 
-string outname() {
+string outname() 
+{
   string name=getSetting<string>("outname");
   return name.empty() ? "out" : name;
 }
