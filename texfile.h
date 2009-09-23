@@ -119,7 +119,21 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
     if(!pipe && !settings::getSetting<bool>("inlinetex"))
       out << "\\usemodule[pictex]" << newl;
   } else {
-    out << "\\input graphicx" << newl;
+    out << "\\input graphicx" << newl // Fix miniltx path parsing bug:
+        << "\\makeatletter" << newl 
+        << "\\def\\filename@parse#1{%" << newl
+        << "  \\let\\filename@area\\@empty" << newl
+        << "  \\expandafter\\filename@path#1/\\\\}" << newl
+        << "\\def\\filename@path#1/#2\\\\{%" << newl
+        << "  \\ifx\\\\#2\\\\%" << newl
+        << "     \\def\\reserved@a{\\filename@simple#1.\\\\}%" << newl
+        << "  \\else" << newl
+        << "     \\edef\\filename@area{\\filename@area#1/}%" << newl
+        << "     \\def\\reserved@a{\\filename@path#2\\\\}%" << newl
+        << "  \\fi" << newl
+        << "  \\reserved@a}" << newl
+        << "\\makeatother" << newl;
+
     if(!pipe)
       out << "\\input picture" << newl;
   }
