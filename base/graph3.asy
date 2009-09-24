@@ -1572,8 +1572,10 @@ surface surface(triple[][] f, bool[][] cond={})
       }
   }
 
-  if(uperiodic(f)) s.ucyclic(true);
-  if(vperiodic(f)) s.vcyclic(true);
+  if(count == nx*ny) {
+    if(uperiodic(f)) s.ucyclic(true);
+    if(vperiodic(f)) s.vcyclic(true);
+  }
   
   return s;
 }
