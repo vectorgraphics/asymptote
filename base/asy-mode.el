@@ -43,7 +43,7 @@
 ;;
 ;; See also paragraph II of the documentation below to automate asy-insinuate-latex.
 
-(defvar asy-mode-version "1.5")
+(defvar asy-mode-version "1.6")
 
 ;;;###autoload
 (define-derived-mode asy-mode objc-mode "Asymptote"
@@ -75,11 +75,11 @@ Note that some keys binding are added to the LaTeX-mode-map in lasy-mode if the 
 
 II. To add a menu bar in current 'latex-mode' buffer and activate hot keys, use 'M-x asy-insinuate-latex <RET>'.
 You can automate this feature for all the 'latex-mode' buffers by inserting the five following lines in your .emacs initialization file:
-  (eval-after-load \"latex\"
-    '(progn
-       ;; Add here your personal features for 'latex-mode':
-       (asy-insinuate-latex t) ;; Asymptote globally insinuates Latex.
-       ))
+(eval-after-load \"latex\"
+  '(progn
+     ;; Add here your personal features for 'latex-mode':
+     (asy-insinuate-latex t) ;; Asymptote globally insinuates Latex.
+     ))
 
 You can access this help within Emacs by the key binding C-h f asy-mode <RET>
 
@@ -687,6 +687,24 @@ the current mode."
       (defun lasy-mode ()
         "Treat, in some cases, the current buffer as a literal Asymptote program."
         (interactive)
+        (save-excursion
+          (let ((prefix
+                 (progn
+                   (goto-char (point-max))
+                   (re-search-backward "^\\([^\n]+\\)Local Variables:"
+                                       (- (point-max) 3000) t)
+                   (match-string 1)))
+                (pos-b (point)))
+            (when
+                (and prefix
+                     (progn
+                       (re-search-forward (regexp-quote
+                                           (concat prefix
+                                                   "End:")) (point-max) t)
+                       (re-search-backward (concat "\\(" prefix "mode: .*\\)") pos-b t))
+                     )
+              (error (concat "lasy-mode can not work if a mode is specified as local file variable.
+You should remove the line " (int-to-string (line-number-at-pos)))))))
         (set (make-local-variable 'asy-insinuate-latex-p) asy-insinuate-latex-p)
         (make-local-variable 'lasy-fontify-asy-p)
         (when (< emacs-major-version 22)
@@ -724,6 +742,7 @@ the current mode."
                       (when (< emacs-major-version 22)
                         (setq font-lock-keywords-only t))
                       ))))
+      ;; (setq two-mode-switch-hook nil)
 
       ;; Solve a problem restoring a TeX file via desktop.el previously in lasy-mode.
       (if (boundp 'desktop-buffer-mode-handlers)
@@ -935,16 +954,16 @@ is in a asy environnement."
          ["PS"  asy-master-tex-view-ps-f :active t]
          ["PDF (pdflatex)" asy-master-tex-view-pdflatex-f :active t]
          ["PDF (ps2pdf)" asy-master-tex-view-ps2pdf-f :active t])"--"
-        ["Asymptote insinuates globally LaTeX"  asy-insinuate-latex-globally :active (not asy-insinuate-latex-globally-p)]
-        ("Disable Asymptote insinuate Latex"
-         ["locally"  asy-no-insinuate-locally :active t]
-         ["globally"  asy-no-insinuate-globally :active t])
-        ("Debugger Buffer"
-         ["Visible" (setq asy-compilation-buffer 'visible) :style radio :selected (eq asy-compilation-buffer 'visible) :active t]
-         ["Available" (setq asy-compilation-buffer 'available)  :style radio :selected (eq asy-compilation-buffer 'available) :active t]
-         ["None" (setq asy-compilation-buffer 'none)  :style radio :selected (eq asy-compilation-buffer 'none) :active t]
-         ["Never" (setq asy-compilation-buffer 'never)  :style radio :selected (eq asy-compilation-buffer 'never) :active t])
-        ))
+         ["Asymptote insinuates globally LaTeX"  asy-insinuate-latex-globally :active (not asy-insinuate-latex-globally-p)]
+         ("Disable Asymptote insinuate Latex"
+          ["locally"  asy-no-insinuate-locally :active t]
+          ["globally"  asy-no-insinuate-globally :active t])
+         ("Debugger Buffer"
+          ["Visible" (setq asy-compilation-buffer 'visible) :style radio :selected (eq asy-compilation-buffer 'visible) :active t]
+          ["Available" (setq asy-compilation-buffer 'available)  :style radio :selected (eq asy-compilation-buffer 'available) :active t]
+          ["None" (setq asy-compilation-buffer 'none)  :style radio :selected (eq asy-compilation-buffer 'none) :active t]
+          ["Never" (setq asy-compilation-buffer 'never)  :style radio :selected (eq asy-compilation-buffer 'never) :active t])
+         ))
 (if running-xemacs-p
     (setq asy-latex-menu-item (nconc '("Asymptote") asy-latex-menu-item))
   (setq asy-latex-menu-item (nconc '("Asymptote" :visible asy-insinuate-latex-p) asy-latex-menu-item)))
@@ -971,6 +990,23 @@ For internal use only."
      (add-hook 'LaTeX-mode-hook 'asy-insinuate-latex-maybe)
      (setq lasy-mode-map (copy-keymap LaTeX-mode-map))
      (setq LaTeX-mode-map-backup (copy-keymap LaTeX-mode-map))
+
+     (defadvice TeX-add-local-master (after asy-adjust-local-variable ())
+       "Delete the line that defines the mode in a file .tex because two-mode-mode reread
+the local variables after switching mode."
+       (when (string= (file-name-extension buffer-file-name) "tex")
+         (save-excursion
+           (goto-char (point-max))
+           (delete-matching-lines
+            "mode: latex"
+            (re-search-backward "^\\([^\n]+\\)Local Variables:"
+                                (- (point-max) 3000) t)
+            (re-search-forward (regexp-quote
+                                (concat (match-string 1)
+                                        "End:"))) nil))))
+     (ad-activate 'TeX-add-local-master)
+     ;; (ad-deactivate 'TeX-add-local-master)
+
      (when lasy-extra-key
        (define-key lasy-mode-map (kbd "<C-return>")
          (lambda ()
@@ -1135,7 +1171,7 @@ See `asy-insinuate-latex'."
       "")))
 
 (defun lasy-compile-tex()
-  "Compile region between \\begin{asy}[text with backslash] and \\end{asy} passing by a reconstructed file .tex."
+  "Compile region between \\begin{asy}[text with backslash] and \\end{asy} through a reconstructed file .tex."
   (interactive)
   (setq lasy-run-tex t)
   (save-excursion
@@ -1400,6 +1436,20 @@ In Windows the associated system file type is used instead."
         (start-process "" nil command Filename)
       (call-process-shell-command command nil 0))))
 
+(defun lasy-TeX-master-file ()
+  "Return the file name of the master file for the current document.
+The returned string contain the directory but does not contain the extension of the file."
+  (expand-file-name
+   (concat (TeX-master-directory) (TeX-master-file nil t))))
+
+(defun lasy-must-compile-p (TeX-Master-File out-file &optional Force)
+  ""
+  (or Force
+      (file-newer-than-file-p
+       (concat TeX-Master-File ".tex") out-file)
+      (and (stringp (TeX-master-file)) ;; current buffer is not a mater tex file
+           (file-newer-than-file-p buffer-file-name out-file))))
+
 (defun lasy-view-ps (&optional Force  Filename fromtex)
   "Compile a LaTeX document embedding Asymptote code with latex->asy->latex->dvips and/or view the PostScript output.
 If optional argument Force is t then force compilation."
@@ -1407,27 +1457,26 @@ If optional argument Force is t then force compilation."
   (setq lasy-run-tex t)
   (setq lasy-compile-tex fromtex)
   (if (buffer-modified-p) (save-buffer))
+  (when (eq asy-compilation-buffer 'never) (write-region "" 0 (asy-log-filename) nil))
   (let*
-      ((b-b-n  (if Filename Filename (file-name-sans-extension buffer-file-name)))
+      ((b-b-n  (if Filename Filename (lasy-TeX-master-file)))
        (b-b-n-tex (asy-protect-file-name (concat b-b-n ".tex")))
        (b-b-n-ps (asy-protect-file-name (concat b-b-n ".ps")))
        (b-b-n-dvi (asy-protect-file-name (concat b-b-n ".dvi")))
        (b-b-n-asy (asy-protect-file-name (concat b-b-n ".asy")))
        (stderr (eq asy-compilation-buffer 'never)))
-    (if (or (file-newer-than-file-p
-             (concat b-b-n ".tex")
-             (concat b-b-n ".ps"))
-            Force)
+    (if (lasy-must-compile-p b-b-n (concat b-b-n ".ps") Force)
         (progn
-          (asy-internal-compile (concat lasy-latex-command " " b-b-n-tex))
-          (when (and (zerop asy-last-compilation-code) (file-readable-p (concat b-b-n ".asy")))
-            (asy-internal-compile (concat asy-command-location lasy-command " " b-b-n-asy)  nil nil stderr)
+          (let ((default-directory (file-name-directory b-b-n)))
+            (asy-internal-compile (concat lasy-latex-command " " b-b-n-tex))
+            (when (and (zerop asy-last-compilation-code) (file-readable-p (concat b-b-n ".asy")))
+              (asy-internal-compile (concat asy-command-location lasy-command " " b-b-n-asy)  nil nil stderr)
+              (when (zerop asy-last-compilation-code)
+                (asy-internal-compile (concat lasy-latex-command " " b-b-n-tex))))
             (when (zerop asy-last-compilation-code)
-              (asy-internal-compile (concat lasy-latex-command " " b-b-n-tex))))
-          (when (zerop asy-last-compilation-code)
-            (asy-internal-compile (concat lasy-dvips-command " " b-b-n-dvi " -o " b-b-n-ps) nil t)
-            (when (zerop asy-last-compilation-code)
-              (asy-open-file (concat b-b-n ".ps")))))
+              (asy-internal-compile (concat lasy-dvips-command " " b-b-n-dvi " -o " b-b-n-ps) nil t)
+              (when (zerop asy-last-compilation-code)
+                (asy-open-file (concat b-b-n ".ps"))))))
       (asy-open-file (concat b-b-n ".ps")))))
 
 (defun lasy-view-pdf-via-pdflatex (&optional Force Filename fromtex)
@@ -1439,24 +1488,22 @@ If optional argument Force is t then force compilation."
   (if (buffer-modified-p) (save-buffer))
   (when (eq asy-compilation-buffer 'never) (write-region "" 0 (asy-log-filename) nil))
   (let*
-      ((b-b-n  (if Filename Filename (file-name-sans-extension buffer-file-name)))
+      ((b-b-n  (if Filename Filename (lasy-TeX-master-file)))
        (b-b-n-tex (asy-protect-file-name (concat b-b-n ".tex")))
        (b-b-n-pdf (asy-protect-file-name (concat b-b-n ".pdf")))
        (b-b-n-asy (asy-protect-file-name (concat b-b-n ".asy")))
        ;; (stderr (or (eq asy-compilation-buffer 'never) lasy-compile-tex)))
        (stderr (eq asy-compilation-buffer 'never)))
-    (if (or (file-newer-than-file-p
-             (concat b-b-n ".tex")
-             (concat b-b-n ".pdf"))
-            Force)
+    (if (lasy-must-compile-p b-b-n (concat b-b-n ".pdf") Force)
         (progn
-          (asy-internal-compile (concat lasy-pdflatex-command " " b-b-n-tex))
-          (when (and (zerop asy-last-compilation-code) (file-readable-p (concat b-b-n ".asy")))
-            (asy-internal-compile (concat asy-command-location lasy-command " " b-b-n-asy) nil nil stderr)
+          (let ((default-directory (file-name-directory b-b-n)))
+            (asy-internal-compile (concat lasy-pdflatex-command " " b-b-n-tex))
+            (when (and (zerop asy-last-compilation-code) (file-readable-p (concat b-b-n ".asy")))
+              (asy-internal-compile (concat asy-command-location lasy-command " " b-b-n-asy) nil nil stderr)
+              (when (zerop asy-last-compilation-code)
+                (asy-internal-compile (concat lasy-pdflatex-command " " b-b-n-tex) t)))
             (when (zerop asy-last-compilation-code)
-              (asy-internal-compile (concat lasy-pdflatex-command " " b-b-n-tex) t)))
-          (when (zerop asy-last-compilation-code)
-            (asy-open-file (concat b-b-n ".pdf"))))
+              (asy-open-file (concat b-b-n ".pdf")))))
       (asy-open-file (concat b-b-n ".pdf")))))
 
 (defun lasy-view-pdf-via-ps2pdf (&optional Force Filename fromtex)
@@ -1468,7 +1515,7 @@ If optional argument Force is t then force compilation."
   (if (buffer-modified-p) (save-buffer))
   (when (eq asy-compilation-buffer 'never) (write-region "" 0 (asy-log-filename) nil))
   (let*
-      ((b-b-n  (if Filename Filename (file-name-sans-extension buffer-file-name)))
+      ((b-b-n  (if Filename Filename (lasy-TeX-master-file)))
        (b-b-n-tex (asy-protect-file-name (concat b-b-n ".tex")))
        (b-b-n-ps (asy-protect-file-name (concat b-b-n ".ps")))
        (b-b-n-dvi (asy-protect-file-name (concat b-b-n ".dvi")))
@@ -1476,22 +1523,20 @@ If optional argument Force is t then force compilation."
        (b-b-n-asy (asy-protect-file-name (concat b-b-n ".asy")))
        ;; (stderr (or (eq asy-compilation-buffer 'never) lasy-compile-tex)))
        (stderr (eq asy-compilation-buffer 'never)))
-    (if (or (file-newer-than-file-p
-             (concat b-b-n ".tex")
-             (concat b-b-n ".pdf"))
-            Force)
+    (if (lasy-must-compile-p b-b-n (concat b-b-n ".pdf") Force)
         (progn
-          (asy-internal-compile (concat lasy-latex-command " " b-b-n-tex))
-          (when (and (zerop asy-last-compilation-code) (file-readable-p (concat b-b-n ".asy")))
-            (asy-internal-compile (concat asy-command-location lasy-command " " b-b-n-asy) nil nil stderr)
-            (when (zerop asy-last-compilation-code)
-              (asy-internal-compile (concat lasy-latex-command " " b-b-n-tex))))
-          (when (zerop asy-last-compilation-code)
-            (asy-internal-compile (concat lasy-dvips-pre-pdf-command " " b-b-n-dvi " -o " b-b-n-ps))
-            (when (zerop asy-last-compilation-code)
-              (asy-internal-compile (concat lasy-ps2pdf-command " " b-b-n-ps " " b-b-n-pdf) t)
+          (let ((default-directory (file-name-directory b-b-n)))
+            (asy-internal-compile (concat lasy-latex-command " " b-b-n-tex))
+            (when (and (zerop asy-last-compilation-code) (file-readable-p (concat b-b-n ".asy")))
+              (asy-internal-compile (concat asy-command-location lasy-command " " b-b-n-asy) nil nil stderr)
               (when (zerop asy-last-compilation-code)
-                (asy-open-file (concat b-b-n ".pdf"))))))
+                (asy-internal-compile (concat lasy-latex-command " " b-b-n-tex))))
+            (when (zerop asy-last-compilation-code)
+              (asy-internal-compile (concat lasy-dvips-pre-pdf-command " " b-b-n-dvi " -o " b-b-n-ps))
+              (when (zerop asy-last-compilation-code)
+                (asy-internal-compile (concat lasy-ps2pdf-command " " b-b-n-ps " " b-b-n-pdf) t)
+                (when (zerop asy-last-compilation-code)
+                  (asy-open-file (concat b-b-n ".pdf")))))))
       (asy-open-file (concat b-b-n ".pdf")))))
 
 ;; Goto error of last compilation
