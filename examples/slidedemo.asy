@@ -108,7 +108,7 @@ draw(pic,F3(r)--(1,f(r),0),red);
 real x=(1+r)/2;
 draw(pic,"$r$",(x,0,0)--(x,f(r),0),X+0.2Z,red,Arrow3);
 draw(pic,arc(1.1X,0.4,90,90,3,-90),Arrow3);
-add(pic.fit(8.5cm));
+add(pic.fit(0,14cm));
 
 title("\mbox{Asymptote: 2D \& 3D Vector Graphics Language}");
 asyinclude("logo3");
