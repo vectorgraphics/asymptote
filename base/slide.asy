@@ -18,11 +18,8 @@ bool landscape=orientation == Landscape || orientation == Seascape;
 
 if(landscape) {
   orientation=Portrait;
-  real temp=settings.paperwidth;
-  settings.paperwidth=settings.paperheight;
-  settings.paperheight=temp;
-  pagewidth += settings.paperwidth;
-  pageheight += settings.paperheight;
+  pagewidth += settings.paperheight;
+  pageheight += settings.paperwidth;
 } else {
   pagewidth += settings.paperwidth;
   pageheight += settings.paperheight;
