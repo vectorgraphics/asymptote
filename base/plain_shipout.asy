@@ -96,7 +96,8 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
     if(prc && !pic.empty3())
       settings.inlinetex=settings.inlineimage;
     frame f=pic.fit(prefix,format,view=view,options,script,light,P);
-    if(!pic.empty2() || settings.render == 0 || prc)
+    if(!pic.empty2() || settings.render == 0 || prc ||
+       outformat(format) != "pdf")
       shipout(prefix,orientation(f),format,wait,view);
     settings.inlinetex=inlinetex;
   }

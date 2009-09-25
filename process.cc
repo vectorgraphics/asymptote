@@ -626,7 +626,6 @@ class iprompt : public icore {
     if (cl.simple()) {
       // Don't store exit commands in the history file.
       interact::deleteLastLine();
-
       running=false;
       return true;
     }
@@ -643,9 +642,7 @@ class iprompt : public icore {
       running=false;
       restart=true;
       startline="";
-
       run::purge();
-
       return true;
     }
     else return false;
@@ -659,13 +656,19 @@ class iprompt : public icore {
     else return false;
   }
 
-
-  bool input(commandLine cl) {
-    string prefix="include ";
-    string line=prefix+cl.rest;
+  bool erase(commandLine cl) {
     running=false;
     restart=true;
-    startline=line;
+    if (cl.simple())
+      startline="erase()";
+    else startline=cl.line;
+    return true;
+  }
+
+  bool input(commandLine cl) {
+    running=false;
+    restart=true;
+    startline="include "+cl.rest;
     return true;
   }
 
@@ -679,6 +682,7 @@ class iprompt : public icore {
     ADDCOMMAND(q,q);
     ADDCOMMAND(exit,exit);
     ADDCOMMAND(reset,reset);
+    ADDCOMMAND(erase,erase);
     ADDCOMMAND(help,help);
     ADDCOMMAND(input,input);
 
