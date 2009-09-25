@@ -775,17 +775,17 @@ create a text file @code{test.asy} containing
 @verbatiminclude diagonal.asy
 
 @noindent
-Then execute this file with the command
+Then execute the command
 @verbatim
 asy -V test
 @end verbatim
 @noindent
-@cindex @code{-V}
 Alternatively, @code{MSDOS} users can drag and drop @code{test.asy} onto the
 Desktop @code{asy} icon (or make @code{Asymptote} the default
 application the extension @code{asy}).
 
 @noindent
+@cindex @code{-V}
 This method, known as @emph{batch mode}, outputs a @code{PostScript}
 file @code{test.eps}. The @code{-V} option opens up a @code{PostScript}
 viewer window so you can immediately view the result:
