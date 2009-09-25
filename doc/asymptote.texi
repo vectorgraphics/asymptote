@@ -794,10 +794,8 @@ viewer window so you can immediately view the result:
 @cindex @code{bp}
 @cindex @code{pair}
 @noindent
-The units here are @code{PostScript} "big points" 
-(1 @code{bp} = 1/72 @code{inch}); @code{--} means join with a linear segment.
-In @code{Asymptote} coordinates like @code{(0,0)} and
-@code{(100,100)} are called @emph{pairs}.
+The @code{--} connector joins the two points @code{(0,0)} and
+@code{(100,100)} with a linear segment. 
 
 Another method is @emph{interactive mode}, where @code{Asymptote} reads
 individual commands as they are entered by the user. To try this out, enter
@@ -834,9 +832,13 @@ like this square:
 @sp 1
 @center @image{square}
 
-It is often inconvenient to work directly with @code{PostScript} coordinates.
-The next example draws a unit square scaled to width 101 bp and height
-101 bp. The output is identical to that of the previous example.
+In @code{Asymptote} coordinates like (0,0) and (100,100) are called
+@emph{pairs}. The pairs in the previous examples are expressed in
+@code{PostScript} "big points" (1 @code{bp} = 1/72 @code{inch}). 
+However, it is often inconvenient to work directly in
+@code{PostScript} coordinates. The next example draws a unit square
+scaled to width 101 @code{bp} and height
+101 @code{bp}. The output is identical to that of the previous example.
 @verbatim
 size(101,101);
 draw((0,0)--(1,0)--(1,1)--(0,1)--cycle);
@@ -845,16 +847,16 @@ draw((0,0)--(1,0)--(1,1)--(0,1)--cycle);
 For convenience, the path @code{(0,0)--(1,0)--(1,1)--(0,1)--cycle}
 may be replaced with the predefined variable
 @code{unitsquare}, or equivalently, @code{box((0,0),(1,1))}.
-
 @cindex @code{inches}
 @cindex @code{cm}
 @cindex @code{mm}
 @cindex @code{pt}
 One can also specify the size in @code{pt} (1 @code{pt} = 1/72.27 @code{inch}),
-@code{cm}, @code{mm}, or @code{inches}. 
+@code{cm}, @code{mm}, or @code{inches}.
+Two nonzero size arguments (or a single size argument) restrict the
+size in both directions, preserving the aspect ratio.
 If 0 is given as a size argument, no restriction is made in that direction;
-the overall scaling will be determined by the other direction
-(@pxref{size}):
+the overall scaling will be determined by the other direction (@pxref{size}):
 @verbatiminclude bigsquare.asy
 @sp 1
 @center @image{bigsquare}
@@ -866,12 +868,7 @@ To make the user coordinates represent multiples of exactly @code{1cm}:
 unitsize(1cm);
 draw(unitsquare);
 @end verbatim 
-
-One can also specify different @math{x} and @math{y} unit sizes:
-@verbatim 
-unitsize(1cm,2cm);
-draw(unitsquare);
-@end verbatim 
+@noindent
 
 Adding labels is easy in @code{Asymptote}; one specifies the
 label as a double-quoted @code{LaTeX} string, a

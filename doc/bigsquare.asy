@@ -1,2 +1,2 @@
-size(0,3cm);
+size(3cm,3cm);
 draw(unitsquare);
