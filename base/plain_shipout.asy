@@ -93,11 +93,11 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
   if(!uptodate()) {
     bool inlinetex=settings.inlinetex;
     bool prc=prc(format);
-    if(prc && !pic.empty3())
+    bool empty3=pic.empty3();
+    if(prc && !empty3)
       settings.inlinetex=settings.inlineimage;
     frame f=pic.fit(prefix,format,view=view,options,script,light,P);
-    if(!pic.empty2() || settings.render == 0 || prc ||
-       outformat(format) != "pdf")
+    if(!pic.empty2() || settings.render == 0 || prc || empty3)
       shipout(prefix,orientation(f),format,wait,view);
     settings.inlinetex=inlinetex;
   }
