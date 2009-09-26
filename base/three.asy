@@ -1041,9 +1041,14 @@ path3 invert(path p, triple normal, triple point,
   return path3(p,new triple(pair z) {return invert(z,normal,point,P);});
 }
 
+path3 invert(path p, triple point, projection P=currentprojection)
+{
+  return path3(p,new triple(pair z) {return invert(z,P.vector(),point,P);});
+}
+
 path3 invert(path p, projection P=currentprojection)
 {
-  return path3(p,new triple(pair z) {return invert(z,P);});
+  return path3(p,new triple(pair z) {return invert(z,P.vector(),P.target,P);});
 }
 
 // Construct a path from a path3 by applying P to each control point.
@@ -1764,11 +1769,11 @@ transform3 align(triple u)
 // return a rotation that maps X,Y to the projection plane.
 transform3 transform3(projection P=currentprojection)
 {
-  triple v=unit(P.oblique ? P.camera : P.vector());
-  triple u=unit(perp(P.up,v));
-  if(u == O) u=cross(perp(v),v);
-  v=cross(u,v);
-  return v != O ? transform3(v,u) : identity(4);
+  triple w=unit(P.oblique ? P.camera : P.vector());
+  triple v=unit(perp(P.up,w));
+  if(v == O) v=cross(perp(w),w);
+  triple u=cross(v,w);
+  return u != O ? transform3(u,v,w) : identity(4);
 }
 
 triple[] triples(real[] x, real[] y, real[] z)
