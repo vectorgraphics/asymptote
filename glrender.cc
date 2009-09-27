@@ -1021,12 +1021,16 @@ void write(const char *text, const double *v)
   cout << text << "=(" << v[0] << "," << v[1] << "," << v[2] << ")";
 }
 
-void camera()
+static bool glinitialize=true;
+
+projection camera()
 {
-  camp::Triple vCamera,vTarget,vUp;
+  if(glinitialize) return projection();
+                   
+  camp::Triple vCamera,vUp,vTarget;
   
   double cz=0.5*(zmin+zmax);
-  
+
   for(int i=0; i < 3; ++i) {
     double sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
     int i4=4*i;
@@ -1046,24 +1050,26 @@ void camera()
     vTarget[i]=sumTarget;
   }
   
-  triple Camera=triple(vCamera);
-  triple Up=triple(vUp);
-  triple Target=triple(vTarget);
-  
-  pair viewportshift(X/Width*lastzoom+Shift.getx(),
-                     Y/Height*lastzoom+Shift.gety());
-  
+  return projection(orthographic,vCamera,vUp,vTarget,Zoom,
+                    2.0*atan(tan(0.5*Angle)/Zoom)/radians,
+                    pair(X/Width*lastzoom+Shift.getx(),
+                         Y/Height*lastzoom+Shift.gety()));
+}
+
+void showCamera()
+{
+  projection P=camera();
   cout << endl
        << "currentprojection=" 
-       << (orthographic ? "orthographic(" : "perspective(")  << endl
-       << "camera=" << Camera << "," << endl
-       << "up=" << Up << "," << endl
-       << "target=" << Target << "," << endl
-       << "zoom=" << Zoom;
+       << (P.orthographic ? "orthographic(" : "perspective(")  << endl
+       << "camera=" << P.camera << "," << endl
+       << "up=" << P.up << "," << endl
+       << "target=" << P.target << "," << endl
+       << "zoom=" << P.zoom;
   if(!orthographic)
-    cout << "," << endl << "angle=" << 2.0*atan(tan(0.5*Angle)/Zoom)/radians;
-  if(viewportshift != pair(0.0,0.0))
-    cout << "," << endl << "viewportshift=" << viewportshift;
+    cout << "," << endl << "angle=" << P.angle;
+  if(P.viewportshift != pair(0.0,0.0))
+    cout << "," << endl << "viewportshift=" << P.viewportshift;
   if(!orthographic)
     cout << "," << endl << "autoadjust=false";
   cout << ");" << endl;
@@ -1098,7 +1104,7 @@ void keyboard(unsigned char key, int x, int y)
       Export();
       break;
     case 'c':
-      camera();
+      showCamera();
       break;
     case '+':
     case '=':
@@ -1168,7 +1174,7 @@ void menu(int choice)
       queueExport=true;
       break;
     case CAMERA:
-      camera();
+      showCamera();
       break;
     case PLAY:
       if(getSetting<bool>("reverse")) Animate=false;
@@ -1264,10 +1270,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Mode=0;
   Xfactor=Yfactor=1.0;
   
-  static bool initialize=true;
-
-  if(initialize) {
-    initialize=false;
+  if(glinitialize) {
+    glinitialize=false;
     init();
     Fitscreen=1;
   }

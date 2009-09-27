@@ -319,6 +319,19 @@ projection TopView=orthographic(Z,up=Y,showtarget=true);
 
 currentprojection=perspective(5,4,2);
 
+projection projection() 
+{
+  projection P;
+  real[] a=_projection();
+  if(a[10] == 0.0) return currentprojection;
+  int k=0;
+  return a[0] == 1 ?
+    orthographic((a[++k],a[++k],a[++k]),(a[++k],a[++k],a[++k]),
+                 (a[++k],a[++k],a[++k]),a[++k],(a[k += 2],a[++k])) :
+    perspective((a[++k],a[++k],a[++k]),(a[++k],a[++k],a[++k]),
+                (a[++k],a[++k],a[++k]),a[++k],a[++k],(a[++k],a[++k]));
+}
+
 // Map pair z to a triple by inverting the projection P onto the
 // plane perpendicular to normal and passing through point.
 triple invert(pair z, triple normal, triple point,

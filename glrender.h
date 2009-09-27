@@ -49,6 +49,28 @@ inline void store(GLfloat *control, const camp::triple& v)
 }
 
 namespace gl {
+
+struct projection 
+{
+public:
+  bool orthographic;
+  camp::triple camera;
+  camp::triple up;
+  camp::triple target;
+  double zoom;
+  double angle;
+  camp::pair viewportshift;
+  
+  projection(bool orthographic=false, camp::triple camera=0.0,
+             camp::triple up=0.0, camp::triple target=0.0,
+             double zoom=0.0, double angle=0.0,
+             camp::pair viewportshift=0.0) : 
+    orthographic(orthographic), camera(camera), up(up), target(target),
+    zoom(zoom), angle(angle), viewportshift(viewportshift) {}
+};
+
+projection camera();
+
 void glrender(const string& prefix, const camp::picture* pic,
               const string& format, double width, double height, double angle,
               double zoom, const camp::triple& m, const camp::triple& M,
