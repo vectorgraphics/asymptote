@@ -1227,6 +1227,8 @@ void initSettings() {
                             0.1));
   addOption(new realSetting("spinstep", 0, "deg/sec", "Spin speed",
                             60.0));
+  addOption(new realSetting("framerate", 0, "frames/sec", "Animation speed",
+                            30.0));
   addOption(new realSetting("arcballradius", 0, "pixels",
                             "Arcball radius", 750.0));
   addOption(new realSetting("resizestep", 0, "step", "Resize step", 1.2));

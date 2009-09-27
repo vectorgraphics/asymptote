@@ -50,6 +50,7 @@ using camp::bbox3;
 using settings::getSetting;
 using settings::Setting;
 timeval lasttime;
+timeval lastframetime;
 
 double Aspect;
 bool View;
@@ -538,6 +539,7 @@ void reshape(int width, int height)
 void initTimer() 
 {
   gettimeofday(&lasttime,NULL);
+  gettimeofday(&lastframetime,NULL);
 }
 
 void idleFunc(void (*f)())
@@ -601,6 +603,12 @@ void screen()
     fitscreen(false);
 }
 
+void nextframe(int) 
+{
+  endwait(readySignal,readyLock);
+  if(Step) Animate=false;
+}
+
 void display()
 {
   if(queueScreen) {
@@ -612,8 +620,15 @@ void display()
 #ifdef HAVE_LIBPTHREAD
   if(glthread && Animate) {
     queueExport=false;
-    endwait(readySignal,readyLock);
-    if(Step) Animate=false;
+    double delay=1.0/getSetting<double>("framerate");
+    timeval tv;
+    gettimeofday(&tv,NULL);
+    double seconds=tv.tv_sec-lastframetime.tv_sec+
+      ((double) tv.tv_usec-lastframetime.tv_usec)/1000000.0;
+    lastframetime=tv;
+    if(seconds < delay)
+      glutTimerFunc(1000.0*(delay-seconds),nextframe,0);
+    else nextframe(0);
   }
 #endif
   if(queueExport) {
