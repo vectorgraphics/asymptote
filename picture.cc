@@ -831,6 +831,8 @@ bool picture::shipout3(const string& prefix, const string& format,
                        triple *lights, double *diffuse, double *ambient,
                        double *specular, bool viewportlighting, bool view)
 {
+  if(getSetting<bool>("interrupt"))
+    return true;
 #ifdef HAVE_LIBGL
   bounds3();
   
@@ -843,7 +845,8 @@ bool picture::shipout3(const string& prefix, const string& format,
     getSetting<string>("outformat") : format;
   bool View=settings::view() && view;
   static int oldpid=0;
-  bool Wait=!interact::interactive || !View;
+  bool animating=getSetting<bool>("animating");
+  bool Wait=!interact::interactive || !View || animating;
   
   if(glthread) {
 #ifdef HAVE_LIBPTHREAD
@@ -909,14 +912,14 @@ bool picture::shipout3(const string& prefix, const string& format,
   if(glthread && Wait) {
     pthread_cond_wait(&readySignal,&readyLock);
     pthread_mutex_unlock(&readyLock);
-    
+  }
+  if(!glthread || (Wait && !animating)) {
     delete[] specular;
     delete[] ambient;
     delete[] diffuse;
     delete[] lights;
-    delete[] background;
-    delete[] t;
   }
+
   return true;
 #endif  
 #else

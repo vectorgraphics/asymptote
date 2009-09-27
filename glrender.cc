@@ -11,11 +11,6 @@
 
 #include "common.h"
 
-namespace gl {
-bool glthread=false;
-bool initialize=true;
-}
-
 #ifdef HAVE_LIBGL
 
 // For CYGWIN
@@ -41,6 +36,9 @@ bool initialize=true;
 
 namespace gl {
   
+bool glthread=false;
+bool initialize=true;
+
 using camp::picture;
 using camp::drawImage;
 using camp::transform;
@@ -70,7 +68,7 @@ int maxHeight;
 int maxTileWidth;
 int maxTileHeight;
 
-double *T;
+double T[16];
 
 bool Xspin,Yspin,Zspin;
 bool Animate;
@@ -102,7 +100,7 @@ int minimumsize=50; // Minimum initial rendering window width and height
 const double degrees=180.0/M_PI;
 const double radians=1.0/degrees;
 
-double *Background;
+double Background[4];
 size_t Nlights;
 triple *Lights; 
 double *Diffuse;
@@ -127,7 +125,7 @@ double lastzoom;
 GLfloat Rotate[16];
 Arcball arcball;
   
-GLUnurbs *nurb;
+GLUnurbs *nurb=NULL;
 
 int window;
   
@@ -505,7 +503,7 @@ void updateHandler(int)
 {
   queueScreen=true;
   update();
-  if(!Animate) {
+  if(interact::interactive || !Animate) {
     glutShowWindow();
     glutShowWindow(); // Call twice to work around apparent freeglut bug.
   }
@@ -581,11 +579,13 @@ void home()
 void quit() 
 {
   if(glthread) {
-    Setting("loop")=false;
-    Setting("reverse")=false;
+    bool animating=getSetting<bool>("animating");
+    if(animating)
+      Setting("interrupt")=true;
     home();
+    Animate=getSetting<bool>("autoplay");
 #ifdef HAVE_LIBPTHREAD
-    if(!interact::interactive)
+    if(!interact::interactive || animating)
       endwait(readySignal,readyLock);
 #endif    
     glutHideWindow();
@@ -1240,8 +1240,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   Prefix=prefix;
   Picture=pic;
   Format=format;
-  T=t;
-  Background=background;
+  for(int i=0; i < 16; ++i)
+    T[i]=t[i];
+  for(int i=0; i < 4; ++i)
+  Background[i]=background[i];
+  
   Nlights=min(nlights,(size_t) GL_MAX_LIGHTS);
   Lights=lights;
   Diffuse=diffuse;
@@ -1437,21 +1440,24 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   
-  nurb=gluNewNurbsRenderer();
-  if(nurb == NULL) 
-    outOfMemory();
-  gluNurbsProperty(nurb,GLU_SAMPLING_METHOD,GLU_PARAMETRIC_ERROR);
-  gluNurbsProperty(nurb,GLU_SAMPLING_TOLERANCE,0.5);
-  gluNurbsProperty(nurb,GLU_PARAMETRIC_TOLERANCE,1.0);
-  gluNurbsProperty(nurb,GLU_CULLING,GLU_TRUE);
+  if(nurb == NULL) {
+    nurb=gluNewNurbsRenderer();
+    if(nurb == NULL) 
+      outOfMemory();
+    gluNurbsProperty(nurb,GLU_SAMPLING_METHOD,GLU_PARAMETRIC_ERROR);
+    gluNurbsProperty(nurb,GLU_SAMPLING_TOLERANCE,0.5);
+    gluNurbsProperty(nurb,GLU_PARAMETRIC_TOLERANCE,1.0);
+    gluNurbsProperty(nurb,GLU_CULLING,GLU_TRUE);
   
-  // The callback tesselation algorithm avoids artifacts at degenerate control
-  // points.
-  gluNurbsProperty(nurb,GLU_NURBS_MODE,GLU_NURBS_TESSELLATOR);
-  gluNurbsCallback(nurb,GLU_NURBS_BEGIN,(_GLUfuncptr) glBegin);
-  gluNurbsCallback(nurb,GLU_NURBS_VERTEX,(_GLUfuncptr) glVertex3fv);
-  gluNurbsCallback(nurb,GLU_NURBS_END,(_GLUfuncptr) glEnd);
-  gluNurbsCallback(nurb,GLU_NURBS_COLOR,(_GLUfuncptr) glColor4fv);
+    // The callback tesselation algorithm avoids artifacts at degenerate control
+    // points.
+    gluNurbsProperty(nurb,GLU_NURBS_MODE,GLU_NURBS_TESSELLATOR);
+    gluNurbsCallback(nurb,GLU_NURBS_BEGIN,(_GLUfuncptr) glBegin);
+    gluNurbsCallback(nurb,GLU_NURBS_VERTEX,(_GLUfuncptr) glVertex3fv);
+    gluNurbsCallback(nurb,GLU_NURBS_END,(_GLUfuncptr) glEnd);
+    gluNurbsCallback(nurb,GLU_NURBS_COLOR,(_GLUfuncptr) glColor4fv);
+  }
+  
   mode();
   
   if(View) {

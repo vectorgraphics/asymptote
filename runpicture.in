@@ -406,6 +406,7 @@ void shipout3(string prefix, picture *f, string format=emptystring,
   
   real *T=copyArray2C(t,true,4);
   real* Background=copyArrayC(background);
+  
   triple *Lights=copyTripleArrayC(lights);
   real *Diffuse=copyArray2C(diffuse,false,4);
   real *Ambient=copyArray2C(ambient,false,4);
@@ -413,6 +414,9 @@ void shipout3(string prefix, picture *f, string format=emptystring,
     
   f->shipout3(prefix,format,width,height,angle,zoom,m,M,shift,T,Background,n,
               Lights,Diffuse,Ambient,Specular,viewportlighting,view);
+  
+  delete[] Background;
+  delete[] T;
 }
 
 void shipout3(string prefix, picture *f)

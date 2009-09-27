@@ -2944,25 +2944,33 @@ frame[] fit3(string prefix="", picture[] pictures, picture all,
   triple M=all.max(S.t);
   out=new frame[pictures.length];
   int i=0;
-  bool loop=settings.loop;
+  bool reverse=settings.reverse;
+  settings.animating=true;
+
   for(picture pic : pictures) {
     picture pic2;
     frame f=pic.fit3(S.t,pic2,S.P);
-    if(loop && !settings.loop) break;
+    if(settings.interrupt) break;
     add(f,pic2.fit2());
     draw(f,m,nullpen);
     draw(f,M,nullpen);
-    out[i]=loop ? f : embedder(prefix,f,format,view,options,script,light,S.P);
+    out[i]=f;
     ++i;
   }
 
-  while(settings.loop)
+  while(!settings.interrupt) {
     for(int i=settings.reverse ? pictures.length-1 : 0;
-        i >= 0 && i < pictures.length && settings.loop;
+        i >= 0 && i < pictures.length && !settings.interrupt;
         settings.reverse ? --i : ++i) {
       embedder(prefix,out[i],format,view,options,script,light,S.P);
-    }
+    }   
+    if(!settings.loop) break;
+  }
   
+  settings.animating=false;
+  settings.interrupt=false;
+  settings.reverse=reverse;
+
   return out;
 }
 
