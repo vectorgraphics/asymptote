@@ -909,6 +909,13 @@ bool picture::shipout3(const string& prefix, const string& format,
   if(glthread && Wait) {
     pthread_cond_wait(&readySignal,&readyLock);
     pthread_mutex_unlock(&readyLock);
+    
+    delete[] specular;
+    delete[] ambient;
+    delete[] diffuse;
+    delete[] lights;
+    delete[] background;
+    delete[] t;
   }
   return true;
 #endif  
