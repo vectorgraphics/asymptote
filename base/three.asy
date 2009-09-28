@@ -23,6 +23,14 @@ string defaultembed3Doptions;
 string defaultembed3Dscript;
 real defaulteyetoview=63mm/1000mm;
 
+string defaultlabelname="label";
+string Billboard=" "+defaultlabelname;
+
+string defaultlabelname() 
+{
+  return settings.billboard ? Billboard : defaultlabelname;
+}
+
 string partname(string s, int i=0) 
 {
   return s == "" ? s : s+"-"+string(i);
@@ -2152,14 +2160,16 @@ draw=new void(frame f, path3 g, material p=currentpen,
 void draw(frame f, explicit path3[] g, material p=currentpen,
           light light=nolight, string name="", projection P=currentprojection)
 {
-  for(int i=0; i < g.length; ++i) draw(f,g[i],p,light,name,P);
+  for(int i=0; i < g.length; ++i)
+    draw(f,g[i],p,light,partname(name,i),P);
 }
 
 void draw(picture pic=currentpicture, explicit path3[] g,
           material p=currentpen, margin3 margin=NoMargin3, light light=nolight,
           string name="")
 {
-  for(int i=0; i < g.length; ++i) draw(pic,g[i],p,margin,light,name);
+  for(int i=0; i < g.length; ++i)
+    draw(pic,g[i],p,margin,light,partname(name,i));
 }
 
 include three_arrows;

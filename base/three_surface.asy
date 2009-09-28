@@ -1130,8 +1130,8 @@ real PRCshininess(real shininess)
   return s(shininess);
 }
 
-void draw3D(frame f, patch s, material m, light light=currentlight,
-            string name="")
+void draw3D(frame f, patch s, triple center=O, material m,
+            light light=currentlight, string name="")
 {
   if(s.colors.length > 0)
     m=mean(s.colors);
@@ -1142,8 +1142,8 @@ void draw3D(frame f, patch s, material m, light light=currentlight,
   if(prc())
     PRCshininess=PRCshininess(m.shininess);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
-  draw(f,s.P,s.straight,m.p,m.opacity,m.shininess,PRCshininess,granularity,
-       s.planar ? s.normal(0.5,0.5) : O,s.colors,lighton,name);
+  draw(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,PRCshininess,
+       granularity,s.planar ? s.normal(0.5,0.5) : O,s.colors,lighton,name);
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,
@@ -1355,7 +1355,7 @@ path[] path(Label L, pair z=0, projection P)
 
 void label(frame f, Label L, triple position, align align=NoAlign,
            pen p=currentpen, bool targetsize=false, light light=nolight,
-           string name="", projection P=currentprojection)
+           string name=defaultlabelname(), projection P=currentprojection)
 {
   Label L=L.copy();
   L.align(align);
@@ -1365,8 +1365,9 @@ void label(frame f, Label L, triple position, align align=NoAlign,
   if(L.defaulttransform3)
     L.T3=transform3(P);
   if(is3D()) {
+    int i=-1;
     for(patch S : surface(L,position).s)
-      draw3D(f,S,L.p,light,name);
+      draw3D(f,S,position,L.p,light,partname(name,++i));
   } else {
     if(L.filltype == NoFill)
       fill(f,path(L,project(position,P.t),P),
@@ -1382,7 +1383,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
 
 void label(picture pic=currentpicture, Label L, triple position,
            align align=NoAlign, pen p=currentpen, bool targetsize=false,
-           light light=nolight, string name="")
+           light light=nolight, string name=defaultlabelname())
 {
   Label L=L.copy();
   L.align(align);
@@ -1400,9 +1401,11 @@ void label(picture pic=currentpicture, Label L, triple position,
         L.T=L.T*scale(abs(P.camera-v)/abs(P.vector()));
       if(L.defaulttransform3)
         L.T3=transform3(P);
-      if(is3D())
+      if(is3D()) {
+        int i=-1;
         for(patch S : surface(L,v).s)
-          draw3D(f,S,L.p,light,name);
+          draw3D(f,S,v,L.p,light,partname(name,++i));
+      }
       if(pic != null) {
         if(L.filltype == NoFill)
           fill(project(v,P.t),pic,path(L,P),
@@ -1576,8 +1579,10 @@ void dot(frame f, triple v, material p=currentpen,
   pen q=(pen) p;
   if(is3D()) {
     material m=material(p,p.granularity >= 0 ? p.granularity : dotgranularity);
+    int i=-1;
     for(patch s : unitsphere.s)
-      draw3D(f,shift(v)*scale3(0.5*linewidth(dotsize(q)+q))*s,m,light,name);
+      draw3D(f,shift(v)*scale3(0.5*linewidth(dotsize(q)+q))*s,m,light,
+             partname(name,++i));
   } else dot(f,project(v,P.t),q);
 }
 
@@ -1602,8 +1607,9 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
       if(is3D()) {
         material m=material(p,p.granularity >= 0 ? p.granularity :
                             dotgranularity);
+        int i=-1;
         for(patch s : unitsphere.s)
-          draw3D(f,shift(t*v)*scale3(size)*s,m,light,name);
+          draw3D(f,shift(t*v)*scale3(size)*s,m,light,partname(name,++i));
       }
       if(pic != null)
         dot(pic,project(t*v,P.t),q);

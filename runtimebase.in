@@ -60,11 +60,5 @@ double *copyTripleArray2Components(array *a, bool square=true, size_t dim2=0);
 
 function *realRealFunction();
 
-// Return the component of vector v perpendicular to a unit vector u.
-inline triple perp(triple v, triple u)
-{
-  return v-dot(v,u)*u;
-}
-
 #define CURRENTPEN processData().currentpen
 

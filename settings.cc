@@ -1093,6 +1093,9 @@ void initSettings() {
                             "Render thick 3D lines", true));
   addOption(new boolSetting("thin", 0,
                             "Render thin 3D lines", true));
+  addOption(new boolSetting("billboard", 0,
+                            "Force unnamed labels to always face viewer",
+                            false));
   addOption(new boolSetting("threads", 0,
                             "Use POSIX threads for 3D rendering", !msdos));
   addOption(new boolSetting("fitscreen", 0,

@@ -178,6 +178,12 @@ public:
 
 triple expi(double theta, double phi);
   
+// Return the component of vector v perpendicular to a unit vector u.
+inline triple perp(triple v, triple u)
+{
+  return v-dot(v,u)*u;
+}
+
 } //namespace camp
 
 GC_DECLARE_PTRFREE(camp::triple);

@@ -558,12 +558,14 @@ void _draw(picture *f, path3 g, pen p, string name=emptystring)
 }
 
 // Bezier patch
-void draw(picture *f, triplearray2 *P, bool straight, penarray *p, real opacity,
-          real shininess, real PRCshininess, real granularity, triple normal,
-          penarray *colors, bool lighton, string name=emptystring)
+void draw(picture *f, triplearray2 *P, triple center, bool straight,
+          penarray *p, real opacity, real shininess, real PRCshininess,
+          real granularity, triple normal, penarray *colors, bool lighton,
+          string name=emptystring)
 {
-  f->append(new drawSurface(*P,straight,*p,opacity,shininess,PRCshininess,
-                            granularity,normal,*colors,lighton,name));
+  f->append(new drawSurface(*P,center,straight,*p,opacity,shininess,
+                            PRCshininess,granularity,normal,*colors,lighton,
+                            name));
 }
 
 // General NURBS surface

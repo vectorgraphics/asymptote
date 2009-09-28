@@ -26,6 +26,7 @@ class drawSurface : public drawElement {
 protected:
   Triple *controls;
   Triple vertices[4];
+  triple center;
   bool straight;
   RGBAColour diffuse;
   RGBAColour ambient;
@@ -48,14 +49,14 @@ protected:
   triple dperp;
 #endif  
   
+public:
   static const triple zero;
 
-public:
-  drawSurface(const vm::array& g, bool straight, const vm::array&p,
-              double opacity, double shininess, double PRCshininess,
-              double granularity, triple normal, const vm::array &pens,
-              bool lighton, const string& name) :
-    straight(straight), opacity(opacity), shininess(shininess),
+  drawSurface(const vm::array& g, triple center, bool straight,
+              const vm::array&p, double opacity, double shininess,
+              double PRCshininess, double granularity, triple normal,
+              const vm::array &pens, bool lighton, const string& name) :
+    center(center), straight(straight), opacity(opacity), shininess(shininess),
     PRCshininess(PRCshininess), granularity(granularity), normal(unit(normal)),
     lighton(lighton), name(name) {
     string wrongsize=
@@ -127,6 +128,7 @@ public:
       }
     } else controls=NULL;
     
+    center=run::operator *(t,s->center);
     normal=run::multshiftless(t,s->normal);
     
 #ifdef HAVE_LIBGL

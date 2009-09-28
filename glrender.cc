@@ -1038,7 +1038,7 @@ void write(const char *text, const double *v)
 
 static bool glinitialize=true;
 
-projection camera()
+projection camera(bool user)
 {
   if(glinitialize) return projection();
                    
@@ -1046,23 +1046,36 @@ projection camera()
   
   double cz=0.5*(zmin+zmax);
 
-  for(int i=0; i < 3; ++i) {
-    double sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
-    int i4=4*i;
-    for(int j=0; j < 4; ++j) {
-      int j4=4*j;
-      double R0=Rotate[j4];
-      double R1=Rotate[j4+1];
-      double R2=Rotate[j4+2];
-      double R3=Rotate[j4+3];
-      double T4ij=T[i4+j];
-      sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
-      sumUp += T4ij*R1;
-      sumTarget += T4ij*(R3-cx*R0-cy*R1);
+  if(user) {
+    for(int i=0; i < 3; ++i) {
+      double sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
+      int i4=4*i;
+      for(int j=0; j < 4; ++j) {
+        int j4=4*j;
+        double R0=Rotate[j4];
+        double R1=Rotate[j4+1];
+        double R2=Rotate[j4+2];
+        double R3=Rotate[j4+3];
+        double T4ij=T[i4+j];
+        sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
+        sumUp += T4ij*R1;
+        sumTarget += T4ij*(R3-cx*R0-cy*R1);
+      }
+      vCamera[i]=sumCamera;
+      vUp[i]=sumUp;
+      vTarget[i]=sumTarget;
     }
-    vCamera[i]=sumCamera;
-    vUp[i]=sumUp;
-    vTarget[i]=sumTarget;
+  } else {
+    for(int i=0; i < 3; ++i) {
+      int i4=4*i;
+      double R0=Rotate[i4];
+      double R1=Rotate[i4+1];
+      double R2=Rotate[i4+2];
+      double R3=Rotate[i4+3];
+      vCamera[i]=R3-cx*R0-cy*R1-cz*R2;
+      vUp[i]=R1;
+      vTarget[i]=R3-cx*R0-cy*R1;
+    }
   }
   
   return projection(orthographic,vCamera,vUp,vTarget,Zoom,

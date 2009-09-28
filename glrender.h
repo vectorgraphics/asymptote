@@ -69,7 +69,7 @@ public:
     zoom(zoom), angle(angle), viewportshift(viewportshift) {}
 };
 
-projection camera();
+projection camera(bool user=true);
 
 void glrender(const string& prefix, const camp::picture* pic,
               const string& format, double width, double height, double angle,

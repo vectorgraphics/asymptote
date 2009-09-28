@@ -216,6 +216,33 @@ inline double fraction(const triple& d, const triple& size)
              fraction(d.getz(),size.getz()));
 }
 
+struct billboard 
+{
+  triple u,v,w;
+  
+  void init() {
+    gl::projection P=gl::camera(false);
+    w=unit(P.camera-P.target);
+    v=unit(perp(P.up,w));
+    u=cross(v,w);
+  }
+    
+  void store(GLfloat* C, const triple& V,
+             const triple &center=drawSurface::zero) {
+    double cx=center.getx();
+    double cy=center.gety();
+    double cz=center.getz();
+    double x=V.getx()-cx;
+    double y=V.gety()-cy;
+    double z=V.getz()-cz;
+    C[0]=cx+u.getx()*x+v.getx()*y+w.getx()*z;
+    C[1]=cy+u.gety()*x+v.gety()*y+w.gety()*z;
+    C[2]=cz+u.getz()*x+v.getz()*y+w.getz()*z;
+  }
+};
+
+billboard BB;
+
 void drawSurface::render(GLUnurbs *nurb, double size2,
                          const triple& Min, const triple& Max,
                          double perspective, bool transparent)
@@ -224,53 +251,58 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
                     : diffuse.A < 1.0) ^ transparent)) return;
   
-  static GLfloat v[16];
-  static GLfloat v1[16];
-  static GLfloat v2[16];
-  static GLfloat Normal[3];
-  
-  initMatrix(v1,Min.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
-  initMatrix(v2,Max.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
-
-  glPushMatrix();
-  glMultMatrixf(v1);
-  glGetFloatv(GL_MODELVIEW_MATRIX,v);
-  glPopMatrix();
-  
-  bbox3 B(v[0],v[1],v[2]);
-  B.addnonempty(v[4],v[5],v[6]);
-  B.addnonempty(v[8],v[9],v[10]);
-  B.addnonempty(v[12],v[13],v[14]);
-  
-  glPushMatrix();
-  glMultMatrixf(v2);
-  glGetFloatv(GL_MODELVIEW_MATRIX,v);
-  glPopMatrix();
-  
-  B.addnonempty(v[0],v[1],v[2]);
-  B.addnonempty(v[4],v[5],v[6]);
-  B.addnonempty(v[8],v[9],v[10]);
-  B.addnonempty(v[12],v[13],v[14]);
-  
-  triple M=B.Max();
-  triple m=B.Min();
-  
+  bool havebillboard=name.size() >= 1 && name[0] == ' ';
   double s;
-  if(perspective) {
-    double f=m.getz()*perspective;
-    double F=M.getz()*perspective;
-    s=max(f,F);
-    if(M.getx() < min(f*Min.getx(),F*Min.getx()) || 
-       m.getx() > max(f*Max.getx(),F*Max.getx()) ||
-       M.gety() < min(f*Min.gety(),F*Min.gety()) ||
-       m.gety() > max(f*Max.gety(),F*Max.gety()) ||
-       M.getz() < Min.getz() ||
-       m.getz() > Max.getz()) return;
-  } else {
-    s=1.0;
-    if(M.getx() < Min.getx() || m.getx() > Max.getx() ||
-       M.gety() < Min.gety() || m.gety() > Max.gety() ||
-       M.getz() < Min.getz() || m.getz() > Max.getz()) return;
+  static GLfloat Normal[3];
+
+  if(havebillboard) BB.init();
+  else {
+    static GLfloat v[16];
+    static GLfloat v1[16];
+    static GLfloat v2[16];
+  
+    initMatrix(v1,Min.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
+    initMatrix(v2,Max.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
+
+    glPushMatrix();
+    glMultMatrixf(v1);
+    glGetFloatv(GL_MODELVIEW_MATRIX,v);
+    glPopMatrix();
+  
+    bbox3 B(v[0],v[1],v[2]);
+    B.addnonempty(v[4],v[5],v[6]);
+    B.addnonempty(v[8],v[9],v[10]);
+    B.addnonempty(v[12],v[13],v[14]);
+  
+    glPushMatrix();
+    glMultMatrixf(v2);
+    glGetFloatv(GL_MODELVIEW_MATRIX,v);
+    glPopMatrix();
+  
+    B.addnonempty(v[0],v[1],v[2]);
+    B.addnonempty(v[4],v[5],v[6]);
+    B.addnonempty(v[8],v[9],v[10]);
+    B.addnonempty(v[12],v[13],v[14]);
+  
+    triple M=B.Max();
+    triple m=B.Min();
+  
+    if(perspective) {
+      double f=m.getz()*perspective;
+      double F=M.getz()*perspective;
+      s=max(f,F);
+      if(M.getx() < min(f*Min.getx(),F*Min.getx()) || 
+         m.getx() > max(f*Max.getx(),F*Max.getx()) ||
+         M.gety() < min(f*Min.gety(),F*Min.gety()) ||
+         m.gety() > max(f*Max.gety(),F*Max.gety()) ||
+         M.getz() < Min.getz() ||
+         m.getz() > Max.getz()) return;
+    } else {
+      s=1.0;
+      if(M.getx() < Min.getx() || m.getx() > Max.getx() ||
+         M.gety() < Min.gety() || m.gety() > Max.gety() ||
+         M.getz() < Min.getz() || m.getz() > Max.getz()) return;
+    }
   }
     
   bool ambientdiffuse=true;
@@ -309,19 +341,29 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
                       Max.getz()-Min.getz());
   
   bool havenormal=normal != zero;
+
   if(!havenormal || (!straight && (fraction(d,size3)*size2 >= pixel || 
                                    granularity == 0))) {
     if(lighton) {
       if(havenormal && fraction(dperp,size3)*size2 <= 0.1) {
-        store(Normal,normal);
+        if(havebillboard)
+          BB.store(Normal,normal);
+        else
+          store(Normal,normal);
         glNormal3fv(Normal);
         gluNurbsCallback(nurb,GLU_NURBS_NORMAL,NULL);
       } else
         gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
     }
     static GLfloat Controls[48];
-    for(size_t i=0; i < 16; ++i)
-      store(Controls+3*i,controls[i]);
+    
+    if(havebillboard) {
+      for(size_t i=0; i < 16; ++i)
+        BB.store(Controls+3*i,controls[i],center);
+    } else {
+      for(size_t i=0; i < 16; ++i)
+        store(Controls+3*i,controls[i]);
+    }
     
     static GLfloat bezier[]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
     gluBeginSurface(nurb);
@@ -334,10 +376,19 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
     gluEndSurface(nurb);
   } else {
     GLfloat Vertices[12];
-    for(size_t i=0; i < 4; ++i)
-      store(Vertices+3*i,vertices[i]);
     
-    store(Normal,normal);
+    if(havebillboard) {
+      for(size_t i=0; i < 4; ++i)
+        BB.store(Vertices+3*i,vertices[i],center);
+    } else {
+      for(size_t i=0; i < 4; ++i)
+        store(Vertices+3*i,vertices[i]);
+    }
+    
+    if(havebillboard)
+      BB.store(Normal,normal);
+    else
+      store(Normal,normal);
 
     glBegin(GL_QUADS);
     if(lighton)
