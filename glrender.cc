@@ -626,8 +626,9 @@ void display()
     double seconds=tv.tv_sec-lastframetime.tv_sec+
       ((double) tv.tv_usec-lastframetime.tv_usec)/1000000.0;
     lastframetime=tv;
-    if(seconds < delay)
-      glutTimerFunc(1000.0*(delay-seconds),nextframe,0);
+    double milliseconds=1000.0*(delay-seconds);
+    if(milliseconds > 0)
+      glutTimerFunc(milliseconds,nextframe,0);
     else nextframe(0);
   }
 #endif
