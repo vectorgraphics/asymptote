@@ -98,6 +98,15 @@ struct obj {
   }
 }
 
+obj operator * (transform3 T, obj o)
+{
+  obj ot;
+  ot.s=T*o.s;
+  ot.surfacepen=copy(o.surfacepen);
+  ot.meshpen=copy(o.meshpen);
+  return ot;
+}
+
 void draw(picture pic=currentpicture, obj o, light light=currentlight)
 {
   draw(pic,o.s,o.surfacepen,o.meshpen,light);
