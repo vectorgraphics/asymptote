@@ -4,9 +4,8 @@ if(latex()) {
 \usepackage[3D,dvipdfmx]{movie15}
 \else%
 \usepackage[3D]{movie15}
-\fi%
-");
-  usepackage("hyperref","setpagesize=false,unicode");
+\fi%");
+usepackage("hyperref",settings.hyperrefOptions);
 }
 
 // See http://www.ctan.org/tex-archive/macros/latex/contrib/movie15/README
