@@ -1227,11 +1227,18 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 {
   if(s.empty()) return;
 
+  bool cyclic=surfacepen.cyclic;
+  surfacepen=copy(surfacepen);
+  surfacepen.cyclic=cyclic;
+  cyclic=meshpen.cyclic;
+  meshpen=copy(meshpen);
+  meshpen.cyclic=cyclic;
+
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
-      if(is3D()) {
+      if(is3D())
         draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight,name);
-      } else if(pic != null)
+      else if(pic != null)
         pic.add(new void(frame f, transform T) {
             draw(T,f,S,nu,nv,surfacepen,meshpen,light,meshlight,P);
           },true);
@@ -1467,7 +1474,7 @@ restricted surface nullsurface;
 
 // Embed a Label onto a surface.
 surface surface(Label L, surface s, real uoffset, real voffset,
-                real height=0, bool bottom=false, bool top=true)
+                real height=0, bool bottom=true, bool top=true)
 {
   int nu=s.index.length;
   int nv;
@@ -1689,6 +1696,11 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
   if(colors.length > 0)
     m=mean(colors);
   bool lighton=light.on();
+  P=copy(P);
+  uknot=copy(uknot);
+  vknot=copy(vknot);
+  weights=copy(weights);
+  colors=copy(colors);
   pic.add(new void(frame f, transform3 t, picture pic, projection Q) {
       if(is3D()) {
         triple[][] P=t*P;

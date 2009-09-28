@@ -34,8 +34,8 @@ z=(2-\cos u)\sin v.\cr}$";
 
 real h=0.0125;
 
-draw(surface(xscale(-0.38)*yscale(-0.18)*lo,s,0,1.7,h));
-draw(surface(xscale(0.26)*yscale(0.1)*rotate(90)*hi,s,4.9,1.4,h));
+draw(surface(xscale(-0.38)*yscale(-0.18)*lo,s,0,1.7,h,bottom=false));
+draw(surface(xscale(0.26)*yscale(0.1)*rotate(90)*hi,s,4.9,1.4,h,bottom=false));
 draw(s.uequals(0),blue+dashed);
 draw(s.uequals(pi),blue+dashed);
 
