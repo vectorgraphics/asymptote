@@ -1,4 +1,4 @@
-size(0,3cm);
+size(3cm);
 draw(unitsquare);
 label("$A$",(0,0),SW);
 label("$B$",(1,0),SE);

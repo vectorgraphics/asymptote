@@ -211,7 +211,7 @@ as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
 
 @item @code{LaTeX} typesetting of labels, for overall document consistency;
 
-@item the ability to generate and embed 3D vector @acronym{PRC} graphics into @acronym{PDF} files;
+@item the ability to generate and embed 3D vector @acronym{PRC} graphics within @acronym{PDF} files;
 
 @item a natural coordinate-based framework for technical drawings,
 inspired by @code{MetaPost}, with a much cleaner, powerful C++-like programming
@@ -770,6 +770,7 @@ make uninstall
 @chapter Tutorial
 @cindex tutorial
 @cindex batch mode
+@section Drawing in batch mode
 To draw a line from coordinate (0,0) to coordinate (100,100),
 create a text file @code{test.asy} containing
 @verbatiminclude diagonal.asy
@@ -782,7 +783,7 @@ asy -V test
 @noindent
 Alternatively, @code{MSDOS} users can drag and drop @code{test.asy} onto the
 Desktop @code{asy} icon (or make @code{Asymptote} the default
-application the extension @code{asy}).
+application for the extension @code{asy}).
 
 @noindent
 @cindex @code{-V}
@@ -792,11 +793,11 @@ viewer window so you can immediately view the result:
 @sp 1
 @center @image{diagonal}
 @cindex @code{bp}
-@cindex @code{pair}
 @noindent
 The @code{--} connector joins the two points @code{(0,0)} and
 @code{(100,100)} with a line segment. 
 
+@section Drawing in interactive mode
 Another method is @emph{interactive mode}, where @code{Asymptote} reads
 individual commands as they are entered by the user. To try this out, enter
 @code{Asymptote}'s interactive mode by clicking on the
@@ -825,28 +826,23 @@ The tab key will automatically complete unambiguous words;
 otherwise, hitting tab again will show the possible choices. Further
 commands specific to interactive mode are described in @ref{Interactive mode}.
 
-@cindex @code{cycle}
-One can draw a line with more than two points and create a cyclic path
-like this square:
-@verbatiminclude square.asy
-@sp 1
-@center @image{square}
-
-In @code{Asymptote} coordinates like (0,0) and (100,100) are called
-@emph{pairs}. The pairs in the previous examples are expressed in
-@code{PostScript} "big points" (1 @code{bp} = 1/72 @code{inch}). 
+@section Figure size
+@cindex @code{pair}
+In @code{Asymptote}, coordinates like @code{(0,0)} and @code{(100,100)},
+called @emph{pairs},
+are expressed in @code{PostScript} "big points" (1 @code{bp} = 1/72
+@code{inch}) and the default line width is @code{0.5bp}.
 However, it is often inconvenient to work directly in
-@code{PostScript} coordinates. The next example draws a unit square
-scaled to width 101 @code{bp} and height
-101 @code{bp}. The output is identical to that of the previous example.
+@code{PostScript} coordinates.
+The next example produces identical output to the previous example, by
+scaling the line @code{(0,0)--(1,1)} to fit a rectangle of width
+@code{100.5 bp} and height @code{100.5 bp} (the extra @code{0.5bp}
+accounts for the line width): 
 @verbatim
-size(101,101);
-draw((0,0)--(1,0)--(1,1)--(0,1)--cycle);
+size(100.5,100.5);
+draw((0,0)--(1,1));
 @end verbatim
 
-For convenience, the path @code{(0,0)--(1,0)--(1,1)--(0,1)--cycle}
-may be replaced with the predefined variable
-@code{unitsquare}, or equivalently, @code{box((0,0),(1,1))}.
 @cindex @code{inches}
 @cindex @code{cm}
 @cindex @code{mm}
@@ -857,9 +853,20 @@ Two nonzero size arguments (or a single size argument) restrict the
 size in both directions, preserving the aspect ratio.
 If 0 is given as a size argument, no restriction is made in that direction;
 the overall scaling will be determined by the other direction (@pxref{size}):
-@verbatiminclude bigsquare.asy
+@verbatiminclude bigdiagonal.asy
 @sp 1
-@center @image{bigsquare}
+@center @image{bigdiagonal}
+
+@cindex @code{cycle}
+To connect several points and create a cyclic path, use the
+@code{cycle} keyword:
+@verbatiminclude square.asy
+@sp 1
+@center @image{square}
+@noindent
+For convenience, the path @code{(0,0)--(1,0)--(1,1)--(0,1)--cycle}
+may be replaced with the predefined variable
+@code{unitsquare}, or equivalently, @code{box((0,0),(1,1))}.
 
 @cindex user coordinates
 @cindex @code{unitsize}
@@ -870,6 +877,7 @@ draw(unitsquare);
 @end verbatim 
 @noindent
 
+@section Labels
 Adding labels is easy in @code{Asymptote}; one specifies the
 label as a double-quoted @code{LaTeX} string, a
 coordinate, and an optional alignment direction:
@@ -890,6 +898,7 @@ module @code{plain} (a user who has a local variable named @code{E}
 may access the compass direction @code{E} by prefixing it with the name
 of the module where it is defined: @code{plain.E}).
 
+@section Paths
 This example draws a path that approximates a quarter circle,
 terminated with an arrowhead:
 @verbatiminclude quartercircle.asy
@@ -900,7 +909,7 @@ Here the directions @code{up} and @code{left} in braces specify the
 incoming and outgoing directions at the points @code{(1,0)} and
 @code{(0,1)}, respectively.
 
-In general, a path is specified as a list of pairs (or other paths)
+In general, a path is specified as a list of points (or other paths)
 interconnected with
 @cindex @code{cycle}
 @cindex @code{--}
@@ -910,7 +919,7 @@ denotes a cubic spline (@pxref{Bezier curves}).
 @cindex @code{unitcircle}
 @anchor{unitcircle}
 @cindex @code{unitcircle}
-Specifying a final node @code{cycle} creates a cyclic path that
+Specifying a final @code{..cycle} creates a cyclic path that
 connects smoothly back to the initial node, as in this approximation
 (accurate to within 0.06%) of a unit circle:
 @verbatim
@@ -954,9 +963,9 @@ cube @code{unitbox} without retracing steps (@pxref{three}):
 
 See section @ref{graph} (or the online @code{Asymptote} gallery and
 external links posted at @url{http://asymptote.sourceforge.net}) for
-further examples, including two and interactive three-dimensional scientific
-graphs. Additional examples have been posted by Philippe Ivaldi at
-@url{http://www.piprime.fr/asymptote/}.
+further examples, including two-dimensional and interactive
+three-dimensional scientific graphs. Additional examples have been
+posted by Philippe Ivaldi at @url{http://www.piprime.fr/asymptote}.
 A user-written @code{Asymptote} tutorial is available at
 @verbatim
 http://www.artofproblemsolving.com/Wiki/index.php/Asymptote:_Basics
