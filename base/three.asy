@@ -331,7 +331,7 @@ projection projection()
 {
   projection P;
   real[] a=_projection();
-  if(a[10] == 0.0) return currentprojection;
+  if(a.length == 0 || a[10] == 0.0) return currentprojection;
   int k=0;
   return a[0] == 1 ?
     orthographic((a[++k],a[++k],a[++k]),(a[++k],a[++k],a[++k]),

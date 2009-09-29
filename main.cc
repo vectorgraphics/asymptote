@@ -61,10 +61,12 @@ int sigsegv_handler (void *, int emergency)
 {
   if(!emergency) return 0; // Really a stack overflow
   em.runtime(vm::getPos());
+#ifdef HAVE_LIBGL
   if(gl::glthread)
     cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
          << endl;
   else
+#endif    
     cerr << "Segmentation fault" << endl;
   abort();
 }

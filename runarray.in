@@ -1836,8 +1836,9 @@ pair maxratio(triplearray2 *P, pair b)
 
 realarray *_projection()
 {
-  gl::projection P=gl::camera();
+#ifdef HAVE_LIBGL
   array *a=new array(14);
+  gl::projection P=gl::camera();
   size_t k=0;
   (*a)[k++]=P.orthographic ? 1.0 : 0.0;
   
@@ -1861,5 +1862,6 @@ realarray *_projection()
   
   (*a)[k++]=P.viewportshift.getx();
   (*a)[k++]=P.viewportshift.gety();
-  return a;
+#endif
+  return new array(0);
 }
