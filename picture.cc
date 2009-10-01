@@ -15,6 +15,7 @@
 
 using std::ifstream;
 using std::ofstream;
+using vm::array;
 
 using namespace settings;
 using namespace gl;
@@ -926,21 +927,24 @@ bool picture::shipout3(const string& prefix, const string& format,
   return true;
 #endif  
 #else
-  reportError("Cannot render image; please install glut, run ./configure, and recompile"); 
+  reportError("Cannot render image; please install glut, run ./configure, and recompile");
 #endif
   return false;
 }
 
-bool picture::shipout3(const string& prefix)
+bool picture::shipout3(const string& prefix, array *index, array *center)
 {
   bounds3();
   bool status = true;
   
   string prcname=buildname(prefix,"prc");
   prcfile prc(prcname);
+  unsigned int count[nENTITY];
+  for(unsigned int i=0; i < nENTITY; ++i)
+    count[i]=0;
   for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->write(&prc);
+    (*p)->write(&prc,count,index,center);
   }
   if(status)
     status=prc.finish();
@@ -966,7 +970,7 @@ picture *picture::transformed(const transform& t)
   return pic;
 }
 
-picture *picture::transformed(const vm::array& t)
+picture *picture::transformed(const array& t)
 {
   picture *pic = new picture;
 

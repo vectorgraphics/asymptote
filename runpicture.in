@@ -419,9 +419,9 @@ void shipout3(string prefix, picture *f, string format=emptystring,
   delete[] T;
 }
 
-void shipout3(string prefix, picture *f)
+void shipout3(string prefix, picture *f, Intarray *index, triplearray *center)
 {
-  f->shipout3(prefix);
+  f->shipout3(prefix,index,center);
 }
 
 void deconstruct(picture *f, picture *preamble=NULL, real magnification=1, 
@@ -561,11 +561,11 @@ void _draw(picture *f, path3 g, pen p, string name=emptystring)
 void draw(picture *f, triplearray2 *P, triple center, bool straight,
           penarray *p, real opacity, real shininess, real PRCshininess,
           real granularity, triple normal, penarray *colors, bool lighton,
-          string name=emptystring)
+          string name=emptystring, Int interaction)
 {
   f->append(new drawSurface(*P,center,straight,*p,opacity,shininess,
                             PRCshininess,granularity,normal,*colors,lighton,
-                            name));
+                            name,interaction));
 }
 
 // General NURBS surface

@@ -141,17 +141,33 @@ void drawSurface::ratio(pair &b, double (*m)(double, double), bool &first)
   }
 }
 
-bool drawSurface::write(prcfile *out)
+bool drawSurface::write(prcfile *out, unsigned int *count, array *index,
+                        array *origin)
 {
   if(invisible)
     return true;
 
+  ostringstream buf;
+  if(name == "") 
+    buf << "surface-" << count[SURFACE]++;
+  else
+    buf << name;
+  
+  if(interaction == BILLBOARD) {
+    unsigned int i=count[BILLBOARD_SURFACE]++;
+    buf << "-" << i << "\001";
+    index->push((Int) i);
+    origin->push(center*scale3D);
+  }
+  
   PRCMaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
 
   if(straight)
-    out->add(new PRCBezierSurface(out,1,1,2,2,vertices,m,granularity,name));
+    out->add(new PRCBezierSurface(out,1,1,2,2,vertices,m,granularity,
+                                  buf.str()));
   else
-    out->add(new PRCBezierSurface(out,3,3,4,4,controls,m,granularity,name));
+    out->add(new PRCBezierSurface(out,3,3,4,4,controls,m,granularity,
+                                  buf.str()));
   
   return true;
 }
@@ -285,7 +301,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   triple M=B.Max();
   triple m=B.Min();
   
-  bool havebillboard=name.size() >= 1 && name[0] == ' ';
+  bool havebillboard=interaction == BILLBOARD;
   
   if(perspective) {
     double f=m.getz()*perspective;
@@ -420,8 +436,15 @@ drawElement *drawSurface::transformed(const array& t)
   return new drawSurface(t,this);
 }
   
-bool drawNurbs::write(prcfile *out)
+bool drawNurbs::write(prcfile *out, unsigned int *count, array *index,
+                      array *origin)
 {
+  ostringstream buf;
+  if(name == "") 
+    buf << "surface-" << count[SURFACE]++;
+  else
+    buf << name;
+  
   if(invisible)
     return true;
 

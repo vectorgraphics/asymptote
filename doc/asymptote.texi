@@ -842,6 +842,8 @@ accounts for the line width):
 size(100.5,100.5);
 draw((0,0)--(1,1));
 @end verbatim
+@sp 1
+@center @image{diagonal}
 
 @cindex @code{inches}
 @cindex @code{cm}

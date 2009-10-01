@@ -18,6 +18,8 @@ extern double *copyArrayC(const array *a, size_t dim);
 
 namespace camp {
 
+enum Interaction {EMBEDDED=0,BILLBOARD};
+
 #ifdef HAVE_LIBGL
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j);
 #endif  
@@ -40,6 +42,7 @@ protected:
   bool invisible;
   bool lighton;
   string name;
+  Interaction interaction;
   
   triple Min,Max;
   
@@ -55,10 +58,11 @@ public:
   drawSurface(const vm::array& g, triple center, bool straight,
               const vm::array&p, double opacity, double shininess,
               double PRCshininess, double granularity, triple normal,
-              const vm::array &pens, bool lighton, const string& name) :
+              const vm::array &pens, bool lighton, const string& name,
+              Int interaction) :
     center(center), straight(straight), opacity(opacity), shininess(shininess),
     PRCshininess(PRCshininess), granularity(granularity), normal(unit(normal)),
-    lighton(lighton), name(name) {
+    lighton(lighton), name(name), interaction((Interaction) interaction) {
     string wrongsize=
       "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
     if(checkArray(&g) != 4 || checkArray(&p) != 4)
@@ -113,7 +117,7 @@ public:
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
     granularity(s->granularity), invisible(s->invisible),
-    lighton(s->lighton), name(s->name) {
+    lighton(s->lighton), name(s->name), interaction(s->interaction) {
     
     for(size_t i=0; i < 4; ++i) {
       const double *c=s->vertices[i];
@@ -156,7 +160,8 @@ public:
 #endif
   }
 
-  bool write(prcfile *out);
+  bool write(prcfile *out, unsigned int *count, vm::array *index,
+             vm::array *origin);
   
   void displacement();
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
@@ -342,7 +347,8 @@ public:
 #endif    
   }
 
-  bool write(prcfile *out);
+  bool write(prcfile *out, unsigned int *count, vm::array *index,
+             vm::array *origin);
   
   void displacement();
   void ratio(pair &b, double (*m)(double, double), bool &first);

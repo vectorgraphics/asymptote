@@ -93,7 +93,8 @@ public:
                 double *diffuse, double *ambient, double *specular,
                 bool viewportlighting, bool view);
   
-  bool shipout3(const string& prefix); // Embedded PRC
+  // PRC output
+  bool shipout3(const string& prefix, vm::array *index, vm::array *center);
   
   bool reloadPDF(const string& Viewer, const string& outname) const;
   

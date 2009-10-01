@@ -21,6 +21,8 @@
 
 namespace camp {
 
+enum Entity {LINE=0,CURVE,SURFACE,BILLBOARD_SURFACE,nENTITY};
+
 class box {
   pair p[4];
 public:
@@ -132,7 +134,9 @@ public:
   }
 
   // Output to a PRC file
-  virtual bool write(prcfile *) {
+  // The array origin contains the points about which to rotate billboard labels
+  virtual bool write(prcfile *out, unsigned int *count, vm::array *index,
+                     vm::array *origin) {
     return false;
   }
 

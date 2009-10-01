@@ -10,18 +10,30 @@ namespace camp {
 
 using vm::array;
   
-bool drawPath3::write(prcfile *out)
+bool drawPath3::write(prcfile *out, unsigned int *count, array *, array *)
 {
   Int n=g.length();
   if(n == 0 || invisible)
     return true;
 
+  ostringstream buf;
+  
   if(straight) {
+    if(name == "")
+      buf << "line-" << count[LINE]++;
+    else
+      buf << name;
+    
     controls=new Triple[n+1];
     for(Int i=0; i <= n; ++i)
       store(controls[i],g.point(i));
     out->add(new PRCline(out,n+1,controls,color,scale3D,name.c_str()));
   } else {
+    if(name == "")
+      buf << "curve-" << count[CURVE]++;
+    else
+      buf << name;
+    
     int m=3*n+1;
     controls=new Triple[m];
     store(controls[0],g.point((Int) 0));

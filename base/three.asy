@@ -23,17 +23,9 @@ string defaultembed3Doptions;
 string defaultembed3Dscript;
 real defaulteyetoview=63mm/1000mm;
 
-string defaultlabelname="label";
-string Billboard=" "+defaultlabelname;
-
-string defaultlabelname() 
-{
-  return settings.billboard ? Billboard : defaultlabelname;
-}
-
 string partname(string s, int i=0) 
 {
-  return s == "" ? s : s+"-"+string(i);
+  return s == "" ? "" : s+"-"+string(i);
 }
 
 triple O=(0,0,0);
@@ -2372,6 +2364,92 @@ handler.onEvent=function(event)
 }";
 }
 
+private string projection(bool infinity, real viewplanesize)
+{
+  return "activeCamera=scene.cameras.getByIndex(0);
+function asyProjection() {"+
+    (infinity ? "activeCamera.projectionType=activeCamera.TYPE_ORTHOGRAPHIC;" :
+     "activeCamera.projectionType=activeCamera.TYPE_PERSPECTIVE;")+"
+activeCamera.viewPlaneSize="+string(viewplanesize)+";
+activeCamera.binding=activeCamera.BINDING_"+(infinity ? "MAX" : "VERTICAL")+";
+}
+
+asyProjection();
+
+handler=new CameraEventHandler();
+runtime.addEventHandler(handler);
+handler.onEvent=function(event) 
+{
+  asyProjection();
+  scene.update();
+}";
+}
+
+private string billboard(int[] index, triple[] center)
+{
+if(index.length == 0) return "";
+string s="
+var zero=new Vector3(0,0,0);
+var meshes=scene.meshes;
+var count=meshes.count;
+
+var index=new Array();
+for(i=0; i < count; i++) {
+  var mesh=meshes.getByIndex(i); 
+  var name=mesh.name;
+  end=name.lastIndexOf(\".\")-1;
+  if(end > 0) {
+    if(name.substr(end,1) == \"\001\") {
+      start=name.lastIndexOf(\"-\")+1;
+      n=end-start;
+      if(n > 0) {
+        index[name.substr(start,n)]=i;
+        mesh.name=name.substr(0,start-1);
+      }
+    }
+  }
+}
+
+billboardHandler=new RenderEventHandler();
+billboardHandler.onEvent=function(event)
+{
+  var camera=scene.cameras.getByIndex(0); 
+  var position=camera.position;
+  var direction=position.subtract(camera.targetPosition);
+  var up=camera.up.subtract(position);
+
+  function f(i,cx,cy,cz) {
+    j=index[i];
+    if(j >= 0) {
+      var mesh=meshes.getByIndex(j); 
+      var name=mesh.name;
+      var R=Matrix4x4();
+      R.setView(zero,direction,up);
+      var T=mesh.transform;
+      T.setIdentity();
+      T.translateInPlace(new Vector3(-cx,-cy,-cz));
+      T.multiplyInPlace(R);
+      T.translateInPlace(new Vector3(cx,cy,cz));
+    }
+  }
+";
+  int i=0;
+  for(triple c : center) {
+    s += "f("+string(index[i])+","+Format(c,",")+");
+";
+    ++i;
+  }
+s += "
+  runtime.refresh(); 
+}
+ 
+runtime.addEventHandler(billboardHandler); 
+
+runtime.refresh(); 
+";
+return s;
+}
+
 string lightscript(light light) {
   string script="for(var i=scene.lights.count-1; i >= 0; i--)
   scene.lights.removeByIndex(i);"+'\n\n';
@@ -2437,10 +2515,13 @@ string embed3D(string label="", string text=label, string prefix,
   } else
     if(!P.absolute) P.angle=2*aTan(Tan(0.5*P.angle));
 
-  string name=prefix+".js";
-  writeJavaScript(name,lightscript+projection(P.infinity,viewplanesize),script);
+  int[] index;
+  triple[] center;
+  shipout3(prefix,f,index,center);
 
-  shipout3(prefix,f);
+  string name=prefix+".js";
+  writeJavaScript(name,lightscript+projection(P.infinity,viewplanesize)+
+                  billboard(index,center),script);
 
   prefix += ".prc";
   if(!settings.inlinetex)

@@ -51,7 +51,8 @@ public:
     } else b=pair(m(b.getx(),z.getx()),m(b.gety(),z.gety()));
   }
   
-  bool write(prcfile *out);
+  bool write(prcfile *out, unsigned int *count, vm::array *index,
+             vm::array *origin);
   
   void render(GLUnurbs*, double, const triple&, const triple&, double,
               bool transparent);
