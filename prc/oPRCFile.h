@@ -36,10 +36,6 @@
 
 class oPRCFile;
 
-enum Entity {LINE=0,CURVE,SURFACE,nEntity};
-
-std::string Name(oPRCFile *p, Entity e, std::string s);
-
 struct RGBAColour
 {
   RGBAColour(double r=0.0, double g=0.0, double b=0.0, double a=1.0) :
@@ -99,7 +95,7 @@ class PRCsurface : public PRCentity
 	       double cP[][3], double *kU, double *kV, const RGBAColour &c,
 	       double scale = 1.0, bool iR = false, double w[] = 0,
 	       double g = 0, std::string name = "") :
-      PRCentity(p,c,scale,Name(p,SURFACE,name)), degreeU(dU), degreeV(dV),
+      PRCentity(p,c,scale,name), degreeU(dU), degreeV(dV),
       numberOfControlPointsU(nU), numberOfControlPointsV(nV),
       knotsU(kU), knotsV(kV), controlPoints(cP),
       isRational(iR), weights(w), granularity(g) {}
@@ -108,7 +104,7 @@ class PRCsurface : public PRCentity
 	       double cP[][3], double *kU, double *kV, const PRCMaterial &m,
 	       double scale = 1.0, bool iR = false, double w[] = 0,
 	       double g = 0, std::string name = "") :
-      PRCentity(p,m,scale,Name(p,SURFACE,name)), degreeU(dU), degreeV(dV),
+      PRCentity(p,m,scale,name), degreeU(dU), degreeV(dV),
       numberOfControlPointsU(nU), numberOfControlPointsV(nV),
       knotsU(kU), knotsV(kV), controlPoints(cP),
       isRational(iR), weights(w), granularity(g) {}
@@ -138,11 +134,11 @@ class PRCline : public PRCentity
     // constructor with colour
     PRCline(oPRCFile *p, uint32_t n, double P[][3], const RGBAColour &c,
             double scale = 1.0, std::string name="") :
-      PRCentity(p,c,scale,Name(p,LINE,name)), numberOfPoints(n), points(P) {}
+      PRCentity(p,c,scale,name), numberOfPoints(n), points(P) {}
     // constructor with material
     PRCline(oPRCFile *p, uint32_t n, double P[][3], const PRCMaterial &m,
             double scale = 1.0, std::string name = "") :
-      PRCentity(p,m,scale,Name(p,LINE,name)), numberOfPoints(n), points(P) {}
+      PRCentity(p,m,scale,name), numberOfPoints(n), points(P) {}
       virtual void writeRepresentationItem(PRCbitStream&,uint32_t);
       virtual void writeTopologicalContext(PRCbitStream&);
       virtual void writeExtraGeometryContext(PRCbitStream&);
@@ -158,14 +154,14 @@ class PRCcurve : public PRCentity
     PRCcurve(oPRCFile *p, uint32_t d, uint32_t n, double cP[][3], double *k,
 	     const RGBAColour &c, double scale = 1.0, bool iR = false,
 	     double w[] = 0, std::string name="") :
-      PRCentity(p,c,scale,Name(p,CURVE,name)), degree(d),
+      PRCentity(p,c,scale,name), degree(d),
       numberOfControlPoints(n), knots(k), controlPoints(cP), isRational(iR),
       weights(w) {}
     // constructor with material
     PRCcurve(oPRCFile *p, uint32_t d, uint32_t n, double cP[][3], double *k,
 	     const PRCMaterial &m, double scale = 1.0, bool iR = false,
 	     double w[] = 0, std::string name = "") :
-      PRCentity(p,m,scale,Name(p,CURVE,name)), degree(d),
+      PRCentity(p,m,scale,name), degree(d),
       numberOfControlPoints(n), knots(k), controlPoints(cP), isRational(iR),
       weights(w) {}
     virtual void writeRepresentationItem(PRCbitStream&,uint32_t);
@@ -366,18 +362,12 @@ class oPRCFile
     oPRCFile(std::ostream &os, uint32_t n=1) :
             number_of_file_structures(n),
             fileStructures(new PRCFileStructure*[n]),modelFile(this),
-            fout(NULL),output(os) {
-      for(size_t i=0; i < nEntity; ++i)
-        count[i]=0;
-    }
+            fout(NULL),output(os) {}
 
     oPRCFile(const std::string &name, uint32_t n=1) :
             number_of_file_structures(n),
             fileStructures(new PRCFileStructure*[n]),modelFile(this),
-            fout(new std::ofstream(name.c_str())),output(*fout) {
-      for(size_t i=0; i < nEntity; ++i)
-        count[i]=0;
-    }
+            fout(new std::ofstream(name.c_str())),output(*fout) {}
 
     ~oPRCFile()
     {
@@ -397,8 +387,6 @@ class oPRCFile
     uint32_t getMaterialIndex(const PRCMaterial&);
     uint32_t getSize();
   
-    uint32_t count[nEntity];
-
     const uint32_t number_of_file_structures;
     PRCFileStructure **fileStructures;
     PRCHeader header;

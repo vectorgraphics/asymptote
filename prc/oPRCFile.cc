@@ -24,19 +24,6 @@
 
 using std::string;
 
-static const string EntityName[]={"line","curve","surface"};
-
-std::string Name(oPRCFile *p, Entity e, std::string s)
-{
-  if(s.empty()) {
-    uint32_t i=++(p->count[e]);
-    std::ostringstream buf;
-    buf << EntityName[e] << "-" << i;
-    return buf.str();
-  }
-  return s;
-}
-
 uint32_t PRCentity::getGraphicsIndex()
 {
   if(useMaterial)
