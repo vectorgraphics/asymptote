@@ -2341,6 +2341,11 @@ private string Format(real[] c)
   return Format((c[0],c[1],c[2]));
 }
 
+private string format(triple v, string sep=" ")
+{
+  return string(v.x)+sep+string(v.y)+sep+string(v.z);
+}
+
 private string[] file3;
 
 private string projection(bool infinity, real viewplanesize)
@@ -2387,8 +2392,8 @@ handler.onEvent=function(event)
 
 private string billboard(int[] index, triple[] center)
 {
-if(index.length == 0) return "";
-string s="
+  if(index.length == 0) return "";
+  string s="
 var zero=new Vector3(0,0,0);
 var meshes=scene.meshes;
 var count=meshes.count;
@@ -2410,6 +2415,13 @@ for(i=0; i < count; i++) {
   }
 }
 
+var center=new Array(
+";
+  for(int i=0; i < center.length; ++i)
+    s += "Vector3("+format(center[i],",")+"),
+";
+  s += ");
+
 billboardHandler=new RenderEventHandler();
 billboardHandler.onEvent=function(event)
 {
@@ -2418,28 +2430,26 @@ billboardHandler.onEvent=function(event)
   var direction=position.subtract(camera.targetPosition);
   var up=camera.up.subtract(position);
 
-  function f(i,cx,cy,cz) {
+  function f(i,k) {
     j=index[i];
     if(j >= 0) {
-      var mesh=meshes.getByIndex(j); 
+      var mesh=meshes.getByIndex(j);
       var name=mesh.name;
       var R=Matrix4x4();
       R.setView(zero,direction,up);
+      var c=center[k];
       var T=mesh.transform;
       T.setIdentity();
-      T.translateInPlace(new Vector3(-cx,-cy,-cz));
+      T.translateInPlace(c.scale(-1));
       T.multiplyInPlace(R);
-      T.translateInPlace(new Vector3(cx,cy,cz));
+      T.translateInPlace(c);
     }
   }
 ";
-  int i=0;
-  for(triple c : center) {
-    s += "f("+string(index[i])+","+Format(c,",")+");
+  for(int i=0; i < index.length; ++i)
+    s += "f("+string(i)+","+string(index[i])+");
 ";
-    ++i;
-  }
-s += "
+  s += "
   runtime.refresh(); 
 }
  
@@ -2457,8 +2467,8 @@ string lightscript(light light) {
     string Li="L"+string(i);
     real[] diffuse=light.diffuse[i];
     script += Li+"=scene.createLight();"+'\n'+
-      Li+".direction.set("+Format(-light.position[i],",")+");"+'\n'+
-      Li+".color.set("+Format((diffuse[0],diffuse[1],diffuse[2]),",")+");"+'\n';
+      Li+".direction.set("+format(-light.position[i],",")+");"+'\n'+
+      Li+".color.set("+format((diffuse[0],diffuse[1],diffuse[2]),",")+");"+'\n';
   }
   // Work around initialization bug in Adobe Reader 8.0:
   return script +"

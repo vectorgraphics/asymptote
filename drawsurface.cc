@@ -154,10 +154,17 @@ bool drawSurface::write(prcfile *out, unsigned int *count, array *index,
     buf << name;
   
   if(interaction == BILLBOARD) {
+    triple Center=center*scale3D;
+    size_t n=origin->size();
+    
+    if(n == 0 || Center != vm::read<triple>(origin,n-1)) {
+      origin->push(Center);
+      ++n;
+    }
+    
     unsigned int i=count[BILLBOARD_SURFACE]++;
     buf << "-" << i << "\001";
-    index->push((Int) i);
-    origin->push(center*scale3D);
+    index->push((Int) (n-1));
   }
   
   PRCMaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
