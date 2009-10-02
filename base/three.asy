@@ -2418,7 +2418,7 @@ for(i=0; i < count; i++) {
 var center=new Array(
 ";
   for(int i=0; i < center.length; ++i)
-    s += "Vector3("+format(center[i],",")+"),
+    s += "Vector3("+format(center[i]/cm,",")+"),
 ";
   s += ");
 

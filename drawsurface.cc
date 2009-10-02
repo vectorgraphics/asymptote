@@ -154,11 +154,10 @@ bool drawSurface::write(prcfile *out, unsigned int *count, array *index,
     buf << name;
   
   if(interaction == BILLBOARD) {
-    triple Center=center*scale3D;
     size_t n=origin->size();
     
-    if(n == 0 || Center != vm::read<triple>(origin,n-1)) {
-      origin->push(Center);
+    if(n == 0 || center != vm::read<triple>(origin,n-1)) {
+      origin->push(center);
       ++n;
     }
     
