@@ -7880,8 +7880,9 @@ triple invert(pair dir, triple v, projection P=currentprojection).
 @end verbatim
 
 @cindex @code{transform3}
+@cindex @code{identity4}
 Three-dimensional objects may be transformed with one of the following
-built-in transform3 types:
+built-in transform3 types (the identity transformation is @code{identity4}):
 
 @table @code
 @item shift(triple v)
@@ -7904,23 +7905,49 @@ scales by @code{s} in the @math{x}, @math{y}, and @math{z} directions;
 scales by @code{x} in the @math{x} direction, 
 by @code{y} in the @math{y} direction, and by @code{z} in the @math{z}
 direction;
+@cindex @code{rotate}
 @item rotate(real angle, triple v)
 rotates by @code{angle} in degrees about an axis @code{v} through the origin;
 @item rotate(real angle, triple u, triple v)
 rotates by @code{angle} in degrees about the axis @code{u--v};
 @item reflect(triple u, triple v, triple w)
 reflects about the plane through @code{u}, @code{v}, and @code{w}.
+@cindex @code{XY}
 @end table
 
+When not multiplied on the left by a transform3, three-dimensional
+@TeX{} Labels are drawn as Bezier surfaces directly on the projection plane:
+@cindex @code{label}
+@verbatim
+void label(picture pic=currentpicture, Label L, triple position,
+           align align=NoAlign, pen p=currentpen,
+           light light=nolight, string name=L.s,
+           interaction interaction=
+           settings.autobillboard ? Billboard : Embedded)
+@end verbatim
+@noindent
+@cindex @code{Billboard}
+@cindex @code{Embedded}
+The optional @code{name} parameter is used as a prefix for naming the label
+patches in the @acronym{PRC} model tree.
+The default interaction is @code{Billboard}, which means that labels
+are rotated interactively so that they always lie on the projection plane.
+The interaction @code{Embedded} means that the label interacts as a
+normal @code{3D} surface, as illustrated in the example @code{billboard.asy}.
 @cindex @code{transform}
-Three-dimensional @TeX{} Labels, which are by default drawn as
-Bezier surfaces directly on the projection plane, can be transformed
-from the @code{XY} plane by any of the above transforms or mapped to a
-specified two-dimensional plane with the transform3 types @code{XY},
-@code{YZ}, @code{ZX}, @code{YX}, @code{ZY}, @code{ZX}. There are also
-modified versions of these transforms that take an optional argument
-@code{projection P=currentprojection} that rotate and/or flip the
-label so that it is more readable from the initial viewpoint.
+@cindex @code{XY}
+@cindex @code{YZ}
+@cindex @code{ZX}
+@cindex @code{YX}
+@cindex @code{ZY}
+@cindex @code{ZX}
+Alternatively, a label can be transformed from the @code{XY} plane by an
+explicit transform3 or mapped to a specified two-dimensional plane with
+the predefined transform3 types @code{XY}, @code{YZ}, @code{ZX}, @code{YX},
+@code{ZY}, @code{ZX}. There are also modified versions of these
+transforms that take an optional argument @code{projection
+P=currentprojection} that rotate and/or flip the label so that it is
+more readable from the initial viewpoint.
 
 @cindex @code{planeproject}
 A transform3 that projects in the direction @code{dir} onto the plane
@@ -9320,3 +9347,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  rotateY rotateZ wheelup zoomin wheeldown zoomout TeXLive
 @c  LocalWords:  viewportshift signedint signedness psview multiplatform nowarn
 @c  LocalWords:  singlereal singleint writeoverloaded tubegranularity dvisvg
+@c  LocalWords:  bigdiagonal autobillboard
