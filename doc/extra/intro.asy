@@ -73,7 +73,6 @@ item("cyclic path:");
 
 asyfilecode("square");
 
-
 title("Scaling to a Given Size");
 
 item("{\tt PostScript} units are often inconvenient.");
@@ -88,8 +87,10 @@ asyfigure("square");
 
 item("One can also specify the size in {\tt cm}:");
 
-asyfilecode("bigsquare");
-
+asycode("
+size(3cm,3cm);
+draw(unitsquare);
+");
 
 title("Labels");
 
