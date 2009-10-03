@@ -55,6 +55,10 @@ extern "C" {
 #ifdef clear
 #undef clear
 #endif
+// Workaround broken header file on i386-solaris with g++ 3.4.3.
+#ifdef erase
+#undef erase
+#endif
 
 using vm::item;
 
@@ -1318,10 +1322,6 @@ string lookup(const string& symbol)
   cmd.push_back("--var-value="+symbol);
   iopipestream pipe(cmd);
   pipe >> s;
-// Workaround broken header file on i386-solaris with g++ 3.4.3.
-#ifdef erase
-#undef erase
-#endif
   size_t n=s.find('\r');
   if(n != string::npos)
     s.erase(n,1);
