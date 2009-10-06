@@ -594,7 +594,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   string preformat=nativeformat();
   string outputformat=format.empty() ? defaultformat() : format;
   epsformat=outputformat == "eps";
-  pdfformat=outputformat == "pdf";
+  pdfformat=pdf || outputformat == "pdf";
   svgformat=outputformat == "svg" && !pdf &&
     (!have3D() || getSetting<double>("render") == 0.0);
   
@@ -634,10 +634,10 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   paperWidth=getSetting<double>("paperwidth");
   paperHeight=getSetting<double>("paperheight");
   string origin=getSetting<string>("align");
-    
-  pair bboxshift=(origin == "Z" && !pdfformat) ?
+  
+  pair bboxshift=(origin == "Z" && epsformat) ?
     pair(0.0,0.0) : pair(-b.left,-b.bottom);
-  if(!pdfformat) {
+  if(epsformat) {
     bboxshift += getSetting<pair>("offset");
     if(origin != "Z" && origin != "B") {
       double yexcess=max(paperHeight-(b.top-b.bottom+1.0),0.0);
