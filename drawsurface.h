@@ -81,7 +81,7 @@ public:
     
     if(!havenormal || !straight) {
       size_t k=0;
-      controls=new Triple[16];
+      controls=new(UseGC) Triple[16];
       for(size_t i=0; i < 4; ++i) {
         vm::array *gi=vm::read<vm::array*>(g,i);
         if(checkArray(gi) != 4) 
@@ -103,7 +103,7 @@ public:
     int size=checkArray(&pens);
     if(size > 0) {
       if(size != 4) reportError(wrongsize);
-      colors=new GLfloat[16];
+      colors=new(UseGC) GLfloat[16];
       storecolor(colors,0,pens,0);
       storecolor(colors,8,pens,1);
       storecolor(colors,12,pens,2);
@@ -125,7 +125,7 @@ public:
     }
     
     if(s->controls) {
-      controls=new Triple[16];
+      controls=new(UseGC) Triple[16];
       for(size_t i=0; i < 16; ++i) {
         const double *c=s->controls[i];
         store(controls[i],run::operator *(t,triple(c[0],c[1],c[2])));
@@ -137,7 +137,7 @@ public:
     
 #ifdef HAVE_LIBGL
     if(s->colors) {
-      colors=new GLfloat[16];
+      colors=new(UseGC) GLfloat[16];
       for(int i=0; i < 16; ++i)
         colors[i]=s->colors[i];
     } else colors=NULL;
@@ -150,15 +150,7 @@ public:
   
   void ratio(pair &b, double (*m)(double, double), bool &first);
   
-  virtual ~drawSurface() {
-    if(controls)
-      delete[] controls;
-    
-#ifdef HAVE_LIBGL
-    if(colors)
-      delete[] colors;
-#endif
-  }
+  virtual ~drawSurface() {}
 
   bool write(prcfile *out, unsigned int *count, vm::array *index,
              vm::array *origin);
@@ -218,7 +210,7 @@ public:
     nv=checkArray(g0);
     
     size_t n=nu*nv;
-    controls=new Triple[n];
+    controls=new(UseGC) Triple[n];
     
     size_t k=0;
     for(size_t i=0; i < nu; ++i) {
@@ -231,7 +223,7 @@ public:
       
     if(weightsize > 0) {
       size_t k=0;
-      weights=new double[n];
+      weights=new(UseGC) double[n];
       for(size_t i=0; i < nu; ++i) {
         vm::array *weighti=vm::read<vm::array*>(weight,i);
         if(checkArray(weighti) != nv)  
@@ -263,13 +255,13 @@ public:
     emissive=rgba(vm::read<camp::pen>(p,2));
     specular=rgba(vm::read<camp::pen>(p,3));
 #ifdef HAVE_LIBGL
-    uKnots=new GLfloat[nuknots];
-    vKnots=new GLfloat[nvknots];
-    Controls=new GLfloat[(weights ? 4 : 3)*n];
+    uKnots=new(UseGC) GLfloat[nuknots];
+    vKnots=new(UseGC) GLfloat[nvknots];
+    Controls=new(UseGC) GLfloat[(weights ? 4 : 3)*n];
     
     int size=checkArray(&pens);
     if(size > 0) {
-      colors=new GLfloat[16];
+      colors=new(UseGC) GLfloat[16];
       if(size != 4) reportError(wrongsize);
       storecolor(colors,0,pens,0);
       storecolor(colors,8,pens,1);
@@ -288,7 +280,7 @@ public:
     name(s->name) {
     
     size_t n=nu*nv;
-    controls=new double[n][3];
+    controls=new(UseGC) Triple[n];
       
     for(size_t i=0; i < n; ++i) {
       const double *c=s->controls[i];
@@ -299,15 +291,15 @@ public:
     }
     
     if(s->weights) {
-      weights=new double[n];
+      weights=new(UseGC) double[n];
       for(size_t i=0; i < n; ++i)
         weights[i]=s->weights[i];
     } else weights=NULL;
     
     size_t nuknots=udegree+nu+1;
     size_t nvknots=vdegree+nv+1;
-    uknots=new double[nuknots];
-    vknots=new double[nvknots];
+    uknots=new(UseGC) double[nuknots];
+    vknots=new(UseGC) double[nvknots];
     
     for(size_t i=0; i < nuknots; ++i)
       uknots[i]=s->uknots[i];
@@ -316,12 +308,12 @@ public:
       vknots[i]=s->vknots[i];
     
 #ifdef HAVE_LIBGL
-    uKnots=new GLfloat[nuknots];
-    vKnots=new GLfloat[nvknots];
-    Controls=new GLfloat[(weights ? 4 : 3)*n];
+    uKnots=new(UseGC) GLfloat[nuknots];
+    vKnots=new(UseGC) GLfloat[nvknots];
+    Controls=new(UseGC)  GLfloat[(weights ? 4 : 3)*n];
     
     if(s->colors) {
-      colors=new GLfloat[16];
+      colors=new(UseGC) GLfloat[16];
       for(int i=0; i < 16; ++i)
         colors[i]=s->colors[i];
     } else colors=NULL;
@@ -332,20 +324,7 @@ public:
   
   void bounds(bbox3& b);
   
-  virtual ~drawNurbs() {
-    delete[] vknots;
-    delete[] uknots;
-    if(weights) 
-      delete[] weights;
-    delete[] controls;
-#ifdef HAVE_LIBGL
-    if(colors)
-      delete[] colors; 
-    delete[] Controls;
-    delete[] vKnots;
-    delete[] uKnots;
-#endif    
-  }
+  virtual ~drawNurbs() {}
 
   bool write(prcfile *out, unsigned int *count, vm::array *index,
              vm::array *origin);

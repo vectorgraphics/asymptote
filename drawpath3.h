@@ -32,9 +32,7 @@ public:
     invisible(s->invisible), Min(g.min()), Max(g.max()), controls(NULL),
     name(s->name) {}
   
-  virtual ~drawPath3() {
-    if(controls) delete controls;
-  }
+  virtual ~drawPath3() {}
 
   bool is3D() {return true;}
   

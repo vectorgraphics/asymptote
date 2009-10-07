@@ -169,11 +169,11 @@ bool drawSurface::write(prcfile *out, unsigned int *count, array *index,
   PRCMaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
 
   if(straight)
-    out->add(new PRCBezierSurface(out,1,1,2,2,vertices,m,granularity,
-                                  buf.str()));
+    out->add(new(UseGC) PRCBezierSurface(out,1,1,2,2,vertices,m,granularity,
+                                         buf.str()));
   else
-    out->add(new PRCBezierSurface(out,3,3,4,4,controls,m,granularity,
-                                  buf.str()));
+    out->add(new(UseGC) PRCBezierSurface(out,3,3,4,4,controls,m,granularity,
+                                         buf.str()));
   
   return true;
 }
@@ -455,9 +455,9 @@ bool drawNurbs::write(prcfile *out, unsigned int *count, array *index,
     return true;
 
   PRCMaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
-  out->add(new PRCsurface(out,udegree,vdegree,nu,nv,controls,uknots,vknots,
-                          m,scale3D,weights != NULL,weights,granularity,
-                          name.c_str()));
+  out->add(new(UseGC) PRCsurface(out,udegree,vdegree,nu,nv,controls,
+                                 uknots,vknots,m,scale3D,weights != NULL,
+                                 weights,granularity,name.c_str()));
   
   return true;
 }
