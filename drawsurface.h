@@ -13,7 +13,7 @@
 #include "path3.h"
 
 namespace run {
-extern double *copyArrayC(const array *a, size_t dim);
+extern double *copyArrayC(const array *a, size_t dim, GCPlacement placement);
 }
 
 namespace camp {
@@ -252,8 +252,8 @@ public:
     udegree=nuknots-nu-1;
     vdegree=nvknots-nv-1;
     
-    uknots=run::copyArrayC(uknot,0);
-    vknots=run::copyArrayC(vknot,0);
+    uknots=run::copyArrayC(uknot,0,NoGC);
+    vknots=run::copyArrayC(vknot,0,NoGC);
     
     pen surfacepen=vm::read<camp::pen>(p,0);
     invisible=surfacepen.invisible();

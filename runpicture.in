@@ -408,9 +408,9 @@ void shipout3(string prefix, picture *f, string format=emptystring,
   real* Background=copyArrayC(background);
   
   triple *Lights=copyTripleArrayC(lights);
-  real *Diffuse=copyArray2C(diffuse,false,4);
-  real *Ambient=copyArray2C(ambient,false,4);
-  real *Specular=copyArray2C(specular,false,4);
+  real *Diffuse=copyArray2C(diffuse,false,4,UseGC);
+  real *Ambient=copyArray2C(ambient,false,4,UseGC);
+  real *Specular=copyArray2C(specular,false,4,UseGC);
     
   f->shipout3(prefix,format,width,height,angle,zoom,m,M,shift,T,Background,n,
               Lights,Diffuse,Ambient,Specular,viewportlighting,view);

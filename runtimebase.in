@@ -50,12 +50,14 @@ array *copyArray(array *a);
 array *copyArray2(array *a);
 array *copyArray3(array *a);
 
-double *copyArrayC(const array *a, size_t dim=0);
-double *copyArray2C(const array *a, bool square=true, size_t dim2=0);
+double *copyArrayC(const array *a, size_t dim=0, GCPlacement placement=NoGC);
+double *copyArray2C(const array *a, bool square=true, size_t dim2=0,
+                    GCPlacement placement=NoGC);
 
 triple *copyTripleArrayC(const array *a, size_t dim=0);
 triple *copyTripleArray2C(const array *a, bool square=true, size_t dim2=0);
-double *copyTripleArray2Components(array *a, bool square=true, size_t dim2=0);
+double *copyTripleArray2Components(array *a, bool square=true, size_t dim2=0,
+                                   GCPlacement placement=NoGC);
 }
 
 function *realRealFunction();

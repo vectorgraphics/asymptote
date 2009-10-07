@@ -127,10 +127,11 @@ inline size_t checkdimension(const array *a, size_t dim)
   return size;
 }
 
-double *copyArrayC(const array *a, size_t dim)
+double *copyArrayC(const array *a, size_t dim, GCPlacement placement)
 {
   size_t size=checkdimension(a,dim);
-  double *c=new double[size];
+  double *c=(placement == NoGC) ? new double [size] : 
+    new(placement) double[size];
   for(size_t i=0; i < size; i++) 
     c[i]=read<double>(a,i);
   return c;
@@ -181,7 +182,8 @@ array *copyArray3(array *a)
   return c;
 }
 
-double *copyArray2C(const array *a, bool square, size_t dim2)
+double *copyArray2C(const array *a, bool square, size_t dim2,
+                    GCPlacement placement)
 {
   size_t n=checkArray(a);
   size_t m=(square || n == 0) ? n : checkArray(read<array*>(a,0));
@@ -191,7 +193,7 @@ double *copyArray2C(const array *a, bool square, size_t dim2)
     error(buf);
   }
   
-  double *c=new double[n*m];
+  double *c=(placement == NoGC) ? new double [n*m] : new(placement) double[n*m];
   for(size_t i=0; i < n; i++) {
     array *ai=read<array*>(a,i);
     size_t aisize=checkArray(ai);
@@ -229,7 +231,8 @@ triple *copyTripleArray2C(const array *a, bool square, size_t dim2)
   return c;
 }
 
-double *copyTripleArray2Components(array *a, bool square, size_t dim2)
+double *copyTripleArray2Components(array *a, bool square, size_t dim2,
+                                   GCPlacement placement)
 {
   size_t n=checkArray(a);
   size_t m=(square || n == 0) ? n : checkArray(read<array*>(a,0));
@@ -240,7 +243,8 @@ double *copyTripleArray2Components(array *a, bool square, size_t dim2)
   }
   
   size_t nm=n*m;
-  double *cx=new double[3*nm];
+  double *cx=(placement == NoGC) ? new double [3*nm] :
+    new(placement) double[3*nm];
   double *cy=cx+nm;
   double *cz=cx+2*nm;
   for(size_t i=0; i < n; i++) {
