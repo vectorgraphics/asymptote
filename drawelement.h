@@ -110,11 +110,15 @@ public:
   virtual void ratio(pair &b, double (*m)(double, double), bool &first){}
 
   virtual bool islabel() {return false;}
-  
+
   virtual bool islayer() {return false;}
 
   virtual bool is3D() {return false;}
+
+// Is this element implemented in SVG?
+  virtual bool svg() {return true;}
   
+  virtual bool beginclip() {return false;}
   virtual bool endclip() {return false;}
   
   virtual bool begingroup() {return false;}

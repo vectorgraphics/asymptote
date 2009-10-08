@@ -27,10 +27,6 @@ private:
   boxvector labelbounds;
   bboxlist bboxstack;
   bool transparency;
-  
-  static bool epsformat,pdfformat,svgformat,xobject,pdf,Labels;
-  static double paperWidth,paperHeight;
-
 public:
   bbox3 b3; // 3D bounding box
   
@@ -72,11 +68,11 @@ public:
   int epstopdf(const string& epsname, const string& pdfname);
   
   bool texprocess(const string& texname, const string& tempname,
-                  const string& prefix, const pair& bboxshift); 
+                  const string& prefix, const pair& bboxshift, bool svgformat); 
     
   bool postprocess(const string& prename, const string& outname, 
                    const string& outputformat, double magnification,
-                   bool wait, bool view);
+                   bool wait, bool view, bool pdftex, bool svgformat);
     
   // Ship the picture out to PostScript & TeX files.
   bool shipout(picture* preamble, const string& prefix,

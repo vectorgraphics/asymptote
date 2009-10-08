@@ -26,6 +26,9 @@ public:
     if(!stroke && !cyclic()) noncyclic();
   }
 
+  // dvisvgm doesn't yet support SVG patterns.
+  bool svg() {return pentype.fillpattern() == "";}
+  
   virtual ~drawFill() {}
 
   bool draw(psfile *out);
@@ -53,6 +56,9 @@ public:
     if(stroke) strokebounds(b);
     else drawSuperPathPenBase::bounds(b,iopipe,vbox,bboxstack);
   }
+  
+  // Shading in SVG is incomplete and not supported at all by dvisvgm.
+  bool svg() {return false;}
   
   virtual void shade(psfile *out)=0;
   void fill(psfile *out) {

@@ -29,6 +29,8 @@ public:
 
   virtual ~drawClipBegin() {}
 
+  bool beginclip() {return true;}
+  
   void bounds(bbox& b, iopipestream& iopipe, boxvector& vbox,
               bboxlist& bboxstack) {
     bboxstack.push_back(b);
