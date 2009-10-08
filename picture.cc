@@ -308,6 +308,17 @@ bool picture::texprocess(const string& texname, const string& outname,
       cmd.push_back("--verbosity=3");
       push_split(cmd,getSetting<string>("dvisvgmOptions"));
       cmd.push_back("-o"+outname);
+#ifdef HAVE_DVISVGM_BBOX
+      ostringstream buf;
+      bbox B=b;
+      B.shift(bboxshift+pair(1.99*cm,1.9*cm));
+      buf << "--bbox=" 
+          << B.left << "bp " 
+          << B.bottom << "bp "
+          << B.right << "bp "
+          << B.top << "bp";
+      cmd.push_back(buf.str());
+#endif      
       cmd.push_back(dviname);
       status=System(cmd,0,true,"dvisvgm");
       if(status != 0) return false;
@@ -621,14 +632,9 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   string epsname=epsformat ? (standardout ? "" : outname) :
     auxname(prefix,"eps");
   
-  bool Labels=labels || TeXmode || svgformat;
+  bool Labels=labels || TeXmode;
   
-  if(Labels)
-    spaceToUnderscore(prefix);
-  string prename=((epsformat && !pdf) || !Labels) ? epsname : 
-    auxname(prefix,preformat);
-  
-  if((b.empty && !Labels)) { // Output a null file
+  if(b.empty && !Labels) { // Output a null file
     bbox b;
     b.left=b.bottom=0;
     b.right=b.top=xobject ? 18 : 1;
@@ -638,6 +644,13 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     out.close();
     return postprocess(epsname,outname,outputformat,1.0,wait,view,false,false);
   }
+  
+  Labels |= svgformat;
+    
+  if(Labels)
+    spaceToUnderscore(prefix);
+  string prename=((epsformat && !pdf) || !Labels) ? epsname : 
+    auxname(prefix,preformat);
   
   if(xobject) {
     double fuzz=0.5/magnification;
