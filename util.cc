@@ -286,7 +286,7 @@ int System(const mem::vector<string> &command, int quiet, bool wait,
         if(quiet < 2) {
           ostringstream msg;
           msg << "Command failed: ";
-          for(size_t i=0; i < command.size(); ++i) msg << command[i];
+          for(size_t i=0; i < command.size(); ++i) msg << command[i] << " ";
           camp::reportError(msg);
         }
       }
@@ -305,7 +305,7 @@ int System(const mem::vector<string> &command, int quiet, bool wait,
         if(quiet < 2) {
           ostringstream msg;
           msg << "Command exited abnormally: ";
-          for(size_t i=0; i < command.size(); ++i) msg << command[i];
+          for(size_t i=0; i < command.size(); ++i) msg << command[i] << " ";
           camp::reportError(msg);
         }
       }
