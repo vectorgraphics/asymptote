@@ -69,6 +69,8 @@ public:
   
   virtual ~drawLabelPath() {}
 
+  bool svg() {return false;}
+  
   void bounds(bbox& b, iopipestream& tex, boxvector&, bboxlist&);
   
   bool write(texfile *out, const bbox&);
