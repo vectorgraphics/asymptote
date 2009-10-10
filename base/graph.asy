@@ -2166,7 +2166,7 @@ picture vectorfield(path vector(pair), pair a, pair b,
       path g=vector(z);
       return abs(point(g,size(g)-1)-point(g,0));
     }
-    real max=size((0,0));
+    real max=size(a);
     for(int i=0; i <= nx; ++i) {
       real x=interp(a.x,b.x,i*dx);
       for(int j=0; j <= ny; ++j)
