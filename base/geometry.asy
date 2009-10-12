@@ -7135,8 +7135,7 @@ void perpendicular(picture pic=currentpicture, pair z, pair align, path g,
 
 // Return an interior arc BAC of triangle ABC, given a radius r > 0.
 // If r < 0, return the corresponding exterior arc of radius |r|.
-path arc(explicit pair B, explicit pair A, explicit pair C,
-         real r=arrowfactor)
+path arc(explicit pair B, explicit pair A, explicit pair C, real r)
 {
   return arc(A,r,degrees(B-A),degrees(C-A));
 }
