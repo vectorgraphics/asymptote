@@ -3063,7 +3063,8 @@ frame[] fit3(string prefix="", picture[] pictures, picture all,
     for(int i=settings.reverse ? pictures.length-1 : 0;
         i >= 0 && i < pictures.length && !settings.interrupt;
         settings.reverse ? --i : ++i) {
-      embedder(prefix,out[i],format,view,options,script,light,S.P);
+      frame f=embedder(prefix,out[i],format,view,options,script,light,S.P);
+      if(!settings.loop) out[i]=f;
     }   
     if(!settings.loop) break;
   }
