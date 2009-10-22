@@ -308,7 +308,6 @@ bool picture::texprocess(const string& texname, const string& outname,
       cmd.push_back("--verbosity=3");
       push_split(cmd,getSetting<string>("dvisvgmOptions"));
       cmd.push_back("-o"+outname);
-#ifdef HAVE_DVISVGM_BBOX
       ostringstream buf;
       bbox B=b;
       B.shift(bboxshift+pair(1.99*cm,1.9*cm));
@@ -318,7 +317,6 @@ bool picture::texprocess(const string& texname, const string& outname,
           << B.right << "bp "
           << B.top << "bp";
       cmd.push_back(buf.str());
-#endif      
       cmd.push_back(dviname);
       status=System(cmd,0,true,"dvisvgm");
       if(status != 0) return false;
