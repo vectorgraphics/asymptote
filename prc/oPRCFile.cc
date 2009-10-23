@@ -153,6 +153,8 @@ void PRCcurve::writeTopologicalContext(PRCbitStream &out)
   // control points
   for(uint32_t i = 0; i < numberOfControlPoints; ++i)
   {
+    double Scale=scale;
+    if(isRational) Scale *= weights[i];
     out << controlPoints[i][0]*scale << controlPoints[i][1]*scale 
 	<< controlPoints[i][2]*scale;
     if(isRational)
@@ -246,8 +248,10 @@ void PRCsurface::writeTopologicalContext(PRCbitStream &out)
   // control points
   for(uint32_t i = 0; i < numberOfControlPointsU*numberOfControlPointsV; ++i)
   {
-    out << controlPoints[i][0]*scale << controlPoints[i][1]*scale
-	<< controlPoints[i][2]*scale;
+    double Scale=scale;
+    if(isRational) Scale *= weights[i];
+    out << controlPoints[i][0]*Scale << controlPoints[i][1]*Scale
+	<< controlPoints[i][2]*Scale;
     if(isRational)
       out << weights[i];
   }

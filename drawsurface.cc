@@ -465,51 +465,27 @@ bool drawNurbs::write(prcfile *out, unsigned int *count, array *index,
 // Approximate bounds by bounding box of control polyhedron.
 void drawNurbs::bounds(bbox3& b)
 {
-  double x,y,z;
-  double X,Y,Z;
   size_t n=nu*nv;
   double *v=controls[0];
-  if(weights == NULL) {
-    x=v[0];
-    y=v[1];
-    z=v[2];
-    X=x;
-    Y=y;
-    Z=z;
-    for(size_t i=1; i < n; ++i) {
-      double *v=controls[i];
-      double vx=v[0];
-      x=min(x,vx);
-      X=max(X,vx);
-      double vy=v[1];
-      y=min(y,vy);
-      Y=max(Y,vy);
-      double vz=v[2];
-      z=min(z,vz);
-      Z=max(Z,vz);
-    }
-  } else {
-    double w=weights[0];
-    x=v[0]/w;
-    y=v[1]/w;
-    z=v[2]/w;
-    X=x;
-    Y=y;
-    Z=z;
-    for(size_t i=1; i < n; ++i) {
-      double *v=controls[i];
-      double w=weights[i];
-      double vx=v[0]/w;
-      x=min(x,vx);
-      X=max(X,vx);
-      double vy=v[1]/w;
-      y=min(y,vy);
-      Y=max(Y,vy);
-      double vz=v[2]/w;
-      z=min(z,vz);
-      Z=max(Z,vz);
-    }
+  double x=v[0];
+  double y=v[1];
+  double z=v[2];
+  double X=x;
+  double Y=y;
+  double Z=z;
+  for(size_t i=1; i < n; ++i) {
+    double *v=controls[i];
+    double vx=v[0];
+    x=min(x,vx);
+    X=max(X,vx);
+    double vy=v[1];
+    y=min(y,vy);
+    Y=max(Y,vy);
+    double vz=v[2];
+    z=min(z,vz);
+    Z=max(Z,vz);
   }
+
   Min=triple(x,y,z);
   Max=triple(X,Y,Z);
   b.add(Min);
@@ -551,8 +527,13 @@ void drawNurbs::displacement()
     store(Controls+stride*i,controls[i]);
   
   if(weights != NULL)
-    for(size_t i=0; i < n; ++i)
-      Controls[4*i+3]=weights[i];
+    for(size_t i=0; i < n; ++i) {
+      double w=weights[i];
+      Controls[4*i+0] *= w;
+      Controls[4*i+1] *= w;
+      Controls[4*i+2] *= w;
+      Controls[4*i+3]=w;
+    }
 
   size_t nuknotsm1=udegree+nu;
   size_t nvknotsm1=vdegree+nv;
