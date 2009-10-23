@@ -1734,14 +1734,11 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
           PRCshininess=PRCshininess(m.shininess);
         draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,PRCshininess,
              granularity,colors,lighton,name);
-        if(pic != null) {
-          triple[][] R=weights.length > 0 ? P/weights : P;
-          pic.addBox(minbound(R,Q),maxbound(R,Q));
-        }
+        if(pic != null)
+          pic.addBox(minbound(P,Q),maxbound(P,Q));
       }
     },true);
-  triple[][] R=weights.length > 0 ? P/weights : P;
-  pic.addBox(minbound(R),maxbound(R));
+  pic.addBox(minbound(P),maxbound(P));
 }
 
 // A structure to subdivide two intersecting patches about their intersection.
