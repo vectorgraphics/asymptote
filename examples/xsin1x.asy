@@ -13,13 +13,12 @@ picture pic;
 size(pic,50,IgnoreAspect);
 xaxis(pic,red);
 yaxis(pic,red);
-pair z=(0.1/pi,0.1/pi);
-draw(pic,graph(pic,f,-z.x,z.x,1000));
+draw(pic,graph(pic,f,-0.1/pi,0.1/pi,1000));
 
 add(new void(frame f, transform t) {
     frame G=shift(point(f,N+0.85W))*align(bbox(pic,blue),10SE);
     add(f,G);
-    draw(f,t*box(-z,z),blue);
-    draw(f,point(G,E)--t*(-z.x,0),blue);
+    draw(f,t*box(min(pic,user=true),max(pic,user=true)),blue);
+    draw(f,point(G,E)--t*point(pic,W),blue);
   });
 
