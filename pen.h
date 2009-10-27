@@ -394,7 +394,7 @@ public:
   
   // Construct one pen from another, resolving defaults
   pen(resolvepen_t, const pen& p) : 
-    line(LineType(p.stroke(),p.line.offset,p.line.scale,p.line.adjust)),
+    line(LineType(p.line.pattern,p.line.offset,p.line.scale,p.line.adjust)),
     linewidth(p.width()), P(p.Path()),
     font(p.Font()), fontsize(p.size()), lineskip(p.Lineskip()),
     color(p.colorspace()),
@@ -459,10 +459,6 @@ public:
   
   double Lineskip() const {
     return lineskip == 0.0 ? defaultpen().lineskip : lineskip;
-  }
-  
-  vm::array stroke() const {
-    return line.isdefault ? defaultpen().line.pattern : line.pattern;
   }
   
   LineType linetype() const {

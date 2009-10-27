@@ -234,10 +234,13 @@ void psfile::setpen(pen p)
   if(p.miter() != lastpen.miter())
     *out << p.miter() << " setmiterlimit" << newl;
 
-  if(!(p.stroke() == lastpen.stroke()) ||
-     p.linetype().offset != lastpen.linetype().offset) {
+  LineType linetype=p.linetype();
+  LineType lastlinetype=lastpen.linetype();
+  
+  if(!(linetype.pattern == lastlinetype.pattern) || 
+     linetype.offset != lastlinetype.offset) {
     out->setf(std::ios::fixed);
-    *out << p.stroke() << " " << p.linetype().offset << " setdash" << newl;
+    *out << linetype.pattern << " " << linetype.offset << " setdash" << newl;
     out->unsetf(std::ios::fixed);
   }
     

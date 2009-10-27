@@ -47,14 +47,15 @@ pen adjustdash(pen& p, double arclength, bool cyclic)
 {
   pen q=p;
   // Adjust dash sizes to fit arclength; also compensate for linewidth.
-  array pat=q.stroke();
+  LineType linetype=q.linetype();
+  array pat=linetype.pattern;
   size_t n=pat.size();
     
   if(n > 0) {
-    double penwidth=q.linetype().scale ? q.width() : 1.0;
+    double penwidth=linetype.scale ? q.width() : 1.0;
     double factor=penwidth;
     
-    if(q.linetype().adjust) {
+    if(linetype.adjust) {
       if(arclength) {
         if(n == 0) return q;
       
@@ -65,11 +66,10 @@ pen adjustdash(pen& p, double arclength, bool cyclic)
     
     factor=max(factor,0.1);
     
-    vm::array *a=new array(n);
     for(size_t i=0; i < n; i++)
-      (*a)[i]=read<double>(pat,i)*factor;
-    q.setstroke(*a);
-    q.setoffset(q.linetype().offset*factor);
+      pat[i]=read<double>(pat,i)*factor;
+    q.setstroke(pat);
+    q.setoffset(linetype.offset*factor);
   }
   return q;
 }

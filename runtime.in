@@ -468,12 +468,17 @@ string blend(pen p)
 pen linetype(realarray *pattern, real offset=0, bool scale=true,
              bool adjust=true)
 {
-  return pen(LineType(*pattern,offset,scale,adjust)); 
+  size_t size=checkArray(pattern);
+  array *a=new array(size);
+  for(size_t i=0; i < size; ++i) 
+    (*a)[i]=::max(vm::read<double>(pattern,i),0.0);
+
+  return pen(LineType(*a,offset,scale,adjust)); 
 }
 
 realarray *linetype(pen p=CURRENTPEN)
 {
-  array a=p.stroke();
+  array a=p.linetype().pattern;
   return copyArray(&a);
 }
 
