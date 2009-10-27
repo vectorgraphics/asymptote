@@ -391,7 +391,7 @@ patharray *_strokepath(path g, pen p=CURRENTPEN)
   ps.setpen(p);
   ps.write(g);
   ps.strokepath();
-  ps.stroke();
+  ps.stroke(p);
   ps.verbatimline("(M) "+currentpoint);
   ps.epilogue();
   ps.close();

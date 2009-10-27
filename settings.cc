@@ -1071,6 +1071,8 @@ void initSettings() {
   addOption(new stringSetting("outformat", 'f', "format",
                               "Convert each output file to specified format",
                               ""));
+  addOption(new boolSetting("svgemulation", 0,
+                            "Emulate missing SVG shading instructions", false));
   addOption(new boolSetting("prc", 0,
                             "Embed 3D PRC graphics in PDF output", true));
   addOption(new boolSetting("toolbar", 0,

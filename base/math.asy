@@ -371,3 +371,21 @@ pair[] quarticroots(real a, real b, real c, real d, real e)
 
   return roots;
 }
+
+pair[][] fft(pair[][] a, int sign=1)
+{
+  pair[][] A=new pair[a.length][];
+  int k=0;
+  for(pair[] v : a) {
+    A[k]=fft(v,sign);
+    ++k;
+  }
+  a=transpose(A);
+  k=0;
+  for(pair[] v : a) {
+    A[k]=fft(v,sign);
+    ++k;
+  }
+  return transpose(A);
+}
+

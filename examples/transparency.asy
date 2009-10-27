@@ -1,6 +1,7 @@
 size(0,150);
 
-settings.outformat="pdf";
+if(settings.outformat == "")
+  settings.outformat="pdf";
 
 begingroup();
 fill(shift(1.5dir(120))*unitcircle,green+opacity(0.75));

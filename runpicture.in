@@ -114,6 +114,12 @@ pair max(picture *f)
   return f->bounds().Max();
 }
 
+pair size(picture *f)
+{
+  bbox b=f->bounds();
+  return b.Max()-b.Min();
+}
+
 void _draw(picture *f, path g, pen p)
 {
   f->append(new drawPath(g,p));
@@ -586,6 +592,12 @@ triple min3(picture *f)
 triple max3(picture *f)
 {
   return f->bounds3().Max();
+}
+
+triple size3(picture *f)
+{
+  bbox3 b=f->bounds3();
+  return b.Max()-b.Min();
 }
 
 pair minratio(picture *f)

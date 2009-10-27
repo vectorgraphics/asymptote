@@ -106,12 +106,12 @@ struct sCAD
     // E
     cad.pE =
       cad.pSurfaceTreatmentAllowed =
-      pFullWidth + linetype("10 2.5");
+      pFullWidth + linetype(new real[] {10,2.5});
     // F
     cad.pF =
       cad.pInvisibleEdge =
       cad.pInvisibleContour =
-      pHalfWidth + linetype("20 5");
+      pHalfWidth + linetype(new real[] {20,5});
     // G
     cad.pG =
       cad.pMiddleLine =
@@ -120,7 +120,7 @@ struct sCAD
       cad.pCircularHole =
       cad.pDivisionPlane =
       cad.pTransferLine =
-      pHalfWidth + linetype("40 5 5 5");
+      pHalfWidth + linetype(new real[] {40,5,5,5});
     // H
     // see J
     // I
@@ -129,7 +129,7 @@ struct sCAD
     cad.pJ =
       cad.pCuttingPlane =
       cad.pSurfaceTreatmentRequested =
-      pFullWidth + linetype("20 2.5 2.5 2.5");
+      pFullWidth + linetype(new real[] {20,2.5,2.5,2.5});
     // K
     cad.pK =
       cad.pContourBeforeDeformation =
@@ -137,7 +137,7 @@ struct sCAD
       cad.pEndShapeRawMaterial =
       cad.pContourEligibleType =
       cad.pPartInFrontOfCuttingPlane =
-      pHalfWidth + linetype("40 5 5 5 5 5");
+      pHalfWidth + linetype(new real[] {40,5,5,5,5,5});
 
     return cad;
   } // end of Create

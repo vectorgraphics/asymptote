@@ -684,7 +684,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   if(Labels) {
     texname=auxname(prefix,"tex");
-    tex=new texfile(texname,b);
+    tex=svgformat ? new svgtexfile(texname,b) : new texfile(texname,b);
     tex->prologue();
   }
   
@@ -746,11 +746,11 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     for(; p != nodes.end(); ++p) {
       assert(*p);
       if(Labels && (*p)->islayer()) break;
-      if(svgformat && !(*p)->svg()) {
-        picture *f=new picture;
-        
-         nodelist::const_iterator q=layerp;
-        for(; q != p; ++q) {
+      
+      if(svgformat && (*p)->svg()) {
+        picture *f=(*p)->svgpng() ? new picture : NULL;
+        nodelist::const_iterator q=layerp;
+        for(;;) {
           if((*q)->beginclip())
             begin.push_back(*q);
           else if((*q)->endclip()) {
@@ -758,49 +758,57 @@ bool picture::shipout(picture *preamble, const string& Prefix,
               reportError("endclip without matching beginclip");
             begin.pop_back();
           }
+          if(q == p) break;
+          ++q;
         }
         
-        for(nodelist::const_iterator r=begin.begin(); r != begin.end(); ++r)
-          f->append(*r);
-        
-        f->append(*(q++));
+        if(f) {
+          for(nodelist::const_iterator r=begin.begin(); r != begin.end(); ++r)
+            f->append(*r);
+
+          f->append(*(q++));
+        }
         
         while(q != nodes.end() && !(*q)->islayer()) ++q;
 
         clipstack end;
         
-        for(nodelist::const_iterator r=--q; r != p; --r) {
+        for(nodelist::const_iterator r=--q;; --r) {
           if((*r)->beginclip() && end.size() >= 1)
             end.pop_back();
           else if((*r)->endclip())
             end.push_back(*r);
+          if(r == p) break;
         }
         
         for(nodelist::const_reverse_iterator r=end.rbegin(); r != end.rend();
             ++r) {
           (*r)->draw(&out);
-          f->append(*r);
+          if(f)
+            f->append(*r);
         }
         
-        ostringstream buf;
-        buf << prefix << "_" << svgcount;
-        ++svgcount;
-        string pngname=buildname(buf.str(),"png");
-        f->shipout(preamble,buf.str(),"png",0.0,false,false);
-        pair m=f->bounds().Min();
-        pair M=f->bounds().Max();
-        delete f;
+        if(f) {
+          ostringstream buf;
+          buf << prefix << "_" << svgcount;
+          ++svgcount;
+          string pngname=buildname(buf.str(),"png");
+          f->shipout(preamble,buf.str(),"png",0.0,false,false);
+          pair m=f->bounds().Min();
+          pair M=f->bounds().Max();
+          delete f;
 
-        pair size=M-m;
-        ostringstream cmd;
-        cmd << "\\special{dvisvgm:img " << size.getx()*ps2tex << " " 
-            << size.gety()*ps2tex << " " << pngname << "}";
-        static pen P;
-        static pair zero;
-        L=new drawLabel(cmd.str(),"",identity,pair(m.getx(),M.gety()),zero,P);
-        texinit();
-        L->bounds(b_cached,processData().tex,labelbounds,bboxstack);
-        postscript=true;
+          pair size=M-m;
+          ostringstream cmd;
+          cmd << "\\special{dvisvgm:img " << size.getx()*ps2tex << " " 
+              << size.gety()*ps2tex << " " << pngname << "}";
+          static pen P;
+          static pair zero;
+          L=new drawLabel(cmd.str(),"",identity,pair(m.getx(),M.gety()),zero,P);
+          texinit();
+          L->bounds(b_cached,processData().tex,labelbounds,bboxstack);
+          postscript=true;
+        }
         break;
       } else postscript |= (*p)->draw(&out);
     }
@@ -826,9 +834,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
         for (p=layerp; p != nodes.end(); ++p) {
           assert(*p);
           bool islayer=(*p)->islayer();
-          if(svgformat && !(*p)->svg()) {
-            L->write(tex,b);
+          if(svgformat && (*p)->svg()) {
             islayer=true;
+            if((*p)->svgpng())
+              L->write(tex,b);
+            else
+              (*p)->draw(tex);
           } else
             (*p)->write(tex,b);
           if(islayer) {

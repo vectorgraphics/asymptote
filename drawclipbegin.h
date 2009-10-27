@@ -42,6 +42,8 @@ public:
 
   bool begingroup() {return true;}
   
+  bool svg() {return true;}
+  
   void save(bool b) {
     gsave=b;
   }
@@ -49,10 +51,10 @@ public:
   bool draw(psfile *out) {
     if(gsave) out->gsave();
     if(empty()) return true;
-    
-    writepath(out);
+    out->beginclip();
+    writepath(out,false);
     if(stroke) strokepath(out);
-    out->clip(pentype);
+    out->endclip(pentype);
     return true;
   }
 
@@ -79,7 +81,7 @@ public:
     out->beginraw();
     writeshiftedpath(out);
     if(stroke) strokepath(out);
-    out->clip(pentype);
+    out->endclip(pentype);
     out->endraw();
     out->endspecial();
     

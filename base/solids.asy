@@ -1,7 +1,7 @@
 import three;
 import graph3;
 
-pen defaultbackpen=linetype("4 4",4,scale=false);
+pen defaultbackpen=linetype(new real[] {4,4},4,scale=false);
 
 // A solid geometry package.
 

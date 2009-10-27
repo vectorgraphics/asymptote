@@ -1986,11 +1986,6 @@ path3 plane(triple u, triple v, triple O=O)
   return O--O+u--O+u+v--O+v--cycle;
 }
 
-triple size3(frame f)
-{
-  return max3(f)-min3(f);
-}
-
 // PRC/OpenGL support
 
 include three_light;
@@ -2125,10 +2120,9 @@ draw=new void(frame f, path3 g, material p=currentpen,
         } else _draw(f,g,q,name);
       } else _draw(f,g,q,name);
     }
-    string type=linetype(adjust(q,arclength(g),cyclic(g)));
-    if(length(type) == 0) drawthick(g);
+    real[] dash=linetype(adjust(q,arclength(g),cyclic(g)));
+    if(dash.length == 0) drawthick(g);
     else {
-      real[] dash=(real[]) split(type," ");
       if(sum(dash) > 0) {
         dash.cyclic=true;
         real offset=offset(q);

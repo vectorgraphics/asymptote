@@ -4,11 +4,6 @@ pair viewportsize=0;       // Horizontal and vertical viewport limits.
 restricted bool Aspect=true;
 restricted bool IgnoreAspect=false;
 
-pair size(frame f)
-{
-  return max(f)-min(f);
-}
-                                     
 typedef real[][] transform3;
 restricted transform3 identity4=identity(4);
 
@@ -1567,7 +1562,19 @@ void add(picture pic=currentpicture, drawer d, bool exact=false)
   pic.add(d,exact);
 }
 
+typedef void drawer3(frame f, transform3 t, picture pic, projection P);
+void add(picture pic=currentpicture, drawer3 d, bool exact=false)
+{
+  pic.add(d,exact);
+}
+
 void add(picture pic=currentpicture, void d(picture,transform),
+         bool exact=false)
+{
+  pic.add(d,exact);
+}
+
+void add(picture pic=currentpicture, void d(picture,transform3),
          bool exact=false)
 {
   pic.add(d,exact);
@@ -1738,7 +1745,8 @@ void tensorshade(picture pic=currentpicture, path[] g, bool stroke=false,
 
 // Smoothly shade the regions between consecutive paths of a sequence using a
 // given array of pens:
-void draw(picture pic=currentpicture, path[] g, pen[] p)
+void draw(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
+          pen[] p)
 {
   path[] G;
   pen[][] P;
@@ -1753,7 +1761,7 @@ void draw(picture pic=currentpicture, path[] g, pen[] p)
       P.push(new pen[] {p[i],p[i],p[i+1],p[i+1]});
     }
   }
-  tensorshade(pic,G,P);
+  tensorshade(pic,G,fillrule,P);
 }
 
 void functionshade(picture pic=currentpicture, path[] g, bool stroke=false,
@@ -1883,7 +1891,14 @@ void add(picture dest=currentpicture, frame src, pair position, pair align,
   add(dest,align(src,align),position,group,filltype,above);
 }
 
-// Like attach(picture,frame,pair) but extend picture to accommodate frame;
+// Like add(frame,frame,pair) but align frame in direction align.
+void add(frame dest, frame src, pair position, pair align,
+         bool group=true, filltype filltype=NoFill, bool above=true)
+{
+  add(dest,align(src,align),position,group,filltype,above);
+}
+
+// Like add(picture,frame,pair,pair) but extend picture to accommodate frame;
 void attach(picture dest=currentpicture, frame src, pair position,
             pair align, bool group=true, filltype filltype=NoFill,
             bool above=true)
@@ -1967,4 +1982,21 @@ void erase(picture pic=currentpicture)
 {
   pic.uptodate=false;
   pic.erase();
+}
+
+void begin(picture pic=currentpicture, string name, string id="",
+           bool visible=true)
+{
+  if(!latex() || !pdf()) return;
+  settings.twice=true;
+  if(id == "") id=string(++ocgindex);
+  tex(pic,"\begin{ocg}{"+name+"}{"+id+"}{"+(visible ? "1" : "0")+"}");
+  layer(pic);
+}
+
+void end(picture pic=currentpicture)
+{
+  if(!latex() || !pdf()) return;
+  tex(pic,"\end{ocg}");
+  layer(pic);
 }

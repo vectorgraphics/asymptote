@@ -136,7 +136,7 @@ bool drawFunctionShade::write(texfile *out, const bbox& box)
   out->beginraw();
   writeshiftedpath(out);
   if(stroke) strokepath(out);
-  out->clip(pentype);
+  out->endclip(pentype);
   out->verbatimline("/Sh sh");
   out->endraw();
   out->endspecial();

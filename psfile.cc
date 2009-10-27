@@ -221,28 +221,23 @@ void psfile::setpen(pen p)
   else setcolor(p);
   
   // Defer dynamic linewidth until stroke time in case currentmatrix changes.
-  if(p.width() != lastpen.width()) {
+  if(p.width() != lastpen.width())
     *out << p.width() << (pdfformat ? " setlinewidth" : " Setlinewidth") 
          << newl;
-  }
     
-  if(p.cap() != lastpen.cap()) {
+  if(p.cap() != lastpen.cap())
     *out << p.cap() << " setlinecap" << newl;
-  }
     
-  if(p.join() != lastpen.join()) {
+  if(p.join() != lastpen.join())
     *out << p.join() << " setlinejoin" << newl;
-  }
     
-  if(p.miter() != lastpen.miter()) {
+  if(p.miter() != lastpen.miter())
     *out << p.miter() << " setmiterlimit" << newl;
-  }
-    
-  if(p.stroke() != lastpen.stroke() || 
+
+  if(!(p.stroke() == lastpen.stroke()) ||
      p.linetype().offset != lastpen.linetype().offset) {
     out->setf(std::ios::fixed);
-    *out << "[" << p.stroke() << "] " << std::setprecision(6) 
-         << p.linetype().offset << " setdash" << newl;
+    *out << p.stroke() << " " << p.linetype().offset << " setdash" << newl;
     out->unsetf(std::ios::fixed);
   }
     
@@ -323,7 +318,6 @@ void psfile::latticeshade(const vm::array& a, const bbox& b)
   *out << "/Size [" << m << " " << n << "]" << newl
        << "/DataSource <" << newl;
 
-  beginHex();
   for(size_t i=n; i > 0;) {
     array *ai=read<array *>(a,--i);
     checkArray(ai);
@@ -334,12 +328,12 @@ void psfile::latticeshade(const vm::array& a, const bbox& b)
       p->convert();
       if(!p->promote(colorspace))
         reportError(inconsistent);
-      writeHex(p,ncomponents);
+      *out << p->hex() << newl;
     }
   }
-  endHex();
-
-  *out << ">>" << newl
+  
+  *out << ">" << newl
+       << ">>" << newl
        << ">>" << newl
        << "shfill" << newl;
 }
@@ -350,6 +344,8 @@ void psfile::gradientshade(bool axial, ColorSpace colorspace,
                            const pen& penb, const pair& b, double rb)
 {
   checkLevel();
+  endclip(pena);
+
   setopacity(pena);
   checkColorSpace(colorspace);
   
@@ -377,10 +373,13 @@ void psfile::gradientshade(bool axial, ColorSpace colorspace,
        << "shfill" << newl;
 }
   
-void psfile::gouraudshade(const array& pens, const array& vertices,
+void psfile::gouraudshade(const pen& pentype,
+                          const array& pens, const array& vertices,
                           const array& edges)
 {
   checkLevel();
+  endclip(pentype);
+
   size_t size=pens.size();
   if(size == 0) return;
   
@@ -417,10 +416,12 @@ void psfile::vertexpen(array *pi, int j, ColorSpace colorspace)
 }
 
 // Tensor-product patch shading
-void psfile::tensorshade(const array& pens, const array& boundaries,
-                         const array& z)
+void psfile::tensorshade(const pen& pentype, const array& pens,
+                         const array& boundaries, const array& z)
 {
   checkLevel();
+  endclip(pentype);
+  
   size_t size=pens.size();
   if(size == 0) return;
   size_t nz=z.size();
@@ -483,15 +484,6 @@ void psfile::tensorshade(const array& pens, const array& boundaries,
        << "shfill" << newl;
 }
  
-inline unsigned char byte(double r) // Map [0,1] to [0,255]
-{
-  if(r < 0.0) r=0.0;
-  else if(r > 1.0) r=1.0;
-  int a=(int)(256.0*r);
-  if(a == 256) a=255;
-  return a;
-}
-
 void psfile::write(pen *p, size_t ncomponents) 
 {
   switch(ncomponents) {
@@ -510,32 +502,6 @@ void psfile::write(pen *p, size_t ncomponents)
       writeByte(byte(p->magenta())); 
       writeByte(byte(p->yellow())); 
       writeByte(byte(p->black())); 
-    default:
-      break;
-  }
-}
-
-void psfile::writeHex(pen *p, size_t ncomponents) 
-{
-  switch(ncomponents) {
-    case 0:
-      break;
-    case 1: 
-      write2(byte(p->gray())); 
-      writenewl();
-      break;
-    case 3:
-      write2(byte(p->red())); 
-      write2(byte(p->green())); 
-      write2(byte(p->blue())); 
-      writenewl();
-      break;
-    case 4:
-      write2(byte(p->cyan())); 
-      write2(byte(p->magenta())); 
-      write2(byte(p->yellow())); 
-      write2(byte(p->black())); 
-      writenewl();
     default:
       break;
   }

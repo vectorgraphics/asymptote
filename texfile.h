@@ -162,6 +162,7 @@ bool settexfont(T& out, const pen& p, const pen& lastpen, bool latex)
 }
 
 class texfile : public psfile {
+protected:  
   bbox box;
   bool inlinetex;
   double Hoffset;
@@ -217,6 +218,97 @@ public:
   void endlayer();
 };
 
+class svgtexfile : public texfile {
+  mem::stack<size_t> clipstack;
+  size_t clipcount;
+  size_t gradientcount;
+  size_t tensorcount;
+  static string nl;
+public:  
+  svgtexfile(const string& texname, const bbox& box, bool pipe=false) :
+    texfile(texname,box,pipe) {
+    clipcount=0;
+    gradientcount=0;
+    tensorcount=0;
+  }
+  
+  void writeshifted(pair z) {
+    write(conj(z)*ps2tex);
+  }
+  
+  void translate(pair z) {}
+  void concat(transform t) {}
+  
+  void beginspecial();
+  void endspecial();
+  
+  void clippath();
+  
+  void beginpath();
+  void endpath();
+  
+  void newpath() {
+    beginspecial();
+    beginpath();
+  }
+  
+  void moveto(pair z) {
+    *out << "M";
+    writeshifted(z);
+  }
+  
+  void lineto(pair z) {
+    *out << "L";
+    writeshifted(z);
+  }
+
+  void curveto(pair zp, pair zm, pair z1) {
+    *out << "C";
+    writeshifted(zp); writeshifted(zm); writeshifted(z1);
+  }
+
+  void closepath() {
+    *out << "Z";
+  }
+
+  string rgbhex(pen p) {
+    p.torgb();
+    return p.hex();
+  }
+  
+  void properties(const pen& p);
+  void color(const pen &p, const string& type);
+    
+  void stroke(const pen &p);
+  void strokepath();
+  
+  void fillrule(const pen& p, const string& type="fill");
+  void fill(const pen &p);
+  
+  void begintensorshade(const vm::array& pens,
+                        const vm::array& boundaries,
+                        const vm::array& z);
+  void tensorshade(const pen& pentype, const vm::array& pens,
+                   const vm::array& boundaries, const vm::array& z);
+
+  void begingradientshade(bool axial, ColorSpace colorspace,
+                          const pen& pena, const pair& a, double ra,
+                          const pen& penb, const pair& b, double rb);
+  void gradientshade(bool axial, ColorSpace colorspace,
+                     const pen& pena, const pair& a, double ra,
+                     const pen& penb, const pair& b, double rb);
+  
+  void beginclip();
+  
+  void endclip(const pen &p);
+  
+  void setpen(pen p) {}
+  
+  void gsave(bool tex=false);
+  
+  void grestore(bool tex=false);
+};
+  
 } //namespace camp
 
 #endif

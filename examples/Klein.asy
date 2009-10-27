@@ -39,6 +39,6 @@ draw(surface(xscale(0.26)*yscale(0.1)*rotate(90)*hi,s,4.9,1.4,h,bottom=false));
 draw(s.uequals(0),blue+dashed);
 draw(s.uequals(pi),blue+dashed);
 
-currentpicture.add(new void(frame f, transform3 t, picture pic, projection P) {
+add(new void(frame f, transform3 t, picture pic, projection P) {
     draw(f,invert(box(min(f,P),max(f,P)),P));
   });

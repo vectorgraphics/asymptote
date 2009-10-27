@@ -94,15 +94,18 @@ public:
 };
 
 class psfile {
+protected:  
+  mem::stack<pen> pens;
+  
+public:
+  
   string filename;
   bool pdfformat;    // Is final output format PDF?
   bool pdf;          // Output direct PDF?
   bool transparency; // Is transparency used?
   unsigned char *buffer;
   size_t count;
-  mem::stack<pen> pens;
-  
-  void writeHex(pen *p, size_t ncomponents);
+
   void write(pen *p, size_t ncomponents);
   void writefromRGB(unsigned char r, unsigned char g, unsigned char b, 
                     ColorSpace colorspace, size_t ncomponents);
@@ -110,17 +113,6 @@ class psfile {
   void writeCompressed(const unsigned char *a, size_t size);
   void dealias(unsigned char *a, size_t width, size_t height, size_t n,
                bool convertrgb=false, ColorSpace colorspace=DEFCOLOR);
-  
-  void beginHex() {
-    out->setf(std::ios::hex,std::ios::basefield);
-    out->fill('0');
-  }
-  
-  void endHex() {
-    out->setf(std::ios::dec,std::ios::basefield);
-    out->fill();
-    *out << ">" << endl;
-  }
   
   void beginImage(size_t n) {
     buffer=new unsigned char[n];
@@ -138,10 +130,6 @@ class psfile {
   
   void writeByte(unsigned char n) {
     buffer[count++]=n;
-  }
-  
-  void write2(unsigned n) {
-    *out << std::setw(2) << n;
   }
   
 protected:
@@ -197,50 +185,50 @@ public:
   void setcolor(const pen& p, const string& begin, const string& end);
   void setopacity(const pen& p);
 
-  void setpen(pen p);
+  virtual void setpen(pen p);
   
   void write(const pen& p);
   
   void write(path p, bool newPath=true);
   
-  void newpath() {
+  virtual void newpath() {
     if(!pdf) *out << "newpath";
   }
 
-  void moveto(pair z) {
+  virtual void moveto(pair z) {
     write(z);
     if(pdf) *out << " m" << newl;
     else *out << " moveto" << newl;
   }
 
-  void lineto(pair z) {
+  virtual void lineto(pair z) {
     write(z);
     if(pdf) *out << " l" << newl;
     else *out << " lineto" << newl;
   }
 
-  void curveto(pair zp, pair zm, pair z1) {
+  virtual void curveto(pair zp, pair zm, pair z1) {
     write(zp); write(zm); write(z1);
     if(pdf) *out << " c" << newl;
     else *out << " curveto" << newl;
   }
 
-  void closepath() {
+  virtual void closepath() {
     if(pdf) *out << "h" << newl;
     else *out << "closepath" << newl;
   }
 
-  void stroke() {
+  virtual void stroke(const pen &p) {
     if(pdf) *out << "S" << newl;
     else *out << "stroke" << newl;
   }
   
-  void strokepath() {
+  virtual void strokepath() {
     if(pdf) reportError("PDF does not support strokepath");
     else *out << "strokepath" << newl;
   }
   
-  void fill(const pen &p) {
+  virtual void fill(const pen &p) {
     if(p.evenodd()) {
       if(pdf) *out << "f*" << newl;
       else *out << "eofill" << newl;
@@ -250,7 +238,11 @@ public:
     }
   }
   
-  void clip(const pen &p) {
+  virtual void beginclip() {
+    newpath();
+  }
+  
+  virtual void endclip(const pen &p) {
     if(p.evenodd()) {
       if(pdf) *out << "W* n" << newl;
       else *out << "eoclip" << newl;
@@ -266,16 +258,28 @@ public:
       reportError("PostScript shading requires -level 3");
   }
   
-  void latticeshade(const vm::array& a, const bbox& b);
+  virtual void beginlatticeshade(const vm::array& a, const bbox& b) {}
+  virtual void latticeshade(const vm::array& a, const bbox& b);
   
-  void gradientshade(bool axial, ColorSpace colorspace,
-                     const pen& pena, const pair& a, double ra,
-                     const pen& penb, const pair& b, double rb);
+  virtual void begingradientshade(bool axial, ColorSpace colorspace,
+                                  const pen& pena, const pair& a, double ra,
+                                  const pen& penb, const pair& b, double rb) {}
   
-  void gouraudshade(const vm::array& pens, const vm::array& vertices,
-                    const vm::array& edges);
-  void tensorshade(const vm::array& pens, const vm::array& boundaries,
-                   const vm::array& z);
+  virtual void gradientshade(bool axial, ColorSpace colorspace,
+                             const pen& pena, const pair& a, double ra,
+                             const pen& penb, const pair& b, double rb);
+  
+  virtual void begingouraudshade(const vm::array& pens,
+                                 const vm::array& vertices,
+                                 const vm::array& edges) {}
+  virtual void gouraudshade(const pen& pentype, const vm::array& pens,
+                            const vm::array& vertices, const vm::array& edges);
+  
+  virtual void begintensorshade(const vm::array& pens,
+                                const vm::array& boundaries,
+                                const vm::array& z) {}
+  virtual void tensorshade(const pen& pentype, const vm::array& pens,
+                           const vm::array& boundaries, const vm::array& z);
   
   void vertexpen(vm::array *pi, int j, ColorSpace colorspace);
   
@@ -285,14 +289,14 @@ public:
   void image(const vm::array& a, bool antialias);
   void rawimage(unsigned char *a, size_t width, size_t height, bool antialias);
 
-  void gsave(bool tex=false) {
+  virtual void gsave(bool tex=false) {
     if(pdf) *out << "q";
     else *out << "gsave";
     if(!tex) *out << newl;
     pens.push(lastpen);
   }
   
-  void grestore(bool tex=false) {
+  virtual void grestore(bool tex=false) {
     if(pens.size() < 1)
       reportError("grestore without matching gsave");
     lastpen=pens.top();
@@ -302,7 +306,8 @@ public:
     if(!tex) *out << newl;
   }
 
-  void translate(pair z) {
+  virtual void translate(pair z) {
+    if(z == pair(0.0,0.0)) return;
     if(pdf) *out << " 1 0 0 1 " << newl;
     write(z);
     if(pdf) *out << " cm" << newl;
@@ -310,7 +315,7 @@ public:
   }
 
   // Multiply on a transform to the transformation matrix.
-  void concat(transform t) {
+  virtual void concat(transform t) {
     if(t.isIdentity()) return;
     write(t);
     if(pdf) *out << " cm" << newl;

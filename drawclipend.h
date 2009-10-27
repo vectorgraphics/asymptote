@@ -35,6 +35,8 @@ public:
 
   bool endgroup() {return true;}
   
+  bool svg() {return true;}
+  
   void save(bool b) {
     grestore=b;
     if(partner) partner->save(b);

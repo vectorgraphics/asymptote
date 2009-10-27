@@ -83,19 +83,28 @@ string verbatim(string s)
 }
 
 // Split a string into an array of substrings delimited by delimiter
-string[] split(string s, string delimiter=" ")
+// If delimiter is an empty string, use space delimiter, discarding duplicates.
+string[] split(string s, string delimiter="")
 {
+  bool prune=false;
+  if(delimiter == "") {
+    prune=true;
+    delimiter=" ";
+  }
+  
   string[] S;
   int last=0;
   int i;
   int N=length(delimiter);
+  int n=length(s);
   while((i=find(s,delimiter,last)) >= 0) {
     if(i >= last)
       S.push(substr(s,last,i-last));
     last=i+N;
+    if(prune)
+      while(substr(s,last,1) == " ") ++last;
   }
-  int n=length(s);
-  if(n >= last)
+  if(n > last || (n == last && !prune))
     S.push(substr(s,last,n-last));
   return S;
 }
@@ -197,20 +206,3 @@ string phantom(string s)
 }
 
 restricted int ocgindex=0;
-
-void begin(picture pic=currentpicture, string name, string id="",
-           bool visible=true)
-{
-  if(!latex() || !pdf()) return;
-  settings.twice=true;
-  if(id == "") id=string(++ocgindex);
-  tex(pic,"\begin{ocg}{"+name+"}{"+id+"}{"+(visible ? "1" : "0")+"}");
-  layer(pic);
-}
-
-void end(picture pic=currentpicture)
-{
-  if(!latex() || !pdf()) return;
-  tex(pic,"\end{ocg}");
-  layer(pic);
-}

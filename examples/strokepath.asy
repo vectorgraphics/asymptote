@@ -10,7 +10,7 @@ shipped=false;
 size(400);
 
 // Equivalent to draw(g,p):
-currentpicture.add(new void(frame f, transform t) {
+add(new void(frame f, transform t) {
     fill(f,strokepath(t*g,p),red);
   });
 currentpicture.addPath(g,p);

@@ -23,6 +23,8 @@ public:
     strokebounds(b,p);
   }
 
+  bool svg() {return true;}
+  
   bool draw(psfile *out);
 
   drawElement *transformed(const transform& t);

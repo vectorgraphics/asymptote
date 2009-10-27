@@ -408,6 +408,16 @@ realarray *colors(pen p)
   return a;
 }
 
+string hex(pen p)
+{  
+  return p.hex();
+}
+
+Int byte(real x)
+{
+  return byte(x);
+}
+
 string colorspace(pen p)
 {
   string s=ColorDeviceSuffix[p.colorspace()];
@@ -455,14 +465,16 @@ string blend(pen p)
   return p.blend();
 }
 
-pen linetype(string *s, real offset=0, bool scale=true, bool adjust=true)
+pen linetype(realarray *pattern, real offset=0, bool scale=true,
+             bool adjust=true)
 {
-  return pen(LineType(*s,offset,scale,adjust)); 
+  return pen(LineType(*pattern,offset,scale,adjust)); 
 }
 
-string linetype(pen p=CURRENTPEN)
+realarray *linetype(pen p=CURRENTPEN)
 {
-  return p.stroke();  
+  array a=p.stroke();
+  return copyArray(&a);
 }
 
 real offset(pen p)

@@ -26,12 +26,15 @@ public:
     if(!stroke && !cyclic()) noncyclic();
   }
 
+  bool svg() {return true;}
+  
   // dvisvgm doesn't yet support SVG patterns.
-  bool svg() {return pentype.fillpattern() == "";}
+  bool svgpng() {return pentype.fillpattern() != "";}
   
   virtual ~drawFill() {}
 
-  bool draw(psfile *out);
+  virtual bool draw(psfile *out);
+  
   virtual void palette(psfile *out) {
     penSave(out);
     penTranslate(out);
@@ -58,14 +61,22 @@ public:
   }
   
   // Shading in SVG is incomplete and not supported at all by dvisvgm.
-  bool svg() {return false;}
+  bool svg() {return true;}
+  bool svgpng() {return !settings::getSetting<bool>("svgemulation");}
   
+  virtual void beginshade(psfile *out)=0;
   virtual void shade(psfile *out)=0;
-  void fill(psfile *out) {
+  
+  bool draw(psfile *out) {
+    if(pentype.invisible() || empty()) return true;
+  
+    palette(out);
+    beginshade(out);
+    writepath(out);
     if(stroke) strokepath(out);
-    out->clip(pentype.Fillrule());
     shade(out);
     out->grestore();
+    return true;
   }
 };
   
@@ -79,6 +90,10 @@ public:
   
   void palette(psfile *out) {
     out->gsave();
+  }
+  
+  void beginshade(psfile *out) {
+    out->beginlatticeshade(pens,bpath);
   }
   
   void shade(psfile *out) {
@@ -99,7 +114,13 @@ public:
                  pair a, pen penb, pair b) 
     : drawShade(src,stroke,pentype), a(a), penb(penb), b(b) {}
   
+  bool svgpng() {return false;}
+  
   void palette(psfile *out);
+  
+  void beginshade(psfile *out) {
+    out->begingradientshade(true,colorspace,pentype,a,0,penb,b,0);
+  }
   
   void shade(psfile *out) {
     out->gradientshade(true,colorspace,pentype,a,0,penb,b,0);
@@ -116,6 +137,12 @@ public:
   drawRadialShade(const vm::array& src, bool stroke,
                   pen pentype, pair a, double ra, pen penb, pair b, double rb)
     : drawAxialShade(src,stroke,pentype,a,penb,b), ra(ra), rb(rb) {}
+  
+  bool svgpng() {return ra > 0.0;}
+  
+  void beginshade(psfile *out) {
+    out->begingradientshade(false,colorspace,pentype,a,ra,penb,b,rb);
+  }
   
   void shade(psfile *out) {
     out->gradientshade(false,colorspace,pentype,a,ra,penb,b,rb);
@@ -134,12 +161,18 @@ public:
     : drawShade(src,stroke,pentype), pens(pens), vertices(vertices),
       edges(edges) {}
   
+  bool svgpng() {return true;}
+  
   void palette(psfile *out) {
     out->gsave();
   }
   
+  void beginshade(psfile *out) {
+    out->begingouraudshade(pens,vertices,edges);
+  }
+  
   void shade(psfile *out) {
-    out->gouraudshade(pens,vertices,edges);
+    out->gouraudshade(pentype,pens,vertices,edges);
   }
   
   drawElement *transformed(const transform& t);
@@ -154,12 +187,18 @@ public:
                   const vm::array& boundaries, const vm::array& z)
     : drawShade(src,stroke,pentype), pens(pens), boundaries(boundaries), z(z) {}
   
+  bool svgpng() {return pens.size() > 1;}
+  
   void palette(psfile *out) {
     out->gsave();
   }
   
+  void beginshade(psfile *out) {
+    out->begintensorshade(pens,boundaries,z);
+  }
+  
   void shade(psfile *out) {
-    out->tensorshade(pens,boundaries,z);
+    out->tensorshade(pentype,pens,boundaries,z);
   }
   
   drawElement *transformed(const transform& t);

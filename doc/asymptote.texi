@@ -1335,7 +1335,8 @@ void tensorshade(picture pic=currentpicture, path g, bool stroke=false,
 One can also smoothly shade the regions between consecutive paths of a
 sequence using a given array of pens:
 @verbatim
-void draw(picture pic=currentpicture, path[] g, pen[] p);
+void draw(picture pic=currentpicture, pen fillrule=currentpen, path[] g,
+          pen[] p);
 @end verbatim
 @noindent
 Illustrations of tensor product and Coons shading are provided in the
@@ -2058,9 +2059,10 @@ string pairs @{@code{before},@code{after}@} to the corresponding
 string @code{after};
 
 @cindex @code{split}
-@item string[] split(string s, string delimiter=" ")
+@item string[] split(string s, string delimiter="")
 returns an array of strings obtained by splitting @code{s} into substrings
-delimited by @code{delimiter};
+delimited by @code{delimiter} (an empty delimiter signifies a space,
+but with duplicate delimiters discarded);
 
 @anchor{format}
 @item string format(string s, int n)
@@ -2712,6 +2714,10 @@ the routine
 @verbatim
 pen rgb(string s);
 @end verbatim
+@noindent
+A pen can be converted to a hexidecimal string with
+@cindex @code{hex}
+@item string hex(pen p);
 
 Various shades and mixtures of the grayscale primary colors
 @code{black} and @code{white}, @acronym{RGB} primary colors
@@ -2761,14 +2767,14 @@ write(q.h,q.s,q.v); // 180     0.5     0.75
 @end verbatim
 
 @item Line types are specified with the function 
-@code{pen linetype(string s, real offset=0, bool scale=true, bool adjust=true)},
+@code{pen linetype(real[] a, real offset=0, bool scale=true, bool adjust=true)},
 @cindex @code{solid}
 @cindex @code{dashed}
 @cindex @code{dotted}
 @cindex @code{longdashed}
 @cindex @code{dashdotted}
 @cindex @code{longdashdotted}
-where @code{s} is a string of integer or real numbers separated by spaces.
+where @code{a} is an array of real array numbers.
 The optional parameter @code{offset} specifies where in the pattern
 to begin. The first number specifies how far (if @code{scale} is
 @code{true}, in units of the pen line width; otherwise in
@@ -2778,12 +2784,12 @@ specifies how far to draw with the pen off, and so on. If
 adjusted by @code{Asymptote} to fit the arclength of the path. Here
 are the predefined line types:
 @verbatim
-pen solid=linetype("");
-pen dotted=linetype("0 4");
-pen dashed=linetype("8 8");
-pen longdashed=linetype("24 8");
-pen dashdotted=linetype("8 8 0 8");
-pen longdashdotted=linetype("24 8 0 8");
+pen solid=linetype(new real[]);
+pen dotted=linetype(new real[] {0,4});
+pen dashed=linetype(new real[] {8,8});
+pen longdashed=linetype(new real[] {24,8});
+pen dashdotted=linetype(new real[] {8,8,0,8});
+pen longdashdotted=linetype(new real[] {24,8,0,8});
 pen Dotted=dotted+1.0;
 pen Dotted(pen p=currentpen) {return dotted+2*linewidth(p);}
 @end verbatim
@@ -2798,7 +2804,7 @@ The default line type is @code{solid}; this may be changed with
 @cindex @code{scale}
 @cindex @code{adjust}
 The line type of a pen can be determined with the functions
-@code{string linetype(pen p=currentpen)}, 
+@code{real[] linetype(pen p=currentpen)}, 
 @code{real offset(pen p)}, @code{bool scale(pen p)}, and
 @code{bool adjust(pen p)}.
 
@@ -5278,7 +5284,7 @@ roots are listed separately.
 
 @cindex @code{quadraticroots}
 @item @code{pair[] quadraticroots(explicit pair a, explicit pair b, explicit pair c);}
-This numerically robust solver returns the two complex roots of the
+This numerically robust solver returns the complex roots of the
 quadratic equation @math{ax^2+bx+c=0}.
 
 @cindex @code{cubicroots}

@@ -15,23 +15,11 @@ struct block {
   // The absolute center of the block in user coordinates.
   pair center;
 
-  // The relative center of the block.
-  pair f_center;
-
   // The size of the block
   pair size;
 
-  // Returns the relative position along the boundary of the block.
-  pair f_position(real x);
-
-  pair shift(transform t=identity()) {
-    return t*center-f_center;
-  }
-
-  // Returns the absolute position along the boundary of the block.
-  pair position(real x, transform t=identity()) {
-    return shift(t)+f_position(x);
-  }
+  // The relative center of the block.
+  pair f_center;
 
   // These eight variables return the appropriate location on the block
   // in relative coordinates, where the lower left corner of the block is (0,0).
@@ -43,6 +31,18 @@ struct block {
   pair f_topright;
   pair f_bottomleft;
   pair f_bottomright;
+
+  pair shift(transform t=identity()) {
+    return t*center-f_center;
+  }
+
+  // Returns the relative position along the boundary of the block.
+  pair f_position(real x);
+
+  // Returns the absolute position along the boundary of the block.
+  pair position(real x, transform t=identity()) {
+    return shift(t)+f_position(x);
+  }
 
   // These eight functions return the appropriate location on the block
   // in absolute coordinates.

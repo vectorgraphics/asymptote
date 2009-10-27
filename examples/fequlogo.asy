@@ -33,7 +33,7 @@ real h=0.0125;
 draw(surface(rotate(2)*xscale(0.32)*yscale(0.6)*lo,s,-pi/4-1.5*pi/20,0.5,h));
 draw(surface(rotate(0)*xscale(-0.45)*yscale(0.3)*hi,s,0.8*pi,0.25,h),blue);
 
-currentpicture.add(new void(frame f, transform3 t, picture pic, projection P) {
+add(new void(frame f, transform3 t, picture pic, projection P) {
     draw(f,surface(invert(box(min(f,P),max(f,P)),min3(f),P),
                    new pen[] {orange,red,yellow,brown}));
   }

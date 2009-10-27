@@ -24,6 +24,7 @@ if(version.VERSION != VERSION) {
           version.VERSION+" of plain.asy"+'\n');
 }
    
+include plain_strings;
 include plain_pens;
 include plain_paths;
 include plain_filldraw;
@@ -33,7 +34,6 @@ include plain_Label;
 include plain_shipout;
 include plain_arcs;
 include plain_boxes;
-include plain_strings;
 include plain_markers;
 include plain_arrows;
 include plain_debugger;

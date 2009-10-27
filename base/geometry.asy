@@ -1210,7 +1210,7 @@ private void Drawline(picture pic=currentpicture, Label L="",pair P, bool dirP=t
             lL.out(opic,g);
           }
           g=pathModifier(g);
-          if(linetype(p) == ""){
+          if(linetype(p).length == 0){
             pair m=midpoint(g);
             pen tp;
             tp=dirP ? p : addpenline(p);
