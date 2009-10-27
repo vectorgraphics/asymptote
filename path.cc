@@ -77,8 +77,7 @@ quadraticroots::quadraticroots(double a, double b, double c)
     if(x > -1.0) {
       distinct=quadraticroots::TWO;
       roots=2;
-      double sqrtm1=sqrt1pxm1(x);
-      double r2=factor*sqrtm1;
+      double r2=factor*sqrt1pxm1(x);
       double r1=-r2-2.0*factor;
       if(r1 <= r2) {
         t1=r1;
@@ -117,9 +116,7 @@ Quadraticroots::Quadraticroots(pair a, pair b, pair c)
       z2=-z1;
     } else {
       pair factor=0.5*b/a;
-      pair x=-2.0*c/(b*factor);
-      pair sqrtm1=sqrt1pxm1(x);
-      z1=factor*sqrtm1;
+      z1=factor*sqrt1pxm1(-2.0*c/(b*factor));
       z2=-z1-2.0*factor;
     }
   }
