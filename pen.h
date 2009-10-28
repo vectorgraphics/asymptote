@@ -83,6 +83,13 @@ public:
     isdefault(false) {}
   
   LineType() : offset(0.0), scale(true), adjust(true), isdefault(true) {}
+  
+  void Scale(double factor) {
+    size_t n=pattern.size();
+    for(size_t i=0; i < n; i++)
+      pattern[i]=vm::read<double>(pattern,i)*factor;
+    offset *= factor;
+  }
 };
   
 static const LineType DEFLINE;
@@ -461,8 +468,14 @@ public:
     return lineskip == 0.0 ? defaultpen().lineskip : lineskip;
   }
   
-  LineType linetype() const {
-    return line.isdefault ? defaultpen().line : line;
+  const LineType *linetype() const {
+    return line.isdefault ? &defaultpen().line : &line;
+  }
+  
+  void adjust(double factor) {
+    if(line.isdefault) 
+      line=defaultpen().line;
+    line.Scale(factor);
   }
   
   void setstroke(const vm::array& s) {line.pattern=s;}
@@ -823,7 +836,7 @@ public:
   }
 
   friend bool operator == (const pen& p, const pen& q) {
-    return  p.linetype() == q.linetype() 
+    return  *(p.linetype()) == *(q.linetype()) 
       && p.width() == q.width() 
       && p.Path() == q.Path()
       && p.Font() == q.Font()

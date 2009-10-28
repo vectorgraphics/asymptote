@@ -47,29 +47,20 @@ pen adjustdash(pen& p, double arclength, bool cyclic)
 {
   pen q=p;
   // Adjust dash sizes to fit arclength; also compensate for linewidth.
-  LineType linetype=q.linetype();
-  array pat=linetype.pattern;
-  size_t n=pat.size();
+  const LineType *linetype=q.linetype();
+  size_t n=linetype->pattern.size();
     
   if(n > 0) {
-    double penwidth=linetype.scale ? q.width() : 1.0;
+    double penwidth=linetype->scale ? q.width() : 1.0;
     double factor=penwidth;
     
-    if(linetype.adjust) {
-      if(arclength) {
-        if(n == 0) return q;
-      
-        double denom=PatternLength(arclength,pat,cyclic,penwidth);
-        if(denom != 0.0) factor *= arclength/denom;
-      }
+    if(linetype->adjust && arclength) {
+      double denom=PatternLength(arclength,linetype->pattern,cyclic,penwidth);
+      if(denom != 0.0) factor *= arclength/denom;
     }
     
-    factor=max(factor,0.1);
-    
-    for(size_t i=0; i < n; i++)
-      pat[i]=read<double>(pat,i)*factor;
-    q.setstroke(pat);
-    q.setoffset(linetype.offset*factor);
+    if(factor != 1.0)
+      q.adjust(max(factor,0.1));
   }
   return q;
 }

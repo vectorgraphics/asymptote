@@ -412,23 +412,22 @@ void svgtexfile::properties(const pen& p)
   if(p.width() != lastpen.width())
     *out << " stroke-width='" << p.width()*ps2tex << "'";
   
-  LineType linetype=p.linetype();
-  LineType lastlinetype=lastpen.linetype();
+  const LineType *linetype=p.linetype();
+  const LineType *lastlinetype=lastpen.linetype();
   
-  if(!(linetype.pattern == lastlinetype.pattern)) {
-    vm::array& a=linetype.pattern;
-    size_t n=a.size();
+  if(!(linetype->pattern == lastlinetype->pattern)) {
+    size_t n=linetype->pattern.size();
     if(n > 0) {
       *out << " stroke-dasharray='";
-      *out << vm::read<double>(a,0)*ps2tex;
+      *out << vm::read<double>(linetype->pattern,0)*ps2tex;
       for(size_t i=1; i < n; ++i)
-        *out << "," << vm::read<double>(a,i)*ps2tex;
+        *out << "," << vm::read<double>(linetype->pattern,i)*ps2tex;
       *out << "'";
     }
   }
   
-  if(linetype.offset != lastlinetype.offset)
-    *out << " stroke-dashoffset='" << linetype.offset*ps2tex << "'";
+  if(linetype->offset != lastlinetype->offset)
+    *out << " stroke-dashoffset='" << linetype->offset*ps2tex << "'";
   
   lastpen=p;
 }

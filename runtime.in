@@ -478,23 +478,23 @@ pen linetype(realarray *pattern, real offset=0, bool scale=true,
 
 realarray *linetype(pen p=CURRENTPEN)
 {
-  array a=p.linetype().pattern;
+  array a=p.linetype()->pattern;
   return copyArray(&a);
 }
 
 real offset(pen p)
 {
-  return p.linetype().offset;
+  return p.linetype()->offset;
 }
 
 bool scale(pen p)
 {
-  return p.linetype().scale;
+  return p.linetype()->scale;
 }
 
 bool adjust(pen p)
 {
-  return p.linetype().adjust;
+  return p.linetype()->adjust;
 }
 
 pen adjust(pen p, real arclength, bool cyclic)
