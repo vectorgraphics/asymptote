@@ -19,6 +19,11 @@
 #include "prcfile.h"
 #include "glrender.h"
 
+namespace run {
+extern double *copyArrayC(const vm::array *a, size_t dim,
+                          GCPlacement placement);
+}
+
 namespace camp {
 
 enum Entity {LINE=0,CURVE,SURFACE,BILLBOARD_SURFACE,nENTITY};

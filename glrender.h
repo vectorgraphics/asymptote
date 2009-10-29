@@ -46,6 +46,15 @@ inline void store(GLfloat *control, const camp::triple& v)
   control[1]=v.gety();
   control[2]=v.getz();
 }
+
+inline void store(GLfloat *control, const triple& v, double weight)
+{
+  control[0]=v.getx()*weight;
+  control[1]=v.gety()*weight;
+  control[2]=v.getz()*weight;
+  control[3]=weight;
+}
+
 }
 
 namespace gl {

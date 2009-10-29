@@ -12,10 +12,6 @@
 #include "arrayop.h"
 #include "path3.h"
 
-namespace run {
-extern double *copyArrayC(const array *a, size_t dim, GCPlacement placement);
-}
-
 namespace camp {
 
 enum Interaction {EMBEDDED=0,BILLBOARD};
@@ -228,10 +224,8 @@ public:
         vm::array *weighti=vm::read<vm::array*>(weight,i);
         if(checkArray(weighti) != nv)  
           reportError(wrongsize);
-        for(size_t j=0; j < nv; ++j) {
-          weights[k]=vm::read<double>(weighti,j);
-          ++k;
-        }
+        for(size_t j=0; j < nv; ++j)
+          weights[k++]=vm::read<double>(weighti,j);
       }
     } else weights=NULL;
       

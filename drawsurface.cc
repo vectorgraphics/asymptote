@@ -522,19 +522,13 @@ void drawNurbs::displacement()
 {
 #ifdef HAVE_LIBGL
   size_t n=nu*nv;
-  size_t stride=weights == NULL ? 3 : 4;
-  for(size_t i=0; i < n; ++i)
-    store(Controls+stride*i,controls[i]);
+  if(weights)
+    for(size_t i=0; i < n; ++i)
+      store(Controls+4*i,controls[i],weights[i]);
+  else
+    for(size_t i=0; i < n; ++i)
+      store(Controls+3*i,controls[i]);
   
-  if(weights != NULL)
-    for(size_t i=0; i < n; ++i) {
-      double w=weights[i];
-      Controls[4*i+0] *= w;
-      Controls[4*i+1] *= w;
-      Controls[4*i+2] *= w;
-      Controls[4*i+3]=w;
-    }
-
   size_t nuknotsm1=udegree+nu;
   size_t nvknotsm1=vdegree+nv;
   for(size_t i=0; i <= nuknotsm1; ++i)
@@ -636,10 +630,10 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   gluBeginSurface(nurb);
   int uorder=udegree+1;
   int vorder=vdegree+1;
-  size_t stride=weights == NULL ? 3 : 4;
+  size_t stride=weights ? 4 : 3;
   gluNurbsSurface(nurb,uorder+nu,uKnots,vorder+nv,vKnots,stride*nv,stride,
                   Controls,uorder,vorder,
-                  weights == NULL ? GL_MAP2_VERTEX_3 : GL_MAP2_VERTEX_4);
+                  weights ? GL_MAP2_VERTEX_4 : GL_MAP2_VERTEX_3);
   if(colors) {
     static GLfloat linear[]={0.0,0.0,1.0,1.0};
     gluNurbsSurface(nurb,4,linear,4,linear,8,4,colors,2,2,GL_MAP2_COLOR_4);

@@ -155,8 +155,8 @@ void PRCcurve::writeTopologicalContext(PRCbitStream &out)
   {
     double Scale=scale;
     if(isRational) Scale *= weights[i];
-    out << controlPoints[i][0]*scale << controlPoints[i][1]*scale 
-	<< controlPoints[i][2]*scale;
+    out << controlPoints[i][0]*Scale << controlPoints[i][1]*Scale 
+	<< controlPoints[i][2]*Scale;
     if(isRational)
       out << weights[i];
   }

@@ -1678,6 +1678,22 @@ void dot(picture pic=currentpicture, Label L, triple v, align align=NoAlign,
   label(pic,L,v);
 }
 
+pair minbound(triple[] A, projection P)
+{
+  pair b=project(A[0],P);
+  for(triple v : A)
+      b=minbound(b,project(v,P));
+  return b;
+}
+
+pair maxbound(triple[] A, projection P)
+{
+  pair b=project(A[0],P);
+  for(triple v : A)
+    b=maxbound(b,project(v,P));
+  return b;
+}
+
 pair minbound(triple[][] A, projection P)
 {
   pair b=project(A[0][0],P);
@@ -1709,6 +1725,24 @@ triple[][] operator / (triple[][] a, real[][] b)
     A[i]=sequence(new triple(int j) {return ai[j]/bi[j];},ai.length);
   }
   return A;
+}
+
+// Draw a NURBS curve.
+void draw(picture pic=currentpicture, triple[] P, real[] uknot,
+          real[] weights=new real[], pen p=currentpen, string name="")
+{
+  P=copy(P);
+  uknot=copy(uknot);
+  weights=copy(weights);
+  pic.add(new void(frame f, transform3 t, picture pic, projection Q) {
+      if(is3D()) {
+        triple[] P=t*P;
+        draw(f,P,uknot,weights,p,name);
+        if(pic != null)
+          pic.addBox(minbound(P,Q),maxbound(P,Q));
+      }
+    },true);
+  pic.addBox(minbound(P),maxbound(P));
 }
 
 // Draw a NURBS surface.
