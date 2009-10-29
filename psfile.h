@@ -191,6 +191,10 @@ public:
   
   void write(path p, bool newPath=true);
   
+  virtual void dot(path p, pen, bool newPath=true) {
+    write(p,newPath);
+  }
+  
   virtual void newpath() {
     if(!pdf) *out << "newpath";
   }
@@ -218,7 +222,7 @@ public:
     else *out << "closepath" << newl;
   }
 
-  virtual void stroke(const pen &p) {
+  virtual void stroke(const pen &p, bool dot=false) {
     if(pdf) *out << "S" << newl;
     else *out << "stroke" << newl;
   }

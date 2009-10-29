@@ -232,6 +232,8 @@ public:
     tensorcount=0;
   }
   
+  void dot(path p, pen, bool newPath=true);
+  
   void writeshifted(pair z) {
     write(conj(z)*ps2tex);
   }
@@ -279,7 +281,7 @@ public:
   void properties(const pen& p);
   void color(const pen &p, const string& type);
     
-  void stroke(const pen &p);
+  void stroke(const pen &p, bool dot=false);
   void strokepath();
   
   void fillrule(const pen& p, const string& type="fill");

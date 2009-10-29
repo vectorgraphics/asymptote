@@ -352,6 +352,17 @@ void svgtexfile::endpath()
   *out << "/>" << nl;
 }
   
+void svgtexfile::dot(path p, pen q, bool newPath)
+{
+  beginspecial();
+  *out << "<circle ";
+  clippath();
+  pair z=p.point((Int) 0);
+  *out << "cx='" << z.getx()*ps2tex
+       << "' cy='" << -z.gety()*ps2tex
+       << "' r='" << 0.5*q.width()*ps2tex;
+}
+
 void svgtexfile::beginclip()
 {
   beginspecial();
@@ -432,10 +443,14 @@ void svgtexfile::properties(const pen& p)
   lastpen=p;
 }
   
-void svgtexfile::stroke(const pen &p)
+void svgtexfile::stroke(const pen &p, bool dot)
 {
-  color(p,"fill='none' stroke");
-  properties(p);  
+  if(dot) 
+    color(p,"fill");
+  else {
+    color(p,"fill='none' stroke");
+    properties(p);  
+  }
   endpath();
   endspecial();
 }

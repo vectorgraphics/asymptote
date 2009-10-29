@@ -127,19 +127,22 @@ bool drawPath::draw(psfile *out)
   if (n == 0 || pentype.invisible())
     return true;
 
-  pen pen0=adjustdash(pentype,p.arclength(),p.cyclic());
+  pen q=adjustdash(pentype,p.arclength(),p.cyclic());
 
   penSave(out);
   penTranslate(out);
 
-  out->write(p);
+  if(n > 1)
+    out->write(p);
+  else
+    out->dot(p,q);
 
   penConcat(out);
-
-  out->setpen(pen0);
   
-  out->stroke(pen0);
-
+  out->setpen(q);
+  
+  out->stroke(q,n == 1);
+  
   penRestore(out);
 
   return true;
