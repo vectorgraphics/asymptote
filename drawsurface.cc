@@ -136,7 +136,7 @@ void drawSurface::ratio(pair &b, double (*m)(double, double), bool &first)
       first=false;
     }
   
-    double fuzz=sqrtFuzz*run::norm(c3,16);
+    double fuzz=bigSqrtFuzz*run::norm(c3,16);
     b=pair(bound(c3,m,xratio,b.getx(),fuzz),bound(c3,m,yratio,b.gety(),fuzz));
   }
 }

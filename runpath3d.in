@@ -172,6 +172,11 @@ bool straight(path3 p, Int t)
   return p.straight(t);
 }
 
+path3 unstraighten(path3 p)
+{
+  return p.unstraighten();
+}
+
 // Return the maximum perpendicular deviation of segment i of path3 g
 // from a straight line.
 real straightness(path3 p, Int t) 

@@ -92,6 +92,14 @@ public:
       box(p.box)
   {}
 
+  path3 unstraighten() const
+  {
+    path3 P=path3(*this);
+    for(int i=0; i < n; ++i)
+      P.nodes[i].straight=false;
+    return P;
+  }
+  
   virtual ~path3()
   {
   }

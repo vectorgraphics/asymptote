@@ -19,10 +19,11 @@
 
 namespace camp {
 
-const double BigFuzz=10000.0*DBL_EPSILON;
 const double Fuzz=1000.0*DBL_EPSILON;
+const double BigFuzz=10.0*Fuzz;
 const double Fuzz2=Fuzz*Fuzz;
 const double sqrtFuzz=sqrt(Fuzz);
+const double bigSqrtFuzz=100.0*sqrtFuzz;
 const double fuzzFactor=10.0;
 
 const double third=1.0/3.0;

@@ -189,9 +189,8 @@ void drawNurbsPath3::displacement()
 #endif  
 }
 
-void drawNurbsPath3::render(GLUnurbs *nurb, double size2,
-                            const triple&, const triple&,
-                            double, bool transparent)
+void drawNurbsPath3::render(GLUnurbs *nurb, double, const triple&,
+                            const triple&, double, bool transparent)
 {
 #ifdef HAVE_LIBGL
   if(invisible || ((color.A < 1.0) ^ transparent))
