@@ -781,7 +781,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
           if(r == p) break;
         }
         
-        for(nodelist::const_reverse_iterator r=end.rbegin(); r != end.rend();
+        for(nodelist::reverse_iterator r=end.rbegin(); r != end.rend();
             ++r) {
           (*r)->draw(&out);
           if(f)

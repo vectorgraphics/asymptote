@@ -172,7 +172,7 @@ public:
   string texengine;
   
   texfile(const string& texname, const bbox& box, bool pipe=false);
-  ~texfile();
+  virtual ~texfile();
 
   void prologue();
 

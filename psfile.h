@@ -141,7 +141,7 @@ public:
   
   psfile() {pdf=settings::pdf(settings::getSetting<string>("tex"));}
 
-  ~psfile();
+  virtual ~psfile();
   
   void BoundingBox(const bbox& box) {
     camp::BoundingBox(*out,box);
