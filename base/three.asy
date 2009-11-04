@@ -17,6 +17,7 @@ real linegranularity=0.005;
 int linesectors=8;        // Number of angular sectors.
 real dotgranularity=0.0001;
 real angleprecision=1e-5; // Precision for centering perspective projections.
+int maxangleiterations=25;
 real rendermargin=0.02;
 
 string defaultembed3Doptions;
@@ -2668,7 +2669,6 @@ struct scene
   // Choose the angle to be just large enough to view the entire image.
   real angle(projection P) {
     T=identity4;
-    int maxiterations=100;
     real h=-0.5*P.target.z;
     pair r,R;
     real diff=realMax;
@@ -2689,7 +2689,7 @@ struct scene
       }
       diff=abs(s-lasts);
       ++i;
-    } while (diff > angleprecision && i < maxiterations);
+    } while (diff > angleprecision && i < maxangleiterations);
     real aspect=width > 0 ? height/width : 1;
     real rx=-r.x*aspect;
     real Rx=R.x*aspect;
