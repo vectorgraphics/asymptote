@@ -72,7 +72,6 @@ extern const double Fuzz;
 extern const double BigFuzz;
 extern const double Fuzz2;
 extern const double sqrtFuzz;
-extern const double bigSqrtFuzz;
 extern const double fuzzFactor;
   
 class path : public gc {

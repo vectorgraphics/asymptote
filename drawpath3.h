@@ -118,7 +118,6 @@ public:
   drawNurbsPath3(const vm::array& t, const drawNurbsPath3 *s) :
     udegree(s->udegree), nu(s->nu), color(s->color), invisible(s->invisible),
     name(s->name) {
-    
     controls=new(UseGC) Triple[nu];
       
     for(size_t i=0; i < nu; ++i) {

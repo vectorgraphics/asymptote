@@ -3498,7 +3498,7 @@ void add(picture dest=currentpicture, frame src, pair position,
          bool above=true);
 @end verbatim
 
-The optional @code{align} argument in the last three forms specifies a
+The optional @code{align} argument in the last form specifies a
 direction to use for aligning the frame, in a manner analogous to the
 @code{align} argument of @code{label} (@pxref{label}). However, one key
 difference is that when @code{align} is not specified, labels are
