@@ -209,11 +209,18 @@ void drawNurbsPath3::render(GLUnurbs *nurb, double, const triple&,
   
   glMaterialf(GL_FRONT,GL_SHININESS,128.0);
   
+  if(weights)
+    gluNurbsCallback(nurb,GLU_NURBS_VERTEX,(_GLUfuncptr) glVertex4fv);
+  else gluNurbsCallback(nurb,GLU_NURBS_VERTEX,(_GLUfuncptr) glVertex3fv);
+
   gluBeginCurve(nurb);
   int uorder=udegree+1;
   gluNurbsCurve(nurb,uorder+nu,uKnots,weights ? 4 : 3,Controls,uorder,
                 weights ? GL_MAP1_VERTEX_4 : GL_MAP1_VERTEX_3);
   gluEndCurve(nurb);
+  
+  if(weights)
+    gluNurbsCallback(nurb,GLU_NURBS_VERTEX,(_GLUfuncptr) glVertex3fv);
 #endif
 }
 
