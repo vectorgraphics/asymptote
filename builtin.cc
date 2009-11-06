@@ -1392,11 +1392,6 @@ void base_venv(venv &ve)
           formal(IntRealFunction(),"f"),
           formal(realArray(),"a"));
   
-#ifdef HAVE_LIBFFTW3
-  addFunc(ve,pairArrayFFT,pairArray(),"fft",formal(pairArray(),"a"),
-          formal(primInt(),"sign",true));
-#endif
-
   addConstant<Int>(ve, Int_MAX, primInt(), "intMax");
   addConstant<Int>(ve, Int_MIN, primInt(), "intMin");
   addConstant<double>(ve, HUGE_VAL, primReal(), "inf");
