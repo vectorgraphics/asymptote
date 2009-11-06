@@ -1728,16 +1728,16 @@ triple[][] operator / (triple[][] a, real[][] b)
 }
 
 // Draw a NURBS curve.
-void draw(picture pic=currentpicture, triple[] P, real[] uknot,
+void draw(picture pic=currentpicture, triple[] P, real[] knot,
           real[] weights=new real[], pen p=currentpen, string name="")
 {
   P=copy(P);
-  uknot=copy(uknot);
+  knot=copy(knot);
   weights=copy(weights);
   pic.add(new void(frame f, transform3 t, picture pic, projection Q) {
       if(is3D()) {
         triple[] P=t*P;
-        draw(f,P,uknot,weights,p,name);
+        draw(f,P,knot,weights,p,name);
         if(pic != null)
           pic.addBox(minbound(P,Q),maxbound(P,Q));
       }

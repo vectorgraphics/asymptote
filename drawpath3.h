@@ -60,11 +60,11 @@ public:
 
 class drawNurbsPath3 : public drawElement {
 protected:
-  size_t udegree;
-  size_t nu;
+  size_t degree;
+  size_t n;
   Triple *controls;
   double *weights;
-  double *uknots;
+  double *knots;
   RGBAColour color;
   bool invisible;
   string name;
@@ -72,55 +72,54 @@ protected:
   
 #ifdef HAVE_LIBGL
   GLfloat *Controls;
-  GLfloat *uKnots;
+  GLfloat *Knots;
 #endif  
   
 public:
-  drawNurbsPath3(const vm::array& g, const vm::array* uknot,
+  drawNurbsPath3(const vm::array& g, const vm::array* knot,
                  const vm::array* weight, const pen& p, const string& name) :
     color(rgba(p)), invisible(p.invisible()), name(name) {
     size_t weightsize=checkArray(weight);
     
     string wrongsize="Inconsistent NURBS data";
-    nu=checkArray(&g);
+    n=checkArray(&g);
     
-    if(nu == 0 || (weightsize != 0 && weightsize != nu))
+    if(n == 0 || (weightsize != 0 && weightsize != n))
       reportError(wrongsize);
     
-    controls=new(UseGC) Triple[nu];
+    controls=new(UseGC) Triple[n];
     
     size_t k=0;
-    for(size_t i=0; i < nu; ++i)
+    for(size_t i=0; i < n; ++i)
       store(controls[k++],vm::read<triple>(g,i));
       
     if(weightsize > 0) {
       size_t k=0;
-      weights=new(UseGC) double[nu];
-      for(size_t i=0; i < nu; ++i)
+      weights=new(UseGC) double[n];
+      for(size_t i=0; i < n; ++i)
         weights[k++]=vm::read<double>(weight,i);
     } else weights=NULL;
       
-    size_t nuknots=checkArray(uknot);
+    size_t nknots=checkArray(knot);
     
-    if(nuknots <= nu+1 || nuknots > 2*nu)
+    if(nknots <= n+1 || nknots > 2*n)
       reportError(wrongsize);
 
-    udegree=nuknots-nu-1;
+    degree=nknots-n-1;
     
-    uknots=run::copyArrayC(uknot,0,NoGC);
+    knots=run::copyArrayC(knot,0,NoGC);
     
 #ifdef HAVE_LIBGL
-    uKnots=new(UseGC) GLfloat[nuknots];
-    Controls=new(UseGC) GLfloat[(weights ? 4 : 3)*nu];
+    Controls=NULL;
 #endif  
   }
   
   drawNurbsPath3(const vm::array& t, const drawNurbsPath3 *s) :
-    udegree(s->udegree), nu(s->nu), color(s->color), invisible(s->invisible),
+    degree(s->degree), n(s->n), color(s->color), invisible(s->invisible),
     name(s->name) {
-    controls=new(UseGC) Triple[nu];
+    controls=new(UseGC) Triple[n];
       
-    for(size_t i=0; i < nu; ++i) {
+    for(size_t i=0; i < n; ++i) {
       const double *c=s->controls[i];
       triple v=run::operator *(t,triple(c[0],c[1],c[2]));
       controls[i][0]=v.getx();
@@ -129,20 +128,19 @@ public:
     }
     
     if(s->weights) {
-      weights=new(UseGC) double[nu];
-      for(size_t i=0; i < nu; ++i)
+      weights=new(UseGC) double[n];
+      for(size_t i=0; i < n; ++i)
         weights[i]=s->weights[i];
     } else weights=NULL;
     
-    size_t nuknots=udegree+nu+1;
-    uknots=new(UseGC) double[nuknots];
+    size_t nknots=degree+n+1;
+    knots=new(UseGC) double[nknots];
     
-    for(size_t i=0; i < nuknots; ++i)
-      uknots[i]=s->uknots[i];
+    for(size_t i=0; i < nknots; ++i)
+      knots[i]=s->knots[i];
     
 #ifdef HAVE_LIBGL
-    uKnots=new(UseGC) GLfloat[nuknots];
-    Controls=new(UseGC)  GLfloat[(weights ? 4 : 3)*nu];
+    Controls=NULL;
 #endif    
   }
   

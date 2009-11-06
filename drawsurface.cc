@@ -522,6 +522,15 @@ void drawNurbs::displacement()
 {
 #ifdef HAVE_LIBGL
   size_t n=nu*nv;
+  size_t nuknots=udegree+nu+1;
+  size_t nvknots=vdegree+nv+1;
+    
+  if(Controls == NULL) {
+    Controls=new(UseGC)  GLfloat[(weights ? 4 : 3)*n];
+    uKnots=new(UseGC) GLfloat[nuknots];
+    vKnots=new(UseGC) GLfloat[nvknots];
+  }
+  
   if(weights)
     for(size_t i=0; i < n; ++i)
       store(Controls+4*i,controls[i],weights[i]);
@@ -529,11 +538,9 @@ void drawNurbs::displacement()
     for(size_t i=0; i < n; ++i)
       store(Controls+3*i,controls[i]);
   
-  size_t nuknotsm1=udegree+nu;
-  size_t nvknotsm1=vdegree+nv;
-  for(size_t i=0; i <= nuknotsm1; ++i)
+  for(size_t i=0; i < nuknots; ++i)
     uKnots[i]=uknots[i];
-  for(size_t i=0; i <= nvknotsm1; ++i)
+  for(size_t i=0; i < nvknots; ++i)
     vKnots[i]=vknots[i];
 #endif  
 }

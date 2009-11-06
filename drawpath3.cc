@@ -113,7 +113,7 @@ bool drawNurbsPath3::write(prcfile *out, unsigned int *count, array *index,
   if(invisible)
     return true;
 
-  out->add(new PRCcurve(out,udegree,nu,controls,uknots,color,scale3D,
+  out->add(new PRCcurve(out,degree,n,controls,knots,color,scale3D,
                         weights != NULL,weights,name.c_str()));
   
   return true;
@@ -129,7 +129,7 @@ void drawNurbsPath3::bounds(bbox3& b)
   double X=x;
   double Y=y;
   double Z=z;
-  for(size_t i=1; i < nu; ++i) {
+  for(size_t i=1; i < n; ++i) {
     double *v=controls[i];
     double vx=v[0];
     x=min(x,vx);
@@ -164,7 +164,7 @@ void drawNurbsPath3::ratio(pair &b, double (*m)(double, double), bool &first)
   
   double x=b.getx();
   double y=b.gety();
-  for(size_t i=0; i < nu; ++i) {
+  for(size_t i=0; i < n; ++i) {
     double *ci=controls[i];
     triple v=triple(ci[0],ci[1],ci[2]);
     x=m(x,xratio(v));
@@ -176,16 +176,20 @@ void drawNurbsPath3::ratio(pair &b, double (*m)(double, double), bool &first)
 void drawNurbsPath3::displacement()
 {
 #ifdef HAVE_LIBGL
+  size_t nknots=degree+n+1;
+  if(Controls == NULL) {
+    Controls=new(UseGC)  GLfloat[(weights ? 4 : 3)*n];
+    Knots=new(UseGC) GLfloat[nknots];
+  }
   if(weights)
-    for(size_t i=0; i < nu; ++i)
+    for(size_t i=0; i < n; ++i)
       store(Controls+4*i,controls[i],weights[i]);
   else
-    for(size_t i=0; i < nu; ++i)
+    for(size_t i=0; i < n; ++i)
       store(Controls+3*i,controls[i]);
   
-  size_t nuknotsm1=udegree+nu;
-  for(size_t i=0; i <= nuknotsm1; ++i)
-    uKnots[i]=uknots[i];
+  for(size_t i=0; i < nknots; ++i)
+    Knots[i]=knots[i];
 #endif  
 }
 
@@ -214,8 +218,8 @@ void drawNurbsPath3::render(GLUnurbs *nurb, double, const triple&,
   else gluNurbsCallback(nurb,GLU_NURBS_VERTEX,(_GLUfuncptr) glVertex3fv);
 
   gluBeginCurve(nurb);
-  int uorder=udegree+1;
-  gluNurbsCurve(nurb,uorder+nu,uKnots,weights ? 4 : 3,Controls,uorder,
+  int order=degree+1;
+  gluNurbsCurve(nurb,order+n,Knots,weights ? 4 : 3,Controls,order,
                 weights ? GL_MAP1_VERTEX_4 : GL_MAP1_VERTEX_3);
   gluEndCurve(nurb);
   

@@ -575,10 +575,10 @@ void draw(picture *f, triplearray2 *P, triple center, bool straight,
 }
 
 // General NURBS curve
-void draw(picture *f, triplearray *P, realarray *uknot,
+void draw(picture *f, triplearray *P, realarray *knot,
           realarray *weights=emptyarray, pen p, string name=emptystring)
 {
-  f->append(new drawNurbsPath3(*P,uknot,weights,p,name));
+  f->append(new drawNurbsPath3(*P,knot,weights,p,name));
 }
 
 // General NURBS surface
