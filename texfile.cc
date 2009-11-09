@@ -615,7 +615,7 @@ void svgtexfile::gouraudshade(const pen& pentype,
   
   endclip0(pentype);
   
-  pen *p0,*p1,*p2;
+  pen *p0=NULL,*p1=NULL,*p2=NULL;
   pair z0,z1,z2;
   
   for(size_t i=0; i < size; i++) {
@@ -626,13 +626,15 @@ void svgtexfile::gouraudshade(const pen& pentype,
         p0=read<pen *>(pens,i);
         z0=read<pair>(vertices,i);
         ++i;
-    
-        p1=read<pen *>(pens,i);
-        z1=read<pair>(vertices,i);
-        ++i;
-        
-        p2=read<pen *>(pens,i);
-        z2=read<pair>(vertices,i);
+	if(i < size) {
+	  p1=read<pen *>(pens,i);
+	  z1=read<pair>(vertices,i);
+	  ++i;
+	  if(i < size) {
+	    p2=read<pen *>(pens,i);
+	    z2=read<pair>(vertices,i);
+	  }
+	}
         break;
       case 1:
         p0=read<pen *>(pens,i);
@@ -643,8 +645,10 @@ void svgtexfile::gouraudshade(const pen& pentype,
         z1=read<pair>(vertices,i);
         break;
       default:
-        reportError("invalid edge flag");
+	break;
     }
+    if(p0 == NULL || p1 == NULL || p2 == NULL)
+      reportError("invalid edge flag");
     gouraudshade(*p0,z0,*p1,z1,*p2,z2);
   }
   endtransform();
