@@ -484,7 +484,7 @@ configuration variables @code{paperwidth} and @code{paperheight}.
 @cindex @code{texpath}
 @cindex @code{texcommand}
 @cindex @code{dvips}
-@cindex @code{dvisvg}
+@cindex @code{dvisvgm}
 @cindex @code{convert}
 @cindex @code{display}
 @cindex @code{animate}
@@ -494,7 +494,7 @@ The following configuration variables normally do not require adjustment:
 texpath
 texcommand
 dvips
-dvisvg
+dvisvgm
 convert
 display
 animate
@@ -8746,21 +8746,29 @@ at the beginning of the configuration file, it can contain arbitrary
 @cindex @code{pdflatex}
 @cindex @code{xelatex}
 @cindex @code{context}
+@cindex @code{EPS}
+@cindex @code{PDF}
+@cindex @code{SVG}
 @anchor{convert}
 The default output format is @acronym{EPS} for the (default)
 @code{latex} and @code{tex} tex engine and @acronym{PDF} for the
 @code{pdflatex}, @code{xelatex}, and @code{context} tex engines.
 Alternative output formats may be produced using the @code{-f} option 
-(or @code{outformat} setting). The optional setting @code{-render n} requests
-an output resolution of @code{n} pixels per @code{bp}. Antialiasing is
-controlled by the parameter @code{antialias}, which by default
-specifies a sampling width of 2 pixels.
-@code{Asymptote} can produce any output format supported
+(or @code{outformat} setting). To produce @acronym{SVG} output,
+first install @code{dvisvgm} (version 0.8.7 or later) from
+@url{http://dvisvgm.sourceforge.net/down.html} and be sure to use the
+@code{latex} or @code{tex} tex engine.
+
+@code{Asymptote} can also produce any output format supported
 by the @code{ImageMagick} @code{convert} program (version 6.3.5 or
 later recommended; an @code{Invalid Parameter} error message indicates
 that the @code{MSDOS} utility @code{convert} is being used instead of
 the one that comes with @code{ImageMagick}).
-To give specific options to @code{convert}, use the
+The optional setting @code{-render n} requests
+an output resolution of @code{n} pixels per @code{bp}. Antialiasing is
+controlled by the parameter @code{antialias}, which by default
+specifies a sampling width of 2 pixels.
+To give other options to @code{convert}, use the
 @code{convertOptions} setting or call convert manually. This example
 emulates how @code{Asymptote} produces antialiased @code{tiff} output at
 one pixel per @code{bp}:
@@ -9339,7 +9347,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  hstretch vstretch roundbox nonconvex miterlimit basealigin cmd
 @c  LocalWords:  maxviewport maxtile antialiased sphericalharmonic attachfile
 @c  LocalWords:  vertexshading smoothelevation glOptions iconified iconify kate
-@c  LocalWords:  psviewerOptions pdfviewerOptions viewportmargin asyattach
+@c  LocalWords:  psviewerOptions pdfviewerOptions viewportmargin asyattach SVG
 @c  LocalWords:  multisampling autogen multisample coloredpath relstep flowdir
 @c  LocalWords:  colortype coloredSegments coloredNodes trefoilknot scaledgraph
 @c  LocalWords:  minblockwidth minblockheight mincirclediameter nonassociative
@@ -9353,4 +9361,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  rotateY rotateZ wheelup zoomin wheeldown zoomout TeXLive
 @c  LocalWords:  viewportshift signedint signedness psview multiplatform nowarn
 @c  LocalWords:  singlereal singleint writeoverloaded tubegranularity dvisvg
-@c  LocalWords:  bigdiagonal autobillboard
+@c  LocalWords:  bigdiagonal autobillboard dvisvgm
