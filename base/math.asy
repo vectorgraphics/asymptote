@@ -38,6 +38,15 @@ bool polygon(path p)
   return cyclic(p) && piecewisestraight(p);
 }
 
+// Return the intersection time of the point on the line through p and q
+// that is closest to z.
+real intersect(pair p, pair q, pair z)
+{
+  pair u=q-p;
+  real denom=dot(u,u);
+  return denom == 0 ? infinity : dot(z-p,u)/denom;
+}
+
 // Return the intersection time of the extension of the line segment PQ
 // with the plane perpendicular to n and passing through Z.
 real intersect(triple P, triple Q, triple n, triple Z)
@@ -388,4 +397,3 @@ pair[][] fft(pair[][] a, int sign=1)
   }
   return transpose(A);
 }
-
