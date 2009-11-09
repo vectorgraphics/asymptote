@@ -515,9 +515,8 @@ void svgtexfile::begingradientshade(bool axial, ColorSpace colorspace,
                                     const pen& penb, const pair& b, double rb)
 {
   string type=axial ? "linear" : "radial";
-  out->unsetf(std::ios::fixed);
-  *out << "\\catcode`\\#=11%" << newl <<
-    "\\special{dvisvgm:raw <" << type << "Gradient id='grad" << gradientcount;
+  beginspecial();
+  *out << "<" << type << "Gradient id='grad" << gradientcount;
   if(axial) {
     *out << "' x1='" << a.getx()*ps2tex << "' y1='" << -a.gety()*ps2tex
          << "' x2='" << b.getx()*ps2tex << "' y2='" << -b.gety()*ps2tex;
@@ -528,13 +527,14 @@ void svgtexfile::begingradientshade(bool axial, ColorSpace colorspace,
   *out <<"' gradientUnits='userSpaceOnUse'>" << nl
        << "<stop offset='0' stop-color='#" << rgbhex(pena) << "'/>" << nl
        << "<stop offset='1' stop-color='#" << rgbhex(penb) << "'/>" << nl
-       << "</" << type << "Gradient>}%" << newl <<
-    "\\catcode`\\#=6%" << newl;
+       << "</" << type << "Gradient>" << nl;
+  begintransform();
+  beginpath();
 }
 
 void svgtexfile::gradientshade(bool axial, ColorSpace colorspace,
-                            const pen& pena, const pair& a, double ra,
-                            const pen& penb, const pair& b, double rb)
+                               const pen& pena, const pair& a, double ra,
+                               const pen& penb, const pair& b, double rb)
 {
   *out << "' fill='url(#grad" << gradientcount << ")'";
   fillrule(pena);
@@ -659,9 +659,8 @@ void svgtexfile::begintensorshade(const vm::array& pens,
                                   const vm::array& boundaries,
                                   const vm::array& z) 
 {
-  out->unsetf(std::ios::fixed);
-  *out << "\\catcode`\\#=11%" << newl
-       << "\\special{dvisvgm:raw <defs>" << nl;
+  beginspecial();
+  *out << "<defs>" << nl;
 
   path g=read<path>(boundaries,0);
   pair Z[]={g.point((Int) 0),g.point((Int) 3),g.point((Int) 2),
@@ -691,7 +690,7 @@ void svgtexfile::begintensorshade(const vm::array& pens,
          << "' stop-opacity='0'/>" << nl
          << "</linearGradient>" << nl;
   }
-  *out << "}\\catcode`\\#=6%" << newl;
+  beginpath();
 }
 
 void svgtexfile::tensorshade(const pen& pentype, const vm::array& pens,
@@ -700,12 +699,9 @@ void svgtexfile::tensorshade(const pen& pentype, const vm::array& pens,
   *out << "' id='path" << tensorcount << "'";
   fillrule(pentype);
   endpath();
-  *out << "</g></defs>" << nl;
-  *out << "<g transform='matrix(1 0 0 1 "
-       << (-Hoffset+1.99*settings::cm)*ps2tex << " " 
-       << (1.9*settings::cm+box.top)*ps2tex 
-       << ")'>" << nl
-       << "<use xlink:href='#path" << tensorcount
+  *out << "</defs></g>" << nl;
+  begintransform();
+  *out << "<use xlink:href='#path" << tensorcount
        << "' fill='url(#grad" << tensorcount << "-" 
        << "0)'/>" << nl
        << "<use xlink:href='#path" << tensorcount
@@ -719,7 +715,6 @@ void svgtexfile::tensorshade(const pen& pentype, const vm::array& pens,
        << "3)' filter='url(#colorAdd)'/>" << nl;
 
   ++tensorcount;
-  endtransform();
   endspecial();
 }
 
