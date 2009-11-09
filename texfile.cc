@@ -315,13 +315,7 @@ void texfile::epilogue(bool pipe)
   out->flush();
 }
 
-#define HAVE_DVISVGM_NL
-
-#ifdef HAVE_DVISVGM_NL
 string svgtexfile::nl="{?nl}%\n";
-#else
-string svgtexfile::nl="\n";
-#endif
 
 void svgtexfile::beginspecial()
 {
