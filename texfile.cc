@@ -137,6 +137,7 @@ void texfile::prologue()
       }
     }
   }
+  beginpage();
 }
     
 void texfile::beginlayer(const string& psname, bool postscript)
@@ -222,6 +223,30 @@ void texfile::setpen(pen p)
   setfont(p);
 }
    
+void texfile::beginpicture(const bbox& b)
+{
+  verbatim(settings::beginpicture(texengine));
+  if(!settings::context(texengine)) {
+    verbatim("(");
+    double width=b.right-b.left;
+    double height=b.top-b.bottom;
+    write(width*ps2tex);
+    verbatim(",");
+    write(height*ps2tex);
+    verbatim(")");
+  }
+  verbatimline("%");
+}
+  
+void texfile::endpicture(const bbox& b)
+{
+  verbatimline(settings::endpicture(texengine));
+  verbatim("\\kern");
+  double width=b.right-b.left;
+  write(-width*ps2tex);
+  verbatimline("pt%");
+}
+  
 void texfile::gsave()
 {
   *out << settings::beginspecial(texengine);
@@ -280,6 +305,7 @@ void texfile::put(const string& label, const transform& T, const pair& z,
 
 void texfile::epilogue(bool pipe)
 {
+  endpage();
   if(settings::latex(texengine))
     *out << "\\end{document}" << newl;
   else if(settings::context(texengine))
@@ -289,26 +315,40 @@ void texfile::epilogue(bool pipe)
   out->flush();
 }
 
+#define HAVE_DVISVGM_NL
+
 #ifdef HAVE_DVISVGM_NL
-string svgtexfile::nl="{?nl}";
+string svgtexfile::nl="{?nl}%\n";
 #else
-string svgtexfile::nl="";
+string svgtexfile::nl="\n";
 #endif
 
 void svgtexfile::beginspecial()
 {
+  inspecial=true;
   out->unsetf(std::ios::fixed);
   *out << "\\catcode`\\#=11%" << newl
-       << "\\special{dvisvgm:raw <g transform='matrix(1 0 0 1 "
+       << "\\special{dvisvgm:raw" << nl;
+}
+    
+void svgtexfile::endspecial()
+{
+  inspecial=false;
+  *out << "}\\catcode`\\#=6%" << newl;
+  out->setf(std::ios::fixed);
+}
+  
+void svgtexfile::begintransform()
+{
+  *out << "<g transform='matrix(1 0 0 1 "
        << (-Hoffset+1.99*settings::cm)*ps2tex << " " 
        << (1.9*settings::cm+box.top)*ps2tex 
        << ")'>" << nl;
 }
     
-void svgtexfile::endspecial()
+void svgtexfile::endtransform()
 {
-  *out << "</g>}\\catcode`\\#=6%" << newl;
-  out->setf(std::ios::fixed);
+  *out << "</g>";
 }
   
 void svgtexfile::gsave(bool tex)
@@ -355,6 +395,7 @@ void svgtexfile::endpath()
 void svgtexfile::dot(path p, pen q, bool newPath)
 {
   beginspecial();
+  begintransform();
   *out << "<circle ";
   clippath();
   pair z=p.point((Int) 0);
@@ -366,6 +407,7 @@ void svgtexfile::dot(path p, pen q, bool newPath)
 void svgtexfile::beginclip()
 {
   beginspecial();
+  begintransform();
   *out << "<clipPath ";
   clippath();
   ++clipcount;
@@ -376,12 +418,18 @@ void svgtexfile::beginclip()
   clipstack.push(clipcount);
 }
   
-void svgtexfile::endclip(const pen &p) 
+void svgtexfile::endclip0(const pen &p) 
 {
   *out << "'";
   fillrule(p,"clip");
   endpath();
   *out << "</clipPath>" << nl;
+}
+
+void svgtexfile::endclip(const pen &p) 
+{
+  endclip0(p);
+  endtransform();
   endspecial();
 }
 
@@ -406,6 +454,7 @@ void svgtexfile::fill(const pen &p)
   color(p,"fill");
   fillrule(p);
   endpath();
+  endtransform();
   endspecial();
 }
 
@@ -452,85 +501,13 @@ void svgtexfile::stroke(const pen &p, bool dot)
     properties(p);  
   }
   endpath();
+  endtransform();
   endspecial();
 }
   
 void svgtexfile::strokepath()
 {
   reportWarning("SVG does not support strokepath");
-}
-
-void svgtexfile::begintensorshade(const vm::array& pens,
-                                  const vm::array& boundaries,
-                                  const vm::array& z) 
-{
-  out->unsetf(std::ios::fixed);
-  *out << "\\catcode`\\#=11%" << newl
-       << "\\special{dvisvgm:raw <defs>" << nl;
-
-  path g=read<path>(boundaries,0);
-  pair Z[]={g.point((Int) 0),g.point((Int) 3),g.point((Int) 2),
-            g.point((Int) 1)};
-      
-  array *pi=read<array *>(pens,0);
-  if(checkArray(pi) != 4)
-    reportError("specify 4 pens for each path");
-  string hex[]={rgbhex(read<pen>(pi,0)),rgbhex(read<pen>(pi,3)),
-                rgbhex(read<pen>(pi,2)),rgbhex(read<pen>(pi,1))};
-    
-  *out << "<filter id='colorAdd'>" << nl
-       << "<feBlend in='SourceGraphic' in2='BackgroundImage' operator='arithmetic' k2='1' k3='1'/>" << nl
-       << "</filter>";
-
-  pair mean=0.25*(Z[0]+Z[1]+Z[2]+Z[3]);
-  for(size_t k=0; k < 4; ++k) {
-    pair opp=(k % 2 == 0) ? Z[(k+2) % 4] : mean;
-    *out << "<linearGradient id='grad" << tensorcount << "-" << k 
-         << "' gradientUnits='userSpaceOnUse'" << nl
-         << " x1='" << Z[k].getx()*ps2tex << "' y1='" << -Z[k].gety()*ps2tex
-         << "' x2='" << opp.getx()*ps2tex << "' y2='" << -opp.gety()*ps2tex
-         << "'>" << nl
-         << "<stop offset='0' stop-color='#" << hex[k] 
-         << "' stop-opacity='1'/>" << nl
-         << "<stop offset='1' stop-color='#" << hex[k] 
-         << "' stop-opacity='0'/>" << nl
-         << "</linearGradient>" << nl;
-  }
-  *out << "}\\catcode`\\#=6%" << newl;
-}
-
-void svgtexfile::tensorshade(const pen& pentype, const vm::array& pens,
-                             const vm::array& boundaries, const vm::array& z)
-{
-  size_t size=pens.size();
-  if(size == 0) return;
-  
-  *out << "' id='path" << tensorcount << "'";
-  fillrule(pentype);
-  endpath();
-  *out << "</g>";
-  *out << "</defs>";
-  *out << "<g transform='matrix(1 0 0 1 "
-         << (-Hoffset+1.99*settings::cm)*ps2tex << " " 
-         << (1.9*settings::cm+box.top)*ps2tex 
-         << ")'>" << nl;
-  for(size_t i=0; i < size; i++) {
-    *out << "<use xlink:href='#path" << tensorcount
-         << "' fill='url(#grad" << tensorcount << "-" 
-         << "0)'/>" << nl
-         << "<use xlink:href='#path" << tensorcount
-         << "' fill='url(#grad" << tensorcount << "-" 
-         << "2)' filter='url(#colorAdd)'/>"
-         << "<use xlink:href='#path" << tensorcount
-         << "' fill='url(#grad" << tensorcount << "-" 
-         << "1)' filter='url(#colorAdd)'/>"
-         << "<use xlink:href='#path" << tensorcount 
-         << "' fill='url(#grad" << tensorcount << "-"
-         << "3)' filter='url(#colorAdd)'/>";
-  }
-  
-  ++tensorcount;
-  endspecial();
 }
 
 void svgtexfile::begingradientshade(bool axial, ColorSpace colorspace,
@@ -563,7 +540,183 @@ void svgtexfile::gradientshade(bool axial, ColorSpace colorspace,
   fillrule(pena);
   endpath();
   ++gradientcount;
+  endtransform();
   endspecial();
 }
   
+// Return the point on the line through p and q that is closest to z.
+pair closest(pair p, pair q, pair z)
+{
+  pair u=q-p;
+  double denom=dot(u,u);
+  return denom == 0.0 ? p : p+dot(z-p,u)/denom*u;
+}
+
+void svgtexfile::gouraudshade(const pen& p0, const pair& z0,
+                              const pen& p1, const pair& z1, 
+                              const pen& p2, const pair& z2)
+{
+  string hex[]={rgbhex(p0),rgbhex(p1),rgbhex(p2)};
+  pair Z[]={z0,z1,z2};
+    
+  *out << "<defs>" << nl
+       << "<filter id='colorAdd'>" << nl
+       << "<feBlend in='SourceGraphic' in2='BackgroundImage'/>" << nl
+       << "</filter>";
+
+  for(size_t k=0; k < 3; ++k) {
+    pair z=Z[k];
+    pair opp=closest(Z[(k+1) % 3],Z[(k+2) % 3],z);
+    *out << "<linearGradient id='grad-" << gouraudcount << "-" << k 
+         << "' gradientUnits='userSpaceOnUse'" << nl
+         << " x1='" << z.getx()*ps2tex << "' y1='" << -z.gety()*ps2tex
+         << "' x2='" << opp.getx()*ps2tex << "' y2='" << -opp.gety()*ps2tex
+         << "'>" << nl
+         << "<stop offset='0' stop-color='#" << hex[k] 
+         << "' stop-opacity='1'/>" << nl
+         << "<stop offset='1' stop-color='#" << hex[k] 
+         << "' stop-opacity='0'/>" << nl
+         << "</linearGradient>" << nl;
+  }
+  *out << "<polygon ";
+  clippath();
+  *out << "id='triangle" << gouraudcount << "' points='"
+       << z0.getx()*ps2tex << "," << -z0.gety()*ps2tex << " "
+       << z1.getx()*ps2tex << "," << -z1.gety()*ps2tex << " "
+       << z2.getx()*ps2tex << "," << -z2.gety()*ps2tex << "'/>" << nl
+       << "</defs>" << nl;
+  *out << "<use xlink:href='#triangle" << gouraudcount
+       << "' fill='url(#grad-" << gouraudcount << "-" 
+       << "0)'/>" << nl
+       << "<use xlink:href='#triangle" << gouraudcount
+       << "' fill='url(#grad-" << gouraudcount << "-" 
+       << "1)' filter='url(#colorAdd)'/>" << nl
+       << "<use xlink:href='#triangle" << gouraudcount
+       << "' fill='url(#grad-" << gouraudcount << "-" 
+       << "2)' filter='url(#colorAdd)'/>" << nl;
+  ++gouraudcount;
+}
+
+void svgtexfile::begingouraudshade(const vm::array& pens,
+                                   const vm::array& vertices,
+                                   const vm::array& edges)
+{
+  size_t size=pens.size();
+  if(size == 0) return;
+  beginclip();
+}
+
+void svgtexfile::gouraudshade(const pen& pentype,
+                              const array& pens, const array& vertices,
+                              const array& edges)
+{
+  size_t size=pens.size();
+  if(size == 0) return;
+  
+  endclip0(pentype);
+  
+  pen *p0,*p1,*p2;
+  pair z0,z1,z2;
+  
+  for(size_t i=0; i < size; i++) {
+    Int edge=read<Int>(edges,i);
+    
+    switch(edge) {
+      case 0:
+        p0=read<pen *>(pens,i);
+        z0=read<pair>(vertices,i);
+        ++i;
+    
+        p1=read<pen *>(pens,i);
+        z1=read<pair>(vertices,i);
+        ++i;
+        
+        p2=read<pen *>(pens,i);
+        z2=read<pair>(vertices,i);
+        break;
+      case 1:
+        p0=read<pen *>(pens,i);
+        z0=read<pair>(vertices,i);
+        break;
+      case 2:
+        p1=read<pen *>(pens,i);
+        z1=read<pair>(vertices,i);
+        break;
+      default:
+        reportError("invalid edge flag");
+    }
+    gouraudshade(*p0,z0,*p1,z1,*p2,z2);
+  }
+  endtransform();
+  endspecial();
+}
+
+void svgtexfile::begintensorshade(const vm::array& pens,
+                                  const vm::array& boundaries,
+                                  const vm::array& z) 
+{
+  out->unsetf(std::ios::fixed);
+  *out << "\\catcode`\\#=11%" << newl
+       << "\\special{dvisvgm:raw <defs>" << nl;
+
+  path g=read<path>(boundaries,0);
+  pair Z[]={g.point((Int) 0),g.point((Int) 3),g.point((Int) 2),
+            g.point((Int) 1)};
+      
+  array *pi=read<array *>(pens,0);
+  if(checkArray(pi) != 4)
+    reportError("specify 4 pens for each path");
+  string hex[]={rgbhex(read<pen>(pi,0)),rgbhex(read<pen>(pi,3)),
+                rgbhex(read<pen>(pi,2)),rgbhex(read<pen>(pi,1))};
+    
+  *out << "<filter id='colorAdd'>" << nl
+       << "<feBlend in='SourceGraphic' in2='BackgroundImage'/>" << nl
+       << "</filter>";
+
+  pair mean=0.25*(Z[0]+Z[1]+Z[2]+Z[3]);
+  for(size_t k=0; k < 4; ++k) {
+    pair opp=(k % 2 == 0) ? Z[(k+2) % 4] : mean;
+    *out << "<linearGradient id='grad" << tensorcount << "-" << k 
+         << "' gradientUnits='userSpaceOnUse'" << nl
+         << " x1='" << Z[k].getx()*ps2tex << "' y1='" << -Z[k].gety()*ps2tex
+         << "' x2='" << opp.getx()*ps2tex << "' y2='" << -opp.gety()*ps2tex
+         << "'>" << nl
+         << "<stop offset='0' stop-color='#" << hex[k] 
+         << "' stop-opacity='1'/>" << nl
+         << "<stop offset='1' stop-color='#" << hex[k] 
+         << "' stop-opacity='0'/>" << nl
+         << "</linearGradient>" << nl;
+  }
+  *out << "}\\catcode`\\#=6%" << newl;
+}
+
+void svgtexfile::tensorshade(const pen& pentype, const vm::array& pens,
+                             const vm::array& boundaries, const vm::array& z)
+{
+  *out << "' id='path" << tensorcount << "'";
+  fillrule(pentype);
+  endpath();
+  *out << "</g></defs>" << nl;
+  *out << "<g transform='matrix(1 0 0 1 "
+       << (-Hoffset+1.99*settings::cm)*ps2tex << " " 
+       << (1.9*settings::cm+box.top)*ps2tex 
+       << ")'>" << nl
+       << "<use xlink:href='#path" << tensorcount
+       << "' fill='url(#grad" << tensorcount << "-" 
+       << "0)'/>" << nl
+       << "<use xlink:href='#path" << tensorcount
+       << "' fill='url(#grad" << tensorcount << "-" 
+       << "2)' filter='url(#colorAdd)'/>" << nl
+       << "<use xlink:href='#path" << tensorcount
+       << "' fill='url(#grad" << tensorcount << "-" 
+       << "1)' filter='url(#colorAdd)'/>" << nl
+       << "<use xlink:href='#path" << tensorcount 
+       << "' fill='url(#grad" << tensorcount << "-"
+       << "3)' filter='url(#colorAdd)'/>" << nl;
+
+  ++tensorcount;
+  endtransform();
+  endspecial();
+}
+
 } //namespace camp

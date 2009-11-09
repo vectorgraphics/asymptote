@@ -193,6 +193,10 @@ public:
     out->write(p);
   }
   
+  virtual void writeclippath(psfile *out, bool newpath=true) {
+    out->writeclip(p,newpath);
+  }
+  
   virtual void writeshiftedpath(texfile *out) {
     out->writeshifted(p);
   }
@@ -304,6 +308,12 @@ public:
     if(size > 0) out->write(vm::read<path>(P,0),newpath);
     for(size_t i=1; i < size; i++)
       out->write(vm::read<path>(P,i),false);
+  }
+  
+  void writeclippath(psfile *out, bool newpath=true) {
+    if(size > 0) out->writeclip(vm::read<path>(P,0),newpath);
+    for(size_t i=1; i < size; i++)
+      out->writeclip(vm::read<path>(P,i),false);
   }
   
   void writeshiftedpath(texfile *out) {

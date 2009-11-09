@@ -175,8 +175,10 @@ public:
   virtual ~texfile();
 
   void prologue();
+  virtual void beginpage() {}
 
   void epilogue(bool pipe=false);
+  virtual void endpage() {}
 
   void setlatexcolor(pen p);
   void setpen(pen p);
@@ -201,6 +203,9 @@ public:
   
   bool toplevel() {return level == 0;}
   
+  void beginpicture(const bbox& b);
+  void endpicture(const bbox& b);
+  
   void writepair(pair z) {
     *out << z;
   }
@@ -222,14 +227,22 @@ class svgtexfile : public texfile {
   mem::stack<size_t> clipstack;
   size_t clipcount;
   size_t gradientcount;
+  size_t gouraudcount;
   size_t tensorcount;
+  bool inspecial;
   static string nl;
 public:  
   svgtexfile(const string& texname, const bbox& box, bool pipe=false) :
     texfile(texname,box,pipe) {
     clipcount=0;
     gradientcount=0;
+    gouraudcount=0;
     tensorcount=0;
+    inspecial=false;
+  }
+  
+  void writeclip(path p, bool newPath=true) {
+    write(p,false);
   }
   
   void dot(path p, pen, bool newPath=true);
@@ -244,6 +257,18 @@ public:
   void beginspecial();
   void endspecial();
   
+  // Prevent unwanted page breaks.
+  void beginpage() {
+    beginpicture(box);
+  }
+  
+  void endpage() {
+    endpicture(box);
+  }
+  
+  void begintransform();
+  void endtransform();
+  
   void clippath();
   
   void beginpath();
@@ -251,6 +276,7 @@ public:
   
   void newpath() {
     beginspecial();
+    begintransform();
     beginpath();
   }
   
@@ -287,12 +313,6 @@ public:
   void fillrule(const pen& p, const string& type="fill");
   void fill(const pen &p);
   
-  void begintensorshade(const vm::array& pens,
-                        const vm::array& boundaries,
-                        const vm::array& z);
-  void tensorshade(const pen& pentype, const vm::array& pens,
-                   const vm::array& boundaries, const vm::array& z);
-
   void begingradientshade(bool axial, ColorSpace colorspace,
                           const pen& pena, const pair& a, double ra,
                           const pen& penb, const pair& b, double rb);
@@ -300,11 +320,26 @@ public:
                      const pen& pena, const pair& a, double ra,
                      const pen& penb, const pair& b, double rb);
   
+  void gouraudshade(const pen& p0, const pair& z0,
+                    const pen& p1, const pair& z1, 
+                    const pen& p2, const pair& z2);
+  void begingouraudshade(const vm::array& pens, const vm::array& vertices,
+                         const vm::array& edges);
+  void gouraudshade(const pen& pentype, const vm::array& pens,
+                    const vm::array& vertices, const vm::array& edges);
+  
+  void begintensorshade(const vm::array& pens,
+                        const vm::array& boundaries,
+                        const vm::array& z);
+  void tensorshade(const pen& pentype, const vm::array& pens,
+                   const vm::array& boundaries, const vm::array& z);
+
   void beginclip();
   
+  void endclip0(const pen &p);
   void endclip(const pen &p);
   
-  void setpen(pen p) {}
+  void setpen(pen p) {if(!inspecial) texfile::setpen(p);}
   
   void gsave(bool tex=false);
   

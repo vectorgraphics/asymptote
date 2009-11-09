@@ -49,13 +49,10 @@ public:
 
   bool write(texfile *out, const bbox& bpath) {
     out->endgroup();
-    if(out->toplevel()) {
-      out->verbatimline(settings::endpicture(out->texengine));
-      out->verbatim("\\kern");
-      double width=bpath.right-bpath.left;
-      out->write(-width*ps2tex);
-      out->verbatimline("pt%");
-    }
+    
+    if(out->toplevel()) 
+      out->endpicture(bpath);
+
     if(grestore) out->grestore();
     return true;
   }

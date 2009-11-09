@@ -72,7 +72,7 @@ public:
   
     palette(out);
     beginshade(out);
-    writepath(out);
+    writeclippath(out);
     if(stroke) strokepath(out);
     shade(out);
     out->grestore();
@@ -161,8 +161,6 @@ public:
     : drawShade(src,stroke,pentype), pens(pens), vertices(vertices),
       edges(edges) {}
   
-  bool svgpng() {return true;}
-  
   void palette(psfile *out) {
     out->gsave();
   }
@@ -187,7 +185,9 @@ public:
                   const vm::array& boundaries, const vm::array& z)
     : drawShade(src,stroke,pentype), pens(pens), boundaries(boundaries), z(z) {}
   
-  bool svgpng() {return pens.size() > 1;}
+  bool svgpng() {
+    return pens.size() > 1 || !settings::getSetting<bool>("svgemulation");
+  }
   
   void palette(psfile *out) {
     out->gsave();
@@ -219,6 +219,8 @@ public:
 
   virtual ~drawFunctionShade() {}
 
+  bool svgpng() {return true;}
+  
   bool draw(psfile *out) {return false;}
   
   bool write(texfile *, const bbox&);

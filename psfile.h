@@ -191,6 +191,10 @@ public:
   
   void write(path p, bool newPath=true);
   
+  virtual void writeclip(path p, bool newPath=true) {
+    write(p,newPath);
+  }
+  
   virtual void dot(path p, pen, bool newPath=true) {
     write(p,newPath);
   }

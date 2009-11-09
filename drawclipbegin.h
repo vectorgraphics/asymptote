@@ -62,19 +62,9 @@ public:
     if(gsave) out->gsave();
     if(empty()) return true;
     
-    if(out->toplevel()) {
-      out->verbatim(settings::beginpicture(out->texengine));
-      if(!settings::context(out->texengine)) {
-        out->verbatim("(");
-        double width=bpath.right-bpath.left;
-        double height=bpath.top-bpath.bottom;
-        out->write(width*ps2tex);
-        out->verbatim(",");
-        out->write(height*ps2tex);
-        out->verbatim(")");
-      }
-      out->verbatimline("%");
-    }
+    if(out->toplevel()) 
+      out->beginpicture(bpath);
+      
     out->begingroup();
 
     out->beginspecial();
