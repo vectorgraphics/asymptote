@@ -208,10 +208,6 @@ public:
   // Look for a function that exactly matches the type given.
   varEntry *lookByType(symbol *name, ty *t);
 
-  // Checks if a function was added in the top scope as two identical
-  // functions cannot be defined in one scope.
-  varEntry *lookInTopScope(symbol *name, ty *t);
-
   // Return the type of the variable, if name is overloaded, return an
   // overloaded type.
   ty *getType(symbol *name);
@@ -335,15 +331,6 @@ public:
   // named dest.  Returns true if at least one was added.
   bool add(symbol *src, symbol *dest,
            venv& source, varEntry *qualifier, coder &c);
-
-  bool lookInTopScope(key k) {
-    return scopes.top().find(k)!=scopes.top().end();
-  }
-
-  // Look for a function that exactly matches the type given.
-  bool lookInTopScope(symbol *name, ty *t) {
-    return lookInTopScope(key(name, t));
-  }
 
   varEntry *lookByType(key k) {
     keymap::const_iterator p=all.find(k);

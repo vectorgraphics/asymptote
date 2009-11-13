@@ -43,10 +43,6 @@ public :
   void enter(symbol *key, B value);
   B look(symbol *key);
 
-  // Checks if a symbol was added in the last scope.  Useful for
-  // stopping multiple definitions.
-  B lookInTopScope(symbol *key);
-
   // Allows scoping and overloading of symbols of the same name
   void beginScope();
   void endScope();
@@ -79,15 +75,6 @@ inline B table<B>::look(symbol *key)
 {
   if (!names[key].empty())
     return names[key].front();
-  return 0;
-}
-
-template <class B>
-inline B table<B>::lookInTopScope(symbol *key)
-{
-  scope_iterator p = scopes.front().find(key);
-  if (p!=scopes.front().end())
-    return p->second;
   return 0;
 }
 

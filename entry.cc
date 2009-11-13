@@ -181,19 +181,6 @@ void venv::list(record *module)
   flush(cout);
 }
 
-varEntry *venv::lookInTopScope(symbol *name, ty *t)
-{
-  scope_t &scope = scopes.front();
-  for (scope_iterator p = scope.lower_bound(name);
-       p != scope.upper_bound(name);
-       ++p) {
-    if (name == p->first &&
-        equivalent(t, p->second->getType(), name->special))
-      return p->second;
-  }
-  return 0;
-}
-
 ty *venv::getType(symbol *name)
 {
   types::overloaded set;
