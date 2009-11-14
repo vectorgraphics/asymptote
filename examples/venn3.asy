@@ -4,7 +4,7 @@ pen colour1=red;
 pen colour2=green;
 pen colour3=blue;
 
-real r=1.5;
+real r=sqrt(3);
 
 pair z0=(0,0);
 pair z1=(-1,0);
@@ -14,6 +14,7 @@ pair z3=(0,r);
 path c1=circle(z1,r);
 path c2=circle(z2,r);
 path c3=circle(z3,r);
+
 fill(c1,colour1);
 fill(c2,colour2);
 fill(c3,colour3);
