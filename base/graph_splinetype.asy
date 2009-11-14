@@ -1,3 +1,5 @@
+private import math;
+
 typedef real[] splinetype(real[], real[]);
 
 restricted real[] Spline(real[] x, real[] y);
@@ -9,6 +11,12 @@ void checklengths(int x, int y, string text=differentlengths)
 {
   if(x != y)
     abort(text+": "+string(x)+" != "+string(y));
+}
+
+void checkincreasing(real[] x) 
+{
+  if(!increasing(x,true))
+    abort("strictly increasing array expected");
 }
 
 // Linear interpolation
@@ -32,6 +40,7 @@ real[] notaknot(real[] x, real[] y)
 {
   int n=x.length;
   checklengths(n,y.length);
+  checkincreasing(x);
   real[] d;
   if(n > 3) {
     real[] a=new real[n];
@@ -75,6 +84,7 @@ real[] periodic(real[] x, real[] y)
 {
   int n=x.length;
   checklengths(n,y.length);
+  checkincreasing(x);
   if(abs(y[n-1]-y[0]) > sqrtEpsilon*norm(y))
     abort("function values are not periodic");
   real[] d;
@@ -110,6 +120,7 @@ real[] natural(real[] x, real[] y)
 {
   int n=x.length;
   checklengths(n,y.length);
+  checkincreasing(x);
   real[] d;
   if(n > 2) {
     real[] a=new real[n];
@@ -144,6 +155,7 @@ splinetype clamped(real slopea, real slopeb)
   return new real[] (real[] x, real[] y) {
     int n=x.length;
     checklengths(n,y.length);
+    checkincreasing(x);
     real[] d;
     if(n > 2) {
       real[] a=new real[n];
@@ -183,6 +195,7 @@ real[] monotonic(real[] x, real[] y)
 {
   int n=x.length; 
   checklengths(n,y.length);
+  checkincreasing(x);
   real[] d=new real[n]; 
   if(n > 2) {
     real[] h=new real[n-1];

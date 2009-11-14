@@ -1,5 +1,4 @@
 private import math;
-
 import graph_splinetype;
 import graph_settings;
 
@@ -1977,14 +1976,7 @@ guide[] graph(picture pic=currentpicture, pair z(real), real a, real b,
       },a,b,n);
 }
 
-string differentlengths="attempt to graph arrays of different lengths";
 string conditionlength="condition array has different length than data";
-
-void checklengths(int x, int y, string text=differentlengths)
-{
-  if(x != y)
-    abort(text+": "+string(x)+" != "+string(y));
-}
 
 void checkconditionlength(int x, int y)
 {
