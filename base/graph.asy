@@ -2062,6 +2062,19 @@ guide polargraph(picture pic=currentpicture, real r(real), real a, real b,
     },a,b,n);
 }
 
+guide polargraph(picture pic=currentpicture, real[] r, real[] theta,
+                 interpolate join=operator--)
+{
+  int n=r.length;
+  checklengths(n,theta.length);
+  int i=0;
+  return graph(join)(new pair(real) {
+      pair w=Scale(pic,polar(r[i],theta[i]));
+      ++i;
+      return w;
+    },0,0,n-1);
+}
+
 void errorbar(picture pic, pair z, pair dp, pair dm, pen p=currentpen,
               real size=0)
 {

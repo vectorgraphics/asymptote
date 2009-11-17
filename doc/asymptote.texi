@@ -6578,6 +6578,15 @@ picture @code{pic} of the function @code{f} on the interval
 [@code{a},@code{b}], sampling at @code{n} evenly spaced points, with
 the given interpolation type.
 
+@item
+@verbatim
+guide polargraph(picture pic=currentpicture, real[] r, real[] theta,
+                 interpolate join=operator--);
+@end verbatim
+Returns a polar-coordinate graph using the scaling information for
+picture @code{pic} of the elements of the arrays (@code{r},@code{theta}),
+using the given interpolation type.
+
 @end itemize
 
 @verbatim
