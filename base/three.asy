@@ -676,23 +676,21 @@ guide3 operator .. (... guide3[] g)
   };
 }
 
-guide3 operator ::(... guide3[] a)
+typedef guide3 interpolate3(... guide3[]);
+
+interpolate3 join3(tensionSpecifier t)
 {
-  if(a.length == 0) return nullpath3;
-  guide3 g=a[0];
-  for(int i=1; i < a.length; ++i)
-    g=g.. tension atleast 1 ..a[i];
-  return g;
+  return new guide3(... guide3[] a) {
+    if(a.length == 0) return nullpath3;
+    guide3 g=a[0];
+    for(int i=1; i < a.length; ++i)
+      g=g..t..a[i];
+    return g;
+  };
 }
 
-guide3 operator ---(... guide3[] a)
-{
-  if(a.length == 0) return nullpath3;
-  guide3 g=a[0];
-  for(int i=1; i < a.length; ++i)
-    g=g.. tension atleast infinity ..a[i];
-  return g;
-}
+interpolate3 operator ::=join3(operator tension(1,true));
+interpolate3 operator ---=join3(operator tension(infinity,true));
 
 flatguide3 operator cast(guide3 g)
 {
@@ -1864,8 +1862,6 @@ triple max(explicit path3[] p)
     maxp=maxbound(maxp,max(p[i]));
   return maxp;
 }
-
-typedef guide3 interpolate3(... guide3[]);
 
 path3 randompath3(int n, bool cumulate=true, interpolate3 join=operator ..)
 {

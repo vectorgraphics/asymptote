@@ -15,6 +15,7 @@ tensionSpecifier operator tension(real t, bool atLeast)
 {
   return operator tension(t,t,atLeast);
 }
+
 guide operator controls(pair z)
 {
   return operator controls(z,z);
@@ -127,23 +128,19 @@ pair max(explicit path[] p)
   return maxp;
 }
 
-guide operator ::(... guide[] a)
+interpolate operator ..(tensionSpecifier t)
 {
-  if(a.length == 0) return nullpath;
-  guide g=a[0];
-  for(int i=1; i < a.length; ++i)
-    g=g..operator tension(1,true)..a[i];
-  return g;
+  return new guide(... guide[] a) {
+    if(a.length == 0) return nullpath;
+    guide g=a[0];
+    for(int i=1; i < a.length; ++i)
+      g=g..t..a[i];
+    return g;
+  };
 }
 
-guide operator ---(... guide[] a)
-{
-  if(a.length == 0) return nullpath;
-  guide g=a[0];
-  for(int i=1; i < a.length; ++i)
-    g=g..operator tension(infinity,true)..a[i];
-  return g;
-}
+interpolate operator ::=operator ..(operator tension(1,true));
+interpolate operator ---=operator ..(operator tension(infinity,true));
 
 // return an arbitrary intersection point of paths p and q
 pair intersectionpoint(path p, path q, real fuzz=-1)
