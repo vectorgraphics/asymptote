@@ -1163,7 +1163,7 @@ private void Drawline(picture pic=currentpicture, Label L="",pair P, bool dirP=t
       // Calculate the points and direction vector in the transformed space.
       pair z=t*P;
       pair q=t*Q;
-      pair v=t*Q-z;
+      pair v=q-z;
       // path g;
       pair ptp,ptq;
       real cp = dirP ? 1:0;
@@ -1171,7 +1171,7 @@ private void Drawline(picture pic=currentpicture, Label L="",pair P, bool dirP=t
       // Handle horizontal and vertical lines.
       if(v.x == 0) {
         if(m.x <= z.x && z.x <= M.x)
-          if (dot(v,(z.x,m.y)) < 0) {
+          if (dot(v,m-z) < 0) {
             ptp=(z.x,z.y+cp*(m.y-z.y));
             ptq=(z.x,q.y+cq*(M.y-q.y));
           } else {
@@ -1179,7 +1179,7 @@ private void Drawline(picture pic=currentpicture, Label L="",pair P, bool dirP=t
             ptq=(z.x,z.y+cp*(M.y-z.y));
           }
       } else if(v.y == 0) {
-        if (dot(v,(m.x,z.y)) < 0) {
+        if (dot(v,m-z) < 0) {
           ptp=(z.x+cp*(m.x-z.x),z.y);
           ptq=(q.x+cq*(M.x-q.x),z.y);
         } else {
