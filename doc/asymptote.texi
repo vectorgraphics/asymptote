@@ -5532,7 +5532,7 @@ int[] b=(int []) a;
 write(stdout,b);     // Outputs 2,-3
 @end verbatim
 
-@cindex operator cast
+@cindex @code{operator cast}
 Casting to user-defined types is also possible using @code{operator cast}:
 @verbatim
 struct rpair {
@@ -5566,7 +5566,7 @@ real convert(int x) {return x*100;}
 real operator cast(int x)=convert;
 @end verbatim
 
-@cindex operator ecast
+@cindex @code{operator ecast}
 Explicit casts are implemented similarly, with @code{operator ecast}.
 
 @node Import
@@ -8868,9 +8868,34 @@ interactive input lines by a semicolon is inhibited. Multiline mode is useful
 for cutting and pasting @code{Asymptote} code directly into the
 interactive input buffer.
 
+@cindex @code{%}
 Interactive mode can be conveniently used as a calculator: expressions
 entered at the interactive prompt (for which a corresponding @code{write}
 function exists) are automatically evaluated and written to @code{stdout}.
+If the expression is non-writable, its type signature will be printed out,
+instead.
+In either case, the expression can be refered by the symbol @code{%} in the next
+line input to the prompt.  For example:
+@verbatim
+> 2+3
+5
+> %*4
+20
+> 1/%
+0.05
+> sin(%)
+0.0499791692706783
+> currentpicture
+<picture currentpicture>
+> %.size(200, 0)
+> 
+@end verbatim
+
+@cindex @code{operator answer}
+The @code{%} symbol, when used as a variable, is shorthand for the identifier
+@code{operator answer}, which is set by the prompt after each written
+expression evaluation.
+
 
 The following special commands are supported only in interactive mode
 and must be entered immediately after the prompt:

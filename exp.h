@@ -191,6 +191,9 @@ public:
   nameExp(position pos, symbol *id)
     : exp(pos), value(new simpleName(pos, id)) {}
 
+  nameExp(position pos, string s)
+    : exp(pos), value(new simpleName(pos, symbol::trans(s))) {}
+
   void prettyprint(ostream &out, Int indent);
 
   symbol *getName()

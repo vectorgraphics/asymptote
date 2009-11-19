@@ -192,6 +192,8 @@ bareblock:
 name:
   ID               { $$ = new simpleName($1.pos, $1.sym); }
 | name '.' ID      { $$ = new qualifiedName($2, $1, $3.sym); }
+| '%'              { $$ = new simpleName($1.pos,
+                                  symbol::trans("operator answer")); }
 ;
 
 runnable:

@@ -75,7 +75,6 @@ public:
 class expStm : public stm {
   exp *body;
 
-  void baseTrans(coenv &e, exp *expr);
 public:
   expStm(position pos, exp *body)
     : stm(pos), body(body) {}

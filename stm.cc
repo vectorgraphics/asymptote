@@ -47,7 +47,7 @@ void expStm::prettyprint(ostream &out, Int indent)
   body->prettyprint(out, indent+1);
 }
 
-void expStm::baseTrans(coenv &e, exp *expr)
+void baseExpTrans(coenv &e, exp *expr)
 {
   types::ty_kind kind = expr->trans(e)->kind;
   if (kind != types::ty_void)
@@ -56,7 +56,7 @@ void expStm::baseTrans(coenv &e, exp *expr)
 }
 
 void expStm::trans(coenv &e) {
-  baseTrans(e, body);
+  baseExpTrans(e, body);
 }
 
 // For an object such as currentpicture, write 'picture currentpicture' to
@@ -78,59 +78,91 @@ void tryToWriteTypeOfExp(types::ty *t, exp *body)
   }
 }
   
+// From dec.cc:
+varEntry *makeVarEntry(position pos, coenv &e, record *r, types::ty *t);
 
-exp *tryToWriteExp(coenv &e, exp *body)
+void storeExp(coenv &e, types::ty *t, exp *expr) {
+  assert(t->kind != ty_error);
+  assert(t->kind != ty_void);
+  assert(t->kind != ty_overloaded);
+
+  expr->transAsType(e, t);
+
+  // Store the value in a new variable of the proper type.
+  varEntry *v = makeVarEntry(expr->getPos(), e, 0, t);
+  e.e.addVar(symbol::trans("operator answer"), v);
+  v->getLocation()->encode(WRITE, expr->getPos(), e.c);
+  e.c.encode(inst::pop);
+}
+
+void storeAndWriteExp(coenv &e, types::ty *t, exp *expr) {
+  storeExp(e, t, expr);
+
+  position pos=expr->getPos();
+  baseExpTrans(e, new callExp(pos, new nameExp(pos, "write"),
+                                   new nameExp(pos, "operator answer")));
+}
+
+void tryToWriteExp(coenv &e, exp *expr)
 {
-  // First check if it is the kind of expression that should be written.
-  if (!body->writtenToPrompt() ||
-      !settings::getSetting<bool>("interactiveWrite"))
-    return body;
+  position pos=expr->getPos();
+  types::ty *t=expr->cgetType(e);
 
-  types::ty *t=body->cgetType(e);
-  if (t->kind == ty_error)
-    return body;
+  // If the original expression is bad, just print the errors.
+  // If it is a function which returns void, just call the function.
+  if (t->kind == ty_error || t->kind == ty_void) {
+    baseExpTrans(e, expr);
+    return;
+  }
 
-  exp *callee=new nameExp(body->getPos(), symbol::trans("write"));
-  exp *call=new callExp(body->getPos(), callee, body);
+  exp *callee=new nameExp(pos, symbol::trans("write"));
+  exp *call=new callExp(pos, callee, expr);
 
   types::ty *ct=call->getType(e);
   if (ct->kind == ty_error || ct->kind == ty_overloaded) {
     if (t->kind == ty_overloaded) {
-      // Translate the body in order to print the ambiguity error first.
-      body->trans(e);
+      // Translate the expr in order to print the ambiguity error first.
+      expr->trans(e);
       em.sync();
       assert(em.errors());
       
       // Then, write out all of the types.
-      tryToWriteTypeOfExp(t, body);
-
-      // Return an innocuous expression to avoid more errors.
-      return new nullExp(body->getPos());
+      tryToWriteTypeOfExp(t, expr);
     }
     else {
-      tryToWriteTypeOfExp(t, body);
-      return body;
+      // Write the type of the expression and, since it is unique, assign it to
+      // 'operator answer' even though its value isn't printed.
+      tryToWriteTypeOfExp(t, expr);
+      storeExp(e, t, expr);
     }
   }
-
-  // If the exp is overloaded, but the act of writing makes it
-  // unambiguous, add a suffix to the output to warn the user of this.
-  if (t->kind == ty_overloaded) {
-    exp *suffix=new nameExp(body->getPos(),
+  else if (t->kind == ty_overloaded) {
+    // If the exp is overloaded, but the act of writing makes it
+    // unambiguous, add a suffix to the output to warn the user of this.
+    exp *suffix=new nameExp(pos,
                             symbol::trans("overloadedMessage"));
-    exp *callWithSuffix=new callExp(body->getPos(),
-                                    callee, body, suffix);
+    exp *callWithSuffix=new callExp(pos,
+                                    callee, expr, suffix);
 
     if (callWithSuffix->getType(e)->kind != ty_error)
-      return callWithSuffix;
+      baseExpTrans(e, callWithSuffix);
+    else
+      baseExpTrans(e, call);
   }
-
-  return call;
+  else {
+    // Interactive writing can proceed normally.
+    storeAndWriteExp(e, t, expr);
+  }
 }
 
 void expStm::interactiveTrans(coenv &e)
 {
-  baseTrans(e, tryToWriteExp(e, body));
+  // First check if it is the kind of expression that should be written.
+  if (body->writtenToPrompt() && 
+      settings::getSetting<bool>("interactiveWrite"))
+    tryToWriteExp(e, body);
+  else
+    baseExpTrans(e, body);
 }
 
 
