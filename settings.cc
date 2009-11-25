@@ -1256,7 +1256,7 @@ void initSettings() {
   addOption(new stringSetting("glOptions", 0, "string", ""));
   addOption(new stringSetting("hyperrefOptions", 0, "str",
                               "LaTeX hyperref package options",
-                              "setpagesize=false,unicode"));
+                              "setpagesize=false,unicode,colorlinks"));
   
   addOption(new envSetting("config","config."+suffix));
   addOption(new envSetting("pdfviewer", defaultPDFViewer));
