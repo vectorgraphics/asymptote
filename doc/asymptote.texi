@@ -8739,7 +8739,7 @@ The advanced configuration variables @code{dvipsOptions},
 @code{psviewerOptions}, @code{pdfviewerOptions}, and @code{glOptions}
 allow specialized options to be passed as a string to the respective
 applications or libraries. The default value of @code{hyperrefOptions}
-is @code{setpagesize=false,unicode,colorlinks}.
+is @code{setpagesize=false,unicode,pdfborder={0 0 0}}.
 
 If you insert
 @verbatim
@@ -8879,10 +8879,9 @@ interactive input buffer.
 Interactive mode can be conveniently used as a calculator: expressions
 entered at the interactive prompt (for which a corresponding @code{write}
 function exists) are automatically evaluated and written to @code{stdout}.
-If the expression is non-writable, its type signature will be printed out,
-instead.
-In either case, the expression can be refered by the symbol @code{%} in the next
-line input to the prompt.  For example:
+If the expression is non-writable, its type signature will be printed out
+instead. In either case, the expression can be referred to using the symbol
+@code{%} in the next line input at the prompt.  For example:
 @verbatim
 > 2+3
 5
@@ -8894,7 +8893,7 @@ line input to the prompt.  For example:
 0.0499791692706783
 > currentpicture
 <picture currentpicture>
-> %.size(200, 0)
+> %.size(200,0)
 > 
 @end verbatim
 
@@ -9374,9 +9373,9 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  usleep currentpatterns trailingzero Orest Shardt DefaultHead
 @c  LocalWords:  SimpleHead HookHead TeXHead multipage NURBS inlinemovie dxmax
 @c  LocalWords:  simpson NoBox truesize autoscale shadestroke recurses mintimes
-@c  LocalWords:  nonoverlapping texengine maxtimes maxheight pdb TEXMFCONFIG
+@c  LocalWords:  nonoverlapping texengine maxtimes maxheight pdb TEXMFCONFIG Jn
 @c  LocalWords:  piecewisestraight unitrand graphmarkers antialias nolight newl
-@c  LocalWords:  Delaunay Shewchuk convertOptions APPDATA pdfreload tempFile
+@c  LocalWords:  Delaunay Shewchuk convertOptions APPDATA pdfreload tempFile Yn
 @c  LocalWords:  pdfreloadOptions deferred OpenGL Phong Blinn renderer unitbox
 @c  LocalWords:  bezulate Shardt's rasterized viewport unitdisk unitplane devel
 @c  LocalWords:  unitcylinder unitcone solidcone unitfrustum unitsphere nslices
@@ -9402,4 +9401,5 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  rotateY rotateZ wheelup zoomin wheeldown zoomout TeXLive
 @c  LocalWords:  viewportshift signedint signedness psview multiplatform nowarn
 @c  LocalWords:  singlereal singleint writeoverloaded tubegranularity dvisvg
-@c  LocalWords:  bigdiagonal autobillboard dvisvgm
+@c  LocalWords:  bigdiagonal autobillboard dvisvgm maxtiles hyperrefOptions
+@c  LocalWords:  setpagesize pdfborder
