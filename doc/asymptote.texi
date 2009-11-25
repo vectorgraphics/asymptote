@@ -4758,8 +4758,8 @@ real(real) functions @code{sin}, @code{cos}, @code{tan}, @code{asin},
 @code{acosh}, @code{atanh}, @code{sqrt}, @code{cbrt}, @code{fabs}, @code{expm1},
 @code{log1p}, as well as the identity function @code{identity}. 
 @code{Asymptote} also defines the order @code{n} Bessel functions of
-the first kind @code{J(int n, real)} and second kind
-@code{Y(int n, real)}, as well as the gamma function @code{gamma},
+the first kind @code{Jn(int n, real)} and second kind
+@code{Yn(int n, real)}, as well as the gamma function @code{gamma},
 the error function @code{erf}, and the complementary error function
 @code{erfc}. The standard real(real, real) functions @code{atan2},
 @code{hypot}, @code{fmod}, @code{remainder} are also included.
@@ -7619,6 +7619,7 @@ The keyboard shortcuts are:
 @cindex @code{maxtile}
 @cindex @code{glOptions}
 @cindex @code{iconic}
+@cindex @code{black stripes}
 @item Render the scene to a specified rasterized format @code{outformat}
 at the resolution of @code{n} pixels per @code{bp}, as specified by the
 setting @code{render=n}. A negative value of @code{n} is interpreted
@@ -7629,9 +7630,12 @@ resolution; this can be disabled by setting @code{antialias=1}.
 High resolution rendering is done by tiling the image. If your
 graphics card allows it, the rendering can be made more efficient by
 increasing the maximum tile size @code{maxtile} beyond the screen
-dimensions (indicated by @code{maxtile=(0,0)}. The tile size is also
-limited by the setting @code{maxviewport}, which restricts the maximum
-width and height of the viewport. On @code{UNIX} systems some graphics
+dimensions (indicated by @code{maxtile=(0,0)}. If your video card
+generates unwanted black stripes in the output, try setting the
+horizontal and vertical components of @code{maxtiles} to something
+less than your screen dimensions. The tile size is also limited by the
+setting @code{maxviewport}, which restricts the maximum width and
+height of the viewport. On @code{UNIX} systems some graphics
 drivers support batch mode (@code{-noV}) rendering in an
 iconified window; this can be enabled with the setting @code{iconify=true}.
 Some (broken) @code{UNIX} graphics drivers may require the command line setting
@@ -8724,15 +8728,18 @@ interactiveMask=true;
 Command-line options override these defaults. Most configuration
 variables may also be changed at runtime. 
 @cindex @code{dvipsOptions}
+@cindex @code{hyperrefOptions}
 @cindex @code{convertOptions}
 @cindex @code{gsOptions}
 @cindex @code{psviewerOptions}
 @cindex @code{pdfviewerOptions}
 @cindex @code{glOptions}
-The advanced configuration variables @code{dvipsOptions}, @code{convertOptions},
-@code{gsOptions}, @code{psviewerOptions}, @code{pdfviewerOptions}, and 
-@code{glOptions} allow specialized options to be passed as a string to
-the respective applications or libraries.
+The advanced configuration variables @code{dvipsOptions},
+@code{hyperrefOptions}, @code{convertOptions}, @code{gsOptions},
+@code{psviewerOptions}, @code{pdfviewerOptions}, and @code{glOptions}
+allow specialized options to be passed as a string to the respective
+applications or libraries. The default value of @code{hyperrefOptions}
+is @code{setpagesize=false,unicode,colorlinks}.
 
 If you insert
 @verbatim

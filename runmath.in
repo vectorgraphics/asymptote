@@ -155,12 +155,12 @@ real remainder(real x, real y)
   return remainder(x,y);
 }  
 
-real J(Int n, real x)
+real Jn(Int n, real x)
 {
   return jn(n,x);
 }
 
-real Y(Int n, real x)
+real Yn(Int n, real x)
 {
   return yn(n,x);
 }
