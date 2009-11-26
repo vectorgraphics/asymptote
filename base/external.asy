@@ -1,4 +1,5 @@
-usepackage("hyperref",settings.hyperrefOptions);
+usepackage("hyperref");
+texpreamble("\hypersetup{"+settings.hyperrefOptions+"}");
 
 // Embed object to be run in an external window. An image file name can be
 // specified; if not given one will be automatically generated.

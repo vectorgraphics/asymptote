@@ -5,7 +5,8 @@ if(latex()) {
 \else%
 \usepackage[3D]{movie15}
 \fi%");
-usepackage("hyperref",settings.hyperrefOptions);
+usepackage("hyperref");
+texpreamble("\hypersetup{"+settings.hyperrefOptions+"}");
 }
 
 // See http://www.ctan.org/tex-archive/macros/latex/contrib/movie15/README

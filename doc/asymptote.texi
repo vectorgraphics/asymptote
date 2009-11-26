@@ -8739,7 +8739,7 @@ The advanced configuration variables @code{dvipsOptions},
 @code{psviewerOptions}, @code{pdfviewerOptions}, and @code{glOptions}
 allow specialized options to be passed as a string to the respective
 applications or libraries. The default value of @code{hyperrefOptions}
-is @code{setpagesize=false,unicode,pdfborder=@{0 0 0@}}.
+is @code{setpagesize=false,unicode,pdfborder=0 0 0}.
 
 If you insert
 @verbatim
