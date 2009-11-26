@@ -10,33 +10,33 @@ triple[] M={
   (1,1,1),(0,1,1),(-1,1,1),(-1,0,1)
 };
     
-int level=3;
+triple[] K={
+  (1,-1,-1),(1,0,-1),(1,1,-1),(1,1,0),
+  (1,1,1),(1,0,1),(1,-1,1),(1,-1,0),
+  (0,0,-1),(0,0,1),(0,-1,0),(0,1,0)
+};
     
 surface s;
     
-void recur(triple p, real u, int l) {
-  if(l < level)
+void recur(triple p, real u, int level) {
+  if(level > 1 )
     for(triple V : M)
-      recur(p+u*V,u/3,l+1);
+      recur(p+u*V,u/3,level-1);
   else
-    for(triple V : M) {
-      s.append(surface((p+u*(V+.5(1,-1,-1)))--(p+u*(V+.5(1,1,-1)))
-                       --(p+u*(V+.5(1,1,1)))--(p+u*(V+.5(1,-1,1)))--cycle));
-      s.append(surface((p+u*(V+.5(1,1,-1)))--(p+u*(V+.5(-1,1,-1)))
-                       --(p+u*(V+.5(-1,1,1)))--(p+u*(V+.5(1,1,1)))--cycle));
-      s.append(surface((p+u*(V+.5(-1,1,-1)))--(p+u*(V+.5(-1,-1,-1)))
-                       --(p+u*(V+.5(-1,-1,1)))--(p+u*(V+.5(-1,1,1)))--cycle));
-      s.append(surface((p+u*(V+.5(-1,-1,-1)))--(p+u*(V+.5(1,-1,-1)))
-                       --(p+u*(V+.5(1,-1,1)))--(p+u*(V+.5(-1,-1,1)))--cycle));
-      s.append(surface((p+u*(V+.5(1,-1,1)))--(p+u*(V+.5(1,1,1)))
-                       --(p+u*(V+.5(-1,1,1)))--(p+u*(V+.5(-1,-1,1)))--cycle));
-      s.append(surface((p+u*(V+.5(1,-1,-1)))--(p+u*(V+.5(-1,-1,-1)))
-                       --(p+u*(V+.5(-1,1,-1)))--(p+u*(V+.5(1,1,-1)))--cycle));
+    for(triple V : K) {
+      transform3 T=shift(p)*scale3(u)*shift(V)*scale3(0.5);
+      surface t=T*surface((1,-1,-1)--(1,1,-1)--(1,1,1)--(1,-1,1)--cycle);
+      s.append(t);
+      s.append(scale3(-1)*t);
     }
 }
     
-recur((0,0,0),1/3,1);
+recur((0,0,0),1/3,3);
     
-s.colors(palette(s.map(abs),Rainbow()));
+surface sf;
+sf.append(s);
+sf.append(rotate(90,Y)*s);
+sf.append(rotate(90,Z)*s);
+sf.colors(palette(sf.map(abs),Rainbow()));
     
-draw(s);
+draw(sf);
