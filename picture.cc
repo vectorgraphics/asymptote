@@ -528,9 +528,9 @@ bool picture::postprocess(const string& prename, const string& outname,
         cmd.push_back(String(res)+"x"+String(res));
         if(expand == 1.0)
           cmd.push_back("+antialias");
+        push_split(cmd,getSetting<string>("convertOptions"));
         cmd.push_back("-geometry");
         cmd.push_back(String(100.0/expand)+"%x");
-        push_split(cmd,getSetting<string>("convertOptions"));
         cmd.push_back(nativeformat()+":"+prename);
         cmd.push_back(outputformat+":"+outname);
         status=System(cmd,0,true,"convert");
