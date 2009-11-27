@@ -524,8 +524,6 @@ bool picture::postprocess(const string& prename, const string& outname,
         if(expand < 2.0) expand=1.0;
         res *= expand;
         cmd.push_back(getSetting<string>("convert")); 
-        cmd.push_back("-alpha");
-        cmd.push_back("Off");
         cmd.push_back("-density");
         cmd.push_back(String(res)+"x"+String(res));
         if(expand == 1.0)
