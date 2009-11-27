@@ -503,10 +503,9 @@ bool picture::postprocess(const string& prename, const string& outname,
       mem::vector<string> cmd;
       double render=fabs(getSetting<double>("render"));
       if(render == 0) render=1.0;
-      double expand=getSetting<Int>("antialias");
-      if(expand < 2.0) expand=1.0;
-      double res=expand*render*72.0;
-      if(outputformat == "png") {
+      double res=render*72.0;
+      Int antialias=getSetting<Int>("antialias");
+      if(outputformat == "png" && antialias == 2) {
         cmd.push_back(getSetting<string>("gs"));
         cmd.push_back("-q");
         cmd.push_back("-dNOPAUSE");
@@ -516,10 +515,14 @@ bool picture::postprocess(const string& prename, const string& outname,
         if(safe)
           cmd.push_back("-dSAFER");
         cmd.push_back("-r"+String(res)+"x"+String(res));
+        push_split(cmd,getSetting<string>("gsOptions"));
         cmd.push_back("-sOutputFile="+outname);
         cmd.push_back(prename);
         status=System(cmd,0,true,"gs","Ghostscript");
       } else if(!svgformat) {
+        double expand=antialias;
+        if(expand < 2.0) expand=1.0;
+        res *= expand;
         cmd.push_back(getSetting<string>("convert")); 
         cmd.push_back("-alpha");
         cmd.push_back("Off");
