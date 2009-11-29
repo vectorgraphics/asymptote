@@ -3,7 +3,7 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2+)
 
-\ProvidesPackage{asymptote}[2009/08/15 v1.10 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2009/08/15 v1.11 Asymptote style file for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
 \newif\ifASYinline
@@ -51,12 +51,12 @@
 \fi
 \fi
 \ifx\XeTeXversion\undefined
-\else
-\ASYPDFtrue
-\immediate\write\AsyStream{settings.texcommand="xelatex";}%
-\fi
 \ifASYPDF
 \immediate\write\AsyStream{settings.tex="pdflatex";}%
+\fi
+\else
+\immediate\write\AsyStream{settings.tex="xelatex";}%
+\ASYPDFtrue
 \fi
 
 \ifASYinline

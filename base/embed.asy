@@ -1,12 +1,12 @@
 if(latex()) {
+usepackage("hyperref");
+texpreamble("\hypersetup{"+settings.hyperrefOptions+"}");
   texpreamble("
 \ifx\pdfhorigin\undefined%
 \usepackage[3D,dvipdfmx]{movie15}
 \else%
 \usepackage[3D]{movie15}
 \fi%");
-usepackage("hyperref");
-texpreamble("\hypersetup{"+settings.hyperrefOptions+"}");
 }
 
 // See http://www.ctan.org/tex-archive/macros/latex/contrib/movie15/README
