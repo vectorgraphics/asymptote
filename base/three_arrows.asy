@@ -282,7 +282,6 @@ arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb, triple normal=O)
                      filltype filltype=null, bool forwards=true,
                      projection P=currentprojection) {
     if(size == 0) size=a.size(p);
-    angle=min(angle*arrowhookfactor,45);
     path h=a.project(g,forwards,P);
     path[] H=a.align(HookHead.head(h,p,size,angle),h);
     H=forwards ? yscale(-1)*H : H;
