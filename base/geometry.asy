@@ -7016,7 +7016,7 @@ arc arc(ellipse el, explicit abscissa x1, explicit abscissa x2, bool direction=C
 {/*<asyxml></code><documentation>Return the arc from 'point(c,x1)' to 'point(c,x2)' in the direction 'direction'.</documentation></function></asyxml>*/
   real a=degrees(point(el,x1)-el.C);
   real b=degrees(point(el,x2)-el.C);
-  arc oa=arc(el,a,b,fromCenter,direction);
+  arc oa=arc(el,a-el.angle,b-el.angle,fromCenter,direction);
   return oa;
 }
 
