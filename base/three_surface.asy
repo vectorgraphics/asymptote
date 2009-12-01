@@ -1375,8 +1375,9 @@ path[] path(Label L, pair z=0, projection P)
       shift(z)*g;
   } else {
     path3[] G=path3(g);
-    return L.align.is3D ? shift(z)*project(align(G,L.T3,O,L.align.dir3,L.p),P) :
-      shift(z)*project(L.T3*G,P);
+    return shift(z-project(O,P))*(L.align.is3D ?
+                                  project(align(G,L.T3,O,L.align.dir3,L.p),P) :
+                                  project(L.T3*G,P));
   }
 }
 
