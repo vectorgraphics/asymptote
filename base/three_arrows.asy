@@ -204,7 +204,7 @@ arrowhead3 HookHead3(real dir=arrowdir, real barb=arrowbarb)
     }
   };
   a.arrowhead2=HookHead;
-  a.gap=0.69;
+  a.gap=0.7;
   return a;
 }
 arrowhead3 HookHead3=HookHead3();
