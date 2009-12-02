@@ -70,6 +70,7 @@ struct arrowhead3
   real size(pen p)=arrowsize;
   real arcsize(pen p)=arcarrowsize;
   real gap=1;
+  real size;
   bool splitpath=true;
 
   surface head(path3 g, position position=EndPoint,
@@ -180,8 +181,7 @@ arrowhead3 HookHead3(real dir=arrowdir, real barb=arrowbarb)
                      filltype filltype=null, bool forwards=true,
                      projection P=currentprojection) {
     if(size == 0) size=a.size(p);
-
-    angle=min(angle*arrowhookfactor,45);
+    
     bool relative=position.relative;
     real position=position.position.x;
     if(relative) position=reltime(g,position);
@@ -265,11 +265,12 @@ arrowhead3 DefaultHead2(triple normal=O) {
                      projection P=currentprojection) {
   if(size == 0) size=a.size(p);
   path h=a.project(g,forwards,P);
+  a.size=min(size,arclength(h));
   path[] H=a.align(DefaultHead.head(h,p,size,angle),h);
   H=forwards ? yscale(-1)*H : H;
   return a.surface(g,position,size,H,p,filltype,normal,P);
   };
-  a.gap=1.01;
+  a.gap=1.005;
   return a;
 }
 arrowhead3 DefaultHead2=DefaultHead2();
@@ -283,12 +284,13 @@ arrowhead3 HookHead2(real dir=arrowdir, real barb=arrowbarb, triple normal=O)
                      projection P=currentprojection) {
     if(size == 0) size=a.size(p);
     path h=a.project(g,forwards,P);
+    a.size=min(size,arclength(h));
     path[] H=a.align(HookHead.head(h,p,size,angle),h);
     H=forwards ? yscale(-1)*H : H;
     return a.surface(g,position,size,H,p,filltype,normal,P);
   };
   a.arrowhead2=HookHead;
-  a.gap=1.01;
+  a.gap=1.005;
   return a;
 }
 arrowhead3 HookHead2=HookHead2();
@@ -301,6 +303,7 @@ arrowhead3 TeXHead2(triple normal=O) {
                      bool forwards=true, projection P=currentprojection) {
   if(size == 0) size=a.size(p);
   path h=a.project(g,forwards,P);
+  a.size=min(size,arclength(h));
   h=rotate(-degrees(dir(h,length(h)),warn=false))*h;
   path[] H=TeXHead.head(h,p,size,angle);
   H=forwards ? yscale(-1)*H : H;
@@ -310,8 +313,8 @@ arrowhead3 TeXHead2(triple normal=O) {
   };
   a.arrowhead2=TeXHead;
   a.size=TeXHead.size;
-  a.gap=0.83;
   a.splitpath=false;
+  a.gap=1.005;
   return a;
 }
 arrowhead3 TeXHead2=TeXHead2();
@@ -358,6 +361,7 @@ void drawarrow(picture pic, arrowhead3 arrowhead=DefaultHead3,
   path3 r=subpath(g,position,0);
   size=min(arrowsizelimit*arclength(r),size);
   surface head=arrowhead.head(g,position,q,size,angle,filltype,forwards,P);
+  if(arrowhead.size > 0) size=arrowhead.size;
   bool endpoint=position > L-sqrtEpsilon;
   if(arrowhead.splitpath || endpoint) {
     if(position > 0) {
