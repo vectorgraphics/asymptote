@@ -1367,18 +1367,11 @@ surface surface(Label L, triple position=O)
     shift(position)*L.T3*s;
 }
 
-path[] path(Label L, pair z=0, projection P)
+private path[] path(Label L, pair z=0, projection P)
 {
   path[] g=texpath(L);
-  if(L.defaulttransform3) {
-    return L.align.is3D ? align(g,z,project(L.align.dir3,P)-project(O,P),L.p) :
-      shift(z)*g;
-  } else {
-    path3[] G=path3(g);
-    return shift(z-project(O,P))*(L.align.is3D ?
-                                  project(align(G,L.T3,O,L.align.dir3,L.p),P) :
-                                  project(L.T3*G,P));
-  }
+  return L.align.is3D ? align(g,z,project(L.align.dir3,P)-project(O,P),L.p) :
+    shift(z)*g;
 }
 
 void label(frame f, Label L, triple position, align align=NoAlign,
@@ -1398,15 +1391,18 @@ void label(frame f, Label L, triple position, align align=NoAlign,
     for(patch S : surface(L,position).s)
       draw3D(f,S,position,L.p,light,partname(name,++i),interaction);
   } else {
-    if(L.filltype == NoFill)
-      fill(f,path(L,project(position,P.t),P),
-           color(L.T3*Z,L.p,light,shiftless(P.T.modelview)));
-    else {
-      frame d;
-      fill(d,path(L,project(position,P.t),P),
-           color(L.T3*Z,L.p,light,shiftless(P.T.modelview)));
-      add(f,d,L.filltype);
-    }
+    pen p=color(L.T3*Z,L.p,light,shiftless(P.T.modelview));
+    if(L.defaulttransform3) {
+      if(L.filltype == NoFill)
+        fill(f,path(L,project(position,P.t),P),p);
+      else {
+        frame d;
+        fill(d,path(L,project(position,P.t),P),p);
+        add(f,d,L.filltype);
+      }
+    } else
+      for(patch S : surface(L,position).s)
+        fill(f,project(S.external(),P,1),p);
   }
 }
 
@@ -1431,22 +1427,30 @@ void label(picture pic=currentpicture, Label L, triple position,
         L.T=L.T*scale(abs(P.camera-v)/abs(P.vector()));
       if(L.defaulttransform3)
         L.T3=transform3(P);
+
       if(is3D()) {
         int i=-1;
         for(patch S : surface(L,v).s)
           draw3D(f,S,v,L.p,light,partname(name,++i),interaction);
       }
+
       if(pic != null) {
-        if(L.filltype == NoFill)
-          fill(project(v,P.t),pic,path(L,P),
-               color(L.T3*Z,L.p,light,shiftless(P.T.modelview)));
-        else {
-          picture d;
-          fill(project(v,P.t),d,path(L,P),
-               color(L.T3*Z,L.p,light,shiftless(P.T.modelview)));
-          add(pic,d,L.filltype);
-        }
+        pen p=color(L.T3*Z,L.p,light,shiftless(P.T.modelview));
+        if(L.defaulttransform3) {
+          if(L.filltype == NoFill)
+            fill(project(v,P.t),pic,path(L,P),p);
+          else {
+            picture d;
+            fill(project(v,P.t),d,path(L,P),p);
+            add(pic,d,L.filltype);
+          }
+        } else
+          pic.add(new void(frame f, transform T) {
+              for(patch S : surface(L,v).s)
+                fill(f,T*project(S.external(),P,1),p);
+            });
       }
+      
     },!L.defaulttransform3);
 
   Label L=L.copy();
@@ -1683,7 +1687,7 @@ pair minbound(triple[] A, projection P)
 {
   pair b=project(A[0],P);
   for(triple v : A)
-      b=minbound(b,project(v,P));
+      b=minbound(b,project(v,P.t));
   return b;
 }
 
@@ -1691,7 +1695,7 @@ pair maxbound(triple[] A, projection P)
 {
   pair b=project(A[0],P);
   for(triple v : A)
-    b=maxbound(b,project(v,P));
+    b=maxbound(b,project(v,P.t));
   return b;
 }
 
@@ -1700,7 +1704,7 @@ pair minbound(triple[][] A, projection P)
   pair b=project(A[0][0],P);
   for(triple[] a : A) {
     for(triple v : a) {
-      b=minbound(b,project(v,P));
+      b=minbound(b,project(v,P.t));
     }
   }
   return b;
@@ -1711,7 +1715,7 @@ pair maxbound(triple[][] A, projection P)
   pair b=project(A[0][0],P);
   for(triple[] a : A) {
     for(triple v : a) {
-      b=maxbound(b,project(v,P));
+      b=maxbound(b,project(v,P.t));
     }
   }
   return b;
