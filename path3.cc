@@ -352,6 +352,7 @@ double bound(triple z0, triple c0, triple c1, triple z1,
 
 pair path3::ratio(double (*m)(double, double)) const
 {
+  double fuzz=sqrtFuzz*(max()-min()).length();
   checkEmpty3(n);
   
   triple v=point((Int) 0);
@@ -367,9 +368,6 @@ pair path3::ratio(double (*m)(double, double)) const
       triple c0=postcontrol(i);
       triple c1=precontrol(i+1);
       triple z1=point(i+1);
-      double fuzz=sqrtFuzz*camp::max(camp::max(camp::max(z0.length(),
-                                                         c0.length()),
-                                               c1.length()),z1.length());
       B=pair(bound(z0,c0,c1,z1,m,xratio,B.getx(),fuzz),
              bound(z0,c0,c1,z1,m,yratio,B.gety(),fuzz));
     }

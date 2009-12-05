@@ -144,7 +144,7 @@ public:
   
   void bounds(bbox3& b);
   
-  void ratio(pair &b, double (*m)(double, double), bool &first);
+  void ratio(pair &b, double (*m)(double, double), double fuzz, bool &first);
   
   virtual ~drawSurface() {}
 

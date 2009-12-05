@@ -195,9 +195,11 @@ pair picture::ratio(double (*m)(double, double))
 {
   bool first=true;
   pair b;
+  bbox3 B=bounds3();
+  double fuzz=sqrtFuzz*(B.Max()-B.Min()).length();
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->ratio(b,m,first);
+    (*p)->ratio(b,m,fuzz,first);
   }
   return b;
 }

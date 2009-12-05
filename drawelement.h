@@ -112,7 +112,8 @@ public:
   virtual void bounds(bbox3&) {}
 
   // Compute bounds on ratio (x,y)/z for 3d picture (not cached).
-  virtual void ratio(pair &b, double (*m)(double, double), bool &first){}
+  virtual void ratio(pair &b, double (*m)(double, double), double fuzz,
+                     bool &first){}
 
   virtual bool islabel() {return false;}
 

@@ -104,7 +104,8 @@ void drawSurface::bounds(bbox3& b)
   b.add(Max);
 }
 
-void drawSurface::ratio(pair &b, double (*m)(double, double), bool &first)
+void drawSurface::ratio(pair &b, double (*m)(double, double), double fuzz,
+                        bool &first)
 {
   if(straight) {
     if(first) {
@@ -136,7 +137,6 @@ void drawSurface::ratio(pair &b, double (*m)(double, double), bool &first)
       first=false;
     }
   
-    double fuzz=sqrtFuzz*run::norm(c3,16);
     b=pair(bound(c3,m,xratio,b.getx(),fuzz),bound(c3,m,yratio,b.gety(),fuzz));
   }
 }

@@ -154,7 +154,7 @@ public:
              vm::array *origin);
   
   void displacement();
-  void ratio(pair &b, double (*m)(double, double), bool &first);
+  void ratio(pair &b, double (*m)(double, double), double fuzz, bool &first);
     
   void render(GLUnurbs *nurb, double size2,
               const triple& Min, const triple& Max,
