@@ -153,7 +153,8 @@ drawElement *drawNurbsPath3::transformed(const array& t)
   return new drawNurbsPath3(t,this);
 }
 
-void drawNurbsPath3::ratio(pair &b, double (*m)(double, double), bool &first)
+void drawNurbsPath3::ratio(pair &b, double (*m)(double, double), double,
+                           bool &first)
 {
   if(first) {
     first=false;
