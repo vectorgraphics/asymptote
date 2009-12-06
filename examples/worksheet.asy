@@ -22,7 +22,7 @@ z += step;
 for(int i=1; i <= 14; ++i) {
   draw(pic,z--z+length);
   z += step;
-  draw(pic,z--z+length,dashed);
+  draw(pic,z--z+length,dashed+gray);
   z += step;
   void label(int i) {
     label(pic,string(i)+".",z,0.2NE,fontsize(0.8*1.5*2*height*mm)+gray);
@@ -39,6 +39,9 @@ for(int i=1; i <= 14; ++i) {
 }
 draw(pic,z--z+length);
 
+add(pic.fit(),(0,0),W);
+add(pic.fit(),(0,0),E);
+newpage();
 add(pic.fit(),(0,0),W);
 add(pic.fit(),(0,0),E);
 

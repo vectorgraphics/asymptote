@@ -2,7 +2,7 @@ import three;
 
 size(560,320,IgnoreAspect);
 size3(140,80,15);
-currentprojection=perspective(-3,20,10,up=Y);
+currentprojection=perspective(-2,20,10,up=Y);
 currentlight=White;
 
 real a=-0.4;

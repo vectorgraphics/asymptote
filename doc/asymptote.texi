@@ -5938,7 +5938,7 @@ need to remove the files @code{latexusage-*}, @code{latexusage_.pre}, and
 One can specify @code{width}, @code{height},
 @code{viewportwidth}, @code{viewportheight}, and @code{attach}
 @code{keyval}-style options to the @code{asy} environment.
-The current version (1.10) of @code{asymptote.sty} supports the
+The current version of @code{asymptote.sty} supports the
 embedding of 3D @acronym{PRC} files, either inline or, using the
 @code{attach} option with the @code{attachfile2} (or older
 @code{attachfile}) @code{LaTeX} package,
@@ -8523,7 +8523,8 @@ The entries in @code{dir} identify whether successive
 segments between the pairs specified by @code{point} should be drawn
 in the @code{Horizontal} or @code{Vertical} direction.
 
-Here is a simple flowchart example:
+Here is a simple flowchart example (see also the example
+@code{controlsystem.asy}):
 
 @verbatiminclude flowchartdemo.asy
 @sp 1
@@ -9402,4 +9403,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  viewportshift signedint signedness psview multiplatform nowarn
 @c  LocalWords:  singlereal singleint writeoverloaded tubegranularity dvisvg
 @c  LocalWords:  bigdiagonal autobillboard dvisvgm maxtiles hyperrefOptions
-@c  LocalWords:  setpagesize pdfborder
+@c  LocalWords:  setpagesize pdfborder controlsystem

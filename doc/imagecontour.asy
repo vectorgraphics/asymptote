@@ -18,8 +18,6 @@ pen Tickpen=black;
 pen tickpen=gray+0.5*linewidth(currentpen);
 pen[] Palette=BWRainbow();
 
-scale(false);
-
 bounds range=image(f,Automatic,a,b,N,Palette);
     
 // Major contours
