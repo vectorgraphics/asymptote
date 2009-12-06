@@ -8,10 +8,10 @@ restricted real bp=1;      // A PostScript point.
 restricted real pt=72.0/72.27; // A TeX pt; smaller than a PostScript bp.
 restricted pair I=(0,1);
 
-restricted pair up=(0,1);
-restricted pair down=(0,-1);
 restricted pair right=(1,0);
 restricted pair left=(-1,0);
+restricted pair up=(0,1);
+restricted pair down=(0,-1);
 
 restricted pair E=(1,0);
 restricted pair N=(0,1);
