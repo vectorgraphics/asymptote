@@ -17,14 +17,11 @@ draw(block4);
 draw(block5);
 
 add(new void(picture pic, transform t) {
-    draw(pic,path(new pair[]{block1.right(t),block2.top(t)},Horizontal),
-         Arrow,PenMargin);
-    draw(pic,Label("Yes",0.5,NW),path(new pair[]{block2.left(t),block3.top(t)},
-                                   Horizontal),Arrow,PenMargin);
-    draw(pic,Label("No",0.5,NE),path(new pair[]{block2.right(t),block4.top(t)},
-                                    Horizontal),Arrow,PenMargin);
-    draw(pic,path(new pair[]{block3.bottom(t),block5.left(t)},Vertical),
-         Arrow,PenMargin);
-    draw(pic,path(new pair[]{block4.bottom(t),block5.right(t)},Vertical),
-         Arrow,PenMargin);
+    blockconnector operator --=blockconnector(pic,t);
+
+    block1--Right--Down--Arrow--block2;
+    block2--Label("Yes",0.5,NW)--Left--Down--Arrow--block3;
+    block2--Right--Label("No",0.5,NE)--Down--Arrow--block4;
+    block4--Down--Left--Arrow--block5;
+    block3--Down--Right--Arrow--block5;
   });

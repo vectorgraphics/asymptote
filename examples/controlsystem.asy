@@ -15,25 +15,11 @@ draw(sum1);
 draw(junction1);
 
 add(new void(picture pic, transform t) {
-    draw(pic,Label("$u$",0.5,N),path(new pair[]{t*(0,0),sum1.left(t)},
-				     Horizontal),Arrow,PenMargin);
+    blockconnector operator --=blockconnector(pic,t);
+    
+    (0,0)--Label("$u$",align=N)--Arrow--sum1--Arrow--delay--Arrow--system--
+      junction1--Label("$y$",align=N)--Arrow--(1,0);
 
-    draw(pic,path(new pair[]{sum1.right(t),delay.left(t)},Horizontal),Arrow,
-	 PenMargin);
-    label(pic,"-",sum1.bottom(t),ESE);
-
-    draw(pic,path(new pair[]{delay.right(t),system.left(t)},Horizontal),Arrow,
-	 PenMargin);
-
-    draw(pic,path(new pair[]{system.right(t),junction1.left(t)},Horizontal),
-	 PenMargin);
-
-    draw(pic,Label("$y$",0.5,N),path(new pair[]{junction1.right(t),t*(0.9,0)},
-				   Horizontal),Arrow,PenMargin);
-
-    draw(pic,path(new pair[]{junction1.bottom(t),controller.right(t)},Vertical),
-	 Arrow,PenMargin);
-
-    draw(pic,path(new pair[]{controller.left(t),sum1.bottom(t)},Horizontal),
-	 Arrow,PenMargin);
+    junction1--Down--Left--Arrow--controller--Left--Up--
+      Label("-",position=3,align=SE)--Arrow--sum1;
   });

@@ -10,6 +10,7 @@ restricted flowdir Vertical;
 real minblockwidth=0;
 real minblockheight=0;
 real mincirclediameter=0;
+real defaultexcursion=0.1;
 
 struct block {
   // The absolute center of the block in user coordinates.
@@ -31,6 +32,10 @@ struct block {
   pair f_topright;
   pair f_bottomleft;
   pair f_bottomright;
+
+  void operator init(pair z) {
+    center=z;
+  }
 
   pair shift(transform t=identity()) {
     return t*center-f_center;
@@ -73,6 +78,15 @@ struct block {
   
   // Return a frame representing the block.
   frame draw(pen p=currentpen);
+
+  // Store optional label on outgoing edge.
+  Label label;
+
+  // Store rectilinear path directions.
+  pair[] dirs;
+
+  // Store optional arrow.
+  arrowbar arrow=None;
 };
 
 // Construct a rectangular block with header and body objects.
@@ -327,7 +341,7 @@ path path(pair point[] ... flowdir dir[])
   path line=point[0];
   pair current, prev=point[0];
   for(int i=1; i < point.length; ++i) {
-    if(dir[i-1] == Horizontal)
+    if(i-1 >= dir.length || dir[i-1] == Horizontal)
       current=(point[i].x,point[i-1].y);
     else 
       current=(point[i-1].x,point[i].y);
@@ -348,9 +362,122 @@ path path(pair point[] ... flowdir dir[])
 
 void draw(picture pic=currentpicture, block block, pen p=currentpen)
 {
-  pic.add(new void (frame f, transform t) {
+  pic.add(new void(frame f, transform t) {
       add(f,shift(block.shift(t))*block.draw(p));
     },true);
   pic.addBox(block.center,block.center,
              -0.5*block.size+min(p),0.5*block.size+max(p));
 }
+
+typedef block blockconnector(block, block);
+
+blockconnector blockconnector(picture pic, transform t, pen p=currentpen,
+                              margin margin=PenMargin)
+{
+  return new block(block b1, block b2) {
+    if(b1.dirs.length == 0) {
+      if(abs(b1.center.y-b2.center.y) < sqrtEpsilon) {
+        // horizontally aligned
+        b1.dirs[0]=b1.center.x < b2.center.x ? right : left;
+        blockconnector(pic,t)(b1,b2);
+      } else if(abs(b1.center.x-b2.center.x) < sqrtEpsilon) {
+        // vertically aligned
+        b1.dirs[0]=b1.center.y < b2.center.y ? up : down;
+        blockconnector(pic,t)(b1,b2);
+      } else {
+        if(abs(b1.center.y-b2.center.y) < abs(b1.center.x-b2.center.x)) {
+          b1.dirs[0]=b1.center.x < b2.center.x ? right : left;
+          b1.dirs[1]=b1.center.y < b2.center.y ? up : down;
+          blockconnector(pic,t)(b1,b2);
+        } else {
+          b1.dirs[0]=b1.center.y < b2.center.y ? up : down;
+          b1.dirs[1]=b1.center.x < b2.center.x ? right : left;
+          blockconnector(pic,t)(b1,b2);
+        }
+      }
+      return b2;
+    }
+
+    // compute the link for given directions (and label if any)
+    pair[] dirs=copy(b1.dirs); // deep copy
+    pair current,prev;
+    pair dir=dirs[0];
+    if(dir == up) prev=b1.top(t);
+    if(dir == down) prev=b1.bottom(t);
+    if(dir == left) prev=b1.left(t);
+    if(dir == right) prev=b1.right(t);
+    path line=prev;
+    arrowbar arrow=b1.arrow;
+
+    int i;
+    for(i=1; i < dirs.length-1; ++i) {
+      if(abs(length(dirs[i-1])-1) < sqrtEpsilon)
+        current=prev+t*dirs[i-1]*defaultexcursion;
+      else
+        current=prev+t*dirs[i-1];
+
+      if(current != prev) {
+        line=line--current;
+        prev=current;
+      }
+    }
+    dir=dirs[dirs.length-1];
+    current=0;
+    if(dir == up) current=b2.bottom(t);
+    if(dir == down) current=b2.top(t);
+    if(dir == left) current=b2.right(t);
+    if(dir == right) current=b2.left(t);
+    if(abs(dirs[i-1].y) < sqrtEpsilon &&
+       abs(prev.x-current.x) > sqrtEpsilon) {
+      prev=(current.x,prev.y);
+      line=line--prev; // horizontal
+    } else if(abs(dirs[i-1].x) < sqrtEpsilon &&
+              abs(prev.y-current.y) > sqrtEpsilon) {
+      prev=(prev.x,current.y);
+      line=line--prev;
+    }
+    if(current != prev)
+      line=line--current;
+
+    draw(pic,b1.label,line,p,arrow,margin);
+
+    b1.label="";
+    b1.dirs.delete();
+    b1.arrow=None;
+    return b2;
+  };
+}
+
+struct Dir
+{
+  pair z;
+  void operator init(pair z) {this.z=z;}
+}
+
+Dir Right=Dir(right);
+Dir Left=Dir(left);
+Dir Up=Dir(up);
+Dir Down=Dir(down);
+
+// Add a label to the current link
+block operator --(block b1, Label label)
+{
+  b1.label=label;
+  return b1;
+}
+
+// Add a direction to the current link
+block operator --(block b1, Dir dir)
+{
+  b1.dirs.push(dir.z);
+  return b1;
+}
+
+// Add an arrowbar to the current link
+block operator --(block b, arrowbar arrowbar)
+{
+  b.arrow=arrowbar;
+  return b;
+}
+
+block operator cast(pair z) {return block(z);}
