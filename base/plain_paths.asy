@@ -93,19 +93,26 @@ void write(file file, string s="", explicit path[] x, suffix suffix=none)
   write(file,suffix);
 }
 
-void write(file file, string s="", explicit guide[] x, suffix suffix=none)
-{
-  write(file,s,(path[]) x,suffix);
-}
-
 void write(string s="", explicit path[] x, suffix suffix=endl) 
 {
   write(stdout,s,x,suffix);
 }
 
+void write(file file, string s="", explicit guide[] x, suffix suffix=none)
+{
+  write(file,s);
+  if(x.length > 0) write(file,x[0]);
+  for(int i=1; i < x.length; ++i) {
+    write(file,endl);
+    write(file," ^^");
+    write(file,x[i]);
+  }
+  write(file,suffix);
+}
+
 void write(string s="", explicit guide[] x, suffix suffix=endl) 
 {
-  write(stdout,s,(path[]) x,suffix);
+  write(stdout,s,x,suffix);
 }
 
 private string nopoints="nullpath has no points";
@@ -280,7 +287,7 @@ path buildcycle(... path[] p)
     for(int i=0; i < n; ++i) {
       real[][] t=intersections(p[i],p[j]);
       if(t.length == 0)
-	return nullpath;
+        return nullpath;
       ta[i]=t[0][0]; tb[j]=t[0][1];
       j=i;
     }
@@ -299,7 +306,7 @@ path buildcycle(... path[] p)
       int L=length(p[i]);
       real t=Tb-L;
       if(abs(c-point(p[i],0.5(Ta+t))) <
-	 abs(c-point(p[i],0.5(Ta+Tb)))) Tb=t;
+         abs(c-point(p[i],0.5(Ta+Tb)))) Tb=t;
       while(Tb < Ta) Tb += L;
     }
     G=G&subpath(p[i],Ta,Tb);
