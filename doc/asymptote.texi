@@ -8534,36 +8534,36 @@ Here is a simple flowchart example (see also the example
 @section @code{contour}
 @cindex @code{contour}
 This package draws contour lines.
-To construct contours corresponding to the values in an array @code{c}
-for a function @code{f} on @code{box(a,b)}, use
+To construct contours corresponding to the values in a real array @code{c}
+for a function @code{f} on @code{box(a,b)}, use the routine
 @verbatim
 guide[][] contour(real f(real, real), pair a, pair b,
                   real[] c, int nx=ngraph, int ny=nx,
-                  interpolate join=operator --);
+                  interpolate join=operator --, int subsample=1);
 @end verbatim
 @noindent
 The integers @code{nx} and @code{ny} define the resolution.
 The default resolution, @code{ngraph x ngraph} (here @code{ngraph}
-defaults to @code{100}), can be increased for greater accuracy. The
-default interpolation operator is @code{operator --} (linear). Spline
+defaults to @code{100}) can be increased for greater accuracy.
+The default interpolation operator is @code{operator --} (linear). Spline
 interpolation (@code{operator ..}) may produce smoother
 contours but it can also lead to overshooting.
+The @code{subsample} parameter indicates the number of interior points
+that should be used to sample contours within each @code{1 x 1} box;
+the default value of @code{1} is usually sufficient.
 
 To construct contours for an array of data values on a uniform
 two-dimensional lattice on @code{box(a,b)}, use
 @verbatim
-guide[][] contour(real[][] f, real[][] midpoint=new real[][],
-                  pair a, pair b, real[] c,
-                  interpolate join=operator --);
+guide[][] contour(real[][] f, pair a, pair b, real[] c,
+                  interpolate join=operator --, int subsample=1);
 @end verbatim
 
 To construct contours for an array of data values on a nonoverlapping
-regular mesh specified by the two-dimensional array @code{z}, optionally
-specifying the values of @code{f} at the mesh midpoints, use
+regular mesh specified by the two-dimensional array @code{z},
 @verbatim
-guide[][] contour(pair[][] z, real[][] f,
-                  real[][] midpoint=new real[][], real[] c,
-                  interpolate join=operator --);
+guide[][] contour(pair[][] z, real[][] f, real[] c,
+                  interpolate join=operator --, int subsample=1);
 
 @end verbatim
 @noindent
@@ -8571,16 +8571,16 @@ To construct contours for an array of values @code{f} specified at
 irregularly positioned points @code{z}, use the routine
 @verbatim
 guide[][] contour(pair[] z, real[] f, real[] c,
-                  interpolate join=operator --);
+                  interpolate join=operator --, int subsample=1);
 @end verbatim 
 @noindent
 The contours themselves can be drawn with one of the routines
 @verbatim
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-          guide[][] g, pen p=currentpen)
+          guide[][] g, pen p=currentpen);
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-          guide[][] g, pen[] p)
+          guide[][] g, pen[] p);
 @end verbatim
 
 The following simple example draws the contour at value @code{1}

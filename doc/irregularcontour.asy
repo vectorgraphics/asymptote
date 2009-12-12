@@ -4,12 +4,14 @@ size(200);
 
 int n=100;
 
-pair[] points=new pair[n];
-real[] values=new real[n];
-
 real f(real a, real b) {return a^2+b^2;}
 
+srand(1);
+
 real r() {return 1.1*(rand()/randMax*2-1);}
+
+pair[] points=new pair[n];
+real[] values=new real[n];
 
 for(int i=0; i < n; ++i) {
   points[i]=(r(),r());
