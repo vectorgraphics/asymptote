@@ -7518,9 +7518,9 @@ draw(surface((0,0)--E+2N--2E--E+N..0.2E..cycle),red);
 @cindex @code{bezulate}
 Planar Bezier surfaces patches are constructed using Orest Shardt's
 @code{bezulate} routine, which decomposes (possibly nonsimply
-connected) regions bounded by nonselfintersecting cyclic paths
-(according to the @code{zerowinding} fill rule) into subregions
-bounded by cyclic paths of length @code{4} or less.
+connected) regions bounded (according to the @code{zerowinding} fill rule)
+by simple cyclic paths (intersecting only at the endpoints)
+into subregions bounded by cyclic paths of length @code{4} or less.
 
 @cindex @code{thin}
 @cindex @code{thick}
@@ -9395,7 +9395,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
 @c  LocalWords:  dvipdfmx autoadjust viewportsize viewportwidth viewportheight
 @c  LocalWords:  subregions nonsimply functionshade shader floatingdisk TopView
-@c  LocalWords:  functionshading nonselfintersecting maxlength LeftView odetest
+@c  LocalWords:  functionshading maxlength LeftView odetest
 @c  LocalWords:  vectorfieldsphere RightView FrontView BackView BottomView
 @c  LocalWords:  addViews outprefix addAllViews xsplinetype ysplinetype rotateX
 @c  LocalWords:  usplinetype vsplinetype leftbutton middlebutton rightbutton
