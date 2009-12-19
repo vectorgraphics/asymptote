@@ -9,13 +9,11 @@
   Contours lines/guides are oriented throughout.  By convention,
   for a single contour, higher values are to the left and/or lower
   values are to the right along the direction of the lines/guide.
-  For regions(e.g. the region between two contour values), guides
-  are counter-clockwise around enclosed areas.
 */
 
 import graph_settings;
 
-real eps=10000*realEpsilon;
+real eps=sqrtEpsilon;
 
 /*
   GRID CONTOURS
@@ -40,9 +38,7 @@ real eps=10000*realEpsilon;
     to enclose a region.
     
     Segment: 
-    Describes a contour line/region.  For enclosed regions, contains
-    interior contour lines and/or border segments that combine to
-    form the region.
+    Describes a contour line.
   
   Main grid routines: 
     
@@ -546,28 +542,29 @@ private void setcontour(real f00, real f10, real f01, real f11, real epsf,
   int signc=(F(x0,y0) > 0) ? +1 : -1;
   
   pair[] points;
-  real xB=(y0 == 0) ? infinity : x0+m/(0-y0);
+  
+  real xB=(y0 == 0) ? infinity : x0-m/y0;
   if(abs(xB) < eps) xB=0;
-  if(abs(xB-1) < eps) xB=1;
-  if((xB >= 0) && (xB < 1)) points.push((xB,0));
+  if(xB >= 0 && xB <= 1-eps) points.push((xB,0));
+
   real xT=(y0 == 1) ? infinity : x0+m/(1-y0);
-  if(abs(xT) < eps) xT=0;
   if(abs(xT-1) < eps) xT=1;
-  if((xT > 0) && (xT <= 1)) points.push((xT,1));
-  real yL=(x0 == 0) ? infinity : y0+m/(0-x0);
-  if(abs(yL) < eps) yL=0;
+  if(xT >= eps && xT <= 1) points.push((xT,1));
+
+  real yL=(x0 == 0) ? infinity : y0-m/x0;
   if(abs(yL-1) < eps) yL=1;
-  if((yL > 0) && (yL <= 1)) points.push((0,yL));
+  
+  if(yL > eps && yL <= 1) points.push((0,yL));
+
   real yR=(x0 == 1) ? infinity : y0+m/(1-x0);
   if(abs(yR) < eps) yR=0;
-  if(abs(yR-1) < eps) yR=1;
-  if((yR >= 0) && (yR < 1)) points.push((1,yR));
-  
+  if(yR >= 0 && yR <= 1-eps) points.push((1,yR));
+
   // Check (if logic is correct above, this will not happen)
   if(!(points.length == 2 || points.length == 4)) {
     abort("Unexpected error in setcontour routine: odd number of"
          +" crossings (hyperbolic case)");
- }
+  }
   
   // Lower left side
   if((x0 > 0) && (y0 > 0) && (f00*signc < 0)) {
@@ -880,19 +877,18 @@ segment[][] contouredges(real[][] f, real[] c, int subsample=1)
         real f01=fi[j+1];
         real f11=fp[j+1];
 
+        real epsf=eps*max(abs(f00),abs(f10),abs(f01),abs(f11),abs(C));
+
         f00=f00-C;
         f10=f10-C;
         f01=f01-C;
         f11=f11-C;
   
-        real epsf=eps*max(abs(f00),abs(f10),abs(f01),abs(f11));
-
         if(abs(f00) < epsf) f00=0;
         if(abs(f10) < epsf) f10=0;
         if(abs(f01) < epsf) f01=0;
         if(abs(f11) < epsf) f11=0;
 
-        if((C == -infinity) || C == infinity) return 0; // CHECK
 
         int countm=0;
         int countz=0;
@@ -1078,8 +1074,6 @@ private guide[][] connect(Segment[][] S, pair[][] z, interpolate join)
 // z:         two-dimensional array of nonoverlapping mesh points
 // f:         two-dimensional array of corresponding f(z) data values
 // c:         array of contour values
-// enc:       =No/Above/Below, if guides should enclose regions
-//            containing values above/below the contour value
 // join:      interpolation operator (e.g. operator--or operator ..)
 // subsample: number of interior points to include in each grid square
 //           (in addition to points on edge)
@@ -1193,17 +1187,17 @@ void draw(picture pic=currentpicture, Label L,
 
 /* CONTOURS FOR IRREGULARLY SPACED POINTS  */
 //                            
-//               +-------------------+  
-//               | \              /|
-//               |   \         /   |
-//               |     \      /    |
-//               |       \  /      |
-//               |         X         |  
-//               |      /  \       |
-//               |    /      \     |
-//               |  /          \   |
-//               |/              \ |
-//               +-------------------+       
+//               +---------+  
+//               |\       /|
+//               | \     / |
+//               |  \   /  |
+//               |   \ /   |
+//               |    X    |  
+//               |   / \   |
+//               |  /   \  |
+//               | /     \ |
+//               |/       \|
+//               +---------+       
 //                            
 
 // Is triangle p0--p1--p2--cycle counterclockwise ? 
