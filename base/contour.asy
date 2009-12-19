@@ -1,8 +1,8 @@
 /*
- Contour routines written by Radoslav Marinov, John Bowman, and Chris Savage.
+  Contour routines written by Radoslav Marinov, John Bowman, and Chris Savage.
  
- [2009/10/15: C Savage] generate oriented contours
- [2009/10/19: C Savage] use boxes instead of triangles
+  [2009/10/15: C Savage] generate oriented contours
+  [2009/10/19: C Savage] use boxes instead of triangles
 */
 
 /*
@@ -26,30 +26,30 @@ real eps=sqrtEpsilon;
   
   Grid data structures: 
     
-    boxcontour: 
-    Describes a particular contour segment in a grid square.
+  boxcontour: 
+  Describes a particular contour segment in a grid square.
     
-    boxdata: 
-    Describes contours in a grid square (holds boxcontours).
+  boxdata: 
+  Describes contours in a grid square (holds boxcontours).
     
-    segment: 
-    Describes a contour line.  Usually a closed (interior) contour,
-    a line that terminates on the border, or a border segment used
-    to enclose a region.
+  segment: 
+  Describes a contour line.  Usually a closed (interior) contour,
+  a line that terminates on the border, or a border segment used
+  to enclose a region.
     
-    Segment: 
-    Describes a contour line.
+  Segment: 
+  Describes a contour line.
   
   Main grid routines: 
     
-    setcontour: 
-    Determines the contours in a grid square.
+  setcontour: 
+  Determines the contours in a grid square.
     
-    contouredges: 
-    Determines the contour segments over a grid of function values.
+  contouredges: 
+  Determines the contour segments over a grid of function values.
     
-    connect: 
-    Converts contours into guides
+  connect: 
+  Converts contours into guides
   
 */
 
@@ -71,12 +71,12 @@ private struct gridpoint {
     this.i=i;
     this.j=j;
     this.z=z;
- }
+  }
   void operator init(gridpoint gp) {
     this.i=gp.i;
     this.j=gp.j;
     this.z=gp.z;
- }
+  }
 }
 
 private bool same(gridpoint gp1, gridpoint gp2)
@@ -115,7 +115,7 @@ private struct boxcontour {
     this.i=i;
     this.j=j;
     this.index=index;
- }
+  }
   // Generate list of points along the line/hyperbola segment
   // representing the contour in the box
   gridpoint[] points(int subsample=1, bool first=true, bool last=true) {
@@ -128,8 +128,8 @@ private struct boxcontour {
         for(int k=1; k <= subsample; ++k) {
           pair z=interp(a,b,k/(subsample+1));
           gp.push(gridpoint(i,j,z));
-       }
-     } else if(type == hyperbola) {
+        }
+      } else if(type == hyperbola) {
         // Special hyperbolic case of m=0
         // The contours here are infinite lines at x=x0 and y=y0,
         // but handedness always connects a semi-infinite
@@ -144,47 +144,47 @@ private struct boxcontour {
             for(int k=1; k <= subsample; ++k) {
               pair z=interp(a,b,k/(subsample+1));
               gp.push(gridpoint(i,j,z));
-           }
-          // Two lines(may get one extra point here)
-         } else {
+            }
+            // Two lines(may get one extra point here)
+          } else {
             int nsub=quotient(subsample,2);
             pair mid=(x0,y0);
             for(int k=1; k <= nsub; ++k) {
               pair z=interp(a,mid,k/(nsub+1));
               gp.push(gridpoint(i,j,z));
-           }
+            }
             gp.push(gridpoint(i,j,mid));
             for(int k=1; k <= nsub; ++k) {
               pair z=interp(mid,b,k/(nsub+1));
               gp.push(gridpoint(i,j,z));
-           }
-         }
-        // General hyperbolic case (m != 0).
-        // Parametric equations(m > 0): 
-        //   x(t)=x0 +/- sqrt(m)*exp(t)
-        //   y(t)=y0 +/- sqrt(m)*exp(-t)
-        // Parametric equations (m < 0): 
-        //   x(t)=x0 +/- sqrt(-m)*exp(t)
-        //   y(t)=y0 -/+ sqrt(-m)*exp(-t)
-        // Points will be taken equally spaced in parameter t.
-       } else {
+            }
+          }
+          // General hyperbolic case (m != 0).
+          // Parametric equations(m > 0): 
+          //   x(t)=x0 +/- sqrt(m)*exp(t)
+          //   y(t)=y0 +/- sqrt(m)*exp(-t)
+          // Parametric equations (m < 0): 
+          //   x(t)=x0 +/- sqrt(-m)*exp(t)
+          //   y(t)=y0 -/+ sqrt(-m)*exp(-t)
+          // Points will be taken equally spaced in parameter t.
+        } else {
           real sqrtm=sqrt(abs(m));
           real ta=log(signx*(a.x-x0)/sqrtm);
           real tb=log(signx*(b.x-x0)/sqrtm);
           real[] t=uniform(ta,tb,subsample+1);
           for(int k=1; k <= subsample; ++k) {
             pair z=(x0+signx*sqrtm*exp(t[k]),
-                      y0+signy*sqrtm*exp(-t[k]));
+                    y0+signy*sqrtm*exp(-t[k]));
             gp.push(gridpoint(i,j,z));
-         }
-       }
-     }
-   }
+          }
+        }
+      }
+    }
     if(last)
       gp.push(gridpoint(i,j,b));
     
     return gp;
- }
+  }
 }
 
 // Hold data for a single grid square
@@ -203,23 +203,23 @@ private struct boxdata {
     max=max(X);
     X.delete(find(X == max));
     max2=max(X);
- }
+  }
   void settype(real c) {
     // Interior case(f >= c)
     if(min > c-eps) {
       type=interior;
-    // Exterior case(f < c)
-   } else if(max < c-eps) {
+      // Exterior case(f < c)
+    } else if(max < c-eps) {
       type=exterior;
-    // Special case: only one corner at f=c, f < c elsewhere
-    //(no segment in this case)
-   } else if((max < c+eps) && (max2 < c-eps)) {
+      // Special case: only one corner at f=c, f < c elsewhere
+      //(no segment in this case)
+    } else if((max < c+eps) && (max2 < c-eps)) {
       type=exterior;
-    // Edge of contour passes through box
-   } else {
+      // Edge of contour passes through box
+    } else {
       type=edge;
-   }
- }
+    }
+  }
 }
 
 
@@ -228,27 +228,27 @@ private struct boxdata {
   
   Here, we approximate the function on the unit square to be a quadric
   surface passing through the specified values at the four corners: 
-    f(x,y)=(1-x)(1-y) f00+x(1-y) f10+(1-x)y f01+xy f11
-          =a0+ax x+ay y+axy xy
+  f(x,y)=(1-x)(1-y) f00+x(1-y) f10+(1-x)y f01+xy f11
+  =a0+ax x+ay y+axy xy
   where f00, f10, f01 and f11 are the function values at the four
   corners of the unit square 0 < x < 1&0 < y < 1 and: 
-    a0 =f00 
-    ax =f10-f00
-    ay =f01-f00
-    axy=f00+f11-f10-f01
+  a0 =f00 
+  ax =f10-f00
+  ay =f01-f00
+  axy=f00+f11-f10-f01
   This can also be expressed in paraboloid form as: 
-    f(x,y)=alpha [(x+y-cp)^2-(x-y-cn)^2]+d
+  f(x,y)=alpha [(x+y-cp)^2-(x-y-cn)^2]+d
   where: 
-    alpha=axy/4
-    cp   =-(ax+ay)/a11
-    cn   =-(ax-ay)/a11
-    d    =(a0 axy-ax ay)/axy
+  alpha=axy/4
+  cp   =-(ax+ay)/a11
+  cn   =-(ax-ay)/a11
+  d    =(a0 axy-ax ay)/axy
   In the procedure below, we take f00 - > f00-c etc. for a contour
   level c and we search for f=0.
   
   For this surface, there are two possible contour shapes: 
-    linear:     (y-y0)/(x-x0)=m
-    hyperbolic: (x-x0)*(y-y0)=m
+  linear:     (y-y0)/(x-x0)=m
+  hyperbolic: (x-x0)*(y-y0)=m
   The linear case has a single line.  The hyperbolic case may have
   zero, one or two segments within the box (there are two sides of
   a hyperbola, each of which may or may not pass through the unit
@@ -266,13 +266,13 @@ private struct boxdata {
   value, but a point within the square arbitrarily close to the
   edge falls above the contour value, that edge (or applicable
   portion) is not included.  This requirement gives the following: 
-    *) ensures contours on an edge are unique (do not appear in
-       an adjacent square with the same orientation)
-    *) no three line vertices (four line vertices are possible, but
-       are not usually an issue)
-    *) all segments can be joined into closed curves or curves that
-       terminate on the boundary (no unclosed curves terminate in
-       the interior region of the grid)
+  *) ensures contours on an edge are unique (do not appear in
+  an adjacent square with the same orientation)
+  *) no three line vertices (four line vertices are possible, but
+  are not usually an issue)
+  *) all segments can be joined into closed curves or curves that
+  terminate on the boundary (no unclosed curves terminate in
+  the interior region of the grid)
   
   Note the logic below skips cases that have been filtered out
   by the boxdata.settype() routine.
@@ -286,7 +286,7 @@ private void setcontour(real f00, real f10, real f01, real f11, real epsf,
   if(((f00*f11 == 0) && (f10*f01 > 0)) || ((f01*f10 == 0) && (f00*f11 > 0))) {
     bd.type=exterior;
     return;
- }
+  }
   
   // NOTE: From this point on, we can assume at least one contour
   // segment exists in the square.  This allows several cases to
@@ -295,7 +295,7 @@ private void setcontour(real f00, real f10, real f01, real f11, real epsf,
   // Form used to approximate function on unit square
   real F(real x, real y) {
     return interp(interp(f00,f10,x),interp(f01,f11,x),y);
- }
+  }
   
   // Write contour as  a0+ax*x+ay*y +axy*x*y=0
   real a0 =f00;
@@ -317,23 +317,23 @@ private void setcontour(real f00, real f10, real f01, real f11, real epsf,
       if((f00 > 0) || (f01 < 0)) {
         a=(1,y0);
         b=(0,y0);
-     } else {
+      } else {
         a=(0,y0);
         b=(1,y0);
-     }
-    // Vertical
-   } else if(ay == 0) {
+      }
+      // Vertical
+    } else if(ay == 0) {
       real x0=-a0/ax;
       if(abs(x0-1) < eps) x0=1;
       if((f00 > 0) || (f10 < 0)) {
         a=(x0,0);
         b=(x0,1);
-     } else {
+      } else {
         a=(x0,1);
         b=(x0,0);
-     }
-    // Angled line
-   } else {
+      }
+      // Angled line
+    } else {
       real x0=-a0/ax;
       if(abs(x0-1) < eps) x0=1;
       real y0=-a0/ay;
@@ -348,32 +348,32 @@ private void setcontour(real f00, real f10, real f01, real f11, real epsf,
       for(int i=0; i < farr.length; ++i) {
         // Corner
         if(farr[i] == 0) {
-         ++count;
+          ++count;
           if(farr[i-1] > 0) {
             a=corners[i];
-         } else {
+          } else {
             b=corners[i];
-         }
-        // Side
-       } else if(farr[i]*farr[i+1] < 0) {
-         ++count;
+          }
+          // Side
+        } else if(farr[i]*farr[i+1] < 0) {
+          ++count;
           if(farr[i] > 0) {
             a=corners[i]-(farr[i]/(farr[i+1]-farr[i]))*sidedir[i];
-         } else {
+          } else {
             b=corners[i]-(farr[i]/(farr[i+1]-farr[i]))*sidedir[i];
-         }
-       }
-     }
+          }
+        }
+      }
       // Check(if logic is correct above, this will not happen)
       if(count != 2) {
         abort("Unexpected error in setcontour routine: odd number of"
-             +" crossings (linear case)");
-     }
-   }
+              +" crossings (linear case)");
+      }
+    }
     boxcontour bc=boxcontour(line,a,b,0,0,0,1,1,i,j,index);
     bd.data.push(bc);
     return;
- }
+  }
   
   // Hyperbolic contour(s)
   // Described in form: (x-x0)*(y-y0)=m
@@ -395,125 +395,125 @@ private void setcontour(real f00, real f10, real f01, real f11, real epsf,
         a=(1,0);
         b=(0,1);
         signy=+1;
-     } else if(y0 == 1) {
+      } else if(y0 == 1) {
         a=(0,0);
         b=(1,1);
         signy=-1;
-     } else if(y0 < 0 || y0 > 1) {
+      } else if(y0 < 0 || y0 > 1) {
         a=(0,0);
         b=(0,1);
         signy=y0 > 0 ? -1 : +1;
-     } else {
+      } else {
         if(f10 > 0) {
           a=(1,y0);
           b=(0,1);
           signy=+1;
-       } else {
+        } else {
           a=(0,0);
           b=(1,y0);
           signy=-1;
-       }
-     }
+        }
+      }
       boxcontour bc=boxcontour(hyperbola,a,b,x0,y0,m,signx,signy,i,j,index);
       bd.data.push(bc);
       return;
-   } else if(x0 == 1) {
+    } else if(x0 == 1) {
       signx=-1;
       if(y0 == 0) {
         a=(1,1);
         b=(0,0);
         signy=+1;
-     } else if(y0 == 1) {
+      } else if(y0 == 1) {
         a=(0,1);
         b=(1,0);
         signy=-1;
-     } else if(y0 < 0 || y0 > 1) {
+      } else if(y0 < 0 || y0 > 1) {
         a=(1,1);
         b=(1,0);
         signy=y0 > 0 ? -1 : +1;
-     } else {
+      } else {
         if(f01 > 0) {
           a=(0,y0);
           b=(1,0);
           signy=-1;
-       } else {
+        } else {
           a=(1,1);
           b=(0,y0);
           signy=+1;
-       }
-     }
+        }
+      }
       boxcontour bc=boxcontour(hyperbola,a,b,x0,y0,m,signx,signy,i,j,index);
       bd.data.push(bc);
       return;
-   } else if(y0 == 0) {
+    } else if(y0 == 0) {
       signy=+1;
       if(x0 < 0 || x0 > 1) {
         a=(1,0);
         b=(0,0);
         signx=x0 > 0 ? -1 : +1;
-     } else {
+      } else {
         if(f11 > 0) {
           a=(x0,1);
           b=(0,0);
           signx=-1;
-       } else {
+        } else {
           a=(1,0);
           b=(x0,1);
           signx=+1;
-       }
-     }
+        }
+      }
       boxcontour bc=boxcontour(hyperbola,a,b,x0,y0,m,signx,signy,i,j,index);
       bd.data.push(bc);
       return;
-   } else if(y0 == 1) {
+    } else if(y0 == 1) {
       signy=-1;
       if(x0 < 0 || x0 > 1) {
         a=(0,1);
         b=(1,1);
         signx=x0 > 0 ? -1 : +1;
-     } else {
+      } else {
         if(f00 > 0) {
           a=(x0,0);
           b=(1,1);
           signx=+1;
-       } else {
+        } else {
           a=(0,1);
           b=(x0,0);
           signx=-1;
-       }
-     }
+        }
+      }
       boxcontour bc=boxcontour(hyperbola,a,b,x0,y0,m,signx,signy,i,j,index);
       bd.data.push(bc);
       return;
-   } else if(x0 < 0 || x0 > 1) {
+    } else if(x0 < 0 || x0 > 1) {
       signx=x0 > 0 ? -1 : +1;
       if(f00 > 0) {
         a=(1,y0);
         b=(0,y0);
         signy=+1;
-     } else {
+      } else {
         a=(0,y0);
         b=(1,y0);
         signy=-1;
-     }
+      }
       boxcontour bc=boxcontour(hyperbola,a,b,x0,y0,m,signx,signy,i,j,index);
       bd.data.push(bc);
       return;
-   } else if(y0 < 0 || y0 > 1) {
+    } else if(y0 < 0 || y0 > 1) {
       signy=y0 > 0 ? -1 : +1;
       if(f00 > 0) {
         a=(x0,0);
         b=(x0,1);
         signx=+1;
-     } else {
+      } else {
         a=(x0,1);
         b=(x0,0);
         signx=-1;
-     }
+      }
       boxcontour bc=boxcontour(hyperbola,a,b,x0,y0,m,signx,signy,i,j,index);
       bd.data.push(bc);
       return;
-   } else {
+    } else {
       if(f10 > 0) {
         a=(0,y0);
         b=(x0,0);
@@ -524,7 +524,7 @@ private void setcontour(real f00, real f10, real f01, real f11, real epsf,
         bc=boxcontour(hyperbola,a,b,x0,y0,m,+1,+1,i,j,index);
         bd.data.push(bc);
         return;
-     } else {
+      } else {
         a=(x0,0);
         b=(1,y0);
         boxcontour bc=boxcontour(hyperbola,a,b,x0,y0,m,+1,-1,i,j,index);
@@ -534,9 +534,9 @@ private void setcontour(real f00, real f10, real f01, real f11, real epsf,
         bc=boxcontour(hyperbola,a,b,x0,y0,m,-1,+1,i,j,index);
         bd.data.push(bc);
         return;
-     }
-   }
- }
+      }
+    }
+  }
   
   // General hyperbola case
   int signc=(F(x0,y0) > 0) ? +1 : -1;
@@ -563,7 +563,7 @@ private void setcontour(real f00, real f10, real f01, real f11, real epsf,
   // Check (if logic is correct above, this will not happen)
   if(!(points.length == 2 || points.length == 4)) {
     abort("Unexpected error in setcontour routine: odd number of"
-         +" crossings (hyperbolic case)");
+          +" crossings (hyperbolic case)");
   }
   
   // Lower left side
@@ -572,21 +572,21 @@ private void setcontour(real f00, real f10, real f01, real f11, real epsf,
     for(int i=0; i < points.length; ++i) {
       if((points[i].x < x0) && (points[i].y < y0)) {
         pts0.push(points[i]);
-     }
-   }
+      }
+    }
     if(pts0.length == 2) {
       pair a0,b0;
       if((f00 > 0) ^(pts0[0].x < pts0[1].x)) {
         a0=pts0[0];
         b0=pts0[1];
-     } else {
+      } else {
         a0=pts0[1];
         b0=pts0[0];
-     }
+      }
       boxcontour bc=boxcontour(hyperbola,a0,b0,x0,y0,m,-1,-1,i,j,index);
       bd.data.push(bc);
-   }
- }
+    }
+  }
   
   // Lower right side
   if((x0 < 1) && (y0 > 0) && (f10*signc < 0)) {
@@ -594,21 +594,21 @@ private void setcontour(real f00, real f10, real f01, real f11, real epsf,
     for(int i=0; i < points.length; ++i) {
       if((points[i].x > x0) && (points[i].y < y0)) {
         pts0.push(points[i]);
-     }
-   }
+      }
+    }
     if(pts0.length == 2) {
       pair a0,b0;
       if((f10 > 0) ^(pts0[0].x < pts0[1].x)) {
         a0=pts0[0];
         b0=pts0[1];
-     } else {
+      } else {
         a0=pts0[1];
         b0=pts0[0];
-     }
+      }
       boxcontour bc=boxcontour(hyperbola,a0,b0,x0,y0,m,+1,-1,i,j,index);
       bd.data.push(bc);
-   }
- }
+    }
+  }
   
   // Upper right side
   if((x0 < 1) && (y0 < 1) && (f11*signc < 0)) {
@@ -616,21 +616,21 @@ private void setcontour(real f00, real f10, real f01, real f11, real epsf,
     for(int i=0; i < points.length; ++i) {
       if((points[i].x > x0) && (points[i].y > y0)) {
         pts0.push(points[i]);
-     }
-   }
+      }
+    }
     if(pts0.length == 2) {
       pair a0,b0;
       if((f11 > 0) ^(pts0[0].x > pts0[1].x)) {
         a0=pts0[0];
         b0=pts0[1];
-     } else {
+      } else {
         a0=pts0[1];
         b0=pts0[0];
-     }
+      }
       boxcontour bc=boxcontour(hyperbola,a0,b0,x0,y0,m,+1,+1,i,j,index);
       bd.data.push(bc);
-   }
- }
+    }
+  }
   
   // Upper left side
   if((x0 > 0) && (y0 < 1) && (f01*signc < 0)) {
@@ -638,21 +638,21 @@ private void setcontour(real f00, real f10, real f01, real f11, real epsf,
     for(int i=0; i < points.length; ++i) {
       if((points[i].x < x0) && (points[i].y > y0)) {
         pts0.push(points[i]);
-     }
-   }
+      }
+    }
     if(pts0.length == 2) {
       pair a0,b0;
       if((f01 > 0) ^(pts0[0].x > pts0[1].x)) {
         a0=pts0[0];
         b0=pts0[1];
-     } else {
+      } else {
         a0=pts0[1];
         b0=pts0[0];
-     }
+      }
       boxcontour bc=boxcontour(hyperbola,a0,b0,x0,y0,m,-1,+1,i,j,index);
       bd.data.push(bc);
-   }
- }
+    }
+  }
   return;
 }
 
@@ -671,8 +671,8 @@ private int connectedindex(boxcontour bc, boxcontour[] bca,
     if(!bca[i].active) continue;
     if(connected(bc,bca[i])) {
       return i;
-   }
- }
+    }
+  }
   return -1;
 }
 
@@ -684,8 +684,8 @@ private int connectedindex(boxcontour[] bca, boxcontour bc,
     if(!bca[i].active) continue;
     if(connected(bca[i],bc)) {
       return i;
-   }
- }
+    }
+  }
   return -1;
 }
 
@@ -712,67 +712,67 @@ private void searchindex(boxcontour bc, bool forward, void f(int i, int j)) {
 private struct segment {
   gridpoint[] data;
   void operator init() {
- }
+  }
   void operator init(boxcontour bc, int subsample=1) {
     bc.active=false;
     this.data.append(bc.points(subsample,first=true,last=true));
- }
+  }
   void operator init(int i, int j, pair z) {
-      gridpoint gp=gridpoint(i,j,z);
-      data.push(gp);
- }
+    gridpoint gp=gridpoint(i,j,z);
+    data.push(gp);
+  }
   void operator init(gridpoint[] gp) {
     this.data.append(gp);
- }
+  }
   gridpoint start() {
     if(data.length == 0) {
       return gridpoint(-1,-1,(-infinity,-infinity));
-   }
+    }
     gridpoint gp=data[0];
     return gridpoint(gp.i,gp.j,gp.z);
- }
+  }
   gridpoint end() {
     if(data.length == 0) {
       return gridpoint(-1,-1,(-infinity,-infinity));
-   }
+    }
     gridpoint gp=data[data.length-1];
     return gridpoint(gp.i,gp.j,gp.z);
- }
+  }
   bool closed() {
     return same(this.start(),this.end());
- }
+  }
   void append(boxcontour bc, int subsample=1) {
     bc.active=false;
     data.append(bc.points(subsample,first=false,last=true));
- }
+  }
   void prepend(boxcontour bc, int subsample=1) {
     bc.active=false;
     data.insert(0 ... bc.points(subsample,first=true,last=false));
- }
+  }
   void append(int i, int j, pair z) {
-      gridpoint gp=gridpoint(i,j,z);
-      data.push(gp);
- }
+    gridpoint gp=gridpoint(i,j,z);
+    data.push(gp);
+  }
   void prepend(int i, int j, pair z) {
-      gridpoint gp=gridpoint(i,j,z);
-      data.insert(0,gp);
- }
+    gridpoint gp=gridpoint(i,j,z);
+    data.insert(0,gp);
+  }
   segment copy() {
     segment seg=new segment;
     seg.data=new gridpoint[data.length];
     for(int i=0; i < data.length; ++i) {
       seg.data[i]=gridpoint(data[i].i,data[i].j,data[i].z);
-   }
+    }
     return seg;
- }
+  }
   segment reversecopy() {
     segment seg=new segment;
     seg.data=new gridpoint[data.length];
     for(int i=0; i < data.length; ++i) {
       seg.data[data.length-i-1]=gridpoint(data[i].i,data[i].j,data[i].z);
-   }
+    }
     return seg;
- }
+  }
 }
 
 // Container to hold edge and border segments that form one continuous line
@@ -780,54 +780,54 @@ private struct Segment {
   segment[] edges;
   segment[] borders;
   void operator init() {
- }
+  }
   void operator init(segment seg) {
     edges.push(seg);
- }
+  }
   void operator init(gridpoint[] gp) {
     segment seg=segment(gp);
     edges.push(seg);
- }
+  }
   gridpoint start() {
     if(edges.length == 0) {
       if(borders.length > 0) {
         return borders[0].start();
-     }
+      }
       return gridpoint(-1,-1,(-infinity,-infinity));
-   }
+    }
     return edges[0].start();
- }
+  }
   gridpoint end() {
     if(edges.length == 0 && borders.length == 0) {
       return gridpoint(-1,-1,(-infinity,-infinity));
-   }
+    }
     if(edges.length > borders.length) {
       return edges[edges.length-1].end();
-   } else {
+    } else {
       return borders[borders.length-1].end();
-   }
- }
+    }
+  }
   bool closed() {
     return same(this.start(),this.end());
- }
+  }
   void addedge(segment seg) {
     edges.push(seg);
- }
+  }
   void addedge(gridpoint[] gp) {
     segment seg=segment(gp);
     edges.push(seg);
- }
+  }
   void addborder(segment seg) {
     borders.push(seg);
- }
+  }
   void addborder(gridpoint[] gp) {
     segment seg=segment(gp);
     borders.push(seg);
- }
+  }
   void append(Segment S) {
     edges.append(S.edges);
     borders.append(S.borders);
- }
+  }
 }
 
 private Segment[] Segment(segment[] s)
@@ -899,8 +899,8 @@ segment[][] contouredges(real[][] f, real[] c, int subsample=1)
           else {
             if(vertdat <= eps)++countz; 
             else++countp;
-         }
-       }
+          }
+        }
         
         check(f00);
         check(f10);
@@ -916,7 +916,7 @@ segment[][] contouredges(real[][] f, real[] c, int subsample=1)
         if(bdij.type == edge)
           setcontour(f00,f10,f01,f11,epsf,bdij,i,j,cnt);
         return 0;
-     }
+      }
   
       void process(int l, int u) {
         if(l >= u) return;
@@ -927,12 +927,12 @@ segment[][] contouredges(real[][] f, real[] c, int subsample=1)
         else {
           process(l,i);
           process(i+1,u);
-       }
-     }
+        }
+      }
   
       process(0,c.length);
-   }
- }
+    }
+  }
   
   // Find contours and follow them
   for(int i=0; i < nx; ++i) {
@@ -960,10 +960,10 @@ segment[][] contouredges(real[][] f, real[] c, int subsample=1)
                   bc0=data[k0];
                   seg.append(bc0,subsample);
                   foundnext=true;
-               }
-             }
-           });
-       }
+                }
+              }
+            });
+        }
           
         // Backward direction
         bc0=bd0.data[k];
@@ -978,15 +978,15 @@ segment[][] contouredges(real[][] f, real[] c, int subsample=1)
                   bc0=data[k0];
                   seg.prepend(bc0,subsample);
                   foundprev=true;
-               }
-             }
-           });
-       }
+                }
+              }
+            });
+        }
 
         result[bc0.index].push(seg);
-     }
-   }
- }
+      }
+    }
+  }
   
   // Note: every segment here _should_ be cyclic or terminate on the
   // boundary
@@ -1002,31 +1002,31 @@ private guide connect(Segment S, pair[][] z, interpolate join)
     pair offset=z[gp.i][gp.j];
     pair size=z[gp.i+1][gp.j+1]-z[gp.i][gp.j];
     return offset+(size.x*gp.z.x,size.y*gp.z.y);
- }
+  }
   pair[] loc(gridpoint[] gp) {
     pair[] result=new pair[gp.length];
     for(int i; i < gp.length; ++i) {
       result[i]=loc(gp[i]);
-   }
+    }
     return result;
- }
+  }
   
   bool closed=S.closed();
   
   pair[][] edges=new pair[S.edges.length][];
   for(int i; i < S.edges.length; ++i) {
     edges[i]=loc(S.edges[i].data);
- }
+  }
   pair[][] borders=new pair[S.borders.length][];
   for(int i; i < S.borders.length; ++i) {
     borders[i]=loc(S.borders[i].data);
- }
+  }
   
   if(edges.length == 0 && borders.length == 1) {
     guide g=operator--(...borders[0]);
     if(closed) g=g--cycle;
     return g;
- }
+  }
   
   if(edges.length == 1 && borders.length == 0) {
     pair[] pts=edges[0];
@@ -1034,7 +1034,7 @@ private guide connect(Segment S, pair[][] z, interpolate join)
     guide g=join(...pts);
     if(closed) g=join(g,cycle);
     return g;
- }
+  }
   
   guide[] ge=new guide[edges.length];
   for(int i=0; i < ge.length; ++i)
@@ -1049,7 +1049,7 @@ private guide connect(Segment S, pair[][] z, interpolate join)
   for(int i=1; i < ge.length; ++i) {
     g=g&ge[i];
     if(i < gb.length) g=g&gb[i];
- }
+  }
   if(closed) g=g&cycle;
   return g;
 }
@@ -1066,7 +1066,7 @@ private guide[][] connect(Segment[][] S, pair[][] z, interpolate join)
   guide[][] result=new guide[S.length][];
   for(int i=0; i < S.length; ++i) {
     result[i]=connect(S[i],z,join);
- }
+  }
   return result;
 }
 
@@ -1108,8 +1108,8 @@ guide[][] contour(real[][] f, pair a, pair b, real[] c,
     real xi=interp(a.x,b.x,i/nx);
     for(int j=0; j <= ny; ++j) {
       zi[j]=(xi,interp(a.y,b.y,j/ny));
-   }
- }
+    }
+  }
   return contour(z,f,c,join,subsample);
 }
 
@@ -1133,8 +1133,8 @@ guide[][] contour(real f(real, real), pair a, pair b,
     real[] dati=dat[i];
     for(int j=0; j <= ny; ++j) {
       dati[j]=f(x,interp(a.y,b.y,j/ny));
-   }
- }
+    }
+  }
 
   return contour(dat,a,b,c,join,subsample);
 }
@@ -1161,9 +1161,9 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
       for(int i=0; i < gcnt.length; ++i) {
         if(Lcnt.s != "" && size(gcnt[i]) > 1)
           label(pic,Lcnt,gcnt[i],pcnt);
-     }
-   }
- }
+      }
+    }
+  }
   endgroup(pic);
 }
 
@@ -1181,8 +1181,8 @@ void draw(picture pic=currentpicture, Label L,
   for(int i=0; i < g.length; ++i) {
     if(L.s != "" && size(g[i]) > 1) {
       label(pic,L,g[i],p);
-   }
- }
+    }
+  }
 }
 
 /* CONTOURS FOR IRREGULARLY SPACED POINTS  */
@@ -1277,46 +1277,46 @@ private segment checktriangle(pair p0, pair p1, pair p2,
       if(v2 < -eps) return dflt; // nothing to do
       else if(v2 <= eps) return dflt; // nothing to do
       else return case4(p0,p2,p1,v0,v2,v1);
-   } else if(v1 <= eps) {
+    } else if(v1 <= eps) {
       if(v2 < -eps) return dflt; // nothing to do
       else if(v2 <= eps) return case1(p1,p2,p0,v1,v2,v0);
       else return case3(p1,p0,p2,v1,v0,v2);
-   } else {
+    } else {
       if(v2 < -eps) return case4(p0,p1,p2,v0,v1,v2);
       else if(v2 <= eps) 
         return case2(p2,p0,p1,v2,v0,v1);
       else return case4(p1,p0,p2,v1,v0,v2);
-   } 
- } else if(v0 <= eps) {
+    } 
+  } else if(v0 <= eps) {
     if(v1 < -eps) {
       if(v2 < -eps) return dflt; // nothing to do
       else if(v2 <= eps) return case1(p0,p2,p1,v0,v2,v1);
       else return case2(p0,p1,p2,v0,v1,v2);
-   } else if(v1 <= eps) {
+    } else if(v1 <= eps) {
       if(v2 < -eps) return case1(p0,p1,p2,v0,v1,v2);
       else if(v2 <= eps) return dflt; // use finer partitioning.
       else return case1(p0,p1,p2,v0,v1,v2);
-   } else {
+    } else {
       if(v2 < -eps) return case2(p0,p1,p2,v0,v1,v2);
       else if(v2 <= eps) return case1(p0,p2,p1,v0,v2,v1);
       else return dflt; // nothing to do
-   } 
- } else {
+    } 
+  } else {
     if(v1 < -eps) {
       if(v2 < -eps) return case4(p1,p0,p2,v1,v0,v2);
       else if(v2 <= eps)
         return case2(p2,p0,p1,v2,v0,v1);
       else return case4(p0,p1,p2,v0,v1,v2);
-   } else if(v1 <= eps) {
+    } else if(v1 <= eps) {
       if(v2 < -eps) return case3(p1,p0,p2,v1,v0,v2);
       else if(v2 <= eps) return case1(p1,p2,p0,v1,v2,v0);
       else return dflt; // nothing to do
-   } else {
+    } else {
       if(v2 < -eps) return case4(p0,p2,p1,v0,v2,v1);
       else if(v2 <= eps) return dflt; // nothing to do
       else return dflt; // nothing to do
-   } 
- }      
+    } 
+  }      
 }
 
 // Collect connecting path segments.
@@ -1334,19 +1334,19 @@ private void collect(pair[][][] points, real[] c)
           gig.delete(0);
           gdscnt[j].append(gig);
           gdscnt.delete(i);
-         --i;
+          --i;
           break;
-       } else if(abs(gig[Li-1]-gjg[0]) < eps) {
+        } else if(abs(gig[Li-1]-gjg[0]) < eps) {
           gjg.delete(0);
           gig.append(gjg);
           gdscnt[j]=gig;
           gdscnt.delete(i);
-         --i;
+          --i;
           break;
-       }
-     }
-   }
- }
+        }
+      }
+    }
+  }
 }
 
 // Join path segments.
@@ -1364,17 +1364,17 @@ private guide[][] connect(pair[][][] points, real[] c, interpolate join)
         if(pts.length > 1 && abs(pts[0]-pts[pts.length-1]) < eps) {
           guide[] g=sequence(new guide(int i) {
               return pts[i];
-           },pts.length-1);
+            },pts.length-1);
           g.push(cycle);
           gd=join(...g);
-       } else
+        } else
           gd=join(...sequence(new guide(int i) {
                 return pts[i];
-             },pts.length));
-     }
+              },pts.length));
+      }
       resultcnt[i]=gd;
-   }
- }
+    }
+  }
   return result;
 }
 
@@ -1398,8 +1398,8 @@ guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator--)
       if(seg.active)
         pointscnt.push(seg.reversed ? new pair[] {seg.b,seg.a} : 
                        new pair[] {seg.a,seg.b});
-   }
- }
+    }
+  }
 
   collect(points,c);
 
@@ -1441,8 +1441,8 @@ pen[][] interior(picture pic=currentpicture, guide[][] g, pen[] palette)
               nextinside=true;
             else if(inside(next,point(P,0)))
               index=i;
-         }
-       }
+          }
+        }
         if(!nextinside) {
           // Check to see if previous contour is inside
           for(int k=0; k < gm.length; ++k) {
@@ -1450,14 +1450,14 @@ pen[][] interior(picture pic=currentpicture, guide[][] g, pen[] palette)
             if(cyclic(prev)) {
               if(inside(P,point(prev,0)))
                 index=i;
-           }
-         }
-       } 
+            }
+          }
+        } 
         fillpalettei[j]=palette[index];
-     }
+      }
       fillpalette[i]=fillpalettei;
-   }
- }
+    }
+  }
   return fillpalette;
 }
 
@@ -1479,14 +1479,14 @@ void fill(picture pic=currentpicture, guide[][] g, pen[][] palette)
           path next=gp[k];
           if(cyclic(next) && inside(P,point(next,0)))
             S=S^^next;
-       }
+        }
         for(int k=0; k < gm.length; ++k) {
           path next=gm[k];
           if(cyclic(next) && inside(P,point(next,0)))
             S=S^^next;
-       }
+        }
         fill(pic,S,palette[i][j]+evenodd);
-     }
-   }
- }
+      }
+    }
+  }
 }
