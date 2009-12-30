@@ -132,10 +132,12 @@ void fill(picture *f, patharray *g, pen p=CURRENTPEN, bool copy=true)
 }
 
 void latticeshade(picture *f, patharray *g, bool stroke=false,
-                  pen fillrule=CURRENTPEN, penarray2 *p, bool copy=true)
+                  pen fillrule=CURRENTPEN, penarray2 *p, transform t=identity, 
+                  bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  f->append(new drawLatticeShade(*copyarray(g),stroke,fillrule,*copyarray(p)));
+  f->append(new drawLatticeShade(*copyarray(g),stroke,fillrule,*copyarray(p),
+                                 t));
 }
 
 void axialshade(picture *f, patharray *g, bool stroke=false, pen pena, pair a,

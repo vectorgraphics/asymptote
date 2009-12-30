@@ -1635,7 +1635,7 @@ void latticeshade(picture pic=currentpicture, path[] g, bool stroke=false,
     p=copy(p);
   }
   pic.add(new void(frame f, transform t) {
-      latticeshade(f,t*g,stroke,fillrule,p,false);
+      latticeshade(f,t*g,stroke,fillrule,p,t,false);
     },true);
   pic.addPath(g);
 }

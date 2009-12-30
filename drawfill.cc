@@ -57,7 +57,7 @@ drawElement *drawFill::transformed(const transform& t)
   
 drawElement *drawLatticeShade::transformed(const transform& t)
 {
-  return new drawLatticeShade(transpath(t),stroke,pentype,pens);
+  return new drawLatticeShade(transpath(t),stroke,pentype,pens,t*T);
 }
 
 drawElement *drawAxialShade::transformed(const transform& t)

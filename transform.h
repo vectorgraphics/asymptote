@@ -166,6 +166,11 @@ inline transform scale(double s)
   return transform (0.0, 0.0, s, 0.0, 0.0, s);
 }
 
+inline transform scale(double x, double y)
+{
+  return transform (0.0, 0.0, x, 0.0, 0.0, y);
+}
+
 inline transform scale(pair z)
 {
   // Equivalent to multiplication by z.

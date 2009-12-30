@@ -267,7 +267,7 @@ public:
   }
   
   virtual void beginlatticeshade(const vm::array& a, const bbox& b) {}
-  virtual void latticeshade(const vm::array& a, const bbox& b);
+  virtual void latticeshade(const vm::array& a, const transform& t);
   
   virtual void begingradientshade(bool axial, ColorSpace colorspace,
                                   const pen& pena, const pair& a, double ra,

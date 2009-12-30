@@ -1150,7 +1150,7 @@ transform scale(real x)
 
 transform scale(real x, real y)
 {
-  return xscale(x)*yscale(y);
+  return scale(x,y);
 }
 
 transform slant(real s)

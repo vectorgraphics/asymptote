@@ -83,10 +83,11 @@ public:
 class drawLatticeShade : public drawShade {
 protected:
   vm::array pens;
+  const transform T;
 public:  
   drawLatticeShade(const vm::array& src, bool stroke, pen pentype,
-                   const vm::array& pens)
-    : drawShade(src,stroke,pentype), pens(pens) {}
+                   const vm::array& pens, const camp::transform& T=identity)
+    : drawShade(src,stroke,pentype), pens(pens), T(T) {}
   
   void palette(psfile *out) {
     out->gsave();
@@ -97,7 +98,11 @@ public:
   }
   
   void shade(psfile *out) {
-    out->latticeshade(pens,bpath);
+    bbox b;
+    for(size_t i=0; i < size; i++)
+      b += vm::read<path>(P,i).transformed(inverse(T)).bounds();
+    pair lambda=b.Max()-b.Min();
+    out->latticeshade(pens,T*scale(lambda.getx(),lambda.gety()));
   }
   
   drawElement *transformed(const transform& t);

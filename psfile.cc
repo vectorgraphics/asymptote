@@ -284,7 +284,7 @@ void psfile::write(path p, bool newPath)
   }
 }
 
-void psfile::latticeshade(const vm::array& a, const bbox& b)
+void psfile::latticeshade(const vm::array& a, const transform& t)
 {
   checkLevel();
   size_t n=a.size();
@@ -301,8 +301,7 @@ void psfile::latticeshade(const vm::array& a, const bbox& b)
   
   *out << "<< /ShadingType 1" << newl
        << "/Matrix ";
-
-  write(matrix(b.Min(),b.Max()));
+  write(t);
   *out << newl;
   *out << "/ColorSpace /Device" << ColorDeviceSuffix[colorspace] << newl
        << "/Function" << newl
