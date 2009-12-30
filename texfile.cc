@@ -50,12 +50,12 @@ void texfile::miniprologue()
          << "\\textheight=2048pt" << newl
          << "\\textwidth=2048pt" << newl
          << "\\begin{document}" << newl;
+    latexfontencoding(*out);
   } else if(settings::context(texengine)) {
     *out << "\\setuppagenumbering[location=]" << newl
          << "\\usetypescript[modern]" << newl
          << "\\starttext\\hbox{%" << newl;
   }
-  texfontencoding(*out);
 }
 
 void texfile::prologue()
@@ -116,6 +116,7 @@ void texfile::prologue()
              << "\\topmargin=-37.01pt" << newl;
       *out << "\\begin{document}" << newl;
     }
+    latexfontencoding(*out);
   } else {
     if(!inlinetex) {
       if(settings::context(texengine)) {

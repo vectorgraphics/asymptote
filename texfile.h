@@ -44,16 +44,14 @@ void texuserpreamble(T& out,
 }
   
 template<class T>
-void texfontencoding(T& out) 
+void latexfontencoding(T& out) 
 {
-  if(settings::latex(settings::getSetting<string>("tex"))) {
-    out << "\\makeatletter%" << newl
-        << "\\let\\ASYencoding\\f@encoding%" << newl
-        << "\\let\\ASYfamily\\f@family%" << newl
-        << "\\let\\ASYseries\\f@series%" << newl
-        << "\\let\\ASYshape\\f@shape%" << newl
-        << "\\makeatother%" << newl;
-  }
+  out << "\\makeatletter%" << newl
+      << "\\let\\ASYencoding\\f@encoding%" << newl
+      << "\\let\\ASYfamily\\f@family%" << newl
+      << "\\let\\ASYseries\\f@series%" << newl
+      << "\\let\\ASYshape\\f@shape%" << newl
+      << "\\makeatother%" << newl;
 }
 
 template<class T>
@@ -106,15 +104,16 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
         fout << s << endl;
     }
   }
-  texfontencoding(out);
   string texengine=settings::getSetting<string>("tex");
   if(settings::latex(texengine)) {
     if(pipe || !settings::getSetting<bool>("inlinetex")) {
       out << "\\usepackage{graphicx}" << newl;
       if(!pipe) out << "\\usepackage{color}" << newl;
     }
-    if(pipe)
+    if(pipe) {
       out << "\\begin{document}" << newl;
+      latexfontencoding(out);
+    }
   } else if(settings::context(texengine)) {
     if(!pipe && !settings::getSetting<bool>("inlinetex"))
       out << "\\usemodule[pictex]" << newl;
