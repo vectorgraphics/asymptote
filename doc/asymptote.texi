@@ -592,12 +592,12 @@ If your graphics card supports multisampling, we recommend using version
 (@code{MacOS X} users can skip this step since @code{Asymptote} is configured
 to use the native glut library on that platform). Download
 @quotation
-@url{http://prdownloads.sourceforge.net/freeglut/freeglut-2.6.0-rc1.tar.gz}
+@url{http://prdownloads.sourceforge.net/freeglut/freeglut-2.6.0.tar.gz}
 @end quotation
 @noindent
 and type (as the root user):
 @verbatim
-tar -zxf freeglut-2.6.0-rc1.tar.gz
+tar -zxf freeglut-2.6.0.tar.gz
 cd freeglut-2.6.0
 ./configure --prefix=/usr
 make install
@@ -9013,15 +9013,15 @@ this requires @code{Python 2.6.2} and the @code{Python Imaging Library}:
 @url{http://www.python.org/ftp/python/2.6.2/python-2.6.2.msi}
 @end quotation
 @quotation
-@url{http://effbot.org/downloads/PIL-1.1.7b1.win32-py2.6.exe}.
+@url{http://effbot.org/media/downloads/PIL-1.1.7.win32-py2.6.exe}.
 @end quotation
 @noindent
 On @code{UNIX} systems, place
-@url{http://effbot.org/downloads/Imaging-1.1.7b1.tar.gz} in the
+@url{http://effbot.org/media/downloads/Imaging-1.1.7.tar.gz} in the
 @code{Asymptote} source directory, and type (as the root user):
 @verbatim
-tar -zxf Imaging-1.1.7b1.tar.gz
-cd Imaging-1.1.7b1
+tar -zxf Imaging-1.1.7.tar.gz
+cd Imaging-1.1.7
 python setup.py install
 @end verbatim
 
