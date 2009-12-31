@@ -14,9 +14,6 @@ prototype in the file gc6.8/include/gc.h (version 6.8).
 The file gc-7.0nomem.patch avoids segmentation faults with gc-7.0 on
 out-of-memory errors.
 
-The file freeglut-cygwin.patch allows version 2.6.0-rc1 of freeglut.dll
-to be built under CYGWIN. 
-
 The file movie15_dvipdfmx.patch brings the xelatex/dvipdfmx-enhanced
 version of movie15.sty available at
 http://cvs.ktug.or.kr/viewcvs/dvipdfmx/contrib/latex/movie15.sty.sample?revision=1.1
