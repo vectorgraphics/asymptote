@@ -63,7 +63,7 @@ inline void free0(void *p)
 template<class T>
 inline void newAlign(T *&v, size_t len, size_t align)
 {
-  void *mem;
+  void *mem=NULL;
 #ifdef HAVE_POSIX_MEMALIGN
   int rc=posix_memalign(&mem,align,len*sizeof(T));
 #else  
