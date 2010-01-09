@@ -323,18 +323,15 @@ void drawscene(double Width, double Height)
   
   double size2=hypot(Width,Height);
   
-  glEnable(GL_BLEND);
   // Render opaque objects
   Picture->render(nurb,size2,m,M,perspective,false);
   
   // Enable transparency
-  glEnable(GL_BLEND);
   glDepthMask(GL_FALSE);
   
   // Render transparent objects
   Picture->render(nurb,size2,m,M,perspective,true);
   glDepthMask(GL_TRUE);
-  glDisable(GL_BLEND);
 }
 
 // Return x divided by y rounded up to the nearest integer.
@@ -1462,6 +1459,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     setosize();
   }
   
+  glEnable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_MAP1_VERTEX_3);
   glEnable(GL_MAP1_VERTEX_4);
