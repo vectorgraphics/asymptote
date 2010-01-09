@@ -1,5 +1,5 @@
 /* Fast Fourier transform C++ header class for the FFTW3 Library
-   Copyright (C) 2004 John C. Bowman, University of Alberta
+   Copyright (C) 2004-10 John C. Bowman, University of Alberta
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -18,12 +18,13 @@
 #ifndef __fftwpp_h__
 #define __fftwpp_h__ 1
 
-#define __FFTWPP_H_VERSION__ 1.04
+#define __FFTWPP_H_VERSION__ 1.05
 
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <fftw3.h>
+#include <cerrno>
 
 #ifndef __Complex_h__
 #include <complex>
@@ -40,46 +41,74 @@ static array2<Complex> NULL2;
 static array3<Complex> NULL3;
 #endif
 
+// Adapted from FFTW aligned malloc/free.  Assumes that malloc is at least
+// sizeof(void*)-aligned. Allocated memory must be freed with free0.
+inline int posix_memalign0(void **memptr, size_t alignment, size_t size)
+{
+  if(alignment % sizeof (void *) != 0 || (alignment & (alignment - 1)) != 0)
+    return EINVAL;
+  void *p0=malloc(size+alignment);
+  if(!p0) return ENOMEM;
+  void *p=(void *)(((size_t) p0+alignment)&~(alignment-1));
+  *((void **) p-1)=p0;
+  *memptr=p;
+  return 0;
+}
+
+inline void free0(void *p)
+{
+  if(p) free(*((void **) p-1));
+}
+
+template<class T>
+inline void newAlign(T *&v, size_t len, size_t align)
+{
+  void *mem;
+#ifdef HAVE_POSIX_MEMALIGN
+  int rc=posix_memalign(&mem,align,len*sizeof(T));
+#else  
+  int rc=posix_memalign0(&mem,align,len*sizeof(T));
+#endif  
+  if(rc == EINVAL) std::cerr << "Invalid alignment requested" << std::endl;
+  if(rc == ENOMEM) std::cerr << "Memory limits exceeded" << std::endl;
+  v=(T *) mem;
+  for(size_t i=0; i < len; i++) new(v+i) T;
+}
+
+template<class T>
+inline void deleteAlign(T *v, size_t len)
+{
+  for(size_t i=len-1; i > 0; i--) v[i].~T();
+  v[0].~T();
+#ifdef HAVE_POSIX_MEMALIGN
+  free(v);
+#else
+  free0(v);
+#endif  
+}
+
 inline Complex *FFTWComplex(size_t size)
 {
-  static const size_t offset = sizeof(size_t)/sizeof(Complex)+
-    (sizeof(size_t) % sizeof(Complex) > 0);
-  void *alloc=fftw_malloc((size+offset)*sizeof(Complex));
-  if(size && !alloc) std::cerr << std::endl << "Memory limits exceeded" 
-                               << std::endl;
-  *(size_t *) alloc=size;
-  Complex*p=(Complex *)alloc+offset;
-  for(size_t i=0; i < size; i++) new(p+i) Complex;
-  return p;
+  Complex *v;
+  newAlign(v,size,sizeof(Complex));
+  return v;
 }
 
 inline double *FFTWdouble(size_t size)
 {
-  static const size_t offset = sizeof(size_t)/sizeof(Complex)+
-    (sizeof(size_t) % sizeof(Complex) > 0);
-  void *alloc=fftw_malloc(size*sizeof(double)+offset*sizeof(Complex));
-  if(size && !alloc) std::cerr << std::endl << "Memory limits exceeded"
-                               << std::endl;
-  *(size_t *) alloc=size;
-  double*p=(double*)((Complex *)alloc+offset);
-  for(size_t i=0; i < size; i++) new(p+i) double;
-  return p;
+  double *v;
+  newAlign(v,size,sizeof(Complex));
+  return v;
 }
 
 template<class T>
 inline void FFTWdelete(T *p)
 {
-  static const size_t offset = sizeof(size_t)/sizeof(Complex)+
-    (sizeof(size_t) % sizeof(Complex) > 0);
-  void *alloc=(Complex *)p-offset;
-  size_t size=*(size_t *) alloc;
-  for(size_t i=size-1; i > 0; i--) ((T *) p)[i].~T();
-  ((T *) p)[0].~T();
-  fftw_free(alloc);
+  free0(p);
 }
 
 inline void fftwpp_export_wisdom(void (*emitter)(char c, std::ofstream& s),
-                               std::ofstream& s)
+                                 std::ofstream& s)
 {
   fftw_export_wisdom((void (*) (char, void *)) emitter,(void *) &s);
 }
