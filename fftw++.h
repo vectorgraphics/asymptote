@@ -31,6 +31,20 @@
 typedef std::complex<double> Complex;
 #endif
 
+#ifndef HAVE_POSIX_MEMALIGN
+
+#ifdef __GLIBC_PREREQ
+#if __GLIBC_PREREQ(2,3)
+#define HAVE_POSIX_MEMALIGN
+#endif
+#else
+#ifdef _POSIX_SOURCE
+#define HAVE_POSIX_MEMALIGN
+#endif
+#endif
+
+#endif
+
 #ifdef __Array_h__
 using Array::array1;
 using Array::array2;
@@ -39,8 +53,14 @@ using Array::array3;
 static array1<Complex> NULL1;  
 static array2<Complex> NULL2;  
 static array3<Complex> NULL3;
-#endif
 
+#else
+
+#ifdef HAVE_POSIX_MEMALIGN
+#ifdef _AIX
+extern "C" int posix_memalign(void **memptr, size_t alignment, size_t size);
+#endif
+#else
 // Adapted from FFTW aligned malloc/free.  Assumes that malloc is at least
 // sizeof(void*)-aligned. Allocated memory must be freed with free0.
 inline int posix_memalign0(void **memptr, size_t alignment, size_t size)
@@ -54,23 +74,25 @@ inline int posix_memalign0(void **memptr, size_t alignment, size_t size)
   *memptr=p;
   return 0;
 }
-
 inline void free0(void *p)
 {
   if(p) free(*((void **) p-1));
 }
+#endif
 
 template<class T>
 inline void newAlign(T *&v, size_t len, size_t align)
 {
   void *mem=NULL;
+  const char *invalid="Invalid alignment requested";
+  const char *nomem="Memory limits exceeded";
 #ifdef HAVE_POSIX_MEMALIGN
   int rc=posix_memalign(&mem,align,len*sizeof(T));
 #else  
   int rc=posix_memalign0(&mem,align,len*sizeof(T));
 #endif  
-  if(rc == EINVAL) std::cerr << "Invalid alignment requested" << std::endl;
-  if(rc == ENOMEM) std::cerr << "Memory limits exceeded" << std::endl;
+  if(rc == EINVAL) std::cerr << invalid << std::endl;
+  if(rc == ENOMEM) std::cerr << mem << std::endl;
   v=(T *) mem;
   for(size_t i=0; i < len; i++) new(v+i) T;
 }
@@ -86,6 +108,8 @@ inline void deleteAlign(T *v, size_t len)
   free0(v);
 #endif  
 }
+
+#endif
 
 inline Complex *FFTWComplex(size_t size)
 {
@@ -104,7 +128,11 @@ inline double *FFTWdouble(size_t size)
 template<class T>
 inline void FFTWdelete(T *p)
 {
+#ifdef HAVE_POSIX_MEMALIGN
+  free(p);
+#else
   free0(p);
+#endif  
 }
 
 inline void fftwpp_export_wisdom(void (*emitter)(char c, std::ofstream& s),
@@ -214,7 +242,7 @@ public:
       exit(1);
     }
     
-    if(alloc) FFTWdelete(in);
+    if(alloc) deleteAlign(in,size);
     SaveWisdom();
   }
   
