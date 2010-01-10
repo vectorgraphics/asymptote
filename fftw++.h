@@ -92,7 +92,7 @@ inline void newAlign(T *&v, size_t len, size_t align)
   int rc=posix_memalign0(&mem,align,len*sizeof(T));
 #endif  
   if(rc == EINVAL) std::cerr << invalid << std::endl;
-  if(rc == ENOMEM) std::cerr << mem << std::endl;
+  if(rc == ENOMEM) std::cerr << nomem << std::endl;
   v=(T *) mem;
   for(size_t i=0; i < len; i++) new(v+i) T;
 }
