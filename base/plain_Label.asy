@@ -75,11 +75,19 @@ transform scaleless(transform t)
   A=conj(U)*A*U;
 
   real D=abs(A[0][0]);
-  if(D != 0) A[0][0] /= D;
+  if(D != 0) {
+    A[0][0] /= D;
+    A[0][1] /= D;
+  }
+  
   D=abs(A[1][1]);
-  if(D != 0) A[1][1] /= D;
+  if(D != 0) {
+    A[1][0] /= D;
+    A[1][1] /= D;
+  }
 
   A=U*A*conj(U);
+
   return (0,0,A[0][0].x,A[0][1].x,A[1][0].x,A[1][1].x);
 }
 
@@ -209,7 +217,8 @@ transform Slant(transform t) {return scaleless(t);}
 transform Scale(transform t) {return t;}
 
 embed Rotate(pair z) {
-  return new transform(transform t) {return rotate(degrees(shiftless(t)*z));};
+  return new transform(transform t) {return rotate(degrees(shiftless(t)*z,
+                                                           warn=false));};
 }
 
 struct Label {
@@ -288,7 +297,7 @@ struct Label {
   
   void label(frame f, transform t=identity(), pair position, pair align) {
     pen p0=p == nullpen ? currentpen : p;
-    align=length(align)*unit(scaleless(shiftless(t))*align);
+    align=length(align)*unit(shiftless(t)*align);
     label(f,s,size,embed(t)*shiftless(T),
           t*position+align*labelmargin(p0)+shift(T)*0,align,p0);
   }
