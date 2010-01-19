@@ -37,6 +37,10 @@ struct block {
     center=z;
   }
 
+  void operator init(real x, real y) {
+    center=(x,y);
+  }
+
   pair shift(transform t=identity()) {
     return t*center-f_center;
   }
@@ -479,5 +483,3 @@ block operator --(block b, arrowbar arrowbar)
   b.arrow=arrowbar;
   return b;
 }
-
-block operator cast(pair z) {return block(z);}

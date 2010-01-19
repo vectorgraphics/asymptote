@@ -17,9 +17,9 @@ draw(junction1);
 add(new void(picture pic, transform t) {
     blockconnector operator --=blockconnector(pic,t);
     
-    (0,0)--Label("$u$",align=N)--Arrow--sum1--Arrow--delay--Arrow--system--
-      junction1--Label("$y$",align=N)--Arrow--(1,0);
+    block(0,0)--Label("$u$",align=N)--Arrow--sum1--Arrow--delay--Arrow--
+      system--junction1--Label("$y$",align=N)--Arrow--block(1,0);
 
     junction1--Down--Left--Arrow--controller--Left--Up--
-      Label("-",position=3,align=SE)--Arrow--sum1;
+      Label("$-$",position=3,align=ESE)--Arrow--sum1;
   });
