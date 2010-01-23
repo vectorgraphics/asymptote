@@ -491,8 +491,8 @@ bool picture::postprocess(const string& prename, const string& outname,
   static mem::map<CONST string,int> pids;
   int status=0;
   bool epsformat=outputformat == "eps";
-  bool pdfformat=settings::pdf(getSetting<string>("tex")) || 
-    outputformat == "pdf";
+  bool pdfformat=(settings::pdf(getSetting<string>("tex")) 
+    && outputformat == "") || outputformat == "pdf";
   
   if(pdftex || !epsformat) {
     if(pdfformat) {
