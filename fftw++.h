@@ -448,7 +448,7 @@ public:
 // Compute the complex Fourier transform of n real values, using phase sign -1.
 // Before calling fft(), the array in must be allocated as double[n] and
 // the array out must be allocated as Complex[n/2+1]. The arrays in and out
-// may coincide, in which case they must both be allocated as Complex[n/2+1].
+// may coincide, allocated as Complex[n/2+1].
 //
 // Out-of-place usage: 
 //
@@ -495,9 +495,9 @@ public:
 // phase sign +1.
 // Before calling fft(), the array in must be allocated as Complex[n/2+1]
 // and the array out must be allocated as double[n]. The arrays in and out
-// may coincide, in which case they must both be allocated as Complex[n/2+1]. 
+// may coincide, allocated as Complex[n/2+1]. 
 //
-// Out-of-place usage: 
+// Out-of-place usage (input destroyed):
 //
 //   crfft1d Backward(n,in,out);
 //   Backward.fft(in,out);
@@ -540,8 +540,8 @@ public:
 // Compute the real Fourier transform of m real vectors, each of length n,
 // using phase sign -1. Before calling fft(), the array in must be
 // allocated as double[m*n] and the array out must be allocated as
-// Complex[m*(n/2+1)]. The arrays in and out may coincide, in which case
-// they must both be allocated as Complex[m*(n/2+1)].
+// Complex[m*(n/2+1)]. The arrays in and out may coincide,
+// allocated as Complex[m*(n/2+1)].
 //
 // Out-of-place usage: 
 //
@@ -596,10 +596,10 @@ public:
 // length n/2+1, corresponding to the non-negative parts of the frequency
 // spectra, using phase sign +1. Before calling fft(), the array in must be
 // allocated as Complex[m*(n/2+1)] and the array out must be allocated as
-// double[m*n]. The arrays in and out may coincide, in which case they
-// must both be allocated as Complex[m*(n/2+1)].  
+// double[m*n]. The arrays in and out may coincide,
+// allocated as Complex[m*(n/2+1)].  
 //
-// Out-of-place usage: 
+// Out-of-place usage (input destroyed):
 //
 //   mcrfft1d Backward(n,m,stride,dist,in,out);
 //   Backward.fft(in,out);
@@ -697,8 +697,7 @@ public:
 // values, using phase sign -1.
 // Before calling fft(), the array in must be allocated as double[nx*ny] and
 // the array out must be allocated as Complex[nx*(ny/2+1)]. The arrays in
-// and out may coincide, in which case they must both be allocated as
-// Complex[nx*(ny/2+1)]. 
+// and out may coincide, allocated as Complex[nx*(ny/2+1)]. 
 //
 // Out-of-place usage: 
 //
@@ -752,10 +751,10 @@ public:
 // half-plane ky >= 0, using phase sign +1.
 // Before calling fft(), the array in must be allocated as
 // Complex[nx*(ny+1)/2] and the array out must be allocated as
-// double[nx*ny]. The arrays in and out may coincide, in which case they
-// must both be allocated as Complex[nx*(ny/2+1)]. 
+// double[nx*ny]. The arrays in and out may coincide,
+// allocated as Complex[nx*(ny/2+1)]. 
 //
-// Out-of-place usage: 
+// Out-of-place usage (input destroyed):
 //
 //   crfft2d Backward(nx,ny,in,out);
 //   Backward.fft(in,out);      // Origin of Fourier domain at (0,0)
@@ -855,8 +854,7 @@ public:
 // nx times ny times nz real values, using phase sign -1.
 // Before calling fft(), the array in must be allocated as double[nx*ny*nz]
 // and the array out must be allocated as Complex[nx*ny*(nz/2+1)]. The
-// arrays in and out may coincide, in which case they must both be allocated as
-// Complex[nx*ny*(nz/2+1)]. 
+// arrays in and out may coincide, allocated as Complex[nx*ny*(nz/2+1)]. 
 //
 // Out-of-place usage: 
 //
@@ -913,10 +911,10 @@ public:
 // half-plane kz >= 0, using phase sign +1.
 // Before calling fft(), the array in must be allocated as
 // Complex[nx*ny*(nz+1)/2] and the array out must be allocated as
-// double[nx*ny*nz]. The arrays in and out may coincide, in which case they
-// must both be allocated as Complex[nx*ny*(nz/2+1)]. 
+// double[nx*ny*nz]. The arrays in and out may coincide,
+// allocated as Complex[nx*ny*(nz/2+1)]. 
 //
-// Out-of-place usage: 
+// Out-of-place usage (input destroyed):
 //
 //   crfft3d Backward(nx,ny,nz,in,out);
 //   Backward.fft(in,out);      // Origin of Fourier domain at (0,0)
