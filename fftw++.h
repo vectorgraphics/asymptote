@@ -161,12 +161,6 @@ protected:
   fftw_plan plan;
   bool inplace;
   
-  static unsigned int effort;
-  static bool Wise;
-  static const char *WisdomName;
-  static std::ifstream ifWisdom;
-  static std::ofstream ofWisdom;
-  
   unsigned int Dist(unsigned int n, unsigned int stride, unsigned int dist) {
     return dist ? dist : ((stride == 1) ? n : 1);
   }
@@ -209,7 +203,13 @@ protected:
     }
   }
 
+  static std::ifstream ifWisdom;
+  static std::ofstream ofWisdom;
+  static bool Wise;
 public:
+  static unsigned int effort;
+  static const char *WisdomName;
+  
   fftw(unsigned int size, int sign, unsigned int n=0) : 
     size(size), sign(sign), norm(1.0/(n ? n : size)), shift(false), plan(NULL)
   {}
