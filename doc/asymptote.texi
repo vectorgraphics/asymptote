@@ -2396,8 +2396,7 @@ paths @code{p} and @code{q} as a sorted array of real arrays of length 2
 specified by @code{fuzz}, or if @code{fuzz < 0}, to machine precision.
 
 @cindex @code{intersections}
-@item real[] intersections(path p, explicit pair a, explicit pair b,
-                           real fuzz=-1);
+@item real[] intersections(path p, explicit pair a, explicit pair b, real fuzz=-1);
 Return all (unless there are infinitely many) intersection times of path
 @code{p} with the (infinite) line through points @code{a} and @code{b}
 as a sorted array. The intersections returned are guaranteed to be
