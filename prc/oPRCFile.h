@@ -360,14 +360,16 @@ class oPRCFile
 {
   public:
     oPRCFile(std::ostream &os, uint32_t n=1) :
-            number_of_file_structures(n),
-            fileStructures(new PRCFileStructure*[n]),modelFile(this),
-            fout(NULL),output(os) {}
+      number_of_file_structures(n),
+      fileStructures(new PRCFileStructure*[n]),modelFile(this),
+      fout(NULL),output(os) {}
 
     oPRCFile(const std::string &name, uint32_t n=1) :
-            number_of_file_structures(n),
-            fileStructures(new PRCFileStructure*[n]),modelFile(this),
-            fout(new std::ofstream(name.c_str())),output(*fout) {}
+      number_of_file_structures(n),
+      fileStructures(new PRCFileStructure*[n]),modelFile(this),
+      fout(new std::ofstream(name.c_str(),
+                             std::ios::out|std::ios::binary|std::ios::trunc)),
+      output(*fout) {}
 
     ~oPRCFile()
     {
