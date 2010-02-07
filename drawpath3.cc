@@ -27,7 +27,7 @@ bool drawPath3::write(prcfile *out, unsigned int *count, array *, array *)
     controls=new(UseGC) Triple[n+1];
     for(Int i=0; i <= n; ++i)
       store(controls[i],g.point(i));
-    out->add(new PRCline(out,n+1,controls,color,scale3D,buf));
+    out->add(new PRCline(out,n+1,controls,color,scale3D,buf.str().c_str()));
   } else {
     if(name == "")
       buf << "curve-" << count[CURVE]++;
@@ -46,7 +46,7 @@ bool drawPath3::write(prcfile *out, unsigned int *count, array *, array *)
     }
     store(controls[++k],g.precontrol((Int) n));
     store(controls[++k],g.point((Int) n));
-    out->add(new PRCBezierCurve(out,3,m,controls,color,buf));
+    out->add(new PRCBezierCurve(out,3,m,controls,color,buf.str()));
   }
   return true;
 }
@@ -114,7 +114,7 @@ bool drawNurbsPath3::write(prcfile *out, unsigned int *count, array *index,
     return true;
 
   out->add(new PRCcurve(out,degree,n,controls,knots,color,scale3D,
-                        weights != NULL,weights,buf.c_str()));
+                        weights != NULL,weights,buf.str().c_str()));
   
   return true;
 }
