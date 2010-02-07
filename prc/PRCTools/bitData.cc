@@ -188,14 +188,14 @@ double BitByBitData::readDouble()
     b4 |= readBit();
   }
 
-#if defined(WORDS_LITTLE_ENDIAN)
-  *(reinterpret_cast<unsigned char*>(&value)+6) |= b4;
-  unsigned char *lastByte = reinterpret_cast<unsigned char*>(&value)+0;
-  unsigned char *currentByte = reinterpret_cast<unsigned char*>(&value)+5;
-#elif defined(WORDS_BIG_ENDIAN)
+#ifdef WORDS_BIGENDIAN
   *(reinterpret_cast<unsigned char*>(&value)+1) |= b4;
   unsigned char *lastByte = reinterpret_cast<unsigned char*>(&value)+7;
   unsigned char *currentByte = reinterpret_cast<unsigned char*>(&value)+2;
+#else
+  *(reinterpret_cast<unsigned char*>(&value)+6) |= b4;
+  unsigned char *lastByte = reinterpret_cast<unsigned char*>(&value)+0;
+  unsigned char *currentByte = reinterpret_cast<unsigned char*>(&value)+5;
 #endif
 
   for(;MOREBYTE(currentByte,lastByte); NEXTBYTE(currentByte))
