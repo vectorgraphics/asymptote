@@ -25,7 +25,7 @@ class virtualFieldAccess : public access {
   access *getter;
   access *setter;
 
-  // As an optimization could add a 'caller' field, to handle calls to
+  // As an optimization, one could add a 'caller' field, to handle calls to
   // functions such as 'a.push(x)' where a is an array more efficiently.
 public:
   virtualFieldAccess(access *getter, access *setter = 0)
