@@ -76,11 +76,11 @@ void ty::print(ostream& out) const
   }
       
 #define SIGFIELD(Type, name, func)                                      \
-  if (id == symbol::trans(name) &&                                     \
+  if (id == symbol::trans(name) &&                                      \
       equivalent(sig, Type()->getSignature()))                          \
     {                                                                   \
       static trans::virtualFieldAccess a(run::func);                    \
-      static trans::varEntry v(Type(), &a, 0, position());        \
+      static trans::varEntry v(Type(), &a, 0, position());              \
       return &v;                                                        \
     }
 
