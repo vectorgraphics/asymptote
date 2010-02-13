@@ -622,11 +622,6 @@ class mcrfft1d : public fftw {
   unsigned int dist;
 public:
   mcrfft1d(unsigned int nx, unsigned int m=1, unsigned int stride=1,
-           unsigned int dist=0, Complex *in=NULL)
-    : fftw(nx/2*stride+(m-1)*Dist(nx,stride,dist)+1,1,nx),
-      nx(nx), m(m), stride(stride), dist(Dist(nx,stride,dist)) {Setup(in);}
-  
-  mcrfft1d(unsigned int nx, unsigned int m=1, unsigned int stride=1,
            unsigned int dist=0, Complex *in=NULL, double *out=NULL) 
     : fftw((realsize(nx,in,out)-1)*stride+(m-1)*Dist(nx,stride,dist)+1,1,nx),
       nx(nx), m(m), stride(stride), dist(Dist(nx,stride,dist)) {Setup(in,out);}
