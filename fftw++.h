@@ -173,8 +173,13 @@ protected:
     return realsize(n,in,(Complex *) out);
   }
   
+  static std::ifstream ifWisdom;
+  static std::ofstream ofWisdom;
+  static bool Wise;
+  
+public:
   // Shift the Fourier origin to (nx/2,0)
-  void Shift(Complex *data, unsigned int nx, unsigned int ny) {
+  static void Shift(Complex *data, unsigned int nx, unsigned int ny) {
     const unsigned int nyp=ny/2+1;
     Complex *pstop=data+nx*nyp;
     int pinc=2*nyp;
@@ -185,7 +190,7 @@ protected:
   }
 
   // Shift the Fourier origin to (nx/2,ny/2,0)
-  void Shift(Complex *data, unsigned int nx, unsigned int ny,
+  static void Shift(Complex *data, unsigned int nx, unsigned int ny,
              unsigned int nz) {
     const unsigned int nzp=nz/2+1;
     const unsigned int nyzp=ny*nzp;
@@ -203,10 +208,6 @@ protected:
     }
   }
 
-  static std::ifstream ifWisdom;
-  static std::ofstream ofWisdom;
-  static bool Wise;
-public:
   static unsigned int effort;
   static const char *WisdomName;
   
