@@ -31,6 +31,10 @@
 typedef std::complex<double> Complex;
 #endif
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846264338327950288
+#endif
+
 #ifndef HAVE_POSIX_MEMALIGN
 
 #ifdef __GLIBC_PREREQ
@@ -178,32 +182,79 @@ protected:
   static bool Wise;
   
 public:
-  // Shift the Fourier origin to (nx/2,0)
-  static void Shift(Complex *data, unsigned int nx, unsigned int ny) {
+  // Shift the Fourier origin to (nx/2,0) for even nx.
+  static void Shift(Complex *data, unsigned int nx, unsigned int ny,
+                    int sign=0) {
     const unsigned int nyp=ny/2+1;
     Complex *pstop=data+nx*nyp;
-    int pinc=2*nyp;
-    for(Complex *p=data+nyp; p < pstop; p += pinc) {
-      //#pragma ivdep
-      for(unsigned int j=0; j < nyp; j++) p[j]=-p[j];
+    if(nx % 2 == 0) {
+      int pinc=2*nyp;
+      for(Complex *p=data+nyp; p < pstop; p += pinc) {
+        //#pragma ivdep
+        for(unsigned int j=0; j < nyp; j++) p[j]=-p[j];
+      }
+    } else {
+      if(sign) {
+        unsigned int c=nx/2;
+        int pinc=nyp;
+        double arg=2.0*M_PI*c/nx;
+        Complex zeta(cos(arg),sign*sin(arg));
+        Complex zetak=zeta;
+        for(Complex *p=data+nyp; p < pstop; p += pinc) {
+          //#pragma ivdep
+          for(unsigned int j=0; j < nyp; j++) p[j] *= zetak;
+          zetak *= zeta;
+        }
+      } else {
+        std::cerr << "Shift for odd nx must be signed and interleaved" 
+                  << std::endl;
+        exit(1);
+      }
     }
   }
 
-  // Shift the Fourier origin to (nx/2,ny/2,0)
+  // Shift the Fourier origin to (nx/2,ny/2,0).
   static void Shift(Complex *data, unsigned int nx, unsigned int ny,
-             unsigned int nz) {
+                    unsigned int nz, int sign=0) {
     const unsigned int nzp=nz/2+1;
     const unsigned int nyzp=ny*nzp;
-    const unsigned int pinc=2*nzp;
-    Complex *p,*pstop;
-    p=pstop=data;
-    for(unsigned i=0; i < nx; i++) {
-      if(i % 2) p -= nzp;
-      else p += nzp;
-      pstop += nyzp;
-      for(; p < pstop; p += pinc) {
-        //#pragma ivdep
-        for(unsigned int k=0; k < nzp; k++) p[k]=-p[k];
+    if(nx % 2 == 0 && ny % 2 == 0) {
+      const unsigned int pinc=2*nzp;
+      Complex *p,*pstop;
+      p=pstop=data;
+      for(unsigned i=0; i < nx; i++) {
+        if(i % 2) p -= nzp;
+        else p += nzp;
+        pstop += nyzp;
+        for(; p < pstop; p += pinc) {
+          //#pragma ivdep
+          for(unsigned int k=0; k < nzp; k++) p[k]=-p[k];
+        }
+      }
+    } else {
+      if(sign) {
+        unsigned int cx=nx/2;
+        unsigned int cy=ny/2;
+        double twopi=2.0*M_PI;
+        double argx=twopi*cx/nx;
+        Complex zetax(cos(argx),sign*sin(argx));
+        double argy=twopi*cy/ny;
+        Complex zetay(cos(argy),sign*sin(argy));
+        Complex zetak(1.0,0.0);
+        for(unsigned i=0; i < nx; i++) {
+          Complex *datai=data+nyzp*i;
+          for(unsigned j=0; j < ny; j++) {
+            //#pragma ivdep
+            Complex *dataij=datai+nzp*j;
+            for(unsigned int k=0; k < nzp; k++) dataij[k] *= zetak;
+            zetak *= zetay;
+          }
+          zetak *= zetax;
+        }
+      } else {
+        std::cerr << "Shift for odd nx or ny must be signed and interleaved" 
+                  << std::endl;
+        exit(1);
       }
     }
   }

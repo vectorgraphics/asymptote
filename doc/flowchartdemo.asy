@@ -18,7 +18,7 @@ draw(block5);
 
 add(new void(picture pic, transform t) {
     blockconnector operator --=blockconnector(pic,t);
-
+    //    draw(pic,block1.right(t)--block2.top(t));
     block1--Right--Down--Arrow--block2;
     block2--Label("Yes",0.5,NW)--Left--Down--Arrow--block3;
     block2--Right--Label("No",0.5,NE)--Down--Arrow--block4;

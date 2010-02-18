@@ -74,6 +74,7 @@ public:
     beginshade(out);
     writeclippath(out);
     if(stroke) strokepath(out);
+//    out->endclip(pentype.Fillrule());
     shade(out);
     out->grestore();
     return true;
