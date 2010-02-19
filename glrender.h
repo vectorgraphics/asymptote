@@ -9,7 +9,7 @@
 #include "common.h"
 #include "triple.h"
 
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
 
 #include <csignal>
 

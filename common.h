@@ -14,8 +14,8 @@
 #include "config.h"
 #endif
 
-#if defined(HAVE_LIBGLU) && defined(HAVE_LIBGLUT)
-#define HAVE_LIBGL
+#if defined(HAVE_LIBGL) && defined(HAVE_LIBGLU) && defined(HAVE_LIBGLUT)
+#define HAVE_GL
 #endif
 
 #ifdef HAVE_LIBPTHREAD

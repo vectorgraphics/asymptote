@@ -11,7 +11,7 @@
 
 #include "common.h"
 
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
 
 // For CYGWIN
 #ifndef FGAPI

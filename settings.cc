@@ -73,7 +73,7 @@ namespace settings {
   
 using camp::pair;
   
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
 const bool haveglut=true;  
 #else
 const bool haveglut=false;
@@ -81,6 +81,8 @@ const bool haveglut=false;
   
 mode_t mask;
   
+string systemDir=ASYMPTOTE_SYSDIR;
+
 #ifndef __CYGWIN__
   
 bool msdos=false;
@@ -95,7 +97,6 @@ string defaultPDFViewer="acroread";
 string defaultGhostscript="gs";
 string defaultDisplay="display";
 string defaultAnimate="animate";
-string systemDir=ASYMPTOTE_SYSDIR;
 string docdir=ASYMPTOTE_DOCDIR;
 void queryRegistry() {}
 const string dirsep="/";
@@ -114,7 +115,6 @@ string defaultGhostscript="gswin32c.exe";
 string defaultDisplay="cmd";
 //string defaultAnimate="animate";
 string defaultAnimate="cmd";
-string systemDir=ASYMPTOTE_SYSDIR;
 string docdir;
 const string dirsep="\\";
   

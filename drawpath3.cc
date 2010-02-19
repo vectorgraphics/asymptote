@@ -54,7 +54,7 @@ bool drawPath3::write(prcfile *out, unsigned int *count, array *, array *)
 void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
                        double, bool transparent)
 {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   Int n=g.length();
   if(n == 0 || invisible || ((color.A < 1.0) ^ transparent))
     return;
@@ -176,7 +176,7 @@ void drawNurbsPath3::ratio(pair &b, double (*m)(double, double), double,
 
 void drawNurbsPath3::displacement()
 {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   size_t nknots=degree+n+1;
   if(Controls == NULL) {
     Controls=new(UseGC)  GLfloat[(weights ? 4 : 3)*n];
@@ -197,7 +197,7 @@ void drawNurbsPath3::displacement()
 void drawNurbsPath3::render(GLUnurbs *nurb, double, const triple&,
                             const triple&, double, bool transparent)
 {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   if(invisible || ((color.A < 1.0) ^ transparent))
     return;
   

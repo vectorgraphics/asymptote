@@ -16,7 +16,7 @@ namespace camp {
 
 enum Interaction {EMBEDDED=0,BILLBOARD};
 
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j);
 #endif  
   
@@ -42,7 +42,7 @@ protected:
   
   triple Min,Max;
   
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   GLfloat *colors;
   triple d; // Maximum deviation of surface from a quadrilateral.
   triple dperp;
@@ -95,7 +95,7 @@ public:
     emissive=rgba(vm::read<camp::pen>(p,2));
     specular=rgba(vm::read<camp::pen>(p,3));
     
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
     int size=checkArray(&pens);
     if(size > 0) {
       if(size != 4) reportError(wrongsize);
@@ -131,7 +131,7 @@ public:
     center=run::operator *(t,s->center);
     normal=run::multshiftless(t,s->normal);
     
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
     if(s->colors) {
       colors=new(UseGC) GLfloat[16];
       for(int i=0; i < 16; ++i)
@@ -180,7 +180,7 @@ protected:
   
   triple Min,Max;
   
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   GLfloat *colors;
   GLfloat *Controls;
   GLfloat *uKnots;
@@ -249,7 +249,7 @@ public:
     emissive=rgba(vm::read<camp::pen>(p,2));
     specular=rgba(vm::read<camp::pen>(p,3));
     
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
     Controls=NULL;
     int size=checkArray(&pens);
     if(size > 0) {
@@ -299,7 +299,7 @@ public:
     for(size_t i=0; i < nvknots; ++i)
       vknots[i]=s->vknots[i];
     
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
     Controls=NULL;
     if(s->colors) {
       colors=new(UseGC) GLfloat[16];

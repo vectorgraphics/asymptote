@@ -14,7 +14,7 @@ const triple drawSurface::zero;
 
 using vm::array;
 
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
 {
   pen p=vm::read<camp::pen>(pens,j);
@@ -204,7 +204,7 @@ inline triple displacement(const Triple& z0, const Triple& c0,
 
 void drawSurface::displacement()
 {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   if(normal != zero) {
     d=zero;
     
@@ -238,7 +238,7 @@ inline double fraction(const triple& d, const triple& size)
              fraction(d.getz(),size.getz()));
 }
 
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
 struct billboard 
 {
   triple u,v,w;
@@ -271,7 +271,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
                          const triple& Min, const triple& Max,
                          double perspective, bool transparent)
 {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
                     : diffuse.A < 1.0) ^ transparent)) return;
   double s;
@@ -520,7 +520,7 @@ void drawNurbs::ratio(pair &b, double (*m)(double, double), bool &first)
 
 void drawNurbs::displacement()
 {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   size_t n=nu*nv;
   size_t nuknots=udegree+nu+1;
   size_t nvknots=vdegree+nv+1;
@@ -549,7 +549,7 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
                        const triple& Min, const triple& Max,
                        double perspective, bool transparent)
 {
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
                     : diffuse.A < 1.0) ^ transparent)) return;
   

@@ -217,6 +217,7 @@ AC_MSG_ERROR([*** Please install libz on your system ***]))
 AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([sigsegv], [stackoverflow_install_handler])
 AC_CHECK_LIB([rt], [sched_yield])
+AC_CHECK_LIB([GL], [glDepthMask])
 
 AC_ARG_ENABLE(readline,
 [AS_HELP_STRING(--enable-readline[[[=yes]]],enable GNU Readline Library)])

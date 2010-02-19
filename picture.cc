@@ -929,7 +929,7 @@ Communicate com;
 
 void glrenderWrapper()
 {
-#ifdef HAVE_LIBGL  
+#ifdef HAVE_GL  
 #ifdef HAVE_LIBPTHREAD
   wait(initSignal,initLock);
   endwait(initSignal,initLock);
@@ -950,7 +950,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 {
   if(getSetting<bool>("interrupt"))
     return true;
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   bounds3();
   
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {

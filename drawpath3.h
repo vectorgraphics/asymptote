@@ -70,7 +70,7 @@ protected:
   string name;
   triple Min,Max;
   
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   GLfloat *Controls;
   GLfloat *Knots;
 #endif  
@@ -109,7 +109,7 @@ public:
     
     knots=run::copyArrayC(knot,0,NoGC);
     
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
     Controls=NULL;
 #endif  
   }
@@ -139,7 +139,7 @@ public:
     for(size_t i=0; i < nknots; ++i)
       knots[i]=s->knots[i];
     
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
     Controls=NULL;
 #endif    
   }

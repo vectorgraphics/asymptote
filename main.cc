@@ -61,7 +61,7 @@ int sigsegv_handler (void *, int emergency)
 {
   if(!emergency) return 0; // Really a stack overflow
   em.runtime(vm::getPos());
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   if(gl::glthread)
     cerr << "Stack overflow or segmentation fault: rerun with -nothreads"
          << endl;
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
   }
   
   Args args(argc,argv);
-#ifdef HAVE_LIBGL
+#ifdef HAVE_GL
   gl::glthread=getSetting<bool>("threads");
 #ifdef HAVE_LIBPTHREAD
   
