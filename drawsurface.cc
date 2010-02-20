@@ -497,7 +497,7 @@ drawElement *drawNurbs::transformed(const array& t)
   return new drawNurbs(t,this);
 }
 
-void drawNurbs::ratio(pair &b, double (*m)(double, double), bool &first)
+void drawNurbs::ratio(pair &b, double (*m)(double, double), double, bool &first)
 {
   size_t n=nu*nv;
   if(first) {

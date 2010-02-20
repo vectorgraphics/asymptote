@@ -21,7 +21,7 @@ public:
 
   bool begingroup() {return true;}
   
-  bool write(prcfile *out) {
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *) {
     out->begingroup(name.c_str());
     return true;
   }
@@ -36,7 +36,7 @@ public:
 
   bool endgroup() {return true;}
   
-  bool write(prcfile *out) {
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *) {
     out->endgroup();
     return true;
   }

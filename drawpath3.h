@@ -41,7 +41,7 @@ public:
     B.add(Max);
   }
   
-  void ratio(pair &b, double (*m)(double, double), bool &first) {
+  void ratio(pair &b, double (*m)(double, double), double, bool &first) {
     pair z=g.ratio(m);
     if(first) {
       b=z;
