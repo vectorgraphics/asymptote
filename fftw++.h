@@ -32,7 +32,7 @@ typedef std::complex<double> Complex;
 #endif
 
 #ifndef M_PI
-#define M_PI 3.14159265358979323846264338327950288
+#define M_PI acos(-1.0)
 #endif
 
 #ifndef HAVE_POSIX_MEMALIGN
