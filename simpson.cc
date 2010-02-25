@@ -15,7 +15,7 @@ typedef struct {
 bool                            // Returns true iff successful.
 simpson(double& integral,       // Approximate value of the integral.
         double (*f)(double),    // Pointer to function to be integrated.
-        double a, double b,     // Lower, upper limits of integration (a <= b).
+        double a, double b,     // Lower, upper limits of integration.
         double acc,             // Desired relative accuracy of integral.
                                 // Try to make |error| <= acc*abs(integral).
         double dxmax)           // Maximum limit on the width of a subinterval
