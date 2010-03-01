@@ -279,3 +279,13 @@ Int NOT(Int a)
 {
   return ~a;
 }
+
+Int CLZ(Int a) 
+{
+  return __builtin_clz(a);
+}
+
+Int CTZ(Int a) 
+{
+  return __builtin_ctz(a);
+}

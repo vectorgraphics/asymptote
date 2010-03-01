@@ -4282,8 +4282,12 @@ for nonintegral built-in arithmetic types @code{T}. If @code{a} and
 @cindex @code{OR}
 @cindex @code{XOR}
 @cindex @code{NOT}
+@cindex @code{CLZ}
+@cindex @code{CTZ}
 @code{Asymptote} also defines bitwise functions @code{int AND(int,int)},
-@code{int OR(int,int)}, @code{int XOR(int,int)}, and @code{int NOT(int)}.
+@code{int OR(int,int)}, @code{int XOR(int,int)}, @code{int NOT(int)},
+@code{int CLZ(int)} (count leading zeros), and @code{int CTZ(int)}
+(count trailing zeros).
 
 @node Self & prefix operators
 @subsection Self & prefix operators
