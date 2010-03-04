@@ -937,7 +937,7 @@ segment[][] contouredges(real[][] f, real[] c, int subsample=1)
   // Find contours and follow them
   for(int i=0; i < nx; ++i) {
     boxdata[] bdi=bd[i];
-    for(int j=0; j < nx; ++j) {
+    for(int j=0; j < ny; ++j) {
       boxdata bd0=bdi[j];
       if(bd0.count() == 0) continue;
       for(int k=0; k < bd0.count(); ++k) {
