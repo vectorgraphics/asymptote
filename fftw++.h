@@ -78,6 +78,7 @@ inline int posix_memalign0(void **memptr, size_t alignment, size_t size)
   *memptr=p;
   return 0;
 }
+
 inline void free0(void *p)
 {
   if(p) free(*((void **) p-1));
@@ -115,14 +116,15 @@ inline void deleteAlign(T *v, size_t len)
 
 #endif
 
-inline Complex *FFTWComplex(size_t size)
+inline Complex *ComplexAlign(size_t size)
 {
   Complex *v;
   newAlign(v,size,sizeof(Complex));
   return v;
 }
 
-inline double *FFTWdouble(size_t size)
+template<class T>
+inline double *doubleAlign(size_t size)
 {
   double *v;
   newAlign(v,size,sizeof(Complex));
@@ -130,7 +132,7 @@ inline double *FFTWdouble(size_t size)
 }
 
 template<class T>
-inline void FFTWdelete(T *p)
+inline void deleteAlign(T *p)
 {
 #ifdef HAVE_POSIX_MEMALIGN
   free(p);
@@ -138,6 +140,11 @@ inline void FFTWdelete(T *p)
   free0(p);
 #endif  
 }
+
+// Obsolete names:
+#define FFTWComplex ComplexAlign
+#define FFTWdouble doubleAlign
+#define FFTWdelete deleteAlign
 
 inline void fftwpp_export_wisdom(void (*emitter)(char c, std::ofstream& s),
                                  std::ofstream& s)
@@ -279,7 +286,7 @@ public:
   void Setup(Complex *in, Complex *out=NULL) {
     if(!Wise) LoadWisdom();
     bool alloc=!in;
-    if(alloc) in=FFTWComplex(size);
+    if(alloc) in=ComplexAlign(size);
 #ifndef NO_CHECK_ALIGN    
     CheckAlign(in,"constructor input");
     if(out) CheckAlign(out,"constructor output");
