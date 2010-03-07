@@ -1690,7 +1690,7 @@ pairarray* fft(pairarray *a, Int sign=1)
       Complex z=f[i];
       (*c)[i]=pair(z.real(),z.imag());
     }
-    FFTWdelete(f);
+    deleteAlign(f);
   }
 #else
   unused(&n);
