@@ -162,7 +162,7 @@ if test "x$ac_cv_use_gc" != "xno" ; then
       ;;
    *)
       GCDIR=$ac_cv_use_gc
-      GCOPTIONS="--disable-shared "
+      GCOPTIONS="--disable-shared --enable-large-config"
       AC_MSG_NOTICE([enabling local $GCNAME $GCDIR])
       GCLIB="\$(GC)/.libs/libgc.a"
       INCL="-I\$(GC)/include"
