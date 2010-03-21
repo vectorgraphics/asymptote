@@ -244,17 +244,31 @@ real adjust(real h, real error, real tolmin, real tolmax, RKTableau tableau)
   return h;
 }
 
+struct solution
+{
+  real[] t;
+  real[] y;
+}
+
+void write(solution S) 
+{
+  for(int i=0; i < S.t.length; ++i)
+    write(S.t[i],S.y[i]);
+}
+
 // Integrate dy/dt+cy=f(t,y) from a to b using initial conditions y,
 // specifying either the step size h or the number of steps n.
-real[] integrate(real y, real c=0, real g(real t, real y), real a, real b=a,
-                 real h=0, int n=0, bool dynamic=false, real tolmin=0,
-                 real tolmax=0, real dtmin=0, real dtmax=realMax,
-                 RKTableau tableau, bool verbose=false)
+solution integrate(real y, real c=0, real g(real t, real y), real a, real b=a,
+                   real h=0, int n=0, bool dynamic=false, real tolmin=0,
+                   real tolmax=0, real dtmin=0, real dtmax=realMax,
+                   RKTableau tableau, bool verbose=false)
 {
-  real[] Y={y};
+  solution S;
+  S.t=new real[] {a};
+  S.y=new real[]{y};
 
   if(h == 0) {
-    if(b == a) return Y;
+    if(b == a) return S;
     if(n == 0) abort("Either n or h must be specified");
     else h=(b-a)/n;
   }
@@ -302,30 +316,49 @@ real[] integrate(real y, real c=0, real g(real t, real y), real a, real b=a,
       if(h >= dt) {
         t += dt;
         y=y0+highOrder;
-        Y.push(y);
+        S.t.push(t);
+        S.y.push(y);
         f0=f1;
       }
       h=min(max(h,dtmin),dtmax);
     } else {
       t += h;
       y=y0+highOrder;
-      Y.push(y);
+      S.y.push(y);
     }
   }
-  return Y;
+  return S;
+}
+
+struct Solution
+{
+  real[] t;
+  real[][] y;
+}
+
+void write(Solution S) 
+{
+  for(int i=0; i < S.t.length; ++i) {
+    write(S.t[i],tab);
+    for(real y : S.y[i])
+      write(y,tab);
+    write();
+  }
 }
 
 // Integrate a set of equations, dy/dt=f(t,y), from a to b using initial
 // conditions y, specifying either the step size h or the number of steps n.
-real[][] integrate(real[] y, real[] f(real t, real[] y), real a, real b=a,
+Solution integrate(real[] y, real[] f(real t, real[] y), real a, real b=a,
                    real h=0, int n=0, bool dynamic=false,
                    real tolmin=0, real tolmax=0, real dtmin=0,
                    real dtmax=realMax, RKTableau tableau, bool verbose=false)
 {
-  real[][] Y={copy(y)};
+  Solution S;
+  S.t=new real[] {a};
+  S.y=new real[][] {copy(y)};
       
   if(h == 0) {
-    if(b == a) return Y;
+    if(b == a) return S;
     if(n == 0) abort("Either n or h must be specified");
     else h=(b-a)/n;
   }
@@ -366,17 +399,19 @@ real[][] integrate(real[] y, real[] f(real t, real[] y), real a, real b=a,
       if(h >= dt) {
         t += dt;
         y += highOrder;
-        Y.push(y);
+        S.t.push(t);
+        S.y.push(y);
         f0=f1;
       }
       h=min(max(h,dtmin),dtmax);
     } else {
       t += h;
       y += highOrder;
-      Y.push(y);
+      S.t.push(t);
+      S.y.push(y);
     }
   }
-  return Y;
+  return S;
 }
 
 real[][] finiteDifferenceJacobian(real[] f(real[]), real[] t,
@@ -408,12 +443,14 @@ real[] newton(int iterations=100, real[] f(real[]), real[][] jacobian(real[]),
 }
 
 real[] solveBVP(real[] f(real, real[]), real a, real b=a, real h=0, int n=0,
+                bool dynamic=false, real tolmin=0, real tolmax=0, real dtmin=0,
+                real dtmax=realMax, RKTableau tableau, bool verbose=false,
                 real[] initial(real[]), real[] discrepancy(real[]),
-                real[] guess, RKTableau tableau, int iterations=100)
+                real[] guess, int iterations=100)
 {
   real[] g(real[] t) {
-    real[][] y=integrate(initial(t),f,a,b,h,n,tableau);
-    return discrepancy(y[y.length-1]);
+    real[][] y=integrate(initial(t),f,a,b,h,n,dynamic,tolmin,tolmax,dtmin,dtmax,
+                         tableau,verbose).y;return discrepancy(y[y.length-1]);
   }
   real[][] jacobian(real[] t) {return finiteDifferenceJacobian(g,t);}
   return initial(newton(iterations,g,jacobian,guess));

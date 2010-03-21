@@ -8,7 +8,7 @@ write();
 write("system integration test");
 real[] f(real t, real[] x) {return new real[] {x[1],1.5*x[0]^2};}
 write(integrate(new real[] {4,-8},f,0,1,n=100,dynamic=true,tolmin=0.0002,
-                tolmax=0.0004,RK3BS,verbose=true));
+                tolmax=0.0004,RK3BS,verbose=false));
 write();
 
 write("simultaneous newton test");
@@ -33,12 +33,10 @@ real[] discrepancy(real[] x) {
   return new real[] {x[0]-1};
 }
 
-write(solveBVP(f,0,1,n=10,initial,discrepancy,guess=new real[] {-30},RK4,
-               iterations=10));
+real[] w0=solveBVP(f,0,1,n=10,dynamic=true,tolmin=0.0002,tolmax=0.0004,RK3BS,
+                   initial,discrepancy,guess=new real[] {-30},iterations=10);
+write(w0);
 write();
-write(solveBVP(f,0,1,n=100,initial,discrepancy,guess=new real[] {-30},RK4,
-               iterations=10));
-write();
-write(solveBVP(f,0,1,n=10000,initial,discrepancy,guess=new real[] {-30},RK4,
-               iterations=10));
+write(integrate(w0,f,0,1,n=10,dynamic=true,tolmin=0.0002,tolmax=0.0004,RK3BS,
+                verbose=false));
 write();
