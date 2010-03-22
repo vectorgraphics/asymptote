@@ -29,8 +29,9 @@ real[] initial(real[] x) {
 }
 
 real[] discrepancy(real[] x) {
-  write("Error: ",x[0]-1);
-  return new real[] {x[0]-1};
+  real error=x[0]-1;
+  write("Error: ",diff);
+  return new real[] {error};
 }
 
 real[] w0=solveBVP(f,0,1,n=10,dynamic=true,tolmin=0.0002,tolmax=0.0004,RK3BS,

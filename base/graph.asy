@@ -825,14 +825,19 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
 typedef tickvalues tickmodifier(tickvalues);
 tickvalues None(tickvalues v) {return v;}
 
-tickmodifier OmitTick(... real[] x) {
+// Tickmodifier that removes all ticks in the intervals [a[i],b[i]].
+tickmodifier OmitTickIntervals(real[] a, real[] b) {
   return new tickvalues(tickvalues v) { 
-    void omit(real[] a) {
-      if(a.length != 0) {
-        real norm=max(abs(a));
-        for(int i=0; i < x.length; ++i) {
-          int j=find(abs(a-x[i]) < zerotickfuzz*norm);
-          if(j >= 0) a.delete(j);
+    if(a.length != b.length) abort(differentlengths);
+    void omit(real[] A) {
+      if(A.length != 0) {
+        real norm=max(abs(A));
+        for(int i=0; i < a.length; ++i) {
+          int j;
+          while((j=find(A > a[i]-zerotickfuzz*norm
+                        & A < b[i]+zerotickfuzz*norm)) >= 0) {
+            A.delete(j);
+          }
         }
       }
     }
@@ -842,19 +847,19 @@ tickmodifier OmitTick(... real[] x) {
   };
 }
 
+// Tickmodifier that removes all ticks in the interval [a,b].
+tickmodifier OmitTickInterval(real a, real b) {
+  return OmitTickIntervals(new real[] {a}, new real[] {b});
+}
+
+// Tickmodifier that removes the specified ticks.
+tickmodifier OmitTick(... real[] x) {
+  return OmitTickIntervals(x,x);
+}
+
 tickmodifier NoZero=OmitTick(0);
 
-// Tickmodifier that removes all major ticks in the interval [a,b].
-tickmodifier Break(real a, real b) {
-  return new tickvalues(tickvalues v) {
-    real[] V=v.major;
-    real[] major;
-    for(int i=0; i < V.length; ++i)
-      if(V[i] < a-epsilon || V[i] > b+epsilon) major.push(V[i]);
-    v.major=major;
-    return v;
-  };
-}
+tickmodifier Break(real, real)=OmitTickInterval;
 
 // Automatic tick construction routine.
 ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,

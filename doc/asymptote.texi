@@ -6739,8 +6739,13 @@ an optional pen used to draw the minor ticks.
 
 @end table
 
-For convenience, the predefined tickmodifier @code{OmitTick(... real[] x)}
-tickmodifier can be used to remove specific auto-generated ticks and
+@cindex @code{OmitTick}
+@cindex @code{OmitTickInterval}
+@cindex @code{OmitTickIntervals}
+For convenience, the predefined tickmodifiers @code{OmitTick(... real[] x)},
+@code{OmitTickInterval(real a, real b)}, and
+@code{OmitTickIntervals(real[] a, real[] b)}
+can be used to remove specific auto-generated ticks and
 their labels. The @code{OmitFormat(string s=defaultformat ... real[] x)}
 ticklabel can be used to remove specific tick labels but not the
 corresponding ticks. The tickmodifier @code{NoZero} is an abbreviation for
