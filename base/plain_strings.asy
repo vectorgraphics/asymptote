@@ -169,10 +169,10 @@ string graphic(string name, string options="")
 string minipage(string s, real width=100bp)
 {
   if(latex())
-    return "\begin{minipage}{"+(string) (width*pt)+"pt}"+s+"\end{minipage}";
+    return "\begin{minipage}{"+(string) (width/pt)+"pt}"+s+"\end{minipage}";
   if(settings.tex != "context")
     notimplemented("minipage");
-  return "\startframedtext[none][frame=off,width="+(string) (width*pt)+
+  return "\startframedtext[none][frame=off,width="+(string) (width/pt)+
     "pt]"+s+"\stopframedtext";
 }
 

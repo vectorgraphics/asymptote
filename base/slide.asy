@@ -526,8 +526,8 @@ void item(string s, pen p=itempen, bool step=itemstep)
   frame b;
   label(b,bullet,(0,0),p);
   real bulletwidth=max(b).x-min(b).x;
-  remark(bullet+"\hangindent"+(string) bulletwidth+"pt$\,$"+s,p,
-         -bulletwidth*pt,step=step);
+  remark(bullet+"\hangindent"+(string) bulletwidth/pt+"pt$\,$"+s,p,
+         -bulletwidth,step=step);
 }
 
 void subitem(string s, pen p=itempen)

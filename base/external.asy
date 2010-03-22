@@ -20,8 +20,8 @@ string embed(string name, string options="", real width=0, real height=0,
       atexit(exitfunction);
     }
   }
-  if(width != 0) options += ", width="+(string) (width*pt)+"pt"; 
-  if(height != 0) options +=", height="+(string) (height*pt)+"pt"; 
+  if(width != 0) options += ", width="+(string) (width/pt)+"pt"; 
+  if(height != 0) options +=", height="+(string) (height/pt)+"pt"; 
   return "\href{run:"+name+"}{"+graphic(image,options)+"}";
 }
 
