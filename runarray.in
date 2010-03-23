@@ -1662,7 +1662,7 @@ real simpson(callableReal *f, real a, real b, real acc=DBL_EPSILON,
              real dxmax=0)
 {
   real integral;
-  if(dxmax <= 0) dxmax=abs(b-a);
+  if(dxmax <= 0) dxmax=fabs(b-a);
   Func=f;
   FuncStack=Stack;
   if(!simpson(integral,wrapFunction,a,b,acc,dxmax))
