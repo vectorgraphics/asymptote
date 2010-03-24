@@ -1277,7 +1277,7 @@ struct picture {
 
   }
 
-  // Calculate additional scaling required if only an approximate thisture
+  // Calculate additional scaling required if only an approximate picture
   // size estimate is available.
   transform3 scale3(frame f, real xsize3=this.xsize3,
                     real ysize3=this.ysize3, real zsize3=this.zsize3,
