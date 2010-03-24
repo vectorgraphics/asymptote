@@ -355,6 +355,7 @@ pair point(frame f, pair dir)
 path[] align(path[] g, transform t=identity(), pair position,
              pair align, pen p=currentpen)
 {
+  if(g.length == 0) return g;
   pair m=min(g);
   pair M=max(g);
   pair dir=rectify(inverse(t)*-align);

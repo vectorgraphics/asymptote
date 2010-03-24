@@ -1343,7 +1343,7 @@ triple rectify(triple dir)
 path3[] align(path3[] g, transform3 t=identity4, triple position,
               triple align, pen p=currentpen)
 {
-  if(determinant(t) == 0) return g;
+  if(determinant(t) == 0 || g.length == 0) return g;
   triple m=min(g);
   triple dir=rectify(inverse(t)*-align);
   triple a=m+realmult(dir,max(g)-m);
@@ -1353,7 +1353,7 @@ path3[] align(path3[] g, transform3 t=identity4, triple position,
 surface align(surface s, transform3 t=identity4, triple position,
               triple align, pen p=currentpen)
 {
-  if(determinant(t) == 0) return s;
+  if(determinant(t) == 0 || s.s.length == 0) return s;
   triple m=min(s);
   triple dir=rectify(inverse(t)*-align);
   triple a=m+realmult(dir,max(s)-m);

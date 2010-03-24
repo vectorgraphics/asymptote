@@ -149,9 +149,11 @@ void labelaxis(picture pic, transform3 T, Label L, path3 g,
     },exact=false);
 
   path3[] G=path3(texpath(L));
-  G=L.align.is3D ? align(G,O,align,L.p) : L.T3*G;
-  triple v=point(g,relative(L,g));
-  pic.addBox(v,v,min(G),max(G));
+  if(G.length > 0) {
+    G=L.align.is3D ? align(G,O,align,L.p) : L.T3*G;
+    triple v=point(g,relative(L,g));
+    pic.addBox(v,v,min(G),max(G));
+  }
 }
 
 // Tick construction routine for a user-specified array of tick values.
