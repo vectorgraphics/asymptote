@@ -123,7 +123,6 @@ inline Complex *ComplexAlign(size_t size)
   return v;
 }
 
-template<class T>
 inline double *doubleAlign(size_t size)
 {
   double *v;
