@@ -333,7 +333,7 @@ public:
     if(!out) out=in;
 #endif    
     if(inplace ^ (out == in)) {
-      std::cerr << "ERROR: fft constructor and call must be either both in place or out of place" << std::endl; 
+      std::cerr << "ERROR: fft constructor and call must be both in place or both out of place" << std::endl; 
       exit(1);
     }
   }

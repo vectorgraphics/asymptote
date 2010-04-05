@@ -1844,10 +1844,11 @@ path3 Arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW,
 
   real phi1=radians(longitude(v1,warn=false));
   real phi2=radians(longitude(v2,warn=false));
-  if(phi1 >= phi2 && direction) phi1 -= 2pi;
-  if(phi2 >= phi1 && !direction) phi2 -= 2pi;
+  if(direction) {
+    if(phi1 >= phi2) phi1 -= 2pi;
+  } else if(phi2 >= phi1) phi2 -= 2pi;
 
-  real piby2=pi/2;
+  static real piby2=pi/2;
   return shift(c)*T*polargraph(new real(real theta, real phi) {return r;},
                                new real(real t) {return piby2;},
                                new real(real t) {return interp(phi1,phi2,t);},
@@ -1871,5 +1872,10 @@ path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
 // True circle
 path3 Circle(triple c, real r, triple normal=Z, int n=nCircle)
 {
-  return Arc(c,r,90,0,90,360,normal,n)&cycle;
+  static real piby2=pi/2;
+  return shift(c)*align(unit(normal))*
+    polargraph(new real(real theta, real phi) {return r;},
+               new real(real t) {return piby2;},
+               new real(real t) {return interp(0,2pi,t);},n,operator ..);
+
 }

@@ -1359,8 +1359,9 @@ triple normal(path3 p)
     if(abs(a) >= fuzz && abs(b) >= fuzz) {
       triple n=cross(unit(a),unit(b));
       real absn=abs(n);
+      if(absn < sqrtEpsilon) return false;
       n=unit(n);
-      if(absnormal > 0 && absn > sqrtEpsilon &&
+      if(absnormal > 0 &&
          abs(normal-n) > sqrtEpsilon && abs(normal+n) > sqrtEpsilon)
         return true;
       else {
@@ -1945,8 +1946,9 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
   real t1=t1[0];
   real t2=t2[0];
   int n=length(unitcircle3);
-  if(t1 >= t2 && direction) t1 -= n;
-  if(t2 >= t1 && !direction) t2 -= n;
+  if(direction) {
+    if (t1 >= t2) t1 -= n;
+  } else if(t2 >= t1) t2 -= n;
 
   path3 p=subpath(unitcircle3,t1,t2);
   if(align) p=T*p;

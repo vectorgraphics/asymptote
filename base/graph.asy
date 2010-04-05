@@ -2208,8 +2208,9 @@ path Arc(pair c, real r, real angle1, real angle2, bool direction,
 {
   angle1=radians(angle1);
   angle2=radians(angle2);
-  if(angle1 >= angle2 && direction) angle1 -= 2pi;
-  if(angle2 >= angle1 && !direction) angle2 -= 2pi;
+  if(direction) {
+    if(angle1 >= angle2) angle1 -= 2pi;
+  } else if(angle2 >= angle1) angle2 -= 2pi;
   return shift(c)*polargraph(new real(real t){return r;},angle1,angle2,n,
                              operator ..);
 }

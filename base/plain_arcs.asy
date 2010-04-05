@@ -23,8 +23,9 @@ path arc(pair c, explicit pair z1, explicit pair z2, bool direction=CCW)
   real t1=intersect(unitcircle,(0,0)--2*z1)[0];
   real t2=intersect(unitcircle,(0,0)--2*z2)[0];
   static int n=length(unitcircle);
-  if(t1 >= t2 && direction) t1 -= n;
-  if(t2 >= t1 && !direction) t2 -= n;
+  if(direction) {
+    if (t1 >= t2) t1 -= n;
+  } else if(t2 >= t1) t2 -= n;
   return shift(c)*scale(r)*subpath(unitcircle,t1,t2);
 }
 
