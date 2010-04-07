@@ -126,7 +126,7 @@ void labelaxis(picture pic, transform3 T, Label L, path3 g,
         locate1.dir(T,g,locate,t);
         triple pathdir=locate1.pathdir;
 
-        triple perp=cross(pathdir,P.vector());
+        triple perp=cross(pathdir,P.normal);
         if(align == O)
           align=unit(sgn(dot(sign*locate1.dir,perp))*perp);
         path[] g=project(box(T*m,T*M),P);
@@ -511,7 +511,7 @@ real ztrans(transform3 t, real z)
 
 private triple defaultdir(triple X, triple Y, triple Z, bool opposite=false,
                           projection P) {
-  triple u=cross(P.vector(),Z);
+  triple u=cross(P.normal,Z);
   return abs(dot(u,X)) > abs(dot(u,Y)) ? -X : (opposite ? Y : -Y);
 }
 
@@ -966,7 +966,7 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
   
   bool back=false;
   if(axis.type == Both) {
-    triple v=currentprojection.vector();
+    triple v=currentprojection.normal;
     back=dot((0,pic.userMax.y-pic.userMin.y,0),v)*sgn(v.z) > 0;
   }
 
@@ -1041,7 +1041,7 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
   
   bool back=false;
   if(axis.type == Both) {
-    triple v=currentprojection.vector();
+    triple v=currentprojection.normal;
     back=dot((pic.userMax.x-pic.userMin.x,0,0),v)*sgn(v.z) > 0;
   }
 

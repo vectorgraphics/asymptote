@@ -181,7 +181,7 @@ vertex[][] contour3(triple[][][] v, real[][][] f,
           addval(w.kpb0,w.kpb1,w.kpb2,val2,w.v);
         }
 
-        triple dir=P.vector();
+        triple dir=P.normal;
 
         void addnormals(weighted[] pts) {
           triple vec2=pts[1].v-pts[0].v;

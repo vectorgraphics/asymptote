@@ -89,7 +89,7 @@ struct arrowhead3
     if(filltype == null) filltype=FillDraw(p);
     bool draw=filltype.type != filltype.Fill;
     triple v=point(s,length(s));
-    triple N=normal == O ? P.vector() : normal;
+    triple N=normal == O ? P.normal : normal;
     triple w=unit(v-point(s,0));
     transform3 t=transform3(w,unit(cross(w,N)));
     path3[] H=t*path3(h);
@@ -529,11 +529,11 @@ void bar(picture pic, triple a, triple d, triple perp=O,
   pic.add(new void(frame f, transform3 t, picture pic2, projection P) {
       picture opic;
       triple A=t*a;
-      triple v=d == O ? abs(perp)*unit(cross(P.vector(),perp)) : d;
+      triple v=d == O ? abs(perp)*unit(cross(P.normal,perp)) : d;
       draw(opic,A-v--A+v,p,light);
       add(f,opic.fit3(identity4,pic2,P));
     });
-  triple v=d == O ? cross(currentprojection.vector(),perp) : d;
+  triple v=d == O ? cross(currentprojection.normal,perp) : d;
   pen q=(pen) p;
   triple m=min3(q);
   triple M=max3(q);

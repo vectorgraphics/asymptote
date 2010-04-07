@@ -381,18 +381,15 @@ struct transformation {
   transform3 modelview;  // For orientation and positioning
   transform3 projection; // For 3D to 2D projection
   bool infinity;
-  bool oblique;
-  void operator init(transform3 modelview, bool oblique=false) {
+  void operator init(transform3 modelview) {
     this.modelview=modelview;
     this.projection=identity4;
     infinity=true;
-    this.oblique=oblique;
   }
   void operator init(transform3 modelview, transform3 projection) {
     this.modelview=modelview;
     this.projection=projection;
     infinity=false;
-    oblique=false;
   }
   transform3 compute() {
     return infinity ? modelview : projection*modelview;
@@ -402,7 +399,6 @@ struct transformation {
     T.modelview=copy(modelview);
     T.projection=copy(projection);
     T.infinity=infinity;
-    T.oblique=oblique;
     return T;
   }
 }
@@ -410,11 +406,11 @@ struct transformation {
 struct projection {
   transform3 t;         // projection*modelview (cached)
   bool infinity;
-  bool oblique;
   bool absolute=false;
   triple camera;        // Position of camera.
   triple up;            // A vector that should be projected to direction (0,1).
   triple target;        // Point where camera is looking at.
+  triple normal;        // Normal vector from target to projection plane.
   pair viewportshift;   // Fractional viewport shift.
   real zoom=1;          // Zoom factor.
   real angle;           // Lens angle (for perspective projection).
@@ -430,7 +426,6 @@ struct projection {
     T=projector(camera,up,target);
     t=T.compute();
     infinity=T.infinity;
-    oblique=T.oblique;
     ninterpolate=infinity ? 1 : 16;
   }
 
@@ -439,12 +434,14 @@ struct projection {
   }
 
   void operator init(triple camera, triple up=(0,0,1), triple target=(0,0,0),
+                     triple normal=camera-target,
                      real zoom=1, real angle=0, pair viewportshift=0,
                      bool showtarget=true, bool autoadjust=true,
                      bool center=false, projector projector) {
     this.camera=camera;
     this.up=up;
     this.target=target;
+    this.normal=normal;
     this.zoom=zoom;
     this.angle=angle;
     this.viewportshift=viewportshift;
@@ -460,10 +457,10 @@ struct projection {
     P.t=t;
     P.infinity=infinity;
     P.absolute=absolute;
-    P.oblique=oblique;
     P.camera=camera;
     P.up=up;
     P.target=target;
+    P.normal=normal;
     P.zoom=zoom;
     P.angle=angle;
     P.viewportshift=viewportshift;

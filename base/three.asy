@@ -191,7 +191,9 @@ projection operator * (transform3 t, projection P)
   projection P=P.copy();
   if(!P.absolute) {
     P.camera=t*P.camera;
+    P.normal=t*(P.target+P.normal);
     P.target=t*P.target;
+    P.normal -= P.target;
     P.calculate();
   }
   return P;
@@ -270,9 +272,9 @@ projection oblique(real angle=45)
   t[1][2]=-s2;
   t[2][2]=1;
   t[2][3]=-1;
-  return projection((c2,s2,1),up=Y,
+  return projection((c2,s2,1),up=Y,normal=(0,0,1),
                     new transformation(triple,triple,triple) {
-                      return transformation(t,oblique=true);});
+                      return transformation(t);});
 }
 
 projection obliqueZ(real angle=45) {return oblique(angle);}
@@ -290,9 +292,9 @@ projection obliqueX(real angle=45)
   t[2][2]=0;
   t[2][0]=1;
   t[2][3]=-1;
-  return projection((1,c2,s2),
+  return projection((1,c2,s2),normal=(1,0,0),
                     new transformation(triple,triple,triple) {
-                      return transformation(t,oblique=true);});
+                      return transformation(t);});
 }
 
 projection obliqueY(real angle=45)
@@ -306,9 +308,9 @@ projection obliqueY(real angle=45)
   t[2][1]=-1;
   t[2][2]=0;
   t[2][3]=-1;
-  return projection((c2,-1,s2),
+  return projection((c2,-1,s2),normal=(0,-1,0),
                     new transformation(triple,triple,triple) {
-                      return transformation(t,oblique=true);});
+                      return transformation(t);});
 }
 
 projection oblique=oblique();
@@ -353,13 +355,13 @@ triple invert(pair z, triple normal, triple point,
 // Map pair to a triple on the projection plane.
 triple invert(pair z, projection P=currentprojection)
 {
-  return invert(z,P.vector(),P.target,P);
+  return invert(z,P.normal,P.target,P);
 }
 
 // Map pair dir to a triple direction at point v on the projection plane.
 triple invert(pair dir, triple v, projection P=currentprojection)
 {
-  return invert(project(v,P)+dir,P.vector(),v,P)-v;
+  return invert(project(v,P)+dir,P.normal,v,P)-v;
 }
 
 pair xypart(triple v)
@@ -1058,12 +1060,12 @@ path3 invert(path p, triple normal, triple point,
 
 path3 invert(path p, triple point, projection P=currentprojection)
 {
-  return path3(p,new triple(pair z) {return invert(z,P.vector(),point,P);});
+  return path3(p,new triple(pair z) {return invert(z,P.normal,point,P);});
 }
 
 path3 invert(path p, projection P=currentprojection)
 {
-  return path3(p,new triple(pair z) {return invert(z,P.vector(),P.target,P);});
+  return path3(p,new triple(pair z) {return invert(z,P.normal,P.target,P);});
 }
 
 // Construct a path from a path3 by applying P to each control point.
@@ -1252,7 +1254,7 @@ path3 solve(flatguide3 g)
 path nurb(path3 p, projection P, int ninterpolate=P.ninterpolate)
 {
   triple f=P.camera;
-  triple u=unit(P.vector());
+  triple u=unit(P.normal);
   transform3 t=P.t;
 
   path nurb(triple v0, triple v1, triple v2, triple v3) {
@@ -1458,7 +1460,7 @@ private transform3 flip(transform3 t, triple X, triple Y, triple Z,
     return scale(s(v.x),s(v.y),s(v.z));
   }
 
-  triple u=unit(P.vector());
+  triple u=unit(P.normal);
   triple up=unit(perp(P.up,u));
   bool upright=dot(Z,u) >= 0;
   if(dot(Y,up) < 0) {
@@ -1785,7 +1787,7 @@ transform3 align(triple u)
 // return a rotation that maps X,Y to the projection plane.
 transform3 transform3(projection P=currentprojection)
 {
-  triple w=unit(P.oblique ? P.camera : P.vector());
+  triple w=unit(P.normal);
   triple v=unit(perp(P.up,w));
   if(v == O) v=cross(perp(w),w);
   triple u=cross(v,w);
@@ -2453,7 +2455,7 @@ runtime.addEventHandler(billboardHandler);
 
 runtime.refresh(); 
 ";
-return s;
+  return s;
 }
 
 string lightscript(light light) {
