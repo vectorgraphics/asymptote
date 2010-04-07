@@ -74,7 +74,7 @@ public:
     beginshade(out);
     writeclippath(out);
     if(stroke) strokepath(out);
-//    out->endclip(pentype.Fillrule());
+    out->endclip(pentype.Fillrule());
     shade(out);
     out->grestore();
     return true;
@@ -102,8 +102,7 @@ public:
     bbox b;
     for(size_t i=0; i < size; i++)
       b += vm::read<path>(P,i).transformed(inverse(T)).bounds();
-    pair lambda=b.Max()-b.Min();
-    out->latticeshade(pens,T*scale(lambda.getx(),lambda.gety()));
+    out->latticeshade(pens,T*matrix(b.Min(),b.Max()));
   }
   
   drawElement *transformed(const transform& t);
