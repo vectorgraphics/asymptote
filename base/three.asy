@@ -269,6 +269,7 @@ projection oblique(real angle=45)
   t[0][2]=-c2;
   t[1][2]=-s2;
   t[2][2]=1;
+  t[2][3]=-1;
   return projection((c2,s2,1),up=Y,
                     new transformation(triple,triple,triple) {
                       return transformation(t,oblique=true);});
@@ -288,6 +289,7 @@ projection obliqueX(real angle=45)
   t[1][2]=1;
   t[2][2]=0;
   t[2][0]=1;
+  t[2][3]=-1;
   return projection((1,c2,s2),
                     new transformation(triple,triple,triple) {
                       return transformation(t,oblique=true);});
@@ -303,6 +305,7 @@ projection obliqueY(real angle=45)
   t[1][2]=1;
   t[2][1]=-1;
   t[2][2]=0;
+  t[2][3]=-1;
   return projection((c2,-1,s2),
                     new transformation(triple,triple,triple) {
                       return transformation(t,oblique=true);});
