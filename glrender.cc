@@ -1323,7 +1323,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     if(maxWidth <= 0) maxWidth=max(maxHeight,2);
     if(maxHeight <= 0) maxHeight=max(maxWidth,2);
     if(screenWidth <= 0) screenWidth=maxWidth;
+    else screenWidth=min(screenWidth,maxWidth);
     if(screenHeight <= 0) screenHeight=maxHeight;
+    else screenHeight=min(screenHeight,maxHeight);
   
     oWidth=width;
     oHeight=height;
