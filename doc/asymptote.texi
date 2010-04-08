@@ -2140,14 +2140,19 @@ time(seconds()-24*60*60);
 @end verbatim
 
 @cindex @code{abort}
-@item void abort(string s)
+@item void abort(string s="")
 aborts execution (with a non-zero return code in batch mode); if string
 @code{s} is nonempty, a diagnostic message constructed from the source
 file, line number, and @code{s} is printed;
 
+@cindex @code{assert}
+@item void assert(bool b, string s="")
+aborts execution with an error message constructed from @code{s} if
+@code{b=false}; 
+
 @cindex @code{exit}
 @item void exit()
-exits with a zero error return code in batch mode;
+exits (with a zero error return code in batch mode);
 
 @cindex @code{sleep}
 @item void sleep(int seconds)
@@ -6772,12 +6777,14 @@ ticks LeftTicks(Label format="", ticklabel ticklabel=null,
 @verbatim
 void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
            real ymin=-infinity, real ymax=infinity, pen p=currentpen,
-           ticks ticks=NoTicks, arrowbar arrow=None, bool above=false);
+           ticks ticks=NoTicks, arrowbar arrow=None, bool above=false,
+           bool autorotate=true);
 @end verbatim
 
 Draw a @math{y} axis on picture @code{pic} from @math{y}=@code{ymin} to
 @math{y}=@code{ymax} using pen @code{p}, optionally labelling it with
-Label @code{L}. The relative location of the label (a real number from
+a Label @code{L} that is autorotated unless @code{autorotate=false}.
+The relative location of the label (a real number from
 [0,1]) defaults to 1 (@pxref{Label}). An infinite value of @code{ymin}
 or @code{ymax} specifies that the corresponding axis limit will be
 automatically determined from the picture limits. 

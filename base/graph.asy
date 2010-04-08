@@ -1540,7 +1540,7 @@ void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
 void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
            real ymin=-infinity, real ymax=infinity, pen p=currentpen,
            ticks ticks=NoTicks, arrowbar arrow=None, margin margin=NoMargin,
-           bool above=false)
+           bool above=false, bool autorotate=true)
 {
   if(ymin > ymax) return;
 
@@ -1594,7 +1594,7 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
   if(L.defaultposition) L.position(axis.position);
   L.align(L.align,axis.align);
   
-  if(L.defaulttransform) {
+  if(autorotate && L.defaulttransform) {
     frame f;
     add(f,Label(L.s,(0,0),L.p));
     if(length(max(f)-min(f)) > ylabelwidth*fontsize(L.p)) 
