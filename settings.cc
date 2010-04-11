@@ -1535,11 +1535,19 @@ Int getScroll()
   Int scroll=settings::getSetting<Int>("scroll");
 #ifdef HAVE_LIBCURSES  
   if(scroll < 0) {
-    char *terminal=getenv("TERM");
+    static char *terminal=NULL;
+    if(!terminal)
+      terminal=getenv("TERM");
     if(terminal) {
-      setupterm(terminal,1,NULL);
-      scroll=lines > 2 ? lines-1 : 1;
-    }
+      int error;
+      error=setupterm(terminal,1,&error);
+#ifndef __CYGWIN__      
+      if(error == 0) scroll=lines > 2 ? lines-1 : 1;
+      else
+#endif
+	scroll=0;
+    } else scroll=0;
+
   }
 #endif
   return scroll;

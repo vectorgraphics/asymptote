@@ -10,6 +10,13 @@
 #include <iostream>
 #include <climits>
 
+#ifdef __CYGWIN__
+#undef LONG_LONG_MAX
+#define LONG_LONG_MAX __LONG_LONG_MAX__
+#undef LONG_LONG_MIN
+#define LONG_LONG_MIN (-LONG_LONG_MAX-1)
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif

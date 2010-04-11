@@ -127,6 +127,10 @@ void execError(const char *command, const char *hint, const char *application);
 // pop-up a new viewer if the old one has been closed.
 void popupHelp();
 
+#ifdef __CYGWIN__
+inline long long llabs(long long x) {return x >= 0 ? x : -x;}
+#endif  
+
 inline Int Abs(Int x) {
 #ifdef HAVE_LONG_LONG
   return llabs(x);
