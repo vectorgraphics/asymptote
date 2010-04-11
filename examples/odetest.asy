@@ -30,7 +30,7 @@ real[] initial(real[] x) {
 
 real[] discrepancy(real[] x) {
   real error=x[0]-1;
-  write("Error: ",diff);
+  write("Error: ",error);
   return new real[] {error};
 }
 
