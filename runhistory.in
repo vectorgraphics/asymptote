@@ -72,24 +72,9 @@ namespace run {
 extern string emptystring;
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-int readline_startup_hook()
-{
-#ifdef __CYGWIN__
-  rl_set_key("\\M-[3~",rl_delete,rl_get_keymap());
-  rl_set_key("\\M-[2~",rl_overwrite_mode,rl_get_keymap());
-#endif    
-  return 0;
-}
 
 void init_readline(bool tabcompletion) 
 {
-  static bool first=true;
-  if(first) {
-    first=false;
-#ifdef __CYGWIN__
-    rl_startup_hook=readline_startup_hook;
-#endif    
-  }
   rl_bind_key('\t',tabcompletion ? rl_complete : rl_insert);
 }
 #endif
