@@ -188,7 +188,8 @@ void queryRegistry()
   if(defaultPSViewer != "cmd")
     defaultPSViewer=getEntry("Ghostgum/GSview/*")+"\\gsview\\"+defaultPSViewer;
   docdir=getEntry("Microsoft/Windows/CurrentVersion/App Paths/Asymptote/Path");
-  if(!systemDir.empty()) // An empty systemDir indicates a TeXLive build
+  // An empty systemDir indicates a TeXLive build
+  if(!systemDir.empty() && !docdir.empty())
     systemDir=docdir;
 }
   

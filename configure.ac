@@ -217,7 +217,6 @@ AC_MSG_ERROR([*** Please install libz on your system ***]))
 AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([sigsegv], [stackoverflow_install_handler])
 AC_CHECK_LIB([rt], [sched_yield])
-AC_CHECK_LIB([GL], [glDepthMask])
 
 AC_ARG_ENABLE(readline,
 [AS_HELP_STRING(--enable-readline[[[=yes]]],enable GNU Readline Library)])
@@ -276,8 +275,13 @@ case "$OSTYPE" in
      cygwin) AC_CHECK_HEADER(GL/glut.h,
                                 [AC_DEFINE(HAVE_LIBGLUT, 1,
 		   [Define if you have the `freeglut' library (-lfreeglut).])
-			   LIBS=$LIBS"-lfreeglut -lopengl32 "],
-				 AC_MSG_NOTICE([*** Could not find freeglut: will compile without OpenGL support ***]))
+			   LIBS=$LIBS"-lfreeglut "],
+				 AC_MSG_NOTICE([*** Could not find libfreeglut: will compile without OpenGL support ***]))
+             AC_CHECK_HEADER(GL/gl.h,
+                                [AC_DEFINE(HAVE_LIBGL, 1,
+		   [Define if you have the `opengl32' library (-lopengl32).])
+			   LIBS=$LIBS"-lopengl32 "],
+				 AC_MSG_NOTICE([*** Could not find libopengl32: will compile without OpenGL support ***]))
              AC_CHECK_LIB([GLU], [gluNewNurbsRenderer],[AC_DEFINE(HAVE_LIBGLU, 1,
                    [Define to 1 if you have the `glu32' library (-lglu32). ]) LIBS=$LIBS"-lglu32 "],
              AC_MSG_NOTICE([*** Could not find libglu32: will compile without OpenGL support ***]))
@@ -304,6 +308,7 @@ void f(void) {
 				 AC_MSG_NOTICE([*** Could not find libglut: will compile without OpenGL support ***]))
         AC_CHECK_LIB([GLU], [gluNewNurbsRenderer],,
  				 AC_MSG_NOTICE([*** Could not find libGLU: will compile without OpenGL support ***]))
+        AC_CHECK_LIB([GL], [glDepthMask])
 esac
 fi
 
