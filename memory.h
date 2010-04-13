@@ -15,7 +15,10 @@
 #include <sstream>
 
 #ifndef NOHASH
-#if (defined(__GNUC_PREREQ) && __GNUC_PREREQ(4,3)) || defined(__CYGWIN__)
+#ifndef __GNUC_PREREQ
+#define __GNUC_PREREQ(maj, min) (0)
+# endif
+#if __GNUC_PREREQ(4,3) || defined(__CYGWIN__)
 #include <tr1/unordered_map>
 #define EXT std::tr1
 #else
