@@ -100,8 +100,13 @@ public:
   
   void shade(psfile *out) {
     bbox b;
-    for(size_t i=0; i < size; i++)
-      b += vm::read<path>(P,i).transformed(inverse(T)).bounds();
+    for(size_t i=0; i < size; i++) {
+      path p=vm::read<path>(P,i).transformed(inverse(T));
+      if(stroke)
+        drawPathPenBase::strokebounds(b,p);
+      else 
+        b += p.bounds();
+    }
     out->latticeshade(pens,T*matrix(b.Min(),b.Max()));
   }
   
