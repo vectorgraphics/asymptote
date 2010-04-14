@@ -178,6 +178,47 @@ block rectangle(object body, pair center=(0,0),
   return block;
 }
 
+block parallelogram(object body, pair center=(0,0),
+                    pen fillpen=invisible, pen drawpen=currentpen,
+                    real dx=3, real slope=2,
+                    real minwidth=minblockwidth,
+                    real minheight=minblockheight)
+{
+  frame f=body.f;
+  pair m=min(f);
+  pair M=max(f);
+  pair bound=maxbound(M-m+dx*(0,2),(minwidth,minheight));
+
+  real skew=bound.y/slope;
+  real a=bound.x+skew;
+  real b=bound.y;
+
+  path shape=(0,0)--(a,0)--(a+skew,b)--(skew,b)--cycle;
+
+  block block;
+  block.draw=new frame(pen p) {
+    frame block;
+    filldraw(block,shape,fillpen,drawpen);
+    add(block,shift(-0.5*(M+m))*f,((a+skew)/2,b/2));
+    return block;
+  };
+  block.f_position=new pair(real x) {
+    return point(shape,x);
+  };
+  block.f_center=((a+skew)/2,b/2);
+  block.center=center;
+  block.size=(a+skew,b);
+  block.f_bottomleft=(0,0);
+  block.f_bottom=((a+skew)/2,0);
+  block.f_bottomright=(a,0);
+  block.f_right=(a+1/2*skew,b/2);
+  block.f_topright=(a+skew,b);
+  block.f_top=((a+skew)/2,b);
+  block.f_topleft=(skew,b);
+  block.f_left=(skew/2,b/2);
+  return block;
+}
+
 block diamond(object body, pair center=(0,0),
               pen fillpen=invisible, pen drawpen=currentpen,
               real ds=5, real dw=1,

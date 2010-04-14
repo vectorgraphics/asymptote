@@ -8488,7 +8488,17 @@ block rectangle(object body, pair center=(0,0),
                 real minheight=minblockheight);
 @end verbatim
 
-@item diamond-shaped flowchart block:
+@item parallelogram block:
+@cindex @code{parallelogram}
+@verbatim
+block parallelogram(object body, pair center=(0,0),
+                    pen fillpen=invisible, pen drawpen=currentpen,
+                    real dx=3, real slope=2,
+                    real minwidth=minblockwidth,
+                    real minheight=minblockheight);
+@end verbatim
+
+@item diamond-shaped block:
 @cindex @code{diamond}
 @verbatim
 block diamond(object body, pair center=(0,0),
@@ -8498,7 +8508,7 @@ block diamond(object body, pair center=(0,0),
               real minheight=minblockheight);
 @end verbatim
 
-@item circular flowchart block:
+@item circular block:
 @cindex @code{circle}
 @verbatim
 block circle(object body, pair center=(0,0), pen fillpen=invisible,
@@ -8506,7 +8516,7 @@ block circle(object body, pair center=(0,0), pen fillpen=invisible,
              real mindiameter=mincirclediameter);
 @end verbatim
 
-@item rectangular flowchart block with rounded corners:
+@item rectangular block with rounded corners:
 @cindex @code{roundrectangle}
 @verbatim
 block roundrectangle(object body, pair center=(0,0),
@@ -8515,7 +8525,7 @@ block roundrectangle(object body, pair center=(0,0),
                      real minheight=minblockheight);
 @end verbatim
 
-@item rectangular flowchart block with beveled edges:
+@item rectangular block with beveled edges:
 @cindex @code{bevel}
 @verbatim
 block bevel(object body, pair center=(0,0), pen fillpen=invisible,
