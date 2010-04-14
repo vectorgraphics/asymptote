@@ -252,7 +252,7 @@ AC_ARG_ENABLE(gsl,
 if test "x$enable_gsl" != "xno"; then
   AC_CHECK_HEADER(gsl/gsl_sf.h,
    AC_CHECK_LIB([gsl], gsl_sf_debye_6, [AC_DEFINE(HAVE_LIBGSL, 1,
-   [Define to 1 if you have the `gsl' library (-lgsl). ]) LIBS=$LIBS"-lgsl -lgslcblas "],
+   [Define to 1 if you have the `gsl' library (-lgsl).]) LIBS=$LIBS"-lgsl -lgslcblas "],
            AC_MSG_NOTICE([*** Could not find libgsl: will compile without optional special functions. ***]),[-lgslcblas]),
      AC_MSG_NOTICE([*** Header file gsl_sf.h not found: will compile without optional special functions. ***]))
 fi
@@ -283,14 +283,18 @@ case "$OSTYPE" in
 			   LIBS=$LIBS"-lopengl32 "],
 				 AC_MSG_NOTICE([*** Could not find libopengl32: will compile without OpenGL support ***]))
              AC_CHECK_LIB([GLU], [gluNewNurbsRenderer],[AC_DEFINE(HAVE_LIBGLU, 1,
-                   [Define to 1 if you have the `glu32' library (-lglu32). ]) LIBS=$LIBS"-lglu32 "],
+                   [Define to 1 if you have the `glu32' library (-lglu32).]) LIBS=$LIBS"-lglu32 "],
              AC_MSG_NOTICE([*** Could not find libglu32: will compile without OpenGL support ***]))
         ;;                                 
-     darwin*) AC_CHECK_HEADER(GLUT/glut.h,
+     darwin*) AC_CHECK_HEADER(OpenGL/gl.h,
+                                [AC_DEFINE(HAVE_LIBGL, 1,
+		   [Define if you have the `OpenGL' library.])])
+              AC_CHECK_HEADER(OpenGL/glu.h,
+                                [AC_DEFINE(HAVE_LIBGLU, 1,
+		   [Define if you have the `GLU' library.])])
+              AC_CHECK_HEADER(GLUT/glut.h,
                                 [AC_DEFINE(HAVE_LIBGLUT, 1,
-		   [Define if you have the `glut' library (-lglut).])
-              AC_DEFINE(HAVE_LIBGLU, 1,
-                   [Define to 1 if you have the 'GLU' library. ])
+		   [Define if you have the `GLUT' library.])
 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
