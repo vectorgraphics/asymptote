@@ -5113,15 +5113,15 @@ element, and otherwise the index corresponding to the left-hand
 
 @cindex @code{copy}
 @item T[] copy(T[] a)
-returns a deep copy of the array @code{a};
+returns a copy of the array @code{a};
 
 @cindex @code{copy}
 @item T[][] copy(T[][] a)
-returns a deep copy of the array @code{a};
+returns a copy of the array @code{a};
 
 @cindex @code{copy}
 @item T[][][] copy(T[][][] a)
-returns a deep copy of the array @code{a};
+returns a copy of the array @code{a};
 
 @cindex @code{concat}
 @item T[] concat(... T[][] a)
