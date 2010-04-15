@@ -84,16 +84,13 @@ void texfile::prologue()
         if(height < 12.0) voffset=height-12.0;
       } else if(height < 10.0) voffset=height-10.0;
 
-      // Work around an apparent xelatex dimension bug
-      double xelatexBug=ps2tex;
-
       if(width > 0) 
         *out << "\\pdfpagewidth=" << width << "bp" << newl;
       *out << "\\ifx\\pdfhorigin\\undefined" << newl
            << "\\hoffset=-1in" << newl
-           << "\\voffset=" << voffset-72.0*xelatexBug << "bp" << newl;
+           << "\\voffset=" << voffset-72.0 << "bp" << newl;
       if(height > 0)
-        *out << "\\pdfpageheight=" << height*0.5*(1.0+xelatexBug) << "bp" 
+        *out << "\\pdfpageheight=" << height << "bp" 
              << newl;
       *out << "\\else" << newl
            << "\\pdfhorigin=0bp" << newl
