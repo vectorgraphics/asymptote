@@ -327,22 +327,22 @@ callable* :readSet(file *f)
 }
 
 // Delete file named s.
-Int delete(string *s) 
+Int delete(string s) 
 {
-  checkLocal(*s);
-  Int rc=unlink(s->c_str());
+  s=outpath(s);
+  Int rc=unlink(s.c_str());
   if(rc == 0 && verbose > 0) 
-    cout << "Deleted " << *s << endl;
+    cout << "Deleted " << s << endl;
   return rc;
 }
 
 // Rename file "from" to file "to".
-Int rename(string *from, string *to) 
+Int rename(string from, string to) 
 {
-  checkLocal(*from);
-  checkLocal(*to);
-  Int rc=rename(from->c_str(),to->c_str());
+  from=outpath(from);
+  to=outpath(to);
+  Int rc=rename(from.c_str(),to.c_str());
   if(rc == 0 && verbose > 0) 
-    cout << "Renamed " << *from << " to " << *to << endl;
+    cout << "Renamed " << from << " to " << to << endl;
   return rc;
 }

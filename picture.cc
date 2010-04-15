@@ -240,7 +240,7 @@ void texinit()
     cmd.push_back(texput);
   } else {
     if(!dir.empty()) 
-      cmd.push_back("-output-directory="+dir);
+      cmd.push_back("-output-directory="+dir.substr(0,dir.length()-1));
     cmd.push_back("\\scrollmode");
   }
   
@@ -266,7 +266,7 @@ int opentex(const string& texname, const string& prefix)
   } else {
     string dir=stripFile(texname);
     if(!dir.empty()) 
-      cmd.push_back("-output-directory="+dir);
+      cmd.push_back("-output-directory="+dir.substr(0,dir.length()-1));
     cmd.push_back("\\nonstopmode\\input");
     cmd.push_back(stripDir(texname));
   }
@@ -649,7 +649,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   Labels |= svgformat;
     
   if(Labels)
-    spaceToUnderscore(prefix);
+    prefix=cleanpath(prefix);
+  
   string prename=((epsformat && !pdf) || !Labels) ? epsname : 
     auxname(prefix,preformat);
   

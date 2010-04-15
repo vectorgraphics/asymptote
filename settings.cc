@@ -1291,8 +1291,8 @@ void setInteractive() {
      (isatty(STDIN_FILENO) || getSetting<bool>("interactive")))
     interact::interactive=true;
   
-  historyname=getSetting<bool>("localhistory") ? "."+suffix+"_history" 
-    : (initdir+"/history");
+  historyname=getSetting<bool>("localhistory") ? 
+    (string(getPath())+dirsep+"."+suffix+"_history") : (initdir+"/history");
 }
 
 bool view() {
@@ -1313,7 +1313,7 @@ bool trap() {
 string outname() 
 {
   string name=getSetting<string>("outname");
-  return name.empty() ? "out" : name;
+  return stripDir(name).empty() ? name+"out" : name;
 }
 
 string lookup(const string& symbol) 

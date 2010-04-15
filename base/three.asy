@@ -2764,7 +2764,9 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
   bool preview=settings.render > 0;
   if(prc) {
     // The movie15.sty package cannot handle spaces or dots in filenames.
-    prefix=replace(prefix,new string[][]{{" ","_"},{".","_"}});
+    string dir=stripfile(prefix);
+    prefix=dir+replace(stripdirectory(prefix),
+                       new string[][]{{" ","_"},{".","_"}});
     if(settings.embed || nativeformat() == "pdf")
       prefix += "+"+(string) file3.length;
   } else

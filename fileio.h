@@ -259,15 +259,16 @@ public:
         reportError("Cannot open standard input in binary mode");
       stream=&cin;
     } else {
+      if(mode & std::ios::out)
+        name=outpath(name);
       stream=fstream=new std::fstream(name.c_str(),mode);
       if(mode & std::ios::out) {
-        checkLocal(name);
         if(error()) {
           delete fstream;
           std::ofstream f(name.c_str());
           f.close();
+          stream=fstream=new std::fstream(name.c_str(),mode);
         }
-        stream=fstream=new std::fstream(name.c_str(),mode);
       }
       index=processData().ifile.add(fstream);
       if(check) Check();
@@ -367,7 +368,7 @@ public:
         reportError("Cannot open standard output in binary mode");
       stream=&cout;
     } else {
-      checkLocal(name);
+      name=outpath(name);
       stream=fstream=new std::ofstream(name.c_str(),mode | std::ios::trunc);
       index=processData().ofile.add(fstream);
       Check();
@@ -647,7 +648,7 @@ public:
   oxfile(const string& name) : file(name,true,XOUTPUT), fstream(NULL) {}
 
   void open() {
-    fstream=new xdr::oxstream((checkLocal(name),name.c_str()),xdr::xios::trunc);
+    fstream=new xdr::oxstream(outpath(name).c_str(),xdr::xios::trunc);
     index=processData().oxfile.add(fstream);
     Check();
   }

@@ -209,8 +209,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   array *P=new array(0);
   if(s->empty()) return P;
   
-  string prefix=outname();
-  spaceToUnderscore(prefix);
+  string prefix=cleanpath(outname());
   string psname=auxname(prefix,"ps");
   string texname=auxname(prefix,"tex");
   string dviname=auxname(prefix,"dvi");
@@ -307,8 +306,7 @@ patharray *textpath(string *s, pen p=CURRENTPEN)
   array *P=new array(0);
   if(s->empty()) return P;
   
-  string prefix=outname();
-  spaceToUnderscore(prefix);
+  string prefix=cleanpath(outname());
   string outputname=auxname(prefix,getSetting<string>("textoutformat"));
 
   string textname=auxname(prefix,getSetting<string>("textextension"));
@@ -378,8 +376,7 @@ patharray *_strokepath(path g, pen p=CURRENTPEN)
   array *P=new array(0);
   if(g.size() == 0) return P;
   
-  string prefix=outname();
-  spaceToUnderscore(prefix);
+  string prefix=cleanpath(outname());
   string psname=auxname(prefix,"ps");
   bbox b;
   psfile ps(psname,false);

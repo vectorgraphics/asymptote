@@ -3629,11 +3629,11 @@ as a single literal comment character.
 @anchor{cd}
 @cindex @code{cd}
 @cindex directory
-If the @code{-globalwrite} (or @code{-nosafe}) option is enabled, one can
-change the current working directory to the contents of the string
-@code{s} with the function @code{string cd(string s)}, which returns the
-new working directory. If @code{string s} is empty, the path is reset to
-the value it had at program startup.
+One can change the current working directory for read operations to
+the contents of the string @code{s} with the function @code{string
+cd(string s)}, which returns the new working directory. If
+@code{string s} is empty, the path is reset to the value it had at
+program startup.
 
 @cindex @code{getc}
 When reading pairs, the enclosing parenthesis are optional.

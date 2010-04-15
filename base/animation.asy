@@ -33,8 +33,7 @@ struct animation {
   // been generated. 
 
   void operator init(string prefix="", bool global=true) {
-    prefix=replace((prefix == "") ? outprefix() : stripdirectory(prefix),
-                   " ","_");
+    prefix=replace(stripdirectory(outprefix(prefix))," ","_");
     this.prefix=prefix;
     this.global=global;
   }

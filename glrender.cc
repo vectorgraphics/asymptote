@@ -1353,8 +1353,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     setosize();
   
     if(View && settings::verbose > 1) 
-      cout << "Rendering " << prefix << " as " << Width << "x" << Height
-           << " image" << endl;
+      cout << "Rendering " << stripDir(prefix) << " as "
+           << Width << "x" << Height << " image" << endl;
   }
   
 #ifdef HAVE_LIBPTHREAD

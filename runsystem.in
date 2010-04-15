@@ -71,12 +71,12 @@ void breakpoint(stack *Stack, runnable *r)
 }
 }
 
-string convertname(string name, const string& format, bool check=true)
+string convertname(string name, const string& format)
 {
   if(name.empty())
     return buildname(outname(),format,"");
   else
-    if(check) checkLocal(name);
+    name=outpath(name);
   return format.empty() ? name : format+":"+name;
 }
 
@@ -212,8 +212,17 @@ Int convert(string args=emptystring, string file=emptystring,
   push_split(cmd,args);
   cmd.push_back(name);
   bool quiet=verbose <= 1;
+
+  char *oldPath=NULL;
+  string dir=stripFile(outname());
+  if(!dir.empty()) {
+    oldPath=getPath();
+    setPath(dir.c_str());
+  }
   Int ret=System(cmd,quiet ? 1 : 0,true,"convert",
                  "your ImageMagick convert utility");
+  if(oldPath != NULL)
+    setPath(oldPath);
   
   if(ret == 0 && verbose > 0)
     cout << "Wrote " << ((file.empty()) ? name : file) << endl;
@@ -226,7 +235,7 @@ Int animate(string args=emptystring, string file=emptystring,
             string format=emptystring)
 {
 #ifndef __CYGWIN__
-  string name=convertname(file,format,false);
+  string name=convertname(file,format);
   if(view()) {
     mem::vector<string> cmd;
     cmd.push_back(getSetting<string>("animate"));

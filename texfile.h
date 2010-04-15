@@ -86,6 +86,34 @@ void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
         << settings::rawpostscript(texengine) << newl;
 }
 
+// Work around bug in dvips.def: allow spaces in file names.
+template<class T>
+void dvipsfix(T &out)
+{
+  if(!settings::pdf(settings::getSetting<string>("tex"))) {
+    out << "\\makeatletter" << newl 
+        << "\\def\\Ginclude@eps#1{%" << newl
+        << " \\message{<#1>}%" << newl
+        << "  \\bgroup" << newl
+        << "  \\def\\@tempa{!}%" << newl
+        << "  \\dimen@\\Gin@req@width" << newl
+        << "  \\dimen@ii.1bp%" << newl
+        << "  \\divide\\dimen@\\dimen@ii" << newl
+        << "  \\@tempdima\\Gin@req@height" << newl
+        << "  \\divide\\@tempdima\\dimen@ii" << newl
+        << "    \\special{PSfile=#1\\space" << newl
+        << "      llx=\\Gin@llx\\space" << newl
+        << "      lly=\\Gin@lly\\space" << newl
+        << "      urx=\\Gin@urx\\space" << newl
+        << "      ury=\\Gin@ury\\space" << newl
+        << "      \\ifx\\Gin@scalex\\@tempa\\else rwi=\\number\\dimen@\\space\\fi" << newl
+        << "      \\ifx\\Gin@scaley\\@tempa\\else rhi=\\number\\@tempdima\\space\\fi" << newl
+        << "      \\ifGin@clip clip\\fi}%" << newl
+        << "  \\egroup}" << newl
+        << "\\makeatother" << newl;
+  }
+}
+
 template<class T>
 void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
                 bool pipe=false)
@@ -108,7 +136,10 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
   if(settings::latex(texengine)) {
     if(pipe || !settings::getSetting<bool>("inlinetex")) {
       out << "\\usepackage{graphicx}" << newl;
-      if(!pipe) out << "\\usepackage{color}" << newl;
+      if(!pipe) {
+        dvipsfix(out);
+        out << "\\usepackage{color}" << newl;
+      }
     }
     if(pipe) {
       out << "\\begin{document}" << newl;
@@ -132,6 +163,7 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
         << "  \\fi" << newl
         << "  \\reserved@a}" << newl
         << "\\makeatother" << newl;
+    dvipsfix(out);
 
     if(!pipe)
       out << "\\input picture" << newl;

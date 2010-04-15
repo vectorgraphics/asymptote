@@ -3,7 +3,7 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2+)
 
-\ProvidesPackage{asymptote}[2009/08/15 v1.11 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2010/04/15 v1.12 Asymptote style file for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
 \newif\ifASYinline
@@ -266,6 +266,26 @@
 \animategraphics[{#1}]{#2}{_#3}{#4}{#5}%
 \fi%
 }
+
+% Work around bug in dvips.def: allow spaces in file names.
+\def\Ginclude@eps#1{%                                                           
+ \message{<#1>}%                                                                
+  \bgroup
+  \def\@tempa{!}%                                                               
+  \dimen@\Gin@req@width
+  \dimen@ii.1bp%                                                                
+  \divide\dimen@\dimen@ii
+  \@tempdima\Gin@req@height
+  \divide\@tempdima\dimen@ii
+    \special{PSfile=#1\space
+      llx=\Gin@llx\space
+      lly=\Gin@lly\space
+      urx=\Gin@urx\space
+      ury=\Gin@ury\space
+      \ifx\Gin@scalex\@tempa\else rwi=\number\dimen@\space\fi
+      \ifx\Gin@scaley\@tempa\else rhi=\number\@tempdima\space\fi
+      \ifGin@clip clip\fi}%                                                     
+  \egroup}
 
 \def\Asymptote{{\tt Asymptote}}
 

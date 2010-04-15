@@ -103,12 +103,14 @@ string stripFile(string name)
   p=name.rfind('\\');
   if(p < string::npos) {
     dir=true;
+    while(p > 0 && name[p-1] == '\\') --p;
     name.erase(p+1);
   }
 #endif  
   p=name.rfind('/');
   if(p < string::npos) {
     dir=true;
+    while(p > 0 && name[p-1] == '/') --p;
     name.erase(p+1);
   }
   
@@ -150,26 +152,30 @@ string Getenv(const char *name, bool msdos)
 
 void writeDisabled()
 {
-  camp::reportError("Write/cd to other directories disabled; override with option -globalwrite");
+  camp::reportError("Write to other directories disabled; override with option -globalwrite");
 }
 
-void checkLocal(string name)
+string cleanpath(string name) 
 {
-  if(globalwrite()) return;
-#ifdef __CYGWIN__  
-  if(name.rfind('\\') < string::npos) writeDisabled();
-#endif  
-  if(name.rfind('/') < string::npos) writeDisabled();
-  return;
+  string dir=stripFile(name);
+  name=stripDir(name);
+  spaceToUnderscore(name);
+  return dir+name;
+}
+
+string outpath(string name) 
+{
+  bool global=globalwrite();
+  string dir=stripFile(name);
+  if(global && !dir.empty()) return name;
+  string outdir=stripFile(outname());
+  if(!(global || dir.empty() || dir == outdir)) writeDisabled();
+  return outdir+stripDir(name);
 }
 
 string buildname(string name, string suffix, string aux) 
 {
-  string dir=stripFile(outname());
-  name=globalwrite() ? dir+name : dir+stripDir(name);
-    
-  name=stripExt(name,defaultformat());
-  name += aux;
+  name=stripExt(outpath(name),defaultformat())+aux;
   if(!suffix.empty()) name += "."+suffix;
   return name;
 }

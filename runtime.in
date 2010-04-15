@@ -729,7 +729,11 @@ void :loadModule(string *index)
 
 string cd(string s=emptystring)
 {
-  if(!s.empty() && !globalwrite()) writeDisabled();
+  if(!s.empty() && !globalwrite()) {
+    string outname=getSetting<string>("outname");
+    string dir=stripDir(outname);
+    if(dir.empty()) Setting("outname")=getPath()+dirsep+outname;
+  }
   return setPath(s.c_str());
 }
 

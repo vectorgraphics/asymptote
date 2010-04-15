@@ -36,8 +36,11 @@ string stripExt(string name, const string& suffix="");
 
 void writeDisabled();
   
-// Check if global writes are disabled and name contains a directory.
-void checkLocal(string name);
+// Replace spaces in file part of name with underscores.
+string cleanpath(string name);
+
+// Construct the full output path.
+string outpath(string name);
   
 // Construct a filename from the original, adding aux at the end, and
 // changing the suffix.
@@ -108,8 +111,6 @@ extern bool False;
 
 // Strip blank lines (which would break the bidirectional TeX pipe)
 string stripblanklines(const string& s);
-
-extern char *currentpath;
 
 const char *startPath();
 const char* setPath(const char *s, bool quiet=false);

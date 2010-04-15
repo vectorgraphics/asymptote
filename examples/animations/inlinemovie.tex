@@ -1,6 +1,6 @@
 \documentclass{article}
-\usepackage[inline]{asymptote}
-%\usepackage{asymptote}
+%\usepackage[inline]{asymptote}
+\usepackage{asymptote}
 \usepackage{animate}
 \begin{document}
 
@@ -26,7 +26,7 @@ for(int i=0; i < 10; ++i) {
 label(A.pdf("controls",delay=50,keep=!settings.inlinetex));
 \end{asy}
 %Uncomment the following line when not using the [inline] package option:
-%\ASYanimategraphics[controls,loop]{20}{movie1}{}{}
+%\ASYanimategraphics[controls]{50}{movie1}{}{}
 \end{center}
 
 And here is another one, clickable but without the control panel:
@@ -45,7 +45,7 @@ for(int i=0; i < 10; ++i) {
 label(A.pdf(keep=!settings.inlinetex));
 \end{asy}
 %Uncomment the following line when not using the [inline] package option:
-%\ASYanimategraphics[controls,loop]{10}{movie2}{}{}
+%\ASYanimategraphics[controls]{10}{movie2}{}{}
 \end{center}
 
 \end{document}
