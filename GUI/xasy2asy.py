@@ -54,8 +54,8 @@ def startQuickAsy():
       AsyTempDir=mkdtemp(prefix="asy_", dir="./")
     else:
       AsyTempDir=mkdtemp(prefix="asy_")+os.sep
-    quickAsy = Popen([xasyOptions.options['asyPath']]+
-                     split("-noV -multiline -interactive -o"+AsyTempDir),
+    quickAsy = Popen([xasyOptions.options['asyPath'],"-noV","-multiline",
+                      "-interactive","-o"+AsyTempDir],
                      stdin=PIPE,stdout=PIPE,stderr=STDOUT)
     if quickAsy.returncode != None:
       quickAsyFailed = True

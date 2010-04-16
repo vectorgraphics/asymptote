@@ -144,6 +144,7 @@ class xasyMainWin:
     self.exportMenu.add_command(label="PDF...",command=self.exportPDF,underline=0)
     self.exportMenu.add_command(label="GIF...",command=self.exportGIF,underline=0)
     self.exportMenu.add_command(label="PNG...",command=self.exportPNG,underline=1)
+    self.exportMenu.add_command(label="SVG...",command=self.exportSVG,underline=0)
     self.fileMenu.add_cascade(label="Export",menu=self.exportMenu,underline=1)
     self.fileMenu.add_separator()
 
@@ -720,6 +721,9 @@ class xasyMainWin:
   def exportPNG(self):
     self.exportFile(self.filename,"png")
 
+  def exportSVG(self):
+    self.exportFile(self.filename,"svg")
+
   def exportFile(self,inFile, outFormat):
     if(not self.testOrAcquireLock()):
       return
@@ -744,8 +748,8 @@ class xasyMainWin:
     fullname = os.path.abspath(outfilename)
     outName = os.path.basename(outfilename)
     dirname = os.path.dirname(fullname)
-    command = xasyOptions.options['asyPath']+" -f %s -o %s %s"%(outFormat,fullname,inFile)
-    saver = subprocess.Popen(split(command),stdin=PIPE,stdout=PIPE,stderr=PIPE)
+    command=[xasyOptions.options['asyPath'],"-f"+outFormat,"-o"+fullname,inFile]
+    saver = subprocess.Popen(command,stdin=PIPE,stdout=PIPE,stderr=PIPE)
     saver.wait()
     if saver.returncode != 0:
       tkMessageBox.showerror("Export Error","Export Error:\n"+saver.stdout.read()+saver.stderr.read())
