@@ -61,9 +61,8 @@ public:
   }
   
   // Shading in SVG is incomplete and not supported at all by dvisvgm.
-  bool svg() {return true;}
-  bool svgpng() {return !settings::getSetting<bool>("svgemulation");}
-  
+  bool svgpng() {return true;}
+      
   virtual void beginshade(psfile *out)=0;
   virtual void shade(psfile *out)=0;
   
@@ -171,6 +170,8 @@ public:
     : drawShade(src,stroke,pentype), pens(pens), vertices(vertices),
       edges(edges) {}
   
+  bool svgpng() {return !settings::getSetting<bool>("svgemulation");}
+  
   void palette(psfile *out) {
     out->gsave();
   }
@@ -229,8 +230,6 @@ public:
 
   virtual ~drawFunctionShade() {}
 
-  bool svgpng() {return true;}
-  
   bool draw(psfile *out) {return false;}
   
   bool write(texfile *, const bbox&);
