@@ -746,8 +746,6 @@ class xasyMainWin:
     if type(outfilename)==type((0,)) or not outfilename or outfilename == '':
       return
     fullname = os.path.abspath(outfilename)
-    if sys.platform[:3] == "win":
-      fullname = fullname.replace("\\","/")
     outName = os.path.basename(outfilename)
     command=[xasyOptions.options['asyPath'],"-f"+outFormat,"-o"+fullname,inFile]
     saver = subprocess.Popen(command,stdin=PIPE,stdout=PIPE,stderr=PIPE)

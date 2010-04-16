@@ -1313,6 +1313,7 @@ bool trap() {
 string outname() 
 {
   string name=getSetting<string>("outname");
+  if(msdos) backslashToSlash(name);
   return name.empty() ? "out" : name;
 }
 
