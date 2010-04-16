@@ -3,8 +3,7 @@ string defaultfilename;
 
 string outprefix(string prefix=defaultfilename) {
   string s=prefix != "" ? prefix :
-    (stripdirectory(settings.outname) == "" && interactive()) ?
-    settings.outname+"out" : settings.outname;
+    (settings.outname == "" && interactive()) ? "out" : settings.outname;
   return stripextension(s);
 }
 

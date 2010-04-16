@@ -1313,7 +1313,7 @@ bool trap() {
 string outname() 
 {
   string name=getSetting<string>("outname");
-  return stripDir(name).empty() ? name+"out" : name;
+  return name.empty() ? "out" : name;
 }
 
 string lookup(const string& symbol) 
