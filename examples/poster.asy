@@ -3,6 +3,7 @@ import slide;
 import graph;
 
 defaultpen(deepblue);
+pagenumberpen=invisible;
 
 real f(real x) {return (x != 0) ? x*sin(1/x) : 0;}
 pair F(real x) {return (x,f(x));}
@@ -28,5 +29,5 @@ for graduate students, by graduate students.",fontsize(32pt));
 
 label("Registration and abstract submission online.",(0,-0.5));
 
-label("\tt http://www.pims.math.ca/science/2006/06yrc/",point(SW),NE,
+label("\tt http://www.pims.math.ca/science/2006/06yrc/",point(SW),2NE,
       black+fontsize(18pt));
