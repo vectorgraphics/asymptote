@@ -145,13 +145,15 @@ void texfile::beginlayer(const string& psname, bool postscript)
       if(settings::context(texengine))
         *out << "\\externalfigure[" << psname << "]%" << newl;
       else {
-        *out << "\\includegraphics";
+        *out << "{\\catcode`\"=12%" << newl
+             << "\\includegraphics";
         bool pdf=settings::pdf(texengine);
         if(!pdf)
           *out << "[bb=" << box.left << " " << box.bottom << " "
                << box.right << " " << box.top << "]";
         if(pdf) *out << "{\"" << stripExt(psname) << "\".pdf}%" << newl;
         else *out << "{\"" << psname << "\"}%" << newl;
+        *out << "}%" << newl;
       }
       if(!inlinetex)
         *out << "\\kern " << (box.left-box.right)*ps2tex << "pt%" << newl;
