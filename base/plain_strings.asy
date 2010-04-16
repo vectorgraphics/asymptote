@@ -159,8 +159,7 @@ string graphic(string name, string options="")
 {
   if(latex()) {
     if(options != "") options="["+options+"]";
-    return "{\catcode`\"=12\includegraphics"+options+
-      (pdf() ? "{\""+stripextension(name)+"\".pdf}" : "{\""+name+"\"}")+"}";
+    return "\includegraphics"+options+"{"+name+"}";
   }
   if(settings.tex != "context")
     notimplemented("graphic");
