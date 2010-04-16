@@ -260,6 +260,8 @@ public:
     }
   }
   
+  virtual void endpsclip(const pen &p) {endclip(p);}
+  
   void checkLevel() {
     int n=settings::getSetting<Int>("level");
     if(n < 3)

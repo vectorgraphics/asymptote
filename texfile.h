@@ -369,6 +369,7 @@ public:
   
   void endclip0(const pen &p);
   void endclip(const pen &p);
+  void endpsclip(const pen &p) {}
   
   void setpen(pen p) {if(!inspecial) texfile::setpen(p);}
   
