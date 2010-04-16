@@ -654,6 +654,14 @@ public:
     transparency=p.transparency;
   }
                                                                
+  void setfont(const pen& p) {
+    font=p.font;
+  }
+  
+  void setfillrule(const pen& p) {
+    fillrule=p.fillrule;
+  }
+  
   void convert() {
     if(settings::gray || settings::bw) {
       if(rgb()) rgbtogrey();

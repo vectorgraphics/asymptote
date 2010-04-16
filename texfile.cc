@@ -207,7 +207,7 @@ void texfile::setfont(pen p)
   if(latex) setlatexfont(*out,p,lastpen);
   settexfont(*out,p,lastpen,latex);
   
-  lastpen=p;
+  lastpen.setfont(p);
 }
   
 void texfile::setpen(pen p)
@@ -432,7 +432,7 @@ void svgtexfile::fillrule(const pen& p, const string& type)
   if(p.Fillrule() != lastpen.Fillrule())
     *out << " " << type << "-rule='" << 
       (p.evenodd() ? "evenodd" : "nonzero") << "'";
-  lastpen=p;
+  lastpen.setfillrule(p);
 }
    
 void svgtexfile::color(const pen &p, const string& type)
