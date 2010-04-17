@@ -186,6 +186,20 @@ filltype RadialShade(pen penc, pen penr)
     });
 }
 
+filltype RadialShadeDraw(real xmargin=0, real ymargin=xmargin,
+                         pen penc, pen penr, pen drawpen=nullpen)
+{
+  return filltype(new void(frame f, path[] g, pen Drawpen) {
+    if(drawpen != nullpen) Drawpen=drawpen;
+    if(Drawpen == nullpen) Drawpen=penc;
+    pair c=(min(g)+max(g))/2;
+    if(cyclic(g[0]))
+      radialshade(f,margin(g,xmargin,ymargin),penc,c,0,penr,c,
+                  abs(max(g)-min(g))/2);
+    draw(f,margin(g,xmargin,ymargin),Drawpen);
+   });
+}
+
 // Fill the region in frame dest underneath frame src and return the
 // boundary of src.
 path fill(frame dest, frame src, filltype filltype=NoFill,

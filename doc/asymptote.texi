@@ -3377,7 +3377,7 @@ Here @code{filltype} specifies one of the following fill types:
 Fill the interior and draw the boundary.
 
 @item FillDraw(real xmargin=0, real ymargin=xmargin, pen fillpen=nullpen,
-               @code{pen drawpen=nullpen);}
+               @code{pen drawpen=nullpen)}
 @cindex @code{nullpen}
 If @code{fillpen} is @code{nullpen}, fill with the drawing pen;
 otherwise fill with pen @code{fillpen}. 
@@ -3420,6 +3420,11 @@ Clip the region and surrounding margins @code{xmargin} and @code{ymargin}.
 @item RadialShade(pen penc, pen penr)
 Fill varying radially from @code{penc} at the center of the bounding
 box to @code{penr} at the edge.
+
+@cindex @code{RadialShadeDraw}
+@item RadialShadeDraw(real xmargin=0, real ymargin=xmargin, pen penc,
+                      @code{pen penr, pen drawpen=nullpen)}
+Fill with RadialShade and draw the boundary.
 
 @end table
 
