@@ -394,6 +394,7 @@ void Export()
     outOfMemory();
   }
   setProjection();
+  glutPostRedisplay();
 
 #ifdef HAVE_LIBPTHREAD
   if(glthread && readyAfterExport) {
