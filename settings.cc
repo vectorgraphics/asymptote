@@ -220,6 +220,7 @@ bool globalwrite() {return globaloption || !safe;}
   
 const string suffix="asy";
 const string guisuffix="gui";
+const string standardprefix="out";
   
 string initdir;
 string historyname;
@@ -1313,8 +1314,9 @@ bool trap() {
 string outname() 
 {
   string name=getSetting<string>("outname");
+  if(name.empty() && interact::interactive) return standardprefix;
   if(msdos) backslashToSlash(name);
-  return name.empty() ? "out" : name;
+  return name;
 }
 
 string lookup(const string& symbol) 

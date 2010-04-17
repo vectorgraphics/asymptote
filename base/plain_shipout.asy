@@ -2,9 +2,7 @@
 string defaultfilename;
 
 string outprefix(string prefix=defaultfilename) {
-  string s=prefix != "" ? prefix :
-    (settings.outname == "" && interactive()) ? "out" : settings.outname;
-  return stripextension(s);
+  return stripextension(prefix != "" ? prefix : outname());
 }
 
 string outformat(string format="") 

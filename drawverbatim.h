@@ -18,20 +18,26 @@ class drawVerbatim : public drawElement {
 private:
   Language language;
   string text;
-  bool havebounds;
+  bool userbounds;
   pair min,max;
+  bool havebounds;
 public:
   drawVerbatim(Language language, const string& text) : 
-    language(language), text(text), havebounds(false) {}
+    language(language), text(text), userbounds(false), havebounds(false) {}
   
   drawVerbatim(Language language, const string& text, pair min,
                pair max) : 
-    language(language), text(text), havebounds(true), min(min), max(max) {}
+    language(language), text(text), userbounds(true), min(min), max(max),
+    havebounds(false) {}
   
   virtual ~drawVerbatim() {}
 
-  void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&) {
-    if(havebounds) {
+  void bounds(bbox& b, iopipestream& tex, boxvector&, bboxlist&) {
+    if(havebounds) return;
+    havebounds=true;
+    if(language == TeX) 
+      tex << text << "%" << newl;
+    if(userbounds) {
       b += min;
       b += max;
     }

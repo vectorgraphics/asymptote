@@ -621,7 +621,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   bool pdf=settings::pdf(texengine);
   
   bool standardout=Prefix == "-";
-  string prefix=standardout ? "out" : Prefix;
+  string prefix=standardout ? standardprefix : Prefix;
   string preformat=nativeformat();
   string outputformat=format.empty() ? defaultformat() : format;
   bool epsformat=outputformat == "eps";

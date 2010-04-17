@@ -159,7 +159,12 @@ string graphic(string name, string options="")
 {
   if(latex()) {
     if(options != "") options="["+options+"]";
-    return "\includegraphics"+options+"{"+name+"}";
+    if(find(name," ") < 0)
+      return "\includegraphics"+options+"{"+name+"}";
+    else {
+      return "\includegraphics"+options+
+        (pdf() ? "{\""+stripextension(name)+"\".pdf}" : "{\""+name+"\"}");
+    }
   }
   if(settings.tex != "context")
     notimplemented("graphic");

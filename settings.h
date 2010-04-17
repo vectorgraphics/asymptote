@@ -58,6 +58,7 @@ bool globalwrite();
 
 extern const string suffix;
 extern const string guisuffix;
+extern const string standardprefix;
   
 extern string historyname;
   

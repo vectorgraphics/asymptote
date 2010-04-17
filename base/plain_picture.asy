@@ -1948,13 +1948,6 @@ void postscript(picture pic=currentpicture, string s)
     },true);
 }
 
-void tex(picture pic=currentpicture, string s)
-{
-  pic.add(new void(frame f, transform) {
-      tex(f,s);
-    },true);
-}
-
 void postscript(picture pic=currentpicture, string s, pair min, pair max)
 {
   pic.add(new void(frame f, transform t) {
@@ -1962,8 +1955,22 @@ void postscript(picture pic=currentpicture, string s, pair min, pair max)
     },true);
 }
 
+void tex(picture pic=currentpicture, string s)
+{
+  // Force TeX string s to be evaluated immediately (in case it is a macro).
+  frame g;
+  tex(g,s);
+  size(g);
+  pic.add(new void(frame f, transform) {
+      tex(f,s);
+    },true);
+}
+
 void tex(picture pic=currentpicture, string s, pair min, pair max)
 {
+  frame g;
+  tex(g,s);
+  size(g);
   pic.add(new void(frame f, transform t) {
       tex(f,s,t*min,t*max);
     },true);
@@ -1997,4 +2004,15 @@ void end(picture pic=currentpicture)
   if(!latex() || !pdf()) return;
   tex(pic,"\end{ocg}");
   layer(pic);
+}
+
+// For users of the LaTeX babel package.
+void deactivatequote(picture pic=currentpicture)
+{
+  tex(pic,"\catcode`\"=12");
+}
+
+void activatequote(picture pic=currentpicture)
+{
+  tex(pic,"\catcode`\"=13");
 }
