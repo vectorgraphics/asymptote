@@ -760,6 +760,10 @@ void addCasts(venv &ve)
   addCast(ve, realArray(), IntArray(), arrayToArray<Int,double>);
   addCast(ve, pairArray(), IntArray(), arrayToArray<Int,pair>);
   addCast(ve, pairArray(), realArray(), arrayToArray<double,pair>);
+  
+  addCast(ve, realArray2(), IntArray2(), array2ToArray2<Int,double>);
+  addCast(ve, pairArray2(), IntArray2(), array2ToArray2<Int,pair>);
+  addCast(ve, pairArray2(), realArray2(), array2ToArray2<double,pair>);
 }
 
 void addGuideOperators(venv &ve)
@@ -1018,7 +1022,9 @@ void addOperators(venv &ve)
   addOps<Int,mod>(ve,primInt(),"%",IntArray());
   addOps<double,mod>(ve,primReal(),"%",realArray());
   
-  addRestFunc(ve,run::diagonal,realArray2(),"diagonal",realArray());
+  addRestFunc(ve,diagonal<Int>,IntArray2(),"diagonal",IntArray());
+  addRestFunc(ve,diagonal<double>,realArray2(),"diagonal",realArray());
+  addRestFunc(ve,diagonal<pair>,pairArray2(),"diagonal",pairArray());
 }
 
 dummyRecord *createDummyRecord(venv &ve, const char *name)

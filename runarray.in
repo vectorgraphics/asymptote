@@ -13,6 +13,7 @@ Intarray2*  => IntArray2()
 realarray* => realArray()
 realarray2* => realArray2()
 pairarray* => pairArray()
+pairarray2* => pairArray2()
 triplearray2* => tripleArray2()
 callableReal* => realRealFunction()
 
@@ -31,12 +32,17 @@ callableReal* => realRealFunction()
 using namespace camp;
 using namespace vm;
 
+namespace run {
+extern pair zero;
+}
+
 typedef array boolarray;
 typedef array Intarray;
 typedef array Intarray2;
 typedef array realarray;
 typedef array realarray2;
 typedef array pairarray;
+typedef array pairarray2;
 typedef array triplearray2;
 
 using types::booleanArray;
@@ -45,6 +51,7 @@ using types::IntArray2;
 using types::realArray;
 using types::realArray2;
 using types::pairArray;
+using types::pairArray2;
 using types::tripleArray2;
 
 typedef callable callableReal;
@@ -1062,23 +1069,6 @@ array* :arrayConditional(array *a, array *b, array *c)
 realarray2 *identity(Int n)
 {
   return Identity(n);
-}
-
-// Return the diagonal matrix with diagonal entries given by a.
-realarray2* :diagonal(realarray *a)
-{
-  size_t n=checkArray(a);
-  array *c=new array(n);
-  for(size_t i=0; i < n; ++i) {
-    array *ci=new array(n);
-    (*c)[i]=ci;
-    for(size_t j=0; j < i; ++j)
-      (*ci)[j]=0.0;
-    (*ci)[i]=read<real>(a,i);
-    for(size_t j=i+1; j < n; ++j)
-      (*ci)[j]=0.0;
-  }
-  return c;
 }
 
 // Return the inverse of an n x n matrix a using Gauss-Jordan elimination.

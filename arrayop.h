@@ -184,6 +184,24 @@ bool Array2Equals(vm::stack *s)
 }
 
 template<class T>
+void diagonal(vm::stack *s)
+{
+  array *a=pop<array*>(s);
+  size_t n=checkArray(a);
+  array *c=new array(n);
+  for(size_t i=0; i < n; ++i) {
+    array *ci=new array(n);
+    (*c)[i]=ci;
+    for(size_t j=0; j < i; ++j)
+      (*ci)[j]=T();
+    (*ci)[i]=read<T>(a,i);
+    for(size_t j=i+1; j < n; ++j)
+      (*ci)[j]=T();
+  }
+  s->push(c);
+}
+
+template<class T>
 void array2Equals(vm::stack *s)
 {
   s->push(Array2Equals<T>(s));

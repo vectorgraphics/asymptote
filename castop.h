@@ -66,11 +66,27 @@ template<class T, class S>
 void arrayToArray(vm::stack *s)
 {
   vm::array *a = pop<vm::array*>(s);
-  checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=checkArray(a);
   vm::array *c=new vm::array(size);
   for(size_t i=0; i < size; i++)
     (*c)[i]=(S) read<T>(a,i);
+  s->push(c);
+}
+
+template<class T, class S>
+void array2ToArray2(vm::stack *s)
+{
+  vm::array *a = pop<vm::array*>(s);
+  size_t size=checkArray(a);
+  vm::array *c=new vm::array(size);
+  for(size_t i=0; i < size; ++i) {
+    vm::array *ai=vm::read<vm::array*>(a,i);
+    size_t aisize=checkArray(ai);
+    vm::array *ci=new vm::array(aisize);
+    (*c)[i]=ci;
+    for(size_t j=0; j < aisize; ++j)
+      (*ci)[j]=(S) read<T>(ai,j);
+  }
   s->push(c);
 }
 
