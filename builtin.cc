@@ -785,6 +785,24 @@ void addBooleanOperator(venv &ve, bltin f, ty *t, const char *name)
 }
 
 template<class T, template <class S> class op>
+void addArray2Array2Op(venv &ve, ty *t3, const char *name)
+{
+  addFunc(ve,array2Array2Op<T,op>,t3,name,formal(t3,"a"),formal(t3,"b"));
+}
+
+template<class T, template <class S> class op>
+void addOpArray2(venv &ve, ty *t1, const char *name, ty *t3)
+{
+  addFunc(ve,opArray2<T,T,op>,t3,name,formal(t1,"a"),formal(t3,"b"));
+}
+
+template<class T, template <class S> class op>
+void addArray2Op(venv &ve, ty *t1, const char *name, ty *t3)
+{
+  addFunc(ve,array2Op<T,T,op>,t3,name,formal(t3,"a"),formal(t1,"b"));
+}
+
+template<class T, template <class S> class op>
 void addOps(venv &ve, ty *t1, const char *name, ty *t2)
 {
   addSimpleOperator(ve,binaryOp<T,op>,t1,name);
@@ -846,6 +864,10 @@ inline double abs(triple v) {
   return v.length();
 }
 
+inline pair conjugate(pair z) {
+  return conj(z);
+}
+
 template<class T, template <class S> class op>
 void addBinOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, const char *name)
 {
@@ -881,6 +903,9 @@ void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool integer=false,
   addOps<T,plus>(ve,t1,"+",t2);
   addOps<T,minus>(ve,t1,"-",t2);
   
+  addArray2Array2Op<T,plus>(ve,t3,"+");
+  addArray2Array2Op<T,minus>(ve,t3,"-");
+
   addFunc(ve,&id,t1,"+",formal(t1,"a"));
   addFunc(ve,&id,t2,"+",formal(t2,"a"));
   addFunc(ve,Negate<T>,t1,"-",formal(t1,"a"));
@@ -898,8 +923,16 @@ void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool integer=false,
             bool Explicit=false)
 {
   addBasicOps<T>(ve,t1,t2,t3,t4,integer,Explicit);
+  
   addOps<T,times>(ve,t1,"*",t2);
-  if(!integer) addOps<T,run::divide>(ve,t1,"/",t2);
+  addOpArray2<T,times>(ve,t1,"*",t3);
+  addArray2Op<T,times>(ve,t1,"*",t3);
+  
+  if(!integer) {
+    addOps<T,run::divide>(ve,t1,"/",t2);
+    addArray2Op<T,run::divide>(ve,t1,"/",t3);
+  }
+      
   addOps<T,power>(ve,t1,"^",t2);
 }
 
@@ -1004,6 +1037,11 @@ void addOperators(venv &ve)
           formal(pairArray(),"a"));
   addFunc(ve,arrayFunc<double,triple,abs>,realArray(),"abs",
           formal(tripleArray(),"a"));
+  
+  addFunc(ve,arrayFunc<pair,pair,conjugate>,pairArray(),"conj",
+          formal(pairArray(),"a"));
+  addFunc(ve,arrayFunc2<pair,pair,conjugate>,pairArray2(),"conj",
+          formal(pairArray2(),"a"));
   
   addFunc(ve,binaryOp<Int,divide>,primReal(),"/",
           formal(primInt(),"a"),formal(primInt(),"b"));

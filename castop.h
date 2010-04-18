@@ -65,7 +65,7 @@ void castString(vm::stack *s)
 template<class T, class S>
 void arrayToArray(vm::stack *s)
 {
-  vm::array *a = pop<vm::array*>(s);
+  vm::array *a=pop<vm::array*>(s);
   size_t size=checkArray(a);
   vm::array *c=new vm::array(size);
   for(size_t i=0; i < size; i++)
@@ -76,7 +76,7 @@ void arrayToArray(vm::stack *s)
 template<class T, class S>
 void array2ToArray2(vm::stack *s)
 {
-  vm::array *a = pop<vm::array*>(s);
+  vm::array *a=pop<vm::array*>(s);
   size_t size=checkArray(a);
   vm::array *c=new vm::array(size);
   for(size_t i=0; i < size; ++i) {
