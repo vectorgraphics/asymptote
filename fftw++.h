@@ -166,7 +166,6 @@ protected:
   unsigned int size;
   int sign;
   double norm;
-  bool shift;
 
   fftw_plan plan;
   bool inplace;
@@ -269,7 +268,7 @@ public:
   static const char *WisdomName;
   
   fftw(unsigned int size, int sign, unsigned int n=0) : 
-    size(size), sign(sign), norm(1.0/(n ? n : size)), shift(false), plan(NULL)
+    size(size), sign(sign), norm(1.0/(n ? n : size)), plan(NULL)
   {}
   
   virtual ~fftw() {if(plan) fftw_destroy_plan(plan);}
@@ -320,7 +319,7 @@ public:
     ofWisdom.close();
   }
   
-  virtual void Execute(Complex *in, Complex *out) {
+  virtual void Execute(Complex *in, Complex *out, bool=false) {
     fftw_execute_dft(plan,(fftw_complex *) in,(fftw_complex *) out);
   }
     
@@ -353,9 +352,7 @@ public:
   
   void fft0(Complex *in, Complex *out=NULL) {
     Setout(in,out);
-    shift=true;
-    Execute(in,out);
-    shift=false;
+    Execute(in,out,true);
   }
     
   void fft0(double *in, Complex *out) {
@@ -386,9 +383,7 @@ public:
   
   void fft0Normalized(Complex *in, Complex *out=NULL) {
     Setout(in,out);
-    shift=true;
-    Execute(in,out);
-    shift=false;
+    Execute(in,out,true);
     Normalize(out);
   }
   
@@ -543,7 +538,7 @@ public:
     return fftw_plan_dft_r2c_1d(nx,(double *) in,(fftw_complex *) out, effort);
   }
   
-  void Execute(Complex *in, Complex *out) {
+  void Execute(Complex *in, Complex *out, bool=false) {
     fftw_execute_dft_r2c(plan,(double *) in,(fftw_complex *) out);
   }
 };
@@ -590,7 +585,7 @@ public:
     return fftw_plan_dft_c2r_1d(nx,(fftw_complex *) in,(double *) out,effort);
   }
   
-  void Execute(Complex *in, Complex *out) {
+  void Execute(Complex *in, Complex *out, bool=false) {
     fftw_execute_dft_c2r(plan,(fftw_complex *) in,(double *) out);
   }
 };
@@ -641,7 +636,7 @@ public:
                                   effort);
   }
   
-  void Execute(Complex *in, Complex *out) {
+  void Execute(Complex *in, Complex *out, bool=false) {
     fftw_execute_dft_r2c(plan,(double *) in,(fftw_complex *) out);
   }
   
@@ -692,7 +687,7 @@ public:
                                   effort);
   }
   
-  void Execute(Complex *in, Complex *out) {
+  void Execute(Complex *in, Complex *out, bool=false) {
     fftw_execute_dft_c2r(plan,(fftw_complex *) in,(double *) out);
   }
   
@@ -744,6 +739,10 @@ public:
     return fftw_plan_dft_2d(nx,ny,(fftw_complex *) in,(fftw_complex *) out,
                             sign,effort);
   }
+  
+  void Execute(Complex *in, Complex *out, bool=false) {
+    fftw_execute_dft(plan,(fftw_complex *) in,(fftw_complex *) out);
+  }
 };
 
 // Compute the complex two-dimensional Fourier transform of nx times ny real
@@ -756,8 +755,6 @@ public:
 //
 //   rcfft2d Forward(nx,ny,in,out);
 //   Forward.fft(in,out);       // Origin of Fourier domain at (0,0)
-//   Forward.fft0(in,out);      // Origin of Fourier domain at (nx/2,0)
-//
 //
 // In-place usage:
 //
@@ -793,8 +790,8 @@ public:
                                 effort);
   }
   
-  void Execute(Complex *in, Complex *out) {
-    if(shift) Shift(in,nx,ny);
+  void Execute(Complex *in, Complex *out, bool shift=false) {
+    if(shift && inplace) Shift(in,nx,ny);
     fftw_execute_dft_r2c(plan,(double *) in,(fftw_complex *) out);
   }
 };
@@ -812,7 +809,6 @@ public:
 //   crfft2d Backward(nx,ny,in,out);
 //   Backward.fft(in,out);      // Origin of Fourier domain at (0,0)
 //   Backward.fft0(in,out);     // Origin of Fourier domain at (nx/2,0)
-//
 //
 // In-place usage:
 //
@@ -849,7 +845,7 @@ public:
                                 effort);
   }
   
-  void Execute(Complex *in, Complex *out) {
+  void Execute(Complex *in, Complex *out, bool shift=false) {
     fftw_execute_dft_c2r(plan,(fftw_complex *) in,(double *) out);
     if(shift) Shift(out,nx,ny);
   }
@@ -913,8 +909,6 @@ public:
 //
 //   rcfft3d Forward(nx,ny,nz,in,out);
 //   Forward.fft(in,out);       // Origin of Fourier domain at (0,0)
-//   Forward.fft0(in,out);      // Origin of Fourier domain at (nx/2,ny/2,0)
-//
 //
 // In-place usage:
 //
@@ -953,8 +947,8 @@ public:
                                 effort);
   }
   
-  void Execute(Complex *in, Complex *out) {
-    if(shift) Shift(in,nx,ny,nz);
+  void Execute(Complex *in, Complex *out, bool shift=false) {
+    if(shift && inplace) Shift(in,nx,ny,nz);
     fftw_execute_dft_r2c(plan,(double *) in,(fftw_complex *) out);
   }
 };
@@ -1009,7 +1003,7 @@ public:
                                 effort);
   }
   
-  void Execute(Complex *in, Complex *out) {
+  void Execute(Complex *in, Complex *out, bool shift=false) {
     fftw_execute_dft_c2r(plan,(fftw_complex *) in,(double *) out);
     if(shift) Shift(out,nx,ny,nz);
   }
