@@ -93,7 +93,7 @@ SimpleHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
   path left=rotate(-angle,x)*r;
   path right=rotate(angle*factor,x)*r;
   real[] T=arrowbasepoints(base,left,right);
-  return subpath(left,T[0],0)--subpath(right,T[1],0);
+  return subpath(left,T[0],0)--subpath(right,0,T[1]);
 };
 
 arrowhead HookHead(real dir=arrowdir, real barb=arrowbarb)
