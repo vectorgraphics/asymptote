@@ -1594,6 +1594,9 @@ void setOptions(int argc, char *argv[])
   
   Setting("sysdir")=sysdir;
   
+  if(docdir.empty())
+    docdir=getSetting<string>("dir");
+  
 #ifdef USEGC
   if(verbose == 0 && !getSetting<bool>("debug")) GC_set_warn_proc(no_GCwarn);
 #endif  
