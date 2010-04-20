@@ -82,6 +82,7 @@ const bool haveglut=false;
 mode_t mask;
   
 string systemDir=ASYMPTOTE_SYSDIR;
+string docdir=ASYMPTOTE_DOCDIR;
 
 #ifndef __CYGWIN__
   
@@ -97,7 +98,6 @@ string defaultPDFViewer="acroread";
 string defaultGhostscript="gs";
 string defaultDisplay="display";
 string defaultAnimate="animate";
-string docdir=ASYMPTOTE_DOCDIR;
 void queryRegistry() {}
 const string dirsep="/";
   
@@ -115,7 +115,6 @@ string defaultGhostscript="gswin32c.exe";
 string defaultDisplay="cmd";
 //string defaultAnimate="animate";
 string defaultAnimate="cmd";
-string docdir;
 const string dirsep="\\";
   
 #include <dirent.h>
@@ -187,7 +186,9 @@ void queryRegistry()
     defaultPDFViewer;
   if(defaultPSViewer != "cmd")
     defaultPSViewer=getEntry("Ghostgum/GSview/*")+"\\gsview\\"+defaultPSViewer;
-  docdir=getEntry("Microsoft/Windows/CurrentVersion/App Paths/Asymptote/Path");
+  string s;
+  s=getEntry("Microsoft/Windows/CurrentVersion/App Paths/Asymptote/Path");
+  if(!s.empty()) docdir=s;
   // An empty systemDir indicates a TeXLive build
   if(!systemDir.empty() && !docdir.empty())
     systemDir=docdir;
