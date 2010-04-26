@@ -29,8 +29,8 @@ draw(O--Bp);
 draw("4",C--O);
 draw(O--Cp);
 
-dot("$O$",O,1.5*dir(B--Bp,Cp--C),red);
-dot("$A$",A,1.5*dir(C--A,B--A),red);
+dot("$O$",O,dir(B--Bp,Cp--C),red);
+dot("$A$",A,dir(C--A,B--A),red);
 dot("$B$",B,NW,red);
 dot("$C$",C,dir(A--C,B--C),red);
 dot("$A'$",Ap,dir(A--Ap),red);

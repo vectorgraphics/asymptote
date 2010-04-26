@@ -206,7 +206,7 @@ pair dir(path p)
 
 pair dir(path p, path h)
 {
-  return 0.5*(dir(p)+dir(h));
+  return unit(dir(p)+dir(h));
 }
 
 // return the point on path p at arclength L
