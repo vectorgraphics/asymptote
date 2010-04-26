@@ -205,7 +205,7 @@ pair realmult(pair z, pair w)
 }
 
 // To avoid confusion, a dot product requires explicit pair arguments.
-pair dot(explicit pair z, explicit pair w)
+real dot(explicit pair z, explicit pair w)
 {
   return dot(z,w);
 }
