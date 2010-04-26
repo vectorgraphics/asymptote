@@ -422,11 +422,11 @@ public:
 //   fft1d Forward(n,-1,in,out);
 //   Forward.fft(in,out);
 //
-//   fft1d Backward(n,1,out,in);
-//   Backward.fft(out,in);
+//   fft1d Backward(n,1,in,out);
+//   Backward.fft(in,out);
 //
-//   fft1d Backward(n,1,out,in);
-//   Backward.fftNormalized(out,in); // True inverse of Forward.fft(in,out);
+//   fft1d Backward(n,1,in,out);
+//   Backward.fftNormalized(in,out); // True inverse of Forward.fft(out,in);
 //
 // In-place usage:
 //
@@ -705,11 +705,11 @@ public:
 //   fft2d Forward(nx,ny,-1,in,out);
 //   Forward.fft(in,out);
 //
-//   fft2d Backward(nx,ny,1,out,in);
-//   Backward.fft(out,in);
+//   fft2d Backward(nx,ny,1,in,out);
+//   Backward.fft(in,out);
 //
-//   fft2d Backward(nx,ny,1,out,in);
-//   Backward.fftNormalized(out,in); // True inverse of Forward.fft(in,out);
+//   fft2d Backward(nx,ny,1,in,out);
+//   Backward.fftNormalized(in,out); // True inverse of Forward.fft(out,in);
 //
 // In-place usage:
 //
@@ -860,11 +860,11 @@ public:
 //   fft3d Forward(nx,ny,nz,-1,in,out);
 //   Forward.fft(in,out);
 //
-//   fft3d Backward(nx,ny,nz,1,out,in);
-//   Backward.fft(out,in);
+//   fft3d Backward(nx,ny,nz,1,in,out);
+//   Backward.fft(in,out);
 //
-//   fft3d Backward(nx,ny,nz,1,out,in);
-//   Backward.fftNormalized(out,in); // True inverse of Forward.fft(in,out);
+//   fft3d Backward(nx,ny,nz,1,in,out);
+//   Backward.fftNormalized(in,out); // True inverse of Forward.fft(out,in);
 //
 // In-place usage:
 //

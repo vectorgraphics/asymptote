@@ -37,23 +37,23 @@ public:
   
   friend pair operator+ (const pair& z, const pair& w)
   {
-    return pair(z.x + w.x, z.y + w.y);
+    return pair(z.x+w.x,z.y+w.y);
   }
 
   friend pair operator- (const pair& z, const pair& w)
   {
-    return pair(z.x - w.x, z.y - w.y);
+    return pair(z.x-w.x,z.y-w.y);
   }
 
   friend pair operator- (const pair& z)
   {
-    return pair(-z.x, -z.y);
+    return pair(-z.x,-z.y);
   }
 
   // Complex multiplication
   friend pair operator* (const pair& z, const pair& w)
   {
-    return pair(z.x*w.x - z.y*w.y, z.x*w.y + w.x*z.y);
+    return pair(z.x*w.x-z.y*w.y,z.x*w.y+w.x*z.y);
   }
 
   const pair& operator+= (const pair& w)
@@ -156,7 +156,7 @@ public:
   
   friend double dot(const pair& z, const pair& w)
   {
-    return z.getx()*w.getx()+z.gety()*w.gety();
+    return z.x*w.x+z.y*w.y;
   }
   
 // Return the principal branch of the square root (non-negative real part).

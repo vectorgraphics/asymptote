@@ -1415,6 +1415,16 @@ real dot(realarray *a, realarray *b)
   return sum;
 }
 
+// Compute the complex dot product of vectors a and b.
+pair dot(pairarray *a, pairarray *b) 
+{
+  size_t n=checkArrays(a,b);
+  pair sum=zero;
+  for(size_t i=0; i < n; ++i)
+    sum += read<pair>(a,i)*conj(read<pair>(b,i));
+  return sum;
+}
+
 // Solve the problem L\inv f, where f is an n vector and L is the n x n matrix
 //
 // [ b[0] c[0]           a[0]   ]

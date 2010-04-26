@@ -201,11 +201,11 @@ pair conj(pair z)
 
 pair realmult(pair z, pair w) 
 {
-  return pair (z.getx()*w.getx(),z.gety()*w.gety());
+  return pair(z.getx()*w.getx(),z.gety()*w.gety());
 }
 
 // To avoid confusion, a dot product requires explicit pair arguments.
-real dot(explicit pair z, explicit pair w)
+pair dot(explicit pair z, explicit pair w)
 {
   return dot(z,w);
 }

@@ -1867,7 +1867,7 @@ returns @code{z.y};
 @cindex @code{realmult}
 returns the element-by-element product @code{(z.x*w.x,z.y*w.y)};
 
-@item real dot(pair z, pair w)
+@item real dot(explicit pair z, explicit pair w)
 @cindex @code{dot}
 returns the dot product @code{z.x*w.x+z.y*w.y};
 
@@ -4994,8 +4994,8 @@ cyclic array never leads to out-of-bounds errors or array resizing.
 The member @code{A.keys} evaluates to an array of integers containing the
 indices of initialized entries in the array in ascending order.  Hence, for an
 array of length @code{n} with all entries initialized, @code{A.keys} evaluates
-to the array of integers from @code{0} to @code{n-1} inclusive.  A new keys
-array is produced each time @code{A.keys} is evaluated.
+to @code{@{0,1,...,n-1@}}.  A new keys array is produced each time
+@code{A.keys} is evaluated.
 
 The functions @code{A.push} and @code{A.append} append their
 arguments onto the end of the array, while @code{A.insert(int i ... T[] x)}
@@ -5227,9 +5227,14 @@ write();
 write(f/n);
 @end verbatim
 
-@cindex @code{solve}
+@cindex @code{dot}
 @item real dot(real[] a, real[] b)
 returns the dot product of the vectors @code{a} and @code{b}.
+
+@cindex @code{dot}
+@item pair dot(pair[] a, pair[] b)
+returns the complex dot product @code{sum(a*conj(b))} of the vectors
+@code{a} and @code{b}.
 
 @anchor{tridiagonal}
 @cindex @code{tridiagonal}
