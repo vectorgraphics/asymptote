@@ -13,7 +13,7 @@
 
 import graph_settings;
 
-real eps=sqrtEpsilon;
+private real eps=sqrtEpsilon;
 
 /*
   GRID CONTOURS
@@ -53,15 +53,14 @@ real eps=sqrtEpsilon;
   
 */
 
-typedef int boxtype;
-boxtype exterior=-1;
-boxtype edge    = 0;
-boxtype interior=+1;
+private typedef int boxtype;
+private boxtype exterior=-1;
+private boxtype edge    = 0;
+private boxtype interior=+1;
 
-typedef int contourshape;
-contourshape none     =0;
-contourshape line     =1;
-contourshape hyperbola=2;
+private typedef int contourshape;
+private contourshape line     =1;
+private contourshape hyperbola=2;
 
 // Describe position by grid square and position in square
 private struct gridpoint {
