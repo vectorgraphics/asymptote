@@ -382,13 +382,13 @@ public:
   }
   
   virtual void fftNormalized(Complex *in, Complex *out=NULL) {
-    fft(in,out);
+    Setout(in,out);
+    Execute(in,out);
     Normalize(out);
   }
   
   void fftNormalized(Complex *in, double *out) {
-    fft(in,out);
-    Normalize(out);
+    fftNormalized(in,(Complex *) out);
   }
   
   void fftNormalized(double *in, Complex *out) {
@@ -396,13 +396,13 @@ public:
   }
   
   void fft0Normalized(Complex *in, Complex *out=NULL) {
-    fft0(in,out);
+    Setout(in,out);
+    Execute(in,out,true);
     Normalize(out);
   }
   
   void fft0Normalized(Complex *in, double *out) {
-    fft0(in,out);
-    Normalize(out);
+    fft0Normalized(in,(Complex *) out);
   }
   
   void fft0Normalized(double *in, Complex *out) {
