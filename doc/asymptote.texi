@@ -7880,23 +7880,46 @@ projection TopView=orthographic(Z,showtarget=true);
 @end verbatim
 @noindent
 The function
+@cindex @code{addViews}
 @verbatim
-void addViews(picture dest=currentpicture, picture src, bool group=true,
-              filltype filltype=NoFill);
+void addViews(picture dest=currentpicture, picture src,
+              projection[][] views=SixViewsUS,
+              bool group=true, filltype filltype=NoFill);
 @end verbatim
 @noindent
-adds picture @code{pic} as seen with @code{FrontView} aligned above the
-projection @code{TopView} and to the right of the projection @code{RightView}. 
-Alternatively, the function
+adds to picture @code{dest} an array of views of picture @code{src}
+using the layout projection[][] @code{views}. The default layout
+@code{SixViewsUS} aligns the projection @code{FrontView} below
+@code{TopView} and above @code{BottomView}, to the right of
+@code{LeftView} and left of @code{RightView} and @code{BackView}. 
+The predefined layouts are:
+@cindex @code{ThreeViewsUS}
+@cindex @code{SixViewsUS}
+@cindex @code{ThreeViewsFR}
+@cindex @code{SixViewsFR}
+@cindex @code{ThreeViews}
+@cindex @code{SixViews}
 @verbatim
-void addAllViews(picture dest=currentpicture, picture src,
-                 real xmargin=0, real ymargin=xmargin,
-                 bool group=true, filltype filltype=NoFill);
+projection[][] ThreeViewsUS={{TopView},
+                             {FrontView,RightView}};
+
+projection[][] SixViewsUS={{null,TopView},
+                           {LeftView,FrontView,RightView,BackView},
+                           {null,BottomView}};
+
+projection[][] ThreeViewsFR={{RightView,FrontView},
+                             {null,TopView}};
+
+projection[][] SixViewsFR={{null,BottomView},
+                           {RightView,FrontView,LeftView,BackView},
+                           {null,TopView}};
+
+projection[][] ThreeViews={{FrontView,TopView,RightView}};
+
+projection[][] SixViews={{FrontView,TopView,RightView},
+                         {BackView,BottomView,LeftView}};
+
 @end verbatim
-@noindent
-may be used to exhibit all six standard views, with FrontView,
-TopView, RightView in the upper row and BackView, BottomView, LeftView
-in the lower row.
 
 A triple or path3 can be projected to a pair or path,
 with @code{project(triple, projection P=currentprojection)} or
