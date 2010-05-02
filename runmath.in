@@ -89,18 +89,20 @@ Int sgn(real x)
 
 Int rand()
 { 
-  return rand();
+  return random();
 }  
 
 void srand(Int seed)
 { 
-  srand(intcast(seed));
+  const int n=256;
+  static char state[n];
+  initstate(intcast(seed),state,n);
 }  
 
 // a random number uniformly distributed in the interval [0,1]
 real unitrand()
 {                         
-  return ((real) rand())/RAND_MAX;
+  return ((real) random())/RAND_MAX;
 }
 
 Int ceil(real x)
