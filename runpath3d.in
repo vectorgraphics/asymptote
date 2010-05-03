@@ -264,7 +264,8 @@ realarray2* intersections(path3 p, path3 q, real fuzz=-1)
 
 realarray2* intersections(path3 p, triplearray2 *P, real fuzz=-1)
 {
-  triple *A=copyTripleArray2C(P,true,4);
+  triple *A;
+  copyArray2C(A,P,true,4);
   if(fuzz <= 0) fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
                                    norm(A,16));
   std::vector<real> T,U,V;

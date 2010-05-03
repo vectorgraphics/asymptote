@@ -123,36 +123,6 @@ array *copyArray(array *a)
   return c;
 }
 
-inline size_t checkdimension(const array *a, size_t dim)
-{
-  size_t size=checkArray(a);
-  if(dim && size != dim) {
-    ostringstream buf;
-    buf << "array of length " << dim << " expected";
-    error(buf);
-  }
-  return size;
-}
-
-double *copyArrayC(const array *a, size_t dim, GCPlacement placement)
-{
-  size_t size=checkdimension(a,dim);
-  double *c=(placement == NoGC) ? new double [size] : 
-    new(placement) double[size];
-  for(size_t i=0; i < size; i++) 
-    c[i]=read<double>(a,i);
-  return c;
-}
-
-triple *copyTripleArrayC(const array *a, size_t dim)
-{
-  size_t size=checkdimension(a,dim);
-  triple *c=new triple[size];
-  for(size_t i=0; i < size; i++) 
-    c[i]=read<triple>(a,i);
-  return c;
-}
-
 array *copyArray2(array *a)
 {
   size_t size=checkArray(a);
@@ -185,55 +155,6 @@ array *copyArray3(array *a)
       for(size_t k=0; k < aijsize; k++) 
         (*cij)[k]=(*aij)[k];
     }
-  }
-  return c;
-}
-
-double *copyArray2C(const array *a, bool square, size_t dim2,
-                    GCPlacement placement)
-{
-  size_t n=checkArray(a);
-  size_t m=(square || n == 0) ? n : checkArray(read<array*>(a,0));
-  if(n > 0 && dim2 && m != dim2) {
-    ostringstream buf;
-    buf << "second matrix dimension must be " << dim2;
-    error(buf);
-  }
-  
-  double *c=(placement == NoGC) ? new double [n*m] : new(placement) double[n*m];
-  for(size_t i=0; i < n; i++) {
-    array *ai=read<array*>(a,i);
-    size_t aisize=checkArray(ai);
-    if(aisize == m) {
-      double *ci=c+i*m;
-      for(size_t j=0; j < m; j++) 
-        ci[j]=read<double>(ai,j);
-    } else
-      error(square ? "matrix must be square" : "matrix must be rectangular");
-  }
-  return c;
-}
-
-triple *copyTripleArray2C(const array *a, bool square, size_t dim2)
-{
-  size_t n=checkArray(a);
-  size_t m=(square || n == 0) ? n : checkArray(read<array*>(a,0));
-  if(n > 0 && dim2 && m != dim2) {
-    ostringstream buf;
-    buf << "second matrix dimension must be " << dim2;
-    error(buf);
-  }
-  
-  triple *c=new triple[n*m];
-  for(size_t i=0; i < n; i++) {
-    array *ai=read<array*>(a,i);
-    size_t aisize=checkArray(ai);
-    if(aisize == m) {
-      triple *ci=c+i*m;
-      for(size_t j=0; j < m; j++) 
-        ci[j]=read<triple>(ai,j);
-    } else
-      error(square ? "matrix must be square" : "matrix must be rectangular");
   }
   return c;
 }
@@ -328,6 +249,43 @@ triple multshiftless(const array& t, const triple& v)
   return triple((read<real>(t0,0)*x+read<real>(t0,1)*y+read<real>(t0,2)*z)*f,
                 (read<real>(t1,0)*x+read<real>(t1,1)*y+read<real>(t1,2)*z)*f,
                 (read<real>(t2,0)*x+read<real>(t2,1)*y+read<real>(t2,2)*z)*f);
+}
+
+template<class T>
+array *mult(array *a, array *b)
+{
+  size_t n=checkArray(a);
+  
+  size_t nb=checkArray(b);
+  size_t na0=n == 0 ? 0 : checkArray(read<array*>(a,0));
+  if(na0 != nb) 
+    error(incommensurate);
+  
+  size_t nb0=nb == 0 ? 0 : checkArray(read<array*>(b,0));
+    
+  array *c=new array(n);
+
+  T *A,*B;
+  copyArray2C(A,a,false);
+  copyArray2C(B,b,false);
+
+  for(size_t i=0; i < n; ++i) {
+    T *Ai=A+i*nb;
+    array *ci=new array(nb0);
+    (*c)[i]=ci;
+    for(size_t j=0; j < nb0; ++j) {
+      T sum=0.0;
+      size_t kj=j;
+      for(size_t k=0; k < nb; ++k, kj += nb0)
+        sum += Ai[k]*B[kj];
+      (*ci)[j]=sum;
+    }
+  }
+  
+  delete[] B;
+  delete[] A;
+  
+  return c;
 }
 
 double norm(double *a, size_t n) 
@@ -1175,7 +1133,8 @@ realarray *solve(realarray2 *a, realarray *b, bool warn=true)
   size_t m=checkArray(b);
   if(m != n) error(incommensurate);
   
-  real *A=copyArray2C(a);
+  real *A;
+  copyArray2C(A,a);
   size_t *index=new size_t[n];
   
   if(LUdecompose(A,n,index,warn) == 0)
@@ -1183,7 +1142,8 @@ realarray *solve(realarray2 *a, realarray *b, bool warn=true)
 
   array *x=new array(n);
   
-  real *B=copyArrayC(b);
+  real *B;
+  copyArrayC(B,b);
   
   for(size_t i=0; i < n; ++i) {
     size_t ip=index[i];
@@ -1226,8 +1186,9 @@ realarray2 *solve(realarray2 *a, realarray2 *b, bool warn=true)
   if(checkArray(b) != n) error(incommensurate);
   size_t m=checkArray(read<array*>(b,0));
   
-  real *A=copyArray2C(a);
-  real *B=copyArray2C(b,false);
+  real *A,*B;
+  copyArray2C(A,a);
+  copyArray2C(B,b,false);
   
   size_t *index=new size_t[n];
   
@@ -1281,7 +1242,8 @@ realarray2 *solve(realarray2 *a, realarray2 *b, bool warn=true)
 // Compute the determinant of an n x n matrix.
 real determinant(realarray2 *a)
 {
-  real *A=copyArray2C(a);
+  real *A;
+  copyArray2C(A,a);
   size_t n=checkArray(a);
   
   real det=LUdecompose(A,n,NULL,false);
@@ -1299,7 +1261,8 @@ realarray *Operator *(realarray2 *a, realarray *b)
   size_t n=checkArray(a);
   size_t m=checkArray(b);
   array *c=new array(n);
-  real *B=copyArrayC(b);
+  real *B;
+  copyArrayC(B,b);
   for(size_t i=0; i < n; ++i) {
     array *ai=read<array*>(a,i);
     if(checkArray(ai) != m) error(incommensurate);
@@ -1316,7 +1279,8 @@ realarray *Operator *(realarray *a, realarray2 *b)
 {
   size_t n=checkArray(a);
   if(n != checkArray(b)) error(incommensurate);
-  real *A=copyArrayC(a);
+  real *A;
+  copyArrayC(A,a);
 
   array **B=new array*[n];
   array *bk=read<array *>(b,0);
@@ -1340,39 +1304,19 @@ realarray *Operator *(realarray *a, realarray2 *b)
   return c;
 }
 
+Intarray2 *Operator *(Intarray2 *a, Intarray2 *b)
+{
+  return mult<Int>(a,b);
+}
+
 realarray2 *Operator *(realarray2 *a, realarray2 *b)
 {
-  size_t n=checkArray(a);
-  
-  size_t nb=checkArray(b);
-  size_t na0=n == 0 ? 0 : checkArray(read<array*>(a,0));
-  if(na0 != nb) 
-    error(incommensurate);
-  
-  size_t nb0=nb == 0 ? 0 : checkArray(read<array*>(b,0));
-    
-  array *c=new array(n);
-
-  real *A=copyArray2C(a,false);
-  real *B=copyArray2C(b,false);
-
-  for(size_t i=0; i < n; ++i) {
-    real *Ai=A+i*nb;
-    array *ci=new array(nb0);
-    (*c)[i]=ci;
-    for(size_t j=0; j < nb0; ++j) {
-      real sum=0.0;
-      size_t kj=j;
-      for(size_t k=0; k < nb; ++k, kj += nb0)
-        sum += Ai[k]*B[kj];
-      (*ci)[j]=sum;
-    }
-  }
-  
-  delete[] B;
-  delete[] A;
-  
-  return c;
+  return mult<real>(a,b);
+}
+
+pairarray2 *Operator *(pairarray2 *a, pairarray2 *b)
+{
+  return mult<pair>(a,b);
 }
 
 triple Operator *(realarray2 *t, triple v)
@@ -1821,7 +1765,8 @@ triple maxbezier(triplearray2 *P, triple b)
 
 pair minratio(triplearray2 *P, pair b)
 {
-  triple *A=copyTripleArray2C(P,true,4);
+  triple *A;
+  copyArray2C(A,P,true,4);
   real fuzz=sqrtFuzz*norm(A,16);
   b=pair(bound(A,::min,xratio,b.getx(),fuzz),
          bound(A,::min,yratio,b.gety(),fuzz));
@@ -1831,7 +1776,8 @@ pair minratio(triplearray2 *P, pair b)
 
 pair maxratio(triplearray2 *P, pair b)
 {
-  triple *A=copyTripleArray2C(P,true,4);
+  triple *A;
+  copyArray2C(A,P,true,4);
   real fuzz=sqrtFuzz*norm(A,16);
   b=pair(bound(A,::max,xratio,b.getx(),fuzz),
          bound(A,::max,yratio,b.gety(),fuzz));

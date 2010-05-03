@@ -412,13 +412,15 @@ void shipout3(string prefix, picture *f, string format=emptystring,
   checkEqual(n,checkArray(ambient));
   checkEqual(n,checkArray(specular));
   
-  real *T=copyArray2C(t,true,4);
-  real* Background=copyArrayC(background);
-  
-  triple *Lights=copyTripleArrayC(lights);
-  real *Diffuse=copyArray2C(diffuse,false,4,UseGC);
-  real *Ambient=copyArray2C(ambient,false,4,UseGC);
-  real *Specular=copyArray2C(specular,false,4,UseGC);
+  real *T,*Background,*Diffuse,*Ambient,*Specular;
+  triple *Lights;
+
+  copyArray2C(T,t,true,4);
+  copyArrayC(Background,background);
+  copyArrayC(Lights,lights);
+  copyArray2C(Diffuse,diffuse,false,4,UseGC);
+  copyArray2C(Ambient,ambient,false,4,UseGC);
+  copyArray2C(Specular,specular,false,4,UseGC);
     
   f->shipout3(prefix,format,width,height,angle,zoom,m,M,shift,T,Background,n,
               Lights,Diffuse,Ambient,Specular,viewportlighting,view);

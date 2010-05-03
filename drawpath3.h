@@ -107,7 +107,7 @@ public:
 
     degree=nknots-n-1;
     
-    knots=run::copyArrayC(knot,0,NoGC);
+    run::copyArrayC(knots,knot,0,NoGC);
     
 #ifdef HAVE_GL
     Controls=NULL;

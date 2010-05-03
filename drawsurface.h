@@ -238,8 +238,8 @@ public:
     udegree=nuknots-nu-1;
     vdegree=nvknots-nv-1;
     
-    uknots=run::copyArrayC(uknot,0,NoGC);
-    vknots=run::copyArrayC(vknot,0,NoGC);
+    run::copyArrayC(uknots,uknot,0,NoGC);
+    run::copyArrayC(vknots,vknot,0,NoGC);
     
     pen surfacepen=vm::read<camp::pen>(p,0);
     invisible=surfacepen.invisible();

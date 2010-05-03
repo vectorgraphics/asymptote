@@ -20,8 +20,9 @@
 #include "glrender.h"
 
 namespace run {
-extern double *copyArrayC(const vm::array *a, size_t dim,
-                          GCPlacement placement);
+template<class T>
+extern void copyArrayC(T* &dest, const vm::array *a, size_t dim,
+                       GCPlacement placement);
 }
 
 namespace camp {
