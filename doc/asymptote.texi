@@ -9453,12 +9453,14 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  nonintegral gettriple enablerepo hexidecimal XeLaTeX xelatex
 @c  LocalWords:  dvipdfmx autoadjust viewportsize viewportwidth viewportheight
 @c  LocalWords:  subregions nonsimply functionshade shader floatingdisk TopView
-@c  LocalWords:  functionshading maxlength LeftView odetest
-@c  LocalWords:  vectorfieldsphere RightView FrontView BackView BottomView
+@c  LocalWords:  functionshading maxlength LeftView odetest RadialShadeDraw CLZ
+@c  LocalWords:  vectorfieldsphere RightView FrontView BackView BottomView CTZ
 @c  LocalWords:  addViews outprefix addAllViews xsplinetype ysplinetype rotateX
 @c  LocalWords:  usplinetype vsplinetype leftbutton middlebutton rightbutton
 @c  LocalWords:  rotateY rotateZ wheelup zoomin wheeldown zoomout TeXLive
 @c  LocalWords:  viewportshift signedint signedness psview multiplatform nowarn
 @c  LocalWords:  singlereal singleint writeoverloaded tubegranularity dvisvg
 @c  LocalWords:  bigdiagonal autobillboard dvisvgm maxtiles hyperrefOptions
-@c  LocalWords:  setpagesize pdfborder controlsystem
+@c  LocalWords:  setpagesize pdfborder controlsystem OmitTickInterval SixViews
+@c  LocalWords:  OmitTickIntervals tickmodifiers autorotated SixViewsUS
+@c  LocalWords:  ThreeViewsUS ThreeViewsFR SixViewsFR ThreeViews

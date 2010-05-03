@@ -1,5 +1,5 @@
 			  ASYMPTOTE
-      Copyright 2004-9 Andy Hammerlindl, John Bowman, and Tom Prince
+      Copyright 2004-10 Andy Hammerlindl, John Bowman, and Tom Prince
 
 Asymptote is a powerful descriptive vector graphics language for technical
 drawings, inspired by MetaPost but with an improved C++-like
@@ -19,10 +19,12 @@ Questions and comments should be sent to the Asymptote Forum:
 
 http://sourceforge.net/forum/forum.php?forum_id=409349
 
-All files in the Asymptote project, unless explicitly noted otherwise,
+All source files in the Asymptote project, unless explicitly noted otherwise,
 are released under version 3 (or later) of the GNU Lesser General Public
 License (see the files LICENSE.LESSER and LICENSE in the top-level source
 directory).
+
+========================================================================
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -38,4 +40,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+========================================================================
 
+Note that the MSWindows executable version of Asymptote can only be
+released under the GNU General Public License (GPL) as it is linked against
+the GNU Scientific Library, GNU Readline library, and other GPL
+libraries. This version of Asymptote also ships with the dll libraries
+noted below.
+
+The source code for cygwin1.dll is available under the GPL license:
+http://cygwin.com/snapshots/cygwin-src-20100413.tar.bz2
+
+The source code for freeglut.dll is available under the X-Consortium license:
+http://prdownloads.sourceforge.net/freeglut/freeglut-2.6.0.tar.gz
+
+The source code for glu32.dll is available from
+ftp://ftp.freedesktop.org/pub/mesa/7.6/MesaLib-7.6.tar.bz2
+and patched as detailed here:
+http://old.nabble.com/Error-building-MesaLib-7.6-onto-Win32-with-Microsoft-Visual-Studio-2005-and-2008-td25990977.html 

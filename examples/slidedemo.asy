@@ -112,6 +112,6 @@ add(pic.fit(0,14cm));
 title("\mbox{Asymptote: 2D \& 3D Vector Graphics Language}");
 asyinclude("logo3");
 center("\tt http://asymptote.sf.net");
-center("(freely available under the GNU public license)");
+center("(freely available under the LGPL license)");
 
 bibliography("refs");

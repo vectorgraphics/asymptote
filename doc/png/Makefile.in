@@ -10,7 +10,7 @@ INSTALL = @INSTALL@
 all:	html info
 
 %.png:	../%.asy
-	cd ..; $(ASY) -f png -o png/ $(notdir $<)
+	cd .. && $(ASY) -f png -o png/ $(notdir $<)
 
 latexusage.png: ../latexusage.eps
 	convert -alpha Off -density 144x144 +antialias -geometry 50%x \
@@ -45,6 +45,6 @@ install-all: all install
 
 uninstall: 
 	-install-info --remove --infodir=$(infodir) asymptote.info
-	-cd $(infodir)/asymptote; rm -f asymptote.info *.png
+	-cd $(infodir)/asymptote && rm -f asymptote.info *.png
 	-rmdir -f $(infodir)/asymptote
 FORCE:

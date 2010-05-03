@@ -108,10 +108,10 @@ $(GCLIB): $(GC).tar.gz
 	tar -xf $(GC).tar
 	rm -f $(GC).tar
 	if test "$(GC)" = "gc6.8"; then \
-	  cd $(GC)/include; patch < ../../patches/gc6.8_AIX.patch; \
+	  cd $(GC)/include && patch < ../../patches/gc6.8_AIX.patch; \
 	fi
 	if test "$(GC)" = "gc-7.0"; then \
-	  cd $(GC)/include/private; patch < ../../../patches/gc-7.0nomem.patch;\
+	  cd $(GC)/include/private && patch < ../../../patches/gc-7.0nomem.patch;\
 	fi
 	cd $(GC); \
 	./configure $(GCOPTIONS); \
@@ -120,16 +120,16 @@ $(GCLIB): $(GC).tar.gz
 $(GCPPLIB): $(GCLIB)
 
 dvi:	asy
-	cd doc; $(MAKE) dvi
+	cd doc && $(MAKE) dvi
 
 html:	asy
-	cd doc; $(MAKE) doc
+	cd doc && $(MAKE) doc
 
 man:	asy
-	cd doc; $(MAKE) man
+	cd doc && $(MAKE) man
 
 faq:	asy
-	cd doc; $(MAKE) faq
+	cd doc && $(MAKE) faq
 
 $(RUNTIME_FILES:=.cc): %.cc: runtime.pl runtimebase.in %.in
 	./runtime.pl $(@:.cc=)
@@ -183,36 +183,36 @@ install-asy: asy
 	-${INSTALL} -p -m 644 $(addprefix doc/,$(CONTEXTFILES)) $(contextdir)
 
 install-html: html
-	cd doc; $(MAKE) install-all
+	cd doc && $(MAKE) install-all
 
 install-man: man
-	cd doc; $(MAKE) install
+	cd doc && $(MAKE) install
 
 install-prebuilt: install-asy
-	cd doc; $(MAKE) install-prebuilt
+	cd doc && $(MAKE) install-prebuilt
 
 uninstall: uninstall-all
 
 uninstall-all: uninstall-man uninstall-asy
 
 uninstall-asy:
-	-cd $(animationsdir); rm -f *.asy *.tex
+	-cd $(animationsdir) && rm -f *.asy *.tex
 	-rmdir $(animationsdir)
-	-cd $(exampledir); rm -f $(EXEXTRA) $(DOCEXTRA)
+	-cd $(exampledir) && rm -f $(EXEXTRA) $(DOCEXTRA)
 	-rmdir $(exampledir)
 	-rmdir $(docdir)
-	-cd $(GUIdir); rm -f *.py
+	-cd $(GUIdir) && rm -f *.py
 	-rmdir $(GUIdir)
-	-cd $(asydir); rm -f asy-keywords.el *.asy $(EXTRA)
+	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA)
 	-rmdir $(asydir)
-	-cd $(latexdir); rm -f $(LATEXFILES)
+	-cd $(latexdir) && rm -f $(LATEXFILES)
 	-rmdir $(latexdir)
-	-cd $(contextdir); rm -f $(CONTEXTFILES)
+	-cd $(contextdir) && rm -f $(CONTEXTFILES)
 	-rmdir $(contextdir)
-	-cd $(bindir); rm -f $(NAME) $(XNAME)
+	-cd $(bindir) && rm -f $(NAME) $(XNAME)
 
 uninstall-man: 
-	cd doc; $(MAKE) uninstall
+	cd doc && $(MAKE) uninstall
 
 prc-clean: FORCE
 	-rm -f prc/*.o prc/*.d 
@@ -225,14 +225,16 @@ gc-clean: FORCE clean
 		$(MAKE) -C $(GC) clean; \
 	fi
 
-cleaner: FORCE distclean
-distclean: FORCE clean
+cleaner: FORCE clean
 	-if test -d $(GC); then \
 		rm -rf $(GC); \
 	fi
 	-rm -f Makefile config.h config.log config.status errors.temp
-	cd doc; $(MAKE) distclean
-	cd tests; $(MAKE) distclean
+	cd doc && $(MAKE) clean
+	cd tests && $(MAKE) distclean
+
+distclean: FORCE cleaner
+	cd doc && $(MAKE) distclean
 
 cleanest: FORCE maintainer-clean
 maintainer-clean: FORCE distclean

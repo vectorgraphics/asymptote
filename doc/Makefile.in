@@ -17,13 +17,13 @@ all:    doc
 dvi:	doc asymptote.dvi
 
 doc:	$(DOCFILES) asy.1 faq latexusage.eps
-	cd png; $(MAKE) all
+	cd png && $(MAKE) all
 
 man:	$(DOCFILES) asy.1
-	cd png; $(MAKE) asymptote.info
+	cd png && $(MAKE) asymptote.info
 
 faq:	
-	cd FAQ; $(MAKE) faq
+	cd FAQ && $(MAKE) faq
 
 %.eps:	%.asy
 	$(ASY) -f eps $<
@@ -66,12 +66,12 @@ CAD.pdf: CAD.tex CAD1.eps
 	dvipdf CAD
 
 clean: FORCE
-	-rm -f $(ASYFILES:.asy=.pdf) $(DOCFILES)
+	-rm -f $(ASYFILES:.asy=.pdf)
 	-rm -f *.eps latexusage.{asy,dvi,eps,log,aux,*.eps}
-	-rm -f {asymptote,asymptote_}.{aux,cp,cps,dvi,fn,info,ky,log,pg,pdf,toc,tp,vr} 
+	-rm -f {asymptote,asymptote_}.{aux,cp,cps,dvi,fn,info,ky,log,pg,toc,tp,vr} 
 	-rm -f asymptote_.texi
-	-rm -f CAD.{aux,dvi,log,pdf,toc}
-	cd png; $(MAKE) clean
+	-rm -f CAD.{aux,dvi,log,toc}
+	cd png && $(MAKE) clean
 
 install-man:
 	${INSTALL} -d -m 755 $(docdir) $(mandir)/man1
@@ -79,28 +79,29 @@ install-man:
 	${INSTALL} -p -m 644 $(MANFILES) $(mandir)/man1
 
 install: man faq install-man
-	cd png; $(MAKE) install
-	cd FAQ; $(MAKE) install
+	cd png && $(MAKE) install
+	cd FAQ && $(MAKE) install
 
 install-prebuilt: install-man
 	touch png/asymptote.info
-	cd png; $(MAKE) install
-	cd FAQ; $(MAKE) install-prebuilt
+	cd png && $(MAKE) install
+	cd FAQ && $(MAKE) install-prebuilt
 
 install-all: $(DOCFILES) asy.1 faq latexusage.eps install-man
-	cd png; $(MAKE) install-all
-	cd FAQ; $(MAKE) install-info
+	cd png && $(MAKE) install-all
+	cd FAQ && $(MAKE) install-info
 
 uninstall: uninstall-all
 
 uninstall-all:
-	cd png; $(MAKE) uninstall
-	cd FAQ; $(MAKE) uninstall
-	-cd $(mandir)/man1; rm -f $(MANFILES)
+	cd png && $(MAKE) uninstall
+	cd FAQ && $(MAKE) uninstall
+	-cd $(mandir)/man1 && rm -f $(MANFILES)
 	-rm -f $(addprefix $(docdir)/,$(DOCFILES))
 
 distclean: FORCE clean
-	-rm -f version.texi Makefile
-	cd png; make distclean
-	cd FAQ; make distclean
+	-rm -f version.texi Makefile 
+	-rm -f $(DOCFILES)
+	cd png && make distclean
+	cd FAQ && make distclean
 FORCE:
