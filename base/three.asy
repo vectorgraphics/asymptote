@@ -3091,6 +3091,25 @@ fit=new frame[](string prefix="", picture[] pictures, string format="",
   fit3(prefix,pictures,all,format,view,options,script,P);
 };
 
+// Add frame src to picture dest about position.
+void add(picture dest=currentpicture, frame src, triple position)
+{
+  if(is3D(src)) {
+    dest.add(new void(frame f, transform3 t, picture, projection) {
+        add(f,shift(t*position)*src);
+      },true);
+  } else {
+    dest.add(new void(frame, transform3 t, picture pic, projection P) {
+        if(pic != null) {
+          pic.add(new void(frame f, transform T) {
+              add(f,T*shift(project(t*position,P))*src);
+            },true);
+        }
+      },true);
+  }
+  dest.addBox(position,position,min3(src),max3(src));
+}
+
 exitfcn currentexitfunction=atexit();
 
 void exitfunction()

@@ -1363,6 +1363,21 @@ struct picture {
              light,P);
   }
   
+  // Fits a 3D picture fit to the specified size.
+  frame fit3(projection P=currentprojection) {
+    if(P.center)
+      abort("fit3(projection P=currentprojection) requires P.center=false");
+    if(settings.render == 0) return fit(P);
+        
+    if(fixed) return scaled();
+    if(empty3()) return newframe;
+    transform3 t=scaling(xsize3,ysize3,zsize3,keepAspect);
+    frame f=fit3(t,null,P);
+    transform3 s=scale3(f,xsize3,ysize3,zsize3,keepAspect);
+    if(s == identity4) return f;
+    return fit3(s*t,null,P);
+  }
+
   // In case only an approximate picture size estimate is available, return the
   // fitted frame slightly scaled (including labels and true size distances)
   // so that it precisely meets the given size specification. 
@@ -1848,14 +1863,14 @@ transform fixedscaling(picture pic=currentpicture, pair min, pair max,
                                                  pic.keepAspect);
 }
 
-// Add frame src about position to frame dest with optional grouping.
+// Add frame src to frame dest about position with optional grouping.
 void add(frame dest, frame src, pair position, bool group=false,
          filltype filltype=NoFill, bool above=true)
 {
   add(dest,shift(position)*src,group,filltype,above);
 }
 
-// Add frame src about position to picture dest with optional grouping.
+// Add frame src to picture dest about position with optional grouping.
 void add(picture dest=currentpicture, frame src, pair position=0,
          bool group=true, filltype filltype=NoFill, bool above=true)
 {
