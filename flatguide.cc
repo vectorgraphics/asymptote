@@ -28,6 +28,10 @@ void flatguide::uncheckedAdd(path p, bool allowsolve)
 {
   Int n=p.length();
   if(n < 0) return;
+  if(n == 0) {
+    addPoint(p,0);
+    return;
+  }
   int nminus1=n-1;
   if(!allowsolve && p.cyclic()) addPre(p,0);
   for(Int i=0; i < nminus1;) {
