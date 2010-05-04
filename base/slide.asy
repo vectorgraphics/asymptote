@@ -444,7 +444,7 @@ void asyinclude(string s, real xsize=0, real ysize=xsize)
   picture currentpictureSave=currentpicture;
   currentpicture=new picture;
   _eval("include \""+s+"\";",true);
-  s=stripdirectory(settings.outname+"_"+s);
+  s=stripdirectory(outprefix()+"_"+s);
   codefile.push(s);
   frame f=(xsize > 0 || ysize > 0) ?
     currentpicture.fit(xsize,ysize) : currentpicture.fit();
@@ -490,7 +490,7 @@ void asyfigure(string s, string options="", string caption="", pair align=S,
 string asywrite(string s, string preamble="")
 {
   static int count=0;
-  string name=settings.outname+"_slide"+(string) count;
+  string name=outprefix()+"_slide"+(string) count;
   ++count;
   file temp=output(name+".asy");
   write(temp,preamble);
