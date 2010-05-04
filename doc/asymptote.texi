@@ -2307,6 +2307,12 @@ returns the direction of the tangent to path @code{p} at the point
 between node @code{floor(t)} and @code{floor(t)+1} corresponding to the
 cubic spline parameter @code{t-floor(t)} (@pxref{Bezier curves}).
 
+@item pair dir(path p)
+returns dir(p,length(p)).
+
+@item pair dir(path p, path g)
+returns unit(dir(p)+dir(g)).
+
 @cindex @code{accel}
 @item pair accel(path p, int t, int sign=0);
 If @code{sign < 0}, return the acceleration of the incoming path
