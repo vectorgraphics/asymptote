@@ -82,12 +82,12 @@ const bool haveglut=false;
 mode_t mask;
   
 string systemDir=ASYMPTOTE_SYSDIR;
-string docdir=ASYMPTOTE_DOCDIR;
 
 #ifndef __CYGWIN__
   
 bool msdos=false;
 string HOME="HOME";
+string docdir=ASYMPTOTE_DOCDIR;
 const char pathSeparator=':';
 string defaultPSViewer="gv";
 #ifdef __APPLE__
@@ -105,6 +105,7 @@ const string dirsep="/";
   
 bool msdos=true;
 string HOME="USERPROFILE";
+string docdir="c:\\Program Files\\Asymptote";
 const char pathSeparator=';';
 //string defaultPSViewer="gsview32.exe";
 string defaultPSViewer="cmd";
