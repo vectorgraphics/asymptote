@@ -6064,7 +6064,7 @@ sizing of pictures.
 @section @code{math}
 @cindex @code{math}
 This package extends @code{Asymptote}'s mathematical capabilities with
-matrix arithmetic and intersection algorithms:
+useful functions such as
 
 @table @code
 
@@ -6087,9 +6087,58 @@ respectively. If the planes are parallel, return
 @code{(infinity,infinity,infinity)}.
 
 @cindex @code{quarticroots}
-@item @code{pair[] quarticroots(real a, real b, real c, real d, real e);}
+@item pair[] quarticroots(real a, real b, real c, real d, real e);
 returns the four complex roots of the quartic equation
 @math{ax^4+bx^3+cx^2+dx+e=0}.
+
+@cindex @code{fft}
+@item pair[][] fft(pair[][] a, int sign=1)
+returns the two-dimensional Fourier transform of a using the given
+@code{sign}.
+
+@cindex @code{time}
+@item real time(path g, real x, int n=0)
+returns the @code{n}th intersection time of path @code{g} with the vertical
+line through x.
+
+@cindex @code{time}
+@item real time(path g, explicit pair z, int n=0)
+returns the @code{n}th intersection time of path @code{g} with the horizontal
+line through @code{(0,z.y)}.
+
+@cindex @code{value}
+@item real value(path g, real x, int n=0)
+returns the @code{n}th @code{y} value of @code{g} at @code{x}.
+
+@cindex @code{value}
+@item real value(path g, real x, int n=0)
+returns the @code{n}th @code{x} value of @code{g} at @code{y=z.y}.
+
+@cindex @code{slope}
+@item real slope(path g, real x, int n=0)
+returns the @code{n}th slope of @code{g} at @code{x}.
+
+@cindex @code{slope}
+@item real slope(path g, explicit pair z, int n=0)
+returns the @code{n}th slope of @code{g} at @code{y=z.y}.
+
+@cindex @code{segment}
+int[][] segment(bool[] b)
+returns the indices of consecutive true-element segments of bool[] @code{b}.
+
+@cindex @code{partialsum}
+@item real[] partialsum(real[] a)
+returns the partial sums of a real array @code{a}.
+
+@cindex @code{partialsum}
+@item real[] partialsum(real[] a, real[] dx)
+returns the partial @code{dx}-weighted sums of a real array @code{a}.
+
+@cindex @code{increasing}
+@item bool increasing(real[] a, bool strict=false)
+returns, if @code{strict=false}, whether @code{i > j} implies
+@code{a[i] >= a[j]}, or if @code{strict=true}, whether @code{i > j} implies
+implies @code{a[i] > a[j]}.
 
 @end table
 
@@ -9463,4 +9512,4 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  bigdiagonal autobillboard dvisvgm maxtiles hyperrefOptions
 @c  LocalWords:  setpagesize pdfborder controlsystem OmitTickInterval SixViews
 @c  LocalWords:  OmitTickIntervals tickmodifiers autorotated SixViewsUS
-@c  LocalWords:  ThreeViewsUS ThreeViewsFR SixViewsFR ThreeViews
+@c  LocalWords:  ThreeViewsUS ThreeViewsFR SixViewsFR ThreeViews partialsum
