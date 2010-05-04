@@ -64,28 +64,6 @@ void arrayArrayOp(vm::stack *s)
 }
 
 template<class T>
-inline void arrayNegate(vm::stack *s)
-{
-  array *a=pop<array*>(s);
-  size_t size=checkArray(a);
-  array *c=new array(size);
-  for(size_t i=0; i < size; i++)
-    (*c)[i]=-read<T>(a,i);
-  s->push(c);
-}
-
-template<>
-inline void arrayNegate<Int>(vm::stack *s)
-{
-  array *a=pop<array*>(s);
-  size_t size=checkArray(a);
-  array *c=new array(size);
-  for(size_t i=0; i < size; i++)
-    (*c)[i]=Negate(read<Int>(a,i),i);
-  s->push(c);
-}
-
-template<class T>
 void sumArray(vm::stack *s)
 {
   array *a=pop<array*>(s);

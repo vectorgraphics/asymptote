@@ -868,6 +868,11 @@ inline pair conjugate(pair z) {
   return conj(z);
 }
 
+template<class T>
+inline T negate(T x) {
+  return -x;
+}
+
 template<class T, template <class S> class op>
 void addBinOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, const char *name)
 {
@@ -909,7 +914,8 @@ void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool integer=false,
   addFunc(ve,&id,t1,"+",formal(t1,"a"));
   addFunc(ve,&id,t2,"+",formal(t2,"a"));
   addFunc(ve,Negate<T>,t1,"-",formal(t1,"a"));
-  addFunc(ve,arrayNegate<T>,t2,"-",formal(t2,"a"));
+  addFunc(ve,arrayFunc<T,T,negate>,t2,"-",formal(t2,"a"));
+  addFunc(ve,arrayFunc2<T,T,negate>,t3,"-",formal(t3,"a"));
   if(!integer) addFunc(ve,interp<T>,t1,"interp",formal(t1,"a",false,Explicit),
                        formal(t1,"b",false,Explicit),
                        formal(primReal(),"t"));
@@ -1012,8 +1018,12 @@ void addOperators(venv &ve)
                       tripleArray3());
   addFunc(ve,opArray<double,triple,times>,tripleArray(),"*",
           formal(primReal(),"a"),formal(tripleArray(),"b"));
+  addFunc(ve,opArray2<double,triple,timesR>,tripleArray2(),"*",
+          formal(primReal(),"a"),formal(tripleArray2(),"b"));
   addFunc(ve,arrayOp<triple,double,timesR>,tripleArray(),"*",
           formal(tripleArray(),"a"),formal(primReal(),"b"));
+  addFunc(ve,array2Op<triple,double,timesR>,tripleArray2(),"*",
+          formal(tripleArray2(),"a"),formal(primReal(),"b"));
   addFunc(ve,arrayOp<triple,double,divide>,tripleArray(),"/",
           formal(tripleArray(),"a"),formal(primReal(),"b"));
 
