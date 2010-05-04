@@ -7771,6 +7771,17 @@ to the viewport dimensions corresponding to the usual two-dimensional
 picture @code{size} parameters. The global pair @code{viewportmargin}
 may be used to add horizontal and vertical margins to the viewport
 dimensions. Alternatively, a minimum @code{viewportsize} may be specified.
+A 3D picture @code{pic} can be explicitly fit to a 3D frame by calling
+@cindex @code{fit3}
+@verbatim
+frame pic.fit3(projection P=currentprojection);
+@end verbatim
+@noindent
+and then added to picture @code{dest} about @code{position} with
+@cindex @code{add}
+@verbatim
+void add(picture dest=currentpicture, frame src, triple position=(0,0,0));
+@end verbatim
 
 @cindex @code{O}
 @cindex @code{X}

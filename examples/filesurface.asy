@@ -26,9 +26,20 @@ draw(s,meshpen=thick());
 triple m=currentpicture.userMin;
 triple M=currentpicture.userMax;
 triple target=0.5*(m+M);
-currentprojection=perspective(camera=target+realmult(dir(68,225),M-m),
-                              target=target);
 
 xaxis3("$x$",Bounds,InTicks);
 yaxis3("$y$",Bounds,InTicks(Step=1,step=0.1));
 zaxis3("$z$",Bounds,InTicks);
+
+/*
+picture palette;
+size3(palette,1cm);
+draw(palette,unitcube,red);
+frame F=palette.fit3();
+add(F,(M.x,m.y,m.z));
+*/
+
+currentprojection=perspective(camera=target+realmult(dir(68,225),M-m),
+                              target=target);
+
+

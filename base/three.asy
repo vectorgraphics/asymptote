@@ -2610,12 +2610,10 @@ struct scene
 
     if(!P.absolute) {
       this.P=t*P;
-      if(this.P.center) {
-        bool recalculate=false;
+      if(this.P.center && settings.render != 0) {
         triple target=0.5*(m+M);
         this.P.target=target;
-        recalculate=true;
-        if(recalculate) this.P.calculate();
+          this.P.calculate();
       }
       if(this.P.autoadjust || this.P.infinity) 
         adjusted=adjusted | this.P.adjust(m,M);
@@ -2754,7 +2752,7 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
       P=S.T*P;
     }
     if(settings.verbose > 0) {
-      if(P.center || (!P.infinity && P.autoadjust))
+      if((P.center && settings.render != 0) || (!P.infinity && P.autoadjust))
         write("adjusting target to ",tinv*target);
     }
   }

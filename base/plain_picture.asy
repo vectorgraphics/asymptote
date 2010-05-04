@@ -1363,12 +1363,9 @@ struct picture {
              light,P);
   }
   
-  // Fits a 3D picture fit to the specified size.
+  // Fit a 3D picture.
   frame fit3(projection P=currentprojection) {
-    if(P.center)
-      abort("fit3(projection P=currentprojection) requires P.center=false");
     if(settings.render == 0) return fit(P);
-        
     if(fixed) return scaled();
     if(empty3()) return newframe;
     transform3 t=scaling(xsize3,ysize3,zsize3,keepAspect);
