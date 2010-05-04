@@ -1,6 +1,6 @@
-diff -ru rpc.broken/auth.h rpc/auth.h
---- rpc.broken/auth.h	2005-03-10 14:32:52.000000000 -0700
-+++ rpc/auth.h	2005-08-02 02:09:08.000000000 -0600
+diff -rub rpc.broken/auth.h rpc/auth.h
+--- rpc.broken/auth.h	2005-03-10 14:32:50.001000000 -0700
++++ rpc/auth.h	2010-05-04 18:46:19.890625000 -0700
 @@ -62,7 +62,7 @@
  	AUTH_FAILED=7			/* some unknown reason */
  };
@@ -10,41 +10,27 @@ diff -ru rpc.broken/auth.h rpc/auth.h
  typedef u_long u_int32;	/* 32-bit unsigned integers */
  #endif
  
-diff -ru rpc.broken/xdr.h rpc/xdr.h
---- rpc.broken/xdr.h	2005-03-10 14:32:54.000000000 -0700
-+++ rpc/xdr.h	2005-08-02 01:56:46.000000000 -0600
+diff -rub rpc.broken/svc.h rpc/svc.h
+--- rpc.broken/svc.h	2005-03-10 14:32:51.001000000 -0700
++++ rpc/svc.h	2010-05-04 18:46:47.343750000 -0700
+@@ -37,6 +37,8 @@
+ #ifndef __SVC_HEADER__
+ #define __SVC_HEADER__
+ 
++#include <netinet/in.h>
++
+ /*
+  * This interface must manage two items concerning remote procedure calling:
+  *
+diff -rub rpc.broken/xdr.h rpc/xdr.h
+--- rpc.broken/xdr.h	2005-03-10 14:32:52.001000000 -0700
++++ rpc/xdr.h	2010-05-04 18:46:19.906250000 -0700
 @@ -1,4 +1,3 @@
 -/* @(#)xdr.h	2.2 88/07/29 4.0 RPCSRC */
  /*
   * Sun RPC is a product of Sun Microsystems, Inc. and is provided for
   * unrestricted use provided that this legend is included on all tape
-@@ -6,28 +5,27 @@
-  * may copy or modify Sun RPC without charge, but are not authorized
-  * to license or distribute it to anyone else except as part of a product or
-  * program developed by the user.
-- * 
-+ *
-  * SUN RPC IS PROVIDED AS IS WITH NO WARRANTIES OF ANY KIND INCLUDING THE
-  * WARRANTIES OF DESIGN, MERCHANTIBILITY AND FITNESS FOR A PARTICULAR
-  * PURPOSE, OR ARISING FROM A COURSE OF DEALING, USAGE OR TRADE PRACTICE.
-- * 
-+ *
-  * Sun RPC is provided with no support and without any obligation on the
-  * part of Sun Microsystems, Inc. to assist in its use, correction,
-  * modification or enhancement.
-- * 
-+ *
-  * SUN MICROSYSTEMS, INC. SHALL HAVE NO LIABILITY WITH RESPECT TO THE
-  * INFRINGEMENT OF COPYRIGHTS, TRADE SECRETS OR ANY PATENTS BY SUN RPC
-  * OR ANY PART THEREOF.
-- * 
-+ *
-  * In no event will Sun Microsystems, Inc. be liable for any lost revenue
-  * or profits or other special, indirect and consequential damages, even if
-  * Sun has been advised of the possibility of such damages.
-- * 
-+ *
-  * Sun Microsystems, Inc.
+@@ -27,7 +26,6 @@
   * 2550 Garcia Avenue
   * Mountain View, California  94043
   */
@@ -72,21 +58,6 @@ diff -ru rpc.broken/xdr.h rpc/xdr.h
  
  /*
   * XDR provides a conventional way for converting between C data
-@@ -47,10 +54,10 @@
-  *
-  * Each data type provides a single procedure which takes two arguments:
-  *
-- *	bool_t
-- *	xdrproc(xdrs, argresp)
-- *		XDR *xdrs;
-- *		<type> *argresp;
-+ *      bool_t
-+ *      xdrproc(xdrs, argresp)
-+ *              XDR *xdrs;
-+ *              <type> *argresp;
-  *
-  * xdrs is an instance of a XDR handle, to which or from which the data
-  * type is to be converted.  argresp is a pointer to the structure to be
 @@ -74,17 +81,66 @@
   * request.
   */
@@ -157,12 +128,9 @@ diff -ru rpc.broken/xdr.h rpc/xdr.h
  
  /*
   * A xdrproc_t exists for each data type which is to be encoded or decoded.
-@@ -93,43 +149,31 @@
-  * The opaque pointer generally points to a structure of the data type
-  * to be decoded.  If this pointer is 0, then the type routines should
+@@ -95,41 +151,29 @@
   * allocate dynamic storage of the appropriate size and return it.
-- * bool_t	(*xdrproc_t)(XDR *, caddr_t *);
-+ * bool_t       (*xdrproc_t)(XDR *, caddr_t *);
+  * bool_t	(*xdrproc_t)(XDR *, caddr_t *);
   */
 -typedef	bool_t (*xdrproc_t)();
 +typedef bool_t (*xdrproc_t) (XDR *, void *,...);
@@ -194,19 +162,13 @@ diff -ru rpc.broken/xdr.h rpc/xdr.h
  /*
   * Operations defined on a XDR handle
   *
-- * XDR		*xdrs;
-- * long		*longp;
-- * caddr_t	 addr;
-- * u_int	 len;
-- * u_int	 pos;
-- */
-+ * XDR          *xdrs;
+  * XDR		*xdrs;
 + * int32_t      *int32p;
-+ * long         *longp;
-+ * caddr_t       addr;
-+ * u_int         len;
-+ * u_int         pos;
-+ */
+  * long		*longp;
+  * caddr_t	 addr;
+  * u_int	 len;
+  * u_int	 pos;
+  */
 +#define XDR_GETINT32(xdrs, int32p)                      \
 +        (*(xdrs)->x_ops->x_getint32)(xdrs, int32p)
 +#define xdr_getint32(xdrs, int32p)                      \
@@ -220,40 +182,33 @@ diff -ru rpc.broken/xdr.h rpc/xdr.h
  #define XDR_GETLONG(xdrs, longp)			\
  	(*(xdrs)->x_ops->x_getlong)(xdrs, longp)
  #define xdr_getlong(xdrs, longp)			\
-@@ -165,12 +209,16 @@
- #define	xdr_inline(xdrs, len)				\
+@@ -166,11 +210,15 @@
  	(*(xdrs)->x_ops->x_inline)(xdrs, len)
  
--#define	XDR_DESTROY(xdrs)				\
--	if ((xdrs)->x_ops->x_destroy) 			\
--		(*(xdrs)->x_ops->x_destroy)(xdrs)
--#define	xdr_destroy(xdrs)				\
--	if ((xdrs)->x_ops->x_destroy) 			\
--		(*(xdrs)->x_ops->x_destroy)(xdrs)
-+#define	XDR_DESTROY(xdrs)					\
+ #define	XDR_DESTROY(xdrs)				\
 +	do {							\
-+		if ((xdrs)->x_ops->x_destroy)			\
+ 	if ((xdrs)->x_ops->x_destroy) 			\
+-		(*(xdrs)->x_ops->x_destroy)(xdrs)
 +			(*(xdrs)->x_ops->x_destroy)(xdrs);	\
 +	} while (0)
-+#define	xdr_destroy(xdrs)					\
+ #define	xdr_destroy(xdrs)				\
 +	do {							\
-+		if ((xdrs)->x_ops->x_destroy)			\
+ 	if ((xdrs)->x_ops->x_destroy) 			\
+-		(*(xdrs)->x_ops->x_destroy)(xdrs)
 +			(*(xdrs)->x_ops->x_destroy)(xdrs);	\
 +	} while (0)
  
  /*
   * Support struct for discriminated unions.
-@@ -183,93 +231,143 @@
+@@ -183,13 +231,14 @@
   * If there is no match and no default routine it is an error.
   */
  #define NULL_xdrproc_t ((xdrproc_t)0)
 -struct xdr_discrim {
--	int	value;
--	xdrproc_t proc;
 +struct xdr_discrim
 +{
-+  int value;
-+  xdrproc_t proc;
+ 	int	value;
+ 	xdrproc_t proc;
  };
  
  /*
@@ -262,33 +217,13 @@ diff -ru rpc.broken/xdr.h rpc/xdr.h
   * Caveat emptor: these use single memory cycles to get the
   * data from the underlying buffer, and will fail to operate
   * properly if the data is not aligned.  The standard way to use these
-  * is to say:
-- *	if ((buf = XDR_INLINE(xdrs, count)) == NULL)
-- *		return (FALSE);
-- *	<<< macro calls >>>
-+ *      if ((buf = XDR_INLINE(xdrs, count)) == NULL)
-+ *              return (FALSE);
-+ *      <<< macro calls >>>
-  * where ``count'' is the number of bytes of data occupied
-  * by the primitive data types.
-  *
+@@ -203,73 +252,122 @@
   * N.B. and frozen for all time: each data type here uses 4 bytes
   * of external representation.
   */
 -#define IXDR_GET_LONG(buf)		((long)ntohl((u_long)*(buf)++))
 -#define IXDR_PUT_LONG(buf, v)		(*(buf)++ = (long)htonl((u_long)v))
- 
--#define IXDR_GET_BOOL(buf)		((bool_t)IXDR_GET_LONG(buf))
--#define IXDR_GET_ENUM(buf, t)		((t)IXDR_GET_LONG(buf))
--#define IXDR_GET_U_LONG(buf)		((u_long)IXDR_GET_LONG(buf))
--#define IXDR_GET_SHORT(buf)		((short)IXDR_GET_LONG(buf))
--#define IXDR_GET_U_SHORT(buf)		((u_short)IXDR_GET_LONG(buf))
--
--#define IXDR_PUT_BOOL(buf, v)		IXDR_PUT_LONG((buf), ((long)(v)))
--#define IXDR_PUT_ENUM(buf, v)		IXDR_PUT_LONG((buf), ((long)(v)))
--#define IXDR_PUT_U_LONG(buf, v)		IXDR_PUT_LONG((buf), ((long)(v)))
--#define IXDR_PUT_SHORT(buf, v)		IXDR_PUT_LONG((buf), ((long)(v)))
--#define IXDR_PUT_U_SHORT(buf, v)	IXDR_PUT_LONG((buf), ((long)(v)))
++
 +#define IXDR_GET_INT32(buf)           ((int32_t)ntohl((uint32_t)*(buf)++))
 +#define IXDR_PUT_INT32(buf, v)        (*(buf)++ = (int32_t)htonl((uint32_t)(v)))
 +#define IXDR_GET_U_INT32(buf)         ((uint32_t)IXDR_GET_INT32(buf))
@@ -303,12 +238,18 @@ diff -ru rpc.broken/xdr.h rpc/xdr.h
 +#define IXDR_GET_U_LONG(buf)	      ((u_long)IXDR_GET_LONG(buf))
 +#define IXDR_PUT_U_LONG(buf, v)	      IXDR_PUT_LONG(buf, (long)(v))
 +
-+
-+#define IXDR_GET_BOOL(buf)            ((bool_t)IXDR_GET_LONG(buf))
-+#define IXDR_GET_ENUM(buf, t)         ((t)IXDR_GET_LONG(buf))
-+#define IXDR_GET_SHORT(buf)           ((short)IXDR_GET_LONG(buf))
-+#define IXDR_GET_U_SHORT(buf)         ((u_short)IXDR_GET_LONG(buf))
-+
+ 
+ #define IXDR_GET_BOOL(buf)		((bool_t)IXDR_GET_LONG(buf))
+ #define IXDR_GET_ENUM(buf, t)		((t)IXDR_GET_LONG(buf))
+-#define IXDR_GET_U_LONG(buf)		((u_long)IXDR_GET_LONG(buf))
+ #define IXDR_GET_SHORT(buf)		((short)IXDR_GET_LONG(buf))
+ #define IXDR_GET_U_SHORT(buf)		((u_short)IXDR_GET_LONG(buf))
+ 
+-#define IXDR_PUT_BOOL(buf, v)		IXDR_PUT_LONG((buf), ((long)(v)))
+-#define IXDR_PUT_ENUM(buf, v)		IXDR_PUT_LONG((buf), ((long)(v)))
+-#define IXDR_PUT_U_LONG(buf, v)		IXDR_PUT_LONG((buf), ((long)(v)))
+-#define IXDR_PUT_SHORT(buf, v)		IXDR_PUT_LONG((buf), ((long)(v)))
+-#define IXDR_PUT_U_SHORT(buf, v)	IXDR_PUT_LONG((buf), ((long)(v)))
 +#define IXDR_PUT_BOOL(buf, v)         IXDR_PUT_LONG(buf, (long)(v))
 +#define IXDR_PUT_ENUM(buf, v)         IXDR_PUT_LONG(buf, (long)(v))
 +#define IXDR_PUT_SHORT(buf, v)        IXDR_PUT_LONG(buf, (long)(v))
@@ -389,15 +330,12 @@ diff -ru rpc.broken/xdr.h rpc/xdr.h
   * Common opaque bytes objects used by many rpc protocols;
   * declared here due to commonality.
   */
--#define MAX_NETOBJ_SZ 1024 
+ #define MAX_NETOBJ_SZ 1024 
 -struct netobj {
--	u_int	n_len;
--	char	*n_bytes;
-+#define MAX_NETOBJ_SZ 1024
 +struct netobj
 +{
-+  u_int n_len;
-+  char *n_bytes;
+ 	u_int	n_len;
+ 	char	*n_bytes;
  };
  typedef struct netobj netobj;
 -extern bool_t   xdr_netobj();
