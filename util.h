@@ -130,6 +130,8 @@ void popupHelp();
 
 #ifdef __CYGWIN__
 inline long long llabs(long long x) {return x >= 0 ? x : -x;}
+extern "C" char *initstate (unsigned seed, char *state, size_t size);
+extern "C" long random (void);
 #endif  
 
 inline Int Abs(Int x) {
