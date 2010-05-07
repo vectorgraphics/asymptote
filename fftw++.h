@@ -119,7 +119,7 @@ inline void deleteAlign(T *v, size_t len)
 
 #endif
 
-namespace fftw {
+namespace fftwpp {
 
 inline Complex *ComplexAlign(size_t size)
 {

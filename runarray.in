@@ -1621,8 +1621,8 @@ pairarray* fft(pairarray *a, Int sign=1)
 #ifdef HAVE_LIBFFTW3
   array *c=new array(n);
   if(n) {
-    Complex *f=ComplexAlign(n);
-    fft1d Forward(n,intcast(sign),f);
+    Complex *f=fftwpp::ComplexAlign(n);
+    fftwpp::fft1d Forward(n,intcast(sign),f);
   
     for(size_t i=0; i < n; i++) {
       pair z=read<pair>(a,i);
@@ -1634,7 +1634,7 @@ pairarray* fft(pairarray *a, Int sign=1)
       Complex z=f[i];
       (*c)[i]=pair(z.real(),z.imag());
     }
-    deleteAlign(f);
+    fftwpp::deleteAlign(f);
   }
 #else
   unused(&n);
