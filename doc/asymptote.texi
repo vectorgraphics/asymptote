@@ -8064,7 +8064,7 @@ void label(picture pic=currentpicture, Label L, triple position,
 The optional @code{name} parameter is used as a prefix for naming the label
 patches in the @acronym{PRC} model tree.
 The default interaction is @code{Billboard}, which means that labels
-are rotated interactively so that they always lie on the projection plane.
+are rotated interactively so that they always face the camera.
 The interaction @code{Embedded} means that the label interacts as a
 normal @code{3D} surface, as illustrated in the example @code{billboard.asy}.
 @cindex @code{transform}
