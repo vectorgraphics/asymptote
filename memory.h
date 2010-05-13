@@ -17,7 +17,7 @@
 #ifndef NOHASH
 #ifndef __GNUC_PREREQ
 #define __GNUC_PREREQ(maj, min) (0)
-# endif
+#endif
 #if __GNUC_PREREQ(4,3) || defined(__CYGWIN__)
 #include <tr1/unordered_map>
 #define EXT std::tr1
