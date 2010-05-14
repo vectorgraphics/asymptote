@@ -18,7 +18,7 @@
 #ifndef __fftwpp_h__
 #define __fftwpp_h__ 1
 
-#define __FFTWPP_H_VERSION__ 1.06
+#define __FFTWPP_H_VERSION__ 1.07svn
 
 #include <cstdlib>
 #include <fstream>
@@ -141,7 +141,7 @@ inline void deleteAlign(T *p)
 #ifdef HAVE_POSIX_MEMALIGN
   free(p);
 #else
-  free0(p);
+  Array::free0(p);
 #endif  
 }
 
