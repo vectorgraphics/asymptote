@@ -8,6 +8,17 @@
 #include "config.h"
 #endif
 
+#ifdef BYTE_ORDER
+# undef WORDS_BIG_ENDIAN
+# undef WORDS_LITTLE_ENDIAN
+# if BYTE_ORDER == BIG_ENDIAN
+#  define WORDS_BIG_ENDIAN 1
+# endif
+# if BYTE_ORDER == LITTLE_ENDIAN
+#  define WORDS_LITTLE_ENDIAN 1
+# endif
+#endif   
+
 // from Adobe's documentation
 
 union ieee754_double
@@ -32,8 +43,22 @@ union ieee754_double
  } ieee;
 };
 
-
-
+union ieee754_float
+{
+ float f;
+ /* This is the IEEE 754 float-precision format. */
+ struct {
+#ifdef WORDS_BIGENDIAN
+ unsigned int negative:1;
+ unsigned int exponent:8;
+ unsigned int mantissa:23;
+#else
+ unsigned int mantissa:23;
+ unsigned int exponent:8;
+ unsigned int negative:1;
+#endif
+ } ieee;
+};
 
 enum ValueType {VT_double,VT_exponent};
 

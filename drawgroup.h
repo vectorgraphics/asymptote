@@ -21,13 +21,18 @@ public:
 
   bool begingroup() {return true;}
   
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *) {
-    out->begingroup(name.c_str());
+  bool write(prcfile *out, unsigned int *count, vm::array *, vm::array *) {
+    ostringstream buf;
+    if(name.empty()) 
+      buf << "group-" << count[GROUP]++;
+    else
+      buf << name;
+  
+    out->begingroup(buf.str().c_str());
     return true;
   }
-
 };
-  
+
 class drawEnd : public drawElement {
 public:
   drawEnd() {}
@@ -40,7 +45,6 @@ public:
     out->endgroup();
     return true;
   }
-
 };
 
 }

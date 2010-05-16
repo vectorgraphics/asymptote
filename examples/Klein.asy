@@ -22,7 +22,7 @@ triple f(pair t) {
 }
 
 surface s=surface(f,(0,0),(2pi,2pi),8,8,Spline);
-draw(s,lightolive+white);
+draw(s,lightolive+white,"bottle");
 
 string lo="$\displaystyle u\in[0,\pi]: \cases{x=3\cos u(1+\sin u)+(2-\cos u)\cos u\cos v,\cr
 y=8\sin u+(2-\cos u)\sin u\cos v,\cr
@@ -34,11 +34,15 @@ z=(2-\cos u)\sin v.\cr}$";
 
 real h=0.0125;
 
-draw(surface(xscale(-0.38)*yscale(-0.18)*lo,s,0,1.7,h,bottom=false));
-draw(surface(xscale(0.26)*yscale(0.1)*rotate(90)*hi,s,4.9,1.4,h,bottom=false));
-draw(s.uequals(0),blue+dashed);
-draw(s.uequals(pi),blue+dashed);
+draw(surface(xscale(-0.38)*yscale(-0.18)*lo,s,0,1.7,h,bottom=false),
+     "[0,pi]");
+draw(surface(xscale(0.26)*yscale(0.1)*rotate(90)*hi,s,4.9,1.4,h,bottom=false),
+     "[pi,2pi]");
+draw(s.uequals(0),blue+dashed,"boundary");
+draw(s.uequals(pi),blue+dashed,"boundary");
 
+begingroup("frame");
 add(new void(frame f, transform3 t, picture pic, projection P) {
     draw(f,invert(box(min(f,P),max(f,P)),P));
   });
+endgroup();

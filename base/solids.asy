@@ -351,7 +351,7 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
 {
   pen thin=is3D() ? thin() : defaultpen;
   skeleton s=r.skeleton(m,n,P);
-  begingroup3(pic);
+  begingroup(pic);
   if(frontpen != nullpen) {
     draw(pic,s.transverse.back,thin+defaultbackpen+backpen,light);
     draw(pic,s.transverse.front,thin+frontpen,light);
@@ -360,7 +360,7 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
     draw(pic,s.longitudinal.back,thin+defaultbackpen+longitudinalbackpen,light);
     draw(pic,s.longitudinal.front,thin+longitudinalpen,light);
   }
-  endgroup3(pic);
+  endgroup(pic);
 }
 
 revolution operator * (transform3 t, revolution r)

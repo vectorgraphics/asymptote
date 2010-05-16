@@ -27,7 +27,7 @@ extern void copyArrayC(T* &dest, const vm::array *a, size_t dim,
 
 namespace camp {
 
-enum Entity {LINE=0,CURVE,SURFACE,BILLBOARD_SURFACE,nENTITY};
+enum Entity {LINE=0,CURVE,NURBS,PATCH,SURFACE,BILLBOARD_PATCH,GROUP,nENTITY};
 
 class box {
   pair p[4];

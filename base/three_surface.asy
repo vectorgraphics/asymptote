@@ -1161,9 +1161,11 @@ void draw3D(frame f, patch s, triple center=O, material m,
   if(prc())
     PRCshininess=PRCshininess(m.shininess);
   real granularity=m.granularity >= 0 ? m.granularity : defaultgranularity;
+  real compression=m.compression >= 0 ? m.compression : defaultcompression;
+  
   draw(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,PRCshininess,
-       granularity,s.planar ? s.normal(0.5,0.5) : O,s.colors,lighton,name,
-       interaction.type);
+       granularity,compression,s.planar ? s.normal(0.5,0.5) : O,s.colors,
+       lighton,name,interaction.type);
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,
@@ -1768,11 +1770,13 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
         triple[][] P=t*P;
         real granularity=m.granularity >= 0 ? m.granularity :
           defaultgranularity;
+        real compression=m.compression >= 0 ? m.compression :
+          defaultcompression;
         real PRCshininess;
         if(prc())
           PRCshininess=PRCshininess(m.shininess);
         draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,PRCshininess,
-             granularity,colors,lighton,name);
+             granularity,compression,colors,lighton,name);
         if(pic != null)
           pic.addBox(minbound(P,Q),maxbound(P,Q));
       }

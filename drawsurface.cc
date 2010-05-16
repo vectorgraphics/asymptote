@@ -148,8 +148,8 @@ bool drawSurface::write(prcfile *out, unsigned int *count, array *index,
     return true;
 
   ostringstream buf;
-  if(name == "") 
-    buf << "surface-" << count[SURFACE]++;
+   if(name.empty()) 
+   buf << "patch-" << count[PATCH]++;
   else
     buf << name;
   
@@ -161,19 +161,21 @@ bool drawSurface::write(prcfile *out, unsigned int *count, array *index,
       ++n;
     }
     
-    unsigned int i=count[BILLBOARD_SURFACE]++;
+    unsigned int i=count[BILLBOARD_PATCH]++;
     buf << "-" << i << "\001";
     index->push((Int) (n-1));
   }
   
-  PRCMaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+  out->begingroup(buf.str().c_str(),compression);
+  
+  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
 
   if(straight)
-    out->add(new PRCBezierSurface(out,1,1,2,2,vertices,m,granularity,
-                                  buf.str()));
+    out->addRectangle(vertices,m,granularity);
   else
-    out->add(new PRCBezierSurface(out,3,3,4,4,controls,m,granularity,
-                                  buf.str()));
+    out->addPatch(controls,m,granularity);
+  
+  out->endgroup();
   
   return true;
 }
@@ -446,7 +448,7 @@ bool drawNurbs::write(prcfile *out, unsigned int *count, array *index,
                       array *origin)
 {
   ostringstream buf;
-  if(name == "") 
+  if(name.empty()) 
     buf << "surface-" << count[SURFACE]++;
   else
     buf << name;
@@ -454,10 +456,13 @@ bool drawNurbs::write(prcfile *out, unsigned int *count, array *index,
   if(invisible)
     return true;
 
-  PRCMaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
-  out->add(new PRCsurface(out,udegree,vdegree,nu,nv,controls,
-                          uknots,vknots,m,scale3D,weights != NULL,
-                          weights,granularity,buf.str().c_str()));
+  out->begingroup(buf.str().c_str(),compression);
+  
+  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+  out->addSurface(udegree,vdegree,nu,nv,controls,uknots,vknots,m,weights,
+                  granularity);
+  
+  out->endgroup();
   
   return true;
 }

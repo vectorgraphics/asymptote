@@ -216,7 +216,7 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
       } else ticklabel=Format(format);
     }
 
-    begingroup3(pic);
+    begingroup(pic);
     if(primary) draw(pic,margin(G,p).g,p,arrow);
     else draw(pic,G,p);
 
@@ -230,7 +230,7 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
       if(val >= a && val <= b)
         drawtick(pic,t,g,g2,locate,val,size,sign,ptick,extend);
     }
-    endgroup3(pic);
+    endgroup(pic);
     
     if(N == 0) N=1;
     if(Size > 0 && primary) {
@@ -1733,7 +1733,7 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
           guide3[][] g, pen[] p)
 {
   pen thin=is3D() ? thin() : defaultpen;
-  begingroup3(pic);
+  begingroup(pic);
   for(int cnt=0; cnt < g.length; ++cnt) {
     guide3[] gcnt=g[cnt];
     pen pcnt=thin+p[cnt];
@@ -1747,7 +1747,7 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
       }
     }
   }
-  endgroup3(pic);
+  endgroup(pic);
 }
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],

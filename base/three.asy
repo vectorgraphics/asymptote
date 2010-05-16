@@ -11,8 +11,16 @@ if(prc0()) {
   }
 }
 
+// Useful lossy compression values.
+restricted real Zero=0;
+restricted real Low=0.0001;
+restricted real Medium=0.001;
+restricted real High=0.01;
+restricted real Ultra=0.1;
+
 real defaultshininess=0.25;
 real defaultgranularity=0;
+real defaultcompression=Ultra;
 real linegranularity=0.005;
 int linesectors=8;        // Number of angular sectors.
 real dotgranularity=0.0001;
@@ -733,7 +741,7 @@ struct Controls {
   // 3D extension of John Hobby's control point formula
   // (cf. The MetaFont Book, page 131),
   // as described in John C. Bowman and A. Hammerlindl,
-  // TUGBOAT: The Communications of th TeX Users Group 29:2 (2008).
+  // TUGBOAT: The Communications of the TeX Users Group 29:2 (2008).
 
   void operator init(triple v0, triple v1, triple d0, triple d1, real tout,
                      real tin, bool atLeast) {
@@ -1997,7 +2005,7 @@ include three_light;
 void draw(frame f, path3 g, material p=currentpen, light light=nolight,
           string name="", projection P=currentprojection);
 
-void begingroup3(picture pic=currentpicture, string name="")
+begingroup=new void(picture pic=currentpicture, string name="")
 {
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
@@ -2005,9 +2013,12 @@ void begingroup3(picture pic=currentpicture, string name="")
       if(pic != null)
         begingroup(pic);
     },true);
-}
+  pic.add(new void(frame f, transform) {
+      begingroup(f);
+    },true);
+};
 
-void endgroup3(picture pic=currentpicture)
+endgroup=new void(picture pic=currentpicture)
 {
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
@@ -2015,7 +2026,10 @@ void endgroup3(picture pic=currentpicture)
       if(pic != null)
         endgroup(pic);
     },true);
-}
+  pic.add(new void(frame f, transform) {
+      endgroup(f);
+    },true);
+};
 
 void addPath(picture pic, path3 g, pen p)
 {
@@ -2089,7 +2103,8 @@ draw=new void(frame f, path3 g, material p=currentpen,
               projection P=currentprojection) {
   pen q=(pen) p;
   if(is3D()) {
-    p=material(p,(p.granularity >= 0) ? p.granularity : linegranularity);
+    p=material(p,p.granularity >= 0 ? p.granularity : linegranularity,
+               p.compression >= 0 ? p.compression : defaultcompression);
     void drawthick(path3 g) {
       if(settings.thick) {
         real width=linewidth(q);
@@ -2169,11 +2184,11 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
           arrowbar3 bar=None, margin3 margin=NoMargin3, light light=nolight,
           light arrowheadlight=currentlight, string name="")
 {
-  begingroup3(pic);
+  begingroup(pic);
   bool drawpath=arrow(pic,g,p,margin,light,arrowheadlight);
   if(bar(pic,g,p,margin,light,arrowheadlight) && drawpath)
     draw(pic,L,g,align,p,margin,light,name);
-  endgroup3(pic);
+  endgroup(pic);
   label(pic,L,g,align,(pen) p);
 }
 
@@ -2302,8 +2317,8 @@ private struct viewpoint {
   void operator init(string s) {
     s=replace(s,new string[][] {{" ",","},{"}{",","},{"{",""},{"}",""},});
     string[] S=split(s,",");
-    target=((real) S[0],(real) S[1],(real) S[2])*cm;
-    camera=target+(real) S[6]*((real) S[3],(real) S[4],(real) S[5])*cm;
+    target=((real) S[0],(real) S[1],(real) S[2]);
+    camera=target+(real) S[6]*((real) S[3],(real) S[4],(real) S[5]);
     triple u=unit(target-camera);
     triple w=unit(Z-u.z*u);
     up=rotate((real) S[7],O,u)*w;
@@ -2416,7 +2431,7 @@ for(i=0; i < count; i++) {
 var center=new Array(
 ";
   for(int i=0; i < center.length; ++i)
-    s += "Vector3("+format(center[i]/cm,",")+"),
+    s += "Vector3("+format(center[i],",")+"),
 ";
   s += ");
 
@@ -2519,7 +2534,7 @@ string embed3D(string label="", string text=label, string prefix,
   if(P.infinity) {
     triple lambda=max3(f)-min3(f);
     pair margin=viewportmargin((lambda.x,lambda.y));
-    viewplanesize=(max(lambda.x+2*margin.x,lambda.y+2*margin.y))/(cm*P.zoom);
+    viewplanesize=(max(lambda.x+2*margin.x,lambda.y+2*margin.y))/P.zoom;
   } else
     if(!P.absolute) P.angle=2*aTan(Tan(0.5*P.angle));
 
@@ -2542,7 +2557,7 @@ string embed3D(string label="", string text=label, string prefix,
                P.viewportshift.y*lambda.y/P.zoom,0);
   }
 
-  triple v=P.vector()/cm;
+  triple v=P.vector();
   triple u=unit(v);
   triple w=Z-u.z*u;
   real roll;
@@ -2560,7 +2575,7 @@ string embed3D(string label="", string text=label, string prefix,
     ",toolbar="+(settings.toolbar ? "true" : "false")+
     ",3Daac="+Format(P.angle)+
     ",3Dc2c="+Format(u)+
-    ",3Dcoo="+Format(target/cm)+
+    ",3Dcoo="+Format(target)+
     ",3Droll="+Format(roll)+
     ",3Droo="+Format(abs(v))+
     ",3Dbg="+Format(light.background());
