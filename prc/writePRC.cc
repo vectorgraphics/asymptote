@@ -19,6 +19,8 @@
 *************/
 
 #include "writePRC.h"
+#include <climits>
+#include <cassert>
 
 // debug print includes
 #include <iostream>
@@ -1116,26 +1118,28 @@ uint32_t  GetNumberOfBitsUsedToStoreInteger(int32_t iValue)
 
 int32_t intdiv(double dValue, double dTolerance)
 {
-     int32_t iTempValue = ( fabs(dValue) / dTolerance );
-     if(fabs(dValue) / dTolerance - iTempValue >= 0.5) iTempValue++;
-     if(dValue<0) 
-       return -1*iTempValue;
-     else
-       return iTempValue;
+  double ratio=fabs(dValue)/dTolerance;
+  assert(ratio <= INT_MAX);
+  int32_t iTempValue=(int32_t) ratio;
+  if(ratio - iTempValue >= 0.5) iTempValue++;
+  if(dValue < 0) 
+    return -iTempValue;
+  else
+    return iTempValue;
 }
 
+// round dValue to nearest multiple of dTolerance
 double roundto(double dValue, double dTolerance)
 {
     return intdiv(dValue, dTolerance) * dTolerance;
 }
 
-// round dValue to nearest multiple of dTolerance -- TODO be paranoid about overflows
 PRCVector3d roundto(PRCVector3d vec, double dTolerance)
 {
     PRCVector3d res;
-    res.x = intdiv(vec.x, dTolerance) * dTolerance;
-    res.y = intdiv(vec.y, dTolerance) * dTolerance;
-    res.z = intdiv(vec.z, dTolerance) * dTolerance;
+    res.x = roundto(vec.x,dTolerance);
+    res.y = roundto(vec.y,dTolerance);
+    res.z = roundto(vec.z,dTolerance);
     return    res;
 }
 

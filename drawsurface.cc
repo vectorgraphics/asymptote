@@ -14,6 +14,8 @@ const triple drawSurface::zero;
 
 using vm::array;
 
+static const double limit=2.5*10.0/INT_MAX;
+
 #ifdef HAVE_GL
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
 {
@@ -166,7 +168,10 @@ bool drawSurface::write(prcfile *out, unsigned int *count, array *index,
     index->push((Int) (n-1));
   }
   
-  out->begingroup(buf.str().c_str(),compression);
+  out->begingroup(buf.str().c_str(),
+                  max(compression,
+                      (straight ? run::norm((double *) vertices,12) :
+                       run::norm((double *) controls,48))*limit));
   
   PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
 
@@ -456,7 +461,9 @@ bool drawNurbs::write(prcfile *out, unsigned int *count, array *index,
   if(invisible)
     return true;
 
-  out->begingroup(buf.str().c_str(),compression);
+  out->begingroup(buf.str().c_str(),
+                  max(compression,run::norm((double *) controls,
+                                            (weights ? 4 : 3)*nu*nv))*limit);
   
   PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
   out->addSurface(udegree,vdegree,nu,nv,controls,uknots,vknots,m,weights,
