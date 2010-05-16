@@ -1,4 +1,4 @@
-void render(path3 s, real granularity=linegranularity, void f(path3, real))
+void render(path3 s, real granularity=tubegranularity, void f(path3, real))
 {
   void Split(triple z0, triple c0, triple c1, triple z1, real t0=0, real t1=1,
              real depth=mantissaBits) {
@@ -297,7 +297,7 @@ struct tube
   path3 center;
 
   void operator init(path3 p, real width, int sectors=4,
-                     real granularity=linegranularity) {
+                     real granularity=tubegranularity) {
     sectors += sectors % 2; // Must be even.
     int h=quotient(sectors,2);
     real r=0.5*width;

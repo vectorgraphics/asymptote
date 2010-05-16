@@ -22,11 +22,13 @@ real defaultshininess=0.25;
 real defaultgranularity=0;
 real defaultcompression=Ultra;
 real linegranularity=0.005;
+real tubegranularity=0.002;
 int linesectors=8;        // Number of angular sectors.
 real dotgranularity=0.0001;
 real angleprecision=1e-5; // Precision for centering perspective projections.
 int maxangleiterations=25;
 real rendermargin=0.02;
+rendermargin=1;
 
 string defaultembed3Doptions;
 string defaultembed3Dscript;
