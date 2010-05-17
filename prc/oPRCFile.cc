@@ -743,7 +743,7 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCSet *pSet)
           body->face.push_back(fit->face);
 
           body->serial_tolerance=group.compression;
-          body->brep_data_compressed_tolerance=3.0*group.compression;
+          body->brep_data_compressed_tolerance=2.8346456*group.compression;
 
           PRCBrepModel *brepmodel = new PRCBrepModel();
           brepmodel->index_of_line_style = fit->style;
