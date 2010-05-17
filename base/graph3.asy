@@ -216,7 +216,7 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
       } else ticklabel=Format(format);
     }
 
-    begingroup(pic);
+    begingroup3(pic);
     if(primary) draw(pic,margin(G,p).g,p,arrow);
     else draw(pic,G,p);
 
@@ -230,7 +230,7 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
       if(val >= a && val <= b)
         drawtick(pic,t,g,g2,locate,val,size,sign,ptick,extend);
     }
-    endgroup(pic);
+    endgroup3(pic);
     
     if(N == 0) N=1;
     if(Size > 0 && primary) {
@@ -1730,30 +1730,33 @@ guide3[][] lift(real f(pair z), guide[][] g, interpolate3 join=operator --)
 }
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-          guide3[][] g, pen[] p)
+          guide3[][] g, pen[] p, light light=currentlight, string name="",
+          interaction interaction=LabelInteraction())
 {
   pen thin=is3D() ? thin() : defaultpen;
-  begingroup(pic);
+  begingroup3(pic);
   for(int cnt=0; cnt < g.length; ++cnt) {
     guide3[] gcnt=g[cnt];
     pen pcnt=thin+p[cnt];
     for(int i=0; i < gcnt.length; ++i)
-      draw(pic,gcnt[i],pcnt);
+      draw(pic,gcnt[i],pcnt,light,name);
     if(L.length > 0) {
       Label Lcnt=L[cnt];
       for(int i=0; i < gcnt.length; ++i) {
         if(Lcnt.s != "" && size(gcnt[i]) > 1)
-          label(pic,Lcnt,gcnt[i],pcnt);
+          label(pic,Lcnt,gcnt[i],pcnt,name,interaction);
       }
     }
   }
-  endgroup(pic);
+  endgroup3(pic);
 }
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-          guide3[][] g, pen p=currentpen)
+          guide3[][] g, pen p=currentpen, light light=currentlight,
+          string name="", interaction interaction=LabelInteraction())
 {
-  draw(pic,L,g,sequence(new pen(int) {return p;},g.length));
+  draw(pic,L,g,sequence(new pen(int) {return p;},g.length),light,name,
+       interaction);
 }
 
 real maxlength(triple f(pair z), pair a, pair b, int nu, int nv) 

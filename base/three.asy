@@ -2006,7 +2006,7 @@ include three_light;
 void draw(frame f, path3 g, material p=currentpen, light light=nolight,
           string name="", projection P=currentprojection);
 
-begingroup=new void(picture pic=currentpicture, string name="")
+void begingroup3(picture pic=currentpicture, string name="")
 {
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
@@ -2014,12 +2014,9 @@ begingroup=new void(picture pic=currentpicture, string name="")
       if(pic != null)
         begingroup(pic);
     },true);
-  pic.add(new void(frame f, transform) {
-      begingroup(f);
-    },true);
-};
+}
 
-endgroup=new void(picture pic=currentpicture)
+void endgroup3(picture pic=currentpicture)
 {
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
@@ -2027,10 +2024,7 @@ endgroup=new void(picture pic=currentpicture)
       if(pic != null)
         endgroup(pic);
     },true);
-  pic.add(new void(frame f, transform) {
-      endgroup(f);
-    },true);
-};
+}
 
 void addPath(picture pic, path3 g, pen p)
 {
@@ -2185,11 +2179,11 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
           arrowbar3 bar=None, margin3 margin=NoMargin3, light light=nolight,
           light arrowheadlight=currentlight, string name="")
 {
-  begingroup(pic);
+  begingroup3(pic,name);
   bool drawpath=arrow(pic,g,p,margin,light,arrowheadlight);
   if(bar(pic,g,p,margin,light,arrowheadlight) && drawpath)
     draw(pic,L,g,align,p,margin,light,name);
-  endgroup(pic);
+  endgroup3(pic);
   label(pic,L,g,align,(pen) p);
 }
 

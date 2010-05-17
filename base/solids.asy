@@ -347,11 +347,12 @@ surface surface(revolution r, int n=nslice, pen color(int i, real j)=null)
 void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
 	  pen frontpen=currentpen, pen backpen=frontpen,
 	  pen longitudinalpen=frontpen, pen longitudinalbackpen=backpen,
-	  light light=currentlight, projection P=currentprojection)
+	  light light=currentlight, string name="",
+          projection P=currentprojection)
 {
   pen thin=is3D() ? thin() : defaultpen;
   skeleton s=r.skeleton(m,n,P);
-  begingroup(pic);
+  begingroup3(pic,name);
   if(frontpen != nullpen) {
     draw(pic,s.transverse.back,thin+defaultbackpen+backpen,light);
     draw(pic,s.transverse.front,thin+frontpen,light);
@@ -360,7 +361,7 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
     draw(pic,s.longitudinal.back,thin+defaultbackpen+longitudinalbackpen,light);
     draw(pic,s.longitudinal.front,thin+longitudinalpen,light);
   }
-  endgroup(pic);
+  endgroup3(pic);
 }
 
 revolution operator * (transform3 t, revolution r)

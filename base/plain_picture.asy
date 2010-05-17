@@ -1590,7 +1590,7 @@ void add(picture pic=currentpicture, void d(picture,transform3),
   pic.add(d,exact);
 }
 
-void begingroup(picture pic=currentpicture, string name="")
+void begingroup(picture pic=currentpicture)
 {
   pic.add(new void(frame f, transform) {
       begingroup(f);

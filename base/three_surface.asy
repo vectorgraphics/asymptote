@@ -1469,7 +1469,7 @@ void label(picture pic=currentpicture, Label L, triple position,
 }
 
 void label(picture pic=currentpicture, Label L, path3 g, align align=NoAlign,
-           pen p=currentpen, string name=L.s,
+           pen p=currentpen, light light=nolight, string name=L.s,
            interaction interaction=LabelInteraction())
 {
   Label L=L.copy();
@@ -1486,7 +1486,7 @@ void label(picture pic=currentpicture, Label L, path3 g, align align=NoAlign,
     a.dir3=dir(g,position); // Pass 3D direction via unused field.
     L.align(a);             
   }
-  label(pic,L,point(g,position),name,interaction);
+  label(pic,L,point(g,position),light,name,interaction);
 }
 
 surface extrude(Label L, triple axis=Z)
