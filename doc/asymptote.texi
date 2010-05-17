@@ -9137,11 +9137,11 @@ this requires @code{Python 2.6.2} and the @code{Python Imaging Library}:
 @url{http://www.python.org/ftp/python/2.6.2/python-2.6.2.msi}
 @end quotation
 @quotation
-@url{http://effbot.org/media/downloads/PIL-1.1.7.win32-py2.6.exe}.
+@url{http://effbot.org/downloads/PIL-1.1.7.win32-py2.6.exe}.
 @end quotation
 @noindent
 On @code{UNIX} systems, place
-@url{http://effbot.org/media/downloads/Imaging-1.1.7.tar.gz} in the
+@url{http://effbot.org/downloads/Imaging-1.1.7.tar.gz} in the
 @code{Asymptote} source directory, and type (as the root user):
 @verbatim
 tar -zxf Imaging-1.1.7.tar.gz
