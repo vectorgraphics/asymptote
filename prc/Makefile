@@ -3,20 +3,32 @@
 CFLAGS = -O3 -g -Wall
 CXX = g++
 
-test: PRCbitStream oPRCFile PRCdouble writePRC test.cc
-	$(CXX) $(CFLAGS) -o test PRCbitStream.o oPRCFile.o PRCdouble.o writePRC.o test.cc -lz
+MAKEDEPEND = $(CFLAGS) -O0 -M -DDEPEND
 
-PRCbitStream: PRCbitStream.cc
-	$(CXX) $(CFLAGS) -c PRCbitStream.cc -o PRCbitStream.o
+FILES = PRCbitStream oPRCFile PRCdouble writePRC
 
-oPRCFile: oPRCFile.cc
-	$(CXX) $(CFLAGS) -c oPRCFile.cc -o oPRCFile.o
+test: $(FILES:=.o) test.cc
+	$(CXX) $(CFLAGS) -o test $(FILES:=.o) test.cc -lz
 
-PRCdouble: PRCdouble.cc
-	$(CXX) $(CFLAGS) -c PRCdouble.cc -o PRCdouble.o
+.SUFFIXES: .c .cc .o .d
+.cc.o:
+	$(CXX) $(CFLAGS) $(INCL) -o $@ -c $<
+.cc.d:
+	@echo Creating $@; \
+	rm -f $@; \
+	${CXX} $(MAKEDEPEND) $(INCL) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+.c.d:
+	@echo Creating $@; \
+	rm -f $@; \
+	${CC} $(MAKEDEPEND) $(INCL) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
 
-writePRC: writePRC.cc PRCbitStream
-	$(CXX) $(CFLAGS) -c writePRC.cc -o writePRC.o
+ifeq (,$(findstring clean,${MAKECMDGOALS}))
+-include $(FILES:=.d)
+endif
 
 clean:
-	rm -f *.o test.prc test
+	rm -f *.o *.d test.prc test

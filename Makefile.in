@@ -11,6 +11,8 @@ GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @LIBS@ $(GCLIBS)
 
+vpath %.cc prc
+
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill path3 drawpath3 drawsurface
 
@@ -18,7 +20,7 @@ RUNTIME_FILES = runtime runbacktrace runpicture runlabel runhistory runarray \
 	runfile runsystem runpair runtriple runpath runpath3d runstring \
 	runmath
 
-PRC =  prc/PRCbitStream prc/oPRCFile prc/PRCdouble prc/writePRC
+PRC =  PRCbitStream oPRCFile PRCdouble writePRC
 
 FILES = $(CAMP) $(RUNTIME_FILES) env genv main stm dec errormsg \
         callable name symbol types entry exp newexp stack camp.tab lex.yy \
@@ -73,7 +75,7 @@ last = `cat svnrevision.cc | sed -e 's/.*\"\(.*\)\";/\\1/'`
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: $(GCLIB) $(FILES:=.o) prc
+asy: $(GCLIB) $(FILES:=.o)
 	if test "$(revision)" != "$(last)"; then \
 	  echo $(REVISION)\"$(revision)\"\; > svnrevision.cc; \
 	  $(CXX) $(OPTS) $(INCL) -o svnrevision.o -c svnrevision.cc; \
@@ -89,7 +91,7 @@ asy: $(GCLIB) $(FILES:=.o) prc
 svnrevision.cc:
 	echo $(REVISION)\"\"\; > svnrevision.cc;
 
-msdos: $(GCLIB) $(FILES:=.o) prc asy.o
+msdos: $(GCLIB) $(FILES:=.o) asy.o
 	echo string VERSION=\"@VERSION@\"\; > base/version.asy
 	echo @set VERSION @VERSION@ > doc/version.texi
 	echo @set Datadir @datadir@ >> doc/version.texi
@@ -214,10 +216,7 @@ uninstall-asy:
 uninstall-man: 
 	cd doc && $(MAKE) uninstall
 
-prc-clean: FORCE
-	-rm -f prc/*.o prc/*.d 
-
-clean:  FORCE prc-clean
+clean:  FORCE
 	-rm -f asy *.o *.d *mon.out $(CLEAN)
 
 gc-clean: FORCE clean
