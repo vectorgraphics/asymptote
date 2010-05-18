@@ -62,41 +62,57 @@ void drawSurface::bounds(bbox3& b)
     X=x;
     Y=y;
     Z=z;
+    double M=fabs(x);
     for(size_t i=1; i < 4; ++i) {
       double *v=vertices[i];
       double vx=v[0];
       x=min(x,vx);
       X=max(X,vx);
+      M=max(fabs(vx),M);
       double vy=v[1];
       y=min(y,vy);
       Y=max(Y,vy);
+      M=max(fabs(vy),M);
       double vz=v[2];
       z=min(z,vz);
       Z=max(Z,vz);
+      M=max(fabs(vz),M);
     }
+    if(compression > 0) 
+      compression=max(compression,limit*M);
   } else {
     static double c1[16];
 
-    for(int i=0; i < 16; ++i)
+    double M=fabs(controls[0][0]);
+    for(int i=0; i < 16; ++i) {
       c1[i]=controls[i][0];
+      M=max(fabs(c1[i]),M);
+    }
     double c0=c1[0];
     double fuzz=sqrtFuzz*run::norm(c1,16);
     x=bound(c1,min,b.empty ? c0 : min(c0,b.left),fuzz);
     X=bound(c1,max,b.empty ? c0 : max(c0,b.right),fuzz);
     
-    for(int i=0; i < 16; ++i)
+    for(int i=0; i < 16; ++i) {
       c1[i]=controls[i][1];
+      M=max(fabs(c1[i]),M);
+    }
     c0=c1[0];
     fuzz=sqrtFuzz*run::norm(c1,16);
     y=bound(c1,min,b.empty ? c0 : min(c0,b.bottom),fuzz);
     Y=bound(c1,max,b.empty ? c0 : max(c0,b.top),fuzz);
     
-    for(int i=0; i < 16; ++i)
+    for(int i=0; i < 16; ++i) {
       c1[i]=controls[i][2];
+      M=max(fabs(c1[i]),M);
+    }
     c0=c1[0];
     fuzz=sqrtFuzz*run::norm(c1,16);
     z=bound(c1,min,b.empty ? c0 : min(c0,b.lower),fuzz);
     Z=bound(c1,max,b.empty ? c0 : max(c0,b.upper),fuzz);
+    
+    if(compression > 0) 
+      compression=max(compression,limit*M);
   }
     
   Min=triple(x,y,z);
@@ -168,10 +184,7 @@ bool drawSurface::write(prcfile *out, unsigned int *count, array *index,
     index->push((Int) (n-1));
   }
   
-  out->begingroup(buf.str().c_str(),
-                  max(compression,
-                      (straight ? run::norm((double *) vertices,12) :
-                       run::norm((double *) controls,48))*limit));
+  out->begingroup(buf.str().c_str(),compression);
   
   PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
 
@@ -461,9 +474,7 @@ bool drawNurbs::write(prcfile *out, unsigned int *count, array *index,
   if(invisible)
     return true;
 
-  out->begingroup(buf.str().c_str(),
-                  max(compression,run::norm((double *) controls,
-                                            (weights ? 4 : 3)*nu*nv))*limit);
+  out->begingroup(buf.str().c_str(),compression);
   
   PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
   out->addSurface(udegree,vdegree,nu,nv,controls,uknots,vknots,m,weights,
@@ -485,17 +496,32 @@ void drawNurbs::bounds(bbox3& b)
   double X=x;
   double Y=y;
   double Z=z;
+  double M=fabs(x);
   for(size_t i=1; i < n; ++i) {
     double *v=controls[i];
     double vx=v[0];
     x=min(x,vx);
     X=max(X,vx);
+    M=max(fabs(vx),M);
     double vy=v[1];
     y=min(y,vy);
     Y=max(Y,vy);
+    M=max(fabs(vy),M);
     double vz=v[2];
     z=min(z,vz);
     Z=max(Z,vz);
+    M=max(fabs(vz),M);
+  }
+
+  if(compression > 0) {
+    if(weights) {
+      for(size_t i=1; i < n; ++i) {
+        double *v=controls[i];
+        double vw=v[3];
+        M=max(fabs(vw),M);
+      }
+    }
+    compression=max(compression,limit*M);
   }
 
   Min=triple(x,y,z);
