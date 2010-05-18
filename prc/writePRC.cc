@@ -2,6 +2,7 @@
 *
 *   This file is part of a tool for producing 3D content in the PRC format.
 *   Copyright (C) 2008  Orest Shardt <shardtor (at) gmail dot com>
+*   with enhancements contributed by Michail Vidiassov.
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU Lesser General Public License as published by
@@ -1202,7 +1203,7 @@ void  PRCCompressedFace::serializeCompressedAnaNurbs(PRCbitStream &pbs, double b
 
 void  PRCCompressedFace::serializeCompressedNurbs(PRCbitStream &pbs, double brep_data_compressed_tolerance)
 {
-   const double nurbs_tolerance = brep_data_compressed_tolerance / 5.0;
+   const double nurbs_tolerance = 0.2*brep_data_compressed_tolerance;
    const uint32_t degree_in_u = degree;
    const uint32_t degree_in_v = degree;
    
@@ -1263,14 +1264,11 @@ void  PRCCompressedFace::serializeCompressedNurbs(PRCbitStream &pbs, double brep
      compressed_control_point[i][j].x = 0;
      compressed_control_point[i][j].y = 0;
      compressed_control_point[i][j].z = 0;
-     // cout << "i j " << i << ' ' << j << endl;
+     
      PRCVector3d V = P[i-1][j] - P[i-1][j-1];
-     // cout << "V " << V << endl;
      PRCVector3d U = P[i][j-1] - P[i-1][j-1];
-     // cout << "U " << U << endl;
      PRCVector3d Pc = P[i][j] - (P[i-1][j-1] + U + V);
-     // cout << "Pij " << P[i][j] << endl;
-     // cout << "Pc " << Pc << endl;
+
      if(Pc.Length() < nurbs_tolerance)
      {
        control_point_type[i][j] = 0;
@@ -1294,12 +1292,7 @@ void  PRCCompressedFace::serializeCompressedNurbs(PRCbitStream &pbs, double brep
          double x = Pc.Dot(Ue);
          double y = Pc.Dot(NUe);
          double z = Pc.Dot(Ne);
-         // cout << "Ue " << Ue << endl;
-         // cout << "Ne " << Ne << endl;
-         // cout << "NUe " << NUe << endl;
-         // cout << "x " << x << endl;
-         // cout << "y " << y << endl;
-         // cout << "z " << z << endl;
+
          if(x*x+y*y<nurbs_tolerance*nurbs_tolerance)
          {
            control_point_type[i][j] = 1;

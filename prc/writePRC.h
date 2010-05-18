@@ -675,25 +675,20 @@ public:
   double mat[4][4];
   bool operator==(const PRCGeneralTransformation3d &t) const
   {
-//    std::cout << "transforms =" << std::endl;
     for (size_t i=0;i<4;i++)
       for (size_t j=0;j<4;j++)
         if(mat[i][j]!=t.mat[i][j])
          return false;
-//    std::cout << "transforms equal" << std::endl;
     return true;
   }
   bool operator<(const PRCGeneralTransformation3d &t) const
   {
-//    std::cout << "transforms <" << std::endl;
     for (size_t i=0;i<4;i++)
       for (size_t j=0;j<4;j++)
         if(mat[i][j]!=t.mat[i][j])
         {
-//          std::cout << mat[i][j] << ' ' << t.mat[i][j] << ' ' << (mat[i][j]<t.mat[i][j]) << std::endl;
           return (mat[i][j]<t.mat[i][j]);
         }
-//    std::cout << "transforms equal" << std::endl;
     return false;
   }
   void set(const double t[][4])
