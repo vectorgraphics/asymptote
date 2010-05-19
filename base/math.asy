@@ -144,6 +144,26 @@ int[][] segment(bool[] b)
   return segment;
 }
 
+// If the sorted array a does not contain x, insert it sequentially,
+// returning the index of x in the resulting array.
+int unique(real[] a, real x) {
+  int i=search(a,x);
+  if(i == -1 || x != a[i]) {
+    ++i;
+    a.insert(i,x);
+    return i;
+  }
+  return i;
+}
+
+bool lexorder(pair a, pair b) {
+  return a.x < b.x || (a.x == b.x && a.y <= b.y);
+}
+
+bool lexorder(triple a, triple b) {
+  return a.x < b.x || (a.x == b.x && (a.y < b.y || (a.y == b.y && a.z <= b.z)));
+}
+
 real[] zero(int n)
 {
   return sequence(new real(int) {return 0;},n);

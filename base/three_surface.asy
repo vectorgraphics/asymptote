@@ -1615,24 +1615,57 @@ void dot(frame f, triple v, material p=currentpen,
 {
   pen q=(pen) p;
   if(is3D()) {
-    material m=material(p,p.granularity >= 0 ? p.granularity : dotgranularity);
+    begingroup(f,name);
     int i=-1;
     for(patch s : unitsphere.s)
-      draw3D(f,shift(v)*scale3(0.5*linewidth(dotsize(q)+q))*s,m,light,
+      draw3D(f,shift(v)*scale3(0.5*linewidth(dotsize(q)+q))*s,p,light,
              partname(name,++i));
+    endgroup(f);
   } else dot(f,project(v,P.t),q);
 }
 
-void dot(frame f, path3 g, material p=currentpen,
-         projection P=currentprojection)
+void dot(frame f, triple[] v, material p=currentpen, light light=nolight,
+         string name="", projection P=currentprojection)
 {
-  for(int i=0; i <= length(g); ++i) dot(f,point(g,i),p,P);
+  if(v.length > 0) {
+    // Remove duplicate points.
+    v=sort(v,lexorder);
+
+    triple last=v[0];
+    dot(f,last,p,light,name,P);
+    for(int i=1; i < v.length; ++i) {
+      triple V=v[i];
+      if(V != last) {
+        dot(f,V,p,light,name,P);
+        last=V;
+      }
+    }
+  }
 }
 
-void dot(frame f, path3[] g, material p=currentpen,
-         projection P=currentprojection)
+void dot(frame f, path3 g, material p=currentpen, light light=nolight,
+         string name="", projection P=currentprojection)
 {
-  for(int i=0; i < g.length; ++i) dot(f,g[i],p,P);
+  dot(f,sequence(new triple(int i) {return point(g,i);},size(g)),
+      p,light,name,P);
+}
+
+void dot(frame f, path3[] g, material p=currentpen, light light=nolight,
+         string name="", projection P=currentprojection)
+{
+  int sum;
+  for(path3 G : g)
+    sum += size(G);
+  int i,j;
+  dot(f,sequence(new triple(int) {
+        while(j >= size(g[i])) {
+          ++i;
+          j=0;
+        }
+        triple v=point(g[i],j);
+        ++j;
+        return v;
+      },sum),p,light,name,P);
 }
 
 void dot(picture pic=currentpicture, triple v, material p=currentpen,
@@ -1642,11 +1675,11 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
   real size=0.5*linewidth(dotsize(q)+q);
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       if(is3D()) {
-        material m=material(p,p.granularity >= 0 ? p.granularity :
-                            dotgranularity);
+        begingroup(f,name);
         int i=-1;
         for(patch s : unitsphere.s)
-          draw3D(f,shift(t*v)*scale3(size)*s,m,light,partname(name,++i));
+          draw3D(f,shift(t*v)*scale3(size)*s,p,light,partname(name,++i));
+        endgroup(f);
       }
       if(pic != null)
         dot(pic,project(t*v,P.t),q);
@@ -1655,23 +1688,53 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
   pic.addBox(v,v,-R,R);
 }
 
-void dot(picture pic=currentpicture, triple[] v, material p=currentpen)
+void dot(picture pic=currentpicture, triple[] v, material p=currentpen,
+         light light=nolight, string name="")
 {
-  for(int i=0; i < v.length; ++i) dot(pic,v[i],p);
+  if(v.length > 0) {
+    // Remove duplicate points.
+    v=sort(v,lexorder);
+
+    triple last=v[0];
+    dot(pic,last,p,light,name);
+    for(int i=1; i < v.length; ++i) {
+      triple V=v[i];
+      if(V != last) {
+        dot(pic,V,p,light,name);
+        last=V;
+      }
+    }
+  }
 }
 
-void dot(picture pic=currentpicture, explicit path3 g, material p=currentpen)
+void dot(picture pic=currentpicture, explicit path3 g, material p=currentpen,
+         light light=nolight, string name="")
 {
-  for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p);
+  dot(pic,sequence(new triple(int i) {return point(g,i);},size(g)),
+      p,light,name);
 }
 
-void dot(picture pic=currentpicture, path3[] g, material p=currentpen)
+void dot(picture pic=currentpicture, path3[] g, material p=currentpen,
+         light light=nolight, string name="")
 {
-  for(int i=0; i < g.length; ++i) dot(pic,g[i],p);
+  int sum;
+  for(path3 G : g)
+    sum += size(G);
+  int i,j;
+  dot(pic,sequence(new triple(int) {
+        while(j >= size(g[i])) {
+          ++i;
+          j=0;
+        }
+        triple v=point(g[i],j);
+        ++j;
+        return v;
+      },sum),p,light,name);
 }
 
 void dot(picture pic=currentpicture, Label L, triple v, align align=NoAlign,
-         string format=defaultformat, material p=currentpen)
+         string format=defaultformat, material p=currentpen,
+         light light=nolight, string name="")
 {
   Label L=L.copy();
   if(L.s == "") {
@@ -1681,7 +1744,7 @@ void dot(picture pic=currentpicture, Label L, triple v, align align=NoAlign,
   }
   L.align(align,E);
   L.p((pen) p);
-  dot(pic,v,p);
+  dot(pic,v,p,light,name);
   label(pic,L,v);
 }
 

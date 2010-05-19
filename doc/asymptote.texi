@@ -5116,11 +5116,10 @@ If @code{n} is negative, search backwards from the end of the array for the
 @cindex @code{search}
 @item int search(T[] a, T key)
 For built-in ordered types @code{T}, searches a sorted ordered array
-@code{a} of @code{n} elements to find an interval containing
-@code{key}, returning @code{-1} if @code{key} is less than the first
-element, @code{n-1} if @code{key} is greater than or equal to the last
-element, and otherwise the index corresponding to the left-hand
-(smaller) endpoint.
+@code{a} of @code{n} elements for k, returning the index @code{i}
+if @code{a[i] <= key < a[i+1]}, @code{-1} if @code{key} is
+less than all elements of @code{a}, or @code{n-1} if @code{key} is
+greater than or equal to the last element of @code{a}.
 
 @cindex @code{copy}
 @item T[] copy(T[] a)
@@ -6146,6 +6145,18 @@ returns, if @code{strict=false}, whether @code{i > j} implies
 @code{a[i] >= a[j]}, or if @code{strict=true}, whether @code{i > j} implies
 implies @code{a[i] > a[j]}.
 
+@cindex @code{unique}
+@item int unique(real[] a, real x)
+if the sorted array @code{a} does not contain @code{x}, insert it
+sequentially, returning the index of @code{x} in the resulting array.
+
+@cindex @code{lexorder}
+@item bool lexorder(pair a, pair b)
+returns the lexicographical partial order of @code{a} and @code{b}.
+
+@cindex @code{lexorder}
+@item bool lexorder(triple a, triple b)
+returns the lexicographical partial order of @code{a} and @code{b}.
 @end table
 
 @node interpolate
