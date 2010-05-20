@@ -189,9 +189,9 @@ bool drawSurface::write(prcfile *out, unsigned int *count, array *index,
   PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
 
   if(straight)
-    out->addRectangle(vertices,m,granularity);
+    out->addRectangle(vertices,m);
   else
-    out->addPatch(controls,m,granularity);
+    out->addPatch(controls,m);
   
   out->endgroup();
   
@@ -386,8 +386,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   bool havenormal=normal != zero;
   if(havebillboard) BB.init();
 
-  if(!havenormal || (!straight && (fraction(d,size3)*size2 >= pixel || 
-                                   granularity == 0))) {
+  if(!havenormal || (!straight && fraction(d,size3)*size2 >= pixel)) {
     if(lighton) {
       if(havenormal && fraction(dperp,size3)*size2 <= 0.1) {
         if(havebillboard)
@@ -477,8 +476,7 @@ bool drawNurbs::write(prcfile *out, unsigned int *count, array *index,
   out->begingroup(buf.str().c_str(),compression);
   
   PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
-  out->addSurface(udegree,vdegree,nu,nv,controls,uknots,vknots,m,weights,
-                  granularity);
+  out->addSurface(udegree,vdegree,nu,nv,controls,uknots,vknots,m,weights);
   
   out->endgroup();
   

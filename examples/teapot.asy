@@ -169,4 +169,6 @@ triple[][][] Q={
   }
 };
 
+defaultgranularity=0.1;
+
 draw(surface(Q),blue);

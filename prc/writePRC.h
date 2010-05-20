@@ -1273,7 +1273,7 @@ class PRCTopoContext : public ContentPRCBase
 {
 public:
   PRCTopoContext(std::string n="") :
-  ContentPRCBase(&EMPTY_ATTRIBUTES,n), behaviour(0), granularity(0), tolerance(0),
+  ContentPRCBase(&EMPTY_ATTRIBUTES,n), behaviour(0), tolerance(0),
    have_smallest_face_thickness(false), smallest_thickness(0), have_scale(false), scale(1) {}
   void serializeTopoContext(PRCbitStream&);
   void serializeContextAndBodies(PRCbitStream&);
@@ -1284,7 +1284,6 @@ public:
   uint32_t addCompressedBrepData(PRCCompressedBrepData *body);
 // type PRC_TYPE_TOPO_Context 
   uint8_t  behaviour;
-  double granularity;
   double tolerance;
   bool have_smallest_face_thickness;
   double smallest_thickness;

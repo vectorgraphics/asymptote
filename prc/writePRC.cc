@@ -33,10 +33,7 @@ using namespace std;
 
 double PRCVector3d::Length()
 {
-  double length = hypot(hypot(x,y),z);
-  if(length!=length || length==HUGE_VAL)
-    return (double) -1.0;
-  return length;
+  return sqrt(x*x+y*y+z*z);
 }
 
 bool PRCVector3d::Normalize()
@@ -53,20 +50,13 @@ bool PRCVector3d::Normalize()
 void UserData::write(PRCbitStream &pbs)
 {
   pbs << size;
-  if(size > 0)
-  {
-    uint32_t i = 0;
-    for(; i < size/8; ++i)
-    {
+  if(size > 0) {
+    uint32_t quot=size/8;
+    uint32_t rem=size-8*quot;
+    for(uint32_t i = 0; i < quot; ++i)
       pbs << data[i];
-    }
-    if(size % 8 != 0)
-    {
-      for(uint32_t j = 0; j < size%8; ++j) // 0-based, big endian bit counting
-      {
-        pbs << (bool)(data[i] & (0x80 >> j));
-      }
-    }
+    for(uint32_t j = 0; j < rem; ++j) // 0-based, big endian bit counting
+      pbs << (bool)(data[quot] & (0x80 >> j));
   }
 }
 
@@ -1662,7 +1652,7 @@ void PRCTopoContext::serializeTopoContext(PRCbitStream &pbs)
 
    SerializeContentPRCBase
    WriteCharacter ( behaviour )
-   WriteDouble ( granularity )
+   WriteDouble ( 0.0 ) // granularity
    WriteDouble ( tolerance )
    WriteBoolean ( have_smallest_face_thickness )
    if ( have_smallest_face_thickness )

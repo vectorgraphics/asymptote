@@ -1,5 +1,4 @@
 import three;
-dotgranularity=0; // Render dots as spheres.
 
 currentprojection=orthographic(5,4,2,center=true);
 

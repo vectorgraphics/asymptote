@@ -273,25 +273,25 @@ int main()
           shifted_controlPoints[teapot][patch][i][1] = controlPoints[patch][i][1];
           shifted_controlPoints[teapot][patch][i][2] = controlPoints[patch][i][2];
         }
-    file.begingroup("Teapot");
     for(size_t i = 0; i < NUMBER_OF_PATCHES; ++i)
     {
   //   was so in old API
   //   psn[i] = new PRCsurface(&file,3,3,4,4,controlPoints[i],knotsU,knotsV,colours[i%N_COLOURS]);
   //   file.add(psn[i]);
-       if (1) file.addPatch(controlPoints[i],materials[i%N_COLOURS],0);
-       if (0) file.addSurface(3,3,4,4,controlPoints[i],knotsU,knotsV,materials[i%N_COLOURS],NULL,0); // use (too) general API for the same result as above
+    file.begingroup("Teapot");
+       if (1) file.addPatch(controlPoints[i],materials[i%N_COLOURS]);
+  file.endgroup();
+       if (0) file.addSurface(3,3,4,4,controlPoints[i],knotsU,knotsV,materials[i%N_COLOURS],NULL); // use (too) general API for the same result as above
     }
-    file.endgroup();
-    file.begingroup("Teapot rendered in the way of opaque surfacesPRCNOBREAKPRCCOMPRESSLOW");
-    for(size_t i = 0; i < NUMBER_OF_PATCHES; ++i)
-    {
-       file.addPatch(shifted_controlPoints[1][i],materials[i%N_COLOURS],0); // force joining together of patches, damaging transparency
-    }
-    file.endgroup();
+//    file.begingroup("Teapot rendered in the way of opaque surfacesPRCNOBREAKPRCCOMPRESSLOW");
+//    for(size_t i = 0; i < NUMBER_OF_PATCHES; ++i)
+//    {
+//       file.addPatch(shifted_controlPoints[1][i],materials[i%N_COLOURS]); // force joining together of patches, damaging transparency
+//    }
+//    file.endgroup();
   }
-
-  if(1) {
+    
+if(1) {
   const size_t NUMBER_OF_POINTS = 31;
   double points[NUMBER_OF_POINTS][3];
   for(size_t i = 0; i < NUMBER_OF_POINTS; ++i)
@@ -419,19 +419,19 @@ int main()
     file.begingroup("SetOfNURBSBodies");
     for(size_t patch = 0; patch < NUMBER_OF_PATCHES; ++patch)
     {
-      file.addRectangle(shifted_vertices[0][patch], materials[(patch*5)%N_COLOURS], 0);
+      file.addRectangle(shifted_vertices[0][patch], materials[(patch*5)%N_COLOURS]);
     }
     file.endgroup();
     file.begingroup("NURBSFacesPRCNOBREAK");
     for(size_t patch = 0; patch < NUMBER_OF_PATCHES; ++patch)
     {
-      file.addRectangle(shifted_vertices[1][patch], materials[(patch*5)%N_COLOURS], 0);
+      file.addRectangle(shifted_vertices[1][patch], materials[(patch*5)%N_COLOURS]);
     }
     file.endgroup();
     file.begingroup("TessellatedPRCTESS");
     for(size_t patch = 0; patch < NUMBER_OF_PATCHES; ++patch)
     {
-      file.addRectangle(shifted_vertices[2][patch], materials[(patch*5)%N_COLOURS], 0);
+      file.addRectangle(shifted_vertices[2][patch], materials[(patch*5)%N_COLOURS]);
     }
     file.endgroup();
     file.endgroup();
@@ -440,19 +440,19 @@ int main()
     file.begingroup("TessellatedPRCTESS");
     for(size_t patch = 0; patch < NUMBER_OF_PATCHES; ++patch)
     {
-      file.addRectangle(shifted_vertices[3][patch], materialGreen, 0);
+      file.addRectangle(shifted_vertices[3][patch], materialGreen);
     }
     file.endgroup();
     file.begingroup("NURBSFaces");
     for(size_t patch = 0; patch < NUMBER_OF_PATCHES; ++patch)
     {
-      file.addRectangle(shifted_vertices[4][patch], materialGreen, 0);
+      file.addRectangle(shifted_vertices[4][patch], materialGreen);
     }
     file.endgroup();
     file.begingroup("SetOfNURBSBodiesPRCDOBREAK");
     for(size_t patch = 0; patch < NUMBER_OF_PATCHES; ++patch)
     {
-      file.addRectangle(shifted_vertices[5][patch], materialGreen, 0);
+      file.addRectangle(shifted_vertices[5][patch], materialGreen);
     }
     file.endgroup();
     file.endgroup();
@@ -460,7 +460,6 @@ int main()
 
   if(0) { // test disk
     PRCTopoContext *diskContext = new PRCTopoContext;
-    diskContext->granularity=0.0; // zero gives best quality
     uint32_t context_index = file.addTopoContext(diskContext);
    
     PRCBrepData *body = new PRCBrepData;
@@ -528,35 +527,35 @@ int main()
      const double disk_y_axis[3] = {0,-1,0};
      const double disk_scale = 2;
      file.begingroup("diskPRCCLOSED");
-     file.addDisk(1,materialGreen,0.01,disk_origin,disk_x_axis,disk_y_axis,disk_scale);
+     file.addDisk(1,materialGreen,disk_origin,disk_x_axis,disk_y_axis,disk_scale);
      file.endgroup();
      const double hs_origin[3] = {11,0,2};
      const double hs_x_axis[3] = {1,0,0};
      const double hs_y_axis[3] = {0,1,0};
      const double hs_scale = 2;
      file.begingroup("hemispherePRCCLOSED");
-     file.addHemisphere(1,materialGreen,0.01,hs_origin,hs_x_axis,hs_y_axis,hs_scale);
+     file.addHemisphere(1,materialGreen,hs_origin,hs_x_axis,hs_y_axis,hs_scale);
      file.endgroup();
      const double cyl_origin[3] = {11,0,1};
      const double cyl_x_axis[3] = {1,0,0};
      const double cyl_y_axis[3] = {0,1,0};
      const double cyl_scale = 1;
      file.begingroup("cylinderPRCCLOSED");
-     file.addCylinder(1,1,materialGreen,0.01,cyl_origin,cyl_x_axis,cyl_y_axis,cyl_scale);
+     file.addCylinder(1,1,materialGreen,cyl_origin,cyl_x_axis,cyl_y_axis,cyl_scale);
      file.endgroup();
      const double sp_origin[3] = {11,0,1};
      const double sp_x_axis[3] = {1,0,0};
      const double sp_y_axis[3] = {0,1,0};
      const double sp_scale = 1;
      file.begingroup("spherePRCCLOSED");
-     file.addSphere(0.5,materialGreen,0.01,sp_origin,sp_x_axis,sp_y_axis,sp_scale);
+     file.addSphere(0.5,materialGreen,sp_origin,sp_x_axis,sp_y_axis,sp_scale);
      file.endgroup();
      const double tor_origin[3] = {11,0,0};
      const double tor_x_axis[3] = {1,0,0};
      const double tor_y_axis[3] = {0,1,0};
      const double tor_scale = 1;
      file.begingroup("torusPRCCLOSED");
-     file.addTorus(0.5,0.1,0,360,materialGreen,0.01,tor_origin,tor_x_axis,tor_y_axis,tor_scale);
+     file.addTorus(0.5,0.1,0,360,materialGreen,tor_origin,tor_x_axis,tor_y_axis,tor_scale);
      file.endgroup();
   }
 
@@ -588,7 +587,6 @@ int main()
     knots[3+NUMBER_OF_POINTS] = (3+NUMBER_OF_POINTS+1)/3;
    
     PRCTopoContext *tubeContext = new PRCTopoContext;
-    tubeContext->granularity=0.0;  // zero gives best quality
     uint32_t context_index = file.addTopoContext(tubeContext);
    
     PRCBrepData *body = new PRCBrepData;

@@ -14,10 +14,10 @@ pen p=rgb(0.2,0.5,0.7);
 surface s=surface(f,(0,0),(2pi,2pi),8,8,Spline);
 
 // surface only
-draw(s,lightgray);
+//draw(s,lightgray);
 
 // mesh only
 // draw(s,nullpen,meshpen=p);
 
 // surface & mesh
-// draw(s,lightgray,meshpen=p);
+draw(s,lightgray,meshpen=p);

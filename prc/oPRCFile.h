@@ -169,7 +169,7 @@ class PRCgroup
  public:
   PRCgroup() : compression(0.0) {}
   PRCgroup(const std::string &name) : name(name), compression(0.0) {}
-  std::map<double,PRCcontext> contexts;
+  std::list<PRCcontext> contexts;
   PRCtessrectangleList  rectangles;
   PRCtesslineList       lines;
   PRCwireList           wires;
@@ -475,18 +475,18 @@ class oPRCFile
     void addLine(uint32_t n, const double P[][3], const RGBAColour &c);
     void addBezierCurve(uint32_t n, const double cP[][3], const RGBAColour &c);
     void addCurve(uint32_t d, uint32_t n, const double cP[][3], const double *k, const RGBAColour &c, const double w[]);
-    void addRectangle(const double P[][3], const PRCmaterial &m, double granularity);
-    void addPatch(const double cP[][3], const PRCmaterial &m, double granularity);
+    void addRectangle(const double P[][3], const PRCmaterial &m);
+    void addPatch(const double cP[][3], const PRCmaterial &m);
     void addSurface(uint32_t dU, uint32_t dV, uint32_t nU, uint32_t nV,
      const double cP[][3], const double *kU, const double *kV, const PRCmaterial &m,
-     const double w[], double granularity);
+     const double w[]);
 #define PRCFACETRANSFORM const double origin[3]=NULL, const double x_axis[3]=NULL, const double y_axis[3]=NULL, double scale=1, const double t[][4]=NULL
-    void addTube(uint32_t n, const double cP[][3], const double oP[][3], bool straight, const PRCmaterial &m, double granularity, PRCFACETRANSFORM);
-    void addHemisphere(double radius, const PRCmaterial &m, double granularity, PRCFACETRANSFORM);
-    void addSphere(double radius, const PRCmaterial &m, double granularity, PRCFACETRANSFORM);
-    void addDisk(double radius, const PRCmaterial &m, double granularity, PRCFACETRANSFORM);
-    void addCylinder(double radius, double height, const PRCmaterial &m, double granularity, PRCFACETRANSFORM);
-    void addTorus(double major_radius, double minor_radius, double angle1, double angle2, const PRCmaterial &m, double granularity, PRCFACETRANSFORM);
+    void addTube(uint32_t n, const double cP[][3], const double oP[][3], bool straight, const PRCmaterial &m, PRCFACETRANSFORM);
+    void addHemisphere(double radius, const PRCmaterial &m, PRCFACETRANSFORM);
+    void addSphere(double radius, const PRCmaterial &m, PRCFACETRANSFORM);
+    void addDisk(double radius, const PRCmaterial &m, PRCFACETRANSFORM);
+    void addCylinder(double radius, double height, const PRCmaterial &m, PRCFACETRANSFORM);
+    void addTorus(double major_radius, double minor_radius, double angle1, double angle2, const PRCmaterial &m, PRCFACETRANSFORM);
 #undef PRCFACETRANSFORM
 
 

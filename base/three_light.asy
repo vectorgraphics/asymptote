@@ -2,25 +2,21 @@ struct material {
   pen[] p; // diffusepen,ambientpen,emissivepen,specularpen
   real opacity;
   real shininess;  
-  real granularity;
   real compression;
   void operator init(pen diffusepen=black, pen ambientpen=black,
                      pen emissivepen=black, pen specularpen=mediumgray,
                      real opacity=opacity(diffusepen),
                      real shininess=defaultshininess,
-                     real granularity=-1, real compression=-1) {
+                     real compression=-1) {
     p=new pen[] {diffusepen,ambientpen,emissivepen,specularpen};
     this.opacity=opacity;
     this.shininess=shininess;
-    this.granularity=granularity;
     this.compression=compression;
   }
-  void operator init(material m, real granularity=m.granularity,
-                     real compression=m.compression) {
+  void operator init(material m, real compression=m.compression) {
     p=copy(m.p);
     opacity=m.opacity;
     shininess=m.shininess;
-    this.granularity=granularity;
     this.compression=compression;
   }
   pen diffuse() {return p[0];}
@@ -43,7 +39,6 @@ void write(file file, string s="", material x, suffix suffix=none)
   write(file,", specular=",x.specular());
   write(file,", opacity=",x.opacity);
   write(file,", shininess=",x.shininess);
-  write(file,", granularity=",x.granularity);
   write(file,", compression=",x.compression);
   write(file,"}",suffix);
 }
@@ -56,8 +51,7 @@ void write(string s="", material x, suffix suffix=endl)
 bool operator == (material m, material n)
 {
   return all(m.p == n.p) && m.opacity == n.opacity &&
-  m.shininess == n.shininess && m.granularity == n.granularity &&
-  m.compression == n.compression;
+  m.shininess == n.shininess && m.compression == n.compression;
 }
 
 material operator cast(pen p)
@@ -75,11 +69,10 @@ pen operator ecast(material m)
   return m.p.length > 0 ? m.diffuse() : nullpen;
 }
 
-material emissive(material m, real granularity=m.granularity,
-                  real compression=m.compression)
+material emissive(material m, real compression=m.compression)
 {
   return material(black+opacity(m.opacity),black,m.diffuse(),black,m.opacity,1,
-                  granularity,compression);
+                  compression);
 }
 
 pen color(triple normal, material m, light light, transform3 T=light.T) {

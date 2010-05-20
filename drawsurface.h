@@ -33,7 +33,6 @@ protected:
   double opacity;
   double shininess;
   double PRCshininess;
-  double granularity;
   double compression;
   triple normal;
   bool invisible;
@@ -54,12 +53,11 @@ public:
 
   drawSurface(const vm::array& g, triple center, bool straight,
               const vm::array&p, double opacity, double shininess,
-              double PRCshininess, double granularity, double compression,
+              double PRCshininess, double compression,
               triple normal, const vm::array &pens, bool lighton,
               const string& name, Int interaction) :
     center(center), straight(straight), opacity(opacity), shininess(shininess),
-    PRCshininess(PRCshininess), granularity(granularity), 
-    compression(compression), normal(unit(normal)),
+    PRCshininess(PRCshininess), compression(compression), normal(unit(normal)),
     lighton(lighton), name(name), interaction((Interaction) interaction) {
     string wrongsize=
       "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
@@ -114,7 +112,7 @@ public:
     straight(s->straight), diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
-    granularity(s->granularity), compression(s->compression),
+    compression(s->compression),
     invisible(s->invisible), lighton(s->lighton), name(s->name),
     interaction(s->interaction) { 
     
@@ -175,7 +173,6 @@ protected:
   double opacity;
   double shininess;
   double PRCshininess;
-  double granularity;
   double compression;
   triple normal;
   bool invisible;
@@ -194,12 +191,10 @@ protected:
 public:
   drawNurbs(const vm::array& g, const vm::array* uknot, const vm::array* vknot,
             const vm::array* weight, const vm::array&p, double opacity,
-            double shininess, double PRCshininess, double granularity,
-            double compression, const vm::array &pens, bool lighton,
-            const string& name) :
+            double shininess, double PRCshininess, double compression,
+            const vm::array &pens, bool lighton, const string& name) :
     opacity(opacity), shininess(shininess), PRCshininess(PRCshininess),
-    granularity(granularity), compression(compression), lighton(lighton),
-    name(name) {
+    compression(compression), lighton(lighton), name(name) {
     size_t weightsize=checkArray(weight);
     
     string wrongsize="Inconsistent NURBS data";
@@ -274,8 +269,8 @@ public:
     diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
-    granularity(s->granularity), compression(s->compression),
-    invisible(s->invisible), lighton(s->lighton), name(s->name) {
+    compression(s->compression), invisible(s->invisible), lighton(s->lighton),
+    name(s->name) {
     
     size_t n=nu*nv;
     controls=new(UseGC) Triple[n];

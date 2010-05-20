@@ -644,9 +644,9 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCSet *pSet)
       }
     }
 
-    for(map<double,PRCcontext>::const_iterator cit=group.contexts.begin(); cit!=group.contexts.end(); cit++)
+    for(list<PRCcontext>::const_iterator cit=group.contexts.begin(); cit!=group.contexts.end(); cit++)
     {
-      const PRCfaceList &faces = cit->second.faces;
+      const PRCfaceList &faces = cit->faces;
       if(faces.empty())
         continue;
       bool same_color = true;
@@ -658,7 +658,6 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCSet *pSet)
           break;
         }
       PRCTopoContext *context = new PRCTopoContext;
-      context->granularity = cit->first;
       const uint32_t context_index = addTopoContext(context);
       PRCShell *shell = new PRCShell;
 
@@ -712,9 +711,9 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCSet *pSet)
     }
 
     if(group.compression != PRCcompressnone)
-    for(map<double,PRCcontext>::const_iterator cit=group.contexts.begin(); cit!=group.contexts.end(); cit++)
+    for(list<PRCcontext>::const_iterator cit=group.contexts.begin(); cit!=group.contexts.end(); cit++)
     {
-      const PRCcompfaceList &compfaces = cit->second.compfaces;
+      const PRCcompfaceList &compfaces = cit->compfaces;
       if(compfaces.empty())
         continue;
       bool same_color = true;
@@ -726,7 +725,6 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCSet *pSet)
           break;
         }
       PRCTopoContext *context = new PRCTopoContext;
-      context->granularity = cit->first;
       const uint32_t context_index = addTopoContext(context);
       PRCCompressedBrepData *body = new PRCCompressedBrepData;
       
@@ -1136,10 +1134,12 @@ PRCgroup& oPRCFile::findGroup()
   wire.curve.reset(curve);                                      \
   wire.style = addColour(c);
 
-#define ADDFACE(surftype)                                           \
-  PRCgroup &group = findGroup();                                    \
-  group.contexts[granularity].faces.push_back(PRCface());           \
-  PRCface& face = group.contexts[granularity].faces.back();         \
+#define ADDFACE(surftype)                                       \
+  PRCgroup &group = findGroup();                                \
+  group.contexts.push_back(PRCcontext());                       \
+  PRCcontext& context=group.contexts.back();                    \
+  context.faces.push_back(PRCface());                           \
+  PRCface& face = context.faces.back();                         \
   surftype *surface = new surftype;                                 \
   face.face.reset(new PRCFace);                                     \
   face.face->setSurface(surface);                                   \
@@ -1148,11 +1148,11 @@ PRCgroup& oPRCFile::findGroup()
 
 #define ADDCOMPFACE                                                 \
   PRCgroup &group = findGroup();                                    \
-  group.contexts[granularity].compfaces.push_back(PRCcompface());   \
-  PRCcompface& face = group.contexts[granularity].compfaces.back(); \
+  group.contexts.push_back(PRCcontext());                           \
+  PRCcontext& context=group.contexts.back();                        \
+  context.compfaces.push_back(PRCcompface());                       \
+  PRCcompface& face = context.compfaces.back();                     \
   PRCCompressedFace *compface = new PRCCompressedFace;              \
-  /* compface->base_information = true; */                          \
-  /* compface->identifier = 0; */                                   \
   face.face.reset(compface);                                        \
   face.transparent = m.alpha < 1.0;                                 \
   face.style = addMaterial(m);
@@ -1219,7 +1219,7 @@ void oPRCFile::addCurve(uint32_t d, uint32_t n, const double cP[][3], const doub
     curve->knot[i] = k[i];
 }
 
-void oPRCFile::addRectangle(const double P[][3], const PRCmaterial &m, double granularity)
+void oPRCFile::addRectangle(const double P[][3], const PRCmaterial &m)
 {
   PRCgroup &group = findGroup();
   if(group.options.tess)
@@ -1271,8 +1271,7 @@ void oPRCFile::addRectangle(const double P[][3], const PRCmaterial &m, double gr
   }
 }
 
-void oPRCFile::addPatch(const double cP[][3], const PRCmaterial &m,
-                        double granularity)
+void oPRCFile::addPatch(const double cP[][3], const PRCmaterial &m)
 {
   PRCgroup &group = findGroup();
   if(group.compression == PRCcompressnone)
@@ -1316,8 +1315,9 @@ void oPRCFile::addPatch(const double cP[][3], const PRCmaterial &m,
 }
 
 void oPRCFile::addSurface(uint32_t dU, uint32_t dV, uint32_t nU, uint32_t nV,
-  const double cP[][3], const double *kU, const double *kV, const PRCmaterial &m,
-  const double w[], double granularity)
+                          const double cP[][3], const double *kU,
+                          const double *kV, const PRCmaterial &m,
+                          const double w[])
 {
   ADDFACE(PRCNURBSSurface)
 
@@ -1352,7 +1352,7 @@ void oPRCFile::addSurface(uint32_t dU, uint32_t dV, uint32_t nU, uint32_t nV,
 
 #define PRCFACETRANSFORM const double origin[3], const double x_axis[3], const double y_axis[3], double scale, const double t[][4]
 
-void oPRCFile::addTube(uint32_t n, const double cP[][3], const double oP[][3], bool straight, const PRCmaterial &m, double granularity, PRCFACETRANSFORM)
+void oPRCFile::addTube(uint32_t n, const double cP[][3], const double oP[][3], bool straight, const PRCmaterial &m, PRCFACETRANSFORM)
 {
   ADDFACE(PRCBlend01)
   SETTRANSF
@@ -1416,7 +1416,7 @@ void oPRCFile::addTube(uint32_t n, const double cP[][3], const double oP[][3], b
   }
 }
 
-void oPRCFile::addHemisphere(double radius, const PRCmaterial &m, double granularity, PRCFACETRANSFORM)
+void oPRCFile::addHemisphere(double radius, const PRCmaterial &m, PRCFACETRANSFORM)
 {
   ADDFACE(PRCSphere)
   SETTRANSF
@@ -1427,7 +1427,7 @@ void oPRCFile::addHemisphere(double radius, const PRCmaterial &m, double granula
   surface->radius = radius;
 }
 
-void oPRCFile::addSphere(double radius, const PRCmaterial &m, double granularity, PRCFACETRANSFORM)
+void oPRCFile::addSphere(double radius, const PRCmaterial &m, PRCFACETRANSFORM)
 {
   ADDFACE(PRCSphere)
   SETTRANSF
@@ -1438,7 +1438,7 @@ void oPRCFile::addSphere(double radius, const PRCmaterial &m, double granularity
   surface->radius = radius;
 }
 
-void oPRCFile::addDisk(double radius, const PRCmaterial &m, double granularity, PRCFACETRANSFORM)
+void oPRCFile::addDisk(double radius, const PRCmaterial &m, PRCFACETRANSFORM)
 {
   ADDFACE(PRCRuled)
   SETTRANSF
@@ -1457,7 +1457,7 @@ void oPRCFile::addDisk(double radius, const PRCmaterial &m, double granularity, 
   surface->parameterization_on_v_coeff_b = 2*M_PI;
 }
 
-void oPRCFile::addCylinder(double radius, double height, const PRCmaterial &m, double granularity, PRCFACETRANSFORM)
+void oPRCFile::addCylinder(double radius, double height, const PRCmaterial &m, PRCFACETRANSFORM)
 {
   ADDFACE(PRCCylinder)
   SETTRANSF
@@ -1468,7 +1468,7 @@ void oPRCFile::addCylinder(double radius, double height, const PRCmaterial &m, d
   surface->radius = radius;
 }
 
-void oPRCFile::addTorus(double major_radius, double minor_radius, double angle1, double angle2, const PRCmaterial &m, double granularity, PRCFACETRANSFORM)
+void oPRCFile::addTorus(double major_radius, double minor_radius, double angle1, double angle2, const PRCmaterial &m, PRCFACETRANSFORM)
 {
   ADDFACE(PRCTorus)
   SETTRANSF

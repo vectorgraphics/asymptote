@@ -12,9 +12,6 @@ currentlight=White;
 size(200);
 currentprojection=perspective(30,30,15);
 
-// Uncomment this line for more accurate (but slower) PDF rendering
-//dotgranularity=0;
-
 pen chainpen=green;
 pen hetpen=purple;
 
@@ -121,6 +118,7 @@ while(true) {
 write("Number of atomic chains: ",chains.length);
 
 int natoms;
+begingroup3("chained");
 for(chain c : chains) {
   for(int i=0; i < c.a.length-1; ++i)
     draw(c.a[i].v--c.a[i+1].v,chainpen,currentlight);
@@ -128,12 +126,15 @@ for(chain c : chains) {
     dot(a.v,color(a.name),currentlight);
   natoms += c.a.length;
 }
+endgroup3();
 
 write("Number of chained atoms: ",natoms);
 write("Number of hetero atoms: ",atoms.length);
 
+begingroup3("hetero");
 for(atom h : atoms)
   dot(h.v,color(h.name),currentlight);
+endgroup3();
 
 write("Number of hetero bonds: ",bonds.length);
 

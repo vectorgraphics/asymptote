@@ -19,12 +19,9 @@ restricted real High=0.01;
 restricted real Ultra=0.1;
 
 real defaultshininess=0.25;
-real defaultgranularity=0;
 real defaultcompression=Ultra;
-real linegranularity=0.005;
 real tubegranularity=0.005;
 int linesectors=8;        // Number of angular sectors.
-real dotgranularity=0.0001;
 real angleprecision=1e-5; // Precision for centering perspective projections.
 int maxangleiterations=25;
 real rendermargin=0.02;
@@ -2098,8 +2095,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
               projection P=currentprojection) {
   pen q=(pen) p;
   if(is3D()) {
-    p=material(p,p.granularity >= 0 ? p.granularity : linegranularity,
-               p.compression >= 0 ? p.compression : defaultcompression);
+    p=material(p,p.compression >= 0 ? p.compression : defaultcompression);
     void drawthick(path3 g) {
       if(settings.thick) {
         real width=linewidth(q);
