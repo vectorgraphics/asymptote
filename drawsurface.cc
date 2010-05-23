@@ -513,11 +513,8 @@ void drawNurbs::bounds(bbox3& b)
 
   if(compression > 0) {
     if(weights) {
-      for(size_t i=1; i < n; ++i) {
-        double *v=controls[i];
-        double vw=v[3];
-        M=max(fabs(vw),M);
-      }
+      for(size_t i=0; i < n; ++i)
+        M=max(fabs(weights[i]),M);
     }
     compression=max(compression,limit*M);
   }
