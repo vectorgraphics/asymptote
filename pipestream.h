@@ -138,7 +138,7 @@ public:
   
   virtual void pipeclose() {
     if(pipeopen) {
-      kill(pid,SIGQUIT);
+      kill(pid,SIGTERM);
       eof();
       close(out[0]);
       Running=false;
