@@ -571,11 +571,12 @@ void _draw(picture *f, path3 g, pen p, string name=emptystring)
 void draw(picture *f, triplearray2 *P, triple center, bool straight,
           penarray *p, real opacity, real shininess, real PRCshininess,
           real compression, triple normal, penarray *colors,
-          bool lighton, string name=emptystring, Int interaction)
+          bool lighton, string name=emptystring, Int interaction,
+          bool prc=true)
 {
   f->append(new drawSurface(*P,center,straight,*p,opacity,shininess,
                             PRCshininess,compression,normal,
-                            *colors,lighton,name,interaction));
+                            *colors,lighton,name,interaction,prc));
 }
 
 // General NURBS curve
@@ -595,6 +596,14 @@ void draw(picture *f, triplearray2 *P, realarray *uknot, realarray *vknot,
   f->append(new drawNurbs(*P,uknot,vknot,weights,*p,opacity,shininess,
                           PRCshininess,compression,*colors,lighton,
                           name));
+}
+
+void drawPRCsphere(picture *f, realarray2 *t, penarray *p, real opacity,
+                real shininess, real compression, Int type,
+                string name=emptystring)
+{
+  f->append(new drawSphere(*t,*p,opacity,shininess,compression,
+                           intcast(type),name));
 }
 
 triple min3(picture *f)

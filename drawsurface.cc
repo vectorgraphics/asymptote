@@ -162,7 +162,7 @@ void drawSurface::ratio(pair &b, double (*m)(double, double), double fuzz,
 bool drawSurface::write(prcfile *out, unsigned int *count, array *index,
                         array *origin)
 {
-  if(invisible)
+  if(invisible || !prc)
     return true;
 
   ostringstream buf;
@@ -464,15 +464,15 @@ drawElement *drawSurface::transformed(const array& t)
 bool drawNurbs::write(prcfile *out, unsigned int *count, array *index,
                       array *origin)
 {
+  if(invisible)
+    return true;
+
   ostringstream buf;
   if(name.empty()) 
     buf << "surface-" << count[SURFACE]++;
   else
     buf << name;
   
-  if(invisible)
-    return true;
-
   out->begingroup(buf.str().c_str(),compression);
   
   PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
@@ -684,6 +684,128 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   if(colors)
     glDisable(GL_COLOR_MATERIAL);
 #endif
+}
+
+void drawSphere::P(Triple& t, double x, double y, double z)
+{
+  double f=T[12]*x+T[13]*y+T[14]*z+T[15];
+  if(f == 0.0) run::dividebyzero();
+  f=1.0/f;
+  
+  t[0]=(T[0]*x+T[1]*y+T[2]*z+T[3])*f;
+  t[1]=(T[4]*x+T[5]*y+T[6]*z+T[7])*f;
+  t[2]=(T[8]*x+T[9]*y+T[10]*z+T[11])*f;
+}
+
+bool drawSphere::write(prcfile *out, unsigned int *count, array *index,
+                       array *origin)
+{
+  if(invisible)
+    return true;
+
+  ostringstream buf;
+  if(name.empty()) 
+    buf << "sphere" << count[SPHERE]++;
+  else
+    buf << name;
+  
+  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  
+  out->begingroup(buf.str().c_str(),compression);
+      
+  switch(type) {
+    case 0: // PRCsphere
+    {
+      static Triple center={0,0,0};
+      static Triple xaxis={1,0,0};
+      static Triple yaxis={0,1,0};
+
+      double S[4][4];
+      for(size_t i=0; i < 4; ++i) {
+        double *Si=S[i];
+        double *Ti=T+4*i;
+        for(size_t j=0; j < 4; ++j)
+          Si[j]=Ti[j];
+      }     
+
+      out->addSphere(1.0,m,center,xaxis,yaxis,1.0,S);
+      break;
+    }
+    case 1: // NURBSsphere
+    {
+      static double third=1.0/3.0;
+  
+      static double uknot[]={0.0,0.0,third,0.5,1.0,1.0};
+      static double vknot[]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
+      static double W[]={2.0*third,third,1.0};
+      static double w[]={1.0,third,third,1.0};
+      
+      double Weights[12];
+      for(unsigned i=0; i < 3; ++i)
+        for(unsigned j=0; j < 4; ++j)
+          Weights[4*i+j]=W[i]*w[j];
+
+// NURBS representation of a sphere using 10 distinct control points
+// K. Qin, J. Comp. Sci. and Tech. 12, 210-216 (1997).
+  
+      Triple N,S,P1,P2,P3,P4,P5,P6,P7,P8;
+  
+      P(N,0.0,0.0,1.0);
+      P(P1,-2.0,-2.0,1.0);
+      P(P2,-2.0,-2.0,-1.0);
+      P(S,0.0,0.0,-1.0);
+      P(P3,2.0,-2.0,1.0);
+      P(P4,2.0,-2.0,-1.0);
+      P(P5,2.0,2.0,1.0);
+      P(P6,2.0,2.0,-1.0);
+      P(P7,-2.0,2.0,1.0);
+      P(P8,-2.0,2.0,-1.0);
+        
+      Triple p0[]=
+        {{N[0],N[1],N[2]},
+         {P1[0],P1[1],P1[2]},
+         {P2[0],P2[1],P2[2]},
+         {S[0],S[1],S[2]},
+     
+         {N[0],N[1],N[2]},
+         {P3[0],P3[1],P3[2]},
+         {P4[0],P4[1],P4[2]},
+         {S[0],S[1],S[2]},
+     
+         {N[0],N[1],N[2]},
+         {P5[0],P5[1],P5[2]},
+         {P6[0],P6[1],P6[2]},
+         {S[0],S[1],S[2]},
+  
+         {N[0],N[1],N[2]},
+         {P7[0],P7[1],P7[2]},
+         {P8[0],P8[1],P8[2]},
+         {S[0],S[1],S[2]},
+     
+         {N[0],N[1],N[2]},
+         {P1[0],P1[1],P1[2]},
+         {P2[0],P2[1],P2[2]},
+         {S[0],S[1],S[2]},
+     
+         {N[0],N[1],N[2]},
+         {P3[0],P3[1],P3[2]},
+         {P4[0],P4[1],P4[2]},
+         {S[0],S[1],S[2]},
+        };
+
+      out->addSurface(2,3,3,4,p0,uknot,vknot,m,Weights);
+      out->addSurface(2,3,3,4,p0+4,uknot,vknot,m,Weights);
+      out->addSurface(2,3,3,4,p0+8,uknot,vknot,m,Weights);
+      out->addSurface(2,3,3,4,p0+12,uknot,vknot,m,Weights);
+      break;
+    }
+    default:
+      reportError("Invalid PRCsphere type");
+  }
+  
+  out->endgroup();
+  
+  return true;
 }
 
 } //namespace camp

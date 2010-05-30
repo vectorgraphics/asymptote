@@ -1148,9 +1148,9 @@ interaction LabelInteraction()
   return settings.autobillboard ? Billboard : Embedded;
 }
 
-void draw3D(frame f, patch s, triple center=O, material m,
+void draw3D(frame f, int type=0, patch s, triple center=O, material m,
             light light=currentlight, string name="",
-            interaction interaction=Embedded)
+            interaction interaction=Embedded, bool prc=true)
 {
   if(s.colors.length > 0)
     m=mean(s.colors);
@@ -1164,7 +1164,18 @@ void draw3D(frame f, patch s, triple center=O, material m,
   
   draw(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,PRCshininess,
        compression,s.planar ? s.normal(0.5,0.5) : O,s.colors,
-       lighton,name,interaction.type);
+       lighton,name,interaction.type,prc);
+}
+
+void drawPRCsphere(frame f, transform3 t=identity4, material m,
+                   int type=defaultspheretype, light light=currentlight,
+                   string name="")
+{
+  if(!light.on() && !invisible((pen) m))
+    m=emissive(m);
+  drawPRCsphere(f,t,m.p,m.opacity,PRCshininess(m.shininess),
+                m.compression >= 0 ? m.compression : defaultcompression,type,
+                name);
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,
@@ -1616,9 +1627,12 @@ void dot(frame f, triple v, material p=currentpen,
   if(is3D()) {
     begingroup(f,name);
     int i=-1;
+    real size=0.5*linewidth(dotsize(q)+q);
+    transform3 T=shift(v)*scale3(size);
     for(patch s : unitsphere.s)
-      draw3D(f,shift(v)*scale3(0.5*linewidth(dotsize(q)+q))*s,p,light,
-             partname(name,++i));
+      draw3D(f,T*s,v,p,light,partname(name,++i),false);
+    if(prc())
+      drawPRCsphere(f,T,p,light,name);
     endgroup(f);
   } else dot(f,project(v,P.t),q);
 }
@@ -1676,8 +1690,12 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
       if(is3D()) {
         begingroup(f,name);
         int i=-1;
+        triple V=t*v;
+        transform3 T=shift(V)*scale3(size);
         for(patch s : unitsphere.s)
-          draw3D(f,shift(t*v)*scale3(size)*s,p,light,partname(name,++i));
+          draw3D(f,T*s,V,p,light,partname(name,++i),false);
+        if(prc())
+          drawPRCsphere(f,T,p,light,name);
         endgroup(f);
       }
       if(pic != null)

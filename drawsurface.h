@@ -41,6 +41,7 @@ protected:
   Interaction interaction;
   
   triple Min,Max;
+  bool prc;
   
 #ifdef HAVE_GL
   GLfloat *colors;
@@ -55,10 +56,11 @@ public:
               const vm::array&p, double opacity, double shininess,
               double PRCshininess, double compression,
               triple normal, const vm::array &pens, bool lighton,
-              const string& name, Int interaction) :
+              const string& name, Int interaction, bool prc) :
     center(center), straight(straight), opacity(opacity), shininess(shininess),
     PRCshininess(PRCshininess), compression(compression), normal(unit(normal)),
-    lighton(lighton), name(name), interaction((Interaction) interaction) {
+    lighton(lighton), name(name), interaction((Interaction) interaction),
+    prc(prc) {
     string wrongsize=
       "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
     if(checkArray(&g) != 4 || checkArray(&p) != 4)
@@ -114,7 +116,7 @@ public:
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
     compression(s->compression),
     invisible(s->invisible), lighton(s->lighton), name(s->name),
-    interaction(s->interaction) { 
+    interaction(s->interaction), prc(s->prc) { 
     
     for(size_t i=0; i < 4; ++i) {
       const double *c=s->vertices[i];
@@ -239,8 +241,8 @@ public:
     udegree=nuknots-nu-1;
     vdegree=nvknots-nv-1;
     
-    run::copyArrayC(uknots,uknot,0,NoGC);
-    run::copyArrayC(vknots,vknot,0,NoGC);
+    run::copyArrayC(uknots,uknot,0,UseGC);
+    run::copyArrayC(vknots,vknot,0,UseGC);
     
     pen surfacepen=vm::read<camp::pen>(p,0);
     invisible=surfacepen.invisible();
@@ -327,6 +329,93 @@ public:
               double perspective, bool transparent);
     
   drawElement *transformed(const vm::array& t);
+};
+  
+template<class T>
+void copyArray4x4C(T* dest, const vm::array *a)
+{
+  size_t n=checkArray(a);
+  string fourbyfour="4x4 array of doubles expected";
+  if(n != 4) reportError(fourbyfour);
+  
+  for(size_t i=0; i < 4; i++) {
+    vm::array *ai=vm::read<vm::array*>(a,i);
+    size_t aisize=checkArray(ai);
+    if(aisize == 4) {
+      T *desti=dest+4*i;
+      for(size_t j=0; j < 4; j++) 
+        desti[j]=vm::read<T>(ai,j);
+    } else reportError(fourbyfour);
+  }
+}
+
+// Draw a PRC unitsphere.
+class drawSphere : public drawElement {
+protected:
+  double T[16];
+  RGBAColour diffuse;
+  RGBAColour ambient;
+  RGBAColour emissive;
+  RGBAColour specular;
+  double opacity;
+  double shininess;
+  double PRCshininess;
+  double compression;
+  int type;
+  bool invisible;
+  string name;
+public:
+  drawSphere(const vm::array& t, const vm::array&p, double opacity,
+             double shininess, double compression, int type,
+             const string& name) : 
+    opacity(opacity), shininess(shininess), compression(compression),
+    type(type), name(name) {
+    
+    copyArray4x4C<double>(T,&t);
+
+    string needfourpens="array of 4 pens required";
+    if(checkArray(&p) != 4)
+      reportError(needfourpens);
+    
+    pen surfacepen=vm::read<camp::pen>(p,0);
+    invisible=surfacepen.invisible();
+    
+    diffuse=rgba(surfacepen);
+    ambient=rgba(vm::read<camp::pen>(p,1));
+    emissive=rgba(vm::read<camp::pen>(p,2));
+    specular=rgba(vm::read<camp::pen>(p,3));
+  }
+  
+  drawSphere(const vm::array& t, const drawSphere *s) :
+    diffuse(s->diffuse), ambient(s->ambient), emissive(s->emissive),
+    specular(s->specular), opacity(s->opacity),
+    shininess(s->shininess), compression(s->compression),
+    type(s->type), invisible(s->invisible), name(s->name) {
+    
+    double S[16];
+    copyArray4x4C<double>(S,&t);
+    
+    const double *R=s->T;
+    for(unsigned i=0; i < 16; i += 4) {
+      double s0=S[i+0];
+      double s1=S[i+1];
+      double s2=S[i+2];
+      double s3=S[i+3];
+      T[i]=s0*R[0]+s1*R[4]+s2*R[8]+s3*R[12];
+      T[i+1]=s0*R[1]+s1*R[5]+s2*R[9]+s3*R[13];
+      T[i+2]=s0*R[2]+s1*R[6]+s2*R[10]+s3*R[14];
+      T[i+3]=s0*R[3]+s1*R[7]+s2*R[11]+s3*R[15];
+    }
+  }
+  
+  void P(Triple& t, double x, double y, double z);
+  
+  bool write(prcfile *out, unsigned int *count, vm::array *index,
+             vm::array *origin);
+                        
+  drawElement *transformed(const vm::array& t) {
+      return new drawSphere(t,this);
+  }
 };
   
 }

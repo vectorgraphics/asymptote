@@ -18,8 +18,13 @@ restricted real Medium=0.001;
 restricted real High=0.01;
 restricted real Ultra=0.1;
 
+restricted int PRCsphere=0;   // Renders slowly but produces smaller PRC files.
+restricted int NURBSsphere=1; // Renders fast but produces larger PRC files.
+
 real defaultshininess=0.25;
 real defaultcompression=Ultra;
+int defaultspheretype=NURBSsphere;
+
 real tubegranularity=0.005;
 int linesectors=8;        // Number of angular sectors.
 real angleprecision=1e-5; // Precision for centering perspective projections.
