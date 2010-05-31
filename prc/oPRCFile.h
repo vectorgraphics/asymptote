@@ -154,10 +154,10 @@ const double PRCcompressnone=0.0;
 class PRCoptions
 {
 public:
-  bool closed;
-  bool tess;
+  bool closed; // render the surface as one-sided; may yield faster rendering 
+  bool tess;   // use tessellated mesh to store straight patches
   bool do_break;
-  bool no_break;
+  bool no_break; // do not render transparent patches as one-faced nodes
   bool ignore;
   
   PRCoptions() : closed(false), tess(false), do_break(false),
@@ -169,7 +169,7 @@ class PRCgroup
  public:
   PRCgroup() : compression(0.0) {}
   PRCgroup(const std::string &name) : name(name), compression(0.0) {}
-  std::list<PRCcontext> contexts;
+  PRCcontext context;
   PRCtessrectangleList  rectangles;
   PRCtesslineList       lines;
   PRCwireList           wires;

@@ -644,11 +644,9 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCSet *pSet)
       }
     }
 
-    for(list<PRCcontext>::const_iterator cit=group.contexts.begin(); cit!=group.contexts.end(); cit++)
     {
-      const PRCfaceList &faces = cit->faces;
-      if(faces.empty())
-        continue;
+      const PRCfaceList &faces = group.context.faces;
+      if(!faces.empty()) {
       bool same_color = true;
       uint32_t style = faces.front().style;
       for(PRCfaceList::const_iterator fit=faces.begin(); fit!=faces.end(); fit++)
@@ -691,11 +689,9 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCSet *pSet)
           shell->addFace(fit->face);
         }
       }
-      if(shell->face.size()==0)
-      {
+      if(shell->face.size()==0) {
         delete shell;
-        continue;
-      }
+      } else {
       PRCBrepData *body = new PRCBrepData;
       const uint32_t body_index = context->addBrepData(body);
       PRCConnex *connex = new PRCConnex;
@@ -708,14 +704,14 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCSet *pSet)
       brepmodel->body_id = body_index;
       brepmodel->is_closed = group.options.closed;
       set->addBrepModel(brepmodel);
+      }
+      }
     }
 
     if(group.compression != PRCcompressnone)
-    for(list<PRCcontext>::const_iterator cit=group.contexts.begin(); cit!=group.contexts.end(); cit++)
     {
-      const PRCcompfaceList &compfaces = cit->compfaces;
-      if(compfaces.empty())
-        continue;
+      const PRCcompfaceList &compfaces = group.context.compfaces;
+      if(!compfaces.empty()) {
       bool same_color = true;
       uint32_t style = compfaces.front().style;
       for(PRCcompfaceList::const_iterator fit=compfaces.begin(); fit!=compfaces.end(); fit++)
@@ -761,8 +757,7 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCSet *pSet)
       if(body->face.size()==0)
       {
         delete body;
-        continue;
-      }
+      } else {
       const uint32_t body_index = context->addCompressedBrepData(body);
       PRCBrepModel *brepmodel = new PRCBrepModel();
       if(same_color)
@@ -771,7 +766,10 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCSet *pSet)
       brepmodel->body_id = body_index;
       brepmodel->is_closed = group.options.closed;
       set->addBrepModel(brepmodel);
+      }
+      }
     }
+    
 
     for(PRCgroupList::const_iterator it=group.groupList.begin(); it!=group.groupList.end(); it++)
     {
@@ -1136,8 +1134,7 @@ PRCgroup& oPRCFile::findGroup()
 
 #define ADDFACE(surftype)                                       \
   PRCgroup &group = findGroup();                                \
-  group.contexts.push_back(PRCcontext());                       \
-  PRCcontext& context=group.contexts.back();                    \
+  PRCcontext& context=group.context;                            \
   context.faces.push_back(PRCface());                           \
   PRCface& face = context.faces.back();                         \
   surftype *surface = new surftype;                                 \
@@ -1148,8 +1145,7 @@ PRCgroup& oPRCFile::findGroup()
 
 #define ADDCOMPFACE                                                 \
   PRCgroup &group = findGroup();                                    \
-  group.contexts.push_back(PRCcontext());                           \
-  PRCcontext& context=group.contexts.back();                        \
+  PRCcontext& context=group.context;                                \
   context.compfaces.push_back(PRCcompface());                       \
   PRCcompface& face = context.compfaces.back();                     \
   PRCCompressedFace *compface = new PRCCompressedFace;              \
