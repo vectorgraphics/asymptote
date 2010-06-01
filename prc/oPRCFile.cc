@@ -638,8 +638,7 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
       }
     }
 
-    if(group.compression != 0.0) {
-      const PRCcompfaceList &compfaces = group.compfaces;
+    const PRCcompfaceList &compfaces = group.compfaces;
     if(!compfaces.empty())
     {
       bool same_color = true;
@@ -700,8 +699,6 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
         part_definition->addBrepModel(brepmodel);
       }
     }
-    }
-    
 
     PRCProductOccurrence *product_occurrence = new PRCProductOccurrence(name);
 
