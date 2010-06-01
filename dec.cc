@@ -437,9 +437,32 @@ void initializeVar(position pos, coenv &e, varEntry *v, varinit *init)
   e.c.encode(inst::pop);
 }
 
+types::ty *inferType(position pos, coenv &e, varinit *init)
+{
+  if (!init) {
+    em.error(pos);
+    em << "inferred variable declaration without initializer";
+    return primError();
+  }
+
+  exp *base = dynamic_cast<exp *>(init);
+  if (base) {
+    types::ty *t = base->cgetType(e);
+    if (t->kind != ty_overloaded)
+      return t;
+  }
+
+  em.error(pos);
+  em << "could not infer type of initializer";
+  return primError();
+}
+
 void createVar(position pos, coenv &e, record *r,
                symbol *id, types::ty *t, varinit *init)
 {
+  // I'm not sure how to handle inferred types in these cases.
+  assert(t->kind != types::ty_inferred);
+
   varEntry *v=makeVarEntry(pos, e, r, t);
   addVar(e, r, v, id);
   initializeVar(pos, e, v, init);
@@ -448,6 +471,12 @@ void createVar(position pos, coenv &e, record *r,
 void createVarOutOfOrder(position pos, coenv &e, record *r,
                          symbol *id, types::ty *t, varinit *init)
 {
+  /* For declarations such as "var x = 5;", infer the type from the
+   * initializer.
+   */
+  if (t->kind == types::ty_inferred)
+    t = inferType(pos, e, init);
+
   varEntry *v=makeVarEntry(pos, e, r, t);
   initializeVar(pos, e, v, init);
   addVar(e, r, v, id);
@@ -543,6 +572,10 @@ class loadModuleExp : public exp {
 public:
   loadModuleExp(position pos, record *imp)
     : exp(pos), imp(imp), ft(new function(imp,primString())) {}
+
+  void prettyprint(ostream &out, Int indent) {
+    prettyname(out, "loadModuleExp", indent);
+  }
 
   types::ty *trans(coenv &) {
     em.compiler(getPos());

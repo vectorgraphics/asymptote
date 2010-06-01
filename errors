@@ -90,3 +90,24 @@ errortest.asy: 411.3: modifying non-public field outside of structure
 errortest.asy: 412.3: modifying non-public field outside of structure
 errortest.asy: 413.3: modifying non-public field outside of structure
 errortest.asy: 414.3: modifying non-public field outside of structure
+errortest.asy: 419.7: inferred variable declaration without initializer
+errortest.asy: 422.20: cannot cast 'int' to 'var'
+errortest.asy: 425.4: cannot cast 'int' to 'var'
+errortest.asy: 426.12: cannot cast 'int' to 'var'
+errortest.asy: 427.12: cannot cast 'var' to 'int'
+errortest.asy: 430.25: cannot cast 'int' to 'var'
+errortest.asy: 430.28: cannot cast 'int' to 'var'
+errortest.asy: 430.31: cannot cast 'int' to 'var'
+errortest.asy: 431.13: cannot cast 'int[]' to 'var[]'
+errortest.asy: 432.14: cannot cast 'int' to 'var'
+errortest.asy: 432.17: cannot cast 'int' to 'var'
+errortest.asy: 432.20: cannot cast 'int' to 'var'
+errortest.asy: 433.15: cannot cast 'int' to 'var'
+errortest.asy: 433.18: cannot cast 'int' to 'var'
+errortest.asy: 433.21: cannot cast 'int' to 'var'
+errortest.asy: 434.13: cannot cast 'var[]' to 'int[]'
+errortest.asy: 435.3: type 'var' is not a structure
+errortest.asy: 438.17: cannot cast 'int' to 'var'
+errortest.asy: 442.7: could not infer type of initializer
+errortest.asy: 446.7: could not infer type of initializer
+errortest.asy: 448.7: could not infer type of initializer

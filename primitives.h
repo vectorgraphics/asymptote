@@ -16,6 +16,7 @@
 // contexts.
 
 PRIMITIVE(void,Void,void)
+PRIMITIVE(inferred,Inferred,var)
 /* null is not a primitive type. */
 #ifdef PRIMERROR
 PRIMITIVE(error,Error,<error>)
