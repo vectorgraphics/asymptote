@@ -34,15 +34,18 @@ z=(2-\cos u)\sin v.\cr}$";
 
 real h=0.0125;
 
+begingroup3("parametrization");
 draw(surface(xscale(-0.38)*yscale(-0.18)*lo,s,0,1.7,h,bottom=false),
      "[0,pi]");
 draw(surface(xscale(0.26)*yscale(0.1)*rotate(90)*hi,s,4.9,1.4,h,bottom=false),
      "[pi,2pi]");
-draw(s.uequals(0),blue+dashed,"boundary");
-draw(s.uequals(pi),blue+dashed,"boundary");
-
-begingroup3("frame");
-add(new void(frame f, transform3 t, picture pic, projection P) {
-    draw(f,invert(box(min(f,P),max(f,P)),P));
-  });
 endgroup3();
+
+begingroup3("boundary");
+draw(s.uequals(0),blue+dashed);
+draw(s.uequals(pi),blue+dashed);
+endgroup3();
+
+add(new void(frame f, transform3 t, picture pic, projection P) {
+    draw(f,invert(box(min(f,P),max(f,P)),P),"frame");
+  });

@@ -13,23 +13,51 @@
 namespace camp {
 
 class drawBegin : public drawElement {
+  int interaction;
+  triple center;
   string name;
+  double compression;
 public:
-  drawBegin(string name="") : name(name) {}
+  drawBegin(string name, double compression) :
+    interaction(EMBEDDED), name(name), compression(compression) {}
+    
+  drawBegin(int interaction, triple center, string name, double compression) : 
+    interaction(interaction), center(center), name(name), 
+    compression(compression) {}
   
   virtual ~drawBegin() {}
 
   bool begingroup() {return true;}
   
-  bool write(prcfile *out, unsigned int *count, vm::array *, vm::array *) {
+  bool write(prcfile *out, unsigned int *count, vm::array *index,
+             vm::array *origin, double compressionlimit) {
     ostringstream buf;
+    
     if(name.empty()) 
       buf << "group-" << count[GROUP]++;
     else
       buf << name;
-  
-    out->begingroup(buf.str().c_str());
+      
+    if(interaction == BILLBOARD) {
+      buf << "-" << count[BILLBOARD_GROUP]++ << "\001";
+      index->push((Int) origin->size());
+      origin->push(center);
+    }
+    
+    out->begingroup(buf.str().c_str(), compression > 0.0 ?
+                    max(compression,compressionlimit) : 0.0);
+
     return true;
+  }
+  
+  drawBegin(const vm::array& t, const drawBegin *s) :
+    interaction(s->interaction), name(s->name), compression(s->compression)
+  {
+    center=run::operator *(t,s->center);
+  }
+  
+  drawElement *transformed(const array& t) {
+    return new drawBegin(t,this);
   }
 };
 
@@ -41,7 +69,7 @@ public:
 
   bool endgroup() {return true;}
   
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *) {
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double) {
     out->endgroup();
     return true;
   }

@@ -500,7 +500,7 @@ if(1) {
     brepmodel->body_id = body_index;
     brepmodel->is_closed = true; // we do not need to see the tube from inside
     brepmodel->index_of_line_style = 0;
-    file.addBrepModel(brepmodel);
+//    file.addBrepModel(brepmodel);
 
     PRCSingleWireBody *firstCurveBody = new PRCSingleWireBody;
     uint32_t first_curve_body_index = diskContext->addSingleWireBody(firstCurveBody);
@@ -511,7 +511,7 @@ if(1) {
     firstCurveWire->index_of_line_style = 0;
     firstCurveWire->context_id = context_index;
     firstCurveWire->body_id = first_curve_body_index;
-    file.addWire(firstCurveWire);
+//    file.addWire(firstCurveWire);
   } 
 
   if(1) {
@@ -627,7 +627,7 @@ if(1) {
     brepmodel->body_id = body_index;
     brepmodel->is_closed = true; // we do not need to see the tube from inside
     brepmodel->index_of_line_style = 0;
-    file.addBrepModel(brepmodel);
+//    file.addBrepModel(brepmodel);
    
     PRCSingleWireBody *originCurveBody = new PRCSingleWireBody;
     uint32_t origin_curve_body_index = tubeContext->addSingleWireBody(originCurveBody);
@@ -638,7 +638,7 @@ if(1) {
     originCurveWire->index_of_line_style = 0;
     originCurveWire->context_id = context_index;
     originCurveWire->body_id = origin_curve_body_index;
-    file.addWire(originCurveWire);
+//    file.addWire(originCurveWire);
    
     PRCSingleWireBody *centerCurveBody = new PRCSingleWireBody;
     uint32_t center_curve_body_index = tubeContext->addSingleWireBody(centerCurveBody);
@@ -649,7 +649,7 @@ if(1) {
     centerCurveWire->index_of_line_style = 0;
     centerCurveWire->context_id = context_index;
     centerCurveWire->body_id = center_curve_body_index;
-    file.addWire(centerCurveWire);
+//    file.addWire(centerCurveWire);
 
     PRCNURBSCurve *Center_curve = new PRCNURBSCurve;
     Center_curve->is_rational = false;
@@ -676,7 +676,7 @@ if(1) {
     OriginCurveWire->index_of_line_style = 0;
     OriginCurveWire->context_id = context_index;
     OriginCurveWire->body_id = Origin_curve_body_index;
-    file.addWire(OriginCurveWire);
+//    file.addWire(OriginCurveWire);
    
     PRCSingleWireBody *CenterCurveBody = new PRCSingleWireBody;
     uint32_t Center_curve_body_index = tubeContext->addSingleWireBody(CenterCurveBody);
@@ -687,7 +687,7 @@ if(1) {
     CenterCurveWire->index_of_line_style = 0;
     CenterCurveWire->context_id = context_index;
     CenterCurveWire->body_id = Center_curve_body_index;
-    file.addWire(CenterCurveWire);
+//    file.addWire(CenterCurveWire);
 
     PRCComposite *compositeCenter_curve = new PRCComposite;
     compositeCenter_curve->base_curve.push_back(centerCurveEdge->curve_3d);
@@ -707,7 +707,7 @@ if(1) {
     compositeCenterCurveWire->index_of_line_style = 0;
     compositeCenterCurveWire->context_id = context_index;
     compositeCenterCurveWire->body_id = compositeCenter_curve_body_index;
-    file.addWire(compositeCenterCurveWire);
+//    file.addWire(compositeCenterCurveWire);
     
     PRCComposite *compositeOrigin_curve = new PRCComposite;
     compositeOrigin_curve->base_curve.push_back(originCurveEdge->curve_3d);
@@ -727,7 +727,7 @@ if(1) {
     compositeOriginCurveWire->index_of_line_style = 0;
     compositeOriginCurveWire->context_id = context_index;
     compositeOriginCurveWire->body_id = compositeOrigin_curve_body_index;
-    file.addWire(compositeOriginCurveWire);
+//    file.addWire(compositeOriginCurveWire);
     
     PRCBrepData *cbody = new PRCBrepData;
     uint32_t cbody_index = tubeContext->addBrepData(cbody);
@@ -751,7 +751,7 @@ if(1) {
     cbrepmodel->body_id = cbody_index;
     cbrepmodel->is_closed = true; // we do not need to see the tube from inside
     cbrepmodel->index_of_line_style = 0;
-    file.addBrepModel(cbrepmodel);
+//    file.addBrepModel(cbrepmodel);
    
         
   } 

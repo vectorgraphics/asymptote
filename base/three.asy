@@ -16,13 +16,12 @@ restricted real Zero=0;
 restricted real Low=0.0001;
 restricted real Medium=0.001;
 restricted real High=0.01;
-restricted real Ultra=0.1;
 
 restricted int PRCsphere=0;   // Renders slowly but produces smaller PRC files.
 restricted int NURBSsphere=1; // Renders fast but produces larger PRC files.
 
 real defaultshininess=0.25;
-real defaultcompression=Ultra;
+real defaultcompression=High;
 int defaultspheretype=NURBSsphere;
 
 real tubegranularity=0.005;
@@ -35,9 +34,9 @@ string defaultembed3Doptions;
 string defaultembed3Dscript;
 real defaulteyetoview=63mm/1000mm;
 
-string partname(string s, int i=0) 
+string partname(int i=0) 
 {
-  return s == "" ? "" : s+"-"+string(i);
+  return string(i);
 }
 
 triple O=(0,0,0);
@@ -2006,13 +2005,15 @@ path3 plane(triple u, triple v, triple O=O)
 include three_light;
 
 void draw(frame f, path3 g, material p=currentpen, light light=nolight,
-          string name="", projection P=currentprojection);
+          string name="", real compression=defaultcompression,
+          projection P=currentprojection);
 
-void begingroup3(picture pic=currentpicture, string name="")
+void begingroup3(picture pic=currentpicture, string name="",
+                 real compression=defaultcompression)
 {
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
-        begingroup(f,name);
+        begingroup(f,name,compression);
       if(pic != null)
         begingroup(pic);
     },true);
@@ -2071,13 +2072,14 @@ pair max(frame f, projection P)
 
 void draw(picture pic=currentpicture, Label L="", path3 g,
           align align=NoAlign, material p=currentpen, margin3 margin=NoMargin3,
-          light light=nolight, string name="")
+          light light=nolight, string name="",
+          real compression=defaultcompression)
 {
   pen q=(pen) p;
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       path3 G=margin(t*g,q).g;
       if(is3D()) {
-        draw(f,G,p,light,name,null);
+        draw(f,G,p,light,name,compression,null);
         if(pic != null && size(G) > 0)
           pic.addBox(min(G,P),max(G,P),min(q),max(q));
       }
@@ -2097,10 +2099,11 @@ include three_tube;
 
 draw=new void(frame f, path3 g, material p=currentpen,
               light light=nolight, string name="",
+              real compression=defaultcompression,
               projection P=currentprojection) {
   pen q=(pen) p;
   if(is3D()) {
-    p=material(p,p.compression >= 0 ? p.compression : defaultcompression);
+    p=material(p);
     void drawthick(path3 g) {
       if(settings.thick) {
         real width=linewidth(q);
@@ -2128,14 +2131,16 @@ draw=new void(frame f, path3 g, material p=currentpen,
               T.s.append(shift(point(g,L))*align(dirL)*cap);
             }
             if(opacity(q) == 1)
-              _draw(f,T.center,q,name);
+              _draw(f,T.center,q);
           }
           for(int i=0; i < T.s.s.length; ++i)
-            draw3D(f,T.s.s[i],p,light,partname(name,i));
-        } else _draw(f,g,q,name);
-      } else _draw(f,g,q,name);
+            draw3D(f,T.s.s[i],p,light);
+        } else _draw(f,g,q);
+      } else _draw(f,g,q);
     }
     real[] dash=linetype(adjust(q,arclength(g),cyclic(g)));
+    if(q != nullpen)
+      begingroup(f,name,compression);
     if(dash.length == 0) drawthick(g);
     else {
       if(sum(dash) > 0) {
@@ -2155,22 +2160,29 @@ draw=new void(frame f, path3 g, material p=currentpen,
         }
       }
     }
+    if(q != nullpen)
+      endgroup(f);
   } else draw(f,project(g,P),q);
 };
 
 void draw(frame f, explicit path3[] g, material p=currentpen,
-          light light=nolight, string name="", projection P=currentprojection)
+          light light=nolight, string name="",
+          real compression=defaultcompression, projection P=currentprojection)
 {
+  begingroup(f,name,compression);
   for(int i=0; i < g.length; ++i)
-    draw(f,g[i],p,light,partname(name,i),P);
+    draw(f,g[i],p,light,partname(i),compression,P);
+  endgroup(f);
 }
 
 void draw(picture pic=currentpicture, explicit path3[] g,
           material p=currentpen, margin3 margin=NoMargin3, light light=nolight,
-          string name="")
+          string name="", real compression=defaultcompression)
 {
+  begingroup3(pic,name,compression);
   for(int i=0; i < g.length; ++i)
-    draw(pic,g[i],p,margin,light,partname(name,i));
+    draw(pic,g[i],p,margin,light,partname(i),compression);
+  endgroup3(pic);
 }
 
 include three_arrows;
@@ -2178,24 +2190,28 @@ include three_arrows;
 void draw(picture pic=currentpicture, Label L="", path3 g, 
           align align=NoAlign, material p=currentpen, arrowbar3 arrow,
           arrowbar3 bar=None, margin3 margin=NoMargin3, light light=nolight,
-          light arrowheadlight=currentlight, string name="")
+          light arrowheadlight=currentlight, string name="",
+          real compression=defaultcompression)
 {
-  begingroup3(pic,name);
+  begingroup3(pic,name,compression);
   bool drawpath=arrow(pic,g,p,margin,light,arrowheadlight);
   if(bar(pic,g,p,margin,light,arrowheadlight) && drawpath)
-    draw(pic,L,g,align,p,margin,light,name);
+    draw(pic,L,g,align,p,margin,light);
   endgroup3(pic);
   label(pic,L,g,align,(pen) p);
 }
 
 void draw(frame f, path3 g, material p=currentpen, arrowbar3 arrow,
           light light=nolight, light arrowheadlight=currentlight,
-          string name="", projection P=currentprojection)
+          string name="", real compression=defaultcompression,
+          projection P=currentprojection)
 {
   picture pic;
+  begingroup(f,name,compression);
   if(arrow(pic,g,p,NoMargin3,light,arrowheadlight))
-    draw(f,g,p,light,name,P);
+    draw(f,g,p,light,P);
   add(f,pic.fit());
+  endgroup(f);
 }
 
 void add(picture pic=currentpicture, void d(picture,transform3),
@@ -2404,13 +2420,13 @@ private string billboard(int[] index, triple[] center)
   if(index.length == 0) return "";
   string s="
 var zero=new Vector3(0,0,0);
-var meshes=scene.meshes;
-var count=meshes.count;
+var nodes=scene.nodes;
+var count=nodes.count;
 
 var index=new Array();
 for(i=0; i < count; i++) {
-  var mesh=meshes.getByIndex(i); 
-  var name=mesh.name;
+  var node=nodes.getByIndex(i); 
+  var name=node.name;
   end=name.lastIndexOf(\".\")-1;
   if(end > 0) {
     if(name.substr(end,1) == \"\001\") {
@@ -2418,7 +2434,7 @@ for(i=0; i < count; i++) {
       n=end-start;
       if(n > 0) {
         index[name.substr(start,n)]=i;
-        mesh.name=name.substr(0,start-1);
+        node.name=name.substr(0,start-1);
       }
     }
   }
@@ -2442,12 +2458,12 @@ billboardHandler.onEvent=function(event)
   function f(i,k) {
     j=index[i];
     if(j >= 0) {
-      var mesh=meshes.getByIndex(j);
-      var name=mesh.name;
+      var node=nodes.getByIndex(j);
+      var name=node.name;
       var R=Matrix4x4();
       R.setView(zero,direction,up);
       var c=center[k];
-      var T=mesh.transform;
+      var T=node.transform;
       T.setIdentity();
       T.translateInPlace(c.scale(-1));
       T.multiplyInPlace(R);

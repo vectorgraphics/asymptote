@@ -14,8 +14,6 @@
 
 namespace camp {
 
-enum Interaction {EMBEDDED=0,BILLBOARD};
-
 #ifdef HAVE_GL
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j);
 #endif  
@@ -33,12 +31,10 @@ protected:
   double opacity;
   double shininess;
   double PRCshininess;
-  double compression;
   triple normal;
   bool invisible;
   bool lighton;
-  string name;
-  Interaction interaction;
+  int interaction;
   
   triple Min,Max;
   bool prc;
@@ -54,13 +50,11 @@ public:
 
   drawSurface(const vm::array& g, triple center, bool straight,
               const vm::array&p, double opacity, double shininess,
-              double PRCshininess, double compression,
-              triple normal, const vm::array &pens, bool lighton,
-              const string& name, Int interaction, bool prc) :
+              double PRCshininess, triple normal, const vm::array &pens,
+              bool lighton, int interaction, bool prc) :
     center(center), straight(straight), opacity(opacity), shininess(shininess),
-    PRCshininess(PRCshininess), compression(compression), normal(unit(normal)),
-    lighton(lighton), name(name), interaction((Interaction) interaction),
-    prc(prc) {
+    PRCshininess(PRCshininess), normal(unit(normal)), lighton(lighton),
+    interaction(interaction), prc(prc) {
     string wrongsize=
       "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
     if(checkArray(&g) != 4 || checkArray(&p) != 4)
@@ -114,8 +108,7 @@ public:
     straight(s->straight), diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
-    compression(s->compression),
-    invisible(s->invisible), lighton(s->lighton), name(s->name),
+    invisible(s->invisible), lighton(s->lighton),
     interaction(s->interaction), prc(s->prc) { 
     
     for(size_t i=0; i < 4; ++i) {
@@ -151,8 +144,7 @@ public:
   
   virtual ~drawSurface() {}
 
-  bool write(prcfile *out, unsigned int *count, vm::array *index,
-             vm::array *origin);
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double);
   
   void displacement();
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
@@ -175,11 +167,9 @@ protected:
   double opacity;
   double shininess;
   double PRCshininess;
-  double compression;
   triple normal;
   bool invisible;
   bool lighton;
-  string name;
   
   triple Min,Max;
   
@@ -193,10 +183,9 @@ protected:
 public:
   drawNurbs(const vm::array& g, const vm::array* uknot, const vm::array* vknot,
             const vm::array* weight, const vm::array&p, double opacity,
-            double shininess, double PRCshininess, double compression,
-            const vm::array &pens, bool lighton, const string& name) :
-    opacity(opacity), shininess(shininess), PRCshininess(PRCshininess),
-    compression(compression), lighton(lighton), name(name) {
+            double shininess, double PRCshininess, const vm::array &pens,
+            bool lighton) : opacity(opacity), shininess(shininess),
+            PRCshininess(PRCshininess), lighton(lighton) {
     size_t weightsize=checkArray(weight);
     
     string wrongsize="Inconsistent NURBS data";
@@ -271,8 +260,7 @@ public:
     diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
-    compression(s->compression), invisible(s->invisible), lighton(s->lighton),
-    name(s->name) {
+    invisible(s->invisible), lighton(s->lighton) {
     
     size_t n=nu*nv;
     controls=new(UseGC) Triple[n];
@@ -318,8 +306,7 @@ public:
   
   virtual ~drawNurbs() {}
 
-  bool write(prcfile *out, unsigned int *count, vm::array *index,
-             vm::array *origin);
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double);
   
   void displacement();
   void ratio(pair &b, double (*m)(double, double), double, bool &first);
@@ -360,16 +347,12 @@ protected:
   double opacity;
   double shininess;
   double PRCshininess;
-  double compression;
   int type;
   bool invisible;
-  string name;
 public:
   drawSphere(const vm::array& t, const vm::array&p, double opacity,
-             double shininess, double compression, int type,
-             const string& name) : 
-    opacity(opacity), shininess(shininess), compression(compression),
-    type(type), name(name) {
+             double shininess, int type) : 
+    opacity(opacity), shininess(shininess), type(type) {
     
     copyArray4x4C<double>(T,&t);
 
@@ -389,8 +372,7 @@ public:
   drawSphere(const vm::array& t, const drawSphere *s) :
     diffuse(s->diffuse), ambient(s->ambient), emissive(s->emissive),
     specular(s->specular), opacity(s->opacity),
-    shininess(s->shininess), compression(s->compression),
-    type(s->type), invisible(s->invisible), name(s->name) {
+    shininess(s->shininess), type(s->type), invisible(s->invisible) {
     
     double S[16];
     copyArray4x4C<double>(S,&t);
@@ -410,8 +392,7 @@ public:
   
   void P(Triple& t, double x, double y, double z);
   
-  bool write(prcfile *out, unsigned int *count, vm::array *index,
-             vm::array *origin);
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double);
                         
   drawElement *transformed(const vm::array& t) {
       return new drawSphere(t,this);

@@ -143,25 +143,17 @@ typedef std::vector <PRCwire>  PRCwireList;
 
 typedef std::map <uint32_t,std::vector<PRCVector3d> >  PRCpointsetMap;
 
-struct PRCcontext
-{
-  PRCfaceList       faces;
-  PRCcompfaceList   compfaces;
-};
-
-const double PRCcompressnone=0.0;
-
 class PRCoptions
 {
 public:
-  bool closed; // render the surface as one-sided; may yield faster rendering 
-  bool tess;   // use tessellated mesh to store straight patches
+  bool closed;   // render the surface as one-sided; may yield faster rendering 
+  bool tess;     // use tessellated mesh to store straight patches
   bool do_break;
   bool no_break; // do not render transparent patches as one-faced nodes
   bool ignore;
   
-  PRCoptions() : closed(false), tess(false), do_break(false),
-                 no_break(true), ignore(false) {}
+  PRCoptions() : closed(false), tess(false), do_break(true),
+                 no_break(false), ignore(false) {}
 };
 
 class PRCgroup
@@ -169,7 +161,8 @@ class PRCgroup
  public:
   PRCgroup() : compression(0.0) {}
   PRCgroup(const std::string &name) : name(name), compression(0.0) {}
-  PRCcontext context;
+  PRCfaceList       faces;
+  PRCcompfaceList   compfaces;
   PRCtessrectangleList  rectangles;
   PRCtesslineList       lines;
   PRCwireList           wires;
@@ -243,9 +236,12 @@ class PRCTreeSection : public PRCCompressedSection
   public:
     PRCTreeSection(PRCFileStructure *fs, uint32_t i) :
       PRCCompressedSection(fs),unit(1),index(i) {}
-  PRCRepresentationItemList representation_item;
+  PRCPartDefinitionList part_definitions;
+  PRCProductOccurrenceList product_occurrences;
+/*
   PRCMarkupList markups;
   PRCAnnotationItemList annotation_entities;
+ */
   double unit;
   private:
     uint32_t index;
@@ -353,20 +349,16 @@ class PRCFileStructure
     uint32_t addMaterialGeneric(PRCMaterialGeneric *pMaterialGeneric);
     uint32_t addTextureApplication(PRCTextureApplication *pTextureApplication);
     uint32_t addStyle(PRCStyle *pStyle);
-    uint32_t addBrepModel(PRCBrepModel *pBrepModel);
-    uint32_t addPolyBrepModel(PRCPolyBrepModel *pPolyBrepModel);
-    uint32_t addPointSet(PRCPointSet *pPointSet);
-    uint32_t addSet(PRCSet *pSet);
-    uint32_t addWire(PRCWire *pWire);
-    uint32_t addPolyWire(PRCPolyWire *pPolyWire);
-    uint32_t addRepresentationItem(PRCRepresentationItem *pRepresentationItem);
-    uint32_t addRepresentationItem(PRCpRepresentationItem pRepresentationItem);
+    uint32_t addPartDefinition(PRCPartDefinition *pPartDefinition);
+    uint32_t addProductOccurrence(PRCProductOccurrence *pProductOccurrence);
     uint32_t addTopoContext(PRCTopoContext *pTopoContext);
     uint32_t add3DTess(PRC3DTess *p3DTess);
     uint32_t add3DWireTess(PRC3DWireTess *p3DWireTess);
+/*
     uint32_t addMarkupTess(PRCMarkupTess *pMarkupTess);
     uint32_t addMarkup(PRCMarkup *pMarkup);
     uint32_t addAnnotationItem(PRCAnnotationItem *pAnnotationItem);
+ */
     uint32_t addCoordinateSystem(PRCCoordinateSystem *pCoordinateSystem);
     uint32_t addCoordinateSystemUnique(PRCCoordinateSystem *pCoordinateSystem);
 };
@@ -466,7 +458,7 @@ class oPRCFile
     PRCtransformMap transformMap;
     std::stack<PRCgroupList::iterator> currentGroups;
     PRCgroup& findGroup();
-    void doGroup(const PRCgroup& it, PRCSet *pSet);
+    void doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_definition, PRCProductOccurrence *parent_product_occurrence);
     uint32_t addColor(const PRCRgbColor &color);
     uint32_t addColour(const RGBAColour &colour);
     uint32_t addMaterial(const PRCmaterial &material);
@@ -520,37 +512,13 @@ class oPRCFile
       {
         return fileStructures[fileStructure]->addStyle(pStyle);
       }
-    uint32_t addBrepModel(PRCBrepModel *pBrepModel, uint32_t fileStructure=0)
+    uint32_t addPartDefinition(PRCPartDefinition *pPartDefinition, uint32_t fileStructure=0)
       {
-        return fileStructures[fileStructure]->addBrepModel(pBrepModel);
+        return fileStructures[fileStructure]->addPartDefinition(pPartDefinition);
       }
-    uint32_t addPolyBrepModel(PRCPolyBrepModel *pPolyBrepModel, uint32_t fileStructure=0)
+    uint32_t addProductOccurrence(PRCProductOccurrence *pProductOccurrence, uint32_t fileStructure=0)
       {
-        return fileStructures[fileStructure]->addPolyBrepModel(pPolyBrepModel);
-      }
-    uint32_t addPointSet(PRCPointSet *pPointSet, uint32_t fileStructure=0)
-      {
-        return fileStructures[fileStructure]->addPointSet(pPointSet);
-      }
-    uint32_t addSet(PRCSet *pSet, uint32_t fileStructure=0)
-      {
-        return fileStructures[fileStructure]->addSet(pSet);
-      }
-    uint32_t addWire(PRCWire *pWire, uint32_t fileStructure=0)
-      {
-        return fileStructures[fileStructure]->addWire(pWire);
-      }
-    uint32_t addPolyWire(PRCPolyWire *pPolyWire, uint32_t fileStructure=0)
-      {
-        return fileStructures[fileStructure]->addPolyWire(pPolyWire);
-      }
-    uint32_t addRepresentationItem(PRCRepresentationItem *pRepresentationItem, uint32_t fileStructure=0)
-      {
-        return fileStructures[fileStructure]->addRepresentationItem(pRepresentationItem);
-      }
-    uint32_t addRepresentationItem(PRCpRepresentationItem pRepresentationItem, uint32_t fileStructure=0)
-      {
-        return fileStructures[fileStructure]->addRepresentationItem(pRepresentationItem);
+        return fileStructures[fileStructure]->addProductOccurrence(pProductOccurrence);
       }
     uint32_t addTopoContext(PRCTopoContext *pTopoContext, uint32_t fileStructure=0)
       {
@@ -564,6 +532,7 @@ class oPRCFile
       {
         return fileStructures[fileStructure]->add3DWireTess(p3DWireTess);
       }
+/*
     uint32_t addMarkupTess(PRCMarkupTess *pMarkupTess, uint32_t fileStructure=0)
       {
         return fileStructures[fileStructure]->addMarkupTess(pMarkupTess);
@@ -576,6 +545,7 @@ class oPRCFile
       {
         return fileStructures[fileStructure]->addAnnotationItem(pAnnotationItem);
       }
+ */
     uint32_t addCoordinateSystem(PRCCoordinateSystem *pCoordinateSystem, uint32_t fileStructure=0)
       {
         return fileStructures[fileStructure]->addCoordinateSystem(pCoordinateSystem);

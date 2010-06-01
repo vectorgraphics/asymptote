@@ -14,8 +14,6 @@ const triple drawSurface::zero;
 
 using vm::array;
 
-static const double limit=2.5*10.0/INT_MAX;
-
 #ifdef HAVE_GL
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
 {
@@ -62,57 +60,41 @@ void drawSurface::bounds(bbox3& b)
     X=x;
     Y=y;
     Z=z;
-    double M=fabs(x);
     for(size_t i=1; i < 4; ++i) {
       double *v=vertices[i];
       double vx=v[0];
       x=min(x,vx);
       X=max(X,vx);
-      M=max(fabs(vx),M);
       double vy=v[1];
       y=min(y,vy);
       Y=max(Y,vy);
-      M=max(fabs(vy),M);
       double vz=v[2];
       z=min(z,vz);
       Z=max(Z,vz);
-      M=max(fabs(vz),M);
     }
-    if(compression > 0) 
-      compression=max(compression,limit*M);
   } else {
     static double c1[16];
 
-    double M=fabs(controls[0][0]);
-    for(int i=0; i < 16; ++i) {
+    for(int i=0; i < 16; ++i)
       c1[i]=controls[i][0];
-      M=max(fabs(c1[i]),M);
-    }
     double c0=c1[0];
     double fuzz=sqrtFuzz*run::norm(c1,16);
     x=bound(c1,min,b.empty ? c0 : min(c0,b.left),fuzz);
     X=bound(c1,max,b.empty ? c0 : max(c0,b.right),fuzz);
     
-    for(int i=0; i < 16; ++i) {
+    for(int i=0; i < 16; ++i)
       c1[i]=controls[i][1];
-      M=max(fabs(c1[i]),M);
-    }
     c0=c1[0];
     fuzz=sqrtFuzz*run::norm(c1,16);
     y=bound(c1,min,b.empty ? c0 : min(c0,b.bottom),fuzz);
     Y=bound(c1,max,b.empty ? c0 : max(c0,b.top),fuzz);
     
-    for(int i=0; i < 16; ++i) {
+    for(int i=0; i < 16; ++i)
       c1[i]=controls[i][2];
-      M=max(fabs(c1[i]),M);
-    }
     c0=c1[0];
     fuzz=sqrtFuzz*run::norm(c1,16);
     z=bound(c1,min,b.empty ? c0 : min(c0,b.lower),fuzz);
     Z=bound(c1,max,b.empty ? c0 : max(c0,b.upper),fuzz);
-    
-    if(compression > 0) 
-      compression=max(compression,limit*M);
   }
     
   Min=triple(x,y,z);
@@ -159,41 +141,17 @@ void drawSurface::ratio(pair &b, double (*m)(double, double), double fuzz,
   }
 }
 
-bool drawSurface::write(prcfile *out, unsigned int *count, array *index,
-                        array *origin)
+bool drawSurface::write(prcfile *out, unsigned int *, array *, array *, double)
 {
   if(invisible || !prc)
     return true;
 
-  ostringstream buf;
-   if(name.empty()) 
-   buf << "patch-" << count[PATCH]++;
-  else
-    buf << name;
-  
-  if(interaction == BILLBOARD) {
-    size_t n=origin->size();
-    
-    if(n == 0 || center != vm::read<triple>(origin,n-1)) {
-      origin->push(center);
-      ++n;
-    }
-    
-    unsigned int i=count[BILLBOARD_PATCH]++;
-    buf << "-" << i << "\001";
-    index->push((Int) (n-1));
-  }
-  
-  out->begingroup(buf.str().c_str(),compression);
-  
   PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
 
   if(straight)
     out->addRectangle(vertices,m);
   else
     out->addPatch(controls,m);
-  
-  out->endgroup();
   
   return true;
 }
@@ -461,24 +419,13 @@ drawElement *drawSurface::transformed(const array& t)
   return new drawSurface(t,this);
 }
   
-bool drawNurbs::write(prcfile *out, unsigned int *count, array *index,
-                      array *origin)
+bool drawNurbs::write(prcfile *out, unsigned int *, array *, array *, double)
 {
   if(invisible)
     return true;
 
-  ostringstream buf;
-  if(name.empty()) 
-    buf << "surface-" << count[SURFACE]++;
-  else
-    buf << name;
-  
-  out->begingroup(buf.str().c_str(),compression);
-  
   PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
   out->addSurface(udegree,vdegree,nu,nv,controls,uknots,vknots,m,weights);
-  
-  out->endgroup();
   
   return true;
 }
@@ -494,29 +441,17 @@ void drawNurbs::bounds(bbox3& b)
   double X=x;
   double Y=y;
   double Z=z;
-  double M=fabs(x);
   for(size_t i=1; i < n; ++i) {
     double *v=controls[i];
     double vx=v[0];
     x=min(x,vx);
     X=max(X,vx);
-    M=max(fabs(vx),M);
     double vy=v[1];
     y=min(y,vy);
     Y=max(Y,vy);
-    M=max(fabs(vy),M);
     double vz=v[2];
     z=min(z,vz);
     Z=max(Z,vz);
-    M=max(fabs(vz),M);
-  }
-
-  if(compression > 0) {
-    if(weights) {
-      for(size_t i=0; i < n; ++i)
-        M=max(fabs(weights[i]),M);
-    }
-    compression=max(compression,limit*M);
   }
 
   Min=triple(x,y,z);
@@ -697,22 +632,13 @@ void drawSphere::P(Triple& t, double x, double y, double z)
   t[2]=(T[8]*x+T[9]*y+T[10]*z+T[11])*f;
 }
 
-bool drawSphere::write(prcfile *out, unsigned int *count, array *index,
-                       array *origin)
+bool drawSphere::write(prcfile *out, unsigned int *, array *, array *, double)
 {
   if(invisible)
     return true;
 
-  ostringstream buf;
-  if(name.empty()) 
-    buf << "sphere" << count[SPHERE]++;
-  else
-    buf << name;
-  
   PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
   
-  out->begingroup(buf.str().c_str(),compression);
-      
   switch(type) {
     case 0: // PRCsphere
     {
@@ -802,8 +728,6 @@ bool drawSphere::write(prcfile *out, unsigned int *count, array *index,
     default:
       reportError("Invalid PRCsphere type");
   }
-  
-  out->endgroup();
   
   return true;
 }

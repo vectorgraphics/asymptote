@@ -20,17 +20,14 @@ protected:
   bool invisible;
   triple Min,Max;
   Triple *controls;
-  string name;
 public:
-  drawPath3(path3 g, const pen& p, const string& name) :
+  drawPath3(path3 g, const pen& p) :
     g(g), straight(g.piecewisestraight()), color(rgba(p)),
-    invisible(p.invisible()), Min(g.min()), Max(g.max()), controls(NULL),
-    name(name) {}
+    invisible(p.invisible()), Min(g.min()), Max(g.max()), controls(NULL) {}
     
   drawPath3(const vm::array& t, const drawPath3 *s) :
     g(camp::transformed(t,s->g)), straight(s->straight), color(s->color),
-    invisible(s->invisible), Min(g.min()), Max(g.max()), controls(NULL),
-    name(s->name) {}
+    invisible(s->invisible), Min(g.min()), Max(g.max()), controls(NULL) {}
   
   virtual ~drawPath3() {}
 
@@ -49,8 +46,7 @@ public:
     } else b=pair(m(b.getx(),z.getx()),m(b.gety(),z.gety()));
   }
   
-  bool write(prcfile *out, unsigned int *count, vm::array *index,
-             vm::array *origin);
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double);
   
   void render(GLUnurbs*, double, const triple&, const triple&, double,
               bool transparent);
@@ -67,7 +63,6 @@ protected:
   double *knots;
   RGBAColour color;
   bool invisible;
-  string name;
   triple Min,Max;
   
 #ifdef HAVE_GL
@@ -77,8 +72,8 @@ protected:
   
 public:
   drawNurbsPath3(const vm::array& g, const vm::array* knot,
-                 const vm::array* weight, const pen& p, const string& name) :
-    color(rgba(p)), invisible(p.invisible()), name(name) {
+                 const vm::array* weight, const pen& p) :
+    color(rgba(p)), invisible(p.invisible()) {
     size_t weightsize=checkArray(weight);
     
     string wrongsize="Inconsistent NURBS data";
@@ -115,8 +110,7 @@ public:
   }
   
   drawNurbsPath3(const vm::array& t, const drawNurbsPath3 *s) :
-    degree(s->degree), n(s->n), color(s->color), invisible(s->invisible),
-    name(s->name) {
+    degree(s->degree), n(s->n), color(s->color), invisible(s->invisible) {
     controls=new(UseGC) Triple[n];
       
     for(size_t i=0; i < n; ++i) {
@@ -150,8 +144,7 @@ public:
   
   virtual ~drawNurbsPath3() {}
 
-  bool write(prcfile *out, unsigned int *count, vm::array *index,
-             vm::array *origin);
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double);
   
   void displacement();
   void ratio(pair &b, double (*m)(double, double), double fuzz, bool &first);

@@ -130,6 +130,7 @@ void ContentPRCBase::write(PRCbitStream &pbs)
 #define WriteString( value ) pbs << (value);
 #define SerializeContentPRCBase write(pbs);
 #define SerializeGraphics serializeGraphics(pbs);
+#define SerializePRCBaseWithGraphics { write(pbs); serializeGraphics(pbs); }
 #define SerializeRepresentationItemContent serializeRepresentationItemContent(pbs);
 #define SerializeRepresentationItem( value ) (value)->serializeRepresentationItem(pbs);
 #define SerializeMarkup( value ) (value).serializeMarkup(pbs);
@@ -142,7 +143,7 @@ void ContentPRCBase::write(PRCbitStream &pbs)
 #define SerializeVector2d( value ) (value).serializeVector2d(pbs);
 #define SerializeName( value ) writeName(pbs, (value));
 #define SerializeInterval( value )  (value).serializeInterval(pbs);
-#define SerializeBoundingBox( value )  (value).serializeBoundingBox(pbs);
+// #define SerializeBoundingBox( value )  (value).serializeBoundingBox(pbs);
 #define SerializeDomain( value )  (value).serializeDomain(pbs);
 #define SerializeParameterization  serializeParameterization(pbs);
 #define SerializeUVParameterization  serializeUVParameterization(pbs);
@@ -161,7 +162,9 @@ void ContentPRCBase::write(PRCbitStream &pbs)
 #define SerializeBody( value )  (value)->serializeBody(pbs);
 #define ResetCurrentGraphics resetGraphics();
 #define SerializeContentSurface  serializeContentSurface(pbs);
-
+#define SerializeCompressedUniqueId( value ) (value).serializeCompressedUniqueId(pbs);
+#define SerializeUnit( value ) (value).serializeUnit(pbs);
+#define SerializeBoundingBox serializeBoundingBox(pbs);
 
 bool IsCompressedType(uint32_t type)
 {
@@ -1541,7 +1544,7 @@ void PRCBrepData::serializeBrepData(PRCbitStream &pbs)
       SerializePtrTopology ( connex[i] )
    }
    if ( have_bbox(behavior) )
-      SerializeBoundingBox ( bounding_box )
+      SerializeBoundingBox
 }
 #undef have_bbox
 
@@ -1652,7 +1655,8 @@ void PRCTopoContext::serializeTopoContext(PRCbitStream &pbs)
 
    SerializeContentPRCBase
    WriteCharacter ( behaviour )
-   WriteDouble ( 0.0 ) // granularity
+   const double granularity = 0.0;
+   WriteDouble ( granularity )
    WriteDouble ( tolerance )
    WriteBoolean ( have_smallest_face_thickness )
    if ( have_smallest_face_thickness )
@@ -1772,3 +1776,143 @@ void PRCSingleWireBody::serializeSingleWireBody(PRCbitStream &pbs)
    SerializeContentBody 
    SerializePtrTopology ( wire_edge )
 }
+
+void PRCUniqueId::serializeCompressedUniqueId(PRCbitStream &pbs)
+{
+	WriteUnsignedInteger (unique_id0) 
+	WriteUnsignedInteger (unique_id1) 
+	WriteUnsignedInteger (unique_id2) 
+	WriteUnsignedInteger (unique_id3) 	
+}
+
+void PRCUnit::serializeUnit(PRCbitStream &pbs)
+{
+	WriteBoolean (unit_from_CAD_file)
+	WriteDouble (unit)
+}
+
+void PRCProductOccurrence::serializeProductOccurrence(PRCbitStream &pbs)
+{
+   WriteUnsignedInteger ( PRC_TYPE_ASM_ProductOccurence ) 
+
+   SerializePRCBaseWithGraphics 
+
+// SerializeReferencesOfProductOccurrence 
+   WriteUnsignedInteger (index_part+1)
+   WriteUnsignedInteger (index_prototype+1)
+   if (index_prototype != m1)
+   {
+      WriteBoolean (prototype_in_same_file_structure)
+      if (!prototype_in_same_file_structure)
+         SerializeCompressedUniqueId (prototype_file_structure)
+   }
+   WriteUnsignedInteger(index_external_data+1)
+   if (index_external_data != m1)
+   {
+      WriteBoolean (external_data_in_same_file_structure)
+      if (!external_data_in_same_file_structure)
+         SerializeCompressedUniqueId (external_data_file_structure)
+   }
+   const uint32_t number_of_son_product_occurrences = index_son_occurrence.size();
+   WriteUnsignedInteger (number_of_son_product_occurrences)
+   for (uint32_t i=0;i<number_of_son_product_occurrences;i++)
+      WriteUnsignedInteger (index_son_occurrence[i])
+
+   WriteCharacter (product_behaviour)
+
+// SerializeProductInformation (product_information)
+   SerializeUnit (unit_information)
+   WriteCharacter (product_information_flags)
+   WriteInteger (product_load_status)
+
+   WriteBit (has_location)
+   if (has_location)
+	   location->serializeTransformation3d (pbs);
+   
+   WriteUnsignedInteger (0) // number_of_references
+   
+// SerializeMarkups (markups)
+   WriteUnsignedInteger (0) // number_of_linked_items 
+   WriteUnsignedInteger (0) // number_of_leaders 
+   WriteUnsignedInteger (0) // number_of_markups 
+   WriteUnsignedInteger (0) // number_of_annotation_entities 
+
+   
+   WriteUnsignedInteger (0) // number_of_views
+   WriteBit (false) // has_entity_filter
+   WriteUnsignedInteger (0) // number_of_display_filters
+   WriteUnsignedInteger (0) // number_of_scene_display_parameters
+
+   SerializeUserData
+}
+
+uint32_t PRCPartDefinition::addBrepModel(PRCBrepModel *pBrepModel)
+{
+	representation_item.push_back(PRCpRepresentationItem(pBrepModel));
+	return representation_item.size()-1;
+}
+
+uint32_t PRCPartDefinition::addPolyBrepModel(PRCPolyBrepModel *pPolyBrepModel)
+{
+	representation_item.push_back(PRCpRepresentationItem(pPolyBrepModel));
+	return representation_item.size()-1;
+}
+
+uint32_t PRCPartDefinition::addPointSet(PRCPointSet *pPointSet)
+{
+	representation_item.push_back(PRCpRepresentationItem(pPointSet));
+	return representation_item.size()-1;
+}
+
+uint32_t PRCPartDefinition::addSet(PRCSet *pSet)
+{
+	representation_item.push_back(PRCpRepresentationItem(pSet));
+	return representation_item.size()-1;
+}
+
+uint32_t PRCPartDefinition::addWire(PRCWire *pWire)
+{
+	representation_item.push_back(PRCpRepresentationItem(pWire));
+	return representation_item.size()-1;
+}
+
+uint32_t PRCPartDefinition::addPolyWire(PRCPolyWire *pPolyWire)
+{
+	representation_item.push_back(PRCpRepresentationItem(pPolyWire));
+	return representation_item.size()-1;
+}
+
+uint32_t PRCPartDefinition::addRepresentationItem(PRCRepresentationItem *pRepresentationItem)
+{
+	representation_item.push_back(PRCpRepresentationItem(pRepresentationItem));
+	return representation_item.size()-1;
+}
+
+uint32_t PRCPartDefinition::addRepresentationItem(PRCpRepresentationItem pRepresentationItem)
+{
+	representation_item.push_back(pRepresentationItem);
+	return representation_item.size()-1;
+}
+
+
+void PRCPartDefinition::serializePartDefinition(PRCbitStream &pbs)
+{
+	WriteUnsignedInteger ( PRC_TYPE_ASM_PartDefinition ) 
+	
+	SerializePRCBaseWithGraphics
+	SerializeBoundingBox
+
+	uint32_t number_of_representation_items = representation_item.size();
+	WriteUnsignedInteger (number_of_representation_items)
+	for (uint32_t i=0;i<number_of_representation_items;i++)
+		SerializeRepresentationItem (representation_item[i])
+	
+	// SerializeMarkups (markups)
+	WriteUnsignedInteger (0) // number_of_linked_items 
+	WriteUnsignedInteger (0) // number_of_leaders 
+	WriteUnsignedInteger (0) // number_of_markups 
+	WriteUnsignedInteger (0) // number_of_annotation_entities 
+
+	WriteUnsignedInteger (0) // number_of_views
+	SerializeUserData
+}	

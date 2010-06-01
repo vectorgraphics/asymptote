@@ -820,7 +820,7 @@ public:
 class PRCBoundingBox
 {
 public:
-  PRCBoundingBox() : min(0,0,0),max(0,0,0) {}
+  PRCBoundingBox() : min(0,0,0), max(0,0,0) {}
   PRCBoundingBox(const PRCVector3d &m1, const PRCVector3d& m2) : min(m1),max(m2) {}
   void serializeBoundingBox(PRCbitStream &pbs);
   PRCVector3d min;
@@ -1219,7 +1219,7 @@ public:
 typedef std::tr1::shared_ptr <PRCConnex> PRCpConnex;
 typedef std::vector <PRCpConnex>  PRCConnexList;
 
-class PRCBrepData : public PRCBody
+class PRCBrepData : public PRCBody, public PRCBoundingBox
 {
 public:
   PRCBrepData() :
@@ -1230,7 +1230,6 @@ public:
   void serializeBody(PRCbitStream &pbs) { serializeBrepData(pbs); }
   void addConnex(PRCConnex *pConnex);
   PRCConnexList connex;
-  PRCBoundingBox bounding_box;
 };
 
 // For now - treat just the case of Bezier surfaces cubic 4x4 or linear 2x2
@@ -1273,7 +1272,7 @@ class PRCTopoContext : public ContentPRCBase
 {
 public:
   PRCTopoContext(std::string n="") :
-  ContentPRCBase(&EMPTY_ATTRIBUTES,n), behaviour(0), tolerance(0),
+  ContentPRCBase(&EMPTY_ATTRIBUTES,n), behaviour(0), /* granularity(0), */ tolerance(0),
    have_smallest_face_thickness(false), smallest_thickness(0), have_scale(false), scale(1) {}
   void serializeTopoContext(PRCbitStream&);
   void serializeContextAndBodies(PRCbitStream&);
@@ -1282,8 +1281,8 @@ public:
   uint32_t addSingleWireBody(PRCSingleWireBody *body);
   uint32_t addBrepData(PRCBrepData *body);
   uint32_t addCompressedBrepData(PRCCompressedBrepData *body);
-// type PRC_TYPE_TOPO_Context 
   uint8_t  behaviour;
+// double granularity;
   double tolerance;
   bool have_smallest_face_thickness;
   double smallest_thickness;
@@ -1293,5 +1292,73 @@ public:
 };
 typedef std::tr1::shared_ptr <PRCTopoContext> PRCpTopoContext;
 typedef std::vector <PRCpTopoContext>  PRCTopoContextList;
+
+class PRCUniqueId
+{
+public:
+  PRCUniqueId() : unique_id0(0), unique_id1(0), unique_id2(0), unique_id3(0)  {}
+  void serializeCompressedUniqueId(PRCbitStream&);
+  uint32_t unique_id0;
+  uint32_t unique_id1;
+  uint32_t unique_id2;
+  uint32_t unique_id3;
+};
+
+class PRCUnit
+{
+public:
+  PRCUnit() : unit_from_CAD_file(false), unit(1) {}
+  void serializeUnit(PRCbitStream&);
+  bool unit_from_CAD_file;
+  double unit;
+};
+
+class PRCProductOccurrence: public PRCGraphics, public ContentPRCBase
+{
+public:
+  PRCProductOccurrence(std::string n="") :
+    ContentPRCBase(&EMPTY_ATTRIBUTES,n,true,makeCADID(),0,makePRCID()),
+    index_part(m1),
+    index_prototype(m1), prototype_in_same_file_structure(true),
+    index_external_data(m1), external_data_in_same_file_structure(true),
+    product_behaviour(0), product_information_flags(0), product_load_status(KEPRCProductLoadStatus_Loaded),
+    has_location(false) {}
+  void serializeProductOccurrence(PRCbitStream&);
+  uint32_t index_part;
+  uint32_t index_prototype;
+  bool prototype_in_same_file_structure;
+  PRCUniqueId prototype_file_structure;
+  uint32_t index_external_data;
+  bool external_data_in_same_file_structure;
+  PRCUniqueId external_data_file_structure;
+  std::vector<uint32_t> index_son_occurrence;
+  uint8_t product_behaviour;
+  PRCUnit unit_information;
+  uint8_t product_information_flags;
+  EPRCProductLoadStatus product_load_status;
+  bool has_location;
+  PRCpGeneralTransformation3d location;
+};
+typedef std::tr1::shared_ptr <PRCProductOccurrence> PRCpProductOccurrence;
+typedef std::vector <PRCpProductOccurrence>  PRCProductOccurrenceList;
+
+class PRCPartDefinition: public PRCGraphics, public ContentPRCBase, public PRCBoundingBox
+{
+public:
+	PRCPartDefinition(std::string n="") :
+    ContentPRCBase(&EMPTY_ATTRIBUTES,n,true,makeCADID(),0,makePRCID()) {}
+	void serializePartDefinition(PRCbitStream&);
+	uint32_t addBrepModel(PRCBrepModel *pBrepModel);
+	uint32_t addPolyBrepModel(PRCPolyBrepModel *pPolyBrepModel);
+	uint32_t addPointSet(PRCPointSet *pPointSet);
+	uint32_t addSet(PRCSet *pSet);
+	uint32_t addWire(PRCWire *pWire);
+	uint32_t addPolyWire(PRCPolyWire *pPolyWire);
+	uint32_t addRepresentationItem(PRCRepresentationItem *pRepresentationItem);
+	uint32_t addRepresentationItem(PRCpRepresentationItem pRepresentationItem);
+	PRCRepresentationItemList representation_item;
+};
+typedef std::tr1::shared_ptr <PRCPartDefinition> PRCpPartDefinition;
+typedef std::vector <PRCpPartDefinition>  PRCPartDefinitionList;
 
 #endif //__WRITE_PRC_H

@@ -2,27 +2,24 @@ struct material {
   pen[] p; // diffusepen,ambientpen,emissivepen,specularpen
   real opacity;
   real shininess;  
-  real compression;
   void operator init(pen diffusepen=black, pen ambientpen=black,
                      pen emissivepen=black, pen specularpen=mediumgray,
                      real opacity=opacity(diffusepen),
-                     real shininess=defaultshininess,
-                     real compression=-1) {
+                     real shininess=defaultshininess) {
     p=new pen[] {diffusepen,ambientpen,emissivepen,specularpen};
     this.opacity=opacity;
     this.shininess=shininess;
-    this.compression=compression;
   }
-  void operator init(material m, real compression=m.compression) {
+  void operator init(material m) {
     p=copy(m.p);
     opacity=m.opacity;
     shininess=m.shininess;
-    this.compression=compression;
   }
   pen diffuse() {return p[0];}
   pen ambient() {return p[1];}
   pen emissive() {return p[2];}
   pen specular() {return p[3];}
+
   void diffuse(pen q) {p[0]=q;}
   void ambient(pen q) {p[1]=q;}
   void emissive(pen q) {p[2]=q;}
@@ -39,7 +36,6 @@ void write(file file, string s="", material x, suffix suffix=none)
   write(file,", specular=",x.specular());
   write(file,", opacity=",x.opacity);
   write(file,", shininess=",x.shininess);
-  write(file,", compression=",x.compression);
   write(file,"}",suffix);
 }
 
@@ -51,7 +47,7 @@ void write(string s="", material x, suffix suffix=endl)
 bool operator == (material m, material n)
 {
   return all(m.p == n.p) && m.opacity == n.opacity &&
-  m.shininess == n.shininess && m.compression == n.compression;
+  m.shininess == n.shininess;
 }
 
 material operator cast(pen p)
@@ -69,10 +65,9 @@ pen operator ecast(material m)
   return m.p.length > 0 ? m.diffuse() : nullpen;
 }
 
-material emissive(material m, real compression=m.compression)
+material emissive(material m)
 {
-  return material(black+opacity(m.opacity),black,m.diffuse(),black,m.opacity,1,
-                  compression);
+  return material(black+opacity(m.opacity),black,m.diffuse(),black,m.opacity,1);
 }
 
 pen color(triple normal, material m, light light, transform3 T=light.T) {

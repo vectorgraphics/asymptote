@@ -4,6 +4,8 @@ private import interpolate;
 int nslice=12;
 real camerafactor=1.2;
 
+string meshname(string name) {return name+" mesh";}
+
 private real Fuzz=10.0*realEpsilon;
 private real nineth=1/9;
 
@@ -1149,8 +1151,8 @@ interaction LabelInteraction()
 }
 
 void draw3D(frame f, int type=0, patch s, triple center=O, material m,
-            light light=currentlight, string name="",
-            interaction interaction=Embedded, bool prc=true)
+            light light=currentlight, interaction interaction=Embedded,
+            bool prc=true)
 {
   if(s.colors.length > 0)
     m=mean(s.colors);
@@ -1160,22 +1162,18 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
   real PRCshininess;
   if(prc())
     PRCshininess=PRCshininess(m.shininess);
-  real compression=m.compression >= 0 ? m.compression : defaultcompression;
   
   draw(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,PRCshininess,
-       compression,s.planar ? s.normal(0.5,0.5) : O,s.colors,
-       lighton,name,interaction.type,prc);
+       s.planar ? s.normal(0.5,0.5) : O,s.colors,
+       lighton,interaction.type,prc);
 }
 
 void drawPRCsphere(frame f, transform3 t=identity4, material m,
-                   int type=defaultspheretype, light light=currentlight,
-                   string name="")
+                   int type=defaultspheretype, light light=currentlight)
 {
   if(!light.on() && !invisible((pen) m))
     m=emissive(m);
-  drawPRCsphere(f,t,m.p,m.opacity,PRCshininess(m.shininess),
-                m.compression >= 0 ? m.compression : defaultcompression,type,
-                name);
+  drawPRCsphere(f,t,m.p,m.opacity,PRCshininess(m.shininess),type);
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,
@@ -1192,22 +1190,28 @@ nullpens.cyclic=true;
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
           light light=currentlight, light meshlight=light, string name="",
-          projection P=currentprojection)
+          real compression=defaultcompression, projection P=currentprojection)
 {
   if(is3D()) {
+    begingroup(f,name,compression);
     for(int i=0; i < s.s.length; ++i)
-      draw3D(f,s.s[i],surfacepen[i],light,partname(name,i));
+      draw3D(f,s.s[i],surfacepen[i],light);
+    endgroup(f);
     pen modifiers=thin()+squarecap;
     for(int k=0; k < s.s.length; ++k) {
       pen meshpen=meshpen[k];
       if(!invisible(meshpen)) {
+        begingroup(f,meshname(name),compression);
         meshpen=modifiers+meshpen;
         real step=nu == 0 ? 0 : 1/nu;
         for(int i=0; i <= nu; ++i)
-          draw(f,s.s[k].uequals(i*step),meshpen,meshlight);
+          draw(f,s.s[k].uequals(i*step),meshpen,meshlight,partname(i),
+               compression);
         step=nv == 0 ? 0 : 1/nv;
         for(int j=0; j <= nv; ++j)
-          draw(f,s.s[k].vequals(j*step),meshpen,meshlight);
+          draw(f,s.s[k].vequals(j*step),meshpen,meshlight,partname(j),
+               compression);
+        endgroup(f);
       }
     }
   } else {
@@ -1244,18 +1248,19 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
           light light=currentlight, light meshlight=light, string name="",
-          projection P=currentprojection)
+          real compression=defaultcompression, projection P=currentprojection)
 {
   material[] surfacepen={surfacepen};
   pen[] meshpen={meshpen};
   surfacepen.cyclic=true;
   meshpen.cyclic=true;
-  draw(t,f,s,nu,nv,surfacepen,meshpen,light,meshlight,name,P);
+  draw(t,f,s,nu,nv,surfacepen,meshpen,light,meshlight,name,compression,P);
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
-          light light=currentlight, light meshlight=light, string name="")
+          light light=currentlight, light meshlight=light, string name="",
+          real compression=defaultcompression)
 {
   if(s.empty()) return;
 
@@ -1269,7 +1274,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       surface S=t*s;
       if(is3D())
-        draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight,name);
+        draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight,name,compression);
       else if(pic != null)
         pic.add(new void(frame f, transform T) {
             draw(T,f,S,nu,nv,surfacepen,meshpen,light,meshlight,P);
@@ -1300,22 +1305,24 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
-          light light=currentlight, light meshlight=light, string name="")
+          light light=currentlight, light meshlight=light, string name="",
+          real compression=defaultcompression)
 {
   material[] surfacepen={surfacepen};
   pen[] meshpen={meshpen};
   surfacepen.cyclic=true;
   meshpen.cyclic=true;
-  draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight,name);
+  draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight,name,compression);
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen meshpen,
-          light light=currentlight, light meshlight=light, string name="")
+          light light=currentlight, light meshlight=light, string name="",
+          real compression=defaultcompression)
 {
   pen[] meshpen={meshpen};
   meshpen.cyclic=true;
-  draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight,name);
+  draw(pic,s,nu,nv,surfacepen,meshpen,light,meshlight,name,compression);
 }
 
 surface extrude(path3 p, path3 q)
@@ -1388,7 +1395,8 @@ private path[] path(Label L, pair z=0, projection P)
 
 void label(frame f, Label L, triple position, align align=NoAlign,
            pen p=currentpen, light light=nolight,
-           string name=L.s, interaction interaction=LabelInteraction(),
+           string name=L.s, real compression=defaultcompression,
+           interaction interaction=LabelInteraction(),
            projection P=currentprojection)
 {
   Label L=L.copy();
@@ -1398,10 +1406,10 @@ void label(frame f, Label L, triple position, align align=NoAlign,
     L.T=L.T*scale(abs(P.camera-position)/abs(P.vector()));
   if(L.defaulttransform3)
     L.T3=transform3(P);
+  begingroup(f,name,compression);
   if(is3D()) {
-    int i=-1;
     for(patch S : surface(L,position).s)
-      draw3D(f,S,position,L.p,light,partname(name,++i),interaction);
+      draw3D(f,S,position,L.p,light,interaction);
   } else {
     pen p=color(L.T3*Z,L.p,light,shiftless(P.T.modelview));
     if(L.defaulttransform3) {
@@ -1416,11 +1424,13 @@ void label(frame f, Label L, triple position, align align=NoAlign,
       for(patch S : surface(L,position).s)
         fill(f,project(S.external(),P,1),p);
   }
+  endgroup(f);
 }
 
 void label(picture pic=currentpicture, Label L, triple position,
            align align=NoAlign, pen p=currentpen,
            light light=nolight, string name=L.s,
+           real compression=defaultcompression,
            interaction interaction=LabelInteraction())
 {
   Label L=L.copy();
@@ -1440,11 +1450,11 @@ void label(picture pic=currentpicture, Label L, triple position,
       if(L.defaulttransform3)
         L.T3=transform3(P);
 
-      if(is3D()) {
-        int i=-1;
+      surface S=surface(L,v);
+      begingroup(f,interaction.type,v,name,compression);
+      if(is3D())
         for(patch S : surface(L,v).s)
-          draw3D(f,S,v,L.p,light,partname(name,++i),interaction);
-      }
+          draw3D(f,S,v,L.p,light,interaction);
 
       if(pic != null) {
         pen p=color(L.T3*Z,L.p,light,shiftless(P.T.modelview));
@@ -1462,6 +1472,7 @@ void label(picture pic=currentpicture, Label L, triple position,
                 fill(f,T*project(S.external(),P,1),p);
             });
       }
+      endgroup(f);
       
     },!L.defaulttransform3);
 
@@ -1621,24 +1632,25 @@ restricted surface unitplane=surface(unitplane);
 restricted surface unitdisk=surface(unitcircle3);
 
 void dot(frame f, triple v, material p=currentpen,
-         light light=nolight, string name="", projection P=currentprojection)
+         light light=nolight, string name="",
+         real compression=defaultcompression, projection P=currentprojection)
 {
   pen q=(pen) p;
   if(is3D()) {
-    begingroup(f,name);
-    int i=-1;
+    begingroup(f,name,compression);
     real size=0.5*linewidth(dotsize(q)+q);
     transform3 T=shift(v)*scale3(size);
     for(patch s : unitsphere.s)
-      draw3D(f,T*s,v,p,light,partname(name,++i),false);
+      draw3D(f,T*s,v,p,light,prc=false);
     if(prc())
-      drawPRCsphere(f,T,p,light,name);
+      drawPRCsphere(f,T,p,light);
     endgroup(f);
   } else dot(f,project(v,P.t),q);
 }
 
 void dot(frame f, triple[] v, material p=currentpen, light light=nolight,
-         string name="", projection P=currentprojection)
+         string name="", real compression=defaultcompression,
+         projection P=currentprojection)
 {
   if(v.length > 0) {
     // Remove duplicate points.
@@ -1649,7 +1661,7 @@ void dot(frame f, triple[] v, material p=currentpen, light light=nolight,
     for(int i=1; i < v.length; ++i) {
       triple V=v[i];
       if(V != last) {
-        dot(f,V,p,light,name,P);
+        dot(f,V,p,light,name,compression,P);
         last=V;
       }
     }
@@ -1657,14 +1669,16 @@ void dot(frame f, triple[] v, material p=currentpen, light light=nolight,
 }
 
 void dot(frame f, path3 g, material p=currentpen, light light=nolight,
-         string name="", projection P=currentprojection)
+         string name="", real compression=defaultcompression,
+         projection P=currentprojection)
 {
   dot(f,sequence(new triple(int i) {return point(g,i);},size(g)),
-      p,light,name,P);
+      p,light,name,compression,P);
 }
 
 void dot(frame f, path3[] g, material p=currentpen, light light=nolight,
-         string name="", projection P=currentprojection)
+         string name="", real compression=defaultcompression,
+         projection P=currentprojection)
 {
   int sum;
   for(path3 G : g)
@@ -1678,24 +1692,24 @@ void dot(frame f, path3[] g, material p=currentpen, light light=nolight,
         triple v=point(g[i],j);
         ++j;
         return v;
-      },sum),p,light,name,P);
+      },sum),p,light,name,compression,P);
 }
 
 void dot(picture pic=currentpicture, triple v, material p=currentpen,
-         light light=nolight, string name="")
+         light light=nolight, string name="",
+         real compression=defaultcompression)
 {
   pen q=(pen) p;
   real size=0.5*linewidth(dotsize(q)+q);
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       if(is3D()) {
-        begingroup(f,name);
-        int i=-1;
+        begingroup(f,name,compression);
         triple V=t*v;
         transform3 T=shift(V)*scale3(size);
         for(patch s : unitsphere.s)
-          draw3D(f,T*s,V,p,light,partname(name,++i),false);
+          draw3D(f,T*s,V,p,light,prc=false);
         if(prc())
-          drawPRCsphere(f,T,p,light,name);
+          drawPRCsphere(f,T,p,light);
         endgroup(f);
       }
       if(pic != null)
@@ -1706,33 +1720,38 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
 }
 
 void dot(picture pic=currentpicture, triple[] v, material p=currentpen,
-         light light=nolight, string name="")
+         light light=nolight, string name="",
+         real compression=defaultcompression)
 {
   if(v.length > 0) {
     // Remove duplicate points.
     v=sort(v,lexorder);
 
     triple last=v[0];
-    dot(pic,last,p,light,name);
+    begingroup3(pic,name,compression);
+    dot(pic,last,p,light,partname(0),compression);
     for(int i=1; i < v.length; ++i) {
       triple V=v[i];
       if(V != last) {
-        dot(pic,V,p,light,name);
+        dot(pic,V,p,light,partname(i),compression);
         last=V;
       }
     }
+    endgroup3(pic);
   }
 }
 
 void dot(picture pic=currentpicture, explicit path3 g, material p=currentpen,
-         light light=nolight, string name="")
+         light light=nolight, string name="",
+         real compression=defaultcompression)
 {
   dot(pic,sequence(new triple(int i) {return point(g,i);},size(g)),
-      p,light,name);
+      p,light,name,compression);
 }
 
 void dot(picture pic=currentpicture, path3[] g, material p=currentpen,
-         light light=nolight, string name="")
+         light light=nolight, string name="",
+         real compression=defaultcompression)
 {
   int sum;
   for(path3 G : g)
@@ -1746,12 +1765,13 @@ void dot(picture pic=currentpicture, path3[] g, material p=currentpen,
         triple v=point(g[i],j);
         ++j;
         return v;
-      },sum),p,light,name);
+      },sum),p,light,name,compression);
 }
 
 void dot(picture pic=currentpicture, Label L, triple v, align align=NoAlign,
          string format=defaultformat, material p=currentpen,
-         light light=nolight, string name="")
+         light light=nolight, string name="",
+         real compression=defaultcompression)
 {
   Label L=L.copy();
   if(L.s == "") {
@@ -1761,8 +1781,8 @@ void dot(picture pic=currentpicture, Label L, triple v, align align=NoAlign,
   }
   L.align(align,E);
   L.p((pen) p);
-  dot(pic,v,p,light,name);
-  label(pic,L,v);
+  dot(pic,v,p,light,name,compression);
+  label(pic,L,v,compression);
 }
 
 pair minbound(triple[] A, projection P)
@@ -1816,7 +1836,8 @@ triple[][] operator / (triple[][] a, real[][] b)
 
 // Draw a NURBS curve.
 void draw(picture pic=currentpicture, triple[] P, real[] knot,
-          real[] weights=new real[], pen p=currentpen, string name="")
+          real[] weights=new real[], pen p=currentpen, string name="",
+          real compression=defaultcompression)
 {
   P=copy(P);
   knot=copy(knot);
@@ -1824,7 +1845,9 @@ void draw(picture pic=currentpicture, triple[] P, real[] knot,
   pic.add(new void(frame f, transform3 t, picture pic, projection Q) {
       if(is3D()) {
         triple[] P=t*P;
-        draw(f,P,knot,weights,p,name);
+        begingroup(f,name,compression);
+        draw(f,P,knot,weights,p);
+        endgroup(f);
         if(pic != null)
           pic.addBox(minbound(P,Q),maxbound(P,Q));
       }
@@ -1835,7 +1858,8 @@ void draw(picture pic=currentpicture, triple[] P, real[] knot,
 // Draw a NURBS surface.
 void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
           real[][] weights=new real[][], material m=currentpen,
-          pen[] colors=new pen[], light light=currentlight, string name="")
+          pen[] colors=new pen[], light light=currentlight, string name="",
+          real compression=defaultcompression)
 {
   if(colors.length > 0)
     m=mean(colors);
@@ -1847,14 +1871,14 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
   colors=copy(colors);
   pic.add(new void(frame f, transform3 t, picture pic, projection Q) {
       if(is3D()) {
+        begingroup(f,name,compression);
         triple[][] P=t*P;
-        real compression=m.compression >= 0 ? m.compression :
-          defaultcompression;
         real PRCshininess;
         if(prc())
           PRCshininess=PRCshininess(m.shininess);
         draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,PRCshininess,
-             compression,colors,lighton,name);
+             colors,lighton);
+        endgroup(f);
         if(pic != null)
           pic.addBox(minbound(P,Q),maxbound(P,Q));
       }
