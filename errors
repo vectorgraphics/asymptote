@@ -109,5 +109,8 @@ errortest.asy: 434.13: cannot cast 'var[]' to 'int[]'
 errortest.asy: 435.3: type 'var' is not a structure
 errortest.asy: 438.17: cannot cast 'int' to 'var'
 errortest.asy: 442.7: could not infer type of initializer
+errortest.asy: 442.11: expression is ambiguous in cast to '<error>'
 errortest.asy: 446.7: could not infer type of initializer
+errortest.asy: 446.12: expression is ambiguous in cast to '<error>'
 errortest.asy: 448.7: could not infer type of initializer
+errortest.asy: 448.12: expression is ambiguous in cast to '<error>'
