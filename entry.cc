@@ -305,7 +305,9 @@ bool venv::add(symbol *src, symbol *dest,
 
 ty *venv::getType(symbol *name)
 {
-  //cerr << "getType: " << *name << endl;
+#if 0
+  cout << "getType: " << *name << endl;
+#endif
   types::overloaded set;
   values &list=names[name];
 

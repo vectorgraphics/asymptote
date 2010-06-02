@@ -96,6 +96,12 @@ types::ty *simpleName::varGetType(coenv &e)
   return e.e.varGetType(id);
 }
 
+trans::varEntry *simpleName::getCallee(coenv &e, signature *sig)
+{
+  varEntry *ve = e.e.lookupVarBySignature(id, sig);
+  return ve;
+}
+
 types::ty *simpleName::typeTrans(coenv &e, bool tacit)
 {
   types::ty *t = e.e.lookupType(id);
@@ -224,6 +230,14 @@ types::ty *qualifiedName::varGetType(coenv &e)
 
   record *r = castToRecord(qt, true);
   return r ? r->e.varGetType(id) : 0;
+}
+
+trans::varEntry *qualifiedName::getCallee(coenv &e, signature *sig)
+{
+  // getTypeAsCallee is an optimization attempt.  We don't try optimizing the
+  // rarer qualifiedName call case.
+  // TODO: See if this is worth implementing.
+  return 0;
 }
 
 trans::varEntry *qualifiedName::getVarEntry(coenv &e)

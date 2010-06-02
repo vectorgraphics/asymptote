@@ -243,6 +243,10 @@ bool application::matchSignature(env &e, types::signature *source,
                                  arglist &al) {
   formal_vector &f=source->formals;
 
+#if 0
+  cout << "num args: " << f.size() << endl;
+#endif
+
   // First, match all of the named (non-rest) arguments.
   for (size_t i=0; i<f.size(); ++i)
     if (f[i].name)
@@ -326,13 +330,26 @@ app_list multimatch(env &e,
 
   app_list l;
 
+#if DEBUG_GETAPP
+  bool perfect=false;
+#endif
+
   for(ty_vector::iterator t=o->sub.begin(); t!=o->sub.end(); ++t) {
     if ((*t)->kind==ty_function) {
+#if DEBUG_GETAPP
+      function *ft = dynamic_cast<function *>(*t);
+      if (equivalent(ft->getSignature(), source))
+        perfect = true;
+#endif
       application *a=application::match(e, (function *)(*t), source, al);
       if (a)
         l.push_back(a);
     }
   }
+
+#if DEBUG_GETAPP
+  cout << (perfect ? "PERFECT" : "IMPERFECT") << endl;
+#endif
 
   if (l.size() > 1) {
     // Return the most specific candidates.

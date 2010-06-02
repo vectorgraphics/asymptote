@@ -78,6 +78,11 @@ public:
     return ve.lookByType(name, t);
   }
 
+  varEntry *lookupVarBySignature(symbol *name, types::signature *sig)
+  {
+    return ve.lookBySignature(name, sig);
+  }
+
   access *lookupInitializer(ty *t)
   {
     // The initializer's type is a function returning the desired type.

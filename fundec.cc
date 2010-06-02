@@ -116,6 +116,10 @@ public:
   basicAssignExp(position pos, exp *dest, varinit *value) 
     : exp(pos), dest(dest), value(value) {}
 
+  void prettyprint(ostream &out, Int indent) {
+    prettyname(out, "basicAssignExp", indent);
+  }
+
   types::ty *getType(coenv &e) {
     return dest->getType(e);
   }

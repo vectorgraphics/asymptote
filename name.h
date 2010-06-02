@@ -72,6 +72,7 @@ public:
   // Returns the possible variable types.  Unlike exp, returns 0 if none
   // match.
   virtual types::ty *varGetType(coenv &e) = 0;
+  virtual trans::varEntry *getCallee(coenv &e, types::signature *sig) = 0;
 
   // As a type:
   // Determines the type, as used in a variable declaration.
@@ -106,6 +107,7 @@ public:
   // As a variable:
   void varTrans(action act, coenv &e, types::ty *target);
   types::ty *varGetType(coenv &);
+  trans::varEntry *getCallee(coenv &e, types::signature *sig);
 
   // As a type:
   types::ty *typeTrans(coenv &e, bool tacit = false);
@@ -147,6 +149,7 @@ public:
   // As a variable:
   void varTrans(action act, coenv &, types::ty *target);
   types::ty *varGetType(coenv &);
+  trans::varEntry *getCallee(coenv &e, types::signature *sig);
 
   // As a type:
   types::ty *typeTrans(coenv &e, bool tacit = false);

@@ -26,6 +26,8 @@ public:
   newRecordExp(position pos, ty *result)
     : exp(pos), result(result) {}
 
+  void prettyprint(ostream &out, Int indent);
+
   static types::ty *transFromTyEntry(position pos, coenv &e,
                                      trans::tyEntry *ent);
 

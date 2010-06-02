@@ -30,6 +30,10 @@ void printFrame(frame *f) {
   }
 }
 
+void newRecordExp::prettyprint(ostream &out, Int indent) {
+  prettyname(out, "newRecordExp", indent);
+}
+
 bool newRecordExp::encodeLevel(position pos, coenv &e, trans::tyEntry *ent)
 {
   record *r = dynamic_cast<record *>(ent->t);

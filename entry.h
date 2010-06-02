@@ -230,6 +230,13 @@ class venv {
     key(symbol *name, ty *t)
       : name(name), t(t) {}
 
+    /* A fake key used for searching just based on a signature. */
+    key(symbol *name, signature *sig)
+      : name(name), t(new types::function(types::primError(), sig))
+    {
+      assert(!name->special);
+    }
+
     key(symbol *name, varEntry *v)
       : name(name), t(v->getType()) {}
   };
@@ -340,6 +347,13 @@ public:
   // Look for a function that exactly matches the type given.
   varEntry *lookByType(symbol *name, ty *t) {
     return lookByType(key(name, t));
+  }
+
+  // An optimization heuristic.  Try to guess the signature of a variable and
+  // look it up.  This is allowed to return 0 even if the appropriate variable
+  // exists.
+  varEntry *lookBySignature(symbol *name, signature *sig) {
+    return name->special ? 0 : lookByType(key(name, sig));
   }
 
   ty *getType(symbol *name);

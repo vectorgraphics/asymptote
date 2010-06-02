@@ -39,7 +39,7 @@ public:
   exp(position pos)
     : varinit(pos), ct(0) {}
 
-  void prettyprint(ostream &out, Int indent);
+  void prettyprint(ostream &out, Int indent) = 0;
 
   // When reporting errors with function calls, it is nice to say "no
   // function f(int)" instead of "no function matching signature
@@ -101,6 +101,17 @@ public:
   //      error.
   virtual types::ty *getType(coenv &) = 0;
 
+  // TODO: Explain what this is!
+  virtual trans::varEntry *getCallee(coenv &e, types::signature *sig) {
+//#define DEBUG_GETAPP
+#if DEBUG_GETAPP
+    cout << "exp fail" << endl;
+    cout << "at " << getPos() << endl;
+    prettyprint(cout, 2);
+#endif
+    return 0;
+  }
+
   // Same result as getType, but caches the result so that subsequent
   // calls are faster.  For this to work correctly, the expression should
   // only be used in one place, so the environment doesn't change between
@@ -156,6 +167,8 @@ class tempExp : public exp {
 public:
   tempExp(coenv &e, varinit *v, types::ty *t);
 
+  void prettyprint(ostream &out, Int indent);
+
   types::ty *trans(coenv &e);
 
   types::ty *getType(coenv &) {
@@ -171,6 +184,8 @@ public:
     : exp(pos), v(v) {}
   varEntryExp(position pos, types::ty *t, access *a);
   varEntryExp(position pos, types::ty *t, vm::bltin f);
+
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *getType(coenv &);
   types::ty *trans(coenv &e);
@@ -234,6 +249,13 @@ public:
     return t ? t : types::primError();
   }
 
+  trans::varEntry *getCallee(coenv &e, types::signature *sig) {
+#ifdef DEBUG_GETAPP
+    cout << "nameExp" << endl;
+#endif
+    return value->getCallee(e, sig);
+  }
+
   void transWrite(coenv &e, types::ty *target) {
     value->varTrans(trans::WRITE, e, target);
 
@@ -275,6 +297,12 @@ class fieldExp : public nameExp {
     }
     types::ty *varGetType(coenv &e) {
       return object->getType(e);
+    }
+    trans::varEntry *getCallee(coenv &, types::signature *) {
+#ifdef DEBUG_GETAPP
+      cout << "pseudoName" << endl;
+#endif
+      return 0;
     }
 
     // As a type:
@@ -425,6 +453,11 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
+
+  exp *evaluate(coenv &, types::ty *) {
+    // this has no side-effects
+    return this;
+  }
 };
 
 class literalExp : public exp {
@@ -433,6 +466,11 @@ public:
     : exp(pos) {}
 
   bool scalable() { return false; }
+
+  exp *evaluate(coenv &, types::ty *) {
+    // Literals are constant, they have no side-effects.
+    return this;
+  }
 };
 
 class intExp : public literalExp {
@@ -643,9 +681,13 @@ protected:
 
 private:
   // Per object caching - Cache the application when it's determined.
-  application *ca;
+  application *cachedApp;
 
-  types::signature *argTypes(coenv& e);
+  // In special cases, no application object is needed and we can store the
+  // varEntry used in advance.
+  trans::varEntry *cachedVarEntry;
+
+  types::signature *argTypes(coenv& e, bool *searchable);
   void reportArgErrors(coenv &e);
   application *resolve(coenv &e,
                        types::overloaded *o,
@@ -655,31 +697,42 @@ private:
                                 types::overloaded *o,
                                 types::signature *source,
                                 bool tacit);
-  void reportMismatch(symbol *s,
-                      types::function *ft,
+  void reportMismatch(types::function *ft,
                       types::signature *source);
-  application *getApplication(coenv &e);
 
+  void reportNonFunction();
+
+  // Caches either the application object used to apply the function to the
+  // arguments, or in special cases where the arguments match the function
+  // perfectly, the varEntry of the callee.
+  void cacheAppOrVarEntry(coenv &e, bool tacit);
+
+  types::ty *transPerfectMatch(coenv &e);
 public:
   callExp(position pos, exp *callee, arglist *args)
-    : exp(pos), callee(callee), args(args), ca(0) { assert(args); }
+    : exp(pos), callee(callee), args(args),
+      cachedApp(0), cachedVarEntry(0) { assert(args); }
 
   callExp(position pos, exp *callee)
-    : exp(pos), callee(callee), args(new arglist()), ca(0) {}
+    : exp(pos), callee(callee), args(new arglist()),
+      cachedApp(0), cachedVarEntry(0) {}
 
   callExp(position pos, exp *callee, exp *arg1)
-    : exp(pos), callee(callee), args(new arglist()), ca(0) {
+    : exp(pos), callee(callee), args(new arglist()),
+      cachedApp(0), cachedVarEntry(0) {
     args->add(arg1);
   }
 
   callExp(position pos, exp *callee, exp *arg1, exp *arg2)
-    : exp(pos), callee(callee), args(new arglist()), ca(0) {
+    : exp(pos), callee(callee), args(new arglist()),
+      cachedApp(0), cachedVarEntry(0) {
     args->add(arg1);
     args->add(arg2);
   }
 
   callExp(position pos, exp *callee, exp *arg1, exp *arg2, exp *arg3)
-    : exp(pos), callee(callee), args(new arglist()), ca(0) {
+    : exp(pos), callee(callee), args(new arglist()),
+      cachedApp(0), cachedVarEntry(0) {
     args->add(arg1);
     args->add(arg2);
     args->add(arg3);
@@ -690,6 +743,7 @@ public:
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
 };
+
 
 class pairExp : public exp {
   exp *x;
