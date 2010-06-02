@@ -70,6 +70,12 @@ sub read_types {
     }
 }
 
+# Turn a name into a symbol.
+sub symbolize {
+    my $name = shift;
+    return "symbol::trans(\"" . $name . "\")"
+}
+
 sub asy_params {
     my $params = shift;
     my @params = split m/,\s*/, $params;
@@ -85,7 +91,8 @@ sub asy_params {
         if (not $type_map{$type}) {
             assoc_error($filename, $line, $type);
         }
-        $_ = "formal(" . $type_map{$type} . ", \"" . lc($name) . "\"" . ", " . 
+        $_ = "formal(" . $type_map{$type} . ", " .
+        symbolize(lc($name)) . ", " . 
 	    ($default ? "true" : "false") . ", " . 
 	    ($explicit ? "true" : "false") . ")";
     }
@@ -196,7 +203,7 @@ while (<>) {
   push @builtin, "#line $source_line \"$prefix.in\"\n"
       . "  addFunc(ve, run::" . $cname 
       . ", " . $type_map{$type}
-      . ", " . '"' . $name . '"'
+      . ", " . symbolize($name)
       . ( @params ? ", " . join(", ",@asy_params)
                    : "" )
       . ");\n";

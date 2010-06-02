@@ -57,10 +57,17 @@ public:
   static symbol *ecastsym;
   
   static symbol *literalTrans(string s) {
+#ifdef SYMACC
+    symbol &slot = dict[s];
+    if (slot.name.empty())
+      slot=symbol(s);
+    return &slot;
+#else
     if (dict.find(s) != dict.end())
       return &dict[s];
     else
       return &(dict[s]=symbol(s));
+#endif
   }
 
   static symbol *opTrans(string s) {

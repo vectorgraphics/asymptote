@@ -24,6 +24,8 @@ using mem::string;
 
 #include "camp.tab.h"
 
+#include "opsymbols.h"
+
 #define YY_NO_UNPUT
 
 fileinfo* fi;
@@ -81,8 +83,27 @@ void adjust()
   yylval.pos = here();
 } 
 
+void savesymbol(symbol *name)
+{
+  adjust();
+  yylval.ps.pos=here();
+  yylval.ps.sym=name;
+}
+
+/* For optimization reasons, the operator names are translated into symbols
+ * just once, and can be accessed throughout the code as SYM_PLUS, SYM_DASHES,
+ * etc.  Following the Don't Repeat Yourself principle, the mapping from
+ * strings to names is defined only here in camp.l (because we can't produce
+ * lex rules from a C style macro).
+ * The script opsymbols.pl reads this file scanning for rules using DEFSYMBOL
+ * and creates opsymbols.h which defines the names for use in C++ code.
+ */
+#define DEFSYMBOL(name) \
+    savesymbol(name)
+
 void makesymbol(bool op=true, string text = yytext)
 {
+  // TODO: Refactor to a call to savesymbol.
   adjust();
   yylval.ps.pos=here();
   yylval.ps.sym=op ? symbol::opTrans(text) : symbol::literalTrans(text);
@@ -275,32 +296,33 @@ EXTRAOPS <<|>>|$|$$|@|@@|~
 "}"                {adjust(); return '}'; }
 "."                {adjust(); return '.'; }
 "..."              {adjust(); return ELLIPSIS; }
-"+"                {makesymbol(); return '+'; }
-"-"                {makesymbol(); return '-'; }
-"*"                {makesymbol(); return '*'; }
-"/"                {makesymbol(); return '/'; }
-"%"                {makesymbol(); return '%'; }
-"^"                {makesymbol(); return '^'; }
-"**"               {makesymbol(true,"^"); return '^'; }
+
+"+"                {DEFSYMBOL(SYM_PLUS); return '+'; }
+"-"                {DEFSYMBOL(SYM_MINUS); return '-'; }
+"*"                {DEFSYMBOL(SYM_TIMES); return '*'; }
+"/"                {DEFSYMBOL(SYM_DIVIDE); return '/'; }
+"%"                {DEFSYMBOL(SYM_MOD); return '%'; }
+"^"                {DEFSYMBOL(SYM_CARET); return '^'; }
+"**"               {savesymbol(SYM_CARET); return '^'; }
 "?"                {adjust(); return '?'; }
 "="                {adjust(); return ASSIGN; }
-"=="               {makesymbol(); return EQ; }
-"!="               {makesymbol(); return NEQ; }
-"<"                {makesymbol(); return LT; }
-"<="               {makesymbol(); return LE; }
-">"                {makesymbol(); return GT; }
-">="               {makesymbol(); return GE; }
-"&&"               {makesymbol(); return CAND; }
-"||"               {makesymbol(); return COR; }
-"!"                {makesymbol(); return LOGNOT; }
-"^^"               {makesymbol(); return CARETS; }
-"::"               {makesymbol(); return COLONS; }
-"++"               {makesymbol(); return INCR; }
-".."               {makesymbol(); return DOTS; }
-"--"               {makesymbol(); return DASHES; }
-"---"              {makesymbol(); return LONGDASH; }
-"&"                {makesymbol(); return AMPERSAND; }
-"|"                {makesymbol(); return BAR; }
+"=="               {DEFSYMBOL(SYM_EQ); return EQ; }
+"!="               {DEFSYMBOL(SYM_NEQ); return NEQ; }
+"<"                {DEFSYMBOL(SYM_LT); return LT; }
+"<="               {DEFSYMBOL(SYM_LE); return LE; }
+">"                {DEFSYMBOL(SYM_GT); return GT; }
+">="               {DEFSYMBOL(SYM_GE); return GE; }
+"&&"               {DEFSYMBOL(SYM_CAND); return CAND; }
+"||"               {DEFSYMBOL(SYM_COR); return COR; }
+"!"                {DEFSYMBOL(SYM_LOGNOT); return LOGNOT; }
+"^^"               {DEFSYMBOL(SYM_CARETS); return CARETS; }
+"::"               {DEFSYMBOL(SYM_COLONS); return COLONS; }
+"++"               {DEFSYMBOL(SYM_INCR); return INCR; }
+".."               {DEFSYMBOL(SYM_DOTS); return DOTS; }
+"--"               {DEFSYMBOL(SYM_DASHES); return DASHES; }
+"---"              {DEFSYMBOL(SYM_LONGDASH); return LONGDASH; }
+"&"                {DEFSYMBOL(SYM_AMPERSAND); return AMPERSAND; }
+"|"                {DEFSYMBOL(SYM_BAR); return BAR; }
 {EXTRAOPS}         {makesymbol(); return OPERATOR; }
 
 "+="               {makeselfsymbol(); return ADD; }
@@ -311,10 +333,10 @@ EXTRAOPS <<|>>|$|$$|@|@@|~
 "^="               {makeselfsymbol(); return EXPONENT; }
 
 and                {adjust(); return AND; }
-controls           {makesymbol(); return CONTROLS; }
-tension            {makesymbol(); return TENSION; }
-atleast            {makesymbol(); return ATLEAST; }
-curl               {makesymbol(); return CURL; }
+controls           {DEFSYMBOL(SYM_CONTROLS); return CONTROLS; }
+tension            {DEFSYMBOL(SYM_TENSION); return TENSION; }
+atleast            {DEFSYMBOL(SYM_ATLEAST); return ATLEAST; }
+curl               {DEFSYMBOL(SYM_CURL); return CURL; }
 
 if                 {adjust(); return IF; }
 else               {adjust(); return ELSE; }

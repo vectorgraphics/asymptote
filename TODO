@@ -1,3 +1,15 @@
+Andy: possible optimizations:
+    only hash first 3 or 4 args of signature
+    hashify symbol table
+    rm transToType from varinitArg::trans
+    run a perfect match through multimatch first (no casting allowed)
+    STATIC_SYMBOL(name) define to avoid retranslating symbols in addOps
+    change camp.y to flag arglists with named args
+    remove addFunctionOps in favor of == and != defined in types.h
+    remove most makesymbols in camp.l
+    
+Andy: operator tuple, to let people define their own tuples
+
 Andy: implement operator init(A a) copy constructors.
 
 Andy and John: (if possible) automatically turn expressions with array

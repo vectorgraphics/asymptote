@@ -146,8 +146,11 @@ lex.yy.cc: camp.l
 
 lex.yy.d: $(GCLIB) lex.yy.cc camp.tab.h
 
-keywords.cc: keywords.pl camp.l
+keywords.cc: keywords.pl camp.l process.cc
 	./keywords.pl
+
+opsymbols.h: opsymbols.pl camp.l
+	./opsymbols.pl
 
 envcompleter.d: keywords.cc
 

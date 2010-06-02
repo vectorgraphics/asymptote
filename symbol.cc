@@ -22,3 +22,8 @@ symbol *symbol::ecastsym=symbol::specialTrans(string("operator ecast"));
 
 } // namespace sym
 
+/* Define all of operator symbols SYM_PLUS, etc. */
+#define OPSYMBOL(str, name) \
+  sym::symbol *name = sym::symbol::opTrans(str)
+#include "opsymbols.h"
+#undef OPSYMBOL

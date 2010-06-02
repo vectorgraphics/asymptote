@@ -281,12 +281,17 @@ struct formal {
     : t(t), name(name),
       defval(optional ? absyntax::Default : 0), Explicit(Explicit) {}
 
+  // string->symbol translation is costly if done too many times.  This
+  // constructor has been disabled to make this cost more visible to the
+  // programmer.
+#if 0
   formal(ty *t,
          const char *name,
          bool optional=false,
          bool Explicit=false)
     : t(t), name(symbol::trans(name)),
       defval(optional ? absyntax::Default : 0), Explicit(Explicit) {}
+#endif
 
   friend ostream& operator<< (ostream& out, const formal& f);
 };

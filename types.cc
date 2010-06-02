@@ -100,19 +100,23 @@ void ty::print(ostream& out) const
   FIELD(GetType,#name,name##Part);        \
   SIGFIELD(SetType,#name,name##Set);
 
+
+// TODO: Move to symbol.h
+#define SYM( x ) symbol::trans(#x)
+
 ty *dimensionType() {
   return new function(primFile(),
-                      formal(primInt(),"nx",true),
-                      formal(primInt(),"ny",true),
-                      formal(primInt(),"nz",true));
+                      formal(primInt(),SYM(nx),true),
+                      formal(primInt(),SYM(ny),true),
+                      formal(primInt(),SYM(nz),true));
 }
 
 ty *modeType() {
-  return new function(primFile(),formal(primBoolean(),"b", true));
+  return new function(primFile(),formal(primBoolean(),SYM(b), true));
 }
 
 ty *readType() {
-  return new function(primFile(), formal(primInt(), "i"));
+  return new function(primFile(), formal(primInt(), SYM(i)));
 }
 
 trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
@@ -232,7 +236,7 @@ trans::access *array::initializer()
 ty *array::pushType()
 {
   if (pushtype == 0)
-    pushtype = new function(celltype,formal(celltype,"x"));
+    pushtype = new function(celltype,formal(celltype,SYM(x)));
 
   return pushtype;
 }
@@ -248,7 +252,7 @@ ty *array::popType()
 ty *array::appendType()
 {
   if (appendtype == 0)
-    appendtype = new function(primVoid(),formal(this,"a"));
+    appendtype = new function(primVoid(),formal(this,SYM(a)));
 
   return appendtype;
 }
@@ -256,7 +260,7 @@ ty *array::appendType()
 ty *array::insertType()
 {
   if (inserttype == 0) {
-    function *f=new function(primVoid(),formal(primInt(),"i"));
+    function *f=new function(primVoid(),formal(primInt(),SYM(i)));
     f->addRest(this);
     inserttype = f;
   }
@@ -267,14 +271,14 @@ ty *array::insertType()
 ty *array::deleteType()
 {
   if (deletetype == 0)
-    deletetype = new function(primVoid(),formal(primInt(),"i",true),
-                              formal(primInt(),"j",true));
+    deletetype = new function(primVoid(),formal(primInt(),SYM(i),true),
+                              formal(primInt(),SYM(j),true));
 
   return deletetype;
 }
 
 ty *initializedType() {
-  return new function(primBoolean(),formal(primInt(),"i"));
+  return new function(primBoolean(),formal(primInt(),SYM(i)));
 }
 
 #define SIGFIELDLIST \
