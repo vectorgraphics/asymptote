@@ -623,6 +623,10 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
 
 void drawSphere::P(Triple& t, double x, double y, double z)
 {
+  if(half) {
+    double temp=z; z=x; x=-temp;
+  }
+  
   double f=T[12]*x+T[13]*y+T[14]*z+T[15];
   if(f == 0.0) run::dividebyzero();
   f=1.0/f;
@@ -720,8 +724,11 @@ bool drawSphere::write(prcfile *out, unsigned int *, array *, array *, double)
 
       out->addSurface(2,3,3,4,p0,uknot,vknot,m,Weights);
       out->addSurface(2,3,3,4,p0+4,uknot,vknot,m,Weights);
-      out->addSurface(2,3,3,4,p0+8,uknot,vknot,m,Weights);
-      out->addSurface(2,3,3,4,p0+12,uknot,vknot,m,Weights);
+      if(!half) {
+        out->addSurface(2,3,3,4,p0+8,uknot,vknot,m,Weights);
+        out->addSurface(2,3,3,4,p0+12,uknot,vknot,m,Weights);
+      }
+      
       break;
     }
     default:

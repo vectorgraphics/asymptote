@@ -294,7 +294,7 @@ path3 interp(path3 a, path3 b, real t)
 struct tube
 {
   surface s;
-  path3 center;
+  path3 center; // tube axis
 
   void Null(transform3) {}
   void Null(transform3, bool) {}
@@ -304,8 +304,6 @@ struct tube
                      void cylinder(transform3)=Null,
                      void sphere(transform3, bool half)=Null,
                      void tube(path3, path3)=null) {
-    sectors += sectors % 2; // Must be even.
-    int h=quotient(sectors,2);
     real r=0.5*width;
 
     void generate(path3 p) {
@@ -349,18 +347,35 @@ struct tube
           triple[] pre=new triple[n+1];
           triple[] point=new triple[n+1];
           triple[] post=new triple[n+1];
+          real factor=1/sectors;
+
           int[] index=S.index[0];
-          pre[0]=point[0]=0.5*(S.s[index[0]].P[0][0]+S.s[index[h]].P[0][0]);
+          triple Point;
+          for(int m=0; m < sectors; ++m)
+              Point += S.s[index[m]].P[0][0];
+          pre[0]=point[0]=factor*Point;
+            
           for(int i=0; i < n; ++i) {
             index=S.index[i];
-            triple [][] P=S.s[index[0]].P;
-            triple [][] Q=S.s[index[h]].P;
-            post[i]=0.5*(P[1][0]+Q[1][0]);
-            pre[i+1]=0.5*(P[2][0]+Q[2][0]);
-            point[i+1]=0.5*(P[3][0]+Q[3][0]);
+            triple Pre,Point,Post;
+            for(int m=0; m < sectors; ++m) {
+              triple [][] P=S.s[index[m]].P;
+              Post += P[1][0];
+              Pre += P[2][0];
+              Point += P[3][0];
+            }
+            post[i]=factor*Post;
+            pre[i+1]=factor*Pre;
+            point[i+1]=factor*Point;
+
           }
+
           index=S.index[n-1];
-          post[n]=0.5*(S.s[index[0]].P[3][0]+S.s[index[h]].P[3][0]);
+          triple Post;
+          for(int m=0; m < sectors; ++m)
+              Post += S.s[index[m]].P[3][0];
+          post[n]=factor*Post;
+
           path3 Center=path3(pre,point,post,array(n+1,false),T.cyclic);
           center=center&Center;
 
@@ -368,17 +383,14 @@ struct tube
             triple[] pre=new triple[n+1];
             triple[] point=new triple[n+1];
             triple[] post=new triple[n+1];
-            int[] index=S.index[0];
-            pre[0]=point[0]=S.s[index[0]].P[0][0];
+            pre[0]=point[0]=S.s[S.index[0][0]].P[0][0];
             for(int i=0; i < n; ++i) {
-              index=S.index[i];
-              triple [][] P=S.s[index[0]].P;
+              triple [][] P=S.s[S.index[i][0]].P;
               post[i]=P[1][0];
               pre[i+1]=P[2][0];
               point[i+1]=P[3][0];
             }
-            index=S.index[n-1];
-            post[n]=S.s[index[0]].P[3][0];
+            post[n]=S.s[S.index[n-1][0]].P[3][0];
             tube(Center,path3(pre,point,post,array(n+1,false),T.cyclic));
           }
         }
@@ -392,9 +404,12 @@ struct tube
     for(int i=cyclic ? 0 : 1; i < n; ++i)
      if(abs(dir(p,i,1)-dir(p,i,-1)) > sqrtEpsilon) {
        generate(subpath(p,begin,i));
-       transform3 t=shift(point(p,i))*t*align(dir(p,i,-1));
-       s.append(t*unithemisphere);
-       sphere(t,half=true);
+       triple dir=dir(p,i,-1);
+       s.append(shift(point(p,i))*t*align(dir)*
+                (dir != O ? unithemisphere : unitsphere));
+       int L=length(center);
+       dir=dir(center,L,-1);
+       sphere(shift(point(center,L))*t*align(dir),half=dir != O);
        begin=i;
      }
     generate(subpath(p,begin,n));

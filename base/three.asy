@@ -25,7 +25,6 @@ real defaultcompression=High;
 int defaultsphere=NURBSsphere; // Currently only used for PRC dots.
 
 real tubegranularity=0.005;
-bool PRCtube=true;           // Set to false for higher-quality PRC tubes.
 
 int linesectors=8;        // Number of angular sectors.
 real angleprecision=1e-5; // Precision for centering perspective projections.
@@ -2115,7 +2114,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
         if(width > 0) {
           bool prc=prc();
           void cylinder(transform3) {};
-          void sphere(transform3, bool) {};
+          void sphere(transform3, bool half) {};
           void disk(transform3) {};
           void tube(path3, path3);
           if(prc) {
@@ -2123,53 +2122,66 @@ draw=new void(frame f, path3 g, material p=currentpen,
             sphere=new void(transform3 t, bool half)
               {drawPRCsphere(f,t,p,half,light);};
             disk=new void(transform3 t) {drawPRCdisk(f,t,p,light);};
-            if(PRCtube)
-              tube=new void(path3 center, path3 g)
-                {drawPRCtube(f,center,g,p,light);};
+            tube=new void(path3 center, path3 g)
+              {drawPRCtube(f,center,g,p,light);};
+          }
+          real linecap;
+          real r;
+          bool open=!cyclic(g);
+          int L=length(g);
+          triple g0,gL;
+          if(open) {
+            g0=point(g,0);
+            gL=point(g,L);
+            linecap=linecap(q);
+            r=0.5*width;
+            if(linecap == 2) {
+              triple dir0=dir(g,0);
+              triple dirL=dir(g,L);
+              transform3 t0=shift(g0)*align(-dir0);
+              transform3 tL=shift(gL)*align(dirL);
+              g0 -= r*dir0;
+              gL += r*dirL;
+              g=g0..g..gL;
+              L += 2;
+            }
           }
           tube T=tube(g,width,linesectors,cylinder,sphere,tube);
-          if(prc)
-            for(int i=0; i < T.s.s.length; ++i)
-              draw3D(f,T.s.s[i],p,light,prc=!PRCtube && !straight(T.center,i));
-          int L=length(g);
+          path3 c=T.center;
           if(L >= 0) {
-            if(!cyclic(g)) {
-              real r=0.5*width;
-              real linecap=linecap(q);
-              transform3 scale3r=scale3(r);
-              surface cap;
-              triple dirL=dir(g,L);
+            if(open) {
+              int Lc=length(c);
+              triple c0=point(c,0);
+              triple cL=point(c,Lc);
               triple dir0=dir(g,0);
-              transform3 t0=shift(point(g,0))*align(-dir0);
-              transform3 tL=shift(point(g,L))*align(dirL);
-              if(linecap == 0) {
+              triple dirL=dir(g,L);
+              triple dirc0=dir(c,0);
+              triple dircL=dir(c,Lc);
+              transform3 t0=shift(g0)*align(-dir0);
+              transform3 tL=shift(gL)*align(dirL);
+              transform3 tc0=shift(c0)*align(-dirc0);
+              transform3 tcL=shift(cL)*align(dircL);
+              if(linecap == 0 || linecap == 2) {
                 transform3 scale2r=scale(r,r,1);
-                cap=scale2r*unitdisk;
+                T.s.append(t0*scale2r*unitdisk);
+                T.s.append(tL*scale2r*unitdisk);
                 disk(t0*scale2r);
                 disk(tL*scale2r);
               } else if(linecap == 1) {
-                bool half=dir0 != O && dirL != O;
-                cap=scale3r*(half ? unithemisphere : unitsphere);
-                sphere(t0*scale3r,half);
-                sphere(tL*scale3r,half);
-              } else if(linecap == 2) {
-                cap=scale3r*unitcylinder;
-                transform3 t=scale3r*shift(Z);
-                cap.append(t*unitdisk);
-                disk(t0*t);
-                disk(tL*t);
-                cylinder(t0*scale3r);
-                cylinder(tL*scale3r);
+                transform3 scale3r=scale3(r);
+                T.s.append(t0*scale3r*
+                           (dir0 != O ? unithemisphere : unitsphere));
+                T.s.append(tL*scale3r*
+                           (dirL != O ? unithemisphere : unitsphere));
+                sphere(tc0*scale3r,half=dirc0 != O);
+                sphere(tcL*scale3r,half=dircL != O);
               }
-              T.s.append(t0*cap);
-              T.s.append(tL*cap);
             }
             if(opacity(q) == 1)
-              _draw(f,T.center,q);
+              _draw(f,c,q);
           }
-          if(!prc)
-            for(patch s : T.s.s)
-            draw3D(f,s,p,light);
+          for(patch s : T.s.s)
+            draw3D(f,s,p,light,prc=false);
         } else _draw(f,g,q);
       } else _draw(f,g,q);
     }

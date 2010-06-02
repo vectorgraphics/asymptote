@@ -15,10 +15,7 @@ path3 p=z[0]..z[1]---z[2]::{Y}z[3]
 &z[3]..z[4]--z[5]::{Y}z[6]
 &z[6]::z[7]---z[8]..{Y}z[9];
 
-draw(p,grey+linewidth(4mm)+opacity(0.5));
+draw(p,grey+linewidth(4mm),currentlight);
 
 xaxis3(Label(XY()*"$x$",align=-3Y),red,above=true);
 yaxis3(Label(XY()*"$y$",align=-3X),red,above=true);
-
-dot(z);
-
