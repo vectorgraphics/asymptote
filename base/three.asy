@@ -22,7 +22,7 @@ restricted int NURBSsphere=1; // Renders fast but produces larger PRC files.
 
 real defaultshininess=0.25;
 real defaultcompression=High;
-int defaultsphere=PRCsphere; // Currently only used for PRC dots.
+int defaultsphere=NURBSsphere; // Currently only used for PRC dots.
 
 real tubegranularity=0.005;
 bool PRCtube=true;           // Set to false for higher-quality PRC tubes.
@@ -2121,7 +2121,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
           if(prc) {
             cylinder=new void(transform3 t) {drawPRCcylinder(f,t,p,light);};
             sphere=new void(transform3 t, bool half)
-              {drawPRCsphere(f,t,p,0,half,light);};
+              {drawPRCsphere(f,t,p,half,light);};
             disk=new void(transform3 t) {drawPRCdisk(f,t,p,light);};
             if(PRCtube)
               tube=new void(path3 center, path3 g)

@@ -302,7 +302,7 @@ struct tube
   void operator init(path3 p, real width, int sectors=4,
                      real granularity=tubegranularity,
                      void cylinder(transform3)=Null,
-                     void sphere(transform3, bool)=Null,
+                     void sphere(transform3, bool half)=Null,
                      void tube(path3, path3)=null) {
     sectors += sectors % 2; // Must be even.
     int h=quotient(sectors,2);
@@ -364,7 +364,7 @@ struct tube
           path3 Center=path3(pre,point,post,array(n+1,false),T.cyclic);
           center=center&Center;
 
-          if(tube != null) {
+          if(tube != null) { // Compute path along tube
             triple[] pre=new triple[n+1];
             triple[] point=new triple[n+1];
             triple[] post=new triple[n+1];
@@ -394,7 +394,7 @@ struct tube
        generate(subpath(p,begin,i));
        transform3 t=shift(point(p,i))*t*align(dir(p,i,-1));
        s.append(t*unithemisphere);
-       sphere(t,false);
+       sphere(t,half=true);
        begin=i;
      }
     generate(subpath(p,begin,n));
