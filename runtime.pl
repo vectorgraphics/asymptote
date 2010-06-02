@@ -70,9 +70,22 @@ sub read_types {
     }
 }
 
+# Scrape the symbol names of the operators from opsymbols.h.
+my %opsymbols = ();
+open(opsyms, "opsymbols.h") ||
+        die("Couldn't open opsymbols.h");
+while (<opsyms>) {
+    if (m/^OPSYMBOL\(\"(.*)\", ([A-Za-z_]+)\);/) {
+        $opsymbols{ $1 } = $2;
+    }
+}
+
 # Turn a name into a symbol.
 sub symbolize {
     my $name = shift;
+    if ($opsymbols{ $name }) {
+        return $opsymbols{ $name };
+    }
     return "symbol::trans(\"" . $name . "\")"
 }
 

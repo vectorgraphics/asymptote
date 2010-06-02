@@ -133,7 +133,7 @@ man:	asy
 faq:	asy
 	cd doc && $(MAKE) faq
 
-$(RUNTIME_FILES:=.cc): %.cc: runtime.pl runtimebase.in %.in
+$(RUNTIME_FILES:=.cc): %.cc: runtime.pl opsymbols.h runtimebase.in %.in
 	./runtime.pl $(@:.cc=)
 
 camp.tab.cc: camp.y

@@ -28,6 +28,7 @@ string   => primString()
 #include "array.h"
 #include "triple.h"
 #include "callable.h"
+#include "opsymbols.h"
 
 using vm::stack;
 using vm::error;
