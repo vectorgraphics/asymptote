@@ -18,14 +18,14 @@ bool drawPath3::write(prcfile *out, unsigned int *count, array *, array *,
     return true;
 
   if(straight) {
-    controls=new(UseGC) Triple[n+1];
+    Triple *controls=new(UseGC) Triple[n+1];
     for(Int i=0; i <= n; ++i)
       store(controls[i],g.point(i));
     
     out->addLine(n+1,controls,color);
   } else {
     int m=3*n+1;
-    controls=new(UseGC) Triple[m];
+    Triple *controls=new(UseGC) Triple[m];
     store(controls[0],g.point((Int) 0));
     store(controls[1],g.postcontrol((Int) 0));
     size_t k=1;
@@ -34,8 +34,8 @@ bool drawPath3::write(prcfile *out, unsigned int *count, array *, array *,
       store(controls[++k],g.point(i));
       store(controls[++k],g.postcontrol(i));
     }
-    store(controls[++k],g.precontrol((Int) n));
-    store(controls[++k],g.point((Int) n));
+    store(controls[++k],g.precontrol(n));
+    store(controls[++k],g.point(n));
     out->addBezierCurve(m,controls,color);
   }
   

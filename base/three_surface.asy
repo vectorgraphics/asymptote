@@ -1150,30 +1150,54 @@ interaction LabelInteraction()
   return settings.autobillboard ? Billboard : Embedded;
 }
 
+private material material(material m, light light) 
+{
+  return light.on() || invisible((pen) m) ? m : emissive(m);
+}
+
 void draw3D(frame f, int type=0, patch s, triple center=O, material m,
             light light=currentlight, interaction interaction=Embedded,
             bool prc=true)
 {
   if(s.colors.length > 0)
     m=mean(s.colors);
-  bool lighton=light.on();
-  if(!lighton && !invisible((pen) m))
-    m=emissive(m);
+  m=material(m,light);
   real PRCshininess;
   if(prc())
     PRCshininess=PRCshininess(m.shininess);
   
   draw(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,PRCshininess,
        s.planar ? s.normal(0.5,0.5) : O,s.colors,
-       lighton,interaction.type,prc);
+       light.on(),interaction.type,prc);
 }
 
 void drawPRCsphere(frame f, transform3 t=identity4, material m,
-                   int type=defaultspheretype, light light=currentlight)
+                   int type=defaultsphere, bool half=false,
+                   light light=currentlight)
 {
-  if(!light.on() && !invisible((pen) m))
-    m=emissive(m);
-  drawPRCsphere(f,t,m.p,m.opacity,PRCshininess(m.shininess),type);
+  m=material(m,light);
+  drawPRCsphere(f,t,m.p,m.opacity,PRCshininess(m.shininess),type,half);
+}
+
+void drawPRCcylinder(frame f, transform3 t=identity4, material m,
+                     light light=currentlight)
+{
+  m=material(m,light);
+  drawPRCcylinder(f,t,m.p,m.opacity,PRCshininess(m.shininess));
+}
+
+void drawPRCdisk(frame f, transform3 t=identity4, material m,
+                 light light=currentlight)
+{
+  m=material(m,light);
+  drawPRCdisk(f,t,m.p,m.opacity,PRCshininess(m.shininess));
+}
+
+void drawPRCtube(frame f, path3 center, path3 g, material m,
+                 light light=currentlight)
+{
+  m=material(m,light);
+  drawPRCtube(f,center,g,m.p,m.opacity,PRCshininess(m.shininess));
 }
 
 void tensorshade(transform t=identity(), frame f, patch s,
@@ -1702,9 +1726,9 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
   pen q=(pen) p;
   real size=0.5*linewidth(dotsize(q)+q);
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
+      triple V=t*v;
       if(is3D()) {
         begingroup(f,name,compression);
-        triple V=t*v;
         transform3 T=shift(V)*scale3(size);
         for(patch s : unitsphere.s)
           draw3D(f,T*s,V,p,light,prc=false);
@@ -1713,7 +1737,7 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
         endgroup(f);
       }
       if(pic != null)
-        dot(pic,project(t*v,P.t),q);
+        dot(pic,project(V,P.t),q);
     },true);
   triple R=size*(1,1,1);
   pic.addBox(v,v,-R,R);

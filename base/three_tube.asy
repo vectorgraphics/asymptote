@@ -296,8 +296,14 @@ struct tube
   surface s;
   path3 center;
 
+  void Null(transform3) {}
+  void Null(transform3, bool) {}
+  
   void operator init(path3 p, real width, int sectors=4,
-                     real granularity=tubegranularity) {
+                     real granularity=tubegranularity,
+                     void cylinder(transform3)=Null,
+                     void sphere(transform3, bool)=Null,
+                     void tube(path3, path3)=null) {
     sectors += sectors % 2; // Must be even.
     int h=quotient(sectors,2);
     real r=0.5*width;
@@ -308,7 +314,9 @@ struct tube
         for(int i=0; i < n; ++i) {
           triple v=point(p,i);
           triple u=point(p,i+1)-v;
-          s.append(shift(v)*align(unit(u))*scale(r,r,abs(u))*unitcylinder);
+          transform3 t=shift(v)*align(unit(u))*scale(r,r,abs(u));
+          s.append(t*unitcylinder);
+          cylinder(t);
         }
         center=center&p;
       } else {
@@ -353,7 +361,26 @@ struct tube
           }
           index=S.index[n-1];
           post[n]=0.5*(S.s[index[0]].P[3][0]+S.s[index[h]].P[3][0]);
-          center=center&path3(pre,point,post,array(n+1,false),T.cyclic);
+          path3 Center=path3(pre,point,post,array(n+1,false),T.cyclic);
+          center=center&Center;
+
+          if(tube != null) {
+            triple[] pre=new triple[n+1];
+            triple[] point=new triple[n+1];
+            triple[] post=new triple[n+1];
+            int[] index=S.index[0];
+            pre[0]=point[0]=S.s[index[0]].P[0][0];
+            for(int i=0; i < n; ++i) {
+              index=S.index[i];
+              triple [][] P=S.s[index[0]].P;
+              post[i]=P[1][0];
+              pre[i+1]=P[2][0];
+              point[i+1]=P[3][0];
+            }
+            index=S.index[n-1];
+            post[n]=S.s[index[0]].P[3][0];
+            tube(Center,path3(pre,point,post,array(n+1,false),T.cyclic));
+          }
         }
       }
     }
@@ -365,7 +392,9 @@ struct tube
     for(int i=cyclic ? 0 : 1; i < n; ++i)
      if(abs(dir(p,i,1)-dir(p,i,-1)) > sqrtEpsilon) {
        generate(subpath(p,begin,i));
-       s.append(shift(point(p,i))*t*align(dir(p,i,-1))*unithemisphere);
+       transform3 t=shift(point(p,i))*t*align(dir(p,i,-1));
+       s.append(t*unithemisphere);
+       sphere(t,false);
        begin=i;
      }
     generate(subpath(p,begin,n));

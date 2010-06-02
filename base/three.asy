@@ -22,9 +22,11 @@ restricted int NURBSsphere=1; // Renders fast but produces larger PRC files.
 
 real defaultshininess=0.25;
 real defaultcompression=High;
-int defaultspheretype=NURBSsphere;
+int defaultsphere=PRCsphere; // Currently only used for PRC dots.
 
 real tubegranularity=0.005;
+bool PRCtube=true;           // Set to false for higher-quality PRC tubes.
+
 int linesectors=8;        // Number of angular sectors.
 real angleprecision=1e-5; // Precision for centering perspective projections.
 int maxangleiterations=25;
@@ -2108,7 +2110,24 @@ draw=new void(frame f, path3 g, material p=currentpen,
       if(settings.thick) {
         real width=linewidth(q);
         if(width > 0) {
-          tube T=tube(g,width,linesectors);
+          bool prc=prc();
+          void cylinder(transform3) {};
+          void sphere(transform3, bool) {};
+          void disk(transform3) {};
+          void tube(path3, path3);
+          if(prc) {
+            cylinder=new void(transform3 t) {drawPRCcylinder(f,t,p,light);};
+            sphere=new void(transform3 t, bool half)
+              {drawPRCsphere(f,t,p,0,half,light);};
+            disk=new void(transform3 t) {drawPRCdisk(f,t,p,light);};
+            if(PRCtube)
+              tube=new void(path3 center, path3 g)
+                {drawPRCtube(f,center,g,p,light);};
+          }
+          tube T=tube(g,width,linesectors,cylinder,sphere,tube);
+          if(prc)
+            for(int i=0; i < T.s.s.length; ++i)
+              draw3D(f,T.s.s[i],p,light,prc=!PRCtube && !straight(T.center,i));
           int L=length(g);
           if(L >= 0) {
             if(!cyclic(g)) {
@@ -2118,23 +2137,36 @@ draw=new void(frame f, path3 g, material p=currentpen,
               surface cap;
               triple dirL=dir(g,L);
               triple dir0=dir(g,0);
-              if(linecap == 0)
-                cap=scale(r,r,1)*unitdisk;
-              else if(linecap == 1)
-                cap=scale3r*((dir0 == O || dirL == O) ?
-                             unitsphere : unithemisphere);
-              else if(linecap == 2) {
+              transform3 t0=shift(point(g,0))*align(-dir0);
+              transform3 tL=shift(point(g,L))*align(dirL);
+              if(linecap == 0) {
+                transform3 scale2r=scale(r,r,1);
+                cap=scale2r*unitdisk;
+                disk(t0*scale2r);
+                disk(tL*scale2r);
+              } else if(linecap == 1) {
+                bool half=dir0 != O && dirL != O;
+                cap=scale3r*(half ? unithemisphere : unitsphere);
+                sphere(t0*scale3r,half);
+                sphere(tL*scale3r,half);
+              } else if(linecap == 2) {
                 cap=scale3r*unitcylinder;
-                cap.append(scale3r*shift(Z)*unitdisk);
+                transform3 t=scale3r*shift(Z);
+                cap.append(t*unitdisk);
+                disk(t0*t);
+                disk(tL*t);
+                cylinder(t0*scale3r);
+                cylinder(tL*scale3r);
               }
-              T.s.append(shift(point(g,0))*align(-dir0)*cap);
-              T.s.append(shift(point(g,L))*align(dirL)*cap);
+              T.s.append(t0*cap);
+              T.s.append(tL*cap);
             }
             if(opacity(q) == 1)
               _draw(f,T.center,q);
           }
-          for(int i=0; i < T.s.s.length; ++i)
-            draw3D(f,T.s.s[i],p,light);
+          if(!prc)
+            for(patch s : T.s.s)
+            draw3D(f,s,p,light);
         } else _draw(f,g,q);
       } else _draw(f,g,q);
     }

@@ -632,6 +632,14 @@ void drawSphere::P(Triple& t, double x, double y, double z)
   t[2]=(T[8]*x+T[9]*y+T[10]*z+T[11])*f;
 }
 
+static const Triple origin={0,0,0};
+static const Triple xaxis={1,0,0};
+static const Triple yaxis={0,1,0};
+static const double Identity4[4][4]={{1.0,0.0,0.0,0.0},
+                                     {0.0,1.0,0.0,0.0},
+                                     {0.0,0.0,1.0,0.0},
+                                     {0.0,0.0,0.0,1.0}};
+
 bool drawSphere::write(prcfile *out, unsigned int *, array *, array *, double)
 {
   if(invisible)
@@ -642,19 +650,10 @@ bool drawSphere::write(prcfile *out, unsigned int *, array *, array *, double)
   switch(type) {
     case 0: // PRCsphere
     {
-      static Triple center={0,0,0};
-      static Triple xaxis={1,0,0};
-      static Triple yaxis={0,1,0};
-
-      double S[4][4];
-      for(size_t i=0; i < 4; ++i) {
-        double *Si=S[i];
-        double *Ti=T+4*i;
-        for(size_t j=0; j < 4; ++j)
-          Si[j]=Ti[j];
-      }     
-
-      out->addSphere(1.0,m,center,xaxis,yaxis,1.0,S);
+      if(half) 
+        out->addHemisphere(1.0,m,origin,xaxis,yaxis,1.0,(double (*)[4]) T);
+      else
+        out->addSphere(1.0,m,origin,xaxis,yaxis,1.0,(double (*)[4]) T);
       break;
     }
     case 1: // NURBSsphere
@@ -726,9 +725,85 @@ bool drawSphere::write(prcfile *out, unsigned int *, array *, array *, double)
       break;
     }
     default:
-      reportError("Invalid PRCsphere type");
+      reportError("Invalid sphere type");
   }
   
+  return true;
+}
+
+bool drawCylinder::write(prcfile *out, unsigned int *, array *, array *, double)
+{
+  if(invisible)
+    return true;
+
+  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  
+  out->addCylinder(1.0,1.0,m,origin,xaxis,yaxis,1.0,(double (*)[4]) T);
+  
+  return true;
+}
+  
+bool drawDisk::write(prcfile *out, unsigned int *, array *, array *, double)
+{
+  if(invisible)
+    return true;
+
+  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  
+  out->addDisk(1.0,m,origin,xaxis,yaxis,1.0,(double (*)[4]) T);
+  
+  return true;
+}
+  
+bool drawTube::write(prcfile *out, unsigned int *, array *, array *, double)
+{
+  if(invisible)
+    return true;
+
+  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
+  
+  Int n=center.length();
+  
+  if(center.piecewisestraight()) {
+    Triple *centerControls=new(UseGC) Triple[n+1];
+    for(Int i=0; i <= n; ++i)
+      store(centerControls[i],center.point(i));
+    size_t N=n+1;
+    Triple *controls=new(UseGC) Triple[N];
+    for(Int i=0; i <= n; ++i)
+      store(controls[i],g.point(i));
+    out->addTube(N,centerControls,controls,true,m,origin,xaxis,yaxis,1.0,
+                 Identity4);
+  } else {
+    size_t N=3*n+1;
+    Triple *centerControls=new(UseGC) Triple[N];
+    store(centerControls[0],center.point((Int) 0));
+    store(centerControls[1],center.postcontrol((Int) 0));
+    size_t k=1;
+    for(Int i=1; i < n; ++i) {
+      store(centerControls[++k],center.precontrol(i));
+      store(centerControls[++k],center.point(i));
+      store(centerControls[++k],center.postcontrol(i));
+    }
+    store(centerControls[++k],center.precontrol(n));
+    store(centerControls[++k],center.point(n));
+    
+    Triple *controls=new(UseGC) Triple[N];
+    store(controls[0],g.point((Int) 0));
+    store(controls[1],g.postcontrol((Int) 0));
+    k=1;
+    for(Int i=1; i < n; ++i) {
+      store(controls[++k],g.precontrol(i));
+      store(controls[++k],g.point(i));
+      store(controls[++k],g.postcontrol(i));
+    }
+    store(controls[++k],g.precontrol(n));
+    store(controls[++k],g.point(n));
+    
+    out->addTube(N,centerControls,controls,false,m,origin,xaxis,yaxis,1.0,
+                 Identity4);
+  }
+      
   return true;
 }
 
