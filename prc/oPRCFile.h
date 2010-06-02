@@ -148,12 +148,14 @@ class PRCoptions
 public:
   bool closed;   // render the surface as one-sided; may yield faster rendering 
   bool tess;     // use tessellated mesh to store straight patches
-  bool do_break;
+  bool do_break; // 
   bool no_break; // do not render transparent patches as one-faced nodes
   bool ignore;
   
-  PRCoptions() : closed(false), tess(false), do_break(true),
-                 no_break(false), ignore(false) {}
+  PRCoptions(bool closed=false, bool tess=false, bool do_break=true,
+             bool no_break=false, bool ignore=false)
+    : closed(closed), tess(tess), do_break(do_break), no_break(no_break),
+      ignore(ignore) {}
 };
 
 class PRCgroup

@@ -2011,11 +2011,14 @@ void draw(frame f, path3 g, material p=currentpen, light light=nolight,
           projection P=currentprojection);
 
 void begingroup3(picture pic=currentpicture, string name="",
-                 real compression=defaultcompression)
+                 real compression=defaultcompression,
+                 bool closed=false, bool tessellate=false,
+                 bool3 group=false)
 {
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
-        begingroup(f,name,compression);
+        begingroup(f,name,compression,closed,tessellate,
+                   group == false,group == true);
       if(pic != null)
         begingroup(pic);
     },true);

@@ -244,15 +244,18 @@ void grestore(picture *f)
   f->append(new drawGrestore());
 }
 
-void begingroup(picture *f, string name=emptystring, real compression=0)
+void begingroup(picture *f, string name=emptystring, real compression=0,
+                bool closed, bool tessellate, bool dobreak, bool nobreak)
 {
-  f->append(new drawBegin(name,compression));
+  f->append(new drawBegin(name,compression,closed,tessellate,dobreak,nobreak));
 }
 
 void begingroup(picture *f, Int interaction, triple center,
-                string name=emptystring, real compression=0)
+                string name=emptystring, real compression=0,
+                bool closed, bool tessellate, bool dobreak, bool nobreak)
 {
-  f->append(new drawBegin(intcast(interaction),center,name,compression));
+  f->append(new drawBegin(intcast(interaction),center,name,compression,
+                          closed,tessellate,dobreak,nobreak));
 }
 
 void endgroup(picture *f)
