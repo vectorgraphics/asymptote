@@ -36,6 +36,8 @@
 #include "refaccess.h"
 #include "settings.h"
 
+#include "opsymbols.h"
+
 #ifdef HAVE_LIBGSL  
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf.h>
@@ -76,29 +78,6 @@ void gen_runmath_venv(venv &ve);
 // TODO: Move to symbol.h
 #define SYM( x ) symbol::trans(#x)
 
-#define SYM_PLUS   symbol::trans("+")
-#define SYM_MINUS   symbol::trans("-")
-#define SYM_TIMES   symbol::trans("*")
-#define SYM_DIVIDE   symbol::trans("/")
-#define SYM_MOD   symbol::trans("%")
-#define SYM_CARET   symbol::trans("^")
-#define SYM_EQ   symbol::trans("==")
-#define SYM_NEQ   symbol::trans("!=")
-#define SYM_LT   symbol::trans("<")
-#define SYM_LE   symbol::trans("<=")
-#define SYM_GT   symbol::trans(">")
-#define SYM_GE   symbol::trans(">=")
-#define SYM_CAND   symbol::trans("&&")
-#define SYM_COR   symbol::trans("||")
-#define SYM_LOGNOT   symbol::trans("!")
-#define SYM_CARETS   symbol::trans("^^")
-#define SYM_COLONS   symbol::trans("::")
-#define SYM_INCR   symbol::trans("++")
-#define SYM_DOTS   symbol::trans("..")
-#define SYM_DASHES   symbol::trans("--")
-#define SYM_LONGDASH   symbol::trans("---")
-#define SYM_AMPERSAND   symbol::trans("&")
-#define SYM_BAR   symbol::trans("|")
 
 void addType(tenv &te, symbol *name, ty *t)
 {
