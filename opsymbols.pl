@@ -15,8 +15,9 @@ print header <<END;
  * Changes will be overwritten.
  *****/
 
-// If the OPSYMBOL is not defined for a specific purpose, define it with the
-// default purpose of using SYM_PLUS etc. as external pre-translated symbols.
+// If the OPSYMBOL macro is not defined for a specific purpose, define it with
+// the default purpose of using SYM_PLUS etc. as external pre-translated
+// symbols.
 
 #ifndef OPSYMBOL
 #define OPSYMBOL(str, name) extern symbol *name
@@ -26,6 +27,13 @@ END
 
 sub add {
     print header "OPSYMBOL(\"".$_[0]."\", " . $_[1] . ");\n";
+    my $sym = $_[0];
+    my $name = $_[1];
+    print header <<END;
+#ifndef PRESYM
+#define $name symbol::opTrans("$sym")
+#endif
+END
 }
 
 open(lexer, "camp.l") ||

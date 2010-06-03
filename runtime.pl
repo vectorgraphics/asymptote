@@ -83,8 +83,14 @@ while (<opsyms>) {
 # Turn a name into a symbol.
 sub symbolize {
     my $name = shift;
+    if ($name =~ /^[A-Za-z0-9_]+$/) {
+        return "SYM($name)";
+    }
     if ($opsymbols{ $name }) {
         return $opsymbols{ $name };
+    }
+    if ($name =~ /operator (\w+)/ && $opsymbols{ $1 }) {
+      return $opsymbols{ $1 }
     }
     return "symbol::trans(\"" . $name . "\")"
 }
@@ -168,6 +174,7 @@ $header = <>;
 print $header;
 $source_line += ($header =~ tr/\n//);;
 
+print "\n#include \"$prefix.symbols.h\"\n";
 print "\nnamespace run {\n";
 
 read_types($basetypes, "runtimebase.in", $basesource_type_line);

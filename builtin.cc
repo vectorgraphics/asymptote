@@ -37,6 +37,7 @@
 #include "settings.h"
 
 #include "opsymbols.h"
+#include "builtin.symbols.h"
 
 #ifdef HAVE_LIBGSL  
 #include <gsl/gsl_math.h>
@@ -74,9 +75,6 @@ void gen_runtriple_venv(venv &ve);
 void gen_runpath_venv(venv &ve);
 void gen_runpath3d_venv(venv &ve);
 void gen_runmath_venv(venv &ve);
-
-// TODO: Move to symbol.h
-#define SYM( x ) symbol::trans(#x)
 
 
 void addType(tenv &te, symbol *name, ty *t)
@@ -215,7 +213,7 @@ void addRealFunc(venv &ve, symbol *name)
           formal(realArray(),SYM(a)));
 }
 
-#define addRealFunc(fcn) addRealFunc<fcn>(ve, SYM(fcn));
+#define addRealFunc(fcn, sym) addRealFunc<fcn>(ve, sym);
   
 void addRealFunc2(venv &ve, bltin fcn, symbol *name)
 {
@@ -1133,31 +1131,31 @@ void base_venv(venv &ve)
   addOperators(ve);
   addGuideOperators(ve);
   
-  addRealFunc(sin);
-  addRealFunc(cos);
-  addRealFunc(tan);
-  addRealFunc(asin);
-  addRealFunc(acos);
-  addRealFunc(atan);
-  addRealFunc(exp);
-  addRealFunc(log);
-  addRealFunc(log10);
-  addRealFunc(sinh);
-  addRealFunc(cosh);
-  addRealFunc(tanh);
-  addRealFunc(asinh);
-  addRealFunc(acosh);
-  addRealFunc(atanh);
-  addRealFunc(sqrt);
-  addRealFunc(cbrt);
-  addRealFunc(fabs);
+  addRealFunc(sin,SYM(sin));
+  addRealFunc(cos,SYM(cos));
+  addRealFunc(tan,SYM(tan));
+  addRealFunc(asin,SYM(asin));
+  addRealFunc(acos,SYM(acos));
+  addRealFunc(atan,SYM(atan));
+  addRealFunc(exp,SYM(exp));
+  addRealFunc(log,SYM(log));
+  addRealFunc(log10,SYM(log10));
+  addRealFunc(sinh,SYM(sinh));
+  addRealFunc(cosh,SYM(cosh));
+  addRealFunc(tanh,SYM(tanh));
+  addRealFunc(asinh,SYM(asinh));
+  addRealFunc(acosh,SYM(acosh));
+  addRealFunc(atanh,SYM(atanh));
+  addRealFunc(sqrt,SYM(sqrt));
+  addRealFunc(cbrt,SYM(cbrt));
+  addRealFunc(fabs,SYM(fabs));
   addRealFunc<fabs>(ve,SYM(abs));
-  addRealFunc(expm1);
-  addRealFunc(log1p);
+  addRealFunc(expm1,SYM(expm1));
+  addRealFunc(log1p,SYM(log1p));
   addRealIntFunc<ldexp>(ve, SYM(ldexp), SYM(x), SYM(e));
 
-  addRealFunc(pow10);
-  addRealFunc(identity);
+  addRealFunc(pow10,SYM(pow10));
+  addRealFunc(identity,SYM(identity));
   
 #ifdef HAVE_LIBGSL  
   GSLModule=new dummyRecord(SYM(gsl));
