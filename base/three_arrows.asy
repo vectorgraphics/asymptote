@@ -106,7 +106,7 @@ struct arrowhead3
     }
     if(draw)
       for(path3 g : H)
-        s.append(tube(g,width,linesectors).s);
+        s.append(tube(g,width).s);
     return shift(v)*s;
   }
 
