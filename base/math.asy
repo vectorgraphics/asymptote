@@ -156,6 +156,16 @@ int unique(real[] a, real x) {
   return i;
 }
 
+int unique(string[] a, string x) {
+  int i=search(a,x);
+  if(i == -1 || x != a[i]) {
+    ++i;
+    a.insert(i,x);
+    return i;
+  }
+  return i;
+}
+
 bool lexorder(pair a, pair b) {
   return a.x < b.x || (a.x == b.x && a.y <= b.y);
 }

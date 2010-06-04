@@ -29,8 +29,6 @@ namespace camp {
 
 enum Interaction {EMBEDDED=0,BILLBOARD};
 
-enum Entity {GROUP,BILLBOARD_GROUP,nENTITY};
-
 class box {
   pair p[4];
 public:
@@ -102,6 +100,9 @@ typedef mem::vector<box> boxvector;
   
 typedef mem::list<bbox> bboxlist;
   
+typedef mem::map<CONST string,unsigned> groupmap;
+typedef mem::vector<groupmap> groupsmap;
+
 class drawElement : public gc
 {
 public:
@@ -152,7 +153,8 @@ public:
   // Output to a PRC file
   // The array origin contains the points about which to rotate billboard labels
   virtual bool write(prcfile *out, unsigned int *count, vm::array *index,
-                     vm::array *origin, double compressionlimit) {
+                     vm::array *origin, double compressionlimit,
+                     groupsmap& groups) {
     return false;
   }
 

@@ -11,7 +11,7 @@ namespace camp {
 using vm::array;
   
 bool drawPath3::write(prcfile *out, unsigned int *count, array *, array *,
-                      double)
+                      double, groupsmap&)
 {
   Int n=g.length();
   if(n == 0 || invisible)
@@ -93,7 +93,7 @@ drawElement *drawPath3::transformed(const array& t)
 }
   
 bool drawNurbsPath3::write(prcfile *out, unsigned int *count, array *index,
-                           array *origin, double)
+                           array *origin, double, groupsmap&)
 {
   if(invisible)
     return true;

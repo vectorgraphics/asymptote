@@ -27,6 +27,8 @@ private:
   boxvector labelbounds;
   bboxlist bboxstack;
   bool transparency;
+  groupsmap groups;
+  unsigned billboard;
 public:
   bbox3 b3; // 3D bounding box
   

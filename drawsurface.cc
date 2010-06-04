@@ -141,7 +141,8 @@ void drawSurface::ratio(pair &b, double (*m)(double, double), double fuzz,
   }
 }
 
-bool drawSurface::write(prcfile *out, unsigned int *, array *, array *, double)
+bool drawSurface::write(prcfile *out, unsigned int *, array *, array *, double,
+                       groupsmap&)
 {
   if(invisible || !prc)
     return true;
@@ -419,7 +420,8 @@ drawElement *drawSurface::transformed(const array& t)
   return new drawSurface(t,this);
 }
   
-bool drawNurbs::write(prcfile *out, unsigned int *, array *, array *, double)
+bool drawNurbs::write(prcfile *out, unsigned int *, array *, array *, double,
+                      groupsmap&)
 {
   if(invisible)
     return true;
@@ -644,7 +646,8 @@ static const double Identity4[4][4]={{1.0,0.0,0.0,0.0},
                                      {0.0,0.0,1.0,0.0},
                                      {0.0,0.0,0.0,1.0}};
 
-bool drawSphere::write(prcfile *out, unsigned int *, array *, array *, double)
+bool drawSphere::write(prcfile *out, unsigned int *, array *, array *, double,
+                       groupsmap&)
 {
   if(invisible)
     return true;
@@ -738,7 +741,8 @@ bool drawSphere::write(prcfile *out, unsigned int *, array *, array *, double)
   return true;
 }
 
-bool drawCylinder::write(prcfile *out, unsigned int *, array *, array *, double)
+bool drawCylinder::write(prcfile *out, unsigned int *, array *, array *, double,
+                         groupsmap&)
 {
   if(invisible)
     return true;
@@ -750,7 +754,8 @@ bool drawCylinder::write(prcfile *out, unsigned int *, array *, array *, double)
   return true;
 }
   
-bool drawDisk::write(prcfile *out, unsigned int *, array *, array *, double)
+bool drawDisk::write(prcfile *out, unsigned int *, array *, array *, double,
+                     groupsmap&)
 {
   if(invisible)
     return true;
@@ -762,7 +767,8 @@ bool drawDisk::write(prcfile *out, unsigned int *, array *, array *, double)
   return true;
 }
   
-bool drawTube::write(prcfile *out, unsigned int *, array *, array *, double)
+bool drawTube::write(prcfile *out, unsigned int *, array *, array *, double,
+                     groupsmap&)
 {
   if(invisible)
     return true;

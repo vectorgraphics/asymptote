@@ -59,7 +59,7 @@ void drawtick(picture pic, transform3 T, path3 g, path3 g2,
     G=(sign == 0) ?
       locate1.V-Size*locate1.dir--locate1.V+Size*locate1.dir :
       locate1.V--locate1.V+Size*sign*locate1.dir;
-  draw(pic,G,p);
+  draw(pic,G,p,name="tick");
 }
 
 triple ticklabelshift(triple align, pen p=currentpen) 
@@ -216,7 +216,10 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
       } else ticklabel=Format(format);
     }
 
-    begingroup3(pic);
+    bool labelaxis=L.s != "" && primary;
+
+    begingroup3(pic,"axis");
+
     if(primary) draw(pic,margin(G,p).g,p,arrow);
     else draw(pic,G,p);
 
@@ -230,8 +233,7 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
       if(val >= a && val <= b)
         drawtick(pic,t,g,g2,locate,val,size,sign,ptick,extend);
     }
-    endgroup3(pic);
-    
+
     if(N == 0) N=1;
     if(Size > 0 && primary) {
       for(int i=(beginlabel ? 0 : 1);
@@ -243,8 +245,10 @@ ticks3 Ticks3(int sign, Label F="", ticklabel ticklabel=null,
         }
       }
     }
-    if(L.s != "" && primary) 
+    if(labelaxis)
       labelaxis(pic,t,L,G,locate,Sign,ticklabels);
+
+    endgroup3(pic);
   };
 }
 
@@ -1731,10 +1735,12 @@ guide3[][] lift(real f(pair z), guide[][] g, interpolate3 join=operator --)
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
           guide3[][] g, pen[] p, light light=currentlight, string name="",
+          real compression=defaultcompression,
           interaction interaction=LabelInteraction())
 {
   pen thin=is3D() ? thin() : defaultpen;
-  begingroup3(pic);
+  if(g.length > 1)
+    begingroup3(pic,name == "" ? "contours" : name,compression);
   for(int cnt=0; cnt < g.length; ++cnt) {
     guide3[] gcnt=g[cnt];
     pen pcnt=thin+p[cnt];
@@ -1748,7 +1754,8 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
       }
     }
   }
-  endgroup3(pic);
+  if(g.length > 1)
+    endgroup3(pic);
 }
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],

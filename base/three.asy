@@ -37,7 +37,7 @@ real defaulteyetoview=63mm/1000mm;
 
 string partname(int i=0) 
 {
-  return string(i);
+  return string(i+1);
 }
 
 triple O=(0,0,0);
@@ -2187,7 +2187,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
     }
     real[] dash=linetype(adjust(q,arclength(g),cyclic(g)));
     if(q != nullpen)
-      begingroup(f,name,compression);
+      begingroup(f,name == "" ? "curve" : name,compression);
     if(dash.length == 0) drawthick(g);
     else {
       if(sum(dash) > 0) {
@@ -2216,20 +2216,24 @@ void draw(frame f, explicit path3[] g, material p=currentpen,
           light light=nolight, string name="",
           real compression=defaultcompression, projection P=currentprojection)
 {
-  begingroup(f,name,compression);
+  if(g.length > 1)
+    begingroup(f,name == "" ? "curve" : name,compression);
   for(int i=0; i < g.length; ++i)
     draw(f,g[i],p,light,partname(i),compression,P);
-  endgroup(f);
+  if(g.length > 1)
+    endgroup(f);
 }
 
 void draw(picture pic=currentpicture, explicit path3[] g,
           material p=currentpen, margin3 margin=NoMargin3, light light=nolight,
           string name="", real compression=defaultcompression)
 {
-  begingroup3(pic,name,compression);
+  if(g.length > 1)
+    begingroup3(pic,name == "" ? "curves" : name,compression);
   for(int i=0; i < g.length; ++i)
     draw(pic,g[i],p,margin,light,partname(i),compression);
-  endgroup3(pic);
+  if(g.length > 1)
+    endgroup3(pic);
 }
 
 include three_arrows;
@@ -2240,11 +2244,14 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
           light arrowheadlight=currentlight, string name="",
           real compression=defaultcompression)
 {
-  begingroup3(pic,name,compression);
+  bool group=arrow != None || bar != None;
+  if(group)
+    begingroup3(pic,name,compression);
   bool drawpath=arrow(pic,g,p,margin,light,arrowheadlight);
   if(bar(pic,g,p,margin,light,arrowheadlight) && drawpath)
     draw(pic,L,g,align,p,margin,light);
-  endgroup3(pic);
+  if(group)
+    endgroup3(pic);
   label(pic,L,g,align,(pen) p);
 }
 
@@ -2254,11 +2261,14 @@ void draw(frame f, path3 g, material p=currentpen, arrowbar3 arrow,
           projection P=currentprojection)
 {
   picture pic;
-  begingroup(f,name,compression);
+  bool group=arrow != None;
+  if(group)
+    begingroup(f,name,compression);
   if(arrow(pic,g,p,NoMargin3,light,arrowheadlight))
     draw(f,g,p,light,P);
   add(f,pic.fit());
-  endgroup(f);
+  if(group)
+    endgroup(f);
 }
 
 void add(picture pic=currentpicture, void d(picture,transform3),

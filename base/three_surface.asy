@@ -1217,7 +1217,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
           real compression=defaultcompression, projection P=currentprojection)
 {
   if(is3D()) {
-    begingroup(f,name,compression);
+    begingroup(f,name == "" ? "surface" : name,compression);
     for(int i=0; i < s.s.length; ++i)
       draw3D(f,s.s[i],surfacepen[i],light);
     endgroup(f);
@@ -1225,7 +1225,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
     for(int k=0; k < s.s.length; ++k) {
       pen meshpen=meshpen[k];
       if(!invisible(meshpen)) {
-        begingroup(f,meshname(name),compression);
+        begingroup(f,"mesh",compression);
         meshpen=modifiers+meshpen;
         real step=nu == 0 ? 0 : 1/nu;
         for(int i=0; i <= nu; ++i)
@@ -1419,7 +1419,7 @@ private path[] path(Label L, pair z=0, projection P)
 
 void label(frame f, Label L, triple position, align align=NoAlign,
            pen p=currentpen, light light=nolight,
-           string name=L.s, real compression=defaultcompression,
+           string name="", real compression=defaultcompression,
            interaction interaction=LabelInteraction(),
            projection P=currentprojection)
 {
@@ -1430,7 +1430,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
     L.T=L.T*scale(abs(P.camera-position)/abs(P.vector()));
   if(L.defaulttransform3)
     L.T3=transform3(P);
-  begingroup(f,name,compression);
+  begingroup(f,name == "" ? L.s : name,compression);
   if(is3D()) {
     for(patch S : surface(L,position).s)
       draw3D(f,S,position,L.p,light,interaction);
@@ -1453,7 +1453,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
 
 void label(picture pic=currentpicture, Label L, triple position,
            align align=NoAlign, pen p=currentpen,
-           light light=nolight, string name=L.s,
+           light light=nolight, string name="",
            real compression=defaultcompression,
            interaction interaction=LabelInteraction())
 {
@@ -1475,7 +1475,7 @@ void label(picture pic=currentpicture, Label L, triple position,
         L.T3=transform3(P);
 
       surface S=surface(L,v);
-      begingroup(f,interaction.type,v,name,compression);
+      begingroup(f,interaction.type,v,name == "" ? L.s : name,compression);
       if(is3D())
         for(patch S : surface(L,v).s)
           draw3D(f,S,v,L.p,light,interaction);
@@ -1514,7 +1514,7 @@ void label(picture pic=currentpicture, Label L, triple position,
 }
 
 void label(picture pic=currentpicture, Label L, path3 g, align align=NoAlign,
-           pen p=currentpen, light light=nolight, string name=L.s,
+           pen p=currentpen, light light=nolight, string name="",
            interaction interaction=LabelInteraction())
 {
   Label L=L.copy();
@@ -1661,7 +1661,7 @@ void dot(frame f, triple v, material p=currentpen,
 {
   pen q=(pen) p;
   if(is3D()) {
-    begingroup(f,name,compression);
+    begingroup(f,name == "" ? "dot" : name,compression);
     real size=0.5*linewidth(dotsize(q)+q);
     transform3 T=shift(v)*scale3(size);
     for(patch s : unitsphere.s)
@@ -1728,7 +1728,7 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       triple V=t*v;
       if(is3D()) {
-        begingroup(f,name,compression);
+        begingroup(f,name == "" ? "dot" : name,compression);
         transform3 T=shift(V)*scale3(size);
         for(patch s : unitsphere.s)
           draw3D(f,T*s,V,p,light,prc=false);
@@ -1752,12 +1752,13 @@ void dot(picture pic=currentpicture, triple[] v, material p=currentpen,
     v=sort(v,lexorder);
 
     triple last=v[0];
-    begingroup3(pic,name,compression);
+    begingroup3(pic,name == "" ? "dots" : name,compression);
     dot(pic,last,p,light,partname(0),compression);
+    int k=0;
     for(int i=1; i < v.length; ++i) {
       triple V=v[i];
       if(V != last) {
-        dot(pic,V,p,light,partname(i),compression);
+        dot(pic,V,p,light,partname(++k),compression);
         last=V;
       }
     }
@@ -1869,7 +1870,7 @@ void draw(picture pic=currentpicture, triple[] P, real[] knot,
   pic.add(new void(frame f, transform3 t, picture pic, projection Q) {
       if(is3D()) {
         triple[] P=t*P;
-        begingroup(f,name,compression);
+        begingroup(f,name == "" ? "curve" : name,compression);
         draw(f,P,knot,weights,p);
         endgroup(f);
         if(pic != null)
@@ -1895,7 +1896,7 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
   colors=copy(colors);
   pic.add(new void(frame f, transform3 t, picture pic, projection Q) {
       if(is3D()) {
-        begingroup(f,name,compression);
+        begingroup(f,name == "" ? "surface" : name,compression);
         triple[][] P=t*P;
         real PRCshininess;
         if(prc())

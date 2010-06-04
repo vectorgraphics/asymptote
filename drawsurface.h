@@ -144,7 +144,8 @@ public:
   
   virtual ~drawSurface() {}
 
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double);
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
+             groupsmap&);
   
   void displacement();
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
@@ -306,7 +307,8 @@ public:
   
   virtual ~drawNurbs() {}
 
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double);
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
+             groupsmap&);
   
   void displacement();
   void ratio(pair &b, double (*m)(double, double), double, bool &first);
@@ -388,7 +390,8 @@ public:
     }
   }
   
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double) {
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
+             groupsmap&) {
     return true;
   }
 };
@@ -407,7 +410,8 @@ public:
     
   void P(Triple& t, double x, double y, double z);
   
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double);
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
+             groupsmap&);
   
   drawElement *transformed(const vm::array& t) {
       return new drawSphere(t,this);
@@ -424,7 +428,8 @@ public:
   drawCylinder(const vm::array& t, const drawCylinder *s) :
     drawPRC(t,s) {}
     
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double);
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
+             groupsmap&);
   
   drawElement *transformed(const vm::array& t) {
       return new drawCylinder(t,this);
@@ -441,7 +446,8 @@ public:
   drawDisk(const vm::array& t, const drawDisk *s) :
     drawPRC(t,s) {}
     
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double);
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
+             groupsmap&);
   
   drawElement *transformed(const vm::array& t) {
       return new drawDisk(t,this);
@@ -485,7 +491,8 @@ public:
     shininess(s->shininess), invisible(s->invisible) {
   }
   
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double);
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
+             groupsmap&);
                         
   drawElement *transformed(const vm::array& t) {
       return new drawTube(t,this);

@@ -17,11 +17,12 @@ class drawBegin : public drawElement {
   triple center;
   string name;
   double compression;
-  
   bool closed;   // render the surface as one-sided; may yield faster rendering 
   bool tessellate; // use tessellated mesh to store straight patches
   bool dobreak; // force breaking
   bool nobreak; // force grouping for transparent patches
+  
+  groupmap *g;
 public:
   drawBegin(string name, double compression, bool closed, bool tessellate, 
             bool dobreak, bool nobreak) :
@@ -39,22 +40,28 @@ public:
   bool begingroup() {return true;}
   
   bool write(prcfile *out, unsigned int *count, vm::array *index,
-             vm::array *origin, double compressionlimit) {
-    ostringstream buf;
+             vm::array *origin, double compressionlimit,
+             groupsmap& groups) {
+    groupmap& group=groups.back();
+    if(name.empty()) name="group";
+    groupmap::const_iterator p=group.find(name);
     
-    if(name.empty()) 
-      buf << "group-" << count[GROUP]++;
-    else
-      buf << name;
+    unsigned c=(p != group.end()) ? p->second+1 : 0;
+    group[name]=c;
+    
+    ostringstream buf;
+    buf << name;
+    if(c > 0) buf << "-" << (c+1);
       
     if(interaction == BILLBOARD) {
-      buf << "-" << count[BILLBOARD_GROUP]++ << "\001";
+      buf << "-" << (*count)++ << "\001";
       index->push((Int) origin->size());
       origin->push(center);
     }
     
     PRCoptions options(closed,tessellate,dobreak,nobreak);
     
+    groups.push_back(groupmap());
     out->begingroup(buf.str().c_str(), compression > 0.0 ?
                     max(compression,compressionlimit) : 0.0,&options);
     return true;
@@ -80,7 +87,10 @@ public:
 
   bool endgroup() {return true;}
   
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double) {
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
+             groupsmap& groups) {
+    
+    groups.pop_back();
     out->endgroup();
     return true;
   }

@@ -45,7 +45,8 @@ public:
     } else b=pair(m(b.getx(),z.getx()),m(b.gety(),z.gety()));
   }
   
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double);
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
+             groupsmap&);
   
   void render(GLUnurbs*, double, const triple&, const triple&, double,
               bool transparent);
@@ -143,7 +144,8 @@ public:
   
   virtual ~drawNurbsPath3() {}
 
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double);
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
+             groupsmap&);
   
   void displacement();
   void ratio(pair &b, double (*m)(double, double), double fuzz, bool &first);
