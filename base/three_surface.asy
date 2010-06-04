@@ -1225,7 +1225,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
     for(int k=0; k < s.s.length; ++k) {
       pen meshpen=meshpen[k];
       if(!invisible(meshpen)) {
-        begingroup(f,"mesh",compression);
+        begingroup(f,meshname(name),compression);
         meshpen=modifiers+meshpen;
         real step=nu == 0 ? 0 : 1/nu;
         for(int i=0; i <= nu; ++i)

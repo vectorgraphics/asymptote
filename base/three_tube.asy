@@ -65,8 +65,8 @@ rmf[] rmf(path3 g, real[] t)
   return R;
 }
 
-surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
-                 real[] x, real[] y, bool[][] cond={})
+private real[][][] bispline0(real[][] z, real[][] p, real[][] q, real[][] r,
+                             real[] x, real[] y, bool[][] cond={})
 { // z[i][j] is the value at (x[i],y[j])
   // p and q are the first derivatives with respect to x and y, respectively
   // r is the second derivative ddu/dxdy
@@ -87,62 +87,49 @@ surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
     }
   }
 
-  surface s=surface(count);
-  s.index=new int[n][m];
-  int k=-1;
+  real[][][] s=new real[count][][];
+  int k=0;
   for(int i=0; i < n; ++i) {
+    int ip=i+1;
     bool[] condi=all ? null : cond[i];
     real xi=x[i];
     real[] zi=z[i];
-    real[] zp=z[i+1];
+    real[] zp=z[ip];
     real[] ri=r[i];
-    real[] rp=r[i+1];
+    real[] rp=r[ip];
     real[] pi=p[i];
-    real[] pp=p[i+1];
+    real[] pp=p[ip];
     real[] qi=q[i];
-    real[] qp=q[i+1];
-    real xp=x[i+1];
+    real[] qp=q[ip];
+    real xp=x[ip];
     real hx=(xp-xi)/3;
-    int[] indexi=s.index[i];
     for(int j=0; j < m; ++j) {
       real yj=y[j];
-      real yp=y[j+1];
+      int jp=j+1;
+      real yp=y[jp];
       if(all || condi[j]) {
-        triple[][] P=array(4,array(4,O));
         real hy=(yp-yj)/3;
         real hxy=hx*hy;
-        // x and y directions
-        for(int k=0; k < 4; ++k) {
-          P[0][k] += xi*X;
-          P[k][0] += yj*Y;
-          P[1][k] += (xp+2*xi)/3*X;
-          P[k][1] += (yp+2*yj)/3*Y;
-          P[2][k] += (2*xp+xi)/3*X;
-          P[k][2] += (2*yp+yj)/3*Y;
-          P[3][k] += xp*X;
-          P[k][3] += yp*Y;
-        }
-        // z: value 
-        P[0][0] += zi[j]*Z;
-        P[3][0] += zp[j]*Z;
-        P[0][3] += zi[j+1]*Z;
-        P[3][3] += zp[j+1]*Z;
-        // z: first derivative
-        P[1][0] += (P[0][0].z+hx*pi[j])*Z;
-        P[1][3] += (P[0][3].z+hx*pi[j+1])*Z;
-        P[2][0] += (P[3][0].z-hx*pp[j])*Z;
-        P[2][3] += (P[3][3].z-hx*pp[j+1])*Z;
-        P[0][1] += (P[0][0].z+hy*qi[j])*Z;
-        P[3][1] += (P[3][0].z+hy*qp[j])*Z;
-        P[0][2] += (P[0][3].z-hy*qi[j+1])*Z;
-        P[3][2] += (P[3][3].z-hy*qp[j+1])*Z;
-        // z: second derivative
-        P[1][1] += (P[0][1].z+P[1][0].z-P[0][0].z+hxy*ri[j])*Z;
-        P[1][2] += (P[0][2].z+P[1][3].z-P[0][3].z-hxy*ri[j+1])*Z;
-        P[2][1] += (P[2][0].z+P[3][1].z-P[3][0].z-hxy*rp[j])*Z;
-        P[2][2] += (P[2][3].z+P[3][2].z-P[3][3].z+hxy*rp[j+1])*Z;
-        s.s[++k]=patch(P);
-        indexi[j]=k;
+        real zij=zi[j];
+        real zip=zi[jp];
+        real zpj=zp[j];
+        real zpp=zp[jp];
+        real pij=hx*pi[j];
+        real ppj=hx*pp[j];
+        real qip=hy*qi[jp];
+        real qpp=hy*qp[jp];
+        real zippip=zip+hx*pi[jp];
+        real zppmppp=zpp-hx*pp[jp];
+        real zijqij=zij+hy*qi[j];
+        real zpjqpj=zpj+hy*qp[j];
+        
+        s[k]=new real[][] {{zij,zijqij,zip-qip,zip},
+                           {zij+pij,zijqij+pij+hxy*ri[j],
+                            zippip-qip-hxy*ri[jp],zippip},
+                           {zpj-ppj,zpjqpj-ppj-hxy*rp[j],
+                            zppmppp-qpp+hxy*rp[jp],zppmppp},
+                           {zpj,zpjqpj,zpp-qpp,zpp}};
+        ++k;
       }
     }
   }
@@ -150,11 +137,11 @@ surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
   return s;
 }
 
-// return the surface described by a real matrix f, interpolated with
+// return the surface values described by a real matrix f, interpolated with
 // xsplinetype and ysplinetype.
-surface surface(real[][] f, real[] x, real[] y,
-                splinetype xsplinetype=null, splinetype ysplinetype=xsplinetype,
-                bool[][] cond={})
+real[][][] bispline(real[][] f, real[] x, real[] y,
+                    splinetype xsplinetype=null,
+                    splinetype ysplinetype=xsplinetype, bool[][] cond={})
 {
   real epsilon=sqrtEpsilon*norm(y);
   if(xsplinetype == null)
@@ -176,9 +163,7 @@ surface surface(real[][] f, real[] x, real[] y,
   real[][] p=transpose(tp);
   for(int i=0; i < n; ++i)
     r[i]=clamped(d1[i],d2[i])(y,p[i]);
-  surface s=bispline(f,p,q,r,x,y,cond);
-  if(xsplinetype == periodic) s.ucyclic(true);
-  if(ysplinetype == periodic) s.vcyclic(true);
+  real[][][] s=bispline0(f,p,q,r,x,y,cond);
   return s;
 }
 
@@ -248,11 +233,11 @@ surface surface(triple f(pair z), real[] u, real[] v,
                                   vperiodic(fz) ? periodic : notaknot};
   } else if(vsplinetype.length != 3) abort("vsplinetype must have length 3");
   
-  surface sx=surface(fx,ipt,jpt,usplinetype[0],vsplinetype[0],active);
-  surface sy=surface(fy,ipt,jpt,usplinetype[1],vsplinetype[1],active);
-  surface sz=surface(fz,ipt,jpt,usplinetype[2],vsplinetype[2],active);
+  real[][][] sx=bispline(fx,ipt,jpt,usplinetype[0],vsplinetype[0],active);
+  real[][][] sy=bispline(fy,ipt,jpt,usplinetype[1],vsplinetype[1],active);
+  real[][][] sz=bispline(fz,ipt,jpt,usplinetype[2],vsplinetype[2],active);
 
-  surface s=surface(sx.s.length);
+  surface s=surface(sx.length);
   s.index=new int[nu][nv];
   int k=-1;
   for(int i=0; i < nu; ++i) {
@@ -261,12 +246,20 @@ surface surface(triple f(pair z), real[] u, real[] v,
       indexi[j]=++k;
   }
 
-  for(int k=0; k < sx.s.length; ++k) {
+  for(int k=0; k < sx.length; ++k) {
     triple[][] Q=new triple[4][];
-    for(int i=0; i < 4 ; ++i)
-      Q[i]=sequence(new triple(int j) {
-          return (sx.s[k].P[i][j].z,sy.s[k].P[i][j].z,sz.s[k].P[i][j].z);
-        },4);
+    real[][] Px=sx[k];
+    real[][] Py=sy[k];
+    real[][] Pz=sz[k];
+    for(int i=0; i < 4 ; ++i) {
+      real[] Pxi=Px[i];
+      real[] Pyi=Py[i];
+      real[] Pzi=Pz[i];
+      Q[i]=new triple[] {(Pxi[0],Pyi[0],Pzi[0]),
+                         (Pxi[1],Pyi[1],Pzi[1]),
+                         (Pxi[2],Pyi[2],Pzi[2]),
+                         (Pxi[3],Pyi[3],Pzi[3])};
+    }
     s.s[k]=patch(Q);
   }
 

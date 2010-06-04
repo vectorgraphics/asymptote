@@ -2136,12 +2136,8 @@ draw=new void(frame f, path3 g, material p=currentpen,
             linecap=linecap(q);
             r=0.5*width;
             if(linecap == 2) {
-              triple dir0=dir(g,0);
-              triple dirL=dir(g,L);
-              transform3 t0=shift(g0)*align(-dir0);
-              transform3 tL=shift(gL)*align(dirL);
-              g0 -= r*dir0;
-              gL += r*dirL;
+              g0 -= r*dir(g,0);
+              gL += r*dir(g,L);
               g=g0..g..gL;
               L += 2;
             }
