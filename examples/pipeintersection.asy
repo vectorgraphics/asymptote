@@ -4,6 +4,7 @@ currentprojection=orthographic(5,4,2);
 
 size(12cm,0);
 
+
 real f(pair z) {return min(sqrt(1-z.x^2),sqrt(1-z.y^2));}
 
 surface s=surface(f,(0,0),(1,1),40,Spline);

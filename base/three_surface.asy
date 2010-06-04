@@ -1475,7 +1475,7 @@ void label(picture pic=currentpicture, Label L, triple position,
         L.T3=transform3(P);
 
       surface S=surface(L,v);
-      begingroup(f,interaction.type,v,name == "" ? L.s : name,compression);
+      begingroup(f,name == "" ? L.s : name,compression,v,interaction.type);
       if(is3D())
         for(patch S : surface(L,v).s)
           draw3D(f,S,v,L.p,light,interaction);

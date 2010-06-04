@@ -414,9 +414,6 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
 {
     const string& name = group.name;
 
-    if(group.options.ignore)
-      return;
-
     PRCPartDefinition *part_definition = new PRCPartDefinition;
 
     if(group.options.tess)
@@ -584,6 +581,7 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
           break;
         }
       PRCTopoContext *context = new PRCTopoContext;
+      context->granularity = group.options.granularity;
       const uint32_t context_index = addTopoContext(context);
       PRCShell *shell = new PRCShell;
 
@@ -650,11 +648,12 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
           break;
         }
       PRCTopoContext *context = new PRCTopoContext;
+      context->granularity = group.options.granularity;
       const uint32_t context_index = addTopoContext(context);
       PRCCompressedBrepData *body = new PRCCompressedBrepData;
       
-      body->serial_tolerance=group.compression;
-      body->brep_data_compressed_tolerance=0.1*group.compression;
+      body->serial_tolerance=group.options.compression;
+      body->brep_data_compressed_tolerance=0.1*group.options.compression;
 
       for(PRCcompfaceList::const_iterator fit=compfaces.begin(); fit!=compfaces.end(); fit++)
       {
@@ -665,8 +664,9 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
           const uint32_t body_index = context->addCompressedBrepData(body);
           body->face.push_back(fit->face);
 
-          body->serial_tolerance=group.compression;
-          body->brep_data_compressed_tolerance=2.8346456*group.compression;
+          body->serial_tolerance=group.options.compression;
+          body->brep_data_compressed_tolerance=2.8346456*
+            group.options.compression;
 
           PRCBrepModel *brepmodel = new PRCBrepModel();
           brepmodel->index_of_line_style = fit->style;
@@ -1054,8 +1054,8 @@ bool isid(const double t[][4])
     t[3][0]==0 && t[3][1]==0 && t[3][2]==0 && t[3][3]==1 );
 }
 
-void oPRCFile::begingroup(const char *name, double compress,
-                          PRCoptions *options, const double t[][4])
+void oPRCFile::begingroup(const char *name, PRCoptions *options,
+                          const double t[][4])
 {
   if(currentGroups.empty())
     currentGroups.push(rootGroup.groupList.insert(rootGroup.groupList.end(),PRCgroup()));
@@ -1064,7 +1064,6 @@ void oPRCFile::begingroup(const char *name, double compress,
   PRCgroup &group = *(currentGroups.top());
   group.name=name;
   if(options) group.options=*options;
-  group.compression=compress;
   if(t&&!isid(t))
     group.transform.reset(new PRCGeneralTransformation3d(t));
 }
@@ -1188,7 +1187,7 @@ void oPRCFile::addRectangle(const double P[][3], const PRCmaterial &m)
        rectangle.vertices[i].z = P[i][2];
     }
   }
-  else if(group.compression == 0.0)
+  else if(group.options.compression == 0.0)
   {
     ADDFACE(PRCNURBSSurface)
 
@@ -1227,7 +1226,7 @@ void oPRCFile::addRectangle(const double P[][3], const PRCmaterial &m)
 void oPRCFile::addPatch(const double cP[][3], const PRCmaterial &m)
 {
   PRCgroup &group = findGroup();
-  if(group.compression == 0.0)
+  if(group.options.compression == 0.0)
   {
     ADDFACE(PRCNURBSSurface)
    

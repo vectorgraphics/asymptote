@@ -22,6 +22,7 @@ restricted int NURBSsphere=1; // Renders fast but produces larger PRC files.
 
 real defaultshininess=0.25;
 real defaultcompression=High;
+real defaultgranularity=0.001;
 int defaultsphere=NURBSsphere; // Currently only used for PRC dots.
 
 real tubegranularity=0.005;
@@ -2011,12 +2012,13 @@ void draw(frame f, path3 g, material p=currentpen, light light=nolight,
 
 void begingroup3(picture pic=currentpicture, string name="",
                  real compression=defaultcompression,
+                 real granularity=defaultgranularity,
                  bool closed=false, bool tessellate=false,
                  bool3 group=false)
 {
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
-        begingroup(f,name,compression,closed,tessellate,
+        begingroup(f,name,compression,granularity,closed,tessellate,
                    group == false,group == true);
       if(pic != null)
         begingroup(pic);

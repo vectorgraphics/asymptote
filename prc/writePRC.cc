@@ -1655,7 +1655,6 @@ void PRCTopoContext::serializeTopoContext(PRCbitStream &pbs)
 
    SerializeContentPRCBase
    WriteCharacter ( behaviour )
-   const double granularity = 1.0;
    WriteDouble ( granularity )
    WriteDouble ( tolerance )
    WriteBoolean ( have_smallest_face_thickness )

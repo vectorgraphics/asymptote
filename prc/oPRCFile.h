@@ -146,23 +146,25 @@ typedef std::map <uint32_t,std::vector<PRCVector3d> >  PRCpointsetMap;
 class PRCoptions
 {
 public:
+  double compression;
+  double granularity;
+  
   bool closed;   // render the surface as one-sided; may yield faster rendering 
   bool tess;     // use tessellated mesh to store straight patches
   bool do_break; // 
   bool no_break; // do not render transparent patches as one-faced nodes
-  bool ignore;
   
-  PRCoptions(bool closed=false, bool tess=false, bool do_break=true,
-             bool no_break=false, bool ignore=false)
-    : closed(closed), tess(tess), do_break(do_break), no_break(no_break),
-      ignore(ignore) {}
+  PRCoptions(double compression=0.0, double granularity=0.0, bool closed=false,
+             bool tess=false, bool do_break=true, bool no_break=false)
+    : compression(compression), granularity(granularity), closed(closed),
+      tess(tess), do_break(do_break), no_break(no_break) {}
 };
 
 class PRCgroup
 {
  public:
-  PRCgroup() : compression(0.0) {}
-  PRCgroup(const std::string &name) : name(name), compression(0.0) {}
+  PRCgroup() {}
+  PRCgroup(const std::string &name) : name(name) {}
   PRCfaceList       faces;
   PRCcompfaceList   compfaces;
   PRCtessrectangleList  rectangles;
@@ -173,7 +175,6 @@ class PRCgroup
   std::list<PRCgroup> groupList;
   PRCpGeneralTransformation3d  transform;
   PRCoptions options;
-  double compression;
 };
 typedef std::list<PRCgroup> PRCgroupList;
 
@@ -442,8 +443,8 @@ class oPRCFile
         delete fout;
     }
 
-    void begingroup(const char *name, double compress=0.0,
-                    PRCoptions *options=NULL, const double t[][4]=NULL);
+    void begingroup(const char *name, PRCoptions *options=NULL,
+                    const double t[][4]=NULL);
     void endgroup();
   
     bool finish();

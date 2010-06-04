@@ -1282,7 +1282,7 @@ public:
   uint32_t addBrepData(PRCBrepData *body);
   uint32_t addCompressedBrepData(PRCCompressedBrepData *body);
   uint8_t  behaviour;
-// double granularity;
+  double granularity;
   double tolerance;
   bool have_smallest_face_thickness;
   double smallest_thickness;
