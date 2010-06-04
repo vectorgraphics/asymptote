@@ -25,8 +25,8 @@ real defaultcompression=High;
 int defaultsphere=NURBSsphere; // Currently only used for PRC dots.
 
 real tubegranularity=0.005;
+int tubesectors=4;        // Number of angular sectors for drawing tubes.
 
-int linesectors=8;        // Number of angular sectors.
 real angleprecision=1e-5; // Precision for centering perspective projections.
 int maxangleiterations=25;
 real rendermargin=0.02;
@@ -2142,7 +2142,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
               L += 2;
             }
           }
-          tube T=tube(g,width,linesectors,cylinder,sphere,tube);
+          tube T=tube(g,width,cylinder,sphere,tube);
           path3 c=T.center;
           if(L >= 0) {
             if(open) {

@@ -275,8 +275,8 @@ surface surface(triple f(pair z), real[] u, real[] v,
 path3 interp(path3 a, path3 b, real t) 
 {
   int n=size(a);
-  return path3(sequence(new triple(int i) {return interp(precontrol(a,i),
-                                                         precontrol(b,i),t);},n),
+  return path3(sequence(new triple(int i) {
+        return interp(precontrol(a,i),precontrol(b,i),t);},n),
     sequence(new triple(int i) {return interp(point(a,i),point(b,i),t);},n),
     sequence(new triple(int i) {return interp(postcontrol(a,i),
                                               postcontrol(b,i),t);},n),
@@ -292,7 +292,7 @@ struct tube
   void Null(transform3) {}
   void Null(transform3, bool) {}
   
-  void operator init(path3 p, real width, int sectors=4,
+  void operator init(path3 p, real width, int sectors=tubesectors,
                      real granularity=tubegranularity,
                      void cylinder(transform3)=Null,
                      void sphere(transform3, bool half)=Null,
@@ -328,10 +328,16 @@ struct tube
         }
 
         real[] v=uniform(0,2pi,sectors);
+
+        static real[] circular(real[] x, real[] y) {
+          static real a=8/3*(sqrt(2)-1);
+          return a*periodic(x,y);
+        }
+        
         static splinetype[] Monotonic={monotonic,monotonic,monotonic};
-        static splinetype[] Periodic={periodic,periodic,periodic};
+        static splinetype[] Circular={circular,circular,circular};
         if(T.length > 0) {
-          surface S=surface(f,sequence(T.length),v,Monotonic,Periodic);
+          surface S=surface(f,sequence(T.length),v,Monotonic,Circular);
           s.append(S);
 
           // Compute center of tube:
@@ -369,7 +375,8 @@ struct tube
               Post += S.s[index[m]].P[3][0];
           post[n]=factor*Post;
 
-          path3 Center=path3(pre,point,post,array(n+1,false),T.cyclic);
+          bool[] b=array(n+1,false);
+          path3 Center=path3(pre,point,post,b,T.cyclic);
           center=center&Center;
 
           if(tube != null) { // Compute path along tube
@@ -384,7 +391,7 @@ struct tube
               point[i+1]=P[3][0];
             }
             post[n]=S.s[S.index[n-1][0]].P[3][0];
-            tube(Center,path3(pre,point,post,array(n+1,false),T.cyclic));
+            tube(Center,path3(pre,point,post,b,T.cyclic));
           }
         }
       }
