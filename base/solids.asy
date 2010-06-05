@@ -348,7 +348,7 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
 	  pen frontpen=currentpen, pen backpen=frontpen,
 	  pen longitudinalpen=frontpen, pen longitudinalbackpen=backpen,
 	  light light=currentlight, string name="",
-          render render=new render, projection P=currentprojection)
+          render render=defaultrender, projection P=currentprojection)
 {
   pen thin=is3D() ? thin() : defaultpen;
   skeleton s=r.skeleton(m,n,P);

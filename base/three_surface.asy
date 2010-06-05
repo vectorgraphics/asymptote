@@ -1171,12 +1171,11 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
        light.on(),interaction.type,prc);
 }
 
-void drawPRCsphere(frame f, transform3 t=identity4, material m,
-                   int type=defaultsphere, bool half=false,
-                   light light=currentlight)
+void drawPRCsphere(frame f, transform3 t=identity4, bool half=false, material m,
+                   light light=currentlight, render render=defaultrender)
 {
   m=material(m,light);
-  drawPRCsphere(f,t,m.p,m.opacity,PRCshininess(m.shininess),type,half);
+  drawPRCsphere(f,t,half,m.p,m.opacity,PRCshininess(m.shininess),render.sphere);
 }
 
 void drawPRCcylinder(frame f, transform3 t=identity4, material m,
@@ -1214,7 +1213,7 @@ nullpens.cyclic=true;
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
           light light=currentlight, light meshlight=light, string name="",
-          render render=new render, projection P=currentprojection)
+          render render=defaultrender, projection P=currentprojection)
 {
   if(is3D()) {
     begingroup3(f,name == "" ? "surface" : name,render);
@@ -1272,7 +1271,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
           light light=currentlight, light meshlight=light, string name="",
-          render render=new render, projection P=currentprojection)
+          render render=defaultrender, projection P=currentprojection)
 {
   material[] surfacepen={surfacepen};
   pen[] meshpen={meshpen};
@@ -1284,7 +1283,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
           light light=currentlight, light meshlight=light, string name="",
-          render render=new render)
+          render render=defaultrender)
 {
   if(s.empty()) return;
 
@@ -1330,7 +1329,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
           light light=currentlight, light meshlight=light, string name="",
-          render render=new render)
+          render render=defaultrender)
 {
   material[] surfacepen={surfacepen};
   pen[] meshpen={meshpen};
@@ -1342,7 +1341,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen meshpen,
           light light=currentlight, light meshlight=light, string name="",
-          render render=new render)
+          render render=defaultrender)
 {
   pen[] meshpen={meshpen};
   meshpen.cyclic=true;
@@ -1419,7 +1418,7 @@ private path[] path(Label L, pair z=0, projection P)
 
 void label(frame f, Label L, triple position, align align=NoAlign,
            pen p=currentpen, light light=nolight,
-           string name="", render render=new render,
+           string name="", render render=defaultrender,
            interaction interaction=LabelInteraction(),
            projection P=currentprojection)
 {
@@ -1454,7 +1453,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
 void label(picture pic=currentpicture, Label L, triple position,
            align align=NoAlign, pen p=currentpen,
            light light=nolight, string name="",
-           render render=new render,
+           render render=defaultrender,
            interaction interaction=LabelInteraction())
 {
   Label L=L.copy();
@@ -1657,7 +1656,7 @@ restricted surface unitdisk=surface(unitcircle3);
 
 void dot(frame f, triple v, material p=currentpen,
          light light=nolight, string name="",
-         render render=new render, projection P=currentprojection)
+         render render=defaultrender, projection P=currentprojection)
 {
   pen q=(pen) p;
   if(is3D()) {
@@ -1673,7 +1672,7 @@ void dot(frame f, triple v, material p=currentpen,
 }
 
 void dot(frame f, triple[] v, material p=currentpen, light light=nolight,
-         string name="", render render=new render,
+         string name="", render render=defaultrender,
          projection P=currentprojection)
 {
   if(v.length > 0) {
@@ -1693,7 +1692,7 @@ void dot(frame f, triple[] v, material p=currentpen, light light=nolight,
 }
 
 void dot(frame f, path3 g, material p=currentpen, light light=nolight,
-         string name="", render render=new render,
+         string name="", render render=defaultrender,
          projection P=currentprojection)
 {
   dot(f,sequence(new triple(int i) {return point(g,i);},size(g)),
@@ -1701,7 +1700,7 @@ void dot(frame f, path3 g, material p=currentpen, light light=nolight,
 }
 
 void dot(frame f, path3[] g, material p=currentpen, light light=nolight,
-         string name="", render render=new render,
+         string name="", render render=defaultrender,
          projection P=currentprojection)
 {
   int sum;
@@ -1721,7 +1720,7 @@ void dot(frame f, path3[] g, material p=currentpen, light light=nolight,
 
 void dot(picture pic=currentpicture, triple v, material p=currentpen,
          light light=nolight, string name="",
-         render render=new render)
+         render render=defaultrender)
 {
   pen q=(pen) p;
   real size=0.5*linewidth(dotsize(q)+q);
@@ -1733,7 +1732,7 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
         for(patch s : unitsphere.s)
           draw3D(f,T*s,V,p,light,prc=false);
         if(prc())
-          drawPRCsphere(f,T,p,light);
+          drawPRCsphere(f,T,p,light,render);
         endgroup3(f);
       }
       if(pic != null)
@@ -1745,7 +1744,7 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
 
 void dot(picture pic=currentpicture, triple[] v, material p=currentpen,
          light light=nolight, string name="",
-         render render=new render)
+         render render=defaultrender)
 {
   if(v.length > 0) {
     // Remove duplicate points.
@@ -1768,7 +1767,7 @@ void dot(picture pic=currentpicture, triple[] v, material p=currentpen,
 
 void dot(picture pic=currentpicture, explicit path3 g, material p=currentpen,
          light light=nolight, string name="",
-         render render=new render)
+         render render=defaultrender)
 {
   dot(pic,sequence(new triple(int i) {return point(g,i);},size(g)),
       p,light,name,render);
@@ -1776,7 +1775,7 @@ void dot(picture pic=currentpicture, explicit path3 g, material p=currentpen,
 
 void dot(picture pic=currentpicture, path3[] g, material p=currentpen,
          light light=nolight, string name="",
-         render render=new render)
+         render render=defaultrender)
 {
   int sum;
   for(path3 G : g)
@@ -1796,7 +1795,7 @@ void dot(picture pic=currentpicture, path3[] g, material p=currentpen,
 void dot(picture pic=currentpicture, Label L, triple v, align align=NoAlign,
          string format=defaultformat, material p=currentpen,
          light light=nolight, string name="",
-         render render=new render)
+         render render=defaultrender)
 {
   Label L=L.copy();
   if(L.s == "") {
@@ -1862,7 +1861,7 @@ triple[][] operator / (triple[][] a, real[][] b)
 // Draw a NURBS curve.
 void draw(picture pic=currentpicture, triple[] P, real[] knot,
           real[] weights=new real[], pen p=currentpen, string name="",
-          render render=new render)
+          render render=defaultrender)
 {
   P=copy(P);
   knot=copy(knot);
@@ -1884,7 +1883,7 @@ void draw(picture pic=currentpicture, triple[] P, real[] knot,
 void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
           real[][] weights=new real[][], material m=currentpen,
           pen[] colors=new pen[], light light=currentlight, string name="",
-          render render=new render)
+          render render=defaultrender)
 {
   if(colors.length > 0)
     m=mean(colors);

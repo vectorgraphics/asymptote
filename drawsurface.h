@@ -398,15 +398,15 @@ public:
   
 // Draw a PRC unit sphere.
 class drawSphere : public drawPRC {
-  int type;
   bool half;
+  int type;
 public:
-  drawSphere(const vm::array& t, const vm::array&p, double opacity,
-             double shininess, int type, bool half=false) :
-    drawPRC(t,p,opacity,shininess), type(type), half(half) {}
+  drawSphere(const vm::array& t, bool half, const vm::array&p, double opacity,
+             double shininess, int type) :
+    drawPRC(t,p,opacity,shininess), half(half), type(type) {}
 
   drawSphere(const vm::array& t, const drawSphere *s) :
-    drawPRC(t,s), type(s->type), half(s->half) {}
+    drawPRC(t,s), half(s->half), type(s->type) {}
     
   void P(Triple& t, double x, double y, double z);
   

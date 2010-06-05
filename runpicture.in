@@ -611,10 +611,10 @@ void draw(picture *f, triplearray2 *P, realarray *uknot, realarray *vknot,
 }
 
 // PRC unit sphere
-void drawPRCsphere(picture *f, realarray2 *t, penarray *p, real opacity,
-                   real shininess, Int type, bool half=false)
+void drawPRCsphere(picture *f, realarray2 *t, bool half=false, penarray *p,
+                   real opacity, real shininess, Int type)
 {
-  f->append(new drawSphere(*t,*p,opacity,shininess,intcast(type),half));
+  f->append(new drawSphere(*t,half,*p,opacity,shininess,intcast(type)));
 }
 
 // PRC unit cylinder

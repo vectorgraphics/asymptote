@@ -20,16 +20,61 @@ restricted real High=0.01;
 restricted int PRCsphere=0;   // Renders slowly but produces smaller PRC files.
 restricted int NURBSsphere=1; // Renders fast but produces larger PRC files.
 
-real defaultshininess=0.25;
-real defaultcompression=High;
-real defaultgranularity=0.001;
-int defaultsphere=NURBSsphere; // Currently only used for PRC dots.
+struct render
+{
+  // PRC parameters:
+  real compression;     // lossy compression parameter (0=no compression)
+  real granularity;     // PRC rendering granularity
 
-real tubegranularity=0.005;
+  bool closed;          // use one-sided rendering?
+  bool tessellate;      // use tessellated mesh to store straight patches?
+  bool3 merge;          // merge nodes before rendering, for lower quality
+                        // but faster PRC rendering?
+                        // (default=merge only transparent patches)
+  int sphere;           // PRC sphere type (PRCsphere or NURBSsphere).
+
+  // General parameters:
+  real margin;          // shrink amount for rendered openGL viewport, in bp.
+  real tubegranularity; // granularity for rendering tubes 
+
+  static render defaultrender;
+  
+  void operator init(real compression=defaultrender.compression,
+                     real granularity=defaultrender.granularity,
+                     bool closed=defaultrender.closed,
+                     bool tessellate=defaultrender.tessellate,
+                     bool3 merge=defaultrender.merge,
+                     int sphere=defaultrender.sphere,
+                     real margin=defaultrender.margin,
+                     real tubegranularity=defaultrender.tubegranularity)
+  {
+    this.compression=compression;
+    this.granularity=granularity;
+    this.closed=closed;
+    this.tessellate=tessellate;
+    this.merge=merge;
+    this.sphere=sphere;
+    this.margin=margin;
+    this.tubegranularity=tubegranularity;
+  }
+}
+
+render operator init() {return render();}
+
+render defaultrender=render.defaultrender=new render;
+defaultrender.compression=High;
+defaultrender.granularity=Medium;
+defaultrender.closed=false;
+defaultrender.tessellate=false;
+defaultrender.merge=false;
+defaultrender.margin=0.02;
+defaultrender.tubegranularity=0.005;
+defaultrender.sphere=NURBSsphere;
+
+real defaultshininess=0.25;
 
 real angleprecision=1e-5; // Precision for centering perspective projections.
 int maxangleiterations=25;
-real rendermargin=0.02;
 
 string defaultembed3Doptions;
 string defaultembed3Dscript;
@@ -2005,37 +2050,11 @@ path3 plane(triple u, triple v, triple O=O)
 
 include three_light;
 
-struct render
-{
-  real compression;   // lossy compression parameter (0=no compression)
-  real granularity;   // PRC rendering granularity
-
-  bool closed;        // use one-sided rendering?
-  bool tessellate;    // use tessellated mesh to store straight patches?
-  bool3 merge;        // merge nodes before rendering, for lower quality
-                      // but faster PRC rendering?
-                      // (default=merge only transparent patches)
-
-  void operator init(real compression=defaultcompression,
-                     real granularity=defaultgranularity,
-                     bool closed=false, bool tessellate=false,
-                     bool3 merge=false)
-  {
-    this.compression=compression;
-    this.granularity=granularity;
-    this.closed=closed;
-    this.tessellate=tessellate;
-    this.merge=merge;
-  }
-
-  this.operator init();
-}
-
 void draw(frame f, path3 g, material p=currentpen, light light=nolight,
-          string name="", render render=new render,
+          string name="", render render=defaultrender,
           projection P=currentprojection);
 
-void begingroup3(frame f, string name="", render render=new render,
+void begingroup3(frame f, string name="", render render=defaultrender,
                  triple center=O, int interaction=0)
 {
   _begingroup3(f,name,render.compression,render.granularity,render.closed,
@@ -2044,7 +2063,7 @@ void begingroup3(frame f, string name="", render render=new render,
 }
 
 void begingroup3(picture pic=currentpicture, string name="",
-                 render render=new render,
+                 render render=defaultrender,
                  triple center=O, int interaction=0)
 {
   pic.add(new void(frame f, transform3, picture pic, projection) {
@@ -2109,7 +2128,7 @@ pair max(frame f, projection P)
 void draw(picture pic=currentpicture, Label L="", path3 g,
           align align=NoAlign, material p=currentpen, margin3 margin=NoMargin3,
           light light=nolight, string name="",
-          render render=new render)
+          render render=defaultrender)
 {
   pen q=(pen) p;
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
@@ -2135,7 +2154,7 @@ include three_tube;
 
 draw=new void(frame f, path3 g, material p=currentpen,
               light light=nolight, string name="",
-              render render=new render,
+              render render=defaultrender,
               projection P=currentprojection) {
   pen q=(pen) p;
   if(is3D()) {
@@ -2152,7 +2171,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
           if(prc) {
             cylinder=new void(transform3 t) {drawPRCcylinder(f,t,p,light);};
             sphere=new void(transform3 t, bool half)
-              {drawPRCsphere(f,t,p,half,light);};
+              {drawPRCsphere(f,t,half,p,light,render);};
             disk=new void(transform3 t) {draw(f,t*unitdisk,p,light);};
             tube=new void(path3 center, path3 g)
               {drawPRCtube(f,center,g,p,light);};
@@ -2174,7 +2193,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
               L += 2;
             }
           }
-          tube T=tube(g,width,cylinder,sphere,tube);
+          tube T=tube(g,width,render,cylinder,sphere,tube);
           path3 c=T.center;
           if(L >= 0) {
             if(open) {
@@ -2246,7 +2265,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
 
 void draw(frame f, explicit path3[] g, material p=currentpen,
           light light=nolight, string name="",
-          render render=new render, projection P=currentprojection)
+          render render=defaultrender, projection P=currentprojection)
 {
   if(g.length > 1)
     begingroup3(f,name == "" ? "curve" : name,render);
@@ -2258,7 +2277,7 @@ void draw(frame f, explicit path3[] g, material p=currentpen,
 
 void draw(picture pic=currentpicture, explicit path3[] g,
           material p=currentpen, margin3 margin=NoMargin3, light light=nolight,
-          string name="", render render=new render)
+          string name="", render render=defaultrender)
 {
   if(g.length > 1)
     begingroup3(pic,name == "" ? "curves" : name,render);
@@ -2274,7 +2293,7 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
           align align=NoAlign, material p=currentpen, arrowbar3 arrow,
           arrowbar3 bar=None, margin3 margin=NoMargin3, light light=nolight,
           light arrowheadlight=currentlight, string name="",
-          render render=new render)
+          render render=defaultrender)
 {
   bool group=arrow != None || bar != None;
   if(group)
@@ -2289,7 +2308,7 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
 
 void draw(frame f, path3 g, material p=currentpen, arrowbar3 arrow,
           light light=nolight, light arrowheadlight=currentlight,
-          string name="", render render=new render,
+          string name="", render render=defaultrender,
           projection P=currentprojection)
 {
   picture pic;
@@ -2912,7 +2931,7 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
     } else if(M.z >= 0) abort("camera too close");
 
     shipout3(prefix,f,preview ? nativeformat() : format,
-             S.width-rendermargin,S.height-rendermargin,
+             S.width-defaultrender.margin,S.height-defaultrender.margin,
              P.infinity ? 0 : 2aTan(Tan(0.5*P.angle)*P.zoom),
              P.zoom,m,M,P.viewportshift,
              tinv*inverse(modelview)*shift(0,0,zcenter),light.background(),

@@ -1852,7 +1852,7 @@ guide3[][] lift(real f(pair z), guide[][] g, interpolate3 join=operator --)
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
           guide3[][] g, pen[] p, light light=currentlight, string name="",
-          render render=new render,
+          render render=defaultrender,
           interaction interaction=LabelInteraction())
 {
   pen thin=is3D() ? thin() : defaultpen;

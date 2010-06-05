@@ -1,5 +1,6 @@
-void render(path3 s, real granularity=tubegranularity, void f(path3, real))
+void render(path3 s, void f(path3, real), render render=defaultrender)
 {
+  real granularity=render.tubegranularity;
   void Split(triple z0, triple c0, triple c1, triple z1, real t0=0, real t1=1,
              real depth=mantissaBits) {
     if(depth > 0) {
@@ -292,7 +293,7 @@ struct tube
   void Null(transform3) {}
   void Null(transform3, bool) {}
   
-  void operator init(path3 p, real width, real granularity=tubegranularity,
+  void operator init(path3 p, real width, render render=defaultrender,
                      void cylinder(transform3)=Null,
                      void sphere(transform3, bool half)=Null,
                      void tube(path3, path3)=null) {
@@ -313,11 +314,11 @@ struct tube
         real[] T;
         path3 G;
         for(int i=0; i < n; ++i)
-          render(subpath(p,i,i+1),granularity,
+          render(subpath(p,i,i+1),
                  new void(path3 g, real s) {
                    G=G&g;
                    T.push(i+s);
-                 });
+                 },render);
         T.push(n);
         T.cyclic=cyclic(p);
         rmf[] rmf=rmf(p,T);

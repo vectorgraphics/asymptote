@@ -7556,13 +7556,17 @@ the routines
 @verbatim
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
-          light light=currentlight, light meshlight=light, string name="");
+          light light=currentlight, light meshlight=light, string name="",
+          render render=defaultrender);
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen meshpen,
-          light light=currentlight, light meshlight=light, string name="");
+          light light=currentlight, light meshlight=light, string name="",
+          render render=defaultrender);
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
-          light light=currentlight, light meshlight=light, string name="");
+          light light=currentlight, light meshlight=light, string name="",
+          render render=defaultrender);
+
 @end verbatim
 The parameters @code{nu} and @code{nv} specify the number of subdivisions
 for drawing optional mesh lines for each Bezier patch. The optional
@@ -7582,7 +7586,9 @@ struct material {
 These material properties are used to implement @code{OpenGL}-style lighting,
 based on the Phong-Blinn specular model. Sample Bezier surfaces are
 contained in the example files @code{BezierSurface.asy}, @code{teapot.asy},
-and @code{parametricsurface.asy}. 
+and @code{parametricsurface.asy}. The structure @code{render} contains
+specialized rendering parameters documented at the beginning of module 
+@code{three.asy}.
 
 @cindex patch-dependent colors
 @cindex vertex-dependent colors
@@ -7639,7 +7645,7 @@ Arbitrary thick three-dimensional curves and line caps (which the
 @code{OpenGL} standard does not require implementations to provide) are
 constructed with
 @verbatim
-tube tube(path3 p, real width, real granularity=tubegranularity);
+tube tube(path3 p, real width, render render=defaultrender);
 @end verbatim
 @noindent
 this returns a tube structure representing a tube of diameter @code{width} 
@@ -8084,8 +8090,8 @@ When not multiplied on the left by a transform3, three-dimensional
 @verbatim
 void label(picture pic=currentpicture, Label L, triple position,
            align align=NoAlign, pen p=currentpen,
-           light light=nolight, string name=L.s,
-           interaction interaction=
+           light light=nolight, string name="",
+           render render=defaultrender, interaction interaction=
            settings.autobillboard ? Billboard : Embedded)
 @end verbatim
 @noindent
