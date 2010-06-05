@@ -2006,20 +2006,51 @@ path3 plane(triple u, triple v, triple O=O)
 
 include three_light;
 
+struct render
+{
+  real compression;   // lossy compression parameter (0=no compression)
+  real granularity;   // PRC rendering granularity
+
+  bool closed;        // use one-sided rendering?
+  bool tessellate;    // use tessellated mesh to store straight patches?
+  bool3 merge;        // merge nodes before rendering, for lower quality
+                      // but faster PRC rendering?
+                      // (default=merge only transparent patches)
+
+  void operator init(real compression=defaultcompression,
+                     real granularity=defaultgranularity,
+                     bool closed=false, bool tessellate=false,
+                     bool3 merge=false)
+  {
+    this.compression=compression;
+    this.granularity=granularity;
+    this.closed=closed;
+    this.tessellate=tessellate;
+    this.merge=merge;
+  }
+
+  this.operator init();
+}
+
 void draw(frame f, path3 g, material p=currentpen, light light=nolight,
-          string name="", real compression=defaultcompression,
+          string name="", render render=new render,
           projection P=currentprojection);
 
+void begingroup3(frame f, string name="", render render=new render,
+                 triple center=O, int interaction=0)
+{
+  _begingroup3(f,name,render.compression,render.granularity,render.closed,
+               render.tessellate,render.merge == false,
+               render.merge == true,center,interaction);
+}
+
 void begingroup3(picture pic=currentpicture, string name="",
-                 real compression=defaultcompression,
-                 real granularity=defaultgranularity,
-                 bool closed=false, bool tessellate=false,
-                 bool3 group=false)
+                 render render=new render,
+                 triple center=O, int interaction=0)
 {
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
-        begingroup(f,name,compression,granularity,closed,tessellate,
-                   group == false,group == true);
+        begingroup3(f,name,render,center,interaction);
       if(pic != null)
         begingroup(pic);
     },true);
@@ -2029,7 +2060,7 @@ void endgroup3(picture pic=currentpicture)
 {
   pic.add(new void(frame f, transform3, picture pic, projection) {
       if(is3D())
-        endgroup(f);
+        endgroup3(f);
       if(pic != null)
         endgroup(pic);
     },true);
@@ -2079,13 +2110,13 @@ pair max(frame f, projection P)
 void draw(picture pic=currentpicture, Label L="", path3 g,
           align align=NoAlign, material p=currentpen, margin3 margin=NoMargin3,
           light light=nolight, string name="",
-          real compression=defaultcompression)
+          render render=new render)
 {
   pen q=(pen) p;
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       path3 G=margin(t*g,q).g;
       if(is3D()) {
-        draw(f,G,p,light,name,compression,null);
+        draw(f,G,p,light,name,render,null);
         if(pic != null && size(G) > 0)
           pic.addBox(min(G,P),max(G,P),min(q),max(q));
       }
@@ -2105,7 +2136,7 @@ include three_tube;
 
 draw=new void(frame f, path3 g, material p=currentpen,
               light light=nolight, string name="",
-              real compression=defaultcompression,
+              render render=new render,
               projection P=currentprojection) {
   pen q=(pen) p;
   if(is3D()) {
@@ -2123,7 +2154,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
             cylinder=new void(transform3 t) {drawPRCcylinder(f,t,p,light);};
             sphere=new void(transform3 t, bool half)
               {drawPRCsphere(f,t,p,half,light);};
-            disk=new void(transform3 t) {drawPRCdisk(f,t,p,light);};
+            disk=new void(transform3 t) {draw(f,t*unitdisk,p,light);};
             tube=new void(path3 center, path3 g)
               {drawPRCtube(f,center,g,p,light);};
           }
@@ -2132,7 +2163,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
           bool open=!cyclic(g);
           int L=length(g);
           triple g0,gL;
-          if(open) {
+          if(open && L > 0) {
             g0=point(g,0);
             gL=point(g,L);
             linecap=linecap(q);
@@ -2159,20 +2190,24 @@ draw=new void(frame f, path3 g, material p=currentpen,
               transform3 tL=shift(gL)*align(dirL);
               transform3 tc0=shift(c0)*align(-dirc0);
               transform3 tcL=shift(cL)*align(dircL);
-              if(linecap == 0 || linecap == 2) {
+              if(linecap == 0 || linecap == 2){
                 transform3 scale2r=scale(r,r,1);
                 T.s.append(t0*scale2r*unitdisk);
-                T.s.append(tL*scale2r*unitdisk);
-                disk(t0*scale2r);
-                disk(tL*scale2r);
+                disk(tc0*scale2r);
+                if(L > 0) {
+                  T.s.append(tL*scale2r*unitdisk);
+                  disk(tcL*scale2r);
+                }
               } else if(linecap == 1) {
                 transform3 scale3r=scale3(r);
                 T.s.append(t0*scale3r*
                            (dir0 != O ? unithemisphere : unitsphere));
-                T.s.append(tL*scale3r*
-                           (dirL != O ? unithemisphere : unitsphere));
-                sphere(tc0*scale3r,half=dirc0 != O);
-                sphere(tcL*scale3r,half=dircL != O);
+                sphere(tc0*scale3r,half=straight(c,0));
+                if(L > 0) {
+                  T.s.append(tL*scale3r*
+                             (dirL != O ? unithemisphere : unitsphere));
+                  sphere(tcL*scale3r,half=straight(c,Lc-1));
+                }
               }
             }
             if(opacity(q) == 1)
@@ -2185,7 +2220,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
     }
     real[] dash=linetype(adjust(q,arclength(g),cyclic(g)));
     if(q != nullpen)
-      begingroup(f,name == "" ? "curve" : name,compression);
+      begingroup3(f,name == "" ? "curve" : name,render);
     if(dash.length == 0) drawthick(g);
     else {
       if(sum(dash) > 0) {
@@ -2206,30 +2241,30 @@ draw=new void(frame f, path3 g, material p=currentpen,
       }
     }
     if(q != nullpen)
-      endgroup(f);
+      endgroup3(f);
   } else draw(f,project(g,P),q);
 };
 
 void draw(frame f, explicit path3[] g, material p=currentpen,
           light light=nolight, string name="",
-          real compression=defaultcompression, projection P=currentprojection)
+          render render=new render, projection P=currentprojection)
 {
   if(g.length > 1)
-    begingroup(f,name == "" ? "curve" : name,compression);
+    begingroup3(f,name == "" ? "curve" : name,render);
   for(int i=0; i < g.length; ++i)
-    draw(f,g[i],p,light,partname(i),compression,P);
+    draw(f,g[i],p,light,partname(i),render,P);
   if(g.length > 1)
-    endgroup(f);
+    endgroup3(f);
 }
 
 void draw(picture pic=currentpicture, explicit path3[] g,
           material p=currentpen, margin3 margin=NoMargin3, light light=nolight,
-          string name="", real compression=defaultcompression)
+          string name="", render render=new render)
 {
   if(g.length > 1)
-    begingroup3(pic,name == "" ? "curves" : name,compression);
+    begingroup3(pic,name == "" ? "curves" : name,render);
   for(int i=0; i < g.length; ++i)
-    draw(pic,g[i],p,margin,light,partname(i),compression);
+    draw(pic,g[i],p,margin,light,partname(i),render);
   if(g.length > 1)
     endgroup3(pic);
 }
@@ -2240,11 +2275,11 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
           align align=NoAlign, material p=currentpen, arrowbar3 arrow,
           arrowbar3 bar=None, margin3 margin=NoMargin3, light light=nolight,
           light arrowheadlight=currentlight, string name="",
-          real compression=defaultcompression)
+          render render=new render)
 {
   bool group=arrow != None || bar != None;
   if(group)
-    begingroup3(pic,name,compression);
+    begingroup3(pic,name,render);
   bool drawpath=arrow(pic,g,p,margin,light,arrowheadlight);
   if(bar(pic,g,p,margin,light,arrowheadlight) && drawpath)
     draw(pic,L,g,align,p,margin,light);
@@ -2255,18 +2290,18 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
 
 void draw(frame f, path3 g, material p=currentpen, arrowbar3 arrow,
           light light=nolight, light arrowheadlight=currentlight,
-          string name="", real compression=defaultcompression,
+          string name="", render render=new render,
           projection P=currentprojection)
 {
   picture pic;
   bool group=arrow != None;
   if(group)
-    begingroup(f,name,compression);
+    begingroup3(f,name,render);
   if(arrow(pic,g,p,NoMargin3,light,arrowheadlight))
     draw(f,g,p,light,P);
   add(f,pic.fit());
   if(group)
-    endgroup(f);
+    endgroup3(f);
 }
 
 void add(picture pic=currentpicture, void d(picture,transform3),

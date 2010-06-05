@@ -1852,12 +1852,12 @@ guide3[][] lift(real f(pair z), guide[][] g, interpolate3 join=operator --)
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
           guide3[][] g, pen[] p, light light=currentlight, string name="",
-          real compression=defaultcompression,
+          render render=new render,
           interaction interaction=LabelInteraction())
 {
   pen thin=is3D() ? thin() : defaultpen;
   if(g.length > 1)
-    begingroup3(pic,name == "" ? "contours" : name,compression);
+    begingroup3(pic,name == "" ? "contours" : name,render);
   for(int cnt=0; cnt < g.length; ++cnt) {
     guide3[] gcnt=g[cnt];
     pen pcnt=thin+p[cnt];

@@ -13,6 +13,24 @@
 namespace camp {
 
 class drawBegin : public drawElement {
+public:
+  drawBegin() {}
+  
+  virtual ~drawBegin() {}
+
+  bool begingroup() {return true;}
+};
+  
+class drawEnd : public drawElement {
+public:
+  drawEnd() {}
+  
+  virtual ~drawEnd() {}
+
+  bool endgroup() {return true;}
+};
+
+class drawBegin3 : public drawElement {
   string name;
   double compression;
   double granularity;
@@ -26,14 +44,14 @@ class drawBegin : public drawElement {
   
   groupmap *g;
 public:
-  drawBegin(string name, double compression, double granularity,
+  drawBegin3(string name, double compression, double granularity,
             bool closed, bool tessellate, bool dobreak, bool nobreak,
-            triple center=triple(0,0,0), int interaction=EMBEDDED) :
+            triple center, int interaction) :
     name(name), compression(compression), granularity(granularity),
     closed(closed), tessellate(tessellate), dobreak(dobreak), nobreak(nobreak),
     center(center), interaction(interaction) {}
   
-  virtual ~drawBegin() {}
+  virtual ~drawBegin3() {}
 
   bool begingroup() {return true;}
   
@@ -66,7 +84,7 @@ public:
     return true;
   }
   
-  drawBegin(const vm::array& t, const drawBegin *s) :
+  drawBegin3(const vm::array& t, const drawBegin3 *s) :
     name(s->name), compression(s->compression), granularity(s->granularity),
     closed(s->closed), tessellate(s->tessellate), dobreak(s->dobreak),
     nobreak(s->nobreak), interaction(s->interaction)  {
@@ -74,21 +92,20 @@ public:
   }
   
   drawElement *transformed(const array& t) {
-    return new drawBegin(t,this);
+    return new drawBegin3(t,this);
   }
 };
 
-class drawEnd : public drawElement {
+class drawEnd3 : public drawElement {
 public:
-  drawEnd() {}
+  drawEnd3() {}
   
-  virtual ~drawEnd() {}
+  virtual ~drawEnd3() {}
 
   bool endgroup() {return true;}
   
   bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
              groupsmap& groups) {
-    
     groups.pop_back();
     out->endgroup();
     return true;

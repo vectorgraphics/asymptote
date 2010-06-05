@@ -408,8 +408,8 @@ struct tube
        s.append(shift(point(p,i))*t*align(dir)*
                 (dir != O ? unithemisphere : unitsphere));
        int L=length(center);
-       dir=dir(center,L,-1);
-       sphere(shift(point(center,L))*t*align(dir),half=dir != O);
+       sphere(shift(point(center,L))*t*align(dir(center,L,-1)),
+              half=straight(p,i-1) && straight(p,i));
        begin=i;
      }
     generate(subpath(p,begin,n));

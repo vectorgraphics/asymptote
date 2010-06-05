@@ -348,11 +348,11 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
 	  pen frontpen=currentpen, pen backpen=frontpen,
 	  pen longitudinalpen=frontpen, pen longitudinalbackpen=backpen,
 	  light light=currentlight, string name="",
-          real compression=defaultcompression, projection P=currentprojection)
+          render render=new render, projection P=currentprojection)
 {
   pen thin=is3D() ? thin() : defaultpen;
   skeleton s=r.skeleton(m,n,P);
-  begingroup3(pic,name == "" ? "skeleton" : name,compression);
+  begingroup3(pic,name == "" ? "skeleton" : name,render);
   if(frontpen != nullpen) {
     draw(pic,s.transverse.back,thin+defaultbackpen+backpen,light);
     draw(pic,s.transverse.front,thin+frontpen,light);

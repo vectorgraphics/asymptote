@@ -665,17 +665,11 @@ bool drawSphere::write(prcfile *out, unsigned int *, array *, array *, double,
     }
     case 1: // NURBSsphere
     {
-      static double third=1.0/3.0;
-  
-      static double uknot[]={0.0,0.0,third,0.5,1.0,1.0};
+      static double uknot[]={0.0,0.0,1.0/3.0,0.5,1.0,1.0};
       static double vknot[]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
-      static double W[]={2.0*third,third,1.0};
-      static double w[]={1.0,third,third,1.0};
-      
-      double Weights[12];
-      for(unsigned i=0; i < 3; ++i)
-        for(unsigned j=0; j < 4; ++j)
-          Weights[4*i+j]=W[i]*w[j];
+      static double Weights[12]={2.0/3.0,2.0/9.0,2.0/9.0,2.0/3.0,
+                                 1.0/3.0,1.0/9.0,1.0/9.0,1.0/3.0,
+                                 1.0,1.0/3.0,1.0/3.0,1.0};
 
 // NURBS representation of a sphere using 10 distinct control points
 // K. Qin, J. Comp. Sci. and Tech. 12, 210-216 (1997).
