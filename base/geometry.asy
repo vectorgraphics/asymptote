@@ -6432,7 +6432,7 @@ point operator *(inversion i, point P)
 
 void lineinversion()
 {
-    warning("lineinversion","the inversion of the line is not a circle.
+  warning("lineinversion","the inversion of the line is not a circle.
 The returned circle has an infinite radius, circle.l has been set.");
 }
 

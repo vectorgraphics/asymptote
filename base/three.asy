@@ -2648,7 +2648,7 @@ string embed3D(string label="", string text=label, string prefix,
   if(script == "") script=defaultembed3Dscript;
 
   // Adobe Reader doesn't appear to support user-specified viewport lights.
-  string lightscript=light.on() && !light.viewport ? lightscript(light) : "";
+  string lightscript=light.on() && light.viewport ? "" : lightscript(light);
 
   real viewplanesize;
   if(P.infinity) {
@@ -2748,7 +2748,7 @@ struct scene
       if(this.P.center && settings.render != 0) {
         triple target=0.5*(m+M);
         this.P.target=target;
-          this.P.calculate();
+        this.P.calculate();
       }
       if(this.P.autoadjust || this.P.infinity) 
         adjusted=adjusted | this.P.adjust(m,M);

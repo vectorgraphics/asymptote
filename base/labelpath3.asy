@@ -48,10 +48,10 @@ surface labelpath(string s, path3 p, real angle=90, triple optional=O)
   path[] text=texpath(Label(s,(0,0),Align,basealign));
   text=scale(1/(max(text).x-min(text).x))*text;
   path[][] decompose=containmentTree(text);
-	
+        
   real[][] xpos=new real[decompose.length][2];
   surface sf;
-  for(int i=0; i < decompose.length; ++i) {// Identify positions along x-axis	
+  for(int i=0; i < decompose.length; ++i) {// Identify positions along x-axis   
     xpos[i][1]=i;
     real pos0=0.5(max(decompose[i]).x+min(decompose[i]).x);
     xpos[i][0]=pos0;

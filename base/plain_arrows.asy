@@ -546,18 +546,18 @@ void arrow(picture pic=currentpicture, Label L="", pair b, pair dir,
 // Fit an array of pictures simultaneously using the sizing of picture all.
 frame[] fit2(picture[] pictures, picture all)
 {
- frame[] out;
- if(!all.empty2()) {
-   transform t=all.calculateTransform();
-   pair m=all.min(t);
-   pair M=all.max(t);
-   for(picture pic : pictures) {
-     frame f=pic.fit(t);
-     draw(f,m,nullpen);
-     draw(f,M,nullpen);
-     out.push(f);
-   }
- }
+  frame[] out;
+  if(!all.empty2()) {
+    transform t=all.calculateTransform();
+    pair m=all.min(t);
+    pair M=all.max(t);
+    for(picture pic : pictures) {
+      frame f=pic.fit(t);
+      draw(f,m,nullpen);
+      draw(f,M,nullpen);
+      out.push(f);
+    }
+  }
   return out;
 }
 

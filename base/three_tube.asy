@@ -352,7 +352,7 @@ struct tube
           int[] index=S.index[0];
           triple Point;
           for(int m=0; m < 4; ++m)
-              Point += S.s[index[m]].P[0][0];
+            Point += S.s[index[m]].P[0][0];
           pre[0]=point[0]=0.25*Point;
             
           for(int i=0; i < n; ++i) {
@@ -373,7 +373,7 @@ struct tube
           index=S.index[n-1];
           triple Post;
           for(int m=0; m < 4; ++m)
-              Post += S.s[index[m]].P[3][0];
+            Post += S.s[index[m]].P[3][0];
           post[n]=0.25*Post;
 
           bool[] b=array(n+1,false);
@@ -403,16 +403,16 @@ struct tube
     int begin=0;
     int n=length(p);
     for(int i=cyclic ? 0 : 1; i < n; ++i)
-     if(abs(dir(p,i,1)-dir(p,i,-1)) > sqrtEpsilon) {
-       generate(subpath(p,begin,i));
-       triple dir=dir(p,i,-1);
-       s.append(shift(point(p,i))*t*align(dir)*
-                (dir != O ? unithemisphere : unitsphere));
-       int L=length(center);
-       sphere(shift(point(center,L))*t*align(dir(center,L,-1)),
-              half=straight(p,i-1) && straight(p,i));
-       begin=i;
-     }
+      if(abs(dir(p,i,1)-dir(p,i,-1)) > sqrtEpsilon) {
+        generate(subpath(p,begin,i));
+        triple dir=dir(p,i,-1);
+        s.append(shift(point(p,i))*t*align(dir)*
+                 (dir != O ? unithemisphere : unitsphere));
+        int L=length(center);
+        sphere(shift(point(center,L))*t*align(dir(center,L,-1)),
+               half=straight(p,i-1) && straight(p,i));
+        begin=i;
+      }
     generate(subpath(p,begin,n));
   }
 }

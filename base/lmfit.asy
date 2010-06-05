@@ -28,7 +28,7 @@
   the least-squares sum
   %
   \begin{equation*}
-    \sum_{i = 1}^n \left( \frac{y_i - f(a_1, \dots, a_m; x_i)}{\Delta y_i} \right)^2
+  \sum_{i = 1}^n \left( \frac{y_i - f(a_1, \dots, a_m; x_i)}{\Delta y_i} \right)^2
   \end{equation*}
   %
   with respect to the parameters $a_1, \dots, a_m$.
@@ -822,13 +822,13 @@ struct FitResult {
   Fits data points to a function that depends on some parameters.
 
   Parameters:
-   - xdata: Array of x values.
-   - ydata: Array of y values.
-   - errors: Array of experimental errors; each element must be strictly positive
-   - function: Fit function.
-   - parameters: Parameter array. Before calling fit(), this must contain the initial guesses for the parameters.
-                 Upon return, it will contain the solution parameters.
-   - control: object of type FitControl that controls various aspects of the fitting procedure.
+  - xdata: Array of x values.
+  - ydata: Array of y values.
+  - errors: Array of experimental errors; each element must be strictly positive
+  - function: Fit function.
+  - parameters: Parameter array. Before calling fit(), this must contain the initial guesses for the parameters.
+  Upon return, it will contain the solution parameters.
+  - control: object of type FitControl that controls various aspects of the fitting procedure.
 
   Returns:
   An object of type FitResult that conveys information about the fitting process.
@@ -865,12 +865,12 @@ FitResult fit(real[] xdata, real[] ydata, real[] errors, real function(real[], r
   Fits data points to a function that depends on some parameters.
 
   Parameters:
-   - xdata: Array of x values.
-   - ydata: Array of y values.
-   - function: Fit function.
-   - parameters: Parameter array. Before calling fit(), this must contain the initial guesses for the parameters.
-                 Upon return, it will contain the solution parameters.
-   - control: object of type FitControl that controls various aspects of the fitting procedure.
+  - xdata: Array of x values.
+  - ydata: Array of y values.
+  - function: Fit function.
+  - parameters: Parameter array. Before calling fit(), this must contain the initial guesses for the parameters.
+  Upon return, it will contain the solution parameters.
+  - control: object of type FitControl that controls various aspects of the fitting procedure.
 
   Returns:
   An object of type FitResult that conveys information about the fitting process.

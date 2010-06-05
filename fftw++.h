@@ -18,7 +18,7 @@
 #ifndef __fftwpp_h__
 #define __fftwpp_h__ 1
 
-#define __FFTWPP_H_VERSION__ 1.07svn
+#define __FFTWPP_H_VERSION__ 1.07
 
 #include <cstdlib>
 #include <fstream>
@@ -59,13 +59,13 @@ static const array3<Complex> NULL3;
 
 #else
 
-namespace Array {
-
 #ifdef HAVE_POSIX_MEMALIGN
 #ifdef _AIX
 extern "C" int posix_memalign(void **memptr, size_t alignment, size_t size);
 #endif
 #else
+namespace Array {
+
 // Adapted from FFTW aligned malloc/free.  Assumes that malloc is at least
 // sizeof(void*)-aligned. Allocated memory must be freed with free0.
 inline int posix_memalign0(void **memptr, size_t alignment, size_t size)
@@ -84,7 +84,11 @@ inline void free0(void *p)
 {
   if(p) free(*((void **) p-1));
 }
+
+}
 #endif
+
+namespace Array {
 
 template<class T>
 inline void newAlign(T *&v, size_t len, size_t align)
@@ -114,7 +118,6 @@ inline void deleteAlign(T *v, size_t len)
   free0(v);
 #endif  
 }
-
 }
 
 #endif

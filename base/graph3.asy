@@ -1574,8 +1574,8 @@ surface surface(triple[][] f, bool[][] cond={})
     for(int j=0; j < ny; ++j) {
       if(all || (condi[j] && condi[j+1] && condp[j] && condp[j+1]))
         s.s[++k]=patch(new triple[] {fi[j],fp[j],fp[j+1],fi[j+1]});
-        indexi[j]=k;
-      }
+      indexi[j]=k;
+    }
   }
 
   if(count == nx*ny) {

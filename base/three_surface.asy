@@ -1466,7 +1466,7 @@ void label(picture pic=currentpicture, Label L, triple position,
       triple v=t*position;
       if(!align.is3D && L.align.relative && L.align.dir3 != O &&
          determinant(P.t) != 0)
-          L.align(L.align.dir*unit(project(v+L.align.dir3,P.t)-project(v,P.t)));
+        L.align(L.align.dir*unit(project(v+L.align.dir3,P.t)-project(v,P.t)));
       
       if(interaction.targetsize && settings.render != 0)
         L.T=L.T*scale(abs(P.camera-v)/abs(P.vector()));
@@ -1526,7 +1526,7 @@ void label(picture pic=currentpicture, Label L, path3 g, align align=NoAlign,
   if(L.align.default) {
     align a;
     a.init(-I*(position <= sqrtEpsilon ? S :
-              position >= length(g)-sqrtEpsilon ? N : E),relative=true);
+               position >= length(g)-sqrtEpsilon ? N : E),relative=true);
     a.dir3=dir(g,position); // Pass 3D direction via unused field.
     L.align(a);             
   }
@@ -1719,8 +1719,7 @@ void dot(frame f, path3[] g, material p=currentpen, light light=nolight,
 }
 
 void dot(picture pic=currentpicture, triple v, material p=currentpen,
-         light light=nolight, string name="",
-         render render=defaultrender)
+         light light=nolight, string name="", render render=defaultrender)
 {
   pen q=(pen) p;
   real size=0.5*linewidth(dotsize(q)+q);
@@ -1743,8 +1742,7 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
 }
 
 void dot(picture pic=currentpicture, triple[] v, material p=currentpen,
-         light light=nolight, string name="",
-         render render=defaultrender)
+         light light=nolight, string name="", render render=defaultrender)
 {
   if(v.length > 0) {
     // Remove duplicate points.
@@ -1774,8 +1772,7 @@ void dot(picture pic=currentpicture, explicit path3 g, material p=currentpen,
 }
 
 void dot(picture pic=currentpicture, path3[] g, material p=currentpen,
-         light light=nolight, string name="",
-         render render=defaultrender)
+         light light=nolight, string name="", render render=defaultrender)
 {
   int sum;
   for(path3 G : g)
@@ -1794,8 +1791,7 @@ void dot(picture pic=currentpicture, path3[] g, material p=currentpen,
 
 void dot(picture pic=currentpicture, Label L, triple v, align align=NoAlign,
          string format=defaultformat, material p=currentpen,
-         light light=nolight, string name="",
-         render render=defaultrender)
+         light light=nolight, string name="", render render=defaultrender)
 {
   Label L=L.copy();
   if(L.s == "") {

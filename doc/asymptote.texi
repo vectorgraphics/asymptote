@@ -3873,7 +3873,6 @@ as initializers, as in @code{real x=2*sin(pi/2);}.
 
 A variable is not added to the namespace until after the initializer is
 evaluated, so for example, in
-
 @verbatim
 int x=2;
 int x=5*x;
@@ -3911,7 +3910,6 @@ it a value.
 The default initializer for any type @code{T} can be redeclared by defining the
 function @code{T operator init()}.  For instance, @code{int} variables are
 usually initialized to zero, but in
-
 @verbatim
 int operator init() {
   return 3;
@@ -3928,20 +3926,18 @@ defaults for user-defined types.
 @cindex @code{var}
 The special type @code{var} may be used to infer the type of a variable from
 its initializer.  If the initializer is an expression of a unique type, then
-the variable will be defined with that type.  For instance
-
+the variable will be defined with that type.  For instance,
 @verbatim
-var x = 5;
-var y = 4.3;
-var reddash = red + dashed;
+var x=5;
+var y=4.3;
+var reddash=red+dashed;
 @end verbatim
-
+@noindent
 is equivalent to
-
 @verbatim
-int x = 5;
-real y = 4.3;
-pen reddash = red + dashed;
+int x=5;
+real y=4.3;
+pen reddash=red+dashed;
 @end verbatim
 
 @node Structures
@@ -3966,7 +3962,6 @@ structure. Any code at the
 top-level scope within the structure is executed on initialization. 
 
 Variables hold references to structures.  That is, in the example:
-
 @verbatim
 struct T {
   int x;
@@ -3986,7 +3981,6 @@ that @code{foo.x} will also be equal to @code{5}.
 The expression @code{new T} creates a new instance of the structure @code{T} and
 returns a reference to that instance.  In creating the new instance, any code in
 the body of the record definition is executed.  For example:
-
 @verbatim
 int Tcount=0;
 struct T {
@@ -4022,7 +4016,6 @@ initialized to a new instance (@code{new T}) by default.  During the definition
 of the structure, however, variables of type @code{T} are initialized to
 @code{null} by default. This special behaviour is to avoid infinite
 recursion of creating new instances in code such as
-
 @verbatim
 struct tree {
   int value;
@@ -4032,7 +4025,6 @@ struct tree {
 @end verbatim
 
 Here is a simple example that illustrates the use of structures:
-
 @verbatim
 struct S {
   real a=1;
@@ -4057,7 +4049,6 @@ write((s+s).f(0));              // Outputs 2
 @cindex constructors
 It is often convenient to have functions that construct new instances of a
 structure.  Say we have a @code{Person} structure:
-
 @verbatim
 struct Person {
   string firstname;
@@ -4075,7 +4066,6 @@ creating a new person in real life, though).
 
 We can reduce the work by defining a constructor function 
 @code{Person(string,string)}:
-
 @verbatim
 struct Person {
   string firstname;
@@ -4095,7 +4085,6 @@ Person joe=Person.Person("Joe", "Jones");
 While it is now easier than before to create a new instance, we still
 have to refer to the constructor by the qualified name
 @code{Person.Person}.  If we add the line
-
 @verbatim
 from Person unravel Person;
 @end verbatim
@@ -4128,7 +4117,6 @@ static Foo Foo(@var{args}) @{
 This constructor is also implicitly copied to the enclosing scope after the end
 of the structure definition, so that it can used subsequently without qualifying
 it by the structure name.  Our @code{Person} example can thus be implemented as:
-
 @verbatim
 struct Person {
   string firstname;
@@ -5453,7 +5441,6 @@ Asymptote allows a section of an array to be addressed as a slice
 using a Python-like syntax.  If @code{A} is an array, the expression
 @code{A[m:n]} returns a new array consisting of the elements of @code{A} with
 indices from @code{m} up to but not including @code{n}. For example,
-
 @verbatim
 int[] x={0,1,2,3,4,5,6,7,8,9};
 int[] y=x[2:6];  // y={2,3,4,5};
@@ -5464,7 +5451,6 @@ If the left index is omitted, it is taken be @code{0}.  If the right index is
 omitted it is taken to be the length of the array.  If both are omitted, the
 slice then goes from the start of the array to the end, producing a non-cyclic
 deep copy of the array.  For example:
-
 @verbatim
 int[] x={0,1,2,3,4,5,6,7,8,9};
 int[] y=x[:4];  // y={0,1,2,3}
@@ -5501,7 +5487,6 @@ Slices can also be assigned to, changing the value of the original array.  If
 the array being assigned to the slice has a different length than the
 slice itself, elements will be inserted or removed from the array to
 accommodate it. For instance:
-
 @verbatim
 string[] toppings={"mayo", "salt", "ham", "lettuce"};
 toppings[0:2]=new string[] {"mustard", "pepper"};
@@ -5554,7 +5539,6 @@ trying to match function calls with possible function
 signatures. Implicit casting can be inhibited by declaring individual
 arguments @code{explicit} in the function signature, say to avoid an
 ambiguous function call in the following example, which outputs 0:
-
 @verbatim
 int f(pair a) {return 0;}
 int f(explicit real x) {return 1;}
@@ -5639,7 +5623,6 @@ adds the @code{axes} field of @code{graph} into the local name space,
 so that subsequently, one can just write @code{axes()}.  If the given name
 is overloaded, all types and variables of that name are added.  To add
 more than one name, just use a comma-separated list:
-
 @verbatim
 from graph access axes, xaxis, yaxis;
 @end verbatim
@@ -5654,7 +5637,6 @@ from graph access *;
 @cindex @code{unravel}
 Similarly, one can add the non-private fields and types of a structure
 to the local environment with the @code{unravel} keyword:
-
 @verbatim
 struct matrix { 
   real a,b,c,d; 
@@ -5703,7 +5685,6 @@ have the same name as local functions defined later.
 @cindex @code{as}
 To rename modules or fields when adding them to the local environment, use
 @code{as}:
-
 @verbatim
 access graph as graph2d;
 from graph access xaxis as xline, yaxis as yline;
@@ -5881,7 +5862,6 @@ is an ugly implementation of exponentiation.
 Loop constructs allocate a new frame in every iteration.  This is so that
 higher-order functions can refer to variables of a specific iteration of a
 loop:
-
 @verbatim
 void f();
 for(int i=0; i < 10; ++i) {
@@ -5897,7 +5877,6 @@ Here, every iteration of the loop has its own variable @code{x}, so @code{f()}
 will write @code{5}.  If a variable in a loop is declared static, it will be
 allocated where the enclosing function or structure was defined (just as if it
 were declared static outside of the loop).  For instance, in:
-
 @verbatim
 void f() {
   static int x;
@@ -5961,7 +5940,6 @@ latex latexusage
 
 @noindent
 or
-
 @verbatim
 pdflatex latexusage
 asy latexusage
@@ -7549,6 +7527,8 @@ path path(path3 p, pair P(triple)=xypart);
 @end verbatim
 
 @cindex @code{surface}
+@cindex @code{render}
+@cindex @code{defaultrender}
 A Bezier surface, the natural two-dimensional generalization of Bezier
 curves, is defined in @code{three_surface.asy} as a structure
 containing an array of Bezier patches. Surfaces may drawn with one of
@@ -7578,7 +7558,6 @@ struct material {
   pen[] p; // diffusepen,ambientpen,emissivepen,specularpen
   real opacity;
   real shininess;  
-  real granularity;
 ...
 }
 @end verbatim
@@ -7587,7 +7566,7 @@ These material properties are used to implement @code{OpenGL}-style lighting,
 based on the Phong-Blinn specular model. Sample Bezier surfaces are
 contained in the example files @code{BezierSurface.asy}, @code{teapot.asy},
 and @code{parametricsurface.asy}. The structure @code{render} contains
-specialized rendering parameters documented at the beginning of module 
+specialized rendering options documented at the beginning of module 
 @code{three.asy}.
 
 @cindex patch-dependent colors
@@ -9561,8 +9540,9 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  usplinetype vsplinetype leftbutton middlebutton rightbutton
 @c  LocalWords:  rotateY rotateZ wheelup zoomin wheeldown zoomout TeXLive
 @c  LocalWords:  viewportshift signedint signedness psview multiplatform nowarn
-@c  LocalWords:  singlereal singleint writeoverloaded tubegranularity dvisvg
+@c  LocalWords:  singlereal singleint writeoverloaded dvisvg reddash lexorder
 @c  LocalWords:  bigdiagonal autobillboard dvisvgm maxtiles hyperrefOptions
 @c  LocalWords:  setpagesize pdfborder controlsystem OmitTickInterval SixViews
 @c  LocalWords:  OmitTickIntervals tickmodifiers autorotated SixViewsUS
 @c  LocalWords:  ThreeViewsUS ThreeViewsFR SixViewsFR ThreeViews partialsum
+@c  LocalWords:  defaultrender

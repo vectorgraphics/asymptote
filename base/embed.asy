@@ -1,6 +1,6 @@
 if(latex()) {
-usepackage("hyperref");
-texpreamble("\hypersetup{"+settings.hyperrefOptions+"}");
+  usepackage("hyperref");
+  texpreamble("\hypersetup{"+settings.hyperrefOptions+"}");
   texpreamble("
 \ifx\pdfhorigin\undefined%
 \usepackage[3D,dvipdfmx]{movie15}
