@@ -81,6 +81,10 @@
 #include <cstdio>
 #include <cstdlib>
 
+#ifndef M_PI
+#define M_PI acos(-1.0)
+#endif
+
 #ifndef MAX
 #define MAX(a,b)  ((a)>(b) ? (a) : (b))
 #define MIN(a,b)  ((a)<(b) ? (a) : (b))
@@ -99,10 +103,6 @@ class vec3;
 class vec4;
 class mat3;
 class mat4;
-
-#ifndef M_PI
-#define M_PI 3.141592654
-#endif
 
 enum axes {VX, VY, VZ, VW};
 /*

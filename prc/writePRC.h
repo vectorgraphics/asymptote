@@ -36,6 +36,10 @@
 
 static const uint32_t m1=(uint32_t)-1;
 
+#ifndef M_PI
+#define M_PI acos(-1.0)
+#endif
+
 class PRCVector3d
 {
 public :
