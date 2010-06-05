@@ -26,7 +26,6 @@ real defaultgranularity=0.001;
 int defaultsphere=NURBSsphere; // Currently only used for PRC dots.
 
 real tubegranularity=0.005;
-int tubesectors=4;        // Number of angular sectors for drawing tubes.
 
 real angleprecision=1e-5; // Precision for centering perspective projections.
 int maxangleiterations=25;

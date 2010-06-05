@@ -292,8 +292,7 @@ struct tube
   void Null(transform3) {}
   void Null(transform3, bool) {}
   
-  void operator init(path3 p, real width, int sectors=tubesectors,
-                     real granularity=tubegranularity,
+  void operator init(path3 p, real width, real granularity=tubegranularity,
                      void cylinder(transform3)=Null,
                      void sphere(transform3, bool half)=Null,
                      void tube(path3, path3)=null) {
@@ -324,11 +323,13 @@ struct tube
         rmf[] rmf=rmf(p,T);
         triple f(pair t) {
           rmf R=rmf[round(t.x)];
-          return point(G,t.x)+r*(R.r*cos(t.y)-R.s*sin(t.y));
+          int n=round(t.y);
+          static real[] x={1,0,-1,0};
+          static real[] y={0,1,0,-1};
+          return point(G,t.x)+r*(R.r*x[n]-R.s*y[n]);
         }
 
-        real[] v=uniform(0,2pi,sectors);
-
+        static real[] v={0,1,2,3,0};
         static real[] circular(real[] x, real[] y) {
           static real a=8/3*(sqrt(2)-1);
           return a*periodic(x,y);
@@ -346,34 +347,33 @@ struct tube
           triple[] pre=new triple[n+1];
           triple[] point=new triple[n+1];
           triple[] post=new triple[n+1];
-          real factor=1/sectors;
 
           int[] index=S.index[0];
           triple Point;
-          for(int m=0; m < sectors; ++m)
+          for(int m=0; m < 4; ++m)
               Point += S.s[index[m]].P[0][0];
-          pre[0]=point[0]=factor*Point;
+          pre[0]=point[0]=0.25*Point;
             
           for(int i=0; i < n; ++i) {
             index=S.index[i];
             triple Pre,Point,Post;
-            for(int m=0; m < sectors; ++m) {
+            for(int m=0; m < 4; ++m) {
               triple [][] P=S.s[index[m]].P;
               Post += P[1][0];
               Pre += P[2][0];
               Point += P[3][0];
             }
-            post[i]=factor*Post;
-            pre[i+1]=factor*Pre;
-            point[i+1]=factor*Point;
+            post[i]=0.25*Post;
+            pre[i+1]=0.25*Pre;
+            point[i+1]=0.25*Point;
 
           }
 
           index=S.index[n-1];
           triple Post;
-          for(int m=0; m < sectors; ++m)
+          for(int m=0; m < 4; ++m)
               Post += S.s[index[m]].P[3][0];
-          post[n]=factor*Post;
+          post[n]=0.25*Post;
 
           bool[] b=array(n+1,false);
           path3 Center=path3(pre,point,post,b,T.cyclic);
