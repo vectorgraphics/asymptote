@@ -9,6 +9,9 @@ bool getviews=true;
 currentlight=White;
 //currentlight=nolight;
 
+defaultrender.merge=true;  // Fast low-quality rendering
+//defaultrender.merge=false; // Slow high-quality rendering
+
 size(200);
 currentprojection=perspective(30,30,15);
 
@@ -138,16 +141,18 @@ endgroup3();
 
 write("Number of hetero bonds: ",bonds.length);
 
+begingroup3("bonds");
 for(bond b : bonds) {
   triple v(int i) {return atoms[find(serials == i)].v;}
   draw(v(b.i)--v(b.j),hetpen,currentlight);
 }
+endgroup3();
 
 string options;
 string viewfilename=prefix+".views";
 
 if(!error(input(viewfilename,check=false)))
-  options="3Dviews="+viewfilename;
+  options="3Dviews2="+viewfilename;
 
 if(getviews) {
   picture pic;
@@ -156,3 +161,4 @@ if(getviews) {
   shipout(prefix,pic,options=options);
 } else
   shipout(prefix,options=options);
+

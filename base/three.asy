@@ -2435,14 +2435,38 @@ private struct viewpoint {
   triple target,camera,up;
   real angle;
   void operator init(string s) {
-    s=replace(s,new string[][] {{" ",","},{"}{",","},{"{",""},{"}",""},});
-    string[] S=split(s,",");
-    target=((real) S[0],(real) S[1],(real) S[2]);
-    camera=target+(real) S[6]*((real) S[3],(real) S[4],(real) S[5]);
+    s=replace(s,'\n'," ");
+    string[] S=split(s);
+    int pos(string s, string key) {
+      int pos=find(s,key);
+      if(pos < 0) return -1;
+      pos += length(key);
+      while(substr(s,pos,1) == " ") ++pos;
+      if(substr(s,pos,1) == "=")
+        return pos+1;
+      return -1;
+    }
+    triple C2C=X;
+    real ROO=1;
+    real ROLL=0;
+    angle=30;
+    int pos;
+    for(int k=0; k < S.length; ++k) {
+      if((pos=pos(S[k],"COO")) >= 0)
+        target=((real) substr(S[k],pos),(real) S[++k],(real) S[++k]);
+      else if((pos=pos(S[k],"C2C")) >= 0)
+        C2C=((real) substr(S[k],pos),(real) S[++k],(real) S[++k]);
+      else if((pos=pos(S[k],"ROO")) >= 0)
+        ROO=(real) substr(S[k],pos);
+      else if((pos=pos(S[k],"ROLL")) >= 0)
+        ROLL=(real) substr(S[k],pos);
+      else if((pos=pos(S[k],"AAC")) >= 0)
+        angle=(real) substr(S[k],pos);
+    }
+    camera=target+ROO*C2C;
     triple u=unit(target-camera);
     triple w=unit(Z-u.z*u);
-    up=rotate((real) S[7],O,u)*w;
-    angle=S[8] == "" ? 30 : (real) S[8];
+    up=rotate(ROLL,O,u)*w;
   }
 }
 
