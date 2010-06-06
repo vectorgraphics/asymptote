@@ -200,9 +200,12 @@ void quat::set_angle(float f)
 {
     vec3 axis = get_axis();
 
-    s = (float) cos( DEG2RAD( f ) / 2.0 );
+    static const double halfradians=acos(-1.0)/360.0;
+    f *= halfradians;
+    
+    s = (float) cos( f );
 
-    v = axis * (float) sin(DEG2RAD(f) / 2.0);
+    v = axis * (float) sin( f );
 }
 
 /********************************************** scale_angle() ************/
@@ -218,7 +221,8 @@ void quat::scale_angle(float f)
 
 float quat::get_angle() const
 {
-    return (float) RAD2DEG( 2.0 * acos( s ) );
+    static const double degrees2=360.0/acos(-1.0);
+    return (float) (acos( s ) * degrees2);
 }
 
 /********************************************* get_axis() **************/

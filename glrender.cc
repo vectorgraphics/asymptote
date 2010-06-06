@@ -98,8 +98,9 @@ double Xfactor,Yfactor;
 
 int minimumsize=50; // Minimum initial rendering window width and height
 
-const double degrees=180.0/M_PI;
-const double radians=1.0/degrees;
+static const double pi=acos(-1);
+static const double degrees=180.0/pi;
+static const double radians=1.0/degrees;
 
 double Background[4];
 size_t Nlights;

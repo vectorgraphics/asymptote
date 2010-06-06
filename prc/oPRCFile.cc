@@ -1327,7 +1327,7 @@ void oPRCFile::addTube(uint32_t n, const double cP[][3], const double oP[][3], b
     surface->setOriginCurve(origin_curve);
 
     surface->uv_domain.min.x = 0;
-    surface->uv_domain.max.x = 2*M_PI;
+    surface->uv_domain.max.x = 2*pi;
     surface->uv_domain.min.y = center_curve->interval.min;
     surface->uv_domain.max.y = center_curve->interval.max;
   }
@@ -1362,7 +1362,7 @@ void oPRCFile::addTube(uint32_t n, const double cP[][3], const double oP[][3], b
     surface->setOriginCurve(origin_curve);
 
     surface->uv_domain.min.x = 0;
-    surface->uv_domain.max.x = 2*M_PI;
+    surface->uv_domain.max.x = 2*pi;
     surface->uv_domain.min.y = 1; // first knot
     surface->uv_domain.max.y = (3+CENTER_NUMBER_OF_POINTS+1)/3; // last knot
   }
@@ -1373,9 +1373,9 @@ void oPRCFile::addHemisphere(double radius, const PRCmaterial &m, PRCFACETRANSFO
   ADDFACE(PRCSphere)
   SETTRANSF
   surface->uv_domain.min.x = 0;
-  surface->uv_domain.max.x = 2*M_PI;
+  surface->uv_domain.max.x = 2*pi;
   surface->uv_domain.min.y = 0;
-  surface->uv_domain.max.y = M_PI/2;
+  surface->uv_domain.max.y = 0.5*pi;
   surface->radius = radius;
 }
 
@@ -1384,9 +1384,9 @@ void oPRCFile::addSphere(double radius, const PRCmaterial &m, PRCFACETRANSFORM)
   ADDFACE(PRCSphere)
   SETTRANSF
   surface->uv_domain.min.x = 0;
-  surface->uv_domain.max.x = 2*M_PI;
-  surface->uv_domain.min.y =-M_PI/2;
-  surface->uv_domain.max.y = M_PI/2;
+  surface->uv_domain.max.x = 2*pi;
+  surface->uv_domain.min.y =-0.5*pi;
+  surface->uv_domain.max.y = 0.5*pi;
   surface->radius = radius;
 }
 
@@ -1404,9 +1404,9 @@ void oPRCFile::addDisk(double radius, const PRCmaterial &m, PRCFACETRANSFORM)
   surface->uv_domain.min.x = 0;
   surface->uv_domain.max.x = 1;
   surface->uv_domain.min.y = 0;
-  surface->uv_domain.max.y = 2*M_PI;
+  surface->uv_domain.max.y = 2*pi;
   surface->parameterization_on_v_coeff_a = -1;
-  surface->parameterization_on_v_coeff_b = 2*M_PI;
+  surface->parameterization_on_v_coeff_b = 2*pi;
 }
 
 void oPRCFile::addCylinder(double radius, double height, const PRCmaterial &m, PRCFACETRANSFORM)
@@ -1414,7 +1414,7 @@ void oPRCFile::addCylinder(double radius, double height, const PRCmaterial &m, P
   ADDFACE(PRCCylinder)
   SETTRANSF
   surface->uv_domain.min.x = 0;
-  surface->uv_domain.max.x = 2*M_PI;
+  surface->uv_domain.max.x = 2*pi;
   surface->uv_domain.min.y = (height>0)?0:height;
   surface->uv_domain.max.y = (height>0)?height:0;
   surface->radius = radius;
@@ -1424,10 +1424,10 @@ void oPRCFile::addTorus(double major_radius, double minor_radius, double angle1,
 {
   ADDFACE(PRCTorus)
   SETTRANSF
-  surface->uv_domain.min.x = (angle1/180)*M_PI;
-  surface->uv_domain.max.x = (angle2/180)*M_PI;
+  surface->uv_domain.min.x = (angle1/180)*pi;
+  surface->uv_domain.max.x = (angle2/180)*pi;
   surface->uv_domain.min.y = 0;
-  surface->uv_domain.max.y = 2*M_PI;
+  surface->uv_domain.max.y = 2*pi;
   surface->major_radius = major_radius;
   surface->minor_radius = minor_radius;
 }

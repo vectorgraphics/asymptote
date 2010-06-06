@@ -18,7 +18,7 @@
 #ifndef __fftwpp_h__
 #define __fftwpp_h__ 1
 
-#define __FFTWPP_H_VERSION__ 1.07
+#define __FFTWPP_H_VERSION__ 1.08svn
 
 #include <cstdlib>
 #include <fstream>
@@ -29,10 +29,6 @@
 #ifndef __Complex_h__
 #include <complex>
 typedef std::complex<double> Complex;
-#endif
-
-#ifndef M_PI
-#define M_PI acos(-1.0)
 #endif
 
 #ifndef HAVE_POSIX_MEMALIGN
@@ -197,6 +193,7 @@ protected:
   static std::ifstream ifWisdom;
   static std::ofstream ofWisdom;
   static bool Wise;
+  static const double twopi;
   
 public:
   // Shift the Fourier origin to (nx/2,0).
@@ -212,7 +209,7 @@ public:
     } else {
       if(sign) {
         unsigned int c=nx/2;
-        double arg=2.0*M_PI*c/nx; 
+        double arg=twopi*c/nx; 
         for(unsigned int i=0; i < nx; i++) {
           double iarg=i*arg;
           Complex zeta(cos(iarg),sign*sin(iarg));
@@ -247,9 +244,8 @@ public:
     } else {
       if(sign) {
         unsigned int cx=nx/2;
-        unsigned int cy=ny/2;
-        double twopi=2.0*M_PI;
         double argx=twopi*cx/nx;
+        unsigned int cy=ny/2;
         double argy=twopi*cy/ny;
         for(unsigned i=0; i < nx; i++) {
           double iarg=i*argx;

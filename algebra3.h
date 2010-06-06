@@ -81,17 +81,11 @@
 #include <cstdio>
 #include <cstdlib>
 
-#ifndef M_PI
-#define M_PI acos(-1.0)
-#endif
-
 #ifndef MAX
 #define MAX(a,b)  ((a)>(b) ? (a) : (b))
 #define MIN(a,b)  ((a)<(b) ? (a) : (b))
 #endif
 
-#define DEG2RAD(x) ((x)/180.0*M_PI)
-#define RAD2DEG(x) ((x)/M_PI*180.0)
 #define FUDGE .00001
 
 // this line defines a new type: pointer to a function which returns a

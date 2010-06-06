@@ -75,6 +75,8 @@
 #include "algebra3.h"
 #include <cmath>
 
+static const double radians=acos(-1)/180.0;
+
 #ifdef VEC_ERROR_FATAL
 #ifndef VEC_ERROR
 #define VEC_ERROR(E) { printf( "VERROR %s\n", E ); exit(1); }
@@ -1502,7 +1504,7 @@ mat3 translation2D(const vec2 &v)
 
 mat3 rotation2D(const vec2 &Center, float angleDeg) 
 {
-    float angleRad = (float) (angleDeg * M_PI / 180.0);
+    float angleRad = (float) (angleDeg * radians);
     float c = (float) cos(angleRad);
     float s = (float) sin(angleRad);
 
@@ -1540,7 +1542,7 @@ mat4 translation3D(const vec3 &v)
 
 mat4 rotation3D(const vec3 &Axis, float angleDeg) 
 {
-    float angleRad = (float) (angleDeg * M_PI / 180.0);
+    float angleRad = (float) (angleDeg * radians);
     float c = (float) cos(angleRad);
     float s = (float) sin(angleRad);
     float t = 1.0f - c;

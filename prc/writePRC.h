@@ -35,10 +35,7 @@
 #include <math.h>
 
 static const uint32_t m1=(uint32_t)-1;
-
-#ifndef M_PI
-#define M_PI acos(-1.0)
-#endif
+static const double pi=acos(-1);
 
 class PRCVector3d
 {
@@ -991,9 +988,9 @@ class PRCCircle : public PRCCurve, public PRCTransformation, public PRCParameter
 {
 public:
   PRCCircle() :
-    PRCCurve(), PRCParameterization(0,2*M_PI) {}
+    PRCCurve(), PRCParameterization(0,2*pi) {}
   PRCCircle(std::string n) :
-    PRCCurve(n), PRCParameterization(0,2*M_PI) {}
+    PRCCurve(n), PRCParameterization(0,2*pi) {}
   void  serializeCircle(PRCbitStream &pbs);
   void  serializeCurve(PRCbitStream &pbs) { serializeCircle(pbs); }
   double radius;
