@@ -2127,8 +2127,7 @@ pair max(frame f, projection P)
 
 void draw(picture pic=currentpicture, Label L="", path3 g,
           align align=NoAlign, material p=currentpen, margin3 margin=NoMargin3,
-          light light=nolight, string name="",
-          render render=defaultrender)
+          light light=nolight, string name="", render render=defaultrender)
 {
   pen q=(pen) p;
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
@@ -2172,7 +2171,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
             cylinder=new void(transform3 t) {drawPRCcylinder(f,t,p,light);};
             sphere=new void(transform3 t, bool half)
               {drawPRCsphere(f,t,half,p,light,render);};
-            disk=new void(transform3 t) {draw(f,t*unitdisk,p,light);};
+            disk=new void(transform3 t) {draw(f,t*unitdisk,p,light,render);};
             tube=new void(path3 center, path3 g)
               {drawPRCtube(f,center,g,p,light);};
           }
@@ -2300,10 +2299,11 @@ void draw(picture pic=currentpicture, Label L="", path3 g,
     begingroup3(pic,name,render);
   bool drawpath=arrow(pic,g,p,margin,light,arrowheadlight);
   if(bar(pic,g,p,margin,light,arrowheadlight) && drawpath)
-    draw(pic,L,g,align,p,margin,light);
+    draw(pic,L,g,align,p,margin,light,render);
   if(group)
     endgroup3(pic);
-  label(pic,L,g,align,(pen) p);
+  if(L.s != "")
+    label(pic,L,g,align,(pen) p);
 }
 
 void draw(frame f, path3 g, material p=currentpen, arrowbar3 arrow,
@@ -2316,7 +2316,7 @@ void draw(frame f, path3 g, material p=currentpen, arrowbar3 arrow,
   if(group)
     begingroup3(f,name,render);
   if(arrow(pic,g,p,NoMargin3,light,arrowheadlight))
-    draw(f,g,p,light,P);
+    draw(f,g,p,light,render,P);
   add(f,pic.fit());
   if(group)
     endgroup3(f);
@@ -2349,7 +2349,8 @@ void add(picture src, triple position, bool group=true, bool above=true)
 void arrow(picture pic=currentpicture, Label L="", triple b, triple dir,
            real length=arrowlength, align align=NoAlign,
            pen p=currentpen, arrowbar3 arrow=Arrow3, margin3 margin=EndMargin3,
-           light light=nolight, light arrowheadlight=currentlight)
+           light light=nolight, light arrowheadlight=currentlight,
+           string name="", render render=defaultrender)
 {
   Label L=L.copy();
   if(L.defaultposition) L.position(0);
@@ -2358,7 +2359,7 @@ void arrow(picture pic=currentpicture, Label L="", triple b, triple dir,
   picture opic;
   marginT3 margin=margin(b--b,p); // Extract margin.begin and margin.end
   triple a=(margin.begin+length+margin.end)*unit(dir);
-  draw(opic,L,a--O,align,p,arrow,margin,light,arrowheadlight);
+  draw(opic,L,a--O,align,p,arrow,margin,light,arrowheadlight,name,render);
   add(pic,opic,b);
 }
 
@@ -2366,10 +2367,11 @@ void arrow(picture pic=currentpicture, Label L="", triple b, pair dir,
            real length=arrowlength, align align=NoAlign,
            pen p=currentpen, arrowbar3 arrow=Arrow3, margin3 margin=EndMargin3,
            light light=nolight, light arrowheadlight=currentlight,
+           string name="", render render=defaultrender,
            projection P=currentprojection)
 {
   arrow(pic,L,b,invert(dir,b,P),length,align,p,arrow,margin,light,
-        arrowheadlight);
+        arrowheadlight,name,render);
 }
 
 triple min3(picture pic, projection P=currentprojection)

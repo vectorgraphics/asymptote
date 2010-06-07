@@ -1877,10 +1877,11 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
           guide3[][] g, pen p=currentpen, light light=currentlight,
-          string name="", interaction interaction=LabelInteraction())
+          string name="", render render=defaultrender,
+          interaction interaction=LabelInteraction())
 {
   draw(pic,L,g,sequence(new pen(int) {return p;},g.length),light,name,
-       interaction);
+       render,interaction);
 }
 
 real maxlength(triple f(pair z), pair a, pair b, int nu, int nv) 
@@ -1893,7 +1894,8 @@ picture vectorfield(path3 vector(pair v), triple f(pair z), pair a, pair b,
                     int nu=nmesh, int nv=nu, bool truesize=false,
                     real maxlength=truesize ? 0 : maxlength(f,a,b,nu,nv),
                     bool cond(pair z)=null, pen p=currentpen,
-                    arrowbar3 arrow=Arrow3, margin3 margin=PenMargin3)
+                    arrowbar3 arrow=Arrow3, margin3 margin=PenMargin3,
+                    string name="", render render=defaultrender)
 {
   picture pic;
   real du=1/nu;
@@ -1915,21 +1917,24 @@ picture vectorfield(path3 vector(pair v), triple f(pair z), pair a, pair b,
     scale=max > 0 ? maxlength/max : 1;
   } else scale=1;
 
+  begingroup3(pic,name == "" ? "vectorfield" : name,render);
   for(int i=0; i <= nu; ++i) {
     real x=interp(a.x,b.x,i*du);
     for(int j=0; j <= nv; ++j) {
       pair z=(x,interp(a.y,b.y,j*dv));
       if(all || cond(z)) {
         path3 g=scale3(scale)*vector(z);
+        string name="vector";
         if(truesize) {
           picture opic;
-          draw(opic,g,p,arrow,margin);
+          draw(opic,g,p,arrow,margin,name,render);
           add(pic,opic,f(z));
         } else
-          draw(pic,shift(f(z))*g,p,arrow,margin);
+          draw(pic,shift(f(z))*g,p,arrow,margin,name,render);
       }
     }
   }
+  endgroup3(pic);
   return pic;
 }
 
