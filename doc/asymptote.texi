@@ -9382,9 +9382,9 @@ author of the program @code{MetaPost} that inspired the development of
 
 The authors of @code{Asymptote} are Andy Hammerlindl, John Bowman, and
 Tom Prince. Sean Healy designed the @code{Asymptote} logo. Other
-contributors include Radoslav Marinov, Orest Shardt, Chris Savage,
-Philippe Ivaldi, Olivier Guib@'e, Jacques Pienaar, Mark Henning, Steve
-Melenchuk, Martin Wiebusch, and Stefan Knorr.
+contributors include Michail Vidiassov, Radoslav Marinov, Orest Shardt,
+Chris Savage, Philippe Ivaldi, Olivier Guib@'e, Jacques Pienaar,
+Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 
 @node Index
 @unnumbered Index
