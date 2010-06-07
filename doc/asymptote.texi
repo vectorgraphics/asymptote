@@ -7740,7 +7740,7 @@ Some (broken) @code{UNIX} graphics drivers may require the command line setting
 @cindex @code{views}
 @item Embed the 3D @acronym{PRC} format in a @acronym{PDF} file
 and view the resulting @acronym{PDF} file with
-version @code{8.0} or later of @code{Adobe Reader}. 
+version @code{9.0} or later of @code{Adobe Reader}. 
 In addition to the default @code{settings.prc=true}, this requires
 @code{settings.outformat="pdf"}, which can be specified by the command
 line option @code{-f pdf}, put in the @code{Asymptote} configuration
