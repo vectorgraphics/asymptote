@@ -23,9 +23,9 @@ namespace trans {
 // back to env when checking casting of subtypes.
 class envCaster : public caster {
   protoenv &e;
-  symbol *name;
+  symbol name;
 public:
-  envCaster(protoenv &e, symbol *name)
+  envCaster(protoenv &e, symbol name)
     : e(e), name(name) {}
 
   access *operator() (ty *target, ty *source) {
@@ -37,7 +37,7 @@ public:
   }
 };
   
-access *protoenv::baseLookupCast(ty *target, ty *source, symbol *name) {
+access *protoenv::baseLookupCast(ty *target, ty *source, symbol name) {
   static identAccess id;
 
   assert(target->kind != ty_overloaded &&
@@ -57,7 +57,7 @@ access *protoenv::baseLookupCast(ty *target, ty *source, symbol *name) {
   }
 }
 
-access *protoenv::lookupCast(ty *target, ty *source, symbol *name) {
+access *protoenv::lookupCast(ty *target, ty *source, symbol name) {
   access *a=baseLookupCast(target, source, name);
   if (a)
     return a;
@@ -66,12 +66,12 @@ access *protoenv::lookupCast(ty *target, ty *source, symbol *name) {
   return source->castTo(target, ec);
 }
 
-bool protoenv::castable(ty *target, ty *source, symbol *name) {
+bool protoenv::castable(ty *target, ty *source, symbol name) {
   struct castTester : public tester {
     protoenv &e;
-    symbol *name;
+    symbol name;
 
-    castTester(protoenv &e, symbol *name)
+    castTester(protoenv &e, symbol name)
       : e(e), name(name) {}
 
     bool base(ty *t, ty *s) {
@@ -88,12 +88,12 @@ bool protoenv::castable(ty *target, ty *source, symbol *name) {
   return ct.test(target,source);
 }
 
-ty *protoenv::castTarget(ty *target, ty *source, symbol *name) {
+ty *protoenv::castTarget(ty *target, ty *source, symbol name) {
   struct resolver : public collector {
     protoenv &e;
-    symbol *name;
+    symbol name;
 
-    resolver(protoenv &e, symbol *name)
+    resolver(protoenv &e, symbol name)
       : e(e), name(name) {}
 
     types::ty *base(types::ty *target, types::ty *source) {
@@ -105,12 +105,12 @@ ty *protoenv::castTarget(ty *target, ty *source, symbol *name) {
   return r.collect(target, source);
 } 
 
-ty *protoenv::castSource(ty *target, ty *source, symbol *name) {
+ty *protoenv::castSource(ty *target, ty *source, symbol name) {
   struct resolver : public collector {
     protoenv &e;
-    symbol *name;
+    symbol name;
 
-    resolver(protoenv &e, symbol *name)
+    resolver(protoenv &e, symbol name)
       : e(e), name(name) {}
 
     types::ty *base(types::ty *target, types::ty *source) {
@@ -150,7 +150,7 @@ env::~env()
 {
 }
 
-record *env::getModule(symbol *id, string filename)
+record *env::getModule(symbol id, string filename)
 {
   return ge.getModule(id, filename);
 }

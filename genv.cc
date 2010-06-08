@@ -57,7 +57,7 @@ genv::genv()
 #endif  
 }
 
-record *genv::loadModule(symbol *id, string filename) {
+record *genv::loadModule(symbol id, string filename) {
   // Get the abstract syntax tree.
   absyntax::file *ast = parser::parseFile(filename,"Loading");
 
@@ -82,7 +82,7 @@ void genv::checkRecursion(string filename) {
   }
 }
 
-record *genv::getModule(symbol *id, string filename) {
+record *genv::getModule(symbol id, string filename) {
   checkRecursion(filename);
 
   record *r=imap[filename];

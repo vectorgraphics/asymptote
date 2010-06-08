@@ -83,7 +83,7 @@ void adjust()
   yylval.pos = here();
 } 
 
-void savesymbol(symbol *name)
+void savesymbol(symbol name)
 {
   adjust();
   yylval.ps.pos=here();
@@ -101,20 +101,15 @@ void savesymbol(symbol *name)
 #define DEFSYMBOL(name) \
     savesymbol(name)
 
-void makesymbol(bool op=true, string text = yytext)
+void makesymbol()
 {
-  // TODO: Refactor to a call to savesymbol.
-  adjust();
-  yylval.ps.pos=here();
-  yylval.ps.sym=op ? symbol::opTrans(text) : symbol::literalTrans(text);
+  assert(strlen(yytext) == (size_t)yyleng);
+  savesymbol(symbol::rawTrans(yytext, yyleng+1));
 }
 
-void makeselfsymbol(bool op=true, string text = yytext)
+void makeopsymbol()
 {
-  /* Copy all but the last digit, which should be an =. */
-  assert(text[text.length()-1] == '=');
-  text.erase(text.length()-1);
-  makesymbol(op,text);
+  savesymbol(symbol::opTrans(yytext));
 }
 
 void makemod(trans::modifier mod) {
@@ -165,9 +160,16 @@ void reportEOF() {
   em.sync();
 }
 
-string stringbuild;
+position stringpos; // The position of the start of the string.
+string stringbuild; // Stores the string literal as it is read.
 
 namespace {
+void startstring()
+{
+  adjust();
+  stringpos = here();
+}
+
 void append(char c)
 {
   stringbuild.push_back(c);
@@ -177,7 +179,7 @@ void append(char c)
 void getstring(void)
 {
   // NOTE: Replace here() with a position at the start of the string.
-  makesymbol(false,stringbuild);
+  yylval.stre = new stringExp(stringpos, stringbuild);
   string().swap(stringbuild);
 }
 }
@@ -323,14 +325,14 @@ EXTRAOPS <<|>>|$|$$|@|@@|~
 "---"              {DEFSYMBOL(SYM_LONGDASH); return LONGDASH; }
 "&"                {DEFSYMBOL(SYM_AMPERSAND); return AMPERSAND; }
 "|"                {DEFSYMBOL(SYM_BAR); return BAR; }
-{EXTRAOPS}         {makesymbol(); return OPERATOR; }
+{EXTRAOPS}         {makeopsymbol(); return OPERATOR; }
 
-"+="               {makeselfsymbol(); return ADD; }
-"-="               {makeselfsymbol(); return SUBTRACT; }
-"*="               {makeselfsymbol(); return TIMES; }
-"/="               {makeselfsymbol(); return DIVIDE; }
-"%="               {makeselfsymbol(); return MOD; }
-"^="               {makeselfsymbol(); return EXPONENT; }
+"+="               {savesymbol(SYM_PLUS); return SELFOP; }
+"-="               {savesymbol(SYM_MINUS); return SELFOP; }
+"*="               {savesymbol(SYM_TIMES); return SELFOP; }
+"/="               {savesymbol(SYM_DIVIDE); return SELFOP; }
+"%="               {savesymbol(SYM_MOD); return SELFOP; }
+"^="               {savesymbol(SYM_CARET); return SELFOP; }
 
 and                {adjust(); return AND; }
 controls           {DEFSYMBOL(SYM_CONTROLS); return CONTROLS; }
@@ -398,28 +400,28 @@ operator           {adjust(); BEGIN opname; }
                     BEGIN INITIAL;
                     return GARBAGE;
                    }
-"**"               { makesymbol(true, "^");
+"**"               { savesymbol(SYM_CARET);
                      BEGIN INITIAL;
                      return ID;
                    }
 [-+*/%^!<>]|==|!=|<=|>=|&|\||\^\^|\.\.|::|--|---|\+\+|{EXTRAOPS} {
-  makesymbol();
+  makeopsymbol();
   BEGIN INITIAL;
   return ID;}
 {LETTER}({LETTER}|[0-9])* {
-  makesymbol(true);
+  makeopsymbol();
   BEGIN INITIAL;
   return ID; }
 .                   {}
 }
 
 {LETTER}({LETTER}|[0-9])* {
-  makesymbol(false);
+  makesymbol();
   return ID; }  
 
 \/\*               {adjust(); /*commentDepth = 1;*/ BEGIN lexcomment; }
-\"                 {adjust(); BEGIN texstring; }
-\'                 {adjust(); BEGIN cstring; }
+\"                 {startstring(); BEGIN texstring; }
+\'                 {startstring(); BEGIN cstring; }
 
 <<EOF>>            { setEOF("unexpected end of input"); yyterminate(); }
 

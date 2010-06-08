@@ -26,7 +26,7 @@ namespace types {
 
 struct record : public ty {
   // The base name of this type.
-  symbol *name;
+  symbol name;
   
   // The frame.  Like a frame for a function, it allocates the accesses
   // for fields and specifies the size of the record.
@@ -44,10 +44,10 @@ public:
   // defined by "operator init" are stored here.
   protoenv postdefenv;
 
-  record(symbol *name, frame *level);
+  record(symbol name, frame *level);
   ~record();
 
-  symbol *getName()
+  symbol getName()
   {
     return name;
   }
@@ -89,16 +89,16 @@ public:
   }
 
   // Create a statically enclosed record from this record.
-  record *newRecord(symbol *id, bool statically);
+  record *newRecord(symbol id, bool statically);
 
   void print(ostream& out) const
   {
-    out << *name;
+    out << name;
   }
 
   void debug(ostream& out) const
   {
-    out << "struct " << *name << endl;
+    out << "struct " << name << endl;
     out << "types:" << endl;
     out << "re-implement" << endl;
     //out << te;
@@ -113,7 +113,7 @@ public:
 // language.
 class dummyRecord : public record {
 public:
-  dummyRecord(symbol *name);
+  dummyRecord(symbol name);
   dummyRecord(string s);
 
   // Convenient functions for adding fields.

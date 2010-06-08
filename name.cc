@@ -87,7 +87,7 @@ void simpleName::varTrans(action act, coenv &e, types::ty *target)
   }
   else {
     em.error(getPos());
-    em << "no matching variable of name \'" << *id << "\'";
+    em << "no matching variable of name \'" << id << "\'";
   }
 }
 
@@ -111,7 +111,7 @@ types::ty *simpleName::typeTrans(coenv &e, bool tacit)
   else {
     if (!tacit) {
       em.error(getPos());
-      em << "no type of name \'" << *id << "\'";
+      em << "no type of name \'" << id << "\'";
     }
     return primError();
   }
@@ -122,7 +122,7 @@ tyEntry *simpleName::tyEntryTrans(coenv &e)
   tyEntry *ent = e.e.lookupTyEntry(id);
   if (!ent) {
     em.error(getPos());
-    em << "no type of name \'" << *id << "\'";
+    em << "no type of name \'" << id << "\'";
     return new tyEntry(primError(), 0, 0, position());
   }
   return ent;
@@ -142,7 +142,7 @@ frame *simpleName::tyFrameTrans(coenv &e)
 void simpleName::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
-  out << "simpleName '" << *id << "'\n";
+  out << "simpleName '" << id << "'\n";
 }
 
 
@@ -202,7 +202,7 @@ void qualifiedName::varTransField(action act, coenv &e,
   }
   else {
     em.error(getPos());
-    em << "no matching field of name \'" << *id << "\' in \'" << *r << "\'";
+    em << "no matching field of name \'" << id << "\' in \'" << *r << "\'";
   }
 }
 
@@ -272,7 +272,7 @@ types::ty *qualifiedName::typeTrans(coenv &e, bool tacit)
   else {
     if (!tacit) {
       em.error(getPos());
-      em << "no matching field or type of name \'" << *id << "\' in \'"
+      em << "no matching field or type of name \'" << id << "\' in \'"
          << *r << "\'";
     }
     return primError();
@@ -290,7 +290,7 @@ tyEntry *qualifiedName::tyEntryTrans(coenv &e)
   tyEntry *ent = r->e.lookupTyEntry(id);
   if (!ent) {
     em.error(getPos());
-    em << "no matching type of name \'" << *id << "\' in \'"
+    em << "no matching type of name \'" << id << "\' in \'"
        << *r << "\'";
     return new tyEntry(primError(), 0, 0, position());
   }
@@ -317,7 +317,7 @@ frame *qualifiedName::tyFrameTrans(coenv &e)
 void qualifiedName::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
-  out << "qualifiedName '" << *id << "'\n";
+  out << "qualifiedName '" << id << "'\n";
 
   qualifier->prettyprint(out, indent+1);
 }

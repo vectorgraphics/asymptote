@@ -43,8 +43,8 @@ public:
     return defval;
   }
 
-  symbol *getName() {
-    return start ? start->getName() : 0;
+  symbol getName() {
+    return start ? start->getName() : symbol::nullsym;
   }
 
   bool getExplicit() {
@@ -103,13 +103,13 @@ class fundef : public exp {
 
   // If the fundef is part of a fundec, the name of the function is stored
   // here for debugging purposes.
-  symbol *id;
+  symbol id;
 
   friend class fundec;
   
 public:
   fundef(position pos, ty *result, formals *params, stm *body)
-    : exp(pos), result(result), params(params), body(body), id(0) {}
+    : exp(pos), result(result), params(params), body(body), id() {}
 
   virtual void prettyprint(ostream &out, Int indent);
 
@@ -125,11 +125,11 @@ public:
 };
 
 class fundec : public dec {
-  symbol *id;
+  symbol id;
   fundef fun;
 
 public:
-  fundec(position pos, ty *result, symbol *id, formals *params, stm *body)
+  fundec(position pos, ty *result, symbol id, formals *params, stm *body)
     : dec(pos), id(id), fun(pos, result, params, body)
   { fun.id = id; }
 

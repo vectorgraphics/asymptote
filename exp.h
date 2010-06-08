@@ -45,9 +45,9 @@ public:
   // function f(int)" instead of "no function matching signature
   // (int)."  Hence, this method returns the name of the expression if
   // there is one.
-  virtual symbol *getName()
+  virtual symbol getName()
   {
-    return 0;
+    return symbol::nullsym;
   }
 
   // Checks if the expression can be used as the right side of a scale
@@ -203,7 +203,7 @@ public:
   nameExp(position pos, name *value)
     : exp(pos), value(value) {}
 
-  nameExp(position pos, symbol *id)
+  nameExp(position pos, symbol id)
     : exp(pos), value(new simpleName(pos, id)) {}
 
   nameExp(position pos, string s)
@@ -211,7 +211,7 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  symbol *getName()
+  symbol getName()
   {
     return value->getName();
   }
@@ -278,7 +278,7 @@ public:
 // like f().x or (new t).x, a separate expression is needed.
 class fieldExp : public nameExp {
   exp *object;
-  symbol *field;
+  symbol field;
 
   // fieldExp has a lot of common functionality with qualifiedName, so we
   // essentially hack qualifiedName, by making our object expression look
@@ -334,7 +334,7 @@ class fieldExp : public nameExp {
     void print(ostream& out) const {
       out << "<exp>";
     }
-    symbol *getName() {
+    symbol getName() {
       return object->getName();
     }
   };
@@ -343,7 +343,7 @@ class fieldExp : public nameExp {
   types::ty *getObject(coenv &e);
 
 public:
-  fieldExp(position pos, exp *object, symbol *field)
+  fieldExp(position pos, exp *object, symbol field)
     : nameExp(pos, new qualifiedName(pos,
                                      new pseudoName(object),
                                      field)),
@@ -351,7 +351,7 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
-  symbol *getName()
+  symbol getName()
   {
     return field;
   }
@@ -512,6 +512,8 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primString(); }
+
+  const string& getString() { return str; }
 };
 
 class booleanExp : public literalExp {
@@ -616,10 +618,11 @@ public:
 
 struct argument {
   exp *val;
-  symbol *name;
+  symbol::symbol name;
 
+  // No constructor due to the union in camp.y
 #if 0
-  argument(exp *val=0, symbol *name=0)
+  argument(exp *val=0, symbol name=0)
     : val(val), name(name) {}
 #endif
 
@@ -641,7 +644,7 @@ public:
     args.insert(args.begin(), a);
   }
 
-  virtual void addFront(exp *val, symbol *name=0) {
+  virtual void addFront(exp *val, symbol name=symbol::nullsym) {
     argument a; a.val=val; a.name=name;
     addFront(a);
   }
@@ -650,7 +653,7 @@ public:
     args.push_back(a);
   }
 
-  virtual void add(exp *val, symbol *name=0) {
+  virtual void add(exp *val, symbol name=symbol::nullsym) {
     argument a; a.val=val; a.name=name;
     add(a);
   }
@@ -795,7 +798,7 @@ class castExp : public exp {
   exp *castee;
 
   types::ty *tryCast(coenv &e, types::ty *t, types::ty *s,
-                     symbol *csym);
+                     symbol csym);
 public:
   castExp(position pos, ty *target, exp *castee)
     : exp(pos), target(target), castee(castee) {}
@@ -808,19 +811,19 @@ public:
 
 class nullaryExp : public callExp {
 public:
-  nullaryExp(position pos, symbol *op)
+  nullaryExp(position pos, symbol op)
     : callExp(pos, new nameExp(pos, op)) {}
 };
 
 class unaryExp : public callExp {
 public:
-  unaryExp(position pos, exp *base, symbol *op)
+  unaryExp(position pos, exp *base, symbol op)
     : callExp(pos, new nameExp(pos, op), base) {}
 };
 
 class binaryExp : public callExp {
 public:
-  binaryExp(position pos, exp *left, symbol *op, exp *right)
+  binaryExp(position pos, exp *left, symbol op, exp *right)
     : callExp(pos, new nameExp(pos, op), left, right) {}
 };
 
@@ -848,7 +851,7 @@ public:
 // is a tension atleast case.
 class ternaryExp : public callExp {
 public:
-  ternaryExp(position pos, exp *left, symbol *op, exp *right, exp *last)
+  ternaryExp(position pos, exp *left, symbol op, exp *right, exp *last)
     : callExp(pos, new nameExp(pos, op), left, right, last) {}
 };
 
@@ -875,11 +878,11 @@ public:
 class andOrExp : public exp {
 protected:
   exp *left;
-  symbol *op;
+  symbol op;
   exp *right;
 
 public:
-  andOrExp(position pos, exp *left, symbol *op, exp *right)
+  andOrExp(position pos, exp *left, symbol op, exp *right)
     : exp(pos), left(left), op(op), right(right) {}
 
   virtual types::ty *trans(coenv &e) = 0;
@@ -890,7 +893,7 @@ public:
 
 class orExp : public andOrExp {
 public:
-  orExp(position pos, exp *left, symbol *op, exp *right)
+  orExp(position pos, exp *left, symbol op, exp *right)
     : andOrExp(pos, left, op, right) {}
 
   void prettyprint(ostream &out, Int indent);
@@ -900,7 +903,7 @@ public:
 
 class andExp : public andOrExp {
 public:
-  andExp(position pos, exp *left, symbol *op, exp *right)
+  andExp(position pos, exp *left, symbol op, exp *right)
     : andOrExp(pos, left, op, right) {}
 
   void prettyprint(ostream &out, Int indent);
@@ -910,7 +913,7 @@ public:
 
 class joinExp : public callExp {
 public:
-  joinExp(position pos, symbol *op)
+  joinExp(position pos, symbol op)
     : callExp(pos, new nameExp(pos, op)) {}
 
   void pushFront(exp *e) {
@@ -924,12 +927,12 @@ public:
 };
 
 class specExp : public exp {
-  symbol *op;
+  symbol op;
   exp *arg;
   camp::side s;
 
 public:
-  specExp(position pos, symbol *op, exp *arg, camp::side s=camp::OUT)
+  specExp(position pos, symbol op, exp *arg, camp::side s=camp::OUT)
     : exp(pos), op(op), arg(arg), s(s) {}
 
   void setSide(camp::side ss) {
@@ -969,14 +972,14 @@ public:
 };
 
 class selfExp : public assignExp {
-  symbol *op;
+  symbol op;
 
   exp *ultimateValue(exp *dest) {
     return new binaryExp(getPos(), dest, op, value);
   }
 
 public:
-  selfExp(position pos, exp *dest, symbol *op, exp *value)
+  selfExp(position pos, exp *dest, symbol op, exp *value)
     : assignExp(pos, dest, value), op(op) {}
 
   void prettyprint(ostream &out, Int indent);
@@ -984,10 +987,10 @@ public:
 
 class prefixExp : public exp {
   exp *dest;
-  symbol *op;
+  symbol op;
 
 public:
-  prefixExp(position pos, exp *dest, symbol *op)
+  prefixExp(position pos, exp *dest, symbol op)
     : exp(pos), dest(dest), op(op) {}
 
   void prettyprint(ostream &out, Int indent);
@@ -1006,10 +1009,10 @@ public:
 // error."
 class postfixExp : public exp {
   exp *dest;
-  symbol *op;
+  symbol op;
 
 public:
-  postfixExp(position pos, exp *dest, symbol *op)
+  postfixExp(position pos, exp *dest, symbol op)
     : exp(pos), dest(dest), op(op) {}
 
   void prettyprint(ostream &out, Int indent);

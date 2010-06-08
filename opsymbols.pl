@@ -20,7 +20,7 @@ print header <<END;
 // symbols.
 
 #ifndef OPSYMBOL
-#define OPSYMBOL(str, name) extern symbol *name
+#define OPSYMBOL(str, name) extern sym::symbol name
 #endif
 
 END
@@ -31,7 +31,7 @@ sub add {
     my $name = $_[1];
     print header <<END;
 #ifndef PRESYM
-#define $name symbol::opTrans("$sym")
+#define $name sym::symbol::opTrans("$sym")
 #endif
 END
 }
@@ -40,14 +40,10 @@ open(lexer, "camp.l") ||
         die("Couldn't open camp.l");
 
 while (<lexer>) {
-    #print $_;
-    #if (m/^"(\S+)"\s+\{\s+DEFSYMBOL\((\w+)\);/) {
     if (m/^"(\S+)"\s*{\s*DEFSYMBOL\((\w+)\);/) {
-        print $1 . " " . $2 . "\n";
         add($1, $2);
     }
     if (m/^(\w+)\s*{\s*DEFSYMBOL\((\w+)\);/) {
-        print $1 . " " . $2 . "\n";
         add($1, $2);
     }
 }

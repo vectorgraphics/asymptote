@@ -154,13 +154,13 @@ public:
 
 class extendedForStm : public stm {
   ty *start;
-  symbol *var;
+  symbol var;
   exp *set;
 
   stm *body;
 
 public:
-  extendedForStm(position pos, ty *start, symbol *var, exp *set, stm *body)
+  extendedForStm(position pos, ty *start, symbol var, exp *set, stm *body)
     : stm(pos), start(start), var(var), set(set), body(body) {}
 
   void prettyprint(ostream &out, Int indent);

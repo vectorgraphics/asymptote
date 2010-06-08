@@ -161,7 +161,7 @@ void fieldExp::pseudoName::prettyprint(ostream &out, Int indent)
 void fieldExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
-  out << "fieldExp '" << *field << "'\n";
+  out << "fieldExp '" << field << "'\n";
 
   object->prettyprint(out, indent+1);
 }
@@ -528,7 +528,7 @@ void argument::prettyprint(ostream &out, Int indent)
   prettyindent(out, indent);
   out << "explist";
   if (name)
-    out << " '" << *name << "'";
+    out << " '" << name << "'";
   out << '\n';
 
   val->prettyprint(out, indent+1);
@@ -591,9 +591,9 @@ application *callExp::resolve(coenv &e, overloaded *o, signature *source,
     if (!tacit) {
       em.error(getPos());
 
-      symbol *s = callee->getName();
+      symbol s = callee->getName();
       if (s)
-        em << "no matching function \'" << *s;
+        em << "no matching function \'" << s;
       else
         em << "no matching function for signature \'";
       em << *source << "\'";
@@ -606,9 +606,9 @@ application *callExp::resolve(coenv &e, overloaded *o, signature *source,
     if (!tacit) {
       em.error(getPos());
 
-      symbol *s = callee->getName();
+      symbol s = callee->getName();
       if(s)
-        em << "call of function \'" << *s;
+        em << "call of function \'" << s;
       else
         em << "call with signature \'";
       em << *source << "\' is ambiguous";
@@ -631,13 +631,13 @@ bool hasNamedParameters(signature *sig) {
 
 void callExp::reportMismatch(function *ft, signature *source)
 {
-  symbol *s = callee->getName();
+  symbol s = callee->getName();
   const char *separator=ft->getSignature()->getNumFormals() > 1 ? "\n" : " ";
 
   em.error(getPos());
   em << "cannot call" << separator << "'" << *ft->getResult() << " ";
   if(s)
-    em << *s;
+    em << s;
   em << *ft->getSignature() << "'" << separator;
 
   if (ft->getSignature()->isOpen && hasNamedParameters(source))
@@ -668,9 +668,9 @@ void callExp::reportArgErrors(coenv &e)
 
 void callExp::reportNonFunction() {
     em.error(getPos());
-    symbol *s = callee->getName();
+    symbol s = callee->getName();
     if (s)
-      em << "\'" << *s << "\' is not a function";
+      em << "\'" << s << "\' is not a function";
     else
       em << "called expression is not a function";
 }
@@ -938,7 +938,7 @@ void castExp::prettyprint(ostream &out, Int indent)
 }
 
 types::ty *castExp::tryCast(coenv &e, types::ty *t, types::ty *s,
-                            symbol *csym)
+                            symbol csym)
 {
   types::ty *ss=e.e.castSource(t, s, csym);
   if (ss == 0) {
@@ -1149,7 +1149,7 @@ void joinExp::prettyprint(ostream &out, Int indent)
 void specExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out,indent);
-  out << "specExp '" << *op << "' " 
+  out << "specExp '" << op << "' " 
       << (s==camp::OUT ? "out" :
           s==camp::IN  ? "in" :
           "invalid side") << '\n';
@@ -1229,7 +1229,7 @@ types::ty *assignExp::getType(coenv &e)
 void selfExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
-  out << "selfExp '" << *op << "'\n";
+  out << "selfExp '" << op << "'\n";
 
   dest->prettyprint(out, indent+1);
   value->prettyprint(out, indent+1);
@@ -1239,7 +1239,7 @@ void selfExp::prettyprint(ostream &out, Int indent)
 void prefixExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
-  out << "prefixExp '" << *op << "'\n";
+  out << "prefixExp '" << op << "'\n";
   
   dest->prettyprint(out, indent+1);
 }
@@ -1266,8 +1266,7 @@ types::ty *prefixExp::getType(coenv &e)
 void postfixExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
-  out << "postfixExp <illegal>";
-  out << "postfixExp <illegal> '" << *op << "'\n";
+  out << "postfixExp <illegal> '" << op << "'\n";
 
   dest->prettyprint(out, indent+1);
 }

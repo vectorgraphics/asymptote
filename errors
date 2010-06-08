@@ -44,7 +44,7 @@ errortest.asy: 234.5: function must return a value
 errortest.asy: 241.11: function must return a value
 errortest.asy: 244.11: function must return a value
 errortest.asy: 290.3: built-in functions cannot be modified
-errortest.asy: 298.18: cannot cast 'string' to 'int'
+errortest.asy: 298.11: cannot cast 'string' to 'int'
 errortest.asy: 312.4: accessing private field outside of structure
 errortest.asy: 313.4: accessing private field outside of structure
 errortest.asy: 314.4: accessing private field outside of structure

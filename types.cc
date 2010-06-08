@@ -119,7 +119,7 @@ ty *readType() {
   return new function(primFile(), formal(primInt(), SYM(i)));
 }
 
-trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
+trans::varEntry *primitiveTy::virtualField(symbol id, signature *sig)
 {
   switch (kind) {
     case ty_pair:
@@ -180,13 +180,13 @@ ty *overloadedModeType() {
   return o;
 }
 
-ty *ty::virtualFieldGetType(symbol *id)
+ty *ty::virtualFieldGetType(symbol id)
 {
   trans::varEntry *v = virtualField(id, 0);
   return v ? v->getType() : 0;
 }
 
-ty *primitiveTy::virtualFieldGetType(symbol *id)
+ty *primitiveTy::virtualFieldGetType(symbol id)
 {
   if(kind == ty_file) {
     if (id == SYM(dimension))
@@ -289,7 +289,7 @@ ty *initializedType() {
   ASIGFIELD(insert, SYM(insert), arrayInsert); \
   ASIGFIELD(delete, SYM(delete), arrayDelete); \
 
-ty *array::virtualFieldGetType(symbol *id)
+ty *array::virtualFieldGetType(symbol id)
 {
   #define ASIGFIELD(name, sym, func) \
   if (id == sym) \
@@ -302,7 +302,7 @@ ty *array::virtualFieldGetType(symbol *id)
   return ty::virtualFieldGetType(id);
 }
 
-trans::varEntry *array::virtualField(symbol *id, signature *sig)
+trans::varEntry *array::virtualField(symbol id, signature *sig)
 {
   FIELD(primInt, SYM(length), arrayLength);
   FIELD(IntArray, SYM(keys), arrayKeys);

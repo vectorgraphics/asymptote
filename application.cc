@@ -123,8 +123,7 @@ void application::initRest() {
     if(!a)
       vm::error("formal rest argument must be an array");
 
-    static symbol *null=0;
-    rf=types::formal(a->celltype, null, false, f.Explicit);
+    rf=types::formal(a->celltype, symbol::nullsym, false, f.Explicit);
   }
 
   if (f.t || sig->isOpen) {
@@ -135,7 +134,7 @@ void application::initRest() {
 //const Int REST=-1; 
 const Int NOMATCH=-2;
 
-Int application::find(symbol *name) {
+Int application::find(symbol name) {
   formal_vector &f=sig->formals;
   for (size_t i=index; i<f.size(); ++i)
     if (f[i].name==name && args[i]==0)
@@ -192,7 +191,7 @@ bool application::matchAtSpot(size_t spot, env &e, formal &source,
 bool application::matchArgument(env &e, formal &source,
                                 varinit *a, size_t evalIndex)
 {
-  assert(source.name==0);
+  assert(!source.name);
 
   if (index==args.size())
     // Try to pack into the rest array.
@@ -207,7 +206,7 @@ bool application::matchArgument(env &e, formal &source,
 bool application::matchNamedArgument(env &e, formal &source,
                                      varinit *a, size_t evalIndex)
 {
-  assert(source.name!=0);
+  assert(source.name);
 
   Int spot=find(source.name);
   return spot!=NOMATCH && matchAtSpot(spot, e, source, a, evalIndex);

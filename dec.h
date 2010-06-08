@@ -214,7 +214,7 @@ public:
 
   void transAsRecordBody(coenv &e, record *r);
 
-  types::record *transAsFile(genv& ge, symbol *id);
+  types::record *transAsFile(genv& ge, symbol id);
 
   // A block is guaranteed to return iff one of the runnables is guaranteed to
   // return.
@@ -294,11 +294,11 @@ public:
 
 class decidstart : public absyn {
 protected:
-  symbol *id;
+  symbol id;
   dimensions *dims;
 
 public:
-  decidstart(position pos, symbol *id, dimensions *dims = 0)
+  decidstart(position pos, symbol id, dimensions *dims = 0)
     : absyn(pos), id(id), dims(dims) {}
 
   virtual void prettyprint(ostream &out, Int indent);
@@ -311,7 +311,7 @@ public:
   // after the id, this will add the standard functions for that new type.
   virtual void addOps(types::ty *base, coenv &e, record *r);
 
-  virtual symbol *getName()
+  virtual symbol getName()
   { return id; }
 };
 
@@ -323,7 +323,7 @@ class fundecidstart : public decidstart {
 
 public:
   fundecidstart(position pos,
-                symbol *id,
+                symbol id,
                 dimensions *dims = 0,
                 formals *params = 0)
     : decidstart(pos, id, dims), params(params) {}
@@ -388,7 +388,7 @@ public:
 };
 
 void createVar(position pos, coenv &e, record *r,
-               symbol *id, types::ty *t, varinit *init);
+               symbol id, types::ty *t, varinit *init);
 
 class vardec : public dec {
   ty *base;
@@ -416,15 +416,19 @@ public:
 };
 
 struct idpair : public absyn {
-  symbol *src; // The name of the module to access.
-  symbol *dest;  // What to call it in the local environment.
+  symbol src; // The name of the module to access.
+  symbol dest;  // What to call it in the local environment.
   bool valid; // If it parsed properly.
 
-  idpair(position pos, symbol *id)
+  idpair(position pos, symbol id)
     : absyn(pos), src(id), dest(id), valid(true) {}
 
-  idpair(position pos, symbol *src, symbol *as, symbol *dest)
+  idpair(position pos, symbol src, symbol as, symbol dest)
     : absyn(pos), src(src), dest(dest), valid(as==symbol::trans("as")) {}
+
+  idpair(position pos, string src, symbol as, symbol dest)
+    : absyn(pos), src(symbol::trans(src)), dest(dest),
+      valid(as==symbol::trans("as")) {}
 
   void checkValidity() {
     if (!valid) {
@@ -534,11 +538,11 @@ public:
 // A fromaccess declaration dumps fields and types of a module into the local
 // scope.  It does not add the module as a variable in the local scope.
 class fromaccessdec : public fromdec {
-  symbol *id;
+  symbol id;
 
   qualifier getQualifier(coenv &e, record *r);
 public:
-  fromaccessdec(position pos, symbol *id, idpairlist *fields)
+  fromaccessdec(position pos, symbol id, idpairlist *fields)
     : fromdec(pos, fields), id(id) {}
 
   void prettyprint(ostream &out, Int indent);
@@ -577,8 +581,8 @@ class includedec : public dec {
 public:
   includedec(position pos, string filename)
     : dec(pos), filename(filename) {}
-  includedec(position pos, symbol *id)
-    : dec(pos), filename(*id) {}
+  includedec(position pos, symbol id)
+    : dec(pos), filename(id) {}
 
   void prettyprint(ostream &out, Int indent);
   void loadFailed(coenv &e);
@@ -604,14 +608,14 @@ public:
 
 // A struct declaration.
 class recorddec : public dec {
-  symbol *id;
+  symbol id;
   block *body;
 
   void transRecordInitializer(coenv &e, record *parent);
   void addPostRecordEnvironment(coenv &e, record *r, record *parent);
 
 public:
-  recorddec(position pos, symbol *id, block *body)
+  recorddec(position pos, symbol id, block *body)
     : dec(pos), id(id), body(body) {}
 
   virtual ~recorddec()
@@ -625,7 +629,7 @@ public:
 // Returns a runnable that facilitates the autoplain feature.
 runnable *autoplainRunnable();
 
-void addVar(coenv &e, record *r, varEntry *v, symbol *id);
+void addVar(coenv &e, record *r, varEntry *v, symbol id);
   
 } // namespace absyntax
 

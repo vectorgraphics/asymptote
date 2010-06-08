@@ -232,7 +232,7 @@ class application : public gc {
   // Finds the first unmatched formal of the given name, returning the index.
   // The rest formal is not tested.  This function returns FAIL if no formals
   // match.
-  Int find(symbol *name);
+  Int find(symbol name);
 
   // Match the formal at index to its default argument (if it has one).
   bool matchDefault();

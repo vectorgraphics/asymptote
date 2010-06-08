@@ -79,9 +79,9 @@ public:
   virtual ~ty();
 
   virtual void print (ostream& out) const;
-  virtual void printVar (ostream& out, symbol *name) const {
+  virtual void printVar (ostream& out, symbol name) const {
     print(out);
-    out << " " << *name;
+    out << " " << name;
   }
 
 
@@ -125,14 +125,14 @@ public:
   // parameter and returns the necessary result.
   // These should not have public permission, as modifying them would
   // have strange results.
-  virtual trans::varEntry *virtualField(symbol *, signature *) {
+  virtual trans::varEntry *virtualField(symbol, signature *) {
     return 0;
   }
 
   // varGetType for virtual fields.
   // Unless you are using functions for virtual fields, the base implementation
   // should work fine.
-  virtual ty *virtualFieldGetType(symbol *id);
+  virtual ty *virtualFieldGetType(symbol id);
 
 #if 0
   // Returns the type.  In case of functions, return the equivalent type
@@ -170,8 +170,8 @@ public:
     return false;
   }
   
-  ty *virtualFieldGetType(symbol *);
-  trans::varEntry *virtualField(symbol *, signature *);
+  ty *virtualFieldGetType(symbol );
+  trans::varEntry *virtualField(symbol, signature *);
 
   bool equiv(ty *other)
   {
@@ -250,8 +250,8 @@ struct array : public ty {
   // NOTE: General vectorization of casts would be here.
 
   // Add length and push as virtual fields.
-  ty *virtualFieldGetType(symbol *id);
-  trans::varEntry *virtualField(symbol *id, signature *sig);
+  ty *virtualFieldGetType(symbol id);
+  trans::varEntry *virtualField(symbol id, signature *sig);
 };
 
 /* Base types */
@@ -270,12 +270,12 @@ ty *primNull();
 
 struct formal {
   ty *t;
-  symbol *name;
+  symbol name;
   absyntax::varinit *defval;
   bool Explicit;
   
   formal(ty *t,
-         symbol *name=0,
+         symbol name=symbol::nullsym,
          bool optional=false,
          bool Explicit=false)
     : t(t), name(name),
@@ -429,7 +429,7 @@ struct function : public ty {
   void print(ostream& out) const
   { out << *result << sig; }
 
-  void printVar (ostream& out, symbol *name) const {
+  void printVar (ostream& out, symbol name) const {
     result->printVar(out,name);
     out << sig;
   }

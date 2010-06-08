@@ -13,6 +13,7 @@
 #include "fundec.h"
 #include "stm.h"
 #include "modifier.h"
+#include "opsymbols.h"
 
 // Avoid error messages with unpatched bison-1.875:
 #ifndef __attribute__
@@ -48,12 +49,13 @@ using mem::string;
   bool boo;
   struct {
     position pos;
-    sym::symbol *sym;
+    sym::symbol sym;
   } ps;
   absyntax::name *n;
   absyntax::varinit *vi;
   absyntax::arrayinit *ai;
   absyntax::exp *e;
+  absyntax::stringExp *stre;
   absyntax::specExp *se;
   absyntax::joinExp *j;
   absyntax::explist *elist;
@@ -89,12 +91,11 @@ using mem::string;
   absyntax::formals *fls;
 }  
 
-%token <ps> ID ADD SUBTRACT TIMES DIVIDE MOD EXPONENT
+%token <ps> ID SELFOP
             DOTS COLONS DASHES INCR LONGDASH
             CONTROLS TENSION ATLEAST CURL
             COR CAND BAR AMPERSAND EQ NEQ LT LE GT GE CARETS
             '+' '-' '*' '/' '%' '^' LOGNOT OPERATOR
-            STRING
 %token <pos> LOOSE ASSIGN '?' ':'
              DIRTAG JOIN_PREC AND
              '{' '}' '(' ')' '.' ','  '[' ']' ';' ELLIPSIS
@@ -103,10 +104,11 @@ using mem::string;
              THIS EXPLICIT
              GARBAGE
 %token <e>   LIT
+%token <stre> STRING
 %token <perm> PERM
 %token <mod> MODIFIER
 
-%right ASSIGN ADD SUBTRACT TIMES DIVIDE MOD EXPONENT
+%right ASSIGN SELFOP
 %right '?' ':'
 %left  COR
 %left  CAND
@@ -233,7 +235,7 @@ dec:
                    { $$ = new importdec($1, $2); }
 | INCLUDE ID ';'   { $$ = new includedec($1, $2.sym); }                   
 | INCLUDE STRING ';'
-                   { $$ = new includedec($1, (string)*$2.sym); }
+                   { $$ = new includedec($1, $2->getString()); }
 ;
 
 idpair:
@@ -249,8 +251,9 @@ idpairlist:
 ;
 
 strid:
-  STRING           { $$ = $1; }
-| ID               { $$ = $1; }
+  ID               { $$ = $1; }
+| STRING           { $$.pos = $1->getPos();
+                     $$.sym = symbol::trans($1->getString()); }
 ;
 
 stridpair:
@@ -419,8 +422,8 @@ value:
 ;
 
 argument:
-  exp              { $$.name=0;      $$.val=$1; }
-| ID ASSIGN exp    { $$.name=$1.sym; $$.val=$3; }
+  exp              { $$.name = symbol::nullsym; $$.val=$1; }
+| ID ASSIGN exp    { $$.name = $1.sym; $$.val=$3; }
 ;
 
 arglist:
@@ -441,7 +444,7 @@ exp:
   name             { $$ = new nameExp($1->getPos(), $1); }
 | value            { $$ = $1; }
 | LIT              { $$ = $1; }
-| STRING           { $$ = new stringExp($1.pos, *$1.sym); }
+| STRING           { $$ = $1; }
 /* This is for scaling expressions such as 105cm */
 | LIT exp          { $$ = new scaleExp($1->getPos(), $1, $2); }
 | '(' name ')' exp
@@ -511,24 +514,17 @@ exp:
 | exp dir %prec DIRTAG
                    { $2->setSide(camp::OUT);
                      joinExp *jexp =
-                         new joinExp($2->getPos(), symbol::trans(".."));
+                         new joinExp($2->getPos(), SYM_DOTS);
                      $$=jexp;
                      jexp->pushBack($1); jexp->pushBack($2); }
 | INCR exp %prec UNARY
-                   { $$ = new prefixExp($1.pos, $2, symbol::trans("+")); }
+                   { $$ = new prefixExp($1.pos, $2, SYM_PLUS); }
 | DASHES exp %prec UNARY
-                   { $$ = new prefixExp($1.pos, $2, symbol::trans("-")); }
+                   { $$ = new prefixExp($1.pos, $2, SYM_MINUS); }
 /* Illegal - will be caught during translation. */
 | exp INCR %prec UNARY 
-                   { $$ = new postfixExp($2.pos, $1, symbol::trans("+")); }
-| exp ADD exp      { $$ = new selfExp($2.pos, $1, $2.sym, $3); }
-| exp SUBTRACT exp
-                   { $$ = new selfExp($2.pos, $1, $2.sym, $3); }
-| exp TIMES exp    { $$ = new selfExp($2.pos, $1, $2.sym, $3); }
-| exp DIVIDE exp   { $$ = new selfExp($2.pos, $1, $2.sym, $3); }
-| exp MOD exp      { $$ = new selfExp($2.pos, $1, $2.sym, $3); }
-| exp EXPONENT exp
-                   { $$ = new selfExp($2.pos, $1, $2.sym, $3); }
+                   { $$ = new postfixExp($2.pos, $1, SYM_PLUS); }
+| exp SELFOP exp   { $$ = new selfExp($2.pos, $1, $2.sym, $3); }
 | QUOTE '{' fileblock '}'
                    { $$ = new quoteExp($1, $3); }
 ;

@@ -741,7 +741,7 @@ void list(string *s, bool imports=false)
 {
   if(*s == "-") return;
   trans::genv ge;
-  symbol *name=symbol::trans(*s);
+  symbol name=symbol::trans(*s);
   record *r=ge.getModule(name,*s);
   r->e.list(imports ? 0 : r);
 }

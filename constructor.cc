@@ -34,7 +34,7 @@ using namespace types;
 // Defined in dec.cc.
 varEntry *makeVarEntry(position pos, coenv &e, record *r, types::ty *t);
 
-bool definesImplicitConstructor(coenv &e, record *r, varEntry *v, symbol *id)
+bool definesImplicitConstructor(coenv &e, record *r, varEntry *v, symbol id)
 {
   if (id == symbol::initsym &&
       r != 0 &&

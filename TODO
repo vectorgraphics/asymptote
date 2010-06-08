@@ -1,12 +1,11 @@
 Andy: possible optimizations:
+    doConfig is slow
+    formal::addOps calls trans
     only hash first 3 or 4 args of signature
-    hashify symbol table
     rm transToType from varinitArg::trans
     run a perfect match through multimatch first (no casting allowed)
-    STATIC_SYMBOL(name) define to avoid retranslating symbols in addOps
     change camp.y to flag arglists with named args
     remove addFunctionOps in favor of == and != defined in types.h
-    remove most makesymbols in camp.l
     
 Andy: operator tuple, to let people define their own tuples
 

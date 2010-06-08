@@ -77,7 +77,7 @@ void gen_runpath3d_venv(venv &ve);
 void gen_runmath_venv(venv &ve);
 
 
-void addType(tenv &te, symbol *name, ty *t)
+void addType(tenv &te, symbol name, ty *t)
 {
   te.enter(name, new tyEntry(t,0,0,position()));
 }
@@ -93,7 +93,7 @@ void base_tenv(tenv &te)
 
 const formal noformal(0);  
 
-void addFunc(venv &ve, access *a, ty *result, symbol *id,
+void addFunc(venv &ve, access *a, ty *result, symbol id,
              formal f1=noformal, formal f2=noformal, formal f3=noformal,
              formal f4=noformal, formal f5=noformal, formal f6=noformal,
              formal f7=noformal, formal f8=noformal, formal f9=noformal,
@@ -130,7 +130,7 @@ void addFunc(venv &ve, access *a, ty *result, symbol *id,
 }
 
 // Add a function with one or more default arguments.
-void addFunc(venv &ve, bltin f, ty *result, symbol *name, 
+void addFunc(venv &ve, bltin f, ty *result, symbol name, 
              formal f1, formal f2, formal f3, formal f4, formal f5, formal f6,
              formal f7, formal f8, formal f9, formal fA, formal fB, formal fC,
              formal fD, formal fE, formal fF, formal fG, formal fH, formal fI)
@@ -141,26 +141,7 @@ void addFunc(venv &ve, bltin f, ty *result, symbol *name,
       fA,fB,fC,fD,fE,fF,fG,fH,fI);
 }
 
-#if 0
-// Add a function with one or more default arguments.
-void addFunc(venv &ve, bltin f, ty *result, const char *name, 
-             formal f1, formal f2, formal f3, formal f4, formal f5, formal f6,
-             formal f7, formal f8, formal f9, formal fA, formal fB, formal fC,
-             formal fD, formal fE, formal fF, formal fG, formal fH, formal fI)
-{
-  REGISTER_BLTIN(f, name);
-  access *a = new bltinAccess(f);
-  addFunc(ve,a,result,symbol::trans(name),f1,f2,f3,f4,f5,f6,f7,f8,f9,
-          fA,fB,fC,fD,fE,fF,fG,fH,fI);
-}
-  
-void addFunc(venv &ve, access *a, ty *result, const char *name, formal f1)
-{
-  addFunc(ve,a,result,symbol::trans(name),f1);
-}
-#endif
-
-void addOpenFunc(venv &ve, bltin f, ty *result, symbol *name)
+void addOpenFunc(venv &ve, bltin f, ty *result, symbol name)
 {
   function *fun = new function(result, signature::OPEN);
 
@@ -174,7 +155,7 @@ void addOpenFunc(venv &ve, bltin f, ty *result, symbol *name)
 
 
 // Add a rest function with zero or more default/explicit arguments.
-void addRestFunc(venv &ve, bltin f, ty *result, symbol *name, formal frest,
+void addRestFunc(venv &ve, bltin f, ty *result, symbol name, formal frest,
                  formal f1=noformal, formal f2=noformal, formal f3=noformal,
                  formal f4=noformal, formal f5=noformal, formal f6=noformal,
                  formal f7=noformal, formal f8=noformal, formal f9=noformal)
@@ -200,13 +181,13 @@ void addRestFunc(venv &ve, bltin f, ty *result, symbol *name, formal frest,
   ve.enter(name, ent);
 }
 
-void addRealFunc0(venv &ve, bltin fcn, symbol *name)
+void addRealFunc0(venv &ve, bltin fcn, symbol name)
 {
   addFunc(ve, fcn, primReal(), name);
 }
 
 template<double (*fcn)(double)>
-void addRealFunc(venv &ve, symbol *name)
+void addRealFunc(venv &ve, symbol name)
 {
   addFunc(ve, realReal<fcn>, primReal(), name, formal(primReal(),SYM(x)));
   addFunc(ve, arrayFunc<double,double,fcn>, realArray(), name,
@@ -215,7 +196,7 @@ void addRealFunc(venv &ve, symbol *name)
 
 #define addRealFunc(fcn, sym) addRealFunc<fcn>(ve, sym);
   
-void addRealFunc2(venv &ve, bltin fcn, symbol *name)
+void addRealFunc2(venv &ve, bltin fcn, symbol name)
 {
   addFunc(ve,fcn,primReal(),name,formal(primReal(),SYM(a)),
           formal(primReal(),SYM(b)));
@@ -229,8 +210,8 @@ void realRealInt(vm::stack *s) {
 }
 
 template<double (*fcn)(double, int)>
-void addRealIntFunc(venv& ve, symbol *name, symbol *arg1,
-                    symbol *arg2) {
+void addRealIntFunc(venv& ve, symbol name, symbol arg1,
+                    symbol arg2) {
   addFunc(ve, realRealInt<fcn>, primReal(), name, formal(primReal(), arg1),
           formal(primInt(), arg2));
 }
@@ -334,7 +315,7 @@ void realRealIntGSL(vm::stack *s)
 
 // Add a GSL special function from the GNU GSL library
 template<double (*fcn)(double)>
-void addGSLRealFunc(symbol *name, symbol *arg1=SYM(x))
+void addGSLRealFunc(symbol name, symbol arg1=SYM(x))
 {
   addFunc(GSLModule->e.ve, realRealGSL<fcn>, primReal(), name,
           formal(primReal(),arg1));
@@ -342,15 +323,15 @@ void addGSLRealFunc(symbol *name, symbol *arg1=SYM(x))
 
 // Add a GSL_PREC_DOUBLE GSL special function.
 template<double (*fcn)(double, gsl_mode_t)>
-void addGSLDOUBLEFunc(symbol *name, symbol *arg1=SYM(x))
+void addGSLDOUBLEFunc(symbol name, symbol arg1=SYM(x))
 {
   addFunc(GSLModule->e.ve, realRealDOUBLE<fcn>, primReal(), name,
           formal(primReal(),arg1));
 }
 
 template<double (*fcn)(double, double, gsl_mode_t)>
-void addGSLDOUBLE2Func(symbol *name, symbol *arg1=SYM(phi),
-                       symbol *arg2=SYM(k))
+void addGSLDOUBLE2Func(symbol name, symbol arg1=SYM(phi),
+                       symbol arg2=SYM(k))
 {
   addFunc(GSLModule->e.ve, realRealRealDOUBLE<fcn>, primReal(), name, 
           formal(primReal(),arg1), formal(primReal(),arg2));
@@ -367,8 +348,8 @@ void realRealRealRealDOUBLE(vm::stack *s)
 }
 
 template<double (*fcn)(double, double, double, gsl_mode_t)>
-void addGSLDOUBLE3Func(symbol *name, symbol *arg1, symbol *arg2,
-                       symbol *arg3)
+void addGSLDOUBLE3Func(symbol name, symbol arg1, symbol arg2,
+                       symbol arg3)
 {
   addFunc(GSLModule->e.ve, realRealRealRealDOUBLE<fcn>, primReal(), name, 
           formal(primReal(),arg1), formal(primReal(),arg2),
@@ -387,8 +368,8 @@ void realRealRealRealRealDOUBLE(vm::stack *s)
 }
 
 template<double (*fcn)(double, double, double, double, gsl_mode_t)>
-void addGSLDOUBLE4Func(symbol *name, symbol *arg1, symbol *arg2,
-                       symbol *arg3, symbol *arg4)
+void addGSLDOUBLE4Func(symbol name, symbol arg1, symbol arg2,
+                       symbol arg3, symbol arg4)
 {
   addFunc(GSLModule->e.ve, realRealRealRealRealDOUBLE<fcn>, primReal(), name, 
           formal(primReal(),arg1), formal(primReal(),arg2),
@@ -396,7 +377,7 @@ void addGSLDOUBLE4Func(symbol *name, symbol *arg1, symbol *arg2,
 }
 
 template<double (*fcn)(unsigned)>
-void addGSLIntFunc(symbol *name)
+void addGSLIntFunc(symbol name)
 {
   addFunc(GSLModule->e.ve, realIntGSL<fcn>, primReal(), name,
           formal(primInt(),SYM(s)));
@@ -411,31 +392,31 @@ void realSignedGSL(vm::stack *s)
 }
 
 template<double (*fcn)(int)>
-void addGSLSignedFunc(symbol *name, symbol *arg1)
+void addGSLSignedFunc(symbol name, symbol arg1)
 {
   addFunc(GSLModule->e.ve, realSignedGSL<fcn>, primReal(), name,
           formal(primInt(),arg1));
 }
 
 template<double (*fcn)(int, double)>
-void addGSLIntRealFunc(symbol *name, symbol *arg1=SYM(n),
-                       symbol *arg2=SYM(x))
+void addGSLIntRealFunc(symbol name, symbol arg1=SYM(n),
+                       symbol arg2=SYM(x))
 {
   addFunc(GSLModule->e.ve, realIntRealGSL<fcn>, primReal(), name,
           formal(primInt(),arg1), formal(primReal(),arg2));
 }
 
 template<double (*fcn)(double, double)>
-void addGSLRealRealFunc(symbol *name, symbol *arg1=SYM(nu),
-                        symbol *arg2=SYM(x))
+void addGSLRealRealFunc(symbol name, symbol arg1=SYM(nu),
+                        symbol arg2=SYM(x))
 {
   addFunc(GSLModule->e.ve, realRealRealGSL<fcn>, primReal(), name,
           formal(primReal(),arg1), formal(primReal(),arg2));
 }
 
 template<double (*fcn)(double, double, double)>
-void addGSLRealRealRealFunc(symbol *name, symbol *arg1,
-                            symbol *arg2, symbol *arg3)
+void addGSLRealRealRealFunc(symbol name, symbol arg1,
+                            symbol arg2, symbol arg3)
 {
   addFunc(GSLModule->e.ve, realRealRealRealGSL<fcn>, primReal(), name,
           formal(primReal(),arg1), formal(primReal(),arg2),
@@ -443,8 +424,8 @@ void addGSLRealRealRealFunc(symbol *name, symbol *arg1,
 }
 
 template<int (*fcn)(double, double, double)>
-void addGSLRealRealRealFuncInt(symbol *name, symbol *arg1,
-                               symbol *arg2, symbol *arg3)
+void addGSLRealRealRealFuncInt(symbol name, symbol arg1,
+                               symbol arg2, symbol arg3)
 {
   addFunc(GSLModule->e.ve, intRealRealRealGSL<fcn>, primInt(), name,
           formal(primReal(),arg1), formal(primReal(),arg2),
@@ -452,8 +433,8 @@ void addGSLRealRealRealFuncInt(symbol *name, symbol *arg1,
 }
 
 template<double (*fcn)(double, unsigned)>
-void addGSLRealIntFunc(symbol *name, symbol *arg1=SYM(nu),
-                       symbol *arg2=SYM(s))
+void addGSLRealIntFunc(symbol name, symbol arg1=SYM(nu),
+                       symbol arg2=SYM(s))
 {
   addFunc(GSLModule->e.ve, realRealIntGSL<fcn>, primReal(), name, 
           formal(primReal(),arg1), formal(primInt(),arg2));
@@ -469,7 +450,7 @@ void realRealSignedGSL(vm::stack *s)
 }
 
 template<double (*fcn)(double, int)>
-void addGSLRealSignedFunc(symbol *name, symbol *arg1, symbol *arg2)
+void addGSLRealSignedFunc(symbol name, symbol arg1, symbol arg2)
 {
   addFunc(GSLModule->e.ve, realRealSignedGSL<fcn>, primReal(), name, 
           formal(primReal(),arg1), formal(primInt(),arg2));
@@ -485,8 +466,8 @@ void realUnsignedUnsignedGSL(vm::stack *s)
 }
 
 template<double (*fcn)(unsigned int, unsigned int)>
-void addGSLUnsignedUnsignedFunc(symbol *name, symbol *arg1,
-                                symbol *arg2)
+void addGSLUnsignedUnsignedFunc(symbol name, symbol arg1,
+                                symbol arg2)
 {
   addFunc(GSLModule->e.ve, realUnsignedUnsignedGSL<fcn>, primReal(), name, 
           formal(primInt(), arg1), formal(primInt(), arg2));
@@ -503,8 +484,8 @@ void realIntRealRealGSL(vm::stack *s)
 }
 
 template<double (*fcn)(int, double, double)>
-void addGSLIntRealRealFunc(symbol *name, symbol *arg1,
-                           symbol *arg2, symbol *arg3)
+void addGSLIntRealRealFunc(symbol name, symbol arg1,
+                           symbol arg2, symbol arg3)
 {
   addFunc(GSLModule->e.ve, realIntRealRealGSL<fcn>, primReal(), name, 
           formal(primInt(), arg1), formal(primReal(), arg2),
@@ -522,8 +503,8 @@ void realIntIntRealGSL(vm::stack *s)
 }
 
 template<double (*fcn)(int, int, double)>
-void addGSLIntIntRealFunc(symbol *name, symbol *arg1, symbol *arg2,
-                          symbol *arg3)
+void addGSLIntIntRealFunc(symbol name, symbol arg1, symbol arg2,
+                          symbol arg3)
 {
   addFunc(GSLModule->e.ve, realIntIntRealGSL<fcn>, primReal(), name, 
           formal(primInt(), arg1), formal(primInt(), arg2),
@@ -542,9 +523,9 @@ void realIntIntRealRealGSL(vm::stack *s)
 }
 
 template<double (*fcn)(int, int, double, double)>
-void addGSLIntIntRealRealFunc(symbol *name, symbol *arg1,
-                              symbol *arg2, symbol *arg3,
-                              symbol *arg4)
+void addGSLIntIntRealRealFunc(symbol name, symbol arg1,
+                              symbol arg2, symbol arg3,
+                              symbol arg4)
 {
   addFunc(GSLModule->e.ve, realIntIntRealRealGSL<fcn>, primReal(), name, 
           formal(primInt(), arg1), formal(primInt(), arg2),
@@ -563,9 +544,9 @@ void realRealRealRealRealGSL(vm::stack *s)
 }
 
 template<double (*fcn)(double, double, double, double)>
-void addGSLRealRealRealRealFunc(symbol *name, symbol *arg1,
-                                symbol *arg2, symbol *arg3,
-                                symbol *arg4)
+void addGSLRealRealRealRealFunc(symbol name, symbol arg1,
+                                symbol arg2, symbol arg3,
+                                symbol arg4)
 {
   addFunc(GSLModule->e.ve, realRealRealRealRealGSL<fcn>, primReal(), name, 
           formal(primReal(), arg1), formal(primReal(), arg2),
@@ -587,10 +568,10 @@ void realIntIntIntIntIntIntGSL(vm::stack *s)
 }
 
 template<double (*fcn)(int, int, int, int, int, int)>
-void addGSLIntIntIntIntIntIntFunc(symbol *name, symbol *arg1,
-                                  symbol *arg2, symbol *arg3,
-                                  symbol *arg4, symbol *arg5,
-                                  symbol *arg6)
+void addGSLIntIntIntIntIntIntFunc(symbol name, symbol arg1,
+                                  symbol arg2, symbol arg3,
+                                  symbol arg4, symbol arg5,
+                                  symbol arg6)
 {
   addFunc(GSLModule->e.ve, realIntIntIntIntIntIntGSL<fcn>, primReal(), name, 
           formal(primInt(), arg1), formal(primInt(), arg2),
@@ -616,11 +597,11 @@ void realIntIntIntIntIntIntIntIntIntGSL(vm::stack *s)
 }
 
 template<double (*fcn)(int, int, int, int, int, int, int, int, int)>
-void addGSLIntIntIntIntIntIntIntIntIntFunc(symbol *name, symbol *arg1,
-                                           symbol *arg2, symbol *arg3,
-                                           symbol *arg4, symbol *arg5,
-                                           symbol *arg6, symbol *arg7,
-                                           symbol *arg8, symbol *arg9)
+void addGSLIntIntIntIntIntIntIntIntIntFunc(symbol name, symbol arg1,
+                                           symbol arg2, symbol arg3,
+                                           symbol arg4, symbol arg5,
+                                           symbol arg6, symbol arg7,
+                                           symbol arg8, symbol arg9)
 {
   addFunc(GSLModule->e.ve, realIntIntIntIntIntIntIntIntIntGSL<fcn>, primReal(),
           name, formal(primInt(), arg1), formal(primInt(), arg2),
@@ -688,7 +669,7 @@ void addCast(venv &ve, ty *target, ty *source, bltin f) {
 }
 
 template<class T>
-void addVariable(venv &ve, T *ref, ty *t, symbol *name,
+void addVariable(venv &ve, T *ref, ty *t, symbol name,
                  record *module=settings::getSettingsModule()) {
   access *a = new refAccess<T>(ref);
   varEntry *ent = new varEntry(t, a, PUBLIC, module, 0, position());
@@ -696,7 +677,7 @@ void addVariable(venv &ve, T *ref, ty *t, symbol *name,
 }
 
 template<class T>
-void addVariable(venv &ve, T value, ty *t, symbol *name,
+void addVariable(venv &ve, T value, ty *t, symbol name,
                  record *module=settings::getSettingsModule(),
                  permission perm=PUBLIC) {
   item* ref=new item;
@@ -707,7 +688,7 @@ void addVariable(venv &ve, T value, ty *t, symbol *name,
 }
 
 template<class T>
-void addConstant(venv &ve, T value, ty *t, symbol *name,
+void addConstant(venv &ve, T value, ty *t, symbol name,
                  record *module=settings::getSettingsModule()) {
   addVariable(ve,value,t,name,module,RESTRICTED);
 }
@@ -794,35 +775,35 @@ void addGuideOperators(venv &ve)
 }
 
 /* Avoid typing the same type three times. */
-void addSimpleOperator(venv &ve, bltin f, ty *t, symbol *name)
+void addSimpleOperator(venv &ve, bltin f, ty *t, symbol name)
 {
   addFunc(ve,f,t,name,formal(t,SYM(a)),formal(t,SYM(b)));
 }
-void addBooleanOperator(venv &ve, bltin f, ty *t, symbol *name)
+void addBooleanOperator(venv &ve, bltin f, ty *t, symbol name)
 {
   addFunc(ve,f,primBoolean(),name,formal(t,SYM(a)),formal(t,SYM(b)));
 }
 
 template<class T, template <class S> class op>
-void addArray2Array2Op(venv &ve, ty *t3, symbol *name)
+void addArray2Array2Op(venv &ve, ty *t3, symbol name)
 {
   addFunc(ve,array2Array2Op<T,op>,t3,name,formal(t3,SYM(a)),formal(t3,SYM(b)));
 }
 
 template<class T, template <class S> class op>
-void addOpArray2(venv &ve, ty *t1, symbol *name, ty *t3)
+void addOpArray2(venv &ve, ty *t1, symbol name, ty *t3)
 {
   addFunc(ve,opArray2<T,T,op>,t3,name,formal(t1,SYM(a)),formal(t3,SYM(b)));
 }
 
 template<class T, template <class S> class op>
-void addArray2Op(venv &ve, ty *t1, symbol *name, ty *t3)
+void addArray2Op(venv &ve, ty *t1, symbol name, ty *t3)
 {
   addFunc(ve,array2Op<T,T,op>,t3,name,formal(t3,SYM(a)),formal(t1,SYM(b)));
 }
 
 template<class T, template <class S> class op>
-void addOps(venv &ve, ty *t1, symbol *name, ty *t2)
+void addOps(venv &ve, ty *t1, symbol name, ty *t2)
 {
   addSimpleOperator(ve,binaryOp<T,op>,t1,name);
   addFunc(ve,opArray<T,T,op>,t2,name,formal(t1,SYM(a)),formal(t2,SYM(b)));
@@ -831,7 +812,7 @@ void addOps(venv &ve, ty *t1, symbol *name, ty *t2)
 }
 
 template<class T, template <class S> class op>
-void addBooleanOps(venv &ve, ty *t1, symbol *name, ty *t2)
+void addBooleanOps(venv &ve, ty *t1, symbol name, ty *t2)
 {
   addBooleanOperator(ve,binaryOp<T,op>,t1,name);
   addFunc(ve,opArray<T,T,op>,
@@ -893,7 +874,7 @@ inline T negate(T x) {
 }
 
 template<class T, template <class S> class op>
-void addBinOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, symbol *name)
+void addBinOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, symbol name)
 {
   addFunc(ve,binopArray<T,op>,t1,name,formal(t2,SYM(a)));
   addFunc(ve,binopArray2<T,op>,t1,name,formal(t3,SYM(a)));
@@ -1094,7 +1075,7 @@ void addOperators(venv &ve)
   addRestFunc(ve,diagonal<pair>,pairArray2(),SYM(diagonal),pairArray());
 }
 
-dummyRecord *createDummyRecord(venv &ve, symbol *name)
+dummyRecord *createDummyRecord(venv &ve, symbol name)
 {
   dummyRecord *r=new dummyRecord(name);
 #ifdef DEBUG_FRAME

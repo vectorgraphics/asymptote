@@ -30,8 +30,8 @@ void envCompleter::basicCompletions(symbol_list &l, string start) {
   if (!basicListLoaded)
     loadBasicList();
 
-  for(symbol_list::iterator p = basicList.begin(); p != basicList.end(); ++p)
-    if (prefix(start, **p))
+  for (symbol_list::iterator p = basicList.begin(); p != basicList.end(); ++p)
+    if (prefix(start, *p))
       l.push_back(*p);
 }
 
@@ -49,9 +49,9 @@ char *envCompleter::operator () (const char *text, int state) {
   if (index==l.end())
     return 0;
   else {
-    symbol *name=*index;
+    symbol name=*index;
     ++index;
-    return StrdupMalloc((string) *name);
+    return StrdupMalloc((string)name);
   }
 }
 

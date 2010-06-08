@@ -87,7 +87,7 @@ public:
     out << "<base name>";
   }
 
-  virtual symbol *getName() = 0;
+  virtual symbol getName() = 0;
 };
 
 inline ostream& operator<< (ostream& out, const name& n) {
@@ -96,10 +96,10 @@ inline ostream& operator<< (ostream& out, const name& n) {
 }
 
 class simpleName : public name {
-  symbol *id;
+  symbol id;
 
 public:
-  simpleName(position pos, symbol *id)
+  simpleName(position pos, symbol id)
     : name(pos), id(id) {}
 
   trans::varEntry *getVarEntry(coenv &e);
@@ -116,9 +116,9 @@ public:
 
   void prettyprint(ostream &out, Int indent);
   void print(ostream& out) const {
-    out << *id;
+    out << id;
   }
-  symbol *getName() {
+  symbol getName() {
     return id;
   }
 };
@@ -126,7 +126,7 @@ public:
 
 class qualifiedName : public name {
   name *qualifier;
-  symbol *id;
+  symbol id;
 
   // Gets the record type associated with the qualifier. Reports an
   // error and returns null if the type is not a record.
@@ -141,7 +141,7 @@ class qualifiedName : public name {
   void varTransField(action act, coenv &e,
                      types::ty *target, record *r);
 public:
-  qualifiedName(position pos, name *qualifier, symbol *id)
+  qualifiedName(position pos, name *qualifier, symbol id)
     : name(pos), qualifier(qualifier), id(id) {}
 
   trans::varEntry *getVarEntry(coenv &e);
@@ -158,9 +158,9 @@ public:
 
   void prettyprint(ostream &out, Int indent);
   void print(ostream& out) const {
-    out << *qualifier << "." << *id;
+    out << *qualifier << "." << id;
   }
-  symbol *getName() {
+  symbol getName() {
     return id;
   }
 };

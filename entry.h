@@ -165,7 +165,7 @@ inline tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent) {
 
 // The type environment.
 class tenv : public sym::table<tyEntry *> {
-  bool add(symbol *dest, names_t::value_type &x, varEntry *qualifier,
+  bool add(symbol dest, names_t::value_type &x, varEntry *qualifier,
            coder &c);
 public:
   // Add the entries in one environment to another, if qualifier is
@@ -175,7 +175,7 @@ public:
 
   // Adds entries of the name src in source as the name dest, returning true if
   // any were added.
-  bool add(symbol *src, symbol *dest,
+  bool add(symbol src, symbol dest,
            tenv& source, varEntry *qualifier, coder &c);
 };
 
@@ -191,7 +191,7 @@ public:
 
 #if 0
   // Look for a function that exactly matches the signature given.
-  varEntry *lookExact(symbol *name, signature *key);
+  varEntry *lookExact(symbol name, signature *key);
 #endif
 
   // Add the entries in one environment to another, if qualifier is
@@ -202,15 +202,15 @@ public:
 
   // Add all unshadowed variables from source of the name src as variables
   // named dest.  Returns true if at least one was added.
-  bool add(symbol *src, symbol *dest,
+  bool add(symbol src, symbol dest,
            venv& source, varEntry *qualifier, coder &c);
 
   // Look for a function that exactly matches the type given.
-  varEntry *lookByType(symbol *name, ty *t);
+  varEntry *lookByType(symbol name, ty *t);
 
   // Return the type of the variable, if name is overloaded, return an
   // overloaded type.
-  ty *getType(symbol *name);
+  ty *getType(symbol name);
 
   friend std::ostream& operator<< (std::ostream& out, const venv& ve);
   
@@ -224,20 +224,20 @@ public:
 // venv implemented with a hash table.
 class venv {
   struct key : public gc {
-    symbol *name;
+    symbol name;
     ty *t;
 
-    key(symbol *name, ty *t)
+    key(symbol name, ty *t)
       : name(name), t(t) {}
 
     /* A fake key used for searching just based on a signature. */
-    key(symbol *name, signature *sig)
+    key(symbol name, signature *sig)
       : name(name), t(new types::function(types::primError(), sig))
     {
-      assert(!name->special);
+      assert(!name.special());
     }
 
-    key(symbol *name, varEntry *v)
+    key(symbol name, varEntry *v)
       : name(name), t(v->getType()) {}
   };
   friend ostream& operator<< (ostream& out, const venv::key &k);
@@ -251,12 +251,12 @@ class venv {
       : v(v), shadowed(false), next(0) {}
   };
   struct namehash {
-    size_t operator()(const symbol *name) const {
-      return (size_t)name;
+    size_t operator()(const symbol name) const {
+      return name.hash();
     }
   };
   struct nameeq {
-    bool operator()(const symbol *s, const symbol *t) const {
+    bool operator()(const symbol s, const symbol t) const {
       return s==t;
     }
   };
@@ -266,8 +266,8 @@ class venv {
       return sig ? sig->hash() : 0;
     }
     size_t operator()(const key k) const {
-      return (size_t)(k.name) * 107 +
-        (k.name->special ? k.t->hash() : hashSig(k.t));
+      return k.name.hash() * 107 +
+        (k.name.special() ? k.t->hash() : hashSig(k.t));
     }
   };
   struct keyeq {
@@ -275,7 +275,7 @@ class venv {
 #if TEST_COLLISION
     bool base(const key k, const key l) const {
       return k.name==l.name &&
-        (k.name->special ? equivalent(k.t, l.t) :
+        (k.name->special() ? equivalent(k.t, l.t) :
          equivalent(k.t->getSignature(),
                     l.t->getSignature()));
     }
@@ -300,10 +300,10 @@ class venv {
   // all values of that name.  Used to get the (possibly overloaded) type
   // of the name.
   typedef mem::list<value *> values;
-  typedef mem::unordered_map<symbol *, values, namehash, nameeq> namemap;
+  typedef mem::unordered_map<symbol, values, namehash, nameeq> namemap;
   namemap names;
 
-  void listValues(symbol *name, values &vals, record *module);
+  void listValues(symbol name, values &vals, record *module);
 
   // Helper function for endScope.
   void remove(key k);
@@ -326,7 +326,7 @@ public:
     beginScope();
   }
 
-  void enter(symbol *name, varEntry *v);
+  void enter(symbol name, varEntry *v);
 
   // Add the entries in one environment to another, if qualifier is
   // non-null, it is a record and entries of the source environment are its
@@ -336,7 +336,7 @@ public:
 
   // Add all unshadowed variables from source of the name src as variables
   // named dest.  Returns true if at least one was added.
-  bool add(symbol *src, symbol *dest,
+  bool add(symbol src, symbol dest,
            venv& source, varEntry *qualifier, coder &c);
 
   varEntry *lookByType(key k) {
@@ -345,18 +345,18 @@ public:
   }
   
   // Look for a function that exactly matches the type given.
-  varEntry *lookByType(symbol *name, ty *t) {
+  varEntry *lookByType(symbol name, ty *t) {
     return lookByType(key(name, t));
   }
 
   // An optimization heuristic.  Try to guess the signature of a variable and
   // look it up.  This is allowed to return 0 even if the appropriate variable
   // exists.
-  varEntry *lookBySignature(symbol *name, signature *sig) {
-    return name->special ? 0 : lookByType(key(name, sig));
+  varEntry *lookBySignature(symbol name, signature *sig) {
+    return name.special() ? 0 : lookByType(key(name, sig));
   }
 
-  ty *getType(symbol *name);
+  ty *getType(symbol name);
 
   void beginScope() {
     scopes.push(keymultimap());
@@ -384,7 +384,7 @@ public:
   void list(record *module=0);
 
   // Adds to l, all names prefixed by start.
-  void completions(mem::list<symbol *>& l, string start);
+  void completions(mem::list<symbol>& l, string start);
 };
 #endif
 

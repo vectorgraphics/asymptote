@@ -161,10 +161,10 @@ void block::transAsRecordBody(coenv &e, record *r)
   e.c.closeRecord();
 }
 
-record *block::transAsFile(genv& ge, symbol *id)
+record *block::transAsFile(genv& ge, symbol id)
 {
   // Create the new module.
-  record *r = new record(id, new frame(*id,0,0));
+  record *r = new record(id, new frame(id,0,0));
 
   // Create coder and environment to translate the module.
   // File-level modules have dynamic fields by default.
@@ -304,7 +304,7 @@ void modifiedRunnable::transAsField(coenv &e, record *r)
 void decidstart::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
-  out << "decidstart '" << *id << "'\n";
+  out << "decidstart '" << id << "'\n";
 
   if (dims)
     dims->prettyprint(out, indent+1);
@@ -336,7 +336,7 @@ void decidstart::addOps(types::ty *base, coenv &e, record *r)
 void fundecidstart::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
-  out << "fundecidstart '" << *id << "'\n";
+  out << "fundecidstart '" << id << "'\n";
 
   if (dims)
     dims->prettyprint(out, indent+1);
@@ -404,11 +404,11 @@ varEntry *makeVarEntry(position pos, coenv &e, record *r, types::ty *t) {
 
 
 // Defined in constructor.cc.
-bool definesImplicitConstructor(coenv &e, record *r, varEntry *v, symbol *id);
+bool definesImplicitConstructor(coenv &e, record *r, varEntry *v, symbol id);
 void addConstructorFromInitializer(position pos, coenv &e, record *r,
                                    varEntry *init);
 
-void addVar(coenv &e, record *r, varEntry *v, symbol *id)
+void addVar(coenv &e, record *r, varEntry *v, symbol id)
 {
   // Test for 'operator init' definitions that implicitly define constructors:
   if (definesImplicitConstructor(e, r, v, id))
@@ -458,7 +458,7 @@ types::ty *inferType(position pos, coenv &e, varinit *init)
 }
 
 void createVar(position pos, coenv &e, record *r,
-               symbol *id, types::ty *t, varinit *init)
+               symbol id, types::ty *t, varinit *init)
 {
   // I'm not sure how to handle inferred types in these cases.
   assert(t->kind != types::ty_inferred);
@@ -469,7 +469,7 @@ void createVar(position pos, coenv &e, record *r,
 }
 
 void createVarOutOfOrder(position pos, coenv &e, record *r,
-                         symbol *id, types::ty *t, varinit *init)
+                         symbol id, types::ty *t, varinit *init)
 {
   /* For declarations such as "var x = 5;", infer the type from the
    * initializer.
@@ -482,7 +482,7 @@ void createVarOutOfOrder(position pos, coenv &e, record *r,
   addVar(e, r, v, id);
 }
 
-void addTypeWithPermission(coenv &e, record *r, tyEntry *base, symbol *id)
+void addTypeWithPermission(coenv &e, record *r, tyEntry *base, symbol id)
 {
   // Only bother encoding permissions for private types.
   tyEntry *ent = (r && e.c.getPermission()==PRIVATE) ?
@@ -600,12 +600,12 @@ public:
 
 // Creates a local variable to hold the import and translate the accessing of
 // the import, but doesn't add the import to the environment.
-varEntry *accessModule(position pos, coenv &e, record *r, symbol *id)
+varEntry *accessModule(position pos, coenv &e, record *r, symbol id)
 {
-  record *imp=e.e.getModule(id, (string)*id);
+  record *imp=e.e.getModule(id, (string)id);
   if (!imp) {
     em.error(pos);
-    em << "could not load module '" << *id << "'";
+    em << "could not load module '" << id << "'";
     em.sync();
     return 0;
   }
@@ -613,7 +613,7 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol *id)
     // Create a varinit that evaluates to the module.
     // This is effectively the expression "loadModule(filename)".
     callExp init(pos, new loadModuleExp(pos, imp),
-                 new stringExp(pos, *id));
+                 new stringExp(pos, (string)id));
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
@@ -627,7 +627,7 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol *id)
 void idpair::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
-  out << "idpair (" << "'" << *src << "' as " << *dest << ")\n";
+  out << "idpair (" << "'" << src << "' as " << dest << ")\n";
 }
 
 void idpair::transAsAccess(coenv &e, record *r)
@@ -648,7 +648,7 @@ void idpair::transAsUnravel(coenv &e, record *r,
     r->e.add(src, dest, source, qualifier, e.c);
   if (!e.e.add(src, dest, source, qualifier, e.c)) {
     em.error(getPos());
-    em << "no matching types or fields of name '" << *src << "'";
+    em << "no matching types or fields of name '" << src << "'";
   }
 }
 
@@ -731,7 +731,7 @@ fromdec::qualifier unraveldec::getQualifier(coenv &e, record *)
 void fromaccessdec::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
-  out << "fromaccessdec '" << *id << "'\n";
+  out << "fromaccessdec '" << id << "'\n";
   idpairlist *f=this->fields;
   if(f) f->prettyprint(out, indent+1);
 }
@@ -792,7 +792,7 @@ void typedec::prettyprint(ostream &out, Int indent)
 void recorddec::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
-  out << "structdec '" << *id << "'\n";
+  out << "structdec '" << id << "'\n";
 
   body->prettyprint(out, indent+1);
 }

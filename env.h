@@ -37,7 +37,7 @@ public:
   tenv te;
   venv ve;
 
-  access *baseLookupCast(ty *target, ty *source, symbol *name);
+  access *baseLookupCast(ty *target, ty *source, symbol name);
 
 public:
   // Start an environment for a file-level module.
@@ -61,24 +61,24 @@ public:
     te.collapseScope(); ve.collapseScope();
   }
 
-  tyEntry *lookupTyEntry(symbol *s)
+  tyEntry *lookupTyEntry(symbol s)
   {
     return te.look(s);
   }
 
-  ty *lookupType(symbol *s)
+  ty *lookupType(symbol s)
   {
     tyEntry *ent=lookupTyEntry(s);
     return ent ? ent->t : 0;
   }
 
-  varEntry *lookupVarByType(symbol *name, ty *t)
+  varEntry *lookupVarByType(symbol name, ty *t)
   {
     // Search in local vars.
     return ve.lookByType(name, t);
   }
 
-  varEntry *lookupVarBySignature(symbol *name, types::signature *sig)
+  varEntry *lookupVarBySignature(symbol name, types::signature *sig)
   {
     return ve.lookBySignature(name, sig);
   }
@@ -96,25 +96,25 @@ public:
   // Find the function that handles casting between the types.
   // The name is "operator cast" for implicitCasting and "operator ecast" for
   // explicit.
-  access *lookupCast(ty *target, ty *source, symbol *name);
-  bool castable(ty *target, ty *source, symbol *name);
+  access *lookupCast(ty *target, ty *source, symbol name);
+  bool castable(ty *target, ty *source, symbol name);
 
   // Given overloaded types, this resolves which types should be the target and
   // the source of the cast.
-  ty *castTarget(ty *target, ty *source, symbol *name);
-  ty *castSource(ty *target, ty *source, symbol *name);
+  ty *castTarget(ty *target, ty *source, symbol name);
+  ty *castSource(ty *target, ty *source, symbol name);
 
-  ty *varGetType(symbol *name)
+  ty *varGetType(symbol name)
   {
     return ve.getType(name);
   }
 
-  void addType(symbol *name, tyEntry *desc)
+  void addType(symbol name, tyEntry *desc)
   {
     te.enter(name, desc);
   }
   
-  void addVar(symbol *name, varEntry *desc)
+  void addVar(symbol name, varEntry *desc)
   {
     // Don't check for multiple variables, as this makes adding casts
     // and initializers harder.
@@ -130,7 +130,7 @@ public:
 
   // Add variables and types of name src from another environment under the
   // name dest in this environment.
-  bool add(symbol *src, symbol *dest,
+  bool add(symbol src, symbol dest,
            protoenv &source, varEntry *qualifier, coder &c)
   {
     return te.add(src, dest, source.te, qualifier, c) | 
@@ -149,7 +149,7 @@ public:
 
   // Adds to a list the keywords in the environment that start with the given
   // prefix.  Used for automatic completion at the interactive prompt.
-  typedef mem::list<symbol *> symbol_list;
+  typedef mem::list<symbol> symbol_list;
   void completions(symbol_list &l, string start)
   {
     te.completions(l, start);
@@ -172,7 +172,7 @@ public:
 
   ~env();
 
-  record *getModule(symbol *id, string filename);
+  record *getModule(symbol id, string filename);
 };
 
 } // namespace trans

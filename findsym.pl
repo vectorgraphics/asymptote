@@ -26,11 +26,11 @@ print header <<END;
 // purpose of referring to an external pre-translated symbol, such that
 // SYM(name) also refers to that symbol.
 #ifndef ADDSYMBOL
-    #define ADDSYMBOL(name) extern symbol *PRETRANSLATED_SYMBOL_##name
+    #define ADDSYMBOL(name) extern sym::symbol PRETRANSLATED_SYMBOL_##name
     #ifdef PRESYM
         #define SYM(name) PRETRANSLATED_SYMBOL_##name
     #else
-        #define SYM(name) symbol::trans(#name)
+        #define SYM(name) sym::symbol::trans(#name)
     #endif
 #endif
 

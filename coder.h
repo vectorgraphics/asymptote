@@ -182,7 +182,7 @@ public:
   coder newFunction(string name, function *t, modifier sord=DEFAULT_DYNAMIC);
 
   // Creates a new record type.
-  record *newRecord(symbol *id);
+  record *newRecord(symbol id);
 
   // Create a coder for the initializer of the record.
   coder newRecordInit(record *r, modifier sord=DEFAULT_DYNAMIC);

@@ -25,23 +25,23 @@ std::ostream& operator<< (std::ostream& out, const table<B>& t);
 template <class B>
 class table {
 protected:
-  typedef mem::multimap<symbol*CONST,B> scope_t;
+  typedef mem::multimap<symbol CONST,B> scope_t;
   typedef typename scope_t::iterator scope_iterator;
   typedef mem::list<scope_t> scopes_t;
   typedef mem::list<B> name_t;
   typedef typename name_t::iterator name_iterator;
-  typedef mem::map<symbol*CONST,name_t> names_t;
+  typedef mem::map<symbol CONST,name_t> names_t;
   typedef typename names_t::iterator names_iterator;
 
   scopes_t scopes;
   names_t names;
 
-  void remove(symbol *key);
+  void remove(symbol key);
 public :
   table();
 
-  void enter(symbol *key, B value);
-  B look(symbol *key);
+  void enter(symbol key, B value);
+  B look(symbol key);
 
   // Allows scoping and overloading of symbols of the same name
   void beginScope();
@@ -52,7 +52,7 @@ public :
   void collapseScope();
 
   // Adds to l, all names prefixed by start.
-  void completions(mem::list<symbol *>& l, string start);
+  void completions(mem::list<symbol >& l, string start);
 
   friend std::ostream& operator<< <B> (std::ostream& out, const table& t);
 };
@@ -64,14 +64,14 @@ inline table<B>::table()
 }
 
 template <class B>
-inline void table<B>::enter(symbol *key, B value)
+inline void table<B>::enter(symbol key, B value)
 {
   scopes.front().insert(std::make_pair(key,value));
   names[key].push_front(value);
 }
 
 template <class B>
-inline B table<B>::look(symbol *key)
+inline B table<B>::look(symbol key)
 {
   if (!names[key].empty())
     return names[key].front();
@@ -85,7 +85,7 @@ inline void table<B>::beginScope()
 }
 
 template <class B>
-inline void table<B>::remove(symbol *key)
+inline void table<B>::remove(symbol key)
 {
   if (!names[key].empty())
     names[key].pop_front();
@@ -115,10 +115,10 @@ inline bool prefix(string start, string name) {
 }
 
 template <class B>
-inline void table<B>::completions(mem::list<symbol *>& l, string start)
+inline void table<B>::completions(mem::list<symbol>& l, string start)
 {
   for (names_iterator p = names.begin(); p != names.end(); ++p)
-    if (prefix(start, *(p->first)) && !p->second.empty())
+    if (prefix(start, p->first) && !p->second.empty())
       l.push_back(p->first);
 }
 

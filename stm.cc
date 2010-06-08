@@ -15,6 +15,9 @@
 #include "exp.h"
 #include "stm.h"
 
+#include "symbol.h"
+#include "opsymbols.h"
+
 namespace absyntax {
 
 using namespace trans;
@@ -63,7 +66,7 @@ void expStm::trans(coenv &e) {
 // give some information.  Only do this when the object has a name.
 void tryToWriteTypeOfExp(types::ty *t, exp *body)
 {
-  symbol *name=body->getName();
+  symbol name=body->getName();
   if (!name)
     return;
 
@@ -304,7 +307,7 @@ void forStm::trans(coenv &e)
 void extendedForStm::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
-  out << "extendedForStm: '" << *var << "'\n";
+  out << "extendedForStm: '" << var << "'\n";
 
   start->prettyprint(out, indent+1);
   set->prettyprint(out, indent+1);
@@ -323,8 +326,8 @@ void extendedForStm::trans(coenv &e) {
   position pos=getPos();
 
   // Use gensyms for the variable names so as not to pollute the namespace.
-  symbol *a=symbol::gensym("a");
-  symbol *i=symbol::gensym("i");
+  symbol a=symbol::gensym("a");
+  symbol i=symbol::gensym("i");
 
   // start[] a=set;
   arrayTy at(pos, start, new dimensions(pos));
@@ -333,7 +336,8 @@ void extendedForStm::trans(coenv &e) {
 
   // { start var=a[i]; body }
   block b(pos);
-  decid dec2(pos, new decidstart(pos, var), 
+  decid dec2(pos,
+             new decidstart(pos, var), 
              new subscriptExp(pos, new nameExp(pos, a),
                               new nameExp(pos, i)));
   b.add(new vardec(pos, start, &dec2));
@@ -343,15 +347,19 @@ void extendedForStm::trans(coenv &e) {
 
   // for (int i=0; i < a.length; ++i)
   //   <block>
-  forStm(pos, new vardec(pos, new tyEntryTy(pos, primInt()),
-                         new decid(pos, new decidstart(pos, i),
+  forStm(pos,
+         new vardec(pos, new tyEntryTy(pos, primInt()),
+                         new decid(pos,
+                                   new decidstart(pos, i),
                                    new intExp(pos, 0))),
-         new binaryExp(pos, new nameExp(pos, i),
-                       symbol::trans("<"),
-                       new nameExp(pos, new qualifiedName(pos, new simpleName(pos, a),
-                                                          symbol::trans("length")))),
-         new expStm(pos, new prefixExp(pos, new nameExp(pos, i),
-                                       symbol::trans("+"))),
+         new binaryExp(pos,
+                       new nameExp(pos, i),
+                       SYM_LT,
+                       new nameExp(pos,
+                                   new qualifiedName(pos,
+                                                     new simpleName(pos, a),
+                                                     symbol::trans("length")))),
+         new expStm(pos, new prefixExp(pos, new nameExp(pos, i), SYM_PLUS)),
          new blockStm(pos, &b)).trans(e);
 }
                               

@@ -109,11 +109,11 @@ coder coder::newCodelet()
                DEFAULT_DYNAMIC, false);
 }
 
-record *coder::newRecord(symbol *id)
+record *coder::newRecord(symbol id)
 {
   frame *underlevel = getFrame();
 
-  frame *level = new frame(*id, underlevel, 0);
+  frame *level = new frame(id, underlevel, 0);
   
   record *r = new record(id, level);
 
