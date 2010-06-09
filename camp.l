@@ -425,6 +425,9 @@ operator           {adjust(); BEGIN opname; }
 
 <<EOF>>            { setEOF("unexpected end of input"); yyterminate(); }
 
-.                  {
-  adjust(); error(); em <<"invalid token '" << yytext << "'"; }
-
+.                  {adjust();
+                    error();
+                    em << "invalid token";
+                    if (isgraph(yytext[0]))
+                      em << " '" << yytext[0] << "'";
+                   }
