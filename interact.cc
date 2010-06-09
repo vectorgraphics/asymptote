@@ -17,6 +17,7 @@
 #include "runhistory.h"
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+#include <cstdio>
 #include <readline/readline.h>
 #include <readline/history.h>
 #endif
