@@ -9,6 +9,7 @@ pair     => primPair()
 realarray* => realArray()
 pairarray* => pairArray()
 
+#include <inttypes.h>
 #include "mathop.h"
 #include "path.h"
 
@@ -24,6 +25,8 @@ using run::integeroverflow;
 using vm::frame;
 
 const char *invalidargument="invalid argument";
+
+extern uint32_t CLZ(uint32_t a);
 
 // Return the factorial of a non-negative integer using a lookup table.
 Int factorial(Int n)
@@ -295,23 +298,7 @@ Int NOT(Int a)
 Int CLZ(Int a) 
 {
   if((unsignedInt) a > 0xFFFFFFFF) return -1;
-#ifdef __GNUC__
-  return __builtin_clz(a);
-#else
-// find the log base 2 of a 32-bit integer
-  static const int MultiplyDeBruijnBitPosition[32] = {
-    0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
-    8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
-  };
-
-  a |= a >> 1; // first round down to one less than a power of 2 
-  a |= a >> 2;
-  a |= a >> 4;
-  a |= a >> 8;
-  a |= a >> 16;
-
-  return 31-MultiplyDeBruijnBitPosition[(unsignedInt)(a * 0x07C4ACDDU) >> 27];
-#endif
+  return CLZ((uint32_t) a);
 }
 
 Int CTZ(Int a) 

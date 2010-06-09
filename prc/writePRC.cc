@@ -31,6 +31,35 @@
 
 using namespace std;
 
+// Count leading zeros.
+uint32_t CLZ(uint32_t a) 
+{
+#ifdef __GNUC__
+  return __builtin_clz(a);
+#else
+// find the log base 2 of a 32-bit integer
+  static const int MultiplyDeBruijnBitPosition[32] = {
+    0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
+    8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
+  };
+
+  a |= a >> 1; // first round down to one less than a power of 2 
+  a |= a >> 2;
+  a |= a >> 4;
+  a |= a >> 8;
+  a |= a >> 16;
+
+  return 31-MultiplyDeBruijnBitPosition[(unsignedInt)(a * 0x07C4ACDDU) >> 27];
+#endif
+}
+
+uint32_t log2(uint32_t x) 
+{
+  assert(x != 0);
+  uint32_t L=31-CLZ(x);
+  return ((uint32_t) 1 << L == x) ? L : L+1;
+}
+
 double PRCVector3d::Length()
 {
   return sqrt(x*x+y*y+z*z);
@@ -1205,13 +1234,13 @@ void  PRCCompressedFace::serializeCompressedNurbs(PRCbitStream &pbs, double brep
 
    const uint32_t number_of_knots_in_u = 4; // 0011 or 00001111 knot vector - just 2 spans
    WriteUnsignedIntegerWithVariableBitNumber (number_of_knots_in_u - 2, 16)
-   uint32_t number_bit = degree_in_u ? ceil( log2( degree_in_u + 2 ) ) : 2;
+   uint32_t number_bit = degree_in_u ? log2( degree_in_u + 2 ) : 2;
    WriteBoolean (false) // Multiplicity_is_already_stored - no
    WriteUnsignedIntegerWithVariableBitNumber( degree_in_u+1,number_bit)
    WriteBoolean (true) // Multiplicity_is_already_stored - yes
    const uint32_t number_of_knots_in_v = 4; // 0011 or 00001111 knot vector - just 2 spans
    WriteUnsignedIntegerWithVariableBitNumber (number_of_knots_in_v - 2, 16)
-   number_bit = degree_in_v ? ceil( log2( degree_in_v + 2 ) ) : 2;
+   number_bit = degree_in_v ? log2( degree_in_v + 2 ) : 2;
    WriteBoolean (false) // Multiplicity_is_already_stored - no
    WriteUnsignedIntegerWithVariableBitNumber( degree_in_v+1,number_bit)
    WriteBoolean (true) // Multiplicity_is_already_stored - yes
