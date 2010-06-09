@@ -26,27 +26,6 @@ void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
 }
 #endif  
 
-inline void initMatrix(GLfloat *v, double x, double ymin, double zmin,
-                       double ymax, double zmax)
-{
-  v[0]=x;
-  v[1]=ymin;
-  v[2]=zmin;
-  v[3]=1.0;
-  v[4]=x;
-  v[5]=ymin;
-  v[6]=zmax;
-  v[7]=1.0;
-  v[8]=x;
-  v[9]=ymax;
-  v[10]=zmin;
-  v[11]=1.0;
-  v[12]=x;
-  v[13]=ymax;
-  v[14]=zmax;
-  v[15]=1.0;
-}
-
 void drawSurface::bounds(bbox3& b)
 {
   double x,y,z;
@@ -142,7 +121,7 @@ void drawSurface::ratio(pair &b, double (*m)(double, double), double fuzz,
 }
 
 bool drawSurface::write(prcfile *out, unsigned int *, array *, array *, double,
-                       groupsmap&)
+                        groupsmap&)
 {
   if(invisible || !prc)
     return true;
@@ -260,34 +239,36 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   static GLfloat v1[16];
   static GLfloat v2[16];
   
-  initMatrix(v1,Min.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
-  initMatrix(v2,Max.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
-
-  glPushMatrix();
-  glMultMatrixf(v1);
-  glGetFloatv(GL_MODELVIEW_MATRIX,v);
-  glPopMatrix();
-  
-  bbox3 B(v[0],v[1],v[2]);
-  B.addnonempty(v[4],v[5],v[6]);
-  B.addnonempty(v[8],v[9],v[10]);
-  B.addnonempty(v[12],v[13],v[14]);
-  
-  glPushMatrix();
-  glMultMatrixf(v2);
-  glGetFloatv(GL_MODELVIEW_MATRIX,v);
-  glPopMatrix();
-  
-  B.addnonempty(v[0],v[1],v[2]);
-  B.addnonempty(v[4],v[5],v[6]);
-  B.addnonempty(v[8],v[9],v[10]);
-  B.addnonempty(v[12],v[13],v[14]);
-  
-  triple M=B.Max();
-  triple m=B.Min();
-  
   bool havebillboard=interaction == BILLBOARD;
   
+  triple m,M;
+  if(perspective || !havebillboard) {
+    initMatrix(v1,v2);
+    
+    glPushMatrix();
+    glMultMatrixf(v1);
+    glGetFloatv(GL_MODELVIEW_MATRIX,v);
+    glPopMatrix();
+  
+    bbox3 B(v[0],v[1],v[2]);
+    B.addnonempty(v[4],v[5],v[6]);
+    B.addnonempty(v[8],v[9],v[10]);
+    B.addnonempty(v[12],v[13],v[14]);
+  
+    glPushMatrix();
+    glMultMatrixf(v2);
+    glGetFloatv(GL_MODELVIEW_MATRIX,v);
+    glPopMatrix();
+  
+    B.addnonempty(v[0],v[1],v[2]);
+    B.addnonempty(v[4],v[5],v[6]);
+    B.addnonempty(v[8],v[9],v[10]);
+    B.addnonempty(v[12],v[13],v[14]);
+  
+    m=B.Min();
+    M=B.Max();
+  }
+
   if(perspective) {
     double f=m.getz()*perspective;
     double F=M.getz()*perspective;
@@ -527,8 +508,7 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   static GLfloat v1[16];
   static GLfloat v2[16];
 
-  initMatrix(v1,Min.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
-  initMatrix(v2,Max.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
+  initMatrix(v1,v2);
   
   glPushMatrix();
   glMultMatrixf(v1);
@@ -549,9 +529,9 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   B.addnonempty(v[4],v[5],v[6]);
   B.addnonempty(v[8],v[9],v[10]);
   B.addnonempty(v[12],v[13],v[14]);
-  
-  triple M=B.Max();
+    
   triple m=B.Min();
+  triple M=B.Max();
   
   double s;
   if(perspective) {

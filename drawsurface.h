@@ -16,8 +16,29 @@ namespace camp {
 
 #ifdef HAVE_GL
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j);
-#endif  
   
+inline void initMatrix(GLfloat *v, double x, double ymin, double zmin,
+                       double ymax, double zmax)
+{
+  v[0]=x;
+  v[1]=ymin;
+  v[2]=zmin;
+  v[3]=1.0;
+  v[4]=x;
+  v[5]=ymin;
+  v[6]=zmax;
+  v[7]=1.0;
+  v[8]=x;
+  v[9]=ymax;
+  v[10]=zmin;
+  v[11]=1.0;
+  v[12]=x;
+  v[13]=ymax;
+  v[14]=zmax;
+  v[15]=1.0;
+}
+#endif  
+
 class drawSurface : public drawElement {
 protected:
   Triple *controls;
@@ -148,6 +169,14 @@ public:
              groupsmap&);
   
   void displacement();
+  
+#ifdef HAVE_GL
+  void initMatrix(GLfloat *v1, GLfloat *v2) {
+    camp::initMatrix(v1,Min.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
+    camp::initMatrix(v2,Max.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
+  }
+#endif  
+
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
               double perspective, bool transparent);
   
@@ -312,7 +341,14 @@ public:
   
   void displacement();
   void ratio(pair &b, double (*m)(double, double), double, bool &first);
-    
+  
+#ifdef HAVE_GL
+  void initMatrix(GLfloat *v1, GLfloat *v2) {
+    camp::initMatrix(v1,Min.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
+    camp::initMatrix(v2,Max.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
+  }
+#endif  
+
   void render(GLUnurbs *nurb, double size2,
               const triple& Min, const triple& Max,
               double perspective, bool transparent);
