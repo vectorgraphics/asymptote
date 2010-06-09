@@ -106,9 +106,8 @@ if test "$GXX" = yes ; then
    ac_gcc_version=`echo __GNUC__ | $CC -E - | grep -v ^\#`
    if test "$ac_gcc_version" -lt 4; then
        CFLAGS=$CFLAGS" -finline-limit=400"
-   else
-       CFLAGS=$CFLAGS" --no-var-tracking-assignments"
    fi
+   CFLAGS=$CFLAGS" --no-var-tracking"
 fi
 
 AC_CHECK_HEADER(tr1/unordered_map,,
