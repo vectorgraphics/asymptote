@@ -1,0 +1,4 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\Software\Cygwin]
+"heap_chunk_in_mb"=dword:ffffffff
