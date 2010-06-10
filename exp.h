@@ -618,7 +618,7 @@ public:
 
 struct argument {
   exp *val;
-  symbol::symbol name;
+  symbol name;
 
   // No constructor due to the union in camp.y
 #if 0
