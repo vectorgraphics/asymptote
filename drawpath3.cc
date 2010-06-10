@@ -50,6 +50,8 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
   if(n == 0 || invisible || ((color.A < 1.0) ^ transparent))
     return;
 
+  bool havebillboard=interaction == BILLBOARD;
+  
   GLfloat Diffuse[]={0.0,0.0,0.0,color.A};
   glMaterialfv(GL_FRONT,GL_DIFFUSE,Diffuse);
   
@@ -63,22 +65,36 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
   
   glMaterialf(GL_FRONT,GL_SHININESS,128.0);
   
+  if(havebillboard) BB.init();
+  
   if(straight) {
     glBegin(GL_LINE_STRIP);
     for(Int i=0; i <= n; ++i) {
       triple v=g.point(i);
-      glVertex3f(v.getx(),v.gety(),v.getz());
+      if(havebillboard) {
+        static GLfloat controlpoints[3];
+        BB.store(controlpoints,v,center);
+        glVertex3f(controlpoints[0],controlpoints[1],controlpoints[2]);
+      } else
+        glVertex3f(v.getx(),v.gety(),v.getz());
     }
     glEnd();
   } else {
     for(Int i=0; i < n; ++i) {
       static GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
       static GLfloat controlpoints[12];
-      store(controlpoints,g.point(i));
-      store(controlpoints+3,g.postcontrol(i));
-      store(controlpoints+6,g.precontrol(i+1));
-      store(controlpoints+9,g.point(i+1));
-    
+      if(havebillboard) {
+        BB.store(controlpoints,g.point(i),center);
+        BB.store(controlpoints+3,g.postcontrol(i),center);
+        BB.store(controlpoints+6,g.precontrol(i+1),center);
+        BB.store(controlpoints+9,g.point(i+1),center);
+      } else {
+        store(controlpoints,g.point(i));
+        store(controlpoints+3,g.postcontrol(i));
+        store(controlpoints+6,g.precontrol(i+1));
+        store(controlpoints+9,g.point(i+1));
+      }
+      
       gluBeginCurve(nurb);
       gluNurbsCurve(nurb,8,knots,3,controlpoints,4,GL_MAP1_VERTEX_3);
       gluEndCurve(nurb);

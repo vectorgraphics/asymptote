@@ -15,18 +15,24 @@ namespace camp {
 class drawPath3 : public drawElement {
 protected:
   const path3 g;
+  triple center;
   bool straight;
   RGBAColour color;
   bool invisible;
+  Interaction interaction;
   triple Min,Max;
 public:
-  drawPath3(path3 g, const pen& p) :
-    g(g), straight(g.piecewisestraight()), color(rgba(p)),
-    invisible(p.invisible()), Min(g.min()), Max(g.max()) {}
+  drawPath3(path3 g, triple center, const pen& p, Interaction interaction) :
+    g(g), center(center), straight(g.piecewisestraight()), color(rgba(p)),
+    invisible(p.invisible()), interaction(interaction),
+    Min(g.min()), Max(g.max()) {}
     
   drawPath3(const vm::array& t, const drawPath3 *s) :
-    g(camp::transformed(t,s->g)), straight(s->straight), color(s->color),
-    invisible(s->invisible), Min(g.min()), Max(g.max()) {}
+    g(camp::transformed(t,s->g)), center(center), straight(s->straight),
+    color(s->color), invisible(s->invisible), interaction(s->interaction),
+    Min(g.min()), Max(g.max()) {
+    center=run::operator *(t,s->center);
+  }
   
   virtual ~drawPath3() {}
 

@@ -89,6 +89,36 @@ void glrender(const string& prefix, const camp::picture* pic,
               bool view, int oldpid=0);
 }
 
+namespace camp {
+
+struct billboard 
+{
+  triple u,v,w;
+  
+  void init() {
+    gl::projection P=gl::camera(false);
+    w=unit(P.camera-P.target);
+    v=unit(perp(P.up,w));
+    u=cross(v,w);
+  }
+    
+  void store(GLfloat* C, const triple& V, const triple &center) {
+    double cx=center.getx();
+    double cy=center.gety();
+    double cz=center.getz();
+    double x=V.getx()-cx;
+    double y=V.gety()-cy;
+    double z=V.getz()-cz;
+    C[0]=cx+u.getx()*x+v.getx()*y+w.getx()*z;
+    C[1]=cy+u.gety()*x+v.gety()*y+w.gety()*z;
+    C[2]=cz+u.getz()*x+v.getz()*y+w.getz()*z;
+  }
+};
+
+extern billboard BB;
+
+}
+
 #else
 typedef void GLUnurbs;
 typedef float GLfloat;

@@ -109,6 +109,7 @@ public:
   virtual ~drawElement() {}
   
   static pen lastpen;  
+  static const triple zero;
   
   // Adjust the bbox of the picture based on the addition of this
   // element. The iopipestream is needed for determining label sizes.

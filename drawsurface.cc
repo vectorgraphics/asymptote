@@ -10,7 +10,7 @@
 namespace camp {
 
 const double pixel=1.0; // Adaptive rendering constant.
-const triple drawSurface::zero;
+const triple drawElement::zero;
 
 using vm::array;
 
@@ -196,35 +196,6 @@ inline double fraction(const triple& d, const triple& size)
              fraction(d.getz(),size.getz()));
 }
 
-#ifdef HAVE_GL
-struct billboard 
-{
-  triple u,v,w;
-  
-  void init() {
-    gl::projection P=gl::camera(false);
-    w=unit(P.camera-P.target);
-    v=unit(perp(P.up,w));
-    u=cross(v,w);
-  }
-    
-  void store(GLfloat* C, const triple& V,
-             const triple &center=drawSurface::zero) {
-    double cx=center.getx();
-    double cy=center.gety();
-    double cz=center.getz();
-    double x=V.getx()-cx;
-    double y=V.gety()-cy;
-    double z=V.getz()-cz;
-    C[0]=cx+u.getx()*x+v.getx()*y+w.getx()*z;
-    C[1]=cy+u.gety()*x+v.gety()*y+w.gety()*z;
-    C[2]=cz+u.getz()*x+v.getz()*y+w.getz()*z;
-  }
-};
-
-billboard BB;
-#endif
-
 void drawSurface::render(GLUnurbs *nurb, double size2,
                          const triple& Min, const triple& Max,
                          double perspective, bool transparent)
@@ -330,7 +301,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
     if(lighton) {
       if(havenormal && fraction(dperp,size3)*size2 <= 0.1) {
         if(havebillboard)
-          BB.store(Normal,normal);
+          BB.store(Normal,normal,zero);
         else
           store(Normal,normal);
         glNormal3fv(Normal);
@@ -369,7 +340,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
     }
     
     if(havebillboard)
-      BB.store(Normal,normal);
+      BB.store(Normal,normal,zero);
     else
       store(Normal,normal);
 

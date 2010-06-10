@@ -34,6 +34,10 @@
 #include <GL/freeglut_ext.h>
 #endif
 
+namespace camp {
+billboard BB;
+}
+
 namespace gl {
   
 bool glthread=false;
@@ -699,11 +703,11 @@ void zoom(int x, int y)
     if(zoomFactor > 0.0) {
       double zoomStep=getSetting<double>("zoomstep");
       const double limit=log(0.1*DBL_MAX)/log(zoomFactor);
-      lastzoom=Zoom;
       double s=zoomStep*(y0-y);
       if(fabs(s) < limit) {
         Zoom *= pow(zoomFactor,s);
         capzoom();
+        lastzoom=Zoom;
         y0=y;
         setProjection();
         glutPostRedisplay();
@@ -716,13 +720,12 @@ void mousewheel(int wheel, int direction, int x, int y)
 {
   double zoomFactor=getSetting<double>("zoomfactor");
   if(zoomFactor > 0.0) {
-    lastzoom=Zoom;
     if(direction > 0)
       Zoom *= zoomFactor;
     else
       Zoom /= zoomFactor;
-  
     capzoom();
+    lastzoom=Zoom;
     setProjection();
     glutPostRedisplay();
   }

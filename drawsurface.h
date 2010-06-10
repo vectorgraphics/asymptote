@@ -55,7 +55,7 @@ protected:
   triple normal;
   bool invisible;
   bool lighton;
-  int interaction;
+  Interaction interaction;
   
   triple Min,Max;
   bool prc;
@@ -67,12 +67,10 @@ protected:
 #endif  
   
 public:
-  static const triple zero;
-
   drawSurface(const vm::array& g, triple center, bool straight,
               const vm::array&p, double opacity, double shininess,
               double PRCshininess, triple normal, const vm::array &pens,
-              bool lighton, int interaction, bool prc) :
+              bool lighton, Interaction interaction, bool prc) :
     center(center), straight(straight), opacity(opacity), shininess(shininess),
     PRCshininess(PRCshininess), normal(unit(normal)), lighton(lighton),
     interaction(interaction), prc(prc) {
@@ -145,10 +143,10 @@ public:
       }
     } else controls=NULL;
     
+#ifdef HAVE_GL
     center=run::operator *(t,s->center);
     normal=run::multshiftless(t,s->normal);
     
-#ifdef HAVE_GL
     if(s->colors) {
       colors=new(UseGC) GLfloat[16];
       for(size_t i=0; i < 16; ++i)
