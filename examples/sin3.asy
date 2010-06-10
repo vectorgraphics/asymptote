@@ -6,15 +6,12 @@ currentprojection=orthographic(1,-2,1);
 
 real f(pair z) {return abs(sin(z));}
 
-real Arg(triple v)
-{
-  return degrees(sin((v.x,v.y)),warn=false);
-}
+real Arg(triple v) {return degrees(cos((v.x,v.y)),warn=false);}
 
 surface s=surface(f,(-pi,-2),(pi,2),20,Spline);
 
 s.colors(palette(s.map(Arg),Wheel()));
-draw(s);
+draw(s,render(compression=Low,merge=true));
 
 real xmin=point((-1,-1,-1)).x;
 real xmax=point((1,1,1)).x;

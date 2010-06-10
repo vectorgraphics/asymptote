@@ -36,6 +36,7 @@ struct render
   // General parameters:
   real margin;          // shrink amount for rendered openGL viewport, in bp.
   real tubegranularity; // granularity for rendering tubes 
+  bool labelfill;       // fill subdivision cracks in unlighted labels
 
   static render defaultrender;
   
@@ -46,7 +47,8 @@ struct render
                      bool3 merge=defaultrender.merge,
                      int sphere=defaultrender.sphere,
                      real margin=defaultrender.margin,
-                     real tubegranularity=defaultrender.tubegranularity)
+                     real tubegranularity=defaultrender.tubegranularity,
+                     bool labelfill=defaultrender.labelfill)
   {
     this.compression=compression;
     this.granularity=granularity;
@@ -56,6 +58,7 @@ struct render
     this.sphere=sphere;
     this.margin=margin;
     this.tubegranularity=tubegranularity;
+    this.labelfill=labelfill;
   }
 }
 
@@ -70,6 +73,7 @@ defaultrender.merge=false;
 defaultrender.margin=0.02;
 defaultrender.tubegranularity=0.005;
 defaultrender.sphere=NURBSsphere;
+defaultrender.labelfill=true;
 
 real defaultshininess=0.25;
 

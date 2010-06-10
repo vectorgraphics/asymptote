@@ -1485,8 +1485,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     gluNurbsProperty(nurb,GLU_PARAMETRIC_TOLERANCE,1.0);
     gluNurbsProperty(nurb,GLU_CULLING,GLU_TRUE);
   
-    // The callback tesselation algorithm avoids artifacts at degenerate control
-    // points.
+    // The callback tessellation algorithm avoids artifacts at degenerate
+    // control points.
     gluNurbsProperty(nurb,GLU_NURBS_MODE,GLU_NURBS_TESSELLATOR);
     gluNurbsCallback(nurb,GLU_NURBS_BEGIN,(_GLUfuncptr) glBegin);
     gluNurbsCallback(nurb,GLU_NURBS_VERTEX,(_GLUfuncptr) glVertex3fv);

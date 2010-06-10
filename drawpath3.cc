@@ -74,7 +74,7 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
       if(havebillboard) {
         static GLfloat controlpoints[3];
         BB.store(controlpoints,v,center);
-        glVertex3f(controlpoints[0],controlpoints[1],controlpoints[2]);
+        glVertex3fv(controlpoints);
       } else
         glVertex3f(v.getx(),v.gety(),v.getz());
     }

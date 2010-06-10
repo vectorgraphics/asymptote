@@ -1431,8 +1431,12 @@ void label(frame f, Label L, triple position, align align=NoAlign,
     L.T3=transform3(P);
   begingroup3(f,name == "" ? L.s : name,render);
   if(is3D()) {
-    for(patch S : surface(L,position).s)
+    bool lighton=light.on();
+    for(patch S : surface(L,position).s) {
       draw3D(f,S,position,L.p,light,interaction);
+      if(render.labelfill && !lighton) // Fill subdivision cracks
+        _draw(f,S.external(),position,L.p,interaction.type);
+    }
   } else {
     pen p=color(L.T3*Z,L.p,light,shiftless(P.T.modelview));
     if(L.defaulttransform3) {
@@ -1475,10 +1479,15 @@ void label(picture pic=currentpicture, Label L, triple position,
 
       surface S=surface(L,v);
       begingroup3(f,name == "" ? L.s : name,render,v,interaction.type);
-      if(is3D())
-        for(patch S : surface(L,v).s)
+      bool lighton=light.on();
+      if(is3D()) {
+        for(patch S : surface(L,v).s) {
           draw3D(f,S,v,L.p,light,interaction);
-
+          if(render.labelfill && !lighton) // Fill subdivision cracks
+            _draw(f,S.external(),v,L.p,interaction.type);
+        }
+      }
+      
       if(pic != null) {
         pen p=color(L.T3*Z,L.p,light,shiftless(P.T.modelview));
         if(L.defaulttransform3) {
