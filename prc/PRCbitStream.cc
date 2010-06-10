@@ -270,6 +270,11 @@ PRCbitStream& PRCbitStream::operator <<(double value)
 
 PRCbitStream& PRCbitStream::operator <<(const char* s)
 {
+  if (s == NULL)
+  {
+    writeBit(false); // string is NULL
+    return *this;
+  }
   string str(s);
   *this << str;
   return *this;

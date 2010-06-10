@@ -472,14 +472,14 @@ if(1) {
     PRCFace *face = new PRCFace;
     shell->addFace(face,2);
     PRCRuled *surface = new PRCRuled;
-    face->setSurface(surface);
+    face->base_surface=surface;
         
     PRCCircle *first_curve = new PRCCircle;
     first_curve->radius = 1;
-    surface->setFirstCurve(first_curve);
+    surface->first_curve=first_curve;
     PRCCircle *second_curve = new PRCCircle;
     second_curve->radius = 0;
-    surface->setSecondCurve(second_curve);
+    surface->second_curve=second_curve;
 
     surface->uv_domain.min.x = 0;
     surface->uv_domain.max.x = 1;
@@ -598,7 +598,7 @@ if(1) {
     PRCFace *face = new PRCFace;
     shell->addFace(face);
     PRCBlend01 *surface = new PRCBlend01;
-    face->setSurface(surface);
+    face->base_surface=surface;
         
     PRCNURBSCurve *center_curve = new PRCNURBSCurve;
     center_curve->is_rational = false;
@@ -607,7 +607,7 @@ if(1) {
       center_curve->control_point.push_back(PRCControlPoint(points[i][0]+0.0,points[i][1],points[i][2]));
     for(size_t i = 0; i < 3+NUMBER_OF_POINTS+1; ++i)
       center_curve->knot.push_back(knots[i]);
-    surface->setCenterCurve(center_curve);
+    surface->center_curve=center_curve;
    
     PRCNURBSCurve *origin_curve = new PRCNURBSCurve;
     origin_curve->is_rational = false;
@@ -616,7 +616,7 @@ if(1) {
       origin_curve->control_point.push_back(PRCControlPoint(points[i][0]*1.01+0.0,points[i][1]*1.01,points[i][2]));
     for(size_t i = 0; i < 3+NUMBER_OF_POINTS+1; ++i)
       origin_curve->knot.push_back(knots[i]);
-    surface->setOriginCurve(origin_curve);
+    surface->origin_curve=origin_curve;
    
     surface->uv_domain.min.x = 0;
     surface->uv_domain.max.x = 2*M_PI;
@@ -671,7 +671,7 @@ if(1) {
     uint32_t Origin_curve_body_index = tubeContext->addSingleWireBody(OriginCurveBody);
     PRCWireEdge *OriginCurveEdge = new PRCWireEdge;
     OriginCurveBody->setWireEdge(OriginCurveEdge);
-    OriginCurveEdge->setCurve(Origin_curve);
+//    OriginCurveEdge->origin_curve=Origin_curve;
     PRCWire *OriginCurveWire = new PRCWire("OriginCurveWire");
     OriginCurveWire->index_of_line_style = 0;
     OriginCurveWire->context_id = context_index;
@@ -682,7 +682,7 @@ if(1) {
     uint32_t Center_curve_body_index = tubeContext->addSingleWireBody(CenterCurveBody);
     PRCWireEdge *CenterCurveEdge = new PRCWireEdge;
     CenterCurveBody->setWireEdge(CenterCurveEdge);
-    CenterCurveEdge->setCurve(Center_curve);
+//    CenterCurveEdge->setCurve(Center_curve);
     PRCWire *CenterCurveWire = new PRCWire("CenterCurveWire");
     CenterCurveWire->index_of_line_style = 0;
     CenterCurveWire->context_id = context_index;
@@ -702,7 +702,7 @@ if(1) {
     uint32_t compositeCenter_curve_body_index = tubeContext->addSingleWireBody(compositeCenterCurveBody);
     PRCWireEdge *compositeCenterCurveEdge = new PRCWireEdge;
     compositeCenterCurveBody->setWireEdge(compositeCenterCurveEdge);
-    compositeCenterCurveEdge->setCurve(compositeCenter_curve);
+//    compositeCenterCurveEdge->setCurve(compositeCenter_curve);
     PRCWire *compositeCenterCurveWire = new PRCWire("compositeCenterCurveWire");
     compositeCenterCurveWire->index_of_line_style = 0;
     compositeCenterCurveWire->context_id = context_index;
@@ -722,7 +722,7 @@ if(1) {
     uint32_t compositeOrigin_curve_body_index = tubeContext->addSingleWireBody(compositeOriginCurveBody);
     PRCWireEdge *compositeOriginCurveEdge = new PRCWireEdge;
     compositeOriginCurveBody->setWireEdge(compositeOriginCurveEdge);
-    compositeOriginCurveEdge->setCurve(compositeOrigin_curve);
+//    compositeOriginCurveEdge->setCurve(compositeOrigin_curve);
     PRCWire *compositeOriginCurveWire = new PRCWire("compositeOriginCurveWire");
     compositeOriginCurveWire->index_of_line_style = 0;
     compositeOriginCurveWire->context_id = context_index;
@@ -738,7 +738,7 @@ if(1) {
     PRCFace *cface = new PRCFace;
     cshell->addFace(cface);
     PRCBlend01 *csurface = new PRCBlend01;
-    cface->setSurface(csurface);
+    cface->base_surface=csurface;
 
     csurface->uv_domain.min.x = 0;
     csurface->uv_domain.max.x = 2*M_PI;

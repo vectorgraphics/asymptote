@@ -81,12 +81,12 @@ void PRCGlobalsSection::writeData()
   uint32_t i=0; // universal index for PRC standard compatibility
   out << (uint32_t)PRC_TYPE_ASM_FileStructureGlobals;
 
-  SingleAttributeData value = {PRCVersion};
-  SingleAttribute sa(false,EMPTY_ATTRIBUTE_TITLE,KEPRCModellerAttributeTypeInt,value);
-  AttributeTitle iv; iv.text = "__PRC_RESERVED_ATTRIBUTE_PRCInternalVersion";
-  Attribute a(false,iv,1,&sa);
-  Attributes as(1,&a);
-  ContentPRCBase(&as).write(out);
+  PRCSingleAttribute sa((int32_t)PRCVersion);
+  PRCAttribute a("__PRC_RESERVED_ATTRIBUTE_PRCInternalVersion");
+  a.addKey(sa);
+  ContentPRCBase cb;
+  cb.addAttribute(a);
+  cb.serializeContentPRCBase(out);
   out << numberOfReferencedFileStructures; // no referencing of file structures
   out << tessellationChordHeightRatio;
   out << tessellationAngleDegrees;
@@ -122,7 +122,7 @@ void PRCGlobalsSection::writeData()
 
   out << (uint32_t)1 // number of line patterns hard coded for now
       << (uint32_t)PRC_TYPE_GRAPH_LinePattern;
-  ContentPRCBase(&EMPTY_ATTRIBUTES,"",true,makeCADID(),0,makePRCID()).write(out);
+  ContentPRCBase("",true,makeCADID(),0,makePRCID()).serializeContentPRCBase(out);
   out << (uint32_t)0 // number of lengths
       << 0.0 // phase
       << false; // is real length
@@ -146,7 +146,7 @@ void PRCTreeSection::writeData()
 {
   out << (uint32_t)(PRC_TYPE_ASM_FileStructureTree);
 
-  EMPTY_CONTENTPRCBASE.write(out);
+  EMPTY_CONTENTPRCBASE.serializeContentPRCBase(out);
 
   uint32_t number_of_part_definitions = part_definitions.size();
   WriteUnsignedInteger (number_of_part_definitions) 
@@ -164,7 +164,7 @@ void PRCTreeSection::writeData()
 
   // File Structure Internal Data
   out << (uint32_t)(PRC_TYPE_ASM_FileStructure);
-  EMPTY_CONTENTPRCBASE.write(out);
+  EMPTY_CONTENTPRCBASE.serializeContentPRCBase(out);
   out << makePRCID(); // next available index
   out << (uint32_t)1; // product occurrence index
 
@@ -175,7 +175,7 @@ void PRCTessellationSection::writeData()
 {
   out << (uint32_t)(PRC_TYPE_ASM_FileStructureTessellation);
 
-  EMPTY_CONTENTPRCBASE.write(out);
+  EMPTY_CONTENTPRCBASE.serializeContentPRCBase(out);
   const uint32_t number_of_tessellations = tessellations.size();
   WriteUnsignedInteger (number_of_tessellations) 
   for (uint32_t i=0;i<number_of_tessellations;i++)
@@ -187,7 +187,7 @@ void PRCGeometrySection::writeData()
 {
    WriteUnsignedInteger (PRC_TYPE_ASM_FileStructureGeometry)
 
-  EMPTY_CONTENTPRCBASE.write(out);
+  EMPTY_CONTENTPRCBASE.serializeContentPRCBase(out);
    const uint32_t number_of_contexts = fileStructure->contexts.size();
    WriteUnsignedInteger (number_of_contexts)
    for (uint32_t i=0;i<number_of_contexts;i++)
@@ -200,7 +200,7 @@ void PRCExtraGeometrySection::writeData()
 {
    WriteUnsignedInteger (PRC_TYPE_ASM_FileStructureExtraGeometry)
 
-  EMPTY_CONTENTPRCBASE.write(out);
+  EMPTY_CONTENTPRCBASE.serializeContentPRCBase(out);
    const uint32_t number_of_contexts = fileStructure->contexts.size();
    WriteUnsignedInteger (number_of_contexts)
    for (uint32_t i=0;i<number_of_contexts;i++) 
@@ -219,12 +219,12 @@ void PRCModelFile::writeData()
   out << (uint32_t)(0); // number of schemas
   out << (uint32_t)(PRC_TYPE_ASM_ModelFile);
 
-  SingleAttributeData value = {PRCVersion};
-  SingleAttribute sa(false,EMPTY_ATTRIBUTE_TITLE,KEPRCModellerAttributeTypeInt,value);
-  AttributeTitle at; at.text = "__PRC_RESERVED_ATTRIBUTE_PRCInternalVersion";
-  Attribute a(false,at,1,&sa);
-  Attributes as(1,&a);
-  ContentPRCBase(&as,"PRC file").write(out);
+  PRCSingleAttribute sa((int32_t)PRCVersion);
+  PRCAttribute a("__PRC_RESERVED_ATTRIBUTE_PRCInternalVersion");
+  a.addKey(sa);
+  ContentPRCBase cb("PRC file");
+  cb.addAttribute(a);
+  cb.serializeContentPRCBase(out);
 
   writeUnit(out,true,unit); // unit is specified, and happens to come from a CAD file
 
@@ -410,7 +410,7 @@ uint32_t PRCHeader::getSize()
   return size;
 }
 
-void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_definition, PRCProductOccurrence *parent_product_occurrence)
+void oPRCFile::doGroup(PRCgroup& group, PRCPartDefinition *parent_part_definition, PRCProductOccurrence *parent_product_occurrence)
 {
     const string& name = group.name;
 
@@ -550,15 +550,15 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
 
     if(!group.wires.empty())
     {
-      PRCTopoContext *wireContext = new PRCTopoContext;
-      uint32_t context_index = addTopoContext(wireContext);
-      for(PRCwireList::const_iterator wit=group.wires.begin(); wit!=group.wires.end(); wit++)
+      PRCTopoContext *wireContext = NULL;
+      uint32_t context_index = getTopoContext(wireContext);
+      for(PRCwireList::iterator wit=group.wires.begin(); wit!=group.wires.end(); wit++)
       {
-        PRCSingleWireBody *wireBody = new PRCSingleWireBody;
-        const uint32_t wire_body_index = wireContext->addSingleWireBody(wireBody);
         PRCWireEdge *wireEdge = new PRCWireEdge;
+        wireEdge->curve_3d = wit->curve;
+        PRCSingleWireBody *wireBody = new PRCSingleWireBody;
         wireBody->setWireEdge(wireEdge);
-        wireEdge->setCurve(wit->curve);
+        const uint32_t wire_body_index = wireContext->addSingleWireBody(wireBody);
         PRCWire *wire = new PRCWire();
         wire->index_of_line_style = wit->style;
         wire->context_id = context_index;
@@ -569,7 +569,7 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
       }
     }
 
-    const PRCfaceList &faces = group.faces;
+    PRCfaceList &faces = group.faces;
     if(!faces.empty())
     {
       bool same_color = true;
@@ -580,23 +580,27 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
           same_color = false;
           break;
         }
-      PRCTopoContext *context = new PRCTopoContext;
+      PRCTopoContext *context = NULL;
+      const uint32_t context_index = getTopoContext(context);
       context->granularity = group.options.granularity;
-      const uint32_t context_index = addTopoContext(context);
+   // Acrobat 9 also does the following:
+   // context->tolerance = group.options.granularity;
+   // context->have_smallest_face_thickness = true;
+   // context->smallest_thickness = group.options.granularity;
       PRCShell *shell = new PRCShell;
 
-      for(PRCfaceList::const_iterator fit=faces.begin(); fit!=faces.end(); fit++)
+      for(PRCfaceList::iterator fit=faces.begin(); fit!=faces.end(); fit++)
       {
         if(fit->transform || group.options.do_break || 
            (fit->transparent && !group.options.no_break))
         {
-          PRCBrepData *body = new PRCBrepData;
-          const uint32_t body_index = context->addBrepData(body);
-          PRCConnex *connex = new PRCConnex;
-          body->addConnex(connex);
           PRCShell *shell = new PRCShell;
-          connex->addShell(shell);
           shell->addFace(fit->face);
+          PRCConnex *connex = new PRCConnex;
+          connex->addShell(shell);
+          PRCBrepData *body = new PRCBrepData;
+          body->addConnex(connex);
+          const uint32_t body_index = context->addBrepData(body);
       
           PRCBrepModel *brepmodel = new PRCBrepModel();
           brepmodel->index_of_line_style = fit->style;
@@ -621,11 +625,11 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
       }
       else
       {
-        PRCBrepData *body = new PRCBrepData;
-        const uint32_t body_index = context->addBrepData(body);
         PRCConnex *connex = new PRCConnex;
-        body->addConnex(connex);
         connex->addShell(shell);
+        PRCBrepData *body = new PRCBrepData;
+        body->addConnex(connex);
+        const uint32_t body_index = context->addBrepData(body);
         PRCBrepModel *brepmodel = new PRCBrepModel();
         if(same_color)
           brepmodel->index_of_line_style = style;
@@ -636,7 +640,7 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
       }
     }
 
-    const PRCcompfaceList &compfaces = group.compfaces;
+    PRCcompfaceList &compfaces = group.compfaces;
     if(!compfaces.empty())
     {
       bool same_color = true;
@@ -647,9 +651,8 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
           same_color = false;
           break;
         }
-      PRCTopoContext *context = new PRCTopoContext;
-      context->granularity = group.options.granularity;
-      const uint32_t context_index = addTopoContext(context);
+      PRCTopoContext *context = NULL;
+      const uint32_t context_index = getTopoContext(context);
       PRCCompressedBrepData *body = new PRCCompressedBrepData;
       
       body->serial_tolerance=group.options.compression;
@@ -661,12 +664,12 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
            (fit->transparent && !group.options.no_break))
         {
           PRCCompressedBrepData *body = new PRCCompressedBrepData;
-          const uint32_t body_index = context->addCompressedBrepData(body);
           body->face.push_back(fit->face);
 
           body->serial_tolerance=group.options.compression;
           body->brep_data_compressed_tolerance=2.8346456*
             group.options.compression;
+          const uint32_t body_index = context->addCompressedBrepData(body);
 
           PRCBrepModel *brepmodel = new PRCBrepModel();
           brepmodel->index_of_line_style = fit->style;
@@ -702,7 +705,7 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
 
     PRCProductOccurrence *product_occurrence = new PRCProductOccurrence(name);
 
-    for(PRCgroupList::const_iterator it=group.groupList.begin(); it!=group.groupList.end(); it++)
+    for(PRCgroupList::iterator it=group.groupList.begin(); it!=group.groupList.end(); it++)
     {
        doGroup(*it, part_definition, product_occurrence);
     }
@@ -719,6 +722,7 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
       if(part_definition->representation_item.front()->index_local_coordinate_system==m1)
         part_definition->representation_item.front()->index_local_coordinate_system = addTransform(group.transform);
       parent_part_definition->addRepresentationItem(part_definition->representation_item.front());
+      part_definition->representation_item.clear();
       delete product_occurrence;
       delete part_definition;
     }
@@ -729,14 +733,15 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
     {
       PRCSet *set = new PRCSet(name);
       set->index_local_coordinate_system = addTransform(group.transform);
-      for(PRCRepresentationItemList::const_iterator it=part_definition->representation_item.begin(); it!=part_definition->representation_item.end(); it++)
+      for(PRCRepresentationItemList::iterator it=part_definition->representation_item.begin(); it!=part_definition->representation_item.end(); it++)
         set->addRepresentationItem(*it);
+      part_definition->representation_item.clear();
       parent_part_definition->addSet(set);
       delete product_occurrence;
       delete part_definition;      
     }
     // Third option - create product
-    else
+    else if ( !product_occurrence->index_son_occurrence.empty() || !part_definition->representation_item.empty())
     {
       if (part_definition->representation_item.empty())
         delete part_definition;
@@ -744,7 +749,7 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
         product_occurrence->index_part = addPartDefinition(part_definition);
       if (group.transform) {
         product_occurrence->location = group.transform;
-        product_occurrence->has_location = true;
+        group.transform = NULL;
       }
       if (parent_product_occurrence) {
         parent_product_occurrence->index_son_occurrence.push_back(addProductOccurrence(product_occurrence));
@@ -752,6 +757,12 @@ void oPRCFile::doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_def
       else {
         addProductOccurrence(product_occurrence);
       }
+    }
+    // Last case - absolutely nothing to do
+    else
+    {
+      delete product_occurrence;
+      delete part_definition;
     }
     
 }
@@ -944,7 +955,7 @@ uint32_t PRCFileStructure::addPicture(EPRCPictureDataFormat format, uint32_t siz
 
 uint32_t PRCFileStructure::addTextureDefinition(PRCTextureDefinition *pTextureDefinition)
 {
-  globals.texture_definitions.push_back(PRCpTextureDefinition(pTextureDefinition));
+  globals.texture_definitions.push_back(pTextureDefinition);
   return globals.texture_definitions.size()-1;
 }
 
@@ -997,7 +1008,7 @@ uint32_t oPRCFile::addColour(const RGBAColour &colour)
   return style_index;
 }
 
-uint32_t oPRCFile::addTransform(const PRCpGeneralTransformation3d &transform)
+uint32_t oPRCFile::addTransform(PRCGeneralTransformation3d*& transform)
 {
   if(!transform)
     return m1;
@@ -1008,6 +1019,7 @@ uint32_t oPRCFile::addTransform(const PRCpGeneralTransformation3d &transform)
   coordinateSystem->axis_set = transform;
   const uint32_t coordinate_system_index = fileStructures[0]->addCoordinateSystem(coordinateSystem);
   transformMap.insert(make_pair(*transform,coordinate_system_index));
+  transform = NULL;
   return coordinate_system_index;
 }
 
@@ -1047,12 +1059,17 @@ uint32_t oPRCFile::addMaterial(const PRCmaterial &material)
 
 bool isid(const double t[][4])
 {
-  return(
-    t[0][0]==1 && t[0][1]==0 && t[0][2]==0 && t[0][3]==0 &&
-    t[1][0]==0 && t[1][1]==1 && t[1][2]==0 && t[1][3]==0 &&
-    t[2][0]==0 && t[2][1]==0 && t[2][2]==1 && t[2][3]==0 &&
-    t[3][0]==0 && t[3][1]==0 && t[3][2]==0 && t[3][3]==1 );
+  return t == NULL ||
+    (t[0][0]==1 && t[0][1]==0 && t[0][2]==0 && t[0][3]==0 &&
+     t[1][0]==0 && t[1][1]==1 && t[1][2]==0 && t[1][3]==0 &&
+     t[2][0]==0 && t[2][1]==0 && t[2][2]==1 && t[2][3]==0 &&
+     t[3][0]==0 && t[3][1]==0 && t[3][2]==0 && t[3][3]==1);
 }
+bool isid(const double t[])
+{
+  return(isid((double (*)[4])t));
+}
+
 
 void oPRCFile::begingroup(const char *name, PRCoptions *options,
                           const double t[][4])
@@ -1065,7 +1082,7 @@ void oPRCFile::begingroup(const char *name, PRCoptions *options,
   group.name=name;
   if(options) group.options=*options;
   if(t&&!isid(t))
-    group.transform.reset(new PRCGeneralTransformation3d(t));
+    group.transform = new PRCGeneralTransformation3d(t);
 }
 
 void oPRCFile::endgroup()
@@ -1087,7 +1104,7 @@ PRCgroup& oPRCFile::findGroup()
   group.wires.push_back(PRCwire());                       \
   PRCwire &wire = group.wires.back();                     \
   curvtype *curve = new curvtype;                         \
-  wire.curve.reset(curve);                                \
+  wire.curve = curve;                                     \
   wire.style = addColour(c);
 
 #define ADDFACE(surftype)                                 \
@@ -1095,8 +1112,8 @@ PRCgroup& oPRCFile::findGroup()
   group.faces.push_back(PRCface());                       \
   PRCface& face = group.faces.back();                     \
   surftype *surface = new surftype;                       \
-  face.face.reset(new PRCFace);                           \
-  face.face->setSurface(surface);                         \
+  face.face = new PRCFace;                                \
+  face.face->base_surface = surface;                      \
   face.transparent = m.alpha < 1.0;                       \
   face.style = addMaterial(m);
 
@@ -1105,7 +1122,7 @@ PRCgroup& oPRCFile::findGroup()
   group.compfaces.push_back(PRCcompface());               \
   PRCcompface& face = group.compfaces.back();             \
   PRCCompressedFace *compface = new PRCCompressedFace;    \
-  face.face.reset(compface);                              \
+  face.face = compface;                                   \
   face.transparent = m.alpha < 1.0;                       \
   face.style = addMaterial(m);
 
@@ -1288,7 +1305,7 @@ void oPRCFile::addSurface(uint32_t dU, uint32_t dV, uint32_t nU, uint32_t nV,
 
 #define SETTRANSF \
   if(t&&!isid(t))                                                             \
-    face.transform.reset(new PRCGeneralTransformation3d(t));                  \
+    face.transform = new PRCGeneralTransformation3d(t);                       \
   if(origin) surface->origin.Set(origin[0],origin[1],origin[2]);              \
   if(x_axis) surface->x_axis.Set(x_axis[0],x_axis[1],x_axis[2]);              \
   if(y_axis) surface->y_axis.Set(y_axis[0],y_axis[1],y_axis[2]);              \
@@ -1316,7 +1333,7 @@ void oPRCFile::addTube(uint32_t n, const double cP[][3], const double oP[][3], b
       center_curve->point[i].Set(cP[i][0],cP[i][1],cP[i][2]);
     center_curve->interval.min = 0;
     center_curve->interval.max = center_curve->point.size()-1;
-    surface->setCenterCurve(center_curve);
+    surface->center_curve = center_curve;
 
     PRCPolyLine *origin_curve = new PRCPolyLine;
     origin_curve->point.resize(n);
@@ -1324,12 +1341,12 @@ void oPRCFile::addTube(uint32_t n, const double cP[][3], const double oP[][3], b
       origin_curve->point[i].Set(oP[i][0],oP[i][1],oP[i][2]);
     origin_curve->interval.min = 0;
     origin_curve->interval.max = origin_curve->point.size()-1;
-    surface->setOriginCurve(origin_curve);
+    surface->origin_curve = origin_curve;
 
     surface->uv_domain.min.x = 0;
     surface->uv_domain.max.x = 2*pi;
-    surface->uv_domain.min.y = center_curve->interval.min;
-    surface->uv_domain.max.y = center_curve->interval.max;
+    surface->uv_domain.min.y = 0;
+    surface->uv_domain.max.y = n-1;
   }
   else
   {
@@ -1345,7 +1362,7 @@ void oPRCFile::addTube(uint32_t n, const double cP[][3], const double oP[][3], b
     for(uint32_t i = 1; i < 3+CENTER_NUMBER_OF_POINTS; ++i)
       center_curve->knot[i] = (i+2)/3; // integer division is intentional
     center_curve->knot[3+CENTER_NUMBER_OF_POINTS] = (3+CENTER_NUMBER_OF_POINTS+1)/3;
-    surface->setCenterCurve(center_curve);
+    surface->center_curve = center_curve;
 
     PRCNURBSCurve *origin_curve = new PRCNURBSCurve;
     origin_curve->is_rational = false;
@@ -1359,7 +1376,7 @@ void oPRCFile::addTube(uint32_t n, const double cP[][3], const double oP[][3], b
     for(size_t i = 1; i < 3+ORIGIN_NUMBER_OF_POINTS; ++i)
       origin_curve->knot[i] = (i+2)/3; // integer division is intentional
     origin_curve->knot[3+ORIGIN_NUMBER_OF_POINTS] = (3+ORIGIN_NUMBER_OF_POINTS+1)/3;
-    surface->setOriginCurve(origin_curve);
+    surface->origin_curve = origin_curve;
 
     surface->uv_domain.min.x = 0;
     surface->uv_domain.max.x = 2*pi;
@@ -1396,10 +1413,10 @@ void oPRCFile::addDisk(double radius, const PRCmaterial &m, PRCFACETRANSFORM)
   SETTRANSF
   PRCCircle *first_curve = new PRCCircle;
   first_curve->radius = radius;
-  surface->setFirstCurve(first_curve);
+  surface->first_curve = first_curve;
   PRCCircle *second_curve = new PRCCircle;
   second_curve->radius = 0;
-  surface->setSecondCurve(second_curve);
+  surface->second_curve = second_curve;
 
   surface->uv_domain.min.x = 0;
   surface->uv_domain.max.x = 1;
@@ -1437,85 +1454,107 @@ void oPRCFile::addTorus(double major_radius, double minor_radius, double angle1,
 #undef ADDWIRE
 #undef SETTRANSF
 
-uint32_t PRCFileStructure::addMaterialGeneric(PRCMaterialGeneric *pMaterialGeneric)
+uint32_t PRCFileStructure::addMaterialGeneric(PRCMaterialGeneric*& pMaterialGeneric)
 {
-  globals.materials.push_back(PRCpMaterial(pMaterialGeneric));
+  globals.materials.push_back(pMaterialGeneric);
+  pMaterialGeneric = NULL;
   return globals.materials.size()-1;
 }
 
-uint32_t PRCFileStructure::addTextureApplication(PRCTextureApplication *pTextureApplication)
+uint32_t PRCFileStructure::addTextureApplication(PRCTextureApplication*& pTextureApplication)
 {
-  globals.materials.push_back(PRCpMaterial(pTextureApplication));
+  globals.materials.push_back(pTextureApplication);
+  pTextureApplication = NULL;
   return globals.materials.size()-1;
 }
 
-uint32_t PRCFileStructure::addStyle(PRCStyle *pStyle)
+uint32_t PRCFileStructure::addStyle(PRCStyle*& pStyle)
 {
-  globals.styles.push_back(PRCpStyle(pStyle));
+  globals.styles.push_back(pStyle);
+  pStyle = NULL;
   return globals.styles.size()-1;
 }
 
-uint32_t PRCFileStructure::addPartDefinition(PRCPartDefinition *pPartDefinition)
+uint32_t PRCFileStructure::addPartDefinition(PRCPartDefinition*& pPartDefinition)
 {
-  tree.part_definitions.push_back(PRCpPartDefinition(pPartDefinition));
+  tree.part_definitions.push_back(pPartDefinition);
+  pPartDefinition = NULL;  
   return tree.part_definitions.size()-1;
 }
 
-uint32_t PRCFileStructure::addProductOccurrence(PRCProductOccurrence *pProductOccurrence)
+uint32_t PRCFileStructure::addProductOccurrence(PRCProductOccurrence*& pProductOccurrence)
 {
-  tree.product_occurrences.push_back(PRCpProductOccurrence(pProductOccurrence));
+  tree.product_occurrences.push_back(pProductOccurrence);
+  pProductOccurrence = NULL;
   return tree.product_occurrences.size()-1;
 }
 
-uint32_t PRCFileStructure::addTopoContext(PRCTopoContext *pTopoContext)
+uint32_t PRCFileStructure::addTopoContext(PRCTopoContext*& pTopoContext)
 {
-  contexts.push_back(PRCpTopoContext(pTopoContext));
+  contexts.push_back(pTopoContext);
+  pTopoContext = NULL;
   return contexts.size()-1;
 }
 
-uint32_t PRCFileStructure::add3DTess(PRC3DTess *p3DTess)
+uint32_t PRCFileStructure::getTopoContext(PRCTopoContext*& pTopoContext)
 {
-  tessellations.tessellations.push_back(PRCpTess(p3DTess));
+  pTopoContext = new PRCTopoContext;
+  contexts.push_back(pTopoContext);
+  return contexts.size()-1;
+}
+
+uint32_t PRCFileStructure::add3DTess(PRC3DTess*& p3DTess)
+{
+  tessellations.tessellations.push_back(p3DTess);
+  p3DTess = NULL;
   return tessellations.tessellations.size()-1;
 }
 
-uint32_t PRCFileStructure::add3DWireTess(PRC3DWireTess *p3DWireTess)
+uint32_t PRCFileStructure::add3DWireTess(PRC3DWireTess*& p3DWireTess)
 {
-  tessellations.tessellations.push_back(PRCpTess(p3DWireTess));
+  tessellations.tessellations.push_back(p3DWireTess);
+  p3DWireTess = NULL;
   return tessellations.tessellations.size()-1;
 }
 /*
-uint32_t PRCFileStructure::addMarkupTess(PRCMarkupTess *pMarkupTess)
+uint32_t PRCFileStructure::addMarkupTess(PRCMarkupTess*& pMarkupTess)
 {
-  tessellations.tessellations.push_back(PRCpTess(pMarkupTess));
+  tessellations.tessellations.push_back(pMarkupTess);
+  pMarkupTess = NULL;
   return tessellations.tessellations.size()-1;
 }
 
-uint32_t PRCFileStructure::addMarkup(PRCMarkup *pMarkup)
+uint32_t PRCFileStructure::addMarkup(PRCMarkup*& pMarkup)
 {
-  tree.markups.push_back(PRCpMarkup(pMarkup));
+  tree.markups.push_back(pMarkup);
+  pMarkup = NULL;
   return tree.markups.size()-1;
 }
 
-uint32_t PRCFileStructure::addAnnotationItem(PRCAnnotationItem *pAnnotationItem)
+uint32_t PRCFileStructure::addAnnotationItem(PRCAnnotationItem*& pAnnotationItem)
 {
-  tree.annotation_entities.push_back(PRCpAnnotationItem(pAnnotationItem));
+  tree.annotation_entities.push_back(pAnnotationItem);
+  pAnnotationItem = NULL;
   return tree.annotation_entities.size()-1;
 }
 */
-uint32_t PRCFileStructure::addCoordinateSystem(PRCCoordinateSystem *pCoordinateSystem)
+uint32_t PRCFileStructure::addCoordinateSystem(PRCCoordinateSystem*& pCoordinateSystem)
 {
-  globals.reference_coordinate_systems.push_back(PRCpCoordinateSystem(pCoordinateSystem));
+  globals.reference_coordinate_systems.push_back(pCoordinateSystem);
+  pCoordinateSystem = NULL;
   return globals.reference_coordinate_systems.size()-1;
 }
 
-uint32_t PRCFileStructure::addCoordinateSystemUnique(PRCCoordinateSystem *pCoordinateSystem)
+uint32_t PRCFileStructure::addCoordinateSystemUnique(PRCCoordinateSystem*& pCoordinateSystem)
 {
   for(uint32_t i = 0; i < globals.reference_coordinate_systems.size(); ++i)
   {
-    if(*(globals.reference_coordinate_systems[i])==*pCoordinateSystem)
+    if(*(globals.reference_coordinate_systems[i])==*pCoordinateSystem) {
+      pCoordinateSystem = NULL;
       return i;
+    }
   }
-  globals.reference_coordinate_systems.push_back(PRCpCoordinateSystem(pCoordinateSystem));
+  globals.reference_coordinate_systems.push_back(pCoordinateSystem);
+  pCoordinateSystem = NULL;
   return globals.reference_coordinate_systems.size()-1;
 }

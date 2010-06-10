@@ -115,30 +115,30 @@ typedef std::list<PRCtessline> PRCtesslineList;
 
 struct PRCface
 {
+  PRCface() : transform(NULL), face(NULL) {}
   uint32_t style;
   bool transparent;
-  PRCpGeneralTransformation3d  transform;
-  PRCpFace face;
+  PRCGeneralTransformation3d*  transform;
+  PRCFace* face;
 };
-typedef std::tr1::shared_ptr <PRCface> PRCpface;
 typedef std::vector <PRCface>  PRCfaceList;
 
 struct PRCcompface
 {
+  PRCcompface() : face(NULL) {}
   uint32_t style;
   bool transparent;
-  PRCpCompressedFace face;
+  PRCCompressedFace* face;
 };
-typedef std::tr1::shared_ptr <PRCcompface> PRCpcompface;
 typedef std::vector <PRCcompface>  PRCcompfaceList;
 
 struct PRCwire
 {
+  PRCwire() : style(m1), transform(NULL), curve(NULL) {}
   uint32_t style;
-  PRCpGeneralTransformation3d  transform;
-  PRCpCurve curve;
+  PRCGeneralTransformation3d*  transform;
+  PRCCurve* curve;
 };
-typedef std::tr1::shared_ptr <PRCwire> PRCpwire;
 typedef std::vector <PRCwire>  PRCwireList;
 
 typedef std::map <uint32_t,std::vector<PRCVector3d> >  PRCpointsetMap;
@@ -163,8 +163,8 @@ public:
 class PRCgroup
 {
  public:
-  PRCgroup() {}
-  PRCgroup(const std::string &name) : name(name) {}
+  PRCgroup() : transform(NULL) {}
+  PRCgroup(const std::string &name) : name(name), transform(NULL) {}
   PRCfaceList       faces;
   PRCcompfaceList   compfaces;
   PRCtessrectangleList  rectangles;
@@ -173,7 +173,7 @@ class PRCgroup
   PRCpointsetMap        points;
   std::string name;
   std::list<PRCgroup> groupList;
-  PRCpGeneralTransformation3d  transform;
+  PRCGeneralTransformation3d*  transform;
   PRCoptions options;
 };
 typedef std::list<PRCgroup> PRCgroupList;
@@ -239,6 +239,12 @@ class PRCTreeSection : public PRCCompressedSection
   public:
     PRCTreeSection(PRCFileStructure *fs, uint32_t i) :
       PRCCompressedSection(fs),unit(1),index(i) {}
+  ~PRCTreeSection() 
+  {
+    for(PRCPartDefinitionList::iterator it=part_definitions.begin(); it!=part_definitions.end(); ++it) delete *it;
+    for(PRCProductOccurrenceList::iterator it=product_occurrences.begin(); it!=product_occurrences.end(); ++it) delete *it;
+  }
+
   PRCPartDefinitionList part_definitions;
   PRCProductOccurrenceList product_occurrences;
 /*
@@ -349,21 +355,22 @@ class PRCFileStructure
     uint32_t addTextureDefinition(PRCTextureDefinition *pTextureDefinition);
     uint32_t addRgbColor(const PRCRgbColor &color);
     uint32_t addRgbColorUnique(const PRCRgbColor &color);
-    uint32_t addMaterialGeneric(PRCMaterialGeneric *pMaterialGeneric);
-    uint32_t addTextureApplication(PRCTextureApplication *pTextureApplication);
-    uint32_t addStyle(PRCStyle *pStyle);
-    uint32_t addPartDefinition(PRCPartDefinition *pPartDefinition);
-    uint32_t addProductOccurrence(PRCProductOccurrence *pProductOccurrence);
-    uint32_t addTopoContext(PRCTopoContext *pTopoContext);
-    uint32_t add3DTess(PRC3DTess *p3DTess);
-    uint32_t add3DWireTess(PRC3DWireTess *p3DWireTess);
+    uint32_t addMaterialGeneric(PRCMaterialGeneric*& pMaterialGeneric);
+    uint32_t addTextureApplication(PRCTextureApplication*& pTextureApplication);
+    uint32_t addStyle(PRCStyle*& pStyle);
+    uint32_t addPartDefinition(PRCPartDefinition*& pPartDefinition);
+    uint32_t addProductOccurrence(PRCProductOccurrence*& pProductOccurrence);
+    uint32_t addTopoContext(PRCTopoContext*& pTopoContext);
+    uint32_t getTopoContext(PRCTopoContext*& pTopoContext);
+    uint32_t add3DTess(PRC3DTess*& p3DTess);
+    uint32_t add3DWireTess(PRC3DWireTess*& p3DWireTess);
 /*
-    uint32_t addMarkupTess(PRCMarkupTess *pMarkupTess);
-    uint32_t addMarkup(PRCMarkup *pMarkup);
-    uint32_t addAnnotationItem(PRCAnnotationItem *pAnnotationItem);
+    uint32_t addMarkupTess(PRCMarkupTess*& pMarkupTess);
+    uint32_t addMarkup(PRCMarkup*& pMarkup);
+    uint32_t addAnnotationItem(PRCAnnotationItem*& pAnnotationItem);
  */
-    uint32_t addCoordinateSystem(PRCCoordinateSystem *pCoordinateSystem);
-    uint32_t addCoordinateSystemUnique(PRCCoordinateSystem *pCoordinateSystem);
+    uint32_t addCoordinateSystem(PRCCoordinateSystem*& pCoordinateSystem);
+    uint32_t addCoordinateSystemUnique(PRCCoordinateSystem*& pCoordinateSystem);
 };
 
 class PRCFileStructureInformation
@@ -461,11 +468,11 @@ class oPRCFile
     PRCtransformMap transformMap;
     std::stack<PRCgroupList::iterator> currentGroups;
     PRCgroup& findGroup();
-    void doGroup(const PRCgroup& group, PRCPartDefinition *parent_part_definition, PRCProductOccurrence *parent_product_occurrence);
+    void doGroup(PRCgroup& group, PRCPartDefinition *parent_part_definition, PRCProductOccurrence *parent_product_occurrence);
     uint32_t addColor(const PRCRgbColor &color);
     uint32_t addColour(const RGBAColour &colour);
     uint32_t addMaterial(const PRCmaterial &material);
-    uint32_t addTransform(const PRCpGeneralTransformation3d &transform);
+    uint32_t addTransform(PRCGeneralTransformation3d*& transform);
     void addPoint(const double P[3], const RGBAColour &c);
     void addLine(uint32_t n, const double P[][3], const RGBAColour &c);
     void addBezierCurve(uint32_t n, const double cP[][3], const RGBAColour &c);
@@ -488,11 +495,11 @@ class oPRCFile
     uint32_t addPicture(EPRCPictureDataFormat format, uint32_t size, const uint8_t *picture, uint32_t width=0, uint32_t height=0,
       std::string name="", uint32_t fileStructure=0)
       { return fileStructures[fileStructure]->addPicture(format, size, picture, width, height, name); }
-    uint32_t addTextureDefinition(PRCTextureDefinition *pTextureDefinition, uint32_t fileStructure=0)
+    uint32_t addTextureDefinition(PRCTextureDefinition*& pTextureDefinition, uint32_t fileStructure=0)
       {
         return fileStructures[fileStructure]->addTextureDefinition(pTextureDefinition);
       }
-    uint32_t addTextureApplication(PRCTextureApplication *pTextureApplication, uint32_t fileStructure=0)
+    uint32_t addTextureApplication(PRCTextureApplication*& pTextureApplication, uint32_t fileStructure=0)
       {
         return fileStructures[fileStructure]->addTextureApplication(pTextureApplication);
       }
@@ -506,54 +513,58 @@ class oPRCFile
       {
         return fileStructures[fileStructure]->addRgbColorUnique(color);
       }
-    uint32_t addMaterialGeneric(PRCMaterialGeneric *pMaterialGeneric,
+    uint32_t addMaterialGeneric(PRCMaterialGeneric*& pMaterialGeneric,
        uint32_t fileStructure=0)
       {
         return fileStructures[fileStructure]->addMaterialGeneric(pMaterialGeneric);
       }
-    uint32_t addStyle(PRCStyle *pStyle, uint32_t fileStructure=0)
+    uint32_t addStyle(PRCStyle*& pStyle, uint32_t fileStructure=0)
       {
         return fileStructures[fileStructure]->addStyle(pStyle);
       }
-    uint32_t addPartDefinition(PRCPartDefinition *pPartDefinition, uint32_t fileStructure=0)
+    uint32_t addPartDefinition(PRCPartDefinition*& pPartDefinition, uint32_t fileStructure=0)
       {
         return fileStructures[fileStructure]->addPartDefinition(pPartDefinition);
       }
-    uint32_t addProductOccurrence(PRCProductOccurrence *pProductOccurrence, uint32_t fileStructure=0)
+    uint32_t addProductOccurrence(PRCProductOccurrence*& pProductOccurrence, uint32_t fileStructure=0)
       {
         return fileStructures[fileStructure]->addProductOccurrence(pProductOccurrence);
       }
-    uint32_t addTopoContext(PRCTopoContext *pTopoContext, uint32_t fileStructure=0)
+    uint32_t addTopoContext(PRCTopoContext*& pTopoContext, uint32_t fileStructure=0)
       {
         return fileStructures[fileStructure]->addTopoContext(pTopoContext);
       }
-    uint32_t add3DTess(PRC3DTess *p3DTess, uint32_t fileStructure=0)
+    uint32_t getTopoContext(PRCTopoContext*& pTopoContext, uint32_t fileStructure=0)
+    {
+      return fileStructures[fileStructure]->getTopoContext(pTopoContext);
+    }
+    uint32_t add3DTess(PRC3DTess*& p3DTess, uint32_t fileStructure=0)
       {
         return fileStructures[fileStructure]->add3DTess(p3DTess);
       }
-    uint32_t add3DWireTess(PRC3DWireTess *p3DWireTess, uint32_t fileStructure=0)
+    uint32_t add3DWireTess(PRC3DWireTess*& p3DWireTess, uint32_t fileStructure=0)
       {
         return fileStructures[fileStructure]->add3DWireTess(p3DWireTess);
       }
 /*
-    uint32_t addMarkupTess(PRCMarkupTess *pMarkupTess, uint32_t fileStructure=0)
+    uint32_t addMarkupTess(PRCMarkupTess*& pMarkupTess, uint32_t fileStructure=0)
       {
         return fileStructures[fileStructure]->addMarkupTess(pMarkupTess);
       }
-    uint32_t addMarkup(PRCMarkup *pMarkup, uint32_t fileStructure=0)
+    uint32_t addMarkup(PRCMarkup*& pMarkup, uint32_t fileStructure=0)
       {
         return fileStructures[fileStructure]->addMarkup(pMarkup);
       }
-    uint32_t addAnnotationItem(PRCAnnotationItem *pAnnotationItem, uint32_t fileStructure=0)
+    uint32_t addAnnotationItem(PRCAnnotationItem*& pAnnotationItem, uint32_t fileStructure=0)
       {
         return fileStructures[fileStructure]->addAnnotationItem(pAnnotationItem);
       }
  */
-    uint32_t addCoordinateSystem(PRCCoordinateSystem *pCoordinateSystem, uint32_t fileStructure=0)
+    uint32_t addCoordinateSystem(PRCCoordinateSystem*& pCoordinateSystem, uint32_t fileStructure=0)
       {
         return fileStructures[fileStructure]->addCoordinateSystem(pCoordinateSystem);
       }
-    uint32_t addCoordinateSystemUnique(PRCCoordinateSystem *pCoordinateSystem, uint32_t fileStructure=0)
+    uint32_t addCoordinateSystemUnique(PRCCoordinateSystem*& pCoordinateSystem, uint32_t fileStructure=0)
       {
         return fileStructures[fileStructure]->addCoordinateSystemUnique(pCoordinateSystem);
       }
