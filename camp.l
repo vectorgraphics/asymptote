@@ -9,6 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cstring>
 
 #include "util.h"
 #include "modifier.h"
