@@ -50,7 +50,6 @@
 
 using std::string;
 using namespace std;
-using namespace std::tr1;
 
 void PRCCompressedSection::write(ostream &out)
 {

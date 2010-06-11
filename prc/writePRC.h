@@ -27,11 +27,6 @@
 #include <ext/slist>
 #include <map>
 #include <iostream>
-#if defined(_MSC_VER)
-#include <memory>
-#else
-#include <tr1/memory>
-#endif
 #include "PRCbitStream.h"
 #include "PRC.h"
 #include <float.h>

@@ -135,7 +135,7 @@ OPTIONS="-D_FILE_OFFSET_BITS=64 "
 GCLIB=
 GCPPLIB=
 GCNAME="Boehm Garbage Collector"
-GCOPTIONS=""
+GCOPTIONS="--disable-shared --enable-large-config"
 if test "x$ac_cv_use_gc" != "xno" ; then
    OPTIONS=$OPTIONS"-DUSEGC "
    case $ac_cv_use_gc in
@@ -154,16 +154,17 @@ if test "x$ac_cv_use_gc" != "xno" ; then
 	  LIBS=$LIBS"-lgc "
 	  AC_MSG_NOTICE([enabling system $GCNAME])],[
         GCDIR=$GCVERSION
+        INCL="-I\$(GC)/include"
 	GCLIB="\$(GC)/.libs/libgc.a"
 	AC_MSG_NOTICE($GCNAME library not found)]),
       GCDIR=$GCVERSION
+      GCLIB="\$(GC)/.libs/libgc.a"
       INCL="-I\$(GC)/include"
       AC_MSG_NOTICE($GCNAME header file not found))
       CPPFLAGS=$CPPFLAGS_SAVE
       ;;
    *)
       GCDIR=$ac_cv_use_gc
-      GCOPTIONS="--disable-shared --enable-large-config"
       AC_MSG_NOTICE([enabling local $GCNAME $GCDIR])
       GCLIB="\$(GC)/.libs/libgc.a"
       INCL="-I\$(GC)/include"
@@ -348,7 +349,7 @@ if test "x$GCDIR" != "x" ; then
    AC_CHECK_FILE($GCDIR.tar.gz,,[
    echo
    echo Please put the Boehm garbage collector tar.gz file in the current directory.
-   echo FOR EXAMPLE, USE THE COMMAND:
+   echo FOR EXAMPLE, USE THE COMMANDS:
    echo
    echo wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/$GCDIR.tar.gz
    exit 1
