@@ -53,7 +53,8 @@ uint32_t CLZ(uint32_t a)
 #endif
 }
 
-uint32_t log2(uint32_t x) 
+// Portable integer implementation of ceil(log2(x)).
+uint32_t Log2(uint32_t x) 
 {
   assert(x != 0);
   uint32_t L=31-CLZ(x);
@@ -1248,13 +1249,13 @@ void  PRCCompressedFace::serializeCompressedNurbs(PRCbitStream &pbs, double brep
 
    const uint32_t number_of_knots_in_u = 4; // 0011 or 00001111 knot vector - just 2 spans
    WriteUnsignedIntegerWithVariableBitNumber (number_of_knots_in_u - 2, 16)
-   uint32_t number_bit = degree_in_u ? log2( degree_in_u + 2 ) : 2;
+   uint32_t number_bit = degree_in_u ? Log2( degree_in_u + 2 ) : 2;
    WriteBoolean (false) // Multiplicity_is_already_stored - no
    WriteUnsignedIntegerWithVariableBitNumber( degree_in_u+1,number_bit)
    WriteBoolean (true) // Multiplicity_is_already_stored - yes
    const uint32_t number_of_knots_in_v = 4; // 0011 or 00001111 knot vector - just 2 spans
    WriteUnsignedIntegerWithVariableBitNumber (number_of_knots_in_v - 2, 16)
-   number_bit = degree_in_v ? log2( degree_in_v + 2 ) : 2;
+   number_bit = degree_in_v ? Log2( degree_in_v + 2 ) : 2;
    WriteBoolean (false) // Multiplicity_is_already_stored - no
    WriteUnsignedIntegerWithVariableBitNumber( degree_in_v+1,number_bit)
    WriteBoolean (true) // Multiplicity_is_already_stored - yes
