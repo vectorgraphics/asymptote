@@ -225,7 +225,11 @@ class PRCAttribute : public PRCAttributeEntry
   void addKey(const PRCSingleAttribute &key) { attribute_keys.push_back(key); }
   std::deque<PRCSingleAttribute> attribute_keys;
 };
+#ifdef __GNUC__
 typedef __gnu_cxx::slist<PRCAttribute> PRCAttributeList;
+#else
+typedef std::list<PRCAttribute> PRCAttributeList;
+#endif
 
 class PRCAttributes
 {
@@ -363,6 +367,7 @@ typedef std::deque <PRCTextureDefinition*>  PRCTextureDefinitionList;
 class PRCMaterial
 {
 public:
+  virtual ~PRCMaterial() {}
   virtual void serializeMaterial(PRCbitStream&) = 0;
 };
 typedef std::deque <PRCMaterial*>  PRCMaterialList;
@@ -466,6 +471,7 @@ public:
 class PRCTess : public PRCContentBaseTessData
 {
 public:
+  virtual ~PRCTess() {}
   virtual void serializeBaseTessData(PRCbitStream &pbs) = 0;
 };
 typedef std::deque <PRCTess*>  PRCTessList;
@@ -578,6 +584,7 @@ class PRCRepresentationItem : public PRCRepresentationItemContent
 public:
   PRCRepresentationItem(std::string n="") :
     PRCRepresentationItemContent(n) {}
+  virtual ~PRCRepresentationItem() {}
   virtual void serializeRepresentationItem(PRCbitStream &pbs) = 0;
 };
 typedef std::deque <PRCRepresentationItem*>  PRCRepresentationItemList;
@@ -657,6 +664,7 @@ public:
 class PRCTransformation3d
 {
 public:
+  virtual ~PRCTransformation3d() {}
   virtual void serializeTransformation3d(PRCbitStream&) const =0;
 };
 typedef std::deque <PRCTransformation3d*> PRCTransformation3dList;
@@ -942,9 +950,9 @@ public:
     PRCContentSurface() {}
   PRCSurface(std::string n) :
     PRCContentSurface(n) {}
+  virtual ~PRCSurface() {}
   virtual void  serializeSurface(PRCbitStream &pbs) = 0;
 };
-//typedef std::deque <PRCSurface*>  PRCSurfaceList;
 
 class PRCNURBSSurface : public PRCSurface
 {
@@ -984,6 +992,7 @@ public:
     PRCContentCurve() {}
   PRCCurve(std::string n) :
     PRCContentCurve(n) {}
+  virtual ~PRCCurve() {}
   virtual void  serializeCurve(PRCbitStream &pbs) = 0;
 };
 typedef std::deque <PRCCurve*>  PRCCurveList;
@@ -1130,6 +1139,7 @@ public:
 class PRCTopoItem
 {
 public:
+  virtual ~PRCTopoItem() {}
   virtual void serializeTopoItem(PRCbitStream&)=0;
 };
 
@@ -1153,6 +1163,7 @@ public:
     PRCContentBody(), topo_item_type(tit) {}
   PRCBody(uint32_t tit, std::string n) :
     PRCContentBody(n), topo_item_type(tit) {}
+  virtual ~PRCBody() {}
   virtual void serializeBody(PRCbitStream &pbs) = 0;
   void serializeTopoItem(PRCbitStream &pbs) { serializeBody(pbs); }
   uint32_t serialType() { return topo_item_type; }

@@ -216,7 +216,7 @@ class PRCGlobalsSection : public PRCCompressedSection
       defaultFontFamilyName(""),
       numberOfFillPatterns(0),
       userData(0,0),index(i) {}
-  ~PRCGlobalsSection() {
+  virtual ~PRCGlobalsSection() {
       for(PRCTextureDefinitionList::iterator i = texture_definitions.begin();
           i != texture_definitions.end(); i++)
         delete *i;
@@ -225,6 +225,10 @@ class PRCGlobalsSection : public PRCCompressedSection
         delete *i;
       for(PRCStyleList::iterator i = styles.begin();
           i != styles.end(); i++)
+        delete *i;
+      for(PRCCoordinateSystemList::iterator i = 
+            reference_coordinate_systems.begin();
+          i != reference_coordinate_systems.end(); i++)
         delete *i;
   }
     uint32_t numberOfReferencedFileStructures;
@@ -250,7 +254,7 @@ class PRCTreeSection : public PRCCompressedSection
   public:
     PRCTreeSection(PRCFileStructure *fs, uint32_t i) :
       PRCCompressedSection(fs),unit(1),index(i) {}
-  ~PRCTreeSection() 
+  virtual ~PRCTreeSection() 
   {
     for(PRCPartDefinitionList::iterator it=part_definitions.begin(); it!=part_definitions.end(); ++it) delete *it;
     for(PRCProductOccurrenceList::iterator it=product_occurrences.begin(); it!=product_occurrences.end(); ++it) delete *it;
@@ -273,7 +277,7 @@ class PRCTessellationSection : public PRCCompressedSection
   public:
     PRCTessellationSection(PRCFileStructure *fs, uint32_t i) :
       PRCCompressedSection(fs),index(i) {}
-  ~PRCTessellationSection() {
+  virtual ~PRCTessellationSection() {
     for(PRCTessList::iterator it=tessellations.begin();
         it!=tessellations.end(); ++it)
       delete *it;
@@ -289,6 +293,7 @@ class PRCGeometrySection : public PRCCompressedSection
   public:
     PRCGeometrySection(PRCFileStructure *fs, uint32_t i) :
       PRCCompressedSection(fs),index(i) {}
+  virtual ~PRCGeometrySection() {}
   private:
     uint32_t index;
     virtual void writeData();
@@ -299,6 +304,7 @@ class PRCExtraGeometrySection : public PRCCompressedSection
   public:
     PRCExtraGeometrySection(PRCFileStructure *fs, uint32_t i) :
       PRCCompressedSection(fs),index(i) {}
+  virtual ~PRCExtraGeometrySection() {}
   private:
     uint32_t index;
     virtual void writeData();
@@ -309,6 +315,7 @@ class PRCModelFile : public PRCCompressedSection
   public:
     PRCModelFile(oPRCFile *p) : PRCCompressedSection(p), unit(1) {}
     double unit;
+  virtual ~PRCModelFile() {}
   private:
     virtual void writeData();
 };
