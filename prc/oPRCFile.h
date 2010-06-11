@@ -339,6 +339,12 @@ class PRCFileStructure
     std::list<PRCUncompressedFile> uncompressedFiles;
     PRCTopoContextList contexts;
 
+    ~PRCFileStructure () {
+      for(PRCTopoContextList::iterator i = contexts.begin();
+          i != contexts.end(); i++)
+        delete *i;
+    }
+  
     PRCGlobalsSection globals;
     PRCTreeSection tree;
     PRCTessellationSection tessellations;
