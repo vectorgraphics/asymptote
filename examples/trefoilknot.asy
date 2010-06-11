@@ -20,4 +20,4 @@ for (int i=pens.length-2; i >= 0 ; --i)
 
 path sec=scale(0.25)*texpath("$\pi$")[0];
 coloredpath colorsec=coloredpath(sec, pens,colortype=coloredNodes);
-draw(tube(p,colorsec));
+draw(tube(p,colorsec),render(merge=true));

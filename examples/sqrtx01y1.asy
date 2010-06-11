@@ -2,6 +2,7 @@ import graph3;
 import solids;
 size(0,150);
 currentprojection=perspective(0,1,10,up=Y);
+currentlight=White;
 
 real f(real x) {return sqrt(x);}
 pair F(real x) {return (x,f(x));}
@@ -11,7 +12,7 @@ path p=graph(F,0,1,n=25,operator ..);
 path3 p3=path3(p);
 
 revolution a=revolution(p3,Y,0,360);
-draw(surface(a),green);
+draw(surface(a),green,render(compression=Low,merge=true));
 draw(p3,blue);
 
 xtick((0,0,0));

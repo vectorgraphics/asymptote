@@ -9545,4 +9545,4 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  setpagesize pdfborder controlsystem OmitTickInterval SixViews
 @c  LocalWords:  OmitTickIntervals tickmodifiers autorotated SixViewsUS
 @c  LocalWords:  ThreeViewsUS ThreeViewsFR SixViewsFR ThreeViews partialsum
-@c  LocalWords:  defaultrender
+@c  LocalWords:  defaultrender Vidiassov

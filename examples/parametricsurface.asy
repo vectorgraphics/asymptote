@@ -20,4 +20,4 @@ surface s=surface(f,(0,0),(2pi,2pi),8,8,Spline);
 // draw(s,nullpen,meshpen=p);
 
 // surface & mesh
-draw(s,lightgray,meshpen=p);
+draw(s,lightgray,meshpen=p,render(merge=true));

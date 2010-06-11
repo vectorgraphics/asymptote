@@ -18,13 +18,15 @@ path[] p={graph(F,0.7476,1.8043,Spline)--cycle,
 
 pen[] pn=new pen[] {color1,color2,color1};
 
+render render=render(compression=0);
+
 for(int i=0; i < p.length; ++i) {
   revolution a=revolution(path3(p[i]),Y,0,alpha);
-  draw(surface(a),pn[i]);
+  draw(surface(a),pn[i],render);
 
   surface s=surface(p[i]);
-  draw(s,pn[i]);
-  draw(rotate(alpha,Y)*s,pn[i]);
+  draw(s,pn[i],render);
+  draw(rotate(alpha,Y)*s,pn[i],render);
 }
 
 draw((4/3,0,0)--F3(4/3),dashed);

@@ -12,7 +12,7 @@ path p=graph(F,0,1,n=20,operator ..);
 path3 p3=path3(p);
 
 revolution a=revolution(p3,X,0,360);
-draw(surface(a),color);
+draw(surface(a),color,render(compression=Low,merge=true));
 draw(p3,blue);
 
 real x=relpoint(p,0.5).x;

@@ -36,6 +36,8 @@ triple h12=rotate(120,c6,c5)*h11;
 
 pen Black=gray(0.4);
 
+defaultrender=render(compression=Zero,merge=true);
+
 draw(shift(c1)*carbon,Black);
 draw(shift(c2)*carbon,Black);
 draw(shift(c3)*carbon,Black);

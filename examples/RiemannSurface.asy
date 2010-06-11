@@ -10,4 +10,4 @@ triple f(pair t) {return (exp(t.x)*cos(t.y),exp(t.x)*sin(t.y),t.y);}
        
 surface s=surface(f,(-4,-2pi),(0,4pi),8,16,Spline);
 s.colors(palette(s.map(zpart),Rainbow()));
-draw(s);
+draw(s,render(merge=true));

@@ -28,4 +28,4 @@ recur(O,0.5,1);
     
 s.colors(palette(s.map(zpart),Rainbow()));
     
-draw(s);
+draw(s,render(merge=true));

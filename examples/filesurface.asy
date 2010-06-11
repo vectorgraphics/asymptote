@@ -21,7 +21,7 @@ real[] level=uniform(min(f)*(1-sqrtEpsilon),max(f)*(1+sqrtEpsilon),4);
 s.colors(palette(s.map(new real(triple v) {return find(level >= v.z);}),
                  Rainbow())); 
 
-draw(s,meshpen=thick());
+draw(s,meshpen=thick(),render(merge=true));
 
 triple m=currentpicture.userMin;
 triple M=currentpicture.userMax;

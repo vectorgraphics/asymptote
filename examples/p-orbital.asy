@@ -2,6 +2,7 @@ import graph3;
 import palette;
 size(200);
 currentprojection=orthographic(6,8,2);
+viewportmargin=(1cm,0);
  
 real c0=0.1;
 
@@ -22,7 +23,9 @@ real R=abs((20,20,20));
 surface s=surface(f,(0,0),(R,2pi),100,8,Spline,cond);
 
 s.colors(palette(s.map(abs),Gradient(palegreen,heavyblue)));
-draw(s);
+
+render render=render(compression=Low,merge=true);
+draw(s,render);
 draw(zscale3(-1)*s);
  
 axes3("$x$","$y$","$z$",Arrow3);

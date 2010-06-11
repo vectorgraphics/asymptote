@@ -1,2 +1,4 @@
 import three;
-draw(O--X,red,currentlight);
+size(5cm);
+
+draw(O--X,red+1cm,currentlight);

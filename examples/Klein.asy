@@ -22,7 +22,7 @@ triple f(pair t) {
 }
 
 surface s=surface(f,(0,0),(2pi,2pi),8,8,Spline);
-draw(s,lightolive+white,"bottle");
+draw(s,lightolive+white,"bottle",render(merge=true));
 
 string lo="$\displaystyle u\in[0,\pi]: \cases{x=3\cos u(1+\sin u)+(2-\cos u)\cos u\cos v,\cr
 y=8\sin u+(2-\cos u)\sin u\cos v,\cr

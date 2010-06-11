@@ -2,6 +2,8 @@ import graph3;
 
 size(200);
 
+defaultrender.merge=true;
+
 real c=(1+sqrt(5))/2;
 
 triple[] z={(c,1,0),(-c,1,0),(-c,-1,0),(c,-1,0)};

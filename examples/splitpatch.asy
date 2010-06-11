@@ -19,6 +19,8 @@ triple[][] B={
 split S=split(A,B,10);
 //write(S.T.length);
 
+defaultrender.merge=true;
+
 for(int i=0; i < S.T.length; ++i)
   draw(surface(patch(S.T[i])),Pen(i));
 draw(surface(patch(B)),blue);

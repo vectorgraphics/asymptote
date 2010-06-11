@@ -13,12 +13,14 @@ path p=graph(F,0,1,n=30,operator ..)--(1,0)--cycle;
 path3 p3=path3(p);
 
 revolution a=revolution(p3,X,alpha,0);
-draw(surface(a),color);
+
+render render=render(compression=0,merge=true);
+draw(surface(a),color,render);
 draw(p3,blue);
 
 surface s=surface(p);
-draw(s,color);
-draw(rotate(alpha,X)*s,color);
+draw(s,color,render);
+draw(rotate(alpha,X)*s,color,render);
 
 xaxis3(Label("$x$",1),xmax=1.25,dashed,Arrow3);
 yaxis3(Label("$y$",1),Arrow3);

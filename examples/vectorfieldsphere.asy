@@ -14,4 +14,4 @@ path3 vector(pair z) {
 
 add(vectorfield(vector,f,(0,0),(pi,2pi),10,0.25,red,render(merge=true)));
 
-draw(unitsphere,gray+opacity(0.5),render(compression=0));
+draw(unitsphere,gray+opacity(0.5),render(compression=0,merge=true));

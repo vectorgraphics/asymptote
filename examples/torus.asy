@@ -17,4 +17,4 @@ triple f(pair t) {
 }
 
 surface s=surface(f,(radians(90),0),(radians(345),2pi),8,8,Spline);
-draw(s,green);
+draw(s,green,render(merge=true));

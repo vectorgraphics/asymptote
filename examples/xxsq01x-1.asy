@@ -2,7 +2,7 @@ import graph3;
 import solids;
 size(300);
 currentprojection=perspective(0,2,10,up=Y);
-currentlight=(0.25,-0.25,5);
+currentlight=Viewport;
 
 pen color=green;
 
@@ -14,6 +14,7 @@ path p=graph(F,0,1,n=10,operator ..)--cycle;
 path3 p3=path3(p);
 
 revolution a=revolution(-X,p3,Y,0,180);
+render render=render(merge=true);
 draw(surface(a),color);
 surface s=surface(p);
 draw(s,color);

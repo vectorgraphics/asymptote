@@ -16,6 +16,6 @@ xaxis3(Label("$x$"),red,Arrow3);
 yaxis3(Label("$y$"),red,Arrow3);
 zaxis3(XYZero(extend=true),red,Arrow3);
 
-draw(s,lightgray,meshpen=black+thick(),nolight);
+draw(s,lightgray,meshpen=black+thick(),nolight,render(merge=true));
 
 label("$O$",O,-Z+Y,red);

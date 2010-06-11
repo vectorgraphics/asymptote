@@ -39,4 +39,4 @@ sf.append(rotate(90,Y)*s);
 sf.append(rotate(90,Z)*s);
 sf.colors(palette(sf.map(abs),Rainbow()));
     
-draw(sf);
+draw(sf,render(compression=Low,merge=true));
