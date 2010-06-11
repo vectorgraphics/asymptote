@@ -216,6 +216,17 @@ class PRCGlobalsSection : public PRCCompressedSection
       defaultFontFamilyName(""),
       numberOfFillPatterns(0),
       userData(0,0),index(i) {}
+  ~PRCGlobalsSection() {
+      for(PRCTextureDefinitionList::iterator i = texture_definitions.begin();
+          i != texture_definitions.end(); i++)
+        delete *i;
+      for(PRCMaterialList::iterator i = materials.begin();
+          i != materials.end(); i++)
+        delete *i;
+      for(PRCStyleList::iterator i = styles.begin();
+          i != styles.end(); i++)
+        delete *i;
+  }
     uint32_t numberOfReferencedFileStructures;
     double tessellationChordHeightRatio;
     double tessellationAngleDegrees;
@@ -262,6 +273,11 @@ class PRCTessellationSection : public PRCCompressedSection
   public:
     PRCTessellationSection(PRCFileStructure *fs, uint32_t i) :
       PRCCompressedSection(fs),index(i) {}
+  ~PRCTessellationSection() {
+    for(PRCTessList::iterator it=tessellations.begin();
+        it!=tessellations.end(); ++it)
+      delete *it;
+  }
   PRCTessList tessellations;
   private:
     uint32_t index;

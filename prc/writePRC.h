@@ -944,7 +944,7 @@ public:
     PRCContentSurface(n) {}
   virtual void  serializeSurface(PRCbitStream &pbs) = 0;
 };
-typedef std::deque <PRCSurface*>  PRCSurfaceList;
+//typedef std::deque <PRCSurface*>  PRCSurfaceList;
 
 class PRCNURBSSurface : public PRCSurface
 {
