@@ -27,10 +27,8 @@ public:
   item()
     : kind(&typeid(void)) {}
   
-#ifndef Int  
   item(Int i)
     : kind(&typeid(Int)), i(i) {}
-#endif  
   item(int i)
     : kind(&typeid(Int)), i(i) {}
   item(double x)
@@ -38,10 +36,8 @@ public:
   item(bool b)
     : kind(&typeid(bool)), b(b) {}
   
-#ifndef Int  
   item& operator= (int a)
   { kind=&typeid(Int); i=a; return *this; }
-#endif  
   item& operator= (Int a)
   { kind=&typeid(Int); i=a; return *this; }
   item& operator= (double a)
@@ -151,13 +147,11 @@ inline T get(const item& it)
   return item::help<T>::unwrap(it);
 } 
 
-#ifndef Int  
 template <>
 inline int get<int>(const item&)
 {
   throw vm::bad_item_value();
 }
-#endif
   
 template <>
 inline Int get<Int>(const item& it)
