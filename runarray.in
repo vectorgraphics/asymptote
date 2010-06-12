@@ -274,7 +274,7 @@ array *mult(array *a, array *b)
     array *ci=new array(nb0);
     (*c)[i]=ci;
     for(size_t j=0; j < nb0; ++j) {
-      T sum=0.0;
+      T sum=T();
       size_t kj=j;
       for(size_t k=0; k < nb; ++k, kj += nb0)
         sum += Ai[k]*B[kj];
