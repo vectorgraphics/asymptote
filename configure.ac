@@ -349,7 +349,7 @@ if test "x$GCDIR" != "x" ; then
    AC_CHECK_FILE($GCDIR.tar.gz,,[
    echo
    echo Please put the Boehm garbage collector tar.gz file in the current directory.
-   echo FOR EXAMPLE, USE THE COMMANDS:
+   echo FOR EXAMPLE, USE THE COMMAND:
    echo
    echo wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/$GCDIR.tar.gz
    exit 1
