@@ -1,5 +1,7 @@
 import fontsize;
 import three;
+
+settings.autobillboard=false;
 currentprojection=orthographic(Z);
 
 defaultpen(fontsize(100pt));
