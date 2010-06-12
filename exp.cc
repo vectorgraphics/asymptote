@@ -10,6 +10,7 @@
 #include "exp.h"
 #include "errormsg.h"
 #include "runtime.h"
+#include "runmath.h"
 #include "runpicture.h"
 #include "runarray.h"
 #include "runpair.h"
@@ -20,6 +21,7 @@
 #include "dec.h"
 #include "stm.h"
 #include "inst.h"
+#include "opsymbols.h"
 
 namespace absyntax {
 
@@ -124,6 +126,10 @@ types::ty *varEntryExp::getType(coenv &) {
 types::ty *varEntryExp::trans(coenv &e) {
   v->encode(READ, getPos(), e.c);
   return getType(e);
+}
+
+trans::varEntry *varEntryExp::getCallee(coenv &e, types::signature *sig) {
+  return equivalent(sig, v->getType()->getSignature()) ? v : 0;
 }
 
 void varEntryExp::transAct(action act, coenv &e, types::ty *target) {
@@ -363,6 +369,113 @@ types::ty *thisExp::trans(coenv &e)
 types::ty *thisExp::getType(coenv &e)
 {
   return e.c.thisType();
+}
+
+void equalityExp::prettyprint(ostream &out, Int indent)
+{
+  prettyname(out, "equalityExp", indent);
+  callExp::prettyprint(out, indent+1);
+}
+
+types::ty *equalityExp::getType(coenv &e) {
+  if (resolved(e)) {
+    assert(ct);
+    return ct;
+  } else {
+    return primBoolean();
+  }
+}
+
+// From a possibly overloaded type, if there is a unique function type, return
+// it, otherwise 0.
+types::ty *uniqueFunction(types::ty *t) {
+  if (t->kind == types::ty_function)
+    return t;
+
+  if (t->isOverloaded()) {
+    types::ty *ft = 0;
+    for (ty_iterator i = t->begin(); i != t->end(); ++i)
+    {
+      if ((*i)->kind != types::ty_function) 
+        continue;
+
+      if (ft)
+        // Multiple function types.
+        return 0;
+
+      ft = *i;
+    }
+  }
+
+  // Not a function.
+  return 0;
+}
+
+// From two possibly overloaded types, if there is a unique function type
+// common to both, return it, otherwise 0.
+types::ty *uniqueFunction(types::ty *t1, types::ty *t2) {
+  if (t1->kind == types::ty_function)
+    return equivalent(t1, t2) ? t1 : 0;
+
+  if (t1->isOverloaded()) {
+    types::ty *ft = 0;
+    for (ty_iterator i = t1->begin(); i != t1->end(); ++i)
+    {
+      if ((*i)->kind != types::ty_function) 
+        continue;
+
+      if (!equivalent(*i, t2))
+        continue;
+
+      if (ft)
+        // Multiple function types.
+        return 0;
+
+      ft = *i;
+    }
+  }
+
+  // Not a function.
+  return 0;
+}
+
+bltin bltinFromName(symbol name) {
+  if (name == SYM_EQ)
+    return run::boolFuncEq;
+  assert(name == SYM_NEQ);
+  return run::boolFuncNeq;
+}
+
+types::ty *equalityExp::trans(coenv &e) {
+  if (resolved(e))
+    return callExp::trans(e);
+
+  exp *left = (*this->args)[0].val;
+  exp *right = (*this->args)[1].val;
+
+  types::ty *lt = left->getType(e);
+  types::ty *rt = right->getType(e);
+
+  // TODO: decide what null == null should do.
+
+  // Check for function == null and null == function
+  types::ty *ft = 0;
+  if (rt->kind == types::ty_null)
+    ft = uniqueFunction(lt);
+  else if (lt->kind == types::ty_null)
+    ft = uniqueFunction(rt);
+  else
+    ft = uniqueFunction(lt, rt);
+
+  if (ft) {
+    left->transToType(e, ft);
+    right->transToType(e, ft);
+    e.c.encode(inst::builtin, bltinFromName(callee->getName()));
+    return primBoolean();
+  } else {
+    // Let callExp report a "no such function" error.
+    return callExp::trans(e);
+  }
 }
 
 void scaleExp::prettyprint(ostream &out, Int indent)
@@ -700,7 +813,7 @@ void callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
 
   // An attempt at speeding up compilation:  See if the source arguments match
   // the (possibly overloaded) function exactly.
-#if 0
+#if CALLEE_SEARCH
   if (searchable) {
     varEntry *ve = callee->getCallee(e, source);
 
@@ -709,13 +822,14 @@ void callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
 #endif
 
     if (ve) {
-#if 0
-      cachedApp = application::match(e.e,
-          (function *)ve->getType(), source, *args);
-#endif
       cachedVarEntry = ve;
+#ifndef DEBUG_CACHE
+      // Normally DEBUG_CACHE is not defined and we return here for efficiency
+      // reasons.  If DEBUG_CACHE is defined, also resolve the function by the
+      // normal techniques and make sure we get the same result.
       ct = ((function *)ve->getType())->getResult();
       return;
+#endif
     }
   }
 #endif
@@ -724,7 +838,8 @@ void callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
   types::ty *ft = callee->cgetType(e);
 
 #ifdef DEBUG_GETAPP
-  string name = callee->getName() ? string(*callee->getName()) : string("unnamed");
+  string name = callee->getName() ? string(*callee->getName()) :
+                                    string("unnamed");
   if (!callee->getName())
     cout << getPos() << endl;
 #endif
@@ -761,6 +876,12 @@ void callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
 #ifdef DEBUG_GETAPP
   cout << name << " " << *source << " --> "
        << *cachedApp->getType()->getSignature() << endl;
+#endif
+
+#if DEBUG_CACHE
+  // Make sure cachedVarEntry is giving us the right function.
+  if (cachedVarEntry)
+    assert(equivalent(cachedVarEntry->getType(), cachedApp->getType()));
 #endif
 
   // Get type relies on this method setting the cached type.
@@ -836,34 +957,14 @@ types::ty *callExp::getType(coenv &e)
 
   assert(ct);
   return ct;
-  
-#if 0
-  // First figure out the signature of what we want to call.
-  signature *source=argTypes(e);
-  if (!source)
-    return types::primError();
-
-  // Figure out what function types we can call.
-  trans::ty *ft = callee->cgetType(e);
-
-  switch (ft->kind) {
-    case ty_function:
-      return ((function *)ft)->result;
-    case ty_overloaded: {
-      application *a=resolve(e, (overloaded *)ft, source, true);
-      if (a) {
-        // Cache the application to avoid calling multimatch again later.
-        ca=a;
-        return ca->getType()->result;
-      }
-      else
-        return primError();
-    }
-    default:
-      return primError();
-  }
-#endif
 }
+
+bool callExp::resolved(coenv &e) {
+  if (cachedApp == 0 && cachedVarEntry == 0)
+    cacheAppOrVarEntry(e, true);
+  return cachedApp || cachedVarEntry;
+}
+  
     
 void pairExp::prettyprint(ostream &out, Int indent)
 {

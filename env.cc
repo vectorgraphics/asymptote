@@ -88,6 +88,51 @@ bool protoenv::castable(ty *target, ty *source, symbol name) {
   return ct.test(target,source);
 }
 
+#ifdef FASTCAST
+bool protoenv::fastCastable(ty *target, ty *source) {
+  assert(target->kind != types::ty_overloaded);
+  assert(target->kind != types::ty_error);
+  assert(source->kind != types::ty_error);
+
+  // To avoid memory allocation, fill one static variable with new parameters
+  // in each call.
+  static types::function castFunc(primVoid(), primVoid());
+  castFunc.result = target;
+
+  if (source->kind == types::ty_overloaded) {
+    bool result = false;
+    types::ty_vector& v = ((overloaded *)source)->sub;
+    for (size_t i = 0; i < v.size(); ++i) {
+      castFunc.sig.formals[0].t = v[i];
+      if (lookupVarByType(symbol::castsym, &castFunc)) {
+        result = true;
+        break;
+      }
+    }
+    //assert(result == castable(target, source, symbol::castsym));
+    //cout << "fc OVERLOADED " << (result ? "CAST" : "FAIL") << endl;
+    return result;
+  }
+  //else cout << "fc SIMPLE" << endl;
+
+  // Don't test for equivalent, as that is already done by the castScore
+  // code.  Assert disabled for speed.
+#if 0
+  assert(!equivalent(target, source));
+#endif
+
+  castFunc.sig.formals[0].t = source;
+
+  if (lookupVarByType(symbol::castsym, &castFunc))
+    return true;
+
+  // Test for generic casts of null.  This should be moved to a types.h
+  // routine.
+  return source->kind == ty_null && target->isReference();
+}
+#endif
+
+
 ty *protoenv::castTarget(ty *target, ty *source, symbol name) {
   struct resolver : public collector {
     protoenv &e;

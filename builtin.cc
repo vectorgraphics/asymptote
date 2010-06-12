@@ -947,6 +947,17 @@ void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool integer=false,
 void addArrayOps(venv &ve, types::array *t)
 {
   ty *ct = t->celltype;
+
+#ifdef TEST_ADDED_OPS
+  // Check for the alias function to see if these operation have already been
+  // added, if they have, don't add them again.
+  static types::function aliasType(primBoolean(), primVoid(), primVoid());
+  aliasType.sig.formals[0].t = t;
+  aliasType.sig.formals[1].t = t;
+#endif
+
+  if (ve.lookByType(SYM(alias), &aliasType))
+    return;
   
   addFunc(ve, run::arrayAlias,
           primBoolean(), SYM(alias), formal(t, SYM(a)), formal(t, SYM(b)));
@@ -995,11 +1006,14 @@ void addRecordOps(venv &ve, record *r)
 
 void addFunctionOps(venv &ve, function *f)
 {
+#if 1
   addFunc(ve, run::boolFuncEq, primBoolean(), SYM_EQ, formal(f, SYM(a)),
           formal(f, SYM(b)));
   addFunc(ve, run::boolFuncNeq, primBoolean(), SYM_NEQ, formal(f, SYM(a)),
           formal(f, SYM(b)));
+#endif
 }
+
 
 void addOperators(venv &ve) 
 {

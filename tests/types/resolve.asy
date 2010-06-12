@@ -58,4 +58,40 @@ assert(g(y=4, 4.4) == 7);
 assert(g(y=4.4, 4) == 8);
 assert(g(y=4.4, 4.4) == 7);
 
+// Test exact matching over casting.
+{
+  void f(int x, real y=0.0, int z=0) {
+    assert(x==1);
+    assert(y==2.0);
+    assert(z==0);
+  }
+  f(1,2);
+}
+{
+  void f() {
+    assert(false);
+  }
+  void f(int x, real y=0.0, int z=0) {
+    assert(x==1);
+    assert(y==2.0);
+    assert(z==0);
+  }
+  f(1,2);
+}
+{
+  void f() {
+    assert(false);
+  }
+  void f(int x, int y) {
+    assert(x==1);
+    assert(y==2);
+  }
+  void f(int x, real y=0.0, int z=0) {
+    assert(false);
+  }
+  f(1,2);
+}
+
+// TODO: Add packing vs. casting tests.
+
 EndTest();

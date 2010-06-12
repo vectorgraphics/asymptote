@@ -1,11 +1,20 @@
 Andy: possible optimizations:
-    doConfig is slow
+    fix func op and three.asy
+    rewrite exp::transToType and protoenv::castSource
+    varpush+pop --> no op
+    varsave+pop --> one op
+    closure+pushfunc+varsave+pop --> savefunc
+    stack::popWithoutReturningValue
+    look at position information saved in program, maybe save separately
     formal::addOps calls trans
     only hash first 3 or 4 args of signature
     rm transToType from varinitArg::trans
     run a perfect match through multimatch first (no casting allowed)
     change camp.y to flag arglists with named args
     remove addFunctionOps in favor of == and != defined in types.h
+
+Andy: testing in errortest.asy for packing versus casting, default argument
+ambiguities, and whatever else you can think of
     
 Andy: operator tuple, to let people define their own tuples
 

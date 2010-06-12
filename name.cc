@@ -237,6 +237,7 @@ trans::varEntry *qualifiedName::getCallee(coenv &e, signature *sig)
   // getTypeAsCallee is an optimization attempt.  We don't try optimizing the
   // rarer qualifiedName call case.
   // TODO: See if this is worth implementing.
+  //cout << "FAIL BY QUALIFIED NAME" << endl;
   return 0;
 }
 

@@ -101,12 +101,21 @@ public:
   //      error.
   virtual types::ty *getType(coenv &) = 0;
 
-  // TODO: Explain what this is!
+  // This is an optimization which works in some cases to by-pass the slow
+  // overloaded function resolution provided by the application class.
+  //
+  // If an expression is called with arguments given by sig, getCallee must
+  // either return 0 (the default), or if it returns a varEntry, the varEntry
+  // must correspond to the function which would be called after normal
+  // function resolution.
+  //
+  // The callee must produce no side effects as there are no guarantees when
+  // the varEntry will be translated.
   virtual trans::varEntry *getCallee(coenv &e, types::signature *sig) {
 //#define DEBUG_GETAPP
 #if DEBUG_GETAPP
     cout << "exp fail" << endl;
-    cout << "at " << getPos() << endl;
+    cout << "exp fail at " << getPos() << endl;
     prettyprint(cout, 2);
 #endif
     return 0;
@@ -177,6 +186,7 @@ public:
 };
 
 // Wrap a varEntry so that it can be used as an expression.
+// Translating the varEntry must cause no side-effects.
 class varEntryExp : public exp {
   trans::varEntry *v;
 public:
@@ -189,6 +199,7 @@ public:
 
   types::ty *getType(coenv &);
   types::ty *trans(coenv &e);
+  trans::varEntry *getCallee(coenv &e, types::signature *sig);
   
   void transAct(action act, coenv &e, types::ty *target);
   void transAsType(coenv &e, types::ty *target);
@@ -706,8 +717,8 @@ private:
   void reportNonFunction();
 
   // Caches either the application object used to apply the function to the
-  // arguments, or in special cases where the arguments match the function
-  // perfectly, the varEntry of the callee.
+  // arguments, or in cases where the arguments match the function perfectly,
+  // the varEntry of the callee.
   void cacheAppOrVarEntry(coenv &e, bool tacit);
 
   types::ty *transPerfectMatch(coenv &e);
@@ -745,6 +756,10 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
+
+  // Returns true if the function call resolves uniquely without error.  Used
+  // in implementing the special == and != operators for functions.
+  virtual bool resolved(coenv &e);
 };
 
 
@@ -826,6 +841,18 @@ public:
   binaryExp(position pos, exp *left, symbol op, exp *right)
     : callExp(pos, new nameExp(pos, op), left, right) {}
 };
+
+class equalityExp : public callExp {
+public:
+  equalityExp(position pos, exp *left, symbol op, exp *right)
+    : callExp(pos, new nameExp(pos, op), left, right) {}
+
+  void prettyprint(ostream &out, Int indent);
+
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &e);
+};
+
 
 // Scaling expressions such as 3sin(x).
 class scaleExp : public binaryExp {

@@ -23,7 +23,7 @@ record::record(symbol name, frame *level)
 {
   assert(init);
 #ifdef DEBUG_STACK
-  init->name = "struct "+string(*name);
+  init->name = "struct "+string(name);
 #endif
 }
 

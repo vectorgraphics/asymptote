@@ -287,6 +287,10 @@ public:
   types::function *getType() {
     return t;
   }
+
+  // This returns true in the special case that there were no named arguments,
+  // and the arguments matched without cast or packing into the rest formal.
+  bool exact();
 };
 
 typedef mem::list<application *> app_list;

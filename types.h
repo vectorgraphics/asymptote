@@ -53,6 +53,8 @@ enum ty_kind {
 // Forward declarations.
 class ty;
 struct signature;
+typedef mem::vector<ty *> ty_vector;
+typedef ty_vector::iterator ty_iterator;
 
 // Checks if two types are equal in the sense of the language.
 // That is primitive types are equal if they are the same kind.
@@ -99,6 +101,21 @@ public:
   virtual bool primitive() {
     return false;
   }
+
+  // The following are only used by the overloaded type, but it is so common
+  // to test for an overloaded type then iterate over its types, that this
+  // allows the code:
+  // if (t->isOverloaded()) {
+  //   for (ty_iterator i = t->begin(); i != t->end(); ++i) {
+  //     ...
+  //   }
+  // }
+  // For speed reasons, only begin has an assert to test if t is overloaded.
+  bool isOverloaded() const {
+    return kind == ty_overloaded;
+  }
+  ty_iterator begin();
+  ty_iterator end();
 
   // If a default initializer is not stored in the environment, the abstract
   // syntax asks the type if it has a "default" default initializer, by calling
@@ -450,8 +467,6 @@ struct function : public ty {
   trans::access *initializer();
 };
 
-typedef mem::vector<ty *> ty_vector;
-
 // This is used in getType expressions when an overloaded variable is accessed.
 class overloaded : public ty {
 public:
@@ -509,8 +524,18 @@ public:
   // True if one of the subtypes is castable.
   bool castable(ty *target, caster &c);
 
+  size_t size() const { return sub.size(); }
+
   // Use default printing for now.
 };
+
+inline ty_iterator ty::begin() {
+  assert(this->isOverloaded());
+  return ((overloaded *)this)->sub.begin();
+}
+inline ty_iterator ty::end() {
+  return ((overloaded *)this)->sub.end();
+}
 
 // This is used to encapsulate iteration over the subtypes of an overloaded
 // type.  The base method need only be implemented to handle non-overloaded

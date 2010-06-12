@@ -181,40 +181,32 @@ public:
 
 #ifdef NOHASH //{{{
 class venv : public sym::table<varEntry*> {
+  /* This version of venv is provided for compiling on systems which do not
+   * have some form of STL hash table.  It will eventually be removed.
+   * See the hash version below for documentation on the functions.
+   */
 public:
   venv() {}
 
-  // This is an optimization in the hashtable version that is duplicated here
-  // for compatibility.  It is identical to venv().
   struct file_env_tag {};
   venv(file_env_tag) {}
 
-#if 0
-  // Look for a function that exactly matches the signature given.
-  varEntry *lookExact(symbol name, signature *key);
-#endif
-
-  // Add the entries in one environment to another, if qualifier is
-  // non-null, it is a record and the source environment are its fields.
-  // The coder is necessary to check which variables are accessible and
-  // should be added.
   void add(venv& source, varEntry *qualifier, coder &c);
 
-  // Add all unshadowed variables from source of the name src as variables
-  // named dest.  Returns true if at least one was added.
   bool add(symbol src, symbol dest,
            venv& source, varEntry *qualifier, coder &c);
 
-  // Look for a function that exactly matches the type given.
   varEntry *lookByType(symbol name, ty *t);
 
-  // Return the type of the variable, if name is overloaded, return an
-  // overloaded type.
+  varEntry *lookBySignature(symbol name, signature *sig) {
+    // This optimization is not implemented for the NOHASH version.
+    return 0;
+  }
+
   ty *getType(symbol name);
 
   friend std::ostream& operator<< (std::ostream& out, const venv& ve);
   
-  // Prints a list of the variables to the standard output.
   void list(record *module=0);
 };
 
@@ -246,6 +238,12 @@ class venv {
     varEntry *v;
     bool shadowed;
     value *next;  // The entry (of the same key) that this one shadows.
+
+#ifdef CALLEE_SEARCH
+    // The maximum number of formals in any of the overloaded functions of
+    // this name (at the time this value was entered).
+    size_t maxFormals;
+#endif
 
     value(varEntry *v)
       : v(v), shadowed(false), next(0) {}
@@ -351,10 +349,17 @@ public:
 
   // An optimization heuristic.  Try to guess the signature of a variable and
   // look it up.  This is allowed to return 0 even if the appropriate variable
-  // exists.
-  varEntry *lookBySignature(symbol name, signature *sig) {
-    return name.special() ? 0 : lookByType(key(name, sig));
-  }
+  // exists.  If it returns a varEntry from an overloaded number of choices,
+  // the returned function must be the one which would be called with
+  // arguments given by sig, and its signature must be equivalent to sig.
+  // For instance, in
+  //   int f(int a, int b);
+  //   int f(int a, int b, int c = 1);
+  //   f(a,b);
+  // looking up the signature of 'f' with arguments (int, int) must return 0
+  // as there is an ambiguity.  The maxFormals field is used to ensure we
+  // avoid such ambiguities.
+  varEntry *lookBySignature(symbol name, signature *sig);
 
   ty *getType(symbol name);
 

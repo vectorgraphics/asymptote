@@ -43,6 +43,12 @@ double PatternLength(double arclength, const array& pat,
     ncycle*sum+terminator : 0.0;
 }
 
+bool isdashed(pen& p) {
+  const LineType *linetype=p.linetype();
+  size_t n=linetype->pattern.size();
+  return n > 0;
+}
+
 pen adjustdash(pen& p, double arclength, bool cyclic)
 {
   pen q=p;
@@ -127,7 +133,8 @@ bool drawPath::draw(psfile *out)
   if (n == 0 || pentype.invisible())
     return true;
 
-  pen q=adjustdash(pentype,p.arclength(),p.cyclic());
+  pen q = isdashed(pentype) ? adjustdash(pentype,p.arclength(),p.cyclic()) :
+                              pentype;
 
   penSave(out);
   penTranslate(out);
