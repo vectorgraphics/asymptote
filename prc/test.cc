@@ -27,6 +27,8 @@
 
 using namespace std;
 
+extern const double pi;
+
 int main()
 {
   oPRCFile file("test.prc");
@@ -296,8 +298,8 @@ if(1) {
   double points[NUMBER_OF_POINTS][3];
   for(size_t i = 0; i < NUMBER_OF_POINTS; ++i)
   {
-    points[i][0] = 3.5*cos(3.0*i/NUMBER_OF_POINTS*2.0*M_PI);
-    points[i][1] = 3.5*sin(3.0*i/NUMBER_OF_POINTS*2.0*M_PI);
+    points[i][0] = 3.5*cos(3.0*i/NUMBER_OF_POINTS*2.0*pi);
+    points[i][1] = 3.5*sin(3.0*i/NUMBER_OF_POINTS*2.0*pi);
     points[i][2] = 5.0*i/NUMBER_OF_POINTS-1.0;
   }
   const size_t NUMBER_OF_WIRES = 2;
@@ -484,9 +486,9 @@ if(1) {
     surface->uv_domain.min.x = 0;
     surface->uv_domain.max.x = 1;
     surface->uv_domain.min.y = 0;
-    surface->uv_domain.max.y = 2*M_PI;
+    surface->uv_domain.max.y = 2*pi;
     surface->parameterization_on_v_coeff_a = -1;
-    surface->parameterization_on_v_coeff_b = 2*M_PI;
+    surface->parameterization_on_v_coeff_b = 2*pi;
 
     surface->has_transformation = true;
     surface->geometry_is_2D = false;
@@ -573,8 +575,8 @@ if(1) {
   qoints[3][0] = 0;                 qoints[3][1] = 0; qoints[3][2] = 1;
 //  for(size_t i = 0; i < NUMBER_OF_POINTS; ++i)
 //  {
-//    points[i][0] = 3.5*cos(3.0*i/NUMBER_OF_POINTS*2.0*M_PI);
-//    points[i][1] = 3.5*sin(3.0*i/NUMBER_OF_POINTS*2.0*M_PI);
+//    points[i][0] = 3.5*cos(3.0*i/NUMBER_OF_POINTS*2.0*pi);
+//    points[i][1] = 3.5*sin(3.0*i/NUMBER_OF_POINTS*2.0*pi);
 //    points[i][2] = 5.0*i/NUMBER_OF_POINTS-1.0;
 //  }
 
@@ -619,7 +621,7 @@ if(1) {
     surface->origin_curve=origin_curve;
    
     surface->uv_domain.min.x = 0;
-    surface->uv_domain.max.x = 2*M_PI;
+    surface->uv_domain.max.x = 2*pi;
     surface->uv_domain.min.y = 1; // first knot
     surface->uv_domain.max.y = 2; // last knot
     PRCBrepModel *brepmodel = new PRCBrepModel("Tube");
@@ -741,7 +743,7 @@ if(1) {
     cface->base_surface=csurface;
 
     csurface->uv_domain.min.x = 0;
-    csurface->uv_domain.max.x = 2*M_PI;
+    csurface->uv_domain.max.x = 2*pi;
     csurface->uv_domain.min.y = 0; // first knot
     csurface->uv_domain.max.y = 2; // last knot
     csurface->center_curve = compositeCenterCurveEdge->curve_3d;

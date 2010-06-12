@@ -1025,9 +1025,9 @@ class PRCCircle : public PRCCurve, public PRCTransformation, public PRCParameter
 {
 public:
   PRCCircle() :
-    PRCCurve(), PRCParameterization(0,2*M_PI) {}
+    PRCCurve(), PRCParameterization(0,2*pi) {}
   PRCCircle(std::string n) :
-    PRCCurve(n), PRCParameterization(0,2*M_PI) {}
+    PRCCurve(n), PRCParameterization(0,2*pi) {}
   void  serializeCircle(PRCbitStream &pbs);
   void  serializeCurve(PRCbitStream &pbs) { serializeCircle(pbs); }
   double radius;
