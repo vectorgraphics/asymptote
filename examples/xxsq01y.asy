@@ -11,11 +11,13 @@ triple F3(real x) {return (x,f(x),0);}
 path p=graph(F,0,1,n=10,operator ..)--cycle;
 path3 p3=path3(p);
 
-draw(surface(revolution(p3,Y,0,alpha)),color);
+render render=render(compression=0,merge=true);
+
+draw(surface(revolution(p3,Y,0,alpha)),color,render);
 
 surface s=surface(p);
-draw(s,color);
-draw(rotate(alpha,Y)*s,color);
+draw(s,color,render);
+draw(rotate(alpha,Y)*s,color,render);
 
 draw(p3,blue);
 
