@@ -297,7 +297,7 @@ struct Label {
   
   void label(frame f, transform t=identity(), pair position, pair align) {
     pen p0=p == nullpen ? currentpen : p;
-    align=length(align)*unit(shiftless(t)*align);
+    align=length(align)*unit(rotation(t)*align);
     label(f,s,size,embed(t)*shiftless(T),
           t*position+align*labelmargin(p0)+shift(T)*0,align,p0);
   }
