@@ -466,8 +466,8 @@ exp:
 | exp LE exp       { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | exp GT exp       { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | exp GE exp       { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
-| exp EQ exp       { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
-| exp NEQ exp      { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
+| exp EQ exp       { $$ = new equalityExp($2.pos, $1, $2.sym, $3); }
+| exp NEQ exp      { $$ = new equalityExp($2.pos, $1, $2.sym, $3); }
 | exp CAND exp     { $$ = new andExp($2.pos, $1, $2.sym, $3); }
 | exp COR exp      { $$ = new orExp($2.pos, $1, $2.sym, $3); }
 | exp CARETS exp   { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }

@@ -255,6 +255,14 @@ StartTest("constructor");
 
   assert(Barr().x==89);
 }
+{ // Function Comparison
+  struct A {
+    // Defines a function A A(int).
+    void operator init(int x) {}
+  }
+  assert(!(A == null));
+  assert(A != null);
+}
 
 // File-level {{{1
 // This assumes the file is named constructor.asy

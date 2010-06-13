@@ -377,6 +377,7 @@ void equalityExp::prettyprint(ostream &out, Int indent)
   callExp::prettyprint(out, indent+1);
 }
 
+#ifdef NO_FUNC_OPS
 types::ty *equalityExp::getType(coenv &e) {
   if (resolved(e)) {
     assert(ct);
@@ -385,6 +386,7 @@ types::ty *equalityExp::getType(coenv &e) {
     return primBoolean();
   }
 }
+#endif
 
 // From a possibly overloaded type, if there is a unique function type, return
 // it, otherwise 0.
@@ -399,12 +401,15 @@ types::ty *uniqueFunction(types::ty *t) {
       if ((*i)->kind != types::ty_function) 
         continue;
 
-      if (ft)
+      if (ft) {
         // Multiple function types.
         return 0;
+      }
 
       ft = *i;
     }
+
+    return ft;
   }
 
   // Not a function.
@@ -427,12 +432,15 @@ types::ty *uniqueFunction(types::ty *t1, types::ty *t2) {
       if (!equivalent(*i, t2))
         continue;
 
-      if (ft)
+      if (ft) {
         // Multiple function types.
         return 0;
+      }
 
       ft = *i;
     }
+
+    return ft;
   }
 
   // Not a function.
@@ -446,6 +454,7 @@ bltin bltinFromName(symbol name) {
   return run::boolFuncNeq;
 }
 
+#ifdef NO_FUNC_OPS
 types::ty *equalityExp::trans(coenv &e) {
   if (resolved(e))
     return callExp::trans(e);
@@ -467,7 +476,10 @@ types::ty *equalityExp::trans(coenv &e) {
   else
     ft = uniqueFunction(lt, rt);
 
+
   if (ft) {
+    assert(ft->kind == ty_function);
+
     left->transToType(e, ft);
     right->transToType(e, ft);
     e.c.encode(inst::builtin, bltinFromName(callee->getName()));
@@ -477,6 +489,7 @@ types::ty *equalityExp::trans(coenv &e) {
     return callExp::trans(e);
   }
 }
+#endif
 
 void scaleExp::prettyprint(ostream &out, Int indent)
 {

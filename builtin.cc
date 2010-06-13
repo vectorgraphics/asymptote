@@ -1006,7 +1006,9 @@ void addRecordOps(venv &ve, record *r)
 
 void addFunctionOps(venv &ve, function *f)
 {
-#if 1
+#ifdef NO_FUNC_OPS
+  // No function ops.
+#else
   addFunc(ve, run::boolFuncEq, primBoolean(), SYM_EQ, formal(f, SYM(a)),
           formal(f, SYM(b)));
   addFunc(ve, run::boolFuncNeq, primBoolean(), SYM_NEQ, formal(f, SYM(a)),

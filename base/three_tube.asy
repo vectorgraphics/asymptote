@@ -380,7 +380,9 @@ struct tube
           path3 Center=path3(pre,point,post,b,T.cyclic);
           center=center&Center;
 
-          if(tube != null) { // Compute path along tube
+          // This is due to changes in the way == is handled for functions.
+          void tubeAlias(path3, path3) = tube;
+          if(tubeAlias != null) { // Compute path along tube
             triple[] pre=new triple[n+1];
             triple[] point=new triple[n+1];
             triple[] post=new triple[n+1];

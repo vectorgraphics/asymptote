@@ -849,8 +849,10 @@ public:
 
   void prettyprint(ostream &out, Int indent);
 
+#ifdef NO_FUNC_OPS
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
+#endif
 };
 
 
