@@ -2170,13 +2170,13 @@ draw=new void(frame f, path3 g, material p=currentpen,
           void cylinder(transform3) {};
           void sphere(transform3, bool half) {};
           void disk(transform3) {};
-          void tube(path3, path3);
+          void pipe(path3, path3);
           if(prc) {
             cylinder=new void(transform3 t) {drawPRCcylinder(f,t,p,light);};
             sphere=new void(transform3 t, bool half)
               {drawPRCsphere(f,t,half,p,light,render);};
             disk=new void(transform3 t) {draw(f,t*unitdisk,p,light,render);};
-            tube=new void(path3 center, path3 g)
+            pipe=new void(path3 center, path3 g)
               {drawPRCtube(f,center,g,p,light);};
           }
           real linecap;
@@ -2196,7 +2196,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
               L += 2;
             }
           }
-          tube T=tube(g,width,render,cylinder,sphere,tube);
+          tube T=tube(g,width,render,cylinder,sphere,pipe);
           path3 c=T.center;
           if(L >= 0) {
             if(open) {

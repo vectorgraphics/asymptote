@@ -296,7 +296,7 @@ struct tube
   void operator init(path3 p, real width, render render=defaultrender,
                      void cylinder(transform3)=Null,
                      void sphere(transform3, bool half)=Null,
-                     void tube(path3, path3)=null) {
+                     void pipe(path3, path3)=null) {
     real r=0.5*width;
 
     void generate(path3 p) {
@@ -380,9 +380,7 @@ struct tube
           path3 Center=path3(pre,point,post,b,T.cyclic);
           center=center&Center;
 
-          // This is due to changes in the way == is handled for functions.
-          void tubeAlias(path3, path3) = tube;
-          if(tubeAlias != null) { // Compute path along tube
+          if(pipe != null) { // Compute path along tube
             triple[] pre=new triple[n+1];
             triple[] point=new triple[n+1];
             triple[] post=new triple[n+1];
@@ -394,7 +392,7 @@ struct tube
               point[i+1]=P[3][0];
             }
             post[n]=S.s[S.index[n-1][0]].P[3][0];
-            tube(Center,path3(pre,point,post,b,T.cyclic));
+            pipe(Center,path3(pre,point,post,b,T.cyclic));
           }
         }
       }
