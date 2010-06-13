@@ -133,7 +133,7 @@ Section -Post
   WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "Path" "$INSTDIR"
   WriteRegStr HKLM "${PRODUCT_FILE_TYPE_REGKEY1}" "" "ASYFile"
   WriteRegStr HKLM "${PRODUCT_FILE_TYPE_REGKEY2}" "" '"$INSTDIR\asy.bat" "%1"'
-  WriteRegDWORD HKLM "SOFTWARE\Cygwin" "heap_chunk_in_mb" 0xFFFFFFFF
+  WriteRegDWORD HKLM "SOFTWARE\Cygwin" "heap_chunk_in_mb" 0xFFFFFF00
   ReadRegStr $0 HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "CYGWIN"
   ${If} $0 == ""
     WriteRegExpandStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "CYGWIN" "nodosfilewarning"
