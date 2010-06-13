@@ -124,7 +124,8 @@ array *readpath(const string& psname, bool keep,
             node.straight=false;
             nodes.push_back(node);
           }
-          P->push(path(nodes,nodes.size(),cyclic));
+          if(cyclic) // Discard noncyclic paths.
+            P->push(path(nodes,nodes.size(),cyclic));
           nodes.clear();
         }
         active=false;
