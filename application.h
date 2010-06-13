@@ -288,9 +288,14 @@ public:
     return t;
   }
 
-  // This returns true in the special case that there were no named arguments,
-  // and the arguments matched without cast or packing into the rest formal.
+  // This returns true in the special case that the arguments matched without
+  // casting or packing into the rest formal.
   bool exact();
+
+  // The next best thing (score-wise) to an exact match.  This returns true if
+  // there are two arguments, one of which is cast and one is matched exactly
+  // and neither are packed into the rest argument.
+  bool halfExact();
 };
 
 typedef mem::list<application *> app_list;

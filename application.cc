@@ -331,6 +331,18 @@ bool application::exact() {
   return true;
 }
 
+bool application::halfExact() {
+  if (sig->isOpen)
+    return false;
+  if (scores.size() != 2)
+    return false;
+  if (scores[0] == EXACT && scores[1] == CAST)
+    return true;
+  if (scores[0] == CAST && scores[1] == EXACT)
+    return true;
+  return false;
+}
+
 // True if any of the formals have names.
 bool namedFormals(signature *sig)
 {
@@ -450,7 +462,6 @@ app_list exactMultimatch(env &e,
     // application::match will give an inexact match of 1 to x to 2 to y, due
     // to the cast from int to real.  Therefore, we must test for exactness
     // even after matching.
-    //cout << "REALLY EXACT " << a->exact() << endl;
     if (a->exact())
       l.push_back(a);
   }
@@ -459,6 +470,75 @@ app_list exactMultimatch(env &e,
   return l;
 }
 
+bool halfExactMightMatch(signature *target, types::ty *t1, types::ty *t2)
+{
+  formal_vector& formals = target->formals;
+  if (formals.size() < 2)
+    return false;
+  if (formals.size() > 2) {
+    // We should probably abort the whole matching in this case.  For now,
+    // return true and let the usual matching handle it.
+    return true;
+  }
+
+  assert(formals[0].t);
+  assert(formals[1].t);
+
+  // Test if one of the arguments matches exactly.
+  return equivalent(formals[0].t, t1) || equivalent(formals[1].t, t2);
+}
+
+// Most commonly after exact matches are cases such as 2+3.4, that is, binary
+// operations were one of the operands matches exactly and the other does not.
+// This searches for this so-called "half-exact" matches.
+// This should only be called after exactMultimatch has failed.
+app_list halfExactMultimatch(env &e,
+                             types::overloaded *o,
+                             types::signature *source,
+                             arglist &al)
+{
+  assert(source);
+
+  app_list l;
+
+
+  // Half exact is only in the case of two arguments.
+  formal_vector& formals = source->formals;
+  if (formals.size() != 2 || source->hasRest())
+    return l; /* empty */
+
+  // This can't handle named arguments.
+  if (namedFormals(source))
+    return l; /* empty */
+
+  // Alias the two argument types.
+  types::ty *t1 = formals[0].t;
+  types::ty *t2 = formals[1].t;
+
+  assert(t1); assert(t2);
+
+  for (ty_vector::iterator t=o->sub.begin(); t!=o->sub.end(); ++t)
+  {
+    if ((*t)->kind != ty_function)
+      continue;
+
+    function *ft = (function *)*t;
+
+#if 1
+    if (!halfExactMightMatch(ft->getSignature(), t1, t2))
+      continue;
+#endif
+
+    application *a=application::match(e, ft, source, al);
+
+#if 1
+    if (a && a->halfExact())
+      l.push_back(a);
+#endif
+  }
+
+  return l;
+}
 
 // The full overloading resolution system, which handles casting of arguments,
 // packing into rest arguments, named arguments, etc.
@@ -474,9 +554,11 @@ app_list inexactMultimatch(env &e,
 
 #define DEBUG_GETAPP 0
 #if DEBUG_GETAPP
-  cout << "source: " << *source << endl;
+  //cout << "source: " << *source << endl;
+  //cout << "ARGS: " << source->getNumFormals() << endl;
   bool perfect=false;
   bool exact=false;
+  bool halfExact=false;
 #endif
 
   for(ty_vector::iterator t=o->sub.begin(); t!=o->sub.end(); ++t) {
@@ -484,7 +566,10 @@ app_list inexactMultimatch(env &e,
 #if DEBUG_GETAPP
       function *ft = dynamic_cast<function *>(*t);
       signature *target = ft->getSignature();
-      cout << "target: " << *target << endl;
+      cout << "TOTAL" << endl;
+      cout << "ARGS: source: " << source->getNumFormals()
+           << " target: " << target->getNumFormals() << endl;
+      //cout << "target: " << *target << endl;
       if (equivalent(target, source))
         perfect = true;
 #if 0
@@ -512,16 +597,31 @@ app_list inexactMultimatch(env &e,
           cout << "args = " << *source << endl;
         }
         assert(a->exact() == exactlyMatchable(ft->getSignature(), source));
+        if (a->halfExact() && !namedFormals(source)) {
+          if (!halfExactMightMatch(target, source->getFormal(0).t,
+                                           source->getFormal(1).t))
+          {
+            cerr << "target: " << *target << " source: " << *source << endl;
+            cerr.flush();
+          }
+          cerr << "test" << endl;;
+            cerr.flush();
+          assert(halfExactMightMatch(target, source->getFormal(0).t,
+                                             source->getFormal(1).t));
+        }
+          
       }
       if (a && a->exact()) exact = true;
+      if (a && a->halfExact()) halfExact = true;
 #endif
     }
   }
 
 #if DEBUG_GETAPP
-  cout << (perfect ? "PERFECT" :
-           exact   ? "EXACT" :
-                     "IMPERFECT")
+  cout << (perfect     ? "PERFECT" :
+           exact       ? "EXACT" :
+           halfExact   ? "HALFEXACT" :
+                         "IMPERFECT")
        << endl;
 #endif
 
@@ -574,6 +674,17 @@ app_list multimatch(env &e,
     // Make sure that exactMultimatch and the fallback return the same
     // application(s).
     sameApplications(a, inexactMultimatch(e, o, source, al), TEST_EXACT);
+#endif
+
+    return a;
+  }
+
+  a = halfExactMultimatch(e, o, source, al);
+  if (!a.empty()) {
+#if DEBUG_CACHE
+    // Make sure that exactMultimatch and the fallback return the same
+    // application(s).
+    sameApplications(a, inexactMultimatch(e, o, source, al), DONT_TEST_EXACT);
 #endif
 
     return a;
