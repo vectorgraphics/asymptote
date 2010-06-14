@@ -1248,7 +1248,7 @@ bool checkcurve(const pair& z0, const pair& c0, const pair& c1,
 // the path.
 Int path::windingnumber(const pair& z) const
 {
-  static const Int undefined=Int_MAX+((Int_MAX % 2)-1);;
+  static const Int undefined=Int_MAX % 2 ? Int_MAX : Int_MAX-1;
   
   if(!cycles)
     reportError("path is not cyclic");

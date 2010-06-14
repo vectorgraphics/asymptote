@@ -1,4 +1,4 @@
-restricted int undefined=intMax+((intMax % 2)-1);
+restricted int undefined=(intMax % 2 == 1) ? intMax : intMax-1;
 
 restricted real inches=72;
 restricted real inch=inches;
