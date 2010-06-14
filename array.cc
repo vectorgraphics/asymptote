@@ -154,22 +154,19 @@ void array::setSlice(Int left, Int right, array *a)
   }
 }
 
-item copyItemToDepth(item i, Int depth)
+item copyItemToDepth(item i, size_t depth)
 {
-  assert(depth >= 0);
-  if (depth == 0 || !isarray(i))
+  if (depth == 0)
     return i;
   else
     return get<array *>(i)->copyToDepth(depth);
 }
 
-array *array::copyToDepth(Int depth)
+array *array::copyToDepth(size_t depth)
 {
-  assert(depth >= 0);
   if (depth == 0) {
     return this;
-  }
-  else {
+  } else {
     size_t n=this->size();
     array *a=new array(n);
     a->cycle = this->cycle;
@@ -181,7 +178,7 @@ array *array::copyToDepth(Int depth)
   }
 }
 
-array::array(size_t n, item i, Int depth)
+array::array(size_t n, item i, size_t depth)
   : mem::vector<item>(n), cycle(false)
 {
   for (size_t k=0; k<n; ++k)

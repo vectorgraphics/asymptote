@@ -166,6 +166,14 @@ function *realTripleFunction()
 const size_t camp::ColorComponents[]={0,0,1,3,4,0};
 
 namespace vm {
+#if COMPACT
+const Int DefaultValue=0x7fffffffffffffffLL;
+const Int Undefined=0x7ffffffffffffffeLL;
+
+const item Default=DefaultValue;
+#else
+const item Default=item(default_t());
+#endif
 }
 
 namespace run {
@@ -190,7 +198,6 @@ void writestring(stack *s)
   }
 }
 
-default_t def;
 string emptystring;
 pair zero;
 
@@ -245,7 +252,7 @@ item :pushNullFunction()
 // making a function call).
 item :pushDefault()
 {
-  return def;
+  return Default;
 }
 
 

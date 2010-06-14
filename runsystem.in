@@ -18,7 +18,7 @@ using namespace settings;
 using vm::bpinfo;
 using vm::bplist;
 using vm::getPos;
-using vm::default_t;
+using vm::Default;
 using vm::nullfunc;
 using vm::item;
 using absyntax::runnable;
@@ -26,7 +26,6 @@ using absyntax::runnable;
 typedef callable callableBp;
 
 namespace run {
-extern default_t def;
 extern string emptystring;
 }
 
@@ -65,7 +64,7 @@ void breakpoint(stack *Stack, runnable *r)
     Stack->push<string>(curPos.filename());
     Stack->push<Int>((Int) curPos.Line());
     Stack->push<Int>((Int) curPos.Column());
-    Stack->push(r ? r : item(run::def));
+    Stack->push(r ? r : vm::Default);
     atBreakpointFunction->call(Stack); // returns a string
   } else Stack->push<string>("");
 }

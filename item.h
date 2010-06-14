@@ -9,7 +9,10 @@
 #define ITEM_H
 
 #include "common.h"
+#include <cfloat>
+#include <cmath>
 #include <typeinfo>
+#include <cassert>
 
 namespace vm {
 
@@ -19,10 +22,77 @@ class bad_item_value {};
 template<typename T>
 T get(const item&);
 
+#if COMPACT
+// Identify a default argument.
+extern const Int DefaultValue;
+  
+// Identify an undefined item.
+extern const Int Undefined;
+#endif
+  
+extern const item Default;
+
 class item : public gc {
+private:
+  
+#if !COMPACT  
+  const std::type_info *kind;
+#endif
+  
+  union {
+    Int i;
+    double x;
+    bool b;
+    void *p;
+  };
+
 public:
+#if COMPACT    
   bool empty() const
-  { return *kind == typeid(void); }
+  {return i == Undefined;}
+  
+  item() : i(Undefined) {}
+  
+  item(Int i)
+    : i(i) {}
+  item(int i)
+    : i(i) {}
+  item(double x)
+    : x(x) {}
+  item(bool b)
+    : b(b) {}
+  
+  item& operator= (int a)
+  { i=a; return *this; }
+  item& operator= (Int a)
+  { i=a; return *this; }
+  item& operator= (double a)
+  { x=a; return *this; }
+  item& operator= (bool a)
+  { b=a; return *this; }
+  
+  template<class T>
+  item(T *p)
+    : p((void *) p) {
+    assert(p < (void *) Undefined);
+  }
+  
+  template<class T>
+  item(const T &P)
+    : p(new(UseGC) T(P)) {
+    assert(p < (void *) Undefined);
+  }
+  
+  template<class T>
+  item& operator= (T *a)
+  { p=(void *) a; return *this; }
+  
+  template<class T>
+  item& operator= (const T &it)
+  { p=new(UseGC) T(it); return *this; }
+#else    
+  bool empty() const
+  {return *kind == typeid(void);}
   
   item()
     : kind(&typeid(void)) {}
@@ -61,28 +131,18 @@ public:
   item& operator= (const T &it)
   { kind=&typeid(T); p=new(UseGC) T(it); return *this; }
   
+  const std::type_info &type() const
+  { return *kind; }
+#endif  
+  
   template<typename T>
   friend inline T get(const item&);
 
   friend inline bool isdefault(const item&);
-  friend inline bool isarray(const item&);
   
-  const std::type_info &type() const
-  { return *kind; }
-
   friend ostream& operator<< (ostream& out, const item& i);
 
 private:
-  
-  const std::type_info *kind;
-  
-  union {
-    Int i;
-    double x;
-    bool b;
-    void *p;
-  };
-
   template <typename T>
   struct help;
   
@@ -90,8 +150,13 @@ private:
   struct help<T*> {
     static T* unwrap(const item& it)
     {
-      if (*it.kind == typeid(T))
+#if COMPACT      
+      if(!it.empty())
         return (T*) it.p;
+#else        
+      if(*it.kind == typeid(T))
+        return (T*) it.p;
+#endif        
       throw vm::bad_item_value();
     }
   };
@@ -100,8 +165,13 @@ private:
   struct help {
     static T& unwrap(const item& it)
     {
-      if (*it.kind == typeid(T))
+#if COMPACT      
+      if(!it.empty())
         return *(T*) it.p;
+#else      
+      if(*it.kind == typeid(T))
+        return *(T*) it.p;
+#endif      
       throw vm::bad_item_value();
     }
   };
@@ -136,7 +206,7 @@ public:
   
   // Extends vars to ensure it has a place for any variable indexed up to n.
   void extend(size_t n) {
-    if (vars.size() < n)
+    if(vars.size() < n)
       vars.resize(n);
   }
 };
@@ -156,39 +226,58 @@ inline int get<int>(const item&)
 template <>
 inline Int get<Int>(const item& it)
 {
-  if (*it.kind == typeid(Int))
+#if COMPACT  
+  if(!it.empty())
     return it.i;
+#else
+  if(*it.kind == typeid(Int))
+    return it.i;
+#endif  
   throw vm::bad_item_value();
 }
   
 template <>
 inline double get<double>(const item& it)
 {
-  if (*it.kind == typeid(double))
+#if COMPACT  
+  if(!it.empty())
     return it.x;
+#else
+  if(*it.kind == typeid(double))
+    return it.x;
+#endif
   throw vm::bad_item_value();
 }
 
 template <>
 inline bool get<bool>(const item& it)
 {
-  if (*it.kind == typeid(bool))
+#if COMPACT  
+  if(!it.empty())
     return it.b;
+#else  
+  if(*it.kind == typeid(bool))
+    return it.b;
+#endif  
   throw vm::bad_item_value();
 }
 
+#if !COMPACT
 // This serves as the object for representing a default argument.
 struct default_t : public gc {};
-  
+#endif
+
 inline bool isdefault(const item& it)
 {
+#if COMPACT  
+  return it.i == DefaultValue;
+#else  
   return *it.kind == typeid(default_t);
+#endif  
 } 
 
 ostream& operator<< (ostream& out, const item& i);
 
 } // namespace vm
-
-GC_DECLARE_PTRFREE(vm::default_t);
 
 #endif // ITEM_H

@@ -962,12 +962,20 @@ void addArrayOps(venv &ve, types::array *t)
   addFunc(ve, run::arrayAlias,
           primBoolean(), SYM(alias), formal(t, SYM(a)), formal(t, SYM(b)));
 
-  addFunc(ve, run::newDuplicateArray,
-          t, SYM(array), formal(primInt(), SYM(n)),
-          formal(ct, SYM(value)),
-          formal(primInt(), SYM(depth), /*optional=*/ true));
+  size_t depth=(size_t) t->depth();
+  typedef void (*stackFcn)(stack *Stack);
+  static stackFcn routine[]={run::copyArray0,run::copyArray1,run::copyArray2};
+  
+  Int ndepth=sizeof(routine)/sizeof(stackFcn);
+  
+  if(depth <= ndepth) {
+    addFunc(ve, routine[depth-1],
+            t, SYM(array), formal(primInt(), SYM(n)),
+            formal(ct, SYM(value)),
+            formal(primInt(), SYM(depth), true));
+  }
 
-  switch (t->depth()) {
+  switch (depth) {
     case 1:
       addFunc(ve, run::arrayCopy, t, SYM(copy), formal(t, SYM(a)));
       addRestFunc(ve, run::arrayConcat, t, SYM(concat), new types::array(t));

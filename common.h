@@ -32,23 +32,38 @@
 #include "memory.h"
 
 #if defined(HAVE_LONG_LONG) && defined(LONG_LONG_MAX) && defined(LONG_LONG_MIN)
-#define Int_MAX LONG_LONG_MAX
+#define Int_MAX2 LONG_LONG_MAX
 #define Int_MIN LONG_LONG_MIN
 typedef long long Int;
 typedef unsigned long long unsignedInt;
 #else
 #undef HAVE_LONG_LONG
 #ifdef HAVE_LONG
-#define Int_MAX LONG_MAX
+#define Int_MAX2 LONG_MAX
 #define Int_MIN LONG_MIN
 typedef long Int;
 typedef unsigned long unsignedInt;
 #else
-#define Int_MAX INT_MAX
+#define Int_MAX2 INT_MAX
 #define Int_MIN INT_MIN
 typedef int Int;
 typedef unsigned int unsignedInt;
 #endif
+#endif
+
+#ifndef COMPACT
+#if Int_MAX2 >= 0x7fffffffffffffffLL
+#define COMPACT 1
+#else
+#define COMPACT 0
+#endif
+#endif
+
+#ifdef COMPACT
+// Reserve highest two values for DefaultValue and Undefined states.
+#define Int_MAX (Int_MAX2-2)
+#else
+#define Int_MAX Int_MAX2
 #endif
 
 using std::cout;

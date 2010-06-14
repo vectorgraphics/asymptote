@@ -36,6 +36,7 @@ string lookupBltin(bltin b) {
 
 ostream& operator<< (ostream& out, const item& i)
 {
+/*
   // TODO: Make a data structure mapping typeids to print functions.
   if (i.empty())
     out << "empty";
@@ -57,6 +58,7 @@ ostream& operator<< (ostream& out, const item& i)
   }
   else
     out << "type " << demangle(i.type().name());
+*/
   return out;
 }
 
