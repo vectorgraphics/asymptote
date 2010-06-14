@@ -133,13 +133,14 @@ bool venv::add(symbol src, symbol dest,
   bool added=false;
   name_t &list=source.names[src];
   types::overloaded set; // To keep track of what is shadowed.
+  bool special = src.special()
 
   for(name_iterator p = list.begin();
       p != list.end();
       ++p) {
     varEntry *v=*p;
     if (!equivalent(v->getType(), &set)) {
-      set.addDistinct(v->getType(), src->special());
+      set.addDistinct(v->getType(), special);
       if (v->checkPerm(READ, c)) {
         enter(dest, qualifyVarEntry(qualifier, v));
         added=true;
@@ -187,11 +188,12 @@ ty *venv::getType(symbol name)
 
   // Find all applicable functions in scope.
   name_t &list = names[name];
+  bool special = name.special();
   
   for(name_iterator p = list.begin();
       p != list.end();
       ++p) {
-    set.addDistinct((*p)->getType(), name->special());
+    set.addDistinct((*p)->getType(), special);
   }
 
   return set.simplify();
@@ -200,7 +202,13 @@ ty *venv::getType(symbol name)
 #else // {{{
 
 ostream& operator<< (ostream& out, const venv::key &k) {
-  k.t->printVar(out, k.name);
+  if(k.special)
+    k.u.t->printVar(out, k.name);
+  else {
+    out << k.name;
+    if (k.u.sig)
+      out << *k.u.sig;
+  }
   return out;
 }
 
@@ -220,14 +228,9 @@ bool venv::keyeq::operator()(const key k, const key l) const {
 }
 #else
 bool venv::keyeq::operator()(const key k, const key l) const {
-#if 0
-  cerr << "k.t = " << k.t << " " << k << endl;
-  cerr << "l.t = " << l.t << " " << l << endl;
-#endif
   return k.name==l.name &&
-    (k.name.special() ? equivalent(k.t, l.t) :
-     equivalent(k.t->getSignature(),
-                l.t->getSignature()));
+    (k.special ? equivalent(k.u.t, l.u.t) :
+                 equivalent(k.u.sig, l.u.sig));
 }
 #endif
 
@@ -293,7 +296,7 @@ void venv::enter(symbol name, varEntry *v) {
   assert(!scopes.empty());
   key k(name, v);
 #ifdef DEBUG_ENTRY
-  cout << "entering: " << k << " (t=" << k.t << ")" << endl;
+  cout << "entering: " << k << endl;
 #endif
   value *val=new value(v);
 
@@ -359,6 +362,8 @@ varEntry *venv::lookBySignature(symbol name, signature *sig) {
     //cout << "FAIL BY EMPTY" << endl;
     return 0;
   }
+
+
 
   // Avoid ambiguities with default parameters.
   if (namelist.front()->maxFormals != sig->getNumFormals()) {

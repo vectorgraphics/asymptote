@@ -217,20 +217,38 @@ public:
 class venv {
   struct key : public gc {
     symbol name;
-    ty *t;
+    bool special;
+    union {
+      ty *t;
+      signature *sig;
+    } u;
 
     key(symbol name, ty *t)
-      : name(name), t(t) {}
+      : name(name), special(name.special())
+    {
+      if (special)
+        u.t = t;
+      else
+        u.sig = t->getSignature();
+    }
 
     /* A fake key used for searching just based on a signature. */
     key(symbol name, signature *sig)
-      : name(name), t(new types::function(types::primError(), sig))
+      : name(name), special(false)
     {
       assert(!name.special());
+      u.sig = sig;
     }
 
     key(symbol name, varEntry *v)
-      : name(name), t(v->getType()) {}
+      : name(name), special(name.special())
+    {
+      types::ty *t = v->getType();
+      if (special)
+        u.t = t;
+      else
+        u.sig = t->getSignature();
+    }
   };
   friend ostream& operator<< (ostream& out, const venv::key &k);
 
@@ -259,13 +277,12 @@ class venv {
     }
   };
   struct keyhash {
-    size_t hashSig(ty *t) const {
-      signature *sig=t->getSignature();
+    size_t hashSig(signature *sig) const {
       return sig ? sig->hash() : 0;
     }
     size_t operator()(const key k) const {
       return k.name.hash() * 107 +
-        (k.name.special() ? k.t->hash() : hashSig(k.t));
+        (k.special ? k.u.t->hash() : hashSig(k.u.sig));
     }
   };
   struct keyeq {
@@ -273,9 +290,8 @@ class venv {
 #if TEST_COLLISION
     bool base(const key k, const key l) const {
       return k.name==l.name &&
-        (k.name->special() ? equivalent(k.t, l.t) :
-         equivalent(k.t->getSignature(),
-                    l.t->getSignature()));
+        (k.special ? equivalent(k.u.t, l.u.t) :
+         equivalent(k.u.sig, l.u.sig));
     }
     bool operator()(const key k, const key l) const;
 #else
