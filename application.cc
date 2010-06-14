@@ -346,7 +346,7 @@ bool application::halfExact() {
 // True if any of the formals have names.
 bool namedFormals(signature *sig)
 {
-  formal_vector formals = sig->formals;
+  formal_vector& formals = sig->formals;
   size_t n = formals.size();
   for (size_t i = 0; i < n; ++i) {
     if (formals[i].name)
@@ -470,7 +470,8 @@ app_list exactMultimatch(env &e,
   return l;
 }
 
-bool halfExactMightMatch(signature *target, types::ty *t1, types::ty *t2)
+bool halfExactMightMatch(env &e,
+                         signature *target, types::ty *t1, types::ty *t2)
 {
   formal_vector& formals = target->formals;
   if (formals.size() < 2)
@@ -484,14 +485,27 @@ bool halfExactMightMatch(signature *target, types::ty *t1, types::ty *t2)
   assert(formals[0].t);
   assert(formals[1].t);
 
-  // Test if one of the arguments matches exactly.
-  return equivalent(formals[0].t, t1) || equivalent(formals[1].t, t2);
+#ifdef FASTCAST
+#  define CASTABLE fastCastable
+#else
+#  define CASTABLE castable
+#endif
+
+  // These casting tests if successful will be repeating again by
+  // application::match.  It would be nice to avoid this somehow, but the
+  // additional complexity is probably not worth the minor speed improvement.
+  if (equivalent(formals[0].t, t1))
+     return e.CASTABLE(formals[1].t, t2);
+  else 
+    return equivalent(formals[1].t, t2) && e.CASTABLE(formals[0].t, t1);
+#undef CASTABLE
 }
 
-// Most commonly after exact matches are cases such as 2+3.4, that is, binary
-// operations were one of the operands matches exactly and the other does not.
-// This searches for this so-called "half-exact" matches.
-// This should only be called after exactMultimatch has failed.
+// Most common after exact matches are cases such as
+//   2 + 3.4
+// that is, binary operations were one of the operands matches exactly and the
+// other does not.  This function searches for these so-called "half-exact"
+// matches.  This should only be called after exactMultimatch has failed.
 app_list halfExactMultimatch(env &e,
                              types::overloaded *o,
                              types::signature *source,
@@ -525,7 +539,7 @@ app_list halfExactMultimatch(env &e,
     function *ft = (function *)*t;
 
 #if 1
-    if (!halfExactMightMatch(ft->getSignature(), t1, t2))
+    if (!halfExactMightMatch(e, ft->getSignature(), t1, t2))
       continue;
 #endif
 
@@ -538,6 +552,13 @@ app_list halfExactMultimatch(env &e,
   }
 
   return l;
+}
+
+// Simple check if there are two many arguments to match the candidate
+// function.
+bool tooManyArgs(types::signature *target, types::signature *source) {
+  return source->getNumFormals() > target->getNumFormals() &&
+         !target->hasRest();
 }
 
 // The full overloading resolution system, which handles casting of arguments,
@@ -566,53 +587,31 @@ app_list inexactMultimatch(env &e,
 #if DEBUG_GETAPP
       function *ft = dynamic_cast<function *>(*t);
       signature *target = ft->getSignature();
-      cout << "TOTAL" << endl;
-      cout << "ARGS: source: " << source->getNumFormals()
-           << " target: " << target->getNumFormals() << endl;
-      //cout << "target: " << *target << endl;
       if (equivalent(target, source))
         perfect = true;
-#if 0
-      cout << "TOTAL" << endl;
-      if (target->getNumFormals() < source->getNumFormals() &&
-          !target->hasRest()) {
-        cout << "TOO MANY ARGS" << endl;
-      } else if (target->getNumFormals() == source->getNumFormals() &&
-          !target->hasRest()) {
-        cout << "EXACT ARGS" << endl;
-      } else {
-        cout << "NOT TOO MANY ARGS" << endl;
-      }
 #endif
-#endif
+
+      // Check if there are two many arguments to match.
+      if (tooManyArgs((*t)->getSignature(), source))
+        continue;
+
       application *a=application::match(e, (function *)(*t), source, al);
       if (a)
         l.push_back(a);
+
 #if DEBUG_GETAPP
       if (a && !namedFormals(source)) {
-        if (a->exact() != exactlyMatchable(ft->getSignature(), source)) {
-          cout << a->exact() << " != "
-               << exactlyMatchable(ft->getSignature(), source) << endl;
-          cout << "ft = " << *ft << endl;
-          cout << "args = " << *source << endl;
-        }
         assert(a->exact() == exactlyMatchable(ft->getSignature(), source));
         if (a->halfExact() && !namedFormals(source)) {
-          if (!halfExactMightMatch(target, source->getFormal(0).t,
-                                           source->getFormal(1).t))
-          {
-            cerr << "target: " << *target << " source: " << *source << endl;
-            cerr.flush();
-          }
-          cerr << "test" << endl;;
-            cerr.flush();
-          assert(halfExactMightMatch(target, source->getFormal(0).t,
-                                             source->getFormal(1).t));
+          assert(halfExactMightMatch(e, target, source->getFormal(0).t,
+                                                source->getFormal(1).t));
         }
           
       }
-      if (a && a->exact()) exact = true;
-      if (a && a->halfExact()) halfExact = true;
+      if (a && a->exact())
+        exact = true;
+      if (a && a->halfExact())
+        halfExact = true;
 #endif
     }
   }

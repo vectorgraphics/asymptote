@@ -1,6 +1,5 @@
 Andy: possible optimizations:
-    fix func op and three.asy
-    rewrite exp::transToType and protoenv::castSource
+    Is it cheaper to import a bltin module than to call base_venv again?
     varpush+pop --> no op
     varsave+pop --> one op
     closure+pushfunc+varsave+pop --> savefunc
@@ -9,9 +8,7 @@ Andy: possible optimizations:
     formal::addOps calls trans
     only hash first 3 or 4 args of signature
     rm transToType from varinitArg::trans
-    run a perfect match through multimatch first (no casting allowed)
     change camp.y to flag arglists with named args
-    remove addFunctionOps in favor of == and != defined in types.h
 
 Andy: testing in errortest.asy for packing versus casting, default argument
 ambiguities, and whatever else you can think of

@@ -45,7 +45,27 @@ void exp::transAsType(coenv &e, types::ty *target) {
 
 void exp::transToType(coenv &e, types::ty *target)
 {
-  types::ty *source=e.e.castSource(target, cgetType(e), symbol::castsym);
+  types::ty *ct=cgetType(e);
+
+  if (equivalent(target, ct)) {
+    transAsType(e, target);
+    return;
+  }
+
+#if FASTCAST
+  if (ct->kind != ty_overloaded &&
+      ct->kind != ty_error &&
+      target->kind != ty_error) {
+    access *a = e.e.fastLookupCast(target, ct);
+    if (a) {
+      transAsType(e, ct);
+      a->encode(CALL, getPos(), e.c);
+      return;
+    }
+  }
+#endif
+
+  types::ty *source = e.e.castSource(target, ct, symbol::castsym);
   if (source==0) {
     if (target->kind != ty_error) {
       types::ty *sources=cgetType(e);

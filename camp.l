@@ -87,7 +87,7 @@ void adjust()
 void savesymbol(symbol name)
 {
   adjust();
-  yylval.ps.pos=here();
+  yylval.ps.pos=yylval.pos; // avoid invoking here() twice
   yylval.ps.sym=name;
 }
 

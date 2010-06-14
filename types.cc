@@ -335,8 +335,7 @@ ostream& operator<< (ostream& out, const formal& f)
   
 bool equivalent(formal& f1, formal& f2) {
   // Just test the types.
-  // This will also return true for the rest parameter if both types are null.
-  // NOTE: Is this the right behavior?
+  // This cannot be used on rest formal with types equal to NULL.
   return equivalent(f1.t,f2.t);
 }
 
@@ -402,9 +401,14 @@ bool equivalent(signature *s1, signature *s2)
   if (s1->formals.size() != s2->formals.size())
     return false;
 
-  return std::equal(s1->formals.begin(),s1->formals.end(),s2->formals.begin(),
-                    (bool (*)(formal&,formal&)) equivalent) &&
-    equivalent(s1->rest, s2->rest);
+  if (!std::equal(s1->formals.begin(),s1->formals.end(),s2->formals.begin(),
+                 (bool (*)(formal&,formal&)) equivalent))
+    return false;
+
+  if (s1->rest.t)
+    return s2->rest.t && equivalent(s1->rest, s2->rest);
+  else
+    return s1->rest.t == 0;
 }
 
 bool argumentEquivalent(signature *s1, signature *s2)
@@ -502,20 +506,24 @@ bool equivalent(ty *t1, ty *t2)
   if (t1 == t2)
     return true; 
 
-  // Handle empty types (used in equating empty rest parameters).
-  if (t1 == 0 || t2 == 0)
-    return false;
-
   // Ensure if an overloaded type is compared to a non-overloaded one, that the
   // overloaded type's method is called.
-  if (t1->kind == ty_overloaded || t2->kind != ty_overloaded)
+  if (t2->kind == ty_overloaded)
+    return t2->equiv(t1);
+  if (t1->kind == ty_overloaded)
     return t1->equiv(t2);
-  return t2->equiv(t1);
+
+  // Outside of overloaded types, different kinds mean different types.
+  if (t1->kind != t2->kind)
+    return false;
+
+  return t1->equiv(t2);
 }
+
 
 bool equivalent(ty *t1, ty *t2, bool special) {
   return special ? equivalent(t1, t2) :
-    equivalent(t1->getSignature(), t2->getSignature());
+                   equivalent(t1->getSignature(), t2->getSignature());
 }
 
 #undef FIELD
