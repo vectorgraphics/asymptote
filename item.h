@@ -49,7 +49,7 @@ private:
 public:
 #if COMPACT    
   bool empty() const
-  {return i == Undefined;}
+  {return i >= Undefined;}
   
   item() : i(Undefined) {}
   
