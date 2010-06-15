@@ -133,7 +133,7 @@ bool venv::add(symbol src, symbol dest,
   bool added=false;
   name_t &list=source.names[src];
   types::overloaded set; // To keep track of what is shadowed.
-  bool special = src.special()
+  bool special = src.special();
 
   for(name_iterator p = list.begin();
       p != list.end();
