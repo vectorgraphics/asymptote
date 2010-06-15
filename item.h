@@ -74,13 +74,13 @@ public:
   template<class T>
   item(T *p)
     : p((void *) p) {
-    assert(p < (void *) Undefined);
+    assert(!empty());
   }
   
   template<class T>
   item(const T &P)
     : p(new(UseGC) T(P)) {
-    assert(p < (void *) Undefined);
+    assert(!empty());
   }
   
   template<class T>
