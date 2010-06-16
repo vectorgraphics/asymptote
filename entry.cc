@@ -273,7 +273,7 @@ void venv::checkName(symbol name)
     if (p->first.name == name) {
       ++matches;
 
-      varEntry *v=p->second->v;
+      varEntry *v=p->second.v;
       assert(v);
       assert(equivalent(t, v->getType()));
     }
@@ -359,7 +359,12 @@ void venv::namevalue::replaceType(ty *new_t, ty *old_t) {
 #endif
 }
 
-void venv::namevalue::popType(ty *s) {
+#ifdef DEBUG_CACHE
+void venv::namevalue::popType(ty *s)
+#else
+void venv::namevalue::popType()
+#endif
+{
 #ifdef DEBUG_CACHE
   assert(t);
   RIGHTKIND(t);
@@ -396,7 +401,7 @@ void venv::namevalue::popType(ty *s) {
 void venv::remove(const addition& a) {
   CHECKNAME(a.k.name);
 
-  value *&val=all[a.k];
+  value &val=all[a.k];
 
 #ifdef DEBUG_CACHE
   assert(val);
@@ -404,12 +409,13 @@ void venv::remove(const addition& a) {
 
   if (a.shadowed) {
     // Unshadow the previously shadowed varEntry.
-    names[a.k.name].replaceType(a.shadowed->getType(), val->v->getType());
-    val->v = a.shadowed;
+    // TODO: Add equiv check.
+    names[a.k.name].replaceType(a.shadowed->getType(), val.v->getType());
+    val.v = a.shadowed;
   } else {
     // Remove the (name,sig) key completely.
-#if 1
-    names[a.k.name].popType(val->v->getType());
+#if DEBUG_CACHE
+    names[a.k.name].popType(val.v->getType());
 #else
     names[a.k.name].popType();
 #endif
@@ -467,30 +473,28 @@ void venv::enter(symbol name, varEntry *v)
 
   key k(name, v);
 
-  value *&slot=all[k];
-  if (slot) {
-    // The new value shadows the old value, so they have the same signature
-    // but possibly different return types.  Update the type stored by name.
-    // TODO: Add equiv check first to avoid name lookup.
-    names[name].replaceType(v->getType(), slot->v->getType());
+  value &slot=all[k];
+  if (slot.v) {
+    // The new value shadows an old value.  They have the same signature, but
+    // possibly different return types.  If necessary, update the type stored
+    // by name.
+    //if (!equivalent(v->getType(), slot.v->getType()))
+    names[name].replaceType(v->getType(), slot.v->getType());
 
     // Replace the old value, but store its now-shadowed varEntry.
     if (!scopesizes.empty())
-      additions.push(addition(k, slot->v));
+      additions.push(addition(k, slot.v));
 
-    slot->v = v;
+    slot.v = v;
 
   } else {
     // Add to the names hash table.
     names[name].addType(v->getType());
 
-    // Allocate a new value, and add the type to the name list.
-    value *val=new value(v);
-
     if (!scopesizes.empty())
       additions.push(addition(k, 0));
 
-    slot=val;
+    slot.v=v;
   }
 
   CHECKNAME(name);
@@ -548,7 +552,7 @@ void venv::add(venv& source, varEntry *qualifier, coder &c)
 {
   // Enter each distinct (unshadowed) name,type pair.
   for(keymap::iterator p = source.all.begin(); p != source.all.end(); ++p) {
-    varEntry *v=p->second->v;
+    varEntry *v=p->second.v;
     if (v->checkPerm(READ, c))
       enter(p->first.name, qualifyVarEntry(qualifier, v));
   }

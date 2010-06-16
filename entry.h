@@ -257,28 +257,9 @@ class venv {
 
   struct value : public gc {
     varEntry *v;
-#if 0
-    bool shadowed;
-    value *next;  // The entry (of the same key) that this one shadows.
-#endif
-
-#ifdef CALLEE_SEARCH
-    // The maximum number of formals in any of the overloaded functions of
-    // this name (at the time this value was entered).
-    size_t maxFormals;
-
-    // Set maxFormals based both on the value's own signature and the other
-    // signatures in the list.
-    void setMaxArgs(const mem::list<value *>& namelist);
-#endif
-
     value(varEntry *v)
-#if 0
-      : v(v), shadowed(false), next(0) {}
-#else
       : v(v) {}
-#endif
-
+    value() : v(0) {}
   };
 
   struct namehash {
@@ -317,7 +298,7 @@ class venv {
 
   // A hash table used to quickly look up a variable once its name and type are
   // known.  Includes all scopes.
-  typedef mem::unordered_map<key, value *, keyhash, keyeq> keymap;
+  typedef mem::unordered_map<key, value, keyhash, keyeq> keymap;
   keymap all;
 
   // Record of added variables in the order they were added.
@@ -347,7 +328,7 @@ class venv {
     
     void replaceType(ty *new_t, ty *old_t);
 
-#if 1
+#if DEBUG_CACHE
     void popType(ty *tnew);
 #else
     void popType();
@@ -405,7 +386,7 @@ public:
 
   varEntry *lookByType(key k) {
     keymap::const_iterator p=all.find(k);
-    return p!=all.end() ? p->second->v : 0;
+    return p!=all.end() ? p->second.v : 0;
   }
   
   // Look for a function that exactly matches the type given.
