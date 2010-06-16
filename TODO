@@ -1,4 +1,10 @@
+Andy: Investigate bbox error in uofa-talk Shadowing slide
+
+Andy: make var work in extended for
+
 Andy: possible optimizations:
+    overloaded::simplify copies
+    straight guide which references a subset of a pair vector.
     Is it cheaper to import a bltin module than to call base_venv again?
     varpush+pop --> no op
     varsave+pop --> one op

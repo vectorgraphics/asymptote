@@ -14,7 +14,11 @@
 #include "entry.h"
 #include "coder.h"
 
+using types::ty;
 using types::signature;
+using types::overloaded;
+using types::ty_vector;
+using types::ty_iterator;
 
 namespace trans {
 
@@ -118,88 +122,88 @@ bool tenv::add(symbol src, symbol dest,
 }
 
 #ifdef NOHASH //{{{
-void venv::add(venv& source, varEntry *qualifier, coder &c)
-{
-  // Enter each distinct (unshadowed) name,type pair.
-  for(names_t::iterator p = source.names.begin();
-      p != source.names.end();
-      ++p)
-    add(p->first, p->first, source, qualifier, c);
-}
-
-bool venv::add(symbol src, symbol dest,
-               venv& source, varEntry *qualifier, coder &c)
-{
-  bool added=false;
-  name_t &list=source.names[src];
-  types::overloaded set; // To keep track of what is shadowed.
-  bool special = src.special();
-
-  for(name_iterator p = list.begin();
-      p != list.end();
-      ++p) {
-    varEntry *v=*p;
-    if (!equivalent(v->getType(), &set)) {
-      set.addDistinct(v->getType(), special);
-      if (v->checkPerm(READ, c)) {
-        enter(dest, qualifyVarEntry(qualifier, v));
-        added=true;
-      }
-    }
-  }
-  
-  return added;
-}
-
-varEntry *venv::lookByType(symbol name, ty *t)
-{
-  // Find first applicable function.
-  name_t &list = names[name];
-  for(name_iterator p = list.begin();
-      p != list.end();
-      ++p) {
-    if (equivalent((*p)->getType(), t))
-      return *p;
-  }
-  return 0;
-}
-
-void venv::list(record *module)
-{
-  bool where=settings::getSetting<bool>("where");
-  // List all functions and variables.
-  for(names_t::iterator N = names.begin(); N != names.end(); ++N) {
-    symbol s=N->first;
-    name_t &list=names[s];
-    for(name_iterator p = list.begin(); p != list.end(); ++p) {
-      if(!module || (*p)->whereDefined() == module) {
-        if(where) cout << (*p)->getPos();
-        (*p)->getType()->printVar(cout, s);
-        cout << ";\n";
-      }
-    }
-  }
-  flush(cout);
-}
-
-ty *venv::getType(symbol name)
-{
-  types::overloaded set;
-
-  // Find all applicable functions in scope.
-  name_t &list = names[name];
-  bool special = name.special();
-  
-  for(name_iterator p = list.begin();
-      p != list.end();
-      ++p) {
-    set.addDistinct((*p)->getType(), special);
-  }
-
-  return set.simplify();
-}
+/*NOHASH*/ void venv::add(venv& source, varEntry *qualifier, coder &c)
+/*NOHASH*/ {
+/*NOHASH*/   // Enter each distinct (unshadowed) name,type pair.
+/*NOHASH*/   for(names_t::iterator p = source.names.begin();
+/*NOHASH*/       p != source.names.end();
+/*NOHASH*/       ++p)
+/*NOHASH*/     add(p->first, p->first, source, qualifier, c);
+/*NOHASH*/ }
+/*NOHASH*/ 
+/*NOHASH*/ bool venv::add(symbol src, symbol dest,
+/*NOHASH*/                venv& source, varEntry *qualifier, coder &c)
+/*NOHASH*/ {
+/*NOHASH*/   bool added=false;
+/*NOHASH*/   name_t &list=source.names[src];
+/*NOHASH*/   types::overloaded set; // To keep track of what is shadowed.
+/*NOHASH*/   bool special = src.special();
+/*NOHASH*/ 
+/*NOHASH*/   for(name_iterator p = list.begin();
+/*NOHASH*/       p != list.end();
+/*NOHASH*/       ++p) {
+/*NOHASH*/     varEntry *v=*p;
+/*NOHASH*/     if (!equivalent(v->getType(), &set)) {
+/*NOHASH*/       set.addDistinct(v->getType(), special);
+/*NOHASH*/       if (v->checkPerm(READ, c)) {
+/*NOHASH*/         enter(dest, qualifyVarEntry(qualifier, v));
+/*NOHASH*/         added=true;
+/*NOHASH*/       }
+/*NOHASH*/     }
+/*NOHASH*/   }
+/*NOHASH*/   
+/*NOHASH*/   return added;
+/*NOHASH*/ }
+/*NOHASH*/ 
+/*NOHASH*/ varEntry *venv::lookByType(symbol name, ty *t)
+/*NOHASH*/ {
+/*NOHASH*/   // Find first applicable function.
+/*NOHASH*/   name_t &list = names[name];
+/*NOHASH*/   for(name_iterator p = list.begin();
+/*NOHASH*/       p != list.end();
+/*NOHASH*/       ++p) {
+/*NOHASH*/     if (equivalent((*p)->getType(), t))
+/*NOHASH*/       return *p;
+/*NOHASH*/   }
+/*NOHASH*/   return 0;
+/*NOHASH*/ }
+/*NOHASH*/ 
+/*NOHASH*/ void venv::list(record *module)
+/*NOHASH*/ {
+/*NOHASH*/   bool where=settings::getSetting<bool>("where");
+/*NOHASH*/   // List all functions and variables.
+/*NOHASH*/   for(names_t::iterator N = names.begin(); N != names.end(); ++N) {
+/*NOHASH*/     symbol s=N->first;
+/*NOHASH*/     name_t &list=names[s];
+/*NOHASH*/     for(name_iterator p = list.begin(); p != list.end(); ++p) {
+/*NOHASH*/       if(!module || (*p)->whereDefined() == module) {
+/*NOHASH*/         if(where) cout << (*p)->getPos();
+/*NOHASH*/         (*p)->getType()->printVar(cout, s);
+/*NOHASH*/         cout << ";\n";
+/*NOHASH*/       }
+/*NOHASH*/     }
+/*NOHASH*/   }
+/*NOHASH*/   flush(cout);
+/*NOHASH*/ }
+/*NOHASH*/ 
+/*NOHASH*/ ty *venv::getType(symbol name)
+/*NOHASH*/ {
+/*NOHASH*/   types::overloaded set;
+/*NOHASH*/ 
+/*NOHASH*/   // Find all applicable functions in scope.
+/*NOHASH*/   name_t &list = names[name];
+/*NOHASH*/   bool special = name.special();
+/*NOHASH*/   
+/*NOHASH*/   for(name_iterator p = list.begin();
+/*NOHASH*/       p != list.end();
+/*NOHASH*/       ++p) {
+/*NOHASH*/     set.addDistinct((*p)->getType(), special);
+/*NOHASH*/   }
+/*NOHASH*/ 
+/*NOHASH*/   return set.simplify();
+/*NOHASH*/ }
 // }}}
-#else // {{{
+#else
 
 ostream& operator<< (ostream& out, const venv::key &k) {
   if(k.special)
@@ -234,106 +238,262 @@ bool venv::keyeq::operator()(const key k, const key l) const {
 }
 #endif
 
-void venv::remove(key k) {
-  //cerr << "removing: " << k << endl;
-  value *&val=all[k];
-  assert(val);
-  if (val->next) {
-    val->next->shadowed=false;
-    value *temp=val->next;
-    val->next=0;
-    val=temp;
-  }
-  else
-    all.erase(k);
-
-  // Don't erase it from scopes.top() as that will be popped of the stack at
-  // the end of endScope anyway.
-
-  names[k.name].pop_front();
-}
-
 #ifdef CALLEE_SEARCH
-size_t numArgs(ty *t) {
+size_t numFormals(ty *t) {
   signature *sig = t->getSignature();
   return sig ? sig->getNumFormals() : 0;
 }
+#endif
 
-void checkMaxArgs(venv *ve, symbol name, size_t expected) {
-  size_t maxFormals = 0;
-  ty *t = ve->getType(name);
-  if (types::overloaded *o=dynamic_cast<types::overloaded *>(t)) {
-    for (types::ty_vector::iterator i=o->sub.begin(); i != o->sub.end(); ++i)
-    {
-      size_t n = numArgs(*i);
-      if (n > maxFormals)
-        maxFormals = n;
-    }
-  } else {
-    maxFormals = numArgs(t);
+void venv::checkName(symbol name)
+{
+  // TODO: test maxFormals
+
+  // Get the type, and make it overloaded if it is not (for uniformity).
+  overloaded o;
+  ty *t = getType(name);
+  if (!t)
+    t = &o;
+  if (!t->isOverloaded()) {
+    o.add(t);
+    t = &o;
   }
-  if (expected != maxFormals) {
-    cout << "expected: " << expected << " computed: " << maxFormals << endl;
-    cout << "types: " << endl;
-    if (types::overloaded *o=dynamic_cast<types::overloaded *>(t)) {
-      cout << " overloaded" << endl;
-      for (types::ty_vector::iterator i=o->sub.begin(); i != o->sub.end();
-          ++i)
-      {
-        cout << "  " << **i << endl;
-      }
-    } else {
-      cout << " non-overloaded" << endl;
-      cout << "  " << *t << endl;
-    }
-    cout.flush();
+  assert(t->isOverloaded());
+
+  size_t size = 0;
+  for (ty_iterator i = t->begin(); i != t->end(); ++i) {
+    varEntry *v = lookByType(name, *i);
+    assert(v);
+    assert(equivalent(v->getType(), *i));
+    ++size;
   }
-  assert(expected == maxFormals);
+
+  size_t matches = 0;
+  for (keymap::iterator p = all.begin(); p != all.end(); ++p) {
+    if (p->first.name == name) {
+      ++matches;
+
+      varEntry *v=p->second->v;
+      assert(v);
+      assert(equivalent(t, v->getType()));
+    }
+  }
+  assert(matches == size);
 }
-#endif
-
-void venv::enter(symbol name, varEntry *v) {
-  assert(!scopes.empty());
-  key k(name, v);
-#ifdef DEBUG_ENTRY
-  cout << "entering: " << k << endl;
-#endif
-  value *val=new value(v);
-
-#ifdef DEBUG_ENTRY
-  keymap::iterator p=all.find(k);
-  if (p!=all.end()) {
-    cout << "  over: " << p->first << endl;
+    
+void rightKind(ty *t) {
+  if (t && t->isOverloaded()) {
+    ty_vector& set=((overloaded *)t)->sub;
+    assert(set.size() > 1);
   }
+}
+
+#ifdef DEBUG_CACHE
+#define RIGHTKIND(t) (rightKind(t))
+#define CHECKNAME(name) (checkName(name))
+#else
+#define RIGHTKIND(t) (void)(t)
+#define CHECKNAME(name) (void)(name)
+#endif
+
+void venv::namevalue::addType(ty *s) {
+  RIGHTKIND(t);
+
+#ifdef DEBUG_CACHE
+  assert(!s->isOverloaded());
+#endif
+
+  if (t == 0) {
+#if CALLEE_SEARCH
+    maxFormals = numFormals(s);
+#endif
+    t = s;
+  } else {
+    if (!t->isOverloaded())
+      t = new overloaded(t);
+
+#ifdef DEBUG_CACHE
+    assert(t->isOverloaded());
+    assert(!equivalent(t, s));
+#endif
+
+    ((overloaded *)t)->add(s);
+
+#if CALLEE_SEARCH
+    size_t n = numFormals(s);
+    if (n > maxFormals)
+      maxFormals = n;
+#endif
+  }
+
+  RIGHTKIND(t);
+}
+
+void venv::namevalue::replaceType(ty *new_t, ty *old_t) {
+#ifdef DEBUG_CACHE
+  assert(t != 0);
+  RIGHTKIND(t);
 #endif
   
-  val->next=all[k];
-  if (val->next)
-    val->next->shadowed=true;
+  if (t->isOverloaded()) {
+    for (ty_iterator i = t->begin(); i != t->end(); ++i) {
+      if (equivalent(old_t, *i)) {
+        *i = new_t;
+        return;
+      }
+    }
 
-  all[k]=val;
-  scopes.top().insert(keymultimap::value_type(k,val));
+    // An error, the type was not found.
+    assert("unreachable code" == 0);
 
-#ifdef CALLEE_SEARCH
-  // I'm not sure if this works properly with rest arguments.
-  signature *sig = v->getSignature();
-  size_t newmax = sig ? sig->getNumFormals() : 0;
-  mem::list<value *>& namelist = names[k.name];
-  if (!namelist.empty()) {
-    size_t oldmax = namelist.front()->maxFormals;
-    if (oldmax > newmax)
-      newmax = oldmax;
-  }
-  val->maxFormals = newmax;
-  namelist.push_front(val);
-
-  // A sanity check, disabled for speed reasons.
+  } else {
 #ifdef DEBUG_CACHE
-  checkMaxArgs(this, k.name, val->maxFormals);
+    assert(equivalent(old_t, t));
 #endif
+    t = new_t;
+  }
+
+#ifdef DEBUG_CACHE
+  assert(t != 0);
+  RIGHTKIND(t);
+#endif
+}
+
+void venv::namevalue::popType(ty *s) {
+#ifdef DEBUG_CACHE
+  assert(t);
+  RIGHTKIND(t);
+  assert(!s->isOverloaded());
+#endif
+
+  if (t->isOverloaded()) {
+    ty_vector& set=((overloaded *)t)->sub;
+
+#ifdef DEBUG_CACHE
+    assert(set.size() > 0);
+    assert(equivalent(set.back(), s));
+#endif
+
+    // We are relying on the fact that this was the last type added to t, and
+    // that type are added by pushing them on the end of the vector.
+    set.pop_back();
+
+    if (set.size() == 1)
+      t = set.front();
+  } else {
+#ifdef DEBUG_CACHE
+    assert(equivalent(t, s));
+#endif
+    t = 0;
+  }
+
+  RIGHTKIND(t);
+
+  // Don't try to reduce numFormals as I doubt it is worth the cost of
+  // recalculating. 
+}
+
+void venv::remove(const addition& a) {
+  CHECKNAME(a.k.name);
+
+  value *&val=all[a.k];
+
+#ifdef DEBUG_CACHE
+  assert(val);
+#endif
+
+  if (a.shadowed) {
+    // Unshadow the previously shadowed varEntry.
+    names[a.k.name].replaceType(a.shadowed->getType(), val->v->getType());
+    val->v = a.shadowed;
+  } else {
+    // Remove the (name,sig) key completely.
+#if 1
+    names[a.k.name].popType(val->v->getType());
 #else
-  names[k.name].push_front(val);
+    names[a.k.name].popType();
 #endif
+    all.erase(a.k);
+  }
+
+  CHECKNAME(a.k.name);
+}
+
+void venv::beginScope() {
+  if (all.empty()) {
+    assert(scopesizes.empty());
+    ++empty_scopes;
+  } else {
+    scopesizes.push(additions.size());
+  }
+}
+
+void venv::endScope() {
+  if (scopesizes.empty()) {
+    // The corresponding beginScope happened when the venv was empty, so
+    // clear the hash tables to return to that state.
+    all.clear();
+    names.clear();
+
+    assert(empty_scopes > 0);
+    --empty_scopes;
+  } else {
+    size_t scopesize = scopesizes.top();
+    assert(additions.size() >= scopesize);
+    while (additions.size() > scopesize) {
+      remove(additions.top());
+      additions.pop();
+    }
+    scopesizes.pop();
+  }
+}
+
+// Adds the definitions of the top-level scope to the level underneath,
+// and then removes the top scope.
+void venv::collapseScope() {
+  if (scopesizes.empty()) {
+    // Collapsing an empty scope.
+    assert(empty_scopes > 0);
+    --empty_scopes;
+  } else {
+    scopesizes.pop();
+  }
+}
+
+
+void venv::enter(symbol name, varEntry *v)
+{
+  CHECKNAME(name);
+
+  key k(name, v);
+
+  value *&slot=all[k];
+  if (slot) {
+    // The new value shadows the old value, so they have the same signature
+    // but possibly different return types.  Update the type stored by name.
+    // TODO: Add equiv check first to avoid name lookup.
+    names[name].replaceType(v->getType(), slot->v->getType());
+
+    // Replace the old value, but store its now-shadowed varEntry.
+    if (!scopesizes.empty())
+      additions.push(addition(k, slot->v));
+
+    slot->v = v;
+
+  } else {
+    // Add to the names hash table.
+    names[name].addType(v->getType());
+
+    // Allocate a new value, and add the type to the name list.
+    value *val=new value(v);
+
+    if (!scopesizes.empty())
+      additions.push(addition(k, 0));
+
+    slot=val;
+  }
+
+  CHECKNAME(name);
 }
 
 
@@ -356,17 +516,10 @@ varEntry *venv::lookBySignature(symbol name, signature *sig) {
     return 0;
   }
 
-  mem::list<value *>& namelist = names[name];
-  if (namelist.empty()) {
-    // No variables of this name.
-    //cout << "FAIL BY EMPTY" << endl;
-    return 0;
-  }
-
-
+  namevalue& nv = names[name];
 
   // Avoid ambiguities with default parameters.
-  if (namelist.front()->maxFormals != sig->getNumFormals()) {
+  if (nv.maxFormals != sig->getNumFormals()) {
 #if 0
     if (lookByType(key(name, sig)))
       cout << "FAIL BY NUMARGS" << endl;
@@ -404,68 +557,75 @@ void venv::add(venv& source, varEntry *qualifier, coder &c)
 bool venv::add(symbol src, symbol dest,
                venv& source, varEntry *qualifier, coder &c)
 {
-  bool added=false;
-  values &list=source.names[src];
-
-  for (values::iterator p=list.begin(); p!=list.end(); ++p)
-    if (!(*p)->shadowed) {
-      varEntry *v=(*p)->v;
+  ty *t=source.getType(src);
+  if (!t)
+    return false;
+  else if (t->isOverloaded()) {
+    bool added=false;
+    for (ty_iterator i = t->begin(); i != t->end(); ++i) {
+      varEntry *v=source.lookByType(src, *i);
       if (v->checkPerm(READ, c)) {
         enter(dest, qualifyVarEntry(qualifier, v));
         added=true;
       }
     }
-
-  return added;
+    return added;
+  } else {
+    varEntry *v=source.lookByType(src, t);
+    if (v->checkPerm(READ, c)) {
+      enter(dest, qualifyVarEntry(qualifier, v));
+      return true;
+    }
+    return false;
+  }
 }
 
 
 ty *venv::getType(symbol name)
 {
-#if 0
-  cout << "getType: " << name << endl;
-#endif
-  types::overloaded set;
-  values &list=names[name];
-
-  for (values::iterator p=list.begin(); p!=list.end(); ++p)
-    if (!(*p)->shadowed)
-      set.add((*p)->v->getType());
-
-  return set.simplify();
+  return names[name].t;
 }
 
-void venv::listValues(symbol name, values &vals, record *module)
+void listValue(symbol name, varEntry *v, record *module)
 {
-  ostream& out=cout;
+  if (!module || v->whereDefined() == module)
+  {
+    if (settings::getSetting<bool>("where"))
+      cout << v->getPos();
 
-  bool where=settings::getSetting<bool>("where");
-  for(values::iterator p = vals.begin(); p != vals.end(); ++p) {
-    if(!module || (*p)->v->whereDefined() == module) {
-      if(where) out << (*p)->v->getPos();
-      if ((*p)->shadowed)
-        out << "  <shadowed> ";
-      (*p)->v->getType()->printVar(out, name);
-      out << ";\n";
-    }
+    v->getType()->printVar(cout, name);
+
+    cout << ";\n";
   }
-  flush(out);
+}
+
+void venv::listValues(symbol name, record *module)
+{
+  ty *t=getType(name);
+
+  if (t->isOverloaded())
+    for (ty_iterator i = t->begin(); i != t->end(); ++i)
+      listValue(name, lookByType(name, *i), module);
+  else
+    listValue(name, lookByType(name, t), module);
+
+  flush(cout);
 }
 
 void venv::list(record *module)
 {
   // List all functions and variables.
-  for(namemap::iterator N = names.begin(); N != names.end(); ++N)
-    listValues(N->first, N->second,module);
+  for (namemap::iterator N = names.begin(); N != names.end(); ++N)
+    listValues(N->first, module);
 }
 
 void venv::completions(mem::list<symbol >& l, string start)
 {
   for(namemap::iterator N = names.begin(); N != names.end(); ++N)
-    if (prefix(start, N->first) && !N->second.empty())
+    if (prefix(start, N->first) && N->second.t)
       l.push_back(N->first);
 }
 
-#endif // }}}
+#endif
 
 } // namespace trans

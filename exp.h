@@ -675,11 +675,11 @@ public:
     return args.size();
   }
   
-  virtual argument operator[] (size_t index) {
+  virtual argument& operator[] (size_t index) {
     return args[index];
   }
 
-  virtual argument getRest() {
+  virtual argument& getRest() {
     return rest;
   }
 };

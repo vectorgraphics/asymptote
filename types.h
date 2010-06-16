@@ -471,9 +471,14 @@ struct function : public ty {
 class overloaded : public ty {
 public:
   ty_vector sub;
+
+  // Warning: The venv endScope routine relies heavily on the current
+  // implementation of overloaded.
 public:
   overloaded()
     : ty(ty_overloaded) {}
+  overloaded(ty *t)
+    : ty(ty_overloaded) { add(t); }
   virtual ~overloaded() {}
 
   bool equiv(ty *other)

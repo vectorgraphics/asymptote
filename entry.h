@@ -180,38 +180,39 @@ public:
 };
 
 #ifdef NOHASH //{{{
-class venv : public sym::table<varEntry*> {
-  /* This version of venv is provided for compiling on systems which do not
-   * have some form of STL hash table.  It will eventually be removed.
-   * See the hash version below for documentation on the functions.
-   */
-public:
-  venv() {}
-
-  struct file_env_tag {};
-  venv(file_env_tag) {}
-
-  void add(venv& source, varEntry *qualifier, coder &c);
-
-  bool add(symbol src, symbol dest,
-           venv& source, varEntry *qualifier, coder &c);
-
-  varEntry *lookByType(symbol name, ty *t);
-
-  varEntry *lookBySignature(symbol name, signature *sig) {
-    // This optimization is not implemented for the NOHASH version.
-    return 0;
-  }
-
-  ty *getType(symbol name);
-
-  friend std::ostream& operator<< (std::ostream& out, const venv& ve);
-  
-  void list(record *module=0);
-};
+ /* This version of venv is provided for compiling on systems which do not
+  * have some form of STL hash table.  It will eventually be removed.
+  * See the hash version below for documentation on the functions.
+  */
+/*NOHASH*/ class venv : public sym::table<varEntry*> {
+/*NOHASH*/ public:
+/*NOHASH*/   venv() {}
+/*NOHASH*/ 
+/*NOHASH*/   struct file_env_tag {};
+/*NOHASH*/   venv(file_env_tag) {}
+/*NOHASH*/ 
+/*NOHASH*/   void add(venv& source, varEntry *qualifier, coder &c);
+/*NOHASH*/ 
+/*NOHASH*/   bool add(symbol src, symbol dest,
+/*NOHASH*/            venv& source, varEntry *qualifier, coder &c);
+/*NOHASH*/ 
+/*NOHASH*/   varEntry *lookByType(symbol name, ty *t);
+/*NOHASH*/ 
+/*NOHASH*/   varEntry *lookBySignature(symbol name, signature *sig) {
+/*NOHASH*/     // This optimization is not implemented for the NOHASH version.
+/*NOHASH*/     return 0;
+/*NOHASH*/   }
+/*NOHASH*/ 
+/*NOHASH*/   ty *getType(symbol name);
+/*NOHASH*/ 
+/*NOHASH*/   friend std::ostream& operator<< (std::ostream& out,
+/*NOHASH*/                                    const venv& ve);
+/*NOHASH*/   
+/*NOHASH*/   void list(record *module=0);
+/*NOHASH*/ };
 
 //}}}
-#else //{{{
+#else
 
 // venv implemented with a hash table.
 class venv {
@@ -222,6 +223,8 @@ class venv {
       ty *t;
       signature *sig;
     } u;
+
+    //key(key& k) : name(k.name), special(k.special), u(k.u) {}
 
     key(symbol name, ty *t)
       : name(name), special(name.special())
@@ -243,7 +246,7 @@ class venv {
     key(symbol name, varEntry *v)
       : name(name), special(name.special())
     {
-      types::ty *t = v->getType();
+      ty *t = v->getType();
       if (special)
         u.t = t;
       else
@@ -254,18 +257,30 @@ class venv {
 
   struct value : public gc {
     varEntry *v;
+#if 0
     bool shadowed;
     value *next;  // The entry (of the same key) that this one shadows.
+#endif
 
 #ifdef CALLEE_SEARCH
     // The maximum number of formals in any of the overloaded functions of
     // this name (at the time this value was entered).
     size_t maxFormals;
+
+    // Set maxFormals based both on the value's own signature and the other
+    // signatures in the list.
+    void setMaxArgs(const mem::list<value *>& namelist);
 #endif
 
     value(varEntry *v)
+#if 0
       : v(v), shadowed(false), next(0) {}
+#else
+      : v(v) {}
+#endif
+
   };
+
   struct namehash {
     size_t operator()(const symbol name) const {
       return name.hash();
@@ -305,29 +320,64 @@ class venv {
   typedef mem::unordered_map<key, value *, keyhash, keyeq> keymap;
   keymap all;
 
-  // Similar hashes, one for each scope level.
-  typedef mem::unordered_multimap<key, value *, keyhash, keyeq> keymultimap;
-  typedef mem::stack<keymultimap> mapstack;
-  mapstack scopes;
+  // Record of added variables in the order they were added.
+  struct addition {
+    key k;
+    varEntry *shadowed;
 
-  // A hash table indexed solely on the name, storing for each name the list of
-  // all values of that name.  Used to get the (possibly overloaded) type
-  // of the name.
-  typedef mem::list<value *> values;
-  typedef mem::unordered_map<symbol, values, namehash, nameeq> namemap;
+    addition(key k, varEntry *shadowed) : k(k), shadowed(shadowed) {}
+  };
+  typedef mem::stack<addition> addstack;
+  addstack additions;
+
+  // A scope can be recorded by the size of the addition stack at the time the
+  // scope began.
+  typedef mem::stack<size_t> scopestack;
+  scopestack scopesizes;
+
+  struct namevalue {
+#ifdef CALLEE_SEARCH
+    size_t maxFormals;
+#endif
+    ty *t;
+
+    namevalue() : maxFormals(0),  t(0) {}
+
+    void addType(ty *s);
+    
+    void replaceType(ty *new_t, ty *old_t);
+
+#if 1
+    void popType(ty *tnew);
+#else
+    void popType();
+#endif
+  };
+
+  // A hash table indexed solely on the name, storing for each name the
+  // current (possibly overloaded) type of the name.
+  typedef mem::unordered_map<symbol, namevalue, namehash, nameeq> namemap;
   namemap names;
 
-  void listValues(symbol name, values &vals, record *module);
+  // A sanity check.  For a given name, it checks that the type stored in the
+  // names hash table exactly matches with all of the entries of that name
+  // stored in the full hash table.
+  void checkName(symbol name);
+
+  void listValues(symbol name, /*values &vals,*/ record *module);
 
   // Helper function for endScope.
-  void remove(key k);
+  void remove(const addition& a);
 
   // These are roughly the size the hashtables will be after loading the
   // builtin functions and plain module.
   static const size_t fileAllSize=2000;
   static const size_t namesAllSize=1000;
+
+  // The number of scopes begun (but not yet ended) when the venv was empty.
+  size_t empty_scopes;
 public:
-  venv() {
+  venv() : empty_scopes(0) {
     beginScope();
   }
 
@@ -335,7 +385,7 @@ public:
   // big enough to hold it in advance.
   struct file_env_tag {};
   venv(file_env_tag)
-    : all(fileAllSize), names(namesAllSize)
+    : all(fileAllSize), names(namesAllSize), empty_scopes(0)
   {
     beginScope();
   }
@@ -379,27 +429,12 @@ public:
 
   ty *getType(symbol name);
 
-  void beginScope() {
-    scopes.push(keymultimap());
-  }
-  void endScope() {
-    keymultimap &scope=scopes.top();
-    for (keymultimap::iterator p=scope.begin(); p!=scope.end(); ++p) {
-      remove(p->first);
-    }
-    scopes.pop();
-  }
+  void beginScope();
+  void endScope();
   
   // Adds the definitions of the top-level scope to the level underneath,
   // and then removes the top scope.
-  void collapseScope() {
-    // NOTE: May be expensively copying a large hash table.
-    keymultimap top=scopes.top();
-    scopes.pop();
-
-    keymultimap& underneath=scopes.top();
-    underneath.insert(top.begin(), top.end());
-  }
+  void collapseScope();
 
   // Prints a list of the variables to the standard output.
   void list(record *module=0);

@@ -96,6 +96,7 @@ bool protoenv::fastCastable(ty *target, ty *source) {
 
   // To avoid memory allocation, fill one static variable with new parameters
   // in each call.
+  // Warning: This is not re-entrant if asy ever goes multi-threaded.
   static types::function castFunc(primVoid(), primVoid());
   castFunc.result = target;
 
@@ -137,6 +138,7 @@ access *protoenv::fastLookupCast(ty *target, ty *source) {
   assert(source->kind != types::ty_overloaded);
   assert(source->kind != types::ty_error);
 
+  // Warning: This is not re-entrant.
   static types::function castFunc(primVoid(), primVoid());
   castFunc.result = target;
   castFunc.sig.formals[0].t = source;
