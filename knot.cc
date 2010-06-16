@@ -18,7 +18,7 @@ namespace camp {
 //bool tracing_solving=false;
 
 template <typename T>
-ostream& info(ostream& o, string name, cvector<T>& v)
+ostream& info(ostream& o, const char *name, cvector<T>& v)
 {
   if (settings::verbose > 3) {
     o << name << ":\n\n";
