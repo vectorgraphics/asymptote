@@ -97,6 +97,7 @@ void exp::testCachedType(coenv &e) {
       em.compiler(getPos());
       em << "cached type '" << *ct 
          << "' doesn't match actual type '" << *t << "'";
+      em.sync();
     }
   }
 }
@@ -399,12 +400,16 @@ void equalityExp::prettyprint(ostream &out, Int indent)
 
 #ifdef NO_FUNC_OPS
 types::ty *equalityExp::getType(coenv &e) {
-  if (resolved(e)) {
-    assert(ct);
-    return ct;
-  } else {
+  // Try to the resolve the expression as a function call first.
+  types::ty *t = callExp::getType(e);
+  assert(t);
+  if (t->kind != ty_error)
+    return t;
+  else
+    // Either an error or handled by the function equality methods.  In the
+    // first case, we may return whatever we like, and the second case always
+    // returns bool.  In either case, it is safe to return bool.
     return primBoolean();
-  }
 }
 #endif
 
@@ -476,9 +481,13 @@ bltin bltinFromName(symbol name) {
 
 #ifdef NO_FUNC_OPS
 types::ty *equalityExp::trans(coenv &e) {
-  if (resolved(e))
+  // First, try to handle by normal function resolution.
+  types::ty *t = callExp::getType(e);
+  assert(t);
+  if (t->kind != ty_error)
     return callExp::trans(e);
 
+  // Then, check for the function equality case.
   exp *left = (*this->args)[0].val;
   exp *right = (*this->args)[1].val;
 
@@ -503,10 +512,13 @@ types::ty *equalityExp::trans(coenv &e) {
     left->transToType(e, ft);
     right->transToType(e, ft);
     e.c.encode(inst::builtin, bltinFromName(callee->getName()));
+
     return primBoolean();
   } else {
     // Let callExp report a "no such function" error.
-    return callExp::trans(e);
+    types::ty *t = callExp::trans(e);
+    assert(t->kind == ty_error);
+    return t;
   }
 }
 #endif
@@ -821,7 +833,7 @@ void callExp::reportNonFunction() {
       em << "called expression is not a function";
 }
 
-void callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
+types::ty *callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
 {
   assert(cachedVarEntry == 0 && cachedApp == 0);
 
@@ -840,8 +852,7 @@ void callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
 #endif /* }}} */
 
   if (!source) {
-    ct = primError();
-    return;
+    return primError();
   }
 
   // An attempt at speeding up compilation:  See if the source arguments match
@@ -860,8 +871,7 @@ void callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
       // Normally DEBUG_CACHE is not defined and we return here for efficiency
       // reasons.  If DEBUG_CACHE is defined, also resolve the function by the
       // normal techniques and make sure we get the same result.
-      ct = ((function *)ve->getType())->getResult();
-      return;
+      return ((function *)ve->getType())->getResult();
 #endif
     }
   }
@@ -917,8 +927,8 @@ void callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
     assert(equivalent(cachedVarEntry->getType(), cachedApp->getType()));
 #endif
 
-  // Get type relies on this method setting the cached type.
-  ct = cachedApp ? cachedApp->getType()->getResult() : primError();
+  // getType relies on this method for the type.
+  return cachedApp ? cachedApp->getType()->getResult() : primError();
 }
 
 types::ty *callExp::transPerfectMatch(coenv &e) {
@@ -936,19 +946,12 @@ types::ty *callExp::transPerfectMatch(coenv &e) {
   // Call the function.
   ve->encode(CALL, getPos(), e.c);
 
-  // That's it.  Return the cached type.
-  return ct;
+  // That's it.  Return the return type of the function.
+  return ct ? ct : dynamic_cast<function *>(ve->getType())->getResult();
 }
 
 types::ty *callExp::trans(coenv &e)
 {
-#if 0
-  cerr << "callExp::trans() called for ";
-  if (callee->getName())
-    cerr << *callee->getName();
-  cerr << endl;
-#endif
-
   if (cachedVarEntry == 0 && cachedApp == 0)
     cacheAppOrVarEntry(e, false);
 
@@ -978,18 +981,19 @@ types::ty *callExp::trans(coenv &e)
   // Translate the call.
   temp->transCall(e, t);
 
-  assert(equivalent(ct, t->result));
-  return ct;
+  return t->result;
 }
 
 types::ty *callExp::getType(coenv &e)
 {
-  if (cachedApp == 0 && cachedVarEntry == 0)
-    /* This sets ct, the cached return type of the call. */
-    cacheAppOrVarEntry(e, true);
-
-  assert(ct);
-  return ct;
+  if (cachedApp)
+    return cachedApp->getType()->getResult();
+  if (cachedVarEntry) {
+    function *ft = dynamic_cast<function *>(cachedVarEntry->getType());
+    assert(ft);
+    return ft->getResult();
+  }
+  return cacheAppOrVarEntry(e, true);
 }
 
 bool callExp::resolved(coenv &e) {

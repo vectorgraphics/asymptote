@@ -718,8 +718,9 @@ private:
 
   // Caches either the application object used to apply the function to the
   // arguments, or in cases where the arguments match the function perfectly,
-  // the varEntry of the callee.
-  void cacheAppOrVarEntry(coenv &e, bool tacit);
+  // the varEntry of the callee (or neither in case of an error).  Returns
+  // what getType should return.
+  types::ty *cacheAppOrVarEntry(coenv &e, bool tacit);
 
   types::ty *transPerfectMatch(coenv &e);
 public:
