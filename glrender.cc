@@ -608,7 +608,11 @@ void screen()
 
 void nextframe(int) 
 {
+  glFinish();
   endwait(readySignal,readyLock);
+  double framedelay=getSetting<double>("framedelay");
+  if(framedelay > 0)
+    usleep(1000.0*framedelay);
   if(Step) Animate=false;
 }
 
@@ -630,6 +634,8 @@ void display()
       ((double) tv.tv_usec-lastframetime.tv_usec)/1000000.0;
     lastframetime=tv;
     double milliseconds=1000.0*(delay-seconds);
+    double framedelay=getSetting<double>("framedelay");
+    if(framedelay > 0) milliseconds -= framedelay;
     if(milliseconds > 0)
       glutTimerFunc((int) (milliseconds+0.5),nextframe,0);
     else nextframe(0);

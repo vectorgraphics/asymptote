@@ -1237,10 +1237,12 @@ void initSettings() {
                             1.05));
   addOption(new realSetting("zoomstep", 0, "step", "Mouse motion zoom step",
                             0.1));
-  addOption(new realSetting("spinstep", 0, "deg/sec", "Spin speed",
+  addOption(new realSetting("spinstep", 0, "deg/s", "Spin speed",
                             60.0));
-  addOption(new realSetting("framerate", 0, "frames/sec", "Animation speed",
+  addOption(new realSetting("framerate", 0, "frames/s", "Animation speed",
                             30.0));
+  addOption(new realSetting("framedelay", 0, "ms",
+                            "Additional frame delay", 0.0));
   addOption(new realSetting("arcballradius", 0, "pixels",
                             "Arcball radius", 750.0));
   addOption(new realSetting("resizestep", 0, "step", "Resize step", 1.2));
