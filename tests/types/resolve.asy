@@ -147,6 +147,10 @@ assert(g(y=4.4, 4.4) == 7);
   assert(!(f != g));
   assert(!(g != f));
 }
+{
+void foo() {}
+assert((foo == null ? 5 : 8) == 8);
+}
 
 // TODO: Add packing vs. casting tests.
 
