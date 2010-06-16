@@ -409,7 +409,6 @@ void venv::remove(const addition& a) {
 
   if (a.shadowed) {
     // Unshadow the previously shadowed varEntry.
-    // TODO: Add equiv check.
     names[a.k.name].replaceType(a.shadowed->getType(), val.v->getType());
     val.v = a.shadowed;
   } else {
@@ -478,7 +477,6 @@ void venv::enter(symbol name, varEntry *v)
     // The new value shadows an old value.  They have the same signature, but
     // possibly different return types.  If necessary, update the type stored
     // by name.
-    //if (!equivalent(v->getType(), slot.v->getType()))
     names[name].replaceType(v->getType(), slot.v->getType());
 
     // Replace the old value, but store its now-shadowed varEntry.
