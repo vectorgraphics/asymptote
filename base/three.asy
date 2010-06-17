@@ -2746,10 +2746,13 @@ struct scene
   transform3 T=identity4;
   picture pic2;
   
-  void operator init(frame f, projection P=currentprojection) {
+  void operator init(frame f, real width, real height,
+                     projection P=currentprojection) {
     this.f=f;
     this.t=identity4;
     this.P=P;
+    this.width=width;
+    this.height=height;
   }
   
   void operator init(picture pic, real xsize=pic.xsize, real ysize=pic.ysize,
@@ -2897,8 +2900,8 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
 
       triple lambda=M-m;
       S.viewportmargin=viewportmargin((lambda.x,lambda.y));
-      S.width=lambda.x+2*S.viewportmargin.x;
-      S.height=lambda.y+2*S.viewportmargin.y;
+      S.width=ceil(max(S.width,lambda.x)+2*S.viewportmargin.x);
+      S.height=ceil(max(S.height,lambda.y)+2*S.viewportmargin.y);
       S.f=shift((-0.5(m.x+M.x),-0.5*(m.y+M.y),0))*S.f; // Eye will be at (0,0,0)
     } else {
       if(P.angle == 0) {
@@ -3018,7 +3021,8 @@ object embed(string label="", string text=label,
              light light=currentlight, projection P=currentprojection)
 {
   if(is3D(format))
-    return embed(label,text,prefix,scene(f,P),format,view,options,script,light);
+    return embed(label,text,prefix,scene(f,width,height,P),format,view,options,
+                 script,light);
   else {
     object F;
     F.f=f;
@@ -3072,11 +3076,13 @@ currentpicture.fitter=new frame(string prefix, picture pic, string format,
   return f;
 };
 
-frame embedder(string prefix, frame f, string format, bool view,
-               string options, string script, light light, projection P)
+frame embedder(string prefix, frame f, string format, real width, real height,
+               bool view, string options, string script, light light,
+               projection P)
 {
   return embedder(new object(string prefix, string format) {
-      return embed(prefix=prefix,f,format,view,options,script,light,P);
+      return embed(prefix=prefix,f,format,width,height,view,options,script,
+                   light,P);
     },prefix,format,view,light);
 }
 
@@ -3225,7 +3231,8 @@ frame[] fit3(string prefix="", picture[] pictures, picture all,
     for(int i=settings.reverse ? pictures.length-1 : 0;
         i >= 0 && i < pictures.length && !settings.interrupt;
         settings.reverse ? --i : ++i) {
-      frame f=embedder(prefix,out[i],format,view,options,script,light,S.P);
+      frame f=embedder(prefix,out[i],format,S.width,S.height,view,options,
+                       script,light,S.P);
       if(!settings.loop) out[i]=f;
     }   
     if(!settings.loop) break;
