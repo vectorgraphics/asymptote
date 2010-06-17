@@ -10,7 +10,7 @@ private real Fuzz=10.0*realEpsilon;
 private real nineth=1/9;
 
 struct patch {
-  triple[][] P=new triple[4][4];
+  triple[][] P;
   triple[] normals; // Optionally specify 4 normal vectors at the corners.
   pen[] colors;     // Optionally specify 4 corner colors.
   bool straight;    // Patch is based on a piecewise straight external path.
@@ -186,9 +186,9 @@ struct patch {
 
   void operator init(triple[][] P, triple[] normals=new triple[],
                      pen[] colors=new pen[], bool straight=false,
-                     bool3 planar=default) {
+                     bool3 planar=default, bool copy=true) {
     init();
-    this.P=copy(P);
+    this.P=copy ? copy(P) : P;
     if(normals.length != 0)
       this.normals=copy(normals);
     if(colors.length != 0)
@@ -306,6 +306,7 @@ struct patch {
 patch operator * (transform3 t, patch s)
 { 
   patch S;
+  S.P=new triple[4][4];
   for(int i=0; i < 4; ++i) { 
     triple[] si=s.P[i];
     triple[] Si=S.P[i];

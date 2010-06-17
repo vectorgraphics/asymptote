@@ -1610,60 +1610,55 @@ surface bispline(real[][] z, real[][] p, real[][] q, real[][] r,
 
   surface s=surface(count);
   s.index=new int[n][m];
-  int k=-1;
+  int k=0;
   for(int i=0; i < n; ++i) {
-    bool[] condi=all ? null : cond[i];
+    int ip=i+1;
     real xi=x[i];
+    real xp=x[ip];
+    real x1=interp(xi,xp,1/3);
+    real x2=interp(xi,xp,2/3);
+    real hx=x1-xi;
     real[] zi=z[i];
-    real[] zp=z[i+1];
+    real[] zp=z[ip];
     real[] ri=r[i];
-    real[] rp=r[i+1];
+    real[] rp=r[ip];
     real[] pi=p[i];
-    real[] pp=p[i+1];
+    real[] pp=p[ip];
     real[] qi=q[i];
-    real[] qp=q[i+1];
-    real xp=x[i+1];
-    real hx=(xp-xi)/3;
+    real[] qp=q[ip];
     int[] indexi=s.index[i];
+    bool[] condi=all ? null : cond[i];
     for(int j=0; j < m; ++j) {
-      real yj=y[j];
-      real yp=y[j+1];
       if(all || condi[j]) {
-        triple[][] P=array(4,array(4,O));
-        real hy=(yp-yj)/3;
+        real yj=y[j];
+        int jp=j+1;
+        real yp=y[jp];
+        real y1=interp(yj,yp,1/3);
+        real y2=interp(yj,yp,2/3);
+        real hy=y1-yj;
         real hxy=hx*hy;
-        // x and y directions
-        for(int k=0; k < 4; ++k) {
-          P[0][k] += xi*X;
-          P[k][0] += yj*Y;
-          P[1][k] += (xp+2*xi)/3*X;
-          P[k][1] += (yp+2*yj)/3*Y;
-          P[2][k] += (2*xp+xi)/3*X;
-          P[k][2] += (2*yp+yj)/3*Y;
-          P[3][k] += xp*X;
-          P[k][3] += yp*Y;
-        }
-        // z: value 
-        P[0][0] += zi[j]*Z;
-        P[3][0] += zp[j]*Z;
-        P[0][3] += zi[j+1]*Z;
-        P[3][3] += zp[j+1]*Z;
-        // z: first derivative
-        P[1][0] += (P[0][0].z+hx*pi[j])*Z;
-        P[1][3] += (P[0][3].z+hx*pi[j+1])*Z;
-        P[2][0] += (P[3][0].z-hx*pp[j])*Z;
-        P[2][3] += (P[3][3].z-hx*pp[j+1])*Z;
-        P[0][1] += (P[0][0].z+hy*qi[j])*Z;
-        P[3][1] += (P[3][0].z+hy*qp[j])*Z;
-        P[0][2] += (P[0][3].z-hy*qi[j+1])*Z;
-        P[3][2] += (P[3][3].z-hy*qp[j+1])*Z;
-        // z: second derivative
-        P[1][1] += (P[0][1].z+P[1][0].z-P[0][0].z+hxy*ri[j])*Z;
-        P[1][2] += (P[0][2].z+P[1][3].z-P[0][3].z-hxy*ri[j+1])*Z;
-        P[2][1] += (P[2][0].z+P[3][1].z-P[3][0].z-hxy*rp[j])*Z;
-        P[2][2] += (P[2][3].z+P[3][2].z-P[3][3].z+hxy*rp[j+1])*Z;
-        s.s[++k]=patch(P);
+        real zij=zi[j];
+        real zip=zi[jp];
+        real zpj=zp[j];
+        real zpp=zp[jp];
+        real pij=hx*pi[j];
+        real ppj=hx*pp[j];
+        real qip=hy*qi[jp];
+        real qpp=hy*qp[jp];
+        real zippip=zip+hx*pi[jp];
+        real zppmppp=zpp-hx*pp[jp];
+        real zijqij=zij+hy*qi[j];
+        real zpjqpj=zpj+hy*qp[j];
+        
+        s.s[k]=patch(new triple[][] {
+          {(xi,yj,zij),(xi,y1,zijqij),(xi,y2,zip-qip),(xi,yp,zip)},
+          {(x1,yj,zij+pij),(x1,y1,zijqij+pij+hxy*ri[j]),
+           (x1,y2,zippip-qip-hxy*ri[jp]),(x1,yp,zippip)},
+          {(x2,yj,zpj-ppj),(x2,y1,zpjqpj-ppj-hxy*rp[j]),
+           (x2,y2,zppmppp-qpp+hxy*rp[jp]),(x2,yp,zppmppp)},
+          {(xp,yj,zpj),(xp,y1,zpjqpj),(xp,y2,zpp-qpp),(xp,yp,zpp)}},copy=false);
         indexi[j]=k;
+        ++k;
       }
     }
   }

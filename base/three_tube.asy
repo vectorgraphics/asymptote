@@ -92,8 +92,9 @@ private real[][][] bispline0(real[][] z, real[][] p, real[][] q, real[][] r,
   int k=0;
   for(int i=0; i < n; ++i) {
     int ip=i+1;
-    bool[] condi=all ? null : cond[i];
     real xi=x[i];
+    real xp=x[ip];
+    real hx=(xp-xi)/3;
     real[] zi=z[i];
     real[] zp=z[ip];
     real[] ri=r[i];
@@ -102,13 +103,12 @@ private real[][][] bispline0(real[][] z, real[][] p, real[][] q, real[][] r,
     real[] pp=p[ip];
     real[] qi=q[i];
     real[] qp=q[ip];
-    real xp=x[ip];
-    real hx=(xp-xi)/3;
+    bool[] condi=all ? null : cond[i];
     for(int j=0; j < m; ++j) {
-      real yj=y[j];
-      int jp=j+1;
-      real yp=y[jp];
       if(all || condi[j]) {
+        real yj=y[j];
+        int jp=j+1;
+        real yp=y[jp];
         real hy=(yp-yj)/3;
         real hxy=hx*hy;
         real zij=zi[j];
@@ -164,8 +164,7 @@ real[][][] bispline(real[][] f, real[] x, real[] y,
   real[][] p=transpose(tp);
   for(int i=0; i < n; ++i)
     r[i]=clamped(d1[i],d2[i])(y,p[i]);
-  real[][][] s=bispline0(f,p,q,r,x,y,cond);
-  return s;
+  return bispline0(f,p,q,r,x,y,cond);
 }
 
 bool uperiodic(real[][] a) {
