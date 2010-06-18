@@ -20,34 +20,34 @@ int countIntersections(path[] p, pair start, pair end)
 path[][] containmentTree(path[] paths)
 {
   path[][] result;
-  for(int i=0; i < paths.length; ++i) {
-    bool classified=false;
+  for(path g : paths) {
     // check if current curve contains or is contained in a group of curves
-    for(int j=0; !classified && j < result.length; ++j)
-      {
-        int test = inside(paths[i],result[j][0],zerowinding);
-        if(test == 1) // current curve contains group's toplevel curve
-          {
-            // replace toplevel curve with current curve
-            result[j].insert(0,paths[i]);
-            classified = true;
-          }
-        else if(test == -1) // current curve contained in group's toplevel curve
-          {
-            result[j].push(paths[i]);
-            classified = true;
-          }
+    int j;
+    for(j=0; j < result.length; ++j) {
+      path[] resultj=result[j];
+      int test=inside(g,resultj[0],zerowinding);
+      if(test == 1) {
+        // current curve contains group's toplevel curve;
+        // replace toplevel curve with current curve
+        resultj.insert(0,g);
+        // check to see if any other groups are contained within this curve
+        for(int k=j+1; k < result.length;) {
+          if(inside(g,result[k][0]) == 1) {
+            resultj.append(result[k]);
+            result.delete(k);
+          } else ++k;
+        }
+        break;
+      } else if(test == -1) {
+        // current curve contained within group's toplevel curve
+        resultj.push(g);
+        break;
       }
+    }
     // create a new group if this curve does not belong to another group
-    if(!classified)
-      result.push(new path[] {paths[i]});
+    if(j == result.length)
+      result.push(new path[] {g});
   }
-
-  // sort group so that later paths in the array are contained in previous paths
-  bool comparepaths(path i, path j) {return inside(i,j,zerowinding)==1;}
-  for(int i=0; i < result.length; ++i)
-    result[i] = sort(result[i],comparepaths);
-
   return result;
 }
 
