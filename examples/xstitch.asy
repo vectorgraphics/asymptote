@@ -162,8 +162,8 @@ void drawSection(int xmin, int xmax, int ymin, int ymax) {
 drawSection(-1,width+1,-1,height+1);
 
 
-drawSection(-1,80,height-80,height+1);
-drawSection(70,150,height-80,height+1);
+//drawSection(-1,80,height-80,height+1);
+//drawSection(70,150,height-80,height+1);
 drawSection(quotient(width,2)-40,quotient(width,2)+40,quotient(height,2)-40,quotient(height,2)+40);
-drawSection(width-150,width-70,-1,80);
-drawSection(width-80,width+1,-1,80);
+//drawSection(width-150,width-70,-1,80);
+//drawSection(width-80,width+1,-1,80);
