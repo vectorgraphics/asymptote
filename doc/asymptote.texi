@@ -6574,6 +6574,11 @@ The points are connected using the interpolation specified by @code{join}:
 the abbreviation @code{Spline} is also accepted);
 
 @cindex @code{Hermite}
+@cindex @code{notaknot}
+@cindex @code{natural}
+@cindex @code{periodic}
+@cindex @code{clamped}
+@cindex @code{monotonic}
 @cindex @code{Hermite(splinetype splinetype}
 @item @code{Hermite} (standard cubic spline interpolation using boundary
 condition @code{notaknot}, @code{natural},  @code{periodic},

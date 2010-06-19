@@ -612,7 +612,7 @@ void nextframe(int)
   endwait(readySignal,readyLock);
   double framedelay=getSetting<double>("framedelay");
   if(framedelay > 0)
-    usleep((int) (1000.0*framedelay+0.5));
+    usleep((unsigned int) (1000.0*framedelay+0.5));
   if(Step) Animate=false;
 }
 

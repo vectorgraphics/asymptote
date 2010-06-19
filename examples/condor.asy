@@ -29,4 +29,4 @@ triple condor(pair t)
 surface s=surface(condor,(-1,0),(1,K),16,Spline);
 s.colors(palette(s.map(zpart),Rainbow()));
 
-draw(s);
+draw(s,render(compression=Low,merge=true));
