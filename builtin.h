@@ -9,6 +9,7 @@
 
 #include "vm.h"
 #include "types.h"
+#include "arrayop.h"
 
 namespace trans {
 
@@ -38,7 +39,10 @@ void addArrayOps(venv &ve, types::array *t);
 void addRecordOps(venv &ve, types::record *r);
 void addFunctionOps(venv &ve, types::function *f);
 
+#ifdef HAVE_LIBGSL
 types::record *getGSLModule();
+void GSLrngFree();
+#endif
   
 } //namespace trans
 

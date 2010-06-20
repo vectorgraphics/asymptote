@@ -507,6 +507,71 @@ camp::triple multshiftless(const vm::array& t, const camp::triple& v);
 double norm(double *a, size_t n);
 double norm(camp::triple *a, size_t n);
 
+inline size_t checkdimension(const vm::array *a, size_t dim)
+{
+  size_t size=checkArray(a);
+  if(dim && size != dim) {
+    ostringstream buf;
+    buf << "array of length " << dim << " expected";
+    vm::error(buf);
+  }
+  return size;
+}
+
+template<class T>
+inline void copyArrayC(T* &dest, const vm::array *a, size_t dim=0,
+                       GCPlacement placement=NoGC)
+{
+  size_t size=checkdimension(a,dim);
+  dest=(placement == NoGC) ? new T[size] : new(placement) T[size];
+  for(size_t i=0; i < size; i++) 
+    dest[i]=vm::read<T>(a,i);
+}
+
+template<class T, class A>
+inline void copyArrayC(T* &dest, const vm::array *a, T (*cast)(A),
+                       size_t dim=0, GCPlacement placement=NoGC)
+{
+  size_t size=checkdimension(a,dim);
+  dest=(placement == NoGC) ? new T[size] : new(placement) T[size];
+  for(size_t i=0; i < size; i++) 
+    dest[i]=cast(vm::read<A>(a,i));
+}
+
+template<typename T>
+inline vm::array* copyCArray(const size_t n, const T* p,
+                             GCPlacement placement=NoGC)
+{
+  vm::array* a = new vm::array(n);
+  for(size_t i=0; i < n; ++i) (*a)[i] = p[i];
+  return a;
+}
+
+template<class T>
+inline void copyArray2C(T* &dest, const vm::array *a, bool square=true,
+                        size_t dim2=0, GCPlacement placement=NoGC)
+{
+  size_t n=checkArray(a);
+  size_t m=(square || n == 0) ? n : checkArray(vm::read<vm::array*>(a,0));
+  if(n > 0 && dim2 && m != dim2) {
+    ostringstream buf;
+    buf << "second matrix dimension must be " << dim2;
+    vm::error(buf);
+  }
+  
+  dest=(placement == NoGC) ? new T[n*m] : new(placement) T[n*m];
+  for(size_t i=0; i < n; i++) {
+    vm::array *ai=vm::read<vm::array*>(a,i);
+    size_t aisize=checkArray(ai);
+    if(aisize == m) {
+      T *desti=dest+i*m;
+      for(size_t j=0; j < m; j++) 
+        desti[j]=vm::read<T>(ai,j);
+    } else
+      vm::error(square ? "matrix must be square" : "matrix must be rectangular");
+  }
+}
+
 } // namespace run
 
 #endif // ARRAYOP_H

@@ -12,6 +12,7 @@ stringarray* => stringArray()
 
 #include "array.h"
 #include "mathop.h"
+#include "builtin.h"
 
 using namespace camp;
 using namespace settings;
@@ -92,6 +93,9 @@ void cleanup()
   }
   history_set_history_state(&history_save);
 #endif
+#ifdef HAVE_LIBGSL
+  trans::GSLrngFree();
+#endif  
 }
 }
 

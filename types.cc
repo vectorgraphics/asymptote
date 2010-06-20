@@ -20,7 +20,9 @@
 #include "virtualfieldaccess.h"
 
 // For pre-translated symbols.
+#ifndef NOSYM
 #include "types.symbols.h"
+#endif
 
 namespace types {
 

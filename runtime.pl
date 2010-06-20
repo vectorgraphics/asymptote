@@ -174,7 +174,9 @@ $header = <>;
 print $header;
 $source_line += ($header =~ tr/\n//);;
 
+print "\n#ifndef NOSYM";
 print "\n#include \"$prefix.symbols.h\"\n";
+print "\n#endif";
 print "\nnamespace run {\n";
 
 read_types($basetypes, "runtimebase.in", $basesource_type_line);
