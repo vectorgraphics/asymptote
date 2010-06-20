@@ -59,7 +59,7 @@ typedef unsigned int unsignedInt;
 #endif
 #endif
 
-#ifdef COMPACT
+#if COMPACT
 // Reserve highest two values for DefaultValue and Undefined states.
 #define Int_MAX (Int_MAX2-2)
 #else
