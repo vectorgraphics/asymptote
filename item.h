@@ -64,6 +64,8 @@ public:
   
   item& operator= (int a)
   { i=a; return *this; }
+  item& operator= (unsigned int a)
+  { i=a; return *this; }
   item& operator= (Int a)
   { i=a; return *this; }
   item& operator= (double a)
@@ -107,6 +109,8 @@ public:
     : kind(&typeid(bool)), b(b) {}
   
   item& operator= (int a)
+  { kind=&typeid(Int); i=a; return *this; }
+  item& operator= (unsigned int a)
   { kind=&typeid(Int); i=a; return *this; }
   item& operator= (Int a)
   { kind=&typeid(Int); i=a; return *this; }
