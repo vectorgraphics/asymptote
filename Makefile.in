@@ -267,7 +267,7 @@ maintainer-clean: FORCE distclean
 
 check: asy FORCE
 	./wce
-	$(MAKE) -C tests
+	$(MAKE) -j1 -C tests
 
 .SUFFIXES: .c .cc .o .d
 .cc.o:

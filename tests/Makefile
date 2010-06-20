@@ -1,4 +1,4 @@
-TESTDIRS = string arith frames types imp array
+TESTDIRS = string arith frames types imp array gsl
 
 test: $(TESTDIRS)
 

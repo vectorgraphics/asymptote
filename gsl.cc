@@ -1289,7 +1289,7 @@ void gen_rungsl_venv(venv &ve)
           formal(primPair(),SYM(mu),true,true),
           formal(primPair(),SYM(sigma),true,true),
           formal(primReal(),SYM(rho),true,false));
-  addFunc(GSLModule->e.ve,GSLpdf_bivariate_gaussian,primPair(),
+  addFunc(GSLModule->e.ve,GSLpdf_bivariate_gaussian,primReal(),
           SYM(pdf_bivariate_gaussian),
           formal(primPair(),SYM(z),false,true),
           formal(primPair(),SYM(mu),true,true),
@@ -1304,11 +1304,11 @@ void gen_rungsl_venv(venv &ve)
   addGSLRealRealFunc<gsl_cdf_##NAME##_P>        \
     (SYM(cdf_##NAME##_P),SYM(x),SYM(ARG));      \
   addGSLRealRealFunc<gsl_cdf_##NAME##_Q>        \
-    (SYM(cdf_##NAME_Q),SYM(x),SYM(ARG));        \
+    (SYM(cdf_##NAME##_Q),SYM(x),SYM(ARG));      \
   addGSLRealRealFunc<gsl_cdf_##NAME##_Pinv>     \
-    (SYM(cdf_##NAME_Pinv),SYM(P),SYM(ARG));     \
+    (SYM(cdf_##NAME##_Pinv),SYM(P),SYM(ARG));   \
   addGSLRealRealFunc<gsl_cdf_##NAME##_Qinv>     \
-    (SYM(cdf_##NAME_Qinv),SYM(Q),SYM(ARG))
+    (SYM(cdf_##NAME##_Qinv),SYM(Q),SYM(ARG))
   
   // Exponential, Laplace, Cauchy, Rayleigh, Chi-squared, t,
   // and Logistic distribution
