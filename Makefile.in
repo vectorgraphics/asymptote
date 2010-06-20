@@ -234,7 +234,7 @@ uninstall-asy:
 	-rmdir $(asydir)
 	-cd $(latexdir) && rm -f $(LATEXFILES)
 	-rmdir $(latexdir)
-	-cd $(contextdir) && rm -f $(ONTEXTFILES)
+	-cd $(contextdir) && rm -f $(CONTEXTFILES)
 	-rmdir $(contextdir)
 	-cd $(bindir) && rm -f $(NAME) $(XNAME)
 
