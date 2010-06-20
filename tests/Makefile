@@ -1,10 +1,17 @@
 .NOTPARALLEL:
 
-TESTDIRS = string arith frames types imp array gsl
+TESTDIRS = string arith frames types imp array
+EXTRADIRS = gsl
 
 test: $(TESTDIRS)
 
+all: $(TESTDIRS) $(EXTRADIRS)
+
 $(TESTDIRS)::
+	@echo
+	../asy -dir ../base $@/*.asy
+
+$(EXTRADIRS)::
 	@echo
 	../asy -dir ../base $@/*.asy
 

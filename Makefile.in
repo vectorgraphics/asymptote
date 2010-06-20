@@ -269,6 +269,10 @@ check: asy FORCE
 	./wce
 	$(MAKE) -C tests
 
+check-all: asy FORCE
+	./wce
+	$(MAKE) -C tests all
+
 .SUFFIXES: .c .cc .o .d
 .cc.o:
 	$(CXX) $(OPTS) $(INCL) -o $@ -c $<
