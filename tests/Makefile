@@ -1,3 +1,5 @@
+.NOTPARALLEL:
+
 TESTDIRS = string arith frames types imp array gsl
 
 test: $(TESTDIRS)

@@ -164,6 +164,10 @@ void *asymain(void *A)
 
 int main(int argc, char *argv[]) 
 {
+#ifdef HAVE_LIBGSL  
+  unsetenv("GSL_RNG_SEED");
+  unsetenv("GSL_RNG_TYPE");
+#endif  
   setsignal(signalHandler);
 
   try {
