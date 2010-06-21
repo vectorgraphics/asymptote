@@ -55,7 +55,7 @@ void texfile::miniprologue()
     *out << "\\setuppagenumbering[location=]" << newl
          << "\\usetypescript[modern]" << newl
          << "\\starttext\\hbox{%" << newl;
-  }
+  } else *out << "\\nopagenumbers" << newl;
 }
 
 void texfile::prologue()
