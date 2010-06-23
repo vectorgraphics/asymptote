@@ -1478,7 +1478,6 @@ void label(picture pic=currentpicture, Label L, triple position,
       if(L.defaulttransform3)
         L.T3=transform3(P);
 
-      surface S=surface(L,v);
       begingroup3(f,name == "" ? L.s : name,render,v,interaction.type);
       bool lighton=light.on();
       if(is3D()) {
