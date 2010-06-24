@@ -578,53 +578,100 @@ frame pack(pair align=2S ... object inset[])
   return F;
 }
 
-path[] texpath(Label L, bool tex=settings.tex != "none")
+path[] texpath(Label L, bool tex=settings.tex != "none", bool bbox=false)
 {
-  static string[] stringcache;
-  static pen[] pencache;
-  static path[][] pathcache;
-  path[] g;
+  struct stringfont
+  {
+    string s;
+    real fontsize;
+    string font;
 
-  string s=L.s;
-  pen p=fontcommand(font(L.p))+fontsize(fontsize(L.p));
+    void operator init(Label L) 
+    {
+      s=L.s;
+      fontsize=fontsize(L.p);
+      font=font(L.p);
+    }
 
-  // PDF tex engines lose track of the baseline.
-  bool adjust=tex && basealign(L.p) == 1 && pdf();
-  if(adjust) p=p+basealign;
+    pen pen() {return fontsize(fontsize)+fontcommand(font);}
+  }
   
-  int k=0;
-  int i;
-  while((i=find(stringcache == s,++k)) >= 0) {
-    if(pencache[i] == p) {
-      g=pathcache[i];
-      break;
+  bool lexorder(stringfont a, stringfont b) {
+    return a.s < b.s || (a.s == b.s && (a.fontsize < b.fontsize ||
+                                        (a.fontsize == b.fontsize &&
+                                         a.font < b.font)));
+  }
+
+  static stringfont[] stringcache;
+  static path[][] pathcache;
+
+  static stringfont[] stringlist;
+  static bool adjust[];
+  
+  path[] G;
+
+  stringfont s=stringfont(L);
+  pen p=s.pen();
+
+  int i=search(stringcache,s,lexorder);
+  if(i == -1 || lexorder(stringcache[i],s)) {
+    int k=search(stringlist,s,lexorder);
+    if(k == -1 || lexorder(stringlist[k],s)) {
+      ++k;
+      stringlist.insert(k,s);
+      // PDF tex engines lose track of the baseline.
+      adjust.insert(k,tex && basealign(L.p) == 1 && pdf());
     }
   }
 
-  if(i == -1) {
-    if(tex) {
-      if(adjust) {
-        g=_texpath("."+s,p);
-        if(g.length == 0) return g;
-        real y=min(g[0]).y;
-        g.delete(0);
-        g=shift(0,-y)*g;
-      } else g=_texpath(s,p);
-    } else g=textpath(s,p);
+  path[] transform(path[] g, Label L) {
+    pair m=min(g);
+    pair M=max(g);
+    pair dir=rectify(inverse(L.T)*-L.align.dir);
+    if(tex && basealign(L.p) == 1)
+      dir -= (0,(1-dir.y)*m.y/(M.y-m.y));
+    pair a=m+realmult(dir,M-m);
 
-    stringcache.push(s);
-    pencache.push(p);
-    pathcache.push(g);
+    return shift(L.position+L.align.dir*labelmargin(L.p))*L.T*shift(-a)*g;
+  }
+
+  if(tex && bbox) {
+    frame f;
+    label(f,L);
+    return transform(box(min(f),max(f)),L);
   }
   
-  pair a;
-  if(g.length == 0) return g;
-  pair m=min(g);
-  pair M=max(g);
-  pair dir=rectify(inverse(L.T)*-L.align.dir);
-  if(tex && basealign(L.p) == 1)
-    dir -= (0,(1-dir.y)*m.y/(M.y-m.y));
-  a=m+realmult(dir,M-m);
+  if(stringlist.length > 0) {
+    path[][] g;
+    int n=stringlist.length;
+    string[] s=new string[n];
+    pen[] p=new pen[n];
+    for(int i=0; i < n; ++i) {
+      stringfont S=stringlist[i];
+      s[i]=adjust[i] ? "."+S.s : S.s;
+      p[i]=adjust[i] ? S.pen()+basealign : S.pen();
+    }
+        
+    g=tex ? _texpath(s,p) : textpath(s,p);
+      
+    if(tex)
+      for(int i=0; i < n; ++i)
+        if(adjust[i]) {
+          real y=min(g[i][0]).y;
+          g[i].delete(0);
+          g[i]=shift(0,-y)*g[i];
+        }
+    
+  
+    for(int i=0; i < stringlist.length; ++i) {
+      stringfont s=stringlist[i];
+      int j=search(stringcache,s,lexorder)+1;
+      stringcache.insert(j,s);
+      pathcache.insert(j,g[i]);
+    }
+    stringlist.delete();
+    adjust.delete();
+  }
 
-  return shift(L.position+L.align.dir*labelmargin(p))*L.T*shift(-a)*g;
+  return transform(pathcache[search(stringcache,stringfont(L),lexorder)],L);
 }

@@ -1283,7 +1283,7 @@ void initSettings() {
   addOption(new envSetting("textoutformat", "ps"));
   addOption(new envSetting("textprologue", ".EQ\ndelim $$\n.EN"));
   addOption(new envSetting("textinitialfont", ".fam T\n.ps 12"));
-  addOption(new envSetting("textepilogue", ""));
+  addOption(new envSetting("textepilogue", ".bp"));
 }
 
 // Access the arguments once options have been parsed.

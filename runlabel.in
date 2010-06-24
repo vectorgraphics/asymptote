@@ -6,25 +6,35 @@
  *****/
 
 pen      => primPen()
-pair     => primPair()
-path     => primPath()
-picture* => primPicture()
-transform => primTransform()
-realarray* => realArray()
-patharray* => pathArray()  
+  pair     => primPair()
+  path     => primPath()
+  picture* => primPicture()
+  transform => primTransform()
+  realarray* => realArray()
+  stringarray* => stringArray() 
+  penarray* => penArray() 
+  patharray* => pathArray() 
+  patharray2* => pathArray2() 
 
 #include "picture.h"
 #include "drawlabel.h"
+#include "locate.h"
 
-using namespace camp;
+  using namespace camp;
 using namespace vm;
 using namespace settings;
 
 typedef array realarray;
+typedef array stringarray;
+typedef array penarray;
 typedef array patharray;
+typedef array patharray2;
 
 using types::realArray;
+using types::stringArray;
+using types::penArray;
 using types::pathArray;
+using types::pathArray2;
 
 void cannotread(const string& s) 
 {
@@ -72,11 +82,10 @@ array *readpath(const string& psname, bool keep,
                 double hscale=1.0, double vsign=1.0)
 {
   double vscale=vsign*hscale;
-  array *P=new array(0);
+  array *PP=new array(0);
   mem::vector<string> cmd;
   cmd.push_back(getSetting<string>("gs"));
   cmd.push_back("-q");
-  cmd.push_back("-dNOPAUSE");
   cmd.push_back("-dBATCH");
   if(safe) cmd.push_back("-dSAFER");
 #ifdef __CYGWIN__
@@ -88,87 +97,100 @@ array *readpath(const string& psname, bool keep,
   cmd.push_back("-sOutputFile="+null);
   cmd.push_back(psname);
   iopipestream gs(cmd,"gs","Ghostscript");
-  stringstream buf;
   while(true) {
-    string out;
-    gs >> out;
-    if(out.empty() && !gs.running()) break;
-    buf << out;
-  }
-  if(verbose > 2) cout << endl;
+    stringstream buf;
+    while(true) {
+      string out;
+      gs >> out;
+      if(out.empty() && !gs.running()) break;
+      buf << out;
+      if(out[out.size()-1] == '\n') {
+        gs << newl;
+        break;
+      }
+    }
+    if(!gs.running()) break;
     
-  mem::vector<solvedKnot> nodes;
-  solvedKnot node;
-  bool cyclic=false;
-  bool active=false;
+    if(verbose > 2) cout << endl;
   
-  while(!buf.eof()) {
-    char c;
-    buf >> c;
-    switch(c) {
-      case 'M':
-      {
-        if(active) {
-          if(cyclic) {
-            if(node.point == nodes[0].point)
-              nodes[0].pre=node.pre;
-            else {
-              pair delta=(nodes[0].point-node.point)*third;
-              node.post=node.point+delta;
-              nodes[0].pre=nodes[0].point-delta;
-              node.straight=true;
+    mem::vector<solvedKnot> nodes;
+    solvedKnot node;
+    bool cyclic=false;
+    bool active=false;
+  
+    array *P=new array(0);
+    PP->push(P);
+    
+    while(!buf.eof()) {
+      char c;
+      buf >> c;
+      if(c == '>') break;
+
+      switch(c) {
+        case 'M':
+        {
+          if(active) {
+            if(cyclic) {
+              if(node.point == nodes[0].point)
+                nodes[0].pre=node.pre;
+              else {
+                pair delta=(nodes[0].point-node.point)*third;
+                node.post=node.point+delta;
+                nodes[0].pre=nodes[0].point-delta;
+                node.straight=true;
+                nodes.push_back(node);
+              }
+            } else {
+              node.post=node.point;
+              node.straight=false;
               nodes.push_back(node);
             }
-          } else {
-            node.post=node.point;
-            node.straight=false;
-            nodes.push_back(node);
+            if(cyclic) // Discard noncyclic paths.
+              P->push(path(nodes,nodes.size(),cyclic));
+            nodes.clear();
           }
-          if(cyclic) // Discard noncyclic paths.
-            P->push(path(nodes,nodes.size(),cyclic));
-          nodes.clear();
+          active=false;
+          cyclic=false;
+          node.pre=node.point=readpair(buf,hscale,vscale);
+          node.straight=false;
+          break;
         }
-        active=false;
-        cyclic=false;
-        node.pre=node.point=readpair(buf,hscale,vscale);
-        node.straight=false;
-        break;
-      }
-      case 'L':
-      {
-        pair point=readpair(buf,hscale,vscale);
-        pair delta=(point-node.point)*third;
-        node.post=node.point+delta;
-        node.straight=true;
-        nodes.push_back(node);
-        active=true;
-        node.pre=point-delta;
-        node.point=point;
-        break;
-      }
-      case 'C':
-      {
-        pair point=readpair(buf,hscale,vscale);
-        pair pre=readpair(buf,hscale,vscale);
-        node.post=readpair(buf,hscale,vscale);
-        node.straight=false;
-        nodes.push_back(node);
-        active=true;
-        node.pre=pre;
-        node.point=point;
-        break;
-      }
-      case 'c':
-      {
-        cyclic=true;
-        break;
+        case 'L':
+        {
+          pair point=readpair(buf,hscale,vscale);
+          pair delta=(point-node.point)*third;
+          node.post=node.point+delta;
+          node.straight=true;
+          nodes.push_back(node);
+          active=true;
+          node.pre=point-delta;
+          node.point=point;
+          break;
+        }
+        case 'C':
+        {
+          pair point=readpair(buf,hscale,vscale);
+          pair pre=readpair(buf,hscale,vscale);
+          node.post=readpair(buf,hscale,vscale);
+          node.straight=false;
+          nodes.push_back(node);
+          active=true;
+          node.pre=pre;
+          node.point=point;
+          break;
+        }
+        case 'c':
+        {
+          cyclic=true;
+          break;
+        }
       }
     }
   }
   
   if(!keep)
     unlink(psname.c_str());
-  return P;
+  return PP;
 }
 
 // Autogenerated routines:
@@ -196,7 +218,7 @@ realarray *texsize(string *s, pen p=CURRENTPEN)
   
   double width,height,depth;
   if(!texbounds(width,height,depth,pd.tex,*s,abort,false,true))
-     return new array(0);
+    return new array(0);
   
   array *t=new array(3);
   (*t)[0]=width;
@@ -205,10 +227,10 @@ realarray *texsize(string *s, pen p=CURRENTPEN)
   return t;
 }
 
-patharray *_texpath(string *s, pen p=CURRENTPEN)
+patharray2 *_texpath(stringarray *s, penarray *p)
 {
-  array *P=new array(0);
-  if(s->empty()) return P;
+  size_t n=checkArrays(s,p);
+  if(n == 0) return new array(0);
   
   string prefix=cleanpath(outname());
   string psname=auxname(prefix,"ps");
@@ -219,19 +241,24 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   bool pdf=settings::pdf(texengine);
   texfile tex(texname,b,true);
   tex.miniprologue();
-  tex.setfont(p);
   
-  if(!pdf) {
-    tex.verbatimline("\\special{ps:");
-    tex.verbatimline(ASYx);
-    tex.verbatimline(ASYy);
-    tex.verbatimline("/ASY1 true def");
-    tex.verbatimline("/v {"+ASY1+"neg exch 4 copy 4 2 roll 2 copy 6 2 roll 2 copy (M) print ASYy ASYx (L) print ASYy add ASYx (L) print add ASYy add ASYx (L) print add ASYy ASYx (c) print} bind def");
-    tex.verbatimline("/show {"+ASY1+
-                     "currentpoint newpath moveto false charpath "+
-                     pathforall+"} bind def}");
+  for(size_t i=0; i < n; ++i) {
+    tex.setfont(read<pen>(p,i));
+    if(i != 0)
+      tex.verbatimline("\\newpage");
+    if(!pdf) {
+      tex.verbatimline("\\special{ps:");
+      tex.verbatimline(ASYx);
+      tex.verbatimline(ASYy);
+      tex.verbatimline("/ASY1 true def");
+      tex.verbatimline("/v {"+ASY1+"neg exch 4 copy 4 2 roll 2 copy 6 2 roll 2 copy (M) print ASYy ASYx (L) print ASYy add ASYx (L) print add ASYy add ASYx (L) print add ASYy ASYx (c) print} bind def");
+      tex.verbatimline("/show {"+ASY1+
+                       "currentpoint newpath moveto false charpath "+
+                       pathforall+"} bind def}");
+    }
+    tex.verbatimline(read<string>(s,i)+"%");
   }
-  tex.verbatimline(*s+"%");
+  
   tex.epilogue(true);
   tex.close();
   
@@ -241,6 +268,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   if(!status) {
     if(pdf) {
       pdfname=auxname(prefix,"pdf");
+      if(!fs::exists(pdfname)) return new array(n);
       std::ofstream ps(psname.c_str());
       if(!ps) cannotwrite(psname);
       
@@ -267,6 +295,7 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
       }
       ps.close();
     } else {
+      if(!fs::exists(dviname)) return new array(n);
       mem::vector<string> dcmd;
       dcmd.push_back(getSetting<string>("dvips"));
       dcmd.push_back("-R");
@@ -302,10 +331,10 @@ patharray *_texpath(string *s, pen p=CURRENTPEN)
   return pdf ? readpath(psname,keep,0.1) : readpath(psname,keep,0.12,-1.0);
 }
 
-patharray *textpath(string *s, pen p=CURRENTPEN)
+patharray2 *textpath(stringarray *s, penarray *p)
 {
-  array *P=new array(0);
-  if(s->empty()) return P;
+  size_t n=checkArrays(s,p);
+  if(n == 0) return new array(0);
   
   string prefix=cleanpath(outname());
   string outputname=auxname(prefix,getSetting<string>("textoutformat"));
@@ -315,10 +344,12 @@ patharray *textpath(string *s, pen p=CURRENTPEN)
   
   if(!text) cannotwrite(textname);
 
-  text << getSetting<string>("textprologue") << newl
-       << p.Font() << newl
-       << *s << newl
-       << getSetting<string>("textepilogue") << endl;
+  for(size_t i=0; i < n; ++i) {
+    text << getSetting<string>("textprologue") << newl
+         << read<pen>(p,i).Font() << newl
+         << read<string>(s,i) << newl
+         << getSetting<string>("textepilogue") << endl;
+  }
   text.close();
   
   string psname=auxname(prefix,"ps");
@@ -393,5 +424,6 @@ patharray *_strokepath(path g, pen p=CURRENTPEN)
   ps.verbatimline("(M) "+currentpoint);
   ps.epilogue();
   ps.close();
-  return readpath(psname,getSetting<bool>("keep"));
+  array *a=readpath(psname,getSetting<bool>("keep"));
+  return a->size() > 0 ? read<array *>(a,0) : a;
 }

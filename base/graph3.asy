@@ -148,7 +148,7 @@ void labelaxis(picture pic, transform3 T, Label L, path3 g,
       add(f,F.fit3(identity4,pic2,P));
     },exact=false);
 
-  path3[] G=path3(texpath(L));
+  path3[] G=path3(texpath(L,bbox=true));
   if(G.length > 0) {
     G=L.align.is3D ? align(G,O,align,L.p) : L.T3*G;
     triple v=point(g,relative(L,g));

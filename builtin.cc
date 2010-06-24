@@ -418,7 +418,8 @@ void addBooleanOps(venv &ve, ty *t1, symbol name, ty *t2)
 void addWrite(venv &ve, bltin f, ty *t1, ty *t2)
 {
   addRestFunc(ve,f,primVoid(),SYM(write),t2,
-              formal(primFile(),SYM(file),true),formal(primString(),SYM(s),true),
+              formal(primFile(),SYM(file),true),
+              formal(primString(),SYM(s),true),
               formal(t1,SYM(x)),formal(voidFileFunction(),SYM(suffix),true));
 }
 
@@ -430,7 +431,8 @@ void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
    
   addFunc(ve, run::array2Equals<T>, primBoolean(), SYM_EQ, formal(t3, SYM(a)),
           formal(t3, SYM(b)));
-  addFunc(ve, run::array2NotEquals<T>, primBoolean(), SYM_NEQ, formal(t3, SYM(a)),
+  addFunc(ve, run::array2NotEquals<T>, primBoolean(),
+          SYM_NEQ, formal(t3, SYM(a)),
           formal(t3, SYM(b)));
   
   addCast(ve,t1,primFile(),read<T>);
@@ -440,7 +442,8 @@ void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   
   addWrite(ve,write<T>,t1,t2);
   addRestFunc(ve,writeArray<T>,primVoid(),SYM(write),t3,
-              formal(primFile(),SYM(file),true),formal(primString(),SYM(s),true),
+              formal(primFile(),SYM(file),true),
+              formal(primString(),SYM(s),true),
               formal(t2,SYM(a),false,true));
   addFunc(ve,writeArray2<T>,primVoid(),SYM(write),
           formal(primFile(),SYM(file),true),t3);
@@ -508,7 +511,8 @@ void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool integer=false,
   addFunc(ve,Negate<T>,t1,SYM_MINUS,formal(t1,SYM(a)));
   addFunc(ve,arrayFunc<T,T,negate>,t2,SYM_MINUS,formal(t2,SYM(a)));
   addFunc(ve,arrayFunc2<T,T,negate>,t3,SYM_MINUS,formal(t3,SYM(a)));
-  if(!integer) addFunc(ve,interp<T>,t1,SYM(interp),formal(t1,SYM(a),false,Explicit),
+  if(!integer) addFunc(ve,interp<T>,t1,SYM(interp),
+                       formal(t1,SYM(a),false,Explicit),
                        formal(t1,SYM(b),false,Explicit),
                        formal(primReal(),SYM(t)));
   
@@ -575,10 +579,14 @@ void addArrayOps(venv &ve, types::array *t)
               t, SYM(sequence), formal(new function(ct, primInt()), SYM(f)),
               formal(primInt(), SYM(n)));
       addFunc(ve, run::arrayFunction,
-              t, SYM(map), formal(new function(ct, ct), SYM(f)), formal(t, SYM(a)));
+              t, SYM(map), formal(new function(ct, ct), SYM(f)),
+              formal(t, SYM(a)));
       addFunc(ve, run::arraySort,
               t, SYM(sort), formal(t, SYM(a)),
-              formal(new function(primBoolean(), ct, ct), SYM(f)));
+              formal(new function(primBoolean(), ct, ct), SYM(less)));
+      addFunc(ve, run::arraySearch,
+              primInt(), SYM(search), formal(t, SYM(a)), formal(ct, SYM(key)),
+              formal(new function(primBoolean(), ct, ct), SYM(less)));
       break;
     case 2:
       addFunc(ve, run::array2Copy, t, SYM(copy), formal(t, SYM(a)));

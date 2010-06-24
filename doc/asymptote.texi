@@ -5121,11 +5121,16 @@ If @code{n} is negative, search backwards from the end of the array for the
 
 @cindex @code{search}
 @item int search(T[] a, T key)
-For built-in ordered types @code{T}, searches a sorted ordered array
+For built-in ordered types @code{T}, searches a sorted array
 @code{a} of @code{n} elements for k, returning the index @code{i}
 if @code{a[i] <= key < a[i+1]}, @code{-1} if @code{key} is
 less than all elements of @code{a}, or @code{n-1} if @code{key} is
 greater than or equal to the last element of @code{a}.
+
+@cindex @code{search}
+@item int search(T[] a, T key, bool less(T i, T j))
+searches an array @code{a} sorted in ascending order such that element
+@code{i} precedes element @code{j} if @code{less(i,j)} is true;
 
 @cindex @code{copy}
 @item T[] copy(T[] a)
@@ -5152,6 +5157,7 @@ returns @code{true} if the arrays @code{a} and @code{b} are identical;
 For built-in ordered types @code{T}, returns a copy of @code{a} sorted in
 ascending order;
 
+@cindex @code{sort}
 @anchor{sort}
 @item T[][] sort(T[][] a)
 For built-in ordered types @code{T}, returns a copy of @code{a} with the rows
@@ -5173,9 +5179,9 @@ pete    7
 @end verbatim
 
 @cindex @code{sort}
-@item T[] sort(T[] a, bool compare(T i, T j))
+@item T[] sort(T[] a, bool less(T i, T j))
 returns a copy of @code{a} stably sorted in ascending order such that
-element @code{i} precedes element @code{j} if @code{compare(i,j)} is true.
+element @code{i} precedes element @code{j} if @code{less(i,j)} is true.
 
 @cindex @code{transpose}
 @item T[][] transpose(T[][] a)
@@ -6148,11 +6154,11 @@ sequentially, returning the index of @code{x} in the resulting array.
 
 @cindex @code{lexorder}
 @item bool lexorder(pair a, pair b)
-returns the lexicographical partial order of @code{a} and @code{b}.
+returns the strict lexicographical partial order of @code{a} and @code{b}.
 
 @cindex @code{lexorder}
 @item bool lexorder(triple a, triple b)
-returns the lexicographical partial order of @code{a} and @code{b}.
+returns the strict lexicographical partial order of @code{a} and @code{b}.
 @end table
 
 @node interpolate

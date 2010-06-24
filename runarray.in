@@ -806,13 +806,32 @@ array* :arrayFunction(callable *f, array *a)
   return b;
 }
 
-array* :arraySort(array *a, callable *f)
+array* :arraySort(array *a, callable *less)
 {
   array *c=copyArray(a);
-  compareFunc=f;
+  compareFunc=less;
   FuncStack=Stack;
   stable_sort(c->begin(),c->end(),compareFunction);
   return c;
+}
+
+Int :arraySearch(array *a, item key, callable *less)
+{
+  size_t size=a->size();
+  compareFunc=less;
+  FuncStack=Stack;
+  if(size == 0 || compareFunction(key,(*a)[0])) return -1;
+  size_t u=size-1;
+  if(!compareFunction(key,(*a)[u])) return Intcast(u);
+  size_t l=0;
+        
+  while (l < u) {
+    size_t i=(l+u)/2;
+    if(compareFunction(key,(*a)[i])) u=i;
+    else if(compareFunction(key,(*a)[i+1])) return Intcast(i);
+    else l=i+1;
+  }
+  return 0;
 }
 
 bool all(boolarray *a)

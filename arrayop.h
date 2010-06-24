@@ -297,16 +297,16 @@ void searchArray(vm::stack *s)
 {
   T key=pop<T>(s);
   array *a=pop<array*>(s);
-  Int size=(Int) a->size();
+  size_t size= a->size();
   if(size == 0 || key < read<T>(a,0)) {s->push(-1); return;}
-  Int u=size-1;
-  if(key >= read<T>(a,u)) {s->push(u); return;}
-  Int l=0;
+  size_t u=size-1;
+  if(key >= read<T>(a,u)) {s->push((Int) u); return;}
+  size_t l=0;
         
   while (l < u) {
-    Int i=(l+u)/2;
-    if(read<T>(a,i) <= key && key < read<T>(a,i+1)) {s->push(i); return;}
+    size_t i=(l+u)/2;
     if(key < read<T>(a,i)) u=i;
+    else if(key < read<T>(a,i+1)) {s->push((Int) i); return;}
     else l=i+1;
   }
   s->push(0);

@@ -2787,16 +2787,24 @@ struct scene
         adjusted=adjusted | this.P.adjust(m,M);
     }
 
+    bool scale=xsize != 0 || ysize != 0;
+    bool scaleAdjust=scale && this.P.autoadjust;
+    bool noAdjust=(this.P.absolute || !scaleAdjust);
+
+    if(pic.bounds3.exact && noAdjust)
+      this.P.bboxonly=false;
+    
     f=pic.fit3(t,pic.bounds3.exact ? pic2 : null,this.P);
 
     if(!pic.bounds3.exact) {
+      if(noAdjust)
+        this.P.bboxonly=false;
+
       transform3 s=pic.scale3(f,xsize3,ysize3,zsize3,keepAspect);
       t=s*t;
       this.P=s*this.P;
       f=pic.fit3(t,pic2,this.P);
     }
-
-    bool scale=xsize != 0 || ysize != 0;
 
     if(is3D || scale) {
       pic2.bounds.exact=true;
@@ -2810,7 +2818,7 @@ struct scene
       height=ceil(lambda.y+2*viewportmargin.y);
 
       if(!this.P.absolute) {
-        if(scale && this.P.autoadjust) {
+        if(scaleAdjust) {
           pair v=(s.xx,s.yy);
           transform3 T=this.P.t;
           pair x=project(X,T);
@@ -2826,6 +2834,7 @@ struct scene
           s=shift(this.P.target)*s*shift(-this.P.target);
           t=s*t;
           this.P=s*this.P;
+          this.P.bboxonly=false;
           f=pic.fit3(t,is3D ? null : pic2,this.P);
         }
 

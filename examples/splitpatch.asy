@@ -1,5 +1,7 @@
 import three;
 
+size(300);
+
 currentprojection=orthographic(0,0,1);
 
 triple[][] A={

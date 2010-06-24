@@ -1403,16 +1403,16 @@ surface align(surface s, transform3 t=identity4, triple position,
   return shift(position+align*labelmargin(p))*t*shift(-a)*s;
 }
 
-surface surface(Label L, triple position=O)
+surface surface(Label L, triple position=O, bool bbox=false)
 {
-  surface s=surface(texpath(L));
+  surface s=surface(texpath(L,bbox=bbox));
   return L.align.is3D ? align(s,L.T3,position,L.align.dir3,L.p) :
     shift(position)*L.T3*s;
 }
 
 private path[] path(Label L, pair z=0, projection P)
 {
-  path[] g=texpath(L);
+  path[] g=texpath(L,bbox=P.bboxonly);
   return L.align.is3D ? align(g,z,project(L.align.dir3,P)-project(O,P),L.p) :
     shift(z)*g;
 }
@@ -1433,7 +1433,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
   begingroup3(f,name == "" ? L.s : name,render);
   if(is3D()) {
     bool lighton=light.on();
-    for(patch S : surface(L,position).s) {
+    for(patch S : surface(L,position,bbox=P.bboxonly).s) {
       draw3D(f,S,position,L.p,light,interaction);
       if(render.labelfill && !lighton) // Fill subdivision cracks
         _draw(f,S.external(),position,L.p,interaction.type);
@@ -1465,7 +1465,8 @@ void label(picture pic=currentpicture, Label L, triple position,
   L.align(align);
   L.p(p);
   L.position(0);
-  pic.add(new void(frame f, transform3 t, picture pic, projection P) {
+  
+  pic.add(new void(frame f, transform3 t, picture pic2, projection P) {
       // Handle relative projected 3D alignments.
       Label L=L.copy();
       triple v=t*position;
@@ -1480,26 +1481,27 @@ void label(picture pic=currentpicture, Label L, triple position,
 
       begingroup3(f,name == "" ? L.s : name,render,v,interaction.type);
       bool lighton=light.on();
+      
       if(is3D()) {
-        for(patch S : surface(L,v).s) {
+        for(patch S : surface(L,v,bbox=P.bboxonly).s) {
           draw3D(f,S,v,L.p,light,interaction);
           if(render.labelfill && !lighton) // Fill subdivision cracks
             _draw(f,S.external(),v,L.p,interaction.type);
         }
       }
       
-      if(pic != null) {
+      if(pic2 != null) {
         pen p=color(L.T3*Z,L.p,light,shiftless(P.T.modelview));
         if(L.defaulttransform3) {
           if(L.filltype == NoFill)
-            fill(project(v,P.t),pic,path(L,P),p);
+            fill(project(v,P.t),pic2,path(L,P),p);
           else {
             picture d;
             fill(project(v,P.t),d,path(L,P),p);
-            add(pic,d,L.filltype);
+            add(pic2,d,L.filltype);
           }
         } else
-          pic.add(new void(frame f, transform T) {
+          pic2.add(new void(frame f, transform T) {
               for(patch S : surface(L,v).s)
                 fill(f,T*project(S.external(),P,1),p);
             });
@@ -1509,10 +1511,11 @@ void label(picture pic=currentpicture, Label L, triple position,
     },!L.defaulttransform3);
 
   Label L=L.copy();
+  
   if(interaction.targetsize && settings.render != 0)
     L.T=L.T*scale(abs(currentprojection.camera-position)/
                   abs(currentprojection.vector()));
-  path[] g=texpath(L);
+  path[] g=texpath(L,bbox=true);
   if(g.length == 0 || (g.length == 1 && size(g[0]) == 0)) return;
   if(L.defaulttransform3)
     L.T3=transform3(currentprojection);
@@ -1579,8 +1582,10 @@ surface surface(Label L, surface s, real uoffset, real voffset,
         real u=uoffset+(z.x-m.x)/lambda.x;
         real v=voffset+(z.y-m.y)/lambda.y;
         if(((u < 0 || u >= nu) && !s.ucyclic()) ||
-           ((v < 0 || v >= nv) && !s.vcyclic()))
+           ((v < 0 || v >= nv) && !s.vcyclic())) {
           warning("cannotfit","cannot fit string to surface");
+          u=v=0;
+        }
         return s.point(u,v)+height*unit(s.normal(u,v));
       });
   }

@@ -420,6 +420,8 @@ struct projection {
   bool autoadjust=true; // Adjust camera to lie outside bounding volume?
   bool center=false;    // Center target within bounding volume?
   int ninterpolate;     // Used for projecting nurbs to 2D Bezier curves.
+  bool bboxonly=true;   // Typeset label bounding box only.
+  
   transformation T;
 
   void calculate() {
@@ -469,6 +471,7 @@ struct projection {
     P.center=center;
     P.projector=projector;
     P.ninterpolate=ninterpolate;
+    P.bboxonly=bboxonly;
     P.T=T.copy();
     return P;
   }
@@ -588,7 +591,7 @@ struct picture {
   // The functions to do the deferred drawing.
   drawerBound[] nodes;
   drawerBound3[] nodes3;
-  
+
   bool uptodate=true;
 
   // The coordinates in flex space to be used in sizing the picture.

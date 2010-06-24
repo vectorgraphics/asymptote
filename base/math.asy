@@ -167,11 +167,11 @@ int unique(string[] a, string x) {
 }
 
 bool lexorder(pair a, pair b) {
-  return a.x < b.x || (a.x == b.x && a.y <= b.y);
+  return a.x < b.x || (a.x == b.x && a.y < b.y);
 }
 
 bool lexorder(triple a, triple b) {
-  return a.x < b.x || (a.x == b.x && (a.y < b.y || (a.y == b.y && a.z <= b.z)));
+  return a.x < b.x || (a.x == b.x && (a.y < b.y || (a.y == b.y && a.z < b.z)));
 }
 
 real[] zero(int n)
