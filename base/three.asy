@@ -2162,9 +2162,9 @@ draw=new void(frame f, path3 g, material p=currentpen,
   pen q=(pen) p;
   if(is3D()) {
     p=material(p);
+    real width=linewidth(q);
     void drawthick(path3 g) {
       if(settings.thick) {
-        real width=linewidth(q);
         if(width > 0) {
           bool prc=prc();
           void cylinder(transform3) {};
@@ -2179,16 +2179,13 @@ draw=new void(frame f, path3 g, material p=currentpen,
             pipe=new void(path3 center, path3 g)
               {drawPRCtube(f,center,g,p,light);};
           }
-          real linecap;
-          real r;
+          real linecap=linecap(q);
+          real r=0.5*width;
           bool open=!cyclic(g);
           int L=length(g);
-          triple g0,gL;
+          triple g0=point(g,0);
+          triple gL=point(g,L);
           if(open && L > 0) {
-            g0=point(g,0);
-            gL=point(g,L);
-            linecap=linecap(q);
-            r=0.5*width;
             if(linecap == 2) {
               g0 -= r*dir(g,0);
               gL += r*dir(g,L);
@@ -2239,11 +2236,11 @@ draw=new void(frame f, path3 g, material p=currentpen,
         } else _draw(f,g,q);
       } else _draw(f,g,q);
     }
-    real[] dash=linetype(adjust(q,arclength(g),cyclic(g)));
     if(q != nullpen)
       begingroup3(f,name == "" ? "curve" : name,render);
-    if(dash.length == 0) drawthick(g);
+    if(linetype(q).length == 0) drawthick(g);
     else {
+      real[] dash=linetype(adjust(q,arclength(g),cyclic(g)));
       if(sum(dash) > 0) {
         dash.cyclic=true;
         real offset=offset(q);
