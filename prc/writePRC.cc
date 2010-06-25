@@ -970,7 +970,9 @@ uint32_t makePRCID()
 
 void writeUnit(PRCbitStream &out,bool fromCAD,double unit)
 {
-  out << fromCAD << unit;
+  static const double inches=72;
+  static const double cm=inches/2.54;
+  out << fromCAD << 10.0/cm; // Use bp.
 }
 
 void writeEmptyMarkups(PRCbitStream &out)

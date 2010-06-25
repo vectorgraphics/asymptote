@@ -589,9 +589,9 @@ void drawSphere::P(Triple& t, double x, double y, double z)
   t[2]=(T[8]*x+T[9]*y+T[10]*z+T[11])*f;
 }
 
-static const Triple origin={0,0,0};
-static const Triple xaxis={1,0,0};
-static const Triple yaxis={0,1,0};
+static const Triple origin={0.0,0.0,0.0};
+static const Triple xaxis={1.0,0.0,0.0};
+static const Triple yaxis={0.0,1.0,0.0};
 static const double Identity4[4][4]={{1.0,0.0,0.0,0.0},
                                      {0.0,1.0,0.0,0.0},
                                      {0.0,0.0,1.0,0.0},
