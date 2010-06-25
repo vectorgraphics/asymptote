@@ -2905,8 +2905,8 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
       triple M=max3(S.f);
       triple lambda=M-m;
       S.viewportmargin=viewportmargin((lambda.x,lambda.y));
-      S.width=ceil(lambda.x+2*viewportmargin.x);
-      S.height=ceil(lambda.y+2*viewportmargin.y);
+      S.width=ceil(lambda.x+2*S.viewportmargin.x);
+      S.height=ceil(lambda.y+2*S.viewportmargin.y);
       S.f=shift((-0.5(m.x+M.x),-0.5*(m.y+M.y),0))*S.f; // Eye will be at (0,0,0)
     } else {
       if(P.angle == 0) {
