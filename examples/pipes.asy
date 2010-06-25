@@ -86,9 +86,11 @@ void DrawLink(transform3 TBase, transform3 TEnd, pen objStyle,string s)
   revolution vase=revolution(O,generator,0,360);
   surface objSurface=surface(vase);
     
+  render render=render(merge=true);
+
   // draw two cylinders
-  draw(TBase*objSurface,objStyle);
-  draw(TEnd*shift((0,0,-h))*objSurface,objStyle);
+  draw(TBase*objSurface,objStyle,render);
+  draw(TEnd*shift((0,0,-h))*objSurface,objStyle,render);
 	
   // draw the link between two cylinders
   triple pStart=TBase*(0.5*h*Z);
@@ -96,7 +98,7 @@ void DrawLink(transform3 TBase, transform3 TEnd, pen objStyle,string s)
   triple pControl1=0.25*(pEnd-pStart)+TBase*(0,0,h);
   triple pControl2=-0.25*(pEnd-pStart)+TEnd*(0,0,-h);
   path3 p=pStart..controls pControl1 and pControl2..pEnd;
-  draw(tube(p,scale(0.2)*unitsquare),objStyle);   
+  draw(tube(p,scale(0.2)*unitsquare),objStyle,render);   
 }
 
 // t1 and t2 define the starting frame and ending frame of the first link(i-1)
