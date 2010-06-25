@@ -562,7 +562,7 @@ void addArrayOps(venv &ve, types::array *t)
   typedef void (*stackFcn)(stack *Stack);
   static stackFcn routine[]={run::copyArray0,run::copyArray1,run::copyArray2};
   
-  Int ndepth=sizeof(routine)/sizeof(stackFcn);
+  size_t ndepth=sizeof(routine)/sizeof(stackFcn);
   
   if(depth <= ndepth) {
     addFunc(ve, routine[depth-1],
