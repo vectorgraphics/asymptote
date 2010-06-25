@@ -493,7 +493,6 @@ class drawTube : public drawElement {
 protected:
   path3 center;
   path3 g;
-  double T[16];
   RGBAColour diffuse;
   RGBAColour ambient;
   RGBAColour emissive;
