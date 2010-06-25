@@ -5,7 +5,7 @@ real r=1;
 real h=3;
 
 revolution R=cylinder(-h/2*Z,r,h);
-draw(surface(R),lightgreen+opacity(0.5));
+draw(surface(R),lightgreen+opacity(0.5),render(compression=Low));
 draw((0,0,-h/2)--(0,0,h/2),dashed);
 dot((0,0,-h/2));
 dot((0,0,h/2));

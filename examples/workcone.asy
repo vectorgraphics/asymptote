@@ -16,6 +16,8 @@ real x1=r*s1/h;
 real s2=sr+0.2;
 real x2=r*s2/h;
 
+//render render=render(compression=Low,merge=true);
+
 path3 p=(0,0,0)--(x,0,s);
 revolution a=revolution(p,Z);
 draw(surface(a,4),lightblue+opacity(0.5));

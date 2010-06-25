@@ -26,11 +26,13 @@ path p=graph(F,0,2,n,operator ..)--cycle;
 surface s=surface(p);
 path3 p3=path3(p);
 
+render render=render(compression=0,merge=true);
+
 revolution a=revolution(p3,Y,0,alpha);
-draw(surface(a),color);
-draw(rotate(alpha,Y)*s,color);
+draw(surface(a),color,render);
+draw(rotate(alpha,Y)*s,color,render);
 for(int i=0; i < n; ++i)
-  draw(surface(blocks[i]),color+opacity(0.5),black);
+  draw(surface(blocks[i]),color+opacity(0.5),black,render);
 draw(p3);
 
 xaxis3(Label("$x$",1,align=2X),Arrow3);
