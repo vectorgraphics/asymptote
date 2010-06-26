@@ -16,22 +16,22 @@ real x1=r*s1/h;
 real s2=sr+0.2;
 real x2=r*s2/h;
 
-//render render=render(compression=Low,merge=true);
+render render=render(compression=0,merge=true);
 
 path3 p=(0,0,0)--(x,0,s);
 revolution a=revolution(p,Z);
-draw(surface(a,4),lightblue+opacity(0.5));
+draw(surface(a,4),lightblue+opacity(0.5),render);
 
 path3 q=(x,0,s)--(r,0,h);
 revolution b=revolution(q,Z);
-draw(surface(b),white+opacity(0.5));
+draw(surface(b),white+opacity(0.5),render);
 
 draw((-r-1,0,0)--(r+1,0,0));
 draw((0,0,0)--(0,0,h+1),dashed);
 
 path3 w=(x1,0,s1)--(x2,0,s2)--(0,0,s2);
 revolution b=revolution(w,Z);
-draw(surface(b),blue+opacity(0.5));
+draw(surface(b),blue+opacity(0.5),render);
 draw(circle((0,0,s2),x2));
 draw(circle((0,0,s1),x1));
 
