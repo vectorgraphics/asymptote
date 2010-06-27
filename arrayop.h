@@ -7,8 +7,6 @@
 #ifndef ARRAYOP_H
 #define ARRAYOP_H
 
-#include <typeinfo>
-
 #include "util.h"
 #include "stack.h"
 #include "array.h"

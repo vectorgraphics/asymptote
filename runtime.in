@@ -169,6 +169,8 @@ namespace vm {
 #if COMPACT
 const Int DefaultValue=0x7fffffffffffffffLL;
 const Int Undefined=0x7ffffffffffffffeLL;
+const Int BoolTruthValue=0x7ffffffffffffffdLL;
+const Int BoolFalseValue=0x7ffffffffffffffcLL;
 
 const item Default=DefaultValue;
 #else

@@ -11,8 +11,12 @@
 #include "common.h"
 #include <cfloat>
 #include <cmath>
-#include <typeinfo>
+
+#if COMPACT
 #include <cassert>
+#else
+#include <typeinfo>
+#endif
 
 namespace vm {
 
@@ -28,6 +32,14 @@ extern const Int DefaultValue;
   
 // Identify an undefined item.
 extern const Int Undefined;
+
+// Values for true and false unlikely to match other values.
+extern const Int BoolTruthValue;
+extern const Int BoolFalseValue;
+
+inline Int valueFromBool(bool b) {
+  return b ? BoolTruthValue : BoolFalseValue;
+}
 #endif
   
 extern const item Default;
@@ -35,14 +47,12 @@ extern const item Default;
 class item : public gc {
 private:
   
-#if !COMPACT  
-  const std::type_info *kind;
-#endif
-  
   union {
     Int i;
     double x;
+#if !COMPACT
     bool b;
+#endif
     void *p;
   };
 
@@ -60,7 +70,7 @@ public:
   item(double x)
     : x(x) {}
   item(bool b)
-    : b(b) {}
+    : i(valueFromBool(b)) {}
   
   item& operator= (int a)
   { i=a; return *this; }
@@ -70,29 +80,31 @@ public:
   { i=a; return *this; }
   item& operator= (double a)
   { x=a; return *this; }
-  item& operator= (bool a)
-  { b=a; return *this; }
+  item& operator= (bool b)
+  { i=valueFromBool(b); return *this; }
   
   template<class T>
   item(T *p)
-    : p((void *) p) {
+    : i((Int) p) {
     assert(!empty());
   }
   
   template<class T>
-  item(const T &P)
-    : p(new(UseGC) T(P)) {
+  item(const T &p)
+    : i((Int) new(UseGC) T(p)) {
     assert(!empty());
   }
   
   template<class T>
   item& operator= (T *a)
-  { p=(void *) a; return *this; }
+  { i=(Int) a; return *this; }
   
   template<class T>
   item& operator= (const T &it)
-  { p=new(UseGC) T(it); return *this; }
+  { i=(Int) new(UseGC) T(it); return *this; }
 #else    
+  const std::type_info *kind;
+  
   bool empty() const
   {return *kind == typeid(void);}
   
@@ -257,8 +269,10 @@ template <>
 inline bool get<bool>(const item& it)
 {
 #if COMPACT  
-  if(!it.empty())
-    return it.b;
+  if(it.i == BoolTruthValue)
+    return true;
+  if(it.i == BoolFalseValue)
+    return false;
 #else  
   if(*it.kind == typeid(bool))
     return it.b;
