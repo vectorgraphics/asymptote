@@ -155,11 +155,12 @@ void drawSection(int xmin, int xmax, int ymin, int ymax) {
 
   write("stitch count: ",stitchCount);
 
-  shipout("xstitch"+string(shipoutNumber),pic);
+  //  shipout("xstitch"+string(shipoutNumber),pic);
+  shipout(pic);
   ++shipoutNumber;
 }
 
-drawSection(-1,width+1,-1,height+1);
+//drawSection(-1,width+1,-1,height+1);
 
 
 //drawSection(-1,80,height-80,height+1);
