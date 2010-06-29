@@ -64,11 +64,11 @@ AC_MSG_NOTICE([Using $contextdir for ConTeXT style file])
 AC_SUBST(latexdir)
 AC_SUBST(contextdir)
 
-docdir=$Datadir/doc/asymptote
+test "$docdir" || docdir=$Datadir/doc/asymptote
 
 AC_ARG_WITH(docdir,
 	[AS_HELP_STRING(--with-docdir=PATH,
-alternate documentation installation directory)],
+                       same as --docdir but takes precedence)],
                      [if test "x$withval" != "x" ; then
 			docdir=$withval
 		      fi
