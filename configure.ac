@@ -64,7 +64,7 @@ AC_MSG_NOTICE([Using $contextdir for ConTeXT style file])
 AC_SUBST(latexdir)
 AC_SUBST(contextdir)
 
-test "$docdir" || docdir=$Datadir/doc/asymptote
+test "x$docdir" = "x" && docdir=$Datadir/doc/asymptote
 
 AC_ARG_WITH(docdir,
 	[AS_HELP_STRING(--with-docdir=PATH,
