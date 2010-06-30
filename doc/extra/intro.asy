@@ -71,7 +71,9 @@ a {\it path}");
 
 item("cyclic path:");
 
-asyfilecode("square");
+asycode("
+draw((0,0)--(100,0)--(100,100)--(0,100)--cycle);
+");
 
 title("Scaling to a Given Size");
 

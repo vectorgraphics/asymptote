@@ -101,7 +101,7 @@ Programming
 * Functions::                   Traditional and high-order functions
 * Arrays::                      Dynamic vectors
 * Casts::                       Implicit and explicit casts
-* Import::                      Importing external @code{Asymptote} packages
+* Import::                      Importing external @code{Asymptote} modules
 * Static::                      Where to allocate your variable?
 
 Operators
@@ -1735,7 +1735,7 @@ In addition, it supports many features beyond the ones found in those languages.
 * Functions::                   Traditional and high-order functions
 * Arrays::                      Dynamic vectors
 * Casts::                       Implicit and explicit casts
-* Import::                      Importing external @code{Asymptote} packages
+* Import::                      Importing external @code{Asymptote} modules
 * Static::                      Where to allocate your variable?
 @end menu
 
