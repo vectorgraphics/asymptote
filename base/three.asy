@@ -251,9 +251,12 @@ projection operator * (transform3 t, projection P)
   projection P=P.copy();
   if(!P.absolute) {
     P.camera=t*P.camera;
-    P.normal=t*(P.target+P.normal);
+    triple target=P.target;
     P.target=t*P.target;
-    P.normal -= P.target;
+    if(P.infinity)
+      P.normal=t*(target+P.normal)-P.target;
+    else
+      P.normal=P.vector();
     P.calculate();
   }
   return P;
