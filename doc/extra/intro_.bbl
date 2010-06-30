@@ -1,4 +1,23 @@
-\begin{thebibliography}{Knu86}
+\begin{thebibliography}{Bow07}
+
+\bibitem[BH08]{Bowman08}
+John~C. Bowman and Andy Hammerlindl.
+\newblock Asymptote: A vector graphics language.
+\newblock {\em TUGboat: The Communications of the \TeX\ Users Group},
+  29(2):288--294, 2008.
+
+\bibitem[Bow07]{Bowman07}
+John~C. Bowman.
+\newblock {The 3D {A}symptote generalization of MetaPost B\'ezier
+  interpolation}.
+\newblock {\em Proceedings in Applied Mathematics and Mechanics},
+  7(1):2010021--2010022, 2007.
+
+\bibitem[BS09]{Bowman09}
+John~C. Bowman and Orest Shardt.
+\newblock Asymptote: Lifting {\TeX} to three dimensions.
+\newblock {\em TUGboat: The Communications of the \TeX\ Users Group},
+  30(1):58--63, 2009.
 
 \bibitem[Hob86]{Hobby86}
 John~D. Hobby.
@@ -7,7 +26,13 @@ John~D. Hobby.
 
 \bibitem[Knu86]{Knuth86b}
 Donald~E. Knuth.
-\newblock {\em The METAFONTbook}.
+\newblock {\em The \MF{}book}.
 \newblock Addison-Wesley, Reading, Massachusetts, 1986.
+
+\bibitem[SB10]{Shardt10}
+Orest Shardt and John~C. Bowman.
+\newblock Surface parametrization of nonsimply connected planar {B\'ezier}
+  regions.
+\newblock {\em Submitted to Computer Aided Design}, 2010.
 
 \end{thebibliography}
