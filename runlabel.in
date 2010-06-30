@@ -104,8 +104,7 @@ array *readpath(const string& psname, bool keep,
       gs >> out;
       if(out.empty() && !gs.running()) break;
       buf << out;
-      char c=out[out.size()-1];
-      if(c == '\n' || c == '\r') {
+      if(out[out.size()-1] == '\n') {
         gs << newl;
         break;
       }
