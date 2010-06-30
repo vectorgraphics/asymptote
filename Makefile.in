@@ -1,7 +1,5 @@
 # @configure_input@
 
-PACKAGE_TARNAME = @PACKAGE_TARNAME@
-
 ARCH = unix
 POLL = poll
 
