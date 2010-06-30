@@ -2,6 +2,8 @@ import three;
 
 size(15cm);
 
+defaultrender.merge=true;
+
 currentprojection=perspective(24,14,13);
 currentlight=light(gray(0.5),specularfactor=3,viewport=false,
                    (0.5,-0.5,-0.25),(0.5,0.5,0.25),(0.5,0.5,1),(-0.5,-0.5,-1));

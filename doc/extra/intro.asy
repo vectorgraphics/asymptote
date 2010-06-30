@@ -30,7 +30,7 @@ University of Alberta\\
 \medskip\Green{Collaborators:\\
 Orest Shardt, Michail Vidiassov, Andy Hammerlindl}",
           "June 30, 2010",
-          "http://asymptote.sf.net");
+          "http://asymptote.sf.net/intro.pdf");
 
 title("History");
 item("1979: \TeX\ and \MF\ (Knuth)");
