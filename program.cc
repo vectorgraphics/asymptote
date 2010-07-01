@@ -18,7 +18,12 @@ static const char* opnames[] = {
   "varpush", "varsave", "fieldpush", "fieldsave",
   "builtin", "jmp", "cjmp", "njmp", "call",
   "pushclosure", "makefunc", "ret",
-  "alloc", "pushframe", "popframe"
+  "alloc", "pushframe", "popframe",
+
+#ifdef COMBO
+  "varpop", "fieldpop",
+  "gejmp"
+#endif
 };
 static const Int numOps = (Int)(sizeof(opnames)/sizeof(char *));
 
@@ -82,6 +87,10 @@ void printInst(ostream& out, const program::label& code,
     case inst::fieldpush:
     case inst::fieldsave:
     case inst::alloc:
+#ifdef COMBO
+    case inst::varpop:
+    case inst::fieldpop:
+#endif
     {
       out << " " << get<Int>(*code);
       break;
@@ -106,6 +115,9 @@ void printInst(ostream& out, const program::label& code,
     case inst::jmp:
     case inst::cjmp:
     case inst::njmp:
+#ifdef COMBO
+    case inst::gejmp:
+#endif
     {
       char f = out.fill('0');
       out << " i";

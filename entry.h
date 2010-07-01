@@ -358,18 +358,13 @@ class venv {
   // The number of scopes begun (but not yet ended) when the venv was empty.
   size_t empty_scopes;
 public:
-  venv() : empty_scopes(0) {
-    beginScope();
-  }
+  venv() : empty_scopes(0) {}
 
   // Most file level modules automatically import plain, so allocate hashtables
   // big enough to hold it in advance.
   struct file_env_tag {};
   venv(file_env_tag)
-    : all(fileAllSize), names(namesAllSize), empty_scopes(0)
-  {
-    beginScope();
-  }
+    : all(fileAllSize), names(namesAllSize), empty_scopes(0) {}
 
   void enter(symbol name, varEntry *v);
 

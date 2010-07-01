@@ -156,6 +156,10 @@ void stack::run(program *code, vars_t vars)
       const inst &i = *ip;
       curPos = i.pos;
       
+#if 0
+      //printInst(cout, ip, code->begin());
+      cout << i.pos << "\n";
+#endif
 #ifdef DEBUG_STACK
       cerr << curPos << "\n";
       printInst(cerr, ip, code->begin());
@@ -186,6 +190,20 @@ void stack::run(program *code, vars_t vars)
           case inst::varsave:
             (*vars)[get<Int>(i)] = top();
             break;
+        
+#ifdef COMBO
+          case inst::varpop:
+            (*vars)[get<Int>(i)] = pop();
+            break;
+
+          case inst::fieldpop: {
+            vars_t frame = pop<vars_t>();
+            if (!frame)
+              error("dereference of null pointer");
+            (*frame)[get<Int>(i)] = pop();
+            break;
+          }
+#endif
         
           case inst::fieldpush: {
             vars_t frame = pop<vars_t>();
@@ -220,6 +238,16 @@ void stack::run(program *code, vars_t vars)
           case inst::njmp:
             if (!pop<bool>()) { ip = get<program::label>(i); continue; }
             break;
+
+#ifdef COMBO
+          case inst::gejmp: {
+            Int y = pop<Int>();
+            Int x = pop<Int>();
+            if (x>=y)
+              { ip = get<program::label>(i); continue; }
+            break;
+          }
+#endif
 
           case inst::popcall: {
             /* get the function reference off of the stack */

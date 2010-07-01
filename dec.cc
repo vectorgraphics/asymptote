@@ -118,7 +118,7 @@ types::ty *tyEntryTy::trans(coenv &, bool) {
 
 vm::lambda *runnable::transAsCodelet(coenv &e)
 {
-  coder c=e.c.newCodelet();
+  coder c=e.c.newCodelet(getPos());
   coenv ce(c, e.e);
   markTrans(ce);
   return c.close();
@@ -168,7 +168,7 @@ record *block::transAsFile(genv& ge, symbol id)
 
   // Create coder and environment to translate the module.
   // File-level modules have dynamic fields by default.
-  coder c(r, 0);
+  coder c(getPos(), r, 0);
   env e(ge);
   coenv ce(c, e);
 
@@ -434,7 +434,7 @@ void initializeVar(position pos, coenv &e, varEntry *v, varinit *init)
   }
   
   v->getLocation()->encode(WRITE, pos, e.c);
-  e.c.encode(inst::pop);
+  e.c.encodePop();
 }
 
 types::ty *inferType(position pos, coenv &e, varinit *init)
@@ -831,7 +831,7 @@ void recorddec::transAsField(coenv &e, record *parent)
     parent->e.addRecordOps(r);
 
   // Start translating the initializer.
-  coder c=e.c.newRecordInit(r);
+  coder c=e.c.newRecordInit(getPos(), r);
   coenv re(c,e.e);
   
   body->transAsRecordBody(re, r);

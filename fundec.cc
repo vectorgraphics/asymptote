@@ -110,24 +110,24 @@ void formals::addOps(coenv &e, record *r)
 // Another helper class. Does an assignment, but relying only on the
 // destination for the type.
 class basicAssignExp : public exp {
-  exp *dest;
+  varEntry *dest;
   varinit *value;
 public:
-  basicAssignExp(position pos, exp *dest, varinit *value) 
+  basicAssignExp(position pos, varEntry *dest, varinit *value) 
     : exp(pos), dest(dest), value(value) {}
 
   void prettyprint(ostream &out, Int indent) {
     prettyname(out, "basicAssignExp", indent);
   }
 
-  types::ty *getType(coenv &e) {
-    return dest->getType(e);
+  types::ty *getType(coenv &) {
+    return dest->getType();
   }
 
   types::ty *trans(coenv &e) {
     // This doesn't handle overloaded types for the destination.
     value->transToType(e, getType(e));
-    dest->transWrite(e, getType(e));
+    dest->encode(WRITE, pos, e.c);
     return getType(e);
   }
 };
@@ -147,7 +147,7 @@ void transDefault(coenv &e, position pos, varEntry *v, varinit *init) {
                        &vee),
            new expStm(pos,
                       new basicAssignExp(pos,
-                                         &vee,
+                                         v,
                                          init)));
   is.trans(e);                                        
 }
@@ -237,7 +237,7 @@ void fundef::baseTrans(coenv &e, types::function *ft)
   string name = id ? string(id) : string("<anonymous function>");
 
   // Create a new function environment.
-  coder fc = e.c.newFunction(name, ft);
+  coder fc = e.c.newFunction(getPos(), name, ft);
   coenv fe(fc,e.e);
 
   // Translate the function.

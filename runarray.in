@@ -564,7 +564,8 @@ item :arrayArrayRead(array *a, Int n)
 }
 
 // Write an element to an array.  Increase size if necessary.
-item :arrayWrite(item value, array *a, Int n)
+// TODO: Add arrayWriteAndPop
+item :arrayWrite(array *a, Int n, item value)
 {
   size_t len=checkArray(a);
   bool cyclic=a->cyclic();
@@ -579,7 +580,7 @@ item :arrayWrite(item value, array *a, Int n)
   return value;
 }
 
-array * :arraySliceWrite(array *src, array *dest, Int left, Int right)
+array * :arraySliceWrite(array *dest, Int left, Int right, array *src)
 {
   checkArray(src);
   checkArray(dest);
@@ -587,7 +588,7 @@ array * :arraySliceWrite(array *src, array *dest, Int left, Int right)
   return src;
 }
 
-array * :arraySliceWriteToEnd(array *src, array *dest, Int left)
+array * :arraySliceWriteToEnd(array *dest, Int left, array *src)
 {
   checkArray(src);
   size_t len=checkArray(dest);

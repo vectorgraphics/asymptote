@@ -134,17 +134,28 @@ public:
 
   void testCachedType(coenv &e);
 
-  // The expression is being used as an address to write to.  This writes code
-  // so that the value on top of stack is put into the address (but not popped
-  // off the stack).
-  virtual void transWrite(coenv &, types::ty *) {
+  // The expression is being written.  Translate code such that the value
+  // (represented by the exp value) is stored into the address represented by
+  // this expression.
+  // In terms of side-effects, this expression must be evaluated (once) before
+  // value is evaluated (once).
+  virtual void transWrite(coenv &e, types::ty *t, exp *value) {
     em.error(getPos());
     em << "expression cannot be used as an address";
+
+    // Translate the value for errors.
+    value->transToType(e, t);
   }
 
   // Translates code for calling a function.  The arguments, in the order they
   // appear in the function's signature, must all be on the stack.
   virtual void transCall(coenv &e, types::ty *target);
+
+  // transConditionalJump must produce code equivalent to the following:
+  // Evaluate the expression as a boolean.  If the result equals cond, jump to
+  // the label dest, otherwise do not jump.  In either case, no value is left
+  // on the stack.
+  virtual void transConditionalJump(coenv &e, bool cond, Int dest);
 
   // This is used to ensure the proper order and number of evaluations.  When
   // called, it immediately translates code to perform the side-effects
@@ -203,7 +214,7 @@ public:
   
   void transAct(action act, coenv &e, types::ty *target);
   void transAsType(coenv &e, types::ty *target);
-  void transWrite(coenv &e, types::ty *target);
+  void transWrite(coenv &e, types::ty *t, exp *value);
   void transCall(coenv &e, types::ty *target);
 };
 
@@ -267,8 +278,9 @@ public:
     return value->getCallee(e, sig);
   }
 
-  void transWrite(coenv &e, types::ty *target) {
-    value->varTrans(trans::WRITE, e, target);
+  void transWrite(coenv &e, types::ty *target, exp *newValue) {
+    newValue->transToType(e, target);
+    this->value->varTrans(trans::WRITE, e, target);
 
     ct=0;  // See note in transAsType.
   }
@@ -399,7 +411,7 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
-  void transWrite(coenv &e, types::ty *target);
+  void transWrite(coenv &e, types::ty *t, exp *value);
 
   exp *evaluate(coenv &e, types::ty *) {
     return new subscriptExp(getPos(),
@@ -444,7 +456,7 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
-  void transWrite(coenv &e, types::ty *target);
+  void transWrite(coenv &e, types::ty *t, exp *value);
 
   exp *evaluate(coenv &e, types::ty *) {
     return new sliceExp(getPos(),
@@ -929,6 +941,7 @@ public:
   void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
+  void transConditionalJump(coenv &e, bool cond, Int dest);
 };
 
 class andExp : public andOrExp {
@@ -939,6 +952,7 @@ public:
   void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
+  void transConditionalJump(coenv &e, bool cond, Int dest);
 };
 
 class joinExp : public callExp {
@@ -1013,6 +1027,8 @@ public:
     : assignExp(pos, dest, value), op(op) {}
 
   void prettyprint(ostream &out, Int indent);
+
+  void transAsType(coenv &e, types::ty *target);
 };
 
 class prefixExp : public exp {

@@ -21,6 +21,8 @@ public:
   void encode(inst i);
   label begin();
   label end();
+  inst &back();
+  void pop_back();
 private:
   friend class label;
   typedef mem::vector<inst> code_t;
@@ -64,6 +66,10 @@ inline program::label program::end()
 { return label(code.size(), this); }
 inline program::label program::begin()
 { return label(0, this); }
+inline inst& program::back()
+{ return code.back(); }
+inline void program::pop_back()
+{ return code.pop_back(); }
 inline void program::encode(inst i)
 { code.push_back(i); }
 inline inst& program::operator[](size_t n)

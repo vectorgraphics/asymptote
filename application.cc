@@ -491,7 +491,7 @@ bool halfExactMightMatch(env &e,
 #  define CASTABLE castable
 #endif
 
-  // These casting tests if successful will be repeating again by
+  // These casting tests if successful will be repeated again by
   // application::match.  It would be nice to avoid this somehow, but the
   // additional complexity is probably not worth the minor speed improvement.
   if (equivalent(formals[0].t, t1))
@@ -502,8 +502,8 @@ bool halfExactMightMatch(env &e,
 }
 
 // Most common after exact matches are cases such as
-//   2 + 3.4
-// that is, binary operations were one of the operands matches exactly and the
+//   2 + 3.4   (int, real) --> (real, real)
+// that is, binary operations where one of the operands matches exactly and the
 // other does not.  This function searches for these so-called "half-exact"
 // matches.  This should only be called after exactMultimatch has failed.
 app_list halfExactMultimatch(env &e,
@@ -554,7 +554,7 @@ app_list halfExactMultimatch(env &e,
   return l;
 }
 
-// Simple check if there are two many arguments to match the candidate
+// Simple check if there are too many arguments to match the candidate
 // function.
 bool tooManyArgs(types::signature *target, types::signature *source) {
   return source->getNumFormals() > target->getNumFormals() &&

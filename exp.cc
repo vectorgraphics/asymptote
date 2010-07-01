@@ -108,6 +108,11 @@ void exp::transCall(coenv &e, types::ty *target)
   e.c.encode(inst::popcall);
 }
 
+void exp::transConditionalJump(coenv &e, bool cond, Int dest) {
+  transToType(e, primBoolean());
+  e.c.useLabel(cond ? inst::cjmp : inst::njmp, dest);
+}
+
 exp *exp::evaluate(coenv &e, types::ty *target) {
   return new tempExp(e, this, target);
 }
@@ -118,7 +123,7 @@ tempExp::tempExp(coenv &e, varinit *v, types::ty *t)
 {
   v->transToType(e, t);
   a->encode(WRITE, getPos(), e.c);
-  e.c.encode(inst::pop);
+  e.c.encodePop();
 }
 
 void tempExp::prettyprint(ostream &out, Int indent) {
@@ -160,7 +165,8 @@ void varEntryExp::transAct(action act, coenv &e, types::ty *target) {
 void varEntryExp::transAsType(coenv &e, types::ty *target) {
   transAct(READ, e, target);
 }
-void varEntryExp::transWrite(coenv &e, types::ty *target) {
+void varEntryExp::transWrite(coenv &e, types::ty *target, exp *value) {
+  value->transToType(e, target);
   transAct(WRITE, e, target);
 }
 void varEntryExp::transCall(coenv &e, types::ty *target) {
@@ -295,14 +301,19 @@ types::ty *subscriptExp::getType(coenv &e)
     primError();
 }
      
-void subscriptExp::transWrite(coenv &e, types::ty *t)
+void subscriptExp::transWrite(coenv &e, types::ty *t, exp *value)
 {
+  // Put array, index, and value on the stack in that order, then call
+  // arrayWrite.
   array *a = transArray(e);
   if (!a)
     return;
   assert(equivalent(a->celltype, t));
 
   index->transToType(e, types::primInt());
+
+  value->transToType(e, t);
+
   e.c.encode(inst::builtin, run::arrayWrite);
 }
 
@@ -360,7 +371,7 @@ types::ty *sliceExp::getType(coenv &e)
   return a ? a : primError();
 }
 
-void sliceExp::transWrite(coenv &e, types::ty *t)
+void sliceExp::transWrite(coenv &e, types::ty *t, exp *value)
 {
   array *a = transArray(e);
   if (!a)
@@ -368,6 +379,8 @@ void sliceExp::transWrite(coenv &e, types::ty *t)
   assert(equivalent(a, t));
 
   index->trans(e);
+
+  value->transToType(e, t);
 
   e.c.encode(inst::builtin, index->getRight() ? run::arraySliceWrite :
              run::arraySliceWriteToEnd);
@@ -1253,6 +1266,21 @@ types::ty *orExp::trans(coenv &e)
   return getType(e);
 }
 
+void orExp::transConditionalJump(coenv &e, bool cond, Int dest)
+{
+  if (cond == true) {
+    left->transConditionalJump(e, true, dest);
+    right->transConditionalJump(e, true, dest);
+  } else { /* cond == false */
+    Int end = e.c.fwdLabel();
+
+    left->transConditionalJump(e, true, end);
+    right->transConditionalJump(e, false, dest);
+
+    e.c.defLabel(end);
+  }
+}
+
 
 void andExp::prettyprint(ostream &out, Int indent)
 {
@@ -1274,6 +1302,20 @@ types::ty *andExp::trans(coenv &e)
   return getType(e);
 }
 
+void andExp::transConditionalJump(coenv &e, bool cond, Int dest)
+{
+  if (cond == true) {
+    Int end = e.c.fwdLabel();
+
+    left->transConditionalJump(e, false, end);
+    right->transConditionalJump(e, true, dest);
+
+    e.c.defLabel(end);
+  } else { /* cond == false */
+    left->transConditionalJump(e, false, dest);
+    right->transConditionalJump(e, false, dest);
+  }
+}
 
 void joinExp::prettyprint(ostream &out, Int indent)
 {
@@ -1319,11 +1361,16 @@ void assignExp::prettyprint(ostream &out, Int indent)
 
 void assignExp::transAsType(coenv &e, types::ty *target)
 {
+#if 0
   // For left-to-right order, we have to evaluate the side-effects of the
   // destination first.
   exp *temp=dest->evaluate(e, target);
   ultimateValue(temp)->transToType(e, target);
   temp->transWrite(e, target);
+#endif
+
+  // All of the heavy work is handled by transWrite.
+  dest->transWrite(e, target, value);
 }
 
 types::ty *assignExp::trans(coenv &e)
@@ -1373,6 +1420,13 @@ void selfExp::prettyprint(ostream &out, Int indent)
   value->prettyprint(out, indent+1);
 }
 
+void selfExp::transAsType(coenv &e, types::ty *target)
+{
+  // Create a temp expression for the destination, so it is not evaluated
+  // twice.
+  exp *temp=dest->evaluate(e, target);
+  temp->transWrite(e, target, ultimateValue(dest));
+}
 
 void prefixExp::prettyprint(ostream &out, Int indent)
 {

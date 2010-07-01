@@ -52,7 +52,7 @@ dummyRecord::dummyRecord(symbol name)
 {
   // Encode the instructions to put an placeholder instance of the record
   // on the stack.
-  trans::coder c(this, 0);
+  trans::coder c(nullPos, this, 0);
   c.closeRecord();
 }
 
@@ -61,7 +61,7 @@ dummyRecord::dummyRecord(string s)
 {
   // Encode the instructions to put an placeholder instance of the record
   // on the stack.
-  trans::coder c(this, 0);
+  trans::coder c(nullPos, this, 0);
   c.closeRecord();
 }
 

@@ -13,6 +13,7 @@
 #include "coder.h"
 #include "genv.h"
 #include "entry.h"
+#include "builtin.h"
 
 using namespace sym;
 using namespace types;
@@ -37,7 +38,7 @@ vm::lambda *newLambda(string name) {
 // The dummy environment of the global environment.
 // Used purely for global variables and static code blocks of file
 // level modules.
-coder::coder(string name, modifier sord)
+coder::coder(position pos, string name, modifier sord)
   : level(new frame(name, 0, 0)),
     recordLevel(0),
     recordType(0),
@@ -49,14 +50,14 @@ coder::coder(string name, modifier sord)
     perm(DEFAULT_PERM),
     program(new vm::program),
     numLabels(0),
-    curPos(nullPos)
+    curPos(pos)
 {
   sord_stack.push(sord);
   encodeAllocInstruction();
 }
 
 // Defines a new function environment.
-coder::coder(string name, function *t, coder *parent,
+coder::coder(position pos, string name, function *t, coder *parent,
              modifier sord, bool reframe)
   : level(reframe ? new frame(name,
                               parent->getFrame(),
@@ -72,7 +73,7 @@ coder::coder(string name, function *t, coder *parent,
     perm(DEFAULT_PERM),
     program(new vm::program),
     numLabels(0),
-    curPos(nullPos)
+    curPos(pos)
 {
   sord_stack.push(sord);
   encodeAllocInstruction();
@@ -80,7 +81,7 @@ coder::coder(string name, function *t, coder *parent,
 
 // Start encoding the body of the record.  The function being encoded
 // is the record's initializer.
-coder::coder(record *t, coder *parent, modifier sord)
+coder::coder(position pos, record *t, coder *parent, modifier sord)
   : level(t->getLevel()),
     recordLevel(t->getLevel()),
     recordType(t),
@@ -92,20 +93,20 @@ coder::coder(record *t, coder *parent, modifier sord)
     perm(DEFAULT_PERM),
     program(new vm::program),
     numLabels(0),
-    curPos(nullPos)
+    curPos(pos)
 {
   sord_stack.push(sord);
   encodeAllocInstruction();
 }
 
-coder coder::newFunction(string name, function *t, modifier sord)
+coder coder::newFunction(position pos, string name, function *t, modifier sord)
 {
-  return coder(name, t, this, sord);
+  return coder(pos, name, t, this, sord);
 }
 
-coder coder::newCodelet()
+coder coder::newCodelet(position pos)
 {
-  return coder("<codelet>", new function(primVoid()), this,
+  return coder(pos, "<codelet>", new function(primVoid()), this,
                DEFAULT_DYNAMIC, false);
 }
 
@@ -120,9 +121,9 @@ record *coder::newRecord(symbol id)
   return r;
 }
 
-coder coder::newRecordInit(record *r, modifier sord)
+coder coder::newRecordInit(position pos, record *r, modifier sord)
 {
-  return coder(r, this, sord);
+  return coder(pos, r, this, sord);
 }
 
 #ifdef DEBUG_BLTIN
@@ -134,6 +135,34 @@ void assertBltinLookup(inst::opcode op, item it)
   }
 }
 #endif
+
+
+void coder::encodePop()
+{
+  if (isStatic() && !isTopLevel()) {
+    assert(parent);
+    parent->encodePop();
+  }
+  else {
+#ifdef COMBO
+    vm::program::label end = program->end();
+    --end;
+    inst& lastInst = *end;
+    if (lastInst.op == inst::varsave) {
+      lastInst.op = inst::varpop;
+      return;
+    }
+    if (lastInst.op == inst::fieldsave) {
+      lastInst.op = inst::fieldpop;
+      return;
+    }
+    // TODO: push+pop into no op.
+#endif
+
+    // No combo applicable.  Just encode a usual pop.
+    encode(inst::pop);
+  }
+}
 
 
 bool coder::encode(frame *f)
@@ -223,6 +252,19 @@ void coder::useLabel(inst::opcode op, Int label)
   if (isStatic())
     return parent->useLabel(op,label);
   
+#ifdef COMBO
+  if (op == inst::cjmp || op == inst::njmp) {
+    inst& last = program->back();
+    if (last.op == inst::builtin) {
+      bltin f = vm::get<bltin>(last);
+      if (f == run::intLess && op == inst::njmp) {
+        program->pop_back();
+        op = inst::gejmp;
+      }
+    }
+  }
+#endif
+
   std::map<Int,vm::program::label>::iterator p = defs.find(label);
   if (p != defs.end()) {
     encode(op,p->second);

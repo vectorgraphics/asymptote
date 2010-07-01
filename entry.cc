@@ -536,8 +536,9 @@ varEntry *venv::lookBySignature(symbol name, signature *sig) {
   // safely return it.
   varEntry *result = lookByType(key(name, sig));
 #if 0
-  if (!result)
+  if (!result) {
     cout << "FAIL BY NO-MATCH" << endl;
+  }
 #endif
   return result;
 #else

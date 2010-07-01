@@ -54,7 +54,17 @@ struct inst : public gc {
     varpush, varsave, fieldpush, fieldsave,
     builtin, jmp, cjmp, njmp, popcall,
     pushclosure, makefunc, ret,
-    alloc, pushframe, popframe
+    alloc, pushframe, popframe,
+
+#ifdef COMBO
+    // Combo instructions:
+    // varpop = varsave+pop and fieldpop = fieldsave+pop
+    varpop, fieldpop,
+
+    // gejmp = bltin greater-than-equal (for ints) + cjmp    OR
+    //       = bltin less-than-equal + njmp
+    gejmp
+#endif
   };
   opcode op;
   position pos;

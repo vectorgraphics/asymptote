@@ -63,7 +63,7 @@ void transConstructorBody(position pos, coenv &e, record *r, varEntry *init)
   // Initialize the object.  a=new Foo;
   newRecordExp::transFromTyEntry(pos, e, new tyEntry(r, 0, 0, position()));
   v->encode(WRITE, pos, e.c);
-  e.c.encode(inst::pop);
+  e.c.encodePop();
 
   // Push the args onto the stack.
   size_t numArgs=init->getSignature()->getNumFormals();
@@ -96,7 +96,7 @@ varEntry *constructorFromInitializer(position pos, coenv &e, record *r,
   ft->printVar(out, symbol::trans("<constructor>"));
 
   // Create a new function environment.
-  coder fc = e.c.newFunction(out.str(), ft);
+  coder fc = e.c.newFunction(pos, out.str(), ft);
   coenv fe(fc,e.e);
 
   // Translate the function.
@@ -114,7 +114,7 @@ varEntry *constructorFromInitializer(position pos, coenv &e, record *r,
   // Save it into a varEntry.
   varEntry *v=makeVarEntry(pos, e, r, ft);
   v->encode(WRITE, pos, e.c);
-  e.c.encode(inst::pop);
+  e.c.encodePop();
 
   return v;
 }

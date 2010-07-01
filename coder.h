@@ -18,6 +18,7 @@
 #include "program.h"
 #include "util.h"
 #include "modifier.h"
+#include "inst.h"
 
 namespace trans {
 
@@ -104,15 +105,18 @@ public:
   // its own frame, which is the usual (sensible) thing to do.  It is set to
   // false for a line-at-a-time codelet, where variables should be allocated in
   // the lower frame.
-  coder(string name, function *t, coder *parent,
+  coder(position pos,
+        string name, function *t, coder *parent,
         modifier sord = DEFAULT_DYNAMIC,
         bool reframe=true);
 
   // Start encoding the body of the record.  The function being encoded
   // is the record's initializer.
-  coder(record *t, coder *parent, modifier sord = DEFAULT_DYNAMIC);
+  coder(position pos,
+        record *t, coder *parent, modifier sord = DEFAULT_DYNAMIC);
 
-  coder(string name, modifier sord = DEFAULT_DYNAMIC);
+  coder(position pos,
+        string name, modifier sord = DEFAULT_DYNAMIC);
   
   coder(const coder&);
   
@@ -179,17 +183,18 @@ public:
   bool isRecord();
   
   // Creates a new coder to handle the translation of a new function.
-  coder newFunction(string name, function *t, modifier sord=DEFAULT_DYNAMIC);
+  coder newFunction(position pos,
+                    string name, function *t, modifier sord=DEFAULT_DYNAMIC);
 
   // Creates a new record type.
   record *newRecord(symbol id);
 
   // Create a coder for the initializer of the record.
-  coder newRecordInit(record *r, modifier sord=DEFAULT_DYNAMIC);
+  coder newRecordInit(position pos, record *r, modifier sord=DEFAULT_DYNAMIC);
 
   // Create a coder for translating a small piece of code.  Used for
   // line-at-a-time mode.
-  coder newCodelet();
+  coder newCodelet(position pos);
 
   frame *getFrame()
   {
@@ -264,6 +269,10 @@ public:
     inst i; i.op = op; i.pos = nullPos; i.ref = it;
     encode(i);
   }
+
+  // Encodes a pop instruction, or merges the pop into the previous
+  // instruction (ex. varsave+pop becomes varpop).
+  void encodePop();
 
   // Puts the requested frame on the stack.  If the frame is not that of
   // this coder or its ancestors, false is returned.

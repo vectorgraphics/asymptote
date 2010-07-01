@@ -197,7 +197,7 @@ public:
       
       penv pe;
       env base_env(pe.ge());
-      coder base_coder("icore::doRun");
+      coder base_coder(nullPos, "icore::doRun");
       coenv e(base_coder,base_env);
 
       vm::interactiveStack s;
@@ -885,7 +885,7 @@ void runPromptEmbedded(trans::coenv &e, istack &s) {
 void doUnrestrictedList() {
   penv pe;
   env base_env(pe.ge());
-  coder base_coder("doUnrestictedList");
+  coder base_coder(nullPos, "doUnrestictedList");
   coenv e(base_coder,base_env);
 
   if (getSetting<bool>("autoplain"))

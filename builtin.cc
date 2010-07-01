@@ -877,4 +877,8 @@ void arrayDeleteHelper(stack *Stack)
   (*a).erase((*a).begin()+i,(*a).begin()+j+1);
 }
 
+// Used by coder to optimize conditional jumps.
+const bltin intLess = binaryOp<Int,less>;
+const bltin intGreater = binaryOp<Int,greater>;
+
 }
