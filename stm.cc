@@ -354,10 +354,20 @@ void extendedForStm::trans(coenv &e) {
   symbol a=symbol::gensym("a");
   symbol i=symbol::gensym("i");
 
-  // start[] a=set;
-  arrayTy at(pos, start, new dimensions(pos));
-  decid dec1(pos, new decidstart(pos, a), set);
-  vardec(pos, &at, &dec1).trans(e);
+  // Get the start type.  Handle type inference as a special case.
+  types::ty *t = start->trans(e, true);
+  if (t->kind == types::ty_inferred) {
+    // var a=set;
+    tyEntryTy tet(pos, primInferred());
+    decid dec1(pos, new decidstart(pos, a), set);
+    vardec(pos, &tet, &dec1).trans(e);
+  }
+  else {
+    // start[] a=set;
+    arrayTy at(pos, start, new dimensions(pos));
+    decid dec1(pos, new decidstart(pos, a), set);
+    vardec(pos, &at, &dec1).trans(e);
+  }
 
   // { start var=a[i]; body }
   block b(pos);
@@ -368,7 +378,12 @@ void extendedForStm::trans(coenv &e) {
   b.add(new vardec(pos, start, &dec2));
   b.add(body);
 
-
+  // If there are errors already, just report errors in the body and don't try
+  // to translate the for loop.
+  if (em.errors()) {
+    b.trans(e);
+    return;
+  }
 
   // for (int i=0; i < a.length; ++i)
   //   <block>

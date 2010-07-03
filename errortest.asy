@@ -447,3 +447,19 @@
   A a;
   var h = a.f;
 }
+{
+  int x;
+  for (var i : x)
+    ;
+}
+{
+  int x, x();
+  for (var i : x)
+    ;
+}
+{
+  int x, x();
+  int[] x = {2,3,4};
+  for (var i : x)
+    ;
+}

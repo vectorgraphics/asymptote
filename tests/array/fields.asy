@@ -76,4 +76,26 @@ StartTest("fields");
   // TODO: Test inserting/deleting lengths more seriously.
 }
 
+{
+  // Test extended for.
+  int[] a = {1,4,6,2,7,4,8,9,1,3,-1};
+  int i = 0;
+  for (int x : a) {
+    assert(x == a[i]);
+    ++i;
+  }
+  assert(i == a.length);
+}
+
+{
+  // Test extended for.
+  int[] a = {1,4,6,2,7,4,8,9,1,3,-1};
+  int i = 0;
+  for (var x : a) {
+    assert(x == a[i]);
+    ++i;
+  }
+  assert(i == a.length);
+}
+
 EndTest();

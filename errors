@@ -111,3 +111,6 @@ errortest.asy: 438.17: cannot cast 'int' to 'var'
 errortest.asy: 442.7: could not infer type of initializer
 errortest.asy: 446.7: could not infer type of initializer
 errortest.asy: 448.7: could not infer type of initializer
+errortest.asy: 452.3: expression is not an array
+errortest.asy: 457.3: could not infer type of initializer
+errortest.asy: 463.3: could not infer type of initializer
