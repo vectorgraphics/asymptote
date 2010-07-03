@@ -3940,6 +3940,14 @@ real y=4.3;
 pen reddash=red+dashed;
 @end verbatim
 
+@code{var} may also be used with the extended @code{for} loop syntax.
+
+@verbatim
+int[] a = {1,2,3};
+for (var x : a)
+  write(x);
+@end verbatim
+
 @node Structures
 @section Structures
 @cindex @code{struct}
