@@ -190,8 +190,7 @@ void usersetting()
 // Conditionally process each file name in array s in a new environment.
 void asy(string format, bool overwrite=false ... string[] s)
 {
-  for(int i=0; i < s.length; ++i) {
-    string f=s[i];
+  for(string f : s) {
     int n=rfind(f,".asy");
     if(n != -1) f=erase(f,n,-1);
     if(overwrite || error(input(f+"."+format,check=false))) {
@@ -201,6 +200,7 @@ void asy(string format, bool overwrite=false ... string[] s)
       settings.outformat=format;
       settings.interactiveView=false;
       settings.batchView=false;
+      delete(outname()+"_"+".aux");
       eval("defaultfilename=\""+f+"\"; import \""+f+
            "\" as dummy; exitfunction()");
       settings.outformat=outformat;
