@@ -132,12 +132,17 @@ struct animation {
     return s;
   }
 
+  bool pdflatex() 
+  {
+    return latex() && pdf();
+  }
+
   string pdf(enclosure enclosure=NoBox, real delay=animationdelay,
              string options="", bool keep=settings.keep, bool multipage=true) {
     if(settings.inlinetex) multipage=true;
     if(!global) multipage=false;
-    if(settings.tex != "pdflatex")
-      abort("inline pdf animations require -tex pdflatex");
+    if(!pdflatex())
+      abort("inline pdf animations require -tex pdflatex or -tex xelatex");
     if(settings.outformat != "") settings.outformat="pdf";
     
     string filename=basename();
