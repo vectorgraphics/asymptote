@@ -1,1 +1,1 @@
-if(latex()) usepackage("fix-cm");
+if(latex()) usepackage("type1cm");

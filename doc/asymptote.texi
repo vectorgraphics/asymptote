@@ -2923,7 +2923,7 @@ The base align setting of a pen is returned by
 @cindex @code{fontsize}
 @cindex @code{lineskip}
 @cindex @code{defaultpen}
-@cindex @code{fix-cm}
+@cindex @code{type1cm}
 @item The font size is specified in @TeX{} points (1 pt = 1/72.27 inches) with
 the function @code{pen fontsize(real size, real lineskip=1.2*size)}.
 The default font size, 12pt, may be changed with @code{defaultpen(pen)}.
@@ -2931,10 +2931,10 @@ Nonstandard font sizes may require inserting
 @verbatim
 import fontsize;
 @end verbatim
-at the beginning of the file (this requires the @code{fix-cm} package
+at the beginning of the file (this requires the @code{type1cm} package
 available from
 @quotation
-@url{http://www.ctan.org/tex-archive/help/Catalogue/entries/fix-cm}
+@url{http://www.ctan.org/tex-archive/help/Catalogue/entries/type1cm}
 @end quotation
 and included in recent @code{LaTeX} distributions). The font size and line
 skip of a pen can be examined with the routines 
