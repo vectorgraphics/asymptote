@@ -46,5 +46,5 @@ install-all: all install
 uninstall: 
 	-install-info --remove --infodir=$(infodir) asymptote.info
 	-cd $(infodir)/asymptote && rm -f asymptote.info *.png
-	-rmdir -f $(infodir)/asymptote
+	-rmdir $(infodir)/asymptote
 FORCE:
