@@ -693,36 +693,30 @@ void venv::namevalue::popType()
 void venv::remove(const addition& a) {
   CHECKNAME(a.k.name);
 
-  //value &val=all[a.k];
-
-#ifdef DEBUG_CACHE
-  //assert(val.v);
-#endif
-
   if (a.shadowed) {
+    // Could test for special here, for a minor speed-up.
     varEntry *popEnt = core.store(a.k.name, a.shadowed);
+
+    DEBUG_CACHE_ASSERT(popEnt);
 
     // Unshadow the previously shadowed varEntry.
     names[a.k.name].replaceType(a.shadowed->getType(), popEnt->getType());
-    //val.v = a.shadowed;
-
-  } else {
+  }
+  else {
     // Remove the (name,sig) key completely.
 #if DEBUG_CACHE
-    varEntry *popEnt = a.k.name.special() ?
+    varEntry *popEnt = a.k.special ?
                            core.lookupSpecial(a.k.name, a.k.u.t) :
                            core.lookupNonSpecial(a.k.name, a.k.u.sig);
     names[a.k.name].popType(popEnt->getType());
 #else
     names[a.k.name].popType();
 #endif
-    //all.erase(a.k);
 
-    if (a.k.name.special())
+    if (a.k.special)
       core.removeSpecial(a.k.name, a.k.u.t);
     else
       core.removeNonSpecial(a.k.name, a.k.u.sig);
-
   }
 
   CHECKNAME(a.k.name);
@@ -779,11 +773,6 @@ void venv::enter(symbol name, varEntry *v)
 
   key k(name, v);
 
-#if 0
-  value &slot=all[k];
-  if (slot.v) {
-#endif
-
   // Store the new variable.  If it shadows an older variable, that varEntry
   // will be returned.
   varEntry *shadowed = core.store(name, v);
@@ -797,21 +786,13 @@ void venv::enter(symbol name, varEntry *v)
     // Replace the old value, but store its now-shadowed varEntry.
     if (!scopesizes.empty())
       additions.push(addition(k, shadowed));
-
-#if 0
-    slot.v = v;
-#endif
-
-  } else {
+  }
+  else {
     // Add to the names hash table.
     names[name].addType(v->getType());
 
     if (!scopesizes.empty())
       additions.push(addition(k, 0));
-
-#if 0
-    slot.v=v;
-#endif
   }
 
   CHECKNAME(name);
@@ -854,7 +835,6 @@ varEntry *venv::lookBySignature(symbol name, signature *sig) {
   // to the result of the normal overloaded function resolution.  We may
   // safely return it.
   varEntry *result = core.lookupNonSpecial(name, sig);
-  //varEntry *result = lookByType(key(name, sig));
 #if 0
   if (!result) {
     cout << "FAIL BY NO-MATCH" << endl;
@@ -869,18 +849,6 @@ varEntry *venv::lookBySignature(symbol name, signature *sig) {
 
 void venv::add(venv& source, varEntry *qualifier, coder &c)
 {
-#if 0
-  // Enter each distinct (unshadowed) name,type pair.
-  for(keymap::iterator p = source.all.begin(); p != source.all.end(); ++p) {
-    ++a1;
-    varEntry *v=p->second.v;
-    if (v->checkPerm(READ, c)) {
-      ++b1;
-      enter(p->first.name, qualifyVarEntry(qualifier, v));
-    }
-  }
-#endif
-
   core_venv::const_iterator end = source.core.end();
   for (core_venv::const_iterator p = source.core.begin(); p != end; ++p)
   {

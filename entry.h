@@ -424,53 +424,6 @@ class venv {
   };
   friend ostream& operator<< (ostream& out, const venv::key &k);
 
-  struct value : public gc {
-    varEntry *v;
-    value(varEntry *v)
-      : v(v) {}
-    value() : v(0) {}
-  };
-
-  struct namehash {
-    size_t operator()(const symbol name) const {
-      return name.hash();
-    }
-  };
-  struct nameeq {
-    bool operator()(const symbol s, const symbol t) const {
-      return s==t;
-    }
-  };
-
-#if 0
-  struct keyhash {
-    size_t hashSig(signature *sig) const {
-      return sig ? sig->hash() : 0;
-    }
-    size_t operator()(const key k) const {
-      return k.name.hash() * 107 +
-        (k.special ? k.u.t->hash() : hashSig(k.u.sig));
-    }
-  };
-  struct keyeq {
-#define TEST_COLLISION 0
-#if TEST_COLLISION
-    bool base(const key k, const key l) const {
-      return k.name==l.name &&
-        (k.special ? equivalent(k.u.t, l.u.t) :
-         equivalent(k.u.sig, l.u.sig));
-    }
-    bool operator()(const key k, const key l) const;
-#else
-    bool operator()(const key k, const key l) const; 
-#endif
-  };
-
-  // A hash table used to quickly look up a variable once its name and type are
-  // known.  Includes all scopes.
-  typedef mem::unordered_map<key, value, keyhash, keyeq> keymap;
-  keymap all;
-#endif
 
   // A hash table used to quickly look up a variable once its name and type are
   // known.  Includes all scopes.
@@ -490,6 +443,18 @@ class venv {
   // scope began.
   typedef mem::stack<size_t> scopestack;
   scopestack scopesizes;
+
+
+  struct namehash {
+    size_t operator()(const symbol name) const {
+      return name.hash();
+    }
+  };
+  struct nameeq {
+    bool operator()(const symbol s, const symbol t) const {
+      return s==t;
+    }
+  };
 
   struct namevalue {
 #ifdef CALLEE_SEARCH
@@ -515,32 +480,36 @@ class venv {
   typedef mem::unordered_map<symbol, namevalue, namehash, nameeq> namemap;
   namemap names;
 
+
   // A sanity check.  For a given name, it checks that the type stored in the
   // names hash table exactly matches with all of the entries of that name
   // stored in the full hash table.
   void checkName(symbol name);
 
-  void listValues(symbol name, /*values &vals,*/ record *module);
+  void listValues(symbol name, record *module);
+
 
   // Helper function for endScope.
   void remove(const addition& a);
 
   // These are roughly the size the hashtables will be after loading the
   // builtin functions and plain module.
-  static const size_t fileAllSize=2000;
-  static const size_t namesAllSize=1000;
+  static const size_t fileCoreSize=1 << 13;
+  static const size_t fileNamesSize=1000;
 
   // The number of scopes begun (but not yet ended) when the venv was empty.
   size_t empty_scopes;
 public:
-  venv() : core(1 << 2), empty_scopes(0) {}
+  venv() :
+    core(1 << 2), empty_scopes(0) {}
 
   // Most file level modules automatically import plain, so allocate hashtables
   // big enough to hold it in advance.
   struct file_env_tag {};
   venv(file_env_tag)
-    : /*all(fileAllSize),*/ core(1 << 13),  names(namesAllSize), empty_scopes(0) {}
+    : core(fileCoreSize),  names(fileNamesSize), empty_scopes(0) {}
 
+  // Add a new variable definition.
   void enter(symbol name, varEntry *v);
 
   // Add the entries in one environment to another, if qualifier is
@@ -554,17 +523,8 @@ public:
   bool add(symbol src, symbol dest,
            venv& source, varEntry *qualifier, coder &c);
 
-#if 0
-  varEntry *lookByType(key k) {
-    keymap::const_iterator p=all.find(k);
-    return p!=all.end() ? p->second.v : 0;
-  }
-  varEntry *lookByType(key k);
-#endif
-  
   // Look for a function that exactly matches the type given.
   varEntry *lookByType(symbol name, ty *t) {
-    //return lookByType(key(name, t));
     return core.lookup(name, t);
   }
 
@@ -582,13 +542,14 @@ public:
   // avoid such ambiguities.
   varEntry *lookBySignature(symbol name, signature *sig);
 
+  // Get the (possibly overloaded) type of all variables associated to a
+  // particular name.
   ty *getType(symbol name);
 
   void beginScope();
   void endScope();
   
-  // Adds the definitions of the top-level scope to the level underneath,
-  // and then removes the top scope.
+  // Merges the top-level scope with the level immediately underneath it.
   void collapseScope();
 
   // Prints a list of the variables to the standard output.
