@@ -485,41 +485,6 @@ void core_venv::remove(symbol name, const ty *t) {
 }
 
 
-ostream& operator<< (ostream& out, const venv::key &k) {
-  if(k.special)
-    k.u.t->printVar(out, k.name);
-  else {
-    out << k.name;
-    if (k.u.sig)
-      out << *k.u.sig;
-  }
-  return out;
-}
-
-#if 0
-#if TEST_COLLISION
-bool venv::keyeq::operator()(const key k, const key l) const {
-  keyhash kh;
-  if (kh(k)==kh(l)) {
-    if (base(k,l))
-      return true;
-    else {
-      cerr << "collision: " << endl;
-      cerr << "  " << k << " -> " << kh(k) << endl;
-      cerr << "  " << l << " -> " << kh(l) << endl;
-    }
-  }
-  return false;
-}
-#else
-bool venv::keyeq::operator()(const key k, const key l) const {
-  return k.name==l.name &&
-    (k.special ? equivalent(k.u.t, l.u.t) :
-                 equivalent(k.u.sig, l.u.sig));
-}
-#endif
-#endif
-
 #ifdef CALLEE_SEARCH
 size_t numFormals(ty *t) {
   signature *sig = t->getSignature();
@@ -529,8 +494,8 @@ size_t numFormals(ty *t) {
 
 void venv::checkName(symbol name)
 {
-  // This is too slow, even for DEBUG_CACHE.
 #if 0
+  // This size test is too slow, even for DEBUG_CACHE.
   core.confirm_size();
 #endif
 
@@ -691,35 +656,30 @@ void venv::namevalue::popType()
 }
 
 void venv::remove(const addition& a) {
-  CHECKNAME(a.k.name);
+  CHECKNAME(a.name);
 
   if (a.shadowed) {
-    // Could test for special here, for a minor speed-up.
-    varEntry *popEnt = core.store(a.k.name, a.shadowed);
+    varEntry *popEnt = core.store(a.name, a.shadowed);
 
     DEBUG_CACHE_ASSERT(popEnt);
 
     // Unshadow the previously shadowed varEntry.
-    names[a.k.name].replaceType(a.shadowed->getType(), popEnt->getType());
+    names[a.name].replaceType(a.shadowed->getType(), popEnt->getType());
   }
   else {
     // Remove the (name,sig) key completely.
 #if DEBUG_CACHE
-    varEntry *popEnt = a.k.special ?
-                           core.lookupSpecial(a.k.name, a.k.u.t) :
-                           core.lookupNonSpecial(a.k.name, a.k.u.sig);
-    names[a.k.name].popType(popEnt->getType());
+    varEntry *popEnt = core.lookup(a.name, a.t);
+    assert(popEnt);
+    names[a.name].popType(popEnt->getType());
 #else
-    names[a.k.name].popType();
+    names[a.name].popType();
 #endif
 
-    if (a.k.special)
-      core.removeSpecial(a.k.name, a.k.u.t);
-    else
-      core.removeNonSpecial(a.k.name, a.k.u.sig);
+    core.remove(a.name, a.t);
   }
 
-  CHECKNAME(a.k.name);
+  CHECKNAME(a.name);
 }
 
 void venv::beginScope() {
@@ -771,28 +731,23 @@ void venv::enter(symbol name, varEntry *v)
 {
   CHECKNAME(name);
 
-  key k(name, v);
-
   // Store the new variable.  If it shadows an older variable, that varEntry
   // will be returned.
   varEntry *shadowed = core.store(name, v);
+
+  // Record the addition, so it can be undone during endScope.
+  if (!scopesizes.empty())
+    additions.push(addition(name, v->getType(), shadowed));
 
   if (shadowed) {
     // The new value shadows an old value.  They have the same signature, but
     // possibly different return types.  If necessary, update the type stored
     // by name.
     names[name].replaceType(v->getType(), shadowed->getType());
-
-    // Replace the old value, but store its now-shadowed varEntry.
-    if (!scopesizes.empty())
-      additions.push(addition(k, shadowed));
   }
   else {
     // Add to the names hash table.
     names[name].addType(v->getType());
-
-    if (!scopesizes.empty())
-      additions.push(addition(k, 0));
   }
 
   CHECKNAME(name);
@@ -802,47 +757,26 @@ void venv::enter(symbol name, varEntry *v)
 varEntry *venv::lookBySignature(symbol name, signature *sig) {
 #ifdef CALLEE_SEARCH
   // Rest arguments are complicated and rare.  Don't handle them here.
-  if (sig->hasRest()) {
-#if 0
-    if (lookByType(key(name, sig)))
-      cout << "FAIL BY REST ARG" << endl;
-    else
-      cout << "FAIL BY REST ARG AND NO-MATCH" << endl;
-#endif
+  if (sig->hasRest())
     return 0;
-  }
 
   // Likewise with the special operators.
-  if (name.special()) {
-    //cout << "FAIL BY SPECIAL" << endl;
+  if (name.special())
     return 0;
-  }
 
   namevalue& nv = names[name];
 
   // Avoid ambiguities with default parameters.
-  if (nv.maxFormals != sig->getNumFormals()) {
-#if 0
-    if (lookByType(key(name, sig)))
-      cout << "FAIL BY NUMARGS" << endl;
-    else
-      cout << "FAIL BY NUMARGS AND NO-MATCH" << endl;
-#endif
+  if (nv.maxFormals != sig->getNumFormals())
     return 0;
-  }
 
   // At this point, any function with an equivalent an signature will be equal
   // to the result of the normal overloaded function resolution.  We may
   // safely return it.
-  varEntry *result = core.lookupNonSpecial(name, sig);
-#if 0
-  if (!result) {
-    cout << "FAIL BY NO-MATCH" << endl;
-  }
-#endif
-  return result;
+  return core.lookupNonSpecial(name, sig);
+
 #else
-  // The maxFormals field is necessary for this optimization.
+  // If the optimization is disabled, always return 0.
   return 0;
 #endif
 }

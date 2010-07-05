@@ -385,56 +385,18 @@ public:
 
 // venv implemented with a hash table.
 class venv {
-  struct key : public gc {
-    symbol name;
-    bool special;
-    union {
-      ty *t;
-      signature *sig;
-    } u;
-
-    //key(key& k) : name(k.name), special(k.special), u(k.u) {}
-
-    key(symbol name, ty *t)
-      : name(name), special(name.special())
-    {
-      if (special)
-        u.t = t;
-      else
-        u.sig = t->getSignature();
-    }
-
-    /* A fake key used for searching just based on a signature. */
-    key(symbol name, signature *sig)
-      : name(name), special(false)
-    {
-      DEBUG_CACHE_ASSERT(name.notSpecial());
-      u.sig = sig;
-    }
-
-    key(symbol name, varEntry *v)
-      : name(name), special(name.special())
-    {
-      ty *t = v->getType();
-      if (special)
-        u.t = t;
-      else
-        u.sig = t->getSignature();
-    }
-  };
-  friend ostream& operator<< (ostream& out, const venv::key &k);
-
-
   // A hash table used to quickly look up a variable once its name and type are
   // known.  Includes all scopes.
   core_venv core;
 
   // Record of added variables in the order they were added.
   struct addition {
-    key k;
+    symbol name;
+    ty *t;
     varEntry *shadowed;
 
-    addition(key k, varEntry *shadowed) : k(k), shadowed(shadowed) {}
+    addition(symbol name, ty *t, varEntry *shadowed)
+      : name(name), t(t), shadowed(shadowed) {}
   };
   typedef mem::stack<addition> addstack;
   addstack additions;
