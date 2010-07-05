@@ -64,6 +64,9 @@ struct symbol {
   bool special() const {
     return *this == initsym || *this == castsym || *this == ecastsym;
   }
+  bool notSpecial() const {
+    return !special();
+  }
 
   // Translate a string into a unique symbol, such that two strings are equal
   // if and only if their resulting symbols are equal.
@@ -95,6 +98,10 @@ struct symbol {
 
   friend bool operator== (symbol s1, symbol s2) {
     return s1.hashplus == s2.hashplus;
+  }
+
+  friend bool operator!= (symbol s1, symbol s2) {
+    return s1.hashplus != s2.hashplus;
   }
 
   friend bool operator< (symbol s1, symbol s2) {

@@ -23,11 +23,17 @@ const char SKIP = 2;
 struct symbolRecord {
   // When a symbol is entered into the table, its hash is computed.  If the
   // corresponding entry in the table is full, this value is incremented until
-  // an empty slot is found.  hashplus stores the end value.  As entries are
-  // removed, each symbol has a unique hashplus value, even if there is a
-  // collision in the original hashing function.
+  // an empty slot is found.  hashplus stores the end value.
+  // Each symbol has a unique hashplus value, even if there is a collision in
+  // the original hashing function.
   uint hashplus;
+
+  // Whether the cell of the table is empty, in use, or a "skip" entry due to
+  // a resizing of the table.
   unsigned char flag;
+
+  // Pointer to a copy of the string (allocated on the heap).  This string
+  // will never be deallocated.  Symbols, in essence, last forever.
   char *s;
 };
 

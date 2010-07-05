@@ -56,7 +56,7 @@ public:
     return true;
   }
 
-  size_t hash() {
+  size_t hash() const {
     // Use the pointer, as two records are equivalent only if they are the
     // same object.
     return (size_t)this;

@@ -335,13 +335,13 @@ ostream& operator<< (ostream& out, const formal& f)
   return out;
 }
   
-bool equivalent(formal& f1, formal& f2) {
+bool equivalent(const formal& f1, const formal& f2) {
   // Just test the types.
   // This cannot be used on rest formal with types equal to NULL.
   return equivalent(f1.t,f2.t);
 }
 
-bool argumentEquivalent(formal &f1, formal& f2) {
+bool argumentEquivalent(const formal &f1, const formal& f2) {
   if (f1.name == f2.name) {
     if (f1.t == 0)
       return f2.t == 0;
@@ -386,12 +386,13 @@ ostream& operator<< (ostream& out, const signature& s)
 
 
 // Equivalence by design does not look at the presence of default values.
-bool equivalent(signature *s1, signature *s2)
+bool equivalent(const signature *s1, const signature *s2)
 {
+  if (s1 == s2)
+    return true;
+
   // Handle null signature
-  if (s1 == 0)
-    return s2 == 0;
-  else if (s2 == 0)
+  if (s1 == 0 || s2 == 0)
     return false;
 
   // Two open signatures are always equivalent, as the formals are ignored.
@@ -404,7 +405,7 @@ bool equivalent(signature *s1, signature *s2)
     return false;
 
   if (!std::equal(s1->formals.begin(),s1->formals.end(),s2->formals.begin(),
-                 (bool (*)(formal&,formal&)) equivalent))
+                 (bool (*)(const formal&,const formal&)) equivalent))
     return false;
 
   if (s1->rest.t)
@@ -413,7 +414,7 @@ bool equivalent(signature *s1, signature *s2)
     return s1->rest.t == 0;
 }
 
-bool argumentEquivalent(signature *s1, signature *s2)
+bool argumentEquivalent(const signature *s1, const signature *s2)
 {
   // Handle null signature
   if (s1 == 0)
@@ -425,13 +426,14 @@ bool argumentEquivalent(signature *s1, signature *s2)
     return false;
 
   return std::equal(s1->formals.begin(),s1->formals.end(),s2->formals.begin(),
-                    (bool (*)(formal&,formal&)) argumentEquivalent) &&
+                    (bool (*)(const formal&,const formal&))
+                            argumentEquivalent) &&
     argumentEquivalent(s1->rest, s2->rest);
 }
 
-size_t signature::hash() {
+size_t signature::hash() const {
   size_t x=2038;
-  for (formal_vector::iterator i=formals.begin(); i!=formals.end(); ++i)
+  for (formal_vector::const_iterator i=formals.begin(); i!=formals.end(); ++i)
     x=x*0xFAEC+i->t->hash();
 
   if (rest.t)
@@ -502,7 +504,7 @@ bool overloaded::castable(ty *target, caster &c)
   return false;
 }
 
-bool equivalent(ty *t1, ty *t2)
+bool equivalent(const ty *t1, const ty *t2)
 {
   // The same pointer must point to the same type.
   if (t1 == t2)
@@ -523,7 +525,7 @@ bool equivalent(ty *t1, ty *t2)
 }
 
 
-bool equivalent(ty *t1, ty *t2, bool special) {
+bool equivalent(const ty *t1, const ty *t2, bool special) {
   return special ? equivalent(t1, t2) :
                    equivalent(t1->getSignature(), t2->getSignature());
 }

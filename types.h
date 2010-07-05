@@ -60,11 +60,11 @@ typedef ty_vector::iterator ty_iterator;
 // That is primitive types are equal if they are the same kind.
 // Structures are equal if they come from the same struct definition.
 // Arrays are equal if their cell types are equal.
-bool equivalent(ty *t1, ty *t2);
+bool equivalent(const ty *t1, const ty *t2);
 
 // If special is true, this is the same as above.  If special is false, just the
 // signatures are compared.
-bool equivalent(ty *t1, ty *t2, bool special);
+bool equivalent(const ty *t1, const ty *t2, bool special);
 
 class caster {
 public:
@@ -95,6 +95,10 @@ public:
   }
 
   virtual signature *getSignature() {
+    return 0;
+  }
+
+  virtual const signature *getSignature() const {
     return 0;
   }
 
@@ -163,7 +167,7 @@ public:
   // Returns true if the other type is equivalent to this one.
   // The general function equivalent should be preferably used, as it properly
   // handles overloaded type comparisons.
-  virtual bool equiv(ty *other)
+  virtual bool equiv(const ty *other) const
   {
     return this==other;
   }
@@ -171,7 +175,7 @@ public:
 
   // Returns a number for the type for use in a hash table.  Equivalent types
   // must yield the same number.
-  virtual size_t hash() = 0;
+  virtual size_t hash() const = 0;
 };
 
 class primitiveTy : public ty {
@@ -190,12 +194,12 @@ public:
   ty *virtualFieldGetType(symbol );
   trans::varEntry *virtualField(symbol, signature *);
 
-  bool equiv(ty *other)
+  bool equiv(const ty *other) const
   {
     return this->kind==other->kind;
   }
 
-  size_t hash() {
+  size_t hash() const {
     return (size_t)kind + 47;
   }
 };
@@ -211,7 +215,7 @@ public:
 
   trans::access *castTo(ty *target, caster &);
 
-  size_t hash() {
+  size_t hash() const {
     return (size_t)kind + 47;
   }
 };
@@ -236,12 +240,12 @@ struct array : public ty {
     return true;
   }
 
-  bool equiv(ty *other) {
+  bool equiv(const ty *other) const {
     return other->kind==ty_array &&
       equivalent(this->celltype,((array *)other)->celltype);
   }
 
-  size_t hash() {
+  size_t hash() const {
     return 1007 * celltype->hash();
   }
 
@@ -313,8 +317,8 @@ struct formal {
   friend ostream& operator<< (ostream& out, const formal& f);
 };
 
-bool equivalent(formal& f1, formal& f2);
-bool argumentEquivalent(formal &f1, formal& f2);
+bool equivalent(const formal& f1, const formal& f2);
+bool argumentEquivalent(const formal &f1, const formal& f2);
 
 typedef mem::vector<formal> formal_vector;
 
@@ -369,18 +373,18 @@ struct signature : public gc {
 
   friend ostream& operator<< (ostream& out, const signature& s);
 
-  friend bool equivalent(signature *s1, signature *s2);
+  friend bool equivalent(const signature *s1, const signature *s2);
 
   // Check if a signature of argument types (as opposed to formal parameters)
   // are equivalent.  Here, the arguments, if named, must have the same names,
   // and (for simplicity) no overloaded arguments are allowed.
-  friend bool argumentEquivalent(signature *s1, signature *s2);
+  friend bool argumentEquivalent(const signature *s1, const signature *s2);
 #if 0
   friend bool castable(signature *target, signature *source);
   friend Int numFormalsMatch(signature *s1, signature *s2);
 #endif
 
-  size_t hash();
+  size_t hash() const;
 };
 
 struct function : public ty {
@@ -429,7 +433,7 @@ struct function : public ty {
     return true;
   }
 
-  bool equiv(ty *other)
+  bool equiv(const ty *other) const
   {
     if (other->kind==ty_function) {
       function *that=(function *)other;
@@ -439,7 +443,7 @@ struct function : public ty {
     else return false;
   }
 
-  size_t hash() {
+  size_t hash() const {
     return sig.hash()*0x1231+result->hash();
   }
 
@@ -456,6 +460,10 @@ struct function : public ty {
   }
   
   signature *getSignature() {
+    return &sig;
+  }
+
+  const signature *getSignature() const {
     return &sig;
   }
 
@@ -481,15 +489,15 @@ public:
     : ty(ty_overloaded) { add(t); }
   virtual ~overloaded() {}
 
-  bool equiv(ty *other)
+  bool equiv(const ty *other) const
   {
-    for(ty_vector::iterator i=sub.begin();i!=sub.end();++i)
+    for(ty_vector::const_iterator i=sub.begin();i!=sub.end();++i)
       if (equivalent(*i,other))
         return true;
     return false;
   }
 
-  size_t hash() {
+  size_t hash() const {
     // Overloaded types should not be hashed.
     assert(False);
     return 0;

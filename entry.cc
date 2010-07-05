@@ -10,10 +10,12 @@
 #include <iostream>
 
 #include <cmath>
+#include <cstring>
 #include <utility>
 #include "entry.h"
 #include "coder.h"
 
+using std::memset;
 using types::ty;
 using types::signature;
 using types::overloaded;
@@ -205,6 +207,284 @@ bool tenv::add(symbol src, symbol dest,
 // }}}
 #else
 
+// To avoid writing qualifiers everywhere.
+typedef core_venv::cell cell;
+
+void core_venv::initTable(size_t capacity) {
+  // Assert that capacity is a power of two.
+  assert((capacity & (capacity-1)) == 0);
+
+  this->capacity = capacity;
+  size = 0;
+  mask = capacity - 1;
+  table = new (UseGC) cell[capacity];
+  memset(table, 0, sizeof(cell) * capacity);
+}
+
+void core_venv::clear() {
+  if (size != 0) {
+    memset(table, 0, sizeof(cell) * capacity);
+    size = 0;
+  }
+}
+
+void core_venv::resize() {
+  size_t oldCapacity = capacity;
+  size_t oldSize = size;
+  cell *oldTable = table;
+
+  initTable(capacity * 4);
+
+  for (size_t i = 0; i < oldCapacity; ++i) {
+    cell& b = oldTable[i];
+    if (!b.empty() && !b.isATomb()) {
+      varEntry *old = store(b.name, b.ent);
+
+      // We should not be shadowing anything when reconstructing the table.
+      DEBUG_CACHE_ASSERT(old == 0);
+    }
+  }
+
+  assert(size == oldSize);
+
+#if DEBUG_CACHE
+  confirm_size();
+
+  for (size_t i = 0; i < oldCapacity; ++i) {
+    cell& b = oldTable[i];
+    if (!b.empty() && !b.isATomb()) {
+      assert(lookup(b.name, b.ent->getType()) == b.ent);
+    }
+  }
+#endif
+
+  //cout << "resized from " << oldCapacity << " to " << capacity << endl;
+}
+
+cell& core_venv::cellByIndex(size_t i) {
+  return table[i & mask];
+}
+
+const cell& core_venv::cellByIndex(size_t i) const {
+  return table[i & mask];
+}
+
+void core_venv::confirm_size() {
+  size_t sum = 0;
+  for (size_t i = 0; i < capacity; ++i) {
+    cell& b = table[i];
+    if (!b.empty() && !b.isATomb())
+      ++sum;
+  }
+  assert(sum == size);
+}
+
+varEntry *core_venv::storeNew(cell& cell, symbol name, varEntry *ent) {
+  // Store the value into the cell.
+  cell.storeNew(name, ent);
+
+  // We now have a new entry.  Update the size.
+  ++size;
+
+  // Check if the hash table has grown too big and needs to be expanded.
+  if (2*size > capacity)
+    resize();
+
+  // Nothing is shadowed.
+  return 0;
+}
+
+
+varEntry *core_venv::storeNonSpecialAfterTomb(size_t tombIndex,
+                                              symbol name, varEntry *ent) {
+  DEBUG_CACHE_ASSERT(name.notSpecial());
+  DEBUG_CACHE_ASSERT(ent);
+  DEBUG_CACHE_ASSERT(ent->getType());
+
+  signature *sig = ent->getSignature();
+
+  for (size_t i = tombIndex+1; ; ++i)
+  {
+    cell& b = cellByIndex(i);
+
+    if (b.empty())
+      return storeNew(cellByIndex(tombIndex), name, ent);
+
+    if (b.matches(name, sig))
+      return b.replaceWith(name, ent);
+  }
+}
+
+varEntry *core_venv::storeSpecialAfterTomb(size_t tombIndex,
+                                           symbol name, varEntry *ent) {
+  DEBUG_CACHE_ASSERT(name.special());
+  DEBUG_CACHE_ASSERT(ent);
+  DEBUG_CACHE_ASSERT(ent->getType());
+
+  ty *t = ent->getType();
+
+  for (size_t i = tombIndex+1; ; ++i)
+  {
+    cell& b = cellByIndex(i);
+
+    if (b.empty())
+      return storeNew(cellByIndex(tombIndex), name, ent);
+
+    if (b.matches(name, t))
+      return b.replaceWith(name, ent);
+  }
+}
+
+size_t hashSig(const signature *sig) {
+  return sig ? sig->hash() : 0;
+}
+size_t nonSpecialHash(symbol name, const signature *sig) {
+  return name.hash() * 107 + hashSig(sig);
+}
+size_t nonSpecialHash(symbol name, const ty *t) {
+  DEBUG_CACHE_ASSERT(t);
+  return nonSpecialHash(name, t->getSignature());
+}
+size_t specialHash(symbol name, const ty *t) {
+  DEBUG_CACHE_ASSERT(t);
+  return name.hash() * 107 + t->hash();
+}
+
+varEntry *core_venv::storeNonSpecial(symbol name, varEntry *ent) {
+  DEBUG_CACHE_ASSERT(name.notSpecial());
+  DEBUG_CACHE_ASSERT(ent);
+  DEBUG_CACHE_ASSERT(ent->getType());
+
+  signature *sig = ent->getSignature();
+
+  for (size_t i = nonSpecialHash(name, sig); ; ++i)
+  {
+    cell& b = cellByIndex(i);
+
+    if (b.empty())
+      return storeNew(b, name, ent);
+
+    if (b.matches(name, sig))
+      return b.replaceWith(name, ent);
+
+    if (b.isATomb())
+      return storeNonSpecialAfterTomb(i, name, ent);
+  }
+}
+
+varEntry *core_venv::storeSpecial(symbol name, varEntry *ent) {
+  DEBUG_CACHE_ASSERT(name.special());
+  DEBUG_CACHE_ASSERT(ent);
+  DEBUG_CACHE_ASSERT(ent->getType());
+
+  ty *t = ent->getType();
+
+  for (size_t i = specialHash(name, t); ; ++i)
+  {
+    cell& b = cellByIndex(i);
+
+    if (b.empty())
+      return storeNew(b, name, ent);
+
+    if (b.matches(name, t))
+      return b.replaceWith(name, ent);
+
+    if (b.isATomb())
+      return storeSpecialAfterTomb(i, name, ent);
+  }
+}
+
+varEntry *core_venv::store(symbol name, varEntry *ent) {
+  DEBUG_CACHE_ASSERT(ent);
+  DEBUG_CACHE_ASSERT(ent->getType());
+
+  return name.special() ? storeSpecial(name, ent) :
+                          storeNonSpecial(name, ent);
+}
+
+varEntry *core_venv::lookupSpecial(symbol name, const ty *t) {
+  DEBUG_CACHE_ASSERT(name.special());
+  DEBUG_CACHE_ASSERT(t);
+
+  for (size_t i = specialHash(name, t); ; ++i)
+  {
+    cell& b = cellByIndex(i);
+
+    if (b.matches(name, t))
+      return b.ent;
+
+    if (b.empty())
+      return 0;
+  }
+}
+
+varEntry *core_venv::lookupNonSpecial(symbol name, const signature *sig) {
+  DEBUG_CACHE_ASSERT(name.notSpecial());
+
+  for (size_t i = nonSpecialHash(name, sig); ; ++i)
+  {
+    cell& b = cellByIndex(i);
+
+    if (b.matches(name, sig))
+      return b.ent;
+
+    if (b.empty())
+      return 0;
+  }
+}
+
+varEntry *core_venv::lookup(symbol name, const ty *t) {
+  DEBUG_CACHE_ASSERT(t);
+
+  return name.special() ? lookupSpecial(name, t) :
+                          lookupNonSpecial(name, t->getSignature());
+}
+
+void core_venv::removeNonSpecial(symbol name, const signature *sig) {
+  DEBUG_CACHE_ASSERT(name.notSpecial());
+
+  for (size_t i = nonSpecialHash(name, sig); ; ++i)
+  {
+    cell& b = cellByIndex(i);
+
+    if (b.matches(name, sig)) {
+      b.remove();
+      --size;
+      return;
+    }
+
+    DEBUG_CACHE_ASSERT(!b.empty());
+  }
+}
+
+void core_venv::removeSpecial(symbol name, const ty *t) {
+  DEBUG_CACHE_ASSERT(name.special());
+  DEBUG_CACHE_ASSERT(t);
+
+  for (size_t i = specialHash(name, t); ; ++i)
+  {
+    cell& b = cellByIndex(i);
+
+    if (b.matches(name, t)) {
+      b.remove();
+      --size;
+      return;
+    }
+
+    DEBUG_CACHE_ASSERT(!b.empty());
+  }
+}
+
+void core_venv::remove(symbol name, const ty *t) {
+  DEBUG_CACHE_ASSERT(t);
+
+  if (name.special())
+    removeSpecial(name, t);
+  else
+    removeNonSpecial(name, t->getSignature());
+}
+
+
 ostream& operator<< (ostream& out, const venv::key &k) {
   if(k.special)
     k.u.t->printVar(out, k.name);
@@ -216,6 +496,7 @@ ostream& operator<< (ostream& out, const venv::key &k) {
   return out;
 }
 
+#if 0
 #if TEST_COLLISION
 bool venv::keyeq::operator()(const key k, const key l) const {
   keyhash kh;
@@ -237,6 +518,7 @@ bool venv::keyeq::operator()(const key k, const key l) const {
                  equivalent(k.u.sig, l.u.sig));
 }
 #endif
+#endif
 
 #ifdef CALLEE_SEARCH
 size_t numFormals(ty *t) {
@@ -247,8 +529,15 @@ size_t numFormals(ty *t) {
 
 void venv::checkName(symbol name)
 {
+  // This is too slow, even for DEBUG_CACHE.
+#if 0
+  core.confirm_size();
+#endif
+
   // TODO: test maxFormals
 
+  // TODO: Re-implement with core.
+#if 0
   // Get the type, and make it overloaded if it is not (for uniformity).
   overloaded o;
   ty *t = getType(name);
@@ -279,6 +568,7 @@ void venv::checkName(symbol name)
     }
   }
   assert(matches == size);
+#endif
 }
     
 void rightKind(ty *t) {
@@ -334,6 +624,8 @@ void venv::namevalue::replaceType(ty *new_t, ty *old_t) {
   assert(t != 0);
   RIGHTKIND(t);
 #endif
+
+  // TODO: Test for equivalence.
   
   if (t->isOverloaded()) {
     for (ty_iterator i = t->begin(); i != t->end(); ++i) {
@@ -401,31 +693,43 @@ void venv::namevalue::popType()
 void venv::remove(const addition& a) {
   CHECKNAME(a.k.name);
 
-  value &val=all[a.k];
+  //value &val=all[a.k];
 
 #ifdef DEBUG_CACHE
-  assert(val);
+  //assert(val.v);
 #endif
 
   if (a.shadowed) {
+    varEntry *popEnt = core.store(a.k.name, a.shadowed);
+
     // Unshadow the previously shadowed varEntry.
-    names[a.k.name].replaceType(a.shadowed->getType(), val.v->getType());
-    val.v = a.shadowed;
+    names[a.k.name].replaceType(a.shadowed->getType(), popEnt->getType());
+    //val.v = a.shadowed;
+
   } else {
     // Remove the (name,sig) key completely.
 #if DEBUG_CACHE
-    names[a.k.name].popType(val.v->getType());
+    varEntry *popEnt = a.k.name.special() ?
+                           core.lookupSpecial(a.k.name, a.k.u.t) :
+                           core.lookupNonSpecial(a.k.name, a.k.u.sig);
+    names[a.k.name].popType(popEnt->getType());
 #else
     names[a.k.name].popType();
 #endif
-    all.erase(a.k);
+    //all.erase(a.k);
+
+    if (a.k.name.special())
+      core.removeSpecial(a.k.name, a.k.u.t);
+    else
+      core.removeNonSpecial(a.k.name, a.k.u.sig);
+
   }
 
   CHECKNAME(a.k.name);
 }
 
 void venv::beginScope() {
-  if (all.empty()) {
+  if (core.empty()) {
     assert(scopesizes.empty());
     ++empty_scopes;
   } else {
@@ -437,7 +741,7 @@ void venv::endScope() {
   if (scopesizes.empty()) {
     // The corresponding beginScope happened when the venv was empty, so
     // clear the hash tables to return to that state.
-    all.clear();
+    core.clear();
     names.clear();
 
     assert(empty_scopes > 0);
@@ -461,6 +765,9 @@ void venv::collapseScope() {
     assert(empty_scopes > 0);
     --empty_scopes;
   } else {
+    // As scopes are stored solely by the number of entries at the beginning
+    // of the scope, popping the top size will put all of the entries into the
+    // next scope down.
     scopesizes.pop();
   }
 }
@@ -472,18 +779,28 @@ void venv::enter(symbol name, varEntry *v)
 
   key k(name, v);
 
+#if 0
   value &slot=all[k];
   if (slot.v) {
+#endif
+
+  // Store the new variable.  If it shadows an older variable, that varEntry
+  // will be returned.
+  varEntry *shadowed = core.store(name, v);
+
+  if (shadowed) {
     // The new value shadows an old value.  They have the same signature, but
     // possibly different return types.  If necessary, update the type stored
     // by name.
-    names[name].replaceType(v->getType(), slot.v->getType());
+    names[name].replaceType(v->getType(), shadowed->getType());
 
     // Replace the old value, but store its now-shadowed varEntry.
     if (!scopesizes.empty())
-      additions.push(addition(k, slot.v));
+      additions.push(addition(k, shadowed));
 
+#if 0
     slot.v = v;
+#endif
 
   } else {
     // Add to the names hash table.
@@ -492,7 +809,9 @@ void venv::enter(symbol name, varEntry *v)
     if (!scopesizes.empty())
       additions.push(addition(k, 0));
 
+#if 0
     slot.v=v;
+#endif
   }
 
   CHECKNAME(name);
@@ -534,7 +853,8 @@ varEntry *venv::lookBySignature(symbol name, signature *sig) {
   // At this point, any function with an equivalent an signature will be equal
   // to the result of the normal overloaded function resolution.  We may
   // safely return it.
-  varEntry *result = lookByType(key(name, sig));
+  varEntry *result = core.lookupNonSpecial(name, sig);
+  //varEntry *result = lookByType(key(name, sig));
 #if 0
   if (!result) {
     cout << "FAIL BY NO-MATCH" << endl;
@@ -549,11 +869,27 @@ varEntry *venv::lookBySignature(symbol name, signature *sig) {
 
 void venv::add(venv& source, varEntry *qualifier, coder &c)
 {
+#if 0
   // Enter each distinct (unshadowed) name,type pair.
   for(keymap::iterator p = source.all.begin(); p != source.all.end(); ++p) {
+    ++a1;
     varEntry *v=p->second.v;
-    if (v->checkPerm(READ, c))
+    if (v->checkPerm(READ, c)) {
+      ++b1;
       enter(p->first.name, qualifyVarEntry(qualifier, v));
+    }
+  }
+#endif
+
+  core_venv::const_iterator end = source.core.end();
+  for (core_venv::const_iterator p = source.core.begin(); p != end; ++p)
+  {
+    DEBUG_CACHE_ASSERT(p->filled());
+
+    varEntry *v=p->ent;
+    if (v->checkPerm(READ, c)) {
+      enter(p->name, qualifyVarEntry(qualifier, v));
+    }
   }
 }
 
@@ -561,11 +897,14 @@ bool venv::add(symbol src, symbol dest,
                venv& source, varEntry *qualifier, coder &c)
 {
   ty *t=source.getType(src);
+
   if (!t)
     return false;
-  else if (t->isOverloaded()) {
+
+  if (t->isOverloaded()) {
     bool added=false;
-    for (ty_iterator i = t->begin(); i != t->end(); ++i) {
+    for (ty_iterator i = t->begin(); i != t->end(); ++i)
+    {
       varEntry *v=source.lookByType(src, *i);
       if (v->checkPerm(READ, c)) {
         enter(dest, qualifyVarEntry(qualifier, v));
@@ -573,7 +912,8 @@ bool venv::add(symbol src, symbol dest,
       }
     }
     return added;
-  } else {
+  }
+  else {
     varEntry *v=source.lookByType(src, t);
     if (v->checkPerm(READ, c)) {
       enter(dest, qualifyVarEntry(qualifier, v));
@@ -629,6 +969,6 @@ void venv::completions(mem::list<symbol >& l, string start)
       l.push_back(N->first);
 }
 
-#endif
+#endif /* not NOHASH */
 
 } // namespace trans
