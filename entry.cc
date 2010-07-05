@@ -735,20 +735,20 @@ void venv::enter(symbol name, varEntry *v)
   // will be returned.
   varEntry *shadowed = core.store(name, v);
 
+  ty *t = v->getType();
+
   // Record the addition, so it can be undone during endScope.
   if (!scopesizes.empty())
-    additions.push(addition(name, v->getType(), shadowed));
+    additions.push(addition(name, t, shadowed));
 
-  if (shadowed) {
+  if (shadowed)
     // The new value shadows an old value.  They have the same signature, but
     // possibly different return types.  If necessary, update the type stored
     // by name.
-    names[name].replaceType(v->getType(), shadowed->getType());
-  }
-  else {
+    names[name].replaceType(t, shadowed->getType());
+  else
     // Add to the names hash table.
-    names[name].addType(v->getType());
-  }
+    names[name].addType(t);
 
   CHECKNAME(name);
 }
