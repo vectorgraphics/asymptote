@@ -5961,7 +5961,13 @@ pdflatex latexusage
 
 To switch between using @code{latex} and @code{pdflatex} you may first
 need to remove the files @code{latexusage-*}, @code{latexusage_.pre}, and
-@code{latexusage.aux}.
+@code{latexusage.aux}. Version 1.13 of @code{Asymptote.sty} supports
+processing each figure separately: @code{asy latexusage} is equivalent
+to @code{asy latexusage-*.asy}. For example, one may wish to reduce
+memory usage by generating each figure in a separate @code{UNIX} process:
+@verbatim
+/bin/ls latexusage-*.asy | xargs --replace=% asy %
+@end verbatim
 
 @cindex @code{width}
 @cindex @code{height}

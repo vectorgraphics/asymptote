@@ -16,6 +16,7 @@
 
 \begin{asydef}
 // Global Asymptote definitions can be put here.
+import three;
 usepackage("bm");
 texpreamble("\def\V#1{\bm{#1}}");
 // One can globally override the default toolbar settings here:
@@ -80,8 +81,6 @@ this requires the optional \verb+\usepackage{attachfile2}+ package and
 the \verb+{attach=true}+ option:
 \begin{center}
 \begin{asy}[height=4cm,attach=false]
-import three;
-defaultrender.margin=3pt;
 currentprojection=orthographic(5,4,2);
 draw(unitcube,blue);
 label("$V-E+F=2$",(0,1,0.5),3Y,blue+fontsize(17pt));

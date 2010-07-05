@@ -3,7 +3,7 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2+)
 
-\ProvidesPackage{asymptote}[2010/04/15 v1.12 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2010/07/05 v1.13 Asymptote style file for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
 \newif\ifASYinline
@@ -24,44 +24,28 @@
 \def\makeinnocent#1{\catcode`#1=12 }
 \def\csarg#1#2{\expandafter#1\csname#2\endcsname}
 \newwrite\AsyStream
-\newread\AsyTestStream
+\newwrite\AsyAllStream
 \newread\AsyTestTeXStream
-\def\AsyFile{\jobname.asy}
 
-\openin\AsyTestStream=\jobname_.pre
-\ifeof\AsyTestStream
+\openin\AsyStream=\jobname_.pre
+\ifeof\AsyStream
 \else
 \input \jobname_.pre
 \fi
-\closein\AsyTestStream%
+\closein\AsyStream%
 
-\immediate\openout\AsyStream=\AsyFile
-\immediate\write\AsyStream{if(!settings.multipleView)}%
-\immediate\write\AsyStream{  settings.batchView=false;}%
+\immediate\openout\AsyAllStream=\jobname.asy
 
 \newif\ifASYattach
 \newif\ifASYtex
-
 \newif\ifASYPDF
+
 \ifx\pdfoutput\undefined
 \else
 \ifcase\pdfoutput
 \else
 \ASYPDFtrue
 \fi
-\fi
-\ifx\XeTeXversion\undefined
-\ifASYPDF
-\immediate\write\AsyStream{settings.tex="pdflatex";}%
-\fi
-\else
-\immediate\write\AsyStream{settings.tex="xelatex";}%
-\ASYPDFtrue
-\fi
-
-\ifASYinline
-\immediate\write\AsyStream{settings.inlinetex=true;}%
-\immediate\write\AsyStream{deletepreamble();}%
 \fi
 
 \newbox\ASYbox
@@ -148,57 +132,57 @@
   \gdef\ASYheight{}%
   \gdef\ASYviewportwidth{\ASYdefaultviewportwidth}%
   \gdef\ASYviewportheight{}%
-  \immediate\write\AsyStream{\@charrb);}%
-  \immediate\write\AsyStream{// End of Asymptote Figure \the\c@asy}%
+  \immediate\closeout\AsyStream
+
   \ifASYtex
-    \openin\AsyTestStream=\Jobname-\the\c@asy_.tex
+    \openin\AsyStream=\AsyFile_.tex
   \else
     \ifASYPDF
-      \openin\AsyTestStream=\Jobname-\the\c@asy.pdf
+      \openin\AsyStream=\AsyFile.pdf
     \else
-      \openin\AsyTestStream=\Jobname-\the\c@asy.eps
+      \openin\AsyStream=\AsyFile.eps
     \fi
   \fi
-  \ifeof\AsyTestStream
+  \ifeof\AsyStream
     \ifASYtex
-      \PackageWarning{asymptote}{file \Jobname-\the\c@asy_.tex does not exist}%
+      \PackageWarning{asymptote}{file \AsyFile_.tex does not exist}%
     \else
-      \openin\AsyTestTeXStream=\Jobname-\the\c@asy_.tex
+      \openin\AsyTestTeXStream=\AsyFile_.tex
       \ifeof\AsyTestTeXStream
         \ifASYPDF
-        \PackageWarning{asymptote}{file \Jobname-\the\c@asy.pdf does not exist}%
+        \PackageWarning{asymptote}{file \AsyFile.pdf does not exist}%
         \else
-        \PackageWarning{asymptote}{file \Jobname-\the\c@asy.eps does not exist}%
+        \PackageWarning{asymptote}{file \AsyFile.eps does not exist}%
         \fi
       \else
         \catcode`:=12
-        \input \Jobname-\the\c@asy_.tex%
+        \input \AsyFile_.tex%
       \fi
       \closein\AsyTestTeXStream%
     \fi
-    \closein\AsyTestStream%
+    \closein\AsyStream%
   \else
-    \closein\AsyTestStream%
+    \closein\AsyStream%
     \ifASYtex
       \catcode`:=12
-      \input \Jobname-\the\c@asy_.tex%
+      \input \AsyFile_.tex%
     \else
       \ifASYattach
         \ifASYPDF
-          \openin\AsyTestStream=\Jobname-\the\c@asy+0.pdf
+          \openin\AsyStream=\AsyFile+0.pdf
         \fi
-        \ifeof\AsyTestStream
-          \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{\Jobname-\the\c@asy}}%
+        \ifeof\AsyStream
+          \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{\AsyFile}}%
         \else
-         \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{\Jobname-\the\c@asy+0}}%
+         \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{\AsyFile+0}}%
         \fi
-        \textattachfile{\Jobname-\the\c@asy.pdf}{\phantom{\copy\ASYbox}}%
+        \textattachfile{\AsyFile.pdf}{\phantom{\copy\ASYbox}}%
         \vskip-\ht\ASYbox%
         \indent%
         \box\ASYbox%
-        \closein\AsyTestStream%
+        \closein\AsyStream%
       \else
-        \includegraphics[hiresbb]{\Jobname-\the\c@asy}%
+        \includegraphics[hiresbb]{\AsyFile}%
       \fi
     \fi
   \fi
@@ -229,22 +213,38 @@
   \let\par\empty
   \stepcounter{asy}%
   \setkeys{ASYkeys}{#1}%
-   \immediate\write\AsyStream{}%
-   \immediate\write\AsyStream{// Beginning of Asymptote Figure \the\c@asy}%
-   \immediate\write\AsyStream{eval(quote\@charlb}%
-   \immediate\write\AsyStream{defaultfilename='\Jobname-\the\c@asy';}%
+   \immediate\write\AsyAllStream%
+       {eval(quote\@charlb include "\jobname-\the\c@asy";\@charrb);}%
+   \immediate\openout\AsyStream=\jobname-\the\c@asy.asy
+   \gdef\AsyFile{\Jobname-\the\c@asy}
+   \immediate\write\AsyStream{if(!settings.multipleView)}%
+   \immediate\write\AsyStream{  settings.batchView=false;}%
+   \ifx\XeTeXversion\undefined
+   \ifASYPDF
+   \immediate\write\AsyStream{settings.tex="pdflatex";}%
+   \fi
+   \else
+   \immediate\write\AsyStream{settings.tex="xelatex";}%
+   \ASYPDFtrue
+   \fi
+
+   \ifASYinline
+   \immediate\write\AsyStream{settings.inlinetex=true;}%
+   \immediate\write\AsyStream{deletepreamble();}%
+   \fi
+   \immediate\write\AsyStream{defaultfilename="\AsyFile";}%
    \immediate\write\AsyStream{if(settings.render < 0) settings.render=4;}%
    \ifASYattach
      \immediate\write\AsyStream{settings.inlineimage=false;}%
      \immediate\write\AsyStream{settings.embed=false;}%
-     \immediate\write\AsyStream{settings.outformat='pdf';}%
+     \immediate\write\AsyStream{settings.outformat="pdf";}%
      \immediate\write\AsyStream{settings.toolbar=true;}%
    \else
      \immediate\write\AsyStream{settings.inlineimage=true;}%
      \immediate\write\AsyStream{settings.embed=true;}%
-     \immediate\write\AsyStream{settings.outformat='';}%
+     \immediate\write\AsyStream{settings.outformat="";}%
      \immediate\write\AsyStream{settings.toolbar=false;}%
-     \immediate\write\AsyStream{viewportmargin=(1,1);}%
+     \immediate\write\AsyStream{viewportmargin=(2,2);}%
    \fi
   \immediate\write\AsyStream{\globalASYdefs}%
   \let\ThisAsymptote\WriteAsyLine%
@@ -257,11 +257,11 @@
 \AsymptoteEndDef{asydef}
 \def\AfterasydefAsymptote{}
 
-\AtEndDocument{\immediate\closeout\AsyStream}
+\AtEndDocument{\immediate\closeout\AsyAllStream}
 
 \newcommand{\ASYanimategraphics}[5][]{%
-\openin\AsyTestStream=_#3.pdf
-\ifeof\AsyTestStream%
+\openin\AsyStream=_#3.pdf
+\ifeof\AsyStream%
 \else%
 \animategraphics[{#1}]{#2}{_#3}{#4}{#5}%
 \fi%
