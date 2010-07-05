@@ -6,7 +6,7 @@ import slide;
 import three;
 import animate;
 
-bool long=false;
+bool long=true;
 
 usepackage("mflogo");
 
@@ -21,16 +21,17 @@ bibliographystyle("alpha");
 
 itempen=fontsize(22pt);
 defaultpen(itempen);
-defaultrender.margin=5pt;
+viewportmargin=(2,2);
 
-titlepage("Interactive TeX-Aware 3D Vector Graphics",
-          "John Bowman",
-"Department of Mathematical and Statistical Sciences,\\
-University of Alberta\\
-\medskip\Green{Collaborators:\\
-Orest Shardt, Michail Vidiassov, Andy Hammerlindl}",
-          "June 30, 2010",
-          "http://asymptote.sf.net/intro.pdf");
+titlepage(long ? "Asymptote: The Vector Graphics Language" :
+          "Interactive TeX-Aware 3D Vector Graphics",
+          "John Bowman and Andy Hammerlindl",
+"Department of Mathematical and Statistical Sciences\\
+          University of Alberta\\
+%and Instituto Nacional de Matem\'atica Pura e Aplicada (IMPA)
+\medskip\Green{Collaborators: Orest Shardt, Michail Vidiassov}",
+"June 30, 2010",
+"http://asymptote.sf.net/intro.pdf");
 
 title("History");
 item("1979: \TeX\ and \MF\ (Knuth)");
@@ -47,7 +48,7 @@ title("Statistics (as of June, 2010)");
 item("Runs under Linux/UNIX, Mac OS X, Microsoft Windows.");
 item("4000 downloads/month from primary\hfill\\
  {\tt asymptote.sourceforge.net} site alone.");
-item("70\ 000 lines of low-level C++ code.");
+item("80\ 000 lines of low-level C++ code.");
 item("36\ 000 lines of high-level Asymptote code.");
 item("Latest stable release: Version 2.00 (LGPL).");
 
@@ -346,15 +347,17 @@ asyfigure("Hobbydir","height=9cm");
 
 item("The resulting shape may be adjusted by modifying optional {\it tension\/} parameters and {\it curl\/} boundary conditions.");
 
-//involving the curvature 
-
 title("Hobby's 2D Control Point Algorithm");
 item("Having prescribed outgoing and incoming path directions $e^{i\theta}$
 at node~$z_0$ and $e^{i\phi}$ at node $z_1$ relative to the
 vector $z_1-z_0$, the control points are determined as:");  
 
+skip(-3);
+
 equations("u&=&z_0+e^{i\theta}(z_1-z_0)f(\theta,-\phi),\nonumber\\
 v&=&z_1-e^{i\phi}(z_1-z_0)f(-\phi,\theta),");
+
+skip(-3);
 
 remark("where the relative distance function $f(\theta,\phi)$ is given by Hobby [1986].");
 
@@ -404,7 +407,7 @@ remark("interpreting $\theta$ and $\phi$ as the angle between the corresponding 
 
 item("Here there is an unambiguous reference vector for determining the relative sign of the angles $\phi$ and $\theta$.");
 
-viewportmargin=(0,0.5cm);
+viewportmargin=(2,0.5cm);
 //defaultpen(1.0);
 title("Interactive 3D Saddle");
 item("A unit circle in the $X$--$Y$ plane may be constructed with:
@@ -419,10 +422,9 @@ title("Lifting TeX to 3D");
 item("Glyphs are first split into simply connected regions and then decomposed into planar B\'ezier surface patches \cite{Bowman09,Shardt10}:");
 asyfigure("../examples/partitionExample");
 
-viewportmargin=(0,1cm);
+viewportmargin=(2,1cm);
 title("Label Manipulation");
 item("They can then be extruded and/or arbitrarily transformed:");
-skip(5);
 asyinclude("../examples/label3solid");
 
 title("Billboard Labels");
@@ -795,6 +797,22 @@ Person eve=new Person;   // Writes \"Making a person.\"
 write(eve.age);          // Writes 18.
 ");
 
+title("Modules");
+
+item("Function and structure definitions can be grouped into modules:");
+code("
+// powers.asy
+real square(real x) { return x^2; }
+real cube(real x) { return x^3; }
+");
+remark("and imported:");
+code("
+import powers;
+real eight=cube(2.0);
+draw(graph(powers.square, -1, 1));
+");
+}
+
 title("Object-Oriented Programming");
 item("Functions are defined for each instance of a structure.");
 code("
@@ -902,72 +920,6 @@ code(
      "operator --(operator ..(a, operator controls(b,c), d), e)");
 item("This allowed us to redefine all of the path operators for 3D paths.");
 
-title("Modules");
-
-item("Function and structure definitions can be grouped into modules:");
-code("
-// powers.asy
-real square(real x) { return x^2; }
-real cube(real x) { return x^3; }
-");
-remark("and imported:");
-code("
-import powers;
-real eight=cube(2.0);
-draw(graph(powers.square, -1, 1));
-");
-}
-
-if(long) {
-title("A Final Example: Quilting");
-asyfigure(asywrite("
-import math;
-
-int n=8, skip=3;
-
-pair r(int k) { return unityroot(n,k); }
-
-pen col=blue, col2=purple;
-
-guide square=box((1,1),(-1,-1));
-
-guide step(int mult)
-{
-  guide g;
-  for(int k=0; k<n; ++k)
-    g=g--r(mult*k);
-  g=g--cycle;
-  return g;
-}
-
-guide oct=step(1), star=step(skip);
-
-guide wedge(pair z, pair v, real r, real a)
-{
-  pair w=expi(a/2.0);
-  v=unit(v)*r;
-  return shift(z)*((0,0)--v*w--v*conj(w)--cycle);
-}
-
-filldraw(square, col);
-filldraw(oct, yellow);
-
-// The interior angle of the points of the star.
-real intang=pi*(1-((real)2skip)/((real)n));
-
-for(int k=0; k<n; ++k) {
-  pair z=midpoint(r(k)--r(k+1));
-  guide g=wedge(z,-z,1,intang);
-  filldraw(g,col2);
-}
-
-fill(star,yellow);
-filldraw(star,evenodd+col);
-
-size(5inch,0);
-"));
-}
-
 title("Summary");
 
 item("Asymptote:");
@@ -983,7 +935,8 @@ subitem("supports 3D billboard labels and PDF grouping.");
 
 bibliography("refs");
 
-viewportsize=viewportmargin=0;
+viewportmargin=(2,2);
+viewportsize=0;
 defaultpen(0.5);
 title("\mbox{Asymptote: 2D \& 3D Vector Graphics Language}");
 asyinclude("../examples/logo3");
