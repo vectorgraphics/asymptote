@@ -179,7 +179,7 @@ public:
            tenv& source, varEntry *qualifier, coder &c);
 };
 
-#ifdef NOHASH //{{{
+#if 0 //{{{
  /* This version of venv is provided for compiling on systems which do not
   * have some form of STL hash table.  It will eventually be removed.
   * See the hash version below for documentation on the functions.
@@ -437,9 +437,15 @@ class venv {
 #endif
   };
 
-  // A hash table indexed solely on the name, storing for each name the
+  // A dictionary indexed solely on the name, storing for each name the
   // current (possibly overloaded) type of the name.
+  // The hash table implementation is slightly faster than the std::map binary
+  // tree implementation, so we use it if we can.
+#ifdef NOHASH
+  typedef mem::map<symbol CONST, namevalue> namemap;
+#else
   typedef mem::unordered_map<symbol, namevalue, namehash, nameeq> namemap;
+#endif
   namemap names;
 
 
@@ -469,7 +475,11 @@ public:
   // big enough to hold it in advance.
   struct file_env_tag {};
   venv(file_env_tag)
-    : core(fileCoreSize),  names(fileNamesSize), empty_scopes(0) {}
+    : core(fileCoreSize),
+#ifndef NOHASH
+    names(fileNamesSize),
+#endif
+    empty_scopes(0) {}
 
   // Add a new variable definition.
   void enter(symbol name, varEntry *v);

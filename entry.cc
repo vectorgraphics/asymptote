@@ -123,7 +123,7 @@ bool tenv::add(symbol src, symbol dest,
     return false;
 }
 
-#ifdef NOHASH //{{{
+#if 0 //{{{
 /*NOHASH*/ void venv::add(venv& source, varEntry *qualifier, coder &c)
 /*NOHASH*/ {
 /*NOHASH*/   // Enter each distinct (unshadowed) name,type pair.
