@@ -36,7 +36,6 @@ transform3 shiftless(transform3 t)
 // coordinates.
 struct coord {
   real user,truesize;
-  bool finite=true;
 
   // Build a coord.
   static coord build(real user, real truesize) {
@@ -88,14 +87,13 @@ struct coords2 {
   void push(transform t, coords2 c1, coords2 c2) {
     for(int i=0; i < c1.x.length; ++i) {
       coord cx=c1.x[i], cy=c2.y[i];
-      pair tinf=shiftless(t)*((finite(cx.user) ? 0 : 1),
-                              (finite(cy.user) ? 0 : 1));
+      pair tinf=shiftless(t)*(0,0);
       pair z=t*(cx.user,cy.user);
       pair w=(cx.truesize,cy.truesize);
       w=length(w)*unit(shiftless(t)*w);
       coord Cx,Cy;
-      Cx.user=(tinf.x == 0 ? z.x : infinity);
-      Cy.user=(tinf.y == 0 ? z.y : infinity);
+      Cx.user=z.x;
+      Cy.user=z.y;
       Cx.truesize=w.x;
       Cy.truesize=w.y;
       push(Cx,Cy);
@@ -145,16 +143,14 @@ struct coords3 {
   void push(transform3 t, coords3 c1, coords3 c2, coords3 c3) {
     for(int i=0; i < c1.x.length; ++i) {
       coord cx=c1.x[i], cy=c2.y[i], cz=c3.z[i];
-      triple tinf=shiftless(t)*((finite(cx.user) ? 0 : 1),
-                                (finite(cy.user) ? 0 : 1),
-                                (finite(cz.user) ? 0 : 1));
+      triple tinf=shiftless(t)*(0,0,0);
       triple z=t*(cx.user,cy.user,cz.user);
       triple w=(cx.truesize,cy.truesize,cz.truesize);
       w=length(w)*unit(shiftless(t)*w);
       coord Cx,Cy,Cz;
-      Cx.user=(tinf.x == 0 ? z.x : infinity);
-      Cy.user=(tinf.y == 0 ? z.y : infinity);
-      Cz.user=(tinf.z == 0 ? z.z : infinity);
+      Cx.user=z.x;
+      Cy.user=z.y;
+      Cz.user=z.z;
       Cx.truesize=w.x;
       Cy.truesize=w.y;
       Cz.truesize=w.z;
@@ -185,18 +181,13 @@ coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
 
   int n=in.length;
   
-  // Find the first finite restriction.
-  int first=0;
-  for(first=0; first < n; ++first)
-    if(finite(in[first].user)) break;
-        
-  if(first == n)
+  if(n == 0)
     return c;
-  else {
-    // Add the first coord without checking restrictions (as there are none).
-    best=in[first];
-    c.push(best);
-  }
+
+  int first=0;
+  // Add the first coord without checking restrictions (as there are none).
+  best=in[first];
+  c.push(best);
 
   static int NONE=-1;
 
@@ -234,7 +225,7 @@ coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
 
   void add(coord x)
   {
-    if(x <= best || !finite(x.user))
+    if(x <= best)
       return;
     else {
       int i=dominator(x);
@@ -957,7 +948,7 @@ struct picture {
   // Calculate the minimum point in scaling the coords.
   real min(real m, scaling s, coord[] c) {
     for(int i=0; i < c.length; ++i)
-      if(finite(c[i].user) && s.scale(c[i]) < m)
+      if(s.scale(c[i]) < m)
         m=s.scale(c[i]);
     return m;
   }
@@ -965,7 +956,7 @@ struct picture {
   // Calculate the maximum point in scaling the coords.
   real max(real M, scaling s, coord[] c) {
     for(int i=0; i < c.length; ++i)
-      if(finite(c[i].user) && s.scale(c[i]) > M)
+      if(s.scale(c[i]) > M)
         M=s.scale(c[i]);
     return M;
   }
@@ -1062,8 +1053,6 @@ struct picture {
       bool userzero=true;
       for(int i=0; i < coords.length; ++i) {
         if(coords[i].user != 0) userzero=false;
-        if(!finite(coords[i].user) || !finite(coords[i].truesize))
-          abort("unbounded picture");
       }
       if(userzero) return 1;
       warning("cannotfit","cannot fit picture to "+dir+"size "+(string) size
