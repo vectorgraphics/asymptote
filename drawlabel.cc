@@ -243,7 +243,7 @@ bool drawLabel::write(texfile *out, const bbox&)
 drawElement *drawLabel::transformed(const transform& t)
 {
   return new drawLabel(label,size,t*T,t*position,
-                       length(align)*unit(rotation(t)*align),pentype);
+                       length(align)*unit(shiftless(t)*align),pentype);
 }
 
 void drawLabelPath::bounds(bbox& b, iopipestream& tex, boxvector&, bboxlist&)
