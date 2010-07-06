@@ -3,7 +3,7 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2+)
 
-\ProvidesPackage{asymptote}[2010/07/05 v1.13 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2010/07/06 v1.14 Asymptote style file for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
 \newif\ifASYinline
@@ -25,14 +25,15 @@
 \def\csarg#1#2{\expandafter#1\csname#2\endcsname}
 \newwrite\AsyStream
 \newwrite\AsyAllStream
+\newread\AsyTestStream
 \newread\AsyTestTeXStream
 
-\openin\AsyStream=\jobname_.pre
-\ifeof\AsyStream
+\openin\AsyTestStream=\jobname_.pre
+\ifeof\AsyTestStream
 \else
 \input \jobname_.pre
 \fi
-\closein\AsyStream%
+\closein\AsyTestStream%
 
 \immediate\openout\AsyAllStream=\jobname.asy
 
@@ -135,15 +136,15 @@
   \immediate\closeout\AsyStream
 
   \ifASYtex
-    \openin\AsyStream=\AsyFile_.tex
+    \openin\AsyTestStream=\AsyFile_.tex
   \else
     \ifASYPDF
-      \openin\AsyStream=\AsyFile.pdf
+      \openin\AsyTestStream=\AsyFile.pdf
     \else
-      \openin\AsyStream=\AsyFile.eps
+      \openin\AsyTestStream=\AsyFile.eps
     \fi
   \fi
-  \ifeof\AsyStream
+  \ifeof\AsyTestStream
     \ifASYtex
       \PackageWarning{asymptote}{file \AsyFile_.tex does not exist}%
     \else
@@ -160,18 +161,18 @@
       \fi
       \closein\AsyTestTeXStream%
     \fi
-    \closein\AsyStream%
+    \closein\AsyTestStream%
   \else
-    \closein\AsyStream%
+    \closein\AsyTestStream%
     \ifASYtex
       \catcode`:=12
       \input \AsyFile_.tex%
     \else
       \ifASYattach
         \ifASYPDF
-          \openin\AsyStream=\AsyFile+0.pdf
+          \openin\AsyTestStream=\AsyFile+0.pdf
         \fi
-        \ifeof\AsyStream
+        \ifeof\AsyTestStream
           \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{\AsyFile}}%
         \else
          \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{\AsyFile+0}}%
@@ -180,7 +181,7 @@
         \vskip-\ht\ASYbox%
         \indent%
         \box\ASYbox%
-        \closein\AsyStream%
+        \closein\AsyTestStream%
       \else
         \includegraphics[hiresbb]{\AsyFile}%
       \fi
@@ -260,8 +261,8 @@
 \AtEndDocument{\immediate\closeout\AsyAllStream}
 
 \newcommand{\ASYanimategraphics}[5][]{%
-\openin\AsyStream=_#3.pdf
-\ifeof\AsyStream%
+\openin\AsyTestStream=_#3.pdf
+\ifeof\AsyTestStream%
 \else%
 \animategraphics[{#1}]{#2}{_#3}{#4}{#5}%
 \fi%

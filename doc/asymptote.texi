@@ -587,7 +587,7 @@ in the @code{Asymptote} source directory.
 @anchor{multisampling}
 @noindent
 If your graphics card supports multisampling, we recommend using version
-@code{2.6.0-rc1} (or later) of @code{freeglut} to support antialiasing in
+@code{2.6.0} (or later) of @code{freeglut} to support antialiasing in
 @code{Asymptote}'s adaptive @code{OpenGL} 3D renderer
 (@code{MacOS X} users can skip this step since @code{Asymptote} is configured
 to use the native glut library on that platform). Download
@@ -5961,7 +5961,7 @@ pdflatex latexusage
 
 To switch between using @code{latex} and @code{pdflatex} you may first
 need to remove the files @code{latexusage-*}, @code{latexusage_.pre}, and
-@code{latexusage.aux}. Version 1.13 of @code{Asymptote.sty} supports
+@code{latexusage.aux}. Version 1.14 of @code{Asymptote.sty} supports
 processing each figure separately: @code{asy latexusage} is equivalent
 to @code{asy latexusage-*.asy}. For example, one may wish to reduce
 memory usage by generating each figure in a separate @code{UNIX} process:
