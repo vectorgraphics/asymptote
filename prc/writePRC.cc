@@ -53,7 +53,7 @@ uint32_t CLZ(uint32_t a)
   a |= a >> 8;
   a |= a >> 16;
 
-  return 31-MultiplyDeBruijnBitPosition[(unsignedInt)(a * 0x07C4ACDDU) >> 27];
+  return 31-MultiplyDeBruijnBitPosition[(uint32_t)(a * 0x07C4ACDDU) >> 27];
 #endif
 }
 
