@@ -21,6 +21,7 @@
 #ifndef __PRC_BIT_STREAM_H
 #define __PRC_BIT_STREAM_H
 
+#include <inttypes.h>
 #include <string>
 #include <stdlib.h>
 

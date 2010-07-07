@@ -34,7 +34,7 @@ using namespace std;
 // Count leading zeros.
 uint32_t CLZ(uint32_t a) 
 {
-#ifdef __GNUC__
+#if __GNUC_PREREQ(3,4)
   return __builtin_clz(a);
 #else
 // find the log base 2 of a 32-bit integer
