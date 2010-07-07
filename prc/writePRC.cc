@@ -31,6 +31,10 @@
 
 using namespace std;
 
+#ifndef __GNUC_PREREQ
+#define __GNUC_PREREQ(maj, min) (0)
+#endif
+
 // Count leading zeros.
 uint32_t CLZ(uint32_t a) 
 {
