@@ -23,7 +23,6 @@
 
 #include <string>
 #include <stdlib.h>
-#include <stdint.h>
 
 #define CHUNK_SIZE (1024)
 // Is this a reasonable initial size?

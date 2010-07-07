@@ -876,7 +876,6 @@ void intersections(std::vector<double>& S, std::vector<double>& T,
     size_t n=S1.size();
     for(size_t i=0; i < n; ++i) {
       double s=S1[i];
-      pair z=g.point(s);
       double t=dot(g.point(s)-p,factor);
       if(t >= -Fuzz && t <= 1.0+Fuzz) {
         S.push_back(s);
@@ -1113,8 +1112,6 @@ path concat(const path& p1, const path& p2)
 
   if (n1 == -1) return p2;
   if (n2 == -1) return p1;
-  pair a=p1.point(n1);
-  pair b=p2.point((Int) 0);
 
   mem::vector<solvedKnot> nodes(n1+n2+1);
 

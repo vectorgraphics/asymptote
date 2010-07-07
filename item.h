@@ -47,6 +47,10 @@ extern const item Default;
 class item : public gc {
 private:
   
+#if !COMPACT
+  const std::type_info *kind;
+#endif
+  
   union {
     Int i;
     double x;
@@ -103,8 +107,6 @@ public:
   item& operator= (const T &it)
   { i=(Int) new(UseGC) T(it); return *this; }
 #else    
-  const std::type_info *kind;
-  
   bool empty() const
   {return *kind == typeid(void);}
   

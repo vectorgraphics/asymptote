@@ -277,7 +277,6 @@ public:
 
   pair preaccel(Int t) const {
     if(!cycles && t <= 0) return pair(0,0);
-    pair z0=point(t-1);
     pair c0=postcontrol(t-1);
     pair c1=precontrol(t);
     pair z1=point(t);

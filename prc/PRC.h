@@ -1,8 +1,6 @@
 #ifndef __PRC_H
 #define __PRC_H
 
-#include <stdint.h>
-
 //const uint32_t PRCVersion=7094;   // For Adobe Reader 8 or later
 const uint32_t PRCVersion=8137; // For Adobe Reader 9 or later
 
