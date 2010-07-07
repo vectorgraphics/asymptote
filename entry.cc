@@ -499,10 +499,6 @@ void venv::checkName(symbol name)
   core.confirm_size();
 #endif
 
-  // TODO: test maxFormals
-
-  // TODO: Re-implement with core.
-#if 0
   // Get the type, and make it overloaded if it is not (for uniformity).
   overloaded o;
   ty *t = getType(name);
@@ -514,8 +510,11 @@ void venv::checkName(symbol name)
   }
   assert(t->isOverloaded());
 
+  size_t maxFormals = names[name].maxFormals;
+
   size_t size = 0;
   for (ty_iterator i = t->begin(); i != t->end(); ++i) {
+    assert(numFormals(*i) <= maxFormals);
     varEntry *v = lookByType(name, *i);
     assert(v);
     assert(equivalent(v->getType(), *i));
@@ -523,17 +522,17 @@ void venv::checkName(symbol name)
   }
 
   size_t matches = 0;
-  for (keymap::iterator p = all.begin(); p != all.end(); ++p) {
-    if (p->first.name == name) {
+  core_venv::const_iterator end = core.end();
+  for (core_venv::const_iterator p = core.begin(); p != end; ++p) {
+    if (p->name == name) {
       ++matches;
 
-      varEntry *v=p->second.v;
+      varEntry *v=p->ent;
       assert(v);
       assert(equivalent(t, v->getType()));
     }
   }
   assert(matches == size);
-#endif
 }
     
 void rightKind(ty *t) {
