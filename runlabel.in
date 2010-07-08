@@ -65,17 +65,26 @@ string currentpoint="print currentpoint ASYy ASYx ";
 string ASYinit="/ASYX currentpoint pop def /ASYY currentpoint exch pop def ";
 string ASY1="ASY1 {"+ASYinit+"/ASY1 false def} if ";
 
-void showpath(std::ofstream& ps) 
+void endpath(std::ostream& ps) 
+{
+  ps << ASY1 << pathforall << " (M) " << currentpoint
+     << "currentpoint newpath moveto} bind def" << endl;
+}
+
+void fillpath(std::ostream& ps)
+{
+  ps << "/fill {closepath ";
+  endpath(ps);
+}
+
+void showpath(std::ostream& ps) 
 {
   ps << ASYx << newl
      << ASYy << newl
      << "/ASY1 true def" << newl
-     << "/fill {" << ASY1
-     << pathforall << " (M) " << currentpoint
-     << "currentpoint newpath moveto } bind def" << newl
-     << "/stroke {" << ASY1 << "strokepath "
-     << pathforall << " (M) " << currentpoint
-     << "currentpoint newpath moveto } bind def" << endl;
+     << "/stroke {strokepath ";
+  endpath(ps);
+  fillpath(ps);
 }
 
 array *readpath(const string& psname, bool keep,
@@ -251,10 +260,11 @@ patharray2 *_texpath(stringarray *s, penarray *p)
       tex.verbatimline(ASYx);
       tex.verbatimline(ASYy);
       tex.verbatimline("/ASY1 true def");
-      tex.verbatimline("/v {"+ASY1+"neg exch 4 copy 4 2 roll 2 copy 6 2 roll 2 copy (M) print ASYy ASYx (L) print ASYy add ASYx (L) print add ASYy add ASYx (L) print add ASYy ASYx (c) print} bind def");
       tex.verbatimline("/show {"+ASY1+
-                       "currentpoint newpath moveto false charpath "+
-                       pathforall+"} bind def}");
+                       "currentpoint newpath moveto false charpath "+pathforall+
+                       "} bind def");
+      fillpath(*(tex.out));
+      tex.verbatimline("/V {"+ASY1+"gsave newpath moveto Rx 0 rlineto 0 Ry neg rlineto Rx neg 0 rlineto fill grestore} bind def}");
     }
     tex.verbatimline(read<string>(s,i)+"%");
   }
