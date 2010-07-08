@@ -625,6 +625,7 @@ path[] texpath(Label L, bool tex=settings.tex != "none", bool bbox=false)
   }
 
   path[] transform(path[] g, Label L) {
+    if(g.length == 0) return g;
     pair m=min(g);
     pair M=max(g);
     pair dir=rectify(inverse(L.T)*-L.align.dir);
