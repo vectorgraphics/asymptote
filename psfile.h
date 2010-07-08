@@ -134,10 +134,9 @@ public:
   
 protected:
   pen lastpen;
-  
-public: 
   std::ostream *out;
   
+public: 
   psfile(const string& filename, bool pdfformat);
   
   psfile() {pdf=settings::pdf(settings::getSetting<string>("tex"));}
