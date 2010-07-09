@@ -12,9 +12,14 @@ pair F(real x) {return (x,f(x));}
 triple F3(real x) {return (x,f(x),0);}
 
 ngraph=12;
-path[] p={graph(F,0.7476,1.8043,Spline)--cycle,
-	  graph(F,0.7,0.7476,Spline)--graph(F,1.7787,1.8043,Spline)--cycle,
-	  graph(F,0,0.7,Spline)--graph(F,1.8043,2,Spline)--cycle};
+
+real x1=0.7476;
+real x2=1.7787;
+real x3=1.8043;
+
+path[] p={graph(F,x1,x2,Spline),
+          graph(F,0.7,x1,Spline)--graph(F,x2,x3,Spline),
+          graph(F,0,0.7,Spline)--graph(F,x3,2,Spline)};
 
 pen[] pn=new pen[] {color1,color2,color1};
 
@@ -24,7 +29,7 @@ for(int i=0; i < p.length; ++i) {
   revolution a=revolution(path3(p[i]),Y,0,alpha);
   draw(surface(a),pn[i],render);
 
-  surface s=surface(p[i]);
+  surface s=surface(p[i]--cycle);
   draw(s,pn[i],render);
   draw(rotate(alpha,Y)*s,pn[i],render);
 }
