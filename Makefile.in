@@ -220,14 +220,13 @@ install-prebuilt: install-asy
 
 uninstall: uninstall-all
 
-uninstall-all: uninstall-man uninstall-asy
+uninstall-all: uninstall-man uninstall-asy uninstall-docdir
 
 uninstall-asy:
 	-cd $(animationsdir) && rm -f *.asy *.tex
 	-rmdir $(animationsdir)
 	-cd $(exampledir) && rm -f $(EXEXTRA) $(DOCEXTRA)
 	-rmdir $(exampledir)
-	-rmdir $(docdir)
 	-cd $(GUIdir) && rm -f *.py
 	-rmdir $(GUIdir)
 	-cd $(asydir) && rm -f asy-keywords.el *.asy $(EXTRA)
@@ -240,6 +239,9 @@ uninstall-asy:
 
 uninstall-man: 
 	cd doc && $(MAKE) uninstall
+
+uninstall-docdir:
+	-rmdir $(docdir)
 
 clean:  FORCE
 	-rm -f asy *.o *.d *mon.out $(CLEAN)

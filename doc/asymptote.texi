@@ -5963,6 +5963,7 @@ To switch between using @code{latex} and @code{pdflatex} you may first
 need to remove the files @code{latexusage-*}, @code{latexusage.pre}, and
 @code{latexusage.aux}. 
 
+@cindex @code{latexmk}
 An even better method for processing a @code{LaTeX} file with embedded
 @code{Asymptote} code is to use the @code{latexmk} utility from
 @quotation
