@@ -357,6 +357,17 @@ void extendedForStm::trans(coenv &e) {
   // Get the start type.  Handle type inference as a special case.
   types::ty *t = start->trans(e, true);
   if (t->kind == types::ty_inferred) {
+
+    // First ensure the array expression is an unambiguous array.
+    types::ty *at = set->cgetType(e);
+    if (at->kind != ty_array) {
+      em.error(set->getPos());
+      em << "expression is not an array of inferable type";
+      
+      // On failure, don't bother trying to translate the loop.
+      return;
+    }
+
     // var a=set;
     tyEntryTy tet(pos, primInferred());
     decid dec1(pos, new decidstart(pos, a), set);
@@ -377,13 +388,6 @@ void extendedForStm::trans(coenv &e) {
                               new nameExp(pos, i)));
   b.add(new vardec(pos, start, &dec2));
   b.add(body);
-
-  // If there are errors already, just report errors in the body and don't try
-  // to translate the for loop.
-  if (em.errors()) {
-    b.trans(e);
-    return;
-  }
 
   // for (int i=0; i < a.length; ++i)
   //   <block>
