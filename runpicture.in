@@ -311,7 +311,7 @@ void texpreamble(string s)
 void deletepreamble() 
 {
   if(getSetting<bool>("inlinetex")) {
-    unlink(auxname(outname(),"pre").c_str());
+    unlink(buildname(outname(),"pre").c_str());
   }
 }
 

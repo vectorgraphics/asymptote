@@ -7,8 +7,12 @@
 Here is an inline PDF movie, generated with the commands
 \begin{verbatim}
 pdflatex inlinemovie
-asy inlinemovie
+asy inlinemovie-*.asy
 pdflatex inlinemovie
+\end{verbatim}
+or equivalently,
+\begin{verbatim}
+latexmk -pdf inlinemovie
 \end{verbatim}
 
 \begin{center}

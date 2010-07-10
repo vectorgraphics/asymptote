@@ -61,7 +61,7 @@ void texfile::miniprologue()
 void texfile::prologue()
 {
   if(inlinetex) {
-    string prename=auxname(settings::outname(),"pre");
+    string prename=buildname(settings::outname(),"pre");
     std::ifstream exists(prename.c_str());
     std::ofstream *outpreamble=
       new std::ofstream(prename.c_str(),std::ios::app);

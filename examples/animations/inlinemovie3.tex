@@ -7,8 +7,12 @@
 Here is an inline 3D PDF movie, generated with the commands
 \begin{verbatim}
 pdflatex inlinemovie3
-asy inlinemovie3
+asy inlinemovie3-*.asy
 pdflatex inlinemovie3
+\end{verbatim}
+or equivalently,
+\begin{verbatim}
+latexmk -pdf inlinemovie3
 \end{verbatim}
 
 \begin{center} 

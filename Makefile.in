@@ -45,7 +45,7 @@ EXTRA = asy-mode.el asy-init.el asy.vim asy-kate.sh asymptote.py reload.js \
 EXEXTRA = piicon.eps *.views *.dat
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
-LATEXFILES = asymptote.sty asycolors.sty ocg.sty
+LATEXFILES = asymptote.sty asycolors.sty ocg.sty latexmkrc
 CONTEXTFILES = colo-asy.tex
 ASY = ./asy -dir base -config "" -render=0
 

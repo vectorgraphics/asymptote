@@ -3,11 +3,13 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2+)
 
-\ProvidesPackage{asymptote}[2010/07/06 v1.14 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2010/07/10 v1.15 Asymptote style file for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
-\newif\ifASYinline
-\DeclareOption{inline}{\ASYinlinetrue}
+\newif\ifASYdefaultinline
+\newif\ifASYdefaultattach
+\DeclareOption{inline}{\ASYdefaultinlinetrue}
+\DeclareOption{attach}{\ASYdefaultattachtrue}
 \ProcessOptions*
 
 \def\unquoteJobname#1"#2"#3\relax{\def\rawJobname{#1}%
@@ -24,21 +26,23 @@
 \def\makeinnocent#1{\catcode`#1=12 }
 \def\csarg#1#2{\expandafter#1\csname#2\endcsname}
 \newwrite\AsyStream
-\newwrite\AsyAllStream
+\newwrite\AsyPreStream
 \newread\AsyTestStream
-\newread\AsyTestTeXStream
 
-\openin\AsyTestStream=\jobname_.pre
+\def\AsyInput#1{\openin\AsyTestStream=#1
 \ifeof\AsyTestStream
 \else
-\input \jobname_.pre
+  \input #1
 \fi
 \closein\AsyTestStream%
+}
 
-\immediate\openout\AsyAllStream=\jobname.asy
+\AsyInput{\jobname.pre}
 
+\immediate\openout\AsyPreStream=\jobname.pre
+
+\newif\ifASYinline
 \newif\ifASYattach
-\newif\ifASYtex
 \newif\ifASYPDF
 
 \ifx\pdfoutput\undefined
@@ -107,14 +111,10 @@
       \immediate\write\AsyStream{size(\ASYwidth,\ASYheight);}%
     \fi
   \fi
-  \ASYtexfalse%
   \ifASYattach
     \def\ASYdefaultviewportwidth{0}%
   \else
     \def\ASYdefaultviewportwidth{\the\linewidth}%
-    \ifASYinline
-      \ASYtextrue%
-    \fi
   \fi
   \ifx\ASYviewportwidth\empty
     \ifx\ASYviewportheight\empty
@@ -135,8 +135,8 @@
   \gdef\ASYviewportheight{}%
   \immediate\closeout\AsyStream
 
-  \ifASYtex
-    \openin\AsyTestStream=\AsyFile_.tex
+  \ifASYinline
+    \openin\AsyTestStream=\AsyFile.tex
   \else
     \ifASYPDF
       \openin\AsyTestStream=\AsyFile.pdf
@@ -145,28 +145,29 @@
     \fi
   \fi
   \ifeof\AsyTestStream
-    \ifASYtex
-      \PackageWarning{asymptote}{file \AsyFile_.tex does not exist}%
+    \ifASYinline
+      \PackageWarning{asymptote}{file `\AsyFile.tex' not found}%
+      \closein\AsyTestStream%
     \else
-      \openin\AsyTestTeXStream=\AsyFile_.tex
-      \ifeof\AsyTestTeXStream
+      \closein\AsyTestStream%
+      \openin\AsyTestStream=\AsyFile.tex
+      \ifeof\AsyTestStream
         \ifASYPDF
-        \PackageWarning{asymptote}{file \AsyFile.pdf does not exist}%
+        \PackageWarning{asymptote}{file `\AsyFile.pdf' not found}%
         \else
-        \PackageWarning{asymptote}{file \AsyFile.eps does not exist}%
+        \PackageWarning{asymptote}{file `\AsyFile.eps' not found}%
         \fi
       \else
         \catcode`:=12
-        \input \AsyFile_.tex%
+        \input \AsyFile.tex%
       \fi
-      \closein\AsyTestTeXStream%
+      \closein\AsyTestStream%
     \fi
-    \closein\AsyTestStream%
   \else
     \closein\AsyTestStream%
-    \ifASYtex
+    \ifASYinline
       \catcode`:=12
-      \input \AsyFile_.tex%
+      \input \AsyFile.tex%
     \else
       \ifASYattach
         \ifASYPDF
@@ -187,7 +188,6 @@
       \fi
     \fi
   \fi
-  \global\ASYattachfalse
   \relax%
   \endgroup}
 \gdef\ASYwidth{}%
@@ -209,15 +209,23 @@
 \define@key{ASYkeys}{attach}[true]{%
   \ifthenelse{\equal{#1}{true}}{\global\ASYattachtrue}{\global\ASYattachfalse}%
 }
+\define@key{ASYkeys}{inline}[true]{%
+  \ifthenelse{\equal{#1}{true}}{\global\ASYinlinetrue}{\global\ASYinlinefalse}%
+}
 \newcommand\asy[1][]{%
   \begingroup
   \let\par\empty
   \stepcounter{asy}%
+  \global\let\ifASYinline\ifASYdefaultinline
+  \global\let\ifASYattach\ifASYdefaultattach
   \setkeys{ASYkeys}{#1}%
-   \immediate\write\AsyAllStream%
-       {eval(quote\@charlb include "\jobname-\the\c@asy";\@charrb);}%
-   \immediate\openout\AsyStream=\jobname-\the\c@asy.asy
-   \gdef\AsyFile{\Jobname-\the\c@asy}
+  \ifASYattach
+    \global\ASYinlinefalse
+  \fi
+  \immediate\write\AsyPreStream%
+      {\@backslashchar AsyInput{\jobname-\the\c@asy.pre}}
+  \immediate\openout\AsyStream=\jobname-\the\c@asy.asy
+   \gdef\AsyFile{\Jobname-\the\c@asy}%
    \immediate\write\AsyStream{if(!settings.multipleView)}%
    \immediate\write\AsyStream{  settings.batchView=false;}%
    \ifx\XeTeXversion\undefined
@@ -258,7 +266,7 @@
 \AsymptoteEndDef{asydef}
 \def\AfterasydefAsymptote{}
 
-\AtEndDocument{\immediate\closeout\AsyAllStream}
+\AtEndDocument{\immediate\closeout\AsyPreStream}
 
 \newcommand{\ASYanimategraphics}[5][]{%
 \openin\AsyTestStream=_#3.pdf

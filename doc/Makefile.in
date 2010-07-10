@@ -36,7 +36,7 @@ latexusage.dvi: latexusage.tex
 	rm -f latexusage_.pre
 	rm -f latexusage.aux
 	latex latexusage
-	$(ASY) -noprc latexusage
+	$(ASY) -noprc latexusage-*.asy
 	latex latexusage
 
 latexusage.eps: latexusage.dvi

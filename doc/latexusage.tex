@@ -1,15 +1,18 @@
 \documentclass[12pt]{article}
 
 % Use this form to include EPS (latex) or PDF (pdflatex) files:
-%\usepackage{asymptote}
+\usepackage{asymptote}
 
-% Use this form with latex or pdflatex to include inline LaTeX code:
-\usepackage[inline]{asymptote}
+% Use this form with latex or pdflatex to include inline LaTeX code by default:
+%\usepackage[inline,attach]{asymptote}
+
+% Use this form with latex or pdflatex to create PDF attachments by default:
+%\usepackage[attach]{asymptote}
 
 % Enable this line to support PDF hyperlinks:
 %\usepackage{hyperref}\hypersetup{setpagesize=false,unicode}
 
-% Enable this line for PDF attachments with asy environment option attach=true:
+% Enable this line to support the attach option:
 %\usepackage[dvips]{attachfile2}
 
 \begin{document}
@@ -76,11 +79,12 @@ shipout(bbox(0.25cm));
 Each graph is drawn in its own environment. One can specify the width
 and height to \LaTeX\ explicitly. This 3D example can be viewed
 interactively either with Adobe Reader or Asymptote's fast OpenGL-based
-renderer. It is often desirable to embed such files as annotated attachments;
-this requires the optional \verb+\usepackage{attachfile2}+ package and
-the \verb+{attach=true}+ option:
+renderer. To support {\tt latexmk}, 3D figures should specify
+\verb+inline=true+. It is sometimes desirable to embed 3D files as annotated
+attachments; this requires the optional \verb+\usepackage{attachfile2}+
+package and the \verb+attach=true+ option:
 \begin{center}
-\begin{asy}[height=4cm,attach=false]
+\begin{asy}[height=4cm,inline=true,attach=false]
 currentprojection=orthographic(5,4,2);
 draw(unitcube,blue);
 label("$V-E+F=2$",(0,1,0.5),3Y,blue+fontsize(17pt));
@@ -89,7 +93,7 @@ label("$V-E+F=2$",(0,1,0.5),3Y,blue+fontsize(17pt));
 
 One can also scale the figure to the full line width:
 \begin{center}
-\begin{asy}[width=\the\linewidth]
+\begin{asy}[width=\the\linewidth,inline=true]
 pair z0=(0,0);
 pair z1=(2,0);
 pair z2=(5,0);

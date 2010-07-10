@@ -9,7 +9,7 @@ This file documents @code{Asymptote}, version @value{VERSION}.
 
 @url{http://asymptote.sourceforge.net}
      
-Copyright @copyright{} 2004-9 Andy Hammerlindl, John Bowman, and Tom Prince.
+Copyright @copyright{} 2004-10 Andy Hammerlindl, John Bowman, and Tom Prince.
      
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -2934,7 +2934,7 @@ import fontsize;
 at the beginning of the file (this requires the @code{type1cm} package
 available from
 @quotation
-@url{http://www.ctan.org/tex-archive/help/Catalogue/entries/type1cm}
+@url{http://www.ctan.org/tex-archive/macros/latex/contrib/type1cm/}
 @end quotation
 and included in recent @code{LaTeX} distributions). The font size and line
 skip of a pen can be examined with the routines 
@@ -5931,7 +5931,7 @@ to the type.  This is regardless of what fields the variable actually possesses.
 @cindex @code{asymptote.sty}
 
 @code{Asymptote} comes with a convenient @code{LaTeX} style file
-@code{asymptote.sty} that makes @code{LaTeX}
+@code{asymptote.sty} (version 1.15 or later) that makes @code{LaTeX}
 @code{Asymptote}-aware. Entering @code{Asymptote} code
 directly into the @code{LaTeX} source file, at the point where it is
 needed, keeps figures organized and avoids the need to invent new file
@@ -5947,7 +5947,7 @@ The sample @code{LaTeX} file below, named @code{latexusage.tex}, can
 be run as follows:
 @verbatim
 latex latexusage
-asy latexusage
+asy latexusage-*.asy
 latex latexusage
 @end verbatim
 
@@ -5955,55 +5955,62 @@ latex latexusage
 or
 @verbatim
 pdflatex latexusage
-asy latexusage
+asy latexusage-*.asy
 pdflatex latexusage
 @end verbatim
-
+@noindent
 To switch between using @code{latex} and @code{pdflatex} you may first
-need to remove the files @code{latexusage-*}, @code{latexusage_.pre}, and
-@code{latexusage.aux}. Version 1.14 of @code{Asymptote.sty} supports
-processing each figure separately: @code{asy latexusage} is equivalent
-to @code{asy latexusage-*.asy}. For example, one may wish to reduce
-memory usage by generating each figure in a separate @code{UNIX} process:
+need to remove the files @code{latexusage-*}, @code{latexusage.pre}, and
+@code{latexusage.aux}. 
+
+An even better method for processing a @code{LaTeX} file with embedded
+@code{Asymptote} code is to use the @code{latexmk} utility from
+@quotation
+@url{http://www.ctan.org/tex-archive/support/latexmk/}
+@end quotation
+@noindent
+after putting the rules
+@verbatiminclude latexmkrc
+@noindent
+in a file @code{latexmkrc} in the same directory. The command
 @verbatim
-/bin/ls latexusage-*.asy | xargs --replace=% asy %
+latexmk -pdf latexusage
 @end verbatim
+@noindent
+will then call @code{Asymptote} automatically, recompiling only the figures
+that have changed. Since each figure is compiled in a separate
+system process, this method also tends to use less memory.
 
 @cindex @code{width}
 @cindex @code{height}
 @cindex @code{viewportwidth}
 @cindex @code{viewportheight}
 @cindex @code{attach}
+@cindex @code{inline}
 One can specify @code{width}, @code{height},
-@code{viewportwidth}, @code{viewportheight}, and @code{attach}
+@code{viewportwidth}, @code{viewportheight}, @code{attach}, and @code{inline}.
 @code{keyval}-style options to the @code{asy} environment.
-The current version of @code{asymptote.sty} supports the
-embedding of 3D @acronym{PRC} files, either inline or, using the
-@code{attach} option with the @code{attachfile2} (or older
-@code{attachfile}) @code{LaTeX} package,
-as annotated (but printable) attachments. For many applications, the
-annotated attachment method tends to be more convenient. 
-The default value of @code{viewportwidth} is @code{\the\linewidth} for
-inline 3D figures and @code{0} for attachments.
-
-If the @code{inline} option is given to the
-@code{asymptote.sty} package, inline @code{LaTeX} code is generated instead of
-@acronym{EPS} or @acronym{PDF} files. This makes 2D LaTeX symbols visible to the
+Three-dimensional @acronym{PRC} files may either be embedded within
+the page (the default) or attached as annotated (but printable)
+attachments, using the @code{attach} option and the @code{attachfile2}
+(or older @code{attachfile}) @code{LaTeX} package. The default value
+of @code{viewportwidth} is @code{\the\linewidth} for inline 3D figures
+and @code{0} for attachments. The @code{inline} option generates
+inline @code{LaTeX} code instead of @acronym{EPS} or @acronym{PDF}
+files. This makes 2D LaTeX symbols visible to the 
 @code{\begin@{asy@}...\end@{asy@}} environment.  In this mode,
 Asymptote correctly aligns 2D LaTeX symbols defined outside of
 @code{\begin@{asy@}...\end@{asy@}}, but treats their size as zero; an
 optional second string can be given to @code{Label} to provide an
-estimate of the unknown label size. 
+estimate of the unknown label size.
 
-Note that if @code{latex} is used with the @code{inline} option,
-the labels might not show up in @acronym{DVI} viewers that cannot
-handle raw @code{PostScript} code. One can use @code{dvips}/@code{dvipdf} to
-produce @code{PostScript}/@acronym{PDF} output (we recommend using the
-modified version of @code{dvipdf} in the @code{Asymptote} patches
-directory, which accepts the @code{dvips -z} hyperdvi option). 
-
-An excellent tutorial by Dario Teixeira on integrating @code{Asymptote} and
-@code{LaTeX} is available at @url{http://dario.dse.nl/projects/asylatex/}.
+Note that if the @code{latex} @TeX{} engine is used with the
+@code{inline} option, labels might not show up in @acronym{DVI}
+viewers that cannot handle raw @code{PostScript} code. One can use
+@code{dvips}/@code{dvipdf} to produce @code{PostScript}/@acronym{PDF}
+output (we recommend using the modified version of @code{dvipdf} in
+the @code{Asymptote} patches directory, which accepts the @code{dvips -z}
+hyperdvi option).
 
 Here now is @code{latexusage.tex}:
 @verbatiminclude latexusage.tex
@@ -6404,22 +6411,20 @@ texhash
 @end verbatim
 
 @cindex @code{external}
-An example of embedding @code{U3D} code is provided in the file
-@code{embeddedu3d.asy}.
-As of version 7.0.8, @code{Adobe Reader} supports the @code{U3D} format
-under Linux.
-
-Unfortunately, Adobe has not yet made available an embedded movie plugin
-for the Linux version of @code{Adobe Reader}.  A portable method for
-embedding movie files, which should work on any platform and does not require
-the @code{movie15} or @code{ifdraft} packages, is provided by using the
-@code{external} module instead of @code{embed}. An example of these
+A more portable method for embedding movie files, which should work on any
+platform and does not require the @code{movie15} or @code{ifdraft}
+packages, is provided by using the @code{external} module instead of
+@code{embed}. An example of these 
 interfaces is provided in the file @code{embeddedmovie.asy} and
 @code{externalmovie.asy} in the @code{animations} subdirectory of the
 examples directory. For a higher quality movie generated directly by
 @code{Asymptote}, use the @code{animate} module along with the
 @code{animate.sty} package to embed a portable @acronym{PDF} animation
 (@pxref{animate}).
+
+@cindex @code{U3D}
+An example of embedding @code{U3D} code is provided in the file
+@code{embeddedu3d.asy}.
 
 @node slide
 @section @code{slide}
@@ -9567,6 +9572,6 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  singlereal singleint writeoverloaded dvisvg reddash lexorder
 @c  LocalWords:  bigdiagonal autobillboard dvisvgm maxtiles hyperrefOptions
 @c  LocalWords:  setpagesize pdfborder controlsystem OmitTickInterval SixViews
-@c  LocalWords:  OmitTickIntervals tickmodifiers autorotated SixViewsUS
+@c  LocalWords:  OmitTickIntervals tickmodifiers autorotated SixViewsUS latexmk
 @c  LocalWords:  ThreeViewsUS ThreeViewsFR SixViewsFR ThreeViews partialsum
-@c  LocalWords:  defaultrender Vidiassov
+@c  LocalWords:  defaultrender Vidiassov latexmkrc

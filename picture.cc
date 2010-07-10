@@ -688,7 +688,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   texfile *tex=NULL;
   
   if(Labels) {
-    texname=auxname(prefix,"tex");
+    texname=TeXmode ? buildname(prefix,"tex") : auxname(prefix,"tex");
     tex=svgformat ? new svgtexfile(texname,b) : new texfile(texname,b);
     tex->prologue();
   }
