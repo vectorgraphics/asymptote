@@ -187,22 +187,31 @@ void usersetting()
   eval(settings.user,true);
 }
 
+string stripsuffix(string f, string suffix=".asy") 
+{
+  int n=rfind(f,suffix);
+  if(n != -1) f=erase(f,n,-1);
+  return f;
+}
+
 // Conditionally process each file name in array s in a new environment.
 void asy(string format, bool overwrite=false ... string[] s)
 {
   for(string f : s) {
-    int n=rfind(f,".asy");
-    if(n != -1) f=erase(f,n,-1);
-    if(overwrite || error(input(f+"."+format,check=false))) {
+    f=stripsuffix(f);
+    string suffix="."+format;
+    string fsuffix=f+suffix;
+    if(overwrite || error(input(fsuffix,check=false))) {
       string outformat=settings.outformat;
       bool interactiveView=settings.interactiveView;
       bool batchView=settings.batchView;
       settings.outformat=format;
       settings.interactiveView=false;
       settings.batchView=false;
-      delete(outname()+"_"+".aux");
-      eval("defaultfilename=\""+f+"\"; import \""+f+
-           "\" as dummy; exitfunction()");
+      string outname=outname();
+      delete(outname+"_"+".aux");
+      eval("import \""+f+"\" as dummy");
+      rename(stripsuffix(outname)+suffix,fsuffix);
       settings.outformat=outformat;
       settings.interactiveView=interactiveView;
       settings.batchView=batchView;
@@ -210,7 +219,8 @@ void asy(string format, bool overwrite=false ... string[] s)
   }
 }
 
-void beep() {
+void beep()
+{
   write('\7',flush);
 }
 

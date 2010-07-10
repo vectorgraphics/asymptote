@@ -352,12 +352,8 @@ item("Having prescribed outgoing and incoming path directions $e^{i\theta}$
 at node~$z_0$ and $e^{i\phi}$ at node $z_1$ relative to the
 vector $z_1-z_0$, the control points are determined as:");  
 
-skip(-3);
-
 equations("u&=&z_0+e^{i\theta}(z_1-z_0)f(\theta,-\phi),\nonumber\\
 v&=&z_1-e^{i\phi}(z_1-z_0)f(-\phi,\theta),");
-
-skip(-3);
 
 remark("where the relative distance function $f(\theta,\phi)$ is given by Hobby [1986].");
 
@@ -376,8 +372,12 @@ equation("\displaystyle x(t)=\sum_{k=0}^3 B_k(t) P_k, \qquad t\in [0,1].");
 
 item("The resulting curve is also a B\'ezier curve:");
 
+skip(-2);
+
 equations("x'_i(t)&=&\sum_{k=0}^3 B_k(t) A_{ij}(P_k)_j+C_i\nonumber\\
 &=&\sum_{k=0}^3 B_k(t) P'_k,");
+
+skip(-2);
 
 remark("where $P'_k$ is the transformed $k^{\rm th}$ control point, noting
 $\displaystyle\sum_{k=0}^3 B_k(t)=1.$");
