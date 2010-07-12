@@ -50,7 +50,6 @@ item("4000 downloads/month from primary\hfill\\
  {\tt asymptote.sourceforge.net} site alone.");
 item("80\ 000 lines of low-level C++ code.");
 item("36\ 000 lines of high-level Asymptote code.");
-item("Latest stable release: Version 2.00 (LGPL).");
 
 if(long) {
 title("Vector Graphics");
