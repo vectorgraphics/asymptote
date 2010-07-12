@@ -1,5 +1,5 @@
 MANFILES = asy.1 xasy.1x
-ASYFILES = $(wildcard *.asy) latexusage.asy
+ASYFILES = $(filter-out $(wildcard latexusage-*.asy),$(wildcard *.asy))
 SOURCE = asymptote.texi version.texi options
 ASY = ../asy -dir ../base -config "" -render=0
 DOCFILES = asymptote.pdf CAD.pdf
@@ -33,7 +33,7 @@ faq:
 
 latexusage.dvi: latexusage.tex
 	rm -f latexusage-*
-	rm -f latexusage_.pre
+	rm -f latexusage.pre
 	rm -f latexusage.aux
 	latex latexusage
 	$(ASY) -noprc latexusage-*.asy
@@ -51,12 +51,12 @@ options: ../settings.cc
 asy.1: options asy.1.begin asy.1.end
 	cat options | grep \^- | sed -e "s/-\(.*\)  \([a-zA-Z].*\)/.TP\n.B -\1\n\2\./" | sed -e "/^.B/ s/-/\\\\-/g" | cat asy.1.begin - asy.1.end > asy.1
 
-asymptote.dvi: $(SOURCE) $(ASYFILES:.asy=.eps)
+asymptote.dvi: $(SOURCE) $(ASYFILES:.asy=.eps) latexusage.pdf
 	ln -sf asymptote.texi asymptote_.texi
 	$(TEXI2DVI) asymptote_.texi
 	mv asymptote_.dvi asymptote.dvi
 
-asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf)
+asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf) latexusage.pdf
 	$(TEXI2DVI) --pdf asymptote.texi
 
 CAD.pdf: CAD.tex CAD1.eps 
@@ -105,3 +105,6 @@ distclean: FORCE clean
 	cd png && make distclean
 	cd FAQ && make distclean
 FORCE:
+
+Makefile: Makefile.in ../config.status
+	cd ..; config.status
