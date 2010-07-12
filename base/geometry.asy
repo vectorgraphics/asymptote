@@ -4832,6 +4832,10 @@ struct arc {
   /*<asyxml><method type="void" signature="setangles(real,real,real)"><code></asyxml>*/
   void setangles(real a0, real a1, real a2)
   {/*<asyxml></code><documentation>Set the angles.</documentation></method></asyxml>*/
+    if (a1 < 0 && a2 < 0) {
+      a1 += 360;
+      a2 += 360;
+    }
     this.angle0=a0%(sgnd(a0)*360);
     this.angle1=a1%(sgnd(a1)*360);
     this.angle2=a2%(sgnd(2)*360);
