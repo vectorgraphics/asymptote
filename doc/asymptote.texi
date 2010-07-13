@@ -532,7 +532,7 @@ under @code{Microsoft Windows XP}:
 @enumerate
 @item Click on the @code{Start} button;
 @item Right-click on @code{My Computer}; 
-@item Choose @code{View system information} from the popup menu;
+@item Choose @code{View system information};
 @item Click the @code{Advanced} tab; 
 @item Click the @code{Environment Variables} button.
 @end enumerate
