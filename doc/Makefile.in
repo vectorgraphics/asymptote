@@ -49,7 +49,7 @@ options: ../settings.cc
 	$(ASY) -h 2>&1 | grep -iv Asymptote > options
 
 asy.1: options asy.1.begin asy.1.end
-	cat options | grep \^- | sed -e "s/-\(.*\)  \([a-zA-Z].*\)/.TP\n.B -\1\n\2\./" | sed -e "/^.B/ s/-/\\\\-/g" | cat asy.1.begin - asy.1.end > asy.1
+	cat options | grep \^- | sed -e "s/-\(.*\)  \([a-zA-Z0-9].*\)/.TP\n.B -\1\n\2\./" | sed -e "/^.B/ s/-/\\\\-/g" | cat asy.1.begin - asy.1.end > asy.1
 
 asymptote.dvi: $(SOURCE) $(ASYFILES:.asy=.eps) latexusage.pdf
 	ln -sf asymptote.texi asymptote_.texi
