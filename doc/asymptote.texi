@@ -382,8 +382,8 @@ The @code{ImageMagick} package from
 @url{http://www.imagemagick.org/script/binary-releases.php} 
 
 @noindent
-is required to support output formats other than @acronym{EPS} and
-@acronym{PDF} (@pxref{convert}).
+is required to support output formats other than @acronym{EPS},
+@acronym{PDF}, @acronym{SVG}, and @acronym{PNG} (@pxref{convert}).
 The @code{Python} interpreter from @url{http://www.python.org} is only required
 if you wish to try out the graphical user interface (@pxref{GUI}).
 
@@ -788,14 +788,19 @@ application for the extension @code{asy}).
 @noindent
 @cindex @code{-V}
 This method, known as @emph{batch mode}, outputs a @code{PostScript}
-file @code{test.eps}. The @code{-V} option opens up a @code{PostScript}
-viewer window so you can immediately view the result:
+file @code{test.eps}. If you prefer @acronym{PDF} output, use
+the command line
+@verbatim
+asy -V -f pdf test
+@end verbatim
+In either case, the @code{-V} option opens up a viewer window so you
+can immediately view the result:
 @sp 1
 @center @image{diagonal}
 @cindex @code{bp}
 @noindent
-The @code{--} connector joins the two points @code{(0,0)} and
-@code{(100,100)} with a line segment. 
+Here, the @code{--} connector joins the two points @code{(0,0)} and
+@code{(100,100)} with a line segment.
 
 @section Drawing in interactive mode
 Another method is @emph{interactive mode}, where @code{Asymptote} reads
@@ -5964,6 +5969,7 @@ need to remove the files @code{latexusage-*}, @code{latexusage.pre}, and
 @code{latexusage.aux}. 
 
 @cindex @code{latexmk}
+@cindex @code{perl}
 An even better method for processing a @code{LaTeX} file with embedded
 @code{Asymptote} code is to use the @code{latexmk} utility from
 @quotation
@@ -5981,6 +5987,8 @@ latexmk -pdf latexusage
 will then call @code{Asymptote} automatically, recompiling only the figures
 that have changed. Since each figure is compiled in a separate
 system process, this method also tends to use less memory.
+Note that @code{latemk} requires @code{perl}, available from
+@url{http://www.perl.org/}.
 
 @cindex @code{width}
 @cindex @code{height}
