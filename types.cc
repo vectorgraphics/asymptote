@@ -19,6 +19,10 @@
 #include "access.h"
 #include "virtualfieldaccess.h"
 
+namespace run {
+void arrayDeleteHelper(vm::stack *Stack);
+}
+
 // For pre-translated symbols.
 #ifndef NOSYM
 #include "types.symbols.h"
@@ -80,25 +84,25 @@ void ty::print(ostream& out) const
     return &v;                                                    \
   }
       
-#define SIGFIELD(Type, name, func)                                      \
-  if (id == name &&                                                     \
-      equivalent(sig, Type()->getSignature()))                          \
-    {                                                                   \
-      static trans::virtualFieldAccess a(run::func);                    \
-      static trans::varEntry v(Type(), &a, 0, position());              \
-      return &v;                                                        \
+#define SIGFIELD(Type, name, func)                                         \
+  if (id == name &&                                                        \
+      equivalent(sig, Type()->getSignature()))                             \
+    {                                                                      \
+      static trans::virtualFieldAccess a(run::func, 0, run::func##Helper); \
+      static trans::varEntry v(Type(), &a, 0, position());                 \
+      return &v;                                                           \
     }
 
-#define DSIGFIELD(name, sym, func)                                      \
-  if (id == sym &&                                                     \
-      equivalent(sig, name##Type()->getSignature()))                    \
-    {                                                                   \
-      static trans::virtualFieldAccess a(run::func);                    \
-      /* for some fields, v needs to be dynamic */                      \
-      /* e.g. when the function type depends on an array type. */       \
-      trans::varEntry *v =                                              \
-        new trans::varEntry(name##Type(), &a, 0, position());           \
-      return v;                                                         \
+#define DSIGFIELD(name, sym, func)                                         \
+  if (id == sym &&                                                         \
+      equivalent(sig, name##Type()->getSignature()))                       \
+    {                                                                      \
+      static trans::virtualFieldAccess a(run::func, 0, run::func##Helper); \
+      /* for some fields, v needs to be dynamic */                         \
+      /* e.g. when the function type depends on an array type. */          \
+      trans::varEntry *v =                                                 \
+        new trans::varEntry(name##Type(), &a, 0, position());              \
+      return v;                                                            \
     }
 
 #define FILEFIELD(GetType, SetType, name, sym) \

@@ -21,19 +21,32 @@ namespace trans {
 // function, which pops a real number and then z off of the stack, sets the
 // z.x to that new value, and puts the value back on the stack.  In this case,
 // pairs are immutable, but other virtual fields may not be.
+//
+// Some virtual fields are functions, such as a.push for an array a.  In rare
+// cases, code such as
+//     void f(int) = a.push;
+// requires an object representing a.push, and so a getter for the field must
+// be provided.  Most of the time, however, these fields are just called.
+// As an optimization, a caller access can be provided.  If this access is
+// given, then a call to the virtualFieldAccess just translates into a call to
+// caller.
 class virtualFieldAccess : public access {
   access *getter;
   access *setter;
+  access *caller;
 
-  // As an optimization, one could add a 'caller' field, to handle calls to
-  // functions such as 'a.push(x)' where a is an array more efficiently.
 public:
-  virtualFieldAccess(access *getter, access *setter = 0)
+  virtualFieldAccess(access *getter,
+                     access *setter = 0,
+                     access *caller = 0)
     : getter(getter), setter(setter) {}
 
-  virtualFieldAccess(vm::bltin getter, vm::bltin setter = 0)
+  virtualFieldAccess(vm::bltin getter,
+                     vm::bltin setter = 0,
+                     vm::bltin caller = 0)
     : getter(new bltinAccess(getter)),
-      setter(setter ? new bltinAccess(setter) : 0) {}
+      setter(setter ? new bltinAccess(setter) : 0),
+      caller(caller ? new bltinAccess(caller) : 0) {}
 
   void encode(action act, position pos, coder &e);
   void encode(action act, position pos, coder &e, frame *);

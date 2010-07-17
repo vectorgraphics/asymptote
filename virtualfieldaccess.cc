@@ -14,8 +14,12 @@ void virtualFieldAccess::encode(action act, position pos, coder &e)
 {
   switch(act) {
     case CALL:
-      this->encode(READ, pos, e);
-      e.encode(inst::popcall);
+      if (caller) {
+        caller->encode(CALL, pos, e);
+      } else {
+        this->encode(READ, pos, e);
+        e.encode(inst::popcall);
+      }
       return;
     case READ:
       assert(getter);
