@@ -1,6 +1,8 @@
 // Default file prefix used for inline LaTeX mode
 string defaultfilename;
 
+string[] file3;
+
 string outprefix(string prefix=defaultfilename) {
   return stripextension(prefix != "" ? prefix : outname());
 }
@@ -91,8 +93,17 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
     bool inlinetex=settings.inlinetex;
     bool prc=prc(format);
     bool empty3=pic.empty3();
-    if(prc && !empty3)
-      settings.inlinetex=settings.inlineimage;
+    if(prc && !empty3) {
+        if(settings.render == 0) {
+        string image=outprefix(prefix)+"+"+(string) file3.length;
+        if(settings.inlineimage) image += "_0";
+        settings.inlinetex=false;
+        settings.prc=false;
+        shipout(image,pic,nativeformat(),view=false);
+        settings.prc=true;
+        settings.inlinetex=settings.inlineimage;
+      }
+    }
     frame f=pic.fit(prefix,format,view=view,options,script,light,P);
     if(!pic.empty2() || settings.render == 0 || prc || empty3)
       shipout(prefix,orientation(f),format,wait,view);

@@ -2509,8 +2509,6 @@ private string format(triple v, string sep=" ")
   return string(v.x)+sep+string(v.y)+sep+string(v.z);
 }
 
-private string[] file3;
-
 private string projection(bool infinity, real viewplanesize)
 {
   return "activeCamera=scene.cameras.getByIndex(0);
@@ -2983,7 +2981,7 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
   }
 
   string image;
-  if(preview && settings.embed) {
+  if((preview || (prc && settings.render == 0)) && settings.embed) {
     image=prefix;
     if(settings.inlinetex) image += "_0";
     image += "."+nativeformat();
