@@ -9,9 +9,6 @@
 % Use this form with latex or pdflatex to create PDF attachments by default:
 %\usepackage[attach]{asymptote}
 
-% Enable this line to support PDF hyperlinks:
-%\usepackage{hyperref}\hypersetup{setpagesize=false,unicode}
-
 % Enable this line to support the attach option:
 %\usepackage[dvips]{attachfile2}
 
@@ -81,8 +78,8 @@ and height to \LaTeX\ explicitly. This 3D example can be viewed
 interactively either with Adobe Reader or Asymptote's fast OpenGL-based
 renderer. To support {\tt latexmk}, 3D figures should specify
 \verb+inline=true+. It is sometimes desirable to embed 3D files as annotated
-attachments; this requires the optional \verb+\usepackage{attachfile2}+
-package and the \verb+attach=true+ option:
+attachments; this requires the \verb+attach=true+ option as well as the
+\verb+attachfile2+ \LaTeX\ package.
 \begin{center}
 \begin{asy}[height=4cm,inline=true,attach=false]
 currentprojection=orthographic(5,4,2);

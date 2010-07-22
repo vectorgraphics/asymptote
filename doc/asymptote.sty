@@ -3,7 +3,7 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2+)
 
-\ProvidesPackage{asymptote}[2010/07/10 v1.15 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2010/07/22 v1.16 Asymptote style file for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
 \newif\ifASYdefaultinline
@@ -51,6 +51,9 @@
 \else
 \ASYPDFtrue
 \fi
+\fi
+\ifx\XeTeXversion\undefined
+\ASYPDFtrue
 \fi
 
 \newbox\ASYbox
@@ -134,7 +137,6 @@
   \gdef\ASYviewportwidth{\ASYdefaultviewportwidth}%
   \gdef\ASYviewportheight{}%
   \immediate\closeout\AsyStream
-
   \ifASYinline
     \openin\AsyTestStream=\AsyFile.tex
   \else
@@ -236,7 +238,6 @@
    \immediate\write\AsyStream{settings.tex="xelatex";}%
    \ASYPDFtrue
    \fi
-
    \ifASYinline
    \immediate\write\AsyStream{settings.inlinetex=true;}%
    \immediate\write\AsyStream{deletepreamble();}%
