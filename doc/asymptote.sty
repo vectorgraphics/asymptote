@@ -3,7 +3,7 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2+)
 
-\ProvidesPackage{asymptote}[2010/07/22 v1.16 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2010/07/22 v1.17 Asymptote style file for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
 \newif\ifASYdefaultinline
@@ -53,6 +53,7 @@
 \fi
 \fi
 \ifx\XeTeXversion\undefined
+\else
 \ASYPDFtrue
 \fi
 
