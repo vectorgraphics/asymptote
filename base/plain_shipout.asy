@@ -99,7 +99,7 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
         if(settings.inlineimage) image += "_0";
         settings.inlinetex=false;
         settings.prc=false;
-        shipout(image,pic,nativeformat(),view=false);
+        shipout(image,pic,orientation,nativeformat(),view=false,light,P);
         settings.prc=true;
         settings.inlinetex=settings.inlineimage;
       }
