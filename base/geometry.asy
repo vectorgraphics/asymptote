@@ -3542,7 +3542,6 @@ path arcfromcenter(ellipse el, real angle1, real angle2,
   real step=(a2-a1)/(n != 1 ? n-1 : 1);
   real a,r;
   real da=radians(el.angle);
-  pair[] pts;
   for (int i=0; i < n; ++i) {
     a=a1+i*step;
     r=el.b/sqrt(1-(el.e*cos(a))^2);
