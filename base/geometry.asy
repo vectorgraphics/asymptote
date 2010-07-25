@@ -3542,10 +3542,16 @@ path arcfromcenter(ellipse el, real angle1, real angle2,
   real step=(a2-a1)/(n != 1 ? n-1 : 1);
   real a,r;
   real da=radians(el.angle);
+  real a3=angle((cos(a1)/el.a,sin(a1)/el.b));
+  real a3=(a3>=0) ? a3 : a3+2pi;
+  real a4=angle((cos(a2)/el.a,sin(a2)/el.b));
+  real a4=(a4>=0) ? a4 : a4+2pi;
+  real step=(a4-a3)/(n != 1 ? n-1 : 1);
   for (int i=0; i < n; ++i) {
-    a=a1+i*step;
+    a=a3+i*step;
+    a=angle((el.a*cos(a),el.b*sin(a)));
     r=el.b/sqrt(1-(el.e*cos(a))^2);
-    op = join(op,Rp*Rp.polar(r,a+da));
+    op=op..Rp*Rp.polar(r,a+da);
   }
   return shift(el.C.x*Rp.i+el.C.y*Rp.j)*(direction ? op : reverse(op));
 }
