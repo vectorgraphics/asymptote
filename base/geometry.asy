@@ -3526,20 +3526,27 @@ path arcfromcenter(ellipse el, real angle1, real angle2,
    The angles are mesured relatively to the  axis (C,x-axis) where C is
    the center of the ellipse.</documentation></function></asyxml>*/
   if(degenerate(el)) abort("arcfromcenter: can not convert degenerated ellipse to path.");
-  guide op;
-  coordsys Rp=coordsys(el);
-  if (n < 1) return op;
   if (angle1 > angle2)
     return reverse(arcfromcenter(el,angle2,angle1,!direction,n));
+  path op;
+  coordsys Rp=coordsys(el);
+  if (n < 1) return op;
+  interpolate join = operator ..;
+  real stretch = max(el.a/el.b, el.b/el.a);
+  if (stretch > 10) {
+    n *= floor(stretch/5);
+    join=operator --;
+  }
   real a1=direction ? radians(angle1) : radians(angle2);
   real a2=direction ? radians(angle2) : radians(angle1)+2*pi;
   real step=(a2-a1)/(n != 1 ? n-1 : 1);
   real a,r;
   real da=radians(el.angle);
+  pair[] pts;
   for (int i=0; i < n; ++i) {
     a=a1+i*step;
     r=el.b/sqrt(1-(el.e*cos(a))^2);
-    op=op..Rp*Rp.polar(r,a+da);
+    op = join(op,Rp*Rp.polar(r,a+da));
   }
   return shift(el.C.x*Rp.i+el.C.y*Rp.j)*(direction ? op : reverse(op));
 }
