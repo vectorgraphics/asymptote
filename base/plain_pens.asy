@@ -17,8 +17,8 @@ void defaultpen(real w) {defaultpen(linewidth(w));}
 pen operator +(pen p, real w) {return p+linewidth(w);}
 pen operator +(real w, pen p) {return linewidth(w)+p;}
 
-pen Dotted=dotted+1.0;
-pen Dotted(pen p=currentpen) {return dotted+2*linewidth(p);}
+pen Dotted(pen p=currentpen) {return linetype(new real[] {0,3})+2*linewidth(p);}
+pen Dotted=Dotted();
 
 restricted pen squarecap=linecap(0);
 restricted pen roundcap=linecap(1);
