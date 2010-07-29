@@ -424,20 +424,20 @@ blockconnector blockconnector(picture pic, transform t, pen p=currentpen,
       if(abs(b1.center.y-b2.center.y) < sqrtEpsilon) {
         // horizontally aligned
         b1.dirs[0]=b1.center.x < b2.center.x ? right : left;
-        blockconnector(pic,t)(b1,b2);
+        blockconnector(pic,t,p,margin)(b1,b2);
       } else if(abs(b1.center.x-b2.center.x) < sqrtEpsilon) {
         // vertically aligned
         b1.dirs[0]=b1.center.y < b2.center.y ? up : down;
-        blockconnector(pic,t)(b1,b2);
+        blockconnector(pic,t,p,margin)(b1,b2);
       } else {
         if(abs(b1.center.y-b2.center.y) < abs(b1.center.x-b2.center.x)) {
           b1.dirs[0]=b1.center.x < b2.center.x ? right : left;
           b1.dirs[1]=b1.center.y < b2.center.y ? up : down;
-          blockconnector(pic,t)(b1,b2);
+          blockconnector(pic,t,p,margin)(b1,b2);
         } else {
           b1.dirs[0]=b1.center.y < b2.center.y ? up : down;
           b1.dirs[1]=b1.center.x < b2.center.x ? right : left;
-          blockconnector(pic,t)(b1,b2);
+          blockconnector(pic,t,p,margin)(b1,b2);
         }
       }
       return b2;
