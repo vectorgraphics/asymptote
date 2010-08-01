@@ -103,8 +103,8 @@ uninstall-all:
 distclean: FORCE clean
 	-rm -f version.texi Makefile 
 	-rm -f $(DOCFILES)
-	cd png && make distclean
-	cd FAQ && make distclean
+	cd png && $(MAKE) distclean
+	cd FAQ && $(MAKE) distclean
 FORCE:
 
 Makefile: Makefile.in
