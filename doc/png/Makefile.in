@@ -1,4 +1,5 @@
-ASYFILES = $(notdir $(wildcard ../*.asy)) latexusage.asy
+ASYFILES = $(notdir $(filter-out $(wildcard ../latexusage-*.asy),$(wildcard ../*.asy)))
+
 SOURCE = ../asymptote.texi ../version.texi ../options
 ASY = ../asy -dir ../base -config "" -render=0
 
@@ -16,13 +17,13 @@ latexusage.png: ../latexusage.eps
 	convert -alpha Off -density 144x144 +antialias -geometry 50%x \
 		../latexusage.eps latexusage.png
 
-index.html: $(SOURCE) $(ASYFILES:.asy=.png)
+index.html: $(SOURCE) $(ASYFILES:.asy=.png) latexusage.png
 	makeinfo --html ../asymptote -o .
 
 asymptote.info: $(SOURCE)
 	makeinfo --no-warn --no-split ../asymptote
 
-info:	$(SOURCE) $(ASYFILES:.asy=.png)
+info:	$(SOURCE) $(ASYFILES:.asy=.png) latexusage.png
 	makeinfo --no-split ../asymptote
 
 html:	index.html
@@ -48,3 +49,6 @@ uninstall:
 	-cd $(infodir)/asymptote && rm -f asymptote.info *.png
 	-rmdir $(infodir)/asymptote
 FORCE:
+
+Makefile: Makefile.in
+	cd ../..; config.status

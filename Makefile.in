@@ -34,11 +34,12 @@ FILES = $(CAMP) $(SYMBOL_FILES) env genv main stm dec errormsg \
 	$(PRC) glrender tr arcball algebra3 quaternion svnrevision
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
-	asy-keywords.el $(RUNTIME_FILES:=.cc) asy.list \
+	asy-keywords.el $(RUNTIME_FILES:=.cc) $(RUNTIME_FILES:=.h) asy.list \
         allsymbols.h opsymbols.h $(SYMBOL_FILES:=.symbols.h) 
 NAME = asy
 XNAME = x$(NAME)
-CLEAN = camp.output svnrevision.cc doc/version.texi GUI/xasyVersion.py $(XNAME) 
+CLEAN = camp.output svnrevision.cc base/version.asy doc/version.texi \
+        GUI/xasyVersion.py $(XNAME) 
 EXTRA = asy-mode.el asy-init.el asy.vim asy-kate.sh asymptote.py reload.js \
         nopapersize.ps
 EXEXTRA = piicon.eps *.views *.dat
