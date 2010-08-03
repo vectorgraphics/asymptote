@@ -152,12 +152,16 @@ void texfile::beginlayer(const string& psname, bool postscript)
         if(stripDir(psname) != psname)
           quote="\"";
         
+        string asyprefix;
+        if(inlinetex) asyprefix="\\ASYprefix ";
+
         if(!pdf)
           *out << "[bb=" << box.left << " " << box.bottom << " "
                << box.right << " " << box.top << "]";
-        if(pdf) *out << "{" << quote << stripExt(psname) << quote << ".pdf}%"
-                     << newl;
-        else *out << "{" << quote << psname << quote << "}%" << newl;
+        if(pdf) *out << "{" << quote << asyprefix << stripExt(psname) << quote 
+                     << ".pdf}%" << newl;
+        else *out << "{" << quote << asyprefix << psname << quote << "}%" 
+                  << newl;
         *out << "}%" << newl;
       }
       if(!inlinetex)

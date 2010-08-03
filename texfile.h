@@ -61,7 +61,8 @@ void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
   texuserpreamble(out,preamble);
   string texengine=settings::getSetting<string>("tex");
   if(ASYbase)
-    out << "\\newbox\\ASYbox" << newl
+    out << "\\def\\ASYprefix{}" << newl
+        << "\\newbox\\ASYbox" << newl
         << "\\newdimen\\ASYdimen" << newl
         << "\\long\\def\\ASYbase#1#2{\\leavevmode\\setbox\\ASYbox=\\hbox{#1}"
         << "\\ASYdimen=\\ht\\ASYbox%" << newl

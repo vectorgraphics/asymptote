@@ -3,7 +3,7 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2+)
 
-\ProvidesPackage{asymptote}[2010/07/22 v1.17 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2010/08/03 v1.18 Asymptote style file for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
 \newif\ifASYdefaultinline
@@ -11,6 +11,9 @@
 \DeclareOption{inline}{\ASYdefaultinlinetrue}
 \DeclareOption{attach}{\ASYdefaultattachtrue}
 \ProcessOptions*
+
+\def\asydir{}
+\def\ASYprefix{}
 
 \def\unquoteJobname#1"#2"#3\relax{\def\rawJobname{#1}%
   \ifx\rawJobname\empty\def\rawJobname{#2}\fi}
@@ -225,10 +228,14 @@
   \ifASYattach
     \global\ASYinlinefalse
   \fi
+  \ifx\asydir\empty
+  \else
+     \gdef\ASYprefix{\asydir/}
+  \fi
   \immediate\write\AsyPreStream%
-      {\@backslashchar AsyInput{\jobname-\the\c@asy.pre}}
-  \immediate\openout\AsyStream=\jobname-\the\c@asy.asy
-   \gdef\AsyFile{\Jobname-\the\c@asy}%
+      {\@backslashchar AsyInput{\ASYprefix\jobname-\the\c@asy.pre}}
+  \immediate\openout\AsyStream=\ASYprefix\jobname-\the\c@asy.asy
+   \gdef\AsyFile{\ASYprefix\Jobname-\the\c@asy}%
    \immediate\write\AsyStream{if(!settings.multipleView)}%
    \immediate\write\AsyStream{  settings.batchView=false;}%
    \ifx\XeTeXversion\undefined
@@ -243,7 +250,7 @@
    \immediate\write\AsyStream{settings.inlinetex=true;}%
    \immediate\write\AsyStream{deletepreamble();}%
    \fi
-   \immediate\write\AsyStream{defaultfilename="\AsyFile";}%
+   \immediate\write\AsyStream{defaultfilename="\Jobname-\the\c@asy";}%
    \immediate\write\AsyStream{if(settings.render < 0) settings.render=4;}%
    \ifASYattach
      \immediate\write\AsyStream{settings.inlineimage=false;}%

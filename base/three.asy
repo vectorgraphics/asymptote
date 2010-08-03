@@ -89,6 +89,8 @@ string partname(int i=0)
   return string(i+1);
 }
 
+string asyprefix="\ASYprefix ";
+
 triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
 
@@ -2728,9 +2730,10 @@ string embed3D(string label="", string text=label, string prefix,
     ",3Droo="+Format(abs(v))+
     ",3Dbg="+Format(light.background());
   if(options != "") options3 += ","+options;
-  if(name != "") options3 += ",3Djscript="+stripdirectory(name);
+  if(name != "")
+    options3 += ",3Djscript="+asyprefix+stripdirectory(name);
 
-  return Embed(stripdirectory(prefix),options3,width,height);
+  return Embed(asyprefix+stripdirectory(prefix),options3,width,height);
 }
 
 struct scene
@@ -2986,7 +2989,7 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
     if(settings.inlinetex) image += "_0";
     image += "."+nativeformat();
     if(!settings.inlinetex) file3.push(image);
-    image=graphic(image,"hiresbb");
+    image=graphic(asyprefix+image,"hiresbb");
   }
   if(prc) {
     if(!P.infinity && P.viewportshift != 0)
