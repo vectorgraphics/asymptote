@@ -101,8 +101,8 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
         settings.prc=false;
         shipout(image,pic,orientation,nativeformat(),view=false,light,P);
         settings.prc=true;
-        settings.inlinetex=settings.inlineimage;
       }
+      settings.inlinetex=settings.inlineimage;
     }
     frame f=pic.fit(prefix,format,view=view,options,script,light,P);
     if(!pic.empty2() || settings.render == 0 || prc || empty3)
