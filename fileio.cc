@@ -138,6 +138,8 @@ void ifile::Read(string& val)
       }
     }
   }
+  size_t pos=s.length()-1;
+  if(s[pos] == '\r') s.erase(pos,1);
   val=whitespace+s;
 }
   
