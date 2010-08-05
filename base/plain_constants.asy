@@ -63,6 +63,8 @@ restricted file stdout=output("");
 void none(file file) {}
 void endl(file file) {write(file,'\n',flush);}
 void newl(file file) {write(file,'\n');}
+void DOSendl(file file) {write(file,'\r\n',flush);}
+void DOSnewl(file file) {write(file,'\r\n');}
 void tab(file file) {write(file,'\t');}
 void comma(file file) {write(file,',');}
 typedef void suffix(file);

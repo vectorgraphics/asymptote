@@ -3696,6 +3696,8 @@ write(file file, suffix suffix=none);
 @cindex @code{flush}
 @cindex @code{endl}
 @cindex @code{newl}
+@cindex @code{DOSendl}
+@cindex @code{DOSnewl}
 @cindex @code{tab}
 @cindex @code{comma}
 If @code{file} is not specified, @code{stdout} is used and
@@ -3706,6 +3708,8 @@ or one-dimensional arrays. The @code{suffix} may be one of the following:
 @code{none} (do nothing), @code{flush} (output buffered data),
 @code{endl} (terminate with a newline and flush),
 @code{newl} (terminate with a newline),
+@code{DOSendl} (terminate with a DOS newline and flush),
+@code{DOSnewl} (terminate with a DOS newline),
 @code{tab} (terminate with a tab), or @code{comma} (terminate with a
 comma). Here are some simple examples of data output:
 @verbatim
