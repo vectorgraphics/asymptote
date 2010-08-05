@@ -352,7 +352,7 @@ struct option : public gc {
         cerr << endl;
         cerr << std::left << std::setw(WIDTH) << "";
       }
-      cerr << desc;
+      cerr << " " << desc;
       if(cmdlineonly) cerr << "; command-line only";
       if(Default != "")
         cerr << " [" << Default << "]";
