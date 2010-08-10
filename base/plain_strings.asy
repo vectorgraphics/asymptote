@@ -159,7 +159,7 @@ string graphic(string name, string options="")
 {
   if(latex()) {
     if(options != "") options="["+options+"]";
-    if(find(name," ") < 0)
+    if(stripdirectory(name) == name)
       return "\includegraphics"+options+"{"+name+"}";
     else {
       return "\includegraphics"+options+
