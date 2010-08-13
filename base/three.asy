@@ -28,9 +28,11 @@ struct render
 
   bool closed;          // use one-sided rendering?
   bool tessellate;      // use tessellated mesh to store straight patches?
-  bool3 merge;          // merge nodes before rendering, for lower quality
-                        // but faster PRC rendering?
-                        // (default=merge only transparent patches)
+
+  bool3 merge;          // merge nodes before rendering, for faster but
+                        // lower quality PRC rendering (the value default means
+                        // merge opaque patches only).
+
   int sphere;           // PRC sphere type (PRCsphere or NURBSsphere).
 
   // General parameters:
