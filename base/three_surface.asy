@@ -1435,7 +1435,8 @@ void label(frame f, Label L, triple position, align align=NoAlign,
     bool lighton=light.on();
     for(patch S : surface(L,position,bbox=P.bboxonly).s) {
       draw3D(f,S,position,L.p,light,interaction);
-      if(render.labelfill && !lighton) // Fill subdivision cracks
+      // Fill subdivision cracks
+      if(render.labelfill && opacity(L.p) == 1 && !lighton)
         _draw(f,S.external(),position,L.p,interaction.type);
     }
   } else {
@@ -1485,7 +1486,8 @@ void label(picture pic=currentpicture, Label L, triple position,
       if(is3D()) {
         for(patch S : surface(L,v,bbox=P.bboxonly).s) {
           draw3D(f,S,v,L.p,light,interaction);
-          if(render.labelfill && !lighton) // Fill subdivision cracks
+          // Fill subdivision cracks
+          if(render.labelfill && opacity(L.p) == 1 && !lighton)
             _draw(f,S.external(),v,L.p,interaction.type);
         }
       }
