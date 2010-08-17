@@ -1,4 +1,5 @@
 if(latex()) {
+  usepackage("fp","nomessages");
   usepackage("hyperref");
   texpreamble("\hypersetup{"+settings.hyperrefOptions+"}");
   texpreamble("
