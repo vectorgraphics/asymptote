@@ -159,11 +159,13 @@ string graphic(string name, string options="")
 {
   if(latex()) {
     if(options != "") options="["+options+"]";
+    string asyprefix=settings.inlinetex ? "\ASYprefix " : "";
     if(find(name," ") < 0)
-      return "\includegraphics"+options+"{"+name+"}";
+      return "\includegraphics"+options+"{"+asyprefix+name+"}";
     else {
       return "\includegraphics"+options+
-        (pdf() ? "{\""+stripextension(name)+"\".pdf}" : "{\""+name+"\"}");
+        (pdf() ? "{\""+asyprefix+stripextension(name)+"\".pdf}" :
+         "{\""+asyprefix+name+"\"}");
     }
   }
   if(settings.tex != "context")
