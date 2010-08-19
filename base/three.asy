@@ -2696,9 +2696,8 @@ string embed3D(string label="", string text=label, string prefix,
   writeJavaScript(name,lightscript+projection(P.infinity,viewplanesize)+
                   billboard(index,center),script);
 
-  prefix += ".prc";
   if(!settings.inlinetex)
-    file3.push(prefix);
+    file3.push(prefix+".prc");
 
   triple target=P.target;
   if(P.viewportshift != 0) {
@@ -2730,11 +2729,12 @@ string embed3D(string label="", string text=label, string prefix,
     ",3Droo="+Format(abs(v))+
     ",3Dbg="+Format(light.background());
   if(options != "") options3 += ","+options;
-  string asyprefix=settings.inlinetex ? "\ASYprefix " : "";
-  if(name != "")
-    options3 += ",3Djscript="+asyprefix+stripdirectory(name);
+  prefix=stripdirectory(prefix);
+  if(settings.inlinetex)
+    prefix=jobname(prefix);
+  options3 += ",3Djscript="+prefix+".js";
 
-  return Embed(asyprefix+stripdirectory(prefix),options3,width,height);
+  return Embed(prefix+".prc",options3,width,height);
 }
 
 struct scene

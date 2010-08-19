@@ -3,7 +3,7 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2+)
 
-\ProvidesPackage{asymptote}[2010/08/03 v1.18 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2010/08/19 v1.19 Asymptote style file for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
 \newif\ifASYdefaultinline
@@ -232,8 +232,8 @@
   \else
      \gdef\ASYprefix{\asydir/}
   \fi
-  \immediate\write\AsyPreStream%
-      {\@backslashchar AsyInput{\ASYprefix\jobname-\the\c@asy.pre}}
+  \immediate\write\AsyPreStream{\@backslashchar%
+    AsyInput{\ASYprefix\@backslashchar jobname-\the\c@asy.pre}}
   \immediate\openout\AsyStream=\ASYprefix\jobname-\the\c@asy.asy
    \gdef\AsyFile{\ASYprefix\Jobname-\the\c@asy}%
    \immediate\write\AsyStream{if(!settings.multipleView)}%

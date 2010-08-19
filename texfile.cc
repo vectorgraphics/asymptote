@@ -148,20 +148,23 @@ void texfile::beginlayer(const string& psname, bool postscript)
         *out << "{\\catcode`\"=12%" << newl
              << "\\includegraphics";
         bool pdf=settings::pdf(texengine);
-        string quote;
-        if(stripDir(psname) != psname)
-          quote="\"";
+        string quote,name;
+        if(inlinetex) {
+          size_t pos=psname.rfind("-");
+          if(pos >= 0) name="\\ASYprefix\\jobname"+stripExt(psname).substr(pos);
+        }
+        else {
+          name=pdf ? stripExt(psname) : psname;
+          if(stripDir(name) != name)
+            quote="\"";
+        }
         
-        string asyprefix;
-        if(inlinetex) asyprefix="\\ASYprefix ";
-
-        if(!pdf)
+        if(pdf) *out << "{" << quote << name << quote << ".pdf}%" << newl;
+        else {
           *out << "[bb=" << box.left << " " << box.bottom << " "
-               << box.right << " " << box.top << "]";
-        if(pdf) *out << "{" << quote << asyprefix << stripExt(psname) << quote 
-                     << ".pdf}%" << newl;
-        else *out << "{" << quote << asyprefix << psname << quote << "}%" 
-                  << newl;
+               << box.right << " " << box.top << "]"
+               << "{" << quote << name << quote << "}%" << newl;
+        }
         *out << "}%" << newl;
       }
       if(!inlinetex)
