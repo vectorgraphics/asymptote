@@ -247,6 +247,9 @@ void texinit()
       if(pos >= 0) {
         name=stripExt(name).substr(0,pos);
         cmd.push_back("-jobname="+name);
+#ifdef __CYGWIN__
+        cmd.push_back("NUL"); // For MikTeX
+#endif
       }
     }
     cmd.push_back("\\scrollmode");
