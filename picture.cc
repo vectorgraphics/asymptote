@@ -242,11 +242,10 @@ void texinit()
     if(!dir.empty()) 
       cmd.push_back("-output-directory="+dir.substr(0,dir.length()-1));
     if(getSetting<bool>("inlinetex")) {
-      string name=stripDir(outname());
+      string name=stripDir(stripExt((outname())));
       size_t pos=name.rfind("-");
-      if(pos >= 0) {
-        name=stripExt(name).substr(0,pos);
-        cmd.push_back("-jobname="+name);
+      if(pos < string::npos) {
+        cmd.push_back("-jobname="+name.substr(0,pos));
 #ifdef __CYGWIN__
         cmd.push_back("NUL"); // For MikTeX
 #endif
