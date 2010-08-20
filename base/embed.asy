@@ -1,5 +1,4 @@
 if(latex()) {
-  usepackage("fp","nomessages");
   usepackage("hyperref");
   texpreamble("\hypersetup{"+settings.hyperrefOptions+"}");
   texpreamble("
@@ -7,7 +6,9 @@ if(latex()) {
 \usepackage[3D,dvipdfmx]{movie15}
 \else%
 \usepackage[3D]{movie15}
-\fi%");
+\fi%
+\FPmessagesfalse%
+");
 }
 
 // See http://www.ctan.org/tex-archive/macros/latex/contrib/movie15/README
