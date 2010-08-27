@@ -25,16 +25,6 @@ ambiguities, and whatever else you can think of
     
 Andy: operator tuple, to let people define their own tuples
 
-Andy: implement operator init(A a) copy constructors.
-
-Andy and John: (if possible) automatically turn expressions with array
-sub-expressions into iteration over the array(s)
-
 Andy: Decide if we should change vm::error to em in application.cc
 
 John or Andy: Add unit test for AddOps.
-
-Andy: Fix: void f(int x=blah);
-
-Andy: Investigate adding unicode support for identifiers, using iswalpha,
-mbtowc, etc.
