@@ -53,6 +53,12 @@ namespace run {
 void purge();
 }
   
+#ifdef PROFILE
+namespace vm {
+extern void dumpProfile();
+};
+#endif
+
 #ifdef HAVE_LIBSIGSEGV
 void stackoverflow_handler (int, stackoverflow_context_t)
 {
@@ -154,6 +160,10 @@ void *asymain(void *A)
         } 
       }
   }
+
+#ifdef PROFILE
+  vm::dumpProfile();
+#endif
 
   if(getSetting<bool>("wait")) {
     int status;

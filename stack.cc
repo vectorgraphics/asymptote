@@ -14,6 +14,8 @@
 #include "util.h"
 #include "runtime.h"
 
+#include "profiler.h"
+
 #ifdef DEBUG_STACK
 #include <iostream>
 
@@ -66,9 +68,21 @@ void stack::marshall(size_t args, vars_t vars)
     (*vars)[i] = pop();
 }
 
+#ifdef PROFILE
+profiler prof;
+
+void dumpProfile() {
+  prof.dump();
+}
+#endif
+
 void stack::run(func *f)
 {
   lambda *body = f->body;
+
+#ifdef PROFILE
+  prof.beginFunction(body);
+#endif
 
 #ifdef DEBUG_STACK
 #ifdef DEBUG_FRAME
@@ -90,6 +104,10 @@ void stack::run(func *f)
   marshall(body->params, vars);
 
   run(body->code, vars);
+
+#ifdef PROFILE
+  prof.endFunction(body);
+#endif
 }
 
 void stack::breakpoint(absyntax::runnable *r) 
@@ -145,6 +163,8 @@ void stack::debug()
       break;
   }
 }
+
+
   
 void stack::run(program *code, vars_t vars)
 {
@@ -156,10 +176,10 @@ void stack::run(program *code, vars_t vars)
       const inst &i = *ip;
       curPos = i.pos;
       
-#if 0
-      //printInst(cout, ip, code->begin());
-      cout << i.pos << "\n";
+#ifdef PROFILE
+      prof.recordInstruction();
 #endif
+
 #ifdef DEBUG_STACK
       cerr << curPos << "\n";
       printInst(cerr, ip, code->begin());
@@ -252,6 +272,20 @@ void stack::run(program *code, vars_t vars)
           case inst::popcall: {
             /* get the function reference off of the stack */
             callable* f = pop<callable*>();
+
+#if 0
+            cout << "popcall ";
+            if (dynamic_cast<nullfunc *>(f))
+              cout << "nullfunc";
+            if (dynamic_cast<func *>(f))
+              cout << "func";
+            if (dynamic_cast<bfunc *>(f))
+              cout << "bfunc";
+            if (dynamic_cast<thunk *>(f))
+              cout << "thunk";
+            cout << '\n';
+#endif
+
             f->call(this);
             break;
           }
