@@ -1,4 +1,3 @@
-import three;
 import graph3;
 
 pen defaultbackpen=linetype(new real[] {4,4},4,scale=false);

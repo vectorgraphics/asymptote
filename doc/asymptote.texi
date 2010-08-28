@@ -5090,9 +5090,10 @@ themselves (in which case they are each initialized to empty arrays).
 
 @cindex @code{array}
 @item T[] array(int n, T value, int depth=intMax)
-returns an array consisting of @code{n} deep copies of a 0, 1, or 2
-dimensional array @code{T value}. If @code{depth} is specified, this
-deep copying recurses to no more than the number of levels specified.
+returns an array consisting of @code{n} copies of @code{value}.
+If @code{value} is itself an array, a deep copy of @code{value} is made
+for each entry. If @code{depth} is specified, this deep copying only
+recurses to the specified number of levels.
 
 @cindex @code{sequence}
 @item int[] sequence(int n)

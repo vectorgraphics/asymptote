@@ -420,6 +420,7 @@ Int LUdecompose(double *a, size_t n, size_t* index, bool warn=true)
 }
 
 namespace run {
+
 void dividebyzero(size_t i)
 {
   ostringstream buf;
@@ -434,12 +435,6 @@ void integeroverflow(size_t i)
   if(i > 0) buf << "array element " << i << ": ";
   buf << "Integer overflow";
   error(buf);
-}
-
-void checkSize(Int n, Int depth) 
-{
-  if(n < 0) error("cannot create a negative length array");
-  if(depth < 0) error("cannot copy to a negative depth");
 }
 
 }
@@ -512,7 +507,8 @@ array* :newAppendedArray(array* tail, Int n)
 // automatically pushed on the stack and is not visible to the user.
 array* :copyArray(Int n, item value, Int depth=Int_MAX, Int typeDepth)
 {
-  checkSize(n,depth);
+  if(n < 0) error("cannot create a negative length array");
+  if(depth < 0) error("cannot copy to a negative depth");
   if(depth > typeDepth) depth=typeDepth;
   return new array((size_t) n, value, depth);
 }

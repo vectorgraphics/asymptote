@@ -564,8 +564,7 @@ void addArrayOps(venv &ve, types::array *t)
   // which may not be known at runtime.  Therefore, the depth, which is known
   // here at compile-time, is pushed on the stack beforehand by use of a
   // thunk.
-  callable *copyFunc = new thunk(new vm::bfunc(run::copyArray),
-                                 (Int)(depth-1));
+  callable *copyFunc = new thunk(new vm::bfunc(run::copyArray),(Int) depth-1);
   addFunc(ve, new callableAccess(copyFunc),
           t, SYM(array), formal(primInt(), SYM(n)),
           formal(ct, SYM(value)),
