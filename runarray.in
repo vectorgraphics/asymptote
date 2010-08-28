@@ -507,24 +507,14 @@ array* :newAppendedArray(array* tail, Int n)
 }
 
 // Produce an array of n deep copies of value.
-array* :copyArray0(Int n, item value, Int depth=Int_MAX)
+// typeDepth is the true depth of the array determined at compile-time when the
+// operations for the array type are added.  This typeDepth argument is
+// automatically pushed on the stack and is not visible to the user.
+array* :copyArray(Int n, item value, Int depth=Int_MAX, Int typeDepth)
 {
   checkSize(n,depth);
-  return new array((size_t) n, value, (size_t) 0);
-}
-
-array* :copyArray1(Int n, item value, Int depth=Int_MAX)
-{
-  checkSize(n,depth);
-  if(depth > 1) depth=1;
-  return new array((size_t) n, value, (size_t) depth);
-}
-
-array* :copyArray2(Int n, item value, Int depth=Int_MAX)
-{
-  checkSize(n,depth);
-  if(depth > 2) depth=2;
-  return new array((size_t) n, value, (size_t) depth);
+  if(depth > typeDepth) depth=typeDepth;
+  return new array((size_t) n, value, depth);
 }
 
 // Read an element from an array. Checks for initialization & bounds.
