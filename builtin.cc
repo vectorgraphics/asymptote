@@ -559,17 +559,17 @@ void addArrayOps(venv &ve, types::array *t)
           primBoolean(), SYM(alias), formal(t, SYM(a)), formal(t, SYM(b)));
 
   size_t depth=(size_t) t->depth();
-  typedef void (*stackFcn)(stack *Stack);
-  static stackFcn routine[]={run::copyArray0,run::copyArray1,run::copyArray2};
-  
-  size_t ndepth=sizeof(routine)/sizeof(stackFcn);
-  
-  if(depth <= ndepth) {
-    addFunc(ve, routine[depth-1],
-            t, SYM(array), formal(primInt(), SYM(n)),
-            formal(ct, SYM(value)),
-            formal(primInt(), SYM(depth), true));
-  }
+
+  // Define an array constructor.  This needs to know the depth of the array,
+  // which may not be known at runtime.  Therefore, the depth, which is known
+  // here at compile-time, is pushed on the stack beforehand by use of a
+  // thunk.
+  callable *copyFunc = new thunk(new vm::bfunc(run::copyArray),
+                                 (Int)(depth-1));
+  addFunc(ve, new callableAccess(copyFunc),
+          t, SYM(array), formal(primInt(), SYM(n)),
+          formal(ct, SYM(value)),
+          formal(primInt(), SYM(depth), true));
 
   switch (depth) {
     case 1:
