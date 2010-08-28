@@ -57,6 +57,29 @@ void bltinAccess::encode(action act, position pos, coder &e, frame *)
   encode(act, pos, e);
 }
   
+/* callableAccess */
+void callableAccess::encode(action act, position pos, coder &e)
+{
+  switch (act) {
+    case READ:
+      e.encode(inst::constpush, (item)f);
+      break;
+    case WRITE:
+      bltinError(pos);
+      break;
+    case CALL:
+      this->encode(READ, pos, e);
+      e.encode(inst::popcall);
+      break;
+  }
+}
+
+void callableAccess::encode(action act, position pos, coder &e, frame *)
+{
+  e.encode(inst::pop);
+  encode(act, pos, e);
+}
+  
 
 /* frameAccess */
 void frameAccess::encode(action act, position pos, coder &e)

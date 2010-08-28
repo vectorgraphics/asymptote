@@ -16,6 +16,10 @@
 #include "item.h"
 #include "vm.h"
 
+namespace vm {
+  class callable;
+}
+
 namespace trans {
   
 class frame;
@@ -66,6 +70,18 @@ class bltinAccess : public access {
 
 public:
   bltinAccess(vm::bltin f)
+    : f(f) {}
+
+  void encode(action act, position pos, coder &e);
+  void encode(action act, position pos, coder &e, frame *);
+};
+
+// Similar to bltinAccess, but works for any callable.
+class callableAccess : public access {
+  vm::callable *f;
+
+public:
+  callableAccess(vm::callable *f)
     : f(f) {}
 
   void encode(action act, position pos, coder &e);
