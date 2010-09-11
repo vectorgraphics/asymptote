@@ -655,7 +655,6 @@ app_list multimatch(env &e,
                     types::signature *source,
                     arglist &al)
 {
-#ifdef EXACT_MATCH
   app_list a = exactMultimatch(e, o, source, al);
   if (!a.empty()) {
 #if DEBUG_CACHE
@@ -675,7 +674,6 @@ app_list multimatch(env &e,
 
     return a;
   }
-#endif
 
   // Slow but most general method.
   return inexactMultimatch(e, o, source, al);
