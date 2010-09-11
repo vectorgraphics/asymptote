@@ -870,7 +870,6 @@ types::ty *callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
 
   // An attempt at speeding up compilation:  See if the source arguments match
   // the (possibly overloaded) function exactly.
-#if CALLEE_SEARCH
   if (searchable) {
     varEntry *ve = callee->getCallee(e, source);
 
@@ -882,13 +881,13 @@ types::ty *callExp::cacheAppOrVarEntry(coenv &e, bool tacit)
       cachedVarEntry = ve;
 #ifndef DEBUG_CACHE
       // Normally DEBUG_CACHE is not defined and we return here for efficiency
-      // reasons.  If DEBUG_CACHE is defined, also resolve the function by the
-      // normal techniques and make sure we get the same result.
+      // reasons.  If DEBUG_CACHE is defined, we instead proceed to resolve
+      // the function by the normal techniques and make sure we get the same
+      // result.
       return ((function *)ve->getType())->getResult();
 #endif
     }
   }
-#endif
 
   // Figure out what function types we can call.
   types::ty *ft = callee->cgetType(e);

@@ -419,12 +419,10 @@ class venv {
   };
 
   struct namevalue {
-#ifdef CALLEE_SEARCH
     size_t maxFormals;
-#endif
     ty *t;
 
-    namevalue() : maxFormals(0),  t(0) {}
+    namevalue() : maxFormals(0), t(0) {}
 
     void addType(ty *s);
     

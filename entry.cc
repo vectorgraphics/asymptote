@@ -485,12 +485,10 @@ void core_venv::remove(symbol name, const ty *t) {
 }
 
 
-#ifdef CALLEE_SEARCH
 size_t numFormals(ty *t) {
   signature *sig = t->getSignature();
   return sig ? sig->getNumFormals() : 0;
 }
-#endif
 
 void venv::checkName(symbol name)
 {
@@ -558,9 +556,7 @@ void venv::namevalue::addType(ty *s) {
 #endif
 
   if (t == 0) {
-#if CALLEE_SEARCH
     maxFormals = numFormals(s);
-#endif
     t = s;
   } else {
     if (!t->isOverloaded())
@@ -573,11 +569,9 @@ void venv::namevalue::addType(ty *s) {
 
     ((overloaded *)t)->add(s);
 
-#if CALLEE_SEARCH
     size_t n = numFormals(s);
     if (n > maxFormals)
       maxFormals = n;
-#endif
   }
 
   RIGHTKIND(t);
@@ -754,7 +748,6 @@ void venv::enter(symbol name, varEntry *v)
 
 
 varEntry *venv::lookBySignature(symbol name, signature *sig) {
-#ifdef CALLEE_SEARCH
   // Rest arguments are complicated and rare.  Don't handle them here.
   if (sig->hasRest())
     return 0;
@@ -769,15 +762,10 @@ varEntry *venv::lookBySignature(symbol name, signature *sig) {
   if (nv.maxFormals != sig->getNumFormals())
     return 0;
 
-  // At this point, any function with an equivalent an signature will be equal
+  // At this point, any function with an equivalent signature will be equal
   // to the result of the normal overloaded function resolution.  We may
   // safely return it.
   return core.lookupNonSpecial(name, sig);
-
-#else
-  // If the optimization is disabled, always return 0.
-  return 0;
-#endif
 }
 
 void venv::add(venv& source, varEntry *qualifier, coder &c)
