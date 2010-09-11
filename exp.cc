@@ -52,7 +52,8 @@ void exp::transToType(coenv &e, types::ty *target)
     return;
   }
 
-#if FASTCAST
+  // See if the cast can be handled by the fastLookupCast method, which does
+  // less memory allocation.
   if (ct->kind != ty_overloaded &&
       ct->kind != ty_error &&
       target->kind != ty_error) {
@@ -63,7 +64,6 @@ void exp::transToType(coenv &e, types::ty *target)
       return;
     }
   }
-#endif
 
   types::ty *source = e.e.castSource(target, ct, symbol::castsym);
   if (source==0) {

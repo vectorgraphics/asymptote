@@ -34,11 +34,7 @@ bool castable(env &e, formal& target, formal& source) {
 score castScore(env &e, formal& target, formal& source) {
   return equivalent(target.t,source.t) ? EXACT :
     (!target.Explicit &&
-#ifdef FASTCAST
      e.fastCastable(target.t,source.t)) ? CAST : FAIL;
-#else
-     e.castable(target.t,source.t, symbol::castsym)) ? CAST : FAIL;
-#endif
 }
 
 
@@ -485,20 +481,13 @@ bool halfExactMightMatch(env &e,
   assert(formals[0].t);
   assert(formals[1].t);
 
-#ifdef FASTCAST
-#  define CASTABLE fastCastable
-#else
-#  define CASTABLE castable
-#endif
-
   // These casting tests if successful will be repeated again by
   // application::match.  It would be nice to avoid this somehow, but the
   // additional complexity is probably not worth the minor speed improvement.
   if (equivalent(formals[0].t, t1))
-     return e.CASTABLE(formals[1].t, t2);
+     return e.fastCastable(formals[1].t, t2);
   else 
-    return equivalent(formals[1].t, t2) && e.CASTABLE(formals[0].t, t1);
-#undef CASTABLE
+    return equivalent(formals[1].t, t2) && e.fastCastable(formals[0].t, t1);
 }
 
 // Most common after exact matches are cases such as

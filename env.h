@@ -99,14 +99,12 @@ public:
   access *lookupCast(ty *target, ty *source, symbol name);
   bool castable(ty *target, ty *source, symbol name);
 
-#ifdef FASTCAST
   // A cast lookup designed to work quickly with the application matching
   // code.  The target type must not be overloaded.
   bool fastCastable(ty *target, ty *source);
 
   // For the lookup, neither target nor source may be overloaded.
   access *fastLookupCast(ty *target, ty *source);
-#endif
 
   // Given overloaded types, this resolves which types should be the target and
   // the source of the cast.
