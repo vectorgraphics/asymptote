@@ -27,13 +27,6 @@ END
 
 sub add {
     print header "OPSYMBOL(\"".$_[0]."\", " . $_[1] . ");\n";
-    my $sym = $_[0];
-    my $name = $_[1];
-    print header <<END;
-#ifndef PRESYM
-#define $name sym::symbol::opTrans("$sym")
-#endif
-END
 }
 
 open(lexer, "camp.l") ||

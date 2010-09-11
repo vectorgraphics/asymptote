@@ -50,7 +50,6 @@ CONTEXTFILES = colo-asy.tex
 ASY = ./asy -dir base -config "" -render=0
 
 DEFS = @DEFS@ @OPTIONS@ \
-       -DPRESYM \
 	   -DTRANSJUMP
 CFLAGS = @CPPFLAGS@ @CFLAGS@
 OPTS = $(DEFS) $(CFLAGS)

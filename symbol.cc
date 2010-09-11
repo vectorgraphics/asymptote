@@ -332,7 +332,6 @@ ostream& operator<< (ostream& out, const symbol sym)
 
 } // end namespace sym
 
-#ifdef PRESYM
 /* Define all of operator symbols SYM_PLUS, etc. */
 #define OPSYMBOL(str, name) \
   sym::symbol name = sym::symbol::opTrans(str)
@@ -344,4 +343,3 @@ ostream& operator<< (ostream& out, const symbol sym)
   sym::symbol PRETRANSLATED_SYMBOL_##name = sym::symbol::literalTrans(#name)
 #include "allsymbols.h"
 #undef ADDSYMBOL
-#endif

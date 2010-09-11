@@ -27,11 +27,7 @@ print header <<END;
 // SYM(name) also refers to that symbol.
 #ifndef ADDSYMBOL
     #define ADDSYMBOL(name) extern sym::symbol PRETRANSLATED_SYMBOL_##name
-    #ifdef PRESYM
-        #define SYM(name) PRETRANSLATED_SYMBOL_##name
-    #else
-        #define SYM(name) sym::symbol::trans(#name)
-    #endif
+    #define SYM(name) PRETRANSLATED_SYMBOL_##name
 #endif
 
 END
