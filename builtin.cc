@@ -544,13 +544,11 @@ void addArrayOps(venv &ve, types::array *t)
 {
   ty *ct = t->celltype;
 
-#ifdef TEST_ADDED_OPS
   // Check for the alias function to see if these operation have already been
   // added, if they have, don't add them again.
   static types::function aliasType(primBoolean(), primVoid(), primVoid());
   aliasType.sig.formals[0].t = t;
   aliasType.sig.formals[1].t = t;
-#endif
 
   if (ve.lookByType(SYM(alias), &aliasType))
     return;
