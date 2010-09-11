@@ -681,8 +681,6 @@ app_list multimatch(env &e,
   a = halfExactMultimatch(e, o, source, al);
   if (!a.empty()) {
 #if DEBUG_CACHE
-    // Make sure that exactMultimatch and the fallback return the same
-    // application(s).
     sameApplications(a, inexactMultimatch(e, o, source, al), DONT_TEST_EXACT);
 #endif
 
