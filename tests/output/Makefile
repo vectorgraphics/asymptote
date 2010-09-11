@@ -17,7 +17,7 @@ $(TESTS:=.ref) $(TESTS:=.out): %:
 	@rm -rf $@
 	@mkdir $@
 	@cd $@; \
-	$(ASY) -v -v -keep ../$(basename $@) \
+	$(ASY) -keep ../$(basename $@) \
 	    >$(basename $@).stdout 2>$(basename $@).stderr; \
 	ls >$(basename $@).ls; \
 	rm -f *.dvi *.pdf *.gif *.jpg *.jpeg *.png
