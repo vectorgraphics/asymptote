@@ -411,7 +411,6 @@ void equalityExp::prettyprint(ostream &out, Int indent)
   callExp::prettyprint(out, indent+1);
 }
 
-#ifdef NO_FUNC_OPS
 types::ty *equalityExp::getType(coenv &e) {
   // Try to the resolve the expression as a function call first.
   types::ty *t = callExp::getType(e);
@@ -424,7 +423,6 @@ types::ty *equalityExp::getType(coenv &e) {
     // returns bool.  In either case, it is safe to return bool.
     return primBoolean();
 }
-#endif
 
 // From a possibly overloaded type, if there is a unique function type, return
 // it, otherwise 0.
@@ -492,7 +490,6 @@ bltin bltinFromName(symbol name) {
   return run::boolFuncNeq;
 }
 
-#ifdef NO_FUNC_OPS
 types::ty *equalityExp::trans(coenv &e) {
   // First, try to handle by normal function resolution.
   types::ty *t = callExp::getType(e);
@@ -534,7 +531,6 @@ types::ty *equalityExp::trans(coenv &e) {
     return t;
   }
 }
-#endif
 
 void scaleExp::prettyprint(ostream &out, Int indent)
 {

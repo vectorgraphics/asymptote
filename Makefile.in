@@ -51,7 +51,7 @@ ASY = ./asy -dir base -config "" -render=0
 
 DEFS = @DEFS@ @OPTIONS@ \
        -DPRESYM \
-	   -DNO_FUNC_OPS -DTRANSJUMP
+	   -DTRANSJUMP
 CFLAGS = @CPPFLAGS@ @CFLAGS@
 OPTS = $(DEFS) $(CFLAGS)
 INCL = -I . @INCL@
