@@ -742,23 +742,24 @@ struct picture { /* {{{1 */
   }
 
   // Append {{{2
-  void append(coords2 point, coords2 min, coords2 max, transform t,
-              bounds bounds) 
-  {
-    // Add the coord info to this picture.
-    if(t == identity()) {
-      point.append(bounds.point);
-      min.append(bounds.min);
-      max.append(bounds.max);
-    } else {
-      point.push(t,bounds.point,bounds.point);
-      // Add in all 4 corner points, to properly size rectangular pictures.
-      point.push(t,bounds.min,bounds.min);
-      point.push(t,bounds.min,bounds.max);
-      point.push(t,bounds.max,bounds.min);
-      point.push(t,bounds.max,bounds.max);
-    }
-  }
+  // This method does not modify any fields of the struct.
+//  void append(coords2 point, coords2 min, coords2 max, transform t,
+//              bounds bounds) 
+//  {
+//    // Add the coord info to this picture.
+//    if(t == identity()) {
+//      point.append(bounds.point);
+//      min.append(bounds.min);
+//      max.append(bounds.max);
+//    } else {
+//      point.push(t,bounds.point,bounds.point);
+//      // Add in all 4 corner points, to properly size rectangular pictures.
+//      point.push(t,bounds.min,bounds.min);
+//      point.push(t,bounds.min,bounds.max);
+//      point.push(t,bounds.max,bounds.min);
+//      point.push(t,bounds.max,bounds.max);
+//    }
+//  }
   
   void append(coords3 point, coords3 min, coords3 max, transform3 t,
               bounds3 bounds) 
@@ -786,34 +787,10 @@ struct picture { /* {{{1 */
   // Returns the transform for turning user-space pairs into true-space pairs.
   transform scaling(real xsize, real ysize, bool keepAspect=true,
                     bool warn=true) {
-    if(xsize == 0 && xunitsize == 0 && ysize == 0 && yunitsize == 0)
-      return identity();
+    bounds b = (T == identity()) ? this.bounds :
+                                   T * this.bounds;
 
-    coords2 Coords;
-    
-    append(Coords,Coords,Coords,T,bounds);
-    
-    real sx;
-    if(xunitsize == 0) {
-      if(xsize != 0) sx=calculateScaling("x",Coords.x,xsize,warn);
-    } else sx=xunitsize;
-
-    real sy;
-    if(yunitsize == 0) {
-      if(ysize != 0) sy=calculateScaling("y",Coords.y,ysize,warn);
-    } else sy=yunitsize;
-
-    if(sx == 0) {
-      sx=sy;
-      if(sx == 0)
-        return identity();
-    } else if(sy == 0) sy=sx;
-
-
-    if(keepAspect && (xunitsize == 0 || yunitsize == 0))
-      return scale(min(sx,sy));
-    else
-      return scale(sx,sy);
+    return b.scaling(xsize, ysize, xunitsize, yunitsize, keepAspect, warn);
   }
 
   transform scaling(bool warn=true) {
@@ -1134,7 +1111,8 @@ struct picture { /* {{{1 */
     if(src.userSety) userBoxY(src.userMin.y,src.userMax.y);
     if(src.userSetz) userBoxZ(src.userMin.z,src.userMax.z);
     
-    append(bounds.point,bounds.min,bounds.max,srcCopy.T,src.bounds);
+    bounds.append(srcCopy.T, src.bounds);
+    //append(bounds.point,bounds.min,bounds.max,srcCopy.T,src.bounds);
     append(bounds3.point,bounds3.min,bounds3.max,srcCopy.T3,src.bounds3);
 
     if(!src.bounds.exact) bounds.exact=false;

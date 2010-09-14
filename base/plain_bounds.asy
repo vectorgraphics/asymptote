@@ -8,6 +8,7 @@ struct bounds {
     min.erase();
     max.erase();
   }
+
   bounds copy() {
     bounds b=new bounds;
     b.point=point.copy();
@@ -15,6 +16,33 @@ struct bounds {
     b.max=max.copy();
     b.exact=exact;
     return b;
+  }
+
+  bounds transformed(transform t) {
+    bounds b = new bounds;
+    b.point.push(t,this.point,this.point);
+    // Add in all 4 corner b.points, to properly size rectangular pictures.
+    b.point.push(t,this.min,this.min);
+    b.point.push(t,this.min,this.max);
+    b.point.push(t,this.max,this.min);
+    b.point.push(t,this.max,this.max);
+    b.exact = this.exact;
+    return b;
+  }
+
+  void append(bounds b) {
+    this.point.append(b.point);
+    this.min.append(b.min);
+    this.max.append(b.max);
+    if (!b.exact)
+      this.exact = false;
+  }
+
+  void append(transform t, bounds b) {
+    if (t == identity())
+      append(b);
+    else
+      append(b.transformed(t));
   }
 
   void addPoint(pair user, pair truesize) {
@@ -80,4 +108,50 @@ struct bounds {
                 ys,this.max.y));
   }
 
+  // Returns the transform for turning user-space pairs into true-space pairs.
+  transform scaling(real xsize, real ysize,
+                    real xunitsize, real yunitsize,
+                    bool keepAspect, bool warn) {
+    if(xsize == 0 && xunitsize == 0 && ysize == 0 && yunitsize == 0)
+      return identity();
+
+    coords2 Coords;
+    
+    // This is unnecessary if both xunitsize and yunitsize are non-zero.
+    //append(Coords,Coords,Coords,T,bounds);
+    Coords.append(this.point);
+    Coords.append(this.min);
+    Coords.append(this.max);
+    
+    real sx;
+    if(xunitsize == 0) {
+      if(xsize != 0) sx=calculateScaling("x",Coords.x,xsize,warn);
+    } else sx=xunitsize;
+
+    /* Possible alternative code : 
+    real sx = xunitsize != 0 ? xunitsize :
+              xsize != 0     ? calculateScaling("x", Coords.x, xsize, warn) :
+                               0; */
+
+    real sy;
+    if(yunitsize == 0) {
+      if(ysize != 0) sy=calculateScaling("y",Coords.y,ysize,warn);
+    } else sy=yunitsize;
+
+    if(sx == 0) {
+      sx=sy;
+      if(sx == 0)
+        return identity();
+    } else if(sy == 0) sy=sx;
+
+
+    if(keepAspect && (xunitsize == 0 || yunitsize == 0))
+      return scale(min(sx,sy));
+    else
+      return scale(sx,sy);
+  }
+}
+
+bounds operator *(transform t, bounds b) {
+  return b.transformed(t);
 }
