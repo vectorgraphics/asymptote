@@ -53,4 +53,31 @@ struct bounds {
     xclip(Min.x,Max.x);
     yclip(Min.y,Max.y);
   }
+
+  // Calculate the min for the final frame, given the coordinate transform.
+  pair min(transform t) {
+    if(this.min.x.length == 0 && this.point.x.length == 0 &&
+       this.max.x.length == 0) return 0;
+    pair a=t*(1,1)-t*(0,0), b=t*(0,0);
+    scaling xs=scaling.build(a.x,b.x);
+    scaling ys=scaling.build(a.y,b.y);
+    return (min(min(min(infinity,xs,this.point.x),xs,this.min.x),
+                xs,this.max.x),
+            min(min(min(infinity,ys,this.point.y),ys,this.min.y),
+                ys,this.max.y));
+  }
+
+  // Calculate the max for the final frame, given the coordinate transform.
+  pair max(transform t) {
+    if(this.min.x.length == 0 && this.point.x.length == 0 &&
+       this.max.x.length == 0) return 0;
+    pair a=t*(1,1)-t*(0,0), b=t*(0,0);
+    scaling xs=scaling.build(a.x,b.x);
+    scaling ys=scaling.build(a.y,b.y);
+    return (max(max(max(-infinity,xs,this.point.x),xs,this.min.x),
+                xs,this.max.x),
+            max(max(max(-infinity,ys,this.point.y),ys,this.min.y),
+                ys,this.max.y));
+  }
+
 }

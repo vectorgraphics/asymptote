@@ -701,28 +701,12 @@ struct picture { /* {{{1 */
   // min/max of picture {{{2
   // Calculate the min for the final frame, given the coordinate transform.
   pair min(transform t) {
-    if(bounds.min.x.length == 0 && bounds.point.x.length == 0 &&
-       bounds.max.x.length == 0) return 0;
-    pair a=t*(1,1)-t*(0,0), b=t*(0,0);
-    scaling xs=scaling.build(a.x,b.x);
-    scaling ys=scaling.build(a.y,b.y);
-    return (min(min(min(infinity,xs,bounds.point.x),xs,bounds.min.x),
-                xs,bounds.max.x),
-            min(min(min(infinity,ys,bounds.point.y),ys,bounds.min.y),
-                ys,bounds.max.y));
+    return bounds.min(t);
   }
 
   // Calculate the max for the final frame, given the coordinate transform.
   pair max(transform t) {
-    if(bounds.min.x.length == 0 && bounds.point.x.length == 0 &&
-       bounds.max.x.length == 0) return 0;
-    pair a=t*(1,1)-t*(0,0), b=t*(0,0);
-    scaling xs=scaling.build(a.x,b.x);
-    scaling ys=scaling.build(a.y,b.y);
-    return (max(max(max(-infinity,xs,bounds.point.x),xs,bounds.min.x),
-                xs,bounds.max.x),
-            max(max(max(-infinity,ys,bounds.point.y),ys,bounds.min.y),
-                ys,bounds.max.y));
+    return bounds.max(t);
   }
 
   // Calculate the min for the final frame, given the coordinate transform.
