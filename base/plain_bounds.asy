@@ -1,5 +1,20 @@
 private import plain_scaling;
 
+// After an transformation, produce new coordinate bounds.  For paths that
+// have been added, this is only an approximation since it takes the bounds of
+// their transformed bounding box.
+void addTransformedCoords(coords2 dest, transform t,
+                          coords2 point, coords2 min, coords2 max)
+{
+  dest.push(t, point, point);
+
+  // Add in all 4 corner coords, to properly size rectangular pictures.
+  dest.push(t,min,min);
+  dest.push(t,min,max);
+  dest.push(t,max,min);
+  dest.push(t,max,max);
+}
+
 // This stores a list of sizing bounds for picture data.  If the object is
 // frozen, then it cannot be modified further, and therefore can be safely
 // passed by reference and stored in the sizing data for multiple pictures.
@@ -12,8 +27,12 @@ private struct freezableBounds {
   // Optional links to further (frozen) sizing data.
   private freezableBounds[] links;
 
-  static struct {
-
+  // Links to (frozen) sizing data that is transformed when added here.
+  private static struct transformedBounds {
+    transform t;
+    freezableBounds link;
+  };
+  private transformedBounds[] tlinks;
 
   // The sizing data.  It cannot be modified once this object is frozen.
   private coords2 point, min, max;
@@ -31,37 +50,59 @@ private struct freezableBounds {
   // structure.  Currently only needed for clipping.
   private void flatten() {
     assert(!frozen);
+
     for (var link : links) {
       this.point.append(link.point);
       this.min.append(link.min);
       this.max.append(link.max);
     }
     links.delete();
+
+    for (var tlink : tlinks) {
+      var link = tlink.link;
+      addTransformedCoords(this.point, tlink.t,
+                           link.point, link.min, link.max);
+    }
+    tlinks.delete();
   }
 
   freezableBounds transformed(transform t) {
-    // TODO: Make a reference to the original bounds.
+    // Freeze these bounds, as we are storing a reference to them.
+    freeze();
+
+    var tlink = new transformedBounds;
+    tlink.t = t;
+    tlink.link = this;
+
     var b = new freezableBounds;
-
-    void handle(freezableBounds ref) {
-      b.point.push(t,ref.point,ref.point);
-      // Add in all 4 corner b.points, to properly size rectangular pictures.
-      b.point.push(t,ref.min,ref.min);
-      b.point.push(t,ref.min,ref.max);
-      b.point.push(t,ref.max,ref.min);
-      b.point.push(t,ref.max,ref.max);
-    }
-
-    handle(this);
-    for (var link : links)
-      handle(link);
+    b.tlinks.push(tlink);
 
     return b;
+
+//    var b = new freezableBounds;
+//
+//    void handle(freezableBounds ref) {
+//      b.point.push(t,ref.point,ref.point);
+//      // Add in all 4 corner b.points, to properly size rectangular pictures.
+//      b.point.push(t,ref.min,ref.min);
+//      b.point.push(t,ref.min,ref.max);
+//      b.point.push(t,ref.max,ref.min);
+//      b.point.push(t,ref.max,ref.max);
+//    }
+//
+//    handle(this);
+//    for (var link : links)
+//      handle(link);
+//
+//    return b;
   }
 
   void append(freezableBounds b) {
     // Check that we can modify the object.
     assert(!frozen);
+
+    //TODO: If b is "small", ie. a single tlink or cliplink, just copy the
+    //link.
 
     // As we only reference b, we must freeze it to ensure it does not change.
     b.freeze();
@@ -95,9 +136,22 @@ private struct freezableBounds {
     max.yclip(Min,Max);
   }
 
+  private void accumulateCoords(transform t, coords2 coords) {
+    for (var link : links)
+      link.accumulateCoords(t, coords);
+
+    for (var tlink : tlinks)
+      tlink.link.accumulateCoords(t*tlink.t, coords);
+
+    addTransformedCoords(coords, t, this.point, this.min, this.max);
+  }
+
   private void accumulateCoords(coords2 coords) {
     for (var link : links)
       link.accumulateCoords(coords);
+
+    for (var tlink : tlinks)
+      tlink.link.accumulateCoords(tlink.t, coords);
 
     coords.append(this.point);
     coords.append(this.min);
@@ -111,7 +165,6 @@ private struct freezableBounds {
     return coords;
   }
 
-  // TODO: These all have to be updated for links.
   // Calculate the min for the final frame, given the coordinate transform.
   pair min(transform t) {
     coords2 coords = allCoords();
@@ -122,12 +175,7 @@ private struct freezableBounds {
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
 
-
     return (min(infinity, xs, coords.x), min(infinity, ys, coords.y));
-//    return (min(min(min(infinity,xs,this.point.x),xs,this.min.x),
-//                xs,this.max.x),
-//            min(min(min(infinity,ys,this.point.y),ys,this.min.y),
-//                ys,this.max.y));
   }
 
   // Calculate the max for the final frame, given the coordinate transform.
@@ -141,17 +189,12 @@ private struct freezableBounds {
     scaling ys=scaling.build(a.y,b.y);
 
     return (max(-infinity, xs, coords.x), max(-infinity, ys, coords.y));
-//    return (max(max(max(-infinity,xs,this.point.x),xs,this.min.x),
-//                xs,this.max.x),
-//            max(max(max(-infinity,ys,this.point.y),ys,this.min.y),
-//                ys,this.max.y));
   }
 
   // Returns the transform for turning user-space pairs into true-space pairs.
   transform scaling(real xsize, real ysize,
                     real xunitsize, real yunitsize,
                     bool keepAspect, bool warn) {
-    write("freeze scaling");
     if(xsize == 0 && xunitsize == 0 && ysize == 0 && yunitsize == 0)
       return identity();
 
