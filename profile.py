@@ -74,7 +74,7 @@ def dump(funcs):
         printName(name)
         funcs[name].dump()
 
-rawdata = __import__(sys.argv[1])
+rawdata = __import__("asyprof")
 profile = rawdata.profile
 
 computeTotals(profile)

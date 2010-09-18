@@ -63,14 +63,14 @@ class profiler : public gc {
       return &children.back();
     }
 
-    void dump() {
+    void dump(ostream& out) {
 #ifdef DEBUG_FRAME
       string name = func ? func->name : "<top level>";
 #else
       string name = "";
 #endif
 
-      cout << "dict(\n"
+      out << "dict(\n"
            << "    name = '" << name << " " << func << "',\n"
            << "    pos = '" << positionFromLambda(func) << "',\n"
            << "    calls = " << calls << ",\n"
@@ -79,11 +79,11 @@ class profiler : public gc {
 
       size_t n = children.size();
       for (size_t i = 0; i < n; ++i) {
-        children[i].dump();
-        cout << ",\n";
+        children[i].dump(out);
+        out << ",\n";
       }
 
-      cout << "    ])\n";
+      out << "    ])\n";
     }
   };
 
@@ -110,7 +110,7 @@ public:
   // Dump all of the data out to stdout.  This can be interpreted by a
   // different program.  In fact, it is formatted to be a Python data
   // structure that can be read in.
-  void dump();
+  void dump(ostream &out);
 };
 
 inline profiler::profiler()
@@ -140,9 +140,9 @@ inline void profiler::recordInstruction() {
   ++topnode().instructions;
 }
 
-inline void profiler::dump() {
-  cout << "profile = ";
-  emptynode.dump();
+inline void profiler::dump(ostream& out) {
+  out << "profile = ";
+  emptynode.dump(out);
 }
 
 } // namespace vm

@@ -5,6 +5,7 @@
  * The general stack machine used to run compiled camp code.
  *****/
 
+#include <fstream>
 #include <sstream>
 
 #include "stack.h"
@@ -69,10 +70,17 @@ void stack::marshall(size_t args, vars_t vars)
 }
 
 #ifdef PROFILE
+
+#ifndef DEBUG_FRAME
+#warning "profiler needs DEBUG_FRAME for function names"
+#endif
+
 profiler prof;
 
 void dumpProfile() {
-  prof.dump();
+  std::ofstream out("asyprof.py");
+  if (!out.fail())
+    prof.dump(out);
 }
 #endif
 
