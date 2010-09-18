@@ -38,6 +38,25 @@ private struct freezableBounds {
   // The sizing data.  It cannot be modified once this object is frozen.
   private coords2 point, min, max;
 
+  // A bound represented by a path.  Using the path instead of the bounding
+  // box means it will be accurate after a transformation by coordinates.
+  private path[] pathBounds;
+
+  // A bound represented by a path and a pen.
+  private static struct pathpen {
+    path g; pen p;
+
+    void operator init(path g, pen p) {
+      this.g = g;
+      this.p = p;
+    }
+  }
+  private static pathpen operator *(transform t, pathpen pp) {
+    // Should the pen be transformed?
+    return pathpen(t*pp.g, pp.p);
+  }
+  private pathpen[] pathpenBounds;
+
   // Once frozen, getMutable returns a new object based on this one, which can
   // be modified.
   freezableBounds getMutable() {
@@ -45,26 +64,6 @@ private struct freezableBounds {
     var f = new freezableBounds;
     f.links.push(this);
     return f;
-  }
-
-  // A temporary measure.  Stuffs all of the data from the links into this
-  // structure.  Currently only needed for clipping.
-  private void flatten() {
-    assert(!frozen);
-
-    for (var link : links) {
-      this.point.append(link.point);
-      this.min.append(link.min);
-      this.max.append(link.max);
-    }
-    links.delete();
-
-    for (var tlink : tlinks) {
-      var link = tlink.link;
-      addTransformedCoords(this.point, tlink.t,
-                           link.point, link.min, link.max);
-    }
-    tlinks.delete();
   }
 
   freezableBounds transformed(transform t) {
@@ -79,23 +78,6 @@ private struct freezableBounds {
     b.tlinks.push(tlink);
 
     return b;
-
-//    var b = new freezableBounds;
-//
-//    void handle(freezableBounds ref) {
-//      b.point.push(t,ref.point,ref.point);
-//      // Add in all 4 corner b.points, to properly size rectangular pictures.
-//      b.point.push(t,ref.min,ref.min);
-//      b.point.push(t,ref.min,ref.max);
-//      b.point.push(t,ref.max,ref.min);
-//      b.point.push(t,ref.max,ref.max);
-//    }
-//
-//    handle(this);
-//    for (var link : links)
-//      handle(link);
-//
-//    return b;
   }
 
   void append(freezableBounds b) {
@@ -121,6 +103,91 @@ private struct freezableBounds {
     this.max.push(userMax, trueMax);
   }
 
+  void addPath(path g) {
+    assert(!frozen);
+    this.pathBounds.push(g);
+  }
+
+  void addPath(path g, pen p) {
+    assert(!frozen);
+    this.pathpenBounds.push(pathpen(g,p));
+  }
+
+  // Transform the sizing info by t then add the result to the coords
+  // structure.
+  private void accumulateCoords(transform t, coords2 coords) {
+    for (var link : links)
+      link.accumulateCoords(t, coords);
+
+    for (var tlink : tlinks)
+      tlink.link.accumulateCoords(t*tlink.t, coords);
+
+    addTransformedCoords(coords, t, this.point, this.min, this.max);
+
+    for (var g : pathBounds) {
+      g = t*g;
+      coords.push(min(g), (0,0));
+      coords.push(max(g), (0,0));
+    }
+
+    for (var pp: pathpenBounds) {
+      pp = t*pp;
+      coords.push(min(pp.g), min(pp.p));
+      coords.push(max(pp.g), max(pp.p));
+    }
+  }
+
+  // Add all of the sizing info to the given coords structure.
+  private void accumulateCoords(coords2 coords) {
+    for (var link : links)
+      link.accumulateCoords(coords);
+
+    for (var tlink : tlinks)
+      tlink.link.accumulateCoords(tlink.t, coords);
+
+    coords.append(this.point);
+    coords.append(this.min);
+    coords.append(this.max);
+
+    for (var g : pathBounds) {
+      coords.push(min(g), (0,0));
+      coords.push(max(g), (0,0));
+    }
+
+    for (var pp: pathpenBounds) {
+      coords.push(min(pp.g), min(pp.p));
+      coords.push(max(pp.g), max(pp.p));
+    }
+  }
+
+  // Returns all of the coords that this sizing data represents.
+  private coords2 allCoords() {
+    coords2 coords;
+    accumulateCoords(coords);
+    return coords;
+  }
+
+  // A temporary measure.  Stuffs all of the data from the links and paths
+  // into the coords.
+  private void flatten() {
+    assert(!frozen);
+
+    // Calculate all coordinates.
+    coords2 coords = allCoords();
+
+    // Erase all the old data.
+    point.erase();
+    min.erase();
+    max.erase();
+    pathBounds.delete();
+    pathpenBounds.delete();
+    links.delete();
+    tlinks.delete();
+
+    // Put all of the coordinates into point.
+    point = coords;
+  }
+
   void xclip(real Min, real Max) {
     assert(!frozen);
     flatten();
@@ -137,34 +204,6 @@ private struct freezableBounds {
     max.yclip(Min,Max);
   }
 
-  private void accumulateCoords(transform t, coords2 coords) {
-    for (var link : links)
-      link.accumulateCoords(t, coords);
-
-    for (var tlink : tlinks)
-      tlink.link.accumulateCoords(t*tlink.t, coords);
-
-    addTransformedCoords(coords, t, this.point, this.min, this.max);
-  }
-
-  private void accumulateCoords(coords2 coords) {
-    for (var link : links)
-      link.accumulateCoords(coords);
-
-    for (var tlink : tlinks)
-      tlink.link.accumulateCoords(tlink.t, coords);
-
-    coords.append(this.point);
-    coords.append(this.min);
-    coords.append(this.max);
-  }
-
-  // Returns all of the coords that this sizing data represents.
-  private coords2 allCoords() {
-    coords2 coords;
-    accumulateCoords(coords);
-    return coords;
-  }
 
   // Calculate the min for the final frame, given the coordinate transform.
   pair min(transform t) {
@@ -291,15 +330,13 @@ struct smartBounds {
   }
 
   void addPath(path g) {
-    // TODO: Store actual path (again for accurate translations of sizing).
-    if(size(g) > 0)
-      addBox(min(g), max(g), (0,0), (0,0));
+    makeMutable();
+    base.addPath(g);
   }
 
   void addPath(path g, pen p) {
-    // TODO: Store actual path, pen.
-    if(size(g) > 0)
-      addBox(min(g), max(g), min(p), max(p));
+    makeMutable();
+    base.addPath(g, p);
   }
 
   void xclip(real Min, real Max) {

@@ -1082,7 +1082,6 @@ struct picture { /* {{{1 */
   // Helper function for defining transformed pictures.  Do not call it
   // directly.
   picture transformed(transform t) {
-    write("transformed!!!!!!!!");
     picture dest=drawcopy();
 
     // Replace nodes with a single drawer that realizes the transform.
