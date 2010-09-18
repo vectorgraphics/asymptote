@@ -16,6 +16,67 @@ void addTransformedCoords(coords2 dest, transform t,
   dest.push(t,max,max);
 }
 
+// Adds another sizing restriction to the coordinates, but only if it is
+// maximal, that is, if under some scaling, this coordinate could be the
+// largest.
+private
+void addIfMaximal(coord[] coords, real user, real truesize) {
+  // TODO: Test promoting coordinates for efficiency.
+
+  for (coord c : coords)
+    if (user <= c.user && truesize <= c.truesize)
+      // Not maximal.
+      return;
+
+  // The coordinate is not dominated by any existing extreme, so it is
+  // maximal and will be added, but first remove any coords it now dominates.
+  int i = 0;
+  while (i < coords.length) {
+    coord c = coords[i];
+    if (c.user <= user && c.truesize <= c.truesize)
+      coords.delete(i);
+    else
+      ++i;
+  }
+
+  // Add the coordinate to the extremes.
+  coords.push(coord.build(user, truesize));
+}
+
+private
+void addIfMaximal(coord[] dest, coord[] src)
+{
+  // This may be inefficient, as it rebuilds the coord struct when adding it.
+  for (coord c : src)
+    addIfMaximal(dest, c.user, c.truesize);
+}
+      
+// Same as addIfMaximal, but testing for minimal coords.
+private
+void addIfMinimal(coord[] coords, real user, real truesize) {
+  for (coord c : coords)
+    if (user >= c.user && truesize >= c.truesize)
+      return;
+
+  int i = 0;
+  while (i < coords.length) {
+    coord c = coords[i];
+    if (c.user >= user && c.truesize >= c.truesize)
+      coords.delete(i);
+    else
+      ++i;
+  }
+
+  coords.push(coord.build(user, truesize));
+}
+
+private
+void addIfMinimal(coord[] dest, coord[] src)
+{
+  for (coord c : src)
+    addIfMinimal(dest, c.user, c.truesize);
+}
+
 // This stores a list of sizing bounds for picture data.  If the object is
 // frozen, then it cannot be modified further, and therefore can be safely
 // passed by reference and stored in the sizing data for multiple pictures.
@@ -69,7 +130,25 @@ private struct freezableBounds {
       this.right = right;
       this.top = top;
     }
+
   }
+  private static void addMaxToExtremes(extremes e, pair user, pair truesize) {
+    addIfMaximal(e.right, user.x, truesize.x);
+    addIfMaximal(e.top, user.y, truesize.y);
+  }
+  private static void addMinToExtremes(extremes e, pair user, pair truesize) {
+    addIfMinimal(e.left, user.x, truesize.x);
+    addIfMinimal(e.bottom, user.y, truesize.y);
+  }
+  private static void addMaxToExtremes(extremes e, coords2 coords) {
+    addIfMaximal(e.right, coords.x);
+    addIfMaximal(e.top, coords.y);
+  }
+  private static void addMinToExtremes(extremes e, coords2 coords) {
+    addIfMinimal(e.left, coords.x);
+    addIfMinimal(e.bottom, coords.y);
+  }
+
   private extremes cachedExtremes = null;
 
   // Once frozen, getMutable returns a new object based on this one, which can
@@ -182,17 +261,65 @@ private struct freezableBounds {
     return coords;
   }
 
+  private void addToExtremes(transform t, extremes e) {
+    for (var link : links)
+      link.addToExtremes(t, e);
+
+    for (var tlink : tlinks)
+      tlink.link.addToExtremes(t*tlink.t, e);
+
+    coords2 coords;
+    addTransformedCoords(coords, t, this.point, this.min, this.max);
+    addMinToExtremes(e, coords);
+    addMaxToExtremes(e, coords);
+
+    for (var g : pathBounds) {
+      g = t*g;
+      addMinToExtremes(e, min(g), (0,0));
+      addMaxToExtremes(e, max(g), (0,0));
+    }
+
+    for (var pp: pathpenBounds) {
+      path g = t*pp.g;
+      addMinToExtremes(e, min(g), min(pp.p));
+      addMaxToExtremes(e, max(g), max(pp.p));
+    }
+  }
+    
+
+  private void addToExtremes(extremes e) {
+    for (var link : links)
+      link.addToExtremes(e);
+
+    for (var tlink : tlinks)
+      tlink.link.addToExtremes(tlink.t, e);
+
+    addMinToExtremes(e, point);
+    addMaxToExtremes(e, point);
+    addMinToExtremes(e, min);
+    addMaxToExtremes(e, max);
+
+    for (var g : pathBounds) {
+      addMinToExtremes(e, min(g), (0,0));
+      addMaxToExtremes(e, max(g), (0,0));
+    }
+
+    for (var pp: pathpenBounds) {
+      addMinToExtremes(e, min(pp.g), min(pp.p));
+      addMaxToExtremes(e, max(pp.g), max(pp.p));
+    }
+  }
+
   // Returns the extremal coordinates of the sizing data.
   public extremes extremes() {
     if (cachedExtremes == null) {
       freeze();
-      coords2 coords = allCoords();
 
-      cachedExtremes = extremes(maxcoords(coords.x, operator >=),
-                                maxcoords(coords.y, operator >=),
-                                maxcoords(coords.x, operator <=),
-                                maxcoords(coords.y, operator <=));
+      extremes e;
+      addToExtremes(e);
+      cachedExtremes = e;
     }
+
     return cachedExtremes;
   }
 
