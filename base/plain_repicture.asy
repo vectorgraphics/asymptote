@@ -333,6 +333,7 @@ triple max3(pen p)
 typedef void drawer(frame f, transform t);
 
 // A generalization of drawer that includes the final frame's bounds.
+// TODO: Add documentation as to what T is.
 typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
 
 struct picture { /* {{{1 */
@@ -1078,6 +1079,41 @@ struct picture { /* {{{1 */
     return dest;
   }
 
+  // Helper function for defining transformed pictures.  Do not call it
+  // directly.
+  picture transformed(transform t) {
+    write("transformed!!!!!!!!");
+    picture dest=drawcopy();
+
+    // Replace nodes with a single drawer that realizes the transform.
+    // TODO: Use a frozen reference instead of a copy.
+    drawerBound[] oldnodes = dest.nodes;
+    void drawAll(frame f, transform tt, transform T, pair lb, pair rt) {
+      for (var node : oldnodes)
+        node(f, tt, T*t, lb, rt);
+    }
+    dest.nodes = new drawerBound[] { drawAll };
+
+    dest.uptodate=uptodate;
+    dest.bounds=bounds.transformed(t);
+    dest.bounds3=bounds3.copy();
+    
+    dest.userCorners(t*(dest.userMin.x,dest.userMin.y),
+                     t*(dest.userMin.x,dest.userMax.y),
+                     t*(dest.userMax.x,dest.userMin.y),
+                     t*(dest.userMax.x,dest.userMax.y));
+    dest.bounds.exact=false;
+
+    dest.xsize=xsize; dest.ysize=ysize;
+    dest.xsize3=xsize; dest.ysize3=ysize3; dest.zsize3=zsize3;
+    dest.keepAspect=keepAspect;
+    dest.xunitsize=xunitsize; dest.yunitsize=yunitsize;
+    dest.zunitsize=zunitsize;
+    dest.fixed=fixed; dest.fixedscaling=fixedscaling;
+    
+    return dest;
+  }
+
   // Add Picture {{{2
   // Add a picture to this picture, such that the user coordinates will be
   // scaled identically when fitted
@@ -1123,14 +1159,18 @@ struct picture { /* {{{1 */
 /* Post Struct {{{1 */
 picture operator * (transform t, picture orig)
 {
-  picture pic=orig.copy();
-  pic.T=t*pic.T;
-  pic.userCorners(t*(pic.userMin.x,pic.userMin.y),
-                  t*(pic.userMin.x,pic.userMax.y),
-                  t*(pic.userMax.x,pic.userMin.y),
-                  t*(pic.userMax.x,pic.userMax.y));
-  pic.bounds.exact=false;
-  return pic;
+  return orig.transformed(t);
+//  picture pic=orig.copy();
+//
+//  // This is broken, as new things added to the picture should not be
+//  // transformed.
+//  pic.T=t*pic.T;
+//  pic.userCorners(t*(pic.userMin.x,pic.userMin.y),
+//                  t*(pic.userMin.x,pic.userMax.y),
+//                  t*(pic.userMax.x,pic.userMin.y),
+//                  t*(pic.userMax.x,pic.userMax.y));
+//  pic.bounds.exact=false;
+//  return pic;
 }
 
 picture operator * (transform3 t, picture orig)
