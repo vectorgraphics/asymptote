@@ -57,6 +57,21 @@ private struct freezableBounds {
   }
   private pathpen[] pathpenBounds;
 
+  // Once frozen, the sizing is immutable, and therefore we can compute and
+  // store the extremal coordinates.
+  public static struct extremes {
+    coord[] left, bottom, right, top;
+
+    void operator init(coord[] left, coord[] bottom,
+                       coord[] right, coord[] top) {
+      this.left = left;
+      this.bottom = bottom; 
+      this.right = right;
+      this.top = top;
+    }
+  }
+  private extremes cachedExtremes = null;
+
   // Once frozen, getMutable returns a new object based on this one, which can
   // be modified.
   freezableBounds getMutable() {
@@ -131,9 +146,9 @@ private struct freezableBounds {
     }
 
     for (var pp: pathpenBounds) {
-      pp = t*pp;
-      coords.push(min(pp.g), min(pp.p));
-      coords.push(max(pp.g), max(pp.p));
+      path g = t*pp.g;
+      coords.push(min(g), min(pp.p));
+      coords.push(max(g), max(pp.p));
     }
   }
 
@@ -165,6 +180,20 @@ private struct freezableBounds {
     coords2 coords;
     accumulateCoords(coords);
     return coords;
+  }
+
+  // Returns the extremal coordinates of the sizing data.
+  public extremes extremes() {
+    if (cachedExtremes == null) {
+      freeze();
+      coords2 coords = allCoords();
+
+      cachedExtremes = extremes(maxcoords(coords.x, operator >=),
+                                maxcoords(coords.y, operator >=),
+                                maxcoords(coords.x, operator <=),
+                                maxcoords(coords.y, operator <=));
+    }
+    return cachedExtremes;
   }
 
   // A temporary measure.  Stuffs all of the data from the links and paths
@@ -207,28 +236,28 @@ private struct freezableBounds {
 
   // Calculate the min for the final frame, given the coordinate transform.
   pair min(transform t) {
-    coords2 coords = allCoords();
-    if (coords.x.length == 0)
+    extremes e = extremes();
+    if (e.left.length == 0)
       return 0;
 
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
 
-    return (min(infinity, xs, coords.x), min(infinity, ys, coords.y));
+    return (min(infinity, xs, e.left), min(infinity, ys, e.bottom));
   }
 
   // Calculate the max for the final frame, given the coordinate transform.
   pair max(transform t) {
-    coords2 coords = allCoords();
-    if (coords.x.length == 0)
+    extremes e = extremes();
+    if (e.right.length == 0)
       return 0;
 
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
 
-    return (max(-infinity, xs, coords.x), max(-infinity, ys, coords.y));
+    return (max(-infinity, xs, e.right), max(-infinity, ys, e.top));
   }
 
   // Returns the transform for turning user-space pairs into true-space pairs.
@@ -239,11 +268,14 @@ private struct freezableBounds {
       return identity();
 
     // This is unnecessary if both xunitsize and yunitsize are non-zero.
-    coords2 Coords = allCoords();
+    //coords2 Coords = allCoords();
+
+    // Get the extremal coordinates.
+    extremes e = extremes();
     
     real sx;
     if(xunitsize == 0) {
-      if(xsize != 0) sx=calculateScaling("x",Coords.x,xsize,warn);
+      if(xsize != 0) sx=calculateScaling("x",e.left,e.right,xsize,warn);
     } else sx=xunitsize;
 
     /* Possible alternative code : 
@@ -253,7 +285,7 @@ private struct freezableBounds {
 
     real sy;
     if(yunitsize == 0) {
-      if(ysize != 0) sy=calculateScaling("y",Coords.y,ysize,warn);
+      if(ysize != 0) sy=calculateScaling("y",e.bottom,e.top,ysize,warn);
     } else sy=yunitsize;
 
     if(sx == 0) {

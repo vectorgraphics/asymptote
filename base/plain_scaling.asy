@@ -192,7 +192,7 @@ real max(real M, scaling s, coord[] c) {
 }
 
 // Calculate the sizing constants for the given array and maximum size.
-real calculateScaling(string dir, coord[] coords, real size,
+real calculateScaling(string dir, coord[] m, coord[] M, real size,
                       bool warn=true) {
   access simplex;
   simplex.problem p=new simplex.problem;
@@ -206,9 +206,6 @@ real calculateScaling(string dir, coord[] coords, real size,
     p.addRestriction(-c.user,-1,size-c.truesize);
   }
 
-  coord[] m=maxcoords(coords,operator >=);
-  coord[] M=maxcoords(coords,operator <=);
-  
   for (int i=0; i < m.length; ++i)
     addMinCoord(m[i]);
   for (int i=0; i < M.length; ++i)
@@ -227,14 +224,27 @@ real calculateScaling(string dir, coord[] coords, real size,
     if(!warn) return 1;
     // TODO: Make a userzero(coords) function.
     bool userzero=true;
-    for(int i=0; i < coords.length; ++i) {
-      if(coords[i].user != 0) userzero=false;
+//    for(int i=0; i < coords.length; ++i) {
+//      if(coords[i].user != 0) userzero=false;
+//    }
+    for(var coord : m) {
+      if(coord.user != 0) userzero=false;
+    }
+    for(var coord : M) {
+      if(coord.user != 0) userzero=false;
     }
     if(userzero) return 1;
     warning("cannotfit","cannot fit picture to "+dir+"size "+(string) size
             +"...enlarging...");
     // TODO: Move magic constant sqrt(2) out of code.
-    return calculateScaling(dir,coords,sqrt(2)*size,warn);
+    return calculateScaling(dir,m,M,sqrt(2)*size,warn);
   }
 }
 
+real calculateScaling(string dir, coord[] coords, real size, bool warn=true)
+{
+  coord[] m=maxcoords(coords,operator >=);
+  coord[] M=maxcoords(coords,operator <=);
+
+  return calculateScaling(dir, m, M, size, warn);
+}
