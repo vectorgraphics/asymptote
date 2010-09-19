@@ -218,8 +218,8 @@ private struct freezableBounds {
     if (pathpenBounds.length > 0) {
       var pp = pathpenBounds[0];
 
-      //TODO: Add check for non-polygonal paths with the same linewidth.
-      if (pp.p == p) {
+      // Test if the pen are equal or have the same bounds.
+      if (pp.p == p || (min(pp.p) == min(p) && max(pp.p) == max(p))) {
         // If this path has the same pen as the last one, just add it to the
         // array corresponding to that pen.
         pp.g.push(g);
@@ -308,18 +308,15 @@ private struct freezableBounds {
     addMinToExtremes(e, coords);
     addMaxToExtremes(e, coords);
 
-    for (var g : pathBounds) {
-      g = t*g;
-      addMinToExtremes(e, min(g), (0,0));
-      addMaxToExtremes(e, max(g), (0,0));
+    if (pathBounds.length > 0) {
+      addMinToExtremes(e, minAfterTransform(t, pathBounds), (0,0));
+      addMaxToExtremes(e, maxAfterTransform(t, pathBounds), (0,0));
     }
 
-    for (var pp: pathpenBounds) {
-      pair pm = min(pp.p), pM = max(pp.p);
-      for (var g : pp.g) {
-        g = t*g;
-        addMinToExtremes(e, min(g), pm);
-        addMaxToExtremes(e, max(g), pM);
+    for (var pp : pathpenBounds) {
+      if (pp.g.length > 0) {
+        addMinToExtremes(e, minAfterTransform(t, pp.g), min(pp.p));
+        addMaxToExtremes(e, maxAfterTransform(t, pp.g), max(pp.p));
       }
     }
   }
@@ -342,7 +339,7 @@ private struct freezableBounds {
       addMaxToExtremes(e, max(pathBounds), (0,0));
     }
 
-    for (var pp: pathpenBounds) {
+    for (var pp : pathpenBounds) {
       if (pp.g.length > 0) {
         addMinToExtremes(e, min(pp.g), min(pp.p));
         addMaxToExtremes(e, max(pp.g), max(pp.p));

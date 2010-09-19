@@ -8,6 +8,7 @@
 pen      => primPen()
 pair     => primPair()
 path     => primPath()
+transform => primTransform()
 realarray* => realArray()
 realarray2* => realArray2()
 patharray* => pathArray()  
@@ -318,6 +319,62 @@ pair max(patharray *a)
   for (size_t i = 1; i < a->size(); ++i) {
     path *g = a->read<path *>(i);
     pair z = g->max();
+    double x = z.getx(), y = z.gety();
+    if (x > maxx)
+      maxx = x;
+    if (y > maxy)
+      maxy = y;
+  }
+
+  return pair(maxx, maxy);
+}
+
+pair minAfterTransform(transform t, patharray *a)
+{ 
+  if (!a) {
+    error("minAfterTransform called on null path array");
+    return pair(0,0);
+  }
+  if (a->empty()) {
+    error("minAfterTransform called on empty path array");
+    return pair(0,0);
+  }
+
+  path g = a->read<path *>(0)->transformed(t);
+  pair z = g.min();
+  double minx = z.getx(), miny = z.gety();
+
+  for (size_t i = 1; i < a->size(); ++i) {
+    path g = a->read<path *>(i)->transformed(t);
+    pair z = g.min();
+    double x = z.getx(), y = z.gety();
+    if (x < minx)
+      minx = x;
+    if (y < miny)
+      miny = y;
+  }
+
+  return pair(minx, miny);
+}
+
+pair maxAfterTransform(transform t, patharray *a)
+{ 
+  if (!a) {
+    error("maxAfterTransform called on null path array");
+    return pair(0,0);
+  }
+  if (a->empty()) {
+    error("maxAfterTransform called on empty path array");
+    return pair(0,0);
+  }
+
+  path g = a->read<path *>(0)->transformed(t);
+  pair z = g.max();
+  double maxx = z.getx(), maxy = z.gety();
+
+  for (size_t i = 1; i < a->size(); ++i) {
+    path g = a->read<path *>(i)->transformed(t);
+    pair z = g.max();
     double x = z.getx(), y = z.gety();
     if (x > maxx)
       maxx = x;
