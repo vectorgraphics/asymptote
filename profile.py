@@ -24,8 +24,10 @@ def funcNames(tree):
 def computeTotals(tree):
     for child in tree['children']:
         computeTotals(child)
-    tree['total'] = (tree['instructions']
-                     + sum(child['total'] for child in tree['children']))
+    tree['instTotal'] = (tree['instructions']
+                     + sum(child['instTotal'] for child in tree['children']))
+    tree['nsecsTotal'] = (tree['nsecs']
+                     + sum(child['nsecsTotal'] for child in tree['children']))
 
 def printName(name, prefix=''):
     print prefix+"fl=", name[1]
@@ -34,15 +36,18 @@ def printName(name, prefix=''):
 class Arc:
     def __init__(self):
         self.calls = 0
-        self.total = 0
+        self.instTotal = 0
+        self.nsecsTotal = 0
 
     def add(self, tree):
         self.calls += tree['calls']
-        self.total += tree['total']
+        self.instTotal += tree['instTotal']
+        self.nsecsTotal += tree['nsecsTotal']
 
 class Func:
     def __init__(self):
         self.instructions = 0
+        self.nsecs = 0
         self.arcs = {}
 
     def addChildTime(self, tree):
@@ -51,16 +56,17 @@ class Func:
 
     def analyse(self, tree):
         self.instructions += tree['instructions']
+        self.nsecs += tree['nsecs']
         for child in tree['children']:
             self.addChildTime(child)
 
     def dump(self):
-        print POS, self.instructions
+        print POS, self.instructions, self.nsecs
         for name in self.arcs:
             printName(name, prefix='c')
             arc = self.arcs[name]
             print "calls="+str(arc.calls), POS
-            print POS, arc.total
+            print POS, arc.instTotal, arc.nsecsTotal
         print
 
 def analyse(funcs, tree):
@@ -69,7 +75,7 @@ def analyse(funcs, tree):
         analyse(funcs, child)
 
 def dump(funcs):
-    print "events: Instructions"
+    print "events: Instructions Nanoseconds"
     for name in funcs:
         printName(name)
         funcs[name].dump()

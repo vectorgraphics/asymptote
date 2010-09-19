@@ -8,6 +8,8 @@
 #ifndef PROFILER_H
 #define PROFILER_H
 
+#include <time.h>
+
 #include "inst.h"
 
 namespace vm {
@@ -44,11 +46,15 @@ class profiler : public gc {
     // It does not include time spent in called function.
     int instructions;
 
+    // The number of real-time nanoseconds spent in this node.  WARNING: May
+    // be wildly inaccurate.
+    long nsecs;
+
     // Call stacks resulting from calls during this call stack.
     mem::vector<node> children;
 
     node(lambda *func)
-      : func(func), calls(0), instructions(0) {}
+      : func(func), calls(0), instructions(0), nsecs(0) {}
 
     // Return the call stack resulting from a call to func when this call
     // stack is current.
@@ -75,6 +81,7 @@ class profiler : public gc {
            << "    pos = '" << positionFromLambda(func) << "',\n"
            << "    calls = " << calls << ",\n"
            << "    instructions = " << instructions << ",\n"
+           << "    nsecs = " << nsecs << ",\n"
            << "    children = [\n";
 
       size_t n = children.size();
@@ -97,6 +104,26 @@ class profiler : public gc {
     return *callstack.top();
   }
 
+  // The timestamp when the stack was last changed.  Used to compute the
+  // realtime number of microseconds spent by each function.
+  struct timespec timestamp;
+
+  static const clockid_t CLOCK_TYPE = CLOCK_REALTIME;
+
+  void startLap() {
+    clock_gettime(CLOCK_TYPE, &timestamp);
+  }
+
+  // Measure and return the time since the last timestamp, and reset the
+  // timestamp to now.
+  long timeAndResetLap() {
+    struct timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
+    long long nsecs = 10000000000LL * (now.tv_sec - timestamp.tv_sec) +
+                 (now.tv_nsec - timestamp.tv_nsec);
+    timestamp = now;
+    return nsecs;
+  }
 
 public:
   profiler();
@@ -117,12 +144,17 @@ inline profiler::profiler()
   : emptynode(0)
 {
     callstack.push(&emptynode);
+    startLap();
 }
 
 inline void profiler::beginFunction(lambda *func) {
   //cout << "begin " << func->name << endl;
   assert(func);
   assert(!callstack.empty());
+
+  // As the node is about to change, record the time spent in the node.
+  topnode().nsecs += timeAndResetLap();
+
   callstack.push(topnode().getChild(func));
   ++topnode().calls;
 }
@@ -132,6 +164,10 @@ inline void profiler::endFunction(lambda *func) {
   assert(func);
   assert(!callstack.empty());
   assert(topnode().func == func);
+
+  // As the node is about to change, record the time spent in the node.
+  topnode().nsecs += timeAndResetLap();
+
   callstack.pop();
 }
 
