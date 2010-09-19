@@ -104,17 +104,22 @@ private struct freezableBounds {
   private path[] pathBounds;
 
   // A bound represented by a path and a pen.
+  // As often many paths use the same pen, we store an array of paths.
   private static struct pathpen {
-    path g; pen p;
+    path[] g; pen p;
 
     void operator init(path g, pen p) {
-      this.g = g;
+      this.g.push(g);
       this.p = p;
     }
   }
   private static pathpen operator *(transform t, pathpen pp) {
     // Should the pen be transformed?
-    return pathpen(t*pp.g, pp.p);
+    pathpen newpp;
+    for (path g : pp.g)
+      newpp.g.push(t*g);
+    newpp.p = pp.p;
+    return newpp;
   }
   private pathpen[] pathpenBounds;
 
@@ -202,9 +207,33 @@ private struct freezableBounds {
     this.pathBounds.push(g);
   }
 
+  void addPath(path[] g) {
+    assert(!frozen);
+    this.pathBounds.append(g);
+  }
+
   void addPath(path g, pen p) {
     assert(!frozen);
-    this.pathpenBounds.push(pathpen(g,p));
+
+    if (pathpenBounds.length > 0) {
+      var pp = pathpenBounds[0];
+
+      //TODO: Add check for non-polygonal paths with the same linewidth.
+      if (pp.p == p) {
+        // If this path has the same pen as the last one, just add it to the
+        // array corresponding to that pen.
+        pp.g.push(g);
+      }
+      else {
+        // A different pen.  Start a new bound and put it on the front.  Put
+        // the old bound at the end of the array.
+        pathpenBounds[0] = pathpen(g,p);
+        pathpenBounds.push(pp);
+      }
+    }
+    else {
+      pathpenBounds.push(pathpen(g,p));
+    }
   }
 
   // Transform the sizing info by t then add the result to the coords
@@ -225,9 +254,12 @@ private struct freezableBounds {
     }
 
     for (var pp: pathpenBounds) {
-      path g = t*pp.g;
-      coords.push(min(g), min(pp.p));
-      coords.push(max(g), max(pp.p));
+      pair pm = min(pp.p), pM = max(pp.p);
+      for (var g : pp.g) {
+        g = t*g;
+        coords.push(min(g), pm);
+        coords.push(max(g), pM);
+      }
     }
   }
 
@@ -249,8 +281,11 @@ private struct freezableBounds {
     }
 
     for (var pp: pathpenBounds) {
-      coords.push(min(pp.g), min(pp.p));
-      coords.push(max(pp.g), max(pp.p));
+      pair pm = min(pp.p), pM = max(pp.p);
+      for (var g : pp.g) {
+        coords.push(min(g), pm);
+        coords.push(max(g), pM);
+      }
     }
   }
 
@@ -280,9 +315,12 @@ private struct freezableBounds {
     }
 
     for (var pp: pathpenBounds) {
-      path g = t*pp.g;
-      addMinToExtremes(e, min(g), min(pp.p));
-      addMaxToExtremes(e, max(g), max(pp.p));
+      pair pm = min(pp.p), pM = max(pp.p);
+      for (var g : pp.g) {
+        g = t*g;
+        addMinToExtremes(e, min(g), pm);
+        addMaxToExtremes(e, max(g), pM);
+      }
     }
   }
     
@@ -299,15 +337,32 @@ private struct freezableBounds {
     addMinToExtremes(e, min);
     addMaxToExtremes(e, max);
 
-    for (var g : pathBounds) {
-      addMinToExtremes(e, min(g), (0,0));
-      addMaxToExtremes(e, max(g), (0,0));
+    if (pathBounds.length > 0) {
+      addMinToExtremes(e, min(pathBounds), (0,0));
+      addMaxToExtremes(e, max(pathBounds), (0,0));
     }
 
     for (var pp: pathpenBounds) {
-      addMinToExtremes(e, min(pp.g), min(pp.p));
-      addMaxToExtremes(e, max(pp.g), max(pp.p));
+      if (pp.g.length > 0) {
+        addMinToExtremes(e, min(pp.g), min(pp.p));
+        addMaxToExtremes(e, max(pp.g), max(pp.p));
+      }
     }
+  }
+
+  private static void write(extremes e) {
+    static void write(coord[] coords) {
+      for (coord c : coords)
+        write("  " + (string)c.user + " u + " + (string)c.truesize);
+    }
+    write("left:");
+    write(e.left);
+    write("bottom:");
+    write(e.bottom);
+    write("right:");
+    write(e.right);
+    write("top:");
+    write(e.top);
   }
 
   // Returns the extremal coordinates of the sizing data.
@@ -394,9 +449,6 @@ private struct freezableBounds {
     if(xsize == 0 && xunitsize == 0 && ysize == 0 && yunitsize == 0)
       return identity();
 
-    // This is unnecessary if both xunitsize and yunitsize are non-zero.
-    //coords2 Coords = allCoords();
-
     // Get the extremal coordinates.
     extremes e = extremes();
     
@@ -437,10 +489,12 @@ struct smartBounds {
 
   // Called just before modifying the sizing data.  It ensures base is
   // non-frozen.
+  // Note that this is manually inlined for speed reasons in a couple often
+  // called methods below.
   private void makeMutable() {
     if (base.frozen)
       base = base.getMutable();
-    assert(!base.frozen);
+    //assert(!base.frozen); // Disabled for speed reasons.
   }
 
   void erase() {
@@ -489,12 +543,23 @@ struct smartBounds {
   }
 
   void addPath(path g) {
-    makeMutable();
+    //makeMutable(); // Manually inlined here for speed reasons.
+    if (base.frozen)
+      base = base.getMutable();
+    base.addPath(g);
+  }
+
+  void addPath(path[] g) {
+    //makeMutable(); // Manually inlined here for speed reasons.
+    if (base.frozen)
+      base = base.getMutable();
     base.addPath(g);
   }
 
   void addPath(path g, pen p) {
-    makeMutable();
+    //makeMutable(); // Manually inlined here for speed reasons.
+    if (base.frozen)
+      base = base.getMutable();
     base.addPath(g, p);
   }
 

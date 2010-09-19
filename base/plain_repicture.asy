@@ -662,19 +662,21 @@ struct picture { /* {{{1 */
     userBox(userMin,userMax);
   }
 
+  from bounds unravel addPath;
+
   // Add a (user space) path to the sizing.
-  void addPath(path g) {
-    bounds.addPath(g);
-  }
-  void addPath(path[] g) {
-    for(int i=0; i < g.length; ++i) 
-      addPath(g[i]);
-  }
+//  void addPath(path g) {
+//    bounds.addPath(g);
+//  }
+//  void addPath(path[] g) {
+//    for(int i=0; i < g.length; ++i) 
+//      addPath(g[i]);
+//  }
 
   // Add a path to the sizing with the additional padding of a pen.
-  void addPath(path g, pen p) {
-    bounds.addPath(g, p);
-  }
+//  void addPath(path g, pen p) {
+//    bounds.addPath(g, p);
+//  }
 
   // Size commands {{{2
   void size(real x, real y=x, bool keepAspect=this.keepAspect) {
@@ -1001,7 +1003,10 @@ struct picture { /* {{{1 */
   frame fit2(real xsize=this.xsize, real ysize=this.ysize,
              bool keepAspect=this.keepAspect) {
     if(fixed) return scaled();
-    if(empty2()) return newframe;
+    if(empty2()) {
+      write("returning empty frame");
+      return newframe;
+    }
     transform t=scaling(xsize,ysize,keepAspect);
     frame f=fit(t);
     transform s=scale(f,xsize,ysize,keepAspect);

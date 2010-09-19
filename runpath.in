@@ -272,6 +272,62 @@ pair max(path p)
   return p.max();
 }
 
+pair min(patharray *a)
+{ 
+  if (!a) {
+    error("min called on null path array");
+    return pair(0,0);
+  }
+  if (a->empty()) {
+    error("min called on empty path array");
+    return pair(0,0);
+  }
+
+  path *g = a->read<path *>(0);
+  pair z = g->min();
+  double minx = z.getx(), miny = z.gety();
+
+  for (size_t i = 1; i < a->size(); ++i) {
+    path *g = a->read<path *>(i);
+    pair z = g->min();
+    double x = z.getx(), y = z.gety();
+    if (x < minx)
+      minx = x;
+    if (y < miny)
+      miny = y;
+  }
+
+  return pair(minx, miny);
+}
+
+pair max(patharray *a)
+{ 
+  if (!a) {
+    error("max called on null path array");
+    return pair(0,0);
+  }
+  if (a->empty()) {
+    error("max called on empty path array");
+    return pair(0,0);
+  }
+
+  path *g = a->read<path *>(0);
+  pair z = g->max();
+  double maxx = z.getx(), maxy = z.gety();
+
+  for (size_t i = 1; i < a->size(); ++i) {
+    path *g = a->read<path *>(i);
+    pair z = g->max();
+    double x = z.getx(), y = z.gety();
+    if (x > maxx)
+      maxx = x;
+    if (y > maxy)
+      maxy = y;
+  }
+
+  return pair(maxx, maxy);
+}
+
 realarray *mintimes(path p)
 {
   array *V=new array(2);
