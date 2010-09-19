@@ -502,6 +502,9 @@ void label(picture pic=currentpicture, Label L, explicit guide g,
 
 Label operator cast(string s) {return Label(s);}
 
+// Used as a default argument in some draw routines.
+restricted Label NullLabel = null;
+
 // A structure that a string, Label, or frame can be cast to.
 struct object {
   frame f;

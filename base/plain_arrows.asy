@@ -469,30 +469,41 @@ void draw(frame f, path g, pen p=currentpen, arrowbar arrow)
   add(f,pic.fit());
 }
 
-void draw(picture pic=currentpicture, Label L="", path g, align align=NoAlign,
-          pen p=currentpen, arrowbar arrow=None, arrowbar bar=None,
-          margin margin=NoMargin, Label legend="", marker marker=nomarker)
+void draw(picture pic=currentpicture, Label L=NullLabel, path g,
+          align align=NoAlign, pen p=currentpen, arrowbar arrow=None,
+          arrowbar bar=None, margin margin=NoMargin, Label legend=NullLabel,
+          marker marker=nomarker)
 {
-  Label L=L.copy();
-  L.align(align);
   if(marker != nomarker && !marker.above) marker.mark(pic,g);
-  bool drawpath=arrow(pic,g,p,margin);
-  if(bar(pic,g,p,margin) && drawpath) _draw(pic,g,p,margin);
-  if(L.s != "") {
+
+  // Note we are using & instead of && as both arrow and bar need to be
+  // called.
+  if ((arrow == None || arrow(pic, g, p, margin)) &
+      (bar == None || bar(pic, g, p, margin)))
+  {
+    _draw(pic, g, p, margin);
+  }
+
+  if(L != NullLabel && L.s != "") {
+    // Is copying necessary?
+    L=L.copy();
+    L.align(align);
     L.p(p);
     L.out(pic,g);
   }
-  if(legend.s != "") {
+
+  if(legend != NullLabel && legend.s != "") {
     legend.p(p);
     pic.legend.push(Legend(legend.s,legend.p,p,marker.f,marker.above));
   }
+
   if(marker != nomarker && marker.above) marker.mark(pic,g);
 }
 
 // Draw a fixed-size line about the user-coordinate 'origin'.
-void draw(pair origin, picture pic=currentpicture, Label L="", path g,
+void draw(pair origin, picture pic=currentpicture, Label L=NullLabel, path g,
           align align=NoAlign, pen p=currentpen, arrowbar arrow=None,
-          arrowbar bar=None, margin margin=NoMargin, Label legend="",
+          arrowbar bar=None, margin margin=NoMargin, Label legend=NullLabel,
           marker marker=nomarker)
 {
   picture opic;
@@ -501,7 +512,7 @@ void draw(pair origin, picture pic=currentpicture, Label L="", path g,
 }
 
 void draw(picture pic=currentpicture, explicit path[] g, pen p=currentpen,
-          Label legend="", marker marker=nomarker)
+          Label legend=NullLabel, marker marker=nomarker)
 { 
   for(int i=0; i < g.length-1; ++i) 
     draw(pic,g[i],p,marker);
@@ -509,13 +520,13 @@ void draw(picture pic=currentpicture, explicit path[] g, pen p=currentpen,
 } 
 
 void draw(picture pic=currentpicture, guide[] g, pen p=currentpen,
-          Label legend="", marker marker=nomarker)
+          Label legend=NullLabel, marker marker=nomarker)
 {
   draw(pic,(path[]) g,p,legend,marker);
 }
 
 void draw(pair origin, picture pic=currentpicture, explicit path[] g,
-          pen p=currentpen, Label legend="", marker marker=nomarker)
+          pen p=currentpen, Label legend=NullLabel, marker marker=nomarker)
 {
   picture opic;
   draw(opic,g,p,legend,marker);
@@ -523,14 +534,14 @@ void draw(pair origin, picture pic=currentpicture, explicit path[] g,
 }
 
 void draw(pair origin, picture pic=currentpicture, guide[] g, pen p=currentpen,
-          Label legend="", marker marker=nomarker)
+          Label legend=NullLabel, marker marker=nomarker)
 {
   draw(origin,pic,(path[]) g,p,legend,marker);
 }
 
 // Align an arrow pointing to b from the direction dir. The arrow is
 // 'length' PostScript units long.
-void arrow(picture pic=currentpicture, Label L="", pair b, pair dir,
+void arrow(picture pic=currentpicture, Label L=NullLabel, pair b, pair dir,
            real length=arrowlength, align align=NoAlign,
            pen p=currentpen, arrowbar arrow=Arrow, margin margin=EndMargin)
 {
