@@ -401,7 +401,7 @@ struct picture { /* {{{1 */
     }
   }
   
-  smartBounds bounds;
+  bounds bounds;
   bounds3 bounds3;
     
   // Other Fields {{{2
@@ -790,8 +790,7 @@ struct picture { /* {{{1 */
   // Returns the transform for turning user-space pairs into true-space pairs.
   transform scaling(real xsize, real ysize, bool keepAspect=true,
                     bool warn=true) {
-    smartBounds b = (T == identity()) ? this.bounds :
-                                        T * this.bounds;
+    bounds b = (T == identity()) ? this.bounds : T * this.bounds;
 
     return b.scaling(xsize, ysize, xunitsize, yunitsize, keepAspect, warn);
   }
@@ -1164,17 +1163,6 @@ struct picture { /* {{{1 */
 picture operator * (transform t, picture orig)
 {
   return orig.transformed(t);
-//  picture pic=orig.copy();
-//
-//  // This is broken, as new things added to the picture should not be
-//  // transformed.
-//  pic.T=t*pic.T;
-//  pic.userCorners(t*(pic.userMin.x,pic.userMin.y),
-//                  t*(pic.userMin.x,pic.userMax.y),
-//                  t*(pic.userMax.x,pic.userMin.y),
-//                  t*(pic.userMax.x,pic.userMax.y));
-//  pic.bounds.exact=false;
-//  return pic;
 }
 
 picture operator * (transform3 t, picture orig)
