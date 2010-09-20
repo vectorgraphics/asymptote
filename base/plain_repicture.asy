@@ -469,8 +469,8 @@ struct picture { /* {{{1 */
   }
   
   // User min/max {{{2
-  pair userMin() {return (userMin.x,userMin.y);}
-  pair userMax() {return (userMax.x,userMax.y);}
+  pair userMin() {return bounds.userMin(); }
+  pair userMax() {return bounds.userMax(); }
 
   void userMinx(real x) {
     userMin=(x,userMin.y,userMin.z);

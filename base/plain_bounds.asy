@@ -375,6 +375,52 @@ private struct freezableBounds {
     return cachedExtremes;
   }
 
+  // userMin/userMax returns the minimal/maximal userspace coordinate of the
+  // sizing data.  As coordinates for objects such as labels can have
+  // significant truesize dimensions, this userMin/userMax values may not
+  // correspond closely to the end of the screen, and are of limited use.
+  // userSetx and userSety determined if there is sizing data in order to even
+  // have userMin/userMax defined.
+  public bool userSetx() {
+    var e = extremes();
+    return e.left.length > 0 && e.right.length > 0;
+  }
+  public bool userSety() {
+    var e = extremes();
+    return e.bottom.length > 0 && e.top.length > 0;
+  }
+
+  static private real coordMin(coord[] coords) {
+    if (coords.length == 0)
+      abort("userMin called on empty sizing data");
+
+    real best = coords[0].user;
+    for (var c : coords[1:])
+      if (c.user < best)
+        best = c.user;
+    return best;
+  }
+  static private real coordMax(coord[] coords) {
+    if (coords.length == 0)
+      abort("userMax called on empty sizing data");
+
+    real best = coords[0].user;
+    for (var c : coords[1:])
+      if (c.user > best)
+        best = c.user;
+    return best;
+  }
+
+  public pair userMin() {
+    var e = extremes();
+    return (coordMin(e.left), coordMin(e.bottom));
+  }
+  public pair userMax() {
+    var e = extremes();
+    return (coordMax(e.right), coordMax(e.top));
+  }
+
+
   // A temporary measure.  Stuffs all of the data from the links and paths
   // into the coords.
   private void flatten() {
@@ -573,6 +619,19 @@ struct bounds {
   void clip(triple Min, triple Max) {
     xclip(Min.x,Max.x);
     yclip(Min.y,Max.y);
+  }
+
+  public bool userSetx() {
+    return base.userSetx();
+  }
+  public bool userSety() {
+    return base.userSety();
+  }
+  public pair userMin() {
+    return base.userMin();
+  }
+  public pair userMax() {
+    return base.userMax();
   }
 
   pair min(transform t) {
