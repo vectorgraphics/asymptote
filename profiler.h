@@ -8,11 +8,7 @@
 #ifndef PROFILER_H
 #define PROFILER_H
 
-#include <unistd.h>
-#if _POSIX_TIMERS
-#define HAVE_TIMER
-#include <time.h>
-#endif 
+#include <sys/time.h>
 
 #include <iostream>
 
@@ -155,38 +151,31 @@ class profiler : public gc {
     mem::map<lambda *, arc> arcs;
 
     fun() : instructions(0), nsecs(0) {}
+
+    //void addChildTime(node& n) {
   };
 
-#ifdef HAVE_TIMER
-  // The timestamp when the stack was last changed.  Used to compute the
-  // realtime number of nanoseconds spent by each function.
-  struct timespec timestamp;
+  // The data for each function.
+  mem::map<lambda *, fun> funs;
 
-  static const clockid_t CLOCK_TYPE = CLOCK_REALTIME;
+  // Convert data in nodes to data for each function.
+  void flattenData();
+
+  // Timing data.
+  struct timeval timestamp;
 
   void startLap() {
-    clock_gettime(CLOCK_TYPE, &timestamp);
+    gettimeofday(&timestamp, 0);
   }
 
-  // Measure and return the time since the last timestamp, and reset the
-  // timestamp to now.
   long long timeAndResetLap() {
-    struct timespec now;
-    clock_gettime(CLOCK_REALTIME, &now);
-    long long nsecs = 10000000000LL * (now.tv_sec - timestamp.tv_sec) +
-                 (now.tv_nsec - timestamp.tv_nsec);
+    struct timeval now;
+    gettimeofday(&now, 0);
+    long long nsecs = 1000000000LL * (now.tv_sec - timestamp.tv_sec) +
+                      1000LL * (now.tv_usec - timestamp.tv_usec);
     timestamp = now;
     return nsecs;
   }
-#else
-  // No fast timer support, just return zero for all time intervals.
-  void startLap() {
-    std::cerr << "warning: profiling without timer support" << std::endl;
-  }
-  long long timeAndResetLap() {
-    return 0;
-  }
-#endif
 
 public:
   profiler();
