@@ -815,18 +815,19 @@ struct picture {
     userBoxY(min.y,max.y,max,min);
   }
   
-  void add(drawerBound d, bool exact=false) {
+  void add(drawerBound d, bool exact=false, bool above=true) {
     uptodate=false;
     if(!exact) bounds.exact=false;
-    nodes.push(d);
+    if(above)
+      nodes.push(d);
+    else
+      nodes.insert(0,d);
   }
 
   void add(drawer d, bool exact=false, bool above=true) {
-    uptodate=false;
-    if(!exact) bounds.exact=false;
-    nodes.push(new void(frame f, transform t, transform T, pair, pair) {
+    add(new void(frame f, transform t, transform T, pair, pair) {
         d(f,t*T);
-      });
+      },exact,above);
   }
 
   void add(drawerBound3 d, bool exact=false, bool above=true) {

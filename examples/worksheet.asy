@@ -19,7 +19,7 @@ draw(f,z0--z0+50mm);
 add(pic,f,z,Align);
 z += step;
 
-for(int i=1; i <= 14; ++i) {
+for(int i=1; i <= 15; ++i) {
   draw(pic,z--z+length);
   z += step;
   draw(pic,z--z+length,dashed+gray);
@@ -36,6 +36,7 @@ for(int i=1; i <= 14; ++i) {
   }
   else if(i == 12) label(1);
   else if(i == 13) label(2);
+  else if(i == 14) label(3);
 }
 draw(pic,z--z+length);
 
