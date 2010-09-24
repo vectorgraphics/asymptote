@@ -380,9 +380,15 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
   picture *result=new picture;
   unsigned level=0;
   picture::nodelist::iterator p;
+
+  // If null is given as an xform, just use the identity transformation.
+  bool xformIsNull = xform == nullfunc::instance();
+
   for(p = f->nodes.begin(); p != f->nodes.end(); ++p) {
-    xform->call(Stack);
-    transform t=pop<transform>(Stack);
+    if (!xformIsNull)
+      xform->call(Stack);
+    transform t=xformIsNull ? camp::identity : pop<transform>(Stack);
+
     static transform Zero=transform(0.0,0.0,0.0,0.0,0.0,0.0);
     bool Delete=(t == Zero);
     picture *group=new picture;

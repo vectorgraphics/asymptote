@@ -113,10 +113,14 @@ struct framedTransformStack {
       toPush[tList[a].index]=transact(tList[a]);
     for(int a=0; a < toPush.length; ++a)
       if(!toPush.initialized(a))
-	toPush[a]=transact();
+        toPush[a]=transact();
     report("Added");
     report(toPush.length);
     stack.append(toPush);
+  }
+
+  bool empty() {
+    return stack.length == 0;
   }
 }
 
