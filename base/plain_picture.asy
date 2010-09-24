@@ -824,6 +824,12 @@ struct picture {
       nodes.insert(0,d);
   }
 
+  // Handles a common case.  (Used directly by draw function.)
+  void addExactAbove(drawerBound d) {
+    uptodate=false;
+    nodes.push(d);
+  }
+
   void add(drawer d, bool exact=false, bool above=true) {
     add(new void(frame f, transform t, transform T, pair, pair) {
         d(f,t*T);

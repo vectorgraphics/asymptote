@@ -474,30 +474,62 @@ void draw(picture pic=currentpicture, Label L=null, path g,
           arrowbar bar=None, margin margin=NoMargin, Label legend=null,
           marker marker=nomarker)
 {
-  if(marker != nomarker && !marker.above) marker.mark(pic,g);
-
-  // Note we are using & instead of && as both arrow and bar need to be
-  // called.
-  if ((arrow == None || arrow(pic, g, p, margin)) &
-      (bar == None || bar(pic, g, p, margin)))
+  // These if statements are ordered in such a way that the most common case
+  // (with just a path and a pen) executes the least bytecode.
+  if (marker == nomarker)
   {
-    _draw(pic, g, p, margin);
-  }
+    if (arrow == None && bar == None)
+    {
+      if (margin == NoMargin && size(nib(p)) == 0)
+      {
+        pic.addExactAbove(
+            new void(frame f, transform t, transform T, pair, pair) {
+              _draw(f,t*T*g,p);
+            });
+        pic.addPath(g,p);
 
-  if(L != null && L.s != "") {
-    // Is copying necessary?
-    L=L.copy();
-    L.align(align);
-    L.p(p);
-    L.out(pic,g);
-  }
+        // Jumping over else clauses takes time, so test if we can return
+        // here.
+        if (L == null && legend == null)
+          return;
+      }
+      else // With margin or polygonal pen.
+      {
+        _draw(pic, g, p, margin);
+      }
+    }
+    else /* arrow or bar */
+    {
+      // Note we are using & instead of && as both arrow and bar need to be
+      // called.
+      if (arrow(pic, g, p, margin) & bar(pic, g, p, margin))
+        _draw(pic, g, p, margin);
+    }
 
-  if(legend != null && legend.s != "") {
-    legend.p(p);
-    pic.legend.push(Legend(legend.s,legend.p,p,marker.f,marker.above));
-  }
+    if(L != null && L.s != "") {
+      L=L.copy();
+      L.align(align);
+      L.p(p);
+      L.out(pic,g);
+    }
 
-  if(marker != nomarker && marker.above) marker.mark(pic,g);
+    if(legend != null && legend.s != "") {
+      legend.p(p);
+      pic.legend.push(Legend(legend.s,legend.p,p,marker.f,marker.above));
+    }
+  }
+  else /* marker != nomarker */
+  {
+    // NOTE: This will be somewhat slow for code that has a lot of draw calls
+    // with markers.
+    if (marker.above) {
+      draw(pic, L, g, align, p, arrow, bar, margin, legend, nomarker);
+      marker.mark(pic, g);
+    } else {
+      marker.mark(pic, g);
+      draw(pic, L, g, align, p, arrow, bar, margin, legend, nomarker);
+    }
+  }
 }
 
 // Draw a fixed-size line about the user-coordinate 'origin'.
@@ -514,6 +546,7 @@ void draw(pair origin, picture pic=currentpicture, Label L=null, path g,
 void draw(picture pic=currentpicture, explicit path[] g, pen p=currentpen,
           Label legend=null, marker marker=nomarker)
 { 
+  // This could be optimized to size and draw the entire array as a batch.
   for(int i=0; i < g.length-1; ++i) 
     draw(pic,g[i],p,marker);
   if(g.length > 0) draw(pic,g[g.length-1],p,legend,marker);
@@ -573,6 +606,7 @@ frame[] fit2(picture[] pictures, picture all)
 }
 
 // Fit an array of pictures simultaneously using the size of the first picture.
+// TODO: Remove unused arguments.
 frame[] fit(string prefix="", picture[] pictures, string format="",
             bool view=true, string options="", string script="",
             projection P=currentprojection)
