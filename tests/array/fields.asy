@@ -16,11 +16,13 @@ StartTest("fields");
     z.cyclic=false;
   }
 }
+
 {
   int[] z = {2, 3, 5};
   for (int k = -100; k <= 100; ++k)
     assert(z.initialized(k) == (k >= 0 && k < 3));
 }
+
 {
   int[] z;
   for (int i=0; i<10; ++i) {
@@ -53,7 +55,7 @@ StartTest("fields");
 {
   int[] base={4,5,9,5,0,2,3};
   int[] z;
-  for (int i=0; i<99; ++i) {
+  for (int i=0; i<9; ++i) {
     assert(z.length == i*base.length);
     for (int j : z.keys)
       assert(z[j] == base[j%base.length]);
