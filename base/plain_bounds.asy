@@ -121,6 +121,10 @@ private struct freezableBounds {
     newpp.p = pp.p;
     return newpp;
   }
+
+  // WARNING: Due to crazy optimizations, if this array is changed between an
+  // empty and non-empty state, the assignment of a method to
+  // addPath(path,pen) must also change.
   private pathpen[] pathpenBounds;
 
   // Once frozen, the sizing is immutable, and therefore we can compute and
@@ -203,38 +207,49 @@ private struct freezableBounds {
   }
 
   void addPath(path g) {
-    assert(!frozen);
+    // This, and other asserts have been removed to speed things up slightly.
+    //assert(!frozen);
     this.pathBounds.push(g);
   }
 
   void addPath(path[] g) {
-    assert(!frozen);
+    //assert(!frozen);
     this.pathBounds.append(g);
   }
 
-  void addPath(path g, pen p) {
-    assert(!frozen);
+  // To squeeze out a bit more performance, this method is either assigned
+  // addPathToNonEmptyArray or addPathToEmptyArray depending on the state of
+  // the pathpenBounds array.
+  void addPath(path g, pen p);
 
-    if (pathpenBounds.length > 0) {
-      var pp = pathpenBounds[0];
+  private void addPathToNonEmptyArray(path g, pen p) {
+    //assert(!frozen);
+    //assert(!pathpenBounds.empty());
+    var pp = pathpenBounds[0];
 
-      // Test if the pen are equal or have the same bounds.
-      if (pp.p == p || (min(pp.p) == min(p) && max(pp.p) == max(p))) {
-        // If this path has the same pen as the last one, just add it to the
-        // array corresponding to that pen.
-        pp.g.push(g);
-      }
-      else {
-        // A different pen.  Start a new bound and put it on the front.  Put
-        // the old bound at the end of the array.
-        pathpenBounds[0] = pathpen(g,p);
-        pathpenBounds.push(pp);
-      }
+    // Test if the pen are equal or have the same bounds.
+    if (pp.p == p || (min(pp.p) == min(p) && max(pp.p) == max(p))) {
+      // If this path has the same pen as the last one, just add it to the
+      // array corresponding to that pen.
+      pp.g.push(g);
     }
     else {
-      pathpenBounds.push(pathpen(g,p));
+      // A different pen.  Start a new bound and put it on the front.  Put
+      // the old bound at the end of the array.
+      pathpenBounds[0] = pathpen(g,p);
+      pathpenBounds.push(pp);
     }
   }
+  void addPathToEmptyArray(path g, pen p) {
+    //assert(!frozen);
+    //assert(pathpenBounds.empty());
+
+    pathpenBounds.push(pathpen(g,p));
+    addPath = addPathToNonEmptyArray;
+  }
+
+  // Initial setting for addPath.
+  addPath = addPathToEmptyArray;
 
   // Transform the sizing info by t then add the result to the coords
   // structure.
@@ -435,6 +450,7 @@ private struct freezableBounds {
     max.erase();
     pathBounds.delete();
     pathpenBounds.delete();
+    addPath = addPathToEmptyArray;
     links.delete();
     tlinks.delete();
 
