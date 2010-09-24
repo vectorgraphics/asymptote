@@ -16,6 +16,10 @@
 
 namespace vm {
 
+#ifdef DEBUG_BLTIN
+string lookupBltin(bltin b);
+#endif
+
 inline position positionFromLambda(lambda *func) {
   if (func == 0)
     return position();
@@ -29,6 +33,40 @@ inline position positionFromLambda(lambda *func) {
   return code.begin()->pos;
 }
 
+inline void printNameFromLambda(ostream& out, lambda *func) {
+  if (!func) {
+    out << "<top level>";
+    return;
+  }
+  
+#ifdef DEBUG_FRAME
+  string name = func->name;
+#else
+  string name = "";
+#endif
+
+  // If unnamed, use the pointer address.
+  if (name.empty())
+    out << func;
+  else
+    out << name;
+
+  out << " at ";
+  positionFromLambda(func).printTerse(out);
+}
+
+inline void printNameFromBltin(ostream& out, bltin b) {
+#ifdef DEBUG_BLTIN
+  string name = lookupBltin(b);
+#else
+  string name = "";
+#endif
+
+  if (!name.empty())
+    out << name << " ";
+  out << "(builtin at " << (void *)b << ")";
+}
+
 class profiler : public gc {
   // To do call graph analysis, each call stack that occurs in practice is
   // represented by a node.  For instance, if f and g are functions, then
@@ -37,8 +75,11 @@ class profiler : public gc {
   //   g -> f -> g
   // is represented by a different one.
   struct node {
-    // The top-level function of the call stack.
+    // The top-level function of the call stack.  It is either an asymptote
+    // function with a given lambda, or a builtin function, with a given
+    // bltin.
     lambda *func;
+    bltin cfunc;
 
     // The number of times the top-level function has been called resulting in
     // this specific call stack.
@@ -62,8 +103,18 @@ class profiler : public gc {
     // Call stacks resulting from calls during this call stack.
     mem::vector<node> children;
 
+    node()
+      : func(0), cfunc(0), calls(0),
+        instructions(0), instTotal(0),
+        nsecs(0), nsecsTotal(0) {}
+
     node(lambda *func)
-      : func(func), calls(0),
+      : func(func), cfunc(0), calls(0),
+        instructions(0), instTotal(0),
+        nsecs(0), nsecsTotal(0) {}
+
+    node(bltin b)
+      : func(0), cfunc(b), calls(0),
         instructions(0), instTotal(0),
         nsecs(0), nsecsTotal(0) {}
 
@@ -79,10 +130,20 @@ class profiler : public gc {
       children.push_back(node(func));
       return &children.back();
     }
+    node *getChild(bltin func) {
+      size_t n = children.size();
+      for (size_t i = 0; i < n; ++i)
+        if (children[i].cfunc == func)
+          return &children[i];
+
+      // Not found, create a new one.
+      children.push_back(node(func));
+      return &children.back();
+    }
 
     void computeTotals() {
-      instTotal = 0;
-      nsecsTotal = 0;
+      instTotal = instructions;
+      nsecsTotal = nsecs;
       size_t n = children.size();
       for (size_t i = 0; i < n; ++i) {
         children[i].computeTotals();
@@ -93,7 +154,7 @@ class profiler : public gc {
 
 
 
-    void dump(ostream& out) {
+    void pydump(ostream& out) {
 #ifdef DEBUG_FRAME
       string name = func ? func->name : "<top level>";
 #else
@@ -110,7 +171,7 @@ class profiler : public gc {
 
       size_t n = children.size();
       for (size_t i = 0; i < n; ++i) {
-        children[i].dump(out);
+        children[i].pydump(out);
         out << ",\n";
       }
 
@@ -137,7 +198,7 @@ class profiler : public gc {
 
     arc() : calls(0), instTotal(0), nsecsTotal(0) {}
 
-    void add(node n) {
+    void add(node& n) {
       calls += n.calls;
       instTotal += n.instTotal;
       nsecsTotal += n.nsecsTotal;
@@ -149,17 +210,88 @@ class profiler : public gc {
     int instructions;
     long long nsecs;
     mem::map<lambda *, arc> arcs;
+    mem::map<bltin, arc> carcs;
 
     fun() : instructions(0), nsecs(0) {}
 
-    //void addChildTime(node& n) {
+    void addChildTime(node& n) {
+      if (n.cfunc)
+        carcs[n.cfunc].add(n);
+      else
+        arcs[n.func].add(n);
+    }
+
+    void analyse(node& n) {
+      instructions += n.instructions;
+      nsecs += n.nsecs;
+      size_t numChildren = n.children.size();
+      for (size_t i = 0; i < numChildren; ++i)
+        addChildTime(n.children[i]);
+    }
+
+    void dump(ostream& out) {
+      // The unused line number needed by kcachegrind.
+      static const string POS = "1";
+
+      out << POS << " " << instructions << " " << nsecs << "\n";
+      for (mem::map<lambda *, arc>::iterator i = arcs.begin();
+           i != arcs.end();
+           ++i)
+      {
+        lambda *l = i->first;
+        arc& a = i->second;
+
+        out << "cfl=" << positionFromLambda(l) << "\n";
+
+        out << "cfn=";
+        printNameFromLambda(out, l);
+        out << "\n";
+
+        out << "calls=" << a.calls << " " << POS << "\n";
+        out << POS << " " << a.instTotal << " " << a.nsecsTotal << "\n";
+      }
+      for (mem::map<bltin, arc>::iterator i = carcs.begin();
+           i != carcs.end();
+           ++i)
+      {
+        bltin b = i->first;
+        arc& a = i->second;
+
+        out << "cfl=C++ code" << endl;
+
+        out << "cfn=";
+        printNameFromBltin(out, b);
+        out << "\n";
+
+        out << "calls=" << a.calls << " " << POS << "\n";
+        out << POS << " " << a.instTotal << " " << a.nsecsTotal << "\n";
+      }
+    }
   };
 
-  // The data for each function.
+  // The data for each asymptote function.
   mem::map<lambda *, fun> funs;
 
-  // Convert data in nodes to data for each function.
-  void flattenData();
+  // The data for each C++ function.
+  mem::map<bltin, fun> cfuns;
+
+  void analyseNode(node& n) {
+    fun& f = n.cfunc ? cfuns[n.cfunc] :
+                       funs[n.func];
+
+    f.analyse(n);
+
+    size_t numChildren = n.children.size();
+    for (size_t i = 0; i < numChildren; ++i)
+      analyseNode(n.children[i]);
+  }
+
+  // Convert data in the tree of callstack nodes into data for each function.
+  void analyseData() {
+    emptynode.computeTotals();
+    analyseNode(emptynode);
+  }
+
 
   // Timing data.
   struct timeval timestamp;
@@ -177,48 +309,74 @@ class profiler : public gc {
     return nsecs;
   }
 
+  // Called whenever the stack is about to change, in order to record the time
+  // duration for the current node.
+  void recordTime() {
+    topnode().nsecs += timeAndResetLap();
+  }
+
 public:
   profiler();
 
   void beginFunction(lambda *func);
   void endFunction(lambda *func);
+  void beginFunction(bltin func);
+  void endFunction(bltin func);
   void recordInstruction();
 
   // TODO: Add position, type of instruction info to profiling.
 
-  // Dump all of the data out to stdout.  This can be interpreted by a
-  // different program.  In fact, it is formatted to be a Python data
-  // structure that can be read in.
-  void dump(ostream &out);
+  // Dump all of the data out in a format that can be read into Python.
+  void pydump(ostream &out);
+
+  // Dump all of the data in a format for kcachegrind.
+  void dump(ostream& out);
+
 };
 
 inline profiler::profiler()
-  : emptynode(0)
+  : emptynode()
 {
     callstack.push(&emptynode);
     startLap();
 }
 
 inline void profiler::beginFunction(lambda *func) {
-  //cout << "begin " << func->name << endl;
   assert(func);
   assert(!callstack.empty());
 
-  // As the node is about to change, record the time spent in the node.
-  topnode().nsecs += timeAndResetLap();
+  recordTime();
 
   callstack.push(topnode().getChild(func));
   ++topnode().calls;
 }
 
 inline void profiler::endFunction(lambda *func) {
-  //cout << "end" << endl;
   assert(func);
   assert(!callstack.empty());
   assert(topnode().func == func);
 
-  // As the node is about to change, record the time spent in the node.
-  topnode().nsecs += timeAndResetLap();
+  recordTime();
+
+  callstack.pop();
+}
+
+inline void profiler::beginFunction(bltin cfunc) {
+  assert(cfunc);
+  assert(!callstack.empty());
+
+  recordTime();
+
+  callstack.push(topnode().getChild(cfunc));
+  ++topnode().calls;
+}
+
+inline void profiler::endFunction(bltin cfunc) {
+  assert(cfunc);
+  assert(!callstack.empty());
+  assert(topnode().cfunc == cfunc);
+
+  recordTime();
 
   callstack.pop();
 }
@@ -228,10 +386,48 @@ inline void profiler::recordInstruction() {
   ++topnode().instructions;
 }
 
-inline void profiler::dump(ostream& out) {
+inline void profiler::pydump(ostream& out) {
   out << "profile = ";
-  emptynode.dump(out);
+  emptynode.pydump(out);
 }
+
+inline void profiler::dump(ostream& out) {
+  analyseData();
+
+  out << "events: Instructions Nanoseconds\n";
+
+  for (mem::map<lambda *, fun>::iterator i = funs.begin();
+       i != funs.end();
+       ++i)
+  {
+    lambda *l = i->first;
+    fun& f = i->second;
+
+    out << "fl=" << positionFromLambda(l) << "\n";
+
+    out << "fn=";
+    printNameFromLambda(out, l);
+    out << "\n";
+
+    f.dump(out);
+  }
+  for (mem::map<bltin, fun>::iterator i = cfuns.begin();
+       i != cfuns.end();
+       ++i)
+  {
+    bltin b = i->first;
+    fun& f = i->second;
+
+    out << "fl=C++ code\n";
+
+    out << "fn=";
+    printNameFromBltin(out, b);
+    out << "\n";
+
+    f.dump(out);
+  }
+}
+
 
 } // namespace vm
 
