@@ -90,7 +90,7 @@ void base_tenv(tenv &te)
 
 const formal noformal(0);  
 
-void addFunc(venv &ve, access *a, ty *result, symbol id,
+function *functionFromFormals(ty *result,
              formal f1=noformal, formal f2=noformal, formal f3=noformal,
              formal f4=noformal, formal f5=noformal, formal f6=noformal,
              formal f7=noformal, formal f8=noformal, formal f9=noformal,
@@ -119,6 +119,20 @@ void addFunc(venv &ve, access *a, ty *result, symbol id,
   if (fH.t) fun->add(fH);
   if (fI.t) fun->add(fI);
 
+  return fun;
+}
+
+void addFunc(venv &ve, access *a, ty *result, symbol id,
+             formal f1=noformal, formal f2=noformal, formal f3=noformal,
+             formal f4=noformal, formal f5=noformal, formal f6=noformal,
+             formal f7=noformal, formal f8=noformal, formal f9=noformal,
+             formal fA=noformal, formal fB=noformal, formal fC=noformal,
+             formal fD=noformal, formal fE=noformal, formal fF=noformal,
+             formal fG=noformal, formal fH=noformal, formal fI=noformal)
+{
+  function *fun = functionFromFormals(result,f1,f2,f3,f4,f5,f6,f7,f8,f9,
+      fA,fB,fC,fD,fE,fF,fG,fH,fI);
+
   // NOTE: If the function is a field, we should encode the defining record in
   // the entry
   varEntry *ent = new varEntry(fun, a, 0, position());
@@ -132,7 +146,25 @@ void addFunc(venv &ve, bltin f, ty *result, symbol name,
              formal f7, formal f8, formal f9, formal fA, formal fB, formal fC,
              formal fD, formal fE, formal fF, formal fG, formal fH, formal fI)
 {
-  REGISTER_BLTIN(f, name);
+#ifdef DEBUG_BLTIN
+  // If the function is an operator, print out the whole signature with the
+  // types, as operators are heavily overloaded.  min and max are also heavily
+  // overloaded, so we check for them too.  Many builtin functions have so
+  // many arguments that it is noise to print out their full signatures.
+  string s = name;
+  if (s.find("operator ", 0) == 0 || s == "min" || s == "max") 
+  {
+    function *fun = functionFromFormals(result,f1,f2,f3,f4,f5,f6,f7,f8,f9,
+        fA,fB,fC,fD,fE,fF,fG,fH,fI);
+    ostringstream out;
+    fun->printVar(out, name);
+    REGISTER_BLTIN(f, out.str());
+  }
+  else {
+    REGISTER_BLTIN(f, name);
+  }
+#endif
+
   access *a = new bltinAccess(f);
   addFunc(ve,a,result,name,f1,f2,f3,f4,f5,f6,f7,f8,f9,
       fA,fB,fC,fD,fE,fF,fG,fH,fI);
@@ -718,9 +750,41 @@ void openFunc(stack *Stack)
 }
 #endif
 
+// A function accessible in asy code print the bytecode of a function.
+void printBytecode(stack *Stack)
+{
+  // As arbitrary addresses can be sent to printBytecode, it should not be run
+  // in safe mode. 
+  if (settings::safe) {
+    cerr << "use -nosafe flag to enable printBytecode" << endl;
+    return;
+  }
+
+  vm::array *a=vm::pop<vm::array *>(Stack);
+  size_t numArgs=checkArray(a);
+  if (numArgs != 1)
+    cerr << "printBytecode takes one argument" << endl;
+
+  // TODO: Add a reliable test for the object being a func.
+  callable *c = a->read<callable *>(0);
+  if (func *f = dynamic_cast<func *>(c))
+    print(cout, f->body->code);
+  else
+    cout << "callable is not a standard function";
+}
+
+
+
+
 // NOTE: We should move all of these into a "builtin" module.
 void base_venv(venv &ve)
 {
+  // Register the name of arrayDeleteHelper for debugging in "asy -s" mode.
+  // This is done automatically for other function, but because
+  // arrayDeleteHelper is not defined in the usual way, it must be done
+  // explicitly, and here is as good a place as any.
+  REGISTER_BLTIN(arrayDeleteHelper, "arrayDeleteHelper");
+
   addInitializers(ve);
   addCasts(ve);
   addOperators(ve);
@@ -796,6 +860,8 @@ void base_venv(venv &ve)
 #ifdef OPENFUNCEXAMPLE
   addOpenFunc(ve, openFunc, primInt(), SYM(openFunc));
 #endif
+
+  addOpenFunc(ve, printBytecode, primVoid(), SYM(printBytecode));
 
   gen_runtime_venv(ve);
   gen_runbacktrace_venv(ve);
