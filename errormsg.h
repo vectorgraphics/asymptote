@@ -35,6 +35,23 @@ public:
   string name() const {
     return filename;
   }
+
+  // The filename without the directory and without the '.asy' suffix.
+  // Note that this assumes name are separated by a forward slash.
+  string moduleName() const {
+    size_t start = filename.rfind('/');
+    if (start == filename.npos)
+      start = 0;
+    else
+      // Step over slash.
+      ++start;
+
+    size_t end = filename.rfind(".asy");
+    if (end != filename.size() - 4)
+      end = filename.size();
+
+    return filename.substr(start, end-start);
+  }
   
   // Specifies a newline symbol at the character position given.
   void newline() {
@@ -100,6 +117,13 @@ public:
   
   friend ostream& operator << (ostream& out, const position& pos);
 
+  // Write out just the module name and line number.
+  void printTerse(ostream& out) const
+  {
+    if (file) {
+      out << file->moduleName() << ":" << line;
+    }
+  }
 };
 
 extern position nullPos;
