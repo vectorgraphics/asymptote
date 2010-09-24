@@ -78,7 +78,8 @@ struct defaultArg : public arg {
     : arg(t) {}
 
   virtual void trans(coenv &e, temp_vector &) {
-    e.c.encode(inst::builtin, run::pushDefault);
+    //e.c.encode(inst::builtin, run::pushDefault);
+    e.c.encode(inst::push_default);
   }
 };
 

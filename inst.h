@@ -56,6 +56,9 @@ struct inst : public gc {
     pushclosure, makefunc, ret,
     alloc, pushframe, popframe,
 
+    push_default,
+    jump_if_not_default,
+
 #ifdef COMBO
     // Combo instructions:
     // varpop = varsave+pop and fieldpop = fieldsave+pop

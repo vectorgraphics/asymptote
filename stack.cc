@@ -74,11 +74,14 @@ void stack::marshall(size_t args, vars_t vars)
 #ifndef DEBUG_FRAME
 #warning "profiler needs DEBUG_FRAME for function names"
 #endif
+#ifndef DEBUG_BLTIN
+#warning "profiler needs DEBUG_BLTIN for builtin function names"
+#endif
 
 profiler prof;
 
 void dumpProfile() {
-  std::ofstream out("asyprof.py");
+  std::ofstream out("asyprof");
   if (!out.fail())
     prof.dump(out);
 }
@@ -251,7 +254,13 @@ void stack::run(program *code, vars_t vars)
         
           case inst::builtin: {
             bltin func = get<bltin>(i);
+#ifdef PROFILE
+            prof.beginFunction(func);
+#endif
             func(this);
+#ifdef PROFILE
+            prof.endFunction(func);
+#endif
             break;
           }
 
@@ -267,6 +276,10 @@ void stack::run(program *code, vars_t vars)
             if (!pop<bool>()) { ip = get<program::label>(i); continue; }
             break;
 
+          case inst::jump_if_not_default:
+            if (!isdefault(pop())) { ip = get<program::label>(i); continue; }
+            break;
+
 #ifdef COMBO
           case inst::gejmp: {
             Int y = pop<Int>();
@@ -276,6 +289,10 @@ void stack::run(program *code, vars_t vars)
             break;
           }
 #endif
+
+          case inst::push_default:
+            push(Default);
+            break;
 
           case inst::popcall: {
             /* get the function reference off of the stack */

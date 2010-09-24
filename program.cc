@@ -20,6 +20,9 @@ static const char* opnames[] = {
   "pushclosure", "makefunc", "ret",
   "alloc", "pushframe", "popframe",
 
+  "push_default",
+  "jump_if_not_default",
+
 #ifdef COMBO
   "varpop", "fieldpop",
   "gejmp"
@@ -118,6 +121,7 @@ void printInst(ostream& out, const program::label& code,
     case inst::jmp:
     case inst::cjmp:
     case inst::njmp:
+    case inst::jump_if_not_default:
 #ifdef COMBO
     case inst::gejmp:
 #endif

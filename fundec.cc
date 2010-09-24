@@ -133,23 +133,22 @@ public:
 };
   
 void transDefault(coenv &e, position pos, varEntry *v, varinit *init) {
-  // This roughly translates into the expression
+  // This roughly translates into the statement
   //   if (isDefault(x))
   //     x=init;
   // where x is the variable in v and isDefault is a function that tests
   // whether x is the default argument token.
-  varEntryExp vee(pos, v);
-  ifStm is(pos,
-           new callExp(pos,
-                       new varEntryExp(pos,
-                                       new function(primBoolean(), v->getType()),
-                                       run::isDefault),
-                       &vee),
-           new expStm(pos,
-                      new basicAssignExp(pos,
-                                         v,
-                                         init)));
-  is.trans(e);                                        
+
+  v->encode(READ, pos, e.c);
+
+  Int end = e.c.fwdLabel();
+  e.c.useLabel(inst::jump_if_not_default, end);
+
+  init->transToType(e, v->getType());
+  v->encode(WRITE, pos, e.c);
+  e.c.encodePop();
+
+  e.c.defLabel(end);
 }
 
 void formal::transAsVar(coenv &e, Int index) {
