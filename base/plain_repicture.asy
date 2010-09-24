@@ -502,13 +502,6 @@ struct picture { /* {{{1 */
     userSetz=true;
   }
   
-  void userCorners(pair c00, pair c01, pair c10, pair c11) {
-    userMin=(min(c00.x,c01.x,c10.x,c11.x),min(c00.y,c01.y,c10.y,c11.y),
-             userMin.z);
-    userMax=(max(c00.x,c01.x,c10.x,c11.x),max(c00.y,c01.y,c10.y,c11.y),
-             userMax.z);
-  }
-  
   void userCorners(triple c000, triple c001, triple c010, triple c011,
                    triple c100, triple c101, triple c110, triple c111) {
     userMin=(min(c000.x,c001.x,c010.x,c011.x,c100.x,c101.x,c110.x,c111.x),
@@ -585,18 +578,25 @@ struct picture { /* {{{1 */
   }
   
   // Add drawer {{{2
-  void add(drawerBound d, bool exact=false) {
+  void add(drawerBound d, bool exact=false, bool above=true) {
     uptodate=false;
     if(!exact) bounds.exact=false;
+    if(above)
+      nodes.push(d);
+    else
+      nodes.insert(0,d);
+  }
+  
+  // Faster implementation of most common case.
+  void addExactAbove(drawerBound d) {
+    uptodate=false;
     nodes.push(d);
   }
 
   void add(drawer d, bool exact=false, bool above=true) {
-    uptodate=false;
-    if(!exact) bounds.exact=false;
-    nodes.push(new void(frame f, transform t, transform T, pair, pair) {
+    add(new void(frame f, transform t, transform T, pair, pair) {
         d(f,t*T);
-      });
+      },exact,above);
   }
 
   void add(drawerBound3 d, bool exact=false, bool above=true) {
@@ -845,7 +845,8 @@ struct picture { /* {{{1 */
 
   frame fit(transform t, transform T0=T, pair m, pair M) {
     frame f;
-    for(int i=0; i < nodes.length; ++i)
+    int n = nodes.length;
+    for(int i=0; i < n; ++i)
       nodes[i](f,t,T0,m,M);
     return f;
   }
@@ -1002,10 +1003,9 @@ struct picture { /* {{{1 */
   frame fit2(real xsize=this.xsize, real ysize=this.ysize,
              bool keepAspect=this.keepAspect) {
     if(fixed) return scaled();
-    if(empty2()) {
-      write("returning empty frame");
+    if(empty2())
       return newframe;
-    }
+
     transform t=scaling(xsize,ysize,keepAspect);
     frame f=fit(t);
     transform s=scale(f,xsize,ysize,keepAspect);
@@ -1053,7 +1053,25 @@ struct picture { /* {{{1 */
   // picture. Fitting this picture will not scale as the original picture would.
   picture drawcopy() {
     picture dest=new picture;
-    dest.nodes=copy(nodes);
+
+    /*
+    // This is not used currently, as the C++ copying of the nodes array is very
+    // fast.
+    // Wrap the nodes into a single drawer.  This means they can no longer be
+    // modified, and so the same drawer can be safely stored in both the old
+    // and the new picture.
+    drawerBound[] oldnodes = nodes;
+    void drawAll(frame f, transform tt, transform T, pair lb, pair rt) {
+      for (var node : oldnodes)
+        node(f, tt, T, lb, rt);
+    }
+
+    // Allocate separate node arrays for the two pictures.
+    this.nodes = new drawerBound[] { drawAll };
+    dest.nodes = new drawerBound[] { drawAll };
+    */
+    dest.nodes = copy(nodes);
+
     dest.nodes3=copy(nodes3);
     dest.T=T;
     dest.T3=T3;
@@ -1089,11 +1107,11 @@ struct picture { /* {{{1 */
     picture dest=drawcopy();
 
     // Replace nodes with a single drawer that realizes the transform.
-    // TODO: Use a frozen reference instead of a copy.
     drawerBound[] oldnodes = dest.nodes;
     void drawAll(frame f, transform tt, transform T, pair lb, pair rt) {
+      transform Tt = T*t;
       for (var node : oldnodes)
-        node(f, tt, T*t, lb, rt);
+        node(f, tt, Tt, lb, rt);
     }
     dest.nodes = new drawerBound[] { drawAll };
 
@@ -1101,10 +1119,6 @@ struct picture { /* {{{1 */
     dest.bounds=bounds.transformed(t);
     dest.bounds3=bounds3.copy();
     
-    dest.userCorners(t*(dest.userMin.x,dest.userMin.y),
-                     t*(dest.userMin.x,dest.userMax.y),
-                     t*(dest.userMax.x,dest.userMin.y),
-                     t*(dest.userMax.x,dest.userMax.y));
     dest.bounds.exact=false;
 
     dest.xsize=xsize; dest.ysize=ysize;
@@ -1347,17 +1361,26 @@ void Draw(picture pic=currentpicture, path g, pen p=currentpen)
   pic.addPath(g,p);
 }
 
-void _draw(picture pic=currentpicture, path g, pen p=currentpen,
-           margin margin=NoMargin)
+// Default arguments have been removed to increase speed.
+void _draw(picture pic, path g, pen p, margin margin)
 {
-  pic.add(new void(frame f, transform t) {
-      draw(f,margin(t*g,p).g,p);
-    },true);
+  if (size(nib(p)) == 0 && margin==NoMargin) {
+    // Inline the drawerBound wrapper for speed.
+    pic.addExactAbove(
+        new void(frame f, transform t, transform T, pair, pair) {
+          _draw(f,t*T*g,p);
+        });
+  } else {
+    pic.add(new void(frame f, transform t) {
+        draw(f,margin(t*g,p).g,p);
+      },true);
+  }
   pic.addPath(g,p);
 }
 
 void Draw(picture pic=currentpicture, explicit path[] g, pen p=currentpen)
 {
+  // Could optimize this by adding one drawer.
   for(int i=0; i < g.length; ++i) Draw(pic,g[i],p);
 }
 
