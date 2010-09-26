@@ -108,7 +108,7 @@ void exp::transCall(coenv &e, types::ty *target)
   e.c.encode(inst::popcall);
 }
 
-void exp::transConditionalJump(coenv &e, bool cond, Int dest) {
+void exp::transConditionalJump(coenv &e, bool cond, label dest) {
   transToType(e, primBoolean());
   e.c.useLabel(cond ? inst::cjmp : inst::njmp, dest);
 }
@@ -1139,12 +1139,12 @@ void conditionalExp::prettyprint(ostream &out, Int indent)
 void conditionalExp::baseTransToType(coenv &e, types::ty *target) {
   test->transToType(e, types::primBoolean());
 
-  Int tlabel = e.c.fwdLabel();
+  label tlabel = e.c.fwdLabel();
   e.c.useLabel(inst::cjmp,tlabel);
 
   onFalse->transToType(e, target);
 
-  Int end = e.c.fwdLabel();
+  label end = e.c.fwdLabel();
   e.c.useLabel(inst::jmp,end);
 
   e.c.defLabel(tlabel);
@@ -1261,13 +1261,13 @@ types::ty *orExp::trans(coenv &e)
   return getType(e);
 }
 
-void orExp::transConditionalJump(coenv &e, bool cond, Int dest)
+void orExp::transConditionalJump(coenv &e, bool cond, label dest)
 {
   if (cond == true) {
     left->transConditionalJump(e, true, dest);
     right->transConditionalJump(e, true, dest);
   } else { /* cond == false */
-    Int end = e.c.fwdLabel();
+    label end = e.c.fwdLabel();
 
     left->transConditionalJump(e, true, end);
     right->transConditionalJump(e, false, dest);
@@ -1297,10 +1297,10 @@ types::ty *andExp::trans(coenv &e)
   return getType(e);
 }
 
-void andExp::transConditionalJump(coenv &e, bool cond, Int dest)
+void andExp::transConditionalJump(coenv &e, bool cond, label dest)
 {
   if (cond == true) {
-    Int end = e.c.fwdLabel();
+    label end = e.c.fwdLabel();
 
     left->transConditionalJump(e, false, end);
     right->transConditionalJump(e, true, dest);

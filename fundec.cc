@@ -141,7 +141,7 @@ void transDefault(coenv &e, position pos, varEntry *v, varinit *init) {
 
   v->encode(READ, pos, e.c);
 
-  Int end = e.c.fwdLabel();
+  label end = e.c.fwdLabel();
   e.c.useLabel(inst::jump_if_not_default, end);
 
   init->transToType(e, v->getType());

@@ -35,6 +35,27 @@ using vm::item;
 void assertBltinLookup(inst::opcode op, item it);
 #endif
 
+// Labels used by the coder class to denote where in the code a jump
+// instruction should go to.  Label can be used before their exact location is
+// known.
+// Declared outside of the coder class, so that it can be declared in exp.h.
+struct label_t : public gc {
+  vm::program::label location;
+  vm::program::label firstUse;
+
+  // Most labels are used only once, and so we optimize for that case.  We do,
+  // however, have to handle labels which are used multiple times (such as
+  // break locations in a loop), and so a useVector is allocated to store
+  // these if necessary.
+  typedef mem::vector<vm::program::label> useVector;
+  useVector *moreUses;
+
+  // Only the constructor is defined.  Everything else is handles by methods
+  // of the coder class.
+  label_t() : location(), firstUse(), moreUses(0) {}
+};
+typedef label_t *label;
+
 class coder {
   // The frame of the function we are currently encoding.  This keeps
   // track of local variables, and parameters with respect to the stack.
@@ -78,12 +99,6 @@ class coder {
   // array to write.
   vm::program *program;
 
-  // Keeps track of labels and writes in memory addresses as they're defined.
-  // This way a label can be used before its address is known.
-  std::map<Int,vm::program::label> defs;
-  std::multimap<Int,vm::program::label> uses;
-  Int numLabels;
-
   // The loop constructs allocate nested frames, in case variables in an
   // iteration escape in a closure.  This stack keeps track of where the
   // variables are allocated, so the size of the frame can be encoded.  At the
@@ -92,10 +107,10 @@ class coder {
   std::stack<vm::program::label> allocs;
 
   // Loops need to store labels to where break and continue statements
-  // should pass control to.  Since loops can be nested, this needs to
+  // should pass control.  Since loops can be nested, this needs to
   // be stored as a stack.
-  std::stack<Int> breakLabels;
-  std::stack<Int> continueLabels;
+  std::stack<label> breakLabels;
+  std::stack<label> continueLabels;
 
   // Current File Position
   position curPos;
@@ -304,29 +319,29 @@ public:
   bool encode(frame *dest, frame *top);
 
 
-  // Assigns a handle to the current point in the list of stack
+  // Assigns a handle to the current point in the list of bytecode
   // instructions and returns that handle.
-  Int defLabel();
+  label defNewLabel();
 
   // Sets the handle given by label to the current point in the list of
   // instructions.
-  Int defLabel(Int label);
+  label defLabel(label label);
 
   // Encodes the address pointed to by the handle label into the
   // sequence of instructions.  This is useful for a jump instruction to
   // jump to where a label was defined.
-  void useLabel(inst::opcode op, Int label);
+  void useLabel(inst::opcode op, label label);
 
   // If an address has to be used for a jump instruction before it is
   // actually encoded, a handle can be given to it by this function.
   // When that handle's label is later defined, the proper address will
   // be inserted into the code where the handle was used. 
-  Int fwdLabel();
+  label fwdLabel();
 
-  void pushBreak(Int label) {
+  void pushBreak(label label) {
     breakLabels.push(label);
   }
-  void pushContinue(Int label) {
+  void pushContinue(label label) {
     continueLabels.push(label);
   }
   void popBreak() {

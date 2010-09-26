@@ -19,12 +19,18 @@
 
 namespace trans {
 class coenv;
+class coder;
+
+class label_t;
+typedef label_t *label;
+
 class application;
 }
 
 namespace absyntax {
 
 using trans::coenv;
+using trans::label;
 using trans::application;
 using trans::access;
 using sym::symbol;
@@ -155,7 +161,7 @@ public:
   // Evaluate the expression as a boolean.  If the result equals cond, jump to
   // the label dest, otherwise do not jump.  In either case, no value is left
   // on the stack.
-  virtual void transConditionalJump(coenv &e, bool cond, Int dest);
+  virtual void transConditionalJump(coenv &e, bool cond, label dest);
 
   // This is used to ensure the proper order and number of evaluations.  When
   // called, it immediately translates code to perform the side-effects
@@ -939,7 +945,7 @@ public:
   void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
-  void transConditionalJump(coenv &e, bool cond, Int dest);
+  void transConditionalJump(coenv &e, bool cond, label dest);
 };
 
 class andExp : public andOrExp {
@@ -950,7 +956,7 @@ public:
   void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
-  void transConditionalJump(coenv &e, bool cond, Int dest);
+  void transConditionalJump(coenv &e, bool cond, label dest);
 };
 
 class joinExp : public callExp {

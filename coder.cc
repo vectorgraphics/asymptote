@@ -49,7 +49,6 @@ coder::coder(position pos, string name, modifier sord)
     sord(sord),
     perm(DEFAULT_PERM),
     program(new vm::program),
-    numLabels(0),
     curPos(pos)
 {
   sord_stack.push(sord);
@@ -72,7 +71,6 @@ coder::coder(position pos, string name, function *t, coder *parent,
     sord(sord),
     perm(DEFAULT_PERM),
     program(new vm::program),
-    numLabels(0),
     curPos(pos)
 {
   sord_stack.push(sord);
@@ -92,7 +90,6 @@ coder::coder(position pos, record *t, coder *parent, modifier sord)
     sord(sord),
     perm(DEFAULT_PERM),
     program(new vm::program),
-    numLabels(0),
     curPos(pos)
 {
   sord_stack.push(sord);
@@ -198,6 +195,7 @@ bool coder::encode(frame *dest, frame *top)
   //cerr << "coder::encode()\n";
   
   if (dest == 0) {
+    // Change to encodePop?
     encode(inst::pop);
     encode(inst::constpush,(item)0);
   }
@@ -221,38 +219,53 @@ bool coder::encode(frame *dest, frame *top)
   return true;
 }
 
-Int coder::defLabel()
+label coder::defNewLabel()
 {
   if (isStatic())
-    return parent->defLabel();
+    return parent->defNewLabel();
   
-  return defLabel(numLabels++);
+  label l = new label_t();
+  assert(!l->location.defined());
+  assert(!l->firstUse.defined());
+  return defLabel(l);
 }
 
-Int coder::defLabel(Int label)
+label coder::defLabel(label label)
 {
   if (isStatic())
     return parent->defLabel(label);
-  
-  assert(label >= 0 && label < numLabels);
 
-  defs.insert(std::make_pair(label,program->end()));
+  //cout << "defining label " << label << endl;
 
-  std::multimap<Int,vm::program::label>::iterator p = uses.lower_bound(label);
-  while (p != uses.upper_bound(label)) {
-    p->second->ref = program->end();
-    ++p;
+  assert(!label->location.defined());
+  //vm::program::label here = program->end();
+  label->location = program->end();
+  assert(label->location.defined());
+
+  if (label->firstUse.defined()) {
+    label->firstUse->ref = program->end();
+    //vm::printInst(cout, label->firstUse, program->begin());
+    //cout << endl;
+
+    if (label->moreUses) {
+      typedef label_t::useVector useVector;
+      useVector& v = *label->moreUses;
+      for (useVector::iterator p = v.begin(); p != v.end(); ++p) {
+        (*p)->ref = program->end();
+      }
+    }
   }
 
   return label;
 }
 
-void coder::useLabel(inst::opcode op, Int label)
+void coder::useLabel(inst::opcode op, label label)
 {
   if (isStatic())
     return parent->useLabel(op,label);
   
-#ifdef COMBO
+#if 0
+  // TODO: Check for labels inside.
   if (op == inst::cjmp || op == inst::njmp) {
     inst& last = program->back();
     if (last.op == inst::builtin) {
@@ -264,24 +277,42 @@ void coder::useLabel(inst::opcode op, Int label)
     }
   }
 #endif
+  
+  //cout << "using label " << label << endl;
 
-  std::map<Int,vm::program::label>::iterator p = defs.find(label);
-  if (p != defs.end()) {
-    encode(op,p->second);
+  if (label->location.defined()) {
+    encode(op, label->location);
   } else {
-    // Not yet defined
-    uses.insert(std::make_pair(label,program->end()));
+    if (label->firstUse.defined()) {
+      // Store additional uses in the moreUses array.
+      if (!label->moreUses)
+        label->moreUses = new label_t::useVector;
+      label->moreUses->push_back(program->end());
+    }
+    else {
+      label->firstUse = program->end();
+      assert(label->firstUse.defined());
+      assert(!label->location.defined());
+    }
+
+    // This needs to be called after storing the use, so that the previous
+    // call to program->end() then gives the location to this opcode.
     encode(op);
   }
 }
-
-Int coder::fwdLabel()
+label coder::fwdLabel()
 {
   if (isStatic())
     return parent->fwdLabel();
   
   // Create a new label without specifying its position.
-  return numLabels++;
+  label l = new label_t();
+  assert(!l->location.defined());
+  assert(!l->firstUse.defined());
+
+  //cout << "forward label " << l << endl;
+
+  return l;
 }
 
 void coder::markPos(position pos)

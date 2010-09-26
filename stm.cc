@@ -181,8 +181,8 @@ void ifStm::prettyprint(ostream &out, Int indent)
 
 void ifStm::trans(coenv &e)
 {
-  Int elseLabel = e.c.fwdLabel();
-  Int end = e.c.fwdLabel();
+  label elseLabel = e.c.fwdLabel();
+  label end = e.c.fwdLabel();
 
 #ifdef TRANSJUMP
   test->transConditionalJump(e, false, elseLabel);
@@ -224,10 +224,10 @@ void whileStm::prettyprint(ostream &out, Int indent)
 
 void whileStm::trans(coenv &e)
 {
-  Int end = e.c.fwdLabel();
+  label end = e.c.fwdLabel();
   e.c.pushBreak(end);
 
-  Int start = e.c.defLabel();
+  label start = e.c.defNewLabel();
   e.c.pushContinue(start);
 
 #ifdef TRANSJUMP
@@ -257,12 +257,12 @@ void doStm::prettyprint(ostream &out, Int indent)
 
 void doStm::trans(coenv &e)
 {
-  Int testLabel = e.c.fwdLabel();
+  label testLabel = e.c.fwdLabel();
   e.c.pushContinue(testLabel);
-  Int end = e.c.fwdLabel();
+  label end = e.c.fwdLabel();
   e.c.pushBreak(end);
  
-  Int start = e.c.defLabel();
+  label start = e.c.defNewLabel();
 
   transLoopBody(e,body);  
   
@@ -299,12 +299,12 @@ void forStm::trans(coenv &e)
   if (init)
     init->markTrans(e);
 
-  Int ctarget = e.c.fwdLabel();
+  label ctarget = e.c.fwdLabel();
   e.c.pushContinue(ctarget);
-  Int end = e.c.fwdLabel();
+  label end = e.c.fwdLabel();
   e.c.pushBreak(end);
 
-  Int start = e.c.defLabel();
+  label start = e.c.defNewLabel();
   if(test) {
 #ifdef TRANSJUMP
     test->transConditionalJump(e, false, end);

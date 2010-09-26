@@ -37,6 +37,7 @@ public: // interface
 public: //interface
   label& operator++();
   label& operator--();
+  bool defined() const;
   bool operator==(const label& right) const;
   bool operator!=(const label& right) const;
   inst& operator*() const;
@@ -51,8 +52,7 @@ private:
   friend class program;
 };
 
-// Prints one instruction (including arguments) and returns how many
-// positions in the code stream were shown.
+// Prints one instruction (including arguments).
 void printInst(std::ostream& out, const program::label& code,
                const program::label& base);
 
@@ -78,6 +78,8 @@ inline program::label& program::label::operator++()
 { ++where; return *this; }
 inline program::label& program::label::operator--()
 { --where; return *this; }
+inline bool program::label::defined() const
+{ return (code != 0); }
 inline bool program::label::operator==(const label& right) const
 { return (code == right.code) && (where == right.where); }
 inline bool program::label::operator!=(const label& right) const
