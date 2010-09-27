@@ -3,7 +3,7 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2+)
 
-\ProvidesPackage{asymptote}[2010/08/19 v1.19 Asymptote style file for LaTeX]
+\ProvidesPackage{asymptote}[2010/09/27 v1.20 Asymptote style file for LaTeX]
 \RequirePackage{keyval}
 \RequirePackage{ifthen}
 \newif\ifASYdefaultinline
@@ -142,12 +142,12 @@
   \gdef\ASYviewportheight{}%
   \immediate\closeout\AsyStream
   \ifASYinline
-    \openin\AsyTestStream=\AsyFile.tex
+    \openin\AsyTestStream="\AsyFile.tex"
   \else
     \ifASYPDF
-      \openin\AsyTestStream=\AsyFile.pdf
+      \openin\AsyTestStream="\AsyFile.pdf"
     \else
-      \openin\AsyTestStream=\AsyFile.eps
+      \openin\AsyTestStream="\AsyFile.eps"
     \fi
   \fi
   \ifeof\AsyTestStream
@@ -156,7 +156,7 @@
       \closein\AsyTestStream%
     \else
       \closein\AsyTestStream%
-      \openin\AsyTestStream=\AsyFile.tex
+      \openin\AsyTestStream="\AsyFile.tex"
       \ifeof\AsyTestStream
         \ifASYPDF
         \PackageWarning{asymptote}{file `\AsyFile.pdf' not found}%
@@ -165,7 +165,7 @@
         \fi
       \else
         \catcode`:=12
-        \input \AsyFile.tex%
+        \input "\AsyFile.tex"%
       \fi
       \closein\AsyTestStream%
     \fi
@@ -173,24 +173,34 @@
     \closein\AsyTestStream%
     \ifASYinline
       \catcode`:=12
-      \input \AsyFile.tex%
+      \input "\AsyFile.tex"%
     \else
       \ifASYattach
         \ifASYPDF
-          \openin\AsyTestStream=\AsyFile+0.pdf
-        \fi
-        \ifeof\AsyTestStream
-          \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{\AsyFile}}%
+          \openin\AsyTestStream="\AsyFile+0.pdf"
+          \ifeof\AsyTestStream
+            \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{"\AsyFile".pdf}}%
+          \else
+            \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{"\AsyFile+0".pdf}}%
+          \fi
         \else
-         \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{\AsyFile+0}}%
+          \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{"\AsyFile.eps"}}%
         \fi
-        \textattachfile{\AsyFile.pdf}{\phantom{\copy\ASYbox}}%
+        \ifASYPDF
+        \textattachfile{"\AsyFile.pdf"}{\phantom{\copy\ASYbox}}%
+        \else
+        \textattachfile{"\AsyFile.eps"}{\phantom{\copy\ASYbox}}%
+        \fi
         \vskip-\ht\ASYbox%
         \indent%
         \box\ASYbox%
         \closein\AsyTestStream%
       \else
-        \includegraphics[hiresbb]{\AsyFile}%
+        \ifASYPDF
+          \includegraphics[hiresbb]{"\AsyFile".pdf}%
+        \else
+          \includegraphics[hiresbb]{"\AsyFile.eps"}%
+        \fi
       \fi
     \fi
   \fi
@@ -252,15 +262,14 @@
    \fi
    \immediate\write\AsyStream{defaultfilename="\Jobname-\the\c@asy";}%
    \immediate\write\AsyStream{if(settings.render < 0) settings.render=4;}%
+   \immediate\write\AsyStream{settings.outformat="";}%
    \ifASYattach
      \immediate\write\AsyStream{settings.inlineimage=false;}%
      \immediate\write\AsyStream{settings.embed=false;}%
-     \immediate\write\AsyStream{settings.outformat="pdf";}%
      \immediate\write\AsyStream{settings.toolbar=true;}%
    \else
      \immediate\write\AsyStream{settings.inlineimage=true;}%
      \immediate\write\AsyStream{settings.embed=true;}%
-     \immediate\write\AsyStream{settings.outformat="";}%
      \immediate\write\AsyStream{settings.toolbar=false;}%
      \immediate\write\AsyStream{viewportmargin=(2,2);}%
    \fi
