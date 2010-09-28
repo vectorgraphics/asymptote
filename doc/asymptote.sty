@@ -187,9 +187,9 @@
           \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{"\AsyFile.eps"}}%
         \fi
         \ifASYPDF
-        \textattachfile{"\AsyFile.pdf"}{\phantom{\copy\ASYbox}}%
+          \textattachfile{\AsyFile.pdf}{\phantom{\copy\ASYbox}}%
         \else
-        \textattachfile{"\AsyFile.eps"}{\phantom{\copy\ASYbox}}%
+          \textattachfile{\AsyFile.eps}{\phantom{\copy\ASYbox}}%
         \fi
         \vskip-\ht\ASYbox%
         \indent%
