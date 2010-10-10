@@ -376,27 +376,48 @@ bool picture::texprocess(const string& texname, const string& outname,
             bool first=true;
             transform t=shift(bboxshift)*T;
             bool shift=!t.isIdentity();
-            string beginspecial="TeXDict begin @defspecial";
-            string endspecial="@fedspecial end";
+
+            const string beginspecial="TeXDict begin @defspecial";
+            const size_t beginlength=beginspecial.size();
+            const string endspecial="@fedspecial end";
+            const size_t endlength=endspecial.size();
+
             while(getline(fin,s)) {
-              if(s.find("%%DocumentPaperSizes:") == 0) continue;
-              if(s.find("%!PS-Adobe-") == 0) {
-                fout.header();
-              } else if(first && s.find("%%BoundingBox:") == 0) {
-                bbox box=b;
-                box.shift(bboxshift);
-                if(verbose > 2) BoundingBox(cout,box);
-                fout.BoundingBox(box);
-                first=false;
-              } else if(shift && s.find(beginspecial) == 0) {
-                fout.verbatimline(s);
-                fout.gsave();
-                fout.concat(t);
-              } else if(shift && s.find(endspecial) == 0) {
-                fout.grestore();
-                fout.verbatimline(s);
-              } else
-                fout.verbatimline(s);
+              if (s[0] == '%') {
+                if (s.find("%%DocumentPaperSizes:") == 0)
+                  continue;
+
+                if(s.find("%!PS-Adobe-") == 0) {
+                  fout.header();
+                  continue;
+                }
+
+                if (first && s.find("%%BoundingBox:") == 0) {
+                  bbox box=b;
+                  box.shift(bboxshift);
+                  if(verbose > 2) BoundingBox(cout,box);
+                  fout.BoundingBox(box);
+                  first=false;
+                  continue;
+                }
+              }
+              
+              if (shift) {
+                if (s.compare(0, beginlength, beginspecial) == 0) {
+                  fout.verbatimline(s);
+                  fout.gsave();
+                  fout.concat(t);
+                  continue;
+                }
+                if (s.compare(0, endlength, endspecial) == 0) {
+                  fout.grestore();
+                  fout.verbatimline(s);
+                  continue;
+                }
+              }
+
+              // For the default line, output it unchanged.
+              fout.verbatimline(s);
             }
           }
           if(!keep) {
