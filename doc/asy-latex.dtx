@@ -1,0 +1,684 @@
+% \iffalse
+%
+%<*internal>
+\begingroup
+%</internal>
+%<*batchfile>
+\input docstrip.tex
+\keepsilent
+\preamble
+____________________________
+The ASYMPTOTE package
+
+(C) 2003 Tom Prince
+(C) 2003-2010 John Bowman
+(C) 2010 Will Robertson
+
+Adapted from comment.sty
+
+Licence: GPL2+
+
+\endpreamble
+\nopostamble
+\askforoverwritefalse
+\generate{\file{asymptote.sty}{\from{\jobname.dtx}{pkg}}}
+%</batchfile>
+%<batchfile>\endbatchfile
+%<*internal>
+\generate{\file{\jobname.ins}{\from{\jobname.dtx}{batchfile}}}
+\edef\tmpa{plain}
+\ifx\tmpa\fmtname\endgroup\expandafter\bye\fi
+\endgroup
+\immediate\write18{makeindex -s gind.ist -o \jobname.ind  \jobname.idx}
+\immediate\write18{makeindex -s gglo.ist -o \jobname.gls  \jobname.glo}
+%</internal>
+%
+%<*driver>
+\ProvidesFile{asy-latex.dtx}
+%</driver>
+%<pkg>\ProvidesPackage{asymptote}
+%<*pkg>
+  [2010/09/28 v1.21 Asymptote style file for LaTeX]
+%</pkg>
+%
+%<*driver>
+\documentclass{ltxdoc}
+\EnableCrossrefs
+\CodelineIndex
+\begin{document}
+  \DocInput{\jobname.dtx}
+\end{document}
+%</driver>
+% \fi
+%
+% \GetFileInfo{asy-latex.dtx}
+% \title{The \textsf{asymptote} package}
+% \author{%
+%    John Bowman, Tom Prince, and Will Robertson
+% }
+% \date{\filedate\qquad\fileversion}
+% \maketitle
+% \begin{abstract}
+% This package provides integration of inline and external Asymptote
+% graphics within a \LaTeX\ document.
+% \end{abstract}
+%
+% \tableofcontents
+%
+% \section{Introduction}
+%
+% This is the documentation for the \LaTeX\ package \texttt{asymptote}
+% which accompanies the Asymptote drawing package. For further details on
+% Asymptote, please see its documentation in \texttt{asymptote.pdf}.
+%
+% \section{User syntax}
+%
+% \subsection{Package loading and options}
+%
+% The package may take two options at load time: \texttt{inline} or
+% \texttt{attach}.
+% These options can also be set at any time with the
+% \cmd\asysetup\marg{options} command, or specified individually in the
+% optional argument to each \texttt{asy} environment or \texttt{asyinclude}
+% command.
+%
+% The \texttt{inline} option uses Asymptote's `inline' mode whereby
+% included graphics have their labels typeset in the environment of the
+% document they are contained within. Otherwise the Asymptote graphics are
+% self-contained and their formatting is independent of the document.
+%
+% The \texttt{attach} option allows generated graphics to be embedded
+% within the PDF using the \texttt{attachfile2} package; please load that
+% package separately if you wish to use it. The \texttt{attach} option
+% takes precedence over the \texttt{inline} option.
+%
+% This package produces quite a number of output files, which by default
+% are created in the same directory as the \LaTeX\ document that is being
+% compiled. To keep things more tidy, you can specify an output directory
+% for these files by defining the \cmd\asydir\ command. For example, if you
+% wish to store the figure files in the subdirectory \texttt{asytmp/}, the
+% you would write \verb|\renewcommand\asydir{asytmp}|.
+%
+% Alternatively (and tentatively), you may write \verb|dir=asytmp| in
+% either the \texttt{asy} environment options or the options to
+% \cmd\asysetup.
+%
+% \subsection{Commands for inserting Asymptote graphics}
+%
+% The main environment defined by the package is the \texttt{asy}
+% environment, in which verbatim Asymptote code is placed that will be
+% compiled for generating a graphic in the document. For example,
+% \begin{verbatim}
+% \begin{figure}
+% \begin{asy}[ <options> ]
+% <ASYMPTOTE CODE>
+% \end{asy}
+% \caption{...}\label{...}
+% \end{verbatim}
+%
+% If you have Asymptote code in a separate file, you can include it with
+% the \cmd\asyinclude\oarg{options}\marg{filename}\ command.
+%
+% For Asymptote code that should be included in \emph{every} graphic,
+% define it using the \texttt{asydef} environment.
+%
+% \subsection{Graphics options}
+%
+% Both the \texttt{asy} environment and the \cmd\asyinclude\ command take
+% optional parameters for controlling aspects of the graphics creation. In
+% addition to locally setting \texttt{inline} and \texttt{attach}, the
+% following options may also be used:
+% \begin{description}
+% \item[height] Height of the figure
+% \item[width] Width of the figure
+% \item[viewportheight] Viewport height for 3D figures
+% \item[viewportwidth] Viewport width for 3D figures
+% \end{description}
+% These may also be set globally using the \cmd\asysetup\ command.
+%
+% \section{Processing the document}
+%
+% After running \LaTeX\ on the document, it is necessary to process the
+% Asymptote graphics so they can be included in the next compilation. The
+% simplest procedure is a recipe such as
+% \begin{verbatim}
+% pdflatex mydoc
+% asy mydoc-*.asy
+% pdflatex mydoc
+% \end{verbatim}
+% This technique will recompile each graphic every time, however. To only
+% recompile graphics that have changed, use the \texttt{latexmk}
+% tool. Asymptote is distributed with a \texttt{latexmkrc} configuration
+% file; place this file in a place where \texttt{latexmk} will find it and
+% your document may be compiled, including the \texttt{asy} compilations,
+% with \texttt{latexmk mydoc} or \texttt{latexmk --pdf mydoc}.
+%
+% \section{Implementation}
+%
+% \iffalse
+%<*pkg>
+% \fi
+%
+%    \begin{macrocode}
+\def\Asymptote{{\tt Asymptote}}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\InputIfFileExists{\jobname.pre}{}{}
+%    \end{macrocode}
+%
+% \subsection{Allocations}
+%
+% \paragraph{Allocations}
+%
+%    \begin{macrocode}
+\newbox\ASYbox
+\newcounter{asy}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\newwrite\AsyStream
+\newwrite\AsyPreStream
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\newif\ifASYinline
+\newif\ifASYattach
+%    \end{macrocode}
+%
+% \subsection{Packages}
+%
+%    \begin{macrocode}
+\RequirePackage{keyval}
+\RequirePackage{ifthen}
+\RequirePackage{color,graphicx}
+%    \end{macrocode}
+%
+% \paragraph{Emulating packages}
+% We cannot assume that Asymptote users have recent
+% \TeX\ distributions. (E.g., Fedora until recently still shipped teTeX.)
+% So load \textsf{ifpdf} and \textsf{ifxetex} if they exist; otherwise,
+% emulate them.
+%
+% In due course, delete this code and just load the packages.
+%    \begin{macrocode}
+\IfFileExists{ifpdf.sty}{
+  \RequirePackage{ifpdf}
+}{
+  \expandafter\newif\csname ifpdf\endcsname
+  \ifx\pdfoutput\@undefined\else
+    \ifcase\pdfoutput\else
+      \pdftrue
+    \fi
+  \fi
+}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\IfFileExists{ifxetex.sty}{
+  \RequirePackage{ifxetex}
+}{
+  \expandafter\newif\csname ifxetex\endcsname
+  \ifx\XeTeXversion\@undefined\else
+    \xetextrue
+  \fi
+}
+%    \end{macrocode}
+%
+% \begin{macro}{\CatchFileDef}
+% Used for \cmd\asyinclude.
+%    \begin{macrocode}
+\IfFileExists{catchfile.sty}{
+  \RequirePackage{catchfile}
+}{
+  \newcommand\CatchFileDef[3]{%
+    \begingroup
+    \everyeof{%
+      \ENDCATCHFILEMARKER
+      \noexpand
+    }%
+    \long\def\@tempa##1\ENDCATCHFILEMARKER{%
+      \endgroup
+      \def#1{##1}%
+    }%
+    #3%
+    \expandafter\@tempa\@@input #2\relax
+  }
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \paragraph{Ensuring attachfile2 is loaded if [attach] is requested}
+%    \begin{macrocode}
+\newif\if@asy@attachfile@loaded
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\AtBeginDocument{%
+  \@ifpackageloaded{attachfile2}{\@asy@attachfile@loadedtrue}{}%
+  \let\asy@check@attachfile\asy@check@attachfile@loaded
+}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\newcommand\asy@check@attachfile@loaded{%
+  \if@asy@attachfile@loaded\else
+    \PackageError{asymptote}{You must load the attachfile2 package}{^^J%
+      You have requested the [attach] option for some or all of your^^J%
+      Asymptote graphics, which requires the attachfile2 package.^^J%
+      Please load it in the document preamble.^^J%
+    }%
+  \fi
+}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\newcommand\asy@check@attachfile{%
+  \AtBeginDocument{\asy@check@attachfile@loaded}%
+  \let\asy@check@attachfile\@empty
+}
+%    \end{macrocode}
+%
+% \paragraph{Macros}
+%    \begin{macrocode}
+\def\csarg#1#2{\expandafter#1\csname#2\endcsname}
+%    \end{macrocode}
+%
+% \subsection{Package options}
+%
+%    \begin{macrocode}
+\DeclareOption{inline}{%
+  \ASYinlinetrue
+}
+\DeclareOption{attach}{%
+  \asy@check@attachfile
+  \ASYattachtrue
+}
+\ProcessOptions*
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\asydir{}
+\def\ASYprefix{}
+%    \end{macrocode}
+%
+%
+% \subsection{Testing for PDF output}
+% Note this is not quite the same as \cs{ifpdf}, since we still want PDF
+% output when using XeTeX.
+%    \begin{macrocode}
+\newif\ifASYPDF
+\ifxetex
+  \ASYPDFtrue
+\else
+  \ifpdf
+    \ASYPDFtrue
+  \fi
+\fi
+\ifASYPDF
+  \def\AsyExtension{pdf}
+\else
+  \def\AsyExtension{eps}
+\fi
+%    \end{macrocode}
+%
+% \subsection{Bug squashing}
+%
+%    \begin{macrocode}
+\def\unquoteJobname#1"#2"#3\relax{%
+  \def\rawJobname{#1}%
+  \ifx\rawJobname\empty
+    \def\rawJobname{#2}%
+  \fi
+}
+\expandafter\unquoteJobname\jobname""\relax
+%    \end{macrocode}
+% Work around jobname bug in MiKTeX 2.5 and 2.6:
+% Turn stars in file names (resulting from spaces, etc.) into minus signs
+%    \begin{macrocode}
+\def\fixstar#1*#2\relax{%
+  \def\argtwo{#2}%
+  \ifx\argtwo\empty
+    \gdef\Jobname{#1}%
+  \else
+    \fixstar#1-#2\relax
+  \fi
+}
+\expandafter\fixstar\rawJobname*\relax
+%    \end{macrocode}
+%
+% Work around bug in dvips.def: allow spaces in file names.
+%    \begin{macrocode}
+\def\Ginclude@eps#1{%
+  \message{<#1>}%
+  \bgroup
+  \def\@tempa{!}%
+  \dimen@\Gin@req@width
+  \dimen@ii.1bp\relax
+  \divide\dimen@\dimen@ii
+  \@tempdima\Gin@req@height
+  \divide\@tempdima\dimen@ii
+    \special{PSfile=#1\space
+      llx=\Gin@llx\space
+      lly=\Gin@lly\space
+      urx=\Gin@urx\space
+      ury=\Gin@ury\space
+      \ifx\Gin@scalex\@tempa\else rwi=\number\dimen@\space\fi
+      \ifx\Gin@scaley\@tempa\else rhi=\number\@tempdima\space\fi
+      \ifGin@clip clip\fi}%
+  \egroup
+}
+%    \end{macrocode}
+%
+% \subsection{Input/Output}
+%
+%    \begin{macrocode}
+\immediate\openout\AsyPreStream=\jobname.pre\relax
+\AtEndDocument{\immediate\closeout\AsyPreStream}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\WriteAsyLine#1{%
+  \immediate\write\AsyStream{\detokenize{#1}}%
+}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\globalASYdefs{}
+\def\WriteGlobalAsyLine#1{%
+  \expandafter\g@addto@macro
+  \expandafter\globalASYdefs
+  \expandafter{\detokenize{#1^^J}}%
+}
+%    \end{macrocode}
+%
+% \subsection{Commands for verbatim processing environments}
+%
+%    \begin{macrocode}
+\def\ProcessAsymptote#1{%
+  \begingroup
+  \def\CurrentAsymptote{#1}%
+  \let\do\@makeother \dospecials
+  \@makeother\^^L% and whatever other special cases
+  \endlinechar`\^^M \catcode`\^^M=12 \xAsymptote
+}
+%    \end{macrocode}
+% Need lots of comment chars here because \meta{line end} is no longer a
+% space character.
+%    \begin{macrocode}
+\begingroup
+  \catcode`\^^M=12 \endlinechar=-1\relax%
+  \gdef\xAsymptote{%
+    \expandafter\ProcessAsymptoteLine%
+  }
+  \gdef\ProcessAsymptoteLine#1^^M{%
+    \def\@tempa{#1}%
+    {%
+      \escapechar=-1\relax%
+      \xdef\@tempb{\string\\end\string\{\CurrentAsymptote\string\}}%
+    }%
+    \ifx\@tempa\@tempb%
+      \edef\next{\endgroup\noexpand\end{\CurrentAsymptote}}%
+    \else%
+      \ThisAsymptote{#1}%
+      \let\next\ProcessAsymptoteLine%
+    \fi%
+    \next%
+  }
+\endgroup
+%    \end{macrocode}
+%
+% \subsection{User interface}
+%
+%    \begin{macrocode}
+\newcommand\asy[1][]{%
+  \stepcounter{asy}%
+  \setkeys{ASYkeys}{#1}%
+%    \end{macrocode}
+% Disable the "inline" option if "attach" is enabled:
+%    \begin{macrocode}
+  \ifASYattach
+    \ASYinlinefalse
+  \fi
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+  \ifx\asydir\empty\else
+    \def\ASYprefix{\asydir/}%
+  \fi
+  \immediate\write\AsyPreStream{%
+    \noexpand\InputIfFileExists{%
+      \ASYprefix\noexpand\jobname-\the\c@asy.pre}{}{}%
+  }
+  \asy@write@graphic@header
+  \let\ThisAsymptote\WriteAsyLine
+  \ProcessAsymptote{asy}%
+}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\endasy{%
+  \asy@finalise@stream
+  \asy@input@graphic
+}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\asy@write@graphic@header{%
+  \immediate\openout\AsyStream=\ASYprefix\jobname-\the\c@asy.asy\relax
+  \gdef\AsyFile{\ASYprefix\Jobname-\the\c@asy}%
+  \immediate\write\AsyStream{%
+    if(!settings.multipleView) settings.batchView=false;^^J%
+    \ifxetex
+      settings.tex="xelatex";^^J%
+    \else\ifASYPDF
+        settings.tex="pdflatex";^^J%
+    \fi\fi
+    \ifASYinline
+      settings.inlinetex=true;^^J%
+      deletepreamble();^^J%
+    \fi
+    defaultfilename="\Jobname-\the\c@asy";^^J%
+    if(settings.render < 0) settings.render=4;^^J%
+    settings.outformat="";^^J%
+    \ifASYattach
+      settings.inlineimage=false;^^J%
+      settings.embed=false;^^J%
+      settings.toolbar=true;^^J%
+    \else
+      settings.inlineimage=true;^^J%
+      settings.embed=true;^^J%
+      settings.toolbar=false;^^J%
+      viewportmargin=(2,2);^^J%
+    \fi
+    \globalASYdefs
+  }%
+}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\asy@finalise@stream{%
+%    \end{macrocode}
+% Setting \verb|size()|. Only inserted if one of the dimensions is
+% set explicitly (i.e., if both height and width are not empty).
+%    \begin{macrocode}
+  \ifx\ASYwidth\@empty
+    \ifx\ASYheight\@empty
+      % write nothing!
+    \else
+      \immediate\write\AsyStream{size(0,\ASYheight);}%
+    \fi
+  \else
+    \ifx\ASYheight\@empty
+      \immediate\write\AsyStream{size(\ASYwidth,0);}%
+    \else
+      \immediate\write\AsyStream{size(\ASYwidth,\ASYheight);}%
+    \fi
+  \fi
+%    \end{macrocode}
+% Setting \verb|viewportsize=()|. Same logic as for \verb|size()|.
+% Note that \cs{ASYviewportwidth} varies according to \cs{ASYattach},
+% by default, so it needs to be fully expanded before checking if it equals
+% zero.
+%    \begin{macrocode}
+  \edef\ASYviewportwidth{\ASYviewportwidth}% locally "freeze" viewportwidth
+  \ifx\ASYviewportwidth\@empty
+    \ifx\ASYviewportheight\@empty
+      % write nothing!
+    \else
+      \immediate\write\AsyStream{viewportsize=(0,\ASYviewportheight);}%
+    \fi
+  \else
+    \ifx\ASYviewportheight\@empty
+      \immediate\write\AsyStream{viewportsize=(\ASYviewportwidth,0);}%
+    \else
+      \immediate\write\AsyStream{%
+        viewportsize=(\ASYviewportwidth,\ASYviewportheight);}%
+    \fi
+  \fi
+  \immediate\closeout\AsyStream
+}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\asy@input@graphic{%
+  \ifASYinline
+    \IfFileExists{"\AsyFile.tex"}{%
+      \catcode`:=12\relax
+      \@@input"\AsyFile.tex"\relax
+    }{%
+      \PackageWarning{asymptote}{file `\AsyFile.tex' not found}%
+    }%
+  \else
+    \IfFileExists{"\AsyFile.\AsyExtension"}{%
+      \ifASYattach
+        \ifASYPDF
+          \IfFileExists{"\AsyFile+0.pdf"}{%
+            \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{"\AsyFile+0".pdf}}%
+          }{%
+            \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{"\AsyFile".pdf}}%
+          }%
+        \else
+          \setbox\ASYbox=\hbox{\includegraphics[hiresbb]{"\AsyFile.eps"}}%
+        \fi
+        \textattachfile{\AsyFile.\AsyExtension}{\phantom{\copy\ASYbox}}%
+        \vskip-\ht\ASYbox
+        \indent
+        \box\ASYbox
+      \else
+        \ifASYPDF
+          \includegraphics[hiresbb]{"\AsyFile".pdf}%
+        \else
+          \includegraphics[hiresbb]{"\AsyFile.eps"}%
+        \fi
+      \fi
+    }{%
+%    \end{macrocode}
+% 3D PRC figures require inline mode.
+%    \begin{macrocode}
+      \IfFileExists{"\AsyFile.tex"}{%
+        \catcode`:=12
+        \@@input"\AsyFile.tex"\relax
+      }{%
+        \PackageWarning{asymptote}{%
+          file `\AsyFile.\AsyExtension' not found%
+        }%
+      }%
+    }%
+  \fi
+}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\asydef{%
+  \let\ThisAsymptote\WriteGlobalAsyLine
+  \ProcessAsymptote{asydef}%
+}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\newcommand\asyinclude[2][]{%
+  \begingroup
+  \stepcounter{asy}%
+  \setkeys{ASYkeys}{#1}%
+  \ifASYattach
+    \ASYinlinefalse
+  \fi
+  \ifx\asydir\empty\else
+    \def\ASYprefix{\asydir/}%
+  \fi
+  \immediate\write\AsyPreStream{%
+    \noexpand\InputIfFileExists{%
+      \ASYprefix\noexpand\jobname-\the\c@asy.pre}{}{}%
+  }
+  \asy@write@graphic@header
+  \CatchFileDef\@tempa{#2}{%
+    \let\do\@makeother
+    \dospecials
+    \endlinechar=10\relax
+  }
+  \immediate\write\AsyStream{\unexpanded\expandafter{\@tempa}}%
+  \asy@finalise@stream
+  \asy@input@graphic
+  \endgroup
+}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\newcommand{\ASYanimategraphics}[5][]{%
+  \IfFileExists{_#3.pdf}{%
+    \animategraphics[{#1}]{#2}{_#3}{#4}{#5}%
+  }{}
+}
+%    \end{macrocode}
+%
+% \subsection{Keys for graphics processing}
+%
+%    \begin{macrocode}
+\newcommand\asysetup[1]{\setkeys{ASYkeys}{#1}}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\define@key{ASYkeys}{dir}{%
+  \def\asydir{#1}%
+}
+\def\ASYwidth{}
+\define@key{ASYkeys}{width}{%
+  \edef\ASYwidth{\the\dimexpr#1\relax}%
+}
+\def\ASYheight{}
+\define@key{ASYkeys}{height}{%
+  \edef\ASYheight{\the\dimexpr#1\relax}%
+}
+\def\ASYviewportwidth{\ASYdefaultviewportwidth}
+\def\ASYdefaultviewportwidth{%
+  \ifASYattach \@empty \else \the\linewidth \fi
+}
+\define@key{ASYkeys}{viewportwidth}{%
+  \edef\ASYviewportwidth{\the\dimexpr#1\relax}%
+}
+\def\ASYviewportheight{}
+\define@key{ASYkeys}{viewportheight}{%
+  \edef\ASYviewportheight{\the\dimexpr#1\relax}%
+}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\define@key{ASYkeys}{attach}[true]{%
+  \ifthenelse{\equal{#1}{true}}
+    {\ASYattachtrue}
+    {\ASYattachfalse}%
+}
+\define@key{ASYkeys}{inline}[true]{%
+  \ifthenelse{\equal{#1}{true}}
+    {\ASYinlinetrue}
+    {\ASYinlinefalse}%
+}
+%    \end{macrocode}
+%
+% \iffalse
+%</pkg>
+% \fi
+%
+% \Finale
+%

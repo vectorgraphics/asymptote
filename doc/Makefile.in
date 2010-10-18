@@ -2,7 +2,7 @@ MANFILES = asy.1 xasy.1x
 ASYFILES = $(filter-out $(wildcard latexusage-*.asy),$(wildcard *.asy))
 SOURCE = asymptote.texi version.texi options
 ASY = ../asy -dir ../base -config "" -render=0
-DOCFILES = asymptote.pdf CAD.pdf
+DOCFILES = asymptote.pdf asy-latex.pdf CAD.pdf
 
 docdir = $(DESTDIR)@docdir@
 infodir = $(DESTDIR)@infodir@
@@ -13,6 +13,9 @@ TEXI2DVI = @TEXI2DVI@
 export docdir infodir INSTALL
 
 all:    doc
+
+asy-latex.pdf:
+	pdflatex asy-latex.dtx
 
 dvi:	doc asymptote.dvi
 
@@ -66,6 +69,7 @@ CAD.pdf: CAD.tex CAD1.eps
 	dvipdf CAD
 
 clean: FORCE
+	-rm -f asy-latex.{aux,idx,ins,log,toc}
 	-rm -f $(ASYFILES:.asy=.pdf)
 	-rm -f *.eps latexusage.{dvi,eps,pdf,log,aux,*.eps} latexusage-* latexusage.pre
 	-rm -f {asymptote,asymptote_}.{aux,cp,cps,dvi,fn,info,ky,log,pg,toc,tp,vr} 

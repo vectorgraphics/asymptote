@@ -39,7 +39,7 @@ DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
 NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output svnrevision.cc base/version.asy doc/version.texi \
-        GUI/xasyVersion.py $(XNAME) 
+        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf
 EXTRA = asy-mode.el asy-init.el asy.vim asy-kate.sh asymptote.py reload.js \
         nopapersize.ps
 EXEXTRA = piicon.eps *.views *.dat
@@ -110,7 +110,7 @@ asy.o:	asy.rc asy.ico Makefile
 	cat asy.rc | sed -e "s/ASYMPTOTE_VERSION/@VERSION@$(revision)/" | \
 	windres -o asy.o
 
-all:  	asy man faq asy-keywords.el
+all:  	asy sty man faq asy-keywords.el
 
 $(GCLIB): $(GC).tar.gz
 	gunzip -c $(GC).tar.gz > $(GC).tar
@@ -121,13 +121,16 @@ $(GCLIB): $(GC).tar.gz
 	fi
 	if test "$(GC)" = "gc-7.0"; then \
 	  cd $(GC)/include/private && \
-            patch < ../../../patches/gc-7.0nomem.patch;\
+            patch < ../../../patches/gc-7.0nomem.patch; \
 	fi
 	cd $(GC); \
 	./configure $(GCOPTIONS); \
 	$(MAKE) check
 
 $(GCPPLIB): $(GCLIB)
+
+sty:
+	cd doc && $(MAKE) asy-latex.pdf
 
 dvi:	asy
 	cd doc && $(MAKE) dvi
@@ -191,7 +194,7 @@ install-texhash: install-asy
 	  texhash; \
 	fi
 
-install-asy: asy
+install-asy: asy sty
 	${INSTALL} -d $(bindir) $(asydir) $(GUIdir) $(exampledir) \
           $(animationsdir)
 	-${INSTALL} -d $(latexdir)
