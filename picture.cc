@@ -245,6 +245,8 @@ void texinit()
       string name=stripDir(stripExt((outname())));
       size_t pos=name.rfind("-");
       if(pos < string::npos) {
+        name=stripExt(name).substr(0,pos);
+        unlink((name+".aux").c_str());
         cmd.push_back("-jobname="+name.substr(0,pos));
 #ifdef __CYGWIN__
         cmd.push_back("NUL"); // For MikTeX
