@@ -132,16 +132,16 @@ $(GCPPLIB): $(GCLIB)
 sty:
 	cd doc && $(MAKE) asy-latex.pdf
 
-dvi:	asy
+dvi:	asy sty
 	cd doc && $(MAKE) dvi
 
-html:	asy
+html:	asy sty
 	cd doc && $(MAKE) doc
 
-man:	asy
+man:	asy sty
 	cd doc && $(MAKE) man
 
-faq:	asy
+faq:	asy sty
 	cd doc && $(MAKE) faq
 
 $(RUNTIME_FILES:=.cc): %.cc: runtime.pl opsymbols.h runtimebase.in %.in
