@@ -121,13 +121,17 @@ template <typename T, typename Container = vector<T> >
 struct stack : public std::stack<T, Container>, public gc {
 };
 
+#define PAIR_ALLOC gc_allocator<std::pair<CONST Key,T> > /* space */
+
 #undef GC_CONTAINER
 
 #define GC_CONTAINER(KIND)                                              \
-  template <typename Key, typename T, typename Compare = std::less<Key> > \
-  struct KIND : public                                                  \
-  std::KIND<Key,T,Compare,gc_allocator<std::pair<Key,T> > >, public gc { \
-    KIND() : std::KIND<Key,T,Compare,gc_allocator<std::pair<Key,T> > > () {} \
+  template <typename Key,                                               \
+            typename T,                                                 \
+            typename Compare = std::less<Key> >                         \
+  struct KIND : public std::KIND<Key,T,Compare,PAIR_ALLOC>, public gc   \
+  {                                                                     \
+    KIND() : std::KIND<Key,T,Compare,PAIR_ALLOC> () {}                  \
   }
 
 GC_CONTAINER(map);
@@ -141,10 +145,10 @@ GC_CONTAINER(multimap);
             typename Hash = EXT::hash<Key>,                             \
             typename Eq = std::equal_to<Key> >                          \
   struct KIND : public                                                  \
-  EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > >, public gc { \
-    KIND() : EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > > () {} \
+  EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC>, public gc {                      \
+    KIND() : EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC> () {}                  \
     KIND(size_t n)                                                      \
-      : EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > > (n) {} \
+      : EXT::KIND<Key,T,Hash,Eq,PAIR_ALLOC> (n) {}                      \
   }
 
 GC_CONTAINER(unordered_map);
@@ -153,6 +157,8 @@ GC_CONTAINER(unordered_multimap);
 #undef GC_CONTAINER
 #undef EXT
 #endif
+
+#undef PAIR_ALLOC
 
 #ifdef USEGC
 typedef std::basic_string<char,std::char_traits<char>,
