@@ -17,6 +17,9 @@ all:    doc
 asy-latex.pdf:
 	pdflatex asy-latex.dtx
 
+asymptote.sty:
+	pdflatex asy-latex.dtx
+
 dvi:	doc asymptote.dvi
 
 doc:	$(DOCFILES) asy.1 faq latexusage.eps
@@ -34,7 +37,7 @@ faq:
 %.pdf:	%.asy
 	$(ASY) -f pdf -noprc $<
 
-latexusage.dvi: latexusage.tex
+latexusage.dvi: latexusage.tex asymptote.sty
 	rm -f latexusage-*
 	rm -f latexusage.pre
 	rm -f latexusage.aux
