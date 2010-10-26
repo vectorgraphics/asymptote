@@ -227,7 +227,7 @@ private struct freezableBounds {
     //assert(!pathpenBounds.empty());
     var pp = pathpenBounds[0];
 
-    // Test if the pen are equal or have the same bounds.
+    // Test if the pens are equal or have the same bounds.
     if (pp.p == p || (min(pp.p) == min(p) && max(pp.p) == max(p))) {
       // If this path has the same pen as the last one, just add it to the
       // array corresponding to that pen.

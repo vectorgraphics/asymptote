@@ -50,24 +50,9 @@ struct lambda : public gc {
 // to be run, but constants, labels, and other objects can be in the code.
 struct inst : public gc {
   enum opcode {
-    pop, intpush, constpush,
-    varpush, varsave, fieldpush, fieldsave,
-    builtin, jmp, cjmp, njmp, popcall,
-    pushclosure, makefunc, ret,
-    alloc, pushframe, popframe,
-
-    push_default,
-    jump_if_not_default,
-
-#ifdef COMBO
-    // Combo instructions:
-    // varpop = varsave+pop and fieldpop = fieldsave+pop
-    varpop, fieldpop,
-
-    // gejmp = bltin greater-than-equal (for ints) + cjmp    OR
-    //       = bltin less-than-equal + njmp
-    gejmp
-#endif
+#define OPCODE(name,type)  name,
+#include "opcodes.h"
+#undef OPCODE
   };
   opcode op;
   position pos;
