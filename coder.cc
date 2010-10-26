@@ -168,32 +168,20 @@ bool coder::encode(frame *f)
   
   if (f == 0) {
     encode(inst::constpush,(item)0);
+    return true;
   }
   else if (f == toplevel) {
     encode(inst::pushclosure);
+    return true;
   }
   else {
-    encode(inst::varpush,0);
-    
-    frame *level = toplevel->getParent();
-    while (level != f) {
-      if (level == 0)
-        // Frame request was in an improper scope.
-        return false;
-
-      encode(inst::fieldpush,0);
-
-      level = level->getParent();
-    }
+    encode(inst::varpush,toplevel->parentIndex());
+    return encode(f, toplevel->getParent());
   }
-
-  return true;
 }
 
 bool coder::encode(frame *dest, frame *top)
 {
-  //cerr << "coder::encode()\n";
-  
   if (dest == 0) {
     // Change to encodePop?
     encode(inst::pop);
@@ -204,12 +192,10 @@ bool coder::encode(frame *dest, frame *top)
     while (level != dest) {
       if (level == 0) {
         // Frame request was in an improper scope.
-        //cerr << "failed\n";
-        
         return false;
       }
 
-      encode(inst::fieldpush,0);
+      encode(inst::fieldpush, level->parentIndex());
 
       level = level->getParent();
     }
@@ -217,6 +203,22 @@ bool coder::encode(frame *dest, frame *top)
 
   //cerr << "succeeded\n";
   return true;
+}
+
+vm::program::label coder::encodeEmptyJump(inst::opcode op)
+{
+  // Get the end position before encoding the label.  Once encoded, this will
+  // point to the instruction.
+  vm::program::label pos = program->end();
+
+  encode(op);
+
+  return pos;
+}
+
+void replaceEmptyJump(vm::program::label from, vm::program::label to)
+{
+  from->ref = to;
 }
 
 label coder::defNewLabel()
@@ -243,7 +245,7 @@ label coder::defLabel(label label)
   assert(label->location.defined());
 
   if (label->firstUse.defined()) {
-    label->firstUse->ref = program->end();
+    replaceEmptyJump(label->firstUse, program->end());
     //vm::printInst(cout, label->firstUse, program->begin());
     //cout << endl;
 
@@ -251,7 +253,7 @@ label coder::defLabel(label label)
       typedef label_t::useVector useVector;
       useVector& v = *label->moreUses;
       for (useVector::iterator p = v.begin(); p != v.end(); ++p) {
-        (*p)->ref = program->end();
+        replaceEmptyJump(*p, program->end());
       }
     }
   }
@@ -259,27 +261,12 @@ label coder::defLabel(label label)
   return label;
 }
 
+
 void coder::useLabel(inst::opcode op, label label)
 {
   if (isStatic())
     return parent->useLabel(op,label);
   
-#if 0
-  // TODO: Check for labels inside.
-  if (op == inst::cjmp || op == inst::njmp) {
-    inst& last = program->back();
-    if (last.op == inst::builtin) {
-      bltin f = vm::get<bltin>(last);
-      if (f == run::intLess && op == inst::njmp) {
-        program->pop_back();
-        op = inst::gejmp;
-      }
-    }
-  }
-#endif
-  
-  //cout << "using label " << label << endl;
-
   if (label->location.defined()) {
     encode(op, label->location);
   } else {
@@ -287,17 +274,13 @@ void coder::useLabel(inst::opcode op, label label)
       // Store additional uses in the moreUses array.
       if (!label->moreUses)
         label->moreUses = new label_t::useVector;
-      label->moreUses->push_back(program->end());
+      label->moreUses->push_back(encodeEmptyJump(op));
     }
     else {
-      label->firstUse = program->end();
+      label->firstUse = encodeEmptyJump(op);
       assert(label->firstUse.defined());
       assert(!label->location.defined());
     }
-
-    // This needs to be called after storing the use, so that the previous
-    // call to program->end() then gives the location to this opcode.
-    encode(op);
   }
 }
 label coder::fwdLabel()
@@ -313,6 +296,26 @@ label coder::fwdLabel()
   //cout << "forward label " << l << endl;
 
   return l;
+}
+
+bool coder::usesClosureSinceLabel(label l)
+{
+  assert(l->location.defined());
+  for (vm::program::label i = l->location; i != program->end(); ++i)
+    if (i->op == inst::pushclosure)
+      return true;
+  return false;
+}
+
+void coder::encodePatch(label from, label to)
+{
+  assert(from->location.defined());
+  assert(to->location.defined());
+
+  assert(from->location->op == inst::nop);
+
+  from->location->op = inst::jmp;
+  from->location->ref = to->location;
 }
 
 void coder::markPos(position pos)

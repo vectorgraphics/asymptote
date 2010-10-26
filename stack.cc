@@ -205,6 +205,9 @@ void stack::run(program *code, vars_t vars)
       
       switch (i.op)
         {
+          case inst::nop:
+            break;
+
           case inst::pop:
             pop();
             break;

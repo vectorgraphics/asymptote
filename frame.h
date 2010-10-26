@@ -45,6 +45,11 @@ public:
     return parent;
   }
 
+  // Which variable stores the link to the parent frame.
+  Int parentIndex() {
+    return 0;
+  }
+
   Int size() {
     return (Int) (1+numFormals+numLocals);
   }

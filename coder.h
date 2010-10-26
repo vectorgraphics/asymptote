@@ -108,9 +108,18 @@ class coder {
 
   // Loops need to store labels to where break and continue statements
   // should pass control.  Since loops can be nested, this needs to
-  // be stored as a stack.
-  std::stack<label> breakLabels;
-  std::stack<label> continueLabels;
+  // be stored as a stack.  We also store which of the loops are being encoded
+  // with an additional frame for variables.  This is needed to know if the
+  // break and continue statements need to pop the frame.
+  struct loopdata_t : gc {
+    label continueLabel;
+    label breakLabel;
+    bool pushedFrame;
+
+    loopdata_t(label c, label b)
+      : continueLabel(c), breakLabel(b), pushedFrame(false) {}
+  };
+  mem::stack<loopdata_t> loopdata;
 
   // Current File Position
   position curPos;
@@ -270,6 +279,9 @@ private:
     }
   }
 
+  // Encode a jump to a not yet known location.
+  vm::program::label encodeEmptyJump(inst::opcode op);
+
 public:
   void encode(inst::opcode op)
   {
@@ -338,35 +350,48 @@ public:
   // be inserted into the code where the handle was used. 
   label fwdLabel();
 
-  void pushBreak(label label) {
-    breakLabels.push(label);
+  void pushLoop(label c, label b) {
+    loopdata.push(loopdata_t(c,b));
   }
-  void pushContinue(label label) {
-    continueLabels.push(label);
+  void popLoop() {
+    loopdata.pop();
   }
-  void popBreak() {
-    breakLabels.pop();
-  }
-  void popContinue() {
-    continueLabels.pop();
+  void loopPushesFrame()
+  {
+    assert(!loopdata.empty());
+    loopdata_t& d = loopdata.top();
+    d.pushedFrame = true;
   }
   bool encodeBreak() {
-    if (breakLabels.empty())
+    if (loopdata.empty())
       return false;
     else {
-      useLabel(inst::jmp,breakLabels.top());
+      loopdata_t& d = loopdata.top();
+      if (d.pushedFrame)
+        encode(inst::popframe);
+      useLabel(inst::jmp,d.breakLabel);
       return true;
     }
   }
   bool encodeContinue() {
-    if (continueLabels.empty())
+    if (loopdata.empty())
       return false;
     else {
-      useLabel(inst::jmp,continueLabels.top());
+      loopdata_t& d = loopdata.top();
+      if (d.pushedFrame)
+        encode(inst::popframe);
+      useLabel(inst::jmp,d.continueLabel);
       return true;
     }
   }
-  
+
+  // Returns true if a pushclosure has been encoded since the definition of
+  // the label.
+  bool usesClosureSinceLabel(label l);
+
+  // Turn a no-op into a jump to bypass incorrect code.
+  void encodePatch(label from, label to);
+
 private:
   void encodeAllocInstruction() {
     encode(inst::alloc, 0);
