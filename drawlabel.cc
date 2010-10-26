@@ -39,6 +39,7 @@ int wait(iopipestream &tex, const char *s, const char **abort,
       tex << "\n";
       tex.wait(s,abort);
     }
+
     if(!ignore) {
       string s=tex.message();
       tex.shred();
@@ -49,65 +50,56 @@ int wait(iopipestream &tex, const char *s, const char **abort,
   return rc;
 }
  
+// Reads one of the dimensions from the pipe.
+void texdim(iopipestream& tex, double& dest,
+            const string command, const string name,
+            const char **abort)
+{
+  string texbuf;
+
+  tex << ("\\showthe\\" + command + "\\ASYbox\n");
+  tex >> texbuf;
+  
+  string cannotread="Cannot read label "+name;
+
+  if (texbuf[0] == '>' && texbuf[1] == ' ')
+    try {
+      dest=lexical::cast<double>(texbuf.c_str()+2,true)*tex2ps;
+    } catch(lexical::bad_cast&) {
+      reportError(cannotread);
+    }
+  else
+    reportError(cannotread);
+
+  tex << "\n";
+  wait(tex,"\n*",abort);
+}
+
 bool texbounds(double& width, double& height, double& depth,
                iopipestream& tex, string& s, const char **abort, bool warn,
                bool Inline)
 {
   string texbuf;
+
   tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(s) << "}\n\n";
   int rc=wait(tex,texready.c_str(),abort,Inline);
   if(rc) {
     tex << "\\show 0\n";
     tex.wait("\n*");
-    if(warn) {
-      if(getSetting<bool>("debug")) {
-        ostringstream buf;
-        buf << "Cannot determine size of label \"" << s << "\"";
-        reportWarning(buf);
-      }
-      return false;
+
+    if(warn && getSetting<bool>("debug")) {
+      ostringstream buf;
+      buf << "Cannot determine size of label \"" << s << "\"";
+      reportWarning(buf);
     }
+
     return false;
   }
 
-  tex << "\\showthe\\wd\\ASYbox\n";
-  tex >> texbuf;
-  
-  string cannotread="Cannot read label ";
-  if(texbuf[0] == '>' && texbuf[1] == ' ')
-    try {
-      width=lexical::cast<double>(texbuf.c_str()+2,true)*tex2ps;
-    } catch(lexical::bad_cast&) {
-      reportError(cannotread+"width");
-    }
-  else reportError(cannotread+"width");
-  tex << "\n";
-  wait(tex,"\n*",abort);
-  
-  tex << "\\showthe\\ht\\ASYbox\n";
-  tex >> texbuf;
-  if(texbuf[0] == '>' && texbuf[1] == ' ')
-    try {
-      height=lexical::cast<double>(texbuf.c_str()+2,true)*tex2ps;
-    } catch(lexical::bad_cast&) {
-      reportError(cannotread+"height");
-    }
-  else reportError(cannotread+"height");
-  tex << "\n";
-  wait(tex,"\n*",abort);
-  
-  tex << "\\showthe\\dp\\ASYbox\n";
-  tex >> texbuf;
-  if(texbuf[0] == '>' && texbuf[1] == ' ')
-    try {
-      depth=lexical::cast<double>(texbuf.c_str()+2,true)*tex2ps;
-    } catch(lexical::bad_cast&) {
-      reportError(cannotread+"depth");
-    }
-  else reportError(cannotread+"depth");
-  tex << "\n";
-  wait(tex,"\n*",abort);
-     
+  texdim(tex, width, "wd", "width", abort);
+  texdim(tex, height, "ht", "height", abort);
+  texdim(tex, depth, "dp", "depth", abort);
+
   return true;
 }   
 

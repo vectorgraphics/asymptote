@@ -13,7 +13,6 @@
 #include "angle.h"
 #include "camperror.h"
 #include "mathop.h"
-#include "arrayop.h"
 #include "predicates.h"
 #include "rounding.h"
 
