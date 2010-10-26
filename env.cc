@@ -1,5 +1,5 @@
 /*****
- * env.h
+ * env.cc
  * Andy Hammerlindl 2002/6/20
  *
  * Keeps track of the namespaces of variables and types when traversing
@@ -12,10 +12,6 @@
 #include "builtin.h"
 
 using namespace types;
-
-namespace absyntax {
-void clearCachedCalls();
-}
 
 namespace trans {
 
