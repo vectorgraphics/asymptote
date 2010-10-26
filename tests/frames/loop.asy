@@ -26,4 +26,56 @@ for (int i=0; i<10; ++i) {
 }
 assert(f()==70);
 
+{
+  int y = 3;
+  int z = 0;
+  for (int i = 0; i < 7; ++i)
+  {
+    ++z;
+    continue;
+    y = 4;
+  }
+  assert(y == 3);
+  assert(z == 7);
+}
+{
+  int y = 3;
+  int z = 0;
+  for (int i = 0; i < 7; ++i)
+  {
+    ++z;
+    break;
+    y = 4;
+  }
+  assert(y == 3);
+  assert(z == 1);
+}
+{
+  int y = 3;
+  int z = 0;
+  for (int i = 0; i < 7; ++i)
+  {
+    void g() {}
+    ++z;
+    continue;
+    y = 4;
+  }
+  assert(y == 3);
+  assert(z == 7);
+}
+{
+  int y = 3;
+  int z = 0;
+  for (int i = 0; i < 7; ++i)
+  {
+    void g() {}
+    ++z;
+    break;
+    y = 4;
+  }
+  assert(y == 3);
+  assert(z == 1);
+}
+
+
 EndTest();
