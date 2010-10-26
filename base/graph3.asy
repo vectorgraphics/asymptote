@@ -1148,11 +1148,11 @@ void zlimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
   
   if(pic.scale.z.automin) {
     if(pic.scale.z.automin()) pic.userMinz(mz.min);
-  } else pic.userMinz(pic.scale.z.T(min));
+  } else pic.userMinz(min(pic.scale.z.T(min),pic.scale.z.T(max)));
   
   if(pic.scale.z.automax) {
     if(pic.scale.z.automax()) pic.userMaxz(mz.max);
-  } else pic.userMaxz(pic.scale.z.T(max));
+  } else pic.userMaxz(max(pic.scale.z.T(min),pic.scale.z.T(max)));
 }
 
 // Restrict the x, y, and z limits to box(min,max).

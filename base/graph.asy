@@ -1367,11 +1367,11 @@ void xlimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
   
   if(pic.scale.x.automin) {
     if(pic.scale.x.automin()) pic.userMinx(mx.min);
-  } else pic.userMinx(pic.scale.x.T(min));
+  } else pic.userMinx(min(pic.scale.x.T(min),pic.scale.x.T(max)));
   
   if(pic.scale.x.automax) {
     if(pic.scale.x.automax()) pic.userMaxx(mx.max);
-  } else pic.userMaxx(pic.scale.x.T(max));
+  } else pic.userMaxx(max(pic.scale.x.T(min),pic.scale.x.T(max)));
   
   if(crop) {
     pair userMin=pic.userMin();
@@ -1400,11 +1400,11 @@ void ylimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
   
   if(pic.scale.y.automin) {
     if(pic.scale.y.automin()) pic.userMiny(my.min);
-  } else pic.userMiny(pic.scale.y.T(min));
+  } else pic.userMiny(min(pic.scale.y.T(min),pic.scale.y.T(max)));
   
   if(pic.scale.y.automax) {
     if(pic.scale.y.automax()) pic.userMaxy(my.max);
-  } else pic.userMaxy(pic.scale.y.T(max));
+  } else pic.userMaxy(max(pic.scale.y.T(min),pic.scale.y.T(max)));
   
   if(crop) {
     pair userMin=pic.userMin();
