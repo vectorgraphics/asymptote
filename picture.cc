@@ -463,6 +463,7 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd.push_back("-dMaxSubsetPct=100");
   cmd.push_back("-dPDFSETTINGS=/prepress");
   cmd.push_back("-dCompatibilityLevel=1.4");
+  cmd.push_back("-P");
   if(safe)
     cmd.push_back("-dSAFER");
   if(!getSetting<bool>("autorotate"))
