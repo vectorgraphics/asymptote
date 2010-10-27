@@ -394,8 +394,8 @@ public:
 
 private:
   void encodeAllocInstruction() {
+    allocs.push(program->end());
     encode(inst::alloc, 0);
-    allocs.push(--program->end());
   }
 
   void finishAlloc() {

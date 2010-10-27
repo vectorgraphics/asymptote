@@ -42,15 +42,15 @@ const program::label nulllabel;
 inline stack::vars_t stack::make_frame(string name,
                                        size_t size, vars_t closure)
 {
-  vars_t vars = new frame(name, 1+size);
-  (*vars)[0] = closure;
+  vars_t vars = new frame(name, size, 1+size);
+  (*vars)[size] = closure;
   return vars;
 }
 #else
 inline stack::vars_t stack::make_frame(size_t size, vars_t closure)
 {
   vars_t vars = new frame(1+size);
-  (*vars)[0] = closure;
+  (*vars)[size] = closure;
   return vars;
 }
 #endif
@@ -66,7 +66,7 @@ void run(lambda *l)
 void stack::marshall(size_t args, vars_t vars)
 {
   for (size_t i = args; i > 0; --i)
-    (*vars)[i] = pop();
+    (*vars)[i-1] = pop();
 }
 
 #ifdef PROFILE
@@ -87,6 +87,21 @@ void dumpProfile() {
 }
 #endif
 
+void assessClosure(lambda *body) {
+  // If we have already determined if it needs closure, just return.
+  if (body->closureReq != lambda::MAYBE_NEEDS_CLOSURE)
+    return;
+
+  for (program::label l = body->code->begin(); l != body->code->end(); ++l)
+    if (l->op == inst::pushclosure ||
+        l->op == inst::pushframe) {
+      body->closureReq = lambda::NEEDS_CLOSURE;
+      return;
+    }
+
+  body->closureReq = lambda::DOESNT_NEED_CLOSURE;
+}
+
 void stack::run(func *f)
 {
   lambda *body = f->body;
@@ -104,17 +119,8 @@ void stack::run(func *f)
   print(cout, body->code);
   cout << endl;
 #endif
-  
-  /* make new activation record */
-#ifdef DEBUG_FRAME
-  assert(!body->name.empty());
-  vars_t vars = make_frame(body->name, body->params, f->closure);
-#else
-  vars_t vars = make_frame(body->params, f->closure);
-#endif
-  marshall(body->params, vars);
 
-  run(body->code, vars);
+  runWithOrWithoutClosure(body, 0, f->closure);
 
 #ifdef PROFILE
   prof.endFunction(body);
@@ -175,12 +181,57 @@ void stack::debug()
   }
 }
 
-
-  
-void stack::run(program *code, vars_t vars)
+void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 {
+  // Link to the variables, be they in a closure or on the stack.
+  mem::vector<item>* varlink;
+  Int frameStart = 0;
+
+  // The size of the frame (when running without closure).
+  size_t frameSize = l->params;
+
+#define SET_VARLINK assert(vars); varlink = &vars->vars
+#define VAR(n) ( (*varlink)[(n) + frameStart] )
+
+  // Set up the closure, if necessary.
+  if (vars == 0)
+  {
+    assessClosure(l);
+    if (l->closureReq == lambda::NEEDS_CLOSURE)
+    {
+      /* make new activation record */
+#ifdef DEBUG_FRAME
+      assert(!l->name.empty());
+      vars = make_frame(l->name, l->params, parent);
+#else
+      vars = make_frame(l->params, parent);
+#endif
+      assert(vars);
+    }
+    else 
+    {
+      assert(l->closureReq == lambda::DOESNT_NEED_CLOSURE);
+
+      // Use the stack to store variables.
+      varlink = &theStack;
+
+      // Record where the parameters start on the stack.
+      frameStart = theStack.size() - frameSize;
+
+      // Add the parent's closure to the frame.
+      push(parent);
+      ++frameSize;
+    }
+  }
+
+  if (vars) {
+      marshall(l->params, vars);
+
+      SET_VARLINK;
+  }
+
   /* start the new function */
-  program::label ip = code->begin();
+  program::label ip = l->code->begin();
 
   try {
     for (;;) {
@@ -192,9 +243,10 @@ void stack::run(program *code, vars_t vars)
 #endif
 
 #ifdef DEBUG_STACK
-      cerr << curPos << "\n";
-      printInst(cerr, ip, code->begin());
-      cerr << "\n";
+      printInst(cout, ip, l->code->begin());
+      cout << "    (";
+			i.pos.printTerse(cout);
+			cout << ")\n";
 #endif
 
       if(settings::verbose > 4) em.trace(curPos);
@@ -205,6 +257,74 @@ void stack::run(program *code, vars_t vars)
       
       switch (i.op)
         {
+          case inst::varpush:
+            push(VAR(get<Int>(i)));
+            break;
+
+          case inst::varsave:
+            VAR(get<Int>(i)) = top();
+            break;
+        
+#ifdef COMBO
+          case inst::varpop:
+            VAR(get<Int>(i)) = pop();
+            break;
+#endif
+
+          case inst::ret: {
+            if (vars == 0)
+              // Delete the frame from the stack.
+              theStack.erase(theStack.begin() + frameStart,
+                             theStack.begin() + frameStart + frameSize);
+            return;
+          }
+
+          case inst::alloc: {
+            if (vars)
+              vars->extend(get<Int>(i));
+            else {
+              // Insert more frame space into the stack, moving operands on
+              // the stack, if there are any.
+              size_t newFrameSize = (size_t)get<Int>(i);
+              if (newFrameSize <= frameSize)
+                break;
+
+              theStack.insert(theStack.begin() + frameStart + frameSize,
+                              newFrameSize - frameSize,
+                              item());
+              frameSize = newFrameSize;
+            }
+            break;
+          }
+
+          case inst::pushframe:
+          {
+            assert(vars);
+#ifdef DEBUG_FRAME
+            vars=make_frame("<pushed frame>", 0, vars);
+#else
+            vars=make_frame(0, vars);
+#endif
+            SET_VARLINK;
+
+            break;
+          }
+
+          case inst::popframe:
+          {
+            assert(vars);
+            vars=get<frame *>((*vars)[0]);
+
+            SET_VARLINK;
+
+            break;
+          }
+
+          case inst::pushclosure:
+            assert(vars);
+            push(vars);
+            break; 
+
           case inst::nop:
             break;
 
@@ -216,28 +336,6 @@ void stack::run(program *code, vars_t vars)
           case inst::constpush:
             push(i.ref);
             break;
-        
-          case inst::varpush:
-            push((*vars)[get<Int>(i)]);
-            break;
-
-          case inst::varsave:
-            (*vars)[get<Int>(i)] = top();
-            break;
-        
-#ifdef COMBO
-          case inst::varpop:
-            (*vars)[get<Int>(i)] = pop();
-            break;
-
-          case inst::fieldpop: {
-            vars_t frame = pop<vars_t>();
-            if (!frame)
-              error("dereference of null pointer");
-            (*frame)[get<Int>(i)] = pop();
-            break;
-          }
-#endif
         
           case inst::fieldpush: {
             vars_t frame = pop<vars_t>();
@@ -254,6 +352,17 @@ void stack::run(program *code, vars_t vars)
             (*frame)[get<Int>(i)] = top();
             break;
           }
+
+#if COMBO
+          case inst::fieldpop: {
+            vars_t frame = pop<vars_t>();
+            if (!frame)
+              error("dereference of null pointer");
+            (*frame)[get<Int>(i)] = pop();
+            break;
+          }
+#endif
+        
         
           case inst::builtin: {
             bltin func = get<bltin>(i);
@@ -291,6 +400,24 @@ void stack::run(program *code, vars_t vars)
               { ip = get<program::label>(i); continue; }
             break;
           }
+
+#if 0
+          case inst::jump_if_func_eq: {
+            callable * b=pop<callable *>();
+            callable * a=pop<callable *>();
+            if (a->compare(b))
+              { ip = get<program::label>(i); continue; }
+            break;
+          }
+
+          case inst::jump_if_func_neq: {
+            callable * b=pop<callable *>();
+            callable * a=pop<callable *>();
+            if (!a->compare(b))
+              { ip = get<program::label>(i); continue; }
+            break;
+          }
+#endif
 #endif
 
           case inst::push_default:
@@ -300,27 +427,9 @@ void stack::run(program *code, vars_t vars)
           case inst::popcall: {
             /* get the function reference off of the stack */
             callable* f = pop<callable*>();
-
-#if 0
-            cout << "popcall ";
-            if (dynamic_cast<nullfunc *>(f))
-              cout << "nullfunc";
-            if (dynamic_cast<func *>(f))
-              cout << "func";
-            if (dynamic_cast<bfunc *>(f))
-              cout << "bfunc";
-            if (dynamic_cast<thunk *>(f))
-              cout << "thunk";
-            cout << '\n';
-#endif
-
             f->call(this);
             break;
           }
-
-          case inst::pushclosure:
-            push(vars);
-            break; 
 
           case inst::makefunc: {
             func *f = new func;
@@ -331,29 +440,6 @@ void stack::run(program *code, vars_t vars)
             break;
           }
         
-          case inst::ret: {
-            return;
-          }
-
-          case inst::alloc: {
-            vars->extend(get<Int>(i));
-            break;
-          }
-
-          case inst::pushframe: {
-#ifdef DEBUG_FRAME
-            vars=make_frame("<pushed frame>", 0, vars);
-#else
-            vars=make_frame(0, vars);
-#endif
-            break;
-          }
-
-          case inst::popframe: {
-            vars=get<frame *>((*vars)[0]);
-            break;
-          }
-
           default:
             error("Internal VM error: Bad stack operand");
         }
@@ -369,6 +455,9 @@ void stack::run(program *code, vars_t vars)
   } catch (bad_item_value&) {
     error("Trying to use uninitialized value.");
   }
+
+#undef SET_VARLINK
+#undef VAR
 }
 
 void stack::load(string index) {
@@ -418,23 +507,38 @@ void draw(ostream& out, frame* v)
   out << "vars:" << endl;
   
   while (!!v) {
-    out << "  " <<  v->getName() << ":";
+    item link=(*v)[v->getParentIndex()];
 
-    frame *parent=0;
-    item link=(*v)[0];
-    try {
-      parent = get<frame *>(link);
-      out << (parent ? "  link" :  "  ----");
-    } catch (bad_item_value&) {
-      out << "  " << (*v)[0];
+    out << "  " <<  v->getName() << ":  ";
+
+    for (size_t i = 0; i < MAX_ITEMS && i < v->size(); i++) {
+      if (i > 0)
+        out << " | ";
+      out << i << ": ";
+
+      if (i == v->getParentIndex()) {
+        try {
+          frame *parent = get<frame *>(link);
+          out << (parent ? "link" :  "----");
+        } catch (bad_item_value&) {
+          out << "non-link " << (*v)[0];
+        }
+      } else {
+        out << (*v)[i];
+      }
     }
 
-    for (size_t i = 1; i < MAX_ITEMS && i < v->size(); i++) {
-      out << " | " << i << ": " << (*v)[i];
-    }
     if (v->size() > MAX_ITEMS)
       out << "...";
     out << "\n";
+
+
+    frame *parent;
+    try {
+      parent = get<frame *>(link);
+    } catch (bad_item_value&) {
+      parent = 0;
+    }
 
     v = parent;
   }
@@ -465,14 +569,14 @@ void error(const ostringstream& message)
 
 interactiveStack::interactiveStack()
 #ifdef DEBUG_FRAME
-  : globals(new frame("globals", 0)) {}
+  : globals(new frame("globals", 0, 0)) {}
 #else
   : globals(new frame(0)) {}
 #endif
 
 
 void interactiveStack::run(lambda *codelet) {
-  stack::run(codelet->code, globals);
+  stack::runWithOrWithoutClosure(codelet, globals, 0);
 }
 
 } // namespace vm

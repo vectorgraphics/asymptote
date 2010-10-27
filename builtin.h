@@ -52,7 +52,7 @@ extern double infinity;
 void single(vm::stack *Stack);
 void arrayDeleteHelper(vm::stack *Stack);
 
-// Used by coder to optimize conditional jumps.
+// Used by to optimize conditional jumps.
 extern const vm::bltin intLess;
 extern const vm::bltin intGreater;
 }

@@ -198,16 +198,22 @@ private:
 class frame : public gc {
 #ifdef DEBUG_FRAME
   string name;
+  Int parentIndex;
 #endif
-  typedef mem::vector<item> vars_t;
-  vars_t vars;
+  typedef mem::vector<item> internal_vars_t;
+  internal_vars_t vars;
+
+  // Allow the stack direct access to vars.
+  friend class stack;
 public:
 #ifdef DEBUG_FRAME
-  frame(string name, size_t size)
-    : name(name), vars(size)
+  frame(string name, Int parentIndex, size_t size)
+    : name(name), parentIndex(parentIndex), vars(size)
   {}
 
   string getName() { return name; }
+
+  Int getParentIndex() { return parentIndex; }
 #else
   frame(size_t size)
     : vars(size)

@@ -23,13 +23,6 @@ struct inst; class stack; class program;
 // A function "lambda," that is, the code that runs a function.
 // It also needs the closure of the enclosing module or function to run.
 struct lambda : public gc {
-#ifdef DEBUG_FRAME
-  lambda()
-    : name("<unnamed>") {}
-  virtual ~lambda() {}
-  string name;
-#endif
-
   // The instructions to follow.
   program *code;
 
@@ -44,6 +37,19 @@ struct lambda : public gc {
   // have one array store escaping items, and another to store non-
   // escaping items.
   size_t vars;
+
+  enum { NEEDS_CLOSURE, DOESNT_NEED_CLOSURE, MAYBE_NEEDS_CLOSURE} closureReq;
+
+#ifdef DEBUG_FRAME
+  string name;
+
+  lambda()
+    : closureReq(MAYBE_NEEDS_CLOSURE), name("<unnamed>") {}
+  virtual ~lambda() {}
+#else
+  lambda()
+    : closureReq(MAYBE_NEEDS_CLOSURE) {}
+#endif
 };
 
 // The code run is just a string of instructions.  The ops are actual commands

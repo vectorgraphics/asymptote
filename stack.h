@@ -102,8 +102,9 @@ public:
     return e;
   }
 
-  // Runs the instruction listed in code, with vars as frame of variables.
-  void run(program *code, vars_t vars);
+  // Runs a lambda.  If vars is non-null, it is used to store the variables of
+  // the lambda.  Otherwise, the method allocates a closure only if needed.
+  void runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent);
 
   // Executes a function on top of the stack.
   void run(func *f);

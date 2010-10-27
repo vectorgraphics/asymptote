@@ -119,7 +119,7 @@ void localAccess::encode(action act, position pos, coder &e)
   }
   else {
     // Put the parent frame (in local variable 0) on the stack.
-    e.encode(inst::varpush,0);
+    e.encode(inst::varpush,active->parentIndex());
 
     // Encode the access from that frame.
     this->encode(act, pos, e, active->getParent());

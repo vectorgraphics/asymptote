@@ -47,7 +47,7 @@ public:
 
   // Which variable stores the link to the parent frame.
   Int parentIndex() {
-    return 0;
+    return numFormals;
   }
 
   Int size() {
@@ -56,7 +56,7 @@ public:
 
   access *accessFormal(size_t index) {
     assert(index < numFormals);
-    return new localAccess((Int) (1 + index), this);
+    return new localAccess((Int) (index), this);
   }
 
   access *allocLocal() {

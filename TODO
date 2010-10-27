@@ -6,7 +6,12 @@ Andy: Investigate bbox error in uofa-talk Shadowing slide
 
 Andy: change label in coder to a class not an Int
 
+Andy: look at label alignment in rotvenn
+
 Andy: possible optimizations:
+    eliminate frame copying in picture.add(picture pic, ...)
+    varpush+popcall --> varcall?
+    fieldpush+popcall --> fieldcall?
     overloaded::simplify copies
     straight guide which references a subset of a pair vector.
     Is it cheaper to import a bltin module than to call base_venv again?
