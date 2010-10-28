@@ -52,7 +52,6 @@ coder::coder(position pos, string name, modifier sord)
     curPos(pos)
 {
   sord_stack.push(sord);
-  encodeAllocInstruction();
 }
 
 // Defines a new function environment.
@@ -74,7 +73,6 @@ coder::coder(position pos, string name, function *t, coder *parent,
     curPos(pos)
 {
   sord_stack.push(sord);
-  encodeAllocInstruction();
 }
 
 // Start encoding the body of the record.  The function being encoded
@@ -93,7 +91,6 @@ coder::coder(position pos, record *t, coder *parent, modifier sord)
     curPos(pos)
 {
   sord_stack.push(sord);
-  encodeAllocInstruction();
 }
 
 coder coder::newFunction(position pos, string name, function *t, modifier sord)
@@ -336,11 +333,9 @@ vm::lambda *coder::close() {
 
   l->code = program;
 
-  l->params = level->getNumFormals();
+  l->parentIndex = level->parentIndex();
 
-  // Now that we know how many variables the function has, allocate space for
-  // all of them at the start of the function.
-  finishAlloc();
+  l->framesize = level->size();
 
   sord_stack.pop();
   sord = sord_stack.top();

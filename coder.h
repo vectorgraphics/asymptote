@@ -99,12 +99,10 @@ class coder {
   // array to write.
   vm::program *program;
 
-  // The loop constructs allocate nested frames, in case variables in an
+  // Some loops allocate nested frames, in case variables in an
   // iteration escape in a closure.  This stack keeps track of where the
-  // variables are allocated, so the size of the frame can be encoded.  At the
-  // start, it just holds the label of the first instruction of the lambda, as
-  // this is where space for the variables of the function is allocated.
-  std::stack<vm::program::label> allocs;
+  // pushframe instructions are, so the size of the frame can be encoded.
+  std::stack<vm::program::label> pushframeLabels;
 
   // Loops need to store labels to where break and continue statements
   // should pass control.  Since loops can be nested, this needs to
@@ -392,29 +390,20 @@ public:
   // Turn a no-op into a jump to bypass incorrect code.
   void encodePatch(label from, label to);
 
-private:
-  void encodeAllocInstruction() {
-    allocs.push(program->end());
-    encode(inst::alloc, 0);
-  }
-
-  void finishAlloc() {
-    allocs.top()->ref = level->size();
-    allocs.pop();
-  }
-
 public:
   void encodePushFrame() {
-    encode(inst::pushframe);
-    level = new frame("encodePushFrame", level, 0);
+    pushframeLabels.push(program->end());
+    encode(inst::pushframe, (Int)0);
 
-    encodeAllocInstruction();
+    level = new frame("encodePushFrame", level, 0);
   }
 
   void encodePopFrame() {
-    finishAlloc();
+    pushframeLabels.top()->ref = level->size();
+    pushframeLabels.pop();
 
     encode(inst::popframe);
+
     level = level->getParent();
   }
 

@@ -56,12 +56,6 @@ private:
   typedef mem::vector<item> stack_t;
   stack_t theStack;
 
-#ifdef DEBUG_FRAME
-  vars_t make_frame(string name, size_t, vars_t closure);
-#else
-  vars_t make_frame(size_t, vars_t closure);
-#endif
-
   void draw(ostream& out);
 
   // Move arguments from stack to frame.

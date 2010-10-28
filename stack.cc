@@ -38,22 +38,32 @@ position curPos = nullPos;
 const program::label nulllabel;
 }
 
+inline stack::vars_t make_frame(lambda *l, stack::vars_t closure)
+{
 #ifdef DEBUG_FRAME
-inline stack::vars_t stack::make_frame(string name,
-                                       size_t size, vars_t closure)
-{
-  vars_t vars = new frame(name, size, 1+size);
-  (*vars)[size] = closure;
-  return vars;
-}
+  assert(!l->name.empty());
+  vars_t vars = new frame(l->name, l->parentIndex, l->framesize);
 #else
-inline stack::vars_t stack::make_frame(size_t size, vars_t closure)
-{
-  vars_t vars = new frame(1+size);
-  (*vars)[size] = closure;
+  stack::vars_t vars = new frame(l->framesize);
+#endif
+
+  // The closure is stored after the parameters.
+  (*vars)[l->parentIndex] = closure;
+
   return vars;
 }
+
+inline stack::vars_t make_pushframe(size_t size, stack::vars_t closure)
+{
+  assert(size >= 1);
+#ifdef DEBUG_FRAME
+  stack::vars_t vars = new frame("<pushed frame>", 0, size);
+#else
+  stack::vars_t vars = new frame(size);
 #endif
+  (*vars)[0] = closure;
+  return vars;
+}
 
 void run(lambda *l)
 {
@@ -188,7 +198,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
   Int frameStart = 0;
 
   // The size of the frame (when running without closure).
-  size_t frameSize = l->params;
+  size_t frameSize = l->parentIndex;
 
 #define SET_VARLINK assert(vars); varlink = &vars->vars
 #define VAR(n) ( (*varlink)[(n) + frameStart] )
@@ -200,12 +210,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
     if (l->closureReq == lambda::NEEDS_CLOSURE)
     {
       /* make new activation record */
-#ifdef DEBUG_FRAME
-      assert(!l->name.empty());
-      vars = make_frame(l->name, l->params, parent);
-#else
-      vars = make_frame(l->params, parent);
-#endif
+      vars = vm::make_frame(l, parent);
       assert(vars);
     }
     else 
@@ -221,11 +226,19 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
       // Add the parent's closure to the frame.
       push(parent);
       ++frameSize;
+
+      size_t newFrameSize = (size_t)l->framesize;
+
+      if (newFrameSize > frameSize) {
+        theStack.resize(frameStart + newFrameSize);
+        frameSize = newFrameSize;
+      }
     }
   }
 
   if (vars) {
-      marshall(l->params, vars);
+      vars->extend(l->framesize);
+      marshall(l->parentIndex, vars);
 
       SET_VARLINK;
   }
@@ -279,32 +292,12 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
             return;
           }
 
-          case inst::alloc: {
-            if (vars)
-              vars->extend(get<Int>(i));
-            else {
-              // Insert more frame space into the stack, moving operands on
-              // the stack, if there are any.
-              size_t newFrameSize = (size_t)get<Int>(i);
-              if (newFrameSize <= frameSize)
-                break;
-
-              theStack.insert(theStack.begin() + frameStart + frameSize,
-                              newFrameSize - frameSize,
-                              item());
-              frameSize = newFrameSize;
-            }
-            break;
-          }
-
           case inst::pushframe:
           {
             assert(vars);
-#ifdef DEBUG_FRAME
-            vars=make_frame("<pushed frame>", 0, vars);
-#else
-            vars=make_frame(0, vars);
-#endif
+            Int size = get<Int>(i);
+            vars=make_pushframe(size, vars);
+
             SET_VARLINK;
 
             break;
