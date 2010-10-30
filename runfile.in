@@ -346,3 +346,16 @@ Int rename(string from, string to)
     cout << "Renamed " << from << " to " << to << endl;
   return rc;
 }
+
+// Create a unique temporary file name.
+string mktemp(string s)
+{
+  char *S=Strdup(s+"XXXXXX");
+  int fd=mkstemp(S);
+  if(fd < 0) {
+    ostringstream buf;
+    buf << "Could not create unique temporary filename based on " << s;
+    error(buf);
+  }
+  return S;
+}
