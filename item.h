@@ -195,6 +195,10 @@ private:
   };
 };
   
+#ifdef SIMPLE_FRAME
+// In the simple implementation, a frame is just an array of items.
+typedef item frame;
+#else
 class frame : public gc {
 #ifdef DEBUG_FRAME
   string name;
@@ -234,6 +238,8 @@ public:
       vars.resize(n);
   }
 };
+#endif
+
 
 template<typename T>
 inline T get(const item& it)

@@ -35,11 +35,14 @@ vm::lambda *newLambda(string name) {
 }
 
 
-// The dummy environment of the global environment.
 // Used purely for global variables and static code blocks of file
 // level modules.
 coder::coder(position pos, string name, modifier sord)
+#if SIMPLE_FRAME
+  : level(frame::indirect_frame(name)),
+#else
   : level(new frame(name, 0, 0)),
+#endif
     recordLevel(0),
     recordType(0),
     isCodelet(false),

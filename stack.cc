@@ -40,15 +40,20 @@ const program::label nulllabel;
 
 inline stack::vars_t make_frame(lambda *l, stack::vars_t closure)
 {
+#ifdef SIMPLE_FRAME
+  stack::vars_t vars = new item[l->framesize];
+  vars[l->parentIndex] = closure;
+#else
 #ifdef DEBUG_FRAME
   assert(!l->name.empty());
-  vars_t vars = new frame(l->name, l->parentIndex, l->framesize);
+  stack::vars_t vars = new frame(l->name, l->parentIndex, l->framesize);
 #else
   stack::vars_t vars = new frame(l->framesize);
 #endif
 
   // The closure is stored after the parameters.
   (*vars)[l->parentIndex] = closure;
+#endif
 
   return vars;
 }
@@ -56,14 +61,73 @@ inline stack::vars_t make_frame(lambda *l, stack::vars_t closure)
 inline stack::vars_t make_pushframe(size_t size, stack::vars_t closure)
 {
   assert(size >= 1);
+#if SIMPLE_FRAME
+  stack::vars_t vars = new item[size];
+  vars[0] = closure;
+#else
 #ifdef DEBUG_FRAME
   stack::vars_t vars = new frame("<pushed frame>", 0, size);
 #else
   stack::vars_t vars = new frame(size);
 #endif
   (*vars)[0] = closure;
+#endif
+
   return vars;
 }
+
+stack::vars_t make_dummyframe(string name)
+{
+#if SIMPLE_FRAME
+  stack::vars_t vars = new item[1];
+#else
+#ifdef DEBUG_FRAME
+  stack::vars_t vars = new frame("<dummy frame for "+name+">", 0, 1);
+#else
+  stack::vars_t vars = new frame(1);
+#endif
+#endif
+
+  return vars;
+}
+
+inline stack::vars_t make_globalframe(size_t size)
+{
+  assert(size > 0);
+#if SIMPLE_FRAME
+  // The global frame is an indirect frame.  It holds one item, which is the
+  // link to another frame.
+  stack::vars_t direct = new item[1];
+  stack::vars_t indirect = new item[size];
+  direct[0] = indirect;
+  return direct;
+#else
+#ifdef DEBUG_FRAME
+  stack::vars_t vars = new frame("<pushed frame>", 0, size);
+#else
+  stack::vars_t vars = new frame(size);
+#endif
+  return vars;
+#endif
+
+}
+
+inline void resize_frame(frame *f, size_t oldsize, size_t newsize)
+{
+  //assert("Need to fix this" == 0);
+  assert(newsize > oldsize);
+#if SIMPLE_FRAME
+  frame *old_indirect = get<frame *>(f[0]);
+  frame *new_indirect = new item[newsize];
+  std::copy(old_indirect, old_indirect+oldsize, new_indirect);
+  f[0] = new_indirect;
+#else
+  f->extend(newsize);
+#endif
+}
+
+
+
 
 void run(lambda *l)
 {
@@ -73,10 +137,15 @@ void run(lambda *l)
   s.run(&f);
 }
 
-void stack::marshall(size_t args, vars_t vars)
+// Move arguments from stack to frame.
+void stack::marshall(size_t args, stack::vars_t vars)
 {
   for (size_t i = args; i > 0; --i)
+#if SIMPLE_FRAME
+    vars[i-1] = pop();
+#else
     (*vars)[i-1] = pop();
+#endif
 }
 
 #ifdef PROFILE
@@ -193,21 +262,37 @@ void stack::debug()
 
 void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 {
-  // Link to the variables, be they in a closure or on the stack.
-  mem::vector<item>* varlink;
-  Int frameStart = 0;
-
   // The size of the frame (when running without closure).
   size_t frameSize = l->parentIndex;
 
-#define SET_VARLINK assert(vars); varlink = &vars->vars
-#define VAR(n) ( (*varlink)[(n) + frameStart] )
+#ifdef SIMPLE_FRAME
+  // Link to the variables, be they in a closure or on the stack.
+  frame *varlink;
+
+#  define SET_VARLINK assert(vars); varlink = vars;
+#  define VAR(n) ( (varlink)[(n) + frameStart] )
+#  define FRAMEVAR(frame,n) (frame[(n)])
+#else
+  // Link to the variables, be they in a closure or on the stack.
+  mem::vector<item> *varlink;
+
+#  define SET_VARLINK assert(vars); varlink = &vars->vars
+#  define VAR(n) ( (*varlink)[(n) + frameStart] )
+#  define FRAMEVAR(frame,n) ((*frame)[(n)])
+#endif
+
+  size_t frameStart = 0;
 
   // Set up the closure, if necessary.
   if (vars == 0)
   {
+#if SIMPLE_FRAME
+    if (True)
+    {
+#else
     assessClosure(l);
     if (l->closureReq == lambda::NEEDS_CLOSURE)
+#endif
     {
       /* make new activation record */
       vars = vm::make_frame(l, parent);
@@ -237,7 +322,6 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
   }
 
   if (vars) {
-      vars->extend(l->framesize);
       marshall(l->parentIndex, vars);
 
       SET_VARLINK;
@@ -287,6 +371,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
           case inst::ret: {
             if (vars == 0)
               // Delete the frame from the stack.
+              // TODO: Optimize for common cases.
               theStack.erase(theStack.begin() + frameStart,
                              theStack.begin() + frameStart + frameSize);
             return;
@@ -306,7 +391,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
           case inst::popframe:
           {
             assert(vars);
-            vars=get<frame *>((*vars)[0]);
+            vars=get<frame *>(VAR(0));
 
             SET_VARLINK;
 
@@ -334,7 +419,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
             vars_t frame = pop<vars_t>();
             if (!frame)
               error("dereference of null pointer");
-            push((*frame)[get<Int>(i)]);
+            push(FRAMEVAR(frame, get<Int>(i)));
             break;
           }
         
@@ -342,16 +427,17 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
             vars_t frame = pop<vars_t>();
             if (!frame)
               error("dereference of null pointer");
-            (*frame)[get<Int>(i)] = top();
+            FRAMEVAR(frame, get<Int>(i)) = top();
             break;
           }
 
 #if COMBO
           case inst::fieldpop: {
+#error NOT REIMPLEMENTED
             vars_t frame = pop<vars_t>();
             if (!frame)
               error("dereference of null pointer");
-            (*frame)[get<Int>(i)] = pop();
+            FRAMEVAR(get<Int>(i)) = pop();
             break;
           }
 #endif
@@ -451,6 +537,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 
 #undef SET_VARLINK
 #undef VAR
+#undef FRAMEVAR
 }
 
 void stack::load(string index) {
@@ -560,15 +647,16 @@ void error(const ostringstream& message)
   error(message.str().c_str());
 }
 
+const size_t STARTING_GLOBALS_SIZE = 1;
 interactiveStack::interactiveStack()
-#ifdef DEBUG_FRAME
-  : globals(new frame("globals", 0, 0)) {}
-#else
-  : globals(new frame(0)) {}
-#endif
-
+  : globals(make_globalframe(STARTING_GLOBALS_SIZE)),
+    globals_size(STARTING_GLOBALS_SIZE) {}
 
 void interactiveStack::run(lambda *codelet) {
+  if (globals_size < codelet->framesize) {
+    resize_frame(globals, globals_size, codelet->framesize);
+    globals_size = codelet->framesize;
+  }
   stack::runWithOrWithoutClosure(codelet, globals, 0);
 }
 

@@ -21,24 +21,37 @@ class frame : public gc {
   size_t numFormals;
   Int numLocals;
 
+  // With the SIMPLE_FRAME flag, the size of frames cannot be changed at
+  // runtime.  This is an issue for runnable-at-a-time mode, where global
+  // variables can be continually added.  To handle this, the frame for
+  // global variables is an "indirect" frame.  It holds one variable, which is
+  // a link to another frame.  When the subframe is too small, a larger
+  // runtime array is allocated, and the link is changed.
+  enum {DIRECT_FRAME, INDIRECT_FRAME} style;
+
 #ifdef DEBUG_FRAME
   string name;
 #endif
 
-public:
-  frame(string name, frame *parent, size_t numFormals)
-    : parent(parent), numFormals(numFormals), numLocals(0)
+  frame(string name)
+    : parent(new frame("<subframe of " + name + ">", 0, 0)),
+      numFormals(0), numLocals(1), style(INDIRECT_FRAME)
 #ifdef DEBUG_FRAME
       , name(name)
 #endif
-  
   {}
 
-  size_t getNumFormals() {
-    return numFormals;
-  } 
-  Int getNumLocals() {
-    return numLocals;
+public:
+  frame(string name, frame *parent, size_t numFormals)
+    : parent(parent), numFormals(numFormals), numLocals(0),
+      style(DIRECT_FRAME)
+#ifdef DEBUG_FRAME
+      , name(name)
+#endif
+  {}
+
+  static frame *indirect_frame(string name) {
+    return new frame(name);
   }
 
   frame *getParent() {
@@ -51,28 +64,23 @@ public:
   }
 
   Int size() {
-    return (Int) (1+numFormals+numLocals);
+    if (style == DIRECT_FRAME)
+      return (Int) (1+numFormals+numLocals);
+    else
+      return parent->size();
   }
 
   access *accessFormal(size_t index) {
     assert(index < numFormals);
+    assert(style == DIRECT_FRAME);
     return new localAccess((Int) (index), this);
   }
 
   access *allocLocal() {
-    return new localAccess((Int) (1 + numFormals + numLocals++), this);
-  }
-
-  // Checks if the frame f is a descendent of this frame.
-  // For our purposes, a frame is its own descendant.
-  bool isDescendant(frame *f)
-  {
-    while (f != 0) {
-      if (f == this)
-        return true;
-      f = f->parent;
-    }
-    return false;
+    if (style == DIRECT_FRAME)
+      return new localAccess((Int) (1 + numFormals + numLocals++), this);
+    else
+      return parent->allocLocal();
   }
 };
 

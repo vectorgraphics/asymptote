@@ -42,6 +42,11 @@
 #include "builtin.symbols.h"
 #endif
 
+namespace vm {
+  // Defined in stack.cc
+  extern vm::frame *make_dummyframe(string name);
+}
+
 using namespace types;
 using namespace camp;
 using namespace vm;  
@@ -724,11 +729,7 @@ void addOperators(venv &ve)
 dummyRecord *createDummyRecord(venv &ve, symbol name)
 {
   dummyRecord *r=new dummyRecord(name);
-#ifdef DEBUG_FRAME
-  vm::frame *f = new vm::frame("dummy record " + string(name), 0);
-#else
-  vm::frame *f = new vm::frame(0);
-#endif
+  vm::frame *f = make_dummyframe(name);
   addConstant(ve, f, r, name);
   addRecordOps(ve, r);
   return r;
