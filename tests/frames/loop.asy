@@ -77,5 +77,120 @@ assert(f()==70);
   assert(z == 1);
 }
 
+// While loops
+{
+  int y = 7;
+  int z = 0;
+  while (z < 10) {
+    ++z;
+    continue;
+    ++y;
+  }
+  assert(z == 10);
+  assert(y == 7);
+}
+
+{
+  int y = 7;
+  int z = 0;
+  while (z < 10) {
+    void g() {}
+    ++z;
+    continue;
+    ++y;
+  }
+  assert(z == 10);
+  assert(y == 7);
+}
+
+{
+  int y = 7;
+  int z = 0;
+  while (z < 10) {
+    ++z;
+    break;
+    ++y;
+  }
+  assert(z == 1);
+  assert(y == 7);
+}
+
+{
+  int y = 7;
+  int z = 0;
+  while (z < 10) {
+    void g() {}
+    ++z;
+    break;
+    ++y;
+  }
+  assert(z == 1);
+  assert(y == 7);
+}
+
+
+{
+  int y = 7;
+  int z = 0;
+  while (z < 10) {
+    ++z;
+    continue;
+    ++y;
+  }
+  assert(z == 10);
+  assert(y == 7);
+}
+
+// Do loops
+{
+  int y = 7;
+  int z = 0;
+  do {
+    void g() {}
+    ++z;
+    continue;
+    ++y;
+  } while (z < 10);
+  assert(z == 10);
+  assert(y == 7);
+}
+
+{
+  int y = 7;
+  int z = 0;
+  do {
+    ++z;
+    break;
+    ++y;
+  } while (z < 10);
+  assert(z == 1);
+  assert(y == 7);
+}
+
+{
+  int y = 7;
+  int z = 0;
+  do {
+    void g() {}
+    ++z;
+    break;
+    ++y;
+  } while (z < 10);
+  assert(z == 1);
+  assert(y == 7);
+}
+
+{
+  int x = 456;
+  do { x = 123; } while (false);
+  assert(x == 123);
+}
+
+{
+  int x = 456;
+  do { void g() {} x = 123; } while (false);
+  assert(x == 123);
+}
+
 
 EndTest();
