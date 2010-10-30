@@ -38,7 +38,7 @@ Licence: GPL2+
 %</driver>
 %<pkg>\ProvidesPackage{asymptote}
 %<*pkg>
-  [2010/09/28 v1.21 Asymptote style file for LaTeX]
+  [2010/09/30 v1.22 Asymptote style file for LaTeX]
 %</pkg>
 %
 %<*driver>
@@ -612,10 +612,22 @@ Licence: GPL2+
       \ASYprefix\noexpand\jobname-\the\c@asy.pre}{}{}%
   }
   \asy@write@graphic@header
-  \CatchFileDef\@tempa{#2}{%
-    \let\do\@makeother
-    \dospecials
-    \endlinechar=10\relax
+  \IfFileExists{#2.asy}{%
+    \CatchFileDef\@tempa{#2.asy}{%
+      \let\do\@makeother
+      \dospecials
+      \endlinechar=10\relax
+    }
+  }{
+    \IfFileExists{#2}{%
+      \CatchFileDef\@tempa{#2}{%
+        \let\do\@makeother
+        \dospecials
+        \endlinechar=10\relax
+      }
+    }{
+      \PackageWarning{asymptote}{file #2 not found}%
+    }
   }
   \immediate\write\AsyStream{\unexpanded\expandafter{\@tempa}}%
   \asy@finalise@stream
