@@ -264,7 +264,7 @@ void whileStm::trans(coenv &e)
 {
   label end = e.c.fwdLabel();
   label start = e.c.defNewLabel();
-  e.c.pushLoop(end, start);
+  e.c.pushLoop(start, end);
 
 #ifdef TRANSJUMP
   test->transConditionalJump(e, false, end);
