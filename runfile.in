@@ -12,6 +12,10 @@ file*    => primFile()
 #include "triple.h"
 #include "array.h"
 
+#ifdef __CYGWIN__
+extern "C" int mkstemp(char *c);
+#endif
+
 using namespace camp;
 using namespace settings;
 using namespace vm;
