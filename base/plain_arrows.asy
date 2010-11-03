@@ -520,15 +520,29 @@ void draw(picture pic=currentpicture, Label L=null, path g,
   }
   else /* marker != nomarker */
   {
-    // NOTE: This will be somewhat slow for code that has a lot of draw calls
-    // with markers.
-    if (marker.above) {
-      draw(pic, L, g, align, p, arrow, bar, margin, legend, nomarker);
-      marker.mark(pic, g);
-    } else {
-      marker.mark(pic, g);
-      draw(pic, L, g, align, p, arrow, bar, margin, legend, nomarker);
+    if(marker != nomarker && !marker.above) marker.mark(pic,g);
+
+    // Note we are using & instead of && as both arrow and bar need to be
+    // called.
+    if ((arrow == None || arrow(pic, g, p, margin)) &
+        (bar == None || bar(pic, g, p, margin)))
+      {
+        _draw(pic, g, p, margin);
+      }
+
+    if(L != null && L.s != "") {
+      L=L.copy();
+      L.align(align);
+      L.p(p);
+      L.out(pic,g);
     }
+
+    if(legend != null && legend.s != "") {
+      legend.p(p);
+      pic.legend.push(Legend(legend.s,legend.p,p,marker.f,marker.above));
+    }
+
+    if(marker != nomarker && marker.above) marker.mark(pic,g);
   }
 }
 
