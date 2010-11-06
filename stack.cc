@@ -286,10 +286,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
   // Set up the closure, if necessary.
   if (vars == 0)
   {
-#if SIMPLE_FRAME
-    if (True)
-    {
-#else
+#ifndef SIMPLE_FRAME
     assessClosure(l);
     if (l->closureReq == lambda::NEEDS_CLOSURE)
 #endif
@@ -298,6 +295,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
       vars = vm::make_frame(l, parent);
       assert(vars);
     }
+#ifndef SIMPLE_FRAME
     else 
     {
       assert(l->closureReq == lambda::DOESNT_NEED_CLOSURE);
@@ -319,6 +317,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
         frameSize = newFrameSize;
       }
     }
+#endif
   }
 
   if (vars) {
