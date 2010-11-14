@@ -13,12 +13,13 @@
                            
 \endcopy
 \copyto INFO
+INFO-DIR-SECTION Languages
 START-INFO-DIR-ENTRY
 * asymptote FAQ: (asy-faq).    Asymptote Frequently Asked Questions.
 END-INFO-DIR-ENTRY
 
 
-File: $prefix.info, Node: Top, Next: Question 1.1, Up: (dir)
+File: asy-faq.info, Node: Top, Next: Question 1.1, Up: (dir)
 
             ASYMPTOTE FREQUENTLY ASKED QUESTIONS
                             `date '+%d %h %Y'`
