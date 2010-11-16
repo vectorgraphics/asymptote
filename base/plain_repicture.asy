@@ -336,6 +336,30 @@ typedef void drawer(frame f, transform t);
 // TODO: Add documentation as to what T is.
 typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
 
+// PairOrTriple {{{1
+// This struct is used to represent a userMin/userMax which serves as both a
+// pair and a triple depending on the context.  This is a horrible interface
+// chosen for backwards-compatibility reasons.
+struct pairOrTriple {
+  real x,y,z;
+  void init() { x = y = z = 0; }
+};
+void copyPairOrTriple(pairOrTriple dest, pairOrTriple src)
+{
+  dest.x = src.x;
+  dest.y = src.y;
+  dest.z = src.z;
+}
+pair operator cast (pairOrTriple a) {
+  return (a.x, a.y);
+};
+triple operator cast (pairOrTriple a) {
+  return (a.x, a.y, a.z);
+}
+void write(pairOrTriple a) {
+  write((triple) a);
+}
+
 struct picture { /* {{{1 */
   // Nodes {{{2
   // Three-dimensional version of drawer and drawerBound:
@@ -409,10 +433,10 @@ struct picture { /* {{{1 */
   transform T;
   transform3 T3;
   
-  // Cached user-space bounding box
-  triple userMin,userMax;
-  bool userSetx,userSety,userSetz;
-  
+  // The internal representation of the 3D user bounds.
+  private pairOrTriple umin, umax;
+  private bool usetx, usety, usetz;
+
   ScaleT scale; // Needed by graph
   Legend[] legend;
 
@@ -437,8 +461,9 @@ struct picture { /* {{{1 */
   
   // Init and erase {{{2
   void init() {
-    userMin=userMax=(0,0,0);
-    userSetx=userSety=userSetz=false;
+    umin.init();
+    umax.init();
+    usetx=usety=usetz=false;
     T3=identity(4);
   }
   init();
@@ -469,112 +494,152 @@ struct picture { /* {{{1 */
   }
   
   // User min/max {{{2
-  pair userMin() {return bounds.userMin(); }
-  pair userMax() {return bounds.userMax(); }
+  pair userMin2D() {return bounds.userMin(); }
+  pair userMax2D() {return bounds.userMax(); }
 
-  void userMinx(real x) {
-    userMin=(x,userMin.y,userMin.z);
-    userSetx=true;
-  }
-  
-  void userMiny(real y) {
-    userMin=(userMin.x,y,userMin.z);
-    userSety=true;
-  }
-  
-  void userMinz(real z) {
-    userMin=(userMin.x,userMin.y,z);
-    userSetz=true;
-  }
-  
-  void userMaxx(real x) {
-    userMax=(x,userMax.y,userMax.z);
-    userSetx=true;
-  }
-  
-  void userMaxy(real y) {
-    userMax=(userMax.x,y,userMax.z);
-    userSety=true;
-  }
-  
-  void userMaxz(real z) {
-    userMax=(userMax.x,userMax.y,z);
-    userSetz=true;
-  }
-  
-  void userCorners(triple c000, triple c001, triple c010, triple c011,
-                   triple c100, triple c101, triple c110, triple c111) {
-    userMin=(min(c000.x,c001.x,c010.x,c011.x,c100.x,c101.x,c110.x,c111.x),
-             min(c000.y,c001.y,c010.y,c011.y,c100.y,c101.y,c110.y,c111.y),
-             min(c000.z,c001.z,c010.z,c011.z,c100.z,c101.z,c110.z,c111.z));
-    userMax=(max(c000.x,c001.x,c010.x,c011.x,c100.x,c101.x,c110.x,c111.x),
-             max(c000.y,c001.y,c010.y,c011.y,c100.y,c101.y,c110.y,c111.y),
-             max(c000.z,c001.z,c010.z,c011.z,c100.z,c101.z,c110.z,c111.z));
-  }
-  
-  void userCopy(picture pic) {
-    userMin=(triple) pic.userMin;
-    userMax=(triple) pic.userMax;
-    userSetx=pic.userSetx;
-    userSety=pic.userSety;
-    userSetz=pic.userSetz;
-  }
-  
-  typedef real binop(real, real);
+  bool userSetx2D() { return bounds.userBoundsAreSet(); }
+  bool userSety2D() { return bounds.userBoundsAreSet(); }
 
+  triple userMin3D() { return umin; }
+  triple userMax3D() { return umax; }
+
+  bool userSetx3D() { return usetx; }
+  bool userSety3D() { return usety; }
+  bool userSetz3D() { return usetz; }
+
+  private typedef real binop(real, real);
+
+  // Helper functions for finding the minimum/maximum of two data, one of
+  // which may not be defined.
+  private static real merge(real x1, bool set1, real x2, bool set2, binop m)
+  {
+    return set1 ? (set2 ? m(x1,x2) : x2) : x2;
+  }
+  private pairOrTriple userExtreme(pair u2(), triple u3(), binop m)
+  {
+    bool setx2 = userSetx2D();
+    bool sety2 = userSety2D();
+    bool setx3 = userSetx3D();
+    bool sety3 = userSety3D();
+
+    pair p;
+    if (setx2 || sety2)
+      p = u2();
+    triple t = u3();
+
+    pairOrTriple r;
+    r.x = merge(p.x, setx2, t.x, setx3, m);
+    r.y = merge(p.y, sety2, t.y, sety3, m);
+    r.z = t.z;
+
+    return r;
+  }
+
+  // The combination of 2D and 3D data, for backwards compatibility reasons.
+  pairOrTriple userMin() {
+    return userExtreme(userMin2D, userMin3D, min);
+  }
+  pairOrTriple userMax() {
+    return userExtreme(userMax2D, userMax3D, max);
+  }
+
+  bool userSetx() { return userSetx2D() || userSetx3D(); }
+  bool userSety() { return userSety2D() || userSety3D(); }
+  bool userSetz() = userSetz3D;
+
+  // Functions for setting the user bounds.
+  void userMinx3D(real x) {
+    umin.x=x;
+    usetx=true;
+  }
+  
+  void userMiny3D(real y) {
+    umin.y=y;
+    usety=true;
+  }
+  
+  void userMinz3D(real z) {
+    umin.z=z;
+    usetz=true;
+  }
+  
+  void userMaxx3D(real x) {
+    umax.x=x;
+    usetx=true;
+  }
+  
+  void userMaxy3D(real y) {
+    umax.y=y;
+    usety=true;
+  }
+  
+  void userMaxz3D(real z) {
+    umax.z=z;
+    usetz=true;
+  }
+
+  void userMinx2D(real x) { bounds.alterUserBound("minx", x); }
+  void userMinx(real x) { userMinx2D(x); userMinx3D(x); }
+  void userMiny2D(real y) { bounds.alterUserBound("miny", y); }
+  void userMiny(real y) { userMiny2D(y); userMiny3D(y); }
+  void userMaxx2D(real x) { bounds.alterUserBound("maxx", x); }
+  void userMaxx(real x) { userMaxx2D(x); userMaxx3D(x); }
+  void userMaxy2D(real y) { bounds.alterUserBound("maxy", y); }
+  void userMaxy(real y) { userMaxy2D(y); userMaxy3D(y); }
+  void userMinz(real z) = userMinz3D;
+  void userMaxz(real z) = userMaxz3D;
+  
+  void userCorners3D(triple c000, triple c001, triple c010, triple c011,
+                     triple c100, triple c101, triple c110, triple c111) {
+    umin.x = min(c000.x,c001.x,c010.x,c011.x,c100.x,c101.x,c110.x,c111.x);
+    umin.y = min(c000.y,c001.y,c010.y,c011.y,c100.y,c101.y,c110.y,c111.y);
+    umin.z = min(c000.z,c001.z,c010.z,c011.z,c100.z,c101.z,c110.z,c111.z);
+    umax.x = max(c000.x,c001.x,c010.x,c011.x,c100.x,c101.x,c110.x,c111.x);
+    umax.y = max(c000.y,c001.y,c010.y,c011.y,c100.y,c101.y,c110.y,c111.y);
+    umax.z = max(c000.z,c001.z,c010.z,c011.z,c100.z,c101.z,c110.z,c111.z);
+  }
+  
   // Cache the current user-space bounding box x coodinates
-  void userBoxX(real min, real max, binop m=min, binop M=max) {
-    if(userSetx) {
-      userMin=(m(userMin.x,min),userMin.y,userMin.z);
-      userMax=(M(userMax.x,max),userMax.y,userMax.z);
+  void userBoxX3D(real min, real max, binop m=min, binop M=max) {
+    if (usetx) {
+      umin.x=m(umin.x,min);
+      umax.x=M(umax.x,max);
     } else {
-      userMin=(min,userMin.y,userMin.z);
-      userMax=(max,userMax.y,userMax.z);
-      userSetx=true;
+      umin.x=min;
+      umax.x=max;
+      usetx=true;
     }
   }
-  
+
   // Cache the current user-space bounding box y coodinates
-  void userBoxY(real min, real max, binop m=min, binop M=max) {
-    if(userSety) {
-      userMin=(userMin.x,m(userMin.y,min),userMin.z);
-      userMax=(userMax.x,M(userMax.y,max),userMax.z);
+  void userBoxY3D(real min, real max, binop m=min, binop M=max) {
+    if (usety) {
+      umin.y=m(umin.y,min);
+      umax.y=M(umax.y,max);
     } else {
-      userMin=(userMin.x,min,userMin.z);
-      userMax=(userMax.x,max,userMax.z);
-      userSety=true;
+      umin.y=min;
+      umax.y=max;
+      usety=true;
     }
   }
-  
+
   // Cache the current user-space bounding box z coodinates
-  void userBoxZ(real min, real max, binop m=min, binop M=max) {
-    if(userSetz) {
-      userMin=(userMin.x,userMin.y,m(userMin.z,min));
-      userMax=(userMax.x,userMax.y,M(userMax.z,max));
+  void userBoxZ3D(real min, real max, binop m=min, binop M=max) {
+    if (usetz) {
+      umin.z=m(umin.z,min);
+      umax.z=M(umax.z,max);
     } else {
-      userMin=(userMin.x,userMin.y,min);
-      userMax=(userMax.x,userMax.y,max);
-      userSetz=true;
+      umin.z=min;
+      umax.z=max;
+      usetz=true;
     }
   }
-  
+
   // Cache the current user-space bounding box
-  void userBox(pair min, pair max) {
-    userBoxX(min.x,max.x);
-    userBoxY(min.y,max.y);
-  }
-  
-  // Cache the current user-space bounding box
-  void userBox(triple min, triple max) {
-    userBoxX(min.x,max.x);
-    userBoxY(min.y,max.y);
-    userBoxZ(min.z,max.z);
-  }
-  
-  // Clip the current user-space bounding box
-  void userClip(pair min, pair max) {
-    userBoxX(min.x,max.x,max,min);
-    userBoxY(min.y,max.y,max,min);
+  void userBox3D(triple min, triple max) {
+    userBoxX3D(min.x,max.x);
+    userBoxY3D(min.y,max.y);
+    userBoxZ3D(min.z,max.z);
   }
   
   // Add drawer {{{2
@@ -616,13 +681,13 @@ struct picture { /* {{{1 */
   }
 
   // Clip {{{2
-  void clip(drawer d, bool exact=false) {
-    bounds.clip(userMin,userMax);
+  void clip(pair min, pair max, drawer d, bool exact=false) {
+    bounds.clip(min, max);
     this.add(d,exact);
   }
 
-  void clip(drawerBound d, bool exact=false) {
-    bounds.clip(userMin,userMax);
+  void clip(pair min, pair max, drawerBound d, bool exact=false) {
+    bounds.clip(min, max);
     this.add(d,exact);
   }
 
@@ -630,7 +695,7 @@ struct picture { /* {{{1 */
   // Add a point to the sizing.
   void addPoint(pair user, pair truesize=0) {
     bounds.addPoint(user,truesize);
-    userBox(user,user);
+    //userBox(user,user);
   }
   
   // Add a point to the sizing, accounting also for the size of the pen.
@@ -641,7 +706,7 @@ struct picture { /* {{{1 */
   
   void addPoint(triple user, triple truesize=(0,0,0)) {
     bounds3.point.push(user,truesize);
-    userBox(user,user);
+    userBox3D(user,user);
   }
 
   void addPoint(triple user, triple truesize=(0,0,0), pen p) {
@@ -652,16 +717,17 @@ struct picture { /* {{{1 */
   // Add a box to the sizing.
   void addBox(pair userMin, pair userMax, pair trueMin=0, pair trueMax=0) {
     bounds.addBox(userMin, userMax, trueMin, trueMax);
-    userBox(userMin,userMax);
   }
 
   void addBox(triple userMin, triple userMax, triple trueMin=(0,0,0),
               triple trueMax=(0,0,0)) {
     bounds3.min.push(userMin,trueMin);
     bounds3.max.push(userMax,trueMax);
-    userBox(userMin,userMax);
+    userBox3D(userMin,userMax);
   }
 
+  // For speed reason, we unravel the addPath routines from bounds.  This
+  // avoids an extra function call.
   from bounds unravel addPath;
 
   // Add a (user space) path to the sizing.
@@ -1049,6 +1115,28 @@ struct picture { /* {{{1 */
   }
 
   // Copying {{{2
+  
+  // Copies enough information to yield the same userMin/userMax.
+  void userCopy2D(picture pic) {
+    userMinx2D(pic.userMin2D().x);
+    userMiny2D(pic.userMin2D().y);
+    userMaxx2D(pic.userMax2D().x);
+    userMaxy2D(pic.userMax2D().y);
+  }
+
+  void userCopy3D(picture pic) {
+    copyPairOrTriple(umin, pic.umin);
+    copyPairOrTriple(umax, pic.umax);
+    usetx=pic.usetx;
+    usety=pic.usety;
+    usetz=pic.usetz;
+  }
+  
+  void userCopy(picture pic) {
+    userCopy2D(pic);
+    userCopy3D(pic);
+  }
+  
   // Copies the drawing information, but not the sizing information into a new
   // picture. Fitting this picture will not scale as the original picture would.
   picture drawcopy() {
@@ -1075,7 +1163,11 @@ struct picture { /* {{{1 */
     dest.nodes3=copy(nodes3);
     dest.T=T;
     dest.T3=T3;
-    dest.userCopy(this);
+
+    // TODO:  User bounds are sizing info, which probably shouldn't be part of
+    // a draw copy.  Should we move this down to copy()?
+    dest.userCopy3D(this);
+
     dest.scale=scale.copy();
     dest.legend=copy(legend);
 
@@ -1160,9 +1252,9 @@ struct picture { /* {{{1 */
     
     legend.append(src.legend);
     
-    if(src.userSetx) userBoxX(src.userMin.x,src.userMax.x);
-    if(src.userSety) userBoxY(src.userMin.y,src.userMax.y);
-    if(src.userSetz) userBoxZ(src.userMin.z,src.userMax.z);
+    if(src.usetx) userBoxX3D(src.umin.x,src.umax.x);
+    if(src.usety) userBoxY3D(src.umin.y,src.umax.y);
+    if(src.usetz) userBoxZ3D(src.umin.z,src.umax.z);
     
     bounds.append(srcCopy.T, src.bounds);
     //append(bounds.point,bounds.min,bounds.max,srcCopy.T,src.bounds);
@@ -1183,14 +1275,15 @@ picture operator * (transform3 t, picture orig)
 {
   picture pic=orig.copy();
   pic.T3=t*pic.T3;
-  pic.userCorners(t*pic.userMin,
-                  t*(pic.userMin.x,pic.userMin.y,pic.userMax.z),
-                  t*(pic.userMin.x,pic.userMax.y,pic.userMin.z),
-                  t*(pic.userMin.x,pic.userMax.y,pic.userMax.z),
-                  t*(pic.userMax.x,pic.userMin.y,pic.userMin.z),
-                  t*(pic.userMax.x,pic.userMin.y,pic.userMax.z),
-                  t*(pic.userMax.x,pic.userMax.y,pic.userMin.z),
-                  t*pic.userMax);
+  triple umin=pic.userMin3D(), umax=pic.userMax3D();
+  pic.userCorners3D(t*umin,
+                    t*(umin.x,umin.y,umax.z),
+                    t*(umin.x,umax.y,umin.z),
+                    t*(umin.x,umax.y,umax.z),
+                    t*(umax.x,umin.y,umin.z),
+                    t*(umax.x,umin.y,umax.z),
+                    t*(umax.x,umax.y,umin.z),
+                    t*umax);
   pic.bounds3.exact=false;
   return pic;
 }
@@ -1297,7 +1390,10 @@ frame align(frame f, pair align)
 
 pair point(picture pic=currentpicture, pair dir, bool user=true)
 {
-  pair z=pic.userMin()+realmult(rectify(dir),pic.userMax()-pic.userMin());
+  pair umin = pic.userMin2D();
+  pair umax = pic.userMax2D();
+
+  pair z=umin+realmult(rectify(dir),umax-umin);
   return user ? z : pic.calculateTransform()*z;
 }
 
@@ -1313,7 +1409,7 @@ pair truepoint(picture pic=currentpicture, pair dir, bool user=true)
 // Transform coordinate in [0,1]x[0,1] to current user coordinates.
 pair relative(picture pic=currentpicture, pair z)
 {
-  return pic.userMin()+realmult(z,pic.userMax()-pic.userMin());
+  return pic.userMin2D()+realmult(z,pic.userMax2D()-pic.userMin2D());
 }
 
 void add(picture pic=currentpicture, drawer d, bool exact=false)
@@ -1557,10 +1653,12 @@ void clip(picture pic=currentpicture, path[] g, bool stroke=false,
 {
   if(copy)
     g=copy(g);
-  pic.userClip(min(g),max(g));
-  pic.clip(new void(frame f, transform t) {
+  //pic.userClip(min(g),max(g));
+  pic.clip(min(g), max(g),
+    new void(frame f, transform t) {
       clip(f,t*g,stroke,fillrule,false);
-    },true);
+    },
+    true);
 }
 
 void beginclip(picture pic=currentpicture, path[] g, bool stroke=false,
@@ -1579,11 +1677,26 @@ void beginclip(picture pic=currentpicture, path[] g, bool stroke=false,
 
 void endclip(picture pic=currentpicture)
 {
-  if(pic.clipmin.length > 0 && pic.clipmax.length > 0)
-    pic.userClip(pic.clipmin.pop(),pic.clipmax.pop());
-  pic.clip(new void(frame f, transform) {
+  pair min,max;
+  if (pic.clipmin.length > 0 && pic.clipmax.length > 0)
+  {
+    min = pic.clipmin.pop();
+    max = pic.clipmax.pop();
+  }
+  else
+  {
+    // We should probably abort here, since the PostScript output will be
+    // garbage.
+    warning("endclip", "endclip without beginclip");
+    min = pic.userMin2D();
+    max = pic.userMax2D();
+  }
+
+  pic.clip(min, max,
+    new void(frame f, transform) {
       endclip(f);
-    },true);
+    },
+    true);
 }
 
 void unfill(picture pic=currentpicture, path[] g, bool copy=true)

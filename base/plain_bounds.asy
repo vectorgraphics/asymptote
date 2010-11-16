@@ -311,13 +311,7 @@ private struct freezableBounds {
     return coords;
   }
 
-  private void addToExtremes(transform t, extremes e) {
-    for (var link : links)
-      link.addToExtremes(t, e);
-
-    for (var tlink : tlinks)
-      tlink.link.addToExtremes(t*tlink.t, e);
-
+  private void addLocalsToExtremes(transform t, extremes e) {
     coords2 coords;
     addTransformedCoords(coords, t, this.point, this.min, this.max);
     addMinToExtremes(e, coords);
@@ -335,15 +329,18 @@ private struct freezableBounds {
       }
     }
   }
-    
 
-  private void addToExtremes(extremes e) {
+  private void addToExtremes(transform t, extremes e) {
     for (var link : links)
-      link.addToExtremes(e);
+      link.addToExtremes(t, e);
 
     for (var tlink : tlinks)
-      tlink.link.addToExtremes(tlink.t, e);
+      tlink.link.addToExtremes(t*tlink.t, e);
 
+    addLocalsToExtremes(t, e);
+  }
+    
+  private void addLocalsToExtremes(extremes e) {
     addMinToExtremes(e, point);
     addMaxToExtremes(e, point);
     addMinToExtremes(e, min);
@@ -360,6 +357,16 @@ private struct freezableBounds {
         addMaxToExtremes(e, max(pp.g), max(pp.p));
       }
     }
+  }
+
+  private void addToExtremes(extremes e) {
+    for (var link : links)
+      link.addToExtremes(e);
+
+    for (var tlink : tlinks)
+      tlink.link.addToExtremes(tlink.t, e);
+
+    addLocalsToExtremes(e);
   }
 
   private static void write(extremes e) {
@@ -390,56 +397,141 @@ private struct freezableBounds {
     return cachedExtremes;
   }
 
+  // Helper functions for computing the usersize bounds.  usermin and usermax
+  // would be easily computable from extremes, except that the picture
+  // interface actually allows calls that manually change the usermin and
+  // usermax values.  Therefore, we have to compute these values separately.
+  private static struct bounds {
+    bool areSet=false;
+    pair min;
+    pair max;
+  }
+  private static struct boundsAccumulator {
+    pair[] mins;
+    pair[] maxs;
+
+    void push(pair m, pair M) {
+      mins.push(m);
+      maxs.push(M);
+    }
+
+    void push(bounds b) {
+      if (b.areSet)
+        push(b.min, b.max);
+    }
+
+    void pushUserCoords(coords2 min, coords2 max) {
+      int n = min.x.length;
+      assert(min.y.length == n);
+      assert(max.x.length == n);
+      assert(max.y.length == n);
+
+      for (int i = 0; i < n; ++i)
+        push((min.x[i].user, min.y[i].user),
+             (max.x[i].user, max.y[i].user));
+    }
+
+    bounds collapse() {
+      bounds b;
+      if (mins.length > 0) {
+        b.areSet = true;
+        b.min = minbound(mins);
+        b.max = maxbound(maxs);
+      }
+      else {
+        b.areSet = false;
+      }
+      return b;
+    }
+  }
+
+  // The user bounds already calculated for this data.
+  private bounds storedUserBounds = null;
+
+  private void accumulateUserBounds(boundsAccumulator acc)
+  {
+    if (storedUserBounds != null) {
+      assert(frozen);
+      acc.push(storedUserBounds);
+    } else {
+      acc.pushUserCoords(point, point);
+      acc.pushUserCoords(min, max);
+      for (var pp : pathpenBounds)
+        acc.push(min(pp.g), max(pp.g));
+      for (var link : links)
+        link.accumulateUserBounds(acc);
+      // TODO: Implement tlink.
+      assert(tlinks.length == 0);
+    }
+  }
+
+  private void computeUserBounds() {
+    freeze();
+    boundsAccumulator acc;
+    accumulateUserBounds(acc);
+    storedUserBounds = acc.collapse();
+  }
+
+  private bounds userBounds() {
+    if (storedUserBounds == null)
+      computeUserBounds();
+
+    assert(storedUserBounds != null);
+    return storedUserBounds;
+  }
+
   // userMin/userMax returns the minimal/maximal userspace coordinate of the
   // sizing data.  As coordinates for objects such as labels can have
   // significant truesize dimensions, this userMin/userMax values may not
   // correspond closely to the end of the screen, and are of limited use.
-  // userSetx and userSety determined if there is sizing data in order to even
+  // userSetx and userSety determine if there is sizing data in order to even
   // have userMin/userMax defined.
-  public bool userSetx() {
-    var e = extremes();
-    return e.left.length > 0 && e.right.length > 0;
-  }
-  public bool userSety() {
-    var e = extremes();
-    return e.bottom.length > 0 && e.top.length > 0;
-  }
-
-  static private real coordMin(coord[] coords) {
-    if (coords.length == 0)
-      abort("userMin called on empty sizing data");
-
-    real best = coords[0].user;
-    for (var c : coords[1:])
-      if (c.user < best)
-        best = c.user;
-    return best;
-  }
-  static private real coordMax(coord[] coords) {
-    if (coords.length == 0)
-      abort("userMax called on empty sizing data");
-
-    real best = coords[0].user;
-    for (var c : coords[1:])
-      if (c.user > best)
-        best = c.user;
-    return best;
+  public bool userBoundsAreSet() {
+    return userBounds().areSet;
   }
 
   public pair userMin() {
-    var e = extremes();
-    return (coordMin(e.left), coordMin(e.bottom));
+    if (!userBounds().areSet)
+      abort("userMin called on empty sizing data");
+    return userBounds().min;
   }
   public pair userMax() {
-    var e = extremes();
-    return (coordMax(e.right), coordMax(e.top));
+    if (!userBounds().areSet)
+      abort("userMin called on empty sizing data");
+    return userBounds().max;
   }
 
+  // To override the true userMin and userMax bounds, first compute the
+  // userBounds as they should be at this point, then change the values.
+  public void alterUserBound(string which, real val) {
+    // We are changing the bounds data, so it cannot be frozen yet.  After the
+    // user bounds are set, however, the sizing data cannot change, so it will
+    // be frozen.
+    assert(!frozen);
+    computeUserBounds();
+    assert(frozen);
+
+    var b = storedUserBounds;
+    if (which == "minx")
+      b.min = (val, b.min.y);
+    else if (which == "miny")
+      b.min = (b.min.x, val);
+    else if (which == "maxx")
+      b.max = (val, b.max.y);
+    else {
+      assert(which == "maxy");
+      b.max = (b.max.x, val);
+    }
+  }
 
   // A temporary measure.  Stuffs all of the data from the links and paths
   // into the coords.
   private void flatten() {
     assert(!frozen);
+
+    // First, compute the user bounds, taking into account any manual
+    // alterations.
+    computeUserBounds();
 
     // Calculate all coordinates.
     coords2 coords = allCoords();
@@ -464,6 +556,11 @@ private struct freezableBounds {
     point.xclip(Min,Max);
     min.xclip(Min,Max);
     max.xclip(Min,Max);
+
+    // Cap the userBounds.
+    bounds b = storedUserBounds;
+    b.min = (max(Min, b.min.x), b.min.y);
+    b.max = (min(Max, b.max.x), b.max.y);
   }
 
   void yclip(real Min, real Max) {
@@ -472,8 +569,12 @@ private struct freezableBounds {
     point.yclip(Min,Max);
     min.yclip(Min,Max);
     max.yclip(Min,Max);
-  }
 
+    // Cap the userBounds.
+    bounds b = storedUserBounds;
+    b.min = (b.min.x, max(Min, b.min.y));
+    b.max = (b.max.x, min(Max, b.max.y));
+  }
 
   // Calculate the min for the final frame, given the coordinate transform.
   pair min(transform t) {
@@ -559,6 +660,8 @@ struct bounds {
   void erase() {
     // Just discard the old bounds.
     base = new freezableBounds;
+
+    // We don't reset the 'exact' field, for backward compatibility.
   }
 
   bounds copy() {
@@ -622,6 +725,20 @@ struct bounds {
     base.addPath(g, p);
   }
 
+  public bool userBoundsAreSet() {
+    return base.userBoundsAreSet();
+  }
+  public pair userMin() {
+    return base.userMin();
+  }
+  public pair userMax() {
+    return base.userMax();
+  }
+  public void alterUserBound(string which, real val) {
+    makeMutable();
+    base.alterUserBound(which, val);
+  }
+
   void xclip(real Min, real Max) {
     makeMutable();
     base.xclip(Min,Max);
@@ -632,22 +749,11 @@ struct bounds {
     base.yclip(Min,Max);
   }
   
-  void clip(triple Min, triple Max) {
+  void clip(pair Min, pair Max) {
+    // TODO: If the user bounds have been manually altered, they may be
+    // incorrect after the clip.
     xclip(Min.x,Max.x);
     yclip(Min.y,Max.y);
-  }
-
-  public bool userSetx() {
-    return base.userSetx();
-  }
-  public bool userSety() {
-    return base.userSety();
-  }
-  public pair userMin() {
-    return base.userMin();
-  }
-  public pair userMax() {
-    return base.userMax();
   }
 
   pair min(transform t) {
