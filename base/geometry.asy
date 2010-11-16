@@ -1175,16 +1175,16 @@ private void Drawline(picture pic=currentpicture, Label L="",pair P, bool dirP=t
             ptp=(z.x,z.y+cp*(m.y-z.y));
             ptq=(z.x,q.y+cq*(M.y-q.y));
           } else {
-            ptp=(z.x,q.y+cq*(m.y-q.y));
-            ptq=(z.x,z.y+cp*(M.y-z.y));
+            ptq=(z.x,q.y+cq*(m.y-q.y));
+            ptp=(z.x,z.y+cp*(M.y-z.y));
           }
       } else if(v.y == 0) {
         if (dot(v,m-z) < 0) {
           ptp=(z.x+cp*(m.x-z.x),z.y);
           ptq=(q.x+cq*(M.x-q.x),z.y);
         } else {
-          ptp=(q.x+cq*(m.x-q.x),z.y);
-          ptq=(z.x+cp*(M.x-z.x),z.y);
+          ptq=(q.x+cq*(m.x-q.x),z.y);
+          ptp=(z.x+cp*(M.x-z.x),z.y);
         }
       } else {
         // Calculate the maximum and minimum t values allowed for the
