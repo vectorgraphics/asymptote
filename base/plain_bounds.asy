@@ -420,6 +420,15 @@ private struct freezableBounds {
         push(b.min, b.max);
     }
 
+    void push(transform t, bounds b) {
+      if (b.areSet) {
+        pair[] box = { t*(b.min.x,b.max.y), t*b.max,
+                       t*b.min.x,           t*(b.min.x,b.max.y) };
+        for (var z : box)
+          push(z,z);
+      }
+    }
+
     void pushUserCoords(coords2 min, coords2 max) {
       int n = min.x.length;
       assert(min.y.length == n);
@@ -460,8 +469,13 @@ private struct freezableBounds {
         acc.push(min(pp.g), max(pp.g));
       for (var link : links)
         link.accumulateUserBounds(acc);
-      // TODO: Implement tlink.
-      assert(tlinks.length == 0);
+
+      // Transforms are handled as they were in the old system.
+      for (var tlink : tlinks) {
+        boundsAccumulator tacc;
+        tlink.link.accumulateUserBounds(tacc);
+        acc.push(tlink.t, tacc.collapse());
+      }
     }
   }
 
