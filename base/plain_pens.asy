@@ -129,7 +129,7 @@ pen palegrey=palegray;
 pen lightgrey=lightgray;
 pen mediumgrey=mediumgray;
 pen grey=gray;
-pen heavygrey=gray;
+pen heavygrey=heavygray;
 pen deepgrey=deepgray;
 pen darkgrey=darkgray;
 
