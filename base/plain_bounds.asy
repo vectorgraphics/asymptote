@@ -465,7 +465,8 @@ private struct freezableBounds {
     } else {
       acc.pushUserCoords(point, point);
       acc.pushUserCoords(min, max);
-      acc.push(min(pathBounds), max(pathBounds));
+      if (pathBounds.length > 0)
+        acc.push(min(pathBounds), max(pathBounds));
       for (var pp : pathpenBounds)
         acc.push(min(pp.g), max(pp.g));
       for (var link : links)
