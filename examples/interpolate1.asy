@@ -7,8 +7,6 @@ import graph;
 // Test 1: The Runge effect in the Lagrange interpolation of 1/(x^2+1).
 
 unitsize(2cm);
-xlimits(-5,5);
-ylimits(-1,1,Crop);
 
 real f(real x) {return(1/(x^2+1));}
 real df(real x) {return(-2*x/(x^2+1)^2);}
@@ -26,9 +24,14 @@ fhorner p=fhorner(h);
 draw(graph(p,a,b,n=500),"$x\longmapsto{}L_{"+string(n)+"}$");
 draw(graph(f,a,b),red,"$x\longmapsto{}\frac{1}{x^2+1}$");
 
+xlimits(-5,5);
+ylimits(-1,1,Crop);
+
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
+
 attach(legend(),point(10S),30S);
+
 shipout("runge1");
 
 erase();
@@ -52,11 +55,13 @@ draw(graph(p,a,b,n=500),"$x\longmapsto{}H_{"+string(n)+"}$");
 draw(graph(f,a,b),red,"$x\longmapsto{}\frac{1}{x^2+1}$");
 
 unitsize(2cm);
+
 xlimits(-5,5);
 ylimits(-1,5,Crop);
 
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
+
 attach(legend(),point(10S),30S);
 
 shipout("runge2");
@@ -86,7 +91,9 @@ draw(graph(f,a,b),red,"$x\longmapsto{}\cos(x)$");
 
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
+
 attach(legend(),point(10S),30S);
+
 shipout("runge3");
 
 erase();
@@ -110,9 +117,12 @@ fhorner p=fhorner(h);
 
 draw(graph(p,a,b,n=500),"$x\longmapsto{}L_{"+string(n)+"}$");
 draw(graph(f,a,b),red,"$x\longmapsto{}\cos(x)$");
+
 ylimits(-1,5,Crop);
+
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
+
 attach(legend(),point(10S),30S);
 
 shipout("runge4");
@@ -122,8 +132,6 @@ erase();
 // Test 5: The situation is much better using Tchebychev points. 
 
 unitsize(2cm);
-xlimits(-5,5);
-ylimits(-1,2,Crop);
 
 real f(real x) {return(1/(x^2+1));}
 real df(real x) {return(-2*x/(x^2+1)^2);}
@@ -144,6 +152,9 @@ fhorner p=fhorner(h);
 draw(graph(p,a,b,n=500),"$x\longmapsto{}T_{"+string(n)+"}$");
 draw(graph(f,a,b),red,"$x\longmapsto{}\frac{1}{x^2+1}$");
 
+xlimits(-5,5);
+ylimits(-1,2,Crop);
+
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
 attach(legend(),point(10S),30S);
@@ -155,8 +166,6 @@ erase();
 // Test 6: Adding a few more Tchebychev points yields a very good result.
 
 unitsize(2cm);
-xlimits(-5,5);
-ylimits(-1,2,Crop);
 
 real f(real x) {return(1/(x^2+1));}
 real df(real x) {return(-2*x/(x^2+1)^2);}
@@ -175,6 +184,9 @@ fhorner p=fhorner(h);
 draw(graph(p,a,b,n=500),"$x\longmapsto{}T_{"+string(n)+"}$");
 draw(graph(f,a,b),red,"$x\longmapsto{}\frac{1}{x^2+1}$");
 
+xlimits(-5,5);
+ylimits(-1,2,Crop);
+
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
 attach(legend(),point(10S),30S);
@@ -187,8 +199,6 @@ erase();
 // Test 7: Another Tchebychev example.
 
 unitsize(2cm);
-xlimits(-2,2);
-ylimits(-0.5,2,Crop);
 
 real f(real x) {return(sqrt(abs(x-1)));}
 
@@ -205,6 +215,9 @@ horner h=diffdiv(x,y);
 fhorner p=fhorner(h);
 draw(graph(p,a,b,n=500),"$x\longmapsto{}T_{"+string(n)+"}$");
 draw(graph(f,a,b),red,"$x\longmapsto{}\sqrt{|x-1|}$");
+
+xlimits(-2,2);
+ylimits(-0.5,2,Crop);
 
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
