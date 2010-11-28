@@ -1,4 +1,3 @@
-
 // A coordinate in "flex space." A linear combination of user and true-size
 // coordinates.
 struct coord {
@@ -224,9 +223,9 @@ real calculateScaling(string dir, coord[] m, coord[] M, real size,
     if(!warn) return 1;
     // TODO: Make a userzero(coords) function.
     bool userzero=true;
-//    for(int i=0; i < coords.length; ++i) {
-//      if(coords[i].user != 0) userzero=false;
-//    }
+    //    for(int i=0; i < coords.length; ++i) {
+    //      if(coords[i].user != 0) userzero=false;
+    //    }
     for(var coord : m) {
       if(coord.user != 0) userzero=false;
     }

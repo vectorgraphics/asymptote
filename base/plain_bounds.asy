@@ -1,10 +1,9 @@
-private import plain_scaling;
+include plain_scaling;
 
 // After an transformation, produce new coordinate bounds.  For paths that
 // have been added, this is only an approximation since it takes the bounds of
 // their transformed bounding box.
-private
-void addTransformedCoords(coords2 dest, transform t,
+private void addTransformedCoords(coords2 dest, transform t,
                           coords2 point, coords2 min, coords2 max)
 {
   dest.push(t, point, point);
@@ -19,8 +18,7 @@ void addTransformedCoords(coords2 dest, transform t,
 // Adds another sizing restriction to the coordinates, but only if it is
 // maximal, that is, if under some scaling, this coordinate could be the
 // largest.
-private
-void addIfMaximal(coord[] coords, real user, real truesize) {
+private void addIfMaximal(coord[] coords, real user, real truesize) {
   // TODO: Test promoting coordinates for efficiency.
 
   for (coord c : coords)
@@ -43,8 +41,7 @@ void addIfMaximal(coord[] coords, real user, real truesize) {
   coords.push(coord.build(user, truesize));
 }
 
-private
-void addIfMaximal(coord[] dest, coord[] src)
+private void addIfMaximal(coord[] dest, coord[] src)
 {
   // This may be inefficient, as it rebuilds the coord struct when adding it.
   for (coord c : src)
@@ -52,8 +49,7 @@ void addIfMaximal(coord[] dest, coord[] src)
 }
       
 // Same as addIfMaximal, but testing for minimal coords.
-private
-void addIfMinimal(coord[] coords, real user, real truesize) {
+private void addIfMinimal(coord[] coords, real user, real truesize) {
   for (coord c : coords)
     if (user >= c.user && truesize >= c.truesize)
       return;
@@ -70,8 +66,7 @@ void addIfMinimal(coord[] coords, real user, real truesize) {
   coords.push(coord.build(user, truesize));
 }
 
-private
-void addIfMinimal(coord[] dest, coord[] src)
+private void addIfMinimal(coord[] dest, coord[] src)
 {
   for (coord c : src)
     addIfMinimal(dest, c.user, c.truesize);
@@ -634,9 +629,9 @@ private struct freezableBounds {
     } else sx=xunitsize;
 
     /* Possible alternative code : 
-    real sx = xunitsize != 0 ? xunitsize :
-              xsize != 0     ? calculateScaling("x", Coords.x, xsize, warn) :
-                               0; */
+       real sx = xunitsize != 0 ? xunitsize :
+       xsize != 0     ? calculateScaling("x", Coords.x, xsize, warn) :
+       0; */
 
     real sy;
     if(yunitsize == 0) {
