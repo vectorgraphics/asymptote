@@ -46,7 +46,7 @@ void checkformat(const char *ptr, bool intformat)
       ptr++;
       
       while(*ptr && strchr ("-+ #0'I", *ptr)) /* Move past flags.  */
-        *ptr++;
+        ptr++;
 
       if(*ptr == '*')
         ptr++;
@@ -54,15 +54,15 @@ void checkformat(const char *ptr, bool intformat)
              ptr++;
           
       if(*ptr == '.') {
-        *ptr++; /* Go past the period.  */
+        ptr++; /* Go past the period.  */
         if(*ptr == '*') {
           ptr++;
         } else
           while(isdigit(*ptr)) /* Handle explicit numeric value.  */
-            *ptr++;
+            ptr++;
       }
       while(*ptr && strchr ("hlL", *ptr))
-        *ptr++;
+        ptr++;
           
       if(*ptr == '%') ++ptr;
       else if(*ptr != '\0') {
