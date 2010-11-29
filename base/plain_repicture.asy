@@ -312,7 +312,7 @@ struct picture { // <<<1
   // which may not be defined.
   private static real merge(real x1, bool set1, real x2, bool set2, binop m)
   {
-    return set1 ? (set2 ? m(x1,x2) : x2) : x2;
+    return set1 ? (set2 ? m(x1,x2) : x1) : x2;
   }
   private pairOrTriple userExtreme(pair u2(), triple u3(), binop m)
   {
