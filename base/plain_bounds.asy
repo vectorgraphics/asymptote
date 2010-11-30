@@ -502,13 +502,16 @@ private struct freezableBounds {
   }
 
   public pair userMin() {
-    if (!userBounds().areSet)
-      abort("userMin called on empty sizing data");
+    if (!userBounds().areSet) {
+      // TODO: Decide if we want an error or warning here and in userMax().
+      //abort("userMin called on empty sizing data");
+      return (0,0);
+    }
     return userBounds().min;
   }
   public pair userMax() {
     if (!userBounds().areSet)
-      abort("userMin called on empty sizing data");
+      return (0,0);
     return userBounds().max;
   }
 
