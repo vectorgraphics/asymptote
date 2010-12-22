@@ -63,8 +63,7 @@ void texfile::prologue()
   if(inlinetex) {
     string prename=buildname(settings::outname(),"pre");
     std::ifstream exists(prename.c_str());
-    std::ofstream *outpreamble=
-      new std::ofstream(prename.c_str(),std::ios::app);
+    std::ofstream *outpreamble=new std::ofstream(prename.c_str());
     bool ASYdefines=!exists;
     texpreamble(*outpreamble,processData().TeXpreamble,ASYdefines,ASYdefines);
     outpreamble->close();

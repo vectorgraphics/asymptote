@@ -5973,9 +5973,8 @@ asy latexusage-*.asy
 pdflatex latexusage
 @end verbatim
 @noindent
-To switch between using @code{latex} and @code{pdflatex} you may first
-need to remove the files @code{latexusage-*}, @code{latexusage.pre}, and
-@code{latexusage.aux}. 
+To switch between using inline Asymptote code with @code{latex} and
+@code{pdflatex} you may first need to remove the files @code{latexusage-*.tex}.
 
 @cindex @code{latexmk}
 @cindex @code{perl}
