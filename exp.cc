@@ -1420,7 +1420,7 @@ void selfExp::transAsType(coenv &e, types::ty *target)
   // Create a temp expression for the destination, so it is not evaluated
   // twice.
   exp *temp=dest->evaluate(e, target);
-  temp->transWrite(e, target, ultimateValue(dest));
+  temp->transWrite(e, target, ultimateValue(temp));
 }
 
 void prefixExp::prettyprint(ostream &out, Int indent)
