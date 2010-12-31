@@ -363,13 +363,13 @@ InOutTicks=InOutTicks();
 
 triple tickMin3(picture pic)
 {
-  return minbound(pic.userMin3(),(pic.scale.x.tickMin,pic.scale.y.tickMin,
+  return minbound(pic.userMin(),(pic.scale.x.tickMin,pic.scale.y.tickMin,
                                   pic.scale.z.tickMin));
 }
   
 triple tickMax3(picture pic)
 {
-  return maxbound(pic.userMax3(),(pic.scale.x.tickMax,pic.scale.y.tickMax,
+  return maxbound(pic.userMax(),(pic.scale.x.tickMax,pic.scale.y.tickMax,
                                   pic.scale.z.tickMax));
 }
                                                
@@ -570,27 +570,27 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
 
   void bounds() {
     if(type == Min)
-      y=pic.scale.y.automin() ? tickMin3(pic).y : pic.userMin3().y;
+      y=pic.scale.y.automin() ? tickMin3(pic).y : pic.userMin().y;
     else if(type == Max)
-      y=pic.scale.y.automax() ? tickMax3(pic).y : pic.userMax3().y;
+      y=pic.scale.y.automax() ? tickMax3(pic).y : pic.userMax().y;
     else if(type == Both) {
-      y2=pic.scale.y.automax() ? tickMax3(pic).y : pic.userMax3().y;
+      y2=pic.scale.y.automax() ? tickMax3(pic).y : pic.userMax().y;
       y=opposite ? y2 : 
-        (pic.scale.y.automin() ? tickMin3(pic).y : pic.userMin3().y);
+        (pic.scale.y.automin() ? tickMin3(pic).y : pic.userMin().y);
     }
 
     if(type2 == Min)
-      z=pic.scale.z.automin() ? tickMin3(pic).z : pic.userMin3().z;
+      z=pic.scale.z.automin() ? tickMin3(pic).z : pic.userMin().z;
     else if(type2 == Max)
-      z=pic.scale.z.automax() ? tickMax3(pic).z : pic.userMax3().z;
+      z=pic.scale.z.automax() ? tickMax3(pic).z : pic.userMax().z;
     else if(type2 == Both) {
-      z2=pic.scale.z.automax() ? tickMax3(pic).z : pic.userMax3().z;
+      z2=pic.scale.z.automax() ? tickMax3(pic).z : pic.userMax().z;
       z=opposite2 ? z2 : 
-        (pic.scale.z.automin() ? tickMin3(pic).z : pic.userMin3().z);
+        (pic.scale.z.automin() ? tickMin3(pic).z : pic.userMin().z);
     }
 
-    real Xmin=finite(xmin) ? xmin : pic.userMin3().x;
-    real Xmax=finite(xmax) ? xmax : pic.userMax3().x;
+    real Xmin=finite(xmin) ? xmin : pic.userMin().x;
+    real Xmax=finite(xmax) ? xmax : pic.userMax().x;
 
     triple a=(Xmin,y,z);
     triple b=(Xmax,y,z);
@@ -692,27 +692,27 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
 
   void bounds() {
     if(type == Min)
-      x=pic.scale.x.automin() ? tickMin3(pic).x : pic.userMin3().x;
+      x=pic.scale.x.automin() ? tickMin3(pic).x : pic.userMin().x;
     else if(type == Max)
-      x=pic.scale.x.automax() ? tickMax3(pic).x : pic.userMax3().x;
+      x=pic.scale.x.automax() ? tickMax3(pic).x : pic.userMax().x;
     else if(type == Both) {
-      x2=pic.scale.x.automax() ? tickMax3(pic).x : pic.userMax3().x;
+      x2=pic.scale.x.automax() ? tickMax3(pic).x : pic.userMax().x;
       x=opposite ? x2 : 
-        (pic.scale.x.automin() ? tickMin3(pic).x : pic.userMin3().x);
+        (pic.scale.x.automin() ? tickMin3(pic).x : pic.userMin().x);
     }
 
     if(type2 == Min)
-      z=pic.scale.z.automin() ? tickMin3(pic).z : pic.userMin3().z;
+      z=pic.scale.z.automin() ? tickMin3(pic).z : pic.userMin().z;
     else if(type2 == Max)
-      z=pic.scale.z.automax() ? tickMax3(pic).z : pic.userMax3().z;
+      z=pic.scale.z.automax() ? tickMax3(pic).z : pic.userMax().z;
     else if(type2 == Both) {
-      z2=pic.scale.z.automax() ? tickMax3(pic).z : pic.userMax3().z;
+      z2=pic.scale.z.automax() ? tickMax3(pic).z : pic.userMax().z;
       z=opposite2 ? z2 : 
-        (pic.scale.z.automin() ? tickMin3(pic).z : pic.userMin3().z);
+        (pic.scale.z.automin() ? tickMin3(pic).z : pic.userMin().z);
     }
 
-    real Ymin=finite(ymin) ? ymin : pic.userMin3().y;
-    real Ymax=finite(ymax) ? ymax : pic.userMax3().y;
+    real Ymin=finite(ymin) ? ymin : pic.userMin().y;
+    real Ymax=finite(ymax) ? ymax : pic.userMax().y;
 
     triple a=(x,Ymin,z);
     triple b=(x,Ymax,z);
@@ -814,27 +814,27 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
 
   void bounds() {
     if(type == Min)
-      x=pic.scale.x.automin() ? tickMin3(pic).x : pic.userMin3().x;
+      x=pic.scale.x.automin() ? tickMin3(pic).x : pic.userMin().x;
     else if(type == Max)
-      x=pic.scale.x.automax() ? tickMax3(pic).x : pic.userMax3().x;
+      x=pic.scale.x.automax() ? tickMax3(pic).x : pic.userMax().x;
     else if(type == Both) {
-      x2=pic.scale.x.automax() ? tickMax3(pic).x : pic.userMax3().x;
+      x2=pic.scale.x.automax() ? tickMax3(pic).x : pic.userMax().x;
       x=opposite ? x2 : 
-        (pic.scale.x.automin() ? tickMin3(pic).x : pic.userMin3().x);
+        (pic.scale.x.automin() ? tickMin3(pic).x : pic.userMin().x);
     }
 
     if(type2 == Min)
-      y=pic.scale.y.automin() ? tickMin3(pic).y : pic.userMin3().y;
+      y=pic.scale.y.automin() ? tickMin3(pic).y : pic.userMin().y;
     else if(type2 == Max)
-      y=pic.scale.y.automax() ? tickMax3(pic).y : pic.userMax3().y;
+      y=pic.scale.y.automax() ? tickMax3(pic).y : pic.userMax().y;
     else if(type2 == Both) {
-      y2=pic.scale.y.automax() ? tickMax3(pic).y : pic.userMax3().y;
+      y2=pic.scale.y.automax() ? tickMax3(pic).y : pic.userMax().y;
       y=opposite2 ? y2 : 
-        (pic.scale.y.automin() ? tickMin3(pic).y : pic.userMin3().y);
+        (pic.scale.y.automin() ? tickMin3(pic).y : pic.userMin().y);
     }
 
-    real Zmin=finite(zmin) ? zmin : pic.userMin3().z;
-    real Zmax=finite(zmax) ? zmax : pic.userMax3().z;
+    real Zmin=finite(zmin) ? zmin : pic.userMin().z;
+    real Zmax=finite(zmax) ? zmax : pic.userMax().z;
 
     triple a=(x,y,Zmin);
     triple b=(x,y,Zmax);
@@ -893,14 +893,14 @@ void autoscale3(picture pic=currentpicture, axis axis)
 
   if(!set) {
     bounds mz;
-    if(pic.userSetz3()) {
-      mz=autoscale(pic.userMin3().z,pic.userMax3().z,pic.scale.z.scale);
+    if(pic.userSetz()) {
+      mz=autoscale(pic.userMin().z,pic.userMax().z,pic.scale.z.scale);
       if(pic.scale.z.scale.logarithmic &&
-         floor(pic.userMin3().z) == floor(pic.userMax3().z)) {
+         floor(pic.userMin().z) == floor(pic.userMax().z)) {
         if(pic.scale.z.automin())
-          pic.userMinz(floor(pic.userMin3().z));
+          pic.userMinz(floor(pic.userMin().z));
         if(pic.scale.z.automax())
-          pic.userMaxz(ceil(pic.userMax3().z));
+          pic.userMaxz(ceil(pic.userMax().z));
       }
     } else {mz.min=mz.max=0; pic.scale.set=false;}
     
@@ -938,9 +938,9 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
     newticks=true;
   }
   
-  if(newticks && pic.userSetx3() && ticks != NoTicks3) {
-    if(xmin == -infinity) xmin=pic.userMin3().x;
-    if(xmax == infinity) xmax=pic.userMax3().x;
+  if(newticks && pic.userSetx() && ticks != NoTicks3) {
+    if(xmin == -infinity) xmin=pic.userMin().x;
+    if(xmax == infinity) xmax=pic.userMax().x;
     bounds mx=autoscale(xmin,xmax,pic.scale.x.scale);
     pic.scale.x.tickMin=mx.min;
     pic.scale.x.tickMax=mx.max;
@@ -952,15 +952,15 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
   if(xmin == -infinity && !axis.extend) {
     if(pic.scale.set)
       xmin=pic.scale.x.automin() ? pic.scale.x.tickMin :
-        max(pic.scale.x.tickMin,pic.userMin3().x);
-    else xmin=pic.userMin3().x;
+        max(pic.scale.x.tickMin,pic.userMin().x);
+    else xmin=pic.userMin().x;
   }
   
   if(xmax == infinity && !axis.extend) {
     if(pic.scale.set)
       xmax=pic.scale.x.automax() ? pic.scale.x.tickMax :
-        min(pic.scale.x.tickMax,pic.userMax3().x);
-    else xmax=pic.userMax3().x;
+        min(pic.scale.x.tickMax,pic.userMax().x);
+    else xmax=pic.userMax().x;
   }
 
   if(L.defaultposition) {
@@ -971,7 +971,7 @@ void xaxis3(picture pic=currentpicture, Label L="", axis axis=YZZero,
   bool back=false;
   if(axis.type == Both) {
     triple v=currentprojection.normal;
-    back=dot((0,pic.userMax3().y-pic.userMin3().y,0),v)*sgn(v.z) > 0;
+    back=dot((0,pic.userMax().y-pic.userMin().y,0),v)*sgn(v.z) > 0;
   }
 
   xaxis3At(pic,L,axis,xmin,xmax,p,ticks,arrow,margin,above,false,false,!back);
@@ -1012,9 +1012,9 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
     newticks=true;
   }
   
-  if(newticks && pic.userSety3() && ticks != NoTicks3) {
-    if(ymin == -infinity) ymin=pic.userMin3().y;
-    if(ymax == infinity) ymax=pic.userMax3().y;
+  if(newticks && pic.userSety() && ticks != NoTicks3) {
+    if(ymin == -infinity) ymin=pic.userMin().y;
+    if(ymax == infinity) ymax=pic.userMax().y;
     bounds my=autoscale(ymin,ymax,pic.scale.y.scale);
     pic.scale.y.tickMin=my.min;
     pic.scale.y.tickMax=my.max;
@@ -1026,16 +1026,16 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
   if(ymin == -infinity && !axis.extend) {
     if(pic.scale.set)
       ymin=pic.scale.y.automin() ? pic.scale.y.tickMin :
-        max(pic.scale.y.tickMin,pic.userMin3().y);
-    else ymin=pic.userMin3().y;
+        max(pic.scale.y.tickMin,pic.userMin().y);
+    else ymin=pic.userMin().y;
   }
   
   
   if(ymax == infinity && !axis.extend) {
     if(pic.scale.set)
       ymax=pic.scale.y.automax() ? pic.scale.y.tickMax :
-        min(pic.scale.y.tickMax,pic.userMax3().y);
-    else ymax=pic.userMax3().y;
+        min(pic.scale.y.tickMax,pic.userMax().y);
+    else ymax=pic.userMax().y;
   }
 
   if(L.defaultposition) {
@@ -1046,7 +1046,7 @@ void yaxis3(picture pic=currentpicture, Label L="", axis axis=XZZero,
   bool back=false;
   if(axis.type == Both) {
     triple v=currentprojection.normal;
-    back=dot((pic.userMax3().x-pic.userMin3().x,0,0),v)*sgn(v.z) > 0;
+    back=dot((pic.userMax().x-pic.userMin().x,0,0),v)*sgn(v.z) > 0;
   }
 
   yaxis3At(pic,L,axis,ymin,ymax,p,ticks,arrow,margin,above,false,false,!back);
@@ -1087,9 +1087,9 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
     newticks=true;
   }
   
-  if(newticks && pic.userSetz3() && ticks != NoTicks3) {
-    if(zmin == -infinity) zmin=pic.userMin3().z;
-    if(zmax == infinity) zmax=pic.userMax3().z;
+  if(newticks && pic.userSetz() && ticks != NoTicks3) {
+    if(zmin == -infinity) zmin=pic.userMin().z;
+    if(zmax == infinity) zmax=pic.userMax().z;
     bounds mz=autoscale(zmin,zmax,pic.scale.z.scale);
     pic.scale.z.tickMin=mz.min;
     pic.scale.z.tickMax=mz.max;
@@ -1101,15 +1101,15 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
   if(zmin == -infinity && !axis.extend) {
     if(pic.scale.set)
       zmin=pic.scale.z.automin() ? pic.scale.z.tickMin :
-        max(pic.scale.z.tickMin,pic.userMin3().z);
-    else zmin=pic.userMin3().z;
+        max(pic.scale.z.tickMin,pic.userMin().z);
+    else zmin=pic.userMin().z;
   }
   
   if(zmax == infinity && !axis.extend) {
     if(pic.scale.set)
       zmax=pic.scale.z.automax() ? pic.scale.z.tickMax :
-        min(pic.scale.z.tickMax,pic.userMax3().z);
-    else zmax=pic.userMax3().z;
+        min(pic.scale.z.tickMax,pic.userMax().z);
+    else zmax=pic.userMax().z;
   }
 
   if(L.defaultposition) {
@@ -1120,7 +1120,7 @@ void zaxis3(picture pic=currentpicture, Label L="", axis axis=XYZero,
   bool back=false;
   if(axis.type == Both) {
     triple v=currentprojection.vector();
-    back=dot((pic.userMax3().x-pic.userMin3().x,0,0),v)*sgn(v.y) > 0;
+    back=dot((pic.userMax().x-pic.userMin().x,0,0),v)*sgn(v.y) > 0;
   }
 
   zaxis3At(pic,L,axis,zmin,zmax,p,ticks,arrow,margin,above,false,false,!back);
@@ -1144,7 +1144,7 @@ void zlimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
   
   bounds mz;
   if(pic.scale.z.automin() || pic.scale.z.automax())
-    mz=autoscale(pic.userMin3().z,pic.userMax3().z,pic.scale.z.scale);
+    mz=autoscale(pic.userMin().z,pic.userMax().z,pic.scale.z.scale);
   
   if(pic.scale.z.automin) {
     if(pic.scale.z.automin()) pic.userMinz(mz.min);

@@ -2410,7 +2410,8 @@ triple point(frame f, triple dir)
 triple point(picture pic=currentpicture, triple dir, bool user=true,
              projection P=currentprojection)
 {
-  triple v=pic.userMin3()+realmult(rectify(dir),pic.userMax3()-pic.userMin3());
+  triple min = pic.userMin(), max = pic.userMax();
+  triple v=min+realmult(rectify(dir),max-min);
   return user ? v : pic.calculateTransform3(P)*v;
 }
 
