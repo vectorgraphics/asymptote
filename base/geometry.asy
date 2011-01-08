@@ -3802,8 +3802,9 @@ void draw(picture pic=currentpicture, Label L="",parabola parabola,
       draw(tmp,L,t*(path) parabola,align,p,arrow,bar,NoMargin,legend,marker);
       add(f,tmp.fit());
     });
-  if(pic.userMin.x != pic.userMax.x & pic.userMin.y != pic.userMax.y &
-     !finite(abs(pic.userMin)) & !finite(abs(pic.userMax)))
+  pair m=pic.userMin();
+  pair M=pic.userMax();
+  if(m != M)
     pic.addBox(truepoint(SW), truepoint(NE));
 }
 
@@ -3837,8 +3838,9 @@ void draw(picture pic=currentpicture, Label L="", hyperbola h,
       draw(tmp,"",t*(path) ht,align,p,arrow,bar,NoMargin,marker);
       add(f,tmp.fit());
     });
-  if(pic.userMin.x != pic.userMax.x & pic.userMin.y != pic.userMax.y &
-     !finite(abs(pic.userMin)) & !finite(abs(pic.userMax)))
+  pair m=pic.userMin();
+  pair M=pic.userMax();
+  if(m != M)
     pic.addBox(truepoint(SW), truepoint(NE));
 }
 
