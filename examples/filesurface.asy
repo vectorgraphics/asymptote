@@ -23,8 +23,8 @@ s.colors(palette(s.map(new real(triple v) {return find(level >= v.z);}),
 
 draw(s,meshpen=thick(),render(merge=true));
 
-triple m=currentpicture.userMin;
-triple M=currentpicture.userMax;
+triple m=currentpicture.userMin();
+triple M=currentpicture.userMax();
 triple target=0.5*(m+M);
 
 xaxis3("$x$",Bounds,InTicks);

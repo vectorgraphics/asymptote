@@ -115,7 +115,7 @@ for(int taxon=0; taxon < n; ++taxon) {
   if(taxon == final) yaxis(pic,Right,LeftTicks("%",0,10),above=true);
  
   add(shift(location,0)*pic);
-  location += pic.userMax.x;
+  location += pic.userMax().x;
 }
 
 add(new void(frame f, transform) {
