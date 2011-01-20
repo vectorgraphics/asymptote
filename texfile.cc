@@ -44,7 +44,7 @@ texfile::~texfile()
   
 void texfile::miniprologue()
 {
-  texpreamble(*out,processData().TeXpreamble,false,true);
+  texpreamble(*out,processData().TeXpreamble,false);
   if(settings::latex(texengine)) {
     *out << "\\pagestyle{empty}" << newl
          << "\\textheight=2048pt" << newl
@@ -62,10 +62,8 @@ void texfile::prologue()
 {
   if(inlinetex) {
     string prename=buildname(settings::outname(),"pre");
-    std::ifstream exists(prename.c_str());
     std::ofstream *outpreamble=new std::ofstream(prename.c_str());
-    bool ASYdefines=!exists;
-    texpreamble(*outpreamble,processData().TeXpreamble,ASYdefines,ASYdefines);
+    texpreamble(*outpreamble,processData().TeXpreamble);
     outpreamble->close();
   }
   
