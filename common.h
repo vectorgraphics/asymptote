@@ -62,9 +62,13 @@ typedef unsigned int unsignedInt;
 #if COMPACT
 // Reserve highest two values for DefaultValue and Undefined states.
 #define Int_MAX (Int_MAX2-2)
+#define int_MAX (LONG_MAX-2)
 #else
 #define Int_MAX Int_MAX2
+#define int_MAX LONG_MAX
 #endif
+
+#define int_MIN LONG_MIN
 
 using std::cout;
 using std::cin;
