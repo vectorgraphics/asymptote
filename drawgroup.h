@@ -41,8 +41,6 @@ class drawBegin3 : public drawElement {
   
   triple center;
   int interaction;
-  
-  groupmap *g;
 public:
   drawBegin3(string name, double compression, double granularity,
             bool closed, bool tessellate, bool dobreak, bool nobreak,
