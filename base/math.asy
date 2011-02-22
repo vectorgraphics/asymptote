@@ -256,11 +256,12 @@ bool rectangular(triple[][] m)
 // size of picture pic.
 void drawline(picture pic=currentpicture, pair P, pair Q, pen p=currentpen)
 {
-  pic.add(new void (frame f, transform t, transform, pair m, pair M) {
+  pic.add(new void (frame f, transform t, transform T, pair m, pair M) {
       // Reduce the bounds by the size of the pen.
       m -= min(p); M -= max(p);
 
       // Calculate the points and direction vector in the transformed space.
+      t=t*T;
       pair z=t*P;
       pair v=t*Q-z;
 
