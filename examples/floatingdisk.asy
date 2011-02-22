@@ -9,9 +9,11 @@ real l=.7;
  
 pair pA=(-l,0); 
 pair pB=(l,0); 
- 
-path waterline=tremble(addnodes(pA..pB,1),angle=10,frequency=0.1,random=50); 
-path disk=shift(0,-d)*(scale(R)*unitcircle); 
+
+tremble tr=tremble(angle=10,frequency=0.1,random=50,fuzz=1);
+path waterline=tr.deform(pA..pB); 
+
+path disk=shift(0,-d)*scale(R)*unitcircle; 
 path water=waterline--(l,-h)--(-l,-h)--(-l,0)--cycle; 
 path container=(l,1/7)--(l,-h)--(-l,-h)--(-l,1/7); 
  
@@ -21,4 +23,4 @@ draw(waterline);
  
 draw(container,linewidth(1.5)); 
  
-shipout(bbox(2mm,Fill(white))); 
+shipout(bbox(2mm));
