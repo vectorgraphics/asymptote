@@ -463,3 +463,9 @@
   for (var i : x)
     ;
 }
+{
+  int[] temp={0};
+  int[] v={0};
+
+  temp[v]= v;
+}

@@ -308,7 +308,16 @@ void subscriptExp::transWrite(coenv &e, types::ty *t, exp *value)
   array *a = transArray(e);
   if (!a)
     return;
-  assert(equivalent(a->celltype, t));
+
+  if (!equivalent(a->celltype, t))
+  {
+    em.error(getPos());
+    em << "array expression cannot be used as an address";
+
+    // Translate the value for errors.
+    value->transToType(e, t);
+    return;
+  }
 
   index->transToType(e, types::primInt());
 
