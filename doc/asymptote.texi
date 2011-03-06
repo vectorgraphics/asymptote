@@ -4644,6 +4644,14 @@ write(f(4,3));
 @noindent
 and outputs 43.
 
+Parameters can be specified as ``keyword-only'' by putting @code{keyword}
+immediately before the parameter name, as in @code{int f(int keyword x)} or
+@code{int f(int keyword x=77)}.  This forces the caller of the function to use
+a named argument to give a value for this parameter.  That is, @code{f(x=42)}
+is legal, but @code{f(25)} is not.  Keyword-only parameters must be listed
+after normal parameters in a function definition.
+
+
 As a technical detail, we point out that, since variables of the same
 name but different signatures are allowed in the same scope, the code
 @verbatim
@@ -4727,6 +4735,17 @@ If no arguments are packed, then a zero-length array (as opposed to
 @code{null}) is bound to the rest parameter. Note that default
 arguments are ignored for rest formals and the rest argument is not
 bound to a keyword.
+
+In some cases, keyword-only parameters are helpful to avoid arguments intended
+for the rest parameter to be assigned to other parameters.  For example, here
+the use of @code{keyword} is to avoid @code{pnorm(1.0,2.0,0.3)} matching
+@code{1.0} to @code{p}.
+@verbatim
+real pnorm(real keyword p=2.0 ... real[] v)
+{
+  return sum(v^p)^(1/p);
+}
+@end verbatim
 
 The overloading resolution in @code{Asymptote} is similar to the
 function matching rules used in C++. Every argument match is given a
