@@ -22,7 +22,7 @@ varinit *Default=new definit(nullPos);
   
 void formal::prettyprint(ostream &out, Int indent)
 {
-  prettyname(out, "formal",indent);
+  prettyname(out, keywordOnly ? "formal (keyword only)" : "formal", indent);
   
   base->prettyprint(out, indent+1);
   if (start) start->prettyprint(out, indent+1);
@@ -58,14 +58,22 @@ void formals::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "formals",indent);
 
-  for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
+  for (list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
     (*p)->prettyprint(out, indent+1);
 }
 
 void formals::addToSignature(signature& sig,
-                             coenv &e, bool encodeDefVal, bool tacit) {
-  for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
-    sig.add((*p)->trans(e, encodeDefVal, tacit));
+                             coenv &e, bool encodeDefVal, bool tacit)
+{
+  for (list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p) {
+    formal& f=**p;
+    types::formal tf = f.trans(e, encodeDefVal, tacit);
+
+    if (f.isKeywordOnly())
+      sig.addKeywordOnly(tf);
+    else
+      sig.add(tf);
+  }
 
   if (rest) {
     if (!tacit && rest->getDefaultValue()) {

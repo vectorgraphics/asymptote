@@ -679,12 +679,26 @@ public:
   }
 
   virtual void add(argument a) {
+    if (rest.val) {
+      // TODO: Handle keyword arguments after rest with proper left-to-right
+      // ordering.
+      em.error(a.val->getPos());
+      em << "argument after rest argument";
+    }
     args.push_back(a);
   }
 
   virtual void add(exp *val, symbol name=symbol::nullsym) {
     argument a; a.val=val; a.name=name;
     add(a);
+  }
+
+  virtual void addRest(argument a) {
+    if (rest.val) {
+      em.error(a.val->getPos());
+      em << "additional rest argument";
+    }
+    rest = a;
   }
 
   virtual void prettyprint(ostream &out, Int indent);

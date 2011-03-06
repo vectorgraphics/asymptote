@@ -185,7 +185,12 @@ bool application::matchAtSpot(size_t spot, env &e, formal &source,
 {
   formal &target=sig->getFormal(spot);
   score s=castScore(e, target, source);
-  if (s!=FAIL) {
+
+  if (s == FAIL)
+    return false;
+  else if (sig->formalIsKeywordOnly(spot) && source.name == symbol::nullsym)
+    return false;
+  else {
     // The argument matches.
     args[spot]=seq.addArg(a, target.t, evalIndex);
     if (spot==index)
@@ -193,8 +198,6 @@ bool application::matchAtSpot(size_t spot, env &e, formal &source,
     scores.push_back(s);
     return true;
   }
-  else
-    return false;
 }
 
 bool application::matchArgument(env &e, formal &source,
@@ -253,6 +256,7 @@ bool application::matchSignature(env &e, types::signature *source,
 
 #if 0
   cout << "num args: " << f.size() << endl;
+  cout << "num keyword-only: " << sig->numKeywordOnly << endl;
 #endif
 
   // First, match all of the named (non-rest) arguments.

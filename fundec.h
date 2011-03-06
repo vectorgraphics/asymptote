@@ -19,12 +19,13 @@ class formal : public absyn {
   decidstart *start;
   bool Explicit;
   varinit *defval;
+  bool keywordOnly;
 
 public:
   formal(position pos, ty *base, decidstart *start=0, varinit *defval=0,
-         bool Explicit= false)
+         bool Explicit= false, bool keywordOnly=false)
     : absyn(pos), base(base), start(start), Explicit(Explicit),
-      defval(defval) {}
+      defval(defval), keywordOnly(keywordOnly) {}
 
   virtual void prettyprint(ostream &out, Int indent);
 
@@ -50,6 +51,10 @@ public:
   bool getExplicit() {
     return Explicit;
   }
+
+  bool isKeywordOnly() {
+    return keywordOnly;
+  }
 };
 
 class formals : public absyn {
@@ -58,21 +63,44 @@ class formals : public absyn {
   mem::list<formal *> fields;
   formal *rest;
 
+  // If the list of formals contains at least one keyword-only formal.
+  bool keywordOnly;
+
   void addToSignature(types::signature& sig,
                       coenv &e, bool encodeDefVal, bool tacit);
 public:
   formals(position pos)
-    : absyn(pos), rest(0) {}
+    : absyn(pos), rest(0), keywordOnly(false) {}
 
   virtual ~formals() {}
 
   virtual void prettyprint(ostream &out, Int indent);
 
   virtual void add(formal *f) {
+    if (f->isKeywordOnly()) {
+      keywordOnly = true;
+    }
+    else if (rest) {
+      em.error(f->getPos());
+      em << "normal parameter after rest parameter";
+    }
+    else if (keywordOnly) {
+      em.error(f->getPos());
+      em << "normal parameter after keyword-only parameter";
+    }
+
     fields.push_back(f);
   }
 
   virtual void addRest(formal *f) {
+    if (rest) {
+      em.error(f->getPos());
+      em << "additional rest parameter";
+    }
+    else if (f->isKeywordOnly()) {
+      em.error(f->getPos());
+      em << "rest parameter declared as keyword-only";
+    }
     rest = f;
   }
 

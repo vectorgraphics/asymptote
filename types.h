@@ -81,7 +81,7 @@ public:
   virtual ~ty();
 
   virtual void print (ostream& out) const;
-  virtual void printVar (ostream& out, symbol name) const {
+  virtual void printVar (ostream& out, string name) const {
     print(out);
     out << " " << name;
   }
@@ -292,7 +292,7 @@ ty *primNull();
 struct formal {
   ty *t;
   symbol name;
-  absyntax::varinit *defval;
+  bool defval;
   bool Explicit;
   
   formal(ty *t,
@@ -300,7 +300,7 @@ struct formal {
          bool optional=false,
          bool Explicit=false)
     : t(t), name(name),
-      defval(optional ? absyntax::Default : 0), Explicit(Explicit) {}
+      defval(optional), Explicit(Explicit) {}
 
   // string->symbol translation is costly if done too many times.  This
   // constructor has been disabled to make this cost more visible to the
@@ -327,6 +327,10 @@ typedef mem::vector<formal> formal_vector;
 struct signature : public gc {
   formal_vector formals;
 
+  // The number of keyword-only formals.  These formals always come after the
+  // regular formals.
+  size_t numKeywordOnly;
+
   // Formal for the rest parameter.  If there is no rest parameter, then the
   // type is null.
   formal rest;
@@ -334,15 +338,16 @@ struct signature : public gc {
   bool isOpen;
 
   signature()
-    : rest(0), isOpen(false)
+    : numKeywordOnly(0), rest(0), isOpen(false)
   {}
 
   static const struct OPEN_t {} OPEN;
 
-  explicit signature(OPEN_t) : rest(0), isOpen(true) {}
+  explicit signature(OPEN_t) : numKeywordOnly(0), rest(0), isOpen(true) {}
 
   signature(signature &sig)
-    : formals(sig.formals), rest(sig.rest), isOpen(sig.isOpen)
+    : formals(sig.formals), numKeywordOnly(sig.numKeywordOnly),
+      rest(sig.rest), isOpen(sig.isOpen)
   {}
 
   virtual ~signature() {}
@@ -351,24 +356,42 @@ struct signature : public gc {
     formals.push_back(f);
   }
 
+  void addKeywordOnly(formal f) {
+    add(f);
+    ++numKeywordOnly;
+  }
+
   void addRest(formal f) {
     rest=f;
   }
 
-  bool hasRest() {
+  bool hasRest() const {
     return rest.t;
   }
-  size_t getNumFormals() {
+  size_t getNumFormals() const {
     return rest.t ? formals.size() + 1 : formals.size();
   }
 
-  formal& getFormal(size_t n) {
+  formal& getFormal(size_t n) { 
+    assert(n < formals.size());
+    return formals[n];
+  }
+  const formal& getFormal(size_t n) const {
     assert(n < formals.size());
     return formals[n];
   }
 
   formal& getRest() {
     return rest;
+  }
+  const formal& getRest() const {
+    return rest;
+  }
+
+  bool formalIsKeywordOnly(size_t n) const
+  {
+    assert(n < formals.size());
+    return n >= formals.size() - numKeywordOnly;
   }
 
   friend ostream& operator<< (ostream& out, const signature& s);
@@ -450,7 +473,7 @@ struct function : public ty {
   void print(ostream& out) const
   { out << *result << sig; }
 
-  void printVar (ostream& out, symbol name) const {
+  void printVar (ostream& out, string name) const {
     result->printVar(out,name);
     out << sig;
   }

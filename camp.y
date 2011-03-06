@@ -37,6 +37,19 @@ void yyerror(const char *s)
   }
 }
 
+// Check if the symbol given is "keyword".  Returns true in this case and
+// returns false and reports an error otherwise.
+bool checkKeyword(position pos, symbol sym)
+{
+  if (sym != symbol::trans("keyword")) {
+    em.error(pos);
+    em << "expected 'keyword' here";
+
+    return false;
+  }
+  return true;
+}
+
 namespace absyntax { file *root; }
 
 using namespace absyntax;
@@ -148,7 +161,7 @@ using mem::string;
 %type  <vi>  varinit
 %type  <ai>  arrayinit basearrayinit varinits
 %type  <fl>  formal
-%type  <fls> formals baseformals
+%type  <fls> formals baseformals altformals
 %type  <e>   value exp fortest
 %type  <arg> argument
 %type  <slice> slice
@@ -156,7 +169,7 @@ using mem::string;
 %type  <e>   tension controls
 %type  <se>  dir
 %type  <elist> dimexps
-%type  <alist> arglist basearglist
+%type  <alist> arglist basearglist altarglist
 %type  <s>   stm stmexp blockstm
 %type  <run> forinit
 %type  <sel> forupdate stmexplist
@@ -313,7 +326,7 @@ decidstart:
 | ID dims          { $$ = new decidstart($1.pos, $1.sym, $2); }
 | ID '(' ')'       { $$ = new fundecidstart($1.pos, $1.sym, 0,
                                             new formals($2)); }
-| ID '(' formals ')'
+| ID '(' altformals ')'
                    { $$ = new fundecidstart($1.pos, $1.sym, 0, $3); }
 ;
 
@@ -363,6 +376,15 @@ baseformals:
                    { $$ = $1; $$->add($3); }
 ;
 
+altformals:
+  formal           { $$ = new formals($1->getPos()); $$->add($1); }
+| ELLIPSIS formal  { $$ = new formals($1); $$->addRest($2); }
+| altformals ',' formal
+                   { $$ = $1; $$->add($3); }
+| altformals ELLIPSIS formal
+                   { $$ = $1; $$->addRest($3); }
+;
+
 explicitornot:
   EXPLICIT         { $$ = true; }
 |                  { $$ = false; }
@@ -370,17 +392,24 @@ explicitornot:
 
 formal:
   explicitornot type
-                   { $$ = new formal($2->getPos(), $2, 0, 0, $1); }
+                   { $$ = new formal($2->getPos(), $2, 0, 0, $1, 0); }
 | explicitornot type decidstart
-                   { $$ = new formal($2->getPos(), $2, $3, 0, $1); }
+                   { $$ = new formal($2->getPos(), $2, $3, 0, $1, 0); }
 | explicitornot type decidstart ASSIGN varinit
-                   { $$ = new formal($2->getPos(), $2, $3, $5, $1); }
+                   { $$ = new formal($2->getPos(), $2, $3, $5, $1, 0); }
+/* The uses of ID below are 'keyword' qualifiers before the parameter name. */
+| explicitornot type ID decidstart
+                   { bool k = checkKeyword($3.pos, $3.sym);
+                     $$ = new formal($2->getPos(), $2, $4, 0, $1, k); }
+| explicitornot type ID decidstart ASSIGN varinit
+                   { bool k = checkKeyword($3.pos, $3.sym);
+                     $$ = new formal($2->getPos(), $2, $4, $6, $1, k); }
 ;
 
 fundec:
   type ID '(' ')' blockstm
                    { $$ = new fundec($3, $1, $2.sym, new formals($3), $5); }
-| type ID '(' formals ')' blockstm
+| type ID '(' altformals ')' blockstm
                    { $$ = new fundec($3, $1, $2.sym, $4, $6); }
 ;
 
@@ -407,12 +436,12 @@ value:
 | name '(' ')'     { $$ = new callExp($2,
                                       new nameExp($1->getPos(), $1),
                                       new arglist()); } 
-| name '(' arglist ')'
+| name '(' altarglist ')'
                    { $$ = new callExp($2, 
                                       new nameExp($1->getPos(), $1),
                                       $3); }
 | value '(' ')'    { $$ = new callExp($2, $1, new arglist()); }
-| value '(' arglist ')'
+| value '(' altarglist ')'
                    { $$ = new callExp($2, $1, $3); }
 | '(' exp ')' %prec EXP_IN_PARENS_RULE
                    { $$ = $2; }
@@ -439,6 +468,15 @@ basearglist:
                    { $$ = $1; $$->add($3); }
 ;
 
+altarglist:
+  argument         { $$ = new arglist(); $$->add($1); }
+| ELLIPSIS argument
+                   { $$ = new arglist(); $$->addRest($2); }
+| altarglist ',' argument
+                   { $$ = $1; $$->add($3); }
+| altarglist ELLIPSIS argument
+                   { $$ = $1; $$->addRest($3); }
+;
 
 exp:
   name             { $$ = new nameExp($1->getPos(), $1); }
@@ -492,9 +530,9 @@ exp:
                                              new arrayTy($2->getPos(), $2, $3),
                                              new formals($4),
                                              $6); }
-| NEW celltype '(' formals ')' blockstm
+| NEW celltype '(' altformals ')' blockstm
                    { $$ = new newFunctionExp($1, $2, $4, $6); }
-| NEW celltype dims '(' formals ')' blockstm
+| NEW celltype dims '(' altformals ')' blockstm
                    { $$ = new newFunctionExp($1,
                                              new arrayTy($2->getPos(), $2, $3),
                                              $5,

@@ -762,10 +762,20 @@ varEntry *venv::lookBySignature(symbol name, signature *sig) {
   if (nv.maxFormals != sig->getNumFormals())
     return 0;
 
+  // See if this exactly matches a function in the table.
+  varEntry *ve = core.lookupNonSpecial(name, sig);
+  
+  if (!ve)
+    return 0;
+
+  // Keyword-only arguments may cause matching to fail.
+  if (ve->getSignature()->numKeywordOnly > 0)
+    return 0;
+
   // At this point, any function with an equivalent signature will be equal
   // to the result of the normal overloaded function resolution.  We may
   // safely return it.
-  return core.lookupNonSpecial(name, sig);
+  return ve;
 }
 
 void venv::add(venv& source, varEntry *qualifier, coder &c)

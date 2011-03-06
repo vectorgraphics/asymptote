@@ -1,3 +1,43 @@
+errortest.asy: 476.34: argument after rest argument
+errortest.asy: 477.37: additional rest argument
+errortest.asy: 478.28: argument after rest argument
+errortest.asy: 479.31: additional rest argument
+errortest.asy: 482.22: normal parameter after rest parameter
+errortest.asy: 483.22: normal parameter after rest parameter
+errortest.asy: 484.31: normal parameter after rest parameter
+errortest.asy: 485.31: normal parameter after rest parameter
+errortest.asy: 486.24: normal parameter after keyword-only parameter
+errortest.asy: 487.24: normal parameter after keyword-only parameter
+errortest.asy: 488.24: normal parameter after keyword-only parameter
+errortest.asy: 488.31: normal parameter after keyword-only parameter
+errortest.asy: 489.24: normal parameter after keyword-only parameter
+errortest.asy: 489.31: normal parameter after keyword-only parameter
+errortest.asy: 490.32: normal parameter after keyword-only parameter
+errortest.asy: 491.32: normal parameter after keyword-only parameter
+errortest.asy: 492.32: normal parameter after keyword-only parameter
+errortest.asy: 492.39: normal parameter after keyword-only parameter
+errortest.asy: 493.32: normal parameter after keyword-only parameter
+errortest.asy: 493.39: normal parameter after keyword-only parameter
+errortest.asy: 496.13: expected 'keyword' here
+errortest.asy: 497.13: expected 'keyword' here
+errortest.asy: 498.21: expected 'keyword' here
+errortest.asy: 499.21: expected 'keyword' here
+errortest.asy: 500.36: expected 'keyword' here
+errortest.asy: 500.32: normal parameter after keyword-only parameter
+errortest.asy: 501.36: expected 'keyword' here
+errortest.asy: 501.32: normal parameter after keyword-only parameter
+errortest.asy: 502.21: expected 'keyword' here
+errortest.asy: 503.21: expected 'keyword' here
+errortest.asy: 504.13: expected 'keyword' here
+errortest.asy: 505.13: expected 'keyword' here
+errortest.asy: 506.13: expected 'keyword' here
+errortest.asy: 507.13: expected 'keyword' here
+errortest.asy: 508.13: expected 'keyword' here
+errortest.asy: 509.13: expected 'keyword' here
+errortest.asy: 510.21: expected 'keyword' here
+errortest.asy: 511.21: expected 'keyword' here
+errortest.asy: 512.21: expected 'keyword' here
+errortest.asy: 513.21: expected 'keyword' here
 errortest.asy: 12.4: no matching variable 'x.y'
 errortest.asy: 16.11: no matching variable of name 'z'
 errortest.asy: 20.3: no matching variable 'x'
@@ -115,3 +155,7 @@ errortest.asy: 452.16: expression is not an array of inferable type
 errortest.asy: 457.16: expression is not an array of inferable type
 errortest.asy: 463.16: expression is not an array of inferable type
 errortest.asy: 470.7: array expression cannot be used as an address
+errortest.asy: 476.4: cannot call
+'int f(string s=<default> ... int[] a)'
+with parameters
+'(int, int, int, string ... int[])'
