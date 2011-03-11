@@ -2,7 +2,7 @@ MANFILES = asy.1 xasy.1x
 ASYFILES = $(filter-out $(wildcard latexusage-*.asy),$(wildcard *.asy))
 SOURCE = asymptote.texi version.texi options
 ASY = ../asy -dir ../base -config "" -render=0
-DOCFILES = asymptote.pdf asy-latex.pdf CAD.pdf
+DOCFILES = asymptote.pdf asy-latex.pdf CAD.pdf TeXShopAndAsymptote.pdf
 
 docdir = $(DESTDIR)@docdir@
 infodir = $(DESTDIR)@infodir@
@@ -70,6 +70,11 @@ CAD.pdf: CAD.tex CAD1.eps
 	latex CAD
 	latex CAD
 	dvipdf CAD
+
+TeXShopAndAsymptote.pdf: TeXShopAndAsymptote.tex
+	latex TeXShopAndAsymptote
+	latex TeXShopAndAsymptote
+	dvipdf TeXShopAndAsymptote
 
 clean: FORCE
 	-rm -f asy-latex.{aux,idx,ins,log,toc}

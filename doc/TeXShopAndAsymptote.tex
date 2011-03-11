@@ -1,0 +1,96 @@
+\documentclass[11pt]{article}
+\usepackage{geometry} 
+\geometry{letterpaper}
+
+\usepackage[parfill]{parskip}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+
+\title{Integrating Asymptote and TeXShop for Mac OS X}
+\author{Vishaal Rajani \& Cole Zmurchok \\ University of Alberta}
+\date{\today}
+
+
+\begin{document}
+\maketitle
+\begin{enumerate}
+\item Download Asymptote and place the \emph{asymptote-x.xx.src.tgz} file
+on the desktop.
+\item Open Terminal and type the following. Note that you will
+have to enter the root password for the final command. 
+\begin{verbatim}
+cd Desktop
+gunzip asymptote-x.xx.src.tgz
+tar -xf asymptote-x.xx.src.tar
+cd asymptote-x.xx
+./configure
+make all
+sudo make install
+\end{verbatim}
+If you get an error at the \verb+./configure+ step, stating that you there
+is \verb+no acceptable C+ \verb+compiler found in $PATH+, a solution
+is to download and install Xcode here: \\ 
+\verb+http://developer.apple.com/TOOLS/Xcode/+.
+
+\item We now create the engine that will typeset Asymptote in TeXShop. The
+easiest way to create this engine, which we will
+call \emph{asyEngine.engine}, is to navigate
+to \verb+~/Library/TeXShop/Engines+ and duplicate one of the
+existing \emph{.engine} files. Open the duplicate file and delete the code
+there. Type the following:
+\newpage
+\begin{verbatim}
+#!/bin/sh
+location=$(dirname "$1")
+basename="${1%.tex}"
+#process
+cd $location
+pdflatex "$1"
+asy "${basename}"-*.asy
+pdflatex "$1"
+\end{verbatim}
+Save this file as \emph{asyEngine.engine}.
+
+\item Now we set our engine to be executable. In the terminal, navigate to
+the Engines directory and type:
+
+\begin{verbatim}
+chmod +x asyEngine.engine
+\end{verbatim}
+
+\item Finally, in the terminal, type:
+
+\begin{verbatim}
+defaults write TeXShop OtherTeXExtensions -array-add "asy"
+\end{verbatim}
+
+This last command allows you choose the \emph{asyEngine} option from the
+drop-down menu when you wish to typeset a document that includes asymptote.
+\end{enumerate}
+
+Now, if you wish to typeset something simple, like the following red line,
+create a new document in TeXShop and type:
+
+\begin{verbatim}
+\documentclass[letterpaper,12pt]{article}
+\usepackage{amsmath} 
+\usepackage{amssymb}
+\usepackage{asymptote} 
+
+\begin{document}
+\begin{asy}
+   size(300);
+   draw((0,0)--(1,1),red);
+\end{asy}
+\end{document}
+\end{verbatim}
+
+Choose the \emph{asyEngine} option from the drop-down menu and
+press \emph{Typeset}. Your red line will be created in a PDF Document.
+
+On a final note, it is best to avoid using filenames with spaces in them.
+For example, avoid filenames such as \verb+asy test.tex+ and instead use
+filenames without spaces, such as \verb+asyTest.tex+.
+
+\end{document}  
