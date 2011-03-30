@@ -5973,8 +5973,7 @@ names for each figure. Simply add the line
 and enclose your @code{Asymptote} code within a
 @code{\begin@{asy@}...\end@{asy@}} environment. As with the
 @code{LaTeX} @code{comment} environment, the @code{\end@{asy@}} command
-must appear on a line by itself, with no leading spaces or trailing
-commands/comments.
+must appear on a line by itself, with no trailing commands/comments.
 
 The sample @code{LaTeX} file below, named @code{latexusage.tex}, can
 be run as follows:
