@@ -89,23 +89,23 @@ public:
   
   template<class T>
   item(T *p)
-    : i((Int) p) {
+    : p((void *) p) {
     assert(!empty());
   }
   
   template<class T>
   item(const T &p)
-    : i((Int) new(UseGC) T(p)) {
+    : p(new(UseGC) T(p)) {
     assert(!empty());
   }
   
   template<class T>
   item& operator= (T *a)
-  { i=(Int) a; return *this; }
+  { p=(void *) a; return *this; }
   
   template<class T>
   item& operator= (const T &it)
-  { i=(Int) new(UseGC) T(it); return *this; }
+  { p=new(UseGC) T(it); return *this; }
 #else    
   bool empty() const
   {return *kind == typeid(void);}
