@@ -401,27 +401,27 @@ void figure(string[] s, string options="", real margin=0,
     S[i]=graphic(s[i],options);
   }
 
-  display(S,margin,captions,caption,align,itempen,figuremattpen, final);
+  display(S,margin,captions,caption,align,itempen,figuremattpen,final);
 }
 
 void figure(string s, string options="", string caption="", pair align=S,
             pen p=itempen, pen figuremattpen=figuremattpen, bool final=true)
 {
-  figure(new string[] {s},options,caption,align,p,figuremattpen, final);
+  figure(new string[] {s},options,caption,align,p,figuremattpen,final);
 }
 
 void multifigure(string[] slist, string options="", string caption="",
-                 pair align=S, pen p=itempen, pen figuremattpen=figuremattpen)
+                 pair align=S, pen p=itempen, pen figuremattpen=figuremattpen,
+                 bool step=itemstep)
 {
-  if (stepping) {
-    int lastnode = currentpicture.nodes.length-1;
+  if(step) {
+    int lastnode=currentpicture.nodes.length-1;
     for (int i=0; i<slist.length-1; ++i) {
-      figure(slist[i], options, caption, align, p, figuremattpen, final=false);
+      figure(slist[i],options,caption,align,p,figuremattpen,final=false);
       erasestep(lastnode);
     }
   }
-  figure(slist[slist.length-1], options, caption, align, p, figuremattpen,
-         final=true);
+  figure(slist[slist.length-1],options,caption,align,p,figuremattpen,final=true);
 
   if(!firststep) step();
   firststep=false;
@@ -429,12 +429,13 @@ void multifigure(string[] slist, string options="", string caption="",
 
 void indexedfigure(string prefix, int first, int last, 
                    string options="", string caption="",
-                   pair align=S, pen p=itempen, pen figuremattpen=figuremattpen)
+                   pair align=S, pen p=itempen, pen figuremattpen=figuremattpen,
+                   bool step=itemstep)
 {
   string[] s;
   for(int i=first; i <= last; ++i)
     s.push(prefix+string(i));
-  multifigure(s, options, caption, align, p, figuremattpen);
+  multifigure(s,options,caption,align,p,figuremattpen,step=step);
 }
 
 string[] codefile;
