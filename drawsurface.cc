@@ -504,11 +504,9 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   triple m=B.Min();
   triple M=B.Max();
   
-  double s;
   if(perspective) {
     double f=m.getz()*perspective;
     double F=M.getz()*perspective;
-    s=max(f,F);
     if(M.getx() < min(f*Min.getx(),F*Min.getx()) || 
        m.getx() > max(f*Max.getx(),F*Max.getx()) ||
        M.gety() < min(f*Min.gety(),F*Min.gety()) ||
@@ -516,7 +514,6 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
        M.getz() < Min.getz() ||
        m.getz() > Max.getz()) return;
   } else {
-    s=1.0;
     if(M.getx() < Min.getx() || m.getx() > Max.getx() ||
        M.gety() < Min.gety() || m.gety() > Max.gety() ||
        M.getz() < Min.getz() || m.getz() > Max.getz()) return;
