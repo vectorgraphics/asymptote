@@ -161,7 +161,7 @@ using mem::string;
 %type  <vi>  varinit
 %type  <ai>  arrayinit basearrayinit varinits
 %type  <fl>  formal
-%type  <fls> formals baseformals altformals
+%type  <fls> formals
 %type  <e>   value exp fortest
 %type  <arg> argument
 %type  <slice> slice
@@ -169,7 +169,7 @@ using mem::string;
 %type  <e>   tension controls
 %type  <se>  dir
 %type  <elist> dimexps
-%type  <alist> arglist basearglist altarglist
+%type  <alist> arglist
 %type  <s>   stm stmexp blockstm
 %type  <run> forinit
 %type  <sel> forupdate stmexplist
@@ -266,7 +266,7 @@ idpairlist:
 strid:
   ID               { $$ = $1; }
 | STRING           { $$.pos = $1->getPos();
-                     $$.sym = symbol::trans($1->getString()); }
+                     $$.sym = symbol::literalTrans($1->getString()); }
 ;
 
 stridpair:
@@ -326,7 +326,7 @@ decidstart:
 | ID dims          { $$ = new decidstart($1.pos, $1.sym, $2); }
 | ID '(' ')'       { $$ = new fundecidstart($1.pos, $1.sym, 0,
                                             new formals($2)); }
-| ID '(' altformals ')'
+| ID '(' formals ')'
                    { $$ = new fundecidstart($1.pos, $1.sym, 0, $3); }
 ;
 
@@ -364,24 +364,11 @@ varinits:
 ;
 
 formals:
-  baseformals      { $$ = $1; }
-| baseformals ELLIPSIS formal
-                   { $$ = $1; $$->addRest($3); }
-| ELLIPSIS formal  { $$ = new formals($1); $$->addRest($2); }
-;
-
-baseformals:
-  formal           { $$ = new formals($1->getPos()); $$->add($1); }
-| baseformals ',' formal
-                   { $$ = $1; $$->add($3); }
-;
-
-altformals:
   formal           { $$ = new formals($1->getPos()); $$->add($1); }
 | ELLIPSIS formal  { $$ = new formals($1); $$->addRest($2); }
-| altformals ',' formal
+| formals ',' formal
                    { $$ = $1; $$->add($3); }
-| altformals ELLIPSIS formal
+| formals ELLIPSIS formal
                    { $$ = $1; $$->addRest($3); }
 ;
 
@@ -409,7 +396,7 @@ formal:
 fundec:
   type ID '(' ')' blockstm
                    { $$ = new fundec($3, $1, $2.sym, new formals($3), $5); }
-| type ID '(' altformals ')' blockstm
+| type ID '(' formals ')' blockstm
                    { $$ = new fundec($3, $1, $2.sym, $4, $6); }
 ;
 
@@ -436,12 +423,12 @@ value:
 | name '(' ')'     { $$ = new callExp($2,
                                       new nameExp($1->getPos(), $1),
                                       new arglist()); } 
-| name '(' altarglist ')'
+| name '(' arglist ')'
                    { $$ = new callExp($2, 
                                       new nameExp($1->getPos(), $1),
                                       $3); }
 | value '(' ')'    { $$ = new callExp($2, $1, new arglist()); }
-| value '(' altarglist ')'
+| value '(' arglist ')'
                    { $$ = new callExp($2, $1, $3); }
 | '(' exp ')' %prec EXP_IN_PARENS_RULE
                    { $$ = $2; }
@@ -456,25 +443,12 @@ argument:
 ;
 
 arglist:
-  basearglist      { $$ = $1; }
-| basearglist ELLIPSIS argument
-                   { $$ = $1; $$->rest = $3; }
-| ELLIPSIS argument     { $$ = new arglist(); $$->rest = $2; }
-;
-
-basearglist:
-  argument         { $$ = new arglist(); $$->add($1); }
-| basearglist ',' argument
-                   { $$ = $1; $$->add($3); }
-;
-
-altarglist:
   argument         { $$ = new arglist(); $$->add($1); }
 | ELLIPSIS argument
                    { $$ = new arglist(); $$->addRest($2); }
-| altarglist ',' argument
+| arglist ',' argument
                    { $$ = $1; $$->add($3); }
-| altarglist ELLIPSIS argument
+| arglist ELLIPSIS argument
                    { $$ = $1; $$->addRest($3); }
 ;
 
@@ -530,9 +504,9 @@ exp:
                                              new arrayTy($2->getPos(), $2, $3),
                                              new formals($4),
                                              $6); }
-| NEW celltype '(' altformals ')' blockstm
+| NEW celltype '(' formals ')' blockstm
                    { $$ = new newFunctionExp($1, $2, $4, $6); }
-| NEW celltype dims '(' altformals ')' blockstm
+| NEW celltype dims '(' formals ')' blockstm
                    { $$ = new newFunctionExp($1,
                                              new arrayTy($2->getPos(), $2, $3),
                                              $5,
