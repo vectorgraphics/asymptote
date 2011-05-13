@@ -912,7 +912,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       }
       if(status) {
         if(xobject) {
-          if(transparency)
+          if(pdf || transparency)
             status=(epstopdf(prename,Outname(prefix,"pdf",standardout)) == 0);
         } else {
           if(context) prename=stripDir(prename);

@@ -37,5 +37,4 @@ dot("$A'$",Ap,dir(A--Ap),red);
 dot("$B'$",Bp,dir(B--Bp),red);
 dot("$C'$",Cp,dir(C--Cp),red);
 
-label(graphic("piicon.eps","width=2.5cm"),Ap,5ENE,red);
-
+label(graphic("piicon","width=2.5cm"),Ap,5ENE,red);
