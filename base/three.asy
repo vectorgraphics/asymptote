@@ -2730,7 +2730,6 @@ string embed3D(string label="", string text=label, string prefix,
     ",3Droo="+Format(abs(v))+
     ",3Dbg="+Format(light.background());
   if(options != "") options3 += ","+options;
-  prefix=stripdirectory(prefix);
   if(settings.inlinetex)
     prefix=jobname(prefix);
   options3 += ",3Djscript="+prefix+".js";
