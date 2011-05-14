@@ -185,6 +185,9 @@ string replace(string *S, stringarray2 *translate)
   while(*p) {
     for(size_t i=0; i < size;) {
       array *a=read<array*>(translate,i);
+      size_t size2=checkArray(a);
+      if(size2 != 2) 
+        error("translation table entry must be an array of length 2");
       string* from=read<string*>(a,0);
       size_t len=from->length();
       if(strncmp(p,from->c_str(),len) != 0) {i++; continue;}
