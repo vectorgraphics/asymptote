@@ -38,7 +38,7 @@ Licence: GPL2+
 %</driver>
 %<pkg>\ProvidesPackage{asymptote}
 %<*pkg>
-  [2011/03/30 v1.23 Asymptote style file for LaTeX]
+  [2011/05/15 v1.24 Asymptote style file for LaTeX]
 %</pkg>
 %
 %<*driver>
@@ -131,6 +131,7 @@ Licence: GPL2+
 % \begin{description}
 % \item[height] Height of the figure
 % \item[width] Width of the figure
+% \item[keepAspect] Maintain aspect ratio [default true]
 % \item[viewportheight] Viewport height for 3D figures
 % \item[viewportwidth] Viewport width for 3D figures
 % \end{description}
@@ -184,6 +185,8 @@ Licence: GPL2+
 %    \begin{macrocode}
 \newif\ifASYinline
 \newif\ifASYattach
+\newif\ifASYkeepAspect
+\ASYkeepAspecttrue
 %    \end{macrocode}
 %
 % \subsection{Packages}
@@ -495,6 +498,11 @@ Licence: GPL2+
     \globalASYdefs
   }%
 }
+\def\asy@expand@keepAspect{%
+  \ifASYkeepAspect keepAspect=true%
+  \else keepAspect=false%
+  \fi%
+}
 %    \end{macrocode}
 %
 %    \begin{macrocode}
@@ -507,13 +515,13 @@ Licence: GPL2+
     \ifx\ASYheight\@empty
       % write nothing!
     \else
-      \immediate\write\AsyStream{size(0,\ASYheight);}%
+      \immediate\write\AsyStream{size(0,\ASYheight,\asy@expand@keepAspect);}%
     \fi
   \else
     \ifx\ASYheight\@empty
-      \immediate\write\AsyStream{size(\ASYwidth,0);}%
+      \immediate\write\AsyStream{size(\ASYwidth,0,\asy@expand@keepAspect);}%
     \else
-      \immediate\write\AsyStream{size(\ASYwidth,\ASYheight);}%
+      \immediate\write\AsyStream{size(\ASYwidth,\ASYheight,\asy@expand@keepAspect);}%
     \fi
   \fi
 %    \end{macrocode}
@@ -663,6 +671,11 @@ Licence: GPL2+
 \define@key{ASYkeys}{height}{%
   \edef\ASYheight{\the\dimexpr#1\relax}%
 }
+\define@key{ASYkeys}{keepAspect}[true]{%
+  \ifthenelse{\equal{#1}{true}}
+    {\ASYkeepAspecttrue}
+    {\ASYkeepAspectfalse}%
+}
 \def\ASYviewportwidth{\ASYdefaultviewportwidth}
 \def\ASYdefaultviewportwidth{%
   \ifASYattach \@empty \else \the\linewidth \fi
@@ -677,15 +690,15 @@ Licence: GPL2+
 %    \end{macrocode}
 %
 %    \begin{macrocode}
-\define@key{ASYkeys}{attach}[true]{%
-  \ifthenelse{\equal{#1}{true}}
-    {\ASYattachtrue}
-    {\ASYattachfalse}%
-}
 \define@key{ASYkeys}{inline}[true]{%
   \ifthenelse{\equal{#1}{true}}
     {\ASYinlinetrue}
     {\ASYinlinefalse}%
+}
+\define@key{ASYkeys}{attach}[true]{%
+  \ifthenelse{\equal{#1}{true}}
+    {\ASYattachtrue}
+    {\ASYattachfalse}%
 }
 %    \end{macrocode}
 %

@@ -3265,12 +3265,14 @@ If exactly one of @code{x} or @code{y} is 0, no size restriction
 is imposed in that direction; it will be scaled the same as the other
 direction.
 
+@cindex @code{keepAspect}
 @cindex @code{Aspect}
 If @code{keepAspect} is set to @code{Aspect} or @code{true},
 the picture will be scaled with its aspect ratio preserved such that
 the final width is no more than @code{x} and the final height is
 no more than @code{y}.
 
+@cindex @code{keepAspect}
 @cindex @code{IgnoreAspect}
 If @code{keepAspect} is set to @code{IgnoreAspect} or @code{false},
 the picture will be scaled in both directions so that the final width
@@ -6024,11 +6026,12 @@ so that @code{latexmk} will recognize when the code is changed. Note that
 
 @cindex @code{width}
 @cindex @code{height}
+@cindex @code{keepAspect}
 @cindex @code{viewportwidth}
 @cindex @code{viewportheight}
 @cindex @code{attach}
 @cindex @code{inline}
-One can specify @code{width}, @code{height},
+One can specify @code{width}, @code{height}, @code{keepAspect},
 @code{viewportwidth}, @code{viewportheight}, @code{attach}, and @code{inline}.
 @code{keyval}-style options to the @code{asy} and @code{asyinclude}
 environments.
