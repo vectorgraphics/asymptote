@@ -592,10 +592,12 @@ void arrow(picture pic=currentpicture, Label L=null, pair b, pair dir,
            real length=arrowlength, align align=NoAlign,
            pen p=currentpen, arrowbar arrow=Arrow, margin margin=EndMargin)
 {
-  Label L=L.copy();
-  if(L.defaultposition) L.position(0);
-  L.align(L.align,dir);
-  L.p(p);
+  if(L != null && L.s != "") {
+    L=L.copy();
+    if(L.defaultposition) L.position(0);
+    L.align(L.align,dir);
+    L.p(p);
+  }
   marginT margin=margin(b--b,p); // Extract margin.begin and margin.end
   pair a=(margin.begin+length+margin.end)*unit(dir);
   draw(b,pic,L,a--(0,0),align,p,arrow,margin);
