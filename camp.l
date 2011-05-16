@@ -27,7 +27,8 @@ using mem::string;
 
 #include "opsymbols.h"
 
-#define YY_NO_UNPUT
+static void yyunput(int, char *);
+void (*unused)(int,char *) = yyunput;
 
 fileinfo* fi;
 Int tokPos;
