@@ -1208,10 +1208,9 @@ void _draw(picture pic, path g, pen p, margin margin)
 {
   if (size(nib(p)) == 0 && margin==NoMargin) {
     // Inline the drawerBound wrapper for speed.
-    pic.addExactAbove(
-                      new void(frame f, transform t, transform T, pair, pair) {
-                        _draw(f,t*T*g,p);
-                      });
+    pic.addExactAbove(new void(frame f, transform t, transform T, pair, pair) {
+        _draw(f,t*T*g,p);
+      });
   } else {
     pic.add(new void(frame f, transform t) {
         draw(f,margin(t*g,p).g,p);

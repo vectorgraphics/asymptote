@@ -1,3 +1,5 @@
+real expansionfactor=sqrt(2);
+
 // A coordinate in "flex space." A linear combination of user and true-size
 // coordinates.
 struct coord {
@@ -215,28 +217,23 @@ real calculateScaling(string dir, coord[] m, coord[] M, real size,
     // TODO: Could just be return a;
     return scaling.build(p.a(),p.b()).a;
   } else if(status == simplex.problem.UNBOUNDED) {
-    // TODO: This is not the right time to issue a warning, as the other
-    // dimension may be bounded.
     if(warn) warning("unbounded",dir+" scaling in picture unbounded");
     return 0;
   } else {
     if(!warn) return 1;
-    // TODO: Make a userzero(coords) function.
-    bool userzero=true;
-    //    for(int i=0; i < coords.length; ++i) {
-    //      if(coords[i].user != 0) userzero=false;
-    //    }
-    for(var coord : m) {
-      if(coord.user != 0) userzero=false;
+
+    bool userzero(coord[] coords) {
+      for(var coord : coords)
+        if(coord.user != 0) return false;
+      return true;
     }
-    for(var coord : M) {
-      if(coord.user != 0) userzero=false;
-    }
-    if(userzero) return 1;
+    
+    if((userzero(m) && userzero(M)) || size >= infinity) return 1;
+    
     warning("cannotfit","cannot fit picture to "+dir+"size "+(string) size
             +"...enlarging...");
-    // TODO: Move magic constant sqrt(2) out of code.
-    return calculateScaling(dir,m,M,sqrt(2)*size,warn);
+    
+    return calculateScaling(dir,m,M,expansionfactor*size,warn);
   }
 }
 
