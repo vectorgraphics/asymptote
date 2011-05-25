@@ -10,6 +10,12 @@ FILES = PRCbitStream oPRCFile PRCdouble writePRC
 test: $(FILES:=.o) test.cc
 	$(CXX) $(CFLAGS) -o test $(FILES:=.o) test.cc -lz
 
+test_tess: $(FILES:=.o) test_tess.cc
+	$(CXX) $(CFLAGS) -o test_tess $(FILES:=.o) test_tess.cc -lz
+
+test_mesh: $(FILES:=.o) test_mesh.cc
+	$(CXX) $(CFLAGS) -o test_mesh $(FILES:=.o) test_mesh.cc -lz
+
 .SUFFIXES: .c .cc .o .d
 .cc.o:
 	$(CXX) $(CFLAGS) $(INCL) -o $@ -c $<
@@ -31,4 +37,4 @@ ifeq (,$(findstring clean,${MAKECMDGOALS}))
 endif
 
 clean:
-	rm -f *.o *.d test.prc test
+	rm -f *.o *.d test test_tess

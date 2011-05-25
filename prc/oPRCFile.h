@@ -66,21 +66,61 @@ struct RGBAColour
   }
 };
 typedef std::map<RGBAColour,uint32_t> PRCcolourMap;
+
+struct RGBAColourWidth
+{
+  RGBAColourWidth(double r=0.0, double g=0.0, double b=0.0, double a=1.0, double w=1.0) :
+    R(r), G(g), B(b), A(a), W(w) {}
+  double R,G,B,A,W;
+
+  bool operator==(const RGBAColourWidth &c) const
+  {
+    return (R==c.R && G==c.G && B==c.B && A==c.A && W==c.W);
+  }
+  bool operator!=(const RGBAColourWidth &c) const
+  {
+    return !(R==c.R && G==c.G && B==c.B && A==c.A && W==c.W);
+  }
+  bool operator<(const RGBAColourWidth &c) const
+  {
+    if(R!=c.R)
+      return (R<c.R);
+    if(G!=c.G)
+      return (G<c.G);
+    if(B!=c.B)
+      return (B<c.B);
+    if(A!=c.A)
+      return (A<c.A);
+    return (W<c.W);
+  }
+};
+typedef std::map<RGBAColourWidth,uint32_t> PRCcolourwidthMap;
+
 typedef std::map<PRCRgbColor,uint32_t> PRCcolorMap;
 
 struct PRCmaterial
 {
-  PRCmaterial() : alpha(1.0),shininess(1.0) {}
+  PRCmaterial() : alpha(1.0),shininess(1.0),
+      picture(NULL), picture_width(0), picture_height(0), picture_rgba(false), picture_replace(false) {}
   PRCmaterial(const RGBAColour &a, const RGBAColour &d, const RGBAColour &e,
-              const RGBAColour &s, double p, double h) :
-      ambient(a), diffuse(d), emissive(e), specular(s), alpha(p), shininess(h) {}
+              const RGBAColour &s, double p, double h,
+              const uint8_t* pic=NULL, uint32_t picw=0, uint32_t pich=0, bool pica=false, bool picr=false) :
+      ambient(a), diffuse(d), emissive(e), specular(s), alpha(p), shininess(h),
+      picture(pic), picture_width(picw), picture_height(pich), picture_rgba(pica), picture_replace(picr) {}
   RGBAColour ambient,diffuse,emissive,specular;
   double alpha,shininess;
+  const uint8_t* picture;
+  uint32_t picture_width;
+  uint32_t picture_height;
+  bool picture_rgba;    // is there alpha component?
+  bool picture_replace; // replace material color with texture color? if false - just modify
 
   bool operator==(const PRCmaterial &m) const
   {
     return (ambient==m.ambient && diffuse==m.diffuse && emissive==m.emissive
-        && specular==m.specular && alpha==m.alpha && shininess==m.shininess);
+        && specular==m.specular && alpha==m.alpha && shininess==m.shininess
+        && picture==m.picture && picture_width==m.picture_width && picture_height==m.picture_height
+        && picture_rgba==m.picture_rgba && picture_replace==m.picture_replace);
   }
   bool operator<(const PRCmaterial &m) const
   {
@@ -94,7 +134,17 @@ struct PRCmaterial
       return (specular<m.specular);
     if(alpha!=m.alpha)
       return (alpha<m.alpha);
-    return (shininess<m.shininess);
+    if(shininess!=m.shininess)
+      return (shininess<m.shininess);
+    if(picture!=m.picture)
+      return (picture<m.picture);
+    if(picture_width!=m.picture_width)
+      return (picture_width<m.picture_width);
+    if(picture_height!=m.picture_height)
+      return (picture_height<m.picture_height);
+    if(picture_rgba!=m.picture_rgba)
+      return (picture_rgba<m.picture_rgba);
+    return (picture_replace<m.picture_replace);
   }
 };
 typedef std::map<PRCmaterial,uint32_t> PRCmaterialMap;
@@ -106,12 +156,22 @@ struct PRCtessrectangle // rectangle
 };
 typedef std::vector<PRCtessrectangle> PRCtessrectangleList;
 
+struct PRCtesstriangles // triangle
+{
+  std::vector<PRCVector3d> vertices;
+  std::vector<PRCVector3d> normals;
+  std::vector<RGBAColour>  colors;
+  uint32_t style;
+};
+typedef std::vector<PRCtesstriangles> PRCtesstrianglesList;
+
 struct PRCtessline // polyline
 {
   std::vector<PRCVector3d> point;
   PRCRgbColor color;
 };
 typedef std::list<PRCtessline> PRCtesslineList;
+typedef std::map<double, PRCtesslineList> PRCtesslineMap;
 
 struct PRCface
 {
@@ -148,12 +208,12 @@ class PRCoptions
 public:
   double compression;
   double granularity;
-  
-  bool closed;   // render the surface as one-sided; may yield faster rendering 
+
+  bool closed;   // render the surface as one-sided; may yield faster rendering
   bool tess;     // use tessellated mesh to store straight patches
-  bool do_break; // 
+  bool do_break; //
   bool no_break; // do not render transparent patches as one-faced nodes
-  
+
   PRCoptions(double compression=0.0, double granularity=0.0, bool closed=false,
              bool tess=false, bool do_break=true, bool no_break=false)
     : compression(compression), granularity(granularity), closed(closed),
@@ -168,9 +228,12 @@ class PRCgroup
   PRCfaceList       faces;
   PRCcompfaceList   compfaces;
   PRCtessrectangleList  rectangles;
-  PRCtesslineList       lines;
+  PRCtesslineMap        lines;
   PRCwireList           wires;
   PRCpointsetMap        points;
+  std::vector<PRCPointSet*>      pointsets;
+  std::vector<PRCPolyBrepModel*> polymodels;
+  std::vector<PRCPolyWire*>      polywires;
   std::string name;
   std::list<PRCgroup> groupList;
   PRCGeneralTransformation3d*  transform;
@@ -178,150 +241,8 @@ class PRCgroup
 };
 typedef std::list<PRCgroup> PRCgroupList;
 
-class PRCCompressedSection
-{
-  public:
-    PRCCompressedSection(oPRCFile *p) : data(0),prepared(false),parent(p),fileStructure(NULL),
-        out(data,0) {}
-    PRCCompressedSection(PRCFileStructure *fs) : data(0),prepared(false),parent(NULL),fileStructure(fs),
-        out(data,0) {}
-    virtual ~PRCCompressedSection()
-    {
-      free(data);
-    }
-    void write(std::ostream&);
-    void prepare();
-    uint32_t getSize();
-
-  private:
-    virtual void writeData() = 0;
-    uint8_t *data;
-  protected:
-    void compress()
-    {
-      out.compress();
-    }
-    bool prepared;
-    oPRCFile *parent;
-    PRCFileStructure *fileStructure;
-    PRCbitStream out; // order matters: PRCbitStream must be initialized last
-};
-
-class PRCGlobalsSection : public PRCCompressedSection
-{
-  public:
-    PRCGlobalsSection(PRCFileStructure *fs, uint32_t i) :
-      PRCCompressedSection(fs),numberOfReferencedFileStructures(0), 
-      tessellationChordHeightRatio(2000.0),tessellationAngleDegrees(40.0),
-      defaultFontFamilyName(""),
-      numberOfFillPatterns(0),
-      userData(0,0),index(i) {}
-  virtual ~PRCGlobalsSection() {
-      for(PRCTextureDefinitionList::iterator i = texture_definitions.begin();
-          i != texture_definitions.end(); i++)
-        delete *i;
-      for(PRCMaterialList::iterator i = materials.begin();
-          i != materials.end(); i++)
-        delete *i;
-      for(PRCStyleList::iterator i = styles.begin();
-          i != styles.end(); i++)
-        delete *i;
-      for(PRCCoordinateSystemList::iterator i = 
-            reference_coordinate_systems.begin();
-          i != reference_coordinate_systems.end(); i++)
-        delete *i;
-  }
-    uint32_t numberOfReferencedFileStructures;
-    double tessellationChordHeightRatio;
-    double tessellationAngleDegrees;
-    std::string defaultFontFamilyName;
-    std::vector<PRCRgbColor> colors;
-    std::vector<PRCPicture> pictures;
-    PRCTextureDefinitionList texture_definitions;
-    PRCMaterialList materials;
-    PRCStyleList styles;
-    uint32_t numberOfFillPatterns;
-    PRCCoordinateSystemList reference_coordinate_systems;
-    std::vector<PRCFontKeysSameFont> font_keys_of_font;
-    UserData userData;
-  private:
-    uint32_t index;
-    virtual void writeData();
-};
-
-class PRCTreeSection : public PRCCompressedSection
-{
-  public:
-    PRCTreeSection(PRCFileStructure *fs, uint32_t i) :
-      PRCCompressedSection(fs),unit(1),index(i) {}
-  virtual ~PRCTreeSection() 
-  {
-    for(PRCPartDefinitionList::iterator it=part_definitions.begin(); it!=part_definitions.end(); ++it) delete *it;
-    for(PRCProductOccurrenceList::iterator it=product_occurrences.begin(); it!=product_occurrences.end(); ++it) delete *it;
-  }
-
-  PRCPartDefinitionList part_definitions;
-  PRCProductOccurrenceList product_occurrences;
-/*
-  PRCMarkupList markups;
-  PRCAnnotationItemList annotation_entities;
- */
-  double unit;
-  private:
-    uint32_t index;
-    virtual void writeData();
-};
-
-class PRCTessellationSection : public PRCCompressedSection
-{
-  public:
-    PRCTessellationSection(PRCFileStructure *fs, uint32_t i) :
-      PRCCompressedSection(fs),index(i) {}
-  virtual ~PRCTessellationSection() {
-    for(PRCTessList::iterator it=tessellations.begin();
-        it!=tessellations.end(); ++it)
-      delete *it;
-  }
-  PRCTessList tessellations;
-  private:
-    uint32_t index;
-    virtual void writeData();
-};
-
-class PRCGeometrySection : public PRCCompressedSection
-{
-  public:
-    PRCGeometrySection(PRCFileStructure *fs, uint32_t i) :
-      PRCCompressedSection(fs),index(i) {}
-  virtual ~PRCGeometrySection() {}
-  private:
-    uint32_t index;
-    virtual void writeData();
-};
-
-class PRCExtraGeometrySection : public PRCCompressedSection
-{
-  public:
-    PRCExtraGeometrySection(PRCFileStructure *fs, uint32_t i) :
-      PRCCompressedSection(fs),index(i) {}
-  virtual ~PRCExtraGeometrySection() {}
-  private:
-    uint32_t index;
-    virtual void writeData();
-};
-
-class PRCModelFile : public PRCCompressedSection
-{
-  public:
-    PRCModelFile(oPRCFile *p) : PRCCompressedSection(p), unit(1) {}
-    double unit;
-  virtual ~PRCModelFile() {}
-  private:
-    virtual void writeData();
-};
-
-void makeFileUUID(uint32_t*);
-void makeAppUUID(uint32_t*);
+void makeFileUUID(PRCUniqueId&);
+void makeAppUUID(PRCUniqueId&);
 
 class PRCUncompressedFile
 {
@@ -334,54 +255,101 @@ class PRCUncompressedFile
     uint8_t *data;
 //    std::string file_name;
 
-    void write(std::ostream&);
+    void write(std::ostream&) const;
 
-    uint32_t getSize();
+    uint32_t getSize() const;
 };
+typedef std::deque <PRCUncompressedFile*>  PRCUncompressedFileList;
 
 class PRCStartHeader
 {
   public:
     uint32_t minimal_version_for_read; // PRCVersion
     uint32_t authoring_version; // PRCVersion
-    uint32_t fileStructureUUID[4];
-    uint32_t applicationUUID[4]; // should be 0
+    PRCUniqueId file_structure_uuid;
+    PRCUniqueId application_uuid; // should be 0
 
-    void write(std::ostream&);
+    PRCStartHeader() :
+      minimal_version_for_read(PRCVersion), authoring_version(PRCVersion) {}
+    void serializeStartHeader(std::ostream&) const;
 
-    uint32_t getSize();
+    uint32_t getStartHeaderSize() const;
 };
 
-class PRCFileStructure
+class PRCFileStructure : public PRCStartHeader
 {
-  private:
-    oPRCFile *parent;
-    uint32_t index;
   public:
-    PRCStartHeader header;
-    std::list<PRCUncompressedFile> uncompressedFiles;
+    uint32_t number_of_referenced_file_structures;
+    double tessellation_chord_height_ratio;
+    double tessellation_angle_degree;
+    std::string default_font_family_name;
+    std::vector<PRCRgbColor> colors;
+    std::vector<PRCPicture> pictures;
+    PRCUncompressedFileList uncompressed_files;
+    PRCTextureDefinitionList texture_definitions;
+    PRCMaterialList materials;
+    PRCStyleList styles;
+    PRCCoordinateSystemList reference_coordinate_systems;
+    std::vector<PRCFontKeysSameFont> font_keys_of_font;
+    PRCPartDefinitionList part_definitions;
+    PRCProductOccurrenceList product_occurrences;
+//  PRCMarkupList markups;
+//  PRCAnnotationItemList annotation_entities;
+    double unit;
     PRCTopoContextList contexts;
+    PRCTessList tessellations;
+
+    uint32_t sizes[6];
+    uint8_t *globals_data;
+    PRCbitStream globals_out; // order matters: PRCbitStream must be initialized last
+    uint8_t *tree_data;
+    PRCbitStream tree_out;
+    uint8_t *tessellations_data;
+    PRCbitStream tessellations_out;
+    uint8_t *geometry_data;
+    PRCbitStream geometry_out;
+    uint8_t *extraGeometry_data;
+    PRCbitStream extraGeometry_out;
 
     ~PRCFileStructure () {
-      for(PRCTopoContextList::iterator i = contexts.begin();
-          i != contexts.end(); i++)
-        delete *i;
-    }
-  
-    PRCGlobalsSection globals;
-    PRCTreeSection tree;
-    PRCTessellationSection tessellations;
-    PRCGeometrySection geometry;
-    PRCExtraGeometrySection extraGeometry;
+      for(PRCUncompressedFileList::iterator  it=uncompressed_files.begin();  it!=uncompressed_files.end();  ++it) delete *it;
+      for(PRCTextureDefinitionList::iterator it=texture_definitions.begin(); it!=texture_definitions.end(); ++it) delete *it;
+      for(PRCMaterialList::iterator          it=materials.begin();           it!=materials.end();           ++it) delete *it;
+      for(PRCStyleList::iterator             it=styles.begin();              it!=styles.end();              ++it) delete *it;
+      for(PRCTopoContextList::iterator       it=contexts.begin();            it!=contexts.end();            ++it) delete *it;
+      for(PRCTessList::iterator              it=tessellations.begin();       it!=tessellations.end();       ++it) delete *it;
+      for(PRCPartDefinitionList::iterator    it=part_definitions.begin();    it!=part_definitions.end();    ++it) delete *it;
+      for(PRCProductOccurrenceList::iterator it=product_occurrences.begin(); it!=product_occurrences.end(); ++it) delete *it;
+      for(PRCCoordinateSystemList::iterator  it=reference_coordinate_systems.begin(); it!=reference_coordinate_systems.end(); it++)
+        delete *it;
 
-    PRCFileStructure(oPRCFile *p, uint32_t i) : parent(p),index(i),
-      globals(this,i),tree(this,i),tessellations(this,i),geometry(this,i),
-      extraGeometry(this,i) {}
+      free(globals_data);
+      free(tree_data);
+      free(tessellations_data);
+      free(geometry_data);
+      free(extraGeometry_data);
+    }
+
+    PRCFileStructure() :
+      number_of_referenced_file_structures(0),
+      tessellation_chord_height_ratio(2000.0),tessellation_angle_degree(40.0),
+      default_font_family_name(""),
+      unit(1),
+      globals_data(NULL),globals_out(globals_data,0),
+      tree_data(NULL),tree_out(tree_data,0),
+      tessellations_data(NULL),tessellations_out(tessellations_data,0),
+      geometry_data(NULL),geometry_out(geometry_data,0),
+      extraGeometry_data(NULL),extraGeometry_out(extraGeometry_data,0) {}
     void write(std::ostream&);
     void prepare();
     uint32_t getSize();
+    void serializeFileStructureGlobals(PRCbitStream&);
+    void serializeFileStructureTree(PRCbitStream&);
+    void serializeFileStructureTessellation(PRCbitStream&);
+    void serializeFileStructureGeometry(PRCbitStream&);
+    void serializeFileStructureExtraGeometry(PRCbitStream&);
     uint32_t addPicture(EPRCPictureDataFormat format, uint32_t size, const uint8_t *picture, uint32_t width=0, uint32_t height=0, std::string name="");
-    uint32_t addTextureDefinition(PRCTextureDefinition *pTextureDefinition);
+    uint32_t addTextureDefinition(PRCTextureDefinition*& pTextureDefinition);
     uint32_t addRgbColor(const PRCRgbColor &color);
     uint32_t addRgbColorUnique(const PRCRgbColor &color);
     uint32_t addMaterialGeneric(PRCMaterialGeneric*& pMaterialGeneric);
@@ -405,7 +373,7 @@ class PRCFileStructure
 class PRCFileStructureInformation
 {
   public:
-    uint32_t UUID[4];
+    PRCUniqueId UUID;
     uint32_t reserved; // 0
     uint32_t number_of_offsets;
     uint32_t *offsets;
@@ -415,15 +383,14 @@ class PRCFileStructureInformation
     uint32_t getSize();
 };
 
-class PRCHeader
+class PRCHeader : public PRCStartHeader
 {
   public :
-    PRCStartHeader startHeader;
     uint32_t number_of_file_structures;
     PRCFileStructureInformation *fileStructureInformation;
     uint32_t model_file_offset;
     uint32_t file_size; // not documented
-    std::list<PRCUncompressedFile> uncompressedFiles;
+    PRCUncompressedFileList uncompressed_files;
 
     void write(std::ostream&);
     uint32_t getSize();
@@ -434,40 +401,42 @@ typedef std::map <PRCGeneralTransformation3d,uint32_t> PRCtransformMap;
 class oPRCFile
 {
   public:
-    oPRCFile(std::ostream &os, double unit=1, uint32_t n=1) :
+    oPRCFile(std::ostream &os, double u=1, uint32_t n=1) :
       number_of_file_structures(n),
-      fileStructures(new PRCFileStructure*[n]),modelFile(this),
+      fileStructures(new PRCFileStructure*[n]),
+      unit(u),
+      modelFile_data(NULL),modelFile_out(modelFile_data,0),
       fout(NULL),output(os)
       {
         for(uint32_t i = 0; i < number_of_file_structures; ++i)
         {
-          fileStructures[i] = new PRCFileStructure(this,i);
-          fileStructures[i]->header.minimal_version_for_read = PRCVersion;
-          fileStructures[i]->header.authoring_version = PRCVersion;
-          makeFileUUID(fileStructures[i]->header.fileStructureUUID);
-          makeAppUUID(fileStructures[i]->header.applicationUUID);
-          fileStructures[i]->tree.unit = unit;
+          fileStructures[i] = new PRCFileStructure();
+          fileStructures[i]->minimal_version_for_read = PRCVersion;
+          fileStructures[i]->authoring_version = PRCVersion;
+          makeFileUUID(fileStructures[i]->file_structure_uuid);
+          makeAppUUID(fileStructures[i]->application_uuid);
+          fileStructures[i]->unit = u;
         }
-        modelFile.unit = unit;
       }
-  
-    oPRCFile(const std::string &name, double unit=1, uint32_t n=1) :
+
+    oPRCFile(const std::string &name, double u=1, uint32_t n=1) :
       number_of_file_structures(n),
-      fileStructures(new PRCFileStructure*[n]),modelFile(this),
+      fileStructures(new PRCFileStructure*[n]),
+      unit(u),
+      modelFile_data(NULL),modelFile_out(modelFile_data,0),
       fout(new std::ofstream(name.c_str(),
                              std::ios::out|std::ios::binary|std::ios::trunc)),
       output(*fout)
       {
         for(uint32_t i = 0; i < number_of_file_structures; ++i)
         {
-          fileStructures[i] = new PRCFileStructure(this,i);
-          fileStructures[i]->header.minimal_version_for_read = PRCVersion;
-          fileStructures[i]->header.authoring_version = PRCVersion;
-          makeFileUUID(fileStructures[i]->header.fileStructureUUID);
-          makeAppUUID(fileStructures[i]->header.applicationUUID);
-          fileStructures[i]->tree.unit = unit;
+          fileStructures[i] = new PRCFileStructure();
+          fileStructures[i]->minimal_version_for_read = PRCVersion;
+          fileStructures[i]->authoring_version = PRCVersion;
+          makeFileUUID(fileStructures[i]->file_structure_uuid);
+          makeAppUUID(fileStructures[i]->application_uuid);
+          fileStructures[i]->unit = u;
         }
-        modelFile.unit = unit;
       }
 
     ~oPRCFile()
@@ -477,21 +446,25 @@ class oPRCFile
       delete[] fileStructures;
       if(fout != NULL)
         delete fout;
+      free(modelFile_data);
     }
 
     void begingroup(const char *name, PRCoptions *options=NULL,
                     const double t[][4]=NULL);
     void endgroup();
-  
+
     bool finish();
     uint32_t getSize();
-  
+
     const uint32_t number_of_file_structures;
     PRCFileStructure **fileStructures;
     PRCHeader header;
-    PRCModelFile modelFile;
+    PRCUnit unit;
+    uint8_t *modelFile_data;
+    PRCbitStream modelFile_out; // order matters: PRCbitStream must be initialized last
     PRCcolorMap colorMap;
     PRCcolourMap colourMap;
+    PRCcolourwidthMap colourwidthMap;
     PRCmaterialMap materialMap;
     PRCgroup rootGroup;
     PRCtransformMap transformMap;
@@ -500,12 +473,29 @@ class oPRCFile
     void doGroup(PRCgroup& group, PRCPartDefinition *parent_part_definition, PRCProductOccurrence *parent_product_occurrence);
     uint32_t addColor(const PRCRgbColor &color);
     uint32_t addColour(const RGBAColour &colour);
+    uint32_t addColourWidth(const RGBAColour &colour, double width);
     uint32_t addMaterial(const PRCmaterial &material);
     uint32_t addTransform(PRCGeneralTransformation3d*& transform);
-    void addPoint(const double P[3], const RGBAColour &c);
-    void addLine(uint32_t n, const double P[][3], const RGBAColour &c);
+    void addPoint(const double P[3], const RGBAColour &c, double w=1.0);
+    void addPoints(uint32_t n, const double P[][3], const RGBAColour &c, double w=1.0);
+    void addLines(uint32_t nP, const double P[][3], uint32_t nI, const uint32_t PI[],
+                      const RGBAColour &c, double w, bool segment_color,
+                      uint32_t nC, const RGBAColour C[], uint32_t nCI, const uint32_t CI[]);
+    void addTriangles(uint32_t nP, const double P[][3], uint32_t nI, const uint32_t PI[][3], const PRCmaterial &m,
+                      uint32_t nN, const double N[][3],   const uint32_t NI[][3],
+                      uint32_t nT, const double T[][2],   const uint32_t TI[][3],
+                      uint32_t nC, const RGBAColour C[],  const uint32_t CI[][3],
+                      uint32_t nM, const PRCmaterial M[], const uint32_t MI[]);
+    void addQuads(uint32_t nP, const double P[][3], uint32_t nI, const uint32_t PI[][4], const PRCmaterial &m,
+                      uint32_t nN, const double N[][3],   const uint32_t NI[][4],
+                      uint32_t nT, const double T[][2],   const uint32_t TI[][4],
+                      uint32_t nC, const RGBAColour C[],  const uint32_t CI[][4],
+                      uint32_t nM, const PRCmaterial M[], const uint32_t MI[]);
+    void addLine(uint32_t n, const double P[][3], const RGBAColour &c, double w=1.0);
     void addBezierCurve(uint32_t n, const double cP[][3], const RGBAColour &c);
     void addCurve(uint32_t d, uint32_t n, const double cP[][3], const double *k, const RGBAColour &c, const double w[]);
+    void addQuad(const double P[][3], const RGBAColour C[]);
+
     void addRectangle(const double P[][3], const PRCmaterial &m);
     void addPatch(const double cP[][3], const PRCmaterial &m);
     void addSurface(uint32_t dU, uint32_t dV, uint32_t nU, uint32_t nV,
@@ -517,6 +507,7 @@ class oPRCFile
     void addSphere(double radius, const PRCmaterial &m, PRCFACETRANSFORM);
     void addDisk(double radius, const PRCmaterial &m, PRCFACETRANSFORM);
     void addCylinder(double radius, double height, const PRCmaterial &m, PRCFACETRANSFORM);
+    void addCone(double radius, double height, const PRCmaterial &m, PRCFACETRANSFORM);
     void addTorus(double major_radius, double minor_radius, double angle1, double angle2, const PRCmaterial &m, PRCFACETRANSFORM);
 #undef PRCFACETRANSFORM
 
@@ -598,6 +589,7 @@ class oPRCFile
         return fileStructures[fileStructure]->addCoordinateSystemUnique(pCoordinateSystem);
       }
   private:
+    void serializeModelFileData(PRCbitStream&);
     std::ofstream *fout;
     std::ostream &output;
 };

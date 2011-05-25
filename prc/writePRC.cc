@@ -29,6 +29,10 @@
 #include <fstream>
 #include <sstream>
 
+#ifndef __GNUC__
+#include <vector>
+#endif
+
 using namespace std;
 
 #ifndef __GNUC_PREREQ
@@ -112,7 +116,23 @@ uint32_t Log2(uint32_t x)
 #define SerializeContentSingleAttribute( value ) (value).serializeSingleAttribute(pbs);
 #define SerializeAttribute( value ) (value).serializeAttribute(pbs);
 #define SerializeAttributeData serializeAttributes(pbs);
+#define WriteUncompressedUnsignedInteger( value ) writeUncompressedUnsignedInteger(out, (uint32_t)(value));
+#define SerializeFileStructureUncompressedUniqueId( value ) (value).serializeFileStructureUncompressedUniqueId(out);
 
+void writeUncompressedUnsignedInteger(ostream &out, uint32_t data)
+{
+#ifdef WORDS_BIGENDIAN
+  out.write(((char*)&data)+3,1);
+  out.write(((char*)&data)+2,1);
+  out.write(((char*)&data)+1,1);
+  out.write(((char*)&data)+0,1);
+#else
+  out.write(((char*)&data)+0,1);
+  out.write(((char*)&data)+1,1);
+  out.write(((char*)&data)+2,1);
+  out.write(((char*)&data)+3,1);
+#endif
+}
 
 double PRCVector3d::Length()
 {
@@ -139,7 +159,7 @@ void UserData::write(PRCbitStream &pbs)
     for(uint32_t i = 0; i < quot; ++i)
       pbs << data[i];
     for(uint32_t j = 0; j < rem; ++j) // 0-based, big endian bit counting
-      pbs << (bool)(data[quot] & (0x80 >> j));
+      pbs << (bool)((data[quot] & (0x80 >> j))!=0);
   }
 }
 
@@ -412,7 +432,7 @@ uint32_t current_layer_index = m1;
 uint32_t current_index_of_line_style = m1;
 uint16_t current_behaviour_bit_field = 1;
 
-void writeGraphics(PRCbitStream &pbs,uint32_t l,uint32_t i,uint32_t b,bool force)
+void writeGraphics(PRCbitStream &pbs,uint32_t l,uint32_t i,uint16_t b,bool force)
 {
   if(force || current_layer_index != l || current_index_of_line_style != i || current_behaviour_bit_field != b)
   {
@@ -1271,13 +1291,23 @@ void  PRCCompressedFace::serializeCompressedNurbs(PRCbitStream &pbs, double brep
 
    const uint32_t number_of_control_point_in_u = degree_in_u + 1;
    const uint32_t number_of_control_point_in_v = degree_in_v + 1;
+
+#ifdef __GNUC__
    PRCVector3d P[number_of_control_point_in_u][number_of_control_point_in_v];
+#else
+   vector<vector<PRCVector3d> > P(number_of_control_point_in_u, vector<PRCVector3d>(number_of_control_point_in_v));
+#endif
    for(uint32_t i=0;i<number_of_control_point_in_u;i++)
    for(uint32_t j=0;j<number_of_control_point_in_v;j++)
       P[i][j] = control_point[i*number_of_control_point_in_v+j];
+#ifdef __GNUC__
    itriple compressed_control_point[number_of_control_point_in_u][number_of_control_point_in_v];
    uint32_t control_point_type[number_of_control_point_in_u][number_of_control_point_in_v];
-   
+#else
+   vector<vector<itriple> > compressed_control_point(number_of_control_point_in_u, vector<itriple>(number_of_control_point_in_v));
+   vector<vector<uint32_t> > control_point_type(number_of_control_point_in_u, vector<uint32_t>(number_of_control_point_in_v));
+#endif
+
    uint32_t number_of_bits_for_isomin = 1;
    uint32_t number_of_bits_for_rest = 1;
    
@@ -1487,6 +1517,17 @@ void  PRCSphere::serializeSphere(PRCbitStream &pbs)
    SerializeTransformation
    SerializeUVParameterization
    WriteDouble ( radius )
+}
+
+void  PRCCone::serializeCone(PRCbitStream &pbs)
+{ 
+   WriteUnsignedInteger (PRC_TYPE_SURF_Cone) 
+
+   SerializeContentSurface
+   SerializeTransformation
+   SerializeUVParameterization
+   WriteDouble ( bottom_radius )
+   WriteDouble ( semi_angle )
 }
 
 void  PRCCylinder::serializeCylinder(PRCbitStream &pbs)
@@ -1813,24 +1854,32 @@ uint32_t PRCTopoContext::addCompressedBrepData(PRCCompressedBrepData*& pCompress
 
 void PRCSingleWireBody::serializeSingleWireBody(PRCbitStream &pbs)
 {
-   WriteUnsignedInteger ( PRC_TYPE_TOPO_SingleWireBody) 
+  WriteUnsignedInteger ( PRC_TYPE_TOPO_SingleWireBody) 
 
-   SerializeContentBody 
-   SerializePtrTopology ( wire_edge )
+  SerializeContentBody 
+  SerializePtrTopology ( wire_edge )
 }
 
-void PRCUniqueId::serializeCompressedUniqueId(PRCbitStream &pbs)
+void PRCUniqueId::serializeCompressedUniqueId(PRCbitStream &pbs) const
 {
-	WriteUnsignedInteger (unique_id0) 
-	WriteUnsignedInteger (unique_id1) 
-	WriteUnsignedInteger (unique_id2) 
-	WriteUnsignedInteger (unique_id3) 	
+   WriteUnsignedInteger (id0) 
+   WriteUnsignedInteger (id1) 
+   WriteUnsignedInteger (id2) 
+   WriteUnsignedInteger (id3) 	
+}
+
+void PRCUniqueId::serializeFileStructureUncompressedUniqueId(std::ostream& out) const
+{
+   WriteUncompressedUnsignedInteger (id0) 
+   WriteUncompressedUnsignedInteger (id1) 
+   WriteUncompressedUnsignedInteger (id2) 
+   WriteUncompressedUnsignedInteger (id3) 
 }
 
 void PRCUnit::serializeUnit(PRCbitStream &pbs)
 {
-	WriteBoolean (unit_from_CAD_file)
-	WriteDouble (unit)
+   WriteBoolean (unit_from_CAD_file)
+   WriteDouble (unit)
 }
 
 void PRCProductOccurrence::serializeProductOccurrence(PRCbitStream &pbs)
@@ -1870,7 +1919,7 @@ void PRCProductOccurrence::serializeProductOccurrence(PRCbitStream &pbs)
    const bool has_location = location != NULL;
    WriteBit (has_location)
    if (has_location)
-	   location->serializeTransformation3d (pbs);
+     location->serializeTransformation3d (pbs);
    
    WriteUnsignedInteger (0) // number_of_references
    

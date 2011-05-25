@@ -31,6 +31,13 @@ extern const double pi;
 
 int main()
 {
+  // List of pictures used; keep track of memory allocated to free it in the end
+  // shared pointers or garbage collector may be an alternative
+  uint8_t *picture1 = NULL;
+  uint8_t *picture2 = NULL;
+  uint8_t *picture3 = NULL;
+  uint8_t *picture4 = NULL;
+
   oPRCFile file("test.prc");
 
   const size_t N_COLOURS = 32;
@@ -265,35 +272,33 @@ int main()
       {0,-1.5,0.15},{0.84,-1.5,0.15},{1.5,-0.84,0.15},{1.5,0,0.15},
     },
   };
-    const size_t NUMBER_OF_TEAPOTS = 2;
-    double shifted_controlPoints[NUMBER_OF_TEAPOTS][NUMBER_OF_PATCHES][16][3];
-    for(size_t teapot = 0; teapot < NUMBER_OF_TEAPOTS; ++teapot)
-      for(size_t patch = 0; patch < NUMBER_OF_PATCHES; ++patch)
-        for(size_t i = 0; i < 16; ++i)
-        {
-          shifted_controlPoints[teapot][patch][i][0] = controlPoints[patch][i][0]+6*teapot;
-          shifted_controlPoints[teapot][patch][i][1] = controlPoints[patch][i][1];
-          shifted_controlPoints[teapot][patch][i][2] = controlPoints[patch][i][2];
-        }
+    file.begingroup("Teapot");
     for(size_t i = 0; i < NUMBER_OF_PATCHES; ++i)
     {
-  //   was so in old API
-  //   psn[i] = new PRCsurface(&file,3,3,4,4,controlPoints[i],knotsU,knotsV,colours[i%N_COLOURS]);
-  //   file.add(psn[i]);
-    file.begingroup("Teapot");
-       if (1) file.addPatch(controlPoints[i],materials[i%N_COLOURS]);
-  file.endgroup();
-       if (0) file.addSurface(3,3,4,4,controlPoints[i],knotsU,knotsV,materials[i%N_COLOURS],NULL); // use (too) general API for the same result as above
+       if(1) file.addPatch(controlPoints[i],materials[i%N_COLOURS]);
+       if(0) file.addSurface(3,3,4,4,controlPoints[i],knotsU,knotsV,materials[i%N_COLOURS],NULL); // use (too) general API for the same result as above
     }
-//    file.begingroup("Teapot rendered in the way of opaque surfacesPRCNOBREAKPRCCOMPRESSLOW");
-//    for(size_t i = 0; i < NUMBER_OF_PATCHES; ++i)
-//    {
-//       file.addPatch(shifted_controlPoints[1][i],materials[i%N_COLOURS]); // force joining together of patches, damaging transparency
-//    }
-//    file.endgroup();
+    file.endgroup();
+
+    double t[4][4];
+    t[0][0]=1; t[0][1]=0; t[0][2]=0; t[0][3]=6;
+    t[1][0]=0; t[1][1]=1; t[1][2]=0; t[1][3]=0;
+    t[2][0]=0; t[2][1]=0; t[2][2]=1; t[2][3]=0;
+    t[3][0]=0; t[3][1]=0; t[3][2]=0; t[3][3]=1;
+
+    PRCoptions teapotopt;
+    teapotopt.no_break = true;
+    teapotopt.do_break = false;
+    teapotopt.compression = 0.0001;
+    // force joining together of patches, damaging transparency
+    file.begingroup("Teapot rendered in the way of opaque surfaces and transferred",&teapotopt,t);
+    for(size_t i = 0; i < NUMBER_OF_PATCHES; ++i)
+    {
+       file.addPatch(controlPoints[i],materials[i%N_COLOURS]);
+    }
+    file.endgroup();
   }
-    
-if(1) {
+  
   const size_t NUMBER_OF_POINTS = 31;
   double points[NUMBER_OF_POINTS][3];
   for(size_t i = 0; i < NUMBER_OF_POINTS; ++i)
@@ -319,47 +324,425 @@ if(1) {
   }
   knots[3+NUMBER_OF_POINTS] = (3+NUMBER_OF_POINTS+1)/3;
 
-  double point[3] = {11,0,0};
-  file.begingroup("point");
-  file.addPoint(point, RGBAColour(1.0,0.0,0.0));
-  file.endgroup();
+  PRCoptions grpopt;
+  grpopt.no_break = true;
+  grpopt.do_break = false;
+  grpopt.tess = true;
+  if(1){
+    double point1[3] = {11,0,0};
+    double point2[3] = {12,0,0};
+    double points[2][3] = {{9,0,0},{10,0,0}};
+    file.begingroup("points",&grpopt);
+    file.addPoint(point1, RGBAColour(1.0,0.0,0.0));
+    file.addPoint(point2, RGBAColour(1.0,0.0,0.0));
+    file.addPoints(2, points, RGBAColour(1.0,0.0,0.0,0.5),10);
+    file.endgroup();
+  }
 
-// RGBAColour red(1.0,0.0,0.0);
-// PRCline pl(&file,NUMBER_OF_POINTS,points,red);
-// file.add(&pl);
-  file.begingroup("polyline");
-  file.addLine(NUMBER_OF_POINTS, points, RGBAColour(1.0,0.0,0.0));
-  file.endgroup();
+  if(1){
+    PRCoptions grpopt;
+    grpopt.no_break = true;
+    grpopt.do_break = false;
+    grpopt.tess = true;
+    grpopt.closed = true;
 
-  file.begingroup("polylines");
-  file.addLine(NUMBER_OF_POINTS, shifted_points[0], RGBAColour(0.0,1.0,0.0));
-  file.addLine(NUMBER_OF_POINTS, shifted_points[1], RGBAColour(1.0,1.0,0.0));
-  file.endgroup();
+    double t[4][4];
 
-// RGBAColour white(1.0,1.0,1.0);
-// PRCcurve pc(&file,3,NUMBER_OF_POINTS,points,knots,white);
-// file.add(&pc);
+    const size_t nP = 5;
+    double P[nP][3] = {{0,0,0},{1,0,0},{1,1,0},{0,1,0},{0,2,0}};
+    const size_t nI = 3;
+    uint32_t PI[nI][3] = {{0,1,3},{1,2,3},{3,2,4}};
+    const size_t nM = 2;
+    PRCmaterial M[nM];
+    M[0] = PRCmaterial(
+      RGBAColour(0.0,0.0,0.18),
+      RGBAColour(0.0,0.0,0.878431),
+      RGBAColour(0.0,0.0,0.32),
+      RGBAColour(0.0,0.0,0.072),
+      1.0,0.1);
+    M[1] = PRCmaterial(
+      RGBAColour(0.18,0.0,0.0),
+      RGBAColour(0.878431,0.0,0.0),
+      RGBAColour(0.32,0.0,0.0),
+      RGBAColour(0.072,0.0,0.0),
+      0.5,0.1);
+    uint32_t MI[nI] = {0,1,0};
+    const size_t nN = 2;
+    double N[nN][3] = {{0,0,1},{0,0,-1}};
+    uint32_t NI[nI][3] = {{0,0,0},{0,0,0},{1,1,1}};
+
+    const uint32_t nC = 3;
+    RGBAColour C[nC];
+    uint32_t CI[nI][3] = {{0,0,0},{1,1,1},{1,1,2}};
+
+    PRCmaterial materialGreen(
+      RGBAColour(0.0,0.18,0.0),
+      RGBAColour(0.0,0.878431,0.0),
+      RGBAColour(0.0,0.32,0.0),
+      RGBAColour(0.0,0.072,0.0),
+      1.0,0.1);
+
+    if(1){
+    t[0][0]=1; t[0][1]=0; t[0][2]=0; t[0][3]=0;
+    t[1][0]=0; t[1][1]=1; t[1][2]=0; t[1][3]=0;
+    t[2][0]=0; t[2][1]=0; t[2][2]=1; t[2][3]=-1;
+    t[3][0]=0; t[3][1]=0; t[3][2]=0; t[3][3]=1;
+    file.begingroup("triangles_onecolor_with_normals",&grpopt,t);
+    file.addTriangles(nP, P, nI, PI, materialGreen, nN, N, NI, 0, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL);
+    file.endgroup();
+    }
+
+    if(1){
+    file.begingroup("triangles_onecolor",&grpopt);
+    file.addTriangles(nP, P, nI, PI, materialGreen, 0, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL);
+    file.endgroup();
+    }
+
+    if(1){
+    t[0][0]=1; t[0][1]=0; t[0][2]=0; t[0][3]=0;
+    t[1][0]=0; t[1][1]=1; t[1][2]=0; t[1][3]=0;
+    t[2][0]=0; t[2][1]=0; t[2][2]=1; t[2][3]=1;
+    t[3][0]=0; t[3][1]=0; t[3][2]=0; t[3][3]=1;
+    file.begingroup("triangles_manymaterials",&grpopt,t);
+    file.addTriangles(nP, P, nI, PI, materialGreen, 0, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, nM, M, MI);
+    file.endgroup();
+    }
+
+    if(1){
+    t[0][0]=1; t[0][1]=0; t[0][2]=0; t[0][3]=0;
+    t[1][0]=0; t[1][1]=1; t[1][2]=0; t[1][3]=0;
+    t[2][0]=0; t[2][1]=0; t[2][2]=1; t[2][3]=2;
+    t[3][0]=0; t[3][1]=0; t[3][2]=0; t[3][3]=1;
+    PRCmaterial materialBase(
+      RGBAColour(0.1,0.1,0.1,1),
+      RGBAColour(1,1,1,1),
+      RGBAColour(0.1,0.1,0.1,1),
+      RGBAColour(0.1,0.1,0.1,1),
+      1.0,0.1);
+    C[0] = RGBAColour(1,0,0,0.1);
+    C[1] = RGBAColour(0,1,0,0.5);
+    C[2] = RGBAColour(0,0,1,0.9);
+    file.begingroup("triangles_rgba_vertexcolors_on_opaque_a_component_of_vertexcolor_ignored",&grpopt,t);
+    file.addTriangles(nP, P, nI, PI, materialBase, 0, NULL, NULL, 0, NULL, NULL, nC, C, CI, 0, NULL, NULL);
+    file.endgroup();
+
+    t[0][0]=1; t[0][1]=0; t[0][2]=0; t[0][3]=0;
+    t[1][0]=0; t[1][1]=1; t[1][2]=0; t[1][3]=0;
+    t[2][0]=0; t[2][1]=0; t[2][2]=1; t[2][3]=3;
+    t[3][0]=0; t[3][1]=0; t[3][2]=0; t[3][3]=1;
+    PRCmaterial materialTransparent(
+      RGBAColour(0.1,0.1,0.1,0.3),
+      RGBAColour(1,1,1,0.3),
+      RGBAColour(0.1,0.1,0.1,0.3),
+      RGBAColour(0.1,0.1,0.1,0.3),
+      0.3,0.1);
+    C[0] = RGBAColour(1,0,0,0.1);
+    C[1] = RGBAColour(0,1,0,0.5);
+    C[2] = RGBAColour(0,0,1,0.9);
+    file.begingroup("triangles_rgba_vertexcolors_on_transparent_a_component_of_vertexcolor_ignored",&grpopt,t);
+    file.addTriangles(nP, P, nI, PI, materialTransparent, 0, NULL, NULL, 0, NULL, NULL, nC, C, CI, 0, NULL, NULL);
+    file.endgroup();
+
+    t[0][0]=1; t[0][1]=0; t[0][2]=0; t[0][3]=0;
+    t[1][0]=0; t[1][1]=1; t[1][2]=0; t[1][3]=0;
+    t[2][0]=0; t[2][1]=0; t[2][2]=1; t[2][3]=4;
+    t[3][0]=0; t[3][1]=0; t[3][2]=0; t[3][3]=1;
+    C[0] = RGBAColour(1,0,0,0.5);
+    C[1] = RGBAColour(0,1,0,0.5);
+    C[2] = RGBAColour(0,0,1,0.5);
+    file.begingroup("triangles_rgb_vertexcolors_on_transparent_may_not_work_in_OpenGL",&grpopt,t);
+    file.addTriangles(nP, P, nI, PI, materialTransparent, 0, NULL, NULL, 0, NULL, NULL, nC, C, CI, 0, NULL, NULL);
+    file.endgroup();
+    }
+
+    if(1){
+    t[0][0]=1; t[0][1]=0; t[0][2]=0; t[0][3]=0;
+    t[1][0]=0; t[1][1]=1; t[1][2]=0; t[1][3]=0;
+    t[2][0]=0; t[2][1]=0; t[2][2]=1; t[2][3]=5;
+    t[3][0]=0; t[3][1]=0; t[3][2]=0; t[3][3]=1;
+    const uint32_t picture_width=2;
+    const uint32_t picture_height=2;
+    const uint8_t picRGB[picture_width*picture_height*3] =
+      {255,0,0, 0,255,0, 0,0,255, 0,0,0 };
+//      {255,255,0, 255,0,0, 255,0,0, 255,0,0 };
+//     { 255,0,0, 255,255,0, 255,255,0, 255,255,255 };
+//      {255,0,0, 0,255,0, 0,0,255, 0,0,0 };
+
+    const uint8_t picRGBA[picture_width*picture_height*4] =
+      {255,0,0,255, 0,255,0,150, 0,0,255,150, 0,0,0,100 };
+// (1,0) 2 3 (1,1)
+// (0,0) 0 1 (1,0)
+    uint8_t *pictureRGB = new uint8_t[picture_width*picture_height*3];
+    for(size_t i=0; i<picture_width*picture_height*3; i++) pictureRGB[i]=picRGB[i];
+    picture1 = pictureRGB;
+    uint8_t *pictureRGBA = new uint8_t[picture_width*picture_height*4];
+    for(size_t i=0; i<picture_width*picture_height*4; i++) pictureRGBA[i]=picRGBA[i];
+    picture2 = pictureRGBA;
+    const uint32_t nT = 4;
+    const double T[nT][2] = { {0.1,0.1}, {0.9,0.1}, {0.9,0.9}, {0.9,0.1} };
+    uint32_t TI[nI][3] = {{0,1,3},{1,2,3},{3,2,3}};
+
+    PRCmaterial materialBase(
+      RGBAColour(0.1,0.1,0.1,1),
+      RGBAColour(1,1,1,1),
+      RGBAColour(0.1,0.1,0.1,1),
+      RGBAColour(0.1,0.1,0.1,1),
+      1.0,0.1,
+      pictureRGB, picture_width, picture_height, false, false);
+    file.begingroup("triangles_rgb_texture",&grpopt,t);
+    file.addTriangles(nP, P, nI, PI, materialBase, 0, NULL, NULL, nT, T, TI, 0, NULL, NULL, 0, NULL, NULL);
+    file.endgroup();
+
+    t[0][0]=1; t[0][1]=0; t[0][2]=0; t[0][3]=0;
+    t[1][0]=0; t[1][1]=1; t[1][2]=0; t[1][3]=0;
+    t[2][0]=0; t[2][1]=0; t[2][2]=1; t[2][3]=6;
+    t[3][0]=0; t[3][1]=0; t[3][2]=0; t[3][3]=1;
+    PRCmaterial materialTransparent(
+      RGBAColour(0.1,0.1,0.1,0.3),
+      RGBAColour(1,1,1,0.3),
+      RGBAColour(0.1,0.1,0.1,0.3),
+      RGBAColour(0.1,0.1,0.1,0.3),
+      0.3,0.1,
+      pictureRGBA, picture_width, picture_height, true, true);
+    file.begingroup("triangles_rgba_texture_replacing",&grpopt,t);
+    file.addTriangles(nP, P, nI, PI, materialTransparent, 0, NULL, NULL, nT, T, TI, 0, NULL, NULL, 0, NULL, NULL);
+    file.endgroup();
+    }
+
+  }
+
+  if(1){
+    PRCoptions grpopt;
+    grpopt.no_break = true;
+    grpopt.do_break = false;
+    grpopt.tess = true;
+    grpopt.closed = true;
+
+    double t[4][4];
+
+    const size_t nP = 6;
+    double P[nP][3] = {{3+0,0,0},{3+1,0,0},{3+0,1,0},{3+1,1,0},{3+0,2,0},{3+1,2,0}};
+    const size_t nI = 2;
+    uint32_t PI[nI][4] = {{0,1,3,2},{2,3,5,4}};
+    const size_t nM = 2;
+    PRCmaterial M[nM];
+    M[0] = PRCmaterial(
+      RGBAColour(0.0,0.0,0.18),
+      RGBAColour(0.0,0.0,0.878431),
+      RGBAColour(0.0,0.0,0.32),
+      RGBAColour(0.0,0.0,0.072),
+      1.0,0.1);
+    M[1] = PRCmaterial(
+      RGBAColour(0.18,0.0,0.0),
+      RGBAColour(0.878431,0.0,0.0),
+      RGBAColour(0.32,0.0,0.0),
+      RGBAColour(0.072,0.0,0.0),
+      0.5,0.1);
+    uint32_t MI[nI] = {0,1};
+    const size_t nN = 2;
+    double N[nN][3] = {{0,0,1},{0,0,-1}};
+    uint32_t NI[nI][4] = {{0,0,0,0},{1,1,1,1}};
+
+    const uint32_t nC = 3;
+    RGBAColour C[nC];
+    uint32_t CI[nI][4] = {{0,0,1,1},{1,1,2,2}};
+    C[0] = RGBAColour(1,0,0,0.5);
+    C[1] = RGBAColour(0,1,0,0.5);
+    C[2] = RGBAColour(0,0,1,0.5);
+
+    PRCmaterial materialGreen(
+      RGBAColour(0.0,0.18,0.0),
+      RGBAColour(0.0,0.878431,0.0),
+      RGBAColour(0.0,0.32,0.0),
+      RGBAColour(0.0,0.072,0.0),
+      1.0,0.1);
+
+    PRCmaterial materialBase(
+      RGBAColour(0.1,0.1,0.1,1),
+      RGBAColour(1,1,1,1),
+      RGBAColour(0.1,0.1,0.1,1),
+      RGBAColour(0.1,0.1,0.1,1),
+      1.0,0.1);
+
+    PRCmaterial materialTransparent(
+      RGBAColour(0.1,0.1,0.1,0.3),
+      RGBAColour(1,1,1,0.3),
+      RGBAColour(0.1,0.1,0.1,0.3),
+      RGBAColour(0.1,0.1,0.1,0.3),
+      0.3,0.1);
+
+    if(1){
+    t[0][0]=1; t[0][1]=0; t[0][2]=0; t[0][3]=0;
+    t[1][0]=0; t[1][1]=1; t[1][2]=0; t[1][3]=0;
+    t[2][0]=0; t[2][1]=0; t[2][2]=1; t[2][3]=-1;
+    t[3][0]=0; t[3][1]=0; t[3][2]=0; t[3][3]=1;
+    file.begingroup("quads_onecolor_with_normals",&grpopt,t);
+    file.addQuads(nP, P, nI, PI, materialGreen, nN, N, NI, 0, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL);
+    file.endgroup();
+    }
+
+    if(1){
+    file.begingroup("quads_onecolor",&grpopt);
+    file.addQuads(nP, P, nI, PI, materialGreen, 0, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL);
+    file.endgroup();
+    }
+
+    if(1){
+    t[0][0]=1; t[0][1]=0; t[0][2]=0; t[0][3]=0;
+    t[1][0]=0; t[1][1]=1; t[1][2]=0; t[1][3]=0;
+    t[2][0]=0; t[2][1]=0; t[2][2]=1; t[2][3]=1;
+    t[3][0]=0; t[3][1]=0; t[3][2]=0; t[3][3]=1;
+    file.begingroup("quads_manymaterials",&grpopt,t);
+    file.addQuads(nP, P, nI, PI, materialGreen, 0, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, nM, M, MI);
+    file.endgroup();
+    }
+
+    if(1){
+    t[0][0]=1; t[0][1]=0; t[0][2]=0; t[0][3]=0;
+    t[1][0]=0; t[1][1]=1; t[1][2]=0; t[1][3]=0;
+    t[2][0]=0; t[2][1]=0; t[2][2]=1; t[2][3]=2;
+    t[3][0]=0; t[3][1]=0; t[3][2]=0; t[3][3]=1;
+    file.begingroup("quads_rgb_vertexcolors_on_transparent_may_not_work_in_OpenGL",&grpopt,t);
+    file.addQuads(nP, P, nI, PI, materialTransparent, 0, NULL, NULL, 0, NULL, NULL, nC, C, CI, 0, NULL, NULL);
+    file.endgroup();
+    }
+
+    if(1){
+    t[0][0]=1; t[0][1]=0; t[0][2]=0; t[0][3]=0;
+    t[1][0]=0; t[1][1]=1; t[1][2]=0; t[1][3]=0;
+    t[2][0]=0; t[2][1]=0; t[2][2]=1; t[2][3]=5;
+    t[3][0]=0; t[3][1]=0; t[3][2]=0; t[3][3]=1;
+    const uint32_t picture_width=2;
+    const uint32_t picture_height=2;
+    const uint8_t picRGB[picture_width*picture_height*3] =
+      {255,0,0, 0,255,0, 0,0,255, 0,0,0 };
+//      {255,255,0, 255,0,0, 255,0,0, 255,0,0 };
+//     { 255,0,0, 255,255,0, 255,255,0, 255,255,255 };
+//      {255,0,0, 0,255,0, 0,0,255, 0,0,0 };
+
+    const uint8_t picRGBA[picture_width*picture_height*4] =
+      {255,0,0,255, 0,255,0,150, 0,0,255,150, 0,0,0,100 };
+// (1,0) 2 3 (1,1)
+// (0,0) 0 1 (1,0)
+    uint8_t *pictureRGB = new uint8_t[picture_width*picture_height*3];
+    for(size_t i=0; i<picture_width*picture_height*3; i++) pictureRGB[i]=picRGB[i];
+    picture3 = pictureRGB;
+    uint8_t *pictureRGBA = new uint8_t[picture_width*picture_height*4];
+    for(size_t i=0; i<picture_width*picture_height*4; i++) pictureRGBA[i]=picRGBA[i];
+    picture4 = pictureRGBA;
+    const uint32_t nT = 3;
+    const double T[nT][2] = { {0.1,0.1}, {0.5,0.5}, {0.9,0.9} };
+    uint32_t TI[nI][4] = {{0,0,1,1},{1,1,2,2}};
+
+    PRCmaterial materialBase(
+      RGBAColour(0.1,0.1,0.1,1),
+      RGBAColour(1,1,1,1),
+      RGBAColour(0.1,0.1,0.1,1),
+      RGBAColour(0.1,0.1,0.1,1),
+      1.0,0.1,
+      pictureRGB, picture_width, picture_height, false, false);
+    file.begingroup("quads_rgb_texture",&grpopt,t);
+    file.addQuads(nP, P, nI, PI, materialBase, 0, NULL, NULL, nT, T, TI, 0, NULL, NULL, 0, NULL, NULL);
+    file.endgroup();
+
+    t[0][0]=1; t[0][1]=0; t[0][2]=0; t[0][3]=0;
+    t[1][0]=0; t[1][1]=1; t[1][2]=0; t[1][3]=0;
+    t[2][0]=0; t[2][1]=0; t[2][2]=1; t[2][3]=6;
+    t[3][0]=0; t[3][1]=0; t[3][2]=0; t[3][3]=1;
+    PRCmaterial materialTransparent(
+      RGBAColour(0.1,0.1,0.1,0.3),
+      RGBAColour(1,1,1,0.3),
+      RGBAColour(0.1,0.1,0.1,0.3),
+      RGBAColour(0.1,0.1,0.1,0.3),
+      0.6,0.1,
+      pictureRGBA, picture_width, picture_height, true, true);
+    file.begingroup("quads_rgba_texture_replacing",&grpopt,t);
+    file.addQuads(nP, P, nI, PI, materialTransparent, 0, NULL, NULL, nT, T, TI, 0, NULL, NULL, 0, NULL, NULL);
+    file.endgroup();
+    }
+
+  }
+
+  if(1){
+    file.begingroup("polyline",&grpopt);
+    file.addLine(NUMBER_OF_POINTS, points, RGBAColour(1.0,0.0,0.0));
+    file.endgroup();
+
+    file.begingroup("polylines",&grpopt);
+    file.addLine(NUMBER_OF_POINTS, shifted_points[0], RGBAColour(0.0,1.0,0.0),2.0);
+    file.addLine(NUMBER_OF_POINTS, shifted_points[1], RGBAColour(1.0,1.0,0.0),2.0);
+    file.endgroup();
+  }
+
+  if(1){
+    PRCoptions grpopt;
+    grpopt.no_break = true;
+    grpopt.do_break = false;
+    grpopt.tess = true;
+    grpopt.closed = true;
+
+    double t[4][4];
+
+    const size_t nP = 5;
+    double P[nP][3] = {{0,0,0},{1,0,0},{1,1,0},{0,1,0},{0,2,0}};
+    const size_t nI = 1+5 + 1+3;
+    uint32_t PI[nI] = {5,0,1,2,3,0, 3,2,4,3 }; // square of 5 points, wire of 2 points
+    const uint32_t nC = 5;  // number of colors
+    RGBAColour C[nC]; // color for segments
+    C[0] = RGBAColour(1,0,0);
+    C[1] = RGBAColour(0,1,0);
+    C[2] = RGBAColour(0,0,1);
+    C[3] = RGBAColour(0,0,0);
+    C[4] = RGBAColour(1,1,0);
+    const uint32_t nCI = 5-1 + 3-1;  // number of segments
+    uint32_t CI[nCI] = { 0,1,2,3, 4,4 };
+
+    t[0][0]=1; t[0][1]=0; t[0][2]=0; t[0][3]=0;
+    t[1][0]=0; t[1][1]=1; t[1][2]=0; t[1][3]=0;
+    t[2][0]=0; t[2][1]=0; t[2][2]=1; t[2][3]=5;
+    t[3][0]=0; t[3][1]=0; t[3][2]=0; t[3][3]=1;
+    file.begingroup("polyline_indexed_one_color",&grpopt,t);
+    file.addLines(nP, P, nI, PI, RGBAColour(1,0,0), 1, false, 0, NULL, 0, NULL);
+    file.endgroup();
+
+    t[0][0]=1; t[0][1]=0; t[0][2]=0; t[0][3]=0;
+    t[1][0]=0; t[1][1]=1; t[1][2]=0; t[1][3]=0;
+    t[2][0]=0; t[2][1]=0; t[2][2]=1; t[2][3]=6;
+    t[3][0]=0; t[3][1]=0; t[3][2]=0; t[3][3]=1;
+    file.begingroup("polyline_indexed_color_per_segment",&grpopt,t);
+    file.addLines(nP, P, nI, PI, RGBAColour(1,0,0), 2, true, nC, C, nCI, CI);
+    file.endgroup();
+
+    t[0][0]=1; t[0][1]=0; t[0][2]=0; t[0][3]=0;
+    t[1][0]=0; t[1][1]=1; t[1][2]=0; t[1][3]=0;
+    t[2][0]=0; t[2][1]=0; t[2][2]=1; t[2][3]=7;
+    t[3][0]=0; t[3][1]=0; t[3][2]=0; t[3][3]=1;
+    const uint32_t nCI2 = 5 + 3;  // number of vertices
+    uint32_t CI2[nCI2] = { 0,1,2,3,0, 4,4,4 };
+    file.begingroup("polyline_indexed_color_per_vertex_is_broken",&grpopt,t);
+    file.addLines(nP, P, nI, PI, RGBAColour(1,0,0), 2, false, nC, C, nCI2, CI2);
+    file.endgroup();
+  }
+
   if(1)
   {
     file.begingroup("bezier_wire");
     file.addBezierCurve(NUMBER_OF_POINTS,points,RGBAColour(1.0,1.0,1.0));
     file.endgroup();
   }
-  if(0)
+  if(1)
   {
     file.begingroup("NURBS_wire");
     file.addCurve(3, NUMBER_OF_POINTS, points, knots, RGBAColour(1.0,1.0,1.0), NULL); // genarl API for the above
     file.endgroup();
   }
 
-  } 
-
 // following box examples show a) different ways to represent a surface consisting of flat rectangles
 // b) that the only way to have almost working transparency is a set of NURBS bodies.
 // (Or may be other topology types like plane also work
 // demonstration how non-transparent materials work the same for all kinds of objects  
 
-  if (1) { // demonstration how non-transparent materials work the same for all kinds of objects  
+  if(1) { // demonstration how non-transparent materials work the same for all kinds of objects  
     const size_t NUMBER_OF_PATCHES = 6;
     double vertices[NUMBER_OF_PATCHES][4][3] = 
     {
@@ -417,20 +800,30 @@ if(1) {
       RGBAColour(0.0,0.072,0.0),
       1.0,0.1);
 
+    PRCoptions grpopt;
     file.begingroup("TransparentBox");
-    file.begingroup("SetOfNURBSBodies");
+    grpopt.no_break = false;
+    grpopt.do_break = true;
+    grpopt.tess = false;
+    file.begingroup("TransparentBoxSetOfNURBSBodies",&grpopt);
     for(size_t patch = 0; patch < NUMBER_OF_PATCHES; ++patch)
     {
       file.addRectangle(shifted_vertices[0][patch], materials[(patch*5)%N_COLOURS]);
     }
     file.endgroup();
-    file.begingroup("NURBSFacesPRCNOBREAK");
+    grpopt.no_break = true;
+    grpopt.do_break = false;
+    grpopt.tess = false;
+    file.begingroup("TransparentBoxNURBSFaces",&grpopt);
     for(size_t patch = 0; patch < NUMBER_OF_PATCHES; ++patch)
     {
       file.addRectangle(shifted_vertices[1][patch], materials[(patch*5)%N_COLOURS]);
     }
     file.endgroup();
-    file.begingroup("TessellatedPRCTESS");
+    grpopt.no_break = true;
+    grpopt.do_break = false;
+    grpopt.tess = true;
+    file.begingroup("TransparentBoxTessellated",&grpopt);
     for(size_t patch = 0; patch < NUMBER_OF_PATCHES; ++patch)
     {
       file.addRectangle(shifted_vertices[2][patch], materials[(patch*5)%N_COLOURS]);
@@ -439,19 +832,28 @@ if(1) {
     file.endgroup();
 
     file.begingroup("Box");
-    file.begingroup("TessellatedPRCTESS");
+    grpopt.no_break = false;
+    grpopt.do_break = false;
+    grpopt.tess = true;
+    file.begingroup("BoxTessellated",&grpopt);
     for(size_t patch = 0; patch < NUMBER_OF_PATCHES; ++patch)
     {
       file.addRectangle(shifted_vertices[3][patch], materialGreen);
     }
     file.endgroup();
-    file.begingroup("NURBSFaces");
+    grpopt.no_break = true;
+    grpopt.do_break = false;
+    grpopt.tess = false;
+    file.begingroup("BoxNURBSFaces",&grpopt);
     for(size_t patch = 0; patch < NUMBER_OF_PATCHES; ++patch)
     {
       file.addRectangle(shifted_vertices[4][patch], materialGreen);
     }
     file.endgroup();
-    file.begingroup("SetOfNURBSBodiesPRCDOBREAK");
+    grpopt.no_break = false;
+    grpopt.do_break = true;
+    grpopt.tess = false;
+    file.begingroup("BoxSetOfNURBSBodies",&grpopt);
     for(size_t patch = 0; patch < NUMBER_OF_PATCHES; ++patch)
     {
       file.addRectangle(shifted_vertices[5][patch], materialGreen);
@@ -460,62 +862,6 @@ if(1) {
     file.endgroup();
   }
 
-  if(0) { // test disk
-    PRCTopoContext *diskContext = new PRCTopoContext;
-    uint32_t context_index = file.addTopoContext(diskContext);
-   
-    PRCBrepData *body = new PRCBrepData;
-    uint32_t body_index = diskContext->addBrepData(body);
-    PRCConnex *connex = new PRCConnex;
-    body->addConnex(connex);
-    PRCShell *shell = new PRCShell;
-    // shell->shell_is_closed = true;
-    connex->addShell(shell);
-    PRCFace *face = new PRCFace;
-    shell->addFace(face,2);
-    PRCRuled *surface = new PRCRuled;
-    face->base_surface=surface;
-        
-    PRCCircle *first_curve = new PRCCircle;
-    first_curve->radius = 1;
-    surface->first_curve=first_curve;
-    PRCCircle *second_curve = new PRCCircle;
-    second_curve->radius = 0;
-    surface->second_curve=second_curve;
-
-    surface->uv_domain.min.x = 0;
-    surface->uv_domain.max.x = 1;
-    surface->uv_domain.min.y = 0;
-    surface->uv_domain.max.y = 2*pi;
-    surface->parameterization_on_v_coeff_a = -1;
-    surface->parameterization_on_v_coeff_b = 2*pi;
-
-    surface->has_transformation = true;
-    surface->geometry_is_2D = false;
-    surface->behaviour = PRC_TRANSFORMATION_Translate|PRC_TRANSFORMATION_Rotate;
-    surface->origin.Set(0,0,0);
-    surface->x_axis.Set(1,0,0);
-    surface->y_axis.Set(0,1,0);
-
-    PRCBrepModel *brepmodel = new PRCBrepModel("disk");
-    brepmodel->context_id = context_index;
-    brepmodel->body_id = body_index;
-    brepmodel->is_closed = true; // we do not need to see the tube from inside
-    brepmodel->index_of_line_style = 0;
-//    file.addBrepModel(brepmodel);
-
-    PRCSingleWireBody *firstCurveBody = new PRCSingleWireBody;
-    uint32_t first_curve_body_index = diskContext->addSingleWireBody(firstCurveBody);
-    PRCWireEdge *firstCurveEdge = new PRCWireEdge;
-    firstCurveBody->setWireEdge(firstCurveEdge);
-    firstCurveEdge->curve_3d = surface->first_curve;
-    PRCWire *firstCurveWire = new PRCWire("firstCurveWire");
-    firstCurveWire->index_of_line_style = 0;
-    firstCurveWire->context_id = context_index;
-    firstCurveWire->body_id = first_curve_body_index;
-//    file.addWire(firstCurveWire);
-  } 
-
   if(1) {
     PRCmaterial materialGreen(
       RGBAColour(0.0,0.18,0.0),
@@ -523,242 +869,82 @@ if(1) {
       RGBAColour(0.0,0.32,0.0),
       RGBAColour(0.0,0.072,0.0),
       1.0,0.1);
+    PRCoptions grpopt;
+    grpopt.closed = true;
+
+     file.begingroup("Complex elements, one-sided");
 
      const double disk_origin[3] = {11,0,2};
      const double disk_x_axis[3] = {1,0,0};
      const double disk_y_axis[3] = {0,-1,0};
      const double disk_scale = 2;
-     file.begingroup("diskPRCCLOSED");
+     file.begingroup("disk",&grpopt);
      file.addDisk(1,materialGreen,disk_origin,disk_x_axis,disk_y_axis,disk_scale);
      file.endgroup();
      const double hs_origin[3] = {11,0,2};
      const double hs_x_axis[3] = {1,0,0};
      const double hs_y_axis[3] = {0,1,0};
      const double hs_scale = 2;
-     file.begingroup("hemispherePRCCLOSED");
+     file.begingroup("hemisphere",&grpopt);
      file.addHemisphere(1,materialGreen,hs_origin,hs_x_axis,hs_y_axis,hs_scale);
      file.endgroup();
      const double cyl_origin[3] = {11,0,1};
      const double cyl_x_axis[3] = {1,0,0};
      const double cyl_y_axis[3] = {0,1,0};
      const double cyl_scale = 1;
-     file.begingroup("cylinderPRCCLOSED");
+     file.begingroup("cylinder",&grpopt);
      file.addCylinder(1,1,materialGreen,cyl_origin,cyl_x_axis,cyl_y_axis,cyl_scale);
      file.endgroup();
-     const double sp_origin[3] = {11,0,1};
+     const double cone_origin[3] = {11,0,1};
+     const double cone_x_axis[3] = {1,0,0};
+     const double cone_y_axis[3] = {0,-1,0};
+     const double cone_scale = 1;
+     file.begingroup("cone",&grpopt);
+     file.addCone(1,1,materialGreen,cone_origin,cone_x_axis,cone_y_axis,cone_scale);
+     file.endgroup();
+     const double sp_origin[3] = {11,0,-1};
      const double sp_x_axis[3] = {1,0,0};
      const double sp_y_axis[3] = {0,1,0};
      const double sp_scale = 1;
-     file.begingroup("spherePRCCLOSED");
+     file.begingroup("sphere",&grpopt);
      file.addSphere(0.5,materialGreen,sp_origin,sp_x_axis,sp_y_axis,sp_scale);
      file.endgroup();
      const double tor_origin[3] = {11,0,0};
      const double tor_x_axis[3] = {1,0,0};
      const double tor_y_axis[3] = {0,1,0};
      const double tor_scale = 1;
-     file.begingroup("torusPRCCLOSED");
+     file.begingroup("torus",&grpopt);
      file.addTorus(0.5,0.1,0,360,materialGreen,tor_origin,tor_x_axis,tor_y_axis,tor_scale);
+     file.endgroup();
+
+     const size_t NUMBER_OF_POINTS = 4;
+     double cpoints[NUMBER_OF_POINTS][3];
+     cpoints[0][0] = 1; cpoints[0][1] = 0;                 cpoints[0][2] = 0;
+     cpoints[1][0] = 1; cpoints[1][1] = 0.552284749830793; cpoints[1][2] = 0;
+     cpoints[2][0] = 0.552284749830793; cpoints[2][1] = 1; cpoints[2][2] = 0;
+     cpoints[3][0] = 0;                 cpoints[3][1] = 1; cpoints[3][2] = 0;
+     double opoints[NUMBER_OF_POINTS][3];
+     opoints[0][0] = 1.1*1; opoints[0][1] = 1.1*0;                 opoints[0][2] = 0;
+     opoints[1][0] = 1.1*1; opoints[1][1] = 1.1*0.552284749830793; opoints[1][2] = 0;
+     opoints[2][0] = 1.1*0.552284749830793; opoints[2][1] = 1.1*1; opoints[2][2] = 0;
+     opoints[3][0] = 1.1*0;                 opoints[3][1] = 1.1*1; opoints[3][2] = 0;
+     const double tube_origin[3] = {11,0,0};
+     const double tube_x_axis[3] = {1,0,0};
+     const double tube_y_axis[3] = {0,1,0};
+     const double tube_scale = 1;
+     file.begingroup("tube",&grpopt);
+     file.addTube(NUMBER_OF_POINTS,cpoints,opoints,false,materialGreen,tube_origin,tube_x_axis,tube_y_axis,tube_scale);
+     file.endgroup();
+
      file.endgroup();
   }
 
-  if(0) { // Blend01 tube around a Composite curve - no good at corners
-  const size_t NUMBER_OF_POINTS = 4;
-  double points[NUMBER_OF_POINTS][3];
-  points[0][0] = 1; points[0][1] = 0;                 points[0][2] = 0;
-  points[1][0] = 1; points[1][1] = 0.552284749830793; points[1][2] = 0;
-  points[2][0] = 0.552284749830793; points[2][1] = 1; points[2][2] = 0;
-  points[3][0] = 0;                 points[3][1] = 1; points[3][2] = 0;
-  double qoints[NUMBER_OF_POINTS][3];
-  qoints[0][0] = 0; qoints[0][1] = 1;                 qoints[0][2] = 0;
-  qoints[1][0] = 0; qoints[1][1] = 1; qoints[1][2] = 0.552284749830793;
-  qoints[2][0] = 0; qoints[2][1] = 0.552284749830793; qoints[2][2] = 1;
-  qoints[3][0] = 0;                 qoints[3][1] = 0; qoints[3][2] = 1;
-//  for(size_t i = 0; i < NUMBER_OF_POINTS; ++i)
-//  {
-//    points[i][0] = 3.5*cos(3.0*i/NUMBER_OF_POINTS*2.0*pi);
-//    points[i][1] = 3.5*sin(3.0*i/NUMBER_OF_POINTS*2.0*pi);
-//    points[i][2] = 5.0*i/NUMBER_OF_POINTS-1.0;
-//  }
+  file.finish();
 
-    double knots[3+NUMBER_OF_POINTS+1];
-    knots[0] = 1;
-    for(size_t i = 1; i < 3+NUMBER_OF_POINTS; ++i)
-    {
-      knots[i] = (i+2)/3; // integer division is intentional
-    }
-    knots[3+NUMBER_OF_POINTS] = (3+NUMBER_OF_POINTS+1)/3;
-   
-    PRCTopoContext *tubeContext = new PRCTopoContext;
-    uint32_t context_index = file.addTopoContext(tubeContext);
-   
-    PRCBrepData *body = new PRCBrepData;
-    uint32_t body_index = tubeContext->addBrepData(body);
-    PRCConnex *connex = new PRCConnex;
-    body->addConnex(connex);
-    PRCShell *shell = new PRCShell;
-    connex->addShell(shell);
-    PRCFace *face = new PRCFace;
-    shell->addFace(face);
-    PRCBlend01 *surface = new PRCBlend01;
-    face->base_surface=surface;
-        
-    PRCNURBSCurve *center_curve = new PRCNURBSCurve;
-    center_curve->is_rational = false;
-    center_curve->degree = 3;
-    for(size_t i = 0; i < NUMBER_OF_POINTS; ++i)
-      center_curve->control_point.push_back(PRCControlPoint(points[i][0]+0.0,points[i][1],points[i][2]));
-    for(size_t i = 0; i < 3+NUMBER_OF_POINTS+1; ++i)
-      center_curve->knot.push_back(knots[i]);
-    surface->center_curve=center_curve;
-   
-    PRCNURBSCurve *origin_curve = new PRCNURBSCurve;
-    origin_curve->is_rational = false;
-    origin_curve->degree = 3;
-    for(size_t i = 0; i < NUMBER_OF_POINTS; ++i)
-      origin_curve->control_point.push_back(PRCControlPoint(points[i][0]*1.01+0.0,points[i][1]*1.01,points[i][2]));
-    for(size_t i = 0; i < 3+NUMBER_OF_POINTS+1; ++i)
-      origin_curve->knot.push_back(knots[i]);
-    surface->origin_curve=origin_curve;
-   
-    surface->uv_domain.min.x = 0;
-    surface->uv_domain.max.x = 2*pi;
-    surface->uv_domain.min.y = 1; // first knot
-    surface->uv_domain.max.y = 2; // last knot
-    PRCBrepModel *brepmodel = new PRCBrepModel("Tube");
-    brepmodel->context_id = context_index;
-    brepmodel->body_id = body_index;
-    brepmodel->is_closed = true; // we do not need to see the tube from inside
-    brepmodel->index_of_line_style = 0;
-//    file.addBrepModel(brepmodel);
-   
-    PRCSingleWireBody *originCurveBody = new PRCSingleWireBody;
-    uint32_t origin_curve_body_index = tubeContext->addSingleWireBody(originCurveBody);
-    PRCWireEdge *originCurveEdge = new PRCWireEdge;
-    originCurveBody->setWireEdge(originCurveEdge);
-    originCurveEdge->curve_3d = surface->origin_curve;
-    PRCWire *originCurveWire = new PRCWire("originCurveWire");
-    originCurveWire->index_of_line_style = 0;
-    originCurveWire->context_id = context_index;
-    originCurveWire->body_id = origin_curve_body_index;
-//    file.addWire(originCurveWire);
-   
-    PRCSingleWireBody *centerCurveBody = new PRCSingleWireBody;
-    uint32_t center_curve_body_index = tubeContext->addSingleWireBody(centerCurveBody);
-    PRCWireEdge *centerCurveEdge = new PRCWireEdge;
-    centerCurveBody->setWireEdge(centerCurveEdge);
-    centerCurveEdge->curve_3d = surface->center_curve;
-    PRCWire *centerCurveWire = new PRCWire("centerCurveWire");
-    centerCurveWire->index_of_line_style = 0;
-    centerCurveWire->context_id = context_index;
-    centerCurveWire->body_id = center_curve_body_index;
-//    file.addWire(centerCurveWire);
-
-    PRCNURBSCurve *Center_curve = new PRCNURBSCurve;
-    Center_curve->is_rational = false;
-    Center_curve->degree = 3;
-    for(size_t i = 0; i < NUMBER_OF_POINTS; ++i)
-      Center_curve->control_point.push_back(PRCControlPoint(qoints[i][0],qoints[i][1],qoints[i][2]));
-    for(size_t i = 0; i < 3+NUMBER_OF_POINTS+1; ++i)
-      Center_curve->knot.push_back(knots[i]);
-   
-    PRCNURBSCurve *Origin_curve = new PRCNURBSCurve;
-    Origin_curve->is_rational = false;
-    Origin_curve->degree = 3;
-    for(size_t i = 0; i < NUMBER_OF_POINTS; ++i)
-      Origin_curve->control_point.push_back(PRCControlPoint(qoints[i][0],qoints[i][1]*1.01,qoints[i][2]*1.01));
-    for(size_t i = 0; i < 3+NUMBER_OF_POINTS+1; ++i)
-      Origin_curve->knot.push_back(knots[i]);
-   
-    PRCSingleWireBody *OriginCurveBody = new PRCSingleWireBody;
-    uint32_t Origin_curve_body_index = tubeContext->addSingleWireBody(OriginCurveBody);
-    PRCWireEdge *OriginCurveEdge = new PRCWireEdge;
-    OriginCurveBody->setWireEdge(OriginCurveEdge);
-//    OriginCurveEdge->origin_curve=Origin_curve;
-    PRCWire *OriginCurveWire = new PRCWire("OriginCurveWire");
-    OriginCurveWire->index_of_line_style = 0;
-    OriginCurveWire->context_id = context_index;
-    OriginCurveWire->body_id = Origin_curve_body_index;
-//    file.addWire(OriginCurveWire);
-   
-    PRCSingleWireBody *CenterCurveBody = new PRCSingleWireBody;
-    uint32_t Center_curve_body_index = tubeContext->addSingleWireBody(CenterCurveBody);
-    PRCWireEdge *CenterCurveEdge = new PRCWireEdge;
-    CenterCurveBody->setWireEdge(CenterCurveEdge);
-//    CenterCurveEdge->setCurve(Center_curve);
-    PRCWire *CenterCurveWire = new PRCWire("CenterCurveWire");
-    CenterCurveWire->index_of_line_style = 0;
-    CenterCurveWire->context_id = context_index;
-    CenterCurveWire->body_id = Center_curve_body_index;
-//    file.addWire(CenterCurveWire);
-
-    PRCComposite *compositeCenter_curve = new PRCComposite;
-    compositeCenter_curve->base_curve.push_back(centerCurveEdge->curve_3d);
-    compositeCenter_curve->base_sense.push_back(true);
-    compositeCenter_curve->base_curve.push_back(CenterCurveEdge->curve_3d);
-    compositeCenter_curve->base_sense.push_back(true);
-    compositeCenter_curve->is_closed = false;
-    compositeCenter_curve->interval.min = 0;
-    compositeCenter_curve->interval.max = 2;
-
-    PRCSingleWireBody *compositeCenterCurveBody = new PRCSingleWireBody;
-    uint32_t compositeCenter_curve_body_index = tubeContext->addSingleWireBody(compositeCenterCurveBody);
-    PRCWireEdge *compositeCenterCurveEdge = new PRCWireEdge;
-    compositeCenterCurveBody->setWireEdge(compositeCenterCurveEdge);
-//    compositeCenterCurveEdge->setCurve(compositeCenter_curve);
-    PRCWire *compositeCenterCurveWire = new PRCWire("compositeCenterCurveWire");
-    compositeCenterCurveWire->index_of_line_style = 0;
-    compositeCenterCurveWire->context_id = context_index;
-    compositeCenterCurveWire->body_id = compositeCenter_curve_body_index;
-//    file.addWire(compositeCenterCurveWire);
-    
-    PRCComposite *compositeOrigin_curve = new PRCComposite;
-    compositeOrigin_curve->base_curve.push_back(originCurveEdge->curve_3d);
-    compositeOrigin_curve->base_sense.push_back(true);
-    compositeOrigin_curve->base_curve.push_back(OriginCurveEdge->curve_3d);
-    compositeOrigin_curve->base_sense.push_back(true);
-    compositeOrigin_curve->is_closed = false;
-    compositeOrigin_curve->interval.min = 0;
-    compositeOrigin_curve->interval.max = 2;
-
-    PRCSingleWireBody *compositeOriginCurveBody = new PRCSingleWireBody;
-    uint32_t compositeOrigin_curve_body_index = tubeContext->addSingleWireBody(compositeOriginCurveBody);
-    PRCWireEdge *compositeOriginCurveEdge = new PRCWireEdge;
-    compositeOriginCurveBody->setWireEdge(compositeOriginCurveEdge);
-//    compositeOriginCurveEdge->setCurve(compositeOrigin_curve);
-    PRCWire *compositeOriginCurveWire = new PRCWire("compositeOriginCurveWire");
-    compositeOriginCurveWire->index_of_line_style = 0;
-    compositeOriginCurveWire->context_id = context_index;
-    compositeOriginCurveWire->body_id = compositeOrigin_curve_body_index;
-//    file.addWire(compositeOriginCurveWire);
-    
-    PRCBrepData *cbody = new PRCBrepData;
-    uint32_t cbody_index = tubeContext->addBrepData(cbody);
-    PRCConnex *cconnex = new PRCConnex;
-    cbody->addConnex(cconnex);
-    PRCShell *cshell = new PRCShell;
-    cconnex->addShell(cshell);
-    PRCFace *cface = new PRCFace;
-    cshell->addFace(cface);
-    PRCBlend01 *csurface = new PRCBlend01;
-    cface->base_surface=csurface;
-
-    csurface->uv_domain.min.x = 0;
-    csurface->uv_domain.max.x = 2*pi;
-    csurface->uv_domain.min.y = 0; // first knot
-    csurface->uv_domain.max.y = 2; // last knot
-    csurface->center_curve = compositeCenterCurveEdge->curve_3d;
-    csurface->origin_curve = compositeOriginCurveEdge->curve_3d;
-    PRCBrepModel *cbrepmodel = new PRCBrepModel("cTube");
-    cbrepmodel->context_id = context_index;
-    cbrepmodel->body_id = cbody_index;
-    cbrepmodel->is_closed = true; // we do not need to see the tube from inside
-    cbrepmodel->index_of_line_style = 0;
-//    file.addBrepModel(cbrepmodel);
-   
-        
-  } 
-
- file.finish();
+  delete[] picture1;
+  delete[] picture2;
+  delete[] picture3;
+  delete[] picture4;
 
   return 0;
 }

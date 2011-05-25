@@ -49,6 +49,7 @@ protected:
   RGBAColour ambient;
   RGBAColour emissive;
   RGBAColour specular;
+  RGBAColour *colors;
   double opacity;
   double shininess;
   double PRCshininess;
@@ -61,7 +62,6 @@ protected:
   bool prc;
   
 #ifdef HAVE_GL
-  GLfloat *colors;
   triple d; // Maximum deviation of surface from a quadrilateral.
   triple dperp;
 #endif  
@@ -110,17 +110,15 @@ public:
     emissive=rgba(vm::read<camp::pen>(p,2));
     specular=rgba(vm::read<camp::pen>(p,3));
     
-#ifdef HAVE_GL
     int size=checkArray(&pens);
     if(size > 0) {
       if(size != 4) reportError(wrongsize);
-      colors=new(UseGC) GLfloat[16];
-      storecolor(colors,0,pens,0);
-      storecolor(colors,8,pens,1);
-      storecolor(colors,12,pens,2);
-      storecolor(colors,4,pens,3);
+      colors=new(UseGC) RGBAColour[4];
+      colors[0]=rgba(vm::read<camp::pen>(pens,0));
+      colors[1]=rgba(vm::read<camp::pen>(pens,3));
+      colors[2]=rgba(vm::read<camp::pen>(pens,1));
+      colors[3]=rgba(vm::read<camp::pen>(pens,2));
     } else colors=NULL;
-#endif    
   }
   
   drawSurface(const vm::array& t, const drawSurface *s) :
@@ -146,13 +144,13 @@ public:
 #ifdef HAVE_GL
     center=run::operator *(t,s->center);
     normal=run::multshiftless(t,s->normal);
+#endif    
     
     if(s->colors) {
-      colors=new(UseGC) GLfloat[16];
-      for(size_t i=0; i < 16; ++i)
+      colors=new(UseGC) RGBAColour[4];
+      for(size_t i=0; i < 4; ++i)
         colors[i]=s->colors[i];
     } else colors=NULL;
-#endif    
   }
   
   bool is3D() {return true;}

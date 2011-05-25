@@ -24,7 +24,9 @@
 #include <vector>
 #include <deque>
 #include <list>
+#ifdef __GNUC__
 #include <ext/slist>
+#endif
 #include <map>
 #include <iostream>
 #include "PRCbitStream.h"
@@ -33,7 +35,7 @@
 #include <math.h>
 
 static const uint32_t m1=(uint32_t)-1;
-static const double pi=acos(-1);
+static const double pi=acos(-1.0);
 
 class PRCVector3d
 {
@@ -100,7 +102,7 @@ public :
    return out;
  }
 };
-
+/*
 class UUID
 {
   public:
@@ -112,7 +114,9 @@ class UUID
     }
   private:
     uint32_t id0,id1,id2,id3;
-};
+}; */
+
+void writeUncompressedUnsignedInteger(std::ostream &out, uint32_t data);
 
 uint32_t makeCADID();
 uint32_t makePRCID();
@@ -243,7 +247,7 @@ class ContentPRCBase : public PRCAttributes
     name(n),type_eligible_for_reference(efr),CAD_identifier(ci),
     CAD_persistent_identifier(cpi),PRC_unique_identifier(pi) {}
   void serializeContentPRCBase(PRCbitStream&);
-  uint32_t getPRCID() { return PRC_unique_identifier; }
+  uint32_t getPRCID() const { return PRC_unique_identifier; }
   std::string name;
   bool type_eligible_for_reference;
   uint32_t CAD_identifier, CAD_persistent_identifier, PRC_unique_identifier;
@@ -271,7 +275,7 @@ extern uint32_t current_layer_index;
 extern uint32_t current_index_of_line_style;
 extern uint16_t current_behaviour_bit_field;
 
-void writeGraphics(PRCbitStream&,uint32_t=m1,uint32_t=m1,uint32_t=1,bool=false);
+void writeGraphics(PRCbitStream&,uint32_t=m1,uint32_t=m1,uint16_t=1,bool=false);
 void resetGraphics();
 
 void resetGraphicsAndName();
@@ -581,6 +585,7 @@ public:
     PRCRepresentationItemContent(n) {}
   virtual ~PRCRepresentationItem() {}
   virtual void serializeRepresentationItem(PRCbitStream &pbs) = 0;
+  virtual uint32_t getType() const = 0;
 };
 typedef std::deque <PRCRepresentationItem*>  PRCRepresentationItemList;
 
@@ -591,6 +596,7 @@ public:
     PRCRepresentationItem(n), has_brep_data(true), context_id(m1), body_id(m1), is_closed(false) {}
   void serializeBrepModel(PRCbitStream&);
   void serializeRepresentationItem(PRCbitStream &pbs) { serializeBrepModel(pbs); }
+  uint32_t getType() const { return PRC_TYPE_RI_BrepModel; }
   bool has_brep_data;
   uint32_t context_id;
   uint32_t body_id;
@@ -604,6 +610,7 @@ public:
     PRCRepresentationItem(n), is_closed(false) {}
   void serializePolyBrepModel(PRCbitStream&);
   void serializeRepresentationItem(PRCbitStream &pbs) { serializePolyBrepModel(pbs); }
+  uint32_t getType() const { return PRC_TYPE_RI_PolyBrepModel; }
   bool is_closed;
 };
 
@@ -614,6 +621,7 @@ public:
     PRCRepresentationItem(n) {}
   void serializePointSet(PRCbitStream&);
   void serializeRepresentationItem(PRCbitStream &pbs) { serializePointSet(pbs); }
+  uint32_t getType() const { return PRC_TYPE_RI_PointSet; }
   std::vector<PRCVector3d> point;
 };
 
@@ -624,6 +632,7 @@ public:
     PRCRepresentationItem(n), has_wire_body(true), context_id(m1), body_id(m1) {}
   void serializeWire(PRCbitStream&);
   void serializeRepresentationItem(PRCbitStream &pbs) { serializeWire(pbs); }
+  uint32_t getType() const { return PRC_TYPE_RI_Curve; }
   bool has_wire_body;
   uint32_t context_id;
   uint32_t body_id;
@@ -636,6 +645,7 @@ public:
     PRCRepresentationItem(n) {}
   void serializePolyWire(PRCbitStream&);
   void serializeRepresentationItem(PRCbitStream &pbs) { serializePolyWire(pbs); }
+  uint32_t getType() const { return PRC_TYPE_RI_PolyWire; }
 };
 
 class PRCSet : public PRCRepresentationItem
@@ -653,6 +663,7 @@ public:
   uint32_t addWire(PRCWire*& pWire);
   uint32_t addPolyWire(PRCPolyWire*& pPolyWire);
   uint32_t addRepresentationItem(PRCRepresentationItem*& pRepresentationItem);
+  uint32_t getType() const { return PRC_TYPE_RI_Set; }
   PRCRepresentationItemList elements;
 };
 
@@ -807,7 +818,9 @@ public:
   ~PRCCoordinateSystem() { delete axis_set; }
   void serializeCoordinateSystem(PRCbitStream&);
   void serializeRepresentationItem(PRCbitStream &pbs) { serializeCoordinateSystem(pbs); }
-  void setAxisSet(PRCTransformation3d*& transform) { axis_set = transform; transform = NULL; } 
+  void setAxisSet(PRCGeneralTransformation3d*& transform) { axis_set = transform; transform = NULL; } 
+  void setAxisSet(PRCCartesianTransformation3d*& transform) { axis_set = transform; transform = NULL; } 
+  uint32_t getType() const { return PRC_TYPE_RI_CoordinateSystem; }
   PRCTransformation3d *axis_set;
   bool operator==(const PRCCoordinateSystem &t) const
   {
@@ -1093,6 +1106,19 @@ public:
   double radius;
 };
 
+class PRCCone : public PRCSurface, public PRCTransformation, public PRCUVParameterization
+{
+public:
+  PRCCone() :
+    PRCSurface() {}
+  PRCCone(std::string n) :
+    PRCSurface(n) {}
+  void  serializeCone(PRCbitStream &pbs);
+  void  serializeSurface(PRCbitStream &pbs) { serializeCone(pbs); }
+  double bottom_radius;
+  double semi_angle;
+};
+
 class PRCCylinder : public PRCSurface, public PRCTransformation, public PRCUVParameterization
 {
 public:
@@ -1335,18 +1361,20 @@ typedef std::deque <PRCTopoContext*>  PRCTopoContextList;
 class PRCUniqueId
 {
 public:
-  PRCUniqueId() : unique_id0(0), unique_id1(0), unique_id2(0), unique_id3(0)  {}
-  void serializeCompressedUniqueId(PRCbitStream&);
-  uint32_t unique_id0;
-  uint32_t unique_id1;
-  uint32_t unique_id2;
-  uint32_t unique_id3;
+  PRCUniqueId() : id0(0), id1(0), id2(0), id3(0)  {}
+  void serializeCompressedUniqueId(PRCbitStream&) const;
+  void serializeFileStructureUncompressedUniqueId(std::ostream& out) const;
+  uint32_t id0;
+  uint32_t id1;
+  uint32_t id2;
+  uint32_t id3;
 };
 
 class PRCUnit
 {
 public:
   PRCUnit() : unit_from_CAD_file(false), unit(1) {}
+  PRCUnit(double u, bool ufcf=true) : unit_from_CAD_file(ufcf), unit(u) {}
   void serializeUnit(PRCbitStream&);
   bool unit_from_CAD_file;
   double unit;

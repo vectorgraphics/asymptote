@@ -24,6 +24,14 @@ void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
   colors[i+2]=p.blue();
   colors[i+3]=p.opacity();
 }
+
+void storecolor(GLfloat *colors, int i, const RGBAColour& p)
+{
+  colors[i]=p.R;
+  colors[i+1]=p.G;
+  colors[i+2]=p.B;
+  colors[i+3]=p.A;
+}
 #endif  
 
 void drawSurface::bounds(bbox3& b)
@@ -128,11 +136,14 @@ bool drawSurface::write(prcfile *out, unsigned int *, array *, array *, double,
 
   PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
 
-  if(straight)
-    out->addRectangle(vertices,m);
-  else
+  if(straight) {
+    if(colors)
+      out->addQuad(vertices,colors);
+    else
+      out->addRectangle(vertices,m);
+  } else
     out->addPatch(controls,m);
-  
+                    
   return true;
 }
 
@@ -201,8 +212,9 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
                          double perspective, bool transparent)
 {
 #ifdef HAVE_GL
-  if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
-                    : diffuse.A < 1.0) ^ transparent)) return;
+  if(invisible || 
+     ((colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
+       diffuse.A < 1.0) ^ transparent)) return;
   double s;
   static GLfloat Normal[3];
 
@@ -297,6 +309,10 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   bool havenormal=normal != zero;
   if(havebillboard) BB.init();
 
+  if(colors)
+    for(size_t i=0; i < 4; ++i)
+      storecolor(v,4*i,colors[i]);
+    
   if(!havenormal || (!straight && fraction(d,size3)*size2 >= pixel)) {
     if(lighton) {
       if(havenormal && fraction(dperp,size3)*size2 <= 0.1) {
@@ -324,7 +340,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
     gluNurbsSurface(nurb,8,bezier,8,bezier,12,3,Controls,4,4,GL_MAP2_VERTEX_3);
     if(colors) {
       static GLfloat linear[]={0.0,0.0,1.0,1.0};
-      gluNurbsSurface(nurb,4,linear,4,linear,8,4,colors,2,2,GL_MAP2_COLOR_4);
+      gluNurbsSurface(nurb,4,linear,4,linear,8,4,v,2,2,GL_MAP2_COLOR_4);
     }
     
     gluEndSurface(nurb);
@@ -348,16 +364,16 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
     if(lighton)
       glNormal3fv(Normal);
     if(colors) 
-      glColor4fv(colors);
+      glColor4fv(v);
     glVertex3fv(Vertices);
     if(colors) 
-      glColor4fv(colors+8);
+      glColor4fv(v+8);
     glVertex3fv(Vertices+6);
     if(colors) 
-      glColor4fv(colors+12);
+      glColor4fv(v+12);
     glVertex3fv(Vertices+9);
     if(colors) 
-      glColor4fv(colors+4);
+      glColor4fv(v+4);
     glVertex3fv(Vertices+3);
     glEnd();
   }

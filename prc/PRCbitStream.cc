@@ -81,6 +81,19 @@ void PRCbitStream::compress()
   deflateEnd(&strm);
 }
 
+void PRCbitStream::write(std::ostream &out) const
+{
+  if(compressed)
+  {
+    out.write((char*)data,compressedDataSize);
+  }
+  else
+  {
+     cerr << "Attempt to write stream before compression." << endl;
+     exit(1);
+  }
+}
+
 unsigned int PRCbitStream::getSize() const
 {
   if(compressed)

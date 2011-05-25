@@ -1,5 +1,4 @@
 import three;
-//settings.prc=false;
 
 size(200);
 
