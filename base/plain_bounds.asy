@@ -31,7 +31,7 @@ private void addIfMaximal(coord[] coords, real user, real truesize) {
   int i = 0;
   while (i < coords.length) {
     coord c = coords[i];
-    if (c.user <= user && c.truesize <= c.truesize)
+    if (c.user <= user && c.truesize <= truesize)
       coords.delete(i);
     else
       ++i;
@@ -57,7 +57,7 @@ private void addIfMinimal(coord[] coords, real user, real truesize) {
   int i = 0;
   while (i < coords.length) {
     coord c = coords[i];
-    if (c.user >= user && c.truesize >= c.truesize)
+    if (c.user >= user && c.truesize >= truesize)
       coords.delete(i);
     else
       ++i;
