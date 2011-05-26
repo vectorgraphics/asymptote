@@ -3776,11 +3776,10 @@ void draw(picture pic=currentpicture, Label L="",parabola parabola,
    size of picture pic.</documentation></function></asyxml>*/
   pic.add(new void (frame f, transform t, transform T, pair m, pair M) {
       // Reduce the bounds by the size of the pen and the margins.
-      t=t*T;
       m -= min(p); M -= max(p);
       parabola.bmin=inverse(t)*m; parabola.bmax=inverse(t)*M;
       picture tmp;
-      draw(tmp,L,t*(path) parabola,align,p,arrow,bar,NoMargin,legend,marker);
+      draw(tmp,L,t*T*(path) parabola,align,p,arrow,bar,NoMargin,legend,marker);
       add(f,tmp.fit());
     });
   pair m=pic.userMin();
@@ -3809,15 +3808,15 @@ void draw(picture pic=currentpicture, Label L="", hyperbola h,
 {/*<asyxml></code><documentation>Draw the hyperbola 'h' on 'pic' without (if possible) altering the
    size of the picture pic.</documentation></function></asyxml>*/
   pic.add(new void (frame f, transform t, transform T, pair m, pair M) {
-      t=t*T;
       // Reduce the bounds by the size of the pen and the margins.
       m -= min(p); M -= max(p);
       h.bmin=inverse(t)*m; h.bmax=inverse(t)*M;
       picture tmp;
-      draw(tmp,L,t*(path) h,align,p,arrow,bar,NoMargin,legend,marker);
+      transform tT=t*T;
+      draw(tmp,L,tT*(path) h,align,p,arrow,bar,NoMargin,legend,marker);
       hyperbola ht=hyperbola(h.F2,h.F1,h.a);
       ht.bmin=inverse(t)*m; ht.bmax=inverse(t)*M;
-      draw(tmp,"",t*(path) ht,align,p,arrow,bar,NoMargin,marker);
+      draw(tmp,"",tT*(path) ht,align,p,arrow,bar,NoMargin,marker);
       add(f,tmp.fit());
     });
   pair m=pic.userMin();
