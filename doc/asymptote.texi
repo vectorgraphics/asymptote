@@ -8325,6 +8325,16 @@ Module @code{three} also defines the three-dimensional margins
 @code{BeginDotMargin3}, @code{EndDotMargin3}, @code{DotMargin3},
 @code{DotMargins3}, @code{Margin3}, and @code{TrueMargin3}.
 
+@cindex @code{pixel}
+The routine
+@verbatim
+void pixel(picture pic=currentpicture, triple v, pen p=currentpen,
+           real width=1);
+@end verbatim
+@noindent
+can be used to draw on picture @code{pic} a pixel of width @code{width} at
+position @code{v} using pen @code{p}.
+
 Further three-dimensional examples are provided in the files
 @code{near_earth.asy}, @code{conicurv.asy}, and (in the @code{animations}
 subdirectory) @code{cube.asy}.

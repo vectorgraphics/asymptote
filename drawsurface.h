@@ -345,8 +345,7 @@ public:
   }
 #endif  
 
-  void render(GLUnurbs *nurb, double size2,
-              const triple& Min, const triple& Max,
+  void render(GLUnurbs *nurb, double size2, const triple& Min, const triple& Max,
               double perspective, bool transparent);
     
   drawElement *transformed(const vm::array& t);
@@ -530,6 +529,45 @@ public:
   }
 };
 
+// Draw a PRC pixel.
+class drawPixel : public drawElement {
+  Triple v;
+  RGBAColour c;
+  double width;
+  bool invisible;
+public:
+  drawPixel(const triple& v0, const pen& p, double width) :
+    c(rgba(p)), width(width) {
+    store(v,v0);
+    invisible=p.invisible();
+  }
+
+  drawPixel(const vm::array& t, const drawPixel *s) :
+    c(s->c), width(s->width), invisible(s->invisible) {
+    triple V=run::operator *(t,triple(s->v[0],s->v[1],s->v[2]));
+    v[0]=V.getx();
+    v[1]=V.gety();
+    v[2]=V.getz();
+  }
+    
+  void bounds(bbox3& b) {
+    triple R=0.5*width*triple(1.0,1.0,1.0);
+    b.add(v-R);
+    b.add(v+R);
+  }    
+  
+  void render(GLUnurbs *nurb, double size2, const triple& Min, const triple& Max,
+              
+              double perspective, bool transparent);
+  
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
+             groupsmap&);
+  
+  drawElement *transformed(const vm::array& t) {
+    return new drawPixel(t,this);
+  }
+};
+  
 }
 
 #endif

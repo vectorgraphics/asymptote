@@ -1821,6 +1821,26 @@ void dot(picture pic=currentpicture, Label L, triple v, align align=NoAlign,
   label(pic,L,v,render);
 }
 
+void pixel(picture pic=currentpicture, triple v, pen p=currentpen,
+           real width=1)
+{
+  real h=0.5*width;
+  pic.add(new void(frame f, transform3 t, picture pic, projection P) {
+      triple V=t*v;
+      if(is3D())
+        drawpixel(f,V,p,width);
+      if(pic != null) {
+        triple R=h*unit(cross(unit(P.vector()),P.up));
+        pair z=project(V,P.t);
+        real h=0.5*abs(project(V+R,P.t)-project(V-R,P.t));
+        pair r=h*(1,1)/mm;
+        fill(pic,box(z-r,z+r),p,false);
+      }
+    },true);
+  triple R=h*(1,1,1);
+  pic.addBox(v,v,-R,R);
+}
+
 pair minbound(triple[] A, projection P)
 {
   pair b=project(A[0],P);

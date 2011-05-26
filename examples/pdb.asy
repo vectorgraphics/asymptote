@@ -11,6 +11,8 @@ currentlight=White;
 
 defaultrender.merge=true;  // Fast low-quality rendering
 //defaultrender.merge=false; // Slow high-quality rendering
+bool pixel=false; // Set to true to draw dots as pixels.
+real width=10*linewidth(currentpen);
 
 size(200);
 currentprojection=perspective(30,30,15);
@@ -126,7 +128,10 @@ for(chain c : chains) {
   for(int i=0; i < c.a.length-1; ++i)
     draw(c.a[i].v--c.a[i+1].v,chainpen,currentlight);
   for(atom a : c.a)
-    dot(a.v,color(a.name),currentlight);
+    if(pixel)
+      pixel(a.v,color(a.name),width);
+    else
+      dot(a.v,color(a.name),currentlight);
   natoms += c.a.length;
 }
 endgroup3();
@@ -136,7 +141,10 @@ write("Number of hetero atoms: ",atoms.length);
 
 begingroup3("hetero");
 for(atom h : atoms)
-  dot(h.v,color(h.name),currentlight);
+  if(pixel)
+    pixel(h.v,color(h.name),width);
+  else
+    dot(h.v,color(h.name),currentlight);
 endgroup3();
 
 write("Number of hetero bonds: ",bonds.length);
@@ -154,7 +162,7 @@ string viewfilename=prefix+".views";
 if(!error(input(viewfilename,check=false)))
   options="3Dviews2="+viewfilename;
 
-if(getviews) {
+if(getviews && prc()) {
   picture pic;
   add(pic,embed("label",currentpicture,options=options),(0,0),N);
   label(pic,cameralink("label"),(0,0),S,fontsize(12pt));
