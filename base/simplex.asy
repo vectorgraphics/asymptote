@@ -184,8 +184,10 @@ struct problem {
     // Checks that constants are valid.
     bool validConstants() {
       for (int i = 0; i < rows.length; ++i)
-        if (rows[i].c < 0)
-          return false;
+        // Do not test the row for b, as it does not have a non-negativity
+        // condition.
+        if (i != VAR_B && rows[i].c < 0)
+           return false;
       return true;
     }
 
