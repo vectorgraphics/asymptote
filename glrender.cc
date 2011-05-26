@@ -44,7 +44,7 @@ bool glthread=false;
 bool initialize=true;
 
 using camp::picture;
-using camp::drawImage;
+using camp::drawRawImage;
 using camp::transform;
 using camp::pair;
 using camp::triple;
@@ -387,8 +387,9 @@ void Export()
       if(w > h*Aspect) w=(int) (h*Aspect+0.5);
       else h=(int) (w/Aspect+0.5);
       // Render an antialiased image.
-      drawImage *Image=new drawImage(data,fullWidth,fullHeight,
-                                     transform(0.0,0.0,w,0.0,0.0,h),antialias);
+      drawRawImage *Image=new drawRawImage(data,fullWidth,fullHeight,
+                                           transform(0.0,0.0,w,0.0,0.0,h),
+                                           antialias);
       pic.append(Image);
       pic.shipout(NULL,Prefix,Format,0.0,false,View);
       delete Image;

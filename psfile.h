@@ -18,6 +18,7 @@
 #include "bbox.h"
 #include "pen.h"
 #include "array.h"
+#include "callable.h"
 
 namespace camp {
 
@@ -297,6 +298,9 @@ public:
   
   void image(const vm::array& a, const vm::array& p, bool antialias);
   void image(const vm::array& a, bool antialias);
+  void image(vm::stack *Stack, vm::callable *f, Int width, Int height,
+             bool antialias);
+
   void rawimage(unsigned char *a, size_t width, size_t height, bool antialias);
 
   virtual void gsave(bool tex=false) {

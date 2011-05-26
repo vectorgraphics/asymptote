@@ -15,11 +15,15 @@
 #include "settings.h"
 #include "errormsg.h"
 #include "array.h"
+#include "stack.h"
 
 using std::ofstream;
 using std::setw;
 using vm::array;
 using vm::read;
+using vm::stack;
+using vm::callable;
+using vm::pop;
 
 namespace camp {
 
@@ -48,6 +52,7 @@ psfile::psfile(const string& filename, bool pdfformat)
 }
 
 static const char *inconsistent="inconsistent colorspaces";
+static const char *rectangular="matrix is not rectangular";
   
 void psfile::writefromRGB(unsigned char r, unsigned char g, unsigned char b, 
                           ColorSpace colorspace, size_t ncomponents) 
@@ -324,7 +329,7 @@ void psfile::latticeshade(const vm::array& a, const transform& t)
     array *ai=read<array *>(a,--i);
     checkArray(ai);
     size_t aisize=ai->size();
-    if(aisize != m) reportError("shading matrix must be rectangular");
+    if(aisize != m) reportError(rectangular);
     for(size_t j=0; j < m; j++) {
       pen *p=read<pen *>(ai,j);
       p->convert();
@@ -561,7 +566,10 @@ void psfile::image(const array& a, const array& P, bool antialias)
   double max=min;
   for(size_t i=0; i < asize; i++) {
     array *ai=read<array *>(a,i);
-    for(size_t j=0; j < a0size; j++) {
+    size_t size=ai->size();
+    if(size != a0size)
+        reportError(rectangular);
+    for(size_t j=0; j < size; j++) {
       double val=read<double>(ai,j);
       if(val > max) max=val;
       else if(val < min) min=val;
@@ -607,7 +615,10 @@ void psfile::image(const array& a, bool antialias)
   beginImage(ncomponents*a0size*asize);
   for(size_t i=0; i < asize; i++) {
     array *ai=read<array *>(a,i);
-    for(size_t j=0; j < a0size; j++) {
+    size_t size=ai->size();
+    if(size != a0size)
+        reportError(rectangular);
+    for(size_t j=0; j < size; j++) {
       pen *p=read<pen *>(ai,j);
       p->convert();
       if(!p->promote(colorspace))
@@ -616,6 +627,41 @@ void psfile::image(const array& a, bool antialias)
     }
   }
   endImage(antialias,a0size,asize,ncomponents);
+}
+  
+void psfile::image(stack *Stack, callable *f, Int width, Int height,
+                   bool antialias)
+{
+  if(width <= 0 || height <= 0) return;
+  
+  Stack->push(0);
+  Stack->push(0);
+  f->call(Stack);
+  pen p=pop<pen>(Stack);
+
+  setopacity(p);
+  
+  ColorSpace colorspace=p.colorspace();
+  checkColorSpace(colorspace);
+  
+  size_t ncomponents=ColorComponents[colorspace];
+  
+  imageheader(width,height,colorspace);
+    
+  beginImage(ncomponents*width*height);
+  for(Int i=0; i < width; i++) {
+    for(Int j=0; j < height; j++) {
+      Stack->push(i);
+      Stack->push(j);
+      f->call(Stack);
+      pen p=pop<pen>(Stack);
+      p.convert();
+      if(!p.promote(colorspace))
+        reportError(inconsistent);
+      write(&p,ncomponents);
+    }
+  }
+  endImage(antialias,width,height,ncomponents);
 }
   
 void psfile::outImage(bool antialias, size_t width, size_t height,

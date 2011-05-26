@@ -7537,20 +7537,28 @@ Here is an example that uses logarithmic scaling of the function values:
 @sp 1
 @center @image{logimage}
 
-One can also draw an image directly from a two-dimensional pen array:
+One can also draw an image directly from a two-dimensional pen array
+or a function @code{pen f(int, int)}:
 @verbatim
 void image(picture pic=currentpicture, pen[][] data,
            pair initial, pair final,
            bool transpose=(initial.x < final.x && initial.y < final.y),
            bool copy=true, bool antialias=false);
+void image(picture pic=currentpicture, pen f(int, int), int width, int height,
+           pair initial, pair final, bool antialias=false);
 @end verbatim
 @noindent
-as illustrated in the following example:
+as illustrated in the following examples:
 
 @anchor{penimage}
 @verbatiminclude penimage.asy
 @sp 1
 @center @image{penimage}
+
+@anchor{penfunctionimage}
+@verbatiminclude penfunctionimage.asy
+@sp 1
+@center @image{penfunctionimage}
 
 For convenience, the module @code{palette} also defines functions
 that may be used to construct a pen array from a given function and palette:

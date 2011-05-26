@@ -13,26 +13,13 @@
 
 namespace camp {
 
-enum imagetype {PALETTE, NOPALETTE, RAW};
-  
 class drawImage : public drawElement {
-  vm::array image,palette;
-  unsigned char *raw; // For internal use; not buffered, may be overwritten.
-  size_t width,height;
+protected:
   transform t;
   bool antialias;
-  imagetype type;
 public:
-  drawImage(const vm::array& image, const vm::array& palette,
-            const transform& t, bool antialias, imagetype type=PALETTE)
-    : image(image), palette(palette), t(t), antialias(antialias), type(type) {}
-  
-  drawImage(const vm::array& image, const transform& t, bool antialias)
-    : image(image), t(t), antialias(antialias), type(NOPALETTE) {}
-  drawImage(unsigned char *raw, size_t width, size_t height, const transform& t,
-            bool antialias)
-    : raw(raw), width(width), height(height), t(t), antialias(antialias),
-      type(RAW) {}
+  drawImage(const transform& t, bool antialias)
+    : t(t), antialias(antialias) {}
   
   virtual ~drawImage() {}
 
@@ -41,31 +28,103 @@ public:
     b += t*pair(1,1);
   }
 
+  bool svg() {return true;}
+  bool svgpng() {return true;}
+};
+
+class drawPaletteImage : public drawImage {
+  vm::array image;
+  vm::array palette;
+public:
+  drawPaletteImage(const vm::array& image, const vm::array& palette,
+                   const transform& t, bool antialias)
+    : drawImage(t,antialias), image(image), palette(palette) {}
+  
+  virtual ~drawPaletteImage() {}
+
   bool draw(psfile *out) {
     out->gsave();
     out->concat(t);
-    switch(type) {
-      case PALETTE:
-        out->image(image,palette,antialias);
-        break;
-      case NOPALETTE:
-        out->image(image,antialias);
-        break;
-      case RAW:
-        out->rawimage(raw,width,height,antialias);
-        break;
-    }
+    out->image(image,palette,antialias);
     
     out->grestore();
     
     return true;
   }
 
-  bool svg() {return true;}
-  bool svgpng() {return true;}
+  drawElement *transformed(const transform& T) {
+    return new drawPaletteImage(image,palette,T*t,antialias);
+  }
+};
+
+class drawNoPaletteImage : public drawImage {
+  vm::array image;
+public:
+  drawNoPaletteImage(const vm::array& image, const transform& t, bool antialias)
+    : drawImage(t,antialias), image(image) {}
+  
+  virtual ~drawNoPaletteImage() {}
+
+  bool draw(psfile *out) {
+    out->gsave();
+    out->concat(t);
+    out->image(image,antialias);
+    out->grestore();
+    return true;
+  }
 
   drawElement *transformed(const transform& T) {
-    return new drawImage(image,palette,T*t,antialias,type);
+    return new drawNoPaletteImage(image,T*t,antialias);
+  }
+};
+
+class drawFunctionImage : public drawImage {
+  vm::array image;
+  vm::stack *Stack;
+  vm::callable *f;
+  Int width, height;
+public:
+  drawFunctionImage(vm::stack *Stack, vm::callable *f, Int width, Int height,
+                     const transform& t, bool antialias)
+    : drawImage(t,antialias), image(image), Stack(Stack), f(f),
+      width(width), height(height) {}
+  
+  virtual ~drawFunctionImage() {}
+
+  bool draw(psfile *out) {
+    out->gsave();
+    out->concat(t);
+    out->image(Stack,f,width,height,antialias);
+    out->grestore();
+    return true;
+  }
+
+  drawElement *transformed(const transform& T) {
+    return new drawFunctionImage(Stack,f,width,height,T*t,antialias);
+  }
+};
+
+class drawRawImage : public drawImage {
+  unsigned char *raw; // For internal use; not buffered, may be overwritten.
+  size_t width,height;
+  bool antialias;
+public:
+  drawRawImage(unsigned char *raw, size_t width, size_t height, const transform& t,
+            bool antialias)
+    : drawImage(t,antialias), width(width), height(height) {}
+  
+  virtual ~drawRawImage() {}
+
+  bool draw(psfile *out) {
+    out->gsave();
+    out->concat(t);
+    out->rawimage(raw,width,height,antialias);
+    out->grestore();
+    return true;
+  }
+
+  drawElement *transformed(const transform& T) {
+    return new drawRawImage(raw,width,height,T*t,antialias);
   }
 };
 

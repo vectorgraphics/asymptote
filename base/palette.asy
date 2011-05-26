@@ -138,6 +138,18 @@ void image(picture pic=currentpicture, pen[][] data, pair initial, pair final,
   pic.addBox(initial,final);
 }
 
+void image(picture pic=currentpicture, pen f(int, int), int width, int height,
+           pair initial, pair final, bool antialias=false)
+{
+  initial=Scale(pic,initial);
+  final=Scale(pic,final);
+
+  pic.add(new void(frame F, transform t) {
+      _image(F,f,width,height,initial,final,t,antialias=antialias);
+    },true);
+  pic.addBox(initial,final);
+}
+
 bounds image(picture pic=currentpicture, pair[] z, real[] f,
              range range=Full, pen[] palette)
 {

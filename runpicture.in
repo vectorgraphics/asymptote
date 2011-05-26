@@ -23,6 +23,7 @@ triplearray* => tripleArray()
 triplearray2* => tripleArray2()
 transform => primTransform()
 callableTransform* => transformFunction()
+callablePen* => penFunction()
 
 #include "picture.h"
 #include "drawelement.h"
@@ -59,6 +60,7 @@ typedef array penarray;
 typedef array penarray2;
 
 typedef callable callableTransform;
+typedef callable callablePen;
 
 using types::IntArray;
 using types::realArray;
@@ -74,6 +76,11 @@ using types::penArray2;
 function *transformFunction()
 {
   return new function(primTransform());
+}
+
+function *penFunction()
+{
+  return new function(primPen(),primInt(),primInt());
 }
 
 // Ignore unclosed begingroups but not spurious endgroups.
@@ -345,15 +352,23 @@ void _image(picture *f, realarray2 *data, pair initial, pair final,
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
-  f->append(new drawImage(*copyarray2(data),*copyarray(palette),
-                          t*matrix(initial,final),antialias));
+  f->append(new drawPaletteImage(*copyarray2(data),*copyarray(palette),
+                            t*matrix(initial,final),antialias));
 }
 
 void _image(picture *f, penarray2 *data, pair initial, pair final,
             transform t=identity, bool copy=true, bool antialias=false)
 {
   array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
-  f->append(new drawImage(*copyarray2(data),t*matrix(initial,final),antialias));
+  f->append(new drawNoPaletteImage(*copyarray2(data),t*matrix(initial,final),
+                                   antialias));
+}
+
+void _image(picture *f, callablePen *F, Int width, Int height,
+            pair initial, pair final, transform t=identity, bool antialias=false)
+{
+  f->append(new drawFunctionImage(Stack,F,width,height,
+                                  t*matrix(initial,final),antialias));
 }
 
 string nativeformat()
