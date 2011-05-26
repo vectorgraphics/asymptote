@@ -4646,6 +4646,8 @@ write(f(4,3));
 @noindent
 and outputs 43.
 
+@cindex @code{keyword}
+@cindex keyword-only
 Parameters can be specified as ``keyword-only'' by putting @code{keyword}
 immediately before the parameter name, as in @code{int f(int keyword x)} or
 @code{int f(int keyword x=77)}.  This forces the caller of the function to use
@@ -9630,11 +9632,12 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  vectorfieldsphere RightView FrontView BackView BottomView CTZ
 @c  LocalWords:  addViews outprefix addAllViews xsplinetype ysplinetype rotateX
 @c  LocalWords:  usplinetype vsplinetype leftbutton middlebutton rightbutton
-@c  LocalWords:  rotateY rotateZ wheelup zoomin wheeldown zoomout TeXLive
+@c  LocalWords:  rotateY rotateZ wheelup zoomin wheeldown zoomout TeXLive pnorm
 @c  LocalWords:  viewportshift signedint signedness psview multiplatform nowarn
 @c  LocalWords:  singlereal singleint writeoverloaded dvisvg reddash lexorder
 @c  LocalWords:  bigdiagonal autobillboard dvisvgm maxtiles hyperrefOptions
 @c  LocalWords:  setpagesize pdfborder controlsystem OmitTickInterval SixViews
 @c  LocalWords:  OmitTickIntervals tickmodifiers autorotated SixViewsUS latexmk
 @c  LocalWords:  ThreeViewsUS ThreeViewsFR SixViewsFR ThreeViews partialsum
-@c  LocalWords:  defaultrender Vidiassov latexmkrc
+@c  LocalWords:  defaultrender Vidiassov latexmkrc mktemp DOSendl DOSnewl perl
+@c  LocalWords:  filename asyinclude latemk penfunctionimage
