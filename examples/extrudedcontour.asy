@@ -1,6 +1,9 @@
 import contour;
 import palette;
 import graph3;
+
+defaultrender.merge=true;
+
 currentprojection=orthographic(25,10,10);
 size(0,12cm);
 real a=3;
