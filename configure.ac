@@ -273,30 +273,47 @@ fi
 AC_ARG_ENABLE(gl,
 [AS_HELP_STRING(--enable-gl[[[=yes]]],enable OpenGL Library)])
 
+AC_ARG_ENABLE(offscreen,
+[AS_HELP_STRING(--enable-offscreen[[[=no]]],enable offscreen rendering using OSMesa library)])
+
+# logic to decide which of four cases we are in
+# case 1: gl and no offscreen -> need glut and glu
+# case 2: gl and offscreen -> no glut
+# case 3: no gl and no offscreen -> no glut, glu, gl, or osmesa
+# case 4: no gl and offscreen -> offscreen flag is ignored
+
+# First check if GL is enabled. If so, then:
+# require gl, glut, and glu libraries if not offscreen
+# require gl and osmesa libraries if offscreen
+
 if test "x$enable_gl" != "xno"; then
 case "$OSTYPE" in
-     cygwin) AC_CHECK_HEADER(GL/glut.h,
-                                [AC_DEFINE(HAVE_LIBGLUT, 1,
-		   [Define if you have the `freeglut' library (-lfreeglut).])
-			   LIBS=$LIBS"-lfreeglut "],
-				 AC_MSG_NOTICE([*** Could not find libfreeglut: will compile without OpenGL support ***]))
-             AC_CHECK_HEADER(GL/gl.h,
-                                [AC_DEFINE(HAVE_LIBGL, 1,
-		   [Define if you have the `opengl32' library (-lopengl32).])
-			   LIBS=$LIBS"-lopengl32 "],
-				 AC_MSG_NOTICE([*** Could not find libopengl32: will compile without OpenGL support ***]))
-             AC_CHECK_LIB([GLU], [gluNewNurbsRenderer],[AC_DEFINE(HAVE_LIBGLU, 1,
-                   [Define to 1 if you have the `glu32' library (-lglu32).]) LIBS=$LIBS"-lglu32 "],
-             AC_MSG_NOTICE([*** Could not find libglu32: will compile without OpenGL support ***]))
+     cygwin)AC_CHECK_HEADER(GL/gl.h,
+				  [AC_DEFINE(HAVE_LIBGL, 1,
+		     [Define if you have the `opengl32' library (-lopengl32).])
+			     LIBS=$LIBS"-lopengl32 "],
+				   AC_MSG_NOTICE([*** Could not find libopengl32: will compile without OpenGL support ***]))
+	    AC_CHECK_LIB([GLU], [gluNewNurbsRenderer],[AC_DEFINE(HAVE_LIBGLU, 1,
+		              [Define to 1 if you have the `glu32' library (-lglu32).]) LIBS=$LIBS"-lglu32 "],
+	    AC_MSG_NOTICE([*** Could not find libglu32: will compile without OpenGL support ***]))
+	    if test "x$enable_offscreen" != "xyes"; then
+	       	       AC_CHECK_HEADER(GL/glut.h,
+				  [AC_DEFINE(HAVE_LIBGLUT, 1,
+		     [Define if you have the `freeglut' library (-lfreeglut).])
+			     LIBS=$LIBS"-lfreeglut "],
+				   AC_MSG_NOTICE([*** Could not find libfreeglut: will compile without OpenGL support ***]))
+            else
+	      AC_MSG_ERROR([*** Support for offscreen rendering not yet implemented in configure for cygwin: I don't know how to check for osmesa ***])
+	    fi	    
         ;;                                 
      darwin*) AC_CHECK_HEADER(OpenGL/gl.h,
-                                [AC_DEFINE(HAVE_LIBGL, 1,
-		   [Define if you have the `OpenGL' library.])])
+                             [AC_DEFINE(HAVE_LIBGL, 1,
+		             [Define if you have the `OpenGL' library.])])
               AC_CHECK_HEADER(OpenGL/glu.h,
-                                [AC_DEFINE(HAVE_LIBGLU, 1,
-		   [Define if you have the `GLU' library.])])
-              AC_CHECK_HEADER(GLUT/glut.h,
-                                [AC_DEFINE(HAVE_LIBGLUT, 1,
+                              [AC_DEFINE(HAVE_LIBGLU, 1,
+			      [Define if you have the `GLU' library.])])
+             if test "x$enable_offscreen" != "xyes"; then
+              AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT, 1,
 		   [Define if you have the `GLUT' library.])
 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([
 #include <OpenGL/gl.h>
@@ -310,12 +327,20 @@ void f(void) {
 ]),[AC_DEFINE(GLU_TESS_CALLBACK_TRIPLEDOT, 1, [Define if gluNurbsCallback expects a variadic function.])])
 			   LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa"],
 				 AC_MSG_NOTICE([*** Could not find glut: will compile without OpenGL support ***]))
+	     else
+  	        AC_MSG_ERROR([*** Support for offscreen rendering not yet implemented in configure for darwin: I don't know how to check for osmesa ***])
+	     fi
         ;;                                 
-     *) AC_CHECK_LIB([glut], [glutMainLoop],,
-				 AC_MSG_NOTICE([*** Could not find libglut: will compile without OpenGL support ***]))
+     *) AC_CHECK_LIB([GL], [glDepthMask])
         AC_CHECK_LIB([GLU], [gluNewNurbsRenderer],,
- 				 AC_MSG_NOTICE([*** Could not find libGLU: will compile without OpenGL support ***]))
-        AC_CHECK_LIB([GL], [glDepthMask])
+	             AC_MSG_NOTICE([*** Could not find libGLU: will compile without OpenGL support ***]))
+	if test "x$enable_offscreen" != "xyes"; then
+	  AC_CHECK_LIB([glut], [glutMainLoop],,
+		       AC_MSG_NOTICE([*** Could not find libglut: will compile without OpenGL support ***]))
+        else
+           AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
+			AC_MSG_NOTICE([*** Could not find libOSMesa: will compile without offscreen rendering support ***]))
+        fi
 esac
 fi
 

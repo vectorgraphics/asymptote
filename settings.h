@@ -27,7 +27,7 @@ namespace gl {
 extern bool glthread;
 extern bool initialize;
 
-#ifdef HAVE_LIBPTHREAD
+#if defined(HAVE_LIBPTHREAD) && defined(HAVE_LIBGLUT)
 extern pthread_t mainthread;
 extern pthread_cond_t initSignal;
 extern pthread_mutex_t initLock;

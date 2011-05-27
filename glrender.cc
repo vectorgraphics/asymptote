@@ -13,6 +13,7 @@
 
 #ifdef HAVE_GL
 
+#ifdef HAVE_LIBGLUT
 // For CYGWIN
 #ifndef FGAPI
 #define FGAPI GLUTAPI
@@ -22,6 +23,7 @@
 #endif
 
 #define GLUT_BUILDING_LIB
+#endif // HAVE_LIBGLUT
 
 #include "picture.h"
 #include "arcball.h"
@@ -30,9 +32,11 @@
 #include "interact.h"
 #include "tr.h"
 
+#ifdef HAVE_LIBGLUT
 #ifdef FREEGLUT
 #include <GL/freeglut_ext.h>
 #endif
+#endif // HAVE_LIBGLUT
 
 namespace camp {
 billboard BB;
@@ -53,27 +57,12 @@ using vm::read;
 using camp::bbox3;
 using settings::getSetting;
 using settings::Setting;
+
+#ifdef HAVE_LIBGLUT
 timeval lasttime;
 timeval lastframetime;
-
-double Aspect;
-bool View;
 bool Iconify=false;
-int Oldpid;
-string Prefix;
-const picture* Picture;
-string Format;
-int Width,Height;
-int fullWidth,fullHeight;
 int oldWidth,oldHeight;
-double oWidth,oHeight;
-int screenWidth,screenHeight;
-int maxWidth;
-int maxHeight;
-int maxTileWidth;
-int maxTileHeight;
-
-double T[16];
 
 bool Xspin,Yspin,Zspin;
 bool Animate;
@@ -83,6 +72,38 @@ bool Motion;
 bool ignorezoom;
 
 int Fitscreen;
+int minimumsize=50; // Minimum initial rendering window width and height
+
+bool queueExport=false;
+bool queueScreen=false;
+bool readyAfterExport=false;
+
+int x0,y0;
+string Action;
+int MenuButton;
+
+double lastangle;
+Arcball arcball;
+int window;
+#endif // HAVE_LIBGLUT
+
+double Aspect;
+bool View;
+int Oldpid;
+string Prefix;
+const picture* Picture;
+string Format;
+int Width,Height;
+int fullWidth,fullHeight;
+double oWidth,oHeight;
+int screenWidth,screenHeight;
+int maxWidth;
+int maxHeight;
+int maxTileWidth;
+int maxTileHeight;
+
+double T[16];
+
 int Mode;
 
 double Angle;
@@ -100,9 +121,7 @@ double X,Y;
 double cx,cy;
 double Xfactor,Yfactor;
 
-int minimumsize=50; // Minimum initial rendering window width and height
-
-static const double pi=acos(-1);
+static const double pi=acos(-1.0);
 static const double degrees=180.0/pi;
 static const double radians=1.0/degrees;
 
@@ -113,31 +132,23 @@ double *Diffuse;
 double *Ambient;
 double *Specular;
 bool ViewportLighting;
-bool queueExport=false;
-bool queueScreen=false;
-bool readyAfterExport=false;
 bool antialias;
-
-int x0,y0;
-string Action;
-int MenuButton;
-
-double lastangle;
 
 double Zoom;
 double Zoom0;
 double lastzoom;
 
-GLfloat Rotate[16];
-Arcball arcball;
-  
+GLfloat Rotate[16];  
 GLUnurbs *nurb=NULL;
 
-int window;
-  
 void *glrenderWrapper(void *a);
 
-#ifdef HAVE_LIBPTHREAD
+#ifdef HAVE_LIBOSMESA
+OSMesaContext ctx;
+unsigned char *osmesa_buffer;
+#endif
+
+#if defined(HAVE_LIBPTHREAD) && defined(HAVE_LIBGLUT)
 pthread_t mainthread;
 
 pthread_cond_t initSignal=PTHREAD_COND_INITIALIZER;
@@ -265,51 +276,15 @@ void setProjection()
   else
     glFrustum(xmin,xmax,ymin,ymax,-zmax,-zmin);
   glMatrixMode(GL_MODELVIEW);
+#ifdef HAVE_LIBGLUT
   double arcballRadius=getSetting<double>("arcballradius");
   arcball.set_params(vec2(0.5*Width,0.5*Height),arcballRadius*Zoom);
-}
-
-bool capsize(int& width, int& height) 
-{
-  bool resize=false;
-  if(width > maxWidth) {
-    width=maxWidth;
-    resize=true;
-  }
-  if(height > maxHeight) {
-    height=maxHeight;
-    resize=true;
-  }
-  return resize;
-}
-
-void reshape0(int width, int height)
-{
-  X=(X/Width)*width;
-  Y=(Y/Height)*height;
-  
-  Width=width;
-  Height=height;
-  
-  setProjection();
-  glViewport(0,0,Width,Height);
-}
-  
-void update() 
-{
-  lastzoom=Zoom;
-  glLoadIdentity();
-  double cz=0.5*(zmin+zmax);
-  glTranslatef(cx,cy,cz);
-  glMultMatrixf(Rotate);
-  glTranslatef(0,0,-cz);
-  setProjection();
-  glutPostRedisplay();
+#endif
 }
 
 void drawscene(double Width, double Height)
 {
-#ifdef HAVE_LIBPTHREAD
+#if defined(HAVE_LIBPTHREAD) && defined(HAVE_LIBGLUT)
   static bool first=true;
   if(glthread && first) {
     wait(initSignal,initLock);
@@ -317,6 +292,7 @@ void drawscene(double Width, double Height)
     first=false;
   }
 #endif
+
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   if(!ViewportLighting) 
@@ -399,17 +375,140 @@ void Export()
   } catch(std::bad_alloc&) {
     outOfMemory();
   }
+#ifdef HAVE_LIBGLUT
   setProjection();
   glutPostRedisplay();
+#endif // HAVE_LIBGLUT
 
-#ifdef HAVE_LIBPTHREAD
+#if defined(HAVE_LIBPTHREAD) && defined(HAVE_LIBGLUT)
   if(glthread && readyAfterExport) {
     readyAfterExport=false;        
     endwait(readySignal,readyLock);
   }
 #endif
 }
+
+#ifdef HAVE_LIBGLUT
+void idle() 
+{
+  glutIdleFunc(NULL);
+  Xspin=Yspin=Zspin=Animate=Step=false;
+}
+#endif // HAVE_LIBGLUT
+
+void home() 
+{
+  X=Y=cx=cy=0.0;
+#ifdef HAVE_LIBGLUT
+  idle();
+  arcball.init();
+#endif
+  glLoadIdentity();
+  glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
+  lastzoom=Zoom=Zoom0;
+  setDimensions(Width,Height,0,0);
+  initlighting();
+}
+
+void quit() 
+{
+#ifdef HAVE_LIBOSMESA
+  if(osmesa_buffer) delete[] osmesa_buffer;
+  if(ctx) OSMesaDestroyContext(ctx);
+  exit(0);
+#endif // HAVE_LIBOSMESA
+#ifdef HAVE_LIBGLUT
+  if(glthread) {
+    bool animating=getSetting<bool>("animating");
+    if(animating)
+      Setting("interrupt")=true;
+    home();
+    Animate=getSetting<bool>("autoplay");
+#ifdef HAVE_LIBPTHREAD
+    if(!interact::interactive || animating)
+      endwait(readySignal,readyLock);
+#endif    
+    glutHideWindow();
+  } else {
+    glutDestroyWindow(window);
+    exit(0);
+  }
+#endif // HAVE_LIBGLUT
+}
   
+void mode() 
+{
+  switch(Mode) {
+    case 0:
+      for(size_t i=0; i < Nlights; ++i) 
+        glEnable(GL_LIGHT0+i);
+      glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_FILL);
+#ifdef HAVE_LIBGLUT
+      ++Mode;
+#endif
+      break;
+    case 1:
+      for(size_t i=0; i < Nlights; ++i) 
+        glDisable(GL_LIGHT0+i);
+      glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_PATCH);
+#ifdef HAVE_LIBGLUT
+      ++Mode;
+#endif
+      break;
+    case 2:
+      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_POLYGON);
+#ifdef HAVE_LIBGLUT
+      Mode=0;
+#endif
+      break;
+  }
+#ifdef HAVE_LIBGLUT
+  glutPostRedisplay();
+#endif
+}
+
+// GUI-related functions
+#ifdef HAVE_LIBGLUT
+bool capsize(int& width, int& height) 
+{
+  bool resize=false;
+  if(width > maxWidth) {
+    width=maxWidth;
+    resize=true;
+  }
+  if(height > maxHeight) {
+    height=maxHeight;
+    resize=true;
+  }
+  return resize;
+}
+
+void reshape0(int width, int height)
+{
+  X=(X/Width)*width;
+  Y=(Y/Height)*height;
+  
+  Width=width;
+  Height=height;
+  
+  setProjection();
+  glViewport(0,0,Width,Height);
+}
+  
+void update() 
+{
+  lastzoom=Zoom;
+  glLoadIdentity();
+  double cz=0.5*(zmin+zmax);
+  glTranslatef(cx,cy,cz);
+  glMultMatrixf(Rotate);
+  glTranslatef(0,0,-cz);
+  setProjection();
+  glutPostRedisplay();
+}
+
 void windowposition(int& x, int& y, int width=Width, int height=Height)
 {
   pair z=getSetting<pair>("position");
@@ -552,12 +651,6 @@ void idleFunc(void (*f)())
   glutIdleFunc(f);
 }
 
-void idle() 
-{
-  glutIdleFunc(NULL);
-  Xspin=Yspin=Zspin=Animate=Step=false;
-}
-
 void animate() 
 {
   Animate=!Animate;
@@ -567,37 +660,6 @@ void animate()
       togglefitscreen();
     }
     update();
-  }
-}
-
-void home() 
-{
-  idle();
-  X=Y=cx=cy=0.0;
-  arcball.init();
-  glLoadIdentity();
-  glGetFloatv(GL_MODELVIEW_MATRIX,Rotate);
-  lastzoom=Zoom=Zoom0;
-  setDimensions(Width,Height,0,0);
-  initlighting();
-}
-
-void quit() 
-{
-  if(glthread) {
-    bool animating=getSetting<bool>("animating");
-    if(animating)
-      Setting("interrupt")=true;
-    home();
-    Animate=getSetting<bool>("autoplay");
-#ifdef HAVE_LIBPTHREAD
-    if(!interact::interactive || animating)
-      endwait(readySignal,readyLock);
-#endif    
-    glutHideWindow();
-  } else {
-    glutDestroyWindow(window);
-    exit(0);
   }
 }
 
@@ -910,12 +972,12 @@ void mouse(int button, int state, int x, int y)
   if(Menu) disableMenu();
   else {
     if(mod == 0 && state == GLUT_UP && !Motion && Action == "zoom/menu") {
-    MenuButton=button;
-    glutMotionFunc(NULL);
-    glutAttachMenu(button);
-    Menu=true;
-    glutTimerFunc(getSetting<Int>("doubleclick"),timeout,0);
-    return;
+      MenuButton=button;
+      glutMotionFunc(NULL);
+      glutAttachMenu(button);
+      Menu=true;
+      glutTimerFunc(getSetting<Int>("doubleclick"),timeout,0);
+      return;
     } else Motion=false;
   }
   
@@ -978,34 +1040,9 @@ void expand()
 void shrink() 
 {
   double resizeStep=getSetting<double>("resizestep");
- if(resizeStep > 0.0)
-   setsize(max((int) (Width/resizeStep+0.5),1),
-           max((int) (Height/resizeStep+0.5),1));
-}
-
-void mode() 
-{
-  switch(Mode) {
-    case 0:
-      for(size_t i=0; i < Nlights; ++i) 
-        glEnable(GL_LIGHT0+i);
-      glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_FILL);
-      ++Mode;
-      break;
-    case 1:
-      for(size_t i=0; i < Nlights; ++i) 
-        glDisable(GL_LIGHT0+i);
-      glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_PATCH);
-      ++Mode;
-      break;
-    case 2:
-      gluNurbsProperty(nurb,GLU_DISPLAY_MODE,GLU_OUTLINE_POLYGON);
-      Mode=0;
-      break;
-  }
-  glutPostRedisplay();
+  if(resizeStep > 0.0)
+    setsize(max((int) (Width/resizeStep+0.5),1),
+            max((int) (Height/resizeStep+0.5),1));
 }
 
 void spinx() 
@@ -1044,54 +1081,6 @@ void spinz()
 void write(const char *text, const double *v)
 {
   cout << text << "=(" << v[0] << "," << v[1] << "," << v[2] << ")";
-}
-
-static bool glinitialize=true;
-
-projection camera(bool user)
-{
-  if(glinitialize) return projection();
-                   
-  camp::Triple vCamera,vUp,vTarget;
-  
-  double cz=0.5*(zmin+zmax);
-
-  if(user) {
-    for(int i=0; i < 3; ++i) {
-      double sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
-      int i4=4*i;
-      for(int j=0; j < 4; ++j) {
-        int j4=4*j;
-        double R0=Rotate[j4];
-        double R1=Rotate[j4+1];
-        double R2=Rotate[j4+2];
-        double R3=Rotate[j4+3];
-        double T4ij=T[i4+j];
-        sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
-        sumUp += T4ij*R1;
-        sumTarget += T4ij*(R3-cx*R0-cy*R1);
-      }
-      vCamera[i]=sumCamera;
-      vUp[i]=sumUp;
-      vTarget[i]=sumTarget;
-    }
-  } else {
-    for(int i=0; i < 3; ++i) {
-      int i4=4*i;
-      double R0=Rotate[i4];
-      double R1=Rotate[i4+1];
-      double R2=Rotate[i4+2];
-      double R3=Rotate[i4+3];
-      vCamera[i]=R3-cx*R0-cy*R1-cz*R2;
-      vUp[i]=R1;
-      vTarget[i]=R3-cx*R0-cy*R1;
-    }
-  }
-  
-  return projection(orthographic,vCamera,vUp,vTarget,Zoom,
-                    2.0*atan(tan(0.5*Angle)/Zoom)/radians,
-                    pair(X/Width*lastzoom+Shift.getx(),
-                         Y/Height*lastzoom+Shift.gety()));
 }
 
 void showCamera()
@@ -1241,8 +1230,70 @@ void setosize()
   oldHeight=(int) ceil(oHeight);
 }
 
+#endif // HAVE_LIBGLUT
+// end of GUI-related functions
+
+static bool glinitialize=true;
+
+projection camera(bool user)
+{
+  if(glinitialize) return projection();
+                   
+  camp::Triple vCamera,vUp,vTarget;
+  
+  double cz=0.5*(zmin+zmax);
+
+  if(user) {
+    for(int i=0; i < 3; ++i) {
+      double sumCamera=0.0, sumTarget=0.0, sumUp=0.0;
+      int i4=4*i;
+      for(int j=0; j < 4; ++j) {
+        int j4=4*j;
+        double R0=Rotate[j4];
+        double R1=Rotate[j4+1];
+        double R2=Rotate[j4+2];
+        double R3=Rotate[j4+3];
+        double T4ij=T[i4+j];
+        sumCamera += T4ij*(R3-cx*R0-cy*R1-cz*R2);
+        sumUp += T4ij*R1;
+        sumTarget += T4ij*(R3-cx*R0-cy*R1);
+      }
+      vCamera[i]=sumCamera;
+      vUp[i]=sumUp;
+      vTarget[i]=sumTarget;
+    }
+  } else {
+    for(int i=0; i < 3; ++i) {
+      int i4=4*i;
+      double R0=Rotate[i4];
+      double R1=Rotate[i4+1];
+      double R2=Rotate[i4+2];
+      double R3=Rotate[i4+3];
+      vCamera[i]=R3-cx*R0-cy*R1-cz*R2;
+      vUp[i]=R1;
+      vTarget[i]=R3-cx*R0-cy*R1;
+    }
+  }
+  
+  return projection(orthographic,vCamera,vUp,vTarget,Zoom,
+                    2.0*atan(tan(0.5*Angle)/Zoom)/radians,
+                    pair(X/Width*lastzoom+Shift.getx(),
+                         Y/Height*lastzoom+Shift.gety()));
+}
+
 void init() 
 {
+  pair maxtile=getSetting<pair>("maxtile");
+  maxTileWidth=(int) maxtile.getx();
+  maxTileHeight=(int) maxtile.gety();
+#ifdef HAVE_LIBOSMESA
+  if(maxTileWidth <= 0) maxTileWidth=1024;
+  if(maxTileHeight <= 0) maxTileHeight=768;
+  screenWidth = maxTileWidth;
+  screenHeight = maxTileHeight;
+#endif // HAVE_LIBOSMESA
+
+#ifdef HAVE_LIBGLUT
   mem::vector<string> cmd;
   cmd.push_back(settings::argv0);
   if(Iconify)
@@ -1254,7 +1305,38 @@ void init()
   
   screenWidth=glutGet(GLUT_SCREEN_WIDTH);
   screenHeight=glutGet(GLUT_SCREEN_HEIGHT);
+#endif // HAVE_LIBGLUT
 }
+
+#ifdef HAVE_LIBOSMESA
+void init_osmesa()
+{
+  // create context and buffer
+  // TODO: more settings? configurable settings?
+  if(settings::verbose > 1) 
+    cout << "Allocating osmesa_buffer of size " << screenWidth << "x" << screenHeight << "x4x" << sizeof(GLubyte) << endl;
+  osmesa_buffer = new unsigned char [static_cast<unsigned int>(screenWidth * screenHeight * 4 * sizeof(GLubyte))];
+  if(!osmesa_buffer)
+    camp::reportError("Alloc image buffer failed!");
+
+  ctx = OSMesaCreateContextExt(OSMESA_RGBA, 16, 0, 0, NULL );
+  if(!ctx)
+    camp::reportError("OSMesaCreateContext failed!");
+
+  if(!OSMesaMakeCurrent(ctx,osmesa_buffer,GL_UNSIGNED_BYTE,screenWidth,screenHeight ))
+    camp::reportError("OSMesaMakeCurrent failed!");
+
+  int z=0, s=0, a=0;
+  glGetIntegerv(GL_DEPTH_BITS, &z);
+  glGetIntegerv(GL_STENCIL_BITS, &s);
+  glGetIntegerv(GL_ACCUM_RED_BITS, &a);
+  if(settings::verbose > 1) 
+    cout << "Offscreen context settings: Depth=" << z << " Stencil=" << s 
+         << " Accum=" << a << endl;
+  if(z == 0)
+    camp::reportError("Error initializing offscreen context: Depth=0");
+}
+#endif // HAVE_LIBOSMESA
 
 // angle=0 means orthographic.
 void glrender(const string& prefix, const picture *pic, const string& format,
@@ -1264,14 +1346,15 @@ void glrender(const string& prefix, const picture *pic, const string& format,
               double *diffuse, double *ambient, double *specular,
               bool Viewportlighting, bool view, int oldpid)
 {
+#ifdef HAVE_LIBGLUT       
 #ifndef __CYGWIN__    
   Iconify=getSetting<bool>("iconify");
-#endif      
-  
+#endif
+  static bool initializedView=false;
+#endif // HAVE_LIBGLUT
+
   width=max(width,1.0);
   height=max(height,1.0);
-  
-  static bool initializedView=false;
   
   if(zoom == 0.0) zoom=1.0;
   
@@ -1281,7 +1364,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   for(int i=0; i < 16; ++i)
     T[i]=t[i];
   for(int i=0; i < 4; ++i)
-  Background[i]=background[i];
+    Background[i]=background[i];
   
   Nlights=min(nlights,(size_t) GL_MAX_LIGHTS);
   Lights=lights;
@@ -1305,16 +1388,20 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   orthographic=Angle == 0.0;
   H=orthographic ? 0.0 : -tan(0.5*Angle)*zmax;
     
+#ifdef HAVE_LIBGLUT
   Menu=false;
   Motion=true;
   ignorezoom=false;
+#endif
   Mode=0;
   Xfactor=Yfactor=1.0;
   
   if(glinitialize) {
     glinitialize=false;
     init();
+#ifdef HAVE_LIBGLUT
     Fitscreen=1;
+#endif
   }
   
   static bool initialized=false;
@@ -1356,19 +1443,23 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
     Aspect=((double) Width)/Height;
   
-    pair maxtile=getSetting<pair>("maxtile");
-    maxTileWidth=(int) maxtile.getx();
-    maxTileHeight=(int) maxtile.gety();
+#ifdef HAVE_LIBOSMESA
+    init_osmesa();
+#endif
+
+#ifdef HAVE_LIBGLUT
     if(maxTileWidth <= 0) maxTileWidth=screenWidth;
     if(maxTileHeight <= 0) maxTileHeight=screenHeight;
-  
+
     setosize();
-  
+#endif
+    
     if(View && settings::verbose > 1) 
       cout << "Rendering " << stripDir(prefix) << " as "
            << Width << "x" << Height << " image" << endl;
   }
-  
+
+#ifdef HAVE_LIBGLUT
 #ifdef HAVE_LIBPTHREAD
   if(glthread && initializedView) {
     if(!View)
@@ -1458,12 +1549,14 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     window=glutCreateWindow("");
     glutHideWindow();
   }
-  
+#endif // HAVE_LIBGLUT
   initialized=true;
   
   glMatrixMode(GL_MODELVIEW);
     
   home();
+    
+#ifdef HAVE_LIBGLUT
   Animate=getSetting<bool>("autoplay");
   
   if(View) {
@@ -1472,6 +1565,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     fitscreen();
     setosize();
   }
+#endif // HAVE_LIBGLUT
   
   glEnable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
@@ -1503,6 +1597,11 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   
   mode();
   
+#ifdef HAVE_LIBOSMESA
+  Export();
+#endif // HAVE_LIBOSMESA
+
+#ifdef HAVE_LIBGLUT
   if(View) {
     initializedView=true;
     glutReshapeFunc(reshape);
@@ -1548,6 +1647,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       quit();
     }
   }
+#endif // HAVE_LIBGLUT
 }
 
 } // namespace gl

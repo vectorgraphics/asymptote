@@ -966,7 +966,7 @@ Communicate com;
 void glrenderWrapper()
 {
 #ifdef HAVE_GL  
-#ifdef HAVE_LIBPTHREAD
+#if defined(HAVE_LIBPTHREAD) && defined(HAVE_LIBGLUT)
   wait(initSignal,initLock);
   endwait(initSignal,initLock);
 #endif  
@@ -998,6 +998,8 @@ bool picture::shipout3(const string& prefix, const string& format,
     getSetting<string>("outformat") : format;
   bool View=settings::view() && view;
   static int oldpid=0;
+
+#ifdef HAVE_LIBGLUT
   bool animating=getSetting<bool>("animating");
   bool Wait=!interact::interactive || !View || animating;
   
@@ -1024,7 +1026,6 @@ bool picture::shipout3(const string& prefix, const string& format,
       com.specular=specular;
       com.viewportlighting=viewportlighting;
       com.view=View;
-#ifdef HAVE_LIBPTHREAD
       if(Wait)
         pthread_mutex_lock(&readyLock);
       wait(initSignal,initLock);
@@ -1039,14 +1040,11 @@ bool picture::shipout3(const string& prefix, const string& format,
         pthread_cond_wait(&readySignal,&readyLock);
         pthread_mutex_unlock(&readyLock);
       }
-#endif  
       return true;
     }
-#ifdef HAVE_LIBPTHREAD
     if(Wait)
       pthread_mutex_lock(&readyLock);
-#endif  
-#endif
+#endif // HAVE_LIBPTHREAD
   } else {
     int pid=fork();
     if(pid == -1)
@@ -1057,19 +1055,19 @@ bool picture::shipout3(const string& prefix, const string& format,
       return true;
     }
   }
-  
+#endif // HAVE_LIBGLUT
   glrender(prefix,this,outputformat,width,height,angle,zoom,m,M,shift,t,
            background,nlights,lights,diffuse,ambient,specular,viewportlighting,
            View,oldpid);
-#ifdef HAVE_LIBPTHREAD
+#if defined(HAVE_LIBPTHREAD) && defined(HAVE_LIBGLUT)
   if(glthread && Wait) {
     pthread_cond_wait(&readySignal,&readyLock);
     pthread_mutex_unlock(&readyLock);
   }
   return true;
-#endif  
-#else
-  reportError("Cannot render image; please install glut, run ./configure, and recompile");
+#endif  // HAVE_LIBPTHREAD
+#else // HAVE_GL
+  reportError("Cannot render image; please install glut or osmesa, run ./configure [--enable-offscreen], and recompile");
 #endif
   return false;
 }

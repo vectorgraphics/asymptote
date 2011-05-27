@@ -21,7 +21,8 @@
 #include "config.h"
 #endif
 
-#if defined(HAVE_LIBGL) && defined(HAVE_LIBGLU) && defined(HAVE_LIBGLUT)
+#if defined(HAVE_LIBGL) && defined(HAVE_LIBGLU) && \
+  (defined(HAVE_LIBGLUT) || defined(HAVE_LIBOSMESA))
 #define HAVE_GL
 #endif
 

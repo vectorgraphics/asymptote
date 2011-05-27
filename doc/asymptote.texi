@@ -7808,7 +7808,7 @@ By default, the scene is internally rendered at twice the specified
 resolution; this can be disabled by setting @code{antialias=1}.
 High resolution rendering is done by tiling the image. If your
 graphics card allows it, the rendering can be made more efficient by
-increasing the maximum tile size @code{maxtile} beyond the screen
+increasing the maximum tile size @code{maxtile} to your screen
 dimensions (indicated by @code{maxtile=(0,0)}. If your video card
 generates unwanted black stripes in the output, try setting the
 horizontal and vertical components of @code{maxtiles} to something

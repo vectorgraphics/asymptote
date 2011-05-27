@@ -17,7 +17,12 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glext.h>
 #include <OpenGL/glu.h>
+#ifdef HAVE_LIBGLUT
 #include <GLUT/glut.h>
+#endif
+#ifdef HAVE_LIBOSMESA
+#include <GL/osmesa.h> // TODO: where would you find osmesa on a mac?
+#endif
 #ifdef GLU_TESS_CALLBACK_TRIPLEDOT
 typedef GLvoid (* _GLUfuncptr)(...);
 #else
@@ -27,7 +32,12 @@ typedef GLvoid (* _GLUfuncptr)();
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <GL/glu.h>
+#ifdef HAVE_LIBGLUT
 #include <GL/glut.h>
+#endif
+#ifdef HAVE_LIBOSMESA
+#include <GL/osmesa.h>
+#endif
 #endif
 
 namespace camp {

@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
   Args args(argc,argv);
 #ifdef HAVE_GL
   gl::glthread=getSetting<bool>("threads");
-#ifdef HAVE_LIBPTHREAD
+#if defined(HAVE_LIBPTHREAD) && defined(HAVE_LIBGLUT)
   
   if(gl::glthread) {
     pthread_t thread;

@@ -74,9 +74,9 @@ namespace settings {
 using camp::pair;
   
 #ifdef HAVE_GL
-const bool haveglut=true;  
+const bool havegl=true;  
 #else
-const bool haveglut=false;
+const bool havegl=false;
 #endif
   
 mode_t mask;
@@ -1083,7 +1083,7 @@ void initSettings() {
                             "Show 3D toolbar in PDF output", true));
   addOption(new realSetting("render", 0, "n",
                             "Render 3D graphics using n pixels per bp (-1=auto)",
-                            haveglut ? -1.0 : 0.0));
+                            havegl ? -1.0 : 0.0));
   addOption(new IntSetting("antialias", 0, "n",
                            "Antialiasing width for rasterized output", 2));
   addOption(new IntSetting("multisample", 0, "n",
@@ -1096,7 +1096,7 @@ void initSettings() {
   addOption(new pairSetting("maxviewport", 0, "pair",
                             "Maximum viewport size",pair(2048,2048)));
   addOption(new pairSetting("maxtile", 0, "pair",
-                            "Maximum rendering tile size",pair(0,0)));
+                            "Maximum rendering tile size",pair(1024,768)));
   addOption(new boolSetting("iconify", 0,
                             "Iconify rendering window", false));
   addOption(new boolSetting("thick", 0,
