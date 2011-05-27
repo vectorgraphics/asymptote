@@ -1366,12 +1366,12 @@ void xlimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
     mx=autoscale(pic.userMin().x,pic.userMax().x,pic.scale.x.scale);
   
   if(pic.scale.x.automin) {
-    if(pic.scale.x.automin()) pic.userMinx2(mx.min);
-  } else pic.userMinx2(min(pic.scale.x.T(min),pic.scale.x.T(max)));
+    if(pic.scale.x.automin()) pic.userMinx(mx.min);
+  } else pic.userMinx(min(pic.scale.x.T(min),pic.scale.x.T(max)));
   
   if(pic.scale.x.automax) {
-    if(pic.scale.x.automax()) pic.userMaxx2(mx.max);
-  } else pic.userMaxx2(max(pic.scale.x.T(min),pic.scale.x.T(max)));
+    if(pic.scale.x.automax()) pic.userMaxx(mx.max);
+  } else pic.userMaxx(max(pic.scale.x.T(min),pic.scale.x.T(max)));
   
   if(crop) {
     pair userMin=pic.userMin();
@@ -1400,12 +1400,12 @@ void ylimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
     my=autoscale(pic.userMin().y,pic.userMax().y,pic.scale.y.scale);
   
   if(pic.scale.y.automin) {
-    if(pic.scale.y.automin()) pic.userMiny2(my.min);
-  } else pic.userMiny2(min(pic.scale.y.T(min),pic.scale.y.T(max)));
+    if(pic.scale.y.automin()) pic.userMiny(my.min);
+  } else pic.userMiny(min(pic.scale.y.T(min),pic.scale.y.T(max)));
   
   if(pic.scale.y.automax) {
-    if(pic.scale.y.automax()) pic.userMaxy2(my.max);
-  } else pic.userMaxy2(max(pic.scale.y.T(min),pic.scale.y.T(max)));
+    if(pic.scale.y.automax()) pic.userMaxy(my.max);
+  } else pic.userMaxy(max(pic.scale.y.T(min),pic.scale.y.T(max)));
   
   if(crop) {
     pair userMin=pic.userMin();
@@ -1450,9 +1450,9 @@ void autoscale(picture pic=currentpicture, axis axis)
       if(pic.scale.x.scale.logarithmic &&
          floor(pic.userMin().x) == floor(pic.userMax().x)) {
         if(pic.scale.x.automin())
-          pic.userMinx2(floor(pic.userMin().x));
+          pic.userMinx(floor(pic.userMin().x));
         if(pic.scale.x.automax())
-          pic.userMaxx2(ceil(pic.userMax().x));
+          pic.userMaxx(ceil(pic.userMax().x));
       }
     } else {mx.min=mx.max=0; pic.scale.set=false;}
     
@@ -1461,9 +1461,9 @@ void autoscale(picture pic=currentpicture, axis axis)
       if(pic.scale.y.scale.logarithmic &&
          floor(pic.userMin().y) == floor(pic.userMax().y)) {
         if(pic.scale.y.automin())
-          pic.userMiny2(floor(pic.userMin().y));
+          pic.userMiny(floor(pic.userMin().y));
         if(pic.scale.y.automax())
-          pic.userMaxy2(ceil(pic.userMax().y));
+          pic.userMaxy(ceil(pic.userMax().y));
       }
     } else {my.min=my.max=0; pic.scale.set=false;}
     
