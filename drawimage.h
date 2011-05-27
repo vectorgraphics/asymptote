@@ -109,9 +109,9 @@ class drawRawImage : public drawImage {
   size_t width,height;
   bool antialias;
 public:
-  drawRawImage(unsigned char *raw, size_t width, size_t height, const transform& t,
-            bool antialias)
-    : drawImage(t,antialias), width(width), height(height) {}
+  drawRawImage(unsigned char *raw, size_t width, size_t height,
+               const transform& t, bool antialias)
+    : drawImage(t,antialias), raw(raw), width(width), height(height) {}
   
   virtual ~drawRawImage() {}
 
@@ -121,10 +121,6 @@ public:
     out->rawimage(raw,width,height,antialias);
     out->grestore();
     return true;
-  }
-
-  drawElement *transformed(const transform& T) {
-    return new drawRawImage(raw,width,height,T*t,antialias);
   }
 };
 
