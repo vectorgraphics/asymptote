@@ -3454,7 +3454,11 @@ parabola operator *(transform t, parabola p)
   P.push(t*angpoint(p,45));
   P.push(t*angpoint(p,-45));
   P.push(t*angpoint(p,180));
-  return parabola(P[0],P[1],P[2],t*p.D);
+  parabola op = parabola(P[0],P[1],P[2],t*p.D);
+  op.bmin = p.bmin;
+  op.bmax = p.bmax;
+
+  return op;
 }
 
 /*<asyxml><operator type="ellipse" signature="*(transform,circle)"><code></asyxml>*/
@@ -3468,12 +3472,23 @@ ellipse operator *(transform t, circle c)
 /*<asyxml><operator type="hyperbola" signature="*(transform,hyperbola)"><code></asyxml>*/
 hyperbola operator *(transform t, hyperbola h)
 {/*<asyxml></code><documentation>Provide transform*hyperbola.</documentation></operator></asyxml>*/
+  if (t == identity()) {
+    return h;
+  }
+
   point[] ep;
   for (int i=90; i<=270; i+=45) {
     ep.push(t*angpoint(h,i));
   }
+
   hyperbola oe=hyperbola(ep[0],ep[1],ep[2],ep[3],ep[4]);
-  if(angpoint(oe,90) != ep[0]) return hyperbola(oe.F2,oe.F1,oe.a);
+  if(angpoint(oe,90) != ep[0]) {
+    oe = hyperbola(oe.F2,oe.F1,oe.a);
+  }
+
+  oe.bmin = h.bmin;
+  oe.bmax = h.bmax;
+
   return oe;
 }
 
@@ -3777,15 +3792,17 @@ void draw(picture pic=currentpicture, Label L="",parabola parabola,
   pic.add(new void (frame f, transform t, transform T, pair m, pair M) {
       // Reduce the bounds by the size of the pen and the margins.
       m -= min(p); M -= max(p);
-      parabola.bmin=inverse(t)*m; parabola.bmax=inverse(t)*M;
+      parabola.bmin=inverse(t)*m;
+      parabola.bmax=inverse(t)*M;
       picture tmp;
-      draw(tmp,L,t*T*(path) parabola,align,p,arrow,bar,NoMargin,legend,marker);
+      draw(tmp,L,t*((path) (T*parabola)),align,p,arrow,bar,NoMargin,legend,marker);
       add(f,tmp.fit());
-    });
-  pair m=pic.userMin();
-  pair M=pic.userMax();
-  if(m != M)
+    }, true);
+
+  pair m=pic.userMin(), M=pic.userMax();
+  if(m != M) {
     pic.addBox(truepoint(SW), truepoint(NE));
+  }
 }
 
 /*<asyxml><operator type="path" signature="cast(hyperbola)"><code></asyxml>*/
@@ -3810,17 +3827,22 @@ void draw(picture pic=currentpicture, Label L="", hyperbola h,
   pic.add(new void (frame f, transform t, transform T, pair m, pair M) {
       // Reduce the bounds by the size of the pen and the margins.
       m -= min(p); M -= max(p);
-      h.bmin=inverse(t)*m; h.bmax=inverse(t)*M;
+      h.bmin=inverse(t)*m;
+      h.bmax=inverse(t)*M;
+
       picture tmp;
-      transform tT=t*T;
-      draw(tmp,L,tT*(path) h,align,p,arrow,bar,NoMargin,legend,marker);
+      draw(tmp,L,t*((path) (T*h)),align,p,arrow,bar,NoMargin,legend,marker);
+
       hyperbola ht=hyperbola(h.F2,h.F1,h.a);
-      ht.bmin=inverse(t)*m; ht.bmax=inverse(t)*M;
-      draw(tmp,"",tT*(path) ht,align,p,arrow,bar,NoMargin,marker);
+      ht.bmin=h.bmin;
+      ht.bmax=h.bmax;
+
+      draw(tmp,"",t*((path) (T*ht)),align,p,arrow,bar,NoMargin,marker);
+
       add(f,tmp.fit());
-    });
-  pair m=pic.userMin();
-  pair M=pic.userMax();
+    }, true);
+
+  pair m=pic.userMin(), M=pic.userMax();
   if(m != M)
     pic.addBox(truepoint(SW), truepoint(NE));
 }
