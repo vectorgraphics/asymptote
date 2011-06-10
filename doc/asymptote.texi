@@ -7449,7 +7449,7 @@ A color density plot using palette @code{palette} can be generated from
 a function @code{f}(@math{x},@math{y}) and added to a picture @code{pic}:
 @cindex @code{image}
 @verbatim
-bounds image(picture pic=currentpicture, real f(real,real),
+bounds image(picture pic=currentpicture, real f(real, real),
              range range=Full, pair initial, pair final,
              int nx=ngraph, int ny=nx, pen[] palette, bool antialias=false)
 @end verbatim
@@ -7547,7 +7547,9 @@ void image(picture pic=currentpicture, pen[][] data,
            bool transpose=(initial.x < final.x && initial.y < final.y),
            bool copy=true, bool antialias=false);
 void image(picture pic=currentpicture, pen f(int, int), int width, int height,
-           pair initial, pair final, bool antialias=false);
+           pair initial, pair final,
+           bool transpose=(initial.x < final.x && initial.y < final.y),
+           bool antialias=false);
 @end verbatim
 @noindent
 as illustrated in the following examples:

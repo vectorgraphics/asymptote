@@ -100,7 +100,7 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
   return bounds; // Return bounds used for color space
 }
 
-bounds image(picture pic=currentpicture, real f(real,real),
+bounds image(picture pic=currentpicture, real f(real, real),
              range range=Full, pair initial, pair final,
              int nx=ngraph, int ny=nx, pen[] palette, bool antialias=false)
 {
@@ -139,13 +139,16 @@ void image(picture pic=currentpicture, pen[][] data, pair initial, pair final,
 }
 
 void image(picture pic=currentpicture, pen f(int, int), int width, int height,
-           pair initial, pair final, bool antialias=false)
+           pair initial, pair final,
+           bool transpose=(initial.x < final.x && initial.y < final.y),
+           bool antialias=false)
 {
   initial=Scale(pic,initial);
   final=Scale(pic,final);
 
   pic.add(new void(frame F, transform t) {
-      _image(F,f,width,height,initial,final,t,antialias=antialias);
+      _image(F,f,width,height,initial,final,
+             transpose ? t*(0,0,0,1,1,0) : t,antialias=antialias);
     },true);
   pic.addBox(initial,final);
 }
