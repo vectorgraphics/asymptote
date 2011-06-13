@@ -111,6 +111,8 @@ void ifile::Read(string& val)
         if(comment && c == comment) {
           while((c=stream->peek()) != '\n' && c != EOF)
             stream->ignore();
+          if(wordmode && !linemode)
+            while(isspace(stream->peek())) stream->ignore();
           if(s.empty() && c == '\n') {
             stream->ignore();
             continue;
@@ -118,8 +120,10 @@ void ifile::Read(string& val)
         }
         if(csvmode && (c == ',' || c == '\n'))
           break;
-        if(wordmode && isspace(c))
+        if(wordmode && isspace(c)) {
+          if(!linemode) while(isspace(stream->peek())) stream->ignore();
           break;
+        }
       }
       s += (char) stream->get();
     }

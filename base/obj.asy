@@ -59,12 +59,12 @@ struct obj {
     }
     close(in);
     if(verbose) {
-      write("Number of groups: ",(string) G.length);
-      write("Groups and their names");
+      write("Number of groups: ",G.length);
+      write("Groups and their names:");
       write(G);
       write("Reading done.");
       write("Number of faces contained in the groups: ");
-      for(int j=0; j < g.length; ++j)
+      for(int j=0; j < G.length; ++j)
         write(G[j],": ",(string) g[j].length);
     }
     return g;
