@@ -28,16 +28,18 @@ void image(frame f, real[][] data, pair initial, pair final, pen[] palette,
            bool transpose=(initial.x < final.x && initial.y < final.y),
            transform t=identity(), bool copy=true, bool antialias=false)
 {
-  _image(f,copy ? copy(data) : data,initial,final,palette,
-         transpose ? t*swap : t,copy=false,antialias=antialias);
+  transform T=transpose ? swap : identity();
+  _image(f,copy ? copy(data) : data,T*initial,T*final,palette,t*T,copy=false,
+         antialias=antialias);
 }
 
 void image(frame f, pen[][] data, pair initial, pair final,
            bool transpose=(initial.x < final.x && initial.y < final.y),
            transform t=identity(), bool copy=true, bool antialias=false)
 {
-  _image(f,copy ? copy(data) : data,initial,final,
-         transpose ? t*swap : t,copy=false,antialias=antialias);
+  transform T=transpose ? swap : identity();
+  _image(f,copy ? copy(data) : data,T*initial,T*final,t*T,copy=false,
+         antialias=antialias);
 }
 
 // Reduce color palette to approximate range of data relative to "display"
@@ -94,10 +96,9 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
   initial=Scale(pic,initial);
   final=Scale(pic,final);
 
+  transform T=transpose ? swap : identity();
   pic.add(new void(frame F, transform t) {
-      _image(F,f,initial,final,palette,
-             transpose ? t*swap : t,
-             copy=false,antialias=antialias);
+      _image(F,f,T*initial,T*final,palette,t*T,copy=false,antialias=antialias);
     },true);
   pic.addBox(initial,final);
   return bounds; // Return bounds used for color space
@@ -134,9 +135,9 @@ void image(picture pic=currentpicture, pen[][] data, pair initial, pair final,
   initial=Scale(pic,initial);
   final=Scale(pic,final);
 
+  transform T=transpose ? swap : identity();
   pic.add(new void(frame F, transform t) {
-      _image(F,data,initial,final,transpose ? t*swap : t,copy=false,
-             antialias=antialias);
+      _image(F,data,T*initial,T*final,t*T,copy=false,antialias=antialias);
     },true);
   pic.addBox(initial,final);
 }
@@ -149,9 +150,9 @@ void image(picture pic=currentpicture, pen f(int, int), int width, int height,
   initial=Scale(pic,initial);
   final=Scale(pic,final);
 
+  transform T=transpose ? swap : identity();
   pic.add(new void(frame F, transform t) {
-      _image(F,f,width,height,initial,final,
-             transpose ? t*swap : t,antialias=antialias);
+      _image(F,f,width,height,T*initial,T*final,t*T,antialias=antialias);
     },true);
   pic.addBox(initial,final);
 }
@@ -293,10 +294,9 @@ void palette(picture pic=currentpicture, Label L="", bounds bounds,
   real[][] pdata={sequence(palette.length)};
   
   transform T=vertical ? swap : identity();
-  
   pic.add(new void(frame f, transform t) {
-      _image(f,pdata,T*initial,T*final,palette,
-             t*T,copy=false,antialias=antialias);
+      _image(f,pdata,T*initial,T*final,palette,t*T,copy=false,
+             antialias=antialias);
     },true);
   
   ticklocate locate=ticklocate(initialz,finalz,pic.scale.z,mz.min,mz.max);
