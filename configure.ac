@@ -230,7 +230,7 @@ AC_ARG_ENABLE(readline,
 [AS_HELP_STRING(--enable-readline[[[=yes]]],enable GNU Readline Library)])
 
 if test "x$enable_readline" != "xno"; then
-AC_COMPILE_IFELSE(AC_LANG_PROGRAM([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
 #include <stdio.h>
 #include <unistd.h>
 #include <readline/readline.h>
@@ -238,7 +238,7 @@ AC_COMPILE_IFELSE(AC_LANG_PROGRAM([
 #ifndef RL_READLINE_VERSION
 abort
 #endif
-]),AC_CHECK_LIB([readline], [rl_completion_matches],,
+])],AC_CHECK_LIB([readline], [rl_completion_matches],,
 AC_MSG_NOTICE(*** Could not find GNU readline 4.3 or later: will compile without readline support ***)))
 fi
 
@@ -248,7 +248,7 @@ AC_CHECK_HEADERS([fenv.h stddef.h libintl.h])
 AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h], [break])
 AC_CHECK_HEADERS(fpu_control.h)
 
-AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include "xstream.h"]),
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "xstream.h"])],
                    [AC_SEARCH_LIBS([xdrstdio_create],[nsl rpc])
 		    AC_DEFINE(HAVE_RPC_RPC_H, 1,
 		   [Define if you have a working <rpc/rpc.h> header file])],
@@ -307,8 +307,6 @@ case "$OSTYPE" in
 		     [Define if you have the `freeglut' library (-lfreeglut).])
 			     LIBS=$LIBS"-lfreeglut "],
 				   AC_MSG_NOTICE([*** Could not find libfreeglut: will compile without OpenGL support ***]))
-            else
-	      AC_MSG_ERROR([*** Support for offscreen rendering not yet implemented in configure for cygwin: I don't know how to check for osmesa ***])
 	    fi	    
         ;;                                 
      darwin*) AC_CHECK_HEADER(OpenGL/gl.h,
@@ -320,7 +318,7 @@ case "$OSTYPE" in
              if test "x$enable_offscreen" != "xyes"; then
               AC_CHECK_HEADER(GLUT/glut.h, [AC_DEFINE(HAVE_LIBGLUT, 1,
 		   [Define if you have the `GLUT' library.])
-AC_COMPILE_IFELSE(AC_LANG_PROGRAM([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #ifndef GLU_TESS_CALLBACK_TRIPLEDOT
@@ -329,11 +327,9 @@ void f(void) {
   gluNurbsCallback(gluNewNurbsRenderer(),GLU_NURBS_BEGIN,(_GLUfuncptr) glBegin);
 }
 #endif
-]),[AC_DEFINE(GLU_TESS_CALLBACK_TRIPLEDOT, 1, [Define if gluNurbsCallback expects a variadic function.])])
+])],[AC_DEFINE(GLU_TESS_CALLBACK_TRIPLEDOT, 1, [Define if gluNurbsCallback expects a variadic function.])])
 			   LIBS=$LIBS"-framework GLUT -framework OpenGL -framework Cocoa"],
 				 AC_MSG_NOTICE([*** Could not find glut: will compile without OpenGL support ***]))
-	     else
-  	        AC_MSG_ERROR([*** Support for offscreen rendering not yet implemented in configure for darwin: I don't know how to check for osmesa ***])
 	     fi
         ;;                                 
      *) AC_CHECK_LIB([GL], [glDepthMask])
@@ -342,11 +338,12 @@ void f(void) {
 	if test "x$enable_offscreen" != "xyes"; then
 	  AC_CHECK_LIB([glut], [glutMainLoop],,
 		       AC_MSG_NOTICE([*** Could not find libglut: will compile without OpenGL support ***]))
-        else
-           AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
-			AC_MSG_NOTICE([*** Could not find libOSMesa: will compile without offscreen rendering support ***]))
         fi
 esac
+   if test "x$enable_offscreen" == "xyes"; then
+           AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
+			AC_MSG_NOTICE([*** Could not find libOSMesa: will compile without offscreen rendering support ***]))
+   fi
 fi
 
 # Checks for typedefs, structures, and compiler characteristics.
