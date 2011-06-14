@@ -197,6 +197,11 @@ AC_ARG_ENABLE(gc-full-debug,
  fi
 ])
 
+if test "$OSTYPE" = "cygwin"; then
+INCL=$INCL" -I/usr/include/tirpc"
+CPPFLAGS=$CPPFLAGS" $INCL"
+fi
+
 AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
 			   [Define if getopt.h is the GNU version]),
 			   getopt="getopt getopt1",)
