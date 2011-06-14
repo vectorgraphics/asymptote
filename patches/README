@@ -21,7 +21,7 @@ up-to-date with the official 2008/10/08 version. For convenience the
 patched version is also included as movie15_dvipdfmx.sty; it should be
 renamed to movie15.sty and installed in the local latex directory.
 
-The fixmem.reg patches the Microsoft Windows registry so that the cygwin1.dll
-library can allocate more than 384MB. It is applied automatically by the
-Asymptote setup.exe file but may also be applied manually:
+The file fixmem.reg patches the Microsoft Windows registry so that the
+cygwin1.dll library can allocate more than 384MB. It is applied
+automatically by the Asymptote setup.exe file but may also be applied manually:
 regedit/s fixmem.reg
