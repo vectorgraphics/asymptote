@@ -225,7 +225,7 @@ inline transform rotation(transform t)
   return rotate(atan2(z.gety(),z.getx()));
 } 
 
-// Remove the x and y components, so the new transform maps zero to zero.
+// Remove the x and y components, so that the new transform maps zero to zero.
 inline transform shiftless(transform t)
 {
   return transform(0, 0, t.getxx(), t.getxy(), t.getyx(), t.getyy());
@@ -237,10 +237,10 @@ inline transform shift(transform t)
   return transform(t.getx(), t.gety(), 1.0, 0, 0, 1.0);
 } 
 
-// Return the translational component of t.
+// Return the translational pair of t.
 inline pair shiftpair(transform t)
 {
-  return (t.getx(), t.gety());
+  return pair(t.getx(), t.gety());
 } 
 
 inline transform matrix(pair lb, pair rt)
