@@ -14,7 +14,7 @@
 #ifdef HAVE_GL
 
 #ifdef HAVE_LIBGLUT
-// For CYGWIN
+#ifdef __CYGWIN__
 #ifndef FGAPI
 #define FGAPI GLUTAPI
 #endif
@@ -26,6 +26,7 @@
 #endif
 #ifndef GLAPIENTRY
 #define GLAPIENTRY
+#endif
 #endif
 
 #define GLUT_BUILDING_LIB
