@@ -1003,7 +1003,8 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool animating=getSetting<bool>("animating");
   bool Wait=!interact::interactive || !View || animating;
   
-  if(glthread) {
+  bool offscreen=getSetting<bool>("offscreen");
+  if(glthread && !offscreen) {
 #ifdef HAVE_LIBPTHREAD
     if(gl::initialize) {
       gl::initialize=false;
@@ -1060,14 +1061,14 @@ bool picture::shipout3(const string& prefix, const string& format,
            background,nlights,lights,diffuse,ambient,specular,viewportlighting,
            View,oldpid);
 #if defined(HAVE_LIBPTHREAD) && defined(HAVE_LIBGLUT)
-  if(glthread && Wait) {
+  if(glthread && !offscreen && Wait) {
     pthread_cond_wait(&readySignal,&readyLock);
     pthread_mutex_unlock(&readyLock);
   }
   return true;
 #endif  // HAVE_LIBPTHREAD
 #else // HAVE_GL
-  reportError("Cannot render image; please install glut or osmesa, run ./configure [--enable-offscreen], and recompile");
+  reportError("Cannot render image; please install glut or osmesa, run ./configure, and recompile");
 #endif
   return false;
 }

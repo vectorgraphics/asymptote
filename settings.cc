@@ -1088,6 +1088,8 @@ void initSettings() {
                            "Antialiasing width for rasterized output", 2));
   addOption(new IntSetting("multisample", 0, "n",
                            "Multisampling width for screen images", 4));
+  addOption(new boolSetting("offscreen", 0,
+                            "Use offscreen rendering",false));
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
                             true));
