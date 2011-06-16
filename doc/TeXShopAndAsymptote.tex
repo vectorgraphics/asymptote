@@ -5,7 +5,6 @@
 \usepackage[parfill]{parskip}
 \usepackage{graphicx}
 \usepackage{amssymb}
-\usepackage{epstopdf}
 
 \title{Integrating Asymptote and TeXShop for Mac OS X}
 \author{Vishaal Rajani \& Cole Zmurchok \\ University of Alberta}
@@ -39,7 +38,6 @@ call \emph{asyEngine.engine}, is to navigate
 to \verb+~/Library/TeXShop/Engines+ and duplicate one of the
 existing \emph{.engine} files. Open the duplicate file and delete the code
 there. Type the following:
-\newpage
 \begin{verbatim}
 #!/bin/sh
 location=$(dirname "$1")
