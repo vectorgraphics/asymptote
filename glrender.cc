@@ -65,25 +65,27 @@ using camp::bbox3;
 using settings::getSetting;
 using settings::Setting;
 
+bool Iconify=false;
+bool Menu;
+bool Motion;
+bool ignorezoom;
+int Fitscreen;
+
+bool queueExport=false;
+bool readyAfterExport=false;
+
 #ifdef HAVE_LIBGLUT
 timeval lasttime;
 timeval lastframetime;
-bool Iconify=false;
 int oldWidth,oldHeight;
 
 bool Xspin,Yspin,Zspin;
 bool Animate;
 bool Step;
-bool Menu;
-bool Motion;
-bool ignorezoom;
 
-int Fitscreen;
 int minimumsize=50; // Minimum initial rendering window width and height
 
-bool queueExport=false;
 bool queueScreen=false;
-bool readyAfterExport=false;
 
 int x0,y0;
 string Action;
@@ -155,7 +157,7 @@ OSMesaContext ctx;
 unsigned char *osmesa_buffer;
 #endif
 
-#if defined(HAVE_LIBPTHREAD) && defined(HAVE_LIBGLUT)
+#ifdef HAVE_LIBPTHREAD
 pthread_t mainthread;
 
 pthread_cond_t initSignal=PTHREAD_COND_INITIALIZER;
@@ -291,7 +293,7 @@ void setProjection()
 
 void drawscene(double Width, double Height)
 {
-#if defined(HAVE_LIBPTHREAD) && defined(HAVE_LIBGLUT)
+#ifdef HAVE_LIBPTHREAD
   static bool first=true;
   if(glthread && first && !getSetting<bool>("offscreen")) {
     wait(initSignal,initLock);
@@ -389,7 +391,7 @@ void Export()
     glutPostRedisplay();
 #endif
 
-#if defined(HAVE_LIBPTHREAD) && defined(HAVE_LIBGLUT)
+#ifdef HAVE_LIBPTHREAD
   if(glthread && readyAfterExport && !offscreen) {
     readyAfterExport=false;        
     endwait(readySignal,readyLock);
@@ -619,17 +621,6 @@ void updateHandler(int)
     glutShowWindow();
     glutShowWindow(); // Call twice to work around apparent freeglut bug.
   }
-}
-
-void exportHandler(int=0)
-{
-  bool offscreen=getSetting<bool>("offscreen");
-  if(!Iconify && !offscreen)
-    glutShowWindow();
-  readyAfterExport=true;
-  Export();
-  if(!Iconify && !offscreen)
-    glutHideWindow();
 }
 
 void reshape(int width, int height)
@@ -1241,6 +1232,21 @@ void setosize()
 #endif
 // end of GUI-related functions
 
+void exportHandler(int=0)
+{
+#ifdef HAVE_LIBGLUT  
+  bool offscreen=getSetting<bool>("offscreen");
+  if(!Iconify && !offscreen)
+    glutShowWindow();
+#endif  
+  readyAfterExport=true;
+  Export();
+#ifdef HAVE_LIBGLUT  
+  if(!Iconify && !offscreen)
+    glutHideWindow();
+#endif  
+}
+
 static bool glinitialize=true;
 
 projection camera(bool user)
@@ -1457,7 +1463,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
     if(maxTileWidth <= 0) maxTileWidth=screenWidth;
     if(maxTileHeight <= 0) maxTileHeight=screenHeight;
+#ifdef HAVE_LIBGLUT    
     setosize();
+#endif
     
     if(View && settings::verbose > 1) 
       cout << "Rendering " << stripDir(prefix) << " as "
@@ -1466,11 +1474,13 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 
   bool havewindow=initialized && glthread && !offscreen;
   
+#ifdef HAVE_LIBGLUT    
   unsigned int displaymode=GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH;
   
   int buttons[]={GLUT_LEFT_BUTTON,GLUT_MIDDLE_BUTTON,GLUT_RIGHT_BUTTON};
   string buttonnames[]={"left","middle","right"};
   size_t nbuttons=sizeof(buttons)/sizeof(int);
+#endif  
   
 #ifdef HAVE_LIBPTHREAD
   if(glthread && initializedView && !offscreen) {
@@ -1481,8 +1491,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   }
 #endif    
   
-  if(!offscreen) {
 #ifdef HAVE_LIBGLUT
+  if(!offscreen) {
     if(View) {
       int x,y;
       if(havewindow)

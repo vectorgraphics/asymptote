@@ -966,7 +966,7 @@ Communicate com;
 void glrenderWrapper()
 {
 #ifdef HAVE_GL  
-#if defined(HAVE_LIBPTHREAD) && defined(HAVE_LIBGLUT)
+#ifdef HAVE_LIBPTHREAD
   wait(initSignal,initLock);
   endwait(initSignal,initLock);
 #endif  
@@ -986,11 +986,17 @@ bool picture::shipout3(const string& prefix, const string& format,
 {
   if(getSetting<bool>("interrupt"))
     return true;
-#ifdef HAVE_GL
+  
+  bool offscreen=getSetting<bool>("offscreen");
+  
+#ifndef HAVE_GLUT
+  if(!offscreen)
+    camp::reportError("to support onscreen rendering, please install glut library, run ./configure, and recompile");
+#endif
   
 #ifndef HAVE_LIBOSMESA
-  if(getSetting<bool>("offscreen"))
-    camp::reportError("offscreen rendering requires OSMesa library.");
+  if(offscreen)
+    camp::reportError("to support offscreen rendering; please install OSMesa library, run ./configure --enable-offscreen, and recompile");
 #endif
   
   bounds3();
@@ -1004,12 +1010,10 @@ bool picture::shipout3(const string& prefix, const string& format,
     getSetting<string>("outformat") : format;
   bool View=settings::view() && view;
   static int oldpid=0;
-
-#ifdef HAVE_LIBGLUT
   bool animating=getSetting<bool>("animating");
   bool Wait=!interact::interactive || !View || animating;
-  
-  bool offscreen=getSetting<bool>("offscreen");
+
+#ifdef HAVE_LIBGLUT
   if(glthread && !offscreen) {
 #ifdef HAVE_LIBPTHREAD
     if(gl::initialize) {
@@ -1051,7 +1055,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     }
     if(Wait)
       pthread_mutex_lock(&readyLock);
-#endif // HAVE_LIBPTHREAD
+#endif
   } else {
     int pid=fork();
     if(pid == -1)
@@ -1062,20 +1066,18 @@ bool picture::shipout3(const string& prefix, const string& format,
       return true;
     }
   }
-#endif // HAVE_LIBGLUT
+#endif
   glrender(prefix,this,outputformat,width,height,angle,zoom,m,M,shift,t,
            background,nlights,lights,diffuse,ambient,specular,viewportlighting,
            View,oldpid);
-#if defined(HAVE_LIBPTHREAD) && defined(HAVE_LIBGLUT)
+#ifdef HAVE_LIBPTHREAD
   if(glthread && !offscreen && Wait) {
     pthread_cond_wait(&readySignal,&readyLock);
     pthread_mutex_unlock(&readyLock);
   }
   return true;
-#endif  // HAVE_LIBPTHREAD
-#else // HAVE_GL
-  reportError("Cannot render image; please install glut or OSMesa, run ./configure, and recompile");
 #endif
+
   return false;
 }
 
