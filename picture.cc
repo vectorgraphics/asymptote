@@ -989,7 +989,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   
   bool offscreen=getSetting<bool>("offscreen");
   
-#ifndef HAVE_GLUT
+#ifndef HAVE_LIBGLUT
   if(!offscreen)
     camp::reportError("to support onscreen rendering, please install glut library, run ./configure, and recompile");
 #endif
