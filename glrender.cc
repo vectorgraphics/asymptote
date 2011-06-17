@@ -1315,15 +1315,15 @@ void init_osmesa()
          << screenHeight << "x4x" << sizeof(GLubyte) << endl;
   osmesa_buffer=new unsigned char[screenWidth*screenHeight*4*sizeof(GLubyte)];
   if(!osmesa_buffer)
-    camp::reportError("Alloc image buffer failed!");
+    camp::reportError("Cannot allocate image buffer.");
 
   ctx = OSMesaCreateContextExt(OSMESA_RGBA,16,0,0,NULL);
   if(!ctx)
-    camp::reportError("OSMesaCreateContext failed!");
+    camp::reportError("OSMesaCreateContext failed.");
 
   if(!OSMesaMakeCurrent(ctx,osmesa_buffer,GL_UNSIGNED_BYTE,
                         screenWidth,screenHeight ))
-    camp::reportError("OSMesaMakeCurrent failed!");
+    camp::reportError("OSMesaMakeCurrent failed.");
 
   int z=0, s=0, a=0;
   glGetIntegerv(GL_DEPTH_BITS,&z);
@@ -1345,6 +1345,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
               double *diffuse, double *ambient, double *specular,
               bool Viewportlighting, bool view, int oldpid)
 {
+  bool offscreen=getSetting<bool>("offscreen");
+
 #ifndef __CYGWIN__    
   Iconify=getSetting<bool>("iconify");
 #endif
@@ -1394,8 +1396,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   pair maxtile=getSetting<pair>("maxtile");
   maxTileWidth=(int) maxtile.getx();
   maxTileHeight=(int) maxtile.gety();
-
-  bool offscreen=getSetting<bool>("offscreen");
 
   if(offscreen) {
     if(maxTileWidth <= 0) maxTileWidth=1024;

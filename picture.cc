@@ -1,4 +1,4 @@
-/*****
+ /*****
  * picture.cc
  * Andy Hammerlindl 2002/06/06
  *
@@ -987,6 +987,12 @@ bool picture::shipout3(const string& prefix, const string& format,
   if(getSetting<bool>("interrupt"))
     return true;
 #ifdef HAVE_GL
+  
+#ifndef HAVE_LIBOSMESA
+  if(getSetting<bool>("offscreen"))
+    camp::reportError("offscreen rendering requires OSMesa library.");
+#endif
+  
   bounds3();
   
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
@@ -1068,7 +1074,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   return true;
 #endif  // HAVE_LIBPTHREAD
 #else // HAVE_GL
-  reportError("Cannot render image; please install glut or osmesa, run ./configure, and recompile");
+  reportError("Cannot render image; please install glut or OSMesa, run ./configure, and recompile");
 #endif
   return false;
 }
