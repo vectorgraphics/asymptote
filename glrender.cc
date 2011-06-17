@@ -21,12 +21,6 @@
 #ifndef FGAPIENTRY
 #define FGAPIENTRY APIENTRY
 #endif
-#ifndef GLAPI
-#define GLAPI extern
-#endif
-#ifndef GLAPIENTRY
-#define GLAPIENTRY
-#endif
 #endif
 
 #define GLUT_BUILDING_LIB
