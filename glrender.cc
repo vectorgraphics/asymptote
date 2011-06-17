@@ -1320,16 +1320,22 @@ void init_osmesa()
     cout << "Allocating osmesa_buffer of size " << screenWidth << "x"
          << screenHeight << "x4x" << sizeof(GLubyte) << endl;
   osmesa_buffer=new unsigned char[screenWidth*screenHeight*4*sizeof(GLubyte)];
-  if(!osmesa_buffer)
-    camp::reportError("Cannot allocate image buffer.");
+  if(!osmesa_buffer) {
+    cerr << "Cannot allocate image buffer." << endl;
+    exit(-1);
+  }
 
   ctx = OSMesaCreateContextExt(OSMESA_RGBA,16,0,0,NULL);
-  if(!ctx)
-    camp::reportError("OSMesaCreateContext failed.");
-
+  if(!ctx) {
+    cerr << "OSMesaCreateContext failed." << endl;
+    exit(-1);
+  }
+  
   if(!OSMesaMakeCurrent(ctx,osmesa_buffer,GL_UNSIGNED_BYTE,
-                        screenWidth,screenHeight ))
-    camp::reportError("OSMesaMakeCurrent failed.");
+                        screenWidth,screenHeight )) {
+    cerr << "OSMesaMakeCurrent failed." << endl;
+    exit(-1);
+  }
 
   int z=0, s=0, a=0;
   glGetIntegerv(GL_DEPTH_BITS,&z);
@@ -1338,8 +1344,11 @@ void init_osmesa()
   if(settings::verbose > 1) 
     cout << "Offscreen context settings: Depth=" << z << " Stencil=" << s 
          << " Accum=" << a << endl;
-  if(z == 0)
-    camp::reportError("Error initializing offscreen context: Depth=0");
+  
+  if(z <= 0) {
+    cerr << "Error initializing offscreen context: Depth=" << z << endl;
+    exit(-1);
+  }
 #endif // HAVE_LIBOSMESA
 }
 
