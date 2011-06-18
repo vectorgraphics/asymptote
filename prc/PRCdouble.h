@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 #include <cmath>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
