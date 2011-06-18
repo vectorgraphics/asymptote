@@ -1008,10 +1008,13 @@ bool picture::shipout3(const string& prefix, const string& format,
 
   const string outputformat=format.empty() ? 
     getSetting<string>("outformat") : format;
+  
+#ifdef HAVE_GL  
   bool View=settings::view() && view;
   static int oldpid=0;
   bool animating=getSetting<bool>("animating");
   bool Wait=!interact::interactive || !View || animating;
+#endif  
 
 #ifdef HAVE_LIBGLUT
   if(glthread && !offscreen) {
@@ -1067,6 +1070,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     }
   }
 #endif
+#ifdef HAVE_GL  
   glrender(prefix,this,outputformat,width,height,angle,zoom,m,M,shift,t,
            background,nlights,lights,diffuse,ambient,specular,viewportlighting,
            View,oldpid);
@@ -1076,6 +1080,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     pthread_mutex_unlock(&readyLock);
   }
   return true;
+#endif
 #endif
 
   return false;
