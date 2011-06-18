@@ -95,7 +95,7 @@ install: man faq install-man
 	cd png && $(MAKE) install
 	cd FAQ && $(MAKE) install
 
-install-prebuilt: install-man
+install-prebuilt: install-man options
 	touch png/asymptote.info
 	cd png && $(MAKE) install
 	cd FAQ && $(MAKE) install-prebuilt
