@@ -23,6 +23,7 @@ int stCOFDOECompare(const void* pcofdoe1,const void* pcofdoe2)
 }
 
 #ifdef WORDS_BIGENDIAN
+#ifndef HAVE_MEMRCHR
 void *memrchr(const void *buf,int c,size_t count)
 {
   unsigned char
@@ -35,6 +36,7 @@ void *memrchr(const void *buf,int c,size_t count)
 
                  return(NULL);
 }
+#endif
 #endif
 
 sCodageOfFrequentDoubleOrExponent acofdoe[NUMBEROFELEMENTINACOFDOE] =
