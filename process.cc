@@ -320,6 +320,15 @@ public:
   }
 };
 
+void printGreeting(bool interactive) {
+  if(!getSetting<bool>("quiet")) {
+    cout << "Welcome to " << PROGRAM << " version " << VERSION << SVN_REVISION;
+    if(interactive)
+      cout << " (to view the manual, type help)";
+    cout << endl;
+  }
+}
+
 class ifile : public itree {
   string filename;
   string outname;
@@ -351,6 +360,7 @@ public:
   }
 
   void process(bool purge=false) {
+    if(verbose > 1) printGreeting(false);
     try {
       init();
     } catch(handled_error) {
@@ -367,13 +377,6 @@ public:
     }
   }
 };
-
-void printGreeting() {
-  if(!getSetting<bool>("quiet"))
-    cout << "Welcome to " << PROGRAM << " version " << VERSION << SVN_REVISION
-         << " (to view the manual, type help)" << endl;
-}
-
 
 // Add a semi-colon terminator, if one is not there.
 string terminateLine(const string line) {
@@ -825,7 +828,7 @@ public:
   }
 
   void process() {
-    printGreeting();
+    printGreeting(true);
     interact::init_interactive();
     try {
       setPath("",true);
