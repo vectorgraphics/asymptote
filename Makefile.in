@@ -184,8 +184,7 @@ asy-keywords.el: asy
           grep -v three_\* | grep -v featpost3D | xargs $(ASY) -l >> asy.list
 	perl ./asy-list.pl asy.list @VERSION@
 
-install: asy-keywords.el install-man install-texhash 
-	${INSTALL} -p -m 644 asy-keywords.el $(asydir)
+install: install-texhash install-man
 
 install-all: install install-html
 
@@ -194,13 +193,14 @@ install-texhash: install-asy
 	  texhash; \
 	fi
 
-install-asy: asy sty
+install-asy: asy sty asy-keywords.el
 	${INSTALL} -d $(bindir) $(asydir) $(GUIdir) $(exampledir) \
           $(animationsdir)
 	-${INSTALL} -d $(latexdir)
 	-${INSTALL} -d $(contextdir)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
-	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) $(asydir)
+	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) \
+		asy-keywords.el $(asydir)
 	${INSTALL} -p -m 755 GUI/*.py $(GUIdir)
 	ln -sf @datadir@/asymptote/GUI/xasy.py $(bindir)/$(XNAME)
 	${INSTALL} -p -m 644 examples/*.asy $(addprefix examples/,$(EXEXTRA)) \
