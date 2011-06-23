@@ -184,7 +184,7 @@ asy-keywords.el: asy
           grep -v three_\* | grep -v featpost3D | xargs $(ASY) -l >> asy.list
 	perl ./asy-list.pl asy.list @VERSION@
 
-install: install-texhash install-man
+install: asy-keywords.el install-texhash install-man
 
 install-all: install install-html
 
@@ -193,7 +193,7 @@ install-texhash: install-asy
 	  texhash; \
 	fi
 
-install-asy: asy sty asy-keywords.el
+install-asy: asy sty
 	${INSTALL} -d $(bindir) $(asydir) $(GUIdir) $(exampledir) \
           $(animationsdir)
 	-${INSTALL} -d $(latexdir)
