@@ -6349,7 +6349,7 @@ void dot(picture pic = currentpicture, triangle t, pen p = currentpen)
 /*<asyxml><function type = "point" signature = "inverse(real k, point, point)"><code></asyxml>*/
 point inverse(real k, point A, point M)
 {/*<asyxml></code><documentation>Return the inverse point of 'M' with respect to point A and inversion radius 'k'.</documentation></function></asyxml>*/
-  return A + k^2/conj(M - A);
+  return A + k/conj(M - A);
 }
 
 /*<asyxml><function type = "point" signature = "radicalcenter(circle, circle)"><code></asyxml>*/
