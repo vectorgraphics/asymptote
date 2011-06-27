@@ -4847,7 +4847,7 @@ struct arc {
   /*<asyxml></code><documentation>Implement oriented ellipse (included circle) arcs.
     All the calculus with this structure will be as exact as Asymptote can do.
     For a full precision, you must not cast 'arc' to 'path' excepted for drawing routines.
-    !</documentation><property type = "ellipse" signature="el"><code></asyxml>*/
+    </documentation><property type = "ellipse" signature="el"><code></asyxml>*/
   ellipse el;/*<asyxml></code><documentation>The support of the arc.</documentation></property><property type = "real" signature="angle0"><code></asyxml>*/
   restricted real angle0 = 0;/*<asyxml></code><documentation>Internal use: rotating a circle does not modify the origin point,this variable stocks the eventual angle rotation. This value is not used for ellipses which are not circles.</documentation></property><property type = "real" signature="angle1,angle2"><code></asyxml>*/
   restricted  real angle1, angle2;/*<asyxml></code><documentation>Values (in degrees) in ]-360, 360[.</documentation></property><property type = "bool" signature="direction"><code></asyxml>*/
