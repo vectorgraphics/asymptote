@@ -32,10 +32,10 @@ import math;
 import markers;
 // *=======================================================*
 // *........................HEADER.........................*
-/*<asyxml><variable type = "real" signature = "epsgeo"><code></asyxml>*/
+/*<asyxml><variable type="real" signature="epsgeo"><code></asyxml>*/
 real epsgeo = 10 * sqrt(realEpsilon);/*<asyxml></code><documentation>Variable used in the approximate calculations.</documentation></variable></asyxml>*/
 
-/*<asyxml><function type = "void" signature = "addMargins(picture, real, real, real, real)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="addMargins(picture,real,real,real,real)"><code></asyxml>*/
 void addMargins(picture pic = currentpicture,
                 real lmargin = 0, real bmargin = 0,
                 real rmargin = lmargin, real tmargin = bmargin,
@@ -67,13 +67,13 @@ real[] approximate(real[] T)
   return map(approximate, T);
 }
 
-/*<asyxml><function type = "real" signature = "binomial(real, real)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="binomial(real,real)"><code></asyxml>*/
 real binomial(real n, real k)
 {/*<asyxml></code><documentation>Return n!/((n - k)!*k!)</documentation></function></asyxml>*/
   return gamma(n + 1)/(gamma(n - k + 1) * gamma(k + 1));
 }
 
-/*<asyxml><function type = "real" signature = "rf(real, real, real)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="rf(real,real,real)"><code></asyxml>*/
 real rf(real x, real y, real z)
 {/*<asyxml></code><documentation>Computes Carlson's elliptic integral of the first kind.
    x, y, and z must be non negative, and at most one can be zero.</documentation></function></asyxml>*/
@@ -109,7 +109,7 @@ real rf(real x, real y, real z)
   return (1.0 + (C1 * e2 - C2 - C3 * e3) * e2 + C4 * e3)/sqrt(ave);
 }
 
-/*<asyxml><function type = "real" signature = "rd(real, real, real)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="rd(real,real,real)"><code></asyxml>*/
 real rd(real x, real y, real z)
 {/*<asyxml></code><documentation>Computes Carlson's elliptic integral of the second kind.
    x and y must be positive, and at most one can be zero.
@@ -156,7 +156,7 @@ real rd(real x, real y, real z)
                     +delz * (C2 * ee + delz * (-C3 * ec + delz * C4 * ea)))/(ave * sqrt(ave));
 }
 
-/*<asyxml><function type = "real" signature = "elle(real, real)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="elle(real,real)"><code></asyxml>*/
 real elle(real phi, real k)
 {/*<asyxml></code><documentation>Legendre elliptic integral of the 2nd kind,
    evaluated using Carlson's functions RD and RF.
@@ -185,7 +185,7 @@ real elle(real phi, real k)
   return result;
 }
 
-/*<asyxml><function type = "pair[]" signature = "intersectionpoints(pair, pair, real, real, real, real, real, real)"><code></asyxml>*/
+/*<asyxml><function type="pair[]" signature="intersectionpoints(pair,pair,real,real,real,real,real,real)"><code></asyxml>*/
 pair[] intersectionpoints(pair A, pair B,
                           real a, real b, real c, real d, real f, real g)
 {/*<asyxml></code><documentation>Intersection points with the line (AB) and the quadric curve
@@ -215,7 +215,7 @@ pair[] intersectionpoints(pair A, pair B,
   return op;
 }
 
-/*<asyxml><function type = "pair[]" signature = "intersectionpoints(pair, pair, real[])"><code></asyxml>*/
+/*<asyxml><function type="pair[]" signature="intersectionpoints(pair,pair,real[])"><code></asyxml>*/
 pair[] intersectionpoints(pair A, pair B, real[] equation)
 {/*<asyxml></code><documentation>Return the intersection points of the line AB with
    the conic whose an equation is
@@ -241,24 +241,24 @@ typedef real dot(pair, pair);/*<asyxml></code><documentation>Function type to ca
 /*<asyxml><typedef type = "polar" return = "pair" params = "real, real"><code></asyxml>*/
 typedef pair polar(real, real);/*<asyxml></code><documentation>Function type to calculate the coordinates from the polar coordinates.</documentation></typedef></asyxml>*/
 
-/*<asyxml><struct signature = "coordsys"><code></asyxml>*/
+/*<asyxml><struct signature="coordsys"><code></asyxml>*/
 struct coordsys
 {/*<asyxml></code><documentation>This structure represents a coordinate system in the plane.</documentation></asyxml>*/
-  /*<asyxml><method type = "pair" signature = "relativetodefault(pair)"><code></asyxml>*/
+  /*<asyxml><method type = "pair" signature="relativetodefault(pair)"><code></asyxml>*/
   restricted convert relativetodefault = new pair(pair m){return m;};/*<asyxml></code><documentation>Convert a pair given relatively to this coordinate system to
                                                                      the pair relatively to the default coordinate system.</documentation></method></asyxml>*/
-  /*<asyxml><method type = "pair" signature = "defaulttorelativet(pair)"><code></asyxml>*/
+  /*<asyxml><method type = "pair" signature="defaulttorelativet(pair)"><code></asyxml>*/
   restricted convert defaulttorelative = new pair(pair m){return m;};/*<asyxml></code><documentation>Convert a pair given relatively to the default coordinate system to
                                                                      the pair relatively to this coordinate system.</documentation></method></asyxml>*/
-  /*<asyxml><method type = "real" signature = "dot(pair, pair)"><code></asyxml>*/
+  /*<asyxml><method type = "real" signature="dot(pair,pair)"><code></asyxml>*/
   restricted dot dot = new real(pair m, pair n){return dot(m, n);};/*<asyxml></code><documentation>Return the dot product of this coordinate system.</documentation></method></asyxml>*/
-  /*<asyxml><method type = "real" signature = "abs(pair)"><code></asyxml>*/
+  /*<asyxml><method type = "real" signature="abs(pair)"><code></asyxml>*/
   restricted abs abs = new real(pair m){return abs(m);};/*<asyxml></code><documentation>Return the modulus of a pair in this coordinate system.</documentation></method></asyxml>*/
-  /*<asyxml><method type = "pair" signature = "polar(real, real)"><code></asyxml>*/
+  /*<asyxml><method type = "pair" signature="polar(real,real)"><code></asyxml>*/
   restricted polar polar = new pair(real r, real a){return (r * cos(a), r * sin(a));};/*<asyxml></code><documentation>Polar coordinates routine of this coordinate system.</documentation></method></asyxml>*/
-  /*<asyxml><property type = "pair" signature = "O, i, j"><code></asyxml>*/
+  /*<asyxml><property type = "pair" signature="O,i,j"><code></asyxml>*/
   restricted pair O = (0, 0), i = (1, 0), j = (0, 1);/*<asyxml></code><documentation>Origin and units vector.</documentation></property></asyxml>*/
-  /*<asyxml><method type = "void" signature = "init(convert, convert, polar, dot)"><code></asyxml>*/
+  /*<asyxml><method type = "void" signature="init(convert,convert,polar,dot)"><code></asyxml>*/
   void init(convert rtd, convert dtr,
             polar polar, dot dot)
   {/*<asyxml></code><documentation>The default constructor of the coordinate system.</documentation></method></asyxml>*/
@@ -273,13 +273,13 @@ struct coordsys
   }
 }/*<asyxml></struct></asyxml>*/
 
-/*<asyxml><operator type = "bool" signature = "==(coordsys, coordsys)"><code></asyxml>*/
+/*<asyxml><operator type = "bool" signature="==(coordsys,coordsys)"><code></asyxml>*/
 bool operator ==(coordsys c1, coordsys c2)
 {/*<asyxml></code><documentation>Return true iff the coordinate system have the same origin and units vector.</documentation></operator></asyxml>*/
   return c1.O == c2.O && c1.i == c2.i && c1.j == c2.j;
 }
 
-/*<asyxml><function type = "coordsys" signature = "cartesiansystem(pair, pair, pair)"><code></asyxml>*/
+/*<asyxml><function type="coordsys" signature="cartesiansystem(pair,pair,pair)"><code></asyxml>*/
 coordsys cartesiansystem(pair O = (0, 0), pair i, pair j)
 {/*<asyxml></code><documentation>Return the Cartesian coordinate system (O, i, j).</documentation></function></asyxml>*/
   coordsys R;
@@ -322,7 +322,7 @@ coordsys cartesiansystem(pair O = (0, 0), pair i, pair j)
 }
 
 
-/*<asyxml><function type = "void" signature = "show(picture, Label, Label, Label, coordsys, pen, pen, pen, pen, pen)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="show(picture,Label,Label,Label,coordsys,pen,pen,pen,pen,pen)"><code></asyxml>*/
 void show(picture pic = currentpicture, Label lo = "$O$",
           Label li = "$\vec{\imath}$",
           Label lj = "$\vec{\jmath}$",
@@ -347,7 +347,7 @@ void show(picture pic = currentpicture, Label lo = "$O$",
   label(pic, lo, O);
 }
 
-/*<asyxml><operator type = "pair" signature = "/(pair, coordsys)"><code></asyxml>*/
+/*<asyxml><operator type = "pair" signature="/(pair,coordsys)"><code></asyxml>*/
 pair operator /(pair p, coordsys R)
 {/*<asyxml></code><documentation>Return the xy - coordinates of 'p' relatively to
    the coordinate system 'R'.
@@ -355,7 +355,7 @@ pair operator /(pair p, coordsys R)
   return R.defaulttorelative(p);
 }
 
-/*<asyxml><operator type = "pair" signature = "*(coordsys, pair)"><code></asyxml>*/
+/*<asyxml><operator type = "pair" signature="*(coordsys,pair)"><code></asyxml>*/
 pair operator *(coordsys R, pair p)
 {/*<asyxml></code><documentation>Return the coordinates of 'p' given in the
    xy - coordinates 'R'.
@@ -363,7 +363,7 @@ pair operator *(coordsys R, pair p)
   return R.relativetodefault(p);
 }
 
-/*<asyxml><operator type = "path" signature = "*(coordsys, path)"><code></asyxml>*/
+/*<asyxml><operator type = "path" signature="*(coordsys,path)"><code></asyxml>*/
 path operator *(coordsys R, path g)
 {/*<asyxml></code><documentation>Return the reconstructed path applying R * pair to each node, pre and post control point of 'g'.</documentation></operator></asyxml>*/
   guide og = R * point(g, 0);
@@ -381,8 +381,8 @@ path operator *(coordsys R, path g)
   return og;
 }
 
-/*<asyxml><operator type = "coordsys" signature = "*(transform, coordsys)"><code></asyxml>*/
-coordsys operator *(transform t, coordsys R)
+/*<asyxml><operator type = "coordsys" signature="*(transform,coordsys)"><code></asyxml>*/
+coordsys operator *(transform t,coordsys R)
 {/*<asyxml></code><documentation>Provide transform * coordsys.
    Note that shiftless(t) is applied to R.i and R.j.</documentation></operator></asyxml>*/
   coordsys oc;
@@ -390,21 +390,21 @@ coordsys operator *(transform t, coordsys R)
   return oc;
 }
 
-/*<asyxml><constant type = "coordsys" signature = "defaultcoordsys"><code></asyxml>*/
+/*<asyxml><constant type = "coordsys" signature="defaultcoordsys"><code></asyxml>*/
 restricted coordsys defaultcoordsys = cartesiansystem(0, (1, 0), (0, 1));/*<asyxml></code><documentation>One can always refer to the default coordinate system using this constant.</documentation></constant></asyxml>*/
-/*<asyxml><variable type = "coordsys" signature = "currentcoordsys"><code></asyxml>*/
+/*<asyxml><variable type="coordsys" signature="currentcoordsys"><code></asyxml>*/
 coordsys currentcoordsys = defaultcoordsys;/*<asyxml></code><documentation>The coordinate system used by default.</documentation></variable></asyxml>*/
 
-/*<asyxml><struct signature = "point"><code></asyxml>*/
+/*<asyxml><struct signature="point"><code></asyxml>*/
 struct point
 {/*<asyxml></code><documentation>This structure replaces the pair to embed its coordinate system.
    For example, if 'P = point(cartesiansystem((1, 2), i, j), (0, 0))',
    P is equal to the pair (1, 2).</documentation></asyxml>*/
-  /*<asyxml><property type = "coordsys" signature = "coordsys"><code></asyxml>*/
-  coordsys coordsys;/*<asyxml></code><documentation>The coordinate system of this point.</documentation></property><property type = "pair" signature = "coordinates"><code></asyxml>*/
-  restricted pair coordinates;/*<asyxml></code><documentation>The coordinates of this point relatively to the coordinate system 'coordsys'.</documentation></property><property type = "real" signature = "x, y"><code></asyxml>*/
+  /*<asyxml><property type = "coordsys" signature="coordsys"><code></asyxml>*/
+  coordsys coordsys;/*<asyxml></code><documentation>The coordinate system of this point.</documentation></property><property type = "pair" signature="coordinates"><code></asyxml>*/
+  restricted pair coordinates;/*<asyxml></code><documentation>The coordinates of this point relatively to the coordinate system 'coordsys'.</documentation></property><property type = "real" signature="x, y"><code></asyxml>*/
   restricted real x, y;/*<asyxml></code><documentation>The xpart and the ypart of 'coordinates'.</documentation></property></asyxml>*/
-  /*<asyxml><method type = "" signature = "init(coordsys, pair)"><code><property type = "real" signature = "m"><code></asyxml>*/
+  /*<asyxml><method type = "" signature="init(coordsys,pair)"><code><property type = "real" signature="m"><code></asyxml>*/
   real m = 1;/*<asyxml></code><documentation>Used to cast mass<->point.</documentation></property></asyxml>*/
   void init(coordsys R, pair coordinates, real mass)
   {/*<asyxml></code><documentation>The constructor.</documentation></method></asyxml>*/
@@ -416,7 +416,7 @@ struct point
   }
 }/*<asyxml></struct></asyxml>*/
 
-/*<asyxml><function type = "point" signature = "point(coordsys, pair, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(coordsys,pair,real)"><code></asyxml>*/
 point point(coordsys R, pair p, real m = 1)
 {/*<asyxml></code><documentation>Return the point which has the coodinates 'p' in the
    coordinate system 'R' and the mass 'm'.</documentation></function></asyxml>*/
@@ -425,7 +425,7 @@ point point(coordsys R, pair p, real m = 1)
   return op;
 }
 
-/*<asyxml><function type = "point" signature = "point(explicit pair, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(explicit pair,real)"><code></asyxml>*/
 point point(explicit pair p, real m)
 {/*<asyxml></code><documentation>Return the point which has the coodinates 'p' in the current
    coordinate system and the mass 'm'.</documentation></function></asyxml>*/
@@ -434,7 +434,7 @@ point point(explicit pair p, real m)
   return op;
 }
 
-/*<asyxml><function type = "point" signature = "point(coordsys, explicit point, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(coordsys,explicit point,real)"><code></asyxml>*/
 point point(coordsys R, explicit point M, real m = M.m)
 {/*<asyxml></code><documentation>Return the point of 'R' which has the coordinates of 'M' and the mass 'm'.
    Do not confuse this routine with the further routine 'changecoordsys'.</documentation></function></asyxml>*/
@@ -443,7 +443,7 @@ point point(coordsys R, explicit point M, real m = M.m)
   return op;
 }
 
-/*<asyxml><function type = "point" signature = "changecoordsys(coordsys, point)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="changecoordsys(coordsys,point)"><code></asyxml>*/
 point changecoordsys(coordsys R, point M)
 {/*<asyxml></code><documentation>Return the point 'M' in the coordinate system 'coordsys'.
    In other words, the returned point marks the same plot as 'M' does.</documentation></function></asyxml>*/
@@ -453,13 +453,13 @@ point changecoordsys(coordsys R, point M)
   return op;
 }
 
-/*<asyxml><function type = "pair" signature = "pair coordinates(point)"><code></asyxml>*/
+/*<asyxml><function type="pair" signature="pair coordinates(point)"><code></asyxml>*/
 pair coordinates(point M)
 {/*<asyxml></code><documentation>Return the coordinates of 'M' in its coordinate system.</documentation></function></asyxml>*/
   return M.coordinates;
 }
 
-/*<asyxml><function type = "bool" signature = "bool samecoordsys(bool...point[])"><code></asyxml>*/
+/*<asyxml><function type="bool" signature="bool samecoordsys(bool...point[])"><code></asyxml>*/
 bool samecoordsys(bool warn = true ... point[] M)
 {/*<asyxml></code><documentation>Return true iff all the points have the same coordinate system.
    If 'warn' is true and the coordinate systems are different, a warning is sent.</documentation></function></asyxml>*/
@@ -477,7 +477,7 @@ The operation will be done relative to the default coordinate system.");
   return ret;
 }
 
-/*<asyxml><function type = "point[]" signature = "standardizecoordsys(coordsys, bool...point[])"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="standardizecoordsys(coordsys,bool...point[])"><code></asyxml>*/
 point[] standardizecoordsys(coordsys R = currentcoordsys,
                             bool warn = true ... point[] M)
 {/*<asyxml></code><documentation>Return the points with the same coordinate system 'R'.
@@ -490,13 +490,13 @@ point[] standardizecoordsys(coordsys R = currentcoordsys,
   return op;
 }
 
-/*<asyxml><operator type = "pair" signature = "cast(point)"><code></asyxml>*/
+/*<asyxml><operator type = "pair" signature="cast(point)"><code></asyxml>*/
 pair operator cast(point P)
 {/*<asyxml></code><documentation>Cast point to pair.</documentation></operator></asyxml>*/
   return P.coordsys.relativetodefault(P.coordinates);
 }
 
-/*<asyxml><operator type = "pair[]" signature = "cast(point[])"><code></asyxml>*/
+/*<asyxml><operator type = "pair[]" signature="cast(point[])"><code></asyxml>*/
 pair[] operator cast(point[] P)
 {/*<asyxml></code><documentation>Cast point[] to pair[].</documentation></operator></asyxml>*/
   pair[] op;
@@ -506,14 +506,14 @@ pair[] operator cast(point[] P)
   return op;
 }
 
-/*<asyxml><operator type = "point" signature = "cast(pair)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="cast(pair)"><code></asyxml>*/
 point operator cast(pair p)
 {/*<asyxml></code><documentation>Cast pair to point relatively to the current coordinate
    system 'currentcoordsys'.</documentation></operator></asyxml>*/
   return point(currentcoordsys, p);
 }
 
-/*<asyxml><operator type = "point[]" signature = "cast(pair[])"><code></asyxml>*/
+/*<asyxml><operator type = "point[]" signature="cast(pair[])"><code></asyxml>*/
 point[] operator cast(pair[] p)
 {/*<asyxml></code><documentation>Cast pair[] to point[] relatively to the current coordinate
    system 'currentcoordsys'.</documentation></operator></asyxml>*/
@@ -524,43 +524,43 @@ point[] operator cast(pair[] p)
   return op;
 }
 
-/*<asyxml><function type = "pair" signature = "locate(point)"><code></asyxml>*/
+/*<asyxml><function type="pair" signature="locate(point)"><code></asyxml>*/
 pair locate(point P)
 {/*<asyxml></code><documentation>Return the coordinates of 'P' in the default coordinate system.</documentation></function></asyxml>*/
   return P.coordsys * P.coordinates;
 }
 
-/*<asyxml><function type = "point" signature = "locate(pair)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="locate(pair)"><code></asyxml>*/
 point locate(pair p)
 {/*<asyxml></code><documentation>Return the point in the current coordinate system 'currentcoordsys'.</documentation></function></asyxml>*/
   return p; //automatic casting 'pair to point'.
 }
 
-/*<asyxml><operator type = "point" signature = "*(real, explicit point)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="*(real,explicit point)"><code></asyxml>*/
 point operator *(real x, explicit point P)
 {/*<asyxml></code><documentation>Multiply the coordinates (not the mass) of 'P' by 'x'.</documentation></operator></asyxml>*/
   return point(P.coordsys, x * P.coordinates, P.m);
 }
 
-/*<asyxml><operator type = "point" signature = "/(explicit point, real)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="/(explicit point,real)"><code></asyxml>*/
 point operator /(explicit point P, real x)
 {/*<asyxml></code><documentation>Divide the coordinates (not the mass) of 'P' by 'x'.</documentation></operator></asyxml>*/
   return point(P.coordsys, P.coordinates/x, P.m);
 }
 
-/*<asyxml><operator type = "point" signature = "/(real, explicit point)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="/(real,explicit point)"><code></asyxml>*/
 point operator /(real x, explicit point P)
 {/*<asyxml></code><documentation></documentation></operator></asyxml>*/
   return point(P.coordsys, x/P.coordinates, P.m);
 }
 
-/*<asyxml><operator type = "point" signature = "-(explicit point)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="-(explicit point)"><code></asyxml>*/
 point operator -(explicit point P)
 {/*<asyxml></code><documentation>-P. The mass is inchanged.</documentation></operator></asyxml>*/
   return point(P.coordsys, -P.coordinates, P.m);
 }
 
-/*<asyxml><operator type = "point" signature = "+(explicit point, explicit point)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="+(explicit point,explicit point)"><code></asyxml>*/
 point operator +(explicit point P1, explicit point P2)
 {/*<asyxml></code><documentation>Provide 'point + point'.
    If the two points haven't the same coordinate system, a warning is sent and the
@@ -571,7 +571,7 @@ point operator +(explicit point P1, explicit point P2)
   return point(R, P[0].coordinates + P[1].coordinates, P1.m + P2.m);
 }
 
-/*<asyxml><operator type = "point" signature = "+(explicit point, explicit pair)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="+(explicit point,explicit pair)"><code></asyxml>*/
 point operator +(explicit point P1, explicit pair p2)
 {/*<asyxml></code><documentation>Provide 'point + pair'.
    The pair 'p2' is supposed to be coordinates relatively to the coordinates system of 'P1'.
@@ -584,13 +584,13 @@ point operator +(explicit pair p1, explicit point p2)
   return p2 + p1;
 }
 
-/*<asyxml><operator type = "point" signature = "-(explicit point, explicit point)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="-(explicit point,explicit point)"><code></asyxml>*/
 point operator -(explicit point P1, explicit point P2)
 {/*<asyxml></code><documentation>Provide 'point - point'.</documentation></operator></asyxml>*/
   return P1 + (-P2);
 }
 
-/*<asyxml><operator type = "point" signature = "-(explicit point, explicit pair)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="-(explicit point,explicit pair)"><code></asyxml>*/
 point operator -(explicit point P1, explicit pair p2)
 {/*<asyxml></code><documentation>Provide 'point - pair'.
    The pair 'p2' is supposed to be coordinates relatively to the coordinates system of 'P1'.</documentation></operator></asyxml>*/
@@ -601,7 +601,7 @@ point operator -(explicit pair p1, explicit point P2)
   return p1 + (-P2);
 }
 
-/*<asyxml><operator type = "point" signature = "*(transform, explicit point)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="*(transform,explicit point)"><code></asyxml>*/
 point operator *(transform t, explicit point P)
 {/*<asyxml></code><documentation>Provide 'transform * point'.
    Note that the transforms scale, xscale, yscale and rotate are carried out relatively
@@ -614,7 +614,7 @@ point operator *(transform t, explicit point P)
   return point(R, (t * locate(P))/R, P.m);
 }
 
-/*<asyxml><operator type = "point" signature = "*(explicit point, explicit point)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="*(explicit point,explicit point)"><code></asyxml>*/
 point operator *(explicit point P1, explicit point P2)
 {/*<asyxml></code><documentation>Provide 'point * point'.
    The resulted mass is the mass of P2</documentation></operator></asyxml>*/
@@ -623,7 +623,7 @@ point operator *(explicit point P1, explicit point P2)
   return point(R, P[0].coordinates * P[1].coordinates, P2.m);
 }
 
-/*<asyxml><operator type = "point" signature = "*(explicit point, explicit pair)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="*(explicit point,explicit pair)"><code></asyxml>*/
 point operator *(explicit point P1, explicit pair p2)
 {/*<asyxml></code><documentation>Provide 'point * pair'.
    The pair 'p2' is supposed to be the coordinates of
@@ -637,31 +637,31 @@ point operator *(explicit pair p1, explicit point p2)
   return p2 * p1;
 }
 
-/*<asyxml><operator type = "bool" signature = "==(explicit point, explicit point)"><code></asyxml>*/
+/*<asyxml><operator type = "bool" signature="==(explicit point,explicit point)"><code></asyxml>*/
 bool operator ==(explicit point M, explicit point N)
 {/*<asyxml></code><documentation>Provide the test 'M == N' wish returns true iff MN < EPS</documentation></operator></asyxml>*/
   return abs(locate(M) - locate(N)) < EPS;
 }
 
-/*<asyxml><operator type = "bool" signature = "!=(explicit point, explicit point)"><code></asyxml>*/
+/*<asyxml><operator type = "bool" signature="!=(explicit point,explicit point)"><code></asyxml>*/
 bool operator !=(explicit point M, explicit point N)
 {/*<asyxml></code><documentation>Provide the test 'M != N' wish return true iff MN >= EPS</documentation></operator></asyxml>*/
   return !(M == N);
 }
 
-/*<asyxml><operator type = "guide" signature = "cast(point)"><code></asyxml>*/
+/*<asyxml><operator type = "guide" signature="cast(point)"><code></asyxml>*/
 guide operator cast(point p)
 {/*<asyxml></code><documentation>Cast point to guide.</documentation></operator></asyxml>*/
   return locate(p);
 }
 
-/*<asyxml><operator type = "path" signature = "cast(point)"><code></asyxml>*/
+/*<asyxml><operator type = "path" signature="cast(point)"><code></asyxml>*/
 path operator cast(point p)
 {/*<asyxml></code><documentation>Cast point to path.</documentation></operator></asyxml>*/
   return locate(p);
 }
 
-/*<asyxml><function type = "void" signature = "dot(picture, Label, explicit point, align, string, pen)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="dot(picture,Label,explicit point,align,string,pen)"><code></asyxml>*/
 void dot(picture pic = currentpicture, Label L, explicit point Z,
          align align = NoAlign,
          string format = defaultformat, pen p = currentpen)
@@ -678,56 +678,56 @@ void dot(picture pic = currentpicture, Label L, explicit point Z,
   add(pic, L);
 }
 
-/*<asyxml><function type = "real" signature = "abs(coordsys, pair)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="abs(coordsys,pair)"><code></asyxml>*/
 real abs(coordsys R, pair m)
 {/*<asyxml></code><documentation>Return the modulus |m| in the coordinate system 'R'.</documentation></function></asyxml>*/
   return R.abs(m);
 }
 
-/*<asyxml><function type = "real" signature = "abs(explicit point)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="abs(explicit point)"><code></asyxml>*/
 real abs(explicit point M)
 {/*<asyxml></code><documentation>Return the modulus |M| in its coordinate system.</documentation></function></asyxml>*/
   return M.coordsys.abs(M.coordinates);
 }
 
-/*<asyxml><function type = "real" signature = "length(explicit point)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="length(explicit point)"><code></asyxml>*/
 real length(explicit point M)
 {/*<asyxml></code><documentation>Return the modulus |M| in its coordinate system (same as 'abs').</documentation></function></asyxml>*/
   return M.coordsys.abs(M.coordinates);
 }
 
-/*<asyxml><function type = "point" signature = "conj(explicit point)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="conj(explicit point)"><code></asyxml>*/
 point conj(explicit point M)
 {/*<asyxml></code><documentation>Conjugate.</documentation></function></asyxml>*/
   return point(M.coordsys, conj(M.coordinates), M.m);
 }
 
-/*<asyxml><function type = "real" signature = "degrees(explicit point, coordsys, bool)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="degrees(explicit point,coordsys,bool)"><code></asyxml>*/
 real degrees(explicit point M, coordsys R = M.coordsys, bool warn = true)
 {/*<asyxml></code><documentation>Return the angle of M (in degrees) relatively to 'R'.</documentation></function></asyxml>*/
   return (degrees(locate(M) - R.O, warn) - degrees(R.i))%360;
 }
 
-/*<asyxml><function type = "real" signature = "angle(explicit point, coordsys, bool)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="angle(explicit point,coordsys,bool)"><code></asyxml>*/
 real angle(explicit point M, coordsys R = M.coordsys, bool warn = true)
 {/*<asyxml></code><documentation>Return the angle of M (in radians) relatively to 'R'.</documentation></function></asyxml>*/
   return radians(degrees(M, R, warn));
 }
 
-/*<asyxml><function type = "bool" signature = "finite(explicit point)"><code></asyxml>*/
+/*<asyxml><function type="bool" signature="finite(explicit point)"><code></asyxml>*/
 bool finite(explicit point p)
 {/*<asyxml></code><documentation>Avoid to compute 'finite((pair)(infinite_point))'.</documentation></function></asyxml>*/
   return finite(p.coordinates);
 }
 
-/*<asyxml><function type = "real" signature = "dot(point, point)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="dot(point,point)"><code></asyxml>*/
 real dot(point A, point B)
 {/*<asyxml></code><documentation>Return the dot product in the coordinate system of 'A'.</documentation></function></asyxml>*/
   point[] P = standardizecoordsys(A.coordsys, A, B);
   return P[0].coordsys.dot(P[0].coordinates, P[1].coordinates);
 }
 
-/*<asyxml><function type = "real" signature = "dot(point, explicit pair)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="dot(point,explicit pair)"><code></asyxml>*/
 real dot(point A, explicit pair B)
 {/*<asyxml></code><documentation>Return the dot product in the default coordinate system.
    dot(explicit pair, point) is also defined.</documentation></function></asyxml>*/
@@ -738,13 +738,13 @@ real dot(explicit pair A, point B)
   return dot(A, locate(B));
 }
 
-/*<asyxml><function type = "transforms" signature = "rotateO(real)"><code></asyxml>*/
+/*<asyxml><function type="transforms" signature="rotateO(real)"><code></asyxml>*/
 transform rotateO(real a)
 {/*<asyxml></code><documentation>Rotation around the origin of the current coordinate system.</documentation></function></asyxml>*/
   return rotate(a, currentcoordsys.O);
 };
 
-/*<asyxml><function type = "transform" signature = "projection(point, point)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="projection(point,point)"><code></asyxml>*/
 transform projection(point A, point B)
 {/*<asyxml></code><documentation>Return the orthogonal projection on the line (AB).</documentation></function></asyxml>*/
   pair dir = unit(locate(A) - locate(B));
@@ -760,7 +760,7 @@ transform projection(point A, point B)
   return t;
 }
 
-/*<asyxml><function type = "transform" signature = "projection(point, point, point, point, bool)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="projection(point,point,point,point,bool)"><code></asyxml>*/
 transform projection(point A, point B, point C, point D, bool safe = false)
 {/*<asyxml></code><documentation>Return the (CD) parallel projection on (AB).
    If 'safe = true' and (AB)//(CD) return the identity.
@@ -783,14 +783,14 @@ transform projection(point A, point B, point C, point D, bool safe = false)
   return t;
 }
 
-/*<asyxml><function type = "transform" signature = "scale(real, point)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="scale(real,point)"><code></asyxml>*/
 transform scale(real k, point M)
 {/*<asyxml></code><documentation>Homothety.</documentation></function></asyxml>*/
   pair P = locate(M);
   return shift(P) * scale(k) * shift(-P);
 }
 
-/*<asyxml><function type = "transform" signature = "xscale(real, point)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="xscale(real,point)"><code></asyxml>*/
 transform xscale(real k, point M)
 {/*<asyxml></code><documentation>xscale from 'M' relatively to the x - axis of the coordinate system of 'M'.</documentation></function></asyxml>*/
   pair P = locate(M);
@@ -798,7 +798,7 @@ transform xscale(real k, point M)
   return (shift(P) * rotate(a)) * xscale(k) * (rotate(-a) * shift(-P));
 }
 
-/*<asyxml><function type = "transform" signature = "yscale(real, point)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="yscale(real,point)"><code></asyxml>*/
 transform yscale(real k, point M)
 {/*<asyxml></code><documentation>yscale from 'M' relatively to the y - axis of the coordinate system of 'M'.</documentation></function></asyxml>*/
   pair P = locate(M);
@@ -806,7 +806,7 @@ transform yscale(real k, point M)
   return (shift(P) * rotate(a)) * yscale(k) * (rotate(-a) * shift(-P));
 }
 
-/*<asyxml><function type = "transform" signature = "scale(real, point, point, point, point, bool)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="scale(real,point,point,point,point,bool)"><code></asyxml>*/
 transform scale(real k, point A, point B, point C, point D, bool safe = false)
 {/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Affinit%C3%A9_%28math%C3%A9matiques%29"/>
    (help me for English translation...)
@@ -831,38 +831,38 @@ transform scale(real k, point A, point B, point C, point D, bool safe = false)
   return t;
 }
 
-/*<asyxml><function type = "transform" signature = "scaleO(real)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="scaleO(real)"><code></asyxml>*/
 transform scaleO(real x)
 {/*<asyxml></code><documentation>Homothety from the origin of the current coordinate system.</documentation></function></asyxml>*/
   return scale(x, (0, 0));
 }
 
-/*<asyxml><function type = "transform" signature = "xscaleO(real)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="xscaleO(real)"><code></asyxml>*/
 transform xscaleO(real x)
 {/*<asyxml></code><documentation>xscale from the origin and relatively to the current coordinate system.</documentation></function></asyxml>*/
   return scale(x, (0, 0), (0, 1), (0, 0), (1, 0));
 }
 
-/*<asyxml><function type = "transform" signature = "yscaleO(real)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="yscaleO(real)"><code></asyxml>*/
 transform yscaleO(real x)
 {/*<asyxml></code><documentation>yscale from the origin and relatively to the current coordinate system.</documentation></function></asyxml>*/
   return scale(x, (0, 0), (1, 0), (0, 0), (0, 1));
 }
 
-/*<asyxml><struct signature = "vector"><code></asyxml>*/
+/*<asyxml><struct signature="vector"><code></asyxml>*/
 struct vector
 {/*<asyxml></code><documentation>Like a point but casting to pair, adding etc does not take account
-   of the origin of the coordinate system.</documentation><property type = "point" signature = "v"><code></asyxml>*/
+   of the origin of the coordinate system.</documentation><property type = "point" signature="v"><code></asyxml>*/
   point v;/*<asyxml></code><documentation>Coordinates as a point (embed coordinate system and pair).</documentation></property></asyxml>*/
 }/*<asyxml></struct></asyxml>*/
 
-/*<asyxml><operator type = "point" signature = "cast(vector)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="cast(vector)"><code></asyxml>*/
 point operator cast(vector v)
 {/*<asyxml></code><documentation>Cast vector 'v' to point 'M' so that OM = v.</documentation></operator></asyxml>*/
   return v.v;
 }
 
-/*<asyxml><operator type = "vector" signature = "cast(pair)"><code></asyxml>*/
+/*<asyxml><operator type = "vector" signature="cast(pair)"><code></asyxml>*/
 vector operator cast(pair v)
 {/*<asyxml></code><documentation>Cast pair to vector relatively to the current coordinate
    system 'currentcoordsys'.</documentation></operator></asyxml>*/
@@ -871,7 +871,7 @@ vector operator cast(pair v)
   return ov;
 }
 
-/*<asyxml><operator type = "vector" signature = "cast(explicit point)"><code></asyxml>*/
+/*<asyxml><operator type = "vector" signature="cast(explicit point)"><code></asyxml>*/
 vector operator cast(explicit point v)
 {/*<asyxml></code><documentation>A point can be interpreted like a vector using the code
    '(vector)a_point'.</documentation></operator></asyxml>*/
@@ -880,19 +880,19 @@ vector operator cast(explicit point v)
   return ov;
 }
 
-/*<asyxml><operator type = "pair" signature = "cast(explicit vector)"><code></asyxml>*/
+/*<asyxml><operator type = "pair" signature="cast(explicit vector)"><code></asyxml>*/
 pair operator cast(explicit vector v)
 {/*<asyxml></code><documentation>Cast vector to pair (the coordinates of 'v' in the default coordinate system).</documentation></operator></asyxml>*/
   return locate(v.v) - v.v.coordsys.O;
 }
 
-/*<asyxml><operator type = "align" signature = "cast(vector)"><code></asyxml>*/
+/*<asyxml><operator type = "align" signature="cast(vector)"><code></asyxml>*/
 align operator cast(vector v)
 {/*<asyxml></code><documentation>Cast vector to align.</documentation></operator></asyxml>*/
   return (pair)v;
 }
 
-/*<asyxml><function type = "vector" signature = "vector(coordsys, pair)"><code></asyxml>*/
+/*<asyxml><function type="vector" signature="vector(coordsys, pair)"><code></asyxml>*/
 vector vector(coordsys R = currentcoordsys, pair v)
 {/*<asyxml></code><documentation>Return the vector of 'R' which has the coordinates 'v'.</documentation></function></asyxml>*/
   vector ov;
@@ -900,33 +900,33 @@ vector vector(coordsys R = currentcoordsys, pair v)
   return ov;
 }
 
-/*<asyxml><function type = "vector" signature = "vector(point)"><code></asyxml>*/
+/*<asyxml><function type="vector" signature="vector(point)"><code></asyxml>*/
 vector vector(point M)
 {/*<asyxml></code><documentation>Return the vector OM, where O is the origin of the coordinate system of 'M'.
    Useful to write 'vector(P - M);' instead of '(vector)(P - M)'.</documentation></function></asyxml>*/
   return M;
 }
 
-/*<asyxml><function type = "point" signature = "point(explicit vector)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(explicit vector)"><code></asyxml>*/
 point point(explicit vector u)
 {/*<asyxml></code><documentation>Return the point M so that OM = u, where O is the origin of the coordinate system of 'u'.</documentation></function></asyxml>*/
   return u.v;
 }
 
-/*<asyxml><function type = "pair" signature = "locate(explicit vector)"><code></asyxml>*/
+/*<asyxml><function type="pair" signature="locate(explicit vector)"><code></asyxml>*/
 pair locate(explicit vector v)
 {/*<asyxml></code><documentation>Return the coordinates of 'v' in the default coordinate system (like casting vector to pair).</documentation></function></asyxml>*/
   return (pair)v;
 }
 
-/*<asyxml><function type = "void" signature = "show(Label, pen, arrowbar)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="show(Label,pen,arrowbar)"><code></asyxml>*/
 void show(Label L, vector v, pen p = currentpen, arrowbar arrow = Arrow)
 {/*<asyxml></code><documentation>Draw the vector v (from the origin of its coordinate system).</documentation></function></asyxml>*/
   coordsys R = v.v.coordsys;
   draw(L, R.O--v.v, p, arrow);
 }
 
-/*<asyxml><function type = "vector" signature = "changecoordsys(coordsys, vector)"><code></asyxml>*/
+/*<asyxml><function type="vector" signature="changecoordsys(coordsys,vector)"><code></asyxml>*/
 vector changecoordsys(coordsys R, vector v)
 {/*<asyxml></code><documentation>Return the vector 'v' relatively to coordinate system 'R'.</documentation></function></asyxml>*/
   vector ov;
@@ -934,49 +934,49 @@ vector changecoordsys(coordsys R, vector v)
   return ov;
 }
 
-/*<asyxml><operator type = "vector" signature = "*(real, explicit vector)"><code></asyxml>*/
+/*<asyxml><operator type = "vector" signature="*(real,explicit vector)"><code></asyxml>*/
 vector operator *(real x, explicit vector v)
 {/*<asyxml></code><documentation>Provide real * vector.</documentation></operator></asyxml>*/
   return x * v.v;
 }
 
-/*<asyxml><operator type = "vector" signature = "/(explicit vector, real)"><code></asyxml>*/
+/*<asyxml><operator type = "vector" signature="/(explicit vector,real)"><code></asyxml>*/
 vector operator /(explicit vector v, real x)
 {/*<asyxml></code><documentation>Provide vector/real</documentation></operator></asyxml>*/
   return v.v/x;
 }
 
-/*<asyxml><operator type = "vector" signature = "*(transform t, explicit vector)"><code></asyxml>*/
+/*<asyxml><operator type = "vector" signature="*(transform t,explicit vector)"><code></asyxml>*/
 vector operator *(transform t, explicit vector v)
 {/*<asyxml></code><documentation>Provide transform * vector.</documentation></operator></asyxml>*/
   return t * v.v;
 }
 
-/*<asyxml><operator type = "vector" signature = "*(explicit point, explicit vector)"><code></asyxml>*/
+/*<asyxml><operator type = "vector" signature="*(explicit point,explicit vector)"><code></asyxml>*/
 vector operator *(explicit point M, explicit vector v)
 {/*<asyxml></code><documentation>Provide point * vector</documentation></operator></asyxml>*/
   return M * v.v;
 }
 
-/*<asyxml><operator type = "point" signature = "+(explicit point, explicit vector)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="+(explicit point,explicit vector)"><code></asyxml>*/
 point operator +(point M, explicit vector v)
 {/*<asyxml></code><documentation>Return 'M' shifted by 'v'.</documentation></operator></asyxml>*/
   return shift(locate(v)) * M;
 }
 
-/*<asyxml><operator type = "point" signature = "-(explicit point, explicit vector)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="-(explicit point,explicit vector)"><code></asyxml>*/
 point operator -(point M, explicit vector v)
 {/*<asyxml></code><documentation>Return 'M' shifted by '-v'.</documentation></operator></asyxml>*/
   return shift(-locate(v)) * M;
 }
 
-/*<asyxml><operator type = "vector" signature = "-(explicit vector)"><code></asyxml>*/
+/*<asyxml><operator type = "vector" signature="-(explicit vector)"><code></asyxml>*/
 vector operator -(explicit vector v)
 {/*<asyxml></code><documentation>Provide -v.</documentation></operator></asyxml>*/
   return -v.v;
 }
 
-/*<asyxml><operator type = "point" signature = "+(explicit pair, explicit vector)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="+(explicit pair,explicit vector)"><code></asyxml>*/
 point operator +(explicit pair m, explicit vector v)
 {/*<asyxml></code><documentation>The pair 'm' is supposed to be the coordinates of
    a point in the current coordinates system 'currentcoordsys'.
@@ -984,7 +984,7 @@ point operator +(explicit pair m, explicit vector v)
   return locate(m) + v;
 }
 
-/*<asyxml><operator type = "point" signature = "-(explicit pair, explicit vector)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="-(explicit pair,explicit vector)"><code></asyxml>*/
 point operator -(explicit pair m, explicit vector v)
 {/*<asyxml></code><documentation>The pair 'm' is supposed to be the coordinates of
    a point in the current coordinates system 'currentcoordsys'.
@@ -992,7 +992,7 @@ point operator -(explicit pair m, explicit vector v)
   return m + (-v);
 }
 
-/*<asyxml><operator type = "vector" signature = "+(explicit vector, explicit vector)"><code></asyxml>*/
+/*<asyxml><operator type = "vector" signature="+(explicit vector,explicit vector)"><code></asyxml>*/
 vector operator +(explicit vector v1, explicit vector v2)
 {/*<asyxml></code><documentation>Provide vector + vector.
    If the two vector haven't the same coordinate system, the returned
@@ -1002,7 +1002,7 @@ vector operator +(explicit vector v1, explicit vector v2)
   return vector(R, (locate(v1) + locate(v2))/R);
 }
 
-/*<asyxml><operator type = "vector" signature = "-(explicit vector, explicit vector)"><code></asyxml>*/
+/*<asyxml><operator type = "vector" signature="-(explicit vector, explicit vector)"><code></asyxml>*/
 vector operator -(explicit vector v1, explicit vector v2)
 {/*<asyxml></code><documentation>Provide vector - vector.
    If the two vector haven't the same coordinate system, the returned
@@ -1010,31 +1010,31 @@ vector operator -(explicit vector v1, explicit vector v2)
   return v1 + (-v2);
 }
 
-/*<asyxml><operator type = "bool" signature = "==(explicit vector, explicit vector)"><code></asyxml>*/
+/*<asyxml><operator type = "bool" signature="==(explicit vector,explicit vector)"><code></asyxml>*/
 bool operator ==(explicit vector u, explicit vector v)
 {/*<asyxml></code><documentation>Return true iff |u - v|<EPS.</documentation></operator></asyxml>*/
   return abs(u - v) < EPS;
 }
 
-/*<asyxml><function type = "bool" signature = "collinear(vector, vector)"><code></asyxml>*/
+/*<asyxml><function type="bool" signature="collinear(vector,vector)"><code></asyxml>*/
 bool collinear(vector u, vector v)
 {/*<asyxml></code><documentation>Return 'true' iff the vectors 'u' and 'v' are collinear.</documentation></function></asyxml>*/
   return abs(ypart((conj((pair)u) * (pair)v))) < EPS;
 }
 
-/*<asyxml><function type = "vector" signature = "unit(point)"><code></asyxml>*/
+/*<asyxml><function type="vector" signature="unit(point)"><code></asyxml>*/
 vector unit(point M)
 {/*<asyxml></code><documentation>Return the unit vector according to the modulus of its coordinate system.</documentation></function></asyxml>*/
   return M/abs(M);
 }
 
-/*<asyxml><function type = "vector" signature = "unit(vector)"><code></asyxml>*/
+/*<asyxml><function type="vector" signature="unit(vector)"><code></asyxml>*/
 vector unit(vector u)
 {/*<asyxml></code><documentation>Return the unit vector according to the modulus of its coordinate system.</documentation></function></asyxml>*/
   return u.v/abs(u.v);
 }
 
-/*<asyxml><function type = "real" signature = "degrees(vector, coordsys, bool)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="degrees(vector,coordsys,bool)"><code></asyxml>*/
 real degrees(vector v,
              coordsys R = v.v.coordsys,
              bool warn = true)
@@ -1042,7 +1042,7 @@ real degrees(vector v,
   return (degrees(locate(v), warn) - degrees(R.i))%360;
 }
 
-/*<asyxml><function type = "real" signature = "angle(vector, coordsys, bool)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="angle(vector,coordsys,bool)"><code></asyxml>*/
 real angle(explicit vector v,
            coordsys R = v.v.coordsys,
            bool warn = true)
@@ -1050,13 +1050,13 @@ real angle(explicit vector v,
   return radians(degrees(v, R, warn));
 }
 
-/*<asyxml><function type = "vector" signature = "conj(explicit vector)"><code></asyxml>*/
+/*<asyxml><function type="vector" signature="conj(explicit vector)"><code></asyxml>*/
 vector conj(explicit vector u)
 {/*<asyxml></code><documentation>Conjugate.</documentation></function></asyxml>*/
   return conj(u.v);
 }
 
-/*<asyxml><function type = "transform" signature = "rotate(explicit vector)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="rotate(explicit vector)"><code></asyxml>*/
 transform rotate(explicit vector dir)
 {/*<asyxml></code><documentation>A rotation in the direction 'dir' limited to [-90, 90]
    This is useful for rotating text along a line in the direction dir.
@@ -1070,37 +1070,37 @@ transform rotate(explicit point dir){return rotate(locate(vector(dir)));}
 
 // *=======================================================*
 // *.........................BASES.........................*
-/*<asyxml><variable type = "point" signature = "origin"><code></asyxml>*/
+/*<asyxml><variable type="point" signature="origin"><code></asyxml>*/
 point origin = point(defaultcoordsys, (0, 0));/*<asyxml></code><documentation>The origin of the current coordinate system.</documentation></variable></asyxml>*/
 
-/*<asyxml><function type = "point" signature = "origin(coordsys)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="origin(coordsys)"><code></asyxml>*/
 point origin(coordsys R = currentcoordsys)
 {/*<asyxml></code><documentation>Return the origin of the coordinate system 'R'.</documentation></function></asyxml>*/
   return point(R, (0, 0)); //use automatic casting;
 }
 
-/*<asyxml><variable type = "real" signature = "linemargin"><code></asyxml>*/
+/*<asyxml><variable type="real" signature="linemargin"><code></asyxml>*/
 real linemargin = 0;/*<asyxml></code><documentation>Margin used to draw lines.</documentation></variable></asyxml>*/
-/*<asyxml><function type = "real" signature = "linemargin()"><code></asyxml>*/
+/*<asyxml><function type="real" signature="linemargin()"><code></asyxml>*/
 real linemargin()
 {/*<asyxml></code><documentation>Return the margin used to draw lines.</documentation></function></asyxml>*/
   return linemargin;
 }
 
-/*<asyxml><variable type = "pen" signature = "addpenline"><code></asyxml>*/
+/*<asyxml><variable type="pen" signature="addpenline"><code></asyxml>*/
 pen addpenline = squarecap;/*<asyxml></code><documentation>Add this property to the drawing pen of "finish" lines.</documentation></variable></asyxml>*/
 pen addpenline(pen p) {
   return addpenline + p;
 }
 
-/*<asyxml><variable type = "pen" signature = "addpenarc"><code></asyxml>*/
+/*<asyxml><variable type="pen" signature="addpenarc"><code></asyxml>*/
 pen addpenarc = squarecap;/*<asyxml></code><documentation>Add this property to the drawing pen of arcs.</documentation></variable></asyxml>*/
 pen addpenarc(pen p) {return addpenarc + p;}
 
-/*<asyxml><variable type = "string" signature = "defaultmassformat"><code></asyxml>*/
-string defaultmassformat = "$\left(%L;%.4g \ right)$";/*<asyxml></code><documentation>Format used to construct the default label of masses.</documentation></variable></asyxml>*/
+/*<asyxml><variable type="string" signature="defaultmassformat"><code></asyxml>*/
+string defaultmassformat = "$\left(%L;%.4g\right)$";/*<asyxml></code><documentation>Format used to construct the default label of masses.</documentation></variable></asyxml>*/
 
-/*<asyxml><function type = "int" signature = "sgnd(real)"><code></asyxml>*/
+/*<asyxml><function type="int" signature="sgnd(real)"><code></asyxml>*/
 int sgnd(real x)
 {/*<asyxml></code><documentation>Return the -1 if x < 0, 1 if x >= 0.</documentation></function></asyxml>*/
   return (x == 0) ? 1 : sgn(x);
@@ -1110,27 +1110,27 @@ int sgnd(int x)
   return (x == 0) ? 1 : sgn(x);
 }
 
-/*<asyxml><function type = "bool" signature = "defined(pair)"><code></asyxml>*/
+/*<asyxml><function type="bool" signature="defined(pair)"><code></asyxml>*/
 bool defined(point P)
 {/*<asyxml></code><documentation>Return true iff the coordinates of 'P' are finite.</documentation></function></asyxml>*/
   return finite(P.coordinates);
 }
 
-/*<asyxml><function type = "bool" signature = "onpath(picture, path, point, pen)"><code></asyxml>*/
+/*<asyxml><function type="bool" signature="onpath(picture,path,point,pen)"><code></asyxml>*/
 bool onpath(picture pic = currentpicture, path g, point M, pen p = currentpen)
 {/*<asyxml></code><documentation>Return true iff 'M' is on the path drawn with the pen 'p' in 'pic'.</documentation></function></asyxml>*/
   transform t = inverse(pic.calculateTransform());
   return intersect(g, shift(locate(M)) * scale(linewidth(p)/2) * t * unitcircle).length > 0;
 }
 
-/*<asyxml><function type = "bool" signature = "sameside(point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="bool" signature="sameside(point,point,point)"><code></asyxml>*/
 bool sameside(point M, point N, point O)
 {/*<asyxml></code><documentation>Return 'true' iff 'M' and 'N' are same side of the point 'O'.</documentation></function></asyxml>*/
   pair m = M, n = N, o = O;
   return dot(m - o, n - o) >= -epsgeo;
 }
 
-/*<asyxml><function type = "bool" signature = "between(point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="bool" signature="between(point,point,point)"><code></asyxml>*/
 bool between(point M, point O, point N)
 {/*<asyxml></code><documentation>Return 'true' iff 'O' is between 'M' and 'N'.</documentation></function></asyxml>*/
   return (!sameside(N, M, O) || M == O || N == O);
@@ -1224,7 +1224,7 @@ private void Drawline(picture pic = currentpicture, Label L = "", pair P, bool d
     });
 }
 
-/*<asyxml><function type = "void" signature = "clipdraw(picture, Label, path, align, pen, arrowbar, arrowbar, real, real, Label, marker)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="clipdraw(picture,Label,path,align,pen,arrowbar,arrowbar,real,real,Label,marker)"><code></asyxml>*/
 void clipdraw(picture pic = currentpicture, Label L = "", path g,
               align align = NoAlign, pen p = currentpen,
               arrowbar arrow = None, arrowbar bar = None,
@@ -1247,7 +1247,7 @@ void clipdraw(picture pic = currentpicture, Label L = "", path g,
     });
 }
 
-/*<asyxml><function type = "void" signature = "distance(picture pic, Label, point, point, bool, real, pen, pen, arrow)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="distance(picture pic,Label,point,point,bool,real,pen,pen,arrow)"><code></asyxml>*/
 void distance(picture pic = currentpicture, Label L = "", point A, point B,
               bool rotated = true, real offset = 3mm,
               pen p = currentpen, pen joinpen = invisible,
@@ -1273,9 +1273,9 @@ void distance(picture pic = currentpicture, Label L = "", point A, point B,
   pic.addBox(min(g), max(g), Tp * min(p), Tp * max(p));
 }
 
-/*<asyxml><variable type = "real" signature = "perpfactor"><code></asyxml>*/
+/*<asyxml><variable type="real" signature="perpfactor"><code></asyxml>*/
 real perpfactor = 1;/*<asyxml></code><documentation>Factor for drawing perpendicular symbol.</documentation></variable></asyxml>*/
-/*<asyxml><function type = "void" signature = "perpendicularmark(picture, point, explicit pair, explicit pair, real, pen, margin, filltype)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="perpendicularmark(picture,point,explicit pair,explicit pair,real,pen,margin,filltype)"><code></asyxml>*/
 void perpendicularmark(picture pic = currentpicture, point z,
                        explicit pair align,
                        explicit pair dir = E, real size = 0,
@@ -1298,7 +1298,7 @@ void perpendicularmark(picture pic = currentpicture, point z,
   add(pic, apic, locate(z));
 }
 
-/*<asyxml><function type = "void" signature = "perpendicularmark(picture, point, vector, vector, real, pen, margin, filltype)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="perpendicularmark(picture,point,vector,vector,real,pen,margin,filltype)"><code></asyxml>*/
 void perpendicularmark(picture pic = currentpicture, point z,
                        vector align,
                        vector dir = E, real size = 0,
@@ -1312,7 +1312,7 @@ void perpendicularmark(picture pic = currentpicture, point z,
                     p, margin, filltype);
 }
 
-/*<asyxml><function type = "void" signature = "perpendicularmark(picture, point, explicit pair, path, real, pen, margin, filltype)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="perpendicularmark(picture,point,explicit pair,path,real,pen,margin,filltype)"><code></asyxml>*/
 void perpendicularmark(picture pic = currentpicture, point z, explicit pair align, path g,
                        real size = 0, pen p = currentpen,
                        margin margin = NoMargin,
@@ -1323,7 +1323,7 @@ void perpendicularmark(picture pic = currentpicture, point z, explicit pair alig
   perpendicularmark(pic, z, align, dir(g, 0), size, p, margin, filltype);
 }
 
-/*<asyxml><function type = "void" signature = "perpendicularmark(picture, point, vector, path, real, pen, margin, filltype)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="perpendicularmark(picture,point,vector,path,real,pen,margin,filltype)"><code></asyxml>*/
 void perpendicularmark(picture pic = currentpicture, point z, vector align, path g,
                        real size = 0, pen p = currentpen,
                        margin margin = NoMargin,
@@ -1334,7 +1334,7 @@ void perpendicularmark(picture pic = currentpicture, point z, vector align, path
   perpendicularmark(pic, z, (pair)align, dir(g, 0), size, p, margin, filltype);
 }
 
-/*<asyxml><function type = "void" signature = "markrightangle(picture, point, point, point, real, pen, margin, filltype)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="markrightangle(picture,point,point,point,real,pen,margin,filltype)"><code></asyxml>*/
 void markrightangle(picture pic = currentpicture, point A, point O,
                     point B, real size = 0, pen p = currentpen,
                     margin margin = NoMargin,
@@ -1351,7 +1351,7 @@ void markrightangle(picture pic = currentpicture, point A, point O,
                     margin = margin, filltype = filltype);
 }
 
-/*<asyxml><function type = "bool" signature = "simeq(point, point, real)"><code></asyxml>*/
+/*<asyxml><function type="bool" signature="simeq(point,point,real)"><code></asyxml>*/
 bool simeq(point A, point B, real fuzz = epsgeo)
 {/*<asyxml></code><documentation>Return true iff abs(A - B) < fuzz.
    This routine is used internally to know if two points are equal, in particular by the operator == in 'point == point'.</documentation></function></asyxml>*/
@@ -1363,7 +1363,7 @@ bool simeq(point a, real b, real fuzz = epsgeo)
   return (abs(a - point(R, ((pair)b)/R)) < fuzz);
 }
 
-/*<asyxml><function type = "pair" signature = "attract(pair, path, real)"><code></asyxml>*/
+/*<asyxml><function type="pair" signature="attract(pair,path,real)"><code></asyxml>*/
 pair attract(pair m, path g, real fuzz = 0)
 {/*<asyxml></code><documentation>Return the nearest point (A PAIR) of 'm' which is on the path g.
    'fuzz' is the argument 'fuzz' of 'intersect'.</documentation></function></asyxml>*/
@@ -1391,14 +1391,14 @@ pair attract(pair m, path g, real fuzz = 0)
   return p;
 }
 
-/*<asyxml><function type = "point" signature = "attract(point, path, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="attract(point,path,real)"><code></asyxml>*/
 point attract(point M, path g, real fuzz = 0)
 {/*<asyxml></code><documentation>Return the nearest point (A POINT) of 'M' which is on the path g.
    'fuzz' is the argument 'fuzz' of 'intersect'.</documentation></function></asyxml>*/
   return point(M.coordsys, attract(locate(M), g)/M.coordsys);
 }
 
-/*<asyxml><function type = "real[]" signature = "intersect(path, explicit pair)"><code></asyxml>*/
+/*<asyxml><function type="real[]" signature="intersect(path,explicit pair)"><code></asyxml>*/
 real[] intersect(path g, explicit pair p, real fuzz = 0)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   fuzz = fuzz <= 0 ? sqrt(realEpsilon) : fuzz;
@@ -1411,7 +1411,7 @@ real[] intersect(path g, explicit pair p, real fuzz = 0)
   return or;
 }
 
-/*<asyxml><function type = "real[]" signature = "intersect(path, explicit point)"><code></asyxml>*/
+/*<asyxml><function type="real[]" signature="intersect(path,explicit point)"><code></asyxml>*/
 real[] intersect(path g, explicit point P, real fuzz = epsgeo)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   return intersect(g, locate(P), fuzz);
@@ -1421,18 +1421,18 @@ real[] intersect(path g, explicit point P, real fuzz = epsgeo)
 
 // *=======================================================*
 // *.........................LINES.........................*
-/*<asyxml><struct signature = "line"><code></asyxml>*/
+/*<asyxml><struct signature="line"><code></asyxml>*/
 struct line
 {/*<asyxml></code><documentation>This structure provides the objects line, semi - line and segment oriented from A to B.
    All the calculus with this structure will be as exact as Asymptote can do.
    For a full precision, you must not cast 'line' to 'path' excepted for drawing routines.</documentation></asyxml>*/
-  /*<asyxml><property type = "point" signature = "A, B"><code></asyxml>*/
-  restricted point A, B;/*<asyxml></code><documentation>Two line's points with same coordinate system.</documentation></property><property type = "bool" signature = "extendA, extendB"><code></asyxml>*/
-  bool extendA, extendB;/*<asyxml></code><documentation>If true, extend 'l' in direction of A (resp. B).</documentation></property><property type = "vector" signature = "u, v"><code></asyxml>*/
-  restricted vector u, v;/*<asyxml></code><documentation>u = unit(AB) = direction vector, v = normal vector.</documentation></property><property type = "real" signature = "a, b, c"><code></asyxml>*/
-  restricted real a, b, c;/*<asyxml></code><documentation>Coefficients of the equation ax + by + c = 0 in the coordinate system of 'A'.</documentation></property><property type = "real" signature = "slope, origin"><code></asyxml>*/
+  /*<asyxml><property type = "point" signature="A,B"><code></asyxml>*/
+  restricted point A,B;/*<asyxml></code><documentation>Two line's points with same coordinate system.</documentation></property><property type = "bool" signature="extendA,extendB"><code></asyxml>*/
+  bool extendA,extendB;/*<asyxml></code><documentation>If true,extend 'l' in direction of A (resp. B).</documentation></property><property type = "vector" signature="u,v"><code></asyxml>*/
+  restricted vector u,v;/*<asyxml></code><documentation>u = unit(AB) = direction vector,v = normal vector.</documentation></property><property type = "real" signature="a,b,c"><code></asyxml>*/
+  restricted real a,b,c;/*<asyxml></code><documentation>Coefficients of the equation ax + by + c = 0 in the coordinate system of 'A'.</documentation></property><property type = "real" signature="slope,origin"><code></asyxml>*/
   restricted real slope, origin;/*<asyxml></code><documentation>Slope and ordinate at the origin.</documentation></property></asyxml>*/
-  /*<asyxml><method type = "line" signature = "copy()"><code></asyxml>*/
+  /*<asyxml><method type = "line" signature="copy()"><code></asyxml>*/
   line copy()
   {/*<asyxml></code><documentation>Copy a line in a new instance.</documentation></method></asyxml>*/
     line l = new line;
@@ -1450,7 +1450,7 @@ struct line
     return l;
   }
 
-  /*<asyxml><method type = "void" signature = "init(point, bool, point, bool)"><code></asyxml>*/
+  /*<asyxml><method type = "void" signature="init(point,bool,point,bool)"><code></asyxml>*/
   void init(point A, bool extendA = true, point B, bool extendB = true)
   {/*<asyxml></code><documentation>Initialize line.
      If 'extendA' is true, the "line" is infinite in the direction of A.</documentation></method></asyxml>*/
@@ -1471,7 +1471,7 @@ struct line
   }
 }/*<asyxml></struct></asyxml>*/
 
-/*<asyxml><function type = "line" signature = "line(point, bool, point, bool)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="line(point,bool,point,bool)"><code></asyxml>*/
 line line(point A, bool extendA = true, point B, bool extendB = true)
 {/*<asyxml></code><documentation>Return the line passing through 'A' and 'B'.
    If 'extendA' is true, the "line" is infinite in the direction of A.
@@ -1482,7 +1482,7 @@ line line(point A, bool extendA = true, point B, bool extendB = true)
   return l;
 }
 
-/*<asyxml><struct signature = "segment"><code></asyxml>*/
+/*<asyxml><struct signature="segment"><code></asyxml>*/
 struct segment
 {/*<asyxml></code><documentation><look href = "struct line"/>.</documentation></asyxml>*/
   restricted point A, B;// Extremity.
@@ -1515,7 +1515,7 @@ struct segment
   }
 }/*<asyxml></struct></asyxml>*/
 
-/*<asyxml><function type = "segment" signature = "segment(point, point)"><code></asyxml>*/
+/*<asyxml><function type="segment" signature="segment(point,point)"><code></asyxml>*/
 segment segment(point A, point B)
 {/*<asyxml></code><documentation>Return the segment whose the extremities are A and B.</documentation></function></asyxml>*/
   segment s;
@@ -1523,37 +1523,37 @@ segment segment(point A, point B)
   return s;
 }
 
-/*<asyxml><function type = "real" signature = "length(segment)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="length(segment)"><code></asyxml>*/
 real length(segment s)
 {/*<asyxml></code><documentation>Return the length of 's'.</documentation></function></asyxml>*/
   return abs(s.A - s.B);
 }
 
-/*<asyxml><operator type = "line" signature = "cast(segment)"><code></asyxml>*/
+/*<asyxml><operator type = "line" signature="cast(segment)"><code></asyxml>*/
 line operator cast(segment s)
 {/*<asyxml></code><documentation>A segment is casted to a "finite line".</documentation></operator></asyxml>*/
   return line(s.A, false, s.B, false);
 }
 
-/*<asyxml><operator type = "segment" signature = "cast(line)"><code></asyxml>*/
+/*<asyxml><operator type = "segment" signature="cast(line)"><code></asyxml>*/
 segment operator cast(line l)
 {/*<asyxml></code><documentation>Cast line 'l' to segment [l.A l.B].</documentation></operator></asyxml>*/
   return segment(l.A, l.B);
 }
 
-/*<asyxml><operator type = "line" signature = "*(transform, line)"><code></asyxml>*/
+/*<asyxml><operator type = "line" signature="*(transform,line)"><code></asyxml>*/
 line operator *(transform t, line l)
 {/*<asyxml></code><documentation>Provide transform * line</documentation></operator></asyxml>*/
   return line(t * l.A, l.extendA, t * l.B, l.extendB);
 }
-/*<asyxml><operator type = "line" signature = "/(line, real)"><code></asyxml>*/
+/*<asyxml><operator type = "line" signature="/(line,real)"><code></asyxml>*/
 line operator /(line l, real x)
 {/*<asyxml></code><documentation>Provide l/x.
    Return the line passing through l.A/x and l.B/x.</documentation></operator></asyxml>*/
   return line(l.A/x, l.extendA, l.B/x, l.extendB);
 }
 line operator /(line l, int x){return line(l.A/x, l.B/x);}
-/*<asyxml><operator type = "line" signature = "*(real, line)"><code></asyxml>*/
+/*<asyxml><operator type = "line" signature="*(real,line)"><code></asyxml>*/
 line operator *(real x, line l)
 {/*<asyxml></code><documentation>Provide x * l.
    Return the line passing through x * l.A and x * l.B.</documentation></operator></asyxml>*/
@@ -1561,26 +1561,26 @@ line operator *(real x, line l)
 }
 line operator *(int x, line l){return line(x * l.A, l.extendA, x * l.B, l.extendB);}
 
-/*<asyxml><operator type = "line" signature = "*(point, line)"><code></asyxml>*/
+/*<asyxml><operator type = "line" signature="*(point,line)"><code></asyxml>*/
 line operator *(point M, line l)
 {/*<asyxml></code><documentation>Provide point * line.
    Return the line passing through unit(M) * l.A and unit(M) * l.B.</documentation></operator></asyxml>*/
   return line(unit(M) * l.A, l.extendA, unit(M) * l.B, l.extendB);
 }
-/*<asyxml><operator type = "line" signature = "+(line, point)"><code></asyxml>*/
+/*<asyxml><operator type = "line" signature="+(line,point)"><code></asyxml>*/
 line operator +(line l, vector u)
 {/*<asyxml></code><documentation>Provide line + vector (and so line + point).
    Return the line 'l' shifted by 'u'.</documentation></operator></asyxml>*/
   return line(l.A + u, l.extendA, l.B + u, l.extendB);
 }
-/*<asyxml><operator type = "line" signature = "-(line, vector)"><code></asyxml>*/
+/*<asyxml><operator type = "line" signature="-(line,vector)"><code></asyxml>*/
 line operator -(line l, vector u)
 {/*<asyxml></code><documentation>Provide line - vector (and so line - point).
    Return the line 'l' shifted by '-u'.</documentation></operator></asyxml>*/
   return line(l.A - u, l.extendA, l.B - u, l.extendB);
 }
 
-/*<asyxml><operator type = "line[]" signature = "^^(line, line)"><code></asyxml>*/
+/*<asyxml><operator type = "line[]" signature="^^(line,line)"><code></asyxml>*/
 line[] operator ^^(line l1, line l2)
 {/*<asyxml></code><documentation>Provide line^^line.
    Return the line array {l1, l2}.</documentation></operator></asyxml>*/
@@ -1589,7 +1589,7 @@ line[] operator ^^(line l1, line l2)
   return ol;
 }
 
-/*<asyxml><operator type = "line[]" signature = "^^(line, line[])"><code></asyxml>*/
+/*<asyxml><operator type = "line[]" signature="^^(line,line[])"><code></asyxml>*/
 line[] operator ^^(line l1, line[] l2)
 {/*<asyxml></code><documentation>Provide line^^line[].
    Return the line array {l1, l2[0], l2[1]...}.
@@ -1608,7 +1608,7 @@ line[] operator ^^(line[] l2, line l1)
   return ol;
 }
 
-/*<asyxml><operator type = "line[]" signature = "^^(line, line[])"><code></asyxml>*/
+/*<asyxml><operator type = "line[]" signature="^^(line,line[])"><code></asyxml>*/
 line[] operator ^^(line l1[], line[] l2)
 {/*<asyxml></code><documentation>Provide line[]^^line[].
    Return the line array {l1[0], l1[1], ..., l2[0], l2[1], ...}.</documentation></operator></asyxml>*/
@@ -1619,7 +1619,7 @@ line[] operator ^^(line l1[], line[] l2)
   return ol;
 }
 
-/*<asyxml><function type = "bool" signature = "sameside(point, point, line)"><code></asyxml>*/
+/*<asyxml><function type="bool" signature="sameside(point,point,line)"><code></asyxml>*/
 bool sameside(point M, point P, line l)
 {/*<asyxml></code><documentation>Return 'true' iff 'M' and 'N' are same side of the line (or on the line) 'l'.</documentation></function></asyxml>*/
   pair A = l.A, B = l.B, m = M, p = P;
@@ -1634,26 +1634,26 @@ bool sameside(point M, point P, line l)
   // return dot(locate(Mp - M), locate(Pp - P)) >= 0;
 }
 
-/*<asyxml><function type = "line" signature = "line(segment)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="line(segment)"><code></asyxml>*/
 line line(segment s)
 {/*<asyxml></code><documentation>Return the line passing through 's.A'
    and 's.B'.</documentation></function></asyxml>*/
   return line(s.A, s.B);
 }
-/*<asyxml><function type = "segment" signature = "segment(line)"><code></asyxml>*/
+/*<asyxml><function type="segment" signature="segment(line)"><code></asyxml>*/
 segment segment(line l)
 {/*<asyxml></code><documentation>Return the segment whose extremities
    are 'l.A' and 'l.B'.</documentation></function></asyxml>*/
   return segment(l.A, l.B);
 }
 
-/*<asyxml><function type = "point" signature = "midpoint(segment)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="midpoint(segment)"><code></asyxml>*/
 point midpoint(segment s)
 {/*<asyxml></code><documentation>Return the midpoint of 's'.</documentation></function></asyxml>*/
   return 0.5 * (s.A + s.B);
 }
 
-/*<asyxml><function type = "void" signature = "write(line)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="write(line)"><code></asyxml>*/
 void write(explicit line l)
 {/*<asyxml></code><documentation>Write some informations about 'l'.</documentation></function></asyxml>*/
   write("A = "+(string)((pair)l.A));
@@ -1669,7 +1669,7 @@ void write(explicit line l)
   write("origin = "+(string) l.origin);
 }
 
-/*<asyxml><function type = "void" signature = "write(explicit segment)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="write(explicit segment)"><code></asyxml>*/
 void write(explicit segment s)
 {/*<asyxml></code><documentation>Write some informations about 's'.</documentation></function></asyxml>*/
   write("A = "+(string)((pair)s.A));
@@ -1683,7 +1683,7 @@ void write(explicit segment s)
   write("origin = "+(string) s.origin);
 }
 
-/*<asyxml><operator type = "bool" signature = "==(line, line)"><code></asyxml>*/
+/*<asyxml><operator type = "bool" signature="==(line,line)"><code></asyxml>*/
 bool operator ==(line l1, line l2)
 {/*<asyxml></code><documentation>Provide the test 'line == line'.</documentation></operator></asyxml>*/
   return (collinear(l1.u, l2.u) &&
@@ -1691,13 +1691,13 @@ bool operator ==(line l1, line l2)
           l1.extendA == l2.extendA && l1.extendB == l2.extendB);
 }
 
-/*<asyxml><operator type = "bool" signature = "!=(line, line)"><code></asyxml>*/
+/*<asyxml><operator type = "bool" signature="!=(line,line)"><code></asyxml>*/
 bool operator !=(line l1, line l2)
 {/*<asyxml></code><documentation>Provide the test 'line != line'.</documentation></operator></asyxml>*/
   return !(l1 == l2);
 }
 
-/*<asyxml><operator type = "bool" signature = "@(point, line)"><code></asyxml>*/
+/*<asyxml><operator type = "bool" signature="@(point,line)"><code></asyxml>*/
 bool operator @(point m, line l)
 {/*<asyxml></code><documentation>Provide the test 'point @ line'.
    Return true iff 'm' is on the 'l'.</documentation></operator></asyxml>*/
@@ -1709,19 +1709,19 @@ bool operator @(point m, line l)
   return sameside(M, l.B, l.A);
 }
 
-/*<asyxml><function type = "coordsys" signature = "coordsys(line)"><code></asyxml>*/
+/*<asyxml><function type="coordsys" signature="coordsys(line)"><code></asyxml>*/
 coordsys coordsys(line l)
 {/*<asyxml></code><documentation>Return the coordinate system in which 'l' is defined.</documentation></function></asyxml>*/
   return l.A.coordsys;
 }
 
-/*<asyxml><function type = "line" signature = "reverse(line)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="reverse(line)"><code></asyxml>*/
 line reverse(line l)
 {/*<asyxml></code><documentation>Permute the points 'A' and 'B' of 'l' and so its orientation.</documentation></function></asyxml>*/
   return line(l.B, l.extendB, l.A, l.extendA);
 }
 
-/*<asyxml><function type = "line" signature = "extend(line)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="extend(line)"><code></asyxml>*/
 line extend(line l)
 {/*<asyxml></code><documentation>Return the infinite line passing through 'l.A' and 'l.B'.</documentation></function></asyxml>*/
   line ol = l.copy();
@@ -1730,7 +1730,7 @@ line extend(line l)
   return ol;
 }
 
-/*<asyxml><function type = "line" signature = "complementary(explicit line)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="complementary(explicit line)"><code></asyxml>*/
 line complementary(explicit line l)
 {/*<asyxml></code><documentation>Return the complementary of a half-line with respect of
    the full line 'l'.</documentation></function></asyxml>*/
@@ -1742,7 +1742,7 @@ line complementary(explicit line l)
   return line(origin, false, ptdir);
 }
 
-/*<asyxml><function type = "line[]" signature = "complementary(explicit segment)"><code></asyxml>*/
+/*<asyxml><function type="line[]" signature="complementary(explicit segment)"><code></asyxml>*/
 line[] complementary(explicit segment s)
 {/*<asyxml></code><documentation>Return the two half-lines of origin 's.A' and 's.B' respectively.</documentation></function></asyxml>*/
   line[] ol = new line[2];
@@ -1751,25 +1751,25 @@ line[] complementary(explicit segment s)
   return ol;
 }
 
-/*<asyxml><function type = "line" signature = "Ox(coordsys)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="Ox(coordsys)"><code></asyxml>*/
 line Ox(coordsys R = currentcoordsys)
 {/*<asyxml></code><documentation>Return the x-axis of 'R'.</documentation></function></asyxml>*/
   return line(point(R, (0, 0)), point(R, E));
 }
-/*<asyxml><constant type = "line" signature = "Ox"><code></asyxml>*/
+/*<asyxml><constant type = "line" signature="Ox"><code></asyxml>*/
 restricted line Ox = Ox();/*<asyxml></code><documentation>the x-axis of
                           the default coordinate system.</documentation></constant></asyxml>*/
 
-/*<asyxml><function type = "line" signature = "Oy(coordsys)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="Oy(coordsys)"><code></asyxml>*/
 line Oy(coordsys R = currentcoordsys)
 {/*<asyxml></code><documentation>Return the y-axis of 'R'.</documentation></function></asyxml>*/
   return line(point(R, (0, 0)), point(R, N));
 }
-/*<asyxml><constant type = "line" signature = "Oy"><code></asyxml>*/
+/*<asyxml><constant type = "line" signature="Oy"><code></asyxml>*/
 restricted line Oy = Oy();/*<asyxml></code><documentation>the y-axis of
                           the default coordinate system.</documentation></constant></asyxml>*/
 
-/*<asyxml><function type = "line" signature = "line(real, point)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="line(real,point)"><code></asyxml>*/
 line line(real a, point A = point(currentcoordsys, (0, 0)))
 {/*<asyxml></code><documentation>Return the line passing through 'A' with an
    angle (in the coordinate system of A) 'a' in degrees.
@@ -1785,7 +1785,7 @@ line line(int a, point A = point(currentcoordsys, (0, 0)))
   return line((real)a, A);
 }
 
-/*<asyxml><function type = "line" signature = "line(coordsys, real, real)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="line(coordsys,real,real)"><code></asyxml>*/
 line line(coordsys R = currentcoordsys, real slope, real origin)
 {/*<asyxml></code><documentation>Return the line defined by slope and y-intercept relative to 'R'.</documentation></function></asyxml>*/
   if (slope == infinity || slope == -infinity)
@@ -1793,7 +1793,7 @@ line line(coordsys R = currentcoordsys, real slope, real origin)
   return line(point(R, (0, origin)), point(R, (1, origin + slope)));
 }
 
-/*<asyxml><function type = "line" signature = "line(coordsys, real, real, real)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="line(coordsys,real,real,real)"><code></asyxml>*/
 line line(coordsys R = currentcoordsys, real a, real b, real c)
 {/*<asyxml></code><documentation>Retrun the line defined by equation relative to 'R'.</documentation></function></asyxml>*/
   if (a == 0 && b == 0) abort("line: inconsistent equation...");
@@ -1802,29 +1802,29 @@ line line(coordsys R = currentcoordsys, real a, real b, real c)
   return line(point(R, M), point(R, M + (-b, a)));
 }
 
-/*<asyxml><function type = "line" signature = "vline(coordsys)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="vline(coordsys)"><code></asyxml>*/
 line vline(coordsys R = currentcoordsys)
 {/*<asyxml></code><documentation>Return a vertical line in 'R' passing through the origin of 'R'.</documentation></function></asyxml>*/
   point P = point(R, (0, 0));
   point PP = point(R, (R.O + N)/R);
   return line(P, PP);
 }
-/*<asyxml><constant type = "line" signature = "vline"><code></asyxml>*/
+/*<asyxml><constant type = "line" signature="vline"><code></asyxml>*/
 restricted line vline = vline();/*<asyxml></code><documentation>The vertical line in the current coordinate system passing
                                 through the origin of this system.</documentation></constant></asyxml>*/
 
-/*<asyxml><function type = "line" signature = "hline(coordsys)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="hline(coordsys)"><code></asyxml>*/
 line hline(coordsys R = currentcoordsys)
 {/*<asyxml></code><documentation>Return a horizontal line in 'R' passing through the origin of 'R'.</documentation></function></asyxml>*/
   point P = point(R, (0, 0));
   point PP = point(R, (R.O + E)/R);
   return line(P, PP);
 }
-/*<asyxml><constant type = "line" signature = "hline"><code></asyxml>*/
+/*<asyxml><constant type = "line" signature="hline"><code></asyxml>*/
 line hline = hline();/*<asyxml></code><documentation>The horizontal line in the current coordinate system passing
                      through the origin of this system.</documentation></constant></asyxml>*/
 
-/*<asyxml><function type = "line" signature = "changecoordsys(coordsys, line)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="changecoordsys(coordsys,line)"><code></asyxml>*/
 line changecoordsys(coordsys R, line l)
 {/*<asyxml></code><documentation>Return the line 'l' in the coordinate system 'R'.</documentation></function></asyxml>*/
   point A = changecoordsys(R, l.A);
@@ -1832,20 +1832,20 @@ line changecoordsys(coordsys R, line l)
   return line(A, B);
 }
 
-/*<asyxml><function type = "transform" signature = "scale(real, line, line, bool)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="scale(real,line,line,bool)"><code></asyxml>*/
 transform scale(real k, line l1, line l2, bool safe = false)
 {/*<asyxml></code><documentation>Return the dilatation with respect to
    'l1' in the direction of 'l2'.</documentation></function></asyxml>*/
   return scale(k, l1.A, l1.B, l2.A, l2.B, safe);
 }
 
-/*<asyxml><function type = "transform" signature = "reflect(line)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="reflect(line)"><code></asyxml>*/
 transform reflect(line l)
 {/*<asyxml></code><documentation>Return the reflect about the line 'l'.</documentation></function></asyxml>*/
   return reflect((pair)l.A, (pair)l.B);
 }
 
-/*<asyxml><function type = "transform" signature = "reflect(line, line)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="reflect(line,line)"><code></asyxml>*/
 transform reflect(line l1, line l2, bool safe = false)
 {/*<asyxml></code><documentation>Return the reflect about the line
    'l1' in the direction of 'l2'.</documentation></function></asyxml>*/
@@ -1853,7 +1853,7 @@ transform reflect(line l1, line l2, bool safe = false)
 }
 
 
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(line, path)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(line,path)"><code></asyxml>*/
 point[] intersectionpoints(line l, path g)
 {/*<asyxml></code><documentation>Return all points of intersection of the line 'l' with the path 'g'.</documentation></function></asyxml>*/
   // TODO utiliser la version 1.44 de intersections(path g, pair p, pair q)
@@ -1905,7 +1905,7 @@ point[] intersectionpoints(line l, path g)
   return opp;
 }
 
-/*<asyxml><function type = "point" signature = "intersectionpoint(line, line)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="intersectionpoint(line,line)"><code></asyxml>*/
 point intersectionpoint(line l1, line l2)
 {/*<asyxml></code><documentation>Return the point of intersection of line 'l1' with 'l2'.
    If 'l1' and 'l2' have an infinity or none point of intersection,
@@ -1920,7 +1920,7 @@ point intersectionpoint(line l1, line l2)
   return point(R, (infinity, infinity));
 }
 
-/*<asyxml><function type = "line" signature = "parallel(point, line)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="parallel(point,line)"><code></asyxml>*/
 line parallel(point M, line l)
 {/*<asyxml></code><documentation>Return the line parallel to 'l' passing through 'M'.</documentation></function></asyxml>*/
   point A, B;
@@ -1932,26 +1932,26 @@ line parallel(point M, line l)
   return line(M, M - A + B);
 }
 
-/*<asyxml><function type = "line" signature = "parallel(point, explicit vector)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="parallel(point,explicit vector)"><code></asyxml>*/
 line parallel(point M, explicit vector dir)
 {/*<asyxml></code><documentation>Return the line of direction 'dir' and passing through 'M'.</documentation></function></asyxml>*/
   return line(M, M + locate(dir));
 }
 
-/*<asyxml><function type = "line" signature = "parallel(point, explicit pair)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="parallel(point,explicit pair)"><code></asyxml>*/
 line parallel(point M, explicit pair dir)
 {/*<asyxml></code><documentation>Return the line of direction 'dir' and passing through 'M'.</documentation></function></asyxml>*/
   return line(M, M + vector(currentcoordsys, dir));
 }
 
-/*<asyxml><function type = "bool" signature = "parallel(line, line)"><code></asyxml>*/
+/*<asyxml><function type="bool" signature="parallel(line,line)"><code></asyxml>*/
 bool parallel(line l1, line l2, bool strictly = false)
 {/*<asyxml></code><documentation>Return 'true' if 'l1' and 'l2' are (strictly ?) parallel.</documentation></function></asyxml>*/
   bool coll = collinear(l1.u, l2.u);
   return strictly ? coll && (l1 != l2) : coll;
 }
 
-/*<asyxml><function type = "bool" signature = "concurrent(...line[])"><code></asyxml>*/
+/*<asyxml><function type="bool" signature="concurrent(...line[])"><code></asyxml>*/
 bool concurrent(... line[] l)
 {/*<asyxml></code><documentation>Returns true if all the lines 'l' are concurrent.</documentation></function></asyxml>*/
   if (l.length < 3) abort("'concurrent' needs at least for three lines ...");
@@ -1965,13 +1965,13 @@ bool concurrent(... line[] l)
   return conc;
 }
 
-/*<asyxml><function type = "transform" signature = "projection(line)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="projection(line)"><code></asyxml>*/
 transform projection(line l)
 {/*<asyxml></code><documentation>Return the orthogonal projection on 'l'.</documentation></function></asyxml>*/
   return projection(l.A, l.B);
 }
 
-/*<asyxml><function type = "transform" signature = "projection(line, line, bool)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="projection(line,line,bool)"><code></asyxml>*/
 transform projection(line l1, line l2, bool safe = false)
 {/*<asyxml></code><documentation>Return the projection on (AB) in parallel of (CD).
    If 'safe = true' and (l1)//(l2) return the identity.
@@ -1979,7 +1979,7 @@ transform projection(line l1, line l2, bool safe = false)
   return projection(l1.A, l1.B, l2.A, l2.B, safe);
 }
 
-/*<asyxml><function type = "transform" signature = "vprojection(line, bool)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="vprojection(line,bool)"><code></asyxml>*/
 transform vprojection(line l, bool safe = false)
 {/*<asyxml></code><documentation>Return the projection on 'l' in parallel of N--S.
    If 'safe' is 'true' the projected point keeps the same place if 'l'
@@ -1988,7 +1988,7 @@ transform vprojection(line l, bool safe = false)
   return projection(l, line(point(R, N), point(R, S)), safe);
 }
 
-/*<asyxml><function type = "transform" signature = "hprojection(line, bool)"><code></asyxml>*/
+/*<asyxml><function type="transform" signature="hprojection(line,bool)"><code></asyxml>*/
 transform hprojection(line l, bool safe = false)
 {/*<asyxml></code><documentation>Return the projection on 'l' in parallel of E--W.
    If 'safe' is 'true' the projected point keeps the same place if 'l'
@@ -1997,7 +1997,7 @@ transform hprojection(line l, bool safe = false)
   return projection(l, line(point(R, E), point(R, W)), safe);
 }
 
-/*<asyxml><function type = "line" signature = "perpendicular(point, line)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="perpendicular(point,line)"><code></asyxml>*/
 line perpendicular(point M, line l)
 {/*<asyxml></code><documentation>Return the perpendicular line of 'l' passing through 'M'.</documentation></function></asyxml>*/
   point Mp = projection(l) * M;
@@ -2005,41 +2005,41 @@ line perpendicular(point M, line l)
   return line(Mp, rotate(90, Mp) * A);
 }
 
-/*<asyxml><function type = "line" signature = "perpendicular(point, explicit vector)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="perpendicular(point,explicit vector)"><code></asyxml>*/
 line perpendicular(point M, explicit vector normal)
 {/*<asyxml></code><documentation>Return the line passing through 'M'
    whose normal is \param{normal}.</documentation></function></asyxml>*/
   return perpendicular(M, line(M, M + locate(normal)));
 }
 
-/*<asyxml><function type = "line" signature = "perpendicular(point, explicit pair)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="perpendicular(point,explicit pair)"><code></asyxml>*/
 line perpendicular(point M, explicit pair normal)
 {/*<asyxml></code><documentation>Return the line passing through 'M'
    whose normal is \param{normal} (given in the currentcoordsys).</documentation></function></asyxml>*/
   return perpendicular(M, line(M, M + vector(currentcoordsys, normal)));
 }
 
-/*<asyxml><function type = "bool" signature = "perpendicular(line, line)"><code></asyxml>*/
+/*<asyxml><function type="bool" signature="perpendicular(line,line)"><code></asyxml>*/
 bool perpendicular(line l1, line l2)
 {/*<asyxml></code><documentation>Return 'true' if 'l1' and 'l2' are perpendicular.</documentation></function></asyxml>*/
   return abs(dot(locate(l1.u), locate(l2.u))) < epsgeo ;
 }
 
-/*<asyxml><function type = "real" signature = "angle(line, coordsys)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="angle(line,coordsys)"><code></asyxml>*/
 real angle(line l, coordsys R = coordsys(l))
 {/*<asyxml></code><documentation>Return the angle of the oriented line 'l',
    in radian, in the interval ]-pi, pi] and relatively to 'R'.</documentation></function></asyxml>*/
   return angle(l.u, R, false);
 }
 
-/*<asyxml><function type = "real" signature = "degrees(line, coordsys, bool)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="degrees(line,coordsys,bool)"><code></asyxml>*/
 real degrees(line l, coordsys R = coordsys(l))
 {/*<asyxml></code><documentation>Returns the angle of the oriented line 'l' in degrees,
    in the interval [0, 360[ and relatively to 'R'.</documentation></function></asyxml>*/
   return degrees(angle(l, R));
 }
 
-/*<asyxml><function type = "real" signature = "sharpangle(line, line)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="sharpangle(line,line)"><code></asyxml>*/
 real sharpangle(line l1, line l2)
 {/*<asyxml></code><documentation>Return the measure in radians of the sharp angle formed by 'l1' and 'l2'.</documentation></function></asyxml>*/
   vector u1 = l1.u;
@@ -2054,26 +2054,26 @@ real sharpangle(line l1, line l2)
   return a12;
 }
 
-/*<asyxml><function type = "real" signature = "angle(line, line)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="angle(line,line)"><code></asyxml>*/
 real angle(line l1, line l2)
 {/*<asyxml></code><documentation>Return the measure in radians of oriented angle (l1.u, l2.u).</documentation></function></asyxml>*/
   return angle(locate(l2.u)) - angle(locate(l1.u));
 }
 
-/*<asyxml><function type = "real" signature = "degrees(line, line)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="degrees(line,line)"><code></asyxml>*/
 real degrees(line l1, line l2)
 {/*<asyxml></code><documentation>Return the measure in degrees of the
    angle formed by the oriented lines 'l1' and 'l2'.</documentation></function></asyxml>*/
   return degrees(angle(l1, l2));
 }
 
-/*<asyxml><function type = "real" signature = "sharpdegrees(line, line)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="sharpdegrees(line,line)"><code></asyxml>*/
 real sharpdegrees(line l1, line l2)
 {/*<asyxml></code><documentation>Return the measure in degrees of the sharp angle formed by 'l1' and 'l2'.</documentation></function></asyxml>*/
   return degrees(sharpangle(l1, l2));
 }
 
-/*<asyxml><function type = "line" signature = "bisector(line, line, real, bool)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="bisector(line,line,real,bool)"><code></asyxml>*/
 line bisector(line l1, line l2, real angle = 0, bool sharp = true)
 {/*<asyxml></code><documentation>Return the bisector of the angle formed by 'l1' and 'l2'
    rotated by the angle 'angle' (in degrees) around intersection point of 'l1' with 'l2'.
@@ -2096,7 +2096,7 @@ line bisector(line l1, line l2, real angle = 0, bool sharp = true)
   return ol;
 }
 
-/*<asyxml><function type = "line" signature = "sector(int, int, line, line, real, bool)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="sector(int,int,line,line,real,bool)"><code></asyxml>*/
 line sector(int n = 2, int p = 1, line l1, line l2, real angle = 0, bool sharp = true)
 {/*<asyxml></code><documentation>Return the p-th nth-sector of the angle
    formed by the oriented line 'l1' and 'l2'
@@ -2117,7 +2117,7 @@ line sector(int n = 2, int p = 1, line l1, line l2, real angle = 0, bool sharp =
   return ol;
 }
 
-/*<asyxml><function type = "line" signature = "bisector(point, point, point, point, real)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="bisector(point,point,point,point,real)"><code></asyxml>*/
 line bisector(point A, point B, point C, point D, real angle = 0, bool sharp = true)
 {/*<asyxml></code><documentation>Return the bisector of the angle formed by the lines (AB) and (CD).
    <look href = "#bisector(line, line, real, bool)"/>.</documentation></function></asyxml>*/
@@ -2125,7 +2125,7 @@ line bisector(point A, point B, point C, point D, real angle = 0, bool sharp = t
   return bisector(line(P[0], P[1]), line(P[2], P[3]), angle, sharp);
 }
 
-/*<asyxml><function type = "line" signature = "bisector(segment, real)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="bisector(segment,real)"><code></asyxml>*/
 line bisector(segment s, real angle = 0)
 {/*<asyxml></code><documentation>Return the bisector of the segment line 's' rotated by 'angle' (in degrees) around the
    midpoint of 's'.</documentation></function></asyxml>*/
@@ -2135,7 +2135,7 @@ line bisector(segment s, real angle = 0)
   return rotate(angle, m) * line(m + dir, m - dir);
 }
 
-/*<asyxml><function type = "line" signature = "bisector(point, point, real)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="bisector(point,point,real)"><code></asyxml>*/
 line bisector(point A, point B, real angle = 0)
 {/*<asyxml></code><documentation>Return the bisector of the segment line [AB] rotated by 'angle' (in degrees) around the
    midpoint of [AB].</documentation></function></asyxml>*/
@@ -2143,7 +2143,7 @@ line bisector(point A, point B, real angle = 0)
   return bisector(segment(P[0], P[1]), angle);
 }
 
-/*<asyxml><function type = "real" signature = "distance(point, line)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="distance(point,line)"><code></asyxml>*/
 real distance(point M, line l)
 {/*<asyxml></code><documentation>Return the distance from 'M' to 'l'.
    distance(line, point) is also defined.</documentation></function></asyxml>*/
@@ -2159,7 +2159,7 @@ real distance(line l, point M)
   return distance(M, l);
 }
 
-/*<asyxml><function type = "void" signature = "draw(picture, Label, line, bool, bool, align, pen, arrowbar, Label, marker)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="draw(picture,Label,line,bool,bool,align,pen,arrowbar,Label,marker)"><code></asyxml>*/
 void draw(picture pic = currentpicture, Label L = "",
           line l, bool dirA = l.extendA, bool dirB = l.extendB,
           align align = NoAlign, pen p = currentpen,
@@ -2176,7 +2176,7 @@ void draw(picture pic = currentpicture, Label L = "",
            legend, marker, pathModifier);
 }
 
-/*<asyxml><function type = "void" signature = "draw(picture, Label[], line[], align, pen[], arrowbar, Label, marker)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="draw(picture,Label[], line[], align,pen[], arrowbar,Label,marker)"><code></asyxml>*/
 void draw(picture pic = currentpicture, Label[] L = new Label[], line[] l,
           align align = NoAlign, pen[] p = new pen[],
           arrowbar arrow = None,
@@ -2191,7 +2191,7 @@ void draw(picture pic = currentpicture, Label[] L = new Label[], line[] l,
   }
 }
 
-/*<asyxml><function type = "void" signature = "draw(picture, Label[], line[], align, pen, arrowbar, Label, marker)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="draw(picture,Label[], line[], align,pen,arrowbar,Label,marker)"><code></asyxml>*/
 void draw(picture pic = currentpicture, Label[] L = new Label[], line[] l,
           align align = NoAlign, pen p,
           arrowbar arrow = None,
@@ -2202,7 +2202,7 @@ void draw(picture pic = currentpicture, Label[] L = new Label[], line[] l,
   draw(pic, L, l, align, tp, arrow, legend, marker, pathModifier);
 }
 
-/*<asyxml><function type = "void" signature = "show(picture, line, pen)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="show(picture,line,pen)"><code></asyxml>*/
 void show(picture pic = currentpicture, line l, pen p = red)
 {/*<asyxml></code><documentation>Draw some informations of 'l'.</documentation></function></asyxml>*/
   dot("$A$", (pair)l.A, align = -locate(l.v), p);
@@ -2212,7 +2212,7 @@ void show(picture pic = currentpicture, line l, pen p = red)
   draw("$\vec{v}$", locate(l.A)--locate(l.A + l.v), p, Arrow);
 }
 
-/*<asyxml><function type = "point[]" signature = "sameside(point, line, line)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="sameside(point,line,line)"><code></asyxml>*/
 point[] sameside(point M, line l1, line l2)
 {/*<asyxml></code><documentation>Return two points on 'l1' and 'l2' respectively.
    The first point is from the same side of M relatively to 'l2',
@@ -2233,77 +2233,77 @@ point[] sameside(point M, line l1, line l2)
   return op;
 }
 
-// /*<asyxml><function type = "void" signature = "markangle(picture, Label, int, real, real, line, line, explicit pair, arrowbar, pen, filltype, margin, marker)"><code></asyxml>*/
-// void markangle(picture pic = currentpicture,
-//                Label L = "", int n = 1, real radius = 0, real space = 0,
-//                line l1, line l2, explicit pair align = dir(1),
-//                arrowbar arrow = None, pen p = currentpen,
-//                filltype filltype = NoFill,
-//                margin margin = NoMargin, marker marker = nomarker)
-// {/*<asyxml></code><documentation>Mark the angle (l1, l2) aligned in the direction 'align' relative to 'l1'.
-//    Commune values for 'align' are dir(real).</documentation></function></asyxml>*/
-//   if (parallel(l1, l2, true)) return;
-//   real al = degrees(l1, defaultcoordsys);
-//   pair O, A, B;
-//   if (radius == 0) radius = markangleradius(p);
-//   real d = degrees(locate(l1.u));
-//   align = rotate(d) * align;
-//   if (l1 == l2) {
-//     O = midpoint(segment(l1.A, l1.B));
-//     A = l1.A;B = l1.B;
-//     if (sameside(rotate(sgn(angle(B-A)) * 45, O) * A, O + align, l1)) {radius = -radius;}
-//   } else {
-//     O = intersectionpoint(extend(l1), extend(l2));
-//     pair R = O + align;
-//     point [] ss = sameside(point(coordsys(l1), R/coordsys(l1)), l1, l2);
-//     A = ss[0];
-//     B = ss[1];
-//   }
-//   markangle(pic = pic, L = L, n = n, radius = radius, space = space,
-//             O = O, A = A, B = B,
-//             arrow = arrow, p = p, filltype = filltype,
-//             margin = margin, marker = marker);
-// }
-
-// /*<asyxml><function type = "void" signature = "markangle(picture, Label, int, real, real, line, line, explicit vector, arrowbar, pen, filltype, margin, marker)"><code></asyxml>*/
-// void markangle(picture pic = currentpicture,
-//                Label L = "", int n = 1, real radius = 0, real space = 0,
-//                line l1, line l2, explicit vector align,
-//                arrowbar arrow = None, pen p = currentpen,
-//                filltype filltype = NoFill,
-//                margin margin = NoMargin, marker marker = nomarker)
-// {/*<asyxml></code><documentation>Mark the angle (l1, l2) in the direction 'dir' given relatively to 'l1'.</documentation></function></asyxml>*/
-//   markangle(pic, L, n, radius, space, l1, l2, (pair)align, arrow,
-//             p, filltype, margin, marker);
-// }
-
-/*<asyxml><function type = "void" signature = "markangle(picture, Label, int, real, real, line, line, arrowbar, pen, filltype, margin, marker)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="markangle(picture,Label,int,real,real,explicit line,explicit line,explicit pair,arrowbar,pen,filltype,margin,marker)"><code></asyxml>*/
 void markangle(picture pic = currentpicture,
                Label L = "", int n = 1, real radius = 0, real space = 0,
-               line l1, line l2,
+               explicit line l1, explicit line l2, explicit pair align = dir(1),
                arrowbar arrow = None, pen p = currentpen,
                filltype filltype = NoFill,
                margin margin = NoMargin, marker marker = nomarker)
-{/*<asyxml></code><documentation>Mark the oriented angle (l1, l2).</documentation></function></asyxml>*/
+{/*<asyxml></code><documentation>Mark the angle (l1, l2) aligned in the direction 'align' relative to 'l1'.
+   Commune values for 'align' are dir(real).</documentation></function></asyxml>*/
   if (parallel(l1, l2, true)) return;
   real al = degrees(l1, defaultcoordsys);
   pair O, A, B;
   if (radius == 0) radius = markangleradius(p);
   real d = degrees(locate(l1.u));
+  align = rotate(d) * align;
   if (l1 == l2) {
     O = midpoint(segment(l1.A, l1.B));
+    A = l1.A;B = l1.B;
+    if (sameside(rotate(sgn(angle(B-A)) * 45, O) * A, O + align, l1)) {radius = -radius;}
   } else {
     O = intersectionpoint(extend(l1), extend(l2));
+    pair R = O + align;
+    point [] ss = sameside(point(coordsys(l1), R/coordsys(l1)), l1, l2);
+    A = ss[0];
+    B = ss[1];
   }
-  A = O + locate(l1.u);
-  B = O + locate(l2.u);
   markangle(pic = pic, L = L, n = n, radius = radius, space = space,
             O = O, A = A, B = B,
             arrow = arrow, p = p, filltype = filltype,
             margin = margin, marker = marker);
 }
 
-/*<asyxml><function type = "void" signature = "perpendicularmark(picture, line, line, real, pen, int, margin, filltype)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="markangle(picture,Label,int,real,real,explicit line,explicit line,explicit vector,arrowbar,pen,filltype,margin,marker)"><code></asyxml>*/
+void markangle(picture pic = currentpicture,
+               Label L = "", int n = 1, real radius = 0, real space = 0,
+               explicit line l1, explicit line l2, explicit vector align,
+               arrowbar arrow = None, pen p = currentpen,
+               filltype filltype = NoFill,
+               margin margin = NoMargin, marker marker = nomarker)
+{/*<asyxml></code><documentation>Mark the angle (l1, l2) in the direction 'dir' given relatively to 'l1'.</documentation></function></asyxml>*/
+  markangle(pic, L, n, radius, space, l1, l2, (pair)align, arrow,
+            p, filltype, margin, marker);
+}
+
+/*<asyxml><function type="void" signature="markangle(picture,Label,int,real,real,line,line,arrowbar,pen,filltype,margin,marker)"><code></asyxml>*/
+// void markangle(picture pic = currentpicture,
+//                Label L = "", int n = 1, real radius = 0, real space = 0,
+//                explicit line l1, explicit line l2,
+//                arrowbar arrow = None, pen p = currentpen,
+//                filltype filltype = NoFill,
+//                margin margin = NoMargin, marker marker = nomarker)
+// {/*<asyxml></code><documentation>Mark the oriented angle (l1, l2).</documentation></function></asyxml>*/
+//   if (parallel(l1, l2, true)) return;
+//   real al = degrees(l1, defaultcoordsys);
+//   pair O, A, B;
+//   if (radius == 0) radius = markangleradius(p);
+//   real d = degrees(locate(l1.u));
+//   if (l1 == l2) {
+//     O = midpoint(segment(l1.A, l1.B));
+//   } else {
+//     O = intersectionpoint(extend(l1), extend(l2));
+//   }
+//   A = O + locate(l1.u);
+//   B = O + locate(l2.u);
+//   markangle(pic = pic, L = L, n = n, radius = radius, space = space,
+//             O = O, A = A, B = B,
+//             arrow = arrow, p = p, filltype = filltype,
+//             margin = margin, marker = marker);
+// }
+
+/*<asyxml><function type="void" signature="perpendicularmark(picture,line,line,real,pen,int,margin,filltype)"><code></asyxml>*/
 void perpendicularmark(picture pic = currentpicture, line l1, line l2,
                        real size = 0, pen p = currentpen, int quarter = 1,
                        margin margin = NoMargin, filltype filltype = NoFill)
@@ -2319,15 +2319,15 @@ void perpendicularmark(picture pic = currentpicture, line l1, line l2,
 
 // *=======================================================*
 // *........................CONICS.........................*
-/*<asyxml><struct signature = "bqe"><code></asyxml>*/
+/*<asyxml><struct signature="bqe"><code></asyxml>*/
 struct bqe
 {/*<asyxml></code><documentation>Bivariate Quadratic Equation.</documentation></asyxml>*/
-  /*<asyxml><property type = "real[]" signature = "a"><code></asyxml>*/
-  real[] a;/*<asyxml></code><documentation>a[0] * x^2 + a[1] * x * y + a[2] * y^2 + a[3] * x + a[4] * y + a[5] = 0</documentation></property><property type = "coordsys" signature = "coordsys"><code></asyxml>*/
+  /*<asyxml><property type = "real[]" signature="a"><code></asyxml>*/
+  real[] a;/*<asyxml></code><documentation>a[0] * x^2 + a[1] * x * y + a[2] * y^2 + a[3] * x + a[4] * y + a[5] = 0</documentation></property><property type = "coordsys" signature="coordsys"><code></asyxml>*/
   coordsys coordsys;/*<asyxml></code></property></asyxml>*/
 }/*<asyxml></struct></asyxml>*/
 
-/*<asyxml><function type = "bqe" signature = "bqe(coordsys, real, real, real, real, real, real)"><code></asyxml>*/
+/*<asyxml><function type="bqe" signature="bqe(coordsys,real,real,real,real,real,real)"><code></asyxml>*/
 bqe bqe(coordsys R = currentcoordsys,
         real a, real b, real c, real d, real e, real f)
 {/*<asyxml></code><documentation>Return the bivariate quadratic equation
@@ -2339,7 +2339,7 @@ bqe bqe(coordsys R = currentcoordsys,
   return obqe;
 }
 
-/*<asyxml><function type = "bqe" signature = "changecoordsys(coordsys, bqe)"><code></asyxml>*/
+/*<asyxml><function type="bqe" signature="changecoordsys(coordsys,bqe)"><code></asyxml>*/
 bqe changecoordsys(coordsys R, bqe bqe)
 {/*<asyxml></code><documentation>Returns the bivariate quadratic equation relatively to 'R'.</documentation></function></asyxml>*/
   pair i = coordinates(changecoordsys(R, vector(defaultcoordsys,
@@ -2372,7 +2372,7 @@ bqe changecoordsys(coordsys R, bqe bqe)
   return obqe;
 }
 
-/*<asyxml><function type = "bqe" signature = "bqe(point, point, point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="bqe" signature="bqe(point,point,point,point,point)"><code></asyxml>*/
 bqe bqe(point M1, point M2, point M3, point M4, point M5)
 {/*<asyxml></code><documentation>Return the bqe of conic passing through the five points (if possible).</documentation></function></asyxml>*/
   coordsys R;
@@ -2407,7 +2407,7 @@ bqe bqe(point M1, point M2, point M3, point M4, point M5)
   return bqe;
 }
 
-/*<asyxml><function type = "bool" signature = "samecoordsys(bool...bqe[])"><code></asyxml>*/
+/*<asyxml><function type="bool" signature="samecoordsys(bool...bqe[])"><code></asyxml>*/
 bool samecoordsys(bool warn = true ... bqe[] bqes)
 {/*<asyxml></code><documentation>Return true if all the bivariate quadratic equations have the same coordinate system.</documentation></function></asyxml>*/
   bool ret = true;
@@ -2425,7 +2425,7 @@ system.");
   return ret;
 }
 
-/*<asyxml><function type = "real[]" signature = "realquarticroots(real, real, real, real, real)"><code></asyxml>*/
+/*<asyxml><function type="real[]" signature="realquarticroots(real,real,real,real,real)"><code></asyxml>*/
 real[] realquarticroots(real a, real b, real c, real d, real e)
 {/*<asyxml></code><documentation>Return the real roots of the quartic equation ax^4 + b^x3 + cx^2 + dx = 0.</documentation></function></asyxml>*/
   static real Fuzz = sqrt(realEpsilon);
@@ -2469,7 +2469,7 @@ real[] realquarticroots(real a, real b, real c, real d, real e)
   return roots;
 }
 
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(bqe, bqe)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(bqe,bqe)"><code></asyxml>*/
 point[] intersectionpoints(bqe bqe1, bqe bqe2)
 {/*<asyxml></code><documentation>Return the interscetion of the two conic sections whose equations are 'bqe1' and 'bqe2'.</documentation></function></asyxml>*/
   coordsys R = bqe1.coordsys;
@@ -2544,13 +2544,13 @@ point[] intersectionpoints(bqe bqe1, bqe bqe2)
   return P;
 }
 
-/*<asyxml><struct signature = "conic"><code></asyxml>*/
+/*<asyxml><struct signature="conic"><code></asyxml>*/
 struct conic
-{/*<asyxml></code><documentation></documentation><property type = "real" signature = "e, p, h"><code></asyxml>*/
+{/*<asyxml></code><documentation></documentation><property type = "real" signature="e,p,h"><code></asyxml>*/
   real e, p, h;/*<asyxml></code><documentation>BE CAREFUL: h = distance(F, D) and p = h * e (http://en.wikipedia.org/wiki/Ellipse)
-                 While http://mathworld.wolfram.com/ takes p = distance(F, D).</documentation></property><property type = "point" signature = "F"><code></asyxml>*/
-  point F;/*<asyxml></code><documentation>Focus.</documentation></property><property type = "line" signature = "D"><code></asyxml>*/
-  line D;/*<asyxml></code><documentation>Directrix.</documentation></property><property type = "line" signature = "l"><code></asyxml>*/
+                 While http://mathworld.wolfram.com/ takes p = distance(F,D).</documentation></property><property type = "point" signature="F"><code></asyxml>*/
+  point F;/*<asyxml></code><documentation>Focus.</documentation></property><property type = "line" signature="D"><code></asyxml>*/
+  line D;/*<asyxml></code><documentation>Directrix.</documentation></property><property type = "line" signature="l"><code></asyxml>*/
   line[] l;/*<asyxml></code><documentation>Case of degenerated conic (not yet implemented !).</documentation></property></asyxml>*/
 }/*<asyxml></struct></asyxml>*/
 
@@ -2582,11 +2582,11 @@ conic conic(point F, line l, real e)
   return oc;
 }
 
-/*<asyxml><struct signature = "circle"><code></asyxml>*/
+/*<asyxml><struct signature="circle"><code></asyxml>*/
 struct circle
 {/*<asyxml></code><documentation>All the calculus with this structure will be as exact as Asymptote can do.
    For a full precision, you must not cast 'circle' to 'path' excepted for drawing routines.</documentation></asyxml>*/
-  /*<asyxml><property type = "point" signature = "C"><code></asyxml>*/
+  /*<asyxml><property type = "point" signature="C"><code></asyxml>*/
   point C;/*<asyxml></code><documentation>Center</documentation></property><property><code></asyxml>*/
   real r;/*<asyxml></code><documentation>Radius</documentation></property><property><code></asyxml>*/
   line l;/*<asyxml></code><documentation>If the radius is infinite, this line is used instead of circle.</documentation></property></asyxml>*/
@@ -2602,16 +2602,16 @@ line line(circle c){
   return c.l;
 }
 
-/*<asyxml><struct signature = "ellipse"><code></asyxml>*/
+/*<asyxml><struct signature="ellipse"><code></asyxml>*/
 struct ellipse
 {/*<asyxml></code><documentation>Look at <html><a href = "http://mathworld.wolfram.com/Ellipse.html">http://mathworld.wolfram.com/Ellipse.html</a></html></documentation></asyxml>*/
-  /*<asyxml><property type = "point" signature = "F1, F2, C"><code></asyxml>*/
-  restricted point F1, F2, C;/*<asyxml></code><documentation>Foci and center.</documentation></property><property type = "real" signature = "a, b, c, e, p"><code></asyxml>*/
-  restricted real a, b, c, e, p;/*<asyxml></code></property><property type = "real" signature = "angle"><code></asyxml>*/
-  restricted real angle;/*<asyxml></code><documentation>Value is degrees(F1 - F2).</documentation></property><property type = "line" signature = "D1, D2"><code></asyxml>*/
-  restricted line D1, D2;/*<asyxml></code><documentation>Directrices.</documentation></property><property type = "line" signature = "l"><code></asyxml>*/
+  /*<asyxml><property type = "point" signature="F1,F2,C"><code></asyxml>*/
+  restricted point F1,F2,C;/*<asyxml></code><documentation>Foci and center.</documentation></property><property type = "real" signature="a,b,c,e,p"><code></asyxml>*/
+  restricted real a,b,c,e,p;/*<asyxml></code></property><property type = "real" signature="angle"><code></asyxml>*/
+  restricted real angle;/*<asyxml></code><documentation>Value is degrees(F1 - F2).</documentation></property><property type = "line" signature="D1,D2"><code></asyxml>*/
+  restricted line D1,D2;/*<asyxml></code><documentation>Directrices.</documentation></property><property type = "line" signature="l"><code></asyxml>*/
   line l;/*<asyxml></code><documentation>If one axis is infinite, this line is used instead of ellipse.</documentation></property></asyxml>*/
-  /*<asyxml><method type = "void" signature = "init(point, point, real)"><code></asyxml>*/
+  /*<asyxml><method type = "void" signature="init(point,point,real)"><code></asyxml>*/
   void init(point f1, point f2, real a)
   {/*<asyxml></code><documentation>Ellipse given by foci and semimajor axis</documentation></method></asyxml>*/
     point[] P = standardizecoordsys(f1, f2);
@@ -2645,17 +2645,17 @@ bool degenerate(ellipse el)
   return (!finite(el.a) || !finite(el.b));
 }
 
-/*<asyxml><struct signature = "parabola"><code></asyxml>*/
+/*<asyxml><struct signature="parabola"><code></asyxml>*/
 struct parabola
-{/*<asyxml></code><documentation>Look at <html><a href = "http://mathworld.wolfram.com/Parabola.html">http://mathworld.wolfram.com/Parabola.html</a></html></documentation><property type = "point" signature = "F, V"><code></asyxml>*/
-  restricted point F, V;/*<asyxml></code><documentation>Focus and vertex</documentation></property><property type = "real" signature = "a, p, e = 1"><code></asyxml>*/
-  restricted real a, p, e = 1;/*<asyxml></code></property><property type = "real" signature = "angle"><code></asyxml>*/
-  restricted real angle;/*<asyxml></code><documentation>Angle, in degrees, of the line (FV).</documentation></property><property type = "line" signature = "D"><code></asyxml>*/
-  restricted line D;/*<asyxml></code><documentation>Directrix</documentation></property><property type = "pair" signature = "bmin, bmax"><code></asyxml>*/
+{/*<asyxml></code><documentation>Look at <html><a href = "http://mathworld.wolfram.com/Parabola.html">http://mathworld.wolfram.com/Parabola.html</a></html></documentation><property type = "point" signature="F,V"><code></asyxml>*/
+  restricted point F,V;/*<asyxml></code><documentation>Focus and vertex</documentation></property><property type = "real" signature="a,p,e = 1"><code></asyxml>*/
+  restricted real a,p,e = 1;/*<asyxml></code></property><property type = "real" signature="angle"><code></asyxml>*/
+  restricted real angle;/*<asyxml></code><documentation>Angle, in degrees, of the line (FV).</documentation></property><property type = "line" signature="D"><code></asyxml>*/
+  restricted line D;/*<asyxml></code><documentation>Directrix</documentation></property><property type = "pair" signature="bmin,bmax"><code></asyxml>*/
   pair bmin, bmax;/*<asyxml></code><documentation>The (left, bottom) and (right, top) coordinates of region bounding box for drawing the parabola.
                     If unset the current picture bounding box is used instead.</documentation></property></asyxml>*/
 
-  /*<asyxml><method type = "void" signature = "init(point, line)"><code></asyxml>*/
+  /*<asyxml><method type = "void" signature="init(point,line)"><code></asyxml>*/
   void init(point F, line directrix)
   {/*<asyxml></code><documentation>Parabola given by focus and directrix.</documentation></method></asyxml>*/
     point[] P = standardizecoordsys(F, directrix.A, directrix.B);
@@ -2669,18 +2669,18 @@ struct parabola
   }
 }/*<asyxml></struct></asyxml>*/
 
-/*<asyxml><struct signature = "hyperbola"><code></asyxml>*/
+/*<asyxml><struct signature="hyperbola"><code></asyxml>*/
 struct hyperbola
-{/*<asyxml></code><documentation><html>Look at <a href = "http://mathworld.wolfram.com/Hyperbola.html">http://mathworld.wolfram.com/Hyperbola.html</a></html></documentation><property type = "point" signature = "F1, F2"><code></asyxml>*/
-  restricted point F1, F2;/*<asyxml></code><documentation>Foci.</documentation></property><property type = "point" signature = "C, V1, V2"><code></asyxml>*/
-  restricted point C, V1, V2;/*<asyxml></code><documentation>Center and vertices.</documentation></property><property type = "real" signature = "a, b, c, e, p"><code></asyxml>*/
-  restricted real a, b, c, e, p;/*<asyxml></code><documentation></documentation></property><property type = "real" signature = "angle"><code></asyxml>*/
-  restricted real angle;/*<asyxml></code><documentation>Angle, in degrees, of the line (F1F2).</documentation></property><property type = "line" signature = "D1, D2, A1, A2"><code></asyxml>*/
-  restricted line D1, D2, A1, A2;/*<asyxml></code><documentation>Directrices and asymptotes.</documentation></property><property type = "pair" signature = "bmin, bmax"><code></asyxml>*/
+{/*<asyxml></code><documentation><html>Look at <a href = "http://mathworld.wolfram.com/Hyperbola.html">http://mathworld.wolfram.com/Hyperbola.html</a></html></documentation><property type = "point" signature="F1,F2"><code></asyxml>*/
+  restricted point F1,F2;/*<asyxml></code><documentation>Foci.</documentation></property><property type = "point" signature="C,V1,V2"><code></asyxml>*/
+  restricted point C,V1,V2;/*<asyxml></code><documentation>Center and vertices.</documentation></property><property type = "real" signature="a,b,c,e,p"><code></asyxml>*/
+  restricted real a,b,c,e,p;/*<asyxml></code><documentation></documentation></property><property type = "real" signature="angle"><code></asyxml>*/
+  restricted real angle;/*<asyxml></code><documentation>Angle,in degrees,of the line (F1F2).</documentation></property><property type = "line" signature="D1,D2,A1,A2"><code></asyxml>*/
+  restricted line D1,D2,A1,A2;/*<asyxml></code><documentation>Directrices and asymptotes.</documentation></property><property type = "pair" signature="bmin,bmax"><code></asyxml>*/
   pair bmin, bmax; /*<asyxml></code><documentation>The (left, bottom) and (right, top) coordinates of region bounding box for drawing the hyperbola.
                      If unset the current picture bounding box is used instead.</documentation></property></asyxml>*/
 
-  /*<asyxml><method type = "void" signature = "init(point, point, real)"><code></asyxml>*/
+  /*<asyxml><method type = "void" signature="init(point,point,real)"><code></asyxml>*/
   void init(point f1, point f2, real a)
   {/*<asyxml></code><documentation>Hyperbola given by foci and semimajor axis.</documentation></method></asyxml>*/
     point[] P = standardizecoordsys(f1, f2);
@@ -2704,12 +2704,12 @@ struct hyperbola
   }
 }/*<asyxml></struct></asyxml>*/
 
-/*<asyxml><variable type = "int" signature = "conicnodesfactor"><code></asyxml>*/
+/*<asyxml><variable type="int" signature="conicnodesfactor"><code></asyxml>*/
 int conicnodesfactor = 1;/*<asyxml></code><documentation>Factor for the node number of all conics.</documentation></variable></asyxml>*/
 
-/*<asyxml><variable type = "int" signature = "circlenodesnumberfactor"><code></asyxml>*/
+/*<asyxml><variable type="int" signature="circlenodesnumberfactor"><code></asyxml>*/
 int circlenodesnumberfactor = 100;/*<asyxml></code><documentation>Factor for the node number of circles.</documentation></variable></asyxml>*/
-/*<asyxml><function type = "int" signature = "circlenodesnumber(real)"><code></asyxml>*/
+/*<asyxml><function type="int" signature="circlenodesnumber(real)"><code></asyxml>*/
 int circlenodesnumber(real r)
 {/*<asyxml></code><documentation>Return the number of nodes for drawing a circle of radius 'r'.</documentation></function></asyxml>*/
   if (circlenodesnumberfactor < 100)
@@ -2720,7 +2720,7 @@ int circlenodesnumber(real r)
   return oi == 0 ? 4 : conicnodesfactor * oi;
 }
 
-/*<asyxml><function type = "int" signature = "circlenodesnumber(real, real, real)"><code></asyxml>*/
+/*<asyxml><function type="int" signature="circlenodesnumber(real,real,real)"><code></asyxml>*/
 int circlenodesnumber(real r, real angle1, real angle2)
 {/*<asyxml></code><documentation>Return the number of nodes to draw a circle arc.</documentation></function></asyxml>*/
   return (r > 0) ?
@@ -2728,9 +2728,9 @@ int circlenodesnumber(real r, real angle1, real angle2)
     ceil(circlenodesnumber(r) * abs((1 - abs(angle1 - angle2)/360)));
 }
 
-/*<asyxml><variable type = "int" signature = "ellispenodesnumberfactor"><code></asyxml>*/
+/*<asyxml><variable type="int" signature="ellispenodesnumberfactor"><code></asyxml>*/
 int ellipsenodesnumberfactor = 250;/*<asyxml></code><documentation>Factor for the node number of ellispe (non-circle).</documentation></variable></asyxml>*/
-/*<asyxml><function type = "int" signature = "ellipsenodesnumber(real, real)"><code></asyxml>*/
+/*<asyxml><function type="int" signature="ellipsenodesnumber(real,real)"><code></asyxml>*/
 int ellipsenodesnumber(real a, real b)
 {/*<asyxml></code><documentation>Return the number of nodes to draw a ellipse of axis 'a' and 'b'.</documentation></function></asyxml>*/
   if (ellipsenodesnumberfactor < 250)
@@ -2743,7 +2743,7 @@ int ellipsenodesnumber(real a, real b)
   return conicnodesfactor * oi;
 }
 
-/*<asyxml><function type = "int" signature = "ellipsenodesnumber(real, real, real)"><code></asyxml>*/
+/*<asyxml><function type="int" signature="ellipsenodesnumber(real,real,real)"><code></asyxml>*/
 int ellipsenodesnumber(real a, real b, real angle1, real angle2, bool dir)
 {/*<asyxml></code><documentation>Return the number of nodes to draw an ellipse arc.</documentation></function></asyxml>*/
   real d;
@@ -2757,62 +2757,62 @@ int ellipsenodesnumber(real a, real b, real angle1, real angle2, bool dir)
   return n < 5 ? 5 : n;
 }
 
-/*<asyxml><variable type = "int" signature = "parabolanodesnumberfactor"><code></asyxml>*/
+/*<asyxml><variable type="int" signature="parabolanodesnumberfactor"><code></asyxml>*/
 int parabolanodesnumberfactor = 100;/*<asyxml></code><documentation>Factor for the number of nodes of parabolas.</documentation></variable></asyxml>*/
-/*<asyxml><function type = "int" signature = "parabolanodesnumber(parabola, real, real)"><code></asyxml>*/
+/*<asyxml><function type="int" signature="parabolanodesnumber(parabola,real,real)"><code></asyxml>*/
 int parabolanodesnumber(parabola p, real angle1, real angle2)
 {/*<asyxml></code><documentation>Return the number of nodes for drawing a parabola.</documentation></function></asyxml>*/
   return conicnodesfactor * floor(0.01 * parabolanodesnumberfactor * abs(angle1 - angle2));
 }
 
-/*<asyxml><variable type = "int" signature = "hyperbolanodesnumberfactor"><code></asyxml>*/
+/*<asyxml><variable type="int" signature="hyperbolanodesnumberfactor"><code></asyxml>*/
 int hyperbolanodesnumberfactor = 100;/*<asyxml></code><documentation>Factor for the number of nodes of hyperbolas.</documentation></variable></asyxml>*/
-/*<asyxml><function type = "int" signature = "hyperbolanodesnumber(hyperbola, real, real)"><code></asyxml>*/
+/*<asyxml><function type="int" signature="hyperbolanodesnumber(hyperbola,real,real)"><code></asyxml>*/
 int hyperbolanodesnumber(hyperbola h, real angle1, real angle2)
 {/*<asyxml></code><documentation>Return the number of nodes for drawing an hyperbola.</documentation></function></asyxml>*/
   return conicnodesfactor * floor(0.01 * hyperbolanodesnumberfactor * abs(angle1 - angle2)/h.e);
 }
 
-/*<asyxml><operator type = "conic" signature = "+(conic, explicit point)"><code></asyxml>*/
+/*<asyxml><operator type = "conic" signature="+(conic,explicit point)"><code></asyxml>*/
 conic operator +(conic c, explicit point M)
 {/*<asyxml></code><documentation></documentation></operator></asyxml>*/
   return conic(c.F + M, c.D + M, c.e);
 }
-/*<asyxml><operator type = "conic" signature = "-(conic, explicit point)"><code></asyxml>*/
+/*<asyxml><operator type = "conic" signature="-(conic,explicit point)"><code></asyxml>*/
 conic operator -(conic c, explicit point M)
 {/*<asyxml></code><documentation></documentation></operator></asyxml>*/
   return conic(c.F - M, c.D - M, c.e);
 }
-/*<asyxml><operator type = "conic" signature = "+(conic, explicit pair)"><code></asyxml>*/
+/*<asyxml><operator type = "conic" signature="+(conic,explicit pair)"><code></asyxml>*/
 conic operator +(conic c, explicit pair m)
 {/*<asyxml></code><documentation></documentation></operator></asyxml>*/
   point M = point(c.F.coordsys, m);
   return conic(c.F + M, c.D + M, c.e);
 }
-/*<asyxml><operator type = "conic" signature = "-(conic, explicit pair)"><code></asyxml>*/
+/*<asyxml><operator type = "conic" signature="-(conic,explicit pair)"><code></asyxml>*/
 conic operator -(conic c, explicit pair m)
 {/*<asyxml></code><documentation></documentation></operator></asyxml>*/
   point M = point(c.F.coordsys, m);
   return conic(c.F - M, c.D - M, c.e);
 }
-/*<asyxml><operator type = "conic" signature = "+(conic, vector)"><code></asyxml>*/
+/*<asyxml><operator type = "conic" signature="+(conic,vector)"><code></asyxml>*/
 conic operator +(conic c, vector v)
 {/*<asyxml></code><documentation></documentation></operator></asyxml>*/
   return conic(c.F + v, c.D + v, c.e);
 }
-/*<asyxml><operator type = "conic" signature = "-(conic, vector)"><code></asyxml>*/
+/*<asyxml><operator type = "conic" signature="-(conic,vector)"><code></asyxml>*/
 conic operator -(conic c, vector v)
 {/*<asyxml></code><documentation></documentation></operator></asyxml>*/
   return conic(c.F - v, c.D - v, c.e);
 }
 
-/*<asyxml><function type = "coordsys" signature = "coordsys(conic)"><code></asyxml>*/
+/*<asyxml><function type="coordsys" signature="coordsys(conic)"><code></asyxml>*/
 coordsys coordsys(conic co)
 {/*<asyxml></code><documentation>Return the coordinate system of 'co'.</documentation></function></asyxml>*/
   return co.F.coordsys;
 }
 
-/*<asyxml><function type = "conic" signature = "changecoordsys(coordsys, conic)"><code></asyxml>*/
+/*<asyxml><function type="conic" signature="changecoordsys(coordsys,conic)"><code></asyxml>*/
 conic changecoordsys(coordsys R, conic co)
 {/*<asyxml></code><documentation>Change the coordinate system of 'co' to 'R'</documentation></function></asyxml>*/
   line l = changecoordsys(R, co.D);
@@ -2823,7 +2823,7 @@ conic changecoordsys(coordsys R, conic co)
 /*<asyxml><typedef type = "polarconicroutine" return = "path" params = "conic, real, real, int, bool"><code></asyxml>*/
 typedef path polarconicroutine(conic co, real angle1, real angle2, int n, bool direction);/*<asyxml></code><documentation>Routine type used to draw conics from 'angle1' to 'angle2'</documentation></typedef></asyxml>*/
 
-/*<asyxml><function type = "path" signature = "arcfromfocus(conic, real, real, int, bool)"><code></asyxml>*/
+/*<asyxml><function type="path" signature="arcfromfocus(conic,real,real,int,bool)"><code></asyxml>*/
 path arcfromfocus(conic co, real angle1, real angle2, int n = 400, bool direction = CCW)
 {/*<asyxml></code><documentation>Return the path of the conic section 'co' from angle1 to angle2 in degrees,
    drawing in the given direction, with n nodes.</documentation></function></asyxml>*/
@@ -2859,10 +2859,10 @@ path arcfromfocus(conic co, real angle1, real angle2, int n = 400, bool directio
   return (direction ? op : op == nullpath ? op :reverse(op));
 }
 
-/*<asyxml><variable type = "polarconicroutine" signature = "currentpolarconicroutine"><code></asyxml>*/
+/*<asyxml><variable type="polarconicroutine" signature="currentpolarconicroutine"><code></asyxml>*/
 polarconicroutine currentpolarconicroutine = arcfromfocus;/*<asyxml></code><documentation>Default routine used to cast conic section to path.</documentation></variable></asyxml>*/
 
-/*<asyxml><function type = "point" signature = "angpoint(conic, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="angpoint(conic,real)"><code></asyxml>*/
 point angpoint(conic co, real angle)
 {/*<asyxml></code><documentation>Return the point of 'co' whose the angular (in degrees)
    coordinate is 'angle' (mesured from the focus of 'co', relatively
@@ -2871,20 +2871,20 @@ point angpoint(conic co, real angle)
   return point(R, point(arcfromfocus(co, angle, angle, 1, CCW), 0)/R);
 }
 
-/*<asyxml><operator type = "bool" signature = "@(point, conic)"><code></asyxml>*/
+/*<asyxml><operator type = "bool" signature="@(point,conic)"><code></asyxml>*/
 bool operator @(point M, conic co)
 {/*<asyxml></code><documentation>Return true iff 'M' on 'co'.</documentation></operator></asyxml>*/
   if(co.e == 0) return abs(abs(co.F - M) - co.p) < 10 * epsgeo;
   return abs(co.e * distance(M, co.D) - abs(co.F - M)) < 10 * epsgeo;
 }
 
-/*<asyxml><function type = "coordsys" signature = "coordsys(ellipse)"><code></asyxml>*/
+/*<asyxml><function type="coordsys" signature="coordsys(ellipse)"><code></asyxml>*/
 coordsys coordsys(ellipse el)
 {/*<asyxml></code><documentation>Return the coordinate system of 'el'.</documentation></function></asyxml>*/
   return el.F1.coordsys;
 }
 
-/*<asyxml><function type = "coordsys" signature = "canonicalcartesiansystem(ellipse)"><code></asyxml>*/
+/*<asyxml><function type="coordsys" signature="canonicalcartesiansystem(ellipse)"><code></asyxml>*/
 coordsys canonicalcartesiansystem(ellipse el)
 {/*<asyxml></code><documentation>Return the canonical cartesian system of the ellipse 'el'.</documentation></function></asyxml>*/
   if(degenerate(el)) return cartesiansystem(el.l.A, el.l.u, el.l.v);
@@ -2894,7 +2894,7 @@ coordsys canonicalcartesiansystem(ellipse el)
   return cartesiansystem(O, i, j);
 }
 
-/*<asyxml><function type = "coordsys" signature = "canonicalcartesiansystem(parabola)"><code></asyxml>*/
+/*<asyxml><function type="coordsys" signature="canonicalcartesiansystem(parabola)"><code></asyxml>*/
 coordsys canonicalcartesiansystem(parabola p)
 {/*<asyxml></code><documentation>Return the canonical cartesian system of a parabola,
    so that Origin = vertex of 'p' and directrix: x = -a.</documentation></function></asyxml>*/
@@ -2905,7 +2905,7 @@ coordsys canonicalcartesiansystem(parabola p)
   return cartesiansystem(O, i, j);
 }
 
-/*<asyxml><function type = "coordsys" signature = "canonicalcartesiansystem(hyperbola)"><code></asyxml>*/
+/*<asyxml><function type="coordsys" signature="canonicalcartesiansystem(hyperbola)"><code></asyxml>*/
 coordsys canonicalcartesiansystem(hyperbola h)
 {/*<asyxml></code><documentation>Return the canonical cartesian system of an hyperbola.</documentation></function></asyxml>*/
   pair O = locate(h.C);
@@ -2914,7 +2914,7 @@ coordsys canonicalcartesiansystem(hyperbola h)
   return cartesiansystem(O, i, j);
 }
 
-/*<asyxml><function type = "ellipse" signature = "ellipse(point, point, real)"><code></asyxml>*/
+/*<asyxml><function type="ellipse" signature="ellipse(point,point,real)"><code></asyxml>*/
 ellipse ellipse(point F1, point F2, real a)
 {/*<asyxml></code><documentation>Return the ellipse whose the foci are 'F1' and 'F2'
    and the semimajor axis is 'a'.</documentation></function></asyxml>*/
@@ -2923,10 +2923,10 @@ ellipse ellipse(point F1, point F2, real a)
   return oe;
 }
 
-/*<asyxml><constant type = "bool" signature = "byfoci, byvertices"><code></asyxml>*/
+/*<asyxml><constant type = "bool" signature="byfoci,byvertices"><code></asyxml>*/
 restricted bool byfoci = true, byvertices = false;/*<asyxml></code><documentation>Constants useful for the routine 'hyperbola(point P1, point P2, real ae, bool byfoci = byfoci)'</documentation></constant></asyxml>*/
 
-/*<asyxml><function type = "hyperbola" signature = "hyperbola(point, point, real, bool)"><code></asyxml>*/
+/*<asyxml><function type="hyperbola" signature="hyperbola(point,point,real,bool)"><code></asyxml>*/
 hyperbola hyperbola(point P1, point P2, real ae, bool byfoci = byfoci)
 {/*<asyxml></code><documentation>if 'byfoci = true':
    return the hyperbola whose the foci are 'P1' and 'P2'
@@ -2946,7 +2946,7 @@ hyperbola hyperbola(point P1, point P2, real ae, bool byfoci = byfoci)
   return oh;
 }
 
-/*<asyxml><function type = "ellipse" signature = "ellipse(point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="ellipse" signature="ellipse(point,point,point)"><code></asyxml>*/
 ellipse ellipse(point F1, point F2, point M)
 {/*<asyxml></code><documentation>Return the ellipse passing through 'M' whose the foci are 'F1' and 'F2'.</documentation></function></asyxml>*/
   point P[] = standardizecoordsys(false, F1, F2, M);
@@ -2954,7 +2954,7 @@ ellipse ellipse(point F1, point F2, point M)
   return ellipse(F1, F2, finite(a) ? a/2 : a);
 }
 
-/*<asyxml><function type = "ellipse" signature = "ellipse(point, real, real, real)"><code></asyxml>*/
+/*<asyxml><function type="ellipse" signature="ellipse(point,real,real,real)"><code></asyxml>*/
 ellipse ellipse(point C, real a, real b, real angle = 0)
 {/*<asyxml></code><documentation>Return the ellipse centered at 'C' with semimajor axis 'a' along C--C + dir(angle),
    semiminor axis 'b' along the perpendicular.</documentation></function></asyxml>*/
@@ -2979,7 +2979,7 @@ ellipse ellipse(point C, real a, real b, real angle = 0)
   return oe;
 }
 
-/*<asyxml><function type = "ellipse" signature = "ellipse(bqe)"><code></asyxml>*/
+/*<asyxml><function type="ellipse" signature="ellipse(bqe)"><code></asyxml>*/
 ellipse ellipse(bqe bqe)
 {/*<asyxml></code><documentation>Return the ellipse a[0] * x^2 + a[1] * xy + a[2] * y^2 + a[3] * x + a[4] * y + a[5] = 0
    given in the coordinate system of 'bqe' with a[i] = bque.a[i].
@@ -3019,25 +3019,25 @@ ellipse ellipse(bqe bqe)
                  a, b, degrees(pi/2 - dir - angle(R.i)));
 }
 
-/*<asyxml><function type = "ellipse" signature = "ellipse(point, point, point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="ellipse" signature="ellipse(point,point,point,point,point)"><code></asyxml>*/
 ellipse ellipse(point M1, point M2, point M3, point M4, point M5)
 {/*<asyxml></code><documentation>Return the ellipse passing through the five points (if possible)</documentation></function></asyxml>*/
   return ellipse(bqe(M1, M2, M3, M4, M5));
 }
 
-/*<asyxml><function type = "bool" signature = "inside(ellipse, point)"><code></asyxml>*/
+/*<asyxml><function type="bool" signature="inside(ellipse,point)"><code></asyxml>*/
 bool inside(ellipse el, point M)
 {/*<asyxml></code><documentation>Return 'true' iff 'M' is inside 'el'.</documentation></function></asyxml>*/
   return abs(el.F1 - M) + abs(el.F2 - M) - 2 * el.a < -epsgeo;
 }
 
-/*<asyxml><function type = "bool" signature = "inside(parabola, point)"><code></asyxml>*/
+/*<asyxml><function type="bool" signature="inside(parabola,point)"><code></asyxml>*/
 bool inside(parabola p, point M)
 {/*<asyxml></code><documentation>Return 'true' if 'M' is inside 'p'.</documentation></function></asyxml>*/
   return distance(p.D, M) - abs(p.F - M) > epsgeo;
 }
 
-/*<asyxml><function type = "parabola" signature = "parabola(point, line)"><code></asyxml>*/
+/*<asyxml><function type="parabola" signature="parabola(point,line)"><code></asyxml>*/
 parabola parabola(point F, line l)
 {/*<asyxml></code><documentation>Return the parabola whose focus is 'F' and directrix is 'l'.</documentation></function></asyxml>*/
   parabola op;
@@ -3045,7 +3045,7 @@ parabola parabola(point F, line l)
   return op;
 }
 
-/*<asyxml><function type = "parabola" signature = "parabola(point, point)"><code></asyxml>*/
+/*<asyxml><function type="parabola" signature="parabola(point,point)"><code></asyxml>*/
 parabola parabola(point F, point vertex)
 {/*<asyxml></code><documentation>Return the parabola whose focus is 'F' and vertex is 'vertex'.</documentation></function></asyxml>*/
   parabola op;
@@ -3056,7 +3056,7 @@ parabola parabola(point F, point vertex)
   return op;
 }
 
-/*<asyxml><function type = "parabola" signature = "parabola(point, real, real)"><code></asyxml>*/
+/*<asyxml><function type="parabola" signature="parabola(point,real,real)"><code></asyxml>*/
 parabola parabola(point F, real a, real angle)
 {/*<asyxml></code><documentation>Return the parabola whose focus is F, latus rectum is 4a and
    the angle of the axis of symmetry (in the coordinate system of F) is 'angle'.</documentation></function></asyxml>*/
@@ -3068,7 +3068,7 @@ parabola parabola(point F, real a, real angle)
   return op;
 }
 
-/*<asyxml><function type = "bool" signature = "isparabola(bqe)"><code></asyxml>*/
+/*<asyxml><function type="bool" signature="isparabola(bqe)"><code></asyxml>*/
 bool isparabola(bqe bqe)
 {/*<asyxml></code><documentation>Return true iff 'bqe' is the equation of a parabola.</documentation></function></asyxml>*/
   bqe lbqe = changecoordsys(defaultcoordsys, bqe);
@@ -3077,7 +3077,7 @@ bool isparabola(bqe bqe)
   return (abs(delta) > epsgeo && abs(b^2 - a * c) < epsgeo);
 }
 
-/*<asyxml><function type = "parabola" signature = "parabola(bqe)"><code></asyxml>*/
+/*<asyxml><function type="parabola" signature="parabola(bqe)"><code></asyxml>*/
 parabola parabola(bqe bqe)
 {/*<asyxml></code><documentation>Return the parabola a[0]x^2 + a[1]xy + a[2]y^2 + a[3]x + a[4]y + a[5]] = 0 (a[n] means bqe.a[n]).
    <url href = "http://mathworld.wolfram.com/QuadraticCurve.html"/>
@@ -3119,7 +3119,7 @@ parabola parabola(bqe bqe)
   return op;
 }
 
-/*<asyxml><function type = "parabola" signature = "parabola(point, point, point, line)"><code></asyxml>*/
+/*<asyxml><function type="parabola" signature="parabola(point,point,point,line)"><code></asyxml>*/
 parabola parabola(point M1, point M2, point M3, line l)
 {/*<asyxml></code><documentation>Return the parabola passing through the three points with its directix
    parallel to the line 'l'.</documentation></function></asyxml>*/
@@ -3145,13 +3145,13 @@ parabola parabola(point M1, point M2, point M3, line l)
   return parabola(changecoordsys(R, bqe(Rp, 1, 0, 0, coef[0], coef[1], coef[2])));
 }
 
-/*<asyxml><function type = "parabola" signature = "parabola(point, point, point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="parabola" signature="parabola(point,point,point,point,point)"><code></asyxml>*/
 parabola parabola(point M1, point M2, point M3, point M4, point M5)
 {/*<asyxml></code><documentation>Return the parabola passing through the five points.</documentation></function></asyxml>*/
   return parabola(bqe(M1, M2, M3, M4, M5));
 }
 
-/*<asyxml><function type = "hyperbola" signature = "hyperbola(point, real, real, real)"><code></asyxml>*/
+/*<asyxml><function type="hyperbola" signature="hyperbola(point,real,real,real)"><code></asyxml>*/
 hyperbola hyperbola(point C, real a, real b, real angle = 0)
 {/*<asyxml></code><documentation>Return the hyperbola centered at 'C' with semimajor axis 'a' along C--C + dir(angle),
    semiminor axis 'b' along the perpendicular.</documentation></function></asyxml>*/
@@ -3165,7 +3165,7 @@ hyperbola hyperbola(point C, real a, real b, real angle = 0)
   return oh;
 }
 
-/*<asyxml><function type = "hyperbola" signature = "hyperbola(bqe)"><code></asyxml>*/
+/*<asyxml><function type="hyperbola" signature="hyperbola(bqe)"><code></asyxml>*/
 hyperbola hyperbola(bqe bqe)
 {/*<asyxml></code><documentation>Return the hyperbola a[0]x^2 + a[1]xy + a[2]y^2 + a[3]x + a[4]y + a[5]] = 0 (a[n] means bqe.a[n]).
    <url href = "http://mathworld.wolfram.com/QuadraticCurve.html"/>
@@ -3192,19 +3192,19 @@ hyperbola hyperbola(bqe bqe)
   return hyperbola(C, a, b, degrees(-dir - angle(R.i)));
 }
 
-/*<asyxml><function type = "hyperbola" signature = "hyperbola(point, point, point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="hyperbola" signature="hyperbola(point,point,point,point,point)"><code></asyxml>*/
 hyperbola hyperbola(point M1, point M2, point M3, point M4, point M5)
 {/*<asyxml></code><documentation>Return the hyperbola passing through the five points (if possible).</documentation></function></asyxml>*/
   return hyperbola(bqe(M1, M2, M3, M4, M5));
 }
 
-/*<asyxml><function type = "hyperbola" signature = "conj(hyperbola)"><code></asyxml>*/
+/*<asyxml><function type="hyperbola" signature="conj(hyperbola)"><code></asyxml>*/
 hyperbola conj(hyperbola h)
 {/*<asyxml></code><documentation>Conjugate.</documentation></function></asyxml>*/
   return hyperbola(h.C, h.b, h.a, 90 + h.angle);
 }
 
-/*<asyxml><function type = "circle" signature = "circle(explicit point, real)"><code></asyxml>*/
+/*<asyxml><function type="circle" signature="circle(explicit point,real)"><code></asyxml>*/
 circle circle(explicit point C, real r)
 {/*<asyxml></code><documentation>Circle given by center and radius.</documentation></function></asyxml>*/
   circle oc = new circle;
@@ -3214,7 +3214,7 @@ circle circle(explicit point C, real r)
   return oc;
 }
 
-/*<asyxml><function type = "circle" signature = "circle(point, point)"><code></asyxml>*/
+/*<asyxml><function type="circle" signature="circle(point,point)"><code></asyxml>*/
 circle circle(point A, point B)
 {/*<asyxml></code><documentation>Return the circle of diameter AB.</documentation></function></asyxml>*/
   real r;
@@ -3234,13 +3234,13 @@ circle circle(point A, point B)
   return oc;
 }
 
-/*<asyxml><function type = "circle" signature = "circle(segment)"><code></asyxml>*/
+/*<asyxml><function type="circle" signature="circle(segment)"><code></asyxml>*/
 circle circle(segment s)
 {/*<asyxml></code><documentation>Return the circle of diameter 's'.</documentation></function></asyxml>*/
   return circle(s.A, s.B);
 }
 
-/*<asyxml><function type = "point" signature = "circumcenter(point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="circumcenter(point,point,point)"><code></asyxml>*/
 point circumcenter(point A, point B, point C)
 {/*<asyxml></code><documentation>Return the circumcenter of triangle ABC.</documentation></function></asyxml>*/
   point[] P = standardizecoordsys(A, B, C);
@@ -3252,7 +3252,7 @@ point circumcenter(point A, point B, point C)
   return point(R, pp/R);
 }
 
-/*<asyxml><function type = "circle" signature = "circle(point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="circle" signature="circle(point,point,point)"><code></asyxml>*/
 circle circle(point A, point B, point C)
 {/*<asyxml></code><documentation>Return the circumcircle of the triangle ABC.</documentation></function></asyxml>*/
   if(collinear(A - B, A - C)) {
@@ -3266,13 +3266,13 @@ circle circle(point A, point B, point C)
   return circle(c, abs(c - A));
 }
 
-/*<asyxml><function type = "circle" signature = "circumcircle(point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="circle" signature="circumcircle(point,point,point)"><code></asyxml>*/
 circle circumcircle(point A, point B, point C)
 {/*<asyxml></code><documentation>Return the circumcircle of the triangle ABC.</documentation></function></asyxml>*/
   return circle(A, B, C);
 }
 
-/*<asyxml><operator type = "circle" signature = "*(real, explicit circle)"><code></asyxml>*/
+/*<asyxml><operator type = "circle" signature="*(real,explicit circle)"><code></asyxml>*/
 circle operator *(real x, explicit circle c)
 {/*<asyxml></code><documentation>Multiply the radius of 'c'.</documentation></operator></asyxml>*/
   return finite(c.r) ? circle(c.C, x * c.r) : c;
@@ -3281,7 +3281,7 @@ circle operator *(int x, explicit circle c)
 {
   return finite(c.r) ? circle(c.C, x * c.r) : c;
 }
-/*<asyxml><operator type = "circle" signature = "/(explicit circle, real)"><code></asyxml>*/
+/*<asyxml><operator type = "circle" signature="/(explicit circle,real)"><code></asyxml>*/
 circle operator /(explicit circle c, real x)
 {/*<asyxml></code><documentation>Divide the radius of 'c'</documentation></operator></asyxml>*/
   return finite(c.r) ? circle(c.C, c.r/x) : c;
@@ -3290,44 +3290,44 @@ circle operator /(explicit circle c, int x)
 {
   return finite(c.r) ? circle(c.C, c.r/x) : c;
 }
-/*<asyxml><operator type = "circle" signature = "+(explicit circle, explicit point)"><code></asyxml>*/
+/*<asyxml><operator type = "circle" signature="+(explicit circle,explicit point)"><code></asyxml>*/
 circle operator +(explicit circle c, explicit point M)
 {/*<asyxml></code><documentation>Translation of 'c'.</documentation></operator></asyxml>*/
   return circle(c.C + M, c.r);
 }
-/*<asyxml><operator type = "circle" signature = "-(explicit circle, explicit point)"><code></asyxml>*/
+/*<asyxml><operator type = "circle" signature="-(explicit circle,explicit point)"><code></asyxml>*/
 circle operator -(explicit circle c, explicit point M)
 {/*<asyxml></code><documentation>Translation of 'c'.</documentation></operator></asyxml>*/
   return circle(c.C - M, c.r);
 }
-/*<asyxml><operator type = "circle" signature = "+(explicit circle, pair)"><code></asyxml>*/
+/*<asyxml><operator type = "circle" signature="+(explicit circle,pair)"><code></asyxml>*/
 circle operator +(explicit circle c, pair m)
 {/*<asyxml></code><documentation>Translation of 'c'.
    'm' represent coordinates in the coordinate system where 'c' is defined.</documentation></operator></asyxml>*/
   return circle(c.C + m, c.r);
 }
-/*<asyxml><operator type = "circle" signature = "-(explicit circle, pair)"><code></asyxml>*/
+/*<asyxml><operator type = "circle" signature="-(explicit circle,pair)"><code></asyxml>*/
 circle operator -(explicit circle c, pair m)
 {/*<asyxml></code><documentation>Translation of 'c'.
    'm' represent coordinates in the coordinate system where 'c' is defined.</documentation></operator></asyxml>*/
   return circle(c.C - m, c.r);
 }
-/*<asyxml><operator type = "circle" signature = "+(explicit circle, vector)"><code></asyxml>*/
+/*<asyxml><operator type = "circle" signature="+(explicit circle,vector)"><code></asyxml>*/
 circle operator +(explicit circle c, vector m)
 {/*<asyxml></code><documentation>Translation of 'c'.</documentation></operator></asyxml>*/
   return circle(c.C + m, c.r);
 }
-/*<asyxml><operator type = "circle" signature = "-(explicit circle, vector)"><code></asyxml>*/
+/*<asyxml><operator type = "circle" signature="-(explicit circle,vector)"><code></asyxml>*/
 circle operator -(explicit circle c, vector m)
 {/*<asyxml></code><documentation>Translation of 'c'.</documentation></operator></asyxml>*/
   return circle(c.C - m, c.r);
 }
-/*<asyxml><operator type = "real" signature = "^(point, explicit circle)"><code></asyxml>*/
+/*<asyxml><operator type = "real" signature="^(point,explicit circle)"><code></asyxml>*/
 real operator ^(point M, explicit circle c)
 {/*<asyxml></code><documentation>The power of 'M' with respect to the circle 'c'</documentation></operator></asyxml>*/
   return xpart((abs(locate(M) - locate(c.C)), c.r)^2);
 }
-/*<asyxml><operator type = "bool" signature = "@(point, explicit circle)"><code></asyxml>*/
+/*<asyxml><operator type = "bool" signature="@(point,explicit circle)"><code></asyxml>*/
 bool operator @(point M, explicit circle c)
 {/*<asyxml></code><documentation>Return true iff 'M' is on the circle 'c'.</documentation></operator></asyxml>*/
   return finite(c.r) ?
@@ -3335,13 +3335,13 @@ bool operator @(point M, explicit circle c)
     M @ c.l;
 }
 
-/*<asyxml><operator type = "ellipse" signature = "cast(circle)"><code></asyxml>*/
+/*<asyxml><operator type = "ellipse" signature="cast(circle)"><code></asyxml>*/
 ellipse operator cast(circle c)
 {/*<asyxml></code><documentation></documentation></operator></asyxml>*/
   return finite(c.r) ? ellipse(c.C, c.r, c.r, 0) : ellipse(c.l.A, c.l.B, infinity);
 }
 
-/*<asyxml><operator type = "circle" signature = "cast(ellipse)"><code></asyxml>*/
+/*<asyxml><operator type = "circle" signature="cast(ellipse)"><code></asyxml>*/
 circle operator cast(ellipse el)
 {/*<asyxml></code><documentation></documentation></operator></asyxml>*/
   circle oc;
@@ -3353,7 +3353,7 @@ circle operator cast(ellipse el)
   return oc;
 }
 
-/*<asyxml><operator type = "ellipse" signature = "cast(conic)"><code></asyxml>*/
+/*<asyxml><operator type = "ellipse" signature="cast(conic)"><code></asyxml>*/
 ellipse operator cast(conic co)
 {/*<asyxml></code><documentation>Cast a conic to an ellipse (can be a circle).</documentation></operator></asyxml>*/
   if(degenerate(co) && co.e < 1) return ellipse(co.l[0].A, co.l[0].B, infinity);
@@ -3371,7 +3371,7 @@ ellipse operator cast(conic co)
   return oe;
 }
 
-/*<asyxml><operator type = "parabola" signature = "cast(conic)"><code></asyxml>*/
+/*<asyxml><operator type = "parabola" signature="cast(conic)"><code></asyxml>*/
 parabola operator cast(conic co)
 {/*<asyxml></code><documentation>Cast a conic to a parabola.</documentation></operator></asyxml>*/
   parabola op;
@@ -3380,13 +3380,13 @@ parabola operator cast(conic co)
   return op;
 }
 
-/*<asyxml><operator type = "conic" signature = "cast(parabola)"><code></asyxml>*/
+/*<asyxml><operator type = "conic" signature="cast(parabola)"><code></asyxml>*/
 conic operator cast(parabola p)
 {/*<asyxml></code><documentation>Cast a parabola to a conic section.</documentation></operator></asyxml>*/
   return conic(p.F, p.D, 1);
 }
 
-/*<asyxml><operator type = "hyperbola" signature = "cast(conic)"><code></asyxml>*/
+/*<asyxml><operator type = "hyperbola" signature="cast(conic)"><code></asyxml>*/
 hyperbola operator cast(conic co)
 {/*<asyxml></code><documentation>Cast a conic section to an hyperbola.</documentation></operator></asyxml>*/
   hyperbola oh;
@@ -3403,13 +3403,13 @@ hyperbola operator cast(conic co)
   return oh;
 }
 
-/*<asyxml><operator type = "conic" signature = "cast(hyperbola)"><code></asyxml>*/
+/*<asyxml><operator type = "conic" signature="cast(hyperbola)"><code></asyxml>*/
 conic operator cast(hyperbola h)
 {/*<asyxml></code><documentation>Hyperbola to conic section.</documentation></operator></asyxml>*/
   return conic(h.F1, h.D1, h.e);
 }
 
-/*<asyxml><operator type = "conic" signature = "cast(ellipse)"><code></asyxml>*/
+/*<asyxml><operator type = "conic" signature="cast(ellipse)"><code></asyxml>*/
 conic operator cast(ellipse el)
 {/*<asyxml></code><documentation>Ellipse to conic section.</documentation></operator></asyxml>*/
   conic oc;
@@ -3432,13 +3432,13 @@ conic operator cast(ellipse el)
   return oc;
 }
 
-/*<asyxml><operator type = "conic" signature = "cast(circle)"><code></asyxml>*/
+/*<asyxml><operator type = "conic" signature="cast(circle)"><code></asyxml>*/
 conic operator cast(circle c)
 {/*<asyxml></code><documentation>Circle to conic section.</documentation></operator></asyxml>*/
   return (conic)((ellipse)c);
 }
 
-/*<asyxml><operator type = "circle" signature = "cast(conic)"><code></asyxml>*/
+/*<asyxml><operator type = "circle" signature="cast(conic)"><code></asyxml>*/
 circle operator cast(conic c)
 {/*<asyxml></code><documentation>Conic section to circle.</documentation></operator></asyxml>*/
   ellipse el = (ellipse)c;
@@ -3451,7 +3451,7 @@ circle operator cast(conic c)
   return oc;
 }
 
-/*<asyxml><operator type = "ellipse" signature = "*(transform, ellipse)"><code></asyxml>*/
+/*<asyxml><operator type = "ellipse" signature="*(transform,ellipse)"><code></asyxml>*/
 ellipse operator *(transform t, ellipse el)
 {/*<asyxml></code><documentation>Provide transform * ellipse.</documentation></operator></asyxml>*/
   if(!degenerate(el)) {
@@ -3466,7 +3466,7 @@ ellipse operator *(transform t, ellipse el)
   return ellipse(t * el.l.A, t * el.l.B, infinity);
 }
 
-/*<asyxml><operator type = "parabola" signature = "*(transform, parabola)"><code></asyxml>*/
+/*<asyxml><operator type = "parabola" signature="*(transform,parabola)"><code></asyxml>*/
 parabola operator *(transform t, parabola p)
 {/*<asyxml></code><documentation>Provide transform * parabola.</documentation></operator></asyxml>*/
   point[] P;
@@ -3480,7 +3480,7 @@ parabola operator *(transform t, parabola p)
   return op;
 }
 
-/*<asyxml><operator type = "ellipse" signature = "*(transform, circle)"><code></asyxml>*/
+/*<asyxml><operator type = "ellipse" signature="*(transform,circle)"><code></asyxml>*/
 ellipse operator *(transform t, circle c)
 {/*<asyxml></code><documentation>Provide transform * circle.
    For example, 'circle C = scale(2) * circle' and 'ellipse E = xscale(2) * circle' are valid
@@ -3488,7 +3488,7 @@ ellipse operator *(transform t, circle c)
   return t * ((ellipse)c);
 }
 
-/*<asyxml><operator type = "hyperbola" signature = "*(transform, hyperbola)"><code></asyxml>*/
+/*<asyxml><operator type = "hyperbola" signature="*(transform,hyperbola)"><code></asyxml>*/
 hyperbola operator *(transform t, hyperbola h)
 {/*<asyxml></code><documentation>Provide transform * hyperbola.</documentation></operator></asyxml>*/
   if (t == identity()) {
@@ -3511,7 +3511,7 @@ hyperbola operator *(transform t, hyperbola h)
   return oe;
 }
 
-/*<asyxml><operator type = "conic" signature = "*(transform, conic)"><code></asyxml>*/
+/*<asyxml><operator type = "conic" signature="*(transform,conic)"><code></asyxml>*/
 conic operator *(transform t, conic co)
 {/*<asyxml></code><documentation>Provide transform * conic.</documentation></operator></asyxml>*/
   if(co.e < 1) return (t * ((ellipse)co));
@@ -3519,58 +3519,58 @@ conic operator *(transform t, conic co)
   return (t * ((hyperbola)co));
 }
 
-/*<asyxml><operator type = "ellipse" signature = "*(real, ellipse)"><code></asyxml>*/
+/*<asyxml><operator type = "ellipse" signature="*(real,ellipse)"><code></asyxml>*/
 ellipse operator *(real x, ellipse el)
 {/*<asyxml></code><documentation>Identical but more efficient (rapid) than 'scale(x, el.C) * el'.</documentation></operator></asyxml>*/
   return degenerate(el) ? el : ellipse(el.C, x * el.a, x * el.b, el.angle);
 }
 
-/*<asyxml><operator type = "ellipse" signature = "/(ellipse, real)"><code></asyxml>*/
+/*<asyxml><operator type = "ellipse" signature="/(ellipse,real)"><code></asyxml>*/
 ellipse operator /(ellipse el, real x)
 {/*<asyxml></code><documentation>Identical but more efficient (rapid) than 'scale(1/x, el.C) * el'.</documentation></operator></asyxml>*/
   return degenerate(el) ? el : ellipse(el.C, el.a/x, el.b/x, el.angle);
 }
 
-/*<asyxml><function type = "path" signature = "arcfromcenter(ellipse, real, real, int, bool)"><code></asyxml>*/
+/*<asyxml><function type="path" signature="arcfromcenter(ellipse,real,real,int,bool)"><code></asyxml>*/
 path arcfromcenter(ellipse el, real angle1, real angle2,
-                   bool direction = CCW,
-                   int n = ellipsenodesnumber(el.a, el.b, angle1, angle2, direction))
+                   bool direction=CCW,
+                   int n=ellipsenodesnumber(el.a,el.b,angle1,angle2,direction))
 {/*<asyxml></code><documentation>Return the path of the ellipse 'el' from angle1 to angle2 in degrees,
    drawing in the given direction, with n nodes.
-   The angles are mesured relatively to the  axis (C, x-axis) where C is
+   The angles are mesured relatively to the  axis (C,x-axis) where C is
    the center of the ellipse.</documentation></function></asyxml>*/
   if(degenerate(el)) abort("arcfromcenter: can not convert degenerated ellipse to path.");
   if (angle1 > angle2)
     return reverse(arcfromcenter(el, angle2, angle1, !direction, n));
-  path op;
-  coordsys Rp = coordsys(el);
+
+  guide op;
+  coordsys Rp=coordsys(el);
   if (n < 1) return op;
+
   interpolate join = operator ..;
   real stretch = max(el.a/el.b, el.b/el.a);
+
   if (stretch > 10) {
     n *= floor(stretch/5);
     join = operator --;
   }
+
   real a1 = direction ? radians(angle1) : radians(angle2);
   real a2 = direction ? radians(angle2) : radians(angle1) + 2 * pi;
-  real step = (a2 - a1)/(n != 1 ? n - 1 : 1);
+  real step=(a2 - a1)/(n != 1 ? n-1 : 1);
   real a, r;
   real da = radians(el.angle);
-  real a3 = angle((cos(a1)/el.a, sin(a1)/el.b));
-  real a3 = (a3>=0) ? a3 : a3 + 2pi;
-  real a4 = angle((cos(a2)/el.a, sin(a2)/el.b));
-  real a4 = (a4>=0) ? a4 : a4 + 2pi;
-  real step = (a4 - a3)/(n != 1 ? n - 1 : 1);
-  for (int i = 0; i < n; ++i) {
-    a = a3 + i * step;
-    a = angle((el.a * cos(a), el.b * sin(a)));
+
+  for (int i=0; i < n; ++i) {
+    a = a1 + i * step;
     r = el.b/sqrt(1 - (el.e * cos(a))^2);
-    op = op..Rp * Rp.polar(r, a + da);
+    op = join(op, Rp*Rp.polar(r, da + a));
   }
-  return shift(el.C.x * Rp.i + el.C.y * Rp.j) * (direction ? op : reverse(op));
+
+  return shift(el.C.x*Rp.i + el.C.y*Rp.j) * (direction ? op : reverse(op));
 }
 
-/*<asyxml><function type = "path" signature = "arcfromcenter(hyperbola, real, real, int, bool)"><code></asyxml>*/
+/*<asyxml><function type="path" signature="arcfromcenter(hyperbola,real,real,int,bool)"><code></asyxml>*/
 path arcfromcenter(hyperbola h, real angle1, real angle2,
                    int n = hyperbolanodesnumber(h, angle1, angle2),
                    bool direction = CCW)
@@ -3605,7 +3605,7 @@ path arcfromcenter(hyperbola h, real angle1, real angle2,
     (direction ? op : op == nullpath ? op : reverse(op));
 }
 
-/*<asyxml><function type = "path" signature = "arcfromcenter(explicit conic, real, real, int, bool)"><code></asyxml>*/
+/*<asyxml><function type="path" signature="arcfromcenter(explicit conic,real,real,int,bool)"><code></asyxml>*/
 path arcfromcenter(explicit conic co, real angle1, real angle2,
                    int n, bool direction = CCW)
 {/*<asyxml></code><documentation>Use arcfromcenter(ellipse, ...) or arcfromcenter(hyperbola, ...) depending of
@@ -3621,12 +3621,12 @@ path arcfromcenter(explicit conic co, real angle1, real angle2,
   return g;
 }
 
-/*<asyxml><constant type = "polarconicroutine" signature = "fromCenter"><code></asyxml>*/
+/*<asyxml><constant type = "polarconicroutine" signature="fromCenter"><code></asyxml>*/
 restricted polarconicroutine fromCenter = arcfromcenter;/*<asyxml></code><documentation></documentation></constant></asyxml>*/
-/*<asyxml><constant type = "polarconicroutine" signature = "fromFocus"><code></asyxml>*/
+/*<asyxml><constant type = "polarconicroutine" signature="fromFocus"><code></asyxml>*/
 restricted polarconicroutine fromFocus = arcfromfocus;/*<asyxml></code><documentation></documentation></constant></asyxml>*/
 
-/*<asyxml><function type = "bqe" signature = "equation(ellipse)"><code></asyxml>*/
+/*<asyxml><function type="bqe" signature="equation(ellipse)"><code></asyxml>*/
 bqe equation(ellipse el)
 {/*<asyxml></code><documentation>Return the coefficients of the equation of the ellipse in its coordinate system:
    bqe.a[0] * x^2 + bqe.a[1] * x * y + bqe.a[2] * y^2 + bqe.a[3] * x + bqe.a[4] * y + bqe.a[5] = 0.
@@ -3649,7 +3649,7 @@ bqe equation(ellipse el)
   return bqe;
 }
 
-/*<asyxml><function type = "bqe" signature = "equation(parabola)"><code></asyxml>*/
+/*<asyxml><function type="bqe" signature="equation(parabola)"><code></asyxml>*/
 bqe equation(parabola p)
 {/*<asyxml></code><documentation>Return the coefficients of the equation of the parabola in its coordinate system.
    bqe.a[0] * x^2 + bqe.a[1] * x * y + bqe.a[2] * y^2 + bqe.a[3] * x + bqe.a[4] * y + bqe.a[5] = 0
@@ -3662,7 +3662,7 @@ bqe equation(parabola p)
                         bqe(R, 0, 0, 1, -4 * a, 0, 0));
 }
 
-/*<asyxml><function type = "bqe" signature = "equation(hyperbola)"><code></asyxml>*/
+/*<asyxml><function type="bqe" signature="equation(hyperbola)"><code></asyxml>*/
 bqe equation(hyperbola h)
 {/*<asyxml></code><documentation>Return the coefficients of the equation of the hyperbola in its coordinate system.
    bqe.a[0] * x^2 + bqe.a[1] * x * y + bqe.a[2] * y^2 + bqe.a[3] * x + bqe.a[4] * y + bqe.a[5] = 0
@@ -3672,7 +3672,7 @@ bqe equation(hyperbola h)
                         bqe(R, 1/h.a^2, 0, -1/h.b^2, 0, 0, -1));
 }
 
-/*<asyxml><operator type = "path" signature = "cast(ellipse)"><code></asyxml>*/
+/*<asyxml><operator type = "path" signature="cast(ellipse)"><code></asyxml>*/
 path operator cast(ellipse el)
 {/*<asyxml></code><documentation>Cast ellipse to path.</documentation></operator></asyxml>*/
   if(degenerate(el))
@@ -3681,13 +3681,13 @@ path operator cast(ellipse el)
   return arcfromcenter(el, 0.0, 360, CCW, n)&cycle;
 }
 
-/*<asyxml><operator type = "path" signature = "cast(circle)"><code></asyxml>*/
+/*<asyxml><operator type = "path" signature="cast(circle)"><code></asyxml>*/
 path operator cast(circle c)
 {/*<asyxml></code><documentation>Cast circle to path.</documentation></operator></asyxml>*/
   return (path)((ellipse)c);
 }
 
-/*<asyxml><function type = "real[]" signature = "bangles(picture, parabola)"><code></asyxml>*/
+/*<asyxml><function type="real[]" signature="bangles(picture,parabola)"><code></asyxml>*/
 real[] bangles(picture pic = currentpicture, parabola p)
 {/*<asyxml></code><documentation>Return the array {ma, Ma} where 'ma' and 'Ma' are respectively
    the smaller and the larger angles for which the parabola 'p' is included
@@ -3724,7 +3724,7 @@ real[] bangles(picture pic = currentpicture, parabola p)
   return new real[] {ma, Ma};
 }
 
-/*<asyxml><function type = "real[][]" signature = "bangles(picture, hyperbola)"><code></asyxml>*/
+/*<asyxml><function type="real[][]" signature="bangles(picture,hyperbola)"><code></asyxml>*/
 real[][] bangles(picture pic = currentpicture, hyperbola h)
 {/*<asyxml></code><documentation>Return the array {{ma1, Ma1}, {ma2, Ma2}} where 'maX' and 'MaX' are respectively
    the smaller and the bigger angles (from h.FX) for which the hyperbola 'h' is included
@@ -3764,12 +3764,12 @@ real[][] bangles(picture pic = currentpicture, hyperbola h)
         return (360 - d + degrees(inter[i][n]-F1))%360;
       }, inter[i].length);
     ma[i] = a.length != 0 ? min(a) : 0;
-    Ma[i] =  a.length != 0 ? max(a) : 0;
+    Ma[i] = a.length != 0 ? max(a) : 0;
   }
   return new real[][] {{ma[0], Ma[0]}, {ma[1], Ma[1]}};
 }
 
-/*<asyxml><operator type = "path" signature = "cast(parabola)"><code></asyxml>*/
+/*<asyxml><operator type = "path" signature="cast(parabola)"><code></asyxml>*/
 path operator cast(parabola p)
 {/*<asyxml></code><documentation>Cast parabola to path.
    If possible, the returned path is restricted to the actual bounding box
@@ -3781,7 +3781,7 @@ path operator cast(parabola p)
 }
 
 
-/*<asyxml><function type = "void" signature = "draw(picture, Label, circle, align, pen, arrowbar, arrowbar, margin, Label, marker)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="draw(picture,Label,circle,align,pen,arrowbar,arrowbar,margin,Label,marker)"><code></asyxml>*/
 void draw(picture pic = currentpicture, Label L = "", circle c,
           align align = NoAlign, pen p = currentpen,
           arrowbar arrow = None, arrowbar bar = None,
@@ -3791,7 +3791,7 @@ void draw(picture pic = currentpicture, Label L = "", circle c,
   else draw(pic, L, (path)c, align, p, arrow, bar, margin, legend, marker);
 }
 
-/*<asyxml><function type = "void" signature = "draw(picture, Label, ellipse, align, pen, arrowbar, arrowbar, margin, Label, marker)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="draw(picture,Label,ellipse,align,pen,arrowbar,arrowbar,margin,Label,marker)"><code></asyxml>*/
 void draw(picture pic = currentpicture, Label L = "", ellipse el,
           align align = NoAlign, pen p = currentpen,
           arrowbar arrow = None, arrowbar bar = None,
@@ -3801,7 +3801,7 @@ void draw(picture pic = currentpicture, Label L = "", ellipse el,
   else draw(pic, L, (path)el, align, p, arrow, bar, margin, legend, marker);
 }
 
-/*<asyxml><function type = "void" signature = "draw(picture, Label, parabola, align, pen, arrowbar, arrowbar, margin, Label, marker)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="draw(picture,Label,parabola,align,pen,arrowbar,arrowbar,margin,Label,marker)"><code></asyxml>*/
 void draw(picture pic = currentpicture, Label L = "", parabola parabola,
           align align = NoAlign, pen p = currentpen,
           arrowbar arrow = None, arrowbar bar = None,
@@ -3814,8 +3814,12 @@ void draw(picture pic = currentpicture, Label L = "", parabola parabola,
       parabola.bmin = inverse(t) * m;
       parabola.bmax = inverse(t) * M;
       picture tmp;
-      draw(tmp, L, t * ((path) (T * parabola)), align, p, arrow, bar, NoMargin, legend, marker);
-      add(f, tmp.fit());
+      path pp = t * ((path) (T * parabola));
+
+      if (pp != nullpath) {
+        draw(tmp, L, pp, align, p, arrow, bar, NoMargin, legend, marker);
+        add(f, tmp.fit());
+      }
     }, true);
 
   pair m = pic.userMin(), M = pic.userMax();
@@ -3824,7 +3828,7 @@ void draw(picture pic = currentpicture, Label L = "", parabola parabola,
   }
 }
 
-/*<asyxml><operator type = "path" signature = "cast(hyperbola)"><code></asyxml>*/
+/*<asyxml><operator type = "path" signature="cast(hyperbola)"><code></asyxml>*/
 path operator cast(hyperbola h)
 {/*<asyxml></code><documentation>Cast hyperbola to path.
    If possible, the returned path is restricted to the actual bounding box
@@ -3836,7 +3840,7 @@ path operator cast(hyperbola h)
   return arcfromfocus(h, bangles[0][0], bangles[0][1], n, CCW);
 }
 
-/*<asyxml><function type = "void" signature = "draw(picture, Label, hyperbola, align, pen, arrowbar, arrowbar, margin, Label, marker)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="draw(picture,Label,hyperbola,align,pen,arrowbar,arrowbar,margin,Label,marker)"><code></asyxml>*/
 void draw(picture pic = currentpicture, Label L = "", hyperbola h,
           align align = NoAlign, pen p = currentpen,
           arrowbar arrow = None, arrowbar bar = None,
@@ -3848,15 +3852,22 @@ void draw(picture pic = currentpicture, Label L = "", hyperbola h,
       m -= min(p); M -= max(p);
       h.bmin = inverse(t) * m;
       h.bmax = inverse(t) * M;
+      path hp;
 
       picture tmp;
-      draw(tmp, L, t * ((path) (T * h)), align, p, arrow, bar, NoMargin, legend, marker);
+      hp = t * ((path) (T * h));
+      if (hp != nullpath) {
+        draw(tmp, L, hp, align, p, arrow, bar, NoMargin, legend, marker);
+      }
 
       hyperbola ht = hyperbola(h.F2, h.F1, h.a);
       ht.bmin = h.bmin;
       ht.bmax = h.bmax;
 
-      draw(tmp, "", t * ((path) (T * ht)), align, p, arrow, bar, NoMargin, marker);
+      hp = t * ((path) (T * ht));
+      if (hp != nullpath) {
+        draw(tmp, "", hp, align, p, arrow, bar, NoMargin, marker);
+      }
 
       add(f, tmp.fit());
     }, true);
@@ -3866,7 +3877,7 @@ void draw(picture pic = currentpicture, Label L = "", hyperbola h,
     pic.addBox(truepoint(SW), truepoint(NE));
 }
 
-/*<asyxml><function type = "void" signature = "draw(picture, Label, explicit conic, align, pen, arrowbar, arrowbar, margin, Label, marker)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="draw(picture,Label,explicit conic,align,pen,arrowbar,arrowbar,margin,Label,marker)"><code></asyxml>*/
 void draw(picture pic = currentpicture, Label L = "", explicit conic co,
           align align = NoAlign, pen p = currentpen,
           arrowbar arrow = None, arrowbar bar = None,
@@ -3884,7 +3895,7 @@ void draw(picture pic = currentpicture, Label L = "", explicit conic co,
         else abort("draw: unknown conic.");
 }
 
-/*<asyxml><function type = "int" signature = "conicnodesnumber(conic, real, real)"><code></asyxml>*/
+/*<asyxml><function type="int" signature="conicnodesnumber(conic,real,real)"><code></asyxml>*/
 int conicnodesnumber(conic co, real angle1, real angle2, bool dir = CCW)
 {/*<asyxml></code><documentation>Return the number of node to draw a conic arc.</documentation></function></asyxml>*/
   int oi;
@@ -3904,7 +3915,7 @@ int conicnodesnumber(conic co, real angle1, real angle2, bool dir = CCW)
   return oi;
 }
 
-/*<asyxml><operator type = "path" signature = "cast(conic)"><code></asyxml>*/
+/*<asyxml><operator type = "path" signature="cast(conic)"><code></asyxml>*/
 path operator cast(conic co)
 {/*<asyxml></code><documentation>Cast conic section to path.</documentation></operator></asyxml>*/
   if(co.e < 1) return (path)((ellipse)co);
@@ -3912,7 +3923,7 @@ path operator cast(conic co)
   return (path)((hyperbola)co);
 }
 
-/*<asyxml><function type = "bqe" signature = "equation(explicit conic)"><code></asyxml>*/
+/*<asyxml><function type="bqe" signature="equation(explicit conic)"><code></asyxml>*/
 bqe equation(explicit conic co)
 {/*<asyxml></code><documentation>Return the coefficients of the equation of conic section in its coordinate system:
    bqe.a[0] * x^2 + bqe.a[1] * x * y + bqe.a[2] * y^2 + bqe.a[3] * x + bqe.a[4] * y + bqe.a[5] = 0.
@@ -3930,7 +3941,7 @@ bqe equation(explicit conic co)
   return obqe;
 }
 
-/*<asyxml><function type = "string" signature = "conictype(bqe)"><code></asyxml>*/
+/*<asyxml><function type="string" signature="conictype(bqe)"><code></asyxml>*/
 string conictype(bqe bqe)
 {/*<asyxml></code><documentation>Returned values are "ellipse" or "parabola" or "hyperbola"
    depending of the conic section represented by 'bqe'.</documentation></function></asyxml>*/
@@ -3950,7 +3961,7 @@ string conictype(bqe bqe)
   return os;
 }
 
-/*<asyxml><function type = "conic" signature = "conic(point, point, point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="conic" signature="conic(point,point,point,point,point)"><code></asyxml>*/
 conic conic(point M1, point M2, point M3, point M4, point M5)
 {/*<asyxml></code><documentation>Return the conic passing through 'M1', 'M2', 'M3', 'M4' and 'M5' if the conic is not degenerated.</documentation></function></asyxml>*/
   bqe bqe = bqe(M1, M2, M3, M4, M5);
@@ -3961,7 +3972,7 @@ conic conic(point M1, point M2, point M3, point M4, point M5)
   return hyperbola(bqe);
 }
 
-/*<asyxml><function type = "coordsys" signature = "canonicalcartesiansystem(hyperbola)"><code></asyxml>*/
+/*<asyxml><function type="coordsys" signature="canonicalcartesiansystem(hyperbola)"><code></asyxml>*/
 coordsys canonicalcartesiansystem(explicit conic co)
 {/*<asyxml></code><documentation>Return the canonical cartesian system of the conic 'co'.</documentation></function></asyxml>*/
   if(co.e < 1) return canonicalcartesiansystem((ellipse)co);
@@ -3969,7 +3980,7 @@ coordsys canonicalcartesiansystem(explicit conic co)
   return canonicalcartesiansystem((hyperbola)co);
 }
 
-/*<asyxml><function type = "bqe" signature = "canonical(bqe)"><code></asyxml>*/
+/*<asyxml><function type="bqe" signature="canonical(bqe)"><code></asyxml>*/
 bqe canonical(bqe bqe)
 {/*<asyxml></code><documentation>Return the bivariate quadratic equation relative to the
    canonical coordinate system of the conic section represented by 'bqe'.</documentation></function></asyxml>*/
@@ -3991,7 +4002,7 @@ bqe canonical(bqe bqe)
   return obqe;
 }
 
-/*<asyxml><function type = "conic" signature = "conic(bqe)"><code></asyxml>*/
+/*<asyxml><function type="conic" signature="conic(bqe)"><code></asyxml>*/
 conic conic(bqe bqe)
 {/*<asyxml></code><documentation>Return the conic section represented by the bivariate quartic equation 'bqe'.</documentation></function></asyxml>*/
   string type = conictype(bqe);
@@ -4005,13 +4016,13 @@ conic conic(bqe bqe)
   return oc;
 }
 
-/*<asyxml><function type = "real" signature = "arclength(circle)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="arclength(circle)"><code></asyxml>*/
 real arclength(circle c)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   return c.r * 2 * pi;
 }
 
-/*<asyxml><function type = "real" signature = "focusToCenter(ellipse, real)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="focusToCenter(ellipse,real)"><code></asyxml>*/
 real focusToCenter(ellipse el, real a)
 {/*<asyxml></code><documentation>Return the angle relatively to the center of 'el' for the angle 'a'
    given relatively to the focus of 'el'.</documentation></function></asyxml>*/
@@ -4022,7 +4033,7 @@ real focusToCenter(ellipse el, real a)
   return d%(sgnd(a) * 360);
 }
 
-/*<asyxml><function type = "real" signature = "centerToFocus(ellipse, real)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="centerToFocus(ellipse,real)"><code></asyxml>*/
 real centerToFocus(ellipse el, real a)
 {/*<asyxml></code><documentation>Return the angle relatively to the focus of 'el' for the angle 'a'
    given relatively to the center of 'el'.</documentation></function></asyxml>*/
@@ -4034,13 +4045,13 @@ real centerToFocus(ellipse el, real a)
   return d%(sgnd(a) * 360);
 }
 
-/*<asyxml><function type = "real" signature = "arclength(ellipse)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="arclength(ellipse)"><code></asyxml>*/
 real arclength(ellipse el)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   return degenerate(el) ? infinity : 4 * el.a * elle(pi/2, el.e);
 }
 
-/*<asyxml><function type = "real" signature = "arclength(ellipse, real, real, bool, polarconicroutine)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="arclength(ellipse,real,real,bool,polarconicroutine)"><code></asyxml>*/
 real arclength(ellipse el, real angle1, real angle2,
                bool direction = CCW,
                polarconicroutine polarconicroutine = currentpolarconicroutine)
@@ -4113,7 +4124,7 @@ real arclength(ellipse el, real angle1, real angle2,
   return S(a2) - S(a1);
 }
 
-/*<asyxml><function type = "real" signature = "arclength(parabola, real)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="arclength(parabola,real)"><code></asyxml>*/
 real arclength(parabola p, real angle)
 {/*<asyxml></code><documentation>Return the arclength from 180 to 'angle' given from focus in the
    canonical coordinate system of 'p'.</documentation></function></asyxml>*/
@@ -4126,14 +4137,14 @@ real arclength(parabola p, real angle)
   return S(t);
 }
 
-/*<asyxml><function type = "real" signature = "arclength(parabola, real, real)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="arclength(parabola,real,real)"><code></asyxml>*/
 real arclength(parabola p, real angle1, real angle2)
 {/*<asyxml></code><documentation>Return the arclength from 'angle1' to 'angle2' given from
    focus in the canonical coordinate system of 'p'</documentation></function></asyxml>*/
   return arclength(p, angle1) - arclength(p, angle2);
 }
 
-/*<asyxml><function type = "real" signature = "arclength(parabola p)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="arclength(parabola p)"><code></asyxml>*/
 real arclength(parabola p)
 {/*<asyxml></code><documentation>Return the length of the arc of the parabola bounded to the bounding
    box of the current picture.</documentation></function></asyxml>*/
@@ -4145,15 +4156,15 @@ real arclength(parabola p)
 
 // *=======================================================*
 // *.......................ABSCISSA........................*
-/*<asyxml><struct signature = "abscissa"><code></asyxml>*/
+/*<asyxml><struct signature="abscissa"><code></asyxml>*/
 struct abscissa
 {/*<asyxml></code><documentation>Provide abscissa structure on a curve used in the routine-like 'point(object, abscissa)'
-   where object can be 'line', 'segment', 'ellipse', 'circle', 'conic'...</documentation><property type = "real" signature = "x"><code></asyxml>*/
-  real x;/*<asyxml></code><documentation>The abscissa value.</documentation></property><property type = "int" signature = "system"><code></asyxml>*/
-  int system;/*<asyxml></code><documentation>0 = relativesystem; 1 = curvilinearsystem; 2 = angularsystem; 3 = nodesystem</documentation></property><property type = "polarconicroutine" signature = "polarconicroutine"><code></asyxml>*/
+   where object can be 'line','segment','ellipse','circle','conic'...</documentation><property type = "real" signature="x"><code></asyxml>*/
+  real x;/*<asyxml></code><documentation>The abscissa value.</documentation></property><property type = "int" signature="system"><code></asyxml>*/
+  int system;/*<asyxml></code><documentation>0 = relativesystem; 1 = curvilinearsystem; 2 = angularsystem; 3 = nodesystem</documentation></property><property type = "polarconicroutine" signature="polarconicroutine"><code></asyxml>*/
   polarconicroutine polarconicroutine = fromCenter;/*<asyxml></code><documentation>The routine used with angular system and two foci conic section.
                                                    Possible values are 'formCenter' and 'formFocus'.</documentation></property></asyxml>*/
-  /*<asyxml><method type = "abscissa" signature = "copy()"><code></asyxml>*/
+  /*<asyxml><method type = "abscissa" signature="copy()"><code></asyxml>*/
   abscissa copy()
   {/*<asyxml></code><documentation>Return a copy of this abscissa.</documentation></method></asyxml>*/
     abscissa oa = new abscissa;
@@ -4164,10 +4175,10 @@ struct abscissa
   }
 }/*<asyxml></struct></asyxml>*/
 
-/*<asyxml><constant type = "int" signature = "relativesystem, curvilinearsystem, angularsystem, nodesystem"><code></asyxml>*/
+/*<asyxml><constant type = "int" signature="relativesystem,curvilinearsystem,angularsystem,nodesystem"><code></asyxml>*/
 restricted int relativesystem = 0, curvilinearsystem = 1, angularsystem = 2, nodesystem = 3;/*<asyxml></code><documentation>Constant used to set the abscissa system.</documentation></constant></asyxml>*/
 
-/*<asyxml><operator type = "abscissa" signature = "cast(explicit position)"><code></asyxml>*/
+/*<asyxml><operator type = "abscissa" signature="cast(explicit position)"><code></asyxml>*/
 abscissa operator cast(explicit position position)
 {/*<asyxml></code><documentation>Cast position to abscissa.
    If 'position' is relative, the abscissa is relative else it's a curvilinear abscissa.</documentation></operator></asyxml>*/
@@ -4177,7 +4188,7 @@ abscissa operator cast(explicit position position)
   return oarcc;
 }
 
-/*<asyxml><operator type = "abscissa" signature = "+(real, explicit abscissa)"><code></asyxml>*/
+/*<asyxml><operator type = "abscissa" signature="+(real,explicit abscissa)"><code></asyxml>*/
 abscissa operator +(real x, explicit abscissa a)
 {/*<asyxml></code><documentation>Provide 'real + abscissa'.
    Return abscissa b so that b.x = a.x + x.
@@ -4186,6 +4197,7 @@ abscissa operator +(real x, explicit abscissa a)
   oa.x = a.x + x;
   return oa;
 }
+
 abscissa operator +(explicit abscissa a, real x)
 {
   return x + a;
@@ -4195,7 +4207,7 @@ abscissa operator +(int x, explicit abscissa a)
   return ((real)x) + a;
 }
 
-/*<asyxml><operator type = "abscissa" signature = "-(explicit abscissa a)"><code></asyxml>*/
+/*<asyxml><operator type = "abscissa" signature="-(explicit abscissa a)"><code></asyxml>*/
 abscissa operator -(explicit abscissa a)
 {/*<asyxml></code><documentation>Return the abscissa b so that b.x = -a.x.</documentation></operator></asyxml>*/
   abscissa oa;
@@ -4223,7 +4235,7 @@ abscissa operator -(int x, explicit abscissa a)
   return ((real)x) - a;
 }
 
-/*<asyxml><operator type = "abscissa" signature = "*(real, abscissa)"><code></asyxml>*/
+/*<asyxml><operator type = "abscissa" signature="*(real,abscissa)"><code></asyxml>*/
 abscissa operator *(real x, explicit abscissa a)
 {/*<asyxml></code><documentation>Provide 'real * abscissa'.
    Return abscissa b so that b.x = x * a.x.
@@ -4258,7 +4270,7 @@ abscissa operator /(int x, explicit abscissa a)
   return ((real)x)/a;
 }
 
-/*<asyxml><function type = "abscissa" signature = "relabscissa(real)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="relabscissa(real)"><code></asyxml>*/
 abscissa relabscissa(real x)
 {/*<asyxml></code><documentation>Return a relative abscissa.</documentation></function></asyxml>*/
   return (abscissa)(Relative(x));
@@ -4268,7 +4280,7 @@ abscissa relabscissa(int x)
   return (abscissa)(Relative(x));
 }
 
-/*<asyxml><function type = "abscissa" signature = "curabscissa(real)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="curabscissa(real)"><code></asyxml>*/
 abscissa curabscissa(real x)
 {/*<asyxml></code><documentation>Return a curvilinear abscissa.</documentation></function></asyxml>*/
   return (abscissa)((position)x);
@@ -4278,7 +4290,7 @@ abscissa curabscissa(int x)
   return (abscissa)((position)x);
 }
 
-/*<asyxml><function type = "abscissa" signature = "angabscissa(real, polarconicroutine)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="angabscissa(real,polarconicroutine)"><code></asyxml>*/
 abscissa angabscissa(real x, polarconicroutine polarconicroutine = currentpolarconicroutine)
 {/*<asyxml></code><documentation>Return a angular abscissa.</documentation></function></asyxml>*/
   abscissa oarcc;
@@ -4292,7 +4304,7 @@ abscissa angabscissa(int x, polarconicroutine polarconicroutine = currentpolarco
   return angabscissa((real)x, polarconicroutine);
 }
 
-/*<asyxml><function type = "abscissa" signature = "nodabscissa(real)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="nodabscissa(real)"><code></asyxml>*/
 abscissa nodabscissa(real x)
 {/*<asyxml></code><documentation>Return an abscissa as time on the path.</documentation></function></asyxml>*/
   abscissa oarcc;
@@ -4305,7 +4317,7 @@ abscissa nodabscissa(int x)
   return nodabscissa((real)x);
 }
 
-/*<asyxml><operator type = "abscissa" signature = "cast(real)"><code></asyxml>*/
+/*<asyxml><operator type = "abscissa" signature="cast(real)"><code></asyxml>*/
 abscissa operator cast(real x)
 {/*<asyxml></code><documentation>Cast real to abscissa, precisely 'nodabscissa'.</documentation></operator></asyxml>*/
   return nodabscissa(x);
@@ -4315,7 +4327,7 @@ abscissa operator cast(int x)
   return nodabscissa((real)x);
 }
 
-/*<asyxml><function type = "point" signature = "point(circle, abscissa)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(circle,abscissa)"><code></asyxml>*/
 point point(circle c, abscissa l)
 {/*<asyxml></code><documentation>Return the point of 'c' which has the abscissa 'l.x'
    according to the abscissa system 'l.system'.</documentation></function></asyxml>*/
@@ -4332,7 +4344,7 @@ point point(circle c, abscissa l)
   return (0, 0);
 }
 
-/*<asyxml><function type = "point" signature = "point(ellipse, abscissa)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(ellipse,abscissa)"><code></asyxml>*/
 point point(ellipse el, abscissa l)
 {/*<asyxml></code><documentation>Return the point of 'el' which has the abscissa 'l.x'
    according to the abscissa system 'l.system'.</documentation></function></asyxml>*/
@@ -4362,7 +4374,7 @@ point point(ellipse el, abscissa l)
   return (0, 0);
 }
 
-/*<asyxml><function type = "point" signature = "point(parabola, abscissa)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(parabola,abscissa)"><code></asyxml>*/
 point point(parabola p, abscissa l)
 {/*<asyxml></code><documentation>Return the point of 'p' which has the abscissa 'l.x'
    according to the abscissa system 'l.system'.</documentation></function></asyxml>*/
@@ -4390,7 +4402,7 @@ point point(parabola p, abscissa l)
   return (0, 0);
 }
 
-/*<asyxml><function type = "point" signature = "point(hyperbola, abscissa)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(hyperbola,abscissa)"><code></asyxml>*/
 point point(hyperbola h, abscissa l)
 {/*<asyxml></code><documentation>Return the point of 'h' which has the abscissa 'l.x'
    according to the abscissa system 'l.system'.</documentation></function></asyxml>*/
@@ -4411,7 +4423,7 @@ Try relpoint((path)your_hyperbola, x);");
   return (0, 0);
 }
 
-/*<asyxml><function type = "abscissa" signature = "point(conic, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="point(conic,point)"><code></asyxml>*/
 point point(explicit conic co, abscissa l)
 {/*<asyxml></code><documentation>Return the curvilinear abscissa of 'M' on the conic 'co'.</documentation></function></asyxml>*/
   if(co.e == 0) return point((circle)co, l);
@@ -4421,7 +4433,7 @@ point point(explicit conic co, abscissa l)
 }
 
 
-/*<asyxml><function type = "point" signature = "point(line, abscissa)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(line,abscissa)"><code></asyxml>*/
 point point(line l, abscissa x)
 {/*<asyxml></code><documentation>Return the point of 'l' which has the abscissa 'l.x' according to the abscissa system 'l.system'.
    Note that the origin is l.A, and point(l, relabscissa(x)) returns l.A + x.x * vector(l.B - l.A).</documentation></function></asyxml>*/
@@ -4438,7 +4450,7 @@ point point(line l, abscissa x)
   return (0, 0);
 }
 
-/*<asyxml><function type = "point" signature = "point(line, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(line,real)"><code></asyxml>*/
 point point(line l, explicit real x)
 {/*<asyxml></code><documentation>Return the point between node l.A and l.B (x <= 0 means l.A, x >=1 means l.B).</documentation></function></asyxml>*/
   return point(l, nodabscissa(x));
@@ -4448,7 +4460,7 @@ point point(line l, explicit int x)
   return point(l, nodabscissa(x));
 }
 
-/*<asyxml><function type = "circle" signature = "point(explicit circle, explicit real)"><code></asyxml>*/
+/*<asyxml><function type="circle" signature="point(explicit circle,explicit real)"><code></asyxml>*/
 point point(explicit circle c, explicit real x)
 {/*<asyxml></code><documentation>Return the point between node floor(x) and floor(x) + 1.</documentation></function></asyxml>*/
   return point(c, nodabscissa(x));
@@ -4458,7 +4470,7 @@ point point(explicit circle c, explicit int x)
   return point(c, nodabscissa(x));
 }
 
-/*<asyxml><function type = "point" signature = "point(explicit ellipse, explicit real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(explicit ellipse,explicit real)"><code></asyxml>*/
 point point(explicit ellipse el, explicit real x)
 {/*<asyxml></code><documentation>Return the point between node floor(x) and floor(x) + 1.</documentation></function></asyxml>*/
   return point(el, nodabscissa(x));
@@ -4468,7 +4480,7 @@ point point(explicit ellipse el, explicit int x)
   return point(el, nodabscissa(x));
 }
 
-/*<asyxml><function type = "point" signature = "point(explicit parabola, explicit real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(explicit parabola,explicit real)"><code></asyxml>*/
 point point(explicit parabola p, explicit real x)
 {/*<asyxml></code><documentation>Return the point between node floor(x) and floor(x) + 1.</documentation></function></asyxml>*/
   return point(p, nodabscissa(x));
@@ -4478,7 +4490,7 @@ point point(explicit parabola p, explicit int x)
   return point(p, nodabscissa(x));
 }
 
-/*<asyxml><function type = "point" signature = "point(explicit hyperbola, explicit real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(explicit hyperbola,explicit real)"><code></asyxml>*/
 point point(explicit hyperbola h, explicit real x)
 {/*<asyxml></code><documentation>Return the point between node floor(x) and floor(x) + 1.</documentation></function></asyxml>*/
   return point(h, nodabscissa(x));
@@ -4488,7 +4500,7 @@ point point(explicit hyperbola h, explicit int x)
   return point(h, nodabscissa(x));
 }
 
-/*<asyxml><function type = "point" signature = "point(explicit conic, explicit real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(explicit conic,explicit real)"><code></asyxml>*/
 point point(explicit conic co, explicit real x)
 {/*<asyxml></code><documentation>Return the point between node floor(x) and floor(x) + 1.</documentation></function></asyxml>*/
   point op;
@@ -4503,27 +4515,27 @@ point point(explicit conic co, explicit int x)
   return point(co, (real)x);
 }
 
-/*<asyxml><function type = "point" signature = "relpoint(line, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="relpoint(line,real)"><code></asyxml>*/
 point relpoint(line l, real x)
 {/*<asyxml></code><documentation>Return the relative point of 'l' (0 means l.A,
    1 means l.B, x means l.A + x * vector(l.B - l.A) ).</documentation></function></asyxml>*/
   return point(l, Relative(x));
 }
 
-/*<asyxml><function type = "point" signature = "relpoint(explicit circle, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="relpoint(explicit circle,real)"><code></asyxml>*/
 point relpoint(explicit circle c, real x)
 {/*<asyxml></code><documentation>Return the relative point of 'c' (0 means origin, 1 means end).
    Origin is c.center + c.r * (1, 0).</documentation></function></asyxml>*/
   return point(c, Relative(x));
 }
 
-/*<asyxml><function type = "point" signature = "relpoint(explicit ellipse, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="relpoint(explicit ellipse,real)"><code></asyxml>*/
 point relpoint(explicit ellipse el, real x)
 {/*<asyxml></code><documentation>Return the relative point of 'el' (0 means origin, 1 means end).</documentation></function></asyxml>*/
   return point(el, Relative(x));
 }
 
-/*<asyxml><function type = "point" signature = "relpoint(explicit parabola, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="relpoint(explicit parabola,real)"><code></asyxml>*/
 point relpoint(explicit parabola p, real x)
 {/*<asyxml></code><documentation>Return the relative point of the path of the parabola
    bounded by the bounding box of the current picture.
@@ -4531,13 +4543,13 @@ point relpoint(explicit parabola p, real x)
   return point(p, Relative(x));
 }
 
-/*<asyxml><function type = "point" signature = "relpoint(explicit hyperbola, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="relpoint(explicit hyperbola,real)"><code></asyxml>*/
 point relpoint(explicit hyperbola h, real x)
 {/*<asyxml></code><documentation>Not yet implemented... <look href = "point(hyperbola, abscissa)"/></documentation></function></asyxml>*/
   return point(h, Relative(x));
 }
 
-/*<asyxml><function type = "point" signature = "relpoint(explicit conic, explicit real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="relpoint(explicit conic,explicit real)"><code></asyxml>*/
 point relpoint(explicit conic co, explicit real x)
 {/*<asyxml></code><documentation>Return the relative point of 'co' (0 means origin, 1 means end).</documentation></function></asyxml>*/
   point op;
@@ -4552,13 +4564,13 @@ point relpoint(explicit conic co, explicit int x)
   return relpoint(co, (real)x);
 }
 
-/*<asyxml><function type = "point" signature = "angpoint(explicit circle, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="angpoint(explicit circle,real)"><code></asyxml>*/
 point angpoint(explicit circle c, real x)
 {/*<asyxml></code><documentation>Return the point of 'c' in the direction 'x' measured in degrees.</documentation></function></asyxml>*/
   return point(c, angabscissa(x));
 }
 
-/*<asyxml><function type = "point" signature = "angpoint(explicit ellipse, real, polarconicroutine)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="angpoint(explicit ellipse,real,polarconicroutine)"><code></asyxml>*/
 point angpoint(explicit ellipse el, real x,
                polarconicroutine polarconicroutine = currentpolarconicroutine)
 {/*<asyxml></code><documentation>Return the point of 'el' in the direction 'x'
@@ -4566,13 +4578,13 @@ point angpoint(explicit ellipse el, real x,
   return el.e == 0 ? angpoint((circle) el, x) : point(el, angabscissa(x, polarconicroutine));
 }
 
-/*<asyxml><function type = "point" signature = "angpoint(explicit parabola, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="angpoint(explicit parabola,real)"><code></asyxml>*/
 point angpoint(explicit parabola p, real x)
 {/*<asyxml></code><documentation>Return the point of 'p' in the direction 'x' measured in degrees.</documentation></function></asyxml>*/
   return point(p, angabscissa(x));
 }
 
-/*<asyxml><function type = "point" signature = "angpoint(explicit hyperbola, real, polarconicroutine)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="angpoint(explicit hyperbola,real,polarconicroutine)"><code></asyxml>*/
 point angpoint(explicit hyperbola h, real x,
                polarconicroutine polarconicroutine = currentpolarconicroutine)
 {/*<asyxml></code><documentation>Return the point of 'h' in the direction 'x'
@@ -4580,34 +4592,34 @@ point angpoint(explicit hyperbola h, real x,
   return point(h, angabscissa(x, polarconicroutine));
 }
 
-/*<asyxml><function type = "point" signature = "curpoint(line, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="curpoint(line,real)"><code></asyxml>*/
 point curpoint(line l, real x)
 {/*<asyxml></code><documentation>Return the point of 'l' which has the curvilinear abscissa 'x'.
    Origin is l.A.</documentation></function></asyxml>*/
   return point(l, curabscissa(x));
 }
 
-/*<asyxml><function type = "point" signature = "curpoint(explicit circle, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="curpoint(explicit circle,real)"><code></asyxml>*/
 point curpoint(explicit circle c, real x)
 {/*<asyxml></code><documentation>Return the point of 'c' which has the curvilinear abscissa 'x'.
    Origin is c.center + c.r * (1, 0).</documentation></function></asyxml>*/
   return point(c, curabscissa(x));
 }
 
-/*<asyxml><function type = "point" signature = "curpoint(explicit ellipse, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="curpoint(explicit ellipse,real)"><code></asyxml>*/
 point curpoint(explicit ellipse el, real x)
 {/*<asyxml></code><documentation>Return the point of 'el' which has the curvilinear abscissa 'el'.</documentation></function></asyxml>*/
   return point(el, curabscissa(x));
 }
 
-/*<asyxml><function type = "point" signature = "curpoint(explicit parabola, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="curpoint(explicit parabola,real)"><code></asyxml>*/
 point curpoint(explicit parabola p, real x)
 {/*<asyxml></code><documentation>Return the point of 'p' which has the curvilinear abscissa 'x'.
    Origin is the vertex of 'p'.</documentation></function></asyxml>*/
   return point(p, curabscissa(x));
 }
 
-/*<asyxml><function type = "point" signature = "curpoint(conic, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="curpoint(conic,real)"><code></asyxml>*/
 point curpoint(conic co, real x)
 {/*<asyxml></code><documentation>Return the point of 'co' which has the curvilinear abscissa 'x'.</documentation></function></asyxml>*/
   point op;
@@ -4618,7 +4630,7 @@ point curpoint(conic co, real x)
   return op;
 }
 
-/*<asyxml><function type = "abscissa" signature = "angabscissa(circle, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="angabscissa(circle,point)"><code></asyxml>*/
 abscissa angabscissa(circle c, point M)
 {/*<asyxml></code><documentation>Return the angular abscissa of 'M' on the circle 'c'.</documentation></function></asyxml>*/
   if(!(M @ c)) abort("angabscissa: the point is not on the circle.");
@@ -4629,7 +4641,7 @@ abscissa angabscissa(circle c, point M)
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "angabscissa(ellipse, point, polarconicroutine)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="angabscissa(ellipse,point,polarconicroutine)"><code></asyxml>*/
 abscissa angabscissa(ellipse el, point M,
                      polarconicroutine polarconicroutine = currentpolarconicroutine)
 {/*<asyxml></code><documentation>Return the angular abscissa of 'M' on the ellipse 'el' according to 'polarconicroutine'.</documentation></function></asyxml>*/
@@ -4643,7 +4655,7 @@ abscissa angabscissa(ellipse el, point M,
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "angabscissa(hyperbola, point, polarconicroutine)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="angabscissa(hyperbola,point,polarconicroutine)"><code></asyxml>*/
 abscissa angabscissa(hyperbola h, point M,
                      polarconicroutine polarconicroutine = currentpolarconicroutine)
 {/*<asyxml></code><documentation>Return the angular abscissa of 'M' on the hyperbola 'h' according to 'polarconicroutine'.</documentation></function></asyxml>*/
@@ -4657,7 +4669,7 @@ abscissa angabscissa(hyperbola h, point M,
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "angabscissa(parabola, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="angabscissa(parabola,point)"><code></asyxml>*/
 abscissa angabscissa(parabola p, point M)
 {/*<asyxml></code><documentation>Return the angular abscissa of 'M' on the parabola 'p'.</documentation></function></asyxml>*/
   if(!(M @ p)) abort("angabscissa: the point is not on the parabola.");
@@ -4670,7 +4682,7 @@ abscissa angabscissa(parabola p, point M)
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "angabscissa(conic, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="angabscissa(conic,point)"><code></asyxml>*/
 abscissa angabscissa(explicit conic co, point M)
 {/*<asyxml></code><documentation>Return the angular abscissa of 'M' on the conic 'co'.</documentation></function></asyxml>*/
   if(co.e == 0) return angabscissa((circle)co, M);
@@ -4679,7 +4691,7 @@ abscissa angabscissa(explicit conic co, point M)
   return angabscissa((hyperbola)co, M);
 }
 
-/*<asyxml><function type = "abscissa" signature = "curabscissa(line, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="curabscissa(line,point)"><code></asyxml>*/
 abscissa curabscissa(line l, point M)
 {/*<asyxml></code><documentation>Return the curvilinear abscissa of 'M' on the line 'l'.</documentation></function></asyxml>*/
   if(!(M @ extend(l))) abort("curabscissa: the point is not on the line.");
@@ -4689,7 +4701,7 @@ abscissa curabscissa(line l, point M)
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "curabscissa(circle, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="curabscissa(circle,point)"><code></asyxml>*/
 abscissa curabscissa(circle c, point M)
 {/*<asyxml></code><documentation>Return the curvilinear abscissa of 'M' on the circle 'c'.</documentation></function></asyxml>*/
   if(!(M @ c)) abort("curabscissa: the point is not on the circle.");
@@ -4699,7 +4711,7 @@ abscissa curabscissa(circle c, point M)
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "curabscissa(ellipse, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="curabscissa(ellipse,point)"><code></asyxml>*/
 abscissa curabscissa(ellipse el, point M)
 {/*<asyxml></code><documentation>Return the curvilinear abscissa of 'M' on the ellipse 'el'.</documentation></function></asyxml>*/
   if(!(M @ el)) abort("curabscissa: the point is not on the ellipse.");
@@ -4711,7 +4723,7 @@ abscissa curabscissa(ellipse el, point M)
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "curabscissa(parabola, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="curabscissa(parabola,point)"><code></asyxml>*/
 abscissa curabscissa(parabola p, point M)
 {/*<asyxml></code><documentation>Return the curvilinear abscissa of 'M' on the parabola 'p'.</documentation></function></asyxml>*/
   if(!(M @ p)) abort("curabscissa: the point is not on the parabola.");
@@ -4723,7 +4735,7 @@ abscissa curabscissa(parabola p, point M)
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "curabscissa(conic, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="curabscissa(conic,point)"><code></asyxml>*/
 abscissa curabscissa(conic co, point M)
 {/*<asyxml></code><documentation>Return the curvilinear abscissa of 'M' on the conic 'co'.</documentation></function></asyxml>*/
   if(co.e > 1) abort("curabscissa: not implemented for this hyperbola.");
@@ -4732,7 +4744,7 @@ abscissa curabscissa(conic co, point M)
   return curabscissa((parabola)co, M);
 }
 
-/*<asyxml><function type = "abscissa" signature = "nodabscissa(line, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="nodabscissa(line,point)"><code></asyxml>*/
 abscissa nodabscissa(line l, point M)
 {/*<asyxml></code><documentation>Return the node abscissa of 'M' on the line 'l'.</documentation></function></asyxml>*/
   if(!(M @ (segment)l)) abort("nodabscissa: the point is not on the segment.");
@@ -4742,7 +4754,7 @@ abscissa nodabscissa(line l, point M)
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "nodabscissa(circle, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="nodabscissa(circle,point)"><code></asyxml>*/
 abscissa nodabscissa(circle c, point M)
 {/*<asyxml></code><documentation>Return the node abscissa of 'M' on the circle 'c'.</documentation></function></asyxml>*/
   if(!(M @ c)) abort("nodabscissa: the point is not on the circle.");
@@ -4752,7 +4764,7 @@ abscissa nodabscissa(circle c, point M)
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "nodabscissa(ellipse, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="nodabscissa(ellipse,point)"><code></asyxml>*/
 abscissa nodabscissa(ellipse el, point M)
 {/*<asyxml></code><documentation>Return the node abscissa of 'M' on the ellipse 'el'.</documentation></function></asyxml>*/
   if(!(M @ el)) abort("nodabscissa: the point is not on the ellipse.");
@@ -4762,7 +4774,7 @@ abscissa nodabscissa(ellipse el, point M)
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "nodabscissa(parabola, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="nodabscissa(parabola,point)"><code></asyxml>*/
 abscissa nodabscissa(parabola p, point M)
 {/*<asyxml></code><documentation>Return the node abscissa OF 'M' on the parabola 'p'.</documentation></function></asyxml>*/
   if(!(M @ p)) abort("nodabscissa: the point is not on the parabola.");
@@ -4775,7 +4787,7 @@ abscissa nodabscissa(parabola p, point M)
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "nodabscissa(conic, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="nodabscissa(conic,point)"><code></asyxml>*/
 abscissa nodabscissa(conic co, point M)
 {/*<asyxml></code><documentation>Return the node abscissa of 'M' on the conic 'co'.</documentation></function></asyxml>*/
   if(co.e > 1) abort("nodabscissa: not implemented for hyperbola.");
@@ -4785,7 +4797,7 @@ abscissa nodabscissa(conic co, point M)
 }
 
 
-/*<asyxml><function type = "abscissa" signature = "relabscissa(line, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="relabscissa(line,point)"><code></asyxml>*/
 abscissa relabscissa(line l, point M)
 {/*<asyxml></code><documentation>Return the relative abscissa of 'M' on the line 'l'.</documentation></function></asyxml>*/
   if(!(M @ extend(l))) abort("relabscissa: the point is not on the line.");
@@ -4795,7 +4807,7 @@ abscissa relabscissa(line l, point M)
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "relabscissa(circle, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="relabscissa(circle,point)"><code></asyxml>*/
 abscissa relabscissa(circle c, point M)
 {/*<asyxml></code><documentation>Return the relative abscissa of 'M' on the circle 'c'.</documentation></function></asyxml>*/
   if(!(M @ c)) abort("relabscissa: the point is not on the circle.");
@@ -4805,7 +4817,7 @@ abscissa relabscissa(circle c, point M)
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "relabscissa(ellipse, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="relabscissa(ellipse,point)"><code></asyxml>*/
 abscissa relabscissa(ellipse el, point M)
 {/*<asyxml></code><documentation>Return the relative abscissa of 'M' on the ellipse 'el'.</documentation></function></asyxml>*/
   if(!(M @ el)) abort("relabscissa: the point is not on the ellipse.");
@@ -4816,11 +4828,10 @@ abscissa relabscissa(ellipse el, point M)
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "relabscissa(conic, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="relabscissa(conic,point)"><code></asyxml>*/
 abscissa relabscissa(conic co, point M)
 {/*<asyxml></code><documentation>Return the relative abscissa of 'M'
    on the conic 'co'.</documentation></function></asyxml>*/
-  write("PASS");
   if(co.e > 1) abort("relabscissa: not implemented for hyperbola and parabola.");
   if(co.e == 1) return relabscissa((parabola)co, M);
   if(co.e == 0) return relabscissa((circle)co, M);
@@ -4831,20 +4842,20 @@ abscissa relabscissa(conic co, point M)
 
 // *=======================================================*
 // *.........................ARCS..........................*
-/*<asyxml><struct signature = "arc"><code></asyxml>*/
+/*<asyxml><struct signature="arc"><code></asyxml>*/
 struct arc {
   /*<asyxml></code><documentation>Implement oriented ellipse (included circle) arcs.
     All the calculus with this structure will be as exact as Asymptote can do.
     For a full precision, you must not cast 'arc' to 'path' excepted for drawing routines.
-    </documentation><property type = "ellipse" signature = "el"><code></asyxml>*/
-  ellipse el;/*<asyxml></code><documentation>The support of the arc.</documentation></property><property type = "real" signature = "angle0"><code></asyxml>*/
-  restricted real angle0 = 0;/*<asyxml></code><documentation>Internal use: rotating a circle does not modify the origin point, this variable stocks the eventual angle rotation. This value is not used for ellipses which are not circles.</documentation></property><property type = "real" signature = "angle1, angle2"><code></asyxml>*/
-  restricted  real angle1, angle2;/*<asyxml></code><documentation>Values (in degrees) in ]-360, 360[.</documentation></property><property type = "bool" signature = "direction"><code></asyxml>*/
-  bool direction = CCW;/*<asyxml></code><documentation>The arc will be drawn from 'angle1' to 'angle2' rotating in the direction 'direction'.</documentation></property><property type = "polarconicroutine" signature = "polarconicroutine"><code></asyxml>*/
+    !</documentation><property type = "ellipse" signature="el"><code></asyxml>*/
+  ellipse el;/*<asyxml></code><documentation>The support of the arc.</documentation></property><property type = "real" signature="angle0"><code></asyxml>*/
+  restricted real angle0 = 0;/*<asyxml></code><documentation>Internal use: rotating a circle does not modify the origin point,this variable stocks the eventual angle rotation. This value is not used for ellipses which are not circles.</documentation></property><property type = "real" signature="angle1,angle2"><code></asyxml>*/
+  restricted  real angle1, angle2;/*<asyxml></code><documentation>Values (in degrees) in ]-360, 360[.</documentation></property><property type = "bool" signature="direction"><code></asyxml>*/
+  bool direction = CCW;/*<asyxml></code><documentation>The arc will be drawn from 'angle1' to 'angle2' rotating in the direction 'direction'.</documentation></property><property type = "polarconicroutine" signature="polarconicroutine"><code></asyxml>*/
   polarconicroutine polarconicroutine = currentpolarconicroutine;/*<asyxml></code><documentation>The routine to which the angles refer.
                                                                  If 'el' is a circle 'fromCenter' is always used.</documentation></property></asyxml>*/
 
-  /*<asyxml><method type = "void" signature = "setangles(real, real, real)"><code></asyxml>*/
+  /*<asyxml><method type = "void" signature="setangles(real,real,real)"><code></asyxml>*/
   void setangles(real a0, real a1, real a2)
   {/*<asyxml></code><documentation>Set the angles.</documentation></method></asyxml>*/
     if (a1 < 0 && a2 < 0) {
@@ -4856,7 +4867,7 @@ struct arc {
     this.angle2 = a2%(sgnd(2) * 360);
   }
 
-  /*<asyxml><method type = "void" signature = "init(ellipse, real, real, real, polarconicroutine, bool)"><code></asyxml>*/
+  /*<asyxml><method type = "void" signature="init(ellipse,real,real,real,polarconicroutine,bool)"><code></asyxml>*/
   void init(ellipse el, real angle0 = 0, real angle1, real angle2,
             polarconicroutine polarconicroutine,
             bool direction = CCW)
@@ -4868,7 +4879,7 @@ struct arc {
     this.direction = direction;
   }
 
-  /*<asyxml><method type = "arc" signature = "copy()"><code></asyxml>*/
+  /*<asyxml><method type = "arc" signature="copy()"><code></asyxml>*/
   arc copy()
   {/*<asyxml></code><documentation>Copy the arc.</documentation></method></asyxml>*/
     arc oa = new arc;
@@ -4882,7 +4893,7 @@ struct arc {
   }
 }/*<asyxml></struct></asyxml>*/
 
-/*<asyxml><function type = "polarconicroutine" signature = "polarconicroutine(ellipse)"><code></asyxml>*/
+/*<asyxml><function type="polarconicroutine" signature="polarconicroutine(ellipse)"><code></asyxml>*/
 polarconicroutine polarconicroutine(conic co)
 {/*<asyxml></code><documentation>Return the default routine used to draw a conic.</documentation></function></asyxml>*/
   if(co.e == 0) return fromCenter;
@@ -4890,7 +4901,7 @@ polarconicroutine polarconicroutine(conic co)
   return currentpolarconicroutine;
 }
 
-/*<asyxml><function type = "arc" signature = "arc(ellipse, real, real, polarconicroutine, bool)"><code></asyxml>*/
+/*<asyxml><function type="arc" signature="arc(ellipse,real,real,polarconicroutine,bool)"><code></asyxml>*/
 arc arc(ellipse el, real angle1, real angle2,
         polarconicroutine polarconicroutine = polarconicroutine(el),
         bool direction = CCW)
@@ -4900,7 +4911,7 @@ arc arc(ellipse el, real angle1, real angle2,
   return oa;
 }
 
-/*<asyxml><function type = "arc" signature = "complementary(arc)"><code></asyxml>*/
+/*<asyxml><function type="arc" signature="complementary(arc)"><code></asyxml>*/
 arc complementary(arc a)
 {/*<asyxml></code><documentation>Return the complementary of 'a'.</documentation></function></asyxml>*/
   arc oa;
@@ -4908,7 +4919,7 @@ arc complementary(arc a)
   return oa;
 }
 
-/*<asyxml><function type = "arc" signature = "reverse(arc)"><code></asyxml>*/
+/*<asyxml><function type="arc" signature="reverse(arc)"><code></asyxml>*/
 arc reverse(arc a)
 {/*<asyxml></code><documentation>Return arc 'a' oriented in reverse direction.</documentation></function></asyxml>*/
   arc oa;
@@ -4916,7 +4927,7 @@ arc reverse(arc a)
   return oa;
 }
 
-/*<asyxml><function type = "real" signature = "degrees(arc)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="degrees(arc)"><code></asyxml>*/
 real degrees(arc a)
 {/*<asyxml></code><documentation>Return the measure in degrees of the oriented arc 'a'.</documentation></function></asyxml>*/
   real or;
@@ -4929,13 +4940,13 @@ real degrees(arc a)
   return or;
 }
 
-/*<asyxml><function type = "real" signature = "angle(a)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="angle(a)"><code></asyxml>*/
 real angle(arc a)
 {/*<asyxml></code><documentation>Return the measure in radians of the oriented arc 'a'.</documentation></function></asyxml>*/
   return radians(degrees(a));
 }
 
-/*<asyxml><function type = "int" signature = "arcnodesnumber(explicit arc)"><code></asyxml>*/
+/*<asyxml><function type="int" signature="arcnodesnumber(explicit arc)"><code></asyxml>*/
 int arcnodesnumber(explicit arc a)
 {/*<asyxml></code><documentation>Return the number of nodes to draw the arc 'a'.</documentation></function></asyxml>*/
   return ellipsenodesnumber(a.el.a, a.el.b, a.angle1, a.angle2, a.direction);
@@ -4948,7 +4959,7 @@ private path arctopath(arc a, int n)
   return arcfromfocus(a.el, a.angle1, a.angle2, n, a.direction);
 }
 
-/*<asyxml><function type = "point" signature = "angpoint(arc, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="angpoint(arc,real)"><code></asyxml>*/
 point angpoint(arc a, real angle)
 {/*<asyxml></code><documentation>Return the point given by its angular position (in degrees) relative to the arc 'a'.
    If 'angle > degrees(a)' or 'angle < 0' the returned point is on the extended arc.</documentation></function></asyxml>*/
@@ -4964,19 +4975,19 @@ point angpoint(arc a, real angle)
   return point(coordsys(a.el), p/coordsys(a.el));
 }
 
-/*<asyxml><operator type = "path" signature = "cast(explicit arc)"><code></asyxml>*/
+/*<asyxml><operator type = "path" signature="cast(explicit arc)"><code></asyxml>*/
 path operator cast(explicit arc a)
 {/*<asyxml></code><documentation>Cast arc to path.</documentation></operator></asyxml>*/
   return arctopath(a, arcnodesnumber(a));
 }
 
-/*<asyxml><operator type = "guide" signature = "cast(explicit arc)"><code></asyxml>*/
+/*<asyxml><operator type = "guide" signature="cast(explicit arc)"><code></asyxml>*/
 guide operator cast(explicit arc a)
 {/*<asyxml></code><documentation>Cast arc to guide.</documentation></operator></asyxml>*/
   return arctopath(a, arcnodesnumber(a));
 }
 
-/*<asyxml><operator type = "arc" signature = "*(transform, explicit arc)"><code></asyxml>*/
+/*<asyxml><operator type = "arc" signature="*(transform,explicit arc)"><code></asyxml>*/
 arc operator *(transform t, explicit arc a)
 {/*<asyxml></code><documentation>Provide transform * arc.</documentation></operator></asyxml>*/
   pair[] P, PP;
@@ -5005,7 +5016,7 @@ arc operator *(transform t, explicit arc a)
   return oa;
 }
 
-/*<asyxml><operator type = "arc" signature = "*(real, explicit arc)"><code></asyxml>*/
+/*<asyxml><operator type = "arc" signature="*(real,explicit arc)"><code></asyxml>*/
 arc operator *(real x, explicit arc a)
 {/*<asyxml></code><documentation>Provide real * arc.
    Return the arc subtracting and adding '(x - 1) * degrees(a)/2' to 'a.angle1' and 'a.angle2' respectively.</documentation></operator></asyxml>*/
@@ -5018,13 +5029,13 @@ arc operator *(real x, explicit arc a)
   return oa;
 }
 arc operator *(int x, explicit arc a){return (real)x * a;}
-/*<asyxml><operator type = "arc" signature = "/(real, explicit arc)"><code></asyxml>*/
+/*<asyxml><operator type = "arc" signature="/(real,explicit arc)"><code></asyxml>*/
 arc operator /(explicit arc a, real x)
 {/*<asyxml></code><documentation>Provide arc/real.
    Return the arc subtracting and adding '(1/x - 1) * degrees(a)/2' to 'a.angle1' and 'a.angle2' respectively.</documentation></operator></asyxml>*/
   return (1/x) * a;
 }
-/*<asyxml><operator type = "arc" signature = "+(explicit arc, point)"><code></asyxml>*/
+/*<asyxml><operator type = "arc" signature="+(explicit arc,point)"><code></asyxml>*/
 arc operator +(explicit arc a, point M)
 {/*<asyxml></code><documentation>Provide arc + point.
    Return shifted arc.
@@ -5036,7 +5047,7 @@ arc operator +(explicit arc a, vector v){return shift(locate(v)) * a;}
 arc operator -(explicit arc a, vector v){return a + (-v);}
 
 
-/*<asyxml><operator type = "bool" signature = "@(point, arc)"><code></asyxml>*/
+/*<asyxml><operator type = "bool" signature="@(point,arc)"><code></asyxml>*/
 bool operator @(point M, arc a)
 {/*<asyxml></code><documentation>Return true iff 'M' is on the arc 'a'.</documentation></operator></asyxml>*/
   if (!(M @ a.el)) return false;
@@ -5046,7 +5057,7 @@ bool operator @(point M, arc a)
   return sameside(M, point(R, point(ap, 1)), l);
 }
 
-/*<asyxml><function type = "void" signature = "draw(picture, Label, arc, align, pen, arrowbar, arrowbar, margin, Label, marker)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="draw(picture,Label,arc,align,pen,arrowbar,arrowbar,margin,Label,marker)"><code></asyxml>*/
 void draw(picture pic = currentpicture, Label L = "", arc a,
           align align = NoAlign, pen p = currentpen,
           arrowbar arrow = None, arrowbar bar = None, margin margin = NoMargin,
@@ -5056,7 +5067,7 @@ void draw(picture pic = currentpicture, Label L = "", arc a,
   draw(pic, L, (path)a, align, addpenarc(p), arrow, bar, margin, legend, marker);
 }
 
-/*<asyxml><function type = "real" signature = "arclength(arc)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="arclength(arc)"><code></asyxml>*/
 real arclength(arc a)
 {/*<asyxml></code><documentation>The arc length of 'a'.</documentation></function></asyxml>*/
   return arclength(a.el, a.angle1, a.angle2, a.direction, a.polarconicroutine);
@@ -5125,7 +5136,7 @@ private point ppoint(arc a, real x)
   return oP;
 }
 
-/*<asyxml><function type = "point" signature = "point(arc, abscissa)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(arc,abscissa)"><code></asyxml>*/
 point point(arc a, abscissa l)
 {/*<asyxml></code><documentation>Return the point of 'a' which has the abscissa 'l.x'
    according to the abscissa system 'l.system'.
@@ -5158,7 +5169,7 @@ point point(arc a, abscissa l)
 }
 
 
-/*<asyxml><function type = "point" signature = "point(arc, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(arc,real)"><code></asyxml>*/
 point point(arc a, real x)
 {/*<asyxml></code><documentation>Return the point between node floor(t) and floor(t) + 1.</documentation></function></asyxml>*/
   return point(a, nodabscissa(x));
@@ -5168,21 +5179,21 @@ pair point(explicit arc a, int x)
   return point(a, nodabscissa(x));
 }
 
-/*<asyxml><function type = "point" signature = "relpoint(arc, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="relpoint(arc,real)"><code></asyxml>*/
 point relpoint(arc a, real x)
 {/*<asyxml></code><documentation>Return the relative point of 'a'.
    If x > 1 or x < 0, the returned point is on the extended arc.</documentation></function></asyxml>*/
   return point(a, relabscissa(x));
 }
 
-/*<asyxml><function type = "point" signature = "curpoint(arc, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="curpoint(arc,real)"><code></asyxml>*/
 point curpoint(arc a, real x)
 {/*<asyxml></code><documentation>Return the point of 'a' which has the curvilinear abscissa 'x'.
    If x < 0 or x > arclength(a), the returned point is on the extended arc.</documentation></function></asyxml>*/
   return point(a, curabscissa(x));
 }
 
-/*<asyxml><function type = "abscissa" signature = "angabscissa(arc, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="angabscissa(arc,point)"><code></asyxml>*/
 abscissa angabscissa(arc a, point M)
 {/*<asyxml></code><documentation>Return the angular abscissa of 'M' according to the arc 'a'.</documentation></function></asyxml>*/
   if(!(M @ a.el))
@@ -5196,7 +5207,7 @@ abscissa angabscissa(arc a, point M)
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "curabscissa(arc, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="curabscissa(arc,point)"><code></asyxml>*/
 abscissa curabscissa(arc a, point M)
 {/*<asyxml></code><documentation>Return the curvilinear abscissa according to the arc 'a'.</documentation></function></asyxml>*/
   ellipse el = a.el;
@@ -5213,7 +5224,7 @@ abscissa curabscissa(arc a, point M)
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "nodabscissa(arc, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="nodabscissa(arc,point)"><code></asyxml>*/
 abscissa nodabscissa(arc a, point M)
 {/*<asyxml></code><documentation>Return the node abscissa according to the arc 'a'.</documentation></function></asyxml>*/
   if(!(M @ a))
@@ -5224,7 +5235,7 @@ abscissa nodabscissa(arc a, point M)
   return oa;
 }
 
-/*<asyxml><function type = "abscissa" signature = "relabscissa(arc, point)"><code></asyxml>*/
+/*<asyxml><function type="abscissa" signature="relabscissa(arc,point)"><code></asyxml>*/
 abscissa relabscissa(arc a, point M)
 {/*<asyxml></code><documentation>Return the relative abscissa according to the arc 'a'.</documentation></function></asyxml>*/
   ellipse el = a.el;
@@ -5236,7 +5247,7 @@ abscissa relabscissa(arc a, point M)
   return oa;
 }
 
-/*<asyxml><function type = "void" signature = "markarc(picture, Label, int, real, real, arc, arrowbar, pen, pen, margin, marker)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="markarc(picture,Label,int,real,real,arc,arrowbar,pen,pen,margin,marker)"><code></asyxml>*/
 void markarc(picture pic = currentpicture,
              Label L = "",
              int n = 1, real radius = 0, real space = 0,
@@ -5265,13 +5276,13 @@ void markarc(picture pic = currentpicture,
 
 // *=======================================================*
 // *........................MASSES.........................*
-/*<asyxml><struct signature = "mass"><code></asyxml>*/
-struct mass {/*<asyxml></code><documentation></documentation><property type = "point" signature = "M"><code></asyxml>*/
-  point M;/*<asyxml></code><documentation></documentation></property><property type = "real" signature = "m"><code></asyxml>*/
+/*<asyxml><struct signature="mass"><code></asyxml>*/
+struct mass {/*<asyxml></code><documentation></documentation><property type = "point" signature="M"><code></asyxml>*/
+  point M;/*<asyxml></code><documentation></documentation></property><property type = "real" signature="m"><code></asyxml>*/
   real m;/*<asyxml></code><documentation></documentation></property></asyxml>*/
 }/*<asyxml></struct></asyxml>*/
 
-/*<asyxml><function type = "mass" signature = "mass(point, real)"><code></asyxml>*/
+/*<asyxml><function type="mass" signature="mass(point,real)"><code></asyxml>*/
 mass mass(point M, real m)
 {/*<asyxml></code><documentation>Constructor of mass point.</documentation></function></asyxml>*/
   mass om;
@@ -5280,7 +5291,7 @@ mass mass(point M, real m)
   return om;
 }
 
-/*<asyxml><operator type = "point" signature = "cast(mass)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="cast(mass)"><code></asyxml>*/
 point operator cast(mass m)
 {/*<asyxml></code><documentation>Cast mass point to point.</documentation></operator></asyxml>*/
   point op;
@@ -5288,11 +5299,11 @@ point operator cast(mass m)
   op.m = m.m;
   return op;
 }
-/*<asyxml><function type = "point" signature = "point(explicit mass)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(explicit mass)"><code></asyxml>*/
 point point(explicit mass m){return m;}/*<asyxml></code><documentation>Cast
                                          'm' to point</documentation></function></asyxml>*/
 
-/*<asyxml><operator type = "mass" signature = "cast(point)"><code></asyxml>*/
+/*<asyxml><operator type = "mass" signature="cast(point)"><code></asyxml>*/
 mass operator cast(point M)
 {/*<asyxml></code><documentation>Cast point to mass point.</documentation></operator></asyxml>*/
   mass om;
@@ -5300,13 +5311,13 @@ mass operator cast(point M)
   om.m = M.m;
   return om;
 }
-/*<asyxml><function type = "mass" signature = "mass(explicit point)"><code></asyxml>*/
+/*<asyxml><function type="mass" signature="mass(explicit point)"><code></asyxml>*/
 mass mass(explicit point P)
 {/*<asyxml></code><documentation>Cast 'P' to mass.</documentation></function></asyxml>*/
   return mass(P, P.m);
 }
 
-/*<asyxml><operator type = "point[]" signature = "cast(mass[])"><code></asyxml>*/
+/*<asyxml><operator type = "point[]" signature="cast(mass[])"><code></asyxml>*/
 point[] operator cast(mass[] m)
 {/*<asyxml></code><documentation>Cast mass[] to point[].</documentation></operator></asyxml>*/
   point[] op;
@@ -5314,7 +5325,7 @@ point[] operator cast(mass[] m)
   return op;
 }
 
-/*<asyxml><operator type = "mass[]" signature = "cast(point[])"><code></asyxml>*/
+/*<asyxml><operator type = "mass[]" signature="cast(point[])"><code></asyxml>*/
 mass[] operator cast(point[] P)
 {/*<asyxml></code><documentation>Cast point[] to mass[].</documentation></operator></asyxml>*/
   mass[] om;
@@ -5322,21 +5333,21 @@ mass[] operator cast(point[] P)
   return om;
 }
 
-/*<asyxml><function type = "mass" signature = "mass(coordsys, explicit pair, real)"><code></asyxml>*/
+/*<asyxml><function type="mass" signature="mass(coordsys,explicit pair,real)"><code></asyxml>*/
 mass mass(coordsys R, explicit pair p, real m)
 {/*<asyxml></code><documentation>Return the mass which has coordinates
    'p' with respect to 'R' and weight 'm'.</documentation></function></asyxml>*/
   return point(R, p, m);// Using casting.
 }
 
-/*<asyxml><operator type = "mass" signature = "cast(pair)"><code></asyxml>*/
+/*<asyxml><operator type = "mass" signature="cast(pair)"><code></asyxml>*/
 mass operator cast(pair m){return mass((point)m, 1);}/*<asyxml></code><documentation>Cast pair to mass point.</documentation></operator></asyxml>*/
-/*<asyxml><operator type = "path" signature = "cast(mass)"><code></asyxml>*/
+/*<asyxml><operator type = "path" signature="cast(mass)"><code></asyxml>*/
 path operator cast(mass M){return M.M;}/*<asyxml></code><documentation>Cast mass point to path.</documentation></operator></asyxml>*/
-/*<asyxml><operator type = "guide" signature = "cast(mass)"><code></asyxml>*/
+/*<asyxml><operator type = "guide" signature="cast(mass)"><code></asyxml>*/
 guide operator cast(mass M){return M.M;}/*<asyxml></code><documentation>Cast mass to guide.</documentation></operator></asyxml>*/
 
-/*<asyxml><operator type = "mass" signature = "+(mass, mass)"><code></asyxml>*/
+/*<asyxml><operator type = "mass" signature="+(mass,mass)"><code></asyxml>*/
 mass operator +(mass M1, mass M2)
 {/*<asyxml></code><documentation>Provide mass + mass.
    mass - mass is also defined.</documentation></operator></asyxml>*/
@@ -5347,7 +5358,7 @@ mass operator -(mass M1, mass M2)
   return mass(M1.M - M2.M, M1.m - M2.m);
 }
 
-/*<asyxml><operator type = "mass" signature = "*(real, mass)"><code></asyxml>*/
+/*<asyxml><operator type = "mass" signature="*(real,mass)"><code></asyxml>*/
 mass operator *(real x, explicit mass M)
 {/*<asyxml></code><documentation>Provide real * mass.
    The resulted mass is the mass of 'M' multiplied by 'x' .
@@ -5361,13 +5372,13 @@ mass operator +(explicit mass M, real x){return mass(M.M, M.m + x);}
 mass operator +(explicit mass M, int x){return mass(M.M, M.m + x);}
 mass operator -(explicit mass M, real x){return mass(M.M, M.m - x);}
 mass operator -(explicit mass M, int x){return mass(M.M, M.m - x);}
-/*<asyxml><operator type = "mass" signature = "*(transform, mass)"><code></asyxml>*/
+/*<asyxml><operator type = "mass" signature="*(transform,mass)"><code></asyxml>*/
 mass operator *(transform t, mass M)
 {/*<asyxml></code><documentation>Provide transform * mass.</documentation></operator></asyxml>*/
   return mass(t * M.M, M.m);
 }
 
-/*<asyxml><function type = "mass" signature = "masscenter(... mass[])"><code></asyxml>*/
+/*<asyxml><function type="mass" signature="masscenter(... mass[])"><code></asyxml>*/
 mass masscenter(... mass[] M)
 {/*<asyxml></code><documentation>Return the center of the masses 'M'.</documentation></function></asyxml>*/
   point[] P;
@@ -5384,7 +5395,7 @@ mass masscenter(... mass[] M)
   return mass(oM/m, m);
 }
 
-/*<asyxml><function type = "string" signature = "massformat(string, string, mass)"><code></asyxml>*/
+/*<asyxml><function type="string" signature="massformat(string,string,mass)"><code></asyxml>*/
 string massformat(string format = defaultmassformat,
                   string s, mass M)
 {/*<asyxml></code><documentation>Return the string formated by 'format' with the mass value.
@@ -5394,7 +5405,7 @@ string massformat(string format = defaultmassformat,
     format(replace(format, "%L", replace(s, "$", "")), M.m);
 }
 
-/*<asyxml><function type = "void" signature = "label(picture, Label, explicit mass, align, string, pen, filltype)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="label(picture,Label,explicit mass,align,string,pen,filltype)"><code></asyxml>*/
 void label(picture pic = currentpicture, Label L, explicit mass M,
            align align = NoAlign, string format = defaultmassformat,
            pen p = nullpen, filltype filltype = NoFill)
@@ -5406,7 +5417,7 @@ void label(picture pic = currentpicture, Label L, explicit mass M,
   add(pic, L);
 }
 
-/*<asyxml><function type = "void" signature = "dot(picture, Label, explicit mass, align, string, pen)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="dot(picture,Label,explicit mass,align,string,pen)"><code></asyxml>*/
 void dot(picture pic = currentpicture, Label L, explicit mass M, align align = NoAlign,
          string format = defaultmassformat, pen p = currentpen)
 {/*<asyxml></code><documentation>Draw a dot with label 'L' as
@@ -5425,7 +5436,7 @@ void dot(picture pic = currentpicture, Label L, explicit mass M, align align = N
 
 // *=======================================================*
 // *.......................TRIANGLES.......................*
-/*<asyxml><function type = "point" signature = "orthocentercenter(point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="orthocentercenter(point,point,point)"><code></asyxml>*/
 point orthocentercenter(point A, point B, point C)
 {/*<asyxml></code><documentation>Return the orthocenter of the triangle ABC.</documentation></function></asyxml>*/
   point[] P = standardizecoordsys(A, B, C);
@@ -5434,13 +5445,13 @@ point orthocentercenter(point A, point B, point C)
   return point(R, pp/R);
 }
 
-/*<asyxml><function type = "point" signature = "centroid(point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="centroid(point,point,point)"><code></asyxml>*/
 point centroid(point A, point B, point C)
 {/*<asyxml></code><documentation>Return the centroid of the triangle ABC.</documentation></function></asyxml>*/
   return (A + B + C)/3;
 }
 
-/*<asyxml><function type = "point" signature = "incenter(point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="incenter(point,point,point)"><code></asyxml>*/
 point incenter(point A, point B, point C)
 {/*<asyxml></code><documentation>Return the center of the incircle of the triangle ABC.</documentation></function></asyxml>*/
   point[] P = standardizecoordsys(A, B, C);
@@ -5450,21 +5461,21 @@ point incenter(point A, point B, point C)
   return point(R, pp/R);
 }
 
-/*<asyxml><function type = "real" signature = "inradius(point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="inradius(point,point,point)"><code></asyxml>*/
 real inradius(point A, point B, point C)
 {/*<asyxml></code><documentation>Return the radius of the incircle of the triangle ABC.</documentation></function></asyxml>*/
   point IC = incenter(A, B, C);
   return abs(IC - projection(A, B) * IC);
 }
 
-/*<asyxml><function type = "circle" signature = "incircle(point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="circle" signature="incircle(point,point,point)"><code></asyxml>*/
 circle incircle(point A, point B, point C)
 {/*<asyxml></code><documentation>Return the incircle of the triangle ABC.</documentation></function></asyxml>*/
   point IC = incenter(A, B, C);
   return circle(IC, abs(IC - projection(A, B) * IC));
 }
 
-/*<asyxml><function type = "point" signature = "excenter(point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="excenter(point,point,point)"><code></asyxml>*/
 point excenter(point A, point B, point C)
 {/*<asyxml></code><documentation>Return the center of the excircle of the triangle tangent with (AB).</documentation></function></asyxml>*/
   point[] P = standardizecoordsys(A, B, C);
@@ -5474,14 +5485,14 @@ point excenter(point A, point B, point C)
   return point(R, pp/R);
 }
 
-/*<asyxml><function type = "real" signature = "exradius(point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="exradius(point,point,point)"><code></asyxml>*/
 real exradius(point A, point B, point C)
 {/*<asyxml></code><documentation>Return the radius of the excircle of the triangle ABC with (AB).</documentation></function></asyxml>*/
   point EC = excenter(A, B, C);
   return abs(EC - projection(A, B) * EC);
 }
 
-/*<asyxml><function type = "circle" signature = "excircle(point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="circle" signature="excircle(point,point,point)"><code></asyxml>*/
 circle excircle(point A, point B, point C)
 {/*<asyxml></code><documentation>Return the excircle of the triangle ABC tangent with (AB).</documentation></function></asyxml>*/
   point center = excenter(A, B, C);
@@ -5492,22 +5503,22 @@ circle excircle(point A, point B, point C)
 private int[] numarray = {1, 2, 3};
 numarray.cyclic = true;
 
-/*<asyxml><struct signature = "triangle"><code></asyxml>*/
+/*<asyxml><struct signature="triangle"><code></asyxml>*/
 struct triangle {/*<asyxml></code><documentation></documentation></asyxml>*/
 
-  /*<asyxml><struct signature = "vertex"><code></asyxml>*/
-  struct vertex {/*<asyxml></code><documentation>Structure used to communicate the vertex of a triangle.</documentation><property type = "int" signature = "n"><code></asyxml>*/
-    int n;/*<asyxml></code><documentation>1 means VA, 2 means VB, 3 means VC, 4 means VA etc...</documentation></property><property type = "triangle" signature = "triangle"><code></asyxml>*/
+  /*<asyxml><struct signature="vertex"><code></asyxml>*/
+  struct vertex {/*<asyxml></code><documentation>Structure used to communicate the vertex of a triangle.</documentation><property type = "int" signature="n"><code></asyxml>*/
+    int n;/*<asyxml></code><documentation>1 means VA,2 means VB,3 means VC,4 means VA etc...</documentation></property><property type = "triangle" signature="triangle"><code></asyxml>*/
     triangle t;/*<asyxml></code><documentation>The triangle to which the vertex refers.</documentation></property></asyxml>*/
   }/*<asyxml></struct></asyxml>*/
 
-  /*<asyxml><property type = "point" signature = "A, B, C"><code></asyxml>*/
-  restricted point A, B, C;/*<asyxml></code><documentation>The vertices of the triangle (as point).</documentation></property><property type = "vertex" signature = "VA, VB, VC"><code></asyxml>*/
+  /*<asyxml><property type = "point" signature="A,B,C"><code></asyxml>*/
+  restricted point A, B, C;/*<asyxml></code><documentation>The vertices of the triangle (as point).</documentation></property><property type = "vertex" signature="VA, VB, VC"><code></asyxml>*/
   restricted vertex VA, VB, VC;/*<asyxml></code><documentation>The vertices of the triangle (as vertex).
                                  Note that the vertex structure contains the triangle to wish it refers.</documentation></property></asyxml>*/
   VA.n = 1;VB.n = 2;VC.n = 3;
 
-  /*<asyxml><method type = "vertex" signature = "vertex(int)"><code></asyxml>*/
+  /*<asyxml><method type = "vertex" signature="vertex(int)"><code></asyxml>*/
   vertex vertex(int n)
   {/*<asyxml></code><documentation>Return numbered vertex.
      'n' is 1 means VA, 2 means VB, 3 means VC, 4 means VA etc...</documentation></method></asyxml>*/
@@ -5517,7 +5528,7 @@ struct triangle {/*<asyxml></code><documentation></documentation></asyxml>*/
     return VC;
   }
 
-  /*<asyxml><method type = "point" signature = "point(int)"><code></asyxml>*/
+  /*<asyxml><method type = "point" signature="point(int)"><code></asyxml>*/
   point point(int n)
   {/*<asyxml></code><documentation>Return numbered point.
      n is 1 means A, 2 means B, 3 means C, 4 means A etc...</documentation></method></asyxml>*/
@@ -5527,7 +5538,7 @@ struct triangle {/*<asyxml></code><documentation></documentation></asyxml>*/
     return C;
   }
 
-  /*<asyxml><method type = "void" signature = "init(point, point, point)"><code></asyxml>*/
+  /*<asyxml><method type = "void" signature="init(point,point,point)"><code></asyxml>*/
   void init(point A, point B, point C)
   {/*<asyxml></code><documentation>Constructor.</documentation></method></asyxml>*/
     point[] P = standardizecoordsys(A, B, C);
@@ -5537,14 +5548,14 @@ struct triangle {/*<asyxml></code><documentation></documentation></asyxml>*/
     VA.t = this; VB.t = this; VC.t = this;
   }
 
-  /*<asyxml><method type = "void" signature = "operator init(point, point, point)"><code></asyxml>*/
+  /*<asyxml><method type = "void" signature="operator init(point,point,point)"><code></asyxml>*/
   void operator init(point A, point B, point C)
   {/*<asyxml></code><documentation>For backward compatibility.
      Provide the routine 'triangle(point A, point B, point C)'.</documentation></method></asyxml>*/
     this.init(A, B, C);
   }
 
-  /*<asyxml><method type = "void" signature = "init(real, real, real, real, point)"><code></asyxml>*/
+  /*<asyxml><method type = "void" signature="init(real,real,real,real,point)"><code></asyxml>*/
   void operator init(real b, real alpha, real c, real angle = 0, point A = (0, 0))
   {/*<asyxml></code><documentation>For backward compatibility.
      Provide the routine 'triangle(real b, real alpha, real c, real angle = 0, point A = (0, 0))
@@ -5553,7 +5564,7 @@ struct triangle {/*<asyxml></code><documentation></documentation></asyxml>*/
     this.init(A, A + R.polar(c, radians(angle)), A + R.polar(b, radians(angle + alpha)));
   }
 
-  /*<asyxml><method type = "real" signature = "a(), b(), c()"><code></asyxml>*/
+  /*<asyxml><method type = "real" signature="a(),b(),c()"><code></asyxml>*/
   real a()
   {/*<asyxml></code><documentation>Return the length BC.
      b() and c() are also defined and return the length AC and AB respectively.</documentation></method></asyxml>*/
@@ -5564,14 +5575,14 @@ struct triangle {/*<asyxml></code><documentation></documentation></asyxml>*/
 
   private real det(pair a, pair b) {return a.x * b.y - a.y * b.x;}
 
-  /*<asyxml><method type = "real" signature = "area()"><code></asyxml>*/
+  /*<asyxml><method type = "real" signature="area()"><code></asyxml>*/
   real area()
   {/*<asyxml></code><documentation></documentation></method></asyxml>*/
     pair a = locate(A), b = locate(B), c = locate(C);
     return 0.5 * abs(det(a, b) + det(b, c) + det(c, a));
   }
 
-  /*<asyxml><method type = "real" signature = "alpha(), beta(), gamma()"><code></asyxml>*/
+  /*<asyxml><method type = "real" signature="alpha(),beta(),gamma()"><code></asyxml>*/
   real alpha()
   {/*<asyxml></code><documentation>Return the measure (in degrees) of the angle A.
      beta() and gamma() are also defined and return the measure of the angles B and C respectively.</documentation></method></asyxml>*/
@@ -5580,20 +5591,20 @@ struct triangle {/*<asyxml></code><documentation></documentation></asyxml>*/
   real beta()  {return degrees(acos((c()^2 + a()^2 - b()^2)/(2c() * a())));}
   real gamma() {return degrees(acos((a()^2 + b()^2 - c()^2)/(2a() * b())));}
 
-  /*<asyxml><method type = "path" signature = "Path()"><code></asyxml>*/
+  /*<asyxml><method type = "path" signature="Path()"><code></asyxml>*/
   path Path()
   {/*<asyxml></code><documentation>The path of the triangle.</documentation></method></asyxml>*/
     return A--C--B--cycle;
   }
 
-  /*<asyxml><struct signature = "side"><code></asyxml>*/
+  /*<asyxml><struct signature="side"><code></asyxml>*/
   struct side
-  {/*<asyxml></code><documentation>Structure used to communicate the side of a triangle.</documentation><property type = "int" signature = "n"><code></asyxml>*/
-    int n;/*<asyxml></code><documentation>1 or 0 means [AB], -1 means [BA], 2 means [BC], -2 means [CB] etc.</documentation></property><property type = "triangle" signature = "triangle"><code></asyxml>*/
+  {/*<asyxml></code><documentation>Structure used to communicate the side of a triangle.</documentation><property type = "int" signature="n"><code></asyxml>*/
+    int n;/*<asyxml></code><documentation>1 or 0 means [AB],-1 means [BA],2 means [BC],-2 means [CB] etc.</documentation></property><property type = "triangle" signature="triangle"><code></asyxml>*/
     triangle t;/*<asyxml></code><documentation>The triangle to which the side refers.</documentation></property></asyxml>*/
   }/*<asyxml></struct></asyxml>*/
 
-  /*<asyxml><property type = "side" signature = "AB"><code></asyxml>*/
+  /*<asyxml><property type = "side" signature="AB"><code></asyxml>*/
   side AB;/*<asyxml></code><documentation>For the routines using the structure 'side', triangle.AB means 'side AB'.
             BA, AC, CA etc are also defined.</documentation></property></asyxml>*/
   AB.n = 1; AB.t = this;
@@ -5603,7 +5614,7 @@ struct triangle {/*<asyxml></code><documentation></documentation></asyxml>*/
   side CA; CA.n = 3; CA.t = this;
   side AC; AC.n = -3; AC.t = this;
 
-  /*<asyxml><method type = "side" signature = "side(int)"><code></asyxml>*/
+  /*<asyxml><method type = "side" signature="side(int)"><code></asyxml>*/
   side side(int n)
   {/*<asyxml></code><documentation>Return numbered side.
      n is 1 means AB, -1 means BA, 2 means BC, -2 means CB, etc.</documentation></method></asyxml>*/
@@ -5614,7 +5625,7 @@ struct triangle {/*<asyxml></code><documentation></documentation></asyxml>*/
     return n > 0 ? CA : AC;
   }
 
-  /*<asyxml><method type = "line" signature = "line(int)"><code></asyxml>*/
+  /*<asyxml><method type = "line" signature="line(int)"><code></asyxml>*/
   line line(int n)
   {/*<asyxml></code><documentation>Return the numbered line.</documentation></method></asyxml>*/
     if(n == 0) abort('Invalid line number.');
@@ -5646,7 +5657,7 @@ triangle[] operator ^^(... triangle[] t)
   return T;
 }
 
-/*<asyxml><operator type = "line" signature = "cast(side)"><code></asyxml>*/
+/*<asyxml><operator type = "line" signature="cast(side)"><code></asyxml>*/
 line operator cast(side side)
 {/*<asyxml></code><documentation>Cast side to (infinite) line.
    Most routine with line parameters works with side parameters.
@@ -5655,56 +5666,56 @@ line operator cast(side side)
   return t.line(side.n);
 }
 
-/*<asyxml><function type = "line" signature = "line(explicit side)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="line(explicit side)"><code></asyxml>*/
 line line(explicit side side)
 {/*<asyxml></code><documentation>Return 'side' as line.</documentation></function></asyxml>*/
   return (line)side;
 }
 
-/*<asyxml><function type = "segment" signature = "segment(explicit side)"><code></asyxml>*/
+/*<asyxml><function type="segment" signature="segment(explicit side)"><code></asyxml>*/
 segment segment(explicit side side)
 {/*<asyxml></code><documentation>Return 'side' as segment.</documentation></function></asyxml>*/
   return (segment)(line)side;
 }
 
-/*<asyxml><operator type = "point" signature = "cast(vertex)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="cast(vertex)"><code></asyxml>*/
 point operator cast(vertex V)
 {/*<asyxml></code><documentation>Cast vertex to point.
    Most routine with point parameters works with vertex parameters.</documentation></operator></asyxml>*/
   return V.t.point(V.n);
 }
 
-/*<asyxml><function type = "point" signature = "point(explicit vertex)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(explicit vertex)"><code></asyxml>*/
 point point(explicit vertex V)
 {/*<asyxml></code><documentation>Return the point corresponding to the vertex 'V'.</documentation></function></asyxml>*/
   return (point)V;
 }
 
-/*<asyxml><function type = "side" signature = "opposite(vertex)"><code></asyxml>*/
+/*<asyxml><function type="side" signature="opposite(vertex)"><code></asyxml>*/
 side opposite(vertex V)
 {/*<asyxml></code><documentation>Return the opposite side of vertex 'V'.</documentation></function></asyxml>*/
   return V.t.side(numarray[abs(V.n)]);
 }
 
-/*<asyxml><function type = "vertex" signature = "opposite(side)"><code></asyxml>*/
+/*<asyxml><function type="vertex" signature="opposite(side)"><code></asyxml>*/
 vertex opposite(side side)
 {/*<asyxml></code><documentation>Return the opposite vertex of side 'side'.</documentation></function></asyxml>*/
   return side.t.vertex(numarray[abs(side.n) + 1]);
 }
 
-/*<asyxml><function type = "point" signature = "midpoint(side)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="midpoint(side)"><code></asyxml>*/
 point midpoint(side side)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   return midpoint(segment(side));
 }
 
-/*<asyxml><operator type = "triangle" signature = "*(transform, triangle)"><code></asyxml>*/
+/*<asyxml><operator type = "triangle" signature="*(transform,triangle)"><code></asyxml>*/
 triangle operator *(transform T, triangle t)
 {/*<asyxml></code><documentation>Provide transform * triangle.</documentation></operator></asyxml>*/
   return triangle(T * t.A, T * t.B, T * t.C);
 }
 
-/*<asyxml><function type = "triangle" signature = "triangleAbc(real, real, real, real, point)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="triangleAbc(real,real,real,real,point)"><code></asyxml>*/
 triangle triangleAbc(real alpha, real b, real c, real angle = 0, point A = (0, 0))
 {/*<asyxml></code><documentation>Return the triangle ABC rotated by 'angle' with BAC = alpha, AC = b and AB = c.</documentation></function></asyxml>*/
   triangle T;
@@ -5713,7 +5724,7 @@ triangle triangleAbc(real alpha, real b, real c, real angle = 0, point A = (0, 0
   return T;
 }
 
-/*<asyxml><function type = "triangle" signature = "triangleabc(real, real, real, real, point)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="triangleabc(real,real,real,real,point)"><code></asyxml>*/
 triangle triangleabc(real a, real b, real c, real angle = 0, point A = (0, 0))
 {/*<asyxml></code><documentation>Return the triangle ABC rotated by 'angle' with BC = a, AC = b and AB = c.</documentation></function></asyxml>*/
   triangle T;
@@ -5722,7 +5733,7 @@ triangle triangleabc(real a, real b, real c, real angle = 0, point A = (0, 0))
   return T;
 }
 
-/*<asyxml><function type = "triangle" signature = "triangle(line, line, line)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="triangle(line,line,line)"><code></asyxml>*/
 triangle triangle(line l1, line l2, line l3)
 {/*<asyxml></code><documentation>Return the triangle defined by three line.</documentation></function></asyxml>*/
   point P1, P2, P3;
@@ -5733,79 +5744,79 @@ triangle triangle(line l1, line l2, line l3)
   return triangle(P1, P2, P3);
 }
 
-/*<asyxml><function type = "point" signature = "foot(vertex)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="foot(vertex)"><code></asyxml>*/
 point foot(vertex V)
 {/*<asyxml></code><documentation>Return the endpoint of the altitude from V.</documentation></function></asyxml>*/
   return projection((line)opposite(V)) * ((point)V);
 }
 
-/*<asyxml><function type = "point" signature = "foot(side)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="foot(side)"><code></asyxml>*/
 point foot(side side)
 {/*<asyxml></code><documentation>Return the endpoint of the altitude on 'side'.</documentation></function></asyxml>*/
   return projection((line)side) * point(opposite(side));
 }
 
-/*<asyxml><function type = "line" signature = "altitude(vertex)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="altitude(vertex)"><code></asyxml>*/
 line altitude(vertex V)
 {/*<asyxml></code><documentation>Return the altitude passing through 'V'.</documentation></function></asyxml>*/
   return line(point(V), foot(V));
 }
 
-/*<asyxml><function type = "line" signature = "altitude(vertex)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="altitude(vertex)"><code></asyxml>*/
 line altitude(side side)
 {/*<asyxml></code><documentation>Return the altitude cutting 'side'.</documentation></function></asyxml>*/
   return altitude(opposite(side));
 }
 
-/*<asyxml><function type = "point" signature = "orthocentercenter(triangle)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="orthocentercenter(triangle)"><code></asyxml>*/
 point orthocentercenter(triangle t)
 {/*<asyxml></code><documentation>Return the orthocenter of the triangle t.</documentation></function></asyxml>*/
   return orthocentercenter(t.A, t.B, t.C);
 }
 
-/*<asyxml><function type = "point" signature = "centroid(triangle)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="centroid(triangle)"><code></asyxml>*/
 point centroid(triangle t)
 {/*<asyxml></code><documentation>Return the centroid of the triangle 't'.</documentation></function></asyxml>*/
   return (t.A + t.B + t.C)/3;
 }
 
-/*<asyxml><function type = "point" signature = "circumcenter(triangle)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="circumcenter(triangle)"><code></asyxml>*/
 point circumcenter(triangle t)
 {/*<asyxml></code><documentation>Return the circumcenter of the triangle 't'.</documentation></function></asyxml>*/
   return circumcenter(t.A, t.B, t.C);
 }
 
-/*<asyxml><function type = "circle" signature = "circle(triangle)"><code></asyxml>*/
+/*<asyxml><function type="circle" signature="circle(triangle)"><code></asyxml>*/
 circle circle(triangle t)
 {/*<asyxml></code><documentation>Return the circumcircle of the triangle 't'.</documentation></function></asyxml>*/
   return circle(t.A, t.B, t.C);
 }
 
-/*<asyxml><function type = "circle" signature = "circumcircle(triangle)"><code></asyxml>*/
+/*<asyxml><function type="circle" signature="circumcircle(triangle)"><code></asyxml>*/
 circle circumcircle(triangle t)
 {/*<asyxml></code><documentation>Return the circumcircle of the triangle 't'.</documentation></function></asyxml>*/
   return circle(t.A, t.B, t.C);
 }
 
-/*<asyxml><function type = "point" signature = "incenter(triangle)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="incenter(triangle)"><code></asyxml>*/
 point incenter(triangle t)
 {/*<asyxml></code><documentation>Return the center of the incircle of the triangle 't'.</documentation></function></asyxml>*/
   return incenter(t.A, t.B, t.C);
 }
 
-/*<asyxml><function type = "real" signature = "inradius(triangle)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="inradius(triangle)"><code></asyxml>*/
 real inradius(triangle t)
 {/*<asyxml></code><documentation>Return the radius of the incircle of the triangle 't'.</documentation></function></asyxml>*/
   return inradius(t.A, t.B, t.C);
 }
 
-/*<asyxml><function type = "circle" signature = "incircle(triangle)"><code></asyxml>*/
+/*<asyxml><function type="circle" signature="incircle(triangle)"><code></asyxml>*/
 circle incircle(triangle t)
 {/*<asyxml></code><documentation>Return the the incircle of the triangle 't'.</documentation></function></asyxml>*/
   return incircle(t.A, t.B, t.C);
 }
 
-/*<asyxml><function type = "point" signature = "excenter(side, triangle)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="excenter(side,triangle)"><code></asyxml>*/
 point excenter(side side)
 {/*<asyxml></code><documentation>Return the center of the excircle tangent with the side 'side' of its triangle.
    side = 0 means AB, 1 means AC, other means BC.
@@ -5819,7 +5830,7 @@ point excenter(side side)
   return op;
 }
 
-/*<asyxml><function type = "real" signature = "exradius(side, triangle)"><code></asyxml>*/
+/*<asyxml><function type="real" signature="exradius(side,triangle)"><code></asyxml>*/
 real exradius(side side)
 {/*<asyxml></code><documentation>Return radius of the excircle tangent with the side 'side' of its triangle.
    side = 0 means AB, 1 means BC, other means CA.
@@ -5833,7 +5844,7 @@ real exradius(side side)
   return or;
 }
 
-/*<asyxml><function type = "circle" signature = "excircle(side, triangle)"><code></asyxml>*/
+/*<asyxml><function type="circle" signature="excircle(side,triangle)"><code></asyxml>*/
 circle excircle(side side)
 {/*<asyxml></code><documentation>Return the excircle tangent with the side 'side' of its triangle.
    side = 0 means AB, 1 means AC, other means BC.
@@ -5847,15 +5858,15 @@ circle excircle(side side)
   return oc;
 }
 
-/*<asyxml><struct signature = "trilinear"><code></asyxml>*/
+/*<asyxml><struct signature="trilinear"><code></asyxml>*/
 struct trilinear
 {/*<asyxml></code><documentation>Trilinear coordinates 'a:b:c' relative to triangle 't'.
-   <url href = "http://mathworld.wolfram.com/TrilinearCoordinates.html"/></documentation><property type = "real" signature = "a, b, c"><code></asyxml>*/
-  real a, b, c;/*<asyxml></code><documentation>The trilinear coordinates.</documentation></property><property type = "triangle" signature = "t"><code></asyxml>*/
+   <url href = "http://mathworld.wolfram.com/TrilinearCoordinates.html"/></documentation><property type = "real" signature="a,b,c"><code></asyxml>*/
+  real a,b,c;/*<asyxml></code><documentation>The trilinear coordinates.</documentation></property><property type = "triangle" signature="t"><code></asyxml>*/
   triangle t;/*<asyxml></code><documentation>The reference triangle.</documentation></property></asyxml>*/
 }/*<asyxml></struct></asyxml>*/
 
-/*<asyxml><function type = "trilinear" signature = "trilinear(triangle, real, real, real)"><code></asyxml>*/
+/*<asyxml><function type="trilinear" signature="trilinear(triangle,real,real,real)"><code></asyxml>*/
 trilinear trilinear(triangle t, real a, real b, real c)
 {/*<asyxml></code><documentation>Return the trilinear coordinates relative to 't'.
    <url href = "http://mathworld.wolfram.com/TrilinearCoordinates.html"/></documentation></function></asyxml>*/
@@ -5865,7 +5876,7 @@ trilinear trilinear(triangle t, real a, real b, real c)
   return ot;
 }
 
-/*<asyxml><function type = "trilinear" signature = "trilinear(triangle, point)"><code></asyxml>*/
+/*<asyxml><function type="trilinear" signature="trilinear(triangle,point)"><code></asyxml>*/
 trilinear trilinear(triangle t, point M)
 {/*<asyxml></code><documentation>Return the trilinear coordinates of 'M' relative to 't'.
    <url href = "http://mathworld.wolfram.com/TrilinearCoordinates.html"/></documentation></function></asyxml>*/
@@ -5889,13 +5900,13 @@ trilinear trilinear(triangle t, point M)
   return ot;
 }
 
-/*<asyxml><function type = "void" signature = "write(trilinear)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="write(trilinear)"><code></asyxml>*/
 void write(trilinear tri)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   write(format("%f : ", tri.a) + format("%f : ", tri.b) + format("%f", tri.c));
 }
 
-/*<asyxml><function type = "point" signature = "trilinear(triangle, real, real, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="trilinear(triangle,real,real,real)"><code></asyxml>*/
 point point(trilinear tri)
 {/*<asyxml></code><documentation>Return the trilinear coordinates relative to 't'.
    <url href = "http://mathworld.wolfram.com/TrilinearCoordinates.html"/></documentation></function></asyxml>*/
@@ -5905,7 +5916,7 @@ point point(trilinear tri)
                     0.5 * t.c() * mass(t.C, tri.c));
 }
 
-/*<asyxml><function type = "int[]" signature = "tricoef(side)"><code></asyxml>*/
+/*<asyxml><function type="int[]" signature="tricoef(side)"><code></asyxml>*/
 int[] tricoef(side side)
 {/*<asyxml></code><documentation>Return an array of integer (values are 0 or 1) which represents 'side'.
    For example, side = t.BC will be represented by {0, 1, 1}.</documentation></function></asyxml>*/
@@ -5917,7 +5928,7 @@ int[] tricoef(side side)
   return oi;
 }
 
-/*<asyxml><operator type = "point" signature = "cast(trilinear)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="cast(trilinear)"><code></asyxml>*/
 point operator cast(trilinear tri)
 {/*<asyxml></code><documentation>Cast trilinear to point.
    One may use the routine 'point(trilinear)' to force the casting.</documentation></operator></asyxml>*/
@@ -5927,13 +5938,13 @@ point operator cast(trilinear tri)
 /*<asyxml><typedef type = "centerfunction" return = "real" params = "real, real, real"><code></asyxml>*/
 typedef real centerfunction(real, real, real);/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/TriangleCenterFunction.html"/></documentation></typedef></asyxml>*/
 
-/*<asyxml><function type = "trilinear" signature = "trilinear(triangle, centerfunction, real, real, real)"><code></asyxml>*/
+/*<asyxml><function type="trilinear" signature="trilinear(triangle,centerfunction,real,real,real)"><code></asyxml>*/
 trilinear trilinear(triangle t, centerfunction f, real a = t.a(), real b = t.b(), real c = t.c())
 {/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/TriangleCenterFunction.html"/></documentation></function></asyxml>*/
   return trilinear(t, f(a, b, c), f(b, c, a), f(c, a, b));
 }
 
-/*<asyxml><function type = "point" signature = "symmedian(triangle)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="symmedian(triangle)"><code></asyxml>*/
 point symmedian(triangle t)
 {/*<asyxml></code><documentation>Return the symmedian point of 't'.</documentation></function></asyxml>*/
   point A, B, C;
@@ -5943,7 +5954,7 @@ point symmedian(triangle t)
   return intersectionpoint(line(t.A, A), line(t.B, B));
 }
 
-/*<asyxml><function type = "point" signature = "symmedian(side)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="symmedian(side)"><code></asyxml>*/
 point symmedian(side side)
 {/*<asyxml></code><documentation>The symmedian point on the side 'side'.</documentation></function></asyxml>*/
   triangle t = side.t;
@@ -5953,13 +5964,13 @@ point symmedian(side side)
   return trilinear(t, t.a(), 0, t.c());
 }
 
-/*<asyxml><function type = "line" signature = "symmedian(vertex)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="symmedian(vertex)"><code></asyxml>*/
 line symmedian(vertex V)
 {/*<asyxml></code><documentation>Return the symmedian passing through 'V'.</documentation></function></asyxml>*/
   return line(point(V), symmedian(V.t));
 }
 
-/*<asyxml><function type = "triangle" signature = "cevian(triangle, point)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="cevian(triangle,point)"><code></asyxml>*/
 triangle cevian(triangle t, point P)
 {/*<asyxml></code><documentation>Return the Cevian triangle with respect of 'P'
    <url href = "http://mathworld.wolfram.com/CevianTriangle.html"/>.</documentation></function></asyxml>*/
@@ -5970,7 +5981,7 @@ triangle cevian(triangle t, point P)
   return triangle(A, B, C);
 }
 
-/*<asyxml><function type = "point" signature = "cevian(side, point)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="cevian(side,point)"><code></asyxml>*/
 point cevian(side side, point P)
 {/*<asyxml></code><documentation>Return the Cevian point on 'side' with respect of 'P'.</documentation></function></asyxml>*/
   triangle t = side.t;
@@ -5979,20 +5990,20 @@ point cevian(side side, point P)
   return point(trilinear(t, s[0] * tri.a, s[1] * tri.b, s[2] * tri.c));
 }
 
-/*<asyxml><function type = "line" signature = "cevian(vertex, point)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="cevian(vertex,point)"><code></asyxml>*/
 line cevian(vertex V, point P)
 {/*<asyxml></code><documentation>Return line passing through 'V' and its Cevian image with respect of 'P'.</documentation></function></asyxml>*/
   return line(point(V), cevian(opposite(V), P));
 }
 
-/*<asyxml><function type = "point" signature = "gergonne(triangle)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="gergonne(triangle)"><code></asyxml>*/
 point gergonne(triangle t)
 {/*<asyxml></code><documentation>Return the Gergonne point of 't'.</documentation></function></asyxml>*/
   real f(real a, real b, real c){return 1/(a * (b + c - a));}
   return point(trilinear(t, f));
 }
 
-/*<asyxml><function type = "point[]" signature = "fermat(triangle)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="fermat(triangle)"><code></asyxml>*/
 point[] fermat(triangle t)
 {/*<asyxml></code><documentation>Return the Fermat points of 't'.</documentation></function></asyxml>*/
   point[] P;
@@ -6002,7 +6013,7 @@ point[] fermat(triangle t)
   return P;
 }
 
-/*<asyxml><function type = "point" signature = "isotomicconjugate(triangle, point)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="isotomicconjugate(triangle,point)"><code></asyxml>*/
 point isotomicconjugate(triangle t, point M)
 {/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/IsotomicConjugate.html"/></documentation></function></asyxml>*/
   if(!inside(t.Path(), locate(M))) abort("isotomic: the point must be inside the triangle.");
@@ -6010,65 +6021,65 @@ point isotomicconjugate(triangle t, point M)
   return point(trilinear(t, 1/(t.a()^2 * tr.a), 1/(t.b()^2 * tr.b), 1/(t.c()^2 * tr.c)));
 }
 
-/*<asyxml><function type = "line" signature = "isotomic(vertex, point)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="isotomic(vertex,point)"><code></asyxml>*/
 line isotomic(vertex V, point M)
 {/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/IsotomicConjugate.html"/>.</documentation></function></asyxml>*/
   side op = opposite(V);
   return line(V, rotate(180, midpoint(op)) * cevian(op, M));
 }
 
-/*<asyxml><function type = "point" signature = "isotomic(side, point)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="isotomic(side,point)"><code></asyxml>*/
 point isotomic(side side, point M)
 {/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/IsotomicConjugate.html"/></documentation></function></asyxml>*/
   return intersectionpoint(isotomic(opposite(side), M), side);
 }
 
-/*<asyxml><function type = "triangle" signature = "isotomic(triangle, point)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="isotomic(triangle,point)"><code></asyxml>*/
 triangle isotomic(triangle t, point M)
 {/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/IsotomicConjugate.html"/></documentation></function></asyxml>*/
   return triangle(isotomic(t.BC, M), isotomic(t.CA, M), isotomic(t.AB, M));
 }
 
-/*<asyxml><function type = "point" signature = "isogonalconjugate(triangle, point)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="isogonalconjugate(triangle,point)"><code></asyxml>*/
 point isogonalconjugate(triangle t, point M)
 {/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/IsogonalConjugate.html"/></documentation></function></asyxml>*/
   trilinear tr = trilinear(t, M);
   return point(trilinear(t, 1/tr.a, 1/tr.b, 1/tr.c));
 }
 
-/*<asyxml><function type = "point" signature = "isogonal(side, point)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="isogonal(side,point)"><code></asyxml>*/
 point isogonal(side side, point M)
 {/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/IsogonalConjugate.html"/></documentation></function></asyxml>*/
   return cevian(side, isogonalconjugate(side.t, M));
 }
 
-/*<asyxml><function type = "line" signature = "isogonal(vertex, point)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="isogonal(vertex,point)"><code></asyxml>*/
 line isogonal(vertex V, point M)
 {/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/IsogonalConjugate.html"/></documentation></function></asyxml>*/
   return line(V, isogonal(opposite(V), M));
 }
 
-/*<asyxml><function type = "triangle" signature = "isogonal(triangle, point)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="isogonal(triangle,point)"><code></asyxml>*/
 triangle isogonal(triangle t, point M)
 {/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/IsogonalConjugate.html"/></documentation></function></asyxml>*/
   return triangle(isogonal(t.BC, M), isogonal(t.CA, M), isogonal(t.AB, M));
 }
 
-/*<asyxml><function type = "triangle" signature = "pedal(triangle, point)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="pedal(triangle,point)"><code></asyxml>*/
 triangle pedal(triangle t, point M)
 {/*<asyxml></code><documentation>Return the pedal triangle of 'M' in 't'.
    <url href = "http://mathworld.wolfram.com/PedalTriangle.html"/></documentation></function></asyxml>*/
   return triangle(projection(t.BC) * M, projection(t.AC) * M, projection(t.AB) * M);
 }
 
-/*<asyxml><function type = "triangle" signature = "pedal(triangle, point)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="pedal(triangle,point)"><code></asyxml>*/
 line pedal(side side, point M)
 {/*<asyxml></code><documentation>Return the pedal line of 'M' cutting 'side'.
    <url href = "http://mathworld.wolfram.com/PedalTriangle.html"/></documentation></function></asyxml>*/
   return line(M, projection(side) * M);
 }
 
-/*<asyxml><function type = "triangle" signature = "antipedal(triangle, point)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="antipedal(triangle,point)"><code></asyxml>*/
 triangle antipedal(triangle t, point M)
 {/*<asyxml></code><documentation><url href = "http://mathworld.wolfram.com/AntipedalTriangle.html"/></documentation></function></asyxml>*/
   trilinear Tm = trilinear(t, M);
@@ -6080,7 +6091,7 @@ triangle antipedal(triangle t, point M)
   return triangle(A, B, C);
 }
 
-/*<asyxml><function type = "triangle" signature = "extouch(triangle)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="extouch(triangle)"><code></asyxml>*/
 triangle extouch(triangle t)
 {/*<asyxml></code><documentation>Return the extouch triangle of the triangle 't'.
    The extouch triangle of 't' is the triangle formed by the points
@@ -6093,7 +6104,7 @@ triangle extouch(triangle t)
   return triangle(A, B, C);
 }
 
-/*<asyxml><function type = "triangle" signature = "extouch(triangle)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="extouch(triangle)"><code></asyxml>*/
 triangle incentral(triangle t)
 {/*<asyxml></code><documentation>Return the incentral triangle of the triangle 't'.
    It is the triangle whose vertices are determined by the intersections of the
@@ -6106,7 +6117,7 @@ triangle incentral(triangle t)
   return triangle(A, B, C);
 }
 
-/*<asyxml><function type = "triangle" signature = "extouch(side)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="extouch(side)"><code></asyxml>*/
 triangle extouch(side side)
 {/*<asyxml></code><documentation>Return the triangle formed by the points of tangency of the triangle referenced by 'side' with its excircles.
    One vertex of the returned triangle is on the segment 'side'.</documentation></function></asyxml>*/
@@ -6118,7 +6129,7 @@ triangle extouch(side side)
   return triangle(p3 * EP, p2 * EP, p1 * EP);
 }
 
-/*<asyxml><function type = "point" signature = "bisectorpoint(side)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="bisectorpoint(side)"><code></asyxml>*/
 point bisectorpoint(side side)
 {/*<asyxml></code><documentation>The intersection point of the angle bisector from the
    opposite point of 'side' with the side 'side'.</documentation></function></asyxml>*/
@@ -6129,20 +6140,20 @@ point bisectorpoint(side side)
   return trilinear(t, 1, 0, 1);
 }
 
-/*<asyxml><function type = "line" signature = "bisector(vertex, real)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="bisector(vertex,real)"><code></asyxml>*/
 line bisector(vertex V, real angle = 0)
 {/*<asyxml></code><documentation>Return the interior bisector passing through 'V' rotated by angle (in degrees)
    around 'V'.</documentation></function></asyxml>*/
   return rotate(angle, point(V)) * line(point(V), incenter(V.t));
 }
 
-/*<asyxml><function type = "line" signature = "bisector(side)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="bisector(side)"><code></asyxml>*/
 line bisector(side side)
 {/*<asyxml></code><documentation>Return the bisector of the line segment 'side'.</documentation></function></asyxml>*/
   return bisector(segment(side));
 }
 
-/*<asyxml><function type = "point" signature = "intouch(side)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="intouch(side)"><code></asyxml>*/
 point intouch(side side)
 {/*<asyxml></code><documentation>The point of tangency on the side 'side' of its incircle.</documentation></function></asyxml>*/
   triangle t = side.t;
@@ -6153,7 +6164,7 @@ point intouch(side side)
   return trilinear(t, b * c/(-a + b + c), 0, a * b/(a + b - c));
 }
 
-/*<asyxml><function type = "triangle" signature = "intouch(triangle)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="intouch(triangle)"><code></asyxml>*/
 triangle intouch(triangle t)
 {/*<asyxml></code><documentation>Return the intouch triangle of the triangle 't'.
    The intouch triangle of 't' is the triangle formed by the points
@@ -6166,7 +6177,7 @@ triangle intouch(triangle t)
   return triangle(A, B, C);
 }
 
-/*<asyxml><function type = "triangle" signature = "tangential(triangle)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="tangential(triangle)"><code></asyxml>*/
 triangle tangential(triangle t)
 {/*<asyxml></code><documentation>Return the tangential triangle of the triangle 't'.
    The tangential triangle of 't' is the triangle formed by the lines
@@ -6179,31 +6190,31 @@ triangle tangential(triangle t)
   return triangle(A, B, C);
 }
 
-/*<asyxml><function type = "triangle" signature = "medial(triangle t)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="medial(triangle t)"><code></asyxml>*/
 triangle medial(triangle t)
 {/*<asyxml></code><documentation>Return the triangle whose vertices are midpoints of the sides of 't'.</documentation></function></asyxml>*/
   return triangle(midpoint(t.BC), midpoint(t.AC), midpoint(t.AB));
 }
 
-/*<asyxml><function type = "line" signature = "median(vertex)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="median(vertex)"><code></asyxml>*/
 line median(vertex V)
 {/*<asyxml></code><documentation>Return median from 'V'.</documentation></function></asyxml>*/
   return line(point(V), midpoint(segment(opposite(V))));
 }
 
-/*<asyxml><function type = "line" signature = "median(side)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="median(side)"><code></asyxml>*/
 line median(side side)
 {/*<asyxml></code><documentation>Return median from the opposite vertex of 'side'.</documentation></function></asyxml>*/
   return median(opposite(side));
 }
 
-/*<asyxml><function type = "triangle" signature = "orthic(triangle)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="orthic(triangle)"><code></asyxml>*/
 triangle orthic(triangle t)
 {/*<asyxml></code><documentation>Return the triangle whose vertices are endpoints of the altitudes from each of the vertices of 't'.</documentation></function></asyxml>*/
   return triangle(foot(t.BC), foot(t.AC), foot(t.AB));
 }
 
-/*<asyxml><function type = "triangle" signature = "symmedial(triangle)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="symmedial(triangle)"><code></asyxml>*/
 triangle symmedial(triangle t)
 {/*<asyxml></code><documentation>Return the symmedial triangle of 't'.</documentation></function></asyxml>*/
   point A, B, C;
@@ -6214,7 +6225,7 @@ triangle symmedial(triangle t)
   return triangle(A, B, C);
 }
 
-/*<asyxml><function type = "triangle" signature = "anticomplementary(triangle)"><code></asyxml>*/
+/*<asyxml><function type="triangle" signature="anticomplementary(triangle)"><code></asyxml>*/
 triangle anticomplementary(triangle t)
 {/*<asyxml></code><documentation>Return the triangle which has the given triangle 't' as its medial triangle.</documentation></function></asyxml>*/
   real a = t.a(), b = t.b(), c = t.c();
@@ -6225,7 +6236,7 @@ triangle anticomplementary(triangle t)
   return triangle(A, B, C);
 }
 
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(triangle, line, bool)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(triangle,line,bool)"><code></asyxml>*/
 point[] intersectionpoints(triangle t, line l, bool extended = false)
 {/*<asyxml></code><documentation>Return the intersection points.
    If 'extended' is true, the sides are lines else the sides are segments.
@@ -6258,7 +6269,7 @@ point[] intersectionpoints(line l, triangle t, bool extended = false)
   return intersectionpoints(t, l, extended);
 }
 
-/*<asyxml><function type = "vector" signature = "dir(vertex)"><code></asyxml>*/
+/*<asyxml><function type="vector" signature="dir(vertex)"><code></asyxml>*/
 vector dir(vertex V)
 {/*<asyxml></code><documentation>The direction (towards the outside of the triangle) of the interior angle bisector of 'V'.</documentation></function></asyxml>*/
   triangle t = V.t;
@@ -6267,7 +6278,7 @@ vector dir(vertex V)
   return vector(defaultcoordsys, (-dir(t.C--t.A, t.C--t.B)));
 }
 
-/*<asyxml><function type = "void" signature = "lvoid label(picture, Label, vertex, pair, real, pen, filltype)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="lvoid label(picture,Label,vertex,pair,real,pen,filltype)"><code></asyxml>*/
 void label(picture pic = currentpicture, Label L, vertex V,
            pair align = dir(V),
            real alignFactor = 1,
@@ -6276,7 +6287,7 @@ void label(picture pic = currentpicture, Label L, vertex V,
   label(pic, L, locate(point(V)), alignFactor * align, p, filltype);
 }
 
-/*<asyxml><function type = "void" signature = "label(picture, Label, Label, Label, triangle, real, real, pen, filltype)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="label(picture,Label,Label,Label,triangle,real,real,pen,filltype)"><code></asyxml>*/
 void label(picture pic = currentpicture, Label LA = "$A$",
            Label LB = "$B$", Label LC = "$C$",
            triangle t,
@@ -6297,7 +6308,7 @@ void label(picture pic = currentpicture, Label LA = "$A$",
   label(pic, llc, t.VC, align = llc.align.dir, alignFactor = alignFactor, p, filltype);
 }
 
-/*<asyxml><function type = "void" signature = "show(picture, Label, Label, Label, Label, Label, Label, triangle, pen, filltype)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="show(picture,Label,Label,Label,Label,Label,Label,triangle,pen,filltype)"><code></asyxml>*/
 void show(picture pic = currentpicture,
           Label LA = "$A$", Label LB = "$B$", Label LC = "$C$",
           Label La = "$a$", Label Lb = "$b$", Label Lc = "$c$",
@@ -6315,19 +6326,19 @@ void show(picture pic = currentpicture,
   draw(pic, Lc, a--b, align = rotate(dot(c - mAB, alignc) > 0 ? 180 :0) * alignc, p);
 }
 
-/*<asyxml><function type = "void" signature = "draw(picture, triangle, pen, marker)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="draw(picture,triangle,pen,marker)"><code></asyxml>*/
 void draw(picture pic = currentpicture, triangle t, pen p = currentpen, marker marker = nomarker)
 {/*<asyxml></code><documentation>Draw sides of the triangle 't' on picture 'pic' using pen 'p'.</documentation></function></asyxml>*/
   draw(pic, t.Path(), p, marker);
 }
 
-/*<asyxml><function type = "void" signature = "draw(picture, triangle[], pen, marker)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="draw(picture,triangle[],pen,marker)"><code></asyxml>*/
 void draw(picture pic = currentpicture, triangle[] t, pen p = currentpen, marker marker = nomarker)
 {/*<asyxml></code><documentation>Draw sides of the triangles 't' on picture 'pic' using pen 'p'.</documentation></function></asyxml>*/
   for(int i = 0; i < t.length; ++i) draw(pic, t[i], p, marker);
 }
 
-/*<asyxml><function type = "void" signature = "drawline(picture, triangle, pen)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="drawline(picture,triangle,pen)"><code></asyxml>*/
 void drawline(picture pic = currentpicture, triangle t, pen p = currentpen)
 {/*<asyxml></code><documentation>Draw lines of the triangle 't' on picture 'pic' using pen 'p'.</documentation></function></asyxml>*/
   draw(t, p);
@@ -6336,7 +6347,7 @@ void drawline(picture pic = currentpicture, triangle t, pen p = currentpen)
   draw(pic, line(t.B, t.C), p);
 }
 
-/*<asyxml><function type = "void" signature = "dot(picture, triangle, pen)"><code></asyxml>*/
+/*<asyxml><function type="void" signature="dot(picture,triangle,pen)"><code></asyxml>*/
 void dot(picture pic = currentpicture, triangle t, pen p = currentpen)
 {/*<asyxml></code><documentation>Draw a dot at each vertex of 't'.</documentation></function></asyxml>*/
   dot(pic, t.A^^t.B^^t.C, p);
@@ -6346,13 +6357,13 @@ void dot(picture pic = currentpicture, triangle t, pen p = currentpen)
 
 // *=======================================================*
 // *.......................INVERSIONS......................*
-/*<asyxml><function type = "point" signature = "inverse(real k, point, point)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="inverse(real k,point,point)"><code></asyxml>*/
 point inverse(real k, point A, point M)
 {/*<asyxml></code><documentation>Return the inverse point of 'M' with respect to point A and inversion radius 'k'.</documentation></function></asyxml>*/
   return A + k/conj(M - A);
 }
 
-/*<asyxml><function type = "point" signature = "radicalcenter(circle, circle)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="radicalcenter(circle,circle)"><code></asyxml>*/
 point radicalcenter(circle c1, circle c2)
 {/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
   point[] P = standardizecoordsys(c1.C, c2.C);
@@ -6366,27 +6377,27 @@ point radicalcenter(circle c1, circle c2)
   return point(P[0].coordsys, K/P[0].coordsys);
 }
 
-/*<asyxml><function type = "line" signature = "radicalline(circle, circle)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="radicalline(circle,circle)"><code></asyxml>*/
 line radicalline(circle c1, circle c2)
 {/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
   if (c1.C == c2.C) abort("radicalline: the centers must be distinct");
   return perpendicular(radicalcenter(c1, c2), line(c1.C, c2.C));
 }
 
-/*<asyxml><function type = "point" signature = "radicalcenter(circle, circle, circle)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="radicalcenter(circle,circle,circle)"><code></asyxml>*/
 point radicalcenter(circle c1, circle c2, circle c3)
 {/*<asyxml></code><documentation><url href = "http://fr.wikipedia.org/wiki/Puissance_d'un_point_par_rapport_%C3%A0_un_cercle"/></documentation></function></asyxml>*/
   return intersectionpoint(radicalline(c1, c2), radicalline(c1, c3));
 }
 
-/*<asyxml><struct signature = "inversion"><code></asyxml>*/
+/*<asyxml><struct signature="inversion"><code></asyxml>*/
 struct inversion
 {/*<asyxml></code><documentation>http://mathworld.wolfram.com/Inversion.html</documentation></asyxml>*/
   point C;
   real k;
 }/*<asyxml></struct></asyxml>*/
 
-/*<asyxml><function type = "inversion" signature = "inversion(real, point)"><code></asyxml>*/
+/*<asyxml><function type="inversion" signature="inversion(real,point)"><code></asyxml>*/
 inversion inversion(real k, point C)
 {/*<asyxml></code><documentation>Return the inversion with respect to 'C' having inversion radius 'k'.</documentation></function></asyxml>*/
   inversion oi;
@@ -6394,13 +6405,13 @@ inversion inversion(real k, point C)
   oi.C = C;
   return oi;
 }
-/*<asyxml><function type = "inversion" signature = "inversion(real, point)"><code></asyxml>*/
+/*<asyxml><function type="inversion" signature="inversion(real,point)"><code></asyxml>*/
 inversion inversion(point C, real k)
 {/*<asyxml></code><documentation>Return the inversion with respect to 'C' having inversion radius 'k'.</documentation></function></asyxml>*/
   return inversion(k, C);
 }
 
-/*<asyxml><function type = "inversion" signature = "inversion(circle, circle)"><code></asyxml>*/
+/*<asyxml><function type="inversion" signature="inversion(circle,circle)"><code></asyxml>*/
 inversion inversion(circle c1, circle c2, real sgn = 1)
 {/*<asyxml></code><documentation>Return the inversion which transforms 'c1' to
    . 'c2' and positive inversion radius if 'sgn > 0';
@@ -6419,7 +6430,7 @@ inversion inversion(circle c1, circle c2, real sgn = 1)
   return inversion(-a * abs(abs(O - c2.C)^2 - c2.r^2), O);
 }
 
-/*<asyxml><function type = "inversion" signature = "inversion(circle, circle, circle)"><code></asyxml>*/
+/*<asyxml><function type="inversion" signature="inversion(circle,circle,circle)"><code></asyxml>*/
 inversion inversion(circle c1, circle c2, circle c3)
 {/*<asyxml></code><documentation>Return the inversion which transform 'c1' to 'c1', 'c2' to 'c2' and 'c3' to 'c3'.</documentation></function></asyxml>*/
   point Rc = radicalcenter(c1, c2, c3);
@@ -6427,7 +6438,7 @@ inversion inversion(circle c1, circle c2, circle c3)
 }
 
 circle operator cast(inversion i){return circle(i.C, sgn(i.k) * sqrt(abs(i.k)));}
-/*<asyxml><function type = "circle" signature = "circle(inversion)"><code></asyxml>*/
+/*<asyxml><function type="circle" signature="circle(inversion)"><code></asyxml>*/
 circle circle(inversion i)
 {/*<asyxml></code><documentation>Return the inversion circle of 'i'.</documentation></function></asyxml>*/
   return i;
@@ -6437,13 +6448,13 @@ inversion operator cast(circle c)
 {
   return inversion(sgn(c.r) * c.r^2, c.C);
 }
-/*<asyxml><function type = "inversion" signature = "inversion(circle)"><code></asyxml>*/
+/*<asyxml><function type="inversion" signature="inversion(circle)"><code></asyxml>*/
 inversion inversion(circle c)
 {/*<asyxml></code><documentation>Return the inversion represented by the circle of 'c'.</documentation></function></asyxml>*/
   return c;
 }
 
-/*<asyxml><operator type = "point" signature = "*(inversion, point)"><code></asyxml>*/
+/*<asyxml><operator type = "point" signature="*(inversion,point)"><code></asyxml>*/
 point operator *(inversion i, point P)
 {/*<asyxml></code><documentation>Provide inversion * point.</documentation></operator></asyxml>*/
   return inverse(i.k, i.C, P);
@@ -6456,7 +6467,7 @@ The returned circle has an infinite radius, circle.l has been set.");
 }
 
 
-/*<asyxml><function type = "circle" signature = "inverse(real, point, line)"><code></asyxml>*/
+/*<asyxml><function type="circle" signature="inverse(real,point,line)"><code></asyxml>*/
 circle inverse(real k, point A, line l)
 {/*<asyxml></code><documentation>Return the inverse circle of 'l' with
    respect to point 'A' and inversion radius 'k'.</documentation></function></asyxml>*/
@@ -6470,13 +6481,13 @@ circle inverse(real k, point A, line l)
   return circle(A, Ap, Bp);
 }
 
-/*<asyxml><operator type = "circle" signature = "*(inversion, line)"><code></asyxml>*/
+/*<asyxml><operator type = "circle" signature="*(inversion,line)"><code></asyxml>*/
 circle operator *(inversion i, line l)
 {/*<asyxml></code><documentation>Provide inversion * line for lines that don't pass through the inversion center.</documentation></operator></asyxml>*/
   return inverse(i.k, i.C, l);
 }
 
-/*<asyxml><function type = "circle" signature = "inverse(real, point, circle)"><code></asyxml>*/
+/*<asyxml><function type="circle" signature="inverse(real,point,circle)"><code></asyxml>*/
 circle inverse(real k, point A, circle c)
 {/*<asyxml></code><documentation>Return the inverse circle of 'c' with
    respect to point A and inversion radius 'k'.</documentation></function></asyxml>*/
@@ -6493,7 +6504,7 @@ circle inverse(real k, point A, circle c)
   return circle(P[0] + s * (P[1]-P[0]), abs(s) * c.r);
 }
 
-/*<asyxml><operator type = "circle" signature = "*(inversion, circle)"><code></asyxml>*/
+/*<asyxml><operator type = "circle" signature="*(inversion,circle)"><code></asyxml>*/
 circle operator *(inversion i, circle c)
 {/*<asyxml></code><documentation>Provide inversion * circle.</documentation></operator></asyxml>*/
   return inverse(i.k, i.C, c);
@@ -6503,7 +6514,7 @@ circle operator *(inversion i, circle c)
 
 // *=======================================================*
 // *........................FOOTER.........................*
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(line, circle)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(line,circle)"><code></asyxml>*/
 point[] intersectionpoints(line l, circle c)
 {/*<asyxml></code><documentation>Note that the line 'l' may be a segment by casting.
    intersectionpoints(circle, line) is also defined.</documentation></function></asyxml>*/
@@ -6534,7 +6545,7 @@ point[] intersectionpoints(circle c, line l)
   return intersectionpoints(l, c);
 }
 
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(line, ellipse)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(line,ellipse)"><code></asyxml>*/
 point[] intersectionpoints(line l, ellipse el)
 {/*<asyxml></code><documentation>Note that the line 'l' may be a segment by casting.
    intersectionpoints(ellipse, line) is also defined.</documentation></function></asyxml>*/
@@ -6574,7 +6585,7 @@ point[] intersectionpoints(ellipse el, line l)
   return intersectionpoints(l, el);
 }
 
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(line, parabola)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(line,parabola)"><code></asyxml>*/
 point[] intersectionpoints(line l, parabola p)
 {/*<asyxml></code><documentation>Note that the line 'l' may be a segment by casting.
    intersectionpoints(parabola, line) is also defined.</documentation></function></asyxml>*/
@@ -6610,7 +6621,7 @@ point[] intersectionpoints(parabola p, line l)
   return intersectionpoints(l, p);
 }
 
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(line, hyperbola)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(line,hyperbola)"><code></asyxml>*/
 point[] intersectionpoints(line l, hyperbola h)
 {/*<asyxml></code><documentation>Note that the line 'l' may be a segment by casting.
    intersectionpoints(hyperbola, line) is also defined.</documentation></function></asyxml>*/
@@ -6638,7 +6649,7 @@ point[] intersectionpoints(hyperbola h, line l)
   return intersectionpoints(l, h);
 }
 
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(line, conic)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(line,conic)"><code></asyxml>*/
 point[] intersectionpoints(line l, conic co)
 {/*<asyxml></code><documentation>Note that the line 'l' may be a segment by casting.
    intersectionpoints(conic, line) is also defined.</documentation></function></asyxml>*/
@@ -6655,7 +6666,7 @@ point[] intersectionpoints(conic co, line l)
   return intersectionpoints(l, co);
 }
 
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(conic, conic)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(conic,conic)"><code></asyxml>*/
 point[] intersectionpoints(conic co1, conic co2)
 {/*<asyxml></code><documentation>Return the intersection points of the two conics.</documentation></function></asyxml>*/
   if(degenerate(co1)) return intersectionpoints(co1.l[0], co2);
@@ -6663,7 +6674,7 @@ point[] intersectionpoints(conic co1, conic co2)
   return intersectionpoints(equation(co1), equation(co2));
 }
 
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(triangle, conic, bool)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(triangle,conic,bool)"><code></asyxml>*/
 point[] intersectionpoints(triangle t, conic co, bool extended = false)
 {/*<asyxml></code><documentation>Return the intersection points.
    If 'extended' is true, the sides are lines else the sides are segments.
@@ -6697,91 +6708,91 @@ point[] intersectionpoints(conic co, triangle t, bool extended = false)
   return intersectionpoints(t, co, extended);
 }
 
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(ellipse, ellipse)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(ellipse,ellipse)"><code></asyxml>*/
 point[] intersectionpoints(ellipse a, ellipse b)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   // if(degenerate(a)) return intersectionpoints(a.l, b);
   // if(degenerate(b)) return intersectionpoints(a, b.l);;
   return intersectionpoints((conic)a, (conic)b);
 }
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(ellipse, circle)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(ellipse,circle)"><code></asyxml>*/
 point[] intersectionpoints(ellipse a, circle b)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   // if(degenerate(a)) return intersectionpoints(a.l, b);
   // if(degenerate(b)) return intersectionpoints(a, b.l);;
   return intersectionpoints((conic)a, (conic)b);
 }
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(circle, ellipse)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(circle,ellipse)"><code></asyxml>*/
 point[] intersectionpoints(circle a, ellipse b)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   return intersectionpoints(b, a);
 }
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(ellipse, parabola)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(ellipse,parabola)"><code></asyxml>*/
 point[] intersectionpoints(ellipse a, parabola b)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   // if(degenerate(a)) return intersectionpoints(a.l, b);
   return intersectionpoints((conic)a, (conic)b);
 }
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(parabola, ellipse)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(parabola,ellipse)"><code></asyxml>*/
 point[] intersectionpoints(parabola a, ellipse b)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   return intersectionpoints(b, a);
 }
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(ellipse, hyperbola)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(ellipse,hyperbola)"><code></asyxml>*/
 point[] intersectionpoints(ellipse a, hyperbola b)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   // if(degenerate(a)) return intersectionpoints(a.l, b);
   return intersectionpoints((conic)a, (conic)b);
 }
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(hyperbola, ellipse)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(hyperbola,ellipse)"><code></asyxml>*/
 point[] intersectionpoints(hyperbola a, ellipse b)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   return intersectionpoints(b, a);
 }
 
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(circle, parabola)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(circle,parabola)"><code></asyxml>*/
 point[] intersectionpoints(circle a, parabola b)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   return intersectionpoints((conic)a, (conic)b);
 }
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(parabola, circle)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(parabola,circle)"><code></asyxml>*/
 point[] intersectionpoints(parabola a, circle b)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   return intersectionpoints((conic)a, (conic)b);
 }
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(circle, hyperbola)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(circle,hyperbola)"><code></asyxml>*/
 point[] intersectionpoints(circle a, hyperbola b)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   return intersectionpoints((conic)a, (conic)b);
 }
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(hyperbola, circle)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(hyperbola,circle)"><code></asyxml>*/
 point[] intersectionpoints(hyperbola a, circle b)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   return intersectionpoints((conic)a, (conic)b);
 }
 
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(parabola, parabola)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(parabola,parabola)"><code></asyxml>*/
 point[] intersectionpoints(parabola a, parabola b)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   return intersectionpoints((conic)a, (conic)b);
 }
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(parabola, hyperbola)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(parabola,hyperbola)"><code></asyxml>*/
 point[] intersectionpoints(parabola a, hyperbola b)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   return intersectionpoints((conic)a, (conic)b);
 }
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(hyperbola, parabola)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(hyperbola,parabola)"><code></asyxml>*/
 point[] intersectionpoints(hyperbola a, parabola b)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   return intersectionpoints((conic)a, (conic)b);
 }
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(hyperbola, hyperbola)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(hyperbola,hyperbola)"><code></asyxml>*/
 point[] intersectionpoints(hyperbola a, hyperbola b)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   return intersectionpoints((conic)a, (conic)b);
 }
 
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(circle, circle)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(circle,circle)"><code></asyxml>*/
 point[] intersectionpoints(circle c1, circle c2)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   if(degenerate(c1))
@@ -6793,7 +6804,7 @@ point[] intersectionpoints(circle c1, circle c2)
     intersectionpoints(radicalline(c1, c2), c1);
 }
 
-/*<asyxml><function type = "line" signature = "tangent(circle, abscissa)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="tangent(circle,abscissa)"><code></asyxml>*/
 line tangent(circle c, abscissa x)
 {/*<asyxml></code><documentation>Return the tangent of 'c' at 'point(c, x)'.</documentation></function></asyxml>*/
   if(c.r == 0) abort("tangent: a circle with a radius equals zero has no tangent.");
@@ -6801,7 +6812,7 @@ line tangent(circle c, abscissa x)
   return line(rotate(90, M) * c.C, M);
 }
 
-/*<asyxml><function type = "line[]" signature = "tangents(circle, point)"><code></asyxml>*/
+/*<asyxml><function type="line[]" signature="tangents(circle,point)"><code></asyxml>*/
 line[] tangents(circle c, point M)
 {/*<asyxml></code><documentation>Return the tangents of 'c' passing through 'M'.</documentation></function></asyxml>*/
   line[] ol;
@@ -6817,28 +6828,28 @@ line[] tangents(circle c, point M)
   return ol;
 }
 
-/*<asyxml><function type = "point" signature = "point(circle, point)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(circle,point)"><code></asyxml>*/
 point point(circle c, point M)
 {/*<asyxml></code><documentation>Return the intersection point of 'c'
    with the half-line '[c.C M)'.</documentation></function></asyxml>*/
   return intersectionpoints(c, line(c.C, false, M))[0];
 }
 
-/*<asyxml><function type = "line" signature = "tangent(circle, point)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="tangent(circle,point)"><code></asyxml>*/
 line tangent(circle c, point M)
 {/*<asyxml></code><documentation>Return the tangent of 'c' at the
    intersection point of the half-line'[c.C M)'.</documentation></function></asyxml>*/
   return tangents(c, point(c, M))[0];
 }
 
-/*<asyxml><function type = "point" signature = "point(circle, explicit vector)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="point(circle,explicit vector)"><code></asyxml>*/
 point point(circle c, explicit vector v)
 {/*<asyxml></code><documentation>Return the intersection point of 'c'
    with the half-line '[c.C v)'.</documentation></function></asyxml>*/
   return point(c, c.C + v);
 }
 
-/*<asyxml><function type = "line" signature = "tangent(circle, explicit vector)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="tangent(circle,explicit vector)"><code></asyxml>*/
 line tangent(circle c, explicit vector v)
 {/*<asyxml></code><documentation>Return the tangent of 'c' at the
    point M so that vec(c.C M) is collinear to 'v' with the same sense.</documentation></function></asyxml>*/
@@ -6846,7 +6857,7 @@ line tangent(circle c, explicit vector v)
   return dot(ol.v, v) > 0 ? ol : reverse(ol);
 }
 
-/*<asyxml><function type = "line" signature = "tangent(ellipse, abscissa)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="tangent(ellipse,abscissa)"><code></asyxml>*/
 line tangent(ellipse el, abscissa x)
 {/*<asyxml></code><documentation>Return the tangent of 'el' at 'point(el, x)'.</documentation></function></asyxml>*/
   point M = point(el, x);
@@ -6856,7 +6867,7 @@ line tangent(ellipse el, abscissa x)
   return ol;
 }
 
-/*<asyxml><function type = "line[]" signature = "tangents(ellipse, point)"><code></asyxml>*/
+/*<asyxml><function type="line[]" signature="tangents(ellipse,point)"><code></asyxml>*/
 line[] tangents(ellipse el, point M)
 {/*<asyxml></code><documentation>Return the tangents of 'el' passing through 'M'.</documentation></function></asyxml>*/
   line[] ol;
@@ -6878,7 +6889,7 @@ line[] tangents(ellipse el, point M)
   return ol;
 }
 
-/*<asyxml><function type = "line" signature = "tangent(parabola, abscissa)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="tangent(parabola,abscissa)"><code></asyxml>*/
 line tangent(parabola p, abscissa x)
 {/*<asyxml></code><documentation>Return the tangent of 'p' at 'point(p, x)' (use the Wells method).</documentation></function></asyxml>*/
   line lt = rotate(90, p.V) * line(p.V, p.F);
@@ -6889,7 +6900,7 @@ line tangent(parabola p, abscissa x)
   return line(P, projection(lt) * M);
 }
 
-/*<asyxml><function type = "line[]" signature = "tangents(parabola, point)"><code></asyxml>*/
+/*<asyxml><function type="line[]" signature="tangents(parabola,point)"><code></asyxml>*/
 line[] tangents(parabola p, point M)
 {/*<asyxml></code><documentation>Return the tangent of 'p' at 'M' (use the Wells method).</documentation></function></asyxml>*/
   line[] ol;
@@ -6914,7 +6925,7 @@ line[] tangents(parabola p, point M)
   return ol;
 }
 
-/*<asyxml><function type = "line" signature = "tangent(hyperbola, abscissa)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="tangent(hyperbola,abscissa)"><code></asyxml>*/
 line tangent(hyperbola h, abscissa x)
 {/*<asyxml></code><documentation>Return the tangent of 'h' at 'point(p, x)'.</documentation></function></asyxml>*/
   point M = point(h, x);
@@ -6923,7 +6934,7 @@ line tangent(hyperbola h, abscissa x)
   return ol;
 }
 
-/*<asyxml><function type = "line[]" signature = "tangents(hyperbola, point)"><code></asyxml>*/
+/*<asyxml><function type="line[]" signature="tangents(hyperbola,point)"><code></asyxml>*/
 line[] tangents(hyperbola h, point M)
 {/*<asyxml></code><documentation>Return the tangent of 'h' at 'M'.</documentation></function></asyxml>*/
   line[] ol;
@@ -6951,7 +6962,7 @@ line[] tangents(hyperbola h, point M)
   return ol;
 }
 
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(conic, arc)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(conic,arc)"><code></asyxml>*/
 point[] intersectionpoints(conic co, arc a)
 {/*<asyxml></code><documentation>intersectionpoints(arc, circle) is also defined.</documentation></function></asyxml>*/
   point[] op;
@@ -6966,7 +6977,7 @@ point[] intersectionpoints(arc a, conic co)
   return intersectionpoints(co, a);
 }
 
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(arc, arc)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(arc,arc)"><code></asyxml>*/
 point[] intersectionpoints(arc a1, arc a2)
 {/*<asyxml></code><documentation></documentation></function></asyxml>*/
   point[] op;
@@ -6977,7 +6988,7 @@ point[] intersectionpoints(arc a1, arc a2)
 }
 
 
-/*<asyxml><function type = "point[]" signature = "intersectionpoints(line, arc)"><code></asyxml>*/
+/*<asyxml><function type="point[]" signature="intersectionpoints(line,arc)"><code></asyxml>*/
 point[] intersectionpoints(line l, arc a)
 {/*<asyxml></code><documentation>intersectionpoints(arc, line) is also defined.</documentation></function></asyxml>*/
   point[] op;
@@ -6992,7 +7003,7 @@ point[] intersectionpoints(arc a, line l)
   return intersectionpoints(l, a);
 }
 
-/*<asyxml><function type = "point" signature = "arcsubtendedcenter(point, point, real)"><code></asyxml>*/
+/*<asyxml><function type="point" signature="arcsubtendedcenter(point,point,real)"><code></asyxml>*/
 point arcsubtendedcenter(point A, point B, real angle)
 {/*<asyxml></code><documentation>Return the center of the arc retuned
    by the 'arcsubtended' routine.</documentation></function></asyxml>*/
@@ -7004,7 +7015,7 @@ point arcsubtendedcenter(point A, point B, real angle)
   return intersectionpoint(bis, rotate(90 - angle, A) * AB);
 }
 
-/*<asyxml><function type = "arc" signature = "arcsubtended(point, point, real)"><code></asyxml>*/
+/*<asyxml><function type="arc" signature="arcsubtended(point,point,real)"><code></asyxml>*/
 arc arcsubtended(point A, point B, real angle)
 {/*<asyxml></code><documentation>Return the arc circle from which the segment AB is saw with
    the angle 'angle'.
@@ -7019,18 +7030,24 @@ arc arcsubtended(point A, point B, real angle)
   return arc(circle(C, abs(B - C)), BC, AC, angle > 0 ? CCW : CW);
 }
 
-/*<asyxml><function type = "arc" signature = "arccircle(point, point, point)"><code></asyxml>*/
+/*<asyxml><function type="arc" signature="arccircle(point,point,point)"><code></asyxml>*/
 arc arccircle(point A, point M, point B)
 {/*<asyxml></code><documentation>Return the CCW arc circle 'AB' passing through 'M'.</documentation></function></asyxml>*/
   circle tc = circle(A, M, B);
   real a = degrees(A - tc.C);
   real b = degrees(B - tc.C);
+  real m = degrees(M - tc.C);
+
   arc oa = arc(tc, a, b);
-  if(!(M @ oa)) oa.direction=!oa.direction;
+  // TODO : use cross product to determine CWW or CW
+  if (!(M @ oa)) {
+    oa.direction = !oa.direction;
+  }
+
   return oa;
 }
 
-/*<asyxml><function type = "arc" signature = "arc(ellipse, abscissa, abscissa, bool)"><code></asyxml>*/
+/*<asyxml><function type="arc" signature="arc(ellipse,abscissa,abscissa,bool)"><code></asyxml>*/
 arc arc(ellipse el, explicit abscissa x1, explicit abscissa x2, bool direction = CCW)
 {/*<asyxml></code><documentation>Return the arc from 'point(c, x1)' to 'point(c, x2)' in the direction 'direction'.</documentation></function></asyxml>*/
   real a = degrees(point(el, x1) - el.C);
@@ -7039,14 +7056,14 @@ arc arc(ellipse el, explicit abscissa x1, explicit abscissa x2, bool direction =
   return oa;
 }
 
-/*<asyxml><function type = "arc" signature = "arc(ellipse, point, point, bool)"><code></asyxml>*/
+/*<asyxml><function type="arc" signature="arc(ellipse,point,point,bool)"><code></asyxml>*/
 arc arc(ellipse el, point M, point N, bool direction = CCW)
 {/*<asyxml></code><documentation>Return the arc from 'M' to 'N' in the direction 'direction'.
    The points 'M' and 'N' must belong to the ellipse 'el'.</documentation></function></asyxml>*/
   return arc(el, relabscissa(el, M), relabscissa(el, N), direction);
 }
 
-/*<asyxml><function type = "arc" signature = "arccircle(point, point, real, bool)"><code></asyxml>*/
+/*<asyxml><function type="arc" signature="arccircle(point,point,real,bool)"><code></asyxml>*/
 arc arccircle(point A, point B, real angle, bool direction = CCW)
 {/*<asyxml></code><documentation>Return the arc circle centered on A
    from B to rotate(angle, A) * B in the direction 'direction'.</documentation></function></asyxml>*/
@@ -7054,8 +7071,7 @@ arc arccircle(point A, point B, real angle, bool direction = CCW)
   return arc(circle(A, abs(A - B)), B, M, direction);
 }
 
-
-/*<asyxml><function type = "arc" signature = "arc(explicit arc, abscissa, abscissa)"><code></asyxml>*/
+/*<asyxml><function type="arc" signature="arc(explicit arc,abscissa,abscissa)"><code></asyxml>*/
 arc arc(explicit arc a, abscissa x1, abscissa x2)
 {/*<asyxml></code><documentation>Return the arc from 'point(a, x1)' to 'point(a, x2)' traversed in the direction of the arc direction.</documentation></function></asyxml>*/
   real a1 = angabscissa(a.el, point(a, x1), a.polarconicroutine).x;
@@ -7063,14 +7079,14 @@ arc arc(explicit arc a, abscissa x1, abscissa x2)
   return arc(a.el, a1, a2, a.polarconicroutine, a.direction);
 }
 
-/*<asyxml><function type = "arc" signature = "arc(explicit arc, point, point)"><code></asyxml>*/
+/*<asyxml><function type="arc" signature="arc(explicit arc,point,point)"><code></asyxml>*/
 arc arc(explicit arc a, point M, point N)
 {/*<asyxml></code><documentation>Return the arc from 'M' to 'N'.
    The points 'M' and 'N' must belong to the arc 'a'.</documentation></function></asyxml>*/
   return arc(a, relabscissa(a, M), relabscissa(a, N));
 }
 
-/*<asyxml><function type = "arc" signature = "inverse(real, point, segment)"><code></asyxml>*/
+/*<asyxml><function type="arc" signature="inverse(real,point,segment)"><code></asyxml>*/
 arc inverse(real k, point A, segment s)
 {/*<asyxml></code><documentation>Return the inverse arc circle of 's'
    with respect to point A and inversion radius 'k'.</documentation></function></asyxml>*/
@@ -7079,22 +7095,22 @@ arc inverse(real k, point A, segment s)
   return arccircle(Ap, M, Bp);
 }
 
-/*<asyxml><operator type = "arc" signature = "*(inversion, segment)"><code></asyxml>*/
+/*<asyxml><operator type = "arc" signature="*(inversion,segment)"><code></asyxml>*/
 arc operator *(inversion i, segment s)
 {/*<asyxml></code><documentation>Provide
    inversion * segment.</documentation></operator></asyxml>*/
   return inverse(i.k, i.C, s);
 }
 
-/*<asyxml><operator type = "path" signature = "*(inversion, triangle)"><code></asyxml>*/
+/*<asyxml><operator type = "path" signature="*(inversion,triangle)"><code></asyxml>*/
 path operator *(inversion i, triangle t)
 {/*<asyxml></code><documentation>Provide inversion * triangle.</documentation></operator></asyxml>*/
   return (path)(i * segment(t.AB))--
     (path)(i * segment(t.BC))--
-    (path)(i * segment(t.CA))--cycle;
+    (path)(i * segment(t.CA))&cycle;
 }
 
-/*<asyxml><function type = "path" signature = "compassmark(pair, pair, real, real)"><code></asyxml>*/
+/*<asyxml><function type="path" signature="compassmark(pair,pair,real,real)"><code></asyxml>*/
 path compassmark(pair O, pair A, real position, real angle = 10)
 {/*<asyxml></code><documentation>Return an arc centered on O with the angle 'angle' so that the position
    of 'A' on this arc makes an angle 'position * angle'.</documentation></function></asyxml>*/
@@ -7108,14 +7124,14 @@ path compassmark(pair O, pair A, real position, real angle = 10)
   return shift(O) * scale(abs(O - A)) * subpath(unitcircle, t1, t2);
 }
 
-/*<asyxml><function type = "line" signature = "tangent(explicit arc, abscissa)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="tangent(explicit arc,abscissa)"><code></asyxml>*/
 line tangent(explicit arc a, abscissa x)
 {/*<asyxml></code><documentation>Return the tangent of 'a' at 'point(a, x)'.</documentation></function></asyxml>*/
   abscissa ag = angabscissa(a, point(a, x));
   return tangent(a.el, ag + a.angle1 + (a.el.e == 0 ? a.angle0 : 0));
 }
 
-/*<asyxml><function type = "line" signature = "tangent(explicit arc, point)"><code></asyxml>*/
+/*<asyxml><function type="line" signature="tangent(explicit arc,point)"><code></asyxml>*/
 line tangent(explicit arc a, point M)
 {/*<asyxml></code><documentation>Return the tangent of 'a' at 'M'.
    The points 'M' must belong to the arc 'a'.</documentation></function></asyxml>*/
