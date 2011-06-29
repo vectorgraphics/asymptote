@@ -6321,9 +6321,9 @@ void show(picture pic = currentpicture,
   label(pic, LC, c, -dir(c--a, c--b), p, filltype);
   pair aligna = I * unit(c - b), alignb = I * unit(c - a), alignc = I * unit(b - a);
   pair mAB = locate(midpoint(t.AB)), mAC = locate(midpoint(t.AC)), mBC = locate(midpoint(t.BC));
-  draw(pic, La, b--c, align = rotate(dot(a - mBC, aligna) > 0 ? 180 :0) * aligna, p);
-  draw(pic, Lb, a--c, align = rotate(dot(b - mAC, alignb) > 0 ? 180 :0) * alignb, p);
-  draw(pic, Lc, a--b, align = rotate(dot(c - mAB, alignc) > 0 ? 180 :0) * alignc, p);
+  label(pic, La, b--c, align = rotate(dot(a - mBC, aligna) > 0 ? 180 :0) * aligna, p);
+  label(pic, Lb, a--c, align = rotate(dot(b - mAC, alignb) > 0 ? 180 :0) * alignb, p);
+  label(pic, Lc, a--b, align = rotate(dot(c - mAB, alignc) > 0 ? 180 :0) * alignc, p);
 }
 
 /*<asyxml><function type="void" signature="draw(picture,triangle,pen,marker)"><code></asyxml>*/
