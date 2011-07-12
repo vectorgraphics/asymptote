@@ -222,8 +222,8 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   static GLfloat v1[16];
   static GLfloat v2[16];
   
-  bool havebillboard=interaction == BILLBOARD;
-  
+  bool havebillboard=interaction == BILLBOARD &&
+    !settings::getSetting<bool>("offscreen");
   triple m,M;
   if(perspective || !havebillboard) {
     initMatrix(v1,v2);
