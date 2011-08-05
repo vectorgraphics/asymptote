@@ -49,7 +49,7 @@ libraries. This version of Asymptote also ships with the dll libraries
 noted below.
 
 The source code for cygwin1.dll is available under the GPL license:
-http://cygwin.com/snapshots/cygwin-src-20100413.tar.bz2
+http://cygwin.com/snapshots/cygwin-src-20110327.tar.bz2
 
 The source code for freeglut.dll is available under the X-Consortium license:
 http://prdownloads.sourceforge.net/freeglut/freeglut-2.6.0.tar.gz
