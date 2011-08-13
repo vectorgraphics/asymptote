@@ -145,18 +145,15 @@ marker nomarker;
 
 real circlescale=0.85;
 
-marker[] Mark={
-  marker(scale(circlescale)*unitcircle),
-  marker(polygon(3)),marker(polygon(4)),
-  marker(polygon(5)),marker(invert*polygon(3)),
-  marker(cross(4)),marker(cross(6))
-};
+path[] MarkPath={scale(circlescale)*unitcircle,
+                 polygon(3),polygon(4),polygon(5),invert*polygon(3),
+                 cross(4),cross(6)};
 
-marker[] MarkFill={
-  marker(scale(circlescale)*unitcircle,Fill),marker(polygon(3),Fill),
-  marker(polygon(4),Fill),marker(polygon(5),Fill),
-  marker(invert*polygon(3),Fill)
-};
+marker[] Mark=sequence(new marker(int i) {return marker(MarkPath[i]);},
+                       MarkPath.length);
+
+marker[] MarkFill=sequence(new marker(int i) {return marker(MarkPath[i],Fill);},
+                           MarkPath.length-2);
 
 marker Mark(int n) 
 {
