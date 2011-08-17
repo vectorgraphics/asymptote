@@ -38,7 +38,7 @@ Licence: GPL2+
 %</driver>
 %<pkg>\ProvidesPackage{asymptote}
 %<*pkg>
-  [2011/05/15 v1.24 Asymptote style file for LaTeX]
+  [2011/08/17 v1.24a Asymptote style file for LaTeX]
 %</pkg>
 %
 %<*driver>
@@ -619,25 +619,25 @@ Licence: GPL2+
   \immediate\write\AsyPreStream{%
     \noexpand\InputIfFileExists{%
       \ASYprefix\noexpand\jobname-\the\c@asy.pre}{}{}%
-  }
+  }%
   \asy@write@graphic@header
   \IfFileExists{#2.asy}{%
     \CatchFileDef\@tempa{#2.asy}{%
       \let\do\@makeother
       \dospecials
       \endlinechar=10\relax
-    }
-  }{
+    }%
+  }{%
     \IfFileExists{#2}{%
       \CatchFileDef\@tempa{#2}{%
         \let\do\@makeother
         \dospecials
         \endlinechar=10\relax
-      }
-    }{
+      }%
+    }{%
       \PackageWarning{asymptote}{file #2 not found}%
-    }
-  }
+    }%
+  }%
   \immediate\write\AsyStream{\unexpanded\expandafter{\@tempa}}%
   \asy@finalise@stream
   \asy@input@graphic
@@ -649,7 +649,7 @@ Licence: GPL2+
 \newcommand{\ASYanimategraphics}[5][]{%
   \IfFileExists{_#3.pdf}{%
     \animategraphics[{#1}]{#2}{_#3}{#4}{#5}%
-  }{}
+  }{}%
 }
 %    \end{macrocode}
 %
