@@ -96,9 +96,6 @@ extern "C" double jn(Int n, double x);
 extern "C" double yn(Int n, double x);
 #endif
 
-#if defined(__mips)
-extern "C" double tgamma(double x);
-#endif
 
 #if defined(__DECCXX_LIBCXX_RH70) || defined(__CYGWIN__)
 extern "C" int snprintf(char *str, size_t size, const char *format,...);
