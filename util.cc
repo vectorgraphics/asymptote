@@ -344,7 +344,11 @@ void noPath()
 
 char *getPath(char *p)
 {
-  static size_t size=MAXPATHLEN;
+#ifdef MAXPATHLEN
+  static size_t size = MAXPATHLEN;
+#else
+  static size_t size = 1024;
+#endif
   if(!p) p=new(UseGC) char[size];
   if(!p) noPath();
   else while(getcwd(p,size) == NULL) {
