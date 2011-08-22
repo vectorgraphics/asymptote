@@ -347,7 +347,10 @@ private struct freezableBounds {
     }
 
     for (var pp : pathpenBounds) {
-      if (pp.g.length > 0) {
+      real size;
+      for(path gg : pp.g)
+        size += size(gg);
+      if (size > 0) {
         addMinToExtremes(e, min(pp.g), min(pp.p));
         addMaxToExtremes(e, max(pp.g), max(pp.p));
       }
