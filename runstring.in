@@ -201,7 +201,7 @@ string replace(string *S, stringarray2 *translate)
   return buf.str();
 }
 
-string format(string *format, Int x)
+string format(string *format, Int x, string locale=emptystring) 
 {
   const char *f=format->c_str();
   
@@ -209,8 +209,22 @@ string format(string *format, Int x)
   
   Int size=snprintf(NULL,0,f,x)+1;
   if(size < 1) size=255; // Workaround for non-C99 compliant systems.
+  const char *oldlocale=NULL;
+
+  if(!locale.empty()) {
+    oldlocale=setlocale(LC_ALL,NULL);
+    if(oldlocale) oldlocale=StrdupNoGC(oldlocale);
+    setlocale(LC_ALL,locale.c_str());
+  }
+
   char *buf=new char[size];
   snprintf(buf,size,f,x);
+
+  if(oldlocale) {
+    setlocale(LC_ALL,oldlocale);
+    delete[] oldlocale;
+  }
+
   string s=string(buf);
   delete[] buf;
   return s;

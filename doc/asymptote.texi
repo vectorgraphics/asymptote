@@ -2070,10 +2070,11 @@ delimited by @code{delimiter} (an empty delimiter signifies a space,
 but with duplicate delimiters discarded);
 
 @anchor{format}
-@item string format(string s, int n)
+@item string format(string s, int n, string locale="")
 @cindex @code{format}
 returns a string containing @code{n} formatted according to the C-style
-format string @code{s} using the current locale;
+format string @code{s} using locale @code{locale} (or the current locale if an
+empty string is specified);
 
 @item string format(string s=defaultformat, real x, string locale="")
 returns a string containing @code{x} formatted according to the C-style format
@@ -2805,8 +2806,8 @@ pen dashed=linetype(new real[] {8,8});
 pen longdashed=linetype(new real[] {24,8});
 pen dashdotted=linetype(new real[] {8,8,0,8});
 pen longdashdotted=linetype(new real[] {24,8,0,8});
-pen Dotted=dotted+1.0;
-pen Dotted(pen p=currentpen) {return dotted+2*linewidth(p);}
+pen Dotted(pen p=currentpen) {return linetype(new real[] {0,3})+2*linewidth(p);}
+pen Dotted=Dotted();
 @end verbatim
 @sp 1
 @center @image{linetype}
@@ -2829,11 +2830,11 @@ The line type of a pen can be determined with the functions
 @code{pen linewidth(real)}. The default line width is 0.5 bp; this value
 may be changed with @code{defaultpen(pen)}. The line width of a pen
 is returned by @code{real linewidth(pen p=currentpen)}.
-For convenience, in the module @code{plain} we define
+For convenience, in the module @code{plain_pens} we define
 @verbatim
-static void defaultpen(real w) {defaultpen(linewidth(w));}
-static pen operator +(pen p, real w) {return p+linewidth(w);}
-static pen operator +(real w, pen p) {return linewidth(w)+p;}
+void defaultpen(real w) {defaultpen(linewidth(w));}
+pen operator +(pen p, real w) {return p+linewidth(w);}
+pen operator +(real w, pen p) {return linewidth(w)+p;}
 @end verbatim
 so that one may set the line width like this:
 @verbatim
@@ -5179,19 +5180,11 @@ searches an array @code{a} sorted in ascending order such that element
 
 @cindex @code{copy}
 @item T[] copy(T[] a)
-returns a copy of the array @code{a};
-
-@cindex @code{copy}
-@item T[][] copy(T[][] a)
-returns a copy of the array @code{a};
-
-@cindex @code{copy}
-@item T[][][] copy(T[][][] a)
-returns a copy of the array @code{a};
+returns a deep copy of the array @code{a};
 
 @cindex @code{concat}
 @item T[] concat(... T[][] a)
-returns a new array formed by concatenating the arrays given as arguments;
+returns a new array formed by concatenating the given one-dimensional arrays given as arguments;
 
 @cindex @code{alias}
 @item bool alias(T[] a, T[] b)

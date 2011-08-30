@@ -138,27 +138,6 @@ array *copyArray2(array *a)
   return c;
 }
 
-array *copyArray3(array *a)
-{
-  size_t size=checkArray(a);
-  array *c=new array(size);
-  for(size_t i=0; i < size; i++) {
-    array *ai=read<array*>(a,i);
-    size_t aisize=checkArray(ai);
-    array *ci=new array(aisize);
-    (*c)[i]=ci;
-    for(size_t j=0; j < aisize; j++) {
-      array *aij=read<array*>(ai,j);
-      size_t aijsize=checkArray(aij);
-      array *cij=new array(aijsize);
-      (*ci)[j]=cij;
-      for(size_t k=0; k < aijsize; k++) 
-        (*cij)[k]=(*aij)[k];
-    }
-  }
-  return c;
-}
-
 double *copyTripleArray2Components(array *a, bool square, size_t dim2,
                                    GCPlacement placement)
 {
@@ -505,12 +484,23 @@ array* :newAppendedArray(array* tail, Int n)
 // typeDepth is the true depth of the array determined at compile-time when the
 // operations for the array type are added.  This typeDepth argument is
 // automatically pushed on the stack and is not visible to the user.
-array* :copyArray(Int n, item value, Int depth=Int_MAX, Int typeDepth)
+array* :copyArrayValue(Int n, item value, Int depth=Int_MAX, Int typeDepth)
 {
   if(n < 0) error("cannot create a negative length array");
   if(depth < 0) error("cannot copy to a negative depth");
   if(depth > typeDepth) depth=typeDepth;
   return new array((size_t) n, value, depth);
+}
+
+// Deep copy of array.
+// typeDepth is the true depth of the array determined at compile-time when the
+// operations for the array type are added.  This typeDepth argument is
+// automatically pushed on the stack and is not visible to the user.
+array* :copyArray(array *a, Int depth=Int_MAX, Int typeDepth)
+{
+  if(depth < 0) error("cannot copy to a negative depth");
+  if(depth > typeDepth) depth=typeDepth;
+  return a->copyToDepth(depth);
 }
 
 // Read an element from an array. Checks for initialization & bounds.
@@ -848,11 +838,6 @@ Int sum(boolarray *a)
   return sum;
 }
 
-array* :arrayCopy(array *a)
-{
-  return copyArray(a);
-}
-
 array* :arrayConcat(array *a)
 {
   // a is an array of arrays to be concatenated together.
@@ -879,16 +864,6 @@ array* :arrayConcat(array *a)
   }
 
   return result;
-}
-
-array* :array2Copy(array *a)
-{
-  return copyArray2(a);
-}
-
-array* :array3Copy(array *a)
-{
-  return copyArray3(a);
 }
 
 array* :array2Transpose(array *a)

@@ -599,35 +599,38 @@ void addArrayOps(venv &ve, types::array *t)
   // which may not be known at runtime.  Therefore, the depth, which is known
   // here at compile-time, is pushed on the stack beforehand by use of a
   // thunk.
-  callable *copyFunc = new thunk(new vm::bfunc(run::copyArray),(Int) depth-1);
-  addFunc(ve, new callableAccess(copyFunc),
+  callable *copyValueFunc = new thunk(new vm::bfunc(run::copyArrayValue),(Int) depth-1);
+  addFunc(ve, new callableAccess(copyValueFunc),
           t, SYM(array), formal(primInt(), SYM(n)),
           formal(ct, SYM(value)),
           formal(primInt(), SYM(depth), true));
+  
+  callable *copyFunc = new thunk(new vm::bfunc(run::copyArray),(Int) depth);
+  addFunc(ve, new callableAccess(copyFunc),
+          t, SYM(copy), formal(t, SYM(a)), formal(primInt(), SYM(depth), true));
 
+  addFunc(ve, run::arrayFunction,
+          t, SYM(map), formal(new function(ct, ct), SYM(f)), formal(t, SYM(a)));
+  
+  addFunc(ve, run::arraySequence,
+          t, SYM(sequence), formal(new function(ct, primInt()), SYM(f)),
+          formal(primInt(), SYM(n)));
+  
+  addFunc(ve, run::arraySort,
+          t, SYM(sort), formal(t, SYM(a)),
+          formal(new function(primBoolean(), ct, ct), SYM(less)));
+      
   switch (depth) {
     case 1:
-      addFunc(ve, run::arrayCopy, t, SYM(copy), formal(t, SYM(a)));
       addRestFunc(ve, run::arrayConcat, t, SYM(concat), new types::array(t));
-      addFunc(ve, run::arraySequence,
-              t, SYM(sequence), formal(new function(ct, primInt()), SYM(f)),
-              formal(primInt(), SYM(n)));
-      addFunc(ve, run::arrayFunction,
-              t, SYM(map), formal(new function(ct, ct), SYM(f)),
-              formal(t, SYM(a)));
-      addFunc(ve, run::arraySort,
-              t, SYM(sort), formal(t, SYM(a)),
-              formal(new function(primBoolean(), ct, ct), SYM(less)));
       addFunc(ve, run::arraySearch,
               primInt(), SYM(search), formal(t, SYM(a)), formal(ct, SYM(key)),
               formal(new function(primBoolean(), ct, ct), SYM(less)));
       break;
     case 2:
-      addFunc(ve, run::array2Copy, t, SYM(copy), formal(t, SYM(a)));
       addFunc(ve, run::array2Transpose, t, SYM(transpose), formal(t, SYM(a)));
       break;
     case 3:
-      addFunc(ve, run::array3Copy, t, SYM(copy), formal(t, SYM(a)));
       addFunc(ve, run::array3Transpose, t, SYM(transpose), formal(t, SYM(a)),
               formal(IntArray(),SYM(perm)));
       break;
