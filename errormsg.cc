@@ -10,6 +10,7 @@
 
 #include "errormsg.h"
 
+errorstream em;
 
 position nullPos;
 static nullPosInitializer nullPosInit;

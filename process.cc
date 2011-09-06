@@ -59,6 +59,26 @@ using absyntax::block;
 
 mem::stack<processDataStruct *> processDataStack;
 
+// Exception-safe way to push and pop the process data.
+class withProcessData {
+  // Do not let this object be dynamically allocated.
+  void *operator new(size_t);
+
+  processDataStruct *pd_ptr;
+public:
+
+  withProcessData(processDataStruct *pd_ptr) : pd_ptr(pd_ptr)
+  {
+    processDataStack.push(pd_ptr);
+  }
+
+  ~withProcessData()
+  {
+    assert(processDataStack.top() == pd_ptr);
+    processDataStack.pop();
+  }
+};
+
 processDataStruct &processData() {
   assert(!processDataStack.empty());
   return *processDataStack.top();
@@ -70,16 +90,16 @@ processDataStruct &processData() {
 // ensures that the data is popped even if an exception is thrown.
 class penv {
   genv *_ge;
-  processDataStruct pd;
+  processDataStruct _pd;
 
   // Do not let this object be dynamically allocated.
   void *operator new(size_t);
 
 public:
-  penv() : _ge(0), pd() {
+  penv() : _ge(0), _pd() {
     // Push the processData first, as it needs to be on the stack before genv
     // is initialized.
-    processDataStack.push(&pd);
+    processDataStack.push(&_pd);
     _ge = new genv;
   }
 
@@ -89,6 +109,8 @@ public:
   }
 
   genv &ge() { return *_ge; }
+
+  processDataStruct *pd() { return &_pd; }
 };
 
 
@@ -216,6 +238,7 @@ public:
     } catch(std::bad_alloc&) {
       outOfMemory();
     } catch(quit) {
+      // Exception to quit running the current code. Nothing more to do.
     } catch(handled_error) {
       em.statusError();
     }
@@ -897,3 +920,71 @@ void doUnrestrictedList() {
   e.e.list(0);
 }
 
+// Environment class used by external programs linking to the shared library.
+class fullenv : public gc {
+  penv pe;
+  env base_env;
+  coder base_coder;
+  coenv e;
+
+  vm::interactiveStack s;
+
+public:
+  fullenv() :
+    pe(), base_env(pe.ge()), base_coder(nullPos, "fullenv"),
+    e(base_coder, base_env), s()
+  {
+    s.setInitMap(pe.ge().getInitMap());
+    s.setEnvironment(&e);
+
+    // TODO: Add way to not run autoplain.
+    runAutoplain(e, s);
+  }
+
+  coenv &getCoenv()
+  {
+    return e;
+  }
+
+  void runRunnable(runnable *r)
+  {
+    assert(!em.errors()); // TODO: Decide how to handle prior errors.
+
+    try {
+      { withProcessData token(pe.pd()); 
+        ::runRunnable(r, e, s, TRANS_INTERACTIVE);
+      }
+    } catch(std::bad_alloc&) {
+      // TODO: give calling application useful message.
+      cerr << "out of memory" << endl;
+    } catch (quit) {
+      // I'm not sure whether this counts as successfully running the code or
+      // not.
+      cerr << "quit exception" << endl;
+    } catch (handled_error) {
+      // Normally, this is the result of an error that changes the return code
+      // of the free-standing asymptote program.
+      // An error should probably be reported to the application calling the
+      // asymptote library.
+      cerr << "handled error" << endl;
+    }
+
+    em.clear();
+  }
+};
+
+fullenv &getFullEnv()
+{
+  static fullenv fe;
+  return fe;
+}
+
+coenv &coenvInOngoingProcess()
+{
+  return getFullEnv().getCoenv();
+}
+
+void runInOngoingProcess(runnable *r)
+{
+  getFullEnv().runRunnable(r);
+}

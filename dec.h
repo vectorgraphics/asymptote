@@ -43,6 +43,8 @@ using trans::varEntry;
 using trans::access;
 using sym::symbol;
 
+class vardec;
+
 class ty : public absyn {
 public:
   ty(position pos)
@@ -216,6 +218,10 @@ public:
 
   types::record *transAsFile(genv& ge, symbol id);
 
+  // If the block can be interpreted as a single vardec, return that vardec
+  // (otherwise 0).
+  vardec *asVardec();
+
   // A block is guaranteed to return iff one of the runnables is guaranteed to
   // return.
   // This is conservative in that
@@ -352,6 +358,8 @@ public:
 
   // Translate, but add the names in as types rather than variables. 
   virtual void transAsTypedefField(coenv &e, trans::tyEntry *base, record *r);
+
+  decidstart *getStart() { return start; }
 };
 
 class decidlist : public absyn {
@@ -373,6 +381,15 @@ public:
 
   // Translate, but add the names in as types rather than variables. 
   virtual void transAsTypedefField(coenv &e, trans::tyEntry *base, record *r);
+  
+  // If the list consists of a single entry, return it.
+  decid *singleEntry()
+  {
+    if (decs.size() == 1)
+      return decs.front();
+    else
+      return 0;
+  }
 };
 
 class dec : public runnable {
@@ -413,6 +430,14 @@ public:
 
   // Translate, but add the names in as types rather than variables. 
   virtual void transAsTypedefField(coenv &e, record *r);
+
+  // If the vardec encodes a single declaration, return the name of that
+  // declaration (otherwise nullsym).
+  symbol singleName();
+
+  // If the vardec encodes a single declaration, return the type of that
+  // declaration (otherwise 0).
+  types::ty *singleGetType(coenv& e);
 };
 
 struct idpair : public absyn {

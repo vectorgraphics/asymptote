@@ -1016,7 +1016,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   bool Wait=!interact::interactive || !View || animating;
 #endif  
 
-#ifdef HAVE_LIBGLUT
+#if defined(HAVE_LIBGLUT) && defined(HAVE_GL)
   if(glthread && !offscreen) {
 #ifdef HAVE_LIBPTHREAD
     if(gl::initialize) {

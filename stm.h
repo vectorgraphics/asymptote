@@ -200,7 +200,7 @@ public:
 
   void trans(coenv &e);
 
-  // A return statement, is of course, guaranteed to return.
+  // A return statement is, of course, guaranteed to return.
   bool returns() {
     return true;
   }

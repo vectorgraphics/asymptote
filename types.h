@@ -106,6 +106,9 @@ public:
     return false;
   }
 
+  bool isError() const { return kind == ty_error; }
+  bool isNotError() const { return !isError(); }
+
   // The following are only used by the overloaded type, but it is so common
   // to test for an overloaded type then iterate over its types, that this
   // allows the code:
@@ -118,6 +121,7 @@ public:
   bool isOverloaded() const {
     return kind == ty_overloaded;
   }
+  bool isNotOverloaded() const { return !isOverloaded(); }
   ty_iterator begin();
   ty_iterator end();
 

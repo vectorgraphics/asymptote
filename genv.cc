@@ -33,6 +33,8 @@ using namespace types;
 using settings::getSetting;
 using settings::Setting;
 
+// Dynamic loading of external libraries.
+types::record *transExternalModule(trans::genv& ge, string filename, symbol id);
 
 namespace trans {
 
@@ -57,7 +59,19 @@ genv::genv()
 #endif  
 }
 
+bool endswith(string suffix, string str)
+{
+  return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+}
+
 record *genv::loadModule(symbol id, string filename) {
+  // Hackish way to load an external library.
+#if 0
+  if (endswith(".so", filename)) {
+    return transExternalModule(*this, filename, id);
+  }
+#endif
+
   // Get the abstract syntax tree.
   absyntax::file *ast = parser::parseFile(filename,"Loading");
 

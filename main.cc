@@ -46,7 +46,6 @@
 
 using namespace settings;
 
-errorstream em;
 using interact::interactive;
 
 namespace run {
@@ -106,20 +105,6 @@ void signalHandler(int)
 void interruptHandler(int)
 {
   em.Interrupt(true);
-}
-
-// Run the config file.
-void doConfig(string file) 
-{
-  bool autoplain=getSetting<bool>("autoplain");
-  bool listvariables=getSetting<bool>("listvariables");
-  if(autoplain) Setting("autoplain")=false; // Turn off for speed.
-  if(listvariables) Setting("listvariables")=false;
-
-  runFile(file);
-
-  if(autoplain) Setting("autoplain")=true;
-  if(listvariables) Setting("listvariables")=true;
 }
 
 struct Args 
