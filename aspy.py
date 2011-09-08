@@ -164,10 +164,16 @@ class Datum(object):
         elif type(val) is str:
             self._setHandle(handleFromPyString(val))
             checkForErrors()
+        elif type(val) is tuple:
+            # Could do this more efficiently, and avoid a copyHandle
+            ret = state.globals()["operator tuple"](*val)
+            self._setHandle(policy.contents.copyHandle(ret.handle))
+            checkForErrors()
         elif type(val) is Datum:
             self._setHandle(policy.contents.copyHandle(val.handle))
             checkForErrors()
         else:
+            # TODO: check if val has a toDatum field
             raise TypeError("cannot initialize Datum from '%s'" %
                     type(val).__name__)
 
@@ -245,7 +251,43 @@ class Datum(object):
         if ret != None:
             return DatumFromHandle(ret)
 
+    def __add__(self, other):
+        return state.globals()["operator +"](self, other)
+    def __sub__(self, other):
+        return state.globals()["operator -"](self, other)
+    def __mul__(self, other):
+        return state.globals()["operator *"](self, other)
+    def __div__(self, other):
+        return state.globals()["operator /"](self, other)
+    def __truediv__(self, other):
+        return state.globals()["operator /"](self, other)
+    def __mod__(self, other):
+        return state.globals()["operator %"](self, other)
+    def __pow__(self, other):
+        return state.globals()["operator ^"](self, other)
+    def __and__(self, other):
+        return state.globals()["operator &"](self, other)
+    def __or__(self, other):
+        return state.globals()["operator |"](self, other)
+    def __neg__(self, other):
+        return state.globals()["operator -"](self)
+
+    def __lt__(self, other):
+        return state.globals()["operator <"](self, other)
+    def __le__(self, other):
+        return state.globals()["operator <="](self, other)
+    def __eq__(self, other):
+        return state.globals()["operator =="](self, other)
+    def __ne__(self, other):
+        return state.globals()["operator !="](self, other)
+    def __gt__(self, other):
+        return state.globals()["operator >"](self, other)
+    def __ge__(self, other):
+        return state.globals()["operator >="](self, other)
+
 def DatumFromHandle(handle):
+    """Initializes a Datum from a given low-level handle.  Does not invoke
+    copyHandle."""
     d = Datum(None)
     d._setHandle(handle)
     return d
@@ -310,3 +352,4 @@ def runExample():
     g.shipout("frompython")
 
     g.draw(g.circle(100), g.red)
+
