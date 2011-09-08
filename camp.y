@@ -169,7 +169,7 @@ using mem::string;
 %type  <e>   tension controls
 %type  <se>  dir
 %type  <elist> dimexps
-%type  <alist> arglist
+%type  <alist> arglist tuple
 %type  <s>   stm stmexp blockstm
 %type  <run> forinit
 %type  <sel> forupdate stmexplist
@@ -452,6 +452,12 @@ arglist:
                    { $$ = $1; $$->addRest($3); }
 ;
 
+/* A list of two or more expressions, separated by commas. */
+tuple:
+  exp ',' exp      { $$ = new arglist(); $$->add($1); $$->add($3); }
+| tuple ',' exp    { $$ = $1; $$->add($3); }
+;
+
 exp:
   name             { $$ = new nameExp($1->getPos(), $1); }
 | value            { $$ = $1; }
@@ -514,13 +520,7 @@ exp:
 | exp '?' exp ':' exp
                    { $$ = new conditionalExp($2, $1, $3, $5); }
 | exp ASSIGN exp   { $$ = new assignExp($2, $1, $3); }
-// Camp stuff
-| '(' exp ',' exp ')'
-                   { $$ = new pairExp($1, $2, $4); }
-| '(' exp ',' exp ',' exp ')'
-                   { $$ = new tripleExp($1, $2, $4, $6); }
-| '(' exp ',' exp ',' exp ',' exp ',' exp ',' exp ')'
-                   { $$ = new transformExp($1, $2, $4, $6, $8, $10, $12); }
+| '(' tuple ')'    { $$ = new callExp($1, new nameExp($1, SYM_TUPLE), $2); }
 | exp join exp %prec JOIN_PREC 
                    { $2->pushFront($1); $2->pushBack($3); $$ = $2; }
 | exp dir %prec DIRTAG

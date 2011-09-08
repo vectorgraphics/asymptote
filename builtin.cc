@@ -395,6 +395,24 @@ void addCasts(venv &ve)
   addCast(ve, pairArray2(), realArray2(), array2ToArray2<double,pair>);
 }
 
+void addTupleOperators(venv &ve)
+{
+  addFunc(ve, realRealToPair, primPair(), SYM_TUPLE,
+          formal(primReal(), SYM(x)),
+          formal(primReal(), SYM(y)));
+  addFunc(ve, realRealRealToTriple, primTriple(), SYM_TUPLE,
+          formal(primReal(), SYM(x)),
+          formal(primReal(), SYM(y)),
+          formal(primReal(), SYM(z)));
+  addFunc(ve, real6ToTransform, primTransform(), SYM_TUPLE,
+          formal(primReal(), SYM(x)),
+          formal(primReal(), SYM(y)),
+          formal(primReal(), SYM(xx)),
+          formal(primReal(), SYM(xy)),
+          formal(primReal(), SYM(yx)),
+          formal(primReal(), SYM(yy)));
+}
+
 void addGuideOperators(venv &ve)
 {
   // The guide operators .. and -- take an array of guides, and turn them
@@ -792,6 +810,7 @@ void base_venv(venv &ve)
   addInitializers(ve);
   addCasts(ve);
   addOperators(ve);
+  addTupleOperators(ve);
   addGuideOperators(ve);
   
   addRealFunc(sin,SYM(sin));

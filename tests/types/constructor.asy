@@ -277,3 +277,103 @@ assert(constructor()==44);
 
 EndTest(); // {{{1
 
+StartTest("tuple"); // {{{1
+{
+  pair z = (1,2);
+  assert(z.x==1);
+  assert(z.y==2);
+  pair w = z;
+  w = (2,3);
+  assert(z.x==1);
+  assert(z.y==2);
+}
+{
+  triple z = (1,2,6);
+  assert(z.x==1);
+  assert(z.y==2);
+  assert(z.z==6);
+  triple w = z;
+  w = (2,3,9);
+  assert(z.x==1);
+  assert(z.y==2);
+  assert(z.z==6);
+}
+{
+  transform z = (1,2,3,4,5,6);
+  assert(z.x==1);
+  assert(z.y==2);
+  assert(z.xx==3);
+  assert(z.xy==4);
+  assert(z.yx==5);
+  assert(z.yy==6);
+}
+{
+  pair z = (34.0, 35.0);
+  triple t = (34.0, 35.0, 36.0);
+
+  {
+    int operator tuple(int x, int y) { return x+y; }
+    assert((1,2) == 3);
+    assert((34,35) == 34+35);
+    assert((34.0,35) == z);
+    assert((34,35.0) == z);
+    assert((34.0,35.0) == z);
+  }
+  {
+    int operator tuple(int x, int y) { return x+y; }
+    int operator tuple(int x, real y) { return 123; }
+    assert((1,2) == 3);
+    assert((34,35) == 34+35);
+    assert((34.0,35) == z);
+    assert((34,35.0) == 123);
+    assert((34.0,35.0) == z);
+  }
+  {
+    int operator tuple(int x, int y) { return x+y; }
+    int operator tuple(int x, real y) { return 123; }
+    int operator tuple(real x, int y) { return 456; }
+    assert((1,2) == 3);
+    assert((34,35) == 34+35);
+    assert((34.0,35) == 456);
+    assert((34,35.0) == 123);
+    assert((34.0,35.0) == z);
+  }
+  {
+    int operator tuple(int x, int y) { return x+y; }
+    int operator tuple(real x, int y) { return 456; }
+    assert((1,2) == 3);
+    assert((34,35) == 34+35);
+    assert((34.0,35) == 456);
+    assert((34,35.0) == z);
+    assert((34.0,35.0) == z);
+  }
+  {
+    int operator tuple(int x, int y) { return x+y; }
+    int operator tuple(int x, real y) { return 123; }
+    int operator tuple(real x, int y) { return 456; }
+    int operator tuple(real x, real y) { return 789; }
+    assert((1,2) == 3);
+    assert((34,35) == 34+35);
+    assert((34.0,35) == 456);
+    assert((34,35.0) == 123);
+    assert((34.0,35.0) == 789);
+  }
+  {
+    int operator tuple(int x, int y) { return x+y; }
+    int operator tuple(real x, real y) { return 789; }
+    assert((1,2) == 3);
+    assert((34,35) == 34+35);
+    assert((34.0,35) == 789);
+    assert((34,35.0) == 789);
+    assert((34.0,35.0) == 789);
+  }
+  {
+    int operator tuple(...int[] x) { return x.length; }
+    assert((34,35) == z);
+    assert((34,35,36) == t);
+    assert((34,35,36,37) == 4);
+    assert((34,35,36,37,38) == 5);
+    assert((34,35,36,37,1,2,3,4) == 8);
+    assert((34,35,36,37,1,2,3,4,5,6,7,8,9) == 13);
+  }
+}
