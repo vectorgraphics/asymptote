@@ -103,6 +103,11 @@ void savesymbol(symbol name)
 #define DEFSYMBOL(name) \
     savesymbol(name)
 
+ /* Extra symbols can be added by EXTRASYMBOL */
+#define EXTRASYMBOL(chars, codename) /* blank */
+
+EXTRASYMBOL(tuple, SYM_TUPLE);
+
 void makesymbol()
 {
   assert(strlen(yytext) == (size_t)yyleng);
@@ -341,7 +346,6 @@ controls           {DEFSYMBOL(SYM_CONTROLS); return CONTROLS; }
 tension            {DEFSYMBOL(SYM_TENSION); return TENSION; }
 atleast            {DEFSYMBOL(SYM_ATLEAST); return ATLEAST; }
 curl               {DEFSYMBOL(SYM_CURL); return CURL; }
-tuple              {DEFSYMBOL(SYM_TUPLE); return OPERATOR; }
 
 if                 {adjust(); return IF; }
 else               {adjust(); return ELSE; }
