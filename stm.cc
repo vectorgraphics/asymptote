@@ -184,12 +184,7 @@ void ifStm::trans(coenv &e)
   label elseLabel = e.c.fwdLabel();
   label end = e.c.fwdLabel();
 
-#ifdef TRANSJUMP
   test->transConditionalJump(e, false, elseLabel);
-#else
-  test->transToType(e, types::primBoolean());
-  e.c.useLabel(inst::njmp,elseLabel);
-#endif
 
   onTrue->markTrans(e);
   
@@ -217,7 +212,7 @@ void transLoopBody(coenv &e, stm *body) {
   //     for (int i = 0; i < 10; ++i) {
   //       int j=10*i;
   //       if (i == 5)
-  //         f = new int() { return j; }
+  //         f = new int() { return j; };
   //     }
   //     write(f());
   //
@@ -266,12 +261,7 @@ void whileStm::trans(coenv &e)
   label start = e.c.defNewLabel();
   e.c.pushLoop(start, end);
 
-#ifdef TRANSJUMP
   test->transConditionalJump(e, false, end);
-#else
-  test->transToType(e, types::primBoolean());
-  e.c.useLabel(inst::njmp,end);
-#endif
 
   transLoopBody(e,body);
 
@@ -302,12 +292,7 @@ void doStm::trans(coenv &e)
   
   e.c.defLabel(testLabel);
 
-#ifdef TRANSJUMP
   test->transConditionalJump(e, true, start);
-#else
-  test->transToType(e, types::primBoolean());
-  e.c.useLabel(inst::cjmp,start);
-#endif
 
   e.c.defLabel(end);
 
@@ -338,12 +323,7 @@ void forStm::trans(coenv &e)
 
   label start = e.c.defNewLabel();
   if(test) {
-#ifdef TRANSJUMP
     test->transConditionalJump(e, false, end);
-#else
-    test->transToType(e, types::primBoolean());
-    e.c.useLabel(inst::njmp,end);
-#endif
   }
 
   transLoopBody(e,body);

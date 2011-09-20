@@ -55,8 +55,7 @@ LATEXFILES = asymptote.sty asycolors.sty ocg.sty latexmkrc
 CONTEXTFILES = colo-asy.tex
 ASY = ./asy -dir base -config "" -render=0
 
-DEFS = @DEFS@ @OPTIONS@ \
-	   -DTRANSJUMP
+DEFS = @DEFS@ @OPTIONS@
 CFLAGS = @CPPFLAGS@ @CFLAGS@
 OPTS = $(DEFS) $(CFLAGS)
 INCL = -I . @INCL@
