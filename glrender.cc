@@ -927,7 +927,7 @@ string action(int button, int mod)
       Mod=nMods;
   }
     
-  if(Button >= 0 && Button < nButtons) {
+  if(Button < nButtons) {
     array *left=getSetting<array *>("leftbutton");
     array *middle=getSetting<array *>("middlebutton");
     array *right=getSetting<array *>("rightbutton");
@@ -936,7 +936,7 @@ string action(int button, int mod)
     array *Buttons[]={left,middle,right,wheelup,wheeldown};
     array *a=Buttons[button];
     size_t size=checkArray(a);
-    if(Mod >= 0 && Mod < size)
+    if(Mod < size)
       return read<string>(a,Mod);
   }
   return "";
