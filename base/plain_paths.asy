@@ -204,9 +204,9 @@ pair dir(path p)
   return dir(p,length(p));
 }
 
-pair dir(path p, path g)
+pair dir(path p, path q)
 {
-  return unit(dir(p)+dir(g));
+  return unit(dir(p)+dir(q));
 }
 
 // return the point on path p at arclength L

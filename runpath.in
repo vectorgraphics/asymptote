@@ -169,9 +169,9 @@ real arclength(path p)
   return p.arclength();
 }
 
-real arctime(path p, real dval)
+real arctime(path p, real L)
 {
-  return p.arctime(dval);
+  return p.arctime(L);
 }
 
 real dirtime(path p, pair z)

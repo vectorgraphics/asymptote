@@ -2316,8 +2316,8 @@ cubic spline parameter @code{t-floor(t)} (@pxref{Bezier curves}).
 @item pair dir(path p)
 returns dir(p,length(p)).
 
-@item pair dir(path p, path g)
-returns unit(dir(p)+dir(g)).
+@item pair dir(path p, path q)
+returns unit(dir(p)+dir(q)).
 
 @cindex @code{accel}
 @item pair accel(path p, int t, int sign=0);
@@ -2353,12 +2353,15 @@ returns the effective postcontrol point  of @code{p} at parameter @code{t}.
 returns the length (in user coordinates) of the piecewise linear
 or cubic curve that path @code{p} represents.
 
-@anchor{arctime}
 @cindex @code{arctime}
 @item real arctime(path p, real L);
 returns the path "time", a real number between 0 and the length of
 the path in the sense of @code{point(path p, real t)}, at which the
 cumulative arclength (measured from the beginning of the path) equals @code{L}.
+
+@cindex @code{arcpoint}
+@item real arcpoint(path p, real L);
+returns @code{point(p,arctime(p,L))}.
 
 @cindex @code{dirtime}
 @item real dirtime(path p, pair z);
