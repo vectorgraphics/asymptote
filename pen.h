@@ -21,14 +21,38 @@ namespace camp {
 static const double tex2ps=72.0/72.27;
 static const double ps2tex=1.0/tex2ps;
   
-static const string DEFPAT="<default>";
-static const string DEFLATEXFONT="\\usefont{\\ASYencoding}{\\ASYfamily}{\\ASYseries}{\\ASYshape}";
-static const string DEFCONTEXTFONT="modern";
-static const string DEFTEXFONT="cmr12";
-static const double DEFWIDTH=-1;
-static const Int DEFCAP=-1;
-static const Int DEFJOIN=-1;
-static const double DEFMITER=0;
+class LineType
+{
+public:  
+  vm::array pattern;    // Array of PostScript style line pattern entries.
+  double offset;        // The offset in the pattern at which to start drawing.
+  bool scale;           // Scale the line type values by the pen width?
+  bool adjust;          // Adjust the line type values to fit the arclength?
+  bool isdefault;   
+  
+  LineType(vm::array pattern, double offset, bool scale, bool adjust) : 
+    pattern(pattern), offset(offset), scale(scale), adjust(adjust),
+    isdefault(false) {}
+  
+  LineType() : offset(0.0), scale(true), adjust(true), isdefault(true) {}
+  
+  void Scale(double factor) {
+    size_t n=pattern.size();
+    for(size_t i=0; i < n; i++)
+      pattern[i]=vm::read<double>(pattern,i)*factor;
+    offset *= factor;
+  }
+};
+  
+extern const LineType DEFLINE;
+extern const string DEFPAT;
+extern const string DEFLATEXFONT;
+extern const string DEFCONTEXTFONT;
+extern const string DEFTEXFONT;
+extern const double DEFWIDTH;
+extern const Int DEFCAP;
+extern const Int DEFJOIN;
+extern const double DEFMITER;
   
 static const struct invisiblepen_t {} invisiblepen={};
 static const struct setlinewidth_t {} setlinewidth={};
@@ -66,33 +90,6 @@ enum ColorSpace {DEFCOLOR=0,INVISIBLE,GRAYSCALE,RGB,CMYK,PATTERN};
 extern const size_t ColorComponents[];
 static const string ColorDeviceSuffix[]={"","","Gray","RGB","CMYK",""};
 const unsigned nColorSpace=sizeof(ColorDeviceSuffix)/sizeof(string);
-  
-  
-  
-class LineType
-{
-public:  
-  vm::array pattern;    // Array of PostScript style line pattern entries.
-  double offset;        // The offset in the pattern at which to start drawing.
-  bool scale;           // Scale the line type values by the pen width?
-  bool adjust;          // Adjust the line type values to fit the arclength?
-  bool isdefault;   
-  
-  LineType(vm::array pattern, double offset, bool scale, bool adjust) : 
-    pattern(pattern), offset(offset), scale(scale), adjust(adjust),
-    isdefault(false) {}
-  
-  LineType() : offset(0.0), scale(true), adjust(true), isdefault(true) {}
-  
-  void Scale(double factor) {
-    size_t n=pattern.size();
-    for(size_t i=0; i < n; i++)
-      pattern[i]=vm::read<double>(pattern,i)*factor;
-    offset *= factor;
-  }
-};
-  
-static const LineType DEFLINE;
   
 inline bool operator == (const vm::array& a, const vm::array& b)
 {

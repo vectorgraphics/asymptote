@@ -107,7 +107,7 @@ struct processDataStruct {
     atUpdateFunction=NULL;
     atBreakpointFunction=NULL;
     defaultpen=camp::pen::initialpen();
-    currentpen=camp::pen(camp::DEFLINE);
+    currentpen=camp::pen();
   }
   
 };
