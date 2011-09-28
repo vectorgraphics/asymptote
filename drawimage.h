@@ -79,14 +79,13 @@ public:
 };
 
 class drawFunctionImage : public drawImage {
-  vm::array image;
   vm::stack *Stack;
   vm::callable *f;
   Int width, height;
 public:
   drawFunctionImage(vm::stack *Stack, vm::callable *f, Int width, Int height,
                      const transform& t, bool antialias)
-    : drawImage(t,antialias), image(image), Stack(Stack), f(f),
+    : drawImage(t,antialias), Stack(Stack), f(f),
       width(width), height(height) {}
   
   virtual ~drawFunctionImage() {}
