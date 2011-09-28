@@ -418,7 +418,7 @@ void svgtexfile::beginclip()
   ++clipcount;
   *out << "id='clip" << clipcount << "'>" << nl;
   beginpath();
-  if(clipstack.size() >= 0)
+  if(clipstack.size() > 0)
     clipstack.pop();
   clipstack.push(clipcount);
 }
