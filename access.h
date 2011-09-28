@@ -17,7 +17,7 @@
 #include "vm.h"
 
 namespace vm {
-  class callable;
+  struct callable;
 }
 
 namespace trans {
