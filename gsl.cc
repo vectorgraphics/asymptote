@@ -569,10 +569,10 @@ void GSLrngList(stack *s)
 
 void GSLrngSet(stack *s)
 {
-  unsigned long int i = unsignedcast(pop<Int>(s,-1));
+  Int i=pop<Int>(s,-1);
   checkGSLrng();
-  if(i<0) gsl_rng_set(GSLrng,gsl_rng_default_seed);
-  else gsl_rng_set(GSLrng,i);
+  if(i < 0) gsl_rng_set(GSLrng,gsl_rng_default_seed);
+  else gsl_rng_set(GSLrng,unsignedcast(i));
   checkGSLerror();
 }
 
