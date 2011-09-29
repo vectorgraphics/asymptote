@@ -150,7 +150,8 @@ bool drawFunctionShade::write(texfile *out, const bbox& box)
   out->write(shift(pair(-Hoffset,-box.bottom))*matrix(bpath.Min(),bpath.Max()));
   out->verbatimline("]");
   out->verbatim("/Domain [0 1 0 1]");
-  out->verbatimline("/ColorSpace /Device"+ColorDeviceSuffix[colorspace]);
+  out->verbatim("/ColorSpace /Device");
+  out->verbatimline(ColorDeviceSuffix[colorspace]);
   out->verbatimline("/Function \\lastobj\\space 0 R >> >>}\\ASYbox");
   
   out->verbatimline("\\pdfrefxform\\the\\pdflastxform");

@@ -18,8 +18,8 @@
 
 namespace camp {
 
-static const double tex2ps=72.0/72.27;
-static const double ps2tex=1.0/tex2ps;
+extern const double tex2ps;
+extern const double ps2tex;
   
 class LineType
 {
@@ -30,11 +30,11 @@ public:
   bool adjust;          // Adjust the line type values to fit the arclength?
   bool isdefault;   
   
+  LineType() : offset(0.0), scale(true), adjust(true), isdefault(true) {}
+  
   LineType(vm::array pattern, double offset, bool scale, bool adjust) : 
     pattern(pattern), offset(offset), scale(scale), adjust(adjust),
     isdefault(false) {}
-  
-  LineType() : offset(0.0), scale(true), adjust(true), isdefault(true) {}
   
   void Scale(double factor) {
     size_t n=pattern.size();
@@ -44,16 +44,16 @@ public:
   }
 };
   
-extern const LineType DEFLINE;
-extern const string DEFPAT;
-extern const string DEFLATEXFONT;
-extern const string DEFCONTEXTFONT;
-extern const string DEFTEXFONT;
+extern const char* DEFPAT;
+extern const char* DEFLATEXFONT;
+extern const char* DEFCONTEXTFONT;
+extern const char* DEFTEXFONT;
 extern const double DEFWIDTH;
 extern const Int DEFCAP;
 extern const Int DEFJOIN;
 extern const double DEFMITER;
-  
+extern const transform nullTransform;
+
 static const struct invisiblepen_t {} invisiblepen={};
 static const struct setlinewidth_t {} setlinewidth={};
 static const struct setfont_t {} setfont={};
@@ -66,30 +66,28 @@ static const struct setoverwrite_t {} setoverwrite={};
 static const struct initialpen_t {} initialpen={};
 static const struct resolvepen_t {} resolvepen={};
   
-static const string PSCap[]={"butt","round","square"};
-static const string Cap[]={"square","round","extended"};
-static const string Join[]={"miter","round","bevel"};
-const Int nCap=sizeof(Cap)/sizeof(string);
-const Int nJoin=sizeof(Join)/sizeof(string);
+extern const char* PSCap[];
+extern const char* Cap[];
+extern const Int nCap;
+extern const char* Join[];
+extern const Int nJoin;
   
 enum overwrite_t {DEFWRITE=-1,ALLOW,SUPPRESS,SUPPRESSQUIET,MOVE,MOVEQUIET};
-static const string OverwriteTag[]={"Allow","Suppress","SupressQuiet",
-                                    "Move","MoveQuiet"};
-const Int nOverwrite=sizeof(OverwriteTag)/sizeof(string);
+extern const char* OverwriteTag[];
+extern const Int nOverwrite;
   
 enum FillRule {DEFFILL=-1,ZEROWINDING,EVENODD};
-static const string FillRuleTag[]={"ZeroWinding","EvenOdd"};
-
-const Int nFill=sizeof(FillRuleTag)/sizeof(string);
+extern const char* FillRuleTag[];
+extern const Int nFill;
   
 enum BaseLine {DEFBASE=-1,NOBASEALIGN,BASEALIGN};
-static const string BaseLineTag[]={"NoAlign","Align"};
-const Int nBaseLine=sizeof(BaseLineTag)/sizeof(string);
+extern const char* BaseLineTag[];
+extern const Int nBaseLine;
   
 enum ColorSpace {DEFCOLOR=0,INVISIBLE,GRAYSCALE,RGB,CMYK,PATTERN};
 extern const size_t ColorComponents[];
-static const string ColorDeviceSuffix[]={"","","Gray","RGB","CMYK",""};
-const unsigned nColorSpace=sizeof(ColorDeviceSuffix)/sizeof(string);
+extern const char* ColorDeviceSuffix[];
+extern const unsigned nColorSpace;
   
 inline bool operator == (const vm::array& a, const vm::array& b)
 {
@@ -125,25 +123,22 @@ class Transparency
 public:  
   string blend;
   double opacity;
-  Transparency(string blend, double opacity) :
-    blend(blend), opacity(opacity) {}
-};
+  bool isdefault;   
   
-static const Transparency DEFTRANSP("Compatible",1.0);
+  Transparency() :
+    blend("Compatible"), opacity(1.0), isdefault(true) {}
+  
+  Transparency(string blend, double opacity) :
+    blend(blend), opacity(opacity), isdefault(false) {}
+};
   
 inline bool operator == (Transparency a, Transparency b) {
   return a.blend == b.blend && a.opacity == b.opacity;
 }
   
-static const string BlendMode[]={"Compatible","Normal","Multiply","Screen",
-                                 "Overlay","SoftLight","HardLight",
-                                 "ColorDodge","ColorBurn","Darken",
-                                 "Lighten","Difference","Exclusion",
-                                 "Hue","Saturation","Color","Luminosity"};
-const Int nBlendMode=sizeof(BlendMode)/sizeof(string);
+extern const char* BlendMode[];
+extern const Int nBlendMode;
 
-static const transform nullTransform=transform(0.0,0.0,0.0,0.0,0.0,0.0);  
-  
 // Map [0,1] to [0,255]
 inline unsigned int byte(double r) 
 {
@@ -217,11 +212,11 @@ public:
   }
   
   pen() :
-    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
+    line(), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
     overwrite(DEFWRITE), t(nullTransform) {}
 
@@ -241,29 +236,29 @@ public:
     overwrite(overwrite), t(t) {}
       
   pen(invisiblepen_t) : 
-    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
+    line(), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(INVISIBLE),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
     overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setlinewidth_t, double linewidth) : 
-    line(DEFLINE), linewidth(linewidth), P(nullpath),
+    line(), linewidth(linewidth), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
     overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(path P) : 
-    line(DEFLINE), linewidth(DEFWIDTH), P(P),
+    line(), linewidth(DEFWIDTH), P(P),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
     overwrite(DEFWRITE), t(nullTransform) {}
   
@@ -272,57 +267,57 @@ public:
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
     overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setfont_t, string font) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
+    line(), linewidth(DEFWIDTH), P(nullpath),
     font(font), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
     overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setfontsize_t, double fontsize, double lineskip) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
+    line(), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(fontsize), lineskip(lineskip), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
     overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setpattern_t, const string& pattern) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
+    line(), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(PATTERN),
     r(0), g(0), b(0), grey(0),
     pattern(pattern), fillrule(DEFFILL), baseline(DEFBASE),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
     overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(FillRule fillrule) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
+    line(), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(fillrule), baseline(DEFBASE),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
     overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(BaseLine baseline) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
+    line(), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(baseline),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
     overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(const Transparency& transparency) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
+    line(), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
@@ -331,67 +326,67 @@ public:
     overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setlinecap_t, Int linecap) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
+    line(), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(linecap), linejoin(DEFJOIN), miterlimit(DEFMITER),
     overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setlinejoin_t, Int linejoin) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
+    line(), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(DEFCAP), linejoin(linejoin), miterlimit(DEFMITER),
     overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setmiterlimit_t, double miterlimit) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
+    line(), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(miterlimit),
     overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setoverwrite_t, overwrite_t overwrite) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
+    line(), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
     overwrite(overwrite), t(nullTransform) {}
   
   explicit pen(double grey) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
+    line(), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(GRAYSCALE),
     r(0.0), g(0.0), b(0.0), grey(pos0(grey)),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
     overwrite(DEFWRITE), t(nullTransform)
   {greyrange();}
   
   pen(double r, double g, double b) : 
-    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
+    line(), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(RGB),
     r(pos0(r)), g(pos0(g)), b(pos0(b)),  grey(0.0), 
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
     overwrite(DEFWRITE), t(nullTransform)
   {rgbrange();}
   
   pen(double c, double m, double y, double k) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
+    line(), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(CMYK),
     r(pos0(c)), g(pos0(m)), b(pos0(y)), grey(pos0(k)),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
-    transparency(DEFTRANSP),
+    transparency(),
     linecap(DEFCAP), linejoin(DEFJOIN), miterlimit(DEFMITER),
     overwrite(DEFWRITE), t(nullTransform)
   {cmykrange();}
@@ -412,15 +407,15 @@ public:
     return pen(LineType(vm::array(0),0.0,true,true),0.5,nullpath,"",
                12.0*tex2ps,12.0*1.2*tex2ps,GRAYSCALE,
                0.0,0.0,0.0,0.0,"",ZEROWINDING,NOBASEALIGN,
-               DEFTRANSP,1,1,10.0,ALLOW,identity);
+               Transparency(),1,1,10.0,ALLOW,identity);
   }
   
   pen(initialpen_t) : 
-    line(DEFLINE), linewidth(-2.0), P(nullpath),
+    line(), linewidth(-2.0), P(nullpath),
     font("<invalid>"), fontsize(-1.0), lineskip(-1.0), color(INVISIBLE),
     r(0.0), g(0.0), b(0.0), grey(0.0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(NOBASEALIGN),
-    transparency(DEFTRANSP),linecap(-2), linejoin(-2), miterlimit(-1.0),
+    transparency(),linecap(-2), linejoin(-2), miterlimit(-1.0),
     overwrite(DEFWRITE), t(nullTransform) {}
   
   double width() const {
@@ -499,16 +494,16 @@ public:
   }
   
   Transparency transp() const {
-    return transparency == DEFTRANSP ? defaultpen().transparency : transparency;
+    return transparency.isdefault ? defaultpen().transparency : transparency;
   }
   
   string blend() const {
-    return transparency == DEFTRANSP ? defaultpen().transparency.blend :
+    return transparency.isdefault ? defaultpen().transparency.blend :
       transparency.blend;
   }
   
   double opacity() const {
-    return transparency == DEFTRANSP ? defaultpen().transparency.opacity :
+    return transparency.isdefault ? defaultpen().transparency.opacity :
       transparency.opacity;
   }
   
@@ -744,7 +739,7 @@ public:
     if(P.color == PATTERN && P.pattern.empty()) P.color=DEFCOLOR;
     ColorSpace colorspace=(ColorSpace) max((Int) P.color,(Int) Q.color);
     
-    if(!(p.transparency == DEFTRANSP && q.transparency == DEFTRANSP))
+    if(!(p.transparency.isdefault && q.transparency.isdefault))
       P.transparency.opacity=max(p.opacity(),q.opacity());
     
     switch(colorspace) {
@@ -798,7 +793,7 @@ public:
                q.pattern == DEFPAT ? p.pattern : q.pattern,
                q.fillrule == DEFFILL ? p.fillrule : q.fillrule,
                q.baseline == DEFBASE ? p.baseline : q.baseline,
-               q.transparency == DEFTRANSP ? p.transparency : q.transparency,
+               q.transparency.isdefault ? p.transparency : q.transparency,
                q.linecap == DEFCAP ? p.linecap : q.linecap,
                q.linejoin == DEFJOIN ? p.linejoin : q.linejoin,
                q.miterlimit == DEFMITER ? p.miterlimit : q.miterlimit,
@@ -911,7 +906,7 @@ public:
       out << ", fillrule=" << FillRuleTag[p.fillrule];
     if(p.baseline != DEFBASE)
       out << ", baseline=" << BaseLineTag[p.baseline];
-    if(!(p.transparency == DEFTRANSP)) {
+    if(!p.transparency.isdefault) {
       out << ", opacity=" << p.transparency.opacity;
       out << ", blend=" << p.transparency.blend;
     }
