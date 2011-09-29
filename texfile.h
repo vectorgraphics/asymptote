@@ -216,9 +216,9 @@ public:
   
   void setfont(pen p);
   
-  void gsave();
+  void gsave(bool tex=true);
   
-  void grestore();
+  void grestore(bool tex=true);
   
   void beginspecial();
   

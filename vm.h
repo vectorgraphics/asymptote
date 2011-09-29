@@ -12,7 +12,7 @@
 
 namespace vm {
 
-class lambda; class stack;
+struct lambda; class stack;
 typedef void (*bltin)(stack *s);
 
 #ifdef DEBUG_BLTIN

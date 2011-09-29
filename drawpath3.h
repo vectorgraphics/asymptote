@@ -28,7 +28,7 @@ public:
     Min(g.min()), Max(g.max()) {}
     
   drawPath3(const vm::array& t, const drawPath3 *s) :
-    g(camp::transformed(t,s->g)), center(center), straight(s->straight),
+    g(camp::transformed(t,s->g)), straight(s->straight),
     color(s->color), invisible(s->invisible), interaction(s->interaction),
     Min(g.min()), Max(g.max()) {
     center=run::operator *(t,s->center);

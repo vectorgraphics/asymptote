@@ -21,7 +21,7 @@ namespace trans {
 class coenv;
 class coder;
 
-class label_t;
+struct label_t;
 typedef label_t *label;
 
 class application;

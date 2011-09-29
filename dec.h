@@ -26,13 +26,13 @@ class access;
 
 namespace types {
 class ty;
-class formal;
-class signature;
-class function;
+struct formal;
+struct signature;
+struct function;
 }
 
 namespace vm {
-class lambda;
+struct lambda;
 }
 namespace absyntax {
 

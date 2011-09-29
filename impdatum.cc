@@ -32,7 +32,7 @@ class ImpArguments;
 ImpDatum *datumError(const char *msg);
 
 // Expression used for non-item datums.
-class errorExp : public exp {
+class errorExp : public absyntax::exp {
 public:
   errorExp() : exp(nullPos) {}
 

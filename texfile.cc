@@ -258,14 +258,14 @@ void texfile::endpicture(const bbox& b)
   verbatimline("pt%");
 }
   
-void texfile::gsave()
+void texfile::gsave(bool)
 {
   *out << settings::beginspecial(texengine);
   psfile::gsave(true);
   *out << settings::endspecial() << newl;
 }
 
-void texfile::grestore()
+void texfile::grestore(bool)
 {
   *out << settings::beginspecial(texengine);
   psfile::grestore(true);
@@ -356,7 +356,7 @@ void svgtexfile::endtransform()
   *out << "</g>";
 }
   
-void svgtexfile::gsave(bool tex)
+void svgtexfile::gsave(bool)
 {
   if(clipstack.size() < 1)
     clipstack.push(0);
@@ -366,7 +366,7 @@ void svgtexfile::gsave(bool tex)
   pens.push(lastpen);
 }
   
-void svgtexfile::grestore(bool tex)
+void svgtexfile::grestore(bool)
 {
   if(pens.size() < 1 || clipstack.size() < 1)
     reportError("grestore without matching gsave");

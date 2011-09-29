@@ -18,12 +18,7 @@
 #include "texfile.h"
 #include "prcfile.h"
 #include "glrender.h"
-
-namespace run {
-template<class T>
-extern void copyArrayC(T* &dest, const vm::array *a, size_t dim,
-                       GCPlacement placement);
-}
+#include "arrayop.h"
 
 namespace camp {
 
@@ -196,7 +191,7 @@ public:
     b += p.bounds();
   }
   
-  virtual void writepath(psfile *out) {
+  virtual void writepath(psfile *out,bool) {
     out->write(p);
   }
   

@@ -24,7 +24,7 @@ using trans::tyEntry;
 
 namespace types {
 
-struct record : public ty {
+class record : public ty {
   // The base name of this type.
   symbol name;
   

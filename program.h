@@ -12,7 +12,7 @@
 #include "inst.h"
 
 namespace vm {
-class inst;
+struct inst;
 
 class program : public gc {
 public:

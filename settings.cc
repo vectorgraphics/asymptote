@@ -276,7 +276,7 @@ bool warn(const string& s)
 }
 
 // The dictionaries of long options and short options.
-class option;
+struct option;
 typedef mem::map<CONST string, option *> optionsMap_t;
 optionsMap_t optionsMap;
 

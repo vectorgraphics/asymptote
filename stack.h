@@ -19,7 +19,7 @@ namespace vm {
 
 struct func;
 class program;
-class lambda;
+struct lambda;
 class importInitMap;
 
 struct bpinfo : public gc {
