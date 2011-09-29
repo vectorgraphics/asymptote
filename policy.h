@@ -8,7 +8,7 @@
 
 // TODO: Wrap in namespace.
 
-typedef long long Int; // The asymptote integer (could use stdint.h)
+typedef long long int_typ;
 
 typedef struct {} handle_base_typ;
 typedef handle_base_typ *handle_typ;
@@ -21,7 +21,7 @@ typedef void (*function_typ)(state_typ, void *);
 
 typedef struct {
   const char *buf;
-  Int length;
+  int_typ length;
 } string_typ;
 
 typedef void (*error_callback_typ)(string_typ);
@@ -31,21 +31,21 @@ typedef long arg_rest_option;
 #define REST_ARG 45001
 
 typedef struct {
-  Int version;
+  int_typ version;
 
   handle_typ (*copyHandle)(handle_typ handle);
   void (*releaseHandle)();
 
-  handle_typ (*handleFromInt)(Int x);
-  // For bool, O is false, 1 is true, an no other value is allowed.
-  handle_typ (*handleFromBool)(Int x);
+  handle_typ (*handleFromInt)(int_typ x);
+  // For bool, O is false, 1 is true, and no other value is allowed.
+  handle_typ (*handleFromBool)(int_typ x);
   handle_typ (*handleFromDouble)(double x);
   handle_typ (*handleFromString)(string_typ x);
   handle_typ (*handleFromFunction)(const char *signature,
                                    function_typ f, void *data);
 
-  Int (*IntFromHandle)(handle_typ handle);
-  Int (*boolFromHandle)(handle_typ handle);
+  int_typ (*IntFromHandle)(handle_typ handle);
+  int_typ (*boolFromHandle)(handle_typ handle);
   double (*doubleFromHandle)(handle_typ handle);
   // TODO: Note that a pointer and length are returned, but the pointer is
   // valid for a limited time only.
@@ -72,8 +72,8 @@ typedef struct {
   handle_typ (*call)(handle_typ callee, arguments_typ args);
 
   handle_typ (*globals)(state_typ state);
-  Int (*numParams)(state_typ state);
-  handle_typ (*getParam)(state_typ state, Int index);
+  int_typ (*numParams)(state_typ state);
+  handle_typ (*getParam)(state_typ state, int_typ index);
   void (*setReturnValue)(state_typ state, handle_typ handle);
 
   // Allows the user sets an error callback, which is called on any error.

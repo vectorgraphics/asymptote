@@ -56,7 +56,7 @@ class ImpDatum {
 public:
   virtual operator handle_typ() { return (handle_typ)(this); }
 
-  virtual Int toInt() {
+  virtual int_typ toInt() {
     datumError("cannot convert to integer");
     
     // Return a weird value that will hopefully be noticed.
@@ -178,10 +178,10 @@ public:
     return new varEntryExp(nullPos, t, new itemRefAccess(&i));
   }
 
-  Int toInt() {
+  int_typ toInt() {
     // TODO: Decide if we want to use casting.
     if (t->kind == types::ty_Int)
-      return get<Int>(i);
+      return static_cast<int_typ>(get<Int>(i));
     else
       return ImpDatum::toInt();
   }
@@ -221,9 +221,9 @@ ItemDatum *ItemDatumFromExp(types::ty *t, absyntax::exp *e)
   return d;
 }
 
-ItemDatum *ItemDatumFromInt(Int x)
+ItemDatum *ItemDatumFromInt(int_typ x)
 {
-  intExp ie(nullPos, x);
+  intExp ie(nullPos, static_cast<Int>(x));
   return ItemDatumFromExp(types::primInt(), &ie);
 }
 
@@ -291,12 +291,12 @@ ImpDatum *ImpDatum::getField(const char *name)
   return d;
 }
 
-handle_typ imp_handleFromInt(Int x)
+handle_typ imp_handleFromInt(int_typ x)
 {
   return wrap(ItemDatumFromInt(x));
 }
 
-handle_typ imp_handleFromBool(Int x)
+handle_typ imp_handleFromBool(int_typ x)
 {
   if (x != 0 && x != 1)
     return wrap(datumError("invalid boolean value"));
@@ -309,12 +309,12 @@ handle_typ imp_handleFromDouble(double x)
   return wrap(ItemDatumFromDouble(x));
 }
 
-Int imp_IntFromHandle(handle_typ handle)
+int_typ imp_IntFromHandle(handle_typ handle)
 {
   return unwrap(handle)->toInt();
 }
 
-Int imp_boolFromHandle(handle_typ handle)
+int_typ imp_boolFromHandle(handle_typ handle)
 {
   return unwrap(handle)->toBool() ? 1 : 0;
 }
@@ -448,7 +448,7 @@ public:
     return new GlobalsDatum();
   }
 
-  Int numParams() {
+  int_typ numParams() {
     /*if (params)
       return params->val.size();
     else */ {
@@ -457,9 +457,9 @@ public:
     }
   }
 
-  ImpDatum *getParam(Int index) {
+  ImpDatum *getParam(int_typ index) {
     /*if (params) {
-      if (index >= 0 && index < (Int)params->val.size()) 
+      if (index >= 0 && index < static_cast<int_typ>(params->val.size())) 
         return params->val[index];
       else
         return datumError("invalid index for parameter");
@@ -503,12 +503,12 @@ handle_typ imp_globals(state_typ state)
   return wrap(unwrapState(state)->globals());
 }
 
-Int imp_numParams(state_typ state)
+int_typ imp_numParams(state_typ state)
 {
   return unwrapState(state)->numParams();
 }
 
-handle_typ imp_getParam(state_typ state, Int index)
+handle_typ imp_getParam(state_typ state, int_typ index)
 {
   return wrap(unwrapState(state)->getParam(index));
 }
