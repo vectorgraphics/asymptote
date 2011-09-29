@@ -312,7 +312,7 @@ public:
     }
   }
 
-  void doRun(transMode tm=TRANS_NORMAL) {
+  void doExec(transMode tm=TRANS_NORMAL) {
     // Don't prepare an environment to run the code if there isn't any code.
     if (getTree())
       icore::doRun(false,tm);
@@ -850,7 +850,7 @@ public:
     }
   }
 
-  void process() {
+  void process(bool purge=false) {
     printGreeting(true);
     interact::init_interactive();
     try {
@@ -886,13 +886,13 @@ void processPrompt() {
 }
 
 void runCode(absyntax::block *code) {
-  icode(code).doRun();
+  icode(code).doExec();
 }
 void runString(const string& s, bool interactiveWrite) {
-  istring(s).doRun(interactiveWrite ? TRANS_INTERACTIVE : TRANS_NORMAL);
+  istring(s).doExec(interactiveWrite ? TRANS_INTERACTIVE : TRANS_NORMAL);
 }
 void runFile(const string& filename) {
-  ifile(filename).doRun();
+  ifile(filename).doExec();
 }
 void runPrompt() {
   iprompt().doRun();
