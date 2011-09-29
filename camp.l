@@ -27,6 +27,8 @@ using mem::string;
 
 #include "opsymbols.h"
 
+#define YY_NO_INPUT
+
 static void yyunput(int, char *);
 void (*unused)(int,char *) = yyunput;
 
