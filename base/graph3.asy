@@ -545,10 +545,20 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
                                                ztrans(t,z)) : (xmin,y,z);
             triple b=xmax == infinity ? tinv*(rt.x-max3(p).x,ytrans(t,y),
                                               ztrans(t,z)) : (xmax,y,z);
-            triple a2=xmin == -infinity ? tinv*(lb.x-min3(p).x,ytrans(t,y2),
-                                                ztrans(t,z2)) : (xmin,y2,z2);
-            triple b2=xmax == infinity ? tinv*(rt.x-max3(p).x,ytrans(t,y2),
-                                               ztrans(t,z2)) : (xmax,y2,z2);
+            real y0;
+            real z0;
+            if(abs(dir.y) < abs(dir.z)) {
+              y0=y;
+              z0=z2;
+            } else {
+              y0=y2;
+              z0=z;
+            }
+            
+            triple a2=xmin == -infinity ? tinv*(lb.x-min3(p).x,ytrans(t,y0),
+                                                ztrans(t,z0)) : (xmin,y0,z0);
+            triple b2=xmax == infinity ? tinv*(rt.x-max3(p).x,ytrans(t,y0),
+                                               ztrans(t,z0)) : (xmax,y0,z0);
 
             if(xmin == -infinity || xmax == infinity) {
               bounds mx=autoscale(a.x,b.x,pic.scale.x.scale);
@@ -562,7 +572,8 @@ void xaxis3At(picture pic=currentpicture, Label L="", axis axis,
             b += fuzz;
 
             picture d;
-            ticks(d,t,L,a--b,finite(y2) ? a2--b2 : nullpath3,p,arrow,margin,
+            ticks(d,t,L,a--b,finite(y0) && finite(z0) ? a2--b2 : nullpath3,
+                  p,arrow,margin,
                   ticklocate(a.x,b.x,pic.scale.x,Dir(dir)),divisor,
                   opposite,primary);
             add(f,t*T*tinv*d);
@@ -667,11 +678,21 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
                                                ztrans(t,z)) : (x,ymin,z);
             triple b=ymax == infinity ? tinv*(xtrans(t,x),rt.y-max3(p).y,
                                               ztrans(t,z)) : (x,ymax,z);
-            triple a2=ymin == -infinity ? tinv*(xtrans(t,x2),lb.y-min3(p).y,
-                                                ztrans(t,z2)) : (x2,ymin,z2);
-            triple b2=ymax == infinity ? tinv*(xtrans(t,x2),rt.y-max3(p).y,
-                                               ztrans(t,z2)) : (x2,ymax,z2);
-
+            real x0;
+            real z0;
+            if(abs(dir.x) < abs(dir.z)) {
+              x0=x;
+              z0=z2;
+            } else {
+              x0=x2;
+              z0=z;
+            }
+            
+            triple a2=ymin == -infinity ? tinv*(xtrans(t,x0),lb.y-min3(p).y,
+                                                ztrans(t,z0)) : (x0,ymin,z0);
+            triple b2=ymax == infinity ? tinv*(xtrans(t,x0),rt.y-max3(p).y,
+                                               ztrans(t,z0)) : (x0,ymax,z0);
+ 
             if(ymin == -infinity || ymax == infinity) {
               bounds my=autoscale(a.y,b.y,pic.scale.y.scale);
               pic.scale.y.tickMin=my.min;
@@ -684,7 +705,8 @@ void yaxis3At(picture pic=currentpicture, Label L="", axis axis,
             b += fuzz;
 
             picture d;
-            ticks(d,t,L,a--b,finite(x2) ? a2--b2 : nullpath3,p,arrow,margin,
+            ticks(d,t,L,a--b,finite(x0) && finite(z0) ? a2--b2 : nullpath3,
+                  p,arrow,margin,
                   ticklocate(a.y,b.y,pic.scale.y,Dir(dir)),divisor,
                   opposite,primary);
             add(f,t*T*tinv*d);
@@ -789,10 +811,20 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
                                                lb.z-min3(p).z) : (x,y,zmin);
             triple b=zmax == infinity ? tinv*(xtrans(t,x),ytrans(t,y),
                                               rt.z-max3(p).z) : (x,y,zmax);
-            triple a2=zmin == -infinity ? tinv*(xtrans(t,x2),ytrans(t,y2),
-                                                lb.z-min3(p).z) : (x2,y2,zmin);
-            triple b2=zmax == infinity ? tinv*(xtrans(t,x2),ytrans(t,y2),
-                                               rt.z-max3(p).z) : (x2,y2,zmax);
+            real x0;
+            real y0;
+            if(abs(dir.x) < abs(dir.y)) {
+              x0=x;
+              y0=y2;
+            } else {
+              x0=x2;
+              y0=y;
+            }
+            
+            triple a2=zmin == -infinity ? tinv*(xtrans(t,x0),ytrans(t,y0),
+                                                lb.z-min3(p).z) : (x0,y0,zmin);
+            triple b2=zmax == infinity ? tinv*(xtrans(t,x0),ytrans(t,y0),
+                                               rt.z-max3(p).z) : (x0,y0,zmax);
 
             if(zmin == -infinity || zmax == infinity) {
               bounds mz=autoscale(a.z,b.z,pic.scale.z.scale);
@@ -806,7 +838,8 @@ void zaxis3At(picture pic=currentpicture, Label L="", axis axis,
             b += fuzz;
 
             picture d;
-            ticks(d,t,L,a--b,finite(x2) ? a2--b2 : nullpath3,p,arrow,margin,
+            ticks(d,t,L,a--b,finite(x0) && finite(y0) ? a2--b2 : nullpath3,
+                  p,arrow,margin,
                   ticklocate(a.z,b.z,pic.scale.z,Dir(dir)),divisor,
                   opposite,primary);
             add(f,t*T*tinv*d);

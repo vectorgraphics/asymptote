@@ -1202,15 +1202,15 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
     });
 
   void bounds() {
-    if(type == Min) 
-      y=pic.scale.y.automin() ? tickMin(pic).y : pic.userMin().y;
-    else if(type == Max)
-      y=pic.scale.y.automax() ? tickMax(pic).y : pic.userMax().y;
-    else if(type == Both) {
+    if(type == Both || axis.extend) {
       y2=pic.scale.y.automax() ? tickMax(pic).y : pic.userMax().y;
       y=opposite ? y2 : 
         (pic.scale.y.automin() ? tickMin(pic).y : pic.userMin().y);
-    }
+    } 
+    else if(type == Min) 
+      y=pic.scale.y.automin() ? tickMin(pic).y : pic.userMin().y;
+    else if(type == Max)
+      y=pic.scale.y.automax() ? tickMax(pic).y : pic.userMax().y;
 
     real Xmin=finite(xmin) ? xmin : pic.userMin().x;
     real Xmax=finite(xmax) ? xmax : pic.userMax().x;
@@ -1296,15 +1296,14 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
     });
   
   void bounds() {
-    if(type == Min) 
-      x=pic.scale.x.automin() ? tickMin(pic).x : pic.userMin().x;
-    else if(type == Max)
-      x=pic.scale.x.automax() ? tickMax(pic).x : pic.userMax().x;
-    else if(type == Both) {
+    if(type == Both || axis.extend) {
       x2=pic.scale.x.automax() ? tickMax(pic).x : pic.userMax().x;
       x=opposite ? x2 : 
         (pic.scale.x.automin() ? tickMin(pic).x : pic.userMin().x);
-    }
+    } else if(type == Min) 
+      x=pic.scale.x.automin() ? tickMin(pic).x : pic.userMin().x;
+    else if(type == Max)
+      x=pic.scale.x.automax() ? tickMax(pic).x : pic.userMax().x;
 
     real Ymin=finite(ymin) ? ymin : pic.userMin().y;
     real Ymax=finite(ymax) ? ymax : pic.userMax().y;
