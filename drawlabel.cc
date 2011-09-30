@@ -17,7 +17,6 @@ using namespace settings;
 namespace camp {
   
 string texready=string("(Please type a command or say `\\end')\n*");
-pen drawElement::lastpen;
 
 void drawLabel::labelwarning(const char *action) 
 {

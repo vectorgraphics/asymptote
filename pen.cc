@@ -5,6 +5,7 @@
  *****/
 
 #include "pen.h"
+#include "drawelement.h"
 
 namespace camp {
 
@@ -42,5 +43,7 @@ const char* BlendMode[]={"Compatible","Normal","Multiply","Screen",
                          "Lighten","Difference","Exclusion",
                          "Hue","Saturation","Color","Luminosity"};
 const Int nBlendMode=sizeof(BlendMode)/sizeof(char*);
+
+pen drawElement::lastpen;
 
 }
