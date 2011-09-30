@@ -128,11 +128,11 @@ public:
   Transparency() :
     blend("Compatible"), opacity(1.0), isdefault(true) {}
   
-  Transparency(string blend, double opacity) :
+  Transparency(const string& blend, double opacity) :
     blend(blend), opacity(opacity), isdefault(false) {}
 };
   
-inline bool operator == (Transparency a, Transparency b) {
+inline bool operator == (const Transparency& a, const Transparency& b) {
   return a.blend == b.blend && a.opacity == b.opacity;
 }
   
