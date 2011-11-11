@@ -1202,9 +1202,9 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
     });
 
   void bounds() {
-    if(type == Both || axis.extend) {
+    if(type == Both) {
       y2=pic.scale.y.automax() ? tickMax(pic).y : pic.userMax().y;
-      y=opposite ? y2 : 
+      y=opposite ? y2 :
         (pic.scale.y.automin() ? tickMin(pic).y : pic.userMin().y);
     } 
     else if(type == Min) 
@@ -1296,7 +1296,7 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
     });
   
   void bounds() {
-    if(type == Both || axis.extend) {
+    if(type == Both) {
       x2=pic.scale.x.automax() ? tickMax(pic).x : pic.userMax().x;
       x=opposite ? x2 : 
         (pic.scale.x.automin() ? tickMin(pic).x : pic.userMin().x);

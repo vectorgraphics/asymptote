@@ -35,8 +35,7 @@ path line(path p, path q, real[] t)
 
 // Return the projection of a generalized cylinder of height h constructed
 // from area base in the XY plane and aligned with axis.
-path[] cylinder(path3 base, real h, triple axis=Z,
-                projection P=currentprojection) 
+path[] cylinder(path3 base, real h, triple axis=Z, projection P) 
 {
   base=rotate(-colatitude(axis),cross(axis,Z))*base;
   path3 top=shift(h*axis)*base;
@@ -136,7 +135,7 @@ struct revolution {
   // add transverse slice to skeleton s;
   // must be recomputed if camera is adjusted
   void transverse(skeleton s, real t, int n=nslice,
-		  projection P=currentprojection) {
+                  projection P=currentprojection) {
     skeleton.curve s=s.transverse;
     path3 S=slice(t,n);
     triple camera=camera(P);
@@ -193,7 +192,7 @@ struct revolution {
 
   // add m evenly spaced transverse slices to skeleton s
   void transverse(skeleton s, int m=0, int n=nslice,
-		  projection P=currentprojection) {
+                  projection P=currentprojection) {
     if(m == 0) {
       int N=size(g);
       for(int i=0; i < N; ++i)
@@ -281,8 +280,7 @@ struct revolution {
   }
 
   // add longitudinal curves to skeleton;
-  // must be recomputed if camera is adjusted
-  void longitudinal(skeleton s, int n=nslice, projection P=currentprojection) {
+  void longitudinal(skeleton s, int n=nslice, projection P) {
     real t, d=0;
     // Find a point on g of maximal distance from the axis.
     int N=size(g);
@@ -326,7 +324,7 @@ struct revolution {
     push(t2);
   }
   
-  skeleton skeleton(int m=0, int n=nslice, projection P=currentprojection) {
+  skeleton skeleton(int m=0, int n=nslice, projection P) {
     skeleton s;
     transverse(s,m,n,P);
     longitudinal(s,n,P);
@@ -347,19 +345,29 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
 	  pen frontpen=currentpen, pen backpen=frontpen,
 	  pen longitudinalpen=frontpen, pen longitudinalbackpen=backpen,
 	  light light=currentlight, string name="",
-          render render=defaultrender, projection P=currentprojection)
+          render render=defaultrender,projection P=currentprojection)
 {
-  pen thin=is3D() ? thin() : defaultpen;
-  skeleton s=r.skeleton(m,n,P);
   begingroup3(pic,name == "" ? "skeleton" : name,render);
-  if(frontpen != nullpen) {
-    draw(pic,s.transverse.back,thin+defaultbackpen+backpen,light);
-    draw(pic,s.transverse.front,thin+frontpen,light);
+  void drawskeleton(frame f, transform3 t, projection P) {
+      pen thin=is3D() ? thin() : defaultpen;
+      skeleton s=r.skeleton(m,n,inverse(t)*P);
+      if(frontpen != nullpen) {
+        draw(f,t*s.transverse.back,thin+defaultbackpen+backpen,light);
+        draw(f,t*s.transverse.front,thin+frontpen,light);
+      }
+      if(longitudinalpen != nullpen) {
+        draw(f,t*s.longitudinal.back,thin+defaultbackpen+longitudinalbackpen,light);
+        draw(f,t*s.longitudinal.front,thin+longitudinalpen,light);
+      }
   }
-  if(longitudinalpen != nullpen) {
-    draw(pic,s.longitudinal.back,thin+defaultbackpen+longitudinalbackpen,light);
-    draw(pic,s.longitudinal.front,thin+longitudinalpen,light);
-  }
+  pic.add(new void(frame f, transform3 t, picture pic, projection P) {
+      drawskeleton(f,t,P);
+      if(pic != null)
+        pic.addBox(min(f,P),max(f,P),min(frontpen),max(frontpen));
+    });
+  frame f;
+  drawskeleton(f,identity4,P);
+  pic.addBox(min3(f),max3(f));
   endgroup3(pic);
 }
 
