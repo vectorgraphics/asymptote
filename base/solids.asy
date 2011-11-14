@@ -345,30 +345,45 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
 	  pen frontpen=currentpen, pen backpen=frontpen,
 	  pen longitudinalpen=frontpen, pen longitudinalbackpen=backpen,
 	  light light=currentlight, string name="",
-          render render=defaultrender,projection P=currentprojection)
+          render render=defaultrender, projection P=currentprojection)
 {
-  begingroup3(pic,name == "" ? "skeleton" : name,render);
-  void drawskeleton(frame f, transform3 t, projection P) {
-      pen thin=is3D() ? thin() : defaultpen;
+  if(is3D()) {
+    pen thin=thin();
+    void drawskeleton(frame f, transform3 t, projection P) {
       skeleton s=r.skeleton(m,n,inverse(t)*P);
       if(frontpen != nullpen) {
         draw(f,t*s.transverse.back,thin+defaultbackpen+backpen,light);
         draw(f,t*s.transverse.front,thin+frontpen,light);
       }
       if(longitudinalpen != nullpen) {
-        draw(f,t*s.longitudinal.back,thin+defaultbackpen+longitudinalbackpen,light);
+        draw(f,t*s.longitudinal.back,thin+defaultbackpen+longitudinalbackpen,
+             light);
         draw(f,t*s.longitudinal.front,thin+longitudinalpen,light);
       }
+    }
+
+    begingroup3(pic,name == "" ? "skeleton" : name,render);
+    pic.add(new void(frame f, transform3 t, picture pic, projection P) {
+        drawskeleton(f,t,P);
+        if(pic != null)
+          pic.addBox(min(f,P),max(f,P),min(frontpen),max(frontpen));
+      });
+    frame f;
+    drawskeleton(f,identity4,P);
+    pic.addBox(min3(f),max3(f));
+    endgroup3(pic);
+  } else {
+    skeleton s=r.skeleton(m,n,P);
+    if(frontpen != nullpen) {
+      draw(pic,s.transverse.back,defaultbackpen+backpen,light);
+      draw(pic,s.transverse.front,frontpen,light);
+    }
+    if(longitudinalpen != nullpen) {
+      draw(pic,s.longitudinal.back,defaultbackpen+longitudinalbackpen,
+           light);
+      draw(pic,s.longitudinal.front,longitudinalpen,light);
+    }
   }
-  pic.add(new void(frame f, transform3 t, picture pic, projection P) {
-      drawskeleton(f,t,P);
-      if(pic != null)
-        pic.addBox(min(f,P),max(f,P),min(frontpen),max(frontpen));
-    });
-  frame f;
-  drawskeleton(f,identity4,P);
-  pic.addBox(min3(f),max3(f));
-  endgroup3(pic);
 }
 
 revolution operator * (transform3 t, revolution r)
