@@ -25,7 +25,9 @@ dvi:	doc asymptote.dvi
 doc:	$(DOCFILES) asy.1 faq latexusage.eps
 	cd png && $(MAKE) all
 
-man:	$(DOCFILES) asy.1
+manpage: $(MANFILES)
+
+man:	$(DOCFILES) manpage
 	cd png && $(MAKE) asymptote.info
 
 faq:	
@@ -100,7 +102,7 @@ install-prebuilt: install-man options
 	cd png && $(MAKE) install
 	cd FAQ && $(MAKE) install-prebuilt
 
-install-all: $(DOCFILES) asy.1 faq latexusage.eps install-man
+install-all: $(DOCFILES) $(MANFILES) faq latexusage.eps install-man
 	cd png && $(MAKE) install-all
 	cd FAQ && $(MAKE) install-info
 
