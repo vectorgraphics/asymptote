@@ -2988,6 +2988,8 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
   if((preview || (prc && settings.render == 0)) && settings.embed) {
     image=prefix;
     if(settings.inlinetex) image += "_0";
+    if(!preview && !shipped && !S.pic2.empty2())
+      shipout(image,S.pic2.fit(),newframe,nativeformat(),false,false,null);
     image += "."+nativeformat();
     if(!settings.inlinetex) file3.push(image);
     image=graphic(image,"hiresbb");
