@@ -48,6 +48,7 @@ using types::realArray;
 using types::stringArray;
 
 using vm::stack;
+using vm::array;
 using vm::pop;
 using vm::error;
 using run::copyArrayC;
@@ -558,12 +559,12 @@ void GSLrngInit(stack *s)
 
 void GSLrngList(stack *s)
 {
-  vm::array* a = new vm::array(0);
+  array* a = new array(0);
   const gsl_rng_type **t;
   for(t=GSLrngFirstType; *t!=0; ++t) {
     a->push(string((*t)->name));
   }
-  s->push<vm::array*>(a);
+  s->push<array*>(a);
   checkGSLerror();
 }
 
@@ -873,21 +874,21 @@ void GSLrng_dir(stack *s)
   checkGSLrng();
   double* p = new double[n];
   gsl_ran_dir_nd(GSLrng,n,p);
-  s->push<vm::array*>(copyCArray(n,p));
+  s->push<array*>(copyCArray(n,p));
   delete[] p;
   checkGSLerror();
 }
 
 void GSLrng_dirichlet(stack *s)
 {
-  vm::array* alpha = pop<vm::array*>(s);
+  array* alpha = pop<array*>(s);
   size_t K = checkArray(alpha);
   checkGSLrng();
   double* calpha;
   copyArrayC(calpha,alpha);
   double* ctheta = new double[K];
   gsl_ran_dirichlet(GSLrng,K,calpha,ctheta);
-  s->push<vm::array*>(copyCArray(K,ctheta));
+  s->push<array*>(copyCArray(K,ctheta));
   delete[] ctheta;
   delete[] calpha;
   checkGSLerror();
@@ -895,8 +896,8 @@ void GSLrng_dirichlet(stack *s)
 
 void GSLpdf_dirichlet(stack *s)
 {
-  vm::array* theta = pop<vm::array*>(s);
-  vm::array* alpha = pop<vm::array*>(s);
+  array* theta = pop<array*>(s);
+  array* alpha = pop<array*>(s);
   size_t K = checkArray(alpha);
   if(checkArray(theta) != K)
     error(GSLinvalid);
@@ -912,7 +913,7 @@ void GSLpdf_dirichlet(stack *s)
 
 void GSLrng_multinomial(stack *s)
 {
-  vm::array* p = pop<vm::array*>(s);
+  array* p = pop<array*>(s);
   unsigned int N = unsignedcast(pop<Int>(s));
   size_t K = checkArray(p);
   checkGSLrng();
@@ -920,7 +921,7 @@ void GSLrng_multinomial(stack *s)
   copyArrayC(cp,p);
   unsigned int* cn = new unsigned int[K];
   gsl_ran_multinomial(GSLrng,K,N,cp,cn);
-  s->push<vm::array*>(copyCArray(K,cn));
+  s->push<array*>(copyCArray(K,cn));
   delete[] cn;
   delete[] cp;
   checkGSLerror();
@@ -928,8 +929,8 @@ void GSLrng_multinomial(stack *s)
 
 void GSLpdf_multinomial(stack *s)
 {
-  vm::array* n = pop<vm::array*>(s);
-  vm::array* p = pop<vm::array*>(s);
+  array* n = pop<array*>(s);
+  array* p = pop<array*>(s);
   size_t K = checkArray(p);
   if(K != checkArray(n)) error(GSLinvalid);
   double* cp;
@@ -940,6 +941,19 @@ void GSLpdf_multinomial(stack *s)
   delete[] cn;
   delete[] cp;
   checkGSLerror();
+}
+
+void GSLsf_elljac_e(stack *s)
+{
+  double m = pop<double>(s);
+  double u = pop<double>(s);
+  double sn,cn,dn;
+  gsl_sf_elljac_e(u,m,&sn,&cn,&dn);
+  array *result=new array(3);
+  (*result)[0]=sn;
+  (*result)[1]=cn;
+  (*result)[2]=dn;
+  s->push(result);
 }
 
 // Handle GSL errors gracefully.
@@ -1079,9 +1093,6 @@ void gen_rungsl_venv(venv &ve)
   addGSLDOUBLE3Func<gsl_sf_ellint_RD>(SYM(RD),SYM(x),SYM(y),SYM(z));
   addGSLDOUBLE3Func<gsl_sf_ellint_RF>(SYM(RF),SYM(x),SYM(y),SYM(z));
   addGSLDOUBLE4Func<gsl_sf_ellint_RJ>(SYM(RJ),SYM(x),SYM(y),SYM(z),SYM(p));
-
-  // Elliptic functions (Jacobi)
-  // to be implemented
 
   // Error functions
   addGSLRealFunc<gsl_sf_erf>(SYM(erf));
@@ -1395,6 +1406,10 @@ void gen_rungsl_venv(venv &ve)
   addFunc(GSLModule->e.ve,GSLrng_dir3d,primTriple(),SYM(rng_dir3d));
   addFunc(GSLModule->e.ve,GSLrng_dir,realArray(),SYM(rng_dir),
           formal(primInt(),SYM(n)));
+  
+  // Elliptic functions (Jacobi)
+  addFunc(GSLModule->e.ve,GSLsf_elljac_e,realArray(),SYM(sncndn),
+          formal(primReal(),SYM(u)),formal(primReal(),SYM(m)));
 
   // Dirirchlet distribution
   addFunc(GSLModule->e.ve,GSLrng_dirichlet,realArray(),SYM(rng_dirichlet),

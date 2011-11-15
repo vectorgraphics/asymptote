@@ -4934,6 +4934,7 @@ also defined.
 @cindex @code{F}
 @cindex @code{E}
 @cindex @code{P}
+@cindex @code{sndncn}
 @cindex @code{Ei}
 @cindex @code{Si}
 @cindex @code{Ci}
@@ -4951,6 +4952,7 @@ defines the airy functions @code{Ai(real)},
 @code{J(real, real)}, @code{Y(real, real)}, @code{I(real, real)},
 @code{K(real, real)}, @code{zero_J(real, int)}, the elliptic functions 
 @code{F(real, real)}, @code{E(real, real)}, and @code{P(real, real)}, 
+the Jacobi elliptic functions @code{real[] sndncn(real,real)},
 the exponential/trigonometric integrals @code{Ei}, @code{Si}, and @code{Ci},
 the Legendre polynomials @code{Pl(int, real)}, and the Riemann zeta
 function @code{zeta(real)}. For example, to compute the sine integral
