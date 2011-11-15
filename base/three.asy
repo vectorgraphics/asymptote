@@ -2830,14 +2830,14 @@ struct scene
             return b == 0 ? (0.5*(a.x+a.y)) :
               (b.x^2*a.x+b.y^2*a.y)/(b.x^2+b.y^2);
           }
-          pic2.erase();
           transform3 s=keepAspect ? scale3(min(f(v,x),f(v,y),f(v,z))) :
             xscale3(f(v,x))*yscale3(f(v,y))*zscale3(f(v,z));
           s=shift(this.P.target)*s*shift(-this.P.target);
           t=s*t;
           this.P=s*this.P;
           this.P.bboxonly=false;
-          f=pic.fit3(t,is3D ? null : pic2,this.P);
+          picture pic0;
+          f=pic.fit3(t,is3D ? null : pic0,this.P);
         }
 
         if(this.P.autoadjust || this.P.infinity)
@@ -2988,8 +2988,11 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
   if((preview || (prc && settings.render == 0)) && settings.embed) {
     image=prefix;
     if(settings.inlinetex) image += "_0";
-    if(!preview && !shipped && !S.pic2.empty2())
-      shipout(image,S.pic2.fit(),newframe,nativeformat(),false,false,null);
+    if(!preview && !shipped && !S.pic2.empty2()) {
+      transform T=S.pic2.scaling(S.width,S.height);
+      shipout(image,S.pic2.fit(T),newframe,nativeformat(),false,false,null);
+    }
+    
     image += "."+nativeformat();
     if(!settings.inlinetex) file3.push(image);
     image=graphic(image,"hiresbb");

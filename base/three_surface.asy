@@ -1216,7 +1216,8 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
           light light=currentlight, light meshlight=light, string name="",
           render render=defaultrender, projection P=currentprojection)
 {
-  if(is3D()) {
+  bool is3D=is3D();
+  if(is3D) {
     begingroup3(f,name == "" ? "surface" : name,render);
     for(int i=0; i < s.s.length; ++i)
       draw3D(f,s.s[i],surfacepen[i],light);
@@ -1238,7 +1239,8 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
         endgroup3(f);
       }
     }
-  } else {
+  }
+  if(!is3D || settings.render == 0) {
     begingroup(f);
     // Sort patches by mean distance from camera
     triple camera=P.camera;
@@ -1299,11 +1301,10 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
       surface S=t*s;
       if(is3D())
         draw(f,S,nu,nv,surfacepen,meshpen,light,meshlight,name,render);
-      else if(pic != null)
+      if(pic != null) {
         pic.add(new void(frame f, transform T) {
             draw(T,f,S,nu,nv,surfacepen,meshpen,light,meshlight,P);
           },true);
-      if(pic != null) {
         pic.addPoint(min(S,P));
         pic.addPoint(max(S,P));
       }
