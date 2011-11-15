@@ -2836,8 +2836,8 @@ struct scene
           t=s*t;
           this.P=s*this.P;
           this.P.bboxonly=false;
-          picture pic0;
-          f=pic.fit3(t,is3D ? null : pic0,this.P);
+          if(!is3D) pic2.erase();
+          f=pic.fit3(t,is3D ? null : pic2,this.P);
         }
 
         if(this.P.autoadjust || this.P.infinity)
@@ -3024,7 +3024,7 @@ object embed(string label="", string text=label,
     object F;
     transform T=S.pic2.scaling(xsize,ysize,keepAspect);
     F.f=pic.fit(scale(S.t[0][0])*T);
-    add(F.f,S.pic2.fit(T));
+    add(F.f,S.pic2.fit());
     return F;
   }
 }
