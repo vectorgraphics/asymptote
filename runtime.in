@@ -233,6 +233,11 @@ bool :boolFalse()
   return false;
 }
 
+bool isnan(real x)
+{
+  return isnan(x);
+}
+
 array* :pushNullArray()
 {
   return 0;

@@ -1794,12 +1794,18 @@ maximum value is @code{intMax}.
 @cindex @code{realMax}
 @cindex @code{realEpsilon}
 @cindex @code{realDigits}
+@cindex @code{mask}
+@cindex @code{inf}
+@cindex @code{isnan}
 a real number; this should be set to the highest-precision native
 floating-point type on the architecture. The implicit initializer for
 reals is @code{0.0}. Real numbers have precision
 @code{realEpsilon}, with @code{realDigits} significant digits.
 The smallest positive real number is @code{realMin} and the largest
-positive real number is @code{realMax}.
+positive real number is @code{realMax}. 
+The variable @code{inf} and function @code{bool isnan(real x)}
+are useful when floating-point exceptions are masked with
+the @code{-mask} command-line option (the default in interactive mode).
 
 @item pair
 @cindex @code{pair}
@@ -5813,7 +5819,8 @@ code s=quote {
 eval(s,true);        // Outputs 1
 @end verbatim
 
-To include the contents of a file @code{graph} verbatim (as if the
+@cindex @code{include}
+To include the contents of an existing file @code{graph} verbatim (as if the
 contents of the file were inserted at that point), use one of the forms:
 @verbatim
 include graph;
@@ -9490,7 +9497,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  latexusage tex bbox PostScript subdirectory gcc emacs ASYDIR
 @c  LocalWords:  documentclass usepackage subpath shipout sqrt xN  Mx bw AcroRd
 @c  LocalWords:  xscale xaxis yaxis BeginBar GIF postprocessing fpu de rpair xy
-@c  LocalWords:  nomask noplain ImageMagick defaultfontsize defaultlinewidth cd
+@c  LocalWords:  ImageMagick defaultfontsize defaultlinewidth cd
 @c  LocalWords:  startup natively xasy tkinter VxN yingyang currentpicture toc
 @c  LocalWords:  MetaPost MetaFont Hammerlindl Healy texinfo autoload setq setf
 @c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
