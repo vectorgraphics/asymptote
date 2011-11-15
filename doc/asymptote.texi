@@ -5974,6 +5974,7 @@ and enclose your @code{Asymptote} code within a
 @code{\begin@{asy@}...\end@{asy@}} environment. As with the
 @code{LaTeX} @code{comment} environment, the @code{\end@{asy@}} command
 must appear on a line by itself, with no trailing commands/comments.
+A blank line is not allowed after @code{\begin@{asy@}}.
 
 The sample @code{LaTeX} file below, named @code{latexusage.tex}, can
 be run as follows:
