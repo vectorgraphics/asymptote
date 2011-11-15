@@ -2094,7 +2094,12 @@ scientific notation;
 @cindex @code{hex}
 @cindex @code{hexidecimal}
 @item int hex(string s);
-casts a hexidecimal string @code{s} to an integer.
+casts a hexidecimal string @code{s} to an integer;
+
+@cindex @code{ascii}
+@cindex @code{ascii}
+@item int ascii(string s);
+returns the ASCII code for the first character of string @code{s};
 
 @cindex @code{string}
 @item string string(real x, int digits=realDigits)
@@ -2103,7 +2108,7 @@ casts @code{x} to a string using precision @code{digits} and the C locale;
 @cindex @code{locale}
 @item string locale(string s="")
 sets the locale to the given string, if nonempty, and returns the
-current locale.
+current locale;
 
 @item string time(string format="%a %b %d %T %Z %Y")
 @cindex @code{time}

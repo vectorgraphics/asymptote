@@ -366,6 +366,11 @@ Int hex(string s)
   error(buf);
 }
 
+Int ascii(string s)
+{
+  return s.empty() ? -1 : (unsigned char) s[0];
+}
+
 string string(Int x)
 {
   ostringstream buf;
