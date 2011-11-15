@@ -2,7 +2,8 @@ MANFILES = asy.1 xasy.1x
 ASYFILES = $(filter-out $(wildcard latexusage-*.asy),$(wildcard *.asy))
 SOURCE = asymptote.texi version.texi options
 ASY = ../asy -dir ../base -config "" -render=0
-DOCFILES = asymptote.pdf asy-latex.pdf CAD.pdf TeXShopAndAsymptote.pdf
+DOCFILES = asymptote.pdf asy-latex.pdf CAD.pdf TeXShopAndAsymptote.pdf \
+           asyRefCard.pdf
 
 docdir = $(DESTDIR)@docdir@
 infodir = $(DESTDIR)@infodir@
@@ -57,7 +58,9 @@ options: ../settings.cc
 	$(ASY) -h 2>&1 | grep -iv Asymptote > options
 
 asy.1: options asy.1.begin asy.1.end
-	cat options | grep \^- | sed -e "s/-\(.*\)  \([a-zA-Z0-9].*\)/.TP\n.B -\1\n\2\./" | sed -e "/^.B/ s/-/\\\\-/g" | cat asy.1.begin - asy.1.end > asy.1
+	cat options | grep \^- | \
+	sed -e "s/-\(.*\)  \([a-zA-Z0-9].*\)/.TP\n.B -\1\n\2\./" | \
+	sed -e "/^.B/ s/-/\\\\-/g" | cat asy.1.begin - asy.1.end > asy.1
 
 asymptote.dvi: $(SOURCE) $(ASYFILES:.asy=.eps) latexusage.pdf
 	ln -sf asymptote.texi asymptote_.texi
@@ -78,11 +81,17 @@ TeXShopAndAsymptote.pdf: TeXShopAndAsymptote.tex
 	latex TeXShopAndAsymptote
 	dvipdf TeXShopAndAsymptote
 
+asyRefCard.pdf: asyRefCard.tex
+	tex asyRefCard
+	dvipdf asyRefCard
+
 clean: FORCE
 	-rm -f asy-latex.{aux,idx,ins,log,toc}
 	-rm -f $(ASYFILES:.asy=.pdf)
-	-rm -f *.eps latexusage.{dvi,eps,pdf,log,aux,*.eps} latexusage-* latexusage.pre
-	-rm -f {asymptote,asymptote_}.{aux,cp,cps,dvi,fn,info,ky,log,pg,toc,tp,vr} 
+	-rm -f *.eps latexusage.{dvi,eps,pdf,log,aux,*.eps} latexusage-* \
+            latexusage.pre
+	-rm -f \
+            {asymptote,asymptote_}.{aux,cp,cps,dvi,fn,info,ky,log,pg,toc,tp,vr} 
 	-rm -f asymptote_.texi
 	-rm -f CAD.{aux,dvi,log,toc}
 	-rm -f options asy.1

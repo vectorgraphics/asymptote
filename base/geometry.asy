@@ -30,6 +30,16 @@
 
 import math;
 import markers;
+
+// A rotation in the direction dir limited to [-90,90]
+// This is useful for rotating text along a line in the direction dir.
+private transform rotate(explicit pair dir)
+{
+  real angle=degrees(dir);
+  if(angle > 90 && angle < 270) angle -= 180;
+  return rotate(angle);
+} 
+
 // *=======================================================*
 // *........................HEADER.........................*
 /*<asyxml><variable type="real" signature="epsgeo"><code></asyxml>*/

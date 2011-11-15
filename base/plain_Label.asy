@@ -1,12 +1,3 @@
-// A rotation in the direction dir limited to [-90,90]
-// This is useful for rotating text along a line in the direction dir.
-transform rotate(explicit pair dir)
-{
-  real angle=degrees(dir);
-  if(angle > 90 && angle < 270) angle -= 180;
-  return rotate(angle);
-} 
-
 real angle(transform t)
 {
   pair z=(2t.xx*t.yy,t.yx*t.yy-t.xx*t.xy);

@@ -255,6 +255,12 @@ Links to many external resources, including an excellent user-written
 @quotation
 @url{http://asymptote.sourceforge.net/links.html}.
 @end quotation
+@cindex reference
+@cindex quick reference
+A quick reference card for @code{Asymptote} is available at
+@quotation
+@url{http://asymptote.sourceforge.net/asyRefCard.pdf}.
+@end quotation
 
 @node Installation
 @chapter Installation

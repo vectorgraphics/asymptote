@@ -1,0 +1,556 @@
+% Reference Card for Asymptote
+
+% Copyright (c) 2011 John C. Bowman. May be freely distributed.
+% Thanks to Stephen Gildea for the multicolumn macro package
+% and Joseph H. Silverman for the C Reference card.
+
+%**start of header
+\newcount\columnsperpage
+
+\overfullrule=0pt
+
+% This file can be printed with 1, 2, or 3 columns per page (see below).
+% [For 2 or 3 columns, you'll need 6 and 8 point fonts.]
+% Specify how many you want here.  Nothing else needs to be changed.
+
+\columnsperpage=2
+
+% This reference card is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+
+% This file is intended to be processed by plain TeX (TeX82).
+%
+% The final reference card has six columns, three on each side.
+% This file can be used to produce it in any of three ways:
+% 1 column per page
+%    produces six separate pages, each of which needs to be reduced to 80%.
+%    This gives the best resolution.
+% 2 columns per page
+%    produces three already-reduced pages.
+%    You will still need to cut and paste.
+% 3 columns per page
+%    produces two pages which must be printed sideways to make a
+%    ready-to-use 8.5 x 11 inch reference card.
+%    For this you need a dvi device driver that can print sideways.
+% Which mode to use is controlled by setting \columnsperpage above.
+%
+%  (reference card macros due to Stephen Gildea)
+%
+
+\def\versionnumber{0.0}  % Version of this reference card
+\def\year{2011}
+\def\month{August}
+\def\version{\month\ \year\ v\versionnumber}
+
+\def\shortcopyrightnotice{\vskip .5ex plus 2 fill
+  \centerline{\small \copyright\ \year\ John C. Bowman
+  Permissions on back.  v\versionnumber}}
+
+\def\copyrightnotice{
+\vskip 1ex plus 100 fill\begingroup\small
+\centerline{\version. Copyright \copyright\ \year\ John C. Bowman}
+
+Permission is granted to make and distribute copies of
+this card provided the copyright notice and this permission notice
+are preserved on all copies.
+\endgroup}
+
+% make \bye not \outer so that the \def\bye in the \else clause below
+% can be scanned without complaint.
+\def\bye{\par\vfill\supereject\end}
+
+\newdimen\intercolumnskip
+\newbox\columna
+\newbox\columnb
+
+\def\ncolumns{\the\columnsperpage}
+
+\message{[\ncolumns\space 
+  column\if 1\ncolumns\else s\fi\space per page]}
+
+\def\scaledmag#1{ scaled \magstep #1}
+
+% This multi-way format was designed by Stephen Gildea
+% October 1986.
+\if 1\ncolumns
+  \hsize 4in
+  \vsize 10in
+  \voffset -.7in
+  \font\titlefont=\fontname\tenbf \scaledmag3
+  \font\headingfont=\fontname\tenbf \scaledmag2
+		\font\headingfonttt=\fontname\tentt \scaledmag2
+  \font\smallfont=\fontname\sevenrm
+  \font\smallsy=\fontname\sevensy
+
+  \footline{\hss\folio}
+  \def\makefootline{\baselineskip10pt\hsize6.5in\line{\the\footline}}
+\else
+  \hsize 3.2in
+  \vsize 7.95in
+  \hoffset -.75in
+  \voffset -.745in
+  \font\titlefont=cmbx10 \scaledmag2
+  \font\headingfont=cmbx10 \scaledmag1
+		\font\headingfonttt=cmtt10 \scaledmag1
+  \font\smallfont=cmr6
+  \font\smallsy=cmsy6
+  \font\eightrm=cmr8
+  \font\eightbf=cmbx8
+  \font\eightit=cmti8
+  \font\eighttt=cmtt8
+  \font\eightsy=cmsy8
+  \font\eightsl=cmsl8
+  \font\eighti=cmmi8
+  \font\eightex=cmex10 at 8pt
+  \textfont0=\eightrm  
+  \textfont1=\eighti
+  \textfont2=\eightsy
+  \textfont3=\eightex
+  \def\rm{\fam0 \eightrm}
+  \def\bf{\eightbf}
+  \def\it{\eightit}
+  \def\tt{\eighttt}
+  \def\sl{\eightsl}
+  \normalbaselineskip=.8\normalbaselineskip
+  \normallineskip=.8\normallineskip
+  \normallineskiplimit=.8\normallineskiplimit
+  \normalbaselines\rm		%make definitions take effect
+
+  \if 2\ncolumns
+    \let\maxcolumn=b
+    \footline{\hss\rm\folio\hss}
+    \def\makefootline{\vskip 2in \hsize=6.86in\line{\the\footline}}
+  \else \if 3\ncolumns
+    \let\maxcolumn=c
+    \nopagenumbers
+  \else
+    \errhelp{You must set \columnsperpage equal to 1, 2, or 3.}
+    \errmessage{Illegal number of columns per page}
+  \fi\fi
+
+  \intercolumnskip=.46in
+  \def\abc{a}
+  \output={%
+      % This next line is useful when designing the layout.
+      %\immediate\write16{Column \folio\abc\space starts with \firstmark}
+      \if \maxcolumn\abc \multicolumnformat \global\def\abc{a}
+      \else\if a\abc
+	\global\setbox\columna\columnbox \global\def\abc{b}
+        %% in case we never use \columnb (two-column mode)
+        \global\setbox\columnb\hbox to -\intercolumnskip{}
+      \else
+	\global\setbox\columnb\columnbox \global\def\abc{c}\fi\fi}
+  \def\multicolumnformat{\shipout\vbox{\makeheadline
+      \hbox{\box\columna\hskip\intercolumnskip
+        \box\columnb\hskip\intercolumnskip\columnbox}
+      \makefootline}\advancepageno}
+  \def\columnbox{\leftline{\pagebody}}
+
+  \def\bye{\par\vfill\supereject
+    \if a\abc \else\null\vfill\eject\fi
+    \if a\abc \else\null\vfill\eject\fi
+    \end}  
+\fi
+
+% we won't be using math mode much, so redefine some of the characters
+% we might want to talk about
+\catcode`\^=12
+%\catcode`\_=12
+\catcode`\~=12
+
+\chardef\\=`\\
+\chardef\{=`\{
+\chardef\}=`\}
+\chardef\underscore=`\_
+
+\hyphenation{}
+
+\parindent 0pt
+\parskip .85ex plus .35ex minus .5ex
+
+\def\small{\smallfont\textfont2=\smallsy\baselineskip=.8\baselineskip}
+
+\outer\def\newcolumn{\vfill\eject}
+
+\outer\def\title#1{{\titlefont\centerline{#1}}\vskip 1ex plus .5ex}
+
+\outer\def\section#1{\par\filbreak
+  \vskip .5ex  minus .1ex {\headingfont #1}\mark{#1}%
+  \vskip .3ex  minus .1ex}
+
+\outer\def\librarysection#1#2{\par\filbreak
+  \vskip .5ex  minus .1ex {\headingfont #1}\quad{\headingfonttt<#2>}\mark{#1}%
+  \vskip .3ex  minus .1ex}
+
+
+\newdimen\keyindent
+
+\def\beginindentedkeys{\keyindent=1em}
+\def\endindentedkeys{\keyindent=0em}
+\def\begindoubleindentedkeys{\keyindent=2em}
+\def\enddoubleindentedkeys{\keyindent=1em}
+\endindentedkeys
+
+\def\paralign{\vskip\parskip\halign}
+
+\def\<#1>{$\langle${\rm #1}$\rangle$}
+
+\def\kbd#1{{\tt#1}\null}	%\null so not an abbrev even if period follows
+
+\def\beginexample{\par\vskip1\jot
+\hrule width.5\hsize
+\vskip1\jot
+\begingroup\parindent=2em
+  \obeylines\obeyspaces\parskip0pt\tt}
+{\obeyspaces\global\let =\ }
+\def\endexample{\endgroup}
+
+\def\Example{\qquad{\sl Example\/}.\enspace\ignorespaces}
+
+\def\key#1#2{\leavevmode\hbox to \hsize{\vtop
+  {\hsize=.75\hsize\rightskip=1em
+  \hskip\keyindent\relax#1}\kbd{#2}\hfil}}
+
+\newbox\metaxbox
+\setbox\metaxbox\hbox{\kbd{M-x }}
+\newdimen\metaxwidth
+\metaxwidth=\wd\metaxbox
+
+\def\metax#1#2{\leavevmode\hbox to \hsize{\hbox to .75\hsize
+  {\hskip\keyindent\relax#1\hfil}%
+  \hskip -\metaxwidth minus 1fil
+  \kbd{#2}\hfil}}
+
+\def\threecol#1#2#3{\hskip\keyindent\relax#1\hfil&\kbd{#2}\quad
+  &\kbd{#3}\quad\cr}
+
+% Define Italic Names
+\def\makedef#1 {%
+\expandafter\edef\csname#1\endcsname{\hbox{\it#1\/}}}
+\makedef array
+\makedef arg
+\makedef const
+\makedef dim
+\makedef expr
+\makedef filename
+\makedef fnc
+\makedef format
+\makedef member
+\makedef name
+\makedef statement
+\makedef statements
+\makedef string
+\makedef type
+\makedef value
+\makedef var
+
+%**end of header
+
+
+\title{Asymptote Reference Card}
+
+\section{Program structure/functions}
+\halign{\tt#\hfil&\qquad#\hfil\cr
+import "\filename"&import module\cr
+import "\filename" as name&import filename as module name\cr
+include "\filename"&include verbatim text from file\cr
+\type\ \fnc(\type,\dots);&optional function declaration\cr
+\type\ \name;&variable declaration\cr
+\type\ \fnc(\type\ \arg,\dots) \{&function definition\cr
+\quad\statements\cr
+\quad return \value;\cr
+\}\cr
+}
+
+\section{Data types/declarations}
+\key{boolean (true or false)}{bool}
+\key{tri-state boolean (true, default, or false)}{bool3}
+\key{integer}{int}
+\key{float (double precision)}{real}
+\key{ordered pair (complex number)}{pair}
+\key{character string}{string}
+\key{fixed piecewise cubic Bezier spline}{path}
+\key{unresolved piecewise cubic Bezier spline}{guide}
+\key{color, line type/width/cap, font, fill rule}{pen}
+\key{label with position, alignment, pen attributes}{Label}
+\key{drawing canvas}{picture}
+\key{affine transform}{transform}
+\key{constant (unchanging) value}{const}
+\key{allocate in higher scope}{static}
+\key{no value}{void}
+\key{inhibit implicit argument casting}{explicit}
+\key{structure}{struct}
+\key{create name by data type}{typedef \type\ \name}
+
+\section{3D data types (import three;)}
+\key{ordered triple}{triple}
+\key{3D path}{path3}
+\key{3D guide}{guide3}
+\key{3D affine transform}{transform3}
+
+\section{Constants}
+\key{exponential form}{6.02e23}
+\key{\TeX\ string constant}{"abc\dots de"}
+\key{\TeX\ strings: special characters}{\\\\, \\"}
+\key{C strings: constant}{'abc\dots de'}
+\key{C strings: special characters}{\\\\, \\" \\' \\?}
+\key{C strings: newline, cr, tab, backspace}{\\n \\r \\t \\b}
+\key{C strings: octal, hexadecimal bytes}{\\0-\\377 \\x0-\\xFF}
+
+\section{Operators}
+\key{arithmetic operations}{+ - * /}
+\key{modulus (remainder)}{\%}
+\key{comparisons}{== != > >= < <=}
+\key{not}{!}
+\key{and or (conditional evaluation of RHS)}{\&\& ||}
+\key{and or xor}{\& | ^}
+\key{cast expression to type}{(\type) \expr}
+\key{increment decrement prefix operators}{++ --}
+\key{assignment operators}{+= -= *= /= \%=}
+\key{conditional expression}{\expr$_1$\ {?}\ \expr$_2$\ {:}\ \expr$_3$}
+\key{structure member operator}{\name.\member}
+\key{expression evaluation separator}{,}
+
+\section{Flow control}
+\key{statement terminator}{;}
+\key{block delimeters}{\{\quad\}}
+\key{comment delimeters}{/*\quad*/}
+\key{comment to end of line delimiter}{//}
+\key{exit from \kbd{while}/\kbd{do}/\kbd{for}}{break;}
+\key{next iteration of \kbd{while}/\kbd{do}/\kbd{for}}{continue;}
+\key{return value from function}{return \expr;}
+\key{terminate execution}{exit();}
+\key{abort execution with error message}{abort(string);}
+\metax{{\bf Flow constructions} ({\tt if/while/for/do})\hidewidth}{}
+\beginexample
+if(\expr)\ \statement
+else if(\expr)\ \statement
+else \statement
+\endexample
+\beginexample
+while(\expr)
+\quad\statement
+\endexample
+\beginexample
+for(\expr$_1$; \expr$_2$; \expr$_3$)
+\quad\statement
+\endexample
+\beginexample
+for(\type var : \array)
+\quad\statement
+\endexample
+\beginexample
+do \statement
+\quad while(\expr);
+\endexample
+
+\section{Arrays}
+\metax{array}{\type[]\ \name}
+\metax{array element i}{\name[i]}
+\metax{anonymous array}{new \type[\dim]}
+\metax{array containing n deep copies of x}{array(n,x)}
+\metax{length}{\name.length}
+\metax{cyclic flag}{\name.cyclic}
+\metax{pop element {\tt x}}{\name.pop()}
+\metax{push element {\tt x}}{\name.push(x)}
+\metax{append array {\tt a}}{\name.append(a)}
+\metax{insert rest arguments at index {\tt i}}{\name.insert(i,\dots)}
+\metax{delete element at index {\tt i}}{\name.delete(i)}
+\metax{delete elements with indices in [{\tt i},{\tt j}]}{\name.delete(i,j)}
+\metax{delete all elements}{\name.delete()}
+\metax{test whether element n is initialized}{\name.initialized(n)}
+\metax{array of indices of initialized elements}{\name.keys}
+\metax{complement of int array in {\tt \{0,\dots,n-1\}}}{complement(a,n)}
+\metax{deep copy of array {\tt a}}{copy(a)}
+\metax{array {\tt \{0,1,\dots,n-1\}}}{sequence(n)}
+\metax{array {\tt \{n,n+1,\dots,m\}}}{sequence(n,m)}
+\metax{array {\tt \{n-1,n-2,\dots,0\}}}{reverse(n)}
+\metax{array {\tt \{f(0),f(1),\dots,f(n-1)\}}}{sequence(f,n)}
+\metax{array obtained by applying {\tt f} to array {\tt a}}{map(f,a)}
+\metax{uniform partition of [{\tt a},{\tt b}] into n intervals}{uniform(a,b,n)}
+\metax{concat specified 1D arrays}{concat(a,b,\dots)}
+\metax{return sorted array}{sort(a)}
+\metax{return array sorted using ordering {\tt less}}{sort(a,{\tt less})}
+\metax{search sorted array {\tt a} for key}{search(a,key)}
+\metax{index of first true value of bool array {\tt a}}{find(a)}
+\metax{index of nth true value of bool array {\tt a}}{find(a,n)}
+
+\section{Initialization}
+\key{initialize variable}{\type\ \name=\value;}
+\key{initialize array}{\type[]\ \name=\{\dots\};}
+
+\section{path connectors}
+\key{straight segment}{--}
+\key{Bezi\'er segment with implicit control points}{..}
+\key{Bezi\'er segment with explicit control points}{..controls c0 and c1..}
+\key{concatenate}{\&}
+\key{lift pen}{^^}
+\key{..tension atleast 1..}{::}
+\key{..tension atleast infinity..}{---}
+
+\section{Labels}
+\key{implicit cast of string {\tt s} to Label}{s}
+\key{Label {\tt s} with relative position and alignment}{Label(s,real,pair)}
+\key{Label {\tt s} with absolute position and alignment}{Label(s,pair,pair)}
+\key{Label {\tt s} with specified pen}{Label(s,pen)}
+
+\section{draw commands}
+\key{draw path with current pen}{draw(path)}
+\key{draw path with pen}{draw(path,pen)}
+\key{draw labeled path}{draw(Label,path)}
+\key{draw arrow with pen}{draw(path,pen,Arrow)}
+\key{draw path on picture}{draw(picture,path)}
+
+\section{fill commands}
+\key{fill path with current pen}{fill(path)}
+\key{fill path with pen}{fill(path,pen)}
+\key{fill path on picture}{fill(picture,path)}
+
+\section{label commands}
+\key{label a pair with optional alignment z}{label(Label,pair,{\tt z})}
+\key{label a path with optional alignment z}{label(Label,path,{\tt z})}
+\key{add label to picture}{label(picture,Label)}
+
+\section{clip commands}
+\key{clip to path}{clip(path)}
+\key{clip to path with fill rule}{clip(path,pen)}
+\key{clip picture to path}{clip(picture,path)}
+
+\section{pens}
+\key{Grayscale pen from value in [0,1]}{gray(g)}
+\key{RGB pen from values in [0,1]}{rgb(r,g,b)}
+\key{CMYK pen from values in [0,1]}{cmyk(r,g,b)}
+\key{RGB pen from heximdecimal string]}{rgb(string)}
+\key{heximdecimal string from rgb pen]}{hex(pen)}
+\key{hsv pen from values in [0,1]}{hsv(h,s,v)}
+\key{invisible pen}{invisible}
+\key{default pen}{defaultpen}
+\key{current pen}{currentpen}
+\key{solid pen}{solid}
+\key{dotted pen}{dotted}
+\key{wide dotted current pen}{Dotted}
+\key{wide dotted pen}{Dotted(pen)}
+\key{dashed pen}{dashed}
+\key{long dashed pen}{longdashed}
+\key{dash dotted pen}{dashdotted}
+\key{long dash dotted pen}{longdashdotted}
+\key{PostScript butt line cap}{squarecap}
+\key{PostScript round line cap}{roundcap}
+\key{PostScript projecting square line cap}{extendcap}
+\key{miter join}{miterjoin}
+\key{round join}{roundjoin}
+\key{bevel join}{beveljoin}
+\key{pen with miter limit}{miterlimit(real)}
+\key{zero-winding fill rule}{zerowinding}
+\key{even-odd fill rule}{evenodd}
+\key{align to character bounding box (default)}{nobasealign}
+\key{align to \TeX\ baseline}{basealign}
+\key{pen with font size (pt)}{fontsize(real)}
+\key{LaTeX pen from encoding,family,series,shape}{font(strings)}
+\key{\TeX\ pen}{font(string)}
+\key{scaled \TeX\ pen}{font(string,real)}
+\key{PostScript font from strings}{Courier(series,shape)}
+\key{pen with opacity in [0,1]}{opacity(real)}
+\key{construct pen nib from polygonal path}{makepen(path)}
+\key{pen mixing operator}{+}
+
+\section{path operations}
+\key{number of segments in path {\tt p}}{length(p)}
+\key{number of nodes in path {\tt p}}{size(p)}
+\key{is path {\tt p} cyclic?}{cyclic(p)}
+\key{is segment {\tt i} of path {\tt p} straight?}{straight(p,i)}
+\key{is path {\tt p} straight?}{piecewisestraight(p)}
+\key{coordinates of path {\tt p} at time {\tt t}}{point(p,t)}
+\key{direction of path {\tt p} at time {\tt t}}{dir(p,t)}
+\key{direction of path {\tt p} at {\tt length(p)}}{dir(p)}
+\key{unit(dir(p)+dir(q))}{dir(p,q)} 
+\key{acceleration of path {\tt p} at time {\tt t}}{accel(p,t)}
+\key{radius of curvature of path {\tt p} at time {\tt t}}{radius(p,t)}
+\key{precontrol point of path {\tt p} at time {\tt t}}{precontrol(p,t)}
+\key{postcontrol point of path {\tt p} at time {\tt t}}{postcontrol(p,t)}
+\key{arclength of path {\tt p}}{arclength(p)}
+\key{time at which {\tt arclength(p)=L}}{arctime(p,L)}
+\key{point on path {\tt p} at arclength {\tt L}}{arcpoint(p,L)}
+\key{first value {\tt t} at which {\tt dir(p,t)=z}}{dir(p,z)}
+\key{time {\tt t} at relative fraction {\tt l} of {\tt arclength(p)}}{reltime(p,l)}
+\key{point at relative fraction {\tt l} of {\tt arclength(p)}}{relpoint(p,l)}
+\key{point midway along arclength of {\tt p}}{midpoint(p)}
+\key{path running backwards along {\tt p}}{reverse(p)}
+\key{subpath of {\tt p} between times {\tt a} and {\tt b}}{subpath(p,a,b)}
+\key{times for one intersection of paths {\tt p} and {\tt q}}{intersect(p,q)}
+\key{times at which {\tt p} reaches minimal extents}{mintimes(p)}
+\key{times at which {\tt p} reaches maximal extents}{maxtimes(p)}
+\key{intersection times of paths {\tt p} and {\tt q}}{intersections(p,q)}
+\key{intersection times of paths {\tt p} and {\tt a--b}}{intersections(p,a,b)}
+\key{intersection times of path {\tt p} crossing $x=${\tt x}}{times(p,x)}
+\key{intersection times of path {\tt p} crossing $y=${\tt z.y}}{times(p,z)}
+\key{intersection point of paths {\tt p} and {\tt q}}{intersectionpoint(p,q)}
+\key{intersection points of {\tt p} and {\tt q}}{intersectionpoints(p,q)}
+\key{intersection of extension of {\tt P--Q} and {\tt p--q}}{extension(P,Q,p,q)}
+\key{lower left point of bounding box of path {\tt p}}{min(p)}
+\key{upper right point of bounding box of path {\tt p}}{max(p)}
+\key{subpaths of {\tt p} split by $n$th cut of {\tt knife}}{cut(p,knife,n)}
+\key{winding number of path {\tt p} about pair {\tt z}}{windingnumber(p,z)}
+\key{pair {\tt z} lies within path {\tt p}?}{interior(p,z)}
+\key{pair {\tt z} lies within or on path {\tt p}?}{inside(p,z)}
+\key{path surrounding region bounded by paths}{buildcycle(\dots)}
+\key{path filled by \tt{draw(g,p)}}{strokepath(g,p)}
+\key{unit square with lower-left vertex at origin}{unitsquare}
+\key{unit circle centered at origin}{unitcircle}
+\key{circle of radius {\tt r} about {\tt c}}{circle(c,r)}
+\key{arc of radius {\tt r} about {\tt c} from angle {\tt a} to {\tt b}}{arc(c,r,a,b)}
+\key{unit {\tt n}-sided polygon}{polygon(n)}
+\key{unit {\tt n}-sided cyclic cross}{cross(n)}
+
+\section{pictures}
+\key{add picture {\tt pic} to currentpicture}{add(pic)}
+\key{add picture {\tt pic} about pair {\tt z}}{add(pic,z)}
+
+\section{affine transforms}
+\key{identity transform}{identity()}
+\key{shift by values}{shift(real,real)}
+\key{shift by pair}{shift(pair)}
+\key{scale by {\tt x} in the $x$ direction}{xscale(x)}
+\key{scale by {\tt y} in the $y$ direction}{yscale(y)}
+\key{scale by {\tt x} in both directions}{scale(x)}
+\key{scale by real values {\tt x} and {\tt y}}{scale(x,y)}
+\key{map $(x,y) \rightarrow (x+${\tt s}$y,y)$}{slant(s)}
+\key{rotate by real {\tt angle} in degrees about pair {\tt z}}{rotate(angle,z=(0,0))}
+\key{reflect about line from {\tt P--Q}}{reflect(P,Q)}
+
+\section{string operations}
+\key{concatenate operator}{+}
+\key{string length}{length(string)}
+\key{position $\ge$ {\tt pos} of first occurence of {\tt t} in {\tt s}}{find({\tt s},{\tt t},pos=0)}
+\key{position $\le$ {\tt pos} of last occurence of {\tt t} in {\tt s}}{rfind({\tt s},{\tt t},pos=-1)}
+\key{string with {\tt t} inserted in {\tt s} at {\tt pos}}{insert({\tt s},{\tt pos},{\tt t})}
+\key{string {\tt s} with {\tt n} characters at {\tt pos} erased}{erase({\tt s},{\tt pos},{\tt n})}
+\key{substring of string {\tt s} of length {\tt n} at {\tt pos}}{substr({\tt s},{\tt pos},{\tt n})}
+\key{string {\tt s} reversed}{reverse({\tt s})}
+\key{string {\tt s} with {\tt before} changed to {\tt after}}{replace({\tt s},{\tt before},{\tt after})}
+\key{string {\tt s} translated via {\tt \{\{before,after\},\dots\}}}{replace({\tt
+s},string [][] table)}
+\key{format {\tt x} using C-style format string {\tt s} }{format({\tt s},x)}
+\key{casts hexidecimal string to an integer}{hex(s)}
+\key{casts {\tt x} to string using precision {\tt digits}}{string(x,digits=realDigits)}
+\key{current time formatted by {\tt format}}{time(format="\%a \%b \%d \%T \%Z \%Y")}
+\key{time in seconds of string {\tt t} using {\tt format}}{seconds(t,format)}
+\key{string corresponding to {\tt seconds} using {\tt format}}{time(seconds,format)}
+\key{split {\tt s} into strings separated by {\tt delimiter}}{split(s,delimiter="")}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% END LIBRARIES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% This goes at the bottom of the last page (column 6)
+%\copyrightnotice
+%
+
+\bye
+
+% Local variables:
+% compile-command: "tex AsyRefCard"
+% End:
+
+
+
+
