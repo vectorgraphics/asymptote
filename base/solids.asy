@@ -133,9 +133,7 @@ struct revolution {
   }
 
   // add transverse slice to skeleton s;
-  // must be recomputed if camera is adjusted
-  void transverse(skeleton s, real t, int n=nslice,
-                  projection P=currentprojection) {
+  void transverse(skeleton s, real t, int n=nslice, projection P) {
     skeleton.curve s=s.transverse;
     path3 S=slice(t,n);
     triple camera=camera(P);
@@ -191,8 +189,7 @@ struct revolution {
   }
 
   // add m evenly spaced transverse slices to skeleton s
-  void transverse(skeleton s, int m=0, int n=nslice,
-                  projection P=currentprojection) {
+  void transverse(skeleton s, int m=0, int n=nslice, projection P) {
     if(m == 0) {
       int N=size(g);
       for(int i=0; i < N; ++i)

@@ -62,7 +62,7 @@ draw(pic,shift(cst,0,0)*scale3(Rtl/2)*unitsphere,yellow);
 surface terre=scale3(Rtl/5)*unitsphere; 
 surface lune=scale3(Rl)*unitsphere; 
  
-int n=100;
+int n=50;
 
 real step=2pi/n; 
 for(int i=0; i < n; ++i) { 

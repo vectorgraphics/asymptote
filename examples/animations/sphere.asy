@@ -22,11 +22,7 @@ for(int i=0; i < nbpts; ++i) {
 transform3 t=rotate(angle,(0,0,0),(1,0.25,0.25));
 revolution r=sphere(O,3);
 draw(surface(r),lightgrey);
-skeleton s;
-r.transverse(s,reltime(r.g,0.5));
-r.longitudinal(s);
-draw(s.transverse.back,linetype("8 8",8));
-draw(s.transverse.front);
+draw(r,backpen=linetype("8 8",8));
 
 animation A;
 
