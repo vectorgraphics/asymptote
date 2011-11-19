@@ -2162,6 +2162,17 @@ locale. For example, to return the date corresponding to 24 hours ago:
 time(seconds()-24*60*60);
 @end verbatim
 
+@cindex @code{system}
+@item int system(string s)
+@item int system(string[] s)
+if the setting @code{safe} is false, call the arbitrary system command @code{s};
+
+@cindex @code{asy}
+@item void asy(string format, bool overwrite=false ... string[] s)
+conditionally process each file name in array @code{s} in a new environment,
+using format @code{format}, overwriting the output file only if
+@code{overwrite} is true;
+
 @cindex @code{abort}
 @item void abort(string s="")
 aborts execution (with a non-zero return code in batch mode); if string
@@ -3891,10 +3902,6 @@ int animate(string args="", string file="", string format="");
 call the @code{ImageMagick} commands @code{convert} and @code{animate},
 respectively, with the arguments @code{args} and the file name constructed
 from the strings @code{file} and @code{format}. 
-@cindex @code{system}
-If the setting @code{safe} is false, then the functions 
-@code{int system(string s)} and @code{int system(string[] s)} can be
-used to call the arbitrary system command @code{s}.
 
 @node Variable initializers
 @section Variable initializers
@@ -4337,7 +4344,7 @@ not
 @cindex @code{?}
 @cindex conditional
 @verbatim
-bool positive=(pi >= 0) ? true : false;
+bool positive=(pi > 0) ? true : false;
 @end verbatim
 
 @cindex @code{interp}
@@ -6023,8 +6030,8 @@ An even better method for processing a @code{LaTeX} file with embedded
 @url{http://www.ctan.org/tex-archive/support/latexmk/}
 @end quotation
 @noindent
-after putting the rules
-@verbatiminclude latexmkrc
+after putting the contents of
+@url{http://asymptote.svn.sourceforge.net/viewvc/asymptote/trunk/asymptote/doc/latexmkrc}
 @noindent
 in a file @code{latexmkrc} in the same directory. The command
 @verbatim
