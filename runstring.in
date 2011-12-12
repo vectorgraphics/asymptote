@@ -230,7 +230,8 @@ string format(string *format, Int x, string locale=emptystring)
   return s;
 }
 
-string format(string *format, real x, string locale=emptystring) 
+string format(string *format, string separator, real x,
+              string locale=emptystring)
 {
   bool tex=getSetting<string>("tex") != "none";
   bool texify=false;
@@ -290,7 +291,7 @@ string format(string *format, real x, string locale=emptystring)
   
   char *q=buf; // beginning of formatted number
 
-  if(*q == ' ') {
+  if(*q == ' ' && texify) {
     out << phantom;
     q++;
   }
@@ -308,7 +309,7 @@ string format(string *format, real x, string locale=emptystring)
     }
     if(zero) {
       q++;
-      if(plus || space) out << phantom;
+      if((plus || space) && texify) out << phantom;
     }
   }
   
@@ -333,7 +334,7 @@ string format(string *format, real x, string locale=emptystring)
   while(*q != 0) {
     if(texify && (*q == 'E' || *q == 'e') && 
        (*(q+1) == '+' || *(q+1) == '-')) {
-      if(!zero) out << "\\!\\times\\!10^{";
+      if(!zero) out << separator << "10^{";
       bool plus=(*(q+1) == '+');
       q++;
       if(plus) q++;

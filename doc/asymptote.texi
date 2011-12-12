@@ -2088,14 +2088,14 @@ returns a string containing @code{n} formatted according to the C-style
 format string @code{s} using locale @code{locale} (or the current locale if an
 empty string is specified);
 
-@item string format(string s=defaultformat, real x, string locale="")
+@item string format(string s=defaultformat, string s=defaultseparator, real x, string locale="")
 returns a string containing @code{x} formatted according to the C-style format
 string @code{s} using locale @code{locale} (or the current locale if an
 empty string is specified), following the behaviour of the C function
 @code{fprintf}), except that only one data field is allowed, trailing
 zeros are removed by default (unless @code{#} is specified), and
 (if the format string specifies math mode) @TeX{} is used to typeset
-scientific notation;
+scientific notation using the @code{defaultseparator="\!\times\!";};
 
 @cindex @code{hex}
 @cindex @code{hexidecimal}

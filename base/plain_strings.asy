@@ -5,6 +5,7 @@ string defaultformat(int n, string trailingzero="", bool fixed=false,
 }
 
 string defaultformat=defaultformat(4);
+string defaultseparator="\!\times\!";
 
 string ask(string prompt)
 {
@@ -208,9 +209,14 @@ string math(real x)
   return math((string) x);
 }
 
+string format(string format, real x, string locale="")
+{
+  return format(format,defaultseparator,x,locale);
+}
+
 string format(real x, string locale="")
 {
-  return format(defaultformat,x,locale);
+  return format(defaultformat,defaultseparator,x,locale);
 }
 
 string phantom(string s)
