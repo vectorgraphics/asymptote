@@ -315,7 +315,8 @@ string format(string *format, string separator, real x,
   
   const char *r=p=q;
   bool dp=false;
-  while(*r != 0 && (isdigit(*r) || *r == decimal || *r == '+' || *r == '-')) {
+  while(*r != 0 && (isspace(*r) || isdigit(*r) || *r == decimal \
+    || *r == '+' || *r == '-')) {
     if(*r == decimal) dp=true;
     r++;
   }
