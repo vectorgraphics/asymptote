@@ -38,7 +38,7 @@ Licence: GPL2+
 %</driver>
 %<pkg>\ProvidesPackage{asymptote}
 %<*pkg>
-  [2011/08/17 v1.25 Asymptote style file for LaTeX]
+  [2011/12/18 v1.25a Asymptote style file for LaTeX]
 %</pkg>
 %
 %<*driver>
@@ -230,6 +230,7 @@ Licence: GPL2+
 %
 % \begin{macro}{\CatchFileDef}
 % Used for \cmd\asyinclude.
+% Note that the fallback definition is not as robust as the one provided by catchfile.
 %    \begin{macrocode}
 \IfFileExists{catchfile.sty}{
   \RequirePackage{catchfile}
@@ -240,12 +241,12 @@ Licence: GPL2+
       \ENDCATCHFILEMARKER
       \noexpand
     }%
-    \long\def\@tempa##1\ENDCATCHFILEMARKER{%
+    \long\def\@tempa####1\ENDCATCHFILEMARKER{%
       \endgroup
-      \def#1{##1}%
+      \def##1{####1}%
     }%
-    #3%
-    \expandafter\@tempa\@@input #2\relax
+    ##3%
+    \expandafter\@tempa\@@input ##2\relax
   }
 }
 %    \end{macrocode}
