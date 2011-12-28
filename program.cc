@@ -40,14 +40,32 @@ string lookupBltin(bltin b) {
 
 ostream& operator<< (ostream& out, const item& i)
 {
+  if (i.empty())
+    return out << "empty";
+
+  if (isdefault(i))
+    return out << "default";
+
 #if COMPACT
-  out << "<item>";
+  // TODO: Try to guess the type from the value.
+  Int n = get<Int>(i);
+  double x = get<double>(i);
+  void *p = get<void *>(i);
+
+  if (n == BoolTruthValue)
+    return out << "true";
+  if (n == BoolFalseValue)
+    return out << "false";
+
+  if (abs(n) < 1000000)
+    return out << n;
+
+  if (fabs(x) < 1e30 and fabs(x) > 1e-30)
+    return out << x;
+
+  return out << "<item " << p << ">";
 #else
   // TODO: Make a data structure mapping typeids to print functions.
-  if (i.empty())
-    out << "empty";
-  else if (isdefault(i))
-    out << "default";
   else if (i.type() == typeid(Int))
     out << "Int, value = " << get<Int>(i);
   else if (i.type() == typeid(double))
@@ -58,7 +76,7 @@ ostream& operator<< (ostream& out, const item& i)
     out << *(get<callable *>(i));
   else if (i.type() == typeid(frame)) {
     out << "frame";
-#ifdef DEBUG_FRAME
+#  ifdef DEBUG_FRAME
     {
       frame *f = get<frame *>(i);
       if (f)
@@ -66,7 +84,7 @@ ostream& operator<< (ostream& out, const item& i)
       else
         out << " <null>";
     }
-#endif
+#  endif
   }
   else
     out << "type " << demangle(i.type().name());
