@@ -38,57 +38,58 @@ position curPos = nullPos;
 const program::label nulllabel;
 }
 
+inline stack::vars_t base_frame(
+    size_t size,
+    size_t parentIndex,
+    stack::vars_t closure
+#ifdef DEBUG_FRAME
+    , string name
+#endif
+    )
+{
+  stack::vars_t vars;
+#ifdef SIMPLE_FRAME
+  vars = new item[size];
+  vars[parentIndex] = closure;
+#else
+#  ifdef DEBUG_FRAME
+  assert(!name.empty());
+  vars = new frame(name, parentIndex, size);
+#  else
+  vars = new frame(size);
+#  endif
+  (*vars)[parentIndex] = closure;
+#endif
+
+  // TODO: Re-factor closure.
+  return vars;
+}
+
+#ifdef DEBUG_FRAME
+#define BASEFRAME(s,p,c,n) (base_frame((s), (p), (c), (n)))
+#else
+#define BASEFRAME(s,p,c,n) (base_frame((s), (p), (c)))
+#endif
+
+// Abstractions needed.
+//accessor(frame_handle)
+// operator[] for accessor
+
+
 inline stack::vars_t make_frame(lambda *l, stack::vars_t closure)
 {
-#ifdef SIMPLE_FRAME
-  stack::vars_t vars = new item[l->framesize];
-  vars[l->parentIndex] = closure;
-#else
-#ifdef DEBUG_FRAME
-  assert(!l->name.empty());
-  stack::vars_t vars = new frame(l->name, l->parentIndex, l->framesize);
-#else
-  stack::vars_t vars = new frame(l->framesize);
-#endif
-
-  // The closure is stored after the parameters.
-  (*vars)[l->parentIndex] = closure;
-#endif
-
-  return vars;
+  return BASEFRAME(l->framesize, l->parentIndex, closure, l->name);
 }
 
 inline stack::vars_t make_pushframe(size_t size, stack::vars_t closure)
 {
   assert(size >= 1);
-#if SIMPLE_FRAME
-  stack::vars_t vars = new item[size];
-  vars[0] = closure;
-#else
-#ifdef DEBUG_FRAME
-  stack::vars_t vars = new frame("<pushed frame>", 0, size);
-#else
-  stack::vars_t vars = new frame(size);
-#endif
-  (*vars)[0] = closure;
-#endif
-
-  return vars;
+  return BASEFRAME(size, 0, closure, "<pushed frame>");
 }
 
 stack::vars_t make_dummyframe(string name)
 {
-#if SIMPLE_FRAME
-  stack::vars_t vars = new item[1];
-#else
-#ifdef DEBUG_FRAME
-  stack::vars_t vars = new frame("<dummy frame for "+name+">", 0, 1);
-#else
-  stack::vars_t vars = new frame(1);
-#endif
-#endif
-
-  return vars;
+  return BASEFRAME(1, 0, 0, "<dummy frame for "+name+">");
 }
 
 inline stack::vars_t make_globalframe(size_t size)
@@ -102,12 +103,15 @@ inline stack::vars_t make_globalframe(size_t size)
   direct[0] = indirect;
   return direct;
 #else
+  return BASEFRAME(size, 0, 0, "<globals>");
+#if 0
 #ifdef DEBUG_FRAME
   stack::vars_t vars = new frame("<pushed frame>", 0, size);
 #else
   stack::vars_t vars = new frame(size);
 #endif
   return vars;
+#endif
 #endif
 
 }
@@ -259,6 +263,7 @@ void stack::debug()
       break;
   }
 }
+
 
 void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 {
