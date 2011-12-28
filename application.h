@@ -110,7 +110,6 @@ public:
   }
 };
 
-
 // This class generates sequenced args, args whose side-effects occur in order
 // according to their index, regardless of the order they are called.  This is
 // used to ensure left-to-right order of evaluation of keyword arguments, even
@@ -261,7 +260,7 @@ class application : public gc {
   bool complete();
 
   // Match a rest argument in the calling expression.
-  bool matchRest(env &e, types::formal& f, varinit *a);
+  bool matchRest(env &e, types::formal& f, varinit *a, size_t evalIndex);
  
   // Match the argument represented in signature to the target signature.  On
   // success, all of the arguments in args will be properly set up.

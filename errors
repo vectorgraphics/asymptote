@@ -1,6 +1,6 @@
-errortest.asy: 476.34: argument after rest argument
+errortest.asy: 476.34: unnamed argument after rest argument
 errortest.asy: 477.37: additional rest argument
-errortest.asy: 478.28: argument after rest argument
+errortest.asy: 478.28: unnamed argument after rest argument
 errortest.asy: 479.31: additional rest argument
 errortest.asy: 482.22: normal parameter after rest parameter
 errortest.asy: 483.22: normal parameter after rest parameter
@@ -155,7 +155,3 @@ errortest.asy: 452.16: expression is not an array of inferable type
 errortest.asy: 457.16: expression is not an array of inferable type
 errortest.asy: 463.16: expression is not an array of inferable type
 errortest.asy: 470.7: array expression cannot be used as an address
-errortest.asy: 476.4: cannot call
-'int f(string s=<default> ... int[] a)'
-with parameters
-'(int, int, int, string ... int[])'

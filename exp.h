@@ -661,11 +661,18 @@ struct argument {
 class arglist : public gc {
 public:
   typedef mem::vector<argument> argvector;
+
   argvector args;
   argument rest;
 
+  // As the language allows named arguments after rest arguments, store the
+  // index of the rest argument in order to ensure proper left-to-right
+  // execution.
+  static const size_t DUMMY_REST_POSITION = 9999;
+  size_t restPosition;
+
   arglist()
-    : args(), rest() {}
+    : args(), rest(), restPosition(DUMMY_REST_POSITION) {}
 
   virtual ~arglist() {}
   
@@ -679,11 +686,10 @@ public:
   }
 
   virtual void add(argument a) {
-    if (rest.val) {
-      // TODO: Handle keyword arguments after rest with proper left-to-right
-      // ordering.
+    if (rest.val && !a.name) {
       em.error(a.val->getPos());
-      em << "argument after rest argument";
+      em << "unnamed argument after rest argument";
+      return;
     }
     args.push_back(a);
   }
@@ -697,8 +703,13 @@ public:
     if (rest.val) {
       em.error(a.val->getPos());
       em << "additional rest argument";
+      return;
     }
+
     rest = a;
+
+    assert(restPosition == DUMMY_REST_POSITION);
+    restPosition = size();
   }
 
   virtual void prettyprint(ostream &out, Int indent);

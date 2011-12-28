@@ -85,10 +85,8 @@ StartTest("keyword");
   assert(f(4, 5, r=3, 10, 20, 30 ... new int[] {40,50,60}) == 3);
   assert(f(r=3, 10, 20, 30 ... new int[] {40,50,60}) == 3);
   assert(f(r=3, 10, 20, 30 ... new int[] {40,50,60}) == 3);
-  /*
   assert(f(... new int[] {40,50,60}, r=3) == 3);
   assert(f(... new int[] {40,50,60}, r=3) == 3);
-  */
 }
 
 {
@@ -106,10 +104,8 @@ StartTest("keyword");
   assert(f(4, 5, r=3, 10, 20, 30 ... new int[] {40,50,60}) == 3);
   assert(f(r=3, 10, 20, 30 ... new int[] {40,50,60}) == 3);
   assert(f(r=3, 10, 20, 30 ... new int[] {40,50,60}) == 3);
-  /*
   assert(f(... new int[] {40,50,60}, r=3) == 3);
   assert(f(... new int[] {40,50,60}, r=3) == 3);
-  */
 
   assert(f() == 77);
   assert(f(1) == 77);
@@ -139,11 +135,8 @@ StartTest("keyword");
   assert(f(345,4, 5, r=3, 10, 20, 30 ... new int[] {40,50,60}) == 3);
   assert(f(345,r=3, 10, 20, 30 ... new int[] {40,50,60}) == 3);
   assert(f(345,r=3, 10, 20, 30 ... new int[] {40,50,60}) == 3);
-  /*
   assert(f(345 ... new int[] {40,50,60}, r=3) == 3);
   assert(f(345 ... new int[] {40,50,60}, r=3) == 3);
-  assert("ADD LEFT TO RIGHT ORDER TESTING" == "Not yet");
-  */
 
   assert(f(345) == 77);
   assert(f(345,1) == 77);

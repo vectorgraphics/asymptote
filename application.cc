@@ -233,7 +233,8 @@ bool application::complete() {
     return false;
 }
 
-bool application::matchRest(env &e, formal &source, varinit *a) {
+bool application::matchRest(env &e, formal &source, varinit *a,
+                            size_t evalIndex) {
   // First make sure all non-rest arguments are matched (matching to defaults
   // if necessary).
   if (complete())
@@ -242,7 +243,7 @@ bool application::matchRest(env &e, formal &source, varinit *a) {
       formal &target=sig->getRest();
       score s=castScore(e, target, source);
       if (s!=FAIL) {
-        rest->addRest(new varinitArg(a, target.t));
+        rest->addRest(seq.addArg(a, target.t, evalIndex));
         scores.push_back(s);
         return true;
       }
@@ -250,6 +251,13 @@ bool application::matchRest(env &e, formal &source, varinit *a) {
   return false;
 }
   
+// When the argument should be evaluated, possibly adjusting for a rest
+// argument which occurs before named arguments.
+size_t adjustIndex(size_t i, size_t ri)
+{
+  return i < ri ? i : i+1;
+}
+
 bool application::matchSignature(env &e, types::signature *source,
                                  arglist &al) {
   formal_vector &f=source->formals;
@@ -259,21 +267,23 @@ bool application::matchSignature(env &e, types::signature *source,
   cout << "num keyword-only: " << sig->numKeywordOnly << endl;
 #endif
 
+  size_t ri = al.rest.val ? al.restPosition : f.size();
+
   // First, match all of the named (non-rest) arguments.
   for (size_t i=0; i<f.size(); ++i)
     if (f[i].name)
-      if (!matchNamedArgument(e, f[i], al[i].val, i))
+      if (!matchNamedArgument(e, f[i], al[i].val, adjustIndex(i,ri)))
         return false;
 
   // Then, the unnamed.
   for (size_t i=0; i<f.size(); ++i)
     if (!f[i].name)
-      if (!matchArgument(e, f[i], al[i].val, i))
+      if (!matchArgument(e, f[i], al[i].val, adjustIndex(i,ri)))
         return false;
 
   // Then, the rest argument.
   if (source->hasRest())
-    if (!matchRest(e, source->getRest(), al.rest.val))
+    if (!matchRest(e, source->getRest(), al.rest.val, ri))
       return false;
 
   // Fill in any remaining arguments with their defaults.
