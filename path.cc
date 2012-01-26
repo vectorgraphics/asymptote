@@ -59,39 +59,42 @@ quadraticroots::quadraticroots(double a, double b, double c)
       distinct=quadraticroots::NONE;
       roots=0;
     }
-  } else if(b == 0.0) {
-    double x=-c/a;
-    if(x >= 0.0) {
-      distinct=quadraticroots::TWO;
-      roots=2;
-      t2=sqrt(x);
-      t1=-t2;
-    } else {
-      distinct=quadraticroots::NONE;
-      roots=0;
-    }
   } else {
     double factor=0.5*b/a;
-    double x=-2.0*c/(b*factor);
-    if(x > -1.0) {
-      distinct=quadraticroots::TWO;
-      roots=2;
-      double r2=factor*sqrt1pxm1(x);
-      double r1=-r2-2.0*factor;
-      if(r1 <= r2) {
-        t1=r1;
-        t2=r2;
+    double denom=b*factor;
+    if(denom == 0.0) {
+      double x=-c/a;
+      if(x >= 0.0) {
+        distinct=quadraticroots::TWO;
+        roots=2;
+        t2=sqrt(x);
+        t1=-t2;
       } else {
-        t1=r2;
-        t2=r1;
+        distinct=quadraticroots::NONE;
+        roots=0;
       }
-    } else if(x == -1.0) {
-      distinct=quadraticroots::ONE;
-      roots=2;
-      t1=t2=-factor;
     } else {
-      distinct=quadraticroots::NONE;
-      roots=0;
+      double x=-2.0*c/denom;
+      if(x > -1.0) {
+        distinct=quadraticroots::TWO;
+        roots=2;
+        double r2=factor*sqrt1pxm1(x);
+        double r1=-r2-2.0*factor;
+        if(r1 <= r2) {
+          t1=r1;
+          t2=r2;
+        } else {
+          t1=r2;
+          t2=r1;
+        }
+      } else if(x == -1.0) {
+        distinct=quadraticroots::ONE;
+        roots=2;
+        t1=t2=-factor;
+      } else {
+        distinct=quadraticroots::NONE;
+        roots=0;
+      }
     }
   }
 }
@@ -110,12 +113,13 @@ Quadraticroots::Quadraticroots(pair a, pair b, pair c)
       roots=0;
   } else {
     roots=2;
-    if(b == 0.0) {
+    pair factor=0.5*b/a;
+    pair denom=b*factor;
+    if(denom == 0.0) {
       z1=Sqrt(-c/a);
       z2=-z1;
     } else {
-      pair factor=0.5*b/a;
-      z1=factor*sqrt1pxm1(-2.0*c/(b*factor));
+      z1=factor*sqrt1pxm1(-2.0*c/denom);
       z2=-z1-2.0*factor;
     }
   }
