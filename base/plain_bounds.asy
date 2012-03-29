@@ -422,7 +422,7 @@ private struct freezableBounds {
     void push(transform t, bounds b) {
       if (b.areSet) {
         pair[] box = { t*(b.min.x,b.max.y), t*b.max,
-                       t*b.min.x,           t*(b.min.x,b.max.y) };
+                       t*b.min,             t*(b.max.x,b.min.y) };
         for (var z : box)
           push(z,z);
       }
