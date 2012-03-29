@@ -400,7 +400,7 @@ private struct freezableBounds {
   // would be easily computable from extremes, except that the picture
   // interface actually allows calls that manually change the usermin and
   // usermax values.  Therefore, we have to compute these values separately.
-  private static struct bounds {
+  private static struct userbounds {
     bool areSet=false;
     pair min;
     pair max;
@@ -414,12 +414,12 @@ private struct freezableBounds {
       maxs.push(M);
     }
 
-    void push(bounds b) {
+    void push(userbounds b) {
       if (b.areSet)
         push(b.min, b.max);
     }
 
-    void push(transform t, bounds b) {
+    void push(transform t, userbounds b) {
       if (b.areSet) {
         pair[] box = { t*(b.min.x,b.max.y), t*b.max,
                        t*b.min,             t*(b.max.x,b.min.y) };
@@ -439,8 +439,8 @@ private struct freezableBounds {
              (max.x[i].user, max.y[i].user));
     }
 
-    bounds collapse() {
-      bounds b;
+    userbounds collapse() {
+      userbounds b;
       if (mins.length > 0) {
         b.areSet = true;
         b.min = minbound(mins);
@@ -454,7 +454,7 @@ private struct freezableBounds {
   }
 
   // The user bounds already calculated for this data.
-  private bounds storedUserBounds = null;
+  private userbounds storedUserBounds = null;
 
   private void accumulateUserBounds(boundsAccumulator acc)
   {
@@ -487,7 +487,7 @@ private struct freezableBounds {
     storedUserBounds = acc.collapse();
   }
 
-  private bounds userBounds() {
+  private userbounds userBounds() {
     if (storedUserBounds == null)
       computeUserBounds();
 
@@ -569,7 +569,7 @@ private struct freezableBounds {
     max.xclip(Min,Max);
 
     // Cap the userBounds.
-    bounds b = storedUserBounds;
+    userbounds b = storedUserBounds;
     b.min = (max(Min, b.min.x), b.min.y);
     b.max = (min(Max, b.max.x), b.max.y);
   }
@@ -582,7 +582,7 @@ private struct freezableBounds {
     max.yclip(Min,Max);
 
     // Cap the userBounds.
-    bounds b = storedUserBounds;
+    userbounds b = storedUserBounds;
     b.min = (b.min.x, max(Min, b.min.y));
     b.max = (b.max.x, min(Max, b.max.y));
   }
