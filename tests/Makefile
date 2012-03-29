@@ -1,6 +1,6 @@
 .NOTPARALLEL:
 
-TESTDIRS = string arith frames types imp array
+TESTDIRS = string arith frames types imp array pic
 EXTRADIRS = gsl output
 
 test: $(TESTDIRS)
