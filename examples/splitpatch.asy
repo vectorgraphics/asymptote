@@ -23,6 +23,6 @@ split S=split(A,B,10);
 
 defaultrender.merge=true;
 
-for(int i=0; i < S.T.length; ++i)
-  draw(surface(patch(S.T[i])),Pen(i));
-draw(surface(patch(B)),blue);
+for(int k=0; k < 2; ++k)
+  for(int i=0; i < S.T[k].length; ++i)
+    draw(surface(patch(S.T[k][i])),Pen(i));

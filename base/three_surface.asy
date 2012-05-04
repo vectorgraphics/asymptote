@@ -1946,8 +1946,8 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
 // A structure to subdivide two intersecting patches about their intersection.
 struct split
 {
-  // Container for subpatches of p.
-  triple[][][] T;
+  // Container for subpatches of each patch.
+  triple[][][][] T=new triple[2][][][];
 
   struct tree {
     tree[] tree=new tree[2];
@@ -1972,15 +1972,15 @@ struct split
     }    
   }
   
-  // Output the subpatches of p from subdivision.
-  void read(tree t, triple[][] p, int depth=n) {
+  // Output the subpatches of p from subdivision into container T.
+  void read(triple[][][] T, tree t, triple[][] p, int depth=n) {
     --depth;
     triple[][][] split(triple[][] P)=depth % 2 == 0 ? hsplit : vsplit;
     triple[][][] P=split(p);
 
     for(int i=0; i < 2; ++i) {
       if(t.tree.initialized(i)) 
-        read(t.tree[i],P[i],depth);
+        read(T,t.tree[i],P[i],depth);
       else T.push(P[i]);
     }
   }
@@ -1988,6 +1988,7 @@ struct split
   void operator init(triple[][] p, triple[][] q, int depth=n) {
     tree trunk;
     write(trunk,p,q,depth);
-    read(trunk,p,depth);  
+    read(T[0],trunk,p,depth);  
+    read(T[1],trunk,q,depth);  
   }
 }
