@@ -15,6 +15,7 @@ XPStyle On
 !include "MUI.nsh"
 !include "LogicLib.nsh"
 !include "EnvVarUpdate.nsh"
+!include "lnkX64IconFix.nsh"
 
 ; MUI Settings
 !define MUI_ABORTWARNING
@@ -109,7 +110,9 @@ Section "Asymptote" SEC01
   CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
   SetOutPath "%USERPROFILE%"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Asymptote.lnk" "$INSTDIR\asy.bat" "" "$INSTDIR\asy.ico"
+  ${lnkX64IconFix} "$SMPROGRAMS\$ICONS_GROUP\Asymptote.lnk"
   CreateShortCut "$DESKTOP\Asymptote.lnk" "$INSTDIR\asy.bat" "" "$INSTDIR\asy.ico"
+  ${lnkX64IconFix} "$DESKTOP\Asymptote.lnk"
   CreateShortCut "$DESKTOP\Xasy.lnk" "$INSTDIR\xasy.py"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Xasy.lnk" "$INSTDIR\xasy.py"
   SetOutPath "$INSTDIR"
