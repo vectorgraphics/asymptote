@@ -83,14 +83,6 @@ struct revolution {
     m=min(g);
   }
   
-  // Return the surface of rotation obtain by rotating the path3 (x,0,f(x))
-  // sampled n times between x=a and x=b about an axis lying in the XZ plane.
-  void operator init(triple c=O, real f(real x), real a, real b, int n=ngraph,
-                     interpolate3 join=operator --, triple axis=Z,
-                     real angle1=0, real angle2=360) {
-    operator init(c,graph(new triple(real x) {return (x,0,f(x));},a,b,n,
-                          join),axis,angle1,angle2);
-  }
 
   revolution copy() {
     return revolution(c,g,axis,angle1,angle2);
