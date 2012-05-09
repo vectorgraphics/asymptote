@@ -555,7 +555,8 @@ The current directory;
 @item
 @cindex @code{dir}
 A list of one or more directories specified by the configuration
-variable @code{dir} (separated by @code{:} under UNIX and
+variable @code{dir} or environment variable @code{ASYMPTOTE_DIR}
+(separated by @code{:} under UNIX and
 @code{;} under @code{MSDOS});
 @item
 @cindex @code{.asy}
@@ -593,7 +594,7 @@ in the @code{Asymptote} source directory.
 @anchor{multisampling}
 @noindent
 If your graphics card supports multisampling, we recommend using version
-@code{2.6.0} (or later) of @code{freeglut} to support antialiasing in
+@code{2.6.0} of @code{freeglut} to support antialiasing in
 @code{Asymptote}'s adaptive @code{OpenGL} 3D renderer
 (@code{MacOS X} users can skip this step since @code{Asymptote} is configured
 to use the native glut library on that platform). Download
@@ -6041,6 +6042,14 @@ latexmk -pdf latexusage
 will then call @code{Asymptote} automatically, recompiling only the figures
 that have changed. Since each figure is compiled in a separate
 system process, this method also tends to use less memory.
+To store the figures in a separate directory named @code{asy}, one can define
+@verbatim
+\def\asydir{asy}
+@end verbatim
+in @code{latexusage.tex} and put the contents of
+@url{http://asymptote.svn.sourceforge.net/viewvc/asymptote/trunk/asymptote/doc/latexmkrc_asydir}
+in a file @code{latexmkrc} in the same directory.
+@noindent
 External @code{Asymptote} code in @code{filename.asy} should be included with
 @cindex @code{asyinclude}
 @verbatim
@@ -6064,9 +6073,8 @@ environments.
 Three-dimensional @acronym{PRC} files may either be embedded within
 the page (the default) or attached as annotated (but printable)
 attachments, using the @code{attach} option and the @code{attachfile2}
-(or older @code{attachfile}) @code{LaTeX} package. The default value
-of @code{viewportwidth} is @code{\the\linewidth} for inline 3D figures
-and @code{0} for attachments. The @code{inline} option generates
+(or older @code{attachfile}) @code{LaTeX} package.
+The @code{inline} option generates
 inline @code{LaTeX} code instead of @acronym{EPS} or @acronym{PDF}
 files. This makes 2D LaTeX symbols visible to the 
 @code{\begin@{asy@}...\end@{asy@}} environment.  In this mode,
