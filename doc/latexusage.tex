@@ -84,7 +84,7 @@ renderer. To support {\tt latexmk}, 3D figures should specify
 attachments; this requires the \verb+attach=true+ option as well as the
 \verb+attachfile2+ \LaTeX\ package.
 \begin{center}
-\begin{asy}[height=4cm,inline=true,attach=false]
+\begin{asy}[height=4cm,inline=true,attach=false,viewportwidth=\linewidth]
 currentprojection=orthographic(5,4,2);
 draw(unitcube,blue);
 label("$V-E+F=2$",(0,1,0.5),3Y,blue+fontsize(17pt));

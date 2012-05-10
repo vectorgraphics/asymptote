@@ -38,7 +38,7 @@ Licence: GPL2+
 %</driver>
 %<pkg>\ProvidesPackage{asymptote}
 %<*pkg>
-  [2011/12/18 v1.25a Asymptote style file for LaTeX]
+  [2011/11/29 v1.26 Asymptote style file for LaTeX]
 %</pkg>
 %
 %<*driver>
@@ -129,11 +129,11 @@ Licence: GPL2+
 % addition to locally setting \texttt{inline} and \texttt{attach}, the
 % following options may also be used:
 % \begin{description}
-% \item[height] Height of the figure
 % \item[width] Width of the figure
+% \item[height] Height of the figure
 % \item[keepAspect] Maintain aspect ratio [default true]
-% \item[viewportheight] Viewport height for 3D figures
 % \item[viewportwidth] Viewport width for 3D figures
+% \item[viewportheight] Viewport height for 3D figures
 % \end{description}
 % These may also be set globally using the \cmd\asysetup\ command.
 %
@@ -527,11 +527,7 @@ Licence: GPL2+
   \fi
 %    \end{macrocode}
 % Setting \verb|viewportsize=()|. Same logic as for \verb|size()|.
-% Note that \cs{ASYviewportwidth} varies according to \cs{ASYattach},
-% by default, so it needs to be fully expanded before checking if it equals
-% zero.
 %    \begin{macrocode}
-  \edef\ASYviewportwidth{\ASYviewportwidth}% locally "freeze" viewportwidth
   \ifx\ASYviewportwidth\@empty
     \ifx\ASYviewportheight\@empty
       % write nothing!
@@ -677,10 +673,7 @@ Licence: GPL2+
     {\ASYkeepAspecttrue}
     {\ASYkeepAspectfalse}%
 }
-\def\ASYviewportwidth{\ASYdefaultviewportwidth}
-\def\ASYdefaultviewportwidth{%
-  \ifASYattach \@empty \else \the\linewidth \fi
-}
+\def\ASYviewportwidth{}
 \define@key{ASYkeys}{viewportwidth}{%
   \edef\ASYviewportwidth{\the\dimexpr#1\relax}%
 }
