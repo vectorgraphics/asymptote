@@ -18,11 +18,12 @@ triple[][] B={
   {(0.5,0,2),(0.5,1,2),(0.5,2,2),(0.5,3,2)}
 };
 
-split S=split(A,B,10);
-//write(S.T.length);
+split S=split(B,A);
 
 defaultrender.merge=true;
 
-for(int k=0; k < 2; ++k)
-  for(int i=0; i < S.T[k].length; ++i)
-    draw(surface(patch(S.T[k][i])),Pen(i));
+for(int i=0; i < S.S[0].s.length; ++i)
+  draw(surface(S.S[0].s[i]),Pen(i));
+
+for(int i=0; i < S.T[0].s.length; ++i)
+  draw(surface(S.T[0].s[i]),Pen(i));
