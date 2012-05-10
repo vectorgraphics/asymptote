@@ -6416,7 +6416,7 @@ sharp corners of paths, as illustrated in the example file @code{roundpath.asy}.
 @cindex animation
 @cindex @code{ImageMagick}
 This module allows one to generate animations, as illustrated by the
-files @code{wheel.asy}, @code{wavelet.asy}, and @code{cube.asy} in
+files @code{wheel.asy}, @code{wavepacket.asy}, and @code{cube.asy} in
 the @code{animations} subdirectory of the examples directory. These
 animations use the @code{ImageMagick} @code{convert} program to
 merge multiple images into a @acronym{GIF} or @acronym{MPEG}
