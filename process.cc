@@ -587,9 +587,6 @@ class iprompt : public icore {
   // Code ran at start-up.
   string startline;
 
-  // Used for handling quit abbreviation (q).
-  protoenv *einteractive;
-  
   void postRun(coenv &, istack &) {
   }
   
@@ -644,11 +641,11 @@ class iprompt : public icore {
   // and return true if they can handle the command.  If false is returned, the
   // line is treated as a normal line of code.
   // commands is a map of command names to methods which implement the commands.
-  typedef bool (iprompt::*command)(commandLine);
+  typedef bool (iprompt::*command)(coenv &, istack &, commandLine);
   typedef mem::map<CONST string, command> commandMap;
   commandMap commands;
 
-  bool exit(commandLine cl) {
+  bool exit(coenv &, istack &, commandLine cl) {
     if (cl.simple()) {
       // Don't store exit commands in the history file.
       interact::deleteLastLine();
@@ -658,12 +655,12 @@ class iprompt : public icore {
     else return false;
   }
 
-  bool q(commandLine cl) {
-    if(einteractive->ve.getType(symbol::trans("q"))) return false;
-    return exit(cl);
+  bool q(coenv &e, istack &s, commandLine cl) {
+    if(e.e.ve.getType(symbol::trans("q"))) return false;
+    return exit(e,s,cl);
   }
 
-  bool reset(commandLine cl) {
+  bool reset(coenv &, istack &, commandLine cl) {
     if (cl.simple()) {
       running=false;
       restart=true;
@@ -674,7 +671,7 @@ class iprompt : public icore {
     else return false;
   }
 
-  bool help(commandLine cl) {
+  bool help(coenv &, istack &, commandLine cl) {
     if (cl.simple()) {
       popupHelp();
       return true;
@@ -682,16 +679,15 @@ class iprompt : public icore {
     else return false;
   }
 
-  bool erase(commandLine cl) {
-    running=false;
-    restart=true;
-    if (cl.simple())
-      startline="erase()";
-    else startline=cl.line;
-    return true;
+  bool erase(coenv &e, istack &s, commandLine cl) {
+    if (cl.simple()) {
+      runLine(e,s,"erase();");
+      return true;
+    }
+    else return false;
   }
 
-  bool input(commandLine cl) {
+  bool input(coenv &, istack &, commandLine cl) {
     running=false;
     restart=true;
     startline="include "+cl.rest;
@@ -715,14 +711,14 @@ class iprompt : public icore {
 #undef ADDCOMMAND
   }
 
-  bool handleCommand(string line) {
+  bool handleCommand(coenv &e, istack &s, string line) {
     commandLine cl(line);
     if (cl.word != "") {
       commandMap::iterator p=commands.find(cl.word);
       if (p != commands.end()) {
         // Execute the command.
         command &com=p->second;
-        return (this->*com)(cl);
+        return (this->*com)(e,s,cl);
       }
       else
         return false;
@@ -834,7 +830,6 @@ public:
   void run(coenv &e, istack &s, transMode=TRANS_NORMAL) {
     running=true;
     interact::setCompleter(new trans::envCompleter(e.e));
-    einteractive=&(e.e);
 
     runStartCode(e, s);
 
@@ -843,7 +838,7 @@ public:
       string line=getline(false);
 
       // Check if it is a special command.
-      if (handleCommand(line))
+      if (handleCommand(e,s,line))
         continue;
       else
         runLine(e, s, line);
