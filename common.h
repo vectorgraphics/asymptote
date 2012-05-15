@@ -26,7 +26,7 @@
 #define HAVE_GL
 #endif
 
-#ifdef HAVE_LIBPTHREAD
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
 #endif
 

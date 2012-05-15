@@ -6,6 +6,7 @@ AC_PREREQ(2)
 AC_INIT([Asymptote],[2.16svn],[http://sourceforge.net/projects/asymptote])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
+m4_include([ax_pthread.m4])
 
 test "$CFLAGS" || CFLAGS="-g -O3"
 
@@ -222,7 +223,7 @@ AC_CHECK_LIB([m], [sqrt],,
 AC_MSG_ERROR([*** Please install libm on your system ***]))
 AC_CHECK_LIB([z], [deflate],,
 AC_MSG_ERROR([*** Please install libz on your system ***]))
-AC_CHECK_LIB([pthread], [pthread_create])
+AX_PTHREAD
 AC_CHECK_LIB([sigsegv], [stackoverflow_install_handler])
 AC_CHECK_LIB([rt], [sched_yield])
 

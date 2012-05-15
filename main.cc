@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
   Args args(argc,argv);
 #ifdef HAVE_GL
   gl::glthread=getSetting<bool>("threads");
-#if HAVE_LIBPTHREAD
+#if HAVE_PTHREAD
   
   if(gl::glthread) {
     pthread_t thread;
