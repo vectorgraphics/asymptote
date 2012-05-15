@@ -194,7 +194,8 @@ public:
     while(b >= prompt) {
       if(a < buf) return false;
       if(*a != *b) return false;
-      if(*a == '\n' && *(a-1) == '\r') --a; // Handle MSDOS incompatibility
+      // Handle MSDOS incompatibility:
+      if(a > buf && *a == '\n' && *(a-1) == '\r') --a;
       --a; --b;
     }
     return true;
