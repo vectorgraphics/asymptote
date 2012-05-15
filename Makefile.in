@@ -93,7 +93,7 @@ last = `cat svnrevision.cc | sed -e 's/.*\"\(.*\)\";/\\1/'`
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
-asy: $(GCLIB) $(FILES:=.o)
+version: $(GCLIB) $(FILES:=.o)
 	if test "$(revision)" != "$(last)"; then \
 	  echo $(REVISION)\"$(revision)\"\; > svnrevision.cc; \
 	  $(CXX) $(OPTS) $(INCL) -o svnrevision.o -c svnrevision.cc; \
@@ -101,34 +101,22 @@ asy: $(GCLIB) $(FILES:=.o)
 	echo string VERSION=\"@VERSION@$(revision)\"\; > base/version.asy
 	echo @set VERSION @VERSION@$(revision) > doc/version.texi
 	echo @set Datadir @datadir@ >> doc/version.texi
+
+GUIversion:
 	echo "#!/usr/bin/env python" > GUI/xasyVersion.py
 	echo xasyVersion = \"@VERSION@$(revision)\" >> GUI/xasyVersion.py
+
+asy:	version GUIversion
 	ln -sf GUI/xasy.py $(XNAME)
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) $(LIBS)
 
-asymptote.so: $(GCLIB) $(COREFILES:=.pic.o)
-	#TODO: Decide how much of this is needed for the .so file.
-	if test "$(revision)" != "$(last)"; then \
-	  echo $(REVISION)\"$(revision)\"\; > svnrevision.cc; \
-	  $(CXX) $(SHAREDOPTS) $(INCL) -o svnrevision.pic.o -c svnrevision.cc; \
-	fi
-	echo string VERSION=\"2.09svn$(revision)\"\; > base/version.asy
-	echo @set VERSION 2.09svn$(revision) > doc/version.texi
-	echo @set Datadir ${datarootdir} >> doc/version.texi
-	echo "#!/usr/bin/env python" > GUI/xasyVersion.py
-	echo xasyVersion = \"2.09svn$(revision)\" >> GUI/xasyVersion.py
-	ln -sf GUI/xasy.py $(XNAME)
+asymptote.so: version
 	$(CXX) $(OPTS) -shared -o asymptote.so $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
 svnrevision.cc:
 	echo $(REVISION)\"\"\; > svnrevision.cc;
 
-msdos: $(GCLIB) $(FILES:=.o) asy.o
-	echo string VERSION=\"@VERSION@\"\; > base/version.asy
-	echo @set VERSION @VERSION@ > doc/version.texi
-	echo @set Datadir @datadir@ >> doc/version.texi
-	echo "#!/usr/bin/env python" > GUI/xasyVersion.py
-	echo xasyVersion = \"@VERSION@\" >> GUI/xasyVersion.py
+msdos: version GUIversion asy.o
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) asy.o $(LIBS) -s -static
 
 asy.o:	asy.rc asy.ico Makefile
