@@ -1742,13 +1742,13 @@ private void label(picture pic, Label L, pair z, real x, align align,
 
 // Put a label on the x axis.
 void labelx(picture pic=currentpicture, Label L="", explicit pair z,
-            align align=S, string format="", pen p=nullpen)
+            align align=S, string format="", pen p=currentpen)
 {
   label(pic,L,Scale(pic,z),z.x,align,format,p);
 }
 
 void labelx(picture pic=currentpicture, Label L="", real x,
-            align align=S, string format="", pen p=nullpen)
+            align align=S, string format="", pen p=currentpen)
 {
   labelx(pic,L,(x,pic.scale.y.scale.logarithmic ? 1 : 0),align,format,p);
 }
@@ -1761,19 +1761,19 @@ void labelx(picture pic=currentpicture, Label L,
 
 // Put a label on the y axis.
 void labely(picture pic=currentpicture, Label L="", explicit pair z,
-            align align=W, string format="", pen p=nullpen)
+            align align=W, string format="", pen p=currentpen)
 {
   label(pic,L,Scale(pic,z),z.y,align,format,p);
 }
 
 void labely(picture pic=currentpicture, Label L="", real y,
-            align align=W, string format="", pen p=nullpen)
+            align align=W, string format="", pen p=currentpen)
 {
   labely(pic,L,(pic.scale.x.scale.logarithmic ? 1 : 0,y),align,format,p);
 }
 
 void labely(picture pic=currentpicture, Label L,
-            string format="", explicit pen p=nullpen)
+            string format="", explicit pen p=currentpen)
 {
   labely(pic,L,L.position.position,format,p);
 }

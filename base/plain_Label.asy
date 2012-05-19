@@ -466,27 +466,27 @@ void label(frame f, Label L, align align=NoAlign,
 }
   
 void label(picture pic=currentpicture, Label L, pair position,
-           align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
+           align align=NoAlign, pen p=currentpen, filltype filltype=NoFill)
 {
   Label L=Label(L,position,align,p,filltype);
   add(pic,L);
 }
   
 void label(picture pic=currentpicture, Label L, align align=NoAlign,
-           pen p=nullpen, filltype filltype=NoFill)
+           pen p=currentpen, filltype filltype=NoFill)
 {
   label(pic,L,L.position,align,p,filltype);
 }
   
 void label(picture pic=currentpicture, Label L, explicit path g,
-           align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
+           align align=NoAlign, pen p=currentpen, filltype filltype=NoFill)
 {
   Label L=Label(L,align,p,filltype);
   L.out(pic,g);
 }
 
 void label(picture pic=currentpicture, Label L, explicit guide g,
-           align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
+           align align=NoAlign, pen p=currentpen, filltype filltype=NoFill)
 {
   label(pic,L,(path) g,align,p,filltype);
 }

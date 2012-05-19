@@ -1400,7 +1400,7 @@ picture clipping, see the first example in @ref{LaTeX usage}.
 @section label
 @verbatim
 void label(picture pic=currentpicture, Label L, pair position,
-           align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
+           align align=NoAlign, pen p=currentpen, filltype filltype=NoFill)
 @end verbatim
 
 Draw Label @code{L} on picture @code{pic} using pen @code{p}. If
@@ -1412,8 +1412,6 @@ the @code{PostScript} offset @code{align*labelmargin(p)}.
 The constant @code{Align} can be used to align the
 bottom-left corner of the label at @code{position}.
 @cindex @code{nullpen}
-If @code{p} is @code{nullpen}, the pen specified within the
-Label, which defaults to @code{currentpen}, will be used.
 @cindex @code{Label}
 @anchor{Label}
 The Label @code{L} can either be a string or the structure obtained by calling
@@ -1434,6 +1432,7 @@ For example, @code{rotate(45)*xscale(2)*L} first scales @code{L} in the
 @math{x} direction and then rotates it counterclockwise by 45
 degrees. The final position of a Label can also be shifted by a
 @code{PostScript} coordinate translation: @code{shift(10,0)*L}.
+An explicit pen specified within the Label overrides other pen arguments.
 The @code{embed} argument determines how the Label should transform with the
 embedding picture:
 @table @code
@@ -1462,7 +1461,7 @@ shift, rotate, slant, reflect, and scale with embedding picture.
 To add a label to a path, use
 @verbatim
 void label(picture pic=currentpicture, Label L, path g, align align=NoAlign,
-           pen p=nullpen, filltype filltype=NoFill);
+           pen p=currentpen, filltype filltype=NoFill);
 @end verbatim
 @cindex @code{Relative}
 By default the label will be positioned at the midpoint of the path.
@@ -7092,17 +7091,17 @@ void ytick(picture pic=currentpicture, Label L="", real y,
 void tick(picture pic=currentpicture, pair z,
           pair dir, real size=Ticksize, pen p=currentpen);
 void labelx(picture pic=currentpicture, Label L="", explicit pair z,
-            align align=S, string format="", pen p=nullpen);
+            align align=S, string format="", pen p=currentpen);
 void labelx(picture pic=currentpicture, Label L="", real x,
-            align align=S, string format="", pen p=nullpen);
+            align align=S, string format="", pen p=currentpen);
 void labelx(picture pic=currentpicture, Label L,
             string format="", explicit pen p=currentpen);
 void labely(picture pic=currentpicture, Label L="", explicit pair z,
-            align align=W, string format="", pen p=nullpen);
+            align align=W, string format="", pen p=currentpen);
 void labely(picture pic=currentpicture, Label L="", real y,
-            align align=W, string format="", pen p=nullpen);
+            align align=W, string format="", pen p=currentpen);
 void labely(picture pic=currentpicture, Label L,
-            string format="", explicit pen p=nullpen);
+            string format="", explicit pen p=currentpen);
 @end verbatim
 @end itemize
 

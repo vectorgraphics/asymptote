@@ -1338,39 +1338,39 @@ private void label(picture pic, Label L, triple v, real x, align align,
 }
 
 void labelx(picture pic=currentpicture, Label L="", triple v,
-            align align=-Y, string format="", pen p=nullpen)
+            align align=-Y, string format="", pen p=currentpen)
 {
   label(pic,L,Scale(pic,v),v.x,align,format,p);
 }
 
 void labelx3(picture pic=currentpicture, Label L="", real x,
-             align align=-Y, string format="", pen p=nullpen)
+             align align=-Y, string format="", pen p=currentpen)
 {
   labelx(pic,L,(x,pic.scale.y.scale.logarithmic ? 1 : 0,
                 pic.scale.z.scale.logarithmic ? 1 : 0),align,format,p);
 }
 
 void labely(picture pic=currentpicture, Label L="", triple v,
-            align align=-X, string format="", pen p=nullpen)
+            align align=-X, string format="", pen p=currentpen)
 {
   label(pic,L,Scale(pic,v),v.y,align,format,p);
 }
 
 void labely3(picture pic=currentpicture, Label L="", real y,
-             align align=-X, string format="", pen p=nullpen)
+             align align=-X, string format="", pen p=currentpen)
 {
   labely(pic,L,(pic.scale.x.scale.logarithmic ? 1 : 0,y,
                 pic.scale.z.scale.logarithmic ? 1 : 0),align,format,p);
 }
 
 void labelz(picture pic=currentpicture, Label L="", triple v,
-            align align=-X, string format="", pen p=nullpen)
+            align align=-X, string format="", pen p=currentpen)
 {
   label(pic,L,Scale(pic,v),v.z,align,format,p);
 }
 
 void labelz3(picture pic=currentpicture, Label L="", real z,
-             align align=-X, string format="", pen p=nullpen)
+             align align=-X, string format="", pen p=currentpen)
 {
   labelz(pic,L,(pic.scale.x.scale.logarithmic ? 1 : 0,
                 pic.scale.y.scale.logarithmic ? 1 : 0,z),align,format,p);
