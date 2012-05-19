@@ -1099,7 +1099,7 @@ uint32_t oPRCFile::addMaterial(const PRCmaterial &material)
   else
     style->color_material_index = material_index;
   const uint32_t style_index = addStyle(style);
-  materialMap.insert(make_pair(material,style_index)).first;
+  materialMap.insert(make_pair(material,style_index));
   return style_index;
 }
 
