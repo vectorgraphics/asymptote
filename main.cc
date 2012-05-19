@@ -181,6 +181,10 @@ int main(int argc, char *argv[])
     try {
       if(pthread_create(&thread,NULL,asymain,&args) == 0) {
         gl::mainthread=pthread_self();
+        sigset_t set;
+        sigemptyset(&set);
+        sigaddset(&set, SIGCHLD);
+        pthread_sigmask(SIG_BLOCK, &set, NULL);
         while(true) {
           camp::glrenderWrapper();
           gl::initialize=true;
