@@ -1222,6 +1222,7 @@ real ScaleZ(picture pic=currentpicture, real z)
 void tick(picture pic=currentpicture, triple v, triple dir, real size=Ticksize,
           pen p=currentpen)
 {
+  triple v=Scale(pic,v);
   pic.add(new void (picture f, transform3 t) {
       triple tv=t*v;
       draw(f,tv--tv+unit(dir)*size,p);
@@ -1233,27 +1234,27 @@ void tick(picture pic=currentpicture, triple v, triple dir, real size=Ticksize,
 void xtick(picture pic=currentpicture, triple v, triple dir=Y,
            real size=Ticksize, pen p=currentpen)
 {
-  tick(pic,Scale(pic,v),dir,size,p);
+  tick(pic,v,dir,size,p);
 }
 
 void xtick3(picture pic=currentpicture, real x, triple dir=Y,
             real size=Ticksize, pen p=currentpen)
 {
-  xtick(pic,(x,pic.scale.y.scale.logarithmic ? 1 : 0,
+  tick(pic,(x,pic.scale.y.scale.logarithmic ? 1 : 0,
              pic.scale.z.scale.logarithmic ? 1 : 0),dir,size,p);
 }
 
 void ytick(picture pic=currentpicture, triple v, triple dir=X,
            real size=Ticksize, pen p=currentpen) 
 {
-  xtick(pic,v,dir,size,p);
+  tick(pic,v,dir,size,p);
 }
 
-void ytick(picture pic=currentpicture, real y, triple dir=X,
-           real size=Ticksize, pen p=currentpen)
+void ytick3(picture pic=currentpicture, real y, triple dir=X,
+            real size=Ticksize, pen p=currentpen)
 {
-  xtick(pic,(pic.scale.x.scale.logarithmic ? 1 : 0,y,
-             pic.scale.z.scale.logarithmic ? 1 : 0),dir,size,p);
+  tick(pic,(pic.scale.x.scale.logarithmic ? 1 : 0,y,
+            pic.scale.z.scale.logarithmic ? 1 : 0),dir,size,p);
 }
 
 void ztick(picture pic=currentpicture, triple v, triple dir=X,
@@ -1262,8 +1263,8 @@ void ztick(picture pic=currentpicture, triple v, triple dir=X,
   xtick(pic,v,dir,size,p);
 }
 
-void ztick(picture pic=currentpicture, real z, triple dir=X,
-           real size=Ticksize, pen p=currentpen)
+void ztick3(picture pic=currentpicture, real z, triple dir=X,
+            real size=Ticksize, pen p=currentpen)
 {
   xtick(pic,(pic.scale.x.scale.logarithmic ? 1 : 0,
              pic.scale.y.scale.logarithmic ? 1 : 0,z),dir,size,p);
@@ -1274,15 +1275,14 @@ void tick(picture pic=currentpicture, Label L, real value, triple v,
 {
   Label L=L.copy();
   L.align(L.align,-dir);
-  if(shift(L.T3)*O == O) {
+  if(shift(L.T3)*O == O)
     L.T3=shift(dot(dir,L.align.dir3) > 0 ? dir*size :
                ticklabelshift(L.align.dir3,p))*L.T3;
-  }
   L.p(p);
   if(L.s == "") L.s=format(format == "" ? defaultformat : format,value);
   L.s=baseline(L.s,baselinetemplate);
-  label(pic,L,v);
-  xtick(pic,v,dir,size,p);
+  label(pic,L,Scale(pic,v));
+  tick(pic,v,dir,size,p);
 }
 
 void xtick(picture pic=currentpicture, Label L, triple v, triple dir=Y,
@@ -1295,7 +1295,7 @@ void xtick3(picture pic=currentpicture, Label L, real x, triple dir=Y,
             string format="", real size=Ticksize, pen p=currentpen)
 {
   xtick(pic,L,(x,pic.scale.y.scale.logarithmic ? 1 : 0,
-               pic.scale.z.scale.logarithmic ? 1 : 0),dir,size,p);
+              pic.scale.z.scale.logarithmic ? 1 : 0),dir,size,p);
 }
 
 void ytick(picture pic=currentpicture, Label L, triple v, triple dir=X,
@@ -1307,8 +1307,8 @@ void ytick(picture pic=currentpicture, Label L, triple v, triple dir=X,
 void ytick3(picture pic=currentpicture, Label L, real y, triple dir=X,
             string format="", real size=Ticksize, pen p=currentpen)
 {
-  ytick(pic,L,(pic.scale.x.scale.logarithmic ? 1 : 0,y,
-               pic.scale.z.scale.logarithmic ? 1 : 0),dir,format,size,p);
+  xtick(pic,L,(pic.scale.x.scale.logarithmic ? 1 : 0,y,
+              pic.scale.z.scale.logarithmic ? 1 : 0),dir,format,size,p);
 }
 
 void ztick(picture pic=currentpicture, Label L, triple v, triple dir=X,
@@ -1320,8 +1320,8 @@ void ztick(picture pic=currentpicture, Label L, triple v, triple dir=X,
 void ztick3(picture pic=currentpicture, Label L, real z, triple dir=X,
             string format="", real size=Ticksize, pen p=currentpen)
 {
-  ztick(pic,L,(pic.scale.x.scale.logarithmic ? 1 : 0,
-               pic.scale.z.scale.logarithmic ? 1 : 0,z),dir,format,size,p);
+  xtick(pic,L,(pic.scale.x.scale.logarithmic ? 1 : 0,
+              pic.scale.z.scale.logarithmic ? 1 : 0,z),dir,format,size,p);
 }
 
 private void label(picture pic, Label L, triple v, real x, align align,

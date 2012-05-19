@@ -1654,6 +1654,7 @@ real ScaleY(picture pic=currentpicture, real y)
 void tick(picture pic=currentpicture, pair z, pair dir, real size=Ticksize,
           pen p=currentpen)
 {
+  pair z=Scale(pic,z);
   pic.add(new void (frame f, transform t) {
       pair tz=t*z;
       draw(f,tz--tz+unit(dir)*size,p);
@@ -1665,32 +1666,32 @@ void tick(picture pic=currentpicture, pair z, pair dir, real size=Ticksize,
 void xtick(picture pic=currentpicture, explicit pair z, pair dir=N,
            real size=Ticksize, pen p=currentpen)
 {
-  tick(pic,Scale(pic,z),dir,size,p);
+  tick(pic,z,dir,size,p);
 }
 
 void xtick(picture pic=currentpicture, real x, pair dir=N,
            real size=Ticksize, pen p=currentpen)
 {
-  xtick(pic,(x,pic.scale.y.scale.logarithmic ? 1 : 0),dir,size,p);
+  tick(pic,(x,pic.scale.y.scale.logarithmic ? 1 : 0),dir,size,p);
 }
 
 void ytick(picture pic=currentpicture, explicit pair z, pair dir=E,
            real size=Ticksize, pen p=currentpen) 
 {
-  xtick(pic,z,dir,size,p);
+  tick(pic,z,dir,size,p);
 }
 
 void ytick(picture pic=currentpicture, real y, pair dir=E,
            real size=Ticksize, pen p=currentpen)
 {
-  xtick(pic,(pic.scale.x.scale.logarithmic ? 1 : 0,y),dir,size,p);
+  tick(pic,(pic.scale.x.scale.logarithmic ? 1 : 0,y),dir,size,p);
 }
 
 void tick(picture pic=currentpicture, Label L, real value, explicit pair z,
           pair dir, string format="", real size=Ticksize, pen p=currentpen)
 {
   Label L=L.copy();
-  L.position(z);
+  L.position(Scale(pic,z));
   L.align(L.align,-dir);
   if(shift(L.T)*0 == 0)
     L.T=shift(dot(dir,L.align.dir) > 0 ? dir*size :
@@ -1699,7 +1700,7 @@ void tick(picture pic=currentpicture, Label L, real value, explicit pair z,
   if(L.s == "") L.s=format(format == "" ? defaultformat : format,value);
   L.s=baseline(L.s,baselinetemplate);
   add(pic,L);
-  xtick(pic,z,dir,size,p);
+  tick(pic,z,dir,size,p);
 }
 
 void xtick(picture pic=currentpicture, Label L, explicit pair z, pair dir=N,
@@ -1723,7 +1724,7 @@ void ytick(picture pic=currentpicture, Label L, explicit pair z, pair dir=E,
 void ytick(picture pic=currentpicture, Label L, real y, pair dir=E,
            string format="", real size=Ticksize, pen p=currentpen)
 {
-  ytick(pic,L,(pic.scale.x.scale.logarithmic ? 1 : 0,y),dir,format,size,p);
+  xtick(pic,L,(pic.scale.x.scale.logarithmic ? 1 : 0,y),dir,format,size,p);
 }
 
 private void label(picture pic, Label L, pair z, real x, align align,
