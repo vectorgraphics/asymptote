@@ -7,6 +7,8 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#undef NDEBUG
+
 #include <iostream>
 #include <climits>
 
