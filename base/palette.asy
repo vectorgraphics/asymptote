@@ -54,14 +54,10 @@ pen[] adjust(picture pic, real min, real max, real rmin, real rmax,
     real factor=palette.length/delta;
     int minindex=floor(factor*(dmin-rmin));
     if(minindex < 0) minindex=0;
-    int maxindex=floor(factor*(dmax-rmin));
+    int maxindex=ceil(factor*(dmax-rmin));
     if(maxindex > palette.length) maxindex=palette.length;
-    if(minindex > 0 || maxindex < palette.length) {
-      pen[] newpalette;
-      for(int i=minindex; i < maxindex; ++i)
-        newpalette.push(palette[i]);
-      return newpalette;
-    }
+    if(minindex > 0 || maxindex < palette.length)
+      return palette[minindex:maxindex];
   }
   return palette;
 }
@@ -170,6 +166,8 @@ bounds image(picture pic=currentpicture, pair[] z, real[] f,
   real rmax=pic.scale.z.T(bounds.max);
 
   palette=adjust(pic,m,M,rmin,rmax,palette);
+  rmin=max(rmin,m);
+  rmax=min(rmax,M);
 
   // Crop data to allowed range and scale
   if(range != Full || pic.scale.z.scale.T != identity ||
