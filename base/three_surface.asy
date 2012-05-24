@@ -17,7 +17,7 @@ struct patch {
   bool3 planar;     // Patch is planar.
 
   path3 external() {
-    return
+    return straight ? P[0][0]--P[3][0]--P[3][3]--P[0][3]--cycle :
       P[0][0]..controls P[1][0] and P[2][0]..
       P[3][0]..controls P[3][1] and P[3][2]..
       P[3][3]..controls P[2][3] and P[1][3]..
@@ -93,9 +93,16 @@ struct patch {
 
   static real fuzz=1000*realEpsilon;
 
+  triple partialu(real u, real v) {
+    return bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v);
+  }
+
+  triple partialv(real u, real v) {
+    return bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u);
+  }
+
   triple normal(real u, real v) {
-    triple n=cross(bezier(BuP(0,u),BuP(1,u),BuP(2,u),BuP(3,u),v),
-                   bezier(BvP(0,v),BvP(1,v),BvP(2,v),BvP(3,v),u));
+    triple n=cross(partialu(u,v),partialv(u,v));
     real epsilon=fuzz*change2(P);
     return (abs(n) > epsilon) ? n : normal0(u,v,epsilon);
   }
@@ -950,7 +957,7 @@ triple[][][] hsplit(triple[][] P)
  triple[] c1=split(P1[0],P1[1],P1[2],P1[3]);
  triple[] c2=split(P2[0],P2[1],P2[2],P2[3]);
  triple[] c3=split(P3[0],P3[1],P3[2],P3[3]);
- // top, bottom
+ // bottom, top
  return new triple[][][] {
     {{P0[0],c0[0],c0[1],c0[2]},
         {P1[0],c1[0],c1[1],c1[2]},
@@ -990,33 +997,54 @@ triple[][][] vsplit(triple[][] P)
  };
 }
 
-// Return the control points for a subpatch of P on [u,1] x [v,1].
-triple[][] subpatchbegin(triple[][] P, real u, real v)
+// Return a 2D array of the control point arrays of the subpatches
+// produced by horizontal and vertical splits of P at u and v
+triple[][][][] split(triple[][] P, real u=1/2, real v=1/2)
 {
   triple[] P0=P[0];
   triple[] P1=P[1];
   triple[] P2=P[2];
   triple[] P3=P[3];
-
+  
+  // slice horizontally
   triple[] c0=split(P0[0],P0[1],P0[2],P0[3],v);
   triple[] c1=split(P1[0],P1[1],P1[2],P1[3],v);
   triple[] c2=split(P2[0],P2[1],P2[2],P2[3],v);
   triple[] c3=split(P3[0],P3[1],P3[2],P3[3],v);
-
-  u=1.0-u;
   
-  triple[] c7=split(c3[2],c2[2],c1[2],c0[2],u);
-  triple[] c8=split(c3[3],c2[3],c1[3],c0[3],u);
-  triple[] c9=split(c3[4],c2[4],c1[4],c0[4],u);
-  triple[] c10=split(P3[3],P2[3],P1[3],P0[3],u);
+  // bottom patch
+  triple[] c4=split(P0[0],P1[0],P2[0],P3[0],u);
+  triple[] c5=split(c0[0],c1[0],c2[0],c3[0],u);
+  triple[] c6=split(c0[1],c1[1],c2[1],c3[1],u);
+  triple[] c7=split(c0[2],c1[2],c2[2],c3[2],u);
 
-  return new triple[][] {{c7[2],c8[2],c9[2],c10[2]},
-      {c7[1],c8[1],c9[1],c10[1]},
-        {c7[0],c8[0],c9[0],c10[0]},
-          {c3[2],c3[3],c3[4],P3[3]}};
+  // top patch
+  triple[] c8=split(c0[3],c1[3],c2[3],c3[3],u);
+  triple[] c9=split(c0[4],c1[4],c2[4],c3[4],u);
+  triple[] cA=split(P0[3],P1[3],P2[3],P3[3],u);
+
+// {{bottom-left, top-left}, {bottom-right, top-right}}
+  return new triple[][][][] {
+    {{{P0[0],c0[0],c0[1],c0[2]},
+          {c4[0],c5[0],c6[0],c7[0]},
+            {c4[1],c5[1],c6[1],c7[1]},
+              {c4[2],c5[2],c6[2],c7[2]}},
+        {{c0[2],c0[3],c0[4],P0[3]},
+            {c7[0],c8[0],c9[0],cA[0]},
+              {c7[1],c8[1],c9[1],cA[1]},
+                {c7[2],c8[2],c9[2],cA[2]}}},
+      {{{c4[2],c5[2],c6[2],c7[2]},
+            {c4[3],c5[3],c6[3],c7[3]},
+              {c4[4],c5[4],c6[4],c7[4]},
+                {P3[0],c3[0],c3[1],c3[2]}},
+          {{c7[2],c8[2],c9[2],cA[2]},
+              {c7[3],c8[3],c9[3],cA[3]},
+                {c7[4],c8[4],c9[4],cA[4]},
+                  {c3[2],c3[3],c3[4],P3[3]}}}
+  };
 }
 
-// Return the control points for a subpatch of P on [0,u] x [0,v].
+// Return the control points for a subpatch of P on [u,1] x [v,1].
 triple[][] subpatchend(triple[][] P, real u, real v)
 {
   triple[] P0=P[0];
@@ -1029,27 +1057,55 @@ triple[][] subpatchend(triple[][] P, real u, real v)
   triple[] c2=split(P2[0],P2[1],P2[2],P2[3],v);
   triple[] c3=split(P3[0],P3[1],P3[2],P3[3],v);
 
-  u=1.0-u;
-  
-  triple[] c4=split(P3[0],P2[0],P1[0],P0[0],u);
-  triple[] c5=split(c3[0],c2[0],c1[0],c0[0],u);
-  triple[] c6=split(c3[1],c2[1],c1[1],c0[1],u);
-  triple[] c7=split(c3[2],c2[2],c1[2],c0[2],u);
+  triple[] c7=split(c0[2],c1[2],c2[2],c3[2],u);
+  triple[] c8=split(c0[3],c1[3],c2[3],c3[3],u);
+  triple[] c9=split(c0[4],c1[4],c2[4],c3[4],u);
+  triple[] cA=split(P0[3],P1[3],P2[3],P3[3],u);
+
+  return new triple[][] {
+    {c7[2],c8[2],c9[2],cA[2]},
+      {c7[3],c8[3],c9[3],cA[3]},
+        {c7[4],c8[4],c9[4],cA[4]},
+          {c3[2],c3[3],c3[4],P3[3]}};
+}
+
+// Return the control points for a subpatch of P on [0,u] x [0,v].
+triple[][] subpatchbegin(triple[][] P, real u, real v)
+{
+  triple[] P0=P[0];
+  triple[] P1=P[1];
+  triple[] P2=P[2];
+  triple[] P3=P[3];
+
+  triple[] c0=split(P0[0],P0[1],P0[2],P0[3],v);
+  triple[] c1=split(P1[0],P1[1],P1[2],P1[3],v);
+  triple[] c2=split(P2[0],P2[1],P2[2],P2[3],v);
+  triple[] c3=split(P3[0],P3[1],P3[2],P3[3],v);
+
+  triple[] c4=split(P0[0],P1[0],P2[0],P3[0],u);
+  triple[] c5=split(c0[0],c1[0],c2[0],c3[0],u);
+  triple[] c6=split(c0[1],c1[1],c2[1],c3[1],u);
+  triple[] c7=split(c0[2],c1[2],c2[2],c3[2],u);
 
   return new triple[][] {
     {P0[0],c0[0],c0[1],c0[2]},
-      {c4[4],c5[4],c6[4],c7[4]},
-        {c4[3],c5[3],c6[3],c7[3]},
+      {c4[0],c5[0],c6[0],c7[0]},
+        {c4[1],c5[1],c6[1],c7[1]},
           {c4[2],c5[2],c6[2],c7[2]}};
+}
+
+triple[][] subpatch(triple[][] P, pair a, pair b) 
+{
+  return subpatchend(subpatchbegin(P,b.x,b.y),a.x/b.x,a.y/b.y);
 }
 
 patch subpatch(patch s, pair a, pair b)
 {
   assert(a.x >= 0 && a.y >= 0 && b.x <= 1 && b.y <= 1 &&
          a.x < b.x && a.y < b.y);
-  return patch(subpatchbegin(subpatchend(s.P,b.x,b.y),a.x/b.x,a.y/b.y),
-               s.straight,s.planar);
+  return patch(subpatch(s.P,a,b),s.straight,s.planar);
 }
+
 
 // return an array containing all intersection times of path p and patch s.
 real[][] intersections(path3 p, patch s, real fuzz=-1)
@@ -1940,62 +1996,4 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
       }
     },true);
   pic.addBox(minbound(P),maxbound(P));
-}
-
-// A structure to subdivide two intersecting patches about their intersection.
-struct split
-{
-  surface[] S=sequence(new surface(int i) {return new surface;},1);
-  surface[] T=sequence(new surface(int i) {return new surface;},1);
-
-  struct tree {
-    tree[] tree=new tree[2];
-  }
-  // Default subdivision depth.
-  int n=20;
-
-  // Subdivide p and q to depth n if they overlap.
-  void write(tree pt, tree qt, triple[][] p, triple[][] q, int depth=n) {
-    --depth;
-    triple[][][] split(triple[][] P)=depth % 2 == 0 ? hsplit : vsplit;
-    triple[][][] P=split(p);
-    triple[][][] Q=split(q);
-
-    for(int i=0; i < 2; ++i) {
-      triple[][] Pi=P[i];
-      for(int j=0; j < 2; ++j) {
-        triple[][] Qj=Q[j];
-        if(overlap(Pi,Qj)) {
-          if(!pt.tree.initialized(i))
-            pt.tree[i]=new tree;
-          if(!qt.tree.initialized(j))
-            qt.tree[j]=new tree;
-          if(depth > 0)
-            write(pt.tree[i],qt.tree[j],Pi,Qj,depth);
-        }
-      }    
-    }
-  }
-  
-  // Output the subpatches of p from subdivision.
-  void read(surface[] S, tree t, triple[][] p, int depth=n) {
-    --depth;
-    triple[][][] split(triple[][] P)=depth % 2 == 0 ? hsplit : vsplit;
-    triple[][][] P=split(p);
-
-    for(int i=0; i < 2; ++i) {
-      if(t.tree.initialized(i)) 
-        read(S,t.tree[i],P[i],depth);
-      else {
-        S[0].push(patch(P[i]));
-      }
-    }
-  }
-
-  void operator init(triple[][] p, triple[][] q, int depth=n) {
-    tree ptrunk,qtrunk;
-    write(ptrunk,qtrunk,p,q,depth);
-    read(T,ptrunk,p,depth);
-    read(S,qtrunk,q,depth);
-  }
 }
