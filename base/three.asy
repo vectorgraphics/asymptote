@@ -328,6 +328,16 @@ projection orthographic(real x, real y, real z, triple up=Z,
                       center=center);
 }
 
+// Compute camera position with x axis below the horizontal at angle alpha,
+// y axis below the horizontal at angle beta, and z axis up.
+triple camera(real alpha, real beta)
+{
+  real denom=Tan(alpha+beta);
+  real Tanalpha=Tan(alpha);
+  real Tanbeta=Tan(beta);
+  return (sqrt(Tanalpha/denom),sqrt(Tanbeta/denom),sqrt(Tanalpha*Tanbeta));
+}
+
 projection oblique(real angle=45)
 {
   transform3 t=identity(4);

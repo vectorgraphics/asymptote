@@ -8032,6 +8032,15 @@ This is equivalent to
 orthographic((x,y,z),up,target,zoom,viewportshift,showtarget,center)
 @end verbatim
 
+The routine
+@cindex @code{camera}
+@verbatim 
+triple camera(real alpha, real beta);
+@end verbatim
+can be used to compute the camera position with the @math{x} axis below
+the horizontal at angle @code{alpha}, the @math{y} axis below the horizontal
+at angle @code{beta}, and the @math{z} axis up. 
+
 @cindex @code{autoadjust}
 @item perspective(triple camera, triple up=Z, triple target=O, @*@ @ @ @ @ @ @ @ @ @ @ @ real zoom=1, real angle=0, pair viewportshift=0, @*@ @ @ @ @ @ @ @ @ @ @ @ bool showtarget=true, bool autoadjust=true, @*@ @ @ @ @ @ @ @ @ @ @ @ bool center=autoadjust)
 @cindex @code{perspective}
@@ -9524,7 +9533,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  latexusage tex bbox PostScript subdirectory gcc emacs ASYDIR
 @c  LocalWords:  documentclass usepackage subpath shipout sqrt xN  Mx bw AcroRd
 @c  LocalWords:  xscale xaxis yaxis BeginBar GIF postprocessing fpu de rpair xy
-@c  LocalWords:  ImageMagick defaultfontsize defaultlinewidth cd
+@c  LocalWords:  ImageMagick defaultfontsize defaultlinewidth cd asymptote Hy
 @c  LocalWords:  startup natively xasy tkinter VxN yingyang currentpicture toc
 @c  LocalWords:  MetaPost MetaFont Hammerlindl Healy texinfo autoload setq setf
 @c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
@@ -9673,4 +9682,9 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  OmitTickIntervals tickmodifiers autorotated SixViewsUS latexmk
 @c  LocalWords:  ThreeViewsUS ThreeViewsFR SixViewsFR ThreeViews partialsum
 @c  LocalWords:  defaultrender Vidiassov latexmkrc mktemp DOSendl DOSnewl perl
-@c  LocalWords:  filename asyinclude latemk penfunctionimage
+@c  LocalWords:  filename asyinclude latemk penfunctionimage Affine decrement
+@c  LocalWords:  affine Redisplay redisplay isnan radians defaultseparator Jens
+@c  LocalWords:  ascii piecewise arcpoint spacings tilings sndncn resizing
+@c  LocalWords:  differentiable vectorization vectorized asydir normals quartic
+@c  LocalWords:  wavepacket kerned parametrized specular hyperboloid Bourke's
+@c  LocalWords:  Michail
