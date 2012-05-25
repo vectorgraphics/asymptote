@@ -113,7 +113,7 @@ fi
 AC_CHECK_HEADER(tr1/unordered_map,,
 		[AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])
 
-GCVERSION=gc-7.2
+GCVERSION=gc-7.2b
 
 AC_CHECK_FILE($GCVERSION.tar.gz,
 ac_cv_use_gc=$GCVERSION,

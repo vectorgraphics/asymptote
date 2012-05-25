@@ -136,6 +136,9 @@ $(GCLIB): $(GC).tar.gz
 	  cd $(GC)/include/private && \
             patch < ../../../patches/gc-7.0nomem.patch; \
 	fi
+	if test "$(GC)" = "gc-7.2b"; then \
+	  mv gc-7.2 gc-7.2b; \
+	fi
 	cd $(GC); \
 	./configure $(GCOPTIONS); \
 	$(MAKE) check
