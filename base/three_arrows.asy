@@ -25,9 +25,9 @@ transform3 bend(path3 g, real t)
   triple q=point(g,t);
   return new real[][] {
     {u.x,w.x,dir.x,q.x},
-    {u.y,w.y,dir.y,q.y},
-    {u.z,w.z,dir.z,q.z},
-    {0,0,0,1}
+      {u.y,w.y,dir.y,q.y},
+        {u.z,w.z,dir.z,q.z},
+          {0,0,0,1}
   };
 }
 
@@ -150,23 +150,25 @@ DefaultHead3.head=new surface(path3 g, position position=EndPoint,
     bool first=true;
     for(int i=0; i < n; ++i) {
       render(subpath(s,i,i+1),new void(path3 q, real) {
-        real l=arclength(q);
-        real w=remainL*aspect;
-        surface segment=scale(w,w,l)*unitcylinder;
-        if(first) { // add base
-          first=false;
-          segment.append(scale(w,w,1)*unitdisk);
-        }
-        for(patch p : segment.s) {
-          for(int i=0; i < 4; ++i) {
-            for(int j=0; j < 4; ++j) {
-              real k=1-p.P[i][j].z/remainL;
-              p.P[i][j]=bend((k*p.P[i][j].x,k*p.P[i][j].y,p.P[i][j].z),q,l);
+          if(remainL > 0) {
+            real l=arclength(q);
+            real w=remainL*aspect;
+            surface segment=scale(w,w,l)*unitcylinder;
+            if(first) { // add base
+              first=false;
+              segment.append(scale(w,w,1)*unitdisk);
             }
+            for(patch p : segment.s) {
+              for(int i=0; i < 4; ++i) {
+                for(int j=0; j < 4; ++j) {
+                  real k=1-p.P[i][j].z/remainL;
+                  p.P[i][j]=bend((k*p.P[i][j].x,k*p.P[i][j].y,p.P[i][j].z),q,l);
+                }
+              }
+            }
+            head.append(segment);
+            remainL -= l;
           }
-        }
-        head.append(segment);
-        remainL -= l;
         });
     }
   }
@@ -263,12 +265,12 @@ arrowhead3 DefaultHead2(triple normal=O) {
                      real angle=arrowangle,
                      filltype filltype=null, bool forwards=true,
                      projection P=currentprojection) {
-  if(size == 0) size=a.size(p);
-  path h=a.project(g,forwards,P);
-  a.size=min(size,arclength(h));
-  path[] H=a.align(DefaultHead.head(h,p,size,angle),h);
-  H=forwards ? yscale(-1)*H : H;
-  return a.surface(g,position,size,H,p,filltype,normal,P);
+    if(size == 0) size=a.size(p);
+    path h=a.project(g,forwards,P);
+    a.size=min(size,arclength(h));
+    path[] H=a.align(DefaultHead.head(h,p,size,angle),h);
+    H=forwards ? yscale(-1)*H : H;
+    return a.surface(g,position,size,H,p,filltype,normal,P);
   };
   a.gap=1.005;
   return a;
@@ -301,15 +303,15 @@ arrowhead3 TeXHead2(triple normal=O) {
                      pen p=currentpen, real size=0,
                      real angle=arrowangle, filltype filltype=null,
                      bool forwards=true, projection P=currentprojection) {
-  if(size == 0) size=a.size(p);
-  path h=a.project(g,forwards,P);
-  a.size=min(size,arclength(h));
-  h=rotate(-degrees(dir(h,length(h)),warn=false))*h;
-  path[] H=TeXHead.head(h,p,size,angle);
-  H=forwards ? yscale(-1)*H : H;
-  return a.surface(g,position,size,H,p,
-                   filltype == null ? TeXHead.defaultfilltype(p) : filltype,
-                   normal,P);
+    if(size == 0) size=a.size(p);
+    path h=a.project(g,forwards,P);
+    a.size=min(size,arclength(h));
+    h=rotate(-degrees(dir(h,length(h)),warn=false))*h;
+    path[] H=TeXHead.head(h,p,size,angle);
+    H=forwards ? yscale(-1)*H : H;
+    return a.surface(g,position,size,H,p,
+                     filltype == null ? TeXHead.defaultfilltype(p) : filltype,
+                     normal,P);
   };
   a.arrowhead2=TeXHead;
   a.size=TeXHead.size;
