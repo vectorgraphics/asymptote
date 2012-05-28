@@ -755,10 +755,10 @@ public:
   void write(Int val) {
     if(signedint) {
       if(singleint) fprintf(pipeout,"%d",intcast(val));
-      else fprintf(pipeout,"%Ld",val);
+      else fprintf(pipeout,"%lld",val);
     } else {
       if(singleint) fprintf(pipeout,"%u",unsignedcast(val));
-      else fprintf(pipeout,"%Lu",unsignedIntcast(val));
+      else fprintf(pipeout,"%llu",unsignedIntcast(val));
     }
   }
   void write(double val) {
@@ -778,9 +778,9 @@ public:
     write(val.getz());
   }
 
-  void write(pen *val) {
+  void write(const pen &val) {
     ostringstream s;
-    s << *val;
+    s << val;
     write(s.str());
   }
   
@@ -790,9 +790,9 @@ public:
     write(s.str());
   }
   
-  void write(transform *val) {
+  void write(const transform& val) {
     ostringstream s;
-    s << *val;
+    s << val;
     write(s.str());
   }
   
