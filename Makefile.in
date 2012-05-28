@@ -55,9 +55,9 @@ LATEXFILES = asymptote.sty asycolors.sty ocg.sty latexmkrc
 CONTEXTFILES = colo-asy.tex
 ASY = ./asy -dir base -config "" -render=0
 
-DEFS = @DEFS@ @OPTIONS@
-CFLAGS = @CPPFLAGS@ @CFLAGS@ @PTHREAD_CFLAGS@
-OPTS = $(DEFS) $(CFLAGS)
+DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@
+CFLAGS = @CPPFLAGS@ @CFLAGS@
+OPTS = $(DEFS) $(CFLAGS) 
 INCL = -I . @INCL@
 
 # Options for compiling the object files for the shared library.
@@ -66,8 +66,8 @@ INCL = -I . @INCL@
 # shared library.
 SHAREDOPTS = $(filter-out -DUSEGC, $(DEFS)) $(CFLAGS) -fPIC -DFOR_SHARED
 
-CXX = @CXX@ -Wall -ansi
-CC = @CC@ -Wall -ansi
+CXX = @CXX@ -Wall
+CC = @CC@ -Wall
 MAKEDEPEND = $(OPTS) -O0 -M -DDEPEND
 BISON = bison
 LEX = @LEX@
@@ -95,7 +95,7 @@ export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
 asy:	version GUIversion
 	ln -sf GUI/xasy.py $(XNAME)
-	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) $(LIBS)
+	$(CXX) $(DEFS) -o $(NAME) $(FILES:=.o) $(LIBS)
 
 version: $(GCLIB) $(FILES:=.o)
 	if test "$(revision)" != "$(last)"; then \
