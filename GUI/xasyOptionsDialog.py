@@ -18,7 +18,6 @@ import tkMessageBox
 import tkFileDialog
 import tkColorChooser
 import os
-import subprocess
 import sys
 
 class xasyOptionsDlg(tkSimpleDialog.Dialog):
@@ -181,22 +180,6 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
 
   def validate(self):
     """Validate the data entered into the dialog"""
-    #validate the path
-    pathOK = True
-    try:
-      test = subprocess.Popen([self.ap.get(),"-interactive"],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-      test.stdin.close()
-      test.wait()
-      idString = test.stdout.read()
-    except:
-      pathOK = False
-    if not pathOK or not idString.startswith("Welcome to Asymptote"):
-      tkMessageBox.showerror("xasy Options","Specified file does not exist or is not an Asymptote executable.\r\n"+self.ap.get(),parent=self)
-      return False
-
-    #validate the external editor
-    # how can I validate the editor?
-
     #validate the color
     hexdigits = '0123456789abcdef'
     if not self.validateAColor(self.pc):
