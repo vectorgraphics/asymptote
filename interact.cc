@@ -72,7 +72,7 @@ void init_completion() {
 
 char *(*Readline)(const char *prompt);
 
-char *verbatimreadline(const char *prompt)
+char *readverbatimline(const char *prompt)
 {
   if(!cin.good()) {cin.clear(); return NULL;}
   cout << prompt;
@@ -81,14 +81,31 @@ char *verbatimreadline(const char *prompt)
   return StrdupMalloc(s);
 }
   
+FILE *fin=NULL;
+
+char *readpipeline(const char *prompt)
+{
+  const int max_size=1000;
+  static char buf[max_size];
+  
+  fgets(buf,max_size-1,fin);
+  return StrdupMalloc(buf);
+}
+  
 void pre_readline()
 {
+  int fd=intcast(settings::getSetting<Int>("inpipe"));
+  if(fd > 0) {
+    if(!fin) fin=fdopen(fd,"r");
+    Readline=readpipeline;
+  } else {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-  if(tty) {
-    Readline=readline;
-  } else
+    if(tty) {
+      Readline=readline;
+    } else
 #endif
-    Readline=verbatimreadline;
+      Readline=readverbatimline;
+  }
 }
 
 void init_interactive()

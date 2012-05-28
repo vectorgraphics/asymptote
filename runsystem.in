@@ -74,8 +74,7 @@ string convertname(string name, const string& format)
 {
   if(name.empty())
     return buildname(outname(),format,"");
-  else
-    name=outpath(name);
+  name=outpath(name);
   return format.empty() ? name : format+":"+name;
 }
 

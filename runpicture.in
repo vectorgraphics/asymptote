@@ -483,8 +483,10 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
   static long arg_max=sysconf(_SC_ARG_MAX);
   const unsigned maxargs=::min(arg_max/(prefix.size()+xformat.size()+25ul),
                                256ul);
-  
-  cout << maxargs << newl;
+  openpipeout();
+
+  fprintf(pipeout,"%d\n",maxargs);
+  fflush(pipeout);
   
   string preformat=nativeformat();
   const string Done="Done";
@@ -529,7 +531,8 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
       transform t=pop<transform>(Stack);
       assert(*p);
       if((*p)->endgroup()) {
-        cout << Error << endl;
+        fprintf(pipeout,"%s\n",Error.c_str());
+        fflush(pipeout);
         error(nobegin);
       }
       if((*p)->begingroup()) {
@@ -544,7 +547,8 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
           if((*p)->endgroup()) {
             if(level) --level;
             else {
-              cout << Error << endl;
+              fprintf(pipeout,"%s\n",Error.c_str());
+              fflush(pipeout);
               error(nobegin);
             }
           }
@@ -565,7 +569,8 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
         b=group->bounds();
         b *= magnification;
       
-        cout << b << newl;
+        fprintf(pipeout,"%g %g %g %g\n",b.left,b.right,b.bottom,b.top);
+        fflush(pipeout);
         ++n;
         ++p;
         ++arg;
@@ -574,11 +579,12 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
       if(p == f->nodes.end() || arg >= maxargs) {
         arg=0;
         ++batch;
-        cout.flush();
+        fflush(pipeout);
   
         int status=System(cmd,0,true,converter,hint);
         if(status) {
-          cout << Error << endl;
+          fprintf(pipeout,"%s\n",Error.c_str());
+          fflush(pipeout);
           error("deconstruct failed");
         }
       }
@@ -590,7 +596,8 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
         unlink(p->c_str());
     }
     
-    cout << Done << endl;
+    fprintf(pipeout,"%s\n",Done.c_str());
+    fflush(pipeout);
   }
 }
 

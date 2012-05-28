@@ -101,8 +101,8 @@ struct bool3 {
 
 void write(file file, string s="", bool3 b, suffix suffix=none)
 {
-  if(b.set) write(b.value);
-  else write("default");
+  if(b.set) write(b.value,suffix);
+  else write("default",suffix);
 }
 
 void write(string s="", bool3 b, suffix suffix=endl) 

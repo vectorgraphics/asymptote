@@ -10,6 +10,8 @@
 
 namespace camp {
 
+FILE *pipeout=NULL;
+
 string tab="\t";
 string newline="\n";
 

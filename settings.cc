@@ -1209,8 +1209,8 @@ void initSettings() {
 
   addOption(new boolSetting("wait", 0,
                             "Wait for child processes to finish before exiting"));
-  // Be interactive even in a pipe
-  addOption(new boolSetting("interactive", 0, ""));
+  addOption(new IntSetting("inpipe", 0, "n","",0));
+  addOption(new IntSetting("outpipe", 0, "n","",0));
   addOption(new boolSetting("exitonEOF", 0, "Exit interactive mode on EOF",
                             true));
                             
@@ -1302,7 +1302,7 @@ char *getArg(int n) { return argList[n]; }
 void setInteractive() {
   if(numArgs() == 0 && !getSetting<bool>("listvariables") && 
      getSetting<string>("command").empty() &&
-     (isatty(STDIN_FILENO) || getSetting<bool>("interactive")))
+     (isatty(STDIN_FILENO) || getSetting<bool>("inpipe") > 0))
     interact::interactive=true;
   
   historyname=getSetting<bool>("localhistory") ? 

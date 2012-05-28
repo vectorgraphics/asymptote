@@ -48,15 +48,20 @@ file* input(string name, bool check=true, string comment=commentchar)
   return f;
 }
 
-file* output(string name, bool update=false, string comment=commentchar)
+file* output(string name, bool update=false, string comment=commentchar, string mode=emptystring)
 {
   file *f;
-  if(update) {
-    char c=comment.empty() ? (char) 0 : comment[0];
-    f=new iofile(name,c);
-  } else f=new ofile(name);
+  if(mode == "pipe")
+    f=new opipe(name);
+  else {
+    if(update) {
+      char c=comment.empty() ? (char) 0 : comment[0];
+      f=new iofile(name,c);
+    } else f=new ofile(name);
+  }
   f->open();
   if(update) f->seek(0,false);
+  
   return f;
 }
 

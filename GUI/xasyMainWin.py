@@ -781,7 +781,7 @@ class xasyMainWin:
 
   def helpAsyDocCmd(self):
     #print "Open documentation about Asymptote"
-    asyExecute("\nhelp;\n")
+    asyExecute("help;\n")
 
   def helpAboutCmd(self):
     tkMessageBox.showinfo("About xasy","A graphical interface for Asymptote "+xasyVersion)

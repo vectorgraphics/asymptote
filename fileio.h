@@ -39,12 +39,29 @@ extern string tab;
 extern string newline;
   
 enum Mode {NOMODE,INPUT,OUTPUT,UPDATE,BINPUT,BOUTPUT,BUPDATE,XINPUT,XOUTPUT,
-           XUPDATE};
+           XUPDATE,OPIPE};
 
 static const string FileModes[]={"none",
                                  "input","output","ouptut(update=false)",
                                  "binput","boutput","boutput(update=false)",
-                                 "xinput","xoutput","xoutput(update=false)"};
+                                 "xinput","xoutput","xoutput(update=false)",
+                                 "opipe"};
+
+extern FILE *pipeout;
+
+inline void openpipeout() 
+{
+  int fd=settings::getSetting<Int>("outpipe");
+  if(!pipeout) {
+    // File descriptors 0 to 2 are reserved for stdin, stdout, and stderr.
+    if(fd > 2) pipeout=fdopen(intcast(fd),"w");
+  }
+  if(!pipeout) {
+    ostringstream buf;
+    buf << "Cannot open outpipe " << fd << ".";
+    reportError(buf);
+  }
+}
 
 class file : public gc {
 protected:  
@@ -705,6 +722,83 @@ public:
     write(val.getx());
     write(val.gety());
     write(val.getz());
+  }
+};
+
+class opipe : public file {
+public:
+  opipe(const string& name) : file(name,false,OPIPE) {}
+
+  void open() {
+    openpipeout();
+  }
+  
+  bool text() {return true;}
+  bool eof() {return pipeout ? feof(pipeout) : true;}
+  bool error() {return pipeout ? ferror(pipeout) : true;}
+  void clear() {if(pipeout) clearerr(pipeout);}
+  void flush() {if(pipeout) fflush(pipeout);}
+  
+  void seek(Int pos, bool begin=true) {
+    if(!standard && pipeout) {
+      clear();
+      fseek(pipeout,pos,begin ? SEEK_SET : SEEK_END);
+    }
+  }
+  
+  size_t tell() {
+    return pipeout ? ftell(pipeout) : 0;
+  }
+  
+  void write(bool val) {fprintf(pipeout,"%d",val);}
+  
+  void write(Int val) {
+    if(signedint) {
+      if(singleint) fprintf(pipeout,"%d",intcast(val));
+      else fprintf(pipeout,"%Ld",val);
+    } else {
+      if(singleint) fprintf(pipeout,"%u",unsignedcast(val));
+      else fprintf(pipeout,"%Lu",unsignedIntcast(val));
+    }
+  }
+  void write(double val) {
+    if(singlereal) fprintf(pipeout,"%g",(float) val);
+    else fprintf(pipeout,"%.15g", val);
+  }
+  void write(const string& val) {
+    fprintf(pipeout,"%s",val.c_str());
+  }
+  void write(const pair& val) {
+    write(val.getx());
+    write(val.gety());
+  }
+  void write(const triple& val) {
+    write(val.getx());
+    write(val.gety());
+    write(val.getz());
+  }
+
+  void write(pen *val) {
+    ostringstream s;
+    s << *val;
+    write(s.str());
+  }
+  
+  void write(guide *val) {
+    ostringstream s;
+    s << *val;
+    write(s.str());
+  }
+  
+  void write(transform *val) {
+    ostringstream s;
+    s << *val;
+    write(s.str());
+  }
+  
+  void writeline() {
+    fprintf(pipeout,"\n");
+    if(errorstream::interrupt) throw interrupted();
   }
 };
 
