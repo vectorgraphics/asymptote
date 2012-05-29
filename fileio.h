@@ -274,23 +274,23 @@ public:
     return pipeout ? ftell(pipeout) : 0;
   }
   
-  void write(bool val) {fprintf(pipeout,"%d",val);}
-  
-  void write(Int val) {
-    if(signedint) {
-      if(singleint) fprintf(pipeout,"%d",intcast(val));
-      else fprintf(pipeout,"%lld",val);
-    } else {
-      if(singleint) fprintf(pipeout,"%u",unsignedcast(val));
-      else fprintf(pipeout,"%llu",unsignedIntcast(val));
-    }
-  }
-  void write(double val) {
-    if(singlereal) fprintf(pipeout,"%g",(float) val);
-    else fprintf(pipeout,"%.15g", val);
-  }
   void write(const string& val) {
     fprintf(pipeout,"%s",val.c_str());
+  }
+  
+  void write(bool val) {
+    fprintf(pipeout,"%d",val);
+  }
+  
+  void write(Int val) {
+    ostringstream s;
+    s << val;
+    write(s.str());
+  }
+  void write(double val) {
+    ostringstream s;
+    s << val;
+    write(s.str());
   }
   void write(const pair& val) {
     write(val.getx());
