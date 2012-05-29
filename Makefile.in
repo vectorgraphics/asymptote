@@ -231,7 +231,7 @@ install-files:
 
 install-asy: asy sty install-files
 
-install-msdos: sty keywords install-files
+install-msdos: sty install-files
 
 install-html: html
 	cd doc && $(MAKE) install-all
