@@ -90,7 +90,7 @@ mode_t mask;
   
 string systemDir=ASYMPTOTE_SYSDIR;
 
-#ifndef __CYGWIN__
+#ifndef __MSDOS__
   
 bool msdos=false;
 string HOME="HOME";
@@ -1368,7 +1368,7 @@ void initDir() {
   if(initdir.empty())
     initdir=Getenv(HOME.c_str(),msdos)+dirsep+"."+suffix;
   
-#ifdef __CYGWIN__  
+#ifdef __MSDOS__  
   mask=umask(0);
   if(mask == 0) mask=0027;
   umask(mask);
@@ -1558,7 +1558,7 @@ Int getScroll()
     if(terminal) {
       int error;
       error=setupterm(terminal,1,&error);
-#ifndef __CYGWIN__      
+#ifndef __MSDOS__      
       if(error == 0) scroll=lines > 2 ? lines-1 : 1;
       else
 #endif

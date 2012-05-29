@@ -201,9 +201,9 @@ AC_ARG_ENABLE(gc-full-debug,
  fi
 ])
 
-if test "$OSTYPE" = "cygwin"; then
+if test "$OSTYPE" = "msdos"; then
 INCL=$INCL" -I/usr/include/tirpc"
-CPPFLAGS=$CPPFLAGS" $INCL"
+CPPFLAGS=$CPPFLAGS" -D__MSDOS__ $INCL"
 fi
 
 AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
@@ -291,7 +291,7 @@ AC_ARG_ENABLE(offscreen,
 
 if test "x$enable_gl" != "xno"; then
 case "$OSTYPE" in
-     cygwin)
+     msdos)
               if test "x$enable_offscreen" != "xyes"; then
                 AC_CHECK_HEADER(GL/gl.h,
 				  [AC_DEFINE(HAVE_LIBGL, 1,

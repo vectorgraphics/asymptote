@@ -122,7 +122,7 @@ void psfile::close()
   if(out) {
     out->flush();
     if(!filename.empty()) {
-#ifdef __CYGWIN__  
+#ifdef __MSDOS__  
       chmod(filename.c_str(),~settings::mask & 0777);
 #endif	    
       if(!out->good())

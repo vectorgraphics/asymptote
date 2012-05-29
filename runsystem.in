@@ -237,7 +237,7 @@ Int convert(string args=emptystring, string file=emptystring,
 Int animate(string args=emptystring, string file=emptystring,
             string format=emptystring)
 {
-#ifndef __CYGWIN__
+#ifndef __MSDOS__
   string name=convertname(file,format);
   if(view()) {
     mem::vector<string> cmd;

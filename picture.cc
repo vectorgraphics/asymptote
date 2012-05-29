@@ -248,7 +248,7 @@ void texinit()
         name=stripExt(name).substr(0,pos);
         unlink((name+".aux").c_str());
         cmd.push_back("-jobname="+name.substr(0,pos));
-#ifdef __CYGWIN__
+#ifdef __MSDOS__
         cmd.push_back("NUL"); // For MikTeX
 #endif
       }

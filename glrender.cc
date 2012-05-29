@@ -14,7 +14,7 @@
 #ifdef HAVE_GL
 
 #ifdef HAVE_LIBGLUT
-#ifdef __CYGWIN__
+#ifdef __MSDOS__
 #ifndef FGAPI
 #define FGAPI GLUTAPI
 #endif
@@ -559,7 +559,7 @@ void fullscreen(bool reposition=true)
   Width=screenWidth;
   Height=screenHeight;
   reshape0(Width,Height);
-#ifdef __CYGWIN__
+#ifdef __MSDOS__
   glutFullScreen();
 #else
   if(reposition)
@@ -1358,7 +1358,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 {
   bool offscreen=getSetting<bool>("offscreen");
 
-#ifndef __CYGWIN__    
+#ifndef __MSDOS__    
   Iconify=getSetting<bool>("iconify");
 #endif
 #ifdef HAVE_PTHREAD

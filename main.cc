@@ -27,10 +27,6 @@
 
 #include "common.h"
 
-#ifdef __CYGWIN__
-#define NOMINMAX
-#endif
-
 #ifdef HAVE_LIBSIGSEGV
 #include <sigsegv.h>
 #endif

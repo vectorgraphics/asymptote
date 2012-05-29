@@ -86,7 +86,7 @@ char *StrdupMalloc(string s)
 string stripDir(string name)
 {
   size_t p;
-#ifdef __CYGWIN__  
+#ifdef __MSDOS__  
   p=name.rfind('\\');
   if(p < string::npos) name.erase(0,p+1);
 #endif  
@@ -99,7 +99,7 @@ string stripFile(string name)
 {
   size_t p;
   bool dir=false;
-#ifdef __CYGWIN__  
+#ifdef __MSDOS__  
   p=name.rfind('\\');
   if(p < string::npos) {
     dir=true;
@@ -379,7 +379,7 @@ const char *setPath(const char *s, bool quiet)
 void push_command(mem::vector<string>& a, const string& s) 
 {
   a.push_back(s);
-#ifdef __CYGWIN__
+#ifdef __MSDOS__
   if(s == "cmd") {
     a.push_back("/c");
     a.push_back("start");

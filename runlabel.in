@@ -97,7 +97,7 @@ array *readpath(const string& psname, bool keep,
   cmd.push_back("-q");
   cmd.push_back("-dBATCH");
   if(safe) cmd.push_back("-dSAFER");
-#ifdef __CYGWIN__
+#ifdef __MSDOS__
   const string null="NUL";
 #else
   const string null="/dev/null";

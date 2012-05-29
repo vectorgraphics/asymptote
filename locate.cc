@@ -70,7 +70,7 @@ string locateFile(string id)
   for (file_list_t::iterator leaf = filenames.begin();
        leaf != filenames.end();
        ++leaf) {
-#ifdef __CYGWIN__
+#ifdef __MSDOS__
     size_t p;
     while ((p=leaf->find('\\')) < string::npos)
       (*leaf)[p]='/';
