@@ -85,11 +85,14 @@ FILE *fin=NULL;
 
 char *readpipeline(const char *prompt)
 {
-  const int max_size=1000;
+  const int max_size=256;
   static char buf[max_size];
-  
-  fgets(buf,max_size-1,fin);
-  return StrdupMalloc(buf);
+  ostringstream s;
+  do {
+    if(fgets(buf,max_size-1,fin) == NULL) break;
+    s << buf;
+  } while(buf[strlen(buf)-1] != '\n');
+  return StrdupMalloc(s.str());
 }
   
 void pre_readline()
