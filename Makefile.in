@@ -193,12 +193,14 @@ opsymbols.h: opsymbols.pl camp.l
 
 envcompleter.d: keywords.cc
 
-asy-keywords.el: asy
+keywords:
 	@echo Creating $@;
 	$(ASY) -l > asy.list
 	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | \
           grep -v three_\* | grep -v featpost3D | xargs $(ASY) -l >> asy.list
 	perl ./asy-list.pl asy.list @VERSION@
+
+asy-keywords.el: asy keywords
 
 install: asy-keywords.el install-texhash install-man
 
@@ -209,7 +211,7 @@ install-texhash: install-asy
 	  texhash; \
 	fi
 
-install-asy: asy sty
+install-files:
 	${INSTALL} -d $(bindir) $(asydir) $(GUIdir) $(exampledir) \
           $(animationsdir)
 	-${INSTALL} -d $(latexdir)
@@ -226,6 +228,10 @@ install-asy: asy sty
 	  examples/animations/inlinemovie3.tex $(animationsdir)
 	-${INSTALL} -p -m 644 $(addprefix doc/,$(LATEXFILES)) $(latexdir)
 	-${INSTALL} -p -m 644 $(addprefix doc/,$(CONTEXTFILES)) $(contextdir)
+
+install-asy: asy sty install-files
+
+install-msdos: sty keywords install-files
 
 install-html: html
 	cd doc && $(MAKE) install-all
