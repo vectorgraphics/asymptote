@@ -105,8 +105,13 @@ AC_PROG_YACC
 
 if test "$GXX" = yes ; then
    ac_gcc_version=`echo __GNUC__ | $CC -E - | grep -v ^\#`
+   ac_clang=`echo __clang__ | $CC -E - | grep -v ^\#`
    if test "$ac_gcc_version" -lt 4; then
        CFLAGS=$CFLAGS" -finline-limit=400"
+   else
+     if test "$ac_clang" != 1; then
+         CFLAGS=$CFLAGS" -fno-var-tracking"
+     fi
    fi
 fi
 
