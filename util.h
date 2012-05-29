@@ -101,6 +101,7 @@ extern "C" double yn(Int n, double x);
 extern "C" int snprintf(char *str, size_t size, const char *format,...);
 extern "C" int isnan(double);
 #include <stdio.h>
+extern "C" FILE *fdopen(int fd, const char *mode);
 extern "C" int fileno(FILE *);
 extern "C" char *strptime(const char *s, const char *format, struct tm *tm);
 extern "C" int setenv(const char *name, const char *value, int overwrite);
