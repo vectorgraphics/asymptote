@@ -249,6 +249,83 @@ public:
   bool SignedInt() {return signedint;}
 };
 
+class opipe : public file {
+public:
+  opipe(const string& name) : file(name,false,OPIPE) {}
+
+  void open() {
+    openpipeout();
+  }
+  
+  bool text() {return true;}
+  bool eof() {return pipeout ? feof(pipeout) : true;}
+  bool error() {return pipeout ? ferror(pipeout) : true;}
+  void clear() {if(pipeout) clearerr(pipeout);}
+  void flush() {if(pipeout) fflush(pipeout);}
+  
+  void seek(Int pos, bool begin=true) {
+    if(!standard && pipeout) {
+      clear();
+      fseek(pipeout,pos,begin ? SEEK_SET : SEEK_END);
+    }
+  }
+  
+  size_t tell() {
+    return pipeout ? ftell(pipeout) : 0;
+  }
+  
+  void write(bool val) {fprintf(pipeout,"%d",val);}
+  
+  void write(Int val) {
+    if(signedint) {
+      if(singleint) fprintf(pipeout,"%d",intcast(val));
+      else fprintf(pipeout,"%lld",val);
+    } else {
+      if(singleint) fprintf(pipeout,"%u",unsignedcast(val));
+      else fprintf(pipeout,"%llu",unsignedIntcast(val));
+    }
+  }
+  void write(double val) {
+    if(singlereal) fprintf(pipeout,"%g",(float) val);
+    else fprintf(pipeout,"%.15g", val);
+  }
+  void write(const string& val) {
+    fprintf(pipeout,"%s",val.c_str());
+  }
+  void write(const pair& val) {
+    write(val.getx());
+    write(val.gety());
+  }
+  void write(const triple& val) {
+    write(val.getx());
+    write(val.gety());
+    write(val.getz());
+  }
+
+  void write(const pen &val) {
+    ostringstream s;
+    s << val;
+    write(s.str());
+  }
+  
+  void write(guide *val) {
+    ostringstream s;
+    s << *val;
+    write(s.str());
+  }
+  
+  void write(const transform& val) {
+    ostringstream s;
+    s << val;
+    write(s.str());
+  }
+  
+  void writeline() {
+    fprintf(pipeout,"\n");
+    if(errorstream::interrupt) throw interrupted();
+  }
+};
+
 class ifile : public file {
 protected:  
   istream *stream;
@@ -722,83 +799,6 @@ public:
     write(val.getx());
     write(val.gety());
     write(val.getz());
-  }
-};
-
-class opipe : public file {
-public:
-  opipe(const string& name) : file(name,false,OPIPE) {}
-
-  void open() {
-    openpipeout();
-  }
-  
-  bool text() {return true;}
-  bool eof() {return pipeout ? feof(pipeout) : true;}
-  bool error() {return pipeout ? ferror(pipeout) : true;}
-  void clear() {if(pipeout) clearerr(pipeout);}
-  void flush() {if(pipeout) fflush(pipeout);}
-  
-  void seek(Int pos, bool begin=true) {
-    if(!standard && pipeout) {
-      clear();
-      fseek(pipeout,pos,begin ? SEEK_SET : SEEK_END);
-    }
-  }
-  
-  size_t tell() {
-    return pipeout ? ftell(pipeout) : 0;
-  }
-  
-  void write(bool val) {fprintf(pipeout,"%d",val);}
-  
-  void write(Int val) {
-    if(signedint) {
-      if(singleint) fprintf(pipeout,"%d",intcast(val));
-      else fprintf(pipeout,"%lld",val);
-    } else {
-      if(singleint) fprintf(pipeout,"%u",unsignedcast(val));
-      else fprintf(pipeout,"%llu",unsignedIntcast(val));
-    }
-  }
-  void write(double val) {
-    if(singlereal) fprintf(pipeout,"%g",(float) val);
-    else fprintf(pipeout,"%.15g", val);
-  }
-  void write(const string& val) {
-    fprintf(pipeout,"%s",val.c_str());
-  }
-  void write(const pair& val) {
-    write(val.getx());
-    write(val.gety());
-  }
-  void write(const triple& val) {
-    write(val.getx());
-    write(val.gety());
-    write(val.getz());
-  }
-
-  void write(const pen &val) {
-    ostringstream s;
-    s << val;
-    write(s.str());
-  }
-  
-  void write(guide *val) {
-    ostringstream s;
-    s << *val;
-    write(s.str());
-  }
-  
-  void write(const transform& val) {
-    ostringstream s;
-    s << val;
-    write(s.str());
-  }
-  
-  void writeline() {
-    fprintf(pipeout,"\n");
-    if(errorstream::interrupt) throw interrupted();
   }
 };
 
