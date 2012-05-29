@@ -279,7 +279,9 @@ public:
   }
   
   void write(bool val) {
-    fprintf(pipeout,"%d",val);
+    ostringstream s;
+    s << val;
+    write(s.str());
   }
   
   void write(Int val) {
@@ -293,13 +295,14 @@ public:
     write(s.str());
   }
   void write(const pair& val) {
-    write(val.getx());
-    write(val.gety());
+    ostringstream s;
+    s << val;
+    write(s.str());
   }
   void write(const triple& val) {
-    write(val.getx());
-    write(val.gety());
-    write(val.getz());
+    ostringstream s;
+    s << val;
+    write(s.str());
   }
 
   void write(const pen &val) {
