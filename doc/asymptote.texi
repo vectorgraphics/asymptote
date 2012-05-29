@@ -9283,12 +9283,12 @@ and @code{tk-devel} packages.
 
 Pictures are deconstructed into the @acronym{PNG} image format, which
 supports full alpha channel transparency. Under @code{Microsoft Windows},
-this requires @code{Python 2.6.2} and the @code{Python Imaging Library}:
+this requires @code{Python 2.7.3} and the @code{Python Imaging Library}:
 @quotation
-@url{http://www.python.org/ftp/python/2.6.2/python-2.6.2.msi}
+@url{http://www.python.org/ftp/python/2.7.3/python-2.7.3.msi}
 @end quotation
 @quotation
-@url{http://effbot.org/downloads/PIL-1.1.7.win32-py2.6.exe}.
+@url{http://effbot.org/downloads/PIL-1.1.7.win32-py2.7.exe}.
 @end quotation
 @noindent
 On @code{UNIX} systems, place

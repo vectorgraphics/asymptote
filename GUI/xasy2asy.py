@@ -51,7 +51,7 @@ def startQuickAsy():
       AsyTempDir=mkdtemp(prefix="asy_")+os.sep
     (rx,wx) = os.pipe()
     (ra,wa) = os.pipe()
-    quickAsy = Popen([xasyOptions.options['asyPath'],"-V","-multiline","-q",
+    quickAsy = Popen([xasyOptions.options['asyPath'],"-noV","-multiline","-q",
                       "-o"+AsyTempDir,"-inpipe="+str(rx),"-outpipe="+str(wa)])
     fout=os.fdopen(wx,'w')
     fin=os.fdopen(ra,'r')
@@ -452,7 +452,7 @@ class xasyItem:
   def asyfyThread(self,mag=1.0):
     """Convert the item to a list of images by deconstructing this item's code"""
     global fout,fin
-    print >>fout,"\nreset;\n"
+    print >>fout,"reset;\n"
     print >>fout,"initXasyMode();\n"
     print >>fout,"atexit(null);\n"
     global console

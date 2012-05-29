@@ -57,7 +57,7 @@ class xasyMainWin:
     self.createWidgets()
     self.resetGUI()
     if sys.platform[:3] == "win":
-      site="http://effbot.org/downloads/PIL-1.1.7.win32-py2.6.exe"
+      site="http://effbot.org/downloads/PIL-1.1.7.win32-py2.7.exe"
     else:
       site="http://effbot.org/downloads/Imaging-1.1.7.tar.gz" 
     if not PILAvailable:
