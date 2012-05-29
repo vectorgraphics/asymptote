@@ -94,8 +94,14 @@ last = `cat svnrevision.cc | sed -e 's/.*\"\(.*\)\";/\\1/'`
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
 asy:	version GUIversion
-	ln -sf GUI/xasy.py $(XNAME)
-	$(CXX) $(DEFS) -o $(NAME) $(FILES:=.o) $(LIBS)
+	if test -n "$(MSDOS)"; then \
+	  cat asy.rc | sed -e "s/ASYMPTOTE_VERSION/@VERSION@$(revision)/" | \
+	  windres -o asy.o; \
+	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) asy.o $(LIBS) -s -static; \
+	else \
+	  ln -sf GUI/xasy.py $(XNAME); \
+	  $(CXX) $(DEFS) -o $(NAME) $(FILES:=.o) $(LIBS); \
+	fi
 
 version: $(GCLIB) $(FILES:=.o)
 	if test "$(revision)" != "$(last)"; then \
@@ -115,13 +121,6 @@ asymptote.so: version
 
 svnrevision.cc:
 	echo $(REVISION)\"\"\; > svnrevision.cc;
-
-msdos: version GUIversion asy.o
-	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) asy.o $(LIBS) -s -static
-
-asy.o:	asy.rc asy.ico Makefile
-	cat asy.rc | sed -e "s/ASYMPTOTE_VERSION/@VERSION@$(revision)/" | \
-	windres -o asy.o
 
 all:  	asy sty man faq asy-keywords.el
 
@@ -193,14 +192,12 @@ opsymbols.h: opsymbols.pl camp.l
 
 envcompleter.d: keywords.cc
 
-keywords:
+asy-keywords.el: asy
 	@echo Creating $@;
 	$(ASY) -l > asy.list
 	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | \
           grep -v three_\* | grep -v featpost3D | xargs $(ASY) -l >> asy.list
 	perl ./asy-list.pl asy.list @VERSION@
-
-asy-keywords.el: asy keywords
 
 install: asy-keywords.el install-texhash install-man
 
@@ -211,7 +208,7 @@ install-texhash: install-asy
 	  texhash; \
 	fi
 
-install-files:
+install-asy: asy sty
 	${INSTALL} -d $(bindir) $(asydir) $(GUIdir) $(exampledir) \
           $(animationsdir)
 	-${INSTALL} -d $(latexdir)
@@ -228,10 +225,6 @@ install-files:
 	  examples/animations/inlinemovie3.tex $(animationsdir)
 	-${INSTALL} -p -m 644 $(addprefix doc/,$(LATEXFILES)) $(latexdir)
 	-${INSTALL} -p -m 644 $(addprefix doc/,$(CONTEXTFILES)) $(contextdir)
-
-install-asy: asy sty install-files
-
-install-msdos: sty install-files
 
 install-html: html
 	cd doc && $(MAKE) install-all
