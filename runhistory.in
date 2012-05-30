@@ -151,7 +151,7 @@ stringarray* history(Int n=0)
 string readline(string prompt=emptystring, string name=emptystring,
                 bool tabcompletion=false)
 {
-  if(!(isatty(STDIN_FILENO) || getSetting<bool>("interactive")))
+  if(!(isatty(STDIN_FILENO) || getSetting<Int>("inpipe") >= 0))
     return emptystring;
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   init_readline(tabcompletion);
