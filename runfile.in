@@ -40,7 +40,7 @@ file* :nullFile()
   return &camp::nullfile;
 }
 
-file* input(string name, bool check=true, string comment=commentchar)
+file* input(string name=emptystring, bool check=true, string comment=commentchar)
 {
   char c=comment.empty() ? (char) 0 : comment[0];
   file *f=new ifile(name,c,check);
@@ -48,7 +48,7 @@ file* input(string name, bool check=true, string comment=commentchar)
   return f;
 }
 
-file* output(string name, bool update=false, string comment=commentchar, string mode=emptystring)
+file* output(string name=emptystring, bool update=false, string comment=commentchar, string mode=emptystring)
 {
   file *f;
   if(mode == "pipe")

@@ -57,8 +57,8 @@ bool finite(triple v)
   return abs(v.x) < infinity && abs(v.y) < infinity && abs(v.z) < infinity;
 }
 
-restricted file stdin=input("");
-restricted file stdout=output("");
+restricted file stdin=input();
+restricted file stdout=output();
 
 void none(file file) {}
 void endl(file file) {write(file,'\n',flush);}

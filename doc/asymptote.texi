@@ -3654,8 +3654,11 @@ that can be used for importing @code{LaTeX} packages.
 value) files and portable @acronym{XDR} (External Data Representation)
 binary files.
 
+@cindex @code{input}
 An input file must first be opened with 
-@code{input(string name, bool check=true, string comment="#")};
+@verbatim
+input(string name="", bool check=true, string comment="#");
+@end verbatim
 reading is then done by assignment:
 @cindex open
 @cindex @code{input}
@@ -3697,7 +3700,7 @@ comment character as an ordinary character) and return it as a string.
 @cindex append
 A file named @code{name} can be open for output with
 @verbatim
-file output(string name, bool update=false);
+file output(string name="", bool update=false, string comment="#", string mode=emptystring);
 @end verbatim
 @noindent
 If @code{update=false}, any existing data in the file will be erased

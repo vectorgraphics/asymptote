@@ -190,8 +190,8 @@ void queryRegistry()
     gs=getEntry("AFPL Ghostscript/*/GS_DLL");
   defaultGhostscript=stripFile(gs)+defaultGhostscript;
   if(defaultPDFViewer != "cmd")
-  defaultPDFViewer=getEntry("Adobe/Acrobat Reader/*/InstallPath/@")+"\\"+
-    defaultPDFViewer;
+    defaultPDFViewer=getEntry("Adobe/Acrobat Reader/*/InstallPath/@")+"\\"+
+      defaultPDFViewer;
   if(defaultPSViewer != "cmd")
     defaultPSViewer=getEntry("Ghostgum/GSview/*")+"\\gsview\\"+defaultPSViewer;
   string s;
@@ -694,8 +694,8 @@ struct stringArraySetting : public itemSetting {
 
 struct engineSetting : public argumentSetting {
   engineSetting(string name, char code,
-               string argname, string desc,
-               string defaultValue)
+                string argname, string desc,
+                string defaultValue)
     : argumentSetting(name, code, argname, description(desc,defaultValue),
                       types::primString(), (item)defaultValue) {}
 
@@ -1209,8 +1209,8 @@ void initSettings() {
 
   addOption(new boolSetting("wait", 0,
                             "Wait for child processes to finish before exiting"));
-  addOption(new IntSetting("inpipe", 0, "n","",0));
-  addOption(new IntSetting("outpipe", 0, "n","",0));
+  addOption(new IntSetting("inpipe", 0, "n","",-1));
+  addOption(new IntSetting("outpipe", 0, "n","",-1));
   addOption(new boolSetting("exitonEOF", 0, "Exit interactive mode on EOF",
                             true));
                             
@@ -1302,7 +1302,7 @@ char *getArg(int n) { return argList[n]; }
 void setInteractive() {
   if(numArgs() == 0 && !getSetting<bool>("listvariables") && 
      getSetting<string>("command").empty() &&
-     (isatty(STDIN_FILENO) || getSetting<Int>("inpipe") > 0))
+     (isatty(STDIN_FILENO) || getSetting<Int>("inpipe") >= 0))
     interact::interactive=true;
   
   historyname=getSetting<bool>("localhistory") ? 
@@ -1562,7 +1562,7 @@ Int getScroll()
       if(error == 0) scroll=lines > 2 ? lines-1 : 1;
       else
 #endif
-	scroll=0;
+        scroll=0;
     } else scroll=0;
 
   }
@@ -1588,7 +1588,7 @@ void setOptions(int argc, char *argv[])
   argv0=argv[0];
 
   cout.precision(DBL_DIG);
-  
+
   // Build settings module.
   initSettings();
   
@@ -1617,6 +1617,9 @@ void setOptions(int argc, char *argv[])
   
   // Read command-line options again to override configuration file defaults.
   getOptions(argc,argv);
+  
+  if(getSetting<Int>("outpipe") == 2) // Redirect cerr to cout
+    std::cerr.rdbuf(std::cout.rdbuf());
   
   Setting("sysdir")=sysdir;
   

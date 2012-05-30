@@ -53,8 +53,7 @@ inline void openpipeout()
 {
   int fd=settings::getSetting<Int>("outpipe");
   if(!pipeout) {
-    // File descriptors 0 to 2 are reserved for stdin, stdout, and stderr.
-    if(fd > 2) pipeout=fdopen(intcast(fd),"w");
+    if(fd >= 0) pipeout=fdopen(intcast(fd),"w");
   }
   if(!pipeout) {
     ostringstream buf;

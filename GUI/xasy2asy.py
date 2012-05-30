@@ -27,7 +27,6 @@ import CubicBezier
 
 quickAsyFailed = True
 global AsyTempDir
-global fin
 
 console=None
 
@@ -49,12 +48,20 @@ def startQuickAsy():
       AsyTempDir=mkdtemp(prefix="asy_", dir="./")
     else:
       AsyTempDir=mkdtemp(prefix="asy_")+os.sep
-    (rx,wx) = os.pipe()
-    (ra,wa) = os.pipe()
-    quickAsy = Popen([xasyOptions.options['asyPath'],"-noV","-multiline","-q",
-                      "-o"+AsyTempDir,"-inpipe="+str(rx),"-outpipe="+str(wa)])
-    fout=os.fdopen(wx,'w')
-    fin=os.fdopen(ra,'r')
+      command=[xasyOptions.options['asyPath'],"-noV","-multiline","-q",
+               "-o"+AsyTempDir]
+    if sys.platform[:3] == 'win':
+      command += ["-inpipe=0","-outpipe=2"]
+      quickAsy=Popen(command,stdin=PIPE,stderr=PIPE)
+      fout=quickAsy.stdin
+      fin=quickAsy.stderr
+    else:
+      (rx,wx) = os.pipe()
+      (ra,wa) = os.pipe()
+      command += ["-inpipe="+str(rx),"-outpipe="+str(wa)]
+      quickAsy=Popen(command)
+      fout=os.fdopen(wx,'w')
+      fin=os.fdopen(ra,'r')
     if quickAsy.returncode != None:
       quickAsyFailed = True
   except:
@@ -72,8 +79,7 @@ def quickAsyRunning():
 def asyExecute(command):
   if not quickAsyRunning():
     startQuickAsy()
-  print >>fout,command
-  fout.flush()
+  fout.write(command)
 
 def closeConsole(event):
   global console
@@ -113,7 +119,6 @@ class asyTransform:
       return str(self.t)
 
   def scale(self,s):
-    #return asyTransform((s*self.t[0],s*self.t[1],s*self.t[2],s*self.t[3],s*self.t[4],s*self.t[5]))
     return asyTransform((0,0,s,0,0,s))*self
 
   def __str__(self):
@@ -193,11 +198,11 @@ class asyPen(asyObj):
 
   def computeColor(self):
     """Find out the color of an arbitrary asymptote pen."""
-    print >>fout,"pen _p="+self.getCode()+';\n'
-    print >>fout,"file fout=output(\"\",mode='pipe');\n"
-    print >>fout,"write(fout,colorspace(_p),newl);\n"
-    print >>fout,"write(fout,colors(_p));\n"
-    print >>fout,"flush(fout);\n"
+    fout.write("pen p="+self.getCode()+';\n')
+    fout.write("file fout=output(mode='pipe');\n")
+    fout.write("write(fout,colorspace(p),newl);\n")
+    fout.write("write(fout,colors(p));\n")
+    fout.write("flush(fout);\n")
     fout.flush()
     colorspace = fin.readline()
     if colorspace.find("cmyk") != -1:
@@ -334,10 +339,10 @@ class asyPath(asyObj):
 
   def computeControls(self):
     """Evaluate the code of the path to obtain its control points"""
-    print >>fout,"path _g="+self.getCode()+';\n'
-    print >>fout,"file fout=output(\"\",mode='pipe');\n"
-    print >>fout,"write(fout,length(_g),newl);\n"
-    print >>fout,"write(fout,unstraighten(_g),endl);\n"
+    fout.write("file fout=output(mode='pipe');\n")
+    fout.write("path p="+self.getCode()+';\n')
+    fout.write("write(fout,length(p),newl);\n")
+    fout.write("write(fout,unstraighten(p),endl);\n")
     fout.flush()
     lengthStr = fin.readline()
     pathSegments = eval(lengthStr.split()[-1])
@@ -451,14 +456,13 @@ class xasyItem:
 
   def asyfyThread(self,mag=1.0):
     """Convert the item to a list of images by deconstructing this item's code"""
-    global fout,fin
-    print >>fout,"reset;\n"
-    print >>fout,"initXasyMode();\n"
-    print >>fout,"atexit(null);\n"
+    fout.write("reset;\n")
+    fout.write("initXasyMode();\n")
+    fout.write("atexit(null);\n")
     global console
     for line in self.getCode().splitlines():
-      print >>fout,line+"\n";
-    print >>fout,"deconstruct("+str(mag)+");\n"
+      fout.write(line+"\n");
+    fout.write("deconstruct(%f);\n"%mag)
     fout.flush()
     format = "png"
     maxargs = int(split(fin.readline())[0])

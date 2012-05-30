@@ -98,7 +98,7 @@ char *readpipeline(const char *prompt)
 void pre_readline()
 {
   int fd=intcast(settings::getSetting<Int>("inpipe"));
-  if(fd > 0) {
+  if(fd >= 0) {
     if(!fin) fin=fdopen(fd,"r");
     Readline=readpipeline;
   } else {
