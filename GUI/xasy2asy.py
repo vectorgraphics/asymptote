@@ -48,18 +48,16 @@ def startQuickAsy():
       AsyTempDir=mkdtemp(prefix="asy_", dir="./")
     else:
       AsyTempDir=mkdtemp(prefix="asy_")+os.sep
-      command=[xasyOptions.options['asyPath'],"-noV","-multiline","-q",
-               "-o"+AsyTempDir]
     if sys.platform[:3] == 'win':
-      command += ["-inpipe=0","-outpipe=2"]
-      quickAsy=Popen(command,stdin=PIPE,stderr=PIPE)
+      quickAsy=Popen([xasyOptions.options['asyPath'],"-noV","-multiline","-q",
+               "-o"+AsyTempDir,"-inpipe=0","-outpipe=2"],stdin=PIPE,stderr=PIPE)
       fout=quickAsy.stdin
       fin=quickAsy.stderr
     else:
       (rx,wx) = os.pipe()
       (ra,wa) = os.pipe()
-      command += ["-inpipe="+str(rx),"-outpipe="+str(wa)]
-      quickAsy=Popen(command)
+      quickAsy=Popen([xasyOptions.options['asyPath'],"-noV","-multiline","-q",
+               "-o"+AsyTempDir,"-inpipe="+str(rx),"-outpipe="+str(wa)])
       fout=os.fdopen(wx,'w')
       fin=os.fdopen(ra,'r')
     if quickAsy.returncode != None:
