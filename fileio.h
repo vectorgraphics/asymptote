@@ -41,11 +41,10 @@ extern string newline;
 enum Mode {NOMODE,INPUT,OUTPUT,UPDATE,BINPUT,BOUTPUT,BUPDATE,XINPUT,XOUTPUT,
            XUPDATE,OPIPE};
 
-static const string FileModes[]={"none",
-                                 "input","output","ouptut(update=false)",
-                                 "binput","boutput","boutput(update=false)",
-                                 "xinput","xoutput","xoutput(update=false)",
-                                 "opipe"};
+static const string FileModes[]=
+{"none","input","output","output(update)",
+ "input(binary)","output(binary)","output(binary,update)",
+ "input(xdr)","output(xdr)","output(xdr,update)","output(pipe)"};
 
 extern FILE *pipeout;
 
@@ -57,7 +56,7 @@ inline void openpipeout()
   }
   if(!pipeout) {
     ostringstream buf;
-    buf << "Cannot open outpipe " << fd << ".";
+    buf << "Cannot open outpipe " << fd;
     reportError(buf);
   }
 }
@@ -129,7 +128,7 @@ public:
   void Check() {
     if(error()) {
       ostringstream buf;
-      buf << "Cannot open file \"" << name << "\".";
+      buf << "Cannot open file \"" << name << "\"";
       reportError(buf);
     }
   }
@@ -140,8 +139,8 @@ public:
     if(closed) {
       ostringstream buf;
       buf << "I/O operation attempted on ";
-      if(name != "") buf << "closed file \'" << name << "\'.";
-      else buf << "null file.";
+      if(name != "") buf << "closed file \'" << name << "\'";
+      else buf << "null file";
       reportError(buf);
     }
     return true;
@@ -165,7 +164,7 @@ public:
   void unsupported(const char *rw, const char *type) {
     ostringstream buf;
     buf << rw << " of type " << type << " not supported in " << FileMode()
-        << " mode.";
+        << " mode";
     reportError(buf);
   }
   

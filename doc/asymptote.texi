@@ -3657,7 +3657,7 @@ binary files.
 @cindex @code{input}
 An input file must first be opened with 
 @verbatim
-input(string name="", bool check=true, string comment="#");
+input(string name="", bool check=true, string comment="#", string mode="");
 @end verbatim
 reading is then done by assignment:
 @cindex open
@@ -3700,7 +3700,7 @@ comment character as an ordinary character) and return it as a string.
 @cindex append
 A file named @code{name} can be open for output with
 @verbatim
-file output(string name="", bool update=false, string comment="#", string mode=emptystring);
+file output(string name="", bool update=false, string comment="#", string mode="");
 @end verbatim
 @noindent
 If @code{update=false}, any existing data in the file will be erased
@@ -3762,23 +3762,21 @@ write(fout,"List: ",1,2,3);     // Writes "List: 1     2     3"
 @noindent
         
 @cindex binary format
-@cindex @code{xinput}
-@cindex @code{xoutput}
-@cindex @code{binput}
-@cindex @code{boutput}
 @cindex single precision
 @cindex double precision
 @cindex @code{singlereal}
 @cindex @code{singleint}
 @cindex @code{signedint}
-A file may also be opened with @code{xinput} or @code{xoutput}, instead of
-@code{input} or @code{output}, to read or write
+@cindex @code{mode}
+@cindex @code{binary}
+@cindex @code{xdr}
+A file may be opened with @code{mode="xdr"}, to read or write
 double precision (64-bit) reals and single precision (32-bit)
 integers in Sun Microsystem's @acronym{XDR} (External
 Data Representation) portable binary format (available on all
 @code{UNIX} platforms).
-Alternatively, a file may also be opened with @code{binput} or
-@code{boutput} to read or write double precision reals and single
+Alternatively, a file may also be opened with @code{mode="binary"}
+to read or write double precision reals and single
 precision integers in the native (nonportable) machine binary format.
 The virtual member functions
 @code{file singlereal(bool b=true)} and @code{file singleint(bool b=true)}
@@ -9549,8 +9547,8 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  dirtime currentpen colorspaces grayscale cmyk defaultpen x cx
 @c  LocalWords:  linetype longdashed dashdotted longdashdotted linewidth y XP
 @c  LocalWords:  fontsize defaultfilename keepAspect IgnoreAspect ise flushleft
-@c  LocalWords:  src dest XDR txt getc fout stdin stdout endl xinput eof js prc
-@c  LocalWords:  xoutput Microsystem's eol exponentials postfix sayhi th Ubuntu
+@c  LocalWords:  src dest XDR txt getc fout stdin stdout endl eof js prc
+@c  LocalWords:  Microsystem's eol exponentials postfix sayhi th Ubuntu
 @c  LocalWords:  sqr intop addby libm asin acos atan sinh tanh asinh acosh cbrt
 @c  LocalWords:  atanh fabs hypot fmod ceil srand dereferenced alice pete sqrtx
 @c  LocalWords:  eval fft csv runtime nonalphanumeric labely LeftTicks NoTicks
@@ -9635,7 +9633,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  labelpath intersectionpoints PSTricks pstextpath curvedlabel
 @c  LocalWords:  LeftJustified RightJustified tickmodifier gunzip gmake IRIX dv
 @c  LocalWords:  texcommand RET SITEDIR filegraph pathmarkers POSIX binput AOB
-@c  LocalWords:  boutput nonportable markinterval stickframe circlebarframe tix
+@c  LocalWords:  nonportable markinterval stickframe circlebarframe tix
 @c  LocalWords:  crossframe tildeframe markangle StickIntervalMarker gswin expm
 @c  LocalWords:  CrossIntervalMarker CircleBarIntervalMarker Ghostscript syzygy
 @c  LocalWords:  TildeIntervalMarker autoimport calculateTransform bitwise tk
@@ -9680,7 +9678,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  rotateY rotateZ wheelup zoomin wheeldown zoomout TeXLive pnorm
 @c  LocalWords:  viewportshift signedint signedness psview multiplatform nowarn
 @c  LocalWords:  singlereal singleint writeoverloaded dvisvg reddash lexorder
-@c  LocalWords:  bigdiagonal autobillboard dvisvgm maxtiles hyperrefOptions
+@c  LocalWords:  bigdiagonal autobillboard dvisvgm maxtiles hyperrefOptions xdr
 @c  LocalWords:  setpagesize pdfborder controlsystem OmitTickInterval SixViews
 @c  LocalWords:  OmitTickIntervals tickmodifiers autorotated SixViewsUS latexmk
 @c  LocalWords:  ThreeViewsUS ThreeViewsFR SixViewsFR ThreeViews partialsum

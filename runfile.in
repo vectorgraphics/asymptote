@@ -40,77 +40,68 @@ file* :nullFile()
   return &camp::nullfile;
 }
 
-file* input(string name=emptystring, bool check=true, string comment=commentchar)
-{
-  char c=comment.empty() ? (char) 0 : comment[0];
-  file *f=new ifile(name,c,check);
-  f->open();
-  return f;
-}
-
-file* output(string name=emptystring, bool update=false, string comment=commentchar, string mode=emptystring)
+file* input(string name=emptystring, bool check=true,
+            string comment=commentchar, string mode=emptystring)
 {
   file *f;
-  if(mode == "pipe")
-    f=new opipe(name);
-  else {
-    if(update) {
-      char c=comment.empty() ? (char) 0 : comment[0];
-      f=new iofile(name,c);
-    } else f=new ofile(name);
-  }
-  f->open();
-  if(update) f->seek(0,false);
-  
-  return f;
-}
-
-file* xinput(string name, bool check=true)
-{
+  if(mode == "binary") {
+    f=new ibfile(name,check);
+  } else if(mode == "xdr") {
 #ifdef HAVE_RPC_RPC_H
-  file *f=new ixfile(name,check);
-  f->open();
-  return f;
+    f=new ixfile(name,check);    
 #else  
   ostringstream buf;
   buf << name << ": XDR read support not enabled";
   error(buf);
-  unused(&check); // Suppress unused variable warning
 #endif
+  } else if(mode == "") {
+    char c=comment.empty() ? (char) 0 : comment[0];
+    f=new ifile(name,c,check);
+  } else {
+    f=NULL;
+    ostringstream buf;
+    buf << name << ": invalid file mode '" << mode << "'";
+    error(buf);
+  }
+  
+  f->open();
+  return f;
 }
 
-file* xoutput(string name, bool update=false)
+file* output(string name=emptystring, bool update=false,
+             string comment=commentchar, string mode=emptystring)
 {
+  file *f;
+  if(mode == "pipe") {
+    f=new opipe(name);
+  } else if(mode == "binary") {
+    if(update) f=new iobfile(name);
+    else f=new obfile(name);
+  } else if(mode == "xdr") {
 #ifdef HAVE_RPC_RPC_H
-  file *f;
-  if(update)
-    f=new ioxfile(name);
-  else f=new oxfile(name);
-  f->open();
-  if(update) f->seek(0,false);
-  return f;
+    if(update)
+      f=new ioxfile(name);
+    else f=new oxfile(name);
 #else  
-  ostringstream buf;
-  buf << name << ": XDR write support not enabled";
-  error(buf);
-  unused(&update); // Suppress unused variable warning
+    ostringstream buf;
+    buf << name << ": XDR write support not enabled";
+    error(buf);
 #endif
-}
-
-file* binput(string name, bool check=true)
-{
-  file *f=new ibfile(name,check);
-  f->open();
-  return f;
-}
-
-file* boutput(string name, bool update=false)
-{
-  file *f;
-  if(update) f=new iobfile(name);
-  else f=new obfile(name);
+  } else if(mode == "") {
+    if(update) {
+      char c=comment.empty() ? (char) 0 : comment[0];
+      f=new iofile(name,c);
+    } else f=new ofile(name);
+  } else {
+    f=NULL;
+    ostringstream buf;
+    buf << name << ": invalid file mode '" << mode << "'";
+    error(buf);
+  }
+  
   f->open();
   if(update) f->seek(0,false);
+  
   return f;
 }
 
