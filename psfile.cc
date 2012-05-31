@@ -649,10 +649,10 @@ void psfile::image(stack *Stack, callable *f, Int width, Int height,
   imageheader(width,height,colorspace);
     
   beginImage(ncomponents*width*height);
-  for(Int i=0; i < width; i++) {
-    for(Int j=0; j < height; j++) {
-      Stack->push(i);
+  for(Int j=0; j < height; j++) {
+    for(Int i=0; i < width; i++) {
       Stack->push(j);
+      Stack->push(i);
       f->call(Stack);
       pen p=pop<pen>(Stack);
       p.convert();

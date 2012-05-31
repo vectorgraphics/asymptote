@@ -92,11 +92,18 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
   initial=Scale(pic,initial);
   final=Scale(pic,final);
 
-  transform T=transpose ? swap : identity();
-  pic.add(new void(frame F, transform t) {
-      _image(F,f,T*initial,T*final,palette,t*T,copy=false,antialias=antialias);
-    },true);
   pic.addBox(initial,final);
+
+  transform T;
+  if(transpose) {
+    T=swap;
+    initial=T*initial;
+    final=T*final;
+  }
+        
+  pic.add(new void(frame F, transform t) {
+      _image(F,f,initial,final,palette,t*T,copy=false,antialias=antialias);
+    },true);
   return bounds; // Return bounds used for color space
 }
 
@@ -131,11 +138,18 @@ void image(picture pic=currentpicture, pen[][] data, pair initial, pair final,
   initial=Scale(pic,initial);
   final=Scale(pic,final);
 
-  transform T=transpose ? swap : identity();
-  pic.add(new void(frame F, transform t) {
-      _image(F,data,T*initial,T*final,t*T,copy=false,antialias=antialias);
-    },true);
   pic.addBox(initial,final);
+
+  transform T;
+  if(transpose) {
+    T=swap;
+    initial=T*initial;
+    final=T*final;
+  }
+        
+  pic.add(new void(frame F, transform t) {
+      _image(F,data,initial,final,t*T,copy=false,antialias=antialias);
+    },true);
 }
 
 void image(picture pic=currentpicture, pen f(int, int), int width, int height,
@@ -146,11 +160,21 @@ void image(picture pic=currentpicture, pen f(int, int), int width, int height,
   initial=Scale(pic,initial);
   final=Scale(pic,final);
 
-  transform T=transpose ? swap : identity();
-  pic.add(new void(frame F, transform t) {
-      _image(F,f,width,height,T*initial,T*final,t*T,antialias=antialias);
-    },true);
   pic.addBox(initial,final);
+
+  transform T;
+  if(transpose) {
+    T=swap;
+    int temp=width;
+    width=height;
+    height=temp;
+    initial=T*initial;
+    final=T*final;
+  }
+        
+  pic.add(new void(frame F, transform t) {
+      _image(F,f,width,height,initial,final,t*T,antialias=antialias);
+    },true);
 }
 
 bounds image(picture pic=currentpicture, pair[] z, real[] f,
@@ -291,9 +315,19 @@ void palette(picture pic=currentpicture, Label L="", bounds bounds,
   }
   real[][] pdata={sequence(palette.length)};
   
-  transform T=vertical ? swap : identity();
+  transform T;
+  pair Tinitial,Tfinal;
+  if(vertical) {
+    T=swap;
+    Tinitial=T*initial;
+    Tfinal=T*final;
+  } else {
+    Tinitial=initial;
+    Tfinal=final;
+  }
+        
   pic.add(new void(frame f, transform t) {
-      _image(f,pdata,T*initial,T*final,palette,t*T,copy=false,
+      _image(f,pdata,Tinitial,Tfinal,palette,t*T,copy=false,
              antialias=antialias);
     },true);
   
