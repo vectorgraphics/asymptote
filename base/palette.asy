@@ -148,7 +148,7 @@ void image(picture pic=currentpicture, pen f(int, int), int width, int height,
 
   transform T=transpose ? swap : identity();
   pic.add(new void(frame F, transform t) {
-      _image(F,f,width,height,T*initial,T*final,t*T,antialias=antialias);
+      _image(F,f,transpose?height:width,transpose?width:height,T*initial,T*final,t*T,antialias=antialias);
     },true);
   pic.addBox(initial,final);
 }
