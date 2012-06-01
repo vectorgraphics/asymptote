@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <csignal>
+#include <cstring>
 
 #include "interact.h"
 #include "runhistory.h"
