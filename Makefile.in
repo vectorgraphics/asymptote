@@ -100,7 +100,7 @@ asy:	version GUIversion
 	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) asy.o $(LIBS) -s -static; \
 	else \
 	  ln -sf GUI/xasy.py $(XNAME); \
-	  $(CXX) $(DEFS) -o $(NAME) $(FILES:=.o) $(LIBS); \
+	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) $(LIBS); \
 	fi
 
 version: $(GCLIB) $(FILES:=.o)
