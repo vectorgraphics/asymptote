@@ -1451,9 +1451,9 @@ void autoscale(picture pic=currentpicture, axis axis)
       if(pic.scale.x.scale.logarithmic &&
          floor(pic.userMin().x) == floor(pic.userMax().x)) {
         if(pic.scale.x.automin())
-          pic.userMinx(floor(pic.userMin().x));
+          pic.userMinx2(floor(pic.userMin().x));
         if(pic.scale.x.automax())
-          pic.userMaxx(ceil(pic.userMax().x));
+          pic.userMaxx2(ceil(pic.userMax().x));
       }
     } else {mx.min=mx.max=0; pic.scale.set=false;}
     
@@ -1462,9 +1462,9 @@ void autoscale(picture pic=currentpicture, axis axis)
       if(pic.scale.y.scale.logarithmic &&
          floor(pic.userMin().y) == floor(pic.userMax().y)) {
         if(pic.scale.y.automin())
-          pic.userMiny(floor(pic.userMin().y));
+          pic.userMiny2(floor(pic.userMin().y));
         if(pic.scale.y.automax())
-          pic.userMaxy(ceil(pic.userMax().y));
+          pic.userMaxy2(ceil(pic.userMax().y));
       }
     } else {my.min=my.max=0; pic.scale.set=false;}
     
