@@ -931,9 +931,9 @@ void autoscale3(picture pic=currentpicture, axis axis)
       if(pic.scale.z.scale.logarithmic &&
          floor(pic.userMin().z) == floor(pic.userMax().z)) {
         if(pic.scale.z.automin())
-          pic.userMinz2(floor(pic.userMin().z));
+          pic.userMinz3(floor(pic.userMin().z));
         if(pic.scale.z.automax())
-          pic.userMaxz2(ceil(pic.userMax().z));
+          pic.userMaxz3(ceil(pic.userMax().z));
       }
     } else {mz.min=mz.max=0; pic.scale.set=false;}
     
