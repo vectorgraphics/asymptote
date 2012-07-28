@@ -21,7 +21,7 @@ typedef void (*function_typ)(state_typ, void *);
 
 typedef struct {
   const char *buf;
-  int_typ length;
+  size_t length;
 } string_typ;
 
 typedef void (*error_callback_typ)(string_typ);
