@@ -74,12 +74,6 @@ namespace settings {
   
 using camp::pair;
   
-#ifdef HAVE_LIBOSMESA  
-const bool defaultoffscreen=true;
-#else
-const bool defaultoffscreen=false;
-#endif
-
 #ifdef HAVE_GL
 const bool havegl=true;  
 #else
@@ -1096,7 +1090,7 @@ void initSettings() {
   addOption(new IntSetting("multisample", 0, "n",
                            "Multisampling width for screen images", 4));
   addOption(new boolSetting("offscreen", 0,
-                            "Use offscreen rendering",defaultoffscreen));
+                            "Use offscreen rendering",false));
   addOption(new boolSetting("twosided", 0,
                             "Use two-sided 3D lighting model for rendering",
                             true));
