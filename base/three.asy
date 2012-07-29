@@ -6,8 +6,7 @@ if(prc0()) {
   if(settings.tex == "context") settings.prc=false;
   else {
     access embed;
-    Embed=embed.embed;
-    Link=embed.link;
+    Embed=embed.embedplayer;
   }
 }
 
@@ -82,7 +81,7 @@ real defaultshininess=0.25;
 real angleprecision=1e-5; // Precision for centering perspective projections.
 int maxangleiterations=25;
 
-string defaultembed3Doptions;
+string defaultembed3Doptions="3Dmenu";
 string defaultembed3Dscript;
 real defaulteyetoview=63mm/1000mm;
 
@@ -2444,12 +2443,6 @@ void add(picture dest=currentpicture, object src, pair position=0, pair align=0,
     plain.add(dest,src,position,align,group,filltype,above);
 }
 
-string cameralink(string label, string text="View Parameters")
-{
-  if(!prc() || Link == null) return "";
-  return Link(label,text,"3Dgetview");
-}
-
 private struct viewpoint {
   triple target,camera,up;
   real angle;
@@ -2500,9 +2493,6 @@ projection perspective(string s)
 
 private string Format(real x)
 {
-  // Work around movie15.sty division by zero bug;
-  // e.g. u=unit((1e-10,1e-10,0.9));
-  if(abs(x) < 1e-9) x=0; 
   assert(abs(x) < 1e17,"Number too large: "+string(x));
   return format("%.18f",x,"C");
 }
@@ -2729,10 +2719,11 @@ string embed3D(string label="", string text=label, string prefix,
   
   string options3=light.viewport ? "3Dlights=Headlamp" : "3Dlights=File";
   if(defaultembed3Doptions != "") options3 += ","+defaultembed3Doptions;
+
   if((settings.render < 0 || !settings.embed) && settings.auto3D)
-    options3 += ",poster";
-  options3 += ",text={"+text+"},label="+label+
-    ",toolbar="+(settings.toolbar ? "true" : "false")+
+    options3 += ",activate=pagevisible";
+  options3 += ",3Dtoolbar="+(settings.toolbar ? "true" : "false")+
+    ",label="+label+
     ",3Daac="+Format(P.angle)+
     ",3Dc2c="+Format(u)+
     ",3Dcoo="+Format(target)+
@@ -2742,9 +2733,9 @@ string embed3D(string label="", string text=label, string prefix,
   if(options != "") options3 += ","+options;
   if(settings.inlinetex)
     prefix=jobname(prefix);
-  options3 += ",3Djscript="+prefix+".js";
+  options3 += ",add3Djscript="+prefix+".js";
 
-  return Embed(prefix+".prc",options3,width,height);
+  return Embed(prefix+".prc",text,options3,width,height);
 }
 
 struct scene
@@ -2949,7 +2940,7 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
   bool prc=prc(format);
   bool preview=settings.render > 0;
   if(prc) {
-    // The movie15.sty package cannot handle spaces or dots in filenames.
+    // The media9.sty package cannot handle spaces or dots in filenames.
     string dir=stripfile(prefix);
     prefix=dir+replace(stripdirectory(prefix),
                        new string[][]{{" ","_"},{".","_"}});

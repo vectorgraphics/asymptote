@@ -6461,45 +6461,22 @@ as described here:
 This module provides an interface to the @code{LaTeX} package
 (included with @code{MikTeX}) 
 @quotation
-@url{http://www.ctan.org/tex-archive/macros/latex/contrib/movie15}
+@url{http://www.ctan.org/tex-archive/macros/latex/contrib/media9}
 @end quotation
 @noindent
 for embedding movies, sounds, and 3D objects into a @acronym{PDF} document.
-@noindent
-@cindex @code{xelatex}
-However, @code{XeLaTeX} users need to rename the modified version
-@code{movie15_dvipdfmx.sty} from
-@quotation
-@url{http://asymptote.svn.sourceforge.net/viewvc/asymptote/trunk/asymptote/patches/}
-@end quotation
-to @code{movie15.sty} and place it in their @code{LaTeX} path.
-
-The latest version of the @code{movie15} package requires both
-@code{pdflatex} version 1.20 or later and the file
-@quotation
-@url{http://www.ctan.org/tex-archive/macros/latex/contrib/oberdiek/ifdraft.dtx}
-@end quotation
-@noindent
-which can be installed by placing it in a directory @code{ifdraft} in
-the local @code{LaTeX} directory
-(e.g.@ @code{/usr/local/share/texmf/tex/latex/ifdraft}) and executing in that
-directory the commands:
-@verbatim
-tex ifdraft.dtx
-texhash
-@end verbatim
 
 @cindex @code{external}
 A more portable method for embedding movie files, which should work on any
-platform and does not require the @code{movie15} or @code{ifdraft}
-packages, is provided by using the @code{external} module instead of
-@code{embed}. An example of these 
-interfaces is provided in the file @code{embeddedmovie.asy} and
-@code{externalmovie.asy} in the @code{animations} subdirectory of the
-examples directory. For a higher quality movie generated directly by
-@code{Asymptote}, use the @code{animate} module along with the
-@code{animate.sty} package to embed a portable @acronym{PDF} animation
-(@pxref{animate}).
+platform and does not require the @code{media9} package, is provided
+by using the @code{external} module instead of @code{embed}. 
+
+Examples of the above two interfaces is provided in the file
+@code{embeddedmovie.asy} and @code{externalmovie.asy} in the
+@code{animations} subdirectory of the examples directory. For a higher
+quality embedded movie generated directly by @code{Asymptote}, use the
+@code{animate} module along with the @code{animate.sty} package to
+embed a portable @acronym{PDF} animation (@pxref{animate}).
 
 @cindex @code{U3D}
 An example of embedding @code{U3D} code is provided in the file
@@ -7864,8 +7841,8 @@ In addition to the default @code{settings.prc=true}, this requires
 line option @code{-f pdf}, put in the @code{Asymptote} configuration
 file (@pxref{configuration file}), or specified in the script before
 @code{three.asy} (or @code{graph3.asy}) is imported. 
-Version 2008/10/08 or later of the @code{movie15} package is also
-required (@pxref{embed}). The example @code{pdb.asy} illustrates
+The @code{media9} LaTeX package is also required (@pxref{embed}).
+The example @code{pdb.asy} illustrates 
 how one can generate a list of predefined views (see @code{100d.views}).
 A stationary preview image with a resolution of @code{n} pixels per
 @code{bp} can be embedded with the setting @code{render=n}; this allows

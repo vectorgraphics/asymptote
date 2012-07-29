@@ -13,5 +13,4 @@ settings.outformat="pdf";
 
 // External movie: viewable even with the Linux version of acroread.
 label(embed("wheel.mpg"),(0,0),N);
-
-label(link("wheel.mpg","Play"),(0,0),S);
+label(link("wheel.mpg"),(0,0),S);

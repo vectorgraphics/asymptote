@@ -689,7 +689,7 @@ struct surface {
     return ucyclic() ? g&cycle : g;
   }
   
-  // A constructor for a possibly nonconvex cyclic path in a given plane.
+  // A constructor for a possibly nonconvex simple cyclic path in a given plane.
   void operator init(path p, triple plane(pair)=XYplane) {
     bool straight=piecewisestraight(p);
     for(path g : regularize(p))

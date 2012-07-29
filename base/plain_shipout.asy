@@ -27,8 +27,8 @@ orientation orientation=Portrait;
 
 // Forward references to functions defined in module three.
 object embed3(string, frame, string, string, string, light, projection);
-string Embed(string name, string options="", real width=0, real height=0);
-string Link(string label, string text, string options="");
+string Embed(string name, string text="", string options="", real width=0,
+             real height=0);
 
 bool prc0(string format="")
 {

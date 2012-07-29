@@ -4,8 +4,6 @@ import cpkcolors;
 // A sample Protein Data Bank file for this example is available from
 // http://ndbserver.rutgers.edu/ftp/NDB/coordinates/na-biol/100d.pdb1
 
-bool getviews=true;
-
 currentlight=White;
 //currentlight=nolight;
 
@@ -160,13 +158,7 @@ string options;
 string viewfilename=prefix+".views";
 
 if(!error(input(viewfilename,check=false)))
-  options="3Dviews2="+viewfilename;
+  options="3Dviews="+viewfilename;
 
-if(getviews && prc()) {
-  picture pic;
-  add(pic,embed("label",currentpicture,options=options),(0,0),N);
-  label(pic,cameralink("label"),(0,0),S,fontsize(12pt));
-  shipout(prefix,pic,options=options);
-} else
-  shipout(prefix,options=options);
+shipout(prefix,options=options);
 

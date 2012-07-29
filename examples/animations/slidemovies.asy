@@ -33,15 +33,12 @@ display(a.pdf("autoplay,loop,controls",multipage=false));
 display(b.pdf("controls",multipage=false));
 
 // Generated needed files if they don't already exist.
-asy("mpg","wheel");
+asy("mp4","wheel");
 
 title("External Movie (portable)");
-display(external.embed("wheel.mpg",
-                       "poster,text=wheel.mpg,label=wheel.mpg",20cm,5.6cm));
-display(external.link("wheel.mpg","Play","play"));
+display(external.embed("wheel.mp4",20cm,5.6cm));
+display(external.link("wheel.mp4"));
 
 title("Embedded Movie (not portable)");
-display(embed.embed("wheel.mpg",
-                    "poster,text=wheel.mpg,label=wheel.mpg",
-                    20cm,5.6cm));
-display(embed.link("wheel.mpg","Play","play"));
+display(embed.embed("wheel.mp4",20cm,5.6cm));
+display(embed.link("wheel.mp4"));

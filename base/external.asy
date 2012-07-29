@@ -3,10 +3,10 @@ texpreamble("\hypersetup{"+settings.hyperrefOptions+"}");
 
 // Embed object to be run in an external window. An image file name can be
 // specified; if not given one will be automatically generated.
-string embed(string name, string options="", real width=0, real height=0,
-             string image="")
+string embed(string name, string text="", string options="",
+             real width=0, real height=0, string image="")
 {
-  string options; // Ignore movie15 options.
+  string options; // Ignore passed options.
   if(image == "") {
     image=stripdirectory(stripextension(name))+"."+nativeformat();
     convert(name+"[0]",image,nativeformat());
@@ -30,8 +30,8 @@ string hyperlink(string url, string text)
   return "\href{"+url+"}{"+text+"}";
 }
 
-string link(string url, string text, string options="")
+string link(string label, string text="Play")
 {
-  return hyperlink("run:"+url,text);
+  return hyperlink("run:"+label,text);
 }
 

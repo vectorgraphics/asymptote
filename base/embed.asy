@@ -3,36 +3,40 @@ if(latex()) {
   texpreamble("\hypersetup{"+settings.hyperrefOptions+"}");
   texpreamble("
 \ifx\pdfhorigin\undefined%
-\usepackage[3D,dvipdfmx]{movie15}
+\usepackage[dvipdfmx]{media9}
 \else%
-\usepackage[3D]{movie15}
+\usepackage{media9}
 \fi%
-\FPmessagesfalse%
 ");
 }
 
-// See http://www.ctan.org/tex-archive/macros/latex/contrib/movie15/README
+// See http://www.ctan.org/tex-archive/macros/latex/contrib/media9/doc/media9.pdf
 // for documentation of the options.
 
-// Embed object in pdf file 
-string embed(string name, string options="", real width=0, real height=0)
+// Embed PRC or SWF content in pdf file 
+string embedplayer(string name, string text="", string options="",
+                   real width=0, real height=0)
 {
-  if(options != "") options="["+options+"]{";
-  if(width != 0) options += (string) (width/pt)+"pt"; 
-  options += "}{";
-  if(height != 0) options += (string) (height/pt)+"pt"; 
-  return "\includemovie"+options+"}{"+name+"}";
+  if(width != 0) options += ",width="+(string) (width/pt)+"pt"; 
+  if(height != 0) options += ",height="+(string) (height/pt)+"pt"; 
+  return "\includemedia["+options+"]{"+text+"}{"+name+"}";
 }
 
-string hyperlink(string url, string text)
+// Embed media in pdf file 
+string embed(string name, string text="", string options="",
+             real width=0, real height=0)
 {
-  return "\href{"+url+"}{"+text+"}";
+  return embedplayer("VPlayer.swf",text,"label="+name+
+                     ",activate=pageopen,addresource="+name+
+                      ",flashvars={source="+name+"&scaleMode=letterbox},"+
+                     options,width,height);
 }
 
-string link(string label, string text, string options="")
+string link(string label, string text="Play")
 {
-  // Run LaTeX twice to resolve references.
-  settings.twice=true;
-  if(options != "") options="["+options+"]";
-  return "\movieref"+options+"{"+label+"}{"+text+"}";
+  return "\PushButton[
+  onclick={
+    annotRM['"+label+"'].activated=true;
+    annotRM['"+label+"'].callAS('playPause');
+  }]{\fbox{"+text+"}}";
 }
