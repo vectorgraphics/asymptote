@@ -2533,18 +2533,6 @@ handler.onEvent=function(event)
 }";
 }
 
-private string projection(bool infinity, real viewplanesize)
-{
-  return "activeCamera=scene.cameras.getByIndex(0);
-function asyProjection() {"+
-    (infinity ? "activeCamera.projectionType=activeCamera.TYPE_ORTHOGRAPHIC;" :
-     "activeCamera.projectionType=activeCamera.TYPE_PERSPECTIVE;")+"
-activeCamera.viewPlaneSize="+string(viewplanesize)+";
-activeCamera.binding=activeCamera.BINDING_"+(infinity ? "MAX" : "VERTICAL")+";
-}
-
-asyProjection();
-
 handler=new CameraEventHandler();
 runtime.addEventHandler(handler);
 handler.onEvent=function(event) 
