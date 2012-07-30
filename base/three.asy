@@ -2533,15 +2533,6 @@ handler.onEvent=function(event)
 }";
 }
 
-handler=new CameraEventHandler();
-runtime.addEventHandler(handler);
-handler.onEvent=function(event) 
-{
-  asyProjection();
-  scene.update();
-}";
-}
-
 private string billboard(int[] index, triple[] center)
 {
   if(index.length == 0) return "";
