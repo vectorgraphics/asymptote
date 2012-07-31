@@ -1,13 +1,7 @@
 if(latex()) {
   usepackage("hyperref");
   texpreamble("\hypersetup{"+settings.hyperrefOptions+"}");
-  texpreamble("
-\ifx\pdfhorigin\undefined%
-\usepackage[dvipdfmx]{media9}
-\else%
-\usepackage{media9}
-\fi%
-");
+  usepackage("media9");
 }
 
 // See http://www.ctan.org/tex-archive/macros/latex/contrib/media9/doc/media9.pdf
