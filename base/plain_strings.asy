@@ -143,7 +143,7 @@ string italic(string s)
 
 string baseline(string s, string template="\strut") 
 { 
-  return s != "" ? "\vphantom{"+template+"}"+s : s;
+  return s != "" && settings.tex != "none" ? "\vphantom{"+template+"}"+s : s;
 }
 
 string math(string s)
@@ -221,7 +221,7 @@ string format(real x, string locale="")
 
 string phantom(string s)
 {
-  return "\phantom{"+s+"}";
+  return settings.tex != "none" ? "\phantom{"+s+"}" : "";
 }
 
 restricted int ocgindex=0;
