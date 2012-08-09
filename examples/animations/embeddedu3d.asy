@@ -3,6 +3,6 @@
 import embed;
 settings.tex="pdflatex";
 
-label(embedplayer("dice.u3d","activate=pagevisible,3Droo=27,label=dice",
+label(embedplayer("dice.u3d","dice","activate=pagevisible,3Droo=27",
             settings.paperwidth,settings.paperheight));
 
