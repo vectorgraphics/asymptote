@@ -1281,7 +1281,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     camp::reportError("to support offscreen rendering; please install OSMesa library, run ./configure --enable-offscreen, and recompile");
 #endif
   
-  picture *pic = new(UseGC) picture;
+  picture *pic = new picture;
   
   matrixstack ms;
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
