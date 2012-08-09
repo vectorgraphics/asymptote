@@ -1,6 +1,7 @@
 import graph3; 
 size(400); 
 currentlight.background=palegreen;
+settings.tex="pdflatex";
 
 defaultrender=render(compression=Zero,merge=true);
 
