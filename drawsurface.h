@@ -16,27 +16,6 @@ namespace camp {
 
 #ifdef HAVE_GL
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j);
-  
-inline void initMatrix(GLfloat *v, double x, double ymin, double zmin,
-                       double ymax, double zmax)
-{
-  v[0]=x;
-  v[1]=ymin;
-  v[2]=zmin;
-  v[3]=1.0;
-  v[4]=x;
-  v[5]=ymin;
-  v[6]=zmax;
-  v[7]=1.0;
-  v[8]=x;
-  v[9]=ymax;
-  v[10]=zmin;
-  v[11]=1.0;
-  v[12]=x;
-  v[13]=ymax;
-  v[14]=zmax;
-  v[15]=1.0;
-}
 #endif  
 
 class drawSurface : public drawElement {
@@ -121,29 +100,23 @@ public:
     } else colors=NULL;
   }
   
-  drawSurface(const vm::array& t, const drawSurface *s) :
+  drawSurface(const double* t, const drawSurface *s) :
     straight(s->straight), diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
     invisible(s->invisible), lighton(s->lighton),
     interaction(s->interaction), prc(s->prc) { 
     
-    for(size_t i=0; i < 4; ++i) {
-      const double *c=s->vertices[i];
-      store(vertices[i],run::operator *(t,triple(c[0],c[1],c[2])));
-    }
+    transformTriples(t,4,vertices,s->vertices);
     
     if(s->controls) {
       controls=new(UseGC) Triple[16];
-      for(size_t i=0; i < 16; ++i) {
-        const double *c=s->controls[i];
-        store(controls[i],run::operator *(t,triple(c[0],c[1],c[2])));
-      }
+      transformTriples(t,16,controls,s->controls);
     } else controls=NULL;
     
 #ifdef HAVE_GL
-    center=run::operator *(t,s->center);
-    normal=run::multshiftless(t,s->normal);
+    center=t*s->center;
+    normal=multshiftless(t,s->normal);
 #endif    
     
     if(s->colors) {
@@ -155,9 +128,10 @@ public:
   
   bool is3D() {return true;}
   
-  void bounds(bbox3& b);
+  void bounds(const double* t, bbox3& b);
   
-  void ratio(pair &b, double (*m)(double, double), double fuzz, bool &first);
+  void ratio(const double* t, pair &b, double (*m)(double, double), double fuzz,
+             bool &first);
   
   virtual ~drawSurface() {}
 
@@ -166,17 +140,10 @@ public:
   
   void displacement();
   
-#ifdef HAVE_GL
-  void initMatrix(GLfloat *v1, GLfloat *v2) {
-    camp::initMatrix(v1,Min.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
-    camp::initMatrix(v2,Max.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
-  }
-#endif  
-
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
               double perspective, bool transparent);
   
-  drawElement *transformed(const vm::array& t);
+  drawElement *transformed(const double* t);
 };
   
 class drawNurbs : public drawElement {
@@ -211,7 +178,7 @@ public:
             const vm::array* weight, const vm::array&p, double opacity,
             double shininess, double PRCshininess, const vm::array &pens,
             bool lighton) : opacity(opacity), shininess(shininess),
-            PRCshininess(PRCshininess), lighton(lighton) {
+                            PRCshininess(PRCshininess), lighton(lighton) {
     size_t weightsize=checkArray(weight);
     
     string wrongsize="Inconsistent NURBS data";
@@ -281,23 +248,17 @@ public:
 #endif  
   }
   
-  drawNurbs(const vm::array& t, const drawNurbs *s) :
+  drawNurbs(const double* t, const drawNurbs *s) :
     udegree(s->udegree), vdegree(s->vdegree), nu(s->nu), nv(s->nv),
     diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
     invisible(s->invisible), lighton(s->lighton) {
     
-    size_t n=nu*nv;
+    const size_t n=nu*nv;
     controls=new(UseGC) Triple[n];
       
-    for(size_t i=0; i < n; ++i) {
-      const double *c=s->controls[i];
-      triple v=run::operator *(t,triple(c[0],c[1],c[2]));
-      controls[i][0]=v.getx();
-      controls[i][1]=v.gety();
-      controls[i][2]=v.getz();
-    }
+    transformTriples(t,n,controls,s->controls);
     
     if(s->weights) {
       weights=new(UseGC) double[n];
@@ -328,7 +289,7 @@ public:
   
   bool is3D() {return true;}
   
-  void bounds(bbox3& b);
+  void bounds(const double* t, bbox3& b);
   
   virtual ~drawNurbs() {}
 
@@ -336,43 +297,18 @@ public:
              groupsmap&);
   
   void displacement();
-  void ratio(pair &b, double (*m)(double, double), double, bool &first);
-  
-#ifdef HAVE_GL
-  void initMatrix(GLfloat *v1, GLfloat *v2) {
-    camp::initMatrix(v1,Min.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
-    camp::initMatrix(v2,Max.getx(),Min.gety(),Min.getz(),Max.gety(),Max.getz());
-  }
-#endif  
+  void ratio(const double* t, pair &b, double (*m)(double, double), double,
+             bool &first);
 
   void render(GLUnurbs *nurb, double size2, const triple& Min, const triple& Max,
               double perspective, bool transparent);
     
-  drawElement *transformed(const vm::array& t);
+  drawElement *transformed(const double* t);
 };
   
-template<class T>
-void copyArray4x4C(T* dest, const vm::array *a)
-{
-  size_t n=checkArray(a);
-  string fourbyfour="4x4 array of doubles expected";
-  if(n != 4) reportError(fourbyfour);
-  
-  for(size_t i=0; i < 4; i++) {
-    vm::array *ai=vm::read<vm::array*>(a,i);
-    size_t aisize=checkArray(ai);
-    if(aisize == 4) {
-      T *desti=dest+4*i;
-      for(size_t j=0; j < 4; j++) 
-        desti[j]=vm::read<T>(ai,j);
-    } else reportError(fourbyfour);
-  }
-}
-
 // Draw a transformed PRC object.
-class drawPRC : public drawElement {
+class drawPRC : public drawElementLC {
 protected:
-  double T[16];
   RGBAColour diffuse;
   RGBAColour ambient;
   RGBAColour emissive;
@@ -382,10 +318,8 @@ protected:
   bool invisible;
 public:
   drawPRC(const vm::array& t, const vm::array&p, double opacity,
-             double shininess) : 
-    opacity(opacity), shininess(shininess) {
-    
-    copyArray4x4C<double>(T,&t);
+          double shininess) : 
+    drawElementLC(t), opacity(opacity), shininess(shininess) {
 
     string needfourpens="array of 4 pens required";
     if(checkArray(&p) != 4)
@@ -400,31 +334,20 @@ public:
     specular=rgba(vm::read<camp::pen>(p,3));
   }
   
-  drawPRC(const vm::array& t, const drawPRC *s) :
-    diffuse(s->diffuse), ambient(s->ambient), emissive(s->emissive),
-    specular(s->specular), opacity(s->opacity),
+  drawPRC(const double* t, const drawPRC *s) :
+    drawElementLC(t, s), diffuse(s->diffuse), ambient(s->ambient),
+    emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), invisible(s->invisible) {
-    
-    double S[16];
-    copyArray4x4C<double>(S,&t);
-    
-    const double *R=s->T;
-    for(unsigned i=0; i < 16; i += 4) {
-      double s0=S[i+0];
-      double s1=S[i+1];
-      double s2=S[i+2];
-      double s3=S[i+3];
-      T[i]=s0*R[0]+s1*R[4]+s2*R[8]+s3*R[12];
-      T[i+1]=s0*R[1]+s1*R[5]+s2*R[9]+s3*R[13];
-      T[i+2]=s0*R[2]+s1*R[6]+s2*R[10]+s3*R[14];
-      T[i+3]=s0*R[3]+s1*R[7]+s2*R[11]+s3*R[15];
-    }
   }
   
   bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
              groupsmap&) {
     return true;
   }
+  virtual void transformedbounds(const double*, bbox3&) {}
+  virtual void transformedratio(const double*, pair&, double (*)(double, double),
+                                double, bool&) {}
+
 };
   
 // Draw a PRC unit sphere.
@@ -436,7 +359,7 @@ public:
              double shininess, int type) :
     drawPRC(t,p,opacity,shininess), half(half), type(type) {}
 
-  drawSphere(const vm::array& t, const drawSphere *s) :
+  drawSphere(const double* t, const drawSphere *s) :
     drawPRC(t,s), half(s->half), type(s->type) {}
     
   void P(Triple& t, double x, double y, double z);
@@ -444,8 +367,8 @@ public:
   bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
              groupsmap&);
   
-  drawElement *transformed(const vm::array& t) {
-      return new drawSphere(t,this);
+  drawElement *transformed(const double* t) {
+    return new drawSphere(t,this);
   }
 };
   
@@ -453,17 +376,17 @@ public:
 class drawCylinder : public drawPRC {
 public:
   drawCylinder(const vm::array& t, const vm::array&p, double opacity,
-             double shininess) :
+               double shininess) :
     drawPRC(t,p,opacity,shininess) {}
 
-  drawCylinder(const vm::array& t, const drawCylinder *s) :
+  drawCylinder(const double* t, const drawCylinder *s) :
     drawPRC(t,s) {}
     
   bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
              groupsmap&);
   
-  drawElement *transformed(const vm::array& t) {
-      return new drawCylinder(t,this);
+  drawElement *transformed(const double* t) {
+    return new drawCylinder(t,this);
   }
 };
   
@@ -471,17 +394,17 @@ public:
 class drawDisk : public drawPRC {
 public:
   drawDisk(const vm::array& t, const vm::array&p, double opacity,
-             double shininess) :
+           double shininess) :
     drawPRC(t,p,opacity,shininess) {}
 
-  drawDisk(const vm::array& t, const drawDisk *s) :
+  drawDisk(const double* t, const drawDisk *s) :
     drawPRC(t,s) {}
     
   bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
              groupsmap&);
   
-  drawElement *transformed(const vm::array& t) {
-      return new drawDisk(t,this);
+  drawElement *transformed(const double* t) {
+    return new drawDisk(t,this);
   }
 };
   
@@ -499,7 +422,7 @@ protected:
   bool invisible;
 public:
   drawTube(path3 center, path3 g, const vm::array&p, double opacity,
-             double shininess) : 
+           double shininess) : 
     center(center), g(g), opacity(opacity), shininess(shininess) {
     string needfourpens="array of 4 pens required";
     if(checkArray(&p) != 4)
@@ -514,7 +437,7 @@ public:
     specular=rgba(vm::read<camp::pen>(p,3));
   }
   
-  drawTube(const vm::array& t, const drawTube *s) :
+  drawTube(const double* t, const drawTube *s) :
     center(camp::transformed(t,s->center)), g(camp::transformed(t,s->g)), 
     diffuse(s->diffuse), ambient(s->ambient), emissive(s->emissive),
     specular(s->specular), opacity(s->opacity),
@@ -524,8 +447,8 @@ public:
   bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
              groupsmap&);
                         
-  drawElement *transformed(const vm::array& t) {
-      return new drawTube(t,this);
+  drawElement *transformed(const double* t) {
+    return new drawTube(t,this);
   }
 };
 
@@ -542,18 +465,22 @@ public:
     invisible=p.invisible();
   }
 
-  drawPixel(const vm::array& t, const drawPixel *s) :
+  drawPixel(const double* t, const drawPixel *s) :
     c(s->c), width(s->width), invisible(s->invisible) {
-    triple V=run::operator *(t,triple(s->v[0],s->v[1],s->v[2]));
-    v[0]=V.getx();
-    v[1]=V.gety();
-    v[2]=V.getz();
+    transformTriples(t,1,&v,&(s->v));
   }
     
-  void bounds(bbox3& b) {
-    triple R=0.5*width*triple(1.0,1.0,1.0);
-    b.add(v-R);
-    b.add(v+R);
+  void bounds(const double* t, bbox3& b) {
+    const triple R=0.5*width*triple(1.0,1.0,1.0);
+    if (t != NULL) {
+      Triple tv;
+      transformTriples(t,1,&tv,&v);
+      b.add(tv-R);
+      b.add(tv+R);
+    } else {
+      b.add(v-R);
+      b.add(v+R);
+    }    
   }    
   
   void render(GLUnurbs *nurb, double size2, const triple& Min, const triple& Max,
@@ -563,11 +490,143 @@ public:
   bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
              groupsmap&);
   
-  drawElement *transformed(const vm::array& t) {
+  drawElement *transformed(const double* t) {
     return new drawPixel(t,this);
   }
 };
   
+// Draw triangles
+class drawBaseTriangles : public drawElement {
+protected:
+  const uint32_t nP;
+  Triple* P;
+  const uint32_t nN;
+  Triple* N;
+  const uint32_t nI;
+  const uint32_t (* const PI)[3];
+  const uint32_t (* const NI)[3];
+  bool invisible;
+  const bool prc;
+  
+  triple Min,Max;
+
+public:
+  drawBaseTriangles(uint32_t nP, double P[][3], uint32_t nN, double N[][3], 
+                    uint32_t nI, const uint32_t PI[][3], const uint32_t NI[][3],
+                    bool prc) :
+    nP(nP), P(P), nN(nN), N(N), nI(nI), PI(PI), NI(NI), invisible(false),
+    prc(prc) {}
+
+  drawBaseTriangles(uint32_t nP, double P[][3], uint32_t nN, double N[][3], 
+                    uint32_t nI, const uint32_t PI[][3], const uint32_t NI[][3],
+                    bool invisible, bool prc) :
+    nP(nP), P(P), nN(nN), N(N), nI(nI), PI(PI), NI(NI), invisible(invisible),
+    prc(prc) {}
+  
+  drawBaseTriangles(const double* t, const drawBaseTriangles *s) :
+    nP(s->nP), nN(s->nN), nI(s->nI), PI(s->PI), NI(s->NI),
+    invisible(s->invisible), prc(s->prc) {
+    P=new(UseGC) Triple[nP];
+    N=new(UseGC) Triple[nN];
+
+    transformTriples(t,nP,P,s->P);
+    transformNormalsTriples(t,nN,N,s->N);
+  }
+    
+  bool is3D() {return true;}
+  
+  void bounds(const double* t, bbox3& b);
+  
+  void ratio(const double* t, pair &b, double (*m)(double, double), double fuzz,
+             bool &first);
+  
+  virtual ~drawBaseTriangles() {}
+  
+  drawElement *transformed(const double* t) {
+    return new drawBaseTriangles(t,this);
+  }
+};
+  
+class drawTriangles : public drawBaseTriangles {
+  const uint32_t nC;
+  const RGBAColour* const C;
+  const uint32_t (* const CI)[3];
+  bool hasalpha;
+  bool samealpha;
+  double commonalpha;
+  
+   
+  // Asymptote material data
+  RGBAColour diffuse;
+  RGBAColour ambient;
+  RGBAColour emissive;
+  RGBAColour specular;
+  const double opacity;
+  const double shininess;
+  const double PRCshininess;
+  const bool lighton;
+   
+public:
+  drawTriangles(uint32_t nP, double P[][3], uint32_t nN, double N[][3], 
+                uint32_t nI, const uint32_t PI[][3], const uint32_t NI[][3],
+                uint32_t nC, const RGBAColour C[], const uint32_t CI[][3],
+                const vm::array&p, double opacity, double shininess,
+                double PRCshininess, bool lighton, bool prc) :
+    drawBaseTriangles(nP, P, nN, N, nI, PI, NI, prc),
+    nC(nC), C(C), CI(CI),
+    hasalpha(false), samealpha(true), commonalpha(1.0),
+    opacity(opacity), shininess(shininess),  PRCshininess(PRCshininess),
+    lighton(lighton) {
+
+    const string needfourpens="array of 4 pens required";
+    if(checkArray(&p) != 4)
+      reportError(needfourpens);
+      
+    const pen surfacepen=vm::read<camp::pen>(p,0);
+    invisible=surfacepen.invisible();
+      
+    diffuse =rgba(surfacepen);
+    ambient =rgba(vm::read<camp::pen>(p,1));
+    emissive=rgba(vm::read<camp::pen>(p,2));
+    specular=rgba(vm::read<camp::pen>(p,3));
+    
+    if (nC!=0) {
+      commonalpha=C[0].A;
+      hasalpha=(C[0].A < 1.0);
+      for (uint32_t i=1; i < nC; i++) {
+        if (C[i].A!=commonalpha) {
+          samealpha=false;
+        }
+        if (C[i].A<1.0) {
+          hasalpha=true;
+          break;
+        }
+      }
+    }
+  }
+  
+  drawTriangles(const double* t, const drawTriangles *s) :
+    drawBaseTriangles(t,s),
+    nC(s->nC), C(s->C), CI(s->CI),
+    hasalpha(s->hasalpha), samealpha(s->samealpha), commonalpha(s->commonalpha),
+    diffuse(s->diffuse), ambient(s->ambient), emissive(s->emissive),
+    specular(s->specular), opacity(s->opacity),
+    shininess(s->shininess), PRCshininess(s->PRCshininess), lighton(s->lighton) {}
+ 
+  virtual ~drawTriangles() {}
+ 
+  void render(GLUnurbs *nurb, double size2, const triple& Min, const triple& Max,
+              double perspective, bool transparent);
+ 
+  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
+             groupsmap&);
+ 
+  drawElement *transformed(const double* t) {
+    return new drawTriangles(t,this);
+  }
+};
+
+
 }
 
 #endif

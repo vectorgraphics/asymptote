@@ -331,6 +331,7 @@ public:
 };
 
 path3 transformed(const vm::array& t, const path3& p);
+path3 transformed(const double* t, const path3& p);
   
 extern path3 nullpath3;
 extern const unsigned maxdepth;
@@ -362,9 +363,6 @@ inline triple displacement(const triple& z, const triple& p, const triple& q)
   return Z-dot(Z,Q)*Q;
 }
   
-double xratio(const triple& v);
-double yratio(const triple& v);
-
 double bound(triple z0, triple c0, triple c1, triple z1,
              double (*m)(double, double),
              double (*f)(const triple&),

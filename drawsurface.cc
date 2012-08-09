@@ -7,6 +7,10 @@
 #include "drawsurface.h"
 #include "arrayop.h"
 
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+
 namespace camp {
 
 const double pixel=1.0; // Adaptive rendering constant.
@@ -34,13 +38,21 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
 }
 #endif  
 
-void drawSurface::bounds(bbox3& b)
+void drawSurface::bounds(const double* t, bbox3& b)
 {
   double x,y,z;
   double X,Y,Z;
   
   if(straight) {
-    double *v=vertices[0];
+    Triple *Vertices;
+    if(t == NULL) Vertices=vertices;
+    else {
+      static Triple buf[4];
+      Vertices=buf;
+      transformTriples(t,4,Vertices,vertices);
+    }
+  
+    double *v=Vertices[0];
     x=v[0];
     y=v[1];
     z=v[2];
@@ -48,7 +60,7 @@ void drawSurface::bounds(bbox3& b)
     Y=y;
     Z=z;
     for(size_t i=1; i < 4; ++i) {
-      double *v=vertices[i];
+      double *v=Vertices[i];
       double vx=v[0];
       x=min(x,vx);
       X=max(X,vx);
@@ -60,44 +72,62 @@ void drawSurface::bounds(bbox3& b)
       Z=max(Z,vz);
     }
   } else {
+    Triple* Controls;
+    if(t == NULL) Controls=controls;
+    else {
+      static Triple buf[16];
+      Controls=buf;
+      transformTriples(t,16,Controls,controls);
+    }
+
     static double c1[16];
 
     for(int i=0; i < 16; ++i)
-      c1[i]=controls[i][0];
+      c1[i]=Controls[i][0];
     double c0=c1[0];
     double fuzz=sqrtFuzz*run::norm(c1,16);
     x=bound(c1,min,b.empty ? c0 : min(c0,b.left),fuzz);
     X=bound(c1,max,b.empty ? c0 : max(c0,b.right),fuzz);
     
     for(int i=0; i < 16; ++i)
-      c1[i]=controls[i][1];
+      c1[i]=Controls[i][1];
     c0=c1[0];
     fuzz=sqrtFuzz*run::norm(c1,16);
     y=bound(c1,min,b.empty ? c0 : min(c0,b.bottom),fuzz);
     Y=bound(c1,max,b.empty ? c0 : max(c0,b.top),fuzz);
     
     for(int i=0; i < 16; ++i)
-      c1[i]=controls[i][2];
+      c1[i]=Controls[i][2];
     c0=c1[0];
     fuzz=sqrtFuzz*run::norm(c1,16);
     z=bound(c1,min,b.empty ? c0 : min(c0,b.lower),fuzz);
     Z=bound(c1,max,b.empty ? c0 : max(c0,b.upper),fuzz);
   }
     
-  Min=triple(x,y,z);
-  Max=triple(X,Y,Z);
-    
-  b.add(Min);
-  b.add(Max);
+  b.add(x,y,z);
+  b.add(X,Y,Z);
+  
+  if(t == NULL) {
+    Min=triple(x,y,z);
+    Max=triple(X,Y,Z);
+  }
 }
 
-void drawSurface::ratio(pair &b, double (*m)(double, double), double fuzz,
-                        bool &first)
+void drawSurface::ratio(const double* t, pair &b, double (*m)(double, double),
+                        double fuzz, bool &first)
 {
   if(straight) {
+    Triple *Vertices;
+    if(t == NULL) Vertices=vertices;
+    else {
+      static Triple buf[4];
+      Vertices=buf;
+      transformTriples(t,4,Vertices,vertices);
+    }
+  
     if(first) {
       first=false;
-      double *ci=vertices[0];
+      double *ci=Vertices[0];
       triple v=triple(ci[0],ci[1],ci[2]);
       b=pair(xratio(v),yratio(v));
     }
@@ -105,16 +135,24 @@ void drawSurface::ratio(pair &b, double (*m)(double, double), double fuzz,
     double x=b.getx();
     double y=b.gety();
     for(size_t i=0; i < 4; ++i) {
-      double *ci=vertices[i];
+      double *ci=Vertices[i];
       triple v=triple(ci[0],ci[1],ci[2]);
       x=m(x,xratio(v));
       y=m(y,yratio(v));
     }
     b=pair(x,y);
   } else {
+    Triple* Controls;
+    if(t == NULL) Controls=controls;
+    else {
+      static Triple buf[16];
+      Controls=buf;
+      transformTriples(t,16,Controls,controls);
+    }
+
     static triple c3[16];
     for(int i=0; i < 16; ++i) {
-      double *ci=controls[i];
+      double *ci=Controls[i];
       c3[i]=triple(ci[0],ci[1],ci[2]);
     }
   
@@ -219,42 +257,24 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   static GLfloat Normal[3];
 
   static GLfloat v[16];
-  static GLfloat v1[16];
-  static GLfloat v2[16];
   
-  bool havebillboard=interaction == BILLBOARD &&
+  const bool havebillboard=interaction == BILLBOARD &&
     !settings::getSetting<bool>("offscreen");
   triple m,M;
   if(perspective || !havebillboard) {
-    initMatrix(v1,v2);
+    static double t[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX,t);
     
-    glPushMatrix();
-    glMultMatrixf(v1);
-    glGetFloatv(GL_MODELVIEW_MATRIX,v);
-    glPopMatrix();
-  
-    bbox3 B(v[0],v[1],v[2]);
-    B.addnonempty(v[4],v[5],v[6]);
-    B.addnonempty(v[8],v[9],v[10]);
-    B.addnonempty(v[12],v[13],v[14]);
-  
-    glPushMatrix();
-    glMultMatrixf(v2);
-    glGetFloatv(GL_MODELVIEW_MATRIX,v);
-    glPopMatrix();
-  
-    B.addnonempty(v[0],v[1],v[2]);
-    B.addnonempty(v[4],v[5],v[6]);
-    B.addnonempty(v[8],v[9],v[10]);
-    B.addnonempty(v[12],v[13],v[14]);
+    bbox3 B(this->Min,this->Max);
+    B.transform(t);
   
     m=B.Min();
     M=B.Max();
   }
 
   if(perspective) {
-    double f=m.getz()*perspective;
-    double F=M.getz()*perspective;
+    const double f=m.getz()*perspective;
+    const double F=M.getz()*perspective;
     s=max(f,F);
     if(!havebillboard && (M.getx() < min(f*Min.getx(),F*Min.getx()) || 
                           m.getx() > max(f*Max.getx(),F*Max.getx()) ||
@@ -303,8 +323,8 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
-  triple size3=triple(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),
-                      Max.getz()-Min.getz());
+  const triple size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),
+                     Max.getz()-Min.getz());
   
   bool havenormal=normal != zero;
   if(havebillboard) BB.init();
@@ -383,7 +403,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
 #endif
 }
 
-drawElement *drawSurface::transformed(const array& t)
+drawElement *drawSurface::transformed(const double* t)
 {
   return new drawSurface(t,this);
 }
@@ -401,10 +421,17 @@ bool drawNurbs::write(prcfile *out, unsigned int *, array *, array *, double,
 }
 
 // Approximate bounds by bounding box of control polyhedron.
-void drawNurbs::bounds(bbox3& b)
+void drawNurbs::bounds(const double* t, bbox3& b)
 {
-  size_t n=nu*nv;
-  double *v=controls[0];
+  const size_t n=nu*nv;
+  Triple* Controls;
+  if(t == NULL) Controls=controls;
+  else {
+    Controls=new Triple[n];
+    transformTriples(t,n,Controls,controls);
+  }
+
+  double *v=Controls[0];
   double x=v[0];
   double y=v[1];
   double z=v[2];
@@ -412,7 +439,7 @@ void drawNurbs::bounds(bbox3& b)
   double Y=y;
   double Z=z;
   for(size_t i=1; i < n; ++i) {
-    double *v=controls[i];
+    double *v=Controls[i];
     double vx=v[0];
     x=min(x,vx);
     X=max(X,vx);
@@ -424,23 +451,34 @@ void drawNurbs::bounds(bbox3& b)
     Z=max(Z,vz);
   }
 
-  Min=triple(x,y,z);
-  Max=triple(X,Y,Z);
-  b.add(Min);
-  b.add(Max);
+  b.add(x,y,z);
+  b.add(X,Y,Z);
+  
+  if(t == NULL) {
+    Min=triple(x,y,z);
+    Max=triple(X,Y,Z);
+  } else delete[] Controls;
 }
 
-drawElement *drawNurbs::transformed(const array& t)
+drawElement *drawNurbs::transformed(const double* t)
 {
   return new drawNurbs(t,this);
 }
 
-void drawNurbs::ratio(pair &b, double (*m)(double, double), double, bool &first)
+void drawNurbs::ratio(const double *t, pair &b, double (*m)(double, double),
+                      double, bool &first)
 {
-  size_t n=nu*nv;
+  const size_t n=nu*nv;
+  Triple* Controls;
+  if(t == NULL) Controls=controls;
+  else {
+    Controls=new Triple[n];
+    transformTriples(t,n,Controls,controls);
+  }
+
   if(first) {
     first=false;
-    double *ci=controls[0];
+    double *ci=Controls[0];
     triple v=triple(ci[0],ci[1],ci[2]);
     b=pair(xratio(v),yratio(v));
   }
@@ -448,13 +486,17 @@ void drawNurbs::ratio(pair &b, double (*m)(double, double), double, bool &first)
   double x=b.getx();
   double y=b.gety();
   for(size_t i=0; i < n; ++i) {
-    double *ci=controls[i];
+    double *ci=Controls[i];
     triple v=triple(ci[0],ci[1],ci[2]);
     x=m(x,xratio(v));
     y=m(y,yratio(v));
   }
   b=pair(x,y);
+  
+  if(t != NULL)
+    delete[] Controls;
 }
+
 
 void drawNurbs::displacement()
 {
@@ -491,31 +533,11 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
                     : diffuse.A < 1.0) ^ transparent)) return;
   
-  static GLfloat v[16];
-  static GLfloat v1[16];
-  static GLfloat v2[16];
-
-  initMatrix(v1,v2);
+  double t[16]; // current transform
+  glGetDoublev(GL_MODELVIEW_MATRIX,t);
   
-  glPushMatrix();
-  glMultMatrixf(v1);
-  glGetFloatv(GL_MODELVIEW_MATRIX,v);
-  glPopMatrix();
-  
-  bbox3 B(v[0],v[1],v[2]);
-  B.addnonempty(v[4],v[5],v[6]);
-  B.addnonempty(v[8],v[9],v[10]);
-  B.addnonempty(v[12],v[13],v[14]);
-  
-  glPushMatrix();
-  glMultMatrixf(v2);
-  glGetFloatv(GL_MODELVIEW_MATRIX,v);
-  glPopMatrix();
-  
-  B.addnonempty(v[0],v[1],v[2]);
-  B.addnonempty(v[4],v[5],v[6]);
-  B.addnonempty(v[8],v[9],v[10]);
-  B.addnonempty(v[12],v[13],v[14]);
+  bbox3 B(this->Min,this->Max);
+  B.transform(t);
     
   triple m=B.Min();
   triple M=B.Max();
@@ -593,22 +615,14 @@ void drawSphere::P(Triple& t, double x, double y, double z)
     double temp=z; z=x; x=-temp;
   }
   
-  double f=T[12]*x+T[13]*y+T[14]*z+T[15];
+  double f=T[3]*x+T[7]*y+T[11]*z+T[15];
   if(f == 0.0) run::dividebyzero();
   f=1.0/f;
   
-  t[0]=(T[0]*x+T[1]*y+T[2]*z+T[3])*f;
-  t[1]=(T[4]*x+T[5]*y+T[6]*z+T[7])*f;
-  t[2]=(T[8]*x+T[9]*y+T[10]*z+T[11])*f;
+  t[0]=(T[0]*x+T[4]*y+T[ 8]*z+T[12])*f;
+  t[1]=(T[1]*x+T[5]*y+T[ 9]*z+T[13])*f;
+  t[2]=(T[2]*x+T[6]*y+T[10]*z+T[14])*f;
 }
-
-static const Triple origin={0.0,0.0,0.0};
-static const Triple xaxis={1.0,0.0,0.0};
-static const Triple yaxis={0.0,1.0,0.0};
-static const double Identity4[4][4]={{1.0,0.0,0.0,0.0},
-                                     {0.0,1.0,0.0,0.0},
-                                     {0.0,0.0,1.0,0.0},
-                                     {0.0,0.0,0.0,1.0}};
 
 bool drawSphere::write(prcfile *out, unsigned int *, array *, array *, double,
                        groupsmap&)
@@ -622,9 +636,9 @@ bool drawSphere::write(prcfile *out, unsigned int *, array *, array *, double,
     case 0: // PRCsphere
     {
       if(half) 
-        out->addHemisphere(1.0,m,origin,xaxis,yaxis,1.0,(double (*)[4]) T);
+        out->addHemisphere(1.0,m,NULL,NULL,NULL,1.0,T);
       else
-        out->addSphere(1.0,m,origin,xaxis,yaxis,1.0,(double (*)[4]) T);
+        out->addSphere(1.0,m,NULL,NULL,NULL,1.0,T);
       break;
     }
     case 1: // NURBSsphere
@@ -707,7 +721,7 @@ bool drawCylinder::write(prcfile *out, unsigned int *, array *, array *, double,
 
   PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
   
-  out->addCylinder(1.0,1.0,m,origin,xaxis,yaxis,1.0,(double (*)[4]) T);
+  out->addCylinder(1.0,1.0,m,NULL,NULL,NULL,1.0,T);
   
   return true;
 }
@@ -720,7 +734,7 @@ bool drawDisk::write(prcfile *out, unsigned int *, array *, array *, double,
 
   PRCmaterial m(ambient,diffuse,emissive,specular,opacity,shininess);
   
-  out->addDisk(1.0,m,origin,xaxis,yaxis,1.0,(double (*)[4]) T);
+  out->addDisk(1.0,m,NULL,NULL,NULL,1.0,T);
   
   return true;
 }
@@ -743,8 +757,7 @@ bool drawTube::write(prcfile *out, unsigned int *, array *, array *, double,
     Triple *controls=new(UseGC) Triple[N];
     for(Int i=0; i <= n; ++i)
       store(controls[i],g.point(i));
-    out->addTube(N,centerControls,controls,true,m,origin,xaxis,yaxis,1.0,
-                 Identity4);
+    out->addTube(N,centerControls,controls,true,m,NULL,NULL,NULL,1.0);
   } else {
     size_t N=3*n+1;
     Triple *centerControls=new(UseGC) Triple[N];
@@ -771,8 +784,7 @@ bool drawTube::write(prcfile *out, unsigned int *, array *, array *, double,
     store(controls[++k],g.precontrol(n));
     store(controls[++k],g.point(n));
     
-    out->addTube(N,centerControls,controls,false,m,origin,xaxis,yaxis,1.0,
-                 Identity4);
+    out->addTube(N,centerControls,controls,false,m,NULL,NULL,NULL,1.0);
   }
       
   return true;
@@ -819,6 +831,157 @@ void drawPixel::render(GLUnurbs *nurb, double size2,
   
   glPointSize(1.0);
   glDisable(GL_COLOR_MATERIAL);
+#endif
+}
+
+void drawBaseTriangles::bounds(const double* t, bbox3& b)
+{
+  double x,y,z;
+  double X,Y,Z;
+  Triple* tP;
+
+  if(t == NULL) tP=P;
+  else {
+    tP=new Triple[nP];
+    transformTriples(t,nP,tP,P);
+  }
+
+  boundsTriples(x,y,z,X,Y,Z,nP,tP);
+
+  b.add(x,y,z);
+  b.add(X,Y,Z);
+
+  if(t == NULL) {
+    Min=triple(x,y,z);
+    Max=triple(X,Y,Z);
+  } else delete[] tP;
+}
+
+void drawBaseTriangles::ratio(const double* t, pair &b,
+                              double (*m)(double, double), double fuzz,
+                              bool &first)
+{
+  Triple* tP;
+
+  if(t == NULL) tP=P;
+  else {
+    tP=new Triple[nP];
+    transformTriples(t,nP,tP,P);
+  }
+
+  ratioTriples(b,m,first,nP,tP);
+  
+  if(t != NULL)
+    delete[] tP;
+}
+
+bool drawTriangles::write(prcfile *out, unsigned int *, array *, array *, double, groupsmap&)
+{
+  if(invisible || !prc)
+    return true;
+
+  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+
+  out->addTriangles(nP, P, nI, PI, m, nN, N, NI, 0, NULL, NULL, nC, C, CI, 0, NULL, NULL, 30);
+
+  return true;
+}
+
+void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min, const triple& Max, double perspective, bool transparent)
+{
+#ifdef HAVE_GL
+  if(invisible)
+    return;
+
+  const bool colors   = (nC!=0 && C!=NULL && CI!=NULL);
+
+  if(invisible ||
+     ((colors?hasalpha:diffuse.A < 1.0) ^ transparent)) return;
+
+  triple m,M;
+  double t[16]; // current transform
+  glGetDoublev(GL_MODELVIEW_MATRIX,t);
+
+  bbox3 B(this->Min,this->Max);
+  B.transform(t);
+
+  m=B.Min();
+  M=B.Max();
+
+  if(perspective) {
+    const double f=m.getz()*perspective;
+    const double F=M.getz()*perspective;
+    if((M.getx() < min(f*Min.getx(),F*Min.getx()) ||
+        m.getx() > max(f*Max.getx(),F*Max.getx()) ||
+        M.gety() < min(f*Min.gety(),F*Min.gety()) ||
+        m.gety() > max(f*Max.gety(),F*Max.gety()) ||
+        M.getz() < Min.getz() ||
+        m.getz() > Max.getz()))
+      return;
+  } else {
+    if((M.getx() < Min.getx() || m.getx() > Max.getx() ||
+        M.gety() < Min.gety() || m.gety() > Max.gety() ||
+        M.getz() < Min.getz() || m.getz() > Max.getz()))
+      return;
+  }
+
+  bool ambientdiffuse=true;
+  bool emission=true;
+
+  if(colors) {
+    glEnable(GL_COLOR_MATERIAL);
+    if(lighton) {
+      glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
+      ambientdiffuse=false;
+    } else {
+      glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
+      emission=false;
+    }
+  }
+
+  if(ambientdiffuse) {
+    GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
+
+    GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
+  }
+
+  if(emission) {
+    GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
+  }
+
+  GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
+  glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
+
+  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
+
+  glBegin(GL_TRIANGLES);
+  for (uint32_t i=0; i<nI; i++) {
+    const uint32_t *pi=PI[i];
+    const uint32_t *ni=NI[i];
+    const uint32_t *ci=colors?CI[i]:0;
+    if(lighton)
+      glNormal3f(N[ni[0]][0],N[ni[0]][1],N[ni[0]][2]);
+    if(colors)
+      glColor4f(C[ci[0]].R,C[ci[0]].G,C[ci[0]].B,C[ci[0]].A);
+    glVertex3f(P[pi[0]][0],P[pi[0]][1],P[pi[0]][2]);
+    if(lighton)
+      glNormal3f(N[ni[1]][0],N[ni[1]][1],N[ni[1]][2]);
+    if(colors)
+      glColor4f(C[ci[1]].R,C[ci[1]].G,C[ci[1]].B,C[ci[1]].A);
+    glVertex3f(P[pi[1]][0],P[pi[1]][1],P[pi[1]][2]);
+    if(lighton)
+      glNormal3f(N[ni[2]][0],N[ni[2]][1],N[ni[2]][2]);
+    if(colors)
+      glColor4f(C[ci[2]].R,C[ci[2]].G,C[ci[2]].B,C[ci[2]].A);
+    glVertex3f(P[pi[2]][0],P[pi[2]][1],P[pi[2]][2]);
+  }
+  glEnd();
+
+  if(colors)
+    glDisable(GL_COLOR_MATERIAL);
 #endif
 }
 

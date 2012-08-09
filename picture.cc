@@ -1,4 +1,4 @@
- /*****
+/*****
  * picture.cc
  * Andy Hammerlindl 2002/06/06
  *
@@ -43,6 +43,276 @@ texstream::~texstream() {
 }
 
 namespace camp {
+
+bool isIdTransform3(const double* t)
+{
+  return (t == NULL || (t[0]==1 && t[4]==0 && t[ 8]==0 && t[12]==0 &&
+                        t[1]==0 && t[5]==1 && t[ 9]==0 && t[13]==0 &&
+                        t[2]==0 && t[6]==0 && t[10]==1 && t[14]==0 &&
+                        t[3]==0 && t[7]==0 && t[11]==0 && t[15]==1));
+}
+
+// copy array to 4x4 transform matrix with range checks
+void copyArray4x4C(double*& dest, const vm::array *a)
+{
+  double tt[16];
+  const size_t n=checkArray(a);
+  const string fourbyfour="4x4 array of doubles expected";
+  if(n != 4) reportError(fourbyfour);
+    
+  for(size_t i=0; i < 4; i++) {
+    const vm::array *ai=vm::read<vm::array*>(a,i);
+    const size_t aisize=checkArray(ai);
+    if(aisize == 4) {
+      for(size_t j=0; j < 4; j++) 
+        tt[i+j*4]=vm::read<double>(ai,j);
+    } else reportError(fourbyfour);
+  }
+    
+  copyTransform3(dest,tt);
+}
+  
+void copyTransform3(double*& d, const double* s)
+{
+  if(isIdTransform3(s)) {
+    d=NULL;
+  }
+  else {
+    if (d == NULL)
+      d=new(UseGC) double[16];
+    memcpy(d,s,sizeof(double)*16);
+  }
+}
+   
+// t = s*r
+void multiplyTransform3(double*& t, const double* s, const double* r )
+{
+  if(isIdTransform3(s)) {
+    copyTransform3(t, r);
+  } else if(isIdTransform3(r)) {
+    copyTransform3(t, s);
+  } else {
+    double tt[16];
+    for(size_t i=0; i < 4; i++) {
+      const double& s0=s[i+0];
+      const double& s1=s[i+4];
+      const double& s2=s[i+8];
+      const double& s3=s[i+12];
+      tt[i]=s0*r[0]+s1*r[1]+s2*r[2]+s3*r[3];
+      tt[i+4]=s0*r[4]+s1*r[5]+s2*r[6]+s3*r[7];
+      tt[i+8]=s0*r[8]+s1*r[9]+s2*r[10]+s3*r[11];
+      tt[i+12]=s0*r[12]+s1*r[13]+s2*r[14]+s3*r[15];
+    }
+    copyTransform3(t,tt);
+  }
+}
+  
+void transformTriples(const double* t, size_t n, Triple* d, const Triple* s)
+{
+  if(n == 0 || s == NULL || d == NULL)
+    return;
+    
+  if(isIdTransform3(t)) {
+    copyTriples(n, d, s);
+    return;
+  }
+  for(size_t i=0; i < n; i++) {
+    const double& x = s[i][0];
+    const double& y = s[i][1];
+    const double& z = s[i][2];
+    double f=t[3]*x+t[7]*y+t[11]*z+t[15];
+    if(f == 0.0)
+      reportError("division by 0 in transformTriples");
+    f=1.0/f;
+    d[i][0]=(t[0]*x+t[4]*y+t[8]*z+t[12])*f;      
+    d[i][1]=(t[1]*x+t[5]*y+t[9]*z+t[13])*f;      
+    d[i][2]=(t[2]*x+t[6]*y+t[10]*z+t[14])*f;      
+  }
+}
+  
+void transformshiftlessTriples(const double* t, size_t n, Triple* d,
+                               const Triple* s)
+{
+  if(n == 0 || s == NULL || d == NULL)
+    return;
+    
+  if(isIdTransform3(t)) {
+    copyTriples(n, d, s);
+    return;
+  }
+  for(size_t i=0; i < n; i++) {
+    const double& x=s[i][0];
+    const double& y=s[i][1];
+    const double& z=s[i][2];
+    double f=t[3]*x+t[7]*y+t[11]*z+t[15];
+    if(f == 0.0)
+      reportError("division by 0 in transformshiftlessTriples");
+    f=1.0/f;
+    d[i][0]=(t[0]*x+t[4]*y+t[8]*z)*f;      
+    d[i][1]=(t[1]*x+t[5]*y+t[9]*z)*f;      
+    d[i][2]=(t[2]*x+t[6]*y+t[10]*z)*f;      
+  }
+}
+  
+void transformNormalsTriples(const double* t, size_t n, Triple* d,
+                             const Triple* s)
+{
+  if(n==0 || s==NULL || d==NULL)
+    return;
+    
+  if(isIdTransform3(t)) {
+    copyTriples(n, d, s);
+    return;
+  }
+  for(size_t i=0; i < n; i++) {
+    const double& x = s[i][0];
+    const double& y = s[i][1];
+    const double& z = s[i][2];
+    double& X = d[i][0];
+    double& Y = d[i][1];
+    double& Z = d[i][2];
+    double f=t[3]*x+t[7]*y+t[11]*z+t[15];
+    if(f == 0.0)
+      reportError("division by 0 in transformNormalsTriples");
+    f=1.0/f;
+    X=(t[0]*x+t[4]*y+t[8]*z)*f;
+    Y=(t[1]*x+t[5]*y+t[9]*z)*f;
+    Z=(t[2]*x+t[6]*y+t[10]*z)*f;
+    const double scale=sqrt(X*X+Y*Y+Z*Z);
+    if(scale != 0.0) {
+      X /= scale;
+      Y /= scale;
+      Z /= scale;
+    }
+  }
+}
+  
+void unitTriples(size_t n, Triple* d)
+{
+  for (size_t i=0; i < n; i++) {
+    double& x = d[i][0];
+    double& y = d[i][1];
+    double& z = d[i][2];
+    const double scale=sqrt(x*x+y*y+z*z);
+    if(scale != 0.0) {
+      x /= scale;
+      y /= scale;
+      z /= scale;
+    }
+  }
+}
+
+void copyTriples(size_t n, Triple* d, const Triple* s)
+{
+  if(n == 0 || s == NULL || d == NULL)
+    return;
+    
+  memcpy(d, s, sizeof(double)*3*n);
+}
+  
+void boundsTriples(double& x, double& y, double& z, double& X, double& Y,
+                   double& Z, size_t n, const Triple* v)
+{
+  if(n == 0 || v == NULL)
+    return;
+
+  X=x=v[0][0];
+  Y=y=v[0][1];
+  Z=z=v[0][2];
+    
+  for(size_t i=1; i < n; ++i) {
+    const double* const vi=v[i];
+    const double vx=vi[0];
+    x=min(x,vx);
+    X=max(X,vx);
+    const double vy=vi[1];
+    y=min(y,vy);
+    Y=max(Y,vy);
+    const double vz=vi[2];
+    z=min(z,vz);
+    Z=max(Z,vz);
+  }
+    
+}
+  
+inline double xratioTriple(const Triple v)
+{
+  return v[0]/v[2];
+}
+  
+inline double yratioTriple(const Triple v)
+{
+  return v[1]/v[2];
+}
+  
+void ratioTriples(pair &b, double (*m)(double, double), bool &first, size_t n,
+                  const Triple* v)
+{
+  if(n == 0 || v == NULL)
+    return;
+
+  if(first) {
+    first=false;
+    const double* const v0=v[0];
+    b=pair(xratioTriple(v0),yratioTriple(v0));
+  }
+    
+  double x=b.getx();
+  double y=b.gety();
+  for(size_t i=0; i < n; ++i) {
+    const double* const vi=v[i];
+    x=m(x,xratioTriple(vi));
+    y=m(y,yratioTriple(vi));
+  }
+  b=pair(x,y);
+}
+
+void normalizeTriple(Triple v)
+{
+  const double length = sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+  if(length > 0) {
+    v[0] /= length;
+    v[1] /= length;
+    v[2] /= length;
+  }
+}
+  
+void crossTriple(Triple n, const Triple u, const Triple v)
+{
+  n[0]=u[1]*v[2]-u[2]*v[1];
+  n[1]=u[2]*v[0]-u[0]*v[2];
+  n[2]=u[0]*v[1]-u[1]*v[0];
+}
+
+double xratio(const triple& v) {return v.getx()/v.getz();}
+double yratio(const triple& v) {return v.gety()/v.getz();}
+  
+class matrixstack {
+  mem::stack<const double*> mstack;
+    
+public:
+  // return current transform
+  const double* T() const
+  {
+    if(mstack.empty())
+      return NULL;
+    else
+      return mstack.top();
+  }
+  // we store the accumulated transform of all pushed transforms
+  void push(const double *r)
+  {
+    double* T3 = NULL;
+    multiplyTransform3(T3,T(),r);
+    mstack.push(T3);
+  }
+  void pop()
+  {
+    if(!mstack.empty())
+      mstack.pop();
+  }
+    
+};
 
 const char *texpathmessage() {
   ostringstream buf;
@@ -180,11 +450,17 @@ bbox3 picture::bounds3()
   if(lastnumber3 == 0)
     b3=bbox3();
   
-  nodelist::iterator p=nodes.begin();
-  for(size_t i=0; i < lastnumber3; ++i) ++p;
-  for(; p != nodes.end(); ++p) {
+  matrixstack ms;
+  size_t i=0;
+  for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->bounds(b3);
+    if((*p)->begingroup3())
+      ms.push((*p)->transf3());
+    else if((*p)->endgroup3())
+      ms.pop();
+    else
+      (*p)->bounds(ms.T(),b3);
+    i++;
   }
 
   lastnumber3=n;
@@ -197,9 +473,15 @@ pair picture::ratio(double (*m)(double, double))
   pair b;
   bounds3();
   double fuzz=sqrtFuzz*(b3.Max()-b3.Min()).length();
+  matrixstack ms;
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->ratio(b,m,fuzz,first);
+    if((*p)->begingroup3())
+      ms.push((*p)->transf3());
+    else if((*p)->endgroup3())
+      ms.pop();
+    else
+      (*p)->ratio(ms.T(),b,m,fuzz,first);
   }
   return b;
 }
@@ -527,7 +809,7 @@ bool picture::postprocess(const string& prename, const string& outname,
   int status=0;
   bool epsformat=outputformat == "eps";
   bool pdfformat=(settings::pdf(getSetting<string>("tex")) 
-    && outputformat == "") || outputformat == "pdf";
+                  && outputformat == "") || outputformat == "pdf";
   
   if(pdftex || !epsformat) {
     if(pdfformat) {
@@ -999,9 +1281,27 @@ bool picture::shipout3(const string& prefix, const string& format,
     camp::reportError("to support offscreen rendering; please install OSMesa library, run ./configure --enable-offscreen, and recompile");
 #endif
   
-  bounds3();
+  picture *pic = new(UseGC) picture;
   
+  matrixstack ms;
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
+    assert(*p);
+    if((*p)->begingroup3())
+      ms.push((*p)->transf3());
+    else if((*p)->endgroup3())
+      ms.pop();
+    else
+      pic->append((*p)->transformed(ms.T()));
+  }
+
+  pic->b3=bbox3();
+  for(nodelist::iterator p=pic->nodes.begin(); p != pic->nodes.end(); ++p) {
+    assert(*p);
+    (*p)->bounds(pic->b3);
+  }
+  pic->lastnumber3=pic->nodes.size();
+
+  for(nodelist::iterator p=pic->nodes.begin(); p != pic->nodes.end(); ++p) {
     assert(*p);
     (*p)->displacement();
   }
@@ -1024,7 +1324,7 @@ bool picture::shipout3(const string& prefix, const string& format,
     if(gl::initialize) {
       gl::initialize=false;
       com.prefix=prefix;
-      com.pic=this;
+      com.pic=pic;
       com.format=outputformat;
       com.width=width;
       com.height=height;
@@ -1073,7 +1373,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   }
 #endif
 #ifdef HAVE_GL  
-  glrender(prefix,this,outputformat,width,height,angle,zoom,m,M,shift,t,
+  glrender(prefix,pic,outputformat,width,height,angle,zoom,m,M,shift,t,
            background,nlights,lights,diffuse,ambient,specular,viewportlighting,
            View,oldpid);
 #ifdef HAVE_PTHREAD
@@ -1132,11 +1432,23 @@ picture *picture::transformed(const transform& t)
 picture *picture::transformed(const array& t)
 {
   picture *pic = new picture;
-
-  nodelist::iterator p;
-  for (p = nodes.begin(); p != nodes.end(); ++p) {
+  double* T=NULL;
+  copyArray4x4C(T, &t);
+  size_t level = 0;
+  for (nodelist::iterator p = nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    pic->append((*p)->transformed(t));
+    if(level==0)
+      pic->append((*p)->transformed(T));
+    else
+      pic->append(*p);
+    if((*p)->begingroup3())
+      level++;
+    if((*p)->endgroup3()) {
+      if(level==0)
+        reportError("endgroup3 without matching begingroup3");
+      else
+        level--;
+    }
   }
 
   return pic;

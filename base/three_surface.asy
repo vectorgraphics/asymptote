@@ -947,54 +947,54 @@ private triple[] split(triple z0, triple c0, triple c1, triple z1, real t=0.5)
 // produced by a horizontal split of P
 triple[][][] hsplit(triple[][] P)
 {
- // get control points in rows
- triple[] P0=P[0];
- triple[] P1=P[1];
- triple[] P2=P[2];
- triple[] P3=P[3];
+  // get control points in rows
+  triple[] P0=P[0];
+  triple[] P1=P[1];
+  triple[] P2=P[2];
+  triple[] P3=P[3];
 
- triple[] c0=split(P0[0],P0[1],P0[2],P0[3]);
- triple[] c1=split(P1[0],P1[1],P1[2],P1[3]);
- triple[] c2=split(P2[0],P2[1],P2[2],P2[3]);
- triple[] c3=split(P3[0],P3[1],P3[2],P3[3]);
- // bottom, top
- return new triple[][][] {
+  triple[] c0=split(P0[0],P0[1],P0[2],P0[3]);
+  triple[] c1=split(P1[0],P1[1],P1[2],P1[3]);
+  triple[] c2=split(P2[0],P2[1],P2[2],P2[3]);
+  triple[] c3=split(P3[0],P3[1],P3[2],P3[3]);
+  // bottom, top
+  return new triple[][][] {
     {{P0[0],c0[0],c0[1],c0[2]},
         {P1[0],c1[0],c1[1],c1[2]},
           {P2[0],c2[0],c2[1],c2[2]},
             {P3[0],c3[0],c3[1],c3[2]}},
-     {{c0[2],c0[3],c0[4],P0[3]},
-         {c1[2],c1[3],c1[4],P1[3]},
-           {c2[2],c2[3],c2[4],P2[3]},
-             {c3[2],c3[3],c3[4],P3[3]}}
- };
+      {{c0[2],c0[3],c0[4],P0[3]},
+          {c1[2],c1[3],c1[4],P1[3]},
+            {c2[2],c2[3],c2[4],P2[3]},
+              {c3[2],c3[3],c3[4],P3[3]}}
+  };
 }
 
 // Return the control points of the subpatches
 // produced by a vertical split of P
 triple[][][] vsplit(triple[][] P)
 {
- // get control points in rows
- triple[] P0=P[0];
- triple[] P1=P[1];
- triple[] P2=P[2];
- triple[] P3=P[3];
+  // get control points in rows
+  triple[] P0=P[0];
+  triple[] P1=P[1];
+  triple[] P2=P[2];
+  triple[] P3=P[3];
 
- triple[] c0=split(P0[0],P1[0],P2[0],P3[0]);
- triple[] c1=split(P0[1],P1[1],P2[1],P3[1]);
- triple[] c2=split(P0[2],P1[2],P2[2],P3[2]);
- triple[] c3=split(P0[3],P1[3],P2[3],P3[3]);
- // left, right
- return new triple[][][] {
-   {{P0[0],P0[1],P0[2],P0[3]},
-       {c0[0],c1[0],c2[0],c3[0]},
-         {c0[1],c1[1],c2[1],c3[1]},
-           {c0[2],c1[2],c2[2],c3[2]}},
-     {{c0[2],c1[2],c2[2],c3[2]},
-       {c0[3],c1[3],c2[3],c3[3]},
-         {c0[4],c1[4],c2[4],c3[4]},
-           {P3[0],P3[1],P3[2],P3[3]}}
- };
+  triple[] c0=split(P0[0],P1[0],P2[0],P3[0]);
+  triple[] c1=split(P0[1],P1[1],P2[1],P3[1]);
+  triple[] c2=split(P0[2],P1[2],P2[2],P3[2]);
+  triple[] c3=split(P0[3],P1[3],P2[3],P3[3]);
+  // left, right
+  return new triple[][][] {
+    {{P0[0],P0[1],P0[2],P0[3]},
+        {c0[0],c1[0],c2[0],c3[0]},
+          {c0[1],c1[1],c2[1],c3[1]},
+            {c0[2],c1[2],c2[2],c3[2]}},
+      {{c0[2],c1[2],c2[2],c3[2]},
+          {c0[3],c1[3],c2[3],c3[3]},
+            {c0[4],c1[4],c2[4],c3[4]},
+              {P3[0],P3[1],P3[2],P3[3]}}
+  };
 }
 
 // Return a 2D array of the control point arrays of the subpatches
@@ -1023,7 +1023,7 @@ triple[][][][] split(triple[][] P, real u=1/2, real v=1/2)
   triple[] c9=split(c0[4],c1[4],c2[4],c3[4],u);
   triple[] cA=split(P0[3],P1[3],P2[3],P3[3],u);
 
-// {{bottom-left, top-left}, {bottom-right, top-right}}
+  // {{bottom-left, top-left}, {bottom-right, top-right}}
   return new triple[][][][] {
     {{{P0[0],c0[0],c0[1],c0[2]},
           {c4[0],c5[0],c6[0],c7[0]},
@@ -1473,6 +1473,46 @@ private path[] path(Label L, pair z=0, projection P)
     shift(z)*g;
 }
 
+transform3 alignshift(path3[] g, transform3 t=identity4, triple position,
+                      triple align)
+{
+  if(determinant(t) == 0) return identity4;
+  triple m=min(g);
+  triple dir=rectify(inverse(t)*-align);
+  triple a=m+realmult(dir,max(g)-m);
+  return shift(-a);
+}
+
+transform3 alignshift(surface s, transform3 t=identity4, triple position,
+                      triple align)
+{
+  if(determinant(t) == 0) return identity4;
+  triple m=min(s);
+  triple dir=rectify(inverse(t)*-align);
+  triple a=m+realmult(dir,max(s)-m);
+  return shift(-a);
+}
+
+transform3 aligntransform(path3[] g, transform3 t=identity4, triple position,
+                          triple align, pen p=currentpen)
+{
+  if(determinant(t) == 0) return identity4;
+  triple m=min(g);
+  triple dir=rectify(inverse(t)*-align);
+  triple a=m+realmult(dir,max(g)-m);
+  return shift(position+align*labelmargin(p))*t*shift(-a);
+}
+
+transform3 aligntransform(surface s, transform3 t=identity4, triple position,
+                          triple align, pen p=currentpen)
+{
+  if(determinant(t) == 0) return identity4;
+  triple m=min(s);
+  triple dir=rectify(inverse(t)*-align);
+  triple a=m+realmult(dir,max(s)-m);
+  return shift(position+align*labelmargin(p))*t*shift(-a);
+}
+
 void label(frame f, Label L, triple position, align align=NoAlign,
            pen p=currentpen, light light=nolight,
            string name="", render render=defaultrender,
@@ -1486,14 +1526,36 @@ void label(frame f, Label L, triple position, align align=NoAlign,
     L.T=L.T*scale(abs(P.camera-position)/abs(P.vector()));
   if(L.defaulttransform3)
     L.T3=transform3(P);
-  begingroup3(f,name == "" ? L.s : name,render);
   if(is3D()) {
     bool lighton=light.on();
-    for(patch S : surface(L,position,bbox=P.bboxonly).s) {
-      draw3D(f,S,position,L.p,light,interaction);
-      // Fill subdivision cracks
-      if(render.labelfill && opacity(L.p) == 1 && !lighton)
-        _draw(f,S.external(),position,L.p,interaction.type);
+    if(name == "") name=L.s;
+    if(prc() && interaction.type == Billboard.type) {
+      surface s=surface(texpath(L,bbox=P.bboxonly));
+      transform3 centering=L.align.is3D ?
+        alignshift(s,L.T3,position,L.align.dir3) : identity4;
+      transform3 positioning=
+        shift(L.align.is3D ? position+L.align.dir3*labelmargin(L.p) : position);
+      frame f1,f2;
+      begingroup3(f1,name,render);
+      begingroup3(f2,name+"_bb",render,position,interaction.type);
+      for(patch S : s.s) {
+        S=centering*S;
+        draw3D(f2,S,position,L.p,light,interaction);
+        // Fill subdivision cracks
+        if(render.labelfill && opacity(L.p) == 1 && !lighton)
+          _draw(f2,S.external(),position,L.p,interaction.type);
+      }
+      endgroup3(f2);
+      add(f1,L.T3*f2);
+      endgroup3(f1);
+      add(f,positioning*f1);
+    } else {
+      for(patch S : surface(L,position,bbox=P.bboxonly).s) {
+        draw3D(f,S,position,L.p,light,interaction);
+        // Fill subdivision cracks
+        if(render.labelfill && opacity(L.p) == 1 && !lighton)
+          _draw(f,S.external(),position,L.p,interaction.type);
+      }
     }
   } else {
     pen p=color(L.T3*Z,L.p,light,shiftless(P.T.modelview));
@@ -1509,7 +1571,6 @@ void label(frame f, Label L, triple position, align align=NoAlign,
       for(patch S : surface(L,position).s)
         fill(f,project(S.external(),P,1),p);
   }
-  endgroup3(f);
 }
 
 void label(picture pic=currentpicture, Label L, triple position,
@@ -1536,15 +1597,36 @@ void label(picture pic=currentpicture, Label L, triple position,
       if(L.defaulttransform3)
         L.T3=transform3(P);
 
-      begingroup3(f,name == "" ? L.s : name,render,v,interaction.type);
-      bool lighton=light.on();
-      
       if(is3D()) {
-        for(patch S : surface(L,v,bbox=P.bboxonly).s) {
-          draw3D(f,S,v,L.p,light,interaction);
-          // Fill subdivision cracks
-          if(render.labelfill && opacity(L.p) == 1 && !lighton)
-            _draw(f,S.external(),v,L.p,interaction.type);
+        bool lighton=light.on();
+        if(name == "") name=L.s;
+        if(prc() && interaction.type == Billboard.type) {
+          surface s=surface(texpath(L,bbox=P.bboxonly));
+          transform3 centering   = L.align.is3D ?
+            alignshift(s,L.T3,v,L.align.dir3) : identity4;
+          transform3 positioning=
+            shift(L.align.is3D ? v+L.align.dir3*labelmargin(L.p) : v);
+          frame f1,f2;
+          begingroup3(f1,name,render);
+          begingroup3(f2,name+"_bb",render,v,interaction.type);
+          for(patch S : s.s) {
+            S=centering*S;
+            draw3D(f2,S,v,L.p,light,interaction);
+            // Fill subdivision cracks
+            if(render.labelfill && opacity(L.p) == 1 && !lighton)
+              _draw(f2,S.external(),v,L.p,interaction.type);
+          }
+          endgroup3(f2);
+          add(f1,L.T3*f2);
+          endgroup3(f1);
+          add(f,positioning*f1);
+        } else {
+          for(patch S : surface(L,v,bbox=P.bboxonly).s) {
+            draw3D(f,S,v,L.p,light,interaction);
+            // Fill subdivision cracks
+            if(render.labelfill && opacity(L.p) == 1 && !lighton)
+              _draw(f,S.external(),v,L.p,interaction.type);
+          }
         }
       }
       
@@ -1564,7 +1646,6 @@ void label(picture pic=currentpicture, Label L, triple position,
                 fill(f,T*project(S.external(),P,1),p);
             });
       }
-      endgroup3(f);
       
     },!L.defaulttransform3);
 

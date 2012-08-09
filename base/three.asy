@@ -2491,6 +2491,30 @@ projection perspective(string s)
   return P;
 }
 
+projection absorthographic(triple camera=Z, triple target=O, real roll=0)
+{
+  triple u=unit(target-camera);
+  triple w=unit(Z-u.z*u);
+  triple up=rotate(roll,O,u)*w;
+  projection P=projection(camera,up,target,1,0,false,false,
+                          new transformation(triple camera, triple up, triple target)
+                          {return transformation(look(camera,up,target));});
+  P.absolute=true;
+  return P;
+}
+
+projection absperspective(triple camera=Z, triple target=O, real roll=0,
+                          real angle=30)
+{
+  triple u=unit(target-camera);
+  triple w=unit(Z-u.z*u);
+  triple up=rotate(roll,O,u)*w;
+  projection P=perspective(camera,up,target);
+  P.angle=angle;
+  P.absolute=true;
+  return P;
+}
+
 private string Format(real x)
 {
   assert(abs(x) < 1e17,"Number too large: "+string(x));
@@ -2538,32 +2562,45 @@ private string billboard(int[] index, triple[] center)
   if(index.length == 0) return "";
   string s="
 var zero=new Vector3(0,0,0);
-var nodes=scene.nodes;
-var count=nodes.count;
 
-var index=new Array();
-for(i=0; i < count; i++) {
+var bbnodes = new Array(); // billboard meshes
+var bbtrans = new Array(); // billboard transforms
+var bbcount = 0;           // number of billboard meshes
+
+function fulltransform(mesh) 
+{ 
+  var tranform = new Matrix4x4(mesh.transform); 
+  if (\"\" != mesh.parent.name) { 
+    var parentTransform = fulltransform(mesh.parent); 
+    tranform.multiplyInPlace(parentTransform); 
+    return tranform; 
+  } else { 
+    return tranform; 
+  } 
+} 
+
+var nodes=scene.nodes;
+var nodescount=nodes.count;
+for(var i=0; i < nodescount; i++) {
   var node=nodes.getByIndex(i); 
   var name=node.name;
-  end=name.lastIndexOf(\".\")-1;
+  var end=name.lastIndexOf(\".\")-1;
   if(end > 0) {
     if(name.substr(end,1) == \"\001\") {
-      start=name.lastIndexOf(\"-\")+1;
-      n=end-start;
+      var start=name.lastIndexOf(\"-\")+1;
+      var n=end-start;
       if(n > 0) {
-        index[name.substr(start,n)]=i;
         node.name=name.substr(0,start-1);
+        var nodeMatrix = fulltransform(node.parent);
+        var c=nodeMatrix.translation; // position
+        var d=Math.pow(Math.abs(nodeMatrix.determinant),1.0/3.0); // scale
+        bbnodes.push(node);
+        bbtrans.push(Matrix4x4().scale(d,d,d).translate(c).multiply(nodeMatrix.inverse));
       }
     }
   }
 }
-
-var center=new Array(
-";
-  for(int i=0; i < center.length; ++i)
-    s += "Vector3("+format(center[i],",")+"),
-";
-  s += ");
+bbcount=bbnodes.length;
 
 billboardHandler=new RenderEventHandler();
 billboardHandler.onEvent=function(event)
@@ -2572,27 +2609,12 @@ billboardHandler.onEvent=function(event)
   var position=camera.position;
   var direction=position.subtract(camera.targetPosition);
   var up=camera.up.subtract(position);
+  var T=new Matrix4x4();
+  T.setView(zero,direction,up);
 
-  function f(i,k) {
-    j=index[i];
-    if(j >= 0) {
-      var node=nodes.getByIndex(j);
-      var name=node.name;
-      var R=Matrix4x4();
-      R.setView(zero,direction,up);
-      var c=center[k];
-      var T=node.transform;
-      T.setIdentity();
-      T.translateInPlace(c.scale(-1));
-      T.multiplyInPlace(R);
-      T.translateInPlace(c);
-    }
+  for (var j = 0; j < bbcount; j++) {
+    bbnodes[j].transform.set(T.multiply(bbtrans[j]));
   }
-";
-  for(int i=0; i < index.length; ++i)
-    s += "f("+string(i)+","+string(index[i])+");
-";
-  s += "
   runtime.refresh(); 
 }
  
@@ -2648,7 +2670,8 @@ string embed3D(string label="", string text=label, string prefix,
                frame f, string format="",
                real width=0, real height=0,
                string options="", string script="",
-               light light=currentlight, projection P=currentprojection)
+               light light=currentlight, projection P=currentprojection,
+               real viewplanesize=0)
 {
   if(!prc(format) || Embed == null) return "";
 
@@ -2660,11 +2683,12 @@ string embed3D(string label="", string text=label, string prefix,
   // Adobe Reader doesn't appear to support user-specified viewport lights.
   string lightscript=light.on() && light.viewport ? "" : lightscript(light);
 
-  real viewplanesize;
   if(P.infinity) {
-    triple lambda=max3(f)-min3(f);
-    pair margin=viewportmargin((lambda.x,lambda.y));
-    viewplanesize=(max(lambda.x+2*margin.x,lambda.y+2*margin.y))/P.zoom;
+    if(viewplanesize==0) {
+      triple lambda=max3(f)-min3(f);
+      pair margin=viewportmargin((lambda.x,lambda.y));
+      viewplanesize=(max(lambda.x+2*margin.x,lambda.y+2*margin.y))/P.zoom;
+    }
   } else
     if(!P.absolute) P.angle=2*aTan(Tan(0.5*P.angle));
 
@@ -2876,6 +2900,7 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
 
   projection Q;
   modelview=P.T.modelview;
+  transform3 orthoshift=identity4;
   if(P.absolute) {
     Q=modelview*P;
   } else {
@@ -2892,7 +2917,8 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
       S.viewportmargin=viewportmargin((lambda.x,lambda.y));
       S.width=ceil(lambda.x+2*S.viewportmargin.x);
       S.height=ceil(lambda.y+2*S.viewportmargin.y);
-      S.f=shift((-0.5(m.x+M.x),-0.5*(m.y+M.y),0))*S.f; // Eye will be at (0,0,0)
+      orthoshift=shift((-0.5(m.x+M.x),-0.5*(m.y+M.y),0));
+      S.f=orthoshift*S.f; // Eye will be at (0,0,0)
     } else {
       if(P.angle == 0) {
         P.angle=S.angle(P);
@@ -2982,8 +3008,29 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
       warning("offaxis",
               "PRC does not support off-axis projections; use pan instead of
 shift");
+    real viewplanesize=0;
+    if(P.absolute) {
+      if(P.infinity) {
+        S.f=modelview*S.f;
+        triple lambda=max3(S.f)-min3(S.f);
+        pair margin=viewportmargin((lambda.x,lambda.y));
+        viewplanesize=(max(lambda.x+2*margin.x,lambda.y+2*margin.y))/Q.zoom;
+        S.f=inverse(modelview)*S.f;
+      }
+      Q=inverse(modelview)*Q;
+    } else
+      if(P.infinity) {
+        triple lambda=max3(S.f)-min3(S.f);
+        pair margin=viewportmargin((lambda.x,lambda.y));
+        viewplanesize=(max(lambda.x+2*margin.x,lambda.y+2*margin.y))/(Q.zoom);
+        Q=inverse(orthoshift*modelview)*Q;
+        S.f=inverse(orthoshift*modelview)*S.f;
+      } else {
+        Q=inverse(modelview)*Q;
+        S.f=inverse(modelview)*S.f;
+      }
     F.L=embed3D(label,text=image,prefix,S.f,format,
-                S.width-2,S.height-2,options,script,light,Q);
+                S.width-2,S.height-2,options,script,light,Q,viewplanesize);
   }
   return F;
 }

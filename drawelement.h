@@ -24,6 +24,8 @@ namespace camp {
 
 enum Interaction {EMBEDDED=0,BILLBOARD};
 
+void copyArray4x4C(double*& dest, const vm::array *a);
+  
 class box {
   pair p[4];
 public:
@@ -109,11 +111,33 @@ public:
   // Adjust the bbox of the picture based on the addition of this
   // element. The iopipestream is needed for determining label sizes.
   virtual void bounds(bbox&, iopipestream&, boxvector&, bboxlist&) {}
-  virtual void bounds(bbox3&) {}
+  virtual void bounds(const double*, bbox3&) {}
+  virtual void bounds(bbox3& b) { bounds(NULL, b); }
 
   // Compute bounds on ratio (x,y)/z for 3d picture (not cached).
+  virtual void ratio(const double *t, pair &b, double (*m)(double, double),
+                     double fuzz, bool &first) {}
+  
+  virtual void minratio(const double *t, pair &b, double fuzz, bool &first) {
+    ratio(t, b, camp::min, fuzz, first);
+  }
+  
+  virtual void maxratio(const double *t,pair &b, double fuzz, bool &first) {
+    ratio(t, b, camp::max, fuzz, first);
+  }
+  
   virtual void ratio(pair &b, double (*m)(double, double), double fuzz,
-                     bool &first){}
+                     bool &first) {
+    ratio(NULL, b, m, fuzz, first);
+  }
+
+  virtual void minratio(pair &b, double fuzz, bool &first) {
+    minratio(NULL, b, fuzz, first);
+  }
+
+  virtual void maxratio(pair &b, double fuzz, bool &first) {
+    maxratio(NULL, b, fuzz, first);
+  }
 
   virtual bool islabel() {return false;}
 
@@ -131,8 +155,12 @@ public:
   virtual bool endclip() {return false;}
   
   virtual bool begingroup() {return false;}
+  virtual bool begingroup3() {return false;}
 
   virtual bool endgroup() {return false;}
+  virtual bool endgroup3() {return false;}
+
+  virtual const double* transf3() {return NULL;}
 
   virtual void save(bool b) {}
   
@@ -167,8 +195,53 @@ public:
     return this;
   }
   
-  virtual drawElement *transformed(const vm::array&) {
+  virtual drawElement *transformed(const double* t) {
     return this;
+  }
+
+};
+
+// Hold transform of an object.
+class drawElementLC : public virtual drawElement {
+public:
+  double *T; // Keep track of accumulative picture transform
+  
+  drawElementLC() : T(NULL) {}
+  
+  drawElementLC(double t1, double t2, double t3, double t4,
+                double t5, double t6,  double t7,  double t8,
+                double t9, double t10, double t11, double t12,
+                double t13, double t14, double t15, double t16) {
+    T=new double[16];
+    T[0]=t1; T[4]=t5; T[ 8]=t9;  T[12]=t13;
+    T[1]=t2; T[5]=t6; T[ 9]=t10; T[13]=t14;
+    T[2]=t3; T[6]=t7; T[10]=t11; T[14]=t15;
+    T[3]=t4; T[7]=t8; T[11]=t12; T[15]=t16;
+  }
+  
+  drawElementLC(const double *t) {
+    T=new double[16];
+    memmove(T, t, sizeof(double)*16);
+  }
+
+  drawElementLC(const vm::array& t) : T(NULL) {
+    copyArray4x4C(T, &t);
+  }
+
+  drawElementLC(const double* t, const drawElementLC *s) : T(NULL) {
+    multiplyTransform3(T, t, s->T);
+  }
+
+  virtual ~drawElementLC() {
+    if(T) delete[] T;
+  }
+
+  virtual bool is3D() {return true;}
+
+  virtual const double* transf3() {return T;}
+
+  virtual drawElement* transformed(const double* t) {
+    return new drawElementLC(t,this);
   }
 };
 
@@ -330,4 +403,3 @@ GC_DECLARE_PTRFREE(camp::box);
 GC_DECLARE_PTRFREE(camp::drawElement);
 
 #endif
-

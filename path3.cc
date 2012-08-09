@@ -759,14 +759,19 @@ path3 transformed(const array& t, const path3& p)
   return path3(nodes, n, p.cyclic());
 }
 
-double xratio(const triple& v)
+path3 transformed(const double* t, const path3& p)
 {
-  return v.getx()/v.getz();
-}
+  Int n = p.size();
+  mem::vector<solvedKnot3> nodes(n);
+  
+  for(Int i=0; i < n; ++i) {
+    nodes[i].pre=t*p.precontrol(i);
+    nodes[i].point=t*p.point(i);
+    nodes[i].post=t*p.postcontrol(i);
+    nodes[i].straight=p.straight(i);
+  }
 
-double yratio(const triple& v)
-{
-  return v.gety()/v.getz();
+  return path3(nodes, n, p.cyclic());
 }
 
 template<class T>
@@ -884,7 +889,7 @@ double controlbound(triple *P, double (*m)(double, double),
 }
 
 double bound(triple *P, double (*m)(double, double),
-              double (*f)(const triple&), double b, double fuzz, int depth)
+             double (*f)(const triple&), double b, double fuzz, int depth)
 {
   b=m(b,cornerbound(P,m,f));
   if(m(-1.0,1.0)*(b-ratiobound(P,m,f)) >= -fuzz || depth == 0)
@@ -1112,108 +1117,107 @@ void intersections(std::vector<double>& T, std::vector<double>& U,
       return;
     }
     
-  Int lp=p.length();
+    Int lp=p.length();
 
-  path3 p0,p1;
-  p.halve(p0,p1);
+    path3 p0,p1;
+    p.halve(p0,p1);
     
-  std::vector<double> T1,U1,V1;
-  double tscale,toffset;
+    std::vector<double> T1,U1,V1;
+    double tscale,toffset;
 
-  double fuzz2=max(fuzzFactor*fuzz,Fuzz);
-  fuzz2=fuzz2*fuzz2;
+    double fuzz2=max(fuzzFactor*fuzz,Fuzz);
+    fuzz2=fuzz2*fuzz2;
   
-  if(lp <= 1) {
-    if(lp == 1) p.halve(p0,p1);
-    if(lp == 0 || p0 == p || p1 == p) {
-      double u,v;
-      if(intersections(u,v,p.point((Int) 0),P,fuzz,depth)) {
-        T1.push_back(0.0);
-        U1.push_back(u);
-        V1.push_back(v);
-        add(T,U,V,T1,U1,V1,p,1.0,0.0,0.0,0.0,fuzz2);
+    if(lp <= 1) {
+      if(lp == 1) p.halve(p0,p1);
+      if(lp == 0 || p0 == p || p1 == p) {
+        double u,v;
+        if(intersections(u,v,p.point((Int) 0),P,fuzz,depth)) {
+          T1.push_back(0.0);
+          U1.push_back(u);
+          V1.push_back(v);
+          add(T,U,V,T1,U1,V1,p,1.0,0.0,0.0,0.0,fuzz2);
+        }
+        return;
       }
-      return;
+      tscale=toffset=0.5;
+    } else {
+      Int tp=lp/2;
+      p0=p.subpath(0,tp);
+      p1=p.subpath(tp,lp);
+      toffset=tp;
+      tscale=1.0;
     }
-    tscale=toffset=0.5;
-  } else {
-    Int tp=lp/2;
-    p0=p.subpath(0,tp);
-    p1=p.subpath(tp,lp);
-    toffset=tp;
-    tscale=1.0;
-  }
       
-  Split<triple> c0(P[0],P[1],P[2],P[3]);
-  Split<triple> c1(P[4],P[5],P[6],P[7]);
-  Split<triple> c2(P[8],P[9],P[10],P[11]);
-  Split<triple> c3(P[12],P[13],P[14],P[15]);
+    Split<triple> c0(P[0],P[1],P[2],P[3]);
+    Split<triple> c1(P[4],P[5],P[6],P[7]);
+    Split<triple> c2(P[8],P[9],P[10],P[11]);
+    Split<triple> c3(P[12],P[13],P[14],P[15]);
 
-  Split<triple> c4(P[12],P[8],P[4],P[0]);
-  Split<triple> c5(c3.m0,c2.m0,c1.m0,c0.m0);
-  Split<triple> c6(c3.m3,c2.m3,c1.m3,c0.m3);
-  Split<triple> c7(c3.m5,c2.m5,c1.m5,c0.m5);
-  Split<triple> c8(c3.m4,c2.m4,c1.m4,c0.m4);
-  Split<triple> c9(c3.m2,c2.m2,c1.m2,c0.m2);
-  Split<triple> c10(P[15],P[11],P[7],P[3]);
+    Split<triple> c4(P[12],P[8],P[4],P[0]);
+    Split<triple> c5(c3.m0,c2.m0,c1.m0,c0.m0);
+    Split<triple> c6(c3.m3,c2.m3,c1.m3,c0.m3);
+    Split<triple> c7(c3.m5,c2.m5,c1.m5,c0.m5);
+    Split<triple> c8(c3.m4,c2.m4,c1.m4,c0.m4);
+    Split<triple> c9(c3.m2,c2.m2,c1.m2,c0.m2);
+    Split<triple> c10(P[15],P[11],P[7],P[3]);
 
-  // Check all 4 Bezier subpatches against p0.
-  triple Q0[]={P[0],c0.m0,c0.m3,c0.m5,c4.m2,c5.m2,c6.m2,c7.m2,
-               c4.m4,c5.m4,c6.m4,c7.m4,c4.m5,c5.m5,c6.m5,c7.m5};
-  intersections(T1,U1,V1,p0,Q0,fuzz,depth);
-  add(T,U,V,T1,U1,V1,p,tscale,0.0,0.0,0.0,fuzz2);
+    // Check all 4 Bezier subpatches against p0.
+    triple Q0[]={P[0],c0.m0,c0.m3,c0.m5,c4.m2,c5.m2,c6.m2,c7.m2,
+                 c4.m4,c5.m4,c6.m4,c7.m4,c4.m5,c5.m5,c6.m5,c7.m5};
+    intersections(T1,U1,V1,p0,Q0,fuzz,depth);
+    add(T,U,V,T1,U1,V1,p,tscale,0.0,0.0,0.0,fuzz2);
   
-  T1.clear();
-  U1.clear();
-  V1.clear();
-  triple Q1[]={c0.m5,c0.m4,c0.m2,P[3],c7.m2,c8.m2,c9.m2,c10.m2,
-               c7.m4,c8.m4,c9.m4,c10.m4,c7.m5,c8.m5,c9.m5,c10.m5};
-  intersections(T1,U1,V1,p0,Q1,fuzz,depth);
-  add(T,U,V,T1,U1,V1,p,tscale,0.0,0.0,0.5,fuzz2);
+    T1.clear();
+    U1.clear();
+    V1.clear();
+    triple Q1[]={c0.m5,c0.m4,c0.m2,P[3],c7.m2,c8.m2,c9.m2,c10.m2,
+                 c7.m4,c8.m4,c9.m4,c10.m4,c7.m5,c8.m5,c9.m5,c10.m5};
+    intersections(T1,U1,V1,p0,Q1,fuzz,depth);
+    add(T,U,V,T1,U1,V1,p,tscale,0.0,0.0,0.5,fuzz2);
   
-  T1.clear();
-  U1.clear();
-  V1.clear();
-  triple Q2[]={c7.m5,c8.m5,c9.m5,c10.m5,c7.m3,c8.m3,c9.m3,c10.m3,
-               c7.m0,c8.m0,c9.m0,c10.m0,c3.m5,c3.m4,c3.m2,P[15]};
-  intersections(T1,U1,V1,p0,Q2,fuzz,depth);
-  add(T,U,V,T1,U1,V1,p,tscale,0.0,0.5,0.5,fuzz2);
+    T1.clear();
+    U1.clear();
+    V1.clear();
+    triple Q2[]={c7.m5,c8.m5,c9.m5,c10.m5,c7.m3,c8.m3,c9.m3,c10.m3,
+                 c7.m0,c8.m0,c9.m0,c10.m0,c3.m5,c3.m4,c3.m2,P[15]};
+    intersections(T1,U1,V1,p0,Q2,fuzz,depth);
+    add(T,U,V,T1,U1,V1,p,tscale,0.0,0.5,0.5,fuzz2);
   
-  T1.clear();
-  U1.clear();
-  V1.clear();
-  triple Q3[]={c4.m5,c5.m5,c6.m5,c7.m5,c4.m3,c5.m3,c6.m3,c7.m3,
-               c4.m0,c5.m0,c6.m0,c7.m0,P[12],c3.m0,c3.m3,c3.m5};
-  intersections(T1,U1,V1,p0,Q3,fuzz,depth);
-  add(T,U,V,T1,U1,V1,p,tscale,0.0,0.5,0.0,fuzz2);
+    T1.clear();
+    U1.clear();
+    V1.clear();
+    triple Q3[]={c4.m5,c5.m5,c6.m5,c7.m5,c4.m3,c5.m3,c6.m3,c7.m3,
+                 c4.m0,c5.m0,c6.m0,c7.m0,P[12],c3.m0,c3.m3,c3.m5};
+    intersections(T1,U1,V1,p0,Q3,fuzz,depth);
+    add(T,U,V,T1,U1,V1,p,tscale,0.0,0.5,0.0,fuzz2);
   
-  // Check all 4 Bezier subpatches against p1.
-  T1.clear();
-  U1.clear();
-  V1.clear();
-  intersections(T1,U1,V1,p1,Q0,fuzz,depth);
-  add(T,U,V,T1,U1,V1,p,tscale,toffset,0.0,0.0,fuzz2);
+    // Check all 4 Bezier subpatches against p1.
+    T1.clear();
+    U1.clear();
+    V1.clear();
+    intersections(T1,U1,V1,p1,Q0,fuzz,depth);
+    add(T,U,V,T1,U1,V1,p,tscale,toffset,0.0,0.0,fuzz2);
   
-  T1.clear();
-  U1.clear();
-  V1.clear();
-  intersections(T1,U1,V1,p1,Q1,fuzz,depth);
-  add(T,U,V,T1,U1,V1,p,tscale,toffset,0.0,0.5,fuzz2);
+    T1.clear();
+    U1.clear();
+    V1.clear();
+    intersections(T1,U1,V1,p1,Q1,fuzz,depth);
+    add(T,U,V,T1,U1,V1,p,tscale,toffset,0.0,0.5,fuzz2);
   
-  T1.clear();
-  U1.clear();
-  V1.clear();
-  intersections(T1,U1,V1,p1,Q2,fuzz,depth);
-  add(T,U,V,T1,U1,V1,p,tscale,toffset,0.5,0.5,fuzz2);
+    T1.clear();
+    U1.clear();
+    V1.clear();
+    intersections(T1,U1,V1,p1,Q2,fuzz,depth);
+    add(T,U,V,T1,U1,V1,p,tscale,toffset,0.5,0.5,fuzz2);
   
-  T1.clear();
-  U1.clear();
-  V1.clear();
-  intersections(T1,U1,V1,p1,Q3,fuzz,depth);
-  add(T,U,V,T1,U1,V1,p,tscale,toffset,0.5,0.0,fuzz2);
+    T1.clear();
+    U1.clear();
+    V1.clear();
+    intersections(T1,U1,V1,p1,Q3,fuzz,depth);
+    add(T,U,V,T1,U1,V1,p,tscale,toffset,0.5,0.0,fuzz2);
   }
   
 }
 
 } //namespace camp
-  

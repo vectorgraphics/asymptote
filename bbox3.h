@@ -49,11 +49,22 @@ struct bbox3 {
   {
   }
 
+  // Start a bbox3 with 2 points
+  bbox3(const triple& m, const triple& M)
+    : empty(false),
+      left(m.getx()), bottom(m.gety()), lower(m.getz()),
+      right(M.getx()),    top(M.gety()), upper(M.getz())
+  {
+  }
+  
   // Add a point to a bbox3
   void add(const triple& v)
   {
-    double x = v.getx(), y = v.gety(), z = v.getz();
-
+    const double x = v.getx(), y = v.gety(), z = v.getz();
+    add(x,y,z);
+  }
+  void add(double x, double y, double z)
+  {
     if (empty) {
       left = right = x;
       top = bottom = y;
@@ -142,6 +153,33 @@ struct bbox3 {
   
   triple Max() const {
     return triple(right,top,upper);
+  }
+  
+  // transform bbox3 by 4x4 column-major matrix
+  void transform(const double* m)
+  {
+    const double xmin = left;
+    const double ymin = bottom;
+    const double zmin = lower;
+    const double xmax = right;
+    const double ymax = top;
+    const double zmax = upper;
+    
+    empty = true;
+    add(m*triple(xmin,ymin,zmin));
+    addnonempty(m*triple(xmin,ymin,zmax));
+    addnonempty(m*triple(xmin,ymax,zmin));
+    addnonempty(m*triple(xmin,ymax,zmax));
+    addnonempty(m*triple(xmax,ymin,zmin));
+    addnonempty(m*triple(xmax,ymin,zmax));
+    addnonempty(m*triple(xmax,ymax,zmin));
+    addnonempty(m*triple(xmax,ymax,zmax));
+  }
+  
+  friend ostream& operator << (ostream& out, const bbox3& b)
+  {
+    out << "Min " << b.Min() << " Max " << b.Max();
+    return out;
   }
   
 };
