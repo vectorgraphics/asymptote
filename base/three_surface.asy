@@ -1550,12 +1550,14 @@ void label(frame f, Label L, triple position, align align=NoAlign,
       endgroup3(f1);
       add(f,positioning*f1);
     } else {
+      begingroup3(f,name,render);
       for(patch S : surface(L,position,bbox=P.bboxonly).s) {
         draw3D(f,S,position,L.p,light,interaction);
         // Fill subdivision cracks
         if(render.labelfill && opacity(L.p) == 1 && !lighton)
           _draw(f,S.external(),position,L.p,interaction.type);
       }
+      endgroup3(f);
     }
   } else {
     pen p=color(L.T3*Z,L.p,light,shiftless(P.T.modelview));
@@ -1621,12 +1623,14 @@ void label(picture pic=currentpicture, Label L, triple position,
           endgroup3(f1);
           add(f,positioning*f1);
         } else {
+          begingroup3(f,name,render);
           for(patch S : surface(L,v,bbox=P.bboxonly).s) {
             draw3D(f,S,v,L.p,light,interaction);
             // Fill subdivision cracks
             if(render.labelfill && opacity(L.p) == 1 && !lighton)
               _draw(f,S.external(),v,L.p,interaction.type);
           }
+          endgroup3(f);
         }
       }
       
