@@ -117,10 +117,10 @@ public:
   
   friend void copytriples(size_t n, triple* d, const triple* s)
   {
-    if(n==0 || d==NULL || s==NULL)
+    if(d == NULL || s == NULL)
       return;
-
-    memcpy(d,s,sizeof(triple)*n);
+    
+    for(size_t i=0; i < n; i++) d[i]=s[i];
   }
 
   friend void boundstriples(triple& Min, triple& Max, size_t n, const triple* v)
