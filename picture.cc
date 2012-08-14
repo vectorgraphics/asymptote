@@ -738,6 +738,9 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd.push_back("-q");
   cmd.push_back("-dNOPAUSE");
   cmd.push_back("-dBATCH");
+  cmd.push_back("-P");
+  if(safe)
+    cmd.push_back("-dSAFER");
   cmd.push_back("-sDEVICE=pdfwrite");
   cmd.push_back("-dEPSCrop");
   cmd.push_back("-dSubsetFonts=true");
@@ -745,9 +748,6 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd.push_back("-dMaxSubsetPct=100");
   cmd.push_back("-dPDFSETTINGS=/prepress");
   cmd.push_back("-dCompatibilityLevel=1.4");
-  cmd.push_back("-P");
-  if(safe)
-    cmd.push_back("-dSAFER");
   if(!getSetting<bool>("autorotate"))
     cmd.push_back("-dAutoRotatePages=/None");
   cmd.push_back("-g"+String(max(ceil(getSetting<double>("paperwidth")),1.0))

@@ -96,6 +96,7 @@ array *readpath(const string& psname, bool keep,
   cmd.push_back(getSetting<string>("gs"));
   cmd.push_back("-q");
   cmd.push_back("-dBATCH");
+  cmd.push_back("-P");
   if(safe) cmd.push_back("-dSAFER");
 #ifdef __MSDOS__
   const string null="NUL";
@@ -379,6 +380,7 @@ patharray2 *textpath(stringarray *s, penarray *p)
   cmd2.push_back("-dNOCACHE");
   cmd2.push_back("-dNOPAUSE");
   cmd2.push_back("-dBATCH");
+  cmd2.push_back("-P");
   if(safe) cmd2.push_back("-dSAFER");
   cmd2.push_back("-sDEVICE=epswrite");
   cmd2.push_back("-sOutputFile=-");
