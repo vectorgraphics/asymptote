@@ -83,7 +83,7 @@ defaultrender.tubegranularity=0.005;
 defaultrender.sphere=NURBSsphere;
 defaultrender.labelfill=true;
 defaultrender.partnames=false;
-defaultrender.defaultnames=false;
+defaultrender.defaultnames=true;
 
 real defaultshininess=0.25;
 
