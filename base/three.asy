@@ -39,6 +39,9 @@ struct render
   real tubegranularity; // granularity for rendering tubes 
   bool labelfill;       // fill subdivision cracks in unlighted labels
 
+  bool partnames;       // assign part name indices to compound objects
+  bool defaultnames;    // assign default names to unnamed objects
+
   static render defaultrender;
   
   void operator init(real compression=defaultrender.compression,
@@ -49,7 +52,9 @@ struct render
                      int sphere=defaultrender.sphere,
                      real margin=defaultrender.margin,
                      real tubegranularity=defaultrender.tubegranularity,
-                     bool labelfill=defaultrender.labelfill)
+                     bool labelfill=defaultrender.labelfill,
+                     bool partnames=defaultrender.partnames,
+                     bool defaultnames=defaultrender.defaultnames)
   {
     this.compression=compression;
     this.granularity=granularity;
@@ -60,6 +65,8 @@ struct render
     this.margin=margin;
     this.tubegranularity=tubegranularity;
     this.labelfill=labelfill;
+    this.partnames=partnames;
+    this.defaultnames=defaultnames;
   }
 }
 
@@ -75,6 +82,8 @@ defaultrender.margin=0.02;
 defaultrender.tubegranularity=0.005;
 defaultrender.sphere=NURBSsphere;
 defaultrender.labelfill=true;
+defaultrender.partnames=false;
+defaultrender.defaultnames=false;
 
 real defaultshininess=0.25;
 
@@ -85,9 +94,9 @@ string defaultembed3Doptions="3Dmenu";
 string defaultembed3Dscript;
 real defaulteyetoview=63mm/1000mm;
 
-string partname(int i=0) 
+string partname(int i, render render=defaultrender) 
 {
-  return string(i+1);
+  return render.partnames ? string(i+1) : "";
 }
 
 triple O=(0,0,0);
@@ -2026,7 +2035,7 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
   real t2=t2[0];
   int n=length(unitcircle3);
   if(direction) {
-    if (t1 >= t2) t1 -= n;
+    if(t1 >= t2) t1 -= n;
   } else if(t2 >= t1) t2 -= n;
 
   path3 p=subpath(unitcircle3,t1,t2);
@@ -2250,7 +2259,8 @@ draw=new void(frame f, path3 g, material p=currentpen,
         } else _draw(f,g,q);
       } else _draw(f,g,q);
     }
-    if(q != nullpen)
+    bool group=q != nullpen && (name != "" || render.defaultnames);
+    if(group)
       begingroup3(f,name == "" ? "curve" : name,render);
     if(linetype(q).length == 0) drawthick(g);
     else {
@@ -2272,7 +2282,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
         }
       }
     }
-    if(q != nullpen)
+    if(group)
       endgroup3(f);
   } else draw(f,project(g,P),q);
 };
@@ -2281,11 +2291,12 @@ void draw(frame f, explicit path3[] g, material p=currentpen,
           light light=nolight, string name="",
           render render=defaultrender, projection P=currentprojection)
 {
-  if(g.length > 1)
+  bool group=g.length > 1 && (name != "" || render.defaultnames);
+  if(group)
     begingroup3(f,name == "" ? "curves" : name,render);
   for(int i=0; i < g.length; ++i)
-    draw(f,g[i],p,light,partname(i),render,P);
-  if(g.length > 1)
+    draw(f,g[i],p,light,partname(i,render),render,P);
+  if(group)
     endgroup3(f);
 }
 
@@ -2293,12 +2304,13 @@ void draw(picture pic=currentpicture, explicit path3[] g,
           material p=currentpen, margin3 margin=NoMargin3, light light=nolight,
           string name="", render render=defaultrender)
 {
-  if(g.length > 1)
+  bool group=g.length > 1 && (name != "" || render.defaultnames);
+  if(group)
     begingroup3(pic,name == "" ? "curves" : name,render);
   for(int i=0; i < g.length; ++i)
-    draw(pic,g[i],p,margin,light,partname(i),render);
-  if(g.length > 1)
-    endgroup3(pic);
+    draw(pic,g[i],p,margin,light,partname(i,render),render);
+  if(group)
+      endgroup3(pic);
 }
 
 include three_arrows;
@@ -2570,7 +2582,7 @@ var bbcount = 0;           // number of billboard meshes
 function fulltransform(mesh) 
 { 
   var tranform = new Matrix4x4(mesh.transform); 
-  if (\"\" != mesh.parent.name) { 
+  if(mesh.parent.name != \"\") { 
     var parentTransform = fulltransform(mesh.parent); 
     tranform.multiplyInPlace(parentTransform); 
     return tranform; 

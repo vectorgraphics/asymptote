@@ -1884,7 +1884,8 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
           interaction interaction=LabelInteraction())
 {
   pen thin=is3D() ? thin() : defaultpen;
-  if(g.length > 1)
+  bool group=g.length > 1 && (name != "" || render.defaultnames);
+  if(group)
     begingroup3(pic,name == "" ? "contours" : name,render);
   for(int cnt=0; cnt < g.length; ++cnt) {
     guide3[] gcnt=g[cnt];
@@ -1899,7 +1900,7 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
       }
     }
   }
-  if(g.length > 1)
+  if(group)
     endgroup3(pic);
 }
 
@@ -1945,7 +1946,9 @@ picture vectorfield(path3 vector(pair v), triple f(pair z), pair a, pair b,
     scale=max > 0 ? maxlength/max : 1;
   } else scale=1;
 
-  begingroup3(pic,name == "" ? "vectorfield" : name,render);
+  bool group=name != "" || render.defaultnames;
+  if(group)
+    begingroup3(pic,name == "" ? "vectorfield" : name,render);
   for(int i=0; i <= nu; ++i) {
     real x=interp(a.x,b.x,i*du);
     for(int j=0; j <= nv; ++j) {
@@ -1962,7 +1965,8 @@ picture vectorfield(path3 vector(pair v), triple f(pair z), pair a, pair b,
       }
     }
   }
-  endgroup3(pic);
+  if(group)
+    endgroup3(pic);
   return pic;
 }
 

@@ -1273,25 +1273,30 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 {
   bool is3D=is3D();
   if(is3D) {
-    begingroup3(f,name == "" ? "surface" : name,render);
+    bool group=name != "" || render.defaultnames;
+    if(group)
+      begingroup3(f,name == "" ? "surface" : name,render);
     for(int i=0; i < s.s.length; ++i)
       draw3D(f,s.s[i],surfacepen[i],light);
-    endgroup3(f);
+    if(group)
+      endgroup3(f);
     pen modifiers=thin()+squarecap;
     for(int k=0; k < s.s.length; ++k) {
       pen meshpen=meshpen[k];
       if(!invisible(meshpen)) {
-        begingroup3(f,meshname(name),render);
+        if(group)
+          begingroup3(f,meshname(name),render);
         meshpen=modifiers+meshpen;
         real step=nu == 0 ? 0 : 1/nu;
         for(int i=0; i <= nu; ++i)
-          draw(f,s.s[k].uequals(i*step),meshpen,meshlight,partname(i),
+          draw(f,s.s[k].uequals(i*step),meshpen,meshlight,partname(i,render),
                render);
         step=nv == 0 ? 0 : 1/nv;
         for(int j=0; j <= nv; ++j)
-          draw(f,s.s[k].vequals(j*step),meshpen,meshlight,partname(j),
+          draw(f,s.s[k].vequals(j*step),meshpen,meshlight,partname(j,render),
                render);
-        endgroup3(f);
+        if(group)
+          endgroup3(f);
       }
     }
   }
@@ -1817,14 +1822,17 @@ void dot(frame f, triple v, material p=currentpen,
 {
   pen q=(pen) p;
   if(is3D()) {
-    begingroup3(f,name == "" ? "dot" : name,render);
+    bool group=name != "" || render.defaultnames;
+    if(group)
+      begingroup3(f,name == "" ? "dot" : name,render);
     real size=0.5*linewidth(dotsize(q)+q);
     transform3 T=shift(v)*scale3(size);
     for(patch s : unitsphere.s)
       draw3D(f,T*s,v,p,light,prc=false);
     if(prc())
       drawPRCsphere(f,T,p,light);
-    endgroup3(f);
+    if(group)
+      endgroup3(f);
   } else dot(f,project(v,P.t),q);
 }
 
@@ -1883,13 +1891,16 @@ void dot(picture pic=currentpicture, triple v, material p=currentpen,
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       triple V=t*v;
       if(is3D()) {
-        begingroup3(f,name == "" ? "dot" : name,render);
+        bool group=name != "" || render.defaultnames;
+        if(group)
+          begingroup3(f,name == "" ? "dot" : name,render);
         transform3 T=shift(V)*scale3(size);
         for(patch s : unitsphere.s)
           draw3D(f,T*s,V,p,light,prc=false);
         if(prc())
           drawPRCsphere(f,T,p,light,render);
-        endgroup3(f);
+        if(group)
+          endgroup3(f);
       }
       if(pic != null)
         dot(pic,project(V,P.t),q);
@@ -1906,17 +1917,20 @@ void dot(picture pic=currentpicture, triple[] v, material p=currentpen,
     v=sort(v,lexorder);
 
     triple last=v[0];
-    begingroup3(pic,name == "" ? "dots" : name,render);
-    dot(pic,last,p,light,partname(0),render);
+    bool group=name != "" || render.defaultnames;
+    if(group)
+      begingroup3(pic,name == "" ? "dots" : name,render);
+    dot(pic,last,p,light,partname(0,render),render);
     int k=0;
     for(int i=1; i < v.length; ++i) {
       triple V=v[i];
       if(V != last) {
-        dot(pic,V,p,light,partname(++k),render);
+        dot(pic,V,p,light,partname(++k,render),render);
         last=V;
       }
     }
-    endgroup3(pic);
+    if(group)
+      endgroup3(pic);
   }
 }
 
@@ -2042,9 +2056,12 @@ void draw(picture pic=currentpicture, triple[] P, real[] knot,
   pic.add(new void(frame f, transform3 t, picture pic, projection Q) {
       if(is3D()) {
         triple[] P=t*P;
-        begingroup3(f,name == "" ? "curve" : name,render);
+        bool group=name != "" || render.defaultnames;
+        if(group)
+          begingroup3(f,name == "" ? "curve" : name,render);
         draw(f,P,knot,weights,p);
-        endgroup3(f);
+        if(group)
+          endgroup3(f);
         if(pic != null)
           pic.addBox(minbound(P,Q),maxbound(P,Q));
       }
@@ -2068,14 +2085,17 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
   colors=copy(colors);
   pic.add(new void(frame f, transform3 t, picture pic, projection Q) {
       if(is3D()) {
-        begingroup3(f,name == "" ? "surface" : name,render);
+        bool group=name != "" || render.defaultnames;
+        if(group)
+          begingroup3(f,name == "" ? "surface" : name,render);
         triple[][] P=t*P;
         real PRCshininess;
         if(prc())
           PRCshininess=PRCshininess(m.shininess);
         draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,PRCshininess,
              colors,lighton);
-        endgroup3(f);
+        if(group)
+          endgroup3(f);
         if(pic != null)
           pic.addBox(minbound(P,Q),maxbound(P,Q));
       }

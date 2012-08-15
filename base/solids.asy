@@ -351,7 +351,9 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
       }
     }
 
-    begingroup3(pic,name == "" ? "skeleton" : name,render);
+    bool group=name != "" || render.defaultnames;
+    if(group)
+      begingroup3(pic,name == "" ? "skeleton" : name,render);
     pic.add(new void(frame f, transform3 t, picture pic, projection P) {
         drawskeleton(f,t,P);
         if(pic != null)
@@ -360,7 +362,8 @@ void draw(picture pic=currentpicture, revolution r, int m=0, int n=nslice,
     frame f;
     drawskeleton(f,identity4,P);
     pic.addBox(min3(f),max3(f));
-    endgroup3(pic);
+    if(group)
+      endgroup3(pic);
   } else {
     skeleton s=r.skeleton(m,n,P);
     if(frontpen != nullpen) {
