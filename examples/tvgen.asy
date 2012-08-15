@@ -23,7 +23,6 @@
  * since local variants exist and parameters have varied over time.  
  */
 //papertype="a4";
-import plain;
 int verbose=settings.verbose/*+2*/;  /* uncomment for debug info */
 
 /* tv dot coordinates --> PS points */

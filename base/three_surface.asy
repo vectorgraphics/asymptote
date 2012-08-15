@@ -1604,7 +1604,7 @@ void label(picture pic=currentpicture, Label L, triple position,
         if(name == "") name=L.s;
         if(prc() && interaction.type == Billboard.type) {
           surface s=surface(texpath(L,bbox=P.bboxonly));
-          transform3 centering   = L.align.is3D ?
+          transform3 centering=L.align.is3D ?
             alignshift(s,L.T3,v,L.align.dir3) : identity4;
           transform3 positioning=
             shift(L.align.is3D ? v+L.align.dir3*labelmargin(L.p) : v);
