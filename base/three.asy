@@ -2282,7 +2282,7 @@ void draw(frame f, explicit path3[] g, material p=currentpen,
           render render=defaultrender, projection P=currentprojection)
 {
   if(g.length > 1)
-    begingroup3(f,name == "" ? "curve" : name,render);
+    begingroup3(f,name == "" ? "curves" : name,render);
   for(int i=0; i < g.length; ++i)
     draw(f,g[i],p,light,partname(i),render,P);
   if(g.length > 1)

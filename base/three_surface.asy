@@ -1837,7 +1837,7 @@ void dot(frame f, triple[] v, material p=currentpen, light light=nolight,
     v=sort(v,lexorder);
 
     triple last=v[0];
-    dot(f,last,p,light,name,P);
+    dot(f,last,p,light,name,render,P);
     for(int i=1; i < v.length; ++i) {
       triple V=v[i];
       if(V != last) {
