@@ -120,16 +120,40 @@ real Degrees(real radians)
 
 real Sin(real deg)
 {
+  int n=deg/90.0;
+  if(deg == n*90.0) {
+    int m=n % 4;
+    if(m < 0) m += 4;
+    if(m == 1) return 1;
+    if(m == 3) return -1;
+    return 0.0;
+  }
   return sin(radians(deg));
 }
 
 real Cos(real deg)
 {
+  int n=deg/90.0;
+  if(deg == n*90.0) {
+    int m=n % 4;
+    if(m < 0) m += 4;
+    if(m == 0) return 1;
+    if(m == 2) return -1;
+    return 0.0;
+  }
   return cos(radians(deg));
 }
 
 real Tan(real deg)
 {
+  int n=deg/90.0;
+  if(deg == n*90.0) {
+    int m=n % 4;
+    if(m < 0) m += 4;
+    if(m == 1) return HUGE_VAL;
+    if(m == 3) return -HUGE_VAL;
+    return 0.0;
+  }
   return tan(radians(deg));
 }
 
