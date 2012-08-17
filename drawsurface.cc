@@ -200,7 +200,7 @@ inline triple maxabs(triple u, triple v)
                 max(fabs(u.getz()),fabs(v.getz())));
 }
 
-inline triple displacement(const Triple& z0, const Triple& c0,
+inline triple displacement1(const Triple& z0, const Triple& c0,
                            const Triple& c1, const Triple& z1)
 {
   triple Z0(z0);
@@ -217,16 +217,16 @@ void drawSurface::displacement()
     
     if(!straight) {
       for(size_t i=1; i < 16; ++i) 
-        d=camp::maxabs(d,camp::displacement2(controls[i],controls[0],normal));
+        d=maxabs(d,displacement2(controls[i],controls[0],normal));
       
       dperp=d;
     
       for(size_t i=0; i < 4; ++i)
-        d=camp::maxabs(d,camp::displacement(controls[4*i],controls[4*i+1],
-                                            controls[4*i+2],controls[4*i+3]));
+        d=maxabs(d,displacement1(controls[4*i],controls[4*i+1],
+                                 controls[4*i+2],controls[4*i+3]));
       for(size_t i=0; i < 4; ++i)
-        d=camp::maxabs(d,camp::displacement(controls[i],controls[i+4],
-                                            controls[i+8],controls[i+12]));
+        d=maxabs(d,displacement1(controls[i],controls[i+4],
+                                 controls[i+8],controls[i+12]));
     }
   }
 #endif  
