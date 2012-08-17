@@ -51,7 +51,7 @@ string demangle(const char *s)
     free(demangled);
     return string("Unknown(") + s + ")";
   }
-};
+}
 #else
 string demangle(const char* s)
 {

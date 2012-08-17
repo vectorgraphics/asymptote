@@ -138,6 +138,12 @@ $(GCLIB): $(GC).tar.gz
 	if test "$(GC)" = "gc-7.2b"; then \
 	  mv gc-7.2 gc-7.2b; \
 	fi
+	if test "$(GC)" = "gc-7.2c"; then \
+	  mv gc-7.2 gc-7.2c; \
+	fi
+	if test "$(GC)" = "gc-7.2d"; then \
+	  mv gc-7.2 gc-7.2d; \
+	fi
 	cd $(GC); \
 	./configure $(GCOPTIONS); \
 	$(MAKE) check
