@@ -242,7 +242,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
 #ifndef RL_READLINE_VERSION
 abort
 #endif
-])],AC_CHECK_LIB([readline], [rl_completion_matches],,
+])],AC_CHECK_LIB([readline], [history_list],,
 AC_MSG_NOTICE(*** Could not find GNU readline 4.3 or later: will compile without readline support ***)))
 fi
 
