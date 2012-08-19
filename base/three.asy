@@ -2917,7 +2917,6 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
   if(P.absolute) {
     Q=modelview*P;
     inv=inverse(modelview);
-    light=modelview*light;
   } else {
     triple target=P.target;
     S.f=modelview*S.f;
@@ -2954,9 +2953,9 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
       if((P.center && settings.render != 0) || (!P.infinity && P.autoadjust))
         write("adjusting target to ",tinv*target);
     }
-    light=modelview*light;
   }
-    
+  light Light=modelview*light;
+
   if(prefix == "") prefix=outprefix();
   bool prc=prc(format);
   bool preview=settings.render > 0;
@@ -2999,9 +2998,9 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
              S.width-defaultrender.margin,S.height-defaultrender.margin,
              P.infinity ? 0 : 2aTan(Tan(0.5*P.angle)*P.zoom),
              P.zoom,m,M,P.viewportshift,
-             tinv*inv*shift(0,0,zcenter),light.background(),light.position,
-             light.diffuse,light.ambient,light.specular,
-             light.viewport,view && !preview);
+             tinv*inv*shift(0,0,zcenter),Light.background(),Light.position,
+             Light.diffuse,Light.ambient,Light.specular,
+             Light.viewport,view && !preview);
     if(!preview) return F;
   }
 
@@ -3034,7 +3033,6 @@ shift");
       }
       Q=inv*Q;
     } else {
-      light=inv*light;
       if(P.infinity) {
         triple lambda=max3(S.f)-min3(S.f);
         pair margin=viewportmargin((lambda.x,lambda.y));
