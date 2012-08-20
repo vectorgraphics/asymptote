@@ -2911,8 +2911,8 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
   transform3 tinv=inverse(S.t);
 
   projection Q;
+  triple orthoshift;
   modelview=P.T.modelview;
-  transform3 orthoshift=identity4;
   transform3 inv;
   if(P.absolute) {
     Q=modelview*P;
@@ -2930,7 +2930,7 @@ object embed(string label="", string text=label, string prefix=defaultfilename,
       S.viewportmargin=viewportmargin((lambda.x,lambda.y));
       S.width=ceil(lambda.x+2*S.viewportmargin.x);
       S.height=ceil(lambda.y+2*S.viewportmargin.y);
-      triple orthoshift=(-0.5(m.x+M.x),-0.5*(m.y+M.y),0);
+      orthoshift=(-0.5(m.x+M.x),-0.5*(m.y+M.y),0);
       S.f=shift(orthoshift)*S.f; // Eye will be at (0,0,0)
       inv=inverse(modelview);
     } else {
