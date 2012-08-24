@@ -12,7 +12,7 @@
 GS_EXECUTABLE=gs
 
 
-OPTIONS=""
+OPTIONS="-DSAFER -P"
 DVIPSOPTIONS=""
 while true
 do
