@@ -234,7 +234,7 @@ permission notice are preserved on all copies.
 \makedef dim
 \makedef expr
 \makedef filename
-\makedef fnc
+\makedef f
 \makedef format
 \makedef member
 \makedef name
@@ -255,9 +255,9 @@ permission notice are preserved on all copies.
 import "\filename"&import module\cr
 import "\filename" as name&import filename as module name\cr
 include "\filename"&include verbatim text from file\cr
-\type\ \fnc(\type,\dots);&optional function declaration\cr
+\type\ \f(\type,\dots);&optional function declaration\cr
 \type\ \name;&variable declaration\cr
-\type\ \fnc(\type\ \arg,\dots) \{&function definition\cr
+\type\ \f(\type\ \arg,\dots) \{&function definition\cr
 \quad\statements\cr
 \quad return \value;\cr
 \}\cr
@@ -346,35 +346,36 @@ do \statement
 \endexample
 
 \section{Arrays}
-\metax{array}{\type[]\ \name}
-\metax{array element i}{\name[i]}
-\metax{anonymous array}{new \type[\dim]}
-\metax{array containing n deep copies of x}{array(n,x)}
-\metax{length}{\name.length}
-\metax{cyclic flag}{\name.cyclic}
-\metax{pop element {\tt x}}{\name.pop()}
-\metax{push element {\tt x}}{\name.push(x)}
-\metax{append array {\tt a}}{\name.append(a)}
-\metax{insert rest arguments at index {\tt i}}{\name.insert(i,\dots)}
-\metax{delete element at index {\tt i}}{\name.delete(i)}
-\metax{delete elements with indices in [{\tt i},{\tt j}]}{\name.delete(i,j)}
-\metax{delete all elements}{\name.delete()}
-\metax{test whether element n is initialized}{\name.initialized(n)}
-\metax{array of indices of initialized elements}{\name.keys}
-\metax{complement of int array in {\tt \{0,\dots,n-1\}}}{complement(a,n)}
-\metax{deep copy of array {\tt a}}{copy(a)}
-\metax{array {\tt \{0,1,\dots,n-1\}}}{sequence(n)}
-\metax{array {\tt \{n,n+1,\dots,m\}}}{sequence(n,m)}
-\metax{array {\tt \{n-1,n-2,\dots,0\}}}{reverse(n)}
-\metax{array {\tt \{f(0),f(1),\dots,f(n-1)\}}}{sequence(f,n)}
-\metax{array obtained by applying {\tt f} to array {\tt a}}{map(f,a)}
-\metax{uniform partition of [{\tt a},{\tt b}] into n intervals}{uniform(a,b,n)}
-\metax{concat specified 1D arrays}{concat(a,b,\dots)}
-\metax{return sorted array}{sort(a)}
-\metax{return array sorted using ordering {\tt less}}{sort(a,{\tt less})}
-\metax{search sorted array {\tt a} for key}{search(a,key)}
-\metax{index of first true value of bool array {\tt a}}{find(a)}
-\metax{index of nth true value of bool array {\tt a}}{find(a,n)}
+\key{array}{\type[]\ \name;}
+\key{array element i}{\name[i]}
+\key{array indexed by elements of int array {\tt A}}{\name[A]}
+\key{anonymous array}{new \type[\dim]}
+\key{array containing {\tt n} deep copies of {\tt x}}{array(n,x)}
+\key{length}{\name.length}
+\key{cyclic flag}{\name.cyclic}
+\key{pop element {\tt x}}{\name.pop()}
+\key{push element {\tt x}}{\name.push(x)}
+\key{append array {\tt a}}{\name.append(a)}
+\key{insert rest arguments at index {\tt i}}{\name.insert(i,\dots)}
+\key{delete element at index {\tt i}}{\name.delete(i)}
+\key{delete elements with indices in [{\tt i},{\tt j}]}{\name.delete(i,j)}
+\key{delete all elements}{\name.delete()}
+\key{test whether element n is initialized}{\name.initialized(n)}
+\key{array of indices of initialized elements}{\name.keys}
+\key{complement of int array in {\tt \{0,\dots,n-1\}}}{complement(a,n)}
+\key{deep copy of array {\tt a}}{copy(a)}
+\key{array {\tt \{0,1,\dots,n-1\}}}{sequence(n)}
+\key{array {\tt \{n,n+1,\dots,m\}}}{sequence(n,m)}
+\key{array {\tt \{n-1,n-2,\dots,0\}}}{reverse(n)}
+\key{array {\tt \{f(0),f(1),\dots,f(n-1)\}}}{sequence(f,n)}
+\key{array obtained by applying {\tt f} to array {\tt a}}{map(f,a)}
+\key{uniform partition of [{\tt a},{\tt b}] into n intervals}{uniform(a,b,n)}
+\key{concat specified 1D arrays}{concat(a,b,\dots)}
+\key{return sorted array}{sort(a)}
+\key{return array sorted using ordering {\tt less}}{sort(a,{\tt less})}
+\key{search sorted array {\tt a} for key}{search(a,key)}
+\key{index of first true value of bool array {\tt a}}{find(a)}
+\key{index of nth true value of bool array {\tt a}}{find(a,n)}
 
 \section{Initialization}
 \key{initialize variable}{\type\ \name=\value;}
