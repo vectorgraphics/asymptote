@@ -92,6 +92,14 @@ array *readpath(const string& psname, bool keep,
 {
   double vscale=vsign*hscale;
   array *PP=new array(0);
+
+  char *oldPath=NULL;
+  string dir=stripFile(outname());
+  if(!dir.empty()) {
+    oldPath=getPath();
+    setPath(dir.c_str());
+  }
+
   mem::vector<string> cmd;
   cmd.push_back(getSetting<string>("gs"));
   cmd.push_back("-q");
@@ -105,7 +113,7 @@ array *readpath(const string& psname, bool keep,
 #endif
   cmd.push_back("-sDEVICE=epswrite");
   cmd.push_back("-sOutputFile="+null);
-  cmd.push_back(psname);
+  cmd.push_back(stripDir(psname));
   iopipestream gs(cmd,"gs","Ghostscript");
   while(true) {
     stringstream buf;
@@ -197,6 +205,9 @@ array *readpath(const string& psname, bool keep,
       }
     }
   }
+  
+  if(oldPath != NULL)
+    setPath(oldPath);
   
   if(!keep)
     unlink(psname.c_str());

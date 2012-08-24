@@ -2678,7 +2678,7 @@ pair viewportmargin(pair lambda)
   return maxbound(0.5*(viewportsize-lambda),viewportmargin);
 }
 
-string embed3D(string label="", string text=label, string prefix,
+string embed3D(string prefix, string label=prefix, string text=label,
                frame f, string format="",
                real width=0, real height=0,
                string options="", string script="",
@@ -2901,9 +2901,9 @@ struct scene
   }
 }
 
-object embed(string label="", string text=label, string prefix=defaultfilename,
-             scene S, string format="", bool view=true, string options="",
-             string script="", light light=currentlight)
+object embed(string prefix=outprefix(), string label=prefix,
+             string text=label, scene S, string format="", bool view=true,
+             string options="", string script="", light light=currentlight)
 {
   object F;
   transform3 modelview;
@@ -3045,15 +3045,14 @@ shift");
         S.f=inv*S.f;
       }
     }
-    F.L=embed3D(label,text=image,prefix,S.f,format,
+    F.L=embed3D(prefix,label,text=image,S.f,format,
                 S.width-2,S.height-2,options,script,light,Q,viewplanesize);
   }
   return F;
 }
 
-object embed(string label="", string text=label,
-             string prefix=defaultfilename,
-             picture pic, string format="",
+object embed(string prefix=outprefix(), string label=prefix,
+             string text=label, picture pic, string format="",
              real xsize=pic.xsize, real ysize=pic.ysize,
              bool keepAspect=pic.keepAspect, bool view=true, string options="",
              string script="", light light=currentlight,
@@ -3062,7 +3061,7 @@ object embed(string label="", string text=label,
   bool is3D=is3D(format);
   scene S=scene(pic,xsize,ysize,keepAspect,is3D,P);
   if(is3D)
-    return embed(label,text,prefix,S,format,view,options,script,light);
+    return embed(prefix,label,text,S,format,view,options,script,light);
   else {
     object F;
     transform T=S.pic2.scaling(xsize,ysize,keepAspect);
@@ -3072,8 +3071,8 @@ object embed(string label="", string text=label,
   }
 }
 
-object embed(string label="", string text=label,
-             string prefix=defaultfilename,
+object embed(string prefix=outprefix(), string label=prefix,
+             string text=label,
              frame f, string format="", real width=0, real height=0,
              bool view=true, string options="", string script="",
              light light=currentlight, projection P=currentprojection)

@@ -228,7 +228,7 @@ Int convert(string args=emptystring, string file=emptystring,
     setPath(oldPath);
   
   if(ret == 0 && verbose > 0)
-    cout << "Wrote " << ((file.empty()) ? name : file) << endl;
+    cout << "Wrote " << (file.empty() ? name : file) << endl;
   
   return ret;
 }
