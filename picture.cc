@@ -32,6 +32,7 @@ texstream::~texstream() {
   unlink((name+"aux").c_str());
   unlink((name+"log").c_str());
   unlink((name+"out").c_str());
+  unlink((name+"m9").c_str());
   if(settings::pdf(texengine))
     unlink((name+"pdf").c_str());
   if(context) {
@@ -523,7 +524,7 @@ void texinit()
   } else {
     if(!dir.empty()) 
       cmd.push_back("-output-directory="+dir.substr(0,dir.length()-1));
-    if(getSetting<bool>("inlinetex")) {
+    if(getSetting<bool>("inlineimage") || getSetting<bool>("inlinetex")) {
       string name=stripDir(stripExt((outname())));
       size_t pos=name.rfind("-");
       if(pos < string::npos) {
@@ -855,7 +856,8 @@ bool picture::postprocess(const string& prename, const string& outname,
         status=System(cmd,0,true,"convert");
       }
     }
-    if(!getSetting<bool>("keep")) unlink(prename.c_str());
+    if(!getSetting<bool>("keep"))
+      unlink(prename.c_str());
   }
   if(status != 0) return false;
   
@@ -1200,6 +1202,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
           if(context) prename=stripDir(prename);
           status=postprocess(prename,outname,outputformat,magnification,wait,
                              view,pdf && Labels,svgformat);
+          if(pdfformat && !getSetting<bool>("keep"))
+            unlink(auxname(prefix,"m9").c_str());
         }
       }
     }
