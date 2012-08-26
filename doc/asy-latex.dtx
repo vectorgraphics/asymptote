@@ -38,7 +38,7 @@ Licence: GPL2+
 %</driver>
 %<pkg>\ProvidesPackage{asymptote}
 %<*pkg>
-  [2011/11/29 v1.26 Asymptote style file for LaTeX]
+  [2012/08/25 v1.27 Asymptote style file for LaTeX]
 %</pkg>
 %
 %<*driver>
@@ -633,6 +633,7 @@ Licence: GPL2+
       }%
     }{%
       \PackageWarning{asymptote}{file #2 not found}%
+      \def\@tempa{}%
     }%
   }%
   \immediate\write\AsyStream{\unexpanded\expandafter{\@tempa}}%
