@@ -99,7 +99,7 @@ string[] split(string s, string delimiter="")
   int N=length(delimiter);
   int n=length(s);
   while((i=find(s,delimiter,last)) >= 0) {
-    if(i >= last)
+    if(i > last)
       S.push(substr(s,last,i-last));
     last=i+N;
     if(prune)
