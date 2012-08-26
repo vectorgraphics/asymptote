@@ -585,7 +585,7 @@ path[] texpath(Label L, bool tex=settings.tex != "none", bool bbox=false)
 
     void operator init(Label L) 
     {
-      s=L.s;
+      s=replace(L.s,'\n',' ');
       fontsize=fontsize(L.p);
       font=font(L.p);
     }
