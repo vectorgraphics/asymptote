@@ -2508,9 +2508,10 @@ projection absorthographic(triple camera=Z, triple target=O, real roll=0)
   triple u=unit(target-camera);
   triple w=unit(Z-u.z*u);
   triple up=rotate(roll,O,u)*w;
-  projection P=projection(camera,up,target,1,0,false,false,
-                          new transformation(triple camera, triple up, triple target)
-                          {return transformation(look(camera,up,target));});
+  projection P=
+    projection(camera,up,target,1,0,false,false,
+               new transformation(triple camera, triple up, triple target)
+               {return transformation(look(camera,up,target));});
   P.absolute=true;
   return P;
 }
@@ -2550,8 +2551,9 @@ private string format(triple v, string sep=" ")
 
 private string projection(bool infinity, real viewplanesize)
 {
-  return "activeCamera=scene.cameras.getByIndex(0);
-function asyProjection() {"+
+  return "activeCamera=scene.cameras.getByIndex(0);"+
+    "scene.showOrientationAxes="+(settings.axes3 ? "true" : "false")+";"+
+    "function asyProjection() {"+
     (infinity ? "activeCamera.projectionType=activeCamera.TYPE_ORTHOGRAPHIC;" :
      "activeCamera.projectionType=activeCamera.TYPE_PERSPECTIVE;")+"
 activeCamera.viewPlaneSize="+string(viewplanesize)+";

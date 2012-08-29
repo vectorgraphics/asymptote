@@ -1082,6 +1082,8 @@ void initSettings() {
                             "Embed 3D PRC graphics in PDF output", true));
   addOption(new boolSetting("toolbar", 0,
                             "Show 3D toolbar in PDF output", true));
+  addOption(new boolSetting("axes3", 0,
+                            "Show 3D axes in PDF output", true));
   addOption(new realSetting("render", 0, "n",
                             "Render 3D graphics using n pixels per bp (-1=auto)",
                             havegl ? -1.0 : 0.0));
