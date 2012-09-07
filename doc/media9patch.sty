@@ -13,7 +13,7 @@
   \iow_new:N\g_mix_mstreams_stream
   \iow_open:Nn\g_mix_mstreams_stream{\jobname.m9}
   \iow_now:Nn\g_mix_mstreams_stream{
-    1~dict~
+    1~dict~begin~
     /o{mark/_objdef}bind~def/O{/type/stream/OBJ~pdfmark}bind~def
     /m~systemdict/mark~get~def
     /P{/ASCIIHexDecode~filter/PUT~pdfmark}bind~def
@@ -21,8 +21,8 @@
   }
 }
 \bool_if:NT\g_mix_pkgbigfiles_bool{
-  \RequirePackage{atenddvi}
-  \AtEndDvi{
+  \AtEndDocument{
+    \iow_now:Nn\g_mix_mstreams_stream{end}
     \iow_close:N\g_mix_mstreams_stream
   }
 }
