@@ -2579,19 +2579,19 @@ var bbtrans=new Array(); // billboard transforms
 
 function fulltransform(mesh) 
 { 
-  var tranform=new Matrix4x4(mesh.transform); 
+  var t=new Matrix4x4(mesh.transform); 
   if(mesh.parent.name != \"\") { 
     var parentTransform=fulltransform(mesh.parent); 
-    tranform.multiplyInPlace(parentTransform); 
-    return tranform; 
-  } else { 
-    return tranform; 
-  } 
+    t.multiplyInPlace(parentTransform); 
+    return t; 
+  } else
+    return t; 
 } 
 
 // find all text labels in the scene and determine pivoting points
 var nodes=scene.nodes;
 var nodescount=nodes.count;
+var third=1.0/3.0;
 for(var i=0; i < nodescount; i++) {
   var node=nodes.getByIndex(i); 
   var name=node.name;
@@ -2603,7 +2603,7 @@ for(var i=0; i < nodescount; i++) {
         node.name=name.substr(0,start-1);
         var nodeMatrix=fulltransform(node.parent);
         var c=nodeMatrix.translation; // position
-        var d=Math.pow(Math.abs(nodeMatrix.determinant),1.0/3.0); // scale
+        var d=Math.pow(Math.abs(nodeMatrix.determinant),third); // scale
         bbnodes.push(node);
         bbtrans.push(Matrix4x4().scale(d,d,d).translate(c).multiply(nodeMatrix.inverse));
       }
@@ -2744,6 +2744,7 @@ string embed3D(string prefix, string label=prefix, string text=label,
   if(settings.inlinetex)
     prefix=jobname(prefix);
   options3 += ",add3Djscript="+prefix+".js";
+// options3 += ",add3Djscript=asylabels.js";
 
   return Embed(prefix+".prc",text,options3,width,height);
 }
