@@ -55,7 +55,7 @@ LATEXFILES = asymptote.sty asycolors.sty ocg.sty latexmkrc media9patch.sty
 CONTEXTFILES = colo-asy.tex
 ASY = ./asy -dir base -config "" -render=0
 
-DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@
+DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD
 CFLAGS = @CPPFLAGS@ @CFLAGS@
 OPTS = $(DEFS) $(CFLAGS) 
 INCL = -I . @INCL@

@@ -1,5 +1,5 @@
 /* Fast Fourier transform C++ header class for the FFTW3 Library
-   Copyright (C) 2004-10 John C. Bowman, University of Alberta
+   Copyright (C) 2004-12 John C. Bowman, University of Alberta
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,7 @@
 #ifndef __fftwpp_h__
 #define __fftwpp_h__ 1
 
-#define __FFTWPP_H_VERSION__ 1.08
+#define __FFTWPP_H_VERSION__ 1.12
 
 #include <cstdlib>
 #include <fstream>
@@ -26,10 +26,34 @@
 #include <fftw3.h>
 #include <cerrno>
 
+#ifndef FFTWPP_SINGLE_THREAD
+#include <omp.h>
+#endif
+
+inline int get_max_threads() 
+{
+#ifdef FFTWPP_SINGLE_THREAD
+  return 1;
+#else
+  return omp_get_max_threads();
+#endif  
+}
+
+inline int get_thread_num() 
+{
+#ifdef FFTWPP_SINGLE_THREAD
+  return 0;
+#else
+  return omp_get_thread_num();
+#endif  
+}
+
 #ifndef __Complex_h__
 #include <complex>
 typedef std::complex<double> Complex;
 #endif
+
+#include "seconds.h"
 
 #ifndef HAVE_POSIX_MEMALIGN
 
@@ -167,7 +191,7 @@ inline int GetWisdom(std::ifstream& s) {return s.get();}
 //
 class fftw {
 protected:
-  unsigned int doubles; // number of double words in dataset
+  unsigned int doubles; // number of double precision values in dataset
   int sign;
   double norm;
 
@@ -194,8 +218,14 @@ protected:
   static std::ofstream ofWisdom;
   static bool Wise;
   static const double twopi;
+  unsigned int threads;
   
 public:
+  static unsigned int maxthreads;
+  static double testseconds;
+  
+  unsigned int Threads() {return threads;}
+  
   // Shift the Fourier origin to (nx/2,0).
   static void Shift(Complex *data, unsigned int nx, unsigned int ny,
                     int sign=0) {
@@ -271,8 +301,15 @@ public:
   
   fftw(unsigned int doubles, int sign, unsigned int n=0) : 
     doubles(doubles), sign(sign), norm(1.0/(n ? n : (doubles+1)/2)),
-    plan(NULL)
-  {}
+    plan(NULL) {
+    static bool initialize=true;
+    if(initialize) {
+#ifndef FFTWPP_SINGLE_THREAD
+      fftw_init_threads();
+#endif      
+      initialize=false;
+    }
+  }
   
   virtual ~fftw() {if(plan) fftw_destroy_plan(plan);}
   
@@ -282,6 +319,15 @@ public:
     if((size_t) p % sizeof(Complex) == 0) return;
     std::cerr << "WARNING: " << s << " array is not " << sizeof(Complex) 
               << "-byte aligned: address " << p << std::endl;
+  }
+  
+  double stdev(unsigned int N, double sum, double sum2) {
+    return N > 1 ? sqrt((sum2-sum*sum/N)/(N-1)) : 0.0;
+  }
+  
+  void noplan() {
+    std::cerr << "Unable to construct FFTW plan" << std::endl;
+    exit(1);
   }
   
   void Setup(Complex *in, Complex *out=NULL) {
@@ -296,11 +342,62 @@ public:
     if(!out) out=in;
 #endif    
     inplace=(out==in);
-    plan=Plan(in,out);
-    if(!plan) {
-      std::cerr << "Unable to construct FFTW plan" << std::endl;
-      exit(1);
-    }
+    
+#ifndef FFTWPP_SINGLE_THREAD
+    fftw_plan_with_nthreads(1);
+#endif    
+    fftw_plan plan1=Plan(in,out);
+    if(!plan1) noplan();
+    plan=plan1;
+    
+    if(maxthreads > 1) {
+      double sum=0.0;
+      double sum2=0.0;
+      unsigned int N=1;
+      const unsigned int microseconds=1000000;
+      unsigned int limit=(int) (testseconds*microseconds);
+      for(; N < limit; ++N) {
+        seconds();
+        fft(in,out);
+        double t=seconds();	
+        sum += t;
+        sum2 += t*t;
+        if(sum > testseconds)
+          break;
+      }
+      double mean1=sum/N;
+      double stdev1=stdev(N,sum,sum2);
+        
+      threads=get_max_threads();
+      if(maxthreads > threads) maxthreads=threads;
+#ifndef FFTWPP_SINGLE_THREAD
+      fftw_plan_with_nthreads(maxthreads);
+#endif
+      plan=Plan(in,out);
+      if(!plan) noplan();
+
+      if(plan) {
+        sum=0.0; 
+        seconds();
+        for(unsigned int i=1; i <= N; ++i) {
+          seconds();
+          fft(in,out);
+          double t=seconds();	
+          sum += t;
+        }
+        double mean2=sum/N;
+        
+        if(mean2 > mean1-stdev1) {
+          threads=1;
+          fftw_destroy_plan(plan);
+          plan=plan1;
+        } else {
+          fftw_destroy_plan(plan1);
+          threads=maxthreads;
+        }
+      }
+    } else
+      threads=1;
     
     if(alloc) Array::deleteAlign(in,(doubles+1)/2);
     SaveWisdom();
@@ -416,6 +513,9 @@ public:
     else {
       out=Setout(in,out);
       Execute(in,out);
+#ifndef FFTWPP_SINGLE_THREAD
+#pragma omp parallel for num_threads(threads)
+#endif
       for(unsigned int k=0; k < M; k++) {
         for(unsigned int j=0; j < nx; j++) {
           out[j*stride+k*dist] *= norm;
@@ -500,8 +600,8 @@ public:
   {Setup(in,out);} 
   
   fftw_plan Plan(Complex *in, Complex *out) {
-    int n[1]={nx};
-    return fftw_plan_many_dft(1,n,M,
+    int n=(int) nx;
+    return fftw_plan_many_dft(1,&n,M,
                               (fftw_complex *) in,NULL,stride,dist,
                               (fftw_complex *) out,NULL,stride,dist,
                               sign,effort);
@@ -648,8 +748,8 @@ public:
       stride(stride), dist(Dist(nx,stride,dist)) {Setup(in,out);} 
   
   fftw_plan Plan(Complex *in, Complex *out) {
-    const int n[1]={nx};
-    return fftw_plan_many_dft_r2c(1,n,M,
+    int n=(int) nx;
+    return fftw_plan_many_dft_r2c(1,&n,M,
                                   (double *) in,NULL,stride,2*dist,
                                   (fftw_complex *) out,NULL,stride,dist,
                                   effort);
@@ -699,8 +799,8 @@ public:
       nx(nx), M(M), stride(stride), dist(Dist(nx,stride,dist)) {Setup(in,out);}
   
   fftw_plan Plan(Complex *in, Complex *out) {
-    const int n[1]={nx};
-    return fftw_plan_many_dft_c2r(1,n,M,
+    int n=(int) nx;
+    return fftw_plan_many_dft_c2r(1,&n,M,
                                   (fftw_complex *) in,NULL,stride,dist,
                                   (double *) out,NULL,stride,2*dist,
                                   effort);
@@ -1019,11 +1119,11 @@ public:
 #ifdef __Array_h__
   crfft3d(unsigned int nz, const Array::array3<double>& out)
     : fftw(out.Size(),1,out.Nx()*out.Ny()*nz),
-    nx(out.Nx()), ny(out.Ny()), nz(nz) {Setup(out);} 
+      nx(out.Nx()), ny(out.Ny()), nz(nz) {Setup(out);} 
   
   crfft3d(unsigned int nz, const Array::array3<Complex>& in)
     : fftw(2*in.Size(),1,in.Nx()*in.Ny()*nz),
-    nx(in.Nx()), ny(in.Ny()), nz(nz) {Setup(in);} 
+      nx(in.Nx()), ny(in.Ny()), nz(nz) {Setup(in);} 
   
   crfft3d(unsigned int nz, const Array::array3<Complex>& in,
           const Array::array3<double>& out)
