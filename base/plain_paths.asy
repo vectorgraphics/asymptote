@@ -115,26 +115,6 @@ void write(string s="", explicit guide[] x, suffix suffix=endl)
   write(stdout,s,x,suffix);
 }
 
-private string nopoints="nullpath has no points";
-
-pair min(explicit path[] p)
-{
-  if(p.length == 0) abort(nopoints);
-  pair minp=min(p[0]);
-  for(int i=1; i < p.length; ++i)
-    minp=minbound(minp,min(p[i]));
-  return minp;
-}
-
-pair max(explicit path[] p)
-{
-  if(p.length == 0) abort(nopoints);
-  pair maxp=max(p[0]);
-  for(int i=1; i < p.length; ++i)
-    maxp=maxbound(maxp,max(p[i]));
-  return maxp;
-}
-
 interpolate operator ..(tensionSpecifier t)
 {
   return new guide(... guide[] a) {

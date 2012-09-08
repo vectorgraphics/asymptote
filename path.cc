@@ -28,9 +28,11 @@ const double third=1.0/3.0;
 
 path nullpath;
   
+const char *nopoints="nullpath has no points";
+
 void checkEmpty(Int n) {
   if(n == 0)
-    reportError("nullpath has no points");
+    reportError(nopoints);
 }
 
 // Accurate computation of sqrt(1+x)-1.

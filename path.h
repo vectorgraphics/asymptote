@@ -387,6 +387,7 @@ public:
 extern path nullpath;
 extern const unsigned maxdepth;
 extern const unsigned mindepth;
+extern const char *nopoints;
  
 bool intersect(double& S, double& T, path& p, path& q, double fuzz,
                unsigned depth=maxdepth);

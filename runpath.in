@@ -273,23 +273,28 @@ pair max(path p)
   return p.max();
 }
 
-pair min(patharray *a)
+Int size(patharray *p)
 { 
-  if (!a) {
-    error("min called on null path array");
-    return pair(0,0);
-  }
-  if (a->empty()) {
-    error("min called on empty path array");
-    return pair(0,0);
-  }
+  size_t size=checkArray(p);
+  Int count=0;
+  for (size_t i = 0; i < size; i++)
+    count += read<path *>(p,i)->size();
+  return count;
+}
+
+pair min(patharray *p)
+{ 
+  size_t size=checkArray(p);
 
-  path *g = a->read<path *>(0);
+  if(size == 0)
+    error(nopoints);
+
+  path *g = p->read<path *>(0);
   pair z = g->min();
   double minx = z.getx(), miny = z.gety();
 
-  for (size_t i = 1; i < a->size(); ++i) {
-    path *g = a->read<path *>(i);
+  for (size_t i = 1; i < size; ++i) {
+    path *g = p->read<path *>(i);
     pair z = g->min();
     double x = z.getx(), y = z.gety();
     if (x < minx)
@@ -301,23 +306,19 @@ pair min(patharray *a)
   return pair(minx, miny);
 }
 
-pair max(patharray *a)
+pair max(patharray *p)
 { 
-  if (!a) {
-    error("max called on null path array");
-    return pair(0,0);
-  }
-  if (a->empty()) {
-    error("max called on empty path array");
-    return pair(0,0);
-  }
+  size_t size=checkArray(p);
 
-  path *g = a->read<path *>(0);
+  if(size == 0)
+    error(nopoints);
+
+  path *g = p->read<path *>(0);
   pair z = g->max();
   double maxx = z.getx(), maxy = z.gety();
 
-  for (size_t i = 1; i < a->size(); ++i) {
-    path *g = a->read<path *>(i);
+  for (size_t i = 1; i < size; ++i) {
+    path *g = p->read<path *>(i);
     pair z = g->max();
     double x = z.getx(), y = z.gety();
     if (x > maxx)
@@ -329,23 +330,19 @@ pair max(patharray *a)
   return pair(maxx, maxy);
 }
 
-pair minAfterTransform(transform t, patharray *a)
+pair minAfterTransform(transform t, patharray *p)
 { 
-  if (!a) {
-    error("minAfterTransform called on null path array");
-    return pair(0,0);
-  }
-  if (a->empty()) {
-    error("minAfterTransform called on empty path array");
-    return pair(0,0);
-  }
+  size_t size=checkArray(p);
 
-  path g = a->read<path *>(0)->transformed(t);
+  if(size == 0)
+    error(nopoints);
+
+  path g = p->read<path *>(0)->transformed(t);
   pair z = g.min();
   double minx = z.getx(), miny = z.gety();
 
-  for (size_t i = 1; i < a->size(); ++i) {
-    path g = a->read<path *>(i)->transformed(t);
+  for (size_t i = 1; i < size; ++i) {
+    path g = p->read<path *>(i)->transformed(t);
     pair z = g.min();
     double x = z.getx(), y = z.gety();
     if (x < minx)
@@ -357,23 +354,19 @@ pair minAfterTransform(transform t, patharray *a)
   return pair(minx, miny);
 }
 
-pair maxAfterTransform(transform t, patharray *a)
+pair maxAfterTransform(transform t, patharray *p)
 { 
-  if (!a) {
-    error("maxAfterTransform called on null path array");
-    return pair(0,0);
-  }
-  if (a->empty()) {
-    error("maxAfterTransform called on empty path array");
-    return pair(0,0);
-  }
+  size_t size=checkArray(p);
 
-  path g = a->read<path *>(0)->transformed(t);
+  if(size == 0)
+    error(nopoints);
+
+  path g = p->read<path *>(0)->transformed(t);
   pair z = g.max();
   double maxx = z.getx(), maxy = z.gety();
 
-  for (size_t i = 1; i < a->size(); ++i) {
-    path g = a->read<path *>(i)->transformed(t);
+  for (size_t i = 1; i < size; ++i) {
+    path g = p->read<path *>(i)->transformed(t);
     pair z = g.max();
     double x = z.getx(), y = z.gety();
     if (x > maxx)
