@@ -466,9 +466,9 @@ void shipout3(string prefix, picture *f, string format=emptystring,
   delete[] T;
 }
 
-void shipout3(string prefix, picture *f, Intarray *index, triplearray *center)
+void shipout3(string prefix, picture *f)
 {
-  f->shipout3(prefix,index,center);
+  f->shipout3(prefix);
 }
 
 void deconstruct(picture *f, picture *preamble=NULL, real magnification=1, 

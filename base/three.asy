@@ -2571,21 +2571,17 @@ handler.onEvent=function(event)
 }";
 }
 
-private string billboard(int[] index, triple[] center)
+private string billboard()
 {
-  if(index.length == 0) return "";
   string s="
-var zero=new Vector3(0,0,0);
-
-var bbnodes = new Array(); // billboard meshes
-var bbtrans = new Array(); // billboard transforms
-var bbcount = 0;           // number of billboard meshes
+var bbnodes=new Array(); // billboard meshes
+var bbtrans=new Array(); // billboard transforms
 
 function fulltransform(mesh) 
 { 
-  var tranform = new Matrix4x4(mesh.transform); 
+  var tranform=new Matrix4x4(mesh.transform); 
   if(mesh.parent.name != \"\") { 
-    var parentTransform = fulltransform(mesh.parent); 
+    var parentTransform=fulltransform(mesh.parent); 
     tranform.multiplyInPlace(parentTransform); 
     return tranform; 
   } else { 
@@ -2593,6 +2589,7 @@ function fulltransform(mesh)
   } 
 } 
 
+// find all text labels in the scene and determine pivoting points
 var nodes=scene.nodes;
 var nodescount=nodes.count;
 for(var i=0; i < nodescount; i++) {
@@ -2600,12 +2597,11 @@ for(var i=0; i < nodescount; i++) {
   var name=node.name;
   var end=name.lastIndexOf(\".\")-1;
   if(end > 0) {
-    if(name.substr(end,1) == \"\001\") {
+    if(name.charAt(end) == \"\001\") {
       var start=name.lastIndexOf(\"-\")+1;
-      var n=end-start;
-      if(n > 0) {
+      if(end > start) {
         node.name=name.substr(0,start-1);
-        var nodeMatrix = fulltransform(node.parent);
+        var nodeMatrix=fulltransform(node.parent);
         var c=nodeMatrix.translation; // position
         var d=Math.pow(Math.abs(nodeMatrix.determinant),1.0/3.0); // scale
         bbnodes.push(node);
@@ -2614,27 +2610,26 @@ for(var i=0; i < nodescount; i++) {
     }
   }
 }
-bbcount=bbnodes.length;
 
+var camera=scene.cameras.getByIndex(0); 
+var zero=new Vector3(0,0,0);
+var bbcount=bbnodes.length;
+
+// event handler to maintain camera-facing text labels
 billboardHandler=new RenderEventHandler();
 billboardHandler.onEvent=function(event)
 {
-  var camera=scene.cameras.getByIndex(0); 
-  var position=camera.position;
-  var direction=position.subtract(camera.targetPosition);
-  var up=camera.up.subtract(position);
   var T=new Matrix4x4();
-  T.setView(zero,direction,up);
+  T.setView(zero,camera.position.subtract(camera.targetPosition),
+            camera.up.subtract(camera.position));
 
-  for (var j = 0; j < bbcount; j++) {
+  for (var j=0; j < bbcount; j++)
     bbnodes[j].transform.set(T.multiply(bbtrans[j]));
-  }
   runtime.refresh(); 
 }
- 
-runtime.addEventHandler(billboardHandler); 
+runtime.addEventHandler(billboardHandler);
 
-runtime.refresh(); 
+runtime.refresh();
 ";
   return s;
 }
@@ -2706,13 +2701,11 @@ string embed3D(string prefix, string label=prefix, string text=label,
   } else
     if(!P.absolute) P.angle=2*aTan(Tan(0.5*P.angle));
 
-  int[] index;
-  triple[] center;
-  shipout3(prefix,f,index,center);
+  shipout3(prefix,f);
 
   string name=prefix+".js";
   writeJavaScript(name,lightscript+projection(P.infinity,viewplanesize)+
-                  billboard(index,center),script);
+                  billboard(),script);
 
   if(!settings.inlinetex)
     file3.push(prefix+".prc");

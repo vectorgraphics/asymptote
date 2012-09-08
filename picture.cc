@@ -1392,7 +1392,7 @@ bool picture::shipout3(const string& prefix, const string& format,
   return false;
 }
 
-bool picture::shipout3(const string& prefix, array *index, array *center)
+bool picture::shipout3(const string& prefix)
 {
   bounds3();
   bool status = true;
@@ -1406,7 +1406,7 @@ bool picture::shipout3(const string& prefix, array *index, array *center)
   groups.push_back(groupmap());
   for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->write(&prc,&billboard,index,center,compressionlimit,groups);
+    (*p)->write(&prc,&billboard,compressionlimit,groups);
   }
   groups.pop_back();
   if(status)

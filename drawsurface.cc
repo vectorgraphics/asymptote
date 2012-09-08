@@ -166,8 +166,7 @@ void drawSurface::ratio(const double* t, pair &b, double (*m)(double, double),
   }
 }
 
-bool drawSurface::write(prcfile *out, unsigned int *, array *, array *, double,
-                        groupsmap&)
+bool drawSurface::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible || !prc)
     return true;
@@ -408,8 +407,7 @@ drawElement *drawSurface::transformed(const double* t)
   return new drawSurface(t,this);
 }
   
-bool drawNurbs::write(prcfile *out, unsigned int *, array *, array *, double,
-                      groupsmap&)
+bool drawNurbs::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible)
     return true;
@@ -624,8 +622,7 @@ void drawSphere::P(Triple& t, double x, double y, double z)
   t[2]=(T[2]*x+T[6]*y+T[10]*z+T[14])*f;
 }
 
-bool drawSphere::write(prcfile *out, unsigned int *, array *, array *, double,
-                       groupsmap&)
+bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible)
     return true;
@@ -713,8 +710,7 @@ bool drawSphere::write(prcfile *out, unsigned int *, array *, array *, double,
   return true;
 }
 
-bool drawCylinder::write(prcfile *out, unsigned int *, array *, array *, double,
-                         groupsmap&)
+bool drawCylinder::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible)
     return true;
@@ -726,8 +722,7 @@ bool drawCylinder::write(prcfile *out, unsigned int *, array *, array *, double,
   return true;
 }
   
-bool drawDisk::write(prcfile *out, unsigned int *, array *, array *, double,
-                     groupsmap&)
+bool drawDisk::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible)
     return true;
@@ -739,8 +734,7 @@ bool drawDisk::write(prcfile *out, unsigned int *, array *, array *, double,
   return true;
 }
   
-bool drawTube::write(prcfile *out, unsigned int *, array *, array *, double,
-                     groupsmap&)
+bool drawTube::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible)
     return true;
@@ -790,8 +784,7 @@ bool drawTube::write(prcfile *out, unsigned int *, array *, array *, double,
   return true;
 }
 
-bool drawPixel::write(prcfile *out, unsigned int *, array *, array *, double,
-                      groupsmap&)
+bool drawPixel::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible)
     return true;
@@ -875,14 +868,14 @@ void drawBaseTriangles::ratio(const double* t, pair &b,
     delete[] tP;
 }
 
-bool drawTriangles::write(prcfile *out, unsigned int *, array *, array *, double, groupsmap&)
+bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible || !prc)
     return true;
 
   PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
 
-  out->addTriangles(nP, P, nI, PI, m, nN, N, NI, 0, NULL, NULL, nC, C, CI, 0, NULL, NULL, 30);
+  out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,nC,C,CI,0,NULL,NULL,30);
 
   return true;
 }
@@ -893,10 +886,10 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min, cons
   if(invisible)
     return;
 
-  const bool colors   = (nC!=0 && C!=NULL && CI!=NULL);
+  const bool colors=(nC != 0 && C != NULL && CI != NULL);
 
   if(invisible ||
-     ((colors?hasalpha:diffuse.A < 1.0) ^ transparent)) return;
+     ((colors ? hasalpha : diffuse.A < 1.0) ^ transparent)) return;
 
   triple m,M;
   double t[16]; // current transform
@@ -958,10 +951,10 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min, cons
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
 
   glBegin(GL_TRIANGLES);
-  for (uint32_t i=0; i<nI; i++) {
+  for(uint32_t i=0; i<nI; i++) {
     const uint32_t *pi=PI[i];
     const uint32_t *ni=NI[i];
-    const uint32_t *ci=colors?CI[i]:0;
+    const uint32_t *ci=colors ? CI[i] : 0;
     if(lighton)
       glNormal3f(N[ni[0]][0],N[ni[0]][1],N[ni[0]][2]);
     if(colors)

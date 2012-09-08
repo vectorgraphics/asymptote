@@ -2468,7 +2468,7 @@ reaches its minimal horizontal and vertical extents, respectively.
 
 @cindex @code{maxtimes}
 @item real[] maxtimes(path p)
-returns an array of length 2 containing the times at which path @code{p}
+returns an array of length 2 containing times at which path @code{p}
 reaches its maximal horizontal and vertical extents, respectively.
 
 @cindex @code{intersectionpoint}

@@ -54,8 +54,7 @@ public:
   bool begingroup() {return true;}
   bool begingroup3() {return true;}
   
-  bool write(prcfile *out, unsigned int *count, vm::array *index,
-             vm::array *origin, double compressionlimit,
+  bool write(prcfile *out, unsigned int *count, double compressionlimit,
              groupsmap& groups) {
     groupmap& group=groups.back();
     if(name.empty()) name="group";
@@ -68,11 +67,8 @@ public:
     buf << name;
     if(c > 0) buf << "-" << (c+1);
       
-    if(interaction == BILLBOARD) {
+    if(interaction == BILLBOARD)
       buf << "-" << (*count)++ << "\001";
-      index->push((Int) origin->size());
-      origin->push(center);
-    }
     
     PRCoptions options(compression > 0.0 ? 
                        max(compression,compressionlimit) : 0.0,
@@ -104,8 +100,7 @@ public:
   bool endgroup() {return true;}
   bool endgroup3() {return true;}
   
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
-             groupsmap& groups) {
+  bool write(prcfile *out, unsigned int *, double, groupsmap& groups) {
     groups.pop_back();
     out->endgroup();
     return true;

@@ -175,13 +175,11 @@ public:
   }
 
   // Output to a PRC file
-  // The array origin contains the points about which to rotate billboard labels
-  virtual bool write(prcfile *out, unsigned int *count, vm::array *index,
-                     vm::array *origin, double compressionlimit,
+  virtual bool write(prcfile *out, unsigned int *count, double compressionlimit,
                      groupsmap& groups) {
     return false;
   }
-
+  
   // Used to compute deviation of a surface from a quadrilateral.
   virtual void displacement() {}
 

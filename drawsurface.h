@@ -135,8 +135,7 @@ public:
   
   virtual ~drawSurface() {}
 
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
-             groupsmap&);
+  bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
   void displacement();
   
@@ -293,8 +292,7 @@ public:
   
   virtual ~drawNurbs() {}
 
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
-             groupsmap&);
+  bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
   void displacement();
   void ratio(const double* t, pair &b, double (*m)(double, double), double,
@@ -340,8 +338,7 @@ public:
     shininess(s->shininess), invisible(s->invisible) {
   }
   
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
-             groupsmap&) {
+  bool write(prcfile *out, unsigned int *, double, groupsmap&) {
     return true;
   }
   virtual void transformedbounds(const double*, bbox3&) {}
@@ -364,8 +361,7 @@ public:
     
   void P(Triple& t, double x, double y, double z);
   
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
-             groupsmap&);
+  bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
   drawElement *transformed(const double* t) {
     return new drawSphere(t,this);
@@ -382,8 +378,7 @@ public:
   drawCylinder(const double* t, const drawCylinder *s) :
     drawPRC(t,s) {}
     
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
-             groupsmap&);
+  bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
   drawElement *transformed(const double* t) {
     return new drawCylinder(t,this);
@@ -400,8 +395,7 @@ public:
   drawDisk(const double* t, const drawDisk *s) :
     drawPRC(t,s) {}
     
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
-             groupsmap&);
+  bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
   drawElement *transformed(const double* t) {
     return new drawDisk(t,this);
@@ -444,8 +438,7 @@ public:
     shininess(s->shininess), invisible(s->invisible) {
   }
   
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
-             groupsmap&);
+  bool write(prcfile *out, unsigned int *, double, groupsmap&);
                         
   drawElement *transformed(const double* t) {
     return new drawTube(t,this);
@@ -487,8 +480,7 @@ public:
               
               double perspective, bool transparent);
   
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
-             groupsmap&);
+  bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
   drawElement *transformed(const double* t) {
     return new drawPixel(t,this);
@@ -618,8 +610,7 @@ public:
   void render(GLUnurbs *nurb, double size2, const triple& Min, const triple& Max,
               double perspective, bool transparent);
  
-  bool write(prcfile *out, unsigned int *, vm::array *, vm::array *, double,
-             groupsmap&);
+  bool write(prcfile *out, unsigned int *, double, groupsmap&);
  
   drawElement *transformed(const double* t) {
     return new drawTriangles(t,this);

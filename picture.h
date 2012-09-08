@@ -92,7 +92,7 @@ public:
                 bool viewportlighting, bool view);
   
   // PRC output
-  bool shipout3(const string& prefix, vm::array *index, vm::array *center);
+  bool shipout3(const string& prefix);
   
   bool reloadPDF(const string& Viewer, const string& outname) const;
   
