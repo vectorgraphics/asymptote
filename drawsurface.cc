@@ -291,14 +291,17 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   }
     
   if(colors) {
-    glEnable(GL_COLOR_MATERIAL);
-    glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
+      glEnable(GL_COLOR_MATERIAL);
+    if(!lighton)
+      glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
     diffuse.R=diffuse.G=diffuse.B=0.0;
     ambient.R=ambient.G=ambient.B=0.0;
   } else {
     GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
-
+  }
+  
+  if(lighton) {
     GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
   
@@ -545,14 +548,17 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   }
 
   if(colors) {
-    glEnable(GL_COLOR_MATERIAL);
-    glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
+      glEnable(GL_COLOR_MATERIAL);
+    if(!lighton)
+      glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
     diffuse.R=diffuse.G=diffuse.B=0.0;
     ambient.R=ambient.G=ambient.B=0.0;
   } else {
     GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
-
+  }
+  
+  if(lighton) {
     GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
   
@@ -899,14 +905,17 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min, cons
   }
 
   if(colors) {
-    glEnable(GL_COLOR_MATERIAL);
-    glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
+      glEnable(GL_COLOR_MATERIAL);
+    if(!lighton)
+      glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
     diffuse.R=diffuse.G=diffuse.B=0.0;
     ambient.R=ambient.G=ambient.B=0.0;
   } else {
     GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
-
+  }
+  
+  if(lighton) {
     GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
   
