@@ -290,38 +290,27 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
       return;
   }
     
-  bool ambientdiffuse=true;
-  bool emission=true;
-
   if(colors) {
     glEnable(GL_COLOR_MATERIAL);
-    if(lighton) {
-      glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
-      ambientdiffuse=false;
-    } else {
-      glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
-      emission=false;
-    }
-  }
-  
-  if(ambientdiffuse) {
-    GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
-  
-    GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
-  }
-  
-  if(emission) {
+    glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
+    diffuse.R=diffuse.G=diffuse.B=0.0;
+    ambient.R=ambient.G=ambient.B=0.0;
+  } else {
     GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
+
+    GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
+  
+    glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
   }
   
-  GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
+  GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
+  glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
   
-  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
-
+  GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
+  glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
+  
   const triple size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),
                      Max.getz()-Min.getz());
   
@@ -555,39 +544,30 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
        M.getz() < Min.getz() || m.getz() > Max.getz()) return;
   }
 
-  bool ambientdiffuse=true;
-  bool emission=true;
-
   if(colors) {
     glEnable(GL_COLOR_MATERIAL);
-    if(lighton) {
-      glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
-      ambientdiffuse=false;
-    } else {
-      glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
-      emission=false;
-    }
-  }
-  
-  if(ambientdiffuse) {
-    GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
-  
-    GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
-  }
-  
-  if(emission) {
+    glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
+    diffuse.R=diffuse.G=diffuse.B=0.0;
+    ambient.R=ambient.G=ambient.B=0.0;
+  } else {
     GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
+
+    GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
+  
+    glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
   }
   
-  GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
+  GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
+  glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
   
-  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
+  GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
+  glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
 
-  gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
+  if(lighton)
+    gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
+  
   gluBeginSurface(nurb);
   int uorder=udegree+1;
   int vorder=vdegree+1;
@@ -918,38 +898,27 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min, cons
       return;
   }
 
-  bool ambientdiffuse=true;
-  bool emission=true;
-
   if(colors) {
     glEnable(GL_COLOR_MATERIAL);
-    if(lighton) {
-      glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
-      ambientdiffuse=false;
-    } else {
-      glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
-      emission=false;
-    }
-  }
-
-  if(ambientdiffuse) {
-    GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
-
-    GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
-    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
-  }
-
-  if(emission) {
+    glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
+    diffuse.R=diffuse.G=diffuse.B=0.0;
+    ambient.R=ambient.G=ambient.B=0.0;
+  } else {
     GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
+
+    GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
+  
+    glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
   }
-
-  GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
-
-  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
-
+  
+  GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
+  glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
+  
+  GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
+  glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
+  
   glBegin(GL_TRIANGLES);
   for(uint32_t i=0; i<nI; i++) {
     const uint32_t *pi=PI[i];

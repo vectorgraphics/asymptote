@@ -26,6 +26,11 @@ struct material {
   void specular(pen q) {p[3]=q;}
 }
 
+material operator init() 
+{
+  return material();
+}
+
 void write(file file, string s="", material x, suffix suffix=none)
 {
   write(file,s);

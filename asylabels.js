@@ -78,7 +78,7 @@ billboardHandler.onEvent=function(event)
   T.setView(zero,camera.position.subtract(camera.targetPosition),
             camera.up.subtract(camera.position));
 
-  for (var j=0; j < bbcount; j++)
+  for(var j=0; j < bbcount; j++)
     bbnodes[j].transform.set(T.multiply(bbtrans[j]));
   runtime.refresh(); 
 }

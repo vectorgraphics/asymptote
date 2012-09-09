@@ -2077,6 +2077,7 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
 {
   if(colors.length > 0)
     m=mean(colors);
+  m=material(m,light);
   bool lighton=light.on();
   P=copy(P);
   uknot=copy(uknot);
