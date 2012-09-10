@@ -1,10 +1,7 @@
 if(latex()) {
   usepackage("hyperref");
   texpreamble("\hypersetup{"+settings.hyperrefOptions+"}");
-  if(pdf())
-    usepackage("media9");
-  else
-    usepackage("media9","bigfiles");
+  usepackage("media9","bigfiles");
 }
 
 // See http://www.ctan.org/tex-archive/macros/latex/contrib/media9/doc/media9.pdf
