@@ -6465,7 +6465,7 @@ This module provides an interface to the @code{LaTeX} package
 @end quotation
 @noindent
 for embedding movies, sounds, and 3D objects into a @acronym{PDF} document.
-Version 0.11 (2012/08/14) of @code{media9} or later is required.
+Version 0.12 (2012/09/07) of @code{media9} or later is required.
 
 @cindex @code{external}
 A more portable method for embedding movie files, which should work on any

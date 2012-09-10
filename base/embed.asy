@@ -4,7 +4,7 @@ if(latex()) {
   if(pdf())
     usepackage("media9");
   else
-    usepackage("media9patch","bigfiles");
+    usepackage("media9","bigfiles");
 }
 
 // See http://www.ctan.org/tex-archive/macros/latex/contrib/media9/doc/media9.pdf
