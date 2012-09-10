@@ -2549,91 +2549,6 @@ private string format(triple v, string sep=" ")
   return string(v.x)+sep+string(v.y)+sep+string(v.z);
 }
 
-private string projection(bool infinity, real viewplanesize)
-{
-  return "activeCamera=scene.cameras.getByIndex(0);"+
-    "scene.showOrientationAxes="+(settings.axes3 ? "true" : "false")+";"+
-    "function asyProjection() {"+
-    (infinity ? "activeCamera.projectionType=activeCamera.TYPE_ORTHOGRAPHIC;" :
-     "activeCamera.projectionType=activeCamera.TYPE_PERSPECTIVE;")+"
-activeCamera.viewPlaneSize="+string(viewplanesize)+";
-activeCamera.binding=activeCamera.BINDING_"+(infinity ? "MAX" : "VERTICAL")+";
-}
-
-asyProjection();
-
-handler=new CameraEventHandler();
-runtime.addEventHandler(handler);
-handler.onEvent=function(event) 
-{
-  asyProjection();
-  scene.update();
-}";
-}
-
-private string billboard()
-{
-  string s="
-var bbnodes=new Array(); // billboard meshes
-var bbtrans=new Array(); // billboard transforms
-
-function fulltransform(mesh) 
-{ 
-  var t=new Matrix4x4(mesh.transform); 
-  if(mesh.parent.name != \"\") { 
-    var parentTransform=fulltransform(mesh.parent); 
-    t.multiplyInPlace(parentTransform); 
-    return t; 
-  } else
-    return t; 
-} 
-
-// find all text labels in the scene and determine pivoting points
-var nodes=scene.nodes;
-var nodescount=nodes.count;
-var third=1.0/3.0;
-for(var i=0; i < nodescount; i++) {
-  var node=nodes.getByIndex(i); 
-  var name=node.name;
-  var end=name.lastIndexOf(\".\")-1;
-  if(end > 0) {
-    if(name.charAt(end) == \"\001\") {
-      var start=name.lastIndexOf(\"-\")+1;
-      if(end > start) {
-        node.name=name.substr(0,start-1);
-        var nodeMatrix=fulltransform(node.parent);
-        var c=nodeMatrix.translation; // position
-        var d=Math.pow(Math.abs(nodeMatrix.determinant),third); // scale
-        bbnodes.push(node);
-        bbtrans.push(Matrix4x4().scale(d,d,d).translate(c).multiply(nodeMatrix.inverse));
-      }
-    }
-  }
-}
-
-var camera=scene.cameras.getByIndex(0); 
-var zero=new Vector3(0,0,0);
-var bbcount=bbnodes.length;
-
-// event handler to maintain camera-facing text labels
-billboardHandler=new RenderEventHandler();
-billboardHandler.onEvent=function(event)
-{
-  var T=new Matrix4x4();
-  T.setView(zero,camera.position.subtract(camera.targetPosition),
-            camera.up.subtract(camera.position));
-
-  for(var j=0; j < bbcount; j++)
-    bbnodes[j].transform.set(T.multiply(bbtrans[j]));
-  runtime.refresh(); 
-}
-runtime.addEventHandler(billboardHandler);
-
-runtime.refresh();
-";
-  return s;
-}
-
 string lightscript(light light) {
   string script="for(var i=scene.lights.count-1; i >= 0; i--)
   scene.lights.removeByIndex(i);"+'\n\n';
@@ -2689,9 +2604,6 @@ string embed3D(string prefix, string label=prefix, string text=label,
 
   if(script == "") script=defaultembed3Dscript;
 
-  // Adobe Reader doesn't appear to support user-specified viewport lights.
-  string lightscript=light.on() && light.viewport ? "" : lightscript(light);
-
   if(P.infinity) {
     if(viewplanesize==0) {
       triple lambda=max3(f)-min3(f);
@@ -2704,8 +2616,10 @@ string embed3D(string prefix, string label=prefix, string text=label,
   shipout3(prefix,f);
 
   string name=prefix+".js";
-  writeJavaScript(name,lightscript+projection(P.infinity,viewplanesize)+
-                  billboard(),script);
+  // Adobe Reader doesn't appear to support user-specified viewport lights.
+  bool lightscript=light.on() && !light.viewport;
+  if(lightscript)
+    writeJavaScript(name,lightscript(light),script);
 
   if(!settings.inlinetex)
     file3.push(prefix+".prc");
@@ -2734,17 +2648,20 @@ string embed3D(string prefix, string label=prefix, string text=label,
     options3 += ",activate=pagevisible";
   options3 += ",3Dtoolbar="+(settings.toolbar ? "true" : "false")+
     ",label="+label+
-    ",3Daac="+Format(P.angle)+
+    (P.infinity ? ",3Dortho="+Format(1/viewplanesize) :
+     ",3Daac="+Format(P.angle))+
     ",3Dc2c="+Format(u)+
     ",3Dcoo="+Format(target)+
     ",3Droll="+Format(roll)+
     ",3Droo="+Format(abs(v))+
+    ",3Dpsob="+(P.infinity ? "Max" : "H")+
     ",3Dbg="+Format(light.background());
   if(options != "") options3 += ","+options;
   if(settings.inlinetex)
     prefix=jobname(prefix);
-  options3 += ",add3Djscript="+prefix+".js";
-// options3 += ",add3Djscript=asylabels.js";
+  if(lightscript)
+    options3 += ",add3Djscript="+prefix+".js";
+  options3 += ",add3Djscript=asylabels.js";
 
   return Embed(prefix+".prc",text,options3,width,height);
 }
