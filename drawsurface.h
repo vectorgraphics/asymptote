@@ -96,6 +96,9 @@ public:
       colors[1]=rgba(vm::read<camp::pen>(pens,3));
       colors[2]=rgba(vm::read<camp::pen>(pens,1));
       colors[3]=rgba(vm::read<camp::pen>(pens,2));
+      diffuse.R=diffuse.G=diffuse.B=0.0;
+      ambient.R=ambient.G=ambient.B=0.0;
+      emissive.R=emissive.G=emissive.B=0.0;
     } else colors=NULL;
   }
   
@@ -241,6 +244,9 @@ public:
       storecolor(colors,8,pens,1);
       storecolor(colors,12,pens,2);
       storecolor(colors,4,pens,3);
+      diffuse.R=diffuse.G=diffuse.B=0.0;
+      ambient.R=ambient.G=ambient.B=0.0;
+      emissive.R=emissive.G=emissive.B=0.0;
     } else colors=NULL;
 #endif  
   }
@@ -576,6 +582,10 @@ public:
     ambient =rgba(vm::read<camp::pen>(p,1));
     emissive=rgba(vm::read<camp::pen>(p,2));
     specular=rgba(vm::read<camp::pen>(p,3));
+    
+    diffuse.R=diffuse.G=diffuse.B=0.0;
+    ambient.R=ambient.G=ambient.B=0.0;
+    emissive.R=emissive.G=emissive.B=0.0;
     
     if (nC!=0) {
       commonalpha=C[0].A;
