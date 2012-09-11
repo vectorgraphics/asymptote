@@ -42,7 +42,7 @@ bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 }
 
 void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
-                       double, bool transparent)
+                       double, bool lighton, bool transparent)
 {
 #ifdef HAVE_GL
   Int n=g.length();
@@ -213,7 +213,8 @@ void drawNurbsPath3::displacement()
 }
 
 void drawNurbsPath3::render(GLUnurbs *nurb, double, const triple&,
-                            const triple&, double, bool transparent)
+                            const triple&, double, bool lighton,
+                            bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || ((color.A < 1.0) ^ transparent))

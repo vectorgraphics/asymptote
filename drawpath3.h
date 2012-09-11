@@ -66,7 +66,7 @@ public:
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
   void render(GLUnurbs*, double, const triple&, const triple&, double,
-              bool transparent);
+              bool lighton, bool transparent);
 
   drawElement *transformed(const double* t);
 };
@@ -162,7 +162,7 @@ public:
     
   void render(GLUnurbs *nurb, double size2,
               const triple& Min, const triple& Max,
-              double perspective, bool transparent);
+              double perspective, bool lighton, bool transparent);
     
   drawElement *transformed(const double* t);
 };

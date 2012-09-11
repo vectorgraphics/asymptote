@@ -246,7 +246,7 @@ inline double fraction(const triple& d, const triple& size)
 
 void drawSurface::render(GLUnurbs *nurb, double size2,
                          const triple& Min, const triple& Max,
-                         double perspective, bool transparent)
+                         double perspective, bool lighton, bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || 
@@ -517,7 +517,7 @@ void drawNurbs::displacement()
 
 void drawNurbs::render(GLUnurbs *nurb, double size2,
                        const triple& Min, const triple& Max,
-                       double perspective, bool transparent)
+                       double perspective, bool lighton, bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
@@ -782,7 +782,7 @@ bool drawPixel::write(prcfile *out, unsigned int *, double, groupsmap&)
   
 void drawPixel::render(GLUnurbs *nurb, double size2,
                        const triple& Min, const triple& Max,
-                       double perspective, bool transparent) 
+                       double perspective, bool lighton, bool transparent) 
 {
 #ifdef HAVE_GL
   if(invisible)
@@ -866,7 +866,7 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min, const triple& Max, double perspective, bool transparent)
+void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min, const triple& Max, double perspective, bool lighton, bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible)

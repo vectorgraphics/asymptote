@@ -1206,7 +1206,7 @@ interaction LabelInteraction()
   return settings.autobillboard ? Billboard : Embedded;
 }
 
-private material material(material m, light light) 
+material material(material m, light light) 
 {
   return light.on() || invisible((pen) m) ? m : emissive(m);
 }
@@ -1223,8 +1223,7 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
     PRCshininess=PRCshininess(m.shininess);
   
   draw(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,PRCshininess,
-       s.planar ? s.normal(0.5,0.5) : O,s.colors,
-       light.on(),interaction.type,prc);
+       s.planar ? s.normal(0.5,0.5) : O,s.colors,interaction.type,prc);
 }
 
 void drawPRCsphere(frame f, transform3 t=identity4, bool half=false, material m,
@@ -2094,7 +2093,7 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
         if(prc())
           PRCshininess=PRCshininess(m.shininess);
         draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,PRCshininess,
-             colors,lighton);
+             colors);
         if(group)
           endgroup3(f);
         if(pic != null)

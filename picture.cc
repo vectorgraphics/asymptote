@@ -1217,11 +1217,11 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 // render viewport with width x height pixels.
 void picture::render(GLUnurbs *nurb, double size2,
                      const triple& Min, const triple& Max,
-                     double perspective, bool transparent) const
+                     double perspective, bool lighton, bool transparent) const
 {
   for(nodelist::const_iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->render(nurb,size2,Min,Max,perspective,transparent);
+    (*p)->render(nurb,size2,Min,Max,perspective,lighton,transparent);
   }
 }
   

@@ -614,11 +614,10 @@ void _draw(picture *f, path3 g, triple center=Zero, pen p, Int interaction=0)
 // Bezier patch
 void draw(picture *f, triplearray2 *P, triple center, bool straight,
           penarray *p, real opacity, real shininess, real PRCshininess,
-          triple normal, penarray *colors, bool lighton,
-          Int interaction, bool prc=true)
+          triple normal, penarray *colors, Int interaction, bool prc=true)
 {
   f->append(new drawSurface(*P,center,straight,*p,opacity,shininess,
-                            PRCshininess,normal,*colors,lighton,
+                            PRCshininess,normal,*colors,
                             (Interaction) intcast(interaction),prc));
 }
 
@@ -632,10 +631,10 @@ void draw(picture *f, triplearray *P, realarray *knot,
 // General NURBS surface
 void draw(picture *f, triplearray2 *P, realarray *uknot, realarray *vknot,
           realarray2 *weights=emptyarray, penarray *p, real opacity,
-          real shininess, real PRCshininess, penarray *colors, bool lighton)
+          real shininess, real PRCshininess, penarray *colors)
 {
   f->append(new drawNurbs(*P,uknot,vknot,weights,*p,opacity,shininess,
-                          PRCshininess,*colors,lighton));
+                          PRCshininess,*colors));
 }
 
 // PRC unit sphere

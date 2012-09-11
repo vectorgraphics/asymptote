@@ -186,7 +186,7 @@ public:
   // Render with OpenGL
   virtual void render(GLUnurbs *nurb, double size2, 
                       const triple& Min, const triple& Max,
-                      double perspective, bool transparent) {}
+                      double perspective, bool lighton, bool transparent) {}
 
   // Transform as part of a picture.
   virtual drawElement *transformed(const transform&) {

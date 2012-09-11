@@ -34,7 +34,6 @@ protected:
   double PRCshininess;
   triple normal;
   bool invisible;
-  bool lighton;
   Interaction interaction;
   
   triple Min,Max;
@@ -49,9 +48,9 @@ public:
   drawSurface(const vm::array& g, triple center, bool straight,
               const vm::array&p, double opacity, double shininess,
               double PRCshininess, triple normal, const vm::array &pens,
-              bool lighton, Interaction interaction, bool prc) :
+              Interaction interaction, bool prc) :
     center(center), straight(straight), opacity(opacity), shininess(shininess),
-    PRCshininess(PRCshininess), normal(unit(normal)), lighton(lighton),
+    PRCshininess(PRCshininess), normal(unit(normal)),
     interaction(interaction), prc(prc) {
     string wrongsize=
       "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
@@ -104,7 +103,7 @@ public:
     straight(s->straight), diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
-    invisible(s->invisible), lighton(s->lighton),
+    invisible(s->invisible),
     interaction(s->interaction), prc(s->prc) { 
     
     transformTriples(t,4,vertices,s->vertices);
@@ -140,7 +139,7 @@ public:
   void displacement();
   
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
-              double perspective, bool transparent);
+              double perspective, bool lighton, bool transparent);
   
   drawElement *transformed(const double* t);
 };
@@ -161,7 +160,6 @@ protected:
   double PRCshininess;
   triple normal;
   bool invisible;
-  bool lighton;
   
   triple Min,Max;
   
@@ -175,9 +173,9 @@ protected:
 public:
   drawNurbs(const vm::array& g, const vm::array* uknot, const vm::array* vknot,
             const vm::array* weight, const vm::array&p, double opacity,
-            double shininess, double PRCshininess, const vm::array &pens,
-            bool lighton) : opacity(opacity), shininess(shininess),
-                            PRCshininess(PRCshininess), lighton(lighton) {
+            double shininess, double PRCshininess, const vm::array &pens)
+            : opacity(opacity), shininess(shininess),
+              PRCshininess(PRCshininess) {
     size_t weightsize=checkArray(weight);
     
     string wrongsize="Inconsistent NURBS data";
@@ -252,7 +250,7 @@ public:
     diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
-    invisible(s->invisible), lighton(s->lighton) {
+    invisible(s->invisible) {
     
     const size_t n=nu*nv;
     controls=new(UseGC) Triple[n];
@@ -299,7 +297,7 @@ public:
              bool &first);
 
   void render(GLUnurbs *nurb, double size2, const triple& Min, const triple& Max,
-              double perspective, bool transparent);
+              double perspective, bool lighton, bool transparent);
     
   drawElement *transformed(const double* t);
 };
@@ -477,8 +475,7 @@ public:
   }    
   
   void render(GLUnurbs *nurb, double size2, const triple& Min, const triple& Max,
-              
-              double perspective, bool transparent);
+              double perspective, bool lighton, bool transparent);
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
@@ -556,19 +553,17 @@ class drawTriangles : public drawBaseTriangles {
   const double opacity;
   const double shininess;
   const double PRCshininess;
-  const bool lighton;
    
 public:
   drawTriangles(uint32_t nP, double P[][3], uint32_t nN, double N[][3], 
                 uint32_t nI, const uint32_t PI[][3], const uint32_t NI[][3],
                 uint32_t nC, const RGBAColour C[], const uint32_t CI[][3],
                 const vm::array&p, double opacity, double shininess,
-                double PRCshininess, bool lighton, bool prc) :
+                double PRCshininess, bool prc) :
     drawBaseTriangles(nP, P, nN, N, nI, PI, NI, prc),
     nC(nC), C(C), CI(CI),
     hasalpha(false), samealpha(true), commonalpha(1.0),
-    opacity(opacity), shininess(shininess),  PRCshininess(PRCshininess),
-    lighton(lighton) {
+    opacity(opacity), shininess(shininess),  PRCshininess(PRCshininess) {
 
     const string needfourpens="array of 4 pens required";
     if(checkArray(&p) != 4)
@@ -603,12 +598,12 @@ public:
     hasalpha(s->hasalpha), samealpha(s->samealpha), commonalpha(s->commonalpha),
     diffuse(s->diffuse), ambient(s->ambient), emissive(s->emissive),
     specular(s->specular), opacity(s->opacity),
-    shininess(s->shininess), PRCshininess(s->PRCshininess), lighton(s->lighton) {}
+    shininess(s->shininess), PRCshininess(s->PRCshininess) {}
  
   virtual ~drawTriangles() {}
  
   void render(GLUnurbs *nurb, double size2, const triple& Min, const triple& Max,
-              double perspective, bool transparent);
+              double perspective, bool lighton, bool transparent);
  
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
  

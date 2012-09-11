@@ -2641,7 +2641,8 @@ string embed3D(string prefix, string label=prefix, string text=label,
     roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));
   } else roll=0;
   
-  string options3=light.viewport ? "3Dlights=Headlamp" : "3Dlights=File";
+  string options3="3Dlights="+
+    (light.on() ? (light.viewport ? "Headlamp" : "File") : "None");
   if(defaultembed3Doptions != "") options3 += ","+defaultembed3Doptions;
 
   if((settings.render < 0 || !settings.embed) && settings.auto3D)

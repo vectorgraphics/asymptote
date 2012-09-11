@@ -308,13 +308,13 @@ void drawscene(double Width, double Height)
   double size2=hypot(Width,Height);
   
   // Render opaque objects
-  Picture->render(nurb,size2,m,M,perspective,false);
+  Picture->render(nurb,size2,m,M,perspective,Nlights,false);
   
   // Enable transparency
   glDepthMask(GL_FALSE);
   
   // Render transparent objects
-  Picture->render(nurb,size2,m,M,perspective,true);
+  Picture->render(nurb,size2,m,M,perspective,Nlights,true);
   glDepthMask(GL_TRUE);
 }
 
