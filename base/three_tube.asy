@@ -405,10 +405,9 @@ struct tube
       if(abs(dir(p,i,1)-dir(p,i,-1)) > sqrtEpsilon) {
         generate(subpath(p,begin,i));
         triple dir=dir(p,i,-1);
-        s.append(shift(point(p,i))*t*align(dir)*
-                 (dir != O ? unithemisphere : unitsphere));
-        int L=length(center);
-        sphere(shift(point(center,L))*t*align(dir(center,L,-1)),
+        transform3 T=t*align(dir);
+        s.append(shift(point(p,i))*T*(dir != O ? unithemisphere : unitsphere));
+        sphere(shift(point(center,length(center)))*T,
                half=straight(p,i-1) && straight(p,i));
         begin=i;
       }

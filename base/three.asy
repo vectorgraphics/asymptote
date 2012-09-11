@@ -2231,7 +2231,7 @@ draw=new void(frame f, path3 g, material p=currentpen,
               transform3 tL=shift(gL)*align(dirL);
               transform3 tc0=shift(c0)*align(-dirc0);
               transform3 tcL=shift(cL)*align(dircL);
-              if(linecap == 0 || linecap == 2){
+              if(linecap == 0 || linecap == 2) {
                 transform3 scale2r=scale(r,r,1);
                 T.s.append(t0*scale2r*unitdisk);
                 disk(tc0*scale2r);
