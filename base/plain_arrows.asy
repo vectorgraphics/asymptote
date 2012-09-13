@@ -40,8 +40,8 @@ real[] arrowbasepoints(path base, path left, path right)
 {
   real[][] Tl=transpose(intersections(left,base));
   real[][] Tr=transpose(intersections(right,base));
-  return new real[] {Tl.length > 0 ? Tl[0][0] : 1,
-      Tr.length > 0 ? Tr[0][0] : 1};
+  return new real[] {Tl.length > 0 ? Tl[0][0] : 0,
+      Tr.length > 0 ? Tr[0][0] : 0};
 }
 
 path arrowbase(path r, pair y, real t, real size)
