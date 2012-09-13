@@ -1541,7 +1541,7 @@ void label(frame f, Label L, triple position, align align=NoAlign,
         shift(L.align.is3D ? position+L.align.dir3*labelmargin(L.p) : position);
       frame f1,f2;
       begingroup3(f1,name,render);
-      begingroup3(f2,name+"_bb",render,position,interaction.type);
+      begingroup3(f2,render,position,interaction.type);
       for(patch S : s.s) {
         S=centering*S;
         draw3D(f2,S,position,L.p,light,interaction);
@@ -1614,7 +1614,7 @@ void label(picture pic=currentpicture, Label L, triple position,
             shift(L.align.is3D ? v+L.align.dir3*labelmargin(L.p) : v);
           frame f1,f2;
           begingroup3(f1,name,render);
-          begingroup3(f2,name+"_bb",render,v,interaction.type);
+          begingroup3(f2,render,v,interaction.type);
           for(patch S : s.s) {
             S=centering*S;
             draw3D(f2,S,v,L.p,light,interaction);
