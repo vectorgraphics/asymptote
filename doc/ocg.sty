@@ -1,8 +1,10 @@
 %% Copyright (C) 2007 by Michael Ritzert <michael.ritz...@gmail.com>
 %% Spurious spaces removed by John Bowman [2009/06/01].
+%% Global macros to find the number of a PDF OCG object from its LaTeX
+%% reference contributed by Paul Gaborit [2012/09/13].
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{ocg}[2009/06/01]
+\ProvidesPackage{ocg}[2012/09/13]
 
 \RequirePackage{ifpdf}
 \ifpdf
@@ -37,6 +39,7 @@
       \expandafter\gdef\csname OCG#2\endcsname{#1}%
       \immediate\pdfobj{<< /Type /OCG /Name (#1) >>}% new ocg
       \xdef\@ocg@curocg{\the\pdflastobj\space 0 R}% reference to id
+      \expandafter\xdef\csname OCGpdfobj#2\endcsname{\@ocg@curocg}
       \xdef\@ocg@ocgs{\@ocg@ocgs\space\@ocg@curocg}% list of all OCGs in "first defined" order
       \ifnum#3=1 %on
          \xdef\@ocg@ocgson{\@ocg@ocgson\space\@ocg@curocg}% list of all default-on OCGs
