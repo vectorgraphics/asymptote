@@ -8,8 +8,12 @@
 #ifndef PROGRAM_H
 #define PROGRAM_H
 
+#include <cstddef> // for ptrdiff_t
+
 #include "common.h"
 #include "inst.h"
+
+using std::ptrdiff_t;
 
 namespace vm {
 struct inst;
