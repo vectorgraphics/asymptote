@@ -1273,15 +1273,13 @@ bool picture::shipout3(const string& prefix, const string& format,
   if(getSetting<bool>("interrupt"))
     return true;
   
-  bool offscreen=getSetting<bool>("offscreen");
-  
 #ifndef HAVE_LIBGLUT
-  if(!offscreen)
+  if(!getSetting<bool>("offscreen"))
     camp::reportError("to support onscreen rendering, please install glut library, run ./configure, and recompile");
 #endif
   
 #ifndef HAVE_LIBOSMESA
-  if(offscreen)
+  if(getSetting<bool>("offscreen"))
     camp::reportError("to support offscreen rendering; please install OSMesa library, run ./configure --enable-offscreen, and recompile");
 #endif
   
@@ -1316,6 +1314,7 @@ bool picture::shipout3(const string& prefix, const string& format,
 #ifdef HAVE_GL  
   bool View=settings::view() && view;
   static int oldpid=0;
+  bool offscreen=getSetting<bool>("offscreen");
 #ifdef HAVE_PTHREAD
   bool animating=getSetting<bool>("animating");
   bool Wait=!interact::interactive || !View || animating;
