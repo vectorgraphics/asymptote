@@ -1,6 +1,6 @@
 include plain_scaling;
 
-// After an transformation, produce new coordinate bounds.  For paths that
+// After a transformation, produce new coordinate bounds.  For paths that
 // have been added, this is only an approximation since it takes the bounds of
 // their transformed bounding box.
 private void addTransformedCoords(coords2 dest, transform t,

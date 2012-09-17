@@ -116,7 +116,7 @@ GUIversion:
 	echo "#!/usr/bin/env python" > GUI/xasyVersion.py
 	echo xasyVersion = \"@VERSION@$(revision)\" >> GUI/xasyVersion.py
 
-asymptote.so: version
+asymptote.so: $(COREFILES:=.pic.o)
 	$(CXX) $(OPTS) -shared -o asymptote.so $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
 svnrevision.cc:
