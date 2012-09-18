@@ -45,18 +45,25 @@ void setcolors(bool colors, bool lighton,
 {
   if(colors) {
     glEnable(GL_COLOR_MATERIAL);
-    if(!lighton) 
-      glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
+   if(!lighton) 
+     glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
   }
-
-  GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
   
-  GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
+  if(colors) {
+    GLfloat Black[]={0,0,0,diffuse.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Black);
+    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Black);
+    glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Black);
+  } else {
+    GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
   
-  GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
+    GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
+  
+    GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
+    glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
+  }
     
   if(lighton) {
     GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
@@ -531,7 +538,7 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
                     : diffuse.A < 1.0) ^ transparent)) return;
   
-  double t[16]; // current transform
+  static double t[16]; // current transform
   glGetDoublev(GL_MODELVIEW_MATRIX,t);
   
   bbox3 B(this->Min,this->Max);
@@ -796,6 +803,9 @@ void drawPixel::render(GLUnurbs *nurb, double size2,
 #endif
 }
 
+string drawBaseTriangles::wrongsize="triangle indices require 3 components";
+string drawBaseTriangles::outofrange="index out of range";
+
 void drawBaseTriangles::bounds(const double* t, bbox3& b)
 {
   double x,y,z;
@@ -839,7 +849,7 @@ void drawBaseTriangles::ratio(const double* t, pair &b,
 
 bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
-  if(invisible || !prc)
+  if(invisible)
     return true;
 
   PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
@@ -849,19 +859,18 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min, const triple& Max, double perspective, bool lighton, bool transparent)
+void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
+                           const triple& Max, double perspective, bool lighton,
+                           bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible)
     return;
 
-  const bool colors=(nC != 0 && C != NULL && CI != NULL);
-
-  if(invisible ||
-     ((colors ? hasalpha : diffuse.A < 1.0) ^ transparent)) return;
+  if(invisible || ((diffuse.A < 1.0) ^ transparent)) return;
 
   triple m,M;
-  double t[16]; // current transform
+  static double t[16]; // current transform
   glGetDoublev(GL_MODELVIEW_MATRIX,t);
 
   bbox3 B(this->Min,this->Max);
@@ -887,32 +896,32 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min, cons
       return;
   }
 
-  setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
+  setcolors(nC,!nC,diffuse,ambient,emissive,specular,shininess);
   
   glBegin(GL_TRIANGLES);
-  for(uint32_t i=0; i<nI; i++) {
+  for(size_t i=0; i < nI; i++) {
     const uint32_t *pi=PI[i];
     const uint32_t *ni=NI[i];
-    const uint32_t *ci=colors ? CI[i] : 0;
+    const uint32_t *ci=nC ? CI[i] : 0;
     if(lighton)
       glNormal3f(N[ni[0]][0],N[ni[0]][1],N[ni[0]][2]);
-    if(colors)
+    if(nC)
       glColor4f(C[ci[0]].R,C[ci[0]].G,C[ci[0]].B,C[ci[0]].A);
     glVertex3f(P[pi[0]][0],P[pi[0]][1],P[pi[0]][2]);
     if(lighton)
       glNormal3f(N[ni[1]][0],N[ni[1]][1],N[ni[1]][2]);
-    if(colors)
+    if(nC)
       glColor4f(C[ci[1]].R,C[ci[1]].G,C[ci[1]].B,C[ci[1]].A);
     glVertex3f(P[pi[1]][0],P[pi[1]][1],P[pi[1]][2]);
     if(lighton)
       glNormal3f(N[ni[2]][0],N[ni[2]][1],N[ni[2]][2]);
-    if(colors)
+    if(nC)
       glColor4f(C[ci[2]].R,C[ci[2]].G,C[ci[2]].B,C[ci[2]].A);
     glVertex3f(P[pi[2]][0],P[pi[2]][1],P[pi[2]][2]);
   }
   glEnd();
 
-  if(colors)
+  if(nC)
     glDisable(GL_COLOR_MATERIAL);
 #endif
 }

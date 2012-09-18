@@ -96,9 +96,6 @@ public:
       colors[1]=rgba(vm::read<camp::pen>(pens,3));
       colors[2]=rgba(vm::read<camp::pen>(pens,1));
       colors[3]=rgba(vm::read<camp::pen>(pens,2));
-      diffuse.R=diffuse.G=diffuse.B=0.0;
-      ambient.R=ambient.G=ambient.B=0.0;
-      emissive.R=emissive.G=emissive.B=0.0;
     } else colors=NULL;
   }
   
@@ -244,9 +241,6 @@ public:
       storecolor(colors,8,pens,1);
       storecolor(colors,12,pens,2);
       storecolor(colors,4,pens,3);
-      diffuse.R=diffuse.G=diffuse.B=0.0;
-      ambient.R=ambient.G=ambient.B=0.0;
-      emissive.R=emissive.G=emissive.B=0.0;
     } else colors=NULL;
 #endif  
   }
@@ -490,42 +484,86 @@ public:
   }
 };
   
-// Draw triangles
 class drawBaseTriangles : public drawElement {
 protected:
-  const uint32_t nP;
+  size_t nP;
   Triple* P;
-  const uint32_t nN;
+  size_t nN;
   Triple* N;
-  const uint32_t nI;
-  const uint32_t (* const PI)[3];
-  const uint32_t (* const NI)[3];
-  bool invisible;
-  const bool prc;
+  size_t nI;
+  uint32_t (*PI)[3];
+  uint32_t (*NI)[3];
   
   triple Min,Max;
 
+  static string wrongsize;
+  static string outofrange;
+    
 public:
-  drawBaseTriangles(uint32_t nP, double P[][3], uint32_t nN, double N[][3], 
-                    uint32_t nI, const uint32_t PI[][3], const uint32_t NI[][3],
-                    bool prc) :
-    nP(nP), P(P), nN(nN), N(N), nI(nI), PI(PI), NI(NI), invisible(false),
-    prc(prc) {}
-
-  drawBaseTriangles(uint32_t nP, double P[][3], uint32_t nN, double N[][3], 
-                    uint32_t nI, const uint32_t PI[][3], const uint32_t NI[][3],
-                    bool invisible, bool prc) :
-    nP(nP), P(P), nN(nN), N(N), nI(nI), PI(PI), NI(NI), invisible(invisible),
-    prc(prc) {}
-  
-  drawBaseTriangles(const double* t, const drawBaseTriangles *s) :
-    nP(s->nP), nN(s->nN), nI(s->nI), PI(s->PI), NI(s->NI),
-    invisible(s->invisible), prc(s->prc) {
+  drawBaseTriangles(const vm::array& v, const vm::array& vi,
+                    const vm::array& n, const vm::array& ni) {
+    nP=checkArray(&v);
     P=new(UseGC) Triple[nP];
+    for(size_t i=0; i < nP; ++i)
+      store(P[i],vm::read<triple>(v,i));
+  
+    nI=checkArray(&vi);
+    PI=new(UseGC) uint32_t[nI][3];
+    for(size_t i=0; i < nI; ++i) {
+      vm::array *vii=vm::read<vm::array*>(vi,i);
+      if(checkArray(vii) != 3) reportError(wrongsize);
+      uint32_t *PIi=PI[i];
+      for(size_t j=0; j < 3; ++j) {
+        size_t index=unsignedcast(vm::read<Int>(vii,j));
+        if(index >= nP) reportError(outofrange);
+        PIi[j]=index;
+      }
+    }
+    
+    nN=checkArray(&n);
     N=new(UseGC) Triple[nN];
+    for(size_t i=0; i < nN; ++i)
+      store(N[i],vm::read<triple>(n,i));
+    
+    if(checkArray(&ni) != nI)
+      reportError("Index arrays have different lengths");
+    NI=new(UseGC) uint32_t[nI][3];
+    for(size_t i=0; i < nI; ++i) {
+      vm::array *nii=vm::read<vm::array*>(ni,i);
+      if(checkArray(nii) != 3) reportError(wrongsize);
+      uint32_t *NIi=NI[i];
+      for(size_t j=0; j < 3; ++j) {
+        size_t index=unsignedcast(vm::read<Int>(nii,j));
+        if(index >= nN) reportError(outofrange);
+        NIi[j]=index;
+      }
+      
+    }
+  }
 
+  drawBaseTriangles(const double* t, const drawBaseTriangles *s) :
+    nP(s->nP), nN(s->nN), nI(s->nI) {
+    P=new(UseGC) Triple[nP];
     transformTriples(t,nP,P,s->P);
+    
+    PI=new(UseGC) uint32_t[nI][3];
+    for(size_t i=0; i < nI; ++i) {
+      uint32_t *PIi=PI[i];
+      uint32_t *sPIi=s->PI[i];
+      for(size_t j=0; j < 3; ++j)
+        PIi[j]=sPIi[j];
+    }
+
+    N=new(UseGC) Triple[nN];
     transformNormalsTriples(t,nN,N,s->N);
+    
+    NI=new(UseGC) uint32_t[nI][3];
+    for(size_t i=0; i < nI; ++i) {
+      uint32_t *NIi=NI[i];
+      uint32_t *sNIi=s->NI[i];
+      for(size_t j=0; j < 3; ++j)
+        NIi[j]=sNIi[j];
+    }
   }
     
   bool is3D() {return true;}
@@ -543,33 +581,27 @@ public:
 };
   
 class drawTriangles : public drawBaseTriangles {
-  const uint32_t nC;
-  const RGBAColour* const C;
-  const uint32_t (* const CI)[3];
-  bool hasalpha;
-  bool samealpha;
-  double commonalpha;
-  
+  size_t nC;
+  RGBAColour*C;
+  uint32_t (*CI)[3];
    
   // Asymptote material data
   RGBAColour diffuse;
   RGBAColour ambient;
   RGBAColour emissive;
   RGBAColour specular;
-  const double opacity;
-  const double shininess;
-  const double PRCshininess;
+  double opacity;
+  double shininess;
+  double PRCshininess;
+  bool invisible;
    
 public:
-  drawTriangles(uint32_t nP, double P[][3], uint32_t nN, double N[][3], 
-                uint32_t nI, const uint32_t PI[][3], const uint32_t NI[][3],
-                uint32_t nC, const RGBAColour C[], const uint32_t CI[][3],
+  drawTriangles(const vm::array& v, const vm::array& vi,
+                const vm::array& n, const vm::array& ni,
                 const vm::array&p, double opacity, double shininess,
-                double PRCshininess, bool prc) :
-    drawBaseTriangles(nP, P, nN, N, nI, PI, NI, prc),
-    nC(nC), C(C), CI(CI),
-    hasalpha(false), samealpha(true), commonalpha(1.0),
-    opacity(opacity), shininess(shininess),  PRCshininess(PRCshininess) {
+                double PRCshininess, const vm::array& c, const vm::array& ci) :
+    drawBaseTriangles(v,vi,n,ni),
+    opacity(opacity), shininess(shininess), PRCshininess(PRCshininess) {
 
     const string needfourpens="array of 4 pens required";
     if(checkArray(&p) != 4)
@@ -577,38 +609,57 @@ public:
       
     const pen surfacepen=vm::read<camp::pen>(p,0);
     invisible=surfacepen.invisible();
-      
-    diffuse =rgba(surfacepen);
-    ambient =rgba(vm::read<camp::pen>(p,1));
-    emissive=rgba(vm::read<camp::pen>(p,2));
-    specular=rgba(vm::read<camp::pen>(p,3));
+    diffuse=rgba(surfacepen);
     
-    diffuse.R=diffuse.G=diffuse.B=0.0;
-    ambient.R=ambient.G=ambient.B=0.0;
-    emissive.R=emissive.G=emissive.B=0.0;
+    nC=checkArray(&c);
+    if(nC) {
+      C=new(UseGC) RGBAColour[nC];
+      for(size_t i=0; i < nC; ++i)
+        C[i]=rgba(vm::read<camp::pen>(c,i));
     
-    if (nC!=0) {
-      commonalpha=C[0].A;
-      hasalpha=(C[0].A < 1.0);
-      for (uint32_t i=1; i < nC; i++) {
-        if (C[i].A!=commonalpha) {
-          samealpha=false;
-        }
-        if (C[i].A<1.0) {
-          hasalpha=true;
-          break;
+      size_t nI=checkArray(&vi);
+    
+      if(checkArray(&ci) != nI)
+        reportError("Index arrays have different lengths");
+      CI=new(UseGC) uint32_t[nI][3];
+      for(size_t i=0; i < nI; ++i) {
+        vm::array *cii=vm::read<vm::array*>(ci,i);
+        if(checkArray(cii) != 3) reportError(wrongsize);
+        uint32_t *CIi=CI[i];
+        for(size_t j=0; j < 3; ++j) {
+          size_t index=unsignedcast(vm::read<Int>(cii,j));
+          if(index >= nC) reportError(outofrange);
+          CIi[j]=index;
         }
       }
+    } else {
+      ambient=rgba(vm::read<camp::pen>(p,1));
+      emissive=rgba(vm::read<camp::pen>(p,2));
     }
+    specular=rgba(vm::read<camp::pen>(p,3));
   }
   
   drawTriangles(const double* t, const drawTriangles *s) :
-    drawBaseTriangles(t,s),
-    nC(s->nC), C(s->C), CI(s->CI),
-    hasalpha(s->hasalpha), samealpha(s->samealpha), commonalpha(s->commonalpha),
+    drawBaseTriangles(t,s), nC(s->nC),
     diffuse(s->diffuse), ambient(s->ambient), emissive(s->emissive),
     specular(s->specular), opacity(s->opacity),
-    shininess(s->shininess), PRCshininess(s->PRCshininess) {}
+    shininess(s->shininess), PRCshininess(s->PRCshininess),
+    invisible(s->invisible) {
+    
+    if(nC) {
+      C=new(UseGC) RGBAColour[nC];
+      for(size_t i=0; i < nC; ++i)
+        C[i]=s->C[i];
+    
+      CI=new(UseGC) uint32_t[nI][3];
+      for(size_t i=0; i < nI; ++i) {
+        uint32_t *CIi=CI[i];
+        uint32_t *sCIi=s->CI[i];
+        for(size_t j=0; j < 3; ++j)
+          CIi[j]=sCIi[j];
+      }
+    }
+  }
  
   virtual ~drawTriangles() {}
  
@@ -621,7 +672,6 @@ public:
     return new drawTriangles(t,this);
   }
 };
-
 
 }
 

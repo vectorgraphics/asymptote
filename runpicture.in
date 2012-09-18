@@ -12,6 +12,7 @@ path     => primPath()
 path3     => primPath3()
 picture* => primPicture()
 Intarray*  => IntArray()
+Intarray2*  => IntArray2()
 realarray* => realArray()
 realarray2* => realArray2()
 patharray* => pathArray()  
@@ -49,6 +50,7 @@ using namespace settings;
 using namespace vm;
 
 typedef array Intarray;
+typedef array Intarray2;
 typedef array realarray;
 typedef array realarray2;
 typedef array pairarray;
@@ -63,6 +65,7 @@ typedef callable callableTransform;
 typedef callable callablePen;
 
 using types::IntArray;
+using types::IntArray2;
 using types::realArray;
 using types::realArray2;
 using types::pairArray;
@@ -669,6 +672,16 @@ void drawPRCtube(picture *f, path3 center, path3 g, penarray *p, real opacity,
 void drawpixel(picture *f, triple v, pen p, real width=1.0)
 {
   f->append(new drawPixel(v,p,width));
+}
+
+// Draw triangles
+void draw(picture *f, triplearray *v, Intarray2 *vi,
+          triplearray *n, Intarray2 *ni,
+          penarray *p, real opacity, real shininess, real PRCshininess,
+          penarray *c=emptyarray, Intarray2 *ci=emptyarray)
+{
+  f->append(new drawTriangles(*v,*vi,*n,*ni,*p,opacity,shininess,PRCshininess,
+                              *c,*ci));
 }
 
 triple min3(picture *f)

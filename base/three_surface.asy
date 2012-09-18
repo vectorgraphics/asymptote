@@ -1226,6 +1226,60 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
        s.planar ? s.normal(0.5,0.5) : O,s.colors,interaction.type,prc);
 }
 
+// Draw triangles on a frame.
+void draw(frame f, triple[] v, int[][] vi,
+          triple[] n, int[][] ni, material m=currentpen, pen[] p={},
+          int[][] pi={}, light light=currentlight)
+{
+  if(p.length > 0)
+    m=mean(p);
+  m=material(m,light);
+  real PRCshininess;
+  if(prc())
+    PRCshininess=PRCshininess(m.shininess);
+  draw(f,v,vi,n,ni,m.p,m.opacity,m.shininess,PRCshininess,p,pi);
+}
+  
+// Draw triangles on a picture.
+void draw(picture pic=currentpicture, triple[] v, int[][] vi,
+          triple[] n, int[][] ni, material m=currentpen, pen[] p={},
+          int[][] pi={}, light light=currentlight)
+{
+  pic.add(new void(frame f, transform3 t, picture pic, projection P) {
+      triple[] v=t*v;
+      triple[] n=t*n;
+      if(is3D()) {
+        draw(f,v,vi,n,ni,m,p,pi,light);
+        if(pic != null) {
+          for(int[] vii : vi)
+            for(int viij : vii)
+              pic.addPoint(project(v[viij],P));
+        }
+      } else {
+        if(pic != null) {
+          bool colors=pi.length > 0;
+          for(int i=0; i < vi.length; ++i) {
+            int[] vii=vi[i];
+            int[] nii=ni[i];
+            int[] pii;
+            if(colors) pii=pi[i];
+            static int[] edges={0,0,1};
+            gouraudshade(pic,project(v[vii[0]],P)--project(v[vii[1]],P)--
+                         project(v[vii[2]],P)--cycle,
+                         colors ? new pen[] {p[pii[0]],p[pii[1]],p[pii[2]]} :
+                         new pen[] {color(n[nii[0]],m,light),
+                             color(n[nii[1]],m,light),color(n[nii[2]],m,light)},
+                         edges);
+          }   
+        }
+      }
+    },true);
+
+  for(int[] vii : vi)
+    for(int viij : vii)
+      pic.addPoint(v[viij]);
+}
+
 void drawPRCsphere(frame f, transform3 t=identity4, bool half=false, material m,
                    light light=currentlight, render render=defaultrender)
 {
