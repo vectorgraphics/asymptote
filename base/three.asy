@@ -5,10 +5,6 @@ if(inXasyMode) settings.render=0;
 if(prc0()) {
   if(settings.tex == "context") settings.prc=false;
   else {
-    // Workaround media9 blank poster image bug under latex+dvips:
-    if(settings.render == 0 && settings.embed && !pdf())
-      settings.tex="pdflatex";
-
     access embed;
     Embed=embed.embedplayer;
   }
@@ -2668,7 +2664,9 @@ string embed3D(string prefix, string label=prefix, string text=label,
     options3 += ",add3Djscript="+prefix+".js";
   options3 += ",add3Djscript=asylabels.js";
 
-  return Embed(prefix+".prc",text,options3,width,height);
+  return text == "" ? Embed(prefix+".prc","",options3,width,height) :
+    "\hbox to 0pt{"+text+"\hss}"+Embed(prefix+".prc","\phantom{"+text+"}",
+                                       options3);
 }
 
 struct scene
