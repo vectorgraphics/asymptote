@@ -87,7 +87,7 @@ char *readpipeline(const char *prompt)
 {
   char *line=NULL;
   size_t n;
-  (void) getline(&line,&n,fin);
+  n=getline(&line,&n,fin);
   return line;
 }
   
