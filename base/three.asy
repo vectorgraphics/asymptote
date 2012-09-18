@@ -5,6 +5,10 @@ if(inXasyMode) settings.render=0;
 if(prc0()) {
   if(settings.tex == "context") settings.prc=false;
   else {
+    // Workaround media9 blank poster image bug under latex+dvips:
+    if(settings.render == 0 && settings.embed && !pdf())
+      settings.tex="pdflatex";
+
     access embed;
     Embed=embed.embedplayer;
   }
