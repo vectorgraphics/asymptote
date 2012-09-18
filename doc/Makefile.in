@@ -52,7 +52,7 @@ latexusage.eps: latexusage.dvi
 	dvips -o latexusage.eps latexusage
 
 latexusage.pdf: latexusage.dvi
-	dvipdf latexusage
+	dvipdf -P latexusage
 
 options: ../settings.cc
 	$(ASY) -h 2>&1 | grep -iv Asymptote > options
@@ -74,16 +74,16 @@ CAD.pdf: CAD.tex CAD1.eps
 	latex CAD
 	latex CAD
 	latex CAD
-	dvipdf CAD
+	dvipdf -P CAD
 
 TeXShopAndAsymptote.pdf: TeXShopAndAsymptote.tex
 	latex TeXShopAndAsymptote
 	latex TeXShopAndAsymptote
-	dvipdf TeXShopAndAsymptote
+	dvipdf -P TeXShopAndAsymptote
 
 asyRefCard.pdf: asyRefCard.tex
 	tex asyRefCard
-	dvipdf asyRefCard
+	dvipdf -P asyRefCard
 
 clean: FORCE
 	-rm -f asy-latex.{aux,idx,ins,log,toc}
