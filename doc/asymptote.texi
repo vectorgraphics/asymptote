@@ -7713,6 +7713,24 @@ connected) regions bounded (according to the @code{zerowinding} fill rule)
 by simple cyclic paths (intersecting only at the endpoints)
 into subregions bounded by cyclic paths of length @code{4} or less.
 
+A more efficient routine also exists for drawing tessellations
+composed of many 3D triangles, with specified vertices, and optional
+normals or vertex colors: 
+@cindex @code{draw}
+@cindex @code{triangles}
+@cindex @code{tessellation}
+@verbatim
+void draw(picture pic=currentpicture, triple[] v, int[][] vi,
+          triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
+          int[][] pi={}, light light=currentlight);
+@end verbatim
+Here, the triple array @code{v} lists the distinct vertices, while
+the array @code{vi} lists integer arrays of length 3 containing
+the indices of @code{v} corresponding to the vertices of each
+triangle. Similarly, the arguments @code{n} and @code{ni} contain
+optional normal data and @code{p} and @code{pi} contain optional pen vertex data.
+An example of this tesselation facility is given in @code{triangles.asy}.
+
 @cindex @code{thin}
 @cindex @code{thick}
 @cindex @code{tube}

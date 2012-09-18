@@ -521,23 +521,24 @@ public:
     }
     
     nN=checkArray(&n);
-    N=new(UseGC) Triple[nN];
-    for(size_t i=0; i < nN; ++i)
-      store(N[i],vm::read<triple>(n,i));
+    if(nN) {
+      N=new(UseGC) Triple[nN];
+      for(size_t i=0; i < nN; ++i)
+        store(N[i],vm::read<triple>(n,i));
     
-    if(checkArray(&ni) != nI)
-      reportError("Index arrays have different lengths");
-    NI=new(UseGC) uint32_t[nI][3];
-    for(size_t i=0; i < nI; ++i) {
-      vm::array *nii=vm::read<vm::array*>(ni,i);
-      if(checkArray(nii) != 3) reportError(wrongsize);
-      uint32_t *NIi=NI[i];
-      for(size_t j=0; j < 3; ++j) {
-        size_t index=unsignedcast(vm::read<Int>(nii,j));
-        if(index >= nN) reportError(outofrange);
-        NIi[j]=index;
+      if(checkArray(&ni) != nI)
+        reportError("Index arrays have different lengths");
+      NI=new(UseGC) uint32_t[nI][3];
+      for(size_t i=0; i < nI; ++i) {
+        vm::array *nii=vm::read<vm::array*>(ni,i);
+        if(checkArray(nii) != 3) reportError(wrongsize);
+        uint32_t *NIi=NI[i];
+        for(size_t j=0; j < 3; ++j) {
+          size_t index=unsignedcast(vm::read<Int>(nii,j));
+          if(index >= nN) reportError(outofrange);
+          NIi[j]=index;
+        }
       }
-      
     }
   }
 
@@ -554,15 +555,17 @@ public:
         PIi[j]=sPIi[j];
     }
 
-    N=new(UseGC) Triple[nN];
-    transformNormalsTriples(t,nN,N,s->N);
+    if(nN) {
+      N=new(UseGC) Triple[nN];
+      transformNormalsTriples(t,nN,N,s->N);
     
-    NI=new(UseGC) uint32_t[nI][3];
-    for(size_t i=0; i < nI; ++i) {
-      uint32_t *NIi=NI[i];
-      uint32_t *sNIi=s->NI[i];
-      for(size_t j=0; j < 3; ++j)
-        NIi[j]=sNIi[j];
+      NI=new(UseGC) uint32_t[nI][3];
+      for(size_t i=0; i < nI; ++i) {
+        uint32_t *NIi=NI[i];
+        uint32_t *sNIi=s->NI[i];
+        for(size_t j=0; j < 3; ++j)
+          NIi[j]=sNIi[j];
+      }
     }
   }
     

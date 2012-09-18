@@ -897,6 +897,7 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
   }
 
   setcolors(nC,!nC,diffuse,ambient,emissive,specular,shininess);
+  if(!nN) lighton=false;
   
   glBegin(GL_TRIANGLES);
   for(size_t i=0; i < nI; i++) {

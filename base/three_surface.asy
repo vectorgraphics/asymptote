@@ -1228,7 +1228,7 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
 
 // Draw triangles on a frame.
 void draw(frame f, triple[] v, int[][] vi,
-          triple[] n, int[][] ni, material m=currentpen, pen[] p={},
+          triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
           int[][] pi={}, light light=currentlight)
 {
   if(p.length > 0)
@@ -1242,12 +1242,31 @@ void draw(frame f, triple[] v, int[][] vi,
   
 // Draw triangles on a picture.
 void draw(picture pic=currentpicture, triple[] v, int[][] vi,
-          triple[] n, int[][] ni, material m=currentpen, pen[] p={},
+          triple[] n={}, int[][] ni={}, material m=currentpen, pen[] p={},
           int[][] pi={}, light light=currentlight)
 {
+  bool colors=pi.length > 0;
+  bool normals=ni.length > 0;
+  if(!colors && !normals) {
+    n=new triple[];
+    ni=new int[vi.length][3];
+    triple lastnormal=O;
+    for(int i=0; i < vi.length; ++i) {
+      int[] vii=vi[i];
+      int[] nii=ni[i];
+      triple normal=normal(new triple[] {v[vii[0]],v[vii[1]],v[vii[2]]});
+      if(normal != lastnormal || n.length == 0) {
+        n.push(normal);
+        lastnormal=normal;
+      }
+      nii[0]=nii[1]=nii[2]=n.length-1;
+    }
+  }
+
   pic.add(new void(frame f, transform3 t, picture pic, projection P) {
       triple[] v=t*v;
       triple[] n=t*n;
+
       if(is3D()) {
         draw(f,v,vi,n,ni,m,p,pi,light);
         if(pic != null) {
@@ -1255,24 +1274,40 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
             for(int viij : vii)
               pic.addPoint(project(v[viij],P));
         }
-      } else {
-        if(pic != null) {
-          bool colors=pi.length > 0;
+      } else if(pic != null) {
+        static int[] edges={0,0,1};
+        if(colors) {
           for(int i=0; i < vi.length; ++i) {
             int[] vii=vi[i];
-            int[] nii=ni[i];
-            int[] pii;
-            if(colors) pii=pi[i];
-            static int[] edges={0,0,1};
+            int[] pii=pi[i];
             gouraudshade(pic,project(v[vii[0]],P)--project(v[vii[1]],P)--
                          project(v[vii[2]],P)--cycle,
-                         colors ? new pen[] {p[pii[0]],p[pii[1]],p[pii[2]]} :
-                         new pen[] {color(n[nii[0]],m,light),
-                             color(n[nii[1]],m,light),color(n[nii[2]],m,light)},
-                         edges);
-          }   
+                         new pen[] {p[pii[0]],p[pii[1]],p[pii[2]]},edges);
+          }
+        } else {
+          if(normals) {
+            for(int i=0; i < vi.length; ++i) {
+              int[] vii=vi[i];
+              int[] nii=ni[i];
+              gouraudshade(pic,project(v[vii[0]],P)--project(v[vii[1]],P)--
+                           project(v[vii[2]],P)--cycle,
+                           new pen[] {color(n[nii[0]],m,light),
+                               color(n[nii[1]],m,light),
+                               color(n[nii[2]],m,light)},edges);
+            }
+          } else {
+            for(int i=0; i < vi.length; ++i) {
+              int[] vii=vi[i];
+              path g=project(v[vii[0]],P)--project(v[vii[1]],P)--
+                project(v[vii[2]],P)--cycle;
+              pen p=color(n[ni[i][0]],m,light);
+              fill(pic,g,p);
+              if(opacity(m.diffuse()) == 1) // Fill subdivision cracks
+                draw(pic,g,p);
+            }
+          }
         }
-      }
+      }   
     },true);
 
   for(int[] vii : vi)
