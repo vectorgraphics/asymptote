@@ -6,11 +6,11 @@ import external;
 settings.tex="pdflatex";
 
 // Generated needed mpeg file if it doesn't already exist.
-asy("mpg","wheel");
+asy("mp4","wheel");
 
 // Produce a pdf file.
 settings.outformat="pdf";
 
 // External movie: viewable even with the Linux version of acroread.
-label(embed("wheel.mpg"),(0,0),N);
-label(link("wheel.mpg"),(0,0),S);
+label(embed("wheel.mp4"),(0,0),N);
+label(link("wheel.mp4"),(0,0),S);
