@@ -118,7 +118,8 @@ struct arrowhead3
   static path[] align(path H, path h) {
     static real fuzz=1000*realEpsilon;
     real[][] t=intersections(H,h,fuzz*max(abs(max(h)),abs(min(h))));
-    return rotate(-degrees(point(H,t[0][0])-point(H,t[1][0]),warn=false))*H;
+    return t.length >= 2 ?
+      rotate(-degrees(point(H,t[0][0])-point(H,t[1][0]),warn=false))*H : H;
   }
 }
 
@@ -248,8 +249,8 @@ real[] arrowbasepoints(path3 base, path3 left, path3 right)
 {
   real[][] Tl=transpose(intersections(left,base));
   real[][] Tr=transpose(intersections(right,base));
-  return new real[] {Tl.length > 0 ? Tl[0][0] : 1,
-      Tr.length > 0 ? Tr[0][0] : 1};
+  return new real[] {Tl.length > 0 ? Tl[0][0] : 0,
+      Tr.length > 0 ? Tr[0][0] : 0};
 }
 
 path3 arrowbase(path3 r, triple y, real t, real size)
