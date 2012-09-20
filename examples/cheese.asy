@@ -9,4 +9,7 @@ real f(real x, real y, real z) {
 
 surface sf=surface(contour3(f,(-2pi,-2pi,-2pi),(2pi,2pi,2pi),12));
 sf.colors(palette(sf.map(abs),Gradient(red,yellow)));
-draw(sf,nolight,render(merge=true));
+
+currentlight=nolight;
+
+draw(sf,render(merge=true));

@@ -571,6 +571,9 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   gluNurbsSurface(nurb,uorder+nu,uKnots,vorder+nv,vKnots,stride*nv,stride,
                   Controls,uorder,vorder,
                   weights ? GL_MAP2_VERTEX_4 : GL_MAP2_VERTEX_3);
+  if(lighton)
+    gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
+  
   if(colors) {
     static GLfloat linear[]={0.0,0.0,1.0,1.0};
     gluNurbsSurface(nurb,4,linear,4,linear,8,4,colors,2,2,GL_MAP2_COLOR_4);
