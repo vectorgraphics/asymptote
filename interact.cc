@@ -12,12 +12,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <csignal>
+#include <cstdio>
 
 #include "interact.h"
 #include "runhistory.h"
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-#include <cstdio>
 #include <readline/readline.h>
 #include <readline/history.h>
 #endif
