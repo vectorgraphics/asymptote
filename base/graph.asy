@@ -1788,6 +1788,7 @@ picture secondaryX(picture primary=currentpicture, void f(picture))
 {
   if(!primary.scale.set) abort(noprimary);
   picture pic;
+  size(pic,primary);
   if(primary.userMax().x == primary.userMin().x) return pic;
   f(pic);
   if(!pic.userSetx()) return pic;
@@ -1817,6 +1818,7 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
 {
   if(!primary.scale.set) abort(noprimary);
   picture pic;
+  size(pic,primary);
   if(primary.userMax().y == primary.userMin().y) return pic;
   f(pic);
   if(!pic.userSety()) return pic;
