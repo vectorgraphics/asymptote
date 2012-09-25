@@ -51,13 +51,14 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
 
   bool havebillboard=interaction == BILLBOARD;
   
-  GLfloat Diffuse[]={0.0,0.0,0.0,color.A};
+  GLfloat Diffuse[]={0.0,0.0,0.0,(GLfloat) color.A};
   glMaterialfv(GL_FRONT,GL_DIFFUSE,Diffuse);
   
   static GLfloat Black[]={0.0,0.0,0.0,1.0};
   glMaterialfv(GL_FRONT,GL_AMBIENT,Black);
     
-  GLfloat Emissive[]={color.R,color.G,color.B,color.A};
+  GLfloat Emissive[]={(GLfloat) color.R,(GLfloat) color.G,(GLfloat) color.B,
+		      (GLfloat) color.A};
   glMaterialfv(GL_FRONT,GL_EMISSION,Emissive);
     
   glMaterialfv(GL_FRONT,GL_SPECULAR,Black);
@@ -220,13 +221,14 @@ void drawNurbsPath3::render(GLUnurbs *nurb, double, const triple&,
   if(invisible || ((color.A < 1.0) ^ transparent))
     return;
   
-  GLfloat Diffuse[]={0.0,0.0,0.0,color.A};
+  GLfloat Diffuse[]={0.0,0.0,0.0,(GLfloat) color.A};
   glMaterialfv(GL_FRONT,GL_DIFFUSE,Diffuse);
   
   static GLfloat Black[]={0.0,0.0,0.0,1.0};
   glMaterialfv(GL_FRONT,GL_AMBIENT,Black);
     
-  GLfloat Emissive[]={color.R,color.G,color.B,color.A};
+  GLfloat Emissive[]={(GLfloat) color.R,(GLfloat) color.G,(GLfloat) color.B,
+		      (GLfloat) color.A};
   glMaterialfv(GL_FRONT,GL_EMISSION,Emissive);
     
   glMaterialfv(GL_FRONT,GL_SPECULAR,Black);

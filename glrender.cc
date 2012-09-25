@@ -192,7 +192,8 @@ void lighting()
   for(size_t i=0; i < Nlights; ++i) {
     GLenum index=GL_LIGHT0+i;
     triple Lighti=Lights[i];
-    GLfloat position[]={Lighti.getx(),Lighti.gety(),Lighti.getz(),0.0};
+    GLfloat position[]={(GLfloat) Lighti.getx(),(GLfloat) Lighti.gety(),
+			(GLfloat) Lighti.getz(),0.0};
     glLightfv(index,GL_POSITION,position);
   }
 }
@@ -209,14 +210,16 @@ void initlighting()
     
     size_t i4=4*i;
     
-    GLfloat diffuse[]={Diffuse[i4],Diffuse[i4+1],Diffuse[i4+2],Diffuse[i4+3]};
+    GLfloat diffuse[]={(GLfloat) Diffuse[i4],(GLfloat) Diffuse[i4+1],
+		       (GLfloat) Diffuse[i4+2],(GLfloat) Diffuse[i4+3]};
     glLightfv(index,GL_DIFFUSE,diffuse);
     
-    GLfloat ambient[]={Ambient[i4],Ambient[i4+1],Ambient[i4+2],Ambient[i4+3]};
+    GLfloat ambient[]={(GLfloat) Ambient[i4],(GLfloat) Ambient[i4+1],
+		       (GLfloat) Ambient[i4+2],(GLfloat) Ambient[i4+3]};
     glLightfv(index,GL_AMBIENT,ambient);
     
-    GLfloat specular[]={Specular[i4],Specular[i4+1],Specular[i4+2],
-                        Specular[i4+3]};
+    GLfloat specular[]={(GLfloat) Specular[i4],(GLfloat) Specular[i4+1],
+			(GLfloat) Specular[i4+2],(GLfloat) Specular[i4+3]};
     glLightfv(index,GL_SPECULAR,specular);
   }
   

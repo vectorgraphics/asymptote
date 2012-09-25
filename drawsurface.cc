@@ -50,23 +50,27 @@ void setcolors(bool colors, bool lighton,
   }
   
   if(colors) {
-    GLfloat Black[]={0,0,0,diffuse.A};
+    GLfloat Black[]={0,0,0,(GLfloat) diffuse.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Black);
     glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Black);
     glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Black);
   } else {
-    GLfloat Diffuse[]={diffuse.R,diffuse.G,diffuse.B,diffuse.A};
+    GLfloat Diffuse[]={(GLfloat) diffuse.R,(GLfloat) diffuse.G,
+		       (GLfloat) diffuse.B,(GLfloat) diffuse.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Diffuse);
   
-    GLfloat Ambient[]={ambient.R,ambient.G,ambient.B,ambient.A};
+    GLfloat Ambient[]={(GLfloat) ambient.R,(GLfloat) ambient.G,
+		       (GLfloat) ambient.B,(GLfloat) ambient.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Ambient);
   
-    GLfloat Emissive[]={emissive.R,emissive.G,emissive.B,emissive.A};
+    GLfloat Emissive[]={(GLfloat) emissive.R,(GLfloat) emissive.G,
+			(GLfloat) emissive.B,(GLfloat) emissive.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,Emissive);
   }
     
   if(lighton) {
-    GLfloat Specular[]={specular.R,specular.G,specular.B,specular.A};
+    GLfloat Specular[]={(GLfloat) specular.R,(GLfloat) specular.G,
+			(GLfloat) specular.B,(GLfloat) specular.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,Specular);
   
     glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,128.0*shininess);
