@@ -2549,6 +2549,15 @@ private string format(triple v, string sep=" ")
   return string(v.x)+sep+string(v.y)+sep+string(v.z);
 }
 
+private string Format(transform3 t, string sep=" ")
+{
+  return
+    Format(t[0][0])+sep+Format(t[1][0])+sep+Format(t[2][0])+sep+
+    Format(t[0][1])+sep+Format(t[1][1])+sep+Format(t[2][1])+sep+
+    Format(t[0][2])+sep+Format(t[1][2])+sep+Format(t[2][2])+sep+
+    Format(t[0][3])+sep+Format(t[1][3])+sep+Format(t[2][3]);
+}
+
 string lightscript(light light) {
   string script="for(var i=scene.lights.count-1; i >= 0; i--)
   scene.lights.removeByIndex(i);"+'\n\n';
@@ -2624,23 +2633,9 @@ string embed3D(string prefix, string label=prefix, string text=label,
   if(!settings.inlinetex)
     file3.push(prefix+".prc");
 
-  triple target=P.target;
-  if(P.viewportshift != 0) {
-    triple lambda=max3(f)-min3(f);
-    target -= (P.viewportshift.x*lambda.x/P.zoom,
-               P.viewportshift.y*lambda.y/P.zoom,0);
-  }
+  static transform3 flipxz=xscale3(-1)*zscale3(-1);
+  transform3 inv=inverse(flipxz*P.T.modelview);
 
-  triple v=P.vector();
-  triple u=unit(v);
-  triple w=Z-u.z*u;
-  real roll;
-  if(abs(w) > sqrtEpsilon) {
-    w=unit(w);
-    triple up=unit(perp(P.up,u));
-    roll=degrees(acos1(dot(up,w)))*sgn(dot(cross(up,w),u));
-  } else roll=0;
-  
   string options3="3Dlights="+
     (light.on() ? (light.viewport ? "Headlamp" : "File") : "None");
   if(defaultembed3Doptions != "") options3 += ","+defaultembed3Doptions;
@@ -2651,10 +2646,8 @@ string embed3D(string prefix, string label=prefix, string text=label,
     ",label="+label+
     (P.infinity ? ",3Dortho="+Format(1/viewplanesize) :
      ",3Daac="+Format(P.angle))+
-    ",3Dc2c="+Format(u)+
-    ",3Dcoo="+Format(target)+
-    ",3Droll="+Format(roll)+
-    ",3Droo="+Format(abs(v))+
+    ",3Dc2w="+Format(inv)+
+    ",3Droo="+Format(abs(P.vector()))+
     ",3Dpsob="+(P.infinity ? "Max" : "H")+
     ",3Dbg="+Format(light.background());
   if(options != "") options3 += ","+options;
@@ -2934,10 +2927,17 @@ object embed(string prefix=outprefix(), string label=prefix,
     image=graphic(image,"hiresbb");
   }
   if(prc) {
-    if(!P.infinity && P.viewportshift != 0)
+    if(P.viewportshift != 0) {
+    if(!P.infinity)
       warning("offaxis",
               "PRC does not support off-axis projections; use pan instead of
 shift");
+
+    triple lambda=max3(S.f)-min3(S.f);
+    Q.target -= (P.viewportshift.x*lambda.x/P.zoom,
+                   P.viewportshift.y*lambda.y/P.zoom,0);
+    }
+
     real viewplanesize=0;
     if(P.absolute) {
       if(P.infinity) {
