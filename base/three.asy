@@ -2531,7 +2531,7 @@ projection absperspective(triple camera=Z, triple target=O, real roll=0,
 private string Format(real x)
 {
   assert(abs(x) < 1e17,"Number too large: "+string(x));
-  return format("%.18f",x,"C");
+  return format("%.9f",x,"C");
 }
 
 private string Format(triple v, string sep=" ")
