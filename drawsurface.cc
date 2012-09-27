@@ -810,8 +810,9 @@ void drawPixel::render(GLUnurbs *nurb, double size2,
 #endif
 }
 
-string drawBaseTriangles::wrongsize="triangle indices require 3 components";
-string drawBaseTriangles::outofrange="index out of range";
+const string drawBaseTriangles::wrongsize=
+  "triangle indices require 3 components";
+const string drawBaseTriangles::outofrange="index out of range";
 
 void drawBaseTriangles::bounds(const double* t, bbox3& b)
 {

@@ -39,8 +39,6 @@ include plain_markers;
 include plain_arrows;
 include plain_debugger;
 
-pair viewportmargin=(0,0);   // Horizontal and vertical 3D viewport margins.
-
 typedef void exitfcn();
 
 bool needshipout() {

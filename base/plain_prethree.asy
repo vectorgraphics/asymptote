@@ -1,5 +1,7 @@
 // Critical definitions for transform3 needed by projection and picture.
 
+pair viewportmargin=(0.1,0.1);  // Horizontal and vertical 3D viewport margins.
+
 typedef real[][] transform3;
 restricted transform3 identity4=identity(4);
 

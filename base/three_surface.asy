@@ -1196,6 +1196,12 @@ struct interaction
     this.type=type;
     this.targetsize=targetsize;
   }
+  interaction copy() {
+    interaction I=new interaction;
+    I.type=type;
+    I.targetsize=targetsize;
+    return I;
+  }
 }
 
 restricted interaction Embedded=interaction(0);
@@ -1615,10 +1621,13 @@ void label(frame f, Label L, triple position, align align=NoAlign,
   Label L=L.copy();
   L.align(align);
   L.p(p);
+  interaction interaction=interaction.copy();
   if(interaction.targetsize && settings.render != 0)
     L.T=L.T*scale(abs(P.camera-position)/abs(P.vector()));
   if(L.defaulttransform3)
     L.T3=transform3(P);
+  else
+    interaction=Embedded;
   if(is3D()) {
     bool lighton=light.on();
     if(name == "") name=L.s;
@@ -1687,10 +1696,13 @@ void label(picture pic=currentpicture, Label L, triple position,
          determinant(P.t) != 0)
         L.align(L.align.dir*unit(project(v+L.align.dir3,P.t)-project(v,P.t)));
       
+      interaction interaction=interaction.copy();
       if(interaction.targetsize && settings.render != 0)
         L.T=L.T*scale(abs(P.camera-v)/abs(P.vector()));
       if(L.defaulttransform3)
         L.T3=transform3(P);
+      else
+        interaction=Embedded;
 
       if(is3D()) {
         bool lighton=light.on();

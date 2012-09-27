@@ -52,7 +52,7 @@ public:
     center(center), straight(straight), opacity(opacity), shininess(shininess),
     PRCshininess(PRCshininess), normal(unit(normal)),
     interaction(interaction), prc(prc) {
-    string wrongsize=
+    const string wrongsize=
       "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
     if(checkArray(&g) != 4 || checkArray(&p) != 4)
       reportError(wrongsize);
@@ -178,7 +178,7 @@ public:
               PRCshininess(PRCshininess) {
     size_t weightsize=checkArray(weight);
     
-    string wrongsize="Inconsistent NURBS data";
+    const string wrongsize="Inconsistent NURBS data";
     nu=checkArray(&g);
     
     if(nu == 0 || (weightsize != 0 && weightsize != nu) || checkArray(&p) != 4)
@@ -496,8 +496,8 @@ protected:
   
   triple Min,Max;
 
-  static string wrongsize;
-  static string outofrange;
+  static const string wrongsize;
+  static const string outofrange;
     
 public:
   drawBaseTriangles(const vm::array& v, const vm::array& vi,
