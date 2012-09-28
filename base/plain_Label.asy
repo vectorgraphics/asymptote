@@ -358,8 +358,10 @@ struct Label {
     if(p != nullpen) write(file,", pen=",p);
     if(!defaulttransform)
       write(file,", transform=",T);
-    if(!defaulttransform3)
+    if(!defaulttransform3) {
+      write(file,", transform3=",endl);
       write(file,T3);
+    }
     write(file,"",suffix);
   }
   

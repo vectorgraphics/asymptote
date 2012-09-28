@@ -1196,12 +1196,6 @@ struct interaction
     this.type=type;
     this.targetsize=targetsize;
   }
-  interaction copy() {
-    interaction I=new interaction;
-    I.type=type;
-    I.targetsize=targetsize;
-    return I;
-  }
 }
 
 restricted interaction Embedded=interaction(0);
@@ -1621,39 +1615,49 @@ void label(frame f, Label L, triple position, align align=NoAlign,
   Label L=L.copy();
   L.align(align);
   L.p(p);
-  interaction interaction=interaction.copy();
   if(interaction.targetsize && settings.render != 0)
     L.T=L.T*scale(abs(P.camera-position)/abs(P.vector()));
+  transform3 T=transform3(P);
   if(L.defaulttransform3)
-    L.T3=transform3(P);
-  else
-    interaction=Embedded;
+    L.T3=T;
+
   if(is3D()) {
     bool lighton=light.on();
     if(name == "") name=L.s;
     if(prc() && interaction.type == Billboard.type) {
-      surface s=surface(texpath(L,bbox=P.bboxonly));
+      surface s=surface(texpath(L));
       transform3 centering=L.align.is3D ?
         alignshift(s,L.T3,position,L.align.dir3) : identity4;
       transform3 positioning=
         shift(L.align.is3D ? position+L.align.dir3*labelmargin(L.p) : position);
-      frame f1,f2;
-      begingroup3(f1,name,render);
-      begingroup3(f2,render,position,interaction.type);
+      frame f1,f2,f3;
+          begingroup3(f1,name,render);
+          if(L.defaulttransform3)
+            begingroup3(f3,render,position,interaction.type);
+          else {
+            begingroup3(f2,render,position,interaction.type);
+            begingroup3(f3,render,position);
+          }
       for(patch S : s.s) {
         S=centering*S;
-        draw3D(f2,S,position,L.p,light,interaction);
+        draw3D(f3,S,position,L.p,light,interaction);
         // Fill subdivision cracks
         if(render.labelfill && opacity(L.p) == 1 && !lighton)
-          _draw(f2,S.external(),position,L.p,interaction.type);
+          _draw(f3,S.external(),position,L.p,interaction.type);
       }
-      endgroup3(f2);
-      add(f1,L.T3*f2);
+      endgroup3(f3);
+          if(L.defaulttransform3)
+            add(f1,T*f3);
+          else {
+            add(f2,inverse(T)*L.T3*f3);
+            endgroup3(f2);
+            add(f1,T*f2);
+          }
       endgroup3(f1);
       add(f,positioning*f1);
     } else {
       begingroup3(f,name,render);
-      for(patch S : surface(L,position,bbox=P.bboxonly).s) {
+      for(patch S : surface(L,position).s) {
         draw3D(f,S,position,L.p,light,interaction);
         // Fill subdivision cracks
         if(render.labelfill && opacity(L.p) == 1 && !lighton)
@@ -1696,13 +1700,11 @@ void label(picture pic=currentpicture, Label L, triple position,
          determinant(P.t) != 0)
         L.align(L.align.dir*unit(project(v+L.align.dir3,P.t)-project(v,P.t)));
       
-      interaction interaction=interaction.copy();
       if(interaction.targetsize && settings.render != 0)
         L.T=L.T*scale(abs(P.camera-v)/abs(P.vector()));
+      transform3 T=transform3(P);
       if(L.defaulttransform3)
-        L.T3=transform3(P);
-      else
-        interaction=Embedded;
+        L.T3=T;
 
       if(is3D()) {
         bool lighton=light.on();
@@ -1713,18 +1715,29 @@ void label(picture pic=currentpicture, Label L, triple position,
             alignshift(s,L.T3,v,L.align.dir3) : identity4;
           transform3 positioning=
             shift(L.align.is3D ? v+L.align.dir3*labelmargin(L.p) : v);
-          frame f1,f2;
+          frame f1,f2,f3;
           begingroup3(f1,name,render);
-          begingroup3(f2,render,v,interaction.type);
+          if(L.defaulttransform3)
+            begingroup3(f3,render,v,interaction.type);
+          else {
+            begingroup3(f2,render,v,interaction.type);
+            begingroup3(f3,render,v);
+          }
           for(patch S : s.s) {
             S=centering*S;
-            draw3D(f2,S,v,L.p,light,interaction);
+            draw3D(f3,S,v,L.p,light,interaction);
             // Fill subdivision cracks
             if(render.labelfill && opacity(L.p) == 1 && !lighton)
-              _draw(f2,S.external(),v,L.p,interaction.type);
+              _draw(f3,S.external(),v,L.p,interaction.type);
           }
-          endgroup3(f2);
-          add(f1,L.T3*f2);
+          endgroup3(f3);
+          if(L.defaulttransform3)
+            add(f1,T*f3);
+          else {
+            add(f2,inverse(T)*L.T3*f3);
+            endgroup3(f2);
+            add(f1,T*f2);
+          }
           endgroup3(f1);
           add(f,positioning*f1);
         } else {
