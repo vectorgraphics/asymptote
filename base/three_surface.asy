@@ -1658,10 +1658,12 @@ void label(frame f, Label L, triple position, align align=NoAlign,
     } else {
       begingroup3(f,name,render);
       for(patch S : surface(L,position).s) {
-        draw3D(f,S,position,L.p,light,interaction);
+        triple V=L.align.is3D ? position+L.align.dir3*labelmargin(L.p) :
+          position;
+        draw3D(f,S,V,L.p,light,interaction);
         // Fill subdivision cracks
         if(render.labelfill && opacity(L.p) == 1 && !lighton)
-          _draw(f,S.external(),position,L.p,interaction.type);
+          _draw(f,S.external(),V,L.p,interaction.type);
       }
       endgroup3(f);
     }
@@ -1743,10 +1745,11 @@ void label(picture pic=currentpicture, Label L, triple position,
         } else {
           begingroup3(f,name,render);
           for(patch S : surface(L,v,bbox=P.bboxonly).s) {
-            draw3D(f,S,v,L.p,light,interaction);
+            triple V=L.align.is3D ? v+L.align.dir3*labelmargin(L.p) : v;
+            draw3D(f,S,V,L.p,light,interaction);
             // Fill subdivision cracks
             if(render.labelfill && opacity(L.p) == 1 && !lighton)
-              _draw(f,S.external(),v,L.p,interaction.type);
+              _draw(f,S.external(),V,L.p,interaction.type);
           }
           endgroup3(f);
         }
