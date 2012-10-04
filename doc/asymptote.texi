@@ -7004,6 +7004,7 @@ or horizontal lines and axes at arbitrary locations.
 @item
 @verbatim 
 void axes(picture pic=currentpicture, Label xlabel="", Label ylabel="",
+          bool extend=true,
           pair min=(-infinity,-infinity), pair max=(infinity,infinity),
           pen p=currentpen, arrowbar arrow=None, bool above=false);
 @end verbatim
@@ -7729,7 +7730,7 @@ the array @code{vi} lists integer arrays of length 3 containing
 the indices of @code{v} corresponding to the vertices of each
 triangle. Similarly, the arguments @code{n} and @code{ni} contain
 optional normal data and @code{p} and @code{pi} contain optional pen vertex data.
-An example of this tesselation facility is given in @code{triangles.asy}.
+An example of this tessellation facility is given in @code{triangles.asy}.
 
 @cindex @code{thin}
 @cindex @code{thick}
@@ -8447,6 +8448,7 @@ There is also a routine for drawing all three axis:
 @verbatim
 void axes3(picture pic=currentpicture,
            Label xlabel="", Label ylabel="", Label zlabel="", 
+           bool extend=false,
            triple min=(-infinity,-infinity,-infinity),
            triple max=(infinity,infinity,infinity),
            pen p=currentpen, arrowbar3 arrow=None);
@@ -9543,7 +9545,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  dirtime currentpen colorspaces grayscale cmyk defaultpen x cx
 @c  LocalWords:  linetype longdashed dashdotted longdashdotted linewidth y XP
 @c  LocalWords:  fontsize defaultfilename keepAspect IgnoreAspect ise flushleft
-@c  LocalWords:  src dest XDR txt getc fout stdin stdout endl eof js prc
+@c  LocalWords:  src dest XDR txt getc fout stdin stdout endl eof js prc ni
 @c  LocalWords:  Microsystem's eol exponentials postfix sayhi th Ubuntu
 @c  LocalWords:  sqr intop addby libm asin acos atan sinh tanh asinh acosh cbrt
 @c  LocalWords:  atanh fabs hypot fmod ceil srand dereferenced alice pete sqrtx

@@ -1611,12 +1611,13 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
 
 // Draw x and y axes.
 void axes(picture pic=currentpicture, Label xlabel="", Label ylabel="",
+          bool extend=true,
           pair min=(-infinity,-infinity), pair max=(infinity,infinity),
           pen p=currentpen, arrowbar arrow=None, margin margin=NoMargin,
           bool above=false)
 {
-  xaxis(pic,xlabel,min.x,max.x,p,arrow,margin,above);
-  yaxis(pic,ylabel,min.y,max.y,p,arrow,margin,above);
+  xaxis(pic,xlabel,YZero(extend),min.x,max.x,p,arrow,margin,above);
+  yaxis(pic,ylabel,XZero(extend),min.y,max.y,p,arrow,margin,above);
 }
 
 // Draw a yaxis at x.
