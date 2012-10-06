@@ -88,8 +88,11 @@ void cleanup()
   for(historyMap_t::iterator h=historyMap.begin(); h != historyMap.end(); 
       ++h) {
     history_set_history_state(&h->second.state);
-    stifle_history(nlines);
-    if(h->second.store) write_history(historyfilename(h->first).c_str());
+    if(h->second.store) {
+      stifle_history(nlines);
+      write_history(historyfilename(h->first).c_str());
+      unstifle_history();
+    }
   }
   history_set_history_state(&history_save);
 #endif
