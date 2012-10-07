@@ -4948,7 +4948,7 @@ also defined.
 @cindex @code{F}
 @cindex @code{E}
 @cindex @code{P}
-@cindex @code{sndncn}
+@cindex @code{sncndn}
 @cindex @code{Ei}
 @cindex @code{Si}
 @cindex @code{Ci}
@@ -4966,7 +4966,7 @@ defines the airy functions @code{Ai(real)},
 @code{J(real, real)}, @code{Y(real, real)}, @code{I(real, real)},
 @code{K(real, real)}, @code{zero_J(real, int)}, the elliptic functions 
 @code{F(real, real)}, @code{E(real, real)}, and @code{P(real, real)}, 
-the Jacobi elliptic functions @code{real[] sndncn(real,real)},
+the Jacobi elliptic functions @code{real[] sncndn(real,real)},
 the exponential/trigonometric integrals @code{Ei}, @code{Si}, and @code{Ci},
 the Legendre polynomials @code{Pl(int, real)}, and the Riemann zeta
 function @code{zeta(real)}. For example, to compute the sine integral
@@ -9683,7 +9683,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  defaultrender Vidiassov latexmkrc mktemp DOSendl DOSnewl perl
 @c  LocalWords:  filename asyinclude latemk penfunctionimage Affine decrement
 @c  LocalWords:  affine Redisplay redisplay isnan radians defaultseparator Jens
-@c  LocalWords:  ascii piecewise arcpoint spacings tilings sndncn resizing
+@c  LocalWords:  ascii piecewise arcpoint spacings tilings sncndn resizing
 @c  LocalWords:  differentiable vectorization vectorized asydir normals quartic
 @c  LocalWords:  wavepacket kerned parametrized specular hyperboloid Bourke's
 @c  LocalWords:  Michail
