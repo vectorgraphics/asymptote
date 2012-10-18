@@ -4099,7 +4099,7 @@ real arclength(ellipse el, real angle1, real angle2,
   real S(real a)
   {//Return the arclength from 0 to the angle 'a' (in degrees)
     // given form the center of the ellipse.
-    real gle = atan(el.a * Tan(a)/el.b)+
+    real gle = atan(el.a * tan(radians(a))/el.b)+
       pi * (((a%90 == 0 && a != 0) ? floor(a/90) - 1 : floor(a/90)) -
           ((a%180 == 0) ? 0 : floor(a/180)) -
           (a%360 == 0 ? floor(a/(360)) : 0));

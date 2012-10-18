@@ -3568,6 +3568,7 @@ or more subpictures, group them two at a time:
 Alternatively, one can use @code{attach} to automatically increase the
 size of picture @code{dest} to accommodate adding a frame @code{src}
 about the user coordinate @code{position}:
+@cindex @code{attach}
 @verbatim
 void attach(picture dest=currentpicture, frame src,
                  pair position=0, bool group=true,
