@@ -88,7 +88,7 @@ latexdir = $(DESTDIR)@latexdir@
 contextdir = $(DESTDIR)@contextdir@
 INSTALL = @INSTALL@
 REVISION = "const char *SVN_REVISION="
-revision = `svn info 2>/dev/null | grep 'Revision' | sed -e 's/Revision: \(.*\)/-r\1/'`
+revision = `LC_ALL="C" svn info 2>/dev/null | grep 'Revision' | sed -e 's/Revision: \(.*\)/-r\1/'`
 last = `cat svnrevision.cc | sed -e 's/.*\"\(.*\)\";/\\1/'`
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
