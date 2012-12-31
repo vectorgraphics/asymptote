@@ -235,8 +235,10 @@ ticklabel Format(string s=defaultformat)
 ticklabel OmitFormat(string s=defaultformat ... real[] x)
 {
   return new string(real v) {
-    int i=find(x == v);
-    return i < 0 ? format(s,v) : "";
+    string V=format(s,v);
+    for(real a : x)
+      if(format(s,a) == V) return "";
+    return V;
   };
 }
 
