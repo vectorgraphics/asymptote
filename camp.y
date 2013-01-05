@@ -108,7 +108,7 @@ using mem::string;
             DOTS COLONS DASHES INCR LONGDASH
             CONTROLS TENSION ATLEAST CURL
             COR CAND BAR AMPERSAND EQ NEQ LT LE GT GE CARETS
-            '+' '-' '*' '/' '%' '^' LOGNOT OPERATOR
+            '+' '-' '*' '/' '%' '^' OPERATOR
 %token <pos> LOOSE ASSIGN '?' ':'
              DIRTAG JOIN_PREC AND
              '{' '}' '(' ')' '.' ','  '[' ']' ';' ELLIPSIS
@@ -140,7 +140,6 @@ using mem::string;
 %left  '*' '/' '%' LIT
 %left  UNARY
 %right '^'
-%left  LOGNOT
 %left  EXP_IN_PARENS_RULE
 %left  '(' ')'
 
@@ -473,7 +472,7 @@ exp:
                    { $$ = new unaryExp($1.pos, $2, $1.sym); }
 | '-' exp %prec UNARY
                    { $$ = new unaryExp($1.pos, $2, $1.sym); }
-| LOGNOT exp       { $$ = new unaryExp($1.pos, $2, $1.sym); }
+| OPERATOR exp     { $$ = new unaryExp($1.pos, $2, $1.sym); }
 | exp '+' exp      { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | exp '-' exp      { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | exp '*' exp      { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }

@@ -325,7 +325,7 @@ EXTRAOPS <<|>>|$|$$|@|@@|~
 ">="               {DEFSYMBOL(SYM_GE); return GE; }
 "&&"               {DEFSYMBOL(SYM_CAND); return CAND; }
 "||"               {DEFSYMBOL(SYM_COR); return COR; }
-"!"                {DEFSYMBOL(SYM_LOGNOT); return LOGNOT; }
+"!"                {DEFSYMBOL(SYM_LOGNOT); return OPERATOR; }
 "^^"               {DEFSYMBOL(SYM_CARETS); return CARETS; }
 "::"               {DEFSYMBOL(SYM_COLONS); return COLONS; }
 "++"               {DEFSYMBOL(SYM_INCR); return INCR; }
