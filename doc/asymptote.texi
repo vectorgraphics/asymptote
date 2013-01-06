@@ -587,30 +587,6 @@ used; if it is old we recommend first putting
 @url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-7.2d.tar.gz}
 in the @code{Asymptote} source directory.
 
-@cindex @code{freeglut}
-@cindex 3D rendering
-@cindex antialiasing
-@cindex multisampling
-@anchor{multisampling}
-@noindent
-If your graphics card supports multisampling, we recommend using version
-@code{2.6.0} of @code{freeglut} to support antialiasing in
-@code{Asymptote}'s adaptive @code{OpenGL} 3D renderer
-(@code{MacOS X} users can skip this step since @code{Asymptote} is configured
-to use the native glut library on that platform). Download
-@quotation
-@url{http://prdownloads.sourceforge.net/freeglut/freeglut-2.6.0.tar.gz}
-@end quotation
-@noindent
-and type (as the root user):
-@verbatim
-tar -zxf freeglut-2.6.0.tar.gz
-cd freeglut-2.6.0
-./configure --prefix=/usr
-make install
-cd ..
-@end verbatim
-@noindent 
 Then compile @code{Asymptote} with the commands
 @verbatim
 ./configure
@@ -7768,9 +7744,7 @@ renderer (with the command-line option @code{-V} and the default settings
 @code{outformat=""} and @code{render=-1}). If you encounter warnings
 from your graphics card driver, try specifying @code{-glOptions=-indirect}
 on the command line. On @code{UNIX} systems with graphics support for
-multisampling, we recommend installing the latest SVN (antialiased)
-version of the @code{freeglut} library
-(@pxref{multisampling}); the sample width can be
+multisampling, the sample width can be
 controlled with the setting @code{multisample}. An initial screen
 position can be specified with the pair setting @code{position}, where
 negative values are interpreted as relative to the corresponding
@@ -9655,7 +9629,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  pdfreloadOptions deferred OpenGL Phong Blinn renderer unitbox
 @c  LocalWords:  bezulate Shardt's rasterized viewport unitdisk unitplane devel
 @c  LocalWords:  unitcylinder unitcone solidcone unitfrustum unitsphere nslices
-@c  LocalWords:  DPostScript YZZero freeglut externalprc nonrendered nosafe KDE
+@c  LocalWords:  DPostScript YZZero externalprc nonrendered nosafe KDE
 @c  LocalWords:  unithemisphere versa XYplane xypart unitsolidcone YZEquals xml
 @c  LocalWords:  XZEquals XYEquals XZZero XYZero InTicks OutTicks InOutTicks
 @c  LocalWords:  fitscreen planeproject strokepath meshlight nullpens arrowdir

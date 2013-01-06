@@ -871,7 +871,6 @@ void rotateZ(int x, int y)
   if(x > 0 && y > 0) {
     if(Menu) {
       disableMenu();
-      x=x0; y=y0;
       return;
     }
     Motion=true;
