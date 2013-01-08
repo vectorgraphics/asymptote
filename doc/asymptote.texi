@@ -587,6 +587,25 @@ used; if it is old we recommend first putting
 @url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-7.2d.tar.gz}
 in the @code{Asymptote} source directory.
 
+On @code{UNIX} platforms (other than @code{MacOS X}), we recommend
+using version @code{2.6.0} of the @code{freeglut} library due to the
+broken menu feature in the @code{2.8.0} release. To compile
+@code{freeglut}, download
+@quotation
+@url{http://prdownloads.sourceforge.net/freeglut/freeglut-2.6.0.tar.gz}
+@end quotation
+@noindent
+and type (as the root user):
+@verbatim
+gunzip freeglut-2.6.0.tar.gz
+tar -xf freeglut-2.6.0.tar
+cd freeglut-2.6.0
+./configure --prefix=/usr
+make install
+cd ..
+@end verbatim
+@noindent 
+
 Then compile @code{Asymptote} with the commands
 @verbatim
 ./configure
