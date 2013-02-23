@@ -127,21 +127,10 @@ public:
   }
   
   drawNurbsPath3(const double* t, const drawNurbsPath3 *s) :
-    degree(s->degree), n(s->n), color(s->color), invisible(s->invisible) {
+    degree(s->degree), n(s->n), weights(s->weights), knots(s->knots),
+    color(s->color), invisible(s->invisible) {
     controls=new(UseGC) Triple[n];
     transformTriples(t,n,controls,s->controls);
-    
-    if(s->weights) {
-      weights=new(UseGC) double[n];
-      for(size_t i=0; i < n; ++i)
-        weights[i]=s->weights[i];
-    } else weights=NULL;
-    
-    size_t nknots=degree+n+1;
-    knots=new(UseGC) double[nknots];
-    
-    for(size_t i=0; i < nknots; ++i)
-      knots[i]=s->knots[i];
     
 #ifdef HAVE_GL
     Controls=NULL;

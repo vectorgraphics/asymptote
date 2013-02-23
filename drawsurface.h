@@ -101,8 +101,8 @@ public:
   
   drawSurface(const double* t, const drawSurface *s) :
     straight(s->straight), diffuse(s->diffuse), ambient(s->ambient),
-    emissive(s->emissive), specular(s->specular), opacity(s->opacity),
-    shininess(s->shininess), PRCshininess(s->PRCshininess), 
+    emissive(s->emissive), specular(s->specular), colors(s->colors),
+    opacity(s->opacity), shininess(s->shininess), PRCshininess(s->PRCshininess), 
     invisible(s->invisible),
     interaction(s->interaction), prc(s->prc) { 
     
@@ -117,12 +117,6 @@ public:
     center=t*s->center;
     normal=multshiftless(t,s->normal);
 #endif    
-    
-    if(s->colors) {
-      colors=new(UseGC) RGBAColour[4];
-      for(size_t i=0; i < 4; ++i)
-        colors[i]=s->colors[i];
-    } else colors=NULL;
   }
   
   bool is3D() {return true;}
@@ -247,6 +241,7 @@ public:
   
   drawNurbs(const double* t, const drawNurbs *s) :
     udegree(s->udegree), vdegree(s->vdegree), nu(s->nu), nv(s->nv),
+    weights(s->weights), uknots(s->uknots), vknots(s->vknots),
     diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), PRCshininess(s->PRCshininess), 
@@ -257,30 +252,9 @@ public:
       
     transformTriples(t,n,controls,s->controls);
     
-    if(s->weights) {
-      weights=new(UseGC) double[n];
-      for(size_t i=0; i < n; ++i)
-        weights[i]=s->weights[i];
-    } else weights=NULL;
-    
-    size_t nuknots=udegree+nu+1;
-    size_t nvknots=vdegree+nv+1;
-    uknots=new(UseGC) double[nuknots];
-    vknots=new(UseGC) double[nvknots];
-    
-    for(size_t i=0; i < nuknots; ++i)
-      uknots[i]=s->uknots[i];
-    
-    for(size_t i=0; i < nvknots; ++i)
-      vknots[i]=s->vknots[i];
-    
 #ifdef HAVE_GL
     Controls=NULL;
-    if(s->colors) {
-      colors=new(UseGC) GLfloat[16];
-      for(size_t i=0; i < 16; ++i)
-        colors[i]=s->colors[i];
-    } else colors=NULL;
+    colors=s->colors;
 #endif    
   }
   
