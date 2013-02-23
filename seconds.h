@@ -77,14 +77,19 @@ inline int gettimeofday(struct timeval *tv, struct timezone *tz)
 
 #endif
 
-inline double seconds()
+inline double totalseconds()
 {
-  static timeval lasttime;
   timeval tv;
   gettimeofday(&tv,NULL);
-  double seconds=tv.tv_sec-lasttime.tv_sec+
-    ((double) tv.tv_usec-lasttime.tv_usec)/1000000.0;
-  lasttime=tv;
+  return tv.tv_sec+tv.tv_usec/1000000.0;
+}
+
+inline double seconds()
+{
+  static double lastseconds=totalseconds();
+  double t=totalseconds();
+  double seconds=t-lastseconds;
+  lastseconds=t;
   return seconds;
 }
 
