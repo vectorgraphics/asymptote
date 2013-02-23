@@ -149,8 +149,9 @@ bool increasing(real[] a, bool strict=false)
   return all(b);
 }
 
-// Return the indices of consecutive true-element segments of bool[] b.
-int[][] segment(bool[] b)
+// Return the first and last indices of consecutive true-element segments
+// of bool[] b.
+int[][] segmentlimits(bool[] b)
 {
   int[][] segment;
   bool[] n=copy(b);
@@ -159,13 +160,22 @@ int[][] segment(bool[] b)
   int[] edge=(b != n) ? sequence(1,b.length) : null;
   edge.insert(0,0);
   int stop=edge[0];
-  for(int i=0; i < edge.length-1;) {
+  for(int i=1; i < edge.length; ++i) {
     int start=stop;
-    stop=edge[++i];
+    stop=edge[i];
     if(b[start])
-      segment.push(sequence(start,stop-1));
+      segment.push(new int[] {start,stop-1});
   }
   return segment;
+}
+
+// Return the indices of consecutive true-element segments of bool[] b.
+int[][] segment(bool[] b)
+{
+  int[][] S=segmentlimits(b);
+  return sequence(new int[](int i) {
+      return sequence(S[i][0],S[i][1]);
+    },S[0].length);
 }
 
 // If the sorted array a does not contain x, insert it sequentially,
