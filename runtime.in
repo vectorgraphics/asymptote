@@ -239,7 +239,7 @@ bool :boolFalse()
 
 bool isnan(real x)
 {
-  return isnan(x);
+  return std::isnan(x);
 }
 
 array* :pushNullArray()
