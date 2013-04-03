@@ -75,7 +75,7 @@
 #include "algebra3.h"
 #include <cmath>
 
-static const double radians=acos(-1)/180.0;
+static const double radians=std::acos(-1)/180.0;
 
 #ifdef VEC_ERROR_FATAL
 #ifndef VEC_ERROR
