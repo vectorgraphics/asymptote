@@ -1634,9 +1634,12 @@ real value greater than or equal to 0.75 (cf. John D. Hobby, Discrete and
 Computational Geometry 1, 1986):
 @verbatim
 draw((100,0)..tension 2 ..(100,100)..(0,100));
-draw((100,0)..tension 2 and 1 ..(100,100)..(0,100));
-draw((100,0)..tension atleast 1 ..(100,100)..(0,100));
+draw((100,0)..tension 3 and 2 ..(100,100)..(0,100));
+draw((100,0)..tension atleast 2 ..(100,100)..(0,100));
 @end verbatim
+
+In these examples there is a space between @code{2} and @code{..}.
+This is needed as @code{2.} is interpreted as a numerical constant.
 
 @cindex @code{curl}
 The curl parameter specifies the curvature at the endpoints of a path
