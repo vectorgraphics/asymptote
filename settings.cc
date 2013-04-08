@@ -1347,9 +1347,9 @@ string lookup(const string& symbol)
 
 void initDir() {
   if(getSetting<string>("sysdir").empty()) {
-    string s=lookup("SELFAUTOPARENT");
+    string s=lookup("TEXMFMAIN");
     if(s.size() > 1) {
-      string texmf=s+dirsep+"texmf"+dirsep;
+      string texmf=s+dirsep;
       docdir=texmf+"doc"+dirsep+"asymptote";
       Setting("sysdir")=texmf+"asymptote";
       s=lookup("ASYMPTOTE_HOME");
