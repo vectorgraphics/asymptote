@@ -860,9 +860,15 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
   if(invisible)
     return true;
 
-  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
-
-  out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,nC,C,CI,0,NULL,NULL,30);
+  if (nC) {
+    const RGBAColour white(1,1,1,opacity);
+    const RGBAColour black(0,0,0,opacity);
+    const PRCmaterial m(black,white,black,specular,opacity,PRCshininess);
+    out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,nC,C,CI,0,NULL,NULL,30);
+  } else {
+    const PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+    out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,0,NULL,NULL,0,NULL,NULL,30);
+  }
 
   return true;
 }

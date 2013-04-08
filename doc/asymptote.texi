@@ -6288,8 +6288,7 @@ including an extensive set of examples,
 @cindex @code{trembling}
 This module, written by Philippe Ivaldi and illustrated in the example
 @code{floatingdisk.asy}, allows one to draw wavy lines, as if drawn by
-hand. Further examples are posted at 
-@url{http://www.piprime.fr/files/asymptote/trembling/}
+hand.
 
 @node stats
 @section @code{stats}
