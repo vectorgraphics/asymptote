@@ -18,8 +18,8 @@ from tempfile import mkdtemp
 
 # PIL support is now mandatory due to rotations
 try:
-  import ImageTk
-  import Image
+  from PIL import ImageTk
+  from PIL import Image
 except:
    pass
 

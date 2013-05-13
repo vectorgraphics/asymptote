@@ -40,8 +40,8 @@ from xasyActions import *
 import string
 
 try:
-  import ImageTk
-  import Image
+  from PIL import ImageTk
+  from PIL import Image
   PILAvailable = True
 except:
   PILAvailable = False
