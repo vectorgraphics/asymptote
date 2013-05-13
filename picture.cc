@@ -515,12 +515,7 @@ void texinit()
   mem::vector<string> cmd;
   cmd.push_back(texprogram());
   if(context) {
-    // Create a null texput.tex file as a portable way of tricking ConTeXt
-    // into entering interactive mode (pending the implementation of --pipe).
-    string texput="texput.tex";
-    ofstream(texput.c_str());
-    cmd.push_back("--scrollmode");
-    cmd.push_back(texput);
+    cmd.push_back("--pipe");
   } else {
     if(!dir.empty()) 
       cmd.push_back("-output-directory="+dir.substr(0,dir.length()-1));
