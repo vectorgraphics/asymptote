@@ -8840,8 +8840,7 @@ guide[][] contour(pair[][] z, real[][] f, real[] c,
 To construct contours for an array of values @code{f} specified at
 irregularly positioned points @code{z}, use the routine
 @verbatim
-guide[][] contour(pair[] z, real[] f, real[] c,
-                  interpolate join=operator --, int subsample=1);
+guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --);
 @end verbatim 
 @noindent
 The contours themselves can be drawn with one of the routines
