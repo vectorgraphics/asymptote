@@ -1251,8 +1251,8 @@ uint32_t oPRCFile::addTransform(PRCGeneralTransformation3d*& transform)
     return pTransform->second;
   PRCCoordinateSystem *coordinateSystem = new PRCCoordinateSystem();
   bool transform_replaced = false;
-  if(                            transform->M(0,1)==0 && transform->M(0,2)==0 &&
-      transform->M(1,0)==0 &&                            transform->M(1,2)==0 &&
+  if(                         transform->M(0,1)==0 && transform->M(0,2)==0 &&
+      transform->M(1,0)==0 &&                         transform->M(1,2)==0 &&
       transform->M(2,0)==0 && transform->M(2,1)==0 &&
       transform->M(3,0)==0 && transform->M(3,1)==0 && transform->M(3,2)==0 && transform->M(3,3)==1 )
   {
@@ -1417,10 +1417,10 @@ uint32_t oPRCFile::addMaterial(const PRCmaterial& m)
 bool isid(const double* t)
 {
   return(
-         t[0]==1 && t[4]==0 && t[ 8]==0 && t[12]==0 &&
-         t[1]==0 && t[5]==1 && t[ 9]==0 && t[13]==0 &&
-         t[2]==0 && t[6]==0 && t[10]==1 && t[14]==0 &&
-         t[3]==0 && t[7]==0 && t[11]==0 && t[15]==1 );
+         t[0]==1 && t[1]==0 && t[2]==0 && t[3]==0 &&
+         t[4]==0 && t[5]==1 && t[6]==0 && t[7]==0 &&
+         t[8]==0 && t[9]==0 && t[10]==1 && t[11]==0 &&
+         t[12]==0 && t[13]==0 && t[14]==0 && t[15]==1 );
 }
 
 void oPRCFile::begingroup(const char *name, PRCoptions *options,

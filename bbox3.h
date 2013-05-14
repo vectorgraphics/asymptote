@@ -155,7 +155,7 @@ struct bbox3 {
     return triple(right,top,upper);
   }
   
-  // transform bbox3 by 4x4 column-major matrix
+  // transform bbox3 by 4x4 matrix
   void transform(const double* m)
   {
     const double xmin = left;

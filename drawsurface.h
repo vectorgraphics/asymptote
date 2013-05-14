@@ -115,7 +115,7 @@ public:
     
 #ifdef HAVE_GL
     center=t*s->center;
-    normal=multshiftless(t,s->normal);
+    normal=transformNormal(t,s->normal);
 #endif    
   }
   

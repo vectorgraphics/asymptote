@@ -501,7 +501,6 @@ void arrayFunc2(vm::stack *s)
 
 vm::array *Identity(Int n);
 camp::triple operator *(const vm::array& a, const camp::triple& v);
-camp::triple multshiftless(const vm::array& t, const camp::triple& v);
 double norm(double *a, size_t n);
 double norm(camp::triple *a, size_t n);
 
@@ -537,8 +536,7 @@ inline void copyArrayC(T* &dest, const vm::array *a, T (*cast)(A),
 }
 
 template<typename T>
-inline vm::array* copyCArray(const size_t n, const T* p,
-                             GCPlacement placement=NoGC)
+inline vm::array* copyCArray(const size_t n, const T* p)
 {
   vm::array* a = new vm::array(n);
   for(size_t i=0; i < n; ++i) (*a)[i] = p[i];
@@ -566,8 +564,22 @@ inline void copyArray2C(T* &dest, const vm::array *a, bool square=true,
       for(size_t j=0; j < m; j++) 
         desti[j]=vm::read<T>(ai,j);
     } else
-      vm::error(square ? "matrix must be square" : "matrix must be rectangular");
+      vm::error(square ? "matrix must be square" : 
+                "matrix must be rectangular");
   }
+}
+
+template<typename T>
+inline vm::array* copyCArray2(const size_t n, const size_t m, const T* p)
+{
+  vm::array* a=new vm::array(n);
+  for(size_t i=0; i < n; ++i) {
+    array *ai=new array(m);
+    (*a)[i]=ai;
+    for(size_t j=0; j < m; ++j) 
+      (*ai)[j]=p[m*i+j];
+  }
+  return a;
 }
 
 } // namespace run

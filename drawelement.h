@@ -206,17 +206,6 @@ public:
   
   drawElementLC() : T(NULL) {}
   
-  drawElementLC(double t1, double t2, double t3, double t4,
-                double t5, double t6,  double t7,  double t8,
-                double t9, double t10, double t11, double t12,
-                double t13, double t14, double t15, double t16) {
-    T=new(UseGC) double[16];
-    T[0]=t1; T[4]=t5; T[ 8]=t9;  T[12]=t13;
-    T[1]=t2; T[5]=t6; T[ 9]=t10; T[13]=t14;
-    T[2]=t3; T[6]=t7; T[10]=t11; T[14]=t15;
-    T[3]=t4; T[7]=t8; T[11]=t12; T[15]=t16;
-  }
-  
   drawElementLC(const double *t) : T(NULL) {
     copyTransform3(T,t);
   }

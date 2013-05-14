@@ -112,6 +112,20 @@ static const char *incommensurate="Incommensurate matrices";
 static const char *singular="Singular matrix";
 static size_t *pivot,*Row,*Col;
 
+static inline void inverseAllocate(size_t n)
+{
+  pivot=new size_t[n];
+  Row=new size_t[n];
+  Col=new size_t[n];
+}
+
+static inline void inverseDeallocate()
+{
+  delete[] pivot;
+  delete[] Row;
+  delete[] Col;
+}
+
 namespace run {
 
 array *copyArray(array *a)
@@ -203,33 +217,6 @@ triple operator *(const array& t, const triple& v)
                  read<real>(t2,3))*f);
 }
 
-triple multshiftless(const array& t, const triple& v)
-{
-  size_t n=checkArray(&t);
-  if(n != 4) error(incommensurate);
-  array *t0=read<array*>(t,0);
-  array *t1=read<array*>(t,1);
-  array *t2=read<array*>(t,2);
-  array *t3=read<array*>(t,3);
-  
-  if(checkArray(t0) != 4 || checkArray(t1) != 4 || 
-     checkArray(t2) != 4 || checkArray(t3) != 4)
-    error(incommensurate);
-
-  double x=v.getx();
-  double y=v.gety();
-  double z=v.getz();
-  
-  double f=read<real>(t3,0)*x+read<real>(t3,1)*y+read<real>(t3,2)*z+
-    read<real>(t3,3);
-  if(f == 0.0) run::dividebyzero();
-  f=1.0/f;
-  
-  return triple((read<real>(t0,0)*x+read<real>(t0,1)*y+read<real>(t0,2)*z)*f,
-                (read<real>(t1,0)*x+read<real>(t1,1)*y+read<real>(t1,2)*z)*f,
-                (read<real>(t2,0)*x+read<real>(t2,1)*y+read<real>(t2,2)*z)*f);
-}
-
 template<class T>
 array *mult(array *a, array *b)
 {
@@ -285,20 +272,106 @@ double norm(triple *a, size_t n)
   return sqrt(M);
 }
 
+// Transpose an n x n matrix in place.
+void transpose(double *a, size_t n)
+{
+  for(size_t i=1; i < n; i++) {
+    for(size_t j=0; j < i; j++) {
+      size_t ij=n*i+j;
+      size_t ji=n*j+i;
+      double temp=a[ij];
+      a[ij]=a[ji];
+      a[ji]=temp;
+     }
+  }
 }
 
-static inline void inverseAllocate(size_t n)
+// Invert an n x n array in place.
+void inverse(double *a, size_t n)
 {
-  pivot=new size_t[n];
-  Row=new size_t[n];
-  Col=new size_t[n];
-}
+  inverseAllocate(n);
+  
+  for(size_t i=0; i < n; i++)
+    pivot[i]=0;
+ 
+  size_t col=0, row=0;
+  // This is the main loop over the columns to be reduced.
+  for(size_t i=0; i < n; i++) {
+    real big=0.0;
+    // This is the outer loop of the search for a pivot element.
+    for(size_t j=0; j < n; j++) {
+      double *aj=a+n*j;
+      if(pivot[j] != 1) {
+        for(size_t k=0; k < n; k++) {
+          if(pivot[k] == 0) {
+            real temp=fabs(aj[k]);
+            if(temp >= big) {
+              big=temp;
+              row=j;
+              col=k;
+            }
+          } else if(pivot[k] > 1) {
+            inverseDeallocate();
+            error(singular);
+          }
+        }
+      }
+    }
+    ++(pivot[col]);
+    
+    // Interchange rows, if needed, to put the pivot element on the diagonal.
+    double *acol=a+n*col;
+    if(row != col) {
+      double *arow=a+n*row;
+      for(size_t k=0; k < n; k++) {
+        real temp=arow[k];
+        arow[k]=acol[k];
+        acol[k]=temp;
+      }
+    }
+    
+    Row[i]=row; 
+    Col[i]=col;
 
-static inline void inverseDeallocate()
-{
-  delete[] pivot;
-  delete[] Row;
-  delete[] Col;
+    // Divide the pivot row by the pivot element.
+    real denom=acol[col];
+    if(denom == 0.0) {
+      inverseDeallocate();
+      error(singular);
+    }
+    real pivinv=1.0/denom;
+    acol[col]=1.0;
+    for(size_t k=0; k < n; k++) 
+      acol[k]=acol[k]*pivinv;
+    
+    // Reduce all rows except for the pivoted one.
+    for(size_t k=0; k < n; k++) {
+      if(k != col) { 
+        double *ak=a+n*k;
+        real akcol=ak[col];
+        ak[col]=0.0;
+        for(size_t j=0; j < n; j++)
+          ak[j] -= acol[j]*akcol;
+      }
+    }
+  }
+  
+  // Unscramble the inverse matrix in view of the column interchanges.
+  for(size_t k=n; k > 0;) {
+    k--;
+    size_t r=Row[k];
+    size_t c=Col[k];
+    if(r != c) {
+      for(size_t j=0; j < n; j++) {
+        double *aj=a+n*j;
+        real temp=aj[r];
+        aj[r]=aj[c];
+        aj[c]=temp;
+      }
+    }
+  }
+  inverseDeallocate();
+}
 }
 
 callable *Func;
@@ -1031,92 +1104,12 @@ realarray2 *identity(Int n)
 // Return the inverse of an n x n matrix a using Gauss-Jordan elimination.
 realarray2 *inverse(realarray2 *a)
 {
-  a=copyArray2(a);
   size_t n=checkArray(a);
-  checkSquare(a);
-  
-  inverseAllocate(n);
-  
-  for(size_t i=0; i < n; i++)
-    pivot[i]=0;
- 
-  size_t col=0, row=0;
-  // This is the main loop over the columns to be reduced.
-  for(size_t i=0; i < n; i++) {
-    real big=0.0;
-    // This is the outer loop of the search for a pivot element.
-    for(size_t j=0; j < n; j++) {
-      array *aj=read<array*>(a,j);
-      if(pivot[j] != 1) {
-        for(size_t k=0; k < n; k++) {
-          if(pivot[k] == 0) {
-            real temp=fabs(read<real>(aj,k));
-            if(temp >= big) {
-              big=temp;
-              row=j;
-              col=k;
-            }
-          } else if(pivot[k] > 1) {
-            inverseDeallocate();
-            error(singular);
-          }
-        }
-      }
-    }
-    ++(pivot[col]);
-    
-    // Interchange rows, if needed, to put the pivot element on the diagonal.
-    array *acol=read<array*>(a,col);
-    if(row != col) {
-      array *arow=read<array*>(a,row);
-      for(size_t l=0; l < n; l++) {
-        real temp=read<real>(arow,l);
-        (*arow)[l]=read<real>(acol,l);
-        (*acol)[l]=temp;
-      }
-    }
-    
-    Row[i]=row; 
-    Col[i]=col;
-
-    // Divide the pivot row by the pivot element.
-    real denom=read<real>(acol,col);
-    if(denom == 0.0) {
-      inverseDeallocate();
-      error(singular);
-    }
-    real pivinv=1.0/denom;
-    (*acol)[col]=1.0;
-    for(size_t l=0; l < n; l++) 
-      (*acol)[l]=read<real>(acol,l)*pivinv;
-    
-    // Reduce all rows except for the pivoted one.
-    for(size_t k=0; k < n; k++) {
-      if(k != col) { 
-        array *ak=read<array*>(a,k);
-        real akcol=read<real>(ak,col);
-        (*ak)[col]=0.0;
-        for(size_t l=0; l < n; l++)
-          (*ak)[l]=read<real>(ak,l)-read<real>(acol,l)*akcol;
-      }
-    }
-  }
-  
-  // Unscramble the inverse matrix in view of the column interchanges.
-  for(size_t l=n; l > 0;) {
-    l--;
-    size_t r=Row[l];
-    size_t c=Col[l];
-    if(r != c) {
-      for(size_t k=0; k < n; k++) {
-        array *ak=read<array*>(a,k);
-        real temp=read<real>(ak,r);
-        (*ak)[r]=read<real>(ak,c);
-        (*ak)[c]=temp;
-      }
-    }
-  }
-  inverseDeallocate();
+  double *A;
+  copyArray2C(A,a,true,0,NoGC);
+  inverse(A,n);
+  a=copyCArray2(n,n,A);
+  delete A;
   return a;
 }
 

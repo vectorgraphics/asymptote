@@ -304,6 +304,8 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   if(perspective || !havebillboard) {
     static double t[16];
     glGetDoublev(GL_MODELVIEW_MATRIX,t);
+// Like Fortran, OpenGL uses transposed (column-major) format!
+    run::transpose(t,4);
     
     bbox3 B(this->Min,this->Max);
     B.transform(t);
@@ -544,7 +546,8 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   
   static double t[16]; // current transform
   glGetDoublev(GL_MODELVIEW_MATRIX,t);
-  
+  run::transpose(t,4);
+
   bbox3 B(this->Min,this->Max);
   B.transform(t);
     
@@ -596,13 +599,13 @@ void drawSphere::P(Triple& t, double x, double y, double z)
     double temp=z; z=x; x=-temp;
   }
   
-  double f=T[3]*x+T[7]*y+T[11]*z+T[15];
+  double f=T[12]*x+T[13]*y+T[14]*z+T[15];
   if(f == 0.0) run::dividebyzero();
   f=1.0/f;
   
-  t[0]=(T[0]*x+T[4]*y+T[ 8]*z+T[12])*f;
-  t[1]=(T[1]*x+T[5]*y+T[ 9]*z+T[13])*f;
-  t[2]=(T[2]*x+T[6]*y+T[10]*z+T[14])*f;
+  t[0]=(T[0]*x+T[1]*y+T[2]*z+T[3])*f;
+  t[1]=(T[4]*x+T[5]*y+T[6]*z+T[7])*f;
+  t[2]=(T[8]*x+T[9]*y+T[10]*z+T[11])*f;
 }
 
 bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
@@ -867,7 +870,8 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
     out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,nC,C,CI,0,NULL,NULL,30);
   } else {
     const PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
-    out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,0,NULL,NULL,0,NULL,NULL,30);
+    out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,0,NULL,NULL,0,NULL,NULL,
+                      30);
   }
 
   return true;
@@ -886,6 +890,7 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
   triple m,M;
   static double t[16]; // current transform
   glGetDoublev(GL_MODELVIEW_MATRIX,t);
+  run::transpose(t,4);
 
   bbox3 B(this->Min,this->Max);
   B.transform(t);

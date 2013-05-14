@@ -18,6 +18,11 @@
 #include "angle.h"
 #include "pair.h"
 
+namespace run {
+void transpose(double *a, size_t n);
+void inverse(double *a, size_t n);
+}
+
 namespace camp {
 
 typedef double Triple[3];
@@ -25,7 +30,8 @@ typedef double Triple[3];
 class triple;
   
 bool isIdTransform3(const double* t);
-void copyTransform3(double*& d, const double* s);
+void copyTransform3(double*& d, const double* s,
+                    GCPlacement placement=NoGC);
 void multiplyTransform3(double*& t, const double* s, const double* r);
 
 void copyTriples(size_t n, Triple* d, const Triple* s);
@@ -59,35 +65,35 @@ public:
   double gety() const { return y; }
   double getz() const { return z; }
 
-  // transform by column-major matrix
+  // transform by row-major matrix
   friend triple operator* (const double* t, const triple& v)
   {
     if(t == NULL)
       return v;
 
-    double f=t[3]*v.x+t[7]*v.y+t[11]*v.z+t[15];
+    double f=t[12]*v.x+t[13]*v.y+t[14]*v.z+t[15];
     if(f == 0.0)
       reportError("division by 0 in transform of a triple");
     f=1.0/f;
     
-    return triple((t[0]*v.x+t[4]*v.y+t[8]*v.z+t[12])*f,
-                  (t[1]*v.x+t[5]*v.y+t[9]*v.z+t[13])*f,
-                  (t[2]*v.x+t[6]*v.y+t[10]*v.z+t[14])*f);
+    return triple((t[0]*v.x+t[1]*v.y+t[2]*v.z+t[3])*f,
+                  (t[4]*v.x+t[5]*v.y+t[6]*v.z+t[7])*f,
+                  (t[8]*v.x+t[9]*v.y+t[10]*v.z+t[11])*f);
   }
   
-  friend triple multshiftless(const double* t, const triple& v)
+  friend triple transformNormal(const double* t, const triple& v)
   {
     if(t == NULL)
       return v;
 
-    double f=t[3]*v.x+t[7]*v.y+t[11]*v.z+t[15];
-    if(f == 0.0)
-      reportError("division by 0 in shiftless transform of a triple");
-    f=1.0/f;
-    
-    return triple((t[0]*v.x+t[4]*v.y+t[8]*v.z)*f,
-                  (t[1]*v.x+t[5]*v.y+t[9]*v.z)*f,
-                  (t[2]*v.x+t[6]*v.y+t[10]*v.z)*f);
+    double *T=new double[16];
+    copyTransform3(T,t);
+    T[3]=T[7]=T[11]=0.0;
+    run::inverse(T,4);
+    run::transpose(T,4);
+    triple V=T*v;
+    delete T;
+    return unit(V);
   }
 
   friend void transformtriples(const double* t, size_t n, triple* d,
@@ -96,23 +102,8 @@ public:
     if(n == 0 || d == NULL || s == NULL)
       return;
 
-    if(isIdTransform3(t)) {
-      copytriples(n, d, s);
-      return;
-    }
-    
-    for(size_t i=0; i < n; i++) {
-      const double& x = s[i].x;
-      const double& y = s[i].y;
-      const double& z = s[i].z;
-      double f=t[3]*x+t[7]*y+t[11]*z+t[15];
-      if(f == 0.0)
-        reportError("division by 0 in transformtriples");
-      f=1.0/f;
-      d[i].x=(t[0]*x+t[4]*y+t[8]*z+t[12])*f;      
-      d[i].y=(t[1]*x+t[5]*y+t[9]*z+t[13])*f;      
-      d[i].z=(t[2]*x+t[6]*y+t[10]*z+t[14])*f;      
-    }
+    for(size_t i=0; i < n; i++)
+      d[i]=t*s[i];
   }
   
   friend void copytriples(size_t n, triple* d, const triple* s)

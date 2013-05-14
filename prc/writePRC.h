@@ -749,54 +749,54 @@ public:
   
   void serializeGeneralTransformation3d(PRCbitStream&) const;
   void serializeTransformation3d(PRCbitStream& pbs)  const { serializeGeneralTransformation3d(pbs); }
-  double m_coef[16];
+  double mat[4][4];
   bool operator==(const PRCGeneralTransformation3d &t) const
   {
-    for (size_t i=0;i<16;i++)
-        if(m_coef[i]!=t.m_coef[i])
+    for (size_t i=0;i<4;i++)
+      for (size_t j=0;j<4;j++)
+        if(mat[i][j]!=t.mat[i][j])
          return false;
     return true;
   }
   bool operator<(const PRCGeneralTransformation3d &t) const
   {
-    for (size_t i=0;i<16;i++)
-        if(m_coef[i]!=t.m_coef[i])
+    for (size_t i=0;i<4;i++)
+      for (size_t j=0;j<4;j++)
+        if(mat[i][j]!=t.mat[i][j])
         {
-          return (m_coef[i]<t.m_coef[i]);
+          return (mat[i][j]<t.mat[i][j]);
         }
     return false;
   }
   void set(const double t[])
   {
     if(t!=NULL) 
-      for (size_t i=0;i<16;i++)
-          m_coef[i]=t[i];
+     for (size_t i=0;i<4;i++)
+       for (size_t j=0;j<4;j++)
+         mat[i][j]=t[4*i+j];
     else
       setidentity();
   }
   void setidentity()
   {
-    m_coef[0]=1; m_coef[4]=0; m_coef[ 8]=0; m_coef[12]=0;
-    m_coef[1]=0; m_coef[5]=1; m_coef[ 9]=0; m_coef[13]=0;
-    m_coef[2]=0; m_coef[6]=0; m_coef[10]=1; m_coef[14]=0;
-    m_coef[3]=0; m_coef[7]=0; m_coef[11]=0; m_coef[15]=1;
-  }
-  bool isnotidtransform() const {
-    return(
-           m_coef[0]!=1 || m_coef[4]!=0 || m_coef[ 8]!=0 || m_coef[12]!=0 ||
-           m_coef[1]!=0 || m_coef[5]!=1 || m_coef[ 9]!=0 || m_coef[13]!=0 ||
-           m_coef[2]!=0 || m_coef[6]!=0 || m_coef[10]!=1 || m_coef[14]!=0 ||
-           m_coef[3]!=0 || m_coef[7]!=0 || m_coef[11]!=0 || m_coef[15]!=1 );
+    mat[0][0]=1; mat[0][1]=0; mat[0][2]=0; mat[0][3]=0;
+    mat[1][0]=0; mat[1][1]=1; mat[1][2]=0; mat[1][3]=0;
+    mat[2][0]=0; mat[2][1]=0; mat[2][2]=1; mat[2][3]=0;
+    mat[3][0]=0; mat[3][1]=0; mat[3][2]=0; mat[3][3]=1;
   }
   bool isidtransform() const {
     return(
-           m_coef[0]==1 && m_coef[4]==0 && m_coef[ 8]==0 && m_coef[12]==0 &&
-           m_coef[1]==0 && m_coef[5]==1 && m_coef[ 9]==0 && m_coef[13]==0 &&
-           m_coef[2]==0 && m_coef[6]==0 && m_coef[10]==1 && m_coef[14]==0 &&
-           m_coef[3]==0 && m_coef[7]==0 && m_coef[11]==0 && m_coef[15]==1 );
+    mat[0][0]==1 && mat[0][1]==0 && mat[0][2]==0 && mat[0][3]==0 &&
+    mat[1][0]==0 && mat[1][1]==1 && mat[1][2]==0 && mat[1][3]==0 &&
+    mat[2][0]==0 && mat[2][1]==0 && mat[2][2]==1 && mat[2][3]==0 &&
+    mat[3][0]==0 && mat[3][1]==0 && mat[3][2]==0 && mat[3][3]==1);
+  }
+  bool isnotidtransform() const {
+    return !isidtransform();
   }
   double M(size_t i, size_t j) const {
-    return m_coef[i+j*4];
+    // Like Fortran, PRC uses transposed (column-major) format!
+    return mat[j][i];
   }
 };
 typedef std::deque <PRCGeneralTransformation3d> PRCGeneralTransformation3dList;

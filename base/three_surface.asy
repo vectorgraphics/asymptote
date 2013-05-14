@@ -321,9 +321,12 @@ patch operator * (transform3 t, patch s)
       Si[j]=t*si[j]; 
   }
   
-  transform3 t0=shiftless(t);
-  for(int i=0; i < s.normals.length; ++i)
-    S.normals[i]=t0*s.normals[i];
+  if(s.normals.length > 0) {
+    transform3 t0=shiftless(t);
+    t0=determinant(t0) == 0 ? identity4 : transpose(inverse(t0));
+    for(int i=0; i < s.normals.length; ++i)
+      S.normals[i]=t0*s.normals[i];
+  }
 
   S.colors=copy(s.colors);
   S.planar=s.planar;

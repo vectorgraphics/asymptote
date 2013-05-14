@@ -79,7 +79,7 @@ pen color(triple normal, material m, light light, transform3 T=light.T) {
   triple[] position=light.position;
   if(invisible((pen) m)) return invisible;
   if(position.length == 0) return m.diffuse();
-  normal=unit(T*normal);
+  normal=unit(transpose(inverse(shiftless(T)))*normal);
   if(settings.twosided) normal *= sgn(normal.z);
   real s=m.shininess*128;
   real[] Diffuse=rgba(m.diffuse());

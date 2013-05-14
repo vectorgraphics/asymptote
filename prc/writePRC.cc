@@ -764,8 +764,10 @@ void  PRCPolyWire::serializePolyWire(PRCbitStream &pbs)
 void  PRCGeneralTransformation3d::serializeGeneralTransformation3d(PRCbitStream &pbs) const
 {
   WriteUnsignedInteger (PRC_TYPE_MISC_GeneralTransformation)
-  for (uint32_t i=0; i<16; i++)
-     WriteDouble(m_coef[i]); 
+  // Like Fortran, PRC uses transposed (column-major) format!
+  for (int j=0;j<4;j++)
+    for (int i=0;i<4;i++)
+     WriteDouble(mat[i][j]); 
 }
 
 void  PRCCartesianTransformation3d::serializeCartesianTransformation3d(PRCbitStream &pbs) const

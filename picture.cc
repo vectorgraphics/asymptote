@@ -47,10 +47,10 @@ namespace camp {
 
 bool isIdTransform3(const double* t)
 {
-  return (t == NULL || (t[0]==1 && t[4]==0 && t[ 8]==0 && t[12]==0 &&
-                        t[1]==0 && t[5]==1 && t[ 9]==0 && t[13]==0 &&
-                        t[2]==0 && t[6]==0 && t[10]==1 && t[14]==0 &&
-                        t[3]==0 && t[7]==0 && t[11]==0 && t[15]==1));
+  return (t == NULL || (t[0]==1 && t[1]==0 && t[2]==0 && t[3]==0 &&
+                        t[4]==0 && t[5]==1 && t[6]==0 && t[7]==0 &&
+                        t[8]==0 && t[9]==0 && t[10]==1 && t[11]==0 &&
+                        t[12]==0 && t[13]==0 && t[14]==0 && t[15]==1));
 }
 
 // copy array to 4x4 transform matrix with range checks
@@ -64,47 +64,48 @@ void copyArray4x4C(double*& dest, const vm::array *a)
   for(size_t i=0; i < 4; i++) {
     const vm::array *ai=vm::read<vm::array*>(a,i);
     const size_t aisize=checkArray(ai);
+    double *tti=tt+4*i;
     if(aisize == 4) {
       for(size_t j=0; j < 4; j++) 
-        tt[i+j*4]=vm::read<double>(ai,j);
+        tti[j]=vm::read<double>(ai,j);
     } else reportError(fourbyfour);
   }
     
   copyTransform3(dest,tt);
 }
   
-void copyTransform3(double*& d, const double* s)
+void copyTransform3(double*& d, const double* s, GCPlacement placement)
+
 {
-  if(isIdTransform3(s)) {
-    d=NULL;
-  }
-  else {
-    if (d == NULL)
-      d=new(UseGC) double[16];
+  if(!isIdTransform3(s) || d != NULL) {
+    if(d == NULL)
+      d=placement == NoGC ? new double[16] : new(placement) double[16];
     memcpy(d,s,sizeof(double)*16);
   }
 }
    
 // t = s*r
-void multiplyTransform3(double*& t, const double* s, const double* r )
+void multiplyTransform3(double*& t, const double* s, const double* r)
 {
   if(isIdTransform3(s)) {
     copyTransform3(t, r);
   } else if(isIdTransform3(r)) {
     copyTransform3(t, s);
   } else {
-    double tt[16];
+    t=new(UseGC) double[16];
     for(size_t i=0; i < 4; i++) {
-      const double& s0=s[i+0];
-      const double& s1=s[i+4];
-      const double& s2=s[i+8];
-      const double& s3=s[i+12];
-      tt[i]=s0*r[0]+s1*r[1]+s2*r[2]+s3*r[3];
-      tt[i+4]=s0*r[4]+s1*r[5]+s2*r[6]+s3*r[7];
-      tt[i+8]=s0*r[8]+s1*r[9]+s2*r[10]+s3*r[11];
-      tt[i+12]=s0*r[12]+s1*r[13]+s2*r[14]+s3*r[15];
+      size_t i4=4*i;
+      const double *si=s+i4;
+      const double& s0=si[0];
+      const double& s1=si[1];
+      const double& s2=si[2];
+      const double& s3=si[3];
+      double *ti=t+i4;
+      ti[0]=s0*r[0]+s1*r[4]+s2*r[8]+s3*r[12];
+      ti[1]=s0*r[1]+s1*r[5]+s2*r[9]+s3*r[13];
+      ti[2]=s0*r[2]+s1*r[6]+s2*r[10]+s3*r[14];
+      ti[3]=s0*r[3]+s1*r[7]+s2*r[11]+s3*r[15];
     }
-    copyTransform3(t,tt);
   }
 }
   
@@ -113,81 +114,32 @@ void transformTriples(const double* t, size_t n, Triple* d, const Triple* s)
   if(n == 0 || s == NULL || d == NULL)
     return;
     
-  if(isIdTransform3(t)) {
-    copyTriples(n, d, s);
-    return;
-  }
   for(size_t i=0; i < n; i++) {
-    const double& x = s[i][0];
-    const double& y = s[i][1];
-    const double& z = s[i][2];
-    double f=t[3]*x+t[7]*y+t[11]*z+t[15];
-    if(f == 0.0)
-      reportError("division by 0 in transformTriples");
-    f=1.0/f;
-    d[i][0]=(t[0]*x+t[4]*y+t[8]*z+t[12])*f;      
-    d[i][1]=(t[1]*x+t[5]*y+t[9]*z+t[13])*f;      
-    d[i][2]=(t[2]*x+t[6]*y+t[10]*z+t[14])*f;      
-  }
-}
-  
-void transformshiftlessTriples(const double* t, size_t n, Triple* d,
-                               const Triple* s)
-{
-  if(n == 0 || s == NULL || d == NULL)
-    return;
-    
-  if(isIdTransform3(t)) {
-    copyTriples(n, d, s);
-    return;
-  }
-  for(size_t i=0; i < n; i++) {
-    const double& x=s[i][0];
-    const double& y=s[i][1];
-    const double& z=s[i][2];
-    double f=t[3]*x+t[7]*y+t[11]*z+t[15];
-    if(f == 0.0)
-      reportError("division by 0 in transformshiftlessTriples");
-    f=1.0/f;
-    d[i][0]=(t[0]*x+t[4]*y+t[8]*z)*f;      
-    d[i][1]=(t[1]*x+t[5]*y+t[9]*z)*f;      
-    d[i][2]=(t[2]*x+t[6]*y+t[10]*z)*f;      
+    const double *si=s[i];
+    triple v=t*triple(si[0],si[1],si[2]);
+    double *di=d[i];
+    di[0]=v.getx();
+    di[1]=v.gety();
+    di[2]=v.getz();
   }
 }
   
 void transformNormalsTriples(const double* t, size_t n, Triple* d,
                              const Triple* s)
 {
-  if(n==0 || s==NULL || d==NULL)
+  if(n == 0 || s == NULL || d == NULL)
     return;
     
-  if(isIdTransform3(t)) {
-    copyTriples(n, d, s);
-    return;
-  }
   for(size_t i=0; i < n; i++) {
-    const double& x = s[i][0];
-    const double& y = s[i][1];
-    const double& z = s[i][2];
-    double& X = d[i][0];
-    double& Y = d[i][1];
-    double& Z = d[i][2];
-    double f=t[3]*x+t[7]*y+t[11]*z+t[15];
-    if(f == 0.0)
-      reportError("division by 0 in transformNormalsTriples");
-    f=1.0/f;
-    X=(t[0]*x+t[4]*y+t[8]*z)*f;
-    Y=(t[1]*x+t[5]*y+t[9]*z)*f;
-    Z=(t[2]*x+t[6]*y+t[10]*z)*f;
-    const double scale=sqrt(X*X+Y*Y+Z*Z);
-    if(scale != 0.0) {
-      X /= scale;
-      Y /= scale;
-      Z /= scale;
-    }
+    const double *si=s[i];
+    triple v=transformNormal(t,triple(si[0],si[1],si[2]));
+    double *di=d[i];
+    di[0]=v.getx();
+    di[1]=v.gety();
+    di[2]=v.getz();
   }
 }
-  
+
 void unitTriples(size_t n, Triple* d)
 {
   for (size_t i=0; i < n; i++) {
@@ -1431,7 +1383,7 @@ picture *picture::transformed(const array& t)
 {
   picture *pic = new picture;
   double* T=NULL;
-  copyArray4x4C(T, &t);
+  copyArray4x4C(T,&t);
   size_t level = 0;
   for (nodelist::iterator p = nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
