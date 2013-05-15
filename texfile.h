@@ -349,7 +349,8 @@ public:
                           const pen& penb, const pair& b, double rb);
   void gradientshade(bool axial, ColorSpace colorspace,
                      const pen& pena, const pair& a, double ra,
-                     const pen& penb, const pair& b, double rb);
+                     bool extenda, const pen& penb, const pair& b,
+                     double rb, bool extendb);
   
   void gouraudshade(const pen& p0, const pair& z0,
                     const pen& p1, const pair& z1, 

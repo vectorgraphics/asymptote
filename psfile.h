@@ -278,7 +278,8 @@ public:
   
   virtual void gradientshade(bool axial, ColorSpace colorspace,
                              const pen& pena, const pair& a, double ra,
-                             const pen& penb, const pair& b, double rb);
+                             bool extenda, const pen& penb, const pair& b,
+                             double rb, bool extendb);
   
   virtual void begingouraudshade(const vm::array& pens,
                                  const vm::array& vertices,

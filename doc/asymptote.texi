@@ -390,7 +390,7 @@ The @code{ImageMagick} package from
 @noindent
 is required to support output formats other than @acronym{EPS},
 @acronym{PDF}, @acronym{SVG}, and @acronym{PNG} (@pxref{convert}).
-The @code{Python} interpreter from @url{http://www.python.org} is only required
+The @code{Python 2} interpreter from @url{http://www.python.org} is only required
 if you wish to try out the graphical user interface (@pxref{GUI}).
 
 @noindent
@@ -1276,9 +1276,13 @@ Axial gradient shading varying smoothly from @code{pena} to @code{penb} in the
 direction of the line segment @code{a--b} can be achieved with
 @verbatim
 void axialshade(picture pic=currentpicture, path g, bool stroke=false,
-                pen pena, pair a,
-                pen penb, pair b);
+                pen pena, pair a, bool extenda=true,
+                pen penb, pair b, bool extendb=true);
 @end verbatim
+@noindent
+The boolean parameters @code{extenda} and @code{extendb} indicate
+whether the shading should extend beyond the axis endpoints @code{a}
+and @code{b}.
 
 @cindex @code{radialshade}
 Radial gradient shading varying smoothly from
@@ -1287,10 +1291,12 @@ Radial gradient shading varying smoothly from
 is similar:
 @verbatim
 void radialshade(picture pic=currentpicture, path g, bool stroke=false,
-                 pen pena, pair a, real ra,
-                 pen penb, pair b, real rb);
+                 pen pena, pair a, real ra, bool extenda=true,
+                 pen penb, pair b, real rb, bool extendb=true);
 @end verbatim
 @noindent
+The boolean parameters @code{extenda} and @code{extendb} indicate
+whether the shading should extend beyond the radii @code{a} and @code{b}.
 Illustrations of radial shading are provided in the example files
 @code{shade.asy}, @code{ring.asy}, and @code{shadestroke.asy}.
 
@@ -9277,9 +9283,9 @@ and @code{tk-devel} packages.
 
 Pictures are deconstructed into the @acronym{PNG} image format, which
 supports full alpha channel transparency. Under @code{Microsoft Windows},
-this requires @code{Python 2.7.3} and the @code{Python Imaging Library}:
+this requires @code{Python 2.7.4} and the @code{Python Imaging Library}:
 @quotation
-@url{http://www.python.org/ftp/python/2.7.3/python-2.7.3.msi}
+@url{http://www.python.org/ftp/python/2.7.4/python-2.7.4.msi}
 @end quotation
 @quotation
 @url{http://effbot.org/downloads/PIL-1.1.7.win32-py2.7.exe}.

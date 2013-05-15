@@ -63,7 +63,8 @@ drawElement *drawLatticeShade::transformed(const transform& t)
 drawElement *drawAxialShade::transformed(const transform& t)
 {
   pair A=t*a, B=t*b;
-  return new drawAxialShade(transpath(t),stroke,pentype,A,penb,B);
+  return new drawAxialShade(transpath(t),stroke,pentype,A,extenda,penb,B,
+                            extendb);
 }
   
 drawElement *drawRadialShade::transformed(const transform& t)
@@ -71,7 +72,8 @@ drawElement *drawRadialShade::transformed(const transform& t)
   pair A=t*a, B=t*b;
   double RA=length(t*(a+ra)-A);
   double RB=length(t*(b+rb)-B);
-  return new drawRadialShade(transpath(t),stroke,pentype,A,RA,penb,B,RB);
+  return new drawRadialShade(transpath(t),stroke,pentype,A,RA,extenda,penb,B,RB,
+                             extendb);
 }
 
 drawElement *drawGouraudShade::transformed(const transform& t)

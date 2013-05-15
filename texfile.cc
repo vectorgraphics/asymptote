@@ -539,7 +539,9 @@ void svgtexfile::begingradientshade(bool axial, ColorSpace colorspace,
 
 void svgtexfile::gradientshade(bool axial, ColorSpace colorspace,
                                const pen& pena, const pair& a, double ra,
-                               const pen& penb, const pair& b, double rb)
+                               bool, const pen& penb, const pair& b,
+                               double rb, bool)
+
 {
   *out << "' fill='url(#grad" << gradientcount << ")'";
   fillrule(pena);

@@ -47,6 +47,7 @@ psfile::psfile(const string& filename, bool pdfformat)
 {
   if(filename.empty()) out=&cout;
   else out=new ofstream(filename.c_str());
+  out->setf(std::ios::boolalpha);
   if(!out || !*out)
     reportError("Cannot write to "+filename);
 }
@@ -348,7 +349,8 @@ void psfile::latticeshade(const vm::array& a, const transform& t)
 // Axial and radial shading
 void psfile::gradientshade(bool axial, ColorSpace colorspace,
                            const pen& pena, const pair& a, double ra,
-                           const pen& penb, const pair& b, double rb)
+                           bool extenda, const pen& penb, const pair& b,
+                           double rb, bool extendb)
 {
   checkLevel();
   endclip(pena);
@@ -364,7 +366,7 @@ void psfile::gradientshade(bool axial, ColorSpace colorspace,
   write(b);
   if(!axial) write(rb);
   *out << "]" << newl
-       << "/Extend [true true]" << newl
+       << "/Extend [" << extenda << " " << extendb << "]" << newl
        << "/Function" << newl
        << "<< /FunctionType 2" << newl
        << "/Domain [0 1]" << newl

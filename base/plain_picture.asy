@@ -1250,19 +1250,20 @@ void latticeshade(picture pic=currentpicture, path[] g, bool stroke=false,
 }
 
 void axialshade(picture pic=currentpicture, path[] g, bool stroke=false,
-                pen pena, pair a, pen penb, pair b, bool copy=true)
+                pen pena, pair a, bool extenda=true,
+                pen penb, pair b, bool extendb=true, bool copy=true)
 {
   if(copy)
     g=copy(g);
   pic.add(new void(frame f, transform t) {
-      axialshade(f,t*g,stroke,pena,t*a,penb,t*b,false);
+      axialshade(f,t*g,stroke,pena,t*a,extenda,penb,t*b,extendb,false);
     },true);
   pic.addPath(g);
 }
 
 void radialshade(picture pic=currentpicture, path[] g, bool stroke=false,
-                 pen pena, pair a, real ra, pen penb, pair b, real rb,
-                 bool copy=true)
+                 pen pena, pair a, real ra, bool extenda=true,
+                 pen penb, pair b, real rb, bool extendb=true, bool copy=true)
 {
   if(copy)
     g=copy(g);
@@ -1270,7 +1271,7 @@ void radialshade(picture pic=currentpicture, path[] g, bool stroke=false,
       pair A=t*a, B=t*b;
       real RA=abs(t*(a+ra)-A);
       real RB=abs(t*(b+rb)-B);
-      radialshade(f,t*g,stroke,pena,A,RA,penb,B,RB,false);
+      radialshade(f,t*g,stroke,pena,A,RA,extenda,penb,B,RB,extendb,false);
     },true);
   pic.addPath(g);
 }

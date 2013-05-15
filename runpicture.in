@@ -153,17 +153,21 @@ void latticeshade(picture *f, patharray *g, bool stroke=false,
 }
 
 void axialshade(picture *f, patharray *g, bool stroke=false, pen pena, pair a,
-                pen penb, pair b, bool copy=true)
+                bool extenda=true, pen penb, pair b, bool extendb=true,
+                bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  f->append(new drawAxialShade(*copyarray(g),stroke,pena,a,penb,b));
+  f->append(new drawAxialShade(*copyarray(g),stroke,pena,a,extenda,penb,b,
+                               extendb));
 }
 
 void radialshade(picture *f, patharray *g, bool stroke=false, pen pena,
-                 pair a, real ra, pen penb, pair b, real rb, bool copy=true)
+                 pair a, real ra, bool extenda=true, pen penb, pair b, real rb,
+                 bool extendb=true, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  f->append(new drawRadialShade(*copyarray(g),stroke,pena,a,ra,penb,b,rb));
+  f->append(new drawRadialShade(*copyarray(g),stroke,pena,a,ra,extenda,
+                                penb,b,rb,extendb));
 }
 
 void gouraudshade(picture *f, patharray *g, bool stroke=false,

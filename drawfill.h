@@ -115,13 +115,16 @@ public:
 class drawAxialShade : public drawShade {
 protected:
   pair a;
+  bool extenda;
   pen penb;
   pair b;
+  bool extendb;
   ColorSpace colorspace;
 public:  
   drawAxialShade(const vm::array& src, bool stroke, pen pentype,
-                 pair a, pen penb, pair b) 
-    : drawShade(src,stroke,pentype), a(a), penb(penb), b(b) {}
+                 pair a, bool extenda, pen penb, pair b, bool extendb) 
+    : drawShade(src,stroke,pentype), a(a), extenda(extenda), penb(penb),
+      b(b), extendb(extendb) {}
   
   bool svgpng() {return false;}
   
@@ -132,7 +135,7 @@ public:
   }
   
   void shade(psfile *out) {
-    out->gradientshade(true,colorspace,pentype,a,0,penb,b,0);
+    out->gradientshade(true,colorspace,pentype,a,0,extenda,penb,b,0,extendb);
   }
   
   drawElement *transformed(const transform& t);
@@ -144,8 +147,10 @@ protected:
   double rb;
 public:
   drawRadialShade(const vm::array& src, bool stroke,
-                  pen pentype, pair a, double ra, pen penb, pair b, double rb)
-    : drawAxialShade(src,stroke,pentype,a,penb,b), ra(ra), rb(rb) {}
+                  pen pentype, pair a, double ra, bool extenda, pen penb,
+                  pair b, double rb, bool extendb)
+    : drawAxialShade(src,stroke,pentype,a,extenda,penb,b,extendb),
+      ra(ra), rb(rb) {}
   
   bool svgpng() {return ra > 0.0;}
   
@@ -154,7 +159,7 @@ public:
   }
   
   void shade(psfile *out) {
-    out->gradientshade(false,colorspace,pentype,a,ra,penb,b,rb);
+    out->gradientshade(false,colorspace,pentype,a,ra,extenda,penb,b,rb,extendb);
   }
   
   drawElement *transformed(const transform& t);
