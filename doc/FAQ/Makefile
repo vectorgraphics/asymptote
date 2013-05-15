@@ -1,15 +1,11 @@
 BFNNCONV = bfnnconv.pl m-ascii.pl m-html.pl m-info.pl m-lout.pl m-post.pl
 
-FAQ = asy-faq.html asy-faq.ascii asy-faq.info
-
 all: faq
 
-$(FAQ): $(BFNNCONV) asy-faq.bfnn
+faq: $(BFNNCONV) asy-faq.bfnn
 	mkdir -p asy-faq.html
 	perl bfnnconv.pl asy-faq.bfnn
 	perl bfnnconv.pl asy-faq.bfnn
-
-faq:	$(FAQ)
 
 clean: FORCE
 	-rm -f *~ core a.out *.lout *.ps *.info *.ascii *.xrefdb *.post
