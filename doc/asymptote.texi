@@ -89,7 +89,7 @@ Drawing commands
 Programming
 
 * Data types::                  void, bool, int, real, pair, triple, string
-* Paths and guides::            
+* Paths and guides::
 * Pens::                        Colors, line types, line widths, font sizes
 * Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
@@ -167,7 +167,7 @@ Base modules
 Graphical User Interface
 
 * GUI installation::            Installing @code{xasy}
-* GUI usage::                   
+* GUI usage::
 
 @end detailmenu
 @end menu
@@ -588,18 +588,17 @@ used; if it is old we recommend first putting
 in the @code{Asymptote} source directory.
 
 On @code{UNIX} platforms (other than @code{MacOS X}), we recommend
-using version @code{2.6.0} of the @code{freeglut} library due to the
-broken menu feature in the @code{2.8.0} release. To compile
+using version @code{2.8.1} of the @code{freeglut} library. To compile
 @code{freeglut}, download
 @quotation
-@url{http://prdownloads.sourceforge.net/freeglut/freeglut-2.6.0.tar.gz}
+@url{http://prdownloads.sourceforge.net/freeglut/freeglut-2.8.1.tar.gz}
 @end quotation
 @noindent
 and type (as the root user):
 @verbatim
-gunzip freeglut-2.6.0.tar.gz
-tar -xf freeglut-2.6.0.tar
-cd freeglut-2.6.0
+gunzip freeglut-2.8.1.tar.gz
+tar -xf freeglut-2.8.1.tar
+cd freeglut-2.8.1
 ./configure --prefix=/usr
 make install
 cd ..
@@ -1738,7 +1737,7 @@ In addition, it supports many features beyond the ones found in those languages.
 
 @menu
 * Data types::                  void, bool, int, real, pair, triple, string
-* Paths and guides::            
+* Paths and guides::
 * Pens::                        Colors, line types, line widths, font sizes
 * Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
@@ -9259,7 +9258,7 @@ The modified figure can then be saved as a normal @code{Asymptote} file.
 
 @menu
 * GUI installation::            Installing @code{xasy}
-* GUI usage::                   
+* GUI usage::
 @end menu
 
 @node GUI installation
@@ -9687,4 +9686,30 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  ascii piecewise arcpoint spacings tilings sncndn resizing
 @c  LocalWords:  differentiable vectorization vectorized asydir normals quartic
 @c  LocalWords:  wavepacket kerned parametrized specular hyperboloid Bourke's
-@c  LocalWords:  Michail
+@c  LocalWords:  Michail 0pt 1filll 's 3D latin1 labelpath3 2D graph3
+@c  LocalWords:  grid3 contour3 i386 psv a4 gsview32 freeglut 'load '
+@c  LocalWords:  'asy 'lasy 'auto 5bp 1cm sqrtx01 4g extenda extendb
+@c  LocalWords:  bb llx 2S 100pt 3t bezier2 bool3 x0 angle1 angle2 z1
+@c  LocalWords:  z2 before' struct X11 x11colors type1cm 12pt OT1 5mm
+@c  LocalWords:  cmr12 x' y' xsize ysize 25cm s1 s2 neighbourhood u''
+@c  LocalWords:  s'' 3x 5x 3y 602e 2x 2y 3sin 10cm 204e addby7 10x Ai
+@c  LocalWords:  only'' pow10 log10 expm1 log1p atan2 Ai Ai Ai Ai Ai
+@c  LocalWords:  Ai Ai x1 x2 graph2d attachfile2 n0 P0 n1 P1 markers1
+@c  LocalWords:  interpolate1 markers2 inlinemovie3 media9 U3D T2A 5E
+@c  LocalWords:  embeddedu3d curvedlabel3 value2 tickvalue inner'' 2N
+@c  LocalWords:  lineargraph0 scalings log2 log2graph 5cm BWRainbow2
+@c  LocalWords:  guide3 path3 unitcircle3 2E 2n noV 100d PostScript3D
+@c  LocalWords:  size3 fit3 theta1 phi1 theta2 phi2 v1 v2 unitsquare3
+@c  LocalWords:  t1 t2 5z 5y transform3 identity4 xscale3 yscale3
+@c  LocalWords:  zscale3 scale3 join3 BeginBar3 EndBar3 Bar3 Bars3
+@c  LocalWords:  BeginArrow3 MidArrow3 EndArrow3 Arrow3 Arrows3 axes3
+@c  LocalWords:  BeginArcArrow3 MidArcArrow3 EndArcArrow3 ArcArrow3
+@c  LocalWords:  ArcArrows3 DefaultHead3 HookHead3 TeXHead3 HookHead2
+@c  LocalWords:  DefaultHead2 TeXHead2 arrows3 NoMargin3 BeginMargin3
+@c  LocalWords:  EndMargin3 Margin3 Margins3 BeginPenMargin2 xaxis3
+@c  LocalWords:  EndPenMargin2 PenMargin2 PenMargins2 BeginPenMargin3
+@c  LocalWords:  EndPenMargin3 PenMargin3 PenMargins3 BeginDotMargin3
+@c  LocalWords:  EndDotMargin3 DotMargin3 DotMargins3 TrueMargin3
+@c  LocalWords:  yaxis3 zaxis3 ticks3 NoTicks3 arrowbar3 type2 axis3
+@c  LocalWords:  generalaxis3 vectorfield3 margin3 grid3xyz 5unit
+@c  LocalWords:  slopefield1 144x144
