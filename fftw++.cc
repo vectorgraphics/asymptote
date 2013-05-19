@@ -8,7 +8,7 @@ const double fftw::twopi=2.0*acos(-1.0);
 
 // User settings:
 unsigned int fftw::effort=FFTW_MEASURE;
-const char *WisdomName="wisdom3.txt";
+const char *WisdomName=".wisdom";
 unsigned int fftw::maxthreads=1;
 double fftw::testseconds=0.1; // Time limit for threading efficiency tests
 
