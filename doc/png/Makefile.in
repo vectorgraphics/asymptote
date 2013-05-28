@@ -26,6 +26,9 @@ asymptote.info: $(SOURCE)
 info:	$(SOURCE) $(ASYFILES:.asy=.png) latexusage.png
 	makeinfo --no-split ../asymptote
 
+../options:
+	cd .. && $(MAKE) options
+
 html:	index.html
 
 clean: FORCE
