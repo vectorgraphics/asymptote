@@ -1599,10 +1599,12 @@ real simpson(callableReal *f, real a, real b, real acc=DBL_EPSILON,
 {
   real integral;
   if(dxmax <= 0) dxmax=fabs(b-a);
+  callable *oldFunc=Func;
   Func=f;
   FuncStack=Stack;
   if(!simpson(integral,wrapFunction,a,b,acc,dxmax))
     error("nesting capacity exceeded in simpson");
+  Func=oldFunc;
   return integral;
 }
 
