@@ -289,7 +289,7 @@ We recommend subscribing to new release announcements at
 @noindent
 Users may also wish to monitor the @code{Asymptote} forum:
 @quotation
-@url{http://sourceforge.net/projects/asymptote/forums/forum/409349}
+@url{http://sourceforge.net/p/asymptote/discussion/409349}
 @end quotation
 @noindent
 
@@ -9358,7 +9358,7 @@ Questions on installing and using @code{Asymptote} that are not
 addressed in the @acronym{FAQ} should be sent to the
 @code{Asymptote} forum: 
 @quotation
-@url{http://sourceforge.net/projects/asymptote/forums/forum/409349}
+@url{http://sourceforge.net/p/asymptote/discussion/409349}
 @end quotation
 @noindent
 Including an example that illustrates what you are trying to do will help
