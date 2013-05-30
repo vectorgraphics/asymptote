@@ -30,7 +30,7 @@ Compiling Asymptote from Subversion Developmental Source Code
 
 To compile from Subversion developmental source code:
 
-svn co http://asymptote.svn.sourceforge.net/svnroot/asymptote/trunk/asymptote
+svn co http://svn.code.sf.net/p/asymptote/code/trunk/asymptote 
 cd asymptote
 ./autogen.sh
 ./configure

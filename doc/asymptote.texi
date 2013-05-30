@@ -739,7 +739,7 @@ can be enabled by running @code{asy-kate.sh} in the
 The following commands are needed to install the latest development version of
 @code{Asymptote} using @code{Subversion}:
 @verbatim
-svn co http://asymptote.svn.sourceforge.net/svnroot/asymptote/trunk/asymptote
+svn co http://svn.code.sf.net/p/asymptote/code/trunk/asymptote 
 cd asymptote
 ./autogen.sh
 ./configure
