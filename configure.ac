@@ -331,12 +331,7 @@ void f(void) {
 		       AC_MSG_NOTICE([*** Could not find libglut: will compile without GLUT support ***]))
 esac
    if test "x$enable_offscreen" != "xno"; then
-           AC_CHECK_LIB([OSMesa],OSMesaCreateContext,
-               	       AC_CHECK_LIB([glapi],_glapi_get_context,
-				  [AC_DEFINE(HAVE_LIBOSMESA, 1,
-		     [Define if you have the `OSMesa' library (-lOSMesa).])
-			     LIBS=$LIBS"-lOSMesa -lglapi"],
-			AC_MSG_NOTICE([*** Could not find libglapi: will compile without offscreen rendering support ***])),
+           AC_CHECK_LIB([OSMesa],OSMesaCreateContext,,
 			AC_MSG_NOTICE([*** Could not find libOSMesa: will compile without offscreen rendering support ***]))
    fi
 fi
