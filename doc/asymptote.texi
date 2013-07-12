@@ -5441,7 +5441,7 @@ The virtual members @code{dimension}, @code{line}, @code{csv},
 @code{word}, and @code{read} of a file are useful for reading arrays.
 @cindex @code{line}
 For example, if line mode is set with @code{file line(bool b=true)}, then
-reading will stop once the end of the line is reached instead
+reading will stop once the end of the line is reached instead:
 @verbatim
 file fin=input("test.txt");
 real[] A=fin.line();
@@ -8288,7 +8288,7 @@ real[][] intersections(path3 p, surface s, real fuzz=-1);
 @end verbatim
 @noindent
 returns the intersection times of a path @code{p} with a surface
-@code{s} as a sorted array of real arrays of length 2, and
+@code{s} as a sorted array of real arrays of length 3, and
 @cindex @code{intersectionpoints}
 @verbatim
 triple[] intersectionpoints(path3 p, surface s, real fuzz=-1);
