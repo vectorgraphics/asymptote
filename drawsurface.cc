@@ -599,6 +599,13 @@ void drawSphere::P(Triple& t, double x, double y, double z)
     double temp=z; z=x; x=-temp;
   }
   
+  if(T == NULL) {
+    t[0]=x;
+    t[1]=y;
+    t[2]=z;
+    return;
+  }
+  
   double f=T[12]*x+T[13]*y+T[14]*z+T[15];
   if(f == 0.0) run::dividebyzero();
   f=1.0/f;
