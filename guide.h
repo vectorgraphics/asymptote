@@ -224,22 +224,33 @@ public:
 // tensions in between.
 typedef mem::vector<guide *> guidevector;
 
+// A multiguide represents a guide given by the first "length" items of 
+// the vector pointed to by "base".
+// The constructor, if given another multiguide as a first argument,
+// will try to avoid allocating a new "base" array.
 class multiguide : public guide {
-  guidevector v;
+    guidevector *base;
+    size_t length;
+
+    guide *subguide(size_t i) const
+    {
+        assert(i < length);
+        assert(length <= base->size());
+        return (*base)[i];
+    }
 
 public:
+
+  multiguide(guidevector& v);
 
   void flatten(flatguide&, bool=true);
   
   bool cyclic() {
-    size_t n=v.size();
+    size_t n=length;
     if(n < 1) return false;
-    return v[n-1]->cyclic();
+    return subguide(n-1)->cyclic();
   }
   
-  multiguide(guidevector& v)
-    : v(v) {}
-
   path solve() {
     if (settings::verbose>3) {
       cerr << "solving guide:\n";
@@ -259,7 +270,8 @@ public:
   void print(ostream& out) const;
   
   side printLocation() const {
-    return v.back()->printLocation();
+    int n = length;
+    return subguide(n-1)->printLocation();
   }
 };
 

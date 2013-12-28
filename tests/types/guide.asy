@@ -140,5 +140,21 @@ pair[] z=controlSpecifier(g,0);
 assert(close(z[0],(4,6)));
 assert(close(z[1],(3,5)));
 
+// Test building guides in loops.
+int N = 100;
+guide g;
+for (int i = 0; i < N; ++i)
+    g = g--(i,i^2);
+path p=g;
+for (int i = 0; i < N; ++i)
+    assert(point(p, i) == (i,i^2));
+
+int N = 100;
+guide g;
+for (int i = 0; i < N; ++i)
+    g = (i,i^2)--g;
+path p=g;
+for (int i = N-1, j = 0; i >= 0; --i, ++j)
+    assert(point(p, j) == (i,i^2));
 EndTest();
 
