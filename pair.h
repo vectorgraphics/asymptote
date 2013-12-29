@@ -100,7 +100,7 @@ public:
   friend pair operator/ (const pair& z, const pair& w)
   {
     if (!w.nonZero())
-      reportError("divison by pair (0,0)");
+      reportError("division by pair (0,0)");
 
     double t = 1.0 / (w.x*w.x + w.y*w.y);
     return pair(t*(z.x*w.x + z.y*w.y),

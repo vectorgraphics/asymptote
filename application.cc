@@ -368,7 +368,7 @@ bool namedFormals(signature *sig)
 // Tests if arguments in the source signature can be matched to the formals
 // in the target signature with no casting or packing.
 // This allows overloaded args, but not named args.
-bool exactlyMatchable(signature *target, signature *source)
+bool exactMightMatch(signature *target, signature *source)
 {
   // Open signatures never exactly match.
   if (target->isOpen)
@@ -458,21 +458,34 @@ app_list exactMultimatch(env &e,
 
     function *ft = (function *)*t;
 
-    if (!exactlyMatchable(ft->getSignature(), source))
+    // First we run a test to see if all arguments could be exactly matched.
+    // If this returns false, no such match is possible.
+    // If it returns true, an exact match may or may not be possible.
+    if (!exactMightMatch(ft->getSignature(), source))
       continue;
 
     application *a=application::match(e, ft, source, al);
-    assert(a);
 
+    // Consider calling
+    //   void f(A a=new A, int y)
+    // with
+    //   f(3)
+    // This matches exactly if there is no implicit cast from int to A.
+    // Otherwise, it does not match.
+    // Thus, there is no way to know if the
+    // match truly is exact without looking at the environment.
+    // In such a case, exactMightMatch() must return true, but there is no
+    // exact match.  Such false positives are eliminated here.
+    // 
     // Consider calling
     //   void f(int x, real y=0.0, int z=0)
     // with
     //   f(1,2)
-    // exactlyMatchable will return true, matching 1 to x and 2 to z, but the
+    // exactMightMatch() will return true, matching 1 to x and 2 to z, but the
     // application::match will give an inexact match of 1 to x to 2 to y, due
     // to the cast from int to real.  Therefore, we must test for exactness
     // even after matching.
-    if (a->exact())
+    if (a && a->exact())
       l.push_back(a);
   }
 
@@ -559,6 +572,8 @@ app_list halfExactMultimatch(env &e,
 
 // Simple check if there are too many arguments to match the candidate
 // function.
+// A "tooFewArgs" variant was also implemented at some point, but did
+// not give any speed-up.
 bool tooManyArgs(types::signature *target, types::signature *source) {
   return source->getNumFormals() > target->getNumFormals() &&
          !target->hasRest();
