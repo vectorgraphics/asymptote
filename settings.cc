@@ -97,6 +97,7 @@ string defaultPDFViewer="open";
 string defaultPDFViewer="acroread";
 #endif  
 string defaultGhostscript="gs";
+string defaultGhostscriptLibrary="/usr/lib/libgs.so";
 string defaultDisplay="display";
 string defaultAnimate="animate";
 void queryRegistry() {}
@@ -112,7 +113,8 @@ const char pathSeparator=';';
 string defaultPSViewer="cmd";
 //string defaultPDFViewer="AcroRd32.exe";
 string defaultPDFViewer="cmd";
-string defaultGhostscript="gswin32c.exe";
+string defaultGhostscript;
+string defaultGhostscriptLibrary;
 //string defaultDisplay="imdisplay";
 string defaultDisplay="cmd";
 //string defaultAnimate="animate";
@@ -124,7 +126,7 @@ const string dirsep="\\";
 // Use key to look up an entry in the MSWindows registry, respecting wild cards
 string getEntry(const string& location, const string& key)
 {
-  string path="/proc/registry/"+location+key;
+  string path="/proc/registry"+location+key;
   size_t star;
   string head;
   while((star=path.find("*")) < string::npos) {
@@ -172,17 +174,22 @@ string getEntry(const string& location, const string& key)
 // Use key to look up an entry in the MSWindows registry, respecting wild cards
 string getEntry(const string& key)
 {
-  string entry=getEntry("HKEY_CURRENT_USER/Software/",key);
-  if(entry.empty()) entry=getEntry("HKEY_LOCAL_MACHINE/SOFTWARE/",key);
+  string entry=getEntry("64/HKEY_CURRENT_USER/Software/",key);
+  if(entry.empty()) entry=getEntry("64/HKEY_LOCAL_MACHINE/SOFTWARE/",key);
+  if(entry.empty()) entry=getEntry("/HKEY_CURRENT_USER/Software/",key);
+  if(entry.empty()) entry=getEntry("/HKEY_LOCAL_MACHINE/SOFTWARE/",key);
   return entry;
 }
 
 void queryRegistry()
 {
-  string gs=getEntry("GPL Ghostscript/*/GS_DLL");
-  if(gs.empty())
-    gs=getEntry("AFPL Ghostscript/*/GS_DLL");
-  defaultGhostscript=stripFile(gs)+defaultGhostscript;
+  defaultGhostscriptLibrary=getEntry("GPL Ghostscript/*/GS_DLL");
+  if(defaultGhostscriptLibrary.empty())
+    defaultGhostscriptLibrary=getEntry("AFPL Ghostscript/*/GS_DLL");
+  
+  string gslib=stripDir(defaultGhostscriptLibrary);
+  defaultGhostscript=stripFile(defaultGhostscriptLibrary)+
+    ((gslib.empty() || gslib.substr(5,2) == "32") ? "gswin32c.exe" : "gswin64c.exe");
   if(defaultPDFViewer != "cmd")
     defaultPDFViewer=getEntry("Adobe/Acrobat Reader/*/InstallPath/@")+"\\"+
       defaultPDFViewer;
@@ -1272,6 +1279,7 @@ void initSettings() {
   addOption(new envSetting("pdfviewer", defaultPDFViewer));
   addOption(new envSetting("psviewer", defaultPSViewer));
   addOption(new envSetting("gs", defaultGhostscript));
+  addOption(new envSetting("libgs", defaultGhostscriptLibrary));
   addOption(new envSetting("texpath", ""));
   addOption(new envSetting("texcommand", ""));
   addOption(new envSetting("dvips", "dvips"));

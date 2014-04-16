@@ -100,6 +100,9 @@ using namespace vm;
 using namespace camp;
 using namespace settings;
 
+#undef OUT
+#undef IN
+
 namespace run {
 using camp::pair;
 using vm::array;
@@ -434,7 +437,7 @@ string hex(pen p)
 
 Int byte(real x)
 {
-  return byte(x);
+  return camp::byte(x);
 }
 
 string colorspace(pen p)
@@ -786,8 +789,8 @@ guide* :dotsGuide(guidearray *a)
 guide* :dashesGuide(guidearray *a)
 {
   static camp::curlSpec curly;
-  static specguide curlout(&curly, camp::OUT);
-  static specguide curlin(&curly, camp::IN);
+  static camp::specguide curlout(&curly, camp::OUT);
+  static camp::specguide curlin(&curly, camp::IN);
 
   size_t n=checkArray(a);
 

@@ -10,6 +10,9 @@
 
 namespace camp {
 
+#undef OUT
+#undef IN
+  
 enum side { OUT, IN, END, JOIN };
   
 }
