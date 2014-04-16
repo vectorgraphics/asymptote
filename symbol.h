@@ -27,7 +27,7 @@ struct GCInit {
   GCInit() {
 #ifdef USEGC
     GC_set_free_space_divisor(2);
-    GC_dont_expand=0;
+    GC_set_dont_expand(0);
     GC_INIT();
 #endif  
     

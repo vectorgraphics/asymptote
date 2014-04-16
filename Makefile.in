@@ -3,7 +3,9 @@
 ARCH = unix
 POLL = poll
 
-GC = @GCDIR@
+GCVERSION = @GCVERSION@
+GC = gc-$(GCVERSION)
+LIBATOMIC = libatomic_ops-$(GCVERSION)
 GCOPTIONS = @GCOPTIONS@
 GCLIB = @GCLIB@
 GCPPLIB = @GCPPLIB@
@@ -128,8 +130,11 @@ $(GCLIB): $(GC).tar.gz
 	gunzip -c $(GC).tar.gz > $(GC).tar
 	tar -xf $(GC).tar
 	rm -f $(GC).tar
-	if test "$(GC)" = "gc6.8"; then \
-	  cd $(GC)/include && patch < ../../patches/gc6.8_AIX.patch; \
+	if test -e $(LIBATOMIC).tar.gz; then \
+	  gunzip -c $(LIBATOMIC).tar.gz > $(LIBATOMIC).tar; \
+	  tar -xf $(LIBATOMIC).tar; \
+	  rm -f $(LIBATOMIC).tar; \
+          mv $(LIBATOMIC) $(GC)/libatomic_ops; \
 	fi
 	if test "$(GC)" = "gc-7.0"; then \
 	  cd $(GC)/include/private && \

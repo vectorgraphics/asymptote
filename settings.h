@@ -75,6 +75,7 @@ inline T getSetting(string name)
 }
 
 extern Int verbose;
+extern bool compact;
 extern bool gray;
 extern bool bw;
 extern bool rgb;

@@ -118,11 +118,12 @@ fi
 AC_CHECK_HEADER(tr1/unordered_map,,
 		[AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])
 
-GCVERSION=gc-7.2d
+GCVERSION=7.4.0
+GCFILE=gc-$GCVERSION
 
-AC_CHECK_FILE($GCVERSION.tar.gz,
+AC_CHECK_FILE($GCFILE.tar.gz,
 ac_cv_use_gc=$GCVERSION,
-[GC_SYSTEM="$GCVERSION.tar.gz not found: using system Boehm garbage collector"
+[GC_SYSTEM="$GCFILE.tar.gz not found: using system Boehm garbage collector"
 ac_cv_use_gc="system"])
 AC_ARG_ENABLE(gc,
 	[AS_HELP_STRING(--enable-gc[[[=system]]],
@@ -158,18 +159,19 @@ if test "x$ac_cv_use_gc" != "xno" ; then
 	AC_CHECK_LIB([gc],[GC_malloc],[
 	  LIBS=$LIBS"-lgc "
 	  AC_MSG_NOTICE([enabling system $GCNAME])],[
-        GCDIR=$GCVERSION
+        GCDIR=$GCFILE
         INCL="-I\$(GC)/include"
 	GCLIB="\$(GC)/.libs/libgc.a"
 	AC_MSG_NOTICE($GCNAME library not found)]),
-      GCDIR=$GCVERSION
+      GCDIR=$GCFILE
       GCLIB="\$(GC)/.libs/libgc.a"
       INCL="-I\$(GC)/include"
       AC_MSG_NOTICE($GCNAME header file not found))
       CPPFLAGS=$CPPFLAGS_SAVE
       ;;
    *)
-      GCDIR=$ac_cv_use_gc
+      GCVERSION=$ac_cv_use_gc
+      GCDIR=gc-$GCVERSION
       AC_MSG_NOTICE([enabling local $GCNAME $GCDIR])
       GCLIB="\$(GC)/.libs/libgc.a"
       INCL="-I\$(GC)/include"
@@ -211,7 +213,7 @@ AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
 			   getopt="getopt getopt1",)
 
 AC_SUBST(getopt)
-AC_SUBST(GCDIR)
+AC_SUBST(GCVERSION)
 AC_SUBST(GCOPTIONS)
 AC_SUBST(GCLIB)
 AC_SUBST(GCPPLIB)
@@ -366,10 +368,12 @@ AC_OUTPUT
 if test "x$GCDIR" != "x" ; then
    AC_CHECK_FILE($GCDIR.tar.gz,,[
    echo
-   echo Please put the Boehm garbage collector tar.gz file in the current directory.
-   echo FOR EXAMPLE, USE THE COMMAND:
+   echo Please put the Boehm garbage collector tar.gz files in the current directory.
+   echo FOR EXAMPLE, USE THE COMMANDS:
    echo
-   echo wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/$GCDIR.tar.gz
+   echo wget http://hboehm.info/gc/gc_source/$GCFILE.tar.gz
+   echo wget http://hboehm.info/gc/gc_source/libatomic_ops-$GCVERSION.tar.gz
+   echo
    exit 1
    ])
 fi

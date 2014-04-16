@@ -214,6 +214,9 @@ char *argv0;
 
 // The verbosity setting, a global variable.
 Int verbose;
+
+// Conserve memory at the expense of speed.
+bool compact;
   
 // Colorspace conversion flags (stored in global variables for efficiency). 
 bool gray;
@@ -1198,7 +1201,7 @@ void initSettings() {
 #ifdef USEGC  
   addOption(new boolrefSetting("compact", 0,
                                "Conserve memory at the expense of speed",
-                               (bool *) &GC_dont_expand));
+                               &compact));
   addOption(new divisorOption("divisor", 0, "n",
                               "Garbage collect using purge(divisor=n) [2]"));
 #endif  
