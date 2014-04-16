@@ -15,9 +15,6 @@ revolution a=revolution(p3,Y,0,360);
 draw(surface(a),green,render(compression=Low,merge=true));
 draw(p3,blue);
 
-xtick((0,0,0));
-xtick((1,0,0));
-
 xaxis3(Label("$x$",1),Arrow3);
 yaxis3(Label("$y$",1),ymax=1.5,dashed,Arrow3);
 dot(Label("$(1,1)$"),(1,1,0));

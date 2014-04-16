@@ -1329,7 +1329,7 @@ using the vertex colors specified in the @math{n \times 4} pen array
 @code{p} and internal control points in the @math{n \times 4}
 array @code{z}, is implemented with
 @verbatim
-void tensorshade(picture pic=currentpicture, path g, bool stroke=false,
+void tensorshade(picture pic=currentpicture, path[] g, bool stroke=false,
                  pen fillrule=currentpen, pen[][] p, path[] b=g,
                  pair[][] z=new pair[][]);
 @end verbatim

@@ -185,7 +185,6 @@ int unique(real[] a, real x) {
   if(i == -1 || x != a[i]) {
     ++i;
     a.insert(i,x);
-    return i;
   }
   return i;
 }
@@ -195,7 +194,6 @@ int unique(string[] a, string x) {
   if(i == -1 || x != a[i]) {
     ++i;
     a.insert(i,x);
-    return i;
   }
   return i;
 }

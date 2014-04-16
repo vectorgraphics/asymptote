@@ -348,6 +348,18 @@ patch reverse(patch s)
   return S;
 }
 
+// Return the tensor product patch control points corresponding to path p
+// and points internal.
+pair[][] tensor(path p, pair[] internal)
+{
+  return new pair[][] {
+    {point(p,0),precontrol(p,0),postcontrol(p,3),point(p,3)},
+      {postcontrol(p,0),internal[0],internal[3],precontrol(p,3)},
+        {precontrol(p,1),internal[1],internal[2],postcontrol(p,2)},
+          {point(p,1),postcontrol(p,1),precontrol(p,2),point(p,2)}
+  };
+}
+
 // Return the Coons patch control points corresponding to path p.
 pair[][] coons(path p)
 {
@@ -367,13 +379,7 @@ pair[][] coons(path p)
                         +3*(precontrol(p,j-1)+postcontrol(p,j+1))
                         -point(p,j+2));
   }
-    
-  return new pair[][] {
-    {point(p,0),precontrol(p,0),postcontrol(p,3),point(p,3)},
-      {postcontrol(p,0),internal[0],internal[3],precontrol(p,3)},
-        {precontrol(p,1),internal[1],internal[2],postcontrol(p,2)},
-          {point(p,1),postcontrol(p,1),precontrol(p,2),point(p,2)}
-  };
+  return tensor(p,internal);
 }
 
 // Decompose a possibly nonconvex cyclic path into an array of paths that
