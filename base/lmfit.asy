@@ -566,7 +566,7 @@ void lm_lmdif(int m, int n, real[] x, real[] fvec, real ftol, real xtol, real gt
   
   info.val = 0;
   evaluate(x, m, fvec, data, info);
-  printout(n, x, m, fvec, data, 0, 0, ++nfev.val);
+  if(printout != null) printout(n, x, m, fvec, data, 0, 0, ++nfev.val);
   if (info.val < 0)
     return;
   fnorm = lm_enorm(m, fvec);
@@ -580,7 +580,7 @@ void lm_lmdif(int m, int n, real[] x, real[] fvec, real ftol, real xtol, real gt
       x[j] = temp + step;
       info.val = 0;
       evaluate(x, m, wa4, data, info);
-      printout(n, x, m, wa4, data, 1, iter, ++nfev.val);
+      if(printout != null) printout(n, x, m, wa4, data, 1, iter, ++nfev.val);
       if (info.val < 0)
         return;
       for (i = 0; i < m; ++i)
@@ -659,7 +659,7 @@ void lm_lmdif(int m, int n, real[] x, real[] fvec, real ftol, real xtol, real gt
 
       info.val = 0;
       evaluate(wa2, m, wa4, data, info);
-      printout(n, x, m, wa4, data, 2, iter, ++nfev.val);
+      if(printout != null) printout(n, x, m, wa4, data, 2, iter, ++nfev.val);
       if (info.val < 0)
         return;
 
@@ -751,7 +751,7 @@ void lm_minimize(int m_dat, int n_par, real[] par, lm_evaluate_ftype evaluate, l
 
   lm_lmdif(m, n, par, fvec, control.ftol, control.xtol, control.gtol, control.maxcall * (n + 1), control.epsilon, diag, 1, control.stepbound, control.info, control.nfev, fjac, ipvt, qtf, wa1, wa2, wa3, wa4, evaluate, printout, data);
 
-  printout(n, par, m, fvec, data, -1, 0, control.nfev.val);
+  if(printout != null) printout(n, par, m, fvec, data, -1, 0, control.nfev.val);
   control.fnorm = lm_enorm(m, fvec);
   if (control.info.val < 0)
     control.info.val = 10;
