@@ -227,7 +227,7 @@ AC_CHECK_LIB([ncurses], [setupterm], [AC_DEFINE(HAVE_LIBCURSES)
 AC_CHECK_LIB([m], [sqrt],,
 AC_MSG_ERROR([*** Please install libm on your system ***]))
 AC_CHECK_LIB([z], [deflate],,
-AC_MSG_ERROR([*** Please install libz on your system ***]))
+AC_MSG_ERROR([*** Please install libz or zlib-devel on your system ***]))
 AX_PTHREAD
 AC_CHECK_LIB([sigsegv], [stackoverflow_install_handler])
 AC_CHECK_LIB([rt], [sched_yield])
