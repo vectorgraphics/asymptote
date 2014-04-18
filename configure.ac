@@ -52,7 +52,7 @@ fi
 ])
 
 AC_CHECK_PROGS(TEXI2DVI,[texi2dvi texi2dvi4a2ps],
-[echo texi2dvi is missing! Please put http://asymptote.sourceforge.net/asymptote.pdf in the doc directory and touch doc/asymptote.pdf; exit 1;])
+[echo texi2dvi is missing! Please put http://asymptote.sourceforge.net/asymptote.pdf in the doc directory, touch doc/asymptote.pdf, and run configure again; exit 1;])
 
 AC_SUBST(TEXI2DVI)
 
