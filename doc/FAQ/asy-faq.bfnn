@@ -421,7 +421,7 @@ size argument. If you want to do this globally, you can override the
 pen-dependent arrowsize function like this:
  
 \verbatim
-arrowsize=new real(pen p=currentpen) {return 2mm;};
+DefaultHead.size=new real(pen p=currentpen) {return 2mm;};
 \endverbatim
  
 \question 26jun:arrowhead Can I create other arrowhead styles?
