@@ -4024,7 +4024,7 @@ struct T {
   int x;
 }
 
-T foo=new T;
+T foo;
 T bar=foo;
 bar.x=5;
 @end verbatim
@@ -4045,7 +4045,7 @@ struct T {
   ++Tcount;
 }
 
-T foo=new T;
+T foo;
 @end verbatim
 
 Here, the expression @code{new T} will produce a new instance of the class, but
@@ -4112,7 +4112,7 @@ struct Person {
   string lastname;
 }
 
-Person joe=new Person;
+Person joe;
 joe.firstname="Joe";
 joe.lastname="Jones";
 @end verbatim
@@ -4129,7 +4129,7 @@ struct Person {
   string lastname;
 
   static Person Person(string firstname, string lastname) {
-    Person p=new Person;
+    Person p;
     p.firstname=firstname;
     p.lastname=lastname;
     return p;
@@ -4165,7 +4165,7 @@ structure is called @code{Foo}):
 
 @example
 static Foo Foo(@var{args}) @{
-  Foo instance=new Foo;
+  Foo instance;
   instance.operator init(@var{args});
   return instance;
 @}
