@@ -1,12 +1,13 @@
 % Generate inline PRC images for latex with
-% asy -inlineimage teapot -render=4
+% asy -inlineimage cube -render=4
 %
 % Generate inline PRC images for pdflatex with
-% asy -inlineimage teapot -render=4 -tex pdflatex
+% asy -inlineimage cube -render=4 -tex pdflatex
 %
 \documentclass[12pt]{article}
-\input teapot.pre
+\input cube.pre
+\usepackage[bigfiles,noplaybutton]{media9}
 \RequirePackage{color,graphicx}
 \begin{document}
-\input teapot.tex
+\input cube.tex
 \end{document}

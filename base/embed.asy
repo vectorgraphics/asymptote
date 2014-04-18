@@ -1,4 +1,4 @@
-if(latex()) {
+if(latex() && !settings.inlineimage) {
   usepackage("hyperref");
   texpreamble("\hypersetup{"+settings.hyperrefOptions+"}");
   usepackage("media9","bigfiles,noplaybutton");
