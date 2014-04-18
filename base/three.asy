@@ -2630,7 +2630,7 @@ string embed3D(string prefix, string label=prefix, string text=label,
   if(lightscript)
     writeJavaScript(name,lightscript(light),script);
 
-  if(!settings.inlinetex)
+  if(!settings.inlinetex && !prconly())
     file3.push(prefix+".prc");
 
   static transform3 flipxz=xscale3(-1)*zscale3(-1);
@@ -2867,13 +2867,13 @@ object embed(string prefix=outprefix(), string label=prefix,
 
   if(prefix == "") prefix=outprefix();
   bool prc=prc(format);
-  bool preview=settings.render > 0;
+  bool preview=settings.render > 0 && !prconly();
   if(prc) {
     // The media9.sty package cannot handle spaces or dots in filenames.
     string dir=stripfile(prefix);
     prefix=dir+replace(stripdirectory(prefix),
                        new string[][]{{" ","_"},{".","_"}});
-    if(settings.embed || nativeformat() == "pdf")
+    if((settings.embed || nativeformat() == "pdf") && !prconly())
       prefix += "+"+(string) file3.length;
   } else
     preview=false;

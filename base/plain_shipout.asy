@@ -30,9 +30,14 @@ object embed3(string, frame, string, string, string, light, projection);
 string Embed(string name, string text="", string options="", real width=0,
              real height=0);
 
+bool prconly(string format="")
+{
+  return outformat(format) == "prc";
+}
+
 bool prc0(string format="")
 {
-  return settings.prc && (outformat(format) == "pdf" || settings.inlineimage);
+  return settings.prc && (outformat(format) == "pdf" || prconly() || settings.inlineimage );
 }
 
 bool prc(string format="") {
@@ -106,7 +111,7 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
       settings.inlinetex=settings.inlineimage;
     }
     frame f=pic.fit(prefix,format,view=view,options,script,light,P);
-    if(!pic.empty2() || settings.render == 0 || prc || empty3)
+    if(!prconly() && (!pic.empty2() || settings.render == 0 || prc || empty3))
       shipout(prefix,orientation(f),format,wait,view);
     settings.inlinetex=inlinetex;
   }

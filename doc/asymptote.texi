@@ -7862,8 +7862,9 @@ In addition to the default @code{settings.prc=true}, this requires
 @code{settings.outformat="pdf"}, which can be specified by the command
 line option @code{-f pdf}, put in the @code{Asymptote} configuration
 file (@pxref{configuration file}), or specified in the script before
-@code{three.asy} (or @code{graph3.asy}) is imported. 
-The @code{media9} LaTeX package is also required (@pxref{embed}).
+@code{three.asy} (or @code{graph3.asy}) is imported.
+Version 0.35 or later of the @code{media9} LaTeX package is also
+required (@pxref{embed}).
 The example @code{pdb.asy} illustrates 
 how one can generate a list of predefined views (see @code{100d.views}).
 A stationary preview image with a resolution of @code{n} pixels per
@@ -7873,6 +7874,8 @@ file @code{externalprc.tex} illustrates how the resulting @acronym{PRC} and
 rendered image files can be extracted and processed in a separate
 @code{LaTeX} file. However, see @ref{LaTeX usage} for an easier way
 to embed three-dimensional @code{Asymptote} pictures within @code{LaTeX}.
+For specialized applications where only the raw @acronym{PRC} file is
+required, specify @code{settings.outformat="prc"}.
 The open-source @acronym{PRC} specification is available from
 @url{http://livedocs.adobe.com/acrobat_sdk/9/Acrobat9_HTMLHelp/API_References/PRCReference/PRC_Format_Specification/}.
 

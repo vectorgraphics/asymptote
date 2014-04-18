@@ -4,8 +4,8 @@ if(latex() && !settings.inlineimage) {
   usepackage("media9","bigfiles,noplaybutton");
 }
 
-// See http://www.ctan.org/tex-archive/macros/latex/contrib/media9/doc/media9.pdf
-// for documentation of the options.
+// For documentation of the options see
+// http://www.ctan.org/tex-archive/macros/latex/contrib/media9/doc/media9.pdf
 
 // Embed PRC or SWF content in pdf file 
 string embedplayer(string name, string text="", string options="",
