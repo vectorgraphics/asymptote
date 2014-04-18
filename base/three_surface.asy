@@ -1373,12 +1373,34 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
     bool group=name != "" || render.defaultnames;
     if(group)
       begingroup3(f,name == "" ? "surface" : name,render);
-    for(int i=0; i < s.s.length; ++i)
+
+    // Sort patches by mean distance from camera
+    triple camera=P.camera;
+    if(P.infinity) {
+      triple m=min(s);
+      triple M=max(s);
+      camera=P.target+camerafactor*(abs(M-m)+abs(m-P.target))*unit(P.vector());
+    }
+
+    real[][] depth=new real[s.s.length][];
+    for(int i=0; i < depth.length; ++i)
+      depth[i]=new real[] {abs(camera-s.s[i].cornermean()),i};
+
+    depth=sort(depth);
+
+    while(depth.length > 0) {
+      real[] a=depth.pop();
+      int i=round(a[1]);
       draw3D(f,s.s[i],surfacepen[i],light);
+    }
+
     if(group)
       endgroup3(f);
+
     pen modifiers=thin()+squarecap;
-    for(int k=0; k < s.s.length; ++k) {
+    while(depth.length > 0) {
+      real[] a=depth.pop();
+      int k=round(a[1]);
       pen meshpen=meshpen[k];
       if(!invisible(meshpen)) {
         if(group)
