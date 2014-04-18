@@ -280,3 +280,16 @@ if(settings.autoimport != "") {
 }
 
 cputime();
+
+// Workaround Adobe Reader transparency artifact:
+if(pdf()) {
+  if(settings.tex == "xelatex") {
+    texpreamble("\usepackage{everypage}");
+    tex("\AddEverypageHook{%
+  \makeatletter%
+  \special{pdf: put @thispage <</Group << /S /Transparency /I true /CS /DeviceRGB>> >>}%
+  \makeatother%
+}%");
+  } else
+    tex("\pdfpageattr{/Group <</S /Transparency /I true /CS /DeviceRGB>>}");
+}
