@@ -1,29 +1,41 @@
---- w32api.orig/GL/glu.h	2008-09-26 08:26:56.000000000 -0600
-+++ w32api/GL/glu.h	2008-09-27 23:39:33.000000000 -0600
-@@ -43,6 +44,10 @@
+--- w32api.orig/GL/glu.h	2014-04-18 22:30:50.186158900 -0600
++++ w32api/GL/glu.h	2014-04-18 22:42:59.095926900 -0600
+@@ -108,8 +108,12 @@
+ typedef void (CALLBACK *GLUtessCombineDataProc)(GLdouble[3],void*[4],GLfloat[4],void**,void*);
+ typedef void (CALLBACK *GLUnurbsErrorProc)(GLenum);
  
- /*************************************************************/
- 
-+/* Extensionsx */
 +#define GLU_EXT_object_space_tess          1
 +#define GLU_EXT_nurbs_tessellator          1
 +
- /* Boolean */
- #define GLU_FALSE                          0
- #define GLU_TRUE                           1
-@@ -50,6 +55,7 @@
- /* Version */
- #define GLU_VERSION_1_1                    1
- #define GLU_VERSION_1_2                    1
+ #define GLU_VERSION_1_1 1
+ #define GLU_VERSION_1_2 1
 +#define GLU_VERSION_1_3                    1
  
- /* StringName */
- #define GLU_VERSION                        100800
-@@ -66,6 +72,34 @@
- #define GLU_OUTLINE_POLYGON                100240
- #define GLU_OUTLINE_PATCH                  100241
+ #define GLU_INVALID_ENUM 100900
+ #define GLU_INVALID_VALUE 100901
+@@ -183,7 +187,17 @@
+ #define GLU_SAMPLING_METHOD 100205
+ #define GLU_U_STEP 100206
+ #define GLU_V_STEP 100207
+-
++#define GLU_NURBS_MODE                     100160
++#define GLU_NURBS_MODE_EXT                 100160
++#define GLU_NURBS_TESSELLATOR              100161
++#define GLU_NURBS_TESSELLATOR_EXT          100161
++#define GLU_NURBS_RENDERER                 100162
++#define GLU_NURBS_RENDERER_EXT             100162
++
++#define GLU_OBJECT_PARAMETRIC_ERROR        100208
++#define GLU_OBJECT_PARAMETRIC_ERROR_EXT    100208
++#define GLU_OBJECT_PATH_LENGTH             100209
++#define GLU_OBJECT_PATH_LENGTH_EXT         100209
+ #define GLU_PATH_LENGTH 100215
+ #define GLU_PARAMETRIC_ERROR 100216
+ #define GLU_DOMAIN_DISTANCE 100217
+@@ -194,6 +208,33 @@
+ #define GLU_OUTLINE_POLYGON 100240
+ #define GLU_OUTLINE_PATCH 100241
  
-+/* NurbsCallback */
 +#define GLU_NURBS_ERROR                    100103
 +#define GLU_ERROR                          100103
 +#define GLU_NURBS_BEGIN                    100164
@@ -51,37 +63,20 @@
 +#define GLU_NURBS_END_DATA                 100175
 +#define GLU_NURBS_END_DATA_EXT             100175
 +
- /* NurbsError */
- #define GLU_NURBS_ERROR1                   100251
- #define GLU_NURBS_ERROR2                   100252
-@@ -114,8 +148,18 @@
- #define GLU_SAMPLING_METHOD                100205
- #define GLU_U_STEP                         100206
- #define GLU_V_STEP                         100207
-+#define GLU_NURBS_MODE                     100160
-+#define GLU_NURBS_MODE_EXT                 100160
-+#define GLU_NURBS_TESSELLATOR              100161
-+#define GLU_NURBS_TESSELLATOR_EXT          100161
-+#define GLU_NURBS_RENDERER                 100162
-+#define GLU_NURBS_RENDERER_EXT             100162
+ #define GLU_NURBS_ERROR1 100251
+ #define GLU_NURBS_ERROR2 100252
+ #define GLU_NURBS_ERROR3 100253
+@@ -248,6 +289,13 @@
+ #define GLU_ERROR GLU_TESS_ERROR
+ #define GLU_EDGE_FLAG GLU_TESS_EDGE_FLAG
  
- /* NurbsSampling */
-+#define GLU_OBJECT_PARAMETRIC_ERROR        100208
-+#define GLU_OBJECT_PARAMETRIC_ERROR_EXT    100208
-+#define GLU_OBJECT_PATH_LENGTH             100209
-+#define GLU_OBJECT_PATH_LENGTH_EXT         100209
- #define GLU_PATH_LENGTH                    100215
- #define GLU_PARAMETRIC_ERROR               100216
- #define GLU_DOMAIN_DISTANCE                100217
-@@ -220,7 +260,11 @@
- #define GLU_TESS_MAX_COORD 1.0e150
- 
- /* Internal convenience typedefs */
++/* Internal convenience typedefs */
 +#ifdef __cplusplus
- typedef void (APIENTRY *_GLUfuncptr)();
++typedef void (APIENTRY *_GLUfuncptr)();
 +#else
 +typedef void (APIENTRY *_GLUfuncptr)(GLvoid);
 +#endif
- 
- GLAPI void APIENTRY gluBeginCurve (GLUnurbs* nurb);
- GLAPI void APIENTRY gluBeginPolygon (GLUtesselator* tess);
++ 
+ #ifdef __cplusplus
+ }
+ #endif
