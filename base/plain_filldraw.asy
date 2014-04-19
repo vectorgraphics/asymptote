@@ -18,7 +18,7 @@ void makedraw(frame f, path g, pen p, int depth=mantissaBits)
   for(int i=0; i < N; ++i) {
     pair n1=point(n,i+1);
     pair dir=unit(n1-n0);
-    real t=dirtime(g,-dir);
+    real t=dirtime(g,-dir)-epsilon;
     if(straight(g,(int) t)) t=ceil(t);
     if(t > epsilon && t < stop) {
       makedraw(f,subpath(g,0,t),p,depth);
