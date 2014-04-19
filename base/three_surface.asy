@@ -1388,18 +1388,18 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 
     depth=sort(depth);
 
-    while(depth.length > 0) {
-      real[] a=depth.pop();
-      int i=round(a[1]);
-      draw3D(f,s.s[i],surfacepen[i],light);
+    for(int p=depth.length-1; p >= 0; --p) {
+      real[] a=depth[p];
+      int k=round(a[1]);
+      draw3D(f,s.s[k],surfacepen[k],light);
     }
 
     if(group)
       endgroup3(f);
 
     pen modifiers=thin()+squarecap;
-    while(depth.length > 0) {
-      real[] a=depth.pop();
+    for(int p=depth.length-1; p >= 0; --p) {
+      real[] a=depth[p];
       int k=round(a[1]);
       pen meshpen=meshpen[k];
       if(!invisible(meshpen)) {
@@ -1438,13 +1438,13 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
     light.T=shiftless(P.T.modelview);
 
     // Draw from farthest to nearest
-    while(depth.length > 0) {
-      real[] a=depth.pop();
-      int i=round(a[1]);
-      tensorshade(t,f,s.s[i],surfacepen[i],light,P);
-      pen meshpen=meshpen[i];
+    for(int p=depth.length-1; p >= 0; --p) {
+      real[] a=depth[p];
+      int k=round(a[1]);
+      tensorshade(t,f,s.s[k],surfacepen[k],light,P);
+      pen meshpen=meshpen[k];
       if(!invisible(meshpen))
-        draw(f,t*project(s.s[i].external(),P),meshpen);
+        draw(f,t*project(s.s[k].external(),P),meshpen);
     }
     endgroup(f);
   }
