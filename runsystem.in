@@ -82,7 +82,6 @@ namespace run {
 void purge(Int divisor=0)
 {
 #ifdef USEGC
-  GC_set_dont_expand(compact);
   if(divisor > 0) GC_set_free_space_divisor((GC_word) divisor);
   GC_gcollect();
 #endif

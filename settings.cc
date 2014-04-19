@@ -764,12 +764,12 @@ struct boolrefSetting : public refSetting<bool> {
                  bool Default=false)
     : refSetting<bool>(name, code, noarg, desc,
                        types::primBoolean(), ref, Default) {}
-  bool getOption() {
+  virtual bool getOption() {
     *ref=true;
     return true;
   }
   
-  option *negation(string name) {
+  virtual option *negation(string name) {
     struct negOption : public option {
       boolrefSetting &base;
 
@@ -794,6 +794,21 @@ struct boolrefSetting : public refSetting<bool> {
   }
 };
 
+struct compactSetting : public boolrefSetting {
+  compactSetting(string name, char code, string desc, bool *ref,
+                 bool Default=false)
+    : boolrefSetting(name,code,desc,ref,Default) {}
+  bool getOption() {
+    mem::compact(1);
+    return boolrefSetting::getOption();
+  }
+  
+  option *negation(string name) {
+    mem::compact(0);
+    return boolrefSetting::negation(name);
+  }
+};
+  
 struct incrementSetting : public refSetting<Int> {
   incrementSetting(string name, char code, string desc, Int *ref)
     : refSetting<Int>(name, code, noarg, desc,
@@ -1199,7 +1214,7 @@ void initSettings() {
                              &startpath));
   
 #ifdef USEGC  
-  addOption(new boolrefSetting("compact", 0,
+  addOption(new compactSetting("compact", 0,
                                "Conserve memory at the expense of speed",
                                &compact));
   addOption(new divisorOption("divisor", 0, "n",
