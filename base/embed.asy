@@ -1,7 +1,12 @@
 if(latex() && !settings.inlineimage) {
   usepackage("hyperref");
   texpreamble("\hypersetup{"+settings.hyperrefOptions+"}");
-  usepackage("media9","bigfiles,noplaybutton");
+  usepackage("media9","bigfiles");
+  texpreamble("\makeatletter%
+\newif\ifnoplaybutton
+\@ifpackagelater{media9}{2013/11/15}{%
+\noplaybuttontrue}{}%
+\makeatother%");
 }
 
 // For documentation of the options see
@@ -13,7 +18,12 @@ string embedplayer(string name, string text="", string options="",
 {
   if(width != 0) options += ",width="+(string) (width/pt)+"pt"; 
   if(height != 0) options += ",height="+(string) (height/pt)+"pt"; 
-  return "\includemedia["+options+"]{"+text+"}{"+name+"}";
+  return "%
+\ifnoplaybutton%
+\includemedia[noplaybutton,"+options+"]{"+text+"}{"+name+"}%
+\else%
+\includemedia["+options+"]{"+text+"}{"+name+"}%
+\fi";
 }
 
 // Embed media in pdf file 

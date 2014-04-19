@@ -975,10 +975,11 @@ external links posted at @url{http://asymptote.sourceforge.net}) for
 further examples, including two-dimensional and interactive
 three-dimensional scientific graphs. Additional examples have been
 posted by Philippe Ivaldi at @url{http://www.piprime.fr/asymptote}.
-A user-written @code{Asymptote} tutorial is available at
-@verbatim
-http://www.artofproblemsolving.com/Wiki/index.php/Asymptote:_Basics
-@end verbatim
+Excellent user-written @code{Asymptote} tutorials are also available:
+
+@url{http://www.artofproblemsolving.com/Wiki/index.php/Asymptote:_Basics}
+
+@url{http://math.uchicago.edu/~cstaats/Charles_Staats_III/Notes_and_papers_files/asymptote_tutorial.pdf}
 
 @node Drawing commands
 @chapter Drawing commands
@@ -6469,7 +6470,6 @@ This module provides an interface to the @code{LaTeX} package
 @end quotation
 @noindent
 for embedding movies, sounds, and 3D objects into a @acronym{PDF} document.
-Version 0.13 (2012/09/12) of @code{media9} or later is required.
 
 @cindex @code{external}
 A more portable method for embedding movie files, which should work on any
@@ -7863,8 +7863,7 @@ In addition to the default @code{settings.prc=true}, this requires
 line option @code{-f pdf}, put in the @code{Asymptote} configuration
 file (@pxref{configuration file}), or specified in the script before
 @code{three.asy} (or @code{graph3.asy}) is imported.
-Version 0.35 or later of the @code{media9} LaTeX package is also
-required (@pxref{embed}).
+The @code{media9} LaTeX package is also required (@pxref{embed}).
 The example @code{pdb.asy} illustrates 
 how one can generate a list of predefined views (see @code{100d.views}).
 A stationary preview image with a resolution of @code{n} pixels per
