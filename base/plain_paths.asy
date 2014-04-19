@@ -364,3 +364,34 @@ path[] strokepath(path g, pen p=currentpen)
   pair center(path[] g) {return 0.5*(min(g)+max(g));}
   return shift(center(g)-center(G))*G;
 }
+
+real braceinnerangle=radians(60);
+real braceouterangle=radians(70);
+real bracemidangle=radians(0);
+real bracedefaultratio=0.14;
+path brace(pair a, pair b, real amplitude=bracedefaultratio*length(b-a))
+{
+  real length=length(b-a);
+  real sign=sgn(amplitude);
+  real hamplitude=0.5*amplitude;
+  real hlength=0.5*length;
+  path brace;
+  if(abs(amplitude) < bracedefaultratio*length) {
+    real slope=2*bracedefaultratio;
+    real controldist=(abs(hamplitude))/slope;
+    brace=(0,0){expi(sign*braceouterangle)}::
+    {expi(sign*bracemidangle)}(controldist,hamplitude)::
+    {expi(sign*bracemidangle)}(hlength-controldist,hamplitude)::
+    {expi(sign*braceinnerangle)}(hlength,amplitude) {expi(-sign*braceinnerangle)}::
+    {expi(-sign*bracemidangle)}(hlength+controldist,hamplitude)::
+    {expi(-sign*bracemidangle)}(length-controldist,hamplitude)::
+    {expi(-sign*braceouterangle)}(length,0);
+  } else {
+    brace=(0,0){expi(sign*braceouterangle)}::
+    {expi(sign*bracemidangle)}(0.25*length,hamplitude)::
+    {expi(sign*braceinnerangle)}(hlength,amplitude){expi(-sign*braceinnerangle)}::
+    {expi(-sign*bracemidangle)}(0.75*length,hamplitude)::
+    {expi(-sign*braceouterangle)}(length,0);
+  }
+  return shift(a)*rotate(degrees(b-a,warn=false))*brace;
+}

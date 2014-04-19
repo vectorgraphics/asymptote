@@ -89,7 +89,7 @@ Drawing commands
 Programming
 
 * Data types::                  void, bool, int, real, pair, triple, string
-* Paths and guides::
+* Paths and guides::            Bezier curves
 * Pens::                        Colors, line types, line widths, font sizes
 * Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
@@ -1739,7 +1739,7 @@ In addition, it supports many features beyond the ones found in those languages.
 
 @menu
 * Data types::                  void, bool, int, real, pair, triple, string
-* Paths and guides::
+* Paths and guides::            Bezier curves
 * Pens::                        Colors, line types, line widths, font sizes
 * Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
@@ -2285,6 +2285,12 @@ path ellipse(pair c, real a, real b)
 }
 @end verbatim
 
+A brace can be constructed between pairs @code{a} and @code{b} with
+@cindex @code{brace}
+@verbatim
+path brace(pair a, pair b, real amplitude=bracedefaultratio*length(b-a));
+@end verbatim
+
 This example illustrates the use of all five guide connectors discussed
 in @ref{Tutorial} and @ref{Bezier curves}:
 @verbatiminclude join.asy
@@ -2566,6 +2572,16 @@ otherwise.
 @item pair inside(path p, pen fillrule=currentpen);
 returns an arbitrary point strictly inside a cyclic path @code{p}
 according to the fill rule @code{fillrule} (@pxref{fillrule}).
+
+@cindex @code{side}
+@item real side(pair a, pair b, pair c);
+determines the side of @code{a--b} that c lies on (negative=left,
+zero=on @code{a--b}, positive=right).
+
+@cindex @code{incircle}
+@item real incircle(pair a, pair b, pair c, pair d);
+determines the side of the counterclockwise circle through @code{a,b,c} that
+@code{d} lies on (negative=inside, 0=on circle, positive=right). 
 
 @cindex @code{strokepath}
 @item path[] strokepath(path g, pen p=currentpen);
@@ -9703,16 +9719,20 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  lineargraph0 scalings log2 log2graph 5cm BWRainbow2
 @c  LocalWords:  guide3 path3 unitcircle3 2E 2n noV 100d PostScript3D
 @c  LocalWords:  size3 fit3 theta1 phi1 theta2 phi2 v1 v2 unitsquare3
-@c  LocalWords:  t1 t2 5z 5y transform3 identity4 xscale3 yscale3
-@c  LocalWords:  zscale3 scale3 join3 BeginBar3 EndBar3 Bar3 Bars3
+@c  LocalWords:  t1 t2 5z 5y transform3 identity4 xscale3 yscale3 0pt
+@c  LocalWords:  zscale3 scale3 join3 BeginBar3 EndBar3 Bar3 Bars3 's
 @c  LocalWords:  BeginArrow3 MidArrow3 EndArrow3 Arrow3 Arrows3 axes3
-@c  LocalWords:  BeginArcArrow3 MidArcArrow3 EndArcArrow3 ArcArrow3
+@c  LocalWords:  BeginArcArrow3 MidArcArrow3 EndArcArrow3 ArcArrow3 '
 @c  LocalWords:  ArcArrows3 DefaultHead3 HookHead3 TeXHead3 HookHead2
 @c  LocalWords:  DefaultHead2 TeXHead2 arrows3 NoMargin3 BeginMargin3
 @c  LocalWords:  EndMargin3 Margin3 Margins3 BeginPenMargin2 xaxis3
 @c  LocalWords:  EndPenMargin2 PenMargin2 PenMargins2 BeginPenMargin3
 @c  LocalWords:  EndPenMargin3 PenMargin3 PenMargins3 BeginDotMargin3
-@c  LocalWords:  EndDotMargin3 DotMargin3 DotMargins3 TrueMargin3
+@c  LocalWords:  EndDotMargin3 DotMargin3 DotMargins3 TrueMargin3 3D
 @c  LocalWords:  yaxis3 zaxis3 ticks3 NoTicks3 arrowbar3 type2 axis3
-@c  LocalWords:  generalaxis3 vectorfield3 margin3 grid3xyz 5unit
-@c  LocalWords:  slopefield1 144x144
+@c  LocalWords:  generalaxis3 vectorfield3 margin3 grid3xyz 5unit 2D
+@c  LocalWords:  slopefield1 144x144 1filll 'load 'asy 'lasy 'auto 4g
+@c  LocalWords:  5bp 1cm 2S 100pt 3t bracedefaultratio incircle 12pt
+@c  LocalWords:  5mm 25cm 3x 5x 3y 602e 2x 2y 3sin 10cm 204e 10x Ai
+@c  LocalWords:  Ai Ai Ai Ai Ai Ai Ai 5E 5cm 2N 2E 2n 100d 5z 5y
+@c  LocalWords:  5unit 144x144
