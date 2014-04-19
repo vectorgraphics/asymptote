@@ -14,6 +14,7 @@ from subprocess import call
 from tempfile import mkstemp
 from os import remove
 from os import fdopen
+from os import path
 from string import split
 import xasyOptions
 
@@ -24,7 +25,12 @@ def getText(text=""):
   tempf.write(text)
   tempf.flush()
   try:
-    call(split(xasyOptions.options['externalEditor'])+[temp[1]])
+    cmdpath,cmd = path.split(xasyOptions.options['externalEditor'])
+    split_cmd = split(cmd)
+    cmdpart = [path.join(cmdpath,split_cmd[0])]
+    argpart = split_cmd[1:]+[temp[1]]
+    arglist = cmdpart+argpart
+    call(arglist)
   except:
     raise Exception('Error launching external editor.')
   tempf.seek(0)
