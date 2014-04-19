@@ -1,7 +1,8 @@
 /************
 *
 *   This file is part of a tool for producing 3D content in the PRC format.
-*   Copyright (C) 2008  Orest Shardt <shardtor (at) gmail dot com>
+*   Copyright (C) 2008  Orest Shardt <shardtor (at) gmail dot com> and
+*                       Michail Vidiassov <master@iaas.msu.ru>
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU Lesser General Public License as published by
