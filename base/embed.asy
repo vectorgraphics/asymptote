@@ -10,7 +10,7 @@ if(latex() && !settings.inlineimage) {
 }
 
 // For documentation of the options see
-// http://www.ctan.org/tex-archive/macros/latex/contrib/media9/doc/media9.pdf
+// http://mirror.ctan.org/macros/latex/contrib/media9/doc/media9.pdf
 
 // Embed PRC or SWF content in pdf file 
 string embedplayer(string name, string text="", string options="",

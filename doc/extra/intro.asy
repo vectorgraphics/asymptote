@@ -15,8 +15,8 @@ usersetting();
 viewportsize=pagewidth-2pagemargin;
 
 // To generate bibliographic references:
-// asy -k goysr
-// bibtex goysr_ 
+// asy -k intro
+// bibtex intro_ 
 bibliographystyle("alpha");
 
 itempen=fontsize(22pt);

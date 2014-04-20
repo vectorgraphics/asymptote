@@ -2994,7 +2994,7 @@ import fontsize;
 at the beginning of the file (this requires the @code{type1cm} package
 available from
 @quotation
-@url{http://www.ctan.org/tex-archive/macros/latex/contrib/type1cm/}
+@url{http://mirror.ctan.org/macros/latex/contrib/type1cm/}
 @end quotation
 and included in recent @code{LaTeX} distributions). The font size and line
 skip of a pen can be examined with the routines 
@@ -6052,7 +6052,7 @@ To switch between using inline Asymptote code with @code{latex} and
 An even better method for processing a @code{LaTeX} file with embedded
 @code{Asymptote} code is to use the @code{latexmk} utility from
 @quotation
-@url{http://www.ctan.org/tex-archive/support/latexmk/}
+@url{http://mirror.ctan.org/support/latexmk/}
 @end quotation
 @noindent
 after putting the contents of
@@ -6451,7 +6451,7 @@ The related @code{animate} module, derived from the @code{animation}
 module, generates higher-quality portable clickable @acronym{PDF} movies, with
 optional controls. This requires installing the package
 @quotation
-@url{http://www.ctan.org/tex-archive/macros/latex/contrib/animate/animate.sty}
+@url{http://mirror.ctan.org/macros/latex/contrib/animate/animate.sty}
 @noindent
 @end quotation
 @noindent
@@ -6475,7 +6475,7 @@ string pdf(fit fit=NoBox, real delay=animationdelay, string options="",
 of the @code{animate} structure accepts any of the @code{animate.sty} options,
 as described here:
 @quotation
-@url{http://www.ctan.org/tex-archive/macros/latex/contrib/animate/doc/animate.pdf}
+@url{http://mirror.ctan.org/macros/latex/contrib/animate/doc/animate.pdf}
 @end quotation
 
 @node embed
@@ -6484,7 +6484,7 @@ as described here:
 This module provides an interface to the @code{LaTeX} package
 (included with @code{MikTeX}) 
 @quotation
-@url{http://www.ctan.org/tex-archive/macros/latex/contrib/media9}
+@url{http://mirror.ctan.org/macros/latex/contrib/media9}
 @end quotation
 @noindent
 for embedding movies, sounds, and 3D objects into a @acronym{PDF} document.
@@ -6555,7 +6555,7 @@ defaultpen(font("T2A","cmr","m","n"));
 Support for Chinese, Japanese, and Korean fonts is provided by the
 CJK package: 
 @quotation
-@url{http://www.ctan.org/tex-archive/languages/chinese/CJK/}
+@url{http://mirror.ctan.org/languages/chinese/CJK/}
 @end quotation
 @noindent
 The following commands enable the CJK song family (within a label, you
