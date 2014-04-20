@@ -491,6 +491,7 @@ configuration variables @code{paperwidth} and @code{paperheight}.
 @cindex @code{texcommand}
 @cindex @code{dvips}
 @cindex @code{dvisvgm}
+@cindex @code{libgs}
 @cindex @code{convert}
 @cindex @code{display}
 @cindex @code{animate}
@@ -501,6 +502,7 @@ texpath
 texcommand
 dvips
 dvisvgm
+libgs
 convert
 display
 animate
@@ -9027,13 +9029,13 @@ variables may also be changed at runtime.
 @cindex @code{gsOptions}
 @cindex @code{psviewerOptions}
 @cindex @code{pdfviewerOptions}
+@cindex @code{pdfreloadOptions}
 @cindex @code{glOptions}
+@cindex @code{dvisvgmOptions}
 The advanced configuration variables @code{dvipsOptions},
 @code{hyperrefOptions}, @code{convertOptions}, @code{gsOptions},
-@code{psviewerOptions}, @code{pdfviewerOptions}, and @code{glOptions}
-allow specialized options to be passed as a string to the respective
-applications or libraries. The default value of @code{hyperrefOptions}
-is @code{setpagesize=false,unicode,pdfborder=0 0 0}.
+@code{psviewerOptions}, @code{pdfviewerOptions}, @code{pdfreloadOptions},
+@code{glOptions}, and @code{dvisvgmOptions} allow specialized options to be passed as a string to the respective applications or libraries. The default value of @code{hyperrefOptions} is @code{setpagesize=false,unicode,pdfborder=0 0 0}.
 
 If you insert
 @verbatim
@@ -9058,16 +9060,17 @@ at the beginning of the configuration file, it can contain arbitrary
 @cindex @code{context}
 @cindex @code{EPS}
 @cindex @code{PDF}
-@cindex @code{SVG}
 @anchor{convert}
 The default output format is @acronym{EPS} for the (default)
 @code{latex} and @code{tex} tex engine and @acronym{PDF} for the
 @code{pdflatex}, @code{xelatex}, and @code{context} tex engines.
 Alternative output formats may be produced using the @code{-f} option 
-(or @code{outformat} setting). To produce @acronym{SVG} output,
-first install @code{dvisvgm} (version 0.8.7 or later) from
-@url{http://dvisvgm.sourceforge.net/down.html} and be sure to use the
-@code{latex} or @code{tex} tex engine.
+(or @code{outformat} setting). 
+
+@cindex @code{SVG}
+@cindex @code{dvisvgm}
+@cindex @code{libgs}
+To produce @acronym{SVG} output, you will need @code{dvisvgm} (version 0.8.7 or later) from @url{http://dvisvgm.sourceforge.net} and must use the @code{latex} or @code{tex} tex engine. You might need to adjust the configuration variable @code{libgs} to point to the location of your ghostscript library @code{libgs.so} (or to an empty string, depending on how @code{dvisvgm} was configured).
 
 @code{Asymptote} can also produce any output format supported
 by the @code{ImageMagick} @code{convert} program (version 6.3.5 or
