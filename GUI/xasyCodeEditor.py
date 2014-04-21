@@ -25,7 +25,7 @@ def getText(text=""):
   tempf.write(text)
   tempf.close()
   try:
-    cmdpath,cmd = path.split(xasyOptions.options['externalEditor'])
+    cmdpath,cmd = path.split(path.expandvars(xasyOptions.options['externalEditor']))
     split_cmd = split(cmd)
     cmdpart = [path.join(cmdpath,split_cmd[0])]
     argpart = split_cmd[1:]+[temp[1]]

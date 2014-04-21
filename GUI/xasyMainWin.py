@@ -566,6 +566,8 @@ class xasyMainWin:
       os.rmdir(getAsyTempDir())
     except:
       pass
+
+    stopQuickAsy()
     self.parent.destroy()
 
   def openFile(self,name):

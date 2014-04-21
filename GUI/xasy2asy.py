@@ -65,6 +65,10 @@ def startQuickAsy():
   except:
     quickAsyFailed = True
   
+def stopQuickAsy():
+  if quickAsyRunning():
+    fout.write("exit;\n");
+
 def getAsyTempDir():
   return AsyTempDir
 

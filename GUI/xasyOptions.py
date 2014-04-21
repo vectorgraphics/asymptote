@@ -33,7 +33,7 @@ defaultOptions = {
   }
 
 if sys.platform[:3] == "win":
-  defaultOptions['externalEditor'] = "notepad.exe"
+  defaultOptions['externalEditor'] = "%PROGRAMFILES%\Windows NT\Accessories\wordpad.exe"
 else:
   defaultOptions['externalEditor'] = "emacs"
 
