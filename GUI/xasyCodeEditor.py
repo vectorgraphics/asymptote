@@ -21,9 +21,9 @@ import xasyOptions
 def getText(text=""):
   """Launch the external editor"""
   temp = mkstemp()
-  tempf = fdopen(temp[0],"r+w")
+  tempf = fdopen(temp[0],"w")
   tempf.write(text)
-  tempf.flush()
+  tempf.close()
   try:
     cmdpath,cmd = path.split(xasyOptions.options['externalEditor'])
     split_cmd = split(cmd)
@@ -31,11 +31,16 @@ def getText(text=""):
     argpart = split_cmd[1:]+[temp[1]]
     arglist = cmdpart+argpart
     call(arglist)
-  except:
+  except Exception as e:
     raise Exception('Error launching external editor.')
-  tempf.seek(0)
-  text = tempf.read()
-  remove(temp[1])
+  
+  try:
+    tempf = open(temp[1],"r")
+    text = tempf.read()
+    tempf.close()
+    remove(temp[1])
+  except Exception as e:
+    raise Exception('Error reading from external editor.')
   return text
 
 if __name__ == '__main__':
