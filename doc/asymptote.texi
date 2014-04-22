@@ -1,4 +1,4 @@
-\input texinfo   @c -*-texinfo-*-
+A\input texinfo   @c -*-texinfo-*-
 @setfilename asymptote.info
 @settitle Asymptote: the Vector Graphics Language
 @include version.texi
@@ -177,7 +177,7 @@ Graphical User Interface
 @cindex description
 
 @code{Asymptote} is a powerful descriptive vector graphics language that
-provides a mathematical coordinate-based framework for technical drawings.
+provides a mathematical coordinate-based framework for technical drawing.
 Labels and equations are typeset with @code{LaTeX}, for overall document
 consistency, yielding the same high-quality level of typesetting that
 @code{LaTeX} provides for scientific text. By default it produces
@@ -211,9 +211,10 @@ as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
 
 @item @code{LaTeX} typesetting of labels, for overall document consistency;
 
-@item the ability to generate and embed 3D vector @acronym{PRC} graphics within @acronym{PDF} files;
+@item the ability to generate and embed 3D vector @acronym{PRC}
+graphics within @acronym{PDF} files;
 
-@item a natural coordinate-based framework for technical drawings,
+@item a natural coordinate-based framework for technical drawing,
 inspired by @code{MetaPost}, with a much cleaner, powerful C++-like programming
 syntax;
 
@@ -284,7 +285,7 @@ please see also @ref{Configuring}.
 @noindent
 We recommend subscribing to new release announcements at
 @quotation
-@url{http://freshmeat.net/projects/asy}
+@url{http://freecode.com/projects/asy}
 @end quotation
 @noindent
 Users may also wish to monitor the @code{Asymptote} forum:
@@ -5238,7 +5239,8 @@ returns a deep copy of the array @code{a};
 
 @cindex @code{concat}
 @item T[] concat(... T[][] a)
-returns a new array formed by concatenating the given one-dimensional arrays given as arguments;
+returns a new array formed by concatenating the given one-dimensional
+arrays given as arguments;
 
 @cindex @code{alias}
 @item bool alias(T[] a, T[] b)
@@ -7399,7 +7401,8 @@ least-squares fit, using the @code{stats} module.
 @sp 1
 @center @image{generalaxis}
 
-@item To draw a vector field of @code{n} arrows evenly spaced along the arclength of a path, use the routine
+@item To draw a vector field of @code{n} arrows evenly spaced along
+the arclength of a path, use the routine
 @cindex @code{vectorfield}
 @verbatim
 picture vectorfield(path vector(real), path g, int n, bool truesize=false,
@@ -7410,7 +7413,8 @@ as illustrated in this simple example of a flow field:
 @sp 1
 @center @image{flow}
 
-@item To draw a vector field of @code{nx}@math{\times}@code{ny} arrows in @code{box(a,b)}, use the routine
+@item To draw a vector field of @code{nx}@math{\times}@code{ny} arrows
+in @code{box(a,b)}, use the routine
 @cindex @code{vectorfield}
 @verbatim
 picture vectorfield(path vector(pair), pair a, pair b,
@@ -9035,7 +9039,10 @@ variables may also be changed at runtime.
 The advanced configuration variables @code{dvipsOptions},
 @code{hyperrefOptions}, @code{convertOptions}, @code{gsOptions},
 @code{psviewerOptions}, @code{pdfviewerOptions}, @code{pdfreloadOptions},
-@code{glOptions}, and @code{dvisvgmOptions} allow specialized options to be passed as a string to the respective applications or libraries. The default value of @code{hyperrefOptions} is @code{setpagesize=false,unicode,pdfborder=0 0 0}.
+@code{glOptions}, and @code{dvisvgmOptions} allow specialized options
+to be passed as a string to the respective applications or
+libraries. The default value of @code{hyperrefOptions} is
+@code{setpagesize=false,unicode,pdfborder=0 0 0}.
 
 If you insert
 @verbatim
@@ -9070,7 +9077,12 @@ Alternative output formats may be produced using the @code{-f} option
 @cindex @code{SVG}
 @cindex @code{dvisvgm}
 @cindex @code{libgs}
-To produce @acronym{SVG} output, you will need @code{dvisvgm} (version 0.8.7 or later) from @url{http://dvisvgm.sourceforge.net} and must use the @code{latex} or @code{tex} tex engine. You might need to adjust the configuration variable @code{libgs} to point to the location of your ghostscript library @code{libgs.so} (or to an empty string, depending on how @code{dvisvgm} was configured).
+To produce @acronym{SVG} output, you will need @code{dvisvgm} (version
+0.8.7 or later) from @url{http://dvisvgm.sourceforge.net} and must use
+the @code{latex} or @code{tex} tex engine. You might need to adjust
+the configuration variable @code{libgs} to point to the location of
+your @code{Ghostscript} library @code{libgs.so} (or to an empty
+string, depending on how @code{dvisvgm} was configured).
 
 @code{Asymptote} can also produce any output format supported
 by the @code{ImageMagick} @code{convert} program (version 6.3.5 or
@@ -9396,7 +9408,7 @@ posted here:
 To receive announcements of upcoming releases, please subscribe to
 @code{Asymptote} at
 @quotation
-@url{http://freshmeat.net/projects/asy}
+@url{http://freecode.com/projects/asy}
 @end quotation
 @cindex bug reports
 @noindent
@@ -9728,7 +9740,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  BeginArcArrow3 MidArcArrow3 EndArcArrow3 ArcArrow3 '
 @c  LocalWords:  ArcArrows3 DefaultHead3 HookHead3 TeXHead3 HookHead2
 @c  LocalWords:  DefaultHead2 TeXHead2 arrows3 NoMargin3 BeginMargin3
-@c  LocalWords:  EndMargin3 Margin3 Margins3 BeginPenMargin2 xaxis3
+@c  LocalWords:  EndMargin3 Margin3 Margins3 BeginPenMargin2 xaxis3 '
 @c  LocalWords:  EndPenMargin2 PenMargin2 PenMargins2 BeginPenMargin3
 @c  LocalWords:  EndPenMargin3 PenMargin3 PenMargins3 BeginDotMargin3
 @c  LocalWords:  EndDotMargin3 DotMargin3 DotMargins3 TrueMargin3 3D
@@ -9737,5 +9749,9 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  slopefield1 144x144 1filll 'load 'asy 'lasy 'auto 4g
 @c  LocalWords:  5bp 1cm 2S 100pt 3t bracedefaultratio incircle 12pt
 @c  LocalWords:  5mm 25cm 3x 5x 3y 602e 2x 2y 3sin 10cm 204e 10x Ai
-@c  LocalWords:  Ai Ai Ai Ai Ai Ai Ai 5E 5cm 2N 2E 2n 100d 5z 5y
-@c  LocalWords:  5unit 144x144
+@c  LocalWords:  5E 5cm 2N 2E 2n 100d 5z 5y 0pt
+@c  LocalWords:  5unit 144x144 1filll 's 3D 2D libgs 'load 'asy 'lasy
+@c  LocalWords:  'auto 5bp 1cm 4g 2S 100pt 3t 12pt 5mm 25cm 3x 5x 3y
+@c  LocalWords:  602e 2x 2y 3sin 10cm 204e 10x
+@c  LocalWords:  Ai 5E 5cm 2N 2E 2n 100d 5z 5y 5unit dvisvgmOptions
+@c  LocalWords:  144x144
