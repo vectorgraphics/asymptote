@@ -17,6 +17,7 @@ viewportsize=pagewidth-2pagemargin;
 // To generate bibliographic references:
 // asy -k intro
 // bibtex intro_ 
+// asy -k intro
 bibliographystyle("alpha");
 
 itempen=fontsize(22pt);
@@ -418,7 +419,7 @@ asyinclude("saddle",8cm);
 //defaultpen(0.5);
 
 title("Lifting TeX to 3D");
-item("Glyphs are first split into simply connected regions and then decomposed into planar B\'ezier surface patches \cite{Bowman09,Shardt10}:");
+item("Glyphs are first split into simply connected regions and then decomposed into planar B\'ezier surface patches \cite{Bowman09,Shardt12}:");
 asyfigure("../examples/partitionExample");
 
 viewportmargin=(2,1cm);
@@ -932,7 +933,7 @@ subitem("generalizes MetaPost path construction algorithms to 3D;");
 subitem("lifts \TeX\ to 3D;");
 subitem("supports 3D billboard labels and PDF grouping.");
 
-bibliography("refs");
+bibliography("../examples/refs");
 
 viewportmargin=(2,2);
 viewportsize=0;

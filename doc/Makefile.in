@@ -93,7 +93,7 @@ clean: FORCE
 	-rm -f \
             {asymptote,asymptote_}.{aux,cp,cps,dvi,fn,info,ky,log,pg,toc,tp,vr} 
 	-rm -f asymptote_.texi
-	-rm -f CAD.{aux,dvi,log,toc}
+	-rm -f {CAD,TeXShopAndAsymptote,asyRefCard}.{aux,dvi,log,toc}
 	-rm -f options asy.1
 	cd png && $(MAKE) clean
 
