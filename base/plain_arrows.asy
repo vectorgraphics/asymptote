@@ -36,12 +36,12 @@ struct arrowhead
   filltype defaultfilltype(pen) {return FillDraw;}
 }
 
-real[] arrowbasepoints(path base, path left, path right)
+real[] arrowbasepoints(path base, path left, path right, real default=0)
 {
   real[][] Tl=transpose(intersections(left,base));
   real[][] Tr=transpose(intersections(right,base));
-  return new real[] {Tl.length > 0 ? Tl[0][0] : 0,
-      Tr.length > 0 ? Tr[0][0] : 0};
+  return new real[] {Tl.length > 0 ? Tl[0][0] : default,
+      Tr.length > 0 ? Tr[0][0] : default};
 }
 
 path arrowbase(path r, pair y, real t, real size)
@@ -87,12 +87,12 @@ SimpleHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
   path base=arrowbase(r,y,t,size);
   path left=rotate(-angle,x)*r;
   path right=rotate(angle,x)*r;
-  real[] T=arrowbasepoints(base,left,right);
+  real[] T=arrowbasepoints(base,left,right,1);
   pair denom=point(right,T[1])-y;
   real factor=denom != 0 ? length((point(left,T[0])-y)/denom) : 1;
   path left=rotate(-angle*factor,x)*r;
   path right=rotate(angle*factor,x)*r;
-  real[] T=arrowbasepoints(base,left,right);
+  real[] T=arrowbasepoints(base,left,right,1);
   return subpath(left,T[0],0)--subpath(right,0,T[1]);
 };
 
@@ -114,12 +114,12 @@ arrowhead HookHead(real dir=arrowdir, real barb=arrowbarb)
       path base=arrowbase(r,y,t,size);
       path left=rotate(-angle,x)*r;
       path right=rotate(angle,x)*r;
-      real[] T=arrowbasepoints(base,left,right);
+      real[] T=arrowbasepoints(base,left,right,1);
       pair denom=point(right,T[1])-y;
       real factor=denom != 0 ? length((point(left,T[0])-y)/denom) : 1;
       path left=rotate(-angle*factor,x)*r;
       path right=rotate(angle*factor,x)*r;
-      real[] T=arrowbasepoints(base,left,right);
+      real[] T=arrowbasepoints(base,left,right,1);
       left=subpath(left,0,T[0]);
       right=subpath(right,T[1],0);
       pair pl0=point(left,0), pl1=relpoint(left,1);

@@ -245,14 +245,6 @@ TeXHead3.head=new surface(path3 g, position position=EndPoint,
   }
 };
 
-real[] arrowbasepoints(path3 base, path3 left, path3 right)
-{
-  real[][] Tl=transpose(intersections(left,base));
-  real[][] Tr=transpose(intersections(right,base));
-  return new real[] {Tl.length > 0 ? Tl[0][0] : 0,
-      Tr.length > 0 ? Tr[0][0] : 0};
-}
-
 path3 arrowbase(path3 r, triple y, real t, real size)
 {
   triple perp=2*size*perp(dir(r,t));
