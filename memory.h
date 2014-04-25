@@ -14,12 +14,8 @@
 #include <string>
 #include <sstream>
 
-#ifndef __GNUC_PREREQ
-#define __GNUC_PREREQ(maj, min) (0)
-#endif
-
 #ifndef NOHASH
-#if __GNUC_PREREQ(4,3) || defined(__CYGWIN__)
+#if !defined(__GNUC_PREREQ) || __GNUC_PREREQ(4,3) || defined(__CYGWIN__)
 #include <tr1/unordered_map>
 #define EXT std::tr1
 #else
@@ -28,6 +24,10 @@
 #define unordered_map hash_map
 #define unordered_multimap hash_multimap
 #endif
+#endif
+
+#ifndef __GNUC_PREREQ
+#define __GNUC_PREREQ(maj, min) (0)
 #endif
 
 #ifdef __DECCXX_LIBCXX_RH70
