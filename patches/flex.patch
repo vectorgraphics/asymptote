@@ -1,132 +1,6 @@
-diff -ru flex-2.5.31/flex.skl flex-2.5.31J/flex.skl
---- flex-2.5.31/flex.skl	Mon Mar 31 18:51:38 2003
-+++ flex-2.5.31J/flex.skl	Sat Nov 13 14:00:09 2004
-@@ -488,7 +488,7 @@
- 
- #ifndef YY_TYPEDEF_YY_SIZE_T
- #define YY_TYPEDEF_YY_SIZE_T
--typedef unsigned int yy_size_t;
-+typedef size_t yy_size_t;
- #endif
- 
- #ifndef YY_STRUCT_YY_BUFFER_STATE
-@@ -515,7 +515,7 @@
- 	/* Number of characters read into yy_ch_buf, not including EOB
- 	 * characters.
- 	 */
--	int yy_n_chars;
-+	size_t yy_n_chars;
- 
- 	/* Whether we "own" the buffer - i.e., we know we created it,
- 	 * and can realloc() it to grow it, and should free() it to
-@@ -604,7 +604,7 @@
- %not-for-header
- /* yy_hold_char holds the character lost when yytext is formed. */
- static char yy_hold_char;
--static int yy_n_chars;		/* number of characters read into yy_ch_buf */
-+static size_t yy_n_chars;		/* number of characters read into yy_ch_buf */
- int yyleng;
- 
- /* Points to current character in buffer. */
-@@ -641,7 +641,7 @@
- 
- YY_BUFFER_STATE yy_scan_buffer M4_YY_PARAMS( char *base, yy_size_t size M4_YY_PROTO_LAST_ARG );
- YY_BUFFER_STATE yy_scan_string M4_YY_PARAMS( yyconst char *yy_str M4_YY_PROTO_LAST_ARG );
--YY_BUFFER_STATE yy_scan_bytes M4_YY_PARAMS( yyconst char *bytes, int len M4_YY_PROTO_LAST_ARG );
-+YY_BUFFER_STATE yy_scan_bytes M4_YY_PARAMS( yyconst char *bytes, size_t len M4_YY_PROTO_LAST_ARG );
- 
- %endif
- 
-@@ -758,7 +758,7 @@
-     size_t yy_buffer_stack_max; /**< capacity of stack. */
-     YY_BUFFER_STATE * yy_buffer_stack; /**< Stack as an array. */
-     char yy_hold_char;
--    int yy_n_chars;
-+    size_t yy_n_chars;
-     int yyleng_r;
-     char *yy_c_buf_p;
-     int yy_init;
-@@ -938,7 +938,7 @@
- %not-for-header
-     m4_ifdef( [[M4_YY_NO_UNPUT]],,
-     [[
--    static void yyunput M4_YY_PARAMS( int c, char *buf_ptr  M4_YY_PROTO_LAST_ARG);
-+    void yyunput M4_YY_PARAMS( int c, char *buf_ptr  M4_YY_PROTO_LAST_ARG);
-     ]])
- %ok-for-header
- %endif
-@@ -1248,7 +1248,7 @@
- 		yy_load_buffer_state( M4_YY_CALL_ONLY_ARG );
- 		}
- 
--	while ( 1 )		/* loops until end-of-file is reached */
-+	for ( ;; )		/* loops until end-of-file is reached */
- 		{
- %% [8.0] yymore()-related code goes here
- 		yy_cp = YY_G(yy_c_buf_p);
-@@ -1580,7 +1580,7 @@
- 
- 			if ( b->yy_is_our_buffer )
- 				{
--				int new_size = b->yy_buf_size * 2;
-+				size_t new_size = b->yy_buf_size * 2;
- 
- 				if ( new_size <= 0 )
- 					b->yy_buf_size += b->yy_buf_size / 8;
-@@ -1694,7 +1694,7 @@
- %if-c-only
- m4_ifdef( [[M4_YY_NO_UNPUT]],,
- [[
--    static void yyunput YYFARGS2( int,c, register char *,yy_bp)
-+    void yyunput YYFARGS2( int,c, register char *,yy_bp)
- %endif
- %if-c++-only
-     void yyFlexLexer::yyunput( int c, register char* yy_bp)
-@@ -1711,7 +1711,7 @@
- 	if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
- 		{ /* need to shift things up to make room */
- 		/* +2 for EOB chars. */
--		register int number_to_move = YY_G(yy_n_chars) + 2;
-+		register size_t number_to_move = YY_G(yy_n_chars) + 2;
- 		register char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
- 					YY_CURRENT_BUFFER_LVALUE->yy_buf_size + 2];
- 		register char *source =
-@@ -1777,7 +1777,7 @@
- 
- 		else
- 			{ /* need more input */
--			int offset = YY_G(yy_c_buf_p) - YY_G(yytext_ptr);
-+			long offset = YY_G(yy_c_buf_p) - YY_G(yytext_ptr);
- 			++YY_G(yy_c_buf_p);
- 
- 			switch ( yy_get_next_buffer( M4_YY_CALL_ONLY_ARG ) )
-@@ -2156,7 +2156,7 @@
- void yyFlexLexer::yyensure_buffer_stack(void)
- %endif
- {
--	int num_to_alloc;
-+	size_t num_to_alloc;
-     M4_YY_DECL_GUTS_VAR();
- 
- 	if (!YY_G(yy_buffer_stack)) {
-@@ -2271,12 +2271,12 @@
-  * M4_YY_DOC_PARAM
-  * @return the newly allocated buffer state object.
-  */
--YY_BUFFER_STATE yy_scan_bytes  YYFARGS2( yyconst char *,bytes, int ,len)
-+YY_BUFFER_STATE yy_scan_bytes  YYFARGS2( yyconst char *,bytes, size_t ,len)
- {
- 	YY_BUFFER_STATE b;
- 	char *buf;
- 	yy_size_t n;
--	int i;
-+	size_t i;
-     m4_dnl M4_YY_DECL_GUTS_VAR();
- 
- 	/* Get memory for full buffer, including space for trailing EOB's. */
-diff -ru flex-2.5.31/gen.c flex-2.5.31J/gen.c
---- flex-2.5.31/gen.c	Sun Mar 30 12:58:44 2003
-+++ flex-2.5.31J/gen.c	Sat Nov 13 14:00:09 2004
+diff -u flex-2.5.39/gen.c flex-2.5.39J/gen.c
+--- flex-2.5.39/gen.c	2014-03-26 06:46:44.000000000 -0600
++++ flex-2.5.39J/gen.c	2014-04-26 10:52:30.962073096 -0600
 @@ -55,6 +55,14 @@
   * 0 elements of its arrays, too.)
   */
@@ -142,7 +16,7 @@ diff -ru flex-2.5.31/gen.c flex-2.5.31J/gen.c
  static const char *get_int16_decl (void)
  {
  	return (gentables)
-@@ -468,7 +476,7 @@
+@@ -465,7 +473,7 @@
  	register int i, j;
  	int     numrows;
  
@@ -150,22 +24,8 @@ diff -ru flex-2.5.31/gen.c flex-2.5.31J/gen.c
 +	out_str_dec (get_yy_char_decl (), "yy_ec", csize);
  
  	for (i = 1; i < csize; ++i) {
- 		if (caseins && (i >= 'A') && (i <= 'Z'))
-@@ -870,11 +878,11 @@
- 	if (worry_about_NULs && !nultrans) {
- 		if (useecs)
- 			(void) sprintf (char_map,
--					"(*yy_cp ? yy_ec[YY_SC_TO_UI(*yy_cp)] : %d)",
-+					"(*yy_cp ? yy_ec[YY_SC_TO_UI(*yy_cp)] : (YY_CHAR) %d)",
- 					NUL_ec);
- 		else
- 			(void) sprintf (char_map,
--					"(*yy_cp ? YY_SC_TO_UI(*yy_cp) : %d)",
-+					"(*yy_cp ? YY_SC_TO_UI(*yy_cp) : (YY_CHAR) %d)",
- 					NUL_ec);
- 	}
- 
-@@ -1277,7 +1285,7 @@
+ 		ecgroup[i] = ABS (ecgroup[i]);
+@@ -1271,7 +1279,7 @@
  			fputs (_("\n\nMeta-Equivalence Classes:\n"),
  			       stderr);
  
@@ -174,7 +34,7 @@ diff -ru flex-2.5.31/gen.c flex-2.5.31J/gen.c
  		buf_prints (&yydmap_buf,
  			    "\t{YYTD_ID_META, (void**)&yy_meta, sizeof(%s)},\n",
  			    "flex_int32_t");
-@@ -1522,11 +1530,11 @@
+@@ -1516,11 +1524,11 @@
  	if (yymore_used && !yytext_is_array) {
  		indent_puts ("YY_G(yytext_ptr) -= YY_G(yy_more_len); \\");
  		indent_puts
@@ -188,18 +48,3 @@ diff -ru flex-2.5.31/gen.c flex-2.5.31J/gen.c
  
  	/* Now also deal with copying yytext_ptr to yytext if needed. */
  	skelout ();		/* %% [3.0] - break point in skel */
-diff -ru flex-2.5.31/flexint.h flex-2.5.31J/flexint.h
---- flex-2.5.31/flexint.h	Mon Dec  9 07:14:49 2002
-+++ flex-2.5.31J/flexint.h	Sat Nov 13 14:13:00 2004
-@@ -5,7 +5,10 @@
- 
- /* C99 systems have <inttypes.h>. Non-C99 systems may or may not. */
- 
--#if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
-+#ifndef __STDC_VERSION__
-+#define __STDC_VERSION__ 0
-+#endif
-+#if __STDC_VERSION__ >= 199901L
- #include <inttypes.h>
- typedef int8_t flex_int8_t;
- typedef uint8_t flex_uint8_t;
