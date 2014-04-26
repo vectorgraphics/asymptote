@@ -130,7 +130,7 @@ $(GCLIB): $(GC).tar.gz
 	gunzip -c $(GC).tar.gz > $(GC).tar
 	tar -xf $(GC).tar
 	rm -f $(GC).tar
-	if test -e $(LIBATOMIC).tar.gz; then \
+	if test -r $(LIBATOMIC).tar.gz; then \
 	  gunzip -c $(LIBATOMIC).tar.gz > $(LIBATOMIC).tar; \
 	  tar -xf $(LIBATOMIC).tar; \
 	  rm -f $(LIBATOMIC).tar; \
@@ -149,7 +149,7 @@ $(GCLIB): $(GC).tar.gz
 	if test "$(GC)" = "gc-7.2d"; then \
 	  mv gc-7.2 gc-7.2d; \
 	fi
-	cd $(GC); \
+	cd $(GC) && \
 	./configure $(GCOPTIONS); \
 	$(MAKE) check
 
