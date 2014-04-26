@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <csignal>
 #include <cstdio>
+#include <cstring>
 
 #include "interact.h"
 #include "runhistory.h"
@@ -85,10 +86,21 @@ FILE *fin=NULL;
 
 char *readpipeline(const char *prompt)
 {
+#if _POSIX_VERSION >= 200809L
   char *line=NULL;
   size_t n;
   getline(&line,&n,fin);
   return line;
+#else
+  const int max_size=256;
+  static char buf[max_size];
+  ostringstream s;
+  do {
+    if(fgets(buf,max_size-1,fin) == NULL) break;
+    s << buf;
+  } while(buf[std::strlen(buf)-1] != '\n');
+  return StrdupMalloc(s.str());
+#endif
 }
   
 void pre_readline()
