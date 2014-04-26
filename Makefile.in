@@ -37,7 +37,7 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 	fftw++asy simpson coder coenv impdatum \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	envcompleter process constructor array Delaunay predicates \
-	$(PRC) glrender tr arcball algebra3 quaternion svnrevision
+	$(PRC) glrender tr arcball algebra3 quaternion
 
 FILES = $(COREFILES) main
 
@@ -99,17 +99,23 @@ asy:	version GUIversion
 	if test -n "$(MSDOS)"; then \
 	  cat asy.rc | sed -e "s/ASYMPTOTE_VERSION/@VERSION@$(revision)/" | \
 	  windres -o asy.o; \
-	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) asy.o $(LIBS) -s -static; \
+	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) svnrevision.o asy.o $(LIBS) -s -static; \
 	else \
 	  ln -sf GUI/xasy.py $(XNAME); \
-	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) $(LIBS); \
+	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) svnrevision.o $(LIBS); \
 	fi
 
 version: $(GCLIB) $(FILES:=.o)
-	if test "$(revision)" != "$(last)"; then \
-	  echo $(REVISION)\"$(revision)\"\; > svnrevision.cc; \
+	if test -r svnrevision; then \
+	  if test "$(revision)" != "$(last)"; then \
+	    echo $(REVISION)\"$(revision)\"\; > svnrevision.cc; \
+	    $(CXX) $(OPTS) $(INCL) -o svnrevision.o -c svnrevision.cc; \
+          fi \
+	else \
+          echo $(REVISION)\"\"\; > svnrevision.cc; \
 	  $(CXX) $(OPTS) $(INCL) -o svnrevision.o -c svnrevision.cc; \
 	fi
+
 	echo string VERSION=\"@VERSION@$(revision)\"\; > base/version.asy
 	echo @set VERSION @VERSION@$(revision) > doc/version.texi
 	echo @set Datadir @datadir@ >> doc/version.texi
@@ -119,10 +125,7 @@ GUIversion:
 	echo xasyVersion = \"@VERSION@$(revision)\" >> GUI/xasyVersion.py
 
 asymptote.so: $(COREFILES:=.pic.o)
-	$(CXX) $(OPTS) -shared -o asymptote.so $(COREFILES:=.pic.o) $(SHAREDLIBS)
-
-svnrevision.cc:
-	echo $(REVISION)\"\"\; > svnrevision.cc;
+	$(CXX) $(OPTS) -shared -o asymptote.so svnrevision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
 all:  	asy sty man faq asy-keywords.el
 
