@@ -304,7 +304,7 @@ Int CLZ(Int a)
 Int CTZ(Int a) 
 {
   if((uint32_t) a > 0xFFFFFFFF) return -1;
-#if __GNUC_PREREQ(3,4)
+#if __GNUC__
   return __builtin_ctz(a);
 #else
   // find the number of trailing zeros in a 32-bit number
