@@ -983,7 +983,6 @@ Excellent user-written @code{Asymptote} tutorials are also available:
 @url{http://www.artofproblemsolving.com/Wiki/index.php/Asymptote:_Basics}
 
 @url{http://math.uchicago.edu/~cstaats/Charles_Staats_III/Notes_and_papers_files/asymptote_tutorial.pdf}
-
 @node Drawing commands
 @chapter Drawing commands
 @cindex drawing commands
@@ -9748,10 +9747,12 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  generalaxis3 vectorfield3 margin3 grid3xyz 5unit 2D
 @c  LocalWords:  slopefield1 144x144 1filll 'load 'asy 'lasy 'auto 4g
 @c  LocalWords:  5bp 1cm 2S 100pt 3t bracedefaultratio incircle 12pt
-@c  LocalWords:  5mm 25cm 3x 5x 3y 602e 2x 2y 3sin 10cm 204e 10x Ai
-@c  LocalWords:  5E 5cm 2N 2E 2n 100d 5z 5y 0pt
+@c  LocalWords:  5mm 25cm 3x 5x 3y 602e 2x 2y 3sin 10cm 204e 10x Ai '
+@c  LocalWords:  5E 5cm 2N 2E 2n 100d 5z 5y 0pt 0pt 1filll 's 3D 2D
 @c  LocalWords:  5unit 144x144 1filll 's 3D 2D libgs 'load 'asy 'lasy
 @c  LocalWords:  'auto 5bp 1cm 4g 2S 100pt 3t 12pt 5mm 25cm 3x 5x 3y
-@c  LocalWords:  602e 2x 2y 3sin 10cm 204e 10x
+@c  LocalWords:  602e 2x 2y 3sin 10cm 204e 10x 'load 'asy 'lasy 'auto
 @c  LocalWords:  Ai 5E 5cm 2N 2E 2n 100d 5z 5y 5unit dvisvgmOptions
-@c  LocalWords:  144x144
+@c  LocalWords:  144x144 5bp 1cm 4g 2S 100pt 3t 12pt 5mm 25cm 3x 5x
+@c  LocalWords:  3y 602e 2x 2y 3sin 10cm 204e 10x Ai Ai Ai Ai Ai Ai
+@c  LocalWords:  Ai Ai 5E 5cm 2N 2E 2n 100d 5z 5y

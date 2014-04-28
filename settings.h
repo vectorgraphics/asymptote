@@ -95,6 +95,7 @@ Int getScroll();
   
 extern mode_t mask;
   
+bool xe(const string& texengine);
 bool pdf(const string& texengine);
 bool latex(const string& texengine);
 bool context(const string& texengine);
