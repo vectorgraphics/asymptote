@@ -954,7 +954,7 @@ private triple[] split(triple z0, triple c0, triple c1, triple z1, real t=0.5)
 
 // Return the control points of the subpatches
 // produced by a horizontal split of P
-triple[][][] hsplit(triple[][] P)
+triple[][][] hsplit(triple[][] P, real v=0.5)
 {
   // get control points in rows
   triple[] P0=P[0];
@@ -962,10 +962,10 @@ triple[][][] hsplit(triple[][] P)
   triple[] P2=P[2];
   triple[] P3=P[3];
 
-  triple[] c0=split(P0[0],P0[1],P0[2],P0[3]);
-  triple[] c1=split(P1[0],P1[1],P1[2],P1[3]);
-  triple[] c2=split(P2[0],P2[1],P2[2],P2[3]);
-  triple[] c3=split(P3[0],P3[1],P3[2],P3[3]);
+  triple[] c0=split(P0[0],P0[1],P0[2],P0[3],v);
+  triple[] c1=split(P1[0],P1[1],P1[2],P1[3],v);
+  triple[] c2=split(P2[0],P2[1],P2[2],P2[3],v);
+  triple[] c3=split(P3[0],P3[1],P3[2],P3[3],v);
   // bottom, top
   return new triple[][][] {
     {{P0[0],c0[0],c0[1],c0[2]},
@@ -981,7 +981,7 @@ triple[][][] hsplit(triple[][] P)
 
 // Return the control points of the subpatches
 // produced by a vertical split of P
-triple[][][] vsplit(triple[][] P)
+triple[][][] vsplit(triple[][] P, real u=0.5)
 {
   // get control points in rows
   triple[] P0=P[0];
@@ -989,10 +989,10 @@ triple[][][] vsplit(triple[][] P)
   triple[] P2=P[2];
   triple[] P3=P[3];
 
-  triple[] c0=split(P0[0],P1[0],P2[0],P3[0]);
-  triple[] c1=split(P0[1],P1[1],P2[1],P3[1]);
-  triple[] c2=split(P0[2],P1[2],P2[2],P3[2]);
-  triple[] c3=split(P0[3],P1[3],P2[3],P3[3]);
+  triple[] c0=split(P0[0],P1[0],P2[0],P3[0],u);
+  triple[] c1=split(P0[1],P1[1],P2[1],P3[1],u);
+  triple[] c2=split(P0[2],P1[2],P2[2],P3[2],u);
+  triple[] c3=split(P0[3],P1[3],P2[3],P3[3],u);
   // left, right
   return new triple[][][] {
     {{P0[0],P0[1],P0[2],P0[3]},
@@ -1008,7 +1008,7 @@ triple[][][] vsplit(triple[][] P)
 
 // Return a 2D array of the control point arrays of the subpatches
 // produced by horizontal and vertical splits of P at u and v
-triple[][][][] split(triple[][] P, real u=1/2, real v=1/2)
+triple[][][][] split(triple[][] P, real u=0.5, real v=0.5)
 {
   triple[] P0=P[0];
   triple[] P1=P[1];
