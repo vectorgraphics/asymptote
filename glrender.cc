@@ -536,15 +536,10 @@ void setsize(int w, int h, int minsize=0, bool reposition=true)
   int x,y;
   
   if(minsize) {
-    if(w < minsize) {
-      h=(int) (h*(double) minsize/w+0.5);
+    if(w < minsize)
       w=minsize;
-    }
-  
-    if(h < minsize) {
-      w=(int) (w*(double) minsize/h+0.5);
+    if(h < minsize)
       h=minsize;
-    }
   }
   
   capsize(w,h);
