@@ -1611,8 +1611,7 @@ transform transform(triple u, triple v, triple O=O,
                     projection P=currentprojection)
 {
   transform3 t=P.t;
-  static real[] O={0,0,0,1};
-  real[] tO=t*O;
+  real[] tO=t*new real[] {O.x,O.y,O.z,1};
   real tO3=tO[3];
   real factor=1/tO3^2;
   real[] x=(tO3*t[0]-tO[0]*t[3])*factor;
