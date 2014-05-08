@@ -6057,7 +6057,7 @@ An even better method for processing a @code{LaTeX} file with embedded
 @end quotation
 @noindent
 after putting the contents of
-@url{http://asymptote.svn.sourceforge.net/viewvc/asymptote/trunk/asymptote/doc/latexmkrc}
+@url{http://sourceforge.net/p/asymptote/code/HEAD/tree/trunk/asymptote/doc/latexmkrc}
 @noindent
 in a file @code{latexmkrc} in the same directory. The command
 @verbatim
@@ -6072,7 +6072,7 @@ To store the figures in a separate directory named @code{asy}, one can define
 \def\asydir{asy}
 @end verbatim
 in @code{latexusage.tex} and put the contents of
-@url{http://asymptote.svn.sourceforge.net/viewvc/asymptote/trunk/asymptote/doc/latexmkrc_asydir}
+@url{http://sourceforge.net/p/asymptote/code/HEAD/tree/trunk/asymptote/doc/latexmkrc_asydir}
 in a file @code{latexmkrc} in the same directory.
 @noindent
 External @code{Asymptote} code in @code{filename.asy} should be included with
