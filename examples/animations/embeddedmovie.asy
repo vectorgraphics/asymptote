@@ -1,6 +1,6 @@
 // An embedded movie;
 //
-// See http://www.tug.org/tex-archive/macros/latex/contrib/movie15/README
+// See http://mirror.ctan.org/macros/latex/contrib/media9/doc/media9.pdf
 // for documentation of the options.
 
 import embed;       // Add embedded movie
