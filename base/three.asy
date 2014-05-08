@@ -2656,6 +2656,9 @@ string embed3D(string prefix, string label=prefix, string text=label,
     options3 += ",add3Djscript="+prefix+".js";
   options3 += ",add3Djscript=asylabels.js";
 
+  // Work around PRC viewport issue.
+  width=max(width,height);
+
   return text == "" ? Embed(prefix+".prc","",options3,width,height) :
     "\hbox to 0pt{"+text+"\hss}"+Embed(prefix+".prc","\phantom{"+text+"}",
                                        options3);
