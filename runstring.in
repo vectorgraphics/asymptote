@@ -207,8 +207,6 @@ string format(string *format, Int x, string locale=emptystring)
   
   checkformat(f,true);
   
-  Int size=snprintf(NULL,0,f,x)+1;
-  if(size < 1) size=255; // Workaround for non-C99 compliant systems.
   const char *oldlocale=NULL;
 
   if(!locale.empty()) {
@@ -217,16 +215,19 @@ string format(string *format, Int x, string locale=emptystring)
     setlocale(LC_ALL,locale.c_str());
   }
 
+  Int size=snprintf(NULL,0,f,x)+1;
+  if(size < 1) size=255; // Workaround for non-C99 compliant systems.
   char *buf=new char[size];
   snprintf(buf,size,f,x);
 
+  string s=string(buf);
+  delete[] buf;
+  
   if(oldlocale) {
     setlocale(LC_ALL,oldlocale);
     delete[] oldlocale;
   }
 
-  string s=string(buf);
-  delete[] buf;
   return s;
 }
 
@@ -280,11 +281,6 @@ string format(string *format, string separator, real x,
   char *buf=new char[size];
   snprintf(buf,size,f.c_str(),x);
 
-  if(oldlocale) {
-    setlocale(LC_ALL,oldlocale);
-    delete[] oldlocale;
-  }
-  
   bool trailingzero=f.find("#") < string::npos;
   bool plus=f.find("+") < string::npos;
   bool space=f.find(" ") < string::npos;
@@ -354,6 +350,11 @@ string format(string *format, string separator, real x,
   
   delete[] buf;
 
+  if(oldlocale) {
+    setlocale(LC_ALL,oldlocale);
+    delete[] oldlocale;
+  }
+  
   return out.str();
 }
 
