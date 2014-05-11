@@ -2,6 +2,7 @@
 
 private real fuzz=sqrtEpsilon;
 real duplicateFuzz=1e-3; // Work around font errors.
+real maxrefinements=7;
 
 private real[][] intersections(pair a, pair b, path p)
 {
@@ -291,7 +292,7 @@ path[] bezulate(path[] p)
           if(!found && k == SIZE_STEPS && length(p) > 4 && i == length(p)-1) {
             // avoid infinite recursion
             ++refinements;
-            if(refinements > mantissaBits) {
+            if(refinements > maxrefinements) {
               warning("subdivisions","too many subdivisions",position=true);
             } else {
               p=subdivide(p);
