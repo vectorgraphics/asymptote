@@ -1160,15 +1160,13 @@ triple[] intersectionpoints(path3 p, surface s, real fuzz=-1)
   return sequence(new triple(int i) {return point(p,t[i][0]);},t.length);
 }
 
-// Return true iff the bounding boxes of patch p and q overlap.
+// Return true iff the control point bounding boxes of patches p and q overlap.
 bool overlap(triple[][] p, triple[][] q, real fuzz=-1)
 {
-  triple p0=p[0][0];
-  triple q0=q[0][0];
-  triple pmin=minbezier(p,p0);
-  triple pmax=maxbezier(p,p0);
-  triple qmin=minbezier(q,q0);
-  triple qmax=maxbezier(q,q0);
+  triple pmin=minbound(p);
+  triple pmax=maxbound(p);
+  triple qmin=minbound(q);
+  triple qmax=maxbound(q);
 
   static real Fuzz=1000*realEpsilon;
   real fuzz=max(10*fuzz,Fuzz*max(abs(pmin),abs(pmax)));

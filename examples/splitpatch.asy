@@ -5,8 +5,8 @@ size(300);
 // A structure to subdivide two intersecting patches about their intersection.
 struct split
 {
-  surface[] S=sequence(new surface(int i) {return new surface;},1);
-  surface[] T=sequence(new surface(int i) {return new surface;},1);
+  surface[] S={new surface};
+  surface[] T={new surface};
 
   struct tree {
     tree[] tree=new tree[2];
@@ -17,7 +17,7 @@ struct split
   // Subdivide p and q to depth n if they overlap.
   void write(tree pt, tree qt, triple[][] p, triple[][] q, int depth=n) {
     --depth;
-    triple[][][] Split(triple[][] P)=depth % 2 == 0 ? hsplit : vsplit;
+    triple[][][] Split(triple[][] P, real u=0)=depth % 2 == 0 ? hsplit : vsplit;
     triple[][][] P=Split(p);
     triple[][][] Q=Split(q);
 
@@ -40,7 +40,7 @@ struct split
   // Output the subpatches of p from subdivision.
   void read(surface[] S, tree t, triple[][] p, int depth=n) {
     --depth;
-    triple[][][] Split(triple[][] P)=depth % 2 == 0 ? hsplit : vsplit;
+    triple[][][] Split(triple[][] P, real u=0)=depth % 2 == 0 ? hsplit : vsplit;
     triple[][][] P=Split(p);
 
     for(int i=0; i < 2; ++i) {
