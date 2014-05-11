@@ -50,7 +50,7 @@ CLEAN = camp.output svnrevision.cc base/version.asy doc/version.texi \
         GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
         asymptote.py reload.js nopapersize.ps
-EXEXTRA = piicon.eps *.views *.dat
+EXEXTRA = piicon.eps *.views *.dat *.bib
 DOCEXTRA = *.asy *.csv *.dat latexusage.tex externalprc.tex pixel.pdf
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
 LATEXFILES = asymptote.sty asycolors.sty ocg.sty latexmkrc 
