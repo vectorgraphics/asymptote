@@ -48,8 +48,9 @@ inline pair sqrt1pxm1(pair x)
 // Solve for the real roots of the quadratic equation ax^2+bx+c=0.
 quadraticroots::quadraticroots(double a, double b, double c)
 {
-  if(a == 0.0) {
-    if(b != 0.0) {
+  // Remove roots at numerical infinity.
+  if(fabs(a) <= Fuzz*(fabs(b)+fabs(c)*Fuzz)) {
+    if(fabs(b) > Fuzz*fabs(c)) {
       distinct=quadraticroots::ONE;
       roots=1;
       t1=-c/b;
@@ -64,7 +65,7 @@ quadraticroots::quadraticroots(double a, double b, double c)
   } else {
     double factor=0.5*b/a;
     double denom=b*factor;
-    if(denom == 0.0) {
+    if(fabs(denom) <= Fuzz*fabs(c)) {
       double x=-c/a;
       if(x >= 0.0) {
         distinct=quadraticroots::TWO;
@@ -177,8 +178,9 @@ cubicroots::cubicroots(double a, double b, double c, double d)
     return;
   }
   
-  double ainv=1.0/a;
-  b *= ainv; c *= ainv; d *= ainv;
+  b /= a;
+  c /= a;
+  d /= a;
   
   double b2=b*b;
   double Q=3.0*c-b2;
@@ -866,7 +868,8 @@ void lineintersections(std::vector<double>& T, const path& g,
 void intersections(std::vector<double>& S, std::vector<double>& T,
                    const path& g, const pair& p, const pair& q, double fuzz)
 {
-  if(q == p) {
+  double length2=(q-p).abs2();
+  if(length2 == 0.0) {
     std::vector<double> S1;
     intersections(S1,g,p,fuzz);
     size_t n=S1.size();
@@ -875,7 +878,7 @@ void intersections(std::vector<double>& S, std::vector<double>& T,
       T.push_back(0.0);
     }
   } else {
-    pair factor=(q-p)/((q-p).abs2());
+    pair factor=(q-p)/length2;
     std::vector<double> S1;
     lineintersections(S1,g,p,q,fuzz,true);
     size_t n=S1.size();
