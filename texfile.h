@@ -72,9 +72,8 @@ void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
         << "\\setbox\\ASYbox\\hbox{\\ASYdimen=\\ht\\ASYbox%" << newl
         << "\\advance\\ASYdimen by\\dp\\ASYbox\\kern#3\\wd\\ASYbox"
         << "\\raise#4\\ASYdimen\\box\\ASYbox}%" << newl
-        << settings::beginput(texengine) 
-        << "{#5\\wd\\ASYbox 0pt\\dp\\ASYbox 0pt\\ht\\ASYbox 0pt\\box\\ASYbox#6}"
-        << settings::endput(texengine) << "}%" << newl
+        << "\\setbox\\ASYbox=\\hbox{#5\\wd\\ASYbox 0pt\\dp\\ASYbox 0pt\\ht\\ASYbox 0pt\\box\\ASYbox#6}%" << newl
+        << "\\hbox to 0pt{\\kern#1pt\\raise#2pt\\box\\ASYbox\\hss}}%" << newl
         << "\\long\\def\\ASYalignT(#1,#2)(#3,#4)#5#6{%" << newl
         << "\\ASYaligned(#1,#2)(#3,#4){%" << newl
         << settings::beginlabel(texengine) << "%" << newl
@@ -145,10 +144,7 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
       out << "\\begin{document}" << newl;
       latexfontencoding(out);
     }
-  } else if(settings::context(texengine)) {
-    if(!pipe && !settings::getSetting<bool>("inlinetex"))
-      out << "\\usemodule[pictex]" << newl;
-  } else {
+  } else if(!settings::context(texengine)) {
     out << "\\input graphicx" << newl // Fix miniltx path parsing bug:
         << "\\makeatletter" << newl 
         << "\\def\\filename@parse#1{%" << newl

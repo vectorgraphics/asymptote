@@ -1467,22 +1467,6 @@ string defaultformat() {
   return (format.empty()) ? nativeformat() : format;
 }
 
-// Begin TeX put command.
-const char *beginput(const string& texengine) {
-  if(context(texengine))
-    return "\\put";
-  else
-    return "\\put(#1,#2)";
-}
-
-// End TeX put command.
-const char *endput(const string& texengine) {
-  if(context(texengine)) 
-    return " at #1 #2"; 
-  else
-    return "";
-}
-
 // TeX special command to set up currentmatrix for typesetting labels.
 const char *beginlabel(const string& texengine) {
   if(pdf(texengine))

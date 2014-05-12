@@ -323,7 +323,7 @@ void texfile::put(const string& label, const transform& T, const pair& z,
   if(trans)
     *out << "{" << T.getxx() << " " << sign*T.getyx()
          << " " << sign*T.getxy() << " " << T.getyy() << "}";
-  *out << "{" << label << "}" << newl;
+  *out << "{" << label << "}%" << newl;
 }
 
 void texfile::epilogue(bool pipe)
