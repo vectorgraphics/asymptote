@@ -144,7 +144,9 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
       out << "\\begin{document}" << newl;
       latexfontencoding(out);
     }
-  } else if(!settings::context(texengine)) {
+  } else if(settings::context(texengine)) {
+    out << "\\disabledirectives[system.errorcontext]%" << newl;
+  } else {
     out << "\\input graphicx" << newl // Fix miniltx path parsing bug:
         << "\\makeatletter" << newl 
         << "\\def\\filename@parse#1{%" << newl

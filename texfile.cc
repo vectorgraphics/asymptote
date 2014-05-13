@@ -117,7 +117,7 @@ void texfile::prologue()
   } else {
     if(!inlinetex) {
       if(settings::context(texengine)) {
-        *out << "\\setuplayout[width=16383pt,height=16383pt,"
+        *out << "\\setuplayout["
              << "backspace=0pt,topspace=0pt,"
              << "header=0pt,headerdistance=0pt,footer=0pt]" << newl
              << "\\setuppagenumbering[location=]" << endl
