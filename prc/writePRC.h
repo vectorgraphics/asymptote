@@ -25,9 +25,15 @@
 #include <vector>
 #include <deque>
 #include <list>
+
 #ifdef __GNUC__
+#if __cplusplus >= 201103L
+#include <forward_list>
+#else
 #include <ext/slist>
 #endif
+#endif
+
 #include <map>
 #include <iostream>
 #include "PRCbitStream.h"
@@ -225,7 +231,13 @@ class PRCAttribute : public PRCAttributeEntry
   std::deque<PRCSingleAttribute> attribute_keys;
 };
 #ifdef __GNUC__
+
+#if __cplusplus >= 201103L
+typedef forward_list<PRCAttribute> PRCAttributeList;
+#else
 typedef __gnu_cxx::slist<PRCAttribute> PRCAttributeList;
+#endif
+
 #else
 typedef std::list<PRCAttribute> PRCAttributeList;
 #endif

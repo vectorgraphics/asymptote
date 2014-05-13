@@ -22,7 +22,7 @@
 #endif
 
 #ifndef NOHASH
-#if PREREQ(4,3) || defined(__CYGWIN__)
+#if PREREQ(4,0) || defined(__CYGWIN__)
 
 #if __cplusplus >= 201103L
 #include <memory>
