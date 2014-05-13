@@ -707,7 +707,8 @@ struct engineSetting : public argumentSetting {
     string str=optarg;
     
     if(str == "latex" || str == "pdflatex" || str == "xelatex" ||
-       str == "tex" || str == "pdftex" || str == "context" || str == "none") {
+       str == "tex" || str == "pdftex" || str == "luatex" ||
+       str == "lualatex" || str == "none") {
       value=str;
       return true;
     }
@@ -1161,7 +1162,7 @@ void initSettings() {
   addOption(new boolSetting("keepaux", 0,
                             "Keep intermediate LaTeX .aux files"));
   addOption(new engineSetting("tex", 0, "engine",
-                              "latex|pdflatex|xelatex|tex|pdftex|context|none",
+                              "latex|pdflatex|xelatex|tex|pdftex|luatex|lualatex|none",
                               "latex"));
 
   addOption(new boolSetting("twice", 0,
@@ -1321,7 +1322,8 @@ void initSettings() {
 int numArgs() { return argCount; }
 char *getArg(int n) { return argList[n]; }
 
-void setInteractive() {
+void setInteractive()
+{
   if(numArgs() == 0 && !getSetting<bool>("listvariables") && 
      getSetting<string>("command").empty() &&
      (isatty(STDIN_FILENO) || getSetting<Int>("inpipe") >= 0))
@@ -1331,7 +1333,8 @@ void setInteractive() {
     (string(getPath())+dirsep+"."+suffix+"_history") : (initdir+"/history");
 }
 
-bool view() {
+bool view()
+{
   if (interact::interactive)
     return getSetting<bool>("interactiveView");
   else
@@ -1339,7 +1342,8 @@ bool view() {
       (numArgs() == 1 || getSetting<bool>("multipleView"));
 }
 
-bool trap() {
+bool trap()
+{
   if (interact::interactive)
     return !getSetting<bool>("interactiveMask");
   else
@@ -1440,35 +1444,42 @@ void SetPageDimensions() {
   }
 }
 
-bool xe(const string& texengine) {
+bool xe(const string& texengine)
+{
   return texengine == "xelatex";
 }
 
-bool context(const string& texengine) {
+bool context(const string& texengine)
+{
   return texengine == "context";
 }
 
-bool pdf(const string& texengine) {
+bool pdf(const string& texengine)
+{
   return texengine == "pdflatex" || texengine == "pdftex" || xe(texengine) ||
-    context(texengine);
+    texengine == "luatex" || texengine == "lualatex" || context(texengine);
 }
 
-bool latex(const string& texengine) {
+bool latex(const string& texengine)
+{
   return texengine == "latex" || texengine == "pdflatex" || 
-    texengine == "xelatex";
+    texengine == "xelatex" || texengine == "lualatex";
 }
 
-string nativeformat() {
+string nativeformat()
+{
   return pdf(getSetting<string>("tex")) ? "pdf" : "eps";
 }
 
-string defaultformat() {
+string defaultformat()
+{
   string format=getSetting<string>("outformat");
   return (format.empty()) ? nativeformat() : format;
 }
 
 // TeX special command to set up currentmatrix for typesetting labels.
-const char *beginlabel(const string& texengine) {
+const char *beginlabel(const string& texengine)
+{
   if(pdf(texengine))
     return xe(texengine) ? "\\special{pdf:literal q #5 0 0 cm}" :
       "\\special{pdf:q #5 0 0 cm}";
@@ -1478,7 +1489,8 @@ const char *beginlabel(const string& texengine) {
 }
 
 // TeX special command to restore currentmatrix after typesetting labels.
-const char *endlabel(const string& texengine) {
+const char *endlabel(const string& texengine)
+{
   if(pdf(texengine))
     return xe(texengine) ? "\\special{pdf:literal Q}" : "\\special{pdf:Q}";
   else
@@ -1486,7 +1498,8 @@ const char *endlabel(const string& texengine) {
 }
 
 // TeX macro to typeset raw postscript code
-const char *rawpostscript(const string& texengine) {
+const char *rawpostscript(const string& texengine)
+{
   if(pdf(texengine))
     return "\\def\\ASYraw#1{#1}";
   else
@@ -1498,7 +1511,8 @@ const char *rawpostscript(const string& texengine) {
 }
 
 // TeX macro to begin picture
-const char *beginpicture(const string& texengine) {
+const char *beginpicture(const string& texengine) 
+{
   if(latex(texengine))
     return "\\begin{picture}";
   if(context(texengine))
@@ -1508,7 +1522,8 @@ const char *beginpicture(const string& texengine) {
 }
 
 // TeX macro to end picture
-const char *endpicture(const string& texengine) {
+const char *endpicture(const string& texengine)
+{
   if(latex(texengine))
     return "\\end{picture}%";
   else if(context(texengine))
@@ -1518,7 +1533,8 @@ const char *endpicture(const string& texengine) {
 }
 
 // Begin TeX special command.
-const char *beginspecial(const string& texengine) {
+const char *beginspecial(const string& texengine)
+{
   if(pdf(texengine))
     return xe(texengine) ? "\\special{pdf:literal " : "\\special{pdf:";
   else
@@ -1526,7 +1542,8 @@ const char *beginspecial(const string& texengine) {
 }
 
 // End TeX special command.
-const char *endspecial() {
+const char *endspecial()
+{
   return "}%";
 }
 

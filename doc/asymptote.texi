@@ -1364,8 +1364,8 @@ and @code{rainbow.asy}.
 @cindex Function shading
 @cindex function shading
 @cindex @code{functionshade}
-More general shading possibilities are available with the @code{pdflatex},
-@code{context}, and @code{pdftex} @TeX{} engines: the routine
+More general shading possibilities are available using @TeX{} engines
+that produce PDF output (@pxref{texengines}): the routine
 @verbatim
 void functionshade(picture pic=currentpicture, path[] g, bool stroke=false,
                    pen fillrule=currentpen, string shader);
@@ -9068,13 +9068,15 @@ at the beginning of the configuration file, it can contain arbitrary
 @cindex @code{tex}
 @cindex @code{pdflatex}
 @cindex @code{xelatex}
-@cindex @code{context}
+@cindex @code{luatex}
+@cindex @code{lualatex}
 @cindex @code{EPS}
 @cindex @code{PDF}
+@anchor{texengines}
 @anchor{convert}
 The default output format is @acronym{EPS} for the (default)
 @code{latex} and @code{tex} tex engine and @acronym{PDF} for the
-@code{pdflatex}, @code{xelatex}, and @code{context} tex engines.
+@code{pdflatex}, @code{xelatex}, @code{luatex}, and @code{lualatex} tex engines.
 Alternative output formats may be produced using the @code{-f} option 
 (or @code{outformat} setting). 
 
