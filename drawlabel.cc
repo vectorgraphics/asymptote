@@ -24,81 +24,44 @@ void drawLabel::labelwarning(const char *action)
        << "\" " << action << " to avoid overwriting" << endl;
 }
  
-int wait(iopipestream &tex, const char *s, const char **abort,
-         bool ignore=false)
-{
-  int rc=tex.wait(s,abort);
-  if(rc > 0) {
-    if(fataltex[rc-1]) {
-      tex.pipeclose();
-      ignore=false;
-    } else {
-      tex << "\n";
-      tex.wait(s,abort);
-      tex << "\n";
-      tex.wait(s,abort);
-    }
-
-    if(!ignore) {
-      string s=tex.message();
-      tex.shred();
-      reportError(s);
-    }
-  }
-  tex.shred();
-  return rc;
-}
- 
 // Reads one of the dimensions from the pipe.
-void texdim(iopipestream& tex, double& dest,
-            const string command, const string name,
-            const char **abort)
+void texdim(iopipestream& tex, double& dest, const string command,
+            const string name)
 {
-  string texbuf;
+  string start(">dim(");
+  string stop(")dim");
+  string expect("pt"+stop+"\n\n*");
 
-  tex << "\\immediate\\write16{> \\the\\" << command << "\\ASYbox}\n";
-  tex >> texbuf;
-  
+  // ask the tex engine for dimension
+  tex << "\\immediate\\write16{" << start << "\\the\\" << command << "\\ASYbox"
+      << stop << "}\n";
+  // keep reading output until ')dim\n\n*' is read
+  tex.wait(expect.c_str());
+  string buffer = tex.getbuffer();
+
+  size_t dim1=buffer.find(start);
+  size_t dim2=buffer.find("pt" + stop);
   string cannotread="Cannot read label "+name;
-
-  if (texbuf[0] == '>' && texbuf[1] == ' ')
+  if (dim1 != string::npos && dim2 != string::npos) {
+    string n=buffer.substr(dim1+start.size(),dim2-dim1-start.size());
     try {
-      dest=lexical::cast<double>(texbuf.c_str()+2,true)*tex2ps;
+      dest=lexical::cast<double>(n,true)*camp::tex2ps;
     } catch(lexical::bad_cast&) {
-      reportError(cannotread);
+      camp::reportError(cannotread);
     }
-  else
-    reportError(cannotread);
-
-  tex << "\n";
-  wait(tex,texready.c_str(),abort);
+  } else {
+    camp::reportError(cannotread);
+  }
 }
 
 bool texbounds(double& width, double& height, double& depth,
-               iopipestream& tex, string& s, const char **abort, bool warn,
-               bool Inline)
+               iopipestream& tex, string& s)
 {
-  string texbuf;
-
   tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(s) << "}\n\n";
-  int rc=wait(tex,texready.c_str(),abort,Inline);
-  if(rc) {
-    tex << "\\show 0\n";
-    tex.wait("\n*");
-
-    if(warn && getSetting<bool>("debug")) {
-      ostringstream buf;
-      buf << "Cannot determine size of label \"" << s << "\"";
-      reportWarning(buf);
-    }
-
-    return false;
-  }
-
-  texdim(tex, width, "wd", "width", abort);
-  texdim(tex, height, "ht", "height", abort);
-  texdim(tex, depth, "dp", "depth", abort);
-
+  tex.wait(texready.c_str());
+  texdim(tex,width,"wd","width");
+  texdim(tex,height,"ht","height");
+  texdim(tex,depth,"dp","depth");
   return true;
 }   
 
@@ -110,15 +73,14 @@ inline double urand()
 
 void setpen(iopipestream& tex, const string& texengine, const pen& pentype) 
 {
-  const char **abort=texabort(texengine);
   bool Latex=latex(texengine);
   
   if(Latex) {
     if(setlatexfont(tex,pentype,drawElement::lastpen))
-      wait(tex,"\n*",abort);
+      tex.wait("\n*");
   }
   if(settexfont(tex,pentype,drawElement::lastpen,Latex))
-    wait(tex,"\n*",abort);
+    tex.wait("\n*");
   
   drawElement::lastpen=pentype;
 }
@@ -128,13 +90,10 @@ void drawLabel::getbounds(iopipestream& tex, const string& texengine)
   if(havebounds) return;
   havebounds=true;
   
-  const char **abort=texabort(texengine);
   setpen(tex,texengine,pentype);
   
-  bool nullsize=size.empty();
-  if(!texbounds(width,height,depth,tex,label,abort,nullsize,
-                getSetting<bool>("inlinetex")) && !nullsize)
-    texbounds(width,height,depth,tex,size,abort,false);
+  if(!texbounds(width,height,depth,tex,label) && !size.empty())
+    texbounds(width,height,depth,tex,size);
   enabled=true;
     
   Align=inverse(T)*align;

@@ -111,9 +111,6 @@ const char *endpicture(const string& texengine);
 const char *beginspecial(const string& texengine);
 const char *endspecial();
   
-extern bool fataltex[];
-const char **texabort(const string& texengine);
-  
 string texcommand();
 string texprogram();
   

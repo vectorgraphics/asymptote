@@ -1547,16 +1547,6 @@ const char *endspecial()
   return "}%";
 }
 
-bool fataltex[]={false,true};
-const char *pdftexerrors[]={"! "," ==> Fatal error",NULL};
-const char *texerrors[]={"! ",NULL};
-
-// Messages that signify a TeX error.
-const char **texabort(const string& texengine)
-{
-  return settings::pdf(texengine) ? pdftexerrors : texerrors;
-}
-
 string texcommand()
 {
   string command=getSetting<string>("texcommand");

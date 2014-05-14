@@ -234,11 +234,10 @@ realarray *texsize(string *s, pen p=CURRENTPEN)
   processDataStruct &pd=processData();
   
   string texengine=getSetting<string>("tex");
-  const char **abort=texabort(texengine);
   setpen(pd.tex,texengine,p);
   
   double width,height,depth;
-  if(!texbounds(width,height,depth,pd.tex,*s,abort,false,true))
+  if(!texbounds(width,height,depth,pd.tex,*s))
     return new array(0);
   
   array *t=new array(3);
