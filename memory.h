@@ -14,33 +14,24 @@
 #include <string>
 #include <sstream>
 
-#if defined __GNUC__ && defined __GNUC_MINOR__
-# define PREREQ(maj,min) \
-        ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
-#else
-# define PREREQ(maj,min) 1
-#endif
-
 #ifndef NOHASH
-#if PREREQ(4,0) || defined(__CYGWIN__)
 
-#if __cplusplus >= 201103L
+#if HAVE_UNORDERED_MAP
 #include <memory>
 #include <unordered_map>
 #define EXT std
 #else
+#if HAVE_TR1_UNORDERED_MAP
 #include <tr1/unordered_map>
 #define EXT std::tr1
 #endif
-
 #else
-
 #define EXT __gnu_cxx
 #include <ext/hash_map>
 #define unordered_map hash_map
 #define unordered_multimap hash_multimap
-
 #endif
+
 #endif
 
 #ifdef __DECCXX_LIBCXX_RH70
