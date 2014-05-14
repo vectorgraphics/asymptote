@@ -26,12 +26,10 @@
 #include <deque>
 #include <list>
 
-#ifdef __GNUC__
-#if __cplusplus >= 201103L
+#ifdef HAVE_FORWARD_LIST
 #include <forward_list>
 #else
 #include <ext/slist>
-#endif
 #endif
 
 #include <map>
@@ -230,16 +228,15 @@ class PRCAttribute : public PRCAttributeEntry
   void addKey(const PRCSingleAttribute &key) { attribute_keys.push_back(key); }
   std::deque<PRCSingleAttribute> attribute_keys;
 };
-#ifdef __GNUC__
 
-#if __cplusplus >= 201103L
-typedef forward_list<PRCAttribute> PRCAttributeList;
+#ifdef HAVE_FORWARD_LIST
+typedef std::forward_list<PRCAttribute> PRCAttributeList;
 #else
+#ifdef __GNUC__
 typedef __gnu_cxx::slist<PRCAttribute> PRCAttributeList;
-#endif
-
 #else
 typedef std::list<PRCAttribute> PRCAttributeList;
+#endif
 #endif
 
 class PRCAttributes

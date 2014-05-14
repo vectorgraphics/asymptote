@@ -16,12 +16,12 @@
 
 #ifndef NOHASH
 
-#if HAVE_UNORDERED_MAP
+#ifdef HAVE_UNORDERED_MAP
 #include <memory>
 #include <unordered_map>
 #define EXT std
 #else
-#if HAVE_TR1_UNORDERED_MAP
+#ifdef HAVE_TR1_UNORDERED_MAP
 #include <tr1/unordered_map>
 #define EXT std::tr1
 #endif
