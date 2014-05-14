@@ -187,6 +187,20 @@ public:
     return *this;
   }
   
+  bool tailequals(const char *buf, size_t len, const char *prompt,
+                  size_t plen) {
+    const char *a=buf+len;
+    const char *b=prompt+plen;
+    while(b >= prompt) {
+      if(a < buf) return false;
+      if(*a != *b) return false;
+      // Handle MSDOS incompatibility:
+      if(a > buf && *a == '\n' && *(a-1) == '\r') --a;
+      --a; --b;
+    }
+    return true;
+  }
+  
   bool checkabort(const char *abort) {
     size_t alen=strlen(abort);
     if(strncmp(buffer,abort,alen) == 0) {
@@ -207,8 +221,7 @@ public:
   // returns true if prompt found, false if abort string is received
   int wait(const char *prompt, const char**abort=NULL) {
     string sbuffer;
-    string sprompt(prompt);
-    unsigned int promptsize=sprompt.size();
+    size_t plen=strlen(prompt);
   
     unsigned int n=0;
     if(abort) {
@@ -218,13 +231,11 @@ public:
       }
     }
     
-    for(;;) {
+    do {
       readbuffer();
       sbuffer.append(buffer);
-      if(sbuffer.size() >= promptsize &&
-         sbuffer.compare(sbuffer.size()-promptsize,promptsize,sprompt) == 0)
-        break;
-    }
+    } while (!tailequals(sbuffer.c_str(),sbuffer.size(),prompt,plen));
+
     for(unsigned int i=0; i < n; ++i) 
       if(checkabort(abort[i])) return i+1;
     return 0;
