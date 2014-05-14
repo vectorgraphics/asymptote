@@ -38,9 +38,9 @@
 %  (reference card macros due to Stephen Gildea)
 %
 
-\def\versionnumber{1.0}  % Version of this reference card
-\def\year{2012}
-\def\month{August}
+\def\versionnumber{1.1}  % Version of this reference card
+\def\year{2014}
+\def\month{May}
 \def\version{\month\ \year\ v\versionnumber}
 
 \def\shortcopyrightnotice{\vskip .5ex plus 2 fill
@@ -402,6 +402,7 @@ do \statement
 \key{draw labeled path}{draw(Label,path)}
 \key{draw arrow with pen}{draw(path,pen,Arrow)}
 \key{draw path on picture}{draw(picture,path)}
+\key{draw visible portion of line through two pairs}{drawline(pair,pair)}
 
 \section{fill commands}
 \key{fill path with current pen}{fill(path)}
@@ -483,7 +484,7 @@ do \statement
 \key{times at which {\tt p} reaches minimal extents}{mintimes(p)}
 \key{times at which {\tt p} reaches maximal extents}{maxtimes(p)}
 \key{intersection times of paths {\tt p} and {\tt q}}{intersections(p,q)}
-\key{intersection times of paths {\tt p} and {\tt a--b}}{intersections(p,a,b)}
+\key{intersection times of path {\tt p} with `{\tt --a--b--}'}{intersections(p,a,b)}
 \key{intersection times of path {\tt p} crossing $x=${\tt x}}{times(p,x)}
 \key{intersection times of path {\tt p} crossing $y=${\tt z.y}}{times(p,z)}
 \key{intersection point of paths {\tt p} and {\tt q}}{intersectionpoint(p,q)}
@@ -491,7 +492,7 @@ do \statement
 \key{intersection of extension of {\tt P--Q} and {\tt p--q}}{extension(P,Q,p,q)}
 \key{lower left point of bounding box of path {\tt p}}{min(p)}
 \key{upper right point of bounding box of path {\tt p}}{max(p)}
-\key{subpaths of {\tt p} split by $n$th cut of {\tt knife}}{cut(p,knife,n)}
+\key{subpaths of {\tt p} split by {\tt n}th cut of {\tt knife}}{cut(p,knife,n)}
 \key{winding number of path {\tt p} about pair {\tt z}}{windingnumber(p,z)}
 \key{pair {\tt z} lies within path {\tt p}?}{interior(p,z)}
 \key{pair {\tt z} lies within or on path {\tt p}?}{inside(p,z)}
