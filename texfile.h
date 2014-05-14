@@ -60,10 +60,12 @@ void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
 {
   texuserpreamble(out,preamble);
   string texengine=settings::getSetting<string>("tex");
+  if(settings::context(texengine))
+    out << "\\disabledirectives[system.errorcontext]%" << newl;
   out << "\\def\\ASYprefix{" << stripFile(settings::outname()) << "}" << newl
       << "\\newbox\\ASYbox" << newl
       << "\\newdimen\\ASYdimen" << newl
-      << "\\long\\def\\ASYbase#1#2{\\leavevmode\\setbox\\ASYbox=\\hbox{#1}"
+      << "\\long\\def\\ASYbase#1#2{\\leavevmode\\setbox\\ASYbox=\\hbox{#1}%"
       << "\\ASYdimen=\\ht\\ASYbox%" << newl
       << "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl;
   if(ASYalign)
@@ -144,9 +146,7 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
       out << "\\begin{document}" << newl;
       latexfontencoding(out);
     }
-  } else if(settings::context(texengine)) {
-    out << "\\disabledirectives[system.errorcontext]%" << newl;
-  } else {
+  } else if(!settings::context(texengine)) {
     out << "\\input graphicx" << newl // Fix miniltx path parsing bug:
         << "\\makeatletter" << newl 
         << "\\def\\filename@parse#1{%" << newl

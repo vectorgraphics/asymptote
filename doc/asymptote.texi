@@ -9068,6 +9068,7 @@ at the beginning of the configuration file, it can contain arbitrary
 @cindex @code{tex}
 @cindex @code{pdflatex}
 @cindex @code{xelatex}
+@cindex @code{context}
 @cindex @code{luatex}
 @cindex @code{lualatex}
 @cindex @code{EPS}
@@ -9076,9 +9077,9 @@ at the beginning of the configuration file, it can contain arbitrary
 @anchor{convert}
 The default output format is @acronym{EPS} for the (default)
 @code{latex} and @code{tex} tex engine and @acronym{PDF} for the
-@code{pdflatex}, @code{xelatex}, @code{luatex}, and @code{lualatex} tex engines.
-Alternative output formats may be produced using the @code{-f} option 
-(or @code{outformat} setting). 
+@code{pdflatex}, @code{xelatex}, @code{context}, @code{luatex}, and
+@code{lualatex} tex engines. Alternative output formats may be
+produced using the @code{-f} option (or @code{outformat} setting). 
 
 @cindex @code{SVG}
 @cindex @code{dvisvgm}

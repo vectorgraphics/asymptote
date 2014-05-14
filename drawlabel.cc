@@ -56,7 +56,7 @@ void texdim(iopipestream& tex, double& dest,
 {
   string texbuf;
 
-  tex << ("\\showthe\\" + command + "\\ASYbox\n");
+  tex << "\\immediate\\write16{> \\the\\" << command << "\\ASYbox}\n";
   tex >> texbuf;
   
   string cannotread="Cannot read label "+name;
@@ -71,7 +71,7 @@ void texdim(iopipestream& tex, double& dest,
     reportError(cannotread);
 
   tex << "\n";
-  wait(tex,"\n*",abort);
+  wait(tex,texready.c_str(),abort);
 }
 
 bool texbounds(double& width, double& height, double& depth,

@@ -1,6 +1,7 @@
 /* Pipestream: A simple C++ interface to UNIX pipes
-   Version 0.04
-   Copyright (C) 2005-2009 John C. Bowman
+   Version 0.05
+   Copyright (C) 2005-2014 John C. Bowman,
+   with contributions from Mojca Miklavec
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -159,6 +160,7 @@ public:
       if((nc=read(out[0],p,size)) < 0) {
         if(errno == EAGAIN) {p[0]=0; break;}
         else camp::reportError("read from pipe failed");
+        nc=0;
       }
       p[nc]=0;
       if(nc == 0) {
@@ -168,12 +170,10 @@ public:
       }
       if(nc > 0) {
         if(settings::verbose > 2) cerr << p;
-        if(strchr(p,'\n')) break;
-        p += nc;
-        size -= nc;
+        break;
       }
     }
-    return p+nc-buffer;
+    return nc;
   }
 
   bool running() {return Running;}
@@ -185,20 +185,6 @@ public:
     readbuffer();
     s=buffer;
     return *this;
-  }
-  
-  bool tailequals(const char *buf, size_t len, const char *prompt,
-                  size_t plen) {
-    const char *a=buf+len;
-    const char *b=prompt+plen;
-    while(b >= prompt) {
-      if(a < buf) return false;
-      if(*a != *b) return false;
-      // Handle MSDOS incompatibility:
-      if(a > buf && *a == '\n' && *(a-1) == '\r') --a;
-      --a; --b;
-    }
-    return true;
   }
   
   bool checkabort(const char *abort) {
@@ -220,8 +206,9 @@ public:
   
   // returns true if prompt found, false if abort string is received
   int wait(const char *prompt, const char**abort=NULL) {
-    ssize_t len;
-    size_t plen=strlen(prompt);
+    string sbuffer;
+    string sprompt(prompt);
+    unsigned int promptsize=sprompt.size();
   
     unsigned int n=0;
     if(abort) {
@@ -231,11 +218,15 @@ public:
       }
     }
     
-    do {
-      len=readbuffer();
-      for(unsigned int i=0; i < n; ++i) 
-        if(checkabort(abort[i])) return i+1;
-    } while (!tailequals(buffer,len,prompt,plen));
+    for(;;) {
+      readbuffer();
+      sbuffer.append(buffer);
+      if(sbuffer.size() >= promptsize &&
+         sbuffer.compare(sbuffer.size()-promptsize,promptsize,sprompt) == 0)
+        break;
+    }
+    for(unsigned int i=0; i < n; ++i) 
+      if(checkabort(abort[i])) return i+1;
     return 0;
   }
 

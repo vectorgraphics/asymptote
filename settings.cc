@@ -708,7 +708,7 @@ struct engineSetting : public argumentSetting {
     
     if(str == "latex" || str == "pdflatex" || str == "xelatex" ||
        str == "tex" || str == "pdftex" || str == "luatex" ||
-       str == "lualatex" || str == "none") {
+       str == "lualatex" || str == "context" || str == "none") {
       value=str;
       return true;
     }
