@@ -106,7 +106,6 @@ public:
 class drawRawImage : public drawImage {
   unsigned char *raw; // For internal use; not buffered, may be overwritten.
   size_t width,height;
-  bool antialias;
 public:
   drawRawImage(unsigned char *raw, size_t width, size_t height,
                const transform& t, bool antialias)
