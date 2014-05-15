@@ -26,12 +26,6 @@
 #include <deque>
 #include <list>
 
-#ifdef HAVE_FORWARD_LIST
-#include <forward_list>
-#else
-#include <ext/slist>
-#endif
-
 #include <map>
 #include <iostream>
 #include "PRCbitStream.h"
@@ -229,15 +223,7 @@ class PRCAttribute : public PRCAttributeEntry
   std::deque<PRCSingleAttribute> attribute_keys;
 };
 
-#ifdef HAVE_FORWARD_LIST
-typedef std::forward_list<PRCAttribute> PRCAttributeList;
-#else
-#ifdef __GNUC__
-typedef __gnu_cxx::slist<PRCAttribute> PRCAttributeList;
-#else
 typedef std::list<PRCAttribute> PRCAttributeList;
-#endif
-#endif
 
 class PRCAttributes
 {

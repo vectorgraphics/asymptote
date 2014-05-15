@@ -121,9 +121,6 @@ AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERDED_MAP,1,
 			      [Define to 1 if you have tr1/unordered_map]),
 	[AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
 
-AC_CHECK_HEADER(forward_list,AC_DEFINE(HAVE_FORWARD_LIST,1,
-			      [Define to 1 if you have forward_list]))
-
 GCVERSION=7.4.0
 GCFILE=gc-$GCVERSION
 
