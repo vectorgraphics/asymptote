@@ -1,10 +1,10 @@
-if(latex() && (!settings.inlineimage || settings.inlinetex)) {
+if(latex()) {
   usepackage("hyperref");
   texpreamble("\hypersetup{"+settings.hyperrefOptions+"}");
   usepackage("media9","bigfiles");
-  texpreamble("\newif\ifnoplaybutton%
-\count255=\the\catcode`\@\makeatletter%
-\@ifpackagelater{media9}{2013/11/15}{\noplaybuttontrue}{}%
+  texpreamble("\newif\ifplaybutton");
+  texpreamble("\count255=\the\catcode`\@\makeatletter%
+\@ifpackagelater{media9}{2013/11/15}{}{\playbuttontrue}%
 \catcode`\@=\the\count255
 %");
 }
@@ -19,10 +19,10 @@ string embedplayer(string name, string text="", string options="",
   if(width != 0) options += ",width="+(string) (width/pt)+"pt"; 
   if(height != 0) options += ",height="+(string) (height/pt)+"pt"; 
   return "%
-\ifnoplaybutton%
-\includemedia[noplaybutton,"+options+"]{"+text+"}{"+name+"}%
-\else%
+\ifplaybutton%
 \includemedia["+options+"]{"+text+"}{"+name+"}%
+\else%
+\includemedia[noplaybutton,"+options+"]{"+text+"}{"+name+"}%
 \fi";
 }
 
