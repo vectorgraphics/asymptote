@@ -80,7 +80,7 @@ public:
 };
 
 void setpen(iopipestream& tex, const string& texengine, const pen& pentype);
-bool texbounds(double& width, double& height, double& depth,
+void texbounds(double& width, double& height, double& depth,
                iopipestream& tex, string& s);
 
 }

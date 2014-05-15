@@ -1,12 +1,12 @@
-if(latex() && !settings.inlineimage) {
+if(latex() && (!settings.inlineimage || settings.inlinetex)) {
   usepackage("hyperref");
   texpreamble("\hypersetup{"+settings.hyperrefOptions+"}");
   usepackage("media9","bigfiles");
-  texpreamble("\makeatletter%
-\newif\ifnoplaybutton
-\@ifpackagelater{media9}{2013/11/15}{%
-\noplaybuttontrue}{}%
-\makeatother%");
+  texpreamble("\newif\ifnoplaybutton%
+\count255=\the\catcode`\@\makeatletter%
+\@ifpackagelater{media9}{2013/11/15}{\noplaybuttontrue}{}%
+\catcode`\@=\the\count255
+%");
 }
 
 // For documentation of the options see

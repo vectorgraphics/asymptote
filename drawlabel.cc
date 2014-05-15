@@ -54,7 +54,7 @@ void texdim(iopipestream& tex, double& dest, const string command,
   }
 }
 
-bool texbounds(double& width, double& height, double& depth,
+void texbounds(double& width, double& height, double& depth,
                iopipestream& tex, string& s)
 {
   tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(s) << "}\n\n";
@@ -62,7 +62,6 @@ bool texbounds(double& width, double& height, double& depth,
   texdim(tex,width,"wd","width");
   texdim(tex,height,"ht","height");
   texdim(tex,depth,"dp","depth");
-  return true;
 }   
 
 inline double urand()
@@ -91,9 +90,11 @@ void drawLabel::getbounds(iopipestream& tex, const string& texengine)
   havebounds=true;
   
   setpen(tex,texengine,pentype);
+  texbounds(width,height,depth,tex,label);
   
-  if(!texbounds(width,height,depth,tex,label) && !size.empty())
+  if(width == 0.0 && height == 0.0 && depth == 0.0 && !size.empty())
     texbounds(width,height,depth,tex,size);
+
   enabled=true;
     
   Align=inverse(T)*align;

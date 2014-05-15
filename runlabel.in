@@ -237,8 +237,7 @@ realarray *texsize(string *s, pen p=CURRENTPEN)
   setpen(pd.tex,texengine,p);
   
   double width,height,depth;
-  if(!texbounds(width,height,depth,pd.tex,*s))
-    return new array(0);
+  texbounds(width,height,depth,pd.tex,*s);
   
   array *t=new array(3);
   (*t)[0]=width;
