@@ -31,7 +31,7 @@ public:
   
   bool write(texfile *out, const bbox&) {
     out->verbatimline(settings::latex(out->texengine) ? "\\newpage" : 
-                      settings::context(out->texengine) ? "}\\eject\\hbox{%" :
+                      settings::context(out->texengine) ? "}\\page\\hbox{%" :
                       "\\eject");
     return true;
   }
