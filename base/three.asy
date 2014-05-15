@@ -3,7 +3,7 @@ private import math;
 if(inXasyMode) settings.render=0;
 
 if(prc0()) {
-  if(settings.tex == "context") settings.prc=false;
+  if(!latex()) settings.prc=false;
   else {
     access embed;
     Embed=embed.embedplayer;

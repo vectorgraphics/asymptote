@@ -103,6 +103,7 @@ array *readpath(const string& psname, bool keep,
   mem::vector<string> cmd;
   cmd.push_back(getSetting<string>("gs"));
   cmd.push_back("-q");
+  cmd.push_back("-dNOCACHE");
   cmd.push_back("-dBATCH");
   cmd.push_back("-P");
   if(safe) cmd.push_back("-dSAFER");
@@ -266,7 +267,11 @@ patharray2 *_texpath(stringarray *s, penarray *p)
     if(i != 0) {
       if(texengine == "context")
         tex.verbatimline("}\\page\\hbox{%");
-      else 
+      else if(texengine == "luatex")
+        tex.verbatimline("\\eject");
+      else if(texengine == "tex" || texengine == "pdftex")
+        tex.verbatimline("\\eject");
+      else
         tex.verbatimline("\\newpage");
     }
     if(!pdf) {
