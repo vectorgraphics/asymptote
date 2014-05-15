@@ -74,12 +74,14 @@ void setpen(iopipestream& tex, const string& texengine, const pen& pentype)
 {
   bool Latex=latex(texengine);
   
-  if(Latex) {
-    if(setlatexfont(tex,pentype,drawElement::lastpen))
-      tex.wait("\n*");
+  if(Latex && setlatexfont(tex,pentype,drawElement::lastpen)) {
+    tex << "\n";
+    tex.wait(texready.c_str());
   }
-  if(settexfont(tex,pentype,drawElement::lastpen,Latex))
-    tex.wait("\n*");
+  if(settexfont(tex,pentype,drawElement::lastpen,Latex)) {
+    tex << "\n";
+    tex.wait(texready.c_str());
+  }
   
   drawElement::lastpen=pentype;
 }
