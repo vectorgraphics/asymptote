@@ -15,7 +15,7 @@
 
 #include <sstream>
 #include <unistd.h>
-#include <bits/stl_algo.h>
+#include <algorithm>
 
 #include "genv.h"
 #include "env.h"
