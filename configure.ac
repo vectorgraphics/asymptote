@@ -117,7 +117,7 @@ fi
 
 AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERDED_MAP,1,
 			      [Define to 1 if you have unordered_map]),
-        [AC_CHECK_HEADER(tr1/unordered_map,AC_DEFINE(HAVE_TR1_UNORDERDED_MAP,1,
+        [AC_CHECK_HEADER(tr1/unordered_map,AC_DEFINE(HAVE_TR1_UNORDERED_MAP,1,
 			      [Define to 1 if you have tr1/unordered_map]),
 	[AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
 

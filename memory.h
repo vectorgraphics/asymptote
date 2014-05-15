@@ -17,19 +17,23 @@
 #ifndef NOHASH
 
 #ifdef HAVE_UNORDERED_MAP
+
 #include <memory>
 #include <unordered_map>
 #define EXT std
+
 #else
+
 #ifdef HAVE_TR1_UNORDERED_MAP
 #include <tr1/unordered_map>
 #define EXT std::tr1
-#endif
 #else
 #define EXT __gnu_cxx
 #include <ext/hash_map>
 #define unordered_map hash_map
 #define unordered_multimap hash_multimap
+#endif
+
 #endif
 
 #endif
