@@ -850,7 +850,7 @@ void GSLrng_dir2d(stack *s)
 {
   string method = pop<string>(s,string("neumann"));
   checkGSLrng();
-  double x,y;
+  double x=0, y=0;
   if(method == "neumann") gsl_ran_dir_2d(GSLrng,&x,&y);
   else if(method == "trig") gsl_ran_dir_2d_trig_method(GSLrng,&x,&y);
   else error(GSLinvalid);

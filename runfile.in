@@ -43,7 +43,7 @@ file* :nullFile()
 file* input(string name=emptystring, bool check=true,
             string comment=commentchar, string mode=emptystring)
 {
-  file *f;
+  file *f=NULL;
   if(mode == "binary") {
     f=new ibfile(name,check);
   } else if(mode == "xdr") {
@@ -71,7 +71,7 @@ file* input(string name=emptystring, bool check=true,
 file* output(string name=emptystring, bool update=false,
              string comment=commentchar, string mode=emptystring)
 {
-  file *f;
+  file *f=NULL;
   if(mode == "pipe") {
     f=new opipe(name);
   } else if(mode == "binary") {
