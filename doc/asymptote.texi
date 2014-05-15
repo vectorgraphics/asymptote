@@ -512,7 +512,7 @@ animate
 @end verbatim
 @noindent
 
-Warnings (such as "writeoverloaded") may be enabled or disabled with
+Warnings (such as "unbounded" and "offaxis") may be enabled or disabled with
 the functions
 @verbatim
 warn(string s);
