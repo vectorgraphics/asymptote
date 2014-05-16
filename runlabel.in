@@ -119,7 +119,11 @@ array *readpath(const string& psname, bool keep,
     stringstream buf;
     string s=gs.readline();
     if(s.empty() || !gs.running()) break;
-    buf << s;
+
+    for(string::iterator i = s.begin(); i != s.end(); ++i) {
+      if(isalpha(*i)) {buf << " ";}
+      buf << *i;
+    }
     gs << newl;
     
     if(verbose > 2) cout << endl;
