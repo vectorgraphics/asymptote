@@ -119,12 +119,13 @@ array *readpath(const string& psname, bool keep,
     stringstream buf;
     string s=gs.readline();
     if(s.empty() || !gs.running()) break;
+    gs << newl;
 
+    // Workaround broken stringstream container in MacOS 10.9 libc++.
     for(string::iterator i = s.begin(); i != s.end(); ++i) {
       if(isalpha(*i)) {buf << " ";}
       buf << *i;
     }
-    gs << newl;
     
     if(verbose > 2) cout << endl;
   

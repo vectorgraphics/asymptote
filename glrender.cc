@@ -737,10 +737,18 @@ void capzoom()
   
 }
 
+int menustatus=GLUT_MENU_NOT_IN_USE;
+
+void menuStatus(int status, int x, int y) 
+{
+  menustatus=status;
+}
+  
 void disableMenu() 
 {
   Menu=false;
-  glutDetachMenu(MenuButton);
+  if(menustatus == GLUT_MENU_NOT_IN_USE)
+    glutDetachMenu(MenuButton);
 }
 
 void zoom(int x, int y)
@@ -1635,6 +1643,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     glutAddMenuEntry("(r) Reverse",REVERSE);
     glutAddMenuEntry("( ) Step",STEP);
     glutAddMenuEntry("(q) Quit" ,QUIT);
+    glutMenuStatusFunc(menuStatus);
   
     for(size_t i=0; i < nbuttons; ++i) {
       int button=buttons[i];
