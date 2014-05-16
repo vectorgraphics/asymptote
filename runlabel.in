@@ -103,7 +103,6 @@ array *readpath(const string& psname, bool keep,
   mem::vector<string> cmd;
   cmd.push_back(getSetting<string>("gs"));
   cmd.push_back("-q");
-  cmd.push_back("-dNOCACHE");
   cmd.push_back("-dBATCH");
   cmd.push_back("-P");
   if(safe) cmd.push_back("-dSAFER");
@@ -118,17 +117,10 @@ array *readpath(const string& psname, bool keep,
   iopipestream gs(cmd,"gs","Ghostscript");
   while(true) {
     stringstream buf;
-    while(true) {
-      string out;
-      gs >> out;
-      if(out.empty() && !gs.running()) break;
-      buf << out;
-      if(out[out.size()-1] == '\n') {
-        gs << newl;
-        break;
-      }
-    }
-    if(!gs.running()) break;
+    string s=gs.readline();
+    if(s.empty() || !gs.running()) break;
+    buf << s;
+    gs << newl;
     
     if(verbose > 2) cout << endl;
   
@@ -313,12 +305,9 @@ patharray2 *_texpath(stringarray *s, penarray *p)
       cmd.push_back("-sOutputFile=-");
       cmd.push_back(pdfname);
       iopipestream gs(cmd,"gs","Ghostscript");
-      
-      gs.block(false);
       while(true) {
-        string line;
-        gs >> line;
-        if(line.empty() && !gs.running()) break;
+        string line=gs.readline();
+        if(line.empty() || !gs.running()) break;
         ps << line;
       }
       ps.close();
@@ -404,7 +393,6 @@ patharray2 *textpath(stringarray *s, penarray *p)
   cmd2.push_back("-sOutputFile=-");
   cmd2.push_back("-");
   iopipestream gs(cmd2,"gs","Ghostscript");
-  gs.block(false);
 
   // TODO: Simplify by connecting the pipes directly.
   while(true) {

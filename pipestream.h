@@ -40,12 +40,10 @@ protected:
   bool pipein;
 public:
   
-  void clear();
-
   void open(const mem::vector<string> &command, const char *hint=NULL,
             const char *application="", int out_fileno=STDOUT_FILENO);
-  void block(bool block);
-  bool isopen() { return pipeopen; }
+
+  bool isopen() {return pipeopen;}
 
   iopipestream(): pid(0), pipeopen(false) {}
 
@@ -63,6 +61,8 @@ public:
   }
 
   ssize_t readbuffer();
+  string readline();
+  
   bool running() {return Running;}
 
   typedef iopipestream& (*imanip)(iopipestream&);

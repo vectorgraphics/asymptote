@@ -32,11 +32,6 @@
 #include "camperror.h"
 #include "pen.h"
 
-void iopipestream::clear()
-{
-  *buffer=0;
-}
-
 void iopipestream::open(const mem::vector<string> &command, const char *hint,
                         const char *application, int out_fileno)
 {
@@ -86,17 +81,6 @@ void iopipestream::open(const mem::vector<string> &command, const char *hint,
   Running=true;
 }
 
-void iopipestream::block(bool block=true)
-{
-  if(pipeopen) {
-    int flags=fcntl(out[0],F_GETFL);
-    if(block)
-      fcntl(out[0],F_SETFL,flags & ~O_NONBLOCK);
-    else
-      fcntl(out[0],F_SETFL,flags | O_NONBLOCK);
-  }
-}
-
 void iopipestream::eof()
 {
   if(pipeopen && pipein) {
@@ -122,6 +106,7 @@ ssize_t iopipestream::readbuffer()
   ssize_t nc;
   char *p=buffer;
   ssize_t size=BUFSIZE-1;
+  errno=0;
   for(;;) {
     if((nc=read(out[0],p,size)) < 0) {
       if(errno == EAGAIN) {p[0]=0; break;}
@@ -157,6 +142,17 @@ bool iopipestream::tailequals(const char *buf, size_t len, const char *prompt,
   return true;
 }
 
+string iopipestream::readline()
+{
+  sbuffer.clear();
+  int nc;
+  do {
+    nc=readbuffer();
+    sbuffer.append(buffer);
+  } while(buffer[nc-1] != '\n' && Running);
+  return sbuffer;
+}
+
 void iopipestream::wait(const char *prompt)
 {
   sbuffer.clear();
@@ -165,7 +161,7 @@ void iopipestream::wait(const char *prompt)
   do {
     readbuffer();
     sbuffer.append(buffer);
-  } while (!tailequals(sbuffer.c_str(),sbuffer.size(),prompt,plen));
+  } while(!tailequals(sbuffer.c_str(),sbuffer.size(),prompt,plen));
 }
 
 int iopipestream::wait()
