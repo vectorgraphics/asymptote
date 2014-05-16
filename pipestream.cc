@@ -79,6 +79,7 @@ void iopipestream::open(const mem::vector<string> &command, const char *hint,
   pipeopen=true;
   pipein=true;
   Running=true;
+  block(false,true);
 }
 
 void iopipestream::eof()
@@ -98,6 +99,16 @@ void iopipestream::pipeclose()
     Running=false;
     pipeopen=false;
     waitpid(pid,NULL,0); // Avoid zombies.
+  }
+}
+
+void iopipestream::block(bool write, bool read)
+{
+  if(pipeopen) {
+    int w=fcntl(in[1],F_GETFL);
+    int r=fcntl(out[0],F_GETFL);
+    fcntl(in[1],F_SETFL,write ? w & ~O_NONBLOCK : w | O_NONBLOCK);
+    fcntl(out[0],F_SETFL,read ? r & ~O_NONBLOCK : r | O_NONBLOCK);
   }
 }
 

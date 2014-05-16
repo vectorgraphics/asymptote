@@ -60,6 +60,8 @@ public:
     pipeclose();
   }
 
+  void block(bool write=false, bool read=true);
+  
   ssize_t readbuffer();
   string readline();
   
