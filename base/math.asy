@@ -175,7 +175,7 @@ int[][] segment(bool[] b)
   int[][] S=segmentlimits(b);
   return sequence(new int[](int i) {
       return sequence(S[i][0],S[i][1]);
-    },S[0].length);
+    },S.length);
 }
 
 // If the sorted array a does not contain x, insert it sequentially,
