@@ -121,9 +121,9 @@ array *readpath(const string& psname, bool keep,
     if(s.empty() || !gs.running()) break;
     gs << newl;
 
-#ifdef __APPLE__
+// Workaround broken stringstream container in MacOS 10.9 libc++.
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__ )
     for(string::iterator i=s.begin(); i != s.end(); ++i) {
-    // Workaround broken stringstream container in MacOS 10.9 libc++.
       if(isalpha(*i) && *i != 'e') {buf << " ";}
       buf << *i;
     }
