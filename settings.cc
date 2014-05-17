@@ -1162,7 +1162,7 @@ void initSettings() {
   addOption(new boolSetting("keepaux", 0,
                             "Keep intermediate LaTeX .aux files"));
   addOption(new engineSetting("tex", 0, "engine",
-                              "latex|pdflatex|xelatex|tex|pdftex|luatex|lualatex|none",
+                              "latex|pdflatex|xelatex|lualatex|tex|pdftex|luatex|context|none",
                               "latex"));
 
   addOption(new boolSetting("twice", 0,
