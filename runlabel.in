@@ -121,11 +121,15 @@ array *readpath(const string& psname, bool keep,
     if(s.empty() || !gs.running()) break;
     gs << newl;
 
+#ifdef __APPLE__
+    for(string::iterator i=s.begin(); i != s.end(); ++i) {
     // Workaround broken stringstream container in MacOS 10.9 libc++.
-    for(string::iterator i = s.begin(); i != s.end(); ++i) {
-      if(isalpha(*i)) {buf << " ";}
+      if(isalpha(*i) && *i != 'e') {buf << " ";}
       buf << *i;
     }
+#else    
+    buf << s;
+#endif
     
     if(verbose > 2) cout << endl;
   
@@ -384,6 +388,7 @@ patharray2 *textpath(stringarray *s, penarray *p)
   push_split(cmd,getSetting<string>("textcommandOptions"));
   cmd.push_back(textname);
   iopipestream typesetter(cmd);
+  typesetter.block(true,false);
   
   mem::vector<string> cmd2;
   cmd2.push_back(getSetting<string>("gs"));
@@ -397,6 +402,7 @@ patharray2 *textpath(stringarray *s, penarray *p)
   cmd2.push_back("-sOutputFile=-");
   cmd2.push_back("-");
   iopipestream gs(cmd2,"gs","Ghostscript");
+  gs.block(false,false);
 
   // TODO: Simplify by connecting the pipes directly.
   while(true) {
