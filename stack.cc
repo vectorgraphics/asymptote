@@ -279,7 +279,7 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
 #  define FRAMEVAR(frame,n) (frame[(n)])
 #else
   // Link to the variables, be they in a closure or on the stack.
-  mem::vector<item> *varlink;
+  mem::vector<item> *varlink=NULL;
 
 #  define SET_VARLINK assert(vars); varlink = &vars->vars
 #  define VAR(n) ( (*varlink)[(n) + frameStart] )

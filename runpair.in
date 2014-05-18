@@ -120,7 +120,7 @@ real Degrees(real radians)
 
 real Sin(real deg)
 {
-  int n=deg/90.0;
+  int n=(int) (deg/90.0);
   if(deg == n*90.0) {
     int m=n % 4;
     if(m < 0) m += 4;
@@ -133,7 +133,7 @@ real Sin(real deg)
 
 real Cos(real deg)
 {
-  int n=deg/90.0;
+  int n=(int) (deg/90.0);
   if(deg == n*90.0) {
     int m=n % 4;
     if(m < 0) m += 4;
@@ -146,7 +146,7 @@ real Cos(real deg)
 
 real Tan(real deg)
 {
-  int n=deg/90.0;
+  int n=(int) (deg/90.0);
   if(deg == n*90.0) {
     int m=n % 4;
     if(m < 0) m += 4;
