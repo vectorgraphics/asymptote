@@ -115,7 +115,7 @@ void srand(Int seed)
 // a random number uniformly distributed in the interval [0,1]
 real unitrand()
 {                         
-  return ((real) random())/RAND_MAX;
+  return ((real) random())/RANDOM_MAX;
 }
 
 Int ceil(real x)

@@ -73,6 +73,8 @@ typedef unsigned int unsignedInt;
 
 #define int_MIN LONG_MIN
 
+#define RANDOM_MAX 0x7FFFFFFF
+
 using std::cout;
 using std::cin;
 using std::cerr;

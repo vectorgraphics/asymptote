@@ -66,7 +66,7 @@ void texbounds(double& width, double& height, double& depth,
 
 inline double urand()
 {                         
-  static const double factor=2.0/RAND_MAX;
+  static const double factor=2.0/RANDOM_MAX;
   return rand()*factor-1.0;
 }
 
