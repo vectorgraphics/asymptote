@@ -14,8 +14,8 @@ all:	html info
 	cd .. && $(ASY) -f png -o png/ $(notdir $<)
 
 latexusage.png: ../latexusage.eps
-	convert -alpha Off -density 144x144 +antialias -geometry 50%x \
-		../latexusage.eps latexusage.png
+	gs -q -dNOPAUSE -dBATCH -sDEVICE=pngalpha -dEPSCrop -dSAFER -r72x72 \
+           -sOutputFile=latexusage.png ../latexusage.eps
 
 index.html: $(SOURCE) $(ASYFILES:.asy=.png) latexusage.png
 	makeinfo --html ../asymptote -o .
