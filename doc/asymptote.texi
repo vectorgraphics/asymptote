@@ -1,4 +1,4 @@
-A\input texinfo   @c -*-texinfo-*-
+\input texinfo   @c -*-texinfo-*-
 @setfilename asymptote.info
 @settitle Asymptote: the Vector Graphics Language
 @include version.texi
@@ -2577,15 +2577,32 @@ otherwise.
 returns an arbitrary point strictly inside a cyclic path @code{p}
 according to the fill rule @code{fillrule} (@pxref{fillrule}).
 
-@cindex @code{side}
-@item real side(pair a, pair b, pair c);
-determines the side of @code{a--b} that c lies on (negative=left,
-zero=on @code{a--b}, positive=right).
-
+@cindex @code{orient}
+@item real orient(pair a, pair b, pair c);
+returns a positive (negative) value if @code{a--b--c--cycle} is oriented
+counterclockwise (clockwise) or zero if all three points are colinear.
+Equivalently, a positive (negative) value is returned if
+@code{c} lies to the left (right) of the line through @code{a} and @code{b}
+or zero if @code{c} lies on this line. 
+The value returned is the determinant
+@verbatim
+|a.x a.y 1|
+|b.x b.y 1|
+|c.x c.y 1|
+@end verbatim
+ 
 @cindex @code{incircle}
 @item real incircle(pair a, pair b, pair c, pair d);
-determines the side of the counterclockwise circle through @code{a,b,c} that
-@code{d} lies on (negative=inside, 0=on circle, positive=right). 
+returns a positive (negative) value if @code{d} lies inside (outside)
+the circle passing through the counterclockwise-oriented points @code{a,b,c}
+or zero if @code{d} lies on the this circle.
+The value returned is the determinant
+@verbatim
+|a.x a.y a.x^2+a.y^2 1|
+|b.x b.y b.x^2+b.y^2 1|
+|c.x c.y c.x^2+c.y^2 1|
+|d.x d.y d.x^2+d.y^2 1|
+@end verbatim
 
 @cindex @code{strokepath}
 @item path[] strokepath(path g, pen p=currentpen);
@@ -8327,6 +8344,42 @@ returns the corresponding intersection points.
 Here, the computations are performed to the absolute error specified by
 @code{fuzz}, or if @code{fuzz < 0}, to machine precision.
 
+The routine
+@cindex @code{orient}
+@verbatim
+real orient(triple a, triple b, triple c, triple d);
+@end verbatim
+@noindent
+returns a negative (positive) value if @code{a--b--c--cycle} is oriented
+counterclockwise (clockwise) when viewed from @code{d} or zero if all four
+points are coplanar. 
+The value returned is the determinant
+@verbatim
+|a.x a.y a.z 1|
+|b.x b.y b.z 1|
+|c.x c.y c.z 1|
+|d.x d.y d.z 1|
+@end verbatim
+ 
+The routine
+@cindex @code{insphere}
+@verbatim
+real insphere(triple a, triple b, triple c, triple d, triple e);
+@end verbatim
+@noindent
+returns a positive (negative) value if @code{e} lies inside (outside)
+the sphere passing through the points @code{a,b,c,d} oriented so that
+@code{a--b--c--cycle} appears in clockwise order when viewed from @code{d}
+or zero if all five points are cospherical.
+The value returned is the determinant
+@verbatim
+|a.x a.y a.z a.x^2+a.y^2+a.z^2 1|
+|b.x b.y b.z b.x^2+b.y^2+b.z^2 1|
+|c.x c.y c.z c.x^2+c.y^2+c.z^2 1|
+|d.x d.y d.z d.x^2+d.y^2+d.z^2 1|
+|e.x e.y e.z e.x^2+e.y^2+e.z^2 1|
+@end verbatim
+
 Here is an example showing all five guide3 connectors:
 @verbatiminclude join3.asy
 @sp 1
@@ -9573,7 +9626,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  latexusage tex bbox PostScript subdirectory gcc emacs ASYDIR
 @c  LocalWords:  documentclass usepackage subpath shipout sqrt xN  Mx bw AcroRd
 @c  LocalWords:  xscale xaxis yaxis BeginBar GIF postprocessing fpu de rpair xy
-@c  LocalWords:  ImageMagick cd asymptote Hy
+@c  LocalWords:  ImageMagick cd asymptote Hy 0pt 1filll 's 3D 2D 'asy
 @c  LocalWords:  startup natively xasy tkinter VxN yingyang currentpicture toc
 @c  LocalWords:  MetaPost MetaFont Hammerlindl Healy texinfo autoload setq setf
 @c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
@@ -9755,6 +9808,8 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  generalaxis3 vectorfield3 margin3 grid3xyz 5unit 2D
 @c  LocalWords:  slopefield1 144x144 1filll 'load 'asy 'lasy 'auto 4g
 @c  LocalWords:  libgs 'load 'asy 'lasy 'auto 5bp 1cm 2S 100pt 3t 5mm
-@c  LocalWords:  bracedefaultratio incircle 12pt 25cm 3x 5x 3y 602e
-@c  LocalWords:  2x 2y 3sin 10cm 204e 10x Ai 5E
+@c  LocalWords:  bracedefaultratio incircle 12pt 25cm 3x 5x 3y 602e '
+@c  LocalWords:  2x 2y 3sin 10cm 204e 10x Ai 5E offaxis 'load 'lasy
 @c  LocalWords:  5cm 2N 2E 2n 100d 5z 5y 5unit dvisvgmOptions 144x144
+@c  LocalWords:  4g texengines coplanar
+@c  LocalWords:  insphere cospherical 5unit luatex lualatex

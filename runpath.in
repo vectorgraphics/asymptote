@@ -416,15 +416,28 @@ bool inside(path g, pair z, pen fillrule=CURRENTPEN)
   return fillrule.inside(g.windingnumber(z));
 }
 
-// Determine the side of a--b that c lies on
-// (negative=left, zero=on line, positive=right).
-real side(pair a, pair b, pair c) 
+// Return a positive (negative) value if a--b--c--cycle is oriented
+// counterclockwise (clockwise) or zero if all three points are colinear.
+// Equivalently, return a positive (negative) value if c lies to the
+// left (right) of the line through a and b or zero if c lies on this line.
+// The value returned is the determinant
+// |a.x a.y 1|
+// |b.x b.y 1|
+// |c.x c.y 1|
+// 
+real orient(pair a, pair b, pair c) 
 {
   return orient2d(a,b,c);
 }
 
-// Determine the side of the counterclockwise circle through a,b,c that d
-// lies on (negative=inside, 0=on circle, positive=right). 
+// Return a positive (negative) value if d lies inside (outside)
+// the circle passing through the counterclockwise-oriented points a,b,c
+// or zero if d lies on this circle.
+// The value returned is the determinant
+// |a.x a.y a.x^2+a.y^2 1|
+// |b.x b.y b.x^2+b.y^2 1|
+// |c.x c.y c.x^2+c.y^2 1|
+// |d.x d.y d.x^2+d.y^2 1|
 real incircle(pair a, pair b, pair c, pair d)
 {
   return incircle(a.getx(),a.gety(),b.getx(),b.gety(),c.getx(),c.gety(),

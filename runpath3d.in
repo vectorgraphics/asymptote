@@ -17,6 +17,7 @@ triplearray2* => tripleArray2()
 #include "path3.h"
 #include "array.h"
 #include "drawsurface.h"
+#include "predicates.h"
 
 using namespace camp;
 using namespace vm;
@@ -336,4 +337,41 @@ pair minratio(path3 g)
 pair maxratio(path3 g)
 {
   return g.ratio(::max);
+}
+
+// Return a negative (positive) value if a--b--c--cycle is oriented
+// counterclockwise (clockwise) when viewed from d or zero if all four
+// points are coplanar. 
+// The value returned is the determinant
+// |a.x a.y a.z 1|
+// |b.x b.y b.z 1|
+// |c.x c.y c.z 1|
+// |d.x d.y d.z 1|
+real orient(triple a, triple b, triple c, triple d) 
+{
+  real A[]={a.getx(),a.gety(),a.getz()};
+  real B[]={b.getx(),b.gety(),b.getz()};
+  real C[]={c.getx(),c.gety(),c.getz()};
+  real D[]={d.getx(),d.gety(),d.getz()};
+  return orient3d(A,B,C,D);
+}
+
+// Return a positive (negative) value if e lies inside (outside)
+// the sphere passing through the points a,b,c,d oriented so that
+// a--b--c--cycle appears in clockwise order when viewed from d
+// or zero if all five points are cospherical.
+// The value returned is the determinant
+// |a.x a.y a.z a.x^2+a.y^2+a.z^2 1|
+// |b.x b.y b.z b.x^2+b.y^2+b.z^2 1|
+// |c.x c.y c.z c.x^2+c.y^2+c.z^2 1|
+// |d.x d.y d.z d.x^2+d.y^2+d.z^2 1|
+// |e.x e.y e.z e.x^2+e.y^2+e.z^2 1|
+real insphere(triple a, triple b, triple c, triple d, triple e)
+{
+  real A[]={a.getx(),a.gety(),a.getz()};
+  real B[]={b.getx(),b.gety(),b.getz()};
+  real C[]={c.getx(),c.gety(),c.getz()};
+  real D[]={d.getx(),d.gety(),d.getz()};
+  real E[]={e.getx(),e.gety(),e.getz()};
+  return insphere(A,B,C,D,E);
 }
