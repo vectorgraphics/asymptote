@@ -159,6 +159,11 @@ public:
     return z.x*w.x+z.y*w.y;
   }
   
+  friend double cross(const pair& z, const pair& w)
+  {
+    return z.x*w.y-z.y*w.x;
+  }
+  
 // Return the principal branch of the square root (non-negative real part).
   friend pair Sqrt(const pair& z) {
     double mag=z.length();

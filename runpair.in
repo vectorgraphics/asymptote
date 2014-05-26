@@ -234,6 +234,12 @@ real dot(explicit pair z, explicit pair w)
   return dot(z,w);
 }
 
+// Return the 2D scalar cross product z.x*w.y-z.y*w.x.
+real cross(explicit pair z, explicit pair w)
+{
+  return cross(z,w);
+}
+
 pair bezier(pair a, pair b, pair c, pair d, real t) 
 {
   real onemt=1-t;

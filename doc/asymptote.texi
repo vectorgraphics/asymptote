@@ -1897,6 +1897,38 @@ returns the element-by-element product @code{(z.x*w.x,z.y*w.y)};
 @cindex @code{dot}
 returns the dot product @code{z.x*w.x+z.y*w.y};
 
+@item real cross(explicit pair z, explicit pair w)
+@cindex @code{cross}
+returns the 2D scalar product @code{z.x*w.y-z.y*w.x};
+
+@cindex @code{orient}
+@item real orient(pair a, pair b, pair c);
+returns a positive (negative) value if @code{a--b--c--cycle} is oriented
+counterclockwise (clockwise) or zero if all three points are colinear.
+Equivalently, a positive (negative) value is returned if
+@code{c} lies to the left (right) of the line through @code{a} and @code{b}
+or zero if @code{c} lies on this line. 
+The value returned can be expressed in terms of the 2D scalar cross product
+as @code{cross(a-c,b-c)}, which is the determinant
+@verbatim
+|a.x a.y 1|
+|b.x b.y 1|
+|c.x c.y 1|
+@end verbatim
+ 
+@cindex @code{incircle}
+@item real incircle(pair a, pair b, pair c, pair d);
+returns a positive (negative) value if @code{d} lies inside (outside)
+the circle passing through the counterclockwise-oriented points @code{a,b,c}
+or zero if @code{d} lies on the this circle.
+The value returned is the determinant
+@verbatim
+|a.x a.y a.x^2+a.y^2 1|
+|b.x b.y b.x^2+b.y^2 1|
+|c.x c.y c.x^2+c.y^2 1|
+|d.x d.y d.x^2+d.y^2 1|
+@end verbatim
+
 @item pair minbound(pair z, pair w) 
 @cindex @code{minbound}
 returns @code{(min(z.x,w.x),min(z.y,w.y))};
@@ -2576,33 +2608,6 @@ otherwise.
 @item pair inside(path p, pen fillrule=currentpen);
 returns an arbitrary point strictly inside a cyclic path @code{p}
 according to the fill rule @code{fillrule} (@pxref{fillrule}).
-
-@cindex @code{orient}
-@item real orient(pair a, pair b, pair c);
-returns a positive (negative) value if @code{a--b--c--cycle} is oriented
-counterclockwise (clockwise) or zero if all three points are colinear.
-Equivalently, a positive (negative) value is returned if
-@code{c} lies to the left (right) of the line through @code{a} and @code{b}
-or zero if @code{c} lies on this line. 
-The value returned is the determinant
-@verbatim
-|a.x a.y 1|
-|b.x b.y 1|
-|c.x c.y 1|
-@end verbatim
- 
-@cindex @code{incircle}
-@item real incircle(pair a, pair b, pair c, pair d);
-returns a positive (negative) value if @code{d} lies inside (outside)
-the circle passing through the counterclockwise-oriented points @code{a,b,c}
-or zero if @code{d} lies on the this circle.
-The value returned is the determinant
-@verbatim
-|a.x a.y a.x^2+a.y^2 1|
-|b.x b.y b.x^2+b.y^2 1|
-|c.x c.y c.x^2+c.y^2 1|
-|d.x d.y d.x^2+d.y^2 1|
-@end verbatim
 
 @cindex @code{strokepath}
 @item path[] strokepath(path g, pen p=currentpen);
@@ -8350,10 +8355,8 @@ The routine
 real orient(triple a, triple b, triple c, triple d);
 @end verbatim
 @noindent
-returns a negative (positive) value if @code{a--b--c--cycle} is oriented
-counterclockwise (clockwise) when viewed from @code{d} or zero if all four
-points are coplanar. 
-The value returned is the determinant
+is a numerically robust computation of @code{dot(cross(a-d,b-d),c-d)},
+which is the determinant
 @verbatim
 |a.x a.y a.z 1|
 |b.x b.y b.z 1|
@@ -8368,8 +8371,8 @@ real insphere(triple a, triple b, triple c, triple d, triple e);
 @end verbatim
 @noindent
 returns a positive (negative) value if @code{e} lies inside (outside)
-the sphere passing through the points @code{a,b,c,d} oriented so that
-@code{a--b--c--cycle} appears in clockwise order when viewed from @code{d}
+the sphere passing through points @code{a,b,c,d} oriented so that
+@code{dot(cross(a-d,b-d),c-d)} is positive,
 or zero if all five points are cospherical.
 The value returned is the determinant
 @verbatim
