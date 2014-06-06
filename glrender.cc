@@ -654,7 +654,6 @@ void screen()
 
 void nextframe(int) 
 {
-  glFinish();
 #ifdef HAVE_PTHREAD
   endwait(readySignal,readyLock);
 #endif    
@@ -950,6 +949,19 @@ void mouse(int button, int state, int x, int y)
   int mod=glutGetModifiers();
   string Action=action(button,mod);
 
+  if(!Menu) {
+    if(mod == 0 && state == GLUT_UP && !Motion && Action == "zoom/menu") {
+      MenuButton=button;
+      glutMotionFunc(NULL);
+      glutTimerFunc(getSetting<Int>("doubleclick"),timeout,0);
+      glutAttachMenu(button);
+      Menu=true;
+      return;
+    } else Motion=false;
+  }
+  
+  disableMenu();
+  
   if(Action == "zoomin") {
     glutMotionFunc(NULL);
     mousewheel(0,1,x,y);
@@ -960,18 +972,6 @@ void mouse(int button, int state, int x, int y)
     mousewheel(0,-1,x,y);
     return;
   }     
-  
-  if(Menu) disableMenu();
-  else {
-    if(mod == 0 && state == GLUT_UP && !Motion && Action == "zoom/menu") {
-      MenuButton=button;
-      glutMotionFunc(NULL);
-      glutAttachMenu(button);
-      Menu=true;
-      glutTimerFunc(getSetting<Int>("doubleclick"),timeout,0);
-      return;
-    } else Motion=false;
-  }
   
   if(state == GLUT_DOWN) {
     if(Action == "rotate" || Action == "rotateX" || Action == "rotateY") {
