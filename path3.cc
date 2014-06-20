@@ -1075,9 +1075,9 @@ bool intersections(double& U, double& V, const triple& v, triple *P,
   return false;
 }
 
-void intersections(std::vector<double>& T, std::vector<double>& U,
+bool intersections(std::vector<double>& T, std::vector<double>& U,
                    std::vector<double>& V, path3& p, triple *P,
-                   double fuzz, unsigned depth)
+                   double fuzz, bool single, unsigned depth)
 {
   if(errorstream::interrupt) throw interrupted();
   
@@ -1114,7 +1114,7 @@ void intersections(std::vector<double>& T, std::vector<double>& U,
       T.push_back(0.5);
       U.push_back(0.5);
       V.push_back(0.5);
-      return;
+      return true;
     }
     
     Int lp=p.length();
@@ -1138,7 +1138,7 @@ void intersections(std::vector<double>& T, std::vector<double>& U,
           V1.push_back(v);
           add(T,U,V,T1,U1,V1,p,1.0,0.0,0.0,0.0,fuzz2);
         }
-        return;
+        return T1.size() > 0;
       }
       tscale=toffset=0.5;
     } else {
@@ -1162,62 +1162,109 @@ void intersections(std::vector<double>& T, std::vector<double>& U,
     Split<triple> c9(c3.m2,c2.m2,c1.m2,c0.m2);
     Split<triple> c10(P[15],P[11],P[7],P[3]);
 
+    static size_t maxcount=9;
+    size_t count=0;
+    
+    bool Short=lp == 1;
+    
     // Check all 4 Bezier subpatches against p0.
     triple Q0[]={P[0],c0.m0,c0.m3,c0.m5,c4.m2,c5.m2,c6.m2,c7.m2,
                  c4.m4,c5.m4,c6.m4,c7.m4,c4.m5,c5.m5,c6.m5,c7.m5};
-    intersections(T1,U1,V1,p0,Q0,fuzz,depth);
-    add(T,U,V,T1,U1,V1,p,tscale,0.0,0.0,0.0,fuzz2);
+    if(intersections(T1,U1,V1,p0,Q0,fuzz,single,depth)) {
+      add(T,U,V,T1,U1,V1,p,tscale,0.0,0.0,0.0,fuzz2);
+      if(single || depth <= mindepth)
+        return true;
+      count += T1.size();
+      if(Short && count > maxcount) return true;
+    }
   
     T1.clear();
     U1.clear();
     V1.clear();
     triple Q1[]={c0.m5,c0.m4,c0.m2,P[3],c7.m2,c8.m2,c9.m2,c10.m2,
                  c7.m4,c8.m4,c9.m4,c10.m4,c7.m5,c8.m5,c9.m5,c10.m5};
-    intersections(T1,U1,V1,p0,Q1,fuzz,depth);
-    add(T,U,V,T1,U1,V1,p,tscale,0.0,0.0,0.5,fuzz2);
+    if(intersections(T1,U1,V1,p0,Q1,fuzz,single,depth)) {
+      add(T,U,V,T1,U1,V1,p,tscale,0.0,0.0,0.5,fuzz2);
+      if(single || depth <= mindepth)
+        return true;
+      count += T1.size();
+      if(Short && count > maxcount) return true;
+    }
   
     T1.clear();
     U1.clear();
     V1.clear();
     triple Q2[]={c7.m5,c8.m5,c9.m5,c10.m5,c7.m3,c8.m3,c9.m3,c10.m3,
                  c7.m0,c8.m0,c9.m0,c10.m0,c3.m5,c3.m4,c3.m2,P[15]};
-    intersections(T1,U1,V1,p0,Q2,fuzz,depth);
-    add(T,U,V,T1,U1,V1,p,tscale,0.0,0.5,0.5,fuzz2);
+    if(intersections(T1,U1,V1,p0,Q2,fuzz,single,depth)) {
+      add(T,U,V,T1,U1,V1,p,tscale,0.0,0.5,0.5,fuzz2);
+      if(single || depth <= mindepth)
+        return true;
+      count += T1.size();
+      if(Short && count > maxcount) return true;
+    }
   
     T1.clear();
     U1.clear();
     V1.clear();
     triple Q3[]={c4.m5,c5.m5,c6.m5,c7.m5,c4.m3,c5.m3,c6.m3,c7.m3,
                  c4.m0,c5.m0,c6.m0,c7.m0,P[12],c3.m0,c3.m3,c3.m5};
-    intersections(T1,U1,V1,p0,Q3,fuzz,depth);
-    add(T,U,V,T1,U1,V1,p,tscale,0.0,0.5,0.0,fuzz2);
+    if(intersections(T1,U1,V1,p0,Q3,fuzz,single,depth)) {
+      add(T,U,V,T1,U1,V1,p,tscale,0.0,0.5,0.0,fuzz2);
+      if(single || depth <= mindepth)
+        return true;
+      count += T1.size();
+      if(Short && count > maxcount) return true;
+    }
   
     // Check all 4 Bezier subpatches against p1.
     T1.clear();
     U1.clear();
     V1.clear();
-    intersections(T1,U1,V1,p1,Q0,fuzz,depth);
-    add(T,U,V,T1,U1,V1,p,tscale,toffset,0.0,0.0,fuzz2);
+    if(intersections(T1,U1,V1,p1,Q0,fuzz,single,depth)) {
+      add(T,U,V,T1,U1,V1,p,tscale,toffset,0.0,0.0,fuzz2);
+      if(single || depth <= mindepth)
+        return true;
+      count += T1.size();
+      if(Short && count > maxcount) return true;
+    }
   
     T1.clear();
     U1.clear();
     V1.clear();
-    intersections(T1,U1,V1,p1,Q1,fuzz,depth);
-    add(T,U,V,T1,U1,V1,p,tscale,toffset,0.0,0.5,fuzz2);
+    if(intersections(T1,U1,V1,p1,Q1,fuzz,single,depth)) {
+      add(T,U,V,T1,U1,V1,p,tscale,toffset,0.0,0.5,fuzz2);
+      if(single || depth <= mindepth)
+        return true;
+      count += T1.size();
+      if(Short && count > maxcount) return true;
+    }
   
     T1.clear();
     U1.clear();
     V1.clear();
-    intersections(T1,U1,V1,p1,Q2,fuzz,depth);
-    add(T,U,V,T1,U1,V1,p,tscale,toffset,0.5,0.5,fuzz2);
+    if(intersections(T1,U1,V1,p1,Q2,fuzz,single,depth)) {
+      add(T,U,V,T1,U1,V1,p,tscale,toffset,0.5,0.5,fuzz2);
+      if(single || depth <= mindepth)
+        return true;
+      count += T1.size();
+      if(Short && count > maxcount) return true;
+    }
   
     T1.clear();
     U1.clear();
     V1.clear();
-    intersections(T1,U1,V1,p1,Q3,fuzz,depth);
-    add(T,U,V,T1,U1,V1,p,tscale,toffset,0.5,0.0,fuzz2);
+    if(intersections(T1,U1,V1,p1,Q3,fuzz,single,depth)) {
+      add(T,U,V,T1,U1,V1,p,tscale,toffset,0.5,0.0,fuzz2);
+      if(single || depth <= mindepth)
+        return true;
+      count += T1.size();
+      if(Short && count > maxcount) return true;
+    }
+    
+    return T.size() > 0;
   }
-  
+  return false;
 }
 
 } //namespace camp

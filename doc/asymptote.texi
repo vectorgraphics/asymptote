@@ -2294,7 +2294,8 @@ path arc(pair c, real r, real angle1, real angle2, bool direction);
 Here the direction can be specified as CCW (counter-clockwise) or CW
 (clockwise). For convenience, an arc centered at @code{c} from pair
 @code{z1} to @code{z2} (assuming @code{|z2-c|=|z1-c|}) in the may also
-be constructed with @verbatim
+be constructed with 
+@verbatim
 path arc(pair c, explicit pair z1, explicit pair z2,
          bool direction=CCW)
 @end verbatim
@@ -5349,7 +5350,7 @@ For arrays @code{x} and @code{y} of the same length, returns the pair array
 
 @cindex @code{fft}
 @item pair[] fft(pair[] a, int sign=1)
-returns the Fast Fourier Transform of @code{a} (if the optional
+returns the unnormalized Fast Fourier Transform of @code{a} (if the optional
 @code{FFTW} package is installed), using the given @code{sign}. Here
 is a simple example:
 @verbatim
@@ -8335,11 +8336,19 @@ Three-dimensional versions of the path functions @code{length},
 The routine
 @cindex @code{intersections}
 @verbatim
+real[] intersect(path3 p, surface s, real fuzz=-1);
+@end verbatim
+@noindent
+returns a real array of length 3 containing the intersection times, if any,
+of a path @code{p} with a surface @code{s}.
+The routine
+@verbatim
 real[][] intersections(path3 p, surface s, real fuzz=-1);
 @end verbatim
 @noindent
-returns the intersection times of a path @code{p} with a surface
-@code{s} as a sorted array of real arrays of length 3, and
+returns all (unless there are infinitey many) intersection times of a
+path @code{p} with a surface @code{s} as a sorted array of real arrays
+of length 3, and 
 @cindex @code{intersectionpoints}
 @verbatim
 triple[] intersectionpoints(path3 p, surface s, real fuzz=-1);
@@ -8348,7 +8357,6 @@ triple[] intersectionpoints(path3 p, surface s, real fuzz=-1);
 returns the corresponding intersection points.
 Here, the computations are performed to the absolute error specified by
 @code{fuzz}, or if @code{fuzz < 0}, to machine precision.
-
 The routine
 @cindex @code{orient}
 @verbatim

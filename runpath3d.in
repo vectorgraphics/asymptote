@@ -263,6 +263,25 @@ realarray2* intersections(path3 p, path3 q, real fuzz=-1)
   return V;
 }
 
+realarray* intersect(path3 p, triplearray2 *P, real fuzz=-1)
+{
+  triple *A;
+  copyArray2C(A,P,true,4);
+  if(fuzz <= 0) fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
+                                   norm(A,16));
+  std::vector<real> T,U,V;
+  bool found=intersections(T,U,V,p,A,fuzz,true);
+  delete[] A;
+  if(found) {
+    array *W=new array(3);
+    (*W)[0]=T[0];
+    (*W)[1]=U[0];
+    (*W)[2]=V[0];
+    return W;
+  } else
+    return new array(0);
+}
+
 realarray2* intersections(path3 p, triplearray2 *P, real fuzz=-1)
 {
   triple *A;
@@ -270,7 +289,7 @@ realarray2* intersections(path3 p, triplearray2 *P, real fuzz=-1)
   if(fuzz <= 0) fuzz=BigFuzz*::max(::max(length(p.max()),length(p.min())),
                                    norm(A,16));
   std::vector<real> T,U,V;
-  intersections(T,U,V,p,A,fuzz);
+  intersections(T,U,V,p,A,fuzz,false);
   delete[] A;
   size_t n=T.size();
   array *W=new array(n);

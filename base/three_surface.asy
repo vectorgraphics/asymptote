@@ -1115,6 +1115,21 @@ patch subpatch(patch s, pair a, pair b)
   return patch(subpatch(s.P,a,b),s.straight,s.planar);
 }
 
+// return an array containing an intersection times of path p and surface s.
+real[] intersect(path3 p, patch s, real fuzz=-1)
+{
+  return intersect(p,s.P,fuzz);
+}
+
+// return an array containing an intersection times of path p and surface s.
+real[] intersect(path3 p, surface s, real fuzz=-1)
+{
+  for(int i=0; i < s.s.length; ++i) {
+    real[] T=intersect(p,s.s[i].P,fuzz);
+    if(T.length > 0) return T;
+  }
+  return new real[];
+}
 
 // return an array containing all intersection times of path p and patch s.
 real[][] intersections(path3 p, patch s, real fuzz=-1)
