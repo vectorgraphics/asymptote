@@ -1183,8 +1183,8 @@ bool overlap(triple[][] p, triple[][] q, real fuzz=-1)
   triple qmin=minbound(q);
   triple qmax=maxbound(q);
 
-  static real Fuzz=1000*realEpsilon;
-  real fuzz=max(10*fuzz,Fuzz*max(abs(pmin),abs(pmax)));
+  if(fuzz == -1)
+    fuzz=1000*realEpsilon*max(abs(pmin),abs(pmax),abs(qmin),abs(qmax));
   
   return
     pmax.x+fuzz >= qmin.x &&
