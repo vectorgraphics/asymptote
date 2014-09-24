@@ -263,12 +263,12 @@ path &(path p, path q)
   return camp::concat(p,q);
 }
 
-pair min(path p)
+pair min(explicit path p)
 {
   return p.min();
 }
 
-pair max(path p)
+pair max(explicit path p)
 {
   return p.max();
 }

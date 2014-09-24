@@ -1495,7 +1495,7 @@ be specified as an absolute compass direction (pair) or a direction
 in the local direction of the path. For convenience @code{LeftSide},
 @code{Center}, and @code{RightSide} are defined as @code{Relative(W)},
 @code{Relative((0,0))}, and @code{Relative(E)}, respectively.
-Multiplying @code{LeftSide}, @code{Center}, @code{RightSide} on the
+Multiplying @code{LeftSide} and @code{RightSide} on the
 left by a real scaling factor will move the label further away from or
 closer to the path.
 
