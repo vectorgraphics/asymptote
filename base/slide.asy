@@ -432,10 +432,13 @@ void indexedfigure(string prefix, int first, int last,
                    pair align=S, pen p=itempen, pen figuremattpen=figuremattpen,
                    bool step=itemstep)
 {
+  bool Stepping=stepping;
+  stepping=true;
   string[] s;
   for(int i=first; i <= last; ++i)
     s.push(prefix+string(i));
   multifigure(s,options,caption,align,p,figuremattpen,step=step);
+  stepping=Stepping;
 }
 
 string[] codefile;
