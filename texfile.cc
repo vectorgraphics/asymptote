@@ -98,7 +98,7 @@ void texfile::prologue()
     }
   }
   
-  if(settings::xe(texengine))
+  if(settings::xe(texengine) && !inlinetex)
     *out << "\\usepackage{everypage}%" << newl;
   
   if(settings::latex(texengine)) {

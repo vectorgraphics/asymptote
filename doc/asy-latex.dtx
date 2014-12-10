@@ -38,7 +38,7 @@ Licence: GPL2+
 %</driver>
 %<pkg>\ProvidesPackage{asymptote}
 %<*pkg>
-  [2012/08/25 v1.27 Asymptote style file for LaTeX]
+  [2014/12/10 v1.28 Asymptote style file for LaTeX]
 %</pkg>
 %
 %<*driver>
@@ -314,6 +314,7 @@ Licence: GPL2+
 \newif\ifASYPDF
 \ifxetex
   \ASYPDFtrue
+  \usepackage{everypage}
 \else
   \ifpdf
     \ASYPDFtrue
