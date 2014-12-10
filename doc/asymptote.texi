@@ -6271,7 +6271,7 @@ line through @code{(0,z.y)}.
 returns the @code{n}th @code{y} value of @code{g} at @code{x}.
 
 @cindex @code{value}
-@item real value(path g, real x, int n=0)
+@item real value(path g, explicit pair z, int n=0)
 returns the @code{n}th @code{x} value of @code{g} at @code{y=z.y}.
 
 @cindex @code{slope}

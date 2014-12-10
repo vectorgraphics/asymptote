@@ -3,7 +3,7 @@ texpreamble("\def\Arg{\mathop {\rm Arg}\nolimits}");
 
 size(10cm,5cm,IgnoreAspect);
 
-real ampl(real x) {return 2.5/(1+x^2);}
+real ampl(real x) {return 2.5/sqrt(1+x^2);}
 real phas(real x) {return -atan(x)/pi;}
 
 scale(Log,Log);
