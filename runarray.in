@@ -1611,8 +1611,8 @@ real simpson(callableReal *f, real a, real b, real acc=DBL_EPSILON,
 // Compute the fast Fourier transform of a pair array
 pairarray* fft(pairarray *a, Int sign=1)
 {
-  unsigned n=(unsigned) checkArray(a);
 #ifdef HAVE_LIBFFTW3
+  unsigned n=(unsigned) checkArray(a);
   array *c=new array(n);
   if(n) {
     Complex *f=fftwpp::ComplexAlign(n);
@@ -1631,7 +1631,6 @@ pairarray* fft(pairarray *a, Int sign=1)
     fftwpp::deleteAlign(f);
   }
 #else
-  unused(&n);
   unused(&sign);
   array *c=new array(0);
   error("Please install fftw3, run ./configure, and recompile");
