@@ -258,7 +258,7 @@ void write(solution S)
 
 // Integrate dy/dt+cy=f(t,y) from a to b using initial conditions y,
 // specifying either the step size h or the number of steps n.
-solution integrate(real y, real c=0, real g(real t, real y), real a, real b=a,
+solution integrate(real y, real c=0, real f(real t, real y), real a, real b=a,
                    real h=0, int n=0, bool dynamic=false, real tolmin=0,
                    real tolmax=0, real dtmin=0, real dtmax=realMax,
                    RKTableau tableau, bool verbose=false)
@@ -273,8 +273,8 @@ solution integrate(real y, real c=0, real g(real t, real y), real a, real b=a,
     else h=(b-a)/n;
   }
 
-  real f(real t, real y)=(c == 0 || tableau.exponential) ? g :
-    new real(real t, real y) {return g(t,y)-c*y;};
+  real F(real t, real y)=(c == 0 || tableau.exponential) ? f :
+    new real(real t, real y) {return f(t,y)-c*y;};
 
   tableau.stepDependence(h,c,tableau.a);
       
@@ -283,7 +283,7 @@ solution integrate(real y, real c=0, real g(real t, real y), real a, real b=a,
   if(tableau.a.lowOrderWeights.length == 0) dynamic=false;
   bool fsal=dynamic &&
     (tableau.a.lowOrderWeights.length > tableau.a.highOrderWeights.length);
-  if(fsal) f0=f(t,y);
+  if(fsal) f0=F(t,y);
 
   real dt=h;
   while(t < b) {
@@ -295,9 +295,9 @@ solution integrate(real y, real c=0, real g(real t, real y), real a, real b=a,
       dt=h;
     }
  
-    real[] predictions={fsal ? f0 : f(t,y)};
+    real[] predictions={fsal ? f0 : F(t,y)};
     for(int i=0; i < tableau.a.steps.length; ++i)
-      predictions.push(f(t+h*tableau.a.steps[i],
+      predictions.push(F(t+h*tableau.a.steps[i],
                          tableau.a.factors[i]*y+h*dot(tableau.a.weights[i],
                                                       predictions)));
 
@@ -306,7 +306,7 @@ solution integrate(real y, real c=0, real g(real t, real y), real a, real b=a,
     if(dynamic) {
       real f1;
       if(fsal) {
-        f1=f(t+h,y0+highOrder);
+        f1=F(t+h,y0+highOrder);
         predictions.push(f1);
       }
       real lowOrder=h*dot(tableau.a.lowOrderWeights,predictions);
