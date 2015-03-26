@@ -136,14 +136,6 @@ void texfile::prologue()
     }
   }
   
-// Workaround Adobe Reader transparency artifact:
-  if(settings::pdf(texengine)) {
-    if(settings::xe(texengine))
-      *out << "\\AddEverypageHook{\\special{pdf: put @thispage <</Group << /S /Transparency /I true /CS /DeviceRGB>> >>}}%" << newl;
-    else
-      *out << "\\pdfpageattr{/Group <</S /Transparency /I true /CS /DeviceRGB>>}%" << newl;
-  }
-  
   beginpage();
 }
     
