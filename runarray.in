@@ -1044,8 +1044,8 @@ array* :array3Transpose(array *a, array *perm)
     }
   }
   
-  delete [] i;  
-  delete [] size;  
+  delete[] i;  
+  delete[] size;  
 
   return c;
 }
@@ -1109,7 +1109,7 @@ realarray2 *inverse(realarray2 *a)
   copyArray2C(A,a,true,0,NoGC);
   inverse(A,n);
   a=copyCArray2(n,n,A);
-  delete A;
+  delete[] A;
   return a;
 }
 
