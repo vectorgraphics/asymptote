@@ -495,13 +495,15 @@ void texinit()
   pd.TeXpipepreamble.clear();
 }
   
-int opentex(const string& texname, const string& prefix) 
+int opentex(const string& texname, const string& prefix, bool dvi) 
 {
   string aux=auxname(prefix,"aux");
   unlink(aux.c_str());
   bool context=settings::context(getSetting<string>("tex"));
   mem::vector<string> cmd;
   cmd.push_back(texprogram());
+  if(dvi)
+    cmd.push_back("-output-format=dvi");
   if(context) {
     cmd.push_back("--nonstopmode");
     cmd.push_back(texname);

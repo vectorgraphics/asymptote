@@ -116,7 +116,7 @@ inline picture *transformed(const vm::array& t, picture *p)
 }
 
 void texinit();
-int opentex(const string& texname, const string& prefix);
+int opentex(const string& texname, const string& prefix, bool dvi=false);
 
 const char *texpathmessage();
   
