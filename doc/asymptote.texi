@@ -9149,7 +9149,7 @@ produced using the @code{-f} option (or @code{outformat} setting).
 @cindex @code{dvisvgm}
 @cindex @code{libgs}
 To produce @acronym{SVG} output, you will need @code{dvisvgm} (version
-0.8.7 or later) from @url{http://dvisvgm.sourceforge.net} and must use
+1.5.3 or later) from @url{http://dvisvgm.sourceforge.net} and must use
 the @code{latex} or @code{tex} tex engine. You might need to adjust
 the configuration variable @code{libgs} to point to the location of
 your @code{Ghostscript} library @code{libgs.so} (or to an empty
