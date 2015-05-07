@@ -7184,7 +7184,7 @@ path arc(explicit pair B, explicit pair A, explicit pair C, real r)
 {
   real BA = degrees(B - A);
   real CA = degrees(C - A);
-  return arc(A, abs(r), BA, CA, (r > 0) ^ ((BA-CA) % 360 < 180) ? CW : CCW);
+  return arc(A, abs(r), BA, CA, (r < 0) ^ ((BA-CA) % 360 < 180) ? CW : CCW);
 }
 
 // *.......End of compatibility routines........*
