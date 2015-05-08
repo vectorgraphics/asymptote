@@ -118,11 +118,11 @@ bounds image(picture pic=currentpicture, real f(real, real),
   real ymax=pic.scale.y.T(final.y);
   real[][] data=new real[ny][nx];
   for(int j=0; j < ny; ++j) {
-    real y=pic.scale.y.Tinv(interp(ymin,ymax,(j+0.5)/nx));
+    real y=pic.scale.y.Tinv(interp(ymin,ymax,(j+0.5)/ny));
     scalefcn Tinv=pic.scale.x.Tinv;
     // Take center point of each bin
     data[j]=sequence(new real(int i) {
-        return f(Tinv(interp(xmin,xmax,(i+0.5)/ny)),y);
+        return f(Tinv(interp(xmin,xmax,(i+0.5)/nx)),y);
       },nx);
   }
   return image(pic,data,range,initial,final,palette,transpose=false,
