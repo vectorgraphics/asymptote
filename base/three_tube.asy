@@ -83,8 +83,10 @@ private real[][][] bispline0(real[][] z, real[][] p, real[][] q, real[][] r,
     count=0;
     for(int i=0; i < n; ++i) {
       bool[] condi=cond[i];
+      bool[] condp=cond[i+1];
       for(int j=0; j < m; ++j)
-        if(condi[j]) ++count;
+        if(all || (condi[j] && condi[j+1] && condp[j] && condp[j+1])) 
+          ++count;
     }
   }
 
@@ -104,8 +106,9 @@ private real[][][] bispline0(real[][] z, real[][] p, real[][] q, real[][] r,
     real[] qi=q[i];
     real[] qp=q[ip];
     bool[] condi=all ? null : cond[i];
+    bool[] condp=all ? null : cond[i+1];
     for(int j=0; j < m; ++j) {
-      if(all || condi[j]) {
+      if(all || (condi[j] && condi[j+1] && condp[j] && condp[j+1])) {
         real yj=y[j];
         int jp=j+1;
         real yp=y[jp];
@@ -214,7 +217,8 @@ surface surface(triple f(pair z), real[] u, real[] v,
     bool[] activei=all ? null : active[i];
     for(int j=0; j <= nv; ++j) {
       pair z=(ui,v[j]);
-      triple f=(all || (activei[j]=cond(z))) ? f(z) : O;
+      if(!all) activei[j]=cond(z);
+      triple f=f(z);
       fxi[j]=f.x;
       fyi[j]=f.y;
       fzi[j]=f.z;
