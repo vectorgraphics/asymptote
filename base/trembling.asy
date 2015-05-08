@@ -29,10 +29,7 @@
 real magneticRadius=1; // unit is bp in postscript coordinates.
 real trembleFuzz(){return min(1e-3,magneticRadius/10);}
 
-/* <asyxml> <variable type="real" signature="trembleAngle"> <code> </asyxml> */
 real trembleAngle=4, trembleFrequency=0.5, trembleRandom=2;
-/* <asyxml> </code> <documentation> Variables used by the routine 'tremble'.
-   </documentation> </variable> </asyxml> */ 
 
 struct tremble
 {
@@ -58,13 +55,8 @@ struct tremble
     return op;
   }
 
-  /* <asyxml> <function type="pair" signature="attract(pair,path,real)"> <code> 
-     </asyxml> */
   real atime(pair m, path g, real fuzz=trembleFuzz())
-  {/* <asyxml> </code> <documentation> Return the time of the point on path g
-      nearest to 'm'.
-      'fuzz' is the argument 'fuzz' of 'intersect'. </documentation> </function> 
-      </asyxml> */
+  {// Return the time of the point on path g nearest to m, within fuzz.
     if(length(g) == 0) return 0.0;
     real[] t=intersect(m,g,fuzz);
     if(t.length > 0) return t[1];
@@ -91,11 +83,8 @@ struct tremble
     return ot;
   }
 
-  /* <asyxml> <function type="path" signature="addnode(path,real)"> <code>
-     </asyxml> */
   path addnode(path g, real t)
-  {/* <asyxml> </code> <documentation> Add a node to 'g' at point(g,t).
-      </documentation> </function> </asyxml> */
+  {// Add a node to 'g' at point(g,t).
     real l=length(g);
     real rt=t % 1;
     if(l == 0 || (t > l && !cyclic(g)) || rt == 0) return g;
@@ -129,11 +118,8 @@ struct tremble
     return og;
   }
 
-  /* <asyxml> <function type="path" signature="addnodes(path,int)"> <code>
-     </asyxml> */
   path addnodes(path g, int n)
-  {/* <asyxml> </code> <documentation> Add 'n' nodes between each node of 'g'.
-      </documentation> </function> </asyxml> */
+  {// Add 'n' nodes between each node of 'g'.
     real l=length(g);
     if(n == 0 || l == 0) return g;
     path og=g;
@@ -148,8 +134,6 @@ struct tremble
     return og;
   }
 
-  /* <asyxml> <function type="path"
-     signature="tremble(path,real,real,real,real,pair[] )"> <code> </asyxml> */
   void operator init(real angle=trembleAngle, real frequency=trembleFrequency,
                      real random=trembleRandom, real fuzz=trembleFuzz()) {
     this.angle=angle;
@@ -159,7 +143,7 @@ struct tremble
   }
   
   path deform(path g...pair[] magneticPoints) {
-    /* <asyxml> </code> <documentation> Return g as it was handwriting.
+    /* Return g as it was handwriting.
        The postcontrols and precontrols of the nodes of g will be rotated
        by an angle proportional to 'angle'(in degrees).
        If frequency < 1, floor(1/frequency) nodes will be added to g to
@@ -169,8 +153,7 @@ struct tremble
        'random' controls the randomized coefficient which will be multiplied
        by 'angle'.
        random is 0 means don't use randomized coefficient;
-       The higher 'random' is, the more the trembling is randomized.
-       </documentation> </function> </asyxml> */ 
+       The higher 'random' is, the more the trembling is randomized. */
     if(length(g) == 0) return g;
     g=addnodes(g,fuzz*abs(max(g)-min(g))...magneticPoints);
     path tg=g;
