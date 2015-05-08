@@ -7686,15 +7686,15 @@ the routines
 @verbatim
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
-          light light=currentlight, light meshlight=light, string name="",
+          light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender);
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen meshpen,
-          light light=currentlight, light meshlight=light, string name="",
+          light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender);
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
-          light light=currentlight, light meshlight=light, string name="",
+          light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender);
 
 @end verbatim

@@ -1378,7 +1378,7 @@ nullpens.cyclic=true;
 
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
-          light light=currentlight, light meshlight=light, string name="",
+          light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender, projection P=currentprojection)
 {
   bool is3D=is3D();
@@ -1465,7 +1465,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 
 void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
-          light light=currentlight, light meshlight=light, string name="",
+          light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender, projection P=currentprojection)
 {
   material[] surfacepen={surfacepen};
@@ -1477,7 +1477,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen[] meshpen=nullpens,
-          light light=currentlight, light meshlight=light, string name="",
+          light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
   if(s.empty()) return;
@@ -1522,7 +1522,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material surfacepen=currentpen, pen meshpen=nullpen,
-          light light=currentlight, light meshlight=light, string name="",
+          light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
   material[] surfacepen={surfacepen};
@@ -1534,7 +1534,7 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
 
 void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
           material[] surfacepen, pen meshpen,
-          light light=currentlight, light meshlight=light, string name="",
+          light light=currentlight, light meshlight=nolight, string name="",
           render render=defaultrender)
 {
   pen[] meshpen={meshpen};
