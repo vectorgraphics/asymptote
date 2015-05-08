@@ -83,17 +83,9 @@ SimpleHead.head=new path(path g, position position=EndPoint, pen p=currentpen,
   path r=subpath(g,position,0);
   pair x=point(r,0);
   real t=arctime(r,size);
-  pair y=point(r,t);
-  path base=arrowbase(r,y,t,size);
   path left=rotate(-angle,x)*r;
   path right=rotate(angle,x)*r;
-  real[] T=arrowbasepoints(base,left,right,1);
-  pair denom=point(right,T[1])-y;
-  real factor=denom != 0 ? length((point(left,T[0])-y)/denom) : 1;
-  path left=rotate(-angle*factor,x)*r;
-  path right=rotate(angle*factor,x)*r;
-  real[] T=arrowbasepoints(base,left,right,1);
-  return subpath(left,T[0],0)--subpath(right,0,T[1]);
+  return subpath(left,t,0)--subpath(right,0,t);
 };
 
 arrowhead HookHead(real dir=arrowdir, real barb=arrowbarb)
