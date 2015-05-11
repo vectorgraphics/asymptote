@@ -9182,15 +9182,17 @@ to execute arbitrary shell commands. The default mode, @code{-safe},
 disables this call.
 
 @cindex offset
-@cindex @code{align}
+@cindex @code{aligndir}
 A @code{PostScript} offset may be specified as a pair (in @code{bp}
 units) with the @code{-O} option:
 @verbatim
 asy -O 0,0 file
 @end verbatim
 @noindent
-The default offset is zero. The default value of the page alignment
-setting @code{align} is @code{Center}.
+The default offset is zero. The pair @code{aligndir} specifies
+an optional direction on the boundary of the page (mapped to the
+rectangle [-1,1]@math{\times}[-1,1]) to which the picture should be aligned; the
+default value @code{(0,0)} species center alignment.
 
 @cindex @code{-c}
 The @code{-c} (@code{command}) option may be used to execute arbitrary

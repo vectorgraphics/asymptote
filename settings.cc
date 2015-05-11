@@ -1147,6 +1147,8 @@ void initSettings() {
   addOption(new versionOption("version", 0, "Show version"));
 
   addOption(new pairSetting("offset", 'O', "pair", "PostScript offset"));
+  addOption(new pairSetting("aligndir", 0, "pair",
+                             "Directional page alignment (overrides align)"));
   addOption(new alignSetting("align", 'a', "C|B|T|Z",
                              "Center, Bottom, Top, or Zero page alignment",
                              "C"));

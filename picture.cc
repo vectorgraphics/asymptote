@@ -600,7 +600,8 @@ bool picture::texprocess(const string& texname, const string& outname,
           cmd.push_back("-T"+String(getSetting<double>("paperwidth"))+"bp,"+
                         String(paperHeight)+"bp");
           push_split(cmd,getSetting<string>("dvipsOptions"));
-          cmd.push_back("-t"+papertype);
+          if(getSetting<string>("papertype") != "")
+            cmd.push_back("-t"+papertype);
           if(verbose <= 1) cmd.push_back("-q");
           cmd.push_back("-o"+psname);
           cmd.push_back(dviname);
@@ -934,21 +935,28 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     
   SetPageDimensions();
   
+  pair aligndir=getSetting<pair>("aligndir");
   string origin=getSetting<string>("align");
   
   pair bboxshift=(origin == "Z" && epsformat) ?
     pair(0.0,0.0) : pair(-b.left,-b.bottom);
+  
   if(epsformat) {
     bboxshift += getSetting<pair>("offset");
-    if(origin != "Z" && origin != "B") {
-      double yexcess=max(getSetting<double>("paperheight")-
-                         (b.top-b.bottom+1.0),0.0);
-      if(origin == "T") bboxshift += pair(0.0,yexcess);
-      else {
-        double xexcess=max(getSetting<double>("paperwidth")-
-                           (b.right-b.left+1.0),0.0);
-        bboxshift += pair(0.5*xexcess,0.5*yexcess);
+    double yexcess=max(getSetting<double>("paperheight")-
+                       (b.top-b.bottom+1.0),0.0);
+    double xexcess=max(getSetting<double>("paperwidth")-
+                       (b.right-b.left+1.0),0.0);
+    if(aligndir == pair(0,0)) {
+      if(origin != "Z" && origin != "B") {
+        if(origin == "T") bboxshift += pair(0.0,yexcess);
+        else bboxshift += pair(0.5*xexcess,0.5*yexcess);
       }
+    } else {
+      double scale=max(abs(aligndir.getx()),abs(aligndir.gety()));
+      if(scale != 0) aligndir *= 0.5/scale;
+      bboxshift += 
+        pair((aligndir.getx()+0.5)*xexcess,(aligndir.gety()+0.5)*yexcess);
     }
   }
   
