@@ -1510,9 +1510,9 @@ struct gridwithzeros {
       if (reportface[ZLOW]) enqueue(i,j,k-1);
       if (reportface[ZHIGH]) enqueue(i,j,k+1);
       surface.append(toappend);
-      //      if (alias(reportactive, null)) write(stdout, '.');
+      if (settings.verbose > 1 && alias(reportactive, null)) write(stdout, '.');
     }
-    //    if (alias(reportactive, null)) write(stdout, '\n');
+    if (settings.verbose > 1 && alias(reportactive, null)) write(stdout, '\n');
     return surface;
   };
 }
