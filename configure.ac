@@ -121,7 +121,7 @@ AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERED_MAP,1,
 			      [Define to 1 if you have tr1/unordered_map]),
 	[AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
 
-GCVERSION=7.4.0
+GCVERSION=7.4.2
 GCFILE=gc-$GCVERSION
 
 AC_CHECK_FILE($GCFILE.tar.gz,
@@ -375,7 +375,8 @@ if test "x$GCDIR" != "x" ; then
    echo FOR EXAMPLE, USE THE COMMANDS:
    echo
    echo wget http://hboehm.info/gc/gc_source/$GCFILE.tar.gz
-   echo wget http://hboehm.info/gc/gc_source/libatomic_ops-$GCVERSION.tar.gz
+   echo wget http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$GCVERSION.tar.gz
+
    echo
    exit 1
    ])

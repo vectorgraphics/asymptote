@@ -589,8 +589,8 @@ cd asymptote-x.xx
 @end verbatim
 By default the system version of the Boehm garbage collector will be
 used; if it is old we recommend first putting
-@url{http://hboehm.info/gc/gc_source/gc-7.4.0.tar.gz}
-@url{http://hboehm.info/gc/gc_source/libatomic_ops-7.4.0.tar.gz}
+@url{http://hboehm.info/gc/gc_source/gc-7.4.2.tar.gz}
+@url{http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-7.4.2.tar.gz}
 in the @code{Asymptote} source directory.
 
 On @code{UNIX} platforms (other than @code{MacOS X}), we recommend
