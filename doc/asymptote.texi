@@ -363,8 +363,8 @@ where @code{x.xx} denotes the latest version.
 
 A working @TeX{} implementation (such as the one available at
 @url{http://www.miktex.org}) will be required to typeset labels.
-You will also need to install @code{GPL Ghostscript} from
-@url{http://sourceforge.net/projects/ghostscript/}.
+You will also need to install @code{GPL Ghostscript} version 9.14 or
+later from @url{http://sourceforge.net/projects/ghostscript/}.
 
 To view the default @code{PostScript} output, you can install the
 program @code{gsview} available from 
