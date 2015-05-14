@@ -1961,6 +1961,9 @@ surface unitcone(int n=6)
 restricted surface unitcone=unitcone();
 restricted surface unitsolidcone=surface(patch(unitcircle3)...unitcone.s);
 
+// Construct an approximate cone over an arbitrary base.
+surface cone(path3 base, triple vertex) {return extrude(base,vertex--cycle);}
+
 private patch unitcylinder1=patch(X{Y}..{-X}Y--Y+Z{X}..{-Y}X+Z--cycle);
 
 restricted surface unitcylinder=surface(unitcylinder1,t1*unitcylinder1,
