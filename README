@@ -1,5 +1,5 @@
 			  ASYMPTOTE
-      Copyright 2004-14 Andy Hammerlindl, John Bowman, and Tom Prince
+      Copyright 2004-15 Andy Hammerlindl, John Bowman, and Tom Prince
 
 Asymptote is a powerful descriptive vector graphics language for technical
 drawing, inspired by MetaPost but with an improved C++-like
@@ -48,8 +48,8 @@ the GNU Scientific Library, GNU Readline library, and other GPL
 libraries. This version of Asymptote also ships with the dll libraries
 noted below.
 
-The source code for the 1.7.29-2 cygwin1.dll is available under the GPL license:
-http://cygwin.com/snapshots/x86/cygwin-src-20140410.tar.xz
+The source code for the 2.0.2 cygwin1.dll is available under the GPL license:
+http://cygwin.com/snapshots/x86/cygwin-src-20150430.tar.xz
 
 The source code for freeglut.dll is available under the X-Consortium license:
 http://prdownloads.sourceforge.net/freeglut/freeglut-2.6.0.tar.gz
