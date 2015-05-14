@@ -5,7 +5,7 @@ bool components=false;
 
 pen p;
 
-void col(bool fill=false ... string[] s) {
+void col(... string[] s) {
   for(int n=0; n < s.length; ++n) {
     j -= 10;
     string s=s[n];
@@ -15,9 +15,8 @@ void col(bool fill=false ... string[] s) {
       for(int i=0; i < a.length; ++i)
         s += " "+(string) a[i];
     }
-    if(fill) label(s,(i+10,j),E,p,Fill(gray));
-    else label(s,(i+10,j),E,p);
-    fill(box((i,j-5),(i+10,j+5)),p);
+    label(s,(i+10,j),E);
+    filldraw(box((i,j-5),(i+10,j+5)),p);
   }
 }
 
@@ -91,7 +90,7 @@ i += 150;
 j=0;
 
 col("black");
-col("white",fill=true);
+col("white");
 j -= 10;
 
 col("orange");
