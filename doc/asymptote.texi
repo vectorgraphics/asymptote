@@ -364,7 +364,7 @@ where @code{x.xx} denotes the latest version.
 A working @TeX{} implementation (such as the one available at
 @url{http://www.miktex.org}) will be required to typeset labels.
 You will also need to install @code{GPL Ghostscript} version 9.14 or
-later from @url{http://sourceforge.net/projects/ghostscript/}.
+later from @url{http://downloads.ghostscript.com/public}.
 
 To view the default @code{PostScript} output, you can install the
 program @code{gsview} available from 
@@ -453,7 +453,7 @@ corresponding file type.
 
 For @acronym{PDF} format output, the @code{gs} setting specifies the
 location of the @code{PostScript}-to-@acronym{PDF} processor @code{Ghostscript},
-available from @url{http://sourceforge.net/projects/ghostscript/}.
+available from @url{http://downloads.ghostscript.com/public}.
 
 The setting @code{pdfviewer} specifies the location of the @acronym{PDF}
 viewer. On @code{UNIX} systems, to support automatic document
