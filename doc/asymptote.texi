@@ -336,17 +336,9 @@ prebuilt @code{Asymptote} binaries from
 @cindex @code{MacOS X} binary distributions
 @code{MacOS X} users can either compile the @code{UNIX} source code
 (@pxref{Compiling from UNIX source})
-or install the contributed @code{Asymptote} binary available at
+or install the @code{Asymptote} binary available at
 
-@url{http://www.hmug.org/pub/MacOS_X/X/Applications/Publishing/asymptote/}
-
-@noindent
-Because these preconfigured binary distributions have
-strict architecture and library dependencies that many installations do
-not satisfy, we recommend installing @code{Asymptote} directly from the
-official source:
-
-@url{http://sourceforge.net/project/showfiles.php?group_id=120000}
+@url{http://www.macports.org/}
 
 @noindent
 Note that many @code{MacOS X} (and FreeBSD) systems lack the
@@ -580,8 +572,12 @@ The @code{Asymptote} system directory (by default,
 @cindex Compiling from UNIX source
 
 To compile and install a @code{UNIX} executable from
-a source release
-@code{x.xx}, first execute the commands:
+the source release @code{asymptote-x.xx.src.tgz} in the subdirectory
+@code{x.xx} under
+
+@url{http://sourceforge.net/projects/asymptote/files/}
+
+execute the commands:
 @verbatim
 gunzip asymptote-x.xx.src.tgz
 tar -xf asymptote-x.xx.src.tar
@@ -9475,7 +9471,7 @@ you get useful feedback.
 Contributions in the form of patches or @code{Asymptote} modules can be
 posted here:
 @quotation
-@url{http://sourceforge.net/tracker/?atid=685685&group_id=120000}
+@url{http://sourceforge.net/p/asymptote/patches}
 @end quotation
 @noindent
 To receive announcements of upcoming releases, please subscribe to
