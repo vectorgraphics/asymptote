@@ -293,6 +293,8 @@ patharray2 *_texpath(stringarray *s, penarray *p)
   int status=opentex(texname,prefix,!xe);
   
   string pdfname,pdfname2,psname2;
+  bool keep=getSetting<bool>("keep");
+  
   if(!status) {
     if(xe) {
       pdfname=auxname(prefix,"pdf");
@@ -324,12 +326,20 @@ patharray2 *_texpath(stringarray *s, penarray *p)
         cmd.push_back("-dBATCH");
         if(safe) cmd.push_back("-dSAFER");
         cmd.push_back("-sDEVICE=eps2write");
-        cmd.push_back("-sOutputFile="+psname2);
+        // Work around eps2write bug that forces all postscript to first page.
+        cmd.push_back("-sOutputFile="+psname2+"%d");
         cmd.push_back(pdfname2);
         status=System(cmd,0,true,"gs");
       
-        std::ifstream in(psname2.c_str(),std::ios::binary);
-        ps << in.rdbuf();
+        for(unsigned int i=1; i <= n ; ++i) {
+          ostringstream buf;
+          buf << psname2.c_str() << i;
+          const char *name=buf.str().c_str();
+          std::ifstream in(name,std::ios::binary);
+          ps << in.rdbuf();
+          ps << "(>\n) print flush\n";
+          if(!keep) unlink(name);
+        }
         ps.close();
       }
     } else {
@@ -350,7 +360,6 @@ patharray2 *_texpath(stringarray *s, penarray *p)
   if(status != 0)
     error("texpath failed");
     
-  bool keep=getSetting<bool>("keep");
   if(!keep) { // Delete temporary files.
     unlink(texname.c_str());
     if(!getSetting<bool>("keepaux"))
@@ -359,12 +368,12 @@ patharray2 *_texpath(stringarray *s, penarray *p)
     if(xe) {
       unlink(pdfname.c_str());
       unlink(pdfname2.c_str());
-      unlink(psname2.c_str());
     } else
       unlink(dviname.c_str());
     if(settings::context(texengine)) {
       unlink(auxname(prefix,"top").c_str());
       unlink(auxname(prefix,"tua").c_str());
+      unlink(auxname(prefix,"tuc").c_str());
       unlink(auxname(prefix,"tui").c_str());
     }
   }
