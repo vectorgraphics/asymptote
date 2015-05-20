@@ -338,6 +338,7 @@ patharray2 *_texpath(stringarray *s, penarray *p)
           std::ifstream in(name,std::ios::binary);
           ps << in.rdbuf();
           ps << "(>\n) print flush\n";
+          in.close();
           if(!keep) unlink(name);
         }
         ps.close();
