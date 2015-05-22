@@ -176,18 +176,24 @@ bool uperiodic(real[][] a) {
   int m=a[0].length;
   real[] a0=a[0];
   real[] a1=a[n-1];
-  real epsilon=sqrtEpsilon*norm(a);
-  for(int j=0; j < m; ++j)
+  for(int j=0; j < m; ++j) {
+    real norm=0;
+    for(int i=0; i < n; ++i)
+      norm=max(norm,abs(a[i][j]));
+    real epsilon=sqrtEpsilon*norm;
     if(abs(a0[j]-a1[j]) > epsilon) return false;
+  }
   return true;
 }
 bool vperiodic(real[][] a) {
   int n=a.length;
   if(n == 0) return false;
   int m=a[0].length-1;
-  real epsilon=sqrtEpsilon*norm(a);
-  for(int i=0; i < n; ++i)
-    if(abs(a[i][0]-a[i][m]) > epsilon) return false;
+  for(int i=0; i < n; ++i) {
+    real[] ai=a[i];
+    real epsilon=sqrtEpsilon*norm(ai);
+    if(abs(ai[0]-ai[m]) > epsilon) return false;
+  }
   return true;
 }
 
