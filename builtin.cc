@@ -875,9 +875,8 @@ void base_venv(venv &ve)
   addConstant<Int>(ve, DBL_DIG, primInt(), SYM(realDigits));
   addConstant<Int>(ve, RANDOM_MAX, primInt(), SYM(randMax));
   addConstant<double>(ve, PI, primReal(), SYM(pi));
-  addConstant<string>(ve, string(settings::VERSION)+string(SVN_REVISION),
-                      primString(),SYM(VERSION));
-  
+  addConstant<string>(ve, string(REVISION),primString(),SYM(VERSION));
+
   addVariable<pen>(ve, &processData().currentpen, primPen(), SYM(currentpen));
 
 #ifdef OPENFUNCEXAMPLE

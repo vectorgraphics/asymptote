@@ -46,7 +46,7 @@ DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
         allsymbols.h opsymbols.h $(SYMBOL_FILES:=.symbols.h) 
 NAME = asy
 XNAME = x$(NAME)
-CLEAN = camp.output svnrevision.cc base/version.asy doc/version.texi \
+CLEAN = camp.output revision.cc base/version.asy doc/version.texi \
         GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
         asymptote.py reload.js nopapersize.ps
@@ -89,46 +89,40 @@ animationsdir = $(exampledir)/animations
 latexdir = $(DESTDIR)@latexdir@
 contextdir = $(DESTDIR)@contextdir@
 INSTALL = @INSTALL@
-REVISION = "const char *SVN_REVISION="
-last = `cat svnrevision.cc | sed -e 's/.*\"\(.*\)\";/\\1/'`
+REVISION = "const char *REVISION="
+last = `cat revision.cc | sed -e 's/.*\"\(.*\)\";/\\1/'`
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
 asy:	version
 	if test -n "$(MSDOS)"; then \
-	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) svnrevision.o asy.o $(LIBS) -s -static; \
+	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(LIBS) -s -static; \
 	else \
 	  ln -sf GUI/xasy.py $(XNAME); \
-	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) svnrevision.o $(LIBS); \
+	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS); \
 	fi
 
 version: $(GCLIB) $(FILES:=.o)
-	$(eval revision := "")
-	if test "$(findstring svn,@PACKAGE_VERSION@)" = "svn"; then \
-	  $(eval revision := `LC_ALL="C" svn info 2>/dev/null | grep 'Revision' | sed -e 's/Revision: \(.*\)/-r\1/'`) \
-	  if test "$(revision)" != "$(last)"; then \
-	    echo $(REVISION)\"$(revision)\"\; > svnrevision.cc; \
-	    $(CXX) $(OPTS) $(INCL) -o svnrevision.o -c svnrevision.cc; \
-          fi \
-	else \
-          echo $(REVISION)\"\"\; > svnrevision.cc; \
-	  $(CXX) $(OPTS) $(INCL) -o svnrevision.o -c svnrevision.cc; \
+	$(eval revision := `LC_ALL="C" git describe | sed -e 's/-g.*//'`)
+	if test "$(revision)" != "$(last)"; then \
+	    echo $(REVISION)\"$(revision)\"\; > revision.cc; \
+	    $(CXX) $(OPTS) $(INCL) -o revision.o -c revision.cc; \
 	fi
 
-	echo string VERSION=\"@VERSION@$(revision)\"\; > base/version.asy
-	echo @set VERSION @VERSION@$(revision) > doc/version.texi
+	echo string VERSION=\"$(revision)\"\; > base/version.asy
+	echo @set VERSION $(revision) > doc/version.texi
 	echo @set Datadir @datadir@ >> doc/version.texi
 
 	echo "#!/usr/bin/env python" > GUI/xasyVersion.py
-	echo xasyVersion = \"@VERSION@$(revision)\" >> GUI/xasyVersion.py
+	echo xasyVersion = \"$(revision)\" >> GUI/xasyVersion.py
 
 	if test -n "$(MSDOS)"; then \
-	  cat asy.rc | sed -e "s/ASYMPTOTE_VERSION/@VERSION@$(revision)/" | \
+	  cat asy.rc | sed -e "s/ASYMPTOTE_VERSION/$(revision)/" | \
 	  windres -o asy.o; \
 	fi
 
 asymptote.so: $(COREFILES:=.pic.o)
-	$(CXX) $(OPTS) -shared -o asymptote.so svnrevision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
+	$(CXX) $(OPTS) -shared -o asymptote.so revision.o $(COREFILES:=.pic.o) $(SHAREDLIBS)
 
 all:  	asy sty man faq asy-keywords.el
 
@@ -214,7 +208,7 @@ asy-keywords.el: asy
 	$(ASY) -l > asy.list
 	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | \
           grep -v three_\* | grep -v featpost3D | xargs $(ASY) -l >> asy.list
-	perl ./asy-list.pl asy.list @VERSION@
+	perl ./asy-list.pl asy.list $(revision)
 
 install: asy-keywords.el install-texhash install-man
 

@@ -151,7 +151,7 @@ void psfile::prologue(const bbox& box)
   header();
   BoundingBox(box);
   *out << "%%Creator: " << settings::PROGRAM << " " << settings::VERSION
-       << SVN_REVISION <<  newl;
+       << REVISION <<  newl;
 
   time_t t; time(&t);
   struct tm *tt = localtime(&t);

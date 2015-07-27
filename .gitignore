@@ -1,0 +1,79 @@
+### Compiled source
+*.o
+*.d
+
+### Compressed packages and Garbage Collector
+gc-*
+*.tar.gz
+*.tgz
+libatomic*
+
+### Binaries
+asy
+xasy
+
+### Version info
+*version.*
+revision.*
+
+### Runtime objects
+run*.cc
+run*.h
+
+### Other
+/Makefile
+/doc/Makefile
+/doc/png/Makefile
+/allsymbols.h
+/asy-keywords.el
+/asy.list
+/autom4te.cache/
+/builtin.symbols.h
+/camp.output
+/camp.tab.cc
+/camp.tab.h
+/config.h
+/config.h.in
+/config.status
+/configure
+/doc/asy-latex.i*
+/doc/asy.1
+/glrender.d.54461
+/gsl.symbols.h
+/keywords.cc
+/lex.yy.cc
+/opsymbols.h
+/types.symbols.h
+
+
+### TeX-related
+## Core latex/pdflatex auxiliary files:
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+
+## Intermediate documents:
+*.dvi
+*-converted-to.*
+# these rules might exclude image files for figures etc.
+*.ps
+*.eps
+*.pdf
+*.pre
+*-[0-9].*
+/doc/**/asymptote.*
+!/doc/asymptote.texi
+/doc/options
+
+## Bibliography auxiliary files (bibtex/biblatex/biber):
+*.bbl
+*.bcf
+*.blg
+*-blx.aux
+*-blx.bib
+*.brf
+*.run.xml

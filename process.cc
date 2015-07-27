@@ -345,7 +345,7 @@ public:
 
 void printGreeting(bool interactive) {
   if(!getSetting<bool>("quiet")) {
-    cout << "Welcome to " << PROGRAM << " version " << VERSION << SVN_REVISION;
+    cout << "Welcome to " << PROGRAM << " version " << REVISION;
     if(interactive)
       cout << " (to view the manual, type help)";
     cout << endl;
