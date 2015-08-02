@@ -76,7 +76,7 @@ Installation
 * Search paths::                Where @code{Asymptote} looks for your files
 * Compiling from UNIX source::  Building @code{Asymptote} from scratch
 * Editing modes::               Convenient @code{emacs} and @code{vim} modes
-* Subversion::                  Getting the latest development source
+* Git::                         Getting the latest development source
 * Uninstall::                   Goodbye, @code{Asymptote}!
 
 Drawing commands
@@ -275,7 +275,7 @@ A quick reference card for @code{Asymptote} is available at
 * Search paths::                Where @code{Asymptote} looks for your files
 * Compiling from UNIX source::  Building @code{Asymptote} from scratch
 * Editing modes::               Convenient @code{emacs} and @code{vim} modes
-* Subversion::                  Getting the latest development source
+* Git::                         Getting the latest development source
 * Uninstall::                   Goodbye, @code{Asymptote}!
 @end menu
 
@@ -733,15 +733,15 @@ can be enabled by running @code{asy-kate.sh} in the
 @code{@value{Datadir}/asymptote} directory and putting the generated
 @code{asymptote.xml} file in @code{~/.kde/share/apps/katepart/syntax/}.
 
-@node Subversion
-@section Subversion (SVN)
-@cindex Subversion
-@cindex SVN
+@node Git
+@section Git
+@cindex git
 
 The following commands are needed to install the latest development version of
-@code{Asymptote} using @code{Subversion}:
+@code{Asymptote} using @code{git}:
 @verbatim
-svn co http://svn.code.sf.net/p/asymptote/code/trunk/asymptote 
+git clone git@github.com:vectorgraphics/asymptote
+
 cd asymptote
 ./autogen.sh
 ./configure
@@ -9482,8 +9482,8 @@ To receive announcements of upcoming releases, please subscribe to
 @cindex bug reports
 @noindent
 If you find a bug in @code{Asymptote}, please check (if possible)
-whether the bug is still present in the latest @code{Subversion}
-developmental code (@pxref{Subversion}) before submitting a bug
+whether the bug is still present in the latest @code{git}
+developmental code (@pxref{Git}) before submitting a bug
 report. New bugs can be submitted using the Bug Tracking System at
 @quotation
 @url{http://sourceforge.net/projects/asymptote}
