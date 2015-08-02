@@ -546,7 +546,7 @@ Either:
 and/or endlabel=false;
 
 (ii) explicitly remove specific ticks and their labels (drawing them manually;
-see \docref{http://asymptote.svn.sourceforge.net/viewvc/asymptote/trunk/asymptote/base/graph.asy\} for the definition of NoZero):
+see \docref{http://www.github.com/vectorgraphics/asymptote/base/graph.asy\} for the definition of NoZero):
 
 \verbatim
 import graph;
@@ -564,7 +564,7 @@ label("$0$",(0,0),SW);
 \endverbatim
 
 (iii) explicitly remove specific tick labels and draw them manually
-(see \docref{http://asymptote.svn.sourceforge.net/viewvc/asymptote/trunk/asymptote/base/graph.asy\} for the definition of NoZeroFormat):
+(see \docref{http://www.github.com/vectorgraphics/asymptote/base/graph.asy\} for the definition of NoZeroFormat):
 
 \verbatim
 import graph;

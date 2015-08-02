@@ -25,12 +25,12 @@ configure --help
 
 See also the generic configure instructions below.
 
-Compiling Asymptote from Subversion Developmental Source Code
+Compiling Asymptote from Git Developmental Source Code
 =============================================================
 
-To compile from Subversion developmental source code:
+To compile from Git developmental source code:
 
-svn co http://svn.code.sf.net/p/asymptote/code/trunk/asymptote 
+git clone git@github.com:vectorgraphics/asymptote
 cd asymptote
 ./autogen.sh
 ./configure

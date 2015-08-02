@@ -8342,7 +8342,7 @@ The routine
 real[][] intersections(path3 p, surface s, real fuzz=-1);
 @end verbatim
 @noindent
-returns all (unless there are infinitey many) intersection times of a
+returns all (unless there are infinity many) intersection times of a
 path @code{p} with a surface @code{s} as a sorted array of real arrays
 of length 3, and 
 @cindex @code{intersectionpoints}
@@ -9640,7 +9640,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  MetaPost MetaFont Hammerlindl Healy texinfo autoload setq setf
 @c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
 @c  LocalWords:  vskip filll insertcopying ifnottex detailmenu alist augroup PQ
-@c  LocalWords:  bool behaviour facto zxf login Debian dev filetypedetect SVN
+@c  LocalWords:  bool behaviour facto zxf login Debian dev filetypedetect
 @c  LocalWords:  FFTW bp readline gv eps args Boehm gc evenoddoverlap png joe
 @c  LocalWords:  boolean initializer expi dir xpart ypart STL substring rfind
 @c  LocalWords:  pos substr strftime typedef pxref unitcircle yscale Bezier iff
@@ -9663,7 +9663,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  quartercircle darkgreen lightblue urx ury texpreamble sgn texi
 @c  LocalWords:  lineargraph datagraph vertices parametricgraph uncomment ggv
 @c  LocalWords:  loggraph generalaxis texhash arrowsize arrowangle arrowlength
-@c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config MacOS prebuilt svn
+@c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config MacOS prebuilt
 @c  LocalWords:  ghostview gsview SIGHUP PDF acroread xpdf cutbefore strptime
 @c  LocalWords:  libsigsegv intersectionpoint dotfactor vv firstcut pq logticks
 @c  LocalWords:  Unisys dvips vvv vvvv vvvvv traceback lastcut cutafter infodir
@@ -9818,7 +9818,11 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  slopefield1 144x144 1filll 'load 'asy 'lasy 'auto 4g
 @c  LocalWords:  libgs 'load 'asy 'lasy 'auto 5bp 1cm 2S 100pt 3t 5mm
 @c  LocalWords:  bracedefaultratio incircle 12pt 25cm 3x 5x 3y 602e '
-@c  LocalWords:  2x 2y 3sin 10cm 204e 10x Ai 5E offaxis 'load 'lasy
+@c  LocalWords:  2x 2y 3sin 10cm 204e 10x Ai 5E offaxis 'load 'lasy '
 @c  LocalWords:  5cm 2N 2E 2n 100d 5z 5y 5unit dvisvgmOptions 144x144
-@c  LocalWords:  4g texengines coplanar
-@c  LocalWords:  insphere cospherical 5unit luatex lualatex
+@c  LocalWords:  4g texengines coplanar 0pt 1filll 's 3D 2D 'load 5bp
+@c  LocalWords:  insphere cospherical 5unit luatex lualatex 'asy 1cm
+@c  LocalWords:  'lasy 'auto 4g 2S 100pt 3t 12pt 5mm 25cm 3x 5x 3y 2x
+@c  LocalWords:  602e 2y 3sin 10cm 204e 10x Ai Ai Ai Ai Ai Ai Ai Ai
+@c  LocalWords:  unnormalized 5E 5cm 2N 2E 2n 100d 5z 5y
+@c  LocalWords:  5unit 144x144 aligndir
