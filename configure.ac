@@ -125,9 +125,7 @@ GCVERSION=7.4.2
 GCFILE=gc-$GCVERSION
 
 AC_CHECK_FILE($GCFILE.tar.gz,
-ac_cv_use_gc=$GCVERSION,
-[GC_SYSTEM="$GCFILE.tar.gz not found: using system Boehm garbage collector"
-ac_cv_use_gc="system"])
+ac_cv_use_gc=$GCVERSION)
 AC_ARG_ENABLE(gc,
 	[AS_HELP_STRING(--enable-gc[[[=system]]],
 enable system Boehm garbage collector)]
@@ -136,7 +134,6 @@ enable system Boehm garbage collector)]
 			[
 			if test "x$enableval" != "xyes"; then
 			   ac_cv_use_gc=$enableval
-			   GC_SYSTEM=""
 			fi
 			])
 

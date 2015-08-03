@@ -15,6 +15,7 @@ xasy
 ### Version info
 *version.*
 revision.*
+/GUI/xasyVersion.py
 
 ### Runtime objects
 run*.cc
@@ -45,7 +46,6 @@ run*.h
 /opsymbols.h
 /types.symbols.h
 
-
 ### TeX-related
 ## Core latex/pdflatex auxiliary files:
 *.aux
@@ -68,6 +68,7 @@ run*.h
 /doc/**/asymptote.*
 !/doc/asymptote.texi
 /doc/options
+.asy_history
 
 ## Bibliography auxiliary files (bibtex/biblatex/biber):
 *.bbl
