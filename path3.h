@@ -372,6 +372,11 @@ double bound(double *p, double (*m)(double, double),
 double bound(triple *P, double (*m)(double, double),
              double (*f)(const triple&), double b, double fuzz,
              int depth=maxdepth);
+double boundtri(double *P, double (*m)(double, double), double b,
+                double fuzz, int depth=maxdepth);
+double boundtri(triple *P, double (*m)(double, double),
+                double (*f)(const triple&), double b, double fuzz,
+                int depth=maxdepth);
 
 inline void store(Triple& control, const triple& v)
 {

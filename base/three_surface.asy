@@ -310,6 +310,9 @@ struct patch {
   }
 }
 
+struct tpatch {
+}
+
 patch operator * (transform3 t, patch s)
 { 
   patch S;
@@ -589,7 +592,8 @@ path[] regularize(path p, bool checkboundary=true)
 
 struct surface {
   patch[] s;
-  int index[][];
+  tpatch[] b;
+  int index[][];// Position of patch corresponding to major U,V parameter in s.
   bool vcyclic;
   
   bool empty() {
@@ -2258,6 +2262,37 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
           PRCshininess=PRCshininess(m.shininess);
         draw(f,P,uknot,vknot,weights,m.p,m.opacity,m.shininess,PRCshininess,
              colors);
+        if(group)
+          endgroup3(f);
+        if(pic != null)
+          pic.addBox(minbound(P,Q),maxbound(P,Q));
+      }
+    },true);
+  pic.addBox(minbound(P),maxbound(P));
+}
+
+// Draw a Bezier triangle.
+void draw(picture pic=currentpicture, triple[] P, material m=currentpen,
+          pen[] colors=new pen[], light light=currentlight, string name="",
+          render render=defaultrender)
+{
+  if(colors.length > 0)
+    m=mean(colors);
+  m=material(m,light);
+  bool lighton=light.on();
+  P=copy(P);
+   colors=copy(colors);
+  pic.add(new void(frame f, transform3 t, picture pic, projection Q) {
+      if(is3D()) {
+        bool group=name != "" || render.defaultnames;
+        if(group)
+          begingroup3(f,name == "" ? "surface" : name,render);
+        triple[] P=t*P;
+        real PRCshininess;
+        if(prc())
+          PRCshininess=PRCshininess(m.shininess);
+        draw(f,P,O,false,m.p,m.opacity,m.shininess,PRCshininess,
+             colors,0);
         if(group)
           endgroup3(f);
         if(pic != null)

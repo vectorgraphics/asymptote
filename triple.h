@@ -41,6 +41,8 @@ void transformNormalsTriples(const double* t, size_t n, Triple* d, const Triple*
 void unitTriples(size_t n, Triple* d);
 
 void boundsTriples(double& x, double& y, double& z, double& X, double& Y, double& Z, size_t n, const Triple* v);
+void boundstriples(double& x, double& y, double& z, double& X, double& Y,
+                   double& Z, size_t n, const triple* v);
 
 void ratioTriples(pair &b, double (*m)(double, double), bool &first, size_t n, const Triple* v);
 
@@ -264,7 +266,7 @@ public:
   {
     return triple(u.y*v.z-u.z*v.y,
                   u.z*v.x-u.x*v.z,
-                  u.x*v.y-v.x*u.y);
+                  u.x*v.y-u.y*v.x);
   }
 
   // Returns a unit triple in the direction (theta,phi), in radians.

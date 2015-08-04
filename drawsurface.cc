@@ -13,6 +13,8 @@
 
 namespace camp {
 
+void bezierTriangle(const triple *g, double Size2, triple Size3);
+  
 const double pixel=1.0; // Adaptive rendering constant.
 const triple drawElement::zero;
 
@@ -47,9 +49,7 @@ void setcolors(bool colors, bool lighton,
     glEnable(GL_COLOR_MATERIAL);
    if(!lighton) 
      glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
-  }
-  
-  if(colors) {
+
     GLfloat Black[]={0,0,0,(GLfloat) diffuse.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Black);
     glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Black);
@@ -317,7 +317,6 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   if(perspective) {
     const double f=m.getz()*perspective;
     const double F=M.getz()*perspective;
-    s=max(f,F);
     if(!havebillboard && (M.getx() < min(f*Min.getx(),F*Min.getx()) || 
                           m.getx() > max(f*Max.getx(),F*Max.getx()) ||
                           M.gety() < min(f*Min.gety(),F*Min.gety()) ||
@@ -325,12 +324,13 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
                           M.getz() < Min.getz() ||
                           m.getz() > Max.getz()))
       return;
+    s=max(f,F);
   } else {
-    s=1.0;
     if(!havebillboard && (M.getx() < Min.getx() || m.getx() > Max.getx() ||
                           M.gety() < Min.gety() || m.gety() > Max.gety() ||
                           M.getz() < Min.getz() || m.getz() > Max.getz()))
       return;
+    s=1.0;
   }
     
   setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
@@ -418,6 +418,159 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
 drawElement *drawSurface::transformed(const double* t)
 {
   return new drawSurface(t,this);
+}
+  
+void drawBezierTriangle::bounds(const double* t, bbox3& b)
+{
+  double x,y,z;
+  double X,Y,Z;
+
+  triple* Controls;
+  
+  if(t == NULL) Controls=controls;
+  else {
+    static triple buf[10];
+    Controls=buf;
+    for(int i=0; i < 10; ++i)
+      Controls[i]=t*controls[i];
+  }
+    
+  static double c1[10];
+
+  for(int i=0; i < 10; ++i)
+    c1[i]=Controls[i].getx();
+  double c0=c1[0];
+  double fuzz=sqrtFuzz*run::norm(c1,10);
+  x=boundtri(c1,min,b.empty ? c0 : min(c0,b.left),fuzz);
+  X=boundtri(c1,max,b.empty ? c0 : max(c0,b.right),fuzz);
+    
+  for(int i=0; i < 10; ++i)
+    c1[i]=Controls[i].gety();
+  c0=c1[0];
+  fuzz=sqrtFuzz*run::norm(c1,10);
+  y=boundtri(c1,min,b.empty ? c0 : min(c0,b.bottom),fuzz);
+  Y=boundtri(c1,max,b.empty ? c0 : max(c0,b.top),fuzz);
+    
+  for(int i=0; i < 10; ++i)
+    c1[i]=Controls[i].getz();
+  c0=c1[0];
+  fuzz=sqrtFuzz*run::norm(c1,10);
+  z=boundtri(c1,min,b.empty ? c0 : min(c0,b.lower),fuzz);
+  Z=boundtri(c1,max,b.empty ? c0 : max(c0,b.upper),fuzz);
+    
+  b.add(x,y,z);
+  b.add(X,Y,Z);
+
+  if(t == NULL) {
+    Min=triple(x,y,z);
+    Max=triple(X,Y,Z);
+  }
+}
+
+void drawBezierTriangle::ratio(const double* t, pair &b,
+                              double (*m)(double, double), double fuzz,
+                              bool &first)
+{
+  triple* Controls;
+
+  if(t == NULL) Controls=controls;
+  else {
+    static triple buf[10];
+    Controls=buf;
+    for(int i=0; i < 10; ++i)
+      Controls[i]=t*controls[i];
+  }
+
+  if(first) {
+    triple v=Controls[0];
+    b=pair(xratio(v),yratio(v));
+    first=false;
+  }
+  
+  b=pair(boundtri(Controls,m,xratio,b.getx(),fuzz),
+         boundtri(Controls,m,yratio,b.gety(),fuzz));
+}
+
+bool drawBezierTriangle::write(prcfile *out, unsigned int *, double, groupsmap&)
+{
+/*  
+  if(invisible)
+    return true;
+
+  if (nC) {
+    const RGBAColour white(1,1,1,opacity);
+    const RGBAColour black(0,0,0,opacity);
+    const PRCmaterial m(black,white,black,specular,opacity,PRCshininess);
+    out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,nC,C,CI,0,NULL,NULL,30);
+  } else {
+    const PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+    out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,0,NULL,NULL,0,NULL,NULL,
+                      30);
+  }
+*/
+  return true;
+}
+
+void drawBezierTriangle::render(GLUnurbs *nurb, double size2, const triple& Min,
+                                const triple& Max, double perspective,
+                                bool lighton, bool transparent)
+{
+#ifdef HAVE_GL
+  if(invisible)
+    return;
+
+  if(invisible || 
+     ((colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
+       diffuse.A < 1.0) ^ transparent)) return;
+
+  double s;
+  
+  triple m,M;
+  static double t[16]; // current transform
+  glGetDoublev(GL_MODELVIEW_MATRIX,t);
+// Like Fortran, OpenGL uses transposed (column-major) format!
+  run::transpose(t,4);
+
+  bbox3 B(this->Min,this->Max);
+  B.transform(t);
+
+  m=B.Min();
+  M=B.Max();
+
+  if(perspective) {
+    const double f=m.getz()*perspective;
+    const double F=M.getz()*perspective;
+    if((M.getx() < min(f*Min.getx(),F*Min.getx()) ||
+        m.getx() > max(f*Max.getx(),F*Max.getx()) ||
+        M.gety() < min(f*Min.gety(),F*Min.gety()) ||
+        m.gety() > max(f*Max.gety(),F*Max.gety()) ||
+        M.getz() < Min.getz() ||
+        m.getz() > Max.getz()))
+      return;
+    s=max(f,F);
+  } else {
+    if((M.getx() < Min.getx() || m.getx() > Max.getx() ||
+        M.gety() < Min.gety() || m.gety() > Max.gety() ||
+        M.getz() < Min.getz() || m.getz() > Max.getz()))
+      return;
+    s=1.0;
+  }
+
+  setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
+  
+  const triple size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),
+                     Max.getz()-Min.getz());
+  
+  bezierTriangle(controls,size2,size3);
+
+  if(colors)
+    glDisable(GL_COLOR_MATERIAL);
+#endif
+}
+
+drawElement *drawBezierTriangle::transformed(const double* t)
+{
+  return new drawBezierTriangle(t,this);
 }
   
 bool drawNurbs::write(prcfile *out, unsigned int *, double, groupsmap&)

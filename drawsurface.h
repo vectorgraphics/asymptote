@@ -123,8 +123,8 @@ public:
   
   void bounds(const double* t, bbox3& b);
   
-  void ratio(const double* t, pair &b, double (*m)(double, double), double fuzz,
-             bool &first);
+  void ratio(const double* t, pair &b, double (*m)(double, double),
+             double fuzz, bool &first);
   
   virtual ~drawSurface() {}
 
@@ -138,6 +138,96 @@ public:
   drawElement *transformed(const double* t);
 };
   
+class drawBezierTriangle : public drawElement {
+protected:
+  triple *controls;
+  triple center;
+  bool straight;
+  RGBAColour diffuse;
+  RGBAColour ambient;
+  RGBAColour emissive;
+  RGBAColour specular;
+  RGBAColour *colors;
+  double opacity;
+  double shininess;
+  double PRCshininess;
+  bool invisible;
+  Interaction interaction;
+  
+  triple Min,Max;
+  bool prc;
+  
+#ifdef HAVE_GL
+  triple d; // Maximum deviation of surface from a triangle.
+  triple dperp;
+#endif  
+  
+public:
+  drawBezierTriangle(const vm::array& g, triple center, bool straight,
+                     const vm::array&p, double opacity, double shininess,
+                     double PRCshininess, const vm::array &pens,
+                     Interaction interaction, bool prc) :
+    center(center), straight(straight), opacity(opacity), shininess(shininess),
+    interaction(interaction), prc(prc) {
+    const string wrongsize=
+      "Bezier triangle requires 10 triples and array of 4 pens";
+    if(checkArray(&g) != 10 || checkArray(&p) != 4)
+      reportError(wrongsize);
+    
+    size_t k=0;
+    controls=new(UseGC) triple[10];
+    for(size_t i=0; i < 10; ++i)
+      controls[k++]=vm::read<triple>(g,i);
+    
+    pen surfacepen=vm::read<camp::pen>(p,0);
+    invisible=surfacepen.invisible();
+    
+    diffuse=rgba(surfacepen);
+    ambient=rgba(vm::read<camp::pen>(p,1));
+    emissive=rgba(vm::read<camp::pen>(p,2));
+    specular=rgba(vm::read<camp::pen>(p,3));
+    
+    int size=checkArray(&pens);
+    if(size > 0) {
+      if(size != 4) reportError(wrongsize);
+      colors=new(UseGC) RGBAColour[3];
+      colors[0]=rgba(vm::read<camp::pen>(pens,0));
+      colors[1]=rgba(vm::read<camp::pen>(pens,1));
+      colors[2]=rgba(vm::read<camp::pen>(pens,2));
+    } else colors=NULL;
+  }
+  
+  drawBezierTriangle(const double* t, const drawBezierTriangle *s) :
+    straight(s->straight), diffuse(s->diffuse), ambient(s->ambient),
+    emissive(s->emissive), specular(s->specular), colors(s->colors),
+    opacity(s->opacity), shininess(s->shininess), PRCshininess(s->PRCshininess), 
+    invisible(s->invisible),
+    interaction(s->interaction), prc(s->prc) { 
+    
+    if(s->controls) {
+      controls=new(UseGC) triple[10];
+      for(int i=0; i < 10; ++i)
+        controls[i]=t*s->controls[i];
+    } else controls=NULL;
+  }
+  
+  bool is3D() {return true;}
+  
+  void bounds(const double* t, bbox3& b);
+  
+  void ratio(const double* t, pair &b, double (*m)(double, double),
+             double fuzz, bool &first);
+  
+  virtual ~drawBezierTriangle() {}
+
+  bool write(prcfile *out, unsigned int *, double, groupsmap&);
+  
+  void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
+              double perspective, bool lighton, bool transparent);
+  
+  drawElement *transformed(const double* t);
+};
+
 class drawNurbs : public drawElement {
 protected:
   size_t udegree,vdegree;
@@ -314,9 +404,8 @@ public:
     return true;
   }
   virtual void transformedbounds(const double*, bbox3&) {}
-  virtual void transformedratio(const double*, pair&, double (*)(double, double),
-                                double, bool&) {}
-
+  virtual void transformedratio(const double*, pair&,
+                                double (*)(double, double), double, bool&) {}
 };
   
 // Draw a PRC unit sphere.
@@ -547,8 +636,8 @@ public:
   
   void bounds(const double* t, bbox3& b);
   
-  void ratio(const double* t, pair &b, double (*m)(double, double), double fuzz,
-             bool &first);
+  void ratio(const double* t, pair &b, double (*m)(double, double),
+             double fuzz, bool &first);
   
   virtual ~drawBaseTriangles() {}
   

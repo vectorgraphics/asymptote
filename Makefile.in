@@ -20,7 +20,8 @@ SHAREDLIBS = $(filter-out -lGL -lGLU -lglut -pthread $(GCLIBS), $(LIBS))
 vpath %.cc prc
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
-       guide flatguide knot drawfill path3 drawpath3 drawsurface pen pipestream
+       guide flatguide knot drawfill path3 drawpath3 drawsurface \
+       beziertriangle pen pipestream
 
 RUNTIME_FILES = runtime runbacktrace runpicture runlabel runhistory runarray \
 	runfile runsystem runpair runtriple runpath runpath3d runstring \

@@ -740,7 +740,7 @@ can be enabled by running @code{asy-kate.sh} in the
 The following commands are needed to install the latest development version of
 @code{Asymptote} using @code{git}:
 @verbatim
-git clone git@github.com:vectorgraphics/asymptote
+git clone http://github.com/vectorgraphics/asymptote
 
 cd asymptote
 ./autogen.sh
@@ -8342,7 +8342,7 @@ The routine
 real[][] intersections(path3 p, surface s, real fuzz=-1);
 @end verbatim
 @noindent
-returns all (unless there are infinity many) intersection times of a
+returns all (unless there are infinitely many) intersection times of a
 path @code{p} with a surface @code{s} as a sorted array of real arrays
 of length 3, and 
 @cindex @code{intersectionpoints}
