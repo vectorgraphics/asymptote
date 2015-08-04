@@ -30,7 +30,7 @@ Compiling Asymptote from Git Developmental Source Code
 
 To compile from Git developmental source code:
 
-git clone git@github.com:vectorgraphics/asymptote
+git clone http://github.com/vectorgraphics/asymptote
 cd asymptote
 ./autogen.sh
 ./configure
