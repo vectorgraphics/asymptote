@@ -25,6 +25,8 @@ run*.h
 /Makefile
 /doc/Makefile
 /doc/png/Makefile
+/doc/FAQ/asy-faq.*
+!/doc/FAQ/asy-faq.bfnn
 /allsymbols.h
 /asy-keywords.el
 /asy.list
