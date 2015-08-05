@@ -1,0 +1,12 @@
+import graph3;
+unitsize(1cm);
+currentprojection=orthographic(10,5,5);
+triple O=(0,0,0),N=(0,0,10),A=(8.66,0,-5), B=(-4.33,7.5,-5),C=(-4.33,-7.5,-5);
+path3[] D=N--A--B--C--N--B^^A--C;
+draw(surface(A--B--C--cycle),.5*blue+.5*white+opacity(.5));
+draw(surface(N--B--C--cycle),.5*green+.5*white+opacity(.5));
+draw(surface(N--C--A--cycle),.5*yellow+.5*white+opacity(.5));
+draw(surface(N--A--B--cycle),.5*red+.5*white+opacity(.5));
+draw(D,blue+1bp);
+dot(D);dot(O);
+label("$O$",O,E);label("$N$",N,N);label("$A$",A,SE);label("$B$",B,E);label("$C$",C,W+S);
