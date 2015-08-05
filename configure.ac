@@ -132,6 +132,7 @@ enable system Boehm garbage collector)]
 	[     [[=VERSION]]   enable local VERSION of Boehm garbage collector]
 	[     [[=PREFIX]]    use Boehm garbage collector installed in PREFIX],
 			[
+                        ac_cv_use_gc="system"
 			if test "x$enableval" != "xyes"; then
 			   ac_cv_use_gc=$enableval
 			fi
@@ -171,6 +172,7 @@ if test "x$ac_cv_use_gc" != "xno" ; then
       ;;
    *)
       GCVERSION=$ac_cv_use_gc
+      GCFILE=gc-$GCVERSION
       GCDIR=gc-$GCVERSION
       AC_MSG_NOTICE([enabling local $GCNAME $GCDIR])
       GCLIB="\$(GC)/.libs/libgc.a"
