@@ -123,8 +123,8 @@ public:
   
   void bounds(const double* t, bbox3& b);
   
-  void ratio(const double* t, pair &b, double (*m)(double, double),
-             double fuzz, bool &first);
+  void ratio(const double* t, pair &b, double (*m)(double, double), double fuzz,
+             bool &first);
   
   virtual ~drawSurface() {}
 
@@ -215,12 +215,14 @@ public:
   
   void bounds(const double* t, bbox3& b);
   
-  void ratio(const double* t, pair &b, double (*m)(double, double),
-             double fuzz, bool &first);
+  void ratio(const double* t, pair &b, double (*m)(double, double), double fuzz,
+             bool &first);
   
   virtual ~drawBezierTriangle() {}
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
+  
+//  void displacement();
   
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
               double perspective, bool lighton, bool transparent);
@@ -404,8 +406,9 @@ public:
     return true;
   }
   virtual void transformedbounds(const double*, bbox3&) {}
-  virtual void transformedratio(const double*, pair&,
-                                double (*)(double, double), double, bool&) {}
+  virtual void transformedratio(const double*, pair&, double (*)(double, double),
+                                double, bool&) {}
+
 };
   
 // Draw a PRC unit sphere.
@@ -636,8 +639,8 @@ public:
   
   void bounds(const double* t, bbox3& b);
   
-  void ratio(const double* t, pair &b, double (*m)(double, double),
-             double fuzz, bool &first);
+  void ratio(const double* t, pair &b, double (*m)(double, double), double fuzz,
+             bool &first);
   
   virtual ~drawBaseTriangles() {}
   

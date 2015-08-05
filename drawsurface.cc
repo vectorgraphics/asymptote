@@ -426,7 +426,6 @@ void drawBezierTriangle::bounds(const double* t, bbox3& b)
   double X,Y,Z;
 
   triple* Controls;
-  
   if(t == NULL) Controls=controls;
   else {
     static triple buf[10];
@@ -435,29 +434,8 @@ void drawBezierTriangle::bounds(const double* t, bbox3& b)
       Controls[i]=t*controls[i];
   }
     
-  static double c1[10];
+  boundstriples(x,y,z,X,Y,Z,10,Controls);
 
-  for(int i=0; i < 10; ++i)
-    c1[i]=Controls[i].getx();
-  double c0=c1[0];
-  double fuzz=sqrtFuzz*run::norm(c1,10);
-  x=boundtri(c1,min,b.empty ? c0 : min(c0,b.left),fuzz);
-  X=boundtri(c1,max,b.empty ? c0 : max(c0,b.right),fuzz);
-    
-  for(int i=0; i < 10; ++i)
-    c1[i]=Controls[i].gety();
-  c0=c1[0];
-  fuzz=sqrtFuzz*run::norm(c1,10);
-  y=boundtri(c1,min,b.empty ? c0 : min(c0,b.bottom),fuzz);
-  Y=boundtri(c1,max,b.empty ? c0 : max(c0,b.top),fuzz);
-    
-  for(int i=0; i < 10; ++i)
-    c1[i]=Controls[i].getz();
-  c0=c1[0];
-  fuzz=sqrtFuzz*run::norm(c1,10);
-  z=boundtri(c1,min,b.empty ? c0 : min(c0,b.lower),fuzz);
-  Z=boundtri(c1,max,b.empty ? c0 : max(c0,b.upper),fuzz);
-    
   b.add(x,y,z);
   b.add(X,Y,Z);
 
@@ -471,24 +449,18 @@ void drawBezierTriangle::ratio(const double* t, pair &b,
                               double (*m)(double, double), double fuzz,
                               bool &first)
 {
-  triple* Controls;
+  /*
+  Triple* Controls;
 
   if(t == NULL) Controls=controls;
   else {
     static triple buf[10];
     Controls=buf;
-    for(int i=0; i < 10; ++i)
-      Controls[i]=t*controls[i];
+    Controls[i]=t*controls[i];
   }
 
-  if(first) {
-    triple v=Controls[0];
-    b=pair(xratio(v),yratio(v));
-    first=false;
-  }
-  
-  b=pair(boundtri(Controls,m,xratio,b.getx(),fuzz),
-         boundtri(Controls,m,yratio,b.gety(),fuzz));
+  ratioTriples(b,m,first,10,Controls);
+  */
 }
 
 bool drawBezierTriangle::write(prcfile *out, unsigned int *, double, groupsmap&)
