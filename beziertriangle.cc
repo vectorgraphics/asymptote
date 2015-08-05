@@ -122,9 +122,10 @@ inline double fraction(const triple& d, const triple& size)
 
 void render(const triple *p, int n,
             GLuint I0, GLuint I1, GLuint I2, // Ii is the index to Pi
-            triple P0, triple P1, triple P2, // Pi is the (double) version of Ii
-            bool flat1, bool flat2, bool flat3, // Flatness flags for each boundary.
-            string pos) {
+            triple P0, triple P1, triple P2, // Pi is the full precision
+                                             // value indexed by Ii
+            bool flat1, bool flat2, bool flat3 // Flatness flags for each boundary.
+            ) {
   // Uses a uniform partition
   // p points to an array of 10 triples.
   // Draw a Bezier triangle.
@@ -175,7 +176,7 @@ void render(const triple *p, int n,
      *                  /\               / \
      *                 /  \             /   \
      *                /    \           /     \
-     *               /      \   mid   /       \
+     *               /      \  center /       \
      *              /        \       /         \
      *             /          \     /           \
      *            /    left    \   /    right    \
@@ -223,22 +224,22 @@ void render(const triple *p, int n,
     triple l201=0.5*(l102+p303);
     triple r102=0.5*(p303+r201);
 
-    triple l210=0.5*(px4x+l201); // = m120
-    triple r012=0.5*(px4x+r102); // = m021
-    triple l300=0.5*(l201+r102); // = r003 = m030
+    triple l210=0.5*(px4x+l201); // = c120
+    triple r012=0.5*(px4x+r102); // = c021
+    triple l300=0.5*(l201+r102); // = r003 = c030
 
-    triple r021=0.5*(pxx4+r120); // = m012
-    triple u201=0.5*(u210+pxx4); // = m102
-    triple r030=0.5*(u210+r120); // = u300 = m003
+    triple r021=0.5*(pxx4+r120); // = c012
+    triple u201=0.5*(u210+pxx4); // = c102
+    triple r030=0.5*(u210+r120); // = u300 = c003
 
-    triple u102=0.5*(u012+p4xx); // = m201
-    triple l120=0.5*(l021+p4xx); // = m210
-    triple l030=0.5*(u012+l021); // = u003 = m300
+    triple u102=0.5*(u012+p4xx); // = c201
+    triple l120=0.5*(l021+p4xx); // = c210
+    triple l030=0.5*(u012+l021); // = u003 = c300
 
     triple l111=0.5*(p123+l102);
     triple r111=0.5*(p312+r210);
     triple u111=0.5*(u021+p231);
-    triple m111=0.25*(p033+p330+p303+p111);
+    triple c111=0.25*(p033+p330+p303+p111);
 
     //  For each edge of the triangle
     //    - Check for flatness
@@ -309,40 +310,36 @@ void render(const triple *p, int n,
     triple l[]={l003,l102,l012,l201,l111,l021,l300,l210,l120,l030}; // left
     triple r[]={l300,r102,r012,r201,r111,r021,r300,r210,r120,r030}; // right
     triple u[]={l030,u102,u012,u201,u111,u021,r030,u210,u120,u030}; // up
-    triple m[]={r030,u201,r021,u102,m111,r012,l030,l120,l210,l300}; // middle
+    triple m[]={r030,u201,r021,u102,c111,r012,l030,l120,l210,l300}; // center
 
     --n;
     render(l,n,I0,a1,a2,
            P0,
            flat1 ? pp1 : l300,
            flat2 ? pp2 : l030,
-           flat1,flat2,false,
-           pos +"l");
+           flat1,flat2,false);
     render(r,n,a1,I1,a3,
            flat1 ? pp1 : l300,
            P1,
            flat3 ? pp3 : r030,
-           flat1,false,flat3,
-           pos +"r");
+           flat1,false,flat3);
     render(u,n,a2,a3,I2,
            flat2 ? pp2 : l030,
            flat3 ? pp3 : r030,
            P2,
-           false,flat2,flat3,
-           pos +"u");
+           false,flat2,flat3);
     render(m,n,a3,a2,a1,
            flat3 ? pp3 : r030,
            flat2 ? pp2 : l030,
            flat1 ? pp1 : l300,
-           false,false,false,
-           pos +"m");
+           false,false,false);
   }
 }
 
 void render(const triple *p, int n) {
   if(n > 0) {
     //cout << "-------------BEGIN-----------------" << endl;
-    render(p,n,vertex(p[0]),vertex(p[6]),vertex(p[9]),p[0],p[6],p[9],false,false,false,"");
+    render(p,n,vertex(p[0]),vertex(p[6]),vertex(p[9]),p[0],p[6],p[9],false,false,false);
     //cout << "############  end  ################" << endl;
   } else {
     GLuint I[]={vertex(p[0]),vertex(p[6]),vertex(p[9])};
@@ -488,7 +485,7 @@ void bezierTriangle(const triple *g, double Size2, triple Size3)
 {
   size2=Size2;
   size3=Size3;
-  //cout << "size2=" << size2 << endl << "size3=" << size3 << endl;
+//  cout << "size2=" << size2 << endl << "size3=" << size3 << endl;
   //size2=1100.69796038695;
   //size3=triple(10.605274364509,10.021984274461,18.1865334794732);
   //bool lighton=true;
