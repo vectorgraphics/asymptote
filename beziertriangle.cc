@@ -12,7 +12,6 @@ const double pixel=1.0; // Adaptive rendering constant.
 
 GLuint nvertices;
 unsigned int nindices;
-//unsigned int nnormalcomps;
 const unsigned int NBUFFER=10000000; // FIXME
 GLfloat buffer[NBUFFER]; // Move into class.
 GLuint indices[NBUFFER];
@@ -139,20 +138,6 @@ void render(const triple *p, int n,
   if(n == 0 || fraction(d,size3)*size2 < pixel) { // If triangle is flat...
     GLuint pp[]={I0,I1,I2};
 
-    /*
-     *cout << pos << " (" << I0 << ", " << I1 << ", " << I2 << ")" << endl <<
-     *  P0 << ", " << P1 << ", " << P2 << "-" << endl << "(" <<
-     *  buffer[6*I0+3] << "," << buffer[6*I0+4] << "," << buffer[6*I0+5]+20 << "), (" <<
-     *  buffer[6*I1+3] << "," << buffer[6*I1+4] << "," << buffer[6*I1+5]+20 << "), (" <<
-     *  buffer[6*I2+3] << "," << buffer[6*I2+4] << "," << buffer[6*I2+5]+20 << ")" << endl;
-     */
-
-    /*
-     *cout << "write(\"" << pos  << "(" << I0 << ", " << I1 << ", " << I2 << ")\");" << endl <<
-     *  "write(" << P0 << "-(" << buffer[6*I0+3] << "," << buffer[6*I0+4] << "," << buffer[6*I0+5]+20 << "));" <<
-     *  "write(" << P1 << "-(" << buffer[6*I1+3] << "," << buffer[6*I1+4] << "," << buffer[6*I1+5]+20 << "));" <<
-     *  "write(" << P2 << "-(" << buffer[6*I2+3] << "," << buffer[6*I2+4] << "," << buffer[6*I2+5]+20 << "));" << endl;
-     */
     mesh(p,pp);
   } else { // Triangle is not flat
 
@@ -267,22 +252,6 @@ void render(const triple *p, int n,
     //pp2 += epsilon*(pp2-r300);
     //pp3 += epsilon*(pp3-l003);
 
-     /*
-      *cout << [>pos << endl <<<]
-      *  "write(" << pp1 << "- (" <<
-      *  0.5*((GLfloat) P1.getx() + (GLfloat) P0.getx()) << "," <<
-      *  0.5*((GLfloat) P1.gety() + (GLfloat) P0.gety()) << "," <<
-      *  0.5*((GLfloat) P1.getz() + (GLfloat) P0.getz()) << "));" << endl <<
-      *  "write(" << pp2 << "- (" <<
-      *  0.5*((GLfloat) P2.getx() + (GLfloat) P0.getx()) << "," <<
-      *  0.5*((GLfloat) P2.gety() + (GLfloat) P0.gety()) << "," <<
-      *  0.5*((GLfloat) P2.getz() + (GLfloat) P0.getz()) << "));" << endl <<
-      *  "write(" << pp3 << "- (" <<
-      *  0.5*((GLfloat) P2.getx() + (GLfloat) P1.getx()) << "," <<
-      *  0.5*((GLfloat) P2.gety() + (GLfloat) P1.gety()) << "," <<
-      *  0.5*((GLfloat) P2.getz() + (GLfloat) P1.getz()) << "));" << endl;
-      */
-
     if(flat1 || fraction(displacement1(p[0],p[1],p[3],p[6]),size3)*size2 < pixel/4) {
       flat1=true;
       a1=vertex(pp1,l210-l300,l201-l300);
@@ -345,140 +314,6 @@ void render(const triple *p, int n) {
     mesh(p,I);
   }
 }
-
-/*void renderBisec(const triple *p, int n, GLuint I0, GLuint I1, GLuint I2) {
-  // Uses a bisection method
-  // Draw a semi-accurate rendition of a Bezier triangle.
-  // p is the set of control points for the Bezier triangle
-  // n is the number of iterations to compute
-  triple b0_003=p[0];
-  triple b0_102=p[1];
-  triple b0_012=p[2];
-  triple b0_201=p[3];
-  triple b0_111=p[4];
-  triple b0_021=p[5];
-  triple b0_300=p[6];
-  triple b0_210=p[7];
-  triple b0_120=p[8];
-  triple b0_030=p[9];
-
-  triple b1_002=0.5*(b0_003+b0_012);
-  triple b1_101=0.5*(b0_111+b0_102);
-  triple b1_011=0.5*(b0_021+b0_012);
-  triple b1_200=0.5*(b0_210+b0_201);
-  triple b1_110=0.5*(b0_120+b0_111);
-  triple b1_020=0.5*(b0_021+b0_030);
-
-  triple b2_001=0.5*(b1_011+b1_002);
-  triple b2_100=0.5*(b1_110+b1_101);
-  triple b2_010=0.5*(b1_020+b1_011);
-
-  triple b3_000=0.5*(b2_001+b2_010);
-
-
-  //trip p0_003=b0_030
-  //trip p0_102=b1_020
-  //trip p0_012=b0_120
-  //trip p0_201=b2_010
-  //trip p0_111=b1_110
-  //trip p0_021=b0_210
-  //trip p0_300=b3_000
-  //trip p0_210=b2_100
-  //trip p0_120=b1_200
-  //trip p0_030=b0_300
-
-  triple p1_002=0.5*(b0_030+b0_120);
-  triple p1_101=0.5*(b1_110+b1_020);
-  triple p1_011=0.5*(b0_210+b0_120);
-  triple p1_200=0.5*(b2_100+b2_010);
-  triple p1_110=0.5*(b1_200+b1_110);
-  triple p1_020=0.5*(b0_210+b0_300);
-
-  triple p2_001=0.5*(p1_011+p1_002);
-  triple p2_100=0.5*(p1_110+p1_101);
-  triple p2_010=0.5*(p1_020+p1_011);
-
-  triple p3_000=0.5*(p2_001+p2_010);
-
-
-  //trip q0_003=b0_300
-  //trip q0_102=b1_200
-  //trip q0_012=b0_201
-  //trip q0_201=b2_100
-  //trip q0_111=b1_101
-  //trip q0_021=b0_102
-  //trip q0_300=b3_000
-  //trip q0_210=b2_001
-  //trip q0_120=b1_002
-  //trip q0_030=b0_003
-
-  triple q1_002=0.5*(b0_300+b0_201);
-  triple q1_101=0.5*(b1_101+b1_200);
-  triple q1_011=0.5*(b0_102+b0_201);
-  triple q1_200=0.5*(b2_001+b2_100);
-  triple q1_110=0.5*(b1_002+b1_101);
-  triple q1_020=0.5*(b0_102+b0_003);
-
-  triple q2_001=0.5*(q1_011+q1_002);
-  triple q2_100=0.5*(q1_110+q1_101);
-  triple q2_010=0.5*(q1_020+q1_011);
-
-  triple q3_000=0.5*(q2_001+q2_010);
-
-  GLuint a6=vertex(q3_000);
-  GLuint a9=vertex(b3_000);
-  GLuint c6=vertex(p3_000);
-
-  triple t1[]={b0_003,q1_020,b1_002,q2_010,q1_110,b2_001,q3_000,q2_100,
-               q1_200,b3_000};
-  triple t2[]={b3_000,q1_200,b2_100,q2_100,q1_101,b1_200,q3_000,q2_001,
-               q1_002,b0_300};
-  triple t3[]={b0_300,p1_020,b1_200,p2_010,p1_110,b2_100,p3_000,p2_100,
-               p1_200,b3_000};
-  triple t4[]={b3_000,p1_200,b2_010,p2_100,p1_101,b1_020,p3_000,p2_001,
-               p1_002,b0_030};
-  if(n > 1) {
-    --n;
-    renderBisec(t1,n,I0,a6,a9);
-    renderBisec(t2,n,a9,a6,I1);
-    renderBisec(t3,n,I1,c6,a9);
-    renderBisec(t4,n,a9,c6,I2);
-  } else {
-    GLuint a7=vertex(q2_100);
-    GLuint a8=vertex(q1_200);
-    //GLuint l1[]={I0,vertex(q1_020),vertex(b1_002),vertex(q2_010),vertex(q1_110),
-                 //vertex(b2_001),a6,a7,a8,a9};
-    GLuint l1[]={I0,a6,a9};
-    mesh(t1,l1);
-
-    GLuint b2=vertex(b2_100);
-    GLuint b5=vertex(b1_200);
-    //GLuint l2[]={a9,a8,b2,a7,vertex(q1_101),b5,
-                 //a6,vertex(q2_001),vertex(q1_002),I1};
-    GLuint l2[]={a9,a6,I1};
-    mesh(t2,l2);
-
-    GLuint c7=vertex(p2_100);
-    GLuint c8=vertex(p1_200);
-    //GLuint l3[]={I1,vertex(p1_020),b5,vertex(p2_010),vertex(p1_110),b2,c6,c7,c8,a9};
-    GLuint l3[]={I1,b2,a9};
-    mesh(t3,l3);
-
-    //GLuint l4[]={a9,c8,vertex(b2_010),c7,vertex(p1_101),vertex(b1_020),c6,vertex(p2_001), vertex(p1_002),I2};
-    GLuint l4[]={a9,c6,I2};
-    mesh(t4,l4);
-  }
-}
-
-void renderBisec(const triple *p, int n=2) {
-  if(n > 0)
-    renderBisec(p,n,vertex(p[0]),vertex(p[6]),vertex(p[9]));
-  else {
-    GLuint I[]={vertex(p[0]),vertex(p[1]),vertex(p[2]),vertex(p[3]),vertex(p[4]),
-                vertex(p[5]),vertex(p[6]),vertex(p[7]),vertex(p[8]),vertex(p[9])};
-    mesh(p,I);
-  }
-}*/
 
 void bezierTriangle(const triple *g, double Size2, triple Size3)
 {
@@ -554,22 +389,7 @@ void bezierTriangle(const triple *g, double Size2, triple Size3)
 
   //  for(int j=0; j < 10; ++j)
   //    g[j] += triple(i*0.0001,0,0);
-  //nnormalcomps = 0;
   render(g,n); // uniform
-  //cout << nnormalcomps << endl;
-  //renderBisec(g,n); // bisection
-  /*for(int i = 0; i < nvertices; ++i)
-    cout << buffer[i] << endl;*/
-  /*for(GLuint i = 0; 6*i < nvertices; ++i)
-    cout << i << "::::" << endl <<
-      buffer[6*i] << "," << buffer[6*i+1] << "," << buffer[6*i+2] << endl <<
-      buffer[6*i+3] << "," << buffer[6*i+4] << "," << buffer[6*i+5]+20 << endl << endl;
-  cout << "..." << endl;*/
-  /*for(int i = 0; 3*i < nindices; i+=3)
-    cout << "i:" << i << endl << indices[i] << "," << indices[i+1] << "," << indices[i+2] << endl;*/
-  //  for(int j=0; j < 10; ++j)
-  //    g[j] += triple(1,1,1);
-  //renderBisec(g,n); // double bisection
 
   size_t size=6*sizeof(GL_FLOAT);
 
