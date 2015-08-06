@@ -145,8 +145,8 @@ GCNAME="Boehm Garbage Collector"
 GCOPTIONS="--disable-shared --enable-large-config"
 if test "x$ac_cv_use_gc" != "xno" ; then
    OPTIONS=$OPTIONS"-DUSEGC "
-   case $ac_cv_use_gc in
-   system|*[[\\/]]*)
+   case _$ac_cv_use_gc in
+   _|_system|_*[[\\/]]*)
       if test "x$ac_cv_use_gc" = "xsystem" ; then
          INCL="-I$prefix/include/gc -I/usr/include/gc"
          LIBS=$LIBS"-L$prefix/lib " 
@@ -173,7 +173,7 @@ if test "x$ac_cv_use_gc" != "xno" ; then
    *)
       GCVERSION=$ac_cv_use_gc
       GCFILE=gc-$GCVERSION
-      GCDIR=gc-$GCVERSION
+      GCDIR=$GCFILE
       AC_MSG_NOTICE([enabling local $GCNAME $GCDIR])
       GCLIB="\$(GC)/.libs/libgc.a"
       INCL="-I\$(GC)/include"
