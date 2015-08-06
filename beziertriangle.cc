@@ -12,9 +12,14 @@ const double pixel=1.0; // Adaptive rendering constant.
 
 GLuint nvertices;
 unsigned int nindices;
+//unsigned int nnormalcomps;
 const unsigned int NBUFFER=10000000; // FIXME
 GLfloat buffer[NBUFFER]; // Move into class.
 GLuint indices[NBUFFER];
+//vector<GLfloat> buffer;
+//vector<GLint> indices;
+
+
 
 // Store the normal vector given the directional derivatives bu in the u
 // direction and bv in the v direction.
@@ -27,6 +32,7 @@ inline void normal(const triple& bu, const triple& bv, GLuint index)
   *p++=n.getx();
   *p++=n.gety();
   *p=n.getz();
+  //++nnormalcomps;
 }
 
 double size2;
@@ -51,9 +57,9 @@ void mesh(const triple *p, const GLuint *I)
   GLuint I1=I[1];
   GLuint I2=I[2];
 
-  normal(-p[0]+p[1],-p[0]+p[2],I0);
-  normal(-p[3]+p[6],-p[3]+p[7],I1);
-  normal(-p[5]+p[8],-p[5]+p[9],I2);
+  //normal(-p[0]+p[1],-p[0]+p[2],I0);
+  //normal(-p[3]+p[6],-p[3]+p[7],I1);
+  //normal(-p[5]+p[8],-p[5]+p[9],I2);
 
   GLuint *q=indices+nindices;
   *q++=I0;
@@ -307,6 +313,11 @@ void render(const triple *p, int n,
       a3=vertex(r030);
     }
 
+    // Compute the normals for the subvertices (they *will* be drawn).
+    normal(l210-l300,l201-l300,a1);
+    normal(l021-l030,l120-l030,a2);
+    normal(r021-r030,r120-r030,a3);
+
     triple l[]={l003,l102,l012,l201,l111,l021,l300,l210,l120,l030}; // left
     triple r[]={l300,r102,r012,r201,r111,r021,r300,r210,r120,r030}; // right
     triple u[]={l030,u102,u012,u201,u111,u021,r030,u210,u120,u030}; // up
@@ -337,12 +348,16 @@ void render(const triple *p, int n,
 }
 
 void render(const triple *p, int n) {
+  GLuint p0 = vertex(p[0]);
+  GLuint p1 = vertex(p[6]);
+  GLuint p2 = vertex(p[9]);
+  normal(-p[0]+p[1],-p[0]+p[2],p0);
+  normal(-p[3]+p[6],-p[3]+p[7],p1);
+  normal(-p[5]+p[8],-p[5]+p[9],p2);
   if(n > 0) {
-    //cout << "-------------BEGIN-----------------" << endl;
-    render(p,n,vertex(p[0]),vertex(p[6]),vertex(p[9]),p[0],p[6],p[9],false,false,false);
-    //cout << "############  end  ################" << endl;
+    render(p,n,p0,p1,p2,p[0],p[6],p[9],false,false,false);
   } else {
-    GLuint I[]={vertex(p[0]),vertex(p[6]),vertex(p[9])};
+    GLuint I[]={p0,p1,p2};
     mesh(p,I);
   }
 }
@@ -555,7 +570,9 @@ void bezierTriangle(const triple *g, double Size2, triple Size3)
 
   //  for(int j=0; j < 10; ++j)
   //    g[j] += triple(i*0.0001,0,0);
+  //nnormalcomps = 0;
   render(g,n); // uniform
+  //cout << nnormalcomps << endl;
   //renderBisec(g,n); // bisection
   /*for(int i = 0; i < nvertices; ++i)
     cout << buffer[i] << endl;*/
