@@ -19,32 +19,25 @@ GLuint indices[NBUFFER];
 //vector<GLfloat> buffer;
 //vector<GLint> indices;
 
-
-
-// Store the normal vector given the directional derivatives bu in the u
-// direction and bv in the v direction.
-inline void normal(const triple& bu, const triple& bv, GLuint index)
-{
-  triple n=unit(triple(bu.gety()*bv.getz()-bu.getz()*bv.gety(),
-                       bu.getz()*bv.getx()-bu.getx()*bv.getz(),
-                       bu.getx()*bv.gety()-bu.gety()*bv.getx()));
-  GLfloat *p=buffer+6*index;
-  *p++=n.getx();
-  *p++=n.gety();
-  *p=n.getz();
-  //++nnormalcomps;
-}
-
 double size2;
 triple size3; // Move to class.
 
-// Store the vertex.
-GLuint vertex(triple V)
+// Store the vertex and the normal vector, given the directional derivatives
+// bu in the u direction and bv in the v direction.
+GLuint vertex(const triple V, const triple& bu, const triple& bv)
 {
-  GLfloat *p=buffer+6*nvertices+3;
+  GLfloat *p=buffer+6*nvertices;
   *p++=V.getx();
   *p++=V.gety();
-  *p=V.getz();
+  *p++=V.getz();
+  
+  triple n=unit(triple(bu.gety()*bv.getz()-bu.getz()*bv.gety(),
+                       bu.getz()*bv.getx()-bu.getx()*bv.getz(),
+                       bu.getx()*bv.gety()-bu.gety()*bv.getx()));
+  *p++=n.getx();
+  *p++=n.gety();
+  *p=n.getz();
+
   return nvertices++;
 }
 
@@ -56,10 +49,6 @@ void mesh(const triple *p, const GLuint *I)
   GLuint I0=I[0];
   GLuint I1=I[1];
   GLuint I2=I[2];
-
-  //normal(-p[0]+p[1],-p[0]+p[2],I0);
-  //normal(-p[3]+p[6],-p[3]+p[7],I1);
-  //normal(-p[5]+p[8],-p[5]+p[9],I2);
 
   GLuint *q=indices+nindices;
   *q++=I0;
@@ -296,27 +285,24 @@ void render(const triple *p, int n,
 
     if(flat1 || fraction(displacement1(p[0],p[1],p[3],p[6]),size3)*size2 < pixel/4) {
       flat1=true;
-      a1=vertex(pp1);
+      a1=vertex(pp1,l210-l300,l201-l300);
     } else {
-      a1=vertex(l300);
+      a1=vertex(l300,l210-l300,l201-l300);
     }
+    
     if(flat2 || fraction(displacement1(p[0],p[2],p[5],p[9]),size3)*size2 < pixel/4) {
       flat2=true;
-      a2=vertex(pp2);
+      a2=vertex(pp2,l021-l030,l120-l030);
     } else {
-      a2=vertex(l030);
+      a2=vertex(l030,l021-l030,l120-l030);
     }
+    
     if(flat3 || fraction(displacement1(p[6],p[7],p[8],p[9]),size3)*size2 < pixel/4) {
       flat3 = true;
-      a3=vertex(pp3);
+      a3=vertex(pp3,r021-r030,r120-r030);
     } else {
-      a3=vertex(r030);
+      a3=vertex(r030,r021-r030,r120-r030);
     }
-
-    // Compute the normals for the subvertices (they *will* be drawn).
-    normal(l210-l300,l201-l300,a1);
-    normal(l021-l030,l120-l030,a2);
-    normal(r021-r030,r120-r030,a3);
 
     triple l[]={l003,l102,l012,l201,l111,l021,l300,l210,l120,l030}; // left
     triple r[]={l300,r102,r012,r201,r111,r021,r300,r210,r120,r030}; // right
@@ -348,12 +334,10 @@ void render(const triple *p, int n,
 }
 
 void render(const triple *p, int n) {
-  GLuint p0 = vertex(p[0]);
-  GLuint p1 = vertex(p[6]);
-  GLuint p2 = vertex(p[9]);
-  normal(-p[0]+p[1],-p[0]+p[2],p0);
-  normal(-p[3]+p[6],-p[3]+p[7],p1);
-  normal(-p[5]+p[8],-p[5]+p[9],p2);
+  GLuint p0 = vertex(p[0],-p[0]+p[1],-p[0]+p[2]);
+  GLuint p1 = vertex(p[6],-p[3]+p[6],-p[3]+p[7]);
+  GLuint p2 = vertex(p[9],-p[5]+p[8],-p[5]+p[9]);
+
   if(n > 0) {
     render(p,n,p0,p1,p2,p[0],p[6],p[9],false,false,false);
   } else {
@@ -591,8 +575,8 @@ void bezierTriangle(const triple *g, double Size2, triple Size3)
 
   glEnableClientState(GL_NORMAL_ARRAY);
   glEnableClientState(GL_VERTEX_ARRAY);
-  glNormalPointer(GL_FLOAT,size,buffer);
-  glVertexPointer(3,GL_FLOAT,size,buffer+3);
+  glVertexPointer(3,GL_FLOAT,size,buffer);
+  glNormalPointer(GL_FLOAT,size,buffer+3);
   glDrawElements(GL_TRIANGLES,nindices,GL_UNSIGNED_INT,indices);
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_NORMAL_ARRAY);
