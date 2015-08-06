@@ -123,6 +123,7 @@ AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERED_MAP,1,
 
 GCVERSION=7.4.2
 GCFILE=gc-$GCVERSION
+ac_cv_use_gc="system"
 
 AC_CHECK_FILE($GCFILE.tar.gz,
 ac_cv_use_gc=$GCVERSION)
@@ -132,8 +133,7 @@ enable system Boehm garbage collector)]
 	[     [[=VERSION]]   enable local VERSION of Boehm garbage collector]
 	[     [[=PREFIX]]    use Boehm garbage collector installed in PREFIX],
 			[
-                        ac_cv_use_gc="system"
-			if test "x$enableval" != "xyes"; then
+			if test "x$enableval" != "xyes" ; then
 			   ac_cv_use_gc=$enableval
 			fi
 			])
@@ -247,7 +247,8 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
 abort
 #endif
 ])],AC_CHECK_LIB([readline], [history_list],,
-AC_MSG_NOTICE(*** Could not find GNU readline 4.3 or later: will compile without readline support ***)))
+AC_MSG_NOTICE(*** Could not find GNU libreadline 4.3 or later: will compile without readline support ***)),
+AC_MSG_NOTICE(*** Could not find GNU readline 4.3 or later: will compile without readline support ***))
 fi
 
 # Checks for header files.
