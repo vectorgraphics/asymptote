@@ -252,21 +252,23 @@ void render(const triple *p, int n,
     //pp2 += epsilon*(pp2-r300);
     //pp3 += epsilon*(pp3-l003);
 
-    if(flat1 || fraction(displacement1(p[0],p[1],p[3],p[6]),size3)*size2 < pixel/4) {
+    double res=0.25*pixel;
+      
+    if(flat1 || fraction(displacement1(p[0],p[1],p[3],p[6]),size3)*size2 < res) {
       flat1=true;
       a1=vertex(pp1,l210-l300,l201-l300);
     } else {
       a1=vertex(l300,l210-l300,l201-l300);
     }
     
-    if(flat2 || fraction(displacement1(p[0],p[2],p[5],p[9]),size3)*size2 < pixel/4) {
+    if(flat2 || fraction(displacement1(p[0],p[2],p[5],p[9]),size3)*size2 < res) {
       flat2=true;
       a2=vertex(pp2,l021-l030,l120-l030);
     } else {
       a2=vertex(l030,l021-l030,l120-l030);
     }
     
-    if(flat3 || fraction(displacement1(p[6],p[7],p[8],p[9]),size3)*size2 < pixel/4) {
+    if(flat3 || fraction(displacement1(p[6],p[7],p[8],p[9]),size3)*size2 < res) {
       flat3 = true;
       a3=vertex(pp3,r021-r030,r120-r030);
     } else {
