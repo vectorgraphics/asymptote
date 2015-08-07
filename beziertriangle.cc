@@ -11,32 +11,45 @@ namespace camp {
 const double pixel=1.0; // Adaptive rendering constant.
 
 GLuint nvertices;
-unsigned int nindices;
+
+/*
 const unsigned int NBUFFER=10000000; // FIXME
 GLfloat buffer[NBUFFER]; // Move into class.
 GLuint indices[NBUFFER];
-//vector<GLfloat> buffer;
-//vector<GLint> indices;
+*/
+
+// Move into class.
+bool init=false;
+std::vector<GLfloat> buffer;
+std::vector<GLint> indices;
 
 double size2;
 triple size3; // Move to class.
+
+/*  
+  static bool init=true;
+  if(init) {
+    new;
+    init=false;
+  }
+*/
 
 // Store the vertex and the normal vector, given the directional derivatives
 // bu in the u direction and bv in the v direction.
 GLuint vertex(const triple V, const triple& bu, const triple& bv)
 {
-  GLfloat *p=buffer+6*nvertices;
-  *p++=V.getx();
-  *p++=V.gety();
-  *p++=V.getz();
+  buffer.push_back(V.getx());
+  buffer.push_back(V.gety());
+  buffer.push_back(V.getz());
   
   triple n=unit(triple(bu.gety()*bv.getz()-bu.getz()*bv.gety(),
                        bu.getz()*bv.getx()-bu.getx()*bv.getz(),
                        bu.getx()*bv.gety()-bu.gety()*bv.getx()));
-  *p++=n.getx();
-  *p++=n.gety();
-  *p=n.getz();
-
+  
+  buffer.push_back(n.getx());
+  buffer.push_back(n.gety());
+  buffer.push_back(n.getz());
+  
   return nvertices++;
 }
 
@@ -49,12 +62,9 @@ void mesh(const triple *p, const GLuint *I)
   GLuint I1=I[1];
   GLuint I2=I[2];
 
-  GLuint *q=indices+nindices;
-  *q++=I0;
-  *q++=I1;
-  *q=I2;
-
-  nindices += 3; // Can this be made more reliable?
+  indices.push_back(I0);
+  indices.push_back(I1);
+  indices.push_back(I2);
 }
 
 // return the perpendicular displacement of a point z from the plane
@@ -304,7 +314,8 @@ void render(const triple *p, int n,
   }
 }
 
-void render(const triple *p, int n) {
+// n is the maximum depth
+void render(const triple *p, int n=8) {
   GLuint p0 = vertex(p[0],-p[0]+p[1],-p[0]+p[2]);
   GLuint p1 = vertex(p[6],-p[3]+p[6],-p[3]+p[7]);
   GLuint p2 = vertex(p[9],-p[5]+p[8],-p[5]+p[9]);
@@ -319,94 +330,28 @@ void render(const triple *p, int n) {
 
 void bezierTriangle(const triple *g, double Size2, triple Size3)
 {
+  const size_t nbuffer=100;
+  buffer.reserve(nbuffer);
+  indices.reserve(nbuffer);
+  
   size2=Size2;
   size3=Size3;
-//  cout << "size2=" << size2 << endl << "size3=" << size3 << endl;
-  //size2=1100.69796038695;
-  //size3=triple(10.605274364509,10.021984274461,18.1865334794732);
-  //bool lighton=true;
-  //size_t nI=1;
 
-  /*triple g[]={
-    triple(0,2,0),
-    triple(1,0,0),triple(1,1,0),
-    triple(2,0,0),triple(2,1,0),triple(2,2,0),
-    triple(3,0,0),triple(3,1,0),triple(3,2,0),triple(3,3,0)
-  };*/
-
-  /*triple g[]={
-    // This is an example of the flatness test failing; to be precise, the test should
-    // not be explicitly for flatness. (Set p_111 to a nonzero z-value to get another
-    // issue).
-    triple(0,0,0),
-    triple(-1,0,0),triple(1,1,0),
-    triple(4,0,0),triple(-2,1,0),triple(2,2,0),
-    triple(3,0,0),triple(3,-1,0),triple(3,4,0),triple(3,3,0)
-  };*/
-
-  /*triple g[]={
-     // Here the tessellation can easily be seen through the reflection of light.
-     // Perhaps what is needed is a 'curvature test'?
-    triple(0,0,0),
-    triple(1,0,0),triple(1,1,0),
-    triple(2,0,0),triple(2,1,2),triple(2,2,-1),
-    triple(3,0,0),triple(3,1,0),triple(3,2,-1),triple(3,3,0)
-  };*/
-
-  /*triple g[]={
-    triple(0,0,0),
-    triple(1,0,0),triple(1,1,0),
-    triple(2,0,0),triple(2,1,2),triple(2,2,0),
-    triple(3,0,0),triple(3,1,0),triple(3,2,0),triple(3,3,0)
-  };*/
-
-  /*
-  triple g[]={
-    triple(0,0,0),
-    triple(1,0,0),triple(0.5,sqrt(3)/2,0),
-    triple(2,0,0),triple(1.5,sqrt(3)/2,2),triple(1,sqrt(3),0),
-    triple(3,0,0),triple(2.5,sqrt(3)/2,0),triple(2,sqrt(3),0),triple(1.5,3*sqrt(3)/2,0)
-  };
-  */
-
-  /*triple g[]={
-    triple(0,1,0),
-    triple(1,0,0),triple(1,1,0),
-    triple(2,0,0),triple(2,1,1),triple(2,2,0),
-    triple(3,0,0),triple(3,1,1),triple(3,2,1),triple(3,3,0)
-  };*/
-
-  /*triple g[]={
-    triple(0,0,0),
-    triple(1,0,0),triple(1,1,0),
-    triple(2,0,0),triple(2,1,0),triple(2,2,0),
-    triple(3,0,0),triple(3,3,1),triple(3,0,1),triple(3,3,0)
-  };*/
-
-  int n=8; // Number of iterations (doubled for single-bisection)
-
-  //for(int i=0; i < 10000; ++i) {
   nvertices=0;
-  nindices=0;
+  render(g);
 
-  //  for(int j=0; j < 10; ++j)
-  //    g[j] += triple(i*0.0001,0,0);
-  render(g,n); // uniform
-
-  size_t size=6*sizeof(GL_FLOAT);
+  size_t stride=6*sizeof(GL_FLOAT);
 
   glEnableClientState(GL_NORMAL_ARRAY);
   glEnableClientState(GL_VERTEX_ARRAY);
-  glVertexPointer(3,GL_FLOAT,size,buffer);
-  glNormalPointer(GL_FLOAT,size,buffer+3);
-  glDrawElements(GL_TRIANGLES,nindices,GL_UNSIGNED_INT,indices);
+  glVertexPointer(3,GL_FLOAT,stride,&buffer[0]);
+  glNormalPointer(GL_FLOAT,stride,&buffer[3]);
+  glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,&indices[0]);
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_NORMAL_ARRAY);
-//  }
-  //cout << "triangles=" << nindices/3 << endl;
-  //cout << "nvertices (buffer)=" << nvertices << endl;
-  //unsigned int side=3*(1 << n)+1;
-  //cout << "nvertices (unique)=" << side*(side+1)/2 << endl;
+  
+  buffer.clear();
+  indices.clear();
 }
 
 } //namespace camp
