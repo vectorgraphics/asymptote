@@ -161,6 +161,7 @@ Base modules
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
 * contour3::                    Contour surfaces
+* smoothcontour3::              Smooth implicit surfaces
 * slopefield::                  Slope fields
 * ode::                         Ordinary differential equations
 
@@ -741,7 +742,7 @@ The following commands are needed to install the latest development version of
 @code{Asymptote} using @code{git}:
 @verbatim
 git clone git@github.com:vectorgraphics/asymptote
-
+ 
 cd asymptote
 ./autogen.sh
 ./configure
@@ -6189,6 +6190,7 @@ Here now is @code{latexusage.tex}:
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
 * contour3::                    Contour surfaces
+* smoothcontour3::              Smooth implicit surfaces
 * slopefield::                  Slope fields
 * ode::                         Ordinary differential equations
 @end menu
@@ -8342,7 +8344,7 @@ The routine
 real[][] intersections(path3 p, surface s, real fuzz=-1);
 @end verbatim
 @noindent
-returns all (unless there are infinity many) intersection times of a
+returns all (unless there are infinitely many) intersection times of a
 path @code{p} with a surface @code{s} as a sorted array of real arrays
 of length 3, and 
 @cindex @code{intersectionpoints}
@@ -8993,8 +8995,48 @@ Jonathan Shewchuk.
 @section @code{contour3}
 @cindex @code{contour3}
 This package draws surfaces described as the null space of real-valued
-functions of @math{(x,y,z)} or real[][][] matrices.
+functions of @math{(x,y,z)} or @code{real[][][]} matrices.
 Its usage is illustrated in the example file @code{magnetic.asy}.
+
+@node smoothcontour3
+@section @code{smoothcontour3}
+@cindex @code{smoothcontour3}
+This module, written by Charles Staats, draws implicitly defined surfaces
+with smooth appearance.
+The purpose of this module is similar to that of @code{contour3}: given 
+a real-valued function @math{f(x,y,z)}, construct the surface described by 
+the equation @math{f(x,y,z) = 0}. The @code{smoothcontour3} module generally produces 
+nicer results than @code{contour3}, but takes longer to compile. Additionally, the 
+algorithm assumes that the function and the surface are both smooth; if they are not,
+then @code{contour3} may be a better choice.
+
+To construct the null surface of a function @code{f(triple)} or @code{ff(real,real,real)}
+over @code{box(a,b)}, use the routine @cindex @code{implicitsurface} 
+@verbatim
+surface implicitsurface(real f(triple) = null, 
+                        real ff(real,real,real) = null,
+                        triple a, 
+                        triple b,
+                        int n = nmesh,
+                        bool keyword overlapedges = false,
+                        int keyword nx=n,
+                        int keyword ny=n,
+                        int keyword nz=n,
+                        int keyword maxdepth = 8);
+@end verbatim
+@noindent
+The optional parameter @code{overlapedges} attempts to compensate for an artifact that 
+causes can cause the renderer to ``see through'' the boundary between patches. Although 
+it defaults to @code{false}, it should usually be set to @code{true}.
+
+The following example illustrates the use of this function:
+@verbatiminclude genustwo.asy
+@sp 1
+@center @image{genustwo}
+
+For additional examples, together with a more in-depth explanation of 
+the module's usage and pitfalls, see the documentation at
+@url{https://github.com/charlesstaats/smoothcontour3}.
 
 @node slopefield
 @section @code{slopefield}
@@ -9825,4 +9867,4 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  'lasy 'auto 4g 2S 100pt 3t 12pt 5mm 25cm 3x 5x 3y 2x
 @c  LocalWords:  602e 2y 3sin 10cm 204e 10x Ai Ai Ai Ai Ai Ai Ai Ai
 @c  LocalWords:  unnormalized 5E 5cm 2N 2E 2n 100d 5z 5y
-@c  LocalWords:  5unit 144x144 aligndir
+@c  LocalWords:  5unit 144x144 aligndir smoothcontour3
