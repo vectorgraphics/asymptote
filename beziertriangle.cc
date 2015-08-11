@@ -8,31 +8,19 @@
 
 namespace camp {
 
-const double pixel=1.0; // Adaptive rendering constant.
+const double pixel=0.3; // Adaptive rendering constant.
 
 GLuint nvertices;
-
-/*
-const unsigned int NBUFFER=10000000; // FIXME
-GLfloat buffer[NBUFFER]; // Move into class.
-GLuint indices[NBUFFER];
-*/
 
 // Move into class.
 bool init=false;
 std::vector<GLfloat> buffer;
 std::vector<GLint> indices;
 
+double res;
 double size2;
 triple size3; // Move to class.
 
-/*
-  static bool init=true;
-  if(init) {
-    new;
-    init=false;
-  }
-*/
 
 // Store the vertex and the normal vector, given the directional derivatives
 // bu in the u direction and bv in the v direction.
@@ -100,29 +88,16 @@ triple displacement(const triple *controls)
 
   for(size_t i=1; i < 10; ++i)
     d=maxabs(d,displacement2(controls[i],z0,unit(cross(z1-z0,z2-z0))));
-  d=maxabs(d,10*displacement2(controls[4],z0,unit(cross(z1-z0,z2-z0))));
 
-  d=maxabs(d,4*displacement1(controls[0],controls[1],controls[3],controls[6]));
-  d=maxabs(d,4*displacement1(controls[0],controls[2],controls[5],controls[9]));
-  d=maxabs(d,4*displacement1(controls[6],controls[7],controls[8],controls[9]));
+  d=maxabs(d,displacement1(controls[0],controls[1],controls[3],controls[6]));
+  d=maxabs(d,displacement1(controls[0],controls[2],controls[5],controls[9]));
+  d=maxabs(d,displacement1(controls[6],controls[7],controls[8],controls[9]));
 
   // TODO: calculate displacement d from interior
+  // Or simply assume a nondegenerate Jacobian.
+  
   return d;
 }
-
-inline double fraction(double d, double size)
-{
-  return size == 0 ? 1.0 : min(fabs(d)/size,1.0);
-}
-
-// estimate the viewport fraction associated with the displacement d
-inline double fraction(const triple& d, const triple& size)
-{
-  return max(max(fraction(d.getx(),size.getx()),
-                 fraction(d.gety(),size.gety())),
-                 fraction(d.getz(),size.getz()));
-}
-
 
 void render(const triple *p, int n,
             GLuint I0, GLuint I1, GLuint I2, // Ii is the index to Pi
@@ -145,7 +120,7 @@ void render(const triple *p, int n,
   // Ideally, this increase in redundancy will me mitigated by a smarter render
   // using the tree-like structure (still being developed).
 
-  if(n == 0 || fraction(d,size3)*size2 < pixel) { // If triangle is flat...
+  if(n == 0 || length(d) < res) { // If triangle is flat...
     GLuint pp[]={I0,I1,I2};
 
     mesh(p,pp);
@@ -243,74 +218,58 @@ void render(const triple *p, int n,
     //double epsilon=1e-4; // This is to be made adaptive to the zoom-level
 
     // How epsilon was computed: guess-and-check...
-    const double epsilon=0.1;///1e-2;
-    double epsilon1=epsilon/(fraction(pp1-u030,size3)*size2);
-    double epsilon2=epsilon/(fraction(pp2-r300,size3)*size2);
-    double epsilon3=epsilon/(fraction(pp3-l003,size3)*size2);
-    //cout << epsilon1/epsilon << "," << epsilon2/epsilon << "," << epsilon3/epsilon <<
-       //endl << pp1-u030 << "," << pp2-r300 << "," << pp3-l003 << endl << "-----" << endl;
+    const double epsilon=0.1*res;///1e-2;
 
-    // Add the epsilon adjustments to the computed vertices.
-    pp1 += epsilon1*(pp1-u030);
-    pp2 += epsilon2*(pp2-r300);
-    pp3 += epsilon3*(pp3-l003);
+        // Add the epsilon adjustments to the computed vertices.
+    pp1 += epsilon*unit(pp1-u030);
+    pp2 += epsilon*unit(pp2-r300);
+    pp3 += epsilon*unit(pp3-l003);
 
-    // This method works reasonably well, although it's still possible to see
-    // mesh overlaps at high zoom levels.
-    //double epsilon=1e-4; // This is to be made adaptive to the zoom-level
-    //pp1 += epsilon*(pp1-u030);
-    //pp2 += epsilon*(pp2-r300);
-    //pp3 += epsilon*(pp3-l003);
+    if(!flat1)
+      flat1=length(displacement1(p[0],p[1],p[3],p[6])) < res;
+    if(!flat1)
+      pp1=l300;
 
-    double res=0.25*pixel;
+    if(!flat2)
+      flat2=length(displacement1(p[0],p[2],p[5],p[9])) < res;
+    if(!flat2)
+      pp2=l030;
 
-    if(flat1 || fraction(displacement1(p[0],p[1],p[3],p[6]),size3)*size2 < res) {
-      flat1=true;
-      a1=vertex(pp1,l210-l300,l201-l300);
-    } else {
-      a1=vertex(l300,l210-l300,l201-l300);
-    }
-
-    if(flat2 || fraction(displacement1(p[0],p[2],p[5],p[9]),size3)*size2 < res) {
-      flat2=true;
-      a2=vertex(pp2,l021-l030,l120-l030);
-    } else {
-      a2=vertex(l030,l021-l030,l120-l030);
-    }
-
-    if(flat3 || fraction(displacement1(p[6],p[7],p[8],p[9]),size3)*size2 < res) {
-      flat3 = true;
-      a3=vertex(pp3,r021-r030,r120-r030);
-    } else {
-      a3=vertex(r030,r021-r030,r120-r030);
-    }
-
+    if(!flat3)
+      flat3=length(displacement1(p[6],p[7],p[8],p[9])) < res;
+    if(!flat3)
+      pp3=r030;
+    
+    a1=vertex(pp1,l210-l300,l201-l300);
+    a2=vertex(pp2,l021-l030,l120-l030);
+    a3=vertex(pp3,r021-r030,r120-r030);
+      
     triple l[]={l003,l102,l012,l201,l111,l021,l300,l210,l120,l030}; // left
     triple r[]={l300,r102,r012,r201,r111,r021,r300,r210,r120,r030}; // right
     triple u[]={l030,u102,u012,u201,u111,u021,r030,u210,u120,u030}; // up
-    triple m[]={r030,u201,r021,u102,c111,r012,l030,l120,l210,l300}; // center
+    triple c[]={r030,u201,r021,u102,c111,r012,l030,l120,l210,l300}; // center
 
     --n;
-    render(l,n,I0,a1,a2,
-           P0,
-           flat1 ? pp1 : l300,
-           flat2 ? pp2 : l030,
-           flat1,flat2,false);
-    render(r,n,a1,I1,a3,
-           flat1 ? pp1 : l300,
-           P1,
-           flat3 ? pp3 : r030,
-           flat1,false,flat3);
-    render(u,n,a2,a3,I2,
-           flat2 ? pp2 : l030,
-           flat3 ? pp3 : r030,
-           P2,
-           false,flat2,flat3);
-    render(m,n,a3,a2,a1,
-           flat3 ? pp3 : r030,
-           flat2 ? pp2 : l030,
-           flat1 ? pp1 : l300,
-           false,false,false);
+    render(l,n,I0,a1,a2,P0,pp1,pp2,flat1,flat2,false);
+    render(r,n,a1,I1,a3,pp1,P1,pp3,flat1,false,flat3);
+    render(u,n,a2,a3,I2,pp2,pp3,P2,false,flat2,flat3);
+    render(c,n,a3,a2,a1,pp3,pp2,pp1,false,false,false);
+    
+/*
+    triple l[]={l003,l102,l012,l201,l111,l021,l300,l210,l120,l030}; // left
+    triple r[]={l300,r102,r012,r201,r111,r021,r300,r210,r120,r030}; // right
+    triple u[]={l030,u102,u012,u201,u111,u021,r030,u210,u120,u030}; // up
+    triple c[]={r030,u201,r021,u102,c111,r012,l030,l120,l210,l300}; // center
+
+    a1=vertex(l300,l210-l300,l201-l300);
+    a2=vertex(l030,l021-l030,l120-l030);
+    a3=vertex(r030,r021-r030,r120-r030);
+      
+    render(l,n,I0,a1,a2,P0,pp1,pp2,flat1,flat2,false);
+    render(r,n,a1,I1,a3,pp1,P1,pp3,flat1,false,flat3);
+    render(u,n,a2,a3,I2,pp2,pp3,P2,false,flat2,flat3);
+    render(c,n,a3,a2,a1,pp3,pp2,pp1,false,false,false);
+*/
   }
 }
 
@@ -471,9 +430,11 @@ void bezierTriangle(const triple *g, double Size2, triple Size3)
   size2=Size2;
   size3=Size3;
 
+  res=pixel*length(size3)/fabs(size2);
+  
   nvertices=0;
   render(g);
-  //renderNoAdaptive(g); // This is not much better...
+//  renderNoAdaptive(g,5); // This is not much better...
 
   size_t stride=6*sizeof(GL_FLOAT);
 
@@ -485,6 +446,8 @@ void bezierTriangle(const triple *g, double Size2, triple Size3)
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_NORMAL_ARRAY);
 
+//  cout << nvertices << endl;
+  
   buffer.clear();
   indices.clear();
 }
