@@ -95,16 +95,16 @@ triple displacement(const triple *controls)
 
   // TODO: calculate displacement d from interior
   // Or simply assume a nondegenerate Jacobian.
-  
+
   return d;
 }
-
+// Pi is the full precision value indexed by Ii.
+// The 'flati' are flatness flags for each boundary.
 void render(const triple *p, int n,
-            GLuint I0, GLuint I1, GLuint I2, // Ii is the index to Pi
-            triple P0, triple P1, triple P2, // Pi is the full precision
-                                             // value indexed by Ii
-            bool flat1, bool flat2, bool flat3 // Flatness flags for each boundary.
-            ) {
+            GLuint I0, GLuint I1, GLuint I2,
+            triple P0, triple P1, triple P2,
+            bool flat1, bool flat2, bool flat3)
+{
   // Uses a uniform partition
   // p points to an array of 10 triples.
   // Draw a Bezier triangle.
@@ -120,7 +120,7 @@ void render(const triple *p, int n,
   // Ideally, this increase in redundancy will me mitigated by a smarter render
   // using the tree-like structure (still being developed).
 
-  if(n == 0 || length(d) < res) { // If triangle is flat...
+  if(n == 0 || length(d) < res/2) { // If triangle is flat...
     GLuint pp[]={I0,I1,I2};
 
     mesh(p,pp);
@@ -189,17 +189,17 @@ void render(const triple *p, int n,
     triple l201=0.5*(l102+p303);
     triple r102=0.5*(p303+r201);
 
-    triple l210=0.5*(px4x+l201); // = c120
-    triple r012=0.5*(px4x+r102); // = c021
-    triple l300=0.5*(l201+r102); // = r003 = c030
+    triple l210=0.5*(px4x+l201); // =c120
+    triple r012=0.5*(px4x+r102); // =c021
+    triple l300=0.5*(l201+r102); // =r003=c030
 
-    triple r021=0.5*(pxx4+r120); // = c012
-    triple u201=0.5*(u210+pxx4); // = c102
-    triple r030=0.5*(u210+r120); // = u300 = c003
+    triple r021=0.5*(pxx4+r120); // =c012
+    triple u201=0.5*(u210+pxx4); // =c102
+    triple r030=0.5*(u210+r120); // =u300=c003
 
-    triple u102=0.5*(u012+p4xx); // = c201
-    triple l120=0.5*(l021+p4xx); // = c210
-    triple l030=0.5*(u012+l021); // = u003 = c300
+    triple u102=0.5*(u012+p4xx); // =c201
+    triple l120=0.5*(l021+p4xx); // =c210
+    triple l030=0.5*(u012+l021); // =u003=c300
 
     triple l111=0.5*(p123+l102);
     triple r111=0.5*(p312+r210);
@@ -209,41 +209,41 @@ void render(const triple *p, int n,
     //  For each edge of the triangle
     //    - Check for flatness
     //    - Store points in the GLU array accordingly
+
+    // A kludge to remove subdivision cracks (if it is indeed rounding error).
+    // The 'kludge' is only applied the first time an edge is found to be flat
+    // before the rest of the sub-tpatch is.
+    const double epsilon=0.05*res;//1e-2; // How epsilon was computed: guess-and-check.
     GLuint a1, a2, a3;
-    triple pp1 = 0.5*(P1+P0);
-    triple pp2 = 0.5*(P2+P0);
-    triple pp3 = 0.5*(P2+P1);
+    triple pp1, pp2, pp3;
 
-    // A kludge to remove subdivision cracks (if it is indeed rounding error)
-    //double epsilon=1e-4; // This is to be made adaptive to the zoom-level
+    if(flat1)
+      pp1=0.5*(P1+P0);
+    else if((flat1=length(displacement1(l003,p102,p201,r300)) < res)) {
+      pp1=0.5*(P1+P0);
+      pp1+=epsilon*unit(pp1-u030);
+    } else pp1=l300;
 
-    // How epsilon was computed: guess-and-check...
-    const double epsilon=0.1*res;///1e-2;
+    if(flat2)
+      pp2=0.5*(P2+P0);
+    else if((flat2=length(displacement1(l003,p012,p021,u030)) < res)) {
+      pp2=0.5*(P2+P0);
+      pp2+=epsilon*unit(pp2-r300);
+    } else pp2=l030;
 
-        // Add the epsilon adjustments to the computed vertices.
-    pp1 += epsilon*unit(pp1-u030);
-    pp2 += epsilon*unit(pp2-r300);
-    pp3 += epsilon*unit(pp3-l003);
+    if(flat3)
+      pp3=0.5*(P2+P1);
+    if((flat3=length(displacement1(r300,p210,p120,u030)) < res)) {
+      pp3=0.5*(P2+P1);
+      pp3+=epsilon*unit(pp3-l003);
+    } else  pp3=r030;
 
-    if(!flat1)
-      flat1=length(displacement1(p[0],p[1],p[3],p[6])) < res;
-    if(!flat1)
-      pp1=l300;
 
-    if(!flat2)
-      flat2=length(displacement1(p[0],p[2],p[5],p[9])) < res;
-    if(!flat2)
-      pp2=l030;
 
-    if(!flat3)
-      flat3=length(displacement1(p[6],p[7],p[8],p[9])) < res;
-    if(!flat3)
-      pp3=r030;
-    
     a1=vertex(pp1,l210-l300,l201-l300);
     a2=vertex(pp2,l021-l030,l120-l030);
     a3=vertex(pp3,r021-r030,r120-r030);
-      
+
     triple l[]={l003,l102,l012,l201,l111,l021,l300,l210,l120,l030}; // left
     triple r[]={l300,r102,r012,r201,r111,r021,r300,r210,r120,r030}; // right
     triple u[]={l030,u102,u012,u201,u111,u021,r030,u210,u120,u030}; // up
@@ -254,7 +254,7 @@ void render(const triple *p, int n,
     render(r,n,a1,I1,a3,pp1,P1,pp3,flat1,false,flat3);
     render(u,n,a2,a3,I2,pp2,pp3,P2,false,flat2,flat3);
     render(c,n,a3,a2,a1,pp3,pp2,pp1,false,false,false);
-    
+
 /*
     triple l[]={l003,l102,l012,l201,l111,l021,l300,l210,l120,l030}; // left
     triple r[]={l300,r102,r012,r201,r111,r021,r300,r210,r120,r030}; // right
@@ -264,7 +264,7 @@ void render(const triple *p, int n,
     a1=vertex(l300,l210-l300,l201-l300);
     a2=vertex(l030,l021-l030,l120-l030);
     a3=vertex(r030,r021-r030,r120-r030);
-      
+
     render(l,n,I0,a1,a2,P0,pp1,pp2,flat1,flat2,false);
     render(r,n,a1,I1,a3,pp1,P1,pp3,flat1,false,flat3);
     render(u,n,a2,a3,I2,pp2,pp3,P2,false,flat2,flat3);
@@ -275,9 +275,9 @@ void render(const triple *p, int n,
 
 // n is the maximum depth
 void render(const triple *p, int n=8) {
-  GLuint p0 = vertex(p[0],-p[0]+p[1],-p[0]+p[2]);
-  GLuint p1 = vertex(p[6],-p[3]+p[6],-p[3]+p[7]);
-  GLuint p2 = vertex(p[9],-p[5]+p[8],-p[5]+p[9]);
+  GLuint p0=vertex(p[0],-p[0]+p[1],-p[0]+p[2]);
+  GLuint p1=vertex(p[6],-p[3]+p[6],-p[3]+p[7]);
+  GLuint p2=vertex(p[9],-p[5]+p[8],-p[5]+p[9]);
 
   if(n > 0) {
     render(p,n,p0,p1,p2,p[0],p[6],p[9],false,false,false);
@@ -371,17 +371,17 @@ void renderNoAdaptive(const triple *p, int n, GLuint I0, GLuint I1, GLuint I2)
     triple l201=0.5*(l102+p303);
     triple r102=0.5*(p303+r201);
 
-    triple l210=0.5*(px4x+l201); // = c120
-    triple r012=0.5*(px4x+r102); // = c021
-    triple l300=0.5*(l201+r102); // = r003 = c030
+    triple l210=0.5*(px4x+l201); // =c120
+    triple r012=0.5*(px4x+r102); // =c021
+    triple l300=0.5*(l201+r102); // =r003=c030
 
-    triple r021=0.5*(pxx4+r120); // = c012
-    triple u201=0.5*(u210+pxx4); // = c102
-    triple r030=0.5*(u210+r120); // = u300 = c003
+    triple r021=0.5*(pxx4+r120); // =c012
+    triple u201=0.5*(u210+pxx4); // =c102
+    triple r030=0.5*(u210+r120); // =u300=c003
 
-    triple u102=0.5*(u012+p4xx); // = c201
-    triple l120=0.5*(l021+p4xx); // = c210
-    triple l030=0.5*(u012+l021); // = u003 = c300
+    triple u102=0.5*(u012+p4xx); // =c201
+    triple l120=0.5*(l021+p4xx); // =c210
+    triple l030=0.5*(u012+l021); // =u003=c300
 
     triple l111=0.5*(p123+l102);
     triple r111=0.5*(p312+r210);
@@ -409,9 +409,9 @@ void renderNoAdaptive(const triple *p, int n, GLuint I0, GLuint I1, GLuint I2)
 // n is the depth
 void renderNoAdaptive(const triple *p, int n=8)
 {
-  GLuint p0 = vertex(p[0],-p[0]+p[1],-p[0]+p[2]);
-  GLuint p1 = vertex(p[6],-p[3]+p[6],-p[3]+p[7]);
-  GLuint p2 = vertex(p[9],-p[5]+p[8],-p[5]+p[9]);
+  GLuint p0=vertex(p[0],-p[0]+p[1],-p[0]+p[2]);
+  GLuint p1=vertex(p[6],-p[3]+p[6],-p[3]+p[7]);
+  GLuint p2=vertex(p[9],-p[5]+p[8],-p[5]+p[9]);
 
   if(n > 0) {
     renderNoAdaptive(p,n,p0,p1,p2);
@@ -431,7 +431,8 @@ void bezierTriangle(const triple *g, double Size2, triple Size3)
   size3=Size3;
 
   res=pixel*length(size3)/fabs(size2);
-  
+  //cout << res << endl;
+
   nvertices=0;
   render(g);
 //  renderNoAdaptive(g,5); // This is not much better...
@@ -447,7 +448,7 @@ void bezierTriangle(const triple *g, double Size2, triple Size3)
   glDisableClientState(GL_NORMAL_ARRAY);
 
 //  cout << nvertices << endl;
-  
+
   buffer.clear();
   indices.clear();
 }
