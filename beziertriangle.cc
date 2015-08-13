@@ -73,6 +73,8 @@ inline triple maxabs(triple u, triple v)
 inline triple displacement1(const triple& z0, const triple& c0,
                             const triple& c1, const triple& z1)
 {
+  // z0-z1 is computed twice. This is unnecessary, although perhaps not a big
+  // deal and way easier to understand in this case.
   return maxabs(displacement(c0,z0,z1),displacement(c1,z0,z1));
 }
 
@@ -86,12 +88,15 @@ triple displacement(const triple *controls)
 
   // Optimize straight & planar cases.
 
-  for(size_t i=1; i < 10; ++i)
-    d=maxabs(d,displacement2(controls[i],z0,unit(cross(z1-z0,z2-z0))));
+  //for(size_t i=1; i < 10; ++i)
+  // The last three lines compute how straight the edges are. This should be a
+  // sufficient test for the boundry points, so only the central point is tested
+  // for deviance from the main triangle.
+  d=maxabs(d,displacement2(controls[4],z0,unit(cross(z1-z0,z2-z0))));
 
-  d=maxabs(d,displacement1(controls[0],controls[1],controls[3],controls[6]));
-  d=maxabs(d,displacement1(controls[0],controls[2],controls[5],controls[9]));
-  d=maxabs(d,displacement1(controls[6],controls[7],controls[8],controls[9]));
+  d=maxabs(d,displacement1(z0,controls[1],controls[3],z1));
+  d=maxabs(d,displacement1(z0,controls[2],controls[5],z2));
+  d=maxabs(d,displacement1(z1,controls[7],controls[8],z2));
 
   // TODO: calculate displacement d from interior
   // Or simply assume a nondegenerate Jacobian.
@@ -252,9 +257,9 @@ void render(const triple *p, int n,
     triple c[]={r030,u201,r021,u102,c111,r012,l030,l120,l210,l300}; // center
 
     --n;
-    render(l,n,I0,a1,a2,P0,pp1,pp2,flat1,flat2,false);
-    render(r,n,a1,I1,a3,pp1,P1,pp3,flat1,false,flat3);
-    render(u,n,a2,a3,I2,pp2,pp3,P2,false,flat2,flat3);
+    render(l,n,I0,a1,a2,P0, pp1,pp2,flat1,flat2,false);
+    render(r,n,a1,I1,a3,pp1,P1, pp3,flat1,false,flat3);
+    render(u,n,a2,a3,I2,pp2,pp3,P2, false,flat2,flat3);
     render(c,n,a3,a2,a1,pp3,pp2,pp1,false,false,false);
 
 /*
