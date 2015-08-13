@@ -335,8 +335,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
     
   setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
   
-  const triple size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),
-                     Max.getz()-Min.getz());
+  const triple size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),0.0);
   
   bool havenormal=normal != zero;
   if(havebillboard) BB.init();
@@ -530,8 +529,7 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2, const triple& Min,
 
   setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
   
-  const triple size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),
-                     Max.getz()-Min.getz());
+  const triple size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),0);
   
   bezierTriangle(controls,size2,size3);
 

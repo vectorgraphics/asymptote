@@ -8,7 +8,7 @@
 
 namespace camp {
 
-const double pixel=0.3; // Adaptive rendering constant.
+const double pixel=0.5; // Adaptive rendering constant.
 
 GLuint nvertices;
 
@@ -120,7 +120,7 @@ void render(const triple *p, int n,
   // Ideally, this increase in redundancy will me mitigated by a smarter render
   // using the tree-like structure (still being developed).
 
-  if(n == 0 || length(d) < res/2) { // If triangle is flat...
+  if(n == 0 || length(d) < res) { // If triangle is flat...
     GLuint pp[]={I0,I1,I2};
 
     mesh(p,pp);
@@ -213,32 +213,34 @@ void render(const triple *p, int n,
     // A kludge to remove subdivision cracks (if it is indeed rounding error).
     // The 'kludge' is only applied the first time an edge is found to be flat
     // before the rest of the sub-tpatch is.
-    const double epsilon=0.05*res;//1e-2; // How epsilon was computed: guess-and-check.
-    GLuint a1, a2, a3;
-    triple pp1, pp2, pp3;
+    const double epsilon=0.01*res; // How epsilon was computed: guess-and-check.
+    GLuint a1,a2,a3;
+    triple pp1,pp2,pp3;
 
     if(flat1)
       pp1=0.5*(P1+P0);
-    else if((flat1=length(displacement1(l003,p102,p201,r300)) < res)) {
-      pp1=0.5*(P1+P0);
-      pp1+=epsilon*unit(pp1-u030);
-    } else pp1=l300;
+    else {
+      if((flat1=length(displacement1(l003,p102,p201,r300)) < res))
+        pp1=0.5*(P1+P0)+epsilon*unit(l300-u030);
+      else
+        pp1=l300;
+    }
 
     if(flat2)
       pp2=0.5*(P2+P0);
-    else if((flat2=length(displacement1(l003,p012,p021,u030)) < res)) {
-      pp2=0.5*(P2+P0);
-      pp2+=epsilon*unit(pp2-r300);
-    } else pp2=l030;
+    else {
+      if((flat2=length(displacement1(l003,p012,p021,u030)) < res))
+        pp2=0.5*(P2+P0)+epsilon*unit(l030-r300);
+      else pp2=l030;
+    }
 
     if(flat3)
       pp3=0.5*(P2+P1);
-    if((flat3=length(displacement1(r300,p210,p120,u030)) < res)) {
-      pp3=0.5*(P2+P1);
-      pp3+=epsilon*unit(pp3-l003);
-    } else  pp3=r030;
-
-
+    else {
+      if((flat3=length(displacement1(r300,p210,p120,u030)) < res))
+        pp3=0.5*(P2+P1)+epsilon*unit(r030-l003);
+      else pp3=r030;
+    }
 
     a1=vertex(pp1,l210-l300,l201-l300);
     a2=vertex(pp2,l021-l030,l120-l030);
@@ -431,7 +433,6 @@ void bezierTriangle(const triple *g, double Size2, triple Size3)
   size3=Size3;
 
   res=pixel*length(size3)/fabs(size2);
-  //cout << res << endl;
 
   nvertices=0;
   render(g);
