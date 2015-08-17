@@ -1,7 +1,6 @@
 settings.render=8;
 size(10cm,0);
 import smoothcontour3;
-import contour;
 currentprojection=perspective((18,20,10));
 
 real tuberadius = 0.69;
@@ -34,4 +33,4 @@ draw(implicitsurface(f, min, max, overlapedges=true,
                      nx=20, nz=5),
      surfacepen=material(diffusepen=gray(0.6),
 			 emissivepen=gray(0.3),
-			 specularpen=gray(0.1)) );
+			 specularpen=gray(0.1)));
