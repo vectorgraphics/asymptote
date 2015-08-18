@@ -59,6 +59,7 @@ GUI/*.pyc
 /lex.yy.cc
 /opsymbols.h
 /types.symbols.h
+*.dSYM
 
 ### TeX-related
 ## Core latex/pdflatex auxiliary files:
