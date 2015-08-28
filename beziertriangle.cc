@@ -12,14 +12,14 @@ const double pixel=0.5; // Adaptive rendering constant.
 
 GLuint nvertices;
 
-// Move into class.
+// TODO: Move into class.
 bool init=false;
 std::vector<GLfloat> buffer;
 std::vector<GLint> indices;
 
 double res;
 double size2;
-triple size3; // Move to class.
+triple size3; // TODO: Move to class.
 
 
 // Store the vertex v and its normal vector n in the buffer.
@@ -100,53 +100,47 @@ triple displacement(const triple *controls)
 }
 
 // Compute normal here.
-//
-triple bezierP(triple a, triple b, triple c, triple d, double t)
-{
+
+// Returns the first derivate of the Bézier curve defined by a,b,c,d at 0.
+triple bezierP(triple a, triple b, triple c, triple d) {
   return 3.0*(b-a);
 }
 
-triple bezierPP(triple a, triple b, triple c, triple d, double t)
-{
+// Returns the second derivate of the Bézier curve defined by a,b,c,d at 0.
+triple bezierPP(triple a, triple b, triple c, triple d) {
   return 6.0*(a+c-2.0*b);
 }
 
-triple bezierPPP(triple a, triple b, triple c, triple d)
-{
+// Returns the third derivate of the Bézier curve defined by a,b,c,d.
+triple bezierPPP(triple a, triple b, triple c, triple d) {
   return 6.0*(d-a+3.0*(b-c));
 }
 
-triple normal0(triple left3, triple left2, triple left1,
-                            triple middle,
-                            triple right1, triple right2, triple right3,
-                            double epsilon) {
+triple normal0(triple left3, triple left2, triple left1, triple middle,
+               triple right1, triple right2, triple right3, double epsilon) {
   //cout << "normal0 called." << endl;
   // Lots of repetition here.
-  triple n1=0.5*(cross(bezierPP(middle,right1,right2,right3,0),
-                      bezierP(middle,left1,left2,left3,0))+
-                cross(bezierP(middle,right1,right2,right3,0),
-                      bezierPP(middle,left1,left2,left3,0)));
+  // TODO: Check if lp,rp,lpp,rpp should be manually inlined (i.e., is the third
+  // order normal usually computed when normal0() is called?).
+  triple lp=bezierP(middle,left1,left2,left3);
+  triple rp=bezierP(middle,right1,right2,right3);
+  triple lpp=bezierPP(middle,left1,left2,left3);
+  triple rpp=bezierPP(middle,right1,right2,right3);
+  triple n1=0.5*(cross(rpp,lp)+cross(rp,lpp));
   //cout << "1:" << unit(n1) << endl;
   if(length(n1) > epsilon) {
-    //cout << "using second order" << endl;
+    cout << "using second order" << endl;
     return unit(n1);
   } else {
-    triple n2=
-    0.25*cross(bezierPP(middle,right1,right2,right3,0),
-               bezierPP(middle,left1,left2,left3,0))+
-    1/6.0*(cross(bezierP(middle,right1,right2,right3,0),
-               bezierPPP(middle,left1,left2,left3))+
-         cross(bezierPPP(middle,right1,right2,right3),
-               bezierP(middle,left1,left2,left3,0)))+
-    1/12.0*(cross(bezierPPP(middle,right1,right2,right3),
-                bezierPP(middle,left1,left2,left3,0))+
-          cross(bezierPP(middle,right1,right2,right3,0),
-                bezierPPP(middle,left1,left2,left3)))+
-    1/36.0*cross(bezierPPP(middle,right1,right2,right3),
-               bezierPPP(middle,left1,left2,left3));
+    triple lppp=bezierPPP(middle,left1,left2,left3);
+    triple rppp=bezierPPP(middle,right1,right2,right3);
+    triple n2= 0.25*cross(rpp,lpp)+
+               1/6.0*(cross(rp,lppp)+cross(rppp,lp))+
+               1/12.0*(cross(rppp,lpp)+cross(rpp,lppp))+
+               1/36.0*cross(rppp,lppp);
     //cout << "2:" << unit(n2) << endl;
     /*if(length(n2) > epsilon){*/
-      //cout << "using third order" << endl;
+      cout << "using third order" << endl;
       return unit(n2);
     /*} else { // Super-degenerate triangle, just use the actual triangle here.
       triple bu=right3-middle;
@@ -172,6 +166,7 @@ triple normal(triple left3, triple left2, triple left1, triple middle,
                        bu.getx()*bv.gety()-bu.gety()*bv.getx()));
   //triple n=cross(partialu(u,v),partialv(u,v));
 
+  // Where does 1e-8 come from? It's roughly sqrt(machineepsilon), I guess...
   double epsilon=1e-8*max(max(max(max(max(
     length(left3-middle),length(left2-middle)),length(left1-middle)),
     length(right1-middle)),length(right2-middle)),length(right3-middle));
@@ -299,7 +294,7 @@ void render(const triple *p, int n,
     // A kludge to remove subdivision cracks (if it is indeed rounding error).
     // The 'kludge' is only applied the first time an edge is found to be flat
     // before the rest of the sub-tpatch is.
-    const double epsilon=0.01*res; // How epsilon was computed: guess-and-check.
+    const double epsilon=0.1*res; // How epsilon was computed: guess-and-check.
     GLuint a1,a2,a3;
     triple pp1,pp2,pp3;
 
