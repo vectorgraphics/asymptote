@@ -2291,7 +2291,7 @@ void draw(picture pic=currentpicture, triple[] P, material m=currentpen,
         real PRCshininess;
         if(prc())
           PRCshininess=PRCshininess(m.shininess);
-        draw(f,P,O,false,m.p,m.opacity,m.shininess,PRCshininess,
+        drawbeziertriangle(f,P,O,false,m.p,m.opacity,m.shininess,PRCshininess,
              colors,0);
         if(group)
           endgroup3(f);

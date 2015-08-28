@@ -21,6 +21,9 @@ double res;
 double size2;
 triple size3; // TODO: Move to class.
 
+extern const double Fuzz;
+extern const double Fuzz2;
+static double epsilon;
 
 // Store the vertex v and its normal vector n in the buffer.
 GLuint vertex(const triple V, const triple& n)
@@ -131,7 +134,7 @@ triple normal0(triple left3, triple left2, triple left1, triple middle,
   triple rpp=bezierPP(middle,right1,right2);
   triple n1=cross(rpp,lp)+cross(rp,lpp);
   //cout << "1:" << unit(n1) << endl;
-  if(length(n1) > epsilon) {
+  if(abs2(n1) > epsilon) {
     return unit(n1);
   } else {
     triple lppp=bezierPPP(middle,left1,left2,left3);
@@ -141,7 +144,7 @@ triple normal0(triple left3, triple left2, triple left1, triple middle,
                     cross(rppp,lpp)+cross(rpp,lppp))+
                cross(rppp,lppp);
     //cout << "2:" << unit(n2) << endl;
-    /*if(length(n2) > epsilon){*/
+    /*if(abs2(n2) > epsilon){*/
       return unit(n2);
     /*} else { // Super-degenerate triangle, just use the actual triangle here.
       triple bu=right3-middle;
@@ -153,7 +156,7 @@ triple normal0(triple left3, triple left2, triple left1, triple middle,
       return unit(n3);
     }*/
   }
-  //return length(n1) > epsilon ? n1 : n2;
+  //return abs2(n1) > epsilon ? n1 : n2;
   //return false ? n :
 }
 
@@ -162,22 +165,17 @@ triple normal(triple left3, triple left2, triple left1, triple middle,
                triple right1, triple right2, triple right3) {
   triple bu=right1-middle;
   triple bv=left1-middle;
-  triple n=unit(triple(bu.gety()*bv.getz()-bu.getz()*bv.gety(),
+  triple n=triple(bu.gety()*bv.getz()-bu.getz()*bv.gety(),
                        bu.getz()*bv.getx()-bu.getx()*bv.getz(),
-                       bu.getx()*bv.gety()-bu.gety()*bv.getx()));
+                       bu.getx()*bv.gety()-bu.gety()*bv.getx());
   //triple n=cross(partialu(u,v),partialv(u,v));
 
-  const double Fuzz=1000.0*DBL_EPSILON;
-  double epsilon=Fuzz*max(max(max(max(max(
-    length(left3-middle),length(left2-middle)),length(left1-middle)),
-    length(right1-middle)),length(right2-middle)),length(right3-middle));
   //return false ? n :
   //cout << "n:" << unit(n) << endl;
-  if(length(n) > epsilon) {
-    return n;
-  } else {
+  if(abs2(n) > epsilon)
+    return unit(n);
+  else
     return normal0(left3,left2,left1,middle,right1,right2,right3,epsilon);
-  }
 }
 
 // Pi is the full precision value indexed by Ii.
@@ -538,8 +536,16 @@ void bezierTriangle(const triple *g, double Size2, triple Size3)
   res=pixel*length(size3)/fabs(size2);
 
   nvertices=0;
+  
+  triple g0=g[0];
+  double epsilon=0;
+  for(int i=1; i < 10; ++i)
+    epsilon=max(epsilon,abs2(g[i]-g0));
+  
+  epsilon *= Fuzz2;
+  
   render(g);
-//  renderNoAdaptive(g,5); // This is not much better...
+//  renderNoAdaptive(g,5);
 
   size_t stride=6*sizeof(GL_FLOAT);
 

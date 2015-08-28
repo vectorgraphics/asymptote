@@ -227,6 +227,11 @@ public:
     return x*x+y*y+z*z;
   }
   
+  friend double abs2(const triple &v)
+  {
+    return v.abs2();
+  }
+  
   double length() const /* r */
   {
     return sqrt(abs2());
