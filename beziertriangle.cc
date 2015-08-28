@@ -85,8 +85,8 @@ triple displacement(const triple *controls)
 
   //for(size_t i=1; i < 10; ++i)
   // The last three lines compute how straight the edges are. This should be a
-  // sufficient test for the boundry points, so only the central point is tested
-  // for deviance from the main triangle.
+  // sufficient test for the boundry points, so only the central point is
+  // tested for deviance from the main triangle.
   d=maxabs(d,displacement2(controls[4],z0,unit(cross(z1-z0,z2-z0))));
 
   d=maxabs(d,displacement1(z0,controls[1],controls[3],z1));
@@ -101,46 +101,47 @@ triple displacement(const triple *controls)
 
 // Compute normal here.
 
-// Returns the first derivate of the Bézier curve defined by a,b,c,d at 0.
-triple bezierP(triple a, triple b, triple c, triple d) {
-  return 3.0*(b-a);
+// Returns one-third of the first derivative of the Bezier curve defined by
+// a,b,c,d at 0.
+inline triple bezierP(triple a, triple b) {
+  return b-a;
 }
 
-// Returns the second derivate of the Bézier curve defined by a,b,c,d at 0.
-triple bezierPP(triple a, triple b, triple c, triple d) {
-  return 6.0*(a+c-2.0*b);
+// Returns one-sixth of the second derivative of the Bezier curve defined
+// by a,b,c,d at 0. 
+inline triple bezierPP(triple a, triple b, triple c) {
+  return a+c-2.0*b;
 }
 
-// Returns the third derivate of the Bézier curve defined by a,b,c,d.
-triple bezierPPP(triple a, triple b, triple c, triple d) {
-  return 6.0*(d-a+3.0*(b-c));
+// Returns one-third of the third derivative of the Bezier curve defined by
+// a,b,c,d.
+inline triple bezierPPP(triple a, triple b, triple c, triple d) {
+  return d-a+3.0*(b-c);
 }
 
 triple normal0(triple left3, triple left2, triple left1, triple middle,
                triple right1, triple right2, triple right3, double epsilon) {
   //cout << "normal0 called." << endl;
   // Lots of repetition here.
-  // TODO: Check if lp,rp,lpp,rpp should be manually inlined (i.e., is the third
-  // order normal usually computed when normal0() is called?).
-  triple lp=bezierP(middle,left1,left2,left3);
-  triple rp=bezierP(middle,right1,right2,right3);
-  triple lpp=bezierPP(middle,left1,left2,left3);
-  triple rpp=bezierPP(middle,right1,right2,right3);
-  triple n1=0.5*(cross(rpp,lp)+cross(rp,lpp));
+  // TODO: Check if lp,rp,lpp,rpp should be manually inlined (i.e., is the
+  // third order normal usually computed when normal0() is called?).
+  triple lp=bezierP(middle,left1);
+  triple rp=bezierP(middle,right1);
+  triple lpp=bezierPP(middle,left1,left2);
+  triple rpp=bezierPP(middle,right1,right2);
+  triple n1=cross(rpp,lp)+cross(rp,lpp);
   //cout << "1:" << unit(n1) << endl;
   if(length(n1) > epsilon) {
-    cout << "using second order" << endl;
     return unit(n1);
   } else {
     triple lppp=bezierPPP(middle,left1,left2,left3);
     triple rppp=bezierPPP(middle,right1,right2,right3);
-    triple n2= 0.25*cross(rpp,lpp)+
-               1/6.0*(cross(rp,lppp)+cross(rppp,lp))+
-               1/12.0*(cross(rppp,lpp)+cross(rpp,lppp))+
-               1/36.0*cross(rppp,lppp);
+    triple n2= 9.0*cross(rpp,lpp)+
+               3.0*(cross(rp,lppp)+cross(rppp,lp)+
+                    cross(rppp,lpp)+cross(rpp,lppp))+
+               cross(rppp,lppp);
     //cout << "2:" << unit(n2) << endl;
     /*if(length(n2) > epsilon){*/
-      cout << "using third order" << endl;
       return unit(n2);
     /*} else { // Super-degenerate triangle, just use the actual triangle here.
       triple bu=right3-middle;
@@ -166,8 +167,8 @@ triple normal(triple left3, triple left2, triple left1, triple middle,
                        bu.getx()*bv.gety()-bu.gety()*bv.getx()));
   //triple n=cross(partialu(u,v),partialv(u,v));
 
-  // Where does 1e-8 come from? It's roughly sqrt(machineepsilon), I guess...
-  double epsilon=1e-8*max(max(max(max(max(
+  const double Fuzz=1000.0*DBL_EPSILON;
+  double epsilon=Fuzz*max(max(max(max(max(
     length(left3-middle),length(left2-middle)),length(left1-middle)),
     length(right1-middle)),length(right2-middle)),length(right3-middle));
   //return false ? n :
