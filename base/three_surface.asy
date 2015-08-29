@@ -15,6 +15,7 @@ struct patch {
   pen[] colors;     // Optionally specify 4 corner colors.
   bool straight;    // Patch is based on a piecewise straight external path.
   bool3 planar;     // Patch is planar.
+  bool triangular;  // Patch is a Bezier triangle.
 
   path3 external() {
     return straight ? P[0][0]--P[3][0]--P[3][3]--P[0][3]--cycle :
@@ -219,6 +220,21 @@ struct patch {
     operator init(s.P,s.normals,s.colors,s.straight);
   }
   
+  void operator init(path3 external, triple internal,
+                     triple[] normals=new triple[], pen[] colors=new pen[]) {
+    P=new triple[][] {
+      {point(external,0)},
+      {postcontrol(external,0),precontrol(external,0)},
+      {precontrol(external,1),internal,postcontrol(external,2)},
+      {point(external,1),postcontrol(external,1),precontrol(external,2),point(external,2)}
+    };
+    if(normals.length != 0)
+      this.normals=copy(normals);
+    if(colors.length != 0)
+      this.colors=copy(colors);
+    //    straight=false;
+  }
+
   // A constructor for a convex cyclic path3 of length <= 4 with optional
   // arrays of 4 internal points, corner normals, and pens.
   void operator init(path3 external, triple[] internal=new triple[],
