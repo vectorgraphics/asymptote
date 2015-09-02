@@ -25,18 +25,38 @@ struct patch {
       P[0][3]..controls P[0][2] and P[0][1]..cycle;
   }
 
+  path3 externaltriangular() {
+    return 
+      P[0][0]..controls P[1][0] and P[2][0]..
+      P[3][0]..controls P[3][1] and P[3][2]..
+      P[3][3]..controls P[2][2] and P[1][1]..cycle;
+  }
+
   triple[] internal() {
     return new triple[] {P[1][1],P[2][1],P[2][2],P[1][2]};
+  }
+
+  triple[] internaltriangular() {
+    return new triple[] {P[2][1]};
   }
 
   triple cornermean() {
     return 0.25*(P[0][0]+P[0][3]+P[3][0]+P[3][3]);
   }
 
+  triple cornermeantriangular() {
+    return (P[0][0]+P[3][0]+P[3][3])/3;
+  }
+
   triple[] corners() {return new triple[] {P[0][0],P[3][0],P[3][3],P[0][3]};}
+  triple[] cornerstriangular() {return new triple[] {P[0][0],P[3][0],P[3][3]};}
 
   real[] map(real f(triple)) {
     return new real[] {f(P[0][0]),f(P[3][0]),f(P[3][3]),f(P[0][3])};
+  }
+
+  real[] maptriangular(real f(triple)) {
+    return new real[] {f(P[0][0]),f(P[3][0]),f(P[3][3])};
   }
 
   triple Bu(int j, real u) {return bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
@@ -71,6 +91,17 @@ struct patch {
     return bezier(Bu(0,u),Bu(1,u),Bu(2,u),Bu(3,u),v);
   }
 
+  triple pointtriangular(real u, real v) {
+    real w=1-u-v;
+    return w^2*(w*P[0][0]+3*(u*P[1][0]+v*P[1][1]))+
+      u^2*(u*P[3][0]+3*(w*P[2][0]+v*P[3][1]))+
+      6*u*v*w*P[2][1]+v^2*(v*P[3][3]+3*(w*P[2][2]+u*P[3][2]));
+
+    //    w2*w*P[0][0]+u2*u*P[3][0]+v2*v*P[3][3]+
+    //    3*(u*w2*P[1][0]+v*w2*P[1][1]+u2*w*P[2][0]+2*u*v*w*P[2][1]+v2*w*P[2][2]+
+    //       u2*v*P[3][1]+u*v2*P[3][2]);
+  }
+  
   // compute normal vectors for degenerate cases
   private triple normal0(real u, real v, real epsilon) {
     triple n=0.5*(cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),
@@ -220,19 +251,42 @@ struct patch {
     operator init(s.P,s.normals,s.colors,s.straight);
   }
   
+  // Return the default Coons interior control point for a Bezier triangle
+  // based on the cyclic path3 external.
+  triple coons3(path3 external) {
+    return 0.25*(precontrol(external,0)+postcontrol(external,0)+
+                 precontrol(external,1)+postcontrol(external,1)+
+                 precontrol(external,2)+postcontrol(external,2))-
+      (point(external,0)+point(external,1)+point(external,2))/6.0;
+  }
+
+  // A constructor for a cyclic path3 of length 3 with a specified
+  // internal point, corner normals, and pens (rendered as a Bezier triangle).
   void operator init(path3 external, triple internal,
                      triple[] normals=new triple[], pen[] colors=new pen[]) {
-    P=new triple[][] {
-      {point(external,0)},
-      {postcontrol(external,0),precontrol(external,0)},
-      {precontrol(external,1),internal,postcontrol(external,2)},
-      {point(external,1),postcontrol(external,1),precontrol(external,2),point(external,2)}
-    };
+    triangular=true;
+    external=externaltriangular;
+    internal=internaltriangular;
+    cornermean=cornermeantriangular;
+    corners=cornerstriangular;
+    map=maptriangular;
+    point=pointtriangular;
+    // normal= // TODO
+    // colors= // TODO
+
+    init();
     if(normals.length != 0)
       this.normals=copy(normals);
     if(colors.length != 0)
       this.colors=copy(colors);
-    //    straight=false;
+
+    P=new triple[][] {
+      {point(external,0)},
+      {postcontrol(external,0),precontrol(external,0)},
+      {precontrol(external,1),internal,postcontrol(external,2)},
+      {point(external,1),postcontrol(external,1),precontrol(external,2),
+       point(external,2)}
+    };
   }
 
   // A constructor for a convex cyclic path3 of length <= 4 with optional
@@ -258,10 +312,11 @@ struct patch {
       if(colors.length > 0) colors.append(array(2,colors[0]));
       if(normals.length > 0) normals.append(array(2,normals[0]));
     } else if(L == 3) {
-      external=external--cycle;
-      if(colors.length > 0) colors.push(colors[0]);
-      if(normals.length > 0) normals.push(normals[0]);
+      operator init(external,coons3(external),normals,colors);
+      straight=piecewisestraight(external);
+      return;
     }
+
     if(normals.length != 0)
       this.normals=copy(normals);
     if(colors.length != 0)
@@ -277,7 +332,7 @@ struct patch {
                             +3*(precontrol(external,j-1)+
                                 postcontrol(external,j+1))
                             -point(external,j+2));
-    } else straight=false;
+    }
 
     P=new triple[][] {
       {point(external,0),precontrol(external,0),postcontrol(external,3),
@@ -326,17 +381,14 @@ struct patch {
   }
 }
 
-struct tpatch {
-}
-
 patch operator * (transform3 t, patch s)
 { 
   patch S;
-  S.P=new triple[4][4];
-  for(int i=0; i < 4; ++i) { 
+  S.P=new triple[s.P.length][];
+  for(int i=0; i < s.P.length; ++i) { 
     triple[] si=s.P[i];
     triple[] Si=S.P[i];
-    for(int j=0; j < 4; ++j)
+    for(int j=0; j < si.length; ++j)
       Si[j]=t*si[j]; 
   }
   
@@ -355,6 +407,7 @@ patch operator * (transform3 t, patch s)
  
 patch reverse(patch s) 
 {
+  assert(!s.triangular);
   patch S;
   S.P=transpose(s.P);
   if(s.normals.length > 0) 
@@ -608,7 +661,6 @@ path[] regularize(path p, bool checkboundary=true)
 
 struct surface {
   patch[] s;
-  tpatch[] b;
   int index[][];// Position of patch corresponding to major U,V parameter in s.
   bool vcyclic;
   
