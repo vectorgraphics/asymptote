@@ -127,22 +127,22 @@ void drawSurface::bounds(const double* t, bbox3& b)
       c1[i]=Controls[i][0];
     double c0=c1[0];
     double fuzz=sqrtFuzz*run::norm(c1,16);
-    x=bound(c1,min,b.empty ? c0 : min(c0,b.left),fuzz);
-    X=bound(c1,max,b.empty ? c0 : max(c0,b.right),fuzz);
+    x=bound(c1,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
+    X=bound(c1,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
     
     for(int i=0; i < 16; ++i)
       c1[i]=Controls[i][1];
     c0=c1[0];
     fuzz=sqrtFuzz*run::norm(c1,16);
-    y=bound(c1,min,b.empty ? c0 : min(c0,b.bottom),fuzz);
-    Y=bound(c1,max,b.empty ? c0 : max(c0,b.top),fuzz);
+    y=bound(c1,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
+    Y=bound(c1,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
     
     for(int i=0; i < 16; ++i)
       c1[i]=Controls[i][2];
     c0=c1[0];
     fuzz=sqrtFuzz*run::norm(c1,16);
-    z=bound(c1,min,b.empty ? c0 : min(c0,b.lower),fuzz);
-    Z=bound(c1,max,b.empty ? c0 : max(c0,b.upper),fuzz);
+    z=bound(c1,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
+    Z=bound(c1,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
   }
     
   b.add(x,y,z);
@@ -203,7 +203,8 @@ void drawSurface::ratio(const double* t, pair &b, double (*m)(double, double),
       first=false;
     }
   
-    b=pair(bound(c3,m,xratio,b.getx(),fuzz),bound(c3,m,yratio,b.gety(),fuzz));
+    b=pair(bound(c3,m,xratio,b.getx(),fuzz,maxdepth),
+           bound(c3,m,yratio,b.gety(),fuzz,maxdepth));
   }
 }
 
@@ -448,18 +449,16 @@ void drawBezierTriangle::ratio(const double* t, pair &b,
                               double (*m)(double, double), double fuzz,
                               bool &first)
 {
-  /*
-  Triple* Controls;
-
+  triple* Controls;
   if(t == NULL) Controls=controls;
   else {
     static triple buf[10];
     Controls=buf;
-    Controls[i]=t*controls[i];
+    for(int i=0; i < 10; ++i)
+      Controls[i]=t*controls[i];
   }
-
-  ratioTriples(b,m,first,10,Controls);
-  */
+    
+  ratiotriples(b,m,first,10,Controls);
 }
 
 bool drawBezierTriangle::write(prcfile *out, unsigned int *, double, groupsmap&)

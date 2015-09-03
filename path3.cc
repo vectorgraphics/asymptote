@@ -1118,24 +1118,24 @@ void bounds(triple& Pmin, triple& Pmax, triple *P, double fuzz)
                P[8].getx(),P[9].getx(),P[10].getx(),P[11].getx(),
                P[12].getx(),P[13].getx(),P[14].getx(),P[15].getx()};
   double bx=Px[0];
-  double xmin=bound(Px,min,bx,fuzz);
-  double xmax=bound(Px,max,bx,fuzz);
+  double xmin=bound(Px,min,bx,fuzz,maxdepth);
+  double xmax=bound(Px,max,bx,fuzz,maxdepth);
   
   double Py[]={P[0].gety(),P[1].gety(),P[2].gety(),P[3].gety(),
                P[4].gety(),P[5].gety(),P[6].gety(),P[7].gety(),
                P[8].gety(),P[9].gety(),P[10].gety(),P[11].gety(),
                P[12].gety(),P[13].gety(),P[14].gety(),P[15].gety()};
   double by=Py[0];
-  double ymin=bound(Py,min,by,fuzz);
-  double ymax=bound(Py,max,by,fuzz);
+  double ymin=bound(Py,min,by,fuzz,maxdepth);
+  double ymax=bound(Py,max,by,fuzz,maxdepth);
   
   double Pz[]={P[0].getz(),P[1].getz(),P[2].getz(),P[3].getz(),
                P[4].getz(),P[5].getz(),P[6].getz(),P[7].getz(),
                P[8].getz(),P[9].getz(),P[10].getz(),P[11].getz(),
                P[12].getz(),P[13].getz(),P[14].getz(),P[15].getz()};
   double bz=Pz[0];
-  double zmin=bound(Pz,min,bz,fuzz);
-  double zmax=bound(Pz,max,bz,fuzz);
+  double zmin=bound(Pz,min,bz,fuzz,maxdepth);
+  double zmax=bound(Pz,max,bz,fuzz,maxdepth);
   Pmin=triple(xmin,ymin,zmin);
   Pmax=triple(xmax,ymax,zmax);
 }

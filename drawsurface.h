@@ -170,14 +170,18 @@ public:
     center(center), straight(straight), opacity(opacity), shininess(shininess),
     interaction(interaction), prc(prc) {
     const string wrongsize=
-      "Bezier triangle requires 10 triples and array of 4 pens";
-    if(checkArray(&g) != 10 || checkArray(&p) != 4)
+      "Bezier triangle requires triangular array of 10 triples and array of 4 pens";
+    if(checkArray(&g) != 4 || checkArray(&p) != 4)
       reportError(wrongsize);
     
     size_t k=0;
     controls=new(UseGC) triple[10];
-    for(size_t i=0; i < 10; ++i)
-      controls[k++]=vm::read<triple>(g,i);
+    for(int i=0; i < 4; ++i) {
+      vm::array *gi=vm::read<vm::array*>(g,i);
+      for(int j=0; j <= i; ++j) {
+        controls[k++]=vm::read<triple>(gi,j);
+      }
+    }
     
     pen surfacepen=vm::read<camp::pen>(p,0);
     invisible=surfacepen.invisible();

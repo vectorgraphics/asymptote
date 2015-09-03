@@ -110,7 +110,28 @@ array *Identity(Int n)
 
 static const char *incommensurate="Incommensurate matrices";
 static const char *singular="Singular matrix";
+static const char *invalidarraylength="Invalid array length: ";
 static size_t *pivot,*Row,*Col;
+
+bound_double *bounddouble(int N)
+{
+  if(N == 16) return bound;
+  if(N == 10) return boundtri;
+  ostringstream buf;
+  buf << invalidarraylength << " " << N;
+  error(buf);
+  return NULL;
+}
+
+bound_triple *boundtriple(int N)
+{
+  if(N == 16) return bound;
+  if(N == 10) return boundtri;
+  ostringstream buf;
+  buf << invalidarraylength << " " << N;
+  error(buf);
+  return NULL;
+}
 
 static inline void inverseAllocate(size_t n)
 {
@@ -152,39 +173,49 @@ array *copyArray2(array *a)
   return c;
 }
 
-double *copyTripleArray2Components(array *a, bool square, size_t dim2,
-                                   GCPlacement placement)
+double *copyTripleArray2Components(array *a, size_t &N, GCPlacement placement)
 {
   size_t n=checkArray(a);
-  size_t m=(square || n == 0) ? n : checkArray(read<array*>(a,0));
-  if(n > 0 && dim2 && m != dim2) {
-    ostringstream buf;
-    buf << "second matrix dimension must be " << dim2;
-    error(buf);
-  }
+  N=0;
+  for(size_t i=0; i < n; i++)
+      N += checkArray(read<array*>(a,i));
   
-  size_t nm=n*m;
-  double *cx=(placement == NoGC) ? new double [3*nm] :
-    new(placement) double[3*nm];
-  double *cy=cx+nm;
-  double *cz=cx+2*nm;
+  double *A=(placement == NoGC) ? new double [3*N] :
+    new(placement) double[3*N];
+  double *p=A;
+  
   for(size_t i=0; i < n; i++) {
     array *ai=read<array*>(a,i);
-    size_t aisize=checkArray(ai);
-    if(aisize == m) {
-      double *xi=cx+i*m;
-      double *yi=cy+i*m;
-      double *zi=cz+i*m;
-      for(size_t j=0; j < m; j++) {
-        triple v=read<triple>(ai,j);
-        xi[j]=v.getx();
-        yi[j]=v.gety();
-        zi[j]=v.getz();
-      }
-    } else
-      error(square ? "matrix must be square" : "matrix must be rectangular");
+    size_t m=checkArray(ai);
+    for(size_t j=0; j < m; j++) {
+      triple v=read<triple>(ai,j);
+      *p=v.getx();
+      *(p+N)=v.gety();
+      *(p+2*N)=v.getz();
+      ++p;
+    }
   }
-  return cx;
+  return A;
+}
+
+triple *copyTripleArray2C(array *a, size_t &N, GCPlacement placement)
+{
+  size_t n=checkArray(a);
+  N=0;
+  for(size_t i=0; i < n; i++)
+      N += checkArray(read<array*>(a,i));
+  
+  triple *A=(placement == NoGC) ? new triple [N] :
+    new(placement) triple[N];
+  triple *p=A;
+  
+  for(size_t i=0; i < n; i++) {
+    array *ai=read<array*>(a,i);
+    size_t m=checkArray(ai);
+    for(size_t j=0; j < m; j++)
+      *(p++)=read<triple>(ai,j);
+  }
+  return A;
 }
 
 triple operator *(const array& t, const triple& v)
@@ -1738,42 +1769,48 @@ real change2(triplearray2 *a)
 
 triple minbezier(triplearray2 *P, triple b)
 {
-  real *A=copyTripleArray2Components(P,true,4);
-  b=triple(bound(A,::min,b.getx(),sqrtFuzz*norm(A,16)),
-           bound(A+16,::min,b.gety(),sqrtFuzz*norm(A+16,16)),
-           bound(A+32,::min,b.getz(),sqrtFuzz*norm(A+32,16)));
+  size_t N;
+  real *A=copyTripleArray2Components(P,N);
+  bound_double *B=bounddouble(N);
+  b=triple(B(A,::min,b.getx(),sqrtFuzz*norm(A,N),maxdepth),
+           B(A+N,::min,b.gety(),sqrtFuzz*norm(A+N,N),maxdepth),
+           B(A+2*N,::min,b.getz(),sqrtFuzz*norm(A+2*N,N),maxdepth));
   delete[] A;
   return b;
 }
 
 triple maxbezier(triplearray2 *P, triple b)
 {
-  real *A=copyTripleArray2Components(P,true,4);
-  b=triple(bound(A,::max,b.getx(),sqrtFuzz*norm(A,16)),
-           bound(A+16,::max,b.gety(),sqrtFuzz*norm(A+16,16)),
-           bound(A+32,::max,b.getz(),sqrtFuzz*norm(A+32,16)));
+  size_t N;
+  real *A=copyTripleArray2Components(P,N);
+  bound_double *B=bounddouble(N);
+  b=triple(B(A,::max,b.getx(),sqrtFuzz*norm(A,N),maxdepth),
+           B(A+N,::max,b.gety(),sqrtFuzz*norm(A+N,N),maxdepth),
+           B(A+2*N,::max,b.getz(),sqrtFuzz*norm(A+2*N,N),maxdepth));
   delete[] A;
   return b;
 }
 
 pair minratio(triplearray2 *P, pair b)
 {
-  triple *A;
-  copyArray2C(A,P,true,4);
-  real fuzz=sqrtFuzz*norm(A,16);
-  b=pair(bound(A,::min,xratio,b.getx(),fuzz),
-         bound(A,::min,yratio,b.gety(),fuzz));
+  size_t N;
+  triple *A=copyTripleArray2C(P,N);
+  real fuzz=sqrtFuzz*norm(A,N);
+  bound_triple *B=boundtriple(N);
+  b=pair(B(A,::min,xratio,b.getx(),fuzz,maxdepth),
+         B(A,::min,yratio,b.gety(),fuzz,maxdepth));
   delete[] A;
   return b;
 }
 
 pair maxratio(triplearray2 *P, pair b)
 {
-  triple *A;
-  copyArray2C(A,P,true,4);
-  real fuzz=sqrtFuzz*norm(A,16);
-  b=pair(bound(A,::max,xratio,b.getx(),fuzz),
-         bound(A,::max,yratio,b.gety(),fuzz));
+  size_t N;
+  triple *A=copyTripleArray2C(P,N);
+  bound_triple *B=boundtriple(N);
+  real fuzz=sqrtFuzz*norm(A,N);
+  b=pair(B(A,::max,xratio,b.getx(),fuzz,maxdepth),
+         B(A,::max,yratio,b.gety(),fuzz,maxdepth));
   delete[] A;
   return b;
 }

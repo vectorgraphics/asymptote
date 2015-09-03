@@ -96,10 +96,6 @@ struct patch {
     return w^2*(w*P[0][0]+3*(u*P[1][0]+v*P[1][1]))+
       u^2*(u*P[3][0]+3*(w*P[2][0]+v*P[3][1]))+
       6*u*v*w*P[2][1]+v^2*(v*P[3][3]+3*(w*P[2][2]+u*P[3][2]));
-
-    //    w2*w*P[0][0]+u2*u*P[3][0]+v2*v*P[3][3]+
-    //    3*(u*w2*P[1][0]+v*w2*P[1][1]+u2*w*P[2][0]+2*u*v*w*P[2][1]+v2*w*P[2][2]+
-    //       u2*v*P[3][1]+u*v2*P[3][2]);
   }
   
   // compute normal vectors for degenerate cases
@@ -189,6 +185,16 @@ struct patch {
   void init() {
     havemin3=false;
     havemax3=false;
+    if(triangular) {
+      external=externaltriangular;
+      internal=internaltriangular;
+      cornermean=cornermeantriangular;
+      corners=cornerstriangular;
+      map=maptriangular;
+      point=pointtriangular;
+      // normal= // TODO
+      // colors= // TODO
+    }
   }
 
   triple min(triple bound=P[0][0]) {
@@ -225,31 +231,32 @@ struct patch {
 
   void operator init(triple[][] P, triple[] normals=new triple[],
                      pen[] colors=new pen[], bool straight=false,
-                     bool3 planar=default, bool copy=true) {
-    init();
+                     bool3 planar=default, bool triangular=false,
+                     bool copy=true) {
     this.P=copy ? copy(P) : P;
     if(normals.length != 0)
       this.normals=copy(normals);
     if(colors.length != 0)
       this.colors=copy(colors);
-    this.planar=planar;
     this.straight=straight;
+    this.planar=planar;
+    this.triangular=triangular;
+    init();
   }
 
   void operator init(pair[][] P, triple plane(pair)=XYplane,
-                     bool straight=false) {
+                     bool straight=false, bool triangular=false) {
     triple[][] Q=new triple[4][];
     for(int i=0; i < 4; ++i) {
       pair[] Pi=P[i];
       Q[i]=sequence(new triple(int j) {return plane(Pi[j]);},4);
     }
-    operator init(Q,straight);
-    planar=true;
+    operator init(Q,straight,planar=true,triangular);
   }
 
   void operator init(patch s) {
-    operator init(s.P,s.normals,s.colors,s.straight);
-  }
+    operator init(s.P,s.normals,s.colors,s.straight,s.planar,s.triangular);
+   }
   
   // Return the default Coons interior control point for a Bezier triangle
   // based on the cyclic path3 external.
@@ -265,15 +272,6 @@ struct patch {
   void operator init(path3 external, triple internal,
                      triple[] normals=new triple[], pen[] colors=new pen[]) {
     triangular=true;
-    external=externaltriangular;
-    internal=internaltriangular;
-    cornermean=cornermeantriangular;
-    corners=cornerstriangular;
-    map=maptriangular;
-    point=pointtriangular;
-    // normal= // TODO
-    // colors= // TODO
-
     init();
     if(normals.length != 0)
       this.normals=copy(normals);
@@ -294,8 +292,6 @@ struct patch {
   void operator init(path3 external, triple[] internal=new triple[],
                      triple[] normals=new triple[], pen[] colors=new pen[],
                      bool3 planar=default) {
-    init();
-
     if(internal.length == 0 && planar == default)
       this.planar=normal(external) != O;
     else this.planar=planar;
@@ -317,6 +313,7 @@ struct patch {
       return;
     }
 
+    init();
     if(normals.length != 0)
       this.normals=copy(normals);
     if(colors.length != 0)
@@ -402,6 +399,8 @@ patch operator * (transform3 t, patch s)
   S.colors=copy(s.colors);
   S.planar=s.planar;
   S.straight=s.straight;
+  S.triangular=s.triangular;
+  S.init();
   return S;
 }
  
@@ -685,10 +684,12 @@ struct surface {
   }
 
   void operator init(triple[][][] P, triple[][] normals=new triple[][],
-                     pen[][] colors=new pen[][], bool3 planar=default) {
+                     pen[][] colors=new pen[][], bool3 planar=default,
+                     bool triangular=false) {
     s=sequence(new patch(int i) {
         return patch(P[i],normals.length == 0 ? new triple[] : normals[i],
-                     colors.length == 0 ? new pen[] : colors[i],planar);
+                     colors.length == 0 ? new pen[] : colors[i],planar,
+                     triangular);
       },P.length);
   }
 
@@ -1183,7 +1184,7 @@ triple[][] subpatch(triple[][] P, pair a, pair b)
 patch subpatch(patch s, pair a, pair b)
 {
   assert(a.x >= 0 && a.y >= 0 && b.x <= 1 && b.y <= 1 &&
-         a.x < b.x && a.y < b.y);
+         a.x < b.x && a.y < b.y && !s.triangular);
   return patch(subpatch(s.P,a,b),s.straight,s.planar);
 }
 
@@ -1316,8 +1317,12 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
   if(prc())
     PRCshininess=PRCshininess(m.shininess);
   
-  draw(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,PRCshininess,
-       s.planar ? s.normal(0.5,0.5) : O,s.colors,interaction.type,prc);
+  if(s.triangular)
+    drawbeziertriangle(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,
+                       PRCshininess,s.colors,0);
+  else
+    draw(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,PRCshininess,
+         s.planar ? s.normal(0.5,0.5) : O,s.colors,interaction.type,prc);
 }
 
 // Draw triangles on a frame.
@@ -2339,8 +2344,9 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
   pic.addBox(minbound(P),maxbound(P));
 }
 
+/*
 // Draw a Bezier triangle.
-void draw(picture pic=currentpicture, triple[] P, material m=currentpen,
+void draw(picture pic=currentpicture, triple[][] P, material m=currentpen,
           pen[] colors=new pen[], light light=currentlight, string name="",
           render render=defaultrender)
 {
@@ -2369,3 +2375,4 @@ void draw(picture pic=currentpicture, triple[] P, material m=currentpen,
     },true);
   pic.addBox(minbound(P),maxbound(P));
 }
+*/

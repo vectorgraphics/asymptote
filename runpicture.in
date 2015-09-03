@@ -642,7 +642,7 @@ void draw(picture *f, triplearray2 *P, triple center, bool straight,
 }
 
 // Bezier triangle
-void drawbeziertriangle(picture *f, triplearray *P, triple center,
+void drawbeziertriangle(picture *f, triplearray2 *P, triple center,
                         bool straight, penarray *p, real opacity,
                         real shininess, real PRCshininess,
                         penarray *colors, Int interaction, bool prc=true)

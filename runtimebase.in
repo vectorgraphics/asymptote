@@ -52,8 +52,10 @@ array *copyArray(array *a);
 array *copyArray2(array *a);
 array *copyArray3(array *a);
 
-double *copyTripleArray2Components(array *a, bool square=true, size_t dim2=0,
+double *copyTripleArray2Components(array *a, size_t &N,
                                    GCPlacement placement=NoGC);
+triple *copyTripleArray2C(array *a, size_t &N,
+                          GCPlacement placement=NoGC);
 }
 
 function *realRealFunction();
