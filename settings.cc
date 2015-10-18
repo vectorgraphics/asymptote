@@ -1331,8 +1331,15 @@ void setInteractive()
      (isatty(STDIN_FILENO) || getSetting<Int>("inpipe") >= 0))
     interact::interactive=true;
   
-  historyname=getSetting<bool>("localhistory") ? 
-    (string(getPath())+dirsep+"."+suffix+"_history") : (initdir+"/history");
+  if(getSetting<bool>("localhistory"))
+    historyname=string(getPath())+dirsep+"."+suffix+"_history";
+  else {
+    if(mkdir(initdir.c_str(),0777) != 0 && errno != EEXIST)
+      cerr << "failed to create directory "+initdir+"." << endl;
+    historyname=initdir+"/history";
+  }
+  if(verbose > 1)
+     cerr << "Using history " << historyname << endl;
 }
 
 bool view()
@@ -1401,9 +1408,10 @@ void initDir() {
   if(mask == 0) mask=0027;
   umask(mask);
 #endif  
-  if(verbose > 1)
-    cerr << "Using configuration directory " << initdir << endl;
-  mkdir(initdir.c_str(),0777);
+  if(access(initdir.c_str(),F_OK) == 0) {
+    if(verbose > 1)
+      cerr << "Using configuration directory " << initdir << endl;
+  }
 }
   
 void setPath() {
@@ -1418,7 +1426,8 @@ void setPath() {
     }
     if(i < asydir.length()) searchPath.push_back(asydir.substr(i));
   }
-  searchPath.push_back(initdir);
+  if(access(initdir.c_str(),F_OK) == 0)
+    searchPath.push_back(initdir);
   string sysdir=getSetting<string>("sysdir");
   if(sysdir != "")
     searchPath.push_back(sysdir);
