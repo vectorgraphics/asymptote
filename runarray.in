@@ -1615,7 +1615,7 @@ pairarray* fft(pairarray *a, Int sign=1)
   unsigned n=(unsigned) checkArray(a);
   array *c=new array(n);
   if(n) {
-    Complex *f=fftwpp::ComplexAlign(n);
+    Complex *f=utils::ComplexAlign(n);
     fftwpp::fft1d Forward(n,intcast(sign),f);
   
     for(size_t i=0; i < n; i++) {
@@ -1628,7 +1628,7 @@ pairarray* fft(pairarray *a, Int sign=1)
       Complex z=f[i];
       (*c)[i]=pair(z.real(),z.imag());
     }
-    fftwpp::deleteAlign(f);
+    utils::deleteAlign(f);
   }
 #else
   unused(&sign);
