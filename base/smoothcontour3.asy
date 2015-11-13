@@ -597,7 +597,7 @@ string operator cast(positionedvector vv) {
 
 // The angle, in degrees, between two vectors.
 real angledegrees(triple a, triple b) {
-  real lengthprod = abs(a) * abs(b);
+  real lengthprod = max(abs(a) * abs(b), abs(dot(a,b)));
   if (lengthprod == 0) return 0;
   return aCos(dot(a,b) / lengthprod);
 }

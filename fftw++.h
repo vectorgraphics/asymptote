@@ -1,6 +1,7 @@
 /* Fast Fourier transform C++ header class for the FFTW3 Library
-   Copyright (C) 2004-13 John C. Bowman, University of Alberta
-
+   Copyright (C) 2004-15 John C. Bowman, University of Alberta
+                         Malcolm Roberts, University of Strasbourg
+                         
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
    the Free Software Foundation; either version 3 of the License, or
@@ -18,7 +19,7 @@
 #ifndef __fftwpp_h__
 #define __fftwpp_h__ 1
 
-#define __FFTWPP_H_VERSION__ 1.14pre
+#define __FFTWPP_H_VERSION__ 2.00
 
 #include <cstdlib>
 #include <fstream>
@@ -26,6 +27,12 @@
 #include <fftw3.h>
 #include <cerrno>
 #include <map>
+
+#ifndef _OPENMP
+#ifndef FFTWPP_SINGLE_THREAD
+#define FFTWPP_SINGLE_THREAD
+#endif
+#endif
 
 #ifndef FFTWPP_SINGLE_THREAD
 #include <omp.h>
@@ -49,143 +56,42 @@ inline int get_max_threads()
 #endif  
 }
 
+#ifndef FFTWPP_SINGLE_THREAD
+#define PARALLEL(code)                                  \
+  if(threads > 1) {                                     \
+    _Pragma("omp parallel for num_threads(threads)")    \
+      code                                              \
+      } else {                                          \
+    code                                                \
+      }
+#else
+#define PARALLEL(code)                          \
+  {                                             \
+    code                                        \
+  }
+#endif
+
 #ifndef __Complex_h__
 #include <complex>
 typedef std::complex<double> Complex;
 #endif
 
 #include "seconds.h"
-
-#ifndef HAVE_POSIX_MEMALIGN
-
-#ifdef __GLIBC_PREREQ
-#if __GLIBC_PREREQ(2,3)
-#define HAVE_POSIX_MEMALIGN
-#endif
-#else
-#ifdef _POSIX_SOURCE
-#define HAVE_POSIX_MEMALIGN
-#endif
-#endif
-
-#endif
-
-#ifdef __Array_h__
-
-namespace Array {
-static const array1<Complex> NULL1;  
-static const array2<Complex> NULL2;  
-static const array3<Complex> NULL3;
-}
-
-#else
-
-#ifdef HAVE_POSIX_MEMALIGN
-#ifdef _AIX
-extern "C" int posix_memalign(void **memptr, size_t alignment, size_t size);
-#endif
-#else
-namespace Array {
-
-// Adapted from FFTW aligned malloc/free.  Assumes that malloc is at least
-// sizeof(void*)-aligned. Allocated memory must be freed with free0.
-inline int posix_memalign0(void **memptr, size_t alignment, size_t size)
-{
-  if(alignment % sizeof (void *) != 0 || (alignment & (alignment - 1)) != 0)
-    return EINVAL;
-  void *p0=malloc(size+alignment);
-  if(!p0) return ENOMEM;
-  void *p=(void *)(((size_t) p0+alignment)&~(alignment-1));
-  *((void **) p-1)=p0;
-  *memptr=p;
-  return 0;
-}
-
-inline void free0(void *p)
-{
-  if(p) free(*((void **) p-1));
-}
-
-}
-#endif
-
-namespace Array {
-
-template<class T>
-inline void newAlign(T *&v, size_t len, size_t align)
-{
-  void *mem=NULL;
-  const char *invalid="Invalid alignment requested";
-  const char *nomem="Memory limits exceeded";
-#ifdef HAVE_POSIX_MEMALIGN
-  int rc=posix_memalign(&mem,align,len*sizeof(T));
-#else  
-  int rc=posix_memalign0(&mem,align,len*sizeof(T));
-#endif  
-  if(rc == EINVAL) std::cerr << invalid << std::endl;
-  if(rc == ENOMEM) std::cerr << nomem << std::endl;
-  v=(T *) mem;
-  for(size_t i=0; i < len; i++) new(v+i) T;
-}
-
-template<class T>
-inline void deleteAlign(T *v, size_t len)
-{
-  for(size_t i=len; i-- > 0;) v[i].~T();
-#ifdef HAVE_POSIX_MEMALIGN
-  free(v);
-#else
-  free0(v);
-#endif  
-}
-}
-
-#endif
+#include "statistics.h"
+#include "align.h"
 
 namespace fftwpp {
-
-inline Complex *ComplexAlign(size_t size)
-{
-  Complex *v;
-  Array::newAlign(v,size,sizeof(Complex));
-  return v;
-}
-
-inline double *doubleAlign(size_t size)
-{
-  double *v;
-  Array::newAlign(v,size,sizeof(Complex));
-  return v;
-}
-
-template<class T>
-inline void deleteAlign(T *p)
-{
-#ifdef HAVE_POSIX_MEMALIGN
-  free(p);
-#else
-  Array::free0(p);
-#endif  
-}
 
 // Obsolete names:
 #define FFTWComplex ComplexAlign
 #define FFTWdouble doubleAlign
 #define FFTWdelete deleteAlign
 
-inline void fftwpp_export_wisdom(void (*emitter)(char c, std::ofstream& s),
-                                 std::ofstream& s)
-{
-  fftw_export_wisdom((void (*) (char, void *)) emitter,(void *) &s);
-}
+class fftw;
 
-inline int fftwpp_import_wisdom(int (*g)(std::ifstream& s), std::ifstream &s)
-{
-  return fftw_import_wisdom((int (*) (void *)) g,(void *) &s);
-}
-
-inline void PutWisdom(char c, std::ofstream& s) {s.put(c);}
-inline int GetWisdom(std::ifstream& s) {return s.get();}
+extern "C" fftw_plan Planner(fftw *F, Complex *in, Complex *out);
+void LoadWisdom();
+void SaveWisdom();
 
 extern const char *inout;
 
@@ -198,9 +104,32 @@ struct threaddata {
     threads(threads), mean(mean), stdev(stdev) {}
 };
 
+class fftw;
+
+class ThreadBase
+{
+protected:
+  unsigned int threads;
+  unsigned int innerthreads;
+public:  
+  ThreadBase();
+  ThreadBase(unsigned int threads) : threads(threads) {}
+  void Threads(unsigned int nthreads) {threads=nthreads;}
+  unsigned int Threads() {return threads;}
+  
+  void multithread(unsigned int nx) {
+    if(nx >= threads) {
+      innerthreads=1;
+    } else {
+      innerthreads=threads;
+      threads=1;
+    }
+  }
+};
+
 // Base clase for fft routines
 //
-class fftw {
+class fftw : public ThreadBase {
 protected:
   unsigned int doubles; // number of double precision values in dataset
   int sign;
@@ -226,7 +155,6 @@ protected:
     return realsize(n,(Complex *) in,out);
   }
   
-  static unsigned int Wise;
   static const double twopi;
   
 public:
@@ -234,7 +162,7 @@ public:
   static unsigned int maxthreads;
   static double testseconds;
   static const char *WisdomName;
-  static bool mpi; // TODO: Remove when FFTW transpose routines are replaced
+  static fftw_plan (*planner)(fftw *f, Complex *in, Complex *out);
   
   virtual unsigned int Threads() {return threads;}
   
@@ -243,7 +171,7 @@ public:
   // Inplace shift of Fourier origin to (nx/2,0) for even nx.
   static void Shift(Complex *data, unsigned int nx, unsigned int ny,
                     unsigned int threads) {
-    const unsigned int nyp=ny/2+1;
+    unsigned int nyp=ny/2+1;
     unsigned int stop=nx*nyp;
     if(nx % 2 == 0) {
       unsigned int inc=2*nyp;
@@ -282,10 +210,10 @@ public:
   // Inplace shift of Fourier origin to (nx/2,ny/2,0) for even nx and ny.
   static void Shift(Complex *data, unsigned int nx, unsigned int ny,
                     unsigned int nz, unsigned int threads) {
-    const unsigned int nzp=nz/2+1;
-    const unsigned int nyzp=ny*nzp;
+    unsigned int nzp=nz/2+1;
+    unsigned int nyzp=ny*nzp;
     if(nx % 2 == 0 && ny % 2 == 0) {
-      const unsigned int pinc=2*nzp;
+      unsigned int pinc=2*nzp;
       Complex *pstop=data;
       Complex *p=data;
 #ifndef FFTWPP_SINGLE_THREAD
@@ -300,7 +228,7 @@ public:
         }
       }
     } else {
-      std::cerr << oddshift << "or odd ny" << std::endl;
+      std::cerr << oddshift << " or odd ny" << std::endl;
       exit(1);
     }
   }
@@ -308,9 +236,9 @@ public:
   // Out-of-place shift of Fourier origin to (nx/2,ny/2,0) for even nx and ny.
   static void Shift(double *data, unsigned int nx, unsigned int ny,
                     unsigned int nz, unsigned int threads) {
-    const unsigned int nyz=ny*nz;
+    unsigned int nyz=ny*nz;
     if(nx % 2 == 0 && ny % 2 == 0) {
-      const unsigned int pinc=2*nz;
+      unsigned int pinc=2*nz;
       double *pstop=data;
       double *p=data;
 #ifndef FFTWPP_SINGLE_THREAD
@@ -325,29 +253,26 @@ public:
         }
       }
     } else {
-      std::cerr << oddshift << "or odd ny" << std::endl;
+      std::cerr << oddshift << " or odd ny" << std::endl;
       exit(1);
     }
   }
   
+  fftw() : plan(NULL) {}
   fftw(unsigned int doubles, int sign, unsigned int threads,
        unsigned int n=0) :
     doubles(doubles), sign(sign), threads(threads), 
     norm(1.0/(n ? n : doubles/2)), plan(NULL) {
 #ifndef FFTWPP_SINGLE_THREAD
-    if(!mpi) fftw_init_threads();
+    fftw_init_threads();
 #endif      
   }
   
   virtual ~fftw() {
-    if(Wise > 0)
-      --Wise;
-    if(Wise == 0)
-      SaveWisdom();
     if(plan) fftw_destroy_plan(plan);
   }
   
-  virtual fftw_plan Plan(Complex *in, Complex *out)=0;
+  virtual fftw_plan Plan(Complex *in, Complex *out) {return NULL;};
   
   inline void CheckAlign(Complex *p, const char *s) {
     if((size_t) p % sizeof(Complex) == 0) return;
@@ -367,51 +292,10 @@ public:
 #endif    
   }
   
-  class statistics {
-    unsigned int N;
-    double A;
-    double varL;
-    double varH;
-  public:
-    statistics() : N(0), A(0.0), varL(0.0), varH(0.0) {} 
-    double count() {return N;}
-    double mean() {return A;}
-    void add(double t) {
-      ++N;
-      double diff=t-A;
-      A += diff/N;
-      double v=diff*(t-A);
-      if(diff < 0.0)
-        varL += v;
-      else
-        varH += v;
-    }
-    double stdev(double var, double f) {
-      double factor=N > f ? f/(N-f) : 0.0;
-      return sqrt(var*factor);
-    }
-    double stdev() {
-      return stdev(varL+varH,1.0);
-    }
-    double stdevL() {
-      return stdev(varL,2.0);
-    }
-    double stdevH() {
-      return stdev(varH,2.0);
-    }
-    void output(const char *text, unsigned int m) {
-      std::cout << text << ":\n" 
-                << m << "\t" 
-                << A << "\t" 
-                << stdevL() << "\t" 
-                << stdevH() << std::endl;
-    }
-  };
-  
   threaddata time(fftw_plan plan1, fftw_plan planT, Complex *in, Complex *out,
                   unsigned int Threads) {
-    statistics S,ST;
-    double stop=totalseconds()+testseconds;
+    utils::statistics S,ST;
+    double stop=utils::totalseconds()+testseconds;
     threads=1;
     plan=plan1;
     fft(in,out);
@@ -420,17 +304,17 @@ public:
     fft(in,out);
     unsigned int N=1;
     for(;;) {
-      double t0=totalseconds();
+      double t0=utils::totalseconds();
       threads=1;
       plan=plan1;
       for(unsigned int i=0; i < N; ++i)
         fft(in,out);
-      double t1=totalseconds();
+      double t1=utils::totalseconds();
       threads=Threads;
       plan=planT;
       for(unsigned int i=0; i < N; ++i)
         fft(in,out);
-      double t=totalseconds();
+      double t=utils::totalseconds();
       S.add(t1-t0);
       ST.add(t-t1);
       if(S.mean() < 100.0/CLOCKS_PER_SEC) N *= 2;
@@ -446,7 +330,7 @@ public:
         if(diff < -error) {
           threads=Threads;
           fftw_destroy_plan(plan1);
-	  break;
+          break;
         }
       }
     }
@@ -458,18 +342,22 @@ public:
   }
   virtual void store(bool inplace, const threaddata& data) {}
   
-  threaddata Setup(Complex *in, Complex *out=NULL) {
-    if(!Wise) {LoadWisdom(); ++Wise;}
-    
-    bool alloc=!in;
-    if(alloc) in=ComplexAlign((doubles+1)/2);
+  inline Complex *CheckAlign(Complex *in, Complex *out, bool constructor=true)
+  {
 #ifndef NO_CHECK_ALIGN    
-    CheckAlign(in,"constructor input");
-    if(out) CheckAlign(out,"constructor output");
+    CheckAlign(in,constructor ? "constructor input" : "input");
+    if(out) CheckAlign(out,constructor ? "constructor output" : "output");
     else out=in;
 #else
     if(!out) out=in;
 #endif    
+    return out;
+  }
+  
+  threaddata Setup(Complex *in, Complex *out=NULL) {
+    bool alloc=!in;
+    if(alloc) in=utils::ComplexAlign((doubles+1)/2);
+    out=CheckAlign(in,out);
     inplace=(out==in);
     
     threaddata data;
@@ -477,44 +365,41 @@ public:
     if(threads > 1) data=lookup(inplace,threads);
     threads=data.threads > 0 ? data.threads : 1;
     planThreads(threads);
-    plan=Plan(in,out);
+    plan=(*planner)(this,in,out);
     if(!plan) noplan();
     
-    if(Threads > 1 && data.threads == 0) {
+    fftw_plan planT;
+    if(Threads > 1) {
       threads=Threads;
       planThreads(threads);
-      fftw_plan planT=Plan(in,out);
-      if(planT)
-        data=time(plan,planT,in,out,threads);
-      else noplan();
-      store(inplace,threaddata(threads,data.mean,data.stdev));
+      planT=(*planner)(this,in,out);
+    
+      if(data.threads == 0) {
+        if(planT)
+          data=time(plan,planT,in,out,threads);
+        else noplan();
+        store(inplace,threaddata(threads,data.mean,data.stdev));
+      }
     }
     
     if(alloc) Array::deleteAlign(in,(doubles+1)/2);
     return data;
   }
   
-  void Setup(Complex *in, double *out) {
-    Setup(in,(Complex *) out);}
-  void Setup(double *in, Complex *out=NULL) {
-    Setup((Complex *) in,out);
+  threaddata Setup(Complex *in, double *out) {
+    return Setup(in,(Complex *) out);
   }
-  
-  static void LoadWisdom();
-  static void SaveWisdom();
+
+  threaddata Setup(double *in, Complex *out=NULL) {
+    return Setup((Complex *) in,out);
+  }
   
   virtual void Execute(Complex *in, Complex *out, bool=false) {
     fftw_execute_dft(plan,(fftw_complex *) in,(fftw_complex *) out);
   }
     
   Complex *Setout(Complex *in, Complex *out) {
-#ifndef NO_CHECK_ALIGN    
-    CheckAlign(in,"input");
-    if(out) CheckAlign(out,"output");
-    else out=in;
-#else
-    if(!out) out=in;
-#endif    
+    out=CheckAlign(in,out,false);
     if(inplace ^ (out == in)) {
       std::cerr << "ERROR: fft " << inout << std::endl;
       exit(1);
@@ -549,7 +434,7 @@ public:
   }
   
   void Normalize(Complex *out) {
-    unsigned int stop=(doubles+1)/2;
+    unsigned int stop=doubles/2;
 #ifndef FFTWPP_SINGLE_THREAD
 #pragma omp parallel for num_threads(threads)
 #endif
@@ -563,67 +448,56 @@ public:
     for(unsigned int i=0; i < doubles; i++) out[i] *= norm;
   }
   
-  virtual void fftNormalized(Complex *in, Complex *out=NULL) {
+  virtual void fftNormalized(Complex *in, Complex *out=NULL, bool shift=false) 
+  {
     out=Setout(in,out);
-    Execute(in,out);
+    Execute(in,out,shift);
     Normalize(out);
   }
   
-  void fftNormalized(Complex *in, double *out) {
+  void fftNormalized(Complex *in, double *out, bool shift=false) {
     out=(double *) Setout(in,(Complex *) out);
-    Execute(in,(Complex *) out);
+    Execute(in,(Complex *) out,shift);
     Normalize(out);
   }
   
-  void fftNormalized(double *in, Complex *out) {
-    fftNormalized((Complex *) in,out);
+  void fftNormalized(double *in, Complex *out, bool shift=false) {
+    fftNormalized((Complex *) in,out,shift);
   }
   
-  void fft0Normalized(Complex *in, Complex *out=NULL) {
-    out=Setout(in,out);
-    Execute(in,out,true);
-    Normalize(out);
+  template<class I, class O>
+  void fft0Normalized(I in, O out) {
+    fftNormalized(in,out,true);
   }
   
-  void fft0Normalized(Complex *in, double *out) {
-    out=(double *) Setout(in,(Complex *) out);
-    Execute(in,(Complex *) out,true);
-    Normalize(out);
-  }
-  
-  void fft0Normalized(double *in, Complex *out) {
-    fft0Normalized((Complex *) in,out);
-  }
-  
-  void fftNormalized(Complex *in, Complex *out,
-                     unsigned int nx, unsigned int M,
-                     size_t stride, size_t dist) {
-    if(stride == 1 && dist == nx) fftw::fftNormalized(in,out);
-    else {
-      out=Setout(in,out);
-      Execute(in,out);
+  template<class I, class O>
+  void fftNormalized(unsigned int nx, unsigned int M, size_t ostride,
+                     size_t odist, I *in, O *out=NULL, bool shift=false) {
+    out=(O *) Setout((Complex *) in,(Complex *) out);
+    Execute((Complex *) in,(Complex *) out,shift);
 
-      unsigned int stop=nx*stride;
-      Complex *outMdist=out+M*dist;
+    unsigned int stop=nx*ostride;
+    O *outMdist=out+M*odist;
 #ifndef FFTWPP_SINGLE_THREAD
 #pragma omp parallel for num_threads(threads)
 #endif
-      for(unsigned int i=0; i < stop; i += stride) {
-        Complex *pstop=outMdist+i;
-        for(Complex *p=out+i; p < pstop; p += dist) {
-          *p *= norm;
-        }
+    for(unsigned int i=0; i < stop; i += ostride) {
+      O *pstop=outMdist+i;
+      for(O *p=out+i; p < pstop; p += odist) {
+        *p *= norm;
       }
     }
   }
-  
+
 }; // class fftw
 
 class Transpose {
   fftw_plan plan;
+  fftw_plan plan2;
   unsigned int a,b;
   unsigned int nlength,mlength;
-  unsigned int instride,outstride;
+  unsigned int ilast,jlast;
+  unsigned int rows,cols;
   unsigned int threads;
   bool inplace;
   unsigned int size;
@@ -631,50 +505,77 @@ public:
   template<class T>
   Transpose(unsigned int rows, unsigned int cols, unsigned int length,
             T *in, T *out=NULL, unsigned int threads=fftw::maxthreads) :
-    threads(threads) {
+    rows(rows), cols(cols), threads(threads) {
     size=sizeof(T);
     if(size % sizeof(double) != 0) {
       std::cerr << "ERROR: Transpose is not implemented for type of size " 
                 << size;
       exit(1);
     }
+    if(rows == 0 || cols == 0) return;
     size /= sizeof(double);
     length *= size;
 
     if(!out) out=in;
     inplace=(out==in);
-    if(inplace) threads=1;
+    if(inplace) threads=1; // TODO: Generalize to inplace
     
     fftw_iodim dims[3];
 
     a=std::min(rows,threads);
     b=std::min(cols,threads/a);
-    unsigned int n=rows/a;
-    unsigned int m=cols/b;
+
+    unsigned int n=utils::ceilquotient(rows,a);
+    unsigned int m=utils::ceilquotient(cols,b);
+    
+    // If rows <= threads then a=rows and n=1.
+    // If rows >= threads then b=1 and m=cols.
+    
     nlength=n*length;
     mlength=m*length;
     
-    instride=cols;
-    outstride=rows;
-    
-    dims[0].n=n;
-    dims[0].is=instride*length;
+    dims[0].n=n; 
+    dims[0].is=cols*length;
     dims[0].os=length;
-
-    dims[1].n=m;
+    
+    dims[1].n=m; 
     dims[1].is=length;
-    dims[1].os=outstride*length;
+    dims[1].os=rows*length;
 
     dims[2].n=length;
     dims[2].is=1;
     dims[2].os=1;
 
-    fftw::planThreads(inplace ? threads : 1);
-    plan=fftw_plan_guru_r2r(0,NULL,3,dims,(double *) in,
-                            (double *) out,NULL,fftw::effort);
+    fftw::planThreads(1);
+
+    // A plan with rank=0 is a transpose.
+    plan=fftw_plan_guru_r2r(0,NULL,3,dims,(double *) in,(double *) out,
+                            NULL,fftw::effort);
+    plan2=NULL;
+    ilast=a;
+    jlast=b;
+    
+    if(n*a > rows) { // Only happens when rows > threads.
+      a=utils::ceilquotient(rows,n);
+      ilast=a-1;
+      dims[0].n=rows-n*ilast;
+      plan2=fftw_plan_guru_r2r(0,NULL,3,dims,(double *) in,(double *) out,
+                               NULL,fftw::effort);
+    } else { // Only happens when rows < threads.
+      if(m*b > cols) {
+        b=utils::ceilquotient(cols,m);
+        jlast=b-1;
+        dims[1].n=cols-m*jlast;
+        plan2=fftw_plan_guru_r2r(0,NULL,3,dims,(double *) in,(double *) out,
+                                 NULL,fftw::effort);
+      }
+    }
   }
 
-  ~Transpose() {if(plan) fftw_destroy_plan(plan);}
+  ~Transpose() {
+    if(plan) fftw_destroy_plan(plan);
+    if(plan2) fftw_destroy_plan(plan2);
+  }
   
   template<class T>
   void transpose(T *in, T *out=NULL) {
@@ -684,24 +585,40 @@ public:
       exit(1);
     }
 #ifndef FFTWPP_SINGLE_THREAD
-    if(threads == 1)
-#endif      
-      fftw_execute_r2r(plan,(double *) in,(double*) out);
-#ifndef FFTWPP_SINGLE_THREAD
-    else {
-      int A=a, B=b;
+      if(a > 1) {
+        if(b > 1) {
+          int A=a, B=b;
 #pragma omp parallel for num_threads(A)
-      for(unsigned int i=0; i < a; ++i) {
-        unsigned int I=i*nlength;
+          for(unsigned int i=0; i < a; ++i) {
+            unsigned int I=i*nlength;
+#pragma omp parallel for num_threads(B)
+            for(unsigned int j=0; j < b; ++j) {
+              unsigned int J=j*mlength;
+              fftw_execute_r2r((i < ilast && j < jlast) ? plan : plan2,
+                               (double *) in+cols*I+J,
+                               (double *) out+rows*J+I);
+            }
+          }
+        } else {
+          int A=a;
+#pragma omp parallel for num_threads(A)
+          for(unsigned int i=0; i < a; ++i) {
+            unsigned int I=i*nlength;
+            fftw_execute_r2r(i < ilast ? plan : plan2,
+                             (double *) in+cols*I,(double *) out+I);
+          }
+        }
+      } else if(b > 1) {
+        int B=b;
 #pragma omp parallel for num_threads(B)
         for(unsigned int j=0; j < b; ++j) {
           unsigned int J=j*mlength;
-          fftw_execute_r2r(plan,(double *) in+instride*I+J,
-                           (double *) out+outstride*J+I);
+          fftw_execute_r2r(j < jlast ? plan : plan2,
+                           (double *) in+J,(double *) out+rows*J);
         }
-      }
-    }
+      } else
 #endif
+      fftw_execute_r2r(plan,(double *) in,(double*) out);
   }
 };
 
@@ -830,6 +747,121 @@ public:
   }
 };
   
+template<class I, class O>
+class fftwblock : public virtual fftw {
+public:
+  int nx;
+  unsigned int M;
+  size_t istride,ostride;
+  size_t idist,odist;
+  fftw_plan plan1,plan2;
+  unsigned int T,Q,R;
+  fftwblock(unsigned int nx, unsigned int M,
+            size_t istride, size_t ostride, size_t idist, size_t odist,
+            Complex *in, Complex *out, unsigned int Threads)
+    : fftw(), nx(nx), M(M), istride(istride), ostride(ostride),
+      idist(Dist(nx,istride,idist)), odist(Dist(nx,ostride,odist)),
+            plan1(NULL), plan2(NULL) {
+    T=1;
+    Q=M;
+    R=0;
+    
+    threaddata S1=Setup(in,out);
+    fftw_plan planT1=plan;
+    
+    if(Threads > 1) {
+      T=std::min(M,Threads);
+      Q=T > 0 ? M/T : 0;
+      R=M-Q*T;
+      threads=Threads;
+      threaddata ST=Setup(in,out);
+    
+      if(R > 0 && threads == 1 && plan1 != plan2) {
+        fftw_destroy_plan(plan2);
+        plan2=plan1;
+      }
+
+      if(ST.mean > S1.mean-S1.stdev) { // Use FFTW's multi-threading
+        fftw_destroy_plan(plan);
+        if(R > 0) {
+          fftw_destroy_plan(plan2);
+          plan2=NULL;
+        }
+        T=1;
+        Q=M;
+        R=0;
+        plan=planT1;
+        threads=S1.threads;
+      } else {                         // Do the multi-threading ourselves
+        fftw_destroy_plan(planT1);
+        threads=ST.threads;
+      }
+    }
+  }
+  
+  fftw_plan Plan(int Q, fftw_complex *in, fftw_complex *out) {
+    return fftw_plan_many_dft(1,&nx,Q,in,NULL,istride,idist,
+                              out,NULL,ostride,odist,sign,effort);
+  }
+  
+  fftw_plan Plan(int Q, double *in, fftw_complex *out) {
+    return fftw_plan_many_dft_r2c(1,&nx,Q,in,NULL,istride,idist,
+                                  out,NULL,ostride,odist,effort);
+  }
+  
+  fftw_plan Plan(int Q, fftw_complex *in, double *out) {
+    return fftw_plan_many_dft_c2r(1,&nx,Q,in,NULL,istride,idist,
+                                  out,NULL,ostride,odist,effort);
+  }
+  
+  fftw_plan Plan(Complex *in, Complex *out) {
+    if(R > 0) {
+      plan2=Plan(Q+1,(I *) in,(O *) out);
+      if(!plan2) return NULL;
+      if(threads == 1) plan1=plan2;
+    }
+    return Plan(Q,(I *) in,(O *) out);
+  }
+    
+  void Execute(fftw_plan plan, fftw_complex *in, fftw_complex *out) {
+    fftw_execute_dft(plan,in,out);
+  }
+  
+  void Execute(fftw_plan plan, double *in, fftw_complex *out) {
+    fftw_execute_dft_r2c(plan,in,out);
+  }
+
+  void Execute(fftw_plan plan, fftw_complex *in, double *out) {
+    fftw_execute_dft_c2r(plan,in,out);
+  }
+
+  void Execute(Complex *in, Complex *out, bool=false) {
+    if(T == 1)
+      Execute(plan,(I *) in,(O *) out);
+    else {
+      unsigned int extra=T-R;
+#ifndef FFTWPP_SINGLE_THREAD
+#pragma omp parallel for num_threads(T)
+#endif
+      for(unsigned int i=0; i < T; ++i) {
+        unsigned int iQ=i*Q;
+        if(i < extra)
+          Execute(plan,(I *) in+iQ*idist,(O *) out+iQ*odist);
+        else {
+          unsigned int offset=iQ+i-extra;
+          Execute(plan2,(I *) in+offset*idist,(O *) out+offset*odist);
+        }
+      }
+    }
+  }
+  
+  unsigned int Threads() {return std::max(T,threads);}
+  
+  ~fftwblock() {
+    if(plan2) fftw_destroy_plan(plan2);
+  }
+};
+  
 // Compute the complex Fourier transform of M complex vectors, each of
 // length n.
 // Before calling fft(), the arrays in and out (which may coincide) must be
@@ -850,109 +882,31 @@ public:
 //   dist is the spacing between the first elements of the vectors.
 //
 //
-class mfft1d : public fftw, public Threadtable<keytype3,keyless3> {
-  unsigned int nx;
-  unsigned int M;
-  unsigned int T,Q,R;
-  size_t stride;
-  size_t dist;
-  fftw_plan plan1;
-  fftw_plan plan2;
+class mfft1d : public fftwblock<fftw_complex,fftw_complex>,
+               public Threadtable<keytype3,keyless3> {
   static Table threadtable;
 public:  
   mfft1d(unsigned int nx, int sign, unsigned int M=1, size_t stride=1,
          size_t dist=0, Complex *in=NULL, Complex *out=NULL,
-         unsigned int Threads=maxthreads) 
-    : fftw(2*((nx-1)*stride+(M-1)*Dist(nx,stride,dist)+1),sign,Threads,nx),
-      nx(nx), M(M), stride(stride), dist(Dist(nx,stride,dist)),
-      plan1(NULL), plan2(NULL)
-  {
-    T=1;
-    Q=M;
-    R=0;
-    threaddata S1=Setup(in,out);
-    fftw_plan planT1=plan;
-    
-    T=std::min(M,Threads);
-    if(T > 1) {
-      Q=M/T;
-      R=M-Q*T;
-      threads=Threads;
-      threaddata ST=Setup(in,out);
-    
-      if(R > 0 && threads == 1 && plan1 != plan2) {
-        fftw_destroy_plan(plan2);
-        plan2=plan1;
-      }
-
-      if(ST.mean > S1.mean-S1.stdev) {
-        fftw_destroy_plan(plan);
-        if(R > 0) {
-          fftw_destroy_plan(plan2);
-          plan2=NULL;
-        }
-        T=1;
-        Q=M;
-        R=0;
-        plan=planT1;
-        threads=S1.threads;
-      } else {
-        fftw_destroy_plan(planT1);
-        threads=ST.threads;
-      }
-    }
-  } 
+         unsigned int threads=maxthreads) :
+    fftw(2*((nx-1)*stride+(M-1)*Dist(nx,stride,dist)+1),sign,threads,nx),
+    fftwblock<fftw_complex,fftw_complex>
+    (nx,M,stride,stride,dist,dist,in,out,threads) {} 
   
-  unsigned int Threads() {return std::max(T,threads);}
+  mfft1d(unsigned int nx, int sign, unsigned int M,
+         size_t istride, size_t ostride, size_t idist, size_t odist,
+         Complex *in=NULL, Complex *out=NULL, unsigned int threads=maxthreads):
+    fftw(std::max(2*((nx-1)*istride+(M-1)*Dist(nx,istride,idist)+1),
+                  2*((nx-1)*ostride+(M-1)*Dist(nx,ostride,odist)+1)),sign,
+         threads, nx),
+    fftwblock<fftw_complex,fftw_complex>(nx,M,istride,ostride,idist,odist,in,
+                                         out,threads) {} 
   
   threaddata lookup(bool inplace, unsigned int threads) {
     return Lookup(threadtable,keytype3(nx,Q,R,threads,inplace));
   }
   void store(bool inplace, const threaddata& data) {
     Store(threadtable,keytype3(nx,Q,R,data.threads,inplace),data);
-  }
-  
-  fftw_plan Plan(Complex *in, Complex *out) {
-    int n=(int) nx;
-    if(R > 0) {
-      plan2=fftw_plan_many_dft(1,&n,Q+1,
-                               (fftw_complex *) in,NULL,stride,dist,
-                               (fftw_complex *) out,NULL,stride,dist,
-                               sign,effort);
-      if(!plan2) noplan();
-      if(threads == 1) plan1=plan2;
-    }
-    return fftw_plan_many_dft(1,&n,Q,
-                              (fftw_complex *) in,NULL,stride,dist,
-                              (fftw_complex *) out,NULL,stride,dist,
-                              sign,effort);
-  }
-  
-  ~mfft1d() {
-    if(plan2) fftw_destroy_plan(plan2);
-  }
-  
-  void Execute(Complex *in, Complex *out, bool=false) {
-    if(T == 1) {
-      fftw_execute_dft(plan,(fftw_complex *) in,(fftw_complex *) out);
-    } else {
-      unsigned int Tdist=T*dist;
-      unsigned int extra=(T-R)*dist;
-
-#ifndef FFTWPP_SINGLE_THREAD
-#pragma omp parallel for num_threads(T)
-#endif
-      for(unsigned int i=0; i < Tdist; i += dist) {
-        bool normal=i < extra;
-        unsigned int offset=normal ? Q*i : Q*i+i-extra;
-        fftw_execute_dft(normal ? plan : plan2,(fftw_complex *) in+offset,
-                         (fftw_complex *) out+offset);
-      }
-    }
-  }
-  
-  void fftNormalized(Complex *in, Complex *out=NULL) {
-    fftw::fftNormalized(in,out,nx,M,stride,dist);
   }
 };
   
@@ -984,18 +938,7 @@ public:
   
   rcfft1d(unsigned int nx, double *in, Complex *out=NULL,
           unsigned int threads=maxthreads)  
-    : fftw(realsize(nx,in,out),-1,threads,nx), nx(nx) {Setup(in,out);}
-  
-#ifdef __Array_h__
-  rcfft1d(unsigned int nx, const Array::array1<Complex>& out,
-          unsigned int threads=maxthreads)  
-    : fftw(out.Size(),-1,threads,nx), nx(nx) {Setup(out,(double*) NULL);} 
-  
-  rcfft1d(unsigned int nx, const Array::array1<double>& in, 
-          const Array::array1<Complex>& out=Array::NULL1,
-          unsigned int threads=maxthreads)
-    : fftw(realsize(nx,in(),out()),-1,threads,nx), nx(nx) {Setup(in,out);} 
-#endif  
+    : fftw(2*(nx/2+1),-1,threads,nx), nx(nx) {Setup(in,out);}
   
   threaddata lookup(bool inplace, unsigned int threads) {
     return Lookup(threadtable,keytype1(nx,threads,inplace));
@@ -1045,20 +988,6 @@ public:
           unsigned int threads=maxthreads)
     : fftw(realsize(nx,in,out),1,threads,nx), nx(nx) {Setup(in,out);} 
   
-#ifdef __Array_h__
-  crfft1d(unsigned int nx, const Array::array1<double>& out,
-          unsigned int threads=maxthreads)
-    : fftw(out.Size(),1,threads,nx), nx(nx) {Setup(out);}
-  
-  crfft1d(unsigned int nx, const Array::array1<Complex>& in,
-          unsigned int threads=maxthreads)
-    : fftw(2*in.Size(),1,threads,nx), nx(nx) {Setup(in);}
-  
-  crfft1d(unsigned int nx, const Array::array1<Complex>& in,
-          const Array::array1<double>& out)
-    : fftw(out.Size(),1,threads,nx), nx(nx) {Setup(in,out);}
-#endif  
-  
   threaddata lookup(bool inplace, unsigned int threads) {
     return Lookup(threadtable,keytype1(nx,threads,inplace));
   }
@@ -1074,7 +1003,7 @@ public:
     fftw_execute_dft_c2r(plan,(fftw_complex *) in,(double *) out);
   }
 };
-  
+
 // Compute the real Fourier transform of M real vectors, each of length n,
 // using phase sign -1. Before calling fft(), the array in must be
 // allocated as double[M*n] and the array out must be allocated as
@@ -1083,68 +1012,53 @@ public:
 //
 // Out-of-place usage: 
 //
-//   mrcfft1d Forward(n,M,stride,dist,in,out);
+//   mrcfft1d Forward(n,M,istride,ostride,idist,odist,in,out);
 //   Forward.fft(in,out);
 //
 // In-place usage:
 //
-//   mrcfft1d Forward(n,M,stride,dist);
+//   mrcfft1d Forward(n,M,istride,ostride,idist,odist);
 //   Forward.fft(out);
 // 
 // Notes:
-//   stride is the spacing between the elements of each Complex vector;
-//   dist is the spacing between the first elements of the vectors;
+//   istride is the spacing between the elements of each real vector;
+//   ostride is the spacing between the elements of each Complex vector;
+//   idist is the spacing between the first elements of the real vectors;
+//   odist is the spacing between the first elements of the Complex vectors;
 //   in contains the n real values stored as a Complex array;
 //   out contains the first n/2+1 Complex Fourier values.
 //
-class mrcfft1d : public fftw, public Threadtable<keytype2,keyless2> {
-  unsigned int nx;
-  unsigned int M;
-  size_t stride;
-  size_t dist;
+class mrcfft1d : public fftwblock<double,fftw_complex>,
+                 public Threadtable<keytype3,keyless3> {
   static Table threadtable;
-public:  
-  mrcfft1d(unsigned int nx, unsigned int M=1, size_t stride=1,
-           size_t dist=0, Complex *out=NULL, 
+public:
+  mrcfft1d(unsigned int nx, unsigned int M,
+           size_t istride, size_t ostride,
+           size_t idist, size_t odist,
+           double *in=NULL, Complex *out=NULL,
            unsigned int threads=maxthreads) 
-    : fftw(2*(nx/2*stride+(M-1)*Dist(nx,stride,dist)+1),-1,threads,nx), nx(nx),
-      M(M), stride(stride), dist(Dist(nx,stride,dist)) {Setup(out);} 
-  
-  mrcfft1d(unsigned int nx, unsigned int M=1, size_t stride=1,
-           size_t dist=0, double *in=NULL, Complex *out=NULL,
-           unsigned int threads=maxthreads) 
-    : fftw(2*(nx/2*stride+(M-1)*Dist(nx,stride,dist)+1),-1,threads,nx), nx(nx),
-      M(M), stride(stride), dist(Dist(nx,stride,dist)) {Setup(in,out);} 
+    : fftw(std::max((realsize(nx,in,out)-2)*istride+(M-1)*idist+2,
+                    2*(nx/2*ostride+(M-1)*odist+1)),-1,threads,nx),
+      fftwblock<double,fftw_complex>
+    (nx,M,istride,ostride,idist,odist,(Complex *) in,out,threads) {}
   
   threaddata lookup(bool inplace, unsigned int threads) {
-    return Lookup(threadtable,keytype2(nx,M,threads,inplace));
+    return Lookup(threadtable,keytype3(nx,Q,R,threads,inplace));
   }
+  
   void store(bool inplace, const threaddata& data) {
-    Store(threadtable,keytype2(nx,M,data.threads,inplace),data);
+    Store(threadtable,keytype3(nx,Q,R,data.threads,inplace),data);
   }
   
-  fftw_plan Plan(Complex *in, Complex *out) {
-    int n=(int) nx;
-    if(in != out) 
-      return fftw_plan_many_dft_r2c(1,&n,M,
-				    (double *) in,NULL,stride,dist,
-				    (fftw_complex *) out,NULL,stride,dist/2+1,
-				    effort);
-    return fftw_plan_many_dft_r2c(1,&n,M,
-                                  (double *) in,NULL,stride,dist,
-                                  (fftw_complex *) out,NULL,stride,dist/2,
-                                  effort);
+  void fftNormalized(double *in, Complex *out=NULL) {
+    fftw::fftNormalized<double,Complex>(nx/2+1,M,ostride,odist,in,out,false);
   }
   
-  void Execute(Complex *in, Complex *out, bool=false) {
-    fftw_execute_dft_r2c(plan,(double *) in,(fftw_complex *) out);
-  }
-  
-  void fftNormalized(Complex *in, Complex *out=NULL) {
-    fftw::fftNormalized(in,out,nx/2+1,M,stride,dist);
+  void fft0Normalized(double *in, Complex *out=NULL) {
+    fftw::fftNormalized<double,Complex>(nx/2+1,M,ostride,odist,in,out,true);
   }
 };
-  
+
 // Compute the real inverse Fourier transform of M complex vectors, each of
 // length n/2+1, corresponding to the non-negative parts of the frequency
 // spectra, using phase sign +1. Before calling fft(), the array in must be
@@ -1154,12 +1068,12 @@ public:
 //
 // Out-of-place usage (input destroyed):
 //
-//   mcrfft1d Backward(n,M,stride,dist,in,out);
+//   mcrfft1d Backward(n,M,istride,ostride,idist,odist,in,out);
 //   Backward.fft(in,out);
 //
 // In-place usage:
 //
-//   mcrfft1d Backward(n,M,stride,dist);
+//   mcrfft1d Backward(n,M,istride,ostride,idist,odist);
 //   Backward.fft(out);
 // 
 // Notes:
@@ -1168,61 +1082,29 @@ public:
 //   in contains the first n/2+1 Complex Fourier values;
 //   out contains the n real values stored as a Complex array.
 //
-class mcrfft1d : public fftw, public Threadtable<keytype2,keyless2> {
-  unsigned int nx;
-  unsigned int M;
-  size_t stride;
-  size_t dist;
+class mcrfft1d : public fftwblock<fftw_complex,double>,
+                 public Threadtable<keytype3,keyless3> {
   static Table threadtable;
 public:
-  mcrfft1d(unsigned int nx, unsigned int M=1, size_t stride=1,
-           size_t dist=0, Complex *in=NULL, double *out=NULL,
+  mcrfft1d(unsigned int nx, unsigned int M, size_t istride, size_t ostride,
+           size_t idist, size_t odist, Complex *in=NULL, double *out=NULL,
            unsigned int threads=maxthreads) 
-    : fftw((realsize(nx,in,out)-2)*stride+2*(M-1)*Dist(nx,stride,dist)+2,1,
-           threads,nx),
-      nx(nx), M(M), stride(stride), dist(Dist(nx,stride,dist)) {Setup(in,out);}
+    : fftw(std::max(2*(nx/2*istride+(M-1)*idist+1),
+                    (realsize(nx,in,out)-2)*ostride+(M-1)*odist+2),1,threads,nx),
+      fftwblock<fftw_complex,double>
+    (nx,M,istride,ostride,idist,odist,in,(Complex *) out,threads) {}
   
   threaddata lookup(bool inplace, unsigned int threads) {
-    return Lookup(threadtable,keytype2(nx,M,threads,inplace));
+    return Lookup(threadtable,keytype3(nx,Q,R,threads,inplace));
   }
   void store(bool inplace, const threaddata& data) {
-    Store(threadtable,keytype2(nx,M,data.threads,inplace),data);
+    Store(threadtable,keytype3(nx,Q,R,data.threads,inplace),data);
   }
-  
-  fftw_plan Plan(Complex *in, Complex *out) {
-    int n=(int) nx;
-    if(in != out)
-      return fftw_plan_many_dft_c2r(1,&n,M,
-				    (fftw_complex *) in,NULL,stride,dist,
-				    (double *) out,NULL,stride,2*(dist-1),
-				    effort);
-    return fftw_plan_many_dft_c2r(1,&n,M,
-                                  (fftw_complex *) in,NULL,stride,dist,
-                                  (double *) out,NULL,stride,2*dist,
-                                  effort);
-  }
-  
-  void Execute(Complex *in, Complex *out, bool=false) {
-    fftw_execute_dft_c2r(plan,(fftw_complex *) in,(double *) out);
-  }
-  
   void fftNormalized(Complex *in, double *out=NULL) {
-    // TODO: improve threading (cf: mfft1d).
-    fftw_execute_dft_c2r(plan,(fftw_complex *) in,(double *) out);
-
-    unsigned int stop=nx*stride;
-    unsigned int odist=in == (Complex *) out ? 2*dist : 2*(dist-1);
-    double *outMdist=out+M*odist;
-
-#ifndef FFTWPP_SINGLE_THREAD
-#pragma omp parallel for num_threads(threads)
-#endif
-    for(unsigned int i=0; i < stop; i += stride) {
-      double *pstop=outMdist+i;
-      for(double *p=out+i; p < pstop; p += odist) {
-	*p *= norm;
-      }
-    }    
+    fftw::fftNormalized<Complex,double>(nx,M,ostride,odist,in,out,false);
+  }
+  void fft0Normalized(Complex *in, double *out=NULL) {
+    fftw::fftNormalized<Complex,double>(nx,M,ostride,odist,in,out,true);
   }
 };
   
@@ -1265,7 +1147,9 @@ public:
   fft2d(int sign, const Array::array2<Complex>& in,
         const Array::array2<Complex>& out=Array::NULL2, 
         unsigned int threads=maxthreads) 
-    : fftw(2*in.Size(),sign,threads), nx(in.Nx()), ny(in.Ny()) {Setup(in,out);} 
+    : fftw(2*in.Size(),sign,threads), nx(in.Nx()), ny(in.Ny()) {
+    Setup(in,out);
+  }
 #endif  
   
   threaddata lookup(bool inplace, unsigned int threads) {
@@ -1318,23 +1202,9 @@ public:
   
   rcfft2d(unsigned int nx, unsigned int ny, double *in, Complex *out=NULL,
           unsigned int threads=maxthreads) 
-    : fftw(nx*realsize(ny,in,out),-1,threads,nx*ny), nx(nx), ny(ny) {
+    : fftw(2*nx*(ny/2+1),-1,threads,nx*ny), nx(nx), ny(ny) {
     Setup(in,out);
   } 
-  
-#ifdef __Array_h__
-  rcfft2d(unsigned int ny, const Array::array2<Complex>& out,
-          unsigned int threads=maxthreads) 
-    : fftw(out.Size(),-1,threads,out.Nx()*ny), nx(out.Nx()), ny(ny) {
-    Setup(out);
-  } 
-  
-  rcfft2d(unsigned int ny, const Array::array2<double>& in,
-          const Array::array2<Complex>& out=Array::NULL2,
-          unsigned int threads=maxthreads) 
-    : fftw(in.Nx()*realsize(ny,in(),out()),-1,threads,in.Nx()*ny),
-      nx(in.Nx()), ny(ny) {Setup(in,out);} 
-#endif
   
   fftw_plan Plan(Complex *in, Complex *out) {
     return fftw_plan_dft_r2c_2d(nx,ny,(double *) in,(fftw_complex *) out,
@@ -1347,6 +1217,23 @@ public:
       else Shift((double *) in,nx,ny,threads);
     }
     fftw_execute_dft_r2c(plan,(double *) in,(fftw_complex *) out);
+  }
+  
+  // Set Nyquist modes of even shifted transforms to zero.
+  void deNyquist(Complex *f) {
+    unsigned int nyp=ny/2+1;
+    if(nx % 2 == 0)
+#ifndef FFTWPP_SINGLE_THREAD
+#pragma omp parallel for num_threads(threads)
+#endif
+      for(unsigned int j=0; j < nyp; ++j)
+        f[j]=0.0;
+    if(ny % 2 == 0)
+#ifndef FFTWPP_SINGLE_THREAD
+#pragma omp parallel for num_threads(threads)
+#endif
+      for(unsigned int i=0; i < nx; ++i)
+        f[(i+1)*nyp-1]=0.0;
   }
 };
   
@@ -1378,30 +1265,15 @@ class crfft2d : public fftw {
   unsigned int nx;
   unsigned int ny;
 public:  
-  crfft2d(unsigned int nx, unsigned int ny, Complex *in=NULL,
+  crfft2d(unsigned int nx, unsigned int ny, double *out=NULL,
           unsigned int threads=maxthreads) :
-    fftw(2*nx*(ny/2+1),1,threads,nx*ny), nx(nx), ny(ny) {Setup(in);} 
+    fftw(2*nx*(ny/2+1),1,threads,nx*ny), nx(nx), ny(ny) {Setup(out);} 
   
-  crfft2d(unsigned int nx, unsigned int ny, Complex *in, double *out,
+  crfft2d(unsigned int nx, unsigned int ny, Complex *in, double *out=NULL,
           unsigned int threads=maxthreads)
     : fftw(nx*realsize(ny,in,out),1,threads,nx*ny), nx(nx), ny(ny) {
     Setup(in,out);
   } 
-  
-#ifdef __Array_h__
-  crfft2d(unsigned int ny, const Array::array2<double>& out,
-          unsigned int threads=maxthreads)
-    : fftw(out.Size(),1,threads,out.Nx()*ny), nx(out.Nx()), ny(ny) {Setup(out);}
-
-  crfft2d(unsigned int ny, const Array::array2<Complex>& in,
-          unsigned int threads=maxthreads) 
-    : fftw(2*in.Size(),1,threads,in.Nx()*ny), nx(in.Nx()), ny(ny) {Setup(in);}
-  
-  crfft2d(unsigned int ny, const Array::array2<Complex>& in,
-          const Array::array2<double>& out,
-          unsigned int threads=maxthreads) 
-    : fftw(out.Size(),1,threads,in.Nx()*ny), nx(in.Nx()), ny(ny) {Setup(in,out);}
-#endif
   
   fftw_plan Plan(Complex *in, Complex *out) {
     return fftw_plan_dft_c2r_2d(nx,ny,(fftw_complex *) in,(double *) out,
@@ -1414,6 +1286,23 @@ public:
       if(inplace) Shift(out,nx,ny,threads);
       else Shift((double *) out,nx,ny,threads);
     }
+  }
+  
+  // Set Nyquist modes of even shifted transforms to zero.
+  void deNyquist(Complex *f) {
+    unsigned int nyp=ny/2+1;
+    if(nx % 2 == 0)
+#ifndef FFTWPP_SINGLE_THREAD
+#pragma omp parallel for num_threads(threads)
+#endif
+      for(unsigned int j=0; j < nyp; ++j)
+        f[j]=0.0;
+    if(ny % 2 == 0)
+#ifndef FFTWPP_SINGLE_THREAD
+#pragma omp parallel for num_threads(threads)
+#endif
+      for(unsigned int i=0; i < nx; ++i)
+        f[(i+1)*nyp-1]=0.0;
   }
 };
 
@@ -1495,26 +1384,16 @@ class rcfft3d : public fftw {
   unsigned int ny;
   unsigned int nz;
 public:  
-  rcfft3d(unsigned int nx, unsigned int ny, unsigned int nz, Complex *out=NULL)
-    : fftw(2*nx*ny*(nz/2+1),-1,threads,nx*ny*nz), nx(nx), ny(ny), nz(nz) {Setup(out);} 
+  rcfft3d(unsigned int nx, unsigned int ny, unsigned int nz, Complex *out=NULL,
+    unsigned int threads=maxthreads)
+    : fftw(2*nx*ny*(nz/2+1),-1,threads,nx*ny*nz), nx(nx), ny(ny), nz(nz) {
+    Setup(out);
+  } 
   
   rcfft3d(unsigned int nx, unsigned int ny, unsigned int nz, double *in,
           Complex *out=NULL, unsigned int threads=maxthreads) 
-    : fftw(nx*ny*realsize(nz,in,out),-1,threads,nx*ny*nz),
+    : fftw(2*nx*ny*(nz/2+1),-1,threads,nx*ny*nz),
       nx(nx), ny(ny), nz(nz) {Setup(in,out);} 
-  
-#ifdef __Array_h__
-  rcfft3d(unsigned int nz, const Array::array3<Complex>& out,
-          unsigned int threads=maxthreads) 
-    : fftw(out.Size(),-1,threads,out.Nx()*out.Ny()*nz),
-      nx(out.Nx()), ny(out.Ny()), nz(nz) {Setup(out);} 
-  
-  rcfft3d(unsigned int nz, const Array::array3<double>& in,
-          const Array::array3<Complex>& out=Array::NULL3,
-          unsigned int threads=maxthreads) 
-    : fftw(in.Nx()*in.Ny()*realsize(nz,in(),out()),-1,threads,in.Size()),
-      nx(in.Nx()), ny(in.Ny()), nz(nz) {Setup(in,out);} 
-#endif  
   
   fftw_plan Plan(Complex *in, Complex *out) {
     return fftw_plan_dft_r2c_3d(nx,ny,nz,(double *) in,(fftw_complex *) out,
@@ -1527,6 +1406,38 @@ public:
       else Shift((double *) in,nx,ny,nz,threads);
     }
     fftw_execute_dft_r2c(plan,(double *) in,(fftw_complex *) out);
+  }
+  
+  // Set Nyquist modes of even shifted transforms to zero.
+  void deNyquist(Complex *f) {
+    unsigned int nzp=nz/2+1;
+    unsigned int yz=ny*nzp;
+    if(nx % 2 == 0) {
+#ifndef FFTWPP_SINGLE_THREAD
+#pragma omp parallel for num_threads(threads)
+#endif
+      for(unsigned int k=0; k < yz; ++k)
+        f[k]=0.0;
+    }
+    
+    if(ny % 2 == 0) {
+#ifndef FFTWPP_SINGLE_THREAD
+#pragma omp parallel for num_threads(threads)
+#endif
+      for(unsigned int i=0; i < nx; ++i) {
+        unsigned int iyz=i*yz;
+        for(unsigned int k=0; k < nzp; ++k)
+          f[iyz+k]=0.0;
+      }
+    }
+        
+    if(nz % 2 == 0)
+#ifndef FFTWPP_SINGLE_THREAD
+#pragma omp parallel for num_threads(threads)
+#endif
+      for(unsigned int i=0; i < nx; ++i)
+        for(unsigned int j=0; j < ny; ++j)
+          f[i*yz+(j+1)*nzp-1]=0.0;
   }
 };
   
@@ -1559,33 +1470,15 @@ class crfft3d : public fftw {
   unsigned int ny;
   unsigned int nz;
 public:  
-  crfft3d(unsigned int nx, unsigned int ny, unsigned int nz, Complex *in=NULL,
+  crfft3d(unsigned int nx, unsigned int ny, unsigned int nz, double *out=NULL,
           unsigned int threads=maxthreads) 
     : fftw(2*nx*ny*(nz/2+1),1,threads,nx*ny*nz), nx(nx), ny(ny), nz(nz)
-  {Setup(in);} 
+  {Setup(out);} 
   
   crfft3d(unsigned int nx, unsigned int ny, unsigned int nz, Complex *in,
           double *out=NULL, unsigned int threads=maxthreads) 
     : fftw(nx*ny*(realsize(nz,in,out)),1,threads,nx*ny*nz), nx(nx), ny(ny),
       nz(nz) {Setup(in,out);} 
-  
-#ifdef __Array_h__
-  crfft3d(unsigned int nz, const Array::array3<double>& out,
-          unsigned int threads=maxthreads) 
-    : fftw(out.Size(),1,threads,out.Nx()*out.Ny()*nz),
-      nx(out.Nx()), ny(out.Ny()), nz(nz) {Setup(out);} 
-  
-  crfft3d(unsigned int nz, const Array::array3<Complex>& in,
-          unsigned int threads=maxthreads) 
-    : fftw(2*in.Size(),1,threads,in.Nx()*in.Ny()*nz),
-      nx(in.Nx()), ny(in.Ny()), nz(nz) {Setup(in);} 
-  
-  crfft3d(unsigned int nz, const Array::array3<Complex>& in,
-          const Array::array3<double>& out,
-          unsigned int threads=maxthreads) 
-    : fftw(out.Size(),1,threads,in.Nx()*in.Ny()*nz),
-      nx(in.Nx()), ny(in.Ny()), nz(nz) {Setup(in,out);} 
-#endif  
   
   fftw_plan Plan(Complex *in, Complex *out) {
     return fftw_plan_dft_c2r_3d(nx,ny,nz,(fftw_complex *) in,(double *) out,
@@ -1599,8 +1492,40 @@ public:
       else Shift((double *) out,nx,ny,nz,threads);
     }
   }
-};
   
+  // Set Nyquist modes of even shifted transforms to zero.
+  void deNyquist(Complex *f) {
+    unsigned int nzp=nz/2+1;
+    unsigned int yz=ny*nzp;
+    if(nx % 2 == 0) {
+#ifndef FFTWPP_SINGLE_THREAD
+#pragma omp parallel for num_threads(threads)
+#endif
+      for(unsigned int k=0; k < yz; ++k)
+        f[k]=0.0;
+    }
+    
+    if(ny % 2 == 0) {
+#ifndef FFTWPP_SINGLE_THREAD
+#pragma omp parallel for num_threads(threads)
+#endif
+      for(unsigned int i=0; i < nx; ++i) {
+        unsigned int iyz=i*yz;
+        for(unsigned int k=0; k < nzp; ++k)
+          f[iyz+k]=0.0;
+      }
+    }
+        
+    if(nz % 2 == 0)
+#ifndef FFTWPP_SINGLE_THREAD
+#pragma omp parallel for num_threads(threads)
+#endif
+      for(unsigned int i=0; i < nx; ++i)
+        for(unsigned int j=0; j < ny; ++j)
+          f[i*yz+(j+1)*nzp-1]=0.0;
+  }
+};
+
 }
 
 #endif

@@ -87,7 +87,7 @@ GUI/*.pyc
 /doc/**/asymptote.*
 !/doc/asymptote.texi
 /doc/options
-.asy_history
+.asy_*
 
 ## Bibliography auxiliary files (bibtex/biblatex/biber):
 *.bbl

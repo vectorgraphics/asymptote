@@ -1474,7 +1474,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 
     real[][] depth=new real[s.s.length][];
     for(int i=0; i < depth.length; ++i)
-      depth[i]=new real[] {abs(camera-s.s[i].cornermean()),i};
+      depth[i]=new real[] {dot(P.normal,camera-s.s[i].cornermean()),i};
 
     depth=sort(depth);
 
@@ -1521,7 +1521,7 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
 
     real[][] depth=new real[s.s.length][];
     for(int i=0; i < depth.length; ++i)
-      depth[i]=new real[] {abs(camera-s.s[i].cornermean()),i};
+      depth[i]=new real[] {dot(P.normal,camera-s.s[i].cornermean()),i};
 
     depth=sort(depth);
 
