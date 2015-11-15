@@ -27,6 +27,7 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_cdf.h>
+#include <gsl/gsl_version.h>
 
 #include "opsymbols.h"
 
@@ -1088,7 +1089,11 @@ void gen_rungsl_venv(venv &ve)
   addGSLDOUBLE2Func<gsl_sf_ellint_F>(SYM(F));
   addGSLDOUBLE2Func<gsl_sf_ellint_E>(SYM(E));
   addGSLDOUBLE3Func<gsl_sf_ellint_P>(SYM(P),SYM(phi),SYM(k),SYM(n));
+#if GSL_MAJOR_VERSION >= 2
+  addGSLDOUBLE2Func<gsl_sf_ellint_D>(SYM(D),SYM(phi),SYM(k));
+#else  
   addGSLDOUBLE3Func<gsl_sf_ellint_D>(SYM(D),SYM(phi),SYM(k),SYM(n));
+#endif  
   addGSLDOUBLE2Func<gsl_sf_ellint_RC>(SYM(RC),SYM(x),SYM(y));
   addGSLDOUBLE3Func<gsl_sf_ellint_RD>(SYM(RD),SYM(x),SYM(y),SYM(z));
   addGSLDOUBLE3Func<gsl_sf_ellint_RF>(SYM(RF),SYM(x),SYM(y),SYM(z));
