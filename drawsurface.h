@@ -123,8 +123,8 @@ public:
   
   void bounds(const double* t, bbox3& b);
   
-  void ratio(const double* t, pair &b, double (*m)(double, double), double fuzz,
-             bool &first);
+  void ratio(const double* t, pair &b, double (*m)(double, double),
+             double fuzz, bool &first);
   
   virtual ~drawSurface() {}
 
@@ -219,8 +219,8 @@ public:
   
   void bounds(const double* t, bbox3& b);
   
-  void ratio(const double* t, pair &b, double (*m)(double, double), double fuzz,
-             bool &first);
+  void ratio(const double* t, pair &b, double (*m)(double, double),
+             double fuzz, bool &first);
   
   virtual ~drawBezierTriangle() {}
 
@@ -366,8 +366,9 @@ public:
   void ratio(const double* t, pair &b, double (*m)(double, double), double,
              bool &first);
 
-  void render(GLUnurbs *nurb, double size2, const triple& Min, const triple& Max,
-              double perspective, bool lighton, bool transparent);
+  void render(GLUnurbs *nurb, double size2, const triple& Min,
+              const triple& Max, double perspective, bool lighton,
+              bool transparent);
     
   drawElement *transformed(const double* t);
 };
@@ -410,8 +411,8 @@ public:
     return true;
   }
   virtual void transformedbounds(const double*, bbox3&) {}
-  virtual void transformedratio(const double*, pair&, double (*)(double, double),
-                                double, bool&) {}
+  virtual void transformedratio(const double*, pair&,
+                                double (*)(double, double), double, bool&) {}
 
 };
   
@@ -643,8 +644,8 @@ public:
   
   void bounds(const double* t, bbox3& b);
   
-  void ratio(const double* t, pair &b, double (*m)(double, double), double fuzz,
-             bool &first);
+  void ratio(const double* t, pair &b, double (*m)(double, double),
+             double fuzz, bool &first);
   
   virtual ~drawBaseTriangles() {}
   

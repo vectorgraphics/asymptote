@@ -425,17 +425,41 @@ void drawBezierTriangle::bounds(const double* t, bbox3& b)
   double x,y,z;
   double X,Y,Z;
 
-  triple* Controls;
-  if(t == NULL) Controls=controls;
-  else {
-    static triple buf[10];
-    Controls=buf;
-    for(int i=0; i < 10; ++i)
-      Controls[i]=t*controls[i];
+  static double cx[10];
+  static double cy[10];
+  static double cz[10];
+    
+  if(t == NULL) {
+    for(int i=0; i < 10; ++i) {
+      triple v=controls[i];
+      cx[i]=v.getx();
+      cy[i]=v.gety();
+      cz[i]=v.getz();
+    }
+  } else {
+    for(int i=0; i < 10; ++i) {
+      triple v=t*controls[i];
+      cx[i]=v.getx();
+      cy[i]=v.gety();
+      cz[i]=v.getz();
+    }
   }
     
-  boundstriples(x,y,z,X,Y,Z,10,Controls);
-
+  double c0=cx[0];
+  double fuzz=sqrtFuzz*run::norm(cx,10);
+  x=boundtri(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
+  X=boundtri(cx,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
+    
+  c0=cy[0];
+  fuzz=sqrtFuzz*run::norm(cy,10);
+  y=boundtri(cy,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
+  Y=boundtri(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
+    
+  c0=cz[0];
+  fuzz=sqrtFuzz*run::norm(cz,10);
+  z=boundtri(cz,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
+  Z=boundtri(cz,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
+    
   b.add(x,y,z);
   b.add(X,Y,Z);
 
@@ -446,8 +470,8 @@ void drawBezierTriangle::bounds(const double* t, bbox3& b)
 }
 
 void drawBezierTriangle::ratio(const double* t, pair &b,
-                              double (*m)(double, double), double fuzz,
-                              bool &first)
+                               double (*m)(double, double), double fuzz,
+                               bool &first)
 {
   triple* Controls;
   if(t == NULL) Controls=controls;
@@ -458,7 +482,14 @@ void drawBezierTriangle::ratio(const double* t, pair &b,
       Controls[i]=t*controls[i];
   }
     
-  ratiotriples(b,m,first,10,Controls);
+  if(first) {
+    triple v=Controls[0];
+    b=pair(xratio(v),yratio(v));
+    first=false;
+  }
+  
+  b=pair(boundtri(Controls,m,xratio,b.getx(),fuzz,maxdepth),
+         boundtri(Controls,m,yratio,b.gety(),fuzz,maxdepth));
 }
 
 bool drawBezierTriangle::write(prcfile *out, unsigned int *, double, groupsmap&)
