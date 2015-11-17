@@ -951,10 +951,137 @@ uint32_t nN, const V N[],  const uint32_t NI[][3],
     void addLine(uint32_t n, const double P[][3], const RGBAColour &c, double w=1.0);
     void addBezierCurve(uint32_t n, const double cP[][3], const RGBAColour &c);
     void addCurve(uint32_t d, uint32_t n, const double cP[][3], const double *k, const RGBAColour &c, const double w[]);
-    void addQuad(const double P[][3], const RGBAColour C[]);
+template<class V>
+void addQuad(const V P[], const RGBAColour C[])
+{
+  PRCgroup &group = findGroup();
 
-    void addRectangle(const double P[][3], const PRCmaterial &m);
-    void addPatch(const double cP[][3], const PRCmaterial &m);
+  group.quads.push_back(PRCtessquad());
+  PRCtessquad &quad = group.quads.back();
+  for(size_t i = 0; i < 4; i++)
+  {
+    quad.vertices[i].x = X(P[i]);
+    quad.vertices[i].y = Y(P[i]);
+    quad.vertices[i].z = Z(P[i]);
+    quad.colours[i] = C[i];
+  }
+}
+
+#define ADDFACE(surftype)                                 \
+  PRCgroup &group = findGroup();                          \
+  group.faces.push_back(PRCface());                       \
+  PRCface& face = group.faces.back();                     \
+  surftype *surface = new surftype;                       \
+  face.face = new PRCFace;                                \
+  face.face->base_surface = surface;                      \
+  face.transparent = m.alpha < 1.0;                       \
+  face.style = addMaterial(m);
+
+#define ADDCOMPFACE                                       \
+  PRCgroup &group = findGroup();                          \
+  group.compfaces.push_back(PRCcompface());               \
+  PRCcompface& face = group.compfaces.back();             \
+  PRCCompressedFace *compface = new PRCCompressedFace;    \
+  face.face = compface;                                   \
+  face.transparent = m.alpha < 1.0;                       \
+  face.style = addMaterial(m);
+
+template<class V>
+void addRectangle(const V P[], const PRCmaterial &m)
+{
+  PRCgroup &group = findGroup();
+  if(group.options.tess)
+  {
+    group.rectangles.push_back(PRCtessrectangle());
+    PRCtessrectangle &rectangle = group.rectangles.back();
+    rectangle.style = addMaterial(m);
+    for(size_t i = 0; i < 4; i++)
+    {
+      rectangle.vertices[i].x = X(P[i]);
+      rectangle.vertices[i].y = Y(P[i]);
+      rectangle.vertices[i].z = Z(P[i]);
+    }
+  }
+  else if(group.options.compression == 0.0)
+  {
+    ADDFACE(PRCNURBSSurface)
+
+    surface->is_rational = false;
+    surface->degree_in_u = 1;
+    surface->degree_in_v = 1;
+    surface->control_point.resize(4);
+    for(size_t i = 0; i < 4; ++i)
+    {
+      surface->control_point[i].x = X(P[i]);
+      surface->control_point[i].y = Y(P[i]);
+      surface->control_point[i].z = Z(P[i]);
+    }
+    surface->knot_u.resize(4);
+    surface->knot_v.resize(4);
+    surface->knot_v[0] = surface->knot_u[0] = 1;
+    surface->knot_v[1] = surface->knot_u[1] = 3;
+    surface->knot_v[2] = surface->knot_u[2] = 4;
+    surface->knot_v[3] = surface->knot_u[3] = 4;
+  }
+  else
+  {
+    ADDCOMPFACE
+
+    compface->degree = 1;
+    compface->control_point.resize(4);
+    for(size_t i = 0; i < 4; ++i)
+    {
+      compface->control_point[i].x = X(P[i]);
+      compface->control_point[i].y = Y(P[i]);
+      compface->control_point[i].z = Z(P[i]);
+    }
+  }
+}
+
+template<class V>
+void addPatch(const V cP[], const PRCmaterial &m)
+{
+  PRCgroup &group = findGroup();
+  if(group.options.compression == 0.0)
+  {
+    ADDFACE(PRCNURBSSurface)
+
+    surface->is_rational = false;
+    surface->degree_in_u = 3;
+    surface->degree_in_v = 3;
+    surface->control_point.resize(16);
+    for(size_t i = 0; i < 16; ++i)
+    {
+      surface->control_point[i].x = X(cP[i]);
+      surface->control_point[i].y = Y(cP[i]);
+      surface->control_point[i].z = Z(cP[i]);
+    }
+    surface->knot_u.resize(8);
+    surface->knot_v.resize(8);
+    surface->knot_v[0] = surface->knot_u[0] = 1;
+    surface->knot_v[1] = surface->knot_u[1] = 1;
+    surface->knot_v[2] = surface->knot_u[2] = 1;
+    surface->knot_v[3] = surface->knot_u[3] = 1;
+    surface->knot_v[4] = surface->knot_u[4] = 2;
+    surface->knot_v[5] = surface->knot_u[5] = 2;
+    surface->knot_v[6] = surface->knot_u[6] = 2;
+    surface->knot_v[7] = surface->knot_u[7] = 2;
+  }
+  else
+  {
+    ADDCOMPFACE
+
+    compface->degree = 3;
+    compface->control_point.resize(16);
+    for(size_t i = 0; i < 16; ++i)
+    {
+      compface->control_point[i].x = X(cP[i]);
+      compface->control_point[i].y = Y(cP[i]);
+      compface->control_point[i].z = Z(cP[i]);
+    }
+  }
+}
+
     void addSurface(uint32_t dU, uint32_t dV, uint32_t nU, uint32_t nV,
      const double cP[][3], const double *kU, const double *kV, const PRCmaterial &m,
      const double w[]);
@@ -968,7 +1095,7 @@ uint32_t nN, const V N[],  const uint32_t NI[][3],
 #undef PRCTRANSFORM
 #undef PRCCARTRANSFORM
 #undef PRCGENTRANSFORM
-
+#undef ADDCOMPFACE
 
     uint32_t addPicture(EPRCPictureDataFormat format, uint32_t size, const uint8_t *picture, uint32_t width=0, uint32_t height=0,
       std::string name="", uint32_t fileStructure=0)

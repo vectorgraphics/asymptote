@@ -85,126 +85,124 @@ void drawSurface::bounds(const double* t, bbox3& b)
   double X,Y,Z;
   
   if(straight) {
-    Triple *Vertices;
+    triple *Vertices;
     if(t == NULL) Vertices=vertices;
     else {
-      static Triple buf[4];
+      triple buf[4];
       Vertices=buf;
-      transformTriples(t,4,Vertices,vertices);
+      for(int i=0; i < 4; ++i)
+        Vertices[i]=t*vertices[i];
     }
   
-    double *v=Vertices[0];
-    x=v[0];
-    y=v[1];
-    z=v[2];
+    triple v=vertices[0];
+    x=v.getx();
+    y=v.gety();
+    z=v.getz();
     X=x;
     Y=y;
     Z=z;
     for(size_t i=1; i < 4; ++i) {
-      double *v=Vertices[i];
-      double vx=v[0];
+      triple v=vertices[i];
+      double vx=v.getx();
       x=min(x,vx);
       X=max(X,vx);
-      double vy=v[1];
+      double vy=v.gety();
       y=min(y,vy);
       Y=max(Y,vy);
-      double vz=v[2];
+      double vz=v.getz();
       z=min(z,vz);
       Z=max(Z,vz);
     }
   } else {
-    Triple* Controls;
-    if(t == NULL) Controls=controls;
-    else {
-      static Triple buf[16];
-      Controls=buf;
-      transformTriples(t,16,Controls,controls);
-    }
-
-    static double c1[16];
-
-    for(int i=0; i < 16; ++i)
-      c1[i]=Controls[i][0];
-    double c0=c1[0];
-    double fuzz=sqrtFuzz*run::norm(c1,16);
-    x=bound(c1,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
-    X=bound(c1,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
-    
-    for(int i=0; i < 16; ++i)
-      c1[i]=Controls[i][1];
-    c0=c1[0];
-    fuzz=sqrtFuzz*run::norm(c1,16);
-    y=bound(c1,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
-    Y=bound(c1,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
-    
-    for(int i=0; i < 16; ++i)
-      c1[i]=Controls[i][2];
-    c0=c1[0];
-    fuzz=sqrtFuzz*run::norm(c1,16);
-    z=bound(c1,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
-    Z=bound(c1,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
-  }
-    
-  b.add(x,y,z);
-  b.add(X,Y,Z);
+    static double cx[16];
+    static double cy[16];
+    static double cz[16];
   
-  if(t == NULL) {
-    Min=triple(x,y,z);
-    Max=triple(X,Y,Z);
+    if(t == NULL) {
+      for(int i=0; i < 16; ++i) {
+        triple v=controls[i];
+        cx[i]=v.getx();
+        cy[i]=v.gety();
+        cz[i]=v.getz();
+      }
+    } else {
+      for(int i=0; i < 16; ++i) {
+        triple v=t*controls[i];
+        cx[i]=v.getx();
+        cy[i]=v.gety();
+        cz[i]=v.getz();
+      }
+    }
+    
+    double c0=cx[0];
+    double fuzz=sqrtFuzz*run::norm(cx,16);
+    x=bound(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
+    X=bound(cx,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
+    
+    c0=cy[0];
+    fuzz=sqrtFuzz*run::norm(cy,16);
+    y=bound(cy,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
+    Y=boundtri(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
+    
+    c0=cz[0];
+    fuzz=sqrtFuzz*run::norm(cz,16);
+    z=bound(cz,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
+    Z=bound(cz,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
+    
+    b.add(x,y,z);
+    b.add(X,Y,Z);
+  
+    if(t == NULL) {
+      Min=triple(x,y,z);
+      Max=triple(X,Y,Z);
+    }
   }
 }
 
 void drawSurface::ratio(const double* t, pair &b, double (*m)(double, double),
                         double fuzz, bool &first)
 {
+  static triple buf[16];
   if(straight) {
-    Triple *Vertices;
+    triple *Vertices;
     if(t == NULL) Vertices=vertices;
     else {
-      static Triple buf[4];
       Vertices=buf;
-      transformTriples(t,4,Vertices,vertices);
+      for(int i=0; i < 4; ++i)
+        Vertices[i]=t*vertices[i];
     }
   
     if(first) {
       first=false;
-      double *ci=Vertices[0];
-      triple v=triple(ci[0],ci[1],ci[2]);
+      triple v=Vertices[0];
       b=pair(xratio(v),yratio(v));
     }
   
     double x=b.getx();
     double y=b.gety();
     for(size_t i=0; i < 4; ++i) {
-      double *ci=Vertices[i];
-      triple v=triple(ci[0],ci[1],ci[2]);
+      triple v=Vertices[i];
       x=m(x,xratio(v));
       y=m(y,yratio(v));
     }
     b=pair(x,y);
   } else {
-    Triple* Controls;
+    triple* Controls;
     if(t == NULL) Controls=controls;
     else {
-      static Triple buf[16];
       Controls=buf;
-      transformTriples(t,16,Controls,controls);
+      for(int i=0; i < 16; ++i)
+        Controls[i]=t*controls[i];
     }
 
-    static triple c3[16];
-    for(int i=0; i < 16; ++i) {
-      double *ci=Controls[i];
-      c3[i]=triple(ci[0],ci[1],ci[2]);
-    }
-  
     if(first) {
-      triple v=c3[0];
+      triple v=Controls[0];
       b=pair(xratio(v),yratio(v));
       first=false;
     }
   
-    b=pair(bound(c3,m,xratio,b.getx(),fuzz,maxdepth),
-           bound(c3,m,yratio,b.gety(),fuzz,maxdepth));
+    b=pair(bound(Controls,m,xratio,b.getx(),fuzz,maxdepth),
+           bound(Controls,m,yratio,b.gety(),fuzz,maxdepth));
   }
 }
 
@@ -228,9 +226,9 @@ bool drawSurface::write(prcfile *out, unsigned int *, double, groupsmap&)
 
 // return the perpendicular displacement of a point z from the plane
 // through u with unit normal n.
-inline triple displacement2(const Triple& z, const Triple& u, const triple& n)
+inline triple displacement2(const triple& z, const triple& u, const triple& n)
 {
-  triple Z=triple(z)-triple(u);
+  triple Z=z-u;
   return n != triple(0,0,0) ? dot(Z,n)*n : Z;
 }
 
@@ -241,13 +239,10 @@ inline triple maxabs(triple u, triple v)
                 max(fabs(u.getz()),fabs(v.getz())));
 }
 
-inline triple displacement1(const Triple& z0, const Triple& c0,
-                           const Triple& c1, const Triple& z1)
+inline triple displacement1(const triple& z0, const triple& c0,
+                            const triple& c1, const triple& z1)
 {
-  triple Z0(z0);
-  triple Z1(z1);
-  return maxabs(displacement(triple(c0[0],c0[1],c0[2]),Z0,Z1),
-                displacement(triple(c1[0],c1[1],c1[2]),Z0,Z1));
+  return maxabs(displacement(c0,z0,z1),displacement(c1,z0,z1));
 }
 
 void drawSurface::displacement()

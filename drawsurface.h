@@ -20,8 +20,8 @@ void storecolor(GLfloat *colors, int i, const vm::array &pens, int j);
 
 class drawSurface : public drawElement {
 protected:
-  Triple *controls;
-  Triple vertices[4];
+  triple *controls;
+  triple vertices[4];
   triple center;
   bool straight;
   RGBAColour diffuse;
@@ -63,20 +63,20 @@ public:
     vm::array *g3=vm::read<vm::array*>(g,3);
     if(checkArray(g0) != 4 || checkArray(g3) != 4)
       reportError(wrongsize);
-    store(vertices[0],vm::read<triple>(g0,0));
-    store(vertices[1],vm::read<triple>(g0,3));
-    store(vertices[2],vm::read<triple>(g3,0));
-    store(vertices[3],vm::read<triple>(g3,3));
+    vertices[0]=vm::read<triple>(g0,0);
+    vertices[1]=vm::read<triple>(g0,3);
+    vertices[2]=vm::read<triple>(g3,0);
+    vertices[3]=vm::read<triple>(g3,3);
     
     if(!havenormal || !straight) {
       size_t k=0;
-      controls=new(UseGC) Triple[16];
+      controls=new(UseGC) triple[16];
       for(size_t i=0; i < 4; ++i) {
         vm::array *gi=vm::read<vm::array*>(g,i);
         if(checkArray(gi) != 4) 
           reportError(wrongsize);
         for(size_t j=0; j < 4; ++j)
-          store(controls[k++],vm::read<triple>(gi,j));
+          controls[k++]=vm::read<triple>(gi,j);
       }
     } else controls=NULL;
     
@@ -106,13 +106,15 @@ public:
     invisible(s->invisible),
     interaction(s->interaction), prc(s->prc) { 
     
-    transformTriples(t,4,vertices,s->vertices);
+    for(int i=0; i < 4; ++i)
+      vertices[i]=t*s->vertices[i];
     
     if(s->controls) {
-      controls=new(UseGC) Triple[16];
-      transformTriples(t,16,controls,s->controls);
+      controls=new(UseGC) triple[16];
+      for(int i=0; i < 16; ++i)
+        controls[i]=t*s->controls[i];
     } else controls=NULL;
-    
+  
 #ifdef HAVE_GL
     center=t*s->center;
     normal=transformNormal(t,s->normal);

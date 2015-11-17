@@ -1455,25 +1455,6 @@ PRCgroup& oPRCFile::findGroup()
   wire.curve = curve;                                     \
   wire.style = addColour(c);
 
-#define ADDFACE(surftype)                                 \
-  PRCgroup &group = findGroup();                          \
-  group.faces.push_back(PRCface());                       \
-  PRCface& face = group.faces.back();                     \
-  surftype *surface = new surftype;                       \
-  face.face = new PRCFace;                                \
-  face.face->base_surface = surface;                      \
-  face.transparent = m.alpha < 1.0;                       \
-  face.style = addMaterial(m);
-
-#define ADDCOMPFACE                                       \
-  PRCgroup &group = findGroup();                          \
-  group.compfaces.push_back(PRCcompface());               \
-  PRCcompface& face = group.compfaces.back();             \
-  PRCCompressedFace *compface = new PRCCompressedFace;    \
-  face.face = compface;                                   \
-  face.transparent = m.alpha < 1.0;                       \
-  face.style = addMaterial(m);
-
 void oPRCFile::addPoint(const double P[3], const RGBAColour &c, double w)
 {
   PRCgroup &group = findGroup();
@@ -1695,20 +1676,6 @@ uint32_t oPRCFile::createQuadMesh(uint32_t nP, const double P[][3], uint32_t nI,
   return tess_index;
 }
 
-void oPRCFile::addQuad(const double P[][3], const RGBAColour C[])
-{
-  PRCgroup &group = findGroup();
-
-  group.quads.push_back(PRCtessquad());
-  PRCtessquad &quad = group.quads.back();
-  for(size_t i = 0; i < 4; i++)
-  {
-    quad.vertices[i].x = P[i][0];
-    quad.vertices[i].y = P[i][1];
-    quad.vertices[i].z = P[i][2];
-    quad.colours[i] = C[i];
-  }
-}
 /*
 void oPRCFile::addTriangle(const double P[][3], const double T[][2], uint32_t style_index)
 {
@@ -1841,100 +1808,6 @@ void oPRCFile::addCurve(uint32_t d, uint32_t n, const double cP[][3], const doub
   curve->knot.resize(d+n+1);
   for(uint32_t i = 0; i < d+n+1; i++)
     curve->knot[i] = k[i];
-}
-
-void oPRCFile::addRectangle(const double P[][3], const PRCmaterial &m)
-{
-  PRCgroup &group = findGroup();
-  if(group.options.tess)
-  {
-    group.rectangles.push_back(PRCtessrectangle());
-    PRCtessrectangle &rectangle = group.rectangles.back();
-    rectangle.style = addMaterial(m);
-    for(size_t i = 0; i < 4; i++)
-    {
-       rectangle.vertices[i].x = P[i][0];
-       rectangle.vertices[i].y = P[i][1];
-       rectangle.vertices[i].z = P[i][2];
-    }
-  }
-  else if(group.options.compression == 0.0)
-  {
-    ADDFACE(PRCNURBSSurface)
-
-    surface->is_rational = false;
-    surface->degree_in_u = 1;
-    surface->degree_in_v = 1;
-    surface->control_point.resize(4);
-    for(size_t i = 0; i < 4; ++i)
-    {
-        surface->control_point[i].x = P[i][0];
-        surface->control_point[i].y = P[i][1];
-        surface->control_point[i].z = P[i][2];
-    }
-    surface->knot_u.resize(4);
-    surface->knot_v.resize(4);
-    surface->knot_v[0] = surface->knot_u[0] = 1;
-    surface->knot_v[1] = surface->knot_u[1] = 3;
-    surface->knot_v[2] = surface->knot_u[2] = 4;
-    surface->knot_v[3] = surface->knot_u[3] = 4;
-  }
-  else
-  {
-    ADDCOMPFACE
-
-    compface->degree = 1;
-    compface->control_point.resize(4);
-    for(size_t i = 0; i < 4; ++i)
-    {
-        compface->control_point[i].x = P[i][0];
-        compface->control_point[i].y = P[i][1];
-        compface->control_point[i].z = P[i][2];
-    }
-  }
-}
-
-void oPRCFile::addPatch(const double cP[][3], const PRCmaterial &m)
-{
-  PRCgroup &group = findGroup();
-  if(group.options.compression == 0.0)
-  {
-    ADDFACE(PRCNURBSSurface)
-
-    surface->is_rational = false;
-    surface->degree_in_u = 3;
-    surface->degree_in_v = 3;
-    surface->control_point.resize(16);
-    for(size_t i = 0; i < 16; ++i)
-    {
-        surface->control_point[i].x = cP[i][0];
-        surface->control_point[i].y = cP[i][1];
-        surface->control_point[i].z = cP[i][2];
-    }
-    surface->knot_u.resize(8);
-    surface->knot_v.resize(8);
-    surface->knot_v[0] = surface->knot_u[0] = 1;
-    surface->knot_v[1] = surface->knot_u[1] = 1;
-    surface->knot_v[2] = surface->knot_u[2] = 1;
-    surface->knot_v[3] = surface->knot_u[3] = 1;
-    surface->knot_v[4] = surface->knot_u[4] = 2;
-    surface->knot_v[5] = surface->knot_u[5] = 2;
-    surface->knot_v[6] = surface->knot_u[6] = 2;
-    surface->knot_v[7] = surface->knot_u[7] = 2;
-  }
-  else
-  {
-    ADDCOMPFACE
-
-    compface->degree = 3;
-    compface->control_point.resize(16);
-    for(size_t i = 0; i < 16; ++i)
-    {
-        compface->control_point[i].x = cP[i][0];
-        compface->control_point[i].y = cP[i][1];
-        compface->control_point[i].z = cP[i][2];
-    }
-  }
 }
 
 void oPRCFile::addSurface(uint32_t dU, uint32_t dV, uint32_t nU, uint32_t nV,
