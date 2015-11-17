@@ -981,15 +981,16 @@ void drawBaseTriangles::bounds(const double* t, bbox3& b)
 {
   double x,y,z;
   double X,Y,Z;
-  Triple* tP;
+  triple* tP;
 
   if(t == NULL) tP=P;
   else {
-    tP=new Triple[nP];
-    transformTriples(t,nP,tP,P);
+    tP=new triple[nP];
+    for(size_t i=0; i < nP; i++)
+      tP[i]=t*P[i];
   }
 
-  boundsTriples(x,y,z,X,Y,Z,nP,tP);
+  boundstriples(x,y,z,X,Y,Z,nP,tP);
 
   b.add(x,y,z);
   b.add(X,Y,Z);
@@ -1004,15 +1005,16 @@ void drawBaseTriangles::ratio(const double* t, pair &b,
                               double (*m)(double, double), double fuzz,
                               bool &first)
 {
-  Triple* tP;
+  triple* tP;
 
   if(t == NULL) tP=P;
   else {
-    tP=new Triple[nP];
-    transformTriples(t,nP,tP,P);
+    tP=new triple[nP];
+    for(size_t i=0; i < nP; i++)
+      tP[i]=t*P[i];
   }
 
-  ratioTriples(b,m,first,nP,tP);
+  ratiotriples(b,m,first,nP,tP);
   
   if(t != NULL)
     delete[] tP;
@@ -1022,7 +1024,7 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible)
     return true;
-
+  
   if (nC) {
     const RGBAColour white(1,1,1,opacity);
     const RGBAColour black(0,0,0,opacity);
@@ -1030,8 +1032,7 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
     out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,nC,C,CI,0,NULL,NULL,30);
   } else {
     const PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
-    out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,0,NULL,NULL,0,NULL,NULL,
-                      30);
+    out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,0,NULL,NULL,0,NULL,NULL,30);
   }
 
   return true;
@@ -1084,20 +1085,20 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
     const uint32_t *ni=NI[i];
     const uint32_t *ci=nC ? CI[i] : 0;
     if(lighton)
-      glNormal3f(N[ni[0]][0],N[ni[0]][1],N[ni[0]][2]);
+      glNormal3f(N[ni[0]].getx(),N[ni[0]].gety(),N[ni[0]].getz());
     if(nC)
       glColor4f(C[ci[0]].R,C[ci[0]].G,C[ci[0]].B,C[ci[0]].A);
-    glVertex3f(P[pi[0]][0],P[pi[0]][1],P[pi[0]][2]);
+    glVertex3f(P[pi[0]].getx(),P[pi[0]].gety(),P[pi[0]].getz());
     if(lighton)
-      glNormal3f(N[ni[1]][0],N[ni[1]][1],N[ni[1]][2]);
+      glNormal3f(N[ni[1]].getx(),N[ni[1]].gety(),N[ni[1]].getz());
     if(nC)
       glColor4f(C[ci[1]].R,C[ci[1]].G,C[ci[1]].B,C[ci[1]].A);
-    glVertex3f(P[pi[1]][0],P[pi[1]][1],P[pi[1]][2]);
+    glVertex3f(P[pi[1]].getx(),P[pi[1]].gety(),P[pi[1]].getz());
     if(lighton)
-      glNormal3f(N[ni[2]][0],N[ni[2]][1],N[ni[2]][2]);
+      glNormal3f(N[ni[2]].getx(),N[ni[2]].gety(),N[ni[2]].getz());
     if(nC)
       glColor4f(C[ci[2]].R,C[ci[2]].G,C[ci[2]].B,C[ci[2]].A);
-    glVertex3f(P[pi[2]][0],P[pi[2]][1],P[pi[2]][2]);
+    glVertex3f(P[pi[2]].getx(),P[pi[2]].gety(),P[pi[2]].getz());
   }
   glEnd();
 

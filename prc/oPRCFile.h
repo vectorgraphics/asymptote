@@ -43,6 +43,16 @@
 class oPRCFile;
 class PRCFileStructure;
 
+// Map [0,1] to [0,255]
+inline uint8_t byte(double r) 
+{
+  if(r < 0.0) r=0.0;
+  else if(r > 1.0) r=1.0;
+  int a=(int)(256.0*r);
+  if(a == 256) a=255;
+  return a;
+}
+
 struct RGBAColour
 {
   RGBAColour(double r=0.0, double g=0.0, double b=0.0, double a=1.0) :
@@ -624,6 +634,10 @@ class PRCHeader : public PRCStartHeader
 
 typedef std::map <PRCGeneralTransformation3d,uint32_t> PRCtransformMap;
 
+inline double X(const double *v) {return v[0];}
+inline double Y(const double *v) {return v[1];}
+inline double Z(const double *v) {return v[2];}
+
 class oPRCFile
 {
   public:
@@ -740,18 +754,21 @@ class oPRCFile
                       bool segment_color, uint32_t nC, const RGBAColour C[], uint32_t nCI, const uint32_t CI[]);
     uint32_t createLines(uint32_t nP, const double P[][3], uint32_t nI, const uint32_t PI[],
                       bool segment_color, uint32_t nC, const RGBAColour C[], uint32_t nCI, const uint32_t CI[]);
-    void addTriangles(uint32_t nP, const double P[][3], uint32_t nI, const uint32_t PI[][3], const PRCmaterial &m,
-                      uint32_t nN, const double N[][3],   const uint32_t NI[][3],
-                      uint32_t nT, const double T[][2],   const uint32_t TI[][3],
-                      uint32_t nC, const RGBAColour C[],  const uint32_t CI[][3],
-                      uint32_t nM, const PRCmaterial M[], const uint32_t MI[], double ca);
-    uint32_t createTriangleMesh(uint32_t nP, const double P[][3], uint32_t nI, const uint32_t PI[][3], uint32_t style_index,
-                      uint32_t nN, const double N[][3],   const uint32_t NI[][3],
-                      uint32_t nT, const double T[][2],   const uint32_t TI[][3],
-                      uint32_t nC, const RGBAColour C[],  const uint32_t CI[][3],
-                      uint32_t nS, const uint32_t S[], const uint32_t SI[], double ca);
-    uint32_t createTriangleMesh(uint32_t nP, const double P[][3], uint32_t nI, const uint32_t PI[][3], const PRCmaterial& m,
-                      uint32_t nN, const double N[][3],   const uint32_t NI[][3],
+template<class V>
+    void addTriangles(uint32_t nP, const V P[], uint32_t nI, const uint32_t PI[][3], const PRCmaterial &m,
+ uint32_t nN, const V N[],   const uint32_t NI[][3],
+ uint32_t nT, const double T[][2],   const uint32_t TI[][3],
+ uint32_t nC, const RGBAColour C[],  const uint32_t CI[][3],
+ uint32_t nM, const PRCmaterial M[], const uint32_t MI[], double ca)
+{
+  if(nP==0 || P==NULL || nI==0 || PI==NULL)
+     return;
+  const uint32_t tess_index = createTriangleMesh(nP, P, nI, PI, m, nN, N, NI, nT, T, TI, nC, C, CI, nM, M, MI, ca);
+  useMesh(tess_index,m1);
+}
+template<class V>
+    uint32_t createTriangleMesh(uint32_t nP, const V P[], uint32_t nI, const uint32_t PI[][3], const PRCmaterial& m,
+                      uint32_t nN, const V N[],   const uint32_t NI[][3],
                       uint32_t nT, const double T[][2],   const uint32_t TI[][3],
                       uint32_t nC, const RGBAColour C[],  const uint32_t CI[][3],
                       uint32_t nM, const PRCmaterial M[], const uint32_t MI[], double ca)
@@ -769,6 +786,119 @@ class oPRCFile
                else
                  return createTriangleMesh(nP, P, nI, PI, style, nN, N, NI, nT, T, TI, nC, C, CI, 0, NULL, NULL, ca);
             }
+  
+template<class V>
+uint32_t createTriangleMesh(uint32_t nP, const V P[], uint32_t nI, const uint32_t PI[][3], const uint32_t style_index,
+uint32_t nN, const V N[],  const uint32_t NI[][3],
+ uint32_t nT, const double T[][2],  const uint32_t TI[][3],
+ uint32_t nC, const RGBAColour C[], const uint32_t CI[][3],
+ uint32_t nS, const uint32_t S[],   const uint32_t SI[], double ca)
+{
+  if(nP==0 || P==NULL || nI==0 || PI==NULL)
+     return m1;
+
+  const bool triangle_color = (nS != 0 && S != NULL && SI != NULL);
+  const bool vertex_color   = (nC != 0 && C != NULL && CI != NULL);
+  const bool has_normals    = (nN != 0 && N != NULL && NI != NULL);
+  const bool textured       = (nT != 0 && T != NULL && TI != NULL);
+
+  PRC3DTess *tess = new PRC3DTess();
+  PRCTessFace *tessFace = new PRCTessFace();
+  tessFace->used_entities_flag = textured ? PRC_FACETESSDATA_TriangleTextured : PRC_FACETESSDATA_Triangle;
+  tessFace->number_of_texture_coordinate_indexes = textured ? 1 : 0;
+  tess->coordinates.reserve(3*nP);
+  for(uint32_t i=0; i<nP; i++)
+  {
+    tess->coordinates.push_back(X(P[i]));
+    tess->coordinates.push_back(Y(P[i]));
+    tess->coordinates.push_back(Z(P[i]));
+  }
+  if(has_normals)
+  {
+    tess->normal_coordinate.reserve(3*nN);
+  for(uint32_t i=0; i<nN; i++)
+  {
+    tess->normal_coordinate.push_back(X(N[i]));
+    tess->normal_coordinate.push_back(Y(N[i]));
+    tess->normal_coordinate.push_back(Z(N[i]));
+  }
+  }
+  else
+    tess->crease_angle = ca;
+  if(textured)
+  {
+    tess->texture_coordinate.reserve(2*nT);
+  for(uint32_t i=0; i<nT; i++)
+  {
+    tess->texture_coordinate.push_back(T[i][0]);
+    tess->texture_coordinate.push_back(T[i][1]);
+  }
+  }
+  tess->triangulated_index.reserve(3*nI+(has_normals?3:0)*nI+(textured?3:0)*nI);
+  for(uint32_t i=0; i<nI; i++)
+  {
+    if(has_normals)
+    tess->triangulated_index.push_back(3*NI[i][0]);
+    if(textured)
+    tess->triangulated_index.push_back(2*TI[i][0]);
+    tess->triangulated_index.push_back(3*PI[i][0]);
+    if(has_normals)
+    tess->triangulated_index.push_back(3*NI[i][1]);
+    if(textured)
+    tess->triangulated_index.push_back(2*TI[i][1]);
+    tess->triangulated_index.push_back(3*PI[i][1]);
+    if(has_normals)
+    tess->triangulated_index.push_back(3*NI[i][2]);
+    if(textured)
+    tess->triangulated_index.push_back(2*TI[i][2]);
+    tess->triangulated_index.push_back(3*PI[i][2]);
+  }
+  tessFace->sizes_triangulated.push_back(nI);
+  if(triangle_color)
+  {
+    tessFace->line_attributes.reserve(nI);
+    for(uint32_t i=0; i<nI; i++)
+       tessFace->line_attributes.push_back(SI[i]);
+  }
+  else if (style_index != m1 )
+  {
+      tessFace->line_attributes.push_back(style_index);
+  }
+  if(vertex_color)
+  {
+    tessFace->is_rgba=false;
+    for(uint32_t i=0; i<nI; i++)
+      if(1.0 != C[CI[i][0]].A || 1.0 != C[CI[i][1]].A || 1.0 != C[CI[i][2]].A)
+      {
+         tessFace->is_rgba=true;
+         break;
+      }
+
+    tessFace->rgba_vertices.reserve((tessFace->is_rgba?4:3)*3*nI);
+    for(uint32_t i=0; i<nI; i++)
+    {
+       tessFace->rgba_vertices.push_back(byte(C[CI[i][0]].R));
+       tessFace->rgba_vertices.push_back(byte(C[CI[i][0]].G));
+       tessFace->rgba_vertices.push_back(byte(C[CI[i][0]].B));
+       if(tessFace->is_rgba)
+       tessFace->rgba_vertices.push_back(byte(C[CI[i][0]].A));
+       tessFace->rgba_vertices.push_back(byte(C[CI[i][1]].R));
+       tessFace->rgba_vertices.push_back(byte(C[CI[i][1]].G));
+       tessFace->rgba_vertices.push_back(byte(C[CI[i][1]].B));
+       if(tessFace->is_rgba)
+       tessFace->rgba_vertices.push_back(byte(C[CI[i][1]].A));
+       tessFace->rgba_vertices.push_back(byte(C[CI[i][2]].R));
+       tessFace->rgba_vertices.push_back(byte(C[CI[i][2]].G));
+       tessFace->rgba_vertices.push_back(byte(C[CI[i][2]].B));
+       if(tessFace->is_rgba)
+       tessFace->rgba_vertices.push_back(byte(C[CI[i][2]].A));
+    }
+  }
+  tess->addTessFace(tessFace);
+  const uint32_t tess_index = add3DTess(tess);
+  return tess_index;
+}
+
     void addQuads(uint32_t nP, const double P[][3], uint32_t nI, const uint32_t PI[][4], const PRCmaterial &m,
                       uint32_t nN, const double N[][3],   const uint32_t NI[][4],
                       uint32_t nT, const double T[][2],   const uint32_t TI[][4],

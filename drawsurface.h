@@ -558,9 +558,9 @@ public:
 class drawBaseTriangles : public drawElement {
 protected:
   size_t nP;
-  Triple* P;
+  triple* P;
   size_t nN;
-  Triple* N;
+  triple* N;
   size_t nI;
   uint32_t (*PI)[3];
   uint32_t (*NI)[3];
@@ -574,9 +574,9 @@ public:
   drawBaseTriangles(const vm::array& v, const vm::array& vi,
                     const vm::array& n, const vm::array& ni) {
     nP=checkArray(&v);
-    P=new(UseGC) Triple[nP];
+    P=new(UseGC) triple[nP];
     for(size_t i=0; i < nP; ++i)
-      store(P[i],vm::read<triple>(v,i));
+      P[i]=vm::read<triple>(v,i);
   
     nI=checkArray(&vi);
     PI=new(UseGC) uint32_t[nI][3];
@@ -593,9 +593,9 @@ public:
     
     nN=checkArray(&n);
     if(nN) {
-      N=new(UseGC) Triple[nN];
+      N=new(UseGC) triple[nN];
       for(size_t i=0; i < nN; ++i)
-        store(N[i],vm::read<triple>(n,i));
+        N[i]=vm::read<triple>(n,i);
     
       if(checkArray(&ni) != nI)
         reportError("Index arrays have different lengths");
@@ -615,8 +615,9 @@ public:
 
   drawBaseTriangles(const double* t, const drawBaseTriangles *s) :
     nP(s->nP), nN(s->nN), nI(s->nI) {
-    P=new(UseGC) Triple[nP];
-    transformTriples(t,nP,P,s->P);
+    P=new(UseGC) triple[nP];
+    for(size_t i=0; i < nP; i++)
+      P[i]=t*s->P[i];
     
     PI=new(UseGC) uint32_t[nI][3];
     for(size_t i=0; i < nI; ++i) {
@@ -627,8 +628,9 @@ public:
     }
 
     if(nN) {
-      N=new(UseGC) Triple[nN];
-      transformNormalsTriples(t,nN,N,s->N);
+      N=new(UseGC) triple[nN];
+      for(size_t i=0; i < nN; i++)
+        N[i]=transformNormal(t,s->N[i]);
     
       NI=new(UseGC) uint32_t[nI][3];
       for(size_t i=0; i < nI; ++i) {

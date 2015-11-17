@@ -124,22 +124,6 @@ void transformTriples(const double* t, size_t n, Triple* d, const Triple* s)
   }
 }
   
-void transformNormalsTriples(const double* t, size_t n, Triple* d,
-                             const Triple* s)
-{
-  if(n == 0 || s == NULL || d == NULL)
-    return;
-    
-  for(size_t i=0; i < n; i++) {
-    const double *si=s[i];
-    triple v=transformNormal(t,triple(si[0],si[1],si[2]));
-    double *di=d[i];
-    di[0]=v.getx();
-    di[1]=v.gety();
-    di[2]=v.getz();
-  }
-}
-
 void unitTriples(size_t n, Triple* d)
 {
   for (size_t i=0; i < n; i++) {
@@ -161,31 +145,6 @@ void copyTriples(size_t n, Triple* d, const Triple* s)
     return;
     
   memcpy(d, s, sizeof(double)*3*n);
-}
-  
-void boundsTriples(double& x, double& y, double& z, double& X, double& Y,
-                   double& Z, size_t n, const Triple* v)
-{
-  if(n == 0 || v == NULL)
-    return;
-
-  X=x=v[0][0];
-  Y=y=v[0][1];
-  Z=z=v[0][2];
-    
-  for(size_t i=1; i < n; ++i) {
-    const double* const vi=v[i];
-    const double vx=vi[0];
-    x=min(x,vx);
-    X=max(X,vx);
-    const double vy=vi[1];
-    y=min(y,vy);
-    Y=max(Y,vy);
-    const double vz=vi[2];
-    z=min(z,vz);
-    Z=max(Z,vz);
-  }
-    
 }
   
 void boundstriples(double& x, double& y, double& z, double& X, double& Y,
