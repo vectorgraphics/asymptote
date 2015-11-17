@@ -34,20 +34,8 @@ void copyTransform3(double*& d, const double* s,
                     GCPlacement placement=NoGC);
 void multiplyTransform3(double*& t, const double* s, const double* r);
 
-void copyTriples(size_t n, Triple* d, const Triple* s);
-void transformTriples(const double* t, size_t n, Triple* d, const Triple* s);
-void transformshiftlessTriples(const double* t, size_t n, Triple* d, const Triple* s);
-void transformNormalsTriples(const double* t, size_t n, Triple* d, const Triple* s);
-void unitTriples(size_t n, Triple* d);
-
-void boundsTriples(double& x, double& y, double& z, double& X, double& Y, double& Z, size_t n, const Triple* v);
 void boundstriples(double& x, double& y, double& z, double& X, double& Y,
                    double& Z, size_t n, const triple* v);
-
-void ratioTriples(pair &b, double (*m)(double, double), bool &first, size_t n, const Triple* v);
-
-void normalizeTriple(Triple v);
-void crossTriple(Triple n, const Triple u, const Triple v);
 
 class triple : virtual public gc {
   double x;

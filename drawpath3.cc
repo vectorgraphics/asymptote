@@ -17,24 +17,24 @@ bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
     return true;
 
   if(straight) {
-    Triple *controls=new(UseGC) Triple[n+1];
+    triple *controls=new(UseGC) triple[n+1];
     for(Int i=0; i <= n; ++i)
-      store(controls[i],g.point(i));
+      controls[i]=g.point(i);
     
     out->addLine(n+1,controls,color);
   } else {
     int m=3*n+1;
-    Triple *controls=new(UseGC) Triple[m];
-    store(controls[0],g.point((Int) 0));
-    store(controls[1],g.postcontrol((Int) 0));
+    triple *controls=new(UseGC) triple[m];
+    controls[0]=g.point((Int) 0);
+    controls[1]=g.postcontrol((Int) 0);
     size_t k=1;
     for(Int i=1; i < n; ++i) {
-      store(controls[++k],g.precontrol(i));
-      store(controls[++k],g.point(i));
-      store(controls[++k],g.postcontrol(i));
+      controls[++k]=g.precontrol(i);
+      controls[++k]=g.point(i);
+      controls[++k]=g.postcontrol(i);
     }
-    store(controls[++k],g.precontrol(n));
-    store(controls[++k],g.point(n));
+    controls[++k]=g.precontrol(n);
+    controls[++k]=g.point(n);
     out->addBezierCurve(m,controls,color);
   }
   
@@ -121,33 +121,19 @@ bool drawNurbsPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 // Approximate bounds by bounding box of control polyhedron.
 void drawNurbsPath3::bounds(const double* t, bbox3& b)
 {
-  Triple* Controls;
+  double x,y,z;
+  double X,Y,Z;
+  
+  triple* Controls;
   if(t == NULL) Controls=controls;
   else {
-    Controls=new Triple[n];
-    transformTriples(t,n,Controls,controls);
+    Controls=new triple[n];
+    for(size_t i=0; i < n; i++)
+      Controls[i]=t*controls[i];
   }
   
-  double *v=Controls[0];
-  double x=v[0];
-  double y=v[1];
-  double z=v[2];
-  double X=x;
-  double Y=y;
-  double Z=z;
-  for(size_t i=1; i < n; ++i) {
-    double *v=Controls[i];
-    double vx=v[0];
-    x=min(x,vx);
-    X=max(X,vx);
-    double vy=v[1];
-    y=min(y,vy);
-    Y=max(Y,vy);
-    double vz=v[2];
-    z=min(z,vz);
-    Z=max(Z,vz);
-  }
-
+  boundstriples(x,y,z,X,Y,Z,n,Controls);
+  
   b.add(x,y,z);
   b.add(X,Y,Z);
   
@@ -165,25 +151,24 @@ drawElement *drawNurbsPath3::transformed(const double* t)
 void drawNurbsPath3::ratio(const double* t, pair &b, double (*m)(double, double),
                            double, bool &first)
 {
-  Triple* Controls;
+  triple* Controls;
   if(t == NULL) Controls=controls;
   else {
-    Controls=new Triple[n];
-    transformTriples(t,n,Controls,controls);
+    Controls=new triple[n];
+    for(size_t i=0; i < n; i++)
+      Controls[i]=t*controls[i];
   }
   
   if(first) {
     first=false;
-    double *ci=Controls[0];
-    triple v=triple(ci[0],ci[1],ci[2]);
+    triple v=Controls[0];
     b=pair(xratio(v),yratio(v));
   }
   
   double x=b.getx();
   double y=b.gety();
   for(size_t i=0; i < n; ++i) {
-    double *ci=Controls[i];
-    triple v=triple(ci[0],ci[1],ci[2]);
+    triple v=Controls[i];
     x=m(x,xratio(v));
     y=m(y,yratio(v));
   }

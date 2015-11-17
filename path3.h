@@ -387,14 +387,6 @@ double boundtri(double *P, double (*m)(double, double), double b,
 double boundtri(triple *P, double (*m)(double, double),
                 double (*f)(const triple&), double b, double fuzz,
                 int depth);
-
-inline void store(Triple& control, const triple& v)
-{
-  control[0]=v.getx();
-  control[1]=v.gety();
-  control[2]=v.getz();
-}
-
 }
 
 #ifndef BROKEN_COMPILER

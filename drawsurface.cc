@@ -94,25 +94,7 @@ void drawSurface::bounds(const double* t, bbox3& b)
         Vertices[i]=t*vertices[i];
     }
   
-    triple v=vertices[0];
-    x=v.getx();
-    y=v.gety();
-    z=v.getz();
-    X=x;
-    Y=y;
-    Z=z;
-    for(size_t i=1; i < 4; ++i) {
-      triple v=vertices[i];
-      double vx=v.getx();
-      x=min(x,vx);
-      X=max(X,vx);
-      double vy=v.gety();
-      y=min(y,vy);
-      Y=max(Y,vy);
-      double vz=v.getz();
-      z=min(z,vz);
-      Z=max(Z,vz);
-    }
+    boundstriples(x,y,z,X,Y,Z,4,Vertices);
   } else {
     static double cx[16];
     static double cy[16];
@@ -148,14 +130,14 @@ void drawSurface::bounds(const double* t, bbox3& b)
     fuzz=sqrtFuzz*run::norm(cz,16);
     z=bound(cz,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
     Z=bound(cz,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
-    
-    b.add(x,y,z);
-    b.add(X,Y,Z);
+  }  
   
-    if(t == NULL) {
-      Min=triple(x,y,z);
-      Max=triple(X,Y,Z);
-    }
+  b.add(x,y,z);
+  b.add(X,Y,Z);
+  
+  if(t == NULL) {
+    Min=triple(x,y,z);
+    Max=triple(X,Y,Z);
   }
 }
 
@@ -425,14 +407,14 @@ void drawBezierTriangle::bounds(const double* t, bbox3& b)
   static double cz[10];
     
   if(t == NULL) {
-    for(int i=0; i < 10; ++i) {
+    for(unsigned int i=0; i < 10; ++i) {
       triple v=controls[i];
       cx[i]=v.getx();
       cy[i]=v.gety();
       cz[i]=v.getz();
     }
   } else {
-    for(int i=0; i < 10; ++i) {
+    for(unsigned int i=0; i < 10; ++i) {
       triple v=t*controls[i];
       cx[i]=v.getx();
       cy[i]=v.gety();
@@ -473,7 +455,7 @@ void drawBezierTriangle::ratio(const double* t, pair &b,
   else {
     static triple buf[10];
     Controls=buf;
-    for(int i=0; i < 10; ++i)
+    for(unsigned int i=0; i < 10; ++i)
       Controls[i]=t*controls[i];
   }
     
@@ -582,34 +564,20 @@ bool drawNurbs::write(prcfile *out, unsigned int *, double, groupsmap&)
 // Approximate bounds by bounding box of control polyhedron.
 void drawNurbs::bounds(const double* t, bbox3& b)
 {
+  double x,y,z;
+  double X,Y,Z;
+  
   const size_t n=nu*nv;
-  Triple* Controls;
+  triple* Controls;
   if(t == NULL) Controls=controls;
   else {
-    Controls=new Triple[n];
-    transformTriples(t,n,Controls,controls);
+    Controls=new triple[n];
+    for(size_t i=0; i < n; i++)
+      Controls[i]=t*controls[i];
   }
 
-  double *v=Controls[0];
-  double x=v[0];
-  double y=v[1];
-  double z=v[2];
-  double X=x;
-  double Y=y;
-  double Z=z;
-  for(size_t i=1; i < n; ++i) {
-    double *v=Controls[i];
-    double vx=v[0];
-    x=min(x,vx);
-    X=max(X,vx);
-    double vy=v[1];
-    y=min(y,vy);
-    Y=max(Y,vy);
-    double vz=v[2];
-    z=min(z,vz);
-    Z=max(Z,vz);
-  }
-
+  boundstriples(x,y,z,X,Y,Z,n,Controls);
+  
   b.add(x,y,z);
   b.add(X,Y,Z);
   
@@ -628,25 +596,25 @@ void drawNurbs::ratio(const double *t, pair &b, double (*m)(double, double),
                       double, bool &first)
 {
   const size_t n=nu*nv;
-  Triple* Controls;
+  
+  triple* Controls;
   if(t == NULL) Controls=controls;
   else {
-    Controls=new Triple[n];
-    transformTriples(t,n,Controls,controls);
+    Controls=new triple[n];
+    for(unsigned int i=0; i < n; ++i)
+      Controls[i]=t*controls[i];
   }
 
   if(first) {
     first=false;
-    double *ci=Controls[0];
-    triple v=triple(ci[0],ci[1],ci[2]);
+    triple v=Controls[0];
     b=pair(xratio(v),yratio(v));
   }
   
   double x=b.getx();
   double y=b.gety();
   for(size_t i=0; i < n; ++i) {
-    double *ci=Controls[i];
-    triple v=triple(ci[0],ci[1],ci[2]);
+    triple v=Controls[i];
     x=m(x,xratio(v));
     y=m(y,yratio(v));
   }
@@ -741,16 +709,14 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
 #endif
 }
 
-void drawSphere::P(Triple& t, double x, double y, double z)
+void drawSphere::P(triple& t, double x, double y, double z)
 {
   if(half) {
     double temp=z; z=x; x=-temp;
   }
   
   if(T == NULL) {
-    t[0]=x;
-    t[1]=y;
-    t[2]=z;
+    t=triple(x,y,z);
     return;
   }
   
@@ -758,9 +724,8 @@ void drawSphere::P(Triple& t, double x, double y, double z)
   if(f == 0.0) run::dividebyzero();
   f=1.0/f;
   
-  t[0]=(T[0]*x+T[1]*y+T[2]*z+T[3])*f;
-  t[1]=(T[4]*x+T[5]*y+T[6]*z+T[7])*f;
-  t[2]=(T[8]*x+T[9]*y+T[10]*z+T[11])*f;
+  t=triple((T[0]*x+T[1]*y+T[2]*z+T[3])*f,(T[4]*x+T[5]*y+T[6]*z+T[7])*f,
+           (T[8]*x+T[9]*y+T[10]*z+T[11])*f);
 }
 
 bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
@@ -790,7 +755,7 @@ bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
 // NURBS representation of a sphere using 10 distinct control points
 // K. Qin, J. Comp. Sci. and Tech. 12, 210-216 (1997).
   
-      Triple N,S,P1,P2,P3,P4,P5,P6,P7,P8;
+      triple N,S,P1,P2,P3,P4,P5,P6,P7,P8;
   
       P(N,0.0,0.0,1.0);
       P(P1,-2.0,-2.0,1.0);
@@ -803,38 +768,13 @@ bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
       P(P7,-2.0,2.0,1.0);
       P(P8,-2.0,2.0,-1.0);
         
-      Triple p0[]=
-        {{N[0],N[1],N[2]},
-         {P1[0],P1[1],P1[2]},
-         {P2[0],P2[1],P2[2]},
-         {S[0],S[1],S[2]},
-     
-         {N[0],N[1],N[2]},
-         {P3[0],P3[1],P3[2]},
-         {P4[0],P4[1],P4[2]},
-         {S[0],S[1],S[2]},
-     
-         {N[0],N[1],N[2]},
-         {P5[0],P5[1],P5[2]},
-         {P6[0],P6[1],P6[2]},
-         {S[0],S[1],S[2]},
-  
-         {N[0],N[1],N[2]},
-         {P7[0],P7[1],P7[2]},
-         {P8[0],P8[1],P8[2]},
-         {S[0],S[1],S[2]},
-     
-         {N[0],N[1],N[2]},
-         {P1[0],P1[1],P1[2]},
-         {P2[0],P2[1],P2[2]},
-         {S[0],S[1],S[2]},
-     
-         {N[0],N[1],N[2]},
-         {P3[0],P3[1],P3[2]},
-         {P4[0],P4[1],P4[2]},
-         {S[0],S[1],S[2]},
-        };
-
+      triple p0[]={N,P1,P2,S,
+                   N,P3,P4,S,
+                   N,P5,P6,S,
+                   N,P7,P8,S,
+                   N,P1,P2,S,
+                   N,P3,P4,S};
+   
       out->addSurface(2,3,3,4,p0,uknot,vknot,m,Weights);
       out->addSurface(2,3,3,4,p0+4,uknot,vknot,m,Weights);
       if(!half) {
@@ -885,41 +825,41 @@ bool drawTube::write(prcfile *out, unsigned int *, double, groupsmap&)
   Int n=center.length();
   
   if(center.piecewisestraight()) {
-    Triple *centerControls=new(UseGC) Triple[n+1];
+    triple *centerControls=new(UseGC) triple[n+1];
     for(Int i=0; i <= n; ++i)
-      store(centerControls[i],center.point(i));
+      centerControls[i]=center.point(i);
     size_t N=n+1;
-    Triple *controls=new(UseGC) Triple[N];
+    triple *controls=new(UseGC) triple[N];
     for(Int i=0; i <= n; ++i)
-      store(controls[i],g.point(i));
-    out->addTube(N,centerControls,controls,true,m,NULL,NULL,NULL,1.0);
+      controls[i]=g.point(i);
+    out->addTube(N,centerControls,controls,true,m);
   } else {
     size_t N=3*n+1;
-    Triple *centerControls=new(UseGC) Triple[N];
-    store(centerControls[0],center.point((Int) 0));
-    store(centerControls[1],center.postcontrol((Int) 0));
+    triple *centerControls=new(UseGC) triple[N];
+    centerControls[0]=center.point((Int) 0);
+    centerControls[1]=center.postcontrol((Int) 0);
     size_t k=1;
     for(Int i=1; i < n; ++i) {
-      store(centerControls[++k],center.precontrol(i));
-      store(centerControls[++k],center.point(i));
-      store(centerControls[++k],center.postcontrol(i));
+      centerControls[++k]=center.precontrol(i);
+      centerControls[++k]=center.point(i);
+      centerControls[++k]=center.postcontrol(i);
     }
-    store(centerControls[++k],center.precontrol(n));
-    store(centerControls[++k],center.point(n));
+    centerControls[++k]=center.precontrol(n);
+    centerControls[++k]=center.point(n);
     
-    Triple *controls=new(UseGC) Triple[N];
-    store(controls[0],g.point((Int) 0));
-    store(controls[1],g.postcontrol((Int) 0));
+    triple *controls=new(UseGC) triple[N];
+    controls[0]=g.point((Int) 0);
+    controls[1]=g.postcontrol((Int) 0);
     k=1;
     for(Int i=1; i < n; ++i) {
-      store(controls[++k],g.precontrol(i));
-      store(controls[++k],g.point(i));
-      store(controls[++k],g.postcontrol(i));
+      controls[++k]=g.precontrol(i);
+      controls[++k]=g.point(i);
+      controls[++k]=g.postcontrol(i);
     }
-    store(controls[++k],g.precontrol(n));
-    store(controls[++k],g.point(n));
+    controls[++k]=g.precontrol(n);
+    controls[++k]=g.point(n);
     
-    out->addTube(N,centerControls,controls,false,m,NULL,NULL,NULL,1.0);
+    out->addTube(N,centerControls,controls,false,m);
   }
       
   return true;

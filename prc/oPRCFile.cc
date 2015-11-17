@@ -1402,15 +1402,6 @@ uint32_t oPRCFile::addMaterial(const PRCmaterial& m)
    return style_index;
 }
 
-bool isid(const double* t)
-{
-  return(
-         t[0]==1 && t[1]==0 && t[2]==0 && t[3]==0 &&
-         t[4]==0 && t[5]==1 && t[6]==0 && t[7]==0 &&
-         t[8]==0 && t[9]==0 && t[10]==1 && t[11]==0 &&
-         t[12]==0 && t[13]==0 && t[14]==0 && t[15]==1 );
-}
-
 void oPRCFile::begingroup(const char *name, PRCoptions *options,
                           const double* t)
 {
@@ -1445,20 +1436,6 @@ void oPRCFile::endgroup()
 PRCgroup& oPRCFile::findGroup()
 {
   return groups.top();
-}
-
-#define ADDWIRE(curvtype)                                 \
-  PRCgroup &group = findGroup();                          \
-  group.wires.push_back(PRCwire());                       \
-  PRCwire &wire = group.wires.back();                     \
-  curvtype *curve = new curvtype;                         \
-  wire.curve = curve;                                     \
-  wire.style = addColour(c);
-
-void oPRCFile::addPoint(const double P[3], const RGBAColour &c, double w)
-{
-  PRCgroup &group = findGroup();
-  group.points[addColourWidth(c,w)].push_back(PRCVector3d(P[0],P[1],P[2]));
 }
 
 void oPRCFile::addPoints(uint32_t n, const double P[][3], const RGBAColour &c, double w)
@@ -1753,164 +1730,7 @@ uint32_t oPRCFile::createLines(uint32_t nP, const double P[][3], uint32_t nI, co
   return tess_index;
 }
 
-void oPRCFile::addLine(uint32_t n, const double P[][3], const RGBAColour &c, double w)
-{
-  PRCgroup &group = findGroup();
-  if(group.options.tess)
-  {
-    group.lines[w].push_back(PRCtessline());
-    PRCtessline& line = group.lines[w].back();
-    line.color.red   = c.R;
-    line.color.green = c.G;
-    line.color.blue  = c.B;
-    for(uint32_t i=0; i<n; i++)
-      line.point.push_back(PRCVector3d(P[i][0],P[i][1],P[i][2]));
-  }
-  else
-  {
-    ADDWIRE(PRCPolyLine)
-    curve->point.resize(n);
-    for(uint32_t i=0; i<n; i++)
-     curve->point[i].Set(P[i][0],P[i][1],P[i][2]);
-    curve->interval.min = 0;
-    curve->interval.max = curve->point.size()-1;
-  }
-}
-
-void oPRCFile::addBezierCurve(uint32_t n, const double cP[][3],
-                              const RGBAColour &c)
-{
-  ADDWIRE(PRCNURBSCurve)
-  curve->is_rational = false;
-  curve->degree = 3;
-  const size_t NUMBER_OF_POINTS = n;
-  curve->control_point.resize(NUMBER_OF_POINTS);
-  for(size_t i = 0; i < NUMBER_OF_POINTS; ++i)
-    curve->control_point[i].Set(cP[i][0],cP[i][1],cP[i][2]);
-  curve->knot.resize(3+NUMBER_OF_POINTS+1);
-  curve->knot[0] = 1;
-  for(size_t i = 1; i < 3+NUMBER_OF_POINTS; ++i)
-    curve->knot[i] = (i+2)/3; // integer division is intentional
-  curve->knot[3+NUMBER_OF_POINTS] = (3+NUMBER_OF_POINTS+1)/3;
-}
-
-void oPRCFile::addCurve(uint32_t d, uint32_t n, const double cP[][3], const double *k, const RGBAColour &c, const double w[])
-{
-  ADDWIRE(PRCNURBSCurve)
-  curve->is_rational = (w!=NULL);
-  curve->degree = d;
-  curve->control_point.resize(n);
-  for(uint32_t i = 0; i < n; i++)
-    if(w)
-      curve->control_point[i].Set(cP[i][0]*w[i],cP[i][1]*w[i],cP[i][2]*w[i],w[i]);
-    else
-      curve->control_point[i].Set(cP[i][0],cP[i][1],cP[i][2]);
-  curve->knot.resize(d+n+1);
-  for(uint32_t i = 0; i < d+n+1; i++)
-    curve->knot[i] = k[i];
-}
-
-void oPRCFile::addSurface(uint32_t dU, uint32_t dV, uint32_t nU, uint32_t nV,
-                          const double cP[][3], const double *kU,
-                          const double *kV, const PRCmaterial &m,
-                          const double w[])
-{
-  ADDFACE(PRCNURBSSurface)
-
-  surface->is_rational = (w!=NULL);
-  surface->degree_in_u = dU;
-  surface->degree_in_v = dV;
-  surface->control_point.resize(nU*nV);
-  for(size_t i = 0; i < nU*nV; i++)
-    if(w)
-      surface->control_point[i]=PRCControlPoint(cP[i][0]*w[i],cP[i][1]*w[i],cP[i][2]*w[i],w[i]);
-    else
-      surface->control_point[i]=PRCControlPoint(cP[i][0],cP[i][1],cP[i][2]);
-  surface->knot_u.insert(surface->knot_u.end(), kU, kU+(dU+nU+1));
-  surface->knot_v.insert(surface->knot_v.end(), kV, kV+(dV+nV+1));
-}
-
-#define SETTRANSF \
-  if(t&&!isid(t))                                                             \
-    face.transform = new PRCGeneralTransformation3d(t);                       \
-  if(origin) surface->origin.Set(origin[0],origin[1],origin[2]);              \
-  if(x_axis) surface->x_axis.Set(x_axis[0],x_axis[1],x_axis[2]);              \
-  if(y_axis) surface->y_axis.Set(y_axis[0],y_axis[1],y_axis[2]);              \
-  surface->scale = scale;                                                     \
-  surface->geometry_is_2D = false;                                            \
-  if(surface->origin!=PRCVector3d(0.0,0.0,0.0))                                     \
-    surface->behaviour = surface->behaviour | PRC_TRANSFORMATION_Translate;   \
-  if(surface->x_axis!=PRCVector3d(1.0,0.0,0.0)||surface->y_axis!=PRCVector3d(0.0,1.0,0.0)) \
-    surface->behaviour = surface->behaviour | PRC_TRANSFORMATION_Rotate;      \
-  if(surface->scale!=1)                                                       \
-    surface->behaviour = surface->behaviour | PRC_TRANSFORMATION_Scale;       \
-  surface->has_transformation = (surface->behaviour != PRC_TRANSFORMATION_Identity);
-
 #define PRCFACETRANSFORM const double origin[3], const double x_axis[3], const double y_axis[3], double scale, const double* t
-
-void oPRCFile::addTube(uint32_t n, const double cP[][3], const double oP[][3], bool straight, const PRCmaterial &m, PRCFACETRANSFORM)
-{
-  ADDFACE(PRCBlend01)
-  SETTRANSF
-  if(straight)
-  {
-    PRCPolyLine *center_curve = new PRCPolyLine;
-    center_curve->point.resize(n);
-    for(uint32_t i=0; i<n; i++)
-      center_curve->point[i].Set(cP[i][0],cP[i][1],cP[i][2]);
-    center_curve->interval.min = 0;
-    center_curve->interval.max = center_curve->point.size()-1;
-    surface->center_curve = center_curve;
-
-    PRCPolyLine *origin_curve = new PRCPolyLine;
-    origin_curve->point.resize(n);
-    for(uint32_t i=0; i<n; i++)
-      origin_curve->point[i].Set(oP[i][0],oP[i][1],oP[i][2]);
-    origin_curve->interval.min = 0;
-    origin_curve->interval.max = origin_curve->point.size()-1;
-    surface->origin_curve = origin_curve;
-
-    surface->uv_domain.min.x = 0;
-    surface->uv_domain.max.x = 2*pi;
-    surface->uv_domain.min.y = 0;
-    surface->uv_domain.max.y = n-1;
-  }
-  else
-  {
-    PRCNURBSCurve *center_curve = new PRCNURBSCurve;
-    center_curve->is_rational = false;
-    center_curve->degree = 3;
-    const uint32_t CENTER_NUMBER_OF_POINTS = n;
-    center_curve->control_point.resize(CENTER_NUMBER_OF_POINTS);
-    for(uint32_t i = 0; i < CENTER_NUMBER_OF_POINTS; ++i)
-      center_curve->control_point[i].Set(cP[i][0],cP[i][1],cP[i][2]);
-    center_curve->knot.resize(3+CENTER_NUMBER_OF_POINTS+1);
-    center_curve->knot[0] = 1;
-    for(uint32_t i = 1; i < 3+CENTER_NUMBER_OF_POINTS; ++i)
-      center_curve->knot[i] = (i+2)/3; // integer division is intentional
-    center_curve->knot[3+CENTER_NUMBER_OF_POINTS] = (3+CENTER_NUMBER_OF_POINTS+1)/3;
-    surface->center_curve = center_curve;
-
-    PRCNURBSCurve *origin_curve = new PRCNURBSCurve;
-    origin_curve->is_rational = false;
-    origin_curve->degree = 3;
-    const uint32_t ORIGIN_NUMBER_OF_POINTS = n;
-    origin_curve->control_point.resize(ORIGIN_NUMBER_OF_POINTS);
-    for(uint32_t i = 0; i < ORIGIN_NUMBER_OF_POINTS; ++i)
-      origin_curve->control_point[i].Set(oP[i][0],oP[i][1],oP[i][2]);
-    origin_curve->knot.resize(3+ORIGIN_NUMBER_OF_POINTS+1);
-    origin_curve->knot[0] = 1;
-    for(size_t i = 1; i < 3+ORIGIN_NUMBER_OF_POINTS; ++i)
-      origin_curve->knot[i] = (i+2)/3; // integer division is intentional
-    origin_curve->knot[3+ORIGIN_NUMBER_OF_POINTS] = (3+ORIGIN_NUMBER_OF_POINTS+1)/3;
-    surface->origin_curve = origin_curve;
-
-    surface->uv_domain.min.x = 0;
-    surface->uv_domain.max.x = 2*pi;
-    surface->uv_domain.min.y = 1; // first knot
-    surface->uv_domain.max.y = (3+CENTER_NUMBER_OF_POINTS+1)/3; // last knot
-  }
-}
 
 void oPRCFile::addHemisphere(double radius, const PRCmaterial &m, PRCFACETRANSFORM)
 {
@@ -1988,8 +1808,6 @@ void oPRCFile::addTorus(double major_radius, double minor_radius, double angle1,
   surface->minor_radius = minor_radius;
 }
 
-#undef PRCFACETRANSFORM
-#undef ADDFACE
 #undef ADDWIRE
 #undef SETTRANSF
 

@@ -7,14 +7,16 @@ MAKEDEPEND = $(CFLAGS) -O0 -M -DDEPEND
 
 FILES = PRCbitStream oPRCFile PRCdouble writePRC
 
-test: $(FILES:=.o) test.o
-	$(CXX) $(CFLAGS) -o test $(FILES:=.o) test.o -lz
+all: $(FILES:=.o)
 
-test_tess: $(FILES:=.o) test_tess.o
-	$(CXX) $(CFLAGS) -o test_tess $(FILES:=.o) test_tess.o -lz
+#test: $(FILES:=.o) test.o
+#	$(CXX) $(CFLAGS) -o test $(FILES:=.o) test.o -lz
 
-test_mesh: $(FILES:=.o) test_mesh.o
-	$(CXX) $(CFLAGS) -o test_mesh $(FILES:=.o) test_mesh.o -lz
+#test_tess: $(FILES:=.o) test_tess.o
+#	$(CXX) $(CFLAGS) -o test_tess $(FILES:=.o) test_tess.o -lz
+
+#test_mesh: $(FILES:=.o) test_mesh.o
+#	$(CXX) $(CFLAGS) -o test_mesh $(FILES:=.o) test_mesh.o -lz
 
 .SUFFIXES: .c .cc .o .d
 .cc.o:

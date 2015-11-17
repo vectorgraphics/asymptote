@@ -1414,11 +1414,13 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
       pic.addPoint(v[viij]);
 }
 
-void drawPRCsphere(frame f, transform3 t=identity4, bool half=false, material m,
-                   light light=currentlight, render render=defaultrender)
+void drawPRCsphere(frame f, transform3 t=identity4, bool half=false,
+                   material m, light light=currentlight,
+                   render render=defaultrender)
 {
   m=material(m,light);
-  drawPRCsphere(f,t,half,m.p,m.opacity,PRCshininess(m.shininess),render.sphere);
+  drawPRCsphere(f,t,half,m.p,m.opacity,PRCshininess(m.shininess),
+                render.sphere);
 }
 
 void drawPRCcylinder(frame f, transform3 t=identity4, material m,

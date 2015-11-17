@@ -106,12 +106,12 @@ public:
     invisible(s->invisible),
     interaction(s->interaction), prc(s->prc) { 
     
-    for(int i=0; i < 4; ++i)
+    for(unsigned int i=0; i < 4; ++i)
       vertices[i]=t*s->vertices[i];
     
     if(s->controls) {
       controls=new(UseGC) triple[16];
-      for(int i=0; i < 16; ++i)
+      for(unsigned int i=0; i < 16; ++i)
         controls[i]=t*s->controls[i];
     } else controls=NULL;
   
@@ -178,9 +178,9 @@ public:
     
     size_t k=0;
     controls=new(UseGC) triple[10];
-    for(int i=0; i < 4; ++i) {
+    for(unsigned int i=0; i < 4; ++i) {
       vm::array *gi=vm::read<vm::array*>(g,i);
-      for(int j=0; j <= i; ++j) {
+      for(unsigned int j=0; j <= i; ++j) {
         controls[k++]=vm::read<triple>(gi,j);
       }
     }
@@ -212,7 +212,7 @@ public:
     
     if(s->controls) {
       controls=new(UseGC) triple[10];
-      for(int i=0; i < 10; ++i)
+      for(unsigned int i=0; i < 10; ++i)
         controls[i]=t*s->controls[i];
     } else controls=NULL;
   }
@@ -240,7 +240,7 @@ class drawNurbs : public drawElement {
 protected:
   size_t udegree,vdegree;
   size_t nu,nv;
-  Triple *controls;
+  triple *controls;
   double *weights;
   double *uknots, *vknots;
   RGBAColour diffuse;
@@ -280,7 +280,7 @@ public:
     nv=checkArray(g0);
     
     size_t n=nu*nv;
-    controls=new(UseGC) Triple[n];
+    controls=new(UseGC) triple[n];
     
     size_t k=0;
     for(size_t i=0; i < nu; ++i) {
@@ -288,7 +288,7 @@ public:
       if(checkArray(gi) != nv)  
         reportError(wrongsize);
       for(size_t j=0; j < nv; ++j)
-        store(controls[k++],vm::read<triple>(gi,j));
+        controls[k++]=vm::read<triple>(gi,j);
     }
       
     if(weightsize > 0) {
@@ -346,9 +346,9 @@ public:
     invisible(s->invisible) {
     
     const size_t n=nu*nv;
-    controls=new(UseGC) Triple[n];
-      
-    transformTriples(t,n,controls,s->controls);
+    controls=new(UseGC) triple[n];
+    for(unsigned int i=0; i < n; ++i)
+      controls[i]=t*s->controls[i];
     
 #ifdef HAVE_GL
     Controls=NULL;
@@ -430,7 +430,7 @@ public:
   drawSphere(const double* t, const drawSphere *s) :
     drawPRC(t,s), half(s->half), type(s->type) {}
     
-  void P(Triple& t, double x, double y, double z);
+  void P(triple& t, double x, double y, double z);
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
@@ -518,27 +518,27 @@ public:
 
 // Draw a PRC pixel.
 class drawPixel : public drawElement {
-  Triple v;
+  triple v;
   RGBAColour c;
   double width;
   bool invisible;
 public:
   drawPixel(const triple& v0, const pen& p, double width) :
     c(rgba(p)), width(width) {
-    store(v,v0);
+    v=v0;
     invisible=p.invisible();
   }
 
   drawPixel(const double* t, const drawPixel *s) :
     c(s->c), width(s->width), invisible(s->invisible) {
-    transformTriples(t,1,&v,&(s->v));
+    v=t*s->v;
   }
     
   void bounds(const double* t, bbox3& b) {
     const triple R=0.5*width*triple(1.0,1.0,1.0);
     if (t != NULL) {
-      Triple tv;
-      transformTriples(t,1,&tv,&v);
+      triple tv;
+      tv=t*v;
       b.add(tv-R);
       b.add(tv+R);
     } else {
