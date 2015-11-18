@@ -25,6 +25,7 @@ triplearray2* => tripleArray2()
 transform => primTransform()
 callableTransform* => transformFunction()
 callablePen* => penFunction()
+callableNormal* => normalFunction()
 
 #include "picture.h"
 #include "drawelement.h"
@@ -63,6 +64,7 @@ typedef array penarray2;
 
 typedef callable callableTransform;
 typedef callable callablePen;
+typedef callable callableNormal;
 
 using types::IntArray;
 using types::IntArray2;
@@ -84,6 +86,11 @@ function *transformFunction()
 function *penFunction()
 {
   return new function(primPen(),primInt(),primInt());
+}
+
+function *normalFunction()
+{
+  return new function(primTriple(),primTriple());
 }
 
 // Ignore unclosed begingroups but not spurious endgroups.
@@ -642,13 +649,14 @@ void draw(picture *f, triplearray2 *P, triple center, bool straight,
 }
 
 // Bezier triangle
-void drawbeziertriangle(picture *f, triplearray2 *P, triple center,
-                        bool straight, penarray *p, real opacity,
-                        real shininess, real PRCshininess,
-                        penarray *colors, Int interaction, bool prc=true)
+void drawbeziertriangle(picture *f, triplearray2 *P, callableNormal *N, 
+                        triple center, bool straight, penarray *p,
+                        real opacity, real shininess, real PRCshininess,
+                        penarray *colors, Int interaction,
+                        bool prc=true)
 {
-  f->append(new drawBezierTriangle(*P,center,straight,*p,opacity,shininess,
-                                   PRCshininess,*colors,
+  f->append(new drawBezierTriangle(Stack,*P,N,center,straight,*p,opacity,
+                                   shininess,PRCshininess,*colors,
                                    (Interaction) intcast(interaction),prc));
 }
 
