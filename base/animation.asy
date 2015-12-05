@@ -139,6 +139,7 @@ struct animation {
 
   string pdf(enclosure enclosure=NoBox, real delay=animationdelay,
              string options="", bool keep=settings.keep, bool multipage=true) {
+    settings.twice=true;
     if(settings.inlinetex) multipage=true;
     if(!global) multipage=false;
     if(!pdflatex())
