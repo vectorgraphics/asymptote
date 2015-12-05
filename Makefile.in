@@ -172,17 +172,17 @@ faq:	asy sty
 	cd doc && $(MAKE) faq
 
 $(RUNTIME_FILES:=.cc): %.cc: runtime.pl opsymbols.h runtimebase.in %.in
-	perl ./runtime.pl $(@:.cc=)
+	$(PERL) ./runtime.pl $(@:.cc=)
 
 $(SYMBOL_FILES:=.symbols.h): %.symbols.h: findsym.pl %.cc
 	$(CXX) -E -DNOSYM $(OPTS) $(INCL) $(@:.symbols.h=.cc) | \
-          perl ./findsym.pl $@ -
+          $(PERL) ./findsym.pl $@ -
 
 $(SYMBOL_FILES:=.o): %.o: %.symbols.h
 
 allsymbols.h: findsym.pl $(SYMBOL_FILES:=.cc)
 	$(CXX) -E -DNOSYM $(OPTS) $(INCL) $(SYMBOL_FILES:=.cc) | \
-          perl ./findsym.pl $@ -
+          $(PERL) ./findsym.pl $@ -
 
 symbol.o: opsymbols.h allsymbols.h
 
@@ -197,10 +197,10 @@ lex.yy.cc: camp.l
 lex.yy.d: $(GCLIB) lex.yy.cc camp.tab.h
 
 keywords.cc: keywords.pl camp.l process.cc
-	perl ./keywords.pl
+	$(PERL) ./keywords.pl
 
 opsymbols.h: opsymbols.pl camp.l
-	perl ./opsymbols.pl
+	$(PERL) ./opsymbols.pl
 
 envcompleter.d: keywords.cc
 
@@ -209,7 +209,7 @@ asy-keywords.el: asy
 	$(ASY) -l > asy.list
 	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | \
           grep -v three_\* | grep -v featpost3D | xargs $(ASY) -l >> asy.list
-	perl ./asy-list.pl asy.list $(revision)
+	$(PERL) ./asy-list.pl asy.list $(revision)
 
 install: asy-keywords.el install-texhash install-man
 
