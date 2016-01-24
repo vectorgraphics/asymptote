@@ -9011,7 +9011,8 @@ algorithm assumes that the function and the surface are both smooth; if they are
 then @code{contour3} may be a better choice.
 
 To construct the null surface of a function @code{f(triple)} or @code{ff(real,real,real)}
-over @code{box(a,b)}, use the routine @cindex @code{implicitsurface} 
+over @code{box(a,b)}, use the routine
+@cindex @code{implicitsurface} 
 @verbatim
 surface implicitsurface(real f(triple) = null, 
                         real ff(real,real,real) = null,
