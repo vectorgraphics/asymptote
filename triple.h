@@ -30,7 +30,6 @@ typedef double Triple[3];
 class triple;
   
 bool isIdTransform3(const double* t);
-void CopyTransform3(double* d, const double* s);
 void copyTransform3(double*& d, const double* s,
                     GCPlacement placement=NoGC);
 void multiplyTransform3(double*& t, const double* s, const double* r);
@@ -78,12 +77,13 @@ public:
     if(t == NULL)
       return v;
 
-    double T[16];
-    CopyTransform3(T,t);
+    double *T=new double[16];
+    copyTransform3(T,t);
     T[3]=T[7]=T[11]=0.0;
     run::inverse(T,4);
     run::transpose(T,4);
     triple V=T*v;
+    delete T;
     return unit(V);
   }
 

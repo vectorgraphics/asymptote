@@ -139,11 +139,9 @@ public:
   drawElement *transformed(const double* t);
 };
   
-class drawBezierTriangle : public drawElementLC {
-  vm::stack *Stack;
+class drawBezierTriangle : public drawElement {
 protected:
   triple *controls;
-  vm::callable *normal;
   triple center;
   bool straight;
   RGBAColour diffuse;
@@ -166,14 +164,12 @@ protected:
 #endif  
   
 public:
-  drawBezierTriangle(vm::stack *Stack, const vm::array& g,
-                     vm::callable *normal,
-                     triple center, bool straight, const vm::array&p,
-                     double opacity, double shininess, double PRCshininess,
-                     const vm::array &pens, Interaction interaction, bool prc)
-    : Stack(Stack), normal(normal), center(center), straight(straight),
-      opacity(opacity), shininess(shininess), PRCshininess(PRCshininess), 
-      interaction(interaction), prc(prc) {
+  drawBezierTriangle(const vm::array& g, triple center, bool straight,
+                     const vm::array&p, double opacity, double shininess,
+                     double PRCshininess, const vm::array &pens,
+                     Interaction interaction, bool prc) :
+    center(center), straight(straight), opacity(opacity), shininess(shininess),
+    PRCshininess(PRCshininess), interaction(interaction), prc(prc) {
     const string wrongsize=
       "Bezier triangle requires triangular array of 10 triples and array of 4 pens";
     if(checkArray(&g) != 4 || checkArray(&p) != 4)
@@ -207,12 +203,11 @@ public:
   }
   
   drawBezierTriangle(const double* t, const drawBezierTriangle *s) :
-    drawElementLC(t,s), Stack(s->Stack), normal(s->normal),
-    straight(s->straight),
-    diffuse(s->diffuse), ambient(s->ambient), emissive(s->emissive),
-    specular(s->specular), colors(s->colors), opacity(s->opacity),
-    shininess(s->shininess), PRCshininess(s->PRCshininess),
-    invisible(s->invisible), interaction(s->interaction), prc(s->prc) { 
+    straight(s->straight), diffuse(s->diffuse), ambient(s->ambient),
+    emissive(s->emissive), specular(s->specular), colors(s->colors),
+    opacity(s->opacity), shininess(s->shininess), PRCshininess(s->PRCshininess), 
+    invisible(s->invisible),
+    interaction(s->interaction), prc(s->prc) { 
     
     if(s->controls) {
       controls=new(UseGC) triple[10];

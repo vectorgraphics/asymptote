@@ -9,8 +9,6 @@ string meshname(string name) {return name+" mesh";}
 private real Fuzz=10.0*realEpsilon;
 private real nineth=1/9;
 
-typedef triple normalfunction(triple);
-
 // Return the default Coons interior control point for a Bezier triangle
 // based on the cyclic path3 external.
 triple coons3(path3 external) {
@@ -24,7 +22,6 @@ struct patch {
   triple[][] P;
   triple[] normals; // Optionally specify 4 normal vectors at the corners.
   pen[] colors;     // Optionally specify 4 corner colors.
-  normalfunction normalfunction; // Optional normal function.
   bool straight;    // Patch is based on a piecewise straight external path.
   bool3 planar;     // Patch is planar.
   bool triangular;  // Patch is a Bezier triangle.
@@ -273,15 +270,13 @@ struct patch {
   // A constructor for a cyclic path3 of length 3 with a specified
   // internal point, corner normals, and pens (rendered as a Bezier triangle).
   void operator init(path3 external, triple internal,
-                     triple[] normals=new triple[], pen[] colors=new pen[],
-                     normalfunction normal=null) {
+                     triple[] normals=new triple[], pen[] colors=new pen[]) {
     triangular=true;
     init();
     if(normals.length != 0)
       this.normals=copy(normals);
     if(colors.length != 0)
       this.colors=copy(colors);
-    this.normalfunction=normal;
 
     P=new triple[][] {
       {point(external,0)},
@@ -405,7 +400,6 @@ patch operator * (transform3 t, patch s)
   S.planar=s.planar;
   S.straight=s.straight;
   S.triangular=s.triangular;
-  S.normalfunction=s.normalfunction;
   S.init();
   return S;
 }
@@ -1329,8 +1323,8 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
     PRCshininess=PRCshininess(m.shininess);
   
   if(s.triangular)
-    drawbeziertriangle(f,s.P,s.normalfunction,center,s.straight,m.p,m.opacity,
-                       m.shininess,PRCshininess,s.colors,0);
+    drawbeziertriangle(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,
+                       PRCshininess,s.colors,0);
   else
     draw(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,PRCshininess,
          s.planar ? s.normal(0.5,0.5) : O,s.colors,interaction.type,prc);

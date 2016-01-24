@@ -74,12 +74,8 @@ void copyArray4x4C(double*& dest, const vm::array *a)
   copyTransform3(dest,tt);
 }
   
-void CopyTransform3(double* d, const double* s)
-{
-  memcpy(d,s,sizeof(double)*16);
-}
-  
 void copyTransform3(double*& d, const double* s, GCPlacement placement)
+
 {
   if(!isIdTransform3(s) || d != NULL) {
     if(d == NULL)
