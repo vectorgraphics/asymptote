@@ -11,6 +11,15 @@ private real nineth=1/9;
 
 typedef triple normalfunction(triple);
 
+// Return the default Coons interior control point for a Bezier triangle
+// based on the cyclic path3 external.
+triple coons3(path3 external) {
+  return 0.25*(precontrol(external,0)+postcontrol(external,0)+
+               precontrol(external,1)+postcontrol(external,1)+
+               precontrol(external,2)+postcontrol(external,2))-
+    (point(external,0)+point(external,1)+point(external,2))/6.0;
+}
+
 struct patch {
   triple[][] P;
   triple[] normals; // Optionally specify 4 normal vectors at the corners.
@@ -261,15 +270,6 @@ struct patch {
     operator init(s.P,s.normals,s.colors,s.straight,s.planar,s.triangular);
    }
   
-  // Return the default Coons interior control point for a Bezier triangle
-  // based on the cyclic path3 external.
-  triple coons3(path3 external) {
-    return 0.25*(precontrol(external,0)+postcontrol(external,0)+
-                 precontrol(external,1)+postcontrol(external,1)+
-                 precontrol(external,2)+postcontrol(external,2))-
-      (point(external,0)+point(external,1)+point(external,2))/6.0;
-  }
-
   // A constructor for a cyclic path3 of length 3 with a specified
   // internal point, corner normals, and pens (rendered as a Bezier triangle).
   void operator init(path3 external, triple internal,
@@ -780,8 +780,13 @@ struct surface {
   // A constructor for a possibly nonconvex simple cyclic path in a given plane.
   void operator init(path p, triple plane(pair)=XYplane) {
     bool straight=piecewisestraight(p);
-    for(path g : regularize(p))
-      s.push(patch(coons(g),plane,straight));
+    for(path g : regularize(p)) {
+      if(length(g) == 3) {
+        path3 G=path3(g,plane);
+        s.push(patch(G,coons3(G)));
+      } else
+        s.push(patch(coons(g),plane,straight));
+    }
   }
 
   void operator init(explicit path[] g, triple plane(pair)=XYplane) {

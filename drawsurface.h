@@ -103,8 +103,7 @@ public:
     straight(s->straight), diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), colors(s->colors),
     opacity(s->opacity), shininess(s->shininess), PRCshininess(s->PRCshininess), 
-    invisible(s->invisible),
-    interaction(s->interaction), prc(s->prc) { 
+    invisible(s->invisible), interaction(s->interaction), prc(s->prc) { 
     
     for(unsigned int i=0; i < 4; ++i)
       vertices[i]=t*s->vertices[i];
@@ -173,8 +172,8 @@ public:
                      double opacity, double shininess, double PRCshininess,
                      const vm::array &pens, Interaction interaction, bool prc)
     : Stack(Stack), normal(normal), center(center), straight(straight),
-      opacity(opacity), shininess(shininess), interaction(interaction),
-      prc(prc) {
+      opacity(opacity), shininess(shininess), PRCshininess(PRCshininess), 
+      interaction(interaction), prc(prc) {
     const string wrongsize=
       "Bezier triangle requires triangular array of 10 triples and array of 4 pens";
     if(checkArray(&g) != 4 || checkArray(&p) != 4)

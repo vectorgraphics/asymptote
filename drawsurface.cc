@@ -472,21 +472,23 @@ void drawBezierTriangle::ratio(const double* t, pair &b,
 
 bool drawBezierTriangle::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
-/*  
   if(invisible)
     return true;
 
-  if (nC) {
-    const RGBAColour white(1,1,1,opacity);
-    const RGBAColour black(0,0,0,opacity);
-    const PRCmaterial m(black,white,black,specular,opacity,PRCshininess);
-    out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,nC,C,CI,0,NULL,NULL,30);
-  } else {
-    const PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
-    out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,0,NULL,NULL,0,NULL,NULL,
-                      30);
-  }
-*/
+  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+  
+  static const double third=1.0/3.0;
+  static const double third2=2.0/3.0;
+  triple Controls[]={controls[0],controls[0],controls[0],controls[0],
+                       controls[1],third2*controls[1]+third*controls[2],
+                       third*controls[1]+third2*controls[2],
+                       controls[2],controls[3],
+                       third*controls[3]+third2*controls[4],
+                       third2*controls[4]+third*controls[5],
+                       controls[5],controls[6],controls[7],
+                       controls[8],controls[9]};
+  out->addPatch(Controls,m);
+                    
   return true;
 }
 
