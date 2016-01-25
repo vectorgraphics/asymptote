@@ -248,7 +248,8 @@ path subdivide(path p)
   path q;
   int l=length(p);
   for(int i=0; i < l; ++i)
-    q=q&subpath(p,i,i+0.5)&subpath(p,i+0.5,i+1);
+    q=q&(straight(p,i) ? subpath(p,i,i+1) :
+         subpath(p,i,i+0.5)&subpath(p,i+0.5,i+1));
   return cyclic(p) ? q&cycle : q;
 }
 
