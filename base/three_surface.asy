@@ -9,11 +9,21 @@ string meshname(string name) {return name+" mesh";}
 private real Fuzz=10.0*realEpsilon;
 private real nineth=1/9;
 
+// Return the default Coons interior control point for a Bezier triangle
+// based on the cyclic path3 external.
+triple coons3(path3 external) {
+  return 0.25*(precontrol(external,0)+postcontrol(external,0)+
+               precontrol(external,1)+postcontrol(external,1)+
+               precontrol(external,2)+postcontrol(external,2))-
+    (point(external,0)+point(external,1)+point(external,2))/6.0;
+}
+
 struct patch {
   triple[][] P;
   pen[] colors;     // Optionally specify 4 corner colors.
   bool straight;    // Patch is based on a piecewise straight external path.
   bool3 planar;     // Patch is planar.
+  bool triangular;  // Patch is a Bezier triangle.
 
   path3 external() {
     return straight ? P[0][0]--P[3][0]--P[3][3]--P[0][3]--cycle :
@@ -23,18 +33,38 @@ struct patch {
       P[0][3]..controls P[0][2] and P[0][1]..cycle;
   }
 
+  path3 externaltriangular() {
+    return 
+      P[0][0]..controls P[1][0] and P[2][0]..
+      P[3][0]..controls P[3][1] and P[3][2]..
+      P[3][3]..controls P[2][2] and P[1][1]..cycle;
+  }
+
   triple[] internal() {
     return new triple[] {P[1][1],P[2][1],P[2][2],P[1][2]};
+  }
+
+  triple[] internaltriangular() {
+    return new triple[] {P[2][1]};
   }
 
   triple cornermean() {
     return 0.25*(P[0][0]+P[0][3]+P[3][0]+P[3][3]);
   }
 
+  triple cornermeantriangular() {
+    return (P[0][0]+P[3][0]+P[3][3])/3;
+  }
+
   triple[] corners() {return new triple[] {P[0][0],P[3][0],P[3][3],P[0][3]};}
+  triple[] cornerstriangular() {return new triple[] {P[0][0],P[3][0],P[3][3]};}
 
   real[] map(real f(triple)) {
     return new real[] {f(P[0][0]),f(P[3][0]),f(P[3][3]),f(P[0][3])};
+  }
+
+  real[] maptriangular(real f(triple)) {
+    return new real[] {f(P[0][0]),f(P[3][0]),f(P[3][3])};
   }
 
   triple Bu(int j, real u) {return bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
@@ -69,6 +99,13 @@ struct patch {
     return bezier(Bu(0,u),Bu(1,u),Bu(2,u),Bu(3,u),v);
   }
 
+  triple pointtriangular(real u, real v) {
+    real w=1-u-v;
+    return w^2*(w*P[0][0]+3*(u*P[1][0]+v*P[1][1]))+
+      u^2*(u*P[3][0]+3*(w*P[2][0]+v*P[3][1]))+
+      6*u*v*w*P[2][1]+v^2*(v*P[3][3]+3*(w*P[2][2]+u*P[3][2]));
+  }
+  
   // compute normal vectors for degenerate cases
   private triple normal0(real u, real v, real epsilon) {
     triple n=0.5*(cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),
@@ -151,6 +188,15 @@ struct patch {
   void init() {
     havemin3=false;
     havemax3=false;
+    if(triangular) {
+      external=externaltriangular;
+      internal=internaltriangular;
+      cornermean=cornermeantriangular;
+      corners=cornerstriangular;
+      map=maptriangular;
+      point=pointtriangular;
+      // colors= // TODO
+    }
   }
 
   triple min(triple bound=P[0][0]) {
@@ -187,36 +233,52 @@ struct patch {
 
   void operator init(triple[][] P,
                      pen[] colors=new pen[], bool straight=false,
-                     bool3 planar=default, bool copy=true) {
-    init();
+                     bool3 planar=default, bool triangular=false,
+                     bool copy=true) {
     this.P=copy ? copy(P) : P;
     if(colors.length != 0)
       this.colors=copy(colors);
-    this.planar=planar;
     this.straight=straight;
+    this.planar=planar;
+    this.triangular=triangular;
+    init();
   }
 
   void operator init(pair[][] P, triple plane(pair)=XYplane,
-                     bool straight=false) {
+                     bool straight=false, bool triangular=false) {
     triple[][] Q=new triple[4][];
     for(int i=0; i < 4; ++i) {
       pair[] Pi=P[i];
       Q[i]=sequence(new triple(int j) {return plane(Pi[j]);},4);
     }
-    operator init(Q,straight);
-    planar=true;
+    operator init(Q,straight,planar=true,triangular);
   }
 
   void operator init(patch s) {
-    operator init(s.P,s.colors,s.straight);
-  }
+    operator init(s.P,s.colors,s.straight,s.planar,s.triangular);
+   }
   
+  // A constructor for a cyclic path3 of length 3 with a specified
+  // internal point, corner normals, and pens (rendered as a Bezier triangle).
+  void operator init(path3 external, triple internal, pen[] colors=new pen[]) {
+    triangular=true;
+    init();
+    if(colors.length != 0)
+      this.colors=copy(colors);
+
+    P=new triple[][] {
+      {point(external,0)},
+      {postcontrol(external,0),precontrol(external,0)},
+      {precontrol(external,1),internal,postcontrol(external,2)},
+      {point(external,1),postcontrol(external,1),precontrol(external,2),
+       point(external,2)}
+    };
+  }
+
   // A constructor for a convex cyclic path3 of length <= 4 with optional
   // arrays of 4 internal points, and pens.
   void operator init(path3 external, triple[] internal=new triple[],
                      pen[] colors=new pen[], bool3 planar=default) {
-    init();
-
     if(internal.length == 0 && planar == default)
       this.planar=normal(external) != O;
     else this.planar=planar;
@@ -231,9 +293,12 @@ struct patch {
       external=external--cycle--cycle;
       if(colors.length > 0) colors.append(array(2,colors[0]));
     } else if(L == 3) {
-      external=external--cycle;
-      if(colors.length > 0) colors.push(colors[0]);
+      operator init(external,coons3(external),colors);
+      straight=piecewisestraight(external);
+      return;
     }
+
+    init();
     if(colors.length != 0)
       this.colors=copy(colors);
 
@@ -247,7 +312,7 @@ struct patch {
                             +3*(precontrol(external,j-1)+
                                 postcontrol(external,j+1))
                             -point(external,j+2));
-    } else straight=false;
+    }
 
     P=new triple[][] {
       {point(external,0),precontrol(external,0),postcontrol(external,3),
@@ -296,22 +361,25 @@ struct patch {
 patch operator * (transform3 t, patch s)
 { 
   patch S;
-  S.P=new triple[4][4];
-  for(int i=0; i < 4; ++i) { 
+  S.P=new triple[s.P.length][];
+  for(int i=0; i < s.P.length; ++i) { 
     triple[] si=s.P[i];
     triple[] Si=S.P[i];
-    for(int j=0; j < 4; ++j)
+    for(int j=0; j < si.length; ++j)
       Si[j]=t*si[j]; 
   }
   
   S.colors=copy(s.colors);
   S.planar=s.planar;
   S.straight=s.straight;
+  S.triangular=s.triangular;
+  S.init();
   return S;
 }
  
 patch reverse(patch s) 
 {
+  assert(!s.triangular);
   patch S;
   S.P=transpose(s.P);
   if(s.colors.length > 0) 
@@ -562,7 +630,7 @@ path[] regularize(path p, bool checkboundary=true)
 
 struct surface {
   patch[] s;
-  int index[][];
+  int index[][];// Position of patch corresponding to major U,V parameter in s.
   bool vcyclic;
   
   bool empty() {
@@ -585,10 +653,11 @@ struct surface {
     this.vcyclic=s.vcyclic;
   }
 
-  void operator init(triple[][][] P,
-                     pen[][] colors=new pen[][], bool3 planar=default) {
+  void operator init(triple[][][] P, pen[][] colors=new pen[][],
+                     bool3 planar=default, bool triangular=false) {
     s=sequence(new patch(int i) {
-        return patch(P[i], colors.length == 0 ? new pen[] : colors[i],planar);
+        return patch(P[i],colors.length == 0 ? new pen[] : colors[i],planar,
+                     triangular);
       },P.length);
   }
 
@@ -673,8 +742,13 @@ struct surface {
   // A constructor for a possibly nonconvex simple cyclic path in a given plane.
   void operator init(path p, triple plane(pair)=XYplane) {
     bool straight=piecewisestraight(p);
-    for(path g : regularize(p))
-      s.push(patch(coons(g),plane,straight));
+    for(path g : regularize(p)) {
+      if(length(g) == 3) {
+        path3 G=path3(g,plane);
+        s.push(patch(G,coons3(G)));
+      } else
+        s.push(patch(coons(g),plane,straight));
+    }
   }
 
   void operator init(explicit path[] g, triple plane(pair)=XYplane) {
@@ -1072,7 +1146,7 @@ triple[][] subpatch(triple[][] P, pair a, pair b)
 patch subpatch(patch s, pair a, pair b)
 {
   assert(a.x >= 0 && a.y >= 0 && b.x <= 1 && b.y <= 1 &&
-         a.x < b.x && a.y < b.y);
+         a.x < b.x && a.y < b.y && !s.triangular);
   return patch(subpatch(s.P,a,b),s.straight,s.planar);
 }
 
@@ -1205,8 +1279,12 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
   if(prc())
     PRCshininess=PRCshininess(m.shininess);
   
-  draw(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,PRCshininess,
-       s.planar ? s.normal(0.5,0.5) : O,s.colors,interaction.type,prc);
+  if(s.triangular)
+    drawbeziertriangle(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,
+                       PRCshininess,s.colors,0);
+  else
+    draw(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,PRCshininess,
+         s.planar ? s.normal(0.5,0.5) : O,s.colors,interaction.type,prc);
 }
 
 // Draw triangles on a frame.
@@ -1298,11 +1376,13 @@ void draw(picture pic=currentpicture, triple[] v, int[][] vi,
       pic.addPoint(v[viij]);
 }
 
-void drawPRCsphere(frame f, transform3 t=identity4, bool half=false, material m,
-                   light light=currentlight, render render=defaultrender)
+void drawPRCsphere(frame f, transform3 t=identity4, bool half=false,
+                   material m, light light=currentlight,
+                   render render=defaultrender)
 {
   m=material(m,light);
-  drawPRCsphere(f,t,half,m.p,m.opacity,PRCshininess(m.shininess),render.sphere);
+  drawPRCsphere(f,t,half,m.p,m.opacity,PRCshininess(m.shininess),
+                render.sphere);
 }
 
 void drawPRCcylinder(frame f, transform3 t=identity4, material m,
@@ -2227,3 +2307,36 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
     },true);
   pic.addBox(minbound(P),maxbound(P));
 }
+
+/*
+// Draw a Bezier triangle.
+void draw(picture pic=currentpicture, triple[][] P, material m=currentpen,
+          pen[] colors=new pen[], light light=currentlight, string name="",
+          render render=defaultrender)
+{
+  if(colors.length > 0)
+    m=mean(colors);
+  m=material(m,light);
+  bool lighton=light.on();
+  P=copy(P);
+   colors=copy(colors);
+  pic.add(new void(frame f, transform3 t, picture pic, projection Q) {
+      if(is3D()) {
+        bool group=name != "" || render.defaultnames;
+        if(group)
+          begingroup3(f,name == "" ? "surface" : name,render);
+        triple[] P=t*P;
+        real PRCshininess;
+        if(prc())
+          PRCshininess=PRCshininess(m.shininess);
+        drawbeziertriangle(f,P,O,false,m.p,m.opacity,m.shininess,PRCshininess,
+             colors,0);
+        if(group)
+          endgroup3(f);
+        if(pic != null)
+          pic.addBox(minbound(P,Q),maxbound(P,Q));
+      }
+    },true);
+  pic.addBox(minbound(P),maxbound(P));
+}
+*/

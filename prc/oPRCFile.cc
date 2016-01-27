@@ -25,9 +25,8 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <string>
+#include <cstring>
 #include <zlib.h>
-#include <string.h>
 
 #define WriteUnsignedInteger( value ) out << (uint32_t)(value);
 #define WriteInteger( value ) out << (int32_t)(value);
@@ -70,18 +69,7 @@
 #define SerializeModelFileData serializeModelFileData(modelFile_out); modelFile_out.compress();
 #define SerializeUnit( value ) (value).serializeUnit(out);
 
-using std::string;
 using namespace std;
-
-// Map [0,1] to [0,255]
-inline uint8_t byte(double r) 
-{
-  if(r < 0.0) r=0.0;
-  else if(r > 1.0) r=1.0;
-  int a=(int)(256.0*r);
-  if(a == 256) a=255;
-  return a;
-}
 
 void PRCFileStructure::serializeFileStructureGlobals(PRCbitStream &out)
 {
@@ -401,7 +389,7 @@ uint32_t PRCHeader::getSize()
 
 void oPRCFile::doGroup(PRCgroup& group)
 {
-    const string& name = group.name;
+    const std::string& name = group.name;
 
     PRCProductOccurrence*& product_occurrence        = group.product_occurrence;
     PRCProductOccurrence*& parent_product_occurrence = group.parent_product_occurrence;
@@ -1070,7 +1058,7 @@ uint32_t oPRCFile::getSize()
   return size;
 }
 
-uint32_t PRCFileStructure::addPicture(EPRCPictureDataFormat format, uint32_t size, const uint8_t *p, uint32_t width, uint32_t height, string name)
+uint32_t PRCFileStructure::addPicture(EPRCPictureDataFormat format, uint32_t size, const uint8_t *p, uint32_t width, uint32_t height, std::string name)
 {
   uint8_t *data = NULL;
   uint32_t components=0;
@@ -1414,15 +1402,6 @@ uint32_t oPRCFile::addMaterial(const PRCmaterial& m)
    return style_index;
 }
 
-bool isid(const double* t)
-{
-  return(
-         t[0]==1 && t[1]==0 && t[2]==0 && t[3]==0 &&
-         t[4]==0 && t[5]==1 && t[6]==0 && t[7]==0 &&
-         t[8]==0 && t[9]==0 && t[10]==1 && t[11]==0 &&
-         t[12]==0 && t[13]==0 && t[14]==0 && t[15]==1 );
-}
-
 void oPRCFile::begingroup(const char *name, PRCoptions *options,
                           const double* t)
 {
@@ -1457,39 +1436,6 @@ void oPRCFile::endgroup()
 PRCgroup& oPRCFile::findGroup()
 {
   return groups.top();
-}
-
-#define ADDWIRE(curvtype)                                 \
-  PRCgroup &group = findGroup();                          \
-  group.wires.push_back(PRCwire());                       \
-  PRCwire &wire = group.wires.back();                     \
-  curvtype *curve = new curvtype;                         \
-  wire.curve = curve;                                     \
-  wire.style = addColour(c);
-
-#define ADDFACE(surftype)                                 \
-  PRCgroup &group = findGroup();                          \
-  group.faces.push_back(PRCface());                       \
-  PRCface& face = group.faces.back();                     \
-  surftype *surface = new surftype;                       \
-  face.face = new PRCFace;                                \
-  face.face->base_surface = surface;                      \
-  face.transparent = m.alpha < 1.0;                       \
-  face.style = addMaterial(m);
-
-#define ADDCOMPFACE                                       \
-  PRCgroup &group = findGroup();                          \
-  group.compfaces.push_back(PRCcompface());               \
-  PRCcompface& face = group.compfaces.back();             \
-  PRCCompressedFace *compface = new PRCCompressedFace;    \
-  face.face = compface;                                   \
-  face.transparent = m.alpha < 1.0;                       \
-  face.style = addMaterial(m);
-
-void oPRCFile::addPoint(const double P[3], const RGBAColour &c, double w)
-{
-  PRCgroup &group = findGroup();
-  group.points[addColourWidth(c,w)].push_back(PRCVector3d(P[0],P[1],P[2]));
 }
 
 void oPRCFile::addPoints(uint32_t n, const double P[][3], const RGBAColour &c, double w)
@@ -1545,129 +1491,6 @@ void oPRCFile::useLines(uint32_t tess_index, uint32_t style_index, const double*
   polyWire->index_tessellation = tess_index;
   polyWire->index_of_line_style = style_index;
   group.polywires.push_back(polyWire);
-}
-
-void oPRCFile::addTriangles(uint32_t nP, const double P[][3], uint32_t nI, const uint32_t PI[][3], const PRCmaterial &m,
- uint32_t nN, const double N[][3],   const uint32_t NI[][3],
- uint32_t nT, const double T[][2],   const uint32_t TI[][3],
- uint32_t nC, const RGBAColour C[],  const uint32_t CI[][3],
- uint32_t nM, const PRCmaterial M[], const uint32_t MI[], double ca)
-{
-  if(nP==0 || P==NULL || nI==0 || PI==NULL)
-     return;
-  const uint32_t tess_index = createTriangleMesh(nP, P, nI, PI, m, nN, N, NI, nT, T, TI, nC, C, CI, nM, M, MI, ca);
-  useMesh(tess_index,m1);
-}
-
-uint32_t oPRCFile::createTriangleMesh(uint32_t nP, const double P[][3], uint32_t nI, const uint32_t PI[][3], const uint32_t style_index,
- uint32_t nN, const double N[][3],  const uint32_t NI[][3],
- uint32_t nT, const double T[][2],  const uint32_t TI[][3],
- uint32_t nC, const RGBAColour C[], const uint32_t CI[][3],
- uint32_t nS, const uint32_t S[],   const uint32_t SI[], double ca)
-{
-  if(nP==0 || P==NULL || nI==0 || PI==NULL)
-     return m1;
-
-  const bool triangle_color = (nS != 0 && S != NULL && SI != NULL);
-  const bool vertex_color   = (nC != 0 && C != NULL && CI != NULL);
-  const bool has_normals    = (nN != 0 && N != NULL && NI != NULL);
-  const bool textured       = (nT != 0 && T != NULL && TI != NULL);
-
-  PRC3DTess *tess = new PRC3DTess();
-  PRCTessFace *tessFace = new PRCTessFace();
-  tessFace->used_entities_flag = textured ? PRC_FACETESSDATA_TriangleTextured : PRC_FACETESSDATA_Triangle;
-  tessFace->number_of_texture_coordinate_indexes = textured ? 1 : 0;
-  tess->coordinates.reserve(3*nP);
-  for(uint32_t i=0; i<nP; i++)
-  {
-    tess->coordinates.push_back(P[i][0]);
-    tess->coordinates.push_back(P[i][1]);
-    tess->coordinates.push_back(P[i][2]);
-  }
-  if(has_normals)
-  {
-    tess->normal_coordinate.reserve(3*nN);
-  for(uint32_t i=0; i<nN; i++)
-  {
-    tess->normal_coordinate.push_back(N[i][0]);
-    tess->normal_coordinate.push_back(N[i][1]);
-    tess->normal_coordinate.push_back(N[i][2]);
-  }
-  }
-  else
-    tess->crease_angle = ca;
-  if(textured)
-  {
-    tess->texture_coordinate.reserve(2*nT);
-  for(uint32_t i=0; i<nT; i++)
-  {
-    tess->texture_coordinate.push_back(T[i][0]);
-    tess->texture_coordinate.push_back(T[i][1]);
-  }
-  }
-  tess->triangulated_index.reserve(3*nI+(has_normals?3:0)*nI+(textured?3:0)*nI);
-  for(uint32_t i=0; i<nI; i++)
-  {
-    if(has_normals)
-    tess->triangulated_index.push_back(3*NI[i][0]);
-    if(textured)
-    tess->triangulated_index.push_back(2*TI[i][0]);
-    tess->triangulated_index.push_back(3*PI[i][0]);
-    if(has_normals)
-    tess->triangulated_index.push_back(3*NI[i][1]);
-    if(textured)
-    tess->triangulated_index.push_back(2*TI[i][1]);
-    tess->triangulated_index.push_back(3*PI[i][1]);
-    if(has_normals)
-    tess->triangulated_index.push_back(3*NI[i][2]);
-    if(textured)
-    tess->triangulated_index.push_back(2*TI[i][2]);
-    tess->triangulated_index.push_back(3*PI[i][2]);
-  }
-  tessFace->sizes_triangulated.push_back(nI);
-  if(triangle_color)
-  {
-    tessFace->line_attributes.reserve(nI);
-    for(uint32_t i=0; i<nI; i++)
-       tessFace->line_attributes.push_back(SI[i]);
-  }
-  else if (style_index != m1 )
-  {
-      tessFace->line_attributes.push_back(style_index);
-  }
-  if(vertex_color)
-  {
-    tessFace->is_rgba=false;
-    for(uint32_t i=0; i<nI; i++)
-      if(1.0 != C[CI[i][0]].A || 1.0 != C[CI[i][1]].A || 1.0 != C[CI[i][2]].A)
-      {
-         tessFace->is_rgba=true;
-         break;
-      }
-
-    tessFace->rgba_vertices.reserve((tessFace->is_rgba?4:3)*3*nI);
-    for(uint32_t i=0; i<nI; i++)
-    {
-       tessFace->rgba_vertices.push_back(byte(C[CI[i][0]].R));
-       tessFace->rgba_vertices.push_back(byte(C[CI[i][0]].G));
-       tessFace->rgba_vertices.push_back(byte(C[CI[i][0]].B));
-       if(tessFace->is_rgba)
-       tessFace->rgba_vertices.push_back(byte(C[CI[i][0]].A));
-       tessFace->rgba_vertices.push_back(byte(C[CI[i][1]].R));
-       tessFace->rgba_vertices.push_back(byte(C[CI[i][1]].G));
-       tessFace->rgba_vertices.push_back(byte(C[CI[i][1]].B));
-       if(tessFace->is_rgba)
-       tessFace->rgba_vertices.push_back(byte(C[CI[i][1]].A));
-       tessFace->rgba_vertices.push_back(byte(C[CI[i][2]].R));
-       tessFace->rgba_vertices.push_back(byte(C[CI[i][2]].G));
-       tessFace->rgba_vertices.push_back(byte(C[CI[i][2]].B));
-       if(tessFace->is_rgba)
-       tessFace->rgba_vertices.push_back(byte(C[CI[i][2]].A));
-    }
-  }
-  tess->addTessFace(tessFace);
-  const uint32_t tess_index = add3DTess(tess);
-  return tess_index;
 }
 
 void oPRCFile::addQuads(uint32_t nP, const double P[][3], uint32_t nI, const uint32_t PI[][4], const PRCmaterial &m,
@@ -1830,20 +1653,6 @@ uint32_t oPRCFile::createQuadMesh(uint32_t nP, const double P[][3], uint32_t nI,
   return tess_index;
 }
 
-void oPRCFile::addQuad(const double P[][3], const RGBAColour C[])
-{
-  PRCgroup &group = findGroup();
-
-  group.quads.push_back(PRCtessquad());
-  PRCtessquad &quad = group.quads.back();
-  for(size_t i = 0; i < 4; i++)
-  {
-    quad.vertices[i].x = P[i][0];
-    quad.vertices[i].y = P[i][1];
-    quad.vertices[i].z = P[i][2];
-    quad.colours[i] = C[i];
-  }
-}
 /*
 void oPRCFile::addTriangle(const double P[][3], const double T[][2], uint32_t style_index)
 {
@@ -1921,258 +1730,7 @@ uint32_t oPRCFile::createLines(uint32_t nP, const double P[][3], uint32_t nI, co
   return tess_index;
 }
 
-void oPRCFile::addLine(uint32_t n, const double P[][3], const RGBAColour &c, double w)
-{
-  PRCgroup &group = findGroup();
-  if(group.options.tess)
-  {
-    group.lines[w].push_back(PRCtessline());
-    PRCtessline& line = group.lines[w].back();
-    line.color.red   = c.R;
-    line.color.green = c.G;
-    line.color.blue  = c.B;
-    for(uint32_t i=0; i<n; i++)
-      line.point.push_back(PRCVector3d(P[i][0],P[i][1],P[i][2]));
-  }
-  else
-  {
-    ADDWIRE(PRCPolyLine)
-    curve->point.resize(n);
-    for(uint32_t i=0; i<n; i++)
-     curve->point[i].Set(P[i][0],P[i][1],P[i][2]);
-    curve->interval.min = 0;
-    curve->interval.max = curve->point.size()-1;
-  }
-}
-
-void oPRCFile::addBezierCurve(uint32_t n, const double cP[][3],
-                              const RGBAColour &c)
-{
-  ADDWIRE(PRCNURBSCurve)
-  curve->is_rational = false;
-  curve->degree = 3;
-  const size_t NUMBER_OF_POINTS = n;
-  curve->control_point.resize(NUMBER_OF_POINTS);
-  for(size_t i = 0; i < NUMBER_OF_POINTS; ++i)
-    curve->control_point[i].Set(cP[i][0],cP[i][1],cP[i][2]);
-  curve->knot.resize(3+NUMBER_OF_POINTS+1);
-  curve->knot[0] = 1;
-  for(size_t i = 1; i < 3+NUMBER_OF_POINTS; ++i)
-    curve->knot[i] = (i+2)/3; // integer division is intentional
-  curve->knot[3+NUMBER_OF_POINTS] = (3+NUMBER_OF_POINTS+1)/3;
-}
-
-void oPRCFile::addCurve(uint32_t d, uint32_t n, const double cP[][3], const double *k, const RGBAColour &c, const double w[])
-{
-  ADDWIRE(PRCNURBSCurve)
-  curve->is_rational = (w!=NULL);
-  curve->degree = d;
-  curve->control_point.resize(n);
-  for(uint32_t i = 0; i < n; i++)
-    if(w)
-      curve->control_point[i].Set(cP[i][0]*w[i],cP[i][1]*w[i],cP[i][2]*w[i],w[i]);
-    else
-      curve->control_point[i].Set(cP[i][0],cP[i][1],cP[i][2]);
-  curve->knot.resize(d+n+1);
-  for(uint32_t i = 0; i < d+n+1; i++)
-    curve->knot[i] = k[i];
-}
-
-void oPRCFile::addRectangle(const double P[][3], const PRCmaterial &m)
-{
-  PRCgroup &group = findGroup();
-  if(group.options.tess)
-  {
-    group.rectangles.push_back(PRCtessrectangle());
-    PRCtessrectangle &rectangle = group.rectangles.back();
-    rectangle.style = addMaterial(m);
-    for(size_t i = 0; i < 4; i++)
-    {
-       rectangle.vertices[i].x = P[i][0];
-       rectangle.vertices[i].y = P[i][1];
-       rectangle.vertices[i].z = P[i][2];
-    }
-  }
-  else if(group.options.compression == 0.0)
-  {
-    ADDFACE(PRCNURBSSurface)
-
-    surface->is_rational = false;
-    surface->degree_in_u = 1;
-    surface->degree_in_v = 1;
-    surface->control_point.resize(4);
-    for(size_t i = 0; i < 4; ++i)
-    {
-        surface->control_point[i].x = P[i][0];
-        surface->control_point[i].y = P[i][1];
-        surface->control_point[i].z = P[i][2];
-    }
-    surface->knot_u.resize(4);
-    surface->knot_v.resize(4);
-    surface->knot_v[0] = surface->knot_u[0] = 1;
-    surface->knot_v[1] = surface->knot_u[1] = 3;
-    surface->knot_v[2] = surface->knot_u[2] = 4;
-    surface->knot_v[3] = surface->knot_u[3] = 4;
-  }
-  else
-  {
-    ADDCOMPFACE
-
-    compface->degree = 1;
-    compface->control_point.resize(4);
-    for(size_t i = 0; i < 4; ++i)
-    {
-        compface->control_point[i].x = P[i][0];
-        compface->control_point[i].y = P[i][1];
-        compface->control_point[i].z = P[i][2];
-    }
-  }
-}
-
-void oPRCFile::addPatch(const double cP[][3], const PRCmaterial &m)
-{
-  PRCgroup &group = findGroup();
-  if(group.options.compression == 0.0)
-  {
-    ADDFACE(PRCNURBSSurface)
-
-    surface->is_rational = false;
-    surface->degree_in_u = 3;
-    surface->degree_in_v = 3;
-    surface->control_point.resize(16);
-    for(size_t i = 0; i < 16; ++i)
-    {
-        surface->control_point[i].x = cP[i][0];
-        surface->control_point[i].y = cP[i][1];
-        surface->control_point[i].z = cP[i][2];
-    }
-    surface->knot_u.resize(8);
-    surface->knot_v.resize(8);
-    surface->knot_v[0] = surface->knot_u[0] = 1;
-    surface->knot_v[1] = surface->knot_u[1] = 1;
-    surface->knot_v[2] = surface->knot_u[2] = 1;
-    surface->knot_v[3] = surface->knot_u[3] = 1;
-    surface->knot_v[4] = surface->knot_u[4] = 2;
-    surface->knot_v[5] = surface->knot_u[5] = 2;
-    surface->knot_v[6] = surface->knot_u[6] = 2;
-    surface->knot_v[7] = surface->knot_u[7] = 2;
-  }
-  else
-  {
-    ADDCOMPFACE
-
-    compface->degree = 3;
-    compface->control_point.resize(16);
-    for(size_t i = 0; i < 16; ++i)
-    {
-        compface->control_point[i].x = cP[i][0];
-        compface->control_point[i].y = cP[i][1];
-        compface->control_point[i].z = cP[i][2];
-    }
-  }
-}
-
-void oPRCFile::addSurface(uint32_t dU, uint32_t dV, uint32_t nU, uint32_t nV,
-                          const double cP[][3], const double *kU,
-                          const double *kV, const PRCmaterial &m,
-                          const double w[])
-{
-  ADDFACE(PRCNURBSSurface)
-
-  surface->is_rational = (w!=NULL);
-  surface->degree_in_u = dU;
-  surface->degree_in_v = dV;
-  surface->control_point.resize(nU*nV);
-  for(size_t i = 0; i < nU*nV; i++)
-    if(w)
-      surface->control_point[i]=PRCControlPoint(cP[i][0]*w[i],cP[i][1]*w[i],cP[i][2]*w[i],w[i]);
-    else
-      surface->control_point[i]=PRCControlPoint(cP[i][0],cP[i][1],cP[i][2]);
-  surface->knot_u.insert(surface->knot_u.end(), kU, kU+(dU+nU+1));
-  surface->knot_v.insert(surface->knot_v.end(), kV, kV+(dV+nV+1));
-}
-
-#define SETTRANSF \
-  if(t&&!isid(t))                                                             \
-    face.transform = new PRCGeneralTransformation3d(t);                       \
-  if(origin) surface->origin.Set(origin[0],origin[1],origin[2]);              \
-  if(x_axis) surface->x_axis.Set(x_axis[0],x_axis[1],x_axis[2]);              \
-  if(y_axis) surface->y_axis.Set(y_axis[0],y_axis[1],y_axis[2]);              \
-  surface->scale = scale;                                                     \
-  surface->geometry_is_2D = false;                                            \
-  if(surface->origin!=PRCVector3d(0.0,0.0,0.0))                                     \
-    surface->behaviour = surface->behaviour | PRC_TRANSFORMATION_Translate;   \
-  if(surface->x_axis!=PRCVector3d(1.0,0.0,0.0)||surface->y_axis!=PRCVector3d(0.0,1.0,0.0)) \
-    surface->behaviour = surface->behaviour | PRC_TRANSFORMATION_Rotate;      \
-  if(surface->scale!=1)                                                       \
-    surface->behaviour = surface->behaviour | PRC_TRANSFORMATION_Scale;       \
-  surface->has_transformation = (surface->behaviour != PRC_TRANSFORMATION_Identity);
-
 #define PRCFACETRANSFORM const double origin[3], const double x_axis[3], const double y_axis[3], double scale, const double* t
-
-void oPRCFile::addTube(uint32_t n, const double cP[][3], const double oP[][3], bool straight, const PRCmaterial &m, PRCFACETRANSFORM)
-{
-  ADDFACE(PRCBlend01)
-  SETTRANSF
-  if(straight)
-  {
-    PRCPolyLine *center_curve = new PRCPolyLine;
-    center_curve->point.resize(n);
-    for(uint32_t i=0; i<n; i++)
-      center_curve->point[i].Set(cP[i][0],cP[i][1],cP[i][2]);
-    center_curve->interval.min = 0;
-    center_curve->interval.max = center_curve->point.size()-1;
-    surface->center_curve = center_curve;
-
-    PRCPolyLine *origin_curve = new PRCPolyLine;
-    origin_curve->point.resize(n);
-    for(uint32_t i=0; i<n; i++)
-      origin_curve->point[i].Set(oP[i][0],oP[i][1],oP[i][2]);
-    origin_curve->interval.min = 0;
-    origin_curve->interval.max = origin_curve->point.size()-1;
-    surface->origin_curve = origin_curve;
-
-    surface->uv_domain.min.x = 0;
-    surface->uv_domain.max.x = 2*pi;
-    surface->uv_domain.min.y = 0;
-    surface->uv_domain.max.y = n-1;
-  }
-  else
-  {
-    PRCNURBSCurve *center_curve = new PRCNURBSCurve;
-    center_curve->is_rational = false;
-    center_curve->degree = 3;
-    const uint32_t CENTER_NUMBER_OF_POINTS = n;
-    center_curve->control_point.resize(CENTER_NUMBER_OF_POINTS);
-    for(uint32_t i = 0; i < CENTER_NUMBER_OF_POINTS; ++i)
-      center_curve->control_point[i].Set(cP[i][0],cP[i][1],cP[i][2]);
-    center_curve->knot.resize(3+CENTER_NUMBER_OF_POINTS+1);
-    center_curve->knot[0] = 1;
-    for(uint32_t i = 1; i < 3+CENTER_NUMBER_OF_POINTS; ++i)
-      center_curve->knot[i] = (i+2)/3; // integer division is intentional
-    center_curve->knot[3+CENTER_NUMBER_OF_POINTS] = (3+CENTER_NUMBER_OF_POINTS+1)/3;
-    surface->center_curve = center_curve;
-
-    PRCNURBSCurve *origin_curve = new PRCNURBSCurve;
-    origin_curve->is_rational = false;
-    origin_curve->degree = 3;
-    const uint32_t ORIGIN_NUMBER_OF_POINTS = n;
-    origin_curve->control_point.resize(ORIGIN_NUMBER_OF_POINTS);
-    for(uint32_t i = 0; i < ORIGIN_NUMBER_OF_POINTS; ++i)
-      origin_curve->control_point[i].Set(oP[i][0],oP[i][1],oP[i][2]);
-    origin_curve->knot.resize(3+ORIGIN_NUMBER_OF_POINTS+1);
-    origin_curve->knot[0] = 1;
-    for(size_t i = 1; i < 3+ORIGIN_NUMBER_OF_POINTS; ++i)
-      origin_curve->knot[i] = (i+2)/3; // integer division is intentional
-    origin_curve->knot[3+ORIGIN_NUMBER_OF_POINTS] = (3+ORIGIN_NUMBER_OF_POINTS+1)/3;
-    surface->origin_curve = origin_curve;
-
-    surface->uv_domain.min.x = 0;
-    surface->uv_domain.max.x = 2*pi;
-    surface->uv_domain.min.y = 1; // first knot
-    surface->uv_domain.max.y = (3+CENTER_NUMBER_OF_POINTS+1)/3; // last knot
-  }
-}
 
 void oPRCFile::addHemisphere(double radius, const PRCmaterial &m, PRCFACETRANSFORM)
 {
@@ -2250,8 +1808,6 @@ void oPRCFile::addTorus(double major_radius, double minor_radius, double angle1,
   surface->minor_radius = minor_radius;
 }
 
-#undef PRCFACETRANSFORM
-#undef ADDFACE
 #undef ADDWIRE
 #undef SETTRANSF
 

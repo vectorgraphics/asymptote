@@ -13,6 +13,8 @@
 
 namespace camp {
 
+void bezierTriangle(const triple *g, double Size2, triple Size3);
+  
 const double pixel=1.0; // Adaptive rendering constant.
 const triple drawElement::zero;
 
@@ -47,9 +49,7 @@ void setcolors(bool colors, bool lighton,
     glEnable(GL_COLOR_MATERIAL);
    if(!lighton) 
      glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
-  }
-  
-  if(colors) {
+
     GLfloat Black[]={0,0,0,(GLfloat) diffuse.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Black);
     glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,Black);
@@ -85,66 +85,53 @@ void drawSurface::bounds(const double* t, bbox3& b)
   double X,Y,Z;
   
   if(straight) {
-    Triple *Vertices;
+    triple *Vertices;
     if(t == NULL) Vertices=vertices;
     else {
-      static Triple buf[4];
+      triple buf[4];
       Vertices=buf;
-      transformTriples(t,4,Vertices,vertices);
+      for(int i=0; i < 4; ++i)
+        Vertices[i]=t*vertices[i];
     }
   
-    double *v=Vertices[0];
-    x=v[0];
-    y=v[1];
-    z=v[2];
-    X=x;
-    Y=y;
-    Z=z;
-    for(size_t i=1; i < 4; ++i) {
-      double *v=Vertices[i];
-      double vx=v[0];
-      x=min(x,vx);
-      X=max(X,vx);
-      double vy=v[1];
-      y=min(y,vy);
-      Y=max(Y,vy);
-      double vz=v[2];
-      z=min(z,vz);
-      Z=max(Z,vz);
-    }
+    boundstriples(x,y,z,X,Y,Z,4,Vertices);
   } else {
-    Triple* Controls;
-    if(t == NULL) Controls=controls;
-    else {
-      static Triple buf[16];
-      Controls=buf;
-      transformTriples(t,16,Controls,controls);
+    static double cx[16];
+    static double cy[16];
+    static double cz[16];
+  
+    if(t == NULL) {
+      for(int i=0; i < 16; ++i) {
+        triple v=controls[i];
+        cx[i]=v.getx();
+        cy[i]=v.gety();
+        cz[i]=v.getz();
+      }
+    } else {
+      for(int i=0; i < 16; ++i) {
+        triple v=t*controls[i];
+        cx[i]=v.getx();
+        cy[i]=v.gety();
+        cz[i]=v.getz();
+      }
     }
-
-    static double c1[16];
-
-    for(int i=0; i < 16; ++i)
-      c1[i]=Controls[i][0];
-    double c0=c1[0];
-    double fuzz=sqrtFuzz*run::norm(c1,16);
-    x=bound(c1,min,b.empty ? c0 : min(c0,b.left),fuzz);
-    X=bound(c1,max,b.empty ? c0 : max(c0,b.right),fuzz);
     
-    for(int i=0; i < 16; ++i)
-      c1[i]=Controls[i][1];
-    c0=c1[0];
-    fuzz=sqrtFuzz*run::norm(c1,16);
-    y=bound(c1,min,b.empty ? c0 : min(c0,b.bottom),fuzz);
-    Y=bound(c1,max,b.empty ? c0 : max(c0,b.top),fuzz);
+    double c0=cx[0];
+    double fuzz=sqrtFuzz*run::norm(cx,16);
+    x=bound(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
+    X=bound(cx,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
     
-    for(int i=0; i < 16; ++i)
-      c1[i]=Controls[i][2];
-    c0=c1[0];
-    fuzz=sqrtFuzz*run::norm(c1,16);
-    z=bound(c1,min,b.empty ? c0 : min(c0,b.lower),fuzz);
-    Z=bound(c1,max,b.empty ? c0 : max(c0,b.upper),fuzz);
-  }
+    c0=cy[0];
+    fuzz=sqrtFuzz*run::norm(cy,16);
+    y=bound(cy,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
+    Y=boundtri(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
     
+    c0=cz[0];
+    fuzz=sqrtFuzz*run::norm(cz,16);
+    z=bound(cz,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
+    Z=bound(cz,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
+  }  
+  
   b.add(x,y,z);
   b.add(X,Y,Z);
   
@@ -157,53 +144,47 @@ void drawSurface::bounds(const double* t, bbox3& b)
 void drawSurface::ratio(const double* t, pair &b, double (*m)(double, double),
                         double fuzz, bool &first)
 {
+  static triple buf[16];
   if(straight) {
-    Triple *Vertices;
+    triple *Vertices;
     if(t == NULL) Vertices=vertices;
     else {
-      static Triple buf[4];
       Vertices=buf;
-      transformTriples(t,4,Vertices,vertices);
+      for(int i=0; i < 4; ++i)
+        Vertices[i]=t*vertices[i];
     }
   
     if(first) {
       first=false;
-      double *ci=Vertices[0];
-      triple v=triple(ci[0],ci[1],ci[2]);
+      triple v=Vertices[0];
       b=pair(xratio(v),yratio(v));
     }
   
     double x=b.getx();
     double y=b.gety();
     for(size_t i=0; i < 4; ++i) {
-      double *ci=Vertices[i];
-      triple v=triple(ci[0],ci[1],ci[2]);
+      triple v=Vertices[i];
       x=m(x,xratio(v));
       y=m(y,yratio(v));
     }
     b=pair(x,y);
   } else {
-    Triple* Controls;
+    triple* Controls;
     if(t == NULL) Controls=controls;
     else {
-      static Triple buf[16];
       Controls=buf;
-      transformTriples(t,16,Controls,controls);
+      for(int i=0; i < 16; ++i)
+        Controls[i]=t*controls[i];
     }
 
-    static triple c3[16];
-    for(int i=0; i < 16; ++i) {
-      double *ci=Controls[i];
-      c3[i]=triple(ci[0],ci[1],ci[2]);
-    }
-  
     if(first) {
-      triple v=c3[0];
+      triple v=Controls[0];
       b=pair(xratio(v),yratio(v));
       first=false;
     }
   
-    b=pair(bound(c3,m,xratio,b.getx(),fuzz),bound(c3,m,yratio,b.gety(),fuzz));
+    b=pair(bound(Controls,m,xratio,b.getx(),fuzz,maxdepth),
+           bound(Controls,m,yratio,b.gety(),fuzz,maxdepth));
   }
 }
 
@@ -227,9 +208,9 @@ bool drawSurface::write(prcfile *out, unsigned int *, double, groupsmap&)
 
 // return the perpendicular displacement of a point z from the plane
 // through u with unit normal n.
-inline triple displacement2(const Triple& z, const Triple& u, const triple& n)
+inline triple displacement2(const triple& z, const triple& u, const triple& n)
 {
-  triple Z=triple(z)-triple(u);
+  triple Z=z-u;
   return n != triple(0,0,0) ? dot(Z,n)*n : Z;
 }
 
@@ -240,13 +221,10 @@ inline triple maxabs(triple u, triple v)
                 max(fabs(u.getz()),fabs(v.getz())));
 }
 
-inline triple displacement1(const Triple& z0, const Triple& c0,
-                           const Triple& c1, const Triple& z1)
+inline triple displacement1(const triple& z0, const triple& c0,
+                            const triple& c1, const triple& z1)
 {
-  triple Z0(z0);
-  triple Z1(z1);
-  return maxabs(displacement(triple(c0[0],c0[1],c0[2]),Z0,Z1),
-                displacement(triple(c1[0],c1[1],c1[2]),Z0,Z1));
+  return maxabs(displacement(c0,z0,z1),displacement(c1,z0,z1));
 }
 
 void drawSurface::displacement()
@@ -317,7 +295,6 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   if(perspective) {
     const double f=m.getz()*perspective;
     const double F=M.getz()*perspective;
-    s=max(f,F);
     if(!havebillboard && (M.getx() < min(f*Min.getx(),F*Min.getx()) || 
                           m.getx() > max(f*Max.getx(),F*Max.getx()) ||
                           M.gety() < min(f*Min.gety(),F*Min.gety()) ||
@@ -325,18 +302,18 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
                           M.getz() < Min.getz() ||
                           m.getz() > Max.getz()))
       return;
+    s=max(f,F);
   } else {
-    s=1.0;
     if(!havebillboard && (M.getx() < Min.getx() || m.getx() > Max.getx() ||
                           M.gety() < Min.gety() || m.gety() > Max.gety() ||
                           M.getz() < Min.getz() || m.getz() > Max.getz()))
       return;
+    s=1.0;
   }
     
   setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
   
-  const triple size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),
-                     Max.getz()-Min.getz());
+  const triple size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),0.0);
   
   bool havenormal=normal != zero;
   if(havebillboard) BB.init();
@@ -420,6 +397,161 @@ drawElement *drawSurface::transformed(const double* t)
   return new drawSurface(t,this);
 }
   
+void drawBezierTriangle::bounds(const double* t, bbox3& b)
+{
+  double x,y,z;
+  double X,Y,Z;
+
+  static double cx[10];
+  static double cy[10];
+  static double cz[10];
+    
+  if(t == NULL) {
+    for(unsigned int i=0; i < 10; ++i) {
+      triple v=controls[i];
+      cx[i]=v.getx();
+      cy[i]=v.gety();
+      cz[i]=v.getz();
+    }
+  } else {
+    for(unsigned int i=0; i < 10; ++i) {
+      triple v=t*controls[i];
+      cx[i]=v.getx();
+      cy[i]=v.gety();
+      cz[i]=v.getz();
+    }
+  }
+    
+  double c0=cx[0];
+  double fuzz=sqrtFuzz*run::norm(cx,10);
+  x=boundtri(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
+  X=boundtri(cx,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
+    
+  c0=cy[0];
+  fuzz=sqrtFuzz*run::norm(cy,10);
+  y=boundtri(cy,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
+  Y=boundtri(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
+    
+  c0=cz[0];
+  fuzz=sqrtFuzz*run::norm(cz,10);
+  z=boundtri(cz,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
+  Z=boundtri(cz,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
+    
+  b.add(x,y,z);
+  b.add(X,Y,Z);
+
+  if(t == NULL) {
+    Min=triple(x,y,z);
+    Max=triple(X,Y,Z);
+  }
+}
+
+void drawBezierTriangle::ratio(const double* t, pair &b,
+                               double (*m)(double, double), double fuzz,
+                               bool &first)
+{
+  triple* Controls;
+  if(t == NULL) Controls=controls;
+  else {
+    static triple buf[10];
+    Controls=buf;
+    for(unsigned int i=0; i < 10; ++i)
+      Controls[i]=t*controls[i];
+  }
+    
+  if(first) {
+    triple v=Controls[0];
+    b=pair(xratio(v),yratio(v));
+    first=false;
+  }
+  
+  b=pair(boundtri(Controls,m,xratio,b.getx(),fuzz,maxdepth),
+         boundtri(Controls,m,yratio,b.gety(),fuzz,maxdepth));
+}
+
+bool drawBezierTriangle::write(prcfile *out, unsigned int *, double, groupsmap&)
+{
+  if(invisible)
+    return true;
+
+  PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
+  
+  static const double third=1.0/3.0;
+  static const double third2=2.0/3.0;
+  triple Controls[]={controls[0],controls[0],controls[0],controls[0],
+                       controls[1],third2*controls[1]+third*controls[2],
+                       third*controls[1]+third2*controls[2],
+                       controls[2],controls[3],
+                       third*controls[3]+third2*controls[4],
+                       third2*controls[4]+third*controls[5],
+                       controls[5],controls[6],controls[7],
+                       controls[8],controls[9]};
+  out->addPatch(Controls,m);
+                    
+  return true;
+}
+
+void drawBezierTriangle::render(GLUnurbs *nurb, double size2, const triple& Min,
+                                const triple& Max, double perspective,
+                                bool lighton, bool transparent)
+{
+#ifdef HAVE_GL
+  if(invisible)
+    return;
+
+  if(invisible || 
+     ((colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
+       diffuse.A < 1.0) ^ transparent)) return;
+
+  double s;
+  
+  triple m,M;
+  static double t[16]; // current transform
+  glGetDoublev(GL_MODELVIEW_MATRIX,t);
+// Like Fortran, OpenGL uses transposed (column-major) format!
+  run::transpose(t,4);
+
+  bbox3 B(this->Min,this->Max);
+  B.transform(t);
+
+  m=B.Min();
+  M=B.Max();
+
+  if(perspective) {
+    const double f=m.getz()*perspective;
+    const double F=M.getz()*perspective;
+    if((M.getx() < min(f*Min.getx(),F*Min.getx()) ||
+        m.getx() > max(f*Max.getx(),F*Max.getx()) ||
+        M.gety() < min(f*Min.gety(),F*Min.gety()) ||
+        m.gety() > max(f*Max.gety(),F*Max.gety()) ||
+        M.getz() < Min.getz() ||
+        m.getz() > Max.getz()))
+      return;
+    s=max(f,F);
+  } else {
+    if((M.getx() < Min.getx() || m.getx() > Max.getx() ||
+        M.gety() < Min.gety() || m.gety() > Max.gety() ||
+        M.getz() < Min.getz() || m.getz() > Max.getz()))
+      return;
+    s=1.0;
+  }
+
+  setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
+  
+  const triple size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),0);
+  
+  bezierTriangle(controls,size2,size3);
+
+  if(colors)
+    glDisable(GL_COLOR_MATERIAL);
+#endif
+}
+
+drawElement *drawBezierTriangle::transformed(const double* t)
+{
+  return new drawBezierTriangle(t,this);
+}
+  
 bool drawNurbs::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible)
@@ -434,34 +566,20 @@ bool drawNurbs::write(prcfile *out, unsigned int *, double, groupsmap&)
 // Approximate bounds by bounding box of control polyhedron.
 void drawNurbs::bounds(const double* t, bbox3& b)
 {
+  double x,y,z;
+  double X,Y,Z;
+  
   const size_t n=nu*nv;
-  Triple* Controls;
+  triple* Controls;
   if(t == NULL) Controls=controls;
   else {
-    Controls=new Triple[n];
-    transformTriples(t,n,Controls,controls);
+    Controls=new triple[n];
+    for(size_t i=0; i < n; i++)
+      Controls[i]=t*controls[i];
   }
 
-  double *v=Controls[0];
-  double x=v[0];
-  double y=v[1];
-  double z=v[2];
-  double X=x;
-  double Y=y;
-  double Z=z;
-  for(size_t i=1; i < n; ++i) {
-    double *v=Controls[i];
-    double vx=v[0];
-    x=min(x,vx);
-    X=max(X,vx);
-    double vy=v[1];
-    y=min(y,vy);
-    Y=max(Y,vy);
-    double vz=v[2];
-    z=min(z,vz);
-    Z=max(Z,vz);
-  }
-
+  boundstriples(x,y,z,X,Y,Z,n,Controls);
+  
   b.add(x,y,z);
   b.add(X,Y,Z);
   
@@ -480,25 +598,25 @@ void drawNurbs::ratio(const double *t, pair &b, double (*m)(double, double),
                       double, bool &first)
 {
   const size_t n=nu*nv;
-  Triple* Controls;
+  
+  triple* Controls;
   if(t == NULL) Controls=controls;
   else {
-    Controls=new Triple[n];
-    transformTriples(t,n,Controls,controls);
+    Controls=new triple[n];
+    for(unsigned int i=0; i < n; ++i)
+      Controls[i]=t*controls[i];
   }
 
   if(first) {
     first=false;
-    double *ci=Controls[0];
-    triple v=triple(ci[0],ci[1],ci[2]);
+    triple v=Controls[0];
     b=pair(xratio(v),yratio(v));
   }
   
   double x=b.getx();
   double y=b.gety();
   for(size_t i=0; i < n; ++i) {
-    double *ci=Controls[i];
-    triple v=triple(ci[0],ci[1],ci[2]);
+    triple v=Controls[i];
     x=m(x,xratio(v));
     y=m(y,yratio(v));
   }
@@ -593,16 +711,14 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
 #endif
 }
 
-void drawSphere::P(Triple& t, double x, double y, double z)
+void drawSphere::P(triple& t, double x, double y, double z)
 {
   if(half) {
     double temp=z; z=x; x=-temp;
   }
   
   if(T == NULL) {
-    t[0]=x;
-    t[1]=y;
-    t[2]=z;
+    t=triple(x,y,z);
     return;
   }
   
@@ -610,9 +726,8 @@ void drawSphere::P(Triple& t, double x, double y, double z)
   if(f == 0.0) run::dividebyzero();
   f=1.0/f;
   
-  t[0]=(T[0]*x+T[1]*y+T[2]*z+T[3])*f;
-  t[1]=(T[4]*x+T[5]*y+T[6]*z+T[7])*f;
-  t[2]=(T[8]*x+T[9]*y+T[10]*z+T[11])*f;
+  t=triple((T[0]*x+T[1]*y+T[2]*z+T[3])*f,(T[4]*x+T[5]*y+T[6]*z+T[7])*f,
+           (T[8]*x+T[9]*y+T[10]*z+T[11])*f);
 }
 
 bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
@@ -642,7 +757,7 @@ bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
 // NURBS representation of a sphere using 10 distinct control points
 // K. Qin, J. Comp. Sci. and Tech. 12, 210-216 (1997).
   
-      Triple N,S,P1,P2,P3,P4,P5,P6,P7,P8;
+      triple N,S,P1,P2,P3,P4,P5,P6,P7,P8;
   
       P(N,0.0,0.0,1.0);
       P(P1,-2.0,-2.0,1.0);
@@ -655,38 +770,13 @@ bool drawSphere::write(prcfile *out, unsigned int *, double, groupsmap&)
       P(P7,-2.0,2.0,1.0);
       P(P8,-2.0,2.0,-1.0);
         
-      Triple p0[]=
-        {{N[0],N[1],N[2]},
-         {P1[0],P1[1],P1[2]},
-         {P2[0],P2[1],P2[2]},
-         {S[0],S[1],S[2]},
-     
-         {N[0],N[1],N[2]},
-         {P3[0],P3[1],P3[2]},
-         {P4[0],P4[1],P4[2]},
-         {S[0],S[1],S[2]},
-     
-         {N[0],N[1],N[2]},
-         {P5[0],P5[1],P5[2]},
-         {P6[0],P6[1],P6[2]},
-         {S[0],S[1],S[2]},
-  
-         {N[0],N[1],N[2]},
-         {P7[0],P7[1],P7[2]},
-         {P8[0],P8[1],P8[2]},
-         {S[0],S[1],S[2]},
-     
-         {N[0],N[1],N[2]},
-         {P1[0],P1[1],P1[2]},
-         {P2[0],P2[1],P2[2]},
-         {S[0],S[1],S[2]},
-     
-         {N[0],N[1],N[2]},
-         {P3[0],P3[1],P3[2]},
-         {P4[0],P4[1],P4[2]},
-         {S[0],S[1],S[2]},
-        };
-
+      triple p0[]={N,P1,P2,S,
+                   N,P3,P4,S,
+                   N,P5,P6,S,
+                   N,P7,P8,S,
+                   N,P1,P2,S,
+                   N,P3,P4,S};
+   
       out->addSurface(2,3,3,4,p0,uknot,vknot,m,Weights);
       out->addSurface(2,3,3,4,p0+4,uknot,vknot,m,Weights);
       if(!half) {
@@ -737,41 +827,41 @@ bool drawTube::write(prcfile *out, unsigned int *, double, groupsmap&)
   Int n=center.length();
   
   if(center.piecewisestraight()) {
-    Triple *centerControls=new(UseGC) Triple[n+1];
+    triple *centerControls=new(UseGC) triple[n+1];
     for(Int i=0; i <= n; ++i)
-      store(centerControls[i],center.point(i));
+      centerControls[i]=center.point(i);
     size_t N=n+1;
-    Triple *controls=new(UseGC) Triple[N];
+    triple *controls=new(UseGC) triple[N];
     for(Int i=0; i <= n; ++i)
-      store(controls[i],g.point(i));
-    out->addTube(N,centerControls,controls,true,m,NULL,NULL,NULL,1.0);
+      controls[i]=g.point(i);
+    out->addTube(N,centerControls,controls,true,m);
   } else {
     size_t N=3*n+1;
-    Triple *centerControls=new(UseGC) Triple[N];
-    store(centerControls[0],center.point((Int) 0));
-    store(centerControls[1],center.postcontrol((Int) 0));
+    triple *centerControls=new(UseGC) triple[N];
+    centerControls[0]=center.point((Int) 0);
+    centerControls[1]=center.postcontrol((Int) 0);
     size_t k=1;
     for(Int i=1; i < n; ++i) {
-      store(centerControls[++k],center.precontrol(i));
-      store(centerControls[++k],center.point(i));
-      store(centerControls[++k],center.postcontrol(i));
+      centerControls[++k]=center.precontrol(i);
+      centerControls[++k]=center.point(i);
+      centerControls[++k]=center.postcontrol(i);
     }
-    store(centerControls[++k],center.precontrol(n));
-    store(centerControls[++k],center.point(n));
+    centerControls[++k]=center.precontrol(n);
+    centerControls[++k]=center.point(n);
     
-    Triple *controls=new(UseGC) Triple[N];
-    store(controls[0],g.point((Int) 0));
-    store(controls[1],g.postcontrol((Int) 0));
+    triple *controls=new(UseGC) triple[N];
+    controls[0]=g.point((Int) 0);
+    controls[1]=g.postcontrol((Int) 0);
     k=1;
     for(Int i=1; i < n; ++i) {
-      store(controls[++k],g.precontrol(i));
-      store(controls[++k],g.point(i));
-      store(controls[++k],g.postcontrol(i));
+      controls[++k]=g.precontrol(i);
+      controls[++k]=g.point(i);
+      controls[++k]=g.postcontrol(i);
     }
-    store(controls[++k],g.precontrol(n));
-    store(controls[++k],g.point(n));
+    controls[++k]=g.precontrol(n);
+    controls[++k]=g.point(n);
     
-    out->addTube(N,centerControls,controls,false,m,NULL,NULL,NULL,1.0);
+    out->addTube(N,centerControls,controls,false,m);
   }
       
   return true;
@@ -828,15 +918,16 @@ void drawBaseTriangles::bounds(const double* t, bbox3& b)
 {
   double x,y,z;
   double X,Y,Z;
-  Triple* tP;
+  triple* tP;
 
   if(t == NULL) tP=P;
   else {
-    tP=new Triple[nP];
-    transformTriples(t,nP,tP,P);
+    tP=new triple[nP];
+    for(size_t i=0; i < nP; i++)
+      tP[i]=t*P[i];
   }
 
-  boundsTriples(x,y,z,X,Y,Z,nP,tP);
+  boundstriples(x,y,z,X,Y,Z,nP,tP);
 
   b.add(x,y,z);
   b.add(X,Y,Z);
@@ -851,15 +942,16 @@ void drawBaseTriangles::ratio(const double* t, pair &b,
                               double (*m)(double, double), double fuzz,
                               bool &first)
 {
-  Triple* tP;
+  triple* tP;
 
   if(t == NULL) tP=P;
   else {
-    tP=new Triple[nP];
-    transformTriples(t,nP,tP,P);
+    tP=new triple[nP];
+    for(size_t i=0; i < nP; i++)
+      tP[i]=t*P[i];
   }
 
-  ratioTriples(b,m,first,nP,tP);
+  ratiotriples(b,m,first,nP,tP);
   
   if(t != NULL)
     delete[] tP;
@@ -869,7 +961,7 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible)
     return true;
-
+  
   if (nC) {
     const RGBAColour white(1,1,1,opacity);
     const RGBAColour black(0,0,0,opacity);
@@ -877,8 +969,7 @@ bool drawTriangles::write(prcfile *out, unsigned int *, double, groupsmap&)
     out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,nC,C,CI,0,NULL,NULL,30);
   } else {
     const PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
-    out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,0,NULL,NULL,0,NULL,NULL,
-                      30);
+    out->addTriangles(nP,P,nI,PI,m,nN,N,NI,0,NULL,NULL,0,NULL,NULL,0,NULL,NULL,30);
   }
 
   return true;
@@ -931,20 +1022,20 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
     const uint32_t *ni=NI[i];
     const uint32_t *ci=nC ? CI[i] : 0;
     if(lighton)
-      glNormal3f(N[ni[0]][0],N[ni[0]][1],N[ni[0]][2]);
+      glNormal3f(N[ni[0]].getx(),N[ni[0]].gety(),N[ni[0]].getz());
     if(nC)
       glColor4f(C[ci[0]].R,C[ci[0]].G,C[ci[0]].B,C[ci[0]].A);
-    glVertex3f(P[pi[0]][0],P[pi[0]][1],P[pi[0]][2]);
+    glVertex3f(P[pi[0]].getx(),P[pi[0]].gety(),P[pi[0]].getz());
     if(lighton)
-      glNormal3f(N[ni[1]][0],N[ni[1]][1],N[ni[1]][2]);
+      glNormal3f(N[ni[1]].getx(),N[ni[1]].gety(),N[ni[1]].getz());
     if(nC)
       glColor4f(C[ci[1]].R,C[ci[1]].G,C[ci[1]].B,C[ci[1]].A);
-    glVertex3f(P[pi[1]][0],P[pi[1]][1],P[pi[1]][2]);
+    glVertex3f(P[pi[1]].getx(),P[pi[1]].gety(),P[pi[1]].getz());
     if(lighton)
-      glNormal3f(N[ni[2]][0],N[ni[2]][1],N[ni[2]][2]);
+      glNormal3f(N[ni[2]].getx(),N[ni[2]].gety(),N[ni[2]].getz());
     if(nC)
       glColor4f(C[ci[2]].R,C[ci[2]].G,C[ci[2]].B,C[ci[2]].A);
-    glVertex3f(P[pi[2]][0],P[pi[2]][1],P[pi[2]][2]);
+    glVertex3f(P[pi[2]].getx(),P[pi[2]].gety(),P[pi[2]].getz());
   }
   glEnd();
 

@@ -259,8 +259,7 @@ public:
   virtual void writeshiftedpath(texfile *out) {
     out->writeshifted(p);
   }
-  
-};
+};     
 
 // Base class for drawElements that involve paths and pens.
 class drawPathPenBase : public drawPathBase {
@@ -309,8 +308,6 @@ public:
     if (!pentype.getTransform().isIdentity())
       out->grestore();
   }
-  
-  
 };
   
 // Base class for drawElements that involve superpaths and pens.

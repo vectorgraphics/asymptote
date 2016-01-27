@@ -75,7 +75,7 @@ class drawNurbsPath3 : public drawElement {
 protected:
   size_t degree;
   size_t n;
-  Triple *controls;
+  triple *controls;
   double *weights;
   double *knots;
   RGBAColour color;
@@ -99,11 +99,11 @@ public:
     if(n == 0 || (weightsize != 0 && weightsize != n))
       reportError(wrongsize);
     
-    controls=new(UseGC) Triple[n];
+    controls=new(UseGC) triple[n];
     
     size_t k=0;
     for(size_t i=0; i < n; ++i)
-      store(controls[k++],vm::read<triple>(g,i));
+      controls[k++]=vm::read<triple>(g,i);
       
     if(weightsize > 0) {
       size_t k=0;
@@ -129,8 +129,9 @@ public:
   drawNurbsPath3(const double* t, const drawNurbsPath3 *s) :
     degree(s->degree), n(s->n), weights(s->weights), knots(s->knots),
     color(s->color), invisible(s->invisible) {
-    controls=new(UseGC) Triple[n];
-    transformTriples(t,n,controls,s->controls);
+    controls=new(UseGC) triple[n];
+    for(unsigned int i=0; i < n; ++i)
+      controls[i]=t*s->controls[i];
     
 #ifdef HAVE_GL
     Controls=NULL;

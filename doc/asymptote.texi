@@ -742,7 +742,7 @@ The following commands are needed to install the latest development version of
 @code{Asymptote} using @code{git}:
 @verbatim
 git clone http://github.com/vectorgraphics/asymptote
- 
+
 cd asymptote
 ./autogen.sh
 ./configure

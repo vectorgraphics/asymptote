@@ -2,6 +2,11 @@
 #define PRCFILE_H
 
 #include "memory.h"
+
+inline double X(const camp::triple &v) {return v.getx();}
+inline double Y(const camp::triple &v) {return v.gety();}
+inline double Z(const camp::triple &v) {return v.getz();}
+
 #include "prc/oPRCFile.h"
 
 namespace camp {

@@ -362,24 +362,31 @@ inline triple displacement(const triple& z, const triple& p, const triple& q)
   triple Q=unit(q-p);
   return Z-dot(Z,Q)*Q;
 }
+
+typedef double bound_double(double *P, double (*m)(double, double), double b,
+                     double fuzz, int depth);
+
+typedef double bound_triple(triple *P, double (*m)(double, double),
+                       double (*f)(const triple&), double b, double fuzz,
+                       int depth);
   
+bound_double bound,boundtri;
+
 double bound(triple z0, triple c0, triple c1, triple z1,
              double (*m)(double, double),
              double (*f)(const triple&),
              double b, double fuzz, int depth=maxdepth);
 double bound(double *p, double (*m)(double, double),
-             double b, double fuzz, int depth=maxdepth);
+             double b, double fuzz, int depth);
 double bound(triple *P, double (*m)(double, double),
              double (*f)(const triple&), double b, double fuzz,
-             int depth=maxdepth);
+             int depth);
 
-inline void store(Triple& control, const triple& v)
-{
-  control[0]=v.getx();
-  control[1]=v.gety();
-  control[2]=v.getz();
-}
-
+double boundtri(double *P, double (*m)(double, double), double b,
+                double fuzz, int depth);
+double boundtri(triple *P, double (*m)(double, double),
+                double (*f)(const triple&), double b, double fuzz,
+                int depth);
 }
 
 #ifndef BROKEN_COMPILER

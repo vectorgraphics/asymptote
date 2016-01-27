@@ -853,16 +853,16 @@ double cornerbound(triple *P, double (*m)(double, double),
   return m(b,f(P[15]));
 }
 
-// Return f evaluated at controlling vertex of bounding box of convex hull for
-// similiar-triangle transform x'=x/z, y'=y/z, where z < 0.
+// Return f evaluated at controlling vertex of bounding box of n control
+// net points for similiar-triangle transform x'=x/z, y'=y/z, where z < 0.
 double ratiobound(triple *P, double (*m)(double, double),
-                  double (*f)(const triple&))
+                  double (*f)(const triple&), int n)
 {
   double MX=-P[0].getx();
   double MY=-P[0].gety();
   double Z=P[0].getz();
-  double MZ=-P[0].getz();
-  for(int i=1; i < 16; ++i) {
+  double MZ=-Z;
+  for(int i=1; i < n; ++i) {
     triple v=P[i];
     MX=m(MX,-v.getx());
     MY=m(MY,-v.gety());
@@ -892,7 +892,7 @@ double bound(triple *P, double (*m)(double, double),
              double (*f)(const triple&), double b, double fuzz, int depth)
 {
   b=m(b,cornerbound(P,m,f));
-  if(m(-1.0,1.0)*(b-ratiobound(P,m,f)) >= -fuzz || depth == 0)
+  if(m(-1.0,1.0)*(b-ratiobound(P,m,f,16)) >= -fuzz || depth == 0)
     return b;
   --depth;
 
@@ -922,6 +922,168 @@ double bound(triple *P, double (*m)(double, double),
   triple s3[]={c7.m5,c8.m5,c9.m5,c10.m5,c7.m3,c8.m3,c9.m3,c10.m3,
                c7.m0,c8.m0,c9.m0,c10.m0,c3.m5,c3.m4,c3.m2,P[15]};
   return bound(s3,m,f,b,fuzz,depth);
+}
+
+template<class T>
+struct Splittri {
+  T l003,p102,p012,p201,p111,p021,r300,p210,p120,u030;
+  T u021,u120;
+  T p033,p231,p330;
+  T p123;
+  T l012,p312,r210,l102,p303,r201;
+  T u012,u210,l021,p4xx,r120,px4x,pxx4,l201,r102;
+  T l210,r012,l300;
+  T r021,u201,r030;
+  T u102,l120,l030;
+  T l111,r111,u111,c111;
+  
+  Splittri(const T *p) {
+    l003=p[0];
+    p102=p[1];
+    p012=p[2];
+    p201=p[3];
+    p111=p[4];
+    p021=p[5];
+    r300=p[6];
+    p210=p[7];
+    p120=p[8];
+    u030=p[9];
+
+    u021=0.5*(u030+p021);
+    u120=0.5*(u030+p120);
+
+    p033=0.5*(p021+p012);
+    p231=0.5*(p120+p111);
+    p330=0.5*(p120+p210);
+
+    p123=0.5*(p012+p111);
+
+    l012=0.5*(p012+l003);
+    p312=0.5*(p111+p201);
+    r210=0.5*(p210+r300);
+
+    l102=0.5*(l003+p102);
+    p303=0.5*(p102+p201);
+    r201=0.5*(p201+r300);
+
+    u012=0.5*(u021+p033);
+    u210=0.5*(u120+p330);
+    l021=0.5*(p033+l012);
+    p4xx=0.5*p231+0.25*(p111+p102);
+    r120=0.5*(p330+r210);
+    px4x=0.5*p123+0.25*(p111+p210);
+    pxx4=0.25*(p021+p111)+0.5*p312;
+    l201=0.5*(l102+p303);
+    r102=0.5*(p303+r201);
+
+    l210=0.5*(px4x+l201); // = m120
+    r012=0.5*(px4x+r102); // = m021
+    l300=0.5*(l201+r102); // = r003 = m030
+
+    r021=0.5*(pxx4+r120); // = m012
+    u201=0.5*(u210+pxx4); // = m102
+    r030=0.5*(u210+r120); // = u300 = m003
+
+    u102=0.5*(u012+p4xx); // = m201
+    l120=0.5*(l021+p4xx); // = m210
+    l030=0.5*(u012+l021); // = u003 = m300
+
+    l111=0.5*(p123+l102);
+    r111=0.5*(p312+r210);
+    u111=0.5*(u021+p231);
+    c111=0.25*(p033+p330+p303+p111);
+  }
+};
+  
+// Return the extremum of the vertices of a Bezier triangle.
+double cornerboundtri(double *P, double (*m)(double, double)) 
+{
+  double b=m(P[0],P[6]);
+  return m(b,P[9]);
+}
+
+double cornerboundtri(triple *P, double (*m)(double, double),
+                      double (*f)(const triple&)) 
+{
+  double b=m(f(P[0]),f(P[6]));
+  return m(b,f(P[9]));
+}
+
+// Return the extremum of the non-vertex control points of a Bezier triangle.
+double controlboundtri(double *P, double (*m)(double, double)) 
+{
+  double b=m(P[1],P[2]);
+  b=m(b,P[3]);
+  b=m(b,P[4]);
+  b=m(b,P[5]);
+  b=m(b,P[7]);
+  return m(b,P[8]);
+}
+
+double controlboundtri(triple *P, double (*m)(double, double),
+                       double (*f)(const triple&))
+{
+  double b=m(f(P[1]),f(P[2]));
+  b=m(b,f(P[3]));
+  b=m(b,f(P[4]));
+  b=m(b,f(P[5]));
+  b=m(b,f(P[7]));
+  return m(b,f(P[8]));
+}
+
+// Return the global bound of a Bezier triangle.
+double boundtri(double *P, double (*m)(double, double), double b,
+                double fuzz, int depth)
+{
+  b=m(b,cornerboundtri(P,m));
+  if(m(-1.0,1.0)*(b-controlboundtri(P,m)) >= -fuzz || depth == 0)
+    return b;
+  --depth;
+
+  Splittri<double> s(P);
+  
+  double l[]={s.l003,s.l102,s.l012,s.l201,s.l111,
+              s.l021,s.l300,s.l210,s.l120,s.l030}; // left
+  b=boundtri(l,m,b,fuzz,depth);
+  
+  double r[]={s.l300,s.r102,s.r012,s.r201,s.r111,
+              s.r021,s.r300,s.r210,s.r120,s.r030}; // right
+  b=boundtri(r,m,b,fuzz,depth);
+  
+  double u[]={s.l030,s.u102,s.u012,s.u201,s.u111,
+              s.u021,s.r030,s.u210,s.u120,s.u030}; // up
+  b=boundtri(u,m,b,fuzz,depth);
+  
+  double c[]={s.r030,s.u201,s.r021,s.u102,s.c111,
+              s.r012,s.l030,s.l120,s.l210,s.l300}; // center
+  return boundtri(c,m,b,fuzz,depth);
+}
+
+double boundtri(triple *P, double (*m)(double, double),
+                double (*f)(const triple&), double b, double fuzz, int depth)
+{
+  b=m(b,cornerboundtri(P,m,f));
+  if(m(-1.0,1.0)*(b-ratiobound(P,m,f,10)) >= -fuzz || depth == 0)
+    return b;
+  --depth;
+
+  Splittri<triple> s(P);
+  
+  triple l[]={s.l003,s.l102,s.l012,s.l201,s.l111,
+              s.l021,s.l300,s.l210,s.l120,s.l030}; // left
+  b=boundtri(l,m,f,b,fuzz,depth);
+  
+  triple r[]={s.l300,s.r102,s.r012,s.r201,s.r111,
+              s.r021,s.r300,s.r210,s.r120,s.r030}; // right
+  b=boundtri(r,m,f,b,fuzz,depth);
+  
+  triple u[]={s.l030,s.u102,s.u012,s.u201,s.u111,
+              s.u021,s.r030,s.u210,s.u120,s.u030}; // up
+  b=boundtri(u,m,f,b,fuzz,depth);
+  
+  triple c[]={s.r030,s.u201,s.r021,s.u102,s.c111,
+              s.r012,s.l030,s.l120,s.l210,s.l300}; // center
+  return boundtri(c,m,f,b,fuzz,depth);
 }
 
 inline void add(std::vector<double>& T, std::vector<double>& U,
@@ -956,24 +1118,24 @@ void bounds(triple& Pmin, triple& Pmax, triple *P, double fuzz)
                P[8].getx(),P[9].getx(),P[10].getx(),P[11].getx(),
                P[12].getx(),P[13].getx(),P[14].getx(),P[15].getx()};
   double bx=Px[0];
-  double xmin=bound(Px,min,bx,fuzz);
-  double xmax=bound(Px,max,bx,fuzz);
+  double xmin=bound(Px,min,bx,fuzz,maxdepth);
+  double xmax=bound(Px,max,bx,fuzz,maxdepth);
   
   double Py[]={P[0].gety(),P[1].gety(),P[2].gety(),P[3].gety(),
                P[4].gety(),P[5].gety(),P[6].gety(),P[7].gety(),
                P[8].gety(),P[9].gety(),P[10].gety(),P[11].gety(),
                P[12].gety(),P[13].gety(),P[14].gety(),P[15].gety()};
   double by=Py[0];
-  double ymin=bound(Py,min,by,fuzz);
-  double ymax=bound(Py,max,by,fuzz);
+  double ymin=bound(Py,min,by,fuzz,maxdepth);
+  double ymax=bound(Py,max,by,fuzz,maxdepth);
   
   double Pz[]={P[0].getz(),P[1].getz(),P[2].getz(),P[3].getz(),
                P[4].getz(),P[5].getz(),P[6].getz(),P[7].getz(),
                P[8].getz(),P[9].getz(),P[10].getz(),P[11].getz(),
                P[12].getz(),P[13].getz(),P[14].getz(),P[15].getz()};
   double bz=Pz[0];
-  double zmin=bound(Pz,min,bz,fuzz);
-  double zmax=bound(Pz,max,bz,fuzz);
+  double zmin=bound(Pz,min,bz,fuzz,maxdepth);
+  double zmax=bound(Pz,max,bz,fuzz,maxdepth);
   Pmin=triple(xmin,ymin,zmin);
   Pmax=triple(xmax,ymax,zmax);
 }
