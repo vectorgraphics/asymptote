@@ -418,6 +418,10 @@ void home()
   initlighting();
 }
 
+void nodisplay()
+{
+}
+
 void quit() 
 {
 #ifdef HAVE_LIBOSMESA
@@ -435,10 +439,13 @@ void quit()
     home();
     Animate=getSetting<bool>("autoplay");
 #ifdef HAVE_PTHREAD
-    if(!interact::interactive || animating)
+    if(!interact::interactive || animating) {
       endwait(readySignal,readyLock);
+      glutDisplayFunc(nodisplay);
+    }
 #endif    
-    glutHideWindow();
+    if(interact::interactive) 
+      glutHideWindow();
   } else {
     glutDestroyWindow(window);
     exit(0);
@@ -596,32 +603,6 @@ void togglefitscreen()
   fitscreen();
 }
 
-void updateHandler(int)
-{
-  queueScreen=true;
-  update();
-  if(interact::interactive || !Animate) {
-    glutShowWindow();
-    glutShowWindow(); // Call twice to work around apparent freeglut bug.
-  }
-}
-
-void reshape(int width, int height)
-{
-  if(glthread) {
-    static bool initialize=true;
-    if(initialize) {
-      initialize=false;
-      Signal(SIGUSR1,updateHandler);
-    }
-  }
-  
-  if(capsize(width,height))
-    glutReshapeWindow(width,height);
- 
-  reshape0(width,height);
-}
-  
 void initTimer() 
 {
   gettimeofday(&lasttime,NULL);
@@ -700,6 +681,32 @@ void display()
   }
 }
 
+void updateHandler(int)
+{
+  queueScreen=true;
+  update();
+  if(interact::interactive || !Animate) {
+    glutDisplayFunc(display);
+    glutShowWindow();
+  }
+}
+
+void reshape(int width, int height)
+{
+  if(glthread) {
+    static bool initialize=true;
+    if(initialize) {
+      initialize=false;
+      Signal(SIGUSR1,updateHandler);
+    }
+  }
+  
+  if(capsize(width,height))
+    glutReshapeWindow(width,height);
+ 
+  reshape0(width,height);
+}
+  
 void shift(int x, int y)
 {
   if(x > 0 && y > 0) {
@@ -1561,6 +1568,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
         if(settings::verbose > 1 && samples > 1)
           cout << "Multisampling enabled with sample width " << samples << endl;
       }
+      glutDisplayFunc(display);
       glutShowWindow();
     } else if(!havewindow) {
       glutInitWindowSize(maxTileWidth,maxTileHeight);

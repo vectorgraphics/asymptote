@@ -423,3 +423,17 @@ pair[][] fft(pair[][] a, int sign=1)
   }
   return transpose(A);
 }
+
+// Given a matrix A with independent columns, return
+// the unique vector y minimizing |Ay - b|^2 (the L2 norm).
+// If the columns of A are not linearly independent,
+// throw an error (if warn == true) or return an empty array
+// (if warn == false).
+real[] leastsquares(real[][] A, real[] b, bool warn=true)
+{
+  real[] solution=solve(AtA(A),b*A,warn=false);
+  if (solution.length == 0 && warn)
+    abort("Cannot compute least-squares approximation for " +
+	  "a matrix with linearly dependent columns.");
+  return solution;
+}

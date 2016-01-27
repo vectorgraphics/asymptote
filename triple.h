@@ -30,8 +30,7 @@ typedef double Triple[3];
 class triple;
   
 bool isIdTransform3(const double* t);
-void copyTransform3(double*& d, const double* s,
-                    GCPlacement placement=NoGC);
+void copyTransform3(double*& d, const double* s, GCPlacement placement=NoGC);
 void multiplyTransform3(double*& t, const double* s, const double* r);
 
 void boundstriples(double& x, double& y, double& z, double& X, double& Y,
@@ -77,13 +76,12 @@ public:
     if(t == NULL)
       return v;
 
-    double *T=new double[16];
-    copyTransform3(T,t);
+    double T[16];
+    memcpy(T,t,sizeof(double)*16);
     T[3]=T[7]=T[11]=0.0;
     run::inverse(T,4);
     run::transpose(T,4);
     triple V=T*v;
-    delete T;
     return unit(V);
   }
 
@@ -246,7 +244,8 @@ public:
   friend triple unit(const triple& v)
   {
     double scale=v.length();
-    if(scale != 0.0) scale=1.0/scale;
+    if(scale == 0.0) return v;
+    scale=1.0/scale;
     return triple(v.x*scale,v.y*scale,v.z*scale);
   }
   

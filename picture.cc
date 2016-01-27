@@ -77,7 +77,7 @@ void copyArray4x4C(double*& dest, const vm::array *a)
 void copyTransform3(double*& d, const double* s, GCPlacement placement)
 
 {
-  if(!isIdTransform3(s) || d != NULL) {
+  if(s != NULL) {
     if(d == NULL)
       d=placement == NoGC ? new double[16] : new(placement) double[16];
     memcpy(d,s,sizeof(double)*16);
@@ -88,9 +88,9 @@ void copyTransform3(double*& d, const double* s, GCPlacement placement)
 void multiplyTransform3(double*& t, const double* s, const double* r)
 {
   if(isIdTransform3(s)) {
-    copyTransform3(t, r);
+    copyTransform3(t,r);
   } else if(isIdTransform3(r)) {
-    copyTransform3(t, s);
+    copyTransform3(t,s);
   } else {
     t=new(UseGC) double[16];
     for(size_t i=0; i < 4; i++) {
@@ -849,7 +849,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
         else bboxshift += pair(0.5*xexcess,0.5*yexcess);
       }
     } else {
-      double scale=max(abs(aligndir.getx()),abs(aligndir.gety()));
+      double scale=max(fabs(aligndir.getx()),fabs(aligndir.gety()));
       if(scale != 0) aligndir *= 0.5/scale;
       bboxshift += 
         pair((aligndir.getx()+0.5)*xexcess,(aligndir.gety()+0.5)*yexcess);

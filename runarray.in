@@ -285,6 +285,35 @@ array *mult(array *a, array *b)
   return c;
 }
 
+// Compute transpose(A)*A where A is an n x m matrix.
+template<class T>
+array *AtA(array *a)
+{
+  size_t n=checkArray(a);
+  size_t m=n == 0 ? 0 : checkArray(read<array*>(a,0));
+  
+  array *c=new array(m);
+
+  T *A;
+  copyArray2C(A,a,false);
+
+  for(size_t i=0; i < m; ++i) {
+    array *ci=new array(m);
+    (*c)[i]=ci;
+    for(size_t j=0; j < m; ++j) {
+      T sum=T();
+      size_t kj=j;
+      size_t ki=i;
+      for(size_t k=0; k < n; ++k, kj += m, ki += m)
+        sum += A[ki]*A[kj];
+      (*ci)[j]=sum;
+    }
+  }
+  
+  delete[] A;
+  return c;
+}
+
 double norm(double *a, size_t n) 
 {
   if(n == 0) return 0.0;
@@ -421,14 +450,6 @@ bool compareFunction(const vm::item& i, const vm::item& j)
   FuncStack->push(j);
   compareFunc->call(FuncStack);
   return pop<bool>(FuncStack);
-}
-
-void checkSquare(array *a) 
-{
-  size_t n=checkArray(a);
-  for(size_t i=0; i < n; i++)
-    if(checkArray(read<array*>(a,i)) != n)
-      error("matrix a must be square");
 }
 
 // Crout's algorithm for computing the LU decomposition of a square matrix.
@@ -1345,6 +1366,11 @@ pairarray2 *Operator *(pairarray2 *a, pairarray2 *b)
 triple Operator *(realarray2 *t, triple v)
 {
   return *t*v;
+}
+
+realarray2 *AtA(realarray2 *a)
+{
+  return AtA<real>(a);
 }
 
 pair project(triple v, realarray2 *t)

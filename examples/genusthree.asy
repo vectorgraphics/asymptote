@@ -1,5 +1,3 @@
-settings.outformat = "png";
-settings.render = 16;
 size(8cm);
 
 import smoothcontour3;
