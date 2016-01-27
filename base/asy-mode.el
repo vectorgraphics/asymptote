@@ -1,10 +1,15 @@
-;;; asy-mode.el
+;;; asy-mode.el --- Emacs mode for editing Asymptote source code.
 
 ;; Copyright (C) 2006-8
+
 ;; Author: Philippe IVALDI 20 August 2006
-;; http://www.piprime.fr/
-;; Modified by: John Bowman
-;;
+;; Maintainer: John Bowman
+;; URL: https://github.com/vectorgraphics/asymptote
+;; Version 1.6
+;; Keywords: language, mode
+
+;;; License:
+
 ;; This program is free software ; you can redistribute it and/or modify
 ;; it under the terms of the GNU Lesser General Public License as published by
 ;; the Free Software Foundation ; either version 3 of the License, or
@@ -18,6 +23,8 @@
 ;; You should have received a copy of the GNU Lesser General Public License
 ;; along with this program ; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+;;; Commentary
 
 ;; Emacs mode for editing Asymptote source code.
 
@@ -42,6 +49,8 @@
 ;; (http://www.dedasys.com/freesoftware/files/two-mode-mode.el).
 ;;
 ;; See also paragraph II of the documentation below to automate asy-insinuate-latex.
+
+;;; Code:
 
 (defvar asy-mode-version "1.6")
 
@@ -754,7 +763,7 @@ You should remove the line " (int-to-string (line-number-at-pos)))))))
 
       ;; Functions and 'advises' to restrict 'font-lock-unfontify-region'
       ;; and 'font-lock-fontify-syntactically-region' within lasy-mode
-      ;; Special thanks to Olivier Ramaré for his help.
+      ;; Special thanks to Olivier RamarÃ© for his help.
       (when (and (fboundp 'font-lock-add-keywords) (> emacs-major-version 21))
         (defun lasy-mode-at-pos (pos &optional interior strictly)
           "If point at POS is in an asy environment return the list (start end)."
@@ -1588,3 +1597,4 @@ If optional argument Force is t then force compilation."
 (define-key asy-mode-map (kbd "<C-M-S-return>") 'asy-master-tex-view-ps2pdf-f)
 
 (provide `asy-mode)
+;; asy-mode.el ends here
