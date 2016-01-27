@@ -64,7 +64,7 @@ private:
 public:
   drawLabelPath(string label, string size, path src,
                 string justify, pair shift, pen pentype) : 
-    drawLabel(label,size,identity,pair(0.0,0.0),align,pentype),
+    drawLabel(label,size,identity,pair(0.0,0.0),pair(0.0,0.0),pentype),
     drawPathPenBase(src,pentype), justify(justify), shift(shift) {}
   
   virtual ~drawLabelPath() {}
