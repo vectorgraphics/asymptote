@@ -251,7 +251,8 @@ public:
   friend triple unit(const triple& v)
   {
     double scale=v.length();
-    if(scale != 0.0) scale=1.0/scale;
+    if(scale == 0.0) return v;
+    scale=1.0/scale;
     return triple(v.x*scale,v.y*scale,v.z*scale);
   }
   

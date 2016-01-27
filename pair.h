@@ -145,7 +145,8 @@ public:
   friend pair unit(const pair& z)
   {
     double scale=z.length();
-    if(scale != 0.0) scale=1.0/scale;
+    if(scale == 0.0) return z;
+    scale=1.0/scale;
     return pair(z.x*scale,z.y*scale);
   }
   
