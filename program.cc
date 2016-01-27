@@ -57,7 +57,7 @@ ostream& operator<< (ostream& out, const item& i)
   if (n == BoolFalseValue)
     return out << "false";
 
-  if (abs(n) < 1000000)
+  if (std::abs(n) < 1000000)
     return out << n;
 
   if (fabs(x) < 1e30 and fabs(x) > 1e-30)
