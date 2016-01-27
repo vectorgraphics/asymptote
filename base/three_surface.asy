@@ -11,7 +11,6 @@ private real nineth=1/9;
 
 struct patch {
   triple[][] P;
-  triple[] normals; // Optionally specify 4 normal vectors at the corners.
   pen[] colors;     // Optionally specify 4 corner colors.
   bool straight;    // Patch is based on a piecewise straight external path.
   bool3 planar;     // Patch is planar.
@@ -133,11 +132,6 @@ struct patch {
 
   pen[] colors(material m, light light=currentlight) {
     bool nocolors=colors.length == 0;
-    if(normals.length > 0)
-      return new pen[] {color(normals[0],nocolors ? m : colors[0],light),
-          color(normals[1],nocolors ? m : colors[1],light),
-          color(normals[2],nocolors ? m : colors[2],light),
-          color(normals[3],nocolors ? m : colors[3],light)};
     if(planar) {
       triple normal=normal(0.5,0.5);
       return new pen[] {color(normal,nocolors ? m : colors[0],light),
@@ -191,13 +185,11 @@ struct patch {
     return minratio(Q,d*bound)/d; // d is negative
   }
 
-  void operator init(triple[][] P, triple[] normals=new triple[],
+  void operator init(triple[][] P,
                      pen[] colors=new pen[], bool straight=false,
                      bool3 planar=default, bool copy=true) {
     init();
     this.P=copy ? copy(P) : P;
-    if(normals.length != 0)
-      this.normals=copy(normals);
     if(colors.length != 0)
       this.colors=copy(colors);
     this.planar=planar;
@@ -216,14 +208,13 @@ struct patch {
   }
 
   void operator init(patch s) {
-    operator init(s.P,s.normals,s.colors,s.straight);
+    operator init(s.P,s.colors,s.straight);
   }
   
   // A constructor for a convex cyclic path3 of length <= 4 with optional
-  // arrays of 4 internal points, corner normals, and pens.
+  // arrays of 4 internal points, and pens.
   void operator init(path3 external, triple[] internal=new triple[],
-                     triple[] normals=new triple[], pen[] colors=new pen[],
-                     bool3 planar=default) {
+                     pen[] colors=new pen[], bool3 planar=default) {
     init();
 
     if(internal.length == 0 && planar == default)
@@ -236,18 +227,13 @@ struct patch {
     if(L == 1) {
       external=external--cycle--cycle--cycle;
       if(colors.length > 0) colors.append(array(3,colors[0]));
-      if(normals.length > 0) normals.append(array(3,normals[0]));
     } else if(L == 2) {
       external=external--cycle--cycle;
       if(colors.length > 0) colors.append(array(2,colors[0]));
-      if(normals.length > 0) normals.append(array(2,normals[0]));
     } else if(L == 3) {
       external=external--cycle;
       if(colors.length > 0) colors.push(colors[0]);
-      if(normals.length > 0) normals.push(normals[0]);
     }
-    if(normals.length != 0)
-      this.normals=copy(normals);
     if(colors.length != 0)
       this.colors=copy(colors);
 
@@ -275,16 +261,13 @@ struct patch {
 
   // A constructor for a convex quadrilateral.
   void operator init(triple[] external, triple[] internal=new triple[],
-                     triple[] normals=new triple[], pen[] colors=new pen[],
-                     bool3 planar=default) {
+                     pen[] colors=new pen[], bool3 planar=default) {
     init();
 
     if(internal.length == 0 && planar == default)
       this.planar=normal(external) != O;
     else this.planar=planar;
 
-    if(normals.length != 0)
-      this.normals=copy(normals);
     if(colors.length != 0)
       this.colors=copy(colors);
 
@@ -321,13 +304,6 @@ patch operator * (transform3 t, patch s)
       Si[j]=t*si[j]; 
   }
   
-  if(s.normals.length > 0) {
-    transform3 t0=shiftless(t);
-    t0=determinant(t0) == 0 ? identity4 : transpose(inverse(t0));
-    for(int i=0; i < s.normals.length; ++i)
-      S.normals[i]=t0*s.normals[i];
-  }
-
   S.colors=copy(s.colors);
   S.planar=s.planar;
   S.straight=s.straight;
@@ -338,9 +314,6 @@ patch reverse(patch s)
 {
   patch S;
   S.P=transpose(s.P);
-  if(s.normals.length > 0) 
-    S.normals=
-      new triple[] {s.normals[0],s.normals[3],s.normals[2],s.normals[1]};
   if(s.colors.length > 0) 
     S.colors=new pen[] {s.colors[0],s.colors[3],s.colors[2],s.colors[1]};
   S.planar=s.planar;
@@ -612,11 +585,10 @@ struct surface {
     this.vcyclic=s.vcyclic;
   }
 
-  void operator init(triple[][][] P, triple[][] normals=new triple[][],
+  void operator init(triple[][][] P,
                      pen[][] colors=new pen[][], bool3 planar=default) {
     s=sequence(new patch(int i) {
-        return patch(P[i],normals.length == 0 ? new triple[] : normals[i],
-                     colors.length == 0 ? new pen[] : colors[i],planar);
+        return patch(P[i], colors.length == 0 ? new pen[] : colors[i],planar);
       },P.length);
   }
 
@@ -712,19 +684,17 @@ struct surface {
 
   // A general surface constructor for both planar and nonplanar 3D paths.
   void construct(path3 external, triple[] internal=new triple[],
-                 triple[] normals=new triple[], pen[] colors=new pen[],
-                 bool3 planar=default) {
+                 pen[] colors=new pen[], bool3 planar=default) {
     int L=length(external);
     if(!cyclic(external)) abort("cyclic path expected");
 
     if(L <= 3 && piecewisestraight(external)) {
-      s.push(patch(external,internal,normals,colors,planar=true));
+      s.push(patch(external,internal,colors,planar=true));
       return;
     }
 
     // Construct a surface from a possibly nonconvex planar cyclic path3.
-    if(planar != false && internal.length == 0 && normals.length == 0 &&
-       colors.length == 0) {
+    if(planar != false && internal.length == 0 && colors.length == 0) {
       triple n=normal(external);
       if(n != O) {
         transform3 T=align(n);
@@ -737,7 +707,7 @@ struct surface {
     }
     
     if(L <= 4 || internal.length > 0) {
-      s.push(patch(external,internal,normals,colors,planar));
+      s.push(patch(external,internal,colors,planar));
       return;
     }
       
@@ -746,40 +716,33 @@ struct surface {
     pen[] p;
     triple[] n;
     bool nocolors=colors.length == 0;
-    bool nonormals=normals.length == 0;
     triple center;
     for(int i=0; i < L; ++i)
       center += point(external,i);
     center *= factor;
     if(!nocolors)
       p=new pen[] {mean(colors)};
-    if(!nonormals)
-      n=new triple[] {factor*sum(normals)};
     // Use triangles for nonplanar surfaces.
     int step=normal(external) == O ? 1 : 2;
     int i=0;
     int end;
     while((end=i+step) < L) {
       s.push(patch(subpath(external,i,end)--center--cycle,
-                   nonormals ? n : concat(normals[i:end+1],n),
                    nocolors ? p : concat(colors[i:end+1],p),planar));
       i=end;
     }
     s.push(patch(subpath(external,i,L)--center--cycle,
-                 nonormals ? n : concat(normals[i:],normals[0:1],n),
                  nocolors ? p : concat(colors[i:],colors[0:1],p),planar));
   }
 
   void operator init(path3 external, triple[] internal=new triple[],
-                     triple[] normals=new triple[], pen[] colors=new pen[],
-                     bool3 planar=default) {
+                     pen[] colors=new pen[], bool3 planar=default) {
     s=new patch[];
-    construct(external,internal,normals,colors,planar);
+    construct(external,internal,colors,planar);
   }
 
   void operator init(explicit path3[] external,
                      triple[][] internal=new triple[][],
-                     triple[][] normals=new triple[][],
                      pen[][] colors=new pen[][], bool3 planar=default) {
     s=new patch[];
     if(planar == true) {// Assume all path3 elements share a common normal.
@@ -801,14 +764,12 @@ struct surface {
     for(int i=0; i < external.length; ++i)
       construct(external[i],
                 internal.length == 0 ? new triple[] : internal[i],
-                normals.length == 0 ? new triple[] : normals[i],
                 colors.length == 0 ? new pen[] : colors[i],planar);
   }
 
   void push(path3 external, triple[] internal=new triple[],
-            triple[] normals=new triple[] ,pen[] colors=new pen[],
-            bool3 planar=default) {
-    s.push(patch(external,internal,normals,colors,planar));
+            pen[] colors=new pen[], bool3 planar=default) {
+    s.push(patch(external,internal,colors,planar));
   }
 
   // Construct the surface of rotation generated by rotating g

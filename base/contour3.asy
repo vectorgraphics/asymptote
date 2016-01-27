@@ -473,9 +473,7 @@ surface surface(vertex[][] g)
   surface s=surface(g.length);
   for(int i=0; i < g.length; ++i) {
     vertex[] cur=g[i];
-    s.s[i]=patch(new triple[] {cur[0].v,cur[0].v,cur[1].v,cur[2].v},
-                 normals=new triple[] {cur[0].normal,cur[0].normal,
-                                       cur[1].normal,cur[2].normal});
+    s.s[i]=patch(cur[0].v--cur[1].v--cur[2].v--cycle);
   }
   return s;
 }
