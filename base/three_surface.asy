@@ -195,7 +195,6 @@ struct patch {
       corners=cornerstriangular;
       map=maptriangular;
       point=pointtriangular;
-      // normal= // TODO
       // colors= // TODO
     }
   }
