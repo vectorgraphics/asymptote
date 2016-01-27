@@ -19,69 +19,7 @@
 
 import graph_settings;  // for nmesh
 import three;
-
-/***********************************************/
-/******** LINEAR ALGEBRA ROUTINES **************/
-/********     LEAST-SQUARES       **************/
-/***********************************************/
-
-// Apply a matrix to a vector.
-real[] apply(real[][] matrix, real[] v) {
-  real[] ans = new real[matrix.length];
-  for (int r = 0; r < matrix.length; ++r) {
-    ans[r] = 0;
-    for (int c = 0; c < v.length; ++c) {
-      ans[r] += matrix[r][c] * v[c];
-    }
-  }
-  return ans;
-}
-
-// Apply the transpose of a matrix to a vector,
-// without actually forming the transpose.
-real[] applytranspose(real[][] matrix, real[] v) {
-  real[] ans = new real[matrix[0].length];
-  for (int r = 0; r < ans.length; ++r) ans[r] = 0;
-  for (int c = 0; c < matrix.length; ++c) {
-    for (int r = 0; r < ans.length; ++r) {
-      ans[r] += matrix[c][r] * v[c];
-    }
-  }
-  return ans;
-}
-
-// For a matrix A, returns the matrix product
-// (A transposed) * A.
-// The transpose of A is never actually formed.
-real[][] AtA(real[][] matrix) {
-  real[][] toreturn = new real[matrix[0].length][matrix[0].length];
-  for (int i = 0; i < toreturn.length; ++i) {
-    for (int j = 0; j < toreturn.length; ++j) {
-      toreturn [i][j] = 0;
-    }
-  }
-  for (int k = 0; k < matrix.length; ++k) {
-    for (int i = 0; i < toreturn.length; ++i) {
-      for (int j = 0; j < toreturn.length; ++j) {
-	toreturn[i][j] += matrix[k][i] * matrix[k][j];
-      }
-    }
-  }
-  return toreturn;
-}
-
-// Assuming A is a matrix with independent columns, returns
-// the unique vector y minimizing |Ay - b|^2 (the L2 norm).
-// If the columns of A are not linearly independent,
-// throws an error (if warn == true) or returns an empty array
-// (if warn == false).
-real[] leastsquares(real[][] A, real[] b, bool warn = true) {
-  real[] solution = solve(AtA(A), applytranspose(A, b), warn=false);
-  if (solution.length == 0 && warn)
-    abort("Cannot compute least-squares approximation for " +
-	  "a matrix with linearly dependent columns.");
-  return solution;
-}
+import math;
 
 /***********************************************/
 /******** CREATING BEZIER PATCHES **************/
