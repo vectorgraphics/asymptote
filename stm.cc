@@ -111,6 +111,8 @@ void tryToWriteExp(coenv &e, exp *expr)
   position pos=expr->getPos();
   types::ty *t=expr->cgetType(e);
 
+  if(!t) return;
+  
   // If the original expression is bad, just print the errors.
   // If it is a function which returns void, just call the function.
   if (t->kind == ty_error || t->kind == ty_void) {
