@@ -14,7 +14,7 @@
 namespace camp {
 
 void bezierTriangle(const triple *g, double Size2, triple Size3,
-                    bool havebillboard, triple center);
+                    bool havebillboard, triple center, GLfloat *colors);
   
 const double pixel=1.0; // Adaptive rendering constant.
 const triple drawElement::zero;
@@ -545,7 +545,13 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
   
   const triple size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),0);
   
-  bezierTriangle(controls,size2,size3,havebillboard,center);
+  static GLfloat v[12];
+
+  if(colors)
+    for(size_t i=0; i < 3; ++i)
+      storecolor(v,4*i,colors[i]);
+    
+  bezierTriangle(controls,size2,size3,havebillboard,center,colors ? v : NULL);
 
   if(colors)
     glDisable(GL_COLOR_MATERIAL);

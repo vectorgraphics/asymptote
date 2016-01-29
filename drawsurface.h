@@ -90,7 +90,7 @@ public:
     
     int size=checkArray(&pens);
     if(size > 0) {
-      if(size != 4) reportError(wrongsize);
+      if(size != 4) reportError("4 vertex pens required");
       colors=new(UseGC) RGBAColour[4];
       colors[0]=rgba(vm::read<camp::pen>(pens,0));
       colors[1]=rgba(vm::read<camp::pen>(pens,3));
@@ -102,8 +102,9 @@ public:
   drawSurface(const double* t, const drawSurface *s) :
     straight(s->straight), diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), colors(s->colors),
-    opacity(s->opacity), shininess(s->shininess), PRCshininess(s->PRCshininess), 
-    invisible(s->invisible), interaction(s->interaction), prc(s->prc) { 
+    opacity(s->opacity), shininess(s->shininess),
+    PRCshininess(s->PRCshininess), invisible(s->invisible),
+    interaction(s->interaction), prc(s->prc) { 
     
     for(unsigned int i=0; i < 4; ++i)
       vertices[i]=t*s->vertices[i];
@@ -194,7 +195,7 @@ public:
     
     int size=checkArray(&pens);
     if(size > 0) {
-      if(size != 4) reportError(wrongsize);
+      if(size != 3) reportError("3 vertex pens required");
       colors=new(UseGC) RGBAColour[3];
       colors[0]=rgba(vm::read<camp::pen>(pens,0));
       colors[1]=rgba(vm::read<camp::pen>(pens,1));
@@ -550,8 +551,9 @@ public:
     }    
   }    
   
-  void render(GLUnurbs *nurb, double size2, const triple& Min, const triple& Max,
-              double perspective, bool lighton, bool transparent);
+  void render(GLUnurbs *nurb, double size2, const triple& Min,
+              const triple& Max, double perspective, bool lighton,
+              bool transparent);
   
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
@@ -744,8 +746,9 @@ public:
  
   virtual ~drawTriangles() {}
  
-  void render(GLUnurbs *nurb, double size2, const triple& Min, const triple& Max,
-              double perspective, bool lighton, bool transparent);
+  void render(GLUnurbs *nurb, double size2, const triple& Min,
+              const triple& Max, double perspective, bool lighton,
+              bool transparent);
  
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
  
