@@ -429,7 +429,7 @@ bool equivalent(const signature *s1, const signature *s2)
   if (s1->rest.t)
     return s2->rest.t && equivalent(s1->rest, s2->rest);
   else
-    return s1->rest.t == 0;
+    return s2->rest.t == 0;
 }
 
 bool argumentEquivalent(const signature *s1, const signature *s2)
