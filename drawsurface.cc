@@ -13,7 +13,8 @@
 
 namespace camp {
 
-void bezierTriangle(const triple *g, double Size2, triple Size3);
+void bezierTriangle(const triple *g, double Size2, triple Size3,
+                    bool havebillboard, triple center);
   
 const double pixel=1.0; // Adaptive rendering constant.
 const triple drawElement::zero;
@@ -469,7 +470,8 @@ void drawBezierTriangle::ratio(const double* t, pair &b,
          boundtri(Controls,m,yratio,b.gety(),fuzz,maxdepth));
 }
 
-bool drawBezierTriangle::write(prcfile *out, unsigned int *, double, groupsmap&)
+bool drawBezierTriangle::write(prcfile *out, unsigned int *, double, 
+                               groupsmap&)
 {
   if(invisible)
     return true;
@@ -491,9 +493,10 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-void drawBezierTriangle::render(GLUnurbs *nurb, double size2, const triple& Min,
-                                const triple& Max, double perspective,
-                                bool lighton, bool transparent)
+void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
+                                const triple& Min, const triple& Max,
+                                double perspective, bool lighton,
+                                bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible)
@@ -505,6 +508,8 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2, const triple& Min,
 
   double s;
   
+  const bool havebillboard=interaction == BILLBOARD &&
+    !settings::getSetting<bool>("offscreen");
   triple m,M;
   static double t[16]; // current transform
   glGetDoublev(GL_MODELVIEW_MATRIX,t);
@@ -540,7 +545,7 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2, const triple& Min,
   
   const triple size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),0);
   
-  bezierTriangle(controls,size2,size3);
+  bezierTriangle(controls,size2,size3,havebillboard,center);
 
   if(colors)
     glDisable(GL_COLOR_MATERIAL);

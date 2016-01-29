@@ -276,14 +276,20 @@ struct patch {
   }
 
   // A constructor for a convex cyclic path3 of length <= 4 with optional
-  // arrays of 4 internal points, and pens.
+  // arrays of internal points (4 for a Bezier patch, 1 for a Bezier
+  // triangle), and pens.
   void operator init(path3 external, triple[] internal=new triple[],
                      pen[] colors=new pen[], bool3 planar=default) {
+    int L=length(external);
+    if(L == 3 && internal.length == 1) {
+      operator init(external,internal[0],colors);
+      return;
+    }
+
     if(internal.length == 0 && planar == default)
       this.planar=normal(external) != O;
     else this.planar=planar;
 
-    int L=length(external);
     if(L > 4 || !cyclic(external))
       abort("cyclic path3 of length <= 4 expected");
     if(L == 1) {
@@ -1281,7 +1287,7 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
   
   if(s.triangular)
     drawbeziertriangle(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,
-                       PRCshininess,s.colors,0);
+                       PRCshininess,s.colors,interaction.type);
   else
     draw(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,PRCshininess,
          s.planar ? s.normal(0.5,0.5) : O,s.colors,interaction.type,prc);
@@ -2307,36 +2313,3 @@ void draw(picture pic=currentpicture, triple[][] P, real[] uknot, real[] vknot,
     },true);
   pic.addBox(minbound(P),maxbound(P));
 }
-
-/*
-// Draw a Bezier triangle.
-void draw(picture pic=currentpicture, triple[][] P, material m=currentpen,
-          pen[] colors=new pen[], light light=currentlight, string name="",
-          render render=defaultrender)
-{
-  if(colors.length > 0)
-    m=mean(colors);
-  m=material(m,light);
-  bool lighton=light.on();
-  P=copy(P);
-   colors=copy(colors);
-  pic.add(new void(frame f, transform3 t, picture pic, projection Q) {
-      if(is3D()) {
-        bool group=name != "" || render.defaultnames;
-        if(group)
-          begingroup3(f,name == "" ? "surface" : name,render);
-        triple[] P=t*P;
-        real PRCshininess;
-        if(prc())
-          PRCshininess=PRCshininess(m.shininess);
-        drawbeziertriangle(f,P,O,false,m.p,m.opacity,m.shininess,PRCshininess,
-             colors,0);
-        if(group)
-          endgroup3(f);
-        if(pic != null)
-          pic.addBox(minbound(P,Q),maxbound(P,Q));
-      }
-    },true);
-  pic.addBox(minbound(P),maxbound(P));
-}
-*/

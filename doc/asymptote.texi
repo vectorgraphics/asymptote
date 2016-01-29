@@ -1808,6 +1808,7 @@ maximum value is @code{intMax}.
 @cindex @code{realDigits}
 @cindex @code{mask}
 @cindex @code{inf}
+@cindex @code{nan}
 @cindex @code{isnan}
 a real number; this should be set to the highest-precision native
 floating-point type on the architecture. The implicit initializer for
@@ -1815,9 +1816,10 @@ reals is @code{0.0}. Real numbers have precision
 @code{realEpsilon}, with @code{realDigits} significant digits.
 The smallest positive real number is @code{realMin} and the largest
 positive real number is @code{realMax}. 
-The variable @code{inf} and function @code{bool isnan(real x)}
-are useful when floating-point exceptions are masked with
-the @code{-mask} command-line option (the default in interactive mode).
+The variables @code{inf} and @code{nan}, along with the function
+@code{bool isnan(real x)} are useful when floating-point exceptions
+are masked with the @code{-mask} command-line option (the default in
+interactive mode).
 
 @item pair
 @cindex @code{pair}
@@ -7731,20 +7733,25 @@ with the mean of the four vertex colors.
 
 @cindex @code{surface}
 @cindex @code{planar}
+@cindex @code{Bezier patch}
+@cindex @code{Bezier triangle}
 A surface can be constructed from a cyclic @code{path3} with the constructor
 @verbatim
 surface surface(path3 external, triple[] internal=new triple[],
-                triple[] normals=new triple[], pen[] colors=new pen[],
-                bool3 planar=default);
+                pen[] colors=new pen[], bool3 planar=default);
 @end verbatim
 @noindent
 and then filled:
 @verbatim
+draw(surface(unitsquare3,new triple[] {X,Y,Z,O}),red);
+draw(surface(O--X{Y}..Y{-X}--cycle,new triple[] {Z}),red);
 draw(surface(path3(polygon(5))),red,nolight);
 draw(surface(unitcircle3),red,nolight);
 draw(surface(unitcircle3,new pen[] {red,green,blue,black}),nolight);
 @end verbatim
 @noindent
+The first example draws a Bezier patch and the second example draws
+a Bezier triangle. The third and fourth examples are planar surfaces.
 The last example constructs a patch with vertex-specific colors.
 A three-dimensional planar surface in the plane @code{plane} can be
 constructed from a two-dimensional cyclic path @code{g} with the constructor

@@ -205,8 +205,8 @@ public:
   drawBezierTriangle(const double* t, const drawBezierTriangle *s) :
     straight(s->straight), diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), colors(s->colors),
-    opacity(s->opacity), shininess(s->shininess), PRCshininess(s->PRCshininess), 
-    invisible(s->invisible),
+    opacity(s->opacity), shininess(s->shininess),
+    PRCshininess(s->PRCshininess), invisible(s->invisible),
     interaction(s->interaction), prc(s->prc) { 
     
     if(s->controls) {
@@ -214,6 +214,10 @@ public:
       for(unsigned int i=0; i < 10; ++i)
         controls[i]=t*s->controls[i];
     } else controls=NULL;
+    
+#ifdef HAVE_GL
+    center=t*s->center;
+#endif    
   }
   
   bool is3D() {return true;}
