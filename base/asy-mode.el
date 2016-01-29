@@ -1,4 +1,4 @@
-;;; asy-mode.el --- Emacs mode for editing Asymptote source code.
+;;; asy-mode.el --- Major mode for editing Asymptote source code.
 
 ;; Copyright (C) 2006-8
 
@@ -26,7 +26,7 @@
 
 ;;; Commentary
 
-;; Emacs mode for editing Asymptote source code.
+;; Major mode for editing Asymptote source code.
 
 ;; INSTALLATION:
 ;; Place this file (asy-mode.el) and asy-keywords.el in your Emacs load path.
