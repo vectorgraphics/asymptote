@@ -1,11 +1,11 @@
-;;; asy-mode.el --- Emacs mode for editing Asymptote source code.
+;;; asy-mode.el --- Major mode for editing Asymptote source code.
 
 ;; Copyright (C) 2006-8
 
 ;; Author: Philippe IVALDI 20 August 2006
 ;; Maintainer: John Bowman
 ;; URL: https://github.com/vectorgraphics/asymptote
-;; Version 1.6
+;; Version: 1.6
 ;; Keywords: language, mode
 
 ;;; License:
@@ -26,7 +26,7 @@
 
 ;;; Commentary
 
-;; Emacs mode for editing Asymptote source code.
+;; Major mode for editing Asymptote source code.
 
 ;; INSTALLATION:
 ;; Place this file (asy-mode.el) and asy-keywords.el in your Emacs load path.
@@ -1597,4 +1597,4 @@ If optional argument Force is t then force compilation."
 (define-key asy-mode-map (kbd "<C-M-S-return>") 'asy-master-tex-view-ps2pdf-f)
 
 (provide `asy-mode)
-;; asy-mode.el ends here
+;;; asy-mode.el ends here
