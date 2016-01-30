@@ -418,10 +418,6 @@ void home()
   initlighting();
 }
 
-void nodisplay()
-{
-}
-
 void quit() 
 {
 #ifdef HAVE_LIBOSMESA
@@ -440,11 +436,11 @@ void quit()
     Animate=getSetting<bool>("autoplay");
 #ifdef HAVE_PTHREAD
     if(!interact::interactive || animating) {
+      glFinish();
       endwait(readySignal,readyLock);
-      glutDisplayFunc(nodisplay);
     }
 #endif    
-    if(interact::interactive) 
+    if(interact::interactive)
       glutHideWindow();
   } else {
     glutDestroyWindow(window);
@@ -511,6 +507,7 @@ void reshape0(int width, int height)
   
 void update() 
 {
+  glutShowWindow();
   lastzoom=Zoom;
   glLoadIdentity();
   double cz=0.5*(zmin+zmax);
@@ -686,7 +683,6 @@ void updateHandler(int)
   queueScreen=true;
   update();
   if(interact::interactive || !Animate) {
-    glutDisplayFunc(display);
     glutShowWindow();
   }
 }
@@ -1299,7 +1295,7 @@ void init()
 #ifdef HAVE_LIBGLUT
   mem::vector<string> cmd;
   cmd.push_back(settings::argv0);
-  if(Iconify)
+  if(!interact::interactive && Iconify)
     cmd.push_back("-iconic");
   push_split(cmd,getSetting<string>("glOptions"));
   char **argv=args(cmd,true);
@@ -1412,10 +1408,10 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   pair maxtile=getSetting<pair>("maxtile");
   maxTileWidth=(int) maxtile.getx();
   maxTileHeight=(int) maxtile.gety();
+  if(maxTileWidth <= 0) maxTileWidth=1024;
+  if(maxTileHeight <= 0) maxTileHeight=768;
 
   if(offscreen) {
-    if(maxTileWidth <= 0) maxTileWidth=1024;
-    if(maxTileHeight <= 0) maxTileHeight=768;
     screenWidth=maxTileWidth;
     screenHeight=maxTileHeight;
 
@@ -1633,7 +1629,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     initializedView=true;
 #endif    
     glutReshapeFunc(reshape);
-    glutDisplayFunc(display);
     glutKeyboardFunc(keyboard);
     glutMouseFunc(mouse);
   
