@@ -260,8 +260,10 @@ struct patch {
   
   // A constructor for a cyclic path3 of length 3 with a specified
   // internal point, corner normals, and pens (rendered as a Bezier triangle).
-  void operator init(path3 external, triple internal, pen[] colors=new pen[]) {
+  void operator init(path3 external, triple internal, pen[] colors=new pen[],
+                     bool3 planar=default) {
     triangular=true;
+    this.planar=planar;
     init();
     if(colors.length != 0)
       this.colors=copy(colors);
@@ -280,15 +282,18 @@ struct patch {
   // triangle), and pens.
   void operator init(path3 external, triple[] internal=new triple[],
                      pen[] colors=new pen[], bool3 planar=default) {
-    int L=length(external);
-    if(L == 3 && internal.length == 1) {
-      operator init(external,internal[0],colors);
-      return;
-    }
-
     if(internal.length == 0 && planar == default)
       this.planar=normal(external) != O;
     else this.planar=planar;
+
+    int L=length(external);
+
+    if(L == 3) {
+      operator init(external,internal.length == 1 ? internal[0] :
+                    coons3(external),colors,this.planar);
+      straight=piecewisestraight(external);
+      return;
+    }
 
     if(L > 4 || !cyclic(external))
       abort("cyclic path3 of length <= 4 expected");
@@ -298,10 +303,6 @@ struct patch {
     } else if(L == 2) {
       external=external--cycle--cycle;
       if(colors.length > 0) colors.append(array(2,colors[0]));
-    } else if(L == 3) {
-      operator init(external,coons3(external),colors);
-      straight=piecewisestraight(external);
-      return;
     }
 
     init();
@@ -769,7 +770,7 @@ struct surface {
     if(!cyclic(external)) abort("cyclic path expected");
 
     if(L <= 3 && piecewisestraight(external)) {
-      s.push(patch(external,internal,colors,planar=true));
+      s.push(patch(external,internal,colors,planar));
       return;
     }
 
@@ -1286,8 +1287,9 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
     PRCshininess=PRCshininess(m.shininess);
   
   if(s.triangular)
-    drawbeziertriangle(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,
-                       PRCshininess,s.colors,interaction.type);
+    drawbeziertriangle(f,s.P,center,s.straight && s.planar,m.p,
+                       m.opacity,m.shininess,PRCshininess,s.colors,
+                       interaction.type);
   else
     draw(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,PRCshininess,
          s.planar ? s.normal(0.5,0.5) : O,s.colors,interaction.type,prc);

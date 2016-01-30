@@ -144,7 +144,7 @@ class drawBezierTriangle : public drawElement {
 protected:
   triple *controls;
   triple center;
-  bool straight;
+  bool straight; // True iff Bezier triangle is planar and has straight edges.
   RGBAColour diffuse;
   RGBAColour ambient;
   RGBAColour emissive;

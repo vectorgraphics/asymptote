@@ -373,7 +373,7 @@ struct Render
   }
 
 // n is the maximum depth
-  void render(const triple *p, double res, GLfloat *c0, int n=8) {
+  void render(const triple *p, double res, GLfloat *c0, int n) {
     this->res=res;
 
     triple po=p[0];
@@ -427,11 +427,11 @@ struct Render
 
 Render R;
 
-void bezierTriangle(const triple *g, double Size2, triple Size3,
+void bezierTriangle(const triple *g, bool straight, double Size2, triple Size3,
                     bool havebillboard, triple center, GLfloat *colors)
 {
   R.init(havebillboard,center);
-  R.render(g,pixel*length(Size3)/fabs(Size2),colors);
+  R.render(g,pixel*length(Size3)/fabs(Size2),colors,straight ? 0 : 8);
   R.clear();
 }
 
