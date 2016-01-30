@@ -4175,7 +4175,7 @@ struct Person {
   string lastname;
 
   static Person Person(string firstname, string lastname) {
-    Person p;
+    Person p=new Person;
     p.firstname=firstname;
     p.lastname=lastname;
     return p;
@@ -4211,7 +4211,7 @@ structure is called @code{Foo}):
 
 @example
 static Foo Foo(@var{args}) @{
-  Foo instance;
+  Foo instance=new Foo;
   instance.operator init(@var{args});
   return instance;
 @}
