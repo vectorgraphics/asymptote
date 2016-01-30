@@ -5539,7 +5539,6 @@ real[][] A=fin.dimension(2,3);
 real[][][] B=fin.dimension(2,3,4);
 @end verbatim
 @noindent
-Again, an integer limit of zero means no restriction.
 
 @cindex @code{read}
 Sometimes the array dimensions are stored with the data as integer

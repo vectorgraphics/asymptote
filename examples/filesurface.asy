@@ -7,7 +7,7 @@ file in=input("filesurface.dat").line();
 real[] x=in;
 real[] y=in;
 
-real[][] f=in.dimension(0,0);
+real[][] f=in;
 
 triple f(pair t) {
   int i=round(t.x);

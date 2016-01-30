@@ -491,9 +491,9 @@ void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
           formal(t3, SYM(b)));
   
   addCast(ve,t1,primFile(),read<T>);
-  addCast(ve,t2,primFile(),readArray<T>);
-  addCast(ve,t3,primFile(),readArray<T>);
-  addCast(ve,t4,primFile(),readArray<T>);
+  addCast(ve,t2,primFile(),readArray1<T>);
+  addCast(ve,t3,primFile(),readArray2<T>);
+  addCast(ve,t4,primFile(),readArray3<T>);
   
   addWrite(ve,write<T>,t1,t2);
   addRestFunc(ve,writeArray<T>,primVoid(),SYM(write),t3,

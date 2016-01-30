@@ -3,7 +3,7 @@ import graph;
 size(200,150,IgnoreAspect);
 
 file in=input("filegraph.dat").line();
-real[][] a=in.dimension(0,0);
+real[][] a=in;
 a=transpose(a);
 
 real[] x=a[0];

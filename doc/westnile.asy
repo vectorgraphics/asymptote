@@ -7,7 +7,7 @@ file in=input(data).line().csv();
 
 string[] columnlabel=in;
 
-real[][] A=in.dimension(0,0);
+real[][] A=in;
 A=transpose(A);
 real[] number=A[0], survival=A[1];
 

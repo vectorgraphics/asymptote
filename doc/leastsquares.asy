@@ -5,7 +5,7 @@ import stats;
 
 file fin=input("leastsquares.dat").line();
 
-real[][] a=fin.dimension(0,0);
+real[][] a=fin;
 a=transpose(a);
 
 real[] t=a[0], rho=a[1];
