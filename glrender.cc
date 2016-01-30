@@ -436,8 +436,8 @@ void quit()
     Animate=getSetting<bool>("autoplay");
 #ifdef HAVE_PTHREAD
     if(!interact::interactive || animating) {
-      glFinish();
       endwait(readySignal,readyLock);
+      ::wait(NULL);
     }
 #endif    
     if(interact::interactive)
