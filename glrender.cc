@@ -418,6 +418,10 @@ void home()
   initlighting();
 }
 
+void nodisplay()
+{
+}
+
 void quit() 
 {
 #ifdef HAVE_LIBOSMESA
@@ -436,6 +440,8 @@ void quit()
     Animate=getSetting<bool>("autoplay");
 #ifdef HAVE_PTHREAD
     if(!interact::interactive || animating) {
+      idle();
+      glutDisplayFunc(nodisplay);
       endwait(readySignal,readyLock);
       ::wait(NULL);
     }
@@ -505,19 +511,6 @@ void reshape0(int width, int height)
   glViewport(0,0,Width,Height);
 }
   
-void update() 
-{
-  glutShowWindow();
-  lastzoom=Zoom;
-  glLoadIdentity();
-  double cz=0.5*(zmin+zmax);
-  glTranslatef(cx,cy,cz);
-  glMultMatrixf(Rotate);
-  glTranslatef(0,0,-cz);
-  setProjection();
-  glutPostRedisplay();
-}
-
 void windowposition(int& x, int& y, int width=Width, int height=Height)
 {
   pair z=getSetting<pair>("position");
@@ -612,18 +605,6 @@ void idleFunc(void (*f)())
   glutIdleFunc(f);
 }
 
-void animate() 
-{
-  Animate=!Animate;
-  if(Animate) {
-    if(Fitscreen == 2) {
-      togglefitscreen();
-      togglefitscreen();
-    }
-    update();
-  }
-}
-
 void screen()
 {
   if(glthread && !interact::interactive)
@@ -678,12 +659,38 @@ void display()
   }
 }
 
+void update() 
+{
+  glutDisplayFunc(display);
+  glutShowWindow();
+  lastzoom=Zoom;
+  glLoadIdentity();
+  double cz=0.5*(zmin+zmax);
+  glTranslatef(cx,cy,cz);
+  glMultMatrixf(Rotate);
+  glTranslatef(0,0,-cz);
+  setProjection();
+  glutPostRedisplay();
+}
+
 void updateHandler(int)
 {
   queueScreen=true;
   update();
   if(interact::interactive || !Animate) {
     glutShowWindow();
+  }
+}
+
+void animate() 
+{
+  Animate=!Animate;
+  if(Animate) {
+    if(Fitscreen == 2) {
+      togglefitscreen();
+      togglefitscreen();
+    }
+    update();
   }
 }
 
