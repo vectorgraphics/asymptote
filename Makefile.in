@@ -48,7 +48,7 @@ DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
         allsymbols.h opsymbols.h $(SYMBOL_FILES:=.symbols.h) 
 NAME = asy
 XNAME = x$(NAME)
-CLEAN = camp.output revision.cc base/version.asy doc/version.texi \
+CLEAN = camp.output base/version.asy doc/version.texi \
         GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
         asymptote.py reload.js nopapersize.ps
