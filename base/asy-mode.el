@@ -1169,7 +1169,7 @@ See `asy-insinuate-latex'."
 
 (defvar lasy-run-tex nil)
 (defun lasy-asydef()
-  "Return the content between the tags \begin{asydef} and \end{asydef}."
+  "Return the content between the tags \\begin{asydef} and \\end{asydef}."
   (save-excursion
     (if (re-search-backward "\\\\begin{asydef}" 0 t)
         (buffer-substring
