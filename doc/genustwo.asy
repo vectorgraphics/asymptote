@@ -1,6 +1,7 @@
 size(10cm,0);
 import smoothcontour3;
 currentprojection=perspective((18,20,10));
+if(settings.render < 0) settings.render=8;
 
 real tuberadius = 0.69;
 
