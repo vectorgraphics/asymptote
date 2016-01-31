@@ -179,6 +179,11 @@ string graphic(string name, string options="")
   return "\externalfigure["+name+"]["+options+"]";
 }
 
+string graphicscale(real x)
+{
+  return string(settings.tex == "context" ? 1000*x : x);
+}
+
 string minipage(string s, real width=100bp)
 {
   if(latex())
