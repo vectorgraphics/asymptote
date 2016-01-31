@@ -591,18 +591,20 @@ used; if it is old we recommend first putting
 in the @code{Asymptote} source directory.
 
 On @code{UNIX} platforms (other than @code{MacOS X}), we recommend
-using version @code{2.8.1} of the @code{freeglut} library. To compile
+using version @code{3.0.0} of the @code{freeglut} library. To compile
 @code{freeglut}, download
 @quotation
-@url{http://prdownloads.sourceforge.net/freeglut/freeglut-2.8.1.tar.gz}
+@url{http://prdownloads.sourceforge.net/freeglut/freeglut-3.0.0.tar.gz}
 @end quotation
 @noindent
 and type (as the root user):
 @verbatim
-gunzip freeglut-2.8.1.tar.gz
-tar -xf freeglut-2.8.1.tar
-cd freeglut-2.8.1
+gunzip freeglut-3.0.0.tar.gz
+tar -xf freeglut-3.0.0.tar
+cd freeglut-3.0.0
 ./configure --prefix=/usr
+cmake .
+make
 make install
 cd ..
 @end verbatim
@@ -9434,22 +9436,11 @@ and @code{tk-devel} packages.
 
 Pictures are deconstructed into the @acronym{PNG} image format, which
 supports full alpha channel transparency. Under @code{Microsoft Windows},
-this requires @code{Python 2.7.4} and the @code{Python Imaging Library}:
+this requires @code{Python 2.7.4} or later and version @code{3.1.0} of the
+@code{Pillow} fork of the @code{Python Imaging Library}, available from
 @quotation
-@url{http://www.python.org/ftp/python/2.7.4/python-2.7.4.msi}
+@url{https://pypi.python.org/pypi/Pillow/3.1.0}
 @end quotation
-@quotation
-@url{http://effbot.org/downloads/PIL-1.1.7.win32-py2.7.exe}.
-@end quotation
-@noindent
-On @code{UNIX} systems, place
-@url{http://effbot.org/downloads/Imaging-1.1.7.tar.gz} in the
-@code{Asymptote} source directory, and type (as the root user):
-@verbatim
-tar -zxf Imaging-1.1.7.tar.gz
-cd Imaging-1.1.7
-python setup.py install
-@end verbatim
 
 @node GUI usage
 @section GUI usage
