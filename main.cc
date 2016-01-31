@@ -169,7 +169,12 @@ int main(int argc, char *argv[])
   
   Args args(argc,argv);
 #ifdef HAVE_GL
-  gl::glthread=getSetting<bool>("threads");
+#ifdef __APPLE__
+  bool usethreads=true;
+#else
+  bool usethreads=view();
+#endif  
+  gl::glthread=usethreads ? getSetting<bool>("threads") : false;
 #if HAVE_PTHREAD
   
   if(gl::glthread) {
