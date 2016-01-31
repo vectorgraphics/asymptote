@@ -88,9 +88,8 @@ char *readpipeline(const char *prompt)
 {
 #if _POSIX_VERSION >= 200809L
   char *line=NULL;
-  size_t n;
-  getline(&line,&n,fin);
-  return line;
+  size_t n=0;
+  return getline(&line,&n,fin) >= 0 ? line : NULL;
 #else
   const int max_size=256;
   static char buf[max_size];
