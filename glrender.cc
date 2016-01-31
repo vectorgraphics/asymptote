@@ -1247,6 +1247,7 @@ void exportHandler(int=0)
   if(!Iconify && !offscreen)
     glutHideWindow();
 #endif  
+  glutDisplayFunc(nodisplay);
 }
 
 static bool glinitialize=true;
