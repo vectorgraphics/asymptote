@@ -1,4 +1,3 @@
-settings.render=8;
 size(10cm,0);
 import smoothcontour3;
 currentprojection=perspective((18,20,10));

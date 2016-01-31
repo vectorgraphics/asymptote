@@ -1,4 +1,4 @@
-%{!?_texmf: %define _texmf %(eval "echo `kpsewhich -expand-var '$TEXMFLOCAL'`")}
+%{!?_texmf: %global _texmf %(eval "echo `kpsewhich -expand-var '$TEXMFLOCAL'`")}
 
 Name:           asymptote
 Version:        2.36
@@ -85,7 +85,7 @@ fi
 * Thu Apr 19 2007 John Bowman <> - 1.26-1
 - Update source tar ball name.
 
-* Fri May 30 2006 John Bowman <> - 1.07-1
+* Tue May 30 2006 John Bowman <> - 1.07-1
 - Use make install-all to also install info pages.
 
 * Fri May 26 2006 Jose Pedro Oliveira <jpo at di.uminho.pt> - 1.07-1

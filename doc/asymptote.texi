@@ -9022,16 +9022,16 @@ To construct the null surface of a function @code{f(triple)} or @code{ff(real,re
 over @code{box(a,b)}, use the routine
 @cindex @code{implicitsurface} 
 @verbatim
-surface implicitsurface(real f(triple) = null, 
-                        real ff(real,real,real) = null,
+surface implicitsurface(real f(triple)=null, 
+                        real ff(real,real,real)=null,
                         triple a, 
                         triple b,
-                        int n = nmesh,
-                        bool keyword overlapedges = false,
+                        int n=nmesh,
+                        bool keyword overlapedges=false,
                         int keyword nx=n,
                         int keyword ny=n,
                         int keyword nz=n,
-                        int keyword maxdepth = 8);
+                        int keyword maxdepth=8);
 @end verbatim
 @noindent
 The optional parameter @code{overlapedges} attempts to compensate for an artifact that 
