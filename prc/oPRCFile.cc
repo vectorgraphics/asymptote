@@ -28,6 +28,8 @@
 #include <cstring>
 #include <zlib.h>
 
+namespace prc {
+
 #define WriteUnsignedInteger( value ) out << (uint32_t)(value);
 #define WriteInteger( value ) out << (int32_t)(value);
 #define WriteDouble( value ) out << (double)(value);
@@ -1914,4 +1916,6 @@ uint32_t PRCFileStructure::addCoordinateSystemUnique(PRCCoordinateSystem*& pCoor
   reference_coordinate_systems.push_back(pCoordinateSystem);
   pCoordinateSystem = NULL;
   return reference_coordinate_systems.size()-1;
+}
+
 }

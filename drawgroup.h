@@ -70,9 +70,9 @@ public:
     if(interaction == BILLBOARD)
       buf << "-" << (*count)++ << "\001";
     
-    PRCoptions options(compression > 0.0 ? 
-                       max(compression,compressionlimit) : 0.0,
-                       granularity,closed,tessellate,dobreak,nobreak);
+    prc::PRCoptions options(compression > 0.0 ? 
+                            max(compression,compressionlimit) : 0.0,
+                            granularity,closed,tessellate,dobreak,nobreak);
     
     groups.push_back(groupmap());
     out->begingroup(buf.str().c_str(),&options,T);

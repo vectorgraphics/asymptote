@@ -24,11 +24,11 @@ protected:
   triple vertices[4];
   triple center;
   bool straight; // True iff Bezier patch is planar and has straight edges.
-  RGBAColour diffuse;
-  RGBAColour ambient;
-  RGBAColour emissive;
-  RGBAColour specular;
-  RGBAColour *colors;
+  prc::RGBAColour diffuse;
+  prc::RGBAColour ambient;
+  prc::RGBAColour emissive;
+  prc::RGBAColour specular;
+  prc::RGBAColour *colors;
   double opacity;
   double shininess;
   double PRCshininess;
@@ -89,7 +89,7 @@ public:
     int size=checkArray(&pens);
     if(size > 0) {
       if(size != 4) reportError("4 vertex pens required");
-      colors=new(UseGC) RGBAColour[4];
+      colors=new(UseGC) prc::RGBAColour[4];
       colors[0]=rgba(vm::read<camp::pen>(pens,0));
       colors[1]=rgba(vm::read<camp::pen>(pens,3));
       colors[2]=rgba(vm::read<camp::pen>(pens,1));
@@ -143,11 +143,11 @@ protected:
   triple *controls;
   triple center;
   bool straight; // True iff Bezier triangle is planar and has straight edges.
-  RGBAColour diffuse;
-  RGBAColour ambient;
-  RGBAColour emissive;
-  RGBAColour specular;
-  RGBAColour *colors;
+  prc::RGBAColour diffuse;
+  prc::RGBAColour ambient;
+  prc::RGBAColour emissive;
+  prc::RGBAColour specular;
+  prc::RGBAColour *colors;
   double opacity;
   double shininess;
   double PRCshininess;
@@ -194,7 +194,7 @@ public:
     int size=checkArray(&pens);
     if(size > 0) {
       if(size != 3) reportError("3 vertex pens required");
-      colors=new(UseGC) RGBAColour[3];
+      colors=new(UseGC) prc::RGBAColour[3];
       colors[0]=rgba(vm::read<camp::pen>(pens,0));
       colors[1]=rgba(vm::read<camp::pen>(pens,1));
       colors[2]=rgba(vm::read<camp::pen>(pens,2));
@@ -245,10 +245,10 @@ protected:
   triple *controls;
   double *weights;
   double *uknots, *vknots;
-  RGBAColour diffuse;
-  RGBAColour ambient;
-  RGBAColour emissive;
-  RGBAColour specular;
+  prc::RGBAColour diffuse;
+  prc::RGBAColour ambient;
+  prc::RGBAColour emissive;
+  prc::RGBAColour specular;
   double opacity;
   double shininess;
   double PRCshininess;
@@ -380,10 +380,10 @@ public:
 // Draw a transformed PRC object.
 class drawPRC : public drawElementLC {
 protected:
-  RGBAColour diffuse;
-  RGBAColour ambient;
-  RGBAColour emissive;
-  RGBAColour specular;
+  prc::RGBAColour diffuse;
+  prc::RGBAColour ambient;
+  prc::RGBAColour emissive;
+  prc::RGBAColour specular;
   double opacity;
   double shininess;
   bool invisible;
@@ -480,10 +480,10 @@ class drawTube : public drawElement {
 protected:
   path3 center;
   path3 g;
-  RGBAColour diffuse;
-  RGBAColour ambient;
-  RGBAColour emissive;
-  RGBAColour specular;
+  prc::RGBAColour diffuse;
+  prc::RGBAColour ambient;
+  prc::RGBAColour emissive;
+  prc::RGBAColour specular;
   double opacity;
   double shininess;
   bool invisible;
@@ -521,7 +521,7 @@ public:
 // Draw a PRC pixel.
 class drawPixel : public drawElement {
   triple v;
-  RGBAColour c;
+  prc::RGBAColour c;
   double width;
   bool invisible;
 public:
@@ -663,14 +663,14 @@ public:
   
 class drawTriangles : public drawBaseTriangles {
   size_t nC;
-  RGBAColour*C;
+  prc::RGBAColour*C;
   uint32_t (*CI)[3];
    
   // Asymptote material data
-  RGBAColour diffuse;
-  RGBAColour ambient;
-  RGBAColour emissive;
-  RGBAColour specular;
+  prc::RGBAColour diffuse;
+  prc::RGBAColour ambient;
+  prc::RGBAColour emissive;
+  prc::RGBAColour specular;
   double opacity;
   double shininess;
   double PRCshininess;
@@ -694,7 +694,7 @@ public:
     
     nC=checkArray(&c);
     if(nC) {
-      C=new(UseGC) RGBAColour[nC];
+      C=new(UseGC) prc::RGBAColour[nC];
       for(size_t i=0; i < nC; ++i)
         C[i]=rgba(vm::read<camp::pen>(c,i));
     
@@ -728,7 +728,7 @@ public:
     invisible(s->invisible) {
     
     if(nC) {
-      C=new(UseGC) RGBAColour[nC];
+      C=new(UseGC) prc::RGBAColour[nC];
       for(size_t i=0; i < nC; ++i)
         C[i]=s->C[i];
     

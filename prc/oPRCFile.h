@@ -40,6 +40,8 @@
 #include "PRCbitStream.h"
 #include "writePRC.h"
 
+namespace prc {
+
 class oPRCFile;
 class PRCFileStructure;
 
@@ -1356,5 +1358,7 @@ void addTube(uint32_t n, const V cP[], const V oP[], bool straight, const PRCmat
     std::ofstream *fout;
     std::ostream &output;
 };
+
+}
 
 #endif // __O_PRC_FILE_H

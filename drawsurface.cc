@@ -11,6 +11,8 @@
 #include <iomanip>
 #include <fstream>
 
+using namespace prc;
+
 namespace camp {
 
 void bezierTriangle(const triple *g, bool straight, double Size2, triple Size3,

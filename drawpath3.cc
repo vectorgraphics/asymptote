@@ -9,6 +9,7 @@
 namespace camp {
 
 using vm::array;
+using namespace prc;
   
 bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 {

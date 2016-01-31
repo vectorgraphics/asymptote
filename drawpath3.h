@@ -17,7 +17,7 @@ protected:
   const path3 g;
   triple center;
   bool straight;
-  RGBAColour color;
+  prc::RGBAColour color;
   bool invisible;
   Interaction interaction;
   triple Min,Max;
@@ -78,7 +78,7 @@ protected:
   triple *controls;
   double *weights;
   double *knots;
-  RGBAColour color;
+  prc::RGBAColour color;
   bool invisible;
   triple Min,Max;
   
