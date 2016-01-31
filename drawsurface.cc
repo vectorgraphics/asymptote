@@ -479,7 +479,7 @@ void drawBezierTriangle::ratio(const double* t, pair &b,
       Controls[9]=t*controls[9];
     }
   
-    triple v=controls[0];
+    triple v=Controls[0];
     double x=xratio(v);
     double y=yratio(v);
     if(first) {
