@@ -23,7 +23,7 @@ protected:
   triple *controls;
   triple vertices[4];
   triple center;
-  bool straight;
+  bool straight; // True iff Bezier patch is planar and has straight edges.
   RGBAColour diffuse;
   RGBAColour ambient;
   RGBAColour emissive;
@@ -57,8 +57,6 @@ public:
     if(checkArray(&g) != 4 || checkArray(&p) != 4)
       reportError(wrongsize);
     
-    bool havenormal=normal != zero;
-  
     vm::array *g0=vm::read<vm::array*>(g,0);
     vm::array *g3=vm::read<vm::array*>(g,3);
     if(checkArray(g0) != 4 || checkArray(g3) != 4)
@@ -68,7 +66,7 @@ public:
     vertices[2]=vm::read<triple>(g3,0);
     vertices[3]=vm::read<triple>(g3,3);
     
-    if(!havenormal || !straight) {
+    if(!straight) {
       size_t k=0;
       controls=new(UseGC) triple[16];
       for(size_t i=0; i < 4; ++i) {

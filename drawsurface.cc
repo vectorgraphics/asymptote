@@ -97,9 +97,9 @@ void drawSurface::bounds(const double* t, bbox3& b)
   
     boundstriples(x,y,z,X,Y,Z,4,Vertices);
   } else {
-    static double cx[16];
-    static double cy[16];
-    static double cz[16];
+    double cx[16];
+    double cy[16];
+    double cz[16];
   
     if(t == NULL) {
       for(int i=0; i < 16; ++i) {
@@ -145,7 +145,7 @@ void drawSurface::bounds(const double* t, bbox3& b)
 void drawSurface::ratio(const double* t, pair &b, double (*m)(double, double),
                         double fuzz, bool &first)
 {
-  static triple buf[16];
+  triple buf[16];
   if(straight) {
     triple *Vertices;
     if(t == NULL) Vertices=vertices;
@@ -155,15 +155,18 @@ void drawSurface::ratio(const double* t, pair &b, double (*m)(double, double),
         Vertices[i]=t*vertices[i];
     }
   
+    triple v=Vertices[0];
+    double x=xratio(v);
+    double y=yratio(v);
     if(first) {
       first=false;
-      triple v=Vertices[0];
-      b=pair(xratio(v),yratio(v));
+      b=pair(x,y);
+    } else {
+      x=m(b.getx(),x);
+      y=m(b.gety(),y);
     }
   
-    double x=b.getx();
-    double y=b.gety();
-    for(size_t i=0; i < 4; ++i) {
+    for(size_t i=1; i < 4; ++i) {
       triple v=Vertices[i];
       x=m(x,xratio(v));
       y=m(y,yratio(v));
@@ -273,15 +276,14 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
      ((colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
        diffuse.A < 1.0) ^ transparent)) return;
   double s;
-  static GLfloat Normal[3];
-
-  static GLfloat v[16];
+  GLfloat Normal[3];
+  GLfloat v[16];
   
   const bool havebillboard=interaction == BILLBOARD &&
     !settings::getSetting<bool>("offscreen");
   triple m,M;
   if(perspective || !havebillboard) {
-    static double t[16];
+    double t[16];
     glGetDoublev(GL_MODELVIEW_MATRIX,t);
 // Like Fortran, OpenGL uses transposed (column-major) format!
     run::transpose(t,4);
@@ -335,7 +337,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
       } else
         gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
     }
-    static GLfloat Controls[48];
+    GLfloat Controls[48];
     
     if(havebillboard) {
       for(size_t i=0; i < 16; ++i)
@@ -355,7 +357,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
     
     gluEndSurface(nurb);
   } else {
-    static GLfloat Vertices[12];
+    GLfloat Vertices[12];
     
     if(havebillboard) {
       for(size_t i=0; i < 4; ++i)
@@ -403,40 +405,55 @@ void drawBezierTriangle::bounds(const double* t, bbox3& b)
   double x,y,z;
   double X,Y,Z;
 
-  static double cx[10];
-  static double cy[10];
-  static double cz[10];
+  if(straight) {
+    triple Vertices[3];
+    if(t == NULL) {
+      Vertices[0]=controls[0];
+      Vertices[1]=controls[6];
+      Vertices[2]=controls[9];
+    } else {
+      Vertices[0]=t*controls[0];
+      Vertices[1]=t*controls[6];
+      Vertices[2]=t*controls[9];
+    }
+  
+    boundstriples(x,y,z,X,Y,Z,3,Vertices);
+  } else {  
+    double cx[10];
+    double cy[10];
+    double cz[10];
     
-  if(t == NULL) {
-    for(unsigned int i=0; i < 10; ++i) {
-      triple v=controls[i];
-      cx[i]=v.getx();
-      cy[i]=v.gety();
-      cz[i]=v.getz();
+    if(t == NULL) {
+      for(unsigned int i=0; i < 10; ++i) {
+        triple v=controls[i];
+        cx[i]=v.getx();
+        cy[i]=v.gety();
+        cz[i]=v.getz();
+      }
+    } else {
+      for(unsigned int i=0; i < 10; ++i) {
+        triple v=t*controls[i];
+        cx[i]=v.getx();
+        cy[i]=v.gety();
+        cz[i]=v.getz();
+      }
     }
-  } else {
-    for(unsigned int i=0; i < 10; ++i) {
-      triple v=t*controls[i];
-      cx[i]=v.getx();
-      cy[i]=v.gety();
-      cz[i]=v.getz();
-    }
+    
+    double c0=cx[0];
+    double fuzz=sqrtFuzz*run::norm(cx,10);
+    x=boundtri(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
+    X=boundtri(cx,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
+    
+    c0=cy[0];
+    fuzz=sqrtFuzz*run::norm(cy,10);
+    y=boundtri(cy,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
+    Y=boundtri(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
+    
+    c0=cz[0];
+    fuzz=sqrtFuzz*run::norm(cz,10);
+    z=boundtri(cz,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
+    Z=boundtri(cz,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
   }
-    
-  double c0=cx[0];
-  double fuzz=sqrtFuzz*run::norm(cx,10);
-  x=boundtri(cx,min,b.empty ? c0 : min(c0,b.left),fuzz,maxdepth);
-  X=boundtri(cx,max,b.empty ? c0 : max(c0,b.right),fuzz,maxdepth);
-    
-  c0=cy[0];
-  fuzz=sqrtFuzz*run::norm(cy,10);
-  y=boundtri(cy,min,b.empty ? c0 : min(c0,b.bottom),fuzz,maxdepth);
-  Y=boundtri(cy,max,b.empty ? c0 : max(c0,b.top),fuzz,maxdepth);
-    
-  c0=cz[0];
-  fuzz=sqrtFuzz*run::norm(cz,10);
-  z=boundtri(cz,min,b.empty ? c0 : min(c0,b.lower),fuzz,maxdepth);
-  Z=boundtri(cz,max,b.empty ? c0 : max(c0,b.upper),fuzz,maxdepth);
     
   b.add(x,y,z);
   b.add(X,Y,Z);
@@ -451,23 +468,51 @@ void drawBezierTriangle::ratio(const double* t, pair &b,
                                double (*m)(double, double), double fuzz,
                                bool &first)
 {
+  triple buf[10];
   triple* Controls;
-  if(t == NULL) Controls=controls;
-  else {
-    static triple buf[10];
-    Controls=buf;
-    for(unsigned int i=0; i < 10; ++i)
-      Controls[i]=t*controls[i];
-  }
-    
-  if(first) {
-    triple v=Controls[0];
-    b=pair(xratio(v),yratio(v));
-    first=false;
-  }
+  if(straight) {
+    if(t == NULL) Controls=controls;
+    else {
+      Controls=buf;
+      Controls[0]=t*controls[0];
+      Controls[6]=t*controls[6];
+      Controls[9]=t*controls[9];
+    }
   
-  b=pair(boundtri(Controls,m,xratio,b.getx(),fuzz,maxdepth),
-         boundtri(Controls,m,yratio,b.gety(),fuzz,maxdepth));
+    triple v=controls[0];
+    double x=xratio(v);
+    double y=yratio(v);
+    if(first) {
+      first=false;
+      b=pair(x,y);
+    } else {
+      x=m(b.getx(),x);
+      y=m(b.gety(),y);
+    }
+    v=Controls[6];
+    x=m(x,xratio(v));
+    y=m(y,yratio(v));
+    v=Controls[9];
+    x=m(x,xratio(v));
+    y=m(y,yratio(v));
+    b=pair(x,y);
+  } else {
+    if(t == NULL) Controls=controls;
+    else {
+      Controls=buf;
+      for(unsigned int i=0; i < 10; ++i)
+        Controls[i]=t*controls[i];
+    }
+    
+    if(first) {
+      triple v=Controls[0];
+      b=pair(xratio(v),yratio(v));
+      first=false;
+    }
+  
+    b=pair(boundtri(Controls,m,xratio,b.getx(),fuzz,maxdepth),
+           boundtri(Controls,m,yratio,b.gety(),fuzz,maxdepth));
+  }
 }
 
 bool drawBezierTriangle::write(prcfile *out, unsigned int *, double, 
@@ -511,7 +556,7 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
   const bool havebillboard=interaction == BILLBOARD &&
     !settings::getSetting<bool>("offscreen");
   triple m,M;
-  static double t[16]; // current transform
+  double t[16]; // current transform
   glGetDoublev(GL_MODELVIEW_MATRIX,t);
 // Like Fortran, OpenGL uses transposed (column-major) format!
   run::transpose(t,4);
@@ -545,7 +590,7 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
   
   const triple size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),0);
   
-  static GLfloat v[12];
+  GLfloat v[12];
 
   if(colors)
     for(size_t i=0; i < 3; ++i)
@@ -674,7 +719,7 @@ void drawNurbs::render(GLUnurbs *nurb, double size2,
   if(invisible || ((colors ? colors[3]+colors[7]+colors[11]+colors[15] < 4.0
                     : diffuse.A < 1.0) ^ transparent)) return;
   
-  static double t[16]; // current transform
+  double t[16]; // current transform
   glGetDoublev(GL_MODELVIEW_MATRIX,t);
   run::transpose(t,4);
 
@@ -897,7 +942,7 @@ void drawPixel::render(GLUnurbs *nurb, double size2,
   if(invisible)
     return;
   
-  static GLfloat V[4];
+  GLfloat V[4];
 
   glEnable(GL_COLOR_MATERIAL);
   glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
@@ -998,7 +1043,7 @@ void drawTriangles::render(GLUnurbs *nurb, double size2, const triple& Min,
   if(invisible || ((diffuse.A < 1.0) ^ transparent)) return;
 
   triple m,M;
-  static double t[16]; // current transform
+  double t[16]; // current transform
   glGetDoublev(GL_MODELVIEW_MATRIX,t);
   run::transpose(t,4);
 

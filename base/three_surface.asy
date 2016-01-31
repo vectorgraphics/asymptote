@@ -15,7 +15,7 @@ triple coons3(path3 external) {
   return 0.25*(precontrol(external,0)+postcontrol(external,0)+
                precontrol(external,1)+postcontrol(external,1)+
                precontrol(external,2)+postcontrol(external,2))-
-    (point(external,0)+point(external,1)+point(external,2))/6.0;
+    (point(external,0)+point(external,1)+point(external,2))/6;
 }
 
 struct patch {
@@ -167,6 +167,48 @@ struct patch {
     return abs(n) > epsilon ? n : normal0(0,1,epsilon);
   }
 
+  triple normal00triangular() {
+    triple n=9*cross(P[1][0]-P[0][0],P[1][1]-P[0][0]);
+    real epsilon=fuzz*change2(P);
+    return abs(n) > epsilon ? n : normal0(0,0,epsilon);
+  }
+
+  triple normal10triangular() {
+    triple n=9*cross(P[3][0]-P[2][0],P[3][1]-P[2][0]);
+    real epsilon=fuzz*change2(P);
+    return abs(n) > epsilon ? n : normal0(1,0,epsilon);
+  }
+
+  triple normal01triangular() {
+    triple n=9*cross(P[3][2]-P[2][2],P[3][3]-P[2][2]);
+    real epsilon=fuzz*change2(P);
+    return abs(n) > epsilon ? n : normal0(0,1,epsilon);
+  }
+
+  // Compute one-third of the directional derivative of a Bezier triangle in the u
+  // direction at point (u,v).
+  private triple bu(real u, real v) {
+    real w=1-u-v;
+    return u*(w*2-u)*P[2][0]+2*v*(w-u)*P[2][1]+w*(w-2*u)*P[1][0]+
+      u*(u*P[3][0]+2*v*P[3][1])+v*v*P[3][2]-w*(2*v*P[1][1]+w*P[0][0])-
+      v*v*P[2][2];
+  }
+
+  // Compute one-third of the directional derivative of a Bezier triangle in the v
+  // direction at point (u,v).
+  private triple bv(real u, real v) {
+    real w=1-u-v;
+    return u*2*(w-v)*P[2][1]+v*(2*w-v)*P[2][2]+w*(w-2*v)*P[1][1]+
+      u*(u*P[3][1]+2*v*P[3][2])+v*v*P[3][3]-w*(2*u*P[1][0]+w*P[0][0])-
+      u*u*P[2][0];
+  }
+
+  // Compute the normal of a Bezier triangle at (u,v)
+  triple normaltriangular(real u, real v) {
+    // TODO: handle degeneracy
+    return 9*cross(bu(u,v),bv(u,v));
+  }
+
   pen[] colors(material m, light light=currentlight) {
     bool nocolors=colors.length == 0;
     if(planar) {
@@ -182,6 +224,19 @@ struct patch {
         color(normal01(),nocolors ? m : colors[3],light)};
   }
   
+  pen[] colorstriangular(material m, light light=currentlight) {
+    bool nocolors=colors.length == 0;
+    if(planar) {
+      triple normal=normal(1/3,1/3);
+      return new pen[] {color(normal,nocolors ? m : colors[0],light),
+          color(normal,nocolors ? m : colors[1],light),
+          color(normal,nocolors ? m : colors[2],light)};
+    }
+    return new pen[] {color(normal00(),nocolors ? m : colors[0],light),
+        color(normal10(),nocolors ? m : colors[1],light),
+        color(normal01(),nocolors ? m : colors[2],light)};
+  }
+  
   triple min3,max3;
   bool havemin3,havemax3;
 
@@ -195,7 +250,11 @@ struct patch {
       corners=cornerstriangular;
       map=maptriangular;
       point=pointtriangular;
-      // colors= // TODO
+      normal=normaltriangular;
+      normal00=normal00triangular;
+      normal10=normal10triangular;
+      normal01=normal01triangular;
+      colors=colorstriangular;
     }
   }
 
@@ -391,9 +450,21 @@ patch reverse(patch s)
   S.P=transpose(s.P);
   if(s.colors.length > 0) 
     S.colors=new pen[] {s.colors[0],s.colors[3],s.colors[2],s.colors[1]};
-  S.planar=s.planar;
   S.straight=s.straight;
+  S.planar=s.planar;
   return S;
+}
+
+// Return a degenerate tensor patch representation of a Bezier triangle.
+patch tensor(patch s) {
+  if(!s.triangular) return patch(s);
+  triple[][] P=s.P;
+  return patch(new triple[][] {{P[0][0],P[0][0],P[0][0],P[0][0]},
+        {P[1][0],P[1][0]*2/3+P[1][1]/3,P[1][0]/3+P[1][1]*2/3,P[1][1]},
+          {P[2][0],P[2][0]/3+P[2][1]*2/3,P[2][1]*2/3+P[2][2]/3,P[2][2]},
+            {P[3][0],P[3][1],P[3][2],P[3][3]}},
+    s.colors.length > 0 ? new pen[] {s.colors[0],s.colors[1],s.colors[2],s.colors[0]} : new pen[],
+    s.straight,s.planar,false,false);
 }
 
 // Return the tensor product patch control points corresponding to path p
@@ -1291,7 +1362,7 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
                        m.opacity,m.shininess,PRCshininess,s.colors,
                        interaction.type);
   else
-    draw(f,s.P,center,s.straight,m.p,m.opacity,m.shininess,PRCshininess,
+    draw(f,s.P,center,s.straight && s.planar,m.p,m.opacity,m.shininess,PRCshininess,
          s.planar ? s.normal(0.5,0.5) : O,s.colors,interaction.type,prc);
 }
 
@@ -1417,9 +1488,10 @@ void drawPRCtube(frame f, path3 center, path3 g, material m,
 void tensorshade(transform t=identity(), frame f, patch s,
                  material m, light light=currentlight, projection P)
 {
+  
+  if(s.triangular) s=tensor(s);
   tensorshade(f,box(t*s.min(P),t*s.max(P)),m.diffuse(),
-              s.colors(m,light),t*project(s.external(),P,1),
-              t*project(s.internal(),P));
+              s.colors(m,light),t*project(s.external(),P,1),t*project(s.internal(),P));
 }
 
 restricted pen[] nullpens={nullpen};
