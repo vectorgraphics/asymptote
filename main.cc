@@ -150,7 +150,7 @@ void *asymain(void *A)
     int status;
     while(wait(&status) > 0);
   }
-  if(gl::glthread) {
+  if(gl::glthread && !gl::initialize) {
     pthread_kill(gl::mainthread,SIGUSR2);
     pthread_join(gl::mainthread,NULL);
   }

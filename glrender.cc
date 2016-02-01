@@ -457,9 +457,7 @@ void quit()
   
 void exitHandler(int)
 {
-  idle();
-  glutDestroyWindow(window);
-  exit(0);
+  glutLeaveMainLoop();
 }
 
 void mode() 
@@ -708,7 +706,6 @@ void reshape(int width, int height)
     if(initialize) {
       initialize=false;
       Signal(SIGUSR1,updateHandler);
-      Signal(SIGUSR2,exitHandler);
     }
   }
   
@@ -1438,6 +1435,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     }
   } else {
     if(glinitialize) {
+      Signal(SIGUSR2,exitHandler);
       glinitialize=false;
       init();
       Fitscreen=1;
@@ -1579,7 +1577,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #endif      
       if(samples > 1) {
         if(settings::verbose > 1 && samples > 1)
-          cout << "Multisampling enabled with sample width " << samples << endl;
+          cout << "Multisampling enabled with sample width " << samples
+               << endl;
       }
       glutDisplayFunc(display);
       glutShowWindow();
