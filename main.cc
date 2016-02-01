@@ -150,6 +150,10 @@ void *asymain(void *A)
     int status;
     while(wait(&status) > 0);
   }
+  if(gl::glthread) {
+    pthread_kill(gl::mainthread,SIGUSR2);
+    pthread_join(gl::mainthread,NULL);
+  }
   exit(em.processStatus() || interact::interactive ? 0 : 1);  
 }
 

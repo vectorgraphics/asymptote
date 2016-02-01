@@ -455,6 +455,13 @@ void quit()
 #endif
 }
   
+void exitHandler(int)
+{
+  idle();
+  glutDestroyWindow(window);
+  exit(0);
+}
+
 void mode() 
 {
   switch(Mode) {
@@ -701,6 +708,7 @@ void reshape(int width, int height)
     if(initialize) {
       initialize=false;
       Signal(SIGUSR1,updateHandler);
+      Signal(SIGUSR2,exitHandler);
     }
   }
   
@@ -1500,6 +1508,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(glthread && initializedView && !offscreen) {
     if(!View)
       readyAfterExport=queueExport=true;
+    Animate=getSetting<bool>("autoplay");
     pthread_kill(mainthread,SIGUSR1);
     return;
   }
