@@ -104,13 +104,14 @@ asy:	version
 	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS); \
 	fi
 
-version: $(GCLIB) $(FILES:=.o)
+revision.o: $(GCLIB) $(FILES:=.o)
 	$(eval revision := `LC_ALL="C" git describe | sed -e 's/-g.*//'`)
-	if test "$(revision)" != "$(last)"; then \
+	if test ! -e revision.cc -o "$(revision)" != "$(last)"; then     \
 	    echo $(REVISION)\"$(revision)\"\; > revision.cc; \
-	    $(CXX) $(OPTS) $(INCL) -o revision.o -c revision.cc; \
 	fi
+	$(CXX) $(OPTS) $(INCL) -o revision.o -c revision.cc;    \
 
+version: revision.o
 	echo string VERSION=\"$(revision)\"\; > base/version.asy
 	echo @set VERSION $(revision) > doc/version.texi
 	echo @set Datadir @datadir@ >> doc/version.texi
