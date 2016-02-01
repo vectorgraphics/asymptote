@@ -105,10 +105,12 @@ asy:	version
 	fi
 
 version: $(GCLIB) $(FILES:=.o)
-	$(eval revision := `LC_ALL="C" git describe | sed -e 's/-g.*//'`)
-	if test ! -e revision.cc -o "$(revision)" != "$(last)"; then     \
+	if test -d .git; then \
+	  $(eval revision := `LC_ALL="C" git describe | sed -e 's/-g.*//'`) \
+	  if test ! -e revision.cc -o "$(revision)" != "$(last)"; then     \
 	    echo $(REVISION)\"$(revision)\"\; > revision.cc; \
-	fi
+	  fi \
+        fi
 	$(CXX) $(OPTS) $(INCL) -o revision.o -c revision.cc;
 
 	echo string VERSION=\"$(revision)\"\; > base/version.asy
