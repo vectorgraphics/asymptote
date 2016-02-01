@@ -111,6 +111,7 @@ version: $(GCLIB) $(FILES:=.o)
 	    echo $(REVISION)\"$(revision)\"\; > revision.cc; \
 	  fi \
         fi
+	$(eval revision := `cat revision.cc | sed -e 's/.*\"\(.*\)\";/\\1/'`)
 	$(CXX) $(OPTS) $(INCL) -o revision.o -c revision.cc;
 
 	echo string VERSION=\"$(revision)\"\; > base/version.asy
