@@ -8993,7 +8993,7 @@ int[][] triangulate(pair[] z);
 @sp 1
 @center @image{triangulate}
 
-The example @code{Gouraudcontour} illustrates how to produce color
+The example @code{Gouraudcontour.asy} illustrates how to produce color
 density images over such irregular triangular meshes.
 @code{Asymptote} uses a robust version of Paul Bourke's Delaunay triangulation
 algorithm based on the public-domain exact arithmetic predicates written by
@@ -9034,17 +9034,13 @@ surface implicitsurface(real f(triple)=null,
                         int keyword maxdepth=8);
 @end verbatim
 @noindent
-The optional parameter @code{overlapedges} attempts to compensate for an artifact that 
-causes can cause the renderer to ``see through'' the boundary between patches. Although 
+The optional parameter @code{overlapedges} attempts to compensate for
+an artifact that can cause the renderer to ``see through'' the
+boundary between patches. Although
 it defaults to @code{false}, it should usually be set to @code{true}.
-
-The following example illustrates the use of this function:
-@verbatiminclude genustwo.asy
-@sp 1
-@center @image{genustwo}
-
-For additional examples, together with a more in-depth explanation of 
-the module's usage and pitfalls, see the documentation at
+The example @code{genustwo.asy} illustrates the use of this function:
+Additional examples, together with a more in-depth explanation of 
+the module's usage and pitfalls, are available at
 @url{https://github.com/charlesstaats/smoothcontour3}.
 
 @node slopefield
@@ -9863,6 +9859,11 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  4g texengines coplanar 0pt 1filll 's 3D 2D 'load 5bp
 @c  LocalWords:  insphere cospherical 5unit luatex lualatex 'asy 1cm
 @c  LocalWords:  'lasy 'auto 4g 2S 100pt 3t 12pt 5mm 25cm 3x 5x 3y 2x
-@c  LocalWords:  602e 2y 3sin 10cm 204e 10x Ai Ai Ai Ai Ai Ai Ai Ai
-@c  LocalWords:  unnormalized 5E 5cm 2N 2E 2n 100d 5z 5y
-@c  LocalWords:  5unit 144x144 aligndir smoothcontour3
+@c  LocalWords:  602e 2y 3sin 10cm 204e 10x Ai Ai Ai Ai Ai Ai Ai Ai '
+@c  LocalWords:  unnormalized 5E 5cm 2N 2E 2n 100d 5z 5y 0pt 1filll
+@c  LocalWords:  5unit 144x144 aligndir smoothcontour3 's 3D 2D cmake
+@c  LocalWords:  'load 'asy 'lasy 'auto 5bp 1cm 4g 2S 100pt 3t nan 3x
+@c  LocalWords:  12pt 5mm 25cm 5x 3y 602e 2x 2y 3sin 10cm 204e 10x Ai
+@c  LocalWords:  Ai Ai Ai Ai Ai Ai Ai 5E 5cm 2N 2E 2n 100d 5z 5y nz
+@c  LocalWords:  5unit Staats implicitsurface overlapedges maxdepth
+@c  LocalWords:  through'' genustwo 144x144
