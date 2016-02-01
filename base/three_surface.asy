@@ -1362,8 +1362,9 @@ void draw3D(frame f, int type=0, patch s, triple center=O, material m,
                        m.opacity,m.shininess,PRCshininess,s.colors,
                        interaction.type);
   else
-    draw(f,s.P,center,s.straight && s.planar,m.p,m.opacity,m.shininess,PRCshininess,
-         s.planar ? s.normal(0.5,0.5) : O,s.colors,interaction.type,prc);
+    draw(f,s.P,center,s.straight && s.planar,m.p,m.opacity,m.shininess,
+         PRCshininess,s.planar ? s.normal(0.5,0.5) : O,s.colors,
+         interaction.type,prc);
 }
 
 // Draw triangles on a frame.

@@ -327,7 +327,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
     for(size_t i=0; i < 4; ++i)
       storecolor(v,4*i,colors[i]);
     
-  if(!havenormal || (!straight && fraction(d,size3)*size2 >= pixel)) {
+  if(!straight && (!havenormal || fraction(d,size3)*size2 >= pixel)) {
     if(lighton) {
       if(havenormal && fraction(dperp,size3)*size2 <= 0.1) {
         if(havebillboard)
