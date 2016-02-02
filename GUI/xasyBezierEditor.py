@@ -10,10 +10,15 @@
 #
 ###########################################################################
 
-from Tkinter import *
 import math
+import sys
 from CubicBezier import *
 import xasy2asy
+
+if sys.version_info >= (3, 0):
+  from tkinter import *
+else:
+  from Tkinter import *
 
 class node:
   def __init__(self,precontrol,node,postcontrol,uid,isTied = True):

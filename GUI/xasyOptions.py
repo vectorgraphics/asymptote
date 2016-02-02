@@ -81,16 +81,16 @@ def load():
       try:
         os.makedirs(thedir)
       except:
-        raise Exception,"Could not create configuration folder"
+        raise Exception("Could not create configuration folder")
     if not os.path.isdir(thedir):
-      raise Exception,"Configuration folder path does not point to a folder"
+      raise Exception("Configuration folder path does not point to a folder")
     setDefaults()
   try:
     f = open(fileName,"rb")
     newOptions = pickle.load(f)
     for key in options.keys():
       if type(newOptions[key]) != type(options[key]):
-        raise Exception,"Bad type for entry in xasy settings"
+        raise Exception("Bad type for entry in xasy settings")
     options = newOptions
   except:
     setDefaults()
@@ -103,24 +103,24 @@ def save():
     pickle.dump(options,f)
     f.close()
   except:
-    raise Exception,"Error saving preferences"
+    raise Exception("Error saving preferences")
 
 load()
 
 if __name__=='__main__':
-  print settingsFileLocation()
-  print "Current content"
+  print (settingsFileLocation())
+  print ("Current content")
   load()
-  print "Setting defaults"
+  print ("Setting defaults")
   setDefaults()
   save()
   load()
   options['showAxes'] = options['showGrid'] = False
   save()
-  print "Set to False"
+  print ("Set to False")
   load()
   options['showAxes'] = options['showGrid'] = True
   save()
-  print "Set to True"
+  print ("Set to True")
   load()
-  print options
+  print (options)

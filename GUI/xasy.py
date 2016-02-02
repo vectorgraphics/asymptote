@@ -10,8 +10,11 @@
 ############################################################################
 
 import getopt,sys,signal
-from Tkinter import *
 import xasyMainWin
+if sys.version_info >= (3, 0):
+  from tkinter import *
+else:
+  from Tkinter import *
 
 signal.signal(signal.SIGINT,signal.SIG_IGN)
 
@@ -22,11 +25,11 @@ try:
   if(len(opts)>=1):
     mag = float(opts[0][1])
 except:
-  print "Invalid arguments."
-  print "Usage: xasy.py [-x magnification] [filename]"
+  print ("Invalid arguments.")
+  print ("Usage: xasy.py [-x magnification] [filename]")
   sys.exit(1)
 if(mag <= 0.0):
-  print "Magnification must be positive."
+  print ("Magnification must be positive.")
   sys.exit(1)
 if(len(args)>=1):
   app = xasyMainWin.xasyMainWin(root,args[0],mag)

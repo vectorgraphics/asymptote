@@ -13,10 +13,10 @@ class action:
     self.act = act
     self.inv = inv
   def undo(self):
-    #print "Undo:",self
+    #print ("Undo:",self)
     self.inv()
   def redo(self):
-    #print "Redo:",self
+    #print ("Redo:",self)
     self.act()
   def __str__(self):
     return "A generic action"
@@ -33,7 +33,7 @@ class actionStack:
 
   def add(self,action):
     self.undoStack.append(action)
-    #print "Added",action
+    #print ("Added",action)
     self.redoStack = []
 
   def undo(self):
@@ -54,13 +54,13 @@ class actionStack:
             op.undo()
             self.redoStack.append(op)
       elif op is endActionGroup:
-        raise Exception,"endActionGroup without previous beginActionGroup"
+        raise Exception("endActionGroup without previous beginActionGroup")
       else:
         self.redoStack.append(op)
         op.undo()
-      #print "undid",op
+      #print ("undid",op)
     else:
-      pass #print "nothing to undo"
+      pass #print ("nothing to undo")
 
   def redo(self):
     if len(self.redoStack) > 0:
@@ -80,13 +80,13 @@ class actionStack:
             op.redo()
             self.undoStack.append(op)
       elif op is endActionGroup:
-        raise Exception,"endActionGroup without previous beginActionGroup"
+        raise Exception("endActionGroup without previous beginActionGroup")
       else:
         self.undoStack.append(op)
         op.redo()
-      #print "redid",op
+      #print ("redid",op)
     else:
-      pass #print "nothing to redo"
+      pass #print ("nothing to redo")
 
   def setCommitLevel(self):
     self.commitLevel = len(self.undoStack)
@@ -105,9 +105,9 @@ class actionStack:
 if __name__=='__main__':
   import sys
   def opq():
-    print "action1"
+    print ("action1")
   def unopq():
-    print "inverse1"
+    print ("inverse1")
   q = action(opq,unopq)
   w = action(lambda:sys.stdout.write("action2\n"),lambda:sys.stdout.write("inverse2\n"))
   e = action(lambda:sys.stdout.write("action3\n"),lambda:sys.stdout.write("inverse3\n"))

@@ -12,9 +12,14 @@ import sys,os,signal,threading
 from subprocess import *
 from string import *
 import xasyOptions
-import Queue
-from Tkinter import *
 from tempfile import mkdtemp
+
+if sys.version_info >= (3, 0):
+  from tkinter import *
+  import queue
+else:
+  from Tkinter import *
+  import Queue as queue
 
 # PIL support is now mandatory due to rotations
 try:
@@ -111,7 +116,7 @@ class asyTransform:
       self.x,self.y,self.xx,self.xy,self.yx,self.yy = initTuple
       self.deleted = delete
     else:
-      raise Exception,"Illegal initializer for asyTransform"
+      raise Exception("Illegal initializer for asyTransform")
 
   def getCode(self):
     """Obtain the asy code that represents this transform"""
@@ -135,7 +140,7 @@ class asyTransform:
       elif len(other) == 2:
         return ((self.t[0]+self.t[2]*other[0]+self.t[3]*other[1]),(self.t[1]+self.t[4]*other[0]+self.t[5]*other[1]))
       else:
-        raise Exception, "Illegal multiplier of %s"%str(type(other))
+        raise Exception("Illegal multiplier of {:s}".format(str(type(other))))
     elif isinstance(other,asyTransform):
       result = asyTransform((0,0,0,0,0,0))
       result.x = self.x+self.xx*other.x+self.xy*other.y
@@ -147,7 +152,7 @@ class asyTransform:
       result.t = (result.x,result.y,result.xx,result.xy,result.yx,result.yy)
       return result
     else:
-      raise Exception, "Illegal multiplier of %s"%str(type(other))
+      raise Exception("Illegal multiplier of {:s}".format(str(type(other))))
 
 def identity():
   return asyTransform((0,0,1,0,0,1))
@@ -437,7 +442,7 @@ class xasyItem:
   def asyfy(self,mag=1.0):
     self.removeFromCanvas()
     self.imageList = []
-    self.imageHandleQueue = Queue.Queue()
+    self.imageHandleQueue = queue.Queue()
     worker = threading.Thread(target=self.asyfyThread,args=(mag,))
     worker.start()
     item = self.imageHandleQueue.get()
@@ -602,7 +607,7 @@ class xasyFilledShape(xasyShape):
   def __init__(self,path,pen=asyPen(),transform=identity()):
     """Initialize this shape with a path, pen, and transform"""
     if path.nodeSet[-1] != 'cycle':
-      raise Exception,"Filled paths must be cyclic"
+      raise Exception("Filled paths must be cyclic")
     xasyShape.__init__(self,path,pen,transform)
 
   def updateCode(self,mag=1.0):
@@ -690,7 +695,7 @@ class xasyText(xasyItem):
     if self.onCanvas == None:
       self.onCanvas = canvas
     elif self.onCanvas != canvas:
-      raise Exception,"Error: item cannot be added to more than one canvas"
+      raise Exception("Error: item cannot be added to more than one canvas")
     self.asyfy(mag)
 
   def __str__(self):
@@ -754,7 +759,7 @@ class xasyScript(xasyItem):
     if self.onCanvas == None:
       self.onCanvas = canvas
     elif self.onCanvas != canvas:
-      raise Exception,"Error: item cannot be added to more than one canvas"
+      raise Exception("Error: item cannot be added to more than one canvas")
     self.asyfy(mag)
 
   def __str__(self):

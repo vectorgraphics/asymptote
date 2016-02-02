@@ -9,9 +9,13 @@
 #
 ###########################################################################
 import math
+import sys
 import UndoRedoStack
 import xasy2asy
-from Tkinter import *
+if sys.version_info >= (3, 0):
+  from tkinter import *
+else:
+  from Tkinter import *
 
 class translationAction(UndoRedoStack.action):
   def __init__(self,owner,itemList,indexList,translation):

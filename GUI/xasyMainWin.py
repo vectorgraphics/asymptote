@@ -11,15 +11,22 @@
 ###########################################################################
 
 import os
+import sys
 from string import *
 import subprocess
 import math
 import copy
 
-from Tkinter import *
-import tkMessageBox
-import tkFileDialog
-import tkSimpleDialog
+if sys.version_info >= (3, 0):
+  # python3
+  from tkinter import *
+else:
+  # python2
+  # from Tkinter import *
+  import tkFileDialog   as filedialog
+  import tkMessageBox   as messagebox
+  import tkSimpleDialog as simpledialog
+
 import threading
 import time
 
@@ -61,7 +68,7 @@ class xasyMainWin:
     else:
       site="http://effbot.org/downloads/Imaging-1.1.7.tar.gz" 
     if not PILAvailable:
-      tkMessageBox.showerror("Failed Dependencies","An error occurred loading the required PIL library. Please install "+site)
+      messagebox.showerror("Failed Dependencies","An error occurred loading the required PIL library. Please install "+site)
       self.parent.destroy()
       sys.exit(1)
     if file != None:
@@ -449,12 +456,12 @@ class xasyMainWin:
     #test the asyProcess
     startQuickAsy()
     if not quickAsyRunning():
-      if tkMessageBox.askyesno("Xasy Error","Asymptote could not be executed.\r\nTry to find Asymptote automatically?"):
+      if messagebox.askyesno("Xasy Error","Asymptote could not be executed.\r\nTry to find Asymptote automatically?"):
         xasyOptions.setAsyPathFromWindowsRegistry()
         xasyOptions.save()
         startQuickAsy()
     while not quickAsyRunning():
-      if tkMessageBox.askyesno("Xasy Error","Asymptote could not be executed.\r\nEdit settings?"):
+      if messagebox.askyesno("Xasy Error","Asymptote could not be executed.\r\nEdit settings?"):
         xasyOptionsDialog.xasyOptionsDlg(self.parent)
         xasyOptions.save()
         startQuickAsy()
@@ -466,7 +473,7 @@ class xasyMainWin:
     self.mainCanvas.delete("grid")
     if not self.gridVisible:
       return
-    left,top,right,bottom = map(int,self.mainCanvas.cget("scrollregion").split())
+    left,top,right,bottom = map(int,map(float,self.mainCanvas.cget("scrollregion").split()))
     gridyspace = int(self.magnification*self.gridyspace)
     gridxspace = int(self.magnification*self.gridxspace)
     if gridxspace >= 3 and gridyspace >= 3:
@@ -484,7 +491,7 @@ class xasyMainWin:
     self.mainCanvas.delete("axes")
     if not self.axesVisible:
       return
-    left,top,right,bottom = map(int,self.mainCanvas.cget("scrollregion").split())
+    left,top,right,bottom = map(int,map(float,self.mainCanvas.cget("scrollregion").split()))
     self.mainCanvas.create_line(0,top,0,bottom,tags=("axes","yaxis"),fill=self.axiscolor)
     self.mainCanvas.create_line(left,0,right,0,tags=("axes","xaxis"),fill=self.axiscolor)
     axisxspace = int(self.magnification*self.axisxspace)
@@ -549,7 +556,7 @@ class xasyMainWin:
       self.bindEvents(item.IDTag)
 
   def canQuit(self,force=False):
-    #print "Quitting"
+    #print ("Quitting")
     if not force and not self.testOrAcquireLock():
       return
     try:
@@ -557,10 +564,10 @@ class xasyMainWin:
     except:
       pass
     if self.undoRedoStack.changesMade():
-      result = tkMessageBox._show("xasy","File has been modified.\nSave changes?",icon=tkMessageBox.QUESTION,type=tkMessageBox.YESNOCANCEL)
-      if str(result) == tkMessageBox.CANCEL:
+      result = messagebox._show("xasy","File has been modified.\nSave changes?",icon=messagebox.QUESTION,type=messagebox.YESNOCANCEL)
+      if str(result) == messagebox.CANCEL:
         return
-      elif result == tkMessageBox.YES:
+      elif result == messagebox.YES:
         self.fileSaveCmd()
     try:
       os.rmdir(getAsyTempDir())
@@ -595,19 +602,19 @@ class xasyMainWin:
       self.fileItems = xasyFile.parseFile(f)
       f.close()
     except IOError:
-      tkMessageBox.showerror("File Opening Failed.","File could not be opened.")
+      messagebox.showerror("File Opening Failed.","File could not be opened.")
       self.fileItems = []
     except:
       self.fileItems = []
       self.autoMakeScript = True
-      if self.autoMakeScript or tkMessageBox.askyesno("Error Opening File", "File was not recognized as an xasy file.\nLoad as a script item?"):
+      if self.autoMakeScript or messagebox.askyesno("Error Opening File", "File was not recognized as an xasy file.\nLoad as a script item?"):
         try:
           item = xasyScript(self.mainCanvas)
           f.seek(0)
           item.setScript(f.read())
           self.addItemToFile(item)
         except:
-          tkMessageBox.showerror("File Opening Failed.","Could not load as a script item.")
+          messagebox.showerror("File Opening Failed.","Could not load as a script item.")
           self.fileItems = []
     self.populateCanvasWithItems()
     self.populatePropertyList()
@@ -663,12 +670,12 @@ class xasyMainWin:
     if(not self.testOrAcquireLock()):
       return
     self.releaseLock()
-    #print "Create New File"
+    #print ("Create New File")
     if self.undoRedoStack.changesMade():
-      result = tkMessageBox._show("xasy","File has been modified.\nSave changes?",icon=tkMessageBox.QUESTION,type=tkMessageBox.YESNOCANCEL)
-      if str(result) == tkMessageBox.CANCEL:
+      result = messagebox._show("xasy","File has been modified.\nSave changes?",icon=messagebox.QUESTION,type=messagebox.YESNOCANCEL)
+      if str(result) == messagebox.CANCEL:
         return
-      elif result == tkMessageBox.YES:
+      elif result == messagebox.YES:
         self.fileSaveCmd()
     self.resetGUI()
 
@@ -676,25 +683,25 @@ class xasyMainWin:
     if(not self.testOrAcquireLock()):
       return
     self.releaseLock()
-    #print "Open a file"
+    #print ("Open a file")
     if self.undoRedoStack.changesMade():
-      result = tkMessageBox._show("xasy","File has been modified.\nSave changes?",icon=tkMessageBox.QUESTION,type=tkMessageBox.YESNOCANCEL)
-      if str(result) == tkMessageBox.CANCEL:
+      result = messagebox._show("xasy","File has been modified.\nSave changes?",icon=messagebox.QUESTION,type=messagebox.YESNOCANCEL)
+      if str(result) == messagebox.CANCEL:
         return
-      elif result == tkMessageBox.YES:
+      elif result == messagebox.YES:
         self.fileSaveCmd()
-    filename=tkFileDialog.askopenfilename(filetypes=[("asy files","*.asy"),("All files","*")],title="Open File",parent=self.parent)
+    filename=filedialog.askopenfilename(filetypes=[("asy files","*.asy"),("All files","*")],title="Open File",parent=self.parent)
     if type(filename) != type((0,)) and filename != None and filename != '':
       self.filename = filename
       self.openFile(self.filename)
 
   def fileSaveCmd(self):
-    #print "Save current file"
+    #print ("Save current file")
     if(not self.testOrAcquireLock()):
       return
     self.releaseLock()
     if self.filename == None:
-      filename=tkFileDialog.asksaveasfilename(defaultextension=".asy",filetypes=[("asy files","*.asy")],initialfile="newDrawing.asy",parent=self.parent,title="Save File")
+      filename=filedialog.asksaveasfilename(defaultextension=".asy",filetypes=[("asy files","*.asy")],initialfile="newDrawing.asy",parent=self.parent,title="Save File")
       if type(filename) != type((0,)) and filename != None and filename != '':
         self.filename = filename
     if self.filename != None:
@@ -704,8 +711,8 @@ class xasyMainWin:
     if(not self.testOrAcquireLock()):
       return
     self.releaseLock()
-    #print "Save current file as"
-    filename=tkFileDialog.asksaveasfilename(defaultextension=".asy",filetypes=[("asy files","*.asy")],initialfile="newDrawing.asy",parent=self.parent,title="Save File")
+    #print ("Save current file as")
+    filename=filedialog.asksaveasfilename(defaultextension=".asy",filetypes=[("asy files","*.asy")],initialfile="newDrawing.asy",parent=self.parent,title="Save File")
     if type(filename) != type((0,)) and filename != None and filename != '':
       self.filename = filename
       self.saveFile(self.filename)
@@ -731,20 +738,20 @@ class xasyMainWin:
       return
     self.releaseLock()
     if inFile == None:
-      if tkMessageBox.askyesno("xasy","File has not been saved.\nSave?"):
+      if messagebox.askyesno("xasy","File has not been saved.\nSave?"):
         self.fileSaveAsCmd()
         inFile = self.filename
       else:
         return
     elif self.undoRedoStack.changesMade():
-      choice = tkMessageBox._show("xasy","File has been modified.\nOnly saved changes can be exported.\nDo you want to save changes?",icon=tkMessageBox.QUESTION,type=tkMessageBox.YESNOCANCEL)
+      choice = messagebox._show("xasy","File has been modified.\nOnly saved changes can be exported.\nDo you want to save changes?",icon=messagebox.QUESTION,type=messagebox.YESNOCANCEL)
       choice = str(choice)
-      if choice != tkMessageBox.YES:
+      if choice != messagebox.YES:
         return
       else:
         self.fileSaveCmd()
     name = os.path.splitext(os.path.basename(self.filename))[0]+'.'+outFormat
-    outfilename = tkFileDialog.asksaveasfilename(defaultextension = '.'+outFormat,filetypes=[(outFormat+" files","*."+outFormat)],initialfile=name,parent=self.parent,title="Choose output file")
+    outfilename = filedialog.asksaveasfilename(defaultextension = '.'+outFormat,filetypes=[(outFormat+" files","*."+outFormat)],initialfile=name,parent=self.parent,title="Choose output file")
     if type(outfilename)==type((0,)) or not outfilename or outfilename == '':
       return
     fullname = os.path.abspath(outfilename)
@@ -753,13 +760,13 @@ class xasyMainWin:
     saver = subprocess.Popen(command,stdin=PIPE,stdout=PIPE,stderr=PIPE)
     saver.wait()
     if saver.returncode != 0:
-      tkMessageBox.showerror("Export Error","Export Error:\n"+saver.stdout.read()+saver.stderr.read())
+      messagebox.showerror("Export Error","Export Error:\n"+saver.stdout.read()+saver.stderr.read())
       self.status.config(text="Error exporting file")
     else:
       self.status.config(text="File exported successfully")
 
   def fileExitCmd(self):
-    #print "Exit xasy"
+    #print ("Exit xasy")
     self.canQuit()
 
   def editUndoCmd(self):
@@ -779,14 +786,14 @@ class xasyMainWin:
     self.releaseLock()
 
   def helpHelpCmd(self):
-    print "Get help on xasy"
+    print ("Get help on xasy")
 
   def helpAsyDocCmd(self):
-    #print "Open documentation about Asymptote"
+    #print ("Open documentation about Asymptote")
     asyExecute("help;\n")
 
   def helpAboutCmd(self):
-    tkMessageBox.showinfo("About xasy","A graphical interface for Asymptote "+xasyVersion)
+    messagebox.showinfo("About xasy","A graphical interface for Asymptote "+xasyVersion)
 
   def updateSelectedButton(self,newB):
     if(not self.testOrAcquireLock()):
@@ -847,8 +854,8 @@ class xasyMainWin:
     self.unbindGlobalEvents()
     try:
       self.getNewText("// enter your code here")
-    except Exception, e:
-      tkMessageBox.showerror('xasy Error',e.message)
+    except Exception as e:
+      messagebox.showerror('xasy Error',e.message)
     else:
       self.addItemToFile(xasyScript(self.mainCanvas))
       text = self.newText
@@ -979,7 +986,7 @@ class xasyMainWin:
       else:
         if item.IDTag == ID:
           return item
-    raise Exception,"Illegal operation: Item with matching ID could not be found."
+    raise Exception("Illegal operation: Item with matching ID could not be found.")
 
   def findItemImageIndex(self,item,ID):
     count = 0
@@ -988,7 +995,7 @@ class xasyMainWin:
         return count
       else:
         count += 1
-    raise Exception,"Illegal operation: Image with matching ID could not be found."
+    raise Exception("Illegal operation: Image with matching ID could not be found.")
     return None
 
   def raiseSomething(self,item,force=False):
@@ -1057,9 +1064,9 @@ class xasyMainWin:
     return asyTransform((shift[0],shift[1],rotMat[0],rotMat[1],rotMat[2],rotMat[3]))
 
   def rotateSomething(self,ID,theta,origin,specificItem=None,specificIndex=None):
-    #print "Rotating by",theta*180.0/math.pi,"around",origin
+    #print ("Rotating by {} around {}".format(theta*180.0/math.pi,origin))
     rotMat = self.makeRotationMatrix(theta,(origin[0]/self.magnification,origin[1]/self.magnification))
-    #print rotMat
+    #print (rotMat)
     if ID == -1:
       item = specificItem
     else:
@@ -1098,9 +1105,9 @@ class xasyMainWin:
       p3 = rotMat2*(oldBbox[2],-oldBbox[1])
       newTopLeft = (min(p0[0],p1[0],p2[0],p3[0]),-max(p0[1],p1[1],p2[1],p3[1]))#switch back to screen coords
       shift = (newTopLeft[0]-oldBbox[0],newTopLeft[1]-oldBbox[3])
-      #print theta*180.0/math.pi,origin,oldBbox,newTopLeft,shift
-      #print item.imageList[index].originalImage.size
-      #print item.imageList[index].image.size
+      #print (theta*180.0/math.pi,origin,oldBbox,newTopLeft,shift)
+      #print (item.imageList[index].originalImage.size)
+      #print (item.imageList[index].image.size)
       #print
       self.mainCanvas.coords(ID,oldBbox[0]+shift[0],oldBbox[3]+shift[1])
     else:
@@ -1179,8 +1186,8 @@ class xasyMainWin:
       oldText = item.script
       try:
         self.getNewText(oldText)
-      except Exception,e:
-        tkMessageBox.showerror('xasy Error',e.message)
+      except Exception as e:
+        messagebox.showerror('xasy Error',e.message)
       else:
         if self.newText != oldText:
           self.undoRedoStack.add(editScriptAction(self,item,self.newText,oldText))
@@ -1189,7 +1196,7 @@ class xasyMainWin:
           self.bindItemEvents(item)
       self.bindGlobalEvents()
     elif isinstance(item,xasyText):
-      theText = tkSimpleDialog.askstring(title="Xasy - Text",prompt="Enter text to display:",initialvalue=item.label.text,parent=self.parent)
+      theText = simpledialog.askstring(title="Xasy - Text",prompt="Enter text to display:",initialvalue=item.label.text,parent=self.parent)
       if theText != None and theText != "":
         self.undoRedoStack.add(editLabelTextAction(self,item,theText,item.label.text))
         item.label.text = theText
@@ -1264,7 +1271,7 @@ class xasyMainWin:
       self.setSelection(CURRENT)
 
   def itemToggleSelect(self,event):
-    #print "control click"
+    #print ("control click")
     x0,y0 = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
     x = x0/self.magnification
     y = y0/self.magnification
@@ -1356,7 +1363,7 @@ class xasyMainWin:
     elif self.selectedButton == self.toolFillEllipButton:
       pass
     elif self.selectedButton == self.toolTextButton:
-      theText = tkSimpleDialog.askstring(title="Xasy - Text",prompt="Enter text to display:",initialvalue="",parent=self.parent)
+      theText = simpledialog.askstring(title="Xasy - Text",prompt="Enter text to display:",initialvalue="",parent=self.parent)
       if theText != None and theText != "":
         theItem = xasyText(theText,(x,-y),asyPen(self.penColor,self.penWidth,self.penOptions))
         theItem.drawOnCanvas(self.mainCanvas,self.magnification)
@@ -1431,7 +1438,7 @@ class xasyMainWin:
     self.releaseLock()
 
   def canvLeftDown(self,event):
-    #print "Left Mouse Down"
+    #print ("Left Mouse Down")
     self.selectDragStart = (self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y))
     theBbox = self.mainCanvas.bbox("selectedItem")
     if theBbox != None:
@@ -1449,7 +1456,7 @@ class xasyMainWin:
       self.startDraw(event)
 
   def canvLeftUp(self,event):
-    #print "Left Mouse Up"
+    #print ("Left Mouse Up")
     # if we're busy, ignore it
     if not self.testOrAcquireLock():
       return
@@ -1543,11 +1550,11 @@ class xasyMainWin:
 
   def canvRightDown(self,event):
     pass
-    #print "Right Mouse Down"
+    #print ("Right Mouse Down")
 
   def canvRightUp(self,event):
     pass
-    #print "Right Mouse Up"
+    #print ("Right Mouse Up")
 
   def configEvt(self,event):
     self.updateCanvasSize()
@@ -1573,7 +1580,7 @@ class xasyMainWin:
     self.itemEdit(self.itemPopupMenu.item)
 
   def popupViewCode(self):
-    tkMessageBox.showinfo("Item Code",self.itemPopupMenu.item.getCode())
+    messagebox.showinfo("Item Code",self.itemPopupMenu.item.getCode())
 
   def popupClearTransform(self):
     self.undoRedoStack.add(clearItemTransformsAction(self,self.itemPopupMenu.item,copy.deepcopy(self.itemPopupMenu.item.transform)))

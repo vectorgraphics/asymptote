@@ -82,16 +82,19 @@ if __name__ == '__main__':
   pointList = makeBezier((-80,0),(-150,40),(150,120),(80,0),0.5)
   from timeit import Timer
   t = Timer('makeBezier((-80,0),(-40,-40),(40,120),(80,0),1)','from __main__ import makeBezier')
-  print pointList
-  print len(pointList)
+  print (pointList)
+  print (len(pointList))
   iterations = 1000
   time = t.timeit(iterations)
-  print "%d iterations took %f seconds (%f ms for each)."%(iterations,time,1000.0*time/iterations)
+  print ("{:d} iterations took {:f} seconds ({:f} ms for each).".format(iterations,time,1000.0*time/iterations))
   points = []
   for point in pointList:
     points.append(point[0])
     points.append(-point[1])
-  from Tkinter import *
+  if sys.version_info >= (3, 0):
+    from tkinter import *
+  else:
+    from Tkinter import *
   root = Tk()
   canv = Canvas(root,scrollregion=(-100,-100,100,100))
   canv.pack()

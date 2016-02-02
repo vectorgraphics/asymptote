@@ -10,8 +10,14 @@
 #
 ############################################################################
 
-from Tkinter import *
-import tkColorChooser
+import sys
+
+if sys.version_info >= (3, 0):
+  from tkinter import *
+else:
+  from Tkinter import *
+  import tkColorChooser as colorchooser
+
 asyColors = { "black":(0,0,0),
   "white":(1,1,1),
   "gray":(0.5,0.5,0.5),
@@ -145,9 +151,9 @@ def makeRGBfromTkColor(tkColor):
   b /= 255.0
   return (r,g,b)
 
-def RGBreal255((r,g,b)):
+def RGBreal255(rgb):
   """Convert an RGB color from 0-1 to 0-255"""
-  a,b,c = (256*r,256*g,256*b)
+  a,b,c = (256*rgb[0],256*rgb[1],256*rgb[2])
   if a == 256:
     a = 255
   if b == 256:
@@ -156,9 +162,9 @@ def RGBreal255((r,g,b)):
     c = 255
   return map(int,(a,b,c))
 
-def RGB255hex((r,g,b)):
+def RGB255hex(rgb):
   """Make a color in the form #rrggbb in hex from r,g,b in 0-255"""
-  rs,gs,bs = map(hex,(r,g,b))
+  rs,gs,bs = map(hex,rgb)
   rs,gs,bs = rs[2:],gs[2:],bs[2:]
   if len(rs) < 2:
     rs += '0'
@@ -167,6 +173,7 @@ def RGB255hex((r,g,b)):
   if len(bs) < 2:
     bs += '0'
   return '#'+rs+gs+bs
+
 
 class xasyColorDlg(Toplevel):
   """A dialog for choosing an asymptote color. It displays the usual asy presets and allows custom rgb colors"""
@@ -235,7 +242,7 @@ class xasyColorDlg(Toplevel):
     """Use this method to prompt for a color. It returns the new color or the old color if the user cancelled the operation.
 
       e.g:
-        print xasyColorDlg(Tk()).getColor((1,1,0))
+        print (xasyColorDlg(Tk()).getColor((1,1,0)))
     """
     self.setColor(initialColor)
     self.oldColor = initialColor

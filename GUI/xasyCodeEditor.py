@@ -15,7 +15,6 @@ from tempfile import mkstemp
 from os import remove
 from os import fdopen
 from os import path
-from string import split
 import xasyOptions
 
 def getText(text=""):
@@ -26,7 +25,7 @@ def getText(text=""):
   tempf.close()
   try:
     cmdpath,cmd = path.split(path.expandvars(xasyOptions.options['externalEditor']))
-    split_cmd = split(cmd)
+    split_cmd = cmd.split()
     cmdpart = [path.join(cmdpath,split_cmd[0])]
     argpart = split_cmd[1:]+[temp[1]]
     arglist = cmdpart+argpart
@@ -45,4 +44,4 @@ def getText(text=""):
 
 if __name__ == '__main__':
   #run a test
-  print getText("Here is some text to edit")
+  print (getText("Here is some text to edit"))
