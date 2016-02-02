@@ -443,7 +443,6 @@ void quit()
       idle();
       glutDisplayFunc(nodisplay);
       endwait(readySignal,readyLock);
-      ::wait(NULL);
     }
 #endif    
     if(interact::interactive)
@@ -455,11 +454,6 @@ void quit()
 #endif
 }
   
-void exitHandler(int)
-{
-  glutLeaveMainLoop();
-}
-
 void mode() 
 {
   switch(Mode) {
@@ -1435,7 +1429,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     }
   } else {
     if(glinitialize) {
-      Signal(SIGUSR2,exitHandler);
       glinitialize=false;
       init();
       Fitscreen=1;
