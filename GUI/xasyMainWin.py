@@ -20,6 +20,7 @@ import copy
 if sys.version_info >= (3, 0):
   # python3
   from tkinter import *
+  from tkinter import filedialog, messagebox, simpledialog
 else:
   # python2
   # from Tkinter import *

@@ -186,7 +186,7 @@ class asyPen(asyObj):
 
   def updateCode(self,mag=1.0):
     """Generate the pen's code"""
-    self.asyCode = "rgb(%g,%g,%g)"%self.color+"+"+str(self.width)
+    self.asyCode = "rgb({:g},{:g},{:g})+{:s}".format(self.color[0], self.color[1], self.color[2],str(self.width))
     if len(self.options) > 0:
       self.asyCode += "+"+self.options
 
@@ -469,20 +469,20 @@ class xasyItem:
     global console
     for line in self.getCode().splitlines():
       fout.write(line+"\n");
-    fout.write("deconstruct(%f);\n"%mag)
+    fout.write("deconstruct({:f});\n".format(mag))
     fout.flush()
-    format = "png"
+    fileformat = "png"
     maxargs = int(split(fin.readline())[0])
     boxes=[]
     batch=0
     n=0
     text = fin.readline()
-    template=AsyTempDir+"%d_%d.%s"
+    # template=AsyTempDir+"%d_%d.%s"
     def render():
         for i in range(len(boxes)):
           l,b,r,t = [float(a) for a in split(boxes[i])]
-          name=template%(batch,i+1,format)
-          self.imageHandleQueue.put((name,format,(l,b,r,t),i))
+          name=AsyTempDir+"{:d}_{:d}.{:s}".format(batch,i+1,fileformat)
+          self.imageHandleQueue.put((name,fileformat,(l,b,r,t),i))
     while text != "Done\n" and text != "Error\n":
       boxes.append(text)
       text = fin.readline()
@@ -600,7 +600,7 @@ class xasyShape(xasyDrawnItem):
 
   def __str__(self):
     """Create a string describing this shape"""
-    return "xasyShape code:%s"%("\n\t".join(self.getCode().splitlines()))
+    return "xasyShape code:{:s}".format("\n\t".join(self.getCode().splitlines()))
 
 class xasyFilledShape(xasyShape):
   """A filled shape drawn on the GUI"""
@@ -666,7 +666,7 @@ class xasyFilledShape(xasyShape):
 
   def __str__(self):
     """Return a string describing this shape"""
-    return "xasyFilledShape code:%s"%("\n\t".join(self.getCode().splitlines()))
+    return "xasyFilledShape code:{:s}".format("\n\t".join(self.getCode().splitlines()))
 
 class xasyText(xasyItem):
   """Text created by the GUI"""
@@ -699,7 +699,7 @@ class xasyText(xasyItem):
     self.asyfy(mag)
 
   def __str__(self):
-    return "xasyText code:%s"%("\n\t".join(self.getCode().splitlines()))
+    return "xasyText code:{:s}".format("\n\t".join(self.getCode().splitlines()))
 
 class xasyScript(xasyItem):
   """A set of images create from asymptote code. It is always deconstructed."""
@@ -723,7 +723,7 @@ class xasyScript(xasyItem):
       for xform in self.transform:
         if not isFirst:
           self.asyCode+=",\n"
-        self.asyCode += "indexedTransform(%d,%s)"%(count,str(xform))
+        self.asyCode += "indexedTransform({:d},{:s})".format(count,str(xform))
         isFirst = False
         count += 1
       self.asyCode += ");\n"
