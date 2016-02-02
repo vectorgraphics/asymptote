@@ -661,6 +661,7 @@ void display()
 void update() 
 {
   glutDisplayFunc(display);
+  Animate=getSetting<bool>("autoplay");
   glutShowWindow();
   lastzoom=Zoom;
   glLoadIdentity();
@@ -1499,7 +1500,6 @@ void glrender(const string& prefix, const picture *pic, const string& format,
   if(glthread && initializedView && !offscreen) {
     if(!View)
       readyAfterExport=queueExport=true;
-    Animate=getSetting<bool>("autoplay");
     pthread_kill(mainthread,SIGUSR1);
     return;
   }
