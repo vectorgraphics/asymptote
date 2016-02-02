@@ -1119,11 +1119,6 @@ void glrenderWrapper()
 #endif  
 }
 
-void exitHandler(int)
-{
-  exit(0);
-}
-
 bool picture::shipout3(const string& prefix, const string& format,
                        double width, double height, double angle, double zoom,
                        const triple& m, const triple& M, const pair& shift,
@@ -1186,7 +1181,6 @@ bool picture::shipout3(const string& prefix, const string& format,
   if(glthread && !offscreen) {
 #ifdef HAVE_PTHREAD
     if(gl::initialize) {
-      Signal(SIGUSR2,exitHandler);
       gl::initialize=false;
       com.prefix=prefix;
       com.pic=pic;
