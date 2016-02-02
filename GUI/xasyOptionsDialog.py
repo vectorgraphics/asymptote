@@ -16,11 +16,11 @@ import xasyOptions
 import xasyColorPicker
 
 if sys.version_info >= (3, 0):
-  # from tkinter import *
-  from tkinter import simpledialog
+  from tkinter import *
+  from tkinter import simpledialog, messagebox, filedialog
 else:
   # python2
-  # from Tkinter import *
+  from Tkinter import *
   import tkSimpleDialog as simpledialog
   import tkMessageBox   as messagebox
   import tkFileDialog   as filedialog

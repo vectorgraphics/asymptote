@@ -14,6 +14,7 @@ import sys
 
 if sys.version_info >= (3, 0):
   from tkinter import *
+  from tkinter import colorchooser
 else:
   from Tkinter import *
   import tkColorChooser as colorchooser
