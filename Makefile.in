@@ -12,7 +12,7 @@ GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS)
-TERMCAP = $(subst -lncurses, -ltermcap, $(LIBS))) -s -static
+TERMCAP = $(subst -lncurses, -ltermcap, $(LIBS))
 
 PERL = perl
 
@@ -106,8 +106,9 @@ export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
 asy:	version
 	if test -n "$(MSDOS)"; then \
-          $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(TERMCAP); \
-	else \                                                       \
+          $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(TERMCAP) \
+          -s static; \
+	else \
 	  ln -sf GUI/xasy.py $(XNAME); \
 	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS); \
 	fi
