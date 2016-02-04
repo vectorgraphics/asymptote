@@ -37,7 +37,7 @@ def parseFile(inFile):
     lines.pop(0)
     if not line.isspace() and len(line)>0:
       try:
-        #print ("Line {:d}: {:s}".format(lineCount,line)),
+        #print ("Line {:d}: {:s}".format(lineCount,line))
         lineResult = parseLine(line.strip(),lines)
       except:
         raise xasyParseError("Parsing error: line {:d} in {:s}\n{:s}".format(lineCount,inFile.name,line))

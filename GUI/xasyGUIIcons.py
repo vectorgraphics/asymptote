@@ -75,7 +75,7 @@ if __name__=='__main__':
   print ("Checking consistency of all icons in iconB64")
   allpassed = True
   for icon in iconB64.keys():
-    print ("Checking {:s}".format(icon)),
+    print ("Checking {:s}".format(icon))
     if createStrFromGif(open("{:s}.gif".format(icon),"rb")) == iconB64[icon]:
       print ("\tPassed.")
     else:
