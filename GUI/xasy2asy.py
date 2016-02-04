@@ -472,7 +472,7 @@ class xasyItem:
     fout.write("deconstruct({:f});\n".format(mag))
     fout.flush()
     fileformat = "png"
-    maxargs = int(split(fin.readline())[0])
+    maxargs = int(fin.readline().split()[0])
     boxes=[]
     batch=0
     n=0
