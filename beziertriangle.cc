@@ -308,7 +308,11 @@ struct Render
 
       // A kludge to remove subdivision cracks, only applied the first time
       // an edge is found to be flat before the rest of the sub-patch is.
+#ifdef __MSDOS__      
+      const double epsilon=1.0*res;
+#else
       const double epsilon=0.1*res;
+#endif      
       triple p2,p1,p0;
 
       if(flat1)

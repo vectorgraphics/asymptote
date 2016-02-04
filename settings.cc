@@ -1580,9 +1580,8 @@ Int getScroll()
     if(!terminal)
       terminal=getenv("TERM");
     if(terminal) {
-      int error;
-      error=setupterm(terminal,1,&error);
 #ifndef __MSDOS__      
+      int error=setupterm(terminal,1,&error);
       if(error == 0) scroll=lines > 2 ? lines-1 : 1;
       else
 #endif

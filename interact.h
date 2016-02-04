@@ -9,6 +9,8 @@
 
 #include "common.h"
 
+void interruptHandler(int);
+
 namespace interact {
 
 extern bool interactive;
@@ -37,7 +39,7 @@ void cleanup_interactive();
 // This class is used to set a text completion function for readline.  A class
 // is used instead the usual function pointer so that information such as the
 // current environment can be coded into the function (mimicking a closure).
-class completer : public gc {
+class completer {
 public:
   virtual ~completer() {};
   virtual char *operator () (const char *text, int state) = 0;
