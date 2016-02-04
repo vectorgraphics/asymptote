@@ -213,8 +213,8 @@ patch patchwithnormals(path3 external, triple[] u0normals, triple[] u1normals,
 
   real[] solution = leastsquares(matrix, rightvector, warn=false);
   if (solution.length == 0) { // if the matrix was singular
-    write("Warning: unable to solve matrix for specifying normals "
-	  + "on bezier patch. Using standard method.");
+    write("Warning: unable to solve matrix for specifying edge normals "
+	  + "on bezier patch. Using coons patch.");
     return patch(external);
   }
   
@@ -230,7 +230,61 @@ patch patchwithnormals(path3 external, triple[] u0normals, triple[] u1normals,
   return patch(controlpoints);
 }
 
-// A wrapper for the previous function when the normal direction
+patch trianglewithnormals(path3 external, triple u0normal,
+			  triple t0normal, triple s0normal) {
+  assert(cyclic(external));
+  assert(length(external) == 3);
+  // Use the formal symbols a3, a2b, abc, etc. to denote the control points,
+  // following the Wikipedia article on Bezier triangles.
+  triple a3 = point(external, 0), a2b = postcontrol(external, 0),
+    ab2 = precontrol(external, 1), b3 = point(external, 1),
+    b2c = postcontrol(external, 1), bc2 = precontrol(external, 2),
+    c3 = point(external, 2), ac2 = postcontrol(external, 2),
+    a2c = precontrol(external, 0);
+
+  // Use orthogonal projection to ensure that the normal vectors are
+  // actually normal to the boundary path.
+  triple tangent = dir(external, 0.5);
+  u0normal -= dot(u0normal,tangent)*tangent;
+  u0normal = unit(u0normal);
+
+  tangent = dir(external, 1.5);
+  t0normal -= dot(t0normal,tangent)*tangent;
+  t0normal = unit(t0normal);
+
+  tangent = dir(external, 2.5);
+  s0normal -= dot(s0normal,tangent)*tangent;
+  s0normal = unit(s0normal);
+  
+  real wild = 2 * wildnessweight;
+  real[][] matrix = { {u0normal.x, u0normal.y, u0normal.z},
+                      {t0normal.x, t0normal.y, t0normal.z},
+		      {s0normal.x, s0normal.y, s0normal.z},
+                      {      wild,          0,          0},
+                      {         0,       wild,          0},
+		      {         0,          0,       wild} };
+  real[] rightvector =
+    { dot(u0normal, (a3 + 3a2b + 3ab2 + b3 - 2a2c - 2b2c)) / 4,
+      dot(t0normal, (b3 + 3b2c + 3bc2 + c3 - 2ab2 - 2ac2)) / 4,
+      dot(s0normal, (c3 + 3ac2 + 3a2c + a3 - 2bc2 - 2a2b)) / 4 };
+
+  // The inner control point that minimizes the sum of squares of
+  // the mixed partials on the corners.
+  triple tameinnercontrol =
+    ((a2b + a2c - a3) + (ab2 + b2c - b3) + (ac2 + bc2 - c3)) / 3;
+  rightvector.append(wild * new real[]
+		     {tameinnercontrol.x, tameinnercontrol.y, tameinnercontrol.z});
+  real[] solution = leastsquares(matrix, rightvector, warn=false);
+  if (solution.length == 0) { // if the matrix was singular
+    write("Warning: unable to solve matrix for specifying edge normals "
+	  + "on bezier triangle. Using coons triangle.");
+    return patch(external);
+  }
+  triple innercontrol = (solution[0], solution[1], solution[2]);
+  return patch(external, innercontrol);
+}
+
+// A wrapper for the previous functions when the normal direction
 // is given as a function of direction. The wrapper can also
 // accommodate cyclic boundary paths of between one and four
 // segments, although the results are best by far when there
@@ -238,6 +292,12 @@ patch patchwithnormals(path3 external, triple[] u0normals, triple[] u1normals,
 patch patchwithnormals(path3 external, triple normalat(triple)) {
   assert(cyclic(external));
   assert(1 <= length(external) && length(external) <= 4);
+  if (length(external) == 3) {
+    triple u0normal = normalat(point(external, 0.5));
+    triple t0normal = normalat(point(external, 1.5));
+    triple s0normal = normalat(point(external, 2.5));
+    return trianglewithnormals(external, u0normal, t0normal, s0normal);
+  }
   while (length(external) < 4) external = external -- cycle;
   triple[] u0normals = new triple[3];
   triple[] u1normals = new triple[3];
@@ -730,6 +790,11 @@ path3 pathinface(positionedvector v1, positionedvector v2,
 // not consist of four positive-length segments.
 patch[] triangletoquads(path3 external, real f(triple), triple grad(triple),
 			  triple a, triple b) {
+  assert(length(external) == 3);
+  assert(cyclic(external));
+  return new patch[] {patchwithnormals(external, grad)};
+
+  
   static real epsilon = 1e-3;
   assert(length(external) == 3);
   assert(cyclic(external));
