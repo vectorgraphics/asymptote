@@ -821,13 +821,12 @@ struct surface {
   
   // A constructor for a possibly nonconvex simple cyclic path in a given plane.
   void operator init(path p, triple plane(pair)=XYplane) {
-    bool straight=piecewisestraight(p);
     for(path g : regularize(p)) {
       if(length(g) == 3) {
         path3 G=path3(g,plane);
-        s.push(patch(G,coons3(G)));
+        s.push(patch(G,coons3(G),planar=true));
       } else
-        s.push(patch(coons(g),plane,straight));
+        s.push(patch(coons(g),plane,piecewisestraight(g)));
     }
   }
 
