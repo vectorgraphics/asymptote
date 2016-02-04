@@ -97,7 +97,8 @@ REVISION = "const char *REVISION="
 last = $(shell cat revision.cc | sed -e 's/.*\"\(.*\)\";/\\1/')
 usinggit = $(shell if test -d ".git"; then echo yes; fi)
 ifeq ($(usinggit),yes)
-	revision = $(shell LC_ALL="C" git describe | sed -e 's/-g.*//')
+	revision = $(shell LC_ALL="C" git describe | sed -e 's/git//' \
+                    | sed -e 's/-g.*//')
 else
 	revision = @VERSION@
 endif
