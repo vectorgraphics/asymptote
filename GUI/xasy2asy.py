@@ -363,7 +363,7 @@ class asyPath(asyObj):
       line=fin.readline()
       line=line.replace("\n","")
       pathStrLines.append(line)
-    oneLiner = "".join(split(join(pathStrLines)))
+    oneLiner = "".join(pathStrLines).replace(" ", "")
     splitList = oneLiner.split("..")
     nodes = [a for a in splitList if a.find("controls")==-1]
     self.nodeSet = []
@@ -485,7 +485,7 @@ class xasyItem:
     # template=AsyTempDir+"%d_%d.%s"
     def render():
         for i in range(len(boxes)):
-          l,b,r,t = [float(a) for a in split(boxes[i])]
+          l,b,r,t = [float(a) for a in boxes[i].split()]
           name=AsyTempDir+"{:d}_{:d}.{:s}".format(batch,i+1,fileformat)
           self.imageHandleQueue.put((name,fileformat,(l,b,r,t),i))
     while text != "Done\n" and text != "Error\n":
