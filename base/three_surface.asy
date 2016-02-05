@@ -68,7 +68,9 @@ struct patch {
   }
 
   triple Bu(int j, real u) {return bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
-  triple BuP(int j, real u) {return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);}
+  triple BuP(int j, real u) {
+    return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);
+  }
   triple BuPP(int j, real u) {
     return bezierPP(P[0][j],P[1][j],P[2][j],P[3][j],u);
   }
@@ -82,7 +84,9 @@ struct patch {
   }
 
   triple Bv(int i, real v) {return bezier(P[i][0],P[i][1],P[i][2],P[i][3],v);}
-  triple BvP(int i, real v) {return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);}
+  triple BvP(int i, real v) {
+    return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);
+  }
   triple BvPP(int i, real v) {
     return bezierPP(P[i][0],P[i][1],P[i][2],P[i][3],v);
   }
@@ -176,17 +180,17 @@ struct patch {
   }
 
   triple buu(real u, real v) {
-    // Compute one-third of the second directional derivative of a Bezier
+    // Compute one-sixth of the second directional derivative of a Bezier
     // triangle in the u direction at (u,v).
     real w=1-u-v;
-    return 2*w*P[0][0]+2*(u-2*w)*P[1][0]+2*v*P[1][1]+2*(w-2*u)*P[2][0]-
-      4*v*P[2][1]+2*u*P[3][0]+2*v*P[3][1];
+    return w*P[0][0]+(u-2*w)*P[1][0]+v*P[1][1]+(w-2*u)*P[2][0]-2*v*P[2][1]+
+      u*P[3][0]+v*P[3][1];
   }
 
   triple buuu() {
-    // Compute one-third of the third directional derivative of a Bezier
+    // Compute one-sixth of the third directional derivative of a Bezier
     // triangle in the u direction at (u,v).
-    return -2*P[0][0]+6*P[1][0]-6*P[2][0]+2*P[3][0];
+    return -P[0][0]+3*P[1][0]-3*P[2][0]+P[3][0];
   }
 
   triple bv(real u, real v) {
@@ -199,28 +203,28 @@ struct patch {
   }
 
   triple bvv(real u, real v) {
-    // Compute one-third of the second directional derivative of a Bezier
+    // Compute one-sixth of the second directional derivative of a Bezier
     // triangle in the v direction at (u,v).
     real w=1-u-v;
-    return 2*w*P[0][0]+2*u*P[1][0]+2*(v-2*w)*P[1][1]-4*u*P[2][1]+
-      2*(w-2*v)*P[2][2]+2*u*P[3][2]+2*v*P[3][3];
+    return w*P[0][0]+u*P[1][0]+(v-2*w)*P[1][1]-2*u*P[2][1]+(w-2*v)*P[2][2]+
+      u*P[3][2]+v*P[3][3];
   }
 
   triple bvvv() {
-    // Compute one-third of the third directional derivative of a Bezier
+    // Compute one-sixth of the third directional derivative of a Bezier
     // triangle in the v direction at (u,v).
-    return -2*P[0][0]+6*P[1][1]-6*P[2][2]+2*P[3][3];
+    return -P[0][0]+3*P[1][1]-3*P[2][2]+P[3][3];
   }
 
   // compute normal vectors for a degenerate Bezier triangle
   private triple normaltriangular0(real u, real v, real epsilon) {
-    triple n=4.5*(cross(buu(u,v),bv(u,v))+
+    triple n=9*(cross(buu(u,v),bv(u,v))+
                   cross(bu(u,v),bvv(u,v)));
     return abs(n) > epsilon ? n :
-      2.25*cross(buu(u,v),bvv(u,v))+
-      1.5*(cross(buuu(),bv(u,v))+cross(bu(u,v),bvvv()))+
-      0.75*(cross(buuu(),bvv(u,v))+cross(buu(u,v),bvvv()))+
-      0.25*cross(buuu(),bvvv());
+      9*cross(buu(u,v),bvv(u,v))+
+      3*(cross(buuu(),bv(u,v))+cross(bu(u,v),bvvv())+
+         cross(buuu(),bvv(u,v))+cross(buu(u,v),bvvv()))+
+      cross(buuu(),bvvv());
   }
 
   // Compute the normal of a Bezier triangle at (u,v)
