@@ -56,18 +56,20 @@ void init_completion() {
 
   rl_completion_append_character='\0'; // Don't add a space after a match.
 
+  /*
   // Build a string containing all characters that separate words to be
   // completed.  All characters that can't form part of an identifier are
   // treated as break characters.
   static char break_characters[128];
   Int j=0;
-  for (unsigned char c=9; c<128; ++c)
+  for (unsigned char c=9; c < 128; ++c)
     if (!isalnum(c) && c != '_') {
       break_characters[j]=c;
       ++j;
     }
   break_characters[j]='\0';
   rl_completer_word_break_characters=break_characters;
+  */
 }
 #endif  
 
@@ -133,8 +135,10 @@ string simpleline(string prompt) {
   // Rebind tab key, as the setting tabcompletion may be changed at runtime.
   pre_readline();
   
+  Signal(SIGINT,SIG_IGN);
   // Get a line from the user.
   char *line=Readline(prompt.c_str());
+  Signal(SIGINT,interruptHandler);
 
   // Reset scroll count.
   interact::lines=0;

@@ -161,11 +161,11 @@ def RGB255hex((r,g,b)):
   rs,gs,bs = map(hex,(r,g,b))
   rs,gs,bs = rs[2:],gs[2:],bs[2:]
   if len(rs) < 2:
-    rs += '0'
+    rs = '0'+rs
   if len(gs) < 2:
-    gs += '0'
+    gs = '0'+gs
   if len(bs) < 2:
-    bs += '0'
+    bs = '0'+bs
   return '#'+rs+gs+bs
 
 class xasyColorDlg(Toplevel):

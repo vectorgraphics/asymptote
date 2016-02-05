@@ -255,6 +255,8 @@ struct patch {
       normal10=normal10triangular;
       normal01=normal01triangular;
       colors=colorstriangular;
+      uequals=new path3(real u) {return nullpath3;};
+      vequals=new path3(real u) {return nullpath3;};
     }
   }
 
@@ -819,13 +821,12 @@ struct surface {
   
   // A constructor for a possibly nonconvex simple cyclic path in a given plane.
   void operator init(path p, triple plane(pair)=XYplane) {
-    bool straight=piecewisestraight(p);
     for(path g : regularize(p)) {
       if(length(g) == 3) {
         path3 G=path3(g,plane);
-        s.push(patch(G,coons3(G)));
+        s.push(patch(G,coons3(G),planar=true));
       } else
-        s.push(patch(coons(g),plane,straight));
+        s.push(patch(coons(g),plane,piecewisestraight(g)));
     }
   }
 
@@ -1536,18 +1537,19 @@ void draw(transform t=identity(), frame f, surface s, int nu=1, int nv=1,
     for(int p=depth.length-1; p >= 0; --p) {
       real[] a=depth[p];
       int k=round(a[1]);
+      patch S=s.s[k];
       pen meshpen=meshpen[k];
-      if(!invisible(meshpen)) {
+      if(!invisible(meshpen) && !S.triangular) {
         if(group)
           begingroup3(f,meshname(name),render);
         meshpen=modifiers+meshpen;
         real step=nu == 0 ? 0 : 1/nu;
         for(int i=0; i <= nu; ++i)
-          draw(f,s.s[k].uequals(i*step),meshpen,meshlight,partname(i,render),
+          draw(f,S.uequals(i*step),meshpen,meshlight,partname(i,render),
                render);
         step=nv == 0 ? 0 : 1/nv;
         for(int j=0; j <= nv; ++j)
-          draw(f,s.s[k].vequals(j*step),meshpen,meshlight,partname(j,render),
+          draw(f,S.vequals(j*step),meshpen,meshlight,partname(j,render),
                render);
         if(group)
           endgroup3(f);
@@ -1629,8 +1631,9 @@ void draw(picture pic=currentpicture, surface s, int nu=1, int nv=1,
   pen modifiers;
   if(is3D()) modifiers=thin()+squarecap;
   for(int k=0; k < s.s.length; ++k) {
+    patch S=s.s[k];
     pen meshpen=meshpen[k];
-    if(!invisible(meshpen)) {
+    if(!invisible(meshpen) && !S.triangular) {
       meshpen=modifiers+meshpen;
       real step=nu == 0 ? 0 : 1/nu;
       for(int i=0; i <= nu; ++i)

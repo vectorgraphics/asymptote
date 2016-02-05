@@ -12,6 +12,8 @@ GCPPLIB = @GCPPLIB@
 GCLIBS = $(GCPPLIB) $(GCLIB)
 LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @PTHREAD_LIBS@ @LIBS@ $(GCLIBS)
+DOSLIBS = $(subst -lncurses, -ltermcap, $(LIBS)) -s -static
+
 PERL = perl
 
 # Libraries needed to make asymptote.so.
@@ -95,16 +97,17 @@ REVISION = "const char *REVISION="
 last = $(shell cat revision.cc | sed -e 's/.*\"\(.*\)\";/\\1/')
 usinggit = $(shell if test -d ".git"; then echo yes; fi)
 ifeq ($(usinggit),yes)
-	revision = $(shell LC_ALL="C" git describe | sed -e 's/-g.*//')
+	revision = $(shell LC_ALL="C" git describe | sed -e 's/git//' \
+                    | sed -e 's/-g.*//')
 else
-	revision = $(shell grep AC_INIT configure.ac | cut -s -d[ -f3 | cut -s -d] -f1)
+	revision = @VERSION@
 endif
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
 asy:	version
 	if test -n "$(MSDOS)"; then \
-	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(LIBS) -s -static; \
+          $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o asy.o $(DOSLIBS); \
 	else \
 	  ln -sf GUI/xasy.py $(XNAME); \
 	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS); \
