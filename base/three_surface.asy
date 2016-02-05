@@ -68,7 +68,9 @@ struct patch {
   }
 
   triple Bu(int j, real u) {return bezier(P[0][j],P[1][j],P[2][j],P[3][j],u);}
-  triple BuP(int j, real u) {return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);}
+  triple BuP(int j, real u) {
+    return bezierP(P[0][j],P[1][j],P[2][j],P[3][j],u);
+  }
   triple BuPP(int j, real u) {
     return bezierPP(P[0][j],P[1][j],P[2][j],P[3][j],u);
   }
@@ -82,7 +84,9 @@ struct patch {
   }
 
   triple Bv(int i, real v) {return bezier(P[i][0],P[i][1],P[i][2],P[i][3],v);}
-  triple BvP(int i, real v) {return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);}
+  triple BvP(int i, real v) {
+    return bezierP(P[i][0],P[i][1],P[i][2],P[i][3],v);
+  }
   triple BvPP(int i, real v) {
     return bezierPP(P[i][0],P[i][1],P[i][2],P[i][3],v);
   }
@@ -99,13 +103,6 @@ struct patch {
     return bezier(Bu(0,u),Bu(1,u),Bu(2,u),Bu(3,u),v);
   }
 
-  triple pointtriangular(real u, real v) {
-    real w=1-u-v;
-    return w^2*(w*P[0][0]+3*(u*P[1][0]+v*P[1][1]))+
-      u^2*(u*P[3][0]+3*(w*P[2][0]+v*P[3][1]))+
-      6*u*v*w*P[2][1]+v^2*(v*P[3][3]+3*(w*P[2][2]+u*P[3][2]));
-  }
-  
   // compute normal vectors for degenerate cases
   private triple normal0(real u, real v, real epsilon) {
     triple n=0.5*(cross(bezier(BuPP(0,u),BuPP(1,u),BuPP(2,u),BuPP(3,u),v),
@@ -167,46 +164,92 @@ struct patch {
     return abs(n) > epsilon ? n : normal0(0,1,epsilon);
   }
 
+  triple pointtriangular(real u, real v) {
+    real w=1-u-v;
+    return w^2*(w*P[0][0]+3*(u*P[1][0]+v*P[1][1]))+
+      u^2*(3*(w*P[2][0]+v*P[3][1])+u*P[3][0])+
+      6*u*v*w*P[2][1]+v^2*(3*(w*P[2][2]+u*P[3][2])+v*P[3][3]);
+  }
+
+  triple bu(real u, real v) {
+    // Compute one-third of the directional derivative of a Bezier triangle
+    // in the u direction at (u,v).
+    real w=1-u-v;
+    return -w^2*P[0][0]+w*(w-2*u)*P[1][0]-2*w*v*P[1][1]+u*(2*w-u)*P[2][0]+
+      2*v*(w-u)*P[2][1]-v^2*P[2][2]+u^2*P[3][0]+2*u*v*P[3][1]+v^2*P[3][2];
+  }
+
+  triple buu(real u, real v) {
+    // Compute one-sixth of the second directional derivative of a Bezier
+    // triangle in the u direction at (u,v).
+    real w=1-u-v;
+    return w*P[0][0]+(u-2*w)*P[1][0]+v*P[1][1]+(w-2*u)*P[2][0]-2*v*P[2][1]+
+      u*P[3][0]+v*P[3][1];
+  }
+
+  triple buuu() {
+    // Compute one-sixth of the third directional derivative of a Bezier
+    // triangle in the u direction at (u,v).
+    return -P[0][0]+3*P[1][0]-3*P[2][0]+P[3][0];
+  }
+
+  triple bv(real u, real v) {
+    // Compute one-third of the directional derivative of a Bezier triangle
+    // in the v direction at (u,v).
+    real w=1-u-v;
+    return -w^2*P[0][0]-2*u*w*P[1][0]+w*(w-2*v)*P[1][1]-u^2*P[2][0]+
+      2*u*(w-v)*P[2][1]+v*(2*w-v)*P[2][2]+u*u*P[3][1]+2*u*v*P[3][2]+
+      v^2*P[3][3];
+  }
+
+  triple bvv(real u, real v) {
+    // Compute one-sixth of the second directional derivative of a Bezier
+    // triangle in the v direction at (u,v).
+    real w=1-u-v;
+    return w*P[0][0]+u*P[1][0]+(v-2*w)*P[1][1]-2*u*P[2][1]+(w-2*v)*P[2][2]+
+      u*P[3][2]+v*P[3][3];
+  }
+
+  triple bvvv() {
+    // Compute one-sixth of the third directional derivative of a Bezier
+    // triangle in the v direction at (u,v).
+    return -P[0][0]+3*P[1][1]-3*P[2][2]+P[3][3];
+  }
+
+  // compute normal vectors for a degenerate Bezier triangle
+  private triple normaltriangular0(real u, real v, real epsilon) {
+    triple n=9*(cross(buu(u,v),bv(u,v))+
+                  cross(bu(u,v),bvv(u,v)));
+    return abs(n) > epsilon ? n :
+      9*cross(buu(u,v),bvv(u,v))+
+      3*(cross(buuu(),bv(u,v))+cross(bu(u,v),bvvv())+
+         cross(buuu(),bvv(u,v))+cross(buu(u,v),bvvv()))+
+      cross(buuu(),bvvv());
+  }
+
+  // Compute the normal of a Bezier triangle at (u,v)
+  triple normaltriangular(real u, real v) {
+    triple n=9*cross(bu(u,v),bv(u,v));
+    real epsilon=fuzz*change2(P);
+    return (abs(n) > epsilon) ? n : normal0(u,v,epsilon);
+  }
+
   triple normal00triangular() {
     triple n=9*cross(P[1][0]-P[0][0],P[1][1]-P[0][0]);
     real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normal0(0,0,epsilon);
+    return abs(n) > epsilon ? n : normaltriangular0(0,0,epsilon);
   }
 
   triple normal10triangular() {
     triple n=9*cross(P[3][0]-P[2][0],P[3][1]-P[2][0]);
     real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normal0(1,0,epsilon);
+    return abs(n) > epsilon ? n : normaltriangular0(1,0,epsilon);
   }
 
   triple normal01triangular() {
     triple n=9*cross(P[3][2]-P[2][2],P[3][3]-P[2][2]);
     real epsilon=fuzz*change2(P);
-    return abs(n) > epsilon ? n : normal0(0,1,epsilon);
-  }
-
-  // Compute one-third of the directional derivative of a Bezier triangle in the u
-  // direction at point (u,v).
-  private triple bu(real u, real v) {
-    real w=1-u-v;
-    return u*(w*2-u)*P[2][0]+2*v*(w-u)*P[2][1]+w*(w-2*u)*P[1][0]+
-      u*(u*P[3][0]+2*v*P[3][1])+v*v*P[3][2]-w*(2*v*P[1][1]+w*P[0][0])-
-      v*v*P[2][2];
-  }
-
-  // Compute one-third of the directional derivative of a Bezier triangle in the v
-  // direction at point (u,v).
-  private triple bv(real u, real v) {
-    real w=1-u-v;
-    return u*2*(w-v)*P[2][1]+v*(2*w-v)*P[2][2]+w*(w-2*v)*P[1][1]+
-      u*(u*P[3][1]+2*v*P[3][2])+v*v*P[3][3]-w*(2*u*P[1][0]+w*P[0][0])-
-      u*u*P[2][0];
-  }
-
-  // Compute the normal of a Bezier triangle at (u,v)
-  triple normaltriangular(real u, real v) {
-    // TODO: handle degeneracy
-    return 9*cross(bu(u,v),bv(u,v));
+    return abs(n) > epsilon ? n : normaltriangular0(0,1,epsilon);
   }
 
   pen[] colors(material m, light light=currentlight) {
@@ -450,7 +493,7 @@ patch reverse(patch s)
   assert(!s.triangular);
   patch S;
   S.P=transpose(s.P);
-  if(s.colors.length > 0) 
+  if(s.colors.length > 0)
     S.colors=new pen[] {s.colors[0],s.colors[3],s.colors[2],s.colors[1]};
   S.straight=s.straight;
   S.planar=s.planar;
@@ -819,15 +862,15 @@ struct surface {
     return ucyclic() ? g&cycle : g;
   }
   
-  // A constructor for a possibly nonconvex simple cyclic path in a given plane.
+  // A constructor for a possibly nonconvex simple cyclic path in a given
+  // plane.
   void operator init(path p, triple plane(pair)=XYplane) {
-    bool straight=piecewisestraight(p);
     for(path g : regularize(p)) {
       if(length(g) == 3) {
         path3 G=path3(g,plane);
-        s.push(patch(G,coons3(G)));
+        s.push(patch(G,coons3(G),planar=true));
       } else
-        s.push(patch(coons(g),plane,straight));
+        s.push(patch(coons(g),plane,piecewisestraight(g)));
     }
   }
 
@@ -1492,9 +1535,14 @@ void tensorshade(transform t=identity(), frame f, patch s,
                  material m, light light=currentlight, projection P)
 {
   
-  if(s.triangular) s=tensor(s);
+  pen[] p;
+  if(s.triangular) {
+    p=s.colorstriangular(m,light);
+    p.push(p[0]);
+    s=tensor(s);        
+  } else p=s.colors(m,light);
   tensorshade(f,box(t*s.min(P),t*s.max(P)),m.diffuse(),
-              s.colors(m,light),t*project(s.external(),P,1),t*project(s.internal(),P));
+              p,t*project(s.external(),P,1),t*project(s.internal(),P));
 }
 
 restricted pen[] nullpens={nullpen};

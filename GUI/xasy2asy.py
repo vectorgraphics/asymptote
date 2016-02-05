@@ -247,11 +247,11 @@ class asyPen(asyObj):
     r,g,b = map(hex,(r,g,b))
     r,g,b = r[2:],g[2:],b[2:]
     if len(r) < 2:
-      r += '0'
+      r = '0'+r
     if len(g) < 2:
-      g += '0'
+      g = '0'+g
     if len(b) < 2:
-      b += '0'
+      b = '0'+b
     return'#'+r+g+b
 
 class asyPath(asyObj):
