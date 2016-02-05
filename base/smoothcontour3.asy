@@ -301,7 +301,7 @@ patch trianglewithnormals(path3 external, triple n1,
 // is given as a function of direction. The wrapper can also
 // accommodate cyclic boundary paths of between one and four
 // segments, although the results are best by far when there
-// are four segments.
+// are three or four segments.
 patch patchwithnormals(path3 external, triple normalat(triple)) {
   assert(cyclic(external));
   assert(1 <= length(external) && length(external) <= 4);
