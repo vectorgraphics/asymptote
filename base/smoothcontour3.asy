@@ -230,8 +230,8 @@ patch patchwithnormals(path3 external, triple[] u0normals, triple[] u1normals,
   return patch(controlpoints);
 }
 
-patch trianglewithnormals(path3 external, triple u0normal,
-			  triple t0normal, triple s0normal) {
+patch trianglewithnormals(path3 external, triple n1,
+			  triple n2, triple n3) {
   assert(cyclic(external));
   assert(length(external) == 3);
   // Use the formal symbols a3, a2b, abc, etc. to denote the control points,
@@ -245,28 +245,28 @@ patch trianglewithnormals(path3 external, triple u0normal,
   // Use orthogonal projection to ensure that the normal vectors are
   // actually normal to the boundary path.
   triple tangent = dir(external, 0.5);
-  u0normal -= dot(u0normal,tangent)*tangent;
-  u0normal = unit(u0normal);
+  n1 -= dot(n1,tangent)*tangent;
+  n1 = unit(n1);
 
   tangent = dir(external, 1.5);
-  t0normal -= dot(t0normal,tangent)*tangent;
-  t0normal = unit(t0normal);
+  n2 -= dot(n2,tangent)*tangent;
+  n2 = unit(n2);
 
   tangent = dir(external, 2.5);
-  s0normal -= dot(s0normal,tangent)*tangent;
-  s0normal = unit(s0normal);
+  n3 -= dot(n3,tangent)*tangent;
+  n3 = unit(n3);
   
   real wild = 2 * wildnessweight;
-  real[][] matrix = { {u0normal.x, u0normal.y, u0normal.z},
-                      {t0normal.x, t0normal.y, t0normal.z},
-		      {s0normal.x, s0normal.y, s0normal.z},
+  real[][] matrix = { {n1.x, n1.y, n1.z},
+                      {n2.x, n2.y, n2.z},
+		      {n3.x, n3.y, n3.z},
                       {      wild,          0,          0},
                       {         0,       wild,          0},
 		      {         0,          0,       wild} };
   real[] rightvector =
-    { dot(u0normal, (a3 + 3a2b + 3ab2 + b3 - 2a2c - 2b2c)) / 4,
-      dot(t0normal, (b3 + 3b2c + 3bc2 + c3 - 2ab2 - 2ac2)) / 4,
-      dot(s0normal, (c3 + 3ac2 + 3a2c + a3 - 2bc2 - 2a2b)) / 4 };
+    { dot(n1, (a3 + 3a2b + 3ab2 + b3 - 2a2c - 2b2c)) / 4,
+      dot(n2, (b3 + 3b2c + 3bc2 + c3 - 2ab2 - 2ac2)) / 4,
+      dot(n3, (c3 + 3ac2 + 3a2c + a3 - 2bc2 - 2a2b)) / 4 };
 
   // The inner control point that minimizes the sum of squares of
   // the mixed partials on the corners.
@@ -293,10 +293,10 @@ patch patchwithnormals(path3 external, triple normalat(triple)) {
   assert(cyclic(external));
   assert(1 <= length(external) && length(external) <= 4);
   if (length(external) == 3) {
-    triple u0normal = normalat(point(external, 0.5));
-    triple t0normal = normalat(point(external, 1.5));
-    triple s0normal = normalat(point(external, 2.5));
-    return trianglewithnormals(external, u0normal, t0normal, s0normal);
+    triple n1 = normalat(point(external, 0.5));
+    triple n2 = normalat(point(external, 1.5));
+    triple n3 = normalat(point(external, 2.5));
+    return trianglewithnormals(external, n1, n2, n3);
   }
   while (length(external) < 4) external = external -- cycle;
   triple[] u0normals = new triple[3];
