@@ -61,8 +61,13 @@ def startQuickAsy():
     else:
       (rx,wx) = os.pipe()
       (ra,wa) = os.pipe()
+      if sys.version_info >= (3, 4):
+        os.set_inheritable(rx, True)
+        os.set_inheritable(wx, True)
+        os.set_inheritable(ra, True)
+        os.set_inheritable(wa, True)
       quickAsy=Popen([xasyOptions.options['asyPath'],"-noV","-multiline","-q",
-               "-o"+AsyTempDir,"-inpipe="+str(rx),"-outpipe="+str(wa)])
+               "-o"+AsyTempDir,"-inpipe="+str(rx),"-outpipe="+str(wa)],close_fds=False)
       fout=os.fdopen(wx,'w')
       fin=os.fdopen(ra,'r')
     if quickAsy.returncode != None:
