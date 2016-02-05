@@ -476,17 +476,17 @@ class xasyItem:
       fout.write(line+"\n");
     fout.write("deconstruct({:f});\n".format(mag))
     fout.flush()
-    fileformat = "png"
     maxargs = int(fin.readline().split()[0])
     boxes=[]
     batch=0
     n=0
     text = fin.readline()
     # template=AsyTempDir+"%d_%d.%s"
+    fileformat = "png"
     def render():
         for i in range(len(boxes)):
           l,b,r,t = [float(a) for a in boxes[i].split()]
-          name=AsyTempDir+"{:d}_{:d}.{:s}".format(batch,i+1,fileformat)
+          name="{:s}{:d}_{:d}.{:s}".format(AsyTempDir,batch,i+1,fileformat)
           self.imageHandleQueue.put((name,fileformat,(l,b,r,t),i))
     while text != "Done\n" and text != "Error\n":
       boxes.append(text)
