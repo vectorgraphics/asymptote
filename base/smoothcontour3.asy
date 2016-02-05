@@ -230,6 +230,19 @@ patch patchwithnormals(path3 external, triple[] u0normals, triple[] u1normals,
   return patch(controlpoints);
 }
 
+// This function attempts to produce a Bezier triangle
+// with the specified boundary path and normal directions at the
+// edge midpoints. The bezier triangle should be normal to
+// n1 at point(external, 0.5),
+// normal to n2 at point(external, 1.5), and
+// normal to n3 at point(external, 2.5).
+// The actual normal (as computed by the patch.normal() function)
+// may be parallel to the specified normal, antiparallel, or
+// even zero.
+//
+// A small amount of deviation is allowed in order to stabilize
+// the algorithm (by keeping the mixed partials at the corners from
+// growing too large).
 patch trianglewithnormals(path3 external, triple n1,
 			  triple n2, triple n3) {
   assert(cyclic(external));
