@@ -287,7 +287,7 @@ if __name__ == '__main__':
   fileItems = [] 
   try:
     fileItems = parseFile(f)
-    res = map(str,fileItems)
+    res = [str(a) for a in fileItems]
     print ("----------------------------------")
     print ("Objects in {:s}".format(f.name))
     print ("----------------------------------")

@@ -474,7 +474,7 @@ class xasyMainWin:
     self.mainCanvas.delete("grid")
     if not self.gridVisible:
       return
-    left,top,right,bottom = map(int,map(float,self.mainCanvas.cget("scrollregion").split()))
+    left,top,right,bottom = [int(float(a)) for a in self.mainCanvas.cget("scrollregion").split()]
     gridyspace = int(self.magnification*self.gridyspace)
     gridxspace = int(self.magnification*self.gridxspace)
     if gridxspace >= 3 and gridyspace >= 3:
@@ -492,7 +492,7 @@ class xasyMainWin:
     self.mainCanvas.delete("axes")
     if not self.axesVisible:
       return
-    left,top,right,bottom = map(int,map(float,self.mainCanvas.cget("scrollregion").split()))
+    left,top,right,bottom = [int(float(a)) for a in self.mainCanvas.cget("scrollregion").split()]
     self.mainCanvas.create_line(0,top,0,bottom,tags=("axes","yaxis"),fill=self.axiscolor)
     self.mainCanvas.create_line(left,0,right,0,tags=("axes","xaxis"),fill=self.axiscolor)
     axisxspace = int(self.magnification*self.axisxspace)
@@ -971,7 +971,7 @@ class xasyMainWin:
       self.setSelection(item.IDTag)
 
   def propSelect(self,event):
-    items = map(int, self.propList.curselection())
+    items = [int(a) for a in self.propList.curselection()]
     if len(items)>0:
       try:
         self.selectItem(self.fileItems[len(self.fileItems)-items[0]-1])
