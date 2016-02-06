@@ -431,11 +431,11 @@ struct Render
 
 Render R;
 
-void bezierTriangle(const triple *g, bool straight, double Size2, triple Size3,
+void bezierTriangle(const triple *g, bool straight, double ratio,
                     bool havebillboard, triple center, GLfloat *colors)
 {
   R.init(havebillboard,center);
-  R.render(g,pixel*length(Size3)/fabs(Size2),colors,straight ? 0 : 8);
+  R.render(g,pixel*ratio,colors,straight ? 0 : 8);
   R.clear();
 }
 
