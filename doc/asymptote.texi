@@ -7496,8 +7496,8 @@ as illustrated in this example:
 
 @item The following scientific graphs, which illustrate many features of
 @code{Asymptote}'s graphics routines, were generated from the examples
-@code{@uref{http://asymptote.sourceforge.net/gallery/diatom.pdf,,diatom}@uref{http://asymptote.sourceforge.net/gallery/diatom.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/westnile.pdf,,westnile}@uref{http://asymptote.sourceforge.net/gallery/westnile.asy,,.asy}}, using the comma-separated
-data in @code{diatom.csv} and @code{westnile.csv}.
+@code{@uref{http://asymptote.sourceforge.net/gallery/2D graphs/diatom.pdf,,diatom}@uref{http://asymptote.sourceforge.net/gallery/2D graphs/diatom.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/2D graphs/westnile.pdf,,westnile}@uref{http://asymptote.sourceforge.net/gallery/2D graphs/westnile.asy,,.asy}}, using the comma-separated
+data in @code{@uref{http://asymptote.sourceforge.net/gallery/2D graphs/diatom.csv,,diatom.csv}} and @code{@uref{http://asymptote.sourceforge.net/gallery/2D graphs/westnile.csv,,westnile.csv}}.
 @page
 
 @sp 1
@@ -7513,7 +7513,7 @@ data in @code{diatom.csv} and @code{westnile.csv}.
 @cindex images
 @code{Asymptote} can also generate color density images
 and palettes. The following palettes are predefined in
-@code{@uref{http://asymptote.sourceforge.net/gallery/palette.pdf,,palette}@uref{http://asymptote.sourceforge.net/gallery/palette.asy,,.asy}}: 
+@code{palette.asy}:
 
 @table @code
 
@@ -7719,7 +7719,7 @@ path path(path3 p, pair P(triple)=xypart);
 @cindex @code{render}
 @cindex @code{defaultrender}
 A Bezier surface, the natural two-dimensional generalization of Bezier
-curves, is defined in @code{@uref{http://asymptote.sourceforge.net/gallery/three_surface.pdf,,three_surface}@uref{http://asymptote.sourceforge.net/gallery/three_surface.asy,,.asy}} as a structure
+curves, is defined in @code{three_surface.asy} as a structure
 containing an array of Bezier patches. Surfaces may drawn with one of
 the routines
 @verbatim
@@ -7741,7 +7741,7 @@ The parameters @code{nu} and @code{nv} specify the number of subdivisions
 for drawing optional mesh lines for each Bezier patch. The optional
 @code{name} parameter is used as a prefix for naming the surface
 patches in the @acronym{PRC} model tree.
-Here material is a structure defined in @code{@uref{http://asymptote.sourceforge.net/gallery/three_light.pdf,,three_light}@uref{http://asymptote.sourceforge.net/gallery/three_light.asy,,.asy}}:
+Here material is a structure defined in @code{three_light.asy}:
 @verbatim
 struct material {
   pen[] p; // diffusepen,ambientpen,emissivepen,specularpen
@@ -7761,7 +7761,7 @@ specialized rendering options documented at the beginning of module
 @cindex patch-dependent colors
 @cindex vertex-dependent colors
 The examples
-@code{@uref{http://asymptote.sourceforge.net/gallery/elevation.pdf,,elevation}@uref{http://asymptote.sourceforge.net/gallery/elevation.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/sphericalharmonic.pdf,,sphericalharmonic}@uref{http://asymptote.sourceforge.net/gallery/sphericalharmonic.asy,,.asy}} 
+@code{@uref{http://asymptote.sourceforge.net/gallery/3D graphs/elevation.pdf,,elevation}@uref{http://asymptote.sourceforge.net/gallery/3D graphs/elevation.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/sphericalharmonic.pdf,,sphericalharmonic}@uref{http://asymptote.sourceforge.net/gallery/sphericalharmonic.asy,,.asy}} 
 illustrate how to draw a surface with patch-dependent colors.
 The examples @code{@uref{http://asymptote.sourceforge.net/gallery/vertexshading.pdf,,vertexshading}@uref{http://asymptote.sourceforge.net/gallery/vertexshading.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/3D graphs/smoothelevation.pdf,,smoothelevation}@uref{http://asymptote.sourceforge.net/gallery/3D graphs/smoothelevation.asy,,.asy}} illustrate
 vertex-dependent colors, which is supported for both
@@ -8681,7 +8681,7 @@ The boolean array or function @code{cond} can be used to control which
 surface mesh cells are actually drawn (by default all mesh cells over
 @code{box(a,b)} are drawn).
 Surface lighting is illustrated in the example files
-@code{@uref{http://asymptote.sourceforge.net/gallery/parametricsurface.pdf,,parametricsurface}@uref{http://asymptote.sourceforge.net/gallery/parametricsurface.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/sinc.pdf,,sinc}@uref{http://asymptote.sourceforge.net/gallery/sinc.asy,,.asy}}.
+@code{@uref{http://asymptote.sourceforge.net/gallery/parametricsurface.pdf,,parametricsurface}@uref{http://asymptote.sourceforge.net/gallery/parametricsurface.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/3D graphs/sinc.pdf,,sinc}@uref{http://asymptote.sourceforge.net/gallery/3D graphs/sinc.asy,,.asy}}.
 Lighting can be disabled by setting @code{light=nolight}, as in this example
 of a Gaussian surface:
 @anchor{GaussianSurface}
