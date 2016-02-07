@@ -6506,7 +6506,7 @@ sharp corners of paths, as illustrated in the example file @code{@uref{http://as
 @cindex animation
 @cindex @code{ImageMagick}
 This module allows one to generate animations, as illustrated by the
-files @code{@uref{http://asymptote.sourceforge.net/gallery/wheel.pdf,,wheel}@uref{http://asymptote.sourceforge.net/gallery/wheel.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/wavepacket.pdf,,wavepacket}@uref{http://asymptote.sourceforge.net/gallery/wavepacket.asy,,.asy}}, and @code{@uref{http://asymptote.sourceforge.net/gallery/cube.pdf,,cube}@uref{http://asymptote.sourceforge.net/gallery/cube.asy,,.asy}} in
+files @code{@uref{http://asymptote.sourceforge.net/gallery/animations/wheel.pdf,,wheel}@uref{http://asymptote.sourceforge.net/gallery/animations/wheel.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/animations/wavepacket.pdf,,wavepacket}@uref{http://asymptote.sourceforge.net/gallery/animations/wavepacket.asy,,.asy}}, and @code{@uref{http://asymptote.sourceforge.net/gallery/animations/cube.pdf,,cube}@uref{http://asymptote.sourceforge.net/gallery/animations/cube.asy,,.asy}} in
 the @code{animations} subdirectory of the examples directory. These
 animations use the @code{ImageMagick} @code{convert} program to
 merge multiple images into a @acronym{GIF} or @acronym{MPEG}
@@ -6527,8 +6527,8 @@ local @code{LaTeX} directory (for example, in
 @code{/usr/local/share/texmf/tex/latex/animate}). On @code{UNIX} systems,
 one must then execute the command @code{texhash}.
 
-The example @code{@uref{http://asymptote.sourceforge.net/gallery/pdfmovie.pdf,,pdfmovie}@uref{http://asymptote.sourceforge.net/gallery/pdfmovie.asy,,.asy}} in the @code{animations}
-directory, along with the slide presentations @code{@uref{http://asymptote.sourceforge.net/gallery/slidemovies.pdf,,slidemovies}@uref{http://asymptote.sourceforge.net/gallery/slidemovies.asy,,.asy}}
+The example @code{@uref{http://asymptote.sourceforge.net/gallery/animations/pdfmovie.pdf,,pdfmovie}@uref{http://asymptote.sourceforge.net/gallery/animations/pdfmovie.asy,,.asy}} in the @code{animations}
+directory, along with the slide presentations @code{@uref{http://asymptote.sourceforge.net/gallery/animations/slidemovies.pdf,,slidemovies}@uref{http://asymptote.sourceforge.net/gallery/animations/slidemovies.asy,,.asy}}
 and @code{@uref{http://asymptote.sourceforge.net/gallery/intro.pdf,,intro}@uref{http://asymptote.sourceforge.net/gallery/intro.asy,,.asy}}, illustrate the use of embedded @acronym{PDF} movies.
 The examples @code{inlinemovie.tex} and @code{inlinemovie3.tex} 
 show how to generate and embed @acronym{PDF} movies directly within a
@@ -6562,7 +6562,7 @@ platform and does not require the @code{media9} package, is provided
 by using the @code{external} module instead of @code{embed}. 
 
 Examples of the above two interfaces is provided in the file
-@code{@uref{http://asymptote.sourceforge.net/gallery/embeddedmovie.pdf,,embeddedmovie}@uref{http://asymptote.sourceforge.net/gallery/embeddedmovie.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/externalmovie.pdf,,externalmovie}@uref{http://asymptote.sourceforge.net/gallery/externalmovie.asy,,.asy}} in the
+@code{@uref{http://asymptote.sourceforge.net/gallery/animations/embeddedmovie.pdf,,embeddedmovie}@uref{http://asymptote.sourceforge.net/gallery/animations/embeddedmovie.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/animations/externalmovie.pdf,,externalmovie}@uref{http://asymptote.sourceforge.net/gallery/animations/externalmovie.asy,,.asy}} in the
 @code{animations} subdirectory of the examples directory. For a higher
 quality embedded movie generated directly by @code{Asymptote}, use the
 @code{animate} module along with the @code{animate.sty} package to
@@ -6570,15 +6570,15 @@ embed a portable @acronym{PDF} animation (@pxref{animate}).
 
 @cindex @code{U3D}
 An example of embedding @code{U3D} code is provided in the file
-@code{@uref{http://asymptote.sourceforge.net/gallery/embeddedu3d.pdf,,embeddedu3d}@uref{http://asymptote.sourceforge.net/gallery/embeddedu3d.asy,,.asy}}.
+@code{@uref{http://asymptote.sourceforge.net/gallery/animations/embeddedu3d.pdf,,embeddedu3d}@uref{http://asymptote.sourceforge.net/gallery/animations/embeddedu3d.asy,,.asy}}.
 
 @node slide, MetaPost, embed, Base modules
 @section @code{slide}
 @cindex @code{slide}
 This package provides a simple yet high-quality facility for making
 presentation slides, including portable embedded @acronym{PDF} animations (see
-the file @code{@uref{http://asymptote.sourceforge.net/gallery/slidemovies.pdf,,slidemovies}@uref{http://asymptote.sourceforge.net/gallery/slidemovies.asy,,.asy}}). A simple example is provided in the file
-@code{@uref{http://asymptote.sourceforge.net/gallery/slidedemo.pdf,,slidedemo}@uref{http://asymptote.sourceforge.net/gallery/slidedemo.asy,,.asy}}.
+the file @code{@uref{http://asymptote.sourceforge.net/gallery/animations/slidemovies.pdf,,slidemovies}@uref{http://asymptote.sourceforge.net/gallery/animations/slidemovies.asy,,.asy}}). A simple example is provided in the file
+@code{@uref{http://asymptote.sourceforge.net/gallery/animations/slidedemo.pdf,,slidedemo}@uref{http://asymptote.sourceforge.net/gallery/animations/slidedemo.asy,,.asy}}.
 
 @node MetaPost, unicode, slide, Base modules
 @section @code{MetaPost}
@@ -6900,7 +6900,8 @@ Request a bottom and top axis.
 @end table
 
 @cindex custom axis types
-Custom axis types can be created by following the examples in @code{@uref{http://asymptote.sourceforge.net/gallery/graph.pdf,,graph}@uref{http://asymptote.sourceforge.net/gallery/graph.asy,,.asy}}.
+Custom axis types can be created by following the examples in the
+module @code{graph.asy}.
 One can easily override the default values for the standard axis types:
 @verbatim
 import graph;
@@ -7577,7 +7578,7 @@ or an explicit range @code{Range(real min, real max)}.
 Here @code{Full} specifies a range varying from the
 minimum to maximum values of the function over the sampling interval,
 while @code{Automatic} selects "nice" limits. 
-The example @code{@uref{http://asymptote.sourceforge.net/gallery/imagecontour.pdf,,imagecontour}@uref{http://asymptote.sourceforge.net/gallery/imagecontour.asy,,.asy}} illustrates how level sets
+The example @code{@uref{http://asymptote.sourceforge.net/gallery/2D graphs/imagecontour.pdf,,imagecontour}@uref{http://asymptote.sourceforge.net/gallery/2D graphs/imagecontour.asy,,.asy}} illustrates how level sets
 (contour lines) can be drawn on a color density plot (@pxref{contour}).
 
 A color density plot can also be generated from an explicit real[][]
@@ -7762,7 +7763,7 @@ specialized rendering options documented at the beginning of module
 The examples
 @code{@uref{http://asymptote.sourceforge.net/gallery/elevation.pdf,,elevation}@uref{http://asymptote.sourceforge.net/gallery/elevation.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/sphericalharmonic.pdf,,sphericalharmonic}@uref{http://asymptote.sourceforge.net/gallery/sphericalharmonic.asy,,.asy}} 
 illustrate how to draw a surface with patch-dependent colors.
-The examples @code{vertexshading} and @code{smoothelevation} illustrate
+The examples @code{@uref{http://asymptote.sourceforge.net/gallery/vertexshading.pdf,,vertexshading}@uref{http://asymptote.sourceforge.net/gallery/vertexshading.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/3D graphs/smoothelevation.pdf,,smoothelevation}@uref{http://asymptote.sourceforge.net/gallery/3D graphs/smoothelevation.asy,,.asy}} illustrate
 vertex-dependent colors, which is supported for both
 @code{Asymptote}'s native @code{OpenGL} renderer and two-dimensional
 projections. Since the @acronym{PRC} output format does not currently support
@@ -8567,7 +8568,7 @@ as illustrated in the example files @code{@uref{http://asymptote.sourceforge.net
 @cindex @code{graph3}
 @cindex 3D graphs
 This module implements three-dimensional versions of the
-functions in @code{@uref{http://asymptote.sourceforge.net/gallery/graph.pdf,,graph}@uref{http://asymptote.sourceforge.net/gallery/graph.asy,,.asy}}.
+functions in @code{graph.asy}.
 @cindex @code{xaxis3}
 @cindex @code{yaxis3}
 @cindex @code{zaxis3}
@@ -8701,7 +8702,7 @@ picture vectorfield(path3 vector(pair v), triple f(pair z), pair a, pair b,
                     bool cond(pair z)=null, pen p=currentpen,
                     arrowbar3 arrow=Arrow3, margin3 margin=PenMargin3)
 @end verbatim
-as illustrated in the examples @code{@uref{http://asymptote.sourceforge.net/gallery/vectorfield3.pdf,,vectorfield3}@uref{http://asymptote.sourceforge.net/gallery/vectorfield3.asy,,.asy}} and
+as illustrated in the examples @code{@uref{http://asymptote.sourceforge.net/gallery/3D graphs/vectorfield3.pdf,,vectorfield3}@uref{http://asymptote.sourceforge.net/gallery/3D graphs/vectorfield3.asy,,.asy}} and
 @code{@uref{http://asymptote.sourceforge.net/gallery/vectorfieldsphere.pdf,,vectorfieldsphere}@uref{http://asymptote.sourceforge.net/gallery/vectorfieldsphere.asy,,.asy}}.
 
 @node grid3, solids, graph3, Base modules
@@ -8711,7 +8712,7 @@ as illustrated in the examples @code{@uref{http://asymptote.sourceforge.net/gall
 
 This module, contributed by Philippe Ivaldi, can be used for drawing
 3D grids. Here is an example (further examples can be found in
-@code{@uref{http://asymptote.sourceforge.net/gallery/grid3.pdf,,grid3}@uref{http://asymptote.sourceforge.net/gallery/grid3.asy,,.asy}} and at @url{http://www.piprime.fr/files/asymptote/grid3/}):  
+@code{grid3.asy} and at @url{http://www.piprime.fr/files/asymptote/grid3/}):  
 @verbatiminclude grid3xyz.asy
 @sp 1
 @center @image{grid3xyz}
@@ -9030,7 +9031,8 @@ int[][] triangulate(pair[] z);
 @sp 1
 @center @image{triangulate}
 
-The example @code{@uref{http://asymptote.sourceforge.net/gallery/Gouraudcontour.pdf,,Gouraudcontour}@uref{http://asymptote.sourceforge.net/gallery/Gouraudcontour.asy,,.asy}} illustrates how to produce color
+The example @code{@uref{http://asymptote.sourceforge.net/gallery/2D
+graphs/Gouraudcontour.pdf,,Gouraudcontour}@uref{http://asymptote.sourceforge.net/gallery/2D graphs/Gouraudcontour.asy,,.asy}} illustrates how to produce color
 density images over such irregular triangular meshes.
 @code{Asymptote} uses a robust version of Paul Bourke's Delaunay triangulation
 algorithm based on the public-domain exact arithmetic predicates written by
@@ -9041,7 +9043,7 @@ Jonathan Shewchuk.
 @cindex @code{contour3}
 This package draws surfaces described as the null space of real-valued
 functions of @math{(x,y,z)} or @code{real[][][]} matrices.
-Its usage is illustrated in the example file @code{@uref{http://asymptote.sourceforge.net/gallery/magnetic.pdf,,magnetic}@uref{http://asymptote.sourceforge.net/gallery/magnetic.asy,,.asy}}.
+Its usage is illustrated in the example file @code{@uref{http://asymptote.sourceforge.net/gallery/3D graphs/magnetic.pdf,,magnetic}@uref{http://asymptote.sourceforge.net/gallery/3D graphs/magnetic.asy,,.asy}}.
 
 @node smoothcontour3, slopefield, contour3, Base modules
 @section @code{smoothcontour3}
@@ -9122,7 +9124,7 @@ Both @code{slopefield} and @code{curve} alternatively accept a function
 @node ode,  , slopefield, Base modules
 @section @code{ode}
 @cindex @code{ode}
-The @code{ode} module, illustrated in the example @code{@uref{http://asymptote.sourceforge.net/gallery/odetest.pdf,,odetest}@uref{http://asymptote.sourceforge.net/gallery/odetest.asy,,.asy}},
+The @code{ode} module, illustrated in the example @code{@uref{https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/examples/odetest.asy,,odetest.asy}},
 implements a number of explicit numerical integration schemes for
 ordinary differential equations.
 
