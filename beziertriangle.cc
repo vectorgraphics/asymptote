@@ -9,6 +9,8 @@
 
 namespace camp {
 
+#ifdef HAVE_GL
+
 static const double pixel=0.5; // Adaptive rendering constant.
 
 extern const double Fuzz;
@@ -434,4 +436,7 @@ void bezierTriangle(const triple *g, bool straight, double ratio,
   R.clear();
 }
 
+#endif
+
 } //namespace camp
+

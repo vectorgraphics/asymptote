@@ -15,15 +15,15 @@ using namespace prc;
 
 namespace camp {
 
-void bezierTriangle(const triple *g, bool straight, double ratio,
-                    bool havebillboard, triple center, GLfloat *colors);
-  
 const double pixel=1.0; // Adaptive rendering constant.
 const triple drawElement::zero;
 
 using vm::array;
 
 #ifdef HAVE_GL
+void bezierTriangle(const triple *g, bool straight, double ratio,
+                    bool havebillboard, triple center, GLfloat *colors);
+  
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
 {
   pen p=vm::read<camp::pen>(pens,j);
