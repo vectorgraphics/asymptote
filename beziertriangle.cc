@@ -39,26 +39,21 @@ inline triple displacement2(const triple& z, const triple& u, const triple& n)
   
 triple displacement(const triple *controls)
 {
-  triple d=drawElement::zero;
-
   triple z0=controls[0];
   triple z1=controls[6];
   triple z2=controls[9];
 
-  // Optimize straight & planar cases.
-
-  //for(size_t i=1; i < 10; ++i)
   // The last three lines compute how straight the edges are. This should be a
-  // sufficient test for the boundry points, so only the central point is
-  // tested for deviance from the main triangle.
-  d=maxabs(d,displacement2(controls[4],z0,unit(cross(z1-z0,z2-z0))));
+  // sufficient test for the boundry points, so only the internal point is
+  // tested for deviance from the triangle formed by the vertices.
+  // We assume that the Jacobian is nonzero so that we only need to calculate
+  // the perpendicular displacement of the internal point from this triangle.
+  
+  triple d=displacement2(controls[4],z0,unit(cross(z1-z0,z2-z0)));
 
   d=maxabs(d,displacement1(z0,controls[1],controls[3],z1));
   d=maxabs(d,displacement1(z0,controls[2],controls[5],z2));
   d=maxabs(d,displacement1(z1,controls[7],controls[8],z2));
-
-  // TODO: calculate displacement d from interior
-  // Or simply assume a nondegenerate Jacobian.
 
   return d;
 }
