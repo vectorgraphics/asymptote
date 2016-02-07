@@ -64,7 +64,7 @@ void checkformat(const char *ptr, bool intformat)
       while(*ptr && strchr ("hlL", *ptr))
         ptr++;
           
-      if(*ptr == '%') ++ptr;
+      if(*ptr == '%') {++ptr; continue;}
       else if(*ptr != '\0') {
         if(intformat) {
           switch(*ptr) {
@@ -101,6 +101,7 @@ void checkformat(const char *ptr, bool intformat)
           }
         }
       }
+      break; // Only one argument is allowed.
     } /* End of else statement */
   }
 }
@@ -203,10 +204,32 @@ string replace(string *S, stringarray2 *translate)
 
 string format(string *format, Int x, string locale=emptystring) 
 {
-  const char *f=format->c_str();
+  ostringstream out;
+  const char *p0=format->c_str();
+  checkformat(p0,true);
   
-  checkformat(f,true);
+  const char *p=p0;
+  const char *start=NULL;
+  while(*p != 0) {
+    char curr=*p;
+    if(curr == '%') {
+      p++;
+      if(*p != '%') {start=p-1; break;}
+    }
+    out << *(p++);
+  }
   
+  if(!start) return out.str();
+  
+  // Allow at most 1 argument  
+  while(*p != 0) {
+    if(*p == '*' || *p == '$') return out.str();
+    if(isupper(*p) || islower(*p)) {p++; break;}
+    p++;
+  }
+  
+  string f=format->substr(start-p0,p-start);
+
   const char *oldlocale=NULL;
 
   if(!locale.empty()) {
@@ -215,12 +238,14 @@ string format(string *format, Int x, string locale=emptystring)
     setlocale(LC_ALL,locale.c_str());
   }
 
-  Int size=snprintf(NULL,0,f,x)+1;
+  Int size=snprintf(NULL,0,f.c_str(),x)+1;
   if(size < 1) size=255; // Workaround for non-C99 compliant systems.
   char *buf=new char[size];
-  snprintf(buf,size,f,x);
+  snprintf(buf,size,f.c_str(),x);
 
-  string s=string(buf);
+  out << string(buf);
+  out << p;
+
   delete[] buf;
   
   if(oldlocale) {
@@ -228,7 +253,7 @@ string format(string *format, Int x, string locale=emptystring)
     delete[] oldlocale;
   }
 
-  return s;
+  return out.str();
 }
 
 string format(string *format, string separator, real x,
@@ -238,10 +263,10 @@ string format(string *format, string separator, real x,
   bool texify=false;
   ostringstream out;
   
-  checkformat(format->c_str(),false);
+  const char *p0=format->c_str();
+  checkformat(p0,false);
 
   const char *phantom="\\phantom{+}";
-  const char *p0=format->c_str();
   
   const char *p=p0;
   const char *start=NULL;
