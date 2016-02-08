@@ -883,6 +883,20 @@ patch[] triangletoquads(path3 external, real f(triple), triple grad(triple),
       patchwithnormals(quad2, grad)};   
 }
 
+// In case it's necessary to split the triangle along one edge -- vertex, use least-squares
+// projection at the vertex.
+// This function should be able to assume that the orientation is correct -- i.e., that
+// at a corner, (tangent in) x (tangent out) is in the positive f direction.
+/*
+patch[] maketriangle(path3 external, real f(triple), triple a, triple b,
+		     triple grad(triple) = nGrad(f)) {
+  assert(cyclic(external));
+  assert(external.length == 3);
+  triple p0 = point(external, 0);
+  triple n0frompath = cross(p0 - precontrol(external, 0)
+}
+*/
+
 // Returns true if the point is "nonsingular" (in the sense that the magnitude
 // of the gradient is not too small) AND very close to the zero locus of f
 // (assuming f is locally linear).
@@ -1526,7 +1540,7 @@ struct gridwithzeros {
       if (reportface[ZLOW]) enqueue(i,j,k-1);
       if (reportface[ZHIGH]) enqueue(i,j,k+1);
       surface.append(toappend);
-      if (settings.verbose > 1 && alias(reportactive, null)) write(stdout, '.');
+      if (settings.verbose > 1 && alias(reportactive, null)) write(stdout, '.', flush);
     }
     if (settings.verbose > 1 && alias(reportactive, null)) write(stdout, '\n');
     return surface;
