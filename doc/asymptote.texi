@@ -256,19 +256,24 @@ applications. A scientific graphing module has already been written
 (@pxref{graph}). Examples of @code{Asymptote} code and output,
 including animations, are available at
 @quotation
-@url{http://asymptote.sourceforge.net/gallery/}.
+@url{http://asymptote.sourceforge.net/gallery/}
 @end quotation
 @noindent
+Clicking on an example file name in this manual, like
+@code{@uref{http://asymptote.sourceforge.net/gallery/Pythagoras.pdf,,Pythagoras}}, will display the @acronym{PDF} output, whereas clicking on its
+@code{@uref{http://asymptote.sourceforge.net/gallery/Pythagoras.asy,,.asy}}
+extension will show the corresponding @code{Asymptote} code in a separate window.
+
 Links to many external resources, including an excellent user-written
 @code{Asymptote} tutorial can be found at
 @quotation
-@url{http://asymptote.sourceforge.net/links.html}.
+@url{http://asymptote.sourceforge.net/links.html}
 @end quotation
 @cindex reference
 @cindex quick reference
 A quick reference card for @code{Asymptote} is available at
 @quotation
-@url{http://asymptote.sourceforge.net/asyRefCard.pdf}.
+@url{http://asymptote.sourceforge.net/asyRefCard.pdf}
 @end quotation
 
 @node Installation, Tutorial, Description, Top
@@ -1010,7 +1015,8 @@ cube @code{unitbox} without retracing steps (@pxref{three}):
 @sp 1
 @center @image{cube}
 
-See section @ref{graph} (or the online @code{Asymptote} gallery and
+See section @ref{graph} (or the online
+@code{Asymptote} @uref{http://asymptote.sourceforge.net/gallery,,gallery} and
 external links posted at @url{http://asymptote.sourceforge.net}) for
 further examples, including two-dimensional and interactive
 three-dimensional scientific graphs. Additional examples have been
