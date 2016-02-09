@@ -133,8 +133,10 @@ bool drawPath::draw(psfile *out)
   if (n == 0 || pentype.invisible())
     return true;
 
-  pen q = isdashed(pentype) ? adjustdash(pentype,p.arclength(),p.cyclic()) :
-                              pentype;
+  pen q=isdashed(pentype) ?
+    adjustdash(pentype,
+               p.transformed(inverse(pentype.getTransform())).arclength(),
+               p.cyclic()) :  pentype;
 
   penSave(out);
   penTranslate(out);
