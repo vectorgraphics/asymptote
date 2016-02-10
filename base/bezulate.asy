@@ -2,7 +2,7 @@
 
 private real fuzz=sqrtEpsilon;
 real duplicateFuzz=1e-3; // Work around font errors.
-real maxrefinements=7;
+real maxrefinements=10;
 
 private real[][] intersections(pair a, pair b, path p)
 {
