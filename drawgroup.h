@@ -75,7 +75,8 @@ public:
                             granularity,closed,tessellate,dobreak,nobreak);
     
     groups.push_back(groupmap());
-    out->begingroup(buf.str().c_str(),&options,T);
+    const string& s=buf.str();
+    out->begingroup(s.c_str(),&options,T);
     return true;
   }
   
