@@ -56,15 +56,16 @@ void latexfontencoding(T& out)
 
 template<class T>
 void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble,
-                 bool ASYalign=true)
+                 bool ASYalign=true, bool ASYbox=true)
 {
   texuserpreamble(out,preamble);
   string texengine=settings::getSetting<string>("tex");
   if(settings::context(texengine))
     out << "\\disabledirectives[system.errorcontext]%" << newl;
+  if(ASYbox)
+    out << "\\newbox\\ASYbox" << newl
+        << "\\newdimen\\ASYdimen" << newl;
   out << "\\def\\ASYprefix{" << stripFile(settings::outname()) << "}" << newl
-      << "\\newbox\\ASYbox" << newl
-      << "\\newdimen\\ASYdimen" << newl
       << "\\long\\def\\ASYbase#1#2{\\leavevmode\\setbox\\ASYbox=\\hbox{#1}%"
       << "\\ASYdimen=\\ht\\ASYbox%" << newl
       << "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl;
