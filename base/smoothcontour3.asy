@@ -1634,7 +1634,8 @@ surface implicitsurface(real f(triple) = null, real ff(real,real,real) = null,
   patch[] patches = grid.draw();
   if (overlapedges) {
     for (int i = 0; i < patches.length; ++i) {
-      triple center = patches[i].point(1/2,1/2);
+      triple center = (patches[i].triangular ?
+		       patches[i].point(1/3, 1/3) : patches[i].point(1/2,1/2));
       patches[i] = shift(center) * scale3(1.01) * shift(-center) * patches[i];
     }
   }
