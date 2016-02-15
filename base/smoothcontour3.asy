@@ -1427,6 +1427,17 @@ struct gridwithzeros {
     }
     edgecycle = edgecycle & cycle;
 
+    {  // Ensure the outward normals are pointing in the same direction as the gradient.
+      triple tangentin = patchcorners[0].position - precontrol(edgecycle, 0);
+      triple tangentout = postcontrol(edgecycle, 0) - patchcorners[0].position;
+      triple normal = cross(tangentin, tangentout);
+      if (dot(normal, patchcorners[0].direction) < 0) {
+	edgecycle = reverse(edgecycle);
+	patchcorners = patchcorners[reverse(patchcorners.length)];
+	patchcorners.cyclic = true;
+      }
+    }
+
     patch[] toreturn = quadpatches(edgecycle, patchcorners, f, grad,
 				     corners[0][0][0], corners[1][1][1]);
     if (alias(toreturn, null)) return subdividecube();
