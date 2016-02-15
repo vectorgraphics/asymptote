@@ -263,26 +263,25 @@ struct rootfinder_settings {
 
 // Find a root for the specified continuous (but not
 // necessarily differentiable) function. Whatever
-// value t is returned, it is guaranteed that either
-// t is within tolerance of a sign change, or 
-// abs(f(t)) <= 0.1 tolerance.
+// value t is returned, it is guaranteed that
+// t is within [a, b] and within tolerance of a sign change.
 // An error is thrown if fa and fb are both positive
 // or both negative.
 //
 // In the current implementation, binary search is interleaved
-// with a modified version of linear interpolation.
+// with a modified version of quadratic interpolation.
 real findroot(real f(real), real a, real b,
 	       real tolerance = rootfinder_settings.roottolerance,
 	       real fa = f(a), real fb = f(b))
 {
-  if (fa == 0) return a;
-  if (fb == 0) return b;
+  if (fa == 0.0) return a;
+  if (fb == 0.0) return b;
   real g(real);
-  if (fa < 0) {
-    assert(fb > 0);
+  if (fa < 0.0) {
+    assert(fb > 0.0);
     g = f;
   } else {
-    assert(fb < 0);
+    assert(fb < 0.0);
     fa = -fa;
     fb = -fb;
     g = new real(real t) { return -f(t); };
@@ -290,29 +289,59 @@ real findroot(real f(real), real a, real b,
 
   real t = a;
   real ft = fa;
+  real twicetolerance = 2.0 * tolerance;
 
-  while (b - a > tolerance && abs(ft) > 0.1*tolerance) {
-    t = a + (b - a) / 2;
+  while (b - a > tolerance) {
+    t = (a + b) * 0.5;
     ft = g(t);
     if (ft == 0) return t;
-    else if (ft > 0) {
+
+    // If halving the interval already puts us within tolerance,
+    // don't bother with the interpolation step.
+    if (b - a < twicetolerance) {
+      if (ft > 0.0) {
+	b = t;
+	fb = ft;
+      } else {
+	a = t;
+	fa = ft;
+      }
+      break;
+    }
+
+    real recip_bminusa = 1.0 / (b - a);
+    real q_A = 2.0 * (fa - 2ft + fb) * recip_bminusa * recip_bminusa;
+    real q_B = (fb - fa) * recip_bminusa;
+    real[] roots = t + quadraticroots(q_A, q_B, ft);
+    real tinterp = nan;
+    for (real root : roots) {
+      if (a < root && root < b) {
+        tinterp = root;
+	break;
+      }
+    }
+
+    if (ft > 0.0) {
       b = t;
       fb = ft;
-    } else if (ft < 0) {
+    } else {
       a = t;
       fa = ft;
     }
+
+    // If the interpolation somehow failed, continue on to the next binary search
+    // step. This may or may not be possible, depending on what theoretical guarantees
+    // are provided by the quadraticroots function.
+    if (isnan(tinterp)) continue;
     
-    // linear interpolation
-    t = a - (b - a) / (fb - fa) * fa;
+    t = tinterp;
 
     // If the interpolated value is close to one edge of
     // the interval, move it farther away from the edge in
     // an effort to catch the root in the middle.
-    if (t - a < (b-a)/8) t = a + 2*(t-a);
-    else if (b - t < (b-a)/8) t = b - 2*(b-t);
-
-    assert(t >= a && t <= b);
+    real margin = (b - a) * 1e-3;
+    if (t - a < margin) t = a + 2.0*(t-a);
+    else if (b - t < margin) t = b - 2.0*(b-t);
     
     ft = g(t);
     if (ft == 0) return t;
@@ -323,7 +352,6 @@ real findroot(real f(real), real a, real b,
       a = t;
       fa = ft;
     }
-
   }
   return a - (b - a) / (fb - fa) * fa;
 }
