@@ -803,10 +803,12 @@ path3 pathinface(positionedvector v1, positionedvector v2,
 // not consist of four positive-length segments.
 patch[] triangletoquads(path3 external, real f(triple), triple grad(triple),
 			  triple a, triple b) {
+  
   assert(length(external) == 3);
   assert(cyclic(external));
-  return new patch[] {patchwithnormals(external, grad)};
-
+  
+  return new patch[] {/*patchwithnormals(external, grad)*/ patch(external)};
+  
   
   static real epsilon = 1e-3;
   assert(length(external) == 3);
@@ -883,19 +885,51 @@ patch[] triangletoquads(path3 external, real f(triple), triple grad(triple),
       patchwithnormals(quad2, grad)};   
 }
 
-// In case it's necessary to split the triangle along one edge -- vertex, use least-squares
-// projection at the vertex.
 // This function should be able to assume that the orientation is correct -- i.e., that
 // at a corner, (tangent in) x (tangent out) is in the positive f direction.
-/*
-patch[] maketriangle(path3 external, real f(triple), triple a, triple b,
-		     triple grad(triple) = nGrad(f)) {
+patch[] maketriangle(path3 external, real f(triple),
+		     triple grad(triple), bool allowsubdivide = true) {
   assert(cyclic(external));
-  assert(external.length == 3);
-  triple p0 = point(external, 0);
-  triple n0frompath = cross(p0 - precontrol(external, 0)
+  assert(length(external) == 3);
+  triple m1 = point(external, 0.5);
+  triple n1 = unit(grad(m1));
+  triple m2 = point(external, 1.5);
+  triple n2 = unit(grad(m2));
+  triple m3 = point(external, 2.5);
+  triple n3 = unit(grad(m3));
+  patch beziertriangle = trianglewithnormals(external, n1, n2, n3);
+  if (dot(n1, beziertriangle.normal(0.5, 0)) >= 0 &&
+      dot(n2, beziertriangle.normal(0.5, 0.5)) >= 0 &&
+      dot(n3, beziertriangle.normal(0, 0.5)) >= 0)
+    return new patch[] {beziertriangle};
+
+  if (!allowsubdivide) return new patch[0];
+  
+  positionedvector m1 = positionedvector(m1, n1);
+  positionedvector m2 = positionedvector(m2, n2);
+  positionedvector m3 = positionedvector(m3, n3);
+  path3 p12 = pathbetween(m1, m2);
+  path3 p23 = pathbetween(m2, m3);
+  path3 p31 = pathbetween(m3, m1);
+  patch[] triangles = maketriangle(p12 & p23 & p31 & cycle, f, grad=grad,
+				   allowsubdivide=false);
+  if (triangles.length < 1) return new patch[0];
+
+  triangles.append(maketriangle(subpath(external, -0.5, 0.5) & reverse(p31) & cycle,
+				f, grad=grad, allowsubdivide=false));
+  if (triangles.length < 2) return new patch[0];
+
+  triangles.append(maketriangle(subpath(external, 0.5, 1.5) & reverse(p12) & cycle,
+				f, grad=grad, allowsubdivide=false));
+  if (triangles.length < 3) return new patch[0];
+  
+  triangles.append(maketriangle(subpath(external, 1.5, 2.5) & reverse(p23) & cycle,
+				f, grad=grad, allowsubdivide=false));
+  if (triangles.length < 4) return new patch[0];
+
+  return triangles;
 }
-*/
+
 
 // Returns true if the point is "nonsingular" (in the sense that the magnitude
 // of the gradient is not too small) AND very close to the zero locus of f
@@ -983,7 +1017,7 @@ patch[] quadpatches(path3 edgecycle, positionedvector[] corners,
   }
   
   if (length(edgecycle) == 3) {
-    patch[] toreturn = triangletoquads(edgecycle, f, grad, a, b);
+    patch[] toreturn = maketriangle(edgecycle, f, grad);
     if (toreturn.length == 0) return null;
     else return toreturn;
   }
@@ -1005,7 +1039,7 @@ patch[] quadpatches(path3 edgecycle, positionedvector[] corners,
   if (length(edgecycle) == 5) {
     path3 secondpatch = middleguide
 	& subpath(edgecycle, bisectorindices[1], 5+bisectorindices[0]) & cycle;
-    toreturn = triangletoquads(secondpatch, f, grad, a, b);
+    toreturn = maketriangle(secondpatch, f, grad);
     if (toreturn.length == 0) return null;
     toreturn.push(patchwithnormals(firstpatch, grad));
   } else {
@@ -1427,6 +1461,7 @@ struct gridwithzeros {
     }
     edgecycle = edgecycle & cycle;
 
+    
     {  // Ensure the outward normals are pointing in the same direction as the gradient.
       triple tangentin = patchcorners[0].position - precontrol(edgecycle, 0);
       triple tangentout = postcontrol(edgecycle, 0) - patchcorners[0].position;
