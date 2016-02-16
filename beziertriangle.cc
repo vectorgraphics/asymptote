@@ -378,7 +378,7 @@ struct Render
     this->res=res;
 
     triple po=p[0];
-    double epsilon=0;
+    epsilon=0;
     for(int i=1; i < 10; ++i)
       epsilon=max(epsilon,abs2(p[i]-po));
   
