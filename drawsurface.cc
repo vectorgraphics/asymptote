@@ -15,15 +15,15 @@ using namespace prc;
 
 namespace camp {
 
-void bezierTriangle(const triple *g, bool straight, double Size2, triple Size3,
-                    bool havebillboard, triple center, GLfloat *colors);
-  
 const double pixel=1.0; // Adaptive rendering constant.
 const triple drawElement::zero;
 
 using vm::array;
 
 #ifdef HAVE_GL
+void bezierTriangle(const triple *g, bool straight, double ratio,
+                    bool havebillboard, triple center, GLfloat *colors);
+  
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
 {
   pen p=vm::read<camp::pen>(pens,j);
@@ -262,11 +262,9 @@ inline double fraction(double d, double size)
 }
 
 // estimate the viewport fraction associated with the displacement d
-inline double fraction(const triple& d, const triple& size)
+inline double fraction(const triple& d, const pair& size)
 {
-  return max(max(fraction(d.getx(),size.getx()),
-                 fraction(d.gety(),size.gety())),
-             fraction(d.getz(),size.getz()));
+  return max(fraction(d.getx(),size.getx()),fraction(d.gety(),size.gety()));
 }
 
 void drawSurface::render(GLUnurbs *nurb, double size2,
@@ -318,7 +316,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
     
   setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
   
-  const triple size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),0.0);
+  const pair size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()));
   
   bool havenormal=normal != zero;
   if(havebillboard) BB.init();
@@ -590,7 +588,7 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
 
   setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
   
-  const triple size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()),0);
+  const pair size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()));
   
   GLfloat v[12];
 
@@ -598,7 +596,7 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
     for(size_t i=0; i < 3; ++i)
       storecolor(v,4*i,colors[i]);
     
-  bezierTriangle(controls,straight,size2,size3,havebillboard,center,
+  bezierTriangle(controls,straight,size3.length()/size2,havebillboard,center,
                  colors ? v : NULL);
 
   if(colors)

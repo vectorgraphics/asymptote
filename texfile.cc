@@ -63,7 +63,7 @@ void texfile::prologue()
   if(inlinetex) {
     string prename=buildname(settings::outname(),"pre");
     std::ofstream *outpreamble=new std::ofstream(prename.c_str());
-    texpreamble(*outpreamble,processData().TeXpreamble);
+    texpreamble(*outpreamble,processData().TeXpreamble,true,false);
     outpreamble->close();
   }
   

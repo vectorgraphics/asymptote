@@ -648,7 +648,8 @@ void error(const char* message)
   
 void error(const ostringstream& message)
 {
-  error(message.str().c_str());
+  const string& s=message.str();
+  error(s.c_str());
 }
 
 const size_t STARTING_GLOBALS_SIZE = 1;

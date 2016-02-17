@@ -9,7 +9,7 @@ This file documents @code{Asymptote}, version @value{VERSION}.
 
 @url{http://asymptote.sourceforge.net}
      
-Copyright @copyright{} 2004-14 Andy Hammerlindl, John Bowman, and Tom Prince.
+Copyright @copyright{} 2004-16 Andy Hammerlindl, John Bowman, and Tom Prince.
      
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -40,7 +40,7 @@ file LICENSE in the top-level source directory).
 @contents
      
 @ifnottex
-@node Top
+@node Top, Description, (dir), (dir)
 @top Asymptote
      
 @insertcopying
@@ -79,6 +79,14 @@ Installation
 * Git::                         Getting the latest development source
 * Uninstall::                   Goodbye, @code{Asymptote}!
 
+Tutorial
+
+* Drawing in batch mode::       Run @code{Asymptote} on a text file
+* Drawing in interactive mode:: Running @code{Asymptote} interactively
+* Figure size::                 Specifying the figure size
+* Labels::                      Adding @code{LaTeX} labels
+* Paths::                       Drawing lines and curves
+
 Drawing commands
 
 * draw::                        Draw a path on a picture or frame
@@ -116,7 +124,6 @@ Functions
 * Named arguments::             Assigning function arguments by keyword
 * Rest arguments::              Functions with a variable number of arguments
 * Mathematical functions::      Standard libm functions
-
 
 Arrays
 
@@ -168,12 +175,12 @@ Base modules
 Graphical User Interface
 
 * GUI installation::            Installing @code{xasy}
-* GUI usage::
+* GUI usage::                   Using @code{xasy} to edit objects
 
 @end detailmenu
 @end menu
 
-@node Description
+@node Description, Installation, Top, Top
 @chapter Description
 @cindex description
 
@@ -249,22 +256,27 @@ applications. A scientific graphing module has already been written
 (@pxref{graph}). Examples of @code{Asymptote} code and output,
 including animations, are available at
 @quotation
-@url{http://asymptote.sourceforge.net/gallery/}.
+@url{http://asymptote.sourceforge.net/gallery/}
 @end quotation
 @noindent
+Clicking on an example file name in this manual, like
+@code{@uref{http://asymptote.sourceforge.net/gallery/Pythagoras.pdf,,Pythagoras}}, will display the @acronym{PDF} output, whereas clicking on its
+@code{@uref{http://asymptote.sourceforge.net/gallery/Pythagoras.asy,,.asy}}
+extension will show the corresponding @code{Asymptote} code in a separate window.
+
 Links to many external resources, including an excellent user-written
 @code{Asymptote} tutorial can be found at
 @quotation
-@url{http://asymptote.sourceforge.net/links.html}.
+@url{http://asymptote.sourceforge.net/links.html}
 @end quotation
 @cindex reference
 @cindex quick reference
 A quick reference card for @code{Asymptote} is available at
 @quotation
-@url{http://asymptote.sourceforge.net/asyRefCard.pdf}.
+@url{http://asymptote.sourceforge.net/asyRefCard.pdf}
 @end quotation
 
-@node Installation
+@node Installation, Tutorial, Description, Top
 @chapter Installation
 @cindex installation
 
@@ -286,7 +298,7 @@ please see also @ref{Configuring}.
 @noindent
 We recommend subscribing to new release announcements at
 @quotation
-@url{http://freecode.com/projects/asy}
+@url{http://sourceforge.net/projects/asymptote}
 @end quotation
 @noindent
 Users may also wish to monitor the @code{Asymptote} forum:
@@ -295,7 +307,7 @@ Users may also wish to monitor the @code{Asymptote} forum:
 @end quotation
 @noindent
 
-@node UNIX binary distributions
+@node UNIX binary distributions, MacOS X binary distributions, Installation, Installation
 @section UNIX binary distributions
 @cindex UNIX binary distributions
 
@@ -332,7 +344,7 @@ prebuilt @code{Asymptote} binaries from
 @url{http://ftp.debian.org/debian/pool/main/a/asymptote}
 @end quotation
 
-@node MacOS X binary distributions
+@node MacOS X binary distributions, Microsoft Windows, UNIX binary distributions, Installation
 @section MacOS X binary distributions
 @cindex @code{MacOS X} binary distributions
 @code{MacOS X} users can either compile the @code{UNIX} source code
@@ -347,7 +359,7 @@ Note that many @code{MacOS X} (and FreeBSD) systems lack the
 functionality, @acronym{GNU} @code{readline} version 4.3 or later must
 be installed.
 
-@node Microsoft Windows
+@node Microsoft Windows, Configuring, MacOS X binary distributions, Installation
 @section Microsoft Windows
 @cindex Microsoft Windows
 Users of the @code{Microsoft Windows} operating system can install the
@@ -392,7 +404,7 @@ Example code will be installed by default in the @code{examples}
 subdirectory of the installation directory (by default, 
 @code{C:\Program Files\Asymptote}).
 
-@node Configuring
+@node Configuring, Search paths, Microsoft Windows, Installation
 @section Configuring
 @cindex configuring
 @cindex @code{-V}
@@ -541,7 +553,7 @@ under @code{Microsoft Windows XP}:
 @item Click the @code{Environment Variables} button.
 @end enumerate
 
-@node Search paths
+@node Search paths, Compiling from UNIX source, Configuring, Installation
 @section Search paths
 @cindex search paths
 
@@ -568,7 +580,7 @@ The @code{Asymptote} system directory (by default,
 @code{C:\Program Files\Asymptote} under @code{MSDOS}).
 @end enumerate
 
-@node Compiling from UNIX source
+@node Compiling from UNIX source, Editing modes, Search paths, Installation
 @section Compiling from UNIX source
 @cindex Compiling from UNIX source
 
@@ -664,7 +676,7 @@ your path and set the configuration variable @code{dir} to point
 to the directory @code{base} (in the top level directory of the
 @code{Asymptote} source code). 
 
-@node Editing modes
+@node Editing modes, Git, Compiling from UNIX source, Installation
 @section Editing modes
 @cindex Editing modes
 @cindex @code{emacs}
@@ -736,7 +748,7 @@ can be enabled by running @code{asy-kate.sh} in the
 @code{@value{Datadir}/asymptote} directory and putting the generated
 @code{asymptote.xml} file in @code{~/.kde/share/apps/katepart/syntax/}.
 
-@node Git
+@node Git, Uninstall, Editing modes, Installation
 @section Git
 @cindex git
 
@@ -755,11 +767,11 @@ make install
 @noindent
 To compile without optimization, use the command @code{make CFLAGS=-g}.
 
-@node Uninstall
+@node Uninstall,  , Git, Installation
 @section Uninstall
-@cindex Uninstall
+@cindex uninstall
 
-To uninstall an @code{Linux i386} binary distribution, use the commands
+To uninstall a @code{Linux i386} binary distribution, use the commands
 @verbatim
 tar -zxvf asymptote-x.xx.i386.tgz | xargs --replace=% rm /%
 texhash
@@ -772,11 +784,32 @@ distribution, use the command
 make uninstall
 @end verbatim
 
-@node Tutorial
+@node Tutorial, Drawing commands, Installation, Top
 @chapter Tutorial
 @cindex tutorial
-@cindex batch mode
+
+@menu
+* Drawing in batch mode::       Run @code{Asymptote} on a text file
+* Drawing in interactive mode:: Running @code{Asymptote} interactively
+* Figure size::                 Specifying the figure size
+* Labels::                      Adding @code{LaTeX} labels
+* Paths::                       Drawing lines and curves
+@end menu
+
+A concise introduction to @code{Asymptote} is given here.
+For a more thorough introduction, see the excellent @code{Asymptote}
+tutorial written by Charles Staats:
+
+@url{http://math.uchicago.edu/~cstaats/Charles_Staats_III/Notes_and_papers_files/asymptote_tutorial.pdf}
+
+Another @code{Asymptote} tutorial is available as a wiki,
+with images rendered by an online Asymptote engine:
+
+@url{http://www.artofproblemsolving.com/wiki/?title=Asymptote_(Vector_Graphics_Language)}
+
+@node Drawing in batch mode, Drawing in interactive mode, Tutorial, Tutorial
 @section Drawing in batch mode
+@cindex batch mode
 To draw a line from coordinate (0,0) to coordinate (100,100),
 create a text file @code{test.asy} containing
 @verbatiminclude diagonal.asy
@@ -808,7 +841,9 @@ can immediately view the result:
 Here, the @code{--} connector joins the two points @code{(0,0)} and
 @code{(100,100)} with a line segment.
 
+@node Drawing in interactive mode, Figure size, Drawing in batch mode, Tutorial
 @section Drawing in interactive mode
+@cindex interactive mode
 Another method is @emph{interactive mode}, where @code{Asymptote} reads
 individual commands as they are entered by the user. To try this out, enter
 @code{Asymptote}'s interactive mode by clicking on the
@@ -837,7 +872,9 @@ The tab key will automatically complete unambiguous words;
 otherwise, hitting tab again will show the possible choices. Further
 commands specific to interactive mode are described in @ref{Interactive mode}.
 
+@node Figure size, Labels, Drawing in interactive mode, Tutorial
 @section Figure size
+@cindex @code{size}
 @cindex @code{pair}
 In @code{Asymptote}, coordinates like @code{(0,0)} and @code{(100,100)},
 called @emph{pairs},
@@ -890,7 +927,9 @@ draw(unitsquare);
 @end verbatim 
 @noindent
 
+@node Labels, Paths, Figure size, Tutorial
 @section Labels
+@cindex @code{label}
 Adding labels is easy in @code{Asymptote}; one specifies the
 label as a double-quoted @code{LaTeX} string, a
 coordinate, and an optional alignment direction:
@@ -911,7 +950,9 @@ module @code{plain} (a user who has a local variable named @code{E}
 may access the compass direction @code{E} by prefixing it with the name
 of the module where it is defined: @code{plain.E}).
 
+@node Paths,  , Labels, Tutorial
 @section Paths
+@cindex @code{path}
 This example draws a path that approximates a quarter circle,
 terminated with an arrowhead:
 @verbatiminclude quartercircle.asy
@@ -974,17 +1015,14 @@ cube @code{unitbox} without retracing steps (@pxref{three}):
 @sp 1
 @center @image{cube}
 
-See section @ref{graph} (or the online @code{Asymptote} gallery and
+See section @ref{graph} (or the online
+@code{Asymptote} @uref{http://asymptote.sourceforge.net/gallery,,gallery} and
 external links posted at @url{http://asymptote.sourceforge.net}) for
 further examples, including two-dimensional and interactive
 three-dimensional scientific graphs. Additional examples have been
 posted by Philippe Ivaldi at @url{http://www.piprime.fr/asymptote}.
-Excellent user-written @code{Asymptote} tutorials are also available:
 
-@url{http://www.artofproblemsolving.com/Wiki/index.php/Asymptote:_Basics}
-
-@url{http://math.uchicago.edu/~cstaats/Charles_Staats_III/Notes_and_papers_files/asymptote_tutorial.pdf}
-@node Drawing commands
+@node Drawing commands, Bezier curves, Tutorial, Top
 @chapter Drawing commands
 @cindex drawing commands
 
@@ -1021,6 +1059,7 @@ currentpicture).
 @cindex legend
 @cindex @code{draw}
 @cindex @code{arrow}
+
 @menu
 * draw::                        Draw a path on a picture or frame
 * fill::                        Fill a cyclic path on a picture or frame
@@ -1028,8 +1067,9 @@ currentpicture).
 * label::                       Label a point on a picture
 @end menu
 
-@node draw
+@node draw, fill, Drawing commands, Drawing commands
 @section draw
+@cindex @code{draw}
 @verbatim 
 void draw(picture pic=currentpicture, Label L="", path g,
           align align=NoAlign, pen p=currentpen,
@@ -1141,7 +1181,8 @@ specify a margin directly in @code{PostScript} units, independent of
 the pen line width.
 
 The use of arrows, bars, and margins is illustrated by the examples
-@code{Pythagoras.asy}, @code{sqrtx01.asy}, and @code{triads.asy}.
+@code{@uref{http://asymptote.sourceforge.net/gallery/Pythagoras.pdf,,Pythagoras}@uref{http://asymptote.sourceforge.net/gallery/Pythagoras.asy,,.asy}},
+@code{@uref{http://asymptote.sourceforge.net/gallery/sqrtx01.pdf,,sqrtx01}@uref{http://asymptote.sourceforge.net/gallery/sqrtx01.asy,,.asy}}, and @code{@uref{http://asymptote.sourceforge.net/gallery/triads.pdf,,triads}@uref{http://asymptote.sourceforge.net/gallery/triads.asy,,.asy}}.
 
 The legend for a picture @code{pic} can be fit and aligned to a frame
 with the routine:
@@ -1212,8 +1253,9 @@ void draw(pair origin, picture pic=currentpicture, Label L="", path g,
 @end verbatim
 
 @cindex @code{fill}
-@node fill
+@node fill, clip, draw, Drawing commands
 @section fill
+@cindex @code{fill}
 @verbatim
 void fill(picture pic=currentpicture, path g, pen p=currentpen);
 @end verbatim
@@ -1273,7 +1315,7 @@ would be drawn by @code{draw(pic,g,fillrule+zerowinding)}; in this case the path
 The pens in @code{p} must belong to the same color space. One can use the
 functions @code{rgb(pen)} or @code{cmyk(pen)} to promote pens to a
 higher color space, as illustrated in the example file
-@code{latticeshading.asy}.
+@code{@uref{http://asymptote.sourceforge.net/gallery/latticeshading.pdf,,latticeshading}@uref{http://asymptote.sourceforge.net/gallery/latticeshading.asy,,.asy}}.
 
 @cindex @code{axialshade}
 Axial gradient shading varying smoothly from @code{pena} to @code{penb} in the
@@ -1302,7 +1344,7 @@ void radialshade(picture pic=currentpicture, path g, bool stroke=false,
 The boolean parameters @code{extenda} and @code{extendb} indicate
 whether the shading should extend beyond the radii @code{a} and @code{b}.
 Illustrations of radial shading are provided in the example files
-@code{shade.asy}, @code{ring.asy}, and @code{shadestroke.asy}.
+@code{@uref{http://asymptote.sourceforge.net/gallery/shade.pdf,,shade}@uref{http://asymptote.sourceforge.net/gallery/shade.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/ring.pdf,,ring}@uref{http://asymptote.sourceforge.net/gallery/ring.asy,,.asy}}, and @code{@uref{http://asymptote.sourceforge.net/gallery/shadestroke.pdf,,shadestroke}@uref{http://asymptote.sourceforge.net/gallery/shadestroke.asy,,.asy}}.
 
 @cindex @code{gouraudshade}
 Gouraud shading using fill rule @code{fillrule} and the vertex colors in the
@@ -1319,7 +1361,7 @@ void gouraudshade(picture pic=currentpicture, path g, bool stroke=false,
 In the second form, the elements of @code{z} are taken to be successive
 nodes of path @code{g}. The pens in @code{p} must belong to the same
 color space. Illustrations of Gouraud shading are provided in the example file
-@code{Gouraud.asy} and in the solid geometry module @code{solids.asy}.
+@code{@uref{http://asymptote.sourceforge.net/gallery/Gouraud.pdf,,Gouraud}@uref{http://asymptote.sourceforge.net/gallery/Gouraud.asy,,.asy}}.
 The edge flags used in Gouraud shading are documented here:
 @quotation
 @url{http://partners.adobe.com/public/developer/en/ps/sdk/TN5600.SmoothShading.pdf}.
@@ -1357,8 +1399,8 @@ void draw(picture pic=currentpicture, pen fillrule=currentpen, path[] g,
 @end verbatim
 @noindent
 Illustrations of tensor product and Coons shading are provided in the
-example files @code{tensor.asy}, @code{Coons.asy}, @code{BezierSurface.asy},
-and @code{rainbow.asy}.
+example files @code{@uref{http://asymptote.sourceforge.net/gallery/tensor.pdf,,tensor}@uref{http://asymptote.sourceforge.net/gallery/tensor.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/Coons.pdf,,Coons}@uref{http://asymptote.sourceforge.net/gallery/Coons.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/BezierSurface.pdf,,BezierSurface}@uref{http://asymptote.sourceforge.net/gallery/BezierSurface.asy,,.asy}},
+and @code{@uref{http://asymptote.sourceforge.net/gallery/rainbow.pdf,,rainbow}@uref{http://asymptote.sourceforge.net/gallery/rainbow.asy,,.asy}}.
     
 @cindex Function shading
 @cindex function shading
@@ -1374,7 +1416,7 @@ shades on picture @code{pic} the interior of path @code{g} according
 to fill rule @code{fillrule} using the @code{PostScript} calculator routine
 specified by the string @code{shader}; this routine takes 2 arguments,
 each in [0,1], and returns @code{colors(fillrule).length} color components.
-Function shading is illustrated in the example @code{functionshading.asy}.
+Function shading is illustrated in the example @code{@uref{http://asymptote.sourceforge.net/gallery/functionshading.pdf,,functionshading}@uref{http://asymptote.sourceforge.net/gallery/functionshading.asy,,.asy}}.
 
 @cindex unfill
 The following routine uses @code{evenodd} clipping together with the
@@ -1384,10 +1426,10 @@ The following routine uses @code{evenodd} clipping together with the
 void unfill(picture pic=currentpicture, path g);
 @end verbatim
 
+@node clip, label, fill, Drawing commands
+@section clip
 @cindex @code{clip}
 @cindex @code{stroke}
-@node clip
-@section clip
 @verbatim 
 void clip(picture pic=currentpicture, path g, stroke=false,
           pen fillrule=currentpen);
@@ -1400,9 +1442,9 @@ that would be drawn with @code{draw(pic,g,fillrule+zerowinding)}; in
 this case the path @code{g} need not be cyclic. For an illustration of
 picture clipping, see the first example in @ref{LaTeX usage}.
 
-@cindex @code{label}
-@node label
+@node label,  , clip, Drawing commands
 @section label
+@cindex @code{label}
 @verbatim
 void label(picture pic=currentpicture, Label L, pair position,
            align align=NoAlign, pen p=currentpen, filltype filltype=NoFill)
@@ -1532,13 +1574,13 @@ layer();
 The @code{string baseline(string s, string template="\strut")} 
 function can be used to enlarge the bounding box of labels to match a
 given template, so that their baselines will be typeset on a
-horizontal line. See @code{Pythagoras.asy} for an example.
+horizontal line. See @code{@uref{http://asymptote.sourceforge.net/gallery/Pythagoras.pdf,,Pythagoras}@uref{http://asymptote.sourceforge.net/gallery/Pythagoras.asy,,.asy}} for an example.
 
 One can prevent labels from overwriting one another with the
 @code{overwrite} pen attribute (@pxref{overwrite}).
 
-The structure @code{object} defined in @code{plain_Label.asy} allows Labels
-and frames to be treated in a uniform manner.
+The structure @code{object} defined in @code{plain_Label.asy}
+allows Labels and frames to be treated in a uniform manner.
 A group of objects may be packed together into single frame with the routine
 @cindex @code{pack}
 @verbatim
@@ -1573,7 +1615,7 @@ produce a CD label:
 @center @image{CDlabel}
 @verbatiminclude CDlabel.asy
 
-@node Bezier curves
+@node Bezier curves, Programming, Drawing commands, Top
 @chapter Bezier curves
 @cindex Bezier curves
 @cindex direction specifier
@@ -1683,9 +1725,27 @@ infinity..} and the @code{&} connector concatenates two paths, after
 first stripping off the last node of the first path (which normally
 should coincide with the first node of the second path).
 
-@node Programming
+@node Programming, LaTeX usage, Bezier curves, Top
 @chapter Programming
 @cindex programming
+
+@menu
+* Data types::                  void, bool, int, real, pair, triple, string
+* Paths and guides::            Bezier curves
+* Pens::                        Colors, line types, line widths, font sizes
+* Transforms::                  Affine transforms
+* Frames and pictures::         Canvases for immediate and deferred drawing
+* Files::                       Reading and writing your data
+* Variable initializers::       Initialize your variables
+* Structures::                  Organize your data
+* Operators::                   Arithmetic and logical operators
+* Implicit scaling::            Avoiding those ugly *s
+* Functions::                   Traditional and high-order functions
+* Arrays::                      Dynamic vectors
+* Casts::                       Implicit and explicit casts
+* Import::                      Importing external @code{Asymptote} modules
+* Static::                      Where to allocate your variable?
+@end menu
 
 Here is a short introductory example to the @code{Asymptote} programming
 language that highlights the similarity of its control structures 
@@ -1738,27 +1798,10 @@ for(int k : array) {
 }
 @end verbatim
 @noindent
-In addition, it supports many features beyond the ones found in those languages.
+In addition, it supports many features beyond the ones found in those
+languages.
 
-@menu
-* Data types::                  void, bool, int, real, pair, triple, string
-* Paths and guides::            Bezier curves
-* Pens::                        Colors, line types, line widths, font sizes
-* Transforms::                  Affine transforms
-* Frames and pictures::         Canvases for immediate and deferred drawing
-* Files::                       Reading and writing your data
-* Variable initializers::       Initialize your variables
-* Structures::                  Organize your data
-* Operators::                   Arithmetic and logical operators
-* Implicit scaling::            Avoiding those ugly *s
-* Functions::                   Traditional and high-order functions
-* Arrays::                      Dynamic vectors
-* Casts::                       Implicit and explicit casts
-* Import::                      Importing external @code{Asymptote} modules
-* Static::                      Where to allocate your variable?
-@end menu
-
-@node Data types
+@node Data types, Paths and guides, Programming, Programming
 @section Data types
 @cindex data types
 @code{Asymptote} supports the following data types (in addition to
@@ -2126,9 +2169,10 @@ but with duplicate delimiters discarded);
 @anchor{format}
 @item string format(string s, int n, string locale="")
 @cindex @code{format}
-returns a string containing @code{n} formatted according to the C-style
-format string @code{s} using locale @code{locale} (or the current locale if an
-empty string is specified);
+returns a string containing @code{n} formatted according to the C-style format
+string @code{s} using locale @code{locale} (or the current locale if an
+empty string is specified), following the behaviour of the C function
+@code{fprintf}), except that only one data field is allowed.
 
 @item string format(string s=defaultformat, string s=defaultseparator, real x, string locale="")
 returns a string containing @code{x} formatted according to the C-style format
@@ -2251,7 +2295,7 @@ produces a beep on the console;
 As in C/C++, complicated types may be abbreviated with @code{typedef}
 (see the example in @ref{Functions}).
 
-@node Paths and guides
+@node Paths and guides, Pens, Data types, Programming
 @section Paths and guides
 
 @table @code
@@ -2273,7 +2317,7 @@ path circle(pair c, real r)
 }
 @end verbatim
 If high accuracy is needed, a true circle may be produced with the
-routine @code{Circle} defined in the module @code{graph.asy}:
+routine @code{Circle} defined in the module @code{@uref{http://asymptote.sourceforge.net/gallery/graph.pdf,,graph}@uref{http://asymptote.sourceforge.net/gallery/graph.asy,,.asy}}:
 @cindex @code{Circle}
 @verbatim
 import graph;
@@ -2302,7 +2346,7 @@ path arc(pair c, explicit pair z1, explicit pair z2,
 @end verbatim
 
 If high accuracy is needed, true arcs may be produced with routines
-in the module @code{graph.asy} that produce Bezier curves with @code{n}
+in the module @code{@uref{http://asymptote.sourceforge.net/gallery/graph.pdf,,graph}@uref{http://asymptote.sourceforge.net/gallery/graph.asy,,.asy}} that produce Bezier curves with @code{n}
 control points:
 @cindex @code{Arc}
 @verbatim
@@ -2730,7 +2774,7 @@ e{down}..nullpath..{up}f;
 
 @end table
 
-@node Pens
+@node Pens, Transforms, Paths and guides, Programming
 @section Pens
 
 @cindex @code{pen}
@@ -3092,7 +3136,7 @@ formats can be produced from the resulting @acronym{PDF} file with the
 @code{ImageMagick} @code{convert} program.
 Labels are always drawn with an @code{opacity} of 1.
 A simple example of transparent filling is provided in the example file
-@code{transparency.asy}. 
+@code{@uref{http://asymptote.sourceforge.net/gallery/transparency.pdf,,transparency}@uref{http://asymptote.sourceforge.net/gallery/transparency.asy,,.asy}}. 
 
 @cindex patterns
 @cindex tilings
@@ -3113,7 +3157,7 @@ can be constructed using the routines
 filltype filltype=NoFill)},
 @code{picture checker(real Hx=5mm, real Hy=0, pen p=currentpen)}, and
 @code{picture brick(real Hx=5mm, real Hy=0, pen p=currentpen)} defined in
-@code{patterns.asy}:
+@code{@uref{http://asymptote.sourceforge.net/gallery/patterns.pdf,,patterns}@uref{http://asymptote.sourceforge.net/gallery/patterns.asy,,.asy}}:
 @cindex grid
 @cindex tile
 @cindex checker
@@ -3133,7 +3177,7 @@ Hatch patterns can be generated with the routines
 
 You may need to turn off aliasing in your @code{PostScript} viewer for
 patterns to appear correctly. Custom patterns can easily be constructed,
-following the examples in @code{patterns.asy}. The tiled pattern can
+following the examples in @code{@uref{http://asymptote.sourceforge.net/gallery/patterns.pdf,,patterns}@uref{http://asymptote.sourceforge.net/gallery/patterns.asy,,.asy}}. The tiled pattern can
 even incorporate shading (@pxref{gradient shading}), as illustrated
 in this example (not included in the manual because not all printers support
 @code{PostScript} 3):
@@ -3197,7 +3241,7 @@ The routine @code{defaultpen()} returns the current default pen attributes.
 Calling the routine @code{resetdefaultpen()} resets all pen default
 attributes to their initial values.
 
-@node Transforms
+@node Transforms, Frames and pictures, Pens, Programming
 @section Transforms
 
 @cindex @code{transform}
@@ -3263,7 +3307,7 @@ return the transforms @code{(t.x,t.y,0,0,0,0)} and
 @code{(0,0,t.xx,t.xy,t.yx,t.yy)} respectively.
 
 
-@node Frames and pictures
+@node Frames and pictures, Files, Transforms, Programming
 @section Frames and pictures
 
 @table @code
@@ -3577,7 +3621,7 @@ void add(picture dest, picture src, bool group=true,
 The first example adds @code{src} to @code{currentpicture}; the second
 one adds @code{src} to @code{dest}. 
 The @code{group} option specifies whether or not the graphical user
-interface @code{xasy} should treat all of the elements of @code{src}
+interface @code{@uref{http://asymptote.sourceforge.net/gallery/.pdf,,}@uref{http://asymptote.sourceforge.net/gallery/.asy,,.asy}} should treat all of the elements of @code{src}
 as a single entity (@pxref{GUI}), @code{filltype} requests optional
 background filling or clipping, and @code{above} specifies
 whether to add @code{src} above or below existing objects.
@@ -3696,7 +3740,7 @@ that can be used for importing @code{LaTeX} packages.
 
 @end table
 
-@node Files
+@node Files, Variable initializers, Frames and pictures, Programming
 @section Files
 
 @cindex @code{file}
@@ -3931,7 +3975,7 @@ For example,
 write(output("transcript.asy"),history());
 @end verbatim
 @noindent
-outputs the interactive history to the file @code{transcript.asy}.
+outputs the interactive history to the file @code{@uref{http://asymptote.sourceforge.net/gallery/transcript.pdf,,transcript}@uref{http://asymptote.sourceforge.net/gallery/transcript.asy,,.asy}}.
 
 @cindex @code{delete}
 The function @code{int delete(string s)} deletes the file named by the
@@ -3954,7 +3998,7 @@ call the @code{ImageMagick} commands @code{convert} and @code{animate},
 respectively, with the arguments @code{args} and the file name constructed
 from the strings @code{file} and @code{format}. 
 
-@node Variable initializers
+@node Variable initializers, Structures, Files, Programming
 @section Variable initializers
 @cindex variable initializers
 @cindex @code{operator init}
@@ -4042,7 +4086,7 @@ for (var x : a)
   write(x);
 @end verbatim
 
-@node Structures
+@node Structures, Operators, Variable initializers, Programming
 @section Structures
 @cindex @code{struct}
 @cindex structures
@@ -4300,7 +4344,7 @@ write(c.y);                     // Outputs 3;
 For further examples of structures, see @code{Legend} and @code{picture} in
 the @code{Asymptote} base module @code{plain}.
 
-@node Operators
+@node Operators, Implicit scaling, Structures, Programming
 @section Operators
 @cindex operators
 
@@ -4310,7 +4354,7 @@ the @code{Asymptote} base module @code{plain}.
 * User-defined operators::      Overloading operators
 @end menu
 
-@node Arithmetic & logical
+@node Arithmetic & logical, Self & prefix operators, Operators, Operators
 @subsection Arithmetic & logical operators
 @cindex arithmetic operators
 @cindex binary operators
@@ -4417,7 +4461,7 @@ for nonintegral built-in arithmetic types @code{T}. If @code{a} and
 @code{int CLZ(int)} (count leading zeros), and @code{int CTZ(int)}
 (count trailing zeros).
 
-@node Self & prefix operators
+@node Self & prefix operators, User-defined operators, Arithmetic & logical, Operators
 @subsection Self & prefix operators
 @cindex self operators
 @cindex prefix operators
@@ -4456,7 +4500,7 @@ path-joining operator). In the rare instances where @code{i++}
 and @code{i--} are really needed, one can substitute the expressions
 @code{(++i-1)} and @code{(--i+1)}, respectively.
 
-@node User-defined operators
+@node User-defined operators,  , Self & prefix operators, Operators
 @subsection User-defined operators
 @cindex user-defined operators
 @cindex @code{operator}
@@ -4493,7 +4537,7 @@ guide g=(0,0){up}..{SW}(100,100){NE}..{curl 3}(50,50)..(10,10);
 write("g=",g);
 @end verbatim
 
-@node Implicit scaling
+@node Implicit scaling, Functions, Operators, Programming
 @section Implicit scaling
 @cindex implicit scaling
 
@@ -4532,9 +4576,16 @@ This produces the output
 283.464008929116
 @end verbatim
 
-@node Functions
+@node Functions, Arrays, Implicit scaling, Programming
 @section Functions
 @cindex functions
+
+@menu
+* Default arguments::           Default values can appear anywhere
+* Named arguments::             Assigning function arguments by keyword
+* Rest arguments::              Functions with a variable number of arguments
+* Mathematical functions::      Standard libm functions
+@end menu
 
 @code{Asymptote} functions are treated as variables with a signature 
 (non-function variables have null signatures). Variables with the 
@@ -4653,15 +4704,7 @@ segmentation fault, unless a fully working version of the @acronym{GNU}
 library @code{libsigsegv} (e.g.@ 2.4 or later) is installed at
 configuration time).
 
-@menu
-* Default arguments::           Default values can appear anywhere
-* Named arguments::             Assigning function arguments by keyword
-* Rest arguments::              Functions with a variable number of arguments
-* Mathematical functions::      Standard libm functions
-
-@end menu
-
-@node Default arguments
+@node Default arguments, Named arguments, Functions, Functions
 @subsection Default arguments
 @cindex default arguments
 @cindex arguments
@@ -4682,7 +4725,7 @@ The value of a default argument is determined by evaluating the
 given @code{Asymptote} expression in the scope where the called
 function is defined.
 
-@node Named arguments
+@node Named arguments, Rest arguments, Default arguments, Functions
 @subsection Named arguments
 @cindex keywords
 @cindex named arguments
@@ -4763,7 +4806,7 @@ int f(int x=3, int x()) {
 then @code{f(x=seven)} would be illegal, even though @code{f(seven)}
 obviously would be allowed.
 
-@node Rest arguments
+@node Rest arguments, Mathematical functions, Named arguments, Functions
 @subsection Rest arguments
 @cindex rest arguments
 
@@ -4866,7 +4909,7 @@ i(3,4); // ambiguous; the first candidate is better for the first argument,
         // but the second candidate is better for the second one
 @end verbatim
 
-@node Mathematical functions
+@node Mathematical functions,  , Rest arguments, Functions
 @subsection Mathematical functions
 @cindex mathematical functions
 @cindex functions
@@ -4969,7 +5012,7 @@ and the integer @code{randMax}. The @code{unitrand()} function returns
 a random number uniformly distributed in the interval [0,1].
 A Gaussian random number generator
 @code{Gaussrand} and a collection of statistics routines, including
-@code{histogram}, are provided in the base file @code{stats.asy}.
+@code{histogram}, are provided in the base file @code{@uref{http://asymptote.sourceforge.net/gallery/stats.pdf,,stats}@uref{http://asymptote.sourceforge.net/gallery/stats.asy,,.asy}}.
 The functions @code{factorial(int n)}, which returns @math{n!}, and
 @code{choose(int n, int k)}, which returns @math{n!/(k!(n-k)!)}, are
 also defined.
@@ -5058,7 +5101,7 @@ returns the integral of @code{f} from @code{a} to @code{b} using adaptive Simpso
 
 @end table
 
-@node Arrays
+@node Arrays, Casts, Functions, Programming
 @section Arrays
 @cindex arrays
 
@@ -5559,7 +5602,7 @@ One, two, and three-dimensional arrays of the basic data types can be
 output with the functions @code{write(file,T[])},
 @code{write(file,T[][])}, @code{write(file,T[][][])}, respectively.
 
-@node Slices
+@node Slices,  , Arrays, Arrays
 @subsection Slices
 @cindex slices
 
@@ -5647,7 +5690,7 @@ so assigning to this slice will insert values at the start of the array.
 It is illegal to assign to a slice of a cyclic array that repeats any of the
 cells.
 
-@node Casts
+@node Casts, Import, Arrays, Programming
 @section Casts
 @cindex casts
 @cindex implicit casts
@@ -5659,7 +5702,7 @@ cells.
 to @code{path}, @code{real} to @code{pen},
 @code{pair[]} to @code{guide[]}, @code{pair[]} to @code{path[]}, 
 @code{path} to @code{path[]}, and @code{guide} to @code{path[]}, 
-along with various three-dimensional casts defined in @code{three.asy}.
+along with various three-dimensional casts defined in @code{@uref{http://asymptote.sourceforge.net/gallery/three.pdf,,three}@uref{http://asymptote.sourceforge.net/gallery/three.asy,,.asy}}.
 Implicit casts are automatically attempted on assignment and when
 trying to match function calls with possible function
 signatures. Implicit casting can be inhibited by declaring individual
@@ -5721,7 +5764,7 @@ real operator cast(int x)=convert;
 @cindex @code{operator ecast}
 Explicit casts are implemented similarly, with @code{operator ecast}.
 
-@node Import
+@node Import, Static, Casts, Programming
 @section Import
 @cindex @code{access}
 While @code{Asymptote} provides many features by default,
@@ -5912,7 +5955,7 @@ void list(string s, bool imports=false);
 Imported global functions and variables are also listed if
 @code{imports} is @code{true}.
 
-@node Static
+@node Static,  , Import, Programming
 @section Static
 @cindex @code{static}
 
@@ -6039,13 +6082,13 @@ It is the convention in Asymptote that, if there is a non-function variable with
 the same name as the qualifier, the qualifier refers to that variable, and not
 to the type.  This is regardless of what fields the variable actually possesses.
 
-@node LaTeX usage
+@node LaTeX usage, Base modules, Programming, Top
 @chapter @code{LaTeX} usage
 @cindex @code{LaTeX} usage
 @cindex @code{asymptote.sty}
 
 @code{Asymptote} comes with a convenient @code{LaTeX} style file
-@code{asymptote.sty} that makes @code{LaTeX}
+@code{asymptote.sty} (v1.30 or later required) that makes @code{LaTeX}
 @code{Asymptote}-aware. Entering @code{Asymptote} code
 directly into the @code{LaTeX} source file, at the point where it is
 needed, keeps figures organized and avoids the need to invent new file
@@ -6103,7 +6146,7 @@ in @code{latexusage.tex} and put the contents of
 @url{http://sourceforge.net/p/asymptote/code/HEAD/tree/trunk/asymptote/doc/latexmkrc_asydir}
 in a file @code{latexmkrc} in the same directory.
 @noindent
-External @code{Asymptote} code in @code{filename.asy} should be included with
+External @code{Asymptote} code in @code{@uref{http://asymptote.sourceforge.net/gallery/filename.pdf,,filename}@uref{http://asymptote.sourceforge.net/gallery/filename.asy,,.asy}} should be included with
 @cindex @code{asyinclude}
 @verbatim
 \asyinclude[<options>]{<filename.asy>}
@@ -6149,7 +6192,7 @@ Here now is @code{latexusage.tex}:
 @page
 @image{latexusage,,25cm}
 
-@node Base modules
+@node Base modules, Options, LaTeX usage, Top
 @chapter Base modules
 @cindex base modules
 
@@ -6198,7 +6241,7 @@ Here now is @code{latexusage.tex}:
 * ode::                         Ordinary differential equations
 @end menu
 
-@node plain
+@node plain, simplex, Base modules, Base modules
 @section @code{plain}
 @cindex @code{plain}
 
@@ -6213,7 +6256,7 @@ the types and functions defined in @code{plain} are accessible in
 almost all @code{Asymptote} code. Use the @code{-noautoplain} command-line
 option to disable this feature.
 
-@node simplex
+@node simplex, math, plain, Base modules
 @section @code{simplex}
 @cindex @code{simplex}
 @cindex @code{deferred drawing}
@@ -6221,7 +6264,7 @@ This package solves the two-variable linear programming problem using the
 simplex method. It is used by the module @code{plain} for automatic
 sizing of pictures.
 
-@node math
+@node math, interpolate, simplex, Base modules
 @section @code{math}
 @cindex @code{math}
 This package extends @code{Asymptote}'s mathematical capabilities with
@@ -6315,14 +6358,14 @@ returns the strict lexicographical partial order of @code{a} and @code{b}.
 returns the strict lexicographical partial order of @code{a} and @code{b}.
 @end table
 
-@node interpolate
+@node interpolate, geometry, math, Base modules
 @section @code{interpolate}
 @cindex @code{interpolate}
 This module implements Lagrange, Hermite, and standard cubic spline
 interpolation in @code{Asymptote}, as illustrated in the example
-@code{interpolate1.asy}.
+@code{@uref{http://asymptote.sourceforge.net/gallery/interpolate1.pdf,,interpolate1}@uref{http://asymptote.sourceforge.net/gallery/interpolate1.asy,,.asy}}.
 
-@node geometry
+@node geometry, trembling, interpolate, Base modules
 @section @code{geometry}
 @cindex @code{geometry}
 @cindex @code{triangle}
@@ -6338,14 +6381,14 @@ including an extensive set of examples,
 @url{http://www.piprime.fr/files/asymptote/geometry/modules/geometry.asy.index.type.html}
 @end quotation
 
-@node trembling
+@node trembling, stats, geometry, Base modules
 @section @code{trembling}
 @cindex @code{trembling}
 This module, written by Philippe Ivaldi and illustrated in the example
-@code{floatingdisk.asy}, allows one to draw wavy lines, as if drawn by
+@code{@uref{http://asymptote.sourceforge.net/gallery/floatingdisk.pdf,,floatingdisk}@uref{http://asymptote.sourceforge.net/gallery/floatingdisk.asy,,.asy}}, allows one to draw wavy lines, as if drawn by
 hand.
 
-@node stats
+@node stats, patterns, trembling, Base modules
 @section @code{stats}
 @cindex @code{stats}
 @cindex @code{leastsquares}
@@ -6353,13 +6396,13 @@ This package implements a Gaussian random number generator
 and a collection of statistics routines, including @code{histogram}
 and @code{leastsquares}.
 
-@node patterns
+@node patterns, markers, stats, Base modules
 @section @code{patterns}
 @cindex @code{patterns}
 This package implements @code{Postscript} tiling patterns and includes
 several convenient pattern generation routines.
 
-@node markers
+@node markers, tree, patterns, Base modules
 @section @code{markers}
 @cindex @code{markers}
 This package implements specialized routines for marking paths and angles.
@@ -6401,7 +6444,7 @@ frame tildeframe(int n=1, real size=0, pair space=0,
 For convenience, this module also constructs the markers
 @code{StickIntervalMarker},  @code{CrossIntervalMarker},
 @code{CircleBarIntervalMarker}, and @code{TildeIntervalMarker}
-from the above frames. The example @code{markers1.asy} illustrates the
+from the above frames. The example @code{@uref{http://asymptote.sourceforge.net/gallery/markers1.pdf,,markers1}@uref{http://asymptote.sourceforge.net/gallery/markers1.asy,,.asy}} illustrates the
 use of these markers:
 
 @sp 1
@@ -6417,59 +6460,59 @@ void markangle(picture pic=currentpicture, Label L="",
                marker marker=nomarker);
 @end verbatim
 @noindent
-as illustrated in the example @code{markers2.asy}.
+as illustrated in the example @code{@uref{http://asymptote.sourceforge.net/gallery/markers2.pdf,,markers2}@uref{http://asymptote.sourceforge.net/gallery/markers2.asy,,.asy}}.
 
 @sp 1
 @center @image{markers2}
 
-@node tree
+@node tree, binarytree, markers, Base modules
 @section @code{tree}
 @cindex @code{tree}
 This package implements an example of a dynamic binary search tree.
 
-@node binarytree
+@node binarytree, drawtree, tree, Base modules
 @section @code{binarytree}
 @cindex @code{binarytree}
 This module can be used to draw an arbitrary binary tree and includes an
 input routine for the special case of a binary search tree, as
-illustrated in the example @code{binarytreetest.asy}:
+illustrated in the example @code{@uref{http://asymptote.sourceforge.net/gallery/binarytreetest.pdf,,binarytreetest}@uref{http://asymptote.sourceforge.net/gallery/binarytreetest.asy,,.asy}}:
 @verbatiminclude binarytreetest.asy
 @sp 1
 @center @image{binarytreetest}
 
-@node drawtree
+@node drawtree, syzygy, binarytree, Base modules
 @section @code{drawtree}
 @cindex @code{drawtree}
-This is a simple tree drawing module used by the example @code{treetest.asy}.
+This is a simple tree drawing module used by the example @code{@uref{http://asymptote.sourceforge.net/gallery/treetest.pdf,,treetest}@uref{http://asymptote.sourceforge.net/gallery/treetest.asy,,.asy}}.
 
-@node syzygy
+@node syzygy, feynman, drawtree, Base modules
 @section @code{syzygy}
 @cindex @code{syzygy}
 This module automates the drawing of braids, relations, and syzygies,
 along with the corresponding equations, as illustrated in the example
-@code{knots.asy}.
+@code{@uref{http://asymptote.sourceforge.net/gallery/knots.pdf,,knots}@uref{http://asymptote.sourceforge.net/gallery/knots.asy,,.asy}}.
 
-@node feynman
+@node feynman, roundedpath, syzygy, Base modules
 @section @code{feynman}
 @cindex @code{feynman}
 This package, contributed by Martin Wiebusch, is useful for drawing
-Feynman diagrams, as illustrated by the examples @code{eetomumu.asy}
-and @code{fermi.asy}.
+Feynman diagrams, as illustrated by the examples @code{@uref{http://asymptote.sourceforge.net/gallery/eetomumu.pdf,,eetomumu}@uref{http://asymptote.sourceforge.net/gallery/eetomumu.asy,,.asy}}
+and @code{@uref{http://asymptote.sourceforge.net/gallery/fermi.pdf,,fermi}@uref{http://asymptote.sourceforge.net/gallery/fermi.asy,,.asy}}.
 
-@node roundedpath
+@node roundedpath, animation, feynman, Base modules
 @section @code{roundedpath}
 @cindex @code{roundedpath}
 This package, contributed by Stefan Knorr, is useful for rounding the
-sharp corners of paths, as illustrated in the example file @code{roundpath.asy}.
+sharp corners of paths, as illustrated in the example file @code{@uref{http://asymptote.sourceforge.net/gallery/roundpath.pdf,,roundpath}@uref{http://asymptote.sourceforge.net/gallery/roundpath.asy,,.asy}}.
 
-@node animation
+@node animation, embed, roundedpath, Base modules
 @section @code{animation}
 @cindex @code{animation}
 @cindex @code{convert}
 @cindex animation
 @cindex @code{ImageMagick}
 This module allows one to generate animations, as illustrated by the
-files @code{wheel.asy}, @code{wavepacket.asy}, and @code{cube.asy} in
+files @code{@uref{http://asymptote.sourceforge.net/gallery/animations/wheel.pdf,,wheel}@uref{http://asymptote.sourceforge.net/gallery/animations/wheel.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/animations/wavepacket.pdf,,wavepacket}@uref{http://asymptote.sourceforge.net/gallery/animations/wavepacket.asy,,.asy}}, and @code{@uref{http://asymptote.sourceforge.net/gallery/animations/cube.pdf,,cube}@uref{http://asymptote.sourceforge.net/gallery/animations/cube.asy,,.asy}} in
 the @code{animations} subdirectory of the examples directory. These
 animations use the @code{ImageMagick} @code{convert} program to
 merge multiple images into a @acronym{GIF} or @acronym{MPEG}
@@ -6490,9 +6533,9 @@ local @code{LaTeX} directory (for example, in
 @code{/usr/local/share/texmf/tex/latex/animate}). On @code{UNIX} systems,
 one must then execute the command @code{texhash}.
 
-The example @code{pdfmovie.asy} in the @code{animations}
-directory, along with the slide presentations @code{slidemovies.asy}
-and @code{intro.asy}, illustrate the use of embedded @acronym{PDF} movies.
+The example @code{@uref{http://asymptote.sourceforge.net/gallery/animations/pdfmovie.pdf,,pdfmovie}@uref{http://asymptote.sourceforge.net/gallery/animations/pdfmovie.asy,,.asy}} in the @code{animations}
+directory, along with the slide presentations @code{@uref{http://asymptote.sourceforge.net/gallery/animations/slidemovies.pdf,,slidemovies}@uref{http://asymptote.sourceforge.net/gallery/animations/slidemovies.asy,,.asy}}
+and @code{@uref{http://asymptote.sourceforge.net/gallery/intro.pdf,,intro}@uref{http://asymptote.sourceforge.net/gallery/intro.asy,,.asy}}, illustrate the use of embedded @acronym{PDF} movies.
 The examples @code{inlinemovie.tex} and @code{inlinemovie3.tex} 
 show how to generate and embed @acronym{PDF} movies directly within a
 @code{LaTeX} file (@pxref{LaTeX usage}).
@@ -6508,7 +6551,7 @@ as described here:
 @url{http://mirror.ctan.org/macros/latex/contrib/animate/doc/animate.pdf}
 @end quotation
 
-@node embed
+@node embed, slide, animation, Base modules
 @section @code{embed}
 @cindex @code{embed}
 This module provides an interface to the @code{LaTeX} package
@@ -6525,7 +6568,7 @@ platform and does not require the @code{media9} package, is provided
 by using the @code{external} module instead of @code{embed}. 
 
 Examples of the above two interfaces is provided in the file
-@code{embeddedmovie.asy} and @code{externalmovie.asy} in the
+@code{@uref{http://asymptote.sourceforge.net/gallery/animations/embeddedmovie.pdf,,embeddedmovie}@uref{http://asymptote.sourceforge.net/gallery/animations/embeddedmovie.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/animations/externalmovie.pdf,,externalmovie}@uref{http://asymptote.sourceforge.net/gallery/animations/externalmovie.asy,,.asy}} in the
 @code{animations} subdirectory of the examples directory. For a higher
 quality embedded movie generated directly by @code{Asymptote}, use the
 @code{animate} module along with the @code{animate.sty} package to
@@ -6533,17 +6576,17 @@ embed a portable @acronym{PDF} animation (@pxref{animate}).
 
 @cindex @code{U3D}
 An example of embedding @code{U3D} code is provided in the file
-@code{embeddedu3d.asy}.
+@code{@uref{http://asymptote.sourceforge.net/gallery/animations/embeddedu3d.pdf,,embeddedu3d}@uref{http://asymptote.sourceforge.net/gallery/animations/embeddedu3d.asy,,.asy}}.
 
-@node slide
+@node slide, MetaPost, embed, Base modules
 @section @code{slide}
 @cindex @code{slide}
 This package provides a simple yet high-quality facility for making
 presentation slides, including portable embedded @acronym{PDF} animations (see
-the file @code{slidemovies.asy}). A simple example is provided in the file
-@code{slidedemo.asy}.
+the file @code{@uref{http://asymptote.sourceforge.net/gallery/animations/slidemovies.pdf,,slidemovies}@uref{http://asymptote.sourceforge.net/gallery/animations/slidemovies.asy,,.asy}}). A simple example is provided in the file
+@code{@uref{http://asymptote.sourceforge.net/gallery/animations/slidedemo.pdf,,slidedemo}@uref{http://asymptote.sourceforge.net/gallery/animations/slidedemo.asy,,.asy}}.
 
-@node MetaPost
+@node MetaPost, unicode, slide, Base modules
 @section @code{MetaPost}
 @cindex @code{MetaPost}
 This package provides some useful routines to help @code{MetaPost} users
@@ -6561,7 +6604,7 @@ intersection point of the lines through @code{P}, @code{Q} and
 @code{p}, @code{q}. For less common occurrences of @code{whatever}, one
 can use the built-in explicit linear equation solver @code{solve} instead. 
 
-@node unicode
+@node unicode, latin1, MetaPost, Base modules
 @section @code{unicode}
 @cindex @code{unicode}
 @cindex international characters
@@ -6597,7 +6640,7 @@ texpreamble("\usepackage{CJK}
 \AtEndDocument{\clearpage\end{CJK*}}");
 @end verbatim
 
-@node latin1
+@node latin1, babel, unicode, Base modules
 @section @code{latin1}
 @cindex @code{latin1}
 If you don't have @code{LaTeX} support for @code{unicode} installed,
@@ -6605,7 +6648,7 @@ you can enable support for Western European languages (ISO 8859-1) by
 importing the module @code{latin1}. This module can be used as a
 template for providing support for other ISO 8859 alphabets.
 
-@node babel
+@node babel, labelpath, latin1, Base modules
 @section @code{babel}
 @cindex @code{babel}
 This module implements the @code{LaTeX} @code{babel} package in
@@ -6615,12 +6658,12 @@ import babel;
 babel("german");
 @end verbatim
 
-@node labelpath
+@node labelpath, labelpath3, babel, Base modules
 @section @code{labelpath}
 @cindex @code{labelpath}
 This module uses the @code{PSTricks} @code{pstextpath} macro to fit labels 
 along a path (properly kerned, as illustrated in the example file
-@code{curvedlabel.asy}), using the command
+@code{@uref{http://asymptote.sourceforge.net/gallery/curvedlabel.pdf,,curvedlabel}@uref{http://asymptote.sourceforge.net/gallery/curvedlabel.asy,,.asy}}), using the command
 @verbatim
 void labelpath(picture pic=currentpicture, Label L, path g,
                string justify=Centered, pen p=currentpen);
@@ -6634,14 +6677,14 @@ All other Label transforms are ignored. This package requires the
 @code{latex} tex engine and inherits the limitations of the
 @code{PSTricks} @code{\pstextpath} macro.
 
-@node labelpath3
+@node labelpath3, annotate, labelpath, Base modules
 @section @code{labelpath3}
 @cindex @code{labelpath3}
 This module, contributed by Jens Schwaiger, implements a 3D version of
 @code{labelpath} that does not require the @code{PSTricks} package.
-An example is provided in @code{curvedlabel3.asy}.
+An example is provided in @code{@uref{http://asymptote.sourceforge.net/gallery/curvedlabel3.pdf,,curvedlabel3}@uref{http://asymptote.sourceforge.net/gallery/curvedlabel3.asy,,.asy}}.
 
-@node annotate
+@node annotate, CAD, labelpath3, Base modules
 @section @code{annotate}
 @cindex @code{annotate}
 This module supports @acronym{PDF} annotations for viewing with
@@ -6651,11 +6694,11 @@ void annotate(picture pic=currentpicture, string title, string text,
               pair position);
 @end verbatim
 @noindent
-Annotations are illustrated in the example file @code{annotation.asy}.
+Annotations are illustrated in the example file @code{@uref{http://asymptote.sourceforge.net/gallery/annotation.pdf,,annotation}@uref{http://asymptote.sourceforge.net/gallery/annotation.asy,,.asy}}.
 Currently, annotations are only implemented for the @code{latex}
 (default) and @code{tex} @TeX{} engines.
 
-@node CAD
+@node CAD, graph, annotate, Base modules
 @section @code{CAD}
 @cindex @code{CAD}
 This package, contributed by Mark Henning, provides basic pen
@@ -6663,7 +6706,7 @@ definitions and measurement functions for simple 2D CAD drawings
 according to DIN 15. It is documented separately, in the file 
 @code{CAD.pdf}.
 
-@node graph
+@node graph, palette, CAD, Base modules
 @section @code{graph}
 @cindex @code{graph}
 @cindex 2D graphs
@@ -6863,7 +6906,8 @@ Request a bottom and top axis.
 @end table
 
 @cindex custom axis types
-Custom axis types can be created by following the examples in @code{graph.asy}.
+Custom axis types can be created by following the examples in the
+module @code{graph.asy}.
 One can easily override the default values for the standard axis types:
 @verbatim
 import graph;
@@ -7151,7 +7195,7 @@ Here are some simple examples of two-dimensional graphs:
 
 @item The next example draws a scientific-style graph with a legend.
 The position of the legend can be adjusted either explicitly or by using the
-graphical user interface @code{xasy} (@pxref{GUI}). If an
+graphical user interface @code{@uref{http://asymptote.sourceforge.net/gallery/.pdf,,}@uref{http://asymptote.sourceforge.net/gallery/.asy,,.asy}} (@pxref{GUI}). If an
 @code{UnFill(real xmargin=0, real ymargin=xmargin)} or
 @code{Fill(pen)} option is specified to @code{add}, the legend will obscure
 any underlying objects. Here we illustrate how to clip the portion of
@@ -7458,8 +7502,8 @@ as illustrated in this example:
 
 @item The following scientific graphs, which illustrate many features of
 @code{Asymptote}'s graphics routines, were generated from the examples
-@code{diatom.asy} and @code{westnile.asy}, using the comma-separated
-data in @code{diatom.csv} and @code{westnile.csv}.
+@code{@uref{http://asymptote.sourceforge.net/gallery/2D graphs/diatom.pdf,,diatom}@uref{http://asymptote.sourceforge.net/gallery/2D graphs/diatom.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/2D graphs/westnile.pdf,,westnile}@uref{http://asymptote.sourceforge.net/gallery/2D graphs/westnile.asy,,.asy}}, using the comma-separated
+data in @code{@uref{http://asymptote.sourceforge.net/gallery/2D graphs/diatom.csv,,diatom.csv}} and @code{@uref{http://asymptote.sourceforge.net/gallery/2D graphs/westnile.csv,,westnile.csv}}.
 @page
 
 @sp 1
@@ -7469,13 +7513,13 @@ data in @code{diatom.csv} and @code{westnile.csv}.
 @end enumerate
 
 @page
-@node palette
+@node palette, three, graph, Base modules
 @section @code{palette}
 @anchor{images}
 @cindex images
 @code{Asymptote} can also generate color density images
 and palettes. The following palettes are predefined in
-@code{palette.asy}: 
+@code{palette.asy}:
 
 @table @code
 
@@ -7540,7 +7584,7 @@ or an explicit range @code{Range(real min, real max)}.
 Here @code{Full} specifies a range varying from the
 minimum to maximum values of the function over the sampling interval,
 while @code{Automatic} selects "nice" limits. 
-The example @code{imagecontour.asy} illustrates how level sets
+The example @code{@uref{http://asymptote.sourceforge.net/gallery/2D graphs/imagecontour.pdf,,imagecontour}@uref{http://asymptote.sourceforge.net/gallery/2D graphs/imagecontour.asy,,.asy}} illustrates how level sets
 (contour lines) can be drawn on a color density plot (@pxref{contour}).
 
 A color density plot can also be generated from an explicit real[][]
@@ -7636,7 +7680,7 @@ pen[] palette(real[] f, pen[] palette);
 pen[][] palette(real[][] f, pen[] palette);
 @end verbatim
 
-@node three
+@node three, obj, palette, Base modules
 @section @code{three}
 @cindex @code{three}
 @cindex @code{guide3}
@@ -7715,17 +7759,17 @@ struct material {
 @noindent
 These material properties are used to implement @code{OpenGL}-style lighting,
 based on the Phong-Blinn specular model. Sample Bezier surfaces are
-contained in the example files @code{BezierSurface.asy}, @code{teapot.asy},
-and @code{parametricsurface.asy}. The structure @code{render} contains
+contained in the example files @code{@uref{http://asymptote.sourceforge.net/gallery/BezierSurface.pdf,,BezierSurface}@uref{http://asymptote.sourceforge.net/gallery/BezierSurface.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/teapot.pdf,,teapot}@uref{http://asymptote.sourceforge.net/gallery/teapot.asy,,.asy}},
+and @code{@uref{http://asymptote.sourceforge.net/gallery/parametricsurface.pdf,,parametricsurface}@uref{http://asymptote.sourceforge.net/gallery/parametricsurface.asy,,.asy}}. The structure @code{render} contains
 specialized rendering options documented at the beginning of module 
-@code{three.asy}.
+@code{@uref{http://asymptote.sourceforge.net/gallery/three.pdf,,three}@uref{http://asymptote.sourceforge.net/gallery/three.asy,,.asy}}.
 
 @cindex patch-dependent colors
 @cindex vertex-dependent colors
 The examples
-@code{elevation.asy} and @code{sphericalharmonic.asy} 
+@code{@uref{http://asymptote.sourceforge.net/gallery/3D graphs/elevation.pdf,,elevation}@uref{http://asymptote.sourceforge.net/gallery/3D graphs/elevation.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/sphericalharmonic.pdf,,sphericalharmonic}@uref{http://asymptote.sourceforge.net/gallery/sphericalharmonic.asy,,.asy}} 
 illustrate how to draw a surface with patch-dependent colors.
-The examples @code{vertexshading} and @code{smoothelevation} illustrate
+The examples @code{@uref{http://asymptote.sourceforge.net/gallery/vertexshading.pdf,,vertexshading}@uref{http://asymptote.sourceforge.net/gallery/vertexshading.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/3D graphs/smoothelevation.pdf,,smoothelevation}@uref{http://asymptote.sourceforge.net/gallery/3D graphs/smoothelevation.asy,,.asy}} illustrate
 vertex-dependent colors, which is supported for both
 @code{Asymptote}'s native @code{OpenGL} renderer and two-dimensional
 projections. Since the @acronym{PRC} output format does not currently support
@@ -7789,7 +7833,7 @@ the array @code{vi} lists integer arrays of length 3 containing
 the indices of @code{v} corresponding to the vertices of each
 triangle. Similarly, the arguments @code{n} and @code{ni} contain
 optional normal data and @code{p} and @code{pi} contain optional pen vertex data.
-An example of this tessellation facility is given in @code{triangles.asy}.
+An example of this tessellation facility is given in @code{@uref{http://asymptote.sourceforge.net/gallery/triangles.pdf,,triangles}@uref{http://asymptote.sourceforge.net/gallery/triangles.asy,,.asy}}.
 
 @cindex @code{thin}
 @cindex @code{thick}
@@ -7811,8 +7855,8 @@ lines to be drawn with @code{linewidth(0)} (one pixel wide, regardless
 of the resolution). By default, mesh and contour lines in three-dimensions
 are always drawn thin, unless an explicit line width is given in the pen
 parameter or the setting @code{thin} is set to @code{false}. The pens
-@code{thin()} and @code{thick()} defined in plain_pens.asy can also be used
-to override these defaults for specific draw commands. 
+@code{thin()} and @code{thick()} defined in @code{plain_pens.asy} can
+also be used to override these defaults for specific draw commands. 
 
 @noindent
 There are four choices for viewing 3D @code{Asymptote} output: 
@@ -7917,9 +7961,9 @@ In addition to the default @code{settings.prc=true}, this requires
 @code{settings.outformat="pdf"}, which can be specified by the command
 line option @code{-f pdf}, put in the @code{Asymptote} configuration
 file (@pxref{configuration file}), or specified in the script before
-@code{three.asy} (or @code{graph3.asy}) is imported.
+@code{@uref{http://asymptote.sourceforge.net/gallery/three.pdf,,three}@uref{http://asymptote.sourceforge.net/gallery/three.asy,,.asy}} (or @code{@uref{http://asymptote.sourceforge.net/gallery/graph3.pdf,,graph3}@uref{http://asymptote.sourceforge.net/gallery/graph3.asy,,.asy}}) is imported.
 The @code{media9} LaTeX package is also required (@pxref{embed}).
-The example @code{pdb.asy} illustrates 
+The example @code{@uref{http://asymptote.sourceforge.net/gallery/pdb.pdf,,pdb}@uref{http://asymptote.sourceforge.net/gallery/pdb.asy,,.asy}} illustrates 
 how one can generate a list of predefined views (see @code{100d.views}).
 A stationary preview image with a resolution of @code{n} pixels per
 @code{bp} can be embedded with the setting @code{render=n}; this allows
@@ -8264,7 +8308,7 @@ patches in the @acronym{PRC} model tree.
 The default interaction is @code{Billboard}, which means that labels
 are rotated interactively so that they always face the camera.
 The interaction @code{Embedded} means that the label interacts as a
-normal @code{3D} surface, as illustrated in the example @code{billboard.asy}.
+normal @code{3D} surface, as illustrated in the example @code{@uref{http://asymptote.sourceforge.net/gallery/billboard.pdf,,billboard}@uref{http://asymptote.sourceforge.net/gallery/billboard.asy,,.asy}}.
 @cindex @code{transform}
 @cindex @code{XY}
 @cindex @code{YZ}
@@ -8294,7 +8338,7 @@ triple normal(path3 p);
 @end verbatim
 @noindent
 to find the unit normal vector to a planar three-dimensional path @code{p}.
-As illustrated in the example @code{planeproject.asy}, a transform3
+As illustrated in the example @code{@uref{http://asymptote.sourceforge.net/gallery/planeproject.pdf,,planeproject}@uref{http://asymptote.sourceforge.net/gallery/planeproject.asy,,.asy}}, a transform3
 that projects in the direction @code{dir} onto the plane defined by a
 planar path @code{p} is returned by
 @verbatim
@@ -8436,7 +8480,7 @@ space and aligned according to the initial viewpoint (or an optionally
 specified @code{normal} vector) are also defined:
 @code{DefaultHead2(triple normal=O)}, @code{HookHead2(triple normal=O)},
 @code{TeXHead2(triple normal=O)}. These are illustrated in the example
-@code{arrows3.asy}. 
+@code{@uref{http://asymptote.sourceforge.net/gallery/arrows3.pdf,,arrows3}@uref{http://asymptote.sourceforge.net/gallery/arrows3.asy,,.asy}}. 
 
 @cindex @code{NoMargin3}
 @cindex @code{BeginMargin3}
@@ -8478,8 +8522,8 @@ can be used to draw on picture @code{pic} a pixel of width @code{width} at
 position @code{v} using pen @code{p}.
 
 Further three-dimensional examples are provided in the files
-@code{near_earth.asy}, @code{conicurv.asy}, and (in the @code{animations}
-subdirectory) @code{cube.asy}.
+@code{@uref{http://asymptote.sourceforge.net/gallery/near_earth.pdf,,near_earth}@uref{http://asymptote.sourceforge.net/gallery/near_earth.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/conicurv.pdf,,conicurv}@uref{http://asymptote.sourceforge.net/gallery/conicurv.asy,,.asy}}, and (in the @code{animations}
+subdirectory) @code{@uref{http://asymptote.sourceforge.net/gallery/cube.pdf,,cube}@uref{http://asymptote.sourceforge.net/gallery/cube.asy,,.asy}}.
 
 @anchor{PostScript3D}
 @cindex 3D @code{PostScript}
@@ -8518,14 +8562,14 @@ intersecting planes:
 @sp 1
 @center @image{planes}
 
-@node obj
+@node obj, graph3, three, Base modules
 @section @code{obj}
 @cindex @code{obj}
 This module allows one to construct surfaces from simple obj files,
-as illustrated in the example files @code{galleon.asy} and
-@code{triceratops.asy}.
+as illustrated in the example files @code{@uref{http://asymptote.sourceforge.net/gallery/galleon.pdf,,galleon}@uref{http://asymptote.sourceforge.net/gallery/galleon.asy,,.asy}} and
+@code{@uref{http://asymptote.sourceforge.net/gallery/triceratops.pdf,,triceratops}@uref{http://asymptote.sourceforge.net/gallery/triceratops.asy,,.asy}}.
 
-@node graph3
+@node graph3, grid3, obj, Base modules
 @section @code{graph3}
 @cindex @code{graph3}
 @cindex 3D graphs
@@ -8637,13 +8681,13 @@ surface surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
 @noindent
 The final two versions draw parametric surfaces for a function
 @math{f(u,v)} over the parameter space @code{box(a,b)},
-as illustrated in the example @code{parametricsurface.asy}.
+as illustrated in the example @code{@uref{http://asymptote.sourceforge.net/gallery/parametricsurface.pdf,,parametricsurface}@uref{http://asymptote.sourceforge.net/gallery/parametricsurface.asy,,.asy}}.
 An optional splinetype @code{Spline} may be specified.
 The boolean array or function @code{cond} can be used to control which
 surface mesh cells are actually drawn (by default all mesh cells over
 @code{box(a,b)} are drawn).
 Surface lighting is illustrated in the example files
-@code{parametricsurface.asy} and @code{sinc.asy}.
+@code{@uref{http://asymptote.sourceforge.net/gallery/parametricsurface.pdf,,parametricsurface}@uref{http://asymptote.sourceforge.net/gallery/parametricsurface.asy,,.asy}} and @code{@uref{http://asymptote.sourceforge.net/gallery/3D graphs/sinc.pdf,,sinc}@uref{http://asymptote.sourceforge.net/gallery/3D graphs/sinc.asy,,.asy}}.
 Lighting can be disabled by setting @code{light=nolight}, as in this example
 of a Gaussian surface:
 @anchor{GaussianSurface}
@@ -8664,10 +8708,10 @@ picture vectorfield(path3 vector(pair v), triple f(pair z), pair a, pair b,
                     bool cond(pair z)=null, pen p=currentpen,
                     arrowbar3 arrow=Arrow3, margin3 margin=PenMargin3)
 @end verbatim
-as illustrated in the examples @code{vectorfield3.asy} and
-@code{vectorfieldsphere.asy}.
+as illustrated in the examples @code{@uref{http://asymptote.sourceforge.net/gallery/3D graphs/vectorfield3.pdf,,vectorfield3}@uref{http://asymptote.sourceforge.net/gallery/3D graphs/vectorfield3.asy,,.asy}} and
+@code{@uref{http://asymptote.sourceforge.net/gallery/vectorfieldsphere.pdf,,vectorfieldsphere}@uref{http://asymptote.sourceforge.net/gallery/vectorfieldsphere.asy,,.asy}}.
 
-@node grid3
+@node grid3, solids, graph3, Base modules
 @section @code{grid3}
 @cindex @code{grid3}
 @cindex 3D grids
@@ -8679,7 +8723,7 @@ This module, contributed by Philippe Ivaldi, can be used for drawing
 @sp 1
 @center @image{grid3xyz}
 
-@node solids
+@node solids, tube, grid3, Base modules
 @section @code{solids}
 @cindex @code{solids}
 This solid geometry package defines a structure @code{revolution} that
@@ -8690,8 +8734,8 @@ with axis @code{O--1.5unit(Y+Z)} with perspective projection:
 @sp 1
 @center @image{cylinderskeleton}
 
-Further illustrations are provided in the example files @code{cylinder.asy},
-@code{cones.asy}, @code{hyperboloid.asy}, and @code{torus.asy}.
+Further illustrations are provided in the example files @code{@uref{http://asymptote.sourceforge.net/gallery/cylinder.pdf,,cylinder}@uref{http://asymptote.sourceforge.net/gallery/cylinder.asy,,.asy}},
+@code{@uref{http://asymptote.sourceforge.net/gallery/cones.pdf,,cones}@uref{http://asymptote.sourceforge.net/gallery/cones.asy,,.asy}}, @code{@uref{http://asymptote.sourceforge.net/gallery/hyperboloid.pdf,,hyperboloid}@uref{http://asymptote.sourceforge.net/gallery/hyperboloid.asy,,.asy}}, and @code{@uref{http://asymptote.sourceforge.net/gallery/torus.pdf,,torus}@uref{http://asymptote.sourceforge.net/gallery/torus.asy,,.asy}}.
 
 The structure @code{skeleton} contains the three-dimensional wireframe
 used to visualize a volume of revolution:
@@ -8708,11 +8752,11 @@ struct skeleton {
 }
 @end verbatim
 
-@node tube
+@node tube, flowchart, solids, Base modules
 @section @code{tube}
 @cindex @code{tube}
 This package extends the @code{tube} surfaces constructed in
-@code{three_arrows.asy} to arbitrary cross sections, colors, and spine
+@code{@uref{http://asymptote.sourceforge.net/gallery/three_arrows.pdf,,three_arrows}@uref{http://asymptote.sourceforge.net/gallery/three_arrows.asy,,.asy}} to arbitrary cross sections, colors, and spine
 transformations. The routine
 @verbatim
 surface tube(path3 g, coloredpath section,
@@ -8766,10 +8810,10 @@ use of a @code{path} instead of a @code{coloredpath}; in this case the
 shading behaviour is the default shading behavior for a surface.
 
 An example of @code{tube} is provided in the file
-@code{trefoilknot.asy}. Further examples can be found at
+@code{@uref{http://asymptote.sourceforge.net/gallery/trefoilknot.pdf,,trefoilknot}@uref{http://asymptote.sourceforge.net/gallery/trefoilknot.asy,,.asy}}. Further examples can be found at
 @url{http://www.piprime.fr/files/asymptote/tube/}.
 
-@node flowchart
+@node flowchart, contour, tube, Base modules
 @section @code{flowchart}
 @cindex @code{flowchart}
 This package provides routines for drawing flowcharts. The primary
@@ -8898,13 +8942,13 @@ segments between the pairs specified by @code{point} should be drawn
 in the @code{Horizontal} or @code{Vertical} direction.
 
 Here is a simple flowchart example (see also the example
-@code{controlsystem.asy}):
+@code{@uref{http://asymptote.sourceforge.net/gallery/controlsystem.pdf,,controlsystem}@uref{http://asymptote.sourceforge.net/gallery/controlsystem.asy,,.asy}}):
 
 @verbatiminclude flowchartdemo.asy
 @sp 1
 @center @image{flowchartdemo}
 
-@node contour
+@node contour, contour3, flowchart, Base modules
 @section @code{contour}
 @cindex @code{contour}
 This package draws contour lines.
@@ -8993,20 +9037,21 @@ int[][] triangulate(pair[] z);
 @sp 1
 @center @image{triangulate}
 
-The example @code{Gouraudcontour.asy} illustrates how to produce color
+The example @code{@uref{http://asymptote.sourceforge.net/gallery/2D
+graphs/Gouraudcontour.pdf,,Gouraudcontour}@uref{http://asymptote.sourceforge.net/gallery/2D graphs/Gouraudcontour.asy,,.asy}} illustrates how to produce color
 density images over such irregular triangular meshes.
 @code{Asymptote} uses a robust version of Paul Bourke's Delaunay triangulation
 algorithm based on the public-domain exact arithmetic predicates written by
 Jonathan Shewchuk.
 
-@node contour3
+@node contour3, smoothcontour3, contour, Base modules
 @section @code{contour3}
 @cindex @code{contour3}
 This package draws surfaces described as the null space of real-valued
 functions of @math{(x,y,z)} or @code{real[][][]} matrices.
-Its usage is illustrated in the example file @code{magnetic.asy}.
+Its usage is illustrated in the example file @code{@uref{http://asymptote.sourceforge.net/gallery/3D graphs/magnetic.pdf,,magnetic}@uref{http://asymptote.sourceforge.net/gallery/3D graphs/magnetic.asy,,.asy}}.
 
-@node smoothcontour3
+@node smoothcontour3, slopefield, contour3, Base modules
 @section @code{smoothcontour3}
 @cindex @code{smoothcontour3}
 This module, written by Charles Staats, draws implicitly defined surfaces
@@ -9038,12 +9083,12 @@ The optional parameter @code{overlapedges} attempts to compensate for
 an artifact that can cause the renderer to ``see through'' the
 boundary between patches. Although
 it defaults to @code{false}, it should usually be set to @code{true}.
-The example @code{genustwo.asy} illustrates the use of this function:
+The example @code{@uref{http://asymptote.sourceforge.net/gallery/genustwo.pdf,,genustwo}@uref{http://asymptote.sourceforge.net/gallery/genustwo.asy,,.asy}} illustrates the use of this function:
 Additional examples, together with a more in-depth explanation of 
 the module's usage and pitfalls, are available at
 @url{https://github.com/charlesstaats/smoothcontour3}.
 
-@node slopefield
+@node slopefield, ode, smoothcontour3, Base modules
 @section @code{slopefield}
 @cindex @code{slopefield}
 To draw a slope field for the differential equation @math{dy/dx=f(x,y)} (or
@@ -9082,14 +9127,14 @@ Both @code{slopefield} and @code{curve} alternatively accept a function
 @sp 1
 @center @image{slopefield1}
 
-@node ode
+@node ode,  , slopefield, Base modules
 @section @code{ode}
 @cindex @code{ode}
-The @code{ode} module, illustrated in the example @code{odetest.asy},
+The @code{ode} module, illustrated in the example @code{@uref{https://raw.githubusercontent.com/vectorgraphics/asymptote/HEAD/examples/odetest.asy,,odetest.asy}},
 implements a number of explicit numerical integration schemes for
 ordinary differential equations.
 
-@node Options
+@node Options, Interactive mode, Base modules, Top
 @chapter Command-line options
 @cindex options
 @cindex command-line options
@@ -9286,7 +9331,7 @@ Also output knot guide solver diagnostics.
 Also output @code{Asymptote} traceback diagnostics.
 @end table
 
-@node Interactive mode
+@node Interactive mode, GUI, Options, Top
 @chapter Interactive mode
 @cindex interactive mode
 Interactive mode is entered by executing the command @code{asy} with
@@ -9391,7 +9436,7 @@ g.clip("unitcircle")
 g.label("\"$O$\", (0,0), SW")
 @end verbatim
 
-@node GUI
+@node GUI, PostScript to Asymptote, Interactive mode, Top
 @chapter Graphical User Interface
 @cindex graphical user interface
 @cindex @acronym{GUI}
@@ -9401,17 +9446,17 @@ g.label("\"$O$\", (0,0), SW")
 @cindex @code{Button-2}
 @cindex @code{xasy}
 
+@menu
+* GUI installation::            Installing @code{xasy}
+* GUI usage::                   Using @code{xasy} to edit objects
+@end menu
+
 In the event that adjustments to the final figure are required, the
 preliminary Graphical User Interface (@acronym{GUI}) @code{xasy} included with
 @code{Asymptote} allows you to move graphical objects and draw new ones.
 The modified figure can then be saved as a normal @code{Asymptote} file.
 
-@menu
-* GUI installation::            Installing @code{xasy}
-* GUI usage::
-@end menu
-
-@node GUI installation
+@node GUI installation, GUI usage, GUI, GUI
 @section GUI installation
 @cindex GUI installation
 
@@ -9438,7 +9483,7 @@ this requires @code{Python 2.7.4} or later and version @code{3.1.0} of the
 @url{https://pypi.python.org/pypi/Pillow/3.1.0}
 @end quotation
 
-@node GUI usage
+@node GUI usage,  , GUI installation, GUI
 @section GUI usage
 @cindex GUI usage
 @cindex @code{deconstruct}
@@ -9461,7 +9506,7 @@ together on adding them to a picture. However, the elements of a frame
 added to another frame are not grouped together by default: their
 elements will be individually deconstructed (@pxref{add}).
 
-@node PostScript to Asymptote
+@node PostScript to Asymptote, Help, GUI, Top
 @chapter @code{PostScript} to @code{Asymptote}
 @cindex @code{pstoedit}
 The excellent @code{PostScript} editor @code{pstoedit} (version 3.50 or later; 
@@ -9483,7 +9528,7 @@ If the line widths aren't quite correct, try giving @code{pstoedit} the
 If the fonts aren't typeset correctly, try giving @code{pstoedit} the
 @code{-dt} option.
 
-@node Help
+@node Help, Debugger, PostScript to Asymptote, Top
 @chapter Help
 @cindex help
 @cindex forum
@@ -9543,7 +9588,7 @@ from true segmentation faults (due to internal C++ programming errors;
 please submit the @code{Asymptote} code that generates such segmentation
 faults along with your bug report). 
 
-@node Debugger
+@node Debugger, Credits, Help, Top
 @chapter Debugger
 @cindex debugger
 Asymptote now includes a line-based (as opposed to code-based)
@@ -9640,7 +9685,7 @@ The debugging prompt may be entered manually with the call
 void breakpoint(code s=quote{});
 @end verbatim
 
-@node Credits
+@node Credits, Index, Debugger, Top
 @chapter Acknowledgments
 @cindex acknowledgments
 
@@ -9656,11 +9701,12 @@ author of the program @code{MetaPost} that inspired the development of
 
 The authors of @code{Asymptote} are Andy Hammerlindl, John Bowman, and
 Tom Prince. Sean Healy designed the @code{Asymptote} logo. Other
-contributors include Michail Vidiassov, Radoslav Marinov, Orest Shardt,
-Chris Savage, Philippe Ivaldi, Olivier Guib@'e, Jacques Pienaar,
-Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
+contributors include Orest Shardt, Jesse Frohlich, Michail Vidiassov,
+Charles Staats, Philippe Ivaldi, Olivier Guib@'e, Radoslav Marinov,
+Jeff Samuelson, Chris Savage, Jacques Pienaar, Mark Henning, Steve Melenchuk,
+Martin Wiebusch, and Stefan Knorr.
 
-@node Index
+@node Index,  , Credits, Top
 @unnumbered Index
      
 @printindex cp
@@ -9860,10 +9906,14 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  insphere cospherical 5unit luatex lualatex 'asy 1cm
 @c  LocalWords:  'lasy 'auto 4g 2S 100pt 3t 12pt 5mm 25cm 3x 5x 3y 2x
 @c  LocalWords:  602e 2y 3sin 10cm 204e 10x Ai Ai Ai Ai Ai Ai Ai Ai '
-@c  LocalWords:  unnormalized 5E 5cm 2N 2E 2n 100d 5z 5y 0pt 1filll
+@c  LocalWords:  unnormalized 5E 5cm 2N 2E 2n 100d 5z 5y 0pt 1filll '
 @c  LocalWords:  5unit 144x144 aligndir smoothcontour3 's 3D 2D cmake
 @c  LocalWords:  'load 'asy 'lasy 'auto 5bp 1cm 4g 2S 100pt 3t nan 3x
 @c  LocalWords:  12pt 5mm 25cm 5x 3y 602e 2x 2y 3sin 10cm 204e 10x Ai
 @c  LocalWords:  Ai Ai Ai Ai Ai Ai Ai 5E 5cm 2N 2E 2n 100d 5z 5y nz
 @c  LocalWords:  5unit Staats implicitsurface overlapedges maxdepth
-@c  LocalWords:  through'' genustwo 144x144
+@c  LocalWords:  through'' genustwo 144x144 0pt 1filll 's 3D 2D 'load
+@c  LocalWords:  'asy 'lasy 'auto 5bp 1cm 4g 2S 100pt 3t 12pt 5mm 3x
+@c  LocalWords:  25cm 5x 3y 602e 2x 2y 3sin 10cm 204e 10x Ai Ai Ai Ai
+@c  LocalWords:  Ai Ai Ai Ai 5E 5cm 2N 2E 2n 100d 5z 5y 5unit 144x144
+@c  LocalWords:  Frohlich

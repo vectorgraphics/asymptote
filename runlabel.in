@@ -333,8 +333,9 @@ patharray2 *_texpath(stringarray *s, penarray *p)
       
         for(unsigned int i=1; i <= n ; ++i) {
           ostringstream buf;
-          buf << psname2.c_str() << i;
-          const char *name=buf.str().c_str();
+          buf << psname2 << i;
+          const string& s=buf.str();
+          const char *name=s.c_str();
           std::ifstream in(name,std::ios::binary);
           ps << in.rdbuf();
           ps << "(>\n) print flush\n";
