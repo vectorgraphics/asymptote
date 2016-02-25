@@ -257,6 +257,13 @@ struct rootfinder_settings {
   static real roottolerance = 1e-4;
 }
 
+real findroot(real f(real), real a, real b,
+              real tolerance=rootfinder_settings.roottolerance,
+              real fa=f(a), real fb=f(b))
+{
+  return _findroot(f,a,b,tolerance,fa,fb);
+}
+
 /***********************************************/
 /********* DUAL CUBE GRAPH UTILITY *************/
 /***********************************************/
