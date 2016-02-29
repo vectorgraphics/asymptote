@@ -1660,19 +1660,9 @@ real newton(Int iterations=100, callableReal *f, callableReal *fprime, real x1,
 // with a modified version of quadratic interpolation.
 // This is a C++ port of the Asymptote routine written by Charles Staats III.
 real _findroot(callableReal *f, real a, real b, real tolerance,
-               real fa=0.0, real fb=0.0)
+               real fa, real fb)
 {
-  if(fa == 0.0) {
-    Stack->push(0.0);
-    f->call(Stack);
-    fa=pop<double>(Stack);
-  }  
   if(fa == 0.0) return a;
-  if(fb == 0.0) {
-    Stack->push(0.0);
-    f->call(Stack);
-    fb=pop<double>(Stack);
-  }  
   if(fb == 0.0) return b;
   
   const char* oppsign="fa and fb must have opposite signs";
@@ -1698,7 +1688,7 @@ real _findroot(callableReal *f, real a, real b, real tolerance,
     Stack->push(t);
     f->call(Stack);
     ft=sign*pop<double>(Stack);
-    if(ft == 0) return t;
+    if(ft == 0.0) return t;
 
     // If halving the interval already puts us within tolerance,
     // don't bother with the interpolation step.
@@ -1740,7 +1730,7 @@ real _findroot(callableReal *f, real a, real b, real tolerance,
         // If the interpolated value is close to one edge of
         // the interval, move it farther away from the edge in
         // an effort to catch the root in the middle.
-        real margin=(b-a)*10.0*tolerance;
+        real margin=(b-a)*1.0e-3;
         if(t-a < margin) t=a+2.0*(t-a);
         else if(b-t < margin) t=b-2.0*(b-t);
     
