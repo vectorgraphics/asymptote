@@ -1468,11 +1468,8 @@ struct gridwithzeros {
       triple normal = cross(tangentin, tangentout);
       if (dot(normal, patchcorners[0].direction) < 0) {
 	edgecycle = reverse(edgecycle);
-	positionedvector[] newpatchcorners = new positionedvector[];
-	newpatchcorners.cyclic = true;
-	for (int i = 0; i > -patchcorners.length; --i)
-	  newpatchcorners.push(patchcorners[i]);
-	patchcorners = newpatchcorners;
+	patchcorners = patchcorners[-sequence(patchcorners.length)];
+	patchcorners.cyclic = true;
       }
     }
 
