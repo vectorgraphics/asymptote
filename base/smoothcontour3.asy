@@ -803,13 +803,6 @@ path3 pathinface(positionedvector v1, positionedvector v2,
 // not consist of four positive-length segments.
 patch[] triangletoquads(path3 external, real f(triple), triple grad(triple),
 			  triple a, triple b) {
-  
-  assert(length(external) == 3);
-  assert(cyclic(external));
-  
-  return new patch[] {/*patchwithnormals(external, grad)*/ patch(external)};
-  
-  
   static real epsilon = 1e-3;
   assert(length(external) == 3);
   assert(cyclic(external));
@@ -975,7 +968,7 @@ bool checkpt(triple testpt, real f(triple), triple grad(triple),
 // to be worth filling in.
 patch[] quadpatches(path3 edgecycle, positionedvector[] corners,
 		     real f(triple), triple grad(triple),
-		     triple a, triple b) {
+		    triple a, triple b, bool usetriangles) {
   assert(corners.cyclic);
 
   // The tolerance for considering two points "essentially identical."
@@ -1017,7 +1010,8 @@ patch[] quadpatches(path3 edgecycle, positionedvector[] corners,
   }
   
   if (length(edgecycle) == 3) {
-    patch[] toreturn = maketriangle(edgecycle, f, grad);
+    patch[] toreturn = usetriangles ? maketriangle(edgecycle, f, grad)
+        : triangletoquads(edgecycle, f, grad, a, b);
     if (toreturn.length == 0) return null;
     else return toreturn;
   }
@@ -1038,8 +1032,9 @@ patch[] quadpatches(path3 edgecycle, positionedvector[] corners,
     & reverse(middleguide) & cycle;
   if (length(edgecycle) == 5) {
     path3 secondpatch = middleguide
-	& subpath(edgecycle, bisectorindices[1], 5+bisectorindices[0]) & cycle;
-    toreturn = maketriangle(secondpatch, f, grad);
+        & subpath(edgecycle, bisectorindices[1], 5+bisectorindices[0]) & cycle;
+    toreturn = usetriangles ? maketriangle(secondpatch, f, grad)
+      : triangletoquads(secondpatch, f, grad, a, b);
     if (toreturn.length == 0) return null;
     toreturn.push(patchwithnormals(firstpatch, grad));
   } else {
@@ -1147,6 +1142,7 @@ struct gridwithzeros {
   triple grad(triple);
   real f(triple);
   int maxdepth;
+  bool usetriangles;
 
   // Populate the edges with zeros that have a sign change and are not already
   // populated.
@@ -1224,13 +1220,14 @@ struct gridwithzeros {
   // patches, it is left empty.
   void operator init(int nx, int ny, int nz,
 		     real f(triple), triple a, triple b,
-		     int maxdepth = 6) {
+		     int maxdepth = 6, bool usetriangles) {
     this.nx = nx;
     this.ny = ny;
     this.nz = nz;
     grad = nGrad(f);
     this.f = f;
     this.maxdepth = maxdepth;
+    this.usetriangles = usetriangles;
     corners = make3dgrid(a, b, nx, ny, nz, f);
     xdirzeros = new positionedvector[nx][ny+1][nz+1];
     ydirzeros = new positionedvector[nx+1][ny][nz+1];
@@ -1474,7 +1471,7 @@ struct gridwithzeros {
     }
 
     patch[] toreturn = quadpatches(edgecycle, patchcorners, f, grad,
-				     corners[0][0][0], corners[1][1][1]);
+				   corners[0][0][0], corners[1][1][1], usetriangles);
     if (alias(toreturn, null)) return subdividecube();
     return toreturn;
   }
@@ -1489,6 +1486,7 @@ struct gridwithzeros {
     cube.ny = 1;
     cube.nz = 1;
     cube.maxdepth = maxdepth;
+    cube.usetriangles = usetriangles;
     cube.corners = slice(corners,i,i+2,j,j+2,k,k+2);
     cube.xdirzeros = slice(xdirzeros,i,i+1,j,j+2,k,k+2);
     cube.ydirzeros = slice(ydirzeros,i,i+2,j,j+1,k,k+2);
@@ -1616,18 +1614,20 @@ struct gridwithzeros {
 // maxdepth - the maximum depth to which the algorithm will subdivide in
 //     an effort to find patches that closely approximate the true surface.
 surface implicitsurface(real f(triple) = null, real ff(real,real,real) = null,
-			 triple a, triple b,
-			 int n = nmesh,
-			 bool keyword overlapedges = false,
-			 int keyword nx=n, int keyword ny=n,
-			 int keyword nz=n,
-			 int keyword maxdepth = 8) {
+                        triple a, triple b,
+                        int n = nmesh,
+                        bool keyword overlapedges = false,
+                        int keyword nx=n, int keyword ny=n,
+                        int keyword nz=n,
+                        int keyword maxdepth = 8,
+                        bool keyword usetriangles=true) {
   if (f == null && ff == null)
     abort("implicitsurface called without specifying a function.");
   if (f != null && ff != null)
     abort("Only specify one function when calling implicitsurface.");
   if (f == null) f = new real(triple w) { return ff(w.x, w.y, w.z); };
-  gridwithzeros grid = gridwithzeros(nx, ny, nz, f, a, b, maxdepth=maxdepth);
+  gridwithzeros grid = gridwithzeros(nx, ny, nz, f, a, b, maxdepth=maxdepth,
+                                     usetriangles=usetriangles);
   patch[] patches = grid.draw();
   if (overlapedges) {
     for (int i = 0; i < patches.length; ++i) {
