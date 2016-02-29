@@ -26,9 +26,10 @@ inline triple maxabs(triple u, triple v)
 inline triple displacement1(const triple& z0, const triple& c0,
                             const triple& c1, const triple& z1)
 {
-  // z0-z1 is computed twice. This is unnecessary, although perhaps not a big
-  // deal and way easier to understand in this case.
-  return maxabs(displacement(c0,z0,z1),displacement(c1,z0,z1));
+  triple Z0=c0-z0;
+  triple Q=unit(z1-z0);
+  triple Z1=c1-z0;
+  return maxabs(Z0-dot(Z0,Q)*Q,Z1-dot(Z1,Q)*Q);
 }
 
 // return the perpendicular displacement of a point z from the plane

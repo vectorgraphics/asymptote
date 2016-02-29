@@ -1591,7 +1591,7 @@ void glrender(const string& prefix, const picture *pic, const string& format,
     
 #ifdef HAVE_LIBGLUT
   if(!offscreen) {
-    Animate=getSetting<bool>("autoplay");
+    Animate=getSetting<bool>("autoplay") && glthread;
   
     if(View) {
       if(!getSetting<bool>("fitscreen"))
