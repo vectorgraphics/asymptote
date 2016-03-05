@@ -8,7 +8,7 @@
 # Created: June 29, 2007
 #
 ###########################################################################
-import sys,os,signal,threading
+import sys,os,math,signal,threading
 from subprocess import *
 from string import *
 import xasyOptions
@@ -236,23 +236,7 @@ class asyPen(asyObj):
   def tkColor(self):
     """Return the tk version of the pen's color"""
     self.computeColor()
-    r,g,b = self.color
-    r,g,b = int(256*r),int(256*g),int(256*b)
-    if r == 256:
-      r = 255
-    if g == 256:
-      g = 255
-    if b == 256:
-      b = 255
-    r,g,b = map(hex,(r,g,b))
-    r,g,b = r[2:],g[2:],b[2:]
-    if len(r) < 2:
-      r = '0'+r
-    if len(g) < 2:
-      g = '0'+g
-    if len(b) < 2:
-      b = '0'+b
-    return'#'+r+g+b
+    return '#{}'.format("".join(["{:02x}".format(min(math.floor(256*a),255)) for a in self.color]))
 
 class asyPath(asyObj):
   """A python wrapper for an asymptote path"""

@@ -154,27 +154,11 @@ def makeRGBfromTkColor(tkColor):
 
 def RGBreal255(rgb):
   """Convert an RGB color from 0-1 to 0-255"""
-  a,b,c = (256*rgb[0],256*rgb[1],256*rgb[2])
-  if a == 256:
-    a = 255
-  if b == 256:
-    b = 255
-  if c == 256:
-    c = 255
-  return map(int,(a,b,c))
+  return [min(int(256*a),255) for a in rgb]
 
 def RGB255hex(rgb):
   """Make a color in the form #rrggbb in hex from r,g,b in 0-255"""
-  rs,gs,bs = map(hex,rgb)
-  rs,gs,bs = rs[2:],gs[2:],bs[2:]
-  if len(rs) < 2:
-    rs = '0'+rs
-  if len(gs) < 2:
-    gs = '0'+gs
-  if len(bs) < 2:
-    bs = '0'+bs
-  return '#'+rs+gs+bs
-
+  return "#{}".format("".join(["{:02x}".format(a) for a in rgb]))
 
 class xasyColorDlg(Toplevel):
   """A dialog for choosing an asymptote color. It displays the usual asy presets and allows custom rgb colors"""
