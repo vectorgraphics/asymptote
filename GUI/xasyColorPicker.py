@@ -208,8 +208,8 @@ class xasyColorDlg(Toplevel):
     """Close the dialog forcibly"""
     self.destroy()
   def getCustom(self):
-    """Request a custom RGB color using a tkColorChooser"""
-    result=tkColorChooser.askcolor(initialcolor=RGB255hex(RGBreal255(self.color)),title="Custom Color",parent=self)
+    """Request a custom RGB color using a colorchooser"""
+    result=colorchooser.askcolor(initialcolor=RGB255hex(RGBreal255(self.color)),title="Custom Color",parent=self)
     if result != (None,None):
       self.setColor((result[0][0]/255.0,result[0][1]/255.0,result[0][2]/255.0))
   def cancel(self):
