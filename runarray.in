@@ -1651,6 +1651,108 @@ real newton(Int iterations=100, callableReal *f, callableReal *fprime, real x1,
   return (j == iterations) ? DBL_MAX : x;
 }
 
+// Find a root for the specified continuous (but not necessarily
+// differentiable) function. Whatever value t is returned, it is guaranteed
+// that t is within [a, b] and within tolerance of a sign change.
+// An error is thrown if fa and fb are both positive or both negative.
+//
+// In this implementation, the binary search is interleaved
+// with a modified version of quadratic interpolation.
+// This is a C++ port of the Asymptote routine written by Charles Staats III.
+real _findroot(callableReal *f, real a, real b, real tolerance,
+               real fa, real fb)
+{
+  if(fa == 0.0) return a;
+  if(fb == 0.0) return b;
+  
+  const char* oppsign="fa and fb must have opposite signs";
+  int sign;
+  
+  if(fa < 0.0) {
+    if(fb < 0.0) error(oppsign);
+    sign=1;
+  } else {
+    if(fb > 0.0) error(oppsign);
+    fa=-fa;
+    fb=-fb;
+    sign=-1;
+  }
+
+  real t=a;
+  real ft=fa;
+  real twicetolerance=2.0*tolerance;
+
+  while(b-a > tolerance) {
+    t=(a+b)*0.5;
+    
+    Stack->push(t);
+    f->call(Stack);
+    ft=sign*pop<double>(Stack);
+    if(ft == 0.0) return t;
+
+    // If halving the interval already puts us within tolerance,
+    // don't bother with the interpolation step.
+    if(b-a >= twicetolerance) {
+
+      real factor=1.0/(b-a);
+      real q_A=2.0*(fa-2.0*ft+fb)*factor*factor;
+      real q_B=(fb-fa)*factor;
+      quadraticroots Q=quadraticroots(q_A,q_B,ft);
+    
+      // If the interpolation somehow failed, continue on to the next binary
+      // search step. This may or may not be possible, depending on what
+      // theoretical guarantees are provided by the quadraticroots function.
+    
+      real root;
+      bool found=Q.roots > 0;
+      if(found) {
+        root=t+Q.t1;
+        if(root <= a || root >= b) {
+          if(Q.roots == 1) found=false;
+          else {
+            root=t+Q.t2;
+            if(root <= a || root >= b) found=false;
+          }
+        }
+      }
+      
+      if(found) {
+        if(ft > 0.0) {
+          b=t;
+          fb=ft;
+        } else {
+          a=t;
+          fa=ft;
+        }
+      
+        t=root;
+
+        // If the interpolated value is close to one edge of
+        // the interval, move it farther away from the edge in
+        // an effort to catch the root in the middle.
+        real margin=(b-a)*1.0e-3;
+        if(t-a < margin) t=a+2.0*(t-a);
+        else if(b-t < margin) t=b-2.0*(b-t);
+    
+        Stack->push(t);
+        f->call(Stack);
+        ft=sign*pop<double>(Stack);
+
+        if(ft == 0.0) return t;
+      }
+    }
+    
+    if(ft > 0.0) {
+      b=t;
+      fb=ft;
+    } else if(ft < 0.0) {
+      a=t;
+      fa=ft;
+    }
+  }
+  return a-(b-a)/(fb-fa)*fa;
+}
+
 real simpson(callableReal *f, real a, real b, real acc=DBL_EPSILON,
              real dxmax=0)
 {
