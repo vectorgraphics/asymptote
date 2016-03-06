@@ -20,6 +20,15 @@ pen      => primPen()
 #include "drawlabel.h"
 #include "locate.h"
 
+#ifdef EPSWRITE
+// Use legacy ghostscript driver (gs-9.14 and earlier)
+const string epsdriver="epswrite";
+const string epswritesuffix="";
+#else
+const string epsdriver="eps2write";
+const string epswritesuffix="%d";
+#endif
+
 using namespace camp;
 using namespace vm;
 using namespace settings;
@@ -111,7 +120,7 @@ array *readpath(const string& psname, bool keep, bool pdf=false,
 #else
   const string null="/dev/null";
 #endif
-  cmd.push_back("-sDEVICE=eps2write");
+  cmd.push_back("-sDEVICE="+epsdriver);
   cmd.push_back("-sOutputFile="+null);
   cmd.push_back(stripDir(psname));
   iopipestream gs(cmd,"gs","Ghostscript");
@@ -119,7 +128,10 @@ array *readpath(const string& psname, bool keep, bool pdf=false,
     stringstream buf;
     string s=gs.readline();
     if(s.empty()) break;
-    if(!pdf) gs << newl;
+#ifndef EPSWRITE
+    if(!pdf)
+#endif
+      gs << newl;
 
 // Workaround broken stringstream container in MacOS 10.9 libc++.
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__ )
@@ -325,12 +337,16 @@ patharray2 *_texpath(stringarray *s, penarray *p)
         cmd.push_back("-dNOPAUSE");
         cmd.push_back("-dBATCH");
         if(safe) cmd.push_back("-dSAFER");
-        cmd.push_back("-sDEVICE=eps2write");
+        cmd.push_back("-sDEVICE="+epsdriver);
         // Work around eps2write bug that forces all postscript to first page.
-        cmd.push_back("-sOutputFile="+psname2+"%d");
+        cmd.push_back("-sOutputFile="+psname2+epswritesuffix);
         cmd.push_back(pdfname2);
         status=System(cmd,0,true,"gs");
-      
+
+#ifdef EPSWRITE
+        std::ifstream in(psname2.c_str());
+        ps << in.rdbuf();
+#else
         for(unsigned int i=1; i <= n ; ++i) {
           ostringstream buf;
           buf << psname2 << i;
@@ -342,6 +358,7 @@ patharray2 *_texpath(stringarray *s, penarray *p)
           in.close();
           if(!keep) unlink(name);
         }
+#endif
         ps.close();
       }
     } else {
@@ -425,7 +442,7 @@ patharray2 *textpath(stringarray *s, penarray *p)
   cmd2.push_back("-dBATCH");
   cmd2.push_back("-P");
   if(safe) cmd2.push_back("-dSAFER");
-  cmd2.push_back("-sDEVICE=eps2write");
+  cmd2.push_back("-sDEVICE="+epsdriver);
   cmd2.push_back("-sOutputFile=-");
   cmd2.push_back("-");
   iopipestream gs(cmd2,"gs","Ghostscript");
