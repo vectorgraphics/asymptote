@@ -9076,14 +9076,15 @@ surface implicitsurface(real f(triple)=null,
                         int keyword nx=n,
                         int keyword ny=n,
                         int keyword nz=n,
-                        int keyword maxdepth=8);
+                        int keyword maxdepth=8,
+                        bool usetriangles=true);
 @end verbatim
 @noindent
 The optional parameter @code{overlapedges} attempts to compensate for
 an artifact that can cause the renderer to ``see through'' the
 boundary between patches. Although
 it defaults to @code{false}, it should usually be set to @code{true}.
-The example @code{@uref{http://asymptote.sourceforge.net/gallery/genustwo.pdf,,genustwo}@uref{http://asymptote.sourceforge.net/gallery/genustwo.asy,,.asy}} illustrates the use of this function:
+The example @code{@uref{http://asymptote.sourceforge.net/gallery/genustwo.pdf,,genustwo}@uref{http://asymptote.sourceforge.net/gallery/genustwo.asy,,.asy}} illustrates the use of this function.
 Additional examples, together with a more in-depth explanation of 
 the module's usage and pitfalls, are available at
 @url{https://github.com/charlesstaats/smoothcontour3}.

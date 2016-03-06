@@ -11,7 +11,7 @@ namespace camp {
 
 #ifdef HAVE_GL
 
-static const double pixel=0.5; // Adaptive rendering constant.
+static const double pixel=0.25; // Adaptive rendering constant.
 
 extern const double Fuzz;
 extern const double Fuzz2;

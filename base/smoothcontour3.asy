@@ -64,7 +64,7 @@ function[] bernstein = new function[] {B03, B13, B23, B33};
 // the specified boundary path. However, the entries in the array
 // remain intact.
 patch patchwithnormals(path3 external, triple[] u0normals, triple[] u1normals,
-		       triple[] v0normals, triple[] v1normals)
+                       triple[] v0normals, triple[] v1normals)
 {
   assert(cyclic(external));
   assert(length(external) == 4);
@@ -213,8 +213,8 @@ patch patchwithnormals(path3 external, triple[] u0normals, triple[] u1normals,
 
   real[] solution = leastsquares(matrix, rightvector, warn=false);
   if (solution.length == 0) { // if the matrix was singular
-    write("Warning: unable to solve matrix for specifying normals "
-	  + "on bezier patch. Using standard method.");
+    write("Warning: unable to solve matrix for specifying edge normals "
+          + "on bezier patch. Using coons patch.");
     return patch(external);
   }
   
@@ -222,22 +222,95 @@ patch patchwithnormals(path3 external, triple[] u0normals, triple[] u1normals,
     for (int j = 1; j <= 2; ++j) {
       int position = 3 * (2 * (i-1) + (j-1));
       controlpoints[i][j] = (solution[position],
-			     solution[position+1],
-			     solution[position+2]);
+                             solution[position+1],
+                             solution[position+2]);
     }
   }
 
   return patch(controlpoints);
 }
 
-// A wrapper for the previous function when the normal direction
+// This function attempts to produce a Bezier triangle
+// with the specified boundary path and normal directions at the
+// edge midpoints. The bezier triangle should be normal to
+// n1 at point(external, 0.5),
+// normal to n2 at point(external, 1.5), and
+// normal to n3 at point(external, 2.5).
+// The actual normal (as computed by the patch.normal() function)
+// may be parallel to the specified normal, antiparallel, or
+// even zero.
+//
+// A small amount of deviation is allowed in order to stabilize
+// the algorithm (by keeping the mixed partials at the corners from
+// growing too large).
+patch trianglewithnormals(path3 external, triple n1,
+                          triple n2, triple n3) {
+  assert(cyclic(external));
+  assert(length(external) == 3);
+  // Use the formal symbols a3, a2b, abc, etc. to denote the control points,
+  // following the Wikipedia article on Bezier triangles.
+  triple a3 = point(external, 0), a2b = postcontrol(external, 0),
+    ab2 = precontrol(external, 1), b3 = point(external, 1),
+    b2c = postcontrol(external, 1), bc2 = precontrol(external, 2),
+    c3 = point(external, 2), ac2 = postcontrol(external, 2),
+    a2c = precontrol(external, 0);
+
+  // Use orthogonal projection to ensure that the normal vectors are
+  // actually normal to the boundary path.
+  triple tangent = dir(external, 0.5);
+  n1 -= dot(n1,tangent)*tangent;
+  n1 = unit(n1);
+
+  tangent = dir(external, 1.5);
+  n2 -= dot(n2,tangent)*tangent;
+  n2 = unit(n2);
+
+  tangent = dir(external, 2.5);
+  n3 -= dot(n3,tangent)*tangent;
+  n3 = unit(n3);
+  
+  real wild = 2 * wildnessweight;
+  real[][] matrix = { {n1.x, n1.y, n1.z},
+                      {n2.x, n2.y, n2.z},
+                      {n3.x, n3.y, n3.z},
+                      {      wild,          0,          0},
+                      {         0,       wild,          0},
+                      {         0,          0,       wild} };
+  real[] rightvector =
+    { dot(n1, (a3 + 3a2b + 3ab2 + b3 - 2a2c - 2b2c)) / 4,
+      dot(n2, (b3 + 3b2c + 3bc2 + c3 - 2ab2 - 2ac2)) / 4,
+      dot(n3, (c3 + 3ac2 + 3a2c + a3 - 2bc2 - 2a2b)) / 4 };
+
+  // The inner control point that minimizes the sum of squares of
+  // the mixed partials on the corners.
+  triple tameinnercontrol =
+    ((a2b + a2c - a3) + (ab2 + b2c - b3) + (ac2 + bc2 - c3)) / 3;
+  rightvector.append(wild * new real[]
+                     {tameinnercontrol.x, tameinnercontrol.y, tameinnercontrol.z});
+  real[] solution = leastsquares(matrix, rightvector, warn=false);
+  if (solution.length == 0) { // if the matrix was singular
+    write("Warning: unable to solve matrix for specifying edge normals "
+          + "on bezier triangle. Using coons triangle.");
+    return patch(external);
+  }
+  triple innercontrol = (solution[0], solution[1], solution[2]);
+  return patch(external, innercontrol);
+}
+
+// A wrapper for the previous functions when the normal direction
 // is given as a function of direction. The wrapper can also
 // accommodate cyclic boundary paths of between one and four
 // segments, although the results are best by far when there
-// are four segments.
+// are three or four segments.
 patch patchwithnormals(path3 external, triple normalat(triple)) {
   assert(cyclic(external));
   assert(1 <= length(external) && length(external) <= 4);
+  if (length(external) == 3) {
+    triple n1 = normalat(point(external, 0.5));
+    triple n2 = normalat(point(external, 1.5));
+    triple n3 = normalat(point(external, 2.5));
+    return trianglewithnormals(external, n1, n2, n3);
+  }
   while (length(external) < 4) external = external -- cycle;
   triple[] u0normals = new triple[3];
   triple[] u1normals = new triple[3];
@@ -328,8 +401,8 @@ struct int_to_intset {
   void add(int key, int value) {
     for (int i = 0; i < keys.length; ++i) {
       if (keys[i] == key) {
-	values[i].add(value);
-	return;
+        values[i].add(value);
+        return;
       }
     }
     keys.push(key);
@@ -423,9 +496,9 @@ int[] makecircle(edge[] edges) {
     if (adjacentvertices.length != 2) return null;
     for (int v : adjacentvertices) {
       if (v != lastvertex) {
-	lastvertex = currentvertex;
-	currentvertex = v;
-	break;
+        lastvertex = currentvertex;
+        currentvertex = v;
+        break;
       }
     }
   } while (currentvertex != startvertex);
@@ -484,10 +557,10 @@ path3 pathbetween(positionedvector v1, positionedvector v2) {
 // the span of v1 and v2. If v1 and v2 are dependent, returns an empty array
 // (if warn==false) or throws an error (if warn==true).
 real[] projecttospan_findcoeffs(triple toproject, triple v1, triple v2,
-				   bool warn=false) {
+                                bool warn=false) {
   real[][] matrix = {{v1.x, v2.x},
-		     {v1.y, v2.y},
-		     {v1.z, v2.z}};
+                     {v1.y, v2.y},
+                     {v1.z, v2.z}};
   real[] desiredanswer = {toproject.x, toproject.y, toproject.z};
   return leastsquares(matrix, desiredanswer, warn=warn);
 }
@@ -497,7 +570,7 @@ real[] projecttospan_findcoeffs(triple toproject, triple v1, triple v2,
 // a >= mincoeff and b >= mincoeff. If v1 and v2 are linearly dependent,
 // return a random (positive) linear combination.
 triple projecttospan(triple toproject, triple v1, triple v2,
-		       real mincoeff = 0.05) {
+                     real mincoeff = 0.05) {
   real[] coeffs = projecttospan_findcoeffs(toproject, v1, v2, warn=false);
   real a, b;
   if (coeffs.length == 0) {
@@ -563,25 +636,25 @@ path3 bisector(path3 edgecycle, int[] savevertices) {
     int opposite = i + 3;
     triple vec = unit(point(edgecycle, opposite) - point(edgecycle, i));
     real[] coeffsbegin = projecttospan_findcoeffs(vec, forwarddirections[i],
-						    backwarddirections[i]);
+                                                  backwarddirections[i]);
     if (coeffsbegin.length == 0) continue;
     coeffsbegin[0] = max(coeffsbegin[0], mincoeff);
     coeffsbegin[1] = max(coeffsbegin[1], mincoeff);
 
     real[] coeffsend = projecttospan_findcoeffs(-vec, forwarddirections[opposite],
-						    backwarddirections[opposite]);
+                                                backwarddirections[opposite]);
     if (coeffsend.length == 0) continue;
     coeffsend[0] = max(coeffsend[0], mincoeff);
     coeffsend[1] = max(coeffsend[1], mincoeff);
 
     real goodness = angles[i] * angles[opposite] * coeffsbegin[0] * coeffsend[0]
-      * coeffsbegin[1] * coeffsend[1];
+        * coeffsbegin[1] * coeffsend[1];
     if (goodness > maxgoodness) {
       maxgoodness = goodness;
       directionout = coeffsbegin[0] * forwarddirections[i] +
-	coeffsbegin[1] * backwarddirections[i];
+          coeffsbegin[1] * backwarddirections[i];
       directionin = -(coeffsend[0] * forwarddirections[opposite] +
-		       coeffsend[1] * backwarddirections[opposite]);
+                      coeffsend[1] * backwarddirections[opposite]);
       chosenindex = i;
     }
   }
@@ -600,7 +673,7 @@ path3 bisector(path3 edgecycle, int[] savevertices) {
 // A path between two specified points (with specified normals) that lies
 // within a specified face of a rectangular solid.
 path3 pathinface(positionedvector v1, positionedvector v2,
-		    triple facenorm, triple edge1normout, triple edge2normout)
+                 triple facenorm, triple edge1normout, triple edge2normout)
 {
   triple dir1 = cross(v1.direction, facenorm);
   real dotprod = dot(dir1, edge1normout);
@@ -631,9 +704,9 @@ triple normalout(int face) {
 // A path between two specified points (with specified normals) that lies
 // within a specified face of a rectangular solid.
 path3 pathinface(positionedvector v1, positionedvector v2,
-		    int face, int edge1face, int edge2face) {
+                 int face, int edge1face, int edge2face) {
   return pathinface(v1, v2, normalout(face), normalout(edge1face),
-		      normalout(edge2face));
+                    normalout(edge2face));
 }
 
 /***********************************************/
@@ -653,7 +726,7 @@ path3 pathinface(positionedvector v1, positionedvector v2,
 // does a poor job of choosing a good surface when the boundary path does
 // not consist of four positive-length segments.
 patch[] triangletoquads(path3 external, real f(triple), triple grad(triple),
-			  triple a, triple b) {
+                        triple a, triple b) {
   static real epsilon = 1e-3;
   assert(length(external) == 3);
   assert(cyclic(external));
@@ -729,6 +802,52 @@ patch[] triangletoquads(path3 external, real f(triple), triple grad(triple),
       patchwithnormals(quad2, grad)};   
 }
 
+// This function should be able to assume that the orientation is correct -- i.e., that
+// at a corner, (tangent in) x (tangent out) is in the positive f direction.
+patch[] maketriangle(path3 external, real f(triple),
+                     triple grad(triple), bool allowsubdivide = true) {
+  assert(cyclic(external));
+  assert(length(external) == 3);
+  triple m1 = point(external, 0.5);
+  triple n1 = unit(grad(m1));
+  triple m2 = point(external, 1.5);
+  triple n2 = unit(grad(m2));
+  triple m3 = point(external, 2.5);
+  triple n3 = unit(grad(m3));
+  patch beziertriangle = trianglewithnormals(external, n1, n2, n3);
+  if (dot(n1, beziertriangle.normal(0.5, 0)) >= 0 &&
+      dot(n2, beziertriangle.normal(0.5, 0.5)) >= 0 &&
+      dot(n3, beziertriangle.normal(0, 0.5)) >= 0)
+    return new patch[] {beziertriangle};
+
+  if (!allowsubdivide) return new patch[0];
+  
+  positionedvector m1 = positionedvector(m1, n1);
+  positionedvector m2 = positionedvector(m2, n2);
+  positionedvector m3 = positionedvector(m3, n3);
+  path3 p12 = pathbetween(m1, m2);
+  path3 p23 = pathbetween(m2, m3);
+  path3 p31 = pathbetween(m3, m1);
+  patch[] triangles = maketriangle(p12 & p23 & p31 & cycle, f, grad=grad,
+                                   allowsubdivide=false);
+  if (triangles.length < 1) return new patch[0];
+
+  triangles.append(maketriangle(subpath(external, -0.5, 0.5) & reverse(p31) & cycle,
+                                f, grad=grad, allowsubdivide=false));
+  if (triangles.length < 2) return new patch[0];
+
+  triangles.append(maketriangle(subpath(external, 0.5, 1.5) & reverse(p12) & cycle,
+                                f, grad=grad, allowsubdivide=false));
+  if (triangles.length < 3) return new patch[0];
+  
+  triangles.append(maketriangle(subpath(external, 1.5, 2.5) & reverse(p23) & cycle,
+                                f, grad=grad, allowsubdivide=false));
+  if (triangles.length < 4) return new patch[0];
+
+  return triangles;
+}
+
+
 // Returns true if the point is "nonsingular" (in the sense that the magnitude
 // of the gradient is not too small) AND very close to the zero locus of f
 // (assuming f is locally linear).
@@ -753,14 +872,14 @@ bool checkptincube(triple pt, triple a, triple b) {
   if (zmin > zmax) { real t = zmax; zmax=zmin; zmin=t; }
 
   return ((xmin <= pt.x) && (pt.x <= xmax) &&
-	  (ymin <= pt.y) && (pt.y <= ymax) &&
-	  (zmin <= pt.z) && (pt.z <= zmax));
+          (ymin <= pt.y) && (pt.y <= ymax) &&
+          (zmin <= pt.z) && (pt.z <= zmax));
 
 }
 
 // A convenience function for combining the previous two tests.
 bool checkpt(triple testpt, real f(triple), triple grad(triple),
-	      triple a, triple b) {
+             triple a, triple b) {
   return checkptincube(testpt, a, b) &&
     check_fpt_zero(testpt, f, grad);
 }
@@ -772,8 +891,8 @@ bool checkpt(triple testpt, real f(triple), triple grad(triple),
 // array, which merely indicates that the boundary cycle is too small
 // to be worth filling in.
 patch[] quadpatches(path3 edgecycle, positionedvector[] corners,
-		     real f(triple), triple grad(triple),
-		     triple a, triple b) {
+                    real f(triple), triple grad(triple),
+                    triple a, triple b, bool usetriangles) {
   assert(corners.cyclic);
 
   // The tolerance for considering two points "essentially identical."
@@ -786,8 +905,8 @@ patch[] quadpatches(path3 edgecycle, positionedvector[] corners,
       if (corners.length == 2) return new patch[0];
       corners.delete(i);
       edgecycle = subpath(edgecycle, 0, i)
-	& subpath(edgecycle, i+1, length(edgecycle))
-	& cycle;
+          & subpath(edgecycle, i+1, length(edgecycle))
+          & cycle;
       --i;
       assert(length(edgecycle) == corners.length);
     }
@@ -799,9 +918,9 @@ patch[] quadpatches(path3 edgecycle, positionedvector[] corners,
   if (corners.length == 2) {
     // If the area is too small, just ignore it; otherwise, subdivide.
     real area0 = abs(cross(-dir(edgecycle, 0, sign=-1, normalize=false),
-			   dir(edgecycle, 0, sign=1, normalize=false)));
+                           dir(edgecycle, 0, sign=1, normalize=false)));
     real area1 = abs(cross(-dir(edgecycle, 1, sign=-1, normalize=false),
-			   dir(edgecycle, 1, sign=1, normalize=false)));
+                           dir(edgecycle, 1, sign=1, normalize=false)));
     if (area0 < areatolerance && area1 < areatolerance) return new patch[0];
     else return null;
   }
@@ -809,13 +928,14 @@ patch[] quadpatches(path3 edgecycle, positionedvector[] corners,
 
   for (int i = 0; i < length(edgecycle); ++i) {
     if (angledegrees(dir(edgecycle,i,sign=1),
-		     dir(edgecycle,i+1,sign=-1)) > 80) {
+                     dir(edgecycle,i+1,sign=-1)) > 80) {
       return null;
     }
   }
   
   if (length(edgecycle) == 3) {
-    patch[] toreturn = triangletoquads(edgecycle, f, grad, a, b);
+    patch[] toreturn = usetriangles ? maketriangle(edgecycle, f, grad)
+        : triangletoquads(edgecycle, f, grad, a, b);
     if (toreturn.length == 0) return null;
     else return toreturn;
   }
@@ -836,8 +956,9 @@ patch[] quadpatches(path3 edgecycle, positionedvector[] corners,
     & reverse(middleguide) & cycle;
   if (length(edgecycle) == 5) {
     path3 secondpatch = middleguide
-	& subpath(edgecycle, bisectorindices[1], 5+bisectorindices[0]) & cycle;
-    toreturn = triangletoquads(secondpatch, f, grad, a, b);
+        & subpath(edgecycle, bisectorindices[1], 5+bisectorindices[0]) & cycle;
+    toreturn = usetriangles ? maketriangle(secondpatch, f, grad)
+      : triangletoquads(secondpatch, f, grad, a, b);
     if (toreturn.length == 0) return null;
     toreturn.push(patchwithnormals(firstpatch, grad));
   } else {
@@ -846,7 +967,7 @@ patch[] quadpatches(path3 edgecycle, positionedvector[] corners,
       & subpath(edgecycle, bisectorindices[1], 6+bisectorindices[0])
       & cycle;
     toreturn = new patch[] {patchwithnormals(firstpatch, grad),
-	patchwithnormals(secondpatch, grad)};
+        patchwithnormals(secondpatch, grad)};
   }
   return toreturn;
 }
@@ -857,8 +978,8 @@ vectorfunction nGrad(real f(triple)) {
   static real epsilon = 1e-3;
   return new triple(triple v) {
     return ( (f(v + epsilon*X) - f(v - epsilon*X)) / (2 epsilon),
-			 (f(v + epsilon*Y) - f(v - epsilon*Y)) / (2 epsilon),
-			 (f(v + epsilon*Z) - f(v - epsilon*Z)) / (2 epsilon) );
+             (f(v + epsilon*Y) - f(v - epsilon*Y)) / (2 epsilon),
+             (f(v + epsilon*Z) - f(v - epsilon*Z)) / (2 epsilon) );
   };
 }
 
@@ -877,18 +998,18 @@ triple operator cast(evaluatedpoint p) { return p.pt; }
 // Compute the values of a function at every vertex of an nx by ny by nz
 // array of rectangular solids.
 evaluatedpoint[][][] make3dgrid(triple a, triple b, int nx, int ny, int nz,
-				   real f(triple), bool allowzero = false)
+                                real f(triple), bool allowzero = false)
 {
   evaluatedpoint[][][] toreturn = new evaluatedpoint[nx+1][ny+1][nz+1];
   for (int i = 0; i <= nx; ++i) {
     for (int j = 0; j <= ny; ++j) {
       for (int k = 0; k <= nz; ++k) {
-	triple pt = (interp(a.x, b.x, i/nx),
-		     interp(a.y, b.y, j/ny),
-		     interp(a.z, b.z, k/nz));
-	real value = f(pt);
-	if (value == 0 && !allowzero) value = 1e-5;
-	toreturn[i][j][k] = evaluatedpoint(pt, value);
+        triple pt = (interp(a.x, b.x, i/nx),
+                     interp(a.y, b.y, j/ny),
+                     interp(a.z, b.z, k/nz));
+        real value = f(pt);
+        if (value == 0 && !allowzero) value = 1e-5;
+        toreturn[i][j][k] = evaluatedpoint(pt, value);
       }
     }
   }
@@ -907,8 +1028,8 @@ T[][] slice(T[][] a, int start1, int end1, int start2, int end2) {
   return toreturn;
 }
 T[][][] slice(T[][][] a, int start1, int end1,
-	      int start2, int end2,
-	      int start3, int end3) {
+              int start2, int end2,
+              int start3, int end3) {
   T[][][] toreturn = new T[end1-start1][][];
   for (int i = start1; i < end1; ++i) {
     toreturn[i-start1] = slice(a[i], start2, end2, start3, end3);
@@ -924,8 +1045,8 @@ T[][] slice(T[][] a, int start1, int end1, int start2, int end2) {
   return toreturn;
 }
 T[][][] slice(T[][][] a, int start1, int end1,
-	      int start2, int end2,
-	      int start3, int end3) {
+              int start2, int end2,
+              int start3, int end3) {
   T[][][] toreturn = new T[end1-start1][][];
   for (int i = start1; i < end1; ++i) {
     toreturn[i-start1] = slice(a[i], start2, end2, start3, end3);
@@ -945,73 +1066,74 @@ struct gridwithzeros {
   triple grad(triple);
   real f(triple);
   int maxdepth;
+  bool usetriangles;
 
   // Populate the edges with zeros that have a sign change and are not already
   // populated.
   void fillzeros() {
     for (int j = 0; j < ny+1; ++j) {
       for (int k = 0; k < nz+1; ++k) {
-	real y = corners[0][j][k].pt.y;
-	real z = corners[0][j][k].pt.z;
-	real f_along_x(real t) { return f((t, y, z)); }
-	for (int i = 0; i < nx; ++i) {
-	  if (xdirzeros[i][j][k] != null) continue;
-	  evaluatedpoint start = corners[i][j][k];
-	  evaluatedpoint end = corners[i+1][j][k];
-	  if ((start.value > 0 && end.value > 0) || (start.value < 0 && end.value < 0))
-	    xdirzeros[i][j][k] = null;
-	  else {
-	    triple root = (0,y,z);
-	    root += X * findroot(f_along_x, start.pt.x, end.pt.x,
-				    fa=start.value, fb=end.value);
-	    triple normal = grad(root);
-	    xdirzeros[i][j][k] = positionedvector(root, normal);
-	  }
-	}
+        real y = corners[0][j][k].pt.y;
+        real z = corners[0][j][k].pt.z;
+        real f_along_x(real t) { return f((t, y, z)); }
+        for (int i = 0; i < nx; ++i) {
+          if (xdirzeros[i][j][k] != null) continue;
+          evaluatedpoint start = corners[i][j][k];
+          evaluatedpoint end = corners[i+1][j][k];
+          if ((start.value > 0 && end.value > 0) || (start.value < 0 && end.value < 0))
+            xdirzeros[i][j][k] = null;
+          else {
+            triple root = (0,y,z);
+            root += X * findroot(f_along_x, start.pt.x, end.pt.x,
+                                 fa=start.value, fb=end.value);
+            triple normal = grad(root);
+            xdirzeros[i][j][k] = positionedvector(root, normal);
+          }
+        }
       }
     }
 
     for (int i = 0; i < nx+1; ++i) {
       for (int k = 0; k < nz+1; ++k) {
-	real x = corners[i][0][k].pt.x;
-	real z = corners[i][0][k].pt.z;
-	real f_along_y(real t) { return f((x, t, z)); }
-	for (int j = 0; j < ny; ++j) {
-	  if (ydirzeros[i][j][k] != null) continue;
-	  evaluatedpoint start = corners[i][j][k];
-	  evaluatedpoint end = corners[i][j+1][k];
-	  if ((start.value > 0 && end.value > 0) || (start.value < 0 && end.value < 0))
-	    ydirzeros[i][j][k] = null;
-	  else {
-	    triple root = (x,0,z);
-	    root += Y * findroot(f_along_y, start.pt.y, end.pt.y,
-				    fa=start.value, fb=end.value);
-	    triple normal = grad(root);
-	    ydirzeros[i][j][k] = positionedvector(root, normal);
-	  }
-	}
+        real x = corners[i][0][k].pt.x;
+        real z = corners[i][0][k].pt.z;
+        real f_along_y(real t) { return f((x, t, z)); }
+        for (int j = 0; j < ny; ++j) {
+          if (ydirzeros[i][j][k] != null) continue;
+          evaluatedpoint start = corners[i][j][k];
+          evaluatedpoint end = corners[i][j+1][k];
+          if ((start.value > 0 && end.value > 0) || (start.value < 0 && end.value < 0))
+            ydirzeros[i][j][k] = null;
+          else {
+            triple root = (x,0,z);
+            root += Y * findroot(f_along_y, start.pt.y, end.pt.y,
+                                 fa=start.value, fb=end.value);
+            triple normal = grad(root);
+            ydirzeros[i][j][k] = positionedvector(root, normal);
+          }
+        }
       }
     }
 
     for (int i = 0; i < nx+1; ++i) {
       for (int j = 0; j < ny+1; ++j) {
-	real x = corners[i][j][0].pt.x;
-	real y = corners[i][j][0].pt.y;
-	real f_along_z(real t) { return f((x, y, t)); }
-	for (int k = 0; k < nz; ++k) {
-	  if (zdirzeros[i][j][k] != null) continue;
-	  evaluatedpoint start = corners[i][j][k];
-	  evaluatedpoint end = corners[i][j][k+1];
-	  if ((start.value > 0 && end.value > 0) || (start.value < 0 && end.value < 0))
-	    zdirzeros[i][j][k] = null;
-	  else {
-	    triple root = (x,y,0);
-	    root += Z * findroot(f_along_z, start.pt.z, end.pt.z,
-			       fa=start.value, fb=end.value);
-	    triple normal = grad(root);
-	    zdirzeros[i][j][k] = positionedvector(root, normal);
-	  }
-	}
+        real x = corners[i][j][0].pt.x;
+        real y = corners[i][j][0].pt.y;
+        real f_along_z(real t) { return f((x, y, t)); }
+        for (int k = 0; k < nz; ++k) {
+          if (zdirzeros[i][j][k] != null) continue;
+          evaluatedpoint start = corners[i][j][k];
+          evaluatedpoint end = corners[i][j][k+1];
+          if ((start.value > 0 && end.value > 0) || (start.value < 0 && end.value < 0))
+            zdirzeros[i][j][k] = null;
+          else {
+            triple root = (x,y,0);
+            root += Z * findroot(f_along_z, start.pt.z, end.pt.z,
+                                 fa=start.value, fb=end.value);
+            triple normal = grad(root);
+            zdirzeros[i][j][k] = positionedvector(root, normal);
+          }
+        }
       }
     }
   }
@@ -1021,14 +1143,15 @@ struct gridwithzeros {
   // maximum subdivision depth. When a cube at maxdepth cannot be resolved to
   // patches, it is left empty.
   void operator init(int nx, int ny, int nz,
-		     real f(triple), triple a, triple b,
-		     int maxdepth = 6) {
+                     real f(triple), triple a, triple b,
+                     int maxdepth = 6, bool usetriangles) {
     this.nx = nx;
     this.ny = ny;
     this.nz = nz;
     grad = nGrad(f);
     this.f = f;
     this.maxdepth = maxdepth;
+    this.usetriangles = usetriangles;
     corners = make3dgrid(a, b, nx, ny, nz, f);
     xdirzeros = new positionedvector[nx][ny+1][nz+1];
     ydirzeros = new positionedvector[nx+1][ny][nz+1];
@@ -1036,11 +1159,11 @@ struct gridwithzeros {
 
     for (int i = 0; i <= nx; ++i) {
       for (int j = 0; j <= ny; ++j) {
-	for (int k = 0; k <= nz; ++k) {
-	  if (i < nx) xdirzeros[i][j][k] = null;
-	  if (j < ny) ydirzeros[i][j][k] = null;
-	  if (k < nz) zdirzeros[i][j][k] = null;
-	}
+        for (int k = 0; k <= nz; ++k) {
+          if (i < nx) xdirzeros[i][j][k] = null;
+          if (j < ny) ydirzeros[i][j][k] = null;
+          if (k < nz) zdirzeros[i][j][k] = null;
+        }
       }
     }
 
@@ -1068,18 +1191,18 @@ struct gridwithzeros {
     corners = new evaluatedpoint[nx+1][ny+1][nz+1];
     for (int i = 0; i <= nx; ++i) {
       for (int j = 0; j <= ny; ++j) {
-	for (int k = 0; k <= nz; ++k) {
-	  if (i % 2 == 0 && j % 2 == 0 && k % 2 == 0) {
-	    corners[i][j][k] = oldcorners[quotient(i,2)][quotient(j,2)][quotient(k,2)];
-	  } else {
-	    triple pt = (interp(a.x, b.x, i/nx),
-			 interp(a.y, b.y, j/ny),
-			 interp(a.z, b.z, k/nz));
-	    real value = f(pt);
-	    if (value == 0) value = 1e-5;
-	    corners[i][j][k] = evaluatedpoint(pt, value);
-	  }
-	}
+        for (int k = 0; k <= nz; ++k) {
+          if (i % 2 == 0 && j % 2 == 0 && k % 2 == 0) {
+            corners[i][j][k] = oldcorners[quotient(i,2)][quotient(j,2)][quotient(k,2)];
+          } else {
+            triple pt = (interp(a.x, b.x, i/nx),
+                         interp(a.y, b.y, j/ny),
+                         interp(a.z, b.z, k/nz));
+            real value = f(pt);
+            if (value == 0) value = 1e-5;
+            corners[i][j][k] = evaluatedpoint(pt, value);
+          }
+        }
       }
     }
 
@@ -1087,23 +1210,23 @@ struct gridwithzeros {
     xdirzeros = new positionedvector[nx][ny+1][nz+1];
     for (int i = 0; i < nx; ++i) {
       for (int j = 0; j < ny + 1; ++j) {
-	for (int k = 0; k < nz + 1; ++k) {
-	  if (j % 2 != 0 || k % 2 != 0) {
-	    xdirzeros[i][j][k] = null;
-	  } else {
-	    positionedvector zero = oldxdir[quotient(i,2)][quotient(j,2)][quotient(k,2)];
-	    if (zero == null) {
-	      xdirzeros[i][j][k] = null;
-	      continue;
-	    }
-	    real x = zero.position.x;
-	    if (x > interp(a.x, b.x, i/nx) && x < interp(a.x, b.x, (i+1)/nx)) {
-	      xdirzeros[i][j][k] = zero;
-	    } else {
-	      xdirzeros[i][j][k] = null;
-	    }
-	  }
-	}
+        for (int k = 0; k < nz + 1; ++k) {
+          if (j % 2 != 0 || k % 2 != 0) {
+            xdirzeros[i][j][k] = null;
+          } else {
+            positionedvector zero = oldxdir[quotient(i,2)][quotient(j,2)][quotient(k,2)];
+            if (zero == null) {
+              xdirzeros[i][j][k] = null;
+              continue;
+            }
+            real x = zero.position.x;
+            if (x > interp(a.x, b.x, i/nx) && x < interp(a.x, b.x, (i+1)/nx)) {
+              xdirzeros[i][j][k] = zero;
+            } else {
+              xdirzeros[i][j][k] = null;
+            }
+          }
+        }
       }
     }
 
@@ -1111,23 +1234,23 @@ struct gridwithzeros {
     ydirzeros = new positionedvector[nx+1][ny][nz+1];
     for (int i = 0; i < nx+1; ++i) {
       for (int j = 0; j < ny; ++j) {
-	for (int k = 0; k < nz + 1; ++k) {
-	  if (i % 2 != 0 || k % 2 != 0) {
-	    ydirzeros[i][j][k] = null;
-	  } else {
-	    positionedvector zero = oldydir[quotient(i,2)][quotient(j,2)][quotient(k,2)];
-	    if (zero == null) {
-	      ydirzeros[i][j][k] = null;
-	      continue;
-	    }
-	    real y = zero.position.y;
-	    if (y > interp(a.y, b.y, j/ny) && y < interp(a.y, b.y, (j+1)/ny)) {
-	      ydirzeros[i][j][k] = zero;
-	    } else {
-	      ydirzeros[i][j][k] = null;
-	    }
-	  }
-	}
+        for (int k = 0; k < nz + 1; ++k) {
+          if (i % 2 != 0 || k % 2 != 0) {
+            ydirzeros[i][j][k] = null;
+          } else {
+            positionedvector zero = oldydir[quotient(i,2)][quotient(j,2)][quotient(k,2)];
+            if (zero == null) {
+              ydirzeros[i][j][k] = null;
+              continue;
+            }
+            real y = zero.position.y;
+            if (y > interp(a.y, b.y, j/ny) && y < interp(a.y, b.y, (j+1)/ny)) {
+              ydirzeros[i][j][k] = zero;
+            } else {
+              ydirzeros[i][j][k] = null;
+            }
+          }
+        }
       }
     }
 
@@ -1135,23 +1258,23 @@ struct gridwithzeros {
     zdirzeros = new positionedvector[nx+1][ny+1][nz];
     for (int i = 0; i < nx + 1; ++i) {
       for (int j = 0; j < ny + 1; ++j) {
-	for (int k = 0; k < nz; ++k) {
-	  if (i % 2 != 0 || j % 2 != 0) {
-	    zdirzeros[i][j][k] = null;
-	  } else {
-	    positionedvector zero = oldzdir[quotient(i,2)][quotient(j,2)][quotient(k,2)];
-	    if (zero == null) {
-	      zdirzeros[i][j][k] = null;
-	      continue;
-	    }
-	    real z = zero.position.z;
-	    if (z > interp(a.z, b.z, k/nz) && z < interp(a.z, b.z, (k+1)/nz)) {
-	      zdirzeros[i][j][k] = zero;
-	    } else {
-	      zdirzeros[i][j][k] = null;
-	    }
-	  }
-	}
+        for (int k = 0; k < nz; ++k) {
+          if (i % 2 != 0 || j % 2 != 0) {
+            zdirzeros[i][j][k] = null;
+          } else {
+            positionedvector zero = oldzdir[quotient(i,2)][quotient(j,2)][quotient(k,2)];
+            if (zero == null) {
+              zdirzeros[i][j][k] = null;
+              continue;
+            }
+            real z = zero.position.z;
+            if (z > interp(a.z, b.z, k/nz) && z < interp(a.z, b.z, (k+1)/nz)) {
+              zdirzeros[i][j][k] = zero;
+            } else {
+              zdirzeros[i][j][k] = null;
+            }
+          }
+        }
       }
     }
 
@@ -1178,14 +1301,14 @@ struct gridwithzeros {
 
     void pushifnonnull(positionedvector v) {
       if (v != null) {
-	zeroedges.push(edge(currentface, nextface));
-	zeros.push(v);
+        zeroedges.push(edge(currentface, nextface));
+        zeros.push(v);
       }
     }
     positionedvector findzero(int face1, int face2) {
       edge e = edge(face1, face2);
       for (int i = 0; i < zeroedges.length; ++i) {
-	if (zeroedges[i] == e) return zeros[i];
+        if (zeroedges[i] == e) return zeros[i];
       }
       return null;
     }
@@ -1227,7 +1350,7 @@ struct gridwithzeros {
 
     patch[] subdividecube() {
       if (!subdivide()) {
-	return new patch[0];
+        return new patch[0];
       }
       return draw(reportactive);
     }
@@ -1248,19 +1371,31 @@ struct gridwithzeros {
     path3 edgecycle;
     for (int i = 0; i < faceorder.length; ++i) {
       path3 currentpath = pathinface(patchcorners[i], patchcorners[i+1],
-					faceorder[i+1], faceorder[i],
-					faceorder[i+2]);
+                                     faceorder[i+1], faceorder[i],
+                                     faceorder[i+2]);
       triple testpoint = point(currentpath, 0.5);
       if (!checkpt(testpoint, f, grad, corners[0][0][0], corners[1][1][1])) {
-	return subdividecube();
+        return subdividecube();
       }
        
       edgecycle = edgecycle & currentpath;
     }
     edgecycle = edgecycle & cycle;
 
+    
+    {  // Ensure the outward normals are pointing in the same direction as the gradient.
+      triple tangentin = patchcorners[0].position - precontrol(edgecycle, 0);
+      triple tangentout = postcontrol(edgecycle, 0) - patchcorners[0].position;
+      triple normal = cross(tangentin, tangentout);
+      if (dot(normal, patchcorners[0].direction) < 0) {
+        edgecycle = reverse(edgecycle);
+        patchcorners = patchcorners[-sequence(patchcorners.length)];
+        patchcorners.cyclic = true;
+      }
+    }
+
     patch[] toreturn = quadpatches(edgecycle, patchcorners, f, grad,
-				     corners[0][0][0], corners[1][1][1]);
+                                   corners[0][0][0], corners[1][1][1], usetriangles);
     if (alias(toreturn, null)) return subdividecube();
     return toreturn;
   }
@@ -1275,6 +1410,7 @@ struct gridwithzeros {
     cube.ny = 1;
     cube.nz = 1;
     cube.maxdepth = maxdepth;
+    cube.usetriangles = usetriangles;
     cube.corners = slice(corners,i,i+2,j,j+2,k,k+2);
     cube.xdirzeros = slice(xdirzeros,i,i+1,j,j+2,k,k+2);
     cube.ydirzeros = slice(ydirzeros,i,i+2,j,j+1,k,k+2);
@@ -1306,49 +1442,49 @@ struct gridwithzeros {
     bool[][][] enqueued = new bool[nx][ny][nz];
     for (int i = 0; i < enqueued.length; ++i) {
       for (int j = 0; j < enqueued[i].length; ++j) {
-	for (int k = 0; k < enqueued[i][j].length; ++k) {
-	  enqueued[i][j][k] = false;
-	}
+        for (int k = 0; k < enqueued[i][j].length; ++k) {
+          enqueued[i][j][k] = false;
+        }
       }
     }
 
     void enqueue(int i, int j, int k) {
       if (i >= 0 && i < nx
-	  && j >= 0 && j < ny
-	  && k >= 0 && k < nz
-	  && !enqueued[i][j][k]) {
-	queue.push((i,j,k));
-	enqueued[i][j][k] = true;
+          && j >= 0 && j < ny
+          && k >= 0 && k < nz
+          && !enqueued[i][j][k]) {
+        queue.push((i,j,k));
+        enqueued[i][j][k] = true;
       }
       if (!alias(reportactive, null)) {
-	if (i < 0) reportactive[XLOW] = true;
-	if (i >= nx) reportactive[XHIGH] = true;
-	if (j < 0) reportactive[YLOW] = true;
-	if (j >= ny) reportactive[YHIGH] = true;
-	if (k < 0) reportactive[ZLOW] = true;
-	if (k >= nz) reportactive[ZHIGH] = true;
+        if (i < 0) reportactive[XLOW] = true;
+        if (i >= nx) reportactive[XHIGH] = true;
+        if (j < 0) reportactive[YLOW] = true;
+        if (j >= ny) reportactive[YHIGH] = true;
+        if (k < 0) reportactive[ZLOW] = true;
+        if (k >= nz) reportactive[ZHIGH] = true;
       }
     }
     
     for (int i = 0; i < nx+1; ++i) {
       for (int j = 0; j < ny+1; ++j) {
-	for (int k = 0; k < nz+1; ++k) {
-	  if (i < nx && xdirzeros[i][j][k] != null) {
-	    for (int jj = j-1; jj <= j; ++jj)
-	      for (int kk = k-1; kk <= k; ++kk)
-		enqueue(i, jj, kk);
-	  }
-	  if (j < ny && ydirzeros[i][j][k] != null) {
-	    for (int ii = i-1; ii <= i; ++ii)
-	      for (int kk = k-1; kk <= k; ++kk)
-		enqueue(ii, j, kk);
-	  }
-	  if (k < nz && zdirzeros[i][j][k] != null) {
-	    for (int ii = i-1; ii <= i; ++ii)
-	      for (int jj = j-1; jj <= j; ++jj)
-		enqueue(ii, jj, k);
-	  }
-	}
+        for (int k = 0; k < nz+1; ++k) {
+          if (i < nx && xdirzeros[i][j][k] != null) {
+            for (int jj = j-1; jj <= j; ++jj)
+              for (int kk = k-1; kk <= k; ++kk)
+                enqueue(i, jj, kk);
+          }
+          if (j < ny && ydirzeros[i][j][k] != null) {
+            for (int ii = i-1; ii <= i; ++ii)
+              for (int kk = k-1; kk <= k; ++kk)
+                enqueue(ii, j, kk);
+          }
+          if (k < nz && zdirzeros[i][j][k] != null) {
+            for (int ii = i-1; ii <= i; ++ii)
+              for (int jj = j-1; jj <= j; ++jj)
+                enqueue(ii, jj, k);
+          }
+        }
       }
     }
 
@@ -1372,7 +1508,7 @@ struct gridwithzeros {
       if (reportface[ZLOW]) enqueue(i,j,k-1);
       if (reportface[ZHIGH]) enqueue(i,j,k+1);
       surface.append(toappend);
-      if (settings.verbose > 1 && alias(reportactive, null)) write(stdout, '.');
+      if (settings.verbose > 1 && alias(reportactive, null)) write(stdout, '.', flush);
     }
     if (settings.verbose > 1 && alias(reportactive, null)) write(stdout, '\n');
     return surface;
@@ -1402,22 +1538,25 @@ struct gridwithzeros {
 // maxdepth - the maximum depth to which the algorithm will subdivide in
 //     an effort to find patches that closely approximate the true surface.
 surface implicitsurface(real f(triple) = null, real ff(real,real,real) = null,
-			 triple a, triple b,
-			 int n = nmesh,
-			 bool keyword overlapedges = false,
-			 int keyword nx=n, int keyword ny=n,
-			 int keyword nz=n,
-			 int keyword maxdepth = 8) {
+                        triple a, triple b,
+                        int n = nmesh,
+                        bool keyword overlapedges = false,
+                        int keyword nx=n, int keyword ny=n,
+                        int keyword nz=n,
+                        int keyword maxdepth = 8,
+                        bool keyword usetriangles=true) {
   if (f == null && ff == null)
     abort("implicitsurface called without specifying a function.");
   if (f != null && ff != null)
     abort("Only specify one function when calling implicitsurface.");
   if (f == null) f = new real(triple w) { return ff(w.x, w.y, w.z); };
-  gridwithzeros grid = gridwithzeros(nx, ny, nz, f, a, b, maxdepth=maxdepth);
+  gridwithzeros grid = gridwithzeros(nx, ny, nz, f, a, b, maxdepth=maxdepth,
+                                     usetriangles=usetriangles);
   patch[] patches = grid.draw();
   if (overlapedges) {
     for (int i = 0; i < patches.length; ++i) {
-      triple center = patches[i].point(1/2,1/2);
+      triple center = (patches[i].triangular ?
+                       patches[i].point(1/3, 1/3) : patches[i].point(1/2,1/2));
       patches[i] = shift(center) * scale3(1.01) * shift(-center) * patches[i];
     }
   }
