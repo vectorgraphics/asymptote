@@ -513,12 +513,12 @@ class xasyMainWin:
     w,h = self.mainCanvas.winfo_width(),self.mainCanvas.winfo_height()
     if right-left < w:
       extraw = w-(right-left)
-      right += extraw/2
-      left -= extraw/2
+      right += extraw//2
+      left -= extraw//2
     if bottom-top < h:
       extrah = h-(bottom-top)
-      bottom += extrah/2
-      top -= extrah/2
+      bottom += extrah//2
+      top -= extrah//2
     self.mainCanvas.config(scrollregion=(left,top,right,bottom))
     #self.mainCanvas.xview(MOVETO,float(split(self.mainCanvas["scrollregion"])[0]))
     #self.mainCanvas.yview(MOVETO,float(split(self.mainCanvas["scrollregion"])[1]))

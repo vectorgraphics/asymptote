@@ -98,6 +98,7 @@ string defaultPDFViewer="acroread";
 #endif  
 string defaultGhostscript="gs";
 string defaultGhostscriptLibrary="/usr/lib/libgs.so";
+string defaultEPSdriver="eps2write";
 string defaultDisplay="display";
 string defaultAnimate="animate";
 void queryRegistry() {}
@@ -1301,6 +1302,7 @@ void initSettings() {
   addOption(new envSetting("psviewer", defaultPSViewer));
   addOption(new envSetting("gs", defaultGhostscript));
   addOption(new envSetting("libgs", defaultGhostscriptLibrary));
+  addOption(new envSetting("epsdriver", defaultEPSdriver));
   addOption(new envSetting("texpath", ""));
   addOption(new envSetting("texcommand", ""));
   addOption(new envSetting("dvips", "dvips"));

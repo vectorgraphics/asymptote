@@ -111,7 +111,8 @@ array *readpath(const string& psname, bool keep, bool pdf=false,
 #else
   const string null="/dev/null";
 #endif
-  cmd.push_back("-sDEVICE=eps2write");
+  string epsdriver=getSetting<string>("epsdriver");
+  cmd.push_back("-sDEVICE="+epsdriver);
   cmd.push_back("-sOutputFile="+null);
   cmd.push_back(stripDir(psname));
   iopipestream gs(cmd,"gs","Ghostscript");
@@ -295,8 +296,13 @@ patharray2 *_texpath(stringarray *s, penarray *p)
   string pdfname,pdfname2,psname2;
   bool keep=getSetting<bool>("keep");
   
+  bool legacygs=false;
   if(!status) {
     if(xe) {
+// Use legacy ghostscript driver for gs-9.13 and earlier.
+      string epsdriver=getSetting<string>("epsdriver");
+      legacygs=epsdriver == "epswrite";
+
       pdfname=auxname(prefix,"pdf");
       pdfname2=auxname(prefix+"_","pdf");
       psname2=auxname(prefix+"_","ps");
@@ -325,22 +331,27 @@ patharray2 *_texpath(stringarray *s, penarray *p)
         cmd.push_back("-dNOPAUSE");
         cmd.push_back("-dBATCH");
         if(safe) cmd.push_back("-dSAFER");
-        cmd.push_back("-sDEVICE=eps2write");
+        cmd.push_back("-sDEVICE="+epsdriver);
         // Work around eps2write bug that forces all postscript to first page.
-        cmd.push_back("-sOutputFile="+psname2+"%d");
+        cmd.push_back("-sOutputFile="+psname2+(legacygs ? "" : "%d"));
         cmd.push_back(pdfname2);
         status=System(cmd,0,true,"gs");
-      
-        for(unsigned int i=1; i <= n ; ++i) {
-          ostringstream buf;
-          buf << psname2 << i;
-          const string& s=buf.str();
-          const char *name=s.c_str();
-          std::ifstream in(name,std::ios::binary);
+
+        if(legacygs) {
+          std::ifstream in(psname2.c_str());
           ps << in.rdbuf();
-          ps << "(>\n) print flush\n";
-          in.close();
-          if(!keep) unlink(name);
+        } else {
+          for(unsigned int i=1; i <= n ; ++i) {
+            ostringstream buf;
+            buf << psname2 << i;
+            const string& s=buf.str();
+            const char *name=s.c_str();
+            std::ifstream in(name,std::ios::binary);
+            ps << in.rdbuf();
+            ps << "(>\n) print flush\n";
+            in.close();
+            if(!keep) unlink(name);
+          }
         }
         ps.close();
       }
@@ -357,9 +368,7 @@ patharray2 *_texpath(stringarray *s, penarray *p)
       dcmd.push_back(dviname);
       status=System(dcmd,0,true,"dvips");
     }
-  }
-
-  if(status != 0)
+  } else
     error("texpath failed");
     
   if(!keep) { // Delete temporary files.
@@ -379,7 +388,7 @@ patharray2 *_texpath(stringarray *s, penarray *p)
       unlink(auxname(prefix,"tui").c_str());
     }
   }
-  return xe ? readpath(psname,keep,true,0.1) : 
+  return xe ? readpath(psname,keep,!legacygs,0.1) : 
     readpath(psname,keep,false,0.12,-1.0);
 }
 
@@ -425,7 +434,7 @@ patharray2 *textpath(stringarray *s, penarray *p)
   cmd2.push_back("-dBATCH");
   cmd2.push_back("-P");
   if(safe) cmd2.push_back("-dSAFER");
-  cmd2.push_back("-sDEVICE=eps2write");
+  cmd2.push_back("-sDEVICE="+getSetting<string>("epsdriver"));
   cmd2.push_back("-sOutputFile=-");
   cmd2.push_back("-");
   iopipestream gs(cmd2,"gs","Ghostscript");

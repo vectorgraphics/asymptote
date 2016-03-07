@@ -181,7 +181,7 @@ class asyPen(asyObj):
 
   def updateCode(self,mag=1.0):
     """Generate the pen's code"""
-    self.asyCode = "rgb(%g,%g,%g)"%self.color+"+"+str(self.width)
+    self.asyCode = "rgb({:g},{:g},{:g})+{:s}".format(self.color[0], self.color[1], self.color[2],str(self.width))
     if len(self.options) > 0:
       self.asyCode += "+"+self.options
 
@@ -226,23 +226,7 @@ class asyPen(asyObj):
   def tkColor(self):
     """Return the tk version of the pen's color"""
     self.computeColor()
-    r,g,b = self.color
-    r,g,b = int(256*r),int(256*g),int(256*b)
-    if r == 256:
-      r = 255
-    if g == 256:
-      g = 255
-    if b == 256:
-      b = 255
-    r,g,b = map(hex,(r,g,b))
-    r,g,b = r[2:],g[2:],b[2:]
-    if len(r) < 2:
-      r = '0'+r
-    if len(g) < 2:
-      g = '0'+g
-    if len(b) < 2:
-      b = '0'+b
-    return'#'+r+g+b
+    return '#{}'.format("".join(["{:02x}".format(min(int(256*a),255)) for a in self.color]))
 
 class asyPath(asyObj):
   """A python wrapper for an asymptote path"""
