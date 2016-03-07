@@ -1,8 +1,8 @@
 #!/bin/sh
-echo -n "Testing errors..."
+printf "Testing errors..."
 ./asy -noautoplain -debug errortest 2> errors.temp
 result=`diff errors.temp errors`
-if [ "$result" = "" ]; then
+if test "$result" = ""; then
 echo PASSED.
 else
 echo FAILED.
