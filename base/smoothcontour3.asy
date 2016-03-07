@@ -532,9 +532,10 @@ string operator cast(positionedvector vv) {
 
 // The angle, in degrees, between two vectors.
 real angledegrees(triple a, triple b) {
-  real lengthprod = max(abs(a) * abs(b), abs(dot(a,b)));
+  real dotprod = dot(a,b);
+  real lengthprod = max(abs(a) * abs(b), abs(dotprod));
   if (lengthprod == 0) return 0;
-  return aCos(dot(a,b) / lengthprod);
+  return aCos(dotprod / lengthprod);
 }
 
 // A path (single curved segment) between two points. At each point
@@ -713,6 +714,7 @@ path3 pathinface(positionedvector v1, positionedvector v2,
 /******** DRAWING IMPLICIT SURFACES ************/
 /***********************************************/
 
+// DEPRECATED
 // Quadrilateralization:
 // Produce a surface (array of *nondegenerate* Bezier patches) with a
 // specified three-segment boundary. The surface should approximate the
@@ -722,8 +724,9 @@ path3 pathinface(positionedvector v1, positionedvector v2,
 // specified rectangular region, returns a length-zero array.
 //
 // Dividing a triangle into smaller quadrilaterals this way is opposite
-// the usual trend in mathematics. However, the pathwithnormals algorithm
-// does a poor job of choosing a good surface when the boundary path does
+// the usual trend in mathematics. However, *before the introduction of bezier
+// triangles,* the pathwithnormals algorithm
+// did a poor job of choosing a good surface when the boundary path did
 // not consist of four positive-length segments.
 patch[] triangletoquads(path3 external, real f(triple), triple grad(triple),
                         triple a, triple b) {
@@ -802,7 +805,20 @@ patch[] triangletoquads(path3 external, real f(triple), triple grad(triple),
       patchwithnormals(quad2, grad)};   
 }
 
-// This function should be able to assume that the orientation is correct -- i.e., that
+// Attempts to fill the path external (which should by a cyclic path consisting of
+// three segments) with bezier triangle(s). Returns an empty array if it fails.
+//
+// In more detail: A single bezier triangle is computed using trianglewithnormals. The normals of
+// the resulting triangle at the midpoint of each edge are computed. If any of these normals
+// is in the negative f direction, the external triangle is subdivided into four external triangles
+// and the same procedure is applied to each. If one or more of them has an incorrectly oriented
+// edge normal, the function gives up and returns an empty array.
+//
+// Thus, the returned array consists of 0, 1, or 4 bezier triangles; no other array lengths
+// are possible.
+//
+// This function assumes that the path orientation is consistent with f (and its gradient)
+// -- i.e., that
 // at a corner, (tangent in) x (tangent out) is in the positive f direction.
 patch[] maketriangle(path3 external, real f(triple),
                      triple grad(triple), bool allowsubdivide = true) {
