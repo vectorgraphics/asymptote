@@ -1373,7 +1373,11 @@ string lookup(const string& symbol)
 {
   string s;
   mem::vector<string> cmd;
-  cmd.push_back("kpsewhich");
+  string kpsewhich="kpsewhich";
+  string fullname=stripFile(argv0)+kpsewhich;
+  std::ifstream exists(fullname.c_str());
+  if(!exists) fullname=kpsewhich;
+  cmd.push_back(fullname);
   cmd.push_back("--var-value="+symbol);
   iopipestream pipe(cmd);
   pipe >> s;
