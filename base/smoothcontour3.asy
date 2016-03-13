@@ -1448,6 +1448,7 @@ struct gridwithzeros {
   // grid will subdivide all the way to maxdepth if necessary to find points
   // on the surface.
   draw = new patch[](bool[] reportactive = null) {
+    if (alias(reportactive, null)) progress(true);
     // A list of all the patches not already drawn but known
     // to contain part of the surface. This "queue" is
     // actually implemented as stack for simplicity, since
@@ -1524,9 +1525,9 @@ struct gridwithzeros {
       if (reportface[ZLOW]) enqueue(i,j,k-1);
       if (reportface[ZHIGH]) enqueue(i,j,k+1);
       surface.append(toappend);
-      if (settings.verbose > 1 && alias(reportactive, null)) write(stdout, '.', flush);
+      if (alias(reportactive, null)) progress();
     }
-    if (settings.verbose > 1 && alias(reportactive, null)) write(stdout, '\n');
+    if (alias(reportactive, null)) progress(false);
     return surface;
   };
 }

@@ -1240,7 +1240,7 @@ void initSettings() {
                             true));
                             
   addOption(new boolSetting("quiet", 'q',
-                            "Suppress welcome message"));
+                            "Suppress welcome text and noninteractive stdout"));
   addOption(new boolSetting("localhistory", 0,
                             "Use a local interactive history file"));
   addOption(new IntSetting("historylines", 0, "n",

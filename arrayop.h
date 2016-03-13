@@ -323,10 +323,10 @@ void write(vm::stack *s)
   string S=pop<string>(s,emptystring);
   vm::item it=pop(s);
   bool defaultfile=isdefault(it);
-  camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
+  camp::ofile *f=defaultfile ? &camp::Stdout : vm::get<camp::ofile*>(it);
+  if(!f->isOpen() || !f->enabled()) return;
   
   size_t size=checkArray(a);
-  if(!f->isOpen()) return;
   if(S != "") f->write(S);
   f->write(first);
   for(size_t i=0; i < size; ++i) {
@@ -354,7 +354,8 @@ void writeArray(vm::stack *s)
   string S=pop<string>(s,emptystring);
   vm::item it=pop(s);
   bool defaultfile=isdefault(it);
-  camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
+  camp::ofile *f=defaultfile ? &camp::Stdout : vm::get<camp::ofile*>(it);
+  if(!f->enabled()) return;
   
   size_t asize=checkArray(a);
   size_t Asize=checkArray(A);

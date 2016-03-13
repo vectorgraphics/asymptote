@@ -228,4 +228,25 @@ string phantom(string s)
   return settings.tex != "none" ? "\phantom{"+s+"}" : "";
 }
 
+string[] spinner=new string[] {'|','/','-','\\'};
+spinner.cyclic=true;
+
+void progress(bool3 init=default)
+{
+  static int count=-1;
+  static int lastseconds=-1;
+  if(init == true) {
+    lastseconds=0;
+    write(stdout,' ',flush);
+  } else
+    if(init == default) {
+    int seconds=seconds();
+    if(seconds > lastseconds) {
+      lastseconds=seconds;
+      write(stdout,'\b'+spinner[++count],flush);
+    }
+  } else
+      write(stdout,'\b',flush);
+}
+
 restricted int ocgindex=0;
