@@ -503,7 +503,7 @@ public:
       return 0;
   }
   
-  bool enabled() {return !standard || settings::verbose || 
+  bool enabled() {return !standard || settings::verbose > 1 || 
       interact::interactive || !settings::getSetting<bool>("quiet");}
   
   void write(bool val) {*stream << (val ? "true " : "false ");}
