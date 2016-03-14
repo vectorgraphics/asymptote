@@ -83,6 +83,7 @@ const bool havegl=false;
 mode_t mask;
   
 string systemDir=ASYMPTOTE_SYSDIR;
+string defaultEPSdriver="eps2write";
 
 #ifndef __MSDOS__
   
@@ -98,7 +99,6 @@ string defaultPDFViewer="acroread";
 #endif  
 string defaultGhostscript="gs";
 string defaultGhostscriptLibrary="/usr/lib/libgs.so";
-string defaultEPSdriver="eps2write";
 string defaultDisplay="display";
 string defaultAnimate="animate";
 void queryRegistry() {}
