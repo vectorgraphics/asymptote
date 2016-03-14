@@ -12,9 +12,14 @@ import sys,os,signal,threading
 from subprocess import *
 from string import *
 import xasyOptions
-import Queue
-from Tkinter import *
 from tempfile import mkdtemp
+
+if sys.version_info >= (3, 0):
+  from tkinter import *
+  import queue
+else:
+  from Tkinter import *
+  import Queue as queue
 
 # PIL support is now mandatory due to rotations
 try:
@@ -50,14 +55,21 @@ def startQuickAsy():
       AsyTempDir=mkdtemp(prefix="asy_")+os.sep
     if sys.platform[:3] == 'win':
       quickAsy=Popen([xasyOptions.options['asyPath'],"-noV","-multiline","-q",
-               "-o"+AsyTempDir,"-inpipe=0","-outpipe=2"],stdin=PIPE,stderr=PIPE)
+                      "-o"+AsyTempDir,"-inpipe=0","-outpipe=2"],stdin=PIPE,
+                     stderr=PIPE,universal_newlines=True)
       fout=quickAsy.stdin
       fin=quickAsy.stderr
     else:
       (rx,wx) = os.pipe()
       (ra,wa) = os.pipe()
+      if sys.version_info >= (3, 4):
+        os.set_inheritable(rx, True)
+        os.set_inheritable(wx, True)
+        os.set_inheritable(ra, True)
+        os.set_inheritable(wa, True)
       quickAsy=Popen([xasyOptions.options['asyPath'],"-noV","-multiline","-q",
-               "-o"+AsyTempDir,"-inpipe="+str(rx),"-outpipe="+str(wa)])
+               "-o"+AsyTempDir,"-inpipe="+str(rx),"-outpipe="+str(wa)],
+                     close_fds=False)
       fout=os.fdopen(wx,'w')
       fin=os.fdopen(ra,'r')
     if quickAsy.returncode != None:
@@ -111,7 +123,7 @@ class asyTransform:
       self.x,self.y,self.xx,self.xy,self.yx,self.yy = initTuple
       self.deleted = delete
     else:
-      raise Exception,"Illegal initializer for asyTransform"
+      raise Exception("Illegal initializer for asyTransform")
 
   def getCode(self):
     """Obtain the asy code that represents this transform"""
@@ -135,7 +147,7 @@ class asyTransform:
       elif len(other) == 2:
         return ((self.t[0]+self.t[2]*other[0]+self.t[3]*other[1]),(self.t[1]+self.t[4]*other[0]+self.t[5]*other[1]))
       else:
-        raise Exception, "Illegal multiplier of %s"%str(type(other))
+        raise Exception("Illegal multiplier of {:s}".format(str(type(other))))
     elif isinstance(other,asyTransform):
       result = asyTransform((0,0,0,0,0,0))
       result.x = self.x+self.xx*other.x+self.xy*other.y
@@ -147,7 +159,7 @@ class asyTransform:
       result.t = (result.x,result.y,result.xx,result.xy,result.yx,result.yy)
       return result
     else:
-      raise Exception, "Illegal multiplier of %s"%str(type(other))
+      raise Exception("Illegal multiplier of {:s}".format(str(type(other))))
 
 def identity():
   return asyTransform((0,0,1,0,0,1))
@@ -337,7 +349,7 @@ class asyPath(asyObj):
       line=fin.readline()
       line=line.replace("\n","")
       pathStrLines.append(line)
-    oneLiner = "".join(split(join(pathStrLines)))
+    oneLiner = "".join(pathStrLines).replace(" ", "")
     splitList = oneLiner.split("..")
     nodes = [a for a in splitList if a.find("controls")==-1]
     self.nodeSet = []
@@ -421,7 +433,7 @@ class xasyItem:
   def asyfy(self,mag=1.0):
     self.removeFromCanvas()
     self.imageList = []
-    self.imageHandleQueue = Queue.Queue()
+    self.imageHandleQueue = queue.Queue()
     worker = threading.Thread(target=self.asyfyThread,args=(mag,))
     worker.start()
     item = self.imageHandleQueue.get()
@@ -445,23 +457,22 @@ class xasyItem:
     fout.write("reset;\n")
     fout.write("initXasyMode();\n")
     fout.write("atexit(null);\n")
-    global console
     for line in self.getCode().splitlines():
       fout.write(line+"\n");
-    fout.write("deconstruct(%f);\n"%mag)
+    fout.write("deconstruct({:f});\n".format(mag))
     fout.flush()
-    format = "png"
-    maxargs = int(split(fin.readline())[0])
+    maxargs = int(fin.readline().split()[0])
     boxes=[]
     batch=0
     n=0
     text = fin.readline()
-    template=AsyTempDir+"%d_%d.%s"
+    # template=AsyTempDir+"%d_%d.%s"
+    fileformat = "png"
     def render():
         for i in range(len(boxes)):
-          l,b,r,t = [float(a) for a in split(boxes[i])]
-          name=template%(batch,i+1,format)
-          self.imageHandleQueue.put((name,format,(l,b,r,t),i))
+          l,b,r,t = [float(a) for a in boxes[i].split()]
+          name="{:s}{:d}_{:d}.{:s}".format(AsyTempDir,batch,i+1,fileformat)
+          self.imageHandleQueue.put((name,fileformat,(l,b,r,t),i))
     while text != "Done\n" and text != "Error\n":
       boxes.append(text)
       text = fin.readline()
@@ -579,14 +590,14 @@ class xasyShape(xasyDrawnItem):
 
   def __str__(self):
     """Create a string describing this shape"""
-    return "xasyShape code:%s"%("\n\t".join(self.getCode().splitlines()))
+    return "xasyShape code:{:s}".format("\n\t".join(self.getCode().splitlines()))
 
 class xasyFilledShape(xasyShape):
   """A filled shape drawn on the GUI"""
   def __init__(self,path,pen=asyPen(),transform=identity()):
     """Initialize this shape with a path, pen, and transform"""
     if path.nodeSet[-1] != 'cycle':
-      raise Exception,"Filled paths must be cyclic"
+      raise Exception("Filled paths must be cyclic")
     xasyShape.__init__(self,path,pen,transform)
 
   def updateCode(self,mag=1.0):
@@ -645,7 +656,7 @@ class xasyFilledShape(xasyShape):
 
   def __str__(self):
     """Return a string describing this shape"""
-    return "xasyFilledShape code:%s"%("\n\t".join(self.getCode().splitlines()))
+    return "xasyFilledShape code:{:s}".format("\n\t".join(self.getCode().splitlines()))
 
 class xasyText(xasyItem):
   """Text created by the GUI"""
@@ -674,11 +685,11 @@ class xasyText(xasyItem):
     if self.onCanvas == None:
       self.onCanvas = canvas
     elif self.onCanvas != canvas:
-      raise Exception,"Error: item cannot be added to more than one canvas"
+      raise Exception("Error: item cannot be added to more than one canvas")
     self.asyfy(mag)
 
   def __str__(self):
-    return "xasyText code:%s"%("\n\t".join(self.getCode().splitlines()))
+    return "xasyText code:{:s}".format("\n\t".join(self.getCode().splitlines()))
 
 class xasyScript(xasyItem):
   """A set of images create from asymptote code. It is always deconstructed."""
@@ -702,7 +713,7 @@ class xasyScript(xasyItem):
       for xform in self.transform:
         if not isFirst:
           self.asyCode+=",\n"
-        self.asyCode += "indexedTransform(%d,%s)"%(count,str(xform))
+        self.asyCode += "indexedTransform({:d},{:s})".format(count,str(xform))
         isFirst = False
         count += 1
       self.asyCode += ");\n"
@@ -738,7 +749,7 @@ class xasyScript(xasyItem):
     if self.onCanvas == None:
       self.onCanvas = canvas
     elif self.onCanvas != canvas:
-      raise Exception,"Error: item cannot be added to more than one canvas"
+      raise Exception("Error: item cannot be added to more than one canvas")
     self.asyfy(mag)
 
   def __str__(self):

@@ -10,20 +10,26 @@
 #
 ###########################################################################
 
-from Tkinter import *
-import xasyOptions
-import tkSimpleDialog
-import xasyColorPicker
-import tkMessageBox
-import tkFileDialog
-import tkColorChooser
 import os
 import sys
+import xasyOptions
+import xasyColorPicker
 
-class xasyOptionsDlg(tkSimpleDialog.Dialog):
+if sys.version_info >= (3, 0):
+  from tkinter import *
+  from tkinter import simpledialog, messagebox, filedialog
+else:
+  # python2
+  from Tkinter import *
+  import tkSimpleDialog as simpledialog
+  import tkMessageBox   as messagebox
+  import tkFileDialog   as filedialog
+  # import tkColorChooser as colorchooser
+
+class xasyOptionsDlg(simpledialog.Dialog):
   """A dialog to interact with users about their preferred settings"""
   def __init__(self,master=None):
-    tkSimpleDialog.Dialog.__init__(self,master,"xasy Options")
+    simpledialog.Dialog.__init__(self,master,"xasy Options")
 
   def body(self,master):
     optFrame = Frame(master)
@@ -116,9 +122,9 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
 
   def findEEPath(self):
     if sys.platform[:3] == 'win': #for windows, wince, win32, etc
-      file=tkFileDialog.askopenfile(filetypes=[("Programs","*.exe"),("All files","*")],title="Choose External Editor",parent=self)
+      file=filedialog.askopenfile(filetypes=[("Programs","*.exe"),("All files","*")],title="Choose External Editor",parent=self)
     else:
-      file=tkFileDialog.askopenfile(filetypes=[("All files","*")],title="Choose External Editor",parent=self)
+      file=filedialog.askopenfile(filetypes=[("All files","*")],title="Choose External Editor",parent=self)
     if file != None:
       name = os.path.abspath(file.name)
       file.close()
@@ -128,9 +134,9 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
 
   def findAsyPath(self):
     if sys.platform[:3] == 'win': #for windows, wince, win32, etc
-      file=tkFileDialog.askopenfile(filetypes=[("Programs","*.exe"),("All files","*")],title="Find Asymptote Executable",parent=self)
+      file=filedialog.askopenfile(filetypes=[("Programs","*.exe"),("All files","*")],title="Find Asymptote Executable",parent=self)
     else:
-      file=tkFileDialog.askopenfile(filetypes=[("All files","*")],title="Find Asymptote Executable",parent=self)
+      file=filedialog.askopenfile(filetypes=[("All files","*")],title="Find Asymptote Executable",parent=self)
     if file != None:
       name = os.path.abspath(file.name)
       file.close()
@@ -183,13 +189,13 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
     #validate the color
     hexdigits = '0123456789abcdef'
     if not self.validateAColor(self.pc):
-      tkMessageBox.showerror("xasy Options","Invalid pen color.\r\n"+self.pc,parent=self)
+      messagebox.showerror("xasy Options","Invalid pen color.\r\n"+self.pc,parent=self)
       return False
     #validate the width
     try:
       test = float(self.pw.get())
     except:
-      tkMessageBox.showerror("xasy Options","Pen width must be a number.",parent=self)
+      messagebox.showerror("xasy Options","Pen width must be a number.",parent=self)
       return False
 
     #validate the options
@@ -200,7 +206,7 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
       test = int(self.axs.get())
       test = int(self.ays.get())
     except:
-      tkMessageBox.showerror("xasy Options","Axes' x- and y-spacing must be numbers.",parent=self)
+      messagebox.showerror("xasy Options","Axes' x- and y-spacing must be numbers.",parent=self)
       return False
 
     #validate the grid spacing
@@ -208,15 +214,15 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
       test = int(self.gxs.get())
       test = int(self.gys.get())
     except:
-      tkMessageBox.showerror("xasy Options","Grid's x- and y-spacing  must be numbers.",parent=self)
+      messagebox.showerror("xasy Options","Grid's x- and y-spacing  must be numbers.",parent=self)
       return False
 
     if not self.validateAColor(self.ac):
-      tkMessageBox.showerror("xasy Options","Invalid axis color.\r\n"+self.ac,parent=self)
+      messagebox.showerror("xasy Options","Invalid axis color.\r\n"+self.ac,parent=self)
       return False
 
     if not self.validateAColor(self.gc):
-      tkMessageBox.showerror("xasy Options","Invalid grid color.\r\n"+self.gc,parent=self)
+      messagebox.showerror("xasy Options","Invalid grid color.\r\n"+self.gc,parent=self)
       return False
 
     return True
@@ -225,4 +231,4 @@ if __name__ == '__main__':
   root = Tk()
   xasyOptions.load()
   d = xasyOptionsDlg(root)
-  print d.result
+  print (d.result)

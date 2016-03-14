@@ -10,8 +10,15 @@
 #
 ############################################################################
 
-from Tkinter import *
-import tkColorChooser
+import sys
+
+if sys.version_info >= (3, 0):
+  from tkinter import *
+  from tkinter import colorchooser
+else:
+  from Tkinter import *
+  import tkColorChooser as colorchooser
+
 asyColors = { "black":(0,0,0),
   "white":(1,1,1),
   "gray":(0.5,0.5,0.5),
@@ -201,8 +208,8 @@ class xasyColorDlg(Toplevel):
     """Close the dialog forcibly"""
     self.destroy()
   def getCustom(self):
-    """Request a custom RGB color using a tkColorChooser"""
-    result=tkColorChooser.askcolor(initialcolor=RGB255hex(RGBreal255(self.color)),title="Custom Color",parent=self)
+    """Request a custom RGB color using a colorchooser"""
+    result=colorchooser.askcolor(initialcolor=RGB255hex(RGBreal255(self.color)),title="Custom Color",parent=self)
     if result != (None,None):
       self.setColor((result[0][0]/255.0,result[0][1]/255.0,result[0][2]/255.0))
   def cancel(self):
@@ -220,7 +227,7 @@ class xasyColorDlg(Toplevel):
     """Use this method to prompt for a color. It returns the new color or the old color if the user cancelled the operation.
 
       e.g:
-        print xasyColorDlg(Tk()).getColor((1,1,0))
+        print (xasyColorDlg(Tk()).getColor((1,1,0)))
     """
     self.setColor(initialColor)
     self.oldColor = initialColor

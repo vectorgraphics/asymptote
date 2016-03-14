@@ -53,11 +53,11 @@ iconB64 = {
 def createGIF(key):
   """Create a gif file from the data in the iconB64 list of icons"""
   if key not in iconB64.keys():
-    print "Error: %s not found in icon list."%key
-    print "Available icons:",iconB64.keys()
+    print ("Error: {:s} not found in icon list.".format(key))
+    print ("Available icons:",iconB64.keys())
   else:
-    print "Generating %s.gif"%key
-    open("%s.gif"%key,"w").write(base64.decodestring(iconB64[key]))
+    print ("Generating {:s}.gif".format(key))
+    open("{:s}.gif".format(key),"w").write(base64.decodestring(iconB64[key]))
 
 def createGIFs():
   """Create the files for all the icons in iconB64"""
@@ -69,24 +69,24 @@ def createStrFromGif(gifFile):
   return base64.encodestring(gifFile.read())
 
 if __name__=='__main__':
-  print "Testing the xasyGUIIcons module."
-  print "Generating all the GIFs:"
+  print ("Testing the xasyGUIIcons module.")
+  print ("Generating all the GIFs:")
   createGIFs()
-  print "Checking consistency of all icons in iconB64"
+  print ("Checking consistency of all icons in iconB64")
   allpassed = True
   for icon in iconB64.keys():
-    print ("Checking %s"%icon),
-    if createStrFromGif(open("%s.gif"%icon,"rb")) == iconB64[icon]:
-      print "\tPassed."
+    print ("Checking {:s}".format(icon))
+    if createStrFromGif(open("{:s}.gif".format(icon),"rb")) == iconB64[icon]:
+      print ("\tPassed.")
     else:
-      print "\tFailed."
+      print ("\tFailed.")
       allpassed= False
   if allpassed:
-    print "All files succeeded."
+    print ("All files succeeded.")
   s = raw_input("Delete generated files? (y/n)")
   if s == "y":
     for name in iconB64.keys():
-      print "Deleting %s.gif"%name,
+      print ("Deleting {:s}.gif".format(name))
       os.unlink(name+".gif")
-      print "\tdone"
-  print "Done"
+      print ("\tdone")
+  print ("Done")
