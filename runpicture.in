@@ -525,6 +525,7 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
         cmd.push_back("-q");
         cmd.push_back("-dNOPAUSE");
         cmd.push_back("-dBATCH");
+        cmd.push_back("-P");
         cmd.push_back("-sDEVICE=pngalpha");
         cmd.push_back("-dEPSCrop");
         if(safe)

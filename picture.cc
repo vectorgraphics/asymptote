@@ -679,6 +679,7 @@ bool picture::postprocess(const string& prename, const string& outname,
         cmd.push_back("-q");
         cmd.push_back("-dNOPAUSE");
         cmd.push_back("-dBATCH");
+        cmd.push_back("-P");
         cmd.push_back("-sDEVICE=pngalpha");
         cmd.push_back("-dEPSCrop");
         if(safe)
