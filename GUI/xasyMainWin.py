@@ -64,12 +64,9 @@ class xasyMainWin:
     self.bindGlobalEvents()
     self.createWidgets()
     self.resetGUI()
-    if sys.platform[:3] == "win":
-      site="http://effbot.org/downloads/PIL-1.1.7.win32-py2.7.exe"
-    else:
-      site="http://effbot.org/downloads/Imaging-1.1.7.tar.gz" 
+    site=""
     if not PILAvailable:
-      messagebox.showerror("Failed Dependencies","An error occurred loading the required PIL library. Please install "+site)
+      messagebox.showerror("Failed Dependencies","An error occurred loading the required PIL library. Please install Pillow from http://pypi.python.org/pypi/Pillow")
       self.parent.destroy()
       sys.exit(1)
     if file != None:
