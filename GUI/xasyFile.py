@@ -211,7 +211,7 @@ def parsePathExpression(expr):
     for a in range(len(nodes)):
       if nodes[a] != "cycle":
         nodes[a] = eval(nodes[a])
-    controls = [eval(a.replace("controls", "").split("and")) for a in tokens if a.startswith("controls")]
+    controls = [[eval(b) for b in a.replace("controls", "").split("and")] for a in tokens if a.startswith("controls")]
     result.initFromControls(nodes, controls)
   else:
     #parse a path without control points
