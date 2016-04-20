@@ -2,7 +2,7 @@
  * dec.h
  * Andy Hammerlindl 2002/8/29
  *
- * Represents the abstract syntax tree for declatations in the language.
+ * Represents the abstract syntax tree for declarations in the language.
  * Also included is abstract syntax for types as they are most often
  * used with declarations.
  *****/
@@ -622,6 +622,13 @@ class typedec : public dec {
 public:
   typedec(position pos, vardec *body)
     : dec(pos), body(body) {}
+
+  typedec(position pos, decidstart *id_with_signature, ty *return_type) 
+	  : dec(pos)
+	{
+    decid *di = new decid(id_with_signature->getPos(), id_with_signature);
+    body = new vardec(return_type->getPos(), return_type, di);
+  }
 
   void prettyprint(ostream &out, Int indent);
 
