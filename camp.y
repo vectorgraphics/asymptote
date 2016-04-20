@@ -403,15 +403,15 @@ typedec:
   STRUCT ID block  { $$ = new recorddec($1, $2.sym, $3); }
 | TYPEDEF vardec   { $$ = new typedec($1, $2); }
 | USING ID ASSIGN type ';'
-									 { decidstart *dis = new decidstart($2.pos, $2.sym);
-									   $$ = new typedec($1, dis, $4); }
+                   { decidstart *dis = new decidstart($2.pos, $2.sym);
+                     $$ = new typedec($1, dis, $4); }
 | USING ID ASSIGN type '(' ')' ';'
-									 { decidstart *dis = new fundecidstart($2.pos, $2.sym,
-										                                     0, new formals($5));
-										 $$ = new typedec($1, dis, $4); }
+                   { decidstart *dis = new fundecidstart($2.pos, $2.sym,
+                                                         0, new formals($5));
+                     $$ = new typedec($1, dis, $4); }
 | USING ID ASSIGN type '(' formals ')' ';'
-									 { decidstart *dis = new fundecidstart($2.pos, $2.sym, 0, $6);
-										 $$ = new typedec($1, dis, $4); }
+                   { decidstart *dis = new fundecidstart($2.pos, $2.sym, 0, $6);
+                     $$ = new typedec($1, dis, $4); }
 ;
 
 slice:
