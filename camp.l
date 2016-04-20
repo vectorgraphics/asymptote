@@ -359,7 +359,7 @@ break              {adjust(); return BREAK; }
 continue           {adjust(); return CONTINUE; }
 struct             {adjust(); return STRUCT; }
 typedef            {adjust(); return TYPEDEF; }
-using							 {adjust(); return USING; }
+using              {adjust(); return USING; }
 new                {adjust(); return NEW; }
 access             {adjust(); return ACCESS; }
 import             {adjust(); return IMPORT; }

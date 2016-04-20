@@ -624,8 +624,8 @@ public:
     : dec(pos), body(body) {}
 
   typedec(position pos, decidstart *id_with_signature, ty *return_type) 
-	  : dec(pos)
-	{
+    : dec(pos)
+  {
     decid *di = new decid(id_with_signature->getPos(), id_with_signature);
     body = new vardec(return_type->getPos(), return_type, di);
   }
