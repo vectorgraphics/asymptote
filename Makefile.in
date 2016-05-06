@@ -114,7 +114,7 @@ asy:	version
 	fi
 
 version: $(GCLIB) $(FILES:=.o)
-	if test ! -e revision.cc -o "$(revision)" != "$(last)"; then     \
+	if test ! -s revision.cc -o "$(revision)" != "$(last)"; then     \
 	  echo $(REVISION)\"$(revision)\"\; > revision.cc; \
 	fi
 	$(CXX) $(OPTS) $(INCL) -o revision.o -c revision.cc;
