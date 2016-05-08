@@ -300,7 +300,8 @@ struct revolution {
 	path3 p1=subpath(p,0,t);
 	path3 p2=subpath(p,t,length(p));
 	if(length(p1) > 0 &&
-	   abs(midpoint(p1)-camera) <= abs(midpoint(p2)-camera)) {
+           (length(p2) == 0 || 
+            abs(midpoint(p1)-camera) <= abs(midpoint(p2)-camera))) {
 	  s.longitudinal.front.push(p1);
           s.longitudinal.back.push(p2);
 	} else {
