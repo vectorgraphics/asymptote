@@ -652,7 +652,7 @@ with @code{./configure --disable-gc}. For a list of other configuration
 options, say @code{./configure --help}. For example, one can tell
 configure to look for header files and libraries in nonstandard locations:
 @verbatim
-./configure CXXFLAGS=-I/opt/usr/include LDFLAGS=-L/opt/usr/lib
+./configure CXXFLAGS=-I/opt/local/include LDFLAGS=-L/opt/local/lib
 @end verbatim
 
 If you are compiling @code{Asymptote} with @code{gcc}, you will need a
