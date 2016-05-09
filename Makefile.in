@@ -94,7 +94,7 @@ latexdir = $(DESTDIR)@latexdir@
 contextdir = $(DESTDIR)@contextdir@
 INSTALL = @INSTALL@
 REVISION = "const char *REVISION="
-last = $(shell cat revision.cc | sed -e 's/.*\"\(.*\)\";/\\1/')
+last = $(shell cat revision.cc | sed -e 's/.*\"\(.*\)\";/\1/')
 usinggit = $(shell if test -d ".git"; then echo yes; fi)
 ifeq ($(usinggit),yes)
 	revision = $(shell LC_ALL="C" git describe | sed -e 's/git//' \
