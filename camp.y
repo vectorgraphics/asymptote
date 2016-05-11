@@ -108,7 +108,7 @@ using mem::string;
             DOTS COLONS DASHES INCR LONGDASH
             CONTROLS TENSION ATLEAST CURL
             COR CAND BAR AMPERSAND EQ NEQ LT LE GT GE CARETS
-            '+' '-' '*' '/' '%' '^' OPERATOR
+            '+' '-' '*' '/' '%' '#' '^' OPERATOR
 %token <pos> LOOSE ASSIGN '?' ':'
              DIRTAG JOIN_PREC AND
              '{' '}' '(' ')' '.' ','  '[' ']' ';' ELLIPSIS
@@ -137,7 +137,7 @@ using mem::string;
 %left  CURL '{' '}'
 
 %left  '+' '-' 
-%left  '*' '/' '%' LIT
+%left  '*' '/' '%' '#' LIT
 %left  UNARY
 %right '^'
 %left  EXP_IN_PARENS_RULE
@@ -478,6 +478,7 @@ exp:
 | exp '*' exp      { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | exp '/' exp      { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | exp '%' exp      { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
+| exp '#' exp      { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | exp '^' exp      { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | exp LT exp       { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | exp LE exp       { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }

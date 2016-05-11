@@ -4360,33 +4360,40 @@ the @code{Asymptote} base module @code{plain}.
 @cindex binary operators
 @cindex boolean operators
 @cindex logical operators
-@cindex integer division
 @cindex @code{quotient}
 
 @code{Asymptote} uses the standard binary arithmetic operators.
 However, when one integer is divided by another, both arguments are
 converted to real values before dividing and a real quotient is
-returned (since this is usually what is intended). The function
-@code{int quotient(int x, int y)} returns the greatest integer less
-than or equal to @code{x/y}. In all other cases both operands are
-promoted to the same type, which will also be the type of the result:
+returned (since this is typically what is intended; otherwise
+one can use the function @code{int quotient(int x, int y)}, which returns
+greatest integer less than or equal to @code{x/y}). In all other cases both
+operands are promoted to the same type, which will also be the 
+type of the result:
 @table @code
 @cindex @code{+}
 @item +
 addition
 @cindex @code{-}
 @item -
-subtraction
+subtractiona
 @cindex @code{*}
 @item *
 multiplication
 @cindex @code{/}
 @item /
 division
+@cindex integer division
+@cindex @code{#}
+@item #
+integer division; equivalent to @code{quotient(x,y)}. Noting that the
+@code{Python3} community adopted our comment symbol (@code{//}) for
+integer division, we decided to reciprocate and use their comment
+symbol for integer division in @code{Asymptote}!
 @cindex @code{%}
 @item %
 modulo; the result always has the same sign as the divisor. 
-In particular, this makes @code{q*quotient(p,q)+p%q == p} for all
+In particular, this makes @code{q*(p # q)+p % q == p} for all
 integers @code{p} and nonzero integers @code{q}.
 @cindex @code{^}
 @item ^
@@ -4475,7 +4482,7 @@ for nonintegral built-in arithmetic types @code{T}. If @code{a} and
 @cindex @code{--}
 
 As in C, each of the arithmetic operators @code{+}, @code{-}, @code{*},
-@code{/}, @code{%}, and @code{^} can be used as a self operator. 
+@code{/}, @code{#}, @code{%}, and @code{^} can be used as a self operator. 
 The prefix operators @code{++} (increment by one) and @code{--} (decrement
 by one) are also defined.
 For example,

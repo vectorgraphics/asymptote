@@ -740,6 +740,7 @@ void addOperators(venv &ve)
                         stringArray3());
   
   addOps<Int,mod>(ve,primInt(),SYM_MOD,IntArray());
+  addOps<Int,quotient>(ve,primInt(),SYM_QUOTIENT,IntArray());
   addOps<double,mod>(ve,primReal(),SYM_MOD,realArray());
   
   addRestFunc(ve,diagonal<Int>,IntArray2(),SYM(diagonal),IntArray());
