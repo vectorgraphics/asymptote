@@ -223,15 +223,19 @@ AC_SUBST(INCL)
 AC_SUBST(OPTIONS)
 
 # Checks for libraries.
-AC_CHECK_LIB([ncurses], [setupterm], [AC_DEFINE(HAVE_LIBCURSES)
-			 LIBS=$LIBS"-lncurses "],
-			 AC_CHECK_LIB([curses], [setupterm]))
 AC_CHECK_LIB([m], [sqrt],,
 AC_MSG_ERROR([*** Please install libm on your system ***]))
 AC_CHECK_LIB([z], [deflate],,
 AC_MSG_ERROR([*** Please install libz or zlib-devel on your system ***]))
 AX_PTHREAD
-AC_CHECK_LIB([sigsegv], [stackoverflow_install_handler])
+
+AC_ARG_ENABLE(sigsegv,
+[AS_HELP_STRING(--enable-sigsegv[[[=yes]]],enable GNU Stack Overflow Handler)])
+
+if test "x$enable_sigsegv" != "xno"; then
+  AC_CHECK_LIB([sigsegv], [stackoverflow_install_handler])
+fi
+
 AC_CHECK_LIB([rt], [sched_yield])
 
 AC_ARG_ENABLE(readline,
@@ -249,12 +253,15 @@ abort
 ])],AC_CHECK_LIB([readline], [history_list],,
 AC_MSG_NOTICE(*** Could not find GNU libreadline 4.3 or later: will compile without readline support ***)),
 AC_MSG_NOTICE(*** Could not find GNU readline 4.3 or later: will compile without readline support ***))
+AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h], [break])
+AC_CHECK_LIB([ncurses], [setupterm], [AC_DEFINE(HAVE_LIBCURSES)
+			 LIBS=$LIBS"-lncurses "],
+			 AC_CHECK_LIB([curses], [setupterm]))
 fi
 
 # Checks for header files.
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([fenv.h stddef.h libintl.h])
-AC_CHECK_HEADERS([ncurses/curses.h ncurses.h curses.h], [break])
 AC_CHECK_HEADERS(fpu_control.h)
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "xstream.h"])],

@@ -1580,8 +1580,8 @@ string texprogram()
 Int getScroll() 
 {
   Int scroll=settings::getSetting<Int>("scroll");
-#ifdef HAVE_LIBCURSES  
   if(scroll < 0) {
+#ifdef HAVE_LIBCURSES  
     static char *terminal=NULL;
     if(!terminal)
       terminal=getenv("TERM");
@@ -1593,9 +1593,10 @@ Int getScroll()
 #endif
         scroll=0;
     } else scroll=0;
-
-  }
+#else
+    scroll=0;
 #endif
+  }
   return scroll;
 }
 
