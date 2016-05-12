@@ -24,6 +24,9 @@ using vm::array;
 void bezierTriangle(const triple *g, bool straight, double ratio,
                     bool havebillboard, triple center, GLfloat *colors);
   
+void bezierPatch(const triple *g, bool straight, double ratio,
+                 bool havebillboard, triple center, GLfloat *colors);
+
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
 {
   pen p=vm::read<camp::pen>(pens,j);
@@ -347,6 +350,9 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
         store(Controls+3*i,controls[i]);
     }
     
+    bezierPatch(controls,straight,size3.length()/size2,havebillboard,center,
+                 colors ? v : NULL);
+  /*
     static GLfloat bezier[]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
     gluBeginSurface(nurb);
     gluNurbsSurface(nurb,8,bezier,8,bezier,12,3,Controls,4,4,GL_MAP2_VERTEX_3);
@@ -356,6 +362,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
     }
     
     gluEndSurface(nurb);
+    */
   } else {
     GLfloat Vertices[12];
     
