@@ -9573,9 +9573,9 @@ To receive announcements of upcoming releases, please subscribe to
 If you find a bug in @code{Asymptote}, please check (if possible)
 whether the bug is still present in the latest @code{git}
 developmental code (@pxref{Git}) before submitting a bug
-report. New bugs can be submitted using the Bug Tracking System at
+report. New bugs can be reported at
 @quotation
-@url{http://sourceforge.net/projects/asymptote}
+@url{https://github.com/vectorgraphics/asymptote/issues}
 @end quotation
 @noindent
 To see if the bug has already been fixed,
