@@ -41,7 +41,7 @@ inline triple displacement2(const triple& z, const triple& u, const triple& n)
   return n != triple(0,0,0) ? dot(Z,n)*n : Z;
 }
   
-triple displacement(const triple *controls)
+inline triple displacement(const triple *controls)
 {
   triple z0=controls[0];
   triple z1=controls[6];
@@ -185,13 +185,9 @@ struct Render
   void mesh(const triple *p, const GLuint *I)
   {
     // Draw the frame of the control points of a cubic Bezier mesh
-    GLuint I0=I[0];
-    GLuint I1=I[1];
-    GLuint I2=I[2];
-
-    indices.push_back(I0);
-    indices.push_back(I1);
-    indices.push_back(I2);
+    indices.push_back(I[0]);
+    indices.push_back(I[1]);
+    indices.push_back(I[2]);
   }
   
 // Pi is the full precision value indexed by Ii.
