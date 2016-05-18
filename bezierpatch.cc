@@ -227,6 +227,53 @@ struct RenderPatch
       GLuint I[]={I0,I1,I2,I3};
       mesh(p,I);
     } else { // Triangle is not flat
+        /* Control points/nodes are labelled as follows:
+         
+          Coordinates
+         +
+          Ordering
+         
+         03    13    23    33
+         +-----+-----+-----+
+         |3    |7    |11   |15
+         |     |     |     |
+         |     |     |     |
+         |02   |12   |22   |32
+         +-----+-----+-----+
+         |2    |6    |10   |14
+         |     |     |     |
+         |     |     |     |
+         |01   |11   |21   |31
+         +-----+-----+-----+
+         |1    |5    |9    |13
+         |     |     |     |
+         |     |     |     |
+         |00   |10   |20   |30
+         +-----+-----+-----+
+         0     4     8     12
+         
+         Key points and patch sections are labelled as follows:
+         P refers to a corner
+         M refers to a midpoint
+         C refers to the patch center
+         S refers to a patch section
+         
+                    M2
+           +--------+--------+
+           |P3      |      P2|
+           |        |        |
+           |   S3   |   S2   |
+           |        |        |
+           |        |C4      |
+         M3+--------+--------+M1
+           |        |        |
+           |        |        |
+           |   S0   |   S1   |
+           |        |        |
+           |P0      |      P1|
+           +--------+--------+
+                    M0
+         */
 
       Split3 c0(p[0],p[1],p[2],p[3]);
       Split3 c1(p[4],p[5],p[6],p[7]);
