@@ -255,7 +255,6 @@ struct RenderPatch
          Key points and patch sections are labelled as follows:
          P refers to a corner
          M refers to a midpoint
-         C refers to the patch center
          S refers to a patch section
          
                     M2
@@ -264,7 +263,7 @@ struct RenderPatch
            |        |        |
            |   S3   |   S2   |
            |        |        |
-           |        |C4      |
+           |        |M4      |
          M3+--------+--------+M1
            |        |        |
            |        |        |
@@ -304,34 +303,39 @@ struct RenderPatch
       triple m3=s3[0];
       triple m4=s0[15];
       
-      /*
       if(C0) {
-        GLfloat c0[4],c1[4],c2[4];
+        GLfloat c0[4],c1[4],c2[4],c3[4],c4[4];
         for(int i=0; i < 4; ++i) {
-          c0[i]=0.5*(C1[i]+C2[i]);
-          c1[i]=0.5*(C0[i]+C2[i]);
-          c2[i]=0.5*(C0[i]+C1[i]);
+          c0[i]=0.5*(C0[i]+C1[i]);
+          c1[i]=0.5*(C1[i]+C2[i]);
+          c2[i]=0.5*(C2[i]+C3[i]);
+          c3[i]=0.5*(C3[i]+C0[i]);
+          c4[i]=0.25*(C0[i]+C1[i]+C2[i]+C3[i]);
         }
       
-        GLuint i0=vertex(p0,normal(l300,r012,r021,r030,u201,u102,l030),c0);
-        GLuint i1=vertex(p1,normal(r030,u201,u102,l030,l120,l210,l300),c1);
-        GLuint i2=vertex(p2,normal(l030,l120,l210,l300,r012,r021,r030),c2);
-          
-        render(l,n,I0,i2,i1,P0,p2,p1,flat1,flat2,false,C0,c2,c1);
-        render(r,n,i2,I1,i0,p2,P1,p0,flat1,false,flat3,c2,C1,c0);
-        render(u,n,i1,i0,I2,p1,p0,P2,false,flat2,flat3,c1,c0,C2);
-        render(c,n,i0,i1,i2,p0,p1,p2,false,false,false,c0,c1,c2);
+        GLuint i0=vertex(m0,normal(s0[0],s0[4],s0[8],m0,s0[13],s0[14],s0[15]),c0);
+        GLuint i1=vertex(m1,normal(s1[12],s1[13],s1[14],m1,s1[11],s1[7],s1[3]),c1);
+        GLuint i2=vertex(m2,normal(s2[15],s2[11],s2[7],m2,s2[2],s2[1],s2[0]),c2);
+        GLuint i3=vertex(m3,normal(s3[3],s3[2],s3[1],m3,s3[4],s3[8],s3[12]),c3);
+        GLuint i4=vertex(m4,normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]),c4);
+        render(s0,n,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,
+               C0,c0,c4,c3);
+        render(s1,n,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false,
+               c0,C1,c1,c4);
+        render(s2,n,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false,
+               c4,c1,C2,c2);
+        render(s3,n,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3,
+               c3,c4,c2,C3);
       } else {
-      */ {
         GLuint i0=vertex(m0,normal(s0[0],s0[4],s0[8],m0,s0[13],s0[14],s0[15]));
         GLuint i1=vertex(m1,normal(s1[12],s1[13],s1[14],m1,s1[11],s1[7],s1[3]));
         GLuint i2=vertex(m2,normal(s2[15],s2[11],s2[7],m2,s2[2],s2[1],s2[0]));
         GLuint i3=vertex(m3,normal(s3[3],s3[2],s3[1],m3,s3[4],s3[8],s3[12]));
         GLuint i4=vertex(m4,normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]));
-      render(s0,n,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3);
-      render(s1,n,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false);
-      render(s2,n,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false);
-      render(s3,n,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3);
+        render(s0,n,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3);
+        render(s1,n,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false);
+        render(s2,n,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false);
+        render(s3,n,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3);
       }
     }
   }
@@ -354,20 +358,18 @@ struct RenderPatch
     triple p15=p[15];
 
     if(c0) {
-      /*
       GLfloat *c1=c0+4;
       GLfloat *c2=c0+8;
       GLfloat *c3=c0+12;
     
-      i0=vertex(p0, normal(p3,p[2],p[1],p0,p[4],p[8],p12),c0);
+      i0=vertex(p0,normal(p3,p[2],p[1],p0,p[4],p[8],p12),c0);
       i1=vertex(p12,normal(p0,p[4],p[8],p12,p[13],p[14],p15),c1);
       i2=vertex(p15,normal(p12,p[13],p[14],p15,p[11],p[7],p3),c2);
       i3=vertex(p3,normal(p15,p[11],p[7],p3,p[2],p[1],p0),c3);
-    
+      
       if(n > 0)
         render(p,n,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
         c0,c1,c2,c3);
-      */
     } else {
       i0=vertex(p0,normal(p3,p[2],p[1],p0,p[4],p[8],p12));
       i1=vertex(p12,normal(p0,p[4],p[8],p12,p[13],p[14],p15));
