@@ -41,24 +41,6 @@ inline triple displacement2(const triple& z, const triple& u, const triple& n)
   return n != triple(0,0,0) ? dot(Z,n)*n : Z;
 }
   
-// TODO: Simplify (see beziertriangle example)
-inline triple displacement(const triple *controls)
-{
-  triple d;
-  triple normal=unit(cross(controls[12]-controls[0],controls[3]-controls[0]));
-       
-  for(size_t i=1; i < 16; ++i) 
-    d=maxabs(d,displacement2(controls[i],controls[0],normal));
-      
-   for(size_t i=0; i < 4; ++i)
-    d=maxabs(d,displacement1(controls[4*i],controls[4*i+1],
-                             controls[4*i+2],controls[4*i+3]));
-  for(size_t i=0; i < 4; ++i)
-    d=maxabs(d,displacement1(controls[i],controls[i+4],
-                             controls[i+8],controls[i+12]));
-  return d;
-}
-  
 // Returns one-third of the first derivative of the Bezier curve defined by
 // a,b,c,d at 0.
 inline triple bezierP(triple a, triple b) {
@@ -178,7 +160,28 @@ struct RenderPatch
     return abs2(n) > epsilon ? unit(n) :
       normal0(left3,left2,left1,middle,right1,right2,right3);
   }
-
+  
+  triple displacement(const triple *p) {
+    triple p0=p[0];
+    
+    triple n=normal(p[3],p[2],p[1],p0,p[4],p[8],p[12]);
+         
+    if(abs2(n) <= epsilon) 
+      n=normal(p[12],p[13],p[14],p[15],p[11],p[7],p[3]);
+    
+    triple d=displacement2(p[5],p0,n);
+    d=maxabs(d,displacement2(p[6],p0,n));
+    d=maxabs(d,displacement2(p[9],p0,n));
+    d=maxabs(d,displacement2(p[10],p0,n));
+    
+    d=maxabs(d,displacement1(p0,p[1],p[2],p[3]));
+    d=maxabs(d,displacement1(p0,p[4],p[8],p[12]));
+    d=maxabs(d,displacement1(p[3],p[7],p[11],p[15]));
+    d=maxabs(d,displacement1(p[12],p[13],p[14],p[15]));
+    
+    return d;
+  }
+  
   void mesh(const triple *p, const GLuint *I)
   {
     // Draw the frame of the control points of a cubic Bezier mesh
@@ -211,29 +214,22 @@ struct RenderPatch
               GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL,
               GLfloat *C3=NULL)
   {
-    // Uses a uniform partition
-    // p points to an array of 16 triples.
-    // Draw a Bezier triangle.
-    // p is the set of control points for the Bezier triangle
+    // Uses a uniform partition to draw a Bezier patch.
+    // p is an array of 16 triples representing the control points.
     // n is the maximum number of iterations to compute
     triple d=displacement(p);
 
-    // This involves fewer triangle computations at the end (since if the
-    // surface is sufficiently flat, it just draws the sufficiently flat
-    // triangle, rather than trying to properly utilize the already
-    // computed values. 
-
-    if(n == 0 || length(d) < res) { // If triangle is flat...
+    if(n == 0 || length(d) < res) { // If patch is flat...
       GLuint I[]={I0,I1,I2,I3};
       mesh(p,I);
-    } else { // Triangle is not flat
-        /* Control points/nodes are labelled as follows:
+    } else { // Patch is not flat
+        /* Control points are labelled as follows:
          
           Coordinates
-         +
+          +
           Ordering
          
-         03    13    23    33
+          03    13    23    33
          +-----+-----+-----+
          |3    |7    |11   |15
          |     |     |     |
@@ -250,28 +246,28 @@ struct RenderPatch
          |     |     |     |
          |00   |10   |20   |30
          +-----+-----+-----+
-         0     4     8     12
+          0     4     8     12
          
-         Key points and patch sections are labelled as follows:
+         Key points and patch sections:
          P refers to a corner
-         M refers to a midpoint
-         S refers to a patch section
+         m refers to a midpoint
+         s refers to a patch section
          
-                    M2
+                    m2
            +--------+--------+
            |P3      |      P2|
            |        |        |
-           |   S3   |   S2   |
+           |   s3   |   s2   |
            |        |        |
-           |        |M4      |
-         M3+--------+--------+M1
+           |        |m4      |
+         m3+--------+--------+m1
            |        |        |
            |        |        |
-           |   S0   |   S1   |
+           |   s0   |   s1   |
            |        |        |
            |P0      |      P1|
            +--------+--------+
-                    M0
+                    m0
          */
 
       Split3 c0(p[0],p[1],p[2],p[3]);
@@ -287,6 +283,7 @@ struct RenderPatch
       Split3 c9(c0.m2,c1.m2,c2.m2,c3.m2);
       Split3 c10(p[3],p[7],p[11],p[15]);
 
+      
       triple s0[]={p[0],c0.m0,c0.m3,c0.m5,c4.m0,c5.m0,c6.m0,c7.m0,
                    c4.m3,c5.m3,c6.m3,c7.m3,c4.m5,c5.m5,c6.m5,c7.m5};
       triple s1[]={c4.m5,c5.m5,c6.m5,c7.m5,c4.m4,c5.m4,c6.m4,c7.m4,
@@ -297,11 +294,65 @@ struct RenderPatch
                    c7.m3,c8.m3,c9.m3,c10.m3,c7.m5,c8.m5,c9.m5,c10.m5};
       --n;
 
-      triple m0=s0[12];
+      triple m0;//=s0[12];
       triple m1=s1[15];
       triple m2=s2[3];
       triple m3=s3[0];
       triple m4=s0[15];
+      
+      // A kludge to remove subdivision cracks, only applied the first time
+      // an edge is found to be flat before the rest of the subpatch is.
+#ifdef __MSDOS__      
+      const double epsilon=1.0*res;
+#else
+      const double epsilon=0.1*res;
+#endif      
+      if(flat0)
+        m0=0.5*(P0+P1);
+      else {
+        if((flat0=length(displacement1(p[0],p[4],p[8],p[12])) < res))
+          m0=0.5*(P0+P1)+epsilon*unit(s0[12]-s2[3]);
+        else
+          m0=s0[12];
+      }
+      
+      if(flat1)
+        m1=0.5*(P1+P2);
+      else {
+        if((flat1=length(displacement1(p[12],p[13],p[14],p[15])) < res))
+          m1=0.5*(P1+P2)+epsilon*unit(s1[15]-s3[0]);
+        else
+          m1=s1[15];
+      }
+      
+      if(flat2)
+        m2=0.5*(P2+P3);
+      else {
+        if((flat2=length(displacement1(p[15],p[11],p[7],p[3])) < res))
+          m2=0.5*(P2+P3)+epsilon*unit(s2[3]-s0[12]);
+        else
+          m2=s2[3];
+      }
+      
+      if(flat3)
+        m3=0.5*(P3+P0);
+      else {
+        if((flat3=length(displacement1(p[3],p[2],p[1],p[0])) < res))
+         m3=0.5*(P3+P0)+epsilon*unit(s3[0]-s1[15]);
+        else
+          m3=s3[0];
+      }
+      
+      triple n0=normal(s0[0],s0[4],s0[8],s0[12],s0[13],s0[14],s0[15]);
+      triple n1=normal(s1[12],s1[13],s1[14],s1[15],s1[11],s1[7],s1[3]);
+      triple n2=normal(s2[15],s2[11],s2[7],s2[3],s2[2],s2[1],s2[0]);
+      triple n3=normal(s3[3],s3[2],s3[1],s3[0],s3[4],s3[8],s3[12]);
+      triple n4=normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]);
+      
+      if(n0 == 0.0) n0=normal(p[3],p[2],p[1],p[0],p[13],p[14],p[15]);
+      if(n1 == 0.0) n1=normal(p[0],p[4],p[8],p[12],p[11],p[7],p[3]);
+      if(n2 == 0.0) n2=normal(p[12],p[13],p[14],p[15],p[2],p[1],p[0]);
+      if(n3 == 0.0) n3=normal(p[15],p[11],p[7],p[3],p[4],p[8],p[12]);
       
       if(C0) {
         GLfloat c0[4],c1[4],c2[4],c3[4],c4[4];
@@ -313,11 +364,11 @@ struct RenderPatch
           c4[i]=0.25*(C0[i]+C1[i]+C2[i]+C3[i]);
         }
       
-        GLuint i0=vertex(m0,normal(s0[0],s0[4],s0[8],m0,s0[13],s0[14],s0[15]),c0);
-        GLuint i1=vertex(m1,normal(s1[12],s1[13],s1[14],m1,s1[11],s1[7],s1[3]),c1);
-        GLuint i2=vertex(m2,normal(s2[15],s2[11],s2[7],m2,s2[2],s2[1],s2[0]),c2);
-        GLuint i3=vertex(m3,normal(s3[3],s3[2],s3[1],m3,s3[4],s3[8],s3[12]),c3);
-        GLuint i4=vertex(m4,normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]),c4);
+        GLuint i0=vertex(m0,n0,c0);
+        GLuint i1=vertex(m1,n1,c1);
+        GLuint i2=vertex(m2,n2,c2);
+        GLuint i3=vertex(m3,n3,c3);
+        GLuint i4=vertex(m4,n4,c4);
         render(s0,n,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,
                C0,c0,c4,c3);
         render(s1,n,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false,
@@ -327,11 +378,11 @@ struct RenderPatch
         render(s3,n,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3,
                c3,c4,c2,C3);
       } else {
-        GLuint i0=vertex(m0,normal(s0[0],s0[4],s0[8],m0,s0[13],s0[14],s0[15]));
-        GLuint i1=vertex(m1,normal(s1[12],s1[13],s1[14],m1,s1[11],s1[7],s1[3]));
-        GLuint i2=vertex(m2,normal(s2[15],s2[11],s2[7],m2,s2[2],s2[1],s2[0]));
-        GLuint i3=vertex(m3,normal(s3[3],s3[2],s3[1],m3,s3[4],s3[8],s3[12]));
-        GLuint i4=vertex(m4,normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]));
+        GLuint i0=vertex(m0,n0);
+        GLuint i1=vertex(m1,n1);
+        GLuint i2=vertex(m2,n2);
+        GLuint i3=vertex(m3,n3);
+        GLuint i4=vertex(m4,n4);
         render(s0,n,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3);
         render(s1,n,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false);
         render(s2,n,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false);
@@ -357,24 +408,34 @@ struct RenderPatch
     triple p12=p[12];
     triple p15=p[15];
 
+    triple n0=normal(p3,p[2],p[1],p0,p[4],p[8],p12);
+    triple n1=normal(p0,p[4],p[8],p12,p[13],p[14],p15);
+    triple n2=normal(p12,p[13],p[14],p15,p[11],p[7],p3);
+    triple n3=normal(p15,p[11],p[7],p3,p[2],p[1],p0);
+    
+    if(n0 == 0.0) n0=normal(p3,p[2],p[1],p0,p[13],p[14],p15);
+    if(n1 == 0.0) n1=normal(p0,p[4],p[8],p12,p[11],p[7],p3);
+    if(n2 == 0.0) n2=normal(p12,p[13],p[14],p15,p[2],p[1],p0);
+    if(n3 == 0.0) n3=normal(p15,p[11],p[7],p3,p[4],p[8],p12);
+      
     if(c0) {
       GLfloat *c1=c0+4;
       GLfloat *c2=c0+8;
       GLfloat *c3=c0+12;
     
-      i0=vertex(p0,normal(p3,p[2],p[1],p0,p[4],p[8],p12),c0);
-      i1=vertex(p12,normal(p0,p[4],p[8],p12,p[13],p[14],p15),c1);
-      i2=vertex(p15,normal(p12,p[13],p[14],p15,p[11],p[7],p3),c2);
-      i3=vertex(p3,normal(p15,p[11],p[7],p3,p[2],p[1],p0),c3);
+      i0=vertex(p0,n0,c0);
+      i1=vertex(p12,n1,c1);
+      i2=vertex(p15,n2,c2);
+      i3=vertex(p3,n3,c3);
       
       if(n > 0)
         render(p,n,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
         c0,c1,c2,c3);
     } else {
-      i0=vertex(p0,normal(p3,p[2],p[1],p0,p[4],p[8],p12));
-      i1=vertex(p12,normal(p0,p[4],p[8],p12,p[13],p[14],p15));
-      i2=vertex(p15,normal(p12,p[13],p[14],p15,p[11],p[7],p3));
-      i3=vertex(p3,normal(p15,p[11],p[7],p3,p[2],p[1],p0));
+      i0=vertex(p0,n0);
+      i1=vertex(p12,n1);
+      i2=vertex(p15,n2);
+      i3=vertex(p3,n3);
     
       if(n > 0)
         render(p,n,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false);
@@ -407,7 +468,6 @@ void bezierPatch(const triple *g, bool straight, double ratio,
                  bool havebillboard, triple center, GLfloat *colors)
 {
   R.init(havebillboard,center);
-  straight=false;
   R.render(g,pixel*ratio,colors,straight ? 0 : 8);
   R.clear();
 }
