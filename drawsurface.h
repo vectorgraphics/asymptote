@@ -82,9 +82,9 @@ public:
       if(size != 4) reportError("4 vertex pens required");
       colors=new(UseGC) prc::RGBAColour[4];
       colors[0]=rgba(vm::read<camp::pen>(pens,0));
-      colors[1]=rgba(vm::read<camp::pen>(pens,3));
-      colors[2]=rgba(vm::read<camp::pen>(pens,1));
-      colors[3]=rgba(vm::read<camp::pen>(pens,2));
+      colors[1]=rgba(vm::read<camp::pen>(pens,1));
+      colors[2]=rgba(vm::read<camp::pen>(pens,2));
+      colors[3]=rgba(vm::read<camp::pen>(pens,3));
     } else colors=NULL;
   }
   
