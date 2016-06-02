@@ -12,7 +12,7 @@ namespace camp {
 
 #ifdef HAVE_GL
 
-static const double pixel=0.25; // Adaptive rendering constant.
+static const double pixel=0.5; // Adaptive rendering constant.
 
 extern const double Fuzz;
 extern const double Fuzz2;
@@ -91,7 +91,9 @@ struct Render
   double res;
   bool billboard;
   
-  void init(bool havebillboard, const triple& center) {
+  void init(double res, bool havebillboard, const triple& center) {
+    this->res=res;
+
     const size_t nbuffer=10000;
     buffer.reserve(nbuffer);
     indices.reserve(nbuffer);
@@ -372,9 +374,7 @@ struct Render
   }
 
 // n is the maximum depth
-  void render(const triple *p, double res, GLfloat *c0, int n) {
-    this->res=res;
-
+  void render(const triple *p, int n, GLfloat *c0) {
     triple p0=p[0];
     epsilon=0;
     for(int i=1; i < 10; ++i)
@@ -431,8 +431,8 @@ Render R;
 void bezierTriangle(const triple *g, bool straight, double ratio,
                     bool havebillboard, triple center, GLfloat *colors)
 {
-  R.init(havebillboard,center);
-  R.render(g,pixel*ratio,colors,straight ? 0 : 8);
+  R.init(pixel*ratio,havebillboard,center);
+  R.render(g,straight ? 0 : 16,colors);
   R.clear();
 }
 
