@@ -353,7 +353,7 @@ struct RenderPatch
           c1[i]=0.5*(C1[i]+C2[i]);
           c2[i]=0.5*(C2[i]+C3[i]);
           c3[i]=0.5*(C3[i]+C0[i]);
-          c4[i]=0.25*(C0[i]+C1[i]+C2[i]+C3[i]);
+          c4[i]=0.5*(c0[i]+c2[i]);
         }
       
         GLuint i0=vertex(m0,n0,c0);
@@ -383,7 +383,7 @@ struct RenderPatch
     }
   }
 
-  void render(const triple *p, bool straight, GLfloat *c0) {
+  void render(const triple *p, bool straight, GLfloat *c0=NULL) {
     triple p0=p[0];
     epsilon=0;
     for(int i=1; i < 16; ++i)

@@ -91,15 +91,19 @@ void drawSurface::bounds(const double* t, bbox3& b)
   double X,Y,Z;
   
   if(straight) {
-    triple *Vertices;
-    if(t == NULL) Vertices=vertices;
-    else {
-      triple buf[4];
-      Vertices=buf;
-      for(int i=0; i < 4; ++i)
-        Vertices[i]=t*vertices[i];
+    triple Vertices[3];
+    if(t == NULL) {
+      Vertices[0]=controls[0];
+      Vertices[1]=controls[3];
+      Vertices[2]=controls[12];
+      Vertices[3]=controls[15];
+    } else {
+      Vertices[0]=t*controls[0];
+      Vertices[1]=t*controls[3];
+      Vertices[2]=t*controls[12];
+      Vertices[3]=t*controls[15];
     }
-  
+    
     boundstriples(x,y,z,X,Y,Z,4,Vertices);
   } else {
     double cx[16];
@@ -151,16 +155,18 @@ void drawSurface::ratio(const double* t, pair &b, double (*m)(double, double),
                         double fuzz, bool &first)
 {
   triple buf[16];
+  triple* Controls;
   if(straight) {
-    triple *Vertices;
-    if(t == NULL) Vertices=vertices;
+    if(t == NULL) Controls=controls;
     else {
-      Vertices=buf;
-      for(int i=0; i < 4; ++i)
-        Vertices[i]=t*vertices[i];
+      Controls=buf;
+      Controls[0]=t*controls[0];
+      Controls[3]=t*controls[3];
+      Controls[12]=t*controls[12];
+      Controls[15]=t*controls[15];
     }
   
-    triple v=Vertices[0];
+    triple v=Controls[0];
     double x=xratio(v);
     double y=yratio(v);
     if(first) {
@@ -170,19 +176,21 @@ void drawSurface::ratio(const double* t, pair &b, double (*m)(double, double),
       x=m(b.getx(),x);
       y=m(b.gety(),y);
     }
-  
-    for(size_t i=1; i < 4; ++i) {
-      triple v=Vertices[i];
-      x=m(x,xratio(v));
-      y=m(y,yratio(v));
-    }
+    v=Controls[3];
+    x=m(x,xratio(v));
+    y=m(y,yratio(v));
+    v=Controls[12];
+    x=m(x,xratio(v));
+    y=m(y,yratio(v));
+    v=Controls[15];
+    x=m(x,xratio(v));
+    y=m(y,yratio(v));
     b=pair(x,y);
   } else {
-    triple* Controls;
     if(t == NULL) Controls=controls;
     else {
       Controls=buf;
-      for(int i=0; i < 16; ++i)
+      for(unsigned int i=0; i < 16; ++i)
         Controls[i]=t*controls[i];
     }
 
@@ -205,6 +213,7 @@ bool drawSurface::write(prcfile *out, unsigned int *, double, groupsmap&)
   PRCmaterial m(ambient,diffuse,emissive,specular,opacity,PRCshininess);
 
   if(straight) {
+    triple vertices[]={controls[0],controls[12],controls[3],controls[15]};
     if(colors)
       out->addQuad(vertices,colors);
     else
@@ -384,7 +393,7 @@ void drawBezierTriangle::ratio(const double* t, pair &b,
       for(unsigned int i=0; i < 10; ++i)
         Controls[i]=t*controls[i];
     }
-    
+
     if(first) {
       triple v=Controls[0];
       b=pair(xratio(v),yratio(v));

@@ -374,7 +374,7 @@ struct Render
   }
 
 // n is the maximum depth
-  void render(const triple *p, int n, GLfloat *c0) {
+  void render(const triple *p, int n, GLfloat *c0=NULL) {
     triple p0=p[0];
     epsilon=0;
     for(int i=1; i < 10; ++i)
