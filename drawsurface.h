@@ -130,8 +130,6 @@ public:
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
   
-  void displacement();
-  
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
               double perspective, bool lighton, bool transparent);
   
@@ -229,8 +227,6 @@ public:
   virtual ~drawBezierTriangle() {}
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
-  
-//  void displacement();
   
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
               double perspective, bool lighton, bool transparent);

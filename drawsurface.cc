@@ -215,61 +215,6 @@ bool drawSurface::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-// return the perpendicular displacement of a point z from the plane
-// through u with unit normal n.
-inline triple displacement2(const triple& z, const triple& u, const triple& n)
-{
-  triple Z=z-u;
-  return n != triple(0,0,0) ? dot(Z,n)*n : Z;
-}
-
-inline triple maxabs(triple u, triple v)
-{
-  return triple(max(fabs(u.getx()),fabs(v.getx())),
-                max(fabs(u.gety()),fabs(v.gety())),
-                max(fabs(u.getz()),fabs(v.getz())));
-}
-
-inline triple displacement1(const triple& z0, const triple& c0,
-                            const triple& c1, const triple& z1)
-{
-  return maxabs(displacement(c0,z0,z1),displacement(c1,z0,z1));
-}
-
-void drawSurface::displacement()
-{
-#ifdef HAVE_GL
-  if(normal != zero) {
-    d=zero;
-    
-    if(!straight) {
-      for(size_t i=1; i < 16; ++i) 
-        d=maxabs(d,displacement2(controls[i],controls[0],normal));
-      
-      dperp=d;
-    
-      for(size_t i=0; i < 4; ++i)
-        d=maxabs(d,displacement1(controls[4*i],controls[4*i+1],
-                                 controls[4*i+2],controls[4*i+3]));
-      for(size_t i=0; i < 4; ++i)
-        d=maxabs(d,displacement1(controls[i],controls[i+4],
-                                 controls[i+8],controls[i+12]));
-    }
-  }
-#endif  
-}
-  
-inline double fraction(double d, double size)
-{
-  return size == 0 ? 1.0 : min(fabs(d)/size,1.0);
-}
-
-// estimate the viewport fraction associated with the displacement d
-inline double fraction(const triple& d, const pair& size)
-{
-  return max(fraction(d.getx(),size.getx()),fraction(d.gety(),size.gety()));
-}
-
 void drawSurface::render(GLUnurbs *nurb, double size2,
                          const triple& Min, const triple& Max,
                          double perspective, bool lighton, bool transparent)
@@ -279,21 +224,19 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
      ((colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
        diffuse.A < 1.0) ^ transparent)) return;
   double s;
-  GLfloat Normal[3];
-  GLfloat v[16];
   
   const bool havebillboard=interaction == BILLBOARD &&
     !settings::getSetting<bool>("offscreen");
   triple m,M;
   if(perspective || !havebillboard) {
-    double t[16];
+    double t[16]; // current transform
     glGetDoublev(GL_MODELVIEW_MATRIX,t);
 // Like Fortran, OpenGL uses transposed (column-major) format!
     run::transpose(t,4);
-    
+
     bbox3 B(this->Min,this->Max);
     B.transform(t);
-  
+
     m=B.Min();
     M=B.Max();
   }
@@ -316,87 +259,18 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
       return;
     s=1.0;
   }
-    
+
   setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
   
   const pair size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()));
   
-  bool havenormal=normal != zero;
-  if(havebillboard) BB.init();
-
+  GLfloat v[16];
   if(colors)
     for(size_t i=0; i < 4; ++i)
       storecolor(v,4*i,colors[i]);
     
-  if(!straight && (!havenormal || fraction(d,size3)*size2 >= pixel)) {
-    if(lighton) {
-      if(havenormal && fraction(dperp,size3)*size2 <= 0.1) {
-        if(havebillboard)
-          BB.store(Normal,normal,zero);
-        else
-          store(Normal,normal);
-        glNormal3fv(Normal);
-        gluNurbsCallback(nurb,GLU_NURBS_NORMAL,NULL);
-      } else
-        gluNurbsCallback(nurb,GLU_NURBS_NORMAL,(_GLUfuncptr) glNormal3fv);
-    }
-    GLfloat Controls[48];
-    
-    if(havebillboard) {
-      for(size_t i=0; i < 16; ++i)
-        BB.store(Controls+3*i,controls[i],center);
-    } else {
-      for(size_t i=0; i < 16; ++i)
-        store(Controls+3*i,controls[i]);
-    }
-    
-    bezierPatch(controls,straight,size3.length()/size2,havebillboard,center,
-                 colors ? v : NULL);
-  /*
-    static GLfloat bezier[]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
-    gluBeginSurface(nurb);
-    gluNurbsSurface(nurb,8,bezier,8,bezier,12,3,Controls,4,4,GL_MAP2_VERTEX_3);
-    if(colors) {
-      static GLfloat linear[]={0.0,0.0,1.0,1.0};
-      gluNurbsSurface(nurb,4,linear,4,linear,8,4,v,2,2,GL_MAP2_COLOR_4);
-    }
-    
-    gluEndSurface(nurb);
-    */
-  } else {
-    GLfloat Vertices[12];
-    
-    if(havebillboard) {
-      for(size_t i=0; i < 4; ++i)
-        BB.store(Vertices+3*i,vertices[i],center);
-    } else {
-      for(size_t i=0; i < 4; ++i)
-        store(Vertices+3*i,vertices[i]);
-    }
-    
-    if(havebillboard)
-      BB.store(Normal,normal,zero);
-    else
-      store(Normal,normal);
-
-    glBegin(GL_QUADS);
-    if(lighton)
-      glNormal3fv(Normal);
-    if(colors) 
-      glColor4fv(v);
-    glVertex3fv(Vertices);
-    if(colors) 
-      glColor4fv(v+8);
-    glVertex3fv(Vertices+6);
-    if(colors) 
-      glColor4fv(v+12);
-    glVertex3fv(Vertices+9);
-    if(colors) 
-      glColor4fv(v+4);
-    glVertex3fv(Vertices+3);
-    glEnd();
-  }
-  
+  bezierPatch(controls,straight,size3.length()/size2,havebillboard,center,
+              colors ? v : NULL);
   if(colors)
     glDisable(GL_COLOR_MATERIAL);
 #endif
@@ -551,44 +425,42 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
                                 bool transparent)
 {
 #ifdef HAVE_GL
-  if(invisible)
-    return;
-
   if(invisible || 
      ((colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
        diffuse.A < 1.0) ^ transparent)) return;
-
   double s;
   
   const bool havebillboard=interaction == BILLBOARD &&
     !settings::getSetting<bool>("offscreen");
   triple m,M;
-  double t[16]; // current transform
-  glGetDoublev(GL_MODELVIEW_MATRIX,t);
+  if(perspective || !havebillboard) {
+    double t[16]; // current transform
+    glGetDoublev(GL_MODELVIEW_MATRIX,t);
 // Like Fortran, OpenGL uses transposed (column-major) format!
-  run::transpose(t,4);
+    run::transpose(t,4);
 
-  bbox3 B(this->Min,this->Max);
-  B.transform(t);
+    bbox3 B(this->Min,this->Max);
+    B.transform(t);
 
-  m=B.Min();
-  M=B.Max();
+    m=B.Min();
+    M=B.Max();
+  }
 
   if(perspective) {
     const double f=m.getz()*perspective;
     const double F=M.getz()*perspective;
-    if((M.getx() < min(f*Min.getx(),F*Min.getx()) ||
-        m.getx() > max(f*Max.getx(),F*Max.getx()) ||
-        M.gety() < min(f*Min.gety(),F*Min.gety()) ||
-        m.gety() > max(f*Max.gety(),F*Max.gety()) ||
-        M.getz() < Min.getz() ||
-        m.getz() > Max.getz()))
+    if(!havebillboard && (M.getx() < min(f*Min.getx(),F*Min.getx()) || 
+                          m.getx() > max(f*Max.getx(),F*Max.getx()) ||
+                          M.gety() < min(f*Min.gety(),F*Min.gety()) ||
+                          m.gety() > max(f*Max.gety(),F*Max.gety()) ||
+                          M.getz() < Min.getz() ||
+                          m.getz() > Max.getz()))
       return;
     s=max(f,F);
   } else {
-    if((M.getx() < Min.getx() || m.getx() > Max.getx() ||
-        M.gety() < Min.gety() || m.gety() > Max.gety() ||
-        M.getz() < Min.getz() || m.getz() > Max.getz()))
+    if(!havebillboard && (M.getx() < Min.getx() || m.getx() > Max.getx() ||
+                          M.gety() < Min.gety() || m.gety() > Max.gety() ||
+                          M.getz() < Min.getz() || m.getz() > Max.getz()))
       return;
     s=1.0;
   }
@@ -598,14 +470,12 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
   const pair size3(s*(Max.getx()-Min.getx()),s*(Max.gety()-Min.gety()));
   
   GLfloat v[12];
-
   if(colors)
     for(size_t i=0; i < 3; ++i)
       storecolor(v,4*i,colors[i]);
     
   bezierTriangle(controls,straight,size3.length()/size2,havebillboard,center,
                  colors ? v : NULL);
-
   if(colors)
     glDisable(GL_COLOR_MATERIAL);
 #endif
