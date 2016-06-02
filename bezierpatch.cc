@@ -162,13 +162,22 @@ struct RenderPatch
     triple p12=p[12];
     triple p15=p[15];
     
+    double d;
+    triple pref;
     triple n=normal(p3,p[2],p[1],p0,p[4],p[8],p12);
-    if(n == 0.0) n=normal(p12,p[13],p[14],p15,p[11],p[7],p3);
+    if(n == 0.0) {
+      n=normal(p12,p[13],p[14],p15,p[11],p[7],p3);
+      pref=p15;
+      d=Distance2(p0,pref,n);
+    } else {
+      pref=p0;
+      d=Distance2(p15,pref,n);
+    }
 
-    double d=Distance2(p[5],p0,n);
-    d=max(d,Distance2(p[6],p0,n));
-    d=max(d,Distance2(p[9],p0,n));
-    d=max(d,Distance2(p[10],p0,n));
+    d=max(d,Distance2(p[5],pref,n));
+    d=max(d,Distance2(p[6],pref,n));
+    d=max(d,Distance2(p[9],pref,n));
+    d=max(d,Distance2(p[10],pref,n));
     
     d=max(d,Distance1(p0,p[1],p[2],p3));
     d=max(d,Distance1(p0,p[4],p[8],p12));
