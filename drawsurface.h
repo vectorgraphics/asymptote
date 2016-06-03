@@ -21,7 +21,6 @@ void storecolor(GLfloat *colors, int i, const vm::array &pens, int j);
 class drawSurface : public drawElement {
 protected:
   triple *controls;
-  triple vertices[4];
   triple center;
   bool straight; // True iff Bezier patch is planar and has straight edges.
   prc::RGBAColour diffuse;
@@ -32,7 +31,6 @@ protected:
   double opacity;
   double shininess;
   double PRCshininess;
-  triple normal;
   bool invisible;
   Interaction interaction;
   
@@ -50,8 +48,7 @@ public:
               double PRCshininess, triple normal, const vm::array &pens,
               Interaction interaction, bool prc) :
     center(center), straight(straight), opacity(opacity), shininess(shininess),
-    PRCshininess(PRCshininess), normal(unit(normal)),
-    interaction(interaction), prc(prc) {
+    PRCshininess(PRCshininess), interaction(interaction), prc(prc) {
     const string wrongsize=
       "Bezier surface patch requires 4x4 array of triples and array of 4 pens";
     if(checkArray(&g) != 4 || checkArray(&p) != 4)
@@ -61,22 +58,16 @@ public:
     vm::array *g3=vm::read<vm::array*>(g,3);
     if(checkArray(g0) != 4 || checkArray(g3) != 4)
       reportError(wrongsize);
-    vertices[0]=vm::read<triple>(g0,0);
-    vertices[1]=vm::read<triple>(g0,3);
-    vertices[2]=vm::read<triple>(g3,0);
-    vertices[3]=vm::read<triple>(g3,3);
     
-    if(!straight) {
-      size_t k=0;
-      controls=new(UseGC) triple[16];
-      for(size_t i=0; i < 4; ++i) {
-        vm::array *gi=vm::read<vm::array*>(g,i);
-        if(checkArray(gi) != 4) 
-          reportError(wrongsize);
-        for(size_t j=0; j < 4; ++j)
-          controls[k++]=vm::read<triple>(gi,j);
-      }
-    } else controls=NULL;
+    size_t k=0;
+    controls=new(UseGC) triple[16];
+    for(size_t i=0; i < 4; ++i) {
+      vm::array *gi=vm::read<vm::array*>(g,i);
+      if(checkArray(gi) != 4) 
+        reportError(wrongsize);
+      for(size_t j=0; j < 4; ++j)
+        controls[k++]=vm::read<triple>(gi,j);
+    }
     
     pen surfacepen=vm::read<camp::pen>(p,0);
     invisible=surfacepen.invisible();
@@ -91,9 +82,9 @@ public:
       if(size != 4) reportError("4 vertex pens required");
       colors=new(UseGC) prc::RGBAColour[4];
       colors[0]=rgba(vm::read<camp::pen>(pens,0));
-      colors[1]=rgba(vm::read<camp::pen>(pens,3));
-      colors[2]=rgba(vm::read<camp::pen>(pens,1));
-      colors[3]=rgba(vm::read<camp::pen>(pens,2));
+      colors[1]=rgba(vm::read<camp::pen>(pens,1));
+      colors[2]=rgba(vm::read<camp::pen>(pens,2));
+      colors[3]=rgba(vm::read<camp::pen>(pens,3));
     } else colors=NULL;
   }
   
@@ -104,9 +95,6 @@ public:
     PRCshininess(s->PRCshininess), invisible(s->invisible),
     interaction(s->interaction), prc(s->prc) { 
     
-    for(unsigned int i=0; i < 4; ++i)
-      vertices[i]=t*s->vertices[i];
-    
     if(s->controls) {
       controls=new(UseGC) triple[16];
       for(unsigned int i=0; i < 16; ++i)
@@ -115,7 +103,6 @@ public:
   
 #ifdef HAVE_GL
     center=t*s->center;
-    normal=transformNormal(t,s->normal);
 #endif    
   }
   
@@ -129,8 +116,6 @@ public:
   virtual ~drawSurface() {}
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
-  
-  void displacement();
   
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
               double perspective, bool lighton, bool transparent);
@@ -229,8 +214,6 @@ public:
   virtual ~drawBezierTriangle() {}
 
   bool write(prcfile *out, unsigned int *, double, groupsmap&);
-  
-//  void displacement();
   
   void render(GLUnurbs *nurb, double, const triple& Min, const triple& Max,
               double perspective, bool lighton, bool transparent);

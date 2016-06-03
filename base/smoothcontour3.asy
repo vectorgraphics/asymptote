@@ -1544,11 +1544,6 @@ struct gridwithzeros {
 //
 // Additional parameters:
 // n - the number of initial segments in each of the x, y, z directions.
-// overlapedges - if true, the patches of the surface are slightly enlarged
-//     to compensate for an artifact in which the viewer can see through the
-//     boundary between patches. (Some of this may actually be a result of
-//     edges not lining up perfectly, but I'm fairly sure a lot of it arises
-//     purely as a rendering artifact.)
 // nx - override n in the x direction
 // ny - override n in the y direction
 // nz - override n in the z direction
@@ -1557,7 +1552,6 @@ struct gridwithzeros {
 surface implicitsurface(real f(triple) = null, real ff(real,real,real) = null,
                         triple a, triple b,
                         int n = nmesh,
-                        bool keyword overlapedges = false,
                         int keyword nx=n, int keyword ny=n,
                         int keyword nz=n,
                         int keyword maxdepth = 8,
@@ -1570,12 +1564,5 @@ surface implicitsurface(real f(triple) = null, real ff(real,real,real) = null,
   gridwithzeros grid = gridwithzeros(nx, ny, nz, f, a, b, maxdepth=maxdepth,
                                      usetriangles=usetriangles);
   patch[] patches = grid.draw();
-  if (overlapedges) {
-    for (int i = 0; i < patches.length; ++i) {
-      triple center = (patches[i].triangular ?
-                       patches[i].point(1/3, 1/3) : patches[i].point(1/2,1/2));
-      patches[i] = shift(center) * scale3(1.01) * shift(-center) * patches[i];
-    }
-  }
   return surface(...patches);
 }
