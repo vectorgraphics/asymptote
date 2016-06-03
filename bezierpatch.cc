@@ -1,5 +1,6 @@
 /*****
  * drawbezierpatch.cc
+ * Author: John C. Bowman
  *
  * Render a Bezier patch.
  *****/
@@ -15,7 +16,7 @@ static const double pixel=0.5; // Adaptive rendering constant.
 extern const double Fuzz;
 extern const double Fuzz2;
 
-// return the maximum perpendicular distance squared of point c0 and c1
+// return the maximum perpendicular distance squared of points c0 and c1
 // from z0--z1.
 inline double Distance1(const triple& z0, const triple& c0,
                             const triple& c1, const triple& z1)
@@ -51,6 +52,12 @@ inline triple bezierPPP(triple a, triple b, triple c, triple d) {
   return d-a+3.0*(b-c);
 }
 
+#ifdef __MSDOS__      
+const double FillFactor=1.0;
+#else
+const double FillFactor=0.1;
+#endif      
+
 struct RenderPatch
 {
   std::vector<GLfloat> buffer;
@@ -59,12 +66,14 @@ struct RenderPatch
   GLuint nvertices;
   double cx,cy,cz;
   double epsilon;
+  double Epsilon;
   double res,res2;
   bool billboard;
   
   void init(double res, bool havebillboard, const triple& center) {
     this->res=res;
     res2=res*res;
+    Epsilon=FillFactor*res;
 
     const size_t nbuffer=10000;
     buffer.reserve(nbuffer);
@@ -167,6 +176,7 @@ struct RenderPatch
     if(n1 == 0.0) n1=n3;
     if(n3 == 0.0) n3=n1;
 
+    // Determine how flat each subtriangle of the patch is.
     double d=Distance2(p[5],p12,n1);
     d=max(d,Distance2(p[9],p12,n1));
     d=max(d,Distance2(p[10],p12,n1));
@@ -175,6 +185,7 @@ struct RenderPatch
     d=max(d,Distance2(p[6],p3,n3));
     d=max(d,Distance2(p[10],p3,n3));
     
+    // Determine how straight the edges are.
     d=max(d,Distance1(p0,p[1],p[2],p3));
     d=max(d,Distance1(p0,p[4],p[8],p12));
     d=max(d,Distance1(p3,p[7],p[11],p15));
@@ -193,11 +204,11 @@ struct RenderPatch
   }
   
   struct Split3 {
-    triple m0,m1,m2,m3,m4,m5;
+    triple m0,m2,m3,m4,m5;
     Split3() {}
     Split3(triple z0, triple c0, triple c1, triple z1) {
       m0=0.5*(z0+c0);
-      m1=0.5*(c0+c1);
+      triple m1=0.5*(c0+c1);
       m2=0.5*(c1+z1);
       m3=0.5*(m0+m1);
       m4=0.5*(m1+m2);
@@ -315,16 +326,11 @@ struct RenderPatch
       
       // A kludge to remove subdivision cracks, only applied the first time
       // an edge is found to be flat before the rest of the subpatch is.
-#ifdef __MSDOS__      
-      const double epsilon=1.0*res;
-#else
-      const double epsilon=0.1*res;
-#endif      
       if(flat0)
         m0=0.5*(P0+P1);
       else {
         if((flat0=Distance1(p0,p[4],p[8],p12) < res2))
-          m0=0.5*(P0+P1)+epsilon*unit(s0[12]-s2[3]);
+          m0=0.5*(P0+P1)+Epsilon*unit(s0[12]-s2[3]);
         else
           m0=s0[12];
       }
@@ -333,7 +339,7 @@ struct RenderPatch
         m1=0.5*(P1+P2);
       else {
         if((flat1=Distance1(p12,p[13],p[14],p15) < res2))
-          m1=0.5*(P1+P2)+epsilon*unit(s1[15]-s3[0]);
+          m1=0.5*(P1+P2)+Epsilon*unit(s1[15]-s3[0]);
         else
           m1=s1[15];
       }
@@ -342,7 +348,7 @@ struct RenderPatch
         m2=0.5*(P2+P3);
       else {
         if((flat2=Distance1(p15,p[11],p[7],p3) < res2))
-          m2=0.5*(P2+P3)+epsilon*unit(s2[3]-s0[12]);
+          m2=0.5*(P2+P3)+Epsilon*unit(s2[3]-s0[12]);
         else
           m2=s2[3];
       }
@@ -351,7 +357,7 @@ struct RenderPatch
         m3=0.5*(P3+P0);
       else {
         if((flat3=Distance1(p3,p[2],p[1],p0) < res2))
-         m3=0.5*(P3+P0)+epsilon*unit(s3[0]-s1[15]);
+         m3=0.5*(P3+P0)+Epsilon*unit(s3[0]-s1[15]);
         else
           m3=s3[0];
       }
@@ -464,7 +470,6 @@ struct RenderPatch
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
   }
-  
 };
 
 static RenderPatch R;
