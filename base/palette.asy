@@ -245,12 +245,12 @@ pen[][] palette(real[][] f, pen[] palette)
   real Min=min(f);
   real Max=max(f);
   int n=f.length;
-  int m=n > 0 ? f[0].length : 0;
-  pen[][] p=new pen[n][m];
+  pen[][] p=new pen[n][];
   real step=(Max == Min) ? 0.0 : (palette.length-1)/(Max-Min);
   for(int i=0; i < n; ++i) {
     real[] fi=f[i];
-    p[i]=sequence(new pen(int j) {return palette[round((fi[j]-Min)*step)];},m);
+    p[i]=sequence(new pen(int j) {return palette[round((fi[j]-Min)*step)];},
+                  f[i].length);
   }
   return p;
 }
