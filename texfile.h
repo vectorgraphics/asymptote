@@ -137,7 +137,7 @@ void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
   string texengine=settings::getSetting<string>("tex");
   if(settings::latex(texengine)) {
     if(pipe || !settings::getSetting<bool>("inlinetex")) {
-      out << "\\usepackage[nosetpagesize]{graphicx}" << newl;
+      out << "\\usepackage{graphicx}" << newl;
       if(!pipe) {
         dvipsfix(out);
         out << "\\usepackage{color}" << newl;
