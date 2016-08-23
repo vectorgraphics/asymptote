@@ -70,10 +70,32 @@ void texfile::prologue()
   texdefines(*out,processData().TeXpreamble,false);
   double width=box.right-box.left;
   double height=box.top-box.bottom;
-  if(!inlinetex && settings::context(texengine)) {
-    *out << "\\definepapersize[asy][width=" << width << "bp,height="
-         << height << "bp]" << newl
-         << "\\setuppapersize[asy][asy]" << newl;
+  if(!inlinetex) {
+    if(settings::context(texengine)) {
+      *out << "\\definepapersize[asy][width=" << width << "bp,height=" 
+           << height << "bp]" << newl
+           << "\\setuppapersize[asy][asy]" << newl;
+    } else if(settings::pdf(texengine)) {
+      double voffset=0.0;
+      if(settings::latex(texengine)) {
+        if(height < 12.0) voffset=height-12.0;
+      } else if(height < 10.0) voffset=height-10.0;
+
+      if(width > 0) 
+        *out << "\\pdfpagewidth=" << width << "bp" << newl;
+      *out << "\\ifx\\pdfhorigin\\undefined" << newl
+           << "\\hoffset=-1in" << newl
+           << "\\voffset=" << voffset-72.0 << "bp" << newl;
+      if(height > 0)
+        *out << "\\pdfpageheight=" << height << "bp" 
+             << newl;
+      *out << "\\else" << newl
+           << "\\pdfhorigin=0bp" << newl
+           << "\\pdfvorigin=" << voffset << "bp" << newl;
+      if(height > 0)
+        *out << "\\pdfpageheight=" << height << "bp" << newl;
+      *out << "\\fi" << newl;
+    }
   }
   
   if(settings::xe(texengine) && !inlinetex)
@@ -114,29 +136,6 @@ void texfile::prologue()
     }
   }
   
-  if(!inlinetex && !settings::context(texengine) &&
-     settings::pdf(texengine)) {
-    double voffset=0.0;
-    if(settings::latex(texengine)) {
-      if(height < 12.0) voffset=height-12.0;
-    } else if(height < 10.0) voffset=height-10.0;
-
-    if(width > 0)
-      *out << "\\pdfpagewidth=" << width << "bp" << newl;
-    *out << "\\ifx\\pdfhorigin\\undefined" << newl
-         << "\\hoffset=-1in" << newl
-         << "\\voffset=" << voffset-72.0 << "bp" << newl;
-    if(height > 0)
-      *out << "\\pdfpageheight=" << height << "bp"
-           << newl;
-    *out << "\\else" << newl
-         << "\\pdfhorigin=0bp" << newl
-         << "\\pdfvorigin=" << voffset << "bp" << newl;
-    if(height > 0)
-      *out << "\\pdfpageheight=" << height << "bp" << newl;
-    *out << "\\fi" << newl;
-  }
-
   beginpage();
 }
     
