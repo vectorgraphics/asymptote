@@ -17,7 +17,7 @@ const double PI=acos(-1.0);
 
 const double Cpiby180=PI/180.0;
 const double C180bypi=180.0/PI;
-  
+
 inline double radians(double theta)
 {
   return theta*Cpiby180;
@@ -35,11 +35,13 @@ inline double angle(double x, double y)
     reportError("taking angle of (0,0)");
   return atan2(y,x);
 }
-  
+
 // Return an angle in the interval [0,360).
 inline double principalBranch(double deg)
 {
-  if(deg < 0) deg += 360; 
+  deg = fmod(deg, 360);
+  if(deg < 0)
+    deg += 360;
   return deg;
 }
 
