@@ -270,6 +270,7 @@ paletteticks PaletteTicks(Label format="", ticklabel ticklabel=null,
 } 
 
 paletteticks PaletteTicks=PaletteTicks();
+paletteticks NoTicks=new ticks(int sign=-1) {return NoTicks;};
 
 void palette(picture pic=currentpicture, Label L="", bounds bounds, 
              pair initial, pair final, axis axis=Right, pen[] palette, 
