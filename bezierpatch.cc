@@ -121,8 +121,8 @@ struct RenderPatch
   }
   
 // Store the vertex v and its normal vector n and colour in the buffer.
-  GLuint vertex(const triple& V, const triple& n, GLfloat *c) {
-    int rc=vertex(V,n);
+  GLuint vertex(const triple& v, const triple& n, GLfloat *c) {
+    int rc=vertex(v,n);
     buffer.push_back(c[0]);
     buffer.push_back(c[1]);
     buffer.push_back(c[2]);
@@ -192,17 +192,6 @@ struct RenderPatch
     return max(d,Distance1(p12,p[13],p[14],p15));
   }
   
-  void mesh(const triple *p, const GLuint *I)
-  {
-    // Draw the frame of the control points of a cubic Bezier mesh
-    indices.push_back(I[0]);
-    indices.push_back(I[1]);
-    indices.push_back(I[2]);
-    indices.push_back(I[0]);
-    indices.push_back(I[2]);
-    indices.push_back(I[3]);
-  }
-  
   struct Split3 {
     triple m0,m2,m3,m4,m5;
     Split3() {}
@@ -228,8 +217,12 @@ struct RenderPatch
               GLfloat *C3=NULL)
   {
     if(Distance(p) < res2) { // Patch is flat
-      GLuint I[]={I0,I1,I2,I3};
-      mesh(p,I);
+      indices.push_back(I0);
+      indices.push_back(I1);
+      indices.push_back(I2);
+      indices.push_back(I0);
+      indices.push_back(I2);
+      indices.push_back(I3);
     } else { // Patch is not flat
         /* Control points are labelled as follows:
          
@@ -453,8 +446,12 @@ struct RenderPatch
     }
     
     if(straight) {
-      GLuint I[]={i0,i1,i2,i3};
-      mesh(p,I);
+      indices.push_back(i0);
+      indices.push_back(i1);
+      indices.push_back(i2);
+      indices.push_back(i0);
+      indices.push_back(i2);
+      indices.push_back(i3);
     }
     
     size_t stride=(c0 ? 10 : 6)*sizeof(GL_FLOAT);
