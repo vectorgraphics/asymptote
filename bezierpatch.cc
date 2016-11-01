@@ -31,15 +31,10 @@ inline double Distance1(const triple& z0, const triple& c0,
 // through u with unit normal n.
 inline double Distance2(const triple& z, const triple& u, const triple& n)
 {
-  return abs2(dot(z-u,n)*n);
+  double d=dot(z-u,n);
+  return d*d;
 }
   
-// Returns one-third of the first derivative of the Bezier curve defined by
-// a,b,c,d at 0.
-inline triple bezierP(triple a, triple b) {
-  return b-a;
-}
-
 // Returns one-sixth of the second derivative of the Bezier curve defined
 // by a,b,c,d at 0. 
 inline triple bezierPP(triple a, triple b, triple c) {
@@ -130,40 +125,30 @@ struct RenderPatch
     return rc;
   }
   
-  triple normal0(triple left3, triple left2, triple left1, triple middle,
-                 triple right1, triple right2, triple right3) {
-    //cout << "normal0 called." << endl;
-    // Lots of repetition here.
-    // TODO: Check if lp,rp,lpp,rpp should be manually inlined (i.e., is the
-    // third order normal usually computed when normal0() is called?).
-    triple lp=bezierP(middle,left1);
-    triple rp=bezierP(middle,right1);
-    triple lpp=bezierPP(middle,left1,left2);
-    triple rpp=bezierPP(middle,right1,right2);
-    triple n1=cross(rpp,lp)+cross(rp,lpp);
-    if(abs2(n1) > epsilon) {
-      return unit(n1);
-    } else {
-      triple lppp=bezierPPP(middle,left1,left2,left3);
-      triple rppp=bezierPPP(middle,right1,right2,right3);
-      triple n2= 9.0*cross(rpp,lpp)+
-        3.0*(cross(rp,lppp)+cross(rppp,lp)+
-             cross(rppp,lpp)+cross(rpp,lppp))+
-        cross(rppp,lppp);
-      return unit(n2);
-    }
-  }
-
   triple normal(triple left3, triple left2, triple left1, triple middle,
                 triple right1, triple right2, triple right3) {
-    triple bu=right1-middle;
-    triple bv=left1-middle;
-    triple n=triple(bu.gety()*bv.getz()-bu.getz()*bv.gety(),
-                    bu.getz()*bv.getx()-bu.getx()*bv.getz(),
-                    bu.getx()*bv.gety()-bu.gety()*bv.getx());
-    return abs2(n) > epsilon ? unit(n) :
-      normal0(left3,left2,left1,middle,right1,right2,right3);
+    triple rp=right1-middle;
+    triple lp=left1-middle;
+    triple n=triple(rp.gety()*lp.getz()-rp.getz()*lp.gety(),
+                    rp.getz()*lp.getx()-rp.getx()*lp.getz(),
+                    rp.getx()*lp.gety()-rp.gety()*lp.getx());
+    if(abs2(n) > epsilon)
+      return unit(n);
+    
+    triple lpp=bezierPP(middle,left1,left2);
+    triple rpp=bezierPP(middle,right1,right2);
+    n=cross(rpp,lp)+cross(rp,lpp);
+    if(abs2(n) > epsilon)
+      return unit(n);
+    
+    triple lppp=bezierPPP(middle,left1,left2,left3);
+    triple rppp=bezierPPP(middle,right1,right2,right3);
+    return unit(9.0*cross(rpp,lpp)+
+                3.0*(cross(rp,lppp)+cross(rppp,lp)+
+                     cross(rppp,lpp)+cross(rpp,lppp))+
+                cross(rppp,lppp));
   }
+
   
   double Distance(const triple *p) {
     triple p0=p[0];
@@ -298,20 +283,28 @@ struct RenderPatch
       triple m4=s0[15];
       
       triple n0=normal(s0[0],s0[4],s0[8],s0[12],s0[13],s0[14],s0[15]);
-      if(n0 == 0.0) n0=normal(s0[0],s0[4],s0[8],s0[12],s0[11],s0[7],s0[3]);
-      if(n0 == 0.0) n0=normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
+      if(n0 == 0.0) {
+        n0=normal(s0[0],s0[4],s0[8],s0[12],s0[11],s0[7],s0[3]);
+        if(n0 == 0.0) n0=normal(s0[3],s0[2],s0[1],s0[0],s0[13],s0[14],s0[15]);
+      }
       
       triple n1=normal(s1[12],s1[13],s1[14],s1[15],s1[11],s1[7],s1[3]);
-      if(n1 == 0.0) n1=normal(s1[12],s1[13],s1[14],s1[15],s1[2],s1[1],s1[0]);
-      if(n1 == 0.0) n1=normal(s1[0],s1[4],s1[8],s1[12],s1[11],s1[7],s1[3]);
+      if(n1 == 0.0) {
+        n1=normal(s1[12],s1[13],s1[14],s1[15],s1[2],s1[1],s1[0]);
+        if(n1 == 0.0) n1=normal(s1[0],s1[4],s1[8],s1[12],s1[11],s1[7],s1[3]);
+      }
       
       triple n2=normal(s2[15],s2[11],s2[7],s2[3],s2[2],s2[1],s2[0]);
-      if(n2 == 0.0) n2=normal(s2[15],s2[11],s2[7],s2[3],s2[4],s2[8],s2[12]);
-      if(n2 == 0.0) n2=normal(s2[12],s2[13],s2[14],s2[15],s2[2],s2[1],s2[0]);
+      if(n2 == 0.0) {
+        n2=normal(s2[15],s2[11],s2[7],s2[3],s2[4],s2[8],s2[12]);
+        if(n2 == 0.0) n2=normal(s2[12],s2[13],s2[14],s2[15],s2[2],s2[1],s2[0]);
+      }
       
       triple n3=normal(s3[3],s3[2],s3[1],s3[0],s3[4],s3[8],s3[12]);
-      if(n3 == 0.0) n3=normal(s3[3],s3[2],s3[1],s3[0],s3[13],s3[14],s3[15]);
-      if(n3 == 0.0) n3=normal(s3[15],s3[11],s3[7],s3[3],s3[4],s3[8],s3[12]);
+      if(n3 == 0.0) {
+        n3=normal(s3[3],s3[2],s3[1],s3[0],s3[13],s3[14],s3[15]);
+        if(n3 == 0.0) n3=normal(s3[15],s3[11],s3[7],s3[3],s3[4],s3[8],s3[12]);
+      }
       
       triple n4=normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]);
       

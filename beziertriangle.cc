@@ -32,15 +32,10 @@ inline double Distance1(const triple& z0, const triple& c0,
 // through u with unit normal n.
 inline double Distance2(const triple& z, const triple& u, const triple& n)
 {
-  return abs2(dot(z-u,n)*n);
+  double d=dot(z-u,n);
+  return d*d;
 }
   
-// Returns one-third of the first derivative of the Bezier curve defined by
-// a,b,c,d at 0.
-inline triple bezierP(triple a, triple b) {
-  return b-a;
-}
-
 // Returns one-sixth of the second derivative of the Bezier curve defined
 // by a,b,c,d at 0. 
 inline triple bezierPP(triple a, triple b, triple c) {
@@ -131,39 +126,28 @@ struct Render
     return rc;
   }
   
-  triple normal0(triple left3, triple left2, triple left1, triple middle,
-                 triple right1, triple right2, triple right3) {
-    //cout << "normal0 called." << endl;
-    // Lots of repetition here.
-    // TODO: Check if lp,rp,lpp,rpp should be manually inlined (i.e., is the
-    // third order normal usually computed when normal0() is called?).
-    triple lp=bezierP(middle,left1);
-    triple rp=bezierP(middle,right1);
-    triple lpp=bezierPP(middle,left1,left2);
-    triple rpp=bezierPP(middle,right1,right2);
-    triple n1=cross(rpp,lp)+cross(rp,lpp);
-    if(abs2(n1) > epsilon) {
-      return unit(n1);
-    } else {
-      triple lppp=bezierPPP(middle,left1,left2,left3);
-      triple rppp=bezierPPP(middle,right1,right2,right3);
-      triple n2= 9.0*cross(rpp,lpp)+
-        3.0*(cross(rp,lppp)+cross(rppp,lp)+
-             cross(rppp,lpp)+cross(rpp,lppp))+
-        cross(rppp,lppp);
-      return unit(n2);
-    }
-  }
-
   triple normal(triple left3, triple left2, triple left1, triple middle,
                 triple right1, triple right2, triple right3) {
-    triple bu=right1-middle;
-    triple bv=left1-middle;
-    triple n=triple(bu.gety()*bv.getz()-bu.getz()*bv.gety(),
-                    bu.getz()*bv.getx()-bu.getx()*bv.getz(),
-                    bu.getx()*bv.gety()-bu.gety()*bv.getx());
-    return abs2(n) > epsilon ? unit(n) :
-      normal0(left3,left2,left1,middle,right1,right2,right3);
+    triple rp=right1-middle;
+    triple lp=left1-middle;
+    triple n=triple(rp.gety()*lp.getz()-rp.getz()*lp.gety(),
+                    rp.getz()*lp.getx()-rp.getx()*lp.getz(),
+                    rp.getx()*lp.gety()-rp.gety()*lp.getx());
+    if(abs2(n) > epsilon)
+      return unit(n);
+    
+    triple lpp=bezierPP(middle,left1,left2);
+    triple rpp=bezierPP(middle,right1,right2);
+    n=cross(rpp,lp)+cross(rp,lpp);
+    if(abs2(n) > epsilon)
+      return unit(n);
+
+    triple lppp=bezierPPP(middle,left1,left2,left3);
+    triple rppp=bezierPPP(middle,right1,right2,right3);
+    return unit(9.0*cross(rpp,lpp)+
+                3.0*(cross(rp,lppp)+cross(rppp,lp)+
+                     cross(rppp,lpp)+cross(rpp,lppp))+
+                cross(rppp,lppp));
   }
 
   inline double Distance(const triple *p)
