@@ -39,7 +39,8 @@ inline double angle(double x, double y)
 // Return an angle in the interval [0,360).
 inline double principalBranch(double deg)
 {
-  if(deg < 0) deg += 360; 
+  deg=fmod(deg,360.0);
+  if(deg < 0) deg += 360.0; 
   return deg;
 }
 
