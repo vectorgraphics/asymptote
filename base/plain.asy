@@ -281,19 +281,22 @@ if(settings.autoimport != "") {
 
 cputime();
 
-if(latex() && pdf()) {
-  // Portably force nosetpagesize option to graphicx package.
-  texpreamble("\makeatletter\newif\ifGin@setpagesize");
-  if(settings.tex == "pdflatex")
-    texpreamble("\input pdftex.def");
-  else if(settings.tex == "xelatex")
-    texpreamble("\input xetex.def");
-  else if(settings.tex == "lualatex") {
-    texpreamble("\ifx\pdfpagewidth\undefined\let\pdfpagewidth\paperwidth\fi");
-    texpreamble("\ifx\pdfpageheight\undefined\let\pdfpageheight\paperheight\fi"
-                );
+void nosetpagesize() {
+  if(latex() && pdf()) {
+    // Portably pass nosetpagesize option to graphicx package.
+    texpreamble("\makeatletter\newif\ifGin@setpagesize");
+    if(settings.tex == "pdflatex")
+      texpreamble("\input pdftex.def");
+    else if(settings.tex == "xelatex")
+      texpreamble("\input xetex.def");
+    else if(settings.tex == "lualatex") {
+      texpreamble("\ifx\pdfpagewidth\undefined\let\pdfpagewidth\paperwidth\fi");
+      texpreamble("\ifx\pdfpageheight\undefined\let\pdfpageheight\paperheight\fi");
+    }
   }
 }
+
+nosetpagesize();
 
 if(settings.tex == "luatex")
   texpreamble("\input luatex85.sty");
