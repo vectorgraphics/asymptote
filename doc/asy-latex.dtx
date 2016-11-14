@@ -38,7 +38,7 @@ Licence: GPL2+
 %</driver>
 %<pkg>\ProvidesPackage{asymptote}
 %<*pkg>
-  [2016/11/08 v1.31 Asymptote style file for LaTeX]
+  [2016/11/14 v1.32 Asymptote style file for LaTeX]
 %</pkg>
 %
 %<*driver>
@@ -488,6 +488,7 @@ Licence: GPL2+
     if(!settings.multipleView) settings.batchView=false;^^J%
     \ifxetex
       settings.tex="xelatex";^^J%
+      nosetpagesize();^^J%
     \else\ifASYPDF
         settings.tex="pdflatex";^^J%
         nosetpagesize();^^J%
