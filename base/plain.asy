@@ -284,15 +284,11 @@ cputime();
 void nosetpagesize() {
   if(latex() && pdf()) {
     // Portably pass nosetpagesize option to graphicx package.
-    texpreamble("\makeatletter\newif\ifGin@setpagesize");
-    if(settings.tex == "pdflatex")
-      texpreamble("\input pdftex.def");
-    else if(settings.tex == "xelatex")
-      texpreamble("\input xetex.def");
-    else if(settings.tex == "lualatex") {
+    if(settings.tex == "lualatex") {
       texpreamble("\ifx\pdfpagewidth\undefined\let\pdfpagewidth\paperwidth\fi");
       texpreamble("\ifx\pdfpageheight\undefined\let\pdfpageheight\paperheight\fi");
-    }
+    } else
+      texpreamble("\let\paperwidthsave\paperwidth\let\paperwidth\undefined\usepackage{graphicx}\let\paperwidth\paperwidthsave");
   }
 }
 
