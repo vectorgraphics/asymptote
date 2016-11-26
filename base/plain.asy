@@ -282,7 +282,7 @@ if(settings.autoimport != "") {
 cputime();
 
 void nosetpagesize() {
-  if(latex() && pdf()) {
+  if(latex()) {
     // Portably pass nosetpagesize option to graphicx package.
     if(settings.tex == "lualatex") {
       texpreamble("\ifx\pdfpagewidth\undefined\let\pdfpagewidth\paperwidth\fi");
