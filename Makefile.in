@@ -24,7 +24,7 @@ vpath %.cc prc
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill path3 drawpath3 drawsurface \
-       beziertriangle pen pipestream
+       beziertriangle bezierpatch pen pipestream
 
 RUNTIME_FILES = runtime runbacktrace runpicture runlabel runhistory runarray \
 	runfile runsystem runpair runtriple runpath runpath3d runstring \
@@ -94,7 +94,7 @@ latexdir = $(DESTDIR)@latexdir@
 contextdir = $(DESTDIR)@contextdir@
 INSTALL = @INSTALL@
 REVISION = "const char *REVISION="
-last = $(shell cat revision.cc | sed -e 's/.*\"\(.*\)\";/\\1/')
+last = $(shell cat revision.cc | sed -e 's/.*\"\(.*\)\";/\1/')
 usinggit = $(shell if test -d ".git"; then echo yes; fi)
 ifeq ($(usinggit),yes)
 	revision = $(shell LC_ALL="C" git describe | sed -e 's/git//' \
@@ -114,7 +114,7 @@ asy:	version
 	fi
 
 version: $(GCLIB) $(FILES:=.o)
-	if test ! -e revision.cc -o "$(revision)" != "$(last)"; then     \
+	if test ! -s revision.cc -o "$(revision)" != "$(last)"; then     \
 	  echo $(REVISION)\"$(revision)\"\; > revision.cc; \
 	fi
 	$(CXX) $(OPTS) $(INCL) -o revision.o -c revision.cc;
@@ -160,7 +160,7 @@ $(GCLIB): $(GC).tar.gz
 	  mv gc-7.2 gc-7.2d; \
 	fi
 	cd $(GC) && \
-	./configure $(GCOPTIONS); \
+	./configure CC="$(CC)" CXX="$(CXX)" $(GCOPTIONS); \
 	$(MAKE) check
 
 $(GCPPLIB): $(GCLIB)

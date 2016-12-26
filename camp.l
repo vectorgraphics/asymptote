@@ -312,6 +312,7 @@ EXTRAOPS <<|>>|$|$$|@|@@|~
 "-"                {DEFSYMBOL(SYM_MINUS); return '-'; }
 "*"                {DEFSYMBOL(SYM_TIMES); return '*'; }
 "/"                {DEFSYMBOL(SYM_DIVIDE); return '/'; }
+"#"                {DEFSYMBOL(SYM_QUOTIENT); return '#'; }
 "%"                {DEFSYMBOL(SYM_MOD); return '%'; }
 "^"                {DEFSYMBOL(SYM_CARET); return '^'; }
 "**"               {savesymbol(SYM_CARET); return '^'; }
@@ -340,6 +341,7 @@ EXTRAOPS <<|>>|$|$$|@|@@|~
 "-="               {savesymbol(SYM_MINUS); return SELFOP; }
 "*="               {savesymbol(SYM_TIMES); return SELFOP; }
 "/="               {savesymbol(SYM_DIVIDE); return SELFOP; }
+"#="               {savesymbol(SYM_QUOTIENT); return SELFOP; }
 "%="               {savesymbol(SYM_MOD); return SELFOP; }
 "^="               {savesymbol(SYM_CARET); return SELFOP; }
 
@@ -414,7 +416,7 @@ operator           {adjust(); BEGIN opname; }
                      BEGIN INITIAL;
                      return ID;
                    }
-[-+*/%^!<>]|==|!=|<=|>=|&|\||\^\^|\.\.|::|--|---|\+\+|{EXTRAOPS} {
+[-+*/#%^!<>]|==|!=|<=|>=|&|\||\^\^|\.\.|::|--|---|\+\+|{EXTRAOPS} {
   makeopsymbol();
   BEGIN INITIAL;
   return ID;}

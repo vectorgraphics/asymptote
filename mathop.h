@@ -247,6 +247,16 @@ struct mod {
 };
 
 template <typename T>
+struct quotient {
+  T operator() (T x, T y,  size_t i=0) {
+    if(y == 0) dividebyzero(i);
+    if(y == -1) return Negate(x);
+// Implementation-independent definition of integer division: round down
+    return (x-portableMod(x,y))/y;
+  }
+};
+
+template <typename T>
 struct min {
   T operator() (T x, T y, size_t=0) {return x < y ? x : y;}
 };

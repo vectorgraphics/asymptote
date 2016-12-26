@@ -657,6 +657,7 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
     }
 
     if(calcStep) {
+      if(N == 1) N=2;
       if(N == 0) N=(int) (len/Step);
       else Step=len/N;
     }

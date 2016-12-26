@@ -1236,6 +1236,15 @@ void fill(picture pic=currentpicture, path[] g, pen p=currentpen,
   pic.addPath(g);
 }
 
+void drawstrokepath(picture pic=currentpicture, path g, pen strokepen,
+                    pen p=currentpen)
+{
+  pic.add(new void(frame f, transform t) {
+      draw(f,strokepath(t*g,strokepen),p);
+    },true);
+  pic.addPath(g,p);
+}
+
 void latticeshade(picture pic=currentpicture, path[] g, bool stroke=false,
                   pen fillrule=currentpen, pen[][] p, bool copy=true)
 {

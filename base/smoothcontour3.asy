@@ -1574,7 +1574,8 @@ surface implicitsurface(real f(triple) = null, real ff(real,real,real) = null,
     for (int i = 0; i < patches.length; ++i) {
       triple center = (patches[i].triangular ?
                        patches[i].point(1/3, 1/3) : patches[i].point(1/2,1/2));
-      patches[i] = shift(center) * scale3(1.01) * shift(-center) * patches[i];
+      transform3 T=shift(center) * scale3(1.03) * shift(-center);
+      patches[i] = T * patches[i];
     }
   }
   return surface(...patches);

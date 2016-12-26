@@ -1,5 +1,5 @@
 /*****
- * inst.h
+ * item.h
  * Tom Prince and John Bowman 2005/04/12
  *
  * Descibes the items that are used by the virtual machine.

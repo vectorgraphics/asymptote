@@ -12,62 +12,30 @@ namespace camp {
 
 #ifdef HAVE_GL
 
-static const double pixel=0.25; // Adaptive rendering constant.
+static const double pixel=0.5; // Adaptive rendering constant.
 
 extern const double Fuzz;
 extern const double Fuzz2;
 
-inline triple maxabs(triple u, triple v)
-{
-  return triple(max(fabs(u.getx()),fabs(v.getx())),
-                max(fabs(u.gety()),fabs(v.gety())),
-                max(fabs(u.getz()),fabs(v.getz())));
-}
-
-inline triple displacement1(const triple& z0, const triple& c0,
+// return the maximum perpendicular distance squared of points c0 and c1
+// from z0--z1.
+inline double Distance1(const triple& z0, const triple& c0,
                             const triple& c1, const triple& z1)
 {
   triple Z0=c0-z0;
   triple Q=unit(z1-z0);
   triple Z1=c1-z0;
-  return maxabs(Z0-dot(Z0,Q)*Q,Z1-dot(Z1,Q)*Q);
+  return max(abs2(Z0-dot(Z0,Q)*Q),abs2(Z1-dot(Z1,Q)*Q));
 }
 
-// return the perpendicular displacement of a point z from the plane
+// return the perpendicular distance squared of a point z from the plane
 // through u with unit normal n.
-inline triple displacement2(const triple& z, const triple& u, const triple& n)
+inline double Distance2(const triple& z, const triple& u, const triple& n)
 {
-  triple Z=z-u;
-  return n != triple(0,0,0) ? dot(Z,n)*n : Z;
+  double d=dot(z-u,n);
+  return d*d;
 }
   
-triple displacement(const triple *controls)
-{
-  triple z0=controls[0];
-  triple z1=controls[6];
-  triple z2=controls[9];
-
-  // The last three lines compute how straight the edges are. This should be a
-  // sufficient test for the boundry points, so only the internal point is
-  // tested for deviance from the triangle formed by the vertices.
-  // We assume that the Jacobian is nonzero so that we only need to calculate
-  // the perpendicular displacement of the internal point from this triangle.
-  
-  triple d=displacement2(controls[4],z0,unit(cross(z1-z0,z2-z0)));
-
-  d=maxabs(d,displacement1(z0,controls[1],controls[3],z1));
-  d=maxabs(d,displacement1(z0,controls[2],controls[5],z2));
-  d=maxabs(d,displacement1(z1,controls[7],controls[8],z2));
-
-  return d;
-}
-
-// Returns one-third of the first derivative of the Bezier curve defined by
-// a,b,c,d at 0.
-inline triple bezierP(triple a, triple b) {
-  return b-a;
-}
-
 // Returns one-sixth of the second derivative of the Bezier curve defined
 // by a,b,c,d at 0. 
 inline triple bezierPP(triple a, triple b, triple c) {
@@ -80,6 +48,12 @@ inline triple bezierPPP(triple a, triple b, triple c, triple d) {
   return d-a+3.0*(b-c);
 }
 
+#ifdef __MSDOS__      
+const double FillFactor=1.0;
+#else
+const double FillFactor=0.1;
+#endif      
+
 struct Render
 {
   std::vector<GLfloat> buffer;
@@ -88,10 +62,15 @@ struct Render
   GLuint nvertices;
   double cx,cy,cz;
   double epsilon;
-  double res;
+  double Epsilon;
+  double res,res2;
   bool billboard;
   
-  void init(bool havebillboard, const triple& center) {
+  void init(double res, bool havebillboard, const triple& center) {
+    this->res=res;
+    res2=res*res;
+    Epsilon=FillFactor*res;
+    
     const size_t nbuffer=10000;
     buffer.reserve(nbuffer);
     indices.reserve(nbuffer);
@@ -147,102 +126,94 @@ struct Render
     return rc;
   }
   
-  triple normal0(triple left3, triple left2, triple left1, triple middle,
-                 triple right1, triple right2, triple right3) {
-    //cout << "normal0 called." << endl;
-    // Lots of repetition here.
-    // TODO: Check if lp,rp,lpp,rpp should be manually inlined (i.e., is the
-    // third order normal usually computed when normal0() is called?).
-    triple lp=bezierP(middle,left1);
-    triple rp=bezierP(middle,right1);
-    triple lpp=bezierPP(middle,left1,left2);
-    triple rpp=bezierPP(middle,right1,right2);
-    triple n1=cross(rpp,lp)+cross(rp,lpp);
-    if(abs2(n1) > epsilon) {
-      return unit(n1);
-    } else {
-      triple lppp=bezierPPP(middle,left1,left2,left3);
-      triple rppp=bezierPPP(middle,right1,right2,right3);
-      triple n2= 9.0*cross(rpp,lpp)+
-        3.0*(cross(rp,lppp)+cross(rppp,lp)+
-             cross(rppp,lpp)+cross(rpp,lppp))+
-        cross(rppp,lppp);
-      return unit(n2);
-    }
-  }
-
   triple normal(triple left3, triple left2, triple left1, triple middle,
                 triple right1, triple right2, triple right3) {
-    triple bu=right1-middle;
-    triple bv=left1-middle;
-    triple n=triple(bu.gety()*bv.getz()-bu.getz()*bv.gety(),
-                    bu.getz()*bv.getx()-bu.getx()*bv.getz(),
-                    bu.getx()*bv.gety()-bu.gety()*bv.getx());
-    return abs2(n) > epsilon ? unit(n) :
-      normal0(left3,left2,left1,middle,right1,right2,right3);
+    triple rp=right1-middle;
+    triple lp=left1-middle;
+    triple n=triple(rp.gety()*lp.getz()-rp.getz()*lp.gety(),
+                    rp.getz()*lp.getx()-rp.getx()*lp.getz(),
+                    rp.getx()*lp.gety()-rp.gety()*lp.getx());
+    if(abs2(n) > epsilon)
+      return unit(n);
+    
+    triple lpp=bezierPP(middle,left1,left2);
+    triple rpp=bezierPP(middle,right1,right2);
+    n=cross(rpp,lp)+cross(rp,lpp);
+    if(abs2(n) > epsilon)
+      return unit(n);
+
+    triple lppp=bezierPPP(middle,left1,left2,left3);
+    triple rppp=bezierPPP(middle,right1,right2,right3);
+    return unit(9.0*cross(rpp,lpp)+
+                3.0*(cross(rp,lppp)+cross(rppp,lp)+
+                     cross(rppp,lpp)+cross(rpp,lppp))+
+                cross(rppp,lppp));
+  }
+
+  inline double Distance(const triple *p)
+  {
+    triple p0=p[0];
+    triple p6=p[6];
+    triple p9=p[9];
+
+    // Only the internal point is tested for deviance from the triangle
+    // formed by the vertices. We assume that the Jacobian is nonzero so
+    // that we only need to calculate the perpendicular distance of the
+    // internal point from this triangle.  
+    double d=Distance2(p[4],p0,normal(p9,p[5],p[2],p0,p[1],p[3],p6));
+
+    // Determine how straight the edges are.
+    d=max(d,Distance1(p0,p[1],p[3],p6));
+    d=max(d,Distance1(p0,p[2],p[5],p9));
+    return max(d,Distance1(p6,p[7],p[8],p9));
   }
 
   void mesh(const triple *p, const GLuint *I)
   {
     // Draw the frame of the control points of a cubic Bezier mesh
-    GLuint I0=I[0];
-    GLuint I1=I[1];
-    GLuint I2=I[2];
-
-    indices.push_back(I0);
-    indices.push_back(I1);
-    indices.push_back(I2);
+    indices.push_back(I[0]);
+    indices.push_back(I[1]);
+    indices.push_back(I[2]);
   }
   
+// Uses a uniform partition to draw a Bezier triangle.
+// p is an array of 10 triples representing the control points.
 // Pi is the full precision value indexed by Ii.
 // The 'flati' are flatness flags for each boundary.
-  void render(const triple *p, int n,
+  void render(const triple *p,
               GLuint I0, GLuint I1, GLuint I2,
               triple P0, triple P1, triple P2,
               bool flat1, bool flat2, bool flat3,
               GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL)
   {
-    // Uses a uniform partition
-    // p points to an array of 10 triples.
-    // Draw a Bezier triangle.
-    // p is the set of control points for the Bezier triangle
-    // n is the maximum number of iterations to compute
-    triple d=displacement(p);
-
-    // This involves fewer triangle computations at the end (since if the
-    // surface is sufficiently flat, it just draws the sufficiently flat
-    // triangle, rather than trying to properly utilize the already
-    // computed values. 
-
-    if(n == 0 || length(d) < res) { // If triangle is flat...
+    if(Distance(p) < res2) { // Triangle is flat
       GLuint I[]={I0,I1,I2};
       mesh(p,I);
     } else { // Triangle is not flat
-
       /*    Naming Convention:
-       *
-       *                           P2
-       *                           030
-       *                           /\
-       *                          /  \
-       *                         /    \
-       *                        /      \
-       *                       /   up   \
-       *                      /          \
-       *                     /            \
-       *                    /              \
-       *                p1 /________________\ p0
-       *                  /\               / \
-       *                 /  \             /   \
-       *                /    \           /     \
-       *               /      \  center /       \
-       *              /        \       /         \
-       *             /          \     /           \
-       *            /    left    \   /    right    \
-       *           /              \ /               \
-       *          /________________V_________________\
-       *        003               p2                300
-       *        P0                                    P1
+       
+                                   P2
+                                   030
+                                   /\
+                                  /  \
+                                 /    \
+                                /      \
+                               /   up   \
+                              /          \
+                             /            \
+                            /              \
+                        p1 /________________\ p0
+                          /\               / \
+                         /  \             /   \
+                        /    \           /     \
+                       /      \  center /       \
+                      /        \       /         \
+                     /          \     /           \
+                    /    left    \   /    right    \
+                   /              \ /               \
+                  /________________V_________________\
+                003               p2                300
+                P0                                    P1
        */
 
       // Subdivide triangle
@@ -301,24 +272,15 @@ struct Render
       triple u111=0.5*(u021+p231);
       triple c111=0.25*(p033+p330+p303+p111);
 
-      //  For each edge of the triangle
-      //    * Check for flatness
-      //    * Store points in the GLU array accordingly
+      triple p2,p1,p0;
 
       // A kludge to remove subdivision cracks, only applied the first time
       // an edge is found to be flat before the rest of the sub-patch is.
-#ifdef __MSDOS__      
-      const double epsilon=1.0*res;
-#else
-      const double epsilon=0.1*res;
-#endif      
-      triple p2,p1,p0;
-
       if(flat1)
         p2=0.5*(P1+P0);
       else {
-        if((flat1=length(displacement1(l003,p102,p201,r300)) < res))
-          p2=0.5*(P1+P0)+epsilon*unit(l300-u030);
+        if((flat1=Distance1(l003,p102,p201,r300) < res2))
+          p2=0.5*(P1+P0)+Epsilon*unit(l300-u030);
         else
           p2=l300;
       }
@@ -326,16 +288,16 @@ struct Render
       if(flat2)
         p1=0.5*(P2+P0);
       else {
-        if((flat2=length(displacement1(l003,p012,p021,u030)) < res))
-          p1=0.5*(P2+P0)+epsilon*unit(l030-r300);
+        if((flat2=Distance1(l003,p012,p021,u030) < res2))
+          p1=0.5*(P2+P0)+Epsilon*unit(l030-r300);
         else p1=l030;
       }
 
       if(flat3)
         p0=0.5*(P2+P1);
       else {
-        if((flat3=length(displacement1(r300,p210,p120,u030)) < res))
-          p0=0.5*(P2+P1)+epsilon*unit(r030-l003);
+        if((flat3=Distance1(r300,p210,p120,u030) < res2))
+          p0=0.5*(P2+P1)+Epsilon*unit(r030-l003);
         else p0=r030;
       }
 
@@ -344,8 +306,10 @@ struct Render
       triple u[]={l030,u102,u012,u201,u111,u021,r030,u210,u120,u030}; // up
       triple c[]={r030,u201,r021,u102,c111,r012,l030,l120,l210,l300}; // center
 
-      --n;
-      
+      triple n0=normal(l300,r012,r021,r030,u201,u102,l030);
+      triple n1=normal(r030,u201,u102,l030,l120,l210,l300);
+      triple n2=normal(l030,l120,l210,l300,r012,r021,r030);
+          
       if(C0) {
         GLfloat c0[4],c1[4],c2[4];
         for(int i=0; i < 4; ++i) {
@@ -354,31 +318,29 @@ struct Render
           c2[i]=0.5*(C0[i]+C1[i]);
         }
       
-        GLuint i0=vertex(p0,normal(l300,r012,r021,r030,u201,u102,l030),c0);
-        GLuint i1=vertex(p1,normal(r030,u201,u102,l030,l120,l210,l300),c1);
-        GLuint i2=vertex(p2,normal(l030,l120,l210,l300,r012,r021,r030),c2);
+        GLuint i0=vertex(p0,n0,c0);
+        GLuint i1=vertex(p1,n1,c1);
+        GLuint i2=vertex(p2,n2,c2);
           
-        render(l,n,I0,i2,i1,P0,p2,p1,flat1,flat2,false,C0,c2,c1);
-        render(r,n,i2,I1,i0,p2,P1,p0,flat1,false,flat3,c2,C1,c0);
-        render(u,n,i1,i0,I2,p1,p0,P2,false,flat2,flat3,c1,c0,C2);
-        render(c,n,i0,i1,i2,p0,p1,p2,false,false,false,c0,c1,c2);
+        render(l,I0,i2,i1,P0,p2,p1,flat1,flat2,false,C0,c2,c1);
+        render(r,i2,I1,i0,p2,P1,p0,flat1,false,flat3,c2,C1,c0);
+        render(u,i1,i0,I2,p1,p0,P2,false,flat2,flat3,c1,c0,C2);
+        render(c,i0,i1,i2,p0,p1,p2,false,false,false,c0,c1,c2);
       } else {
-        GLuint i0=vertex(p0,normal(l300,r012,r021,r030,u201,u102,l030));
-        GLuint i1=vertex(p1,normal(r030,u201,u102,l030,l120,l210,l300));
-        GLuint i2=vertex(p2,normal(l030,l120,l210,l300,r012,r021,r030));
+        GLuint i0=vertex(p0,n0);
+        GLuint i1=vertex(p1,n1);
+        GLuint i2=vertex(p2,n2);
           
-        render(l,n,I0,i2,i1,P0,p2,p1,flat1,flat2,false);
-        render(r,n,i2,I1,i0,p2,P1,p0,flat1,false,flat3);
-        render(u,n,i1,i0,I2,p1,p0,P2,false,flat2,flat3);
-        render(c,n,i0,i1,i2,p0,p1,p2,false,false,false);
+        render(l,I0,i2,i1,P0,p2,p1,flat1,flat2,false);
+        render(r,i2,I1,i0,p2,P1,p0,flat1,false,flat3);
+        render(u,i1,i0,I2,p1,p0,P2,false,flat2,flat3);
+        render(c,i0,i1,i2,p0,p1,p2,false,false,false);
       }
     }
   }
 
 // n is the maximum depth
-  void render(const triple *p, double res, GLfloat *c0, int n) {
-    this->res=res;
-
+  void render(const triple *p, bool straight, GLfloat *c0=NULL) {
     triple p0=p[0];
     epsilon=0;
     for(int i=1; i < 10; ++i)
@@ -390,26 +352,31 @@ struct Render
     
     triple p6=p[6];
     triple p9=p[9];
+    
+    triple n0=normal(p9,p[5],p[2],p0,p[1],p[3],p6);
+    triple n1=normal(p0,p[1],p[3],p6,p[7],p[8],p9);    
+    triple n2=normal(p6,p[7],p[8],p9,p[5],p[2],p0);
+    
     if(c0) {
       GLfloat *c1=c0+4;
       GLfloat *c2=c0+8;
     
-      i0=vertex(p0,normal(p9,p[5],p[2],p0,p[1],p[3],p6),c0);
-      i1=vertex(p6,normal(p0,p[1],p[3],p6,p[7],p[8],p9),c1);
-      i2=vertex(p9,normal(p6,p[7],p[8],p9,p[5],p[2],p0),c2);
+      i0=vertex(p0,n0,c0);
+      i1=vertex(p6,n1,c1);
+      i2=vertex(p9,n2,c2);
     
-      if(n > 0)
-        render(p,n,i0,i1,i2,p0,p6,p9,false,false,false,c0,c1,c2);
+      if(!straight)
+        render(p,i0,i1,i2,p0,p6,p9,false,false,false,c0,c1,c2);
     } else {
-      i0=vertex(p0,normal(p9,p[5],p[2],p0,p[1],p[3],p6));
-      i1=vertex(p6,normal(p0,p[1],p[3],p6,p[7],p[8],p9));
-      i2=vertex(p9,normal(p6,p[7],p[8],p9,p[5],p[2],p0));
+      i0=vertex(p0,n0);
+      i1=vertex(p6,n1);
+      i2=vertex(p9,n2);
     
-      if(n > 0)
-        render(p,n,i0,i1,i2,p0,p6,p9,false,false,false);
+      if(!straight)
+        render(p,i0,i1,i2,p0,p6,p9,false,false,false);
     }
     
-    if(n == 0) {
+    if(straight) {
       GLuint I[]={i0,i1,i2};
       mesh(p,I);
     }
@@ -427,7 +394,6 @@ struct Render
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
   }
-  
 };
 
 Render R;
@@ -435,8 +401,8 @@ Render R;
 void bezierTriangle(const triple *g, bool straight, double ratio,
                     bool havebillboard, triple center, GLfloat *colors)
 {
-  R.init(havebillboard,center);
-  R.render(g,pixel*ratio,colors,straight ? 0 : 8);
+  R.init(pixel*ratio,havebillboard,center);
+  R.render(g,straight,colors);
   R.clear();
 }
 
