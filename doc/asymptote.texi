@@ -2289,10 +2289,22 @@ produces a beep on the console;
 @end table
 
 @cindex @code{typedef}
+@cindex @code{using}
 
 @end table
 
 As in C/C++, complicated types may be abbreviated with @code{typedef}
+or @code{using}. For instance, the line
+@verbatim
+using multipath = path[];
+@end verbatim
+will make @code{multipath} a type equivalent @code{path[]}, as will
+the equivalent line
+@verbatim
+typedef path[] multipath;
+@end verbatim
+For the most part this is a convenience. However, it is required
+when declaring a function whose return type is a function
 (see the example in @ref{Functions}).
 
 @node Paths and guides, Pens, Data types, Programming
@@ -4634,16 +4646,23 @@ int c();
 c=a;                // Valid: only one possible assignment.
 @end verbatim
 
-@item Anonymous (so-called "high-order") functions are also allowed:
+@item ``Higher-order'' functions, in other words functions that return
+functions, are allowed.
+The return type must be given a signature-free alias with
+@code{using}
+@cindex @code{using}
+or
+@code{typedef}:
 @cindex @code{typedef}
 @verbatim
-typedef int intop(int);
+using intop = int(int);
+typedef int intop(int); // Equivalent to previous line
 intop adder(int m)
 {
   return new int(int n) {return m+n;};
 }
 intop addby7=adder(7);
-write(addby7(1));   // Writes 8.
+write(addby7(1));       // Writes 8.
 @end verbatim
 
 @item 
@@ -9924,4 +9943,4 @@ Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  'asy 'lasy 'auto 5bp 1cm 4g 2S 100pt 3t 12pt 5mm 3x
 @c  LocalWords:  25cm 5x 3y 602e 2x 2y 3sin 10cm 204e 10x Ai Ai Ai Ai
 @c  LocalWords:  Ai Ai Ai Ai 5E 5cm 2N 2E 2n 100d 5z 5y 5unit 144x144
-@c  LocalWords:  Frohlich
+@c  LocalWords:  Frohlich using
