@@ -143,24 +143,41 @@ struct RenderPatch
     
     triple lppp=bezierPPP(middle,left1,left2,left3);
     triple rppp=bezierPPP(middle,right1,right2,right3);
+    
     return unit(9.0*cross(rpp,lpp)+
                 3.0*(cross(rp,lppp)+cross(rppp,lp)+
                      cross(rppp,lpp)+cross(rpp,lppp))+
                 cross(rppp,lppp));
   }
 
-  
+  triple derivative(triple p0, triple p1, triple p2, triple p3) {
+    triple lp=p1-p0;
+    if(abs2(lp) > epsilon)
+      return unit(lp);
+    
+    triple lpp=bezierPP(p0,p1,p2);
+    if(abs2(lpp) > epsilon)
+      return unit(lpp);
+    
+    return unit(bezierPPP(p0,p1,p2,p3));
+  }
+
   double Distance(const triple *p) {
     triple p0=p[0];
     triple p3=p[3];
     triple p12=p[12];
     triple p15=p[15];
     
-    triple n1=normal(p0,p[4],p[8],p12,p[13],p[14],p15);
-    triple n3=normal(p15,p[11],p[7],p3,p[2],p[1],p0);
-    if(n1 == 0.0) n1=n3;
-    if(n3 == 0.0) n3=n1;
+    // triple n1=normal(p0,p[4],p[8],p12,p[13],p[14],p15);
+    // triple n3=normal(p15,p[11],p[7],p3,p[2],p[1],p0);
+    // if(n1 == 0.0) n1=n3;
+    // if(n3 == 0.0) n3=n1;
 
+    // Determine how straight the diagonals are.
+    double d=Distance1(p0,p[5],p[10],p15);
+    d=max(d,Distance1(p3,p[6],p[9],p12));
+    
+    /*
     // Determine how flat each subtriangle of the patch is.
     double d=Distance2(p[5],p12,n1);
     d=max(d,Distance2(p[9],p12,n1));
@@ -169,6 +186,7 @@ struct RenderPatch
     d=max(d,Distance2(p[5],p3,n3));
     d=max(d,Distance2(p[6],p3,n3));
     d=max(d,Distance2(p[10],p3,n3));
+    */
     
     // Determine how straight the edges are.
     d=max(d,Distance1(p0,p[1],p[2],p3));
@@ -308,45 +326,40 @@ struct RenderPatch
       
       triple n4=normal(s2[3],s2[2],s2[1],m4,s2[4],s2[8],s2[12]);
       
-      triple m0,m1,m2,m3;
-      
       // A kludge to remove subdivision cracks, only applied the first time
       // an edge is found to be flat before the rest of the subpatch is.
-      if(flat0)
-        m0=0.5*(P0+P1);
-      else {
-        if((flat0=Distance1(p0,p[4],p[8],p12) < res2))
-          m0=0.5*(P0+P1)+Epsilon*unit(s0[12]-s2[3]);
-        else
-          m0=s0[12];
+      triple m0=0.5*(P0+P1);
+      if(!flat0) {
+        if((flat0=abs2(m0-s0[12]) < res2 &&            
+            Distance1(p0,p[4],p[8],p12) < res2))
+          m0 -= Epsilon*derivative(s1[0],s1[1],s1[2],s1[3]);
+        else m0=s0[12];
       }
       
-      if(flat1)
-        m1=0.5*(P1+P2);
-      else {
-        if((flat1=Distance1(p12,p[13],p[14],p15) < res2))
-          m1=0.5*(P1+P2)+Epsilon*unit(s1[15]-s3[0]);
-        else
-          m1=s1[15];
+      triple m1=0.5*(P1+P2);
+      if(!flat1) {
+        if((flat1=abs2(m1-s1[15]) < res2 &&
+            Distance1(p12,p[13],p[14],p15) < res2))
+          m1 -= Epsilon*derivative(s2[12],s2[8],s2[4],s2[0]);
+        else m1=s1[15];
       }
       
-      if(flat2)
-        m2=0.5*(P2+P3);
-      else {
-        if((flat2=Distance1(p15,p[11],p[7],p3) < res2))
-          m2=0.5*(P2+P3)+Epsilon*unit(s2[3]-s0[12]);
-        else
-          m2=s2[3];
+      triple m2=0.5*(P2+P3);
+      if(!flat2) {
+        if((flat2=abs2(m2-s2[3]) < res2 &&
+            Distance1(p15,p[11],p[7],p3) < res2))
+          m2 -= Epsilon*derivative(s2[3],s2[2],s2[1],s1[0]);
+        else m2=s2[3];
       }
       
-      if(flat3)
-        m3=0.5*(P3+P0);
-      else {
-        if((flat3=Distance1(p3,p[2],p[1],p0) < res2))
-         m3=0.5*(P3+P0)+Epsilon*unit(s3[0]-s1[15]);
-        else
-          m3=s3[0];
+      triple m3=0.5*(P3+P0);
+      if(!flat3) {
+        if((flat3=abs2(m3-s3[0]) < res2 &&
+            Distance1(p0,p[1],p[2],p3) < res2))
+          m3 -= Epsilon*derivative(s3[0],s3[4],s3[8],s3[12]);
+        else m3=s3[0];
       }
+      
       
       if(C0) {
         GLfloat c0[4],c1[4],c2[4],c3[4],c4[4];
