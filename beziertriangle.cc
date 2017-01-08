@@ -54,7 +54,7 @@ const double FillFactor=1.0;
 const double FillFactor=0.1;
 #endif      
 
-struct Render
+struct RenderTriangle
 {
   std::vector<GLfloat> buffer;
   std::vector<GLint> indices;
@@ -183,7 +183,7 @@ struct Render
   void render(const triple *p,
               GLuint I0, GLuint I1, GLuint I2,
               triple P0, triple P1, triple P2,
-              bool flat1, bool flat2, bool flat3,
+              bool flat0, bool flat1, bool flat2,
               GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL)
   {
     if(Distance(p) < res2) { // Triangle is flat
@@ -272,32 +272,26 @@ struct Render
       triple u111=0.5*(u021+p231);
       triple c111=0.25*(p033+p330+p303+p111);
 
-      triple p2,p1,p0;
-
       // A kludge to remove subdivision cracks, only applied the first time
-      // an edge is found to be flat before the rest of the sub-patch is.
-      if(flat1)
-        p2=0.5*(P1+P0);
-      else {
-        if((flat1=Distance1(l003,p102,p201,r300) < res2))
-          p2=0.5*(P1+P0)+Epsilon*unit(l300-u030);
-        else
-          p2=l300;
+      // an edge is found to be flat before the rest of the subpatch is.
+      triple p2=0.5*(P1+P0);
+      if(!flat0) {
+        if((flat0=Distance1(l003,p102,p201,r300) < res2))
+          p2 += Epsilon*unit(l300-c111);
+        else p2=l300;
       }
 
-      if(flat2)
-        p1=0.5*(P2+P0);
-      else {
-        if((flat2=Distance1(l003,p012,p021,u030) < res2))
-          p1=0.5*(P2+P0)+Epsilon*unit(l030-r300);
+      triple p1=0.5*(P2+P0);
+      if(!flat1) {
+        if((flat1=Distance1(l003,p012,p021,u030) < res2))
+          p1 += Epsilon*unit(l030-c111);
         else p1=l030;
       }
 
-      if(flat3)
-        p0=0.5*(P2+P1);
-      else {
-        if((flat3=Distance1(r300,p210,p120,u030) < res2))
-          p0=0.5*(P2+P1)+Epsilon*unit(r030-l003);
+      triple p0=0.5*(P2+P1);
+      if(!flat2) {
+        if((flat2=Distance1(r300,p210,p120,u030) < res2))
+          p0 += Epsilon*unit(r030-c111);
         else p0=r030;
       }
 
@@ -322,18 +316,18 @@ struct Render
         GLuint i1=vertex(p1,n1,c1);
         GLuint i2=vertex(p2,n2,c2);
           
-        render(l,I0,i2,i1,P0,p2,p1,flat1,flat2,false,C0,c2,c1);
-        render(r,i2,I1,i0,p2,P1,p0,flat1,false,flat3,c2,C1,c0);
-        render(u,i1,i0,I2,p1,p0,P2,false,flat2,flat3,c1,c0,C2);
+        render(l,I0,i2,i1,P0,p2,p1,flat0,flat1,false,C0,c2,c1);
+        render(r,i2,I1,i0,p2,P1,p0,flat0,false,flat2,c2,C1,c0);
+        render(u,i1,i0,I2,p1,p0,P2,false,flat1,flat2,c1,c0,C2);
         render(c,i0,i1,i2,p0,p1,p2,false,false,false,c0,c1,c2);
       } else {
         GLuint i0=vertex(p0,n0);
         GLuint i1=vertex(p1,n1);
         GLuint i2=vertex(p2,n2);
           
-        render(l,I0,i2,i1,P0,p2,p1,flat1,flat2,false);
-        render(r,i2,I1,i0,p2,P1,p0,flat1,false,flat3);
-        render(u,i1,i0,I2,p1,p0,P2,false,flat2,flat3);
+        render(l,I0,i2,i1,P0,p2,p1,flat0,flat1,false);
+        render(r,i2,I1,i0,p2,P1,p0,flat0,false,flat2);
+        render(u,i1,i0,I2,p1,p0,P2,false,flat1,flat2);
         render(c,i0,i1,i2,p0,p1,p2,false,false,false);
       }
     }
@@ -396,7 +390,7 @@ struct Render
   }
 };
 
-Render R;
+RenderTriangle R;
 
 void bezierTriangle(const triple *g, bool straight, double ratio,
                     bool havebillboard, triple center, GLfloat *colors)
