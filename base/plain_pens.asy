@@ -99,7 +99,7 @@ pen deepgreen=rgb(0,0.5,0);
 pen deepblue=rgb(0,0,0.5);
 pen deepcyan=rgb(0,0.5,0.5);
 pen deepmagenta=rgb(0.5,0,0.5);
-pen olive=rgb(0.5,0.5,0);
+pen deepyellow=rgb(0.5,0.5,0);
 pen deepgray=gray(0.1);
 
 pen darkred=rgb(0.25,0,0);
@@ -123,6 +123,7 @@ pen royalblue=rgb(0,0.5,1);
 
 pen salmon=lightred;
 pen brown=deepred;
+pen olive=deepyellow;
 pen darkbrown=darkred;
 pen pink=palemagenta;
 pen palegrey=palegray;
