@@ -328,34 +328,31 @@ struct RenderPatch
       
       // A kludge to remove subdivision cracks, only applied the first time
       // an edge is found to be flat before the rest of the subpatch is.
+      
       triple m0=0.5*(P0+P1);
       if(!flat0) {
-        if((flat0=abs2(m0-s0[12]) < res2 &&            
-            Distance1(p0,p[4],p[8],p12) < res2))
+        if((flat0=Distance1(p0,p[4],p[8],p12) < res2))
           m0 -= Epsilon*derivative(s1[0],s1[1],s1[2],s1[3]);
         else m0=s0[12];
       }
       
       triple m1=0.5*(P1+P2);
       if(!flat1) {
-        if((flat1=abs2(m1-s1[15]) < res2 &&
-            Distance1(p12,p[13],p[14],p15) < res2))
+        if((flat1=Distance1(p12,p[13],p[14],p15) < res2))
           m1 -= Epsilon*derivative(s2[12],s2[8],s2[4],s2[0]);
         else m1=s1[15];
       }
       
       triple m2=0.5*(P2+P3);
       if(!flat2) {
-        if((flat2=abs2(m2-s2[3]) < res2 &&
-            Distance1(p15,p[11],p[7],p3) < res2))
+        if((flat2=Distance1(p15,p[11],p[7],p3) < res2))
           m2 -= Epsilon*derivative(s2[3],s2[2],s2[1],s1[0]);
         else m2=s2[3];
       }
       
       triple m3=0.5*(P3+P0);
       if(!flat3) {
-        if((flat3=abs2(m3-s3[0]) < res2 &&
-            Distance1(p0,p[1],p[2],p3) < res2))
+        if((flat3=Distance1(p0,p[1],p[2],p3) < res2))
           m3 -= Epsilon*derivative(s3[0],s3[4],s3[8],s3[12]);
         else m3=s3[0];
       }
