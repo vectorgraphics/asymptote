@@ -168,31 +168,19 @@ struct RenderPatch
     triple p12=p[12];
     triple p15=p[15];
     
-    // triple n1=normal(p0,p[4],p[8],p12,p[13],p[14],p15);
-    // triple n3=normal(p15,p[11],p[7],p3,p[2],p[1],p0);
-    // if(n1 == 0.0) n1=n3;
-    // if(n3 == 0.0) n3=n1;
-
-    // Determine how straight the diagonals are.
-    double d=Distance1(p0,p[5],p[10],p15);
-    d=max(d,Distance1(p3,p[6],p[9],p12));
-    
-    /*
-    // Determine how flat each subtriangle of the patch is.
-    double d=Distance2(p[5],p12,n1);
-    d=max(d,Distance2(p[9],p12,n1));
-    d=max(d,Distance2(p[10],p12,n1));
-    
-    d=max(d,Distance2(p[5],p3,n3));
-    d=max(d,Distance2(p[6],p3,n3));
-    d=max(d,Distance2(p[10],p3,n3));
-    */
-    
     // Determine how straight the edges are.
-    d=max(d,Distance1(p0,p[1],p[2],p3));
+    double d=Distance1(p0,p[1],p[2],p3);
     d=max(d,Distance1(p0,p[4],p[8],p12));
     d=max(d,Distance1(p3,p[7],p[11],p15));
-    return max(d,Distance1(p12,p[13],p[14],p15));
+    d=max(d,Distance1(p12,p[13],p[14],p15));
+    
+    // Determine how straight the interior control curves are.
+    d=max(d,Distance1(p[4],p[5],p[6],p[7]));
+    d=max(d,Distance1(p[8],p[9],p[10],p[11]));
+    d=max(d,Distance1(p[1],p[5],p[9],p[13]));
+    return max(d,Distance1(p[2],p[6],p[10],p[14]));
+    
+    
   }
   
   struct Split3 {
