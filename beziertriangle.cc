@@ -65,11 +65,15 @@ struct RenderTriangle
   double Epsilon;
   double res,res2;
   bool billboard;
+  triple Min,Max;
   
-  void init(double res, bool havebillboard, const triple& center) {
+  void init(double res, bool havebillboard, const triple& center,
+            const triple& Min, const triple& Max) {
     this->res=res;
     res2=res*res;
     Epsilon=FillFactor*res;
+    this->Min=Min;
+    this->Max=Max;
     
     const size_t nbuffer=10000;
     buffer.reserve(nbuffer);
@@ -94,20 +98,23 @@ struct RenderTriangle
     indices.clear();
   }
   
+  triple Billboard(const triple& V) {
+    double x=V.getx()-cx;
+    double y=V.gety()-cy;
+    double z=V.getz()-cz;
+    
+    return triple(cx+u.getx()*x+v.getx()*y+w.getx()*z,
+                  cy+u.gety()*x+v.gety()*y+w.gety()*z,
+                  cz+u.getz()*x+v.getz()*y+w.getz()*z);
+  }
+  
 // Store the vertex v and its normal vector n in the buffer.
-  GLuint vertex(const triple& V, const triple& n) {
-    if(billboard) {
-      double x=V.getx()-cx;
-      double y=V.gety()-cy;
-      double z=V.getz()-cz;
-      buffer.push_back(cx+u.getx()*x+v.getx()*y+w.getx()*z);
-      buffer.push_back(cy+u.gety()*x+v.gety()*y+w.gety()*z);
-      buffer.push_back(cz+u.getz()*x+v.getz()*y+w.getz()*z);
-    } else {
-      buffer.push_back(V.getx());
-      buffer.push_back(V.gety());
-      buffer.push_back(V.getz());
-    }
+  GLuint vertex(triple v, const triple& n) {
+    if(billboard) v=Billboard(v);
+    
+    buffer.push_back(v.getx());
+    buffer.push_back(v.gety());
+    buffer.push_back(v.getz());
     
     buffer.push_back(n.getx());
     buffer.push_back(n.gety());
@@ -176,6 +183,18 @@ struct RenderTriangle
     indices.push_back(I[2]);
   }
   
+// Approximate bounds by bounding box of control polyhedron.
+  bool offscreen(const triple *v) {
+    double x,y,z;
+    double X,Y,Z;
+    
+    boundstriples(x,y,z,X,Y,Z,10,v);
+    return
+      X < Min.getx() || x > Max.getx() ||
+      Y < Min.gety() || y > Max.gety() ||
+      Z < Min.getz() || z > Max.getz();
+  }
+  
 // Uses a uniform partition to draw a Bezier triangle.
 // p is an array of 10 triples representing the control points.
 // Pi is the full precision value indexed by Ii.
@@ -187,9 +206,13 @@ struct RenderTriangle
               GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL)
   {
     if(Distance(p) < res2) { // Triangle is flat
-      GLuint I[]={I0,I1,I2};
-      mesh(p,I);
+      triple T0[]={P0,P1,P2};
+      if(billboard || !offscreen(T0)) {
+        GLuint I[]={I0,I1,I2};
+        mesh(p,I);
+      }
     } else { // Triangle is not flat
+      if(!billboard && offscreen(p)) return;
       /*    Naming Convention:
        
                                    P2
@@ -393,9 +416,10 @@ struct RenderTriangle
 RenderTriangle R;
 
 void bezierTriangle(const triple *g, bool straight, double ratio,
-                    bool havebillboard, const triple& center, GLfloat *colors)
+                    bool havebillboard, const triple& center,
+                    const triple& Min, const triple& Max, GLfloat *colors)
 {
-  R.init(pixel*ratio,havebillboard,center);
+  R.init(pixel*ratio,havebillboard,center,Min,Max);
   R.render(g,straight,colors);
   R.clear();
 }

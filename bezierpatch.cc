@@ -228,18 +228,18 @@ struct RenderPatch
   {
     if(Distance(p) < res2) { // Patch is flat
       triple T0[]={P0,P1,P2};
-      if(!billboard && offscreen(T0)) return;
-      
-      indices.push_back(I0);
-      indices.push_back(I1);
-      indices.push_back(I2);
+      if(billboard || !offscreen(T0)) {
+        indices.push_back(I0);
+        indices.push_back(I1);
+        indices.push_back(I2);
+      }
         
       triple T1[]={P0,P2,P3};
-      if(!billboard && offscreen(T1)) return;
-      
-      indices.push_back(I0);
-      indices.push_back(I2);
-      indices.push_back(I3);
+      if(billboard || !offscreen(T1)) {
+        indices.push_back(I0);
+        indices.push_back(I2);
+        indices.push_back(I3);
+      }
     } else { // Patch is not flat
       if(!billboard && offscreen(p)) return;
         /* Control points are labelled as follows:
