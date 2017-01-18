@@ -19,7 +19,7 @@ extern const double Fuzz2;
 // return the maximum perpendicular distance squared of points c0 and c1
 // from z0--z1.
 inline double Distance1(const triple& z0, const triple& c0,
-                            const triple& c1, const triple& z1)
+                        const triple& c1, const triple& z1)
 {
   triple Z0=c0-z0;
   triple Q=unit(z1-z0);
@@ -64,11 +64,15 @@ struct RenderPatch
   double Epsilon;
   double res,res2;
   bool billboard;
+  triple Min,Max;
   
-  void init(double res, bool havebillboard, const triple& center) {
+  void init(double res, bool havebillboard, const triple& center,
+            const triple& Min, const triple& Max) {
     this->res=res;
     res2=res*res;
     Epsilon=FillFactor*res;
+    this->Min=Min;
+    this->Max=Max;
 
     const size_t nbuffer=10000;
     buffer.reserve(nbuffer);
@@ -93,20 +97,23 @@ struct RenderPatch
     indices.clear();
   }
   
+  triple Billboard(const triple& V) {
+    double x=V.getx()-cx;
+    double y=V.gety()-cy;
+    double z=V.getz()-cz;
+    
+    return triple(cx+u.getx()*x+v.getx()*y+w.getx()*z,
+                  cy+u.gety()*x+v.gety()*y+w.gety()*z,
+                  cz+u.getz()*x+v.getz()*y+w.getz()*z);
+  }
+  
 // Store the vertex v and its normal vector n in the buffer.
-  GLuint vertex(const triple& V, const triple& n) {
-    if(billboard) {
-      double x=V.getx()-cx;
-      double y=V.gety()-cy;
-      double z=V.getz()-cz;
-      buffer.push_back(cx+u.getx()*x+v.getx()*y+w.getx()*z);
-      buffer.push_back(cy+u.gety()*x+v.gety()*y+w.gety()*z);
-      buffer.push_back(cz+u.getz()*x+v.getz()*y+w.getz()*z);
-    } else {
-      buffer.push_back(V.getx());
-      buffer.push_back(V.gety());
-      buffer.push_back(V.getz());
-    }
+  GLuint vertex(triple v, const triple& n) {
+    if(billboard) v=Billboard(v);
+    
+    buffer.push_back(v.getx());
+    buffer.push_back(v.gety());
+    buffer.push_back(v.getz());
     
     buffer.push_back(n.getx());
     buffer.push_back(n.gety());
@@ -195,8 +202,20 @@ struct RenderPatch
       m5=0.5*(m3+m4);
     }
   };
-
-  // Uses a uniform partition to draw a Bezier patch.
+  
+// Approximate bounds by bounding box of control polyhedron.
+  bool offscreen(const triple *v) {
+    double x,y,z;
+    double X,Y,Z;
+    
+    boundstriples(x,y,z,X,Y,Z,16,v);
+    return
+      X < Min.getx() || x > Max.getx() ||
+      Y < Min.gety() || y > Max.gety() ||
+      Z < Min.getz() || z > Max.getz();
+  }
+  
+  // Use a uniform partition to draw a Bezier patch.
   // p is an array of 16 triples representing the control points.
   // Pi is the full precision value indexed by Ii.
   // The 'flati' are flatness flags for each boundary.
@@ -208,13 +227,21 @@ struct RenderPatch
               GLfloat *C3=NULL)
   {
     if(Distance(p) < res2) { // Patch is flat
+      triple T0[]={P0,P1,P2};
+      if(!billboard && offscreen(T0)) return;
+      
       indices.push_back(I0);
       indices.push_back(I1);
       indices.push_back(I2);
+        
+      triple T1[]={P0,P2,P3};
+      if(!billboard && offscreen(T1)) return;
+      
       indices.push_back(I0);
       indices.push_back(I2);
       indices.push_back(I3);
     } else { // Patch is not flat
+      if(!billboard && offscreen(p)) return;
         /* Control points are labelled as follows:
          
           Coordinates
@@ -348,7 +375,7 @@ struct RenderPatch
       
       if(C0) {
         GLfloat c0[4],c1[4],c2[4],c3[4],c4[4];
-        for(int i=0; i < 4; ++i) {
+        for(size_t i=0; i < 4; ++i) {
           c0[i]=0.5*(C0[i]+C1[i]);
           c1[i]=0.5*(C1[i]+C2[i]);
           c2[i]=0.5*(C2[i]+C3[i]);
@@ -386,7 +413,7 @@ struct RenderPatch
   void render(const triple *p, bool straight, GLfloat *c0=NULL) {
     triple p0=p[0];
     epsilon=0;
-    for(int i=1; i < 16; ++i)
+    for(unsigned i=1; i < 16; ++i)
       epsilon=max(epsilon,abs2(p[i]-p0));
   
     epsilon *= Fuzz2;
@@ -463,9 +490,10 @@ struct RenderPatch
 static RenderPatch R;
 
 void bezierPatch(const triple *g, bool straight, double ratio,
-                 bool havebillboard, triple center, GLfloat *colors)
+                 bool havebillboard, const triple& center,
+                 const triple& Min, const triple& Max, GLfloat *colors)
 {
-  R.init(pixel*ratio,havebillboard,center);
+  R.init(pixel*ratio,havebillboard,center,Min,Max);
   R.render(g,straight,colors);
   R.clear();
 }

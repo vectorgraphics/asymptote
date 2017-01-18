@@ -109,30 +109,6 @@ void multiplyTransform3(double*& t, const double* s, const double* r)
   }
 }
   
-void boundstriples(double& x, double& y, double& z, double& X, double& Y,
-                   double& Z, size_t n, const triple* v)
-{
-  if(n == 0 || v == NULL)
-    return;
-
-  X=x=v[0].getx();
-  Y=y=v[0].gety();
-  Z=z=v[0].getz();
-    
-  for(size_t i=1; i < n; ++i) {
-    const triple vi=v[i];
-    const double vx=vi.getx();
-    x=min(x,vx);
-    X=max(X,vx);
-    const double vy=vi.gety();
-    y=min(y,vy);
-    Y=max(Y,vy);
-    const double vz=vi.getz();
-    z=min(z,vz);
-    Z=max(Z,vz);
-  }
-}
-
 double xratio(const triple& v) {return v.getx()/v.getz();}
 double yratio(const triple& v) {return v.gety()/v.getz();}
   

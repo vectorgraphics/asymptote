@@ -306,6 +306,31 @@ inline triple perp(triple v, triple u)
 double xratio(const triple& v);
 double yratio(const triple& v);
 
+inline void bounds(double& x, double &X, double v)
+{
+  if(v < x) x=v;
+  else if(v > X) X=v;
+}
+  
+inline void boundstriples(double& x, double& y, double& z,
+                          double& X, double& Y, double& Z,
+                          size_t n, const triple* v)
+{
+//  if(n == 0 || v == NULL)
+//    return;
+
+  X=x=v[0].getx();
+  Y=y=v[0].gety();
+  Z=z=v[0].getz();
+    
+  for(size_t i=1; i < n; ++i) {
+    triple V=v[i];
+    bounds(x,X,V.getx());
+    bounds(y,Y,V.gety());
+    bounds(z,Z,V.getz());
+  }
+}
+
 } //namespace camp
 
 GC_DECLARE_PTRFREE(camp::triple);

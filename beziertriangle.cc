@@ -393,7 +393,7 @@ struct RenderTriangle
 RenderTriangle R;
 
 void bezierTriangle(const triple *g, bool straight, double ratio,
-                    bool havebillboard, triple center, GLfloat *colors)
+                    bool havebillboard, const triple& center, GLfloat *colors)
 {
   R.init(pixel*ratio,havebillboard,center);
   R.render(g,straight,colors);
