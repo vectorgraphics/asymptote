@@ -9,11 +9,13 @@
 
 #include "drawelement.h"
 #include "path3.h"
+#include "beziercurve.h"
 
 namespace camp {
 
 class drawPath3 : public drawElement {
 protected:
+  BezierCurve R;
   const path3 g;
   triple center;
   bool straight;
