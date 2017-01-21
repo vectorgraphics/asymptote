@@ -11,29 +11,8 @@ namespace camp {
 
 #ifdef HAVE_GL
 
-static const double pixel=0.5; // Adaptive rendering constant.
-
 extern const double Fuzz2;
 
-// return the maximum perpendicular distance squared of points c0 and c1
-// from z0--z1.
-inline double Distance1(const triple& z0, const triple& c0,
-                        const triple& c1, const triple& z1)
-{
-  triple Z0=c0-z0;
-  triple Q=unit(z1-z0);
-  triple Z1=c1-z0;
-  return max(abs2(Z0-dot(Z0,Q)*Q),abs2(Z1-dot(Z1,Q)*Q));
-}
-
-// return the perpendicular distance squared of a point z from the plane
-// through u with unit normal n.
-inline double Distance2(const triple& z, const triple& u, const triple& n)
-{
-  double d=dot(z-u,n);
-  return d*d;
-}
-  
 // Returns one-sixth of the second derivative of the Bezier curve defined
 // by a,b,c,d at 0. 
 inline triple bezierPP(triple a, triple b, triple c) {
@@ -210,13 +189,13 @@ struct RenderPatch
       }
     } else { // Patch is not flat
       if(offscreen(16,p)) return;
-        /* Control points are labelled as follows:
+      /* Control points are labelled as follows:
          
-          Coordinates
-          +
-          Ordering
+         Coordinates
+         +
+         Ordering
          
-          03    13    23    33
+         03    13    23    33
          +-----+-----+-----+
          |3    |7    |11   |15
          |     |     |     |
@@ -230,29 +209,29 @@ struct RenderPatch
          |     |     |     |
          |00   |10   |20   |30
          +-----+-----+-----+
-          0     4     8     12
+         0     4     8     12
          
-         Key points and patch sections:
+         Key:
          P refers to a corner
          m refers to a midpoint
-         s refers to a patch section
+         s refers to a subpatch
          
-                    m2
-           +--------+--------+
-           |P3      |      P2|
-           |        |        |
-           |   s3   |   s2   |
-           |        |        |
-           |        |m4      |
+         m2
+         +--------+--------+
+         |P3      |      P2|
+         |        |        |
+         |   s3   |   s2   |
+         |        |        |
+         |        |m4      |
          m3+--------+--------+m1
-           |        |        |
-           |        |        |
-           |   s0   |   s1   |
-           |        |        |
-           |P0      |      P1|
-           +--------+--------+
-                    m0
-         */
+         |        |        |
+         |        |        |
+         |   s0   |   s1   |
+         |        |        |
+         |P0      |      P1|
+         +--------+--------+
+         m0
+      */
 
       triple p0=p[0];
       triple p3=p[3];
@@ -420,7 +399,7 @@ struct RenderPatch
       
       if(!straight)
         render(p,i0,i1,i2,i3,p0,p12,p15,p3,false,false,false,false,
-        c0,c1,c2,c3);
+               c0,c1,c2,c3);
     } else {
       i0=vertex(p0,n0);
       i1=vertex(p12,n1);

@@ -1,4 +1,3 @@
-
 /*****
  * drawbeziertriangle.cc
  * Authors: Jesse Frohlich and John C. Bowman
@@ -12,29 +11,8 @@ namespace camp {
 
 #ifdef HAVE_GL
 
-static const double pixel=0.5; // Adaptive rendering constant.
-
 extern const double Fuzz2;
 
-// return the maximum perpendicular distance squared of points c0 and c1
-// from z0--z1.
-inline double Distance1(const triple& z0, const triple& c0,
-                            const triple& c1, const triple& z1)
-{
-  triple Z0=c0-z0;
-  triple Q=unit(z1-z0);
-  triple Z1=c1-z0;
-  return max(abs2(Z0-dot(Z0,Q)*Q),abs2(Z1-dot(Z1,Q)*Q));
-}
-
-// return the perpendicular distance squared of a point z from the plane
-// through u with unit normal n.
-inline double Distance2(const triple& z, const triple& u, const triple& n)
-{
-  double d=dot(z-u,n);
-  return d*d;
-}
-  
 // Returns one-sixth of the second derivative of the Bezier curve defined
 // by a,b,c,d at 0. 
 inline triple bezierPP(triple a, triple b, triple c) {
@@ -180,29 +158,53 @@ struct RenderTriangle
       if(offscreen(10,p)) return;
       /*    Naming Convention:
        
-                                   P2
-                                   030
-                                   /\
-                                  /  \
-                                 /    \
-                                /      \
-                               /   up   \
-                              /          \
-                             /            \
-                            /              \
-                        p1 /________________\ p0
-                          /\               / \
-                         /  \             /   \
-                        /    \           /     \
-                       /      \  center /       \
-                      /        \       /         \
-                     /          \     /           \
-                    /    left    \   /    right    \
-                   /              \ /               \
-                  /________________V_________________\
-                003               p2                300
-                P0                                    P1
-       */
+            030
+            9
+            /\
+            /  \
+            /    \
+            /      \
+            021 /        \ 120
+            5 /          \ 8
+            /            \
+            /              \
+            /                \ 
+            /                  \
+            /                    \
+            /                      \
+            012 /           111          \ 210
+            2 /             4            \ 7
+            /                            \
+            /                              \
+            /                                \
+            /__________________________________\
+            003           102          201         300
+            0             1            3           6 
+            
+            
+            P2
+            030
+            /\
+            /  \
+            /    \
+            /      \
+            /   up   \
+            /          \
+            /            \
+            /              \
+            p1 /________________\ p0
+            /\               / \
+            /  \             /   \
+            /    \           /     \
+            /      \  center /       \
+            /        \       /         \
+            /          \     /           \
+            /    left    \   /    right    \
+            /              \ /               \
+            /________________V_________________\
+            003                p2                 300
+            P0                                    P1
+      */
 
       // Subdivide triangle
       triple l003=p[0];
@@ -392,4 +394,3 @@ void bezierTriangle(const triple *g, bool straight, double ratio,
 #endif
 
 } //namespace camp
-

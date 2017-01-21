@@ -331,6 +331,25 @@ inline void boundstriples(double& x, double& y, double& z,
   }
 }
 
+// return the maximum perpendicular distance squared of points c0 and c1
+// from z0--z1.
+inline double Distance1(const triple& z0, const triple& c0,
+                        const triple& c1, const triple& z1)
+{
+  triple Z0=c0-z0;
+  triple Q=unit(z1-z0);
+  triple Z1=c1-z0;
+  return std::max(abs2(Z0-dot(Z0,Q)*Q),abs2(Z1-dot(Z1,Q)*Q));
+}
+
+// return the perpendicular distance squared of a point z from the plane
+// through u with unit normal n.
+inline double Distance2(const triple& z, const triple& u, const triple& n)
+{
+  double d=dot(z-u,n);
+  return d*d;
+}
+  
 } //namespace camp
 
 GC_DECLARE_PTRFREE(camp::triple);

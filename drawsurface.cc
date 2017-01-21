@@ -15,7 +15,6 @@ using namespace prc;
 
 namespace camp {
 
-const double pixel=1.0; // Adaptive rendering constant.
 const triple drawElement::zero;
 
 using vm::array;
@@ -55,8 +54,8 @@ void setcolors(bool colors, bool lighton,
 {
   if(colors) {
     glEnable(GL_COLOR_MATERIAL);
-   if(!lighton) 
-     glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
+    if(!lighton) 
+      glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
 
     GLfloat Black[]={0,0,0,(GLfloat) diffuse.A};
     glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,Black);
@@ -287,7 +286,19 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   } else
     Controls=controls;
     
-  bezierPatch(Controls,straight,size3.length()/size2,m,M,colors ? v : NULL);
+  if(gl::outlinemode) {
+    triple edge0[]={Controls[0],Controls[4],Controls[8],Controls[12]};
+    R.render(edge0,straight,size3.length()/size2,m,M);
+    triple edge1[]={Controls[12],Controls[13],Controls[14],Controls[15]};
+    R.render(edge1,straight,size3.length()/size2,m,M);
+    triple edge2[]={Controls[15],Controls[11],Controls[7],Controls[3]};
+    R.render(edge2,straight,size3.length()/size2,m,M);
+    triple edge3[]={Controls[3],Controls[2],Controls[1],Controls[0]};
+    R.render(edge3,straight,size3.length()/size2,m,M);
+    R.draw();
+  } else
+    bezierPatch(Controls,straight,size3.length()/size2,m,M,colors ? v : NULL);
+
   if(colors)
     glDisable(GL_COLOR_MATERIAL);
 #endif
@@ -424,13 +435,13 @@ bool drawBezierTriangle::write(prcfile *out, unsigned int *, double,
   static const double third=1.0/3.0;
   static const double third2=2.0/3.0;
   triple Controls[]={controls[0],controls[0],controls[0],controls[0],
-                       controls[1],third2*controls[1]+third*controls[2],
-                       third*controls[1]+third2*controls[2],
-                       controls[2],controls[3],
-                       third*controls[3]+third2*controls[4],
-                       third2*controls[4]+third*controls[5],
-                       controls[5],controls[6],controls[7],
-                       controls[8],controls[9]};
+                     controls[1],third2*controls[1]+third*controls[2],
+                     third*controls[1]+third2*controls[2],
+                     controls[2],controls[3],
+                     third*controls[3]+third2*controls[4],
+                     third2*controls[4]+third*controls[5],
+                     controls[5],controls[6],controls[7],
+                     controls[8],controls[9]};
   out->addPatch(Controls,m);
                     
   return true;
@@ -497,8 +508,18 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
       Controls[i]=BB.transform(controls[i]);
   } else 
     Controls=controls;
-    
-  bezierTriangle(Controls,straight,size3.length()/size2,m,M,colors ? v : NULL);
+  
+  if(gl::outlinemode) {
+    triple edge0[]={Controls[0],Controls[1],Controls[3],Controls[6]};
+    R.render(edge0,straight,size3.length()/size2,m,M);
+    triple edge1[]={Controls[6],Controls[7],Controls[8],Controls[9]};
+    R.render(edge1,straight,size3.length()/size2,m,M);
+    triple edge2[]={Controls[9],Controls[5],Controls[2],Controls[0]};
+    R.render(edge2,straight,size3.length()/size2,m,M);
+    R.draw();
+  } else
+    bezierTriangle(Controls,straight,size3.length()/size2,m,M,colors ? v : NULL);
+  
   if(colors)
     glDisable(GL_COLOR_MATERIAL);
 #endif

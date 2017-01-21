@@ -8,9 +8,9 @@
 #define DRAWSURFACE_H
 
 #include "drawelement.h"
-#include "triple.h"
 #include "arrayop.h"
 #include "path3.h"
+#include "beziercurve.h"
 
 namespace camp {
 
@@ -33,6 +33,7 @@ protected:
   double PRCshininess;
   bool invisible;
   Interaction interaction;
+  BezierCurve R;
   
   triple Min,Max;
   bool prc;
@@ -138,6 +139,7 @@ protected:
   double PRCshininess;
   bool invisible;
   Interaction interaction;
+  BezierCurve R;
   
   triple Min,Max;
   bool prc;
