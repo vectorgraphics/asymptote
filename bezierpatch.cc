@@ -177,11 +177,11 @@ struct RenderPatch
   };
   
 // Approximate bounds by bounding box of control polyhedron.
-  bool offscreen(const triple *v) {
+  bool offscreen(int n, const triple *v) {
     double x,y,z;
     double X,Y,Z;
     
-    boundstriples(x,y,z,X,Y,Z,16,v);
+    boundstriples(x,y,z,X,Y,Z,n,v);
     return
       X < Min.getx() || x > Max.getx() ||
       Y < Min.gety() || y > Max.gety() ||
@@ -201,7 +201,7 @@ struct RenderPatch
   {
     if(Distance(p) < res2) { // Patch is flat
       triple P[]={P0,P1,P2,P3};
-      if(!offscreen(P)) {
+      if(!offscreen(4,P)) {
         indices.push_back(I0);
         indices.push_back(I1);
         indices.push_back(I2);
@@ -210,7 +210,7 @@ struct RenderPatch
         indices.push_back(I3);
       }
     } else { // Patch is not flat
-      if(offscreen(p)) return;
+      if(offscreen(16,p)) return;
         /* Control points are labelled as follows:
          
           Coordinates

@@ -149,11 +149,11 @@ struct RenderTriangle
   }
 
 // Approximate bounds by bounding box of control polyhedron.
-  bool offscreen(const triple *v) {
+  bool offscreen(int n, const triple *v) {
     double x,y,z;
     double X,Y,Z;
     
-    boundstriples(x,y,z,X,Y,Z,10,v);
+    boundstriples(x,y,z,X,Y,Z,n,v);
     return
       X < Min.getx() || x > Max.getx() ||
       Y < Min.gety() || y > Max.gety() ||
@@ -172,13 +172,13 @@ struct RenderTriangle
   {
     if(Distance(p) < res2) { // Triangle is flat
       triple P[]={P0,P1,P2};
-      if(!offscreen(P)) {
+      if(!offscreen(3,P)) {
         indices.push_back(I0);
         indices.push_back(I1);
         indices.push_back(I2);
       }
     } else { // Triangle is not flat
-      if(offscreen(p)) return;
+      if(offscreen(10,p)) return;
       /*    Naming Convention:
        
                                    P2
