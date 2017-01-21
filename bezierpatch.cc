@@ -13,7 +13,6 @@ namespace camp {
 
 static const double pixel=0.5; // Adaptive rendering constant.
 
-extern const double Fuzz;
 extern const double Fuzz2;
 
 // return the maximum perpendicular distance squared of points c0 and c1
@@ -177,7 +176,7 @@ struct RenderPatch
   };
   
 // Approximate bounds by bounding box of control polyhedron.
-  bool offscreen(int n, const triple *v) {
+  bool offscreen(size_t n, const triple *v) {
     double x,y,z;
     double X,Y,Z;
     
@@ -190,7 +189,7 @@ struct RenderPatch
   
   // Use a uniform partition to draw a Bezier patch.
   // p is an array of 16 triples representing the control points.
-  // Pi is the full precision value indexed by Ii.
+  // Pi are the (possibly) adjusted vertices indexed by Ii.
   // The 'flati' are flatness flags for each boundary.
   void render(const triple *p,
               GLuint I0, GLuint I1, GLuint I2, GLuint I3,
