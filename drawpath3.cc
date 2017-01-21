@@ -11,11 +11,6 @@ namespace camp {
 using vm::array;
 using namespace prc;
   
-#ifdef HAVE_GL
-void bezierCurve(const triple *g, bool straight, double ratio,
-                 const triple& Min, const triple& Max);
-#endif
-
 bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   Int n=g.length();
@@ -100,22 +95,22 @@ void drawPath3::render(GLUnurbs *nurb, double size2,
   glMaterialfv(GL_FRONT,GL_SPECULAR,Black);
   glMaterialf(GL_FRONT,GL_SHININESS,128.0);
   
-  if(billboard) BB.init(center);
-  
-  for(Int i=0; i < n; ++i) {
-    triple controls[]={g.point((Int) i),g.postcontrol((Int) i),
-                       g.precontrol((Int) i+1),g.point((Int) i+1)};
-    triple *Controls;
-    triple C[4];
-    if(billboard) {
-      Controls=C;
-      for(size_t i=0; i < 4; i++)
-        Controls[i]=BB.transform(controls[i]);
-    } else
-      Controls=controls;
-    
-    bezierCurve(Controls,straight,size3.length()/size2,m,M);
+  if(billboard) {
+    for(Int i=0; i < n; ++i) {
+      triple controls[]={BB.transform(g.point(i)),BB.transform(g.postcontrol(i)),
+                         BB.transform(g.precontrol(i+1)),
+                         BB.transform(g.point(i+1))};
+      R.render(controls,straight,size3.length()/size2,m,M);
+    }
+  } else {
+    BB.init(center);
+    for(Int i=0; i < n; ++i) {
+      triple controls[]={g.point(i),g.postcontrol(i),g.precontrol(i+1),
+                         g.point(i+1)};
+      R.render(controls,straight,size3.length()/size2,m,M);
+    }
   }
+  R.draw();
 #endif
 }
 
