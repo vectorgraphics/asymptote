@@ -22,12 +22,10 @@ using vm::array;
 
 #ifdef HAVE_GL
 void bezierTriangle(const triple *g, bool straight, double ratio,
-                    bool havebillboard, const triple& center,
                     const triple& Min, const triple& Max,
                     GLfloat *colors);
   
 void bezierPatch(const triple *g, bool straight, double ratio,
-                 bool havebillboard, const triple& center,
                  const triple& Min, const triple& Max,
                  GLfloat *colors);
 
@@ -237,7 +235,7 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
      ((colors ? colors[0].A+colors[1].A+colors[2].A+colors[3].A < 4.0 :
        diffuse.A < 1.0) ^ transparent)) return;
   
-  const bool havebillboard=interaction == BILLBOARD &&
+  const bool billboard=interaction == BILLBOARD &&
     !settings::getSetting<bool>("offscreen");
   triple m,M;
   
@@ -256,32 +254,40 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
   
-  if(perspective || !havebillboard) {
-    double t[16]; // current transform
-    glGetDoublev(GL_MODELVIEW_MATRIX,t);
+  double t[16]; // current transform
+  glGetDoublev(GL_MODELVIEW_MATRIX,t);
 // Like Fortran, OpenGL uses transposed (column-major) format!
-    run::transpose(t,4);
-    bbox3 B(m,M);
-    run::inverse(t,4);
-    B.transform(t);
-    m=B.Min();
-    M=B.Max();
-  }
+  run::transpose(t,4);
+  run::inverse(t,4);
+  bbox3 box(m,M);
+  box.transform(t);
+  m=box.Min();
+  M=box.Max();
 
-  if(!havebillboard && (Max.getx() < m.getx() || Min.getx() > M.getx() ||
-                        Max.gety() < m.gety() || Min.gety() > M.gety() ||
-                        Max.getz() < m.getz() || Min.getz() > M.getz()))
+  if(!billboard && (Max.getx() < m.getx() || Min.getx() > M.getx() ||
+                    Max.gety() < m.gety() || Min.gety() > M.gety() ||
+                    Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
 
   setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
+  
+  if(billboard) BB.init(center);
   
   GLfloat v[16];
   if(colors)
     for(size_t i=0; i < 4; ++i)
       storecolor(v,4*i,colors[i]);
+  
+  triple *Controls;
+  triple C[16];
+  if(billboard) {
+    Controls=C;
+    for(size_t i=0; i < 16; i++)
+      Controls[i]=BB.transform(controls[i]);
+  } else
+    Controls=controls;
     
-  bezierPatch(controls,straight,size3.length()/size2,havebillboard,center,
-              m,M,colors ? v : NULL);
+  bezierPatch(Controls,straight,size3.length()/size2,m,M,colors ? v : NULL);
   if(colors)
     glDisable(GL_COLOR_MATERIAL);
 #endif
@@ -440,7 +446,7 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
      ((colors ? colors[0].A+colors[1].A+colors[2].A < 3.0 :
        diffuse.A < 1.0) ^ transparent)) return;
   
-  const bool havebillboard=interaction == BILLBOARD &&
+  const bool billboard=interaction == BILLBOARD &&
     !settings::getSetting<bool>("offscreen");
   triple m,M;
   
@@ -459,32 +465,40 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
   
   const pair size3(s*(B.getx()-b.getx()),s*(B.gety()-b.gety()));
   
-  if(perspective || !havebillboard) {
-    double t[16]; // current transform
-    glGetDoublev(GL_MODELVIEW_MATRIX,t);
+  double t[16]; // current transform
+  glGetDoublev(GL_MODELVIEW_MATRIX,t);
 // Like Fortran, OpenGL uses transposed (column-major) format!
-    run::transpose(t,4);
-    bbox3 B(m,M);
-    run::inverse(t,4);
-    B.transform(t);
-    m=B.Min();
-    M=B.Max();
-  }
+  run::transpose(t,4);
+  run::inverse(t,4);
+  bbox3 box(m,M);
+  box.transform(t);
+  m=box.Min();
+  M=box.Max();
 
-  if(!havebillboard && (Max.getx() < m.getx() || Min.getx() > M.getx() ||
-                        Max.gety() < m.gety() || Min.gety() > M.gety() ||
-                        Max.getz() < m.getz() || Min.getz() > M.getz()))
+  if(!billboard && (Max.getx() < m.getx() || Min.getx() > M.getx() ||
+                    Max.gety() < m.gety() || Min.gety() > M.gety() ||
+                    Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
 
   setcolors(colors,lighton,diffuse,ambient,emissive,specular,shininess);
+  
+  if(billboard) BB.init(center);
   
   GLfloat v[12];
   if(colors)
     for(size_t i=0; i < 3; ++i)
       storecolor(v,4*i,colors[i]);
     
-  bezierTriangle(controls,straight,size3.length()/size2,havebillboard,center,
-                 m,M,colors ? v : NULL);
+  triple *Controls;
+  triple C[10];
+  if(billboard) {
+    Controls=C;
+    for(size_t i=0; i < 10; i++)
+      Controls[i]=BB.transform(controls[i]);
+  } else 
+    Controls=controls;
+    
+  bezierTriangle(Controls,straight,size3.length()/size2,m,M,colors ? v : NULL);
   if(colors)
     glDisable(GL_COLOR_MATERIAL);
 #endif

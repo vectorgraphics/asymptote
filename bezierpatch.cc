@@ -59,15 +59,12 @@ struct RenderPatch
   std::vector<GLint> indices;
   triple u,v,w;
   GLuint nvertices;
-  double cx,cy,cz;
   double epsilon;
   double Epsilon;
   double res,res2;
-  bool billboard;
   triple Min,Max;
   
-  void init(double res, bool havebillboard, const triple& center,
-            const triple& Min, const triple& Max) {
+  void init(double res, const triple& Min, const triple& Max) {
     this->res=res;
     res2=res*res;
     Epsilon=FillFactor*res;
@@ -78,18 +75,6 @@ struct RenderPatch
     buffer.reserve(nbuffer);
     indices.reserve(nbuffer);
     nvertices=0;
-    
-    billboard=havebillboard;
-    if(billboard) {
-      cx=center.getx();
-      cy=center.gety();
-      cz=center.getz();
-
-      gl::projection P=gl::camera(false);
-      w=unit(P.camera-P.target);
-      v=unit(perp(P.up,w));
-      u=cross(v,w);
-    }
   }
     
   void clear() {
@@ -97,20 +82,8 @@ struct RenderPatch
     indices.clear();
   }
   
-  triple Billboard(const triple& V) {
-    double x=V.getx()-cx;
-    double y=V.gety()-cy;
-    double z=V.getz()-cz;
-    
-    return triple(cx+u.getx()*x+v.getx()*y+w.getx()*z,
-                  cy+u.gety()*x+v.gety()*y+w.gety()*z,
-                  cz+u.getz()*x+v.getz()*y+w.getz()*z);
-  }
-  
 // Store the vertex v and its normal vector n in the buffer.
-  GLuint vertex(triple v, const triple& n) {
-    if(billboard) v=Billboard(v);
-    
+  GLuint vertex(const triple &v, const triple& n) {
     buffer.push_back(v.getx());
     buffer.push_back(v.gety());
     buffer.push_back(v.getz());
@@ -227,21 +200,17 @@ struct RenderPatch
               GLfloat *C3=NULL)
   {
     if(Distance(p) < res2) { // Patch is flat
-      triple T0[]={P0,P1,P2};
-      if(billboard || !offscreen(T0)) {
+      triple P[]={P0,P1,P2,P3};
+      if(!offscreen(P)) {
         indices.push_back(I0);
         indices.push_back(I1);
         indices.push_back(I2);
-      }
-        
-      triple T1[]={P0,P2,P3};
-      if(billboard || !offscreen(T1)) {
         indices.push_back(I0);
         indices.push_back(I2);
         indices.push_back(I3);
       }
     } else { // Patch is not flat
-      if(!billboard && offscreen(p)) return;
+      if(offscreen(p)) return;
         /* Control points are labelled as follows:
          
           Coordinates
@@ -490,10 +459,9 @@ struct RenderPatch
 static RenderPatch R;
 
 void bezierPatch(const triple *g, bool straight, double ratio,
-                 bool havebillboard, const triple& center,
                  const triple& Min, const triple& Max, GLfloat *colors)
 {
-  R.init(pixel*ratio,havebillboard,center,Min,Max);
+  R.init(pixel*ratio,Min,Max);
   R.render(g,straight,colors);
   R.clear();
 }

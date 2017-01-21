@@ -60,15 +60,12 @@ struct RenderTriangle
   std::vector<GLint> indices;
   triple u,v,w;
   GLuint nvertices;
-  double cx,cy,cz;
   double epsilon;
   double Epsilon;
   double res,res2;
-  bool billboard;
   triple Min,Max;
   
-  void init(double res, bool havebillboard, const triple& center,
-            const triple& Min, const triple& Max) {
+  void init(double res, const triple& Min, const triple& Max) {
     this->res=res;
     res2=res*res;
     Epsilon=FillFactor*res;
@@ -79,18 +76,6 @@ struct RenderTriangle
     buffer.reserve(nbuffer);
     indices.reserve(nbuffer);
     nvertices=0;
-    
-    billboard=havebillboard;
-    if(billboard) {
-      cx=center.getx();
-      cy=center.gety();
-      cz=center.getz();
-
-      gl::projection P=gl::camera(false);
-      w=unit(P.camera-P.target);
-      v=unit(perp(P.up,w));
-      u=cross(v,w);
-    }
   }
     
   void clear() {
@@ -98,20 +83,8 @@ struct RenderTriangle
     indices.clear();
   }
   
-  triple Billboard(const triple& V) {
-    double x=V.getx()-cx;
-    double y=V.gety()-cy;
-    double z=V.getz()-cz;
-    
-    return triple(cx+u.getx()*x+v.getx()*y+w.getx()*z,
-                  cy+u.gety()*x+v.gety()*y+w.gety()*z,
-                  cz+u.getz()*x+v.getz()*y+w.getz()*z);
-  }
-  
 // Store the vertex v and its normal vector n in the buffer.
-  GLuint vertex(triple v, const triple& n) {
-    if(billboard) v=Billboard(v);
-    
+  GLuint vertex(const triple &v, const triple& n) {
     buffer.push_back(v.getx());
     buffer.push_back(v.gety());
     buffer.push_back(v.getz());
@@ -175,14 +148,6 @@ struct RenderTriangle
     return max(d,Distance1(p6,p[7],p[8],p9));
   }
 
-  void mesh(const triple *p, const GLuint *I)
-  {
-    // Draw the frame of the control points of a cubic Bezier mesh
-    indices.push_back(I[0]);
-    indices.push_back(I[1]);
-    indices.push_back(I[2]);
-  }
-  
 // Approximate bounds by bounding box of control polyhedron.
   bool offscreen(const triple *v) {
     double x,y,z;
@@ -206,13 +171,14 @@ struct RenderTriangle
               GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL)
   {
     if(Distance(p) < res2) { // Triangle is flat
-      triple T0[]={P0,P1,P2};
-      if(billboard || !offscreen(T0)) {
-        GLuint I[]={I0,I1,I2};
-        mesh(p,I);
+      triple P[]={P0,P1,P2};
+      if(!offscreen(P)) {
+        indices.push_back(I0);
+        indices.push_back(I1);
+        indices.push_back(I2);
       }
     } else { // Triangle is not flat
-      if(!billboard && offscreen(p)) return;
+      if(offscreen(p)) return;
       /*    Naming Convention:
        
                                    P2
@@ -394,8 +360,9 @@ struct RenderTriangle
     }
     
     if(straight) {
-      GLuint I[]={i0,i1,i2};
-      mesh(p,I);
+      indices.push_back(i0);
+      indices.push_back(i1);
+      indices.push_back(i2);
     }
     
     size_t stride=(c0 ? 10 : 6)*sizeof(GL_FLOAT);
@@ -416,10 +383,9 @@ struct RenderTriangle
 RenderTriangle R;
 
 void bezierTriangle(const triple *g, bool straight, double ratio,
-                    bool havebillboard, const triple& center,
                     const triple& Min, const triple& Max, GLfloat *colors)
 {
-  R.init(pixel*ratio,havebillboard,center,Min,Max);
+  R.init(pixel*ratio,Min,Max);
   R.render(g,straight,colors);
   R.clear();
 }

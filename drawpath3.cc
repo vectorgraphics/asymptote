@@ -66,7 +66,7 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
   
   glMaterialf(GL_FRONT,GL_SHININESS,128.0);
   
-  if(havebillboard) BB.init();
+  if(havebillboard) BB.init(center);
   
   if(straight) {
     glBegin(GL_LINE_STRIP);
@@ -74,7 +74,7 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
       triple v=g.point(i);
       if(havebillboard) {
         static GLfloat controlpoints[3];
-        BB.store(controlpoints,v,center);
+        BB.store(controlpoints,v);
         glVertex3fv(controlpoints);
       } else
         glVertex3f(v.getx(),v.gety(),v.getz());
@@ -85,10 +85,10 @@ void drawPath3::render(GLUnurbs *nurb, double, const triple&, const triple&,
       static GLfloat knots[8]={0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0};
       static GLfloat controlpoints[12];
       if(havebillboard) {
-        BB.store(controlpoints,g.point(i),center);
-        BB.store(controlpoints+3,g.postcontrol(i),center);
-        BB.store(controlpoints+6,g.precontrol(i+1),center);
-        BB.store(controlpoints+9,g.point(i+1),center);
+        BB.store(controlpoints,g.point(i));
+        BB.store(controlpoints+3,g.postcontrol(i));
+        BB.store(controlpoints+6,g.precontrol(i+1));
+        BB.store(controlpoints+9,g.point(i+1));
       } else {
         store(controlpoints,g.point(i));
         store(controlpoints+3,g.postcontrol(i));

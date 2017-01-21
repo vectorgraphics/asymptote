@@ -103,19 +103,30 @@ namespace camp {
 
 struct billboard 
 {
+  double cx,cy,cz;
   triple u,v,w;
   
-  void init() {
+  void init(const triple& center) {
+    cx=center.getx();
+    cy=center.gety();
+    cz=center.getz();
     gl::projection P=gl::camera(false);
     w=unit(P.camera-P.target);
     v=unit(perp(P.up,w));
     u=cross(v,w);
   }
     
-  void store(GLfloat* C, const triple& V, const triple &center) {
-    double cx=center.getx();
-    double cy=center.gety();
-    double cz=center.getz();
+  triple transform(const triple& V) {
+    double x=V.getx()-cx;
+    double y=V.gety()-cy;
+    double z=V.getz()-cz;
+    
+    return triple(cx+u.getx()*x+v.getx()*y+w.getx()*z,
+                  cy+u.gety()*x+v.gety()*y+w.gety()*z,
+                  cz+u.getz()*x+v.getz()*y+w.getz()*z);
+  }
+  
+  void store(GLfloat* C, const triple& V) {
     double x=V.getx()-cx;
     double y=V.gety()-cy;
     double z=V.getz()-cz;
