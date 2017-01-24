@@ -281,12 +281,13 @@ if(settings.autoimport != "") {
 
 cputime();
 
-void nosetpagesize()
-{
+void nosetpagesize() {
   if(latex()) {
     // Portably pass nosetpagesize option to graphicx package.
+    if(settings.tex == "lualatex") {
       texpreamble("\ifx\pdfpagewidth\undefined\let\pdfpagewidth\paperwidth\fi");
       texpreamble("\ifx\pdfpageheight\undefined\let\pdfpageheight\paperheight\fi");
+    } else
       texpreamble("\let\paperwidthsave\paperwidth\let\paperwidth\undefined\usepackage{graphicx}\let\paperwidth\paperwidthsave");
   }
 }
