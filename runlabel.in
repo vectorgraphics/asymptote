@@ -260,7 +260,8 @@ patharray2 *_texpath(stringarray *s, penarray *p)
   string dviname=auxname(prefix,"dvi");
   bbox b;
   string texengine=getSetting<string>("tex");
-  bool xe=settings::xe(texengine) || settings::context(texengine);
+  bool xe=settings::xe(texengine) || settings::lua(texengine) ||
+          settings::context(texengine);
   texfile tex(texname,b,true);
   tex.miniprologue();
   

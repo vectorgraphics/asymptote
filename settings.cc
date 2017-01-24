@@ -1466,6 +1466,11 @@ bool xe(const string& texengine)
   return texengine == "xelatex";
 }
 
+bool lua(const string& texengine)
+{
+  return texengine == "luatex" || texengine == "lualatex";
+}
+
 bool context(const string& texengine)
 {
   return texengine == "context";
@@ -1474,7 +1479,7 @@ bool context(const string& texengine)
 bool pdf(const string& texengine)
 {
   return texengine == "pdflatex" || texengine == "pdftex" || xe(texengine) ||
-    texengine == "luatex" || texengine == "lualatex" || context(texengine);
+    lua(texengine) || context(texengine);
 }
 
 bool latex(const string& texengine)
