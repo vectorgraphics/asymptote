@@ -557,6 +557,7 @@ void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool integer=false,
 {
   addOps<T,plus>(ve,t1,SYM_PLUS,t2);
   addOps<T,minus>(ve,t1,SYM_MINUS,t2);
+  addFunc(ve,initialized,primBoolean(),SYM(initialized),formal(t1,SYM(a)));
   
   addArray2Array2Op<T,plus>(ve,t3,SYM_PLUS);
   addArray2Array2Op<T,minus>(ve,t3,SYM_MINUS);

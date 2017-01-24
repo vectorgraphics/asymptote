@@ -5733,6 +5733,16 @@ real[] a={2.5,-3.5};
 int[] b=(int []) a;
 write(stdout,b);     // Outputs 2,-3
 @end verbatim
+In situations where casting from a string to a type @code{T} fails,
+an uninitialized variable is returned; this condition can be detected
+with the function @code{bool initialized(T);}
+@verbatim
+int i=(int) "2.5";
+assert(initialized(i),"Invalid cast.");
+
+real x=(real) "2.5a";
+assert(initialized(x),"Invalid cast.");
+@end verbatim
 
 @cindex @code{operator cast}
 Casting to user-defined types is also possible using @code{operator cast}:
@@ -5760,6 +5770,7 @@ straightforward implementation
 @verbatim
 real operator cast(int x) {return x*100;}
 @end verbatim
+@noindent
 is equivalent to an infinite recursion, since the result @code{x*100}
 needs itself to be cast from an integer to a real. Instead, we want to
 use the standard conversion of int to real:

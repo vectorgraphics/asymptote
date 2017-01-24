@@ -55,11 +55,14 @@ void castString(vm::stack *s)
     try {
       s->push(lexical::cast<T>(*S));
     } catch (lexical::bad_cast&) {
-      ostringstream buf;
-      buf << "invalid cast from string \"" << *S << "\"";
-      vm::error(buf);
+      s->push(vm::Default);
     }
   }
+}
+
+void initialized(vm::stack *s)
+{
+  s->push(!vm::isdefault(pop(s)));
 }
 
 template<class T, class S>
