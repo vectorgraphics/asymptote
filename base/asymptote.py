@@ -3,7 +3,7 @@
 from subprocess import *
 class asy:
 	def __init__(self):
-		self.session = Popen(['asy','-quiet','-interactive'],stdin=PIPE)
+		self.session = Popen(['asy','-quiet','-inpipe=0','-outpipe=2'],stdin=PIPE)
 		self.help()
 	def send(self, cmd):
 		self.session.stdin.write(cmd+'\n')
