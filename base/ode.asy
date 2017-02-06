@@ -98,8 +98,7 @@ void expfactors(real x, coefficients a)
 }
       
 // First-Order Euler
-RKTableau Euler=RKTableau(1,new real[][],
-                          new real[] {1});
+RKTableau Euler=RKTableau(1,new real[][], new real[] {1});
 
 // First-Order Exponential Euler
 RKTableau E_Euler=RKTableau(1,new real[][], new real[] {1},

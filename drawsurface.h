@@ -33,14 +33,12 @@ protected:
   double PRCshininess;
   bool invisible;
   Interaction interaction;
-  BezierCurve R;
   
   triple Min,Max;
   bool prc;
   
 #ifdef HAVE_GL
-  triple d; // Maximum deviation of surface from a quadrilateral.
-  triple dperp;
+  BezierCurve R;
 #endif  
   
 public:
@@ -139,14 +137,12 @@ protected:
   double PRCshininess;
   bool invisible;
   Interaction interaction;
-  BezierCurve R;
   
   triple Min,Max;
   bool prc;
   
 #ifdef HAVE_GL
-  triple d; // Maximum deviation of surface from a triangle.
-  triple dperp;
+  BezierCurve R;
 #endif  
   
 public:
