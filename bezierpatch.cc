@@ -419,7 +419,7 @@ struct RenderPatch
       indices.push_back(i3);
     }
     
-    size_t stride=(c0 ? 10 : 6)*sizeof(GL_FLOAT);
+    size_t stride=(c0 ? 10 : 6)*sizeof(GLfloat);
 
     glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);

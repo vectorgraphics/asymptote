@@ -83,7 +83,7 @@ void BezierCurve::render(const triple *p, bool straight)
   
 void BezierCurve::draw()
 {
-  size_t stride=3*sizeof(GL_FLOAT);
+  size_t stride=3*sizeof(GLfloat);
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glVertexPointer(3,GL_FLOAT,stride,&buffer[0]);
