@@ -13,18 +13,6 @@ namespace camp {
 
 extern const double Fuzz2;
 
-// Returns one-sixth of the second derivative of the Bezier curve defined
-// by a,b,c,d at 0. 
-inline triple bezierPP(triple a, triple b, triple c) {
-  return a+c-2.0*b;
-}
-
-// Returns one-third of the third derivative of the Bezier curve defined by
-// a,b,c,d.
-inline triple bezierPPP(triple a, triple b, triple c, triple d) {
-  return d-a+3.0*(b-c);
-}
-
 #ifdef __MSDOS__      
 const double FillFactor=1.0;
 #else
@@ -34,7 +22,7 @@ const double FillFactor=0.1;
 struct RenderTriangle
 {
   std::vector<GLfloat> buffer;
-  std::vector<GLint> indices;
+  std::vector<GLuint> indices;
   triple u,v,w;
   GLuint nvertices;
   double epsilon;
@@ -368,6 +356,7 @@ struct RenderTriangle
     
     size_t stride=(c0 ? 10 : 6)*sizeof(GLfloat);
 
+    if(c0) glEnable(GL_COLOR_MATERIAL);
     glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
     if(c0) glEnableClientState(GL_COLOR_ARRAY);
@@ -378,6 +367,8 @@ struct RenderTriangle
     if(c0) glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
+    if(c0) glDisable(GL_COLOR_MATERIAL);
+
   }
 };
 

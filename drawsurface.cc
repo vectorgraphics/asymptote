@@ -20,14 +20,13 @@ const triple drawElement::zero;
 using vm::array;
 
 #ifdef HAVE_GL
+BezierCurve drawSurface::C;
+BezierPatch drawSurface::S;
+
 void bezierTriangle(const triple *g, bool straight, double ratio,
                     const triple& Min, const triple& Max,
                     GLfloat *colors);
   
-void bezierPatch(const triple *g, bool straight, double ratio,
-                 const triple& Min, const triple& Max,
-                 GLfloat *colors);
-
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
 {
   pen p=vm::read<camp::pen>(pens,j);
@@ -46,14 +45,32 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
   colors[i+3]=p.A;
 }
 
+void draw()
+{
+  drawSurface::S.draw();
+}
+
 void setcolors(bool colors, bool lighton,
                const RGBAColour& diffuse,
                const RGBAColour& ambient,
                const RGBAColour& emissive,
                const RGBAColour& specular, double shininess) 
 {
+  static prc::RGBAColour lastdiffuse;
+  static prc::RGBAColour lastambient;
+  static prc::RGBAColour lastemissive;
+  static prc::RGBAColour lastspecular;
+  
+  if(!colors && (diffuse != lastdiffuse || ambient != lastambient || 
+                 emissive != lastemissive || specular != lastspecular)) {
+    draw();
+    lastdiffuse=diffuse;
+    lastambient=ambient;
+    lastemissive=emissive;
+    lastspecular=specular;
+  }
+
   if(colors) {
-    glEnable(GL_COLOR_MATERIAL);
     if(!lighton) 
       glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
 
@@ -257,12 +274,15 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   glGetDoublev(GL_MODELVIEW_MATRIX,t);
 // Like Fortran, OpenGL uses transposed (column-major) format!
   run::transpose(t,4);
+  T[0]=t[8];
+  T[1]=t[9];
+  T[2]=t[10];
   run::inverse(t,4);
   bbox3 box(m,M);
   box.transform(t);
   m=box.Min();
   M=box.Max();
-
+  
   if(!billboard && (Max.getx() < m.getx() || Min.getx() > M.getx() ||
                     Max.gety() < m.gety() || Min.gety() > M.gety() ||
                     Max.getz() < m.getz() || Min.getz() > M.getz()))
@@ -278,9 +298,9 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
       storecolor(v,4*i,colors[i]);
   
   triple *Controls;
-  triple C[16];
+  triple Controls0[16];
   if(billboard) {
-    Controls=C;
+    Controls=Controls0;
     for(size_t i=0; i < 16; i++)
       Controls[i]=BB.transform(controls[i]);
   } else
@@ -288,19 +308,19 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
     
   if(gl::outlinemode) {
     triple edge0[]={Controls[0],Controls[4],Controls[8],Controls[12]};
-    R.render(edge0,straight,size3.length()/size2,m,M);
+    C.render(edge0,straight,size3.length()/size2,m,M);
     triple edge1[]={Controls[12],Controls[13],Controls[14],Controls[15]};
-    R.render(edge1,straight,size3.length()/size2,m,M);
+    C.render(edge1,straight,size3.length()/size2,m,M);
     triple edge2[]={Controls[15],Controls[11],Controls[7],Controls[3]};
-    R.render(edge2,straight,size3.length()/size2,m,M);
+    C.render(edge2,straight,size3.length()/size2,m,M);
     triple edge3[]={Controls[3],Controls[2],Controls[1],Controls[0]};
-    R.render(edge3,straight,size3.length()/size2,m,M);
-    R.draw();
-  } else
-    bezierPatch(Controls,straight,size3.length()/size2,m,M,colors ? v : NULL);
-
-  if(colors)
-    glDisable(GL_COLOR_MATERIAL);
+    C.render(edge3,straight,size3.length()/size2,m,M);
+    C.draw();
+  } else {
+    S.render(Controls,straight,size3.length()/size2,m,M,transparent,
+             colors ? v : NULL);
+    if(!transparent) S.draw();
+  }
 #endif
 }
 
@@ -501,9 +521,9 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
       storecolor(v,4*i,colors[i]);
     
   triple *Controls;
-  triple C[10];
+  triple Controls0[10];
   if(billboard) {
-    Controls=C;
+    Controls=Controls0;
     for(size_t i=0; i < 10; i++)
       Controls[i]=BB.transform(controls[i]);
   } else 
@@ -511,12 +531,12 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
   
   if(gl::outlinemode) {
     triple edge0[]={Controls[0],Controls[1],Controls[3],Controls[6]};
-    R.render(edge0,straight,size3.length()/size2,m,M);
+    C.render(edge0,straight,size3.length()/size2,m,M);
     triple edge1[]={Controls[6],Controls[7],Controls[8],Controls[9]};
-    R.render(edge1,straight,size3.length()/size2,m,M);
+    C.render(edge1,straight,size3.length()/size2,m,M);
     triple edge2[]={Controls[9],Controls[5],Controls[2],Controls[0]};
-    R.render(edge2,straight,size3.length()/size2,m,M);
-    R.draw();
+    C.render(edge2,straight,size3.length()/size2,m,M);
+    C.draw();
   } else
     bezierTriangle(Controls,straight,size3.length()/size2,m,M,colors ? v : NULL);
   

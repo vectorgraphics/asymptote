@@ -11,6 +11,8 @@ namespace camp {
 using vm::array;
 using namespace prc;
   
+extern void draw();
+  
 bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   Int n=g.length();
@@ -85,6 +87,8 @@ void drawPath3::render(GLUnurbs *nurb, double size2,
                     Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
   
+  camp::draw();
+  
   GLfloat Diffuse[]={0.0,0.0,0.0,(GLfloat) color.A};
   glMaterialfv(GL_FRONT,GL_DIFFUSE,Diffuse);
   static GLfloat Black[]={0.0,0.0,0.0,1.0};
@@ -94,6 +98,8 @@ void drawPath3::render(GLUnurbs *nurb, double size2,
   glMaterialfv(GL_FRONT,GL_EMISSION,Emissive);
   glMaterialfv(GL_FRONT,GL_SPECULAR,Black);
   glMaterialf(GL_FRONT,GL_SHININESS,128.0);
+  
+  
   
   if(billboard) {
     for(Int i=0; i < n; ++i) {

@@ -11,12 +11,20 @@
 #include "arrayop.h"
 #include "path3.h"
 #include "beziercurve.h"
+#include "bezierpatch.h"
 
 namespace camp {
+
+inline int isgn(double x)
+{
+  return x > 0.0 ? 1 : (x < 0.0 ? -1 : 0);
+}
 
 #ifdef HAVE_GL
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j);
 #endif  
+
+extern double T[3]; // z-component of current transform
 
 class drawSurface : public drawElement {
 protected:
@@ -37,11 +45,12 @@ protected:
   triple Min,Max;
   bool prc;
   
+public:
 #ifdef HAVE_GL
-  BezierCurve R;
+  static BezierCurve C;
+  static BezierPatch S;
 #endif  
   
-public:
   drawSurface(const vm::array& g, triple center, bool straight,
               const vm::array&p, double opacity, double shininess,
               double PRCshininess, triple normal, const vm::array &pens,
@@ -142,7 +151,7 @@ protected:
   bool prc;
   
 #ifdef HAVE_GL
-  BezierCurve R;
+  BezierCurve C;
 #endif  
   
 public:
@@ -387,7 +396,7 @@ public:
   }
   
   drawPRC(const double* t, const drawPRC *s) :
-    drawElementLC(t, s), diffuse(s->diffuse), ambient(s->ambient),
+    drawElementLC(t,s), diffuse(s->diffuse), ambient(s->ambient),
     emissive(s->emissive), specular(s->specular), opacity(s->opacity),
     shininess(s->shininess), invisible(s->invisible) {
   }

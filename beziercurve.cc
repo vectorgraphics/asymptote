@@ -12,7 +12,7 @@ namespace camp {
 #ifdef HAVE_GL
 
 std::vector<GLfloat> BezierCurve::buffer;
-std::vector<GLint> BezierCurve::indices;
+std::vector<GLuint> BezierCurve::indices;
 
 void BezierCurve::init(double res, const triple& Min, const triple& Max)
 {
@@ -62,17 +62,8 @@ void BezierCurve::render(const triple *p, GLuint I0, GLuint I1)
 
 void BezierCurve::render(const triple *p, bool straight) 
 {
-  triple p0=p[0];
-  epsilon=0;
-  for(unsigned i=1; i < 4; ++i)
-    epsilon=max(epsilon,abs2(p[i]-p0));
-  
-  epsilon *= Fuzz2;
-    
-  triple p3=p[3];
-
-  GLuint i0=vertex(p0);
-  GLuint i3=vertex(p3);
+  GLuint i0=vertex(p[0]);
+  GLuint i3=vertex(p[3]);
     
   if(straight) {
     indices.push_back(i0);

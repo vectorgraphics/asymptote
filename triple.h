@@ -316,9 +316,6 @@ inline void boundstriples(double& x, double& y, double& z,
                           double& X, double& Y, double& Z,
                           size_t n, const triple* v)
 {
-//  if(n == 0 || v == NULL)
-//    return;
-
   X=x=v[0].getx();
   Y=y=v[0].gety();
   Z=z=v[0].getz();

@@ -22,9 +22,13 @@
 
 namespace camp {
 
+static const double pixel=0.5; // Adaptive rendering constant.
+
 enum Interaction {EMBEDDED=0,BILLBOARD};
 
 void copyArray4x4C(double*& dest, const vm::array *a);
+  
+void draw();
   
 class box {
   pair p[4];
