@@ -14,18 +14,14 @@ namespace camp {
 
 #ifdef HAVE_GL
 
-static const double pixel=0.5; // Adaptive rendering constant.
-
 extern const double Fuzz;
 extern const double Fuzz2;
 
 struct BezierCurve
 {
   static std::vector<GLfloat> buffer;
-  static std::vector<GLint> indices;
-  triple u,v,w;
+  static std::vector<GLuint> indices;
   GLuint nvertices;
-  double epsilon;
   double res,res2;
   triple Min,Max;
   
@@ -33,7 +29,7 @@ struct BezierCurve
   
   void init(double res, const triple& Min, const triple& Max);
     
-// Store the vertex v and its normal vector n in the buffer.
+// Store the vertex v in the buffer.
   GLuint vertex(const triple &v) {
     buffer.push_back(v.getx());
     buffer.push_back(v.gety());
@@ -46,15 +42,12 @@ struct BezierCurve
     double x,y,z;
     double X,Y,Z;
     
-    boundstriples(x,y,z,X,Y,Z,4,v);
+    boundstriples(x,y,z,X,Y,Z,n,v);
     return
       X < Min.getx() || x > Max.getx() ||
       Y < Min.gety() || y > Max.gety() ||
       Z < Min.getz() || z > Max.getz();
   }
-  
-  void render(const triple *p, GLuint I0, GLuint I1);
-  void render(const triple *p, bool straight);
   
   void clear() {
     nvertices=0;
@@ -66,7 +59,8 @@ struct BezierCurve
     clear();
   }
   
-  void draw();
+  void render(const triple *p, GLuint I0, GLuint I1);
+  void render(const triple *p, bool straight);
   
   void render(const triple *g, bool straight, double ratio,
               const triple& Min, const triple& Max) {
@@ -74,6 +68,7 @@ struct BezierCurve
     render(g,straight);
   }
   
+  void draw();
   void draw(const triple *g, bool straight, double ratio,
             const triple& Min, const triple& Max) {
     render(g,straight,ratio,Min,Max);
