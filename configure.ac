@@ -121,7 +121,8 @@ AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERED_MAP,1,
 			      [Define to 1 if you have tr1/unordered_map]),
 	[AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
 
-GCVERSION=7.4.2
+GCVERSION=7.6.0
+ATOMICVERSION=7.4.4
 GCFILE=gc-$GCVERSION
 ac_cv_use_gc="system"
 
@@ -216,6 +217,7 @@ AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
 
 AC_SUBST(getopt)
 AC_SUBST(GCVERSION)
+AC_SUBST(ATOMICVERSION)
 AC_SUBST(GCOPTIONS)
 AC_SUBST(GCLIB)
 AC_SUBST(GCPPLIB)
@@ -382,7 +384,7 @@ if test "x$GCDIR" != "x" ; then
    echo FOR EXAMPLE, USE THE COMMANDS:
    echo
    echo wget http://hboehm.info/gc/gc_source/$GCFILE.tar.gz
-   echo wget http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$GCVERSION.tar.gz
+   echo wget http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$ATOMICVERSION.tar.gz
 
    echo
    exit 1
