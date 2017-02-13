@@ -61,6 +61,7 @@ int compare(const void *a, const void *b)
 void BezierPatch::init(double res, const triple& Min, const triple& Max,
                        bool transparent, GLfloat *colors)
 {
+  empty=false;
   this->res=res;
   res2=res*res;
   Epsilon=FillFactor*res;
@@ -350,6 +351,7 @@ void BezierPatch::render(const triple *p, bool straight, GLfloat *c0)
 
 void BezierPatch::draw()
 {
+  if(empty) return;
   size_t stride=6;
   size_t Stride=10;
   size_t size=sizeof(GLfloat);
@@ -365,17 +367,6 @@ void BezierPatch::draw()
     glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,&indices[0]);
   }
   
-  B=&tbuffer[0]; 
-  tstride=stride;
-  
-  qsort(&tindices[0],tindices.size()/3,3*sizeof(GLuint),compare);
-  
-  if(tindices.size()) {
-    glVertexPointer(3,GL_FLOAT,bytestride,&tbuffer[0]);
-    glNormalPointer(GL_FLOAT,bytestride,&tbuffer[3]);
-    glDrawElements(GL_TRIANGLES,tindices.size(),GL_UNSIGNED_INT,&tindices[0]);
-  }
-  
   if(Indices.size()) {
     glEnableClientState(GL_COLOR_ARRAY);
     glEnable(GL_COLOR_MATERIAL);
@@ -387,11 +378,19 @@ void BezierPatch::draw()
     glDisableClientState(GL_COLOR_ARRAY);
   }
   
-  B=&tBuffer[0];
-  tstride=Stride;
-  qsort(&tIndices[0],tIndices.size()/3,3*sizeof(GLuint),compare);
-    
+  if(tindices.size()) {
+    B=&tbuffer[0]; 
+    tstride=stride;
+    qsort(&tindices[0],tindices.size()/3,3*sizeof(GLuint),compare);
+    glVertexPointer(3,GL_FLOAT,bytestride,&tbuffer[0]);
+    glNormalPointer(GL_FLOAT,bytestride,&tbuffer[3]);
+    glDrawElements(GL_TRIANGLES,tindices.size(),GL_UNSIGNED_INT,&tindices[0]);
+  }
+  
   if(tIndices.size()) {
+    B=&tBuffer[0];
+    tstride=Stride;
+    qsort(&tIndices[0],tIndices.size()/3,3*sizeof(GLuint),compare);
     glEnableClientState(GL_COLOR_ARRAY);
     glEnable(GL_COLOR_MATERIAL);
     glVertexPointer(3,GL_FLOAT,Bytestride,&tBuffer[0]);
