@@ -30,7 +30,7 @@ for(int i=0; i < p.length; ++i) {
   draw(surface(a),pn[i],render);
 
   surface s=surface(p[i]--cycle);
-  draw(s,pn[i]+opacity(0.26),render);
+  draw(s,i == 2 ? pn[i]+opacity(0.26) : pn[i],render);
   draw(rotate(alpha,Y)*s,pn[i],render);
 }
 
