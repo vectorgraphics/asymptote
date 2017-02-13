@@ -1790,6 +1790,7 @@ pairarray* fft(pairarray *a, Int sign=1)
     utils::deleteAlign(f);
   }
 #else
+  unused(a);
   unused(&sign);
   array *c=new array(0);
   error("Please install fftw3, run ./configure, and recompile");
