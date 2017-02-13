@@ -408,5 +408,5 @@ revolution cone(triple c=O, real r, real h, triple axis=Z, int n=nslice)
 // Note: unitsphere provides a smoother and more efficient surface.
 revolution sphere(triple c=O, real r, int n=nslice)
 {
-  return revolution(c,Arc(c,r,180,0,0,0,Y,n),Z);
+  return revolution(c,Arc(c,r,180-sqrtEpsilon,0,sqrtEpsilon,0,Y,n),Z);
 }

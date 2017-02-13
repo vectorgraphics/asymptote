@@ -60,14 +60,17 @@ void setcolors(bool colors, bool lighton,
   static prc::RGBAColour lastambient;
   static prc::RGBAColour lastemissive;
   static prc::RGBAColour lastspecular;
+  static double lastshininess;
   
   if(!colors && (diffuse != lastdiffuse || ambient != lastambient || 
-                 emissive != lastemissive || specular != lastspecular)) {
+                 emissive != lastemissive || specular != lastspecular ||
+                 shininess != lastshininess)) {
     draw();
     lastdiffuse=diffuse;
     lastambient=ambient;
     lastemissive=emissive;
     lastspecular=specular;
+    lastshininess=shininess;
   }
 
   if(colors) {
@@ -319,7 +322,8 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
   } else {
     S.render(Controls,straight,size3.length()/size2,m,M,transparent,
              colors ? v : NULL);
-    if(!transparent) S.draw();
+    if(!transparent) 
+      S.draw();
   }
 #endif
 }

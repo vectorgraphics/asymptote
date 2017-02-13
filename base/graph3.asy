@@ -4,8 +4,6 @@ private import math;
 import graph;
 import three;
 
-triple zero3(real) {return O;}
-
 typedef triple direction3(real);
 direction3 Dir(triple dir) {return new triple(real) {return dir;};}
 
