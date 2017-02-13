@@ -15,11 +15,6 @@
 
 namespace camp {
 
-inline int isgn(double x)
-{
-  return x > 0.0 ? 1 : (x < 0.0 ? -1 : 0);
-}
-
 #ifdef HAVE_GL
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j);
 #endif  
