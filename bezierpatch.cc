@@ -71,25 +71,29 @@ void BezierPatch::init(double res, const triple& Min, const triple& Max,
   this->Min=Min;
   this->Max=Max;
   this->transparent=transparent;
-
+  
   const size_t nbuffer=10000;
   if(transparent) {
     tbuffer.reserve(nbuffer);
     tindices.reserve(nbuffer);
     pindices=&tindices;
+    pvertex=&tvertex;
     if(colors) {
       tBuffer.reserve(nbuffer);
       tIndices.reserve(nbuffer);
       pindices=&tIndices;
+      pVertex=&tVertex;
     }
   } else {
     buffer.reserve(nbuffer);
     indices.reserve(nbuffer);
     pindices=&indices;
+    pvertex=&vertex;
     if(colors) {
       Buffer.reserve(nbuffer);
       Indices.reserve(nbuffer);
       pindices=&Indices;
+      pVertex=&Vertex;
     }
   }
 }
@@ -258,11 +262,11 @@ void BezierPatch::render(const triple *p,
         c4[i]=0.5*(c0[i]+c2[i]);
       }
       
-      GLuint i0=vertex(m0,n0,c0);
-      GLuint i1=vertex(m1,n1,c1);
-      GLuint i2=vertex(m2,n2,c2);
-      GLuint i3=vertex(m3,n3,c3);
-      GLuint i4=vertex(m4,n4,c4);
+      GLuint i0=pVertex(m0,n0,c0);
+      GLuint i1=pVertex(m1,n1,c1);
+      GLuint i2=pVertex(m2,n2,c2);
+      GLuint i3=pVertex(m3,n3,c3);
+      GLuint i4=pVertex(m4,n4,c4);
       render(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3,
              C0,c0,c4,c3);
       render(s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false,
@@ -272,11 +276,11 @@ void BezierPatch::render(const triple *p,
       render(s3,i3,i4,i2,I3,m3,m4,m2,P3,false,false,flat2,flat3,
              c3,c4,c2,C3);
     } else {
-      GLuint i0=vertex(m0,n0);
-      GLuint i1=vertex(m1,n1);
-      GLuint i2=vertex(m2,n2);
-      GLuint i3=vertex(m3,n3);
-      GLuint i4=vertex(m4,n4);
+      GLuint i0=pvertex(m0,n0);
+      GLuint i1=pvertex(m1,n1);
+      GLuint i2=pvertex(m2,n2);
+      GLuint i3=pvertex(m3,n3);
+      GLuint i4=pvertex(m4,n4);
       render(s0,I0,i0,i4,i3,P0,m0,m4,m3,flat0,false,false,flat3);
       render(s1,i0,I1,i1,i4,m0,P1,m1,m4,flat0,flat1,false,false);
       render(s2,i4,i1,I2,i2,m4,m1,P2,m2,false,flat1,flat2,false);
@@ -321,19 +325,19 @@ void BezierPatch::render(const triple *p, bool straight, GLfloat *c0)
     GLfloat *c2=c0+8;
     GLfloat *c3=c0+12;
     
-    I0=vertex(p0,n0,c0);
-    I1=vertex(p12,n1,c1);
-    I2=vertex(p15,n2,c2);
-    I3=vertex(p3,n3,c3);
+    I0=pVertex(p0,n0,c0);
+    I1=pVertex(p12,n1,c1);
+    I2=pVertex(p15,n2,c2);
+    I3=pVertex(p3,n3,c3);
       
     if(!straight)
       render(p,I0,I1,I2,I3,p0,p12,p15,p3,false,false,false,false,
              c0,c1,c2,c3);
   } else {
-    I0=vertex(p0,n0);
-    I1=vertex(p12,n1);
-    I2=vertex(p15,n2);
-    I3=vertex(p3,n3);
+    I0=pvertex(p0,n0);
+    I1=pvertex(p12,n1);
+    I2=pvertex(p15,n2);
+    I3=pvertex(p3,n3);
     
     if(!straight)
       render(p,I0,I1,I2,I3,p0,p12,p15,p3,false,false,false,false);

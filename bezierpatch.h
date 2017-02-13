@@ -52,6 +52,10 @@ struct BezierPatch
   double res,res2;
   triple Min,Max;
   bool transparent;
+  typedef GLuint vertexFunction(const triple &v, const triple& n);
+  typedef GLuint VertexFunction(const triple &v, const triple& n, GLfloat *c);
+  vertexFunction *pvertex;
+  VertexFunction *pVertex;
   
   BezierPatch() {}
   
@@ -59,18 +63,7 @@ struct BezierPatch
             bool transparent, GLfloat *colors=NULL);
     
 // Store the vertex v and its normal vector n in the buffer.
-  GLuint vertex(const triple &v, const triple& n) {
-    if(transparent) {
-      tbuffer.push_back(v.getx());
-      tbuffer.push_back(v.gety());
-      tbuffer.push_back(v.getz());
-    
-      tbuffer.push_back(n.getx());
-      tbuffer.push_back(n.gety());
-      tbuffer.push_back(n.getz());
-      return ntvertices++;
-    }
-    
+  static GLuint vertex(const triple &v, const triple& n) {
     buffer.push_back(v.getx());
     buffer.push_back(v.gety());
     buffer.push_back(v.getz());
@@ -81,37 +74,48 @@ struct BezierPatch
     return nvertices++;
   }
   
-// Store the vertex v and its normal vector n and colour in the buffer.
-  GLuint vertex(const triple& v, const triple& n, GLfloat *c) {
-    if(transparent) {
-      tBuffer.push_back(v.getx());
-      tBuffer.push_back(v.gety());
-      tBuffer.push_back(v.getz());
+  static GLuint tvertex(const triple &v, const triple& n) {
+    tbuffer.push_back(v.getx());
+    tbuffer.push_back(v.gety());
+    tbuffer.push_back(v.getz());
     
-      tBuffer.push_back(n.getx());
-      tBuffer.push_back(n.gety());
-      tBuffer.push_back(n.getz());
+    tbuffer.push_back(n.getx());
+    tbuffer.push_back(n.gety());
+    tbuffer.push_back(n.getz());
+    return ntvertices++;
+  }
+  
+// Store the vertex v and its normal vector n and colour c in the buffer.
+  static GLuint Vertex(const triple& v, const triple& n, GLfloat *c) {
+    Buffer.push_back(v.getx());
+    Buffer.push_back(v.gety());
+    Buffer.push_back(v.getz());
     
-      tBuffer.push_back(c[0]);
-      tBuffer.push_back(c[1]);
-      tBuffer.push_back(c[2]);
-      tBuffer.push_back(c[3]);
-      return Ntvertices++;
-    } else {
-      Buffer.push_back(v.getx());
-      Buffer.push_back(v.gety());
-      Buffer.push_back(v.getz());
+    Buffer.push_back(n.getx());
+    Buffer.push_back(n.gety());
+    Buffer.push_back(n.getz());
     
-      Buffer.push_back(n.getx());
-      Buffer.push_back(n.gety());
-      Buffer.push_back(n.getz());
+    Buffer.push_back(c[0]);
+    Buffer.push_back(c[1]);
+    Buffer.push_back(c[2]);
+    Buffer.push_back(c[3]);
+    return Nvertices++;
+  }
+  
+  static GLuint tVertex(const triple& v, const triple& n, GLfloat *c) {
+    tBuffer.push_back(v.getx());
+    tBuffer.push_back(v.gety());
+    tBuffer.push_back(v.getz());
     
-      Buffer.push_back(c[0]);
-      Buffer.push_back(c[1]);
-      Buffer.push_back(c[2]);
-      Buffer.push_back(c[3]);
-      return Nvertices++;
-    }
+    tBuffer.push_back(n.getx());
+    tBuffer.push_back(n.gety());
+    tBuffer.push_back(n.getz());
+    
+    tBuffer.push_back(c[0]);
+    tBuffer.push_back(c[1]);
+    tBuffer.push_back(c[2]);
+    tBuffer.push_back(c[3]);
+    return Ntvertices++;
   }
   
   triple normal(triple left3, triple left2, triple left1, triple middle,
