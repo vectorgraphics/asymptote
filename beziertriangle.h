@@ -1,6 +1,6 @@
 /*****
  * beziertriangle.h
- * Author: John C. Bowman
+ * Authors: Jesse Frohlich and John C. Bowman
  *
  * Render a Bezier triangle.
  *****/
@@ -131,7 +131,7 @@ struct BezierTriangle
                 cross(rppp,lppp));
   }
 
-  inline double Distance(const triple *p)
+  double Distance(const triple *p)
   {
     triple p0=p[0];
     triple p6=p[6];

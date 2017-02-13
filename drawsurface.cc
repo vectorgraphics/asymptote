@@ -17,16 +17,39 @@ namespace camp {
 
 const triple drawElement::zero;
 
+double T[3]; // z-component of current transform
+size_t tstride;
+GLfloat *B;
+
+// Partially work around OpenGL transparency bug by sorting transparent
+// triangles by their centroid depth.
+int compare(const void *a, const void *b)
+{
+  size_t a0=tstride*((GLuint *) a)[0];
+  size_t a1=tstride*((GLuint *) a)[1];
+  size_t a2=tstride*((GLuint *) a)[2];
+  
+  size_t b0=tstride*((GLuint *) b)[0];
+  size_t b1=tstride*((GLuint *) b)[1];
+  size_t b2=tstride*((GLuint *) b)[2];
+  
+  double x=
+    T[0]*(B[a0]+B[a1]+B[a2]-B[b0]-B[b1]-B[b2])+
+    T[1]*(B[a0+1]+B[a1+1]+B[a2+1]-B[b0+1]-B[b1+1]-B[b2+1])+
+    T[2]*(B[a0+2]+B[a1+2]+B[a2+2]-B[b0+2]-B[b1+2]-B[b2+2]);
+  if(x > 0.0) return 1;
+  if(x < 0.0) return -1;
+  return 0;
+}
+
 using vm::array;
 
 #ifdef HAVE_GL
 BezierCurve drawSurface::C;
 BezierPatch drawSurface::S;
+BezierCurve drawBezierTriangle::C;
+BezierTriangle drawBezierTriangle::S;
 
-void bezierTriangle(const triple *g, bool straight, double ratio,
-                    const triple& Min, const triple& Max,
-                    GLfloat *colors);
-  
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
 {
   pen p=vm::read<camp::pen>(pens,j);
@@ -48,6 +71,7 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
 void draw()
 {
   drawSurface::S.draw();
+  drawBezierTriangle::S.draw();
 }
 
 void setcolors(bool colors, bool lighton,
@@ -504,6 +528,9 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
   glGetDoublev(GL_MODELVIEW_MATRIX,t);
 // Like Fortran, OpenGL uses transposed (column-major) format!
   run::transpose(t,4);
+  T[0]=t[8];
+  T[1]=t[9];
+  T[2]=t[10];
   run::inverse(t,4);
   bbox3 box(m,M);
   box.transform(t);
@@ -541,11 +568,12 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
     triple edge2[]={Controls[9],Controls[5],Controls[2],Controls[0]};
     C.render(edge2,straight,size3.length()/size2,m,M);
     C.draw();
-  } else
-    bezierTriangle(Controls,straight,size3.length()/size2,m,M,colors ? v : NULL);
-  
-  if(colors)
-    glDisable(GL_COLOR_MATERIAL);
+  } else {
+    S.render(Controls,straight,size3.length()/size2,m,M,transparent,
+             colors ? v : NULL);
+    if(!transparent) 
+      S.draw();
+  }
 #endif
 }
 

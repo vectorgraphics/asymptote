@@ -8,7 +8,9 @@ VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
 
-test "$CFLAGS" || CFLAGS="-g -O3 -ansi"
+test "$CXXFLAGS" || CXXFLAGS="-std=c++11"
+
+test "$CFLAGS" || CFLAGS="-g -O3"
 
 AC_C_BIGENDIAN
 

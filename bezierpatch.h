@@ -19,18 +19,6 @@ extern int sign;
 extern const double Fuzz;
 extern const double Fuzz2;
 
-// Return one-sixth of the second derivative of the Bezier curve defined
-// by a,b,c,d at 0. 
-inline triple bezierPP(triple a, triple b, triple c) {
-  return a+c-2.0*b;
-}
-
-// Return one-third of the third derivative of the Bezier curve defined by
-// a,b,c,d.
-inline triple bezierPPP(triple a, triple b, triple c, triple d) {
-  return d-a+3.0*(b-c);
-}
-
 struct BezierPatch
 {
   static std::vector<GLfloat> buffer;

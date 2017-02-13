@@ -11,6 +11,7 @@
 #include "arrayop.h"
 #include "path3.h"
 #include "beziercurve.h"
+#include "beziertriangle.h"
 #include "bezierpatch.h"
 
 namespace camp {
@@ -145,11 +146,12 @@ protected:
   triple Min,Max;
   bool prc;
   
+public:
 #ifdef HAVE_GL
-  BezierCurve C;
+  static BezierCurve C;
+  static BezierTriangle S;
 #endif  
   
-public:
   drawBezierTriangle(const vm::array& g, triple center, bool straight,
                      const vm::array&p, double opacity, double shininess,
                      double PRCshininess, const vm::array &pens,
