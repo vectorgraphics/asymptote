@@ -70,7 +70,6 @@ void BezierPatch::init(double res, const triple& Min, const triple& Max,
   Epsilon=FillFactor*res;
   this->Min=Min;
   this->Max=Max;
-  this->transparent=transparent;
   
   const size_t nbuffer=10000;
   if(transparent) {

@@ -51,7 +51,6 @@ struct BezierPatch
   double Epsilon;
   double res,res2;
   triple Min,Max;
-  bool transparent;
   typedef GLuint vertexFunction(const triple &v, const triple& n);
   typedef GLuint VertexFunction(const triple &v, const triple& n, GLfloat *c);
   vertexFunction *pvertex;
