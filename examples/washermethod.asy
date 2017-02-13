@@ -5,7 +5,7 @@ currentprojection=perspective(0,0,11,up=Y);
 
 pen color1=green+opacity(0.25);
 pen color2=red;
-real alpha=250;
+real alpha=240;
 
 real f(real x) {return 2x^2-x^3;}
 pair F(real x) {return (x,f(x));}

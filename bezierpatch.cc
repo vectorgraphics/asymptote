@@ -25,8 +25,6 @@ GLuint BezierPatch::ntvertices=0;
 GLuint BezierPatch::Nvertices=0;
 GLuint BezierPatch::Ntvertices=0;
 
-int sign;
-
 extern const double Fuzz2;
 
 #ifdef __MSDOS__      
@@ -36,14 +34,8 @@ const double FillFactor=0.1;
 #endif      
 
 double T[3]; // z-component of current transform
-
 size_t tstride;
 GLfloat *B;
-
-inline int isgn(GLfloat x)
-{
-  return x > 0.0 ? 1 : (x < 0.0 ? -1 : 0);
-}
 
 // Partially work around OpenGL transparency bug by sorting transparent
 // triangles by their centroid depth.
@@ -57,9 +49,13 @@ int compare(const void *a, const void *b)
   size_t b1=tstride*((GLuint *) b)[1];
   size_t b2=tstride*((GLuint *) b)[2];
   
-  return isgn(T[0]*(B[a0]+B[a1]+B[a2]-B[b0]-B[b1]-B[b2])+
-              T[1]*(B[a0+1]+B[a1+1]+B[a2+1]-B[b0+1]-B[b1+1]-B[b2+1])+
-              T[2]*(B[a0+2]+B[a1+2]+B[a2+2]-B[b0+2]-B[b1+2]-B[b2+2]));
+  double x=
+    T[0]*(B[a0]+B[a1]+B[a2]-B[b0]-B[b1]-B[b2])+
+    T[1]*(B[a0+1]+B[a1+1]+B[a2+1]-B[b0+1]-B[b1+1]-B[b2+1])+
+    T[2]*(B[a0+2]+B[a1+2]+B[a2+2]-B[b0+2]-B[b1+2]-B[b2+2]);
+  if(x > 0.0) return 1;
+  if(x < 0.0) return -1;
+  return 0;
 }
 
 void BezierPatch::init(double res, const triple& Min, const triple& Max,
