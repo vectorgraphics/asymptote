@@ -31,7 +31,7 @@ extern const double Fuzz2;
 const double FillFactor=1.0;
 #else
 const double FillFactor=0.1;
-#endif      
+#endif
 
 void BezierPatch::init(double res, const triple& Min, const triple& Max,
                        bool transparent, GLfloat *colors)
@@ -92,12 +92,13 @@ void BezierPatch::render(const triple *p,
     }
   } else { // Patch is not flat
     if(offscreen(16,p)) return;
-    /* Control points are labelled as follows:
+    /* Control points are indexed as follows:
          
-       Coordinates
-       +
-       Ordering
+       Coordinate
+       +-----
+        Index
          
+
        03    13    23    33
        +-----+-----+-----+
        |3    |7    |11   |15
@@ -114,26 +115,27 @@ void BezierPatch::render(const triple *p,
        +-----+-----+-----+
        0     4     8     12
          
-       Key:
+
+       Subdivision:
        P refers to a corner
        m refers to a midpoint
        s refers to a subpatch
          
-       m2
+                m2
        +--------+--------+
        |P3      |      P2|
        |        |        |
        |   s3   |   s2   |
        |        |        |
        |        |m4      |
-       m3+--------+--------+m1
+     m3+--------+--------+m1
        |        |        |
        |        |        |
        |   s0   |   s1   |
        |        |        |
        |P0      |      P1|
        +--------+--------+
-       m0
+                m0
     */
 
     triple p0=p[0];

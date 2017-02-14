@@ -27,11 +27,11 @@ GLuint BezierTriangle::Ntvertices=0;
 
 extern const double Fuzz2;
 
-#ifdef __MSDOS__      
+#ifdef __MSDOS__
 const double FillFactor=1.0;
 #else
 const double FillFactor=0.1;
-#endif      
+#endif
 
 void BezierTriangle::init(double res, const triple& Min, const triple& Max,
                           bool transparent, GLfloat *colors)
@@ -89,7 +89,36 @@ void BezierTriangle::render(const triple *p,
     }
   } else { // Triangle is not flat
     if(offscreen(10,p)) return;
-    /*    Naming Convention:
+    /* Control points are indexed as follows:
+
+       Coordinate
+        Index
+
+                                  030
+                                   9
+                                   /\
+                                  /  \
+                                 /    \
+                                /      \
+                               /        \
+                          021 +          + 120
+                           5 /            \ 8
+                            /              \
+                           /                \
+                          /                  \
+                         /                    \
+                    012 +          +           + 210
+                     2 /          111           \ 7
+                      /            4             \
+                     /                            \
+                    /                              \
+                   /                                \
+                  /__________________________________\
+                003         102           201        300
+                 0           1             3          6
+
+
+       Subdivision:
                                    P2
                                    030
                                    /\
