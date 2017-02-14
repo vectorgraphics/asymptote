@@ -11,6 +11,13 @@
 #include <sys/types.h>
 #include <iostream>
 #include <cstdlib>
+
+#ifdef __CYGWIN__
+extern "C" int sigaddset(sigset_t *set, int signum);
+extern "C" int sigemptyset(sigset_t *set); 
+extern "C" int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
+#endif
+
 #include <csignal>
 
 #include "common.h"

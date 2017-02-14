@@ -10,8 +10,14 @@ realarray* => realArray()
 pairarray* => pairArray()
 
 #include <inttypes.h>
+
 #include "mathop.h"
 #include "path.h"
+
+#ifdef __CYGWIN__
+extern "C" double yn(int, double);
+extern "C" double jn(int, double);
+#endif
 
 using namespace camp;
 
