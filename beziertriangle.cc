@@ -28,7 +28,7 @@ GLuint BezierTriangle::Ntvertices=0;
 extern const double Fuzz2;
 
 #ifdef __MSDOS__
-const double FillFactor=1.0;
+const double FillFactor=0.3;
 #else
 const double FillFactor=0.1;
 #endif
@@ -199,29 +199,6 @@ void BezierTriangle::render(const triple *p,
     triple u111=0.5*(u021+p231);
     triple c111=0.25*(p033+p330+p303+p111);
 
-    // A kludge to remove subdivision cracks, only applied the first time
-    // an edge is found to be flat before the rest of the subpatch is.
-    triple p2=0.5*(P1+P0);
-    if(!flat0) {
-      if((flat0=Distance1(l003,p102,p201,r300) < res2))
-        p2 += Epsilon*unit(l300-c111);
-      else p2=l300;
-    }
-
-    triple p1=0.5*(P2+P0);
-    if(!flat1) {
-      if((flat1=Distance1(l003,p012,p021,u030) < res2))
-        p1 += Epsilon*unit(l030-c111);
-      else p1=l030;
-    }
-
-    triple p0=0.5*(P2+P1);
-    if(!flat2) {
-      if((flat2=Distance1(r300,p210,p120,u030) < res2))
-        p0 += Epsilon*unit(r030-c111);
-      else p0=r030;
-    }
-
     triple l[]={l003,l102,l012,l201,l111,l021,l300,l210,l120,l030}; // left
     triple r[]={l300,r102,r012,r201,r111,r021,r300,r210,r120,r030}; // right
     triple u[]={l030,u102,u012,u201,u111,u021,r030,u210,u120,u030}; // up
@@ -231,6 +208,33 @@ void BezierTriangle::render(const triple *p,
     triple n1=normal(r030,u201,u102,l030,l120,l210,l300);
     triple n2=normal(l030,l120,l210,l300,r012,r021,r030);
           
+    // A kludge to remove subdivision cracks, only applied the first time
+    // an edge is found to be flat before the rest of the subpatch is.
+    triple p0=0.5*(P1+P2);
+    if(!flat0) {
+      if((flat0=Distance1(r300,p210,p120,u030) < res2))
+        p0 -= Epsilon*unit(derivative(c[0],c[2],c[5],c[9])+
+                           derivative(c[0],c[1],c[3],c[6]));
+      else p0=r030;
+    }
+
+    triple p1=0.5*(P2+P0);
+    if(!flat1) {
+      if((flat1=Distance1(l003,p012,p021,u030) < res2))
+        p1 -= Epsilon*unit(derivative(c[6],c[3],c[1],c[0])+
+                           derivative(c[6],c[7],c[8],c[9]));
+
+      else p1=l030;
+    }
+
+    triple p2=0.5*(P0+P1);
+    if(!flat2) {
+      if((flat2=Distance1(l003,p102,p201,r300) < res2))
+        p2 -= Epsilon*unit(derivative(c[9],c[5],c[2],c[0])+
+                           derivative(c[9],c[8],c[7],c[6]));
+      else p2=l300;
+    }
+
     if(C0) {
       GLfloat c0[4],c1[4],c2[4];
       for(int i=0; i < 4; ++i) {
@@ -243,18 +247,18 @@ void BezierTriangle::render(const triple *p,
       GLuint i1=pVertex(p1,n1,c1);
       GLuint i2=pVertex(p2,n2,c2);
           
-      render(l,I0,i2,i1,P0,p2,p1,flat0,flat1,false,C0,c2,c1);
+      render(l,I0,i2,i1,P0,p2,p1,false,flat1,flat2,C0,c2,c1);
       render(r,i2,I1,i0,p2,P1,p0,flat0,false,flat2,c2,C1,c0);
-      render(u,i1,i0,I2,p1,p0,P2,false,flat1,flat2,c1,c0,C2);
+      render(u,i1,i0,I2,p1,p0,P2,flat0,flat1,false,c1,c0,C2);
       render(c,i0,i1,i2,p0,p1,p2,false,false,false,c0,c1,c2);
     } else {
       GLuint i0=pvertex(p0,n0);
       GLuint i1=pvertex(p1,n1);
       GLuint i2=pvertex(p2,n2);
           
-      render(l,I0,i2,i1,P0,p2,p1,flat0,flat1,false);
+      render(l,I0,i2,i1,P0,p2,p1,false,flat1,flat2);
       render(r,i2,I1,i0,p2,P1,p0,flat0,false,flat2);
-      render(u,i1,i0,I2,p1,p0,P2,false,flat1,flat2);
+      render(u,i1,i0,I2,p1,p0,P2,flat0,flat1,false);
       render(c,i0,i1,i2,p0,p1,p2,false,false,false);
     }
   }

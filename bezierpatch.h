@@ -134,13 +134,13 @@ struct BezierPatch
   triple derivative(triple p0, triple p1, triple p2, triple p3) {
     triple lp=p1-p0;
     if(abs2(lp) > epsilon)
-      return unit(lp);
+      return lp;
     
     triple lpp=bezierPP(p0,p1,p2);
     if(abs2(lpp) > epsilon)
-      return unit(lpp);
+      return lpp;
     
-    return unit(bezierPPP(p0,p1,p2,p3));
+    return bezierPPP(p0,p1,p2,p3);
   }
 
   double Distance(const triple *p) {

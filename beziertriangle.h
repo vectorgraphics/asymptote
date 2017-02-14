@@ -131,8 +131,19 @@ struct BezierTriangle
                 cross(rppp,lppp));
   }
 
-  double Distance(const triple *p)
-  {
+  triple derivative(triple p0, triple p1, triple p2, triple p3) {
+    triple lp=p1-p0;
+    if(abs2(lp) > epsilon)
+      return lp;
+    
+    triple lpp=bezierPP(p0,p1,p2);
+    if(abs2(lpp) > epsilon)
+      return lpp;
+    
+    return bezierPPP(p0,p1,p2,p3);
+  }
+
+  double Distance(const triple *p) {
     triple p0=p[0];
     triple p6=p[6];
     triple p9=p[9];
