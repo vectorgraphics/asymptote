@@ -635,11 +635,11 @@ void _draw(picture *f, path3 g, triple center=Zero, pen p, Int interaction=0)
 // Bezier patch
 void draw(picture *f, triplearray2 *P, triple center, bool straight,
           penarray *p, real opacity, real shininess, real PRCshininess,
-          triple normal, penarray *colors, Int interaction, bool prc=true)
+          penarray *colors, Int interaction, bool prc=true)
 {
-  f->append(new drawSurface(*P,center,straight,*p,opacity,shininess,
-                            PRCshininess,normal,*colors,
-                            (Interaction) intcast(interaction),prc));
+  f->append(new drawBezierPatch(*P,center,straight,*p,opacity,shininess,
+                                PRCshininess,*colors,
+                                (Interaction) intcast(interaction),prc));
 }
 
 // Bezier triangle

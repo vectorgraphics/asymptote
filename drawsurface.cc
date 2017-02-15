@@ -46,8 +46,7 @@ using vm::array;
 
 #ifdef HAVE_GL
 BezierCurve drawSurface::C;
-BezierPatch drawSurface::S;
-BezierCurve drawBezierTriangle::C;
+BezierPatch drawBezierPatch::S;
 BezierTriangle drawBezierTriangle::S;
 
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j)
@@ -70,7 +69,7 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
 
 void draw()
 {
-  drawSurface::S.draw();
+  drawBezierPatch::S.draw();
   drawBezierTriangle::S.draw();
 }
 
@@ -130,7 +129,7 @@ void setcolors(bool colors, bool lighton,
 
 #endif  
 
-void drawSurface::bounds(const double* t, bbox3& b)
+void drawBezierPatch::bounds(const double* t, bbox3& b)
 {
   double x,y,z;
   double X,Y,Z;
@@ -196,7 +195,7 @@ void drawSurface::bounds(const double* t, bbox3& b)
   }
 }
 
-void drawSurface::ratio(const double* t, pair &b, double (*m)(double, double),
+void drawBezierPatch::ratio(const double* t, pair &b, double (*m)(double, double),
                         double fuzz, bool &first)
 {
   triple buf[16];
@@ -250,7 +249,7 @@ void drawSurface::ratio(const double* t, pair &b, double (*m)(double, double),
   }
 }
 
-bool drawSurface::write(prcfile *out, unsigned int *, double, groupsmap&)
+bool drawBezierPatch::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
   if(invisible || !prc)
     return true;
@@ -269,9 +268,10 @@ bool drawSurface::write(prcfile *out, unsigned int *, double, groupsmap&)
   return true;
 }
 
-void drawSurface::render(GLUnurbs *nurb, double size2,
-                         const triple& b, const triple& B,
-                         double perspective, bool lighton, bool transparent)
+void drawBezierPatch::render(GLUnurbs *nurb, double size2,
+                             const triple& b, const triple& B,
+                             double perspective, bool lighton,
+                             bool transparent)
 {
 #ifdef HAVE_GL
   if(invisible || 
@@ -352,9 +352,9 @@ void drawSurface::render(GLUnurbs *nurb, double size2,
 #endif
 }
 
-drawElement *drawSurface::transformed(const double* t)
+drawElement *drawBezierPatch::transformed(const double* t)
 {
-  return new drawSurface(t,this);
+  return new drawBezierPatch(t,this);
 }
   
 void drawBezierTriangle::bounds(const double* t, bbox3& b)
