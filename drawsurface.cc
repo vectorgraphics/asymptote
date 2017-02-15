@@ -335,17 +335,17 @@ void drawBezierPatch::render(GLUnurbs *nurb, double size2,
     
   if(gl::outlinemode) {
     triple edge0[]={Controls[0],Controls[4],Controls[8],Controls[12]};
-    C.render(edge0,straight,size3.length()/size2,m,M);
+    C.queue(edge0,straight,size3.length()/size2,m,M);
     triple edge1[]={Controls[12],Controls[13],Controls[14],Controls[15]};
-    C.render(edge1,straight,size3.length()/size2,m,M);
+    C.queue(edge1,straight,size3.length()/size2,m,M);
     triple edge2[]={Controls[15],Controls[11],Controls[7],Controls[3]};
-    C.render(edge2,straight,size3.length()/size2,m,M);
+    C.queue(edge2,straight,size3.length()/size2,m,M);
     triple edge3[]={Controls[3],Controls[2],Controls[1],Controls[0]};
-    C.render(edge3,straight,size3.length()/size2,m,M);
+    C.queue(edge3,straight,size3.length()/size2,m,M);
     C.draw();
   } else {
-    S.render(Controls,straight,size3.length()/size2,m,M,transparent,
-             colors ? v : NULL);
+    S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
+            colors ? v : NULL);
     if(!transparent) 
       S.draw();
   }
@@ -562,15 +562,15 @@ void drawBezierTriangle::render(GLUnurbs *nurb, double size2,
   
   if(gl::outlinemode) {
     triple edge0[]={Controls[0],Controls[1],Controls[3],Controls[6]};
-    C.render(edge0,straight,size3.length()/size2,m,M);
+    C.queue(edge0,straight,size3.length()/size2,m,M);
     triple edge1[]={Controls[6],Controls[7],Controls[8],Controls[9]};
-    C.render(edge1,straight,size3.length()/size2,m,M);
+    C.queue(edge1,straight,size3.length()/size2,m,M);
     triple edge2[]={Controls[9],Controls[5],Controls[2],Controls[0]};
-    C.render(edge2,straight,size3.length()/size2,m,M);
+    C.queue(edge2,straight,size3.length()/size2,m,M);
     C.draw();
   } else {
-    S.render(Controls,straight,size3.length()/size2,m,M,transparent,
-             colors ? v : NULL);
+    S.queue(Controls,straight,size3.length()/size2,m,M,transparent,
+            colors ? v : NULL);
     if(!transparent) 
       S.draw();
   }

@@ -11,7 +11,6 @@
 #include "arrayop.h"
 #include "path3.h"
 #include "beziercurve.h"
-#include "beziertriangle.h"
 #include "bezierpatch.h"
 
 namespace camp {

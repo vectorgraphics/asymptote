@@ -106,14 +106,14 @@ void drawPath3::render(GLUnurbs *nurb, double size2,
       triple controls[]={BB.transform(g.point(i)),BB.transform(g.postcontrol(i)),
                          BB.transform(g.precontrol(i+1)),
                          BB.transform(g.point(i+1))};
-      R.render(controls,straight,size3.length()/size2,m,M);
+      R.queue(controls,straight,size3.length()/size2,m,M);
     }
   } else {
     BB.init(center);
     for(Int i=0; i < n; ++i) {
       triple controls[]={g.point(i),g.postcontrol(i),g.precontrol(i+1),
                          g.point(i+1)};
-      R.render(controls,straight,size3.length()/size2,m,M);
+      R.queue(controls,straight,size3.length()/size2,m,M);
     }
   }
   R.draw();

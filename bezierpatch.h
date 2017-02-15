@@ -143,7 +143,7 @@ struct BezierPatch
     return bezierPPP(p0,p1,p2,p3);
   }
 
-  double Distance(const triple *p) {
+  virtual double Distance(const triple *p) {
     triple p0=p[0];
     triple p3=p[3];
     triple p12=p[12];
@@ -210,11 +210,11 @@ struct BezierPatch
               bool flat0, bool flat1, bool flat2, bool flat3,
               GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL,
               GLfloat *C3=NULL);
-  void render(const triple *p, bool straight, GLfloat *c0=NULL);
+  virtual void render(const triple *p, bool straight, GLfloat *c0=NULL);
   
-  void render(const triple *g, bool straight, double ratio,
-              const triple& Min, const triple& Max, bool transparent,
-              GLfloat *colors=NULL) {
+  void queue(const triple *g, bool straight, double ratio,
+             const triple& Min, const triple& Max, bool transparent,
+             GLfloat *colors=NULL) {
     init(pixel*ratio,Min,Max,transparent,colors);
     render(g,straight,colors);
   }
@@ -223,10 +223,40 @@ struct BezierPatch
   void draw(const triple *g, bool straight, double ratio,
             const triple& Min, const triple& Max, bool transparent,
             GLfloat *colors=NULL) {
-    render(g,straight,ratio,Min,Max,transparent,colors);
+    queue(g,straight,ratio,Min,Max,transparent,colors);
     draw();
   }
 };
+
+struct BezierTriangle : public BezierPatch {
+public:
+  BezierTriangle() : BezierPatch() {}
+  
+  double Distance(const triple *p) {
+    triple p0=p[0];
+    triple p6=p[6];
+    triple p9=p[9];
+
+    // Only the internal point is tested for deviance from the triangle
+    // formed by the vertices. We assume that the Jacobian is nonzero so
+    // that we only need to calculate the perpendicular distance of the
+    // internal point from this triangle.  
+    double d=Distance2(p[4],p0,normal(p9,p[5],p[2],p0,p[1],p[3],p6));
+
+    // Determine how straight the edges are.
+    d=max(d,Distance1(p0,p[1],p[3],p6));
+    d=max(d,Distance1(p0,p[2],p[5],p9));
+    return max(d,Distance1(p6,p[7],p[8],p9));
+  }
+  
+  void render(const triple *p,
+              GLuint I0, GLuint I1, GLuint I2,
+              triple P0, triple P1, triple P2,
+              bool flat0, bool flat1, bool flat2,
+              GLfloat *C0=NULL, GLfloat *C1=NULL, GLfloat *C2=NULL);
+  void render(const triple *p, bool straight, GLfloat *c0=NULL);
+};
+
 
 #endif
 

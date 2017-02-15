@@ -62,7 +62,7 @@ struct BezierCurve
   void render(const triple *p, GLuint I0, GLuint I1);
   void render(const triple *p, bool straight);
   
-  void render(const triple *g, bool straight, double ratio,
+  void queue(const triple *g, bool straight, double ratio,
               const triple& Min, const triple& Max) {
     init(pixel*ratio,Min,Max);
     render(g,straight);
@@ -71,7 +71,7 @@ struct BezierCurve
   void draw();
   void draw(const triple *g, bool straight, double ratio,
             const triple& Min, const triple& Max) {
-    render(g,straight,ratio,Min,Max);
+    queue(g,straight,ratio,Min,Max);
     draw();
   }
 };
