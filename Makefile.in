@@ -62,15 +62,14 @@ CONTEXTFILES = colo-asy.tex
 ASY = ./asy -dir base -config "" -render=0
 
 DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD
-CFLAGS = @CXXFLAGS@ @CFLAGS@ 
-OPTS = $(DEFS) @CPPFLAGS@ $(CFLAGS) 
+OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) 
 INCL = -I. @INCL@
 
 # Options for compiling the object files for the shared library.
 # gc has to be configured with the option --disable-threads in order to make a
 # shared library that doesn't seg fault.  For now, just disable gc in the
 # shared library.
-SHAREDOPTS = $(filter-out -DUSEGC, $(DEFS)) $(CFLAGS) -fPIC -DFOR_SHARED
+SHAREDOPTS = $(filter-out -DUSEGC, $(OPTS)) -fPIC -DFOR_SHARED
 
 CXX = @CXX@ -Wall
 CC = @CC@ -Wall
