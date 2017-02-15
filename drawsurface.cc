@@ -85,9 +85,9 @@ void setcolors(bool colors, bool lighton,
   static prc::RGBAColour lastspecular;
   static double lastshininess;
   
-  if(!colors && (diffuse != lastdiffuse || ambient != lastambient || 
-                 emissive != lastemissive || specular != lastspecular ||
-                 shininess != lastshininess)) {
+  if(diffuse != lastdiffuse || ambient != lastambient || 
+     emissive != lastemissive || specular != lastspecular ||
+     shininess != lastshininess) {
     draw();
     lastdiffuse=diffuse;
     lastambient=ambient;
