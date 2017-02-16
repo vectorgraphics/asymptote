@@ -1,8 +1,8 @@
 /*****
  * drawbezierpatch.cc
- * Author: John C. Bowman
+ * Authors: John C. Bowman and Jesse Frohlich
  *
- * Render a Bezier patch.
+ * Render Bezier patches and triangles.
  *****/
 
 #include "bezierpatch.h"
@@ -28,7 +28,7 @@ GLuint BezierPatch::Ntvertices=0;
 extern const double Fuzz2;
 
 #ifdef __MSDOS__      
-const double FillFactor=0.2;
+const double FillFactor=0.25;
 #else
 const double FillFactor=0.1;
 #endif

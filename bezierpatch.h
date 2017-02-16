@@ -1,8 +1,8 @@
 /*****
  * bezierpatch.h
- * Author: John C. Bowman
+ * Authors: John C. Bowman and Jesse Frohlich
  *
- * Render a Bezier patch.
+ * Render Bezier patches and triangles.
  *****/
 
 #ifndef BEZIERPATCH_H
@@ -160,8 +160,6 @@ struct BezierPatch
     d=max(d,Distance1(p[8],p[9],p[10],p[11]));
     d=max(d,Distance1(p[1],p[5],p[9],p[13]));
     return max(d,Distance1(p[2],p[6],p[10],p[14]));
-    
-    
   }
   
   struct Split3 {
