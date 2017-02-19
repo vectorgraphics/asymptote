@@ -5,13 +5,12 @@
  *****/
 
 #include "drawpath3.h"
+#include "drawsurface.h"
 
 namespace camp {
 
 using vm::array;
 using namespace prc;
-  
-extern void draw();
   
 bool drawPath3::write(prcfile *out, unsigned int *, double, groupsmap&)
 {
@@ -87,7 +86,7 @@ void drawPath3::render(GLUnurbs *nurb, double size2,
                     Max.getz() < m.getz() || Min.getz() > M.getz()))
     return;
   
-  camp::draw();
+  drawBezierPatch::S.draw();
   
   GLfloat Diffuse[]={0.0,0.0,0.0,(GLfloat) color.A};
   glMaterialfv(GL_FRONT,GL_DIFFUSE,Diffuse);

@@ -25,7 +25,6 @@ namespace camp {
 extern double T[3]; // z-component of current transform
 extern size_t tstride;
 extern GLfloat *B;
-int compare(const void *a, const void *b);
   
 static const double pixel=0.5; // Adaptive rendering constant.
 
@@ -44,8 +43,6 @@ inline triple bezierPPP(triple a, triple b, triple c, triple d) {
 enum Interaction {EMBEDDED=0,BILLBOARD};
 
 void copyArray4x4C(double*& dest, const vm::array *a);
-  
-void draw();
   
 class box {
   pair p[4];

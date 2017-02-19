@@ -14,6 +14,7 @@
 #include "drawverbatim.h"
 #include "drawlabel.h"
 #include "drawlayer.h"
+#include "drawsurface.h"
 
 using std::ifstream;
 using std::ofstream;
@@ -1060,7 +1061,7 @@ void picture::render(GLUnurbs *nurb, double size2,
     (*p)->render(nurb,size2,Min,Max,perspective,lighton,transparent);
   }
 #ifdef HAVE_GL
-  draw();
+  drawBezierPatch::S.draw();
 #endif  
 }
   

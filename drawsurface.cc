@@ -21,27 +21,6 @@ double T[3]; // z-component of current transform
 size_t tstride;
 GLfloat *B;
 
-// Partially work around OpenGL transparency bug by sorting transparent
-// triangles by their centroid depth.
-int compare(const void *a, const void *b)
-{
-  size_t a0=tstride*((GLuint *) a)[0];
-  size_t a1=tstride*((GLuint *) a)[1];
-  size_t a2=tstride*((GLuint *) a)[2];
-  
-  size_t b0=tstride*((GLuint *) b)[0];
-  size_t b1=tstride*((GLuint *) b)[1];
-  size_t b2=tstride*((GLuint *) b)[2];
-  
-  double x=
-    T[0]*(B[a0]+B[a1]+B[a2]-B[b0]-B[b1]-B[b2])+
-    T[1]*(B[a0+1]+B[a1+1]+B[a2+1]-B[b0+1]-B[b1+1]-B[b2+1])+
-    T[2]*(B[a0+2]+B[a1+2]+B[a2+2]-B[b0+2]-B[b1+2]-B[b2+2]);
-  if(x > 0.0) return 1;
-  if(x < 0.0) return -1;
-  return 0;
-}
-
 using vm::array;
 
 #ifdef HAVE_GL
@@ -67,12 +46,6 @@ void storecolor(GLfloat *colors, int i, const RGBAColour& p)
   colors[i+3]=p.A;
 }
 
-void draw()
-{
-  drawBezierPatch::S.draw();
-  drawBezierTriangle::S.draw();
-}
-
 void setcolors(bool colors, bool lighton,
                const RGBAColour& diffuse,
                const RGBAColour& ambient,
@@ -88,7 +61,7 @@ void setcolors(bool colors, bool lighton,
   if(!colors && (diffuse != lastdiffuse || ambient != lastambient || 
                  emissive != lastemissive || specular != lastspecular ||
                  shininess != lastshininess)) {
-    draw();
+    drawBezierPatch::S.draw();
     lastdiffuse=diffuse;
     lastambient=ambient;
     lastemissive=emissive;

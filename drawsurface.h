@@ -19,8 +19,6 @@ namespace camp {
 void storecolor(GLfloat *colors, int i, const vm::array &pens, int j);
 #endif  
 
-extern double T[3]; // z-component of current transform
-
 class drawSurface : public drawElement {
 protected:
   triple *controls;
