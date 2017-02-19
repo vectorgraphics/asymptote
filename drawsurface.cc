@@ -56,7 +56,13 @@ void setcolors(bool colors, bool lighton,
   static prc::RGBAColour lastambient;
   static prc::RGBAColour lastemissive;
   static prc::RGBAColour lastspecular;
-  static double lastshininess;
+  static double lastshininess=0.0;
+  static bool lastcolors=false;
+    
+  if(colors != lastcolors) {
+    drawBezierPatch::S.draw();
+    lastcolors=colors;
+  }
   
   if(!colors && (diffuse != lastdiffuse || ambient != lastambient || 
                  emissive != lastemissive || specular != lastspecular ||
