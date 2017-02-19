@@ -9,6 +9,9 @@
 
 namespace camp {
 
+size_t tstride;
+GLfloat *B;
+
 #ifdef HAVE_GL
 
 std::vector<GLfloat> BezierPatch::buffer;
@@ -44,7 +47,7 @@ int compare(const void *a, const void *b)
   size_t b0=tstride*((GLuint *) b)[0];
   size_t b1=tstride*((GLuint *) b)[1];
   size_t b2=tstride*((GLuint *) b)[2];
-  
+
   double x=
     T[0]*(B[a0]+B[a1]+B[a2]-B[b0]-B[b1]-B[b2])+
     T[1]*(B[a0+1]+B[a1+1]+B[a2+1]-B[b0+1]-B[b1+1]-B[b2+1])+

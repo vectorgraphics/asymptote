@@ -18,8 +18,6 @@ namespace camp {
 const triple drawElement::zero;
 
 double T[3]; // z-component of current transform
-size_t tstride;
-GLfloat *B;
 
 using vm::array;
 

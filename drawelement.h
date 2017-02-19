@@ -23,8 +23,6 @@
 namespace camp {
 
 extern double T[3]; // z-component of current transform
-extern size_t tstride;
-extern GLfloat *B;
   
 static const double pixel=0.5; // Adaptive rendering constant.
 
