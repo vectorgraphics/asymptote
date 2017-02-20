@@ -62,7 +62,8 @@ CONTEXTFILES = colo-asy.tex
 ASY = ./asy -dir base -config "" -render=0
 
 DEFS = @DEFS@ @OPTIONS@ @PTHREAD_CFLAGS@ -DFFTWPP_SINGLE_THREAD
-OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS) 
+CFLAGS = @CFLAGS@
+OPTS = $(DEFS) @CPPFLAGS@ @CXXFLAGS@ $(CFLAGS)
 INCL = -I. @INCL@
 
 # Options for compiling the object files for the shared library.
