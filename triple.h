@@ -328,6 +328,18 @@ inline void boundstriples(double& x, double& y, double& z,
   }
 }
 
+// return the maximum distance squared of points c0 and c1 from 
+// the respective internal control points of z0--z1.
+inline double Straightness(const triple& z0, const triple& c0,
+                           const triple& c1, const triple& z1)
+{
+  static const double third=1.0/3.0;
+  triple v=third*(z1-z0);
+  triple P0=z0+v;
+  triple P1=P0+v;
+  return std::max(abs2(c0-P0),abs2(c1-P1));
+}
+
 // return the maximum perpendicular distance squared of points c0 and c1
 // from z0--z1.
 inline double Distance1(const triple& z0, const triple& c0,

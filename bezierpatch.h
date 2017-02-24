@@ -37,7 +37,7 @@ struct BezierPatch
   triple u,v,w;
   double epsilon;
   double Epsilon;
-  double res,res2;
+  double res,res2,res3;
   triple Min,Max;
   typedef GLuint vertexFunction(const triple &v, const triple& n);
   typedef GLuint VertexFunction(const triple &v, const triple& n, GLfloat *c);
@@ -150,16 +150,19 @@ struct BezierPatch
     triple p15=p[15];
     
     // Determine how straight the edges are.
-    double d=Distance1(p0,p[1],p[2],p3);
-    d=max(d,Distance1(p0,p[4],p[8],p12));
-    d=max(d,Distance1(p3,p[7],p[11],p15));
-    d=max(d,Distance1(p12,p[13],p[14],p15));
+    double d=Straightness(p0,p[1],p[2],p3);
+    d=max(d,Straightness(p0,p[4],p[8],p12));
+    d=max(d,Straightness(p3,p[7],p[11],p15));
+    d=max(d,Straightness(p12,p[13],p[14],p15));
+    
+    triple n0=normal(p3,p[2],p[1],p0,p[4],p[8],p12);
+    d=max(d,Distance2(p15,p0,n0));
     
     // Determine how straight the interior control curves are.
-    d=max(d,Distance1(p[4],p[5],p[6],p[7]));
-    d=max(d,Distance1(p[8],p[9],p[10],p[11]));
-    d=max(d,Distance1(p[1],p[5],p[9],p[13]));
-    return max(d,Distance1(p[2],p[6],p[10],p[14]));
+    d=max(d,Straightness(p[4],p[5],p[6],p[7]));
+    d=max(d,Straightness(p[8],p[9],p[10],p[11]));
+    d=max(d,Straightness(p[1],p[5],p[9],p[13]));
+    return max(d,Straightness(p[2],p[6],p[10],p[14]));
   }
   
   struct Split3 {

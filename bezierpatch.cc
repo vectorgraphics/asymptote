@@ -31,9 +31,9 @@ GLuint BezierPatch::Ntvertices=0;
 extern const double Fuzz2;
 
 #ifdef __MSDOS__      
-const double FillFactor=0.25;
+const double FillFactor=0.0;
 #else
-const double FillFactor=0.1;
+const double FillFactor=0.0;
 #endif
 
 // Partially work around OpenGL transparency bug by sorting transparent
@@ -63,6 +63,7 @@ void BezierPatch::init(double res, const triple& Min, const triple& Max,
   empty=false;
   this->res=res;
   res2=res*res;
+  res3=1.5*res2;
   Epsilon=FillFactor*res;
   this->Min=Min;
   this->Max=Max;
@@ -223,32 +224,31 @@ void BezierPatch::render(const triple *p,
       
     triple m0=0.5*(P0+P1);
     if(!flat0) {
-      if((flat0=Distance1(p0,p[4],p[8],p12) < res2))
+      if((flat0=Straightness(p0,p[4],p[8],p12) < res3))
         m0 -= Epsilon*unit(derivative(s1[0],s1[1],s1[2],s1[3]));
       else m0=s0[12];
     }
       
     triple m1=0.5*(P1+P2);
     if(!flat1) {
-      if((flat1=Distance1(p12,p[13],p[14],p15) < res2))
+      if((flat1=Straightness(p12,p[13],p[14],p15) < res3))
         m1 -= Epsilon*unit(derivative(s2[12],s2[8],s2[4],s2[0]));
       else m1=s1[15];
     }
       
     triple m2=0.5*(P2+P3);
     if(!flat2) {
-      if((flat2=Distance1(p15,p[11],p[7],p3) < res2))
-        m2 -= Epsilon*unit(derivative(s2[3],s2[2],s2[1],s1[0]));
+      if((flat2=Straightness(p15,p[11],p[7],p3) < res3))
+        m2 -= Epsilon*unit(derivative(s3[15],s2[14],s2[13],s1[12]));
       else m2=s2[3];
     }
       
     triple m3=0.5*(P3+P0);
     if(!flat3) {
-      if((flat3=Distance1(p0,p[1],p[2],p3) < res2))
-        m3 -= Epsilon*unit(derivative(s3[0],s3[4],s3[8],s3[12]));
+      if((flat3=Straightness(p0,p[1],p[2],p3) < res3))
+        m3 -= Epsilon*unit(derivative(s0[3],s0[7],s0[11],s0[15]));
       else m3=s3[0];
     }
-      
       
     if(C0) {
       GLfloat c0[4],c1[4],c2[4],c3[4],c4[4];
@@ -492,9 +492,10 @@ void BezierTriangle::render(const triple *p,
           
     // A kludge to remove subdivision cracks, only applied the first time
     // an edge is found to be flat before the rest of the subpatch is.
+    
     triple p0=0.5*(P1+P2);
     if(!flat0) {
-      if((flat0=Distance1(r300,p210,p120,u030) < res2))
+      if((flat0=Straightness(r300,p210,p120,u030) < res3))
         p0 -= Epsilon*unit(derivative(c[0],c[2],c[5],c[9])+
                            derivative(c[0],c[1],c[3],c[6]));
       else p0=r030;
@@ -502,18 +503,17 @@ void BezierTriangle::render(const triple *p,
 
     triple p1=0.5*(P2+P0);
     if(!flat1) {
-      if((flat1=Distance1(l003,p012,p021,u030) < res2))
+      if((flat1=Straightness(l003,p012,p021,u030) < res3))
         p1 -= Epsilon*unit(derivative(c[6],c[3],c[1],c[0])+
                            derivative(c[6],c[7],c[8],c[9]));
-
       else p1=l030;
     }
 
     triple p2=0.5*(P0+P1);
     if(!flat2) {
-      if((flat2=Distance1(l003,p102,p201,r300) < res2))
-        p2 -= Epsilon*unit(derivative(c[9],c[5],c[2],c[0])+
-                           derivative(c[9],c[8],c[7],c[6]));
+      if((flat2=Straightness(l003,p102,p201,r300) < res3))
+        p2 -= Epsilon*unit(derivative(c[9],c[8],c[7],c[6])+
+                           derivative(c[9],c[5],c[2],c[0]));
       else p2=l300;
     }
 
