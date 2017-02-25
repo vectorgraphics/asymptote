@@ -335,9 +335,7 @@ inline double Straightness(const triple& z0, const triple& c0,
 {
   static const double third=1.0/3.0;
   triple v=third*(z1-z0);
-  triple P0=z0+v;
-  triple P1=P0+v;
-  return std::max(abs2(c0-P0),abs2(c1-P1));
+  return std::max(abs2(c0-v-z0),abs2(z1-v-c1));
 }
 
 // return the maximum perpendicular distance squared of points c0 and c1
