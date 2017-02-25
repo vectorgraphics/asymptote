@@ -245,9 +245,9 @@ public:
     double d=Distance2(p[4],p0,normal(p9,p[5],p[2],p0,p[1],p[3],p6));
 
     // Determine how straight the edges are.
-    d=max(d,Distance1(p0,p[1],p[3],p6));
-    d=max(d,Distance1(p0,p[2],p[5],p9));
-    return max(d,Distance1(p6,p[7],p[8],p9));
+    d=max(d,Straightness(p0,p[1],p[3],p6));
+    d=max(d,Straightness(p0,p[2],p[5],p9));
+    return max(d,Straightness(p6,p[7],p[8],p9));
   }
   
   void render(const triple *p,

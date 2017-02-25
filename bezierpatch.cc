@@ -63,7 +63,7 @@ void BezierPatch::init(double res, const triple& Min, const triple& Max,
   empty=false;
   this->res=res;
   res2=res*res;
-  res3=1.5*res2;
+  res3=res2;
   Epsilon=FillFactor*res;
   this->Min=Min;
   this->Max=Max;
