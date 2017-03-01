@@ -1354,8 +1354,6 @@ void markrightangle(picture pic = currentpicture, point A, point O,
   pair dir = Ap - Op;
   real a1 = degrees(dir);
   pair align = rotate(-a1) * unit(dir(Op--Ap, Op--Bp));
-  if (margin == NoMargin)
-    margin = TrueMargin(linewidth(currentpen)/2, linewidth(currentpen)/2);
   perpendicularmark(pic = pic, z = O, align = align,
                     dir = dir, size = size, p = p,
                     margin = margin, filltype = filltype);
