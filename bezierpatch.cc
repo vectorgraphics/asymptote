@@ -30,11 +30,7 @@ GLuint BezierPatch::Ntvertices=0;
 
 extern const double Fuzz2;
 
-#ifdef __MSDOS__      
-const double FillFactor=0.0;
-#else
-const double FillFactor=0.0;
-#endif
+const double FillFactor=0.1;
 
 // Partially work around OpenGL transparency bug by sorting transparent
 // triangles by their centroid depth.
@@ -61,7 +57,6 @@ void BezierPatch::init(double res, const triple& Min, const triple& Max,
                        bool transparent, GLfloat *colors)
 {
   empty=false;
-  this->res=res;
   res2=res*res;
   res3=res2;
   Epsilon=FillFactor*res;

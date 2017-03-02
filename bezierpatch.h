@@ -37,7 +37,7 @@ struct BezierPatch
   triple u,v,w;
   double epsilon;
   double Epsilon;
-  double res,res2,res3;
+  double res2,res3;
   triple Min,Max;
   typedef GLuint vertexFunction(const triple &v, const triple& n);
   typedef GLuint VertexFunction(const triple &v, const triple& n, GLfloat *c);
