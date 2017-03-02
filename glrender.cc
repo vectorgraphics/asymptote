@@ -423,6 +423,22 @@ void nodisplay()
 {
 }
 
+void destroywindow()
+{
+  glutDestroyWindow(glutGetWindow());
+}
+
+// Return the greatest power of 2 less than or equal to n.
+inline unsigned int floorpow2(unsigned int n)
+{
+  n |= n >> 1;
+  n |= n >> 2;
+  n |= n >> 4;
+  n |= n >> 8;
+  n |= n >> 16;
+  return n-(n >> 1);
+}
+
 void quit() 
 {
 #ifdef HAVE_LIBOSMESA
@@ -548,14 +564,10 @@ void fullscreen(bool reposition=true)
   Width=screenWidth;
   Height=screenHeight;
   reshape0(Width,Height);
-#ifdef __MSDOS__
-  glutFullScreen();
-#else
   if(reposition)
     glutPositionWindow(0,0);
   glutReshapeWindow(Width,Height);
   glutPostRedisplay();
-#endif    
 }
 
 void fitscreen(bool reposition=true) 
@@ -1368,10 +1380,8 @@ void glrender(const string& prefix, const picture *pic, const string& format,
               bool Viewportlighting, bool view, int oldpid)
 {
   bool offscreen=getSetting<bool>("offscreen");
-
-#ifndef __MSDOS__    
   Iconify=getSetting<bool>("iconify");
-#endif
+  
 #ifdef HAVE_PTHREAD
   static bool initializedView=false;
 #endif  
@@ -1562,9 +1572,12 @@ void glrender(const string& prefix, const picture *pic, const string& format,
 #ifdef FREEGLUT
 #ifdef GLUT_INIT_MAJOR_VERSION
         if(samples < multisample) {
-          --multisample;
+          multisample=floorpow2(multisample-1);
           if(multisample > 1) {
-            glutDestroyWindow(window);
+            glutReshapeWindow(1,1);
+            glutDisplayFunc(destroywindow);
+            glutShowWindow();
+            glutMainLoopEvent();
             continue;
           }
         }
@@ -1572,11 +1585,9 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       }
 #endif      
 #endif      
-      if(samples > 1) {
-        if(settings::verbose > 1 && samples > 1)
-          cout << "Multisampling enabled with sample width " << samples
-               << endl;
-      }
+      if(settings::verbose > 1 && samples > 1)
+        cout << "Multisampling enabled with sample width " << samples
+             << endl;
       glutDisplayFunc(display);
       glutShowWindow();
     } else if(!havewindow) {
