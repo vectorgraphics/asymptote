@@ -74,6 +74,8 @@ Section "Asymptote" SEC01
   SetOutPath "$INSTDIR"
   ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
   Delete "$INSTDIR\_imagingtk.pyd"
+  Delete "$INSTDIR\opengl32.dll"
+  Delete "$INSTDIR\glu32.dll"
   SetOverwrite try
   File /r build-${PRODUCT_VERSION}\*
 
