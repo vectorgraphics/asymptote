@@ -24,7 +24,7 @@ namespace camp {
 
 extern double T[3]; // z-component of current transform
   
-static const double pixel=1.0; // Adaptive rendering constant.
+static const double pixel=0.5; // Adaptive rendering constant.
 
 // Return one-sixth of the second derivative of the Bezier curve defined
 // by a,b,c,d at 0. 
