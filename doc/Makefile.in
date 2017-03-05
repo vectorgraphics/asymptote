@@ -10,7 +10,7 @@ infodir = $(DESTDIR)@infodir@
 datarootdir = @datarootdir@
 INSTALL = @INSTALL@
 TEXI2DVI = @TEXI2DVI@
-PERL5LIB = FAQ/
+PERL5LIB = ./
 
 export docdir infodir INSTALL PERL5LIB
 
