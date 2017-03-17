@@ -1295,7 +1295,7 @@ void perpendicularmark(picture pic = currentpicture, point z,
 {/*<asyxml></code><documentation>Draw a perpendicular symbol at z aligned in the direction align
    relative to the path z--z + dir.
    dir(45 + n * 90), where n in N*, are common values for 'align'.</documentation></function></asyxml>*/
-  p = squarecap + p;
+  p = squarecap + miterjoin + p;
   if(size == 0) size = perpfactor * 3mm + sqrt(1 + linewidth(p)) - 1;
   frame apic;
   pair d1 = size * align * unit(dir) * dir(-45);
@@ -1354,8 +1354,6 @@ void markrightangle(picture pic = currentpicture, point A, point O,
   pair dir = Ap - Op;
   real a1 = degrees(dir);
   pair align = rotate(-a1) * unit(dir(Op--Ap, Op--Bp));
-  if (margin == NoMargin)
-    margin = TrueMargin(linewidth(currentpen)/2, linewidth(currentpen)/2);
   perpendicularmark(pic = pic, z = O, align = align,
                     dir = dir, size = size, p = p,
                     margin = margin, filltype = filltype);
