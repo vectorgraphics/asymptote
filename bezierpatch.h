@@ -38,6 +38,7 @@ struct BezierPatch
   double epsilon;
   double Epsilon;
   double res2;
+  double Res2; // Reduced resolution for Bezier triangles flatness test.
   triple Min,Max;
   typedef GLuint vertexFunction(const triple &v, const triple& n);
   typedef GLuint VertexFunction(const triple &v, const triple& n, GLfloat *c);
@@ -149,14 +150,14 @@ struct BezierPatch
     triple p12=p[12];
     triple p15=p[15];
     
+    // Check the flatness of the quad.
+    double d=Distance2(p15,p0,normal(p3,p[2],p[1],p0,p[4],p[8],p12));
+    
     // Determine how straight the edges are.
-    double d=Straightness(p0,p[1],p[2],p3);
+    d=max(d,Straightness(p0,p[1],p[2],p3));
     d=max(d,Straightness(p0,p[4],p[8],p12));
     d=max(d,Straightness(p3,p[7],p[11],p15));
     d=max(d,Straightness(p12,p[13],p[14],p15));
-    
-    triple n0=normal(p3,p[2],p[1],p0,p[4],p[8],p12);
-    d=max(d,Distance2(p15,p0,n0));
     
     // Determine how straight the interior control curves are.
     d=max(d,Straightness(p[4],p[5],p[6],p[7]));
@@ -237,12 +238,9 @@ public:
     triple p0=p[0];
     triple p6=p[6];
     triple p9=p[9];
-
-    // Only the internal point is tested for deviance from the triangle
-    // formed by the vertices. We assume that the Jacobian is nonzero so
-    // that we only need to calculate the perpendicular distance of the
-    // internal point from this triangle.  
-    double d=Distance2(p[4],p0,normal(p9,p[5],p[2],p0,p[1],p[3],p6));
+    
+    // Check how far the internal point is from the centroid of the vertices.
+    double d=abs2((p0+p6+p9)*third-p[4]);
 
     // Determine how straight the edges are.
     d=max(d,Straightness(p0,p[1],p[3],p6));

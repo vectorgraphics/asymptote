@@ -31,6 +31,7 @@ GLuint BezierPatch::Ntvertices=0;
 extern const double Fuzz2;
 
 const double FillFactor=0.1;
+const double BezierFactor=0.4;
 
 // Partially work around OpenGL transparency bug by sorting transparent
 // triangles by their centroid depth.
@@ -58,6 +59,7 @@ void BezierPatch::init(double res, const triple& Min, const triple& Max,
 {
   empty=false;
   res2=res*res;
+  Res2=BezierFactor*BezierFactor*res2;
   Epsilon=FillFactor*res;
   this->Min=Min;
   this->Max=Max;
@@ -355,7 +357,7 @@ void BezierTriangle::render(const triple *p,
                             bool flat0, bool flat1, bool flat2,
                             GLfloat *C0, GLfloat *C1, GLfloat *C2)
 {
-  if(Distance(p) < res2) { // Triangle is flat
+  if(Distance(p) < Res2) { // Triangle is flat
     triple P[]={P0,P1,P2};
     if(!offscreen(3,P)) {
       std::vector<GLuint> &p=*pindices;
