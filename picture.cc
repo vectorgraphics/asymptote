@@ -33,9 +33,11 @@ texstream::~texstream() {
   unlink((name+"aux").c_str());
   unlink((name+"log").c_str());
   unlink((name+"out").c_str());
-  unlink((name+"m9").c_str());
-  if(settings::pdf(texengine))
+  if(settings::pdf(texengine)) {
     unlink((name+"pdf").c_str());
+    unlink((name+"m9").c_str());
+  } else
+    unlink((name+"pbsdat").c_str());
   if(context) {
     unlink((name+"tex").c_str());
     unlink((name+"top").c_str());
@@ -1039,8 +1041,10 @@ bool picture::shipout(picture *preamble, const string& Prefix,
           if(context) prename=stripDir(prename);
           status=postprocess(prename,outname,outputformat,magnification,wait,
                              view,pdf && Labels,svgformat);
-          if(pdfformat && !getSetting<bool>("keep"))
+          if(pdfformat && !getSetting<bool>("keep")) {
             unlink(auxname(prefix,"m9").c_str());
+            unlink(auxname(prefix,"pbsdat").c_str());
+          }
         }
       }
     }
