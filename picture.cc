@@ -601,6 +601,38 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   return status;
 }
   
+int picture::pdftoeps(const string& pdfname, const string& epsname)
+{
+  mem::vector<string> cmd;
+  cmd.push_back(getSetting<string>("gs"));
+  cmd.push_back("-q");
+  cmd.push_back("-dNOCACHE");
+  cmd.push_back("-dNOPAUSE");
+  cmd.push_back("-dBATCH");
+  cmd.push_back("-P");
+  if(safe)
+    cmd.push_back("-dSAFER");
+  string texengine=getSetting<string>("tex");
+  if(texengine == "xelatex" || texengine == "context")
+    cmd.push_back("-sDEVICE="+getSetting<string>("epsdriver"));
+  else // Work around cropping bug with pdflatex and lualatex tex engines.
+    cmd.push_back("-sDEVICE=ps2write");
+  
+  cmd.push_back("-sOutputFile="+stripDir(epsname));
+  cmd.push_back(stripDir(pdfname));
+
+  char *oldPath=NULL;
+  string dir=stripFile(epsname);
+  if(!dir.empty()) {
+    oldPath=getPath();
+    setPath(dir.c_str());
+  }
+  int status=System(cmd,0,true,"gs","Ghostscript");
+  if(oldPath != NULL)
+    setPath(oldPath);
+  return status;
+}
+  
 bool picture::reloadPDF(const string& Viewer, const string& outname) const 
 {
   static bool needReload=true;
@@ -649,6 +681,8 @@ bool picture::postprocess(const string& prename, const string& outname,
         if(status != 0)
           reportError("Cannot rename "+prename+" to "+outname);
       } else status=epstopdf(prename,outname);
+    } else if(epsformat) {
+      status=pdftoeps(prename,outname);
     } else {
       mem::vector<string> cmd;
       double render=fabs(getSetting<double>("render"));
@@ -680,8 +714,9 @@ bool picture::postprocess(const string& prename, const string& outname,
         if(expand == 1.0)
           cmd.push_back("+antialias");
         push_split(cmd,getSetting<string>("convertOptions"));
-        cmd.push_back("-geometry");
+        cmd.push_back("-resize");
         cmd.push_back(String(100.0/expand)+"%x");
+        if(outputformat == "jpg") cmd.push_back("-flatten");
         cmd.push_back(nativeformat()+":"+prename);
         cmd.push_back(outputformat+":"+outname);
         status=System(cmd,0,true,"convert");

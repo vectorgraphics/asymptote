@@ -68,6 +68,7 @@ public:
   }
   
   int epstopdf(const string& epsname, const string& pdfname);
+  int pdftoeps(const string& pdfname, const string& epsname);
   
   bool texprocess(const string& texname, const string& tempname,
                   const string& prefix, const pair& bboxshift, bool svgformat); 
