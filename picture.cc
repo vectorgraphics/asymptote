@@ -39,6 +39,7 @@ texstream::~texstream() {
   } else
     unlink((name+"pbsdat").c_str());
   if(context) {
+    unlink("cont-new.log");
     unlink((name+"tex").c_str());
     unlink((name+"top").c_str());
     unlink((name+"tua").c_str());
