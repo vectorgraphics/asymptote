@@ -614,10 +614,7 @@ int picture::pdftoeps(const string& pdfname, const string& epsname)
   if(safe)
     cmd.push_back("-dSAFER");
   string texengine=getSetting<string>("tex");
-  if(texengine == "xelatex" || texengine == "context")
-    cmd.push_back("-sDEVICE="+getSetting<string>("epsdriver"));
-  else // Work around cropping bug with pdflatex and lualatex tex engines.
-    cmd.push_back("-sDEVICE=ps2write");
+  cmd.push_back("-sDEVICE="+getSetting<string>("epsdriver"));
   
   cmd.push_back("-sOutputFile="+stripDir(epsname));
   cmd.push_back(stripDir(pdfname));
