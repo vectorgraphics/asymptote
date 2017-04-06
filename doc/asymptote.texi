@@ -4,6 +4,8 @@
 @include version.texi
 @finalout
 
+@codequoteundirected on
+
 @copying
 This file documents @code{Asymptote}, version @value{VERSION}.
 
