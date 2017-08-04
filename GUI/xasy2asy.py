@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ###########################################################################
 #
 # xasy2asy provides a Python interface to Asymptote
@@ -13,6 +13,7 @@ from subprocess import *
 from string import *
 import xasyOptions
 from tempfile import mkdtemp
+from PyQt5.QtWidgets import QApplication, QDialog, QWidget, QMainWindow
 
 if sys.version_info >= (3, 0):
   from tkinter import *

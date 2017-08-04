@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ###########################################################################
 #
 # xasy implements a graphical interface for Asymptote.
@@ -15,8 +15,14 @@ if sys.version_info >= (3, 0):
   from tkinter import *
 else:
   from Tkinter import *
+from PyQt5.QtWidgets import QApplication, QDialog, QWidget, QMainWindow
+import Window1
 
 signal.signal(signal.SIGINT,signal.SIG_IGN)
+
+program=QApplication(args)
+main_window=Window1.MainWindow1()
+main_window.show()
 
 root = Tk()
 mag = 1.0
