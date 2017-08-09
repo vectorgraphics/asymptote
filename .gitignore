@@ -23,7 +23,7 @@ run*.cc
 run*.h
 
 ### Generated files
-newDrawing.asy 
+newDrawing.asy
 /Makefile
 /doc/Makefile
 /doc/png/Makefile
@@ -111,3 +111,5 @@ core.*
 \#*
 .\#*
 
+### Generated python UI files
+/GUI/pyUIClass/*

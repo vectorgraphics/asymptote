@@ -4,7 +4,7 @@ import PyQt5.QtCore as Qc
 import os
 import xasy2asy as x2a
 import xasyFile as xf
-from window1 import Ui_MainWindow
+from pyUIClass.window1 import Ui_MainWindow
 
 
 class MainWindow1(Qw.QMainWindow):
@@ -14,7 +14,8 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.setupUi(self)
         self.filename = None
         #self.ui.imgLabel.updateGeometry()
-        canvasSize = Qc.QSize(450, 450)
+        # canvasSize = Qc.QSize(450, 450)
+        canvasSize = self.rect().size()
         self.canvasPixmap = Qg.QPixmap(canvasSize)
         self.canvasPixmap.fill()
         self.mainCanvas = Qg.QPainter(self.canvasPixmap)
