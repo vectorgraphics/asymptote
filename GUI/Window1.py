@@ -22,11 +22,14 @@ class MainWindow1(Qw.QMainWindow):
 
         self.canvasSize = self.rect().size()
         x, y = self.canvasSize.width() / 2, self.canvasSize.height() / 2
-        self.pushTransform(np.matrix([[1, 0, x], [0, 1, y], [0, 0, 1]]) * np.matrix([[1, 0, 0], [0, -1, 0], [0, 0, 1]]))
 
         self.canvasPixmap = Qg.QPixmap(self.canvasSize)
         self.canvasPixmap.fill()
         self.mainCanvas = Qg.QPainter(self.canvasPixmap)
+        self.ui.imgLabel.setPixmap(self.canvasPixmap)
+
+        self.mainCanvas.scale(1, -1)
+        self.mainCanvas.translate(x, -y)
 
         self.magnification = 1
         self.ui.btnPause.clicked.connect(self.pauseBtnOnClick)
@@ -171,8 +174,6 @@ class MainWindow1(Qw.QMainWindow):
         #self.populatePropertyList()
         #self.updateCanvasSize()
         self.ui.imgLabel.setPixmap(self.canvasPixmap)
-        # self.update()
-
 
     def populateCanvasWithItems(self):
         # if (not self.testOrAcquireLock()):

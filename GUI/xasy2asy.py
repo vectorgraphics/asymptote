@@ -18,16 +18,9 @@ import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
 from tkinter import *
 import queue
-
-# PIL support is now mandatory due to rotations
-try:
-    from PIL import ImageTk
-    from PIL import Image
-except:
-    pass
-
 import CubicBezier
-import PyQt5.QtGui as Qg
+from PIL import Image
+from PIL import ImageQt
 
 quickAsyFailed = True
 global AsyTempDir
@@ -453,11 +446,11 @@ class xasyItem:
 
     def handleImageReception(self, file, format, bbox, count):
         """Receive an image from an asy deconstruction. It replaces the default in asyProcess."""
-        image = Image.open(file)
+        image = Image.open(file).transpose(Image.FLIP_TOP_BOTTOM)
         self.imageList.append(asyImage(image, format, bbox))
         if self.onCanvas is not None:
             # self.imageList[-1].iqt = ImageTk.PhotoImage(image)
-            self.imageList[-1].iqt = Qg.QImage(file)
+            self.imageList[-1].iqt = ImageQt.toqimage(image)
             self.imageList[-1].originalImage = image.copy()
             self.imageList[-1].originalImage.theta = 0.0
             self.imageList[-1].originalImage.bbox = list(bbox)
@@ -465,11 +458,11 @@ class xasyItem:
                 #self.imageList[-1].IDTag = self.onCanvas.create_image(bbox[0], -bbox[3], anchor=NW, tags=("image"),
                 #                                                     image=self.imageList[-1].itk)
 
-                # modified to use a custom transformation stack - now the raw image is flipped (to match asy coordinates
+                # now the raw image is flipped (to match asy coordinates
                 # ) and to use bbox as starting from bottom left.
-                self.imageList[-1].originalImage.btmRightPoint = Qc.QPointF(bbox[0], -bbox[3])
-                self.onCanvas.drawImage(self.imageList[-1].originalImage.btmRightPoint, self.imageList[-1].iqt)
-            # self.onCanvas.update()
+                # bounding box is (left, bottom, right, top)
+                self.imageList[-1].originalImage.btmLeftPoint = Qc.QPointF(bbox[0], bbox[2])
+                self.onCanvas.drawImage(self.imageList[-1].originalImage.btmLeftPoint, self.imageList[-1].iqt)
 
     def asyfy(self, mag=1.0):
         self.removeFromCanvas()
@@ -771,7 +764,7 @@ class xasyScript(xasyItem):
 
     def updateCode(self, mag=1.0):
         """Generate the code describing this script"""
-        self.asyCode = "";
+        self.asyCode = ""
         if len(self.transform) > 0:
             self.asyCode = "xformStack.add("
             isFirst = True
