@@ -11,11 +11,8 @@
 
 import getopt, sys, signal
 import xasyMainWin
+from tkinter import *
 
-if sys.version_info >= (3, 0):
-    from tkinter import *
-else:
-    from Tkinter import *
 
 signal.signal(signal.SIGINT, signal.SIG_IGN)
 

@@ -27,6 +27,7 @@ except:
     pass
 
 import CubicBezier
+import PyQt5.QtGui as Qg
 
 quickAsyFailed = True
 global AsyTempDir
@@ -132,6 +133,14 @@ class asyTransform:
         else:
             raise Exception("Illegal initializer for asyTransform")
 
+    @classmethod
+    def fromQTransform(cls, transform):
+        assert isinstance(transform, Qg.QTransform)
+        tx, ty = transform.dx(), transform.dy()
+        xx, xy, yx, yy = transform.m11(), transform.m21(), transform.m12(), transform.m22()
+
+        return asyTransform((tx, ty, xx, xy, yx, yy))
+
     def getCode(self):
         """Obtain the asy code that represents this transform"""
         if self.deleted:
@@ -141,6 +150,9 @@ class asyTransform:
 
     def scale(self, s):
         return asyTransform((0, 0, s, 0, 0, s)) * self
+
+    def toQTransform(self):
+        return Qg.QTransform(self.xx, self.yx, self.xy, self.yy, self.x, self.y)
 
     def __str__(self):
         """Equivalent functionality to getCode(). It allows the expression str(asyTransform) to be meaningful."""
@@ -448,12 +460,15 @@ class xasyItem:
             self.imageList[-1].iqt = Qg.QImage(file)
             self.imageList[-1].originalImage = image.copy()
             self.imageList[-1].originalImage.theta = 0.0
-            self.imageList[-1].originalImage.bbox = bbox
+            self.imageList[-1].originalImage.bbox = list(bbox)
             if count >= len(self.transform) or not self.transform[count].deleted:
                 #self.imageList[-1].IDTag = self.onCanvas.create_image(bbox[0], -bbox[3], anchor=NW, tags=("image"),
                 #                                                     image=self.imageList[-1].itk)
-                drawPoint = Qc.QPointF(bbox[0], -bbox[3])
-                self.onCanvas.drawImage(drawPoint, self.imageList[-1].iqt)
+
+                # modified to use a custom transformation stack - now the raw image is flipped (to match asy coordinates
+                # ) and to use bbox as starting from bottom left.
+                self.imageList[-1].originalImage.btmRightPoint = Qc.QPointF(bbox[0], -bbox[3])
+                self.onCanvas.drawImage(self.imageList[-1].originalImage.btmRightPoint, self.imageList[-1].iqt)
             # self.onCanvas.update()
 
     def asyfy(self, mag=1.0):

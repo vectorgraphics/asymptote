@@ -1,9 +1,14 @@
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
+import numpy as np
+import numpy.linalg as npl
 import os
 import xasy2asy as x2a
 import xasyFile as xf
+import PIL.Image as Image
+import PIL.ImageQt as piq
+from xasyTransform import xasyTransform as xT
 from pyUIClass.window1 import Ui_MainWindow
 
 
@@ -13,15 +18,118 @@ class MainWindow1(Qw.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.filename = None
-        #self.ui.imgLabel.updateGeometry()
-        # canvasSize = Qc.QSize(450, 450)
-        canvasSize = self.rect().size()
-        self.canvasPixmap = Qg.QPixmap(canvasSize)
+        self.transfstack = [np.eye(3)]
+
+        self.canvasSize = self.rect().size()
+        x, y = self.canvasSize.width() / 2, self.canvasSize.height() / 2
+        self.pushTransform(np.matrix([[1, 0, x], [0, 1, y], [0, 0, 1]]) * np.matrix([[1, 0, 0], [0, -1, 0], [0, 0, 1]]))
+
+        self.canvasPixmap = Qg.QPixmap(self.canvasSize)
         self.canvasPixmap.fill()
         self.mainCanvas = Qg.QPainter(self.canvasPixmap)
-        centerPoint = (self.canvasPixmap.rect().bottomLeft() + self.canvasPixmap.rect().topRight()) / 2
-        self.mainCanvas.translate(centerPoint)
+
         self.magnification = 1
+        self.ui.btnPause.clicked.connect(self.pauseBtnOnClick)
+        self.ui.btnTranslate.clicked.connect(self.transformBtnOnClick)
+        self.ui.btnRotate.clicked.connect(self.rotateBtnOnClick)
+
+    def getTopTransform(self):
+        return self.transfstack[-1]
+
+    def pushTransform(self, transform):
+        self.transfstack.append(self.getTopTransform() * transform)
+
+    def popTransform(self):
+        return self.transfstack.pop()
+
+    def rotateBtnOnClick(self):
+        self.canvasPixmap.fill()
+        theta = float(self.ui.txtTheta.toPlainText())
+        objectID = int(self.ui.txtObjectID.toPlainText())
+        self.rotateObject(0, objectID, theta, (0, 0))
+        self.populateCanvasWithItems()
+        self.ui.imgLabel.setPixmap(self.canvasPixmap)
+
+    def updateCanvas(self, clear=True):
+        if clear:
+            self.canvasPixmap.fill()
+        self.populateCanvasWithItems()
+        self.ui.imgLabel.setPixmap(self.canvasPixmap)
+
+    def pauseBtnOnClick(self):
+        print('Test')
+
+    def transformBtnOnClick(self):
+        x_transform = int(self.ui.txtXTransform.toPlainText())
+        y_transform = int(self.ui.txtYTransform.toPlainText())
+        objectID = int(self.ui.txtObjectID.toPlainText())
+        self.translateObject(0, objectID, (x_transform, y_transform))
+        self.updateCanvas()
+
+    def translateObject(self, itemIndex, objIndex, translation):
+        item = self.fileItems[itemIndex]
+        transform = x2a.asyTransform((translation[0], translation[1], 1, 0, 0, 1))
+        if isinstance(item, x2a.xasyText) or isinstance(item, x2a.xasyScript):
+            item.transform[objIndex] = transform * item.transform[objIndex]
+            bbox = item.imageList[objIndex].originalImage.bbox
+            item.imageList[objIndex].originalImage.bbox = bbox[0] + translation[0], bbox[1] + translation[1], \
+                                                          bbox[2] + translation[0], bbox[3] + translation[1]
+        else:
+            item.transform = [transform * item.transform[0]]
+
+    def transformObject(self, itemIndex, objIndex, transform):
+        pass
+
+    def rotateObject(self, itemIndex, objIndex, theta, origin=None):
+        # print ("Rotating by {} around {}".format(theta*180.0/math.pi,origin))
+        item = self.fileItems[itemIndex]
+        if origin is None:
+            origin = (item.imageList[objIndex].originalImage.bbox[0], -item.imageList[objIndex].originalImage.bbox[3])
+        rotMat = xT.makeRotTransform(theta, (origin[0] / self.magnification, origin[1] / self.magnification))
+        if isinstance(item, x2a.xasyText) or isinstance(item, x2a.xasyScript):
+            # transform the image
+            oldBbox = item.imageList[objIndex].originalImage.bbox
+            oldBbox = (oldBbox[0], -oldBbox[1], oldBbox[2], -oldBbox[3])
+            item.transform[objIndex] = rotMat * item.transform[objIndex]
+            # item.transform[objIndex] = rotMat * original
+            item.imageList[objIndex].originalImage.theta += theta
+            item.imageList[objIndex].image = item.imageList[objIndex].originalImage.rotate(
+                np.degrees(item.imageList[objIndex].originalImage.theta), expand=True, resample=Image.BICUBIC)
+            # item.imageList[objIndex].iqt = ImageTk.PhotoImage(item.imageList[index].image)
+            item.imageList[objIndex].iqt = Qg.QImage(piq.ImageQt(item.imageList[objIndex].image))
+            # self.mainCanvas.itemconfigure(ID, image=item.imageList[objIndex].itk)
+            # the image has been rotated in place
+            # now, compensate for any resizing and shift to the correct location
+            #
+            #  p0 --- p1               p1
+            #  |      |     --->      /  \
+            #  p2 --- p3             p0  p3
+            #                         \ /
+            #                          p2
+            #
+            rotMat2 = xT.makeRotTransform(theta, origin)
+            p0 = rotMat2 * (oldBbox[0], -oldBbox[3])  # switch to usual coordinates
+            p1 = rotMat2 * (oldBbox[2], -oldBbox[3])
+            p2 = rotMat2 * (oldBbox[0], -oldBbox[1])
+            p3 = rotMat2 * (oldBbox[2], -oldBbox[1])
+            newTopLeft = (min(p0[0], p1[0], p2[0], p3[0]), -max(p0[1], p1[1], p2[1], p3[1]))
+            # newBottomRight = (max(p0[0], p1[0], p2[0], p3[0]), -min(p0[1], p1[1], p2[1], p3[1]))
+            # switch back to screen coords
+            shift = (newTopLeft[0] - oldBbox[0], newTopLeft[1] - oldBbox[3])
+            # print (theta*180.0/math.pi,origin,oldBbox,newTopLeft,shift)
+            # print (item.imageList[index].originalImage.size)
+            # print (item.imageList[index].image.size)
+            # print
+            # new_coord =
+            # self.translateObject(itemIndex, objIndex, shift)
+            # item.imageList[objIndex].originalImage.bbox[0] = newTopLeft[0]
+            # item.imageList[objIndex].originalImage.bbox[3] = newTopLeft[1]
+            item.imageList[objIndex].originalImage.topLeftPoint += Qc.QPointF(shift[0], shift[1])
+            # item.imageList[objIndex].originalImage.bbox[1] = newTopLeft[0]
+            # item.imageList[objIndex].originalImage.bbox[2] = newTopLeft[1]
+
+            # self.mainCanvas.coords(ID, oldBbox[0] + shift[0], oldBbox[3] + shift[1])
+
 
     def loadFile(self, name):
         self.ui.statusbar.showMessage(name)
