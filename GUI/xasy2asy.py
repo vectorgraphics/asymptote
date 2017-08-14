@@ -134,6 +134,18 @@ class asyTransform:
 
         return asyTransform((tx, ty, xx, xy, yx, yy))
 
+    @classmethod
+    def fromNumpyMatrix(cls, transform):
+        assert isinstance(transform, np.ndarray)
+        assert transform.shape() == (3, 3)
+
+        tx = transform[0][2]
+        ty = transform[1][2]
+
+        xx, xy, yx, yy = transform[0:2, 0:2].ravel().tolist()
+
+        return asyTransform((tx, ty, xx, xy, yx, yy))
+
     def getCode(self):
         """Obtain the asy code that represents this transform"""
         if self.deleted:
@@ -181,7 +193,6 @@ def identity():
 
 class asyObj:
     """A base class for asy objects: an item represented by asymptote code."""
-
     def __init__(self):
         """Initialize the object"""
         self.asyCode = ""
@@ -437,7 +448,7 @@ class xasyItem:
 
     def updateCode(self, mag=1.0):
         """Update the item's code: to be overriden"""
-        pass
+        raise NotImplementedError
 
     def getCode(self):
         """Return the code describing the item"""
@@ -446,23 +457,31 @@ class xasyItem:
 
     def handleImageReception(self, file, format, bbox, count):
         """Receive an image from an asy deconstruction. It replaces the default in asyProcess."""
+        assert isinstance(self.onCanvas, Qg.QPainter)
         image = Image.open(file).transpose(Image.FLIP_TOP_BOTTOM)
         self.imageList.append(asyImage(image, format, bbox))
         if self.onCanvas is not None:
             # self.imageList[-1].iqt = ImageTk.PhotoImage(image)
-            self.imageList[-1].iqt = ImageQt.toqimage(image)
-            self.imageList[-1].originalImage = image.copy()
-            self.imageList[-1].originalImage.theta = 0.0
-            self.imageList[-1].originalImage.bbox = list(bbox)
+            currImage = self.imageList[-1]
+            currImage.iqt = ImageQt.toqimage(image)
+            currImage.originalImage = image.copy()
+            currImage.originalImage.theta = 0.0
+            currImage.originalImage.bbox = list(bbox)
+            currImage.performCanvasTransform = False
             if count >= len(self.transform) or not self.transform[count].deleted:
-                #self.imageList[-1].IDTag = self.onCanvas.create_image(bbox[0], -bbox[3], anchor=NW, tags=("image"),
+                # self.imageList[-1].IDTag = self.onCanvas.create_image(bbox[0], -bbox[3], anchor=NW, tags=("image"),
                 #                                                     image=self.imageList[-1].itk)
 
                 # now the raw image is flipped (to match asy coordinates
                 # ) and to use bbox as starting from bottom left.
                 # bounding box is (left, bottom, right, top)
                 self.imageList[-1].originalImage.btmLeftPoint = Qc.QPointF(bbox[0], bbox[2])
+                if currImage.performCanvasTransform and count < len(self.transform):
+                    self.onCanvas.save()
+                    self.onCanvas.setTransform(self.transform[count].toQTransform(), True)
                 self.onCanvas.drawImage(self.imageList[-1].originalImage.btmLeftPoint, self.imageList[-1].iqt)
+                if currImage.performCanvasTransform and count < len(self.transform):
+                    self.onCanvas.restore()
 
     def asyfy(self, mag=1.0):
         self.removeFromCanvas()
@@ -526,10 +545,10 @@ class xasyItem:
         self.asyfied = True
 
     def drawOnCanvas(self, canvas, mag, forceAddition=False):
-        pass
+        raise NotImplementedError
 
     def removeFromCanvas(self):
-        pass
+        raise NotImplementedError
 
 
 class xasyDrawnItem(xasyItem):
@@ -805,7 +824,7 @@ class xasyScript(xasyItem):
 
     def drawOnCanvas(self, canvas, mag, asyFy=True, forceAddition=False):
         """Adds the script's images to a tk canvas"""
-        if self.onCanvas == None:
+        if self.onCanvas is None:
             self.onCanvas = canvas
         elif self.onCanvas != canvas:
             raise Exception("Error: item cannot be added to more than one canvas")

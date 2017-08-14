@@ -10,3 +10,4 @@ class xasyTransform:
         rotMat = (math.cos(theta), -math.sin(theta), math.sin(theta), math.cos(theta))
         shift = x2a.asyTransform((0, 0, 1 - rotMat[0], -rotMat[1], -rotMat[2], 1 - rotMat[3])) * origin
         return x2a.asyTransform((shift[0], shift[1], rotMat[0], rotMat[1], rotMat[2], rotMat[3]))\
+

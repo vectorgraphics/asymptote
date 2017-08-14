@@ -1036,7 +1036,6 @@ class xasyMainWin:
             else:
                 count += 1
         raise Exception("Illegal operation: Image with matching ID could not be found.")
-        return None
 
     def raiseSomething(self, item, force=False):
         if self.fileItems[-1] != item or force:

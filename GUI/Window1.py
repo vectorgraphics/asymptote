@@ -18,7 +18,6 @@ class MainWindow1(Qw.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.filename = None
-        self.transfstack = [np.eye(3)]
 
         self.canvasSize = self.rect().size()
         x, y = self.canvasSize.width() / 2, self.canvasSize.height() / 2
@@ -32,18 +31,11 @@ class MainWindow1(Qw.QMainWindow):
         self.mainCanvas.translate(x, -y)
 
         self.magnification = 1
+
         self.ui.btnPause.clicked.connect(self.pauseBtnOnClick)
         self.ui.btnTranslate.clicked.connect(self.transformBtnOnClick)
         self.ui.btnRotate.clicked.connect(self.rotateBtnOnClick)
-
-    def getTopTransform(self):
-        return self.transfstack[-1]
-
-    def pushTransform(self, transform):
-        self.transfstack.append(self.getTopTransform() * transform)
-
-    def popTransform(self):
-        return self.transfstack.pop()
+        self.ui.btnCustomTransform.clicked.connect(self.custTransformBtnOnClick)
 
     def rotateBtnOnClick(self):
         self.canvasPixmap.fill()
@@ -52,6 +44,17 @@ class MainWindow1(Qw.QMainWindow):
         self.rotateObject(0, objectID, theta, (0, 0))
         self.populateCanvasWithItems()
         self.ui.imgLabel.setPixmap(self.canvasPixmap)
+
+    def custTransformBtnOnClick(self):
+        self.canvasPixmap.fill()
+        xx = float(self.ui.lineEditMatXX.text())
+        xy = float(self.ui.lineEditMatXY.text())
+        yx = float(self.ui.lineEditMatYX.text())
+        yy = float(self.ui.lineEditMatYY.text())
+        tx = float(self.ui.lineEditTX.text())
+        ty = float(self.ui.lineEditTY.text())
+        objectID = int(self.ui.txtObjectID.toPlainText())
+        self.transformObject(0, objectID, x2a.asyTransform((tx, ty, xx, xy, yx, yy)))
 
     def updateCanvas(self, clear=True):
         if clear:
@@ -81,7 +84,21 @@ class MainWindow1(Qw.QMainWindow):
             item.transform = [transform * item.transform[0]]
 
     def transformObject(self, itemIndex, objIndex, transform):
-        pass
+        item = self.fileItems[itemIndex]
+        if isinstance(transform, np.ndarray):
+            obj_transform = x2a.asyTransform.fromNumpyMatrix(transform)
+        elif isinstance(transform, Qg.QTransform):
+            assert transform.isAffine()
+            obj_transform = x2a.asyTransform.fromQTransform(transform)
+        else:
+            obj_transform = transform
+
+        item.transform[objIndex] = obj_transform * item.transform[objIndex]
+        # TODO: Fix bounding box
+        item.imageList[objIndex].performCanvasTransform = True
+        self.updateCanvas()
+
+
 
     def rotateObject(self, itemIndex, objIndex, theta, origin=None):
         # print ("Rotating by {} around {}".format(theta*180.0/math.pi,origin))
@@ -111,14 +128,14 @@ class MainWindow1(Qw.QMainWindow):
             #                          p2
             #
             rotMat2 = xT.makeRotTransform(theta, origin)
-            p0 = rotMat2 * (oldBbox[0], -oldBbox[3])  # switch to usual coordinates
-            p1 = rotMat2 * (oldBbox[2], -oldBbox[3])
-            p2 = rotMat2 * (oldBbox[0], -oldBbox[1])
-            p3 = rotMat2 * (oldBbox[2], -oldBbox[1])
-            newTopLeft = (min(p0[0], p1[0], p2[0], p3[0]), -max(p0[1], p1[1], p2[1], p3[1]))
+            p0 = rotMat2 * (oldBbox[0], oldBbox[3])  # switch to usual coordinates
+            p1 = rotMat2 * (oldBbox[2], oldBbox[3])
+            p2 = rotMat2 * (oldBbox[0], oldBbox[1])
+            p3 = rotMat2 * (oldBbox[2], oldBbox[1])
+            newTopLeft = (min(p0[0], p1[0], p2[0], p3[0]), max(p0[1], p1[1], p2[1], p3[1]))
             # newBottomRight = (max(p0[0], p1[0], p2[0], p3[0]), -min(p0[1], p1[1], p2[1], p3[1]))
             # switch back to screen coords
-            shift = (newTopLeft[0] - oldBbox[0], newTopLeft[1] - oldBbox[3])
+            shift = (newTopLeft[0] - oldBbox[0], newTopLeft[1] - oldBbox[2])
             # print (theta*180.0/math.pi,origin,oldBbox,newTopLeft,shift)
             # print (item.imageList[index].originalImage.size)
             # print (item.imageList[index].image.size)
@@ -127,7 +144,8 @@ class MainWindow1(Qw.QMainWindow):
             # self.translateObject(itemIndex, objIndex, shift)
             # item.imageList[objIndex].originalImage.bbox[0] = newTopLeft[0]
             # item.imageList[objIndex].originalImage.bbox[3] = newTopLeft[1]
-            item.imageList[objIndex].originalImage.topLeftPoint += Qc.QPointF(shift[0], shift[1])
+            # TODO: Fix Rotation bounding box
+            item.imageList[objIndex].originalImage.btmLeftPoint += Qc.QPointF(shift[0], shift[1])
             # item.imageList[objIndex].originalImage.bbox[1] = newTopLeft[0]
             # item.imageList[objIndex].originalImage.bbox[2] = newTopLeft[1]
 
@@ -179,7 +197,8 @@ class MainWindow1(Qw.QMainWindow):
         # if (not self.testOrAcquireLock()):
         #     return
         self.itemCount = 0
-        for item in self.fileItems:
+        for itemIndex in range(len(self.fileItems)):
+            item = self.fileItems[itemIndex]
             item.drawOnCanvas(self.mainCanvas, self.magnification, forceAddition=True)
             # self.bindItemEvents(item)
         # self.releaseLock()

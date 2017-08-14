@@ -1,3 +1,4 @@
+#!/usr/bin/env powershell
 $uipath = 'windows/'
 $outputpath = 'pyUIClass/'
 $files = Get-ChildItem -path $uipath -Filter *.ui -file
