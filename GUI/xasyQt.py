@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import PyQt5.QtWidgets as Qw
 import xasy2asy
