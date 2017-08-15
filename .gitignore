@@ -113,3 +113,5 @@ core.*
 
 ### Generated python UI files
 /GUI/pyUIClass/*
+/GUI/__pycache__/*
+/.idea/*
