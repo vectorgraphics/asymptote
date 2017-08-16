@@ -6,8 +6,8 @@ import numpy.linalg as npl
 import os
 import xasy2asy as x2a
 import xasyFile as xf
-import PIL.Image as Image
-import PIL.ImageQt as piq
+# import PIL.Image as Image
+# import PIL.ImageQt as piq
 from xasyTransform import xasyTransform as xT
 from pyUIClass.window1 import Ui_MainWindow
 
@@ -98,8 +98,6 @@ class MainWindow1(Qw.QMainWindow):
         item.imageList[objIndex].performCanvasTransform = True
         self.updateCanvas()
 
-
-
     def rotateObject(self, itemIndex, objIndex, theta, origin=None):
         # print ("Rotating by {} around {}".format(theta*180.0/math.pi,origin))
         item = self.fileItems[itemIndex]
@@ -150,7 +148,6 @@ class MainWindow1(Qw.QMainWindow):
             # item.imageList[objIndex].originalImage.bbox[2] = newTopLeft[1]
 
             # self.mainCanvas.coords(ID, oldBbox[0] + shift[0], oldBbox[3] + shift[1])
-
 
     def loadFile(self, name):
         self.ui.statusbar.showMessage(name)

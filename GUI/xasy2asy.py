@@ -19,8 +19,8 @@ import PyQt5.QtCore as Qc
 from tkinter import *
 import queue
 import CubicBezier
-from PIL import Image
-from PIL import ImageQt
+# from PIL import Image
+# from PIL import ImageQt
 
 quickAsyFailed = True
 global AsyTempDir
@@ -458,12 +458,13 @@ class xasyItem:
     def handleImageReception(self, file, format, bbox, count):
         """Receive an image from an asy deconstruction. It replaces the default in asyProcess."""
         assert isinstance(self.onCanvas, Qg.QPainter)
-        image = Image.open(file).transpose(Image.FLIP_TOP_BOTTOM)
+        # image = Image.open(file).transpose(Image.FLIP_TOP_BOTTOM)
+        image = Qg.QImage(file).mirrored(False, True)
         self.imageList.append(asyImage(image, format, bbox))
         if self.onCanvas is not None:
             # self.imageList[-1].iqt = ImageTk.PhotoImage(image)
             currImage = self.imageList[-1]
-            currImage.iqt = ImageQt.toqimage(image)
+            currImage.iqt = image
             currImage.originalImage = image.copy()
             currImage.originalImage.theta = 0.0
             currImage.originalImage.bbox = list(bbox)
