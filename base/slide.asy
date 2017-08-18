@@ -325,7 +325,7 @@ void skip(real n=1)
 void equation(string s, pen p=itempen)
 {
   skip(aboveequationskip);
-  vbox("\vbox{\begin{gather*}"+s+"\end{gather*}}",p);
+  vbox("\begin{gather*}"+s+"\end{gather*}",p);
 }
 
 void equations(string s, pen p=itempen)
