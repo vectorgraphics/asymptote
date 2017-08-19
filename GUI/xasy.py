@@ -11,7 +11,8 @@ def main(args):
     mainWin1 = MainWindow1()
     mainWin1.show()
 
-    mainWin1.loadFile(args[1])
+    if len(args) >= 2:
+        mainWin1.loadFile(args[1])
     return qtApp.exec_()
 
 if __name__ == '__main__':

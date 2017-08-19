@@ -3,11 +3,10 @@ import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
 import numpy as np
 import numpy.linalg as npl
+import time
 import os
 import xasy2asy as x2a
 import xasyFile as xf
-# import PIL.Image as Image
-# import PIL.ImageQt as piq
 from xasyTransform import xasyTransform as xT
 from pyUIClass.window1 import Ui_MainWindow
 
@@ -17,28 +16,121 @@ class MainWindow1(Qw.QMainWindow):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.filename = None
-
-        self.canvasSize = self.rect().size()
-        x, y = self.canvasSize.width() / 2, self.canvasSize.height() / 2
-
-        self.canvasPixmap = Qg.QPixmap(self.canvasSize)
-        self.canvasPixmap.fill()
-        self.mainCanvas = Qg.QPainter(self.canvasPixmap)
-        self.ui.imgLabel.setPixmap(self.canvasPixmap)
-
-        self.mainCanvas.scale(1, -1)
-        self.mainCanvas.translate(x, -y)
-
-        self.magnification = 1
 
         self.ui.btnPause.clicked.connect(self.pauseBtnOnClick)
         self.ui.btnTranslate.clicked.connect(self.transformBtnOnClick)
         self.ui.btnRotate.clicked.connect(self.rotateBtnOnClick)
         self.ui.btnCustomTransform.clicked.connect(self.custTransformBtnOnClick)
 
-    def rotateBtnOnClick(self):
+        # For initialization purposes
+        self.canvSize = Qc.QSize()
+        self.filename = None
+        self.mainCanvas = None
+        self.canvasPixmap = None
+
+        self.mainTransformation = Qg.QTransform()
+        self.mainTransformation.scale(1, -1)
+
+        self.magnification = 1
+        self.inMidTransformation = False
+        self.currentlySelectedObj = {'type':'xasyPicture', 'ord': -1}
+        self.savedMousePosition = None
+        self.currentBoundingBox = None
+        self.selectionDelta = None
+
+        self.drawObjects = {}
+        self.xasyDrawObj = {'drawDict': self.drawObjects}
+
+    def isReady(self):
+        return self.mainCanvas is not None
+
+    def show(self):
+        super().show()
+        self.createMainCanvas()  # somehow, the coordinates doesn't get updated until after showing.
+
+    def mouseMoveEvent(self, mouseEvent):
+        assert isinstance(mouseEvent, Qg.QMouseEvent)
+        if self.inMidTransformation:
+            self.quickUpdate()
+            canvasPos = self.getCanvasCoordinates()
+            self.currentBoundingBox.moveTo(canvasPos + self.selectionDelta)
+
+    def mouseReleaseEvent(self, mouseEvent):
+        assert isinstance(mouseEvent, Qg.QMouseEvent)
+        if self.inMidTransformation:
+            self.releaseTransform()
+
+    def mousePressEvent(self, mouseEvent):
+        if self.inMidTransformation:
+            return
+        selectedKey = self.selectObject()
+        if selectedKey is not None:
+            self.inMidTransformation = True
+            obj, ID = self.drawObjects[selectedKey].originalObj
+            self.currentlySelectedObj['ord'] = ID
+            self.savedMousePosition = self.getCanvasCoordinates()
+            self.currentBoundingBox = self.drawObjects[selectedKey].boundingBox
+            self.selectionDelta = self.currentBoundingBox.topLeft() - self.getCanvasCoordinates()
+        self.totalUpdate()
+
+    def releaseTransform(self):
+        if not self.inMidTransformation:
+            return
+        self.currentBoundingBox = None
+        currMouseCoords = self.getCanvasCoordinates()
+        dx = currMouseCoords.x() - self.savedMousePosition.x()
+        dy = currMouseCoords.y() - self.savedMousePosition.y()
+        newTransform = x2a.asyTransform((dx, dy, 1, 0, 0, 1))
+        self.transformObject(0, self.currentlySelectedObj['ord'], newTransform)
+        self.inMidTransformation = False
+
+    def createMainCanvas(self):
+        self.canvSize = self.ui.imgFrame.size()
+        x, y = self.canvSize.width() / 2, self.canvSize.height() / 2
+
+        self.canvasPixmap = Qg.QPixmap(self.canvSize)
         self.canvasPixmap.fill()
+
+        self.finalPixmap = Qg.QPixmap(self.canvSize)
+
+        self.preCanvasPixmap = Qg.QPixmap(self.canvSize)
+        self.postCanvasPixmap = Qg.QPixmap(self.canvSize)
+
+        self.mainCanvas = Qg.QPainter(self.canvasPixmap)
+
+        self.ui.imgLabel.setPixmap(self.canvasPixmap)
+        self.mainTransformation.translate(x, -y)
+        self.mainCanvas.setTransform(self.mainTransformation, True)
+
+        self.xasyDrawObj['canvas'] = self.mainCanvas
+
+    def keyPressEvent(self, keyEvent):
+        assert isinstance(keyEvent, Qg.QKeyEvent)
+        if keyEvent.key() == Qc.Qt.Key_S:
+            self.selectObject()
+
+    def selectObject(self):
+        if not self.ui.imgLabel.underMouse():
+            return
+        canvasCoords = self.getCanvasCoordinates()
+        highestDrawPriority = -1
+        collidedObjKey = None
+        for objKey in self.drawObjects:
+            obj = self.drawObjects[objKey]
+            if obj.collide(canvasCoords):
+                if obj.drawOrder > highestDrawPriority:
+                    collidedObjKey = objKey
+        if collidedObjKey is not None:
+            self.ui.statusbar.showMessage(str('Collide with' + collidedObjKey), 2500)
+            return collidedObjKey
+
+    def getCanvasCoordinates(self):
+        assert self.ui.imgLabel.underMouse()
+        uiPos = self.mapFromGlobal(Qg.QCursor.pos())
+        canvasPos = self.ui.imgLabel.mapFrom(self, uiPos)
+        return canvasPos * self.mainTransformation.inverted()[0]
+
+    def rotateBtnOnClick(self):
         theta = float(self.ui.txtTheta.toPlainText())
         objectID = int(self.ui.txtObjectID.toPlainText())
         self.rotateObject(0, objectID, theta, (0, 0))
@@ -46,7 +138,6 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.imgLabel.setPixmap(self.canvasPixmap)
 
     def custTransformBtnOnClick(self):
-        self.canvasPixmap.fill()
         xx = float(self.ui.lineEditMatXX.text())
         xy = float(self.ui.lineEditMatXY.text())
         yx = float(self.ui.lineEditMatYX.text())
@@ -56,11 +147,42 @@ class MainWindow1(Qw.QMainWindow):
         objectID = int(self.ui.txtObjectID.toPlainText())
         self.transformObject(0, objectID, x2a.asyTransform((tx, ty, xx, xy, yx, yy)))
 
+    def totalUpdate(self):
+        self.preDraw()
+        self.updateCanvas()
+        self.postDraw()
+        self.updateScreen()
+
+    def quickUpdate(self):
+        self.preDraw()
+        self.postDraw()
+        self.updateScreen()
+
     def updateCanvas(self, clear=True):
-        if clear:
-            self.canvasPixmap.fill()
+        self.canvasPixmap.fill(Qc.Qt.white)
         self.populateCanvasWithItems()
-        self.ui.imgLabel.setPixmap(self.canvasPixmap)
+
+    def updateScreen(self):
+        self.finalPixmap = Qg.QPixmap(self.canvSize)
+        self.finalPixmap.fill(Qc.Qt.black)
+        finalPainter = Qg.QPainter(self.finalPixmap)
+        drawPoint = Qc.QPoint(0, 0)
+        finalPainter.drawPixmap(drawPoint, self.preCanvasPixmap)
+        finalPainter.drawPixmap(drawPoint, self.canvasPixmap)
+        finalPainter.drawPixmap(drawPoint, self.postCanvasPixmap)
+        finalPainter.end()
+        self.ui.imgLabel.setPixmap(self.finalPixmap)
+
+    def preDraw(self):
+        self.preCanvasPixmap.fill(Qc.Qt.white)
+
+    def postDraw(self):
+        self.postCanvasPixmap.fill(Qc.Qt.transparent)
+        postCanvas = Qg.QPainter(self.postCanvasPixmap)
+        postCanvas.setTransform(self.mainTransformation)
+        if self.currentBoundingBox is not None:
+            postCanvas.drawRect(self.currentBoundingBox)
+        postCanvas.end()
 
     def pauseBtnOnClick(self):
         print('Test')
@@ -70,7 +192,7 @@ class MainWindow1(Qw.QMainWindow):
         y_transform = int(self.ui.txtYTransform.toPlainText())
         objectID = int(self.ui.txtObjectID.toPlainText())
         self.translateObject(0, objectID, (x_transform, y_transform))
-        self.updateCanvas()
+        self.totalUpdate()
 
     def translateObject(self, itemIndex, objIndex, translation):
         item = self.fileItems[itemIndex]
@@ -95,8 +217,8 @@ class MainWindow1(Qw.QMainWindow):
 
         item.transform[objIndex] = obj_transform * item.transform[objIndex]
         # TODO: Fix bounding box
-        item.imageList[objIndex].performCanvasTransform = True
-        self.updateCanvas()
+        # self.drawObjects[item.imageList[objIndex].IDTag].useCanvasTransform = True
+        self.totalUpdate()
 
     def rotateObject(self, itemIndex, objIndex, theta, origin=None):
         # print ("Rotating by {} around {}".format(theta*180.0/math.pi,origin))
@@ -177,7 +299,7 @@ class MainWindow1(Qw.QMainWindow):
                                                               "File was not recognized as an xasy file.\nLoad as a script item?") == \
                     Qw.QMessageBox.Yes:
                 # try:
-                item = x2a.xasyScript(self.mainCanvas)
+                item = x2a.xasyScript(self.xasyDrawObj)
                 f.seek(0)
                 item.setScript(f.read())
                 self.fileItems.append(item)
@@ -188,7 +310,7 @@ class MainWindow1(Qw.QMainWindow):
         self.populateCanvasWithItems()
         #self.populatePropertyList()
         #self.updateCanvasSize()
-        self.ui.imgLabel.setPixmap(self.canvasPixmap)
+        self.totalUpdate()
 
     def populateCanvasWithItems(self):
         # if (not self.testOrAcquireLock()):
@@ -196,6 +318,8 @@ class MainWindow1(Qw.QMainWindow):
         self.itemCount = 0
         for itemIndex in range(len(self.fileItems)):
             item = self.fileItems[itemIndex]
-            item.drawOnCanvas(self.mainCanvas, self.magnification, forceAddition=True)
+            item.drawOnCanvas(self.xasyDrawObj, self.magnification, forceAddition=True)
             # self.bindItemEvents(item)
         # self.releaseLock()
+
+

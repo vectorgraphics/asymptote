@@ -19,8 +19,6 @@ import PyQt5.QtCore as Qc
 from tkinter import *
 import queue
 import CubicBezier
-# from PIL import Image
-# from PIL import ImageQt
 
 quickAsyFailed = True
 global AsyTempDir
@@ -457,7 +455,6 @@ class xasyItem:
 
     def handleImageReception(self, file, format, bbox, count):
         """Receive an image from an asy deconstruction. It replaces the default in asyProcess."""
-        assert isinstance(self.onCanvas, Qg.QPainter)
         # image = Image.open(file).transpose(Image.FLIP_TOP_BOTTOM)
         image = Qg.QImage(file).mirrored(False, True)
         self.imageList.append(asyImage(image, format, bbox))
@@ -476,13 +473,17 @@ class xasyItem:
                 # now the raw image is flipped (to match asy coordinates
                 # ) and to use bbox as starting from bottom left.
                 # bounding box is (left, bottom, right, top)
-                self.imageList[-1].originalImage.btmLeftPoint = Qc.QPointF(bbox[0], bbox[2])
-                if currImage.performCanvasTransform and count < len(self.transform):
-                    self.onCanvas.save()
-                    self.onCanvas.setTransform(self.transform[count].toQTransform(), True)
-                self.onCanvas.drawImage(self.imageList[-1].originalImage.btmLeftPoint, self.imageList[-1].iqt)
-                if currImage.performCanvasTransform and count < len(self.transform):
-                    self.onCanvas.restore()
+                # TODO: Look at Transform & translations
+                idTag = str(file)  # for now.
+                currImage.IDTag = idTag
+                if count < len(self.transform):
+                    inputTransform = self.transform[count]
+                else:
+                    inputTransform = identity()
+                self.onCanvas['drawDict'][idTag] = DrawObject(currImage.iqt, self.onCanvas['canvas'], inputTransform,
+                                                              Qc.QPointF(bbox[0], bbox[2]), count)
+                self.onCanvas['drawDict'][idTag].originalObj = self, count
+                self.onCanvas['drawDict'][idTag].draw()
 
     def asyfy(self, mag=1.0):
         self.removeFromCanvas()
@@ -808,11 +809,11 @@ class xasyScript(xasyItem):
 
     def removeFromCanvas(self):
         """Removes the script's images from a tk canvas"""
-        if self.onCanvas == None:
+        if self.onCanvas is None:
             return
         for image in self.imageList:
-            if image.IDTag != None:
-                self.onCanvas.delete(image.IDTag)
+            if image.IDTag is not None:
+                self.onCanvas['drawDict'][image.IDTag] = None
 
     def asyfy(self, mag):
         """Generate the list of images described by this object and adjust the length of the transform list."""
@@ -838,6 +839,41 @@ class xasyScript(xasyItem):
             retVal += "\t" + str(xform) + "\n"
         retVal += "\tCode Ommitted"
         return retVal
+
+
+class DrawObject:
+    def __init__(self, drawObject, mainCanvas=None, transform=identity(), btmRightanchor=Qc.QPointF(0, 0),
+                 drawOrder=-1):
+        self.drawObject = drawObject
+        self.mainCanvas = mainCanvas
+        self.transform = transform
+        self.drawOrder = drawOrder
+        self.btmRightAnchor = btmRightanchor
+        self.originalObj = None
+        self.useCanvasTransform = False
+
+    @property
+    def boundingBox(self):
+        testBbox = self.drawObject.rect()
+        testBbox.moveTo(self.btmRightAnchor.toPoint())
+        return testBbox
+
+    def draw(self):
+        assert isinstance(self.mainCanvas, Qg.QPainter)
+        if self.useCanvasTransform:
+            self.mainCanvas.save()
+            self.mainCanvas.setTransform(self.transform.toQTransform(), True)
+        self.mainCanvas.drawImage(self.btmRightAnchor, self.drawObject)
+        if self.useCanvasTransform:
+            self.mainCanvas.restore()
+
+    def collide(self, coords, canvasCoordinates=True):
+        testBbox = self.drawObject.rect()
+        testBbox.moveTo(self.btmRightAnchor.toPoint())
+        return testBbox.contains(coords)
+
+    def getID(self):
+        return self.originalObj
 
 
 if __name__ == '__main__':
