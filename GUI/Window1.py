@@ -38,6 +38,10 @@ class MainWindow1(Qw.QMainWindow):
         self.currentBoundingBox = None
         self.selectionDelta = None
 
+        self.finalPixmap = None
+        self.preCanvasPixmap = None
+        self.postCanvasPixmap = None
+
         self.drawObjects = {}
         self.xasyDrawObj = {'drawDict': self.drawObjects}
 
@@ -148,33 +152,45 @@ class MainWindow1(Qw.QMainWindow):
         self.transformObject(0, objectID, x2a.asyTransform((tx, ty, xx, xy, yx, yy)))
 
     def totalUpdate(self):
-        self.preDraw()
+        self.preDraw(self.mainCanvas)
         self.updateCanvas()
         self.postDraw()
         self.updateScreen()
 
     def quickUpdate(self):
-        self.preDraw()
         self.postDraw()
         self.updateScreen()
 
     def updateCanvas(self, clear=True):
-        self.canvasPixmap.fill(Qc.Qt.white)
+        # self.canvasPixmap.fill(Qc.Qt.transparent)
         self.populateCanvasWithItems()
+
 
     def updateScreen(self):
         self.finalPixmap = Qg.QPixmap(self.canvSize)
         self.finalPixmap.fill(Qc.Qt.black)
         finalPainter = Qg.QPainter(self.finalPixmap)
         drawPoint = Qc.QPoint(0, 0)
-        finalPainter.drawPixmap(drawPoint, self.preCanvasPixmap)
+        # finalPainter.drawPixmap(drawPoint, self.preCanvasPixmap)
         finalPainter.drawPixmap(drawPoint, self.canvasPixmap)
         finalPainter.drawPixmap(drawPoint, self.postCanvasPixmap)
         finalPainter.end()
         self.ui.imgLabel.setPixmap(self.finalPixmap)
 
-    def preDraw(self):
-        self.preCanvasPixmap.fill(Qc.Qt.white)
+    def preDraw(self, painter):
+        # self.preCanvasPixmap.fill(Qc.Qt.white)
+        self.canvasPixmap.fill()
+        preCanvas = painter
+
+        # preCanvas = Qg.QPainter(self.preCanvasPixmap)
+        preCanvas.setTransform(self.mainTransformation)
+
+        preCanvas.setPen(Qc.Qt.gray)
+        preCanvas.drawLine(Qc.QLine(-9999, 0, 9999, 0))
+        preCanvas.drawLine(Qc.QLine(0, -9999, 0, 9999))
+
+
+        # preCanvas.end()
 
     def postDraw(self):
         self.postCanvasPixmap.fill(Qc.Qt.transparent)
@@ -307,9 +323,9 @@ class MainWindow1(Qw.QMainWindow):
                 #     Qw.QMessageBox.critical(self, "File Opening Failed.", "File could not be opened.")
                 #     # messagebox.showerror("File Opening Failed.", "Could not load as a script item.")
                 #     self.fileItems = []
-        self.populateCanvasWithItems()
-        #self.populatePropertyList()
-        #self.updateCanvasSize()
+        # self.populateCanvasWithItems()
+        # self.populatePropertyList()
+        # self.updateCanvasSize()
         self.totalUpdate()
 
     def populateCanvasWithItems(self):
