@@ -2,8 +2,6 @@ import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
 import numpy as np
-import numpy.linalg as npl
-import time
 import os
 import xasy2asy as x2a
 import xasyFile as xf
@@ -17,11 +15,6 @@ class MainWindow1(Qw.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.ui.btnPause.clicked.connect(self.pauseBtnOnClick)
-        self.ui.btnTranslate.clicked.connect(self.transformBtnOnClick)
-        self.ui.btnRotate.clicked.connect(self.rotateBtnOnClick)
-        self.ui.btnCustomTransform.clicked.connect(self.custTransformBtnOnClick)
-
         # For initialization purposes
         self.canvSize = Qc.QSize()
         self.filename = None
@@ -33,7 +26,7 @@ class MainWindow1(Qw.QMainWindow):
 
         self.magnification = 1
         self.inMidTransformation = False
-        self.currentlySelectedObj = {'type':'xasyPicture', 'ord': -1}
+        self.currentlySelectedObj = {'type': 'xasyPicture', 'ord': -1}
         self.savedMousePosition = None
         self.currentBoundingBox = None
         self.selectionDelta = None
@@ -47,6 +40,11 @@ class MainWindow1(Qw.QMainWindow):
 
     def isReady(self):
         return self.mainCanvas is not None
+
+    def resizeEvent(self, resizeEvent):
+        assert isinstance(resizeEvent, Qg.QResizeEvent)
+        newRect = Qc.QRect(Qc.QPoint(0, 0), resizeEvent.size())
+        # self.ui.centralFrame.setFrameRect(newRect)
 
     def show(self):
         super().show()
@@ -164,7 +162,6 @@ class MainWindow1(Qw.QMainWindow):
     def updateCanvas(self, clear=True):
         # self.canvasPixmap.fill(Qc.Qt.transparent)
         self.populateCanvasWithItems()
-
 
     def updateScreen(self):
         self.finalPixmap = Qg.QPixmap(self.canvSize)
