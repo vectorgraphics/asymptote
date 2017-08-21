@@ -73,7 +73,7 @@ class MainWindow1(Qw.QMainWindow):
         if self.inMidTransformation:
             canvasPos = self.getCanvasCoordinates()
             if self.currentMode == 'Translate':
-                newPos = canvasPos + self.selectionDelta
+                newPos = canvasPos - self.savedMousePosition
                 self.tx, self.ty = newPos.x(), newPos.y()
                 if self.lockX:
                     self.tx = 0
@@ -124,7 +124,6 @@ class MainWindow1(Qw.QMainWindow):
             self.currentlySelectedObj['ord'] = ID
             self.savedMousePosition = self.getCanvasCoordinates()
             self.currentBoundingBox = self.drawObjects[selectedKey].boundingBox
-            self.selectionDelta = self.currentBoundingBox.topLeft() - self.getCanvasCoordinates()
         self.totalUpdate()
 
     def releaseRotate(self):
