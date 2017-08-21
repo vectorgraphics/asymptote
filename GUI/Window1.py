@@ -21,6 +21,14 @@ class MainWindow1(Qw.QMainWindow):
         self.mainCanvas = None
         self.canvasPixmap = None
 
+        # Button initialization
+        self.ui.btnTranslate.clicked.connect(self.btnTranslateonClick)
+        self.ui.btnRotate.clicked.connect(self.btnRotateOnClick)
+        self.ui.btnScale.clicked.connect(self.btnScaleOnClick)
+        self.ui.btnDebug.clicked.connect(self.pauseBtnOnClick)
+        self.ui.btnAlignX.clicked.connect(self.btnAlignXOnClick)
+        self.ui.btnAlignY.clicked.connect(self.btnAlignYOnClick)
+
         self.mainTransformation = Qg.QTransform()
         self.mainTransformation.scale(1, -1)
 
@@ -30,6 +38,12 @@ class MainWindow1(Qw.QMainWindow):
         self.savedMousePosition = None
         self.currentBoundingBox = None
         self.selectionDelta = None
+        self.tmpboundingBoxTransform = None
+        self.deltaAngle = 0
+        self.scaleFactor = 1
+
+        self.lockX = False
+        self.lockY = False
 
         self.finalPixmap = None
         self.preCanvasPixmap = None
@@ -37,6 +51,10 @@ class MainWindow1(Qw.QMainWindow):
 
         self.drawObjects = {}
         self.xasyDrawObj = {'drawDict': self.drawObjects}
+
+        self.asyModes = {'Select', 'Pan', 'Translate', 'Rotate', 'Scale'}
+        self.modeButtons = {self.ui.btnTranslate, self.ui.btnRotate, self.ui.btnScale}
+        self.currentMode = 'Translate'
 
     def isReady(self):
         return self.mainCanvas is not None
@@ -53,14 +71,48 @@ class MainWindow1(Qw.QMainWindow):
     def mouseMoveEvent(self, mouseEvent):
         assert isinstance(mouseEvent, Qg.QMouseEvent)
         if self.inMidTransformation:
-            self.quickUpdate()
             canvasPos = self.getCanvasCoordinates()
-            self.currentBoundingBox.moveTo(canvasPos + self.selectionDelta)
+            if self.currentMode == 'Translate':
+                newPos = canvasPos + self.selectionDelta
+                self.tx, self.ty = newPos.x(), newPos.y()
+                if self.lockX:
+                    self.tx = 0
+                if self.lockY:
+                    self.ty = 0
+                self.tmpboundingBoxTransform = Qg.QTransform.fromTranslate(self.tx, self.ty)
+            elif self.currentMode == 'Rotate':
+                origAngle = np.arctan2(self.savedMousePosition.y(), self.savedMousePosition.x())
+                newAng = np.arctan2(canvasPos.y(), canvasPos.x())
+                self.deltaAngle = newAng - origAngle
+                self.tmpboundingBoxTransform = Qg.QTransform().rotateRadians(self.deltaAngle)
+            elif self.currentMode == 'Scale':
+                scaleFactor = Qc.QPoint.dotProduct(canvasPos, self.savedMousePosition) /\
+                                   (self.savedMousePosition.manhattanLength() ** 2)
+                if not self.lockX:
+                    self.scaleFactorX = scaleFactor
+                else:
+                    self.scaleFactorX = 1
+
+                if not self.lockY:
+                    self.scaleFactorY = scaleFactor
+                else:
+                    self.scaleFactorY = 1
+
+                self.tmpboundingBoxTransform = Qg.QTransform.fromScale(self.scaleFactorX, self.scaleFactorY)
+            self.quickUpdate()
 
     def mouseReleaseEvent(self, mouseEvent):
         assert isinstance(mouseEvent, Qg.QMouseEvent)
         if self.inMidTransformation:
-            self.releaseTransform()
+            self.inMidTransformation = False
+            self.currentBoundingBox = None
+            self.tmpboundingBoxTransform = None
+            if self.currentMode == 'Translate':
+                self.releaseTranslate()
+            elif self.currentMode == 'Rotate':
+                self.releaseRotate()
+            elif self.currentMode == 'Scale':
+                self.releaseScale()
 
     def mousePressEvent(self, mouseEvent):
         if self.inMidTransformation:
@@ -75,16 +127,17 @@ class MainWindow1(Qw.QMainWindow):
             self.selectionDelta = self.currentBoundingBox.topLeft() - self.getCanvasCoordinates()
         self.totalUpdate()
 
-    def releaseTransform(self):
-        if not self.inMidTransformation:
-            return
-        self.currentBoundingBox = None
-        currMouseCoords = self.getCanvasCoordinates()
-        dx = currMouseCoords.x() - self.savedMousePosition.x()
-        dy = currMouseCoords.y() - self.savedMousePosition.y()
-        newTransform = x2a.asyTransform((dx, dy, 1, 0, 0, 1))
+    def releaseRotate(self):
+        newTransform = xT.makeRotTransform(self.deltaAngle, (0, 0))
         self.transformObject(0, self.currentlySelectedObj['ord'], newTransform)
-        self.inMidTransformation = False
+
+    def releaseTranslate(self):
+        newTransform = x2a.asyTransform((self.tx, self.ty, 1, 0, 0, 1))
+        self.transformObject(0, self.currentlySelectedObj['ord'], newTransform)
+
+    def releaseScale(self):
+        newTransform = x2a.asyTransform((0, 0, self.scaleFactorX, 0, 0, self.scaleFactorY))
+        self.transformObject(0, self.currentlySelectedObj['ord'], newTransform)
 
     def createMainCanvas(self):
         self.canvSize = self.ui.imgFrame.size()
@@ -194,13 +247,64 @@ class MainWindow1(Qw.QMainWindow):
         postCanvas = Qg.QPainter(self.postCanvasPixmap)
         postCanvas.setTransform(self.mainTransformation)
         if self.currentBoundingBox is not None:
+            if self.tmpboundingBoxTransform is not None:
+                postCanvas.save()
+                postCanvas.setTransform(self.tmpboundingBoxTransform, True)
             postCanvas.drawRect(self.currentBoundingBox)
+            if self.tmpboundingBoxTransform is not None:
+                postCanvas.restore()
         postCanvas.end()
 
     def pauseBtnOnClick(self):
-        print('Test')
+        print('Supposed to pause execution. Set breakpoint here.')
+
+    def updateChecks(self):
+        if self.currentMode == 'Translate':
+            activeBtn = self.ui.btnTranslate
+        elif self.currentMode == 'Rotate':
+            activeBtn = self.ui.btnRotate
+        elif self.currentMode == 'Scale':
+            activeBtn = self.ui.btnScale
+        for button in self.modeButtons:
+            if button is not activeBtn:
+                button.setChecked(False)
+            else:
+                button.setChecked(True)
+
+    def btnAlignXOnClick(self, checked):
+        self.lockX = checked
+        if checked:
+            self.ui.statusbar.showMessage('Enabled Lock on X')
+        else:
+            self.ui.statusbar.showMessage('Disabled Lock on X')
+
+    def btnAlignYOnClick(self, checked):
+        self.lockY = checked
+        if checked:
+            self.ui.statusbar.showMessage('Enabled Lock on Y')
+        else:
+            self.ui.statusbar.showMessage('Disabled Lock on Y')
+
+    def btnAlignXOnClick(self, checked):
+        self.lockX = checked
+
+    def btnTranslateonClick(self):
+        self.currentMode = 'Translate'
+        self.ui.statusbar.showMessage('Translate Mode')
+        self.updateChecks()
+
+    def btnRotateOnClick(self):
+        self.currentMode = 'Rotate'
+        self.ui.statusbar.showMessage('Rotate Mode')
+        self.updateChecks()
+
+    def btnScaleOnClick(self):
+        self.currentMode = 'Scale'
+        self.ui.statusbar.showMessage('Scale Mode')
+        self.updateChecks()
 
     def transformBtnOnClick(self):
+        """Deceperated. For old button (in the draft). """
         x_transform = int(self.ui.txtXTransform.toPlainText())
         y_transform = int(self.ui.txtYTransform.toPlainText())
         objectID = int(self.ui.txtObjectID.toPlainText())
