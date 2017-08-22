@@ -8,6 +8,18 @@ import xasyFile as xf
 from xasyTransform import xasyTransform as xT
 from pyUIClass.window1 import Ui_MainWindow
 
+import CustMatTransform
+
+
+class AnchorMode:
+    origin = 0
+    topLeft = 1
+    topRight = 2
+    bottomRight = 3
+    bottomLeft = 4
+    customAnchor = 5
+    center = 6
+
 
 class MainWindow1(Qw.QMainWindow):
     def __init__(self):
@@ -28,9 +40,15 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnDebug.clicked.connect(self.pauseBtnOnClick)
         self.ui.btnAlignX.clicked.connect(self.btnAlignXOnClick)
         self.ui.btnAlignY.clicked.connect(self.btnAlignYOnClick)
+        self.ui.comboAnchor.currentTextChanged.connect(self.handleAnchorCombo)
+        self.ui.btnLoadFile.clicked.connect(self.btnLoadFileonClick)
+        self.ui.btnWorldCoords.clicked.connect(self.btnWorldCoordsOnClick)
+        self.ui.btnCustTransform.clicked.connect(self.btnCustTransformOnClick)
 
         self.mainTransformation = Qg.QTransform()
         self.mainTransformation.scale(1, -1)
+
+        self.localTransform = Qg.QTransform()
 
         self.magnification = 1
         self.inMidTransformation = False
@@ -44,6 +62,9 @@ class MainWindow1(Qw.QMainWindow):
 
         self.lockX = False
         self.lockY = False
+        self.anchorMode = AnchorMode.origin
+        self.currentAnchor = Qc.QPointF(0, 0)
+        self.useGlobalCoords = True
 
         self.finalPixmap = None
         self.preCanvasPixmap = None
@@ -55,6 +76,17 @@ class MainWindow1(Qw.QMainWindow):
         self.asyModes = {'Select', 'Pan', 'Translate', 'Rotate', 'Scale'}
         self.modeButtons = {self.ui.btnTranslate, self.ui.btnRotate, self.ui.btnScale}
         self.currentMode = 'Translate'
+
+    def btnLoadFileonClick(self):
+        fileName = Qw.QFileDialog.getOpenFileName(self, 'Open Asymptote File', Qc.QDir.homePath(), '*.asy')
+        if fileName[0]:
+            self.loadFile(fileName[0])
+
+    def handleAnchorCombo(self, text):
+        if text == 'Origin':
+            self.anchorMode = AnchorMode.origin
+        elif text == 'Center':
+            self.anchorMode = AnchorMode.center
 
     def isReady(self):
         return self.mainCanvas is not None
@@ -80,11 +112,15 @@ class MainWindow1(Qw.QMainWindow):
                 if self.lockY:
                     self.ty = 0
                 self.tmpboundingBoxTransform = Qg.QTransform.fromTranslate(self.tx, self.ty)
+
             elif self.currentMode == 'Rotate':
-                origAngle = np.arctan2(self.savedMousePosition.y(), self.savedMousePosition.x())
-                newAng = np.arctan2(canvasPos.y(), canvasPos.x())
+                adjustedSavedMousePos = self.savedMousePosition - self.currentAnchor
+                adjustedCanvasCoords = canvasPos - self.currentAnchor
+                origAngle = np.arctan2(adjustedSavedMousePos.y(), adjustedSavedMousePos.x())
+                newAng = np.arctan2(adjustedCanvasCoords.y(), adjustedCanvasCoords.x())
                 self.deltaAngle = newAng - origAngle
-                self.tmpboundingBoxTransform = Qg.QTransform().rotateRadians(self.deltaAngle)
+                self.tmpboundingBoxTransform = xT.makeRotTransform(self.deltaAngle, self.currentAnchor).toQTransform()
+
             elif self.currentMode == 'Scale':
                 scaleFactor = Qc.QPoint.dotProduct(canvasPos, self.savedMousePosition) /\
                                    (self.savedMousePosition.manhattanLength() ** 2)
@@ -98,45 +134,47 @@ class MainWindow1(Qw.QMainWindow):
                 else:
                     self.scaleFactorY = 1
 
-                self.tmpboundingBoxTransform = Qg.QTransform.fromScale(self.scaleFactorX, self.scaleFactorY)
+                self.tmpboundingBoxTransform = xT.makeScaleTransform(self.scaleFactorX, self.scaleFactorY,
+                                                                     self.currentAnchor).toQTransform()
             self.quickUpdate()
 
     def mouseReleaseEvent(self, mouseEvent):
         assert isinstance(mouseEvent, Qg.QMouseEvent)
         if self.inMidTransformation:
-            self.inMidTransformation = False
+            self.releaseTransform()
             self.currentBoundingBox = None
             self.tmpboundingBoxTransform = None
-            if self.currentMode == 'Translate':
-                self.releaseTranslate()
-            elif self.currentMode == 'Rotate':
-                self.releaseRotate()
-            elif self.currentMode == 'Scale':
-                self.releaseScale()
+        self.inMidTransformation = False
+        self.quickUpdate()
 
     def mousePressEvent(self, mouseEvent):
         if self.inMidTransformation:
             return
         selectedKey = self.selectObject()
         if selectedKey is not None:
+            self.localTransform = Qg.QTransform()
             self.inMidTransformation = True
             obj, ID = self.drawObjects[selectedKey].originalObj
             self.currentlySelectedObj['ord'] = ID
             self.savedMousePosition = self.getCanvasCoordinates()
             self.currentBoundingBox = self.drawObjects[selectedKey].boundingBox
+
+            if self.anchorMode == AnchorMode.center:
+                self.currentAnchor = self.currentBoundingBox.center()
+            else:
+                self.currentAnchor = Qc.QPointF(0, 0)
+
+            if not self.useGlobalCoords:
+                self.localTransform = self.fileItems[0].transform[ID].toQTransform()
+
+                if self.anchorMode != AnchorMode.origin:
+                    self.currentAnchor = self.localTransform.inverted()[0].map(self.currentAnchor)
+
         self.totalUpdate()
 
-    def releaseRotate(self):
-        newTransform = xT.makeRotTransform(self.deltaAngle, (0, 0))
-        self.transformObject(0, self.currentlySelectedObj['ord'], newTransform)
-
-    def releaseTranslate(self):
-        newTransform = x2a.asyTransform((self.tx, self.ty, 1, 0, 0, 1))
-        self.transformObject(0, self.currentlySelectedObj['ord'], newTransform)
-
-    def releaseScale(self):
-        newTransform = x2a.asyTransform((0, 0, self.scaleFactorX, 0, 0, self.scaleFactorY))
-        self.transformObject(0, self.currentlySelectedObj['ord'], newTransform)
+    def releaseTransform(self):
+        newTransform = x2a.asyTransform.fromQTransform(self.tmpboundingBoxTransform)
+        self.transformObject(0, self.currentlySelectedObj['ord'], newTransform, not self.useGlobalCoords)
 
     def createMainCanvas(self):
         self.canvSize = self.ui.imgFrame.size()
@@ -238,7 +276,6 @@ class MainWindow1(Qw.QMainWindow):
         preCanvas.drawLine(Qc.QLine(-9999, 0, 9999, 0))
         preCanvas.drawLine(Qc.QLine(0, -9999, 0, 9999))
 
-
         # preCanvas.end()
 
     def postDraw(self):
@@ -246,12 +283,21 @@ class MainWindow1(Qw.QMainWindow):
         postCanvas = Qg.QPainter(self.postCanvasPixmap)
         postCanvas.setTransform(self.mainTransformation)
         if self.currentBoundingBox is not None:
+            postCanvas.save()
+
+            if not self.useGlobalCoords:
+                postCanvas.setTransform(self.localTransform, True)
+                postCanvas.setPen(Qc.Qt.gray)
+                postCanvas.drawLine(Qc.QLine(-9999, 0, 9999, 0))
+                postCanvas.drawLine(Qc.QLine(0, -9999, 0, 9999))
+                postCanvas.setPen(Qc.Qt.black)
+
             if self.tmpboundingBoxTransform is not None:
-                postCanvas.save()
                 postCanvas.setTransform(self.tmpboundingBoxTransform, True)
+                postCanvas.setTransform(self.localTransform.inverted()[0], True)
+
             postCanvas.drawRect(self.currentBoundingBox)
-            if self.tmpboundingBoxTransform is not None:
-                postCanvas.restore()
+            postCanvas.restore()
         postCanvas.end()
 
     def pauseBtnOnClick(self):
@@ -284,9 +330,6 @@ class MainWindow1(Qw.QMainWindow):
         else:
             self.ui.statusbar.showMessage('Disabled Lock on Y')
 
-    def btnAlignXOnClick(self, checked):
-        self.lockX = checked
-
     def btnTranslateonClick(self):
         self.currentMode = 'Translate'
         self.ui.statusbar.showMessage('Translate Mode')
@@ -302,26 +345,17 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.statusbar.showMessage('Scale Mode')
         self.updateChecks()
 
-    def transformBtnOnClick(self):
-        """Deceperated. For old button (in the draft). """
-        x_transform = int(self.ui.txtXTransform.toPlainText())
-        y_transform = int(self.ui.txtYTransform.toPlainText())
-        objectID = int(self.ui.txtObjectID.toPlainText())
-        self.translateObject(0, objectID, (x_transform, y_transform))
-        self.totalUpdate()
+    def btnWorldCoordsOnClick(self, checked):
+        self.useGlobalCoords = checked
 
-    def translateObject(self, itemIndex, objIndex, translation):
-        item = self.fileItems[itemIndex]
-        transform = x2a.asyTransform((translation[0], translation[1], 1, 0, 0, 1))
-        if isinstance(item, x2a.xasyText) or isinstance(item, x2a.xasyScript):
-            item.transform[objIndex] = transform * item.transform[objIndex]
-            bbox = item.imageList[objIndex].originalImage.bbox
-            item.imageList[objIndex].originalImage.bbox = bbox[0] + translation[0], bbox[1] + translation[1], \
-                                                          bbox[2] + translation[0], bbox[3] + translation[1]
-        else:
-            item.transform = [transform * item.transform[0]]
+    def btnCustTransformOnClick(self):
+        matrixDialog = CustMatTransform.CustMatTransform()
+        matrixDialog.show()
+        result = matrixDialog.exec_()
+        if result == Qw.QDialog.Accepted:
+            print(matrixDialog.getTransformationMatrix())
 
-    def transformObject(self, itemIndex, objIndex, transform):
+    def transformObject(self, itemIndex, objIndex, transform, applyFirst=False):
         item = self.fileItems[itemIndex]
         if isinstance(transform, np.ndarray):
             obj_transform = x2a.asyTransform.fromNumpyMatrix(transform)
@@ -331,61 +365,14 @@ class MainWindow1(Qw.QMainWindow):
         else:
             obj_transform = transform
 
-        item.transform[objIndex] = obj_transform * item.transform[objIndex]
+        oldTransf = item.transform[objIndex]
+        if not applyFirst:
+            item.transform[objIndex] = obj_transform * oldTransf
+        else:
+            item.transform[objIndex] = oldTransf * obj_transform
         # TODO: Fix bounding box
         # self.drawObjects[item.imageList[objIndex].IDTag].useCanvasTransform = True
         self.totalUpdate()
-
-    def rotateObject(self, itemIndex, objIndex, theta, origin=None):
-        # print ("Rotating by {} around {}".format(theta*180.0/math.pi,origin))
-        item = self.fileItems[itemIndex]
-        if origin is None:
-            origin = (item.imageList[objIndex].originalImage.bbox[0], -item.imageList[objIndex].originalImage.bbox[3])
-        rotMat = xT.makeRotTransform(theta, (origin[0] / self.magnification, origin[1] / self.magnification))
-        if isinstance(item, x2a.xasyText) or isinstance(item, x2a.xasyScript):
-            # transform the image
-            oldBbox = item.imageList[objIndex].originalImage.bbox
-            oldBbox = (oldBbox[0], -oldBbox[1], oldBbox[2], -oldBbox[3])
-            item.transform[objIndex] = rotMat * item.transform[objIndex]
-            # item.transform[objIndex] = rotMat * original
-            item.imageList[objIndex].originalImage.theta += theta
-            item.imageList[objIndex].image = item.imageList[objIndex].originalImage.rotate(
-                np.degrees(item.imageList[objIndex].originalImage.theta), expand=True, resample=Image.BICUBIC)
-            # item.imageList[objIndex].iqt = ImageTk.PhotoImage(item.imageList[index].image)
-            item.imageList[objIndex].iqt = Qg.QImage(piq.ImageQt(item.imageList[objIndex].image))
-            # self.mainCanvas.itemconfigure(ID, image=item.imageList[objIndex].itk)
-            # the image has been rotated in place
-            # now, compensate for any resizing and shift to the correct location
-            #
-            #  p0 --- p1               p1
-            #  |      |     --->      /  \
-            #  p2 --- p3             p0  p3
-            #                         \ /
-            #                          p2
-            #
-            rotMat2 = xT.makeRotTransform(theta, origin)
-            p0 = rotMat2 * (oldBbox[0], oldBbox[3])  # switch to usual coordinates
-            p1 = rotMat2 * (oldBbox[2], oldBbox[3])
-            p2 = rotMat2 * (oldBbox[0], oldBbox[1])
-            p3 = rotMat2 * (oldBbox[2], oldBbox[1])
-            newTopLeft = (min(p0[0], p1[0], p2[0], p3[0]), max(p0[1], p1[1], p2[1], p3[1]))
-            # newBottomRight = (max(p0[0], p1[0], p2[0], p3[0]), -min(p0[1], p1[1], p2[1], p3[1]))
-            # switch back to screen coords
-            shift = (newTopLeft[0] - oldBbox[0], newTopLeft[1] - oldBbox[2])
-            # print (theta*180.0/math.pi,origin,oldBbox,newTopLeft,shift)
-            # print (item.imageList[index].originalImage.size)
-            # print (item.imageList[index].image.size)
-            # print
-            # new_coord =
-            # self.translateObject(itemIndex, objIndex, shift)
-            # item.imageList[objIndex].originalImage.bbox[0] = newTopLeft[0]
-            # item.imageList[objIndex].originalImage.bbox[3] = newTopLeft[1]
-            # TODO: Fix Rotation bounding box
-            item.imageList[objIndex].originalImage.btmLeftPoint += Qc.QPointF(shift[0], shift[1])
-            # item.imageList[objIndex].originalImage.bbox[1] = newTopLeft[0]
-            # item.imageList[objIndex].originalImage.bbox[2] = newTopLeft[1]
-
-            # self.mainCanvas.coords(ID, oldBbox[0] + shift[0], oldBbox[3] + shift[1])
 
     def loadFile(self, name):
         self.ui.statusbar.showMessage(name)

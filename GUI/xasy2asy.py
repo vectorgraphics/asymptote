@@ -16,6 +16,7 @@ from tempfile import mkdtemp
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
+import numpy as np
 from tkinter import *
 import queue
 import CubicBezier
@@ -135,12 +136,12 @@ class asyTransform:
     @classmethod
     def fromNumpyMatrix(cls, transform):
         assert isinstance(transform, np.ndarray)
-        assert transform.shape() == (3, 3)
+        assert transform.shape == (3, 3)
 
-        tx = transform[0][2]
-        ty = transform[1][2]
+        tx = transform[0, 2]
+        ty = transform[1, 2]
 
-        xx, xy, yx, yy = transform[0:2, 0:2].ravel().tolist()
+        xx, xy, yx, yy = transform[0:2, 0:2].ravel().tolist()[0]
 
         return asyTransform((tx, ty, xx, xy, yx, yy))
 
