@@ -70,7 +70,6 @@ class CustMatTransform(Qw.QDialog):
                 canvas.setPen(Qc.Qt.red)
 
             canvas.drawRect(Qc.QRect(Qc.QPoint(0, 0), Qc.QSize(20, 20)))
-        canvas.end()
 
         self.ui.imgPreview.setPixmap(self.previewPixmap)
 
@@ -81,9 +80,9 @@ class CustMatTransform(Qw.QDialog):
         fromIter, toIter = -7, 7
         gridSize = 20
         if grid:
-            for iter in range(fromIter, toIter + 1):
-                canvas.drawLine(Qc.QLine(-9999, iter * gridSize, 9999, iter * gridSize))
-                canvas.drawLine(Qc.QLine(iter * gridSize, -9999, iter * gridSize, 9999))
+            for iterIndex in range(fromIter, toIter + 1):
+                canvas.drawLine(Qc.QLine(-9999, iterIndex * gridSize, 9999, iterIndex * gridSize))
+                canvas.drawLine(Qc.QLine(iterIndex * gridSize, -9999, iterIndex * gridSize, 9999))
 
     def getTransformationMatrix(self):
         rawMatrixNum = [float(lineInput.text()) for lineInput in self.matrixLineInputs]

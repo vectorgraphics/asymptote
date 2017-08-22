@@ -101,6 +101,9 @@
             <height>32</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Undo</string>
+          </property>
           <property name="text">
            <string/>
           </property>
@@ -142,6 +145,9 @@
             <height>32</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Redo</string>
+          </property>
           <property name="text">
            <string/>
           </property>
@@ -173,6 +179,9 @@
             <width>32</width>
             <height>32</height>
            </size>
+          </property>
+          <property name="toolTip">
+           <string>Open File</string>
           </property>
           <property name="text">
            <string/>
@@ -206,6 +215,9 @@
             <height>32</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Save File</string>
+          </property>
           <property name="text">
            <string/>
           </property>
@@ -237,6 +249,9 @@
             <width>32</width>
             <height>32</height>
            </size>
+          </property>
+          <property name="toolTip">
+           <string>Edit Code</string>
           </property>
           <property name="text">
            <string/>
@@ -321,6 +336,41 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="btnAsy">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>25</width>
+            <height>25</height>
+           </size>
+          </property>
+          <property name="baseSize">
+           <size>
+            <width>32</width>
+            <height>32</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>Run Asymptote</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="../res/icons.qrc">
+            <normaloff>:/entypo/Entypo+/Entypo+/arrow-with-circle-up.svg</normaloff>:/entypo/Entypo+/Entypo+/arrow-with-circle-up.svg</iconset>
+          </property>
+          <property name="flat">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="horizontalSpacer_3">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -337,7 +387,7 @@
          </spacer>
         </item>
         <item>
-         <widget class="QPushButton" name="btnAlignX_2">
+         <widget class="QPushButton" name="btnDrawAxes">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
             <horstretch>0</horstretch>
@@ -363,12 +413,15 @@
             <bold>true</bold>
            </font>
           </property>
+          <property name="toolTip">
+           <string>Toggle Display Axes</string>
+          </property>
           <property name="text">
            <string/>
           </property>
           <property name="icon">
            <iconset resource="../res/icons.qrc">
-            <normaloff>:/entypo/Entypo+/Entypo+/grid.svg</normaloff>:/entypo/Entypo+/Entypo+/grid.svg</iconset>
+            <normaloff>:/icons/ionicons-2.0.1/src/plus-round.svg</normaloff>:/icons/ionicons-2.0.1/src/plus-round.svg</iconset>
           </property>
           <property name="checkable">
            <bool>true</bool>
@@ -424,6 +477,9 @@
             <bold>true</bold>
            </font>
           </property>
+          <property name="toolTip">
+           <string>Lock X Axis</string>
+          </property>
           <property name="text">
            <string/>
           </property>
@@ -465,6 +521,9 @@
             <bold>true</bold>
            </font>
           </property>
+          <property name="toolTip">
+           <string>Lock Y Axis</string>
+          </property>
           <property name="text">
            <string/>
           </property>
@@ -499,6 +558,9 @@
             <width>32</width>
             <height>32</height>
            </size>
+          </property>
+          <property name="toolTip">
+           <string>Set Custom Anchor</string>
           </property>
           <property name="text">
            <string/>
@@ -538,6 +600,9 @@
             <height>32</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Use World Coordinates</string>
+          </property>
           <property name="text">
            <string/>
           </property>
@@ -570,8 +635,38 @@
             <height>25</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Set Anchor</string>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="editable">
+           <bool>false</bool>
+          </property>
+          <property name="currentText">
+           <string>Origin</string>
+          </property>
+          <property name="insertPolicy">
+           <enum>QComboBox::InsertAtCurrent</enum>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="duplicatesEnabled">
+           <bool>false</bool>
+          </property>
           <property name="frame">
            <bool>false</bool>
+          </property>
+          <property name="modelColumn">
+           <number>0</number>
           </property>
           <item>
            <property name="text">
@@ -647,7 +742,7 @@
            </size>
           </property>
           <property name="toolTip">
-           <string>Pan</string>
+           <string>Select</string>
           </property>
           <property name="text">
            <string/>

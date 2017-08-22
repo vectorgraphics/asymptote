@@ -21,6 +21,14 @@ class AnchorMode:
     center = 6
 
 
+class SelectionMode:
+    select = 0
+    pan = 1
+    translate = 2
+    rotate = 3
+    scale = 4
+
+
 class MainWindow1(Qw.QMainWindow):
     def __init__(self):
         super().__init__()
@@ -34,15 +42,23 @@ class MainWindow1(Qw.QMainWindow):
         self.canvasPixmap = None
 
         # Button initialization
+        self.ui.btnLoadFile.clicked.connect(self.btnLoadFileonClick)
+        self.ui.btnQuickScreenshot.clicked.connect(self.btnQuickScreenshotOnClick)
+
+        self.ui.btnDrawAxes.clicked.connect(self.btnDrawAxesOnClick)
+
         self.ui.btnTranslate.clicked.connect(self.btnTranslateonClick)
         self.ui.btnRotate.clicked.connect(self.btnRotateOnClick)
         self.ui.btnScale.clicked.connect(self.btnScaleOnClick)
+        self.ui.btnSelect.clicked.connect(self.btnSelectOnClick)
+        self.ui.btnPan.clicked.connect(self.btnPanOnClick)
+
         self.ui.btnDebug.clicked.connect(self.pauseBtnOnClick)
         self.ui.btnAlignX.clicked.connect(self.btnAlignXOnClick)
         self.ui.btnAlignY.clicked.connect(self.btnAlignYOnClick)
         self.ui.comboAnchor.currentTextChanged.connect(self.handleAnchorCombo)
-        self.ui.btnLoadFile.clicked.connect(self.btnLoadFileonClick)
         self.ui.btnWorldCoords.clicked.connect(self.btnWorldCoordsOnClick)
+
         self.ui.btnCustTransform.clicked.connect(self.btnCustTransformOnClick)
 
         self.mainTransformation = Qg.QTransform()
@@ -65,6 +81,7 @@ class MainWindow1(Qw.QMainWindow):
         self.anchorMode = AnchorMode.origin
         self.currentAnchor = Qc.QPointF(0, 0)
         self.useGlobalCoords = True
+        self.drawAxes = True
 
         self.finalPixmap = None
         self.preCanvasPixmap = None
@@ -73,9 +90,16 @@ class MainWindow1(Qw.QMainWindow):
         self.drawObjects = {}
         self.xasyDrawObj = {'drawDict': self.drawObjects}
 
-        self.asyModes = {'Select', 'Pan', 'Translate', 'Rotate', 'Scale'}
-        self.modeButtons = {self.ui.btnTranslate, self.ui.btnRotate, self.ui.btnScale}
-        self.currentMode = 'Translate'
+        self.modeButtons = {self.ui.btnTranslate, self.ui.btnRotate, self.ui.btnScale, self.ui.btnSelect,
+                            self.ui.btnPan}
+        self.objButtons = {self.ui.btnCustTransform}
+        self.currentMode = SelectionMode.translate
+        self.setObjButtonsEnabled(False)
+
+    def btnQuickScreenshotOnClick(self):
+        saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save Screenshot', Qc.QDir.homePath())
+        if saveLocation[0]:
+            self.ui.imgLabel.pixmap().save(saveLocation[0])
 
     def btnLoadFileonClick(self):
         fileName = Qw.QFileDialog.getOpenFileName(self, 'Open Asymptote File', Qc.QDir.homePath(), '*.asy')
@@ -104,7 +128,7 @@ class MainWindow1(Qw.QMainWindow):
         assert isinstance(mouseEvent, Qg.QMouseEvent)
         if self.inMidTransformation:
             canvasPos = self.getCanvasCoordinates()
-            if self.currentMode == 'Translate':
+            if self.currentMode == SelectionMode.translate:
                 newPos = canvasPos - self.savedMousePosition
                 self.tx, self.ty = newPos.x(), newPos.y()
                 if self.lockX:
@@ -113,7 +137,7 @@ class MainWindow1(Qw.QMainWindow):
                     self.ty = 0
                 self.tmpboundingBoxTransform = Qg.QTransform.fromTranslate(self.tx, self.ty)
 
-            elif self.currentMode == 'Rotate':
+            elif self.currentMode == SelectionMode.rotate:
                 adjustedSavedMousePos = self.savedMousePosition - self.currentAnchor
                 adjustedCanvasCoords = canvasPos - self.currentAnchor
                 origAngle = np.arctan2(adjustedSavedMousePos.y(), adjustedSavedMousePos.x())
@@ -121,7 +145,7 @@ class MainWindow1(Qw.QMainWindow):
                 self.deltaAngle = newAng - origAngle
                 self.tmpboundingBoxTransform = xT.makeRotTransform(self.deltaAngle, self.currentAnchor).toQTransform()
 
-            elif self.currentMode == 'Scale':
+            elif self.currentMode == SelectionMode.scale:
                 scaleFactor = Qc.QPoint.dotProduct(canvasPos, self.savedMousePosition) /\
                                    (self.savedMousePosition.manhattanLength() ** 2)
                 if not self.lockX:
@@ -141,10 +165,19 @@ class MainWindow1(Qw.QMainWindow):
     def mouseReleaseEvent(self, mouseEvent):
         assert isinstance(mouseEvent, Qg.QMouseEvent)
         if self.inMidTransformation:
-            self.releaseTransform()
+            if self.tmpboundingBoxTransform is not None:
+                self.releaseTransform()
             self.currentBoundingBox = None
             self.tmpboundingBoxTransform = None
         self.inMidTransformation = False
+        self.quickUpdate()
+
+    def clearSelection(self):
+        if self.tmpboundingBoxTransform is not None:
+            self.releaseTransform()
+        self.setObjButtonsEnabled(False)
+        self.currentBoundingBox = None
+        self.tmpboundingBoxTransform = None
         self.quickUpdate()
 
     def mousePressEvent(self, mouseEvent):
@@ -153,9 +186,16 @@ class MainWindow1(Qw.QMainWindow):
         selectedKey = self.selectObject()
         if selectedKey is not None:
             self.localTransform = Qg.QTransform()
-            self.inMidTransformation = True
+
+            if self.currentMode in {SelectionMode.translate, SelectionMode.rotate, SelectionMode.scale}:
+                self.setObjButtonsEnabled(False)
+                self.inMidTransformation = True
+            else:
+                self.setObjButtonsEnabled(True)
+                self.inMidTransformation = False
             obj, ID = self.drawObjects[selectedKey].originalObj
             self.currentlySelectedObj['ord'] = ID
+            self.currentlySelectedObj['selectedKey'] = selectedKey
             self.savedMousePosition = self.getCanvasCoordinates()
             self.currentBoundingBox = self.drawObjects[selectedKey].boundingBox
 
@@ -169,7 +209,11 @@ class MainWindow1(Qw.QMainWindow):
 
                 if self.anchorMode != AnchorMode.origin:
                     self.currentAnchor = self.localTransform.inverted()[0].map(self.currentAnchor)
-
+        else:
+            self.setObjButtonsEnabled(False)
+            self.currentBoundingBox = None
+            self.tmpboundingBoxTransform = None
+            self.inMidTransformation = False
         self.totalUpdate()
 
     def releaseTransform(self):
@@ -201,6 +245,10 @@ class MainWindow1(Qw.QMainWindow):
         if keyEvent.key() == Qc.Qt.Key_S:
             self.selectObject()
 
+    def setObjButtonsEnabled(self, enabled=True):
+        for button in self.objButtons:
+            button.setEnabled(enabled)
+
     def selectObject(self):
         if not self.ui.imgLabel.underMouse():
             return
@@ -222,22 +270,22 @@ class MainWindow1(Qw.QMainWindow):
         canvasPos = self.ui.imgLabel.mapFrom(self, uiPos)
         return canvasPos * self.mainTransformation.inverted()[0]
 
-    def rotateBtnOnClick(self):
-        theta = float(self.ui.txtTheta.toPlainText())
-        objectID = int(self.ui.txtObjectID.toPlainText())
-        self.rotateObject(0, objectID, theta, (0, 0))
-        self.populateCanvasWithItems()
-        self.ui.imgLabel.setPixmap(self.canvasPixmap)
+    # def rotateBtnOnClick(self):
+    #     theta = float(self.ui.txtTheta.toPlainText())
+    #     objectID = int(self.ui.txtObjectID.toPlainText())
+    #     self.rotateObject(0, objectID, theta, (0, 0))
+    #     self.populateCanvasWithItems()
+    #     self.ui.imgLabel.setPixmap(self.canvasPixmap)
 
-    def custTransformBtnOnClick(self):
-        xx = float(self.ui.lineEditMatXX.text())
-        xy = float(self.ui.lineEditMatXY.text())
-        yx = float(self.ui.lineEditMatYX.text())
-        yy = float(self.ui.lineEditMatYY.text())
-        tx = float(self.ui.lineEditTX.text())
-        ty = float(self.ui.lineEditTY.text())
-        objectID = int(self.ui.txtObjectID.toPlainText())
-        self.transformObject(0, objectID, x2a.asyTransform((tx, ty, xx, xy, yx, yy)))
+    # def custTransformBtnOnClick(self):
+    #     xx = float(self.ui.lineEditMatXX.text())
+    #     xy = float(self.ui.lineEditMatXY.text())
+    #     yx = float(self.ui.lineEditMatYX.text())
+    #     yy = float(self.ui.lineEditMatYY.text())
+    #     tx = float(self.ui.lineEditTX.text())
+    #     ty = float(self.ui.lineEditTY.text())
+    #     objectID = int(self.ui.txtObjectID.toPlainText())
+    #     self.transformObject(0, objectID, x2a.asyTransform((tx, ty, xx, xy, yx, yy)))
 
     def totalUpdate(self):
         self.preDraw(self.mainCanvas)
@@ -272,9 +320,10 @@ class MainWindow1(Qw.QMainWindow):
         # preCanvas = Qg.QPainter(self.preCanvasPixmap)
         preCanvas.setTransform(self.mainTransformation)
 
-        preCanvas.setPen(Qc.Qt.gray)
-        preCanvas.drawLine(Qc.QLine(-9999, 0, 9999, 0))
-        preCanvas.drawLine(Qc.QLine(0, -9999, 0, 9999))
+        if self.drawAxes:
+            preCanvas.setPen(Qc.Qt.gray)
+            preCanvas.drawLine(Qc.QLine(-9999, 0, 9999, 0))
+            preCanvas.drawLine(Qc.QLine(0, -9999, 0, 9999))
 
         # preCanvas.end()
 
@@ -301,15 +350,22 @@ class MainWindow1(Qw.QMainWindow):
         postCanvas.end()
 
     def pauseBtnOnClick(self):
-        print('Supposed to pause execution. Set breakpoint here.')
+        pass
 
     def updateChecks(self):
-        if self.currentMode == 'Translate':
+        if self.currentMode == SelectionMode.translate:
             activeBtn = self.ui.btnTranslate
-        elif self.currentMode == 'Rotate':
+        elif self.currentMode == SelectionMode.rotate:
             activeBtn = self.ui.btnRotate
-        elif self.currentMode == 'Scale':
+        elif self.currentMode == SelectionMode.scale:
             activeBtn = self.ui.btnScale
+        elif self.currentMode == SelectionMode.pan:
+            activeBtn = self.ui.btnPan
+        elif self.currentMode == SelectionMode.select:
+            activeBtn = self.ui.btnSelect
+        else:
+            activeBtn = None
+
         for button in self.modeButtons:
             if button is not activeBtn:
                 button.setChecked(False)
@@ -331,29 +387,49 @@ class MainWindow1(Qw.QMainWindow):
             self.ui.statusbar.showMessage('Disabled Lock on Y')
 
     def btnTranslateonClick(self):
-        self.currentMode = 'Translate'
+        self.currentMode = SelectionMode.translate
         self.ui.statusbar.showMessage('Translate Mode')
+        self.clearSelection()
         self.updateChecks()
 
     def btnRotateOnClick(self):
-        self.currentMode = 'Rotate'
+        self.currentMode = SelectionMode.rotate
         self.ui.statusbar.showMessage('Rotate Mode')
+        self.clearSelection()
         self.updateChecks()
 
     def btnScaleOnClick(self):
-        self.currentMode = 'Scale'
+        self.currentMode = SelectionMode.scale
         self.ui.statusbar.showMessage('Scale Mode')
+        self.clearSelection()
+        self.updateChecks()
+
+    def btnPanOnClick(self):
+        self.currentMode = SelectionMode.pan
+        self.clearSelection()
+        self.updateChecks()
+
+    def btnSelectOnClick(self):
+        self.currentMode = SelectionMode.select
         self.updateChecks()
 
     def btnWorldCoordsOnClick(self, checked):
         self.useGlobalCoords = checked
+
+    def btnDrawAxesOnClick(self, checked):
+        self.drawAxes = checked
+        self.totalUpdate()  # want to do quick update, but still have to figure out how to properly have preCanvas as
+        # separate pixmap without having conflict with Qt.
 
     def btnCustTransformOnClick(self):
         matrixDialog = CustMatTransform.CustMatTransform()
         matrixDialog.show()
         result = matrixDialog.exec_()
         if result == Qw.QDialog.Accepted:
-            print(matrixDialog.getTransformationMatrix())
+            objIndex = self.currentlySelectedObj['ord']
+            self.transformObject(0, objIndex, matrixDialog.getTransformationMatrix(), not self.useGlobalCoords)
+        self.currentBoundingBox = self.drawObjects[self.currentlySelectedObj['selectedKey']].boundingBox
+        self.quickUpdate()
 
     def transformObject(self, itemIndex, objIndex, transform, applyFirst=False):
         item = self.fileItems[itemIndex]
