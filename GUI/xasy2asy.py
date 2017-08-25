@@ -162,6 +162,14 @@ class asyTransform:
         """Equivalent functionality to getCode(). It allows the expression str(asyTransform) to be meaningful."""
         return self.getCode()
 
+    def isIdentity(self):
+        return (self.x == 0) and (self.y == 0) and \
+               (self.xx == 1) and (self.xy == 0) and \
+               (self.yx == 0) and (self.yy == 1)
+
+    def inverted(self):
+        return asyTransform.fromQTransform(self.toQTransform().inverted()[0])
+
     def __mul__(self, other):
         """Define multiplication of transforms as composition."""
         if type(other) == type((0,)):
@@ -481,6 +489,7 @@ class xasyItem:
                     inputTransform = self.transform[count]
                 else:
                     inputTransform = identity()
+
                 self.onCanvas['drawDict'][idTag] = DrawObject(currImage.iqt, self.onCanvas['canvas'], inputTransform,
                                                               Qc.QPointF(bbox[0], bbox[2]), count)
                 self.onCanvas['drawDict'][idTag].originalObj = self, count
@@ -753,10 +762,10 @@ class xasyText(xasyItem):
 
     def removeFromCanvas(self):
         """Removes the label's images from a tk canvas"""
-        if self.onCanvas == None:
+        if self.onCanvas is None:
             return
         for image in self.imageList:
-            if image.IDTag != None:
+            if image.IDTag is not None:
                 self.onCanvas.delete(image.IDTag)
 
     def drawOnCanvas(self, canvas, mag, asyFy=True, forceAddition=False):
@@ -847,31 +856,63 @@ class DrawObject:
                  drawOrder=-1):
         self.drawObject = drawObject
         self.mainCanvas = mainCanvas
-        self.transform = transform
+        self.pTransform = transform
+        self.baseTransform = transform
         self.drawOrder = drawOrder
         self.btmRightAnchor = btmRightanchor
         self.originalObj = None
-        self.useCanvasTransform = False
+        self.useCanvasTransformation = False
+
+    def getInteriorScrTransform(self, transform):
+        """Generates the transform with Interior transform applied beforehand."""
+        if isinstance(transform, Qg.QTransform):
+            transform = asyTransform.fromQTransform(transform)
+        return self.transform * transform * self.baseTransform.inverted()
+
+    @property
+    def transform(self):
+        return self.pTransform
+
+    @transform.setter
+    def transform(self, value):
+        self.pTransform = value
 
     @property
     def boundingBox(self):
         testBbox = self.drawObject.rect()
         testBbox.moveTo(self.btmRightAnchor.toPoint())
-        return testBbox
+        pointList = [self.getScreenTransform().toQTransform().map(point) for point in [
+            testBbox.topLeft(), testBbox.topRight(), testBbox.bottomLeft(), testBbox.bottomRight()
+        ]]
+        newBbox = Qg.QPolygonF(pointList)
+        return newBbox.boundingRect()
 
-    def draw(self):
-        assert isinstance(self.mainCanvas, Qg.QPainter)
-        if self.useCanvasTransform:
-            self.mainCanvas.save()
-            self.mainCanvas.setTransform(self.transform.toQTransform(), True)
-        self.mainCanvas.drawImage(self.btmRightAnchor, self.drawObject)
-        if self.useCanvasTransform:
-            self.mainCanvas.restore()
-
-    def collide(self, coords, canvasCoordinates=True):
+    @property
+    def localBoundingBox(self):
         testBbox = self.drawObject.rect()
         testBbox.moveTo(self.btmRightAnchor.toPoint())
-        return testBbox.contains(coords)
+        return testBbox
+
+    def getScreenTransform(self):
+        scrTransf = self.baseTransform.toQTransform().inverted()[0] * self.pTransform.toQTransform()
+        return asyTransform.fromQTransform(scrTransf)
+
+    def draw(self, additionalTransformation=Qg.QTransform(), applyReverse=False):
+        assert isinstance(self.mainCanvas, Qg.QPainter)
+        self.mainCanvas.save()
+        if not applyReverse:
+            self.mainCanvas.setTransform(additionalTransformation, True)
+            self.mainCanvas.setTransform(self.transform.toQTransform(), True)
+        else:
+            self.mainCanvas.setTransform(self.transform.toQTransform(), True)
+            self.mainCanvas.setTransform(additionalTransformation, True)
+
+        self.mainCanvas.setTransform(self.baseTransform.toQTransform().inverted()[0], True)
+        self.mainCanvas.drawImage(self.btmRightAnchor, self.drawObject)
+        self.mainCanvas.restore()
+
+    def collide(self, coords, canvasCoordinates=True):
+        return self.boundingBox.contains(coords)
 
     def getID(self):
         return self.originalObj

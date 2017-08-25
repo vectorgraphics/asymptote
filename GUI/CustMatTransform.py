@@ -14,15 +14,14 @@ class CustMatTransform(Qw.QDialog):
 
         self.ui.btnAccept.clicked.connect(self.accept)
         self.ui.btnCancel.clicked.connect(self.reject)
+        self.ui.btnReset.clicked.connect(self.resetDialog)
 
         self.mainTransformation = Qg.QTransform()
         self.mainTransformation.scale(1, -1)
 
         self.matrixLineInputs = [
-            self.ui.lineMat00, self.ui.lineMat01, self.ui.lineMat02,
-            self.ui.lineMat10, self.ui.lineMat11, self.ui.lineMat12,
-            self.ui.lineMat20, self.ui.lineMat21, self.ui.lineMat22
-        ]
+            self.ui.lineMat00, self.ui.lineMat01, self.ui.lineMatTx,
+            self.ui.lineMat10, self.ui.lineMat11, self.ui.lineMatTy]
 
         validator = Qg.QDoubleValidator()
         for lineInput in self.matrixLineInputs:
@@ -73,6 +72,17 @@ class CustMatTransform(Qw.QDialog):
 
         self.ui.imgPreview.setPixmap(self.previewPixmap)
 
+    def resetDialog(self):
+        self.ui.lineMatTx.setText('0')
+        self.ui.lineMatTx.setText('0')
+
+        self.ui.lineMat00.setText('1')
+        self.ui.lineMat01.setText('0')
+        self.ui.lineMat10.setText('0')
+        self.ui.lineMat11.setText('1')
+
+        self.updatePreview()
+
     def drawBasicGrid(self, canvas, grid=True):
         canvas.drawLine(Qc.QLine(-9999, 0, 9999, 0))
         canvas.drawLine(Qc.QLine(0, -9999, 0, 9999))
@@ -86,4 +96,5 @@ class CustMatTransform(Qw.QDialog):
 
     def getTransformationMatrix(self):
         rawMatrixNum = [float(lineInput.text()) for lineInput in self.matrixLineInputs]
+        rawMatrixNum.extend([0, 0, 1])
         return np.matrix(rawMatrixNum).reshape((3, 3))
