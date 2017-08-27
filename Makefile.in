@@ -20,7 +20,9 @@ PERL = perl
 # We have to remove OpenGL, threading, GC, etc from this.
 SHAREDLIBS = $(filter-out -lGL -lGLU -lglut -pthread $(GCLIBS), $(LIBS))
 
-vpath %.cc prc
+vpath %.cc prc 
+vpath %.ui GUI/windows
+vpath %.py GUI/pyUIClass
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill path3 drawpath3 drawsurface \
@@ -50,6 +52,7 @@ DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
         allsymbols.h opsymbols.h $(SYMBOL_FILES:=.symbols.h) 
 NAME = asy
 XNAME = x$(NAME)
+UIFILES = custMatTransform window1 window1Final
 CLEAN = camp.output base/version.asy doc/version.texi \
         GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
@@ -113,7 +116,7 @@ asy:	version
 	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS); \
 	fi
 
-version: $(GCLIB) $(FILES:=.o)
+version: $(GCLIB) $(FILES:=.o) $(UIFILES:=.py)
 	if test ! -s revision.cc -o "$(revision)" != "$(last)"; then     \
 	  echo $(REVISION)\"$(revision)\"\; > revision.cc; \
 	fi
@@ -313,7 +316,7 @@ check-all: asy FORCE
 	./wce
 	$(MAKE) -C tests all
 
-.SUFFIXES: .c .cc .o .d
+.SUFFIXES: .c .cc .o .d .ui .py
 .cc.o:
 	$(CXX) $(OPTS) $(INCL) -o $@ -c $<
 .cc.d:
@@ -328,6 +331,9 @@ check-all: asy FORCE
 	${CC} $(MAKEDEPEND) $(INCL) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
+.ui.py:
+	mkdir -p GUI/pyUIClass
+	pyuic5 -o GUI/pyUIClass/$@ $<
 
 # Compile for the shared library.  OpenGL must be disabled as it causes
 # crashes inside a shared library.
