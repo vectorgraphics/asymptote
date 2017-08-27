@@ -899,6 +899,8 @@ class DrawObject:
 
     def draw(self, additionalTransformation=Qg.QTransform(), applyReverse=False):
         assert isinstance(self.mainCanvas, Qg.QPainter)
+        assert self.mainCanvas.isActive()
+
         self.mainCanvas.save()
         if not applyReverse:
             self.mainCanvas.setTransform(additionalTransformation, True)
