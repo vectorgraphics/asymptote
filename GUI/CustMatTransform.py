@@ -40,11 +40,13 @@ class CustMatTransform(Qw.QDialog):
         self.mainTransformation.translate(tx, -ty)
 
     def handleUpdateText(self, text):
-        if str(text) not in {'.', '-', '.-'} and str(text):
+        if str(text) not in {'.', '-', '.-', '-.'} and str(text):
             self.updatePreview()
+            self.ui.btnAccept.setEnabled(True)
         else:
             self.previewPixmap.fill()
             self.ui.imgPreview.setPixmap(self.previewPixmap)
+            self.ui.btnAccept.setEnabled(False)
 
     def updatePreview(self):
         self.previewPixmap.fill()
@@ -80,8 +82,6 @@ class CustMatTransform(Qw.QDialog):
         self.ui.lineMat01.setText('0')
         self.ui.lineMat10.setText('0')
         self.ui.lineMat11.setText('1')
-
-        self.updatePreview()
 
     def drawBasicGrid(self, canvas, grid=True):
         canvas.drawLine(Qc.QLine(-9999, 0, 9999, 0))
