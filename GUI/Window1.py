@@ -5,6 +5,7 @@ import numpy as np
 import os
 import xasy2asy as x2a
 import xasyFile as xf
+import UndoRedoStack as Urs
 import json
 import io
 import pathlib
@@ -15,6 +16,17 @@ import webbrowser
 
 import CustMatTransform
 import SetCustomAnchor
+import BeizerCurveEditor
+
+class ActionChanges:
+    pass
+
+
+class TransformationChanges(ActionChanges):
+    def __init__(self, objKey, transformation, isLocal=False):
+        self.objKey = objKey
+        self.transformation = transformation
+        self.isLocal = isLocal
 
 
 class AnchorMode:
@@ -61,6 +73,8 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.actionEnterCommand.triggered.connect(self.enterCustomCommand)
 
         # Button initialization
+        self.ui.btnUndo.clicked.connect(self.btnUndoOnClick)
+        self.ui.btnRedo.clicked.connect(self.btnRedoOnClick)
         self.ui.btnLoadFile.clicked.connect(self.btnLoadFileonClick)
         self.ui.btnSave.clicked.connect(self.btnSaveOnClick)
         self.ui.btnQuickScreenshot.clicked.connect(self.btnQuickScreenshotOnClick)
@@ -84,6 +98,8 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnViewCode.clicked.connect(self.btnLoadEditorOnClick)
         self.ui.btnAnchor.clicked.connect(self.btnCustomAnchorOnClick)
 
+        self.ui.btnCreateCurve.clicked.connect(self.btnCreateCurveOnClick)
+
         self.mainTransformation = Qg.QTransform()
         self.mainTransformation.scale(1, -1)
 
@@ -102,6 +118,8 @@ class MainWindow1(Qw.QMainWindow):
         self.deltaAngle = 0
         self.scaleFactor = 1
 
+        self.undoRedoStack = Urs.actionStack()
+
         self.lockX = False
         self.lockY = False
         self.anchorMode = AnchorMode.origin
@@ -112,6 +130,8 @@ class MainWindow1(Qw.QMainWindow):
         self.finalPixmap = None
         self.preCanvasPixmap = None
         self.postCanvasPixmap = None
+
+        self.previewCurve = None
 
         self.drawObjects = {}
         self.xasyDrawObj = {'drawDict': self.drawObjects}
@@ -126,10 +146,78 @@ class MainWindow1(Qw.QMainWindow):
 
         self.loadSettings()
 
+    def btnCreateCurveOnClick(self):
+        self.inCurveCreationMode = True
+        curveDialog = BeizerCurveEditor.BeizerCurveEditor()
+        curveDialog.curveChanged.connect(self.updateCurve)
+        curveDialog.show()
+        result = curveDialog.exec_()
+
+        self.inCurveCreationMode = False
+        self.previewCurve = None
+        self.quickUpdate()
+
+    def updateCurve(self, valid, newCurve):
+        self.previewCurve = newCurve
+        self.quickUpdate()
+
+    def addTransformationChanges(self, objKey, transform, isLocal=False):
+        self.undoRedoStack.add(self.createAction(TransformationChanges(objKey, transform, isLocal)))
+        self.checkUndoRedoButtons()
+
+    def btnUndoOnClick(self):
+        self.undoRedoStack.undo()
+        self.checkUndoRedoButtons()
+
+    def btnRedoOnClick(self):
+        self.undoRedoStack.redo()
+        self.checkUndoRedoButtons()
+
+    def checkUndoRedoButtons(self):
+        if self.undoRedoStack.changesMade():
+            self.ui.btnUndo.setEnabled(True)
+        else:
+            self.ui.btnUndo.setEnabled(False)
+
+        if len(self.undoRedoStack.redoStack) > 0:
+            self.ui.btnRedo.setEnabled(True)
+        else:
+            self.ui.btnRedo.setEnabled(False)
+
+    def handleUndoChanges(self, change):
+        assert isinstance(change, ActionChanges)
+        if isinstance(change, TransformationChanges):
+            self.transformObject(change.objKey, change.transformation.inverted(), change.isLocal)
+        self.quickUpdate()
+
+    def handleRedoChanges(self, change):
+        assert isinstance(change, ActionChanges)
+        if isinstance(change, TransformationChanges):
+            self.transformObject(change.objKey, change.transformation, change.isLocal)
+        self.quickUpdate()
+
+    #  is this a "pythonic" way?
+    def createAction(self, changes):
+        def _change():
+            return self.handleRedoChanges(changes)
+
+        def _undoChange():
+            return self.handleUndoChanges(changes)
+
+        return Urs.action((_change, _undoChange))
+
     def execCustomCommand(self, command):
         if command == 'xasy:testPan':
             self.adjustTransform(Qg.QTransform.fromTranslate(100, 100))
             self.quickUpdate()
+        elif command == 'xasy:undo':
+            self.undoRedoStack.undo()
+        elif command == 'xasy:redo':
+            self.undoRedoStack.redo()
+        elif command == 'xasy:showBeizerEditor':
+            editor = BeizerCurveEditor.BeizerCurveEditor()
+            editor.show()
+            editor.exec_()
         elif command == 'xasy:pause':
             pass
         else:
@@ -349,7 +437,9 @@ class MainWindow1(Qw.QMainWindow):
 
     def releaseTransform(self):
         newTransform = x2a.asyTransform.fromQTransform(self.newTransform)
-        self.transformObject(self.currentlySelectedObj['selectedKey'], newTransform, not self.useGlobalCoords)
+        objKey = self.currentlySelectedObj['selectedKey']
+        self.addTransformationChanges(objKey, newTransform, not self.useGlobalCoords)
+        self.transformObject(objKey, newTransform, not self.useGlobalCoords)
 
     def adjustTransform(self, appendTransform):
         self.screenTransformation = self.screenTransformation * appendTransform
@@ -383,6 +473,8 @@ class MainWindow1(Qw.QMainWindow):
         assert isinstance(keyEvent, Qg.QKeyEvent)
         if keyEvent.key() == Qc.Qt.Key_S:
             self.selectObject()
+        elif keyEvent.key() == Qc.Qt.Key_F1:
+            self.enterCustomCommand()
 
     def selectObject(self):
         if not self.ui.imgLabel.underMouse():
@@ -517,6 +609,8 @@ class MainWindow1(Qw.QMainWindow):
                 postCanvas.setTransform(self.newTransform, True)
                 postCanvas.drawRect(self.currentBoundingBox)
             postCanvas.restore()
+        if self.previewCurve is not None:
+            postCanvas.drawPath(self.previewCurve)
         postCanvas.end()
 
     def updateChecks(self):

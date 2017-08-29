@@ -83,6 +83,9 @@
         </property>
         <item>
          <widget class="QPushButton" name="btnUndo">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
             <horstretch>0</horstretch>
@@ -123,9 +126,9 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="btnRedo">
           <property name="enabled">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1361,6 +1364,32 @@
             <property name="icon">
              <iconset resource="../res/icons.qrc">
               <normaloff>:/entypo/Entypo+/Entypo+/image-inverted.svg</normaloff>:/entypo/Entypo+/Entypo+/image-inverted.svg</iconset>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QPushButton" name="btnCreateCurve">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../res/icons.qrc">
+              <normaloff>:/icons2/zondicons/pen-tool.svg</normaloff>:/icons2/zondicons/pen-tool.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
