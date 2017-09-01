@@ -1,7 +1,7 @@
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
-from pyUIClass.beizerCurveEditor import Ui_Form
+from pyUIClass.bezierCurveEditor import Ui_Form
 import BezierPointEditor
 
 
