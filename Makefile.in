@@ -52,7 +52,7 @@ DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
         allsymbols.h opsymbols.h $(SYMBOL_FILES:=.symbols.h) 
 NAME = asy
 XNAME = x$(NAME)
-UIFILES = custMatTransform window1 window1Final
+UIFILES = custMatTransform window1 window1Final setCustomAnchor
 CLEAN = camp.output base/version.asy doc/version.texi \
         GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
