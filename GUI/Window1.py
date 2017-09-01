@@ -18,6 +18,7 @@ import CustMatTransform
 import SetCustomAnchor
 import BezierCurveEditor
 
+
 class ActionChanges:
     pass
 
@@ -231,11 +232,7 @@ class MainWindow1(Qw.QMainWindow):
             self.undoRedoStack.undo()
         elif command == 'xasy:redo':
             self.undoRedoStack.redo()
-<<<<<<< HEAD
-        elif command == 'xasy:showBeizerEditor':
-=======
         elif command == 'xasy:showBezierEditor':
->>>>>>> 093568e25e61c860b896497264b19ea4f078c0ac
             editor = BezierCurveEditor.BezierCurveEditor()
             editor.show()
             editor.exec_()
