@@ -1120,7 +1120,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="btnGenTransform_2">
+         <widget class="QPushButton" name="btnSelectColor">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
             <horstretch>0</horstretch>

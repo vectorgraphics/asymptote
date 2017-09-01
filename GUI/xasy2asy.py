@@ -21,6 +21,8 @@ from tkinter import *
 import queue
 import CubicBezier
 
+import BezierCurveEditor
+
 quickAsyFailed = True
 global AsyTempDir
 
@@ -287,6 +289,38 @@ class asyPath(asyObj):
         self.linkSet = []
         self.controlSet = []
         self.computed = False
+
+    @classmethod
+    def fromBezierPoints(cls, pointList):
+        if False:
+            pointList = [BezierCurveEditor.BezierPoint()]
+            # for type detection
+        nodeList = []
+        controlList = []
+        for point in pointList:
+            nodeList.append(BezierCurveEditor.QPoint2Tuple(point.point))
+            if point.rCtrlPoint is not None:  # first
+                controlList.append([BezierCurveEditor.QPoint2Tuple(point.rCtrlPoint)])
+            if point.lCtrlPoint is not None:  # last
+                controlList[-1].append(BezierCurveEditor.QPoint2Tuple(point.lCtrlPoint))
+        newPath = asyPath()
+        newPath.initFromControls(nodeList, controlList)
+        return newPath
+
+    def toQPainterPath(self):
+        if not self.computed:
+            self.computeControls()
+
+        baseX, baseY = self.nodeSet[0]
+        painterPath = Qg.QPainterPath(Qc.QPointF(baseX, baseY))
+
+        for pointIndex in range(1, len(self.nodeSet)):
+            endPoint = Qc.QPointF(self.nodeSet[pointIndex][0], self.nodeSet[pointIndex][1])
+            ctrlPoint1 = Qc.QPointF(self.controlSet[pointIndex-1][0][0], self.controlSet[pointIndex-1][0][1])
+            ctrlPoint2 = Qc.QPointF(self.controlSet[pointIndex-1][1][0], self.controlSet[pointIndex-1][1][1])
+
+            painterPath.cubicTo(ctrlPoint1, ctrlPoint2, endPoint)
+        return painterPath
 
     def initFromNodeList(self, nodeSet, linkSet):
         """Initialize the path from a set of nodes and link types, "--", "..", or "::" """
@@ -581,7 +615,7 @@ class xasyDrawnItem(xasyItem):
         else:
             self.path.nodeSet.append(point)
         self.path.computed = False
-        if len(self.path.nodeSet) > 1 and link != None:
+        if len(self.path.nodeSet) > 1 and link is not None:
             self.path.linkSet.append(link)
 
     def clearTransform(self):
@@ -620,14 +654,12 @@ class xasyShape(xasyDrawnItem):
 
     def removeFromCanvas(self, canvas):
         """Remove the shape's depiction from a tk canvas"""
-        if self.IDTag != None:
+        if self.IDTag is not None:
             canvas.delete(self.IDTag)
 
     def drawOnCanvas(self, canvas, mag, asyFy=False, forceAddition=False):
         """Add this shape to a Qt (not TK anymore) canvas"""
-        if False:
-            canvas = Qg.QPainter()
-
+          # for now. Drawing custom no longer needed (?) Use QPainterPath instead?
         if not asyFy:
             if self.IDTag is None or forceAddition:
                 # add ourselves to the canvas
@@ -638,35 +670,14 @@ class xasyShape(xasyDrawnItem):
                 self.drawOnCanvas(canvas, mag)
             else:
                 self.path.computeControls()
-                pointSet = []
-                previousNode = self.path.nodeSet[0]
-                nodeCount = 0
-                if len(self.path.nodeSet) == 0:
-                    pointSet = [0, 0, 0, 0]
-                elif len(self.path.nodeSet) == 1:
-                    if self.path.nodeSet[-1] != 'cycle':
-                        p = self.transform[0] * (self.path.nodeSet[0][0], self.path.nodeSet[0][1])
-                        pointSet = [p[0], -p[1], p[0], -p[1], p[0], -p[1]]
-                    else:
-                        pointSet = [0, 0, 0, 0]
-                else:
-                    for node in self.path.nodeSet[1:]:
-                        if node == 'cycle':
-                            node = self.path.nodeSet[0]
-                        transform = self.transform[0].scale(mag)
-                        points = CubicBezier.makeBezier(transform * previousNode,
-                                                        transform * self.path.controlSet[nodeCount][0],
-                                                        transform * self.path.controlSet[nodeCount][1],
-                                                        transform * node)
-                        for point in points:
-                            pointSet += [point[0], -point[1]]
-                        nodeCount += 1
-                        previousNode = node
-                canvas.coords(self.IDTag, *pointSet)
-                canvas.itemconfigure(self.IDTag, fill=self.pen.tkColor(), width=self.pen.width * mag)
-        else:
-            # first asyfy then add an image list
-            pass
+                self.IDTag = None
+                idTag = str(np.random.randint(0, 10000))  # for now
+
+                drawPriority = len(canvas['drawDict']) + 1
+                canvas['drawDict'][idTag] = DrawObject(self.path.toQPainterPath(), canvas['canvas'],
+                                                       drawOrder=drawPriority, transform=self.transform[0])
+                canvas['drawDict'][idTag].originalObj = self, 0
+                canvas['drawDict'][idTag].draw()
 
     def __str__(self):
         """Create a string describing this shape"""
@@ -879,13 +890,15 @@ class DrawObject:
 
     @property
     def boundingBox(self):
-        testBbox = self.drawObject.rect()
-        testBbox.moveTo(self.btmRightAnchor.toPoint())
+        if isinstance(self.drawObject, Qg.QImage):
+            testBbox = self.drawObject.rect()
+            testBbox.moveTo(self.btmRightAnchor.toPoint())
+        elif isinstance(self.drawObject, Qg.QPainterPath):
+            testBbox = self.baseTransform.toQTransform().mapRect(self.drawObject.boundingRect())
         pointList = [self.getScreenTransform().toQTransform().map(point) for point in [
             testBbox.topLeft(), testBbox.topRight(), testBbox.bottomLeft(), testBbox.bottomRight()
         ]]
-        newBbox = Qg.QPolygonF(pointList)
-        return newBbox.boundingRect()
+        return Qg.QPolygonF(pointList).boundingRect()
 
     @property
     def localBoundingBox(self):
@@ -910,7 +923,12 @@ class DrawObject:
             self.mainCanvas.setTransform(additionalTransformation, True)
 
         self.mainCanvas.setTransform(self.baseTransform.toQTransform().inverted()[0], True)
-        self.mainCanvas.drawImage(self.btmRightAnchor, self.drawObject)
+
+        if isinstance(self.drawObject, Qg.QImage):
+            self.mainCanvas.drawImage(self.btmRightAnchor, self.drawObject)
+        elif isinstance(self.drawObject, Qg.QPainterPath):
+            self.mainCanvas.drawPath(self.baseTransform.toQTransform().map(self.drawObject))
+
         self.mainCanvas.restore()
 
     def collide(self, coords, canvasCoordinates=True):

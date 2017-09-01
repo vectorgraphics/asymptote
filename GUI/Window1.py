@@ -16,7 +16,8 @@ import webbrowser
 
 import CustMatTransform
 import SetCustomAnchor
-import BeizerCurveEditor
+import BezierCurveEditor
+
 
 class ActionChanges:
     pass
@@ -27,6 +28,11 @@ class TransformationChanges(ActionChanges):
         self.objKey = objKey
         self.transformation = transformation
         self.isLocal = isLocal
+
+
+class ObjCreationChanges(ActionChanges):
+    def __init__(self, obj):
+        self.object = obj
 
 
 class AnchorMode:
@@ -98,6 +104,8 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnViewCode.clicked.connect(self.btnLoadEditorOnClick)
         self.ui.btnAnchor.clicked.connect(self.btnCustomAnchorOnClick)
 
+        self.ui.btnSelectColor.clicked.connect(self.btnColorSelectOnClick)
+
         self.ui.btnCreateCurve.clicked.connect(self.btnCreateCurveOnClick)
 
         self.mainTransformation = Qg.QTransform()
@@ -148,14 +156,20 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnCreateCurveOnClick(self):
         self.inCurveCreationMode = True
-        curveDialog = BeizerCurveEditor.BeizerCurveEditor()
+        curveDialog = BezierCurveEditor.BezierCurveEditor()
         curveDialog.curveChanged.connect(self.updateCurve)
         curveDialog.show()
         result = curveDialog.exec_()
 
+        if result == Qw.QDialog.Accepted:
+            asyCurve = x2a.asyPath.fromBezierPoints(curveDialog.createPointList())
+            newXasyObjCurve = x2a.xasyShape(asyCurve)
+            # print(newXasyObjCurve.getCode())
+            self.fileItems.append(newXasyObjCurve)
+
         self.inCurveCreationMode = False
         self.previewCurve = None
-        self.quickUpdate()
+        self.asyfyCanvas()
 
     def updateCurve(self, valid, newCurve):
         self.previewCurve = newCurve
@@ -188,12 +202,16 @@ class MainWindow1(Qw.QMainWindow):
         assert isinstance(change, ActionChanges)
         if isinstance(change, TransformationChanges):
             self.transformObject(change.objKey, change.transformation.inverted(), change.isLocal)
+        elif isinstance(change, ObjCreationChanges):
+            pass  # for now, until we implement a remove object/add object. This will be trivial
         self.quickUpdate()
 
     def handleRedoChanges(self, change):
         assert isinstance(change, ActionChanges)
         if isinstance(change, TransformationChanges):
             self.transformObject(change.objKey, change.transformation, change.isLocal)
+        elif isinstance(change, ObjCreationChanges):
+            pass  # for now, until we implement a remove/add method. By then, this will be trivial.
         self.quickUpdate()
 
     #  is this a "pythonic" way?
@@ -215,9 +233,11 @@ class MainWindow1(Qw.QMainWindow):
         elif command == 'xasy:redo':
             self.undoRedoStack.redo()
         elif command == 'xasy:showBeizerEditor':
-            editor = BeizerCurveEditor.BeizerCurveEditor()
+            editor = BezierCurveEditor.BezierCurveEditor()
             editor.show()
             editor.exec_()
+        elif command == 'xasy:quit' or command == 'xasy:exit':
+            Qc.QCoreApplication.exit()
         elif command == 'xasy:pause':
             pass
         else:
@@ -298,6 +318,9 @@ class MainWindow1(Qw.QMainWindow):
         if result == Qw.QDialog.Accepted:
             self.customAnchor = custAnchorDialog.getPoint()
             self.ui.comboAnchor.setCurrentText('Custom Anchor')
+
+    def btnColorSelectOnClick(self):
+        colorDialog = Qw.QColorDialog.getColor(Qc.Qt.black, self)
 
     def isReady(self):
         return self.mainCanvas is not None
@@ -480,7 +503,7 @@ class MainWindow1(Qw.QMainWindow):
         if not self.ui.imgLabel.underMouse():
             return
         canvasCoords = self.getCanvasCoordinates()
-        highestDrawPriority = -1
+        highestDrawPriority = -np.inf
         collidedObjKey = None
         for objKey in self.drawObjects:
             obj = self.drawObjects[objKey]
