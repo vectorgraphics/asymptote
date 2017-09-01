@@ -16,7 +16,7 @@ import webbrowser
 
 import CustMatTransform
 import SetCustomAnchor
-import BeizerCurveEditor
+import BezierCurveEditor
 
 class ActionChanges:
     pass
@@ -148,7 +148,7 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnCreateCurveOnClick(self):
         self.inCurveCreationMode = True
-        curveDialog = BeizerCurveEditor.BeizerCurveEditor()
+        curveDialog = BezierCurveEditor.BezierCurveEditor()
         curveDialog.curveChanged.connect(self.updateCurve)
         curveDialog.show()
         result = curveDialog.exec_()
@@ -214,8 +214,8 @@ class MainWindow1(Qw.QMainWindow):
             self.undoRedoStack.undo()
         elif command == 'xasy:redo':
             self.undoRedoStack.redo()
-        elif command == 'xasy:showBeizerEditor':
-            editor = BeizerCurveEditor.BeizerCurveEditor()
+        elif command == 'xasy:showBezierEditor':
+            editor = BezierCurveEditor.BezierCurveEditor()
             editor.show()
             editor.exec_()
         elif command == 'xasy:pause':
