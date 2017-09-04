@@ -659,12 +659,12 @@ class xasyShape(xasyDrawnItem):
 
     def drawOnCanvas(self, canvas, mag, asyFy=False, forceAddition=False):
         """Add this shape to a Qt (not TK anymore) canvas"""
-          # for now. Drawing custom no longer needed (?) Use QPainterPath instead?
+        # for now. Drawing custom no longer needed (?) Use QPainterPath instead?
         if not asyFy:
             if self.IDTag is None or forceAddition:
                 # add ourselves to the canvas
                 self.path.computeControls()
-                #self.IDTag = canvas.create_line(0, 0, 0, 0, tags=("drawn", "xasyShape"), fill=self.pen.tkColor(),
+                # self.IDTag = canvas.create_line(0, 0, 0, 0, tags=("drawn", "xasyShape"), fill=self.pen.tkColor(),
                 #                                width=self.pen.width * mag)
                 self.IDTag = Qc.QLine()
                 self.drawOnCanvas(canvas, mag)

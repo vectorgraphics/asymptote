@@ -75,7 +75,7 @@ class BezierPoint:
 class BezierCurveEditor(Qw.QDialog):
     curveChanged = Qc.pyqtSignal(bool, Qg.QPainterPath)
 
-    def __init__(self):
+    def __init__(self, useDegrees=False):
         super().__init__()
         self.ui = Ui_Form()
         self.ui.setupUi(self)
@@ -102,6 +102,7 @@ class BezierCurveEditor(Qw.QDialog):
         self.ui.treeViewPoints.setSelectionMode(Qw.QAbstractItemView.SingleSelection)
 
         self.pointCounter = 1
+        self.useDegrees = useDegrees
 
         self.updateGeometry()
 
@@ -163,7 +164,7 @@ class BezierCurveEditor(Qw.QDialog):
         return self.pointList
 
     def addPoint(self):
-        addPointDialog = BezierPointEditor.BezierPointEditor()
+        addPointDialog = BezierPointEditor.BezierPointEditor(useDegrees=self.useDegrees)
         addPointDialog.show()
         result = addPointDialog.exec_()
 

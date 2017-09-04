@@ -8,7 +8,7 @@ import numpy as np
 
 
 class BezierPointEditor(Qw.QDialog):
-    def __init__(self, basePointInformation=None):
+    def __init__(self, basePointInformation=None, useDegrees=False):
         assert isinstance(basePointInformation, BezierCurveEditor.BezierPoint) or basePointInformation is None
         super().__init__()
         self.ui = Ui_Form()
@@ -70,6 +70,8 @@ class BezierPointEditor(Qw.QDialog):
 
         self.selectionAngle = 0.0
         self.selectionMagnitude = 20.0
+
+        self.useDegrees = useDegrees
 
         self.drawAngleSelection()
 
@@ -164,6 +166,11 @@ class BezierPointEditor(Qw.QDialog):
             leXorA.setText(str(x))
             leYorM.setText(str(y))
 
+    def getUsrAngle(self, inputAngle):
+        if self.useDegrees:
+            inputAngle = np.deg2rad(inputAngle)
+        return inputAngle
+
     def createBtnSetRelative(self, leXorA , leYorM, lastPoint, checked):
         if checked:  # assuming cartesian mode here
             leXorA.setText(str(lastPoint.x() - self.lastSavedPoint.x()))
@@ -174,7 +181,7 @@ class BezierPointEditor(Qw.QDialog):
 
     def handleTextChange(self):
         if xV.validateFloat(self.ui.lineAngle.text()):
-            self.selectionAngle = float(self.ui.lineAngle.text())
+            self.selectionAngle = self.getUsrAngle(float(self.ui.lineAngle.text()))
 
         if xV.validateFloat(self.ui.lineMagnitude.text()):
             self.selectionMagnitude = float(self.ui.lineMagnitude.text())
@@ -203,7 +210,7 @@ class BezierPointEditor(Qw.QDialog):
         if forcePolar is None:
             forcePolar = self.ui.btnPointUsePolar.isChecked()
         if forcePolar:
-            ang = float(self.ui.linePointXorA.text())
+            ang = self.getUsrAngle(float(self.ui.linePointXorA.text()))
             mag = float(self.ui.linePointYorM.text())
             x = mag * np.cos(ang)
             y = mag * np.sin(ang)
@@ -224,7 +231,7 @@ class BezierPointEditor(Qw.QDialog):
             xOrA = float(lineXOrA.text())
             yOrM = float(lineYorM.text())
             if usePolar:
-                x, y = BezierPointEditor.polar2cartesian(xOrA, yOrM)
+                x, y = BezierPointEditor.polar2cartesian(self.getUsrAngle(xOrA), yOrM)
                 x = x + self.lastSavedPoint.x()
                 y = y + self.lastSavedPoint.y()
             else:

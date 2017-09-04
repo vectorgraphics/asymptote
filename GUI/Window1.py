@@ -54,9 +54,19 @@ class SelectionMode:
 
 
 class DefaultSettings:
+    defaultKeymap = {
+        'commandPalette': 'F1',
+        'quit': 'Ctrl+Q'
+    }
     defaultSettings = {
+        '_comment': 'Note: *ASYPATH will be replaced with the path to Asymptote file.',
         'externalEditor': 'gedit *ASYPATH',
-        'enableImmediatePreview': True
+
+        'enableImmediatePreview': True,
+        'useDegrees': False,
+        'terminalFont': 'Courier',
+        'terminalFontSize': 10,
+        'defaultShowGrid': True
     }
 
 
@@ -67,12 +77,21 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.setupUi(self)
 
         self.settings = DefaultSettings.defaultSettings
+        self.keyMaps = DefaultSettings.defaultKeymap
+        self.loadSettings()
 
         # For initialization purposes
         self.canvSize = Qc.QSize()
         self.filename = None
         self.mainCanvas = None
         self.canvasPixmap = None
+
+        # Actions
+
+        self.ui.actionQuit.triggered.connect(lambda: self.execCustomCommand('quit'))
+        self.ui.actionUndo.triggered.connect(lambda: self.execCustomCommand('undo'))
+        self.ui.actionRedo.triggered.connect(lambda: self.execCustomCommand('redo'))
+        self.ui.actionTransform.triggered.connect(lambda: self.execCustomCommand('transform'))
 
         self.ui.actionSaveAs.triggered.connect(self.actionSaveAs)
         self.ui.actionManual.triggered.connect(self.actionManual)
@@ -108,12 +127,20 @@ class MainWindow1(Qw.QMainWindow):
 
         self.ui.btnCreateCurve.clicked.connect(self.btnCreateCurveOnClick)
 
+        # Settings Initialization
+        terminalFont = Qg.QFont(self.settings['terminalFont'], self.settings['terminalFontSize'])
+        self.ui.plainTextEdit.setFont(terminalFont)
+
+        # Base Transformations
+
         self.mainTransformation = Qg.QTransform()
         self.mainTransformation.scale(1, -1)
 
         self.localTransform = Qg.QTransform()
 
         self.screenTransformation = Qg.QTransform()
+
+        # Internal Settings
 
         self.magnification = 1
         self.inMidTransformation = False
@@ -146,17 +173,33 @@ class MainWindow1(Qw.QMainWindow):
 
         self.modeButtons = {self.ui.btnTranslate, self.ui.btnRotate, self.ui.btnScale, self.ui.btnSelect,
                             self.ui.btnPan}
-        self.objButtons = {self.ui.btnCustTransform}
+        self.objButtons = {self.ui.btnCustTransform, self.ui.actionTransform}
         self.globalTransformOnlyButtons = (self.ui.comboAnchor, self.ui.btnAnchor)
 
         self.currentMode = SelectionMode.translate
         self.setAllInSetEnabled(self.objButtons, False)
 
-        self.loadSettings()
+        self.commandsFunc = {
+            'quit': Qc.QCoreApplication.quit,
+            'undo': self.undoRedoStack.undo,
+            'redo': self.undoRedoStack.redo,
+            'manual': self.actionManual,
+            'loadFile': self.btnLoadFileonClick,
+            'save': self.btnSaveOnClick,
+            'saveAs': self.actionSaveAs,
+            'transform': self.btnCustTransformOnClick,
+            'debug': self.debug,
+            'commandPalette': self.enterCustomCommand
+        }
+
+        self.loadKeyMaps()
+
+    def debug(self):
+        print('Put a breakpoint here.')
 
     def btnCreateCurveOnClick(self):
         self.inCurveCreationMode = True
-        curveDialog = BezierCurveEditor.BezierCurveEditor()
+        curveDialog = BezierCurveEditor.BezierCurveEditor(useDegrees=self.settings['useDegrees'])
         curveDialog.curveChanged.connect(self.updateCurve)
         curveDialog.show()
         result = curveDialog.exec_()
@@ -190,13 +233,17 @@ class MainWindow1(Qw.QMainWindow):
     def checkUndoRedoButtons(self):
         if self.undoRedoStack.changesMade():
             self.ui.btnUndo.setEnabled(True)
+            self.ui.actionUndo.setEnabled(True)
         else:
             self.ui.btnUndo.setEnabled(False)
+            self.ui.actionUndo.setEnabled(False)
 
         if len(self.undoRedoStack.redoStack) > 0:
             self.ui.btnRedo.setEnabled(True)
+            self.ui.actionRedo.setEnabled(True)
         else:
             self.ui.btnRedo.setEnabled(False)
+            self.ui.actionRedo.setEnabled(False)
 
     def handleUndoChanges(self, change):
         assert isinstance(change, ActionChanges)
@@ -225,23 +272,10 @@ class MainWindow1(Qw.QMainWindow):
         return Urs.action((_change, _undoChange))
 
     def execCustomCommand(self, command):
-        if command == 'xasy:testPan':
-            self.adjustTransform(Qg.QTransform.fromTranslate(100, 100))
-            self.quickUpdate()
-        elif command == 'xasy:undo':
-            self.undoRedoStack.undo()
-        elif command == 'xasy:redo':
-            self.undoRedoStack.redo()
-        elif command == 'xasy:showBezierEditor':
-            editor = BezierCurveEditor.BezierCurveEditor()
-            editor.show()
-            editor.exec_()
-        elif command == 'xasy:quit' or command == 'xasy:exit':
-            Qc.QCoreApplication.exit()
-        elif command == 'xasy:pause':
-            pass
+        if command in self.commandsFunc:
+            self.commandsFunc[command]()
         else:
-            self.ui.statusbar.showMessage('Command not found')
+            self.ui.statusbar.showMessage('Command {0} not found'.format(command))
 
     def enterCustomCommand(self):
         commandText, result = Qw.QInputDialog.getText(self, 'Enter Custom Command', 'Enter Custom Command')
@@ -252,40 +286,74 @@ class MainWindow1(Qw.QMainWindow):
         asyManualURL = 'http://asymptote.sourceforge.net/asymptote.pdf'
         webbrowser.open_new(asyManualURL)
 
-    def loadSettings(self):
-        configFile = '.asy/xasy2conf.json'
-        keyList = DefaultSettings.defaultSettings.keys()
-        fullConfigFile = pathlib.Path.home().joinpath(pathlib.Path(configFile))
+    def loadKeyMapFile(self):
+        defaultKeyMap = '.asy/xasy2KeyMapDefault.json'
+        fullDefaultKeyMap = pathlib.Path.home().joinpath(pathlib.Path(defaultKeyMap))
+        if not fullDefaultKeyMap.exists():
+            defaultConfFile = io.open(fullDefaultKeyMap, 'w')
+            defaultConfFile.write(json.dumps(DefaultSettings.defaultKeymap, indent=4))
 
-        if fullConfigFile.exists():
-            settingsFile = io.open(fullConfigFile)
-            self.settings = json.loads(settingsFile.read())
-            addedKey = False
-            for key in keyList:
-                addedKey = True
-                if key not in self.settings:
-                    self.settings[key] = DefaultSettings.defaultSettings[key]
+        keymapFile = '.asy/xasy2KeyMap.json'
+        keymapPath = pathlib.Path.home().joinpath(pathlib.Path(keymapFile))
 
-            if addedKey:
-                settingsFile.close()
-                settingsFile = io.open(fullConfigFile, 'w')
-                settingsFile.write(json.dumps(self.settings))
+        if keymapPath.exists():
+            usrKeymapFile = io.open(keymapPath)
+            usrKeyMap = json.loads(usrKeymapFile.read())
+            self.keyMaps.update(usrKeyMap)
         else:
-            settingsFile = io.open(fullConfigFile, 'w')
-            settingsFile.write(json.dumps(self.settings))
-        settingsFile.close()
+            usrKeymapFile = io.open(keymapPath, 'w')
+            usrKeymapFile.write(json.dumps({}, indent=4))
+
+            usrKeymapFile.close()
+
+    def loadKeyMaps(self):
+        self.loadKeyMapFile()
+        """Inverts the mapping of the key
+           Input map is in format 'Action' : 'Key Sequence' """
+        for action, key in self.keyMaps.items():
+            shortcut = Qw.QShortcut(self)
+            shortcut.setKey(Qg.QKeySequence(key))
+
+            # hate doing this, but python doesn't have explicit way to pass a string to a lambda without an identifier
+            # attached to it.
+            exec('shortcut.activated.connect(lambda: self.execCustomCommand("{0}"))'.format(action),
+                 {'self': self, 'shortcut': shortcut})
+
+    def loadSettings(self):
+        defaultConfig = '.asy/xasy2default.json'
+        fullDefaultConfig = pathlib.Path.home().joinpath(pathlib.Path(defaultConfig))
+        if not fullDefaultConfig.exists():
+            defaultConfFile = io.open(fullDefaultConfig, 'w')
+            defaultConfFile.write(json.dumps(DefaultSettings.defaultSettings, indent=4))
+
+        configFile = '.asy/xasy2UsrConf.json'
+        configPath = pathlib.Path.home().joinpath(pathlib.Path(configFile))
+
+        if configPath.exists():
+            usrConfigFile = io.open(configPath)
+            usrSettings = json.loads(usrConfigFile.read())
+            self.settings.update(usrSettings)
+        else:
+            usrConfigFile = io.open(configPath, 'w')
+            usrConfigFile.write(json.dumps({}, indent=4))
+
+        usrConfigFile.close()
 
     def btnSaveOnClick(self):
-        saveFile = io.open(self.filename, 'w')
-        xf.saveFile(saveFile, self.fileItems)
-        saveFile.close()
+        if self.filename is None:
+            self.actionSaveAs()
+        else:
+            saveFile = io.open(self.filename, 'w')
+            xf.saveFile(saveFile, self.fileItems)
+            saveFile.close()
 
     def actionSaveAs(self):
         saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save File', Qc.QDir.homePath())[0]
-        saveFile = io.open(saveLocation, 'w')
-        xf.saveFile(saveFile, self.fileItems)
-        saveFile.close()
-        self.filename = saveLocation
+        if saveLocation[1]:
+            saveFile = io.open(saveLocation, 'w')
+            xf.saveFile(saveFile, self.fileItems)
+            saveFile.close()
+            self.filename = saveLocation
 
     def btnQuickScreenshotOnClick(self):
         saveLocation = Qw.QFileDialog.getSaveFileName(self, 'Save Screenshot', Qc.QDir.homePath())
@@ -492,12 +560,9 @@ class MainWindow1(Qw.QMainWindow):
 
         self.ui.imgLabel.setPixmap(self.canvasPixmap)
 
-    def keyPressEvent(self, keyEvent):
-        assert isinstance(keyEvent, Qg.QKeyEvent)
-        if keyEvent.key() == Qc.Qt.Key_S:
-            self.selectObject()
-        elif keyEvent.key() == Qc.Qt.Key_F1:
-            self.enterCustomCommand()
+        if not self.settings['defaultShowGrid']:
+            self.ui.btnDrawAxes.toggle()
+            self.btnDrawAxesOnClick(False)
 
     def selectObject(self):
         if not self.ui.imgLabel.underMouse():
