@@ -5295,10 +5295,14 @@ if @code{n >= 1} returns a uniform partition of @code{[a,b]} into
 @code{n} subintervals (otherwise returns a null array);
 
 @cindex @code{find}
-@item int find(bool[], int n=1)
-returns the index of the @code{n}th @code{true} value or -1 if not found.
-If @code{n} is negative, search backwards from the end of the array for the
-@code{-n}th value; 
+@item int find(bool[] a, int n=1)
+returns the index of the @code{n}th @code{true} value in the boolean array
+@code{a} or -1 if not found. If @code{n} is negative, search backwards
+from the end of the array for the @code{-n}th value; 
+
+@cindex @code{findall}
+@item int[] findall(bool[] a)
+returns the indices of all @code{true} values in the boolean array @code{a}.
 
 @cindex @code{search}
 @item int search(T[] a, T key)
