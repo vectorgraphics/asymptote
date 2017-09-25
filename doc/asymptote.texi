@@ -4467,8 +4467,10 @@ for nonintegral built-in arithmetic types @code{T}. If @code{a} and
 @cindex @code{CTZ}
 @code{Asymptote} also defines bitwise functions @code{int AND(int,int)},
 @code{int OR(int,int)}, @code{int XOR(int,int)}, @code{int NOT(int)},
-@code{int CLZ(int)} (count leading zeros), and @code{int CTZ(int)}
-(count trailing zeros).
+@code{int CTZ(int)} (count trailing zeros), and
+@code{int popcount(int)} (count bits populated by ones). For 32-bit
+non-negative integers we also implement @code{int CLZ(int)} (count
+leading zeros).
 
 @node Self & prefix operators, User-defined operators, Arithmetic & logical, Operators
 @subsection Self & prefix operators
