@@ -204,7 +204,7 @@ void getstring(void)
 LETTER [_A-Za-z]
 ESC \\
 ENDL \\?(\r\n|\n|\r)
-EXTRAOPS <<|>>|$|$$|@|@@|~
+EXTRAOPS <<|>>|$|$$|@|@@|~|<>
 
 %%
 

@@ -4519,7 +4519,7 @@ The following symbols may be used with @code{operator} to define or redefine
 operators on structures and built-in types:
 @verbatim
 - + * / % ^ ! < > == != <= >= & | ^^ .. :: -- --- ++
-<< >> $ $$ @ @@
+<< >> $ $$ @ @@ <>
 @end verbatim
 @noindent
 The operators on the second line have precedence one higher than the
