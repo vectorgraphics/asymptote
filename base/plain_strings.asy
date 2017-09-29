@@ -121,7 +121,7 @@ string[] array(string s)
 }
 
 // Concatenate an array of strings into a single string.
-// TODO: Move to C++ code. This overloads the usual binary + string operator.
+// TODO: Move to C++ code.
 string operator +(...string[] a)
 {
   string S;
