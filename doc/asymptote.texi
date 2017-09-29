@@ -2168,6 +2168,13 @@ returns an array of strings obtained by splitting @code{s} into substrings
 delimited by @code{delimiter} (an empty delimiter signifies a space,
 but with duplicate delimiters discarded);
 
+@cindex @code{array}
+@cindex @code{operator +(...string[] a)}.
+@item string[] array(string s)
+returns an array of strings obtained by splitting @code{s} into
+individual characters. The inverse operation is provided by
+@code{operator +(...string[] a)}.
+
 @anchor{format}
 @item string format(string s, int n, string locale="")
 @cindex @code{format}
