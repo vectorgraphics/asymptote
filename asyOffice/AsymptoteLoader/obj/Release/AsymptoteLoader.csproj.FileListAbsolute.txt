@@ -1,0 +1,14 @@
+e:\data\documents\visual studio 2017\Projects\AsymptoteLoader\AsymptoteLoader\bin\Release\AsymptoteLoader.dll
+e:\data\documents\visual studio 2017\Projects\AsymptoteLoader\AsymptoteLoader\bin\Release\AsymptoteLoader.pdb
+e:\data\documents\visual studio 2017\Projects\AsymptoteLoader\AsymptoteLoader\bin\Release\AsymptoteLoader.dll.manifest
+e:\data\documents\visual studio 2017\Projects\AsymptoteLoader\AsymptoteLoader\bin\Release\AsymptoteLoader.vsto
+e:\data\documents\visual studio 2017\Projects\AsymptoteLoader\AsymptoteLoader\bin\Release\Microsoft.Office.Tools.Common.v4.0.Utilities.dll
+e:\data\documents\visual studio 2017\Projects\AsymptoteLoader\AsymptoteLoader\obj\Release\AsymptoteLoader.AsyEditor.resources
+e:\data\documents\visual studio 2017\Projects\AsymptoteLoader\AsymptoteLoader\obj\Release\AsymptoteLoader.AsyLoaderRibbon.resources
+e:\data\documents\visual studio 2017\Projects\AsymptoteLoader\AsymptoteLoader\obj\Release\AsymptoteLoader.Properties.Resources.resources
+e:\data\documents\visual studio 2017\Projects\AsymptoteLoader\AsymptoteLoader\obj\Release\AsymptoteLoader.csproj.GenerateResource.Cache
+e:\data\documents\visual studio 2017\Projects\AsymptoteLoader\AsymptoteLoader\obj\Release\AsymptoteLoader.csproj.CoreCompileInputs.cache
+e:\data\documents\visual studio 2017\Projects\AsymptoteLoader\AsymptoteLoader\obj\Release\AsymptoteLoader.dll
+e:\data\documents\visual studio 2017\Projects\AsymptoteLoader\AsymptoteLoader\obj\Release\AsymptoteLoader.pdb
+e:\data\documents\visual studio 2017\Projects\AsymptoteLoader\AsymptoteLoader\bin\Release\AsymptoteLoader.dll.config
+e:\data\documents\visual studio 2017\Projects\AsymptoteLoader\AsymptoteLoader\obj\Release\AsymptoteLoader.ConfigDialog.resources
