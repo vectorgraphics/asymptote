@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using Word = Microsoft.Office.Interop.Word;
+using PowerPoint = Microsoft.Office.Interop.PowerPoint;
 using Office = Microsoft.Office.Core;
-using Microsoft.Office.Tools.Word;
 using System.Diagnostics;
 using System.IO;
 
-namespace AsymptoteLoader
+namespace AsyPPTLoader
 {
     public partial class ThisAddIn
     {
-
         public void AddAsyCode(string filePath)
         {
             string tmpPath = Path.GetTempFileName() + Guid.NewGuid().ToString() + ".svg";
@@ -37,7 +35,9 @@ namespace AsymptoteLoader
 
             if (File.Exists(tmpPath))
             {
-                Application.Selection.InlineShapes.AddPicture(tmpPath, false, true);
+                PowerPoint.Slide activeSlide = Application.ActiveWindow.View.Slide;
+                PowerPoint.Shape asyPic = activeSlide.Shapes.AddPicture(tmpPath, Office.MsoTriState.msoFalse, Office.MsoTriState.msoTrue, 0, 0);
+                
             }
             else
             {
@@ -48,7 +48,6 @@ namespace AsymptoteLoader
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
-
         }
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)

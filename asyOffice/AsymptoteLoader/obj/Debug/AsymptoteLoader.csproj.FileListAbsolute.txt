@@ -1,0 +1,15 @@
+E:\Data\Source\repos\asymptote\asyOffice\AsymptoteLoader\bin\Debug\AsymptoteLoader.dll.config
+E:\Data\Source\repos\asymptote\asyOffice\AsymptoteLoader\bin\Debug\AsymptoteLoader.dll
+E:\Data\Source\repos\asymptote\asyOffice\AsymptoteLoader\bin\Debug\AsymptoteLoader.pdb
+E:\Data\Source\repos\asymptote\asyOffice\AsymptoteLoader\bin\Debug\AsymptoteLoader.dll.manifest
+E:\Data\Source\repos\asymptote\asyOffice\AsymptoteLoader\bin\Debug\AsymptoteLoader.vsto
+E:\Data\Source\repos\asymptote\asyOffice\AsymptoteLoader\bin\Debug\Microsoft.Office.Tools.Common.v4.0.Utilities.dll
+E:\Data\Source\repos\asymptote\asyOffice\AsymptoteLoader\obj\Debug\AsymptoteLoader.csprojResolveAssemblyReference.cache
+E:\Data\Source\repos\asymptote\asyOffice\AsymptoteLoader\obj\Debug\AsymptoteLoader.AsyEditor.resources
+E:\Data\Source\repos\asymptote\asyOffice\AsymptoteLoader\obj\Debug\AsymptoteLoader.AsyLoaderRibbon.resources
+E:\Data\Source\repos\asymptote\asyOffice\AsymptoteLoader\obj\Debug\AsymptoteLoader.ConfigDialog.resources
+E:\Data\Source\repos\asymptote\asyOffice\AsymptoteLoader\obj\Debug\AsymptoteLoader.Properties.Resources.resources
+E:\Data\Source\repos\asymptote\asyOffice\AsymptoteLoader\obj\Debug\AsymptoteLoader.csproj.GenerateResource.Cache
+E:\Data\Source\repos\asymptote\asyOffice\AsymptoteLoader\obj\Debug\AsymptoteLoader.csproj.CoreCompileInputs.cache
+E:\Data\Source\repos\asymptote\asyOffice\AsymptoteLoader\obj\Debug\AsymptoteLoader.dll
+E:\Data\Source\repos\asymptote\asyOffice\AsymptoteLoader\obj\Debug\AsymptoteLoader.pdb

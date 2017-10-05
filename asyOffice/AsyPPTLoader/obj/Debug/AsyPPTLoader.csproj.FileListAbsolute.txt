@@ -1,0 +1,15 @@
+E:\Data\Source\repos\asymptote\asyOffice\AsyPPTLoader\bin\Debug\AsyPPTLoader.dll.config
+E:\Data\Source\repos\asymptote\asyOffice\AsyPPTLoader\bin\Debug\AsyPPTLoader.dll
+E:\Data\Source\repos\asymptote\asyOffice\AsyPPTLoader\bin\Debug\AsyPPTLoader.pdb
+E:\Data\Source\repos\asymptote\asyOffice\AsyPPTLoader\bin\Debug\AsyPPTLoader.dll.manifest
+E:\Data\Source\repos\asymptote\asyOffice\AsyPPTLoader\bin\Debug\AsyPPTLoader.vsto
+E:\Data\Source\repos\asymptote\asyOffice\AsyPPTLoader\bin\Debug\Microsoft.Office.Tools.Common.v4.0.Utilities.dll
+E:\Data\Source\repos\asymptote\asyOffice\AsyPPTLoader\obj\Debug\AsyPPTLoader.csprojResolveAssemblyReference.cache
+E:\Data\Source\repos\asymptote\asyOffice\AsyPPTLoader\obj\Debug\AsyPPTLoader.AsyEditor.resources
+E:\Data\Source\repos\asymptote\asyOffice\AsyPPTLoader\obj\Debug\AsyPPTLoader.AsyLoaderRibbon.resources
+E:\Data\Source\repos\asymptote\asyOffice\AsyPPTLoader\obj\Debug\AsyPPTLoader.ConfigDialog.resources
+E:\Data\Source\repos\asymptote\asyOffice\AsyPPTLoader\obj\Debug\AsyPPTLoader.Properties.Resource1.resources
+E:\Data\Source\repos\asymptote\asyOffice\AsyPPTLoader\obj\Debug\AsyPPTLoader.csproj.GenerateResource.Cache
+E:\Data\Source\repos\asymptote\asyOffice\AsyPPTLoader\obj\Debug\AsyPPTLoader.csproj.CoreCompileInputs.cache
+E:\Data\Source\repos\asymptote\asyOffice\AsyPPTLoader\obj\Debug\AsyPPTLoader.dll
+E:\Data\Source\repos\asymptote\asyOffice\AsyPPTLoader\obj\Debug\AsyPPTLoader.pdb
