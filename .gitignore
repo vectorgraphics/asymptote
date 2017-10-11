@@ -100,7 +100,6 @@ GUI/*.pyc
 
 ### Data files
 *.obj
-*.dat
 *.pdb1
 
 ### Debugging files
