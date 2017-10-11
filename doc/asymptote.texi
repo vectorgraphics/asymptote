@@ -2168,6 +2168,13 @@ returns an array of strings obtained by splitting @code{s} into substrings
 delimited by @code{delimiter} (an empty delimiter signifies a space,
 but with duplicate delimiters discarded);
 
+@cindex @code{array}
+@cindex @code{operator +(...string[] a)}.
+@item string[] array(string s)
+returns an array of strings obtained by splitting @code{s} into
+individual characters. The inverse operation is provided by
+@code{operator +(...string[] a)}.
+
 @anchor{format}
 @item string format(string s, int n, string locale="")
 @cindex @code{format}
@@ -4467,8 +4474,10 @@ for nonintegral built-in arithmetic types @code{T}. If @code{a} and
 @cindex @code{CTZ}
 @code{Asymptote} also defines bitwise functions @code{int AND(int,int)},
 @code{int OR(int,int)}, @code{int XOR(int,int)}, @code{int NOT(int)},
-@code{int CLZ(int)} (count leading zeros), and @code{int CTZ(int)}
-(count trailing zeros).
+@code{int CTZ(int)} (count trailing zeros), and
+@code{int popcount(int)} (count bits populated by ones). For 32-bit
+non-negative integers we also implement @code{int CLZ(int)} (count
+leading zeros).
 
 @node Self & prefix operators, User-defined operators, Arithmetic & logical, Operators
 @subsection Self & prefix operators
@@ -4517,7 +4526,7 @@ The following symbols may be used with @code{operator} to define or redefine
 operators on structures and built-in types:
 @verbatim
 - + * / % ^ ! < > == != <= >= & | ^^ .. :: -- --- ++
-<< >> $ $$ @ @@
+<< >> $ $$ @ @@ <>
 @end verbatim
 @noindent
 The operators on the second line have precedence one higher than the
@@ -5295,10 +5304,14 @@ if @code{n >= 1} returns a uniform partition of @code{[a,b]} into
 @code{n} subintervals (otherwise returns a null array);
 
 @cindex @code{find}
-@item int find(bool[], int n=1)
-returns the index of the @code{n}th @code{true} value or -1 if not found.
-If @code{n} is negative, search backwards from the end of the array for the
-@code{-n}th value; 
+@item int find(bool[] a, int n=1)
+returns the index of the @code{n}th @code{true} value in the boolean array
+@code{a} or -1 if not found. If @code{n} is negative, search backwards
+from the end of the array for the @code{-n}th value; 
+
+@cindex @code{findall}
+@item int[] findall(bool[] a)
+returns the indices of all @code{true} values in the boolean array @code{a}.
 
 @cindex @code{search}
 @item int search(T[] a, T key)

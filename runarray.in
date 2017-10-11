@@ -1102,7 +1102,7 @@ array* :array3Transpose(array *a, array *perm)
   return c;
 }
 
-// In a boolean array, find the index of the nth true value or -1 if not found
+// Find the index of the nth true value in a boolean array or -1 if not found.
 // If n is negative, search backwards.
 Int find(boolarray *a, Int n=1)
 {
@@ -1119,6 +1119,19 @@ Int find(boolarray *a, Int n=1)
         n++; if(n == 0) {j=(Int) i; break;}
       }
   return j;
+}
+
+// Find all indices of true values in a boolean array. 
+Intarray *findall(boolarray *a)
+{
+  size_t size=checkArray(a);
+  array *b=new array(0);
+  for(size_t i=0; i < size; i++) {
+    if(read<bool>(a,i)) {
+      b->push((Int) i);
+    }
+  }
+  return b;
 }
 
 // construct vector obtained by replacing those elements of b for which the
