@@ -316,7 +316,7 @@ Int NOT(Int a)
 
 Int CLZ(Int a) 
 {
-  if((unsigned Int) a > 0xFFFFFFFF) return -1;
+  if((unsigned int) a > 0xFFFFFFFF) return -1;
   return CLZ((uint32_t) a);
 }
 
