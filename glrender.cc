@@ -1442,12 +1442,12 @@ void glrender(const string& prefix, const picture *pic, const string& format,
       osmesa_initialized=true;
       init_osmesa();
     }
-  } else {
-    if(glinitialize) {
-      glinitialize=false;
-      init();
-      Fitscreen=1;
-    }
+  }
+  
+  if(glinitialize) {
+    glinitialize=false;
+    init();
+    Fitscreen=1;
   }
 
   static bool initialized=false;
