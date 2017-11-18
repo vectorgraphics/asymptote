@@ -6,8 +6,6 @@
 
 #define _POSIX_C_SOURCE 200809L
 
-extern "C" int usleep(int);
-
 #include <stdlib.h>
 #include <fstream>
 #include <cstring>
