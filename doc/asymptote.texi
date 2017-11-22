@@ -2183,7 +2183,7 @@ string @code{s} using locale @code{locale} (or the current locale if an
 empty string is specified), following the behaviour of the C function
 @code{fprintf}), except that only one data field is allowed.
 
-@item string format(string s=defaultformat, string s=defaultseparator, real x, string locale="")
+@item string format(string s=defaultformat, bool forcemath=true, string s=defaultseparator,  real x, string locale="")
 returns a string containing @code{x} formatted according to the C-style format
 string @code{s} using locale @code{locale} (or the current locale if an
 empty string is specified), following the behaviour of the C function
