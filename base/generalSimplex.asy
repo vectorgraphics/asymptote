@@ -71,6 +71,8 @@ string latexCodeforPrintingTheLPP(real[] c, real[][] A, real[] b){
 	return theProblem;
 }
 
+string tableformat="%.2f";
+
 string latexCodeForPrintingTheSimplexTableau(real[] zerothRow, real[][] simplexTableau, real[] firstColumn, real currentCost, real[] basicIndices){
 	string theTableau = "\begin{equation*}" + '\n' + "\begin{array}{c l |r|"; 
 	for (int i = 0; i < zerothRow.length; ++i) {
@@ -91,7 +93,7 @@ string latexCodeForPrintingTheSimplexTableau(real[] zerothRow, real[][] simplexT
 		theTableau += "x_" + string(basicIndices[i],2) + " &="; 
 		theTableau += " &" + string(firstColumn[i],2);
 		for (int j = 0; j < zerothRow.length; ++j) {
-			theTableau += " &" + string(simplexTableau[i][j],2);
+                  theTableau += " &" + format(tableformat,simplexTableau[i][j]);
 		}
 		theTableau += "\\" + '\n'; 
 	}
@@ -111,7 +113,7 @@ string latexCodeForPrintingSimplexTableaus(real[] c, real[][] A, real[] b, real[
 			}
 		}
 		if (j == -1) {
-			finalText += "The current solution is optimal";
+			finalText += "The current solution is optimal.";
 			return finalText;
 		}
 		int[] indexOfPositiveElementsOfColumnJ;	
@@ -119,10 +121,10 @@ string latexCodeForPrintingSimplexTableaus(real[] c, real[][] A, real[] b, real[
 		for (int i = 0; i < b.length; ++i) {
 			if (A[i][j] > 0) {
 				indexOfPositiveElementsOfColumnJ.push(i);
-				temp = (b[]) ? i : ;
-				for (int k = 0; k < c.length; ++k) {
-					A[i][k]
-				}
+                                //				temp = (b[]) ? i// : ;
+                                //				for (int k = 0; k < c.length; ++k) {
+                                  //					A[i][k]
+                                //				}
 			}
 		}
 		if (indexOfPositiveElementsOfColumnJ.length == 0) {
