@@ -5,6 +5,8 @@
  * A place for useful utility functions.
  *****/
 
+#define _POSIX_C_SOURCE 200809L
+
 #include <cassert>
 #include <iostream>
 #include <cstdio>
@@ -184,7 +186,7 @@ string auxname(string filename, string suffix)
 {
   return buildname(filename,suffix,"_");
 }
-  
+
 sighandler_t Signal(int signum, sighandler_t handler)
 {
   struct sigaction action,oldaction;
