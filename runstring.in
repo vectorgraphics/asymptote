@@ -256,11 +256,11 @@ string format(string *format, Int x, string locale=emptystring)
   return out.str();
 }
 
-string format(string *format, string separator, real x,
+string format(string *format, bool forcemath=false, string separator, real x,
               string locale=emptystring)
 {
   bool tex=getSetting<string>("tex") != "none";
-  bool texify=false;
+  bool texify=forcemath;
   ostringstream out;
   
   const char *p0=format->c_str();
