@@ -229,19 +229,10 @@ void pause(string w="Hit enter to continue")
   w=stdin;
 }
 
-string math(real x)
+string format(string format=defaultformat, bool forcemath=false, real x,
+              string locale="")
 {
-  return math((string) x);
-}
-
-string format(string format, real x, string locale="")
-{
-  return format(format,defaultseparator,x,locale);
-}
-
-string format(real x, string locale="")
-{
-  return format(defaultformat,defaultseparator,x,locale);
+  return format(format,forcemath,defaultseparator,x,locale);
 }
 
 string phantom(string s)

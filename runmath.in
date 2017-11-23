@@ -32,6 +32,17 @@ using vm::frame;
 
 const char *invalidargument="invalid argument";
 
+static const unsigned char BitReverseTable256[256]=
+{
+#define R2(n)     n,    n+2*64,    n+1*64,    n+3*64
+#define R4(n) R2(n),R2(n+2*16),R2(n+1*16),R2(n+3*16)
+#define R6(n) R4(n),R4(n+2*4 ),R4(n+1*4 ),R4(n+3*4 )
+R6(0),R6(2),R6(1),R6(3)
+};
+#undef R2
+#undef R4
+#undef R6
+
 extern uint32_t CLZ(uint32_t a);
 
 // From Warren, Jr., Henry S. (2013) [2002]. Hacker's Delight (2 ed.).
@@ -314,9 +325,10 @@ Int NOT(Int a)
   return ~a;
 }
 
+//TODO: Generalize to 64 bit integers
 Int CLZ(Int a) 
 {
-  if((unsigned Int) a > 0xFFFFFFFF) return -1;
+  if((unsigned int) a > 0xFFFFFFFF) return -1;
   return CLZ((uint32_t) a);
 }
 
@@ -328,4 +340,13 @@ Int popcount(Int a)
 Int CTZ(Int a) 
 {
   return popcount((a&-a)-1);
+}
+
+// Bit reverse a 32-bit integer. TODO: Generalize to 64 bit integers
+Int bitreverse(Int a) 
+{
+  return (unsigned int) ((BitReverseTable256[a & 0xff] << 24) | 
+                         (BitReverseTable256[(a >> 8) & 0xff] << 16) | 
+                         (BitReverseTable256[(a >> 16) & 0xff] << 8) |
+                         (BitReverseTable256[(a >> 24) & 0xff]));
 }
