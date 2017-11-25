@@ -128,9 +128,8 @@ solution simplex(real[] c, real[][] A, real[] b)
 
   int ip=0; // reduced i
   for(int i=0; i < m; ++i) {
-    write("i=",i);
     int k=Bindices[i];
-    if(k >= n) {write("Delete",i,k); continue;}
+    if(k >= n) continue;
     Bindices[ip]=k; 
     cb[ip]=c[k];
     for(int j=0; j < n; ++j)
@@ -143,9 +142,8 @@ solution simplex(real[] c, real[][] A, real[] b)
     D[ip][j]=E[m][j];
   D[ip][n]=E[m][n+m];
 
-  write("m=",m);
   m=ip;
-  write("m=",m);
+  write("Reduced Bindices:",Bindices[0:m]);
 
   for(int j=0; j < n; ++j) {
     real sum=0;
@@ -193,9 +191,25 @@ solution S=simplex(new real[] {4,1,1},
 */
 
 
+/*
 solution S=simplex(new real[] {2,6,1,1},
                    new real[][] {{1,2,0,1},{1,2,1,1},{1,3,-1,2},{1,1,1,0}},
                    new real[] {6,7,7,5});
+*/
+
+/*
+solution S=simplex(new real[] {-10,-12,-12,0,0,0},
+                   new real[][] {{1,2,2,1,0,0},
+                                 {2,1,2,0,1,0},
+                                 {2,2,1,0,0,1}},
+                   new real[] {20,20,20});
+*/
+solution S=simplex(new real[] {1,1,1,0},
+                   new real[][] {{1,2,3,0},
+                                 {-1,2,6,0},
+                                 {0,4,9,0},
+                                 {0,0,3,1}},
+                   new real[] {3,2,5,1});
 
 write();
 write("x:",S.x);
