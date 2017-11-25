@@ -112,7 +112,6 @@ solution simplex(real[] c, real[][] A, real[] b)
   write(E);
   
   Bindices=sequence(n,n+m-1);
-
   iterate(E,n+m);
 
   if(E[m][J] != 0) {
@@ -121,30 +120,32 @@ solution simplex(real[] c, real[][] A, real[] b)
   }
 
   write("Done with Phase 1");
+  write("Bindices:",Bindices);
 
   real[][] D=new real[m+1][n+1];
 
-  for(int i=0; i <= m; ++i) {
-    //    for(int k=0; k < K; ++k) {
-      //      int l=Bindices[k];
-      //      if(l >= m)
-      //    }
+  real[] cb=new real[m];
+
+  int ip=0; // reduced i
+  for(int i=0; i < m; ++i) {
+    write("i=",i);
+    int k=Bindices[i];
+    if(k >= n) {write("Delete",i,k); continue;}
+    Bindices[ip]=k; 
+    cb[ip]=c[k];
     for(int j=0; j < n; ++j)
-      D[i][j]=E[i][j];
-    D[i][n]=E[i][n+m];
+      D[ip][j]=E[i][j];
+    D[ip][n]=E[i][n+m];
+    ++ip;
   }
 
-  write();
-  write(D);
-  write(Bindices);
-  write(c);
-  real[] cb=new real[m];
-  for(int k=0; k < Bindices.length; ++k) {
-    int i=Bindices[k];
-    cb[k]=i < m ? c[i] : 0;
-  }
-  //  real[] cb=c[Bindices];
-  write(cb);
+  for(int j=0; j < n; ++j)
+    D[ip][j]=E[m][j];
+  D[ip][n]=E[m][n+m];
+
+  write("m=",m);
+  m=ip;
+  write("m=",m);
 
   for(int j=0; j < n; ++j) {
     real sum=0;
@@ -158,6 +159,7 @@ solution simplex(real[] c, real[][] A, real[] b)
     sum += cb[k]*D[k][n];
   D[m][n]=-sum;
 
+  write();
   write(D);
 
   iterate(D,n);
@@ -170,8 +172,7 @@ solution simplex(real[] c, real[][] A, real[] b)
 
   for(int k=0; k < m; ++k) {
     int i=Bindices[k];
-    if(i < m) 
-      Solution.x[i]=D[k][n];
+    Solution.x[i]=D[k][n];
   }
 
   Solution.cost=-D[m][n];
@@ -185,9 +186,12 @@ solution f(real[] c, real[][] A, int[] s, real[] b) {
 }
 */
 
+/*
 solution S=simplex(new real[] {4,1,1},
                    new real[][] {{2,1,2},{3,3,1}},
                    new real[] {4,3});
+*/
+
 
 solution S=simplex(new real[] {2,6,1,1},
                    new real[][] {{1,2,0,1},{1,2,1,1},{1,3,-1,2},{1,1,1,0}},
