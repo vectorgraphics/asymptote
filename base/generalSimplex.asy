@@ -180,7 +180,8 @@ solution simplex(real[] c, real[][] A, real[] b)
 }
 
 /*
-solution f(real[] c, real[][] A, int[] s, real[] b) {
+solution simplex(real[] c, real[][] A, int[] s, real[] b)
+{
 }
 */
 
@@ -204,6 +205,9 @@ solution S=simplex(new real[] {-10,-12,-12,0,0,0},
                                  {2,2,1,0,0,1}},
                    new real[] {20,20,20});
 */
+
+ /*
+
 solution S=simplex(new real[] {1,1,1,0},
                    new real[][] {{1,2,3,0},
                                  {-1,2,6,0},
@@ -214,3 +218,4 @@ solution S=simplex(new real[] {1,1,1,0},
 write();
 write("x:",S.x);
 write("Cost=",S.cost);
+ */
