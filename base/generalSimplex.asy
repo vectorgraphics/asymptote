@@ -68,17 +68,19 @@ void iterate(real[][] E, int N)
     // Generate new tableau
     rowreduce(E,N,I,J);
 
-    write();
-    write(E);
+    //    write();
+    //    write(E);
   }
 }
 
 
+// Try to find a solution x to Ax=b that minimizes the cost c^T x.
 // A is an m x n matrix
 solution simplex(real[] c, real[][] A, real[] b)
 {
   
   // Phase 1    
+  write(A);
   assert(rectangular(A));
   assert(all(b >= 0));
   
@@ -109,7 +111,7 @@ solution simplex(real[] c, real[][] A, real[] b)
   }
   E[m][n+m]=-sum(b);
 
-  write(E);
+  //  write(E);
   
   Bindices=sequence(n,n+m-1);
   iterate(E,n+m);
@@ -119,8 +121,8 @@ solution simplex(real[] c, real[][] A, real[] b)
     return Solution;
   }
 
-  write("Done with Phase 1");
-  write("Bindices:",Bindices);
+  //  write("Done with Phase 1");
+  //  write("Bindices:",Bindices);
 
   real[][] D=new real[m+1][n+1];
 
@@ -143,7 +145,7 @@ solution simplex(real[] c, real[][] A, real[] b)
   D[ip][n]=E[m][n+m];
 
   m=ip;
-  write("Reduced Bindices:",Bindices[0:m]);
+  //  write("Reduced Bindices:",Bindices[0:m]);
 
   for(int j=0; j < n; ++j) {
     real sum=0;
@@ -157,8 +159,8 @@ solution simplex(real[] c, real[][] A, real[] b)
     sum += cb[k]*D[k][n];
   D[m][n]=-sum;
 
-  write();
-  write(D);
+  //  write();
+  //  write(D);
 
   iterate(D,n);
 
@@ -179,11 +181,38 @@ solution simplex(real[] c, real[][] A, real[] b)
   return Solution;
 }
 
-/*
+// Try to find a solution x to sgn(Ax-b)=sgn(s) that minimizes the cost c^T x.
 solution simplex(real[] c, real[][] A, int[] s, real[] b)
 {
+  m=A.length;
+  n=A[0].length;
+
+  int count=0;
+  for(int i=0; i < m; ++i)
+    if(s[i] != 0) ++count;
+
+  real[][] a=new real[m][n+count];
+
+  for(int i=0; i < m; ++i) {
+    for(int j=0; j < n; ++j) {
+      a[i][j]=A[i][j];
+    }
+  }
+  
+  int k=0;
+
+  for(int i=0; i < m; ++i) {
+    for(int j=0; j < k; ++j)
+      a[i][n+j]=0;
+    if(k < count)
+      a[i][n+k]=-s[i];
+    for(int j=k+1; j < count; ++j)
+      a[i][n+j]=0;
+    if(s[i] != 0) ++k;
+  }
+
+  return simplex(concat(c,array(count,0.0)),a,b);
 }
-*/
 
 /*
 solution S=simplex(new real[] {4,1,1},
@@ -198,12 +227,28 @@ solution S=simplex(new real[] {2,6,1,1},
                    new real[] {6,7,7,5});
 */
 
+
 /*
 solution S=simplex(new real[] {-10,-12,-12,0,0,0},
                    new real[][] {{1,2,2,1,0,0},
                                  {2,1,2,0,1,0},
                                  {2,2,1,0,0,1}},
                    new real[] {20,20,20});
+write();
+write("x:",S.x);
+write("Cost=",S.cost);
+*/
+
+/*
+solution S=simplex(new real[] {-10,-12,-12},
+                   new real[][] {{1,2,2},
+                                 {2,1,2},
+                                 {2,2,1}},
+                   new int[] {0,0,-1},
+                   new real[] {20,20,20});
+write();
+write("x:",S.x);
+write("Cost=",S.cost);
 */
 
  /*
@@ -219,3 +264,4 @@ write();
 write("x:",S.x);
 write("Cost=",S.cost);
  */
+
