@@ -80,7 +80,7 @@ solution simplex(real[] c, real[][] A, real[] b)
 {
   
   // Phase 1    
-  write(A);
+  //  write(A);
   assert(rectangular(A));
   assert(all(b >= 0));
   
@@ -184,8 +184,8 @@ solution simplex(real[] c, real[][] A, real[] b)
 // Try to find a solution x to sgn(Ax-b)=sgn(s) that minimizes the cost c^T x.
 solution simplex(real[] c, real[][] A, int[] s, real[] b)
 {
-  m=A.length;
-  n=A[0].length;
+  int m=A.length;
+  int n=A[0].length;
 
   int count=0;
   for(int i=0; i < m; ++i)
@@ -211,7 +211,9 @@ solution simplex(real[] c, real[][] A, int[] s, real[] b)
     if(s[i] != 0) ++k;
   }
 
-  return simplex(concat(c,array(count,0.0)),a,b);
+  solution S=simplex(concat(c,array(count,0.0)),a,b);
+  S.x.delete(n,n+count-1);
+  return S;
 }
 
 /*
