@@ -19,18 +19,26 @@ void rowreduce(real[][] E, int N, int I, int J)
   real[] EI=E[I];
   real v=EI[J];
   for(int j=0; j < J; ++j) EI[j] /= v;
-  EI[J]=1;
+  EI[J]=1.0;
   for(int j=J+1; j <= N; ++j) EI[j] /= v;
 
   for(int i=0; i < I; ++i) {
-    real EiJ=E[i][J];
-    for(int j=0; j <= N; ++j)
-      E[i][j] -= EI[j]*EiJ;
+    real[] Ei=E[i];
+    real EiJ=Ei[J];
+    for(int j=0; j < J; ++j)
+      Ei[j] -= EI[j]*EiJ;
+    Ei[J]=0.0;
+    for(int j=J+1; j <= N; ++j)
+      Ei[j] -= EI[j]*EiJ;
   }
   for(int i=I+1; i <= m; ++i) {
-    real EiJ=E[i][J];
-    for(int j=0; j <= N; ++j)
-      E[i][j] -= EI[j]*EiJ;
+    real[] Ei=E[i];
+    real EiJ=Ei[J];
+    for(int j=0; j < J; ++j)
+      Ei[j] -= EI[j]*EiJ;
+    Ei[J]=0.0;
+    for(int j=J+1; j <= N; ++j)
+      Ei[j] -= EI[j]*EiJ;
   }
 }
 
@@ -53,7 +61,7 @@ void iterate(real[][] E, int N)
     real M=inf;
     for(int i=0; i < m; ++i) {
       real e=E[i][J];
-      if(e > 0) {
+      if(e > sqrtEpsilon) { // FIXME: normalize properly
         real v=E[i][N]/e;
         if(v < M) {M=v; I=i;}
       }
@@ -82,7 +90,7 @@ solution simplex(real[] c, real[][] A, real[] b)
   // Phase 1    
   //  write(A);
   assert(rectangular(A));
-  assert(all(b >= 0));
+  //  assert(all(b >= 0));
   
   m=A.length;
   n=A[0].length;
@@ -116,7 +124,8 @@ solution simplex(real[] c, real[][] A, real[] b)
   Bindices=sequence(n,n+m-1);
   iterate(E,n+m);
 
-  if(E[m][J] != 0) {
+  real fuzz=sqrtEpsilon; // FIXME: scale by norm of problem
+  if(abs(E[m][J]) > fuzz) {
     Solution.type=INFEASIBLE;
     return Solution;
   }
@@ -212,48 +221,35 @@ solution simplex(real[] c, real[][] A, int[] s, real[] b)
   }
 
   solution S=simplex(concat(c,array(count,0.0)),a,b);
-  S.x.delete(n,n+count-1);
+  if(S.type == OPTIMAL)
+    S.x.delete(n,n+count-1);
   return S;
 }
 
-/*
 solution S=simplex(new real[] {4,1,1},
                    new real[][] {{2,1,2},{3,3,1}},
                    new real[] {4,3});
-*/
 
 
-/*
+
 solution S=simplex(new real[] {2,6,1,1},
                    new real[][] {{1,2,0,1},{1,2,1,1},{1,3,-1,2},{1,1,1,0}},
                    new real[] {6,7,7,5});
-*/
 
 
-/*
+
 solution S=simplex(new real[] {-10,-12,-12,0,0,0},
                    new real[][] {{1,2,2,1,0,0},
                                  {2,1,2,0,1,0},
                                  {2,2,1,0,0,1}},
                    new real[] {20,20,20});
-write();
-write("x:",S.x);
-write("Cost=",S.cost);
-*/
 
-/*
 solution S=simplex(new real[] {-10,-12,-12},
                    new real[][] {{1,2,2},
                                  {2,1,2},
                                  {2,2,1}},
                    new int[] {0,0,-1},
                    new real[] {20,20,20});
-write();
-write("x:",S.x);
-write("Cost=",S.cost);
-*/
-
- /*
 
 solution S=simplex(new real[] {1,1,1,0},
                    new real[][] {{1,2,3,0},
@@ -265,5 +261,5 @@ solution S=simplex(new real[] {1,1,1,0},
 write();
 write("x:",S.x);
 write("Cost=",S.cost);
- */
+
 
