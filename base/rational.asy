@@ -32,15 +32,15 @@ struct rational {
       q=-q;
     }
   }
-  void operator init(int p=0, int q=1) {
+  void operator init(int p=0, int q=1, bool reduce=true) {
     this.p=p;
     this.q=q;
-    reduce();
+    if(reduce) reduce();
   }
 }
 
 rational operator cast(int p) {
-  return rational(p);
+  return rational(p,false);
 }
 
 rational[] operator cast(int[] a) {
@@ -57,7 +57,7 @@ real operator ecast(rational r) {
 
 rational operator -(rational r)
 {
-  return rational(-r.p,r.q);
+  return rational(-r.p,r.q,false);
 }
 
 rational operator +(rational r, rational s)
@@ -168,14 +168,14 @@ bool rectangular(rational[][] m)
 }
 
 rational sum(rational[] a) {
-  rational sum=0;
+  rational sum;
   for(rational r:a)
     sum += r;
   return sum;
 }
 
 rational abs(rational r) {
-  return rational(abs(r.p),r.q);
+  return rational(abs(r.p),r.q,false);
 }
 
 
@@ -197,3 +197,4 @@ rational[][] r=a;
 write(r);
 
 */
+
