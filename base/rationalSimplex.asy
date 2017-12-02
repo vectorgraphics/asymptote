@@ -1,4 +1,5 @@
 import math;
+import rational;
 
 int OPTIMAL=0;
 int UNBOUNDED=1;
@@ -7,36 +8,36 @@ int INFEASIBLE=2;
 struct solution {
 
   int type;
-  real[] x;
-  real cost;
+  rational[] x;
+  rational cost;
 }
 
 int m,n;
 
 // Row reduce based on pivot E[I][J]
-void rowreduce(real[][] E, int N, int I, int J)
+void rowreduce(rational[][] E, int N, int I, int J)
 {
-  real[] EI=E[I];
-  real v=EI[J];
+  rational[] EI=E[I];
+  rational v=EI[J];
   for(int j=0; j < J; ++j) EI[j] /= v;
-  EI[J]=1.0;
+  EI[J]=1;
   for(int j=J+1; j <= N; ++j) EI[j] /= v;
 
   for(int i=0; i < I; ++i) {
-    real[] Ei=E[i];
-    real EiJ=Ei[J];
+    rational[] Ei=E[i];
+    rational EiJ=Ei[J];
     for(int j=0; j < J; ++j)
       Ei[j] -= EI[j]*EiJ;
-    Ei[J]=0.0;
+    Ei[J]=0;
     for(int j=J+1; j <= N; ++j)
       Ei[j] -= EI[j]*EiJ;
   }
   for(int i=I+1; i <= m; ++i) {
-    real[] Ei=E[i];
-    real EiJ=Ei[J];
+    rational[] Ei=E[i];
+    rational EiJ=Ei[J];
     for(int j=0; j < J; ++j)
       Ei[j] -= EI[j]*EiJ;
-    Ei[J]=0.0;
+    Ei[J]=0;
     for(int j=J+1; j <= N; ++j)
       Ei[j] -= EI[j]*EiJ;
   }
@@ -47,10 +48,13 @@ int J;
 
 solution Solution;
 
-void iterate(real[][] E, int N)
+//rational[][][] Estack;
+
+void iterate(rational[][] E, int N)
 {
   while(true) {
-    // Find first negative entry in bottom row
+    //    Estack.push(copy(E));
+    // Find first negative entry in bottom (reduced cost) row
     for(J=0; J < N; ++J)
       if(E[m][J] < 0) break;
 
@@ -58,11 +62,19 @@ void iterate(real[][] E, int N)
       return;
 
     int I=-1;
-    real M=inf;
+    rational M;
     for(int i=0; i < m; ++i) {
-      real e=E[i][J];
-      if(e > sqrtEpsilon) { // FIXME: normalize properly
-        real v=E[i][N]/e;
+      rational e=E[i][J];
+      if(e > 0) {
+        M=E[i][N]/e;
+        I=i;
+        break;
+      }
+    }
+    for(int i=I+1; i < m; ++i) {
+      rational e=E[i][J];
+      if(e > 0) {
+        rational v=E[i][N]/e;
         if(v < M) {M=v; I=i;}
       }
     }
@@ -77,14 +89,24 @@ void iterate(real[][] E, int N)
     rowreduce(E,N,I,J);
 
     //    write();
-    //    write(E);
+    
+    /*
+    for(rational[][] Eold:Estack) {
+      if(E == Eold) {
+        write("same");
+        write(E == Eold);
+        write(E);
+        exit();
+      }
+    }
+    */
   }
 }
 
 
 // Try to find a solution x to Ax=b that minimizes the cost c^T x.
 // A is an m x n matrix
-solution simplex(real[] c, real[][] A, real[] b)
+solution simplex(rational[] c, rational[][] A, rational[] b)
 {
   
   // Phase 1    
@@ -95,12 +117,12 @@ solution simplex(real[] c, real[][] A, real[] b)
   m=A.length;
   n=A[0].length;
   
-  real[][] E=new real[m+1][n+m+1];
+  rational[][] E=new rational[m+1][n+m+1];
 
   for(int j=0; j < n; ++j) {
-    real sum=0;
+    rational sum=0;
     for(int i=0; i < m; ++i) { 
-      real Aij=A[i][j];
+      rational Aij=A[i][j];
       E[i][j]=Aij;
       sum += Aij;
     }
@@ -118,24 +140,23 @@ solution simplex(real[] c, real[][] A, real[] b)
     E[i][n+m]=b[i];
   }
   E[m][n+m]=-sum(b);
-
-  //  write(E);
   
   Bindices=sequence(n,n+m-1);
   iterate(E,n+m);
-
-  real fuzz=sqrtEpsilon; // FIXME: scale by norm of problem
-  if(abs(E[m][J]) > fuzz) {
+  
+  if(abs(E[m][J]) > 0) {
     Solution.type=INFEASIBLE;
     return Solution;
   }
 
-  //  write("Done with Phase 1");
+  write("Done with Phase 1");
   //  write("Bindices:",Bindices);
 
-  real[][] D=new real[m+1][n+1];
+  rational[][] D=new rational[m+1][n+1];
 
-  real[] cb=new real[m];
+  write(m,n);
+  
+  rational[] cb=new rational[m];
 
   int ip=0; // reduced i
   for(int i=0; i < m; ++i) {
@@ -157,13 +178,13 @@ solution simplex(real[] c, real[][] A, real[] b)
   //  write("Reduced Bindices:",Bindices[0:m]);
 
   for(int j=0; j < n; ++j) {
-    real sum=0;
+    rational sum=0;
     for(int k=0; k < m; ++k)
       sum += cb[k]*D[k][j];
     D[m][j]=c[j]-sum;
   }
   
-  real sum=0;
+  rational sum=0;
   for(int k=0; k < m; ++k)
     sum += cb[k]*D[k][n];
   D[m][n]=-sum;
@@ -191,7 +212,7 @@ solution simplex(real[] c, real[][] A, real[] b)
 }
 
 // Try to find a solution x to sgn(Ax-b)=sgn(s) that minimizes the cost c^T x.
-solution simplex(real[] c, real[][] A, int[] s, real[] b)
+solution simplex(rational[] c, rational[][] A, int[] s, rational[] b)
 {
   int m=A.length;
   int n=A[0].length;
@@ -200,7 +221,7 @@ solution simplex(real[] c, real[][] A, int[] s, real[] b)
   for(int i=0; i < m; ++i)
     if(s[i] != 0) ++count;
 
-  real[][] a=new real[m][n+count];
+  rational[][] a=new rational[m][n+count];
 
   for(int i=0; i < m; ++i) {
     for(int j=0; j < n; ++j) {
@@ -220,46 +241,46 @@ solution simplex(real[] c, real[][] A, int[] s, real[] b)
     if(s[i] != 0) ++k;
   }
 
-  solution S=simplex(concat(c,array(count,0.0)),a,b);
+  solution S=simplex(concat(c,array(count,rational(0))),a,b);
   if(S.type == OPTIMAL)
     S.x.delete(n,n+count-1);
   return S;
 }
 
-solution S=simplex(new real[] {4,1,1},
-                   new real[][] {{2,1,2},{3,3,1}},
-                   new real[] {4,3});
+/*
+solution S=simplex(new rational[] {4,1,1},
+                   new rational[][] {{2,1,2},{3,3,1}},
+                   new rational[] {4,3});
 
 
 
-solution S=simplex(new real[] {2,6,1,1},
-                   new real[][] {{1,2,0,1},{1,2,1,1},{1,3,-1,2},{1,1,1,0}},
-                   new real[] {6,7,7,5});
+solution S=simplex(new rational[] {2,6,1,1},
+                   new rational[][] {{1,2,0,1},{1,2,1,1},{1,3,-1,2},{1,1,1,0}},
+                   new rational[] {6,7,7,5});
 
 
 
-solution S=simplex(new real[] {-10,-12,-12,0,0,0},
-                   new real[][] {{1,2,2,1,0,0},
+solution S=simplex(new rational[] {-10,-12,-12,0,0,0},
+                   new rational[][] {{1,2,2,1,0,0},
                                  {2,1,2,0,1,0},
                                  {2,2,1,0,0,1}},
-                   new real[] {20,20,20});
+                   new rational[] {20,20,20});
 
-solution S=simplex(new real[] {-10,-12,-12},
-                   new real[][] {{1,2,2},
+solution S=simplex(new rational[] {-10,-12,-12},
+                   new rational[][] {{1,2,2},
                                  {2,1,2},
                                  {2,2,1}},
                    new int[] {0,0,-1},
-                   new real[] {20,20,20});
+                   new rational[] {20,20,20});
 
-solution S=simplex(new real[] {1,1,1,0},
-                   new real[][] {{1,2,3,0},
+solution S=simplex(new rational[] {1,1,1,0},
+                   new rational[][] {{1,2,3,0},
                                  {-1,2,6,0},
                                  {0,4,9,0},
                                  {0,0,3,1}},
-                   new real[] {3,2,5,1});
+                   new rational[] {3,2,5,1});
 
 write();
 write("x:",S.x);
 write("Cost=",S.cost);
-
-
+*/
