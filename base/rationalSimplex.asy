@@ -48,12 +48,9 @@ int J;
 
 solution Solution;
 
-//rational[][][] Estack;
-
 void iterate(rational[][] E, int N)
 {
   while(true) {
-    //    Estack.push(copy(E));
     // Find first negative entry in bottom (reduced cost) row
     for(J=0; J < N; ++J)
       if(E[m][J] < 0) break;
@@ -87,19 +84,6 @@ void iterate(rational[][] E, int N)
 
     // Generate new tableau
     rowreduce(E,N,I,J);
-
-    //    write();
-    
-    /*
-    for(rational[][] Eold:Estack) {
-      if(E == Eold) {
-        write("same");
-        write(E == Eold);
-        write(E);
-        exit();
-      }
-    }
-    */
   }
 }
 
