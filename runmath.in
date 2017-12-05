@@ -414,8 +414,10 @@ Int CLZ(Int a)
 {
   if((unsignedInt) a > 0xFFFFFFFF)
     return CLZ((uint32_t) (a >> 32));
-  else
-    return intbits()-32+CLZ((uint32_t) a);
+  else {
+    if(a != 0) return intbits()-32+CLZ((uint32_t) a);
+    return intbits();    
+  }
 }
 
 Int popcount(Int a) 
