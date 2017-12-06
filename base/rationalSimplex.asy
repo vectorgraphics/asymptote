@@ -79,8 +79,6 @@ struct simplex {
     return 0;
   }
 
-  void operator init() {}
-    
   // Try to find a solution x to Ax=b that minimizes the cost c^T x.
   // A is an m x n matrix
   void operator init(rational[] c, rational[][] A, rational[] b) {
@@ -239,7 +237,6 @@ simplex S=simplex(new rational[] {-10,-12,-12},
                                     {2,2,1}},
                   new int[] {0,0,-1},
                   new rational[] {20,20,20});
-*/
 
 simplex S=simplex(new rational[] {1,1,1,0},
                   new rational[][] {{1,2,3,0},
@@ -253,3 +250,4 @@ write("case:",S.case);
 write("x:",S.x);
 write("Cost=",S.cost);
 
+*/
