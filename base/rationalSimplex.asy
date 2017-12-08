@@ -225,7 +225,6 @@ simplex S=simplex(new rational[] {-10,-12,-12,0,0,0},
                                     {2,1,2,0,1,0},
                                     {2,2,1,0,0,1}},
                   new rational[] {20,20,20});
-*/
 
 simplex S=simplex(new rational[] {-10,-12,-12},
                   new rational[][] {{1,2,2},
@@ -234,17 +233,15 @@ simplex S=simplex(new rational[] {-10,-12,-12},
                   new int[] {0,0,-1},
                   new rational[] {20,20,20});
 
-/*
 simplex S=simplex(new rational[] {1,1,1,0},
                   new rational[][] {{1,2,3,0},
                                     {-1,2,6,0},
                                     {0,4,9,0},
                                     {0,0,3,1}},
                   new rational[] {3,2,5,1});
-*/
 
 write();
 write("case:",S.case);
 write("x:",S.x);
 write("Cost=",S.cost);
-
+*/
