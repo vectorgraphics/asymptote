@@ -434,8 +434,8 @@ Int CTZ(Int a)
 Int bitreverse(Int a, Int bits)
 {
   typedef unsigned long long Bitreverse(unsigned long long a);
-  Bitreverse *B[]={bitreverse8,bitreverse16,bitreverse24,bitreverse32,
-                   bitreverse40,bitreverse48,bitreverse56,bitreverse64};
+  static Bitreverse *B[]={bitreverse8,bitreverse16,bitreverse24,bitreverse32,
+                     bitreverse40,bitreverse48,bitreverse56,bitreverse64};
   unsigned int bytes=(bits+7)/8;
   
   int maxbits=intbits()-1; // Drop sign bit

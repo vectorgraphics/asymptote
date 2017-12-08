@@ -4477,9 +4477,9 @@ for nonintegral built-in arithmetic types @code{T}. If @code{a} and
 @code{int OR(int,int)}, @code{int XOR(int,int)}, @code{int NOT(int)},
 @code{int CLZ(int)} (count leading zeros),
 @code{int CTZ(int)} (count trailing zeros),
-@code{int bitreverse(int a, int bits)}
-(reverse bits within a word of length bits),
-and @code{int popcount(int)} (count bits populated by ones).
+@code{int popcount(int)} (count bits populated by ones), and
+@code{int bitreverse(int a, int bits)} (reverse bits within a word of
+length bits).
 
 @node Self & prefix operators, User-defined operators, Arithmetic & logical, Operators
 @subsection Self & prefix operators
