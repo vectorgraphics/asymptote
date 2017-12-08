@@ -11,7 +11,6 @@ struct simplex {
   rational cost;
 
   int m,n;
-  int[] Bindices;
   int J;
 
   // Row reduce based on pivot E[I][J]
@@ -42,7 +41,7 @@ struct simplex {
     }
   }
 
-  int iterate(rational[][] E, int N) {
+  int iterate(rational[][] E, int N, int[] Bindices) {
     while(true) {
       // Find first negative entry in bottom (reduced cost) row
       for(J=0; J < N; ++J)
@@ -84,9 +83,8 @@ struct simplex {
   void operator init(rational[] c, rational[][] A, rational[] b) {
   
     // Phase 1    
-    //  write(A);
     assert(rectangular(A));
-    //  assert(all(b >= 0));
+    //    assert(all(b >= 0)); // FIXME
   
     m=A.length;
     n=A[0].length;
@@ -115,8 +113,8 @@ struct simplex {
     }
     E[m][n+m]=-sum(b);
   
-    Bindices=sequence(n,n+m-1);
-    iterate(E,n+m);
+    int[] Bindices=sequence(n,n+m-1);
+    iterate(E,n+m,Bindices);
   
     if(abs(E[m][J]) > 0) {
     case=INFEASIBLE;
@@ -163,7 +161,7 @@ struct simplex {
     //  write();
     //  write(D);
 
-    if(iterate(D,n) == UNBOUNDED) {
+    if(iterate(D,n,Bindices) == UNBOUNDED) {
     case=UNBOUNDED;
     return;
     }
@@ -171,10 +169,8 @@ struct simplex {
     for(int j=0; j < n; ++j)
       x[j]=0;
 
-    for(int k=0; k < m; ++k) {
-      int i=Bindices[k];
-      x[i]=D[k][n];
-    }
+    for(int k=0; k < m; ++k)
+      x[Bindices[k]]=D[k][n];
 
     cost=-D[m][n];
     case=OPTIMAL;
@@ -224,12 +220,12 @@ simplex S=simplex(new rational[] {4,1,1},
 simplex S=simplex(new rational[] {2,6,1,1},
                   new rational[][] {{1,2,0,1},{1,2,1,1},{1,3,-1,2},{1,1,1,0}},
                   new rational[] {6,7,7,5});
-
 simplex S=simplex(new rational[] {-10,-12,-12,0,0,0},
                   new rational[][] {{1,2,2,1,0,0},
                                     {2,1,2,0,1,0},
                                     {2,2,1,0,0,1}},
                   new rational[] {20,20,20});
+*/
 
 simplex S=simplex(new rational[] {-10,-12,-12},
                   new rational[][] {{1,2,2},
@@ -238,16 +234,17 @@ simplex S=simplex(new rational[] {-10,-12,-12},
                   new int[] {0,0,-1},
                   new rational[] {20,20,20});
 
+/*
 simplex S=simplex(new rational[] {1,1,1,0},
                   new rational[][] {{1,2,3,0},
                                     {-1,2,6,0},
                                     {0,4,9,0},
                                     {0,0,3,1}},
                   new rational[] {3,2,5,1});
+*/
 
 write();
 write("case:",S.case);
 write("x:",S.x);
 write("Cost=",S.cost);
 
-*/
