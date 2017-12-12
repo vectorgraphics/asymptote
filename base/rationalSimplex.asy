@@ -65,7 +65,7 @@ struct simplex {
         rational e=E[i][J];
         if(e > 0) {
           rational v=E[i][N]/e;
-          if(v < M) {M=v; I=i;}
+          if(v <= M) {M=v; I=i;}
         }
       }
       if(I == -1)
@@ -252,8 +252,10 @@ simplex S=simplex(new rational[] {1,1,1,0},
                                     {0,0,3,1}},
                   new rational[] {3,2,5,1});
 
+
 write();
 write("case:",S.case);
 write("x:",S.x);
 write("Cost=",S.cost);
+
 */
