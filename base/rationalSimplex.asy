@@ -44,8 +44,9 @@ struct simplex {
   int iterate(rational[][] E, int N, int[] Bindices) {
     while(true) {
       // Find first negative entry in bottom (reduced cost) row
+      rational[] Em=E[m];
       for(J=0; J < N; ++J)
-        if(E[m][J] < 0) break;
+        if(Em[J] < 0) break;
 
       if(J == N)
         return 0;
@@ -91,6 +92,7 @@ struct simplex {
   
     rational[][] E=new rational[m+1][n+m+1];
 
+    rational[] Em=E[m];
     for(int j=0; j < n; ++j) {
       rational sum=0;
       for(int i=0; i < m; ++i) { 
@@ -98,25 +100,28 @@ struct simplex {
         E[i][j]=Aij;
         sum += Aij;
       }
-      E[m][j]=-sum;
-    }
-
-    for(int j=0; j < m; ++j) {
-      E[m][n+j]=0;
-      for(int i=0; i < m; ++i) { 
-        E[i][n+j]=i == j ? 1 : 0;
-      }
+      Em[j]=-sum;
     }
 
     for(int i=0; i < m; ++i) { 
-      E[i][n+m]=b[i];
+      rational[] Ei=E[i];
+      for(int j=0; j < i; ++j)
+        Ei[n+j]=0;
+      Ei[n+i]=1;
+      for(int j=i+1; j < m; ++j)
+        Ei[n+j]=0;
     }
-    E[m][n+m]=-sum(b);
+
+    for(int i=0; i < m; ++i)
+      E[i][n+m]=b[i];
+    for(int j=0; j < m; ++j)
+      Em[n+j]=0;
+    Em[n+m]=-sum(b);
   
     int[] Bindices=sequence(n,n+m-1);
     iterate(E,n+m,Bindices);
   
-    if(abs(E[m][J]) > 0) {
+    if(abs(Em[J]) > 0) {
     case=INFEASIBLE;
     return;
     }
@@ -133,30 +138,34 @@ struct simplex {
       if(k >= n) continue;
       Bindices[ip]=k; 
       cb[ip]=c[k];
+      rational[] Dip=D[ip];
+      rational[] Ei=E[i];
       for(int j=0; j < n; ++j)
-        D[ip][j]=E[i][j];
-      D[ip][n]=E[i][n+m];
+        Dip[j]=Ei[j];
+      Dip[n]=Ei[n+m];
       ++ip;
     }
 
+    rational[] Dip=D[ip];
     for(int j=0; j < n; ++j)
-      D[ip][j]=E[m][j];
-    D[ip][n]=E[m][n+m];
+      Dip[j]=Em[j];
+    Dip[n]=Em[n+m];
 
     m=ip;
     //  write("Reduced Bindices:",Bindices[0:m]);
 
+    rational[] Dm=D[m];
     for(int j=0; j < n; ++j) {
       rational sum=0;
       for(int k=0; k < m; ++k)
         sum += cb[k]*D[k][j];
-      D[m][j]=c[j]-sum;
+      Dm[j]=c[j]-sum;
     }
   
     rational sum=0;
     for(int k=0; k < m; ++k)
       sum += cb[k]*D[k][n];
-    D[m][n]=-sum;
+    Dm[n]=-sum;
 
     //  write();
     //  write(D);
@@ -172,7 +181,7 @@ struct simplex {
     for(int k=0; k < m; ++k)
       x[Bindices[k]]=D[k][n];
 
-    cost=-D[m][n];
+    cost=-Dm[n];
     case=OPTIMAL;
   }
 
@@ -189,20 +198,23 @@ struct simplex {
     rational[][] a=new rational[m][n+count];
 
     for(int i=0; i < m; ++i) {
+      rational[] ai=a[i];
+      rational[] Ai=A[i];
       for(int j=0; j < n; ++j) {
-        a[i][j]=A[i][j];
+        ai[j]=Ai[j];
       }
     }
   
     int k=0;
 
     for(int i=0; i < m; ++i) {
+      rational[] ai=a[i];
       for(int j=0; j < k; ++j)
-        a[i][n+j]=0;
+        ai[n+j]=0;
       if(k < count)
-        a[i][n+k]=-s[i];
+        ai[n+k]=-s[i];
       for(int j=k+1; j < count; ++j)
-        a[i][n+j]=0;
+        ai[n+j]=0;
       if(s[i] != 0) ++k;
     }
 
