@@ -81,16 +81,16 @@ struct simplex {
 
   // Try to find a solution x to Ax=b that minimizes the cost c^T x.
   // A is an m x n matrix
-  void operator init(rational[] c, rational[][] A, rational[] b) {
-  
+  void operator init(rational[] c, rational[][] A, rational[] b,
+                     bool phase1=true) {
     // Phase 1    
     assert(rectangular(A));
     //    assert(all(b >= 0)); // FIXME
   
     m=A.length;
     n=A[0].length;
-  
-    rational[][] E=new rational[m+1][n+m+1];
+    int N=phase1 ? n+m : n;
+    rational[][] E=new rational[m+1][N+1];
 
     rational[] Em=E[m];
     for(int j=0; j < n; ++j) {
@@ -103,72 +103,75 @@ struct simplex {
       Em[j]=-sum;
     }
 
-    for(int i=0; i < m; ++i) { 
-      rational[] Ei=E[i];
-      for(int j=0; j < i; ++j)
-        Ei[n+j]=0;
-      Ei[n+i]=1;
-      for(int j=i+1; j < m; ++j)
-        Ei[n+j]=0;
+    if(phase1) {
+      for(int i=0; i < m; ++i) { 
+        rational[] Ei=E[i];
+        for(int j=0; j < i; ++j)
+          Ei[n+j]=0;
+        Ei[n+i]=1;
+        for(int j=i+1; j < m; ++j)
+          Ei[n+j]=0;
+      }
     }
 
     for(int i=0; i < m; ++i)
-      E[i][n+m]=b[i];
-    for(int j=0; j < m; ++j)
-      Em[n+j]=0;
-    Em[n+m]=-sum(b);
+      E[i][N]=b[i];
+    if(phase1)
+      for(int j=0; j < m; ++j)
+        Em[n+j]=0;
+    Em[N]=-sum(b);
+   
+    int[] Bindices=sequence(N-m,N-1);
+
+    if(phase1) {
+      iterate(E,N,Bindices);
   
-    int[] Bindices=sequence(n,n+m-1);
-    iterate(E,n+m,Bindices);
-  
-    if(abs(Em[J]) > 0) {
-    case=INFEASIBLE;
-    return;
+      if(abs(Em[J]) > 0) {
+      case=INFEASIBLE;
+      return;
+      }
+      write("Done with Phase 1");
     }
-
-    write("Done with Phase 1");
-    //  write("Bindices:",Bindices);
-
-    rational[][] D=new rational[m+1][n+1];
-    rational[] cb=new rational[m];
-
-    int ip=0; // reduced i
-    for(int i=0; i < m; ++i) {
-      int k=Bindices[i];
-      if(k >= n) continue;
-      Bindices[ip]=k; 
-      cb[ip]=c[k];
-      rational[] Dip=D[ip];
-      rational[] Ei=E[i];
-      for(int j=0; j < n; ++j)
-        Dip[j]=Ei[j];
-      Dip[n]=Ei[n+m];
-      ++ip;
-    }
-
-    rational[] Dip=D[ip];
-    for(int j=0; j < n; ++j)
-      Dip[j]=Em[j];
-    Dip[n]=Em[n+m];
-
-    m=ip;
-    //  write("Reduced Bindices:",Bindices[0:m]);
-
+    
+    rational[][] D=phase1 ? new rational[m+1][n+1] : E;
     rational[] Dm=D[m];
-    for(int j=0; j < n; ++j) {
+
+    if(phase1) {
+      rational[] cb=new rational[m];
+      int ip=0; // reduced i
+      for(int i=0; i < m; ++i) {
+        int k=Bindices[i];
+        if(k >= n) continue;
+        Bindices[ip]=k; 
+        cb[ip]=c[k];
+        rational[] Dip=D[ip];
+        rational[] Ei=E[i];
+        for(int j=0; j < n; ++j)
+          Dip[j]=Ei[j];
+        Dip[n]=Ei[N];
+        ++ip;
+      }
+
+      rational[] Dip=D[ip];
+      rational[] Em=E[m];
+      for(int j=0; j < n; ++j)
+        Dip[j]=Em[j];
+      Dip[n]=Em[N];
+
+      m=ip;
+
+      for(int j=0; j < n; ++j) {
+        rational sum=0;
+        for(int k=0; k < m; ++k)
+          sum += cb[k]*D[k][j];
+        Dm[j]=c[j]-sum;
+      }
+  
       rational sum=0;
       for(int k=0; k < m; ++k)
-        sum += cb[k]*D[k][j];
-      Dm[j]=c[j]-sum;
+        sum += cb[k]*D[k][n];
+      Dm[n]=-sum;
     }
-  
-    rational sum=0;
-    for(int k=0; k < m; ++k)
-      sum += cb[k]*D[k][n];
-    Dm[n]=-sum;
-
-    //  write();
-    //  write(D);
 
     if(iterate(D,n,Bindices) == UNBOUNDED) {
     case=UNBOUNDED;
@@ -218,7 +221,9 @@ struct simplex {
       if(s[i] != 0) ++k;
     }
 
-    operator init(concat(c,array(count,rational(0))),a,b);
+    bool phase1=!all(s == -1);
+    operator init(concat(c,array(count,rational(0))),a,b,phase1);
+
     if(case == OPTIMAL)
       x.delete(n,n+count-1);
   }
@@ -252,10 +257,8 @@ simplex S=simplex(new rational[] {1,1,1,0},
                                     {0,0,3,1}},
                   new rational[] {3,2,5,1});
 
-
 write();
 write("case:",S.case);
 write("x:",S.x);
 write("Cost=",S.cost);
-
 */
