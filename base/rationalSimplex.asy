@@ -130,14 +130,12 @@ struct simplex {
       case=INFEASIBLE;
       return;
       }
-      write("Done with Phase 1");
     }
     
     rational[][] D=phase1 ? new rational[m+1][n+1] : E;
     rational[] Dm=D[m];
-
+    rational[] cb=phase1 ? new rational[m] : c[n-m:n];
     if(phase1) {
-      rational[] cb=new rational[m];
       int ip=0; // reduced i
       for(int i=0; i < m; ++i) {
         int k=Bindices[i];
@@ -166,12 +164,14 @@ struct simplex {
           sum += cb[k]*D[k][j];
         Dm[j]=c[j]-sum;
       }
-  
-      rational sum=0;
-      for(int k=0; k < m; ++k)
-        sum += cb[k]*D[k][n];
-      Dm[n]=-sum;
+
+      write("Done with Phase 1");
     }
+   
+    rational sum=0;
+    for(int k=0; k < m; ++k)
+      sum += cb[k]*D[k][n];
+    Dm[n]=-sum;
 
     if(iterate(D,n,Bindices) == UNBOUNDED) {
     case=UNBOUNDED;
