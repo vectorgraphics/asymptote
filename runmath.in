@@ -442,7 +442,8 @@ Int bitreverse(Int a, Int bits)
 #if Int_MAX2 >= 0x7fffffffffffffffLL
   --maxbits;               // Drop extra bit for reserved values
 #endif  
-  if(bits > maxbits || a < 0 || (unsigned long long) a >= (1ULL << bits))
+  if(bits <= 0 || bits > maxbits || a < 0 ||
+     (unsigned long long) a >= (1ULL << bits))
     return -1;
   return B[bytes-1]((unsigned long long) a) >> (8*bytes-bits);
 }
