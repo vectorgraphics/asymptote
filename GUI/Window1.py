@@ -159,6 +159,7 @@ class MainWindow1(Qw.QMainWindow):
         self.lockY = False
         self.anchorMode = AnchorMode.origin
         self.currentAnchor = Qc.QPointF(0, 0)
+        self.customAnchor = None
         self.useGlobalCoords = True
         self.drawAxes = True
 
@@ -377,9 +378,12 @@ class MainWindow1(Qw.QMainWindow):
         elif text == 'Bottom Right':
             self.anchorMode = AnchorMode.bottomRight
         elif text == 'Custom Anchor':
-            self.anchorMode = AnchorMode.customAnchor
+            if self.customAnchor is not None:
+                self.anchorMode = AnchorMode.customAnchor
+            else:
+                self.btnCustomAnchorOnClick()
 
-    def btnCustomAnchorOnClick(self, text):
+    def btnCustomAnchorOnClick(self, text=''):
         custAnchorDialog = SetCustomAnchor.CustomAnchorDialog()
         custAnchorDialog.show()
         result = custAnchorDialog.exec()
@@ -631,6 +635,7 @@ class MainWindow1(Qw.QMainWindow):
         self.postDraw()
         self.updateScreen()
 
+
     def quickDraw(self):
         assert self.isReady()
         drawList = sorted(self.drawObjects.values(), key=lambda drawObj: drawObj.drawOrder)
@@ -820,6 +825,9 @@ class MainWindow1(Qw.QMainWindow):
         drawObj.transform = item.transform[transfIndex]
 
         self.quickUpdate()
+
+    def initializeEmptyFile(self):
+        pass
 
     def loadFile(self, name):
         self.ui.statusbar.showMessage(name)

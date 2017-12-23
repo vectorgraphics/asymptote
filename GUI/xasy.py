@@ -13,7 +13,10 @@ def main(args):
 
     if len(args) >= 2:
         mainWin1.loadFile(args[1])
+    else:
+        mainWin1.initializeEmptyFile()
     return qtApp.exec_()
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv) or 0)
