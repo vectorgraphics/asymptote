@@ -66,7 +66,11 @@ class DefaultSettings:
         'useDegrees': False,
         'terminalFont': 'Courier',
         'terminalFontSize': 10,
-        'defaultShowGrid': True
+        'defaultShowGrid': True,
+        'gridMajorAxesColor': '#000000',
+        'gridMinorAxesColor': '#AAAAAA',
+        'gridMajorAxesSpacing': 100,
+        'gridMinorAxesCount': 9,
     }
 
 
@@ -152,6 +156,7 @@ class MainWindow1(Qw.QMainWindow):
         self.origBboxTransform = None
         self.deltaAngle = 0
         self.scaleFactor = 1
+        self.panOffset = 0, 0
 
         self.undoRedoStack = Urs.actionStack()
 
@@ -162,6 +167,7 @@ class MainWindow1(Qw.QMainWindow):
         self.customAnchor = None
         self.useGlobalCoords = True
         self.drawAxes = True
+        self.drawGrid = True  # TODO: Make this a setting/option
 
         self.finalPixmap = None
         self.preCanvasPixmap = None
@@ -416,12 +422,10 @@ class MainWindow1(Qw.QMainWindow):
             mousePos = self.getWindowCoordinates()
             newPos = mousePos - self.savedWindowMousePos
             tx, ty = newPos.x(), newPos.y()
-            tx, ty = newPos.x(), newPos.y()
             if self.lockX:
                 tx = 0
             if self.lockY:
                 ty = 0
-
             self.screenTransformation = self.currScreenTransform * Qg.QTransform.fromTranslate(tx, ty)
             self.quickUpdate()
             return
@@ -676,6 +680,41 @@ class MainWindow1(Qw.QMainWindow):
             preCanvas.setPen(Qc.Qt.gray)
             preCanvas.drawLine(Qc.QLine(-9999, 0, 9999, 0))
             preCanvas.drawLine(Qc.QLine(0, -9999, 0, 9999))
+
+        if self.drawGrid:
+            majorGrid = self.settings['gridMajorAxesSpacing']
+            minorGridCount = self.settings['gridMinorAxesCount']
+
+            majorGridCol = Qg.QColor(self.settings['gridMajorAxesColor'])
+            minorGridCol = Qg.QColor(self.settings['gridMinorAxesColor'])
+
+            panX, panY = self.screenTransformation.dx(), self.screenTransformation.dy()
+
+            x_range = self.canvSize.width() / 2 + (2 * abs(panX))
+            y_range = self.canvSize.height() / 2 + (2 * abs(panY))
+
+            for x in range(0, 2 * round(x_range) + 1, majorGrid):
+                preCanvas.setPen(majorGridCol)
+                preCanvas.drawLine(Qc.QLine(x, -9999, x, 9999))
+                preCanvas.drawLine(Qc.QLine(-x, -9999, -x, 9999))
+                preCanvas.setPen(minorGridCol)
+                for xMinor in range(1, minorGridCount + 1):
+                    xCoord = round(x + ((xMinor/(minorGridCount + 1)) * majorGrid))
+                    preCanvas.drawLine(Qc.QLine(xCoord, -9999, xCoord, 9999))
+                    preCanvas.drawLine(Qc.QLine(-xCoord, -9999, -xCoord, 9999))
+
+            for y in range(0, 2 * round(y_range) + 1, majorGrid):
+                preCanvas.setPen(majorGridCol)
+                preCanvas.drawLine(Qc.QLine(-9999, y, 9999, y))
+                preCanvas.drawLine(Qc.QLine(-9999, -y, 9999, -y))
+
+                preCanvas.setPen(minorGridCol)
+                for yMinor in range(1, minorGridCount + 1):
+                    yCoord = round(y + ((yMinor/(minorGridCount + 1)) * majorGrid))
+                    preCanvas.drawLine(Qc.QLine(-9999, yCoord, 9999, yCoord))
+                    preCanvas.drawLine(Qc.QLine(-9999, -yCoord, 9999, -yCoord))
+
+
 
         # preCanvas.end()
 
