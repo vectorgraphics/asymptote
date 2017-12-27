@@ -84,6 +84,7 @@ class BezierCurveEditor(Qw.QDialog):
 
         self.ui.btnAddPoint.clicked.connect(self.addPoint)
         self.ui.btnEditPoint.clicked.connect(self.btnEditPointOnClick)
+        self.ui.btnRemovePoint.clicked.connect(self.deletePoint)
         self.ui.btnAccept.clicked.connect(self.accept)
         self.ui.btnCancel.clicked.connect(self.reject)
 
@@ -158,9 +159,9 @@ class BezierCurveEditor(Qw.QDialog):
         for pointIndex in range(self.model.rowCount()):
             pointItem = self.model.item(pointIndex)
             self.pointList.append(BezierPoint.fromQStandardItem(pointItem))
-
-        self.pointList[0].setFirstPoint()
-        self.pointList[-1].setLastPoint()
+        if len(self.pointList) >= 2:
+            self.pointList[0].setFirstPoint()
+            self.pointList[-1].setLastPoint()
         return self.pointList
 
     def addPoint(self):
@@ -174,6 +175,14 @@ class BezierCurveEditor(Qw.QDialog):
         self.model.appendRow(point)
         self.ui.treeViewPoints.expand(point.index())
         self.pointCounter = self.pointCounter + 1
+        self.updateCurve()
+
+    def deletePoint(self):
+        selectedIndex = self.ui.treeViewPoints.selectionModel().currentIndex()
+        if selectedIndex.parent().isValid():  # selected one of child items
+            selectedIndex = selectedIndex.parent()
+        self.model.removeRow(selectedIndex.row())
+        self.createPointList()
         self.updateCurve()
 
 
