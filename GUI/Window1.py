@@ -66,6 +66,7 @@ class DefaultSettings:
         'useDegrees': False,
         'terminalFont': 'Courier',
         'terminalFontSize': 10,
+        'defaultShowAxes': True,
         'defaultShowGrid': True,
         'gridMajorAxesColor': '#000000',
         'gridMinorAxesColor': '#AAAAAA',
@@ -130,6 +131,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnSelectColor.clicked.connect(self.btnColorSelectOnClick)
 
         self.ui.btnCreateCurve.clicked.connect(self.btnCreateCurveOnClick)
+        self.ui.btnDrawGrid.clicked.connect(self.btnDrawGridOnClick)
 
         # Settings Initialization
         terminalFont = Qg.QFont(self.settings['terminalFont'], self.settings['terminalFontSize'])
@@ -200,6 +202,7 @@ class MainWindow1(Qw.QMainWindow):
         }
 
         self.loadKeyMaps()
+
 
     def debug(self):
         print('Put a breakpoint here.')
@@ -346,6 +349,13 @@ class MainWindow1(Qw.QMainWindow):
 
         usrConfigFile.close()
 
+    def initializeButtons(self):
+        self.ui.btnDrawAxes.setChecked(self.settings['defaultShowAxes'])
+        self.btnDrawAxesOnClick(self.settings['defaultShowAxes'])
+
+        self.ui.btnDrawGrid.setChecked(self.settings['defaultShowGrid'])
+        self.btnDrawGridOnClick(self.settings['defaultShowGrid'])
+
     def btnSaveOnClick(self):
         if self.filename is None:
             self.actionSaveAs()
@@ -411,6 +421,7 @@ class MainWindow1(Qw.QMainWindow):
     def show(self):
         super().show()
         self.createMainCanvas()  # somehow, the coordinates doesn't get updated until after showing.
+        self.initializeButtons()
 
     def mouseMoveEvent(self, mouseEvent):
         assert isinstance(mouseEvent, Qg.QMouseEvent)
@@ -568,9 +579,6 @@ class MainWindow1(Qw.QMainWindow):
 
         self.ui.imgLabel.setPixmap(self.canvasPixmap)
 
-        if not self.settings['defaultShowGrid']:
-            self.ui.btnDrawAxes.toggle()
-            self.btnDrawAxesOnClick(False)
 
     def selectObject(self):
         if not self.ui.imgLabel.underMouse():
@@ -693,10 +701,7 @@ class MainWindow1(Qw.QMainWindow):
             x_range = self.canvSize.width() / 2 + (2 * abs(panX))
             y_range = self.canvSize.height() / 2 + (2 * abs(panY))
 
-            for x in range(0, 2 * round(x_range) + 1, majorGrid):
-                preCanvas.setPen(majorGridCol)
-                preCanvas.drawLine(Qc.QLine(x, -9999, x, 9999))
-                preCanvas.drawLine(Qc.QLine(-x, -9999, -x, 9999))
+            for x in range(0, 2 * round(x_range) + 1, majorGrid):  # have to do this in two stages...
                 preCanvas.setPen(minorGridCol)
                 for xMinor in range(1, minorGridCount + 1):
                     xCoord = round(x + ((xMinor/(minorGridCount + 1)) * majorGrid))
@@ -704,15 +709,21 @@ class MainWindow1(Qw.QMainWindow):
                     preCanvas.drawLine(Qc.QLine(-xCoord, -9999, -xCoord, 9999))
 
             for y in range(0, 2 * round(y_range) + 1, majorGrid):
-                preCanvas.setPen(majorGridCol)
-                preCanvas.drawLine(Qc.QLine(-9999, y, 9999, y))
-                preCanvas.drawLine(Qc.QLine(-9999, -y, 9999, -y))
-
                 preCanvas.setPen(minorGridCol)
                 for yMinor in range(1, minorGridCount + 1):
                     yCoord = round(y + ((yMinor/(minorGridCount + 1)) * majorGrid))
                     preCanvas.drawLine(Qc.QLine(-9999, yCoord, 9999, yCoord))
                     preCanvas.drawLine(Qc.QLine(-9999, -yCoord, 9999, -yCoord))
+
+                preCanvas.setPen(majorGridCol)
+                preCanvas.drawLine(Qc.QLine(-9999, y, 9999, y))
+                preCanvas.drawLine(Qc.QLine(-9999, -y, 9999, -y))
+
+            for x in range(0, 2 * round(x_range) + 1, majorGrid):
+                preCanvas.setPen(majorGridCol)
+                preCanvas.drawLine(Qc.QLine(x, -9999, x, 9999))
+                preCanvas.drawLine(Qc.QLine(-x, -9999, -x, 9999))
+
 
 
 
@@ -816,6 +827,10 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnDrawAxesOnClick(self, checked):
         self.drawAxes = checked
+        self.quickUpdate()
+
+    def btnDrawGridOnClick(self, checked):
+        self.drawGrid = checked
         self.quickUpdate()
 
     def btnCustTransformOnClick(self):
