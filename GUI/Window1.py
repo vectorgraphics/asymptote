@@ -67,7 +67,8 @@ class DefaultSettings:
         'terminalFont': 'Courier',
         'terminalFontSize': 10,
         'defaultShowAxes': True,
-        'defaultShowGrid': True,
+        'defaultShowGrid': False,
+        'defaultGridSnap': False,
         'gridMajorAxesColor': '#000000',
         'gridMinorAxesColor': '#AAAAAA',
         'gridMajorAxesSpacing': 100,
@@ -169,7 +170,8 @@ class MainWindow1(Qw.QMainWindow):
         self.customAnchor = None
         self.useGlobalCoords = True
         self.drawAxes = True
-        self.drawGrid = True  # TODO: Make this a setting/option
+        self.drawGrid = False
+        self.gridSnap = True  # TODO: for now. turn it off later
 
         self.finalPixmap = None
         self.preCanvasPixmap = None
@@ -202,7 +204,6 @@ class MainWindow1(Qw.QMainWindow):
         }
 
         self.loadKeyMaps()
-
 
     def debug(self):
         print('Put a breakpoint here.')
@@ -423,7 +424,19 @@ class MainWindow1(Qw.QMainWindow):
         self.createMainCanvas()  # somehow, the coordinates doesn't get updated until after showing.
         self.initializeButtons()
 
-    def mouseMoveEvent(self, mouseEvent):
+    def roundPositionSnap(self, oldPoint):
+        minorGridSize = self.settings['gridMajorAxesSpacing'] / (self.settings['gridMinorAxesCount'] + 1)
+        if isinstance(oldPoint, list) or isinstance(oldPoint, tuple):
+            return [round(val / minorGridSize) * minorGridSize for val in oldPoint]
+        elif isinstance(oldPoint, Qc.QPoint) or isinstance(oldPoint, Qc.QPointF):
+            x, y = oldPoint.x(), oldPoint.y()
+            x = round(x / minorGridSize) * minorGridSize
+            y = round(y / minorGridSize) * minorGridSize
+            return Qc.QPointF(x, y)
+        else:
+            raise Exception
+
+    def mouseMoveEvent(self, mouseEvent):  # TODO: Actually refine grid snapping...
         assert isinstance(mouseEvent, Qg.QMouseEvent)
         if not self.ui.imgLabel.underMouse():
             return
@@ -444,7 +457,11 @@ class MainWindow1(Qw.QMainWindow):
         if self.inMidTransformation:
             if self.currentMode == SelectionMode.translate:
                 newPos = canvasPos - self.savedMousePosition
+                if self.gridSnap:
+                    newPos = self.roundPositionSnap(newPos)  # actually round to the nearest minor grid afterwards...
+
                 self.tx, self.ty = newPos.x(), newPos.y()
+
                 if self.lockX:
                     self.tx = 0
                 if self.lockY:
@@ -452,14 +469,23 @@ class MainWindow1(Qw.QMainWindow):
                 self.newTransform = Qg.QTransform.fromTranslate(self.tx, self.ty)
 
             elif self.currentMode == SelectionMode.rotate:
+                if self.gridSnap:
+                    canvasPos = self.roundPositionSnap(canvasPos)
+
                 adjustedSavedMousePos = self.savedMousePosition - self.currentAnchor
                 adjustedCanvasCoords = canvasPos - self.currentAnchor
+
                 origAngle = np.arctan2(adjustedSavedMousePos.y(), adjustedSavedMousePos.x())
                 newAng = np.arctan2(adjustedCanvasCoords.y(), adjustedCanvasCoords.x())
                 self.deltaAngle = newAng - origAngle
                 self.newTransform = xT.makeRotTransform(self.deltaAngle, self.currentAnchor).toQTransform()
 
             elif self.currentMode == SelectionMode.scale:
+                if self.gridSnap:
+                    canvasPos = self.roundPositionSnap(canvasPos)
+                    x, y = int(round(canvasPos.x())), int(round(canvasPos.y()))  # otherwise it crashes...
+                    canvasPos = Qc.QPoint(x, y)
+
                 scaleFactor = Qc.QPoint.dotProduct(canvasPos, self.savedMousePosition) /\
                                    (self.savedMousePosition.manhattanLength() ** 2)
                 if not self.lockX:
