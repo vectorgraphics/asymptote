@@ -17,6 +17,7 @@ import webbrowser
 import CustMatTransform
 import SetCustomAnchor
 import BezierCurveEditor
+import GuidesManager
 
 
 class ActionChanges:
@@ -199,14 +200,41 @@ class MainWindow1(Qw.QMainWindow):
             'save': self.btnSaveOnClick,
             'saveAs': self.actionSaveAs,
             'transform': self.btnCustTransformOnClick,
-            'debug': self.debug,
-            'commandPalette': self.enterCustomCommand
+            'debug:pause': self.debug,
+            'commandPalette': self.enterCustomCommand,
+
+            'debug:addLineGuide': self.debugAddLineGuide,
+            'debug:addArcGuide': self.debugAddArcGuide,
+            'clearGuide':self.clearGuides
         }
+
+        self.currentGuides = []
 
         self.loadKeyMaps()
 
     def debug(self):
         print('Put a breakpoint here.')
+
+    def debugAddLineGuide(self):
+        commandText, result = Qw.QInputDialog.getText(self, '', 'enter <originx> <originy> <angle>')
+        if result:
+            px, py, ang = [float(val) for val in commandText.split()]
+            newLineGuide = GuidesManager.LineGuide(Qc.QPointF(px, py), ang, Qg.QPen(Qg.QColor('red')))
+            self.currentGuides.append(newLineGuide)
+        self.quickUpdate()
+
+    def debugAddArcGuide(self):
+        commandText, result = Qw.QInputDialog.getText(self, '', 'enter <originx> <originy> <rad> <sang> <eang>')
+        if result:
+            px, py, rad, sang, eang = [float(val) for val in commandText.split()]
+            newArcGuide = GuidesManager.ArcGuide(Qc.QPoint(px, py), rad, sang, eang, Qg.QPen(Qg.QColor('red')))
+            self.currentGuides.append(newArcGuide)
+        self.quickUpdate()
+
+
+    def clearGuides(self):
+        self.currentGuides.clear()
+        self.quickUpdate()
 
     def btnCreateCurveOnClick(self):
         self.inCurveCreationMode = True
@@ -750,9 +778,9 @@ class MainWindow1(Qw.QMainWindow):
                 preCanvas.drawLine(Qc.QLine(x, -9999, x, 9999))
                 preCanvas.drawLine(Qc.QLine(-x, -9999, -x, 9999))
 
-
-
-
+        if self.currentGuides:
+            for guide in self.currentGuides:
+                guide.drawShape(preCanvas)
         # preCanvas.end()
 
     def postDraw(self):
