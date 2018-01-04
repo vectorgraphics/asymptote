@@ -45,6 +45,9 @@ class AnchorMode:
     customAnchor = 5
     center = 6
 
+class GridMode:
+    cartesian = 0
+    polar = 1
 
 class SelectionMode:
     select = 0
@@ -189,6 +192,7 @@ class MainWindow1(Qw.QMainWindow):
         self.globalTransformOnlyButtons = (self.ui.comboAnchor, self.ui.btnAnchor)
 
         self.currentMode = SelectionMode.translate
+        self.drawGridMode = GridMode.cartesian
         self.setAllInSetEnabled(self.objButtons, False)
 
         self.commandsFunc = {
@@ -200,12 +204,14 @@ class MainWindow1(Qw.QMainWindow):
             'save': self.btnSaveOnClick,
             'saveAs': self.actionSaveAs,
             'transform': self.btnCustTransformOnClick,
-            'debug:pause': self.debug,
             'commandPalette': self.enterCustomCommand,
+            'clearGuide': self.clearGuides,
 
             'debug:addLineGuide': self.debugAddLineGuide,
             'debug:addArcGuide': self.debugAddArcGuide,
-            'clearGuide':self.clearGuides
+            'debug:pause': self.debug,
+            'debug:execPythonCmd': self.execPythonCmd,
+            'debug:setPolarGrid': self.debugSetPolarGrid
         }
 
         self.currentGuides = []
@@ -214,6 +220,15 @@ class MainWindow1(Qw.QMainWindow):
 
     def debug(self):
         print('Put a breakpoint here.')
+
+    def debugSetPolarGrid(self):
+        self.drawGridMode = GridMode.polar
+
+    def execPythonCmd(self):
+        commandText, result = Qw.QInputDialog.getText(self, '', 'enter python cmd')
+        if result:
+            exec(commandText)
+
 
     def debugAddLineGuide(self):
         commandText, result = Qw.QInputDialog.getText(self, '', 'enter <originx> <originy> <angle>')
@@ -730,6 +745,79 @@ class MainWindow1(Qw.QMainWindow):
         finalPainter.end()
         self.ui.imgLabel.setPixmap(self.finalPixmap)
 
+    def drawCartesianGrid(self, preCanvas):
+        majorGrid = self.settings['gridMajorAxesSpacing']
+        minorGridCount = self.settings['gridMinorAxesCount']
+
+        majorGridCol = Qg.QColor(self.settings['gridMajorAxesColor'])
+        minorGridCol = Qg.QColor(self.settings['gridMinorAxesColor'])
+
+        panX, panY = self.screenTransformation.dx(), self.screenTransformation.dy()
+
+        x_range = self.canvSize.width() / 2 + (2 * abs(panX))
+        y_range = self.canvSize.height() / 2 + (2 * abs(panY))
+
+        for x in range(0, 2 * round(x_range) + 1, majorGrid):  # have to do this in two stages...
+            preCanvas.setPen(minorGridCol)
+            for xMinor in range(1, minorGridCount + 1):
+                xCoord = round(x + ((xMinor / (minorGridCount + 1)) * majorGrid))
+                preCanvas.drawLine(Qc.QLine(xCoord, -9999, xCoord, 9999))
+                preCanvas.drawLine(Qc.QLine(-xCoord, -9999, -xCoord, 9999))
+
+        for y in range(0, 2 * round(y_range) + 1, majorGrid):
+            preCanvas.setPen(minorGridCol)
+            for yMinor in range(1, minorGridCount + 1):
+                yCoord = round(y + ((yMinor / (minorGridCount + 1)) * majorGrid))
+                preCanvas.drawLine(Qc.QLine(-9999, yCoord, 9999, yCoord))
+                preCanvas.drawLine(Qc.QLine(-9999, -yCoord, 9999, -yCoord))
+
+            preCanvas.setPen(majorGridCol)
+            preCanvas.drawLine(Qc.QLine(-9999, y, 9999, y))
+            preCanvas.drawLine(Qc.QLine(-9999, -y, 9999, -y))
+
+        for x in range(0, 2 * round(x_range) + 1, majorGrid):
+            preCanvas.setPen(majorGridCol)
+            preCanvas.drawLine(Qc.QLine(x, -9999, x, 9999))
+            preCanvas.drawLine(Qc.QLine(-x, -9999, -x, 9999))
+
+    def drawPolarGrid(self, preCanvas):
+        center = Qc.QPointF(0, 0)
+        majorGridCol = Qg.QColor(self.settings['gridMajorAxesColor'])
+        minorGridCol = Qg.QColor(self.settings['gridMinorAxesColor'])
+        majorGrid = self.settings['gridMajorAxesSpacing']
+        minorGridCount = self.settings['gridMinorAxesCount']
+
+        majorAxisAng = (np.pi/4)  # 45 degrees - for now.
+        minorAxisCount = 2  # 15 degrees each
+
+        subRadiusSize = int(round((majorGrid / (minorGridCount + 1))))
+        subAngleSize = majorAxisAng / (minorAxisCount + 1)
+
+        for radius in range(majorGrid, 9999 + 1, majorGrid):
+            preCanvas.setPen(majorGridCol)
+            preCanvas.drawEllipse(center, radius, radius)
+
+            preCanvas.setPen(minorGridCol)
+
+            for minorRing in range(minorGridCount):
+                subRadius = round(radius - (subRadiusSize * (minorRing + 1)))
+                preCanvas.drawEllipse(center, subRadius, subRadius)
+
+
+        currAng = majorAxisAng
+        while currAng <= (2 * np.pi):
+            preCanvas.setPen(majorGridCol)
+            p1 = center + (9999 * Qc.QPointF(np.cos(currAng), np.sin(currAng)))
+            preCanvas.drawLine(Qc.QLineF(center, p1))
+
+            preCanvas.setPen(minorGridCol)
+            for minorAngLine in range(minorAxisCount):
+                newAng = currAng - (subAngleSize * (minorAngLine + 1))
+                p1 = center + (9999 * Qc.QPointF(np.cos(newAng), np.sin(newAng)))
+                preCanvas.drawLine(Qc.QLineF(center, p1))
+
+            currAng = currAng + majorAxisAng
+
     def preDraw(self, painter):
         # self.preCanvasPixmap.fill(Qc.Qt.white)
         self.canvasPixmap.fill()
@@ -744,39 +832,10 @@ class MainWindow1(Qw.QMainWindow):
             preCanvas.drawLine(Qc.QLine(0, -9999, 0, 9999))
 
         if self.drawGrid:
-            majorGrid = self.settings['gridMajorAxesSpacing']
-            minorGridCount = self.settings['gridMinorAxesCount']
-
-            majorGridCol = Qg.QColor(self.settings['gridMajorAxesColor'])
-            minorGridCol = Qg.QColor(self.settings['gridMinorAxesColor'])
-
-            panX, panY = self.screenTransformation.dx(), self.screenTransformation.dy()
-
-            x_range = self.canvSize.width() / 2 + (2 * abs(panX))
-            y_range = self.canvSize.height() / 2 + (2 * abs(panY))
-
-            for x in range(0, 2 * round(x_range) + 1, majorGrid):  # have to do this in two stages...
-                preCanvas.setPen(minorGridCol)
-                for xMinor in range(1, minorGridCount + 1):
-                    xCoord = round(x + ((xMinor/(minorGridCount + 1)) * majorGrid))
-                    preCanvas.drawLine(Qc.QLine(xCoord, -9999, xCoord, 9999))
-                    preCanvas.drawLine(Qc.QLine(-xCoord, -9999, -xCoord, 9999))
-
-            for y in range(0, 2 * round(y_range) + 1, majorGrid):
-                preCanvas.setPen(minorGridCol)
-                for yMinor in range(1, minorGridCount + 1):
-                    yCoord = round(y + ((yMinor/(minorGridCount + 1)) * majorGrid))
-                    preCanvas.drawLine(Qc.QLine(-9999, yCoord, 9999, yCoord))
-                    preCanvas.drawLine(Qc.QLine(-9999, -yCoord, 9999, -yCoord))
-
-                preCanvas.setPen(majorGridCol)
-                preCanvas.drawLine(Qc.QLine(-9999, y, 9999, y))
-                preCanvas.drawLine(Qc.QLine(-9999, -y, 9999, -y))
-
-            for x in range(0, 2 * round(x_range) + 1, majorGrid):
-                preCanvas.setPen(majorGridCol)
-                preCanvas.drawLine(Qc.QLine(x, -9999, x, 9999))
-                preCanvas.drawLine(Qc.QLine(-x, -9999, -x, 9999))
+            if self.drawGridMode == GridMode.cartesian:
+                self.drawCartesianGrid(painter)
+            elif self.drawGridMode == GridMode.polar:
+                self.drawPolarGrid(painter)
 
         if self.currentGuides:
             for guide in self.currentGuides:
