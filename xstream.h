@@ -32,6 +32,11 @@
 #define u_quad_t unsigned long long
   
 #ifdef __CYGWIN__  
+#include <sys/select.h>
+#define u_char unsigned char
+#define u_int unsigned int
+#define u_short unsigned short
+#define u_long unsigned long
 extern "C" int fseeko(FILE *, off_t, int);
 extern "C" off_t ftello(FILE *);
 #endif  
