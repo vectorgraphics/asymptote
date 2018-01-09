@@ -1490,7 +1490,11 @@ bool latex(const string& texengine)
 
 string nativeformat()
 {
+#ifndef __MSDOS__
   return pdf(getSetting<string>("tex")) ? "pdf" : "eps";
+#else  
+  return "pdf";
+#endif  
 }
 
 string defaultformat()
