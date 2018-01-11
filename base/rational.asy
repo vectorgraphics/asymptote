@@ -126,6 +126,17 @@ bool operator ==(rational[][] r, rational[][] s)
   return all(sequence(new bool(int i) {return r[i] == s[i];},r.length));
 }
 
+rational min(rational a, rational b)
+{
+  return a <= b ? a : b;
+}
+
+rational max(rational a, rational b)
+{
+  return a >= b ? a : b;
+}
+
+
 void write(string s="", rational r, suffix suffix=endl) {
   if(r.q == 1)
     write(s+string(r.p),suffix);
