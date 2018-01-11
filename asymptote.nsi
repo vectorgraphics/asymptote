@@ -65,7 +65,7 @@ var ICONS_GROUP
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "asymptote-${PRODUCT_VERSION}-setup.exe"
-InstallDir "$PROGRAMFILES\Asymptote"
+InstallDir "$PROGRAMFILES64\Asymptote"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
 ShowUnInstDetails show
@@ -73,9 +73,6 @@ ShowUnInstDetails show
 Section "Asymptote" SEC01
   SetOutPath "$INSTDIR"
   ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
-  Delete "$INSTDIR\_imagingtk.pyd"
-  Delete "$INSTDIR\opengl32.dll"
-  Delete "$INSTDIR\glu32.dll"
   SetOverwrite try
   File /r build-${PRODUCT_VERSION}\*
 

@@ -368,31 +368,17 @@ Users of the @code{Microsoft Windows} operating system can install the
 self-extracting @code{Asymptote} executable @code{asymptote-x.xx-setup.exe},
 where @code{x.xx} denotes the latest version.
 
-A working @TeX{} implementation (such as the one available at
+A working @TeX{} implementation (we recommend
+@url{https://www.tug.org/texlive} or
 @url{http://www.miktex.org}) will be required to typeset labels.
 You will also need to install @code{GPL Ghostscript} version 9.14 or
 later from @url{http://downloads.ghostscript.com/public}.
 
-To view the default @code{PostScript} output, you can install the
+To view @code{PostScript} output, you can install the
 program @code{gsview} available from 
 @url{http://www.cs.wisc.edu/~ghost/gsview/}.
-@cindex @code{psview}
-@anchor{psview}
-A better (and free) @code{PostScript} viewer available at
-@url{http://psview.sourceforge.net/} (which in particular works properly
-in interactive mode) unfortunately currently requires some manual
-configuration. Specifically, if version @code{x.xx} of @code{psview} is
-extracted to the directory @code{c:\Program Files} one needs to put
-@verbatim
-import settings;
-psviewer="c:\Program Files\psview-x.xx\psv.exe";
-@end verbatim
-@noindent
-in the optional @code{Asymptote} configuration file;
-@pxref{configuration file}).
 
 The @code{ImageMagick} package from
-
 @url{http://www.imagemagick.org/script/binary-releases.php} 
 
 @noindent
@@ -430,8 +416,7 @@ Users of @code{ggv} will need to enable @code{Watch file} under
 Users of @code{gsview} will need to enable @code{Options/Auto Redisplay}
 (however, under @code{MSDOS} it is still necessary to click on the
 @code{gsview} window; under @code{UNIX} one must manually redisplay by
-pressing the @code{r} key). A better (and free) multiplatform
-alternative to @code{gsview} is @code{psview} (@pxref{psview}).
+pressing the @code{r} key).
 
 @cindex @code{settings}
 @cindex configuration file

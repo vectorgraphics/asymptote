@@ -123,8 +123,8 @@ AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERED_MAP,1,
 			      [Define to 1 if you have tr1/unordered_map]),
 	[AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
 
-GCVERSION=7.6.0
-ATOMICVERSION=7.4.4
+GCVERSION=7.6.2
+ATOMICVERSION=7.6.2
 GCFILE=gc-$GCVERSION
 ac_cv_use_gc="system"
 
@@ -145,7 +145,7 @@ OPTIONS="-D_FILE_OFFSET_BITS=64 "
 GCLIB=
 GCPPLIB=
 GCNAME="Boehm Garbage Collector"
-GCOPTIONS="--disable-shared --enable-large-config"
+GCOPTIONS="--disable-shared"
 if test "x$ac_cv_use_gc" != "xno" ; then
    OPTIONS=$OPTIONS"-DUSEGC "
    case _$ac_cv_use_gc in
