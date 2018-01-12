@@ -83,4 +83,4 @@ patch < ~/asymptote/patches/cygwin_gc.patch
 make check
 
 VERSION=2.42
-~/asymptote/build-scripts/build-asymptote.dos $VERSION
+~/asymptote/buildscripts/build-asymptote.dos $VERSION
