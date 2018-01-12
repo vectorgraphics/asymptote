@@ -73,6 +73,6 @@ cp -a $SHARED/asydoc/* ~/CTAN/asymptote-$VERSION/doc
 cd ~/CTAN/asymptote-$VERSION/binaries/i386-win32
 ln -sf ../../README .
 cd ~/CTAN
-cp -a $SHARED/README-binaries asymptote-$VERSION/binaries/i386-win32/texlive/README
+cp -a ~/asymptote/build-scripts/README-binaries asymptote-$VERSION/binaries/i386-win32/texlive/README
 tar cfz asymptote-$VERSION-CTAN.tgz asymptote-$VERSION
 cp -a --no-preserve=mode asymptote-$VERSION-CTAN.tgz $SHARED
