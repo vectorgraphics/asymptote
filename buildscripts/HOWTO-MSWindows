@@ -1,5 +1,9 @@
         Compiling MSWindows binary of Asymptote under CYGWIN-x86_64
 
+First run build-asymptote on Linux. This will build the documentation
+and source tar ball and copy them to a directory ~/shared which needs to be
+shared via virtualbox to the cygwin build environment.
+
 Install these cygwin packages:
 
 wget
@@ -78,3 +82,4 @@ patch < ~/asymptote/patches/cygwin_gc.patch
 ./configure --disable-shared
 make check
 
+~/asymptote/build-scripts/build-asymptote.dos
