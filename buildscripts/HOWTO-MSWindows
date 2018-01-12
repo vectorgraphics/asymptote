@@ -82,4 +82,5 @@ patch < ~/asymptote/patches/cygwin_gc.patch
 ./configure --disable-shared
 make check
 
-~/asymptote/build-scripts/build-asymptote.dos
+VERSION=2.42
+~/asymptote/build-scripts/build-asymptote.dos $VERSION
