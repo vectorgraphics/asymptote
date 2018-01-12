@@ -16,6 +16,11 @@ out-of-memory errors.
 
 The file cygwin_glu.patch adds missing GLU 1.3 declarations to w32api/GL/glu.h.
 
+The file cygwin_gc.patch fixes redefined symbols in the Boehm garbage collector.
+
+The file cygwin_freeglut-2.8.1.patch fixes undefined symbols when compiling the
+freeglut library under cygwin.
+
 The file fixmem.reg patches the Microsoft Windows registry so that the
 cygwin1.dll library can allocate more than 384MB. It is applied
 automatically by the Asymptote setup.exe file but may also be applied manually:
