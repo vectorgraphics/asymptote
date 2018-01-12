@@ -71,7 +71,7 @@ cp /usr/bin/cygwin1.dll ~/dll/cygwin
 install texlive
 
 mkdir ~/CTAN
-cp -a ~/asymptote/build-scripts/README-binaries ~/CTAN
+cp -a ~/asymptote/buildscripts/README-binaries ~/CTAN
 
 GCVERSION=7.6.2
 tar -zxf gc-$GCVERSION.tar.gz
@@ -83,4 +83,4 @@ patch < ~/asymptote/patches/cygwin_gc.patch
 make check
 
 VERSION=2.42
-~/asymptote/buildscripts/build-asymptote.dos $VERSION
+~/asymptote/build-scripts/build-asymptote.dos $VERSION
