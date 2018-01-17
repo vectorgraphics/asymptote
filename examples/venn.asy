@@ -28,12 +28,9 @@ pair z=(0,-2);
 real m=3;
 margin BigMargin=Margin(0,m*dot(unit(z1-z),unit(z0-z)));
 
-int f(path p) {draw(p); return 1;}
-int G(path p) {draw(p); return 1;}
-
 draw(Label("$A\cap B$",0),conj(z)--z0,Arrow,BigMargin);
 draw(Label("$A\cup B$",0),z--z0,Arrow,BigMargin);
-
-1+sqrt(f(z--z1))+sqrt(f(z--z1))+sqrt(f(z--z1)); draw(z--z2);
+draw(z--z1,Arrow,Margin(0,m));
+draw(z--z2,Arrow,Margin(0,m));
 
 shipout(bbox(0.25cm));
