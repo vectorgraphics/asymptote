@@ -294,7 +294,7 @@ struct Label {
     align=length(align)*unit(rotation(t)*align);
     pair S=t*position+align*labelmargin(p0)+shift(T)*0;
     if(settings.tex != "none")
-      label(f,s,size,embed(t)*shiftless(T),S,align,p0);
+      label(f,s,size,t*shiftless(T),S,align,p0);
     else
       fill(f,align(texpath(s,p0),S,align,p0),p0);
   }
