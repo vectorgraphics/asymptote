@@ -1,7 +1,7 @@
 real angle(transform t)
 {
   pair z=(2t.xx*t.yy,t.yx*t.yy-t.xx*t.xy);
-  if(t.xx < 0) z=-z;
+  if(t.xx < 0 || t.yy < 0) z=-z;
   return degrees(z,warn=false);
 }
 
