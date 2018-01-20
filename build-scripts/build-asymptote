@@ -1,0 +1,74 @@
+#!/bin/sh -x
+# Usage: build-asymptote [suffix]
+
+HOME=~bowman
+SHARED=$HOME/shared/asy
+
+GCVERSION=7.6.2
+ATOMICVERSION=7.6.2
+GC=gc-$GCVERSION
+
+MAKEFLAGS=-j8
+export MAKEFLAGS
+ASYMPTOTE=$HOME/asymptote
+BUILD=/usr/local/src
+BINDIR=usr
+test /usr -ef $BUILD/$BINDIR && exit
+LATEXDIR=$BUILD/$BINDIR/share/texmf/tex/latex/asymptote
+cd $BUILD
+rm -rf asymptote
+git clone http://github.com/vectorgraphics/asymptote
+cd asymptote
+git log > ChangeLog
+VERSIONgit=`grep AC_INIT configure.ac | cut -s -d[ -f3 | cut -s -d] -f1`
+VERSION=${VERSIONgit/git/}
+cat configure.ac | sed -e "s/$VERSIONgit/$VERSION/" > configure.ac_
+mv configure.ac_ configure.ac
+cat $ASYMPTOTE/asymptote.spec | sed -e "s|Version:.*|Version:        $VERSION|" > asymptote.spec
+SRC=asymptote-$VERSION.src.tgz
+if [ $# == 0 ]; then
+  cp asymptote.spec $ASYMPTOTE
+fi
+cd $BUILD
+rm -rf asymptote-$VERSION
+rm -rf $BUILD/$BINDIR
+mv asymptote asymptote-$VERSION
+wget http://hboehm.info/gc/gc_source/gc-$GCVERSION.tar.gz
+wget http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$ATOMICVERSION.tar.gz
+cp /usr/local/src/$GC.tar.gz asymptote-$VERSION
+cp /usr/local/src/libatomic_ops-$ATOMICVERSION.tar.gz asymptote-$VERSION
+chown -R root.root asymptote-$VERSION
+cd asymptote-$VERSION
+find . -type d -exec /bin/bash -c "cd '{}';rm -rf .git" \;
+rm -f .gitignore
+./autogen.sh
+./configure
+make $MAKEFLAGS check || exit
+make uninstall
+make $MAKEFLAGS asy
+make -j1 all
+make -j1 install
+#rm asy
+#make LFLAGS=-static
+strip asy
+make DESTDIR="$BUILD/" latexdir=$LATEXDIR install
+#rm $GC.tar.gz
+rm $BUILD/$BINDIR/local/info/dir
+cp -a $BUILD/asymptote-$VERSION/ChangeLog .
+cp -a $ASYMPTOTE/ReleaseNotes .
+make distclean
+rm -rf autom4te.cache
+cd /usr/local/share/doc/asymptote
+rm -rf $SHARED/asydoc
+mkdir -p $SHARED/asydoc/png
+mkdir -p $SHARED/asydoc/FAQ
+cp -a *.pdf ../../man/man1/asy.1 $SHARED/asydoc
+cp -a /usr/local/share/info/asymptote/asymptote.info $SHARED/asydoc/png
+cp -a /usr/local/share/info/asy-faq.info $SHARED/asydoc/FAQ
+cd $BUILD
+tar cfz $SRC asymptote-$VERSION
+tar cfz asymptote-$VERSION.i386.tgz $BINDIR
+cp $SRC $SHARED
+rm -rf $BUILD/$BINDIR
+tar -zxf asymptote-$VERSION.i386.tgz
+su rpmbuild -c "rpmbuild -ta --nodeps $SRC && rm -rf ~/rpms/BUILD/asymptote-$VERSION"

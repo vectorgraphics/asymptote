@@ -1,0 +1,86 @@
+        Compiling MSWindows binary of Asymptote under CYGWIN-x86_64
+
+First run build-asymptote on Linux. This will build the documentation
+and source tar ball and copy them to a directory ~/shared which needs to be
+shared via virtualbox to the cygwin build environment.
+
+Install these cygwin packages:
+
+wget
+make
+patch
+gcc-g++
+autoconf
+bison
+flex
+w32api-headers
+w32api-runtime
+zlib-devel
+libGLU-devel
+libtirpc-devel (SRC)
+libncurses-devel (SRC)
+libreadline-devel (SRC)
+libfftw3-devel (SRC)
+libgsl-devel (SRC)
+automake
+libtool
+
+ln -s /usr/include/tirpc/rpc /usr/include/rpc
+ln -s /usr/include/tirpc/netconfig.h /usr/include/netconfig.h
+ln -s /usr/lib/libtirpc.a /usr/lib/librpc.a
+
+mv /usr/include/GL /usr/include/GL.orig
+
+Build and install from /usr/local/src:
+
+gsl-devel
+./configure --prefix=/usr
+make install
+
+ncurses-devel
+./configure --prefix=/usr
+make install
+
+readline-devel
+./configure --prefix=/usr --without-curses --disable-shared
+make install
+
+fftw3-devel:
+./configure --prefix=/usr --enable-shared 
+make install
+
+Compile static libraries from source:
+tirpc-devel
+./configure --prefix=/usr --disable-gssapi
+make install
+
+termcap-1.3.1
+./configure --prefix=/usr
+make install
+
+git clone http://github.com/vectorgraphics/asymptote
+
+cd /usr/include
+patch -p0 < ~/asymptote/patches/cygwin_glu.patch
+
+cd
+~/asymptote/build-scripts/build-freeglut
+mkdir -p ~/dll/cygwin
+cp /usr/bin/cygwin1.dll ~/dll/cygwin
+
+install texlive
+
+mkdir ~/CTAN
+cp -a ~/asymptote/buildscripts/README-binaries ~/CTAN
+
+GCVERSION=7.6.2
+tar -zxf gc-$GCVERSION.tar.gz
+tar -zxf libatomic_ops-$GCVERSION.tar.gz
+mv libatomic_ops-$GCVERSION gc-$GCVERSION/libatomic_ops
+cd gc-$GCVERSION
+patch < ~/asymptote/patches/cygwin_gc.patch
+./configure --disable-shared
+make check
+
+VERSION=2.42
+~/asymptote/build-scripts/build-asymptote.dos $VERSION
