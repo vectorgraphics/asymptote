@@ -17,7 +17,8 @@ namespace AsymptoteLoader
         public void AddAsyCode(string filePath)
         {
             string tmpPath = Path.GetTempFileName() + Guid.NewGuid().ToString() + ".svg";
-            string asyExecArgs = string.Format("-f svg -nobatchView -o {0} {1}", tmpPath, filePath);
+
+            string asyExecArgs = string.Format("-f svg -nobatchView -o \"{0}\" \"{1}\" ", tmpPath, filePath);
             var asyProcess = new Process();
 
             string asyProc = "asy";
@@ -26,9 +27,12 @@ namespace AsymptoteLoader
                 asyProc = Properties.Settings.Default.customAsyRuntime;
             }
 
-            var procInfo = new ProcessStartInfo(asyProc, asyExecArgs);
-            procInfo.CreateNoWindow = true;
-            procInfo.UseShellExecute = false;
+            var procInfo = new ProcessStartInfo(asyProc, asyExecArgs)
+            {
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardError = true
+            };
 
             asyProcess.StartInfo = procInfo;
 
@@ -41,7 +45,8 @@ namespace AsymptoteLoader
             }
             else
             {
-                System.Windows.Forms.MessageBox.Show("Asymptote Error.", "Error",
+                string errStr = asyProcess.StandardError.ReadToEnd();
+                System.Windows.Forms.MessageBox.Show("Asymptote Error. Error: \n" + errStr, "Error",
                     System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
             }
         }
