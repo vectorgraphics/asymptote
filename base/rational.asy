@@ -178,14 +178,24 @@ bool rectangular(rational[][] m)
   return true;
 }
 
-rational sum(rational[] a) {
+rational sum(rational[] a)
+{
   rational sum;
   for(rational r:a)
     sum += r;
   return sum;
 }
 
-rational abs(rational r) {
+rational max(rational[] a)
+{
+  rational M=a[0];
+  for(rational r:a)
+    M=max(M,r);
+  return M;
+}
+
+rational abs(rational r)
+{
   return rational(abs(r.p),r.q,false);
 }
 
