@@ -6,8 +6,11 @@
  *****/
 
 #include "bezierpatch.h"
+#include "predicates.h"
 
 namespace camp {
+
+using ::orient2d;
 
 size_t tstride;
 GLfloat *B;
@@ -33,6 +36,45 @@ extern const double Fuzz2;
 const double FillFactor=0.1;
 const double BezierFactor=0.4;
 
+inline int sgn(double x) 
+{
+  return (x > 0.0 ? 1 : (x < 0.0 ? -1 : 0));
+}
+
+bool sameside(const double *a, const double *b, int s0, const double *A,
+              const double *B, const double *C)
+{
+  if(sgn(orient2d(a,b,A)) == s0) return true;
+  if(sgn(orient2d(a,b,B)) == s0) return true;
+  if(sgn(orient2d(a,b,C)) == s0) return true;
+  return false;
+}
+
+// returns true if triangle abc intersects triangle ABC
+bool intersect(double *a, double *b, double *c,
+               double *A, double *B, double *C)
+{
+  int s0=sgn(orient2d(a,b,c)); // Optimize away
+  int S0=sgn(orient2d(A,B,C)); // Optimize away
+  return
+    sameside(a,b,s0,A,B,C) &&
+    sameside(b,c,s0,A,B,C) &&
+    sameside(c,a,s0,A,B,C) &&
+    sameside(A,B,S0,a,b,c) &&
+    sameside(B,C,S0,a,b,c) &&
+    sameside(C,A,S0,a,b,c);
+}
+
+inline double min(double a, double b, double c)
+{
+  return min(min(a,b),c);
+}
+
+inline double max(double a, double b, double c)
+{
+  return max(max(a,b),c);
+}
+
 // Partially work around OpenGL transparency bug by sorting transparent
 // triangles by their centroid depth.
 int compare(const void *a, const void *b)
@@ -45,6 +87,22 @@ int compare(const void *a, const void *b)
   size_t b1=tstride*((GLuint *) b)[1];
   size_t b2=tstride*((GLuint *) b)[2];
 
+  double z0=T[0]*B[a0]+T[1]*B[a0+1]+T[2]*B[a0+2];
+  double z1=T[0]*B[a1]+T[1]*B[a1+1]+T[2]*B[a1+2];
+  double z2=T[0]*B[a2]+T[1]*B[a2+1]+T[2]*B[a2+2];
+  
+  double Z0=T[0]*B[b0]+T[1]*B[b0+1]+T[2]*B[b0+2];
+  double Z1=T[0]*B[b1]+T[1]*B[b1+1]+T[2]*B[b1+2];
+  double Z2=T[0]*B[b2]+T[1]*B[b2+1]+T[2]*B[b2+2];
+  
+  double za=min(z0,z1,z2);
+  double zb=min(Z0,Z1,Z2);
+  double Za=max(z0,z1,z2);
+  double Zb=max(Z0,Z1,Z2);
+  
+    T[0]*(B[a0]+B[a1]+B[a2]-B[b0]-B[b1]-B[b2])+
+    T[1]*(B[a0+1]+B[a1+1]+B[a2+1]-B[b0+1]-B[b1+1]-B[b2+1])+
+    T[2]*(B[a0+2]+B[a1+2]+B[a2+2]-B[b0+2]-B[b1+2]-B[b2+2]);
   double x=
     T[0]*(B[a0]+B[a1]+B[a2]-B[b0]-B[b1]-B[b2])+
     T[1]*(B[a0+1]+B[a1+1]+B[a2+1]-B[b0+1]-B[b1+1]-B[b2+1])+
