@@ -45,13 +45,14 @@ COREFILES = $(CAMP) $(SYMBOL_FILES) env genv stm dec errormsg \
 
 FILES = $(COREFILES) main
 
+SYMBOLSH = opsymbols.h allsymbols.h
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
 	asy-keywords.el $(RUNTIME_FILES:=.cc) $(RUNTIME_FILES:=.h) asy.list \
-        allsymbols.h opsymbols.h $(SYMBOL_FILES:=.symbols.h) 
+        $(SYMBOLSH) $(SYMBOL_FILES:=.symbols.h) 
 NAME = asy
 XNAME = x$(NAME)
 CLEAN = camp.output base/version.asy doc/version.texi \
-        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf
+        GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH)
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
         asymptote.py reload.js nopapersize.ps
 EXEXTRA = piicon.eps *.views *.dat *.bib
@@ -193,7 +194,7 @@ allsymbols.h: findsym.pl $(SYMBOL_FILES:=.cc)
 	$(CXX) -E -DNOSYM $(OPTS) $(INCL) $(SYMBOL_FILES:=.cc) | \
           $(PERL) ./findsym.pl $@ -
 
-symbol.o: opsymbols.h allsymbols.h
+symbol.o: $(SYMBOLSH)
 
 camp.tab.cc: camp.y
 	$(BISON) -dvt -b camp camp.y && mv camp.tab.c camp.tab.cc
