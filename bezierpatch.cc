@@ -11,9 +11,10 @@
 namespace camp {
 
 using ::orient2d;
+using ::orient3d;
 
 size_t tstride;
-GLfloat *B;
+GLfloat *G;
 
 #ifdef HAVE_GL
 
@@ -77,39 +78,57 @@ inline double max(double a, double b, double c)
 
 // Partially work around OpenGL transparency bug by sorting transparent
 // triangles by their centroid depth.
-int compare(const void *a, const void *b)
+int compare(const void *p, const void *P)
 {
-  size_t a0=tstride*((GLuint *) a)[0];
-  size_t a1=tstride*((GLuint *) a)[1];
-  size_t a2=tstride*((GLuint *) a)[2];
+  size_t p0=tstride*((GLuint *) p)[0];
+  size_t p1=tstride*((GLuint *) p)[1];
+  size_t p2=tstride*((GLuint *) p)[2];
   
-  size_t b0=tstride*((GLuint *) b)[0];
-  size_t b1=tstride*((GLuint *) b)[1];
-  size_t b2=tstride*((GLuint *) b)[2];
+  size_t P0=tstride*((GLuint *) P)[0];
+  size_t P1=tstride*((GLuint *) P)[1];
+  size_t P2=tstride*((GLuint *) P)[2];
+  
+  // Project
+  
+  double a[]={Tx[0]*G[p0]+Tx[1]*G[p0+1]+Tx[2]*G[p0+2],
+              Ty[0]*G[p0]+Ty[1]*G[p0+1]+Ty[2]*G[p0+2],
+              Tz[0]*G[p0]+Tz[1]*G[p0+1]+Tz[2]*G[p0+2]};   
+  double b[]={Tx[0]*G[p1]+Tx[1]*G[p1+1]+Tx[2]*G[p1+2],
+              Ty[0]*G[p1]+Ty[1]*G[p1+1]+Ty[2]*G[p1+2],
+              Tz[0]*G[p1]+Tz[1]*G[p1+1]+Tz[2]*G[p1+2]};   
+  double c[]={Tx[0]*G[p2]+Tx[1]*G[p2+1]+Tx[2]*G[p2+2],
+              Ty[0]*G[p2]+Ty[1]*G[p2+1]+Ty[2]*G[p2+2],
+              Tz[0]*G[p2]+Tz[1]*G[p2+1]+Tz[2]*G[p2+2]};  
+  
+  double A[]={Tx[0]*G[P0]+Tx[1]*G[P0+1]+Tx[2]*G[P0+2],
+              Ty[0]*G[P0]+Ty[1]*G[P0+1]+Ty[2]*G[P0+2],
+              Tz[0]*G[P0]+Tz[1]*G[P0+1]+Tz[2]*G[P0+2]};   
+  double B[]={Tx[0]*G[P1]+Tx[1]*G[P1+1]+Tx[2]*G[P1+2],
+              Ty[0]*G[P1]+Ty[1]*G[P1+1]+Ty[2]*G[P1+2],
+              Tz[0]*G[P1]+Tz[1]*G[P1+1]+Tz[2]*G[P1+2]};   
+  double C[]={Tx[0]*G[P2]+Tx[1]*G[P2+1]+Tx[2]*G[P2+2],
+              Ty[0]*G[P2]+Ty[1]*G[P2+1]+Ty[2]*G[P2+2],
+              Tz[0]*G[P2]+Tz[1]*G[P2+1]+Tz[2]*G[P2+2]};  
+  
+  // Check for distance depths.
+  if(max(a[2],b[2],c[2]) < min(A[2],B[2],C[2])) return -1;
+  if(min(a[2],b[2],c[2]) > max(A[2],B[2],C[2])) return 1;
+  
+  if(intersect(a,b,c,A,B,C)) {
+    // 2D projection of triangles intersect; must split!
+    
+//    cout << "Intersect: " << intersect(a,b,c,A,B,C) << endl;
 
-  double z0=T[0]*B[a0]+T[1]*B[a0+1]+T[2]*B[a0+2];
-  double z1=T[0]*B[a1]+T[1]*B[a1+1]+T[2]*B[a1+2];
-  double z2=T[0]*B[a2]+T[1]*B[a2+1]+T[2]*B[a2+2];
-  
-  double Z0=T[0]*B[b0]+T[1]*B[b0+1]+T[2]*B[b0+2];
-  double Z1=T[0]*B[b1]+T[1]*B[b1+1]+T[2]*B[b1+2];
-  double Z2=T[0]*B[b2]+T[1]*B[b2+1]+T[2]*B[b2+2];
-  
-  double za=min(z0,z1,z2);
-  double zb=min(Z0,Z1,Z2);
-  double Za=max(z0,z1,z2);
-  double Zb=max(Z0,Z1,Z2);
-  
-    T[0]*(B[a0]+B[a1]+B[a2]-B[b0]-B[b1]-B[b2])+
-    T[1]*(B[a0+1]+B[a1+1]+B[a2+1]-B[b0+1]-B[b1+1]-B[b2+1])+
-    T[2]*(B[a0+2]+B[a1+2]+B[a2+2]-B[b0+2]-B[b1+2]-B[b2+2]);
-  double x=
-    T[0]*(B[a0]+B[a1]+B[a2]-B[b0]-B[b1]-B[b2])+
-    T[1]*(B[a0+1]+B[a1+1]+B[a2+1]-B[b0+1]-B[b1+1]-B[b2+1])+
-    T[2]*(B[a0+2]+B[a1+2]+B[a2+2]-B[b0+2]-B[b1+2]-B[b2+2]);
-  if(x > 0.0) return 1;
-  if(x < 0.0) return -1;
-  return 0;
+    return 0;
+//    return sgn(a[2]+b[2]+c[2]-A[2]-B[2]-C[2]);
+  } else {
+    // No 2D intersection; return relative order.
+    static const double third=1.0/3.0;
+    double centroid[]={(a[0]+b[0]+c[0])*third,
+                       (a[1]+b[1]+c[1])*third,
+                       (a[2]+b[2]+c[2])*third};
+    return -sgn(orient2d(A,B,C))*sgn(orient3d(A,B,C,centroid));
+  }
 }
 
 void BezierPatch::init(double res, const triple& Min, const triple& Max,
@@ -675,7 +694,7 @@ void BezierPatch::draw()
   }
   
   if(ntvertices > 0) {
-    B=&tbuffer[0]; 
+    G=&tbuffer[0]; 
     tstride=stride;
     qsort(&tindices[0],tindices.size()/3,3*sizeof(GLuint),compare);
     glVertexPointer(3,GL_FLOAT,bytestride,&tbuffer[0]);
@@ -684,7 +703,7 @@ void BezierPatch::draw()
   }
   
   if(Ntvertices > 0) {
-    B=&tBuffer[0];
+    G=&tBuffer[0];
     tstride=Stride;
     qsort(&tIndices[0],tIndices.size()/3,3*sizeof(GLuint),compare);
     glEnableClientState(GL_COLOR_ARRAY);
