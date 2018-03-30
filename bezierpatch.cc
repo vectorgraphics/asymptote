@@ -27,6 +27,9 @@ std::vector<GLuint> BezierPatch::tindices;
 std::vector<GLfloat> BezierPatch::tBuffer;
 std::vector<GLuint> BezierPatch::tIndices;
 
+std::vector<GLfloat> zbuffer;
+std::vector<GLfloat> hbuffer; // x and y components
+
 GLuint BezierPatch::nvertices=0;
 GLuint BezierPatch::ntvertices=0;
 GLuint BezierPatch::Nvertices=0;
@@ -80,55 +83,45 @@ inline double max(double a, double b, double c)
 // triangles by their centroid depth.
 int compare(const void *p, const void *P)
 {
-  size_t p0=tstride*((GLuint *) p)[0];
-  size_t p1=tstride*((GLuint *) p)[1];
-  size_t p2=tstride*((GLuint *) p)[2];
+  double a=zbuffer[((GLuint *) p)[0]];
+  double b=zbuffer[((GLuint *) p)[1]];
+  double c=zbuffer[((GLuint *) p)[2]];
   
-  size_t P0=tstride*((GLuint *) P)[0];
-  size_t P1=tstride*((GLuint *) P)[1];
-  size_t P2=tstride*((GLuint *) P)[2];
+  double A=zbuffer[((GLuint *) P)[0]];
+  double B=zbuffer[((GLuint *) P)[1]];
+  double C=zbuffer[((GLuint *) P)[2]];
   
-  // Project
+  double z=min(a,b,c);
+  double Z=min(A,B,C);
+
+  // Check for depth overlap.
+  if(max(a,b,c) < Z) return -1;
+  if(z > max(A,B,C)) return 1;
   
-  double a[]={Tx[0]*G[p0]+Tx[1]*G[p0+1]+Tx[2]*G[p0+2],
-              Ty[0]*G[p0]+Ty[1]*G[p0+1]+Ty[2]*G[p0+2],
-              Tz[0]*G[p0]+Tz[1]*G[p0+1]+Tz[2]*G[p0+2]};   
-  double b[]={Tx[0]*G[p1]+Tx[1]*G[p1+1]+Tx[2]*G[p1+2],
-              Ty[0]*G[p1]+Ty[1]*G[p1+1]+Ty[2]*G[p1+2],
-              Tz[0]*G[p1]+Tz[1]*G[p1+1]+Tz[2]*G[p1+2]};   
-  double c[]={Tx[0]*G[p2]+Tx[1]*G[p2+1]+Tx[2]*G[p2+2],
-              Ty[0]*G[p2]+Ty[1]*G[p2+1]+Ty[2]*G[p2+2],
-              Tz[0]*G[p2]+Tz[1]*G[p2+1]+Tz[2]*G[p2+2]};  
+  // Sort by minimum z value;
+  return z < Z ? -1 : 1;
   
-  double A[]={Tx[0]*G[P0]+Tx[1]*G[P0+1]+Tx[2]*G[P0+2],
-              Ty[0]*G[P0]+Ty[1]*G[P0+1]+Ty[2]*G[P0+2],
-              Tz[0]*G[P0]+Tz[1]*G[P0+1]+Tz[2]*G[P0+2]};   
-  double B[]={Tx[0]*G[P1]+Tx[1]*G[P1+1]+Tx[2]*G[P1+2],
-              Ty[0]*G[P1]+Ty[1]*G[P1+1]+Ty[2]*G[P1+2],
-              Tz[0]*G[P1]+Tz[1]*G[P1+1]+Tz[2]*G[P1+2]};   
-  double C[]={Tx[0]*G[P2]+Tx[1]*G[P2+1]+Tx[2]*G[P2+2],
-              Ty[0]*G[P2]+Ty[1]*G[P2+1]+Ty[2]*G[P2+2],
-              Tz[0]*G[P2]+Tz[1]*G[P2+1]+Tz[2]*G[P2+2]};  
-  
-  // Check for distance depths.
-  if(max(a[2],b[2],c[2]) < min(A[2],B[2],C[2])) return -1;
-  if(min(a[2],b[2],c[2]) > max(A[2],B[2],C[2])) return 1;
-  
+//  return sgn(a+b+c-A-B-C);
+
+//    cout << "Intersect: " << intersect(a,b,c,A,B,C) << endl;
+    
+    // Optimization: Check for bounding box overlap
+    
+    /*
   if(intersect(a,b,c,A,B,C)) {
     // 2D projection of triangles intersect; must split!
     
-//    cout << "Intersect: " << intersect(a,b,c,A,B,C) << endl;
-
     return 0;
-//    return sgn(a[2]+b[2]+c[2]-A[2]-B[2]-C[2]);
   } else {
     // No 2D intersection; return relative order.
     static const double third=1.0/3.0;
     double centroid[]={(a[0]+b[0]+c[0])*third,
                        (a[1]+b[1]+c[1])*third,
                        (a[2]+b[2]+c[2])*third};
+    // TODO: Optimize away orient2d
     return -sgn(orient2d(A,B,C))*sgn(orient3d(A,B,C,centroid));
   }
+    */
 }
 
 void BezierPatch::init(double res, const triple& Min, const triple& Max,
@@ -662,6 +655,24 @@ void BezierTriangle::render(const triple *p, bool straight, GLfloat *c0)
   }
 }
 
+void transform(const std::vector<GLfloat>& b)
+{
+  unsigned n=b.size()/tstride;
+  hbuffer.clear();
+  zbuffer.clear();
+  hbuffer.reserve(2*n);
+  zbuffer.reserve(n);
+  
+  for(unsigned i=0; i < n; ++i) {
+    unsigned j=tstride*i;
+    hbuffer[2*i]=Tx[0]*b[j]+Tx[1]*b[j+1]+Tx[2]*b[j+2];
+    hbuffer[2*i+1]=Ty[0]*b[j]+Ty[1]*b[j+1]+Ty[2]*b[j+2];
+    zbuffer[i]=Tz[0]*b[j]+Tz[1]*b[j+1]+Tz[2]*b[j+2];   
+  }
+}
+
+
+
 void BezierPatch::draw()
 {
   if(nvertices == 0 && ntvertices == 0 && Nvertices == 0 && Ntvertices == 0)
@@ -694,8 +705,8 @@ void BezierPatch::draw()
   }
   
   if(ntvertices > 0) {
-    G=&tbuffer[0]; 
     tstride=stride;
+    transform(tbuffer); 
     qsort(&tindices[0],tindices.size()/3,3*sizeof(GLuint),compare);
     glVertexPointer(3,GL_FLOAT,bytestride,&tbuffer[0]);
     glNormalPointer(GL_FLOAT,bytestride,&tbuffer[3]);
@@ -703,8 +714,8 @@ void BezierPatch::draw()
   }
   
   if(Ntvertices > 0) {
-    G=&tBuffer[0];
     tstride=Stride;
+    transform(tBuffer); 
     qsort(&tIndices[0],tIndices.size()/3,3*sizeof(GLuint),compare);
     glEnableClientState(GL_COLOR_ARRAY);
     glEnable(GL_COLOR_MATERIAL);
