@@ -29,6 +29,7 @@ struct BezierPatch
   static std::vector<GLuint> tindices;
   static std::vector<GLfloat> tBuffer;
   static std::vector<GLuint> tIndices;
+  
   static GLuint nvertices;
   static GLuint ntvertices;
   static GLuint Nvertices;

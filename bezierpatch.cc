@@ -14,7 +14,6 @@ using ::orient2d;
 using ::orient3d;
 
 size_t tstride;
-GLfloat *G;
 
 #ifdef HAVE_GL
 
@@ -28,7 +27,40 @@ std::vector<GLfloat> BezierPatch::tBuffer;
 std::vector<GLuint> BezierPatch::tIndices;
 
 std::vector<GLfloat> zbuffer;
-std::vector<GLfloat> hbuffer; // x and y components
+std::vector<GLfloat> xbuffer;
+std::vector<GLfloat> ybuffer;
+
+std::vector<GLfloat> xmin,ymin,zmin;
+std::vector<GLfloat> xmax,ymax,zmax;
+std::vector<GLfloat> zsum;
+
+inline double min(double a, double b, double c)
+{
+  return min(min(a,b),c);
+}
+
+inline double max(double a, double b, double c)
+{
+  return max(max(a,b),c);
+}
+
+struct iz {
+  unsigned i;
+  double z;
+  iz() {}
+  void sum(unsigned i, const std::vector<GLuint>& I) {
+    this->i=i;
+    unsigned i3=3*i;
+    z=zbuffer[I[i3]]+zbuffer[I[i3+1]]+zbuffer[I[i3+2]];
+  }
+  void minimum(unsigned i, const std::vector<GLuint>& I) {
+    this->i=i;
+    unsigned i3=3*i;
+    z=min(zbuffer[I[i3]],zbuffer[I[i3+1]],zbuffer[I[i3+2]]);
+  }
+};
+
+std::vector<iz> IZ;
 
 GLuint BezierPatch::nvertices=0;
 GLuint BezierPatch::ntvertices=0;
@@ -54,9 +86,9 @@ bool sameside(const double *a, const double *b, int s0, const double *A,
   return false;
 }
 
-// returns true if triangle abc intersects triangle ABC
-bool intersect(double *a, double *b, double *c,
-               double *A, double *B, double *C)
+// returns true iff 2D triangles abc and ABC intersect
+bool intersect2D(const double *a, const double *b, const double *c,
+                 const double *A, const double *B, const double *C)
 {
   int s0=sgn(orient2d(a,b,c)); // Optimize away
   int S0=sgn(orient2d(A,B,C)); // Optimize away
@@ -69,59 +101,267 @@ bool intersect(double *a, double *b, double *c,
     sameside(C,A,S0,a,b,c);
 }
 
-inline double min(double a, double b, double c)
+// returns true iff triangle abc is pierced by line segment AB.
+bool pierce(const double *a, const double *b, const double *c, const double *A, const double *B)
 {
-  return min(min(a,b),c);
+  int sa=sgn(orient3d(A,b,c,B));
+  int sb=sgn(orient3d(A,c,a,B));
+  int sc=sgn(orient3d(A,a,b,B));
+  return sa == sb && sb == sc; 
 }
 
-inline double max(double a, double b, double c)
+// returns true iff triangle abc is pierced by an edge of triangle ABC
+bool intersect0(const double *a, const double *b, const double *c,
+                const double *A, const double *B, const double *C,
+                int sA, int sB, int sC)
 {
-  return max(max(a,b),c);
-}
-
-// Partially work around OpenGL transparency bug by sorting transparent
-// triangles by their centroid depth.
-int compare(const void *p, const void *P)
-{
-  double a=zbuffer[((GLuint *) p)[0]];
-  double b=zbuffer[((GLuint *) p)[1]];
-  double c=zbuffer[((GLuint *) p)[2]];
-  
-  double A=zbuffer[((GLuint *) P)[0]];
-  double B=zbuffer[((GLuint *) P)[1]];
-  double C=zbuffer[((GLuint *) P)[2]];
-  
-  double z=min(a,b,c);
-  double Z=min(A,B,C);
-
-  // Check for depth overlap.
-  if(max(a,b,c) < Z) return -1;
-  if(z > max(A,B,C)) return 1;
-  
-  // Sort by minimum z value;
-  return z < Z ? -1 : 1;
-  
-//  return sgn(a+b+c-A-B-C);
-
-//    cout << "Intersect: " << intersect(a,b,c,A,B,C) << endl;
-    
-    // Optimization: Check for bounding box overlap
-    
-    /*
-  if(intersect(a,b,c,A,B,C)) {
-    // 2D projection of triangles intersect; must split!
-    
-    return 0;
+  if(sA != sB) {
+    if(pierce(a,b,c,A,B)) return true;
+    if(sC != sA) {
+      if(pierce(a,b,c,C,A)) return true;
+    } else {
+      if(pierce(a,b,c,B,C)) return true;
+    }
   } else {
-    // No 2D intersection; return relative order.
-    static const double third=1.0/3.0;
-    double centroid[]={(a[0]+b[0]+c[0])*third,
-                       (a[1]+b[1]+c[1])*third,
-                       (a[2]+b[2]+c[2])*third};
-    // TODO: Optimize away orient2d
-    return -sgn(orient2d(A,B,C))*sgn(orient3d(A,B,C,centroid));
+    if(pierce(a,b,c,B,C)) return true;
+    if(pierce(a,b,c,C,A)) return true;
   }
-    */
+  return false;
+}  
+
+// returns true iff triangle abc intersects triangle ABC
+bool intersect3D(const double *a, const double *b, const double *c,
+                 const double *A, const double *B, const double *C)
+{
+  int sA=sgn(orient3d(a,b,c,A));
+  int sB=sgn(orient3d(a,b,c,B));
+  int sC=sgn(orient3d(a,b,c,C));
+  if(sA == sB && sB == sC) return false;
+
+  int sa=sgn(orient3d(A,B,C,a));
+  int sb=sgn(orient3d(A,B,C,b));
+  int sc=sgn(orient3d(A,B,C,c));
+  if(sa == sb && sb == sc) return false;
+
+  return intersect0(a,b,c,A,B,C,sA,sB,sC) || intersect0(A,B,C,a,b,c,sa,sb,sc);
+}
+
+// Return the intersection time of the extension of the line segment PQ
+// with the plane perpendicular to n and passing through Z.
+inline double intersect(const double *P, const double *Q, const double *n,
+                        const double *Z)
+{
+  double d=n[0]*Z[0]+n[1]*Z[1]+n[2]*Z[2];
+  double denom=n[0]*(Q[0]-P[0])+n[1]*(Q[1]-P[1])+n[2]*(Q[2]-P[2]);
+  return denom == 0 ? DBL_MAX : (d-n[0]*P[0]-n[1]*P[1]-n[2]*P[2])/denom;
+}
+                    
+inline triple interp(const double *a, const double *b, double t)
+{
+  return triple(a[0]+t*(b[0]-a[0]),a[1]+t*(b[1]-a[1]),a[2]+t*(b[2]-a[2]));
+}
+
+inline void interp(GLfloat *dest,
+                   const GLfloat *a, const GLfloat *b, double t)
+{
+  dest[0]=a[0]+t*(b[0]-a[0]);
+  dest[1]=a[1]+t*(b[1]-a[1]);
+  dest[2]=a[2]+t*(b[2]-a[2]);
+}
+
+inline triple interp(const triple& a, const triple& b, double t)
+{
+  return a+(b-a)*t;
+}
+
+inline void cross(double *dest, const double *u, const double *v,
+                  const double *w)
+{
+  double u0=u[0]-w[0];
+  double u1=u[1]-w[1];
+  double u2=u[2]-w[2];
+  double v0=v[0]-w[0];
+  double v1=v[1]-w[1];
+  double v2=v[2]-w[2];
+  dest[0]=u1*v2-u2*v1;
+  dest[1]=u2*v0-u0*v2;
+  dest[2]=u0*v1-u1*v0;
+}
+
+unsigned n;
+unsigned int count;
+const size_t nbuffer=10000;
+
+double eps=5.0;
+void check(int i, const std::vector<unsigned>& S, std::vector<GLuint>& I, 
+           double *a, double *b, double *c, bool colors)
+{
+  double x=min(a[0],b[0],c[0]);
+  double X=max(a[0],b[0],c[0]);
+  double y=min(a[1],b[1],c[1]);
+  double Y=max(a[1],b[1],c[1]);
+  double Z=max(a[2],b[2],c[2]);
+
+  if(X-x < eps || Y-y < eps) return;
+
+  std::vector<unsigned> T;
+
+  int m=S.size();
+  bool split=false;
+  unsigned j0;
+  for(int k=0; k < m; ++k) {
+    unsigned j=S[k];
+    if(Z < zmin[j]) break;
+    if(x > xmax[j] || X < xmin[j]) continue;
+    if(y > ymax[j] || Y < ymin[j]) continue;
+      
+    unsigned j3=3*j;
+    GLuint IA=I[j3];
+    GLuint IB=I[j3+1];
+    GLuint IC=I[j3+2];
+
+    double A[]={xbuffer[IA],ybuffer[IA],zbuffer[IA]};
+    double B[]={xbuffer[IB],ybuffer[IB],zbuffer[IB]};
+    double C[]={xbuffer[IC],ybuffer[IC],zbuffer[IC]};
+      
+    if(intersect2D(a,b,c,A,B,C)) {
+      if(split)
+        T.push_back(j);
+      else {
+        j0=j;
+        split=true;
+      }
+    }
+  }
+  
+  if(split) {
+    ++count;
+    unsigned j3=3*j0;
+
+    GLuint IA=tstride*I[j3];
+    GLuint IB=tstride*I[j3+1];
+    GLuint IC=tstride*I[j3+2];
+    
+    unsigned  i3=3*i;
+    
+    GLuint ia=I[i3];
+    GLuint ib=I[i3+1];
+    GLuint ic=I[i3+2];
+    
+    GLuint Ia=tstride*ia;
+    GLuint Ib=tstride*ib;
+    GLuint Ic=tstride*ic;
+    
+    std::vector<GLfloat>& V=colors ? BezierPatch::tBuffer : 
+      BezierPatch::tbuffer;
+    
+    double A[]={V[IA],V[IA+1],V[IA+2]};
+    double B[]={V[IB],V[IB+1],V[IB+2]};
+    double C[]={V[IC],V[IC+1],V[IC+2]};
+    
+    double a[]={V[Ia],V[Ia+1],V[Ia+2]};
+    double b[]={V[Ib],V[Ib+1],V[Ib+2]};
+    double c[]={V[Ic],V[Ic+1],V[Ic+2]};
+    
+    triple na=triple(V[Ia+3],V[Ia+4],V[Ia+5]);
+    triple nb=triple(V[Ib+3],V[Ib+4],V[Ib+5]);
+    triple nc=triple(V[Ic+3],V[Ic+4],V[Ic+5]);
+    
+    double N[3];
+    cross(N,B,C,A);
+    
+    int sa=sgn(orient3d(A,B,C,a));
+    int sb=sgn(orient3d(A,B,C,b));
+    int sc=sgn(orient3d(A,B,C,c));
+    
+    double *d,*e;
+    
+    if(sb == sc) {
+      double td=intersect(a,b,N,A);
+      double te=intersect(a,c,N,A);
+      
+      cout << "t=" << td << endl;
+      cout << "t=" << te << endl;
+      cout << endl;
+      
+      triple d=interp(a,b,td);
+      triple e=interp(a,c,te);
+      
+      triple nd=interp(na,nb,td);
+      triple ne=interp(na,nc,te);
+      
+      GLuint id,ie;
+      if(colors) {
+        GLfloat *ca=&V[Ia+6];
+        GLfloat *cb=&V[Ib+6];
+        GLfloat *cc=&V[Ic+6];
+    
+        id=BezierPatch::tVertex(d,nd,ca);
+        ie=BezierPatch::tVertex(e,ne,ca);
+        cout << "HELP!" << endl;
+      } else {
+        id=BezierPatch::tvertex(d,nd);
+        ie=BezierPatch::tvertex(e,ne);
+      }
+      
+      I[i3+1]=id;
+      I[i3+2]=ie;
+      
+      I.push_back(id);
+      I.push_back(ib);
+      I.push_back(ie);
+      
+      I.push_back(ib);
+      I.push_back(ic);
+      I.push_back(ie);
+      
+//      check(i,T,I,a,d,e,colors);
+//      check(T,I,a,d,c,colors);
+//      check(T,I,a,b,d,colors);
+    } else {
+      if(sa == sc) {
+//        d=point(b,a,N,A);
+//        e=point(b,c,N,A);
+      } else { // sa == sb
+//        d=point(c,a,N,A);
+//        e=point(c,b,N,A);
+      }
+    }
+    
+  }
+}
+
+void split(std::vector<GLuint>& I, bool colors)
+{
+  n=I.size()/3;
+  count=0;
+  for(unsigned i=0; i < n; ++i) {
+    unsigned i3=3*i;
+    unsigned Ia=I[i3];
+    unsigned Ib=I[i3+1];
+    unsigned Ic=I[i3+2];
+
+    double a[]={xbuffer[Ia],ybuffer[Ia],zbuffer[Ia]};
+    double b[]={xbuffer[Ib],ybuffer[Ib],zbuffer[Ib]};
+    double c[]={xbuffer[Ic],ybuffer[Ic],zbuffer[Ic]};
+      
+    if(n > i+1) {
+      std::vector<unsigned> T;
+      int m=n-i-1;
+      T.reserve(n-i-1);
+      for(unsigned j=i+1; j < n; ++j)
+        T.push_back(j);
+
+      check(i,T,I,a,b,c,colors);
+    }
+  }
+  cout << "splits: " << count << endl;
+}
+  
+// Sorting triangles by their minimum depth.
+int compare(const void *a, const void *b)
+{
+  return ((iz *) a)->z < ((iz *) b)->z ? -1 : 1;
 }
 
 void BezierPatch::init(double res, const triple& Min, const triple& Max,
@@ -134,6 +374,7 @@ void BezierPatch::init(double res, const triple& Min, const triple& Max,
   this->Max=Max;
   
   const size_t nbuffer=10000;
+  indices.reserve(nbuffer);
   if(transparent) {
     tbuffer.reserve(nbuffer);
     tindices.reserve(nbuffer);
@@ -147,7 +388,6 @@ void BezierPatch::init(double res, const triple& Min, const triple& Max,
     }
   } else {
     buffer.reserve(nbuffer);
-    indices.reserve(nbuffer);
     pindices=&indices;
     pvertex=&vertex;
     if(colors) {
@@ -658,21 +898,58 @@ void BezierTriangle::render(const triple *p, bool straight, GLfloat *c0)
 void transform(const std::vector<GLfloat>& b)
 {
   unsigned n=b.size()/tstride;
-  hbuffer.clear();
-  zbuffer.clear();
-  hbuffer.reserve(2*n);
+  xbuffer.reserve(n);
+  ybuffer.reserve(n);
   zbuffer.reserve(n);
   
   for(unsigned i=0; i < n; ++i) {
     unsigned j=tstride*i;
-    hbuffer[2*i]=Tx[0]*b[j]+Tx[1]*b[j+1]+Tx[2]*b[j+2];
-    hbuffer[2*i+1]=Ty[0]*b[j]+Ty[1]*b[j+1]+Ty[2]*b[j+2];
+    xbuffer[i]=Tx[0]*b[j]+Tx[1]*b[j+1]+Tx[2]*b[j+2];
+    ybuffer[i]=Ty[0]*b[j]+Ty[1]*b[j+1]+Ty[2]*b[j+2];
     zbuffer[i]=Tz[0]*b[j]+Tz[1]*b[j+1]+Tz[2]*b[j+2];   
   }
 }
 
-
-
+// precompute min and max bounds of each triangle
+void bounds(const std::vector<GLuint>& I)
+{
+  unsigned n=I.size()/3;
+  xmin.resize(n);
+  xmax.resize(n);
+  ymin.resize(n);
+  ymax.resize(n);
+  zmin.resize(n);
+  zmax.resize(n);
+  
+  for(unsigned i=0; i < n; ++i) {
+    unsigned i3=3*i;
+    unsigned Ia=I[i3];
+    unsigned Ib=I[i3+1];
+    unsigned Ic=I[i3+2];
+    
+    double xa=xbuffer[Ia];
+    double xb=xbuffer[Ib];
+    double xc=xbuffer[Ic];
+    
+    double ya=ybuffer[Ia];
+    double yb=ybuffer[Ib];
+    double yc=ybuffer[Ic];
+    
+    double za=zbuffer[Ia];
+    double zb=zbuffer[Ib];
+    double zc=zbuffer[Ic];
+    
+    xmin[i]=min(xa,xb,xc);
+    xmax[i]=max(xa,xb,xc);
+    
+    ymin[i]=min(ya,yb,yc);
+    ymax[i]=max(ya,yb,yc);
+    
+    zmin[i]=min(za,zb,zc);
+    zmax[i]=max(za,zb,zc);
+  }
+}
+  
 void BezierPatch::draw()
 {
   if(nvertices == 0 && ntvertices == 0 && Nvertices == 0 && Ntvertices == 0)
@@ -707,22 +984,60 @@ void BezierPatch::draw()
   if(ntvertices > 0) {
     tstride=stride;
     transform(tbuffer); 
-    qsort(&tindices[0],tindices.size()/3,3*sizeof(GLuint),compare);
+    
+    unsigned n=tindices.size()/3;
+    IZ.resize(n);
+    for(unsigned i=0; i < n; ++i)
+      IZ[i].minimum(i,tindices);
+    
+    qsort(&IZ[0],n,sizeof(iz),compare);
+    
+    indices.resize(3*n);
+    for(unsigned i=0; i < n; ++i) {
+      int i3=3*i;
+      int I3=3*IZ[i].i;
+      indices[i3]=tindices[I3];
+      indices[i3+1]=tindices[I3+1];
+      indices[i3+2]=tindices[I3+2];
+    }
+      
+    bounds(indices);
+    split(indices,false);
+    
     glVertexPointer(3,GL_FLOAT,bytestride,&tbuffer[0]);
     glNormalPointer(GL_FLOAT,bytestride,&tbuffer[3]);
-    glDrawElements(GL_TRIANGLES,tindices.size(),GL_UNSIGNED_INT,&tindices[0]);
+    glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,&indices[0]);
   }
   
   if(Ntvertices > 0) {
     tstride=Stride;
     transform(tBuffer); 
-    qsort(&tIndices[0],tIndices.size()/3,3*sizeof(GLuint),compare);
+    
+    unsigned n=tIndices.size()/3;
+    IZ.resize(n);
+    for(unsigned i=0; i < n; ++i)
+      IZ[i].minimum(i,tIndices);
+    
+    qsort(&IZ[0],n,sizeof(iz),compare);
+    
+    indices.resize(3*n);
+    for(unsigned i=0; i < n; ++i) {
+      int i3=3*i;
+      int I3=3*IZ[i].i;
+      indices[i3]=tIndices[I3];
+      indices[i3+1]=tIndices[I3+1];
+      indices[i3+2]=tIndices[I3+2];
+    }
+      
+    bounds(indices);
+    split(indices,true);
+    
     glEnableClientState(GL_COLOR_ARRAY);
     glEnable(GL_COLOR_MATERIAL);
     glVertexPointer(3,GL_FLOAT,Bytestride,&tBuffer[0]);
     glNormalPointer(GL_FLOAT,Bytestride,&tBuffer[3]);
     glColorPointer(4,GL_FLOAT,Bytestride,&tBuffer[6]);
-    glDrawElements(GL_TRIANGLES,tIndices.size(),GL_UNSIGNED_INT,&tIndices[0]);
+    glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,&indices[0]);
     glDisable(GL_COLOR_MATERIAL);
     glDisableClientState(GL_COLOR_ARRAY);
   }

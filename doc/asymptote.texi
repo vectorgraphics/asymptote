@@ -5353,9 +5353,12 @@ pete    7
 @end verbatim
 
 @cindex @code{sort}
-@item T[] sort(T[] a, bool less(T i, T j))
-returns a copy of @code{a} stably sorted in ascending order such that
-element @code{i} precedes element @code{j} if @code{less(i,j)} is true.
+@item T[] sort(T[] a, bool less(T i, T j), bool stable=true)
+returns a copy of @code{a} sorted in ascending order such that
+element @code{i} precedes element @code{j} if @code{less(i,j)} is
+true, subject to (if @code{stable} is @code{true}) the stability constraint
+that the original order of elements @code{i} and @code{j} is preserved if
+@code{less(i,j)} and @code{less(j,i)} are both @code{false}.
 
 @cindex @code{transpose}
 @item T[][] transpose(T[][] a)

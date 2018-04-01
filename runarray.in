@@ -908,12 +908,13 @@ array* :arrayFunction(callable *f, array *a)
   return b;
 }
 
-array* :arraySort(array *a, callable *less)
+array* :arraySort(array *a, callable *less, bool stable=true)
 {
   array *c=copyArray(a);
   compareFunc=less;
   FuncStack=Stack;
-  stable_sort(c->begin(),c->end(),compareFunction);
+  if(stable) stable_sort(c->begin(),c->end(),compareFunction);
+  else sort(c->begin(),c->end(),compareFunction);
   return c;
 }
 
