@@ -15,6 +15,8 @@ using ::orient3d;
 
 size_t tstride;
 
+double viewpoint[3];
+
 #ifdef HAVE_GL
 
 std::vector<GLfloat> BezierPatch::buffer;
@@ -71,6 +73,11 @@ extern const double Fuzz2;
 
 const double FillFactor=0.1;
 const double BezierFactor=0.4;
+
+inline int sgn1(double x) 
+{
+  return x >= 0.0 ? 1 : -1;
+}
 
 inline int sgn(double x) 
 {
@@ -164,9 +171,9 @@ inline triple interp(const double *a, const double *b, double t)
 inline void interp(GLfloat *dest,
                    const GLfloat *a, const GLfloat *b, double t)
 {
-  dest[0]=a[0]+t*(b[0]-a[0]);
-  dest[1]=a[1]+t*(b[1]-a[1]);
-  dest[2]=a[2]+t*(b[2]-a[2]);
+  double onemt=1.0-t;
+  for(size_t i=0; i < 4; ++i)
+    dest[i]=onemt*a[i]+t*b[i];
 }
 
 inline triple interp(const triple& a, const triple& b, double t)
@@ -276,13 +283,13 @@ void check(int i, const std::vector<unsigned>& S, std::vector<GLuint>& I,
     
     double *d,*e;
     
-    if(sb == sc) {
+    if(sa*sb < 0 && sa*sc < 0) {
       double td=intersect(a,b,N,A);
       double te=intersect(a,c,N,A);
       
-      cout << "t=" << td << endl;
-      cout << "t=" << te << endl;
-      cout << endl;
+//      cout << "t=" << td << endl;
+//      cout << "t=" << te << endl;
+//      cout << endl;
       
       triple d=interp(a,b,td);
       triple e=interp(a,c,te);
@@ -295,10 +302,13 @@ void check(int i, const std::vector<unsigned>& S, std::vector<GLuint>& I,
         GLfloat *ca=&V[Ia+6];
         GLfloat *cb=&V[Ib+6];
         GLfloat *cc=&V[Ic+6];
-    
-        id=BezierPatch::tVertex(d,nd,ca);
-        ie=BezierPatch::tVertex(e,ne,ca);
-        cout << "HELP!" << endl;
+        
+        GLfloat cd[4],ce[4];
+        interp(cd,ca,cb,td);
+        interp(ce,ca,cc,te);
+        
+        id=BezierPatch::tVertex(d,nd,cd);
+        ie=BezierPatch::tVertex(e,ne,ce);
       } else {
         id=BezierPatch::tvertex(d,nd);
         ie=BezierPatch::tvertex(e,ne);
@@ -311,21 +321,19 @@ void check(int i, const std::vector<unsigned>& S, std::vector<GLuint>& I,
       I.push_back(ib);
       I.push_back(ie);
       
+      I.push_back(ie);
       I.push_back(ib);
       I.push_back(ic);
-      I.push_back(ie);
       
 //      check(i,T,I,a,d,e,colors);
 //      check(T,I,a,d,c,colors);
 //      check(T,I,a,b,d,colors);
-    } else {
-      if(sa == sc) {
+    } else if(sa == sc) {
 //        d=point(b,a,N,A);
 //        e=point(b,c,N,A);
       } else { // sa == sb
 //        d=point(c,a,N,A);
 //        e=point(c,b,N,A);
-      }
     }
     
   }
@@ -355,10 +363,58 @@ void split(std::vector<GLuint>& I, bool colors)
       check(i,T,I,a,b,c,colors);
     }
   }
-  cout << "splits: " << count << endl;
+//  cout << "splits: " << count << endl;
 }
   
-// Sorting triangles by their minimum depth.
+// Sort nonintersecting triangles by depth.
+int Compare(const void *p, const void *P)
+{
+  unsigned tstride=1;
+  unsigned Ia=tstride*((GLuint *) p)[0];
+  unsigned Ib=tstride*((GLuint *) p)[1];
+  unsigned Ic=tstride*((GLuint *) p)[2];
+
+  unsigned IA=tstride*((GLuint *) P)[0];
+  unsigned IB=tstride*((GLuint *) P)[1];
+  unsigned IC=tstride*((GLuint *) P)[2];
+  
+  double a[]={xbuffer[Ia],ybuffer[Ia],zbuffer[Ia]};
+  double b[]={xbuffer[Ib],ybuffer[Ib],zbuffer[Ib]};
+  double c[]={xbuffer[Ic],ybuffer[Ic],zbuffer[Ic]};
+      
+  double A[]={xbuffer[IA],ybuffer[IA],zbuffer[IA]};
+  double B[]={xbuffer[IB],ybuffer[IB],zbuffer[IB]};
+  double C[]={xbuffer[IC],ybuffer[IC],zbuffer[IC]};
+      
+  double viewpoint[]={0,0,100000};
+  
+  double sa=-orient3d(A,B,C,a);
+  double sb=-orient3d(A,B,C,b);
+  double sc=-orient3d(A,B,C,c);
+  double s=min(sa,sb,sc);
+  double S=max(sa,sb,sc);
+  double eps=1000;
+  if(s < -eps && S > eps) { //swap
+    double sA=-orient3d(a,b,c,A);
+    double sB=-orient3d(a,b,c,B);
+    double sC=-orient3d(a,b,c,C);
+    double s=min(sA,sB,sC);
+    double S=max(sA,sB,sC);
+    if(S < -s) S=s;
+    int sz=sgn1(orient3d(a,b,c,viewpoint));
+    if(S < -eps) return -sz;
+    if(S > eps) return sz;
+    return 0;
+  } else {
+    if(S < -s) S=s;
+    int sz=sgn1(orient3d(A,B,C,viewpoint));
+    if(S < -eps) return sz;
+    if(S > eps) return -sz;
+    return 0;
+  }
+}
+
+// Sort triangles by z value.
 int compare(const void *a, const void *b)
 {
   return ((iz *) a)->z < ((iz *) b)->z ? -1 : 1;
@@ -906,8 +962,9 @@ void transform(const std::vector<GLfloat>& b)
     unsigned j=tstride*i;
     xbuffer[i]=Tx[0]*b[j]+Tx[1]*b[j+1]+Tx[2]*b[j+2];
     ybuffer[i]=Ty[0]*b[j]+Ty[1]*b[j+1]+Ty[2]*b[j+2];
-    zbuffer[i]=Tz[0]*b[j]+Tz[1]*b[j+1]+Tz[2]*b[j+2];   
+    zbuffer[i]=Tz[0]*b[j]+Tz[1]*b[j+1]+Tz[2]*b[j+2];
   }
+  
 }
 
 // precompute min and max bounds of each triangle
@@ -1004,6 +1061,58 @@ void BezierPatch::draw()
     bounds(indices);
     split(indices,false);
     
+    transform(tbuffer);  // Optimize; only new zbuffer values required
+    
+    /*
+    n=indices.size()/3;
+    IZ.resize(n);
+    for(unsigned i=0; i < n; ++i)
+      IZ[i].minimum(i,indices);
+    
+    qsort(&IZ[0],n,sizeof(iz),compare);
+    
+    tindices.resize(3*n);
+    for(unsigned i=0; i < n; ++i) {
+      int i3=3*i;
+      int I3=3*IZ[i].i;
+      tindices[i3]=indices[I3];
+      tindices[i3+1]=indices[I3+1];
+      tindices[i3+2]=indices[I3+2];
+    }
+    */
+      
+    qsort(&indices[0],indices.size()/3,3*sizeof(GLuint),Compare);
+    
+
+    
+    if(false)
+    for(int i=0; i < indices.size(); i += 3) {
+      unsigned tstride=1;
+      unsigned Ia=tstride*indices[i];
+      unsigned Ib=tstride*indices[i+1];
+      unsigned Ic=tstride*indices[i+2];
+
+      double a[]={xbuffer[Ia],ybuffer[Ia],zbuffer[Ia]};
+      double b[]={xbuffer[Ib],ybuffer[Ib],zbuffer[Ib]};
+      double c[]={xbuffer[Ic],ybuffer[Ic],zbuffer[Ic]};
+      
+      cout << a[0] << "," << a[1] << "," << a[2] << endl;
+      cout << b[0] << "," << b[1] << "," << b[2] << endl;
+      cout << c[0] << "," << c[1] << "," << c[2] << endl;
+      cout << endl;
+    }
+    
+    
+    /*
+    tindices.resize(3*n);
+    for(unsigned i=0; i < n; ++i) {
+      int i3=3*i;
+      int I3=3*IZ[i].i;
+      tindices[i3]=indices[I3];
+      tindices[i3+1]=indices[I3+1];
+      tindices[i3+2]=indices[I3+2];
+      }*/
+      
     glVertexPointer(3,GL_FLOAT,bytestride,&tbuffer[0]);
     glNormalPointer(GL_FLOAT,bytestride,&tbuffer[3]);
     glDrawElements(GL_TRIANGLES,indices.size(),GL_UNSIGNED_INT,&indices[0]);
@@ -1031,6 +1140,28 @@ void BezierPatch::draw()
       
     bounds(indices);
     split(indices,true);
+    
+    transform(tBuffer);  // Optimize; only new zbuffer values required
+    
+    /*
+    n=indices.size()/3;
+    IZ.resize(n);
+    for(unsigned i=0; i < n; ++i)
+      IZ[i].minimum(i,indices);
+    
+    qsort(&IZ[0],n,sizeof(iz),compare);
+    
+    tindices.resize(3*n);
+    for(unsigned i=0; i < n; ++i) {
+      int i3=3*i;
+      int I3=3*IZ[i].i;
+      tindices[i3]=indices[I3];
+      tindices[i3+1]=indices[I3+1];
+      tindices[i3+2]=indices[I3+2];
+    }
+    */
+    
+    qsort(&indices[0],indices.size()/3,3*sizeof(GLuint),Compare);
     
     glEnableClientState(GL_COLOR_ARRAY);
     glEnable(GL_COLOR_MATERIAL);
