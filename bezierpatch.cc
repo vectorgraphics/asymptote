@@ -393,7 +393,7 @@ int Compare(const void *p, const void *P)
   double sc=-orient3d(A,B,C,c);
   double s=min(sa,sb,sc);
   double S=max(sa,sb,sc);
-  double eps=1000;
+  double eps=100;
   if(s < -eps && S > eps) { //swap
     double sA=-orient3d(a,b,c,A);
     double sB=-orient3d(a,b,c,B);
@@ -404,13 +404,13 @@ int Compare(const void *p, const void *P)
     int sz=sgn1(orient3d(a,b,c,viewpoint));
     if(S < -eps) return -sz;
     if(S > eps) return sz;
-    return 0;
+    return a[2]+b[2]+c[2] < A[2]+B[2]+C[2] ? -1 : 1;
   } else {
     if(S < -s) S=s;
     int sz=sgn1(orient3d(A,B,C,viewpoint));
     if(S < -eps) return sz;
     if(S > eps) return -sz;
-    return 0;
+    return a[2]+b[2]+c[2] < A[2]+B[2]+C[2] ? -1 : 1;
   }
 }
 
