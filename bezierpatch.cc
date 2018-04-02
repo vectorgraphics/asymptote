@@ -369,14 +369,13 @@ void split(std::vector<GLuint>& I, bool colors)
 // Sort nonintersecting triangles by depth.
 int Compare(const void *p, const void *P)
 {
-  unsigned tstride=1;
-  unsigned Ia=tstride*((GLuint *) p)[0];
-  unsigned Ib=tstride*((GLuint *) p)[1];
-  unsigned Ic=tstride*((GLuint *) p)[2];
+  unsigned Ia=((GLuint *) p)[0];
+  unsigned Ib=((GLuint *) p)[1];
+  unsigned Ic=((GLuint *) p)[2];
 
-  unsigned IA=tstride*((GLuint *) P)[0];
-  unsigned IB=tstride*((GLuint *) P)[1];
-  unsigned IC=tstride*((GLuint *) P)[2];
+  unsigned IA=((GLuint *) P)[0];
+  unsigned IB=((GLuint *) P)[1];
+  unsigned IC=((GLuint *) P)[2];
   
   double a[]={xbuffer[Ia],ybuffer[Ia],zbuffer[Ia]};
   double b[]={xbuffer[Ib],ybuffer[Ib],zbuffer[Ib]};
@@ -393,7 +392,7 @@ int Compare(const void *p, const void *P)
   double sc=-orient3d(A,B,C,c);
   double s=min(sa,sb,sc);
   double S=max(sa,sb,sc);
-  double eps=100;
+  double eps=1000;
   if(s < -eps && S > eps) { //swap
     double sA=-orient3d(a,b,c,A);
     double sB=-orient3d(a,b,c,B);
@@ -404,14 +403,13 @@ int Compare(const void *p, const void *P)
     int sz=sgn1(orient3d(a,b,c,viewpoint));
     if(S < -eps) return -sz;
     if(S > eps) return sz;
-    return a[2]+b[2]+c[2] < A[2]+B[2]+C[2] ? -1 : 1;
-  } else {
-    if(S < -s) S=s;
-    int sz=sgn1(orient3d(A,B,C,viewpoint));
-    if(S < -eps) return sz;
-    if(S > eps) return -sz;
-    return a[2]+b[2]+c[2] < A[2]+B[2]+C[2] ? -1 : 1;
   }
+  if(S < -s) S=s;
+  int sz=sgn1(orient3d(A,B,C,viewpoint));
+  if(S < -eps) return sz;
+  if(S > eps) return -sz;
+//  return 0; // Activate when splitting is enabled
+  return a[2]+b[2]+c[2] < A[2]+B[2]+C[2] ? -1 : 1;
 }
 
 // Sort triangles by z value.
