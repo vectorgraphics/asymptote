@@ -267,6 +267,9 @@ fi
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([fenv.h stddef.h libintl.h])
 AC_CHECK_HEADERS(fpu_control.h)
+AC_CHECK_LIB([m], [feenableexcept])
+AC_CHECK_FUNCS([feenableexcept])
+
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "xstream.h"])],
                    [AC_SEARCH_LIBS([xdrstdio_create],[nsl rpc])
