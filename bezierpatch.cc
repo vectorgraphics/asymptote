@@ -209,6 +209,10 @@ int compare(const void *p, const void *P)
   unsigned IB=((GLuint *) P)[1];
   unsigned IC=((GLuint *) P)[2];
   
+  return zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] < 
+    zbuffer[IA]+zbuffer[IB]+zbuffer[IC] ? -1 : 1;
+  
+  /*
   double a[]={xbuffer[Ia],ybuffer[Ia],zbuffer[Ia]};
   double b[]={xbuffer[Ib],ybuffer[Ib],zbuffer[Ib]};
   double c[]={xbuffer[Ic],ybuffer[Ic],zbuffer[Ic]};
@@ -216,7 +220,7 @@ int compare(const void *p, const void *P)
   double A[]={xbuffer[IA],ybuffer[IA],zbuffer[IA]};
   double B[]={xbuffer[IB],ybuffer[IB],zbuffer[IB]};
   double C[]={xbuffer[IC],ybuffer[IC],zbuffer[IC]};
-      
+
   double viewpoint[]={0,0,100000};
   
   double sa=-orient3d(A,B,C,a);
@@ -225,6 +229,7 @@ int compare(const void *p, const void *P)
   double s=min(sa,sb,sc);
   double S=max(sa,sb,sc);
   double eps=1000;
+
   if(s < -eps && S > eps) { //swap
     double sA=-orient3d(a,b,c,A);
     double sB=-orient3d(a,b,c,B);
@@ -241,6 +246,7 @@ int compare(const void *p, const void *P)
   if(S < -eps) return sz;
   if(S > eps) return -sz;
   return a[2]+b[2]+c[2] < A[2]+B[2]+C[2] ? -1 : 1;
+  */
 }
 
 void split(unsigned i3, GLuint ia, GLuint ib, GLuint ic,
@@ -827,14 +833,14 @@ void BezierTriangle::render(const triple *p, bool straight, GLfloat *c0)
 void transform(const std::vector<GLfloat>& b)
 {
   unsigned n=b.size()/tstride;
-  xbuffer.reserve(n);
-  ybuffer.reserve(n);
-  zbuffer.reserve(n);
+//  xbuffer.resize(n);
+//  ybuffer.resize(n);
+  zbuffer.resize(n);
   
   for(unsigned i=0; i < n; ++i) {
     unsigned j=tstride*i;
-    xbuffer[i]=Tx[0]*b[j]+Tx[1]*b[j+1]+Tx[2]*b[j+2];
-    ybuffer[i]=Ty[0]*b[j]+Ty[1]*b[j+1]+Ty[2]*b[j+2];
+//    xbuffer[i]=Tx[0]*b[j]+Tx[1]*b[j+1]+Tx[2]*b[j+2];
+//    ybuffer[i]=Ty[0]*b[j]+Ty[1]*b[j+1]+Ty[2]*b[j+2];
     zbuffer[i]=Tz[0]*b[j]+Tz[1]*b[j+1]+Tz[2]*b[j+2];
   }
   
@@ -914,7 +920,7 @@ void BezierPatch::draw()
   if(ntvertices > 0) {
     tstride=stride;
     transform(tbuffer); 
-    bounds(tindices);
+//    bounds(tindices);
     
     qsort(&tindices[0],tindices.size()/3,3*sizeof(GLuint),compare);
       
@@ -926,7 +932,7 @@ void BezierPatch::draw()
   if(Ntvertices > 0) {
     tstride=Stride;
     transform(tBuffer);
-    bounds(tIndices);
+//    bounds(tIndices);
     
     qsort(&tIndices[0],tIndices.size()/3,3*sizeof(GLuint),compare);
     
