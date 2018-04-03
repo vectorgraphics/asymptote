@@ -54,11 +54,6 @@ struct iz {
   unsigned i;
   double z;
   iz() {}
-  void sum(unsigned i, const std::vector<GLuint>& I) {
-    this->i=i;
-    unsigned i3=3*i;
-    z=zbuffer[I[i3]]+zbuffer[I[i3+1]]+zbuffer[I[i3+2]];
-  }
   void minimum(unsigned i, const std::vector<GLuint>& I) {
     this->i=i;
     unsigned i3=3*i;
@@ -982,7 +977,6 @@ void BezierPatch::draw()
     count=0;
     
     qsort(&IZ[0],n,sizeof(iz),compare);
-    cout << "splits: " << count << endl;
     
     transform(tbuffer);  // Optimize; only new zbuffer values required
     bounds(tindices);
@@ -1009,7 +1003,6 @@ void BezierPatch::draw()
     count=0;
 
     qsort(&IZ[0],n,sizeof(iz),compare);
-    cout << "splits: " << count << endl;
     
     transform(tBuffer);  // Optimize; only new zbuffer values required
     bounds(tIndices);
