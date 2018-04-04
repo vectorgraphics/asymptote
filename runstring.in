@@ -259,6 +259,8 @@ string format(string *format, Int x, string locale=emptystring)
 string format(string *format, bool forcemath=false, string separator, real x,
               string locale=emptystring)
 {
+  if(*format == "%") return ""; // Temporary workaround for github Issue #29.
+  
   bool tex=getSetting<string>("tex") != "none";
   bool texify=forcemath;
   ostringstream out;
