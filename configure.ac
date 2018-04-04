@@ -123,8 +123,8 @@ AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERED_MAP,1,
 			      [Define to 1 if you have tr1/unordered_map]),
 	[AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
 
-GCVERSION=7.6.4
-ATOMICVERSION=7.6.4
+GCVERSION=7.6.0
+ATOMICVERSION=7.6.0
 GCFILE=gc-$GCVERSION
 ac_cv_use_gc="system"
 
