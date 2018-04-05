@@ -129,12 +129,14 @@ case $host in
   *)       HELLO_SYSTEM='hello-generic.$(OBJEXT)' ;;
 esac
 
-GCVERSION=7.6.2
-ATOMICVERSION=7.6.2
 case "${host_os}" in
-     darwin*)
+    darwin*)
       GCVERSION=7.6.0
       ATOMICVERSION=7.6.0
+        ;;
+   *)
+      GCVERSION=7.6.2
+      ATOMICVERSION=7.6.2
         ;;
 esac
 
