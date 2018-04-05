@@ -13,6 +13,7 @@ test "$CXXFLAGS" || CXXFLAGS="-std=c++11"
 test "$CFLAGS" || CFLAGS="-g -O3"
 
 AC_C_BIGENDIAN
+AC_CANONICAL_HOST
 
 test "$prefix" = NONE && prefix=/usr/local
 Datadir=$datadir
@@ -123,8 +124,20 @@ AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERED_MAP,1,
 			      [Define to 1 if you have tr1/unordered_map]),
 	[AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
 
-GCVERSION=7.6.0
-ATOMICVERSION=7.6.0
+case $host in
+  *mac*) HELLO_SYSTEM='hello-linux.$(OBJEXT)' ;;
+  *)       HELLO_SYSTEM='hello-generic.$(OBJEXT)' ;;
+esac
+
+GCVERSION=7.6.2
+ATOMICVERSION=7.6.2
+case "${host_os}" in
+     darwin*)
+      GCVERSION=7.6.0
+      ATOMICVERSION=7.6.0
+        ;;
+esac
+
 GCFILE=gc-$GCVERSION
 ac_cv_use_gc="system"
 
