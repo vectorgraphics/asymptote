@@ -316,10 +316,10 @@ Users may also wish to monitor the @code{Asymptote} forum:
 @cindex @acronym{RPM}
 @cindex @code{tgz}
 We release both @code{tgz} and @acronym{RPM} binary distributions of
-@code{Asymptote}. The root user can install the @code{Linux i386} @code{tgz}
+@code{Asymptote}. The root user can install the @code{Linux x86_64} @code{tgz}
 distribution of version @code{x.xx} of @code{Asymptote} with the commands:
 @verbatim
-tar -C / -zxf asymptote-x.xx.i386.tgz
+tar -C / -zxf asymptote-x.xx.x86_64.tgz
 texhash
 @end verbatim
 @noindent
@@ -758,9 +758,9 @@ To compile without optimization, use the command @code{make CFLAGS=-g}.
 @section Uninstall
 @cindex uninstall
 
-To uninstall a @code{Linux i386} binary distribution, use the commands
+To uninstall a @code{Linux x86_64} binary distribution, use the commands
 @verbatim
-tar -zxvf asymptote-x.xx.i386.tgz | xargs --replace=% rm /%
+tar -zxvf asymptote-x.xx.x86_64.tgz | xargs --replace=% rm /%
 texhash
 @end verbatim
 
@@ -9893,7 +9893,7 @@ Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  differentiable vectorization vectorized asydir normals quartic
 @c  LocalWords:  wavepacket kerned parametrized specular hyperboloid Bourke's
 @c  LocalWords:  Michail 0pt 1filll 's 3D latin1 labelpath3 2D graph3
-@c  LocalWords:  grid3 contour3 i386 psv a4 gsview32 freeglut 'load '
+@c  LocalWords:  grid3 contour3 x86_64 psv a4 gsview32 freeglut 'load '
 @c  LocalWords:  'asy 'lasy 'auto 5bp 1cm sqrtx01 4g extenda extendb
 @c  LocalWords:  bb llx 2S 100pt 3t bezier2 bool3 x0 angle1 angle2 z1
 @c  LocalWords:  z2 before' struct X11 x11colors type1cm 12pt OT1 5mm
