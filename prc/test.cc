@@ -32,6 +32,7 @@ extern const double pi;
 
 int main()
 {
+  #if 0
   // List of pictures used; keep track of memory allocated to free it in the end
   // shared pointers or garbage collector may be an alternative
   uint8_t *picture1 = NULL;
@@ -947,5 +948,7 @@ int main()
   delete[] picture3;
   delete[] picture4;
 
+#endif
   return 0;
 }
+

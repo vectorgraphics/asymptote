@@ -306,9 +306,11 @@ maintainer-clean: FORCE distclean
 	-rm -f configure config.h.in $(DIST)
 	-rm -rf autom4te.cache
 
-check: asy FORCE
+test: asy FORCE
 	./wce
 	$(MAKE) -C tests
+
+check: test
 
 check-all: asy FORCE
 	./wce
