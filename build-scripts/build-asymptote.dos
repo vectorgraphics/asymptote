@@ -87,17 +87,12 @@ cd ~/CTAN/asymptote-$VERSION/binaries/$BINDIR
 ln -sf ../../README .
 cd ~/CTAN
 cp -a ~/asymptote/build-scripts/README-binaries asymptote-$VERSION/binaries/$BINDIR/texlive/README
+SHAREDBIN=$SHARED/CTAN/asymptote-$VERSION
 if [ $MACHINE == i686 ]; then
-cp ~/asymptote-$VERSION/$BUILD/asy.exe $SHARED/asymptote-$VERSION-CTAN-$BINDIR.exe
+mkdir -p $SHAREDBIN
+cp -a asymptote-$VERSION/binaries/$BINDIR $SHAREDBIN
 else
-BINDIR=i386-windows
-cd ~/
-mkdir -p CTAN/asymptote-$VERSION/binaries/$BINDIR/texlive
-cp $SHARED/asymptote-$VERSION-CTAN-$BINDIR.exe ~/CTAN/asymptote-$VERSION/binaries/$BINDIR/texlive
-cd ~/CTAN/asymptote-$VERSION/binaries/$BINDIR
-ln -sf ../../README .
-cd ~/CTAN
-cp -a ~/asymptote/build-scripts/README-binaries asymptote-$VERSION/binaries/$BINDIR/texlive/README
+cp -a $SHAREDBIN/i386-windows ~/CTAN/asymptote-$VERSION/binaries
 fi
 tar cfz asymptote-$VERSION-CTAN.tgz asymptote-$VERSION
 cp -a --no-preserve=mode asymptote-$VERSION-CTAN.tgz $SHARED
