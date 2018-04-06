@@ -56,9 +56,16 @@ ls -p1 $BUILD \
     | awk '{ if(index($0,"/")==length($0)) print "RMDir /r $INSTDIR\\" substr($0,0,length($0)-1); else print "Delete $INSTDIR\\" $0 }' \
 	> AsymptoteUninstallList.nsi
 
+if [ $MACHINE == i686 ]; then
+sed asymptote.nsi -e 's/$PROGRAMFILES64/$PROGRAMFILES/g' > asymptote32.nsi
+/cygdrive/c/Program\ Files\ \(x86\)/NSIS/makensis.exe asymptote32.nsi
+SUFFIX=-i386
+else
 /cygdrive/c/Program\ Files\ \(x86\)/NSIS/makensis.exe asymptote.nsi
-cp -a --no-preserve=mode asymptote-$VERSION-setup.exe $SHARED
-mv asymptote-$VERSION-setup.exe ~/
+SUFFIX=
+fi
+cp -a --no-preserve=mode asymptote-$VERSION-setup.exe $SHARED/asymptote-$VERSION-setup$SUFFIX.exe
+mv asymptote-$VERSION-setup.exe ~/asymptote-$VERSION-setup$SUFFIX.exe
 
 cd ~/
 rm -rf asymptote-${VERSION}TL || exit
@@ -81,7 +88,7 @@ ln -sf ../../README .
 cd ~/CTAN
 cp -a ~/asymptote/build-scripts/README-binaries asymptote-$VERSION/binaries/$BINDIR/texlive/README
 if [ $MACHINE == i686 ]; then
-cp $BUILD/asy.exe $SHARED/asymptote-$VERSION-CTAN-$BINDIR.exe
+cp ~/asymptote-$VERSION/$BUILD/asy.exe $SHARED/asymptote-$VERSION-CTAN-$BINDIR.exe
 else
 BINDIR=i386-windows
 cd ~/
