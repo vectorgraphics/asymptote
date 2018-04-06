@@ -124,11 +124,6 @@ AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERED_MAP,1,
 			      [Define to 1 if you have tr1/unordered_map]),
 	[AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
 
-case $host in
-  *mac*) HELLO_SYSTEM='hello-linux.$(OBJEXT)' ;;
-  *)       HELLO_SYSTEM='hello-generic.$(OBJEXT)' ;;
-esac
-
 case "${host_os}" in
     darwin*)
       GCVERSION=7.6.0
