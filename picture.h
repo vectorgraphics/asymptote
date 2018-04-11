@@ -36,7 +36,7 @@ public:
   nodelist nodes;
   
   picture() : labels(false), lastnumber(0), lastnumber3(0), T(identity),
-              transparency(false) {}
+              transparency(false), billboard(0) {}
   
   // Destroy all of the owned picture objects.
   ~picture();
