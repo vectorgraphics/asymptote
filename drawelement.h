@@ -22,8 +22,8 @@
 
 namespace camp {
 
-//extern double Tx[3]; // x-component of current transform
-//extern double Ty[3]; // y-component of current transform
+extern double Tx[3]; // x-component of current transform
+extern double Ty[3]; // y-component of current transform
 extern double Tz[3]; // z-component of current transform
 
 static const double pixel=1.0; // Adaptive rendering constant.

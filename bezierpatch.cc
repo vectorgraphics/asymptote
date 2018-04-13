@@ -198,7 +198,9 @@ unsigned n;
 unsigned int count;
 const size_t nbuffer=10000;
   
-// Sort nonintersecting triangles by depth.
+
+// Order two triangles, one of which is guaranteed to lie entirely on one
+// side of the plane containing the other.
 int compare(const void *p, const void *P)
 {
   unsigned Ia=((GLuint *) p)[0];
@@ -209,10 +211,9 @@ int compare(const void *p, const void *P)
   unsigned IB=((GLuint *) P)[1];
   unsigned IC=((GLuint *) P)[2];
   
-  return zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] < 
-    zbuffer[IA]+zbuffer[IB]+zbuffer[IC] ? -1 : 1;
+//  return zbuffer[Ia]+zbuffer[Ib]+zbuffer[Ic] < 
+//    zbuffer[IA]+zbuffer[IB]+zbuffer[IC] ? -1 : 1;
   
-  /*
   double a[]={xbuffer[Ia],ybuffer[Ia],zbuffer[Ia]};
   double b[]={xbuffer[Ib],ybuffer[Ib],zbuffer[Ib]};
   double c[]={xbuffer[Ic],ybuffer[Ic],zbuffer[Ic]};
@@ -221,14 +222,14 @@ int compare(const void *p, const void *P)
   double B[]={xbuffer[IB],ybuffer[IB],zbuffer[IB]};
   double C[]={xbuffer[IC],ybuffer[IC],zbuffer[IC]};
 
-  double viewpoint[]={0,0,100000};
+  double viewpoint[]={0,0,0};
   
   double sa=-orient3d(A,B,C,a);
   double sb=-orient3d(A,B,C,b);
   double sc=-orient3d(A,B,C,c);
   double s=min(sa,sb,sc);
   double S=max(sa,sb,sc);
-  double eps=1000;
+  double eps=1;
 
   if(s < -eps && S > eps) { //swap
     double sA=-orient3d(a,b,c,A);
@@ -236,17 +237,44 @@ int compare(const void *p, const void *P)
     double sC=-orient3d(a,b,c,C);
     double s=min(sA,sB,sC);
     double S=max(sA,sB,sC);
+    if(s < -eps && S > eps) {
+      cout << "split" << endl;
+      
+      
+    }
     if(S < -s) S=s;
     int sz=sgn1(orient3d(a,b,c,viewpoint));
     if(S < -eps) return -sz;
     if(S > eps) return sz;
+//    cout << "coplanar" << endl;
+    return 0; // coplanar
+    
   }
   if(S < -s) S=s;
   int sz=sgn1(orient3d(A,B,C,viewpoint));
   if(S < -eps) return sz;
   if(S > eps) return -sz;
-  return a[2]+b[2]+c[2] < A[2]+B[2]+C[2] ? -1 : 1;
-  */
+    unsigned ta=tstride*Ia;
+    unsigned tb=tstride*Ib;
+    unsigned tc=tstride*Ic;
+    
+    unsigned tA=tstride*IA;
+    unsigned tB=tstride*IB;
+    unsigned tC=tstride*IC;
+    
+    std::vector<GLfloat>& Y=BezierPatch::tBuffer;
+    
+
+    cout << "(" << Y[ta] << "," << Y[ta+1] << "," << Y[ta+2] << ")--";
+    cout << "(" << Y[tb] << "," << Y[tb+1] << "," << Y[tb+2] << ")--";
+    cout << "(" << Y[tc] << "," << Y[tc+1] << "," << Y[tc+2] << ")--cycle" << endl;
+
+    cout << "(" << Y[tA] << "," << Y[tA+1] << "," << Y[tA+2] << ")--";
+    cout << "(" << Y[tB] << "," << Y[tB+1] << "," << Y[tB       +2] << ")--";
+    cout << "(" << Y[tC] << "," << Y[tC+1] << "," << Y[tC+2] << ")--cycle" << endl;
+
+  cout << "coplanar" << endl;
+  return 0; // coplanar
 }
 
 void split(unsigned i3, GLuint ia, GLuint ib, GLuint ic,
@@ -833,14 +861,14 @@ void BezierTriangle::render(const triple *p, bool straight, GLfloat *c0)
 void transform(const std::vector<GLfloat>& b)
 {
   unsigned n=b.size()/tstride;
-//  xbuffer.resize(n);
-//  ybuffer.resize(n);
+  xbuffer.resize(n);
+  ybuffer.resize(n);
   zbuffer.resize(n);
   
   for(unsigned i=0; i < n; ++i) {
     unsigned j=tstride*i;
-//    xbuffer[i]=Tx[0]*b[j]+Tx[1]*b[j+1]+Tx[2]*b[j+2];
-//    ybuffer[i]=Ty[0]*b[j]+Ty[1]*b[j+1]+Ty[2]*b[j+2];
+    xbuffer[i]=Tx[0]*b[j]+Tx[1]*b[j+1]+Tx[2]*b[j+2];
+    ybuffer[i]=Ty[0]*b[j]+Ty[1]*b[j+1]+Ty[2]*b[j+2];
     zbuffer[i]=Tz[0]*b[j]+Tz[1]*b[j+1]+Tz[2]*b[j+2];
   }
   
