@@ -83,6 +83,8 @@ inline int sgn(double x)
   return (x > 0.0 ? 1 : (x < 0.0 ? -1 : 0));
 }
 
+// returns true if one of the points A, B, C have orientation s0 relative
+// to a--b.
 bool sameside(const double *a, const double *b, int s0, const double *A,
               const double *B, const double *C)
 {
@@ -107,7 +109,7 @@ bool intersect2D(const double *a, const double *b, const double *c,
     sameside(C,A,S0,a,b,c);
 }
 
-// returns true iff triangle abc is pierced by line segment AB.
+// returns true iff 3D triangle abc is pierced by line segment AB.
 bool pierce(const double *a, const double *b, const double *c, const double *A, const double *B)
 {
   int sa=sgn(orient3d(A,b,c,B));
@@ -116,7 +118,7 @@ bool pierce(const double *a, const double *b, const double *c, const double *A, 
   return sa == sb && sb == sc; 
 }
 
-// returns true iff triangle abc is pierced by an edge of triangle ABC
+// returns true iff 3D triangle abc is pierced by an edge of triangle ABC
 bool intersect0(const double *a, const double *b, const double *c,
                 const double *A, const double *B, const double *C,
                 int sA, int sB, int sC)
@@ -135,7 +137,7 @@ bool intersect0(const double *a, const double *b, const double *c,
   return false;
 }  
 
-// returns true iff triangle abc intersects triangle ABC
+// returns true iff 3D triangles abc and ABC intersect
 bool intersect3D(const double *a, const double *b, const double *c,
                  const double *A, const double *B, const double *C)
 {
@@ -164,7 +166,8 @@ inline double intersect(const double *P, const double *Q, const double *n,
                     
 inline triple interp(const double *a, const double *b, double t)
 {
-  return triple(a[0]+t*(b[0]-a[0]),a[1]+t*(b[1]-a[1]),a[2]+t*(b[2]-a[2]));
+  double onemt=1.0-t;
+  return triple(onemt*a[0]+t*b[0],onemt*a[1]+t*b[1],onemt*a[2]+t*b[2]);
 }
 
 inline void interp(GLfloat *dest,
@@ -254,6 +257,8 @@ int compare(const void *p, const void *P)
   int sz=sgn1(orient3d(A,B,C,viewpoint));
   if(S < -eps) return sz;
   if(S > eps) return -sz;
+  
+  /*
     unsigned ta=tstride*Ia;
     unsigned tb=tstride*Ib;
     unsigned tc=tstride*Ic;
@@ -274,6 +279,7 @@ int compare(const void *p, const void *P)
     cout << "(" << Y[tC] << "," << Y[tC+1] << "," << Y[tC+2] << ")--cycle" << endl;
 
   cout << "coplanar" << endl;
+  */
   return 0; // coplanar
 }
 
