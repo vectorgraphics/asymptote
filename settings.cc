@@ -1355,10 +1355,15 @@ bool view()
 
 bool trap()
 {
+#ifdef __CYGWIN__
+// Disable until broken strtod exception is fixed.
+  return false;
+#else
   if (interact::interactive)
     return !getSetting<bool>("interactiveMask");
   else
     return !getSetting<bool>("batchMask");
+#endif  
 }
 
 string outname() 

@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ(2)
-AC_INIT([Asymptote],[2.42git],[http://sourceforge.net/projects/asymptote])
+AC_INIT([Asymptote],[2.45git],[http://sourceforge.net/projects/asymptote])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 m4_include([ax_pthread.m4])
@@ -13,6 +13,7 @@ test "$CXXFLAGS" || CXXFLAGS="-std=c++11"
 test "$CFLAGS" || CFLAGS="-g -O3"
 
 AC_C_BIGENDIAN
+AC_CANONICAL_HOST
 
 test "$prefix" = NONE && prefix=/usr/local
 Datadir=$datadir
@@ -54,7 +55,7 @@ fi
 ])
 
 AC_CHECK_PROGS(TEXI2DVI,[texi2dvi],
-[echo texi2dvi is missing! Please put http://asymptote.sourceforge.net/asymptote.pdf in the doc directory, touch doc/asymptote.pdf, and run configure again; exit 1;])
+[@echo \*\*\*\*\*\*\*\*\*\* Please install texi2dvi or put http://asymptote.sourceforge.net/asymptote.pdf in the doc directory: cannot execute texi2dvi])
 
 AC_SUBST(TEXI2DVI)
 
@@ -123,8 +124,17 @@ AC_CHECK_HEADER(unordered_map,AC_DEFINE(HAVE_UNORDERED_MAP,1,
 			      [Define to 1 if you have tr1/unordered_map]),
 	[AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")])])
 
-GCVERSION=7.6.0
-ATOMICVERSION=7.4.4
+case "${host_os}" in
+    darwin*)
+      GCVERSION=7.6.0
+      ATOMICVERSION=7.6.0
+        ;;
+   *)
+      GCVERSION=7.6.2
+      ATOMICVERSION=7.6.2
+        ;;
+esac
+
 GCFILE=gc-$GCVERSION
 ac_cv_use_gc="system"
 
@@ -145,7 +155,7 @@ OPTIONS="-D_FILE_OFFSET_BITS=64 "
 GCLIB=
 GCPPLIB=
 GCNAME="Boehm Garbage Collector"
-GCOPTIONS="--disable-shared --enable-large-config"
+GCOPTIONS="--disable-shared"
 if test "x$ac_cv_use_gc" != "xno" ; then
    OPTIONS=$OPTIONS"-DUSEGC "
    case _$ac_cv_use_gc in
@@ -267,6 +277,8 @@ fi
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([fenv.h stddef.h libintl.h])
 AC_CHECK_HEADERS(fpu_control.h)
+AC_CHECK_FUNCS([feenableexcept])
+
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "xstream.h"])],
                    [AC_SEARCH_LIBS([xdrstdio_create],[nsl rpc])

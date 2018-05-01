@@ -14,7 +14,6 @@ XPStyle On
 ; MUI 1.67 compatible ------
 !include "MUI.nsh"
 !include "LogicLib.nsh"
-!include "EnvVarUpdate.nsh"
 !include "lnkX64IconFix.nsh"
 
 ; MUI Settings
@@ -65,17 +64,13 @@ var ICONS_GROUP
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "asymptote-${PRODUCT_VERSION}-setup.exe"
-InstallDir "$PROGRAMFILES\Asymptote"
+InstallDir "$PROGRAMFILES64\Asymptote"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
 ShowUnInstDetails show
 
 Section "Asymptote" SEC01
   SetOutPath "$INSTDIR"
-  ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
-  Delete "$INSTDIR\_imagingtk.pyd"
-  Delete "$INSTDIR\opengl32.dll"
-  Delete "$INSTDIR\glu32.dll"
   SetOverwrite try
   File /r build-${PRODUCT_VERSION}\*
 
@@ -166,7 +161,6 @@ Section Uninstall
   Delete "$INSTDIR\uninst.exe"
   !include AsymptoteUninstallList.nsi
   Delete "$INSTDIR\asy.bat"
-  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"   
   RMDir "$INSTDIR"
   
   Delete "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk"

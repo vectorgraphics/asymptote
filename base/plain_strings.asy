@@ -85,7 +85,7 @@ string verbatim(string s)
 
 // Split a string into an array of substrings delimited by delimiter
 // If delimiter is an empty string, use space delimiter but discard empty
-// substrings.
+// substrings. TODO: Move to C++ code.
 string[] split(string s, string delimiter="")
 {
   bool prune=false;
@@ -106,6 +106,27 @@ string[] split(string s, string delimiter="")
   }
   if(n > last || (n == last && !prune))
     S.push(substr(s,last,n-last));
+  return S;
+}
+
+// Returns an array of strings obtained by splitting s into individual
+// characters. TODO: Move to C++ code.
+string[] array(string s)
+{
+  int len=length(s);
+  string[] S=new string[len];
+  for(int i=0; i < len; ++i)
+    S[i]=substr(s,i,1);
+  return S;
+}
+
+// Concatenate an array of strings into a single string.
+// TODO: Move to C++ code.
+string operator +(...string[] a)
+{
+  string S;
+  for(string s : a)
+    S += s;
   return S;
 }
 
@@ -208,19 +229,10 @@ void pause(string w="Hit enter to continue")
   w=stdin;
 }
 
-string math(real x)
+string format(string format=defaultformat, bool forcemath=false, real x,
+              string locale="")
 {
-  return math((string) x);
-}
-
-string format(string format, real x, string locale="")
-{
-  return format(format,defaultseparator,x,locale);
-}
-
-string format(real x, string locale="")
-{
-  return format(defaultformat,defaultseparator,x,locale);
+  return format(format,forcemath,defaultseparator,x,locale);
 }
 
 string phantom(string s)

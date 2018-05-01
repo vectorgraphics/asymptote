@@ -61,7 +61,7 @@ for $thisxr (@xrefdb) {
 
 open(U,">$prefix.xrefdb-new");
 
-for $x (@outputs) { require("m-$x.pl"); }
+for $x (@outputs) { require("./m-$x.pl"); }
 
 &call('init');
 

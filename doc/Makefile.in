@@ -65,11 +65,11 @@ asy.1: options asy.1.begin asy.1.end
 
 asymptote.dvi: $(SOURCE) $(ASYFILES:.asy=.eps) latexusage.pdf
 	ln -sf asymptote.texi asymptote_.texi
-	$(TEXI2DVI) asymptote_.texi
+	-$(TEXI2DVI) asymptote_.texi
 	mv asymptote_.dvi asymptote.dvi
 
 asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf) latexusage.pdf
-	$(TEXI2DVI) --pdf asymptote.texi
+	-$(TEXI2DVI) --pdf asymptote.texi
 
 CAD.pdf: CAD.tex CAD1.eps 
 	latex CAD

@@ -1296,7 +1296,7 @@ void perpendicularmark(picture pic = currentpicture, point z,
    relative to the path z--z + dir.
    dir(45 + n * 90), where n in N*, are common values for 'align'.</documentation></function></asyxml>*/
   p = squarecap + miterjoin + p;
-  if(size == 0) size = perpfactor * 3mm + sqrt(1 + linewidth(p)) - 1;
+  if(size == 0) size = perpfactor * 3mm + linewidth(p) / 2;
   frame apic;
   pair d1 = size * align * unit(dir) * dir(-45);
   pair d2 = I * d1;

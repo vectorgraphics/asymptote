@@ -43,6 +43,8 @@ pen urlpen=datepen;
 
 real itemskip=0.5;
 real codeskip=0.25;
+real aboveequationskip=-1.25;
+
 pair dateskip=(0,0.1);
 pair urlskip=(0,0.2);
 
@@ -165,6 +167,7 @@ normalvideo();
 
 texpreamble(bulletcolor(newbulletcolor));
 texpreamble("\hyphenpenalty=10000\tolerance=1000");
+texpreamble("\usepackage{amsmath}");
 
 // Evaluate user command line option.
 void usersetting()
@@ -309,24 +312,29 @@ void center(string s, pen p=itempen)
   remark("\center "+s,p);
 }
 
-void equation(string s, pen p=itempen)
-{
-  remark(center=true,"\vbox{$$"+s+"$$}",p,minipage=false,skip=0);
-}
-
 void vbox(string s, pen p=itempen)
 {
   remark(center=true,"\vbox{"+s+"}",p,minipage=false,skip=0);
 }
 
-void equations(string s, pen p=itempen)
-{
-  vbox("\begin{eqnarray*}"+s+"\end{eqnarray*}",p);
-}
-
 void skip(real n=1)
 {
   incrementposition((0,(tinv*(-n*itemskip*I*lineskip(itempen)*pt)).y));
+}
+
+void equation(string s, pen p=itempen)
+{
+  skip(aboveequationskip);
+  vbox("\begin{gather*}"+s+"\end{gather*}",p);
+}
+
+void equations(string s, pen p=itempen)
+{
+  skip(aboveequationskip);
+  if(find(s,"&") >= 0)
+    vbox("\begin{align*}"+s+"\end{align*}",p);
+  else
+    vbox("\begin{gather*}"+s+"\end{gather*}",p);
 }
 
 void display(frame[] f, real margin=0, pair align=S, pen p=itempen,

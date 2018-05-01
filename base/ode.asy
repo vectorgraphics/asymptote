@@ -264,7 +264,7 @@ solution integrate(real y, real c=0, real f(real t, real y), real a, real b=a,
 {
   solution S;
   S.t=new real[] {a};
-  S.y=new real[]{y};
+  S.y=new real[] {y};
 
   if(h == 0) {
     if(b == a) return S;
@@ -323,6 +323,7 @@ solution integrate(real y, real c=0, real f(real t, real y), real a, real b=a,
     } else {
       t += h;
       y=y0+highOrder;
+      S.t.push(t);
       S.y.push(y);
     }
   }

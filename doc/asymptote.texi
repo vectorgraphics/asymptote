@@ -11,7 +11,7 @@ This file documents @code{Asymptote}, version @value{VERSION}.
 
 @url{http://asymptote.sourceforge.net}
      
-Copyright @copyright{} 2004-16 Andy Hammerlindl, John Bowman, and Tom Prince.
+Copyright @copyright{} 2004-18 Andy Hammerlindl, John Bowman, and Tom Prince.
      
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -316,10 +316,10 @@ Users may also wish to monitor the @code{Asymptote} forum:
 @cindex @acronym{RPM}
 @cindex @code{tgz}
 We release both @code{tgz} and @acronym{RPM} binary distributions of
-@code{Asymptote}. The root user can install the @code{Linux i386} @code{tgz}
+@code{Asymptote}. The root user can install the @code{Linux x86_64} @code{tgz}
 distribution of version @code{x.xx} of @code{Asymptote} with the commands:
 @verbatim
-tar -C / -zxf asymptote-x.xx.i386.tgz
+tar -C / -zxf asymptote-x.xx.x86_64.tgz
 texhash
 @end verbatim
 @noindent
@@ -368,31 +368,17 @@ Users of the @code{Microsoft Windows} operating system can install the
 self-extracting @code{Asymptote} executable @code{asymptote-x.xx-setup.exe},
 where @code{x.xx} denotes the latest version.
 
-A working @TeX{} implementation (such as the one available at
+A working @TeX{} implementation (we recommend
+@url{https://www.tug.org/texlive} or
 @url{http://www.miktex.org}) will be required to typeset labels.
 You will also need to install @code{GPL Ghostscript} version 9.14 or
 later from @url{http://downloads.ghostscript.com/public}.
 
-To view the default @code{PostScript} output, you can install the
+To view @code{PostScript} output, you can install the
 program @code{gsview} available from 
 @url{http://www.cs.wisc.edu/~ghost/gsview/}.
-@cindex @code{psview}
-@anchor{psview}
-A better (and free) @code{PostScript} viewer available at
-@url{http://psview.sourceforge.net/} (which in particular works properly
-in interactive mode) unfortunately currently requires some manual
-configuration. Specifically, if version @code{x.xx} of @code{psview} is
-extracted to the directory @code{c:\Program Files} one needs to put
-@verbatim
-import settings;
-psviewer="c:\Program Files\psview-x.xx\psv.exe";
-@end verbatim
-@noindent
-in the optional @code{Asymptote} configuration file;
-@pxref{configuration file}).
 
 The @code{ImageMagick} package from
-
 @url{http://www.imagemagick.org/script/binary-releases.php} 
 
 @noindent
@@ -430,8 +416,7 @@ Users of @code{ggv} will need to enable @code{Watch file} under
 Users of @code{gsview} will need to enable @code{Options/Auto Redisplay}
 (however, under @code{MSDOS} it is still necessary to click on the
 @code{gsview} window; under @code{UNIX} one must manually redisplay by
-pressing the @code{r} key). A better (and free) multiplatform
-alternative to @code{gsview} is @code{psview} (@pxref{psview}).
+pressing the @code{r} key).
 
 @cindex @code{settings}
 @cindex configuration file
@@ -773,9 +758,9 @@ To compile without optimization, use the command @code{make CFLAGS=-g}.
 @section Uninstall
 @cindex uninstall
 
-To uninstall a @code{Linux i386} binary distribution, use the commands
+To uninstall a @code{Linux x86_64} binary distribution, use the commands
 @verbatim
-tar -zxvf asymptote-x.xx.i386.tgz | xargs --replace=% rm /%
+tar -zxvf asymptote-x.xx.x86_64.tgz | xargs --replace=% rm /%
 texhash
 @end verbatim
 
@@ -2168,6 +2153,13 @@ returns an array of strings obtained by splitting @code{s} into substrings
 delimited by @code{delimiter} (an empty delimiter signifies a space,
 but with duplicate delimiters discarded);
 
+@cindex @code{array}
+@cindex @code{operator +(...string[] a)}.
+@item string[] array(string s)
+returns an array of strings obtained by splitting @code{s} into
+individual characters. The inverse operation is provided by
+@code{operator +(...string[] a)}.
+
 @anchor{format}
 @item string format(string s, int n, string locale="")
 @cindex @code{format}
@@ -2176,14 +2168,15 @@ string @code{s} using locale @code{locale} (or the current locale if an
 empty string is specified), following the behaviour of the C function
 @code{fprintf}), except that only one data field is allowed.
 
-@item string format(string s=defaultformat, string s=defaultseparator, real x, string locale="")
+@item string format(string s=defaultformat, bool forcemath=false, string s=defaultseparator, real x, string locale="")
 returns a string containing @code{x} formatted according to the C-style format
 string @code{s} using locale @code{locale} (or the current locale if an
 empty string is specified), following the behaviour of the C function
 @code{fprintf}), except that only one data field is allowed, trailing
 zeros are removed by default (unless @code{#} is specified), and
-(if the format string specifies math mode) @TeX{} is used to typeset
-scientific notation using the @code{defaultseparator="\!\times\!";};
+if @code{s} specifies math mode or @code{forcemath=true}, @TeX{} is
+used to typeset scientific notation using the
+@code{defaultseparator="\!\times\!";};
 
 @cindex @code{hex}
 @cindex @code{hexidecimal}
@@ -4467,8 +4460,11 @@ for nonintegral built-in arithmetic types @code{T}. If @code{a} and
 @cindex @code{CTZ}
 @code{Asymptote} also defines bitwise functions @code{int AND(int,int)},
 @code{int OR(int,int)}, @code{int XOR(int,int)}, @code{int NOT(int)},
-@code{int CLZ(int)} (count leading zeros), and @code{int CTZ(int)}
-(count trailing zeros).
+@code{int CLZ(int)} (count leading zeros),
+@code{int CTZ(int)} (count trailing zeros),
+@code{int popcount(int)} (count bits populated by ones), and
+@code{int bitreverse(int a, int bits)} (reverse bits within a word of
+length bits).
 
 @node Self & prefix operators, User-defined operators, Arithmetic & logical, Operators
 @subsection Self & prefix operators
@@ -4517,7 +4513,7 @@ The following symbols may be used with @code{operator} to define or redefine
 operators on structures and built-in types:
 @verbatim
 - + * / % ^ ! < > == != <= >= & | ^^ .. :: -- --- ++
-<< >> $ $$ @ @@
+<< >> $ $$ @ @@ <>
 @end verbatim
 @noindent
 The operators on the second line have precedence one higher than the
@@ -5295,10 +5291,14 @@ if @code{n >= 1} returns a uniform partition of @code{[a,b]} into
 @code{n} subintervals (otherwise returns a null array);
 
 @cindex @code{find}
-@item int find(bool[], int n=1)
-returns the index of the @code{n}th @code{true} value or -1 if not found.
-If @code{n} is negative, search backwards from the end of the array for the
-@code{-n}th value; 
+@item int find(bool[] a, int n=1)
+returns the index of the @code{n}th @code{true} value in the boolean array
+@code{a} or -1 if not found. If @code{n} is negative, search backwards
+from the end of the array for the @code{-n}th value; 
+
+@cindex @code{findall}
+@item int[] findall(bool[] a)
+returns the indices of all @code{true} values in the boolean array @code{a}.
 
 @cindex @code{search}
 @item int search(T[] a, T key)
@@ -5353,9 +5353,12 @@ pete    7
 @end verbatim
 
 @cindex @code{sort}
-@item T[] sort(T[] a, bool less(T i, T j))
-returns a copy of @code{a} stably sorted in ascending order such that
-element @code{i} precedes element @code{j} if @code{less(i,j)} is true.
+@item T[] sort(T[] a, bool less(T i, T j), bool stable=true)
+returns a copy of @code{a} sorted in ascending order such that
+element @code{i} precedes element @code{j} if @code{less(i,j)} is
+true, subject to (if @code{stable} is @code{true}) the stability constraint
+that the original order of elements @code{i} and @code{j} is preserved if
+@code{less(i,j)} and @code{less(j,i)} are both @code{false}.
 
 @cindex @code{transpose}
 @item T[][] transpose(T[][] a)
@@ -8441,6 +8444,9 @@ which is the determinant
 |c.x c.y c.z 1|
 |d.x d.y d.z 1|
 @end verbatim
+The result is negative (positive) if @code{a}, @code{b}, @code{c} appear in
+counterclockwise (clockwise) order when viewed from @code{d} or zero
+if all four points are coplanar.
  
 The routine
 @cindex @code{insphere}
@@ -9893,7 +9899,7 @@ Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  differentiable vectorization vectorized asydir normals quartic
 @c  LocalWords:  wavepacket kerned parametrized specular hyperboloid Bourke's
 @c  LocalWords:  Michail 0pt 1filll 's 3D latin1 labelpath3 2D graph3
-@c  LocalWords:  grid3 contour3 i386 psv a4 gsview32 freeglut 'load '
+@c  LocalWords:  grid3 contour3 x86_64 psv a4 gsview32 freeglut 'load '
 @c  LocalWords:  'asy 'lasy 'auto 5bp 1cm sqrtx01 4g extenda extendb
 @c  LocalWords:  bb llx 2S 100pt 3t bezier2 bool3 x0 angle1 angle2 z1
 @c  LocalWords:  z2 before' struct X11 x11colors type1cm 12pt OT1 5mm
