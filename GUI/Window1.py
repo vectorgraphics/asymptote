@@ -5,6 +5,7 @@ import numpy as np
 import os
 import xasy2asy as x2a
 import xasyFile as xf
+import xasyOptions as xo
 import UndoRedoStack as Urs
 import json
 import io
@@ -62,22 +63,6 @@ class DefaultSettings:
         'commandPalette': 'F1',
         'quit': 'Ctrl+Q'
     }
-    defaultSettings = {
-        '_comment': 'Note: *ASYPATH will be replaced with the path to Asymptote file.',
-        'externalEditor': 'gedit *ASYPATH',
-
-        'enableImmediatePreview': True,
-        'useDegrees': False,
-        'terminalFont': 'Courier',
-        'terminalFontSize': 10,
-        'defaultShowAxes': True,
-        'defaultShowGrid': False,
-        'defaultGridSnap': False,
-        'gridMajorAxesColor': '#000000',
-        'gridMinorAxesColor': '#AAAAAA',
-        'gridMajorAxesSpacing': 100,
-        'gridMinorAxesCount': 9,
-    }
 
 
 class MainWindow1(Qw.QMainWindow):
@@ -86,9 +71,10 @@ class MainWindow1(Qw.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.settings = DefaultSettings.defaultSettings
+        self.settings = xo.xasyOptions()
+        self.settings.load()
+
         self.keyMaps = DefaultSettings.defaultKeymap
-        self.loadSettings()
 
         # For initialization purposes
         self.canvSize = Qc.QSize()
@@ -361,9 +347,9 @@ class MainWindow1(Qw.QMainWindow):
             usrKeymapFile.close()
 
     def loadKeyMaps(self):
-        self.loadKeyMapFile()
         """Inverts the mapping of the key
            Input map is in format 'Action' : 'Key Sequence' """
+        self.loadKeyMapFile()
         for action, key in self.keyMaps.items():
             shortcut = Qw.QShortcut(self)
             shortcut.setKey(Qg.QKeySequence(key))
@@ -372,26 +358,6 @@ class MainWindow1(Qw.QMainWindow):
             # attached to it.
             exec('shortcut.activated.connect(lambda: self.execCustomCommand("{0}"))'.format(action),
                  {'self': self, 'shortcut': shortcut})
-
-    def loadSettings(self):
-        defaultConfig = '.asy/xasy2default.json'
-        fullDefaultConfig = pathlib.Path.home().joinpath(pathlib.Path(defaultConfig))
-        if not fullDefaultConfig.exists():
-            defaultConfFile = io.open(fullDefaultConfig, 'w')
-            defaultConfFile.write(json.dumps(DefaultSettings.defaultSettings, indent=4))
-
-        configFile = '.asy/xasy2UsrConf.json'
-        configPath = pathlib.Path.home().joinpath(pathlib.Path(configFile))
-
-        if configPath.exists():
-            usrConfigFile = io.open(configPath)
-            usrSettings = json.loads(usrConfigFile.read())
-            self.settings.update(usrSettings)
-        else:
-            usrConfigFile = io.open(configPath, 'w')
-            usrConfigFile.write(json.dumps({}, indent=4))
-
-        usrConfigFile.close()
 
     def initializeButtons(self):
         self.ui.btnDrawAxes.setChecked(self.settings['defaultShowAxes'])

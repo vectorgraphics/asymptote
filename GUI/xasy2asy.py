@@ -11,7 +11,7 @@
 import sys, os, signal, threading
 from subprocess import *
 from string import *
-import xasyOptions
+import xasyOptions as xo
 from tempfile import mkdtemp
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
@@ -27,7 +27,8 @@ quickAsyFailed = True
 global AsyTempDir
 
 console = None
-
+options = xo.xasyOptions()
+options.load()
 
 def startQuickAsy():
     global quickAsy
@@ -48,7 +49,7 @@ def startQuickAsy():
         else:
             AsyTempDir = mkdtemp(prefix="asy_") + os.sep
         if sys.platform[:3] == 'win':
-            quickAsy = Popen([xasyOptions.options['asyPath'], "-noV", "-multiline", "-q",
+            quickAsy = Popen([options['asyPath'], "-noV", "-multiline", "-q",
                               "-o" + AsyTempDir, "-inpipe=0", "-outpipe=2"], stdin=PIPE,
                              stderr=PIPE, universal_newlines=True)
             fout = quickAsy.stdin
@@ -61,7 +62,7 @@ def startQuickAsy():
                 os.set_inheritable(wx, True)
                 os.set_inheritable(ra, True)
                 os.set_inheritable(wa, True)
-            quickAsy = Popen([xasyOptions.options['asyPath'], "-noV", "-multiline", "-q",
+            quickAsy = Popen([options['asyPath'], "-noV", "-multiline", "-q",
                               "-o" + AsyTempDir, "-inpipe=" + str(rx), "-outpipe=" + str(wa)],
                              close_fds=False)
             fout = os.fdopen(wx, 'w')
@@ -102,7 +103,7 @@ def closeConsole(event):
 def consoleOutput(line):
     global console
     global ctl
-    if console == None:
+    if not console:
         ctl = Toplevel()
         ctl.title("Asymptote Console")
         ctl.bind("<Destroy>", closeConsole)
@@ -292,9 +293,10 @@ class asyPath(asyObj):
 
     @classmethod
     def fromBezierPoints(cls, pointList):
-        if False:
-            pointList = [BezierCurveEditor.BezierPoint()]
-            # for type detection
+        assert isinstance(pointList, list)
+        if not pointList:
+            return None
+        assert isinstance(pointList[0], BezierCurveEditor.BezierPoint)
         nodeList = []
         controlList = []
         for point in pointList:

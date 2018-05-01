@@ -10,117 +10,104 @@
 #
 ###########################################################################
 
-import pickle
-import sys,os
-import errno
-
-defaultOptions = {
-    'asyPath':'asy',
-    'showDebug':False,
-    'showGrid':False,
-    'gridX':10,
-    'gridY':10,
-    'gridColor':'#eeeeee',
-    'showAxes':True,
-    'axisX':10,
-    'axisY':10,
-    'axesColor':'#cccccc',
-    'tickColor':'#eeeeee',
-    'defPenOptions':'',
-    'defPenColor':'#000000',
-    'defPenWidth':1.0,
-    'externalEditor':''
-  }
-
-if sys.platform[:3] == "win":
-  defaultOptions['externalEditor'] = "%PROGRAMFILES%\Windows NT\Accessories\wordpad.exe"
-else:
-  defaultOptions['externalEditor'] = "emacs"
+import json
+import sys
+import os
 
 
-options = defaultOptions.copy()
+class xasyOptions:
+    defaultOptionsTemplate = {
+        '_comment': 'Note: *ASYPATH will be replaced with the path to Asymptote file.',
 
-def settingsFileLocation():
-  folder = ""
-  try:
-    folder = os.path.expanduser("~/.asy/")
-  except:
-    pass
-  return os.path.normcase(os.path.join(folder,"xasy.conf"))
+        'externalEditor': '',
+        'asyPath': 'asy',
+        'showDebug': False,
+        'defPenOptions': '',
+        'defPenColor': '#000000',
+        'defPenWidth': 1.0,
+        'enableImmediatePreview': True,
+        'useDegrees': False,
+        'terminalFont': 'Courier',
+        'terminalFontSize': 10,
+        'defaultShowAxes': True,
+        'defaultShowGrid': False,
+        'defaultGridSnap': False,
+        'gridMajorAxesColor': '#000000',
+        'gridMinorAxesColor': '#AAAAAA',
+        'gridMajorAxesSpacing': 100,
+        'gridMinorAxesCount': 9,
+    }
 
+    @classmethod
+    def defaultOptions(cls):
+        opt = cls.defaultOptionsTemplate.copy()
+        if os.name == 'nt':
+            opt['externalEditor'] = "notepad.exe *ASYPATH"
+        else:
+            opt['externalEditor'] = "gedit *ASYPATH"
+        return opt
+
+    @classmethod
+    def settingsFileLocation(cls):
+        folder = os.path.expanduser("~/.asy/")
+        return os.path.normcase(os.path.join(folder, "xasyconf.json"))
+
+    def __getitem__(self, item):
+        return self.options[item]
+
+    def __setitem__(self, key, value):
+        self.options[key] = value
+
+    def __init__(self):
+        self.options = xasyOptions.defaultOptions()
+        self.load()
+
+    def load(self):
+        fileName = xasyOptions.settingsFileLocation()
+        if not os.path.exists(fileName):
+            # make folder
+            thedir = os.path.dirname(fileName)
+            if not os.path.exists(thedir):
+                os.makedirs(thedir)
+            if not os.path.isdir(thedir):
+                raise Exception("Configuration folder path does not point to a folder")
+            self.setDefaults()
+        try:
+            with open(fileName, 'r') as f:
+                newOptions = json.loads(f.read())
+        except IOError:
+            self.setDefaults()
+        else:
+            for key in self.options.keys():
+                assert isinstance(newOptions[key], type(self.options[key]))
+            self.options = newOptions
+
+    def setDefaults(self):
+        self.options = xasyOptions.defaultOptions()
+        if sys.platform[:3] == 'win':  # for windows, wince, win32, etc
+            # setAsyPathFromWindowsRegistry()
+            pass
+        self.save()
+
+    def save(self):
+        fileName = xasyOptions.settingsFileLocation()
+        with open(fileName, 'w') as f:
+            f.write(json.dumps(self.options, indent=4))
+
+# TODO: Figure out how to merge this back.
+"""
 def setAsyPathFromWindowsRegistry():
-  try:
-    import _winreg as registry
-    #test both registry locations
-    try:
-      key = registry.OpenKey(registry.HKEY_LOCAL_MACHINE,"Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\Asymptote")
-      options['asyPath'] = registry.QueryValueEx(key,"Path")[0]+"\\asy.exe"
-      registry.CloseKey(key)
-    except:
-      key = registry.OpenKey(registry.HKEY_LOCAL_MACHINE,"Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Asymptote")
-      options['asyPath'] = registry.QueryValueEx(key,"InstallLocation")[0]+"\\asy.exe"
-      registry.CloseKey(key)
-  except:
-    #looks like asy is not installed or this isn't Windows
-    pass
-
-def setDefaults():
-  global options
-  options = defaultOptions.copy()
-  if sys.platform[:3] == 'win': #for windows, wince, win32, etc
-    setAsyPathFromWindowsRegistry()
-  save()
-
-def load():
-  global options
-  fileName = settingsFileLocation()
-  if not os.path.exists(fileName):
-    #make folder
-    thedir = os.path.dirname(fileName)
-    if not os.path.exists(thedir):
-      try:
-        os.makedirs(thedir)
-      except:
-        raise Exception("Could not create configuration folder")
-    if not os.path.isdir(thedir):
-      raise Exception("Configuration folder path does not point to a folder")
-    setDefaults()
-  try:
-    f = open(fileName,"rb")
-    newOptions = pickle.load(f)
-    for key in options.keys():
-      if type(newOptions[key]) != type(options[key]):
-        raise Exception("Bad type for entry in xasy settings")
-    options = newOptions
-  except:
-    setDefaults()
-
-def save():
-  global options
-  fileName = settingsFileLocation()
-  try:
-    f = open(fileName,"wb")
-    pickle.dump(options,f)
-    f.close()
-  except:
-    raise Exception("Error saving preferences")
-
-load()
-
-if __name__=='__main__':
-  print (settingsFileLocation())
-  print ("Current content")
-  load()
-  print ("Setting defaults")
-  setDefaults()
-  save()
-  load()
-  options['showAxes'] = options['showGrid'] = False
-  save()
-  print ("Set to False")
-  load()
-  options['showAxes'] = options['showGrid'] = True
-  save()
-  print ("Set to True")
-  load()
-  print (options)
+    if os.name == 'nt':
+        import _winreg as registry
+        # test both registry locations
+        try:
+            key = registry.OpenKey(registry.HKEY_LOCAL_MACHINE,
+                                   "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\Asymptote")
+            options['asyPath'] = registry.QueryValueEx(key, "Path")[0] + "\\asy.exe"
+            registry.CloseKey(key)
+        except:
+            key = registry.OpenKey(registry.HKEY_LOCAL_MACHINE,
+                                   "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Asymptote")
+            options['asyPath'] = registry.QueryValueEx(key, "InstallLocation")[0] + "\\asy.exe"
+            registry.CloseKey(key)
+"""
