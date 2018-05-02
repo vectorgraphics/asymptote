@@ -20,6 +20,8 @@ import SetCustomAnchor
 import BezierCurveEditor
 import GuidesManager
 
+import PrimitiveShape
+
 
 class ActionChanges:
     pass
@@ -161,7 +163,7 @@ class MainWindow1(Qw.QMainWindow):
         self.useGlobalCoords = True
         self.drawAxes = True
         self.drawGrid = False
-        self.gridSnap = True  # TODO: for now. turn it off later
+        self.gridSnap = False  # TODO: for now. turn it on later
 
         self.finalPixmap = None
         self.preCanvasPixmap = None
@@ -192,17 +194,39 @@ class MainWindow1(Qw.QMainWindow):
             'transform': self.btnCustTransformOnClick,
             'commandPalette': self.enterCustomCommand,
             'clearGuide': self.clearGuides,
-
-            'debug:addLineGuide': self.debugAddLineGuide,
-            'debug:addArcGuide': self.debugAddArcGuide,
-            'debug:pause': self.debug,
-            'debug:execPythonCmd': self.execPythonCmd,
-            'debug:setPolarGrid': self.debugSetPolarGrid
         }
+
+        if self.settings['debugMode']:
+            debugFunc = {
+                'debug:addLineGuide': self.debugAddLineGuide,
+                'debug:addArcGuide': self.debugAddArcGuide,
+                'debug:pause': self.debug,
+                'debug:execPythonCmd': self.execPythonCmd,
+                'debug:setPolarGrid': self.debugSetPolarGrid,
+                'debug:addUnitCircle': self.dbgAddUnitCircle,
+                'debug:addCircle': self.dbgAddCircle
+            }
+            self.commandsFunc = {**self.commandsFunc, **debugFunc}
 
         self.currentGuides = []
 
         self.loadKeyMaps()
+
+    def dbgAddUnitCircle(self):
+        newCirclePath = PrimitiveShape.PrimitiveShape.circle((0, 0), 1)
+        newCircle = x2a.xasyShape(newCirclePath)
+        self.fileItems.append(newCircle)
+        self.asyfyCanvas()
+
+    def dbgAddCircle(self):
+        commandText, result = Qw.QInputDialog.getText(self, '', 'enter python cmd')
+        if result:
+            rawArray = [float(rawResult) for rawResult in commandText.split()]
+            x, y, rad = rawArray
+            newCirclePath = PrimitiveShape.PrimitiveShape.circle((x, y), rad)
+            newCircle = x2a.xasyShape(newCirclePath)
+            self.fileItems.append(newCircle)
+            self.asyfyCanvas()
 
     def debug(self):
         print('Put a breakpoint here.')

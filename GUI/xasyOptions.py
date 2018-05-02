@@ -32,10 +32,14 @@ class xasyOptions:
         'defaultShowAxes': True,
         'defaultShowGrid': False,
         'defaultGridSnap': False,
+
+        '_GRID_COMMANDS': 'Grid Commands.',
         'gridMajorAxesColor': '#000000',
         'gridMinorAxesColor': '#AAAAAA',
         'gridMajorAxesSpacing': 100,
         'gridMinorAxesCount': 9,
+
+        'debugMode': True
     }
 
     @classmethod
