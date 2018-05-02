@@ -1,5 +1,6 @@
 import xasy2asy as x2a
 import numpy as np
+import math
 import PyQt5.QtCore as Qc
 
 
@@ -8,16 +9,18 @@ class PrimitiveShape:
     # see https://www.desmos.com/calculator/lw6j7khikj for unitcircle
     # optimal_ctl_pt = 0.5447
 
-    @classmethod
-    def circle(cls, position, radius):
-        if isinstance(position, tuple) or isinstance(position, np.ndarray):
-            pos_x, pos_y = position
-        elif isinstance(position, Qc.QPoint) or isinstance(position, Qc.QPointF):
-            pos_x = position.x()
-            pos_y = position.y()
+    @staticmethod
+    def pos_to_tuple(pos):
+        if isinstance(pos, tuple) or isinstance(pos, np.ndarray):
+            return pos
+        elif isinstance(pos, Qc.QPoint) or isinstance(pos, Qc.QPointF):
+            return pos.x(), pos.y()
         else:
             raise TypeError("Position must be a valid type!")
 
+    @classmethod
+    def circle(cls, position, radius):
+        pos_x, pos_y = PrimitiveShape.pos_to_tuple(position)
         newCircle = x2a.asyPath()
         ptsList = [(pos_x + radius, pos_y), (pos_x, pos_y + radius), (pos_x - radius, pos_y), (pos_x, pos_y - radius),
                    (pos_x + radius, pos_y)]
@@ -25,3 +28,16 @@ class PrimitiveShape:
         lkList = ['..', '..', '..', '..']
         newCircle.initFromNodeList(ptsList, lkList)
         return newCircle
+
+    @classmethod
+    def inscribedRegPolygon(cls, sides, position, radius, starting_rad):
+        pos_x, pos_y = PrimitiveShape.pos_to_tuple(position)
+        lkList = ['--'] * sides
+        ptsList = []
+        for ang in np.linspace(starting_rad, starting_rad + math.tau, sides, endpoint=False):
+            ptsList.append((pos_x + radius * np.cos(ang), pos_y + radius * np.sin(ang)))
+
+        ptsList.append((pos_x + radius * np.cos(starting_rad), pos_y + radius * np.sin(starting_rad)))
+        newPoly = x2a.asyPath()
+        newPoly.initFromNodeList(ptsList, lkList)
+        return newPoly
