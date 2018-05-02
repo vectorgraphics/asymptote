@@ -205,7 +205,7 @@ class MainWindow1(Qw.QMainWindow):
                 'debug:setPolarGrid': self.debugSetPolarGrid,
                 'debug:addUnitCircle': self.dbgAddUnitCircle,
                 'debug:addCircle': self.dbgAddCircle,
-                'debug:addSquare': self.dbgAddBigSquare
+                'debug:addPoly': self.dbgAddBigSquare
             }
             self.commandsFunc = {**self.commandsFunc, **debugFunc}
 
@@ -229,8 +229,8 @@ class MainWindow1(Qw.QMainWindow):
             self.fileItems.append(newCircle)
             self.asyfyCanvas()
 
-    def dbgAddBigSquare(self):
-        newSquarePath = PrimitiveShape.PrimitiveShape.inscribedRegPolygon(4, (0, 0), 200, np.pi/4)
+    def dbgAddPoly(self):
+        newSquarePath = PrimitiveShape.PrimitiveShape.exscribedRegPolygon(6, (0, 0), 100, 0)
         newSquare = x2a.xasyShape(newSquarePath)
         self.fileItems.append(newSquare)
         self.asyfyCanvas()

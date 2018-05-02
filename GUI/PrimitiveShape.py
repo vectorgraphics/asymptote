@@ -41,3 +41,10 @@ class PrimitiveShape:
         newPoly = x2a.asyPath()
         newPoly.initFromNodeList(ptsList, lkList)
         return newPoly
+
+    @classmethod
+    def exscribedRegPolygon(cls, sides, position, length, starting_rad):
+        ang = math.tau/sides
+        # see notes
+        adjusted_radius = length / np.cos(ang/2)
+        return cls.inscribedRegPolygon(sides, position, adjusted_radius, starting_rad - ang/2)
