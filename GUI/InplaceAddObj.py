@@ -57,3 +57,7 @@ class AddCircle(InplaceObjProcess):
 
     def getObject(self):
         return PrimitiveShape.PrimitiveShape.circle(self.center, self.radius)
+
+
+class AddPoly(InplaceObjProcess):
+    pass

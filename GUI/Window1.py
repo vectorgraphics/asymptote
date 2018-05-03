@@ -136,6 +136,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnCreateCurve.clicked.connect(self.btnCreateCurveOnClick)
         self.ui.btnDrawGrid.clicked.connect(self.btnDrawGridOnClick)
         self.ui.btnAddCircle.clicked.connect(self.btnAddCircleOnClick)
+        self.ui.btnAddPoly.clicked.connect(self.btnAddPolyOnClick)
 
         # </editor-fold>
 
@@ -300,6 +301,9 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnAddCircleOnClick(self):
         self.addMode = InplaceAddObj.AddCircle()
+
+    def btnAddPolyOnClick(self):
+        self.addMode = InplaceAddObj.AddPoly()
 
     def updateCurve(self, valid, newCurve):
         self.previewCurve = newCurve
@@ -578,6 +582,8 @@ class MainWindow1(Qw.QMainWindow):
         if self.addMode is not None:
             self.addMode.mouseRelease()
             self.addItemFromPath(self.addMode.getObject())
+            self.selectionMode = SelectionMode.select
+            self.updateChecks()
         self.addMode = None
         if self.inMidTransformation:
             self.clearSelection()
@@ -994,9 +1000,12 @@ class MainWindow1(Qw.QMainWindow):
         result = matrixDialog.exec_()
         if result == Qw.QDialog.Accepted:
             objKey = self.currentlySelectedObj['selectedKey']
-            self.transformObject(objKey, matrixDialog.getTransformationMatrix(), not self.useGlobalCoords)
+            self.transformObject(objKey,
+                matrixDialog.getTransformationMatrix(), not
+                self.useGlobalCoords)
 
-        self.clearSelection()  # for now, unless we update the bouding box transformation.
+        # for now, unless we update the bouding box transformation.
+        self.clearSelection()
         self.quickUpdate()
 
     def btnLoadEditorOnClick(self):
@@ -1056,23 +1065,25 @@ class MainWindow1(Qw.QMainWindow):
             self.fileItems = xf.parseFile(f)
             f.close()
         except IOError:
-            Qw.QMessageBox.critical(self, "File Opening Failed.", "File could not be opened.")
+            Qw.QMessageBox.critical(self, "File Opening Failed.", "File could"
+                                    "not be opened.")
             # messagebox.showerror("File Opening Failed.", "File could not be opened.")
             self.fileItems = []
         except Exception:
             self.fileItems = []
             self.autoMakeScript = True
-            if self.autoMakeScript or Qw.QMessageBox.question(self, "Error Opening File",
-                                                              "File was not recognized as an xasy file.\nLoad as a script item?") == \
-                    Qw.QMessageBox.Yes:
+            if self.autoMakeScript or Qw.QMessageBox.question(self, "Error Opening File", "File was not recognized as an xasy file.\n"
+                "Load as a script item?") == Qw.QMessageBox.Yes:
                 # try:
                 item = x2a.xasyScript(self.xasyDrawObj)
                 f.seek(0)
                 item.setScript(f.read())
                 self.fileItems.append(item)
                 # except:
-                #     Qw.QMessageBox.critical(self, "File Opening Failed.", "File could not be opened.")
-                #     # messagebox.showerror("File Opening Failed.", "Could not load as a script item.")
+                #     Qw.QMessageBox.critical(self, "File Opening Failed.",
+                # "File could not be opened.")
+                #     # messagebox.showerror("File Opening Failed.", "Could not
+                # load as a script item.")
                 #     self.fileItems = []
         # self.populateCanvasWithItems()
         # self.populatePropertyList()
