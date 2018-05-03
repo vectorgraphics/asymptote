@@ -48,7 +48,7 @@ class xasyOptions:
         if os.name == 'nt':
             opt['externalEditor'] = "notepad.exe *ASYPATH"
         else:
-            opt['externalEditor'] = "gedit *ASYPATH"
+            opt['externalEditor'] = "emacs *ASYPATH"
         return opt
 
     @classmethod

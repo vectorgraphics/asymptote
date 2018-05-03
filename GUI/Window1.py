@@ -21,6 +21,7 @@ import BezierCurveEditor
 import GuidesManager
 
 import PrimitiveShape
+import InplaceAddObj
 
 
 class ActionChanges:
@@ -48,9 +49,11 @@ class AnchorMode:
     customAnchor = 5
     center = 6
 
+
 class GridMode:
     cartesian = 0
     polar = 1
+
 
 class SelectionMode:
     select = 0
@@ -58,6 +61,12 @@ class SelectionMode:
     translate = 2
     rotate = 3
     scale = 4
+
+
+class AddObjectMode:
+    Circle = 0
+    Arc = 1
+    Polygon = 2
 
 
 class DefaultSettings:
@@ -85,6 +94,7 @@ class MainWindow1(Qw.QMainWindow):
         self.canvasPixmap = None
 
         # Actions
+        # <editor-fold> Connecting Actions
 
         self.ui.actionQuit.triggered.connect(lambda: self.execCustomCommand('quit'))
         self.ui.actionUndo.triggered.connect(lambda: self.execCustomCommand('undo'))
@@ -125,9 +135,13 @@ class MainWindow1(Qw.QMainWindow):
 
         self.ui.btnCreateCurve.clicked.connect(self.btnCreateCurveOnClick)
         self.ui.btnDrawGrid.clicked.connect(self.btnDrawGridOnClick)
+        self.ui.btnAddCircle.clicked.connect(self.btnAddCircleOnClick)
+
+        # </editor-fold>
 
         # Settings Initialization
-        terminalFont = Qg.QFont(self.settings['terminalFont'], self.settings['terminalFontSize'])
+        terminalFont = Qg.QFont(self.settings['terminalFont'],
+                self.settings['terminalFontSize'])
         self.ui.plainTextEdit.setFont(terminalFont)
 
         # Base Transformations
@@ -143,6 +157,7 @@ class MainWindow1(Qw.QMainWindow):
 
         self.magnification = 1
         self.inMidTransformation = False
+        self.addMode = None
         self.currentlySelectedObj = {'type': 'xasyPicture', 'selectedKey': None}
         self.savedMousePosition = None
         self.currentBoundingBox = None
@@ -205,7 +220,7 @@ class MainWindow1(Qw.QMainWindow):
                 'debug:setPolarGrid': self.debugSetPolarGrid,
                 'debug:addUnitCircle': self.dbgAddUnitCircle,
                 'debug:addCircle': self.dbgAddCircle,
-                'debug:addPoly': self.dbgAddBigSquare
+                'debug:addPoly': self.dbgAddPoly
             }
             self.commandsFunc = {**self.commandsFunc, **debugFunc}
 
@@ -246,7 +261,6 @@ class MainWindow1(Qw.QMainWindow):
         if result:
             exec(commandText)
 
-
     def debugAddLineGuide(self):
         commandText, result = Qw.QInputDialog.getText(self, '', 'enter <originx> <originy> <angle>')
         if result:
@@ -262,7 +276,6 @@ class MainWindow1(Qw.QMainWindow):
             newArcGuide = GuidesManager.ArcGuide(Qc.QPoint(px, py), rad, sang, eang, Qg.QPen(Qg.QColor('red')))
             self.currentGuides.append(newArcGuide)
         self.quickUpdate()
-
 
     def clearGuides(self):
         self.currentGuides.clear()
@@ -285,12 +298,16 @@ class MainWindow1(Qw.QMainWindow):
         self.previewCurve = None
         self.asyfyCanvas()
 
+    def btnAddCircleOnClick(self):
+        self.addMode = InplaceAddObj.AddCircle()
+
     def updateCurve(self, valid, newCurve):
         self.previewCurve = newCurve
         self.quickUpdate()
 
     def addTransformationChanges(self, objKey, transform, isLocal=False):
-        self.undoRedoStack.add(self.createAction(TransformationChanges(objKey, transform, isLocal)))
+        self.undoRedoStack.add(self.createAction(TransformationChanges(objKey,
+                            transform, isLocal)))
         self.checkUndoRedoButtons()
 
     def btnUndoOnClick(self):
@@ -353,6 +370,11 @@ class MainWindow1(Qw.QMainWindow):
         if result:
             self.execCustomCommand(commandText)
 
+    def addItemFromPath(self, path):
+        newItem = x2a.xasyShape(path)
+        self.fileItems.append(newItem)
+        self.asyfyCanvas()
+
     def actionManual(self):
         asyManualURL = 'http://asymptote.sourceforge.net/asymptote.pdf'
         webbrowser.open_new(asyManualURL)
@@ -385,7 +407,8 @@ class MainWindow1(Qw.QMainWindow):
             shortcut = Qw.QShortcut(self)
             shortcut.setKey(Qg.QKeySequence(key))
 
-            # hate doing this, but python doesn't have explicit way to pass a string to a lambda without an identifier
+            # hate doing this, but python doesn't have explicit way to pass a
+            # string to a lambda without an identifier
             # attached to it.
             exec('shortcut.activated.connect(lambda: self.execCustomCommand("{0}"))'.format(action),
                  {'self': self, 'shortcut': shortcut})
@@ -456,7 +479,7 @@ class MainWindow1(Qw.QMainWindow):
 
     def resizeEvent(self, resizeEvent):
         assert isinstance(resizeEvent, Qg.QResizeEvent)
-        newRect = Qc.QRect(Qc.QPoint(0, 0), resizeEvent.size())
+        # newRect = Qc.QRect(Qc.QPoint(0, 0), resizeEvent.size())
         # self.ui.centralFrame.setFrameRect(newRect)
 
     def show(self):
@@ -482,6 +505,13 @@ class MainWindow1(Qw.QMainWindow):
             return
 
         canvasPos = self.getCanvasCoordinates()
+
+        if self.addMode is not None:
+            if self.addMode.active:
+                self.addMode.mouseMove(canvasPos)
+                self.quickUpdate()
+            return
+
         if self.currentMode == SelectionMode.pan:
             mousePos = self.getWindowCoordinates()
             newPos = mousePos - self.savedWindowMousePos
@@ -545,6 +575,10 @@ class MainWindow1(Qw.QMainWindow):
 
     def mouseReleaseEvent(self, mouseEvent):
         assert isinstance(mouseEvent, Qg.QMouseEvent)
+        if self.addMode is not None:
+            self.addMode.mouseRelease()
+            self.addItemFromPath(self.addMode.getObject())
+        self.addMode = None
         if self.inMidTransformation:
             self.clearSelection()
         self.inMidTransformation = False
@@ -564,6 +598,11 @@ class MainWindow1(Qw.QMainWindow):
             return
 
         self.savedMousePosition = self.getCanvasCoordinates()
+
+        if self.addMode is not None:
+            self.addMode.mouseDown(self.savedMousePosition)
+            return
+
         if self.currentMode == SelectionMode.pan:
             self.savedWindowMousePos = self.getWindowCoordinates()
             self.currScreenTransform = self.screenTransformation * Qg.QTransform()
@@ -600,8 +639,10 @@ class MainWindow1(Qw.QMainWindow):
 
             if self.anchorMode != AnchorMode.origin:
                 pass
-                # TODO: Record base points/bbox before hand and use that for anchor?
-                # adjTransform = self.drawObjects[selectedKey].transform.toQTransform()
+                # TODO: Record base points/bbox before hand and use that for
+                # anchor?
+                # adjTransform =
+                # self.drawObjects[selectedKey].transform.toQTransform()
                 # self.currentAnchor = adjTransform.map(self.currentAnchor)
 
         else:
@@ -645,7 +686,6 @@ class MainWindow1(Qw.QMainWindow):
 
         self.ui.imgLabel.setPixmap(self.canvasPixmap)
 
-
     def selectObject(self):
         if not self.ui.imgLabel.underMouse():
             return
@@ -685,7 +725,8 @@ class MainWindow1(Qw.QMainWindow):
     #     tx = float(self.ui.lineEditTX.text())
     #     ty = float(self.ui.lineEditTY.text())
     #     objectID = int(self.ui.txtObjectID.toPlainText())
-    #     self.transformObject(0, objectID, x2a.asyTransform((tx, ty, xx, xy, yx, yy)))
+    #     self.transformObject(0, objectID, x2a.asyTransform((tx, ty, xx, xy,
+    #                          yx, yy)))
 
     def refreshCanvas(self):
         self.mainCanvas.begin(self.canvasPixmap)
@@ -712,7 +753,6 @@ class MainWindow1(Qw.QMainWindow):
 
         self.postDraw()
         self.updateScreen()
-
 
     def quickDraw(self):
         assert self.isReady()
@@ -754,7 +794,8 @@ class MainWindow1(Qw.QMainWindow):
         x_range = self.canvSize.width() / 2 + (2 * abs(panX))
         y_range = self.canvSize.height() / 2 + (2 * abs(panY))
 
-        for x in range(0, 2 * round(x_range) + 1, majorGrid):  # have to do this in two stages...
+        for x in range(0, 2 * round(x_range) + 1, majorGrid):  # have to do
+            # this in two stages...
             preCanvas.setPen(minorGridCol)
             for xMinor in range(1, minorGridCount + 1):
                 xCoord = round(x + ((xMinor / (minorGridCount + 1)) * majorGrid))
@@ -864,9 +905,13 @@ class MainWindow1(Qw.QMainWindow):
             postCanvas.restore()
         if self.previewCurve is not None:
             postCanvas.drawPath(self.previewCurve)
+        if self.addMode is not None:
+            if self.addMode.active:
+                postCanvas.drawPath(self.addMode.getPreview())
         postCanvas.end()
 
     def updateChecks(self):
+        self.addMode = None
         if self.currentMode == SelectionMode.translate:
             activeBtn = self.ui.btnTranslate
         elif self.currentMode == SelectionMode.rotate:
@@ -1043,5 +1088,3 @@ class MainWindow1(Qw.QMainWindow):
             item.drawOnCanvas(self.xasyDrawObj, self.magnification, forceAddition=True)
             # self.bindItemEvents(item)
         # self.releaseLock()
-
-

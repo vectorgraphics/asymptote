@@ -114,3 +114,10 @@ core.*
 /GUI/pyUIClass/*
 /GUI/__pycache__/*
 /.idea/*
+
+### IDE Files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json

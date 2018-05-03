@@ -1278,9 +1278,9 @@
            <number>0</number>
           </property>
           <item row="0" column="0">
-           <widget class="QPushButton" name="pushButton_2">
+           <widget class="QPushButton" name="btnAddCircle">
             <property name="enabled">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">

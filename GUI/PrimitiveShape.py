@@ -18,6 +18,14 @@ class PrimitiveShape:
         else:
             raise TypeError("Position must be a valid type!")
 
+    @staticmethod
+    def euclideanNorm(p1, p2):
+        x1, y1 = PrimitiveShape.pos_to_tuple(p1)
+        x2, y2 = PrimitiveShape.pos_to_tuple(p2)
+
+        normSq = ((x1 - x2) ** 2) + ((y1 - y2) ** 2)
+        return math.sqrt(normSq)
+
     @classmethod
     def circle(cls, position, radius):
         pos_x, pos_y = PrimitiveShape.pos_to_tuple(position)
@@ -35,9 +43,9 @@ class PrimitiveShape:
         lkList = ['--'] * sides
         ptsList = []
         for ang in np.linspace(starting_rad, starting_rad + math.tau, sides, endpoint=False):
-            ptsList.append((pos_x + radius * np.cos(ang), pos_y + radius * np.sin(ang)))
+            ptsList.append((pos_x + radius * math.cos(ang), pos_y + radius * math.sin(ang)))
 
-        ptsList.append((pos_x + radius * np.cos(starting_rad), pos_y + radius * np.sin(starting_rad)))
+        ptsList.append((pos_x + radius * math.cos(starting_rad), pos_y + radius * math.sin(starting_rad)))
         newPoly = x2a.asyPath()
         newPoly.initFromNodeList(ptsList, lkList)
         return newPoly
@@ -46,5 +54,5 @@ class PrimitiveShape:
     def exscribedRegPolygon(cls, sides, position, length, starting_rad):
         ang = math.tau/sides
         # see notes
-        adjusted_radius = length / np.cos(ang/2)
+        adjusted_radius = length / math.cos(ang/2)
         return cls.inscribedRegPolygon(sides, position, adjusted_radius, starting_rad - ang/2)
