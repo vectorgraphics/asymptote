@@ -1,14 +1,19 @@
 import PyQt5.QtCore as Qc
 import PyQt5.QtGui as Qg
 import PrimitiveShape
+import math
 
 
 class InplaceObjProcess:
     def __init__(self):
-        self.__active = False
+        self._active = False
         pass
 
-    def mouseDown(self, pos):
+    @property
+    def active(self):
+        return self._active
+
+    def mouseDown(self, pos, info):
         raise NotImplementedError
 
     def mouseMove(self, pos):
@@ -30,21 +35,17 @@ class AddCircle(InplaceObjProcess):
         self.center = Qc.QPointF(0, 0)
         self.radius = 0
 
-    @property
-    def active(self):
-        return self.__active
-
-    def mouseDown(self, pos):
+    def mouseDown(self, pos, info):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
         self.center.setX(x)
         self.center.setY(y)
-        self.__active = True
+        self._active = True
 
     def mouseMove(self, pos):
         self.radius = PrimitiveShape.PrimitiveShape.euclideanNorm(pos, self.center)
 
     def mouseRelease(self):
-        self.__active = False
+        self._active = False
 
     def getPreview(self):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(self.center)
@@ -60,4 +61,49 @@ class AddCircle(InplaceObjProcess):
 
 
 class AddPoly(InplaceObjProcess):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.center = Qc.QPointF(0, 0)
+        self.currPos = Qc.QPointF(0, 0)
+        self.sides = None
+        self.inscribed = None
+        self.centermode = None
+
+    def mouseDown(self, pos, info):
+        self._active = True
+        self.sides = info['sides']
+        self.inscribed = info['inscribed']
+        self.centermode = info['centermode']
+
+        x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
+        self.center.setX(x)
+        self.center.setY(y)
+
+    def mouseMove(self, pos):
+        x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
+        self.currPos.setX(x)
+        self.currPos.setY(y)
+
+    def mouseRelease(self):
+        self._active = False
+
+    def getObject(self):
+        if self.inscribed:
+            return PrimitiveShape.PrimitiveShape.inscribedRegPolygon(self.sides, self.center, self._rad(), self._angle())
+
+    def getPreview(self):
+        poly = PrimitiveShape.PrimitiveShape.inscribedRegPolygon(self.sides, self.center, self._rad(), self._angle(), qpoly=True)
+        newPath = Qg.QPainterPath()
+        newPath.addPolygon(poly)
+        return newPath
+
+    def _rad(self):
+        return PrimitiveShape.PrimitiveShape.euclideanNorm(self.currPos, self.center)
+
+    def _angle(self):
+        dist_x = self.currPos.x() - self.center.x()
+        dist_y = self.currPos.y() - self.center.y()
+        if dist_x == 0 and dist_y == 0:
+            return 0
+        else:
+            return math.atan2(dist_y, dist_x)

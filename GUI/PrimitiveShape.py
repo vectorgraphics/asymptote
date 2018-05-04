@@ -2,7 +2,7 @@ import xasy2asy as x2a
 import numpy as np
 import math
 import PyQt5.QtCore as Qc
-
+import PyQt5.QtGui as Qg
 
 class PrimitiveShape:
     # The magic number.
@@ -38,17 +38,21 @@ class PrimitiveShape:
         return newCircle
 
     @classmethod
-    def inscribedRegPolygon(cls, sides, position, radius, starting_rad):
+    def inscribedRegPolygon(cls, sides, position, radius, starting_rad, qpoly=False):
         pos_x, pos_y = PrimitiveShape.pos_to_tuple(position)
         lkList = ['--'] * sides
         ptsList = []
         for ang in np.linspace(starting_rad, starting_rad + math.tau, sides, endpoint=False):
             ptsList.append((pos_x + radius * math.cos(ang), pos_y + radius * math.sin(ang)))
-
         ptsList.append((pos_x + radius * math.cos(starting_rad), pos_y + radius * math.sin(starting_rad)))
-        newPoly = x2a.asyPath()
-        newPoly.initFromNodeList(ptsList, lkList)
-        return newPoly
+
+        if qpoly:
+            qpoints = [Qc.QPointF(x, y) for (x, y) in ptsList]
+            return Qg.QPolygonF(qpoints)
+        else:
+            newPoly = x2a.asyPath()
+            newPoly.initFromNodeList(ptsList, lkList)
+            return newPoly
 
     @classmethod
     def exscribedRegPolygon(cls, sides, position, length, starting_rad):

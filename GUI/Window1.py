@@ -135,6 +135,7 @@ class MainWindow1(Qw.QMainWindow):
 
         self.ui.btnCreateCurve.clicked.connect(self.btnCreateCurveOnClick)
         self.ui.btnDrawGrid.clicked.connect(self.btnDrawGridOnClick)
+
         self.ui.btnAddCircle.clicked.connect(self.btnAddCircleOnClick)
         self.ui.btnAddPoly.clicked.connect(self.btnAddPolyOnClick)
 
@@ -606,7 +607,8 @@ class MainWindow1(Qw.QMainWindow):
         self.savedMousePosition = self.getCanvasCoordinates()
 
         if self.addMode is not None:
-            self.addMode.mouseDown(self.savedMousePosition)
+            info = {'sides': 3, 'inscribed': True, 'centermode': True}
+            self.addMode.mouseDown(self.savedMousePosition, info)
             return
 
         if self.currentMode == SelectionMode.pan:
