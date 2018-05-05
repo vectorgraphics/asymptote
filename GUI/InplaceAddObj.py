@@ -3,6 +3,7 @@ import PyQt5.QtGui as Qg
 import PrimitiveShape
 import math
 
+import Widg_addPolyOpt
 
 class InplaceObjProcess:
     def __init__(self):
@@ -27,6 +28,9 @@ class InplaceObjProcess:
 
     def getObject(self):
         raise NotImplementedError
+
+    def createOptWidget(self, info):
+        return None
 
 
 class AddCircle(InplaceObjProcess):
@@ -96,6 +100,9 @@ class AddPoly(InplaceObjProcess):
         newPath = Qg.QPainterPath()
         newPath.addPolygon(poly)
         return newPath
+
+    def createOptWidget(self, info):
+        return Widg_addPolyOpt.Widg_addPolyOpt(info)
 
     def _rad(self):
         return PrimitiveShape.PrimitiveShape.euclideanNorm(self.currPos, self.center)

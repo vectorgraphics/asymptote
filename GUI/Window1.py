@@ -1,27 +1,31 @@
+from pyUIClass.window1 import Ui_MainWindow
+
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
+
 import numpy as np
 import os
+import json
+import io
+import pathlib
+import webbrowser
+
 import xasy2asy as x2a
 import xasyFile as xf
 import xasyOptions as xo
 import UndoRedoStack as Urs
-import json
-import io
-import pathlib
 from xasyTransform import xasyTransform as xT
-from pyUIClass.window1 import Ui_MainWindow
 
-import webbrowser
+import PrimitiveShape
+import InplaceAddObj
 
 import CustMatTransform
 import SetCustomAnchor
 import BezierCurveEditor
 import GuidesManager
 
-import PrimitiveShape
-import InplaceAddObj
+import Widg_addPolyOpt
 
 
 class ActionChanges:
@@ -105,6 +109,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.actionManual.triggered.connect(self.actionManual)
         self.ui.actionEnterCommand.triggered.connect(self.enterCustomCommand)
 
+
         # Button initialization
         self.ui.btnUndo.clicked.connect(self.btnUndoOnClick)
         self.ui.btnRedo.clicked.connect(self.btnRedoOnClick)
@@ -142,8 +147,7 @@ class MainWindow1(Qw.QMainWindow):
         # </editor-fold>
 
         # Settings Initialization
-        terminalFont = Qg.QFont(self.settings['terminalFont'],
-                self.settings['terminalFontSize'])
+        terminalFont = Qg.QFont(self.settings['terminalFont'], self.settings['terminalFontSize'])
         self.ui.plainTextEdit.setFont(terminalFont)
 
         # Base Transformations
@@ -195,6 +199,13 @@ class MainWindow1(Qw.QMainWindow):
                             self.ui.btnPan}
         self.objButtons = {self.ui.btnCustTransform, self.ui.actionTransform}
         self.globalTransformOnlyButtons = (self.ui.comboAnchor, self.ui.btnAnchor)
+
+        self.currAddOptionsWgt = None
+        self.currAddOptions = {
+            'inscribed': True,
+            'sides': 3,
+            'centermode': True
+        }
 
         self.currentMode = SelectionMode.translate
         self.drawGridMode = GridMode.cartesian
@@ -263,6 +274,15 @@ class MainWindow1(Qw.QMainWindow):
         if result:
             exec(commandText)
 
+    def updateOptionWidget(self):
+        if self.currAddOptionsWgt is not None:
+            self.currAddOptionsWgt.hide()
+            self.ui.addOptionLayout.removeWidget(self.currAddOptionsWgt)
+            self.currAddOptionsWgt = None
+        self.currAddOptionsWgt = self.addMode.createOptWidget(self.currAddOptions)
+        if self.currAddOptionsWgt is not None:
+            self.ui.addOptionLayout.addWidget(self.currAddOptionsWgt)
+
     def debugAddLineGuide(self):
         commandText, result = Qw.QInputDialog.getText(self, '', 'enter <originx> <originy> <angle>')
         if result:
@@ -302,9 +322,11 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnAddCircleOnClick(self):
         self.addMode = InplaceAddObj.AddCircle()
+        self.updateOptionWidget()
 
     def btnAddPolyOnClick(self):
         self.addMode = InplaceAddObj.AddPoly()
+        self.updateOptionWidget()
 
     def updateCurve(self, valid, newCurve):
         self.previewCurve = newCurve
@@ -607,8 +629,7 @@ class MainWindow1(Qw.QMainWindow):
         self.savedMousePosition = self.getCanvasCoordinates()
 
         if self.addMode is not None:
-            info = {'sides': 3, 'inscribed': True, 'centermode': True}
-            self.addMode.mouseDown(self.savedMousePosition, info)
+            self.addMode.mouseDown(self.savedMousePosition, self.currAddOptions)
             return
 
         if self.currentMode == SelectionMode.pan:
