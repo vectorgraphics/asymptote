@@ -226,7 +226,7 @@ class asyPen(asyObj):
         return color.redF(), color.greenF(), color.blueF()
 
     @staticmethod
-    def toQColor(color):
+    def convertToQColor(color):
         r, g, b = color
         return Qg.QColor.fromRgbF(r, g, b)
 
@@ -295,7 +295,7 @@ class asyPen(asyObj):
 
     def toQPen(self):
         newPen = Qg.QPen()
-        newPen.setColor(asyPen.toQColor(self.color))
+        newPen.setColor(asyPen.convertToQColor(self.color))
         newPen.setWidthF(self.width)
 
         return newPen

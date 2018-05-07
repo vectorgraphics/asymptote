@@ -12,6 +12,8 @@ import pathlib
 import webbrowser
 import copy
 
+import xasyUtils
+
 import xasy2asy as x2a
 import xasyFile as xf
 import xasyOptions as xo
@@ -89,7 +91,6 @@ class MainWindow1(Qw.QMainWindow):
 
         self.settings = xo.xasyOptions()
         self.settings.load()
-
         self.keyMaps = DefaultSettings.defaultKeymap
 
         # For initialization purposes
@@ -100,64 +101,20 @@ class MainWindow1(Qw.QMainWindow):
 
         # Actions
         # <editor-fold> Connecting Actions
+        self.ui.txtLineWidth.setValidator(Qg.QDoubleValidator())
 
-        self.ui.actionQuit.triggered.connect(lambda: self.execCustomCommand('quit'))
-        self.ui.actionUndo.triggered.connect(lambda: self.execCustomCommand('undo'))
-        self.ui.actionRedo.triggered.connect(lambda: self.execCustomCommand('redo'))
-        self.ui.actionTransform.triggered.connect(lambda: self.execCustomCommand('transform'))
-
-        self.ui.actionSaveAs.triggered.connect(self.actionSaveAs)
-        self.ui.actionManual.triggered.connect(self.actionManual)
-        self.ui.actionEnterCommand.triggered.connect(self.enterCustomCommand)
-
-
-        # Button initialization
-        self.ui.btnUndo.clicked.connect(self.btnUndoOnClick)
-        self.ui.btnRedo.clicked.connect(self.btnRedoOnClick)
-        self.ui.btnLoadFile.clicked.connect(self.btnLoadFileonClick)
-        self.ui.btnSave.clicked.connect(self.btnSaveOnClick)
-        self.ui.btnQuickScreenshot.clicked.connect(self.btnQuickScreenshotOnClick)
-
-        self.ui.btnDrawAxes.clicked.connect(self.btnDrawAxesOnClick)
-        self.ui.btnAsyfy.clicked.connect(self.asyfyCanvas)
-
-        self.ui.btnTranslate.clicked.connect(self.btnTranslateonClick)
-        self.ui.btnRotate.clicked.connect(self.btnRotateOnClick)
-        self.ui.btnScale.clicked.connect(self.btnScaleOnClick)
-        self.ui.btnSelect.clicked.connect(self.btnSelectOnClick)
-        self.ui.btnPan.clicked.connect(self.btnPanOnClick)
-
-        # self.ui.btnDebug.clicked.connect(self.pauseBtnOnClick)
-        self.ui.btnAlignX.clicked.connect(self.btnAlignXOnClick)
-        self.ui.btnAlignY.clicked.connect(self.btnAlignYOnClick)
-        self.ui.comboAnchor.currentTextChanged.connect(self.handleAnchorCombo)
-        self.ui.btnWorldCoords.clicked.connect(self.btnWorldCoordsOnClick)
-
-        self.ui.btnCustTransform.clicked.connect(self.btnCustTransformOnClick)
-        self.ui.btnViewCode.clicked.connect(self.btnLoadEditorOnClick)
-        self.ui.btnAnchor.clicked.connect(self.btnCustomAnchorOnClick)
-
-        self.ui.btnSelectColor.clicked.connect(self.btnColorSelectOnClick)
-
-        self.ui.btnCreateCurve.clicked.connect(self.btnCreateCurveOnClick)
-        self.ui.btnDrawGrid.clicked.connect(self.btnDrawGridOnClick)
-
-        self.ui.btnAddCircle.clicked.connect(self.btnAddCircleOnClick)
-        self.ui.btnAddPoly.clicked.connect(self.btnAddPolyOnClick)
-
+        self.connectActions()
+        self.connectButtons()
         # </editor-fold>
 
         # Settings Initialization
         terminalFont = Qg.QFont(self.settings['terminalFont'], self.settings['terminalFontSize'])
         self.ui.plainTextEdit.setFont(terminalFont)
-
         # Base Transformations
 
         self.mainTransformation = Qg.QTransform()
         self.mainTransformation.scale(1, -1)
-
         self.localTransform = Qg.QTransform()
-
         self.screenTransformation = Qg.QTransform()
 
         # Internal Settings
@@ -213,6 +170,9 @@ class MainWindow1(Qw.QMainWindow):
         self.setAllInSetEnabled(self.objButtons, False)
         self._currentPen = x2a.asyPen()
 
+        self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
+        self.ui.txtLineWidth.setText(str(self._currentPen.width))
+
         self.commandsFunc = {
             'quit': Qc.QCoreApplication.quit,
             'undo': self.undoRedoStack.undo,
@@ -227,21 +187,70 @@ class MainWindow1(Qw.QMainWindow):
         }
 
         if self.settings['debugMode']:
-            debugFunc = {
-                'debug:addLineGuide': self.debugAddLineGuide,
-                'debug:addArcGuide': self.debugAddArcGuide,
-                'debug:pause': self.debug,
-                'debug:execPythonCmd': self.execPythonCmd,
-                'debug:setPolarGrid': self.debugSetPolarGrid,
-                'debug:addUnitCircle': self.dbgAddUnitCircle,
-                'debug:addCircle': self.dbgAddCircle,
-                'debug:addPoly': self.dbgAddPoly
-            }
-            self.commandsFunc = {**self.commandsFunc, **debugFunc}
+            self.initDebug()
 
         self.currentGuides = []
 
         self.loadKeyMaps()
+
+    def initDebug(self):
+        debugFunc = {
+            'debug:addLineGuide': self.debugAddLineGuide,
+            'debug:addArcGuide': self.debugAddArcGuide,
+            'debug:pause': self.debug,
+            'debug:execPythonCmd': self.execPythonCmd,
+            'debug:setPolarGrid': self.debugSetPolarGrid,
+            'debug:addUnitCircle': self.dbgAddUnitCircle,
+            'debug:addCircle': self.dbgAddCircle,
+            'debug:addPoly': self.dbgAddPoly
+        }
+        self.commandsFunc = {**self.commandsFunc, **debugFunc}
+
+    def connectActions(self):
+        self.ui.actionQuit.triggered.connect(lambda: self.execCustomCommand('quit'))
+        self.ui.actionUndo.triggered.connect(lambda: self.execCustomCommand('undo'))
+        self.ui.actionRedo.triggered.connect(lambda: self.execCustomCommand('redo'))
+        self.ui.actionTransform.triggered.connect(lambda: self.execCustomCommand('transform'))
+
+        self.ui.actionSaveAs.triggered.connect(self.actionSaveAs)
+        self.ui.actionManual.triggered.connect(self.actionManual)
+        self.ui.actionEnterCommand.triggered.connect(self.enterCustomCommand)
+
+    def connectButtons(self):
+        # Button initialization
+        self.ui.btnUndo.clicked.connect(self.btnUndoOnClick)
+        self.ui.btnRedo.clicked.connect(self.btnRedoOnClick)
+        self.ui.btnLoadFile.clicked.connect(self.btnLoadFileonClick)
+        self.ui.btnSave.clicked.connect(self.btnSaveOnClick)
+        self.ui.btnQuickScreenshot.clicked.connect(self.btnQuickScreenshotOnClick)
+
+        self.ui.btnDrawAxes.clicked.connect(self.btnDrawAxesOnClick)
+        self.ui.btnAsyfy.clicked.connect(self.asyfyCanvas)
+
+        self.ui.btnTranslate.clicked.connect(self.btnTranslateonClick)
+        self.ui.btnRotate.clicked.connect(self.btnRotateOnClick)
+        self.ui.btnScale.clicked.connect(self.btnScaleOnClick)
+        self.ui.btnSelect.clicked.connect(self.btnSelectOnClick)
+        self.ui.btnPan.clicked.connect(self.btnPanOnClick)
+
+        # self.ui.btnDebug.clicked.connect(self.pauseBtnOnClick)
+        self.ui.btnAlignX.clicked.connect(self.btnAlignXOnClick)
+        self.ui.btnAlignY.clicked.connect(self.btnAlignYOnClick)
+        self.ui.comboAnchor.currentTextChanged.connect(self.handleAnchorCombo)
+        self.ui.btnWorldCoords.clicked.connect(self.btnWorldCoordsOnClick)
+
+        self.ui.btnCustTransform.clicked.connect(self.btnCustTransformOnClick)
+        self.ui.btnViewCode.clicked.connect(self.btnLoadEditorOnClick)
+        self.ui.btnAnchor.clicked.connect(self.btnCustomAnchorOnClick)
+
+        self.ui.btnSelectColor.clicked.connect(self.btnColorSelectOnClick)
+        self.ui.txtLineWidth.textEdited.connect(self.txtLineWithEdited)
+
+        self.ui.btnCreateCurve.clicked.connect(self.btnCreateCurveOnClick)
+        self.ui.btnDrawGrid.clicked.connect(self.btnDrawGridOnClick)
+
+        self.ui.btnAddCircle.clicked.connect(self.btnAddCircleOnClick)
+        self.ui.btnAddPoly.clicked.connect(self.btnAddPolyOnClick)
 
     @property
     def currentPen(self):
@@ -505,11 +514,16 @@ class MainWindow1(Qw.QMainWindow):
             self.ui.comboAnchor.setCurrentText('Custom Anchor')
 
     def btnColorSelectOnClick(self):
-        colorDialog = Qw.QColorDialog(Qc.Qt.black, self)
-        colorDialog.show()
-        result = colorDialog.exec()
+        self.colorDialog.show()
+        result = self.colorDialog.exec()
         if result == Qw.QDialog.Accepted:
-            self._currentPen.setColorFromQColor(colorDialog.selectedColor())
+            self._currentPen.setColorFromQColor(self.colorDialog.selectedColor())
+
+    def txtLineWithEdited(self, text):
+        new_val = xasyUtils.tryParse(text, float)
+        if new_val is not None:
+            if new_val > 0:
+                self._currentPen.setWidth(new_val)
 
     def isReady(self):
         return self.mainCanvas is not None
