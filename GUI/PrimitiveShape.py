@@ -55,8 +55,8 @@ class PrimitiveShape:
             return newPoly
 
     @classmethod
-    def exscribedRegPolygon(cls, sides, position, length, starting_rad):
+    def exscribedRegPolygon(cls, sides, position, length, starting_rad, qpoly=False):
         ang = math.tau/sides
         # see notes
         adjusted_radius = length / math.cos(ang/2)
-        return cls.inscribedRegPolygon(sides, position, adjusted_radius, starting_rad - ang/2)
+        return cls.inscribedRegPolygon(sides, position, adjusted_radius, starting_rad - ang/2, qpoly)

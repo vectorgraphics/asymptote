@@ -5,6 +5,7 @@ import math
 
 import Widg_addPolyOpt
 
+
 class InplaceObjProcess:
     def __init__(self):
         self._active = False
@@ -93,10 +94,19 @@ class AddPoly(InplaceObjProcess):
 
     def getObject(self):
         if self.inscribed:
-            return PrimitiveShape.PrimitiveShape.inscribedRegPolygon(self.sides, self.center, self._rad(), self._angle())
+            return PrimitiveShape.PrimitiveShape.inscribedRegPolygon(self.sides, self.center, self._rad(),
+                                                                     self._angle())
+        else:
+            return PrimitiveShape.PrimitiveShape.exscribedRegPolygon(self.sides, self.center, self._rad(),
+                                                                     self._angle())
 
     def getPreview(self):
-        poly = PrimitiveShape.PrimitiveShape.inscribedRegPolygon(self.sides, self.center, self._rad(), self._angle(), qpoly=True)
+        if self.inscribed:
+            poly = PrimitiveShape.PrimitiveShape.inscribedRegPolygon(self.sides, self.center, self._rad(),
+                                                                     self._angle(), qpoly=True)
+        else:
+            poly = PrimitiveShape.PrimitiveShape.exscribedRegPolygon(self.sides, self.center, self._rad(),
+                                                                     self._angle(), qpoly=True)
         newPath = Qg.QPainterPath()
         newPath.addPolygon(poly)
         return newPath

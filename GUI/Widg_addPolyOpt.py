@@ -5,6 +5,7 @@ import PyQt5.QtCore as Qc
 
 import sys
 
+
 class Widg_addPolyOpt(Qw.QWidget):
     def __init__(self, info):
         super().__init__()
