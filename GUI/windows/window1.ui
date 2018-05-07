@@ -1582,7 +1582,7 @@
                  </sizepolicy>
                 </property>
                 <property name="frameShape">
-                 <enum>QFrame::Box</enum>
+                 <enum>QFrame::Panel</enum>
                 </property>
                 <property name="text">
                  <string/>

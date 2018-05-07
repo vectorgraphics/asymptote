@@ -19,6 +19,7 @@ import PyQt5.QtCore as Qc
 import numpy as np
 from tkinter import *
 import queue
+import copy
 import CubicBezier
 
 import BezierCurveEditor
@@ -29,6 +30,7 @@ global AsyTempDir
 console = None
 options = xo.xasyOptions()
 options.load()
+
 
 def startQuickAsy():
     global quickAsy
@@ -219,15 +221,24 @@ class asyObj:
 
 class asyPen(asyObj):
     """A python wrapper for an asymptote pen"""
+    @staticmethod
+    def getColorFromQColor(color):
+        return color.redF(), color.greenF(), color.blueF()
 
-    def __init__(self, color=(0, 0, 0), width=0.5, options=""):
+    @staticmethod
+    def toQColor(color):
+        r, g, b = color
+        return Qg.QColor.fromRgbF(r, g, b)
+
+    def __init__(self, color=(0, 0, 0), width=0.5, pen_options=""):
         """Initialize the pen"""
         asyObj.__init__(self)
-        self.options = options
+        self.color = (0, 0, 0)
+        self.options = pen_options
         self.width = width
         self.setColor(color)
         self.updateCode()
-        if options != "":
+        if pen_options:
             self.computeColor()
 
     def updateCode(self, mag=1.0):
@@ -243,11 +254,14 @@ class asyPen(asyObj):
 
     def setColor(self, color):
         """Set the pen's color"""
-        if type(color) == type((1,)) and len(color) == 3:
+        if isinstance(color, tuple) and len(color) == 3:
             self.color = color
         else:
-            self.color = "(0,0,0)"
+            self.color = (0, 0, 0)
         self.updateCode()
+
+    def setColorFromQColor(self, color):
+        self.setColor(asyPen.getColorFromQColor(color))
 
     def computeColor(self):
         """Find out the color of an arbitrary asymptote pen."""
@@ -278,6 +292,13 @@ class asyPen(asyObj):
         """Return the tk version of the pen's color"""
         self.computeColor()
         return '#{}'.format("".join(["{:02x}".format(min(int(256 * a), 255)) for a in self.color]))
+
+    def toQPen(self):
+        newPen = Qg.QPen()
+        newPen.setColor(asyPen.toQColor(self.color))
+        newPen.setWidthF(self.width)
+
+        return newPen
 
 
 class asyPath(asyObj):
@@ -677,9 +698,10 @@ class xasyShape(xasyDrawnItem):
 
                 drawPriority = len(canvas['drawDict']) + 1
                 canvas['drawDict'][idTag] = DrawObject(self.path.toQPainterPath(), canvas['canvas'],
-                                                       drawOrder=drawPriority, transform=self.transform[0])
+                                                       drawOrder=drawPriority, transform=self.transform[0], pen=self.pen)
                 canvas['drawDict'][idTag].originalObj = self, 0
                 canvas['drawDict'][idTag].draw()
+                self.IDTag = canvas['drawDict'][idTag].getID()
 
     def __str__(self):
         """Create a string describing this shape"""
@@ -783,7 +805,7 @@ class xasyText(xasyItem):
 
     def drawOnCanvas(self, canvas, mag, asyFy=True, forceAddition=False):
         """Adds the label's images to a tk canvas"""
-        if self.onCanvas == None:
+        if not self.onCanvas:
             self.onCanvas = canvas
         elif self.onCanvas != canvas:
             raise Exception("Error: item cannot be added to more than one canvas")
@@ -849,7 +871,7 @@ class xasyScript(xasyItem):
 
     def drawOnCanvas(self, canvas, mag, asyFy=True, forceAddition=False):
         """Adds the script's images to a tk canvas"""
-        if self.onCanvas is None:
+        if not self.onCanvas:
             self.onCanvas = canvas
         elif self.onCanvas != canvas:
             raise Exception("Error: item cannot be added to more than one canvas")
@@ -866,7 +888,7 @@ class xasyScript(xasyItem):
 
 class DrawObject:
     def __init__(self, drawObject, mainCanvas=None, transform=identity(), btmRightanchor=Qc.QPointF(0, 0),
-                 drawOrder=-1):
+                 drawOrder=-1, pen=None):
         self.drawObject = drawObject
         self.mainCanvas = mainCanvas
         self.pTransform = transform
@@ -875,6 +897,7 @@ class DrawObject:
         self.btmRightAnchor = btmRightanchor
         self.originalObj = None
         self.useCanvasTransformation = False
+        self.pen = pen
 
     def getInteriorScrTransform(self, transform):
         """Generates the transform with Interior transform applied beforehand."""
@@ -917,6 +940,11 @@ class DrawObject:
         assert self.mainCanvas.isActive()
 
         self.mainCanvas.save()
+        if self.pen:
+            oldPen = Qg.QPen(self.mainCanvas.pen())
+            self.mainCanvas.setPen(self.pen.toQPen())
+        else:
+            oldPen = Qg.QPen()
         if not applyReverse:
             self.mainCanvas.setTransform(additionalTransformation, True)
             self.mainCanvas.setTransform(self.transform.toQTransform(), True)
@@ -931,6 +959,8 @@ class DrawObject:
         elif isinstance(self.drawObject, Qg.QPainterPath):
             self.mainCanvas.drawPath(self.baseTransform.toQTransform().map(self.drawObject))
 
+        if self.pen:
+            self.mainCanvas.setPen(oldPen)
         self.mainCanvas.restore()
 
     def collide(self, coords, canvasCoordinates=True):

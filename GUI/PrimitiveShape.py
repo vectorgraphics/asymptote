@@ -4,6 +4,7 @@ import math
 import PyQt5.QtCore as Qc
 import PyQt5.QtGui as Qg
 
+
 class PrimitiveShape:
     # The magic number.
     # see https://www.desmos.com/calculator/lw6j7khikj for unitcircle

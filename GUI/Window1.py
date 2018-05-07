@@ -10,6 +10,7 @@ import json
 import io
 import pathlib
 import webbrowser
+import copy
 
 import xasy2asy as x2a
 import xasyFile as xf
@@ -210,6 +211,7 @@ class MainWindow1(Qw.QMainWindow):
         self.currentMode = SelectionMode.translate
         self.drawGridMode = GridMode.cartesian
         self.setAllInSetEnabled(self.objButtons, False)
+        self._currentPen = x2a.asyPen()
 
         self.commandsFunc = {
             'quit': Qc.QCoreApplication.quit,
@@ -241,6 +243,10 @@ class MainWindow1(Qw.QMainWindow):
 
         self.loadKeyMaps()
 
+    @property
+    def currentPen(self):
+        return copy.deepcopy(self._currentPen)
+
     def dbgAddUnitCircle(self):
         newCirclePath = PrimitiveShape.PrimitiveShape.circle((0, 0), 1)
         newCircle = x2a.xasyShape(newCirclePath)
@@ -253,13 +259,13 @@ class MainWindow1(Qw.QMainWindow):
             rawArray = [float(rawResult) for rawResult in commandText.split()]
             x, y, rad = rawArray
             newCirclePath = PrimitiveShape.PrimitiveShape.circle((x, y), rad)
-            newCircle = x2a.xasyShape(newCirclePath)
+            newCircle = x2a.xasyShape(newCirclePath, pen=self.currentPen)
             self.fileItems.append(newCircle)
             self.asyfyCanvas()
 
     def dbgAddPoly(self):
         newSquarePath = PrimitiveShape.PrimitiveShape.exscribedRegPolygon(6, (0, 0), 100, 0)
-        newSquare = x2a.xasyShape(newSquarePath)
+        newSquare = x2a.xasyShape(newSquarePath, pen=self.currentPen)
         self.fileItems.append(newSquare)
         self.asyfyCanvas()
 
@@ -398,7 +404,7 @@ class MainWindow1(Qw.QMainWindow):
             self.execCustomCommand(commandText)
 
     def addItemFromPath(self, path):
-        newItem = x2a.xasyShape(path)
+        newItem = x2a.xasyShape(path, pen=self.currentPen)
         self.fileItems.append(newItem)
         self.asyfyCanvas()
 
@@ -499,7 +505,11 @@ class MainWindow1(Qw.QMainWindow):
             self.ui.comboAnchor.setCurrentText('Custom Anchor')
 
     def btnColorSelectOnClick(self):
-        colorDialog = Qw.QColorDialog.getColor(Qc.Qt.black, self)
+        colorDialog = Qw.QColorDialog(Qc.Qt.black, self)
+        colorDialog.show()
+        result = colorDialog.exec()
+        if result == Qw.QDialog.Accepted:
+            self._currentPen.setColorFromQColor(colorDialog.selectedColor())
 
     def isReady(self):
         return self.mainCanvas is not None
@@ -936,6 +946,7 @@ class MainWindow1(Qw.QMainWindow):
             postCanvas.drawPath(self.previewCurve)
         if self.addMode is not None:
             if self.addMode.active:
+                postCanvas.setPen(self.currentPen.toQPen())
                 postCanvas.drawPath(self.addMode.getPreview())
         postCanvas.end()
 
@@ -1117,8 +1128,7 @@ class MainWindow1(Qw.QMainWindow):
         # if (not self.testOrAcquireLock()):
         #     return
         self.itemCount = 0
-        for itemIndex in range(len(self.fileItems)):
-            item = self.fileItems[itemIndex]
+        for item in self.fileItems:
             item.drawOnCanvas(self.xasyDrawObj, self.magnification, forceAddition=True)
             # self.bindItemEvents(item)
         # self.releaseLock()
