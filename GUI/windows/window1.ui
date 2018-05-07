@@ -1514,6 +1514,44 @@
                  <height>16777215</height>
                 </size>
                </property>
+               <property name="toolTip">
+                <string>Curren Pen Width</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QFrame" name="frameCurrColor">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>15</width>
+                 <height>15</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>Current Pen Color</string>
+               </property>
+               <property name="autoFillBackground">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QFrame{ 
+padding: 4.0;
+border-radius: 3.0; 
+background: rgb(0, 0, 0)
+}</string>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Sunken</enum>
+               </property>
               </widget>
              </item>
              <item>
@@ -1537,7 +1575,13 @@
                 </size>
                </property>
                <property name="toolTip">
-                <string>Translate</string>
+                <string>Set Color</string>
+               </property>
+               <property name="autoFillBackground">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string notr="true"/>
                </property>
                <property name="text">
                 <string/>
@@ -1545,6 +1589,9 @@
                <property name="icon">
                 <iconset resource="../res/icons.qrc">
                  <normaloff>:/icons/ionicons-2.0.1/src/android-color-palette.svg</normaloff>:/icons/ionicons-2.0.1/src/android-color-palette.svg</iconset>
+               </property>
+               <property name="default">
+                <bool>false</bool>
                </property>
                <property name="flat">
                 <bool>true</bool>

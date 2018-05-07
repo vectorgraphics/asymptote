@@ -84,6 +84,14 @@ class DefaultSettings:
 
 
 class MainWindow1(Qw.QMainWindow):
+    defaultFrameStyle = """
+    QFrame{{ 
+        padding: 4.0;
+        border-radius: 3.0; 
+        background: rgb({0}, {1}, {2})
+    }}
+    """
+
     def __init__(self):
         super().__init__()
         self.ui = Ui_MainWindow()
@@ -107,9 +115,6 @@ class MainWindow1(Qw.QMainWindow):
         self.connectButtons()
         # </editor-fold>
 
-        # Settings Initialization
-        terminalFont = Qg.QFont(self.settings['terminalFont'], self.settings['terminalFontSize'])
-        self.ui.plainTextEdit.setFont(terminalFont)
         # Base Transformations
 
         self.mainTransformation = Qg.QTransform()
@@ -118,7 +123,6 @@ class MainWindow1(Qw.QMainWindow):
         self.screenTransformation = Qg.QTransform()
 
         # Internal Settings
-
         self.magnification = 1
         self.inMidTransformation = False
         self.addMode = None
@@ -169,10 +173,9 @@ class MainWindow1(Qw.QMainWindow):
         self.drawGridMode = GridMode.cartesian
         self.setAllInSetEnabled(self.objButtons, False)
         self._currentPen = x2a.asyPen()
+        self.currentGuides = []
 
-        self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
-        self.ui.txtLineWidth.setText(str(self._currentPen.width))
-
+        # commands switchboard
         self.commandsFunc = {
             'quit': Qc.QCoreApplication.quit,
             'undo': self.undoRedoStack.undo,
@@ -186,12 +189,21 @@ class MainWindow1(Qw.QMainWindow):
             'clearGuide': self.clearGuides,
         }
 
-        if self.settings['debugMode']:
-            self.initDebug()
-
-        self.currentGuides = []
-
+        # Settings Initialization
+        # from xasyoptions config file
+        self.setupXasyOptions()
         self.loadKeyMaps()
+
+        self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
+        self.initPenInterface()
+
+    def initPenInterface(self):
+        self.ui.txtLineWidth.setText(str(self._currentPen.width))
+        self.updateFrameDispColor()
+
+    def updateFrameDispColor(self):
+        r, g, b = [int(x * 255) for x in self._currentPen.color]
+        self.ui.frameCurrColor.setStyleSheet(MainWindow1.defaultFrameStyle.format(r, g, b))
 
     def initDebug(self):
         debugFunc = {
@@ -215,6 +227,19 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.actionSaveAs.triggered.connect(self.actionSaveAs)
         self.ui.actionManual.triggered.connect(self.actionManual)
         self.ui.actionEnterCommand.triggered.connect(self.enterCustomCommand)
+
+    def setupXasyOptions(self):
+        if self.settings['debugMode']:
+            self.initDebug()
+
+        terminalFont = Qg.QFont(self.settings['terminalFont'], self.settings['terminalFontSize'])
+        self.ui.plainTextEdit.setFont(terminalFont)
+
+        newColor = Qg.QColor(self.settings['defaultPenColor'])
+        newWidth = self.settings['defaultPenWidth']
+
+        self._currentPen.setColorFromQColor(newColor)
+        self._currentPen.setWidth(newWidth)
 
     def connectButtons(self):
         # Button initialization
@@ -518,6 +543,7 @@ class MainWindow1(Qw.QMainWindow):
         result = self.colorDialog.exec()
         if result == Qw.QDialog.Accepted:
             self._currentPen.setColorFromQColor(self.colorDialog.selectedColor())
+            self.updateFrameDispColor()
 
     def txtLineWithEdited(self, text):
         new_val = xasyUtils.tryParse(text, float)
