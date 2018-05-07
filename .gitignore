@@ -22,6 +22,10 @@ revision.*
 run*.cc
 run*.h
 
+### History
+history
+
+
 ### Generated files
 newDrawing.asy
 /Makefile
