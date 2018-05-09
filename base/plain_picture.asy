@@ -202,6 +202,7 @@ struct picture { // <<<1
   // The functions to do the deferred drawing.
   drawerBound[] nodes;
   drawerBound3[] nodes3;
+  string[] keys;
 
   bool uptodate=true;
 
@@ -270,6 +271,7 @@ struct picture { // <<<1
   void erase() {
     nodes.delete();
     nodes3.delete();
+    keys.delete();
     bounds.erase();
     bounds3.erase();
     T=identity();
@@ -440,20 +442,31 @@ struct picture { // <<<1
     userBoxZ3(min.z,max.z);
   }
   
+  string getKEY() {
+    string key=xasyKEY();
+    xasyKEY("");
+    return key;
+  }
+
   // Add drawer <<<2
   void add(drawerBound d, bool exact=false, bool above=true) {
     uptodate=false;
     if(!exact) bounds.exact=false;
-    if(above)
+    if(above) {
       nodes.push(d);
-    else
+      keys.push(getKEY());
+    }
+    else {
       nodes.insert(0,d);
+      keys.insert(0,getKEY());
+    }
   }
   
   // Faster implementation of most common case.
   void addExactAbove(drawerBound d) {
     uptodate=false;
     nodes.push(d);
+    keys.push(getKEY());
   }
 
   void add(drawer d, bool exact=false, bool above=true) {
@@ -676,8 +689,10 @@ struct picture { // <<<1
   frame fit(transform t, transform T0=T, pair m, pair M) {
     frame f;
     int n = nodes.length;
-    for(int i=0; i < n; ++i)
+    for(int i=0; i < n; ++i) {
+      xasyKEY(keys[i]);
       nodes[i](f,t,T0,m,M);
+    }
     return f;
   }
 
@@ -905,7 +920,8 @@ struct picture { // <<<1
   // picture. Fitting this picture will not scale as the original picture would.
   picture drawcopy() {
     picture dest=new picture;
-    dest.nodes = copy(nodes);
+    dest.nodes=copy(nodes);
+    dest.keys=copy(keys);
     dest.nodes3=copy(nodes3);
     dest.T=T;
     dest.T3=T3;
@@ -984,10 +1000,12 @@ struct picture { // <<<1
 
     picture srcCopy=src.drawcopy();
     // Draw by drawing the copied picture.
-    if(srcCopy.nodes.length > 0)
+    if(srcCopy.nodes.length > 0) {
       nodes.push(new void(frame f, transform t, transform T, pair m, pair M) {
           add(f,srcCopy.fit(t,T*srcCopy.T,m,M),group,filltype,above);
         });
+      keys.append(srcCopy.keys);
+    }
     
     if(srcCopy.nodes3.length > 0) {
       nodes3.push(new void(frame f, transform3 t, transform3 T3, picture pic,

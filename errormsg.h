@@ -65,8 +65,6 @@ inline bool operator == (const fileinfo& a, const fileinfo& b)
   return a.line() == b.line() && a.name() == b.name();
 }
 
-
-
 class position : public gc {
   fileinfo *file;
   size_t line;
@@ -98,6 +96,10 @@ public:
     return column;
   }
   
+  std::pair<size_t,size_t>LineColumn() const {
+    return std::pair<size_t,size_t>(line,column);
+  }
+
   bool match(const string& s) {
     return file && file->name() == s;
   }

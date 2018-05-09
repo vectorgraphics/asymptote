@@ -76,6 +76,8 @@ using types::pathArray;
 using types::penArray;
 using types::penArray2;
 
+//static int tag=0;
+
 function *transformFunction()
 {
   return new function(primTransform());
@@ -538,6 +540,7 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
       xform->call(Stack);
       transform t=pop<transform>(Stack);
       assert(*p);
+      cout << "KEY=" << (*p)->KEY << endl;
       if((*p)->endgroup()) {
         fprintf(pipeout,"%s\n",Error.c_str());
         fflush(pipeout);

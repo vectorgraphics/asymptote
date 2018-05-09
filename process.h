@@ -85,6 +85,9 @@ public:
   ~texstream();
 };
 
+typedef std::pair<size_t,size_t> linecolumn;
+typedef mem::map<CONST linecolumn,string> xkey_t;
+
 struct processDataStruct {
   texstream tex; // Bi-directional pipe to latex (to find label bbox)
   mem::list<string> TeXpipepreamble;
@@ -94,6 +97,8 @@ struct processDataStruct {
   vm::callable *atBreakpointFunction;
   camp::pen defaultpen;
   camp::pen currentpen;
+  mem::string KEY;
+  xkey_t xkey;
   
   terminator<std::ofstream> ofile;
   terminator<std::fstream> ifile;

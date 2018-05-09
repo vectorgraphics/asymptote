@@ -25,11 +25,16 @@
 
 #include "process.h"
 
+string vm::fileName;
+position vm::topPos;
+
 namespace camp {
 pen& defaultpen() {
   return processData().defaultpen;
 }
 }
+
+unsigned int count=0;
 
 namespace run {
 void cleanup();
@@ -306,9 +311,11 @@ public:
     block *tree=getTree();
     if (tree) {
       for(mem::list<runnable *>::iterator r=tree->stms.begin();
-          r != tree->stms.end(); ++r)
+          r != tree->stms.end(); ++r) {
+        vm::fileName=(*r)->getPos().filename();
         if(!em.errors() || getSetting<bool>("debug"))
           runRunnable(*r,e,s,tm);
+      }
     }
   }
 
@@ -836,7 +843,9 @@ public:
     while (running) {
       // Read a line from the prompt.
       string line=getline(false);
-
+//      ostringstream buf;
+//      buf << count++;
+//      vm::topPos=buf.str();
       // Check if it is a special command.
       if (handleCommand(e,s,line))
         continue;

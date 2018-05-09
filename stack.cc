@@ -339,6 +339,9 @@ void stack::runWithOrWithoutClosure(lambda *l, vars_t vars, vars_t parent)
       const inst &i = *ip;
       curPos = i.pos;
       
+  if(curPos.filename() == fileName)
+    topPos=curPos;
+  
 #ifdef PROFILE
       prof.recordInstruction();
 #endif

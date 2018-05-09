@@ -121,6 +121,10 @@ typedef mem::vector<groupmap> groupsmap;
 class drawElement : public gc
 {
 public:
+  string KEY;
+  
+  drawElement() {KEY=processData().KEY;}
+  
   virtual ~drawElement() {}
   
   static pen lastpen;  
