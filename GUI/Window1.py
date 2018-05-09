@@ -197,6 +197,22 @@ class MainWindow1(Qw.QMainWindow):
         self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
         self.initPenInterface()
 
+    # TODO: Move handing argument to a different file.
+    def handleArguments(self):
+        args = Qc.QCoreApplication.arguments()
+        fileName = None
+
+        for arg in args:
+            if arg.startswith('-file:'):
+                fileName = arg.replace('-file:', '', 1)
+            elif arg.startswith('-customAsyPath:'):
+                self.settings['asyPath'] = arg.replace('-customAsyPath:', '', 1)
+
+        if fileName is not None:
+            self.loadFile(fileName)
+        else:
+            self.initializeEmptyFile()
+
     def initPenInterface(self):
         self.ui.txtLineWidth.setText(str(self._currentPen.width))
         self.updateFrameDispColor()
@@ -563,6 +579,10 @@ class MainWindow1(Qw.QMainWindow):
         super().show()
         self.createMainCanvas()  # somehow, the coordinates doesn't get updated until after showing.
         self.initializeButtons()
+        self.postShow()
+
+    def postShow(self):
+        self.handleArguments()
 
     def roundPositionSnap(self, oldPoint):
         minorGridSize = self.settings['gridMajorAxesSpacing'] / (self.settings['gridMinorAxesCount'] + 1)

@@ -37,6 +37,8 @@ def startQuickAsy():
     global quickAsyFailed
     global AsyTempDir
     global fout, fin
+    global asyCin, asyCout
+
     if quickAsyRunning():
         return
     try:
@@ -59,17 +61,29 @@ def startQuickAsy():
         else:
             (rx, wx) = os.pipe()
             (ra, wa) = os.pipe()
+            rs, ws = os.pipe()          # even more pipe -- stdin/stdout.
             if sys.version_info >= (3, 4):
                 os.set_inheritable(rx, True)
                 os.set_inheritable(wx, True)
                 os.set_inheritable(ra, True)
                 os.set_inheritable(wa, True)
-            quickAsy = Popen([options['asyPath'], "-noV", "-multiline", "-q",
+
+            if options['debugMode']:
+                # NOTE: Really ugly here, but eventaully move this to handling arguments
+                asyPathBase = './asydev'
+            else:
+                asyPathBase = options['asyPath']
+            quickAsy = Popen([asyPathBase, "-noV", "-multiline", "-q",
                               "-o" + AsyTempDir, "-inpipe=" + str(rx), "-outpipe=" + str(wa)],
-                             close_fds=False)
+                             close_fds=False, stdin=rs, stdout=ws)
+            # TODO: Work with John on this. Just an adhoc solution for now...
+            asyCout = os.fdopen(ws, 'w')
+            asyCin = os.fdopen(rs, 'r')
+
             fout = os.fdopen(wx, 'w')
             fin = os.fdopen(ra, 'r')
-        if quickAsy.returncode != None:
+
+        if quickAsy.returncode is not None:
             quickAsyFailed = True
     except:
         quickAsyFailed = True
@@ -519,7 +533,7 @@ class xasyItem:
         self.updateCode()
         return self.asyCode
 
-    def handleImageReception(self, file, format, bbox, count):
+    def handleImageReception(self, file, format, bbox, count, key=None):
         """Receive an image from an asy deconstruction. It replaces the default in asyProcess."""
         # image = Image.open(file).transpose(Image.FLIP_TOP_BOTTOM)
         image = Qg.QImage(file).mirrored(False, True)
@@ -532,6 +546,7 @@ class xasyItem:
             currImage.originalImage.theta = 0.0
             currImage.originalImage.bbox = list(bbox)
             currImage.performCanvasTransform = False
+
             if count >= len(self.transform) or not self.transform[count].deleted:
                 # self.imageList[-1].IDTag = self.onCanvas.create_image(bbox[0], -bbox[3], anchor=NW, tags=("image"),
                 #                                                     image=self.imageList[-1].itk)
@@ -540,7 +555,8 @@ class xasyItem:
                 # ) and to use bbox as starting from bottom left.
                 # bounding box is (left, bottom, right, top)
                 # TODO: Look at Transform & translations
-                idTag = str(file)  # for now.
+                idTag = str(file)       # we still want a unique ID tag for each file. The key is for transformation.
+
                 currImage.IDTag = idTag
                 if count < len(self.transform):
                     inputTransform = self.transform[count]
@@ -548,7 +564,7 @@ class xasyItem:
                     inputTransform = identity()
 
                 self.onCanvas['drawDict'][idTag] = DrawObject(currImage.iqt, self.onCanvas['canvas'], inputTransform,
-                                                              Qc.QPointF(bbox[0], bbox[2]), count)
+                                                              Qc.QPointF(bbox[0], bbox[2]), count, key=key)
                 self.onCanvas['drawDict'][idTag].originalObj = self, count
                 self.onCanvas['drawDict'][idTag].draw()
 
@@ -559,16 +575,16 @@ class xasyItem:
         worker = threading.Thread(target=self.asyfyThread, args=(mag,))
         worker.start()
         item = self.imageHandleQueue.get()
-        if console != None:
+        if console is not None:
             console.delete(1.0, END)
         while item != (None,) and item[0] != "ERROR":
-            if (item[0] == "OUTPUT"):
+            if item[0] == "OUTPUT":
                 consoleOutput(item[1])
             else:
                 self.handleImageReception(*item)
                 try:
                     os.remove(item[0])
-                except:
+                finally:
                     pass
             item = self.imageHandleQueue.get()
         # self.imageHandleQueue.task_done()
@@ -580,32 +596,53 @@ class xasyItem:
         fout.write("initXasyMode();\n")
         fout.write("atexit(null);\n")
         for line in self.getCode().splitlines():
-            fout.write(line + "\n");
+            fout.write(line + "\n")
         fout.write("deconstruct({:f});\n".format(mag))
         fout.flush()
-        maxargs = int(fin.readline().split()[0])
-        boxes = []
+
+        maxargs = int(fin.readline().split()[0])        # should be 256, for now.
+        imageInfos = []                                 # of (box, key)
         batch = 0
         n = 0
+
         text = fin.readline()
+        keydata = asyCin.readline().strip()
+        if keydata.startswith('KEY='):
+            keydata = keydata.replace('KEY=', '', 1)
+        else:
+            keydata = None
+
         # template=AsyTempDir+"%d_%d.%s"
         fileformat = "png"
 
         def render():
-            for i in range(len(boxes)):
-                l, b, r, t = [float(a) for a in boxes[i].split()]
+            for i in range(len(imageInfos)):
+                box, key = imageInfos[i]
+                l, b, r, t = [float(a) for a in box.split()]
                 name = "{:s}{:d}_{:d}.{:s}".format(AsyTempDir, batch, i + 1, fileformat)
-                self.imageHandleQueue.put((name, fileformat, (l, b, r, t), i))
+
+                self.imageHandleQueue.put((name, fileformat, (l, b, r, t), i, key))
 
         while text != "Done\n" and text != "Error\n":
-            boxes.append(text)
+            # print('TESTING:', text)
+
+            imageInfos.append((text, keydata))
+
             text = fin.readline()
+            if text != 'Done\n':
+                keydata = asyCin.readline().strip()
+                if keydata.startswith('KEY='):
+                    keydata = keydata.replace('KEY=', '', 1)
+                else:
+                    keydata = None
+
             n += 1
             if n >= maxargs:
                 render()
-                boxes = []
+                imageInfos = []
                 batch += 1
                 n = 0
+
         if text == "Error\n":
             self.imageHandleQueue.put(("ERROR", fin.readline()))
         else:
@@ -698,7 +735,7 @@ class xasyShape(xasyDrawnItem):
 
                 drawPriority = len(canvas['drawDict']) + 1
                 canvas['drawDict'][idTag] = DrawObject(self.path.toQPainterPath(), canvas['canvas'],
-                                                       drawOrder=drawPriority, transform=self.transform[0], pen=self.pen)
+                                                       drawOrder=drawPriority, transform=self.transform[0], pen=self.pen, key=idTag)
                 canvas['drawDict'][idTag].originalObj = self, 0
                 canvas['drawDict'][idTag].draw()
                 self.IDTag = canvas['drawDict'][idTag].getID()
@@ -888,7 +925,7 @@ class xasyScript(xasyItem):
 
 class DrawObject:
     def __init__(self, drawObject, mainCanvas=None, transform=identity(), btmRightanchor=Qc.QPointF(0, 0),
-                 drawOrder=-1, pen=None):
+                 drawOrder=-1, pen=None, key=None):
         self.drawObject = drawObject
         self.mainCanvas = mainCanvas
         self.pTransform = transform
@@ -897,6 +934,7 @@ class DrawObject:
         self.btmRightAnchor = btmRightanchor
         self.originalObj = None
         self.useCanvasTransformation = False
+        self.key = key
         self.pen = pen
 
     def getInteriorScrTransform(self, transform):
