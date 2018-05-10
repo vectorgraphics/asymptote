@@ -37,7 +37,6 @@ def startQuickAsy():
     global quickAsyFailed
     global AsyTempDir
     global fout, fin
-    global asyCin, asyCout
 
     if quickAsyRunning():
         return
@@ -75,11 +74,7 @@ def startQuickAsy():
                 asyPathBase = options['asyPath']
             quickAsy = Popen([asyPathBase, "-noV", "-multiline", "-q",
                               "-o" + AsyTempDir, "-inpipe=" + str(rx), "-outpipe=" + str(wa)],
-                             close_fds=False, stdin=rs, stdout=ws)
-            # TODO: Work with John on this. Just an adhoc solution for now...
-            asyCout = os.fdopen(ws, 'w')
-            asyCin = os.fdopen(rs, 'r')
-
+                             close_fds=False)
             fout = os.fdopen(wx, 'w')
             fin = os.fdopen(ra, 'r')
 
@@ -137,7 +132,7 @@ class asyTransform:
 
     def __init__(self, initTuple, delete=False):
         """Initialize the transform with a 6 entry tuple"""
-        if type(initTuple) == type((0,)) and len(initTuple) == 6:
+        if isinstance(initTuple, tuple) and len(initTuple) == 6:
             self.t = initTuple
             self.x, self.y, self.xx, self.xy, self.yx, self.yy = initTuple
             self.deleted = delete
@@ -191,7 +186,7 @@ class asyTransform:
 
     def __mul__(self, other):
         """Define multiplication of transforms as composition."""
-        if type(other) == type((0,)):
+        if isinstance(other, tuple):
             if len(other) == 6:
                 return self * asyTransform(other)
             elif len(other) == 2:
@@ -225,7 +220,7 @@ class asyObj:
 
     def updateCode(self, mag=1.0):
         """Update the object's code: should be overriden."""
-        pass
+        raise NotImplementedError
 
     def getCode(self):
         """Return the code describing the object"""
@@ -320,7 +315,7 @@ class asyPath(asyObj):
 
     def __init__(self):
         """Initialize the path to be an empty path: a path with no nodes, control points, or links."""
-        asyObj.__init__(self)
+        super().__init__()
         self.nodeSet = []
         self.linkSet = []
         self.controlSet = []
@@ -505,11 +500,12 @@ class asyLabel(asyObj):
 class asyImage:
     """A structure containing an image and its format, bbox, and IDTag"""
 
-    def __init__(self, image, format, bbox):
+    def __init__(self, image, format, bbox, transfKey=None):
         self.image = image
         self.format = format
         self.bbox = bbox
         self.IDTag = None
+        self.key = transfKey
 
 
 class xasyItem:
@@ -518,6 +514,7 @@ class xasyItem:
     def __init__(self, canvas=None):
         """Initialize the item to an empty item"""
         self.transform = [identity()]
+        self.transfKeymap = {}              # the new keymap.
         self.asyCode = ""
         self.imageList = []
         self.IDTag = None
@@ -537,7 +534,7 @@ class xasyItem:
         """Receive an image from an asy deconstruction. It replaces the default in asyProcess."""
         # image = Image.open(file).transpose(Image.FLIP_TOP_BOTTOM)
         image = Qg.QImage(file).mirrored(False, True)
-        self.imageList.append(asyImage(image, format, bbox))
+        self.imageList.append(asyImage(image, format, bbox, transfKey=key))
         if self.onCanvas is not None:
             # self.imageList[-1].iqt = ImageTk.PhotoImage(image)
             currImage = self.imageList[-1]
@@ -547,6 +544,7 @@ class xasyItem:
             currImage.originalImage.bbox = list(bbox)
             currImage.performCanvasTransform = False
 
+            # handle this case if transform is not in the map yet.
             if count >= len(self.transform) or not self.transform[count].deleted:
                 # self.imageList[-1].IDTag = self.onCanvas.create_image(bbox[0], -bbox[3], anchor=NW, tags=("image"),
                 #                                                     image=self.imageList[-1].itk)
@@ -558,6 +556,7 @@ class xasyItem:
                 idTag = str(file)       # we still want a unique ID tag for each file. The key is for transformation.
 
                 currImage.IDTag = idTag
+
                 if count < len(self.transform):
                     inputTransform = self.transform[count]
                 else:
@@ -605,12 +604,10 @@ class xasyItem:
         batch = 0
         n = 0
 
-        text = fin.readline()
-        keydata = asyCin.readline().strip()
-        if keydata.startswith('KEY='):
-            keydata = keydata.replace('KEY=', '', 1)
-        else:
-            keydata = None
+        # key first, box second.
+        # if key is "Done"
+        raw_text = fin.readline()
+        keydata = raw_text.strip().replace('KEY=', '', 1)     # key
 
         # template=AsyTempDir+"%d_%d.%s"
         fileformat = "png"
@@ -623,18 +620,14 @@ class xasyItem:
 
                 self.imageHandleQueue.put((name, fileformat, (l, b, r, t), i, key))
 
-        while text != "Done\n" and text != "Error\n":
+        while raw_text != "Done\n" and raw_text != "Error\n":
+            text = fin.readline()
             # print('TESTING:', text)
+            keydata = raw_text.strip().replace('KEY=', '', 1)  # key
 
             imageInfos.append((text, keydata))
 
-            text = fin.readline()
-            if text != 'Done\n':
-                keydata = asyCin.readline().strip()
-                if keydata.startswith('KEY='):
-                    keydata = keydata.replace('KEY=', '', 1)
-                else:
-                    keydata = None
+            raw_text = fin.readline()
 
             n += 1
             if n >= maxargs:
@@ -662,7 +655,7 @@ class xasyDrawnItem(xasyItem):
 
     def __init__(self, path, pen=asyPen(), transform=identity()):
         """Initialize the item with a path, pen, and transform"""
-        xasyItem.__init__(self)
+        super().__init__()
         self.path = path
         self.pen = pen
         self.transform = [transform]
@@ -705,7 +698,7 @@ class xasyShape(xasyDrawnItem):
 
     def __init__(self, path, pen=asyPen(), transform=identity()):
         """Initialize the shape with a path, pen, and transform"""
-        xasyDrawnItem.__init__(self, path, pen, transform)
+        super().__init__(path, pen, transform)
 
     def updateCode(self, mag=1.0):
         """Generate the code to describe this shape"""
@@ -752,7 +745,7 @@ class xasyFilledShape(xasyShape):
         """Initialize this shape with a path, pen, and transform"""
         if path.nodeSet[-1] != 'cycle':
             raise Exception("Filled paths must be cyclic")
-        xasyShape.__init__(self, path, pen, transform)
+        super().__init__(path, pen, transform)
 
     def updateCode(self, mag=1.0):
         """Generate the code describing this shape"""
@@ -761,13 +754,13 @@ class xasyFilledShape(xasyShape):
 
     def removeFromCanvas(self, canvas):
         """Remove this shape's depiction from a tk canvas"""
-        if self.IDTag != None:
+        if self.IDTag is not None:
             canvas.delete(self.IDTag)
 
     def drawOnCanvas(self, canvas, mag, asyFy=False, forceAddition=False):
         """Add this shape to a tk canvas"""
         if not asyFy:
-            if self.IDTag == None or forceAddition:
+            if self.IDTag is None or forceAddition:
                 # add ourselves to the canvas
                 self.path.computeControls()
                 self.IDTag = canvas.create_polygon(0, 0, 0, 0, 0, 0, tags=("drawn", "xasyFilledShape"),
@@ -822,7 +815,7 @@ class xasyText(xasyItem):
 
     def __init__(self, text, location, pen=asyPen(), transform=identity()):
         """Initialize this item with text, a location, pen, and transform"""
-        xasyItem.__init__(self)
+        super().__init__()
         self.label = asyLabel(text, location, pen)
         self.transform = [transform]
         self.onCanvas = None
@@ -855,15 +848,26 @@ class xasyText(xasyItem):
 class xasyScript(xasyItem):
     """A set of images create from asymptote code. It is always deconstructed."""
 
-    def __init__(self, canvas, script="", transforms=[]):
+    def __init__(self, canvas, script="", transforms=None, transfKeyMap=None):
         """Initialize this script item"""
-        xasyItem.__init__(self, canvas)
-        self.transform = transforms[:]
+        super().__init__(canvas)
+        if transforms is not None:
+            self.transform = transforms[:]
+        else:
+            self.transform = []
+
+        if transfKeyMap is not None:
+            self.transfKeymap = transfKeyMap
+        else:
+            self.transfKeymap = {}
+
         self.script = script
 
     def clearTransform(self):
         """Reset the transforms for each of the deconstructed images"""
-        self.transform = [identity() for im in self.imageList]
+        self.transform = [identity()] * len(self.imageList)
+        for im in self.imageList:
+            self.transfKeymap[im.key] = identity()
 
     def updateCode(self, mag=1.0):
         """Generate the code describing this script"""
@@ -897,13 +901,31 @@ class xasyScript(xasyItem):
             if image.IDTag is not None:
                 self.onCanvas['drawDict'][image.IDTag] = None
 
-    def asyfy(self, mag):
+    def asyfy(self, mag=1.0):
         """Generate the list of images described by this object and adjust the length of the transform list."""
-        xasyItem.asyfy(self, mag)
+        super().asyfy(mag)
         while len(self.imageList) > len(self.transform):
             self.transform.append(identity())
         while len(self.imageList) < len(self.transform):
             self.transform.pop()
+
+        # remove any unnessecary keys
+        key_set = set([im.key for im in self.imageList])
+        keys_to_remove = []
+
+        for key in self.transfKeymap:
+            if key not in key_set:
+                keys_to_remove.append(key)
+
+        for key in keys_to_remove:
+            self.transfKeymap.pop(key)
+
+        # add in any missng key:
+
+        for im in self.imageList:
+            if im.key not in self.transfKeymap:
+                self.transfKeymap[im.key] = identity()
+
         self.updateCode()
 
     def drawOnCanvas(self, canvas, mag, asyFy=True, forceAddition=False):
