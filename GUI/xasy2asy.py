@@ -30,6 +30,11 @@ options = xo.xasyOptions()
 options.load()
 
 
+class DebugFlags:
+    keepFiles = True
+    printDeconstTranscript = True
+
+
 def startQuickAsy():
     global quickAsy
     global quickAsyFailed
@@ -576,10 +581,12 @@ class xasyItem:
                 consoleOutput(item[1])
             else:
                 self.handleImageReception(*item)
-                try:
-                    os.remove(item[0])
-                finally:
-                    pass
+                if not DebugFlags.keepFiles:
+                    try:
+                        os.remove(item[0])
+                        # for now. Disable removing the files (just for testing... )
+                    finally:
+                        pass
             item = self.imageHandleQueue.get()
         # self.imageHandleQueue.task_done()
         worker.join()
@@ -599,14 +606,6 @@ class xasyItem:
         batch = 0
         n = 0
 
-        # key first, box second.
-        # if key is "Done"
-        raw_text = fin.readline()
-        keydata = raw_text.strip().replace('KEY=', '', 1)     # key
-
-        # template=AsyTempDir+"%d_%d.%s"
-        fileformat = "png"
-
         def render():
             for i in range(len(imageInfos)):
                 box, key = imageInfos[i]
@@ -615,14 +614,26 @@ class xasyItem:
 
                 self.imageHandleQueue.put((name, fileformat, (l, b, r, t), i, key))
 
+        # key first, box second.
+        # if key is "Done"
+        raw_text = fin.readline()
+        # if DebugFlags.printDeconstTranscript:
+        #     print(raw_text.strip())
+
+        # template=AsyTempDir+"%d_%d.%s"
+        fileformat = "png"
+
         while raw_text != "Done\n" and raw_text != "Error\n":
-            text = fin.readline()
+            text = fin.readline()       # the actual bounding box.
             # print('TESTING:', text)
             keydata = raw_text.strip().replace('KEY=', '', 1)  # key
-
-            imageInfos.append((text, keydata))
+            imageInfos.append((text, keydata))      # key-data pair
 
             raw_text = fin.readline()
+
+            # if DebugFlags.printDeconstTranscript:
+            #     print(text.strip())
+            #     print(raw_text.strip())
 
             n += 1
             if n >= maxargs:
