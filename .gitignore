@@ -119,6 +119,8 @@ core.*
 /GUI/__pycache__/*
 /.idea/*
 
+examples/_ig_*.asy
+
 ### IDE Files
 .vscode/*
 !.vscode/settings.json

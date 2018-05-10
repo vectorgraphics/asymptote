@@ -10,16 +10,14 @@
 ###########################################################################
 import sys, os, signal, threading
 from subprocess import *
-from string import *
 import xasyOptions as xo
-from tempfile import mkdtemp
+import tempfile
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
 import numpy as np
 from tkinter import *
 import queue
-import copy
 import CubicBezier
 
 import BezierCurveEditor
@@ -35,6 +33,7 @@ options.load()
 def startQuickAsy():
     global quickAsy
     global quickAsyFailed
+    global asyTempRawDir
     global AsyTempDir
     global fout, fin
 
@@ -47,11 +46,11 @@ def startQuickAsy():
         pass
     try:
         quickAsyFailed = False
-        if os.name == "nt":
-            AsyTempDir = mkdtemp(prefix="asy_", dir="./")
-        else:
-            AsyTempDir = mkdtemp(prefix="asy_") + os.sep
-        if sys.platform[:3] == 'win':
+        asyTempRawDir = tempfile.TemporaryDirectory(prefix='xasyData_')
+
+        # TODO: For windows users, make sure tmp directory has correct folder seperator.
+        AsyTempDir = asyTempRawDir.name + '/'
+        if os.name == 'nt':
             quickAsy = Popen([options['asyPath'], "-noV", "-multiline", "-q",
                               "-o" + AsyTempDir, "-inpipe=0", "-outpipe=2"], stdin=PIPE,
                              stderr=PIPE, universal_newlines=True)
@@ -60,7 +59,6 @@ def startQuickAsy():
         else:
             (rx, wx) = os.pipe()
             (ra, wa) = os.pipe()
-            rs, ws = os.pipe()          # even more pipe -- stdin/stdout.
             if sys.version_info >= (3, 4):
                 os.set_inheritable(rx, True)
                 os.set_inheritable(wx, True)
@@ -94,10 +92,7 @@ def getAsyTempDir():
 
 
 def quickAsyRunning():
-    if quickAsyFailed or quickAsy.returncode != None:
-        return False
-    else:
-        return True
+    return (not quickAsyFailed) and quickAsy.returncode is None
 
 
 def asyExecute(command):

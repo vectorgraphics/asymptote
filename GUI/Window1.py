@@ -1117,6 +1117,7 @@ class MainWindow1(Qw.QMainWindow):
     def transformObject(self, objKey, transform, applyFirst=False):
         drawObj = self.drawObjects[objKey]
         item, transfIndex = drawObj.originalObj
+        key = drawObj.key
 
         if isinstance(transform, np.ndarray):
             obj_transform = x2a.asyTransform.fromNumpyMatrix(transform)
@@ -1135,7 +1136,7 @@ class MainWindow1(Qw.QMainWindow):
             item.transform[transfIndex] = oldTransf * obj_transform
 
         drawObj.transform = item.transform[transfIndex]
-
+        item.transfKeymap[key] = drawObj.transform
         self.quickUpdate()
 
     def initializeEmptyFile(self):
