@@ -540,7 +540,7 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
       xform->call(Stack);
       transform t=pop<transform>(Stack);
       assert(*p);
-      cout << "KEY=" << (*p)->KEY << endl;
+      fprintf(pipeout,"KEY=%s\n",(*p)->KEY.c_str());
       if((*p)->endgroup()) {
         fprintf(pipeout,"%s\n",Error.c_str());
         fflush(pipeout);
