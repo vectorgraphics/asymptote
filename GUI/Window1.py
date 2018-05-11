@@ -18,6 +18,7 @@ import xasy2asy as x2a
 import xasyFile as xf
 import xasyOptions as xo
 import UndoRedoStack as Urs
+import xasyArgs as xa
 from xasyTransform import xasyTransform as xT
 
 import PrimitiveShape
@@ -27,8 +28,6 @@ import CustMatTransform
 import SetCustomAnchor
 import BezierCurveEditor
 import GuidesManager
-
-import Widg_addPolyOpt
 
 
 class ActionChanges:
@@ -100,6 +99,9 @@ class MainWindow1(Qw.QMainWindow):
         self.settings = xo.xasyOptions()
         self.settings.load()
         self.keyMaps = DefaultSettings.defaultKeymap
+
+        self.raw_args = Qc.QCoreApplication.arguments()
+        self.args = xa.parseArgs(self.raw_args)
 
         # For initialization purposes
         self.canvSize = Qc.QSize()
@@ -197,19 +199,9 @@ class MainWindow1(Qw.QMainWindow):
         self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
         self.initPenInterface()
 
-    # TODO: Move handing argument to a different file.
     def handleArguments(self):
-        args = Qc.QCoreApplication.arguments()
-        fileName = None
-
-        for arg in args:
-            if arg.startswith('-file:'):
-                fileName = arg.replace('-file:', '', 1)
-            elif arg.startswith('-customAsyPath:'):
-                self.settings['asyPath'] = arg.replace('-customAsyPath:', '', 1)
-
-        if fileName is not None:
-            self.loadFile(fileName)
+        if self.args.file is not None:
+            self.loadFile(self.args.file)
         else:
             self.initializeEmptyFile()
 
@@ -873,12 +865,11 @@ class MainWindow1(Qw.QMainWindow):
     def updateScreen(self):
         self.finalPixmap = Qg.QPixmap(self.canvSize)
         self.finalPixmap.fill(Qc.Qt.black)
-        finalPainter = Qg.QPainter(self.finalPixmap)
-        drawPoint = Qc.QPoint(0, 0)
-        # finalPainter.drawPixmap(drawPoint, self.preCanvasPixmap)
-        finalPainter.drawPixmap(drawPoint, self.canvasPixmap)
-        finalPainter.drawPixmap(drawPoint, self.postCanvasPixmap)
-        finalPainter.end()
+        with Qg.QPainter(self.finalPixmap) as finalPainter:
+            drawPoint = Qc.QPoint(0, 0)
+            # finalPainter.drawPixmap(drawPoint, self.preCanvasPixmap)
+            finalPainter.drawPixmap(drawPoint, self.canvasPixmap)
+            finalPainter.drawPixmap(drawPoint, self.postCanvasPixmap)
         self.ui.imgLabel.setPixmap(self.finalPixmap)
 
     def drawCartesianGrid(self, preCanvas):
@@ -981,34 +972,33 @@ class MainWindow1(Qw.QMainWindow):
 
     def postDraw(self):
         self.postCanvasPixmap.fill(Qc.Qt.transparent)
-        postCanvas = Qg.QPainter(self.postCanvasPixmap)
-        postCanvas.setTransform(self.screenTransformation)
-        if self.currentBoundingBox is not None:
-            postCanvas.save()
-            selObj = self.drawObjects[self.currentlySelectedObj['selectedKey']]
-            if not self.useGlobalCoords:
+        with Qg.QPainter(self.postCanvasPixmap) as postCanvas:
+            postCanvas.setTransform(self.screenTransformation)
+            if self.currentBoundingBox is not None:
                 postCanvas.save()
-                postCanvas.setTransform(selObj.transform.toQTransform(), True)
-                # postCanvas.setTransform(selObj.baseTransform.toQTransform(), True)
-                postCanvas.setPen(Qc.Qt.gray)
-                postCanvas.drawLine(Qc.QLine(-9999, 0, 9999, 0))
-                postCanvas.drawLine(Qc.QLine(0, -9999, 0, 9999))
-                postCanvas.setPen(Qc.Qt.black)
-                postCanvas.restore()
+                selObj = self.drawObjects[self.currentlySelectedObj['selectedKey']]
+                if not self.useGlobalCoords:
+                    postCanvas.save()
+                    postCanvas.setTransform(selObj.transform.toQTransform(), True)
+                    # postCanvas.setTransform(selObj.baseTransform.toQTransform(), True)
+                    postCanvas.setPen(Qc.Qt.gray)
+                    postCanvas.drawLine(Qc.QLine(-9999, 0, 9999, 0))
+                    postCanvas.drawLine(Qc.QLine(0, -9999, 0, 9999))
+                    postCanvas.setPen(Qc.Qt.black)
+                    postCanvas.restore()
 
-                postCanvas.setTransform(selObj.getInteriorScrTransform(self.newTransform).toQTransform(), True)
-                postCanvas.drawRect(selObj.localBoundingBox)
-            else:
-                postCanvas.setTransform(self.newTransform, True)
-                postCanvas.drawRect(self.currentBoundingBox)
-            postCanvas.restore()
-        if self.previewCurve is not None:
-            postCanvas.drawPath(self.previewCurve)
-        if self.addMode is not None:
-            if self.addMode.active:
-                postCanvas.setPen(self.currentPen.toQPen())
-                postCanvas.drawPath(self.addMode.getPreview())
-        postCanvas.end()
+                    postCanvas.setTransform(selObj.getInteriorScrTransform(self.newTransform).toQTransform(), True)
+                    postCanvas.drawRect(selObj.localBoundingBox)
+                else:
+                    postCanvas.setTransform(self.newTransform, True)
+                    postCanvas.drawRect(self.currentBoundingBox)
+                postCanvas.restore()
+            if self.previewCurve is not None:
+                postCanvas.drawPath(self.previewCurve)
+            if self.addMode is not None:
+                if self.addMode.active:
+                    postCanvas.setPen(self.currentPen.toQPen())
+                    postCanvas.drawPath(self.addMode.getPreview())
 
     def updateChecks(self):
         self.addMode = None
