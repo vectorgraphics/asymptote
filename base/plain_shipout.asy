@@ -65,7 +65,6 @@ void shipout(string prefix=defaultfilename, frame f,
 	     string options="", string script="",
 	     light light=currentlight, projection P=currentprojection)
 {
-  if(settings.outpipe >= 0) return;
   if(is3D(f)) {
     f=enclose(prefix,embed3(prefix,f,format,options,script,light,P));
     if(settings.render != 0 && !prc(format)) {
@@ -96,7 +95,6 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     string options="", string script="",
 	     light light=currentlight, projection P=currentprojection)
 {
-  if(settings.outpipe >= 0) return;
   if(!uptodate()) {
     bool inlinetex=settings.inlinetex;
     bool prc=prc(format);
