@@ -29,13 +29,16 @@ private picture[] tempStore;
 private picture newPic;
 void startScript()
 {
+  /*
   tempStore.push(currentpicture.copy());
   newPic=new picture;
   currentpicture=newPic;
+  */
 }
 
 void endScript()
 {
+  /*
   if(tempStore.length < 1) {
     abort("endScript() without matching beginScript()");
   } else {
@@ -43,6 +46,7 @@ void endScript()
     add(currentpicture,newPic.fit(),group=false);
   }
   shipped=false;
+  */
 }
 
 struct indexedTransform {
