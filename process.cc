@@ -25,9 +25,6 @@
 
 #include "process.h"
 
-string vm::fileName;
-position vm::topPos;
-
 namespace camp {
 pen& defaultpen() {
   return processData().defaultpen;
@@ -312,7 +309,7 @@ public:
     if (tree) {
       for(mem::list<runnable *>::iterator r=tree->stms.begin();
           r != tree->stms.end(); ++r) {
-        vm::fileName=(*r)->getPos().filename();
+        processData().fileName=(*r)->getPos().filename();
         if(!em.errors() || getSetting<bool>("debug"))
           runRunnable(*r,e,s,tm);
       }

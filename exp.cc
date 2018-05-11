@@ -745,10 +745,8 @@ signature *callExp::argTypes(coenv &e, bool *searchable)
     if(string(args->args[i].name) == "KEY") {
       stringExp *s=dynamic_cast<stringExp*>(args->args[i].val);
       if(s) {
-        if(getPos().filename() == vm::fileName) {
+        if(getPos().filename() == processData().fileName)
           processData().xkey[getPos().LineColumn()]=Strdup(s->getString());
-          processData().KEY=s->getString();
-        }
         args->args.erase(args->args.begin()+i);
         --n;
         if(i == n) break;

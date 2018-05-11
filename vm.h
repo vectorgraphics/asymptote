@@ -29,8 +29,6 @@ string lookupBltin(bltin b);
 
 void run(lambda *l);
 position getPos();
-extern string fileName;
-extern position topPos;
 
 void errornothrow(const char* message);
 void error(const char* message);

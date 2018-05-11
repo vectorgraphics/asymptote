@@ -97,7 +97,11 @@ struct processDataStruct {
   vm::callable *atBreakpointFunction;
   camp::pen defaultpen;
   camp::pen currentpen;
-  mem::string KEY;
+  
+  // For xasy:
+  string fileName;
+  position topPos;
+  string KEY;
   xkey_t xkey;
   
   terminator<std::ofstream> ofile;

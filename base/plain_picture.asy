@@ -442,23 +442,17 @@ struct picture { // <<<1
     userBoxZ3(min.z,max.z);
   }
   
-  string getKEY() {
-    string key=xasyKEY();
-    xasyKEY("");
-    return key;
-  }
-
   // Add drawer <<<2
   void add(drawerBound d, bool exact=false, bool above=true) {
     uptodate=false;
     if(!exact) bounds.exact=false;
     if(above) {
       nodes.push(d);
-      keys.push(getKEY());
+      keys.push(xasyKEY());
     }
     else {
       nodes.insert(0,d);
-      keys.insert(0,getKEY());
+      keys.insert(0,xasyKEY());
     }
   }
   
@@ -466,7 +460,7 @@ struct picture { // <<<1
   void addExactAbove(drawerBound d) {
     uptodate=false;
     nodes.push(d);
-    keys.push(getKEY());
+    keys.push(xasyKEY());
   }
 
   void add(drawer d, bool exact=false, bool above=true) {
