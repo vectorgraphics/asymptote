@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-if [ ! -f ./asy ]; then
-    make clean
-    make
-fi
-export ASYMPTOTE_DIR=/home/supakorn/Source/asymptote/base
-./asy $@
