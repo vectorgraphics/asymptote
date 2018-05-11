@@ -121,6 +121,9 @@ core.*
 
 examples/_ig_*.asy
 
+### Shorthand Dev Script
+./asydev
+
 ### IDE Files
 .vscode/*
 !.vscode/settings.json

@@ -889,8 +889,10 @@ class xasyScript(xasyItem):
                 isFirst = False
                 count += 1
             self.asyCode += ");\n"
+        # TODO: Eventaully fix this tomorrow with John.
+        # start/endScript messes up with keys.
         self.asyCode += "startScript(); {\n"
-        self.asyCode += self.script.replace("\t", " ")
+        self.asyCode += self.script.replace('\t', ' ' * 4)
         self.asyCode = self.asyCode.rstrip()
         self.asyCode += "\n} endScript();\n"
 
