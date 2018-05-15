@@ -17,8 +17,9 @@ void report(int i)
 }
 void initXasyMode()
 {
-  size(0,0);
-  inXasyMode=true;
+    // TODO: Figure out what's wrong...
+    //size(0,0);
+    inXasyMode=true;
 }
 
 void exitXasyMode()
@@ -49,6 +50,39 @@ void endScript()
   */
 }
 
+// TODO: Replace this with something more elegant.
+// John's code - just a working temporary.
+struct keytransform {
+  string key;
+  transform T;
+  void operator init(string key) {
+    this.key=key;
+  }
+  void operator init(string key, transform T) {
+    this.key=key;
+    this.T=T;
+  }
+}
+
+bool operator < (keytransform a, keytransform b) {
+  return a.key < b.key;
+}
+
+struct map {
+  keytransform[] M;
+  void add(string key, transform T) {
+    keytransform m=keytransform(key,T);
+    int i=search(M,m,operator <);
+    M.insert(i+1,m);
+  }
+  transform lookup(string key) {
+    int i=search(M,keytransform(key),operator <);
+    if(i >= 0 && M[i].key == key) return M[i].T;
+    return identity();
+  }
+}
+
+
 struct indexedTransform {
   int index;
   transform t;
@@ -59,6 +93,51 @@ struct indexedTransform {
     this.active=active;
   }
 }
+/* 
+struct keyedTransform {
+    string key;
+    transform transf;
+    bool active;
+
+    void operator init(string key, transform t, bool active=true) {
+        this.key = key;
+        this.transf = t;
+        this.active = active;
+    }
+}
+
+struct hashedTransformMap {
+    struct transact {
+      transform t;
+      bool active;
+      void operator init(transform t, bool active=true) {
+        this.t=t;
+        this.active=active;
+      }
+      void operator init(indexedTransform i){
+        this.t=i.t;
+        this.active=i.active;
+      }
+      void operator init() {
+        this.t=identity();
+        this.active=true;
+      }
+    }
+
+    // private hashMap (somethigng? ) hashmap;
+
+    transform getKey(string key) {
+        return (0, 0, 1, 0, 0, 1);
+    }
+
+    void setKey(string key, transform t, bool active=true) {
+
+    }
+
+    bool empty() {
+        return true;
+    }
+} */
 
 struct framedTransformStack {
   struct transact {
@@ -78,7 +157,7 @@ struct framedTransformStack {
     }
   }
   private transact[] stack;
-  private int[] frames;
+  // private int[] frames;
   private int stackBase=0;
   transform pop() {
     if(stack.length == 0)
@@ -129,6 +208,7 @@ struct framedTransformStack {
 }
 
 framedTransformStack xformStack;
+map xformMap;
 
 void deconstruct(picture pic=currentpicture, real magnification=1)
 {

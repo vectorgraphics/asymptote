@@ -1117,16 +1117,20 @@ class MainWindow1(Qw.QMainWindow):
         else:
             obj_transform = transform
 
-        oldTransf = item.transform[transfIndex]
+        # oldTransf = item.transform[transfIndex]
+        oldTransf = item.transfKeymap[key]
 
         if not applyFirst:
-            item.transform[transfIndex] = obj_transform * oldTransf
-            drawObj.transform = item.transform[transfIndex]
-        else:
-            item.transform[transfIndex] = oldTransf * obj_transform
+            # item.transform[transfIndex] = obj_transform * oldTransf
+            # drawObj.transform = item.transform[transfIndex]
+            item.transfKeymap[key] = obj_transform * oldTransf
+            drawObj.transform = item.transfKeymap[key]
 
-        drawObj.transform = item.transform[transfIndex]
-        item.transfKeymap[key] = drawObj.transform
+        else:
+            item.transfKeymap[key] = oldTransf * obj_transform
+            # item.transform[transfIndex] = oldTransf * obj_transform
+
+        drawObj.transform = item.transfKeymap[key]
         self.quickUpdate()
 
     def initializeEmptyFile(self):
@@ -1160,9 +1164,10 @@ class MainWindow1(Qw.QMainWindow):
             if self.autoMakeScript or Qw.QMessageBox.question(self, "Error Opening File", "File was not recognized as an xasy file.\n"
                 "Load as a script item?") == Qw.QMessageBox.Yes:
                 # try:
-                item = x2a.xasyScript(self.xasyDrawObj)
+                item = x2a.xasyScript(canvas=self.xasyDrawObj)
                 f.seek(0)
                 item.setScript(f.read())
+                # item.setKey()
                 self.fileItems.append(item)
                 # except:
                 #     Qw.QMessageBox.critical(self, "File Opening Failed.",

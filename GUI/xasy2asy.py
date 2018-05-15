@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 ###########################################################################
 #
 # xasy2asy provides a Python interface to Asymptote
@@ -8,23 +7,31 @@
 # Created: June 29, 2007
 #
 ###########################################################################
-import sys, os, signal, threading
-from subprocess import *
-import xasyOptions as xo
-import tempfile
+
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
+
 import numpy as np
 from tkinter import *
+
+import sys
+import os
+import signal
+import threading
+from subprocess import *
+import tempfile
 import queue
+import io
+
+import xasyOptions as xo
 import CubicBezier
+import xasyUtils
 
 import BezierCurveEditor
+import uuid
 
 quickAsyFailed = True
-global AsyTempDir
-
 console = None
 options = xo.xasyOptions()
 options.load()
@@ -33,6 +40,8 @@ options.load()
 class DebugFlags:
     keepFiles = True
     printDeconstTranscript = True
+
+# TODO: Eventually move this to a class of its own.
 
 
 def startQuickAsy():
@@ -137,7 +146,7 @@ class asyTransform:
             self.x, self.y, self.xx, self.xy, self.yx, self.yy = initTuple
             self.deleted = delete
         else:
-            raise Exception("Illegal initializer for asyTransform")
+            raise TypeError("Illegal initializer for asyTransform")
 
     @classmethod
     def fromQTransform(cls, transform):
@@ -295,6 +304,8 @@ class asyPen(asyObj):
             lines = fin.readline()
             parts = lines.split()
             r = g = b = eval(parts[0])
+        else:
+            raise ChildProcessError('Asymptote error.')
         self.color = (r, g, b)
 
     def tkColor(self):
@@ -376,6 +387,8 @@ class asyPath(asyObj):
 
     def updateCode(self, mag=1.0):
         """Generate the code describing the path"""
+
+        # TODO: Change this to io.StringIO for better performance.
         if not self.computed:
             count = 0
             # this string concatenation could be optimised
@@ -510,16 +523,19 @@ class asyImage:
 
 class xasyItem:
     """A base class for items in the xasy GUI"""
+    setKeyFormatStr = 'xformMap.add("{:s}", {:s});'
 
     def __init__(self, canvas=None):
         """Initialize the item to an empty item"""
         self.transform = [identity()]
         self.transfKeymap = {}              # the new keymap.
-        self.asyCode = ""
+        self.asyCode = ''
         self.imageList = []
         self.IDTag = None
         self.asyfied = False
         self.onCanvas = canvas
+        self.keyBuffer = None
+        self.imageHandleQueue = queue.Queue()
 
     def updateCode(self, mag=1.0):
         """Update the item's code: to be overriden"""
@@ -545,33 +561,29 @@ class xasyItem:
             currImage.performCanvasTransform = False
 
             # handle this case if transform is not in the map yet.
-            if count >= len(self.transform) or not self.transform[count].deleted:
-                # self.imageList[-1].IDTag = self.onCanvas.create_image(bbox[0], -bbox[3], anchor=NW, tags=("image"),
-                #                                                     image=self.imageList[-1].itk)
-
-                # now the raw image is flipped (to match asy coordinates
-                # ) and to use bbox as starting from bottom left.
-                # bounding box is (left, bottom, right, top)
+            if key not in self.transfKeymap.keys() or not self.transfKeymap[key].deleted:
                 # TODO: Look at Transform & translations
-                idTag = str(file)       # we still want a unique ID tag for each file. The key is for transformation.
-
-                currImage.IDTag = idTag
-
-                if count < len(self.transform):
-                    inputTransform = self.transform[count]
+                #  we still want a unique ID tag for each file. The key is for transformation.
+                currImage.IDTag = str(file)
+                if key in self.transfKeymap.keys():
+                    inputTransform = self.transfKeymap[key]
                 else:
                     inputTransform = identity()
 
-                self.onCanvas['drawDict'][idTag] = DrawObject(currImage.iqt, self.onCanvas['canvas'], inputTransform,
-                                                              Qc.QPointF(bbox[0], bbox[2]), count, key=key)
-                self.onCanvas['drawDict'][idTag].originalObj = self, count
-                self.onCanvas['drawDict'][idTag].draw()
+                # TODO: The problem now is to get asy to recognize the mapped transformation.
+                # It is in there - saved, but asy doesn't recognize it.
 
-    def asyfy(self, mag=1.0):
-        self.removeFromCanvas()
+                self.onCanvas['drawDict'][currImage.IDTag] = \
+                    DrawObject(currImage.iqt, self.onCanvas['canvas'], transform=inputTransform,
+                               btmRightanchor=Qc.QPointF(bbox[0], bbox[2]),
+                               drawOrder=count, key=key)
+                self.onCanvas['drawDict'][currImage.IDTag].originalObj = self, count
+                self.onCanvas['drawDict'][currImage.IDTag].draw()
+
+    def asyfy(self, mag=1.0, keyOnly=False):
         self.imageList = []
         self.imageHandleQueue = queue.Queue()
-        worker = threading.Thread(target=self.asyfyThread, args=(mag,))
+        worker = threading.Thread(target=self.asyfyThread, args=[mag, keyOnly])
         worker.start()
         item = self.imageHandleQueue.get()
         if console is not None:
@@ -584,17 +596,17 @@ class xasyItem:
                 if not DebugFlags.keepFiles:
                     try:
                         os.remove(item[0])
-                        # for now. Disable removing the files (just for testing... )
                     finally:
                         pass
             item = self.imageHandleQueue.get()
         # self.imageHandleQueue.task_done()
         worker.join()
 
-    def asyfyThread(self, mag=1.0):
+    def asyfyThread(self, mag=1.0, keyOnly=False):
         """Convert the item to a list of images by deconstructing this item's code"""
         fout.write("reset;\n")
-        fout.write("initXasyMode();\n")
+        # TODO: Figure out what's wrong. with initXasyMode();
+        # fout.write("initXasyMode();\n")
         fout.write("atexit(null);\n")
         for line in self.getCode().splitlines():
             fout.write(line + "\n")
@@ -617,8 +629,9 @@ class xasyItem:
         # key first, box second.
         # if key is "Done"
         raw_text = fin.readline()
-        # if DebugFlags.printDeconstTranscript:
-        #     print(raw_text.strip())
+        text = ""
+        if DebugFlags.printDeconstTranscript:
+            print(raw_text.strip())
 
         # template=AsyTempDir+"%d_%d.%s"
         fileformat = "png"
@@ -627,13 +640,21 @@ class xasyItem:
             text = fin.readline()       # the actual bounding box.
             # print('TESTING:', text)
             keydata = raw_text.strip().replace('KEY=', '', 1)  # key
+            if not keydata.startswith('x:'):
+                line, col = keydata.split('.')
+                if self.keyBuffer is None:
+                    self.keyBuffer = {}
+                if line not in self.keyBuffer:
+                    self.keyBuffer[line] = set()
+                self.keyBuffer[line].add(col)
+                print(line, col)
             imageInfos.append((text, keydata))      # key-data pair
 
             raw_text = fin.readline()
 
-            # if DebugFlags.printDeconstTranscript:
-            #     print(text.strip())
-            #     print(raw_text.strip())
+            if DebugFlags.printDeconstTranscript:
+                print(text.strip())
+                print(raw_text.strip())
 
             n += 1
             if n >= maxargs:
@@ -652,18 +673,20 @@ class xasyItem:
     def drawOnCanvas(self, canvas, mag, forceAddition=False):
         raise NotImplementedError
 
-    def removeFromCanvas(self):
-        raise NotImplementedError
-
 
 class xasyDrawnItem(xasyItem):
     """A base class for GUI items was drawn by the user. It combines a path, a pen, and a transform."""
 
-    def __init__(self, path, pen=asyPen(), transform=identity()):
+    def __init__(self, path, pen=asyPen(), transform=identity(), key=None):
         """Initialize the item with a path, pen, and transform"""
         super().__init__()
         self.path = path
         self.pen = pen
+        self.rawIdentifier = 'x:' + str(np.random.randint(0, 10000))
+        self.transfKey = key
+        if key is None:
+            self.transfKey = 'x:' + str(uuid.uuid4())
+        self.transfKeymap = {self.transfKey: transform}
         self.transform = [transform]
 
     def appendPoint(self, point, link=None):
@@ -698,6 +721,12 @@ class xasyDrawnItem(xasyItem):
             self.path.nodeSet[-1] = point
         self.path.computed = False
 
+    def updateCode(self, mag=1.0):
+        raise NotImplementedError
+
+    def drawOnCanvas(self, canvas, mag, forceAddition=False):
+        raise NotImplementedError
+
 
 class xasyShape(xasyDrawnItem):
     """An outlined shape drawn on the GUI"""
@@ -708,13 +737,10 @@ class xasyShape(xasyDrawnItem):
 
     def updateCode(self, mag=1.0):
         """Generate the code to describe this shape"""
-        self.asyCode = "xformStack.push(" + self.transform[0].getCode() + ");\n"
-        self.asyCode += "draw(" + self.path.getCode() + "," + self.pen.getCode() + ");"
-
-    def removeFromCanvas(self, canvas):
-        """Remove the shape's depiction from a tk canvas"""
-        if self.IDTag is not None:
-            canvas.delete(self.IDTag)
+        with io.StringIO() as rawAsyCode:
+            rawAsyCode.write(xasyItem.setKeyFormatStr.format(self.transfKey, self.transfKeymap[self.transfKey].getCode()))
+            rawAsyCode.write('\ndraw(KEY={0}, {1}, {2})'.format(self.transfKey, self.path.getCode(), self.pen.getCode()))
+            self.asyCode = rawAsyCode.getvalue()
 
     def drawOnCanvas(self, canvas, mag, asyFy=False, forceAddition=False):
         """Add this shape to a Qt (not TK anymore) canvas"""
@@ -729,15 +755,15 @@ class xasyShape(xasyDrawnItem):
                 self.drawOnCanvas(canvas, mag)
             else:
                 self.path.computeControls()
-                self.IDTag = None
-                idTag = str(np.random.randint(0, 10000))  # for now
+                while self.rawIdentifier in canvas['drawDict'].keys():
+                    self.rawIdentifier = np.random.randint(0, 1000000)
 
                 drawPriority = len(canvas['drawDict']) + 1
-                canvas['drawDict'][idTag] = DrawObject(self.path.toQPainterPath(), canvas['canvas'],
-                                                       drawOrder=drawPriority, transform=self.transform[0], pen=self.pen, key=idTag)
-                canvas['drawDict'][idTag].originalObj = self, 0
-                canvas['drawDict'][idTag].draw()
-                self.IDTag = canvas['drawDict'][idTag].getID()
+                canvas['drawDict'][self.rawIdentifier] = DrawObject(self.path.toQPainterPath(), canvas['canvas'],
+                                                       drawOrder=drawPriority, transform=self.transform[0], pen=self.pen, key=self.transfKey)
+                canvas['drawDict'][self.rawIdentifier].originalObj = self, 0
+                canvas['drawDict'][self.rawIdentifier].draw()
+                self.IDTag = canvas['drawDict'][self.rawIdentifier].getID()
 
     def __str__(self):
         """Create a string describing this shape"""
@@ -757,11 +783,6 @@ class xasyFilledShape(xasyShape):
         """Generate the code describing this shape"""
         self.asyCode = "xformStack.push(" + self.transform[0].getCode() + ");\n"
         self.asyCode += "fill(" + self.path.getCode() + "," + self.pen.getCode() + ");"
-
-    def removeFromCanvas(self, canvas):
-        """Remove this shape's depiction from a tk canvas"""
-        if self.IDTag is not None:
-            canvas.delete(self.IDTag)
 
     def drawOnCanvas(self, canvas, mag, asyFy=False, forceAddition=False):
         """Add this shape to a tk canvas"""
@@ -819,25 +840,26 @@ class xasyFilledShape(xasyShape):
 class xasyText(xasyItem):
     """Text created by the GUI"""
 
-    def __init__(self, text, location, pen=asyPen(), transform=identity()):
+    def __init__(self, text, location, pen=asyPen(), transform=identity(), key=None):
         """Initialize this item with text, a location, pen, and transform"""
         super().__init__()
         self.label = asyLabel(text, location, pen)
-        self.transform = [transform]
+        # self.transform = [transform]
+        if key is None:
+            # TODO: Hopefully asy engine can store a list of used keys...
+            self.key = str(uuid.uuid4())
+        else:
+            self.key = key
+        self.transfKeymap = {key: transform}
         self.onCanvas = None
 
     def updateCode(self, mag=1.0):
         """Generate the code describing this object"""
-        self.asyCode = "xformStack.push(" + self.transform[0].getCode() + ");\n"
-        self.asyCode += "label(" + self.label.getCode() + ");"
-
-    def removeFromCanvas(self):
-        """Removes the label's images from a tk canvas"""
-        if self.onCanvas is None:
-            return
-        for image in self.imageList:
-            if image.IDTag is not None:
-                self.onCanvas.delete(image.IDTag)
+        with io.StringIO() as rawAsyCode:
+            rawAsyCode.write(xasyItem.setKeyFormatStr.format(self.key, self.transfKeymap[self.key]))
+            rawAsyCode.write('\nlabel({0});\n'.format(self.label.getCode()))
+            self.asyCode = rawAsyCode.getvalue()
+        # self.asyCode = "xformStack.push(" + self.transform[0].getCode() + ");\n"
 
     def drawOnCanvas(self, canvas, mag, asyFy=True, forceAddition=False):
         """Adds the label's images to a tk canvas"""
@@ -857,10 +879,10 @@ class xasyScript(xasyItem):
     def __init__(self, canvas, script="", transforms=None, transfKeyMap=None):
         """Initialize this script item"""
         super().__init__(canvas)
-        if transforms is not None:
-            self.transform = transforms[:]
-        else:
-            self.transform = []
+        # if transforms is not None:
+        #     self.transform = transforms[:]
+        # else:
+        #     self.transform = []
 
         if transfKeyMap is not None:
             self.transfKeymap = transfKeyMap
@@ -871,47 +893,40 @@ class xasyScript(xasyItem):
 
     def clearTransform(self):
         """Reset the transforms for each of the deconstructed images"""
-        self.transform = [identity()] * len(self.imageList)
+        # self.transform = [identity()] * len(self.imageList)
         for im in self.imageList:
             self.transfKeymap[im.key] = identity()
 
     def updateCode(self, mag=1.0):
         """Generate the code describing this script"""
-        self.asyCode = ""
-        if len(self.transform) > 0:
-            self.asyCode = "xformStack.add("
-            isFirst = True
-            count = 0
-            for xform in self.transform:
-                if not isFirst:
-                    self.asyCode += ",\n"
-                self.asyCode += "indexedTransform({:d},{:s})".format(count, str(xform))
-                isFirst = False
-                count += 1
-            self.asyCode += ");\n"
-        # TODO: Eventaully fix this tomorrow with John.
-        # start/endScript messes up with keys.
-        self.asyCode += "startScript(); {\n"
-        self.asyCode += self.script.replace('\t', ' ' * 4)
-        self.asyCode = self.asyCode.rstrip()
-        self.asyCode += "\n} endScript();\n"
+        # TODO: Find a way to directly write-in the key.
+        with io.StringIO() as rawAsyCode:
+            if self.transfKeymap:
+                transfMapList = [xasyItem.setKeyFormatStr.format(key, str(value))
+                                 for key, value in self.transfKeymap.items()]
+                transfMapList.append('')
+                rawAsyCode.write('\n'.join(transfMapList))
+
+            # start/endScript messes up with keys.
+            rawAsyCode.write("startScript(); {\n")
+
+            for line in self.script.splitlines():
+                raw_line = line.rstrip().replace('\t', ' ' * 4)
+                rawAsyCode.write(raw_line + '\n')
+
+            rawAsyCode.write("\n} endScript();\n")
+
+            self.asyCode = rawAsyCode.getvalue()
+            pass
 
     def setScript(self, script):
         """Sets the content of the script item."""
         self.script = script
         self.updateCode()
 
-    def removeFromCanvas(self):
-        """Removes the script's images from a tk canvas"""
-        if self.onCanvas is None:
-            return
-        for image in self.imageList:
-            if image.IDTag is not None:
-                self.onCanvas['drawDict'][image.IDTag] = None
-
-    def asyfy(self, mag=1.0):
+    def asyfy(self, mag=1.0, keyOnly=False):
         """Generate the list of images described by this object and adjust the length of the transform list."""
-        super().asyfy(mag)
+        super().asyfy(mag, keyOnly)
         while len(self.imageList) > len(self.transform):
             self.transform.append(identity())
         while len(self.imageList) < len(self.transform):
@@ -988,6 +1003,8 @@ class DrawObject:
             testBbox.moveTo(self.btmRightAnchor.toPoint())
         elif isinstance(self.drawObject, Qg.QPainterPath):
             testBbox = self.baseTransform.toQTransform().mapRect(self.drawObject.boundingRect())
+        else:
+            raise TypeError('drawObject is not a valid type!')
         pointList = [self.getScreenTransform().toQTransform().map(point) for point in [
             testBbox.topLeft(), testBbox.topRight(), testBbox.bottomLeft(), testBbox.bottomRight()
         ]]
