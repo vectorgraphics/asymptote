@@ -387,26 +387,21 @@ class asyPath(asyObj):
 
     def updateCode(self, mag=1.0):
         """Generate the code describing the path"""
-
-        # TODO: Change this to io.StringIO for better performance.
-        if not self.computed:
+        with io.StringIO() as rawAsyCode:
             count = 0
-            # this string concatenation could be optimised
-            self.asyCode = self.makeNodeStr(self.nodeSet[0])
+            rawAsyCode.write(self.makeNodeStr(self.nodeSet[0]))
             for node in self.nodeSet[1:]:
-                self.asyCode += self.linkSet[count] + self.makeNodeStr(node)
-                count += 1
-        else:
-            count = 0
-            # this string concatenation could be optimised
-            self.asyCode = self.makeNodeStr(self.nodeSet[0])
-            for node in self.nodeSet[1:]:
-                self.asyCode += "..controls"
-                self.asyCode += self.makeNodeStr(self.controlSet[count][0])
-                self.asyCode += "and"
-                self.asyCode += self.makeNodeStr(self.controlSet[count][1])
-                self.asyCode += ".." + self.makeNodeStr(node) + "\n"
-                count += 1
+                if not self.computed:
+                    rawAsyCode.write(self.linkSet[count])
+                    rawAsyCode.write(self.makeNodeStr(node))
+                else:
+                    rawAsyCode.write('..controls')
+                    rawAsyCode.write(self.makeNodeStr(self.controlSet[count][0]))
+                    rawAsyCode.write('and')
+                    rawAsyCode.write(self.makeNodeStr(self.controlSet[count][1]))
+                    rawAsyCode.write(".." + self.makeNodeStr(node) + "\n")
+                count = count + 1
+            self.asyCode = rawAsyCode.getvalue()
 
     def getNode(self, index):
         """Return the requested node"""
