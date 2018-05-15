@@ -483,17 +483,20 @@ class asyPath(asyObj):
 class asyLabel(asyObj):
     """A python wrapper for an asy label"""
 
-    def __init__(self, text="", location=(0, 0), pen=asyPen()):
+    def __init__(self, text="", location=(0, 0), pen=asyPen(), align=None):
         """Initialize the label with the given test, location, and pen"""
         asyObj.__init__(self)
+        self.align = align
+        if align is None:
+            self.align = 'SE'
         self.text = text
         self.location = location
         self.pen = pen
 
     def updateCode(self, mag=1.0):
         """Generate the code describing the label"""
-        self.asyCode = "Label(\"" + self.text + "\"," + str(
-            (self.location[0], self.location[1])) + "," + self.pen.getCode() + ",align=SE)"
+        self.asyCode = 'Label("{0}", {1}, p={2}, align={3})'.format(self.text, tuple(self.location), self.pen.getCode(),
+                                                                    self.align)
 
     def setText(self, text):
         """Set the label's text"""
@@ -562,16 +565,16 @@ class xasyItem:
 
             # handle this case if transform is not in the map yet.
             if key not in self.transfKeymap.keys() or not self.transfKeymap[key].deleted:
-                # TODO: Look at Transform & translations
-                #  we still want a unique ID tag for each file. The key is for transformation.
                 currImage.IDTag = str(file)
+                counter = 0
+                while currImage.IDTag in self.onCanvas['drawDict'].keys():
+                    currImage.IDTag = str(file) + '_' + str(counter)
+                    counter = counter + 1
+
                 if key in self.transfKeymap.keys():
                     inputTransform = self.transfKeymap[key]
                 else:
                     inputTransform = identity()
-
-                # TODO: The problem now is to get asy to recognize the mapped transformation.
-                # It is in there - saved, but asy doesn't recognize it.
 
                 self.onCanvas['drawDict'][currImage.IDTag] = \
                     DrawObject(currImage.iqt, self.onCanvas['canvas'], transform=inputTransform,
@@ -606,6 +609,7 @@ class xasyItem:
         """Convert the item to a list of images by deconstructing this item's code"""
         fout.write("reset;\n")
         # TODO: Figure out what's wrong. with initXasyMode();
+        # The problem is that resetting the files doesn't work.
         # fout.write("initXasyMode();\n")
         fout.write("atexit(null);\n")
         for line in self.getCode().splitlines():
@@ -653,8 +657,8 @@ class xasyItem:
             raw_text = fin.readline()
 
             if DebugFlags.printDeconstTranscript:
-                print(text.strip())
-                print(raw_text.strip())
+                print(text.rstrip())
+                print(raw_text.rstrip())
 
             n += 1
             if n >= maxargs:
@@ -739,7 +743,8 @@ class xasyShape(xasyDrawnItem):
         """Generate the code to describe this shape"""
         with io.StringIO() as rawAsyCode:
             rawAsyCode.write(xasyItem.setKeyFormatStr.format(self.transfKey, self.transfKeymap[self.transfKey].getCode()))
-            rawAsyCode.write('\ndraw(KEY={0}, {1}, {2})'.format(self.transfKey, self.path.getCode(), self.pen.getCode()))
+            rawAsyCode.write(
+                '\ndraw(KEY="{0}", {1}, {2})'.format(self.transfKey, self.path.getCode(), self.pen.getCode()))
             self.asyCode = rawAsyCode.getvalue()
 
     def drawOnCanvas(self, canvas, mag, asyFy=False, forceAddition=False):
@@ -760,7 +765,8 @@ class xasyShape(xasyDrawnItem):
 
                 drawPriority = len(canvas['drawDict']) + 1
                 canvas['drawDict'][self.rawIdentifier] = DrawObject(self.path.toQPainterPath(), canvas['canvas'],
-                                                       drawOrder=drawPriority, transform=self.transform[0], pen=self.pen, key=self.transfKey)
+                                                                    drawOrder=drawPriority, transform=self.transform[0],
+                                                                    pen=self.pen, key=self.transfKey)
                 canvas['drawDict'][self.rawIdentifier].originalObj = self, 0
                 canvas['drawDict'][self.rawIdentifier].draw()
                 self.IDTag = canvas['drawDict'][self.rawIdentifier].getID()
@@ -847,19 +853,18 @@ class xasyText(xasyItem):
         # self.transform = [transform]
         if key is None:
             # TODO: Hopefully asy engine can store a list of used keys...
-            self.key = str(uuid.uuid4())
+            self.key = 'x:' + str(uuid.uuid4())
         else:
             self.key = key
-        self.transfKeymap = {key: transform}
+        self.transfKeymap = {self.key: transform}
         self.onCanvas = None
 
     def updateCode(self, mag=1.0):
         """Generate the code describing this object"""
         with io.StringIO() as rawAsyCode:
-            rawAsyCode.write(xasyItem.setKeyFormatStr.format(self.key, self.transfKeymap[self.key]))
-            rawAsyCode.write('\nlabel({0});\n'.format(self.label.getCode()))
+            rawAsyCode.write(xasyItem.setKeyFormatStr.format(self.key, self.transfKeymap[self.key].getCode()))
+            rawAsyCode.write('\nlabel(KEY="{0}", {1});\n'.format(self.key, self.label.getCode()))
             self.asyCode = rawAsyCode.getvalue()
-        # self.asyCode = "xformStack.push(" + self.transform[0].getCode() + ");\n"
 
     def drawOnCanvas(self, canvas, mag, asyFy=True, forceAddition=False):
         """Adds the label's images to a tk canvas"""

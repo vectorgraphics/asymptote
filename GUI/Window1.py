@@ -222,7 +222,8 @@ class MainWindow1(Qw.QMainWindow):
             'debug:setPolarGrid': self.debugSetPolarGrid,
             'debug:addUnitCircle': self.dbgAddUnitCircle,
             'debug:addCircle': self.dbgAddCircle,
-            'debug:addPoly': self.dbgAddPoly
+            'debug:addPoly': self.dbgAddPoly,
+            'debug:addLabel': self.debugAddLabel
         }
         self.commandsFunc = {**self.commandsFunc, **debugFunc}
 
@@ -309,6 +310,12 @@ class MainWindow1(Qw.QMainWindow):
         newSquarePath = PrimitiveShape.PrimitiveShape.exscribedRegPolygon(6, (0, 0), 100, 0)
         newSquare = x2a.xasyShape(newSquarePath, pen=self.currentPen)
         self.fileItems.append(newSquare)
+        self.asyfyCanvas()
+
+    def debugAddLabel(self):
+        testText = '$\\displaystyle{\\int_{\\varphi(F)} f = \\int_F (f \\circ \\varphi) \\left| \\det J_{\\varphi} \\right|}$'
+        newPath = x2a.xasyText(testText, (0, 0))
+        self.fileItems.append(newPath)
         self.asyfyCanvas()
 
     def debug(self):
