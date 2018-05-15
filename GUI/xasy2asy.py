@@ -846,10 +846,10 @@ class xasyFilledShape(xasyShape):
 class xasyText(xasyItem):
     """Text created by the GUI"""
 
-    def __init__(self, text, location, pen=asyPen(), transform=identity(), key=None):
+    def __init__(self, text, location, pen=asyPen(), transform=identity(), key=None, align=None):
         """Initialize this item with text, a location, pen, and transform"""
         super().__init__()
-        self.label = asyLabel(text, location, pen)
+        self.label = asyLabel(text, location, pen, align)
         # self.transform = [transform]
         if key is None:
             # TODO: Hopefully asy engine can store a list of used keys...
@@ -873,6 +873,10 @@ class xasyText(xasyItem):
         elif self.onCanvas != canvas:
             raise Exception("Error: item cannot be added to more than one canvas")
         self.asyfy(mag)
+
+    def getBoundingBox(self, mag=1.0):
+        self.asyfy(mag)
+        return self.imageList[0].bbox
 
     def __str__(self):
         return "xasyText code:{:s}".format("\n\t".join(self.getCode().splitlines()))

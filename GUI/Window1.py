@@ -285,6 +285,7 @@ class MainWindow1(Qw.QMainWindow):
 
         self.ui.btnAddCircle.clicked.connect(self.btnAddCircleOnClick)
         self.ui.btnAddPoly.clicked.connect(self.btnAddPolyOnClick)
+        self.ui.btnAddLabel.clicked.connect(self.btnAddLabelOnClick)
 
     @property
     def currentPen(self):
@@ -381,6 +382,10 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnAddPolyOnClick(self):
         self.addMode = InplaceAddObj.AddPoly()
+        self.updateOptionWidget()
+
+    def btnAddLabelOnClick(self):
+        self.addMode = InplaceAddObj.AddLabel()
         self.updateOptionWidget()
 
     def updateCurve(self, valid, newCurve):
@@ -673,7 +678,10 @@ class MainWindow1(Qw.QMainWindow):
         assert isinstance(mouseEvent, Qg.QMouseEvent)
         if self.addMode is not None:
             self.addMode.mouseRelease()
-            self.addItemFromPath(self.addMode.getObject())
+            if isinstance(self.addMode, InplaceAddObj.AddLabel):
+                self.createLabel(self.addMode.getObject())
+            else:
+                self.addItemFromPath(self.addMode.getObject())
             self.selectionMode = SelectionMode.select
             self.updateChecks()
         self.addMode = None
@@ -681,6 +689,15 @@ class MainWindow1(Qw.QMainWindow):
             self.clearSelection()
         self.inMidTransformation = False
         self.quickUpdate()
+
+    def createLabel(self, labelInfo):
+        text = labelInfo['txt']
+        align = labelInfo['align']
+        anchor = labelInfo['anchor']
+        newLabel = x2a.xasyText(text=text, location=anchor, pen=self.currentPen, align=align)
+        self.fileItems.append(newLabel)
+
+        self.asyfyCanvas()
 
     def clearSelection(self):
         if self.currentlySelectedObj['selectedKey'] is not None:

@@ -4,6 +4,7 @@ import PrimitiveShape
 import math
 
 import Widg_addPolyOpt
+import Widg_addLabel
 
 
 class InplaceObjProcess:
@@ -63,6 +64,45 @@ class AddCircle(InplaceObjProcess):
 
     def getObject(self):
         return PrimitiveShape.PrimitiveShape.circle(self.center, self.radius)
+
+
+class AddLabel(InplaceObjProcess):
+    def __init__(self):
+        super().__init__()
+        self.alignMode = None
+        self.opt = None
+        self.text = None
+        self.anchor = Qc.QPointF(0, 0)
+        self._active = False
+
+    def createOptWidget(self, info):
+        self.opt = Widg_addLabel.Widg_addLabel(info)
+        return self.opt
+
+    def getPreview(self):
+        return None
+
+    def mouseRelease(self):
+        self._active = False
+
+    def mouseMove(self, pos):
+        x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
+        self.anchor.setX(x)
+        self.anchor.setY(y)
+
+    def mouseDown(self, pos, info):
+        if self.opt is not None:
+            self.text = self.opt.labelText
+        x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
+        self.anchor.setX(x)
+        self.anchor.setY(y)
+
+        self.align = info['align']
+        self._active = True
+
+    def getObject(self):
+        finalTuple = PrimitiveShape.PrimitiveShape.pos_to_tuple(self.anchor)
+        return {'txt': self.text, 'align': self.alignMode, 'anchor': finalTuple}
 
 
 class AddPoly(InplaceObjProcess):

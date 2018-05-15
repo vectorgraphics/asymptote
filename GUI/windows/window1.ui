@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1148</width>
-    <height>838</height>
+    <width>1155</width>
+    <height>835</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1261,7 +1261,7 @@
               </property>
              </widget>
             </item>
-            <item row="3" column="0">
+            <item row="4" column="0">
              <widget class="QPushButton" name="pushButton_10">
               <property name="enabled">
                <bool>false</bool>
@@ -1291,35 +1291,6 @@
              </widget>
             </item>
             <item row="2" column="0">
-             <widget class="QPushButton" name="pushButton_11">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="../res/icons.qrc">
-                <normaloff>:/entypo/Entypo+/Entypo+/star-outlined.svg</normaloff>:/entypo/Entypo+/Entypo+/star-outlined.svg</iconset>
-              </property>
-              <property name="flat">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
              <widget class="QPushButton" name="btnAddPoly">
               <property name="enabled">
                <bool>true</bool>
@@ -1348,7 +1319,7 @@
               </property>
              </widget>
             </item>
-            <item row="4" column="0">
+            <item row="6" column="0">
              <widget class="QPushButton" name="pushButton_9">
               <property name="enabled">
                <bool>false</bool>
@@ -1377,7 +1348,7 @@
               </property>
              </widget>
             </item>
-            <item row="5" column="0">
+            <item row="7" column="0">
              <widget class="QPushButton" name="pushButton_14">
               <property name="enabled">
                <bool>false</bool>
@@ -1406,7 +1377,7 @@
               </property>
              </widget>
             </item>
-            <item row="6" column="0">
+            <item row="8" column="0">
              <widget class="QPushButton" name="btnCreateCurve">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
@@ -1432,7 +1403,7 @@
               </property>
              </widget>
             </item>
-            <item row="7" column="0">
+            <item row="9" column="0">
              <widget class="QPushButton" name="pushButton_13">
               <property name="enabled">
                <bool>false</bool>
@@ -1455,6 +1426,70 @@
               <property name="icon">
                <iconset resource="../res/icons.qrc">
                 <normaloff>:/entypo/Entypo+/Entypo+/image-inverted.svg</normaloff>:/entypo/Entypo+/Entypo+/image-inverted.svg</iconset>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QPushButton" name="pushButton_11">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>32</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="../res/icons.qrc">
+                <normaloff>:/entypo/Entypo+/Entypo+/star-outlined.svg</normaloff>:/entypo/Entypo+/Entypo+/star-outlined.svg</iconset>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="10" column="0">
+             <widget class="QPushButton" name="btnAddLabel">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>32</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="../res/icons.qrc">
+                <normaloff>:/openiconic/open-iconic-master/svg/text.svg</normaloff>:/openiconic/open-iconic-master/svg/text.svg</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>13</width>
+                <height>13</height>
+               </size>
               </property>
               <property name="flat">
                <bool>true</bool>
@@ -1744,7 +1779,7 @@ background: rgb(0, 0, 0)
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1148</width>
+     <width>1155</width>
      <height>26</height>
     </rect>
    </property>
