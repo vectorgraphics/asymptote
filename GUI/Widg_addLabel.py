@@ -2,6 +2,7 @@ from pyUIClass.widg_addLabel import Ui_Form
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
 
+import labelEditor
 
 class Widg_addLabel(Qw.QWidget):
     def __init__(self, info):
@@ -40,8 +41,16 @@ class Widg_addLabel(Qw.QWidget):
         self.ui.cmbAlign.currentIndexChanged.connect(self.cmbIndexUpdate)
         self.ui.txtShiftX.textEdited.connect(self.shftXUpdate)
         self.ui.txtShiftY.textEdited.connect(self.shftYUpdate)
+        self.ui.btnAdvancedEdit.clicked.connect(self.btnAdvancedEditClicked)
 
         self.updateCheck(self.ui.cmbAlign.currentText())
+
+    def btnAdvancedEditClicked(self):
+        advancedEditDialog = labelEditor.labelEditor()
+        advancedEditDialog.show()
+        result = advancedEditDialog.exec_()
+        if result == Qw.QDialog.Accepted:
+            self.ui.txtLabelText.setText(advancedEditDialog.getText())
 
     @property
     def labelText(self):
