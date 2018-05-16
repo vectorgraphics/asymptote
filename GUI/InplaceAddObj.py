@@ -97,12 +97,12 @@ class AddLabel(InplaceObjProcess):
         self.anchor.setX(x)
         self.anchor.setY(y)
 
-        self.align = info['align']
+        self.alignMode = info['align']
         self._active = True
 
     def getObject(self):
         finalTuple = PrimitiveShape.PrimitiveShape.pos_to_tuple(self.anchor)
-        return {'txt': self.text, 'align': self.alignMode, 'anchor': finalTuple}
+        return {'txt': self.text, 'align': str(self.alignMode), 'anchor': finalTuple}
 
 
 class AddPoly(InplaceObjProcess):

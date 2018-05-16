@@ -123,6 +123,7 @@ examples/_ig_*.asy
 
 ### Shorthand Dev Script
 asydev
+gdb_xasy
 
 ### IDE Files
 .vscode/*

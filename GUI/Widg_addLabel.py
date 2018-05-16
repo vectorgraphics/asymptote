@@ -4,6 +4,7 @@ import PyQt5.QtGui as Qg
 
 import labelEditor
 
+
 class Widg_addLabel(Qw.QWidget):
     def __init__(self, info):
         super().__init__()
@@ -25,10 +26,10 @@ class Widg_addLabel(Qw.QWidget):
             self.info['align'] = (0, 0)
 
         if self.info['shift_x'] is not None:
-            self.ui.txtShiftX.setText(str(self.info['shfit_x']))
+            self.ui.txtShiftX.setText(str(self.info['shift_x']))
 
         if self.info['shift_y'] is not None:
-            self.ui.txtShiftY.setText(str(self.info['shfit_y']))
+            self.ui.txtShiftY.setText(str(self.info['shift_y']))
 
         self.ui.cmbAlign.setCurrentIndex(self.info['alignIndex'])
 
@@ -62,13 +63,16 @@ class Widg_addLabel(Qw.QWidget):
 
     def shftXUpdate(self, text):
         if text:
-            self.info['shfit_x'] = float(text)
+            self.info['shift_x'] = float(text)
+            self.updateAlign()
 
     def shftYUpdate(self, text):
         if text:
-            self.info['shift_x'] = float(text)
+            self.info['shift_y'] = float(text)
+            self.updateAlign()
 
-    def cmbIndexUpdate(self, index):
+    def updateAlign(self):
+        index = self.ui.cmbAlign.currentIndex()
         self.info['alignIndex'] = index
         if self.ui.cmbAlign.currentText() == 'Custom':
             self.info['align'] = (self.info['shift_x'], self.info['shift_y'])
@@ -76,3 +80,6 @@ class Widg_addLabel(Qw.QWidget):
             self.info['align'] = (0, 0)
         else:
             self.info['align'] = self.ui.cmbAlign.currentText()
+
+    def cmbIndexUpdate(self, index):
+        self.updateAlign()
