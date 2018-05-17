@@ -474,7 +474,7 @@ class MainWindow1(Qw.QMainWindow):
             self.execCustomCommand(commandText)
 
     def addItemFromPath(self, path):
-        newItem = x2a.xasyShape(path, pen=self.currentPen, asyengine=self.asyEngine)
+        newItem = x2a.xasyShape(path, self.asyEngine, pen=self.currentPen)
         self.fileItems.append(newItem)
         self.asyfyCanvas()
 

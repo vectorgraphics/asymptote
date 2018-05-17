@@ -19,12 +19,12 @@ import sys
 import os
 import signal
 import threading
-from subprocess import *
+# from subprocess import *
+import subprocess
 import tempfile
 import queue
 import io
 
-import xasyOptions as xo
 import CubicBezier
 import xasyUtils
 
@@ -33,86 +33,77 @@ import uuid
 
 quickAsyFailed = True
 console = None
-options = xo.xasyOptions()
-options.load()
 
 
 class DebugFlags:
     keepFiles = True
     printDeconstTranscript = True
 
-# TODO: Eventually move this to a class of its own.
 
+class AsymptoteEngine:
+    def __init__(self, path, args=None):
+        self.process = None
+        rx, wx = os.pipe()
+        ra, wa = os.pipe()
 
-def startQuickAsy():
-    global quickAsy
-    global quickAsyFailed
-    global asyTempRawDir
-    global AsyTempDir
-    global fout, fin
+        os.set_inheritable(rx, True)
+        os.set_inheritable(wx, True)
+        os.set_inheritable(ra, True)
+        os.set_inheritable(wa, True)
 
-    if quickAsyRunning():
-        return
-    try:
-        fout.close()
-        quickAsy.wait()
-    except:
-        pass
-    try:
-        quickAsyFailed = False
-        asyTempRawDir = tempfile.TemporaryDirectory(prefix='xasyData_')
+        self._ostream = os.fdopen(wx, 'w')
+        self._istream = os.fdopen(ra, 'r')
+        self.tmpdir = tempfile.TemporaryDirectory(prefix='xasyData_')
 
-        # TODO: For windows users, make sure tmp directory has correct folder seperator.
-        AsyTempDir = asyTempRawDir.name + '/'
-        if os.name == 'nt':
-            quickAsy = Popen([options['asyPath'], "-noV", "-multiline", "-q",
-                              "-o" + AsyTempDir, "-inpipe=0", "-outpipe=2"], stdin=PIPE,
-                             stderr=PIPE, universal_newlines=True)
-            fout = quickAsy.stdin
-            fin = quickAsy.stderr
-        else:
-            (rx, wx) = os.pipe()
-            (ra, wa) = os.pipe()
-            if sys.version_info >= (3, 4):
-                os.set_inheritable(rx, True)
-                os.set_inheritable(wx, True)
-                os.set_inheritable(ra, True)
-                os.set_inheritable(wa, True)
+        if args is None:
+            args = []
 
-            if options['debugMode']:
-                # NOTE: Really ugly here, but eventaully move this to handling arguments
-                asyPathBase = './asydev'
-            else:
-                asyPathBase = options['asyPath']
-            quickAsy = Popen([asyPathBase, "-noV", "-multiline", "-q",
-                              "-o" + AsyTempDir, "-inpipe=" + str(rx), "-outpipe=" + str(wa)],
-                             close_fds=False)
-            fout = os.fdopen(wx, 'w')
-            fin = os.fdopen(ra, 'r')
+        assert isinstance(args, list)
 
-        if quickAsy.returncode is not None:
-            quickAsyFailed = True
-    except:
-        quickAsyFailed = True
+        self.args = ['-noV', '-o ' + self.tempDirName, '-multiline', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa),
+                     ] + args
 
+        self.asyPath = path
+        self.asyProcess = None
 
-def stopQuickAsy():
-    if quickAsyRunning():
-        fout.write("exit;\n")
+    def start(self):
+        self.asyProcess = subprocess.Popen(args=[self.asyPath] + self.args, close_fds=False)
+        if self.asyProcess.returncode is not None:
+            raise ChildProcessError('Asymptote failed to open')
 
+    def __enter__(self):
+        self.start()
 
-def getAsyTempDir():
-    return AsyTempDir
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
 
+    @property
+    def tempDirName(self):
+        return self.tmpdir.name + '/'
 
-def quickAsyRunning():
-    return (not quickAsyFailed) and quickAsy.returncode is None
+    @property
+    def active(self):
+        if self.asyProcess is None:
+            return False
+        return self.asyProcess.returncode is None
 
+    @property
+    def ostream(self):
+        return self._ostream
 
-def asyExecute(command):
-    if not quickAsyRunning():
-        startQuickAsy()
-    fout.write(command)
+    @property
+    def istream(self):
+        return self._istream
+
+    def stop(self):
+        if self.active:
+            self.ostream.write('exit;\n')
+            self.ostream.flush()
+            if not DebugFlags.keepFiles:
+                try:
+                    os.rmdir(self.tempDirName)
+                finally:
+                    pass
 
 
 def closeConsole(event):
@@ -225,7 +216,7 @@ class asyObj:
     """A base class for asy objects: an item represented by asymptote code."""
     def __init__(self):
         """Initialize the object"""
-        self.asyCode = ""
+        self.asyCode = ''
 
     def updateCode(self, mag=1.0):
         """Update the object's code: should be overriden."""
@@ -248,22 +239,34 @@ class asyPen(asyObj):
         r, g, b = color
         return Qg.QColor.fromRgbF(r, g, b)
 
-    def __init__(self, color=(0, 0, 0), width=0.5, pen_options=""):
+    def __init__(self, asyengine=None, color=(0, 0, 0), width=0.5, pen_options=""):
         """Initialize the pen"""
         asyObj.__init__(self)
         self.color = (0, 0, 0)
         self.options = pen_options
         self.width = width
-        self.setColor(color)
-        self.updateCode()
+        self._asyengine = asyengine
+        self._deferAsyfy = False
         if pen_options:
-            self.computeColor()
+            self._deferAsyfy = True
+        self.updateCode()
+        self.setColor(color)
+
+    @property
+    def asyEngine(self):
+        return self._asyengine
+
+    @asyEngine.setter
+    def asyEngine(self, value):
+        self._asyengine = value
 
     def updateCode(self, mag=1.0):
         """Generate the pen's code"""
-        self.asyCode = "rgb({:g},{:g},{:g})+{:s}".format(self.color[0], self.color[1], self.color[2], str(self.width))
+        if self._deferAsyfy:
+            self.computeColor()
+        self.asyCode = 'rgb({:g},{:g},{:g})+{:s}'.format(self.color[0], self.color[1], self.color[2], str(self.width))
         if len(self.options) > 0:
-            self.asyCode += "+" + self.options
+            self.asyCode = self.asyCode + '+' + self.options
 
     def setWidth(self, newWidth):
         """Set the pen's width"""
@@ -283,6 +286,12 @@ class asyPen(asyObj):
 
     def computeColor(self):
         """Find out the color of an arbitrary asymptote pen."""
+        assert isinstance(self.asyEngine, AsymptoteEngine)
+        assert self.asyEngine.active
+
+        fout = self.asyEngine.ostream
+        fin = self.asyEngine.istream
+
         fout.write("pen p=" + self.getCode() + ';\n')
         fout.write("file fout=output(mode='pipe');\n")
         fout.write("write(fout,colorspace(p),newl);\n")
@@ -307,6 +316,7 @@ class asyPen(asyObj):
         else:
             raise ChildProcessError('Asymptote error.')
         self.color = (r, g, b)
+        self._deferAsyfy = False
 
     def tkColor(self):
         """Return the tk version of the pen's color"""
@@ -314,6 +324,8 @@ class asyPen(asyObj):
         return '#{}'.format("".join(["{:02x}".format(min(int(256 * a), 255)) for a in self.color]))
 
     def toQPen(self):
+        if self._deferAsyfy:
+            self.computeColor()
         newPen = Qg.QPen()
         newPen.setColor(asyPen.convertToQColor(self.color))
         newPen.setWidthF(self.width)
@@ -324,16 +336,17 @@ class asyPen(asyObj):
 class asyPath(asyObj):
     """A python wrapper for an asymptote path"""
 
-    def __init__(self):
+    def __init__(self, asyengine=None):
         """Initialize the path to be an empty path: a path with no nodes, control points, or links."""
         super().__init__()
         self.nodeSet = []
         self.linkSet = []
         self.controlSet = []
         self.computed = False
+        self.asyengine = asyengine
 
     @classmethod
-    def fromBezierPoints(cls, pointList):
+    def fromBezierPoints(cls, pointList, engine=None):
         assert isinstance(pointList, list)
         if not pointList:
             return None
@@ -346,7 +359,7 @@ class asyPath(asyObj):
                 controlList.append([BezierCurveEditor.QPoint2Tuple(point.rCtrlPoint)])
             if point.lCtrlPoint is not None:  # last
                 controlList[-1].append(BezierCurveEditor.QPoint2Tuple(point.lCtrlPoint))
-        newPath = asyPath()
+        newPath = asyPath(asyengine=engine)
         newPath.initFromControls(nodeList, controlList)
         return newPath
 
@@ -449,6 +462,12 @@ class asyPath(asyObj):
 
     def computeControls(self):
         """Evaluate the code of the path to obtain its control points"""
+        assert isinstance(self.asyengine, AsymptoteEngine)
+        assert self.asyengine.active
+
+        fout = self.asyengine.ostream
+        fin = self.asyengine.istream
+
         fout.write("file fout=output(mode='pipe');\n")
         fout.write("path p=" + self.getCode() + ';\n')
         fout.write("write(fout,length(p),newl);\n")
@@ -478,15 +497,17 @@ class asyPath(asyObj):
 class asyLabel(asyObj):
     """A python wrapper for an asy label"""
 
-    def __init__(self, text="", location=(0, 0), pen=asyPen(), align=None):
+    def __init__(self, text="", location=(0, 0), pen=None, align=None):
         """Initialize the label with the given test, location, and pen"""
         asyObj.__init__(self)
         self.align = align
+        self.pen = pen
         if align is None:
             self.align = 'SE'
+        if pen is None:
+            self.pen = asyPen()
         self.text = text
         self.location = location
-        self.pen = pen
 
     def updateCode(self, mag=1.0):
         """Generate the code describing the label"""
@@ -523,7 +544,7 @@ class xasyItem:
     """A base class for items in the xasy GUI"""
     setKeyFormatStr = 'xformMap.add("{:s}", {:s});'
 
-    def __init__(self, canvas=None):
+    def __init__(self, canvas=None, asyengine=None):
         """Initialize the item to an empty item"""
         self.transform = [identity()]
         self.transfKeymap = {}              # the new keymap.
@@ -533,6 +554,7 @@ class xasyItem:
         self.asyfied = False
         self.onCanvas = canvas
         self.keyBuffer = None
+        self.asyengine = asyengine
         self.imageHandleQueue = queue.Queue()
 
     def updateCode(self, mag=1.0):
@@ -579,6 +601,9 @@ class xasyItem:
                 self.onCanvas['drawDict'][currImage.IDTag].draw()
 
     def asyfy(self, mag=1.0, keyOnly=False):
+        if self.asyengine is None:
+            return 1
+        assert isinstance(self.asyengine, AsymptoteEngine)
         self.imageList = []
         self.imageHandleQueue = queue.Queue()
         worker = threading.Thread(target=self.asyfyThread, args=[mag, keyOnly])
@@ -602,6 +627,9 @@ class xasyItem:
 
     def asyfyThread(self, mag=1.0, keyOnly=False):
         """Convert the item to a list of images by deconstructing this item's code"""
+        fout = self.asyengine.ostream
+        fin = self.asyengine.istream
+
         fout.write("reset;\n")
         # TODO: Figure out what's wrong. with initXasyMode();
         # The problem is that resetting the files doesn't work.
@@ -621,7 +649,7 @@ class xasyItem:
             for i in range(len(imageInfos)):
                 box, key = imageInfos[i]
                 l, b, r, t = [float(a) for a in box.split()]
-                name = "{:s}{:d}_{:d}.{:s}".format(AsyTempDir, batch, i + 1, fileformat)
+                name = "{:s}{:d}_{:d}.{:s}".format(self.asyengine.tempDirName, batch, i + 1, fileformat)
 
                 self.imageHandleQueue.put((name, fileformat, (l, b, r, t), i, key))
 
@@ -633,7 +661,7 @@ class xasyItem:
             print(raw_text.strip())
 
         # template=AsyTempDir+"%d_%d.%s"
-        fileformat = "png"
+        fileformat = 'png'
 
         while raw_text != "Done\n" and raw_text != "Error\n":
             text = fin.readline()       # the actual bounding box.
@@ -676,10 +704,13 @@ class xasyItem:
 class xasyDrawnItem(xasyItem):
     """A base class for GUI items was drawn by the user. It combines a path, a pen, and a transform."""
 
-    def __init__(self, path, pen=asyPen(), transform=identity(), key=None):
+    def __init__(self, path, engine, pen=None, transform=identity(), key=None):
         """Initialize the item with a path, pen, and transform"""
         super().__init__()
+        if pen is None:
+            pen = asyPen(engine)
         self.path = path
+        self.path.asyengine = engine
         self.pen = pen
         self.rawIdentifier = 'x:' + str(np.random.randint(0, 10000))
         self.transfKey = key
@@ -730,9 +761,9 @@ class xasyDrawnItem(xasyItem):
 class xasyShape(xasyDrawnItem):
     """An outlined shape drawn on the GUI"""
 
-    def __init__(self, path, pen=asyPen(), transform=identity()):
+    def __init__(self, path, asyengine, pen=None, transform=identity()):
         """Initialize the shape with a path, pen, and transform"""
-        super().__init__(path, pen, transform)
+        super().__init__(path=path, engine=asyengine, pen=pen, transform=transform)
 
     def updateCode(self, mag=1.0):
         """Generate the code to describe this shape"""
@@ -774,7 +805,7 @@ class xasyShape(xasyDrawnItem):
 class xasyFilledShape(xasyShape):
     """A filled shape drawn on the GUI"""
 
-    def __init__(self, path, pen=asyPen(), transform=identity()):
+    def __init__(self, path, pen=None, transform=identity()):
         """Initialize this shape with a path, pen, and transform"""
         if path.nodeSet[-1] != 'cycle':
             raise Exception("Filled paths must be cyclic")
@@ -841,9 +872,13 @@ class xasyFilledShape(xasyShape):
 class xasyText(xasyItem):
     """Text created by the GUI"""
 
-    def __init__(self, text, location, pen=asyPen(), transform=identity(), key=None, align=None):
+    def __init__(self, text, location, asyengine, pen=None, transform=identity(), key=None, align=None):
         """Initialize this item with text, a location, pen, and transform"""
-        super().__init__()
+        super().__init__(asyengine=asyengine)
+        if pen is None:
+            pen = asyPen(asyengine=asyengine)
+        if pen.asyEngine is None:
+            pen.asyEngine = asyengine
         self.label = asyLabel(text, location, pen, align)
         # self.transform = [transform]
         if key is None:
@@ -880,9 +915,9 @@ class xasyText(xasyItem):
 class xasyScript(xasyItem):
     """A set of images create from asymptote code. It is always deconstructed."""
 
-    def __init__(self, canvas, script="", transforms=None, transfKeyMap=None):
+    def __init__(self, canvas, engine, script="", transforms=None, transfKeyMap=None):
         """Initialize this script item"""
-        super().__init__(canvas)
+        super().__init__(canvas, asyengine=engine)
         # if transforms is not None:
         #     self.transform = transforms[:]
         # else:
