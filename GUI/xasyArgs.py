@@ -1,5 +1,6 @@
 import argparse
 import xasyVersion
+import PyQt5.QtCore as Qc
 # Add arguments here.
 
 
@@ -12,3 +13,7 @@ def parseArgs(args):
     parser.add_argument('-l', '--language', help='language')
 
     return parser.parse_args()
+
+
+def getArgs():
+    return parseArgs(Qc.QCoreApplication.arguments())

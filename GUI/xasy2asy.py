@@ -41,7 +41,7 @@ class DebugFlags:
 
 
 class AsymptoteEngine:
-    def __init__(self, path, args=None):
+    def __init__(self, path, args=None, customOutdir=None, keepFiles=DebugFlags.keepFiles):
         self.process = None
         rx, wx = os.pipe()
         ra, wa = os.pipe()
@@ -53,18 +53,31 @@ class AsymptoteEngine:
 
         self._ostream = os.fdopen(wx, 'w')
         self._istream = os.fdopen(ra, 'r')
-        self.tmpdir = tempfile.TemporaryDirectory(prefix='xasyData_')
+        self.keepFiles = keepFiles
+        self.useTmpDir = customOutdir is None
+        if customOutdir is None:
+            self.tmpdir = tempfile.TemporaryDirectory(prefix='xasyData_')
+            oargs = self.tmpdir.name + '/'
+        else:
+            self.tmpdir = customOutdir
+            oargs = customOutdir
 
         if args is None:
             args = []
 
         assert isinstance(args, list)
 
-        self.args = ['-noV', '-o ' + self.tempDirName, '-multiline', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa),
+        self.args = ['-noV', '-o ' + oargs, '-multiline', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa),
                      ] + args
 
         self.asyPath = path
         self.asyProcess = None
+
+    def wait(self):
+        if self.asyProcess.returncode is not None:
+            return
+        else:
+            return self.asyProcess.wait()
 
     def start(self):
         self.asyProcess = subprocess.Popen(args=[self.asyPath] + self.args, close_fds=False)
@@ -99,7 +112,7 @@ class AsymptoteEngine:
         if self.active:
             self.ostream.write('exit;\n')
             self.ostream.flush()
-            if not DebugFlags.keepFiles:
+            if not self.keepFiles and not self.useTmpDir:
                 try:
                     os.rmdir(self.tempDirName)
                 finally:

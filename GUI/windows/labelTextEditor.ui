@@ -104,7 +104,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QFrame" name="fraLabelPreview">
+         <widget class="QLabel" name="lblLabelPreview">
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -112,10 +112,10 @@
            </size>
           </property>
           <property name="frameShape">
-           <enum>QFrame::StyledPanel</enum>
+           <enum>QFrame::Box</enum>
           </property>
-          <property name="frameShadow">
-           <enum>QFrame::Raised</enum>
+          <property name="text">
+           <string/>
           </property>
          </widget>
         </item>

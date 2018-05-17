@@ -239,7 +239,7 @@ class MainWindow1(Qw.QMainWindow):
             'debug:addUnitCircle': self.dbgAddUnitCircle,
             'debug:addCircle': self.dbgAddCircle,
             'debug:addPoly': self.dbgAddPoly,
-            'debug:addLabel': self.debugAddLabel
+            'debug:addLabel': self.debugAddLabel,
         }
         self.commandsFunc = {**self.commandsFunc, **debugFunc}
 
