@@ -131,3 +131,6 @@ gdb_xasy
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+### Translation binary files
+*.mo

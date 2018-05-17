@@ -20,6 +20,7 @@ import xasyOptions as xo
 import UndoRedoStack as Urs
 import xasyArgs as xa
 from xasyTransform import xasyTransform as xT
+import xasyStrings as xs
 
 import PrimitiveShape
 import InplaceAddObj
@@ -102,6 +103,14 @@ class MainWindow1(Qw.QMainWindow):
 
         self.raw_args = Qc.QCoreApplication.arguments()
         self.args = xa.parseArgs(self.raw_args)
+
+        if self.args.asypath is not None:
+            asyPath = self.args.asypath
+        else:
+            asyPath = self.settings['asyPath']
+
+        self.asyEngine = x2a.AsymptoteEngine(asyPath)
+        self.asyEngine.start()
 
         # For initialization purposes
         self.canvSize = Qc.QSize()
@@ -199,11 +208,18 @@ class MainWindow1(Qw.QMainWindow):
         self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
         self.initPenInterface()
 
+    def internationalize(self, lang):
+        strings = xs.xasyString(lang)
+        self.ui.btnRotate.setToolTip(strings.rotate)
+
     def handleArguments(self):
         if self.args.file is not None:
             self.loadFile(self.args.file)
         else:
             self.initializeEmptyFile()
+
+        if self.args.language is not None:
+            self.internationalize(self.args.language)
 
     def initPenInterface(self):
         self.ui.txtLineWidth.setText(str(self._currentPen.width))
@@ -293,7 +309,7 @@ class MainWindow1(Qw.QMainWindow):
 
     def dbgAddUnitCircle(self):
         newCirclePath = PrimitiveShape.PrimitiveShape.circle((0, 0), 1)
-        newCircle = x2a.xasyShape(newCirclePath)
+        newCircle = x2a.xasyShape(newCirclePath, asyengine=self.asyEngine)
         self.fileItems.append(newCircle)
         self.asyfyCanvas()
 
@@ -303,19 +319,19 @@ class MainWindow1(Qw.QMainWindow):
             rawArray = [float(rawResult) for rawResult in commandText.split()]
             x, y, rad = rawArray
             newCirclePath = PrimitiveShape.PrimitiveShape.circle((x, y), rad)
-            newCircle = x2a.xasyShape(newCirclePath, pen=self.currentPen)
+            newCircle = x2a.xasyShape(newCirclePath, pen=self.currentPen, asyengine=self.asyEngine)
             self.fileItems.append(newCircle)
             self.asyfyCanvas()
 
     def dbgAddPoly(self):
         newSquarePath = PrimitiveShape.PrimitiveShape.exscribedRegPolygon(6, (0, 0), 100, 0)
-        newSquare = x2a.xasyShape(newSquarePath, pen=self.currentPen)
+        newSquare = x2a.xasyShape(newSquarePath, pen=self.currentPen, asyengine=self.asyEngine)
         self.fileItems.append(newSquare)
         self.asyfyCanvas()
 
     def debugAddLabel(self):
         testText = '$\\displaystyle{\\int_{\\varphi(F)} f = \\int_F (f \\circ \\varphi) \\left| \\det J_{\\varphi} \\right|}$'
-        newPath = x2a.xasyText(testText, (0, 0))
+        newPath = x2a.xasyText(testText, (0, 0), asyengine=self.asyEngine)
         self.fileItems.append(newPath)
         self.asyfyCanvas()
 
@@ -367,8 +383,8 @@ class MainWindow1(Qw.QMainWindow):
         result = curveDialog.exec_()
 
         if result == Qw.QDialog.Accepted:
-            asyCurve = x2a.asyPath.fromBezierPoints(curveDialog.createPointList())
-            newXasyObjCurve = x2a.xasyShape(asyCurve)
+            asyCurve = x2a.asyPath.fromBezierPoints(curveDialog.createPointList(), engine=self.asyEngine)
+            newXasyObjCurve = x2a.xasyShape(asyCurve, asyengine=self.asyEngine)
             # print(newXasyObjCurve.getCode())
             self.fileItems.append(newXasyObjCurve)
 
@@ -458,7 +474,7 @@ class MainWindow1(Qw.QMainWindow):
             self.execCustomCommand(commandText)
 
     def addItemFromPath(self, path):
-        newItem = x2a.xasyShape(path, pen=self.currentPen)
+        newItem = x2a.xasyShape(path, pen=self.currentPen, asyengine=self.asyEngine)
         self.fileItems.append(newItem)
         self.asyfyCanvas()
 
@@ -694,7 +710,7 @@ class MainWindow1(Qw.QMainWindow):
         text = labelInfo['txt']
         align = labelInfo['align']
         anchor = labelInfo['anchor']
-        newLabel = x2a.xasyText(text=text, location=anchor, pen=self.currentPen, align=align)
+        newLabel = x2a.xasyText(text=text, location=anchor, pen=self.currentPen, align=align, asyengine=self.asyEngine)
         self.fileItems.append(newLabel)
 
         self.asyfyCanvas()
@@ -1163,7 +1179,6 @@ class MainWindow1(Qw.QMainWindow):
     def loadFile(self, name):
         self.ui.statusbar.showMessage(name)
         self.filename = os.path.abspath(name)
-        x2a.startQuickAsy()
         # self.retitle()
         try:
             try:
@@ -1188,7 +1203,7 @@ class MainWindow1(Qw.QMainWindow):
             if self.autoMakeScript or Qw.QMessageBox.question(self, "Error Opening File", "File was not recognized as an xasy file.\n"
                 "Load as a script item?") == Qw.QMessageBox.Yes:
                 # try:
-                item = x2a.xasyScript(canvas=self.xasyDrawObj)
+                item = x2a.xasyScript(canvas=self.xasyDrawObj, engine=self.asyEngine)
                 f.seek(0)
                 item.setScript(f.read())
                 # item.setKey()
