@@ -132,6 +132,7 @@ class MainWindow1(Qw.QMainWindow):
         self.mainTransformation.scale(1, -1)
         self.localTransform = Qg.QTransform()
         self.screenTransformation = Qg.QTransform()
+        self.panTranslation = Qg.QTransform()
 
         # Internal Settings
         self.magnification = 1
@@ -606,7 +607,7 @@ class MainWindow1(Qw.QMainWindow):
             self.mainTransformation.scale(1, -1)
             self.mainTransformation.translate(x, -y)
 
-            self.screenTransformation = self.mainTransformation * Qg.QTransform()
+            self.screenTransformation = self.mainTransformation * self.panTranslation
 
             self.mainCanvas.setTransform(self.screenTransformation, True)
             # self.createMainCanvas()
@@ -654,7 +655,8 @@ class MainWindow1(Qw.QMainWindow):
                 tx = 0
             if self.lockY:
                 ty = 0
-            self.screenTransformation = self.currScreenTransform * Qg.QTransform.fromTranslate(tx, ty)
+            self.panTranslation = Qg.QTransform.fromTranslate(tx, ty)
+            self.screenTransformation = self.currScreenTransform * self.panTranslation
             self.quickUpdate()
             return
 
