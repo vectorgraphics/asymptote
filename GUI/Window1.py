@@ -591,9 +591,26 @@ class MainWindow1(Qw.QMainWindow):
         return self.mainCanvas is not None
 
     def resizeEvent(self, resizeEvent):
+        # super().resizeEvent(resizeEvent)
         assert isinstance(resizeEvent, Qg.QResizeEvent)
-        # newRect = Qc.QRect(Qc.QPoint(0, 0), resizeEvent.size())
-        # self.ui.centralFrame.setFrameRect(newRect)
+
+        if self.isReady():
+            self.canvSize = self.ui.imgFrame.size()
+            self.ui.imgFrame.setSizePolicy(Qw.QSizePolicy.Ignored, Qw.QSizePolicy.Ignored)
+            x, y = self.canvSize.width() / 2, self.canvSize.height() / 2
+
+            self.canvasPixmap = Qg.QPixmap(self.canvSize)
+            self.postCanvasPixmap = Qg.QPixmap(self.canvSize)
+
+            self.mainTransformation.reset()
+            self.mainTransformation.scale(1, -1)
+            self.mainTransformation.translate(x, -y)
+
+            self.screenTransformation = self.mainTransformation * Qg.QTransform()
+
+            self.mainCanvas.setTransform(self.screenTransformation, True)
+            # self.createMainCanvas()
+            self.quickUpdate()
 
     def show(self):
         super().show()
@@ -794,6 +811,7 @@ class MainWindow1(Qw.QMainWindow):
 
     def createMainCanvas(self):
         self.canvSize = self.ui.imgFrame.size()
+        self.ui.imgFrame.setSizePolicy(Qw.QSizePolicy.Ignored, Qw.QSizePolicy.Ignored)
         x, y = self.canvSize.width() / 2, self.canvSize.height() / 2
 
         self.canvasPixmap = Qg.QPixmap(self.canvSize)
