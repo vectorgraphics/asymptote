@@ -67,7 +67,7 @@ class AsymptoteEngine:
 
         assert isinstance(args, list)
 
-        self.args = ['-noV', '-o ' + oargs, '-multiline', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa),
+        self.args = ['-noV', '-multiline', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs,
                      ] + args
 
         self.asyPath = path
