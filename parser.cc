@@ -6,6 +6,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <cstring>
 
 #include "common.h"
 
@@ -17,6 +18,7 @@
 #include "locate.h"
 #include "errormsg.h"
 #include "parser.h"
+#include "util.h"
 
 // The lexical analysis and parsing functions used by parseFile.
 void setlexer(size_t (*input) (char* bif, size_t max_size), string filename);
@@ -26,8 +28,11 @@ extern int yy_flex_debug;
 static const int YY_NULL = 0;
 extern bool lexerEOF();
 extern void reportEOF();
+extern bool eof;
 
 namespace parser {
+
+static FILE *fin=NULL;
 
 namespace yy { // Lexers
 
@@ -35,7 +40,21 @@ std::streambuf *sbuf = NULL;
 
 size_t stream_input(char *buf, size_t max_size)
 {
-  size_t count= sbuf ? sbuf->sgetn(buf,max_size) : 0;
+  size_t count=sbuf ? sbuf->sgetn(buf,max_size) : 0;
+  return count ? count : YY_NULL;
+}
+
+size_t pipe_input(char *buf, size_t max_size)
+{
+  static bool deconstruct=false;
+  if(deconstruct) {deconstruct=false; lexerEOF(); return YY_NULL;}
+  size_t count;
+  fgets(buf,max_size-1,fin);
+  count=strlen(buf);
+  
+  if(strncmp(buf,"deconstruct(",strlen("deconstruct(")) == 0)
+    deconstruct=true;
+
   return count ? count : YY_NULL;
 }
 
@@ -88,8 +107,19 @@ absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
 absyntax::file *parseStdin()
 {
   debug(false);
-  yy::sbuf = cin.rdbuf();
-  return doParse(yy::stream_input,"-");
+
+  if(!fin) {
+    int fd=intcast(settings::getSetting<Int>("inpipe"));
+    if(fd >= 0)
+      fin=fdopen(fd,"r");
+  }
+  
+  if(fin)
+    return doParse(yy::pipe_input,"-");
+  else {
+    yy::sbuf = cin.rdbuf();
+    return doParse(yy::stream_input,"-");
+  }
 }
 
 absyntax::file *parseFile(const string& filename,

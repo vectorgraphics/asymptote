@@ -132,9 +132,16 @@ void *asymain(void *A)
     } 
   } else {
     int n=numArgs();
-    if(n == 0) 
-      processFile("-");
-    else
+    if(n == 0) {
+      while(true) {
+        processFile("-");
+        try {
+          setOptions(args->argc,args->argv);
+        } catch(handled_error) {
+          em.statusError();
+        } 
+      }
+    } else {
       for(int ind=0; ind < n; ind++) {
         processFile(string(getArg(ind)),n > 1);
         try {
@@ -144,6 +151,7 @@ void *asymain(void *A)
           em.statusError();
         } 
       }
+    }
   }
 
 #ifdef PROFILE

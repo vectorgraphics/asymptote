@@ -365,8 +365,7 @@ public:
   ifile(const string& filename)
     : itree(filename),
       filename(filename),
-      outname((string) (filename == "-" ? settings::outname() :
-                        stripDir(stripExt(string(filename), suffix)))) {}
+      outname(stripDir(stripExt(string(filename == "-" ? settings::outname() : filename), suffix))) {}
   
   block *buildTree() {
     return !filename.empty() ? parser::parseFile(filename,"Loading") : 0;

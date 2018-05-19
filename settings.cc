@@ -1330,7 +1330,7 @@ void setInteractive()
 {
   if(numArgs() == 0 && !getSetting<bool>("listvariables") && 
      getSetting<string>("command").empty() &&
-     (isatty(STDIN_FILENO) || getSetting<Int>("inpipe") >= 0))
+     isatty(STDIN_FILENO) && intcast(settings::getSetting<Int>("inpipe")) < 0)
     interact::interactive=true;
   
   if(getSetting<bool>("localhistory"))

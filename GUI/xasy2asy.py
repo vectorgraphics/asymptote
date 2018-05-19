@@ -67,8 +67,7 @@ class AsymptoteEngine:
 
         assert isinstance(args, list)
 
-        self.args = ['-noV', '-multiline', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs,
-                     ] + args
+        self.args = ['-noV', '-q','-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs] + args
 
         self.asyPath = path
         self.asyProcess = None
@@ -643,13 +642,8 @@ class xasyItem:
         fout = self.asyengine.ostream
         fin = self.asyengine.istream
 
-        fout.write("reset;\n")
-        # TODO: Figure out what's wrong. with initXasyMode();
-        # The problem is that resetting the files doesn't work.
-        # fout.write("initXasyMode();\n")
-        fout.write("atexit(null);\n")
         for line in self.getCode().splitlines():
-            fout.write(line + "\n")
+            fout.write(line+"\n")
         fout.write("deconstruct({:f});\n".format(mag))
         fout.flush()
 
@@ -676,6 +670,7 @@ class xasyItem:
         # template=AsyTempDir+"%d_%d.%s"
         fileformat = 'png'
 
+#        print(raw_text)
         while raw_text != "Done\n" and raw_text != "Error\n":
             text = fin.readline()       # the actual bounding box.
             # print('TESTING:', text)
@@ -687,7 +682,7 @@ class xasyItem:
                 if line not in self.keyBuffer:
                     self.keyBuffer[line] = set()
                 self.keyBuffer[line].add(col)
-                print(line, col)
+#                print(line, col)
             imageInfos.append((text, keydata))      # key-data pair
 
             raw_text = fin.readline()
@@ -959,14 +954,9 @@ class xasyScript(xasyItem):
                 transfMapList.append('')
                 rawAsyCode.write('\n'.join(transfMapList))
 
-            # start/endScript messes up with keys.
-            rawAsyCode.write("startScript(); {\n")
-
             for line in self.script.splitlines():
                 raw_line = line.rstrip().replace('\t', ' ' * 4)
                 rawAsyCode.write(raw_line + '\n')
-
-            rawAsyCode.write("\n} endScript();\n")
 
             self.asyCode = rawAsyCode.getvalue()
             pass
