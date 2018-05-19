@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstring>
+#include <fcntl.h>
 
 #include "common.h"
 
@@ -28,7 +29,9 @@ extern int yy_flex_debug;
 static const int YY_NULL = 0;
 extern bool lexerEOF();
 extern void reportEOF();
-extern bool eof;
+extern bool hangup;
+
+static int fd;
 
 namespace parser {
 
@@ -44,17 +47,22 @@ size_t stream_input(char *buf, size_t max_size)
   return count ? count : YY_NULL;
 }
 
+int fpeek(int fd) 
+{
+  int flags=fcntl(fd,F_GETFL,0);
+  fcntl(fd,F_SETFL,flags | O_NONBLOCK);
+  char c=fgetc(fin);
+  ungetc(c,fin);
+  fcntl(fd,F_SETFL,flags & ~O_NONBLOCK);
+  return c;
+}
+
 size_t pipe_input(char *buf, size_t max_size)
 {
-  static bool deconstruct=false;
-  if(deconstruct) {deconstruct=false; lexerEOF(); return YY_NULL;}
+  if(hangup && fpeek(fd) == EOF) {hangup=false; return YY_NULL;}
   size_t count;
   fgets(buf,max_size-1,fin);
   count=strlen(buf);
-  
-  if(strncmp(buf,"deconstruct(",strlen("deconstruct(")) == 0)
-    deconstruct=true;
-
   return count ? count : YY_NULL;
 }
 
@@ -109,7 +117,7 @@ absyntax::file *parseStdin()
   debug(false);
 
   if(!fin) {
-    int fd=intcast(settings::getSetting<Int>("inpipe"));
+    fd=intcast(settings::getSetting<Int>("inpipe"));
     if(fd >= 0)
       fin=fdopen(fd,"r");
   }

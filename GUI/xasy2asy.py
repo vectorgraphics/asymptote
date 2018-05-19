@@ -646,6 +646,7 @@ class xasyItem:
             fout.write(line+"\n")
         fout.write("deconstruct({:f});\n".format(mag))
         fout.flush()
+        self.asyengine.asyProcess.send_signal(signal.SIGHUP)
 
         maxargs = int(fin.readline().split()[0])        # should be 256, for now.
         imageInfos = []                                 # of (box, key)

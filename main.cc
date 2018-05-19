@@ -107,6 +107,12 @@ void interruptHandler(int)
   em.Interrupt(true);
 }
 
+bool hangup=false;
+void hangup_handler(int)
+{
+  hangup=true;
+}
+
 struct Args 
 {
   int argc;
@@ -134,7 +140,8 @@ void *asymain(void *A)
     int n=numArgs();
     if(n == 0) {
       while(true) {
-        processFile("-");
+        Signal(SIGHUP,hangup_handler);
+        processFile("-",true);
         try {
           setOptions(args->argc,args->argv);
         } catch(handled_error) {
