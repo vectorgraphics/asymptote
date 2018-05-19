@@ -26,7 +26,6 @@ void setlexer(size_t (*input) (char* bif, size_t max_size), string filename);
 extern bool yyparse(void);
 extern int yydebug;
 extern int yy_flex_debug;
-static const int YY_NULL = 0;
 extern bool lexerEOF();
 extern void reportEOF();
 extern bool hangup;
@@ -43,8 +42,7 @@ std::streambuf *sbuf = NULL;
 
 size_t stream_input(char *buf, size_t max_size)
 {
-  size_t count=sbuf ? sbuf->sgetn(buf,max_size) : 0;
-  return count ? count : YY_NULL;
+  return sbuf ? sbuf->sgetn(buf,max_size) : 0;
 }
 
 int fpeek(int fd) 
@@ -59,11 +57,9 @@ int fpeek(int fd)
 
 size_t pipe_input(char *buf, size_t max_size)
 {
-  if(hangup && fpeek(fd) == EOF) {hangup=false; return YY_NULL;}
-  size_t count;
+  if(hangup && fpeek(fd) == EOF) {hangup=false; return 0;}
   fgets(buf,max_size-1,fin);
-  count=strlen(buf);
-  return count ? count : YY_NULL;
+  return strlen(buf);
 }
 
 } // namespace yy
