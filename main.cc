@@ -139,6 +139,7 @@ void *asymain(void *A)
   } else {
     int n=numArgs();
     if(n == 0) {
+      int inpipe=intcast(settings::getSetting<Int>("inpipe"));
       while(true) {
         Signal(SIGHUP,hangup_handler);
         processFile("-",true);
@@ -147,6 +148,7 @@ void *asymain(void *A)
         } catch(handled_error) {
           em.statusError();
         } 
+        if(inpipe < 0) break;
       }
     } else {
       for(int ind=0; ind < n; ind++) {
