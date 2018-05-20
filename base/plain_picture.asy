@@ -169,6 +169,15 @@ typedef void drawer(frame f, transform t);
 // TODO: Add documentation as to what T is.
 typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
 
+struct node {
+  drawerBound d;
+  string key;
+  void operator init(drawerBound d, string key=xasyKEY()) {
+    this.d=d;
+    this.key=key;
+  }
+}
+
 // PairOrTriple <<<1
 // This struct is used to represent a userMin/userMax which serves as both a
 // pair and a triple depending on the context.
@@ -200,9 +209,8 @@ struct picture { // <<<1
                             picture pic, projection P, triple lb, triple rt);
 
   // The functions to do the deferred drawing.
-  drawerBound[] nodes;
+  node[] nodes;
   drawerBound3[] nodes3;
-  string[] keys;
 
   bool uptodate=true;
 
@@ -271,7 +279,6 @@ struct picture { // <<<1
   void erase() {
     nodes.delete();
     nodes3.delete();
-    keys.delete();
     bounds.erase();
     bounds3.erase();
     T=identity();
@@ -446,21 +453,16 @@ struct picture { // <<<1
   void add(drawerBound d, bool exact=false, bool above=true) {
     uptodate=false;
     if(!exact) bounds.exact=false;
-    if(above) {
-      nodes.push(d);
-      keys.push(xasyKEY());
-    }
-    else {
-      nodes.insert(0,d);
-      keys.insert(0,xasyKEY());
-    }
+    if(above)
+      nodes.push(node(d));
+    else
+      nodes.insert(0,node(d));
   }
   
   // Faster implementation of most common case.
   void addExactAbove(drawerBound d) {
     uptodate=false;
-    nodes.push(d);
-    keys.push(xasyKEY());
+    nodes.push(node(d));
   }
 
   void add(drawer d, bool exact=false, bool above=true) {
@@ -683,9 +685,9 @@ struct picture { // <<<1
   frame fit(transform t, transform T0=T, pair m, pair M) {
     frame f;
     int n = nodes.length;
-    for(int i=0; i < n; ++i) {
-      xasyKEY(keys[i]);
-      nodes[i](f,t,T0,m,M);
+    for(node n : nodes) {
+      xasyKEY(n.key);
+      n.d(f,t,T0,m,M);
     }
     return f;
   }
@@ -915,7 +917,6 @@ struct picture { // <<<1
   picture drawcopy() {
     picture dest=new picture;
     dest.nodes=copy(nodes);
-    dest.keys=copy(keys);
     dest.nodes3=copy(nodes3);
     dest.T=T;
     dest.T3=T3;
@@ -955,13 +956,15 @@ struct picture { // <<<1
     picture dest=drawcopy();
 
     // Replace nodes with a single drawer that realizes the transform.
-    drawerBound[] oldnodes = dest.nodes;
+    node[] oldnodes = dest.nodes;
     void drawAll(frame f, transform tt, transform T, pair lb, pair rt) {
       transform Tt = T*t;
-      for (var node : oldnodes)
-        node(f, tt, Tt, lb, rt);
+      for (node n : oldnodes) {
+        xasyKEY(n.key);
+        n.d(f,tt,Tt,lb,rt);
+      }
     }
-    dest.nodes = new drawerBound[] { drawAll };
+    dest.nodes = new node[] {node(drawAll)};
 
     dest.uptodate=uptodate;
     dest.bounds=bounds.transformed(t);
@@ -995,10 +998,9 @@ struct picture { // <<<1
     picture srcCopy=src.drawcopy();
     // Draw by drawing the copied picture.
     if(srcCopy.nodes.length > 0) {
-      nodes.push(new void(frame f, transform t, transform T, pair m, pair M) {
+      nodes.push(node(new void(frame f, transform t, transform T, pair m, pair M) {
           add(f,srcCopy.fit(t,T*srcCopy.T,m,M),group,filltype,above);
-        });
-      keys.append(srcCopy.keys);
+          }));
     }
     
     if(srcCopy.nodes3.length > 0) {
@@ -1420,7 +1422,6 @@ void clip(picture pic=currentpicture, path[] g, bool stroke=false,
 {
   if(copy)
     g=copy(g);
-  //pic.userClip(min(g),max(g));
   pic.clip(min(g), max(g),
            new void(frame f, transform t) {
              clip(f,t*g,stroke,fillrule,false);
