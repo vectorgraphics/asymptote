@@ -208,9 +208,18 @@ struct picture { // <<<1
   typedef void drawerBound3(frame f, transform3 t, transform3 T,
                             picture pic, projection P, triple lb, triple rt);
 
+  struct node3 {
+    drawerBound3 d;
+    string key;
+    void operator init(drawerBound3 d, string key=xasyKEY()) {
+      this.d=d;
+      this.key=key;
+    }
+  }
+
   // The functions to do the deferred drawing.
   node[] nodes;
-  drawerBound3[] nodes3;
+  node3[] nodes3;
 
   bool uptodate=true;
 
@@ -475,9 +484,9 @@ struct picture { // <<<1
     uptodate=false;
     if(!exact) bounds.exact=false;
     if(above)
-      nodes3.push(d);
+      nodes3.push(node3(d));
     else
-      nodes3.insert(0,d);
+      nodes3.insert(0,node3(d));
   }
 
   void add(drawer3 d, bool exact=false, bool above=true) {
@@ -684,7 +693,6 @@ struct picture { // <<<1
 
   frame fit(transform t, transform T0=T, pair m, pair M) {
     frame f;
-    int n = nodes.length;
     for(node n : nodes) {
       xasyKEY(n.key);
       n.d(f,t,T0,m,M);
@@ -695,8 +703,10 @@ struct picture { // <<<1
   frame fit3(transform3 t, transform3 T0=T3, picture pic, projection P,
              triple m, triple M) {
     frame f;
-    for(int i=0; i < nodes3.length; ++i)
-      nodes3[i](f,t,T0,pic,P,m,M);
+    for(node3 n : nodes3) {
+      xasyKEY(n.key);
+      n.d(f,t,T0,pic,P,m,M);
+    }
     return f;
   }
 
@@ -998,16 +1008,18 @@ struct picture { // <<<1
     picture srcCopy=src.drawcopy();
     // Draw by drawing the copied picture.
     if(srcCopy.nodes.length > 0) {
-      nodes.push(node(new void(frame f, transform t, transform T, pair m, pair M) {
+      nodes.push(node(new void(frame f, transform t, transform T,
+                               pair m, pair M) {
           add(f,srcCopy.fit(t,T*srcCopy.T,m,M),group,filltype,above);
           }));
     }
     
     if(srcCopy.nodes3.length > 0) {
-      nodes3.push(new void(frame f, transform3 t, transform3 T3, picture pic,
-                           projection P, triple m, triple M) {
+      nodes3.push(node3(new void(frame f, transform3 t, transform3 T3,
+                                 picture pic, projection P, triple m, triple M)
+                        {
                     add(f,srcCopy.fit3(t,T3*srcCopy.T3,pic,P,m,M),group,above);
-                  });
+                        }));
     }
     
     legend.append(src.legend);
