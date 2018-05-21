@@ -839,9 +839,6 @@ public:
     while (running) {
       // Read a line from the prompt.
       string line=getline(false);
-//      ostringstream buf;
-//      buf << count++;
-//      vm::topPos=buf.str();
       // Check if it is a special command.
       if (handleCommand(e,s,line))
         continue;

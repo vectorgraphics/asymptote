@@ -141,7 +141,7 @@ void _draw(picture *f, path g, pen p)
 
 void fill(picture *f, patharray *g, pen p=CURRENTPEN, bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   f->append(new drawFill(*copyarray(g),false,p));
 }
 
@@ -149,7 +149,7 @@ void latticeshade(picture *f, patharray *g, bool stroke=false,
                   pen fillrule=CURRENTPEN, penarray2 *p, transform t=identity, 
                   bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   f->append(new drawLatticeShade(*copyarray(g),stroke,fillrule,*copyarray(p),
                                  t));
 }
@@ -158,7 +158,7 @@ void axialshade(picture *f, patharray *g, bool stroke=false, pen pena, pair a,
                 bool extenda=true, pen penb, pair b, bool extendb=true,
                 bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   f->append(new drawAxialShade(*copyarray(g),stroke,pena,a,extenda,penb,b,
                                extendb));
 }
@@ -167,7 +167,7 @@ void radialshade(picture *f, patharray *g, bool stroke=false, pen pena,
                  pair a, real ra, bool extenda=true, pen penb, pair b, real rb,
                  bool extendb=true, bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   f->append(new drawRadialShade(*copyarray(g),stroke,pena,a,ra,extenda,
                                 penb,b,rb,extendb));
 }
@@ -176,7 +176,7 @@ void gouraudshade(picture *f, patharray *g, bool stroke=false,
                   pen fillrule=CURRENTPEN, penarray *p, pairarray *z,
                   Intarray *edges, bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   checkArrays(p,z);
   checkArrays(z,edges);
   f->append(new drawGouraudShade(*copyarray(g),stroke,fillrule,*copyarray(p),
@@ -187,7 +187,7 @@ void gouraudshade(picture *f, patharray *g, bool stroke=false,
                   pen fillrule=CURRENTPEN, penarray *p, Intarray *edges,
                   bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   size_t n=checkArrays(p,edges);
   size_t m=checkArray(g);
   array *z=new array(n);
@@ -211,8 +211,8 @@ void tensorshade(picture *f, patharray *g, bool stroke=false,
                  pen fillrule=CURRENTPEN, penarray2 *p, patharray *b=NULL,
                  pairarray2 *z=emptyarray, bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
+  array *(*copyarray2)(array *a)=copy ? copyArray2 : nop;
   if(b == NULL) b=g;
   size_t n=checkArrays(p,b);
   size_t nz=checkArray(z);
@@ -226,7 +226,7 @@ void functionshade(picture *f, patharray *g, bool stroke=false,
                    pen fillrule=CURRENTPEN, string shader=emptystring,
                    bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   f->append(new drawFunctionShade(*copyarray(g),stroke,fillrule,shader));
 }
 
@@ -235,7 +235,7 @@ void functionshade(picture *f, patharray *g, bool stroke=false,
 void clip(picture *f, patharray *g, bool stroke=false,
           pen fillrule=CURRENTPEN, bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   drawClipBegin *begin=new drawClipBegin(*copyarray(g),stroke,fillrule,true);
   f->enclose(begin,new drawClipEnd(true,begin));
 }
@@ -243,7 +243,7 @@ void clip(picture *f, patharray *g, bool stroke=false,
 void beginclip(picture *f, patharray *g, bool stroke=false,
                pen fillrule=CURRENTPEN, bool copy=true)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
   f->append(new drawClipBegin(*copyarray(g),stroke,fillrule,false));
 }
 
@@ -359,8 +359,8 @@ void _image(picture *f, realarray2 *data, pair initial, pair final,
             penarray *palette=NULL, transform t=identity, bool copy=true,
             bool antialias=false)
 {
-  array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
+  array *(*copyarray)(array *a)=copy ? copyArray : nop;
+  array *(*copyarray2)(array *a)=copy ? copyArray2 : nop;
   f->append(new drawPaletteImage(*copyarray2(data),*copyarray(palette),
                             t*matrix(initial,final),antialias));
 }
@@ -368,7 +368,7 @@ void _image(picture *f, realarray2 *data, pair initial, pair final,
 void _image(picture *f, penarray2 *data, pair initial, pair final,
             transform t=identity, bool copy=true, bool antialias=false)
 {
-  array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
+  array *(*copyarray2)(array *a)=copy ? copyArray2 : nop;
   f->append(new drawNoPaletteImage(*copyarray2(data),t*matrix(initial,final),
                                    antialias));
 }
@@ -540,7 +540,6 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
       xform->call(Stack);
       transform t=pop<transform>(Stack);
       assert(*p);
-      fprintf(pipeout,"KEY=%s\n",(*p)->KEY.c_str());
       if((*p)->endgroup()) {
         fprintf(pipeout,"%s\n",Error.c_str());
         fflush(pipeout);
@@ -568,6 +567,7 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
       if(p != f->nodes.end()) {
         assert(*p);
         drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
+        fprintf(pipeout,"KEY=%s\n",e->KEY.c_str());
         group->append(e);
         bbox b;
         ostringstream buf;
