@@ -73,12 +73,6 @@ void shipout(string prefix=defaultfilename, frame f,
     }
   }
 
-  if(inXasyMode) {
-    erase();
-    add(f,group=false);
-    return;
-  }
-  
   // Applications like LaTeX cannot handle large PostScript coordinates.
   pair m=min(f);
   int limit=2000;

@@ -1,4 +1,3 @@
-restricted bool inXasyMode=false;
 bool diagnostics=false;
 void report(string text)
 {
@@ -15,40 +14,9 @@ void report(int i)
  if(diagnostics)
   write(i);
 }
-void initXasyMode()
-{
-    // TODO: Figure out what's wrong...
-    //size(0,0);
-    inXasyMode=true;
-}
 
-void exitXasyMode()
-{
-  inXasyMode=false;
-}
 private picture[] tempStore;
 private picture newPic;
-void startScript()
-{
-  /*
-  tempStore.push(currentpicture.copy());
-  newPic=new picture;
-  currentpicture=newPic;
-  */
-}
-
-void endScript()
-{
-  /*
-  if(tempStore.length < 1) {
-    abort("endScript() without matching beginScript()");
-  } else {
-    currentpicture=tempStore.pop();
-    add(currentpicture,newPic.fit(),group=false);
-  }
-  shipped=false;
-  */
-}
 
 // TODO: Replace this with something more elegant.
 // John's code - just a working temporary.
