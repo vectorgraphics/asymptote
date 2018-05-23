@@ -42,7 +42,6 @@ class DebugFlags:
 
 class AsymptoteEngine:
     def __init__(self, path, args=None, customOutdir=None, keepFiles=DebugFlags.keepFiles):
-        self.process = None
         rx, wx = os.pipe()
         ra, wa = os.pipe()
 
@@ -67,7 +66,7 @@ class AsymptoteEngine:
 
         assert isinstance(args, list)
 
-        self.args = ['-noV', '-q','-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs] + args
+        self.args = ['-noV', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs] + args
 
         self.asyPath = path
         self.asyProcess = None
@@ -79,8 +78,9 @@ class AsymptoteEngine:
             return self.asyProcess.wait()
 
     def start(self):
-        self.asyProcess = subprocess.Popen(args=[self.asyPath] + self.args, close_fds=False)
-        if self.asyProcess.returncode is not None:
+        self.asyProcess = subprocess.Popen([self.asyPath] + self.args, close_fds=False, stdout=subprocess.PIPE)
+        line = self.asyProcess.stdout.readline()     # for ready;
+        if self.asyProcess.returncode is not None or line.decode('utf-8') != 'asy ready\n':
             raise ChildProcessError('Asymptote failed to open')
 
     def __enter__(self):
@@ -639,6 +639,9 @@ class xasyItem:
 
     def asyfyThread(self, mag=1.0, keyOnly=False):
         """Convert the item to a list of images by deconstructing this item's code"""
+
+        assert self.asyengine.active
+
         fout = self.asyengine.ostream
         fin = self.asyengine.istream
 
@@ -646,6 +649,7 @@ class xasyItem:
             fout.write(line+"\n")
         fout.write("deconstruct({:f});\n".format(mag))
         fout.flush()
+
         self.asyengine.asyProcess.send_signal(signal.SIGHUP)
 
         maxargs = int(fin.readline().split()[0])        # should be 256, for now.
