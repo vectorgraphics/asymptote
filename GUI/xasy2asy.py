@@ -26,7 +26,9 @@ import queue
 import io
 
 import CubicBezier
-import xasyUtils
+import xasyUtils as xu
+import xasyArgs as xa
+import xasyOptions as xo
 
 import BezierCurveEditor
 import uuid
@@ -41,7 +43,9 @@ class DebugFlags:
 
 
 class AsymptoteEngine:
-    def __init__(self, path, args=None, customOutdir=None, keepFiles=DebugFlags.keepFiles):
+    def __init__(self, path, args=None, customOutdir=None, keepFiles=DebugFlags.keepFiles, keepDefaultArgs=True,
+                 stdoutMode=None, stdinMode=None, stderrMode=None):
+        self.process = None
         rx, wx = os.pipe()
         ra, wa = os.pipe()
 
@@ -50,13 +54,17 @@ class AsymptoteEngine:
         os.set_inheritable(ra, True)
         os.set_inheritable(wa, True)
 
+        self._stdoutMode = stdoutMode
+        self._stdinMode = stdinMode
+        self._stderrMode = stderrMode
+
         self._ostream = os.fdopen(wx, 'w')
         self._istream = os.fdopen(ra, 'r')
         self.keepFiles = keepFiles
         self.useTmpDir = customOutdir is None
         if customOutdir is None:
             self.tmpdir = tempfile.TemporaryDirectory(prefix='xasyData_')
-            oargs = self.tmpdir.name + '/'
+            oargs = self.tmpdir.name + os.sep
         else:
             self.tmpdir = customOutdir
             oargs = customOutdir
@@ -66,10 +74,16 @@ class AsymptoteEngine:
 
         assert isinstance(args, list)
 
-        self.args = ['-noV', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs] + args
+        self.args = args
+
+        if keepDefaultArgs:
+            self.args = ['-noV', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs] + args
 
         self.asyPath = path
         self.asyProcess = None
+
+        self.rx = rx
+        self.wa = wa
 
     def wait(self):
         if self.asyProcess.returncode is not None:
@@ -78,20 +92,50 @@ class AsymptoteEngine:
             return self.asyProcess.wait()
 
     def start(self):
-        self.asyProcess = subprocess.Popen([self.asyPath] + self.args, close_fds=False, stdout=subprocess.PIPE)
+        self.asyProcess = subprocess.Popen([self.asyPath] + self.args, close_fds=False, stdout=subprocess.PIPE,
+                                           stdin=self._stdinMode, stderr=self._stderrMode)
         line = self.asyProcess.stdout.readline()     # for ready;
         if self.asyProcess.returncode is not None or line.decode('utf-8') != 'asy ready\n':
             raise ChildProcessError('Asymptote failed to open')
 
     def __enter__(self):
         self.start()
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop()
+        self.wait()
+
+    def hangup(self):
+        if self.active:
+            self.asyProcess.send_signal(signal.SIGHUP)
 
     @property
     def tempDirName(self):
-        return self.tmpdir.name + '/'
+        return self.tmpdir.name + os.sep
+
+    def startThenStop(self):
+        self.start()
+        self.stop()
+        self.wait()
+
+    @property
+    def stdout(self):
+        if self.asyProcess is None:
+            return None
+        return self.asyProcess.stdout
+
+    @property
+    def stdin(self):
+        if self.asyProcess is None:
+            return None
+        return self.asyProcess.stdin
+
+    @property
+    def stderr(self):
+        if self.asyProcess is None:
+            return None
+        return self.asyProcess.stderr
 
     @property
     def active(self):
@@ -650,7 +694,7 @@ class xasyItem:
         fout.write("deconstruct({:f});\n".format(mag))
         fout.flush()
 
-        self.asyengine.asyProcess.send_signal(signal.SIGHUP)
+        self.asyengine.hangup()
 
         maxargs = int(fin.readline().split()[0])        # should be 256, for now.
         imageInfos = []                                 # of (box, key)
@@ -680,13 +724,6 @@ class xasyItem:
             text = fin.readline()       # the actual bounding box.
             # print('TESTING:', text)
             keydata = raw_text.strip().replace('KEY=', '', 1)  # key
-            if not keydata.startswith('x:'):
-                line, col = keydata.split('.')
-                if self.keyBuffer is None:
-                    self.keyBuffer = {}
-                if line not in self.keyBuffer:
-                    self.keyBuffer[line] = set()
-                self.keyBuffer[line].add(col)
 #                print(line, col)
             imageInfos.append((text, keydata))      # key-data pair
 
@@ -943,6 +980,10 @@ class xasyScript(xasyItem):
 
         self.script = script
 
+        self.setKeyed = False
+        # self.setKey()
+        # self.updateCode()
+
     def clearTransform(self):
         """Reset the transforms for each of the deconstructed images"""
         # self.transform = [identity()] * len(self.imageList)
@@ -964,12 +1005,55 @@ class xasyScript(xasyItem):
                 rawAsyCode.write(raw_line + '\n')
 
             self.asyCode = rawAsyCode.getvalue()
-            pass
 
     def setScript(self, script):
         """Sets the content of the script item."""
         self.script = script
         self.updateCode()
+        self.setKeyed = False
+
+    def setKey(self):
+        for line in self.script.splitlines():
+            self.asyengine.ostream.write(line + '\n')
+        self.asyengine.ostream.write('deconstruct();\n')
+        self.asyengine.ostream.flush()
+
+        self.asyengine.hangup()
+
+        keylist = {}
+
+        fin = self.asyengine.istream
+        linebuf = fin.readline()
+        while linebuf != 'Done\n':
+            if linebuf.startswith('KEY='):
+                key = linebuf.rstrip().replace('KEY=', '', 1)
+                raw_parsed = xu.tryParseKey(key)
+                if raw_parsed is not None:
+                    line, col = [int(val) for val in raw_parsed.groups()]
+                    if line not in keylist:
+                        keylist[line] = set()
+
+                    keylist[line].add(col)
+            linebuf = fin.readline()
+
+        raw_code_lines = self.script.splitlines()
+
+        with io.StringIO() as raw_str:
+            for i in range(len(raw_code_lines)):
+                curr_str = raw_code_lines[i]
+                if i + 1 in keylist.keys():
+                    # this case, we have a key.
+                    with io.StringIO() as raw_line:
+                        for j in range(len(curr_str)):
+                            raw_line.write(curr_str[j])
+                            if j + 1 in keylist[i + 1]:
+                                raw_line.write('KEY="x{0:d}.{1:d}", '.format(i + 1, j + 1))
+                        curr_str = raw_line.getvalue()
+                # else, skip and just write the line.
+                raw_str.write(curr_str + '\n')
+                self.script = raw_str.getvalue()
+        self.updateCode()
+        self.setKeyed = True
 
     def asyfy(self, mag=1.0, keyOnly=False):
         """Generate the list of images described by this object and adjust the length of the transform list."""

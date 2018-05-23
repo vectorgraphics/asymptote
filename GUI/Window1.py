@@ -1222,21 +1222,11 @@ class MainWindow1(Qw.QMainWindow):
             self.autoMakeScript = True
             if self.autoMakeScript or Qw.QMessageBox.question(self, "Error Opening File", "File was not recognized as an xasy file.\n"
                 "Load as a script item?") == Qw.QMessageBox.Yes:
-                # try:
                 item = x2a.xasyScript(canvas=self.xasyDrawObj, engine=self.asyEngine)
                 f.seek(0)
                 item.setScript(f.read())
-                # item.setKey()
+                item.setKey()
                 self.fileItems.append(item)
-                # except:
-                #     Qw.QMessageBox.critical(self, "File Opening Failed.",
-                # "File could not be opened.")
-                #     # messagebox.showerror("File Opening Failed.", "Could not
-                # load as a script item.")
-                #     self.fileItems = []
-        # self.populateCanvasWithItems()
-        # self.populatePropertyList()
-        # self.updateCanvasSize()
         self.asyfyCanvas()
 
     def populateCanvasWithItems(self):
