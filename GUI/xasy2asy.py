@@ -44,7 +44,7 @@ class DebugFlags:
 
 class AsymptoteEngine:
     def __init__(self, path, args=None, customOutdir=None, keepFiles=DebugFlags.keepFiles, keepDefaultArgs=True,
-                 stdoutMode=None, stdinMode=None, stderrMode=None):
+                 stdoutMode=None, stdinMode=None, stderrMode=None, endargs=None):
         self.process = None
         rx, wx = os.pipe()
         ra, wa = os.pipe()
@@ -72,12 +72,15 @@ class AsymptoteEngine:
         if args is None:
             args = []
 
+        if endargs is None:
+            endargs = []
+
         assert isinstance(args, list)
 
         self.args = args
 
         if keepDefaultArgs:
-            self.args = ['-noV', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs] + args
+            self.args = args + ['-noV', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs] + endargs
 
         self.asyPath = path
         self.asyProcess = None
