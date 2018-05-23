@@ -218,9 +218,12 @@ AC_ARG_ENABLE(gc-full-debug,
  fi
 ])
 
-if test "$OSTYPE" = "msdos"; then
 INCL=$INCL" -I/usr/include/tirpc"
+
+if test "$OSTYPE" = "msdos"; then
 CPPFLAGS=$CPPFLAGS" -D__MSDOS__ $INCL"
+else
+CPPFLAGS=$CPPFLAGS" $INCL"
 fi
 
 AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
@@ -281,9 +284,9 @@ AC_CHECK_FUNCS([feenableexcept])
 
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "xstream.h"])],
-                   [AC_SEARCH_LIBS([xdrstdio_create],[nsl rpc])
+                   [AC_SEARCH_LIBS([xdrstdio_create],[nsl tirpc])
 		    AC_DEFINE(HAVE_RPC_RPC_H, 1,
-		   [Define if you have a working <rpc/rpc.h> header file])],
+		   [Define if you have a working <tirpc/rpc/rpc.h> header file])],
    AC_MSG_WARN([*** Broken rpc headers; XDR support disabled ***]))
 
 AC_ARG_ENABLE(gsl,
