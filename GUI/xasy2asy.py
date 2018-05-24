@@ -96,8 +96,8 @@ class AsymptoteEngine:
     def start(self):
         self.asyProcess = subprocess.Popen([self.asyPath] + self.args, close_fds=False, stdout=subprocess.PIPE,
                                            stdin=self._stdinMode, stderr=self._stderrMode)
-        line = self.asyProcess.stdout.readline()     # for ready;
-        if self.asyProcess.returncode is not None or line.decode('utf-8') != 'asy ready\n':
+        line = self.asyProcess.stdout.readline()
+        if self.asyProcess.returncode is not None:
             raise ChildProcessError('Asymptote failed to open')
 
     def __enter__(self):

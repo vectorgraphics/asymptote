@@ -126,8 +126,6 @@ void *asymain(void *A)
   Args *args=(Args *) A;
   fpu_trap(trap());
 
-  cout << "asy ready" << endl;
-
   if(interactive) {
     Signal(SIGINT,interruptHandler);
     processPrompt();
@@ -141,8 +139,9 @@ void *asymain(void *A)
     int n=numArgs();
     if(n == 0) {
       int inpipe=intcast(settings::getSetting<Int>("inpipe"));
+      Signal(SIGHUP,hangup_handler);
+      cout << endl;
       while(true) {
-        Signal(SIGHUP,hangup_handler);
         processFile("-",true);
         try {
           setOptions(args->argc,args->argv);
