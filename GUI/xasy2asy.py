@@ -11,6 +11,7 @@
 import PyQt5.QtWidgets as Qw
 import PyQt5.QtGui as Qg
 import PyQt5.QtCore as Qc
+import PyQt5.QtSvg as Qs
 
 import numpy as np
 from tkinter import *
@@ -19,7 +20,6 @@ import sys
 import os
 import signal
 import threading
-# from subprocess import *
 import subprocess
 import tempfile
 import queue
@@ -33,7 +33,6 @@ import xasyOptions as xo
 import BezierCurveEditor
 import uuid
 
-quickAsyFailed = True
 console = None
 
 
@@ -532,6 +531,8 @@ class asyPath(asyObj):
         fout.write("write(fout,length(p),newl);\n")
         fout.write("write(fout,unstraighten(p),endl);\n")
         fout.flush()
+
+        self.asyengine.hangup()
         lengthStr = fin.readline()
         pathSegments = eval(lengthStr.split()[-1])
         pathStrLines = []
@@ -614,6 +615,7 @@ class xasyItem:
         self.onCanvas = canvas
         self.keyBuffer = None
         self.asyengine = asyengine
+        self.drawObjects = []
         self.imageHandleQueue = queue.Queue()
 
     def updateCode(self, mag=1.0):
@@ -624,6 +626,9 @@ class xasyItem:
         """Return the code describing the item"""
         self.updateCode()
         return self.asyCode
+
+    def generateDrawObjects(self, mag=1.0):
+        raise NotImplementedError
 
     def handleImageReception(self, file, format, bbox, count, key=None):
         """Receive an image from an asy deconstruction. It replaces the default in asyProcess."""
@@ -643,21 +648,16 @@ class xasyItem:
             if key not in self.transfKeymap.keys() or not self.transfKeymap[key].deleted:
                 currImage.IDTag = str(file)
                 counter = 0
-                while currImage.IDTag in self.onCanvas['drawDict'].keys():
-                    currImage.IDTag = str(file) + '_' + str(counter)
-                    counter = counter + 1
 
                 if key in self.transfKeymap.keys():
                     inputTransform = self.transfKeymap[key]
                 else:
                     inputTransform = identity()
 
-                self.onCanvas['drawDict'][currImage.IDTag] = \
-                    DrawObject(currImage.iqt, self.onCanvas['canvas'], transform=inputTransform,
-                               btmRightanchor=Qc.QPointF(bbox[0], bbox[2]),
-                               drawOrder=count, key=key)
-                self.onCanvas['drawDict'][currImage.IDTag].originalObj = self, count
-                self.onCanvas['drawDict'][currImage.IDTag].draw()
+                newDrawObj = DrawObject(currImage.iqt, self.onCanvas['canvas'], transform=inputTransform,
+                                        btmRightanchor=Qc.QPointF(bbox[0], bbox[2]), drawOrder=-1, key=key,
+                                        parentObj=self)
+                self.drawObjects.append(newDrawObj)
 
     def asyfy(self, mag=1.0, keyOnly=False):
         if self.asyengine is None:
@@ -765,12 +765,11 @@ class xasyDrawnItem(xasyItem):
         self.path = path
         self.path.asyengine = engine
         self.pen = pen
-        self.rawIdentifier = 'x:' + str(np.random.randint(0, 10000))
+        self.rawIdentifier = 'x' + str(uuid.uuid4())
         self.transfKey = key
         if key is None:
-            self.transfKey = 'x:' + str(uuid.uuid4())
+            self.transfKey = self.rawIdentifier
         self.transfKeymap = {self.transfKey: transform}
-        self.transform = [transform]
 
     def appendPoint(self, point, link=None):
         """Append a point to the path. If the path is cyclic, add this point before the 'cycle' node."""
@@ -813,7 +812,6 @@ class xasyDrawnItem(xasyItem):
 
 class xasyShape(xasyDrawnItem):
     """An outlined shape drawn on the GUI"""
-
     def __init__(self, path, asyengine, pen=None, transform=identity()):
         """Initialize the shape with a path, pen, and transform"""
         super().__init__(path=path, engine=asyengine, pen=pen, transform=transform)
@@ -826,26 +824,26 @@ class xasyShape(xasyDrawnItem):
                 '\ndraw(KEY="{0}", {1}, {2})'.format(self.transfKey, self.path.getCode(), self.pen.getCode()))
             self.asyCode = rawAsyCode.getvalue()
 
+    def generateDrawObjects(self, mag=1.0):
+        self.path.computeControls()
+        return [DrawObject(self.path.toQPainterPath(), None, drawOrder=0,
+                           transform=self.transfKeymap[self.transfKey], pen=self.pen, key=self.transfKey)]
+
     def drawOnCanvas(self, canvas, mag, asyFy=False, forceAddition=False):
         """Add this shape to a Qt (not TK anymore) canvas"""
         # for now. Drawing custom no longer needed (?) Use QPainterPath instead?
         if not asyFy:
             if self.IDTag is None or forceAddition:
                 # add ourselves to the canvas
-                self.path.computeControls()
                 # self.IDTag = canvas.create_line(0, 0, 0, 0, tags=("drawn", "xasyShape"), fill=self.pen.tkColor(),
                 #                                width=self.pen.width * mag)
                 self.IDTag = Qc.QLine()
                 self.drawOnCanvas(canvas, mag)
             else:
-                self.path.computeControls()
                 while self.rawIdentifier in canvas['drawDict'].keys():
-                    self.rawIdentifier = np.random.randint(0, 1000000)
+                    self.rawIdentifier = 'x' + str(uuid.uuid4())
 
-                drawPriority = len(canvas['drawDict']) + 1
-                canvas['drawDict'][self.rawIdentifier] = DrawObject(self.path.toQPainterPath(), canvas['canvas'],
-                                                                    drawOrder=drawPriority, transform=self.transform[0],
-                                                                    pen=self.pen, key=self.transfKey)
+                canvas['drawDict'][self.rawIdentifier] = self.generateDrawObjects(mag)[0]
                 canvas['drawDict'][self.rawIdentifier].originalObj = self, 0
                 canvas['drawDict'][self.rawIdentifier].draw()
                 self.IDTag = canvas['drawDict'][self.rawIdentifier].getID()
@@ -982,7 +980,6 @@ class xasyScript(xasyItem):
             self.transfKeymap = {}
 
         self.script = script
-
         self.setKeyed = False
         # self.setKey()
         # self.updateCode()
@@ -1085,6 +1082,11 @@ class xasyScript(xasyItem):
 
         self.updateCode()
 
+    def generateDrawObjects(self, mag=1.0):
+        self.drawObjects = []
+        self.asyfy(mag)
+        return self.drawObjects
+
     def drawOnCanvas(self, canvas, mag, asyFy=True, forceAddition=False):
         """Adds the script's images to a tk canvas"""
         if not self.onCanvas:
@@ -1104,14 +1106,14 @@ class xasyScript(xasyItem):
 
 class DrawObject:
     def __init__(self, drawObject, mainCanvas=None, transform=identity(), btmRightanchor=Qc.QPointF(0, 0),
-                 drawOrder=-1, pen=None, key=None):
+                 drawOrder=(-1, -1), pen=None, key=None, parentObj=None):
         self.drawObject = drawObject
         self.mainCanvas = mainCanvas
         self.pTransform = transform
         self.baseTransform = transform
         self.drawOrder = drawOrder
         self.btmRightAnchor = btmRightanchor
-        self.originalObj = None
+        self.originalObj = parentObj
         self.useCanvasTransformation = False
         self.key = key
         self.pen = pen
@@ -1154,33 +1156,39 @@ class DrawObject:
         scrTransf = self.baseTransform.toQTransform().inverted()[0] * self.pTransform.toQTransform()
         return asyTransform.fromQTransform(scrTransf)
 
-    def draw(self, additionalTransformation=Qg.QTransform(), applyReverse=False):
-        assert isinstance(self.mainCanvas, Qg.QPainter)
-        assert self.mainCanvas.isActive()
+    def draw(self, additionalTransformation=None, applyReverse=False, canvas=None):
+        if canvas is None:
+            canvas = self.mainCanvas
+        if additionalTransformation is None:
+            additionalTransformation = Qg.QTransform()
 
-        self.mainCanvas.save()
+        assert isinstance(canvas, Qg.QPainter)
+        assert canvas.isActive()
+
+        canvas.save()
         if self.pen:
-            oldPen = Qg.QPen(self.mainCanvas.pen())
-            self.mainCanvas.setPen(self.pen.toQPen())
+            oldPen = Qg.QPen(canvas.pen())
+            canvas.setPen(self.pen.toQPen())
         else:
             oldPen = Qg.QPen()
-        if not applyReverse:
-            self.mainCanvas.setTransform(additionalTransformation, True)
-            self.mainCanvas.setTransform(self.transform.toQTransform(), True)
-        else:
-            self.mainCanvas.setTransform(self.transform.toQTransform(), True)
-            self.mainCanvas.setTransform(additionalTransformation, True)
 
-        self.mainCanvas.setTransform(self.baseTransform.toQTransform().inverted()[0], True)
+        if not applyReverse:
+            canvas.setTransform(additionalTransformation, True)
+            canvas.setTransform(self.transform.toQTransform(), True)
+        else:
+            canvas.setTransform(self.transform.toQTransform(), True)
+            canvas.setTransform(additionalTransformation, True)
+
+        canvas.setTransform(self.baseTransform.toQTransform().inverted()[0], True)
 
         if isinstance(self.drawObject, Qg.QImage):
-            self.mainCanvas.drawImage(self.btmRightAnchor, self.drawObject)
+            canvas.drawImage(self.btmRightAnchor, self.drawObject)
         elif isinstance(self.drawObject, Qg.QPainterPath):
-            self.mainCanvas.drawPath(self.baseTransform.toQTransform().map(self.drawObject))
+            canvas.drawPath(self.baseTransform.toQTransform().map(self.drawObject))
 
         if self.pen:
-            self.mainCanvas.setPen(oldPen)
-        self.mainCanvas.restore()
+            canvas.setPen(oldPen)
+        canvas.restore()
 
     def collide(self, coords, canvasCoordinates=True):
         return self.boundingBox.contains(coords)

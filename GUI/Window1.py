@@ -166,7 +166,7 @@ class MainWindow1(Qw.QMainWindow):
 
         self.previewCurve = None
 
-        self.drawObjects = {}
+        self.drawObjects = []
         self.xasyDrawObj = {'drawDict': self.drawObjects}
 
         self.modeButtons = {self.ui.btnTranslate, self.ui.btnRotate, self.ui.btnScale, self.ui.btnSelect,
@@ -770,10 +770,12 @@ class MainWindow1(Qw.QMainWindow):
                 self.setAllInSetEnabled(self.objButtons, True)
                 self.inMidTransformation = False
 
+            maj, minor = selectedKey
+
             self.currentlySelectedObj['selectedKey'] = selectedKey
 
-            self.currentBoundingBox = self.drawObjects[selectedKey].boundingBox
-            self.origBboxTransform = self.drawObjects[selectedKey].transform.toQTransform()
+            self.currentBoundingBox = self.drawObjects[maj][minor].boundingBox
+            self.origBboxTransform = self.drawObjects[maj][minor].transform.toQTransform()
             self.newTransform = Qg.QTransform()
 
             if self.anchorMode == AnchorMode.center:
@@ -843,13 +845,14 @@ class MainWindow1(Qw.QMainWindow):
         canvasCoords = self.getCanvasCoordinates()
         highestDrawPriority = -np.inf
         collidedObjKey = None
-        for objKey in self.drawObjects:
-            obj = self.drawObjects[objKey]
-            if obj.collide(canvasCoords):
-                if obj.drawOrder > highestDrawPriority:
-                    collidedObjKey = objKey
+        for objKeyMaj in range(len(self.drawObjects)):
+            for objKeyMin in range(len(self.drawObjects[objKeyMaj])):
+                obj = self.drawObjects[objKeyMaj][objKeyMin]
+                if obj.collide(canvasCoords):
+                    if obj.drawOrder > highestDrawPriority:
+                        collidedObjKey = (objKeyMaj, objKeyMin)
         if collidedObjKey is not None:
-            self.ui.statusbar.showMessage(str('Collide with' + collidedObjKey), 2500)
+            self.ui.statusbar.showMessage(str('Collide with ' + str(collidedObjKey)), 2500)
             return collidedObjKey
 
     def getCanvasCoordinates(self):
@@ -884,16 +887,9 @@ class MainWindow1(Qw.QMainWindow):
         self.mainCanvas.setTransform(self.screenTransformation)
 
     def asyfyCanvas(self):
-        self.refreshCanvas()
-        self.drawObjects.clear()
-
-        self.preDraw(self.mainCanvas)
+        self.drawObjects = []
         self.populateCanvasWithItems()
-
-        self.mainCanvas.end()
-
-        self.postDraw()
-        self.updateScreen()
+        self.quickUpdate()
 
     def quickUpdate(self):
         self.refreshCanvas()
@@ -907,20 +903,20 @@ class MainWindow1(Qw.QMainWindow):
 
     def quickDraw(self):
         assert self.isReady()
-        drawList = sorted(self.drawObjects.values(), key=lambda drawObj: drawObj.drawOrder)
-        if self.currentlySelectedObj['selectedKey'] in self.drawObjects:
-            selectedObj = self.drawObjects[self.currentlySelectedObj['selectedKey']]
-        else:
-            selectedObj = None
+        selectedObj = None
+        if self.currentlySelectedObj['selectedKey'] is not None:
+            maj, minor = self.currentlySelectedObj['selectedKey']
+            selectedObj = self.drawObjects[maj][minor]
 
-        for item in drawList:
-            if selectedObj is item and self.settings['enableImmediatePreview']:
-                if self.useGlobalCoords:
-                    item.draw(self.newTransform)
+        for majorItem in self.drawObjects:
+            for item in majorItem:
+                if selectedObj is item and self.settings['enableImmediatePreview']:
+                    if self.useGlobalCoords:
+                        item.draw(self.newTransform, canvas=self.mainCanvas)
+                    else:
+                        item.draw(self.newTransform, applyReverse=True, canvas=self.mainCanvas)
                 else:
-                    item.draw(self.newTransform, applyReverse=True)
-            else:
-                item.draw()
+                    item.draw(canvas=self.mainCanvas)
 
     def updateScreen(self):
         self.finalPixmap = Qg.QPixmap(self.canvSize)
@@ -991,7 +987,6 @@ class MainWindow1(Qw.QMainWindow):
                 subRadius = round(radius - (subRadiusSize * (minorRing + 1)))
                 preCanvas.drawEllipse(center, subRadius, subRadius)
 
-
         currAng = majorAxisAng
         while currAng <= (2 * np.pi):
             preCanvas.setPen(majorGridCol)
@@ -1036,7 +1031,8 @@ class MainWindow1(Qw.QMainWindow):
             postCanvas.setTransform(self.screenTransformation)
             if self.currentBoundingBox is not None:
                 postCanvas.save()
-                selObj = self.drawObjects[self.currentlySelectedObj['selectedKey']]
+                maj, minor = self.currentlySelectedObj['selectedKey']
+                selObj = self.drawObjects[maj][minor]
                 if not self.useGlobalCoords:
                     postCanvas.save()
                     postCanvas.setTransform(selObj.transform.toQTransform(), True)
@@ -1165,8 +1161,9 @@ class MainWindow1(Qw.QMainWindow):
         os.system(' '.join(execEditor))
 
     def transformObject(self, objKey, transform, applyFirst=False):
-        drawObj = self.drawObjects[objKey]
-        item, transfIndex = drawObj.originalObj
+        maj, minor = objKey
+        drawObj = self.drawObjects[maj][minor]
+        item = drawObj.originalObj
         key = drawObj.key
 
         if isinstance(transform, np.ndarray):
@@ -1177,7 +1174,6 @@ class MainWindow1(Qw.QMainWindow):
         else:
             obj_transform = transform
 
-        # oldTransf = item.transform[transfIndex]
         oldTransf = item.transfKeymap[key]
 
         if not applyFirst:
@@ -1234,6 +1230,6 @@ class MainWindow1(Qw.QMainWindow):
         #     return
         self.itemCount = 0
         for item in self.fileItems:
-            item.drawOnCanvas(self.xasyDrawObj, self.magnification, forceAddition=True)
+            self.drawObjects.append(item.generateDrawObjects(self.magnification))
             # self.bindItemEvents(item)
         # self.releaseLock()
