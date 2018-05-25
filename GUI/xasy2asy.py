@@ -94,9 +94,9 @@ class AsymptoteEngine:
             return self.asyProcess.wait()
 
     def start(self):
-        self.asyProcess = subprocess.Popen([self.asyPath] + self.args, close_fds=False, stdout=subprocess.PIPE,
+        self.asyProcess = subprocess.Popen([self.asyPath] + self.args, close_fds=False,
                                            stdin=self._stdinMode, stderr=self._stderrMode)
-        line = self.asyProcess.stdout.readline()
+        line = self.istream.readline()
         if self.asyProcess.returncode is not None:
             raise ChildProcessError('Asymptote failed to open')
 
@@ -356,6 +356,9 @@ class asyPen(asyObj):
         fout.write("write(fout,colors(p));\n")
         fout.write("flush(fout);\n")
         fout.flush()
+
+        self.asyengine.hangup()
+
         colorspace = fin.readline()
         if colorspace.find("cmyk") != -1:
             lines = fin.readline() + fin.readline() + fin.readline() + fin.readline()
@@ -533,6 +536,7 @@ class asyPath(asyObj):
         fout.flush()
 
         self.asyengine.hangup()
+
         lengthStr = fin.readline()
         pathSegments = eval(lengthStr.split()[-1])
         pathStrLines = []

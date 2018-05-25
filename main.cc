@@ -40,7 +40,7 @@
 #include "settings.h"
 #include "locate.h"
 #include "interact.h"
-#include "process.h"
+#include "fileio.h"
 
 #include "stack.h"
 
@@ -110,7 +110,7 @@ void interruptHandler(int)
 bool hangup=false;
 void hangup_handler(int sig)
 {
-    hangup=true;
+  hangup=true;
 }
 
 struct Args
@@ -139,8 +139,10 @@ void *asymain(void *A)
     int n=numArgs();
     if(n == 0) {
       int inpipe=intcast(settings::getSetting<Int>("inpipe"));
+      camp::openpipeout();
+      fprintf(camp::pipeout,"\n");
+      fflush(camp::pipeout);
       Signal(SIGHUP,hangup_handler);
-      cout << endl;
       while(true) {
         processFile("-",true);
         try {
