@@ -1,3 +1,12 @@
+// Obsolete routines
+void initXasyMode()
+{
+}
+
+void exitXasyMode()
+{
+}
+
 bool diagnostics=false;
 void report(string text)
 {

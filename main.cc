@@ -139,10 +139,12 @@ void *asymain(void *A)
     int n=numArgs();
     if(n == 0) {
       int inpipe=intcast(settings::getSetting<Int>("inpipe"));
-      camp::openpipeout();
-      fprintf(camp::pipeout,"\n");
-      fflush(camp::pipeout);
-      Signal(SIGHUP,hangup_handler);
+      if(inpipe >= 0) {
+        Signal(SIGHUP,hangup_handler);
+        camp::openpipeout();
+        fprintf(camp::pipeout,"\n");
+        fflush(camp::pipeout);
+      }
       while(true) {
         processFile("-",true);
         try {

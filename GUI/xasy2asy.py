@@ -79,7 +79,7 @@ class AsymptoteEngine:
         self.args = args
 
         if keepDefaultArgs:
-            self.args = args + ['-noV', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs] + endargs
+            self.args = args + ['-noV', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs] + endargs
 
         self.asyPath = path
         self.asyProcess = None
@@ -96,7 +96,7 @@ class AsymptoteEngine:
     def start(self):
         self.asyProcess = subprocess.Popen([self.asyPath] + self.args, close_fds=False,
                                            stdin=self._stdinMode, stderr=self._stderrMode)
-        line = self.istream.readline()
+        self.istream.readline()
         if self.asyProcess.returncode is not None:
             raise ChildProcessError('Asymptote failed to open')
 
@@ -357,7 +357,7 @@ class asyPen(asyObj):
         fout.write("flush(fout);\n")
         fout.flush()
 
-        self.asyengine.hangup()
+        self.asyEngine.hangup()
 
         colorspace = fin.readline()
         if colorspace.find("cmyk") != -1:
@@ -557,7 +557,6 @@ class asyPath(asyObj):
         self.controlSet = [[eval(a[0]), eval(a[1])] for a in controls]
         self.computed = True
 
-
 class asyLabel(asyObj):
     """A python wrapper for an asy label"""
 
@@ -753,6 +752,7 @@ class xasyItem:
             render()
         self.imageHandleQueue.put((None,))
         self.asyfied = True
+
 
     def drawOnCanvas(self, canvas, mag, forceAddition=False):
         raise NotImplementedError
@@ -1017,10 +1017,13 @@ class xasyScript(xasyItem):
         self.setKeyed = False
 
     def setKey(self):
+        fout = self.asyengine.ostream
+        fin = self.asyengine.istream
+
         for line in self.script.splitlines():
-            self.asyengine.ostream.write(line + '\n')
-        self.asyengine.ostream.write('deconstruct();\n')
-        self.asyengine.ostream.flush()
+            fout.write(line + '\n')
+        fout.write('deconstruct();\n')
+        fout.flush()
 
         self.asyengine.hangup()
 

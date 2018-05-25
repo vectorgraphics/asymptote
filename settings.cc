@@ -1658,8 +1658,8 @@ void setOptions(int argc, char *argv[])
   // Read command-line options again to override configuration file defaults.
   getOptions(argc,argv);
   
-//  if(getSetting<Int>("outpipe") == 2) // Redirect cerr to cout
-//    std::cerr.rdbuf(std::cout.rdbuf());
+  if(getSetting<Int>("outpipe") == 2) // Redirect cerr to cout
+    std::cerr.rdbuf(std::cout.rdbuf());
   
   Setting("sysdir")=sysdir;
   
