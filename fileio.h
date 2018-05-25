@@ -247,7 +247,7 @@ public:
 
 class opipe : public file {
 public:
-  opipe(const string& name) : file(name,false,OPIPE) {}
+  opipe(const string& name) : file(name,false,OPIPE) {standard=false;}
 
   void open() {
     openpipeout();

@@ -197,8 +197,8 @@ void writestring(stack *s)
   string S=pop<string>(s);
   vm::item it=pop(s);
   bool defaultfile=isdefault(it);
-  camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
-  if(!f->isOpen()) return;
+  camp::ofile *f=defaultfile ? &camp::Stdout : vm::get<camp::ofile*>(it);
+  if(!f->isOpen() || !f->enabled()) return;
   if(S != "") f->write(S);
   if(f->text()) {
     if(suffix) {
