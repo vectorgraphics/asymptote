@@ -823,15 +823,18 @@ class xasyShape(xasyDrawnItem):
     def updateCode(self, mag=1.0):
         """Generate the code to describe this shape"""
         with io.StringIO() as rawAsyCode:
-            rawAsyCode.write(xasyItem.setKeyFormatStr.format(self.transfKey, self.transfKeymap[self.transfKey].getCode()))
+            rawAsyCode.write(xasyItem.setKeyFormatStr.format(self.transfKey, self.transfKeymap[self.transfKey].getCode()
+                                                             ))
             rawAsyCode.write(
                 '\ndraw(KEY="{0}", {1}, {2})'.format(self.transfKey, self.path.getCode(), self.pen.getCode()))
             self.asyCode = rawAsyCode.getvalue()
 
     def generateDrawObjects(self, mag=1.0):
         self.path.computeControls()
-        return [DrawObject(self.path.toQPainterPath(), None, drawOrder=0,
-                           transform=self.transfKeymap[self.transfKey], pen=self.pen, key=self.transfKey)]
+        newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=self.transfKeymap[self.transfKey],
+                            pen=self.pen, key=self.transfKey)
+        newObj.originalObj = self
+        return [newObj]
 
     def drawOnCanvas(self, canvas, mag, asyFy=False, forceAddition=False):
         """Add this shape to a Qt (not TK anymore) canvas"""
@@ -848,7 +851,7 @@ class xasyShape(xasyDrawnItem):
                     self.rawIdentifier = 'x' + str(uuid.uuid4())
 
                 canvas['drawDict'][self.rawIdentifier] = self.generateDrawObjects(mag)[0]
-                canvas['drawDict'][self.rawIdentifier].originalObj = self, 0
+                canvas['drawDict'][self.rawIdentifier].originalObj = self
                 canvas['drawDict'][self.rawIdentifier].draw()
                 self.IDTag = canvas['drawDict'][self.rawIdentifier].getID()
 
@@ -871,53 +874,12 @@ class xasyFilledShape(xasyShape):
         self.asyCode = "xformStack.push(" + self.transform[0].getCode() + ");\n"
         self.asyCode += "fill(" + self.path.getCode() + "," + self.pen.getCode() + ");"
 
+    def generateDrawObjects(self, mag=1.0):
+        self.path.computeControls()
+
+
     def drawOnCanvas(self, canvas, mag, asyFy=False, forceAddition=False):
-        """Add this shape to a tk canvas"""
-        if not asyFy:
-            if self.IDTag is None or forceAddition:
-                # add ourselves to the canvas
-                self.path.computeControls()
-                self.IDTag = canvas.create_polygon(0, 0, 0, 0, 0, 0, tags=("drawn", "xasyFilledShape"),
-                                                   fill=self.pen.tkColor(), outline=self.pen.tkColor(), width=1 * mag)
-                self.drawOnCanvas(canvas, mag)
-            else:
-                self.path.computeControls()
-                pointSet = []
-                previousNode = self.path.nodeSet[0]
-                nodeCount = 0
-                if len(self.path.nodeSet) == 0:
-                    pointSet = [0, 0, 0, 0, 0, 0]
-                elif len(self.path.nodeSet) == 1:
-                    if self.path.nodeSet[-1] != 'cycle':
-                        p = self.transform[0] * (self.path.nodeSet[0][0], self.path.nodeSet[0][1])
-                        pointSet = [p[0], -p[1], p[0], -p[1], p[0], -p[1]]
-                    else:
-                        pointSet = [0, 0, 0, 0, 0, 0]
-                elif len(self.path.nodeSet) == 2:
-                    if self.path.nodeSet[-1] != 'cycle':
-                        p = self.transform[0].scale(mag) * (self.path.nodeSet[0][0], self.path.nodeSet[0][1])
-                        p2 = self.transform[0].scale(mag) * (self.path.nodeSet[1][0], self.path.nodeSet[1][1])
-                        pointSet = [p[0], -p[1], p2[0], -p2[1], p[0], -p[1]]
-                    else:
-                        pointSet = [0, 0, 0, 0, 0, 0]
-                else:
-                    for node in self.path.nodeSet[1:]:
-                        if node == 'cycle':
-                            node = self.path.nodeSet[0]
-                        transform = self.transform[0].scale(mag)
-                        points = CubicBezier.makeBezier(transform * previousNode,
-                                                        transform * self.path.controlSet[nodeCount][0],
-                                                        transform * self.path.controlSet[nodeCount][1],
-                                                        transform * node)
-                        for point in points:
-                            pointSet += [point[0], -point[1]]
-                        nodeCount += 1
-                        previousNode = node
-                canvas.coords(self.IDTag, *pointSet)
-                canvas.itemconfigure(self.IDTag, fill=self.pen.tkColor(), outline=self.pen.tkColor(), width=1 * mag)
-        else:
-            # first asyfy then add an image list
-            pass
+        raise NotImplementedError
 
     def __str__(self):
         """Return a string describing this shape"""
@@ -937,7 +899,6 @@ class xasyText(xasyItem):
         self.label = asyLabel(text, location, pen, align)
         # self.transform = [transform]
         if key is None:
-            # TODO: Hopefully asy engine can store a list of used keys...
             self.key = 'x:' + str(uuid.uuid4())
         else:
             self.key = key
@@ -1202,9 +1163,3 @@ class DrawObject:
 
     def getID(self):
         return self.originalObj
-
-
-if __name__ == '__main__':
-    root = Tk()
-    t = xasyText("test", (0, 0))
-    t.asyfy()
