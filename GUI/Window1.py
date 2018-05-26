@@ -241,6 +241,7 @@ class MainWindow1(Qw.QMainWindow):
             'debug:addCircle': self.dbgAddCircle,
             'debug:addPoly': self.dbgAddPoly,
             'debug:addLabel': self.debugAddLabel,
+            'debug:addFillCircle': self.dbgAddFillCirc
         }
         self.commandsFunc = {**self.commandsFunc, **debugFunc}
 
@@ -311,6 +312,12 @@ class MainWindow1(Qw.QMainWindow):
     def dbgAddUnitCircle(self):
         newCirclePath = PrimitiveShape.PrimitiveShape.circle((0, 0), 1)
         newCircle = x2a.xasyShape(newCirclePath, asyengine=self.asyEngine)
+        self.fileItems.append(newCircle)
+        self.asyfyCanvas()
+
+    def dbgAddFillCirc(self):
+        newCirclePath = PrimitiveShape.PrimitiveShape.circle((0, 0), 100)
+        newCircle = x2a.xasyFilledShape(newCirclePath, pen=self.currentPen, asyengine=self.asyEngine)
         self.fileItems.append(newCircle)
         self.asyfyCanvas()
 

@@ -432,7 +432,10 @@ class asyPath(asyObj):
         painterPath = Qg.QPainterPath(Qc.QPointF(baseX, baseY))
 
         for pointIndex in range(1, len(self.nodeSet)):
-            endPoint = Qc.QPointF(self.nodeSet[pointIndex][0], self.nodeSet[pointIndex][1])
+            node = self.nodeSet[pointIndex]
+            if self.nodeSet[pointIndex] == 'cycle':
+                node = self.nodeSet[0]
+            endPoint = Qc.QPointF(node[0], node[1])
             ctrlPoint1 = Qc.QPointF(self.controlSet[pointIndex-1][0][0], self.controlSet[pointIndex-1][0][1])
             ctrlPoint2 = Qc.QPointF(self.controlSet[pointIndex-1][1][0], self.controlSet[pointIndex-1][1][1])
 
@@ -863,11 +866,11 @@ class xasyShape(xasyDrawnItem):
 class xasyFilledShape(xasyShape):
     """A filled shape drawn on the GUI"""
 
-    def __init__(self, path, pen=None, transform=identity()):
+    def __init__(self, path, asyengine, pen=None, transform=identity()):
         """Initialize this shape with a path, pen, and transform"""
         if path.nodeSet[-1] != 'cycle':
             raise Exception("Filled paths must be cyclic")
-        super().__init__(path, pen, transform)
+        super().__init__(path, asyengine, pen, transform)
 
     def updateCode(self, mag=1.0):
         """Generate the code describing this shape"""
@@ -876,7 +879,10 @@ class xasyFilledShape(xasyShape):
 
     def generateDrawObjects(self, mag=1.0):
         self.path.computeControls()
-
+        newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=self.transfKeymap[self.transfKey],
+                            pen=self.pen, key=self.transfKey, fill=True)
+        newObj.originalObj = self
+        return [newObj]
 
     def drawOnCanvas(self, canvas, mag, asyFy=False, forceAddition=False):
         raise NotImplementedError
@@ -1074,7 +1080,7 @@ class xasyScript(xasyItem):
 
 class DrawObject:
     def __init__(self, drawObject, mainCanvas=None, transform=identity(), btmRightanchor=Qc.QPointF(0, 0),
-                 drawOrder=(-1, -1), pen=None, key=None, parentObj=None):
+                 drawOrder=(-1, -1), pen=None, key=None, parentObj=None, fill=False):
         self.drawObject = drawObject
         self.mainCanvas = mainCanvas
         self.pTransform = transform
@@ -1085,6 +1091,7 @@ class DrawObject:
         self.useCanvasTransformation = False
         self.key = key
         self.pen = pen
+        self.fill = fill
 
     def getInteriorScrTransform(self, transform):
         """Generates the transform with Interior transform applied beforehand."""
@@ -1152,7 +1159,15 @@ class DrawObject:
         if isinstance(self.drawObject, Qg.QImage):
             canvas.drawImage(self.btmRightAnchor, self.drawObject)
         elif isinstance(self.drawObject, Qg.QPainterPath):
-            canvas.drawPath(self.baseTransform.toQTransform().map(self.drawObject))
+            path = self.baseTransform.toQTransform().map(self.drawObject)
+            if self.fill:
+                if self.pen:
+                    brush = self.pen.toQPen().brush()
+                else:
+                    brush = Qg.QBrush()
+                canvas.fillPath(path, brush)
+            else:
+                canvas.drawPath(path)
 
         if self.pen:
             canvas.setPen(oldPen)

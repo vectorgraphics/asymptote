@@ -32,7 +32,7 @@ class PrimitiveShape:
         pos_x, pos_y = PrimitiveShape.pos_to_tuple(position)
         newCircle = x2a.asyPath()
         ptsList = [(pos_x + radius, pos_y), (pos_x, pos_y + radius), (pos_x - radius, pos_y), (pos_x, pos_y - radius),
-                   (pos_x + radius, pos_y)]
+                   'cycle']
         # cycle doesn't work for now.
         lkList = ['..', '..', '..', '..']
         newCircle.initFromNodeList(ptsList, lkList)
