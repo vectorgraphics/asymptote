@@ -125,6 +125,8 @@ examples/_ig_*.asy
 asydev
 gdb_xasy
 
+_ig_*/*
+
 ### IDE Files
 .vscode/*
 !.vscode/settings.json
