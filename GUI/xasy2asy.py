@@ -37,14 +37,19 @@ console = None
 
 
 class DebugFlags:
-    keepFiles = True
-    printDeconstTranscript = True
+    keepFiles = False
+    printDeconstTranscript = False
 
 
 class AsymptoteEngine:
-    def __init__(self, path, args=None, customOutdir=None, keepFiles=DebugFlags.keepFiles, keepDefaultArgs=True,
+    def __init__(self, path=None, args=None, customOutdir=None, keepFiles=DebugFlags.keepFiles, keepDefaultArgs=True,
                  stdoutMode=None, stdinMode=None, stderrMode=None, endargs=None):
-        self.process = None
+        if path is None:
+            path = xa.getArgs().asypath
+            if path is None:
+                opt = xo.xasyOptions().load()
+                path = opt['asyPath']
+
         rx, wx = os.pipe()
         ra, wa = os.pipe()
 
@@ -155,8 +160,7 @@ class AsymptoteEngine:
 
     def stop(self):
         if self.active:
-            self.ostream.write('exit;\n')
-            self.ostream.flush()
+            self.asyProcess.terminate()
             if not self.keepFiles and not self.useTmpDir:
                 try:
                     os.rmdir(self.tempDirName)
@@ -185,11 +189,12 @@ def consoleOutput(line):
     ctl.lift()
 
 
-class asyTransform:
+class asyTransform(Qc.QObject):
     """A python implementation of an asy transform"""
 
     def __init__(self, initTuple, delete=False):
         """Initialize the transform with a 6 entry tuple"""
+        super().__init__()
         if isinstance(initTuple, tuple) and len(initTuple) == 6:
             self.t = initTuple
             self.x, self.y, self.xx, self.xy, self.yx, self.yy = initTuple
@@ -270,10 +275,11 @@ def identity():
     return asyTransform((0, 0, 1, 0, 0, 1))
 
 
-class asyObj:
+class asyObj(Qc.QObject):
     """A base class for asy objects: an item represented by asymptote code."""
     def __init__(self):
         """Initialize the object"""
+        super().__init__()
         self.asyCode = ''
 
     def updateCode(self, mag=1.0):
@@ -296,6 +302,11 @@ class asyPen(asyObj):
     def convertToQColor(color):
         r, g, b = color
         return Qg.QColor.fromRgbF(r, g, b)
+
+    @classmethod
+    def fromAsyPen(cls, pen):
+        assert isinstance(pen, cls)
+        return cls(asyengine=pen._asyengine, color=pen.color, width=pen.width, pen_options=pen.options)
 
     def __init__(self, asyengine=None, color=(0, 0, 0), width=0.5, pen_options=""):
         """Initialize the pen"""
@@ -526,11 +537,21 @@ class asyPath(asyObj):
 
     def computeControls(self):
         """Evaluate the code of the path to obtain its control points"""
-        assert isinstance(self.asyengine, AsymptoteEngine)
-        assert self.asyengine.active
 
-        fout = self.asyengine.ostream
-        fin = self.asyengine.istream
+        # For now, if no asymptote process is given spawns a new one.
+        # Only happens if asyengine is None.
+        if self.asyengine is not None:
+            assert isinstance(self.asyengine, AsymptoteEngine)
+            assert self.asyengine.active
+            asy = self.asyengine
+            startUp = False
+        else:
+            startUp = True
+            asy = AsymptoteEngine()
+            asy.start()
+
+        fout = asy.ostream
+        fin = asy.istream
 
         fout.write("file fout=output(mode='pipe');\n")
         fout.write("path p=" + self.getCode() + ';\n')
@@ -538,7 +559,7 @@ class asyPath(asyObj):
         fout.write("write(fout,unstraighten(p),endl);\n")
         fout.flush()
 
-        self.asyengine.hangup()
+        asy.hangup()
 
         lengthStr = fin.readline()
         pathSegments = eval(lengthStr.split()[-1])
@@ -559,6 +580,10 @@ class asyPath(asyObj):
         controls = [a.replace("controls", "").split("and") for a in splitList if a.find("controls") != -1]
         self.controlSet = [[eval(a[0]), eval(a[1])] for a in controls]
         self.computed = True
+
+        if startUp:
+            asy.stop()
+
 
 class asyLabel(asyObj):
     """A python wrapper for an asy label"""
@@ -606,12 +631,13 @@ class asyImage:
         self.key = transfKey
 
 
-class xasyItem:
+class xasyItem(Qc.QObject):
     """A base class for items in the xasy GUI"""
     setKeyFormatStr = 'xformMap.add("{:s}", {:s});'
 
     def __init__(self, canvas=None, asyengine=None):
         """Initialize the item to an empty item"""
+        super().__init__()
         self.transform = [identity()]
         self.transfKeymap = {}              # the new keymap.
         self.asyCode = ''
@@ -653,8 +679,6 @@ class xasyItem:
             # handle this case if transform is not in the map yet.
             if key not in self.transfKeymap.keys() or not self.transfKeymap[key].deleted:
                 currImage.IDTag = str(file)
-                counter = 0
-
                 if key in self.transfKeymap.keys():
                     inputTransform = self.transfKeymap[key]
                 else:
@@ -665,13 +689,16 @@ class xasyItem:
                                         parentObj=self)
                 self.drawObjects.append(newDrawObj)
 
-    def asyfy(self, mag=1.0, keyOnly=False):
+    def asyfy(self, mag=1.0, force=False):
         if self.asyengine is None:
             return 1
+        if self.asyfied and not force:
+            return
+        self.drawObjects = []
         assert isinstance(self.asyengine, AsymptoteEngine)
         self.imageList = []
         self.imageHandleQueue = queue.Queue()
-        worker = threading.Thread(target=self.asyfyThread, args=[mag, keyOnly])
+        worker = threading.Thread(target=self.asyfyThread, args=[mag])
         worker.start()
         item = self.imageHandleQueue.get()
         if console is not None:
@@ -690,9 +717,8 @@ class xasyItem:
         # self.imageHandleQueue.task_done()
         worker.join()
 
-    def asyfyThread(self, mag=1.0, keyOnly=False):
+    def asyfyThread(self, mag=1.0):
         """Convert the item to a list of images by deconstructing this item's code"""
-
         assert self.asyengine.active
 
         fout = self.asyengine.ostream
@@ -757,10 +783,6 @@ class xasyItem:
         self.asyfied = True
 
 
-    def drawOnCanvas(self, canvas, mag, forceAddition=False):
-        raise NotImplementedError
-
-
 class xasyDrawnItem(xasyItem):
     """A base class for GUI items was drawn by the user. It combines a path, a pen, and a transform."""
 
@@ -768,7 +790,7 @@ class xasyDrawnItem(xasyItem):
         """Initialize the item with a path, pen, and transform"""
         super().__init__()
         if pen is None:
-            pen = asyPen(engine)
+            pen = asyPen()
         self.path = path
         self.path.asyengine = engine
         self.pen = pen
@@ -778,6 +800,9 @@ class xasyDrawnItem(xasyItem):
             self.transfKey = self.rawIdentifier
         self.transfKeymap = {self.transfKey: transform}
 
+    def generateDrawObjects(self, mag=1.0, forceUpdate=False):
+        raise NotImplementedError
+
     def appendPoint(self, point, link=None):
         """Append a point to the path. If the path is cyclic, add this point before the 'cycle' node."""
         if self.path.nodeSet[-1] == 'cycle':
@@ -786,12 +811,14 @@ class xasyDrawnItem(xasyItem):
         else:
             self.path.nodeSet.append(point)
         self.path.computed = False
+        self.asyfied = False
         if len(self.path.nodeSet) > 1 and link is not None:
             self.path.linkSet.append(link)
 
     def clearTransform(self):
         """Reset the item's transform"""
         self.transform = [identity()]
+        self.asyfied = False
 
     def removeLastPoint(self):
         """Remove the last point in the path. If the path is cyclic, remove the node before the 'cycle' node."""
@@ -801,6 +828,7 @@ class xasyDrawnItem(xasyItem):
             del self.path.nodeSet[-1]
         del self.path.linkSet[-1]
         self.path.computed = False
+        self.asyfied = False
 
     def setLastPoint(self, point):
         """Modify the last point in the path. If the path is cyclic, modify the node before the 'cycle' node."""
@@ -809,11 +837,9 @@ class xasyDrawnItem(xasyItem):
         else:
             self.path.nodeSet[-1] = point
         self.path.computed = False
+        self.asyfied = False
 
     def updateCode(self, mag=1.0):
-        raise NotImplementedError
-
-    def drawOnCanvas(self, canvas, mag, forceAddition=False):
         raise NotImplementedError
 
 
@@ -832,31 +858,12 @@ class xasyShape(xasyDrawnItem):
                 '\ndraw(KEY="{0}", {1}, {2})'.format(self.transfKey, self.path.getCode(), self.pen.getCode()))
             self.asyCode = rawAsyCode.getvalue()
 
-    def generateDrawObjects(self, mag=1.0):
+    def generateDrawObjects(self, mag=1.0, forceUpdate=False):
         self.path.computeControls()
         newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=self.transfKeymap[self.transfKey],
                             pen=self.pen, key=self.transfKey)
         newObj.originalObj = self
         return [newObj]
-
-    def drawOnCanvas(self, canvas, mag, asyFy=False, forceAddition=False):
-        """Add this shape to a Qt (not TK anymore) canvas"""
-        # for now. Drawing custom no longer needed (?) Use QPainterPath instead?
-        if not asyFy:
-            if self.IDTag is None or forceAddition:
-                # add ourselves to the canvas
-                # self.IDTag = canvas.create_line(0, 0, 0, 0, tags=("drawn", "xasyShape"), fill=self.pen.tkColor(),
-                #                                width=self.pen.width * mag)
-                self.IDTag = Qc.QLine()
-                self.drawOnCanvas(canvas, mag)
-            else:
-                while self.rawIdentifier in canvas['drawDict'].keys():
-                    self.rawIdentifier = 'x' + str(uuid.uuid4())
-
-                canvas['drawDict'][self.rawIdentifier] = self.generateDrawObjects(mag)[0]
-                canvas['drawDict'][self.rawIdentifier].originalObj = self
-                canvas['drawDict'][self.rawIdentifier].draw()
-                self.IDTag = canvas['drawDict'][self.rawIdentifier].getID()
 
     def __str__(self):
         """Create a string describing this shape"""
@@ -877,15 +884,12 @@ class xasyFilledShape(xasyShape):
         self.asyCode = "xformStack.push(" + self.transform[0].getCode() + ");\n"
         self.asyCode += "fill(" + self.path.getCode() + "," + self.pen.getCode() + ");"
 
-    def generateDrawObjects(self, mag=1.0):
+    def generateDrawObjects(self, mag=1.0, forceUpdate=False):
         self.path.computeControls()
         newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=self.transfKeymap[self.transfKey],
                             pen=self.pen, key=self.transfKey, fill=True)
         newObj.originalObj = self
         return [newObj]
-
-    def drawOnCanvas(self, canvas, mag, asyFy=False, forceAddition=False):
-        raise NotImplementedError
 
     def __str__(self):
         """Return a string describing this shape"""
@@ -918,13 +922,9 @@ class xasyText(xasyItem):
             rawAsyCode.write('\nlabel(KEY="{0}", {1});\n'.format(self.key, self.label.getCode()))
             self.asyCode = rawAsyCode.getvalue()
 
-    def drawOnCanvas(self, canvas, mag, asyFy=True, forceAddition=False):
-        """Adds the label's images to a tk canvas"""
-        if not self.onCanvas:
-            self.onCanvas = canvas
-        elif self.onCanvas != canvas:
-            raise Exception("Error: item cannot be added to more than one canvas")
-        self.asyfy(mag)
+    def generateDrawObjects(self, mag=1.0, forceUpdate=False):
+        self.asyfy(mag, forceUpdate)
+        return self.drawObjects
 
     def getBoundingBox(self, mag=1.0):
         self.asyfy(mag)
@@ -995,8 +995,6 @@ class xasyScript(xasyItem):
         self.asyengine.hangup()
 
         keylist = {}
-
-        fin = self.asyengine.istream
         linebuf = fin.readline()
         while linebuf != 'Done\n':
             if linebuf.startswith('KEY='):
@@ -1056,18 +1054,9 @@ class xasyScript(xasyItem):
 
         self.updateCode()
 
-    def generateDrawObjects(self, mag=1.0):
-        self.drawObjects = []
-        self.asyfy(mag)
+    def generateDrawObjects(self, mag=1.0, forceUpdate=False):
+        self.asyfy(mag, forceUpdate)
         return self.drawObjects
-
-    def drawOnCanvas(self, canvas, mag, asyFy=True, forceAddition=False):
-        """Adds the script's images to a tk canvas"""
-        if not self.onCanvas:
-            self.onCanvas = canvas
-        elif self.onCanvas != canvas:
-            raise Exception("Error: item cannot be added to more than one canvas")
-        self.asyfy(mag)
 
     def __str__(self):
         """Return a string describing this script"""

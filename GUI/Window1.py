@@ -178,7 +178,9 @@ class MainWindow1(Qw.QMainWindow):
         self.currAddOptions = {
             'inscribed': True,
             'sides': 3,
-            'centermode': True
+            'centermode': True,
+            'asyengine': self.asyEngine,
+            'fill': self.ui.btnFill.isChecked()
         }
 
         self.currentMode = SelectionMode.translate
@@ -258,10 +260,6 @@ class MainWindow1(Qw.QMainWindow):
     def setupXasyOptions(self):
         if self.settings['debugMode']:
             self.initDebug()
-
-        terminalFont = Qg.QFont(self.settings['terminalFont'], self.settings['terminalFontSize'])
-        self.ui.plainTextEdit.setFont(terminalFont)
-
         newColor = Qg.QColor(self.settings['defaultPenColor'])
         newWidth = self.settings['defaultPenWidth']
 
@@ -277,7 +275,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnQuickScreenshot.clicked.connect(self.btnQuickScreenshotOnClick)
 
         self.ui.btnDrawAxes.clicked.connect(self.btnDrawAxesOnClick)
-        self.ui.btnAsyfy.clicked.connect(self.asyfyCanvas)
+        self.ui.btnAsyfy.clicked.connect(lambda: self.asyfyCanvas(True))
 
         self.ui.btnTranslate.clicked.connect(self.btnTranslateonClick)
         self.ui.btnRotate.clicked.connect(self.btnRotateOnClick)
@@ -304,10 +302,14 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnAddCircle.clicked.connect(self.btnAddCircleOnClick)
         self.ui.btnAddPoly.clicked.connect(self.btnAddPolyOnClick)
         self.ui.btnAddLabel.clicked.connect(self.btnAddLabelOnClick)
+        self.ui.btnFill.clicked.connect(self.btnFillOnClick)
+
+    def btnFillOnClick(self, checked):
+        self.currAddOptions['fill'] = checked
 
     @property
     def currentPen(self):
-        return copy.deepcopy(self._currentPen)
+        return x2a.asyPen.fromAsyPen(self._currentPen)
 
     def dbgAddUnitCircle(self):
         newCirclePath = PrimitiveShape.PrimitiveShape.circle((0, 0), 1)
@@ -355,13 +357,26 @@ class MainWindow1(Qw.QMainWindow):
             exec(commandText)
 
     def updateOptionWidget(self):
+        try:
+            self.addMode.objectCreated.disconnect()
+        except Exception:
+            pass
+
+        self.addMode.objectCreated.connect(self.addInPlace)
         if self.currAddOptionsWgt is not None:
             self.currAddOptionsWgt.hide()
             self.ui.addOptionLayout.removeWidget(self.currAddOptionsWgt)
             self.currAddOptionsWgt = None
+
         self.currAddOptionsWgt = self.addMode.createOptWidget(self.currAddOptions)
         if self.currAddOptionsWgt is not None:
             self.ui.addOptionLayout.addWidget(self.currAddOptionsWgt)
+
+    def addInPlace(self, obj):
+        obj.asyengine = self.asyEngine
+        obj.pen = self.currentPen
+        self.fileItems.append(obj)
+        self.asyfyCanvas()
 
     def debugAddLineGuide(self):
         commandText, result = Qw.QInputDialog.getText(self, '', 'enter <originx> <originy> <angle>')
@@ -395,21 +410,20 @@ class MainWindow1(Qw.QMainWindow):
             newXasyObjCurve = x2a.xasyShape(asyCurve, asyengine=self.asyEngine)
             # print(newXasyObjCurve.getCode())
             self.fileItems.append(newXasyObjCurve)
-
         self.inCurveCreationMode = False
         self.previewCurve = None
         self.asyfyCanvas()
 
     def btnAddCircleOnClick(self):
-        self.addMode = InplaceAddObj.AddCircle()
+        self.addMode = InplaceAddObj.AddCircle(self)
         self.updateOptionWidget()
 
     def btnAddPolyOnClick(self):
-        self.addMode = InplaceAddObj.AddPoly()
+        self.addMode = InplaceAddObj.AddPoly(self)
         self.updateOptionWidget()
 
     def btnAddLabelOnClick(self):
-        self.addMode = InplaceAddObj.AddLabel()
+        self.addMode = InplaceAddObj.AddLabel(self)
         self.updateOptionWidget()
 
     def updateCurve(self, valid, newCurve):
@@ -720,26 +734,10 @@ class MainWindow1(Qw.QMainWindow):
         assert isinstance(mouseEvent, Qg.QMouseEvent)
         if self.addMode is not None:
             self.addMode.mouseRelease()
-            if isinstance(self.addMode, InplaceAddObj.AddLabel):
-                self.createLabel(self.addMode.getObject())
-            else:
-                self.addItemFromPath(self.addMode.getObject())
-            self.selectionMode = SelectionMode.select
-            self.updateChecks()
-        self.addMode = None
         if self.inMidTransformation:
             self.clearSelection()
         self.inMidTransformation = False
         self.quickUpdate()
-
-    def createLabel(self, labelInfo):
-        text = labelInfo['txt']
-        align = labelInfo['align']
-        anchor = labelInfo['anchor']
-        newLabel = x2a.xasyText(text=text, location=anchor, pen=self.currentPen, align=align, asyengine=self.asyEngine)
-        self.fileItems.append(newLabel)
-
-        self.asyfyCanvas()
 
     def clearSelection(self):
         if self.currentlySelectedObj['selectedKey'] is not None:
@@ -893,9 +891,9 @@ class MainWindow1(Qw.QMainWindow):
         self.mainCanvas.begin(self.canvasPixmap)
         self.mainCanvas.setTransform(self.screenTransformation)
 
-    def asyfyCanvas(self):
+    def asyfyCanvas(self, force=False):
         self.drawObjects = []
-        self.populateCanvasWithItems()
+        self.populateCanvasWithItems(force)
         self.quickUpdate()
 
     def quickUpdate(self):
@@ -1232,11 +1230,9 @@ class MainWindow1(Qw.QMainWindow):
                 self.fileItems.append(item)
         self.asyfyCanvas()
 
-    def populateCanvasWithItems(self):
-        # if (not self.testOrAcquireLock()):
-        #     return
+    def populateCanvasWithItems(self, forceUpdate=False):
         self.itemCount = 0
         for item in self.fileItems:
-            self.drawObjects.append(item.generateDrawObjects(self.magnification))
+            self.drawObjects.append(item.generateDrawObjects(self.magnification, forceUpdate))
             # self.bindItemEvents(item)
         # self.releaseLock()

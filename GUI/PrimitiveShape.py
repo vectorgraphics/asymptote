@@ -45,12 +45,13 @@ class PrimitiveShape:
         ptsList = []
         for ang in np.linspace(starting_rad, starting_rad + math.tau, sides, endpoint=False):
             ptsList.append((pos_x + radius * math.cos(ang), pos_y + radius * math.sin(ang)))
-        ptsList.append((pos_x + radius * math.cos(starting_rad), pos_y + radius * math.sin(starting_rad)))
 
         if qpoly:
+            ptsList.append((pos_x + radius * math.cos(starting_rad), pos_y + radius * math.sin(starting_rad)))
             qpoints = [Qc.QPointF(x, y) for (x, y) in ptsList]
             return Qg.QPolygonF(qpoints)
         else:
+            ptsList.append('cycle')
             newPoly = x2a.asyPath()
             newPoly.initFromNodeList(ptsList, lkList)
             return newPoly

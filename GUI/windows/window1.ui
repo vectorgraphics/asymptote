@@ -1532,6 +1532,53 @@
               </spacer>
              </item>
              <item>
+              <widget class="QPushButton" name="btnFill">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>25</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>32</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>Toggle Fill/Outline</string>
+               </property>
+               <property name="autoFillBackground">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="../res/icons.qrc">
+                 <normaloff>:/maki/mapbox-maki-463a9ff/icons/circle-15.svg</normaloff>:/maki/mapbox-maki-463a9ff/icons/circle-15.svg</iconset>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
+               <property name="default">
+                <bool>false</bool>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QLabel" name="label">
                <property name="text">
                 <string>Line Width:</string>
@@ -1682,39 +1729,6 @@ background: rgb(0, 0, 0)
                </widget>
               </item>
              </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPlainTextEdit" name="plainTextEdit">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>30</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>60</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>Courier 10 Pitch</family>
-              </font>
-             </property>
-             <property name="plainText">
-              <string>&gt;&gt; Asymptote Terminal (To be Done)</string>
-             </property>
-             <property name="overwriteMode">
-              <bool>false</bool>
-             </property>
             </widget>
            </item>
            <item>

@@ -1,5 +1,7 @@
 import PyQt5.QtCore as Qc
 import PyQt5.QtGui as Qg
+import xasy2asy as x2a
+
 import PrimitiveShape
 import math
 
@@ -7,8 +9,11 @@ import Widg_addPolyOpt
 import Widg_addLabel
 
 
-class InplaceObjProcess:
-    def __init__(self):
+class InplaceObjProcess(Qc.QObject):
+    objectCreated = Qc.pyqtSignal(Qc.QObject)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self._active = False
         pass
 
@@ -31,13 +36,16 @@ class InplaceObjProcess:
     def getObject(self):
         raise NotImplementedError
 
+    def getXasyObject(self):
+        raise NotImplementedError
+
     def createOptWidget(self, info):
         return None
 
 
 class AddCircle(InplaceObjProcess):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent):
+        super().__init__(parent)
         self.center = Qc.QPointF(0, 0)
         self.radius = 0
 
@@ -45,12 +53,14 @@ class AddCircle(InplaceObjProcess):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
         self.center.setX(x)
         self.center.setY(y)
+        self.fill = info['fill']
         self._active = True
 
     def mouseMove(self, pos):
         self.radius = PrimitiveShape.PrimitiveShape.euclideanNorm(pos, self.center)
 
     def mouseRelease(self):
+        self.objectCreated.emit(self.getXasyObject())
         self._active = False
 
     def getPreview(self):
@@ -65,10 +75,17 @@ class AddCircle(InplaceObjProcess):
     def getObject(self):
         return PrimitiveShape.PrimitiveShape.circle(self.center, self.radius)
 
+    def getXasyObject(self):
+        if self.fill:
+            newObj = x2a.xasyFilledShape(self.getObject(), None)
+        else:
+            newObj = x2a.xasyShape(self.getObject(), None)
+        return newObj
+
 
 class AddLabel(InplaceObjProcess):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent):
+        super().__init__(parent)
         self.alignMode = None
         self.opt = None
         self.text = None
@@ -83,6 +100,7 @@ class AddLabel(InplaceObjProcess):
         return None
 
     def mouseRelease(self):
+        self.objectCreated.emit(self.getXasyObject())
         self._active = False
 
     def mouseMove(self, pos):
@@ -104,21 +122,32 @@ class AddLabel(InplaceObjProcess):
         finalTuple = PrimitiveShape.PrimitiveShape.pos_to_tuple(self.anchor)
         return {'txt': self.text, 'align': str(self.alignMode), 'anchor': finalTuple}
 
+    def getXasyObject(self):
+        text = self.text
+        align = str(self.alignMode)
+        anchor = PrimitiveShape.PrimitiveShape.pos_to_tuple(self.anchor)
+        newLabel = x2a.xasyText(text=text, location=anchor, pen=None, align=align, asyengine=None)
+
+        return newLabel
+
 
 class AddPoly(InplaceObjProcess):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent):
+        super().__init__(parent)
         self.center = Qc.QPointF(0, 0)
         self.currPos = Qc.QPointF(0, 0)
         self.sides = None
         self.inscribed = None
         self.centermode = None
+        self.asyengine = None
+        self.fill = None
 
     def mouseDown(self, pos, info):
         self._active = True
         self.sides = info['sides']
         self.inscribed = info['inscribed']
         self.centermode = info['centermode']
+        self.fill = info['fill']
 
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
         self.center.setX(x)
@@ -130,6 +159,7 @@ class AddPoly(InplaceObjProcess):
         self.currPos.setY(y)
 
     def mouseRelease(self):
+        self.objectCreated.emit(self.getXasyObject())
         self._active = False
 
     def getObject(self):
@@ -164,3 +194,10 @@ class AddPoly(InplaceObjProcess):
             return 0
         else:
             return math.atan2(dist_y, dist_x)
+
+    def getXasyObject(self):
+        if self.fill:
+            newObj = x2a.xasyFilledShape(self.getObject(), None)
+        else:
+            newObj = x2a.xasyShape(self.getObject(), None)
+        return newObj
