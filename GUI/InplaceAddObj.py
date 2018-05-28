@@ -7,6 +7,7 @@ import math
 
 import Widg_addPolyOpt
 import Widg_addLabel
+import Widg_addBezierInPlace
 
 
 class InplaceObjProcess(Qc.QObject):
@@ -30,8 +31,11 @@ class InplaceObjProcess(Qc.QObject):
     def mouseRelease(self):
         raise NotImplementedError
 
-    def getPreview(self):
+    def forceFinalize(self):
         raise NotImplementedError
+
+    def getPreview(self):
+        return None
 
     def getObject(self):
         raise NotImplementedError
@@ -44,7 +48,7 @@ class InplaceObjProcess(Qc.QObject):
 
 
 class AddCircle(InplaceObjProcess):
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.center = Qc.QPointF(0, 0)
         self.radius = 0
@@ -82,9 +86,12 @@ class AddCircle(InplaceObjProcess):
             newObj = x2a.xasyShape(self.getObject(), None)
         return newObj
 
+    def forceFinalize(self):
+        self.mouseRelease()
+
 
 class AddLabel(InplaceObjProcess):
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.alignMode = None
         self.opt = None
@@ -130,9 +137,93 @@ class AddLabel(InplaceObjProcess):
 
         return newLabel
 
+    def forceFinalize(self):
+        self.mouseRelease()
+
+
+class AddBezierShape(InplaceObjProcess):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.asyengine = None
+        self.basePath = None
+        self.basePathPreview = None
+        self.closedPath = None
+        self.info = None
+        self.currentPoint = Qc.QPointF(0, 0)
+
+    def mouseDown(self, pos, info):
+        x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
+
+        self.currentPoint.setX(x)
+        self.currentPoint.setY(y)
+        self.info = info
+
+        if not self._active:
+            self._active = True
+            self.asyengine = info['asyengine']
+            self.closedPath = info['closedPath']
+            self.basePath = x2a.asyPath(self.asyengine)
+
+        self.basePath.addNode((x, y), self._getLinkType())
+        self.basePath.computeControls()
+
+    def _getLinkType(self):
+        if self.info['useBezier']:
+            return '..'
+        else:
+            return '--'
+
+    def mouseMove(self, pos):
+        if self._active:
+            x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
+            self.currentPoint.setX(x)
+            self.currentPoint.setY(y)
+
+            self.basePath.setNode(-1, (x, y))
+            self.basePath.computeControls()
+
+    def createOptWidget(self, info):
+        return Widg_addBezierInPlace.Widg_addBezierInplace(info)
+
+    def mouseRelease(self):
+        x, y = self.currentPoint.x(), self.currentPoint.y()
+
+        self.basePath.setNode(-1, (x, y))
+        self.basePath.computeControls()
+
+    def forceFinalize(self):
+        self._active = False
+        if self.closedPath:
+            self.basePath.addNode('cycle', self._getLinkType())
+        self.objectCreated.emit(self.getXasyObject())
+
+    def getObject(self):
+        if self.basePath is None:
+            raise RuntimeError('BasePath is None')
+        return self.basePath
+
+    def getPreview(self):
+        if self._active:
+            if self.closedPath and len(self.basePath.nodeSet) < 3:
+                return None
+            if self.basePath.isDrawable:
+                if self.closedPath:
+                    self.basePath.addNode('cycle', self._getLinkType())
+                newPath = self.basePath.toQPainterPath()
+
+                if self.closedPath:
+                    self.basePath.popNode()
+                return newPath
+        else:
+            return None
+
+    def getXasyObject(self):
+        return x2a.xasyShape(self.getObject(), None)
+
+
 
 class AddPoly(InplaceObjProcess):
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.center = Qc.QPointF(0, 0)
         self.currPos = Qc.QPointF(0, 0)
@@ -161,6 +252,9 @@ class AddPoly(InplaceObjProcess):
     def mouseRelease(self):
         self.objectCreated.emit(self.getXasyObject())
         self._active = False
+
+    def forceFinalize(self):
+        self.mouseRelease()
 
     def getObject(self):
         if self.inscribed:

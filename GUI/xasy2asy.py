@@ -435,6 +435,14 @@ class asyPath(asyObj):
         newPath.initFromControls(nodeList, controlList)
         return newPath
 
+    @property
+    def isEmpty(self):
+        return len(self.nodeSet) == 0
+
+    @property
+    def isDrawable(self):
+        return len(self.nodeSet) >= 2
+
     def toQPainterPath(self):
         if not self.computed:
             self.computeControls()
@@ -471,7 +479,7 @@ class asyPath(asyObj):
         if node == 'cycle':
             return node
         else:
-            return "(" + str(node[0]) + "," + str(node[1]) + ")"
+            return '({0}, {1})'.format(str(node[0]), str(node[1]))
 
     def updateCode(self, mag=1.0):
         """Generate the code describing the path"""
@@ -479,7 +487,7 @@ class asyPath(asyObj):
             count = 0
             rawAsyCode.write(self.makeNodeStr(self.nodeSet[0]))
             for node in self.nodeSet[1:]:
-                if not self.computed:
+                if not self.computed or count >= len(self.controlSet):
                     rawAsyCode.write(self.linkSet[count])
                     rawAsyCode.write(self.makeNodeStr(node))
                 else:
@@ -531,13 +539,18 @@ class asyPath(asyObj):
         """Set a control point to a new position"""
         self.controlSet[index] = position
 
+    def popNode(self):
+        if len(self.controlSet) == len(self.nodeSet):
+            self.controlSet.pop()
+        self.nodeSet.pop()
+        self.linkSet.pop()
+
     def moveControl(self, index, offset):
         """Translate a control point"""
         self.controlSet[index] = (self.controlSet[index][0] + offset[0], self.controlSet[index][1] + offset[1])
 
     def computeControls(self):
         """Evaluate the code of the path to obtain its control points"""
-
         # For now, if no asymptote process is given spawns a new one.
         # Only happens if asyengine is None.
         if self.asyengine is not None:

@@ -180,7 +180,9 @@ class MainWindow1(Qw.QMainWindow):
             'sides': 3,
             'centermode': True,
             'asyengine': self.asyEngine,
-            'fill': self.ui.btnFill.isChecked()
+            'fill': self.ui.btnFill.isChecked(),
+            'closedPath': False,
+            'useBezier': True
         }
 
         self.currentMode = SelectionMode.translate
@@ -201,6 +203,7 @@ class MainWindow1(Qw.QMainWindow):
             'transform': self.btnCustTransformOnClick,
             'commandPalette': self.enterCustomCommand,
             'clearGuide': self.clearGuides,
+            'finalizeAddObj': self.finalizeAddObj
         }
 
         # Settings Initialization
@@ -210,6 +213,11 @@ class MainWindow1(Qw.QMainWindow):
 
         self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
         self.initPenInterface()
+
+    def finalizeAddObj(self):
+        if self.addMode is not None:
+            if self.addMode.active:
+                self.addMode.forceFinalize()
 
     def internationalize(self, lang):
         strings = xs.xasyString(lang)
@@ -302,6 +310,8 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnAddCircle.clicked.connect(self.btnAddCircleOnClick)
         self.ui.btnAddPoly.clicked.connect(self.btnAddPolyOnClick)
         self.ui.btnAddLabel.clicked.connect(self.btnAddLabelOnClick)
+        self.ui.btnAddBezierInplace.clicked.connect(self.btnAddBezierInplaceOnClick)
+
         self.ui.btnFill.clicked.connect(self.btnFillOnClick)
 
     def btnFillOnClick(self, checked):
@@ -416,6 +426,10 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnAddCircleOnClick(self):
         self.addMode = InplaceAddObj.AddCircle(self)
+        self.updateOptionWidget()
+
+    def btnAddBezierInplaceOnClick(self):
+        self.addMode = InplaceAddObj.AddBezierShape(self)
         self.updateOptionWidget()
 
     def btnAddPolyOnClick(self):
@@ -1057,7 +1071,7 @@ class MainWindow1(Qw.QMainWindow):
             if self.previewCurve is not None:
                 postCanvas.drawPath(self.previewCurve)
             if self.addMode is not None:
-                if self.addMode.active:
+                if self.addMode.active and self.addMode.getPreview() is not None:
                     postCanvas.setPen(self.currentPen.toQPen())
                     postCanvas.drawPath(self.addMode.getPreview())
 

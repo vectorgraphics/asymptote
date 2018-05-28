@@ -1261,35 +1261,6 @@
               </property>
              </widget>
             </item>
-            <item row="4" column="0">
-             <widget class="QPushButton" name="pushButton_10">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="../res/icons.qrc">
-                <normaloff>:/entypo/Entypo+/Entypo+/round-brush.svg</normaloff>:/entypo/Entypo+/Entypo+/round-brush.svg</iconset>
-              </property>
-              <property name="flat">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
             <item row="2" column="0">
              <widget class="QPushButton" name="btnAddPoly">
               <property name="enabled">
@@ -1319,8 +1290,8 @@
               </property>
              </widget>
             </item>
-            <item row="6" column="0">
-             <widget class="QPushButton" name="pushButton_9">
+            <item row="5" column="0">
+             <widget class="QPushButton" name="pushButton_10">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -1341,14 +1312,14 @@
               </property>
               <property name="icon">
                <iconset resource="../res/icons.qrc">
-                <normaloff>:/entypo/Entypo+/Entypo+/star.svg</normaloff>:/entypo/Entypo+/Entypo+/star.svg</iconset>
+                <normaloff>:/entypo/Entypo+/Entypo+/round-brush.svg</normaloff>:/entypo/Entypo+/Entypo+/round-brush.svg</iconset>
               </property>
               <property name="flat">
                <bool>true</bool>
               </property>
              </widget>
             </item>
-            <item row="7" column="0">
+            <item row="6" column="0">
              <widget class="QPushButton" name="pushButton_14">
               <property name="enabled">
                <bool>false</bool>
@@ -1377,7 +1348,7 @@
               </property>
              </widget>
             </item>
-            <item row="8" column="0">
+            <item row="7" column="0">
              <widget class="QPushButton" name="btnCreateCurve">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
@@ -1403,7 +1374,7 @@
               </property>
              </widget>
             </item>
-            <item row="9" column="0">
+            <item row="8" column="0">
              <widget class="QPushButton" name="pushButton_13">
               <property name="enabled">
                <bool>false</bool>
@@ -1432,36 +1403,7 @@
               </property>
              </widget>
             </item>
-            <item row="5" column="0">
-             <widget class="QPushButton" name="pushButton_11">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="../res/icons.qrc">
-                <normaloff>:/entypo/Entypo+/Entypo+/star-outlined.svg</normaloff>:/entypo/Entypo+/Entypo+/star-outlined.svg</iconset>
-              </property>
-              <property name="flat">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="10" column="0">
+            <item row="9" column="0">
              <widget class="QPushButton" name="btnAddLabel">
               <property name="enabled">
                <bool>true</bool>
@@ -1490,6 +1432,35 @@
                 <width>13</width>
                 <height>13</height>
                </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QPushButton" name="btnAddBezierInplace">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>32</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="../res/icons.qrc">
+                <normaloff>:/icons2/zondicons/vector.svg</normaloff>:/icons2/zondicons/vector.svg</iconset>
               </property>
               <property name="flat">
                <bool>true</bool>

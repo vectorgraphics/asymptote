@@ -53,7 +53,9 @@ DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
         $(SYMBOLSH) $(SYMBOL_FILES:=.symbols.h)
 NAME = asy
 XNAME = x$(NAME)
-UIFILES = custMatTransform window1 setCustomAnchor bezierCurveEditor bezierPointEditor widg_addPolyOpt widg_addLabel labelTextEditor
+UIFILES = custMatTransform window1 setCustomAnchor bezierCurveEditor \
+	bezierPointEditor widg_addPolyOpt widg_addLabel labelTextEditor \
+	widg_addBezierInplace
 CLEAN = camp.output base/version.asy doc/version.texi \
         GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH)
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
