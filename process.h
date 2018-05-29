@@ -17,6 +17,7 @@
 #include "pipestream.h"
 #include "callable.h"
 #include "pen.h"
+#include "transform.h"
 
 #ifdef HAVE_RPC_RPC_H
 #include "xstream.h"
@@ -87,6 +88,8 @@ public:
 
 typedef std::pair<size_t,size_t> linecolumn;
 typedef mem::map<CONST linecolumn,string> xkey_t;
+typedef mem::vector<camp::transform> xtransform_t;
+typedef mem::map<CONST string,xtransform_t> xmap_t;
 
 struct processDataStruct {
   texstream tex; // Bi-directional pipe to latex (to find label bbox)
@@ -103,6 +106,7 @@ struct processDataStruct {
   position topPos;
   string KEY;
   xkey_t xkey;
+  xmap_t xmap;
   
   terminator<std::ofstream> ofile;
   terminator<std::fstream> ifile;

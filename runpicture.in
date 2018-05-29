@@ -78,6 +78,21 @@ using types::penArray2;
 
 //static int tag=0;
 
+transform getTransform(xmap_t &xmap, picture::nodelist::iterator p)
+{
+    xmap_t::iterator q=xmap.find((*p)->KEY);
+    transform t;
+    if(q != xmap.end()) {
+      xtransform_t& v=q->second;
+      if(!v.empty()) {
+        t=v.back();
+        v.pop_back();      
+      }
+    }
+    return t;
+}
+
+
 function *transformFunction()
 {
   return new function(primTransform());
@@ -395,23 +410,19 @@ bool pdf()
   return pdf(getSetting<string>("tex"));
 }
 
-void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
-             string format=emptystring, bool wait=false, bool view=true,
-             callableTransform *xform)
+void _shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
+             string format=emptystring, bool wait=false, bool view=true)
 {
   if(prefix.empty()) prefix=outname();
 
   picture *result=new picture;
   unsigned level=0;
   picture::nodelist::iterator p;
-
-  // If null is given as an xform, just use the identity transformation.
-  bool xformIsNull = xform == nullfunc::instance();
+  
+  xmap_t xmap=processData().xmap;
 
   for(p = f->nodes.begin(); p != f->nodes.end(); ++p) {
-    if (!xformIsNull)
-      xform->call(Stack);
-    transform t=xformIsNull ? camp::identity : pop<transform>(Stack);
+    transform t=getTransform(xmap,p);
 
     static transform Zero=transform(0.0,0.0,0.0,0.0,0.0,0.0);
     bool Delete=(t == Zero);
@@ -480,8 +491,20 @@ void shipout3(string prefix, picture *f)
   f->shipout3(prefix);
 }
 
-void deconstruct(picture *f, picture *preamble=NULL, real magnification=1, 
-                 callableTransform *xform)
+void map(string key, transform t)
+{
+  xmap_t &xmap=processData().xmap;
+  xmap_t::iterator p=xmap.find(key);
+  if(p != xmap.end())
+    p->second.push_back(t); 
+  else {
+    xtransform_t *v=new xtransform_t();
+    v->push_back(t);
+    xmap[key]=*v;
+  }
+}
+
+void deconstruct(picture *f, picture *preamble=NULL, real magnification=1) 
 {
   unsigned level=0;
   unsigned n=0;
@@ -514,6 +537,8 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
     string outname;
     unsigned arg=0;
     unsigned batch=0;
+    xmap_t xmap=processData().xmap;
+    
     for(picture::nodelist::iterator p=f->nodes.begin();;) {
       if(p == f->nodes.end()) break;
       if(arg == 0) {
@@ -537,8 +562,8 @@ void deconstruct(picture *f, picture *preamble=NULL, real magnification=1,
       }
       
       picture *group=new picture;
-      xform->call(Stack);
-      transform t=pop<transform>(Stack);
+      transform t=getTransform(xmap,p);
+
       assert(*p);
       if((*p)->endgroup()) {
         fprintf(pipeout,"%s\n",Error.c_str());

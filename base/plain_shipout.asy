@@ -78,8 +78,7 @@ void shipout(string prefix=defaultfilename, frame f,
   int limit=2000;
   if(abs(m.x) > limit || abs(m.y) > limit) f=shift(-m)*f;
 
-  shipout(prefix,f,currentpatterns,format,wait,view,
-          xformStack.empty() ? null : xformStack.pop0);
+  _shipout(prefix,f,currentpatterns,format,wait,view);
   shipped=true;
 }
 

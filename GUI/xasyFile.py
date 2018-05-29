@@ -271,7 +271,6 @@ def parseLine(line, lines):
 
 def saveFile(file, xasyItems):
     """Write a list of xasyItems to a file"""
-    file.write(fileHeader)
     for item in xasyItems:
         file.write(item.getCode() + "\n\n")
 

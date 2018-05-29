@@ -647,7 +647,7 @@ class asyImage:
 
 class xasyItem(Qc.QObject):
     """A base class for items in the xasy GUI"""
-    setKeyFormatStr = 'xformMap.add("{:s}", {:s});'
+    setKeyFormatStr = 'map("{:s}",{:s});'
 
     def __init__(self, canvas=None, asyengine=None):
         """Initialize the item to an empty item"""
