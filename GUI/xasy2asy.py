@@ -47,7 +47,8 @@ class AsymptoteEngine:
         if path is None:
             path = xa.getArgs().asypath
             if path is None:
-                opt = xo.xasyOptions().load()
+                opt = xo.xasyOptions()
+                opt.load()
                 path = opt['asyPath']
 
         rx, wx = os.pipe()

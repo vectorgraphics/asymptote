@@ -104,6 +104,8 @@ class MainWindow1(Qw.QMainWindow):
         self.raw_args = Qc.QCoreApplication.arguments()
         self.args = xa.parseArgs(self.raw_args)
 
+        self.strings = None
+
         if self.args.asypath is not None:
             asyPath = self.args.asypath
         else:
@@ -219,9 +221,8 @@ class MainWindow1(Qw.QMainWindow):
             if self.addMode.active:
                 self.addMode.forceFinalize()
 
-    def internationalize(self, lang):
-        strings = xs.xasyString(lang)
-        self.ui.btnRotate.setToolTip(strings.rotate)
+    def internationalize(self):
+        self.ui.btnRotate.setToolTip(self.strings.rotate)
 
     def handleArguments(self):
         if self.args.file is not None:
@@ -230,7 +231,8 @@ class MainWindow1(Qw.QMainWindow):
             self.initializeEmptyFile()
 
         if self.args.language is not None:
-            self.internationalize(self.args.language)
+            self.strings = xs.xasyString(self.args.language)
+            self.internationalize()
 
     def initPenInterface(self):
         self.ui.txtLineWidth.setText(str(self._currentPen.width))
@@ -1228,9 +1230,7 @@ class MainWindow1(Qw.QMainWindow):
             self.fileItems = xf.parseFile(f)
             f.close()
         except IOError:
-            Qw.QMessageBox.critical(self, "File Opening Failed.", "File could"
-                                    "not be opened.")
-            # messagebox.showerror("File Opening Failed.", "File could not be opened.")
+            Qw.QMessageBox.critical(self, self.strings.fileOpenFailed, self.strings.fileOpenFailedText)
             self.fileItems = []
         except Exception:
             self.fileItems = []

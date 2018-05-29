@@ -149,6 +149,8 @@ class AddBezierShape(InplaceObjProcess):
         self.basePathPreview = None
         self.closedPath = None
         self.info = None
+        self.fill = False
+        self.opt = None
         self.currentPoint = Qc.QPointF(0, 0)
 
     def mouseDown(self, pos, info):
@@ -160,6 +162,7 @@ class AddBezierShape(InplaceObjProcess):
 
         if not self._active:
             self._active = True
+            self.fill = info['fill']
             self.asyengine = info['asyengine']
             self.closedPath = info['closedPath']
             self.basePath = x2a.asyPath(self.asyengine)
@@ -183,7 +186,16 @@ class AddBezierShape(InplaceObjProcess):
             self.basePath.computeControls()
 
     def createOptWidget(self, info):
-        return Widg_addBezierInPlace.Widg_addBezierInplace(info)
+        self.opt = Widg_addBezierInPlace.Widg_addBezierInplace(info)
+        self.opt.ui.btnFinalize.clicked.connect(self.forceFinalize)
+        self.opt.ui.btnFillClose.clicked.connect(self.finalizeClosure)
+        return self.opt
+
+    def finalizeClosure(self):
+        self._active = False
+        self.basePath.addNode('cycle', self._getLinkType())
+        self.objectCreated.emit(self.getXasyObject())
+        self.basePath = None
 
     def mouseRelease(self):
         x, y = self.currentPoint.x(), self.currentPoint.y()
@@ -193,9 +205,11 @@ class AddBezierShape(InplaceObjProcess):
 
     def forceFinalize(self):
         self._active = False
-        if self.closedPath:
+        if self.closedPath or (self.fill and not self.closedPath):
             self.basePath.addNode('cycle', self._getLinkType())
+
         self.objectCreated.emit(self.getXasyObject())
+        self.basePath = None
 
     def getObject(self):
         if self.basePath is None:
@@ -218,8 +232,10 @@ class AddBezierShape(InplaceObjProcess):
             return None
 
     def getXasyObject(self):
-        return x2a.xasyShape(self.getObject(), None)
-
+        if self.fill:
+            return x2a.xasyFilledShape(self.getObject(), None)
+        else:
+            return x2a.xasyShape(self.getObject(), None)
 
 
 class AddPoly(InplaceObjProcess):
@@ -232,6 +248,7 @@ class AddPoly(InplaceObjProcess):
         self.centermode = None
         self.asyengine = None
         self.fill = None
+        self.opt = None
 
     def mouseDown(self, pos, info):
         self._active = True
@@ -276,7 +293,8 @@ class AddPoly(InplaceObjProcess):
         return newPath
 
     def createOptWidget(self, info):
-        return Widg_addPolyOpt.Widg_addPolyOpt(info)
+        self.opt = Widg_addPolyOpt.Widg_addPolyOpt(info)
+        return self.opt
 
     def _rad(self):
         return PrimitiveShape.PrimitiveShape.euclideanNorm(self.currPos, self.center)
