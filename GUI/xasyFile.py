@@ -11,6 +11,8 @@
 
 from string import *
 from xasy2asy import *
+import xasy2asy as x2a
+import io
 import re
 
 
@@ -22,6 +24,37 @@ class xasyParseError(Exception):
 class xasyFileError(Exception):
     """An i/o error or other error not related to parsing"""
     pass
+
+
+def extractTransform(line):
+    "Returns key and the new transform."
+    # see https://regex101.com/r/6DqkRJ/1 for info
+    testMatch = re.match(r'^map\s*\(\s*\"([^\"]+)\"\s*,\s*\(([\d, ]+)\)\s*\)', line.strip())
+    if testMatch is None:
+        return None
+    else:
+        key = testMatch.group(1)
+        rawStr = testMatch.group(2)
+        rawStrArray = rawStr.split(',')
+
+        if len(rawStrArray) != 6:
+            return None
+        transf = [int(val.strip()) for val in rawStrArray]
+        return key, x2a.asyTransform(transf)
+
+
+def extractTransformsFromFile(fileStr):
+    transfDict = {}
+    with io.StringIO() as rawCode:
+        for line in fileStr.splitlines():
+            test_transf = extractTransform(line)
+            if test_transf is None:
+                rawCode.write(line + '\n')
+            else:
+                key, transf = test_transf
+                transfDict[key] = transf
+        final_str = rawCode.getvalue()
+    return final_str, transfDict
 
 
 def parseFile(inFile):
@@ -42,7 +75,7 @@ def parseFile(inFile):
             except:
                 raise xasyParseError("Parsing error: line {:d} in {:s}\n{:s}".format(lineCount, inFile.name, line))
 
-            if lineResult != None:
+            if lineResult is not None:
                 result.append(lineResult)
                 # print ("\tproduced: {:s}".format(str(lineResult)))
         lineCount += lineNum - len(lines)

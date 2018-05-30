@@ -150,6 +150,9 @@ class MainWindow1(Qw.QMainWindow):
         self.scaleFactor = 1
         self.panOffset = 0, 0
 
+        super().setMouseTracking(True)
+        # setMouseTracking(True)
+        
         self.undoRedoStack = Urs.actionStack()
 
         self.lockX = False
@@ -162,12 +165,14 @@ class MainWindow1(Qw.QMainWindow):
         self.drawGrid = False
         self.gridSnap = False  # TODO: for now. turn it on later
 
+        self.savedWindowMousePos = None
+
         self.finalPixmap = None
         self.preCanvasPixmap = None
         self.postCanvasPixmap = None
-
         self.previewCurve = None
 
+        self.fileItems = []
         self.drawObjects = []
         self.xasyDrawObj = {'drawDict': self.drawObjects}
 
@@ -680,11 +685,11 @@ class MainWindow1(Qw.QMainWindow):
 
         if self.addMode is not None:
             if self.addMode.active:
-                self.addMode.mouseMove(canvasPos)
+                self.addMode.mouseMove(canvasPos, mouseEvent)
                 self.quickUpdate()
             return
 
-        if self.currentMode == SelectionMode.pan:
+        if self.currentMode == SelectionMode.pan and int(mouseEvent.buttons()) and self.savedWindowMousePos is not None:
             mousePos = self.getWindowCoordinates()
             newPos = mousePos - self.savedWindowMousePos
             tx, ty = newPos.x(), newPos.y()
@@ -1195,58 +1200,41 @@ class MainWindow1(Qw.QMainWindow):
         else:
             obj_transform = transform
 
-        oldTransf = item.transfKeymap[key]
-
         if not applyFirst:
-            # item.transform[transfIndex] = obj_transform * oldTransf
-            # drawObj.transform = item.transform[transfIndex]
-            item.transfKeymap[key] = obj_transform * oldTransf
-            drawObj.transform = item.transfKeymap[key]
-
+            item.transfKeymap[key] = obj_transform * item.transfKeymap[key]
+            drawObj.transform = obj_transform * drawObj.transform
         else:
-            item.transfKeymap[key] = oldTransf * obj_transform
-            # item.transform[transfIndex] = oldTransf * obj_transform
+            item.transfKeymap[key] = item.transfKeymap[key] * obj_transform
+            drawObj.transform = drawObj.transform * obj_transform
 
-        drawObj.transform = item.transfKeymap[key]
         self.quickUpdate()
 
     def initializeEmptyFile(self):
         pass
 
     def loadFile(self, name):
-        self.ui.statusbar.showMessage(name)
+        self.ui.statusbar.showMessage('Load {0}'.format(name))
         self.filename = os.path.abspath(name)
-        # self.retitle()
+
+        if not os.path.isfile(self.filename):
+            self.filename = self.filename + '.asy'
+
+        f = open(self.filename, 'rt')
         try:
-            try:
-                f = open(self.filename, 'rt')
-            except:
-                if self.filename[-4:] == ".asy":
-                    raise
-                else:
-                    f = open(self.filename + ".asy", 'rt')
-                    self.filename += ".asy"
-                    self.retitle()
-            self.fileItems = xf.parseFile(f)
-            f.close()
+            rawFileStr = f.read()
         except IOError:
             Qw.QMessageBox.critical(self, self.strings.fileOpenFailed, self.strings.fileOpenFailedText)
-            self.fileItems = []
-        except Exception:
-            self.fileItems = []
-            self.autoMakeScript = True
-            if self.autoMakeScript or Qw.QMessageBox.question(self, "Error Opening File", "File was not recognized as an xasy file.\n"
-                "Load as a script item?") == Qw.QMessageBox.Yes:
-                item = x2a.xasyScript(canvas=self.xasyDrawObj, engine=self.asyEngine)
-                f.seek(0)
-                item.setScript(f.read())
-                item.setKey()
-                self.fileItems.append(item)
-        self.asyfyCanvas()
+        else:
+            rawText, transfDict = xf.extractTransformsFromFile(rawFileStr)
+            item = x2a.xasyScript(canvas=self.xasyDrawObj, engine=self.asyEngine, transfKeyMap=transfDict)
+            item.setScript(rawText)
+            item.setKey()
+            self.fileItems.append(item)
+            self.asyfyCanvas(True)
+        finally:
+            f.close()
 
     def populateCanvasWithItems(self, forceUpdate=False):
         self.itemCount = 0
         for item in self.fileItems:
             self.drawObjects.append(item.generateDrawObjects(self.magnification, forceUpdate))
-            # self.bindItemEvents(item)
-        # self.releaseLock()

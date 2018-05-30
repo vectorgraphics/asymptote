@@ -38,7 +38,8 @@ console = None
 
 class DebugFlags:
     keepFiles = False
-    printDeconstTranscript = False
+    printFoutTranscript = True
+    printDeconstTranscript = True
 
 
 class AsymptoteEngine:
@@ -196,7 +197,7 @@ class asyTransform(Qc.QObject):
     def __init__(self, initTuple, delete=False):
         """Initialize the transform with a 6 entry tuple"""
         super().__init__()
-        if isinstance(initTuple, tuple) and len(initTuple) == 6:
+        if isinstance(initTuple, (tuple, list)) and len(initTuple) == 6:
             self.t = initTuple
             self.x, self.y, self.xx, self.xy, self.yx, self.yy = initTuple
             self.deleted = delete
@@ -693,12 +694,7 @@ class xasyItem(Qc.QObject):
             # handle this case if transform is not in the map yet.
             if key not in self.transfKeymap.keys() or not self.transfKeymap[key].deleted:
                 currImage.IDTag = str(file)
-                if key in self.transfKeymap.keys():
-                    inputTransform = self.transfKeymap[key]
-                else:
-                    inputTransform = identity()
-
-                newDrawObj = DrawObject(currImage.iqt, self.onCanvas['canvas'], transform=inputTransform,
+                newDrawObj = DrawObject(currImage.iqt, self.onCanvas['canvas'], transform=identity(),
                                         btmRightanchor=Qc.QPointF(bbox[0], bbox[2]), drawOrder=-1, key=key,
                                         parentObj=self)
                 self.drawObjects.append(newDrawObj)
@@ -739,6 +735,8 @@ class xasyItem(Qc.QObject):
         fin = self.asyengine.istream
 
         for line in self.getCode().splitlines():
+            if DebugFlags.printDeconstTranscript:
+                print('fout:', line)
             fout.write(line+"\n")
         fout.write("deconstruct({:f});\n".format(mag))
         fout.flush()
@@ -954,11 +952,6 @@ class xasyScript(xasyItem):
     def __init__(self, canvas, engine, script="", transforms=None, transfKeyMap=None):
         """Initialize this script item"""
         super().__init__(canvas, asyengine=engine)
-        # if transforms is not None:
-        #     self.transform = transforms[:]
-        # else:
-        #     self.transform = []
-
         if transfKeyMap is not None:
             self.transfKeymap = transfKeyMap
         else:
@@ -966,8 +959,6 @@ class xasyScript(xasyItem):
 
         self.script = script
         self.setKeyed = False
-        # self.setKey()
-        # self.updateCode()
 
     def clearTransform(self):
         """Reset the transforms for each of the deconstructed images"""
@@ -977,7 +968,7 @@ class xasyScript(xasyItem):
 
     def updateCode(self, mag=1.0):
         """Generate the code describing this script"""
-        # TODO: Find a way to directly write-in the key.
+
         with io.StringIO() as rawAsyCode:
             if self.transfKeymap:
                 transfMapList = [xasyItem.setKeyFormatStr.format(key, str(value))
@@ -1044,16 +1035,12 @@ class xasyScript(xasyItem):
     def asyfy(self, mag=1.0, keyOnly=False):
         """Generate the list of images described by this object and adjust the length of the transform list."""
         super().asyfy(mag, keyOnly)
-        while len(self.imageList) > len(self.transform):
-            self.transform.append(identity())
-        while len(self.imageList) < len(self.transform):
-            self.transform.pop()
 
         # remove any unnessecary keys
         key_set = set([im.key for im in self.imageList])
         keys_to_remove = []
 
-        for key in self.transfKeymap:
+        for key in self.transfKeymap.keys():
             if key not in key_set:
                 keys_to_remove.append(key)
 
@@ -1061,9 +1048,8 @@ class xasyScript(xasyItem):
             self.transfKeymap.pop(key)
 
         # add in any missng key:
-
         for im in self.imageList:
-            if im.key not in self.transfKeymap:
+            if im.key not in self.transfKeymap.keys():
                 self.transfKeymap[im.key] = identity()
 
         self.updateCode()

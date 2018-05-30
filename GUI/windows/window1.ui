@@ -20,6 +20,9 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
+   <property name="mouseTracking">
+    <bool>true</bool>
+   </property>
    <layout class="QHBoxLayout" name="horizontalLayout_4">
     <property name="spacing">
      <number>0</number>
@@ -43,6 +46,9 @@
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
+      </property>
+      <property name="mouseTracking">
+       <bool>true</bool>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="spacing">
@@ -1658,6 +1664,9 @@ background: rgb(0, 0, 0)
            </item>
            <item>
             <widget class="QFrame" name="imgFrame">
+             <property name="mouseTracking">
+              <bool>true</bool>
+             </property>
              <property name="frameShape">
               <enum>QFrame::NoFrame</enum>
              </property>
@@ -1687,6 +1696,9 @@ background: rgb(0, 0, 0)
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
+                </property>
+                <property name="mouseTracking">
+                 <bool>true</bool>
                 </property>
                 <property name="frameShape">
                  <enum>QFrame::Panel</enum>

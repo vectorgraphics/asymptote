@@ -25,7 +25,8 @@ class InplaceObjProcess(Qc.QObject):
     def mouseDown(self, pos, info):
         raise NotImplementedError
 
-    def mouseMove(self, pos):
+    def mouseMove(self, pos, event):
+        assert isinstance(event, Qg.QMouseEvent)
         raise NotImplementedError
 
     def mouseRelease(self):
@@ -60,7 +61,7 @@ class AddCircle(InplaceObjProcess):
         self.fill = info['fill']
         self._active = True
 
-    def mouseMove(self, pos):
+    def mouseMove(self, pos, event):
         self.radius = PrimitiveShape.PrimitiveShape.euclideanNorm(pos, self.center)
 
     def mouseRelease(self):
@@ -110,7 +111,7 @@ class AddLabel(InplaceObjProcess):
         self.objectCreated.emit(self.getXasyObject())
         self._active = False
 
-    def mouseMove(self, pos):
+    def mouseMove(self, pos, event):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
         self.anchor.setX(x)
         self.anchor.setY(y)
@@ -155,7 +156,6 @@ class AddBezierShape(InplaceObjProcess):
 
     def mouseDown(self, pos, info):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
-
         self.currentPoint.setX(x)
         self.currentPoint.setY(y)
         self.info = info
@@ -166,6 +166,7 @@ class AddBezierShape(InplaceObjProcess):
             self.asyengine = info['asyengine']
             self.closedPath = info['closedPath']
             self.basePath = x2a.asyPath(self.asyengine)
+            self.basePath.addNode((x, y), self._getLinkType())
 
         self.basePath.addNode((x, y), self._getLinkType())
         self.basePath.computeControls()
@@ -176,13 +177,19 @@ class AddBezierShape(InplaceObjProcess):
         else:
             return '--'
 
-    def mouseMove(self, pos):
+    def mouseMove(self, pos, event):
         if self._active:
             x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
+            if int(event.buttons()) == 0:
+                if PrimitiveShape.PrimitiveShape.euclideanNorm((x, y), self.currentPoint) > 3:
+                    self.forceFinalize()
+                    return
+
             self.currentPoint.setX(x)
             self.currentPoint.setY(y)
 
             self.basePath.setNode(-1, (x, y))
+            self.basePath.controlSet.pop()
             self.basePath.computeControls()
 
     def createOptWidget(self, info):
@@ -199,7 +206,6 @@ class AddBezierShape(InplaceObjProcess):
 
     def mouseRelease(self):
         x, y = self.currentPoint.x(), self.currentPoint.y()
-
         self.basePath.setNode(-1, (x, y))
         self.basePath.computeControls()
 
@@ -261,7 +267,7 @@ class AddPoly(InplaceObjProcess):
         self.center.setX(x)
         self.center.setY(y)
 
-    def mouseMove(self, pos):
+    def mouseMove(self, pos, event):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
         self.currPos.setX(x)
         self.currPos.setY(y)
