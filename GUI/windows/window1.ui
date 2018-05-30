@@ -992,45 +992,7 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_21">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>25</width>
-              <height>25</height>
-             </size>
-            </property>
-            <property name="baseSize">
-             <size>
-              <width>32</width>
-              <height>32</height>
-             </size>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/eye.svg</normaloff>:/icons/ionicons-2.0.1/src/eye.svg</iconset>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-            <property name="flat">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButton_22">
+           <widget class="QPushButton" name="btnDelete">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -1060,7 +1022,7 @@
               <normaloff>:/icons/ionicons-2.0.1/src/android-delete.svg</normaloff>:/icons/ionicons-2.0.1/src/android-delete.svg</iconset>
             </property>
             <property name="checkable">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -1103,7 +1065,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="btnSend2Back">
+           <widget class="QPushButton" name="btnSendBackwards">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -1141,7 +1103,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="btnSend2Front">
+           <widget class="QPushButton" name="btnSendForwards">
             <property name="enabled">
              <bool>false</bool>
             </property>

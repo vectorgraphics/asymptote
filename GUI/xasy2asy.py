@@ -697,6 +697,7 @@ class xasyItem(Qc.QObject):
                 newDrawObj = DrawObject(currImage.iqt, self.onCanvas['canvas'], transform=identity(),
                                         btmRightanchor=Qc.QPointF(bbox[0], bbox[2]), drawOrder=-1, key=key,
                                         parentObj=self)
+                newDrawObj.setParent(self)
                 self.drawObjects.append(newDrawObj)
 
     def asyfy(self, mag=1.0, force=False):
@@ -875,6 +876,7 @@ class xasyShape(xasyDrawnItem):
         newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=self.transfKeymap[self.transfKey],
                             pen=self.pen, key=self.transfKey)
         newObj.originalObj = self
+        newObj.setParent(self)
         return [newObj]
 
     def __str__(self):
@@ -901,6 +903,7 @@ class xasyFilledShape(xasyShape):
         newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=self.transfKeymap[self.transfKey],
                             pen=self.pen, key=self.transfKey, fill=True)
         newObj.originalObj = self
+        newObj.setParent(self)
         return [newObj]
 
     def __str__(self):
@@ -1067,9 +1070,10 @@ class xasyScript(xasyItem):
         return retVal
 
 
-class DrawObject:
+class DrawObject(Qc.QObject):
     def __init__(self, drawObject, mainCanvas=None, transform=identity(), btmRightanchor=Qc.QPointF(0, 0),
                  drawOrder=(-1, -1), pen=None, key=None, parentObj=None, fill=False):
+        super().__init__()
         self.drawObject = drawObject
         self.mainCanvas = mainCanvas
         self.pTransform = transform

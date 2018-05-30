@@ -178,7 +178,8 @@ class MainWindow1(Qw.QMainWindow):
 
         self.modeButtons = {self.ui.btnTranslate, self.ui.btnRotate, self.ui.btnScale, self.ui.btnSelect,
                             self.ui.btnPan}
-        self.objButtons = {self.ui.btnCustTransform, self.ui.actionTransform}
+        self.objButtons = {self.ui.btnCustTransform, self.ui.actionTransform, self.ui.btnSendForwards,
+                           self.ui.btnSendBackwards, self.ui.btnDelete}
         self.globalTransformOnlyButtons = (self.ui.comboAnchor, self.ui.btnAnchor)
 
         self.currAddOptionsWgt = None
@@ -321,6 +322,10 @@ class MainWindow1(Qw.QMainWindow):
 
         self.ui.btnFill.clicked.connect(self.btnFillOnClick)
 
+        self.ui.btnSendBackwards.clicked.connect(self.btnSendBackwardsOnClick)
+        self.ui.btnSendForwards.clicked.connect(self.btnSendForwardsOnClick)
+        self.ui.btnDelete.clicked.connect(self.btnDeleteOnClick)
+
     def btnFillOnClick(self, checked):
         self.currAddOptions['fill'] = checked
 
@@ -455,6 +460,40 @@ class MainWindow1(Qw.QMainWindow):
         self.undoRedoStack.add(self.createAction(TransformationChanges(objKey,
                             transform, isLocal)))
         self.checkUndoRedoButtons()
+
+    def btnSendForwardsOnClick(self):
+        if self.currentlySelectedObj['selectedKey'] is not None:
+            maj, minor = self.currentlySelectedObj['selectedKey']
+            selectedObj = self.drawObjects[maj][minor]
+            index = self.fileItems.index(selectedObj.parent())
+
+            self.clearSelection()
+            if index == len(self.fileItems) - 1:
+                return
+            else:
+                self.fileItems[index], self.fileItems[index + 1] = self.fileItems[index + 1], self.fileItems[index]
+
+    def btnDeleteOnClick(self):
+        if self.currentlySelectedObj['selectedKey'] is not None:
+            maj, minor = self.currentlySelectedObj['selectedKey']
+            selectedObj = self.drawObjects[maj][minor]
+            self.fileItems.remove(selectedObj.parent())
+
+            self.clearSelection()
+            self.asyfyCanvas()
+
+    def btnSendBackwardsOnClick(self):
+        if self.currentlySelectedObj['selectedKey'] is not None:
+            maj, minor = self.currentlySelectedObj['selectedKey']
+            selectedObj = self.drawObjects[maj][minor]
+            index = self.fileItems.index(selectedObj.parent())
+
+            self.clearSelection()
+            if index == 0:
+                return
+            else:
+                self.fileItems[index], self.fileItems[index - 1] = self.fileItems[index - 1], self.fileItems[index]
+
 
     def btnUndoOnClick(self):
         self.undoRedoStack.undo()
