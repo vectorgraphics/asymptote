@@ -992,6 +992,82 @@
            </spacer>
           </item>
           <item>
+           <widget class="QPushButton" name="btnToggleVisible">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>25</width>
+              <height>25</height>
+             </size>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../res/icons.qrc">
+              <normaloff>:/icons/ionicons-2.0.1/src/eye.svg</normaloff>:/icons/ionicons-2.0.1/src/eye.svg</iconset>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnSoftDelete">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>25</width>
+              <height>25</height>
+             </size>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../res/icons.qrc">
+              <normaloff>:/icons/ionicons-2.0.1/src/android-remove-circle.svg</normaloff>:/icons/ionicons-2.0.1/src/android-remove-circle.svg</iconset>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="btnDelete">
             <property name="enabled">
              <bool>false</bool>
@@ -1258,10 +1334,10 @@
               </property>
              </widget>
             </item>
-            <item row="5" column="0">
-             <widget class="QPushButton" name="pushButton_10">
+            <item row="4" column="0">
+             <widget class="QPushButton" name="btnAddBezierInplace">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
@@ -1280,14 +1356,14 @@
               </property>
               <property name="icon">
                <iconset resource="../res/icons.qrc">
-                <normaloff>:/entypo/Entypo+/Entypo+/round-brush.svg</normaloff>:/entypo/Entypo+/Entypo+/round-brush.svg</iconset>
+                <normaloff>:/icons2/zondicons/vector.svg</normaloff>:/icons2/zondicons/vector.svg</iconset>
               </property>
               <property name="flat">
                <bool>true</bool>
               </property>
              </widget>
             </item>
-            <item row="6" column="0">
+            <item row="5" column="0">
              <widget class="QPushButton" name="pushButton_14">
               <property name="enabled">
                <bool>false</bool>
@@ -1316,7 +1392,7 @@
               </property>
              </widget>
             </item>
-            <item row="7" column="0">
+            <item row="6" column="0">
              <widget class="QPushButton" name="btnCreateCurve">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
@@ -1342,7 +1418,7 @@
               </property>
              </widget>
             </item>
-            <item row="8" column="0">
+            <item row="7" column="0">
              <widget class="QPushButton" name="pushButton_13">
               <property name="enabled">
                <bool>false</bool>
@@ -1371,7 +1447,7 @@
               </property>
              </widget>
             </item>
-            <item row="9" column="0">
+            <item row="8" column="0">
              <widget class="QPushButton" name="btnAddLabel">
               <property name="enabled">
                <bool>true</bool>
@@ -1406,8 +1482,8 @@
               </property>
              </widget>
             </item>
-            <item row="4" column="0">
-             <widget class="QPushButton" name="btnAddBezierInplace">
+            <item row="9" column="0">
+             <widget class="QPushButton" name="btnAddCode">
               <property name="enabled">
                <bool>true</bool>
               </property>
@@ -1428,7 +1504,7 @@
               </property>
               <property name="icon">
                <iconset resource="../res/icons.qrc">
-                <normaloff>:/icons2/zondicons/vector.svg</normaloff>:/icons2/zondicons/vector.svg</iconset>
+                <normaloff>:/icons/ionicons-2.0.1/src/code.svg</normaloff>:/icons/ionicons-2.0.1/src/code.svg</iconset>
               </property>
               <property name="flat">
                <bool>true</bool>
@@ -1688,7 +1764,7 @@ background: rgb(0, 0, 0)
               <number>0</number>
              </property>
              <item>
-              <widget class="QLineEdit" name="terminalPrompt">
+              <widget class="QLineEdit" name="txtTerminalPrompt">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
                  <horstretch>0</horstretch>
@@ -1698,7 +1774,7 @@ background: rgb(0, 0, 0)
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton">
+              <widget class="QPushButton" name="btnEnterCommand">
                <property name="enabled">
                 <bool>true</bool>
                </property>

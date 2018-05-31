@@ -205,6 +205,10 @@ class asyTransform(Qc.QObject):
             raise TypeError("Illegal initializer for asyTransform")
 
     @classmethod
+    def zero(cls):
+        return asyTransform((0, 0, 0, 0, 0, 0))
+
+    @classmethod
     def fromQTransform(cls, transform):
         assert isinstance(transform, Qg.QTransform)
         tx, ty = transform.dx(), transform.dy()
@@ -637,7 +641,6 @@ class asyLabel(asyObj):
 
 class asyImage:
     """A structure containing an image and its format, bbox, and IDTag"""
-
     def __init__(self, image, format, bbox, transfKey=None):
         self.image = image
         self.format = format
@@ -692,6 +695,7 @@ class xasyItem(Qc.QObject):
             currImage.performCanvasTransform = False
 
             # handle this case if transform is not in the map yet.
+            # if deleted - set transform to 0, 0, 0, 0, 0
             if key not in self.transfKeymap.keys() or not self.transfKeymap[key].deleted:
                 currImage.IDTag = str(file)
                 newDrawObj = DrawObject(currImage.iqt, self.onCanvas['canvas'], transform=identity(),
@@ -971,13 +975,13 @@ class xasyScript(xasyItem):
 
     def updateCode(self, mag=1.0):
         """Generate the code describing this script"""
-
         with io.StringIO() as rawAsyCode:
             if self.transfKeymap:
-                transfMapList = [xasyItem.setKeyFormatStr.format(key, str(value))
-                                 for key, value in self.transfKeymap.items()]
-                transfMapList.append('')
-                rawAsyCode.write('\n'.join(transfMapList))
+                for key, val in self.transfKeymap.items():
+                    if val.deleted:
+                        rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, str(asyTransform.zero())) + '\n')
+                        rawAsyCode.write('// ')
+                    rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, str(val)) + '\n')
 
             for line in self.script.splitlines():
                 raw_line = line.rstrip().replace('\t', ' ' * 4)
@@ -991,7 +995,7 @@ class xasyScript(xasyItem):
         self.updateCode()
         self.setKeyed = False
 
-    def setKey(self):
+    def setKey(self, prefix=''):
         fout = self.asyengine.ostream
         fin = self.asyengine.istream
 
@@ -1027,7 +1031,7 @@ class xasyScript(xasyItem):
                         for j in range(len(curr_str)):
                             raw_line.write(curr_str[j])
                             if j + 1 in keylist[i + 1]:
-                                raw_line.write('KEY="x{0:d}.{1:d}", '.format(i + 1, j + 1))
+                                raw_line.write('KEY="x{2:s}{0:d}.{1:d}", '.format(i + 1, j + 1, prefix))
                         curr_str = raw_line.getvalue()
                 # else, skip and just write the line.
                 raw_str.write(curr_str + '\n')
@@ -1040,15 +1044,22 @@ class xasyScript(xasyItem):
         super().asyfy(mag, keyOnly)
 
         # remove any unnessecary keys
-        key_set = set([im.key for im in self.imageList])
-        keys_to_remove = []
+        # not anymore - transfKeymap is supposed to be storing the raw transform data
+        # and the rest, to be interpreted case by case.
 
-        for key in self.transfKeymap.keys():
-            if key not in key_set:
-                keys_to_remove.append(key)
+        # Id --> Transf --> asy-fied --> Transf
+        # Transf should keep the original, raw transformation
+        # but for all new drawn objects - assign Id as transform.
 
-        for key in keys_to_remove:
-            self.transfKeymap.pop(key)
+        # key_set = set([im.key for im in self.imageList])
+        # keys_to_remove = []
+        #
+        # for key in self.transfKeymap.keys():
+        #     if key not in key_set:
+        #         keys_to_remove.append(key)
+        #
+        # for key in keys_to_remove:
+        #     self.transfKeymap.pop(key)
 
         # add in any missng key:
         for im in self.imageList:
