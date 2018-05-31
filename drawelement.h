@@ -123,7 +123,8 @@ class drawElement : public gc
 public:
   string KEY;
   
-  drawElement() {KEY=processData().KEY;}
+  drawElement(const string& key="") : KEY(key == "" ? processData().KEY : key)
+  {}
   
   virtual ~drawElement() {}
   

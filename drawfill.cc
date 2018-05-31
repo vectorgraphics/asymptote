@@ -52,7 +52,7 @@ bool drawFill::draw(psfile *out)
   
 drawElement *drawFill::transformed(const transform& t)
 {
-  return new drawFill(transpath(t),stroke,transpen(t));
+  return new drawFill(transpath(t),stroke,transpen(t),KEY);
 }
   
 drawElement *drawLatticeShade::transformed(const transform& t)

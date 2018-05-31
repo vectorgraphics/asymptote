@@ -21,8 +21,9 @@ public:
     reportError("non-cyclic path cannot be filled");
   }
   
-  drawFill(const vm::array& src, bool stroke, pen pentype)
-    : drawSuperPathPenBase(src,pentype), stroke(stroke) {
+  drawFill(const vm::array& src, bool stroke, pen pentype,
+           const string& key="") : 
+    drawElement(key), drawSuperPathPenBase(src,pentype), stroke(stroke) {
     if(!stroke && !cyclic()) noncyclic();
   }
 
