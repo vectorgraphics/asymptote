@@ -231,9 +231,9 @@ class asyTransform(Qc.QObject):
     def getCode(self):
         """Obtain the asy code that represents this transform"""
         if self.deleted:
-            return str(self.t) + ", false"
+            return str(tuple(self.t)) + ", false"
         else:
-            return str(self.t)
+            return str(tuple(self.t))
 
     def scale(self, s):
         return asyTransform((0, 0, s, 0, 0, s)) * self
@@ -981,7 +981,7 @@ class xasyScript(xasyItem):
                     if val.deleted:
                         rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, str(asyTransform.zero())) + '\n')
                         rawAsyCode.write('// ')
-                    rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, str(val)) + '\n')
+                    rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, val.getCode()) + '\n')
 
             for line in self.script.splitlines():
                 raw_line = line.rstrip().replace('\t', ' ' * 4)

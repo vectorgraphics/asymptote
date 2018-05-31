@@ -27,7 +27,7 @@ class xasyFileError(Exception):
 
 
 def extractTransform(line):
-    "Returns key and the new transform."
+    """Returns key and the new transform."""
     # see https://regex101.com/r/6DqkRJ/1 for info
     testMatch = re.match(r'^map\s*\(\s*\"([^\"]+)\"\s*,\s*\(([\d, ]+)\)\s*\)', line.strip())
     if testMatch is None:
@@ -61,6 +61,7 @@ def parseFile(inFile):
     """Parse a file returning a list of xasyItems"""
     lines = inFile.read()
     lines = lines.splitlines()
+
     # lines = [line for line in lines.splitlines() if not line.startswith("//")]
     result = []
     lineCount = 1
