@@ -22,8 +22,12 @@ revision.*
 run*.cc
 run*.h
 
+### History
+history
+
+
 ### Generated files
-newDrawing.asy 
+newDrawing.asy
 /Makefile
 /doc/Makefile
 /doc/png/Makefile
@@ -110,3 +114,25 @@ core.*
 \#*
 .\#*
 
+### Generated python UI files
+/GUI/pyUIClass/*
+/GUI/__pycache__/*
+/.idea/*
+
+examples/_ig_*.asy
+
+### Shorthand Dev Script
+asydev
+gdb_xasy
+
+_ig_*/*
+
+### IDE Files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+### Translation binary files
+*.mo
