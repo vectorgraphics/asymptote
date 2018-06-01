@@ -939,7 +939,8 @@ class MainWindow1(Qw.QMainWindow):
                     if obj.drawOrder > highestDrawPriority:
                         collidedObjKey = (objKeyMaj, objKeyMin)
         if collidedObjKey is not None:
-            self.ui.statusbar.showMessage(str('Collide with ' + str(collidedObjKey)), 2500)
+            rawKey = self.drawObjects[collidedObjKey[0]][collidedObjKey[1]].key
+            self.ui.statusbar.showMessage('Collide with {0}, Key is {1}.'.format(str(collidedObjKey), rawKey), 2500)
             return collidedObjKey
 
     def selectObjectSet(self):
