@@ -142,7 +142,7 @@ class MainWindow1(Qw.QMainWindow):
         self.magnification = 1
         self.inMidTransformation = False
         self.addMode = None
-        self.currentlySelectedObj = {'type': 'xasyPicture', 'selectedKey': None}
+        self.currentlySelectedObj = {'key': None, 'allSameKey': set()}
         self.savedMousePosition = None
         self.currentBoundingBox = None
         self.selectionDelta = None
@@ -854,8 +854,14 @@ class MainWindow1(Qw.QMainWindow):
             maj, minor = selectedKey
 
             self.currentlySelectedObj['selectedKey'] = selectedKey
+            self.currentlySelectedObj['key'],  self.currentlySelectedObj['allSameKey'] = self.selectObjectSet()
 
             self.currentBoundingBox = self.drawObjects[maj][minor].boundingBox
+
+            for selItems in self.currentlySelectedObj['allSameKey']:
+                obj = self.drawObjects[selItems[0]][selItems[1]]
+                self.currentBoundingBox = self.currentBoundingBox.united(obj.boundingBox)
+
             self.origBboxTransform = self.drawObjects[maj][minor].transform.toQTransform()
             self.newTransform = Qg.QTransform()
 
@@ -936,6 +942,20 @@ class MainWindow1(Qw.QMainWindow):
             self.ui.statusbar.showMessage(str('Collide with ' + str(collidedObjKey)), 2500)
             return collidedObjKey
 
+    def selectObjectSet(self):
+        objKey = self.selectObject()
+        if objKey is None:
+            return set()
+        rawObj = self.drawObjects[objKey[0]][objKey[1]]
+        rawKey = rawObj.key
+        rawSet = {objKey}
+        for objKeyMaj in range(len(self.drawObjects)):
+            for objKeyMin in range(len(self.drawObjects[objKeyMaj])):
+                obj = self.drawObjects[objKeyMaj][objKeyMin]
+                if obj.key == rawKey:
+                    rawSet.add((objKeyMaj, objKeyMin))
+        return rawKey, rawSet
+
     def getCanvasCoordinates(self):
         assert self.ui.imgLabel.underMouse()
         uiPos = self.mapFromGlobal(Qg.QCursor.pos())
@@ -984,17 +1004,13 @@ class MainWindow1(Qw.QMainWindow):
 
     def quickDraw(self):
         assert self.isReady()
-        selectedObj = None
-        if self.currentlySelectedObj['selectedKey'] is not None:
-            maj, minor = self.currentlySelectedObj['selectedKey']
-            selectedObj = self.drawObjects[maj][minor]
-
         for majorItem in self.drawObjects:
             for item in majorItem:
                 # hidden objects - toggleable
                 if item.key in self.hiddenKeys:
                     continue
-                if selectedObj is item and self.settings['enableImmediatePreview']:
+                isSelected = item.key == self.currentlySelectedObj['key']
+                if isSelected and self.settings['enableImmediatePreview']:
                     if self.useGlobalCoords:
                         item.draw(self.newTransform, canvas=self.mainCanvas)
                     else:
@@ -1306,6 +1322,16 @@ class MainWindow1(Qw.QMainWindow):
             item.transfKeymap[key] = item.transfKeymap[key] * obj_transform
             drawObj.transform = drawObj.transform * obj_transform
 
+        for (maj2, min2) in self.currentlySelectedObj['allSameKey']:
+            if (maj2, min2) == (maj, minor):
+                continue
+            obj = self.drawObjects[maj2][min2]
+            if not applyFirst:
+                obj.transform = obj_transform * obj.transform
+            else:
+                obj.transform = obj.transform * obj_transform
+
+        # ISSUE: Asy needs to apply the same transform to all objects, not just one.
         self.quickUpdate()
 
     def initializeEmptyFile(self):
