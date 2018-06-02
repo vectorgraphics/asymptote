@@ -136,3 +136,7 @@ _ig_*/*
 
 ### Translation binary files
 *.mo
+
+### Arguments generated from asy
+args.json
+asyCompletionZsh

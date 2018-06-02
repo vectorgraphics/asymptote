@@ -1,6 +1,6 @@
 /*****
  * process.cc
- * Andy Hammerlindl 2006/08/19 
+ * Andy Hammerlindl 2006/08/19
  *
  * Handles processing blocks of code (including files, strings, and the
  * interactive prompt, for listing and parse-only modes as well as actually
@@ -39,7 +39,7 @@ void purge(Int divisor=0);
 }
 
 namespace vm {
-bool indebugger;  
+bool indebugger;
 }
 
 using namespace settings;
@@ -137,7 +137,7 @@ public:
     absyntax::prettyname(out, "interactiveRunnable", indent);
     base->prettyprint(out, indent+1);
   }
-  
+
   void trans(coenv &e) {
     base->interactiveTrans(e);
   }
@@ -148,7 +148,7 @@ public:
     base->transAsField(e, r);
   }
 };
-  
+
 enum transMode {
   TRANS_INTERACTIVE,
   TRANS_NORMAL
@@ -175,7 +175,7 @@ bool runRunnable(runnable *r, coenv &e, istack &s, transMode tm=TRANS_NORMAL) {
     // Should an interactive error hurt the status?
     em.statusError();
 
-    return false;   
+    return false;
   }
   return true;
 }
@@ -192,7 +192,6 @@ struct icore {
 
   virtual void doParse() = 0;
   virtual void doList() = 0;
-
 public:
 
   // preRun and postRun are the optional activities that take place before and
@@ -216,7 +215,7 @@ public:
 
     try {
       if(purge) run::purge();
-      
+
       penv pe;
       env base_env(pe.ge());
       coder base_coder(nullPos, "icore::doRun");
@@ -242,9 +241,9 @@ public:
     } catch(handled_error) {
       em.statusError();
     }
-    
+
     run::cleanup();
-    
+
     em.clear();
   }
 
@@ -253,6 +252,9 @@ public:
       doParse();
     else if (getSetting<bool>("listvariables"))
       doList();
+    else if (getSetting<bool>("jsonopt")) {
+      printJson();
+    }
     else
       doRun(purge);
   }
@@ -363,7 +365,7 @@ public:
       filename(filename),
       outname((string) (filename == "-" ? settings::outname() :
                         stripDir(stripExt(string(filename), suffix)))) {}
-  
+
   block *buildTree() {
     return !filename.empty() ? parser::parseFile(filename,"Loading") : 0;
   }
@@ -391,7 +393,7 @@ public:
 
     if (verbose >= 1)
       cout << "Processing " << outname << endl;
-    
+
     try {
       icore::process(purge);
     }
@@ -589,13 +591,13 @@ class iprompt : public icore {
 
   void postRun(coenv &, istack &) {
   }
-  
+
   // Commands are chopped into the starting word and the rest of the line.
   struct commandLine {
     string line;
     string word;
     string rest;
-    
+
     commandLine(string line) : line(line) {
       string::iterator c=line.begin();
 
@@ -779,7 +781,7 @@ class iprompt : public icore {
     try {
       if (getSetting<bool>("multiline")) {
         block *code=parseExtendableLine(line);
-        
+
         icode i(code);
         i.run(e,s,TRANS_INTERACTIVE);
       }
@@ -865,7 +867,7 @@ public:
         restart=false;
       }
     } while(restart);
-      
+
     interact::cleanup_interactive();
   }
 };
@@ -946,7 +948,7 @@ public:
     assert(!em.errors()); // TODO: Decide how to handle prior errors.
 
     try {
-      { withProcessData token(pe.pd()); 
+      { withProcessData token(pe.pd());
         ::runRunnable(r, e, s, TRANS_INTERACTIVE);
       }
     } catch(std::bad_alloc&) {
