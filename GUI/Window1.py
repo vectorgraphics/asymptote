@@ -142,7 +142,7 @@ class MainWindow1(Qw.QMainWindow):
         self.magnification = 1
         self.inMidTransformation = False
         self.addMode = None
-        self.currentlySelectedObj = {'key': None, 'allSameKey': set(), 'selectedKey': (-1, -1)}
+        self.currentlySelectedObj = {'key': None, 'allSameKey': set(), 'selectedKey': None}
         self.savedMousePosition = None
         self.currentBoundingBox = None
         self.selectionDelta = None
@@ -946,7 +946,7 @@ class MainWindow1(Qw.QMainWindow):
             return collidedObjKey
 
     def selectObjectSet(self):
-        objKey = self.selectObject()
+        objKey = self.currentlySelectedObj['selectedKey']
         if objKey is None:
             return set()
         rawObj = self.drawObjects[objKey[0]][objKey[1]]
