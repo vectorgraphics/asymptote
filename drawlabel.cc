@@ -196,7 +196,7 @@ bool drawLabel::write(texfile *out, const bbox&)
 drawElement *drawLabel::transformed(const transform& t)
 {
   return new drawLabel(label,size,t*T,t*position,
-                       length(align)*unit(shiftless(t)*align),pentype);
+                       length(align)*unit(shiftless(t)*align),pentype,KEY);
 }
 
 void drawLabelPath::bounds(bbox& b, iopipestream& tex, boxvector&, bboxlist&)
@@ -265,7 +265,7 @@ bool drawLabelPath::write(texfile *out, const bbox&)
 drawElement *drawLabelPath::transformed(const transform& t)
 {
   return new drawLabelPath(label,size,transpath(t),justify,shift,
-                           transpen(t));
+                           transpen(t),KEY);
 }
 
 } //namespace camp

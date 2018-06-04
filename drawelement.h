@@ -237,7 +237,8 @@ public:
     copyArray4x4C(T,&t);
   }
 
-  drawElementLC(const double* t, const drawElementLC *s) : T(NULL) {
+  drawElementLC(const double* t, const drawElementLC *s) : 
+    drawElement(s->KEY), T(NULL) {
     multiplyTransform3(T,t,s->T);
   }
 
