@@ -641,12 +641,13 @@ class asyLabel(asyObj):
 
 class asyImage:
     """A structure containing an image and its format, bbox, and IDTag"""
-    def __init__(self, image, format, bbox, transfKey=None):
+    def __init__(self, image, format, bbox, transfKey=None, keyIndex=0):
         self.image = image
         self.format = format
         self.bbox = bbox
         self.IDTag = None
         self.key = transfKey
+        self.keyIndex = keyIndex
 
 
 class xasyItem(Qc.QObject):
@@ -658,6 +659,7 @@ class xasyItem(Qc.QObject):
         super().__init__()
         self.transform = [identity()]
         self.transfKeymap = {}              # the new keymap.
+        # should be a dictionary to a list...
         self.asyCode = ''
         self.imageList = []
         self.IDTag = None
@@ -680,11 +682,11 @@ class xasyItem(Qc.QObject):
     def generateDrawObjects(self, mag=1.0):
         raise NotImplementedError
 
-    def handleImageReception(self, file, format, bbox, count, key=None):
+    def handleImageReception(self, file, format, bbox, count, key=None, localCount=0):
         """Receive an image from an asy deconstruction. It replaces the default in asyProcess."""
         # image = Image.open(file).transpose(Image.FLIP_TOP_BOTTOM)
         image = Qg.QImage(file).mirrored(False, True)
-        self.imageList.append(asyImage(image, format, bbox, transfKey=key))
+        self.imageList.append(asyImage(image, format, bbox, transfKey=key, keyIndex=localCount))
         if self.onCanvas is not None:
             # self.imageList[-1].iqt = ImageTk.PhotoImage(image)
             currImage = self.imageList[-1]
@@ -696,11 +698,18 @@ class xasyItem(Qc.QObject):
 
             # handle this case if transform is not in the map yet.
             # if deleted - set transform to 0, 0, 0, 0, 0
-            if key not in self.transfKeymap.keys() or not self.transfKeymap[key].deleted:
+            transfExists = key in self.transfKeymap.keys()
+            if transfExists:
+                transfExists = localCount <= len(self.transfKeymap[key]) - 1
+                validKey = not self.transfKeymap[key][localCount].deleted
+            else:
+                validKey = False
+
+            if not transfExists or validKey:
                 currImage.IDTag = str(file)
                 newDrawObj = DrawObject(currImage.iqt, self.onCanvas['canvas'], transform=identity(),
                                         btmRightanchor=Qc.QPointF(bbox[0], bbox[2]), drawOrder=-1, key=key,
-                                        parentObj=self)
+                                        parentObj=self, keyIndex=localCount)
                 newDrawObj.setParent(self)
                 self.drawObjects.append(newDrawObj)
 
@@ -753,13 +762,15 @@ class xasyItem(Qc.QObject):
         batch = 0
         n = 0
 
+        keyCounts = {}
+
         def render():
             for i in range(len(imageInfos)):
-                box, key = imageInfos[i]
+                box, key, localCount = imageInfos[i]
                 l, b, r, t = [float(a) for a in box.split()]
                 name = "{:s}{:d}_{:d}.{:s}".format(self.asyengine.tempDirName, batch, i + 1, fileformat)
 
-                self.imageHandleQueue.put((name, fileformat, (l, b, r, t), i, key))
+                self.imageHandleQueue.put((name, fileformat, (l, b, r, t), i, key, localCount))
 
         # key first, box second.
         # if key is "Done"
@@ -777,7 +788,14 @@ class xasyItem(Qc.QObject):
             # print('TESTING:', text)
             keydata = raw_text.strip().replace('KEY=', '', 1)  # key
 #                print(line, col)
-            imageInfos.append((text, keydata))      # key-data pair
+
+            if keydata not in keyCounts.keys():
+                keyCounts[keydata] = 0
+
+            imageInfos.append((text, keydata, keyCounts[keydata]))      # key-data pair
+
+            # for the next item
+            keyCounts[keydata] = keyCounts[keydata] + 1
 
             raw_text = fin.readline()
 
@@ -815,7 +833,7 @@ class xasyDrawnItem(xasyItem):
         self.transfKey = key
         if key is None:
             self.transfKey = self.rawIdentifier
-        self.transfKeymap = {self.transfKey: transform}
+        self.transfKeymap = {self.transfKey: [transform]}
 
     def generateDrawObjects(self, mag=1.0, forceUpdate=False):
         raise NotImplementedError
@@ -869,7 +887,7 @@ class xasyShape(xasyDrawnItem):
     def updateCode(self, mag=1.0):
         """Generate the code to describe this shape"""
         with io.StringIO() as rawAsyCode:
-            rawAsyCode.write(xasyItem.setKeyFormatStr.format(self.transfKey, self.transfKeymap[self.transfKey].getCode()
+            rawAsyCode.write(xasyItem.setKeyFormatStr.format(self.transfKey, self.transfKeymap[self.transfKey][0].getCode()
                                                              ))
             rawAsyCode.write(
                 '\ndraw(KEY="{0}", {1}, {2})'.format(self.transfKey, self.path.getCode(), self.pen.getCode()))
@@ -877,7 +895,7 @@ class xasyShape(xasyDrawnItem):
 
     def generateDrawObjects(self, mag=1.0, forceUpdate=False):
         self.path.computeControls()
-        newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=self.transfKeymap[self.transfKey],
+        newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=self.transfKeymap[self.transfKey][0],
                             pen=self.pen, key=self.transfKey)
         newObj.originalObj = self
         newObj.setParent(self)
@@ -904,7 +922,7 @@ class xasyFilledShape(xasyShape):
 
     def generateDrawObjects(self, mag=1.0, forceUpdate=False):
         self.path.computeControls()
-        newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=self.transfKeymap[self.transfKey],
+        newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=self.transfKeymap[self.transfKey][0],
                             pen=self.pen, key=self.transfKey, fill=True)
         newObj.originalObj = self
         newObj.setParent(self)
@@ -937,7 +955,7 @@ class xasyText(xasyItem):
     def updateCode(self, mag=1.0):
         """Generate the code describing this object"""
         with io.StringIO() as rawAsyCode:
-            rawAsyCode.write(xasyItem.setKeyFormatStr.format(self.key, self.transfKeymap[self.key].getCode()))
+            rawAsyCode.write(xasyItem.setKeyFormatStr.format(self.key, self.transfKeymap[self.key][0].getCode()))
             rawAsyCode.write('\nlabel(KEY="{0}", {1});\n'.format(self.key, self.label.getCode()))
             self.asyCode = rawAsyCode.getvalue()
 
@@ -970,18 +988,30 @@ class xasyScript(xasyItem):
     def clearTransform(self):
         """Reset the transforms for each of the deconstructed images"""
         # self.transform = [identity()] * len(self.imageList)
+        keyCount = {}
+
         for im in self.imageList:
-            self.transfKeymap[im.key] = identity()
+            if im.key not in keyCount.keys():
+                keyCount[im.key] = 1
+            else:
+                keyCount[im.key] += 1
+
+        for key in keyCount:
+            self.transfKeymap[key] = [identity()] * keyCount[key]
 
     def updateCode(self, mag=1.0):
         """Generate the code describing this script"""
         with io.StringIO() as rawAsyCode:
             if self.transfKeymap:
                 for key, val in self.transfKeymap.items():
-                    if val.deleted:
-                        rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, str(asyTransform.zero())) + '\n')
-                        rawAsyCode.write('// ')
-                    rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, val.getCode()) + '\n')
+                    count = 0
+                    for transf in val:
+                        if transf.deleted:
+                            rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, str(asyTransform.zero())) + '\n')
+                            rawAsyCode.write('// ')
+                        rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode()))
+                        rawAsyCode.write(' // {0:s}[{1:d}]\n'.format(key, count))
+                        count = count + 1
 
             for line in self.script.splitlines():
                 raw_line = line.rstrip().replace('\t', ' ' * 4)
@@ -1062,9 +1092,24 @@ class xasyScript(xasyItem):
         #     self.transfKeymap.pop(key)
 
         # add in any missng key:
+
+        keyCount = {}
+
         for im in self.imageList:
-            if im.key not in self.transfKeymap.keys():
-                self.transfKeymap[im.key] = identity()
+            if im.key not in keyCount.keys():
+                keyCount[im.key] = 1
+            else:
+                keyCount[im.key] += 1
+
+        for key in keyCount:
+            if key not in self.transfKeymap.keys():
+                self.transfKeymap[key] = [identity()] * keyCount[key]
+            else:
+                while len(self.transfKeymap[key]) < keyCount[key]:
+                    self.transfKeymap[key].append(identity())
+
+                # while len(self.transfKeymap[key]) > keyCount[key]:
+                    # self.transfKeymap[key].pop()
 
         self.updateCode()
 
@@ -1083,7 +1128,7 @@ class xasyScript(xasyItem):
 
 class DrawObject(Qc.QObject):
     def __init__(self, drawObject, mainCanvas=None, transform=identity(), btmRightanchor=Qc.QPointF(0, 0),
-                 drawOrder=(-1, -1), pen=None, key=None, parentObj=None, fill=False):
+                 drawOrder=(-1, -1), pen=None, key=None, parentObj=None, fill=False, keyIndex=0):
         super().__init__()
         self.drawObject = drawObject
         self.mainCanvas = mainCanvas
@@ -1094,6 +1139,7 @@ class DrawObject(Qc.QObject):
         self.originalObj = parentObj
         self.useCanvasTransformation = False
         self.key = key
+        self.keyIndex = keyIndex
         self.pen = pen
         self.fill = fill
 

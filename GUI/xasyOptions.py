@@ -25,6 +25,7 @@ class xasyOptions:
         'defaultPenOptions': '',
         'defaultPenColor': '#000000',
         'defaultPenWidth': 1.0,
+        'groupObjDefault': False,
         'enableImmediatePreview': True,
         'useDegrees': False,
         'terminalFont': 'Courier',
@@ -83,7 +84,10 @@ class xasyOptions:
             self.setDefaults()
         else:
             for key in self.options.keys():
-                assert isinstance(newOptions[key], type(self.options[key]))
+                if key in newOptions:
+                    assert isinstance(newOptions[key], type(self.options[key]))
+                else:
+                    newOptions[key] = self.options[key]
             self.options = newOptions
 
     def setDefaults(self):

@@ -142,7 +142,7 @@ class MainWindow1(Qw.QMainWindow):
         self.magnification = 1
         self.inMidTransformation = False
         self.addMode = None
-        self.currentlySelectedObj = {'key': None, 'allSameKey': set()}
+        self.currentlySelectedObj = {'key': None, 'allSameKey': set(), 'selectedKey': (-1, -1)}
         self.savedMousePosition = None
         self.currentBoundingBox = None
         self.selectionDelta = None
@@ -201,6 +201,7 @@ class MainWindow1(Qw.QMainWindow):
         self.setAllInSetEnabled(self.objButtons, False)
         self._currentPen = x2a.asyPen()
         self.currentGuides = []
+        self.selectAsGroup = self.settings['groupObjDefault']
 
         # commands switchboard
         self.commandsFunc = {
@@ -858,9 +859,10 @@ class MainWindow1(Qw.QMainWindow):
 
             self.currentBoundingBox = self.drawObjects[maj][minor].boundingBox
 
-            for selItems in self.currentlySelectedObj['allSameKey']:
-                obj = self.drawObjects[selItems[0]][selItems[1]]
-                self.currentBoundingBox = self.currentBoundingBox.united(obj.boundingBox)
+            if self.selectAsGroup:
+                for selItems in self.currentlySelectedObj['allSameKey']:
+                    obj = self.drawObjects[selItems[0]][selItems[1]]
+                    self.currentBoundingBox = self.currentBoundingBox.united(obj.boundingBox)
 
             self.origBboxTransform = self.drawObjects[maj][minor].transform.toQTransform()
             self.newTransform = Qg.QTransform()
@@ -1011,6 +1013,10 @@ class MainWindow1(Qw.QMainWindow):
                 if item.key in self.hiddenKeys:
                     continue
                 isSelected = item.key == self.currentlySelectedObj['key']
+                if not self.selectAsGroup and isSelected and self.currentlySelectedObj['selectedKey'] is not None:
+                    maj, min_ = self.currentlySelectedObj['selectedKey']
+                    isSelected = isSelected and item is self.drawObjects[maj][min_]
+
                 if isSelected and self.settings['enableImmediatePreview']:
                     if self.useGlobalCoords:
                         item.draw(self.newTransform, canvas=self.mainCanvas)
@@ -1307,6 +1313,7 @@ class MainWindow1(Qw.QMainWindow):
         drawObj = self.drawObjects[maj][minor]
         item = drawObj.originalObj
         key = drawObj.key
+        keyIndex = drawObj.keyIndex
 
         if isinstance(transform, np.ndarray):
             obj_transform = x2a.asyTransform.fromNumpyMatrix(transform)
@@ -1317,22 +1324,25 @@ class MainWindow1(Qw.QMainWindow):
             obj_transform = transform
 
         if not applyFirst:
-            item.transfKeymap[key] = obj_transform * item.transfKeymap[key]
+            item.transfKeymap[key][keyIndex] = obj_transform * item.transfKeymap[key][keyIndex]
             drawObj.transform = obj_transform * drawObj.transform
         else:
-            item.transfKeymap[key] = item.transfKeymap[key] * obj_transform
+            item.transfKeymap[key][keyIndex] = item.transfKeymap[key][keyIndex] * obj_transform
             drawObj.transform = drawObj.transform * obj_transform
 
-        for (maj2, min2) in self.currentlySelectedObj['allSameKey']:
-            if (maj2, min2) == (maj, minor):
-                continue
-            obj = self.drawObjects[maj2][min2]
-            if not applyFirst:
-                obj.transform = obj_transform * obj.transform
-            else:
-                obj.transform = obj.transform * obj_transform
+        if self.selectAsGroup:
+            for (maj2, min2) in self.currentlySelectedObj['allSameKey']:
+                if (maj2, min2) == (maj, minor):
+                    continue
+                obj = self.drawObjects[maj2][min2]
+                newIndex = obj.keyIndex
+                if not applyFirst:
+                    item.transfKeymap[key][newIndex] = obj_transform * item.transfKeymap[key][newIndex]
+                    obj.transform = obj_transform * obj.transform
+                else:
+                    item.transfKeymap[key][newIndex] = item.transfKeymap[key][newIndex] * obj_transform
+                    obj.transform = obj.transform * obj_transform
 
-        # ISSUE: Asy needs to apply the same transform to all objects, not just one.
         self.quickUpdate()
 
     def initializeEmptyFile(self):

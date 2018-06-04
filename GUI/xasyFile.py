@@ -28,7 +28,7 @@ class xasyFileError(Exception):
 
 def extractTransform(line):
     """Returns key and the new transform."""
-    # see https://regex101.com/r/6DqkRJ/1 for info
+    # see https://regex101.com/r/6DqkRJ/4 for info
     testMatch = re.match(r'^map\s*\(\s*\"([^\"]+)\"\s*,\s*\(([\d, ]+)\)\s*\)', line.strip())
     if testMatch is None:
         return None
@@ -52,7 +52,9 @@ def extractTransformsFromFile(fileStr):
                 rawCode.write(line + '\n')
             else:
                 key, transf = test_transf
-                transfDict[key] = transf
+                if key not in transfDict.keys():
+                    transfDict[key] = []
+                transfDict[key].append(transf)
         final_str = rawCode.getvalue()
     return final_str, transfDict
 
