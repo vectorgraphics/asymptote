@@ -895,8 +895,13 @@ class xasyShape(xasyDrawnItem):
 
     def generateDrawObjects(self, mag=1.0, forceUpdate=False):
         self.path.computeControls()
-        newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=self.transfKeymap[self.transfKey][0],
-                            pen=self.pen, key=self.transfKey)
+        transf = self.transfKeymap[self.transfKey][0]
+        if mag != 1.0:
+            assert mag != 0
+            transf = transf * asyTransform((0, 0, mag, 0, 0, mag))
+
+        newObj = DrawObject(self.path.toQPainterPath(), None, drawOrder=0, transform=transf, pen=self.pen,
+                            key=self.transfKey)
         newObj.originalObj = self
         newObj.setParent(self)
         return [newObj]

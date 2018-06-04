@@ -215,7 +215,8 @@ class MainWindow1(Qw.QMainWindow):
             'transform': self.btnCustTransformOnClick,
             'commandPalette': self.enterCustomCommand,
             'clearGuide': self.clearGuides,
-            'finalizeAddObj': self.finalizeAddObj
+            'finalizeAddObj': self.finalizeAddObj,
+            'setMag': self.setMagPrompt
         }
 
         self.hiddenKeys = set()
@@ -232,6 +233,12 @@ class MainWindow1(Qw.QMainWindow):
         if self.addMode is not None:
             if self.addMode.active:
                 self.addMode.forceFinalize()
+
+    def setMagPrompt(self):
+        commandText, result = Qw.QInputDialog.getText(self, '', 'Enter magnification:')
+        if result:
+            self.magnification = float(commandText)
+            self.asyfyCanvas(True)
 
     def internationalize(self):
         self.ui.btnRotate.setToolTip(self.strings.rotate)
@@ -405,6 +412,12 @@ class MainWindow1(Qw.QMainWindow):
     def addInPlace(self, obj):
         obj.asyengine = self.asyEngine
         obj.pen = self.currentPen
+
+        if self.magnification != 1:
+            assert self.magnification != 0
+            # Convert screen level to asy coordinate level
+            obj.asyfied = False
+
         self.fileItems.append(obj)
         self.asyfyCanvas()
 
@@ -741,6 +754,9 @@ class MainWindow1(Qw.QMainWindow):
 
         if self.addMode is not None:
             if self.addMode.active:
+                if self.magnification != 1:
+                    invmag = 1/self.magnification
+                    canvasPos = canvasPos * Qg.QTransform.fromScale(invmag, invmag)
                 self.addMode.mouseMove(canvasPos, mouseEvent)
                 self.quickUpdate()
             return
@@ -831,8 +847,12 @@ class MainWindow1(Qw.QMainWindow):
 
         self.savedMousePosition = self.getCanvasCoordinates()
 
+        canvasPos = self.savedMousePosition
         if self.addMode is not None:
-            self.addMode.mouseDown(self.savedMousePosition, self.currAddOptions)
+            if self.magnification != 1:
+                invmag = 1 / self.magnification
+                canvasPos = canvasPos * Qg.QTransform.fromScale(invmag, invmag)
+            self.addMode.mouseDown(canvasPos, self.currAddOptions)
             return
 
         if self.currentMode == SelectionMode.pan:
@@ -963,6 +983,8 @@ class MainWindow1(Qw.QMainWindow):
         assert self.ui.imgLabel.underMouse()
         uiPos = self.mapFromGlobal(Qg.QCursor.pos())
         canvasPos = self.ui.imgLabel.mapFrom(self, uiPos)
+
+        # Issue: For magnification, should xasy treats this at xasy level, or asy level?
         return canvasPos * self.screenTransformation.inverted()[0]
 
     def getWindowCoordinates(self):
@@ -1160,8 +1182,14 @@ class MainWindow1(Qw.QMainWindow):
                 postCanvas.drawPath(self.previewCurve)
             if self.addMode is not None:
                 if self.addMode.active and self.addMode.getPreview() is not None:
+                    if self.magnification != 1:
+                        assert self.magnification != 0
+                        postCanvas.save()
+                        postCanvas.scale(self.magnification, self.magnification)
                     postCanvas.setPen(self.currentPen.toQPen())
                     postCanvas.drawPath(self.addMode.getPreview())
+                    if self.magnification != 1:
+                        postCanvas.restore()
 
     def updateChecks(self):
         self.addMode = None
@@ -1307,7 +1335,6 @@ class MainWindow1(Qw.QMainWindow):
         self.fileItems.append(newItem)
         self.asyfyCanvas()
 
-
     def transformObject(self, objKey, transform, applyFirst=False):
         maj, minor = objKey
         drawObj = self.drawObjects[maj][minor]
@@ -1323,12 +1350,20 @@ class MainWindow1(Qw.QMainWindow):
         else:
             obj_transform = transform
 
+        scr_transform = obj_transform
+        if self.magnification != 1.0:
+            assert self.magnification != 0
+            invmag = 1/self.magnification
+            mag = self.magnification
+            obj_transform = x2a.asyTransform((0, 0, invmag, 0, 0, invmag)) * obj_transform * \
+                            x2a.asyTransform((0, 0, mag, 0, 0, mag))
+
         if not applyFirst:
             item.transfKeymap[key][keyIndex] = obj_transform * item.transfKeymap[key][keyIndex]
-            drawObj.transform = obj_transform * drawObj.transform
+            drawObj.transform = scr_transform * drawObj.transform
         else:
             item.transfKeymap[key][keyIndex] = item.transfKeymap[key][keyIndex] * obj_transform
-            drawObj.transform = drawObj.transform * obj_transform
+            drawObj.transform = drawObj.transform * scr_transform
 
         if self.selectAsGroup:
             for (maj2, min2) in self.currentlySelectedObj['allSameKey']:
@@ -1338,10 +1373,10 @@ class MainWindow1(Qw.QMainWindow):
                 newIndex = obj.keyIndex
                 if not applyFirst:
                     item.transfKeymap[key][newIndex] = obj_transform * item.transfKeymap[key][newIndex]
-                    obj.transform = obj_transform * obj.transform
+                    obj.transform = scr_transform * obj.transform
                 else:
                     item.transfKeymap[key][newIndex] = item.transfKeymap[key][newIndex] * obj_transform
-                    obj.transform = obj.transform * obj_transform
+                    obj.transform = obj.transform * scr_transform
 
         self.quickUpdate()
 
