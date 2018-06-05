@@ -61,20 +61,16 @@ class labelEditor(Qw.QDialog):
         self.svgPreview = Qs.QSvgRenderer()
         with tempfile.TemporaryDirectory(prefix='xasylbl_') as tmpdir:
             id = str(uuid.uuid4())
-            tmpAsyFile = os.path.join(tmpdir, 'lbl-{0}.asy'.format(id))
-
-            tmpAsyFileObj = io.open(tmpAsyFile, 'w')
-            tmpAsyFileObj.write(asyInput.format(self.getText()))
-            tmpAsyFileObj.close()
-
             tmpFile = os.path.join(tmpdir, 'lbl-{0}.svg'.format(id))
-            asy = subprocess.run(args=[path, '-f', 'svg', '-o', tmpFile, tmpAsyFile],
-                                   stdout=subprocess.PIPE, encoding='utf-8')
 
-            os.remove(tmpAsyFile)
+            with subprocess.Popen(args=[path, '-fsvg', '-o', tmpFile, '-'], encoding='utf-8', stdin=subprocess.PIPE,
+                                   stdout=subprocess.PIPE) as asy:
+                asy.stdin.write(asyInput.format(self.getText()))
+                asy.stdin.close()
+                out = asy.stdout.read()
 
-            # account for "asy ready" text.
-            raw_array = asy.stdout.splitlines()[1:]
+            raw_array = out.splitlines()
+
             bounds_1, bounds_2 = [val.strip() for val in raw_array]
 
             min_bounds = xu.listize(bounds_1, (float, float))
@@ -82,6 +78,8 @@ class labelEditor(Qw.QDialog):
 
             new_rect = self.processBounds(min_bounds, max_bounds)
             self.svgPreview.load(tmpFile)
+
+
 
         self.drawPreview(new_rect)
 

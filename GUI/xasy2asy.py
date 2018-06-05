@@ -621,7 +621,7 @@ class asyLabel(asyObj):
 
     def updateCode(self, mag=1.0):
         """Generate the code describing the label"""
-        self.asyCode = 'Label("{0}", {1}, p={2}, align={3})'.format(self.text, tuple(self.location), self.pen.getCode(),
+        self.asyCode = 'Label("{0}", {1}, p={2}, align={3});'.format(self.text, tuple(self.location), self.pen.getCode(),
                                                                     self.align)
 
     def setText(self, text):
@@ -890,7 +890,7 @@ class xasyShape(xasyDrawnItem):
             rawAsyCode.write(xasyItem.setKeyFormatStr.format(self.transfKey, self.transfKeymap[self.transfKey][0].getCode()
                                                              ))
             rawAsyCode.write(
-                '\ndraw(KEY="{0}", {1}, {2})'.format(self.transfKey, self.path.getCode(), self.pen.getCode()))
+                '\ndraw(KEY="{0}", {1}, {2});'.format(self.transfKey, self.path.getCode(), self.pen.getCode()))
             self.asyCode = rawAsyCode.getvalue()
 
     def generateDrawObjects(self, mag=1.0, forceUpdate=False):

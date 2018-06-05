@@ -305,49 +305,9 @@ def parseLine(line, lines):
         return None
     raise Exception("Could not parse the line")
 
+
 def saveFile(file, xasyItems):
     """Write a list of xasyItems to a file"""
     for item in xasyItems:
-        file.write(item.getCode() + "\n\n")
+        file.write(item.getCode() + '\n\n')
 
-if __name__ == '__main__':
-    root = Tk()
-    try:
-        name = raw_input("enter file name (\"../../xasyTest.asy\"):")
-        if name == '':
-            name = "../../xasyTest.asy"
-        f = open(name, "rt")
-    except:
-        print("Could not open file.")
-        asy.quit()
-        sys.exit(1)
-
-    fileItems = []
-    try:
-        fileItems = parseFile(f)
-        res = [str(a) for a in fileItems]
-        print("----------------------------------")
-        print("Objects in {:s}".format(f.name))
-        print("----------------------------------")
-        for a in res:
-            print(a)
-        print("----------------------------------")
-        print("successful parse")
-        f.close()
-    except:
-        f.close()
-        print("parse failed")
-        raise
-
-    print("making a file")
-    f = open("testfile.asy", "wt")
-    saveFile(f, fileItems)
-    f.close()
-    root.configure(width=500, height=500)
-    root.title("Results")
-    canv = Canvas(root, width=500, height=500)
-    canv.pack()
-    for i in fileItems[1].imageList:
-        canv.create_image(250 + i.bbox[0], 250 - i.bbox[3], anchor=NW, image=i.image)
-        Button(root, image=i.image).pack(side=LEFT)
-    root.mainloop()

@@ -113,12 +113,14 @@ class MainWindow1(Qw.QMainWindow):
         else:
             asyPath = self.settings['asyPath']
 
-        self.asyEngine = x2a.AsymptoteEngine(asyPath)
+        self.asyPath = asyPath
+        self.asyEngine = x2a.AsymptoteEngine(self.asyPath)
         self.asyEngine.start()
 
         # For initialization purposes
         self.canvSize = Qc.QSize()
         self.filename = None
+        self.currDir = None
         self.mainCanvas = None
         self.canvasPixmap = None
 
@@ -303,8 +305,11 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnSave.clicked.connect(self.btnSaveOnClick)
         self.ui.btnQuickScreenshot.clicked.connect(self.btnQuickScreenshotOnClick)
 
+        self.ui.btnExportAsy.clicked.connect(self.btnExportAsyOnClick)
+
         self.ui.btnDrawAxes.clicked.connect(self.btnDrawAxesOnClick)
         self.ui.btnAsyfy.clicked.connect(lambda: self.asyfyCanvas(True))
+        self.ui.btnSetZoom.clicked.connect(self.setMagPrompt)
 
         self.ui.btnTranslate.clicked.connect(self.btnTranslateonClick)
         self.ui.btnRotate.clicked.connect(self.btnRotateOnClick)
@@ -614,6 +619,71 @@ class MainWindow1(Qw.QMainWindow):
 
             usrKeymapFile.close()
 
+    def btnExportAsyOnClick(self):
+        diag = Qw.QFileDialog(self)
+        diag.setAcceptMode(Qw.QFileDialog.AcceptSave)
+
+        formatId = {
+            'pdf': {
+                'name': 'PDF Files',
+                'ext': ['*.pdf']
+            },
+            'svg': {
+                'name': 'Scalable Vector Graphics',
+                'ext': ['*.svg']
+            },
+            'eps': {
+                'name': 'Postscript Files',
+                'ext': ['*.eps']
+            },
+            'png': {
+                'name': 'Portable Network Graphics',
+                'ext': ['*.png']
+            },
+            '*': {
+                'name': 'Any Files',
+                'ext': ['*.*']
+            }
+        }
+
+        formats = ['pdf', 'svg', 'eps', 'png', '*']
+
+        formatText = ';;'.join('{0:s} ({1:s})'.format(formatId[form]['name'], ' '.join(formatId[form]['ext']))
+                               for form in formats)
+
+        if self.currDir is not None:
+            diag.setDirectory(self.currDir)
+            rawFile = os.path.splitext(os.path.basename(self.filename))[0] + '.pdf'
+            diag.selectFile(rawFile)
+
+        diag.setNameFilter(formatText)
+        diag.show()
+        result = diag.exec_()
+
+        if result != diag.Accepted:
+            return
+
+        finalFiles = diag.selectedFiles()
+
+        with io.StringIO() as finalCode:
+            xf.saveFile(finalCode, self.fileItems)
+            finalString = finalCode.getvalue()
+
+        for file in finalFiles:
+            ext = os.path.splitext(file)
+            if len(ext) < 2:
+                ext = 'pdf'
+            else:
+                ext = ext[1][1:]
+
+            with subprocess.Popen(args=[self.asyPath, '-f{0}'.format(ext), '-o{0}'.format(file), '-'], encoding='utf-8',
+                                  stdin=subprocess.PIPE) as asy:
+                print('test:', finalString)
+                asy.stdin.write(finalString)
+                asy.stdin.close()
+                asy.wait(timeout=35)
+
+
     def loadKeyMaps(self):
         """Inverts the mapping of the key
            Input map is in format 'Action' : 'Key Sequence' """
@@ -745,19 +815,26 @@ class MainWindow1(Qw.QMainWindow):
         else:
             raise Exception
 
+    def getAsyCoordinates(self):
+        canvasPosOrig = self.getCanvasCoordinates()
+        if self.magnification != 1:
+            assert self.magnification != 0
+            invmag = 1 / self.magnification
+            canvasPos = canvasPosOrig * Qg.QTransform.fromScale(invmag, invmag)
+            return canvasPos, canvasPosOrig
+        else:
+            return canvasPosOrig, canvasPosOrig
+
     def mouseMoveEvent(self, mouseEvent):  # TODO: Actually refine grid snapping...
         assert isinstance(mouseEvent, Qg.QMouseEvent)
         if not self.ui.imgLabel.underMouse():
             return
 
-        canvasPos = self.getCanvasCoordinates()
+        asyPos, canvasPos = self.getAsyCoordinates()
 
         if self.addMode is not None:
             if self.addMode.active:
-                if self.magnification != 1:
-                    invmag = 1/self.magnification
-                    canvasPos = canvasPos * Qg.QTransform.fromScale(invmag, invmag)
-                self.addMode.mouseMove(canvasPos, mouseEvent)
+                self.addMode.mouseMove(asyPos, mouseEvent)
                 self.quickUpdate()
             return
 
@@ -845,14 +922,10 @@ class MainWindow1(Qw.QMainWindow):
         if not self.ui.imgLabel.underMouse():
             return
 
-        self.savedMousePosition = self.getCanvasCoordinates()
+        asyPos, self.savedMousePosition = self.getAsyCoordinates()
 
-        canvasPos = self.savedMousePosition
         if self.addMode is not None:
-            if self.magnification != 1:
-                invmag = 1 / self.magnification
-                canvasPos = canvasPos * Qg.QTransform.fromScale(invmag, invmag)
-            self.addMode.mouseDown(canvasPos, self.currAddOptions)
+            self.addMode.mouseDown(asyPos, self.currAddOptions)
             return
 
         if self.currentMode == SelectionMode.pan:
@@ -1386,6 +1459,7 @@ class MainWindow1(Qw.QMainWindow):
     def loadFile(self, name):
         self.ui.statusbar.showMessage('Load {0}'.format(name))
         self.filename = os.path.abspath(name)
+        self.currDir = os.path.dirname(self.filename)
 
         if not os.path.isfile(self.filename):
             self.filename = self.filename + '.asy'
