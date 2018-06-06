@@ -492,7 +492,7 @@ void shipout3(string prefix, picture *f)
   f->shipout3(prefix);
 }
 
-void map(string key, transform t)
+void map(string key, transform t=identity)
 {
   xmap_t &xmap=processData().xmap;
   xmap_t::iterator p=xmap.find(key);
