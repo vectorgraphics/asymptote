@@ -230,10 +230,11 @@ class asyTransform(Qc.QObject):
 
     def getCode(self):
         """Obtain the asy code that represents this transform"""
+        rawTransf = '({0})'.format(','.join([str(val) for val in self.t]))
         if self.deleted:
-            return str(tuple(self.t)) + ", false"
+            return rawTransf + ',false'
         else:
-            return str(tuple(self.t))
+            return rawTransf
 
     def scale(self, s):
         return asyTransform((0, 0, s, 0, 0, s)) * self
@@ -246,12 +247,13 @@ class asyTransform(Qc.QObject):
         return self.getCode()
 
     def isIdentity(self):
-        return (self.x == 0) and (self.y == 0) and \
-               (self.xx == 1) and (self.xy == 0) and \
-               (self.yx == 0) and (self.yy == 1)
+        return self == identity()
 
     def inverted(self):
         return asyTransform.fromQTransform(self.toQTransform().inverted()[0])
+
+    def __eq__(self, other):
+        return list(self.t) == list(other.t)
 
     def __mul__(self, other):
         """Define multiplication of transforms as composition."""
@@ -653,11 +655,11 @@ class asyImage:
 class xasyItem(Qc.QObject):
     """A base class for items in the xasy GUI"""
     setKeyFormatStr = 'map("{:s}",{:s});'
+    setKeyAloneFormatStr = 'map("{:s}");'
 
     def __init__(self, canvas=None, asyengine=None):
         """Initialize the item to an empty item"""
         super().__init__()
-        self.transform = [identity()]
         self.transfKeymap = {}              # the new keymap.
         # should be a dictionary to a list...
         self.asyCode = ''
@@ -672,12 +674,21 @@ class xasyItem(Qc.QObject):
 
     def updateCode(self, mag=1.0):
         """Update the item's code: to be overriden"""
-        raise NotImplementedError
+        with io.StringIO() as rawCode:
+            rawCode.write(self.getTransformCode())
+            rawCode.write('\n' + self.getObjectCode())
+            self.asyCode = rawCode.getvalue()
 
     def getCode(self):
         """Return the code describing the item"""
         self.updateCode()
         return self.asyCode
+
+    def getTransformCode(self):
+        raise NotImplementedError
+
+    def getObjectCode(self):
+        raise NotImplementedError
 
     def generateDrawObjects(self, mag=1.0):
         raise NotImplementedError
@@ -874,9 +885,6 @@ class xasyDrawnItem(xasyItem):
         self.path.computed = False
         self.asyfied = False
 
-    def updateCode(self, mag=1.0):
-        raise NotImplementedError
-
 
 class xasyShape(xasyDrawnItem):
     """An outlined shape drawn on the GUI"""
@@ -884,14 +892,15 @@ class xasyShape(xasyDrawnItem):
         """Initialize the shape with a path, pen, and transform"""
         super().__init__(path=path, engine=asyengine, pen=pen, transform=transform)
 
-    def updateCode(self, mag=1.0):
-        """Generate the code to describe this shape"""
-        with io.StringIO() as rawAsyCode:
-            rawAsyCode.write(xasyItem.setKeyFormatStr.format(self.transfKey, self.transfKeymap[self.transfKey][0].getCode()
-                                                             ))
-            rawAsyCode.write(
-                '\ndraw(KEY="{0}",(0,0),{1},{2});'.format(self.transfKey, self.path.getCode(), self.pen.getCode()))
-            self.asyCode = rawAsyCode.getvalue()
+    def getObjectCode(self, mag=1.0):
+        return 'draw(KEY="{0}", (0, 0), {1}, {2});'.format(self.transfKey, self.path.getCode(), self.pen.getCode())
+
+    def getTransformCode(self):
+        transf = self.transfKeymap[self.transfKey][0]
+        if transf == identity():
+            return xasyItem.setKeyAloneFormatStr.format(self.transfKey)
+        else:
+            return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode())
 
     def generateDrawObjects(self, mag=1.0, forceUpdate=False):
         self.path.computeControls()
@@ -920,10 +929,8 @@ class xasyFilledShape(xasyShape):
             raise Exception("Filled paths must be cyclic")
         super().__init__(path, asyengine, pen, transform)
 
-    def updateCode(self, mag=1.0):
-        """Generate the code describing this shape"""
-        self.asyCode = "xformStack.push(" + self.transform[0].getCode() + ");\n"
-        self.asyCode += "fill(" + self.path.getCode() + "," + self.pen.getCode() + ");"
+    def getObjectCode(self, mag=1.0):
+        return 'fill(KEY="{0}", (0, 0), {1}, {2});'.format(self.transfKey, self.path.getCode(), self.pen.getCode())
 
     def generateDrawObjects(self, mag=1.0, forceUpdate=False):
         self.path.computeControls()
@@ -957,12 +964,15 @@ class xasyText(xasyItem):
         self.transfKeymap = {self.key: transform}
         self.onCanvas = None
 
-    def updateCode(self, mag=1.0):
-        """Generate the code describing this object"""
-        with io.StringIO() as rawAsyCode:
-            rawAsyCode.write(xasyItem.setKeyFormatStr.format(self.key, self.transfKeymap[self.key][0].getCode()))
-            rawAsyCode.write('\nlabel(KEY="{0}", {1});\n'.format(self.key, self.label.getCode()))
-            self.asyCode = rawAsyCode.getvalue()
+    def getTransformCode(self):
+        transf = self.transfKeymap[self.transfKey][0]
+        if transf == identity():
+            return xasyItem.setKeyAloneFormatStr.format(self.transfKey)
+        else:
+            return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode())
+
+    def getObjectCode(self):
+        return 'label(KEY="{0}", {1});'.format(self.key, self.label.getCode())
 
     def generateDrawObjects(self, mag=1.0, forceUpdate=False):
         self.asyfy(mag, forceUpdate)
@@ -1004,25 +1014,29 @@ class xasyScript(xasyItem):
         for key in keyCount:
             self.transfKeymap[key] = [identity()] * keyCount[key]
 
-    def updateCode(self, mag=1.0):
-        """Generate the code describing this script"""
+    def getTransformCode(self):
         with io.StringIO() as rawAsyCode:
             if self.transfKeymap:
                 for key, val in self.transfKeymap.items():
-                    count = 0
                     for transf in val:
                         if transf.deleted:
                             rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, str(asyTransform.zero())) + '\n')
-                            rawAsyCode.write('// ')
-                        rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode()))
-                        rawAsyCode.write(' // {0:s}[{1:d}]\n'.format(key, count))
-                        count = count + 1
 
+                        if transf == identity():
+                            rawAsyCode.write(xasyItem.setKeyAloneFormatStr.format(key))
+                        else:
+                            rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode()))
+                        rawAsyCode.write('\n')
+            return rawAsyCode.getvalue()
+
+    def getObjectCode(self):
+        with io.StringIO() as rawAsyCode:
             for line in self.script.splitlines():
                 raw_line = line.rstrip().replace('\t', ' ' * 4)
                 rawAsyCode.write(raw_line + '\n')
 
-            self.asyCode = rawAsyCode.getvalue()
+            return rawAsyCode.getvalue()
+
 
     def setScript(self, script):
         """Sets the content of the script item."""
