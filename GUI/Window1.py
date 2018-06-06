@@ -130,6 +130,8 @@ class MainWindow1(Qw.QMainWindow):
 
         self.connectActions()
         self.connectButtons()
+
+        self.ui.txtLineWidth.returnPressed.connect(self.btnTerminalCommandOnClick)
         # </editor-fold>
 
         # Base Transformations
@@ -169,6 +171,8 @@ class MainWindow1(Qw.QMainWindow):
         self.drawGrid = False
         self.gridSnap = False  # TODO: for now. turn it on later
 
+        self.terminalPythonMode = self.ui.btnTogglePython.isChecked()
+
         self.savedWindowMousePos = None
 
         self.finalPixmap = None
@@ -186,6 +190,8 @@ class MainWindow1(Qw.QMainWindow):
                            self.ui.btnSendBackwards, self.ui.btnDelete, self.ui.btnToggleVisible,
                            self.ui.btnSoftDelete}
         self.globalTransformOnlyButtons = (self.ui.comboAnchor, self.ui.btnAnchor)
+
+        self.ui.txtTerminalPrompt.setFont(Qg.QFont(self.settings['terminalFont']))
 
         self.currAddOptionsWgt = None
         self.currAddOptions = {
@@ -241,6 +247,9 @@ class MainWindow1(Qw.QMainWindow):
         if result:
             self.magnification = float(commandText)
             self.asyfyCanvas(True)
+
+    def btnTogglePythonOnClick(self, checked):
+        self.terminalPythonMode = checked
 
     def internationalize(self):
         self.ui.btnRotate.setToolTip(self.strings.rotate)
@@ -345,6 +354,18 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnSendForwards.clicked.connect(self.btnSendForwardsOnClick)
         self.ui.btnDelete.clicked.connect(self.btnDeleteOnClick)
         self.ui.btnToggleVisible.clicked.connect(self.btnSetVisibilityOnClick)
+
+        self.ui.btnEnterCommand.clicked.connect(self.btnTerminalCommandOnClick)
+        self.ui.btnTogglePython.clicked.connect(self.btnTogglePythonOnClick)
+
+    def btnTerminalCommandOnClick(self):
+        if self.terminalPythonMode:
+            exec(self.ui.txtTerminalPrompt.text())
+        else:
+            print('What to do?')
+            # TODO: How to handle this case?
+            # Like AutoCAD? 
+        self.ui.txtTerminalPrompt.clear()
 
     def btnFillOnClick(self, checked):
         self.currAddOptions['fill'] = checked

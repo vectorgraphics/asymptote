@@ -14,7 +14,6 @@ import PyQt5.QtCore as Qc
 import PyQt5.QtSvg as Qs
 
 import numpy as np
-from tkinter import *
 
 import sys
 import os
