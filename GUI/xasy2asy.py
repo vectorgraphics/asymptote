@@ -890,7 +890,7 @@ class xasyShape(xasyDrawnItem):
             rawAsyCode.write(xasyItem.setKeyFormatStr.format(self.transfKey, self.transfKeymap[self.transfKey][0].getCode()
                                                              ))
             rawAsyCode.write(
-                '\ndraw(KEY="{0}",xasy,{1},{2});'.format(self.transfKey, self.path.getCode(), self.pen.getCode()))
+                '\ndraw(KEY="{0}",(0,0),{1},{2});'.format(self.transfKey, self.path.getCode(), self.pen.getCode()))
             self.asyCode = rawAsyCode.getvalue()
 
     def generateDrawObjects(self, mag=1.0, forceUpdate=False):
