@@ -1,6 +1,8 @@
 // Default file prefix used for inline LaTeX mode
 string defaultfilename;
 
+frame xasy; // Use for xasy-generated objects.
+
 string[] file3;
 
 string outprefix(string prefix=defaultfilename) {
@@ -58,7 +60,12 @@ frame enclose(string prefix=defaultfilename, object F, string format="")
   } return F.f;
 }
 
-include plain_xasy;
+void deconstruct(picture pic=currentpicture, real magnification=1)
+{
+  frame f=pic.fit();
+  add(f,xasy);
+  deconstruct(f,currentpatterns,magnification);
+}
 
 void shipout(string prefix=defaultfilename, frame f,
              string format="", bool wait=false, bool view=true,
@@ -78,7 +85,13 @@ void shipout(string prefix=defaultfilename, frame f,
   int limit=2000;
   if(abs(m.x) > limit || abs(m.y) > limit) f=shift(-m)*f;
 
-  _shipout(prefix,f,currentpatterns,format,wait,view);
+  if(abs(size(xasy)) > 0) {
+    frame g;
+    add(g,f);
+    add(g,xasy);
+    _shipout(prefix,g,currentpatterns,format,wait,view);
+  } else
+    _shipout(prefix,f,currentpatterns,format,wait,view);
   shipped=true;
 }
 
