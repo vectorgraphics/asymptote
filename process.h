@@ -88,7 +88,7 @@ public:
 
 typedef std::pair<size_t,size_t> linecolumn;
 typedef mem::map<CONST linecolumn,string> xkey_t;
-typedef mem::vector<camp::transform> xtransform_t;
+typedef mem::deque<camp::transform> xtransform_t;
 typedef mem::map<CONST string,xtransform_t> xmap_t;
 
 struct processDataStruct {
