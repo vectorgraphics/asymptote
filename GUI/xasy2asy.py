@@ -892,7 +892,7 @@ class xasyShape(xasyDrawnItem):
         super().__init__(path=path, engine=asyengine, pen=pen, transform=transform)
 
     def getObjectCode(self, mag=1.0):
-        return 'draw(KEY="{0}", (0, 0), {1}, {2});'.format(self.transfKey, self.path.getCode(), self.pen.getCode())
+        return 'draw(KEY="{0}",(0,0),{1},{2});'.format(self.transfKey, self.path.getCode(), self.pen.getCode())
 
     def getTransformCode(self):
         transf = self.transfKeymap[self.transfKey][0]
@@ -929,7 +929,7 @@ class xasyFilledShape(xasyShape):
         super().__init__(path, asyengine, pen, transform)
 
     def getObjectCode(self, mag=1.0):
-        return 'fill(KEY="{0}", (0, 0), {1}, {2});'.format(self.transfKey, self.path.getCode(), self.pen.getCode())
+        return 'fill(KEY="{0}",(0,0),{1},{2});'.format(self.transfKey, self.path.getCode(), self.pen.getCode())
 
     def generateDrawObjects(self, mag=1.0, forceUpdate=False):
         self.path.computeControls()
@@ -971,7 +971,7 @@ class xasyText(xasyItem):
             return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode())
 
     def getObjectCode(self):
-        return 'label(KEY="{0}", {1});'.format(self.key, self.label.getCode())
+        return 'label(KEY="{0}",{1});'.format(self.key, self.label.getCode())
 
     def generateDrawObjects(self, mag=1.0, forceUpdate=False):
         self.asyfy(mag, forceUpdate)
@@ -1079,7 +1079,7 @@ class xasyScript(xasyItem):
                         for j in range(len(curr_str)):
                             raw_line.write(curr_str[j])
                             if j + 1 in keylist[i + 1]:
-                                raw_line.write('KEY="x{2:s}{0:d}.{1:d}", '.format(i + 1, j + 1, prefix))
+                                raw_line.write('KEY="x{2:s}{0:d}.{1:d}",'.format(i + 1, j + 1, prefix))
                         curr_str = raw_line.getvalue()
                 # else, skip and just write the line.
                 raw_str.write(curr_str + '\n')
