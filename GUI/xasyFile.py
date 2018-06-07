@@ -10,7 +10,6 @@
 ############################################################################
 
 from string import *
-from xasy2asy import *
 import xasy2asy as x2a
 import io
 import re
@@ -31,7 +30,12 @@ def extractTransform(line):
     # see https://regex101.com/r/6DqkRJ/4 for info
     testMatch = re.match(r'^map\s*\(\s*\"([^\"]+)\"\s*,\s*\(([\d, ]+)\)\s*\)', line.strip())
     if testMatch is None:
-        return None
+        mapOnlyMatch = re.match(r'^map\s*\(\s *\"([^\"]+)\"\s*\)', line.strip())
+        if mapOnlyMatch is None:
+            return None
+        else:
+            key = mapOnlyMatch.group(1)
+            return key, x2a.identity()
     else:
         key = testMatch.group(1)
         rawStr = testMatch.group(2)
@@ -91,6 +95,9 @@ scriptPrefix = "startScript(); {"
 scriptSuffix = "} endScript();"
 
 
+pendingTransforms = []
+pendingTransformsD = []
+
 def extractScript(lines):
     """Find the code belonging to a script item"""
     theScript = ""
@@ -111,19 +118,15 @@ def extractScript(lines):
     global pendingTransformsD
     ts = pendingTransformsD[:]
     pendingTransformsD = []
-    return xasyScript(None, script=theScript, transforms=ts[:])
-
-
-pendingTransforms = []
-pendingTransformsD = []
+    return x2a.xasyScript(None, script=theScript, transforms=ts[:], engine=None)
 
 
 def addTransform(index, t, active=1):
     """Place a transform in the list of transforms, expanding the list as needed"""
     while len(pendingTransformsD) < index + 1:
-        pendingTransformsD.append(identity())
+        pendingTransformsD.append(x2a.identity())
     deleted = int(active == 0)
-    pendingTransformsD[index] = asyTransform(t, deleted)
+    pendingTransformsD[index] = x2a.asyTransform(t, deleted)
 
 
 def parseIndexedTransforms(args):
@@ -152,7 +155,7 @@ def parseTransformExpression(line):
         raise xasyParseError("Invalid syntax")
     args = line[line.find("(") + 1:-2]
     if stackCmd == "push":
-        t = asyTransform(eval(args))
+        t = x2a.asyTransform(eval(args))
         pendingTransforms.append(t)
     elif stackCmd == "add":
         parseIndexedTransforms(args)
@@ -178,7 +181,7 @@ def parseLabel(line):
     pen = pen[pen.find(",") + 1:]
     pen = pen[pen.find(",") + 1:]
     global pendingTransforms
-    return xasyText(text, location, parsePen(pen), pendingTransforms.pop())
+    return x2a.xasyText(text, location, parsePen(pen), pendingTransforms.pop())
 
 
 def parseLabelCommand(line):
@@ -208,7 +211,7 @@ def parseDrawCommand(line):
     path = args[:loc]
     pen = args[loc + 1:]
     global pendingTransforms
-    return xasyShape(parsePathExpression(path), parsePen(pen), pendingTransforms.pop())
+    return x2a.xasyShape(parsePathExpression(path), parsePen(pen), pendingTransforms.pop())
 
 
 def parseFillCommand(line):
@@ -225,7 +228,7 @@ def parseFillCommand(line):
     path = args[:loc]
     pen = args[loc + 1:]
     global pendingTransforms
-    return xasyFilledShape(parsePathExpression(path), parsePen(pen), pendingTransforms.pop())
+    return x2a.xasyFilledShape(parsePathExpression(path), parsePen(pen), pendingTransforms.pop())
 
 
 def parsePen(pen):
@@ -244,14 +247,14 @@ def parsePen(pen):
             options = "+".join(tokens[2:])
         else:
             options = ""
-        return asyPen(color, width, options)
+        return x2a.asyPen(color, width, options)
     except:
         raise xasyParseError("Invalid pen")
 
 
 def parsePathExpression(expr):
     """Parse an asy path returning an asyPath()"""
-    result = asyPath()
+    result = x2a.asyPath()
     expr = "".join(expr.split())
     # print (expr)
     if expr.find("controls") != -1:
