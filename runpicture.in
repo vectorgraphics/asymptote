@@ -425,8 +425,7 @@ void _shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
     transform t=getTransform(xmap,p);
 
     static transform Zero=transform(0.0,0.0,0.0,0.0,0.0,0.0);
-//    bool Delete=(t == Zero);
-    bool Delete=false;
+    bool Delete=(t == Zero);
     picture *group=new picture;
     assert(*p);
     if((*p)->endgroup()) error(nobegin);
