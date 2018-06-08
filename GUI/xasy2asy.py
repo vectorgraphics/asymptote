@@ -256,7 +256,6 @@ class asyTransform(Qc.QObject):
 def identity():
     return asyTransform((0, 0, 1, 0, 0, 1))
 
-
 class asyObj(Qc.QObject):
     """A base class for asy objects: an item represented by asymptote code."""
     def __init__(self):
@@ -629,8 +628,7 @@ class asyImage:
 class xasyItem(Qc.QObject):
     """A base class for items in the xasy GUI"""
     setKeyFormatStr = 'map("{:s}",{:s});'
-    setKeyAloneFormatStr = 'map("{:s}",identity());'
-    # TODO: eventaully remove identity()... 
+    setKeyAloneFormatStr = 'map("{:s}");'
 
     def __init__(self, canvas=None, asyengine=None):
         """Initialize the item to an empty item"""

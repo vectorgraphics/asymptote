@@ -147,6 +147,9 @@ class MainWindow1(Qw.QMainWindow):
         self.inMidTransformation = False
         self.addMode = None
         self.currentlySelectedObj = {'key': None, 'allSameKey': set(), 'selectedKey': None}
+        self.pendingSelectedObjList = [] 
+        self.pendingSelectedObjIndex = -1
+        
         self.savedMousePosition = None
         self.currentBoundingBox = None
         self.selectionDelta = None
@@ -853,12 +856,14 @@ class MainWindow1(Qw.QMainWindow):
 
         asyPos, canvasPos = self.getAsyCoordinates()
 
+        # add mode 
         if self.addMode is not None:
             if self.addMode.active:
                 self.addMode.mouseMove(asyPos, mouseEvent)
                 self.quickUpdate()
             return
 
+        # pan mode
         if self.currentMode == SelectionMode.pan and int(mouseEvent.buttons()) and self.savedWindowMousePos is not None:
             mousePos = self.getWindowCoordinates()
             newPos = mousePos - self.savedWindowMousePos
@@ -872,6 +877,7 @@ class MainWindow1(Qw.QMainWindow):
             self.quickUpdate()
             return
 
+        # otherwise, in transformation 
         if self.inMidTransformation:
             if self.currentMode == SelectionMode.translate:
                 newPos = canvasPos - self.savedMousePosition
@@ -920,6 +926,22 @@ class MainWindow1(Qw.QMainWindow):
                     toQTransform()
 
             self.quickUpdate()
+            return
+
+        # otherwise, select a candinate for selection
+
+        if self.currentlySelectedObj['selectedKey'] is None:
+            selectedKey, selKeyList = self.selectObject()
+            if selectedKey is not None:
+                if self.pendingSelectedObjList != selKeyList:
+                    self.pendingSelectedObjList = selKeyList
+                    self.pendingSelectedObjIndex = -1
+            else:
+                self.pendingSelectedObjList.clear()
+                self.pendingSelectedObjIndex = -1
+            self.quickUpdate()
+            return 
+
 
     def mouseReleaseEvent(self, mouseEvent):
         assert isinstance(mouseEvent, Qg.QMouseEvent)
@@ -939,6 +961,25 @@ class MainWindow1(Qw.QMainWindow):
         self.currentBoundingBox = None
         self.quickUpdate()
 
+    def changeSelection(self, offset):
+        if self.pendingSelectedObjList:
+            if offset > 0:
+                if self.pendingSelectedObjIndex + offset <= -1:
+                    self.pendingSelectedObjIndex = self.pendingSelectedObjIndex + offset
+            else:
+                if self.pendingSelectedObjIndex + offset >= -len(self.pendingSelectedObjList):
+                    self.pendingSelectedObjIndex = self.pendingSelectedObjIndex + offset
+            self.quickUpdate()
+    
+    def wheelEvent(self, event):
+        assert isinstance(event, Qg.QWheelEvent)
+        rawAngle = event.angleDelta().y() / 8
+
+        if rawAngle >= 15:
+            self.changeSelection(1)
+        elif rawAngle <= -15:
+            self.changeSelection(-1)
+
     def mousePressEvent(self, mouseEvent):
         if not self.ui.imgLabel.underMouse():
             return
@@ -957,8 +998,9 @@ class MainWindow1(Qw.QMainWindow):
         if self.inMidTransformation:
             return
 
-        selectedKey = self.selectObject()
-        if selectedKey is not None:
+        if self.pendingSelectedObjList:
+            selectedKey = self.pendingSelectedObjList[self.pendingSelectedObjIndex]
+            self.pendingSelectedObjList.clear()
             if self.currentMode in {SelectionMode.translate, SelectionMode.rotate, SelectionMode.scale}:
                 self.setAllInSetEnabled(self.objButtons, False)
                 self.inMidTransformation = True
@@ -1044,25 +1086,30 @@ class MainWindow1(Qw.QMainWindow):
 
     def selectObject(self):
         if not self.ui.imgLabel.underMouse():
-            return
+            return None, []
         canvasCoords = self.getCanvasCoordinates()
         highestDrawPriority = -np.inf
         collidedObjKey = None
+        rawObjNumList = []
         for objKeyMaj in range(len(self.drawObjects)):
             for objKeyMin in range(len(self.drawObjects[objKeyMaj])):
                 obj = self.drawObjects[objKeyMaj][objKeyMin]
                 if obj.collide(canvasCoords) and obj.key not in self.hiddenKeys:
+                    rawObjNumList.append(((objKeyMaj, objKeyMin), obj.drawOrder))
                     if obj.drawOrder > highestDrawPriority:
                         collidedObjKey = (objKeyMaj, objKeyMin)
         if collidedObjKey is not None:
             rawKey = self.drawObjects[collidedObjKey[0]][collidedObjKey[1]].key
             self.ui.statusbar.showMessage('Collide with {0}, Key is {1}.'.format(str(collidedObjKey), rawKey), 2500)
-            return collidedObjKey
+            return collidedObjKey, [rawObj[0] for rawObj in sorted(rawObjNumList, key=lambda ordobj: ordobj[1])]
+        else:
+            return None, []
 
     def selectObjectSet(self):
         objKey = self.currentlySelectedObj['selectedKey']
         if objKey is None:
             return set()
+        assert isinstance(objKey, (tuple, list)) and len(objKey) == 2
         rawObj = self.drawObjects[objKey[0]][objKey[1]]
         rawKey = rawObj.key
         rawSet = {objKey}
@@ -1252,7 +1299,7 @@ class MainWindow1(Qw.QMainWindow):
         self.postCanvasPixmap.fill(Qc.Qt.transparent)
         with Qg.QPainter(self.postCanvasPixmap) as postCanvas:
             postCanvas.setTransform(self.screenTransformation)
-            if self.currentBoundingBox is not None:
+            if self.currentBoundingBox is not None and self.currentlySelectedObj['selectedKey'] is not None:
                 postCanvas.save()
                 maj, minor = self.currentlySelectedObj['selectedKey']
                 selObj = self.drawObjects[maj][minor]
@@ -1272,6 +1319,9 @@ class MainWindow1(Qw.QMainWindow):
                     postCanvas.setTransform(self.newTransform, True)
                     postCanvas.drawRect(self.currentBoundingBox)
                 postCanvas.restore()
+            if self.pendingSelectedObjList:
+                maj, minor = self.pendingSelectedObjList[self.pendingSelectedObjIndex]
+                postCanvas.drawRect(self.drawObjects[maj][minor].boundingBox)
             if self.previewCurve is not None:
                 postCanvas.drawPath(self.previewCurve)
             if self.addMode is not None:
