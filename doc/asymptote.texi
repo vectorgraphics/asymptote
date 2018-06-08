@@ -3268,7 +3268,7 @@ integer power with the @code{^} operator.
 The built-in transforms are:
 
 @table @code
-@item transform identity();
+@item transform identity;
 @cindex @code{identity}
 the identity transform;
 @item transform shift(pair z);
@@ -3298,6 +3298,9 @@ rotates by @code{angle} in degrees about @code{z};
 @item transform reflect(pair a, pair b);
 @cindex @code{reflect}
 reflects about the line @code{a--b}.
+@item transform zero;
+@cindex @code{zero}
+the zero transform;
 @end table
 
 @cindex @code{shift}
