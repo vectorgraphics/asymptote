@@ -28,9 +28,10 @@ class xasyFileError(Exception):
 def extractTransform(line):
     """Returns key and the new transform."""
     # see https://regex101.com/r/6DqkRJ/4 for info
-    testMatch = re.match(r'^map\s*\(\s*\"([^\"]+)\"\s*,\s*\(([\d, ]+)\)\s*\)', line.strip())
+    mapString = x2a.xasyItem.mapString
+    testMatch = re.match(r'^{0:s}\s*\(\s*\"([^\"]+)\"\s*,\s*\(([\d, ]+)\)\s*\)'.format(mapString), line.strip())
     if testMatch is None:
-        mapOnlyMatch = re.match(r'^map\s*\(\s *\"([^\"]+)\"\s*\)', line.strip())
+        mapOnlyMatch = re.match(r'^{0:s}\s*\(\s *\"([^\"]+)\"\s*\)'.format(mapString), line.strip())
         if mapOnlyMatch is None:
             return None
         else:
@@ -49,6 +50,7 @@ def extractTransform(line):
 
 def extractTransformsFromFile(fileStr):
     transfDict = {}
+    maxItemCount = 0
     with io.StringIO() as rawCode:
         for line in fileStr.splitlines():
             test_transf = extractTransform(line)
@@ -59,8 +61,14 @@ def extractTransformsFromFile(fileStr):
                 if key not in transfDict.keys():
                     transfDict[key] = []
                 transfDict[key].append(transf)
+
+                # see https://regex101.com/r/RgeBVc/1 for regex
+
+                testNum = re.match(r'^x(\d+)$', key)
+                if testNum is not None:
+                    maxItemCount = max(maxItemCount, int(testNum.group(1)))
         final_str = rawCode.getvalue()
-    return final_str, transfDict
+    return final_str, transfDict, maxItemCount
 
 
 def parseFile(inFile):

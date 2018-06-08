@@ -183,6 +183,8 @@ class MainWindow1(Qw.QMainWindow):
         self.postCanvasPixmap = None
         self.previewCurve = None
 
+        self.globalObjectCounter = 0
+
         self.fileItems = []
         self.drawObjects = []
         self.xasyDrawObj = {'drawDict': self.drawObjects}
@@ -441,6 +443,8 @@ class MainWindow1(Qw.QMainWindow):
     def addInPlace(self, obj):
         obj.asyengine = self.asyEngine
         obj.pen = self.currentPen
+        obj.setKey('x' + str(self.globalObjectCounter))
+        self.globalObjectCounter = self.globalObjectCounter + 1
 
         if self.magnification != 1:
             assert self.magnification != 0
@@ -1478,6 +1482,7 @@ class MainWindow1(Qw.QMainWindow):
         newItem.setKey(str(uuid.uuid4()))
         self.fileItems.append(newItem)
         self.asyfyCanvas()
+        self.globalObjectCounter = max(self.globalObjectCounter, newItem.getMaxKeyCounter())
 
     def transformObject(self, objKey, transform, applyFirst=False):
         maj, minor = objKey
@@ -1541,12 +1546,17 @@ class MainWindow1(Qw.QMainWindow):
         except IOError:
             Qw.QMessageBox.critical(self, self.strings.fileOpenFailed, self.strings.fileOpenFailedText)
         else:
-            rawText, transfDict = xf.extractTransformsFromFile(rawFileStr)
+            rawText, transfDict, maxKey = xf.extractTransformsFromFile(rawFileStr)
             item = x2a.xasyScript(canvas=self.xasyDrawObj, engine=self.asyEngine, transfKeyMap=transfDict)
+
+            
             item.setScript(rawText)
             item.setKey()
             self.fileItems.append(item)
             self.asyfyCanvas(True)
+
+            maxKey2 = item.getMaxKeyCounter()
+            self.globalObjectCounter = max(maxKey + 1, maxKey2)
         finally:
             f.close()
 

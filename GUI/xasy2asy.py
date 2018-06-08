@@ -19,8 +19,10 @@ import sys
 import os
 import signal
 import threading
+import string
 import subprocess
 import tempfile
+import re
 import queue
 import io
 
@@ -627,8 +629,9 @@ class asyImage:
 
 class xasyItem(Qc.QObject):
     """A base class for items in the xasy GUI"""
-    setKeyFormatStr = 'map("{:s}",{:s});'
-    setKeyAloneFormatStr = 'map("{:s}");'
+    mapString = 'map'
+    setKeyFormatStr = string.Template('$map("{:s}",{:s});').substitute(map=mapString)
+    setKeyAloneFormatStr = string.Template('$map("{:s}");').substitute(map=mapString)
 
     def __init__(self, canvas=None, asyengine=None):
         """Initialize the item to an empty item"""
@@ -817,6 +820,17 @@ class xasyDrawnItem(xasyItem):
             self.transfKey = self.rawIdentifier
         self.transfKeymap = {self.transfKey: [transform]}
 
+    def setKey(self, newKey=None):
+        if newKey is None:
+            newKey = 'x' + str(uuid.uuid4())
+        if not newKey.startswith('x'):
+            newKey = 'x' + newKey
+
+        transform = self.transfKeymap[self.transfKey][0]
+
+        self.transfKey = newKey
+        self.transfKeymap = {self.transfKey: [transform]}
+
     def generateDrawObjects(self, mag=1.0, forceUpdate=False):
         raise NotImplementedError
 
@@ -986,6 +1000,14 @@ class xasyScript(xasyItem):
 
         for key in keyCount:
             self.transfKeymap[key] = [identity()] * keyCount[key]
+
+    def getMaxKeyCounter(self):
+        maxCounter = -1
+        for key in self.transfKeymap:
+            testNum = re.match(r'^x(\d+)$', key)
+            if testNum is not None:
+                maxCounter = max(maxCounter, int(testNum.group(1)))
+        return maxCounter + 1
 
     def getTransformCode(self):
         with io.StringIO() as rawAsyCode:
