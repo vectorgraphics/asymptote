@@ -2812,6 +2812,12 @@ interval [0,1], with 0.0 denoting black and 1.0 denoting white.
 This produces an @acronym{RGB} color, where each of the red, green,
 and blue intensities @code{r}, @code{g}, @code{b}, lies in the interval [0,1].
 
+@item pen RGB(int r, int g, int b);
+@cindex @code{rgb}
+This produces an @acronym{RGB} color, where each of the red, green,
+and blue intensities @code{r}, @code{g}, @code{b}, lies in the
+interval [0,255].
+
 @item pen cmyk(real c, real m, real y, real k);
 @cindex @code{cmyk}
 This produces a @acronym{CMYK} color, where each of the cyan, magenta,
