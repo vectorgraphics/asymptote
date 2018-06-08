@@ -32,9 +32,6 @@ import xasyOptions as xo
 import BezierCurveEditor
 import uuid
 
-console = None
-
-
 class DebugFlags:
     keepFiles = False
     printFoutTranscript = True
@@ -167,28 +164,6 @@ class AsymptoteEngine:
                     os.rmdir(self.tempDirName)
                 finally:
                     pass
-
-
-def closeConsole(event):
-    global console
-    console = None
-
-
-def consoleOutput(line):
-    global console
-    global ctl
-    if not console:
-        ctl = Toplevel()
-        ctl.title("Asymptote Console")
-        ctl.bind("<Destroy>", closeConsole)
-        yscrollbar = Scrollbar(ctl)
-        yscrollbar.pack(side=RIGHT, fill=Y)
-        console = Text(ctl, yscrollcommand=yscrollbar.set)
-        console.pack()
-        yscrollbar.config(command=console.yview)
-    console.insert(END, line)
-    ctl.lift()
-
 
 class asyTransform(Qc.QObject):
     """A python implementation of an asy transform"""
@@ -654,7 +629,8 @@ class asyImage:
 class xasyItem(Qc.QObject):
     """A base class for items in the xasy GUI"""
     setKeyFormatStr = 'map("{:s}",{:s});'
-    setKeyAloneFormatStr = 'map("{:s}");'
+    setKeyAloneFormatStr = 'map("{:s}",identity());'
+    # TODO: eventaully remove identity()... 
 
     def __init__(self, canvas=None, asyengine=None):
         """Initialize the item to an empty item"""
@@ -735,11 +711,9 @@ class xasyItem(Qc.QObject):
         worker = threading.Thread(target=self.asyfyThread, args=[mag])
         worker.start()
         item = self.imageHandleQueue.get()
-        if console is not None:
-            console.delete(1.0, END)
         while item != (None,) and item[0] != "ERROR":
             if item[0] == "OUTPUT":
-                consoleOutput(item[1])
+                print(item[1])
             else:
                 self.handleImageReception(*item)
                 if not DebugFlags.keepFiles:
@@ -897,7 +871,8 @@ class xasyShape(xasyDrawnItem):
     def getTransformCode(self):
         transf = self.transfKeymap[self.transfKey][0]
         if transf == identity():
-            return xasyItem.setKeyAloneFormatStr.format(self.transfKey)
+            # return xasyItem.setKeyAloneFormatStr.format(self.transfKey)
+            return ''
         else:
             return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode())
 
@@ -966,7 +941,8 @@ class xasyText(xasyItem):
     def getTransformCode(self):
         transf = self.transfKeymap[self.transfKey][0]
         if transf == identity():
-            return xasyItem.setKeyAloneFormatStr.format(self.transfKey)
+            # return xasyItem.setKeyAloneFormatStr.format(self.transfKey)
+            return ''
         else:
             return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode())
 
@@ -1017,15 +993,21 @@ class xasyScript(xasyItem):
         with io.StringIO() as rawAsyCode:
             if self.transfKeymap:
                 for key, val in self.transfKeymap.items():
+                    writeTransf = False
                     for transf in val:
-                        if transf.deleted:
-                            rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, str(asyTransform.zero())) + '\n')
-
-                        if transf == identity():
-                            rawAsyCode.write(xasyItem.setKeyAloneFormatStr.format(key))
-                        else:
-                            rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode()))
-                        rawAsyCode.write('\n')
+                        if transf != identity():
+                            writeTransf = True
+                    # need to map all transforms in a list if there is any non-identity
+                    # unfortuanetly, have to check all transformations in the list. 
+                    if writeTransf:
+                        for transf in val:
+                            if transf.deleted:
+                                rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, str(asyTransform.zero())) + '\n')
+                            if transf == identity():
+                                rawAsyCode.write(xasyItem.setKeyAloneFormatStr.format(key))
+                            else:
+                                rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode()))
+                            rawAsyCode.write('\n')
             return rawAsyCode.getvalue()
 
     def getObjectCode(self):
