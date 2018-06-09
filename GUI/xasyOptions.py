@@ -33,6 +33,7 @@ class xasyOptions:
         'defaultShowAxes': True,
         'defaultShowGrid': False,
         'defaultGridSnap': False,
+        'drawSelectedOnTop': True,
 
         '_GRID_COMMANDS': 'Grid Commands.',
         'gridMajorAxesColor': '#000000',

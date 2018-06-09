@@ -961,6 +961,9 @@ class MainWindow1(Qw.QMainWindow):
             self.releaseTransform()
         self.setAllInSetEnabled(self.objButtons, False)
         self.currentlySelectedObj['selectedKey'] = None
+        self.currentlySelectedObj['key'] = None
+
+        self.currentlySelectedObj['allSameKey'].clear()
         self.newTransform = Qg.QTransform()
         self.currentBoundingBox = None
         self.quickUpdate()
@@ -1174,6 +1177,8 @@ class MainWindow1(Qw.QMainWindow):
 
     def quickDraw(self):
         assert self.isReady()
+
+        activeItem = None
         for majorItem in self.drawObjects:
             for item in majorItem:
                 # hidden objects - toggleable
@@ -1183,14 +1188,26 @@ class MainWindow1(Qw.QMainWindow):
                 if not self.selectAsGroup and isSelected and self.currentlySelectedObj['selectedKey'] is not None:
                     maj, min_ = self.currentlySelectedObj['selectedKey']
                     isSelected = isSelected and item is self.drawObjects[maj][min_]
-
                 if isSelected and self.settings['enableImmediatePreview']:
+                    activeItem = item
                     if self.useGlobalCoords:
                         item.draw(self.newTransform, canvas=self.mainCanvas)
                     else:
                         item.draw(self.newTransform, applyReverse=True, canvas=self.mainCanvas)
                 else:
                     item.draw(canvas=self.mainCanvas)
+
+        if self.settings['drawSelectedOnTop']:
+            if self.pendingSelectedObjList:
+                maj, minor = self.pendingSelectedObjList[self.pendingSelectedObjIndex]
+                self.drawObjects[maj][minor].draw(canvas=self.mainCanvas)
+            # and apply the preview too... 
+            elif activeItem is not None:
+                if self.useGlobalCoords:
+                    activeItem.draw(self.newTransform, canvas=self.mainCanvas)
+                else:
+                    activeItem.draw(self.newTransform, applyReverse=True, canvas=self.mainCanvas)
+                activeItem = None
 
     def updateScreen(self):
         self.finalPixmap = Qg.QPixmap(self.canvSize)
