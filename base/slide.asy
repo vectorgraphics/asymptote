@@ -225,7 +225,7 @@ void erasestep(int erasenode) {
   for(int i=0; i < firstnode.length; ++i) {
     for(int j=firstnode[i]; j <= lastnode[i]; ++j) {
       tex(bulletcolor(oldbulletcolor));
-      currentpicture.add(currentpicture.nodes[j]);
+      currentpicture.add(currentpicture.nodes[j].d);
     }
   }
   firstnode.push(currentpicture.nodes.length-1);
