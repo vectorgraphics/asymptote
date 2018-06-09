@@ -629,7 +629,7 @@ class asyImage:
 
 class xasyItem(Qc.QObject):
     """A base class for items in the xasy GUI"""
-    mapString = 'map'
+    mapString = 'xmap'
     setKeyFormatStr = string.Template('$map("{:s}",{:s});').substitute(map=mapString)
     setKeyAloneFormatStr = string.Template('$map("{:s}");').substitute(map=mapString)
 
