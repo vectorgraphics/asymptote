@@ -14,6 +14,16 @@ import json
 import sys
 import os
 
+try:
+    import cson
+except ModuleNotFoundError:
+    cson = None
+
+try:
+    import yaml
+except ModuleNotFoundError:
+    yaml = None
+
 
 class xasyOptions:
     defaultOptionsTemplate = {
@@ -56,7 +66,23 @@ class xasyOptions:
     @classmethod
     def settingsFileLocation(cls):
         folder = os.path.expanduser("~/.asy/")
-        return os.path.normcase(os.path.join(folder, "xasyconf.json"))
+
+        searchOrder = ['.cson', '.yaml', '.json', '']
+
+        searchIndex = 0
+        found = False
+        currentFile = ''
+        while searchIndex < len(searchOrder) and not found:
+            currentFile = os.path.join(folder, "xasyconf" + searchOrder[searchIndex])
+            if os.path.isfile(currentFile):
+                found = True
+            searchIndex += 1
+        
+        if found:
+            return os.path.normcase(currentFile)
+        else:
+            return None
+
 
     def __getitem__(self, item):
         return self.options[item]
@@ -80,8 +106,18 @@ class xasyOptions:
             self.setDefaults()
         try:
             with open(fileName, 'r') as f:
-                newOptions = json.loads(f.read())
-        except IOError:
+                ext = os.path.splitext(fileName)[1]
+                if ext == '.cson':
+                    if cson is None:
+                        raise ModuleNotFoundError
+                    newOptions = cson.loads(f.read())
+                elif ext in {'.yml', '.yaml'}:
+                    if yaml is None:
+                        raise ModuleNotFoundError
+                    newOptions = yaml.load(f)
+                else:
+                    newOptions = json.loads(f.read())
+        except (IOError, ModuleNotFoundError):
             self.setDefaults()
         else:
             for key in self.options.keys():
@@ -96,12 +132,7 @@ class xasyOptions:
         if sys.platform[:3] == 'win':  # for windows, wince, win32, etc
             # setAsyPathFromWindowsRegistry()
             pass
-        self.save()
-
-    def save(self):
-        fileName = xasyOptions.settingsFileLocation()
-        with open(fileName, 'w') as f:
-            f.write(json.dumps(self.options, indent=4))
+        # self.save()
 
 # TODO: Figure out how to merge this back.
 """

@@ -176,9 +176,17 @@ class asyTransform(Qc.QObject):
         if isinstance(initTuple, (tuple, list)) and len(initTuple) == 6:
             self.t = initTuple
             self.x, self.y, self.xx, self.xy, self.yx, self.yy = initTuple
-            self.deleted = delete
+            self._deleted = delete
         else:
             raise TypeError("Illegal initializer for asyTransform")
+
+    @property
+    def deleted(self):
+        return self._deleted
+
+    @deleted.setter
+    def deleted(self, value):
+        self._deleted = value
 
     @classmethod
     def zero(cls):
@@ -204,13 +212,15 @@ class asyTransform(Qc.QObject):
 
         return asyTransform((tx, ty, xx, xy, yx, yy))
 
+    def getRawCode(self):
+        return '({0})'.format(','.join([str(val) for val in self.t]))
+
     def getCode(self):
         """Obtain the asy code that represents this transform"""
-        rawTransf = '({0})'.format(','.join([str(val) for val in self.t]))
         if self.deleted:
-            return rawTransf + ',false'
+            return 'zero'
         else:
-            return rawTransf
+            return self.getRawCode()
 
     def scale(self, s):
         return asyTransform((0, 0, s, 0, 0, s)) * self
@@ -692,7 +702,7 @@ class xasyItem(Qc.QObject):
             else:
                 validKey = False
 
-            if not transfExists or validKey:
+            if (not transfExists) or validKey:
                 currImage.IDTag = str(file)
                 newDrawObj = DrawObject(currImage.iqt, self.onCanvas['canvas'], transform=identity(),
                                         btmRightanchor=Qc.QPointF(bbox[0], bbox[2]), drawOrder=-1, key=key,
@@ -883,7 +893,6 @@ class xasyShape(xasyDrawnItem):
     def getTransformCode(self):
         transf = self.transfKeymap[self.transfKey][0]
         if transf == identity():
-            # return xasyItem.setKeyAloneFormatStr.format(self.transfKey)
             return ''
         else:
             return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode())
@@ -1012,23 +1021,25 @@ class xasyScript(xasyItem):
     def getTransformCode(self):
         with io.StringIO() as rawAsyCode:
             if self.transfKeymap:
-                for key, val in self.transfKeymap.items():
+                for key in self.transfKeymap.keys():
+                    val = self.transfKeymap[key]
                     writeTransf = False
                     for transf in val:
-                        if transf != identity():
+                        if (transf != identity()) or transf.deleted:
                             writeTransf = True
                     # need to map all transforms in a list if there is any non-identity
                     # unfortuanetly, have to check all transformations in the list. 
                     if writeTransf:
                         for transf in val:
                             if transf.deleted:
-                                rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, str(asyTransform.zero())) + '\n')
-                            if transf == identity():
+                                rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode()) + '\n//')
+                            if transf == identity() and not transf.deleted:
                                 rawAsyCode.write(xasyItem.setKeyAloneFormatStr.format(key))
                             else:
-                                rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getCode()))
+                                rawAsyCode.write(xasyItem.setKeyFormatStr.format(key, transf.getRawCode()))
                             rawAsyCode.write('\n')
-            return rawAsyCode.getvalue()
+            result = rawAsyCode.getvalue()
+            return result
 
     def getObjectCode(self):
         with io.StringIO() as rawAsyCode:

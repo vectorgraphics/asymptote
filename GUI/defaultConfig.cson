@@ -1,0 +1,33 @@
+# External editor. *ASYPATH will be replaced by the current file. 
+externalEditor: "code -nw *ASYPATH"
+
+# Path to Asymptote executable
+asyPath: "asy"
+
+# Show Debugging Information
+showDebug: false
+
+# Default Pen Options
+defaultPenOptions: ""
+
+# Default Pen Color 
+defaultPenColor: "#000000"
+
+# 
+defaultPenWidth: 1.0
+enableImmediatePreview: true
+useDegrees: false
+groupObjDefault: false
+terminalFont: "Courier"
+terminalFontSize: 10
+defaultShowAxes: true
+defaultShowGrid: false
+defaultGridSnap: false
+
+# Grid Commands 
+drawSelectedOnTop: true
+gridMajorAxesColor: "#000000"
+gridMinorAxesColor: "#AAAAAA"
+gridMajorAxesSpacing: 100
+gridMinorAxesCount: 9
+debugMode: true

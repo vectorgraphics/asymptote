@@ -358,6 +358,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnSendBackwards.clicked.connect(self.btnSendBackwardsOnClick)
         self.ui.btnSendForwards.clicked.connect(self.btnSendForwardsOnClick)
         self.ui.btnDelete.clicked.connect(self.btnDeleteOnClick)
+        self.ui.btnSoftDelete.clicked.connect(self.btnSoftDeleteOnClick)
         self.ui.btnToggleVisible.clicked.connect(self.btnSetVisibilityOnClick)
 
         self.ui.btnEnterCommand.clicked.connect(self.btnTerminalCommandOnClick)
@@ -535,6 +536,15 @@ class MainWindow1(Qw.QMainWindow):
 
             self.clearSelection()
             self.asyfyCanvas()
+
+    def btnSoftDeleteOnClick(self):
+        if self.currentlySelectedObj['selectedKey'] is not None:
+            maj, minor = self.currentlySelectedObj['selectedKey']
+            selectedObj = self.drawObjects[maj][minor]
+            self.softDeleteObj( (maj, minor) )
+            self.clearSelection()
+            self.asyfyCanvas()
+
 
     def btnSetVisibilityOnClick(self):
         if self.currentlySelectedObj['selectedKey'] is not None:
@@ -1057,6 +1067,8 @@ class MainWindow1(Qw.QMainWindow):
         self.quickUpdate()
 
     def releaseTransform(self):
+        if self.newTransform.isIdentity():
+            return
         newTransform = x2a.asyTransform.fromQTransform(self.newTransform)
         objKey = self.currentlySelectedObj['selectedKey']
         self.addTransformationChanges(objKey, newTransform, not self.useGlobalCoords)
@@ -1500,6 +1512,17 @@ class MainWindow1(Qw.QMainWindow):
         self.fileItems.append(newItem)
         self.asyfyCanvas()
         self.globalObjectCounter = max(self.globalObjectCounter, newItem.getMaxKeyCounter())
+
+    def softDeleteObj(self, objKey):
+        maj, minor = objKey
+        drawObj = self.drawObjects[maj][minor]
+        item = drawObj.originalObj
+        key = drawObj.key
+        keyIndex = drawObj.keyIndex
+
+        item.transfKeymap[key][keyIndex].deleted = True
+        item.asyfied = False
+
 
     def transformObject(self, objKey, transform, applyFirst=False):
         maj, minor = objKey
