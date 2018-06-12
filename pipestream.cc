@@ -120,8 +120,12 @@ ssize_t iopipestream::readbuffer()
   errno=0;
   for(;;) {
     if((nc=read(out[0],p,size)) < 0) {
-      if(errno == EAGAIN) {p[0]=0; break;}
-      else camp::reportError("read from pipe failed");
+      if(errno == EAGAIN || errno == EINTR) {p[0]=0; break;}
+     else {
+       ostringstream buf;
+       buf << "read from pipe failed: errno=" << errno;
+       camp::reportError(buf);
+      }
       nc=0;
     }
     p[nc]=0;
