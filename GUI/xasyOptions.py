@@ -12,7 +12,9 @@
 
 import json
 import sys
+import io
 import os
+import shutil
 
 try:
     import cson
@@ -26,42 +28,19 @@ except ModuleNotFoundError:
 
 
 class xasyOptions:
-    defaultOptionsTemplate = {
-        '_comment': 'Note: *ASYPATH will be replaced with the path to Asymptote file.',
-
-        'externalEditor': '',
-        'asyPath': 'asy',
-        'showDebug': False,
-        'defaultPenOptions': '',
-        'defaultPenColor': '#000000',
-        'defaultPenWidth': 1.0,
-        'groupObjDefault': False,
-        'enableImmediatePreview': True,
-        'useDegrees': False,
-        'terminalFont': 'Courier',
-        'terminalFontSize': 10,
-        'defaultShowAxes': True,
-        'defaultShowGrid': False,
-        'defaultGridSnap': False,
-        'drawSelectedOnTop': True,
-
-        '_GRID_COMMANDS': 'Grid Commands.',
-        'gridMajorAxesColor': '#000000',
-        'gridMinorAxesColor': '#AAAAAA',
-        'gridMajorAxesSpacing': 100,
-        'gridMinorAxesCount': 9,
-
-        'debugMode': True
-    }
-
+    _defaultOptions = None
+    _defualtOptLocation = 'GUI/defaultConfig.cson'
     @classmethod
     def defaultOptions(cls):
-        opt = cls.defaultOptionsTemplate.copy()
-        if os.name == 'nt':
-            opt['externalEditor'] = "notepad.exe *ASYPATH"
-        else:
-            opt['externalEditor'] = "emacs *ASYPATH"
-        return opt
+        if cls._defaultOptions is None:
+            with io.open(cls._defualtOptLocation) as f:
+                opt = cson.loads(f.read())
+            if os.name == 'nt':
+                opt['externalEditor'] = "notepad.exe $asypath"
+            else:
+                opt['externalEditor'] = "emacs $asypath"
+            cls._defaultOptions = opt
+        return cls._defaultOptions
 
     @classmethod
     def settingsFileLocation(cls):
@@ -132,7 +111,10 @@ class xasyOptions:
         if sys.platform[:3] == 'win':  # for windows, wince, win32, etc
             # setAsyPathFromWindowsRegistry()
             pass
-        # self.save()
+        folder = os.path.expanduser("~/.asy/")
+        defaultPath = os.path.join(folder, 'xasyconf.cson')
+        shutil.copy2(self._defualtOptLocation, defaultPath)
+        
 
 # TODO: Figure out how to merge this back.
 """

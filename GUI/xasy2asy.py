@@ -1217,7 +1217,7 @@ class DrawObject(Qc.QObject):
             canvas = self.mainCanvas
         if additionalTransformation is None:
             additionalTransformation = Qg.QTransform()
-
+            
         assert isinstance(canvas, Qg.QPainter)
         assert canvas.isActive()
 

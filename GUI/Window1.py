@@ -12,10 +12,10 @@ import pathlib
 import webbrowser
 import subprocess
 import tempfile
+import string
 import uuid
 
 import xasyUtils
-
 import xasy2asy as x2a
 import xasyFile as xf
 import xasyOptions as xo
@@ -541,7 +541,10 @@ class MainWindow1(Qw.QMainWindow):
         if self.currentlySelectedObj['selectedKey'] is not None:
             maj, minor = self.currentlySelectedObj['selectedKey']
             selectedObj = self.drawObjects[maj][minor]
-            self.softDeleteObj( (maj, minor) )
+
+            self.hiddenKeys.add((selectedObj.key, selectedObj.keyIndex))
+            self.softDeleteObj((maj, minor))
+
             self.clearSelection()
             self.asyfyCanvas()
 
@@ -551,7 +554,7 @@ class MainWindow1(Qw.QMainWindow):
             maj, minor = self.currentlySelectedObj['selectedKey']
             selectedObj = self.drawObjects[maj][minor]
 
-            self.hiddenKeys.symmetric_difference_update({selectedObj.key})
+            self.hiddenKeys.symmetric_difference_update({(selectedObj.key, selectedObj.keyIndex)})
             self.clearSelection()
             self.quickUpdate()
 
@@ -1113,7 +1116,7 @@ class MainWindow1(Qw.QMainWindow):
         for objKeyMaj in range(len(self.drawObjects)):
             for objKeyMin in range(len(self.drawObjects[objKeyMaj])):
                 obj = self.drawObjects[objKeyMaj][objKeyMin]
-                if obj.collide(canvasCoords) and obj.key not in self.hiddenKeys:
+                if obj.collide(canvasCoords) and (obj.key, obj.keyIndex) not in self.hiddenKeys:
                     rawObjNumList.append(((objKeyMaj, objKeyMin), obj.drawOrder))
                     if obj.drawOrder > highestDrawPriority:
                         collidedObjKey = (objKeyMaj, objKeyMin)
@@ -1194,7 +1197,7 @@ class MainWindow1(Qw.QMainWindow):
         for majorItem in self.drawObjects:
             for item in majorItem:
                 # hidden objects - toggleable
-                if item.key in self.hiddenKeys:
+                if (item.key, item.keyIndex) in self.hiddenKeys:
                     continue
                 isSelected = item.key == self.currentlySelectedObj['key']
                 if not self.selectAsGroup and isSelected and self.currentlySelectedObj['selectedKey'] is not None:
@@ -1462,15 +1465,8 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnLoadEditorOnClick(self):
         rawExternalEditor = self.settings['externalEditor']
-        rawExecEditor = rawExternalEditor.split(' ')
-        execEditor = []
-        for word in rawExecEditor:
-            if word.startswith('*'):
-                if word[1:] == 'ASYPATH':
-                    execEditor.append('"' + self.filename + '"')
-            else:
-                execEditor.append(word)
-        os.system(' '.join(execEditor))
+        rawExecEditor = string.Template(rawExternalEditor).substitute(asypath=('"' + self.filename + '"'))
+        os.system(rawExecEditor)
 
     def btnAddCodeOnClick(self):
         header = """
@@ -1521,7 +1517,7 @@ class MainWindow1(Qw.QMainWindow):
         keyIndex = drawObj.keyIndex
 
         item.transfKeymap[key][keyIndex].deleted = True
-        item.asyfied = False
+        # item.asyfied = False
 
 
     def transformObject(self, objKey, transform, applyFirst=False):
