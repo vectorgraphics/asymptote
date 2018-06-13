@@ -18,8 +18,12 @@ defaultPenWidth: 1.0
 enableImmediatePreview: true
 useDegrees: false
 groupObjDefault: false
+
+# 
 terminalFont: "Courier"
 terminalFontSize: 10
+
+# 
 defaultShowAxes: true
 defaultShowGrid: false
 defaultGridSnap: false
@@ -30,4 +34,6 @@ gridMajorAxesColor: "#000000"
 gridMinorAxesColor: "#AAAAAA"
 gridMajorAxesSpacing: 100
 gridMinorAxesCount: 9
+
+# Debug Mode
 debugMode: true

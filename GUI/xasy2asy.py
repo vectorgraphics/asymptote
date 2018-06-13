@@ -218,7 +218,7 @@ class asyTransform(Qc.QObject):
     def getCode(self):
         """Obtain the asy code that represents this transform"""
         if self.deleted:
-            return 'zero'
+            return 'zeroTransform'
         else:
             return self.getRawCode()
 

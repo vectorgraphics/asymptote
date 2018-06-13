@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1155</width>
-    <height>835</height>
+    <width>1030</width>
+    <height>768</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -349,7 +349,7 @@
             </property>
             <property name="icon">
              <iconset resource="../res/icons.qrc">
-              <normaloff>:/entypo/Entypo+/Entypo+/arrow-with-circle-up.svg</normaloff>:/entypo/Entypo+/Entypo+/arrow-with-circle-up.svg</iconset>
+              <normaloff>:/entypo/Entypo+/Entypo+/arrow-with-circle-down.svg</normaloff>:/entypo/Entypo+/Entypo+/arrow-with-circle-down.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -1065,44 +1065,6 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="btnSoftDelete">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>25</width>
-              <height>25</height>
-             </size>
-            </property>
-            <property name="baseSize">
-             <size>
-              <width>32</width>
-              <height>32</height>
-             </size>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/android-remove-circle.svg</normaloff>:/icons/ionicons-2.0.1/src/android-remove-circle.svg</iconset>
-            </property>
-            <property name="checkable">
-             <bool>false</bool>
-            </property>
-            <property name="flat">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QPushButton" name="btnDelete">
             <property name="enabled">
              <bool>false</bool>
@@ -1245,6 +1207,35 @@
             <property name="icon">
              <iconset resource="../res/icons.qrc">
               <normaloff>:/entypo/Entypo+/Entypo+/chevron-with-circle-right.svg</normaloff>:/entypo/Entypo+/Entypo+/chevron-with-circle-right.svg</iconset>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnEditBezier">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>25</width>
+              <height>25</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../res/icons.qrc">
+              <normaloff>:/icons/ionicons-2.0.1/src/edit.svg</normaloff>:/icons/ionicons-2.0.1/src/edit.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -1809,27 +1800,6 @@ background: rgb(0, 0, 0)
            </item>
           </layout>
          </item>
-         <item>
-          <widget class="QTreeWidget" name="treeObjectList">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>600</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <column>
-            <property name="text">
-             <string notr="true">1</string>
-            </property>
-           </column>
-          </widget>
-         </item>
         </layout>
        </item>
       </layout>
@@ -1842,8 +1812,8 @@ background: rgb(0, 0, 0)
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1155</width>
-     <height>26</height>
+     <width>1030</width>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFIle">

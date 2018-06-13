@@ -192,8 +192,9 @@ class MainWindow1(Qw.QMainWindow):
         self.modeButtons = {self.ui.btnTranslate, self.ui.btnRotate, self.ui.btnScale, self.ui.btnSelect,
                             self.ui.btnPan}
         self.objButtons = {self.ui.btnCustTransform, self.ui.actionTransform, self.ui.btnSendForwards,
-                           self.ui.btnSendBackwards, self.ui.btnDelete, self.ui.btnToggleVisible,
-                           self.ui.btnSoftDelete}
+                           self.ui.btnSendBackwards, self.ui.btnDelete, self.ui.btnToggleVisible
+                           }
+                           
         self.globalTransformOnlyButtons = (self.ui.comboAnchor, self.ui.btnAnchor)
 
         self.ui.txtTerminalPrompt.setFont(Qg.QFont(self.settings['terminalFont']))
@@ -357,8 +358,8 @@ class MainWindow1(Qw.QMainWindow):
 
         self.ui.btnSendBackwards.clicked.connect(self.btnSendBackwardsOnClick)
         self.ui.btnSendForwards.clicked.connect(self.btnSendForwardsOnClick)
-        self.ui.btnDelete.clicked.connect(self.btnDeleteOnClick)
-        self.ui.btnSoftDelete.clicked.connect(self.btnSoftDeleteOnClick)
+        self.ui.btnDelete.clicked.connect(self.btnSelectiveDeleteOnClick)
+        # self.ui.btnSoftDelete.clicked.connect(self.btnSoftDeleteOnClick)
         self.ui.btnToggleVisible.clicked.connect(self.btnSetVisibilityOnClick)
 
         self.ui.btnEnterCommand.clicked.connect(self.btnTerminalCommandOnClick)
@@ -528,26 +529,21 @@ class MainWindow1(Qw.QMainWindow):
             else:
                 self.fileItems[index], self.fileItems[index + 1] = self.fileItems[index + 1], self.fileItems[index]
 
-    def btnDeleteOnClick(self):
-        if self.currentlySelectedObj['selectedKey'] is not None:
-            maj, minor = self.currentlySelectedObj['selectedKey']
-            selectedObj = self.drawObjects[maj][minor]
-            self.fileItems.remove(selectedObj.parent())
-
-            self.clearSelection()
-            self.asyfyCanvas()
-
-    def btnSoftDeleteOnClick(self):
+    def btnSelectiveDeleteOnClick(self):
         if self.currentlySelectedObj['selectedKey'] is not None:
             maj, minor = self.currentlySelectedObj['selectedKey']
             selectedObj = self.drawObjects[maj][minor]
 
-            self.hiddenKeys.add((selectedObj.key, selectedObj.keyIndex))
-            self.softDeleteObj((maj, minor))
+            parent = selectedObj.parent()
+
+            if isinstance(parent, x2a.xasyScript):
+                self.hiddenKeys.add((selectedObj.key, selectedObj.keyIndex))
+                self.softDeleteObj((maj, minor))
+            else:
+                self.fileItems.remove(selectedObj.parent())
 
             self.clearSelection()
             self.asyfyCanvas()
-
 
     def btnSetVisibilityOnClick(self):
         if self.currentlySelectedObj['selectedKey'] is not None:
