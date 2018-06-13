@@ -222,6 +222,9 @@ class AddBezierShape(InplaceObjProcess):
             raise RuntimeError('BasePath is None')
         return self.basePath
 
+    def closePath(self):
+        self.basePath.addNode('cycle', self._getLinkType())
+
     def getPreview(self):
         if self._active:
             if self.closedPath and len(self.basePath.nodeSet) < 3:
@@ -273,8 +276,9 @@ class AddPoly(InplaceObjProcess):
         self.currPos.setY(y)
 
     def mouseRelease(self):
-        self.objectCreated.emit(self.getXasyObject())
-        self._active = False
+        if self.active:
+            self.objectCreated.emit(self.getXasyObject())
+            self._active = False
 
     def forceFinalize(self):
         self.mouseRelease()

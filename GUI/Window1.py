@@ -225,6 +225,8 @@ class MainWindow1(Qw.QMainWindow):
             'commandPalette': self.enterCustomCommand,
             'clearGuide': self.clearGuides,
             'finalizeAddObj': self.finalizeAddObj,
+            'finalizeCurve': self.finalizeCurve, 
+            'finalizeCurveClosed': self.finalizeCurveClosed, 
             'setMag': self.setMagPrompt,
             'deleteObject': self.btnSelectiveDeleteOnClick
         }
@@ -238,6 +240,23 @@ class MainWindow1(Qw.QMainWindow):
 
         self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
         self.initPenInterface()
+
+    def finalizeCurve(self):
+        if self.addMode is not None:
+            if self.addMode.active and isinstance(self.addMode, InplaceAddObj.AddBezierShape):
+                self.addMode.forceFinalize()
+
+    def finalizeCurveClosed(self):
+        if self.addMode is not None:
+            if self.addMode.active and isinstance(self.addMode, InplaceAddObj.AddBezierShape):
+                self.addMode.closePath()
+                self.addMode.forceFinalize()
+
+    def cancelCurve(self):
+        if self.addMode is not None:
+            if self.addMode.active and isinstance(self.addMode, InplaceAddObj.AddBezierShape):
+                self.addMode.active = False
+
 
     def finalizeAddObj(self):
         if self.addMode is not None:
@@ -524,6 +543,7 @@ class MainWindow1(Qw.QMainWindow):
                 return
             else:
                 self.fileItems[index], self.fileItems[index + 1] = self.fileItems[index + 1], self.fileItems[index]
+                self.asyfyCanvas()
 
     def btnSelectiveDeleteOnClick(self):
         if self.currentlySelectedObj['selectedKey'] is not None:
@@ -561,6 +581,7 @@ class MainWindow1(Qw.QMainWindow):
                 return
             else:
                 self.fileItems[index], self.fileItems[index - 1] = self.fileItems[index - 1], self.fileItems[index]
+                self.asyfyCanvas()
 
 
     def btnUndoOnClick(self):

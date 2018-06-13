@@ -25,6 +25,7 @@ import tempfile
 import re
 import queue
 import io
+import DebugFlags
 
 import CubicBezier
 import xasyUtils as xu
@@ -33,11 +34,6 @@ import xasyOptions as xo
 
 import BezierCurveEditor
 import uuid
-
-class DebugFlags:
-    keepFiles = False
-    printFoutTranscript = True
-    printDeconstTranscript = True
 
 
 class AsymptoteEngine:
@@ -567,6 +563,7 @@ class asyPath(asyObj):
 
         asy.hangup()
 
+        # FIXME: Some bug here. Have to track down later. 
         lengthStr = fin.readline()
         pathSegments = eval(lengthStr.split()[-1])
         pathStrLines = []
