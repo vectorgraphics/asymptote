@@ -249,8 +249,7 @@ class MainWindow1(Qw.QMainWindow):
     def finalizeCurveClosed(self):
         if self.addMode is not None:
             if self.addMode.active and isinstance(self.addMode, InplaceAddObj.AddBezierShape):
-                self.addMode.closePath()
-                self.addMode.forceFinalize()
+                self.addMode.finalizeClosure()
 
     def cancelCurve(self):
         if self.addMode is not None:

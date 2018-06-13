@@ -194,15 +194,14 @@ class AddBezierShape(InplaceObjProcess):
 
     def createOptWidget(self, info):
         self.opt = Widg_addBezierInPlace.Widg_addBezierInplace(info)
-        self.opt.ui.btnFinalize.clicked.connect(self.forceFinalize)
-        self.opt.ui.btnFillClose.clicked.connect(self.finalizeClosure)
         return self.opt
 
     def finalizeClosure(self):
-        self._active = False
-        self.basePath.addNode('cycle', self._getLinkType())
-        self.objectCreated.emit(self.getXasyObject())
-        self.basePath = None
+        if self.active:
+            self._active = False
+            self.basePath.addNode('cycle', self._getLinkType())
+            self.objectCreated.emit(self.getXasyObject())
+            self.basePath = None
 
     def mouseRelease(self):
         x, y = self.currentPoint.x(), self.currentPoint.y()
@@ -221,10 +220,7 @@ class AddBezierShape(InplaceObjProcess):
         if self.basePath is None:
             raise RuntimeError('BasePath is None')
         return self.basePath
-
-    def closePath(self):
-        self.basePath.addNode('cycle', self._getLinkType())
-
+        
     def getPreview(self):
         if self._active:
             if self.closedPath and len(self.basePath.nodeSet) < 3:

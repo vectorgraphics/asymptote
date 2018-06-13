@@ -15,10 +15,7 @@ class Widg_addBezierInplace(Qw.QWidget):
         self.setFixedSize(self.size())
 
         self.ui.chkBezierCurve.stateChanged.connect(self.chkBezierCurveUpdate)
-        self.ui.chkClosedPath.stateChanged.connect(self.chkClosedPathUpdate)
-
+        
     def chkBezierCurveUpdate(self, checked):
         self.info['useBezier'] = checked
-
-    def chkClosedPathUpdate(self, checked):
-        self.info['closedPath'] = checked
+    

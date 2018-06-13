@@ -564,6 +564,7 @@ class asyPath(asyObj):
         asy.hangup()
 
         # FIXME: Some bug here. Have to track down later. 
+        
         lengthStr = fin.readline()
         pathSegments = eval(lengthStr.split()[-1])
         pathStrLines = []

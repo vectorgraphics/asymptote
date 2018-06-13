@@ -53,13 +53,6 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QCheckBox" name="chkClosedPath">
-       <property name="text">
-        <string>Closed path</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QCheckBox" name="chkBezierCurve">
        <property name="text">
         <string>Bezier Curve</string>
