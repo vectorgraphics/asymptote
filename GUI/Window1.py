@@ -134,7 +134,7 @@ class MainWindow1(Qw.QMainWindow):
         self.panTranslation = Qg.QTransform()
 
         # Internal Settings
-        self.magnification = 1
+        self.magnification = self.args.mag
         self.inMidTransformation = False
         self.addMode = None
         self.currentlySelectedObj = {'key': None, 'allSameKey': set(), 'selectedKey': None}
@@ -253,8 +253,8 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnRotate.setToolTip(self.strings.rotate)
 
     def handleArguments(self):
-        if self.args.file is not None:
-            self.loadFile(self.args.file)
+        if self.args.filename is not None:
+            self.loadFile(self.args.filename)
         else:
             self.initializeEmptyFile()
 
