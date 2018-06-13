@@ -33,5 +33,5 @@ draw(Label("$A\cup B$",0),z--z0,Arrow,BigMargin);
 draw(z--z1,Arrow,Margin(0,m));
 draw(z--z2,Arrow,Margin(0,m));
 
-// shipout(bbox(0.25cm));
-// TODO: 
+shipout(bbox(0.25cm));
+// Have to remove the bounding box for now.
