@@ -221,7 +221,8 @@ class MainWindow1(Qw.QMainWindow):
             'commandPalette': self.enterCustomCommand,
             'clearGuide': self.clearGuides,
             'finalizeAddObj': self.finalizeAddObj,
-            'setMag': self.setMagPrompt
+            'setMag': self.setMagPrompt,
+            'deleteObject': self.btnSelectiveDeleteOnClick
         }
 
         self.hiddenKeys = set()

@@ -3,3 +3,4 @@
 
 commandPalette: "F1"
 quit: "Ctrl+Q"
+deleteObject: "Del"
