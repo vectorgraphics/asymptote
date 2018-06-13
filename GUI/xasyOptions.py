@@ -14,7 +14,10 @@ import json
 import sys
 import io
 import os
+import platform
 import shutil
+
+import configs
 
 try:
     import cson
@@ -26,24 +29,25 @@ try:
 except ModuleNotFoundError:
     yaml = None
 
-
 class xasyOptions:
-    _defaultOptions = None
-    _defualtOptLocation = 'GUI/defaultConfig.cson'
-    @classmethod
-    def defaultOptions(cls):
-        if cls._defaultOptions is None:
-            with io.open(cls._defualtOptLocation) as f:
+    def defaultOptions(self):
+        if self._defaultOptions is None:
+            with io.open(self._defualtOptLocation) as f:
                 opt = cson.loads(f.read())
-            if os.name == 'nt':
-                opt['externalEditor'] = "notepad.exe $asypath"
-            else:
-                opt['externalEditor'] = "emacs $asypath"
-            cls._defaultOptions = opt
-        return cls._defaultOptions
+            self._defaultOptions = opt
+        return self._defaultOptions
 
-    @classmethod
-    def settingsFileLocation(cls):
+    def overrideSettings(self):
+        settingsName = platform.system()
+
+        if settingsName not in self.options:
+            return
+
+        for key in self.options[settingsName]:
+            self.options[key] = self.options[settingsName][key]
+    
+    
+    def settingsFileLocation(self):
         folder = os.path.expanduser("~/.asy/")
 
         searchOrder = ['.cson', '.yaml', '.json', '']
@@ -52,7 +56,7 @@ class xasyOptions:
         found = False
         currentFile = ''
         while searchIndex < len(searchOrder) and not found:
-            currentFile = os.path.join(folder, "xasyconf" + searchOrder[searchIndex])
+            currentFile = os.path.join(folder, self.configName + searchOrder[searchIndex])
             if os.path.isfile(currentFile):
                 found = True
             searchIndex += 1
@@ -60,8 +64,17 @@ class xasyOptions:
         if found:
             return os.path.normcase(currentFile)
         else:
-            return None
+            return os.path.normcase(os.path.join(folder, self.configName + '.cson'))
 
+    def __init__(self, configName, defaultConfigLocation):
+        self.configName = configName
+        self.defaultConfigName = defaultConfigLocation
+
+        self._defaultOptions = None
+        self._defualtOptLocation = os.path.join(defaultConfigLocation)
+
+        self.options = self.defaultOptions()
+        self.load()
 
     def __getitem__(self, item):
         return self.options[item]
@@ -69,12 +82,8 @@ class xasyOptions:
     def __setitem__(self, key, value):
         self.options[key] = value
 
-    def __init__(self):
-        self.options = xasyOptions.defaultOptions()
-        self.load()
-
     def load(self):
-        fileName = xasyOptions.settingsFileLocation()
+        fileName = self.settingsFileLocation()
         if not os.path.exists(fileName):
             # make folder
             thedir = os.path.dirname(fileName)
@@ -107,12 +116,12 @@ class xasyOptions:
             self.options = newOptions
 
     def setDefaults(self):
-        self.options = xasyOptions.defaultOptions()
+        self.options = self.defaultOptions()
         if sys.platform[:3] == 'win':  # for windows, wince, win32, etc
             # setAsyPathFromWindowsRegistry()
             pass
         folder = os.path.expanduser("~/.asy/")
-        defaultPath = os.path.join(folder, 'xasyconf.cson')
+        defaultPath = os.path.join(folder, self.configName + '.cson')
         shutil.copy2(self._defualtOptLocation, defaultPath)
         
 
@@ -133,3 +142,11 @@ def setAsyPathFromWindowsRegistry():
             options['asyPath'] = registry.QueryValueEx(key, "InstallLocation")[0] + "\\asy.exe"
             registry.CloseKey(key)
 """
+
+
+class BasicConfigs:
+    _configPath = configs.__path__[0]
+    defaultOpt = xasyOptions(
+        'xasyconf', os.path.join(_configPath, 'defaultConfig.cson'))
+    keymaps = xasyOptions('xasykeymap', os.path.join(
+        _configPath, 'defaultKeymap.cson'))

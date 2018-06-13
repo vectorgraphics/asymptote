@@ -1,5 +1,7 @@
-# External editor. *ASYPATH will be replaced by the current file. 
-externalEditor: "code -nw *ASYPATH"
+# Default Options for xasy
+
+# External editor. $asypath will be replaced by the current file. 
+externalEditor: "emacs $asypath"
 
 # Path to Asymptote executable
 asyPath: "asy"
@@ -37,3 +39,11 @@ gridMinorAxesCount: 9
 
 # Debug Mode
 debugMode: true
+
+# Settings Override for Windows
+windows:
+    externalEditor: "notepad.exe $asypath"
+
+# Settings Override for Linux
+linux:
+    externalEditor: "emacs $asypath"

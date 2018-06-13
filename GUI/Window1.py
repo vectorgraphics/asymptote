@@ -77,14 +77,6 @@ class AddObjectMode:
     Arc = 1
     Polygon = 2
 
-
-class DefaultSettings:
-    defaultKeymap = {
-        'commandPalette': 'F1',
-        'quit': 'Ctrl+Q'
-    }
-
-
 class MainWindow1(Qw.QMainWindow):
     defaultFrameStyle = """
     QFrame{{ 
@@ -99,9 +91,8 @@ class MainWindow1(Qw.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.settings = xo.xasyOptions()
-        self.settings.load()
-        self.keyMaps = DefaultSettings.defaultKeymap
+        self.settings = xo.BasicConfigs.defaultOpt
+        self.keyMaps = xo.BasicConfigs.keymaps
 
         self.raw_args = Qc.QCoreApplication.arguments()
         self.args = xa.parseArgs(self.raw_args)
@@ -194,7 +185,7 @@ class MainWindow1(Qw.QMainWindow):
         self.objButtons = {self.ui.btnCustTransform, self.ui.actionTransform, self.ui.btnSendForwards,
                            self.ui.btnSendBackwards, self.ui.btnDelete, self.ui.btnToggleVisible
                            }
-                           
+
         self.globalTransformOnlyButtons = (self.ui.comboAnchor, self.ui.btnAnchor)
 
         self.ui.txtTerminalPrompt.setFont(Qg.QFont(self.settings['terminalFont']))
@@ -237,8 +228,8 @@ class MainWindow1(Qw.QMainWindow):
 
         # Settings Initialization
         # from xasyoptions config file
-        self.setupXasyOptions()
         self.loadKeyMaps()
+        self.setupXasyOptions()
 
         self.colorDialog = Qw.QColorDialog(x2a.asyPen.convertToQColor(self._currentPen.color), self)
         self.initPenInterface()
@@ -636,26 +627,6 @@ class MainWindow1(Qw.QMainWindow):
         asyManualURL = 'http://asymptote.sourceforge.net/asymptote.pdf'
         webbrowser.open_new(asyManualURL)
 
-    def loadKeyMapFile(self):
-        defaultKeyMap = '.asy/xasy2KeyMapDefault.json'
-        fullDefaultKeyMap = pathlib.Path.home().joinpath(pathlib.Path(defaultKeyMap))
-        if not fullDefaultKeyMap.exists():
-            defaultConfFile = io.open(fullDefaultKeyMap, 'w')
-            defaultConfFile.write(json.dumps(DefaultSettings.defaultKeymap, indent=4))
-
-        keymapFile = '.asy/xasy2KeyMap.json'
-        keymapPath = pathlib.Path.home().joinpath(pathlib.Path(keymapFile))
-
-        if keymapPath.exists():
-            usrKeymapFile = io.open(keymapPath)
-            usrKeyMap = json.loads(usrKeymapFile.read())
-            self.keyMaps.update(usrKeyMap)
-        else:
-            usrKeymapFile = io.open(keymapPath, 'w')
-            usrKeymapFile.write(json.dumps({}, indent=4))
-
-            usrKeymapFile.close()
-
     def btnExportAsyOnClick(self):
         diag = Qw.QFileDialog(self)
         diag.setAcceptMode(Qw.QFileDialog.AcceptSave)
@@ -724,8 +695,7 @@ class MainWindow1(Qw.QMainWindow):
     def loadKeyMaps(self):
         """Inverts the mapping of the key
            Input map is in format 'Action' : 'Key Sequence' """
-        self.loadKeyMapFile()
-        for action, key in self.keyMaps.items():
+        for action, key in self.keyMaps.options.items():
             shortcut = Qw.QShortcut(self)
             shortcut.setKey(Qg.QKeySequence(key))
 

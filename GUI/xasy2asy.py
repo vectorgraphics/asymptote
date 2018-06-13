@@ -46,7 +46,7 @@ class AsymptoteEngine:
         if path is None:
             path = xa.getArgs().asypath
             if path is None:
-                opt = xo.xasyOptions()
+                opt = xo.BasicConfigs.defaultOpt
                 opt.load()
                 path = opt['asyPath']
 
