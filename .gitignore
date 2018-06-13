@@ -42,6 +42,8 @@ newDrawing.asy
 *.roff
 /doc/png/*.html
 GUI/*.pyc
+GUI/*/*.pyc
+GUI/*/__pycache__
 /.wisdom
 /allsymbols.h
 /asy-keywords.el
