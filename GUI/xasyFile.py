@@ -62,9 +62,9 @@ def extractTransformsFromFile(fileStr):
                     transfDict[key] = []
                 transfDict[key].append(transf)
 
-                # see https://regex101.com/r/RgeBVc/1 for regex
+                # see https://regex101.com/r/RgeBVc/2 for regex
 
-                testNum = re.match(r'^x(\d+)$', key)
+                testNum = re.match(r'^x(\d+)($|:.*$)', key)
                 if testNum is not None:
                     maxItemCount = max(maxItemCount, int(testNum.group(1)))
         final_str = rawCode.getvalue()

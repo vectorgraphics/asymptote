@@ -99,6 +99,9 @@ class MainWindow1(Qw.QMainWindow):
 
         self.strings = None
 
+        if self.settings['asyBaseLocation'] is not None:
+            os.environ['ASYMPTOTE_DIR'] = self.settings['asyBaseLocation']
+
         if self.args.asypath is not None:
             asyPath = self.args.asypath
         else:
@@ -1431,7 +1434,7 @@ class MainWindow1(Qw.QMainWindow):
         self.quickUpdate()
 
     def btnLoadEditorOnClick(self):
-        rawExternalEditor = self.settings['externalEditor']
+        rawExternalEditor = self.settings['externalEditor'] + ' ' + ' '.join(self.settings['externalEditorArgs'])
         rawExecEditor = string.Template(rawExternalEditor).substitute(asypath=('"' + self.filename + '"'))
         os.system(rawExecEditor)
 
@@ -1444,25 +1447,18 @@ class MainWindow1(Qw.QMainWindow):
 }
 """
         rawExternalEditor = self.settings['externalEditor']
-        rawExecEditor = rawExternalEditor.split(' ')
-        execEditor = []
+        rawExtEditorArgs = self.settings['externalEditorArgs']
+        execEditor = [rawExternalEditor]
 
         with tempfile.TemporaryDirectory() as tmpdir:
             newPath = os.path.join(tmpdir, 'tmpcode.asy')
+
+            for arg in rawExtEditorArgs:
+                execEditor.append(string.Template(arg).substitute(asypath=newPath))
+
             f = io.open(newPath, 'w')
             f.write(header)
             f.close()
-
-            for word in rawExecEditor:
-                if word.startswith('*'):
-                    if word[1:] == 'ASYPATH':
-                        if ' ' in newPath:
-                            # FIXME: Somehow emacs think we're still in the same directory with this.
-                            execEditor.append('"' + newPath + '"')
-                        else:
-                            execEditor.append(newPath)
-                else:
-                    execEditor.append(word)
 
             subprocess.run(args=execEditor)
 
@@ -1471,17 +1467,18 @@ class MainWindow1(Qw.QMainWindow):
             newItem.setScript(f.read())
             f.close()
 
-        newItem.setKey(str(uuid.uuid4()))
+        newItem.setKey(str(self.globalObjectCounter) + ':')
         self.fileItems.append(newItem)
         self.asyfyCanvas()
-        self.globalObjectCounter = max(self.globalObjectCounter, newItem.getMaxKeyCounter())
 
+        self.globalObjectCounter = self.globalObjectCounter + 1
     def softDeleteObj(self, objKey):
         maj, minor = objKey
         drawObj = self.drawObjects[maj][minor]
         item = drawObj.originalObj
         key = drawObj.key
         keyIndex = drawObj.keyIndex
+
 
         item.transfKeymap[key][keyIndex].deleted = True
         # item.asyfied = False

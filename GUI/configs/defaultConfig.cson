@@ -1,10 +1,14 @@
 # Default Options for xasy
 
 # External editor. $asypath will be replaced by the current file. 
-externalEditor: "emacs $asypath"
+externalEditor: "emacs"
+externalEditorArgs: ["-nw", "$asypath"]
 
 # Path to Asymptote executable
 asyPath: "asy"
+
+# Overwrites the ASYMPTOTE_DIR Environment variable if set. Otherwise, leaves asymptote to decide. 
+asyBaseLocation: null
 
 # Show Debugging Information
 showDebug: false
@@ -42,8 +46,10 @@ debugMode: true
 
 # Settings Override for Windows
 windows:
-    externalEditor: "notepad.exe $asypath"
+    externalEditor: "notepad.exe"
+    externalEditorArgs: ["$asypath"]
 
 # Settings Override for Linux
 linux:
-    externalEditor: "emacs $asypath"
+    externalEditor: "emacs"
+    externalEditorArgs: ["-nw", "$asypath"]
