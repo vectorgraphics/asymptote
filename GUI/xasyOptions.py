@@ -32,8 +32,11 @@ except ModuleNotFoundError:
 class xasyOptions:
     def defaultOptions(self):
         if self._defaultOptions is None:
-            with io.open(self._defualtOptLocation) as f:
+            f = io.open(self._defualtOptLocation)
+            try:
                 opt = cson.loads(f.read())
+            finally:
+                f.close()
             self._defaultOptions = opt
         return self._defaultOptions
 
@@ -92,19 +95,19 @@ class xasyOptions:
             if not os.path.isdir(thedir):
                 raise Exception("Configuration folder path does not point to a folder")
             self.setDefaults()
+        f = io.open(fileName, 'r')
         try:
-            with open(fileName, 'r') as f:
-                ext = os.path.splitext(fileName)[1]
-                if ext == '.cson':
-                    if cson is None:
-                        raise ModuleNotFoundError
-                    newOptions = cson.loads(f.read())
-                elif ext in {'.yml', '.yaml'}:
-                    if yaml is None:
-                        raise ModuleNotFoundError
-                    newOptions = yaml.load(f)
-                else:
-                    newOptions = json.loads(f.read())
+            ext = os.path.splitext(fileName)[1]
+            if ext == '.cson':
+                if cson is None:
+                    raise ModuleNotFoundError
+                newOptions = cson.loads(f.read())
+            elif ext in {'.yml', '.yaml'}:
+                if yaml is None:
+                    raise ModuleNotFoundError
+                newOptions = yaml.load(f)
+            else:
+                newOptions = json.loads(f.read())
         except (IOError, ModuleNotFoundError):
             self.setDefaults()
         else:
@@ -114,6 +117,8 @@ class xasyOptions:
                 else:
                     newOptions[key] = self.options[key]
             self.options = newOptions
+        finally:
+            f.close()
 
     def setDefaults(self):
         self.options = self.defaultOptions()

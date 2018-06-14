@@ -2,7 +2,7 @@
 
 # External editor. $asypath will be replaced by the current file. 
 externalEditor: "emacs"
-externalEditorArgs: ["-nw", "$asypath"]
+externalEditorArgs: ["$asypath"]
 
 # Path to Asymptote executable
 asyPath: "asy"
@@ -52,4 +52,4 @@ windows:
 # Settings Override for Linux
 linux:
     externalEditor: "emacs"
-    externalEditorArgs: ["-nw", "$asypath"]
+    externalEditorArgs: ["$asypath"]
