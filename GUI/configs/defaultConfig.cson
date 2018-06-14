@@ -34,8 +34,14 @@ defaultShowAxes: true
 defaultShowGrid: false
 defaultGridSnap: false
 
-# Grid Commands 
+# Draw Selected Objects on top of the frame
 drawSelectedOnTop: true
+
+# Grid Settings
+
+# Use 'ps' or 'asy' to specify Postscript or Asymptote coordinates 
+gridCoordinateScale: 'ps'
+
 gridMajorAxesColor: "#000000"
 gridMinorAxesColor: "#AAAAAA"
 gridMajorAxesSpacing: 100
@@ -47,7 +53,6 @@ debugMode: true
 # Settings Override for Windows
 windows:
     externalEditor: "notepad.exe"
-    externalEditorArgs: ["$asypath"]
 
 # Settings Override for Linux
 linux:

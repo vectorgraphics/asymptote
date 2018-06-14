@@ -198,10 +198,8 @@ class AddBezierShape(InplaceObjProcess):
 
     def finalizeClosure(self):
         if self.active:
-            self._active = False
-            self.basePath.addNode('cycle', self._getLinkType())
-            self.objectCreated.emit(self.getXasyObject())
-            self.basePath = None
+            self.closedPath = True
+            self.forceFinalize()
 
     def mouseRelease(self):
         x, y = self.currentPoint.x(), self.currentPoint.y()
@@ -212,6 +210,9 @@ class AddBezierShape(InplaceObjProcess):
         self.basePath = x2a.asyPath(self.asyengine)
         newNode = [(x, y) for x, y, _ in self.pointsList]
         newLink = [lnk for *args, lnk in self.pointsList[1:]]
+        if self.closedPath:
+            newNode.append('cycle')
+            newLink.append(self._getLinkType())
         self.basePath.initFromNodeList(newNode, newLink)
         self.basePath.computeControls()
 
@@ -219,6 +220,9 @@ class AddBezierShape(InplaceObjProcess):
         self.basePathPreview = x2a.asyPath(self.asyengine)
         newNode = [(x, y) for x, y, _ in self.pointsList] + [(self.currentPoint.x(), self.currentPoint.y())]
         newLink = [lnk for *args, lnk in self.pointsList[1:]] + [self._getLinkType()]
+        if self.closedPath:
+            newNode.append('cycle')
+            newLink.append(self._getLinkType())
         self.basePathPreview.initFromNodeList(newNode, newLink)
         self.basePathPreview.computeControls()
 

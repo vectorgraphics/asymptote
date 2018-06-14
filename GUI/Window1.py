@@ -191,7 +191,7 @@ class MainWindow1(Qw.QMainWindow):
         self.drawObjects = []
         self.xasyDrawObj = {'drawDict': self.drawObjects}
 
-        self.modeButtons = {self.ui.btnTranslate, self.ui.btnRotate, self.ui.btnScale, self.ui.btnSelect,
+        self.modeButtons = {self.ui.btnTranslate, self.ui.btnRotate, self.ui.btnScale, # self.ui.btnSelect,
                             self.ui.btnPan}
         self.objButtons = {self.ui.btnCustTransform, self.ui.actionTransform, self.ui.btnSendForwards,
                            self.ui.btnSendBackwards, self.ui.btnDelete, self.ui.btnToggleVisible
@@ -239,6 +239,11 @@ class MainWindow1(Qw.QMainWindow):
         }
 
         self.hiddenKeys = set()
+
+        # Coordinates Label
+
+        self.coordLabel = Qw.QLabel(self.ui.statusbar)
+        self.ui.statusbar.addPermanentWidget(self.coordLabel)
 
         # Settings Initialization
         # from xasyoptions config file
@@ -350,7 +355,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnTranslate.clicked.connect(self.btnTranslateonClick)
         self.ui.btnRotate.clicked.connect(self.btnRotateOnClick)
         self.ui.btnScale.clicked.connect(self.btnScaleOnClick)
-        self.ui.btnSelect.clicked.connect(self.btnSelectOnClick)
+        # self.ui.btnSelect.clicked.connect(self.btnSelectOnClick)
         self.ui.btnPan.clicked.connect(self.btnPanOnClick)
 
         # self.ui.btnDebug.clicked.connect(self.pauseBtnOnClick)
@@ -878,11 +883,13 @@ class MainWindow1(Qw.QMainWindow):
 
     def mouseMoveEvent(self, mouseEvent):  # TODO: Actually refine grid snapping...
         assert isinstance(mouseEvent, Qg.QMouseEvent)
-        # print(self.ui.imgLabel.underMouse())
         if not self.ui.imgLabel.underMouse():
             return 
 
         asyPos, canvasPos = self.getAsyCoordinates()
+
+        self.coordLabel.setText('Mouse: {0:.2f}, {1:.2f}\t'.format(
+            canvasPos.x(), canvasPos.y()))
 
         # add mode 
         if self.addMode is not None:
@@ -1396,8 +1403,8 @@ class MainWindow1(Qw.QMainWindow):
             activeBtn = self.ui.btnScale
         elif self.currentMode == SelectionMode.pan:
             activeBtn = self.ui.btnPan
-        elif self.currentMode == SelectionMode.select:
-            activeBtn = self.ui.btnSelect
+        # elif self.currentMode == SelectionMode.select:
+            # activeBtn = self.ui.btnSelect
         else:
             activeBtn = None
 
