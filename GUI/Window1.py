@@ -382,7 +382,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnDelete.clicked.connect(self.btnSelectiveDeleteOnClick)
         # self.ui.btnSoftDelete.clicked.connect(self.btnSoftDeleteOnClick)
         self.ui.btnToggleVisible.clicked.connect(self.btnSetVisibilityOnClick)
-
+        
         self.ui.btnEnterCommand.clicked.connect(self.btnTerminalCommandOnClick)
         self.ui.btnTogglePython.clicked.connect(self.btnTogglePythonOnClick)
 
@@ -1059,6 +1059,10 @@ class MainWindow1(Qw.QMainWindow):
                 self.currentAnchor = self.currentBoundingBox.bottomLeft()  # due to internal image being flipped
             elif self.anchorMode == AnchorMode.topRight:
                 self.currentAnchor = self.currentBoundingBox.bottomRight()
+            elif self.anchorMode == AnchorMode.bottomLeft:
+                self.currentAnchor = self.currentBoundingBox.topLeft()
+            elif self.anchorMode == AnchorMode.bottomRight:
+                self.currentAnchor = self.currentBoundingBox.topRight()
             elif self.anchorMode == AnchorMode.customAnchor:
                 self.currentAnchor = self.customAnchor
             else:
