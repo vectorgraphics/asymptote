@@ -38,9 +38,12 @@ class ActionChanges:
     pass
 
 
+# State Invariance: When ActionChanges is at the top, all state of the program & file
+# is exactly like what it was the event right after that ActionChanges was created.
+
 class TransformationChanges(ActionChanges):
-    def __init__(self, objKey, transformation, isLocal=False):
-        self.objKey = objKey
+    def __init__(self, objIndex, transformation, isLocal=False):
+        self.objIndex = objIndex
         self.transformation = transformation
         self.isLocal = isLocal
 
@@ -49,6 +52,10 @@ class ObjCreationChanges(ActionChanges):
     def __init__(self, obj):
         self.object = obj
 
+class HardDeletionChanges(ActionChanges):
+    def __init__(self, obj, pos):
+        self.item = obj
+        self.objIndex = pos
 
 class AnchorMode:
     origin = 0
@@ -141,7 +148,7 @@ class MainWindow1(Qw.QMainWindow):
         self.magnification = self.args.mag
         self.inMidTransformation = False
         self.addMode = None
-        self.currentlySelectedObj = {'key': None, 'allSameKey': set(), 'selectedKey': None}
+        self.currentlySelectedObj = {'key': None, 'allSameKey': set(), 'selectedIndex': None, 'keyIndex': None}
         self.pendingSelectedObjList = [] 
         self.pendingSelectedObjIndex = -1
         
@@ -526,14 +533,14 @@ class MainWindow1(Qw.QMainWindow):
         self.previewCurve = newCurve
         self.quickUpdate()
 
-    def addTransformationChanges(self, objKey, transform, isLocal=False):
-        self.undoRedoStack.add(self.createAction(TransformationChanges(objKey,
+    def addTransformationChanges(self, objIndex, transform, isLocal=False):
+        self.undoRedoStack.add(self.createAction(TransformationChanges(objIndex, 
                             transform, isLocal)))
         self.checkUndoRedoButtons()
 
     def btnSendForwardsOnClick(self):
-        if self.currentlySelectedObj['selectedKey'] is not None:
-            maj, minor = self.currentlySelectedObj['selectedKey']
+        if self.currentlySelectedObj['selectedIndex'] is not None:
+            maj, minor = self.currentlySelectedObj['selectedIndex']
             selectedObj = self.drawObjects[maj][minor]
             index = self.fileItems.index(selectedObj.parent())
 
@@ -545,8 +552,8 @@ class MainWindow1(Qw.QMainWindow):
                 self.asyfyCanvas()
 
     def btnSelectiveDeleteOnClick(self):
-        if self.currentlySelectedObj['selectedKey'] is not None:
-            maj, minor = self.currentlySelectedObj['selectedKey']
+        if self.currentlySelectedObj['selectedIndex'] is not None:
+            maj, minor = self.currentlySelectedObj['selectedIndex']
             selectedObj = self.drawObjects[maj][minor]
 
             parent = selectedObj.parent()
@@ -555,14 +562,21 @@ class MainWindow1(Qw.QMainWindow):
                 self.hiddenKeys.add((selectedObj.key, selectedObj.keyIndex))
                 self.softDeleteObj((maj, minor))
             else:
+                index = self.fileItems.index(selectedObj.parent())
+
+                self.undoRedoStack.add(self.createAction(
+                    HardDeletionChanges(selectedObj.parent(), index)
+                ))
+                self.checkUndoRedoButtons()
+                
                 self.fileItems.remove(selectedObj.parent())
 
             self.clearSelection()
             self.asyfyCanvas()
 
     def btnSetVisibilityOnClick(self):
-        if self.currentlySelectedObj['selectedKey'] is not None:
-            maj, minor = self.currentlySelectedObj['selectedKey']
+        if self.currentlySelectedObj['selectedIndex'] is not None:
+            maj, minor = self.currentlySelectedObj['selectedIndex']
             selectedObj = self.drawObjects[maj][minor]
 
             self.hiddenKeys.symmetric_difference_update({(selectedObj.key, selectedObj.keyIndex)})
@@ -570,8 +584,8 @@ class MainWindow1(Qw.QMainWindow):
             self.quickUpdate()
 
     def btnSendBackwardsOnClick(self):
-        if self.currentlySelectedObj['selectedKey'] is not None:
-            maj, minor = self.currentlySelectedObj['selectedKey']
+        if self.currentlySelectedObj['selectedIndex'] is not None:
+            maj, minor = self.currentlySelectedObj['selectedIndex']
             selectedObj = self.drawObjects[maj][minor]
             index = self.fileItems.index(selectedObj.parent())
 
@@ -609,18 +623,23 @@ class MainWindow1(Qw.QMainWindow):
     def handleUndoChanges(self, change):
         assert isinstance(change, ActionChanges)
         if isinstance(change, TransformationChanges):
-            self.transformObject(change.objKey, change.transformation.inverted(), change.isLocal)
+            self.transformObject(change.objIndex, change.transformation.inverted(), change.isLocal)
         elif isinstance(change, ObjCreationChanges):
             pass  # for now, until we implement a remove object/add object. This will be trivial
-        self.quickUpdate()
+        elif isinstance(change, HardDeletionChanges):
+            self.fileItems.insert(change.objIndex, change.item)
+        self.asyfyCanvas()
 
     def handleRedoChanges(self, change):
         assert isinstance(change, ActionChanges)
         if isinstance(change, TransformationChanges):
-            self.transformObject(change.objKey, change.transformation, change.isLocal)
+            self.transformObject(
+                 change.objIndex, change.transformation, change.isLocal)
         elif isinstance(change, ObjCreationChanges):
             pass  # for now, until we implement a remove/add method. By then, this will be trivial.
-        self.quickUpdate()
+        elif isinstance(change, HardDeletionChanges):
+            self.fileItems.remove(change.item)
+        self.asyfyCanvas()
 
     #  is this a "pythonic" way?
     def createAction(self, changes):
@@ -938,9 +957,9 @@ class MainWindow1(Qw.QMainWindow):
 
         # otherwise, select a candinate for selection
 
-        if self.currentlySelectedObj['selectedKey'] is None:
-            selectedKey, selKeyList = self.selectObject()
-            if selectedKey is not None:
+        if self.currentlySelectedObj['selectedIndex'] is None:
+            selectedIndex, selKeyList = self.selectObject()
+            if selectedIndex is not None:
                 if self.pendingSelectedObjList != selKeyList:
                     self.pendingSelectedObjList = selKeyList
                     self.pendingSelectedObjIndex = -1
@@ -961,10 +980,10 @@ class MainWindow1(Qw.QMainWindow):
         self.quickUpdate()
 
     def clearSelection(self):
-        if self.currentlySelectedObj['selectedKey'] is not None:
+        if self.currentlySelectedObj['selectedIndex'] is not None:
             self.releaseTransform()
         self.setAllInSetEnabled(self.objButtons, False)
-        self.currentlySelectedObj['selectedKey'] = None
+        self.currentlySelectedObj['selectedIndex'] = None
         self.currentlySelectedObj['key'] = None
 
         self.currentlySelectedObj['allSameKey'].clear()
@@ -1010,7 +1029,7 @@ class MainWindow1(Qw.QMainWindow):
             return
 
         if self.pendingSelectedObjList:
-            selectedKey = self.pendingSelectedObjList[self.pendingSelectedObjIndex]
+            selectedIndex = self.pendingSelectedObjList[self.pendingSelectedObjIndex]
             self.pendingSelectedObjList.clear()
             if self.currentMode in {SelectionMode.translate, SelectionMode.rotate, SelectionMode.scale}:
                 self.setAllInSetEnabled(self.objButtons, False)
@@ -1019,9 +1038,9 @@ class MainWindow1(Qw.QMainWindow):
                 self.setAllInSetEnabled(self.objButtons, True)
                 self.inMidTransformation = False
 
-            maj, minor = selectedKey
+            maj, minor = selectedIndex
 
-            self.currentlySelectedObj['selectedKey'] = selectedKey
+            self.currentlySelectedObj['selectedIndex'] = selectedIndex
             self.currentlySelectedObj['key'],  self.currentlySelectedObj['allSameKey'] = self.selectObjectSet()
 
             self.currentBoundingBox = self.drawObjects[maj][minor].boundingBox
@@ -1050,7 +1069,7 @@ class MainWindow1(Qw.QMainWindow):
                 # TODO: Record base points/bbox before hand and use that for
                 # anchor?
                 # adjTransform =
-                # self.drawObjects[selectedKey].transform.toQTransform()
+                # self.drawObjects[selectedIndex].transform.toQTransform()
                 # self.currentAnchor = adjTransform.map(self.currentAnchor)
 
         else:
@@ -1064,7 +1083,7 @@ class MainWindow1(Qw.QMainWindow):
         if self.newTransform.isIdentity():
             return
         newTransform = x2a.asyTransform.fromQTransform(self.newTransform)
-        objKey = self.currentlySelectedObj['selectedKey']
+        objKey = self.currentlySelectedObj['selectedIndex']
         self.addTransformationChanges(objKey, newTransform, not self.useGlobalCoords)
         self.transformObject(objKey, newTransform, not self.useGlobalCoords)
 
@@ -1119,7 +1138,7 @@ class MainWindow1(Qw.QMainWindow):
             return None, []
 
     def selectObjectSet(self):
-        objKey = self.currentlySelectedObj['selectedKey']
+        objKey = self.currentlySelectedObj['selectedIndex']
         if objKey is None:
             return set()
         assert isinstance(objKey, (tuple, list)) and len(objKey) == 2
@@ -1191,8 +1210,8 @@ class MainWindow1(Qw.QMainWindow):
                 if (item.key, item.keyIndex) in self.hiddenKeys:
                     continue
                 isSelected = item.key == self.currentlySelectedObj['key']
-                if not self.selectAsGroup and isSelected and self.currentlySelectedObj['selectedKey'] is not None:
-                    maj, min_ = self.currentlySelectedObj['selectedKey']
+                if not self.selectAsGroup and isSelected and self.currentlySelectedObj['selectedIndex'] is not None:
+                    maj, min_ = self.currentlySelectedObj['selectedIndex']
                     isSelected = isSelected and item is self.drawObjects[maj][min_]
                 if isSelected and self.settings['enableImmediatePreview']:
                     activeItem = item
@@ -1326,9 +1345,9 @@ class MainWindow1(Qw.QMainWindow):
         self.postCanvasPixmap.fill(Qc.Qt.transparent)
         with Qg.QPainter(self.postCanvasPixmap) as postCanvas:
             postCanvas.setTransform(self.screenTransformation)
-            if self.currentBoundingBox is not None and self.currentlySelectedObj['selectedKey'] is not None:
+            if self.currentBoundingBox is not None and self.currentlySelectedObj['selectedIndex'] is not None:
                 postCanvas.save()
-                maj, minor = self.currentlySelectedObj['selectedKey']
+                maj, minor = self.currentlySelectedObj['selectedIndex']
                 selObj = self.drawObjects[maj][minor]
                 if not self.useGlobalCoords:
                     postCanvas.save()
@@ -1445,7 +1464,7 @@ class MainWindow1(Qw.QMainWindow):
         matrixDialog.show()
         result = matrixDialog.exec_()
         if result == Qw.QDialog.Accepted:
-            objKey = self.currentlySelectedObj['selectedKey']
+            objKey = self.currentlySelectedObj['selectedIndex']
             self.transformObject(objKey,
                 matrixDialog.getTransformationMatrix(), not
                 self.useGlobalCoords)
@@ -1508,14 +1527,16 @@ class MainWindow1(Qw.QMainWindow):
         item.transfKeymap[key][keyIndex].deleted = True
         # item.asyfied = False
 
-
-    def transformObject(self, objKey, transform, applyFirst=False):
-        maj, minor = objKey
+    def getSelectedObjInfo(self, objIndex):
+        maj, minor = objIndex
         drawObj = self.drawObjects[maj][minor]
         item = drawObj.originalObj
         key = drawObj.key
         keyIndex = drawObj.keyIndex
 
+        return item, key, keyIndex
+
+    def transformObjKey(self, item, key, keyIndex, transform, applyFirst=False, drawObj=None):
         if isinstance(transform, np.ndarray):
             obj_transform = x2a.asyTransform.fromNumpyMatrix(transform)
         elif isinstance(transform, Qg.QTransform):
@@ -1530,14 +1551,17 @@ class MainWindow1(Qw.QMainWindow):
             invmag = 1/self.magnification
             mag = self.magnification
             obj_transform = x2a.asyTransform((0, 0, invmag, 0, 0, invmag)) * obj_transform * \
-                            x2a.asyTransform((0, 0, mag, 0, 0, mag))
+                x2a.asyTransform((0, 0, mag, 0, 0, mag))
 
         if not applyFirst:
-            item.transfKeymap[key][keyIndex] = obj_transform * item.transfKeymap[key][keyIndex]
-            drawObj.transform = scr_transform * drawObj.transform
+            item.transfKeymap[key][keyIndex] = obj_transform * \
+                item.transfKeymap[key][keyIndex]
+            if drawObj is not None:
+                drawObj.transform = scr_transform * drawObj.transform
         else:
             item.transfKeymap[key][keyIndex] = item.transfKeymap[key][keyIndex] * obj_transform
-            drawObj.transform = drawObj.transform * scr_transform
+            if drawObj is not None:
+                drawObj.transform = drawObj.transform * scr_transform
 
         if self.selectAsGroup:
             for (maj2, min2) in self.currentlySelectedObj['allSameKey']:
@@ -1546,13 +1570,20 @@ class MainWindow1(Qw.QMainWindow):
                 obj = self.drawObjects[maj2][min2]
                 newIndex = obj.keyIndex
                 if not applyFirst:
-                    item.transfKeymap[key][newIndex] = obj_transform * item.transfKeymap[key][newIndex]
+                    item.transfKeymap[key][newIndex] = obj_transform * \
+                        item.transfKeymap[key][newIndex]
                     obj.transform = scr_transform * obj.transform
                 else:
                     item.transfKeymap[key][newIndex] = item.transfKeymap[key][newIndex] * obj_transform
                     obj.transform = obj.transform * scr_transform
 
         self.quickUpdate()
+
+    def transformObject(self, objKey, transform, applyFirst=False):
+        maj, minor = objKey
+        drawObj = self.drawObjects[maj][minor]
+        item, key, keyIndex = self.getSelectedObjInfo(objKey)
+        self.transformObjKey(item, key, keyIndex, transform, applyFirst, drawObj)
 
     def initializeEmptyFile(self):
         pass

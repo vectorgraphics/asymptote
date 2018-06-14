@@ -1,3 +1,3 @@
 keepFiles = False
-printFoutTranscript = True
-printDeconstTranscript = True
+printFoutTranscript = False
+printDeconstTranscript = False
