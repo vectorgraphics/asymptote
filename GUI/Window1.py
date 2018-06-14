@@ -78,6 +78,7 @@ class SelectionMode:
     translate = 2
     rotate = 3
     scale = 4
+    delete = 5
 
 
 class AddObjectMode:
@@ -194,7 +195,7 @@ class MainWindow1(Qw.QMainWindow):
         self.modeButtons = {self.ui.btnTranslate, self.ui.btnRotate, self.ui.btnScale, # self.ui.btnSelect,
                             self.ui.btnPan}
         self.objButtons = {self.ui.btnCustTransform, self.ui.actionTransform, self.ui.btnSendForwards,
-                           self.ui.btnSendBackwards, self.ui.btnDelete, self.ui.btnToggleVisible
+                           self.ui.btnSendBackwards, self.ui.btnToggleVisible
                            }
 
         self.globalTransformOnlyButtons = (self.ui.comboAnchor, self.ui.btnAnchor)
@@ -384,12 +385,19 @@ class MainWindow1(Qw.QMainWindow):
 
         self.ui.btnSendBackwards.clicked.connect(self.btnSendBackwardsOnClick)
         self.ui.btnSendForwards.clicked.connect(self.btnSendForwardsOnClick)
-        self.ui.btnDelete.clicked.connect(self.btnSelectiveDeleteOnClick)
+        # self.ui.btnDelete.clicked.connect(self.btnSelectiveDeleteOnClick)
+        self.ui.btnDeleteMode.clicked.connect(self.btnDeleteModeOnClick)
         # self.ui.btnSoftDelete.clicked.connect(self.btnSoftDeleteOnClick)
         self.ui.btnToggleVisible.clicked.connect(self.btnSetVisibilityOnClick)
         
         self.ui.btnEnterCommand.clicked.connect(self.btnTerminalCommandOnClick)
         self.ui.btnTogglePython.clicked.connect(self.btnTogglePythonOnClick)
+
+    def btnDeleteModeOnClick(self):
+        self.currentMode = SelectionMode.delete
+        self.ui.statusbar.showMessage('Delete Mode')
+        self.clearSelection()
+        self.updateChecks()
 
     def btnTerminalCommandOnClick(self):
         if self.terminalPythonMode:
@@ -1072,6 +1080,9 @@ class MainWindow1(Qw.QMainWindow):
             if self.currentMode in {SelectionMode.translate, SelectionMode.rotate, SelectionMode.scale}:
                 self.setAllInSetEnabled(self.objButtons, False)
                 self.inMidTransformation = True
+            elif self.currentMode == SelectionMode.delete:
+                self.btnSelectiveDeleteOnClick()
+                return
             else:
                 self.setAllInSetEnabled(self.objButtons, True)
                 self.inMidTransformation = False
