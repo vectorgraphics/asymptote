@@ -185,6 +185,7 @@ class MainWindow1(Qw.QMainWindow):
         self.preCanvasPixmap = None
         self.postCanvasPixmap = None
         self.previewCurve = None
+        self.mouseDown = False
 
         self.globalObjectCounter = 0
 
@@ -895,7 +896,8 @@ class MainWindow1(Qw.QMainWindow):
 
     def mouseMoveEvent(self, mouseEvent):  # TODO: Actually refine grid snapping...
         assert isinstance(mouseEvent, Qg.QMouseEvent)
-        if not self.ui.imgLabel.underMouse():
+
+        if not self.ui.imgLabel.underMouse() and not self.mouseDown:
             return 
 
         asyPos, canvasPos = self.getAsyCoordinates()
@@ -991,7 +993,11 @@ class MainWindow1(Qw.QMainWindow):
 
 
     def mouseReleaseEvent(self, mouseEvent):
-        assert isinstance(mouseEvent, Qg.QMouseEvent)
+        assert isinstance(mouseEvent, Qg.QMouseEvent) 
+        if not self.mouseDown:
+            return
+
+        self.mouseDown = False
         if self.addMode is not None:
             self.addMode.mouseRelease()
         if self.inMidTransformation:
@@ -1057,9 +1063,16 @@ class MainWindow1(Qw.QMainWindow):
             return False
 
     def mousePressEvent(self, mouseEvent):
-        if not self.ui.imgLabel.underMouse():
+        # we make an exception for bezier curve
+        bezierException = False
+        if self.addMode is not None:
+            if self.addMode.active and isinstance(self.addMode, InplaceAddObj.AddBezierShape):
+                bezierException = True
+                
+        if not self.ui.imgLabel.underMouse() and not bezierException:
             return
 
+        self.mouseDown = True
         asyPos, self.savedMousePosition = self.getAsyCoordinates()
 
         if self.addMode is not None:
@@ -1191,7 +1204,7 @@ class MainWindow1(Qw.QMainWindow):
         return rawKey, rawSet
 
     def getCanvasCoordinates(self):
-        assert self.ui.imgLabel.underMouse()
+        # assert self.ui.imgLabel.underMouse()
         uiPos = self.mapFromGlobal(Qg.QCursor.pos())
         canvasPos = self.ui.imgLabel.mapFrom(self, uiPos)
 
@@ -1199,7 +1212,7 @@ class MainWindow1(Qw.QMainWindow):
         return canvasPos * self.screenTransformation.inverted()[0]
 
     def getWindowCoordinates(self):
-        assert self.ui.imgLabel.underMouse()
+        # assert self.ui.imgLabel.underMouse()
         return self.mapFromGlobal(Qg.QCursor.pos())
     # def rotateBtnOnClick(self):
     #     theta = float(self.ui.txtTheta.toPlainText())
