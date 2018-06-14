@@ -12,3 +12,4 @@ finalizeCurve: "f"
 finalizeCurveClosed: "c"
 cancelCurve: "a"
 
+anchorMode: "Ctrl+A"

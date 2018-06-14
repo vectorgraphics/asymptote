@@ -79,7 +79,7 @@ class SelectionMode:
     rotate = 3
     scale = 4
     delete = 5
-
+    setAnchor = 6
 
 class AddObjectMode:
     Circle = 0
@@ -194,7 +194,7 @@ class MainWindow1(Qw.QMainWindow):
         self.xasyDrawObj = {'drawDict': self.drawObjects}
 
         self.modeButtons = {self.ui.btnTranslate, self.ui.btnRotate, self.ui.btnScale, # self.ui.btnSelect,
-                            self.ui.btnPan}
+                            self.ui.btnPan, self.ui.btnDeleteMode, self.ui.btnAnchor}
         self.objButtons = {self.ui.btnCustTransform, self.ui.actionTransform, self.ui.btnSendForwards,
                            self.ui.btnSendBackwards, self.ui.btnToggleVisible
                            }
@@ -213,8 +213,7 @@ class MainWindow1(Qw.QMainWindow):
             'closedPath': False,
             'useBezier': True
         }
-
-        self.currentMode = SelectionMode.translate
+        self.currentModeStack = [SelectionMode.translate]
         self.drawGridMode = GridMode.cartesian
         self.setAllInSetEnabled(self.objButtons, False)
         self._currentPen = x2a.asyPen()
@@ -237,7 +236,8 @@ class MainWindow1(Qw.QMainWindow):
             'finalizeCurve': self.finalizeCurve, 
             'finalizeCurveClosed': self.finalizeCurveClosed, 
             'setMag': self.setMagPrompt,
-            'deleteObject': self.btnSelectiveDeleteOnClick
+            'deleteObject': self.btnSelectiveDeleteOnClick, 
+            'anchorMode': self.switchToAnchorMode
         }
 
         self.hiddenKeys = set()
@@ -368,7 +368,8 @@ class MainWindow1(Qw.QMainWindow):
 
         self.ui.btnCustTransform.clicked.connect(self.btnCustTransformOnClick)
         self.ui.btnViewCode.clicked.connect(self.btnLoadEditorOnClick)
-        self.ui.btnAnchor.clicked.connect(self.btnCustomAnchorOnClick)
+
+        self.ui.btnAnchor.clicked.connect(self.btnAnchorModeOnClick)
 
         self.ui.btnSelectColor.clicked.connect(self.btnColorSelectOnClick)
         self.ui.txtLineWidth.textEdited.connect(self.txtLineWithEdited)
@@ -395,7 +396,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnTogglePython.clicked.connect(self.btnTogglePythonOnClick)
 
     def btnDeleteModeOnClick(self):
-        self.currentMode = SelectionMode.delete
+        self.currentModeStack = [SelectionMode.delete]
         self.ui.statusbar.showMessage('Delete Mode')
         self.clearSelection()
         self.updateChecks()
@@ -913,7 +914,7 @@ class MainWindow1(Qw.QMainWindow):
             return
 
         # pan mode
-        if self.currentMode == SelectionMode.pan and int(mouseEvent.buttons()) and self.savedWindowMousePos is not None:
+        if self.currentModeStack[-1] == SelectionMode.pan and int(mouseEvent.buttons()) and self.savedWindowMousePos is not None:
             mousePos = self.getWindowCoordinates()
             newPos = mousePos - self.savedWindowMousePos
             tx, ty = newPos.x(), newPos.y()
@@ -928,7 +929,7 @@ class MainWindow1(Qw.QMainWindow):
 
         # otherwise, in transformation 
         if self.inMidTransformation:
-            if self.currentMode == SelectionMode.translate:
+            if self.currentModeStack[-1] == SelectionMode.translate:
                 newPos = canvasPos - self.savedMousePosition
                 if self.gridSnap:
                     newPos = self.roundPositionSnap(newPos)  # actually round to the nearest minor grid afterwards...
@@ -941,7 +942,7 @@ class MainWindow1(Qw.QMainWindow):
                     self.ty = 0
                 self.newTransform = Qg.QTransform.fromTranslate(self.tx, self.ty)
 
-            elif self.currentMode == SelectionMode.rotate:
+            elif self.currentModeStack[-1] == SelectionMode.rotate:
                 if self.gridSnap:
                     canvasPos = self.roundPositionSnap(canvasPos)
 
@@ -953,7 +954,7 @@ class MainWindow1(Qw.QMainWindow):
                 self.deltaAngle = newAng - origAngle
                 self.newTransform = xT.makeRotTransform(self.deltaAngle, self.currentAnchor).toQTransform()
 
-            elif self.currentMode == SelectionMode.scale:
+            elif self.currentModeStack[-1] == SelectionMode.scale:
                 if self.gridSnap:
                     canvasPos = self.roundPositionSnap(canvasPos)
                     x, y = int(round(canvasPos.x())), int(round(canvasPos.y()))  # otherwise it crashes...
@@ -1079,9 +1080,16 @@ class MainWindow1(Qw.QMainWindow):
             self.addMode.mouseDown(asyPos, self.currAddOptions)
             return
 
-        if self.currentMode == SelectionMode.pan:
+        if self.currentModeStack[-1] == SelectionMode.pan:
             self.savedWindowMousePos = self.getWindowCoordinates()
             self.currScreenTransform = self.screenTransformation * Qg.QTransform()
+            return
+
+        if self.currentModeStack[-1] == SelectionMode.setAnchor:
+            self.customAnchor = self.savedMousePosition
+            self.currentModeStack.pop()
+            self.updateChecks()
+            self.quickUpdate()
             return
 
         if self.inMidTransformation:
@@ -1090,10 +1098,10 @@ class MainWindow1(Qw.QMainWindow):
         if self.pendingSelectedObjList:
             self.selectOnHover()
 
-            if self.currentMode in {SelectionMode.translate, SelectionMode.rotate, SelectionMode.scale}:
+            if self.currentModeStack[-1] in {SelectionMode.translate, SelectionMode.rotate, SelectionMode.scale}:
                 self.setAllInSetEnabled(self.objButtons, False)
                 self.inMidTransformation = True
-            elif self.currentMode == SelectionMode.delete:
+            elif self.currentModeStack[-1] == SelectionMode.delete:
                 self.btnSelectiveDeleteOnClick()
                 return
             else:
@@ -1392,57 +1400,81 @@ class MainWindow1(Qw.QMainWindow):
                 guide.drawShape(preCanvas)
         # preCanvas.end()
 
+    def drawAddModePreview(self, painter):
+        if self.addMode is not None:
+            if self.addMode.active and self.addMode.getPreview() is not None:
+                if self.magnification != 1:
+                    assert self.magnification != 0
+                    painter.save()
+                    painter.scale(self.magnification, self.magnification)
+                painter.setPen(self.currentPen.toQPen())
+                painter.drawPath(self.addMode.getPreview())
+                if self.magnification != 1:
+                    painter.restore()
+
+    def drawTransformPreview(self, painter):
+        if self.currentBoundingBox is not None and self.currentlySelectedObj['selectedIndex'] is not None:
+            painter.save()
+            maj, minor = self.currentlySelectedObj['selectedIndex']
+            selObj = self.drawObjects[maj][minor]
+            if not self.useGlobalCoords:
+                painter.save()
+                painter.setTransform(
+                    selObj.transform.toQTransform(), True)
+                # painter.setTransform(selObj.baseTransform.toQTransform(), True)
+                painter.setPen(Qc.Qt.gray)
+                painter.drawLine(Qc.QLine(-9999, 0, 9999, 0))
+                painter.drawLine(Qc.QLine(0, -9999, 0, 9999))
+                painter.setPen(Qc.Qt.black)
+                painter.restore()
+
+                painter.setTransform(selObj.getInteriorScrTransform(
+                    self.newTransform).toQTransform(), True)
+                painter.drawRect(selObj.localBoundingBox)
+            else:
+                painter.setTransform(self.newTransform, True)
+                painter.drawRect(self.currentBoundingBox)
+            painter.restore()
+
     def postDraw(self):
         self.postCanvasPixmap.fill(Qc.Qt.transparent)
         with Qg.QPainter(self.postCanvasPixmap) as postCanvas:
             postCanvas.setTransform(self.screenTransformation)
-            if self.currentBoundingBox is not None and self.currentlySelectedObj['selectedIndex'] is not None:
-                postCanvas.save()
-                maj, minor = self.currentlySelectedObj['selectedIndex']
-                selObj = self.drawObjects[maj][minor]
-                if not self.useGlobalCoords:
-                    postCanvas.save()
-                    postCanvas.setTransform(selObj.transform.toQTransform(), True)
-                    # postCanvas.setTransform(selObj.baseTransform.toQTransform(), True)
-                    postCanvas.setPen(Qc.Qt.gray)
-                    postCanvas.drawLine(Qc.QLine(-9999, 0, 9999, 0))
-                    postCanvas.drawLine(Qc.QLine(0, -9999, 0, 9999))
-                    postCanvas.setPen(Qc.Qt.black)
-                    postCanvas.restore()
 
-                    postCanvas.setTransform(selObj.getInteriorScrTransform(self.newTransform).toQTransform(), True)
-                    postCanvas.drawRect(selObj.localBoundingBox)
-                else:
-                    postCanvas.setTransform(self.newTransform, True)
-                    postCanvas.drawRect(self.currentBoundingBox)
-                postCanvas.restore()
+            self.drawTransformPreview(postCanvas)
+
             if self.pendingSelectedObjList:
                 maj, minor = self.pendingSelectedObjList[self.pendingSelectedObjIndex]
                 postCanvas.drawRect(self.drawObjects[maj][minor].boundingBox)
             if self.previewCurve is not None:
                 postCanvas.drawPath(self.previewCurve)
-            if self.addMode is not None:
-                if self.addMode.active and self.addMode.getPreview() is not None:
-                    if self.magnification != 1:
-                        assert self.magnification != 0
-                        postCanvas.save()
-                        postCanvas.scale(self.magnification, self.magnification)
-                    postCanvas.setPen(self.currentPen.toQPen())
-                    postCanvas.drawPath(self.addMode.getPreview())
-                    if self.magnification != 1:
-                        postCanvas.restore()
+            self.drawAddModePreview(postCanvas)
+
+            if self.customAnchor is not None:
+                self.drawAnchorCursor(postCanvas)
+
+    def drawAnchorCursor(self, painter):
+        painter.drawEllipse(self.customAnchor, 6, 6)
+        newCirclePath = Qg.QPainterPath()
+        newCirclePath.addEllipse(self.customAnchor, 2, 2)
+
+        painter.fillPath(newCirclePath, Qg.QColor.fromRgb(0, 0, 0))
 
     def updateChecks(self):
         self.addMode = None
-        if self.currentMode == SelectionMode.translate:
+        if self.currentModeStack[-1] == SelectionMode.translate:
             activeBtn = self.ui.btnTranslate
-        elif self.currentMode == SelectionMode.rotate:
+        elif self.currentModeStack[-1] == SelectionMode.rotate:
             activeBtn = self.ui.btnRotate
-        elif self.currentMode == SelectionMode.scale:
+        elif self.currentModeStack[-1] == SelectionMode.scale:
             activeBtn = self.ui.btnScale
-        elif self.currentMode == SelectionMode.pan:
+        elif self.currentModeStack[-1] == SelectionMode.pan:
             activeBtn = self.ui.btnPan
-        # elif self.currentMode == SelectionMode.select:
+        elif self.currentModeStack[-1] == SelectionMode.setAnchor:
+            activeBtn = self.ui.btnAnchor
+        elif self.currentModeStack[-1] == SelectionMode.delete:
+            activeBtn = self.ui.btnDeleteMode
+        # elif self.currentModeStack[-1] == SelectionMode.select:
             # activeBtn = self.ui.btnSelect
         else:
             activeBtn = None
@@ -1465,31 +1497,37 @@ class MainWindow1(Qw.QMainWindow):
             self.lockY = False
             self.ui.btnAlignX.setChecked(False)
 
+    def btnAnchorModeOnClick(self):
+        if self.currentModeStack[-1] != SelectionMode.setAnchor:
+            self.currentModeStack.append(SelectionMode.setAnchor)
+            self.updateChecks()
+
+    def switchToAnchorMode(self):
+        if self.currentModeStack[-1] != SelectionMode.setAnchor:
+            self.currentModeStack.append(SelectionMode.setAnchor)
+            self.updateChecks()
+
     def btnTranslateonClick(self):
-        self.currentMode = SelectionMode.translate
+        self.currentModeStack = [SelectionMode.translate]
         self.ui.statusbar.showMessage('Translate Mode')
         self.clearSelection()
         self.updateChecks()
 
     def btnRotateOnClick(self):
-        self.currentMode = SelectionMode.rotate
+        self.currentModeStack = [SelectionMode.rotate]
         self.ui.statusbar.showMessage('Rotate Mode')
         self.clearSelection()
         self.updateChecks()
 
     def btnScaleOnClick(self):
-        self.currentMode = SelectionMode.scale
+        self.currentModeStack = [SelectionMode.scale]
         self.ui.statusbar.showMessage('Scale Mode')
         self.clearSelection()
         self.updateChecks()
 
     def btnPanOnClick(self):
-        self.currentMode = SelectionMode.pan
+        self.currentModeStack = [SelectionMode.pan]
         self.clearSelection()
-        self.updateChecks()
-
-    def btnSelectOnClick(self):
-        self.currentMode = SelectionMode.select
         self.updateChecks()
 
     def btnWorldCoordsOnClick(self, checked):
