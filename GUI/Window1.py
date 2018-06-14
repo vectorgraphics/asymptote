@@ -578,6 +578,10 @@ class MainWindow1(Qw.QMainWindow):
 
             self.clearSelection()
             self.asyfyCanvas()
+        else:
+            result = self.selectOnHover()
+            if result:
+                self.btnSelectiveDeleteOnClick()
 
     def btnSetVisibilityOnClick(self):
         if self.currentlySelectedObj['selectedIndex'] is not None:
@@ -1018,6 +1022,32 @@ class MainWindow1(Qw.QMainWindow):
         elif rawAngle <= -15:
             self.changeSelection(-1)
 
+    def selectOnHover(self):
+        """Returns True if selection happened, False otherwise.
+        """
+        if self.pendingSelectedObjList:
+            selectedIndex = self.pendingSelectedObjList[self.pendingSelectedObjIndex]
+            self.pendingSelectedObjList.clear()
+
+            maj, minor = selectedIndex
+
+            self.currentlySelectedObj['selectedIndex'] = selectedIndex
+            self.currentlySelectedObj['key'],  self.currentlySelectedObj['allSameKey'] = self.selectObjectSet(
+            )
+
+            self.currentBoundingBox = self.drawObjects[maj][minor].boundingBox
+
+            if self.selectAsGroup:
+                for selItems in self.currentlySelectedObj['allSameKey']:
+                    obj = self.drawObjects[selItems[0]][selItems[1]]
+                    self.currentBoundingBox = self.currentBoundingBox.united(obj.boundingBox)
+
+            self.origBboxTransform = self.drawObjects[maj][minor].transform.toQTransform()
+            self.newTransform = Qg.QTransform()
+            return True
+        else:
+            return False
+
     def mousePressEvent(self, mouseEvent):
         if not self.ui.imgLabel.underMouse():
             return
@@ -1037,29 +1067,14 @@ class MainWindow1(Qw.QMainWindow):
             return
 
         if self.pendingSelectedObjList:
-            selectedIndex = self.pendingSelectedObjList[self.pendingSelectedObjIndex]
-            self.pendingSelectedObjList.clear()
+            self.selectOnHover()
+
             if self.currentMode in {SelectionMode.translate, SelectionMode.rotate, SelectionMode.scale}:
                 self.setAllInSetEnabled(self.objButtons, False)
                 self.inMidTransformation = True
             else:
                 self.setAllInSetEnabled(self.objButtons, True)
                 self.inMidTransformation = False
-
-            maj, minor = selectedIndex
-
-            self.currentlySelectedObj['selectedIndex'] = selectedIndex
-            self.currentlySelectedObj['key'],  self.currentlySelectedObj['allSameKey'] = self.selectObjectSet()
-
-            self.currentBoundingBox = self.drawObjects[maj][minor].boundingBox
-
-            if self.selectAsGroup:
-                for selItems in self.currentlySelectedObj['allSameKey']:
-                    obj = self.drawObjects[selItems[0]][selItems[1]]
-                    self.currentBoundingBox = self.currentBoundingBox.united(obj.boundingBox)
-
-            self.origBboxTransform = self.drawObjects[maj][minor].transform.toQTransform()
-            self.newTransform = Qg.QTransform()
 
             if self.anchorMode == AnchorMode.center:
                 self.currentAnchor = self.currentBoundingBox.center()
