@@ -152,7 +152,13 @@ class AddBezierShape(InplaceObjProcess):
         self.info = None
         self.fill = False
         self.opt = None
+
+        # list of "committed" points with Linkage information.
+        # Linkmode should be to the last point. 
+        # (x, y, linkmode), (u, v, lm2) <==> (x, y) <=lm2=> (u, v)
+        self.pointsList = []
         self.currentPoint = Qc.QPointF(0, 0)
+        self.pendingPoint = None
 
     def mouseDown(self, pos, info):
         x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
@@ -165,11 +171,7 @@ class AddBezierShape(InplaceObjProcess):
             self.fill = info['fill']
             self.asyengine = info['asyengine']
             self.closedPath = info['closedPath']
-            self.basePath = x2a.asyPath(self.asyengine)
-            self.basePath.addNode((x, y), self._getLinkType())
-
-        self.basePath.addNode((x, y), self._getLinkType())
-        self.basePath.computeControls()
+            self.pointsList.append((x, y, None))
 
     def _getLinkType(self):
         if self.info['useBezier']:
@@ -178,19 +180,17 @@ class AddBezierShape(InplaceObjProcess):
             return '--'
 
     def mouseMove(self, pos, event):
+        epsilon = 2
+        # in postscript coords. 
         if self._active:
             x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
             if int(event.buttons()) == 0:
-                if PrimitiveShape.PrimitiveShape.euclideanNorm((x, y), self.currentPoint) > 3:
+                if PrimitiveShape.PrimitiveShape.euclideanNorm((x, y), self.currentPoint) > epsilon:
                     self.forceFinalize()
                     return
 
             self.currentPoint.setX(x)
             self.currentPoint.setY(y)
-
-            self.basePath.setNode(-1, (x, y))
-            self.basePath.controlSet.pop()
-            self.basePath.computeControls()
 
     def createOptWidget(self, info):
         self.opt = Widg_addBezierInPlace.Widg_addBezierInplace(info)
@@ -205,14 +205,27 @@ class AddBezierShape(InplaceObjProcess):
 
     def mouseRelease(self):
         x, y = self.currentPoint.x(), self.currentPoint.y()
-        self.basePath.setNode(-1, (x, y))
+        self.pointsList.append((x, y, self._getLinkType()))
+        # self.updateBasePath()
+
+    def updateBasePath(self):
+        self.basePath = x2a.asyPath(self.asyengine)
+        newNode = [(x, y) for x, y, _ in self.pointsList]
+        newLink = [lnk for *args, lnk in self.pointsList[1:]]
+        self.basePath.initFromNodeList(newNode, newLink)
         self.basePath.computeControls()
 
-    def forceFinalize(self):
-        self._active = False
-        if self.closedPath or (self.fill and not self.closedPath):
-            self.basePath.addNode('cycle', self._getLinkType())
+    def updateBasePathPreview(self):
+        self.basePathPreview = x2a.asyPath(self.asyengine)
+        newNode = [(x, y) for x, y, _ in self.pointsList] + [(self.currentPoint.x(), self.currentPoint.y())]
+        newLink = [lnk for *args, lnk in self.pointsList[1:]] + [self._getLinkType()]
+        self.basePathPreview.initFromNodeList(newNode, newLink)
+        self.basePathPreview.computeControls()
 
+    def forceFinalize(self):
+        self.updateBasePath()
+        self._active = False
+        self.pointsList.clear()
         self.objectCreated.emit(self.getXasyObject())
         self.basePath = None
 
@@ -221,20 +234,12 @@ class AddBezierShape(InplaceObjProcess):
             raise RuntimeError('BasePath is None')
         return self.basePath
         
-    def getPreview(self):
+    def getPreview(self):            
         if self._active:
-            if self.closedPath and len(self.basePath.nodeSet) < 3:
-                return None
-            if self.basePath.isDrawable:
-                if self.closedPath:
-                    self.basePath.addNode('cycle', self._getLinkType())
-                newPath = self.basePath.toQPainterPath()
-
-                if self.closedPath:
-                    self.basePath.popNode()
+            if self.pointsList:
+                self.updateBasePathPreview()
+                newPath = self.basePathPreview.toQPainterPath()
                 return newPath
-        else:
-            return None
 
     def getXasyObject(self):
         if self.fill:

@@ -51,5 +51,4 @@ windows:
 
 # Settings Override for Linux
 linux:
-    externalEditor: "emacs"
-    externalEditorArgs: ["$asypath"]
+    externalEditor: 'emacs'

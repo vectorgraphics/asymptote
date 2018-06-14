@@ -366,7 +366,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnSelectColor.clicked.connect(self.btnColorSelectOnClick)
         self.ui.txtLineWidth.textEdited.connect(self.txtLineWithEdited)
 
-        self.ui.btnCreateCurve.clicked.connect(self.btnCreateCurveOnClick)
+        # self.ui.btnCreateCurve.clicked.connect(self.btnCreateCurveOnClick)
         self.ui.btnDrawGrid.clicked.connect(self.btnDrawGridOnClick)
 
         self.ui.btnAddCircle.clicked.connect(self.btnAddCircleOnClick)
@@ -878,8 +878,9 @@ class MainWindow1(Qw.QMainWindow):
 
     def mouseMoveEvent(self, mouseEvent):  # TODO: Actually refine grid snapping...
         assert isinstance(mouseEvent, Qg.QMouseEvent)
+        # print(self.ui.imgLabel.underMouse())
         if not self.ui.imgLabel.underMouse():
-            return
+            return 
 
         asyPos, canvasPos = self.getAsyCoordinates()
 
