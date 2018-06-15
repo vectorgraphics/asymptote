@@ -417,6 +417,8 @@ class MainWindow1(Qw.QMainWindow):
 
     def btnFillOnClick(self, checked):
         self.currAddOptions['fill'] = checked
+        self.ui.btnOpenCurve.setEnabled(not checked)
+        self.ui.btnOpenPoly.setEnabled(not checked)
 
     @property
     def currentPen(self):
