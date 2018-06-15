@@ -700,7 +700,10 @@
              <bool>false</bool>
             </property>
             <property name="currentText">
-             <string>Origin</string>
+             <string>Center</string>
+            </property>
+            <property name="currentIndex">
+             <number>1</number>
             </property>
             <property name="insertPolicy">
              <enum>QComboBox::InsertAtCurrent</enum>
@@ -1462,8 +1465,8 @@ background: rgb(0, 0, 0)
                 <property name="bottomMargin">
                  <number>0</number>
                 </property>
-                <item row="3" column="0">
-                 <widget class="QPushButton" name="btnAddBezierInplace">
+                <item row="4" column="0">
+                 <widget class="QPushButton" name="btnOpenPoly">
                   <property name="enabled">
                    <bool>true</bool>
                   </property>
@@ -1480,19 +1483,15 @@ background: rgb(0, 0, 0)
                    </size>
                   </property>
                   <property name="text">
-                   <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="../res/icons.qrc">
-                    <normaloff>:/icons2/zondicons/vector.svg</normaloff>:/icons2/zondicons/vector.svg</iconset>
+                   <string>OP</string>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
                   </property>
                  </widget>
                 </item>
-                <item row="9" column="0">
-                 <widget class="QPushButton" name="btnAddLabel">
+                <item row="5" column="0">
+                 <widget class="QPushButton" name="btnClosedPoly">
                   <property name="enabled">
                    <bool>true</bool>
                   </property>
@@ -1509,40 +1508,7 @@ background: rgb(0, 0, 0)
                    </size>
                   </property>
                   <property name="text">
-                   <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="../res/icons.qrc">
-                    <normaloff>:/openiconic/open-iconic-master/svg/text.svg</normaloff>:/openiconic/open-iconic-master/svg/text.svg</iconset>
-                  </property>
-                  <property name="flat">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item row="10" column="0">
-                 <widget class="QPushButton" name="btnAddCode">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>32</width>
-                    <height>32</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="../res/icons.qrc">
-                    <normaloff>:/icons/ionicons-2.0.1/src/code.svg</normaloff>:/icons/ionicons-2.0.1/src/code.svg</iconset>
+                   <string>CP</string>
                   </property>
                   <property name="flat">
                    <bool>true</bool>
@@ -1550,6 +1516,56 @@ background: rgb(0, 0, 0)
                  </widget>
                 </item>
                 <item row="6" column="0">
+                 <widget class="QPushButton" name="btnOpenCurve">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>32</width>
+                    <height>32</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>OC</string>
+                  </property>
+                  <property name="flat">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="7" column="0">
+                 <widget class="QPushButton" name="btnClosedCurve">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>32</width>
+                    <height>32</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>CC</string>
+                  </property>
+                  <property name="flat">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="8" column="0">
                  <widget class="QPushButton" name="btnAddPoly">
                   <property name="enabled">
                    <bool>true</bool>
@@ -1578,7 +1594,7 @@ background: rgb(0, 0, 0)
                   </property>
                  </widget>
                 </item>
-                <item row="8" column="0">
+                <item row="10" column="0">
                  <widget class="QPushButton" name="btnAddCircle">
                   <property name="enabled">
                    <bool>true</bool>
@@ -1607,8 +1623,8 @@ background: rgb(0, 0, 0)
                   </property>
                  </widget>
                 </item>
-                <item row="5" column="0">
-                 <widget class="QPushButton" name="btnAddCircle_2">
+                <item row="11" column="0">
+                 <widget class="QPushButton" name="btnAddLabel">
                   <property name="enabled">
                    <bool>true</bool>
                   </property>
@@ -1629,7 +1645,36 @@ background: rgb(0, 0, 0)
                   </property>
                   <property name="icon">
                    <iconset resource="../res/icons.qrc">
-                    <normaloff>:/entypo/Entypo+/Entypo+/circle.svg</normaloff>:/entypo/Entypo+/Entypo+/circle.svg</iconset>
+                    <normaloff>:/openiconic/open-iconic-master/svg/text.svg</normaloff>:/openiconic/open-iconic-master/svg/text.svg</iconset>
+                  </property>
+                  <property name="flat">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="12" column="0">
+                 <widget class="QPushButton" name="btnAddCode">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>32</width>
+                    <height>32</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="../res/icons.qrc">
+                    <normaloff>:/icons/ionicons-2.0.1/src/code.svg</normaloff>:/icons/ionicons-2.0.1/src/code.svg</iconset>
                   </property>
                   <property name="flat">
                    <bool>true</bool>

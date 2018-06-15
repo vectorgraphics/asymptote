@@ -169,7 +169,7 @@ class MainWindow1(Qw.QMainWindow):
 
         self.lockX = False
         self.lockY = False
-        self.anchorMode = AnchorMode.origin
+        self.anchorMode = AnchorMode.center
         self.currentAnchor = Qc.QPointF(0, 0)
         self.customAnchor = None
         self.useGlobalCoords = True
@@ -380,7 +380,12 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnAddCircle.clicked.connect(self.btnAddCircleOnClick)
         self.ui.btnAddPoly.clicked.connect(self.btnAddPolyOnClick)
         self.ui.btnAddLabel.clicked.connect(self.btnAddLabelOnClick)
-        self.ui.btnAddBezierInplace.clicked.connect(self.btnAddBezierInplaceOnClick)
+        # self.ui.btnAddBezierInplace.clicked.connect(self.btnAddBezierInplaceOnClick)
+        self.ui.btnClosedCurve.clicked.connect(self.btnAddClosedCurveOnClick)
+        self.ui.btnOpenCurve.clicked.connect(self.btnAddOpenCurveOnClick)
+        self.ui.btnClosedPoly.clicked.connect(self.btnAddClosedLineOnClick)
+        self.ui.btnOpenPoly.clicked.connect(self.btnAddOpenLineOnClick)
+
         self.ui.btnAddCode.clicked.connect(self.btnAddCodeOnClick)
 
         self.ui.btnFill.clicked.connect(self.btnFillOnClick)
@@ -536,6 +541,26 @@ class MainWindow1(Qw.QMainWindow):
     def btnAddBezierInplaceOnClick(self):
         self.addMode = InplaceAddObj.AddBezierShape(self)
         self.updateOptionWidget()
+
+    def btnAddOpenLineOnClick(self):
+        self.currAddOptions['useBezier'] = False
+        self.currAddOptions['closedPath'] = False
+        self.btnAddBezierInplaceOnClick()
+
+    def btnAddClosedLineOnClick(self):
+        self.currAddOptions['useBezier'] = False
+        self.currAddOptions['closedPath'] = True
+        self.btnAddBezierInplaceOnClick()
+
+    def btnAddOpenCurveOnClick(self):
+        self.currAddOptions['useBezier'] = True
+        self.currAddOptions['closedPath'] = False
+        self.btnAddBezierInplaceOnClick()
+
+    def btnAddClosedCurveOnClick(self):
+        self.currAddOptions['useBezier'] = True
+        self.currAddOptions['closedPath'] = True
+        self.btnAddBezierInplaceOnClick()
 
     def btnAddPolyOnClick(self):
         self.addMode = InplaceAddObj.AddPoly(self)

@@ -193,8 +193,9 @@ class AddBezierShape(InplaceObjProcess):
             self.currentPoint.setY(y)
 
     def createOptWidget(self, info):
-        self.opt = Widg_addBezierInPlace.Widg_addBezierInplace(info)
-        return self.opt
+        return None
+        # self.opt = Widg_addBezierInPlace.Widg_addBezierInplace(info)
+        # return self.opt
 
     def finalizeClosure(self):
         if self.active:
