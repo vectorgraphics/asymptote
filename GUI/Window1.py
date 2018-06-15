@@ -330,6 +330,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.actionSaveAs.triggered.connect(self.actionSaveAs)
         self.ui.actionManual.triggered.connect(self.actionManual)
         self.ui.actionEnterCommand.triggered.connect(self.enterCustomCommand)
+        self.ui.actionExportAsymptote.triggered.connect(self.btnExportAsyOnClick)
 
     def setupXasyOptions(self):
         if self.settings['debugMode']:
@@ -348,7 +349,7 @@ class MainWindow1(Qw.QMainWindow):
         self.ui.btnSave.clicked.connect(self.btnSaveOnClick)
         self.ui.btnQuickScreenshot.clicked.connect(self.btnQuickScreenshotOnClick)
 
-        self.ui.btnExportAsy.clicked.connect(self.btnExportAsyOnClick)
+        # self.ui.btnExportAsy.clicked.connect(self.btnExportAsyOnClick)
 
         self.ui.btnDrawAxes.clicked.connect(self.btnDrawAxesOnClick)
         self.ui.btnAsyfy.clicked.connect(lambda: self.asyfyCanvas(True))
@@ -410,7 +411,7 @@ class MainWindow1(Qw.QMainWindow):
         if self.terminalPythonMode:
             exec(self.ui.txtTerminalPrompt.text())
         else:
-            print('What to do?')
+            pass
             # TODO: How to handle this case?
             # Like AutoCAD? 
         self.ui.txtTerminalPrompt.clear()

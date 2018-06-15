@@ -319,44 +319,6 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="btnExportAsy">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>25</width>
-              <height>25</height>
-             </size>
-            </property>
-            <property name="baseSize">
-             <size>
-              <width>32</width>
-              <height>32</height>
-             </size>
-            </property>
-            <property name="toolTip">
-             <string>Run Asymptote</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/entypo/Entypo+/Entypo+/arrow-with-circle-down.svg</normaloff>:/entypo/Entypo+/Entypo+/arrow-with-circle-down.svg</iconset>
-            </property>
-            <property name="flat">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
            <spacer name="horizontalSpacer_3">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -1845,6 +1807,7 @@ background: rgb(0, 0, 0)
      <string>&amp;File</string>
     </property>
     <addaction name="actionSaveAs"/>
+    <addaction name="actionExportAsymptote"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -1965,6 +1928,11 @@ background: rgb(0, 0, 0)
   <action name="actionTransform">
    <property name="text">
     <string>&amp;Transform</string>
+   </property>
+  </action>
+  <action name="actionExportAsymptote">
+   <property name="text">
+    <string>Export Asymptote</string>
    </property>
   </action>
  </widget>
