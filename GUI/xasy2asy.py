@@ -37,7 +37,7 @@ import uuid
 
 
 class AsymptoteEngine:
-    def __init__(self, path=None, args=None, customOutdir=None, keepFiles=DebugFlags.keepFiles, keepDefaultArgs=True,
+    def __init__(self, path=None, args: list=None, customOutdir=None, keepFiles=DebugFlags.keepFiles, keepDefaultArgs=True,
                  stdoutMode=None, stdinMode=None, stderrMode=None, endargs=None):
         if path is None:
             path = xa.getArgs().asypath
@@ -74,8 +74,6 @@ class AsymptoteEngine:
 
         if endargs is None:
             endargs = []
-
-        assert isinstance(args, list)
 
         self.args = args
 
@@ -189,16 +187,14 @@ class asyTransform(Qc.QObject):
         return asyTransform((0, 0, 0, 0, 0, 0))
 
     @classmethod
-    def fromQTransform(cls, transform):
-        assert isinstance(transform, Qg.QTransform)
+    def fromQTransform(cls, transform: Qg.QTransform):
         tx, ty = transform.dx(), transform.dy()
         xx, xy, yx, yy = transform.m11(), transform.m21(), transform.m12(), transform.m22()
 
         return asyTransform((tx, ty, xx, xy, yx, yy))
 
     @classmethod
-    def fromNumpyMatrix(cls, transform):
-        assert isinstance(transform, np.ndarray)
+    def fromNumpyMatrix(cls, transform: np.ndarray):
         assert transform.shape == (3, 3)
 
         tx = transform[0, 2]
@@ -407,8 +403,7 @@ class asyPath(asyObj):
         self.asyengine = asyengine
 
     @classmethod
-    def fromBezierPoints(cls, pointList, engine=None):
-        assert isinstance(pointList, list)
+    def fromBezierPoints(cls, pointList: list, engine=None):
         if not pointList:
             return None
         assert isinstance(pointList[0], BezierCurveEditor.BezierPoint)
@@ -1222,13 +1217,12 @@ class DrawObject(Qc.QObject):
         scrTransf = self.baseTransform.toQTransform().inverted()[0] * self.pTransform.toQTransform()
         return asyTransform.fromQTransform(scrTransf)
 
-    def draw(self, additionalTransformation=None, applyReverse=False, canvas=None):
+    def draw(self, additionalTransformation=None, applyReverse=False, canvas: Qg.QPainter=None):
         if canvas is None:
             canvas = self.mainCanvas
         if additionalTransformation is None:
             additionalTransformation = Qg.QTransform()
             
-        assert isinstance(canvas, Qg.QPainter)
         assert canvas.isActive()
 
         canvas.save()
