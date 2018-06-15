@@ -816,7 +816,11 @@ class MainWindow1(Qw.QMainWindow):
             if self.customAnchor is not None:
                 self.anchorMode = AnchorMode.customAnchor
             else:
-                self.btnCustomAnchorOnClick()
+                result = self.btnCustomAnchorOnClick()
+                if not result:
+                    self.ui.comboAnchor.setCurrentIndex(0)
+                else:
+                    self.anchorMode = AnchorMode.customAnchor
 
     def btnCustomAnchorOnClick(self, text=''):
         custAnchorDialog = SetCustomAnchor.CustomAnchorDialog()
@@ -825,6 +829,9 @@ class MainWindow1(Qw.QMainWindow):
         if result == Qw.QDialog.Accepted:
             self.customAnchor = custAnchorDialog.getPoint()
             self.ui.comboAnchor.setCurrentText('Custom Anchor')
+            return True
+        else:
+            return False
 
     def btnColorSelectOnClick(self):
         self.colorDialog.show()
@@ -903,7 +910,7 @@ class MainWindow1(Qw.QMainWindow):
 
         asyPos, canvasPos = self.getAsyCoordinates()
 
-        self.coordLabel.setText('Mouse: {0:.2f}, {1:.2f}\t'.format(
+        self.coordLabel.setText('{0:d}, {1:d}    '.format(
             canvasPos.x(), canvasPos.y()))
 
         # add mode 
