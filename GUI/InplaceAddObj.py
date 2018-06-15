@@ -135,7 +135,7 @@ class AddLabel(InplaceObjProcess):
         align = str(self.alignMode)
         anchor = PrimitiveShape.PrimitiveShape.pos_to_tuple(self.anchor)
         newLabel = x2a.xasyText(text=text, location=anchor, pen=None, align=align, asyengine=None)
-
+        newLabel.asyfied = False
         return newLabel
 
     def forceFinalize(self):

@@ -481,6 +481,7 @@ class MainWindow1(Qw.QMainWindow):
     def addInPlace(self, obj):
         obj.asyengine = self.asyEngine
         obj.pen = self.currentPen
+        obj.onCanvas = self.xasyDrawObj
         obj.setKey('x' + str(self.globalObjectCounter))
         self.globalObjectCounter = self.globalObjectCounter + 1
 
@@ -819,6 +820,7 @@ class MainWindow1(Qw.QMainWindow):
                 result = self.btnCustomAnchorOnClick()
                 if not result:
                     self.ui.comboAnchor.setCurrentIndex(0)
+                    self.anchorMode = AnchorMode.origin
                 else:
                     self.anchorMode = AnchorMode.customAnchor
 

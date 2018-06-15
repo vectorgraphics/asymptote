@@ -606,7 +606,7 @@ class asyLabel(asyObj):
 
     def updateCode(self, mag=1.0):
         """Generate the code describing the label"""
-        self.asyCode = 'Label("{0}", {1}, p={2}, align={3});'.format(self.text, tuple(self.location), self.pen.getCode(),
+        self.asyCode = 'Label("{0}", {1}, p={2}, align={3})'.format(self.text, tuple(self.location), self.pen.getCode(),
                                                                     self.align)
 
     def setText(self, text):
@@ -951,11 +951,23 @@ class xasyText(xasyItem):
         self.label = asyLabel(text, location, pen, align)
         # self.transform = [transform]
         if key is None:
-            self.key = 'x:' + str(uuid.uuid4())
+            self.transfKey = 'x:' + str(uuid.uuid4())
         else:
-            self.key = key
-        self.transfKeymap = {self.key: transform}
+            self.transfKey = key
+        self.transfKeymap = {self.transfKey: [transform]}
+        self.asyfied = False
         self.onCanvas = None
+    
+    def setKey(self, newKey=None):
+        if newKey is None:
+            newKey = 'x' + str(uuid.uuid4())
+        if not newKey.startswith('x'):
+            newKey = 'x' + newKey
+
+        transform = self.transfKeymap[self.transfKey][0]
+
+        self.transfKey = newKey
+        self.transfKeymap = {self.transfKey: [transform]}
 
     def getTransformCode(self):
         transf = self.transfKeymap[self.transfKey][0]
@@ -966,7 +978,7 @@ class xasyText(xasyItem):
             return xasyItem.setKeyFormatStr.format(self.transfKey, transf.getCode())
 
     def getObjectCode(self):
-        return 'label(KEY="{0}",{1});'.format(self.key, self.label.getCode())
+        return 'label(KEY="{0}",(0,0),{1});'.format(self.transfKey, self.label.getCode())
 
     def generateDrawObjects(self, mag=1.0, forceUpdate=False):
         self.asyfy(mag, forceUpdate)
