@@ -180,13 +180,14 @@ class AddBezierShape(InplaceObjProcess):
             return '--'
 
     def mouseMove(self, pos, event):
-        epsilon = 2
         # in postscript coords. 
         if self._active:
             x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
             if int(event.buttons()) == 0:
-                if PrimitiveShape.PrimitiveShape.euclideanNorm((x, y), self.currentPoint) > epsilon:
+                if (x,y) != self.currentPoint:
                     self.forceFinalize()
+                    return
+                else:
                     return
 
             self.currentPoint.setX(x)
