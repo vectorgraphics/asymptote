@@ -156,7 +156,7 @@ class AddBezierShape(InplaceObjProcess):
         self.opt = None
 
         # list of "committed" points with Linkage information.
-        # Linkmode should be to the last point. 
+        # Linkmode should be to the last point.
         # (x, y, linkmode), (u, v, lm2) <==> (x, y) <=lm2=> (u, v)
         self.pointsList = []
         self.currentPoint = Qc.QPointF(0, 0)
@@ -182,7 +182,7 @@ class AddBezierShape(InplaceObjProcess):
             return '--'
 
     def mouseMove(self, pos, event):
-        # in postscript coords. 
+        # in postscript coords.
         if self._active:
             x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
             if int(event.buttons()) == 0:
@@ -241,8 +241,8 @@ class AddBezierShape(InplaceObjProcess):
         if self.basePath is None:
             raise RuntimeError('BasePath is None')
         return self.basePath
-        
-    def getPreview(self):            
+
+    def getPreview(self):
         if self._active:
             if self.pointsList:
                 self.updateBasePathPreview()
