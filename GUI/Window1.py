@@ -22,6 +22,7 @@ import xasyFile as xf
 import xasyOptions as xo
 import UndoRedoStack as Urs
 import xasyArgs as xa
+import xasyBezierInterface as xbi
 from xasyTransform import xasyTransform as xT
 import xasyStrings as xs
 
@@ -30,7 +31,6 @@ import InplaceAddObj
 
 import CustMatTransform
 import SetCustomAnchor
-import BezierCurveEditor
 import GuidesManager
 
 
@@ -66,7 +66,6 @@ class AnchorMode:
     customAnchor = 5
     center = 6
 
-
 class GridMode:
     cartesian = 0
     polar = 1
@@ -80,6 +79,7 @@ class SelectionMode:
     scale = 4
     delete = 5
     setAnchor = 6
+    selectEdit = 7
 
 class AddObjectMode:
     Circle = 0
@@ -400,6 +400,7 @@ class MainWindow1(Qw.QMainWindow):
         
         self.ui.btnEnterCommand.clicked.connect(self.btnTerminalCommandOnClick)
         self.ui.btnTogglePython.clicked.connect(self.btnTogglePythonOnClick)
+        self.ui.btnSelectEdit.clicked.connect(self.btnSelectEditOnClick)
 
     def btnDeleteModeOnClick(self):
         self.currentModeStack = [SelectionMode.delete]
@@ -416,10 +417,14 @@ class MainWindow1(Qw.QMainWindow):
             # Like AutoCAD? 
         self.ui.txtTerminalPrompt.clear()
 
-    def btnFillOnClick(self, checked):
+    def btnFillOnClick(self, checked): 
         self.currAddOptions['fill'] = checked
         self.ui.btnOpenCurve.setEnabled(not checked)
         self.ui.btnOpenPoly.setEnabled(not checked)
+
+    def btnSelectEditOnClick(self):
+        self.currentModeStack = [SelectionMode.selectEdit]
+        self.updateChecks()
 
     @property
     def currentPen(self):
@@ -1115,65 +1120,74 @@ class MainWindow1(Qw.QMainWindow):
 
         if self.addMode is not None:
             self.addMode.mouseDown(asyPos, self.currAddOptions)
-            return
-
-        if self.currentModeStack[-1] == SelectionMode.pan:
+        elif self.currentModeStack[-1] == SelectionMode.pan:
             self.savedWindowMousePos = self.getWindowCoordinates()
             self.currScreenTransform = self.screenTransformation * Qg.QTransform()
-            return
-
-        if self.currentModeStack[-1] == SelectionMode.setAnchor:
+        elif self.currentModeStack[-1] == SelectionMode.setAnchor:
             self.customAnchor = self.savedMousePosition
             self.currentModeStack.pop()
             self.updateChecks()
             self.quickUpdate()
-            return
-
-        if self.inMidTransformation:
-            return
-
-        if self.pendingSelectedObjList:
+        elif self.inMidTransformation:
+            pass
+        elif self.pendingSelectedObjList:
             self.selectOnHover()
 
             if self.currentModeStack[-1] in {SelectionMode.translate, SelectionMode.rotate, SelectionMode.scale}:
                 self.setAllInSetEnabled(self.objButtons, False)
                 self.inMidTransformation = True
+                self.setAnchor()
             elif self.currentModeStack[-1] == SelectionMode.delete:
                 self.btnSelectiveDeleteOnClick()
-                return
+            elif self.currentModeStack[-1] == SelectionMode.selectEdit:
+                self.setupSelectEdit()
             else:
                 self.setAllInSetEnabled(self.objButtons, True)
                 self.inMidTransformation = False
-
-            if self.anchorMode == AnchorMode.center:
-                self.currentAnchor = self.currentBoundingBox.center()
-            elif self.anchorMode == AnchorMode.topLeft:
-                self.currentAnchor = self.currentBoundingBox.bottomLeft()  # due to internal image being flipped
-            elif self.anchorMode == AnchorMode.topRight:
-                self.currentAnchor = self.currentBoundingBox.bottomRight()
-            elif self.anchorMode == AnchorMode.bottomLeft:
-                self.currentAnchor = self.currentBoundingBox.topLeft()
-            elif self.anchorMode == AnchorMode.bottomRight:
-                self.currentAnchor = self.currentBoundingBox.topRight()
-            elif self.anchorMode == AnchorMode.customAnchor:
-                self.currentAnchor = self.customAnchor
-            else:
-                self.currentAnchor = Qc.QPointF(0, 0)
-
-            if self.anchorMode != AnchorMode.origin:
-                pass
-                # TODO: Record base points/bbox before hand and use that for
-                # anchor?
-                # adjTransform =
-                # self.drawObjects[selectedIndex].transform.toQTransform()
-                # self.currentAnchor = adjTransform.map(self.currentAnchor)
+                self.setAnchor()
 
         else:
             self.setAllInSetEnabled(self.objButtons, False)
             self.currentBoundingBox = None
             self.inMidTransformation = False
             self.clearSelection()
+
         self.quickUpdate()
+
+    def setupSelectEdit(self):
+        """For Select-Edit mode. For now, if the object selected is a bezier curve, opens up a bezier editor"""
+        maj, minor = self.currentlySelectedObj['selectedIndex']
+        obj = self.fileItems[maj]
+        if isinstance(obj, x2a.xasyDrawnItem):
+            # bezier path
+            self.addMode = xbi.InteractiveBezierEditor(self, obj)
+        else:
+            self.clearSelection()
+        self.quickUpdate()
+    def setAnchor(self):
+        if self.anchorMode == AnchorMode.center:
+            self.currentAnchor = self.currentBoundingBox.center()
+        elif self.anchorMode == AnchorMode.topLeft:
+            self.currentAnchor = self.currentBoundingBox.bottomLeft()  # due to internal image being flipped
+        elif self.anchorMode == AnchorMode.topRight:
+            self.currentAnchor = self.currentBoundingBox.bottomRight()
+        elif self.anchorMode == AnchorMode.bottomLeft:
+            self.currentAnchor = self.currentBoundingBox.topLeft()
+        elif self.anchorMode == AnchorMode.bottomRight:
+            self.currentAnchor = self.currentBoundingBox.topRight()
+        elif self.anchorMode == AnchorMode.customAnchor:
+            self.currentAnchor = self.customAnchor
+        else:
+            self.currentAnchor = Qc.QPointF(0, 0)
+
+        if self.anchorMode != AnchorMode.origin:
+            pass
+            # TODO: Record base points/bbox before hand and use that for
+            # anchor?
+            # adjTransform =
+            # self.drawObjects[selectedIndex].transform.toQTransform()
+            # self.currentAnchor = adjTransform.map(self.currentAnchor)
+
 
     def releaseTransform(self):
         if self.newTransform.isIdentity():
@@ -1439,15 +1453,19 @@ class MainWindow1(Qw.QMainWindow):
 
     def drawAddModePreview(self, painter):
         if self.addMode is not None:
-            if self.addMode.active and self.addMode.getPreview() is not None:
-                if self.magnification != 1:
-                    assert self.magnification != 0
-                    painter.save()
-                    painter.scale(self.magnification, self.magnification)
-                painter.setPen(self.currentPen.toQPen())
-                painter.drawPath(self.addMode.getPreview())
-                if self.magnification != 1:
-                    painter.restore()
+            if self.addMode.active:
+                # Preview Object
+                if self.addMode.getPreview() is not None:
+                    if self.magnification != 1:
+                        assert self.magnification != 0
+                        painter.save()
+                        painter.scale(self.magnification, self.magnification)
+                    painter.setPen(self.currentPen.toQPen())
+                    painter.drawPath(self.addMode.getPreview())
+                    if self.magnification != 1:
+                        painter.restore()
+                self.addMode.postDrawPreview(painter)
+                
 
     def drawTransformPreview(self, painter):
         if self.currentBoundingBox is not None and self.currentlySelectedObj['selectedIndex'] is not None:
@@ -1483,8 +1501,7 @@ class MainWindow1(Qw.QMainWindow):
             if self.pendingSelectedObjList:
                 maj, minor = self.pendingSelectedObjList[self.pendingSelectedObjIndex]
                 postCanvas.drawRect(self.drawObjects[maj][minor].boundingBox)
-            if self.previewCurve is not None:
-                postCanvas.drawPath(self.previewCurve)
+                
             self.drawAddModePreview(postCanvas)
 
             if self.customAnchor is not None:

@@ -976,6 +976,35 @@
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="btnSelectEdit">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>25</width>
+              <height>25</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../res/icons.qrc">
+              <normaloff>:/icons/ionicons-2.0.1/src/edit.svg</normaloff>:/icons/ionicons-2.0.1/src/edit.svg</iconset>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="horizontalSpacer_4">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -1134,35 +1163,6 @@
             <property name="icon">
              <iconset resource="../res/icons.qrc">
               <normaloff>:/entypo/Entypo+/Entypo+/chevron-with-circle-right.svg</normaloff>:/entypo/Entypo+/Entypo+/chevron-with-circle-right.svg</iconset>
-            </property>
-            <property name="flat">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btnEditBezier">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>25</width>
-              <height>25</height>
-             </size>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="../res/icons.qrc">
-              <normaloff>:/icons/ionicons-2.0.1/src/edit.svg</normaloff>:/icons/ionicons-2.0.1/src/edit.svg</iconset>
             </property>
             <property name="flat">
              <bool>true</bool>
