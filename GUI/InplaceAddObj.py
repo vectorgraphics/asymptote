@@ -25,8 +25,7 @@ class InplaceObjProcess(Qc.QObject):
     def mouseDown(self, pos, info):
         raise NotImplementedError
 
-    def mouseMove(self, pos, event):
-        assert isinstance(event, Qg.QMouseEvent)
+    def mouseMove(self, pos, event: Qg.QMouseEvent):
         raise NotImplementedError
 
     def mouseRelease(self):
@@ -43,6 +42,9 @@ class InplaceObjProcess(Qc.QObject):
 
     def getXasyObject(self):
         raise NotImplementedError
+
+    def postDrawPreview(self, canvas: Qg.QPainter):
+        pass
 
     def createOptWidget(self, info):
         return None
@@ -180,14 +182,15 @@ class AddBezierShape(InplaceObjProcess):
             return '--'
 
     def mouseMove(self, pos, event):
-        epsilon = 2
         # in postscript coords. 
         if self._active:
             x, y = PrimitiveShape.PrimitiveShape.pos_to_tuple(pos)
             if int(event.buttons()) == 0:
-                if PrimitiveShape.PrimitiveShape.euclideanNorm((x, y), self.currentPoint) > epsilon:
+                if (x, y) != (self.currentPoint.x(), self.currentPoint.y()):
                     self.forceFinalize()
                     return
+                else:
+                    return 
 
             self.currentPoint.setX(x)
             self.currentPoint.setY(y)
