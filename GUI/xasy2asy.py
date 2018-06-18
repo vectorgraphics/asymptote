@@ -647,7 +647,7 @@ class xasyItem(Qc.QObject):
         self.asyfied = False
         self.onCanvas = canvas
         self.keyBuffer = None
-        self.asyengine = asyengine
+        self._asyengine = asyengine
         self.drawObjects = []
         self.imageHandleQueue = queue.Queue()
 
@@ -657,6 +657,14 @@ class xasyItem(Qc.QObject):
             rawCode.write(self.getTransformCode())
             rawCode.write('\n' + self.getObjectCode())
             self.asyCode = rawCode.getvalue()
+
+    @property
+    def asyengine(self):
+        return self._asyengine
+
+    @asyengine.setter
+    def asyengine(self, value):
+        self._asyengine = value
 
     def getCode(self):
         """Return the code describing the item"""
@@ -811,17 +819,27 @@ class xasyDrawnItem(xasyItem):
 
     def __init__(self, path, engine, pen=None, transform=identity(), key=None):
         """Initialize the item with a path, pen, and transform"""
-        super().__init__()
+        super().__init__(canvas=None, asyengine=engine)
         if pen is None:
             pen = asyPen()
         self.path = path
         self.path.asyengine = engine
         self.pen = pen
+        self._asyengine = engine
         self.rawIdentifier = 'x' + str(uuid.uuid4())
         self.transfKey = key
         if key is None:
             self.transfKey = self.rawIdentifier
         self.transfKeymap = {self.transfKey: [transform]}
+
+    @property
+    def asyengine(self):
+        return self._asyengine
+
+    @asyengine.setter
+    def asyengine(self, value: AsymptoteEngine):
+        self._asyengine = value
+        self.path.asyengine = value
 
     def setKey(self, newKey=None):
         if newKey is None:

@@ -211,7 +211,7 @@ class AddBezierShape(InplaceObjProcess):
         # self.updateBasePath()
 
     def updateBasePath(self):
-        self.basePath = x2a.asyPath(self.asyengine)
+        self.basePath = x2a.asyPath(asyengine=self.asyengine)
         newNode = [(x, y) for x, y, _ in self.pointsList]
         newLink = [lnk for *args, lnk in self.pointsList[1:]]
         if self.closedPath:
@@ -221,7 +221,7 @@ class AddBezierShape(InplaceObjProcess):
         self.basePath.computeControls()
 
     def updateBasePathPreview(self):
-        self.basePathPreview = x2a.asyPath(self.asyengine)
+        self.basePathPreview = x2a.asyPath(asyengine=self.asyengine)
         newNode = [(x, y) for x, y, _ in self.pointsList] + [(self.currentPoint.x(), self.currentPoint.y())]
         newLink = [lnk for *args, lnk in self.pointsList[1:]] + [self._getLinkType()]
         if self.closedPath:
@@ -240,6 +240,7 @@ class AddBezierShape(InplaceObjProcess):
     def getObject(self):
         if self.basePath is None:
             raise RuntimeError('BasePath is None')
+        self.basePath.asyengine = self.asyengine
         return self.basePath
 
     def getPreview(self):
