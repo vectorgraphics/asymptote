@@ -748,7 +748,7 @@ string xasyKEY() {
   processDataStruct *P=&processData();
   xkey_t *xkey=&P->xkey;
   xkey_t::iterator p=xkey->find(P->topPos.LineColumn());
-  return p != xkey->end() ? p->second : toplocation();
+  return p != xkey->end() ? p->second+" 1" : toplocation()+" 0";
 }
 
 void xasyKEY(string *s) {
