@@ -775,6 +775,7 @@ class xasyItem(Qc.QObject):
             text = fin.readline()       # the actual bounding box.
             # print('TESTING:', text)
             keydata = raw_text.strip().replace('KEY=', '', 1)  # key
+            keydata = keydata[:-2]
 #                print(line, col)
 
             if keydata not in keyCounts.keys():
