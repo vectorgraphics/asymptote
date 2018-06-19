@@ -78,7 +78,7 @@ class AsymptoteEngine:
         self.args = args
 
         if keepDefaultArgs:
-            self.args = args + ['-noV', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs] + endargs
+            self.args = args + ['-noV', '-multiline', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs] + endargs
 
         self.asyPath = path
         self.asyProcess = None
@@ -95,9 +95,9 @@ class AsymptoteEngine:
     def start(self):
         self.asyProcess = subprocess.Popen([self.asyPath] + self.args, close_fds=False,
                                            stdin=self._stdinMode, stderr=self._stderrMode)
-        self.istream.readline()
-        if self.asyProcess.returncode is not None:
-            raise ChildProcessError('Asymptote failed to open')
+#        self.istream.readline()
+#        if self.asyProcess.returncode is not None:
+#            raise ChildProcessError('Asymptote failed to open')
 
     def __enter__(self):
         self.start()
@@ -106,10 +106,6 @@ class AsymptoteEngine:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop()
         self.wait()
-
-    def hangup(self):
-        if self.active:
-            self.asyProcess.send_signal(signal.SIGHUP)
 
     @property
     def tempDirName(self):
@@ -353,8 +349,6 @@ class asyPen(asyObj):
         fout.write("flush(fout);\n")
         fout.flush()
 
-        self.asyEngine.hangup()
-
         colorspace = fin.readline()
         if colorspace.find("cmyk") != -1:
             lines = fin.readline() + fin.readline() + fin.readline() + fin.readline()
@@ -556,10 +550,6 @@ class asyPath(asyObj):
         fout.write("write(fout,unstraighten(p),endl);\n")
         fout.flush()
 
-        asy.hangup()
-
-        # FIXME: Some bug here. Have to track down later. 
-        
         lengthStr = fin.readline()
         pathSegments = eval(lengthStr.split()[-1])
         pathStrLines = []
@@ -744,14 +734,16 @@ class xasyItem(Qc.QObject):
         fout = self.asyengine.ostream
         fin = self.asyengine.istream
 
+        fout.write("atexit(null);\n")
+        fout.write("reset;\n")
+        fout.write("{\n");
         for line in self.getCode().splitlines():
             if DebugFlags.printDeconstTranscript:
                 print('fout:', line)
             fout.write(line+"\n")
         fout.write("deconstruct({:f});\n".format(mag))
+        fout.write("}\n");
         fout.flush()
-
-        self.asyengine.hangup()
 
         maxargs = int(fin.readline().split()[0])        # should be 256, for now.
         imageInfos = []                                 # of (box, key)
@@ -1080,15 +1072,18 @@ class xasyScript(xasyItem):
         self.setKeyed = False
 
     def setKey(self, prefix=''):
+        return
         fout = self.asyengine.ostream
         fin = self.asyengine.istream
 
+        fout.write("atexit(null);\n")
+        fout.write("reset;\n")
+        fout.write("{\n");
         for line in self.script.splitlines():
             fout.write(line + '\n')
         fout.write('deconstruct();\n')
+        fout.write("}\n");
         fout.flush()
-
-        self.asyengine.hangup()
 
         keylist = {}
         linebuf = fin.readline()
