@@ -25,7 +25,8 @@ except ModuleNotFoundError:
     cson = None
 
 try:
-    import yaml
+    pass
+#     import yaml
 except ModuleNotFoundError:
     yaml = None
 

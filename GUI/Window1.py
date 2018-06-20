@@ -211,8 +211,11 @@ class MainWindow1(Qw.QMainWindow):
             'asyengine': self.asyEngine,
             'fill': self.ui.btnFill.isChecked(),
             'closedPath': False,
-            'useBezier': True
+            'useBezier': True, 
+            'magnification': self.magnification
         }
+
+
         self.currentModeStack = [SelectionMode.translate]
         self.drawGridMode = GridMode.cartesian
         self.setAllInSetEnabled(self.objButtons, False)
@@ -280,6 +283,7 @@ class MainWindow1(Qw.QMainWindow):
         commandText, result = Qw.QInputDialog.getText(self, '', 'Enter magnification:')
         if result:
             self.magnification = float(commandText)
+            self.currAddOptions['magnification'] = self.magnification
             self.asyfyCanvas(True)
 
     def btnTogglePythonOnClick(self, checked):
@@ -937,9 +941,7 @@ class MainWindow1(Qw.QMainWindow):
         else:
             return canvasPosOrig, canvasPosOrig
 
-    def mouseMoveEvent(self, mouseEvent):  # TODO: Actually refine grid snapping...
-        assert isinstance(mouseEvent, Qg.QMouseEvent)
-
+    def mouseMoveEvent(self, mouseEvent: Qg.QMouseEvent):  # TODO: Actually refine grid snapping...
         if not self.ui.imgLabel.underMouse() and not self.mouseDown:
             return 
 
@@ -1160,7 +1162,7 @@ class MainWindow1(Qw.QMainWindow):
         obj = self.fileItems[maj]
         if isinstance(obj, x2a.xasyDrawnItem):
             # bezier path
-            self.addMode = xbi.InteractiveBezierEditor(self, obj)
+            self.addMode = xbi.InteractiveBezierEditor(self, obj, self.currAddOptions)
         else:
             self.clearSelection()
         self.quickUpdate()
