@@ -325,6 +325,11 @@ class MainWindow1(Qw.QMainWindow):
         }
         self.commandsFunc = {**self.commandsFunc, **debugFunc}
 
+    def objectUpdated(self):
+        self.addMode = None
+        self.clearSelection()
+        self.asyfyCanvas(True)
+
     def connectActions(self):
         self.ui.actionQuit.triggered.connect(lambda: self.execCustomCommand('quit'))
         self.ui.actionUndo.triggered.connect(lambda: self.execCustomCommand('undo'))
@@ -1163,6 +1168,7 @@ class MainWindow1(Qw.QMainWindow):
         if isinstance(obj, x2a.xasyDrawnItem):
             # bezier path
             self.addMode = xbi.InteractiveBezierEditor(self, obj, self.currAddOptions)
+            self.addMode.objectUpdated.connect(self.objectUpdated)
         else:
             self.clearSelection()
         self.quickUpdate()

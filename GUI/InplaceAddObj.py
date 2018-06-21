@@ -12,6 +12,7 @@ import Widg_addBezierInPlace
 
 class InplaceObjProcess(Qc.QObject):
     objectCreated = Qc.pyqtSignal(Qc.QObject)
+    objectUpdated = Qc.pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)

@@ -14,6 +14,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         super().__init__(parent)
         self.info = info
         self.asyPath = obj.path
+        assert isinstance(self.asyPath, x2a.asyPath)
         self.transf = obj.transfKeymap[obj.transfKey][0]
         self._active = True
 
@@ -24,6 +25,11 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         nodeselRects, ctrlSelRects = self.getSelectionBoundaries()
         self.nodeSelRects = nodeselRects
         self.ctrlSelRects = ctrlSelRects
+        
+
+        self.lastSelPoint = None
+        self.preCtrlOffset = None
+        self.postCtrlOffset = None
         self.inTransformMode = False
 
         self.prosectiveNodes = []
@@ -86,10 +92,13 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         canvas.drawPath(self.asyPath.toQPainterPath())
         for index in range(len(self.asyPath.nodeSet)):
             point = self.asyPath.nodeSet[index]
+            
+            if point == 'cycle':
+                continue
+
             basePoint = Qc.QPointF(point[0], point[1])
-            if point != 'cycle':
-                canvas.setPen(Qg.QColor('blue'))
-                canvas.drawEllipse(basePoint, 5, 5)
+            canvas.setPen(Qg.QColor('blue'))
+            canvas.drawEllipse(basePoint, 5, 5)
 
             
 
@@ -119,6 +128,9 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
             self.currentSelMode = CurrentlySelctedType.node
             self.currentSelIndex = (self.prosectiveNodes[0], 0)
             self.inTransformMode = True
+            self.lastSelPoint = pos
+
+            # find the offset of each control point to the node
 
     def mouseMove(self, pos, event: Qg.QMouseEvent):
         if self.currentSelMode is None and not self.inTransformMode:
@@ -127,6 +139,8 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
             for i in range(len(self.nodeSelRects)):
                 rect = self.nodeSelRects[i]
+                if rect is None:
+                    continue
                 if rect.contains(pos):
                     prospectiveNodes.append(i)
 
@@ -134,17 +148,28 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
         if self.inTransformMode:
             index, subindex = self.currentSelIndex
-
             if self.currentSelMode == CurrentlySelctedType.node:
-                self.asyPath.nodeSet[index] = (pos.x(), pos.y())
+                deltaPos = pos - self.lastSelPoint
+                # static throughout the moving
 
+                if self.asyPath.nodeSet[index] == 'cycle':
+                    return
+
+                self.asyPath.setNode(index, (pos.x(), pos.y()))
+
+                # if also move node: 
 
 
     def mouseRelease(self):
-        pass
-
+        if self.inTransformMode:
+            self.inTransformMode = False
+            self.currentSelMode = None
+            nodeselRects, ctrlSelRects = self.getSelectionBoundaries()
+            self.nodeSelRects = nodeselRects
+            self.ctrlSelRects = ctrlSelRects
+            
     def forceFinalize(self):
-        pass
+        self.objectUpdated.emit()
 
     def getObject(self):
         pass
