@@ -33,6 +33,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         self.inTransformMode = False
 
         self.prosectiveNodes = []
+        self.prospectiveCtrlPts = []
 
     def getSelectionBoundaries(self):
         nodeSelectionBounaries = []
@@ -70,7 +71,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
             y2 = int(round(y2))
 
             newRect.moveCenter(Qc.QPoint(x, y))
-            newRectb.moveCenter(Qc.QPoint(x, y))
+            newRectb.moveCenter(Qc.QPoint(x2, y2))
 
             ctrlPointSelBoundaries.append((newRect, newRectb))
 
@@ -124,11 +125,18 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         canvas.restore()
 
     def mouseDown(self, pos, info):
+        self.lastSelPoint = pos
         if self.prosectiveNodes and not self.inTransformMode:
             self.currentSelMode = CurrentlySelctedType.node
             self.currentSelIndex = (self.prosectiveNodes[0], 0)
             self.inTransformMode = True
-            self.lastSelPoint = pos
+            return 
+
+        if self.prospectiveCtrlPts and not self.inTransformMode:
+            self.currentSelMode = CurrentlySelctedType.ctrlPoint
+            self.currentSelIndex = self.prospectiveCtrlPts[0]
+            self.inTransformMode = True
+            return
 
             # find the offset of each control point to the node
 
@@ -136,6 +144,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         if self.currentSelMode is None and not self.inTransformMode:
             # in this case, search for prosective nodes. 
             prospectiveNodes = []
+            prospectiveCtrlpts = []
 
             for i in range(len(self.nodeSelRects)):
                 rect = self.nodeSelRects[i]
@@ -146,18 +155,32 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
             self.prosectiveNodes = prospectiveNodes
 
+            for i in range(len(self.ctrlSelRects)):
+                recta, rectb = self.ctrlSelRects[i]
+
+                if recta.contains(pos):
+                    prospectiveCtrlpts.append((i, 0))
+
+                if rectb.contains(pos):
+                    prospectiveCtrlpts.append((i, 1))
+
+            self.prospectiveCtrlPts = prospectiveCtrlpts
+
+
         if self.inTransformMode:
             index, subindex = self.currentSelIndex
+            deltaPos = pos - self.lastSelPoint
             if self.currentSelMode == CurrentlySelctedType.node:
-                deltaPos = pos - self.lastSelPoint
                 # static throughout the moving
-
                 if self.asyPath.nodeSet[index] == 'cycle':
                     return
 
                 self.asyPath.setNode(index, (pos.x(), pos.y()))
 
                 # if also move node: 
+
+            elif self.currentSelMode == CurrentlySelctedType.ctrlPoint:
+                self.asyPath.controlSet[index][subindex] = (pos.x(), pos.y())
 
 
     def mouseRelease(self):
