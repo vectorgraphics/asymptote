@@ -74,7 +74,7 @@ def extractTransformsFromFile(fileStr):
 def saveFile(file, xasyItems):
     """Write a list of xasyItems to a file"""
     for item in xasyItems:
-        file.write(item.getTransformCode() + '\n')
+        file.write(item.getTransformCode())
 
     for item in xasyItems:
         file.write(item.getObjectCode() + '\n\n')

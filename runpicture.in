@@ -81,7 +81,9 @@ static transform ZeroTransform=transform(0.0,0.0,0.0,0.0,0.0,0.0);
 
 transform getTransform(xmap_t &xmap, picture::nodelist::iterator p)
 {
-    xmap_t::iterator q=xmap.find((*p)->KEY);
+    string s=(*p)->KEY;
+    // Search for key without flag
+    xmap_t::iterator q=xmap.find(s.substr(0,s.length()-2));
     transform t;
     if(q != xmap.end()) {
       xtransform_t& v=q->second;
