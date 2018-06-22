@@ -1,8 +1,13 @@
 import xasy2asy as x2a
+import xasyUtils as xu
+
 import PyQt5.QtCore as Qc
 import PyQt5.QtGui as Qg
 import PyQt5.QtWidgets as Qw
+
 import InplaceAddObj
+
+import math
 
 class CurrentlySelctedType:
     none = -1
@@ -22,9 +27,10 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         # (Node index, Node subindex for )
         self.currentSelIndex = (None, 0)
 
-        nodeselRects, ctrlSelRects = self.getSelectionBoundaries()
-        self.nodeSelRects = nodeselRects
-        self.ctrlSelRects = ctrlSelRects
+        self.nodeSelRects = []
+        self.ctrlSelRects = []
+
+        self.setSelectionBoundaries()
         
 
         self.lastSelPoint = None
@@ -35,12 +41,16 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         self.prosectiveNodes = []
         self.prospectiveCtrlPts = []
 
-    def getSelectionBoundaries(self):
-        nodeSelectionBounaries = []
+    def setSelectionBoundaries(self):
+        self.nodeSelRects = self.handleNodeSelectionBounds()
+        self.ctrlSelRects = self.handleCtrlSelectionBoundaries()
+
+    def handleNodeSelectionBounds(self):
+        nodeSelectionBoundaries = []
 
         for node in self.asyPath.nodeSet:
             if node == 'cycle':
-                nodeSelectionBounaries.append(None)
+                nodeSelectionBoundaries.append(None)
                 continue
 
             selEpsilon = 6
@@ -50,8 +60,11 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
             y = int(round(y))
             newRect.moveCenter(Qc.QPoint(x, y))
 
-            nodeSelectionBounaries.append(newRect)
+            nodeSelectionBoundaries.append(newRect)
 
+        return nodeSelectionBoundaries
+
+    def handleCtrlSelectionBoundaries(self):
         ctrlPointSelBoundaries = []
 
         for nodes in self.asyPath.controlSet:
@@ -62,7 +75,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
             newRectb = Qc.QRect(0, 0, 2 * selEpsilon, 2 * selEpsilon)
 
             x, y = self.transf * nodea
-            x2, y2 = self.transf * nodeb 
+            x2, y2 = self.transf * nodeb
 
             x = int(round(x))
             y = int(round(y))
@@ -75,7 +88,7 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
             ctrlPointSelBoundaries.append((newRect, newRectb))
 
-        return nodeSelectionBounaries, ctrlPointSelBoundaries
+        return ctrlPointSelBoundaries
 
     def postDrawPreview(self, canvas: Qg.QPainter):
         assert canvas.isActive()
@@ -101,8 +114,6 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
             canvas.setPen(Qg.QColor('blue'))
             canvas.drawEllipse(basePoint, 5, 5)
 
-            
-
             if index != 0:
                 canvas.setPen(Qg.QColor('red'))
                 postCtrolSet = self.asyPath.controlSet[index - 1][1]
@@ -124,21 +135,60 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
 
         canvas.restore()
 
+    def getPreAndPostCtrlPts(self, index):
+        if index == 0:
+            preCtrl = None
+        else:
+            preCtrl = self.asyPath.controlSet[index - 1][1]
+
+        if index == len(self.asyPath.nodeSet) - 1:
+            postCtrl = None
+        else:
+            postCtrl = self.asyPath.controlSet[index][0]
+
+        return preCtrl, postCtrl
+
+    def findLinkingNode(self, index, subindex):
+        """index and subindex are of the control points list."""
+        if subindex == 0:
+            return index
+        else:
+            return index + 1
+
     def mouseDown(self, pos, info):
         self.lastSelPoint = pos
+        if self.inTransformMode:
+            return
+
         if self.prosectiveNodes and not self.inTransformMode:
             self.currentSelMode = CurrentlySelctedType.node
             self.currentSelIndex = (self.prosectiveNodes[0], 0)
             self.inTransformMode = True
-            return 
+            self.parentNodeIndex = self.currentSelIndex[0]
 
         if self.prospectiveCtrlPts and not self.inTransformMode:
             self.currentSelMode = CurrentlySelctedType.ctrlPoint
             self.currentSelIndex = self.prospectiveCtrlPts[0]
             self.inTransformMode = True
-            return
+            self.parentNodeIndex = self.findLinkingNode(*self.currentSelIndex)
+        
+        if self.inTransformMode:
+            parentNode = self.asyPath.nodeSet[self.parentNodeIndex]
 
             # find the offset of each control point to the node
+            preCtrl, postCtrl = self.getPreAndPostCtrlPts(self.parentNodeIndex)
+            
+            if preCtrl is not None:
+                self.preCtrlOffset = xu.funcOnList(
+                    preCtrl, parentNode, lambda a, b: a - b)
+            else:
+                self.preCtrlOffset = None
+
+            if postCtrl is not None:
+                self.postCtrlOffset = xu.funcOnList(
+                    postCtrl, parentNode, lambda a, b: a - b)
+            else:
+                self.postCtrlOffset = None
 
     def mouseMove(self, pos, event: Qg.QMouseEvent):
         if self.currentSelMode is None and not self.inTransformMode:
@@ -170,26 +220,69 @@ class InteractiveBezierEditor(InplaceAddObj.InplaceObjProcess):
         if self.inTransformMode:
             index, subindex = self.currentSelIndex
             deltaPos = pos - self.lastSelPoint
+            newNode = (pos.x(), pos.y())
             if self.currentSelMode == CurrentlySelctedType.node:
                 # static throughout the moving
                 if self.asyPath.nodeSet[index] == 'cycle':
                     return
 
-                self.asyPath.setNode(index, (pos.x(), pos.y()))
-
+                self.asyPath.setNode(index, newNode)
                 # if also move node: 
 
-            elif self.currentSelMode == CurrentlySelctedType.ctrlPoint:
-                self.asyPath.controlSet[index][subindex] = (pos.x(), pos.y())
+                checkPre, checkPost = self.getPreAndPostCtrlPts(index)
 
+                if 1 == 1: # TODO: Replace this with an option to also move control pts. 
+                    if checkPre is not None:
+                        self.asyPath.controlSet[index - 1][1] = xu.funcOnList(
+                            newNode, self.preCtrlOffset, lambda a, b: a + b
+                        )
+                    if checkPost is not None:
+                        self.asyPath.controlSet[index][0] = xu.funcOnList(
+                            newNode, self.postCtrlOffset, lambda a, b: a + b
+                        )
+                    
+
+            elif self.currentSelMode == CurrentlySelctedType.ctrlPoint:
+                self.asyPath.controlSet[index][subindex] = newNode
+
+                parentNode = self.asyPath.nodeSet[self.parentNodeIndex]
+
+                rawNewNode = xu.funcOnList(newNode, parentNode, lambda a, b: a - b)
+                rawAngle = math.atan2(rawNewNode[1], rawNewNode[0])
+
+                if 1 == 1:  # TODO: Replace this with angle-preservation option.
+                    # TODO: 2. Also, can make this more elegant, and scaling by a factor? 
+                    otherIndex = 1 - subindex       # 1 if 0, 0 otherwise. 
+                    if otherIndex == 0:
+                        if index < len(self.asyPath.controlSet) - 1:
+                            oldOtherCtrlPnt = xu.funcOnList(
+                                self.asyPath.controlSet[index + 1][0] , parentNode, lambda a, b: a - b)
+                            rawNorm = xu.twonorm(oldOtherCtrlPnt)
+
+                            newPnt = (rawNorm * math.cos(rawAngle + math.pi), rawNorm * math.sin(rawAngle + math.pi))
+                            self.asyPath.controlSet[index + 1][0] = xu.funcOnList(newPnt, parentNode, lambda a, b: a + b)
+                    else:
+                        if index > 0:
+                            oldOtherCtrlPnt = xu.funcOnList(
+                                self.asyPath.controlSet[index-1][1], parentNode, lambda a, b: a - b)
+                            rawNorm = xu.twonorm(oldOtherCtrlPnt)
+
+                            newPnt = (rawNorm * math.cos(rawAngle + math.pi),
+                                      rawNorm * math.sin(rawAngle + math.pi))
+                            self.asyPath.controlSet[index - 1][1] = xu.funcOnList(
+                                newPnt, parentNode, lambda a, b: a + b)
+        
+    def recalculateCtrls(self):
+        self.asyPath.controlSet.clear()
+        self.asyPath.computeControls()
+        self.setSelectionBoundaries()
 
     def mouseRelease(self):
         if self.inTransformMode:
             self.inTransformMode = False
             self.currentSelMode = None
-            nodeselRects, ctrlSelRects = self.getSelectionBoundaries()
-            self.nodeSelRects = nodeselRects
-            self.ctrlSelRects = ctrlSelRects
+
+            self.setSelectionBoundaries()
             
     def forceFinalize(self):
         self.objectUpdated.emit()

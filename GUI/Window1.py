@@ -321,9 +321,15 @@ class MainWindow1(Qw.QMainWindow):
             'debug:addCircle': self.dbgAddCircle,
             'debug:addPoly': self.dbgAddPoly,
             'debug:addLabel': self.debugAddLabel,
-            'debug:addFillCircle': self.dbgAddFillCirc
+            'debug:addFillCircle': self.dbgAddFillCirc, 
+            'debug:recomputeCtrl': self.dbgRecomputeCtrl
         }
         self.commandsFunc = {**self.commandsFunc, **debugFunc}
+
+    def dbgRecomputeCtrl(self):
+        if isinstance(self.addMode, xbi.InteractiveBezierEditor):
+            self.addMode.recalculateCtrls()
+            self.quickUpdate()
 
     def objectUpdated(self):
         self.addMode = None

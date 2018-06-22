@@ -1,11 +1,20 @@
 import re
-
+import typing as ty
+import math
+import itertools
 
 def tryParse(val, typ=float):
     try:
         return typ(val)
     except ValueError:
         return None
+
+def funcOnList(list1: ty.Union[ty.List, ty.Tuple], list2: ty.Union[ty.List, ty.Tuple], func: ty.Callable):
+    """Returns [f(x[i], y[i]) : i in 1, ..., n - 1] in order with f as func 
+    and x and y as list1 and 2. """
+
+    assert len(list1) == len(list2)
+    return tuple([func(list1[i], list2[i]) for i in range(len(list1))]) 
 
 
 def listize(str, typ, delim='()'):
@@ -24,6 +33,9 @@ def listize(str, typ, delim='()'):
             final_list.append(typ(elem.strip()))
     return final_list
 
+def twonorm(vec: ty.Iterable[ty.Union[float, int]]):
+    rawSquared = sum(map(lambda x: x*x, vec))
+    return math.sqrt(rawSquared)
 
 def tryParseKey(raw_key):
     """Returns None if raw key is not in #.# format"""
