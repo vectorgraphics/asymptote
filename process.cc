@@ -769,11 +769,6 @@ class iprompt : public icore {
   // error occurs.  Returns the parsed code on success, and throws a
   // handled_error exception on failure.
   block *parseExtendableLine(string line) {
-    string s;
-    while((s=getline(true)) != "xasy();\n")
-      line += s;
-    return parser::parseString(line+"\n", "-", true);
-//    return parser::parseString(line+"\n"+nextline,"-",true);
     block *code=parser::parseString(line, "-", true);
     if (code) {
       return code;
@@ -783,15 +778,27 @@ class iprompt : public icore {
     }
   }
 
+  // Continue taking input until a termination command is received from xasy.
+  block *parseXasyLine(string line) {
+    string s;
+    while((s=getline(true)) != "xasy();\n")
+      line += s;
+    return parser::parseString(line+"\n", "-", true);
+  }
+
   void runLine(coenv &e, istack &s, string line) {
     try {
-      if (getSetting<bool>("multiline")) {
+      if(getSetting<bool>("multiline")) {
         block *code=parseExtendableLine(line);
         
         icode i(code);
         i.run(e,s,TRANS_INTERACTIVE);
-      }
-      else {
+      } else if(getSetting<bool>("xasy")) {
+        block *code=parseXasyLine(line);
+        
+        icode i(code);
+        i.run(e,s,TRANS_INTERACTIVE);
+      } else {
         // Add a semi-colon to the end of the line if one is not there.  Do this
         // to the history as well, so the transcript can be run as regular asy
         // code.  This also makes the history work correctly if the multiline

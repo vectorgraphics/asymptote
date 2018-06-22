@@ -1231,6 +1231,8 @@ void initSettings() {
                               ".."));
   addOption(new boolSetting("multiline", 0,
                             "Input code over multiple lines at the prompt"));
+  addOption(new boolSetting("xasy", 0,
+                            "Special interactive mode for xasy"));
 
   addOption(new boolSetting("wait", 0,
                             "Wait for child processes to finish before exiting"));

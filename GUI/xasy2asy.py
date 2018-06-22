@@ -78,7 +78,7 @@ class AsymptoteEngine:
         self.args = args
 
         if keepDefaultArgs:
-            self.args = args + ['-noV', '-multiline', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs] + endargs
+            self.args = args + ['-xasy', '-noV', '-q', '-inpipe=' + str(rx), '-outpipe=' + str(wa), '-o', oargs] + endargs
 
         self.asyPath = path
         self.asyProcess = None
@@ -95,9 +95,6 @@ class AsymptoteEngine:
     def start(self):
         self.asyProcess = subprocess.Popen([self.asyPath] + self.args, close_fds=False,
                                            stdin=self._stdinMode, stderr=self._stderrMode)
-#        self.istream.readline()
-#        if self.asyProcess.returncode is not None:
-#            raise ChildProcessError('Asymptote failed to open')
 
     def __enter__(self):
         self.start()
@@ -735,17 +732,16 @@ class xasyItem(Qc.QObject):
         fout = self.asyengine.ostream
         fin = self.asyengine.istream
 
-        fout.write("reset;\n")
         fout.write("atexit(null);\n")
-#        fout.write("{\n");
+        fout.write("xasy();\n")
+        fout.write("reset")
+        fout.flush();
         for line in self.getCode().splitlines():
-#            if DebugFlags.printDeconstTranscript:
-#            if True:
-#                print('fout:', line)
+            if DebugFlags.printDeconstTranscript:
+                print('fout:', line)
             fout.write(line+"\n")
         fout.write("deconstruct({:f});\n".format(mag))
         fout.write("xasy();\n")
-#        fout.write("}\n");
         fout.flush()
 
         maxargs = int(fin.readline().split()[0])        # should be 256, for now.
@@ -774,7 +770,7 @@ class xasyItem(Qc.QObject):
         fileformat = 'png'
 
         while raw_text != "Done\n" and raw_text != "Error\n":
-#            print(raw_text)
+            print(raw_text)
             text = fin.readline()       # the actual bounding box.
             # print('TESTING:', text)
             keydata = raw_text.strip().replace('KEY=', '', 1)  # key
@@ -1080,13 +1076,10 @@ class xasyScript(xasyItem):
         fout = self.asyengine.ostream
         fin = self.asyengine.istream
 
-#        fout.write("reset;\n")
-#        fout.write("atexit(null);\n")
         for line in self.script.splitlines():
             fout.write(line + '\n')
         fout.write('deconstruct();\n')
         fout.write("xasy();\n")
-#        fout.write("}\n");
         fout.flush()
 
         keylist = {}
