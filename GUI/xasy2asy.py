@@ -637,6 +637,8 @@ class xasyItem(Qc.QObject):
         self.keyBuffer = None
         self._asyengine = asyengine
         self.drawObjects = []
+        self.setKeyed = True
+        self.unsetKeys = set()
         self.imageHandleQueue = queue.Queue()
 
     def updateCode(self, mag=1.0):
@@ -707,6 +709,8 @@ class xasyItem(Qc.QObject):
         self.drawObjects = []
         assert isinstance(self.asyengine, AsymptoteEngine)
         self.imageList = []
+        self.unsetKeys.clear()
+
         self.imageHandleQueue = queue.Queue()
         worker = threading.Thread(target=self.asyfyThread, args=[mag])
         worker.start()
@@ -774,7 +778,12 @@ class xasyItem(Qc.QObject):
             text = fin.readline()       # the actual bounding box.
             # print('TESTING:', text)
             keydata = raw_text.strip().replace('KEY=', '', 1)  # key
+
+            keyflag = keydata[-1]       # last char
             keydata = keydata[:-2]
+            if keyflag == '0':
+                self.unsetKeys.add(keydata)
+            
 #                print(line, col)
 
             if keydata not in keyCounts.keys():
@@ -1009,7 +1018,8 @@ class xasyScript(xasyItem):
             self.transfKeymap = {}
 
         self.script = script
-        self.setKeyed = False
+        self.keyPrefix = ''
+        self.updatedPrefix = True
 
     def clearTransform(self):
         """Reset the transforms for each of the deconstructed images"""
@@ -1069,36 +1079,25 @@ class xasyScript(xasyItem):
         """Sets the content of the script item."""
         self.script = script
         self.updateCode()
-        self.setKeyed = False
 
-    def setKey(self, prefix=''):
-        return
-        fout = self.asyengine.ostream
-        fin = self.asyengine.istream
+    def setKeyPrefix(self, newPrefix=''):
+        self.keyPrefix = newPrefix
+        self.updatedPrefix = False
 
-        for line in self.script.splitlines():
-            fout.write(line + '\n')
-        fout.write('deconstruct();\n')
-        fout.write("xasy();\n")
-        fout.flush()
-
+    def replaceKeysInCode(self):
         keylist = {}
-        linebuf = fin.readline()
-        while linebuf != 'Done\n':
-            print(linebuf)
-            if linebuf.startswith('KEY='):
-                key = linebuf.rstrip().replace('KEY=', '', 1)
-                raw_parsed = xu.tryParseKey(key)
-                if raw_parsed is not None:
-                    line, col = [int(val) for val in raw_parsed.groups()]
-                    if line not in keylist:
-                        keylist[line] = set()
-
-                    keylist[line].add(col)
-            linebuf = fin.readline()
+        prefix = ''
+        if not self.updatedPrefix:
+            prefix = self.keyPrefix
+        for key in self.unsetKeys:
+            raw_parsed = xu.tryParseKey(key)
+            assert raw_parsed is not None
+            line, col = [int(val) for val in raw_parsed.groups()]
+            if line not in keylist:
+                keylist[line] = set()
+            keylist[line].add(col)
 
         raw_code_lines = self.script.splitlines()
-
         with io.StringIO() as raw_str:
             for i in range(len(raw_code_lines)):
                 curr_str = raw_code_lines[i]
@@ -1108,12 +1107,14 @@ class xasyScript(xasyItem):
                         for j in range(len(curr_str)):
                             raw_line.write(curr_str[j])
                             if j + 1 in keylist[i + 1]:
-                                raw_line.write('KEY="x{2:s}{0:d}.{1:d}",'.format(i + 1, j + 1, prefix))
+                                raw_line.write('KEY="{2:s}{0:d}.{1:d}",'.format(i + 1, j + 1, prefix))
                         curr_str = raw_line.getvalue()
                 # else, skip and just write the line.
                 raw_str.write(curr_str + '\n')
                 self.script = raw_str.getvalue()
+                
         self.updateCode()
+        self.unsetKeys.clear()
         self.setKeyed = True
 
     def asyfy(self, mag=1.0, keyOnly=False):
@@ -1139,6 +1140,9 @@ class xasyScript(xasyItem):
         #     self.transfKeymap.pop(key)
 
         # add in any missng key:
+
+        if self.unsetKeys:
+            self.replaceKeysInCode()
 
         keyCount = {}
 

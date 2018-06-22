@@ -1671,7 +1671,7 @@ class MainWindow1(Qw.QMainWindow):
             newItem.setScript(f.read())
             f.close()
 
-        newItem.setKey(str(self.globalObjectCounter) + ':')
+        # newItem.replaceKey(str(self.globalObjectCounter) + ':')
         self.fileItems.append(newItem)
         self.asyfyCanvas()
 
@@ -1767,7 +1767,6 @@ class MainWindow1(Qw.QMainWindow):
 
             
             item.setScript(rawText)
-            item.setKey()
             self.fileItems.append(item)
             self.asyfyCanvas(True)
 
