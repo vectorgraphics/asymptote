@@ -384,7 +384,7 @@ class asyPen(asyObj):
 class asyPath(asyObj):
     """A python wrapper for an asymptote path"""
 
-    def __init__(self, asyengine=None):
+    def __init__(self, asyengine: AsymptoteEngine=None):
         """Initialize the path to be an empty path: a path with no nodes, control points, or links."""
         super().__init__()
         self.nodeSet = []
@@ -489,7 +489,7 @@ class asyPath(asyObj):
     def moveNode(self, index, offset):
         """Translate a node"""
         if self.nodeSet[index] != "cycle":
-            self.nodeSet[index] = (self.nodeSet[index][0] + offset[0], self.nodeSet[1] + offset[1])
+            self.nodeSet[index] = (self.nodeSet[index][0] + offset[0], self.nodeSet[index][1] + offset[1])
 
     def setLink(self, index, ltype):
         """Change the specified link"""
