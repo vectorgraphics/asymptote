@@ -769,6 +769,11 @@ class iprompt : public icore {
   // error occurs.  Returns the parsed code on success, and throws a
   // handled_error exception on failure.
   block *parseExtendableLine(string line) {
+    string s;
+    while((s=getline(true)) != "xasy();\n")
+      line += s;
+    return parser::parseString(line+"\n", "-", true);
+//    return parser::parseString(line+"\n"+nextline,"-",true);
     block *code=parser::parseString(line, "-", true);
     if (code) {
       return code;

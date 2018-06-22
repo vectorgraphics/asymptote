@@ -548,6 +548,7 @@ class asyPath(asyObj):
         fout.write("path p=" + self.getCode() + ';\n')
         fout.write("write(fout,length(p),newl);\n")
         fout.write("write(fout,unstraighten(p),endl);\n")
+        fout.write("xasy();\n")
         fout.flush()
 
         lengthStr = fin.readline()
@@ -734,15 +735,17 @@ class xasyItem(Qc.QObject):
         fout = self.asyengine.ostream
         fin = self.asyengine.istream
 
-        fout.write("atexit(null);\n")
         fout.write("reset;\n")
-        fout.write("{\n");
+        fout.write("atexit(null);\n")
+#        fout.write("{\n");
         for line in self.getCode().splitlines():
-            if DebugFlags.printDeconstTranscript:
-                print('fout:', line)
+#            if DebugFlags.printDeconstTranscript:
+#            if True:
+#                print('fout:', line)
             fout.write(line+"\n")
         fout.write("deconstruct({:f});\n".format(mag))
-        fout.write("}\n");
+        fout.write("xasy();\n")
+#        fout.write("}\n");
         fout.flush()
 
         maxargs = int(fin.readline().split()[0])        # should be 256, for now.
@@ -770,8 +773,8 @@ class xasyItem(Qc.QObject):
         # template=AsyTempDir+"%d_%d.%s"
         fileformat = 'png'
 
-#        print(raw_text)
         while raw_text != "Done\n" and raw_text != "Error\n":
+#            print(raw_text)
             text = fin.readline()       # the actual bounding box.
             # print('TESTING:', text)
             keydata = raw_text.strip().replace('KEY=', '', 1)  # key
@@ -1077,18 +1080,19 @@ class xasyScript(xasyItem):
         fout = self.asyengine.ostream
         fin = self.asyengine.istream
 
-        fout.write("atexit(null);\n")
-        fout.write("reset;\n")
-        fout.write("{\n");
+#        fout.write("reset;\n")
+#        fout.write("atexit(null);\n")
         for line in self.script.splitlines():
             fout.write(line + '\n')
         fout.write('deconstruct();\n')
-        fout.write("}\n");
+        fout.write("xasy();\n")
+#        fout.write("}\n");
         fout.flush()
 
         keylist = {}
         linebuf = fin.readline()
         while linebuf != 'Done\n':
+            print(linebuf)
             if linebuf.startswith('KEY='):
                 key = linebuf.rstrip().replace('KEY=', '', 1)
                 raw_parsed = xu.tryParseKey(key)
