@@ -11,7 +11,7 @@ This file documents @code{Asymptote}, version @value{VERSION}.
 
 @url{http://asymptote.sourceforge.net}
      
-Copyright @copyright{} 2004-16 Andy Hammerlindl, John Bowman, and Tom Prince.
+Copyright @copyright{} 2004-18 Andy Hammerlindl, John Bowman, and Tom Prince.
      
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -316,10 +316,10 @@ Users may also wish to monitor the @code{Asymptote} forum:
 @cindex @acronym{RPM}
 @cindex @code{tgz}
 We release both @code{tgz} and @acronym{RPM} binary distributions of
-@code{Asymptote}. The root user can install the @code{Linux i386} @code{tgz}
+@code{Asymptote}. The root user can install the @code{Linux x86_64} @code{tgz}
 distribution of version @code{x.xx} of @code{Asymptote} with the commands:
 @verbatim
-tar -C / -zxf asymptote-x.xx.i386.tgz
+tar -C / -zxf asymptote-x.xx.x86_64.tgz
 texhash
 @end verbatim
 @noindent
@@ -758,9 +758,9 @@ To compile without optimization, use the command @code{make CFLAGS=-g}.
 @section Uninstall
 @cindex uninstall
 
-To uninstall a @code{Linux i386} binary distribution, use the commands
+To uninstall a @code{Linux x86_64} binary distribution, use the commands
 @verbatim
-tar -zxvf asymptote-x.xx.i386.tgz | xargs --replace=% rm /%
+tar -zxvf asymptote-x.xx.x86_64.tgz | xargs --replace=% rm /%
 texhash
 @end verbatim
 
@@ -947,7 +947,7 @@ terminated with an arrowhead:
 @center @image{quartercircle}
 @noindent
 Here the directions @code{up} and @code{left} in braces specify the
-incoming and outgoing directions at the points @code{(1,0)} and
+outgoing and incoming directions at the points @code{(1,0)} and
 @code{(0,1)}, respectively.
 
 In general, a path is specified as a list of points (or other paths)
@@ -5353,9 +5353,12 @@ pete    7
 @end verbatim
 
 @cindex @code{sort}
-@item T[] sort(T[] a, bool less(T i, T j))
-returns a copy of @code{a} stably sorted in ascending order such that
-element @code{i} precedes element @code{j} if @code{less(i,j)} is true.
+@item T[] sort(T[] a, bool less(T i, T j), bool stable=true)
+returns a copy of @code{a} sorted in ascending order such that
+element @code{i} precedes element @code{j} if @code{less(i,j)} is
+true, subject to (if @code{stable} is @code{true}) the stability constraint
+that the original order of elements @code{i} and @code{j} is preserved if
+@code{less(i,j)} and @code{less(j,i)} are both @code{false}.
 
 @cindex @code{transpose}
 @item T[][] transpose(T[][] a)
@@ -8441,6 +8444,9 @@ which is the determinant
 |c.x c.y c.z 1|
 |d.x d.y d.z 1|
 @end verbatim
+The result is negative (positive) if @code{a}, @code{b}, @code{c} appear in
+counterclockwise (clockwise) order when viewed from @code{d} or zero
+if all four points are coplanar.
  
 The routine
 @cindex @code{insphere}
@@ -9893,7 +9899,7 @@ Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  differentiable vectorization vectorized asydir normals quartic
 @c  LocalWords:  wavepacket kerned parametrized specular hyperboloid Bourke's
 @c  LocalWords:  Michail 0pt 1filll 's 3D latin1 labelpath3 2D graph3
-@c  LocalWords:  grid3 contour3 i386 psv a4 gsview32 freeglut 'load '
+@c  LocalWords:  grid3 contour3 x86_64 psv a4 gsview32 freeglut 'load '
 @c  LocalWords:  'asy 'lasy 'auto 5bp 1cm sqrtx01 4g extenda extendb
 @c  LocalWords:  bb llx 2S 100pt 3t bezier2 bool3 x0 angle1 angle2 z1
 @c  LocalWords:  z2 before' struct X11 x11colors type1cm 12pt OT1 5mm

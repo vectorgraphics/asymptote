@@ -4,7 +4,9 @@
  * Render 3D Bezier paths and surfaces.
  *****/
 
+#ifdef __CYGWIN__
 #define _POSIX_C_SOURCE 200809L
+#endif
 
 #include <stdlib.h>
 #include <fstream>

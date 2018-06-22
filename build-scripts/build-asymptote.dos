@@ -1,6 +1,12 @@
 #!/bin/sh -x
 GC=7.6.2
 
+MACHINE=`uname -m`
+if [ $MACHINE == i686 ]; then
+BINDIR=i386-windows
+else
+BINDIR=x86_64-windows
+fi
 SHARED=~/shared/asy
 MAKEFLAGS=-j8
 export MAKEFLAGS
@@ -19,7 +25,7 @@ mkdir -p CTAN
 rm -rf CTAN/asymptote-$VERSION
 tar -zxf $SHARED/asymptote-$VERSION.src.tgz -C CTAN
 tar -zxf $SHARED/asymptote-$VERSION.src.tgz
-mkdir -p CTAN/asymptote-$VERSION/binaries/i386-win32/texlive
+mkdir -p CTAN/asymptote-$VERSION/binaries/$BINDIR/texlive
 cd asymptote-$VERSION
 fi
 BUILD=build-$VERSION
@@ -30,7 +36,7 @@ rm -rf $BUILD
 mkdir -p $BUILD
 cp -a $HOME/dll/cygwin/*.dll $HOME/dll/*.dll $BUILD
 chmod 0644 $BUILD/*.dll
-cp -a $BUILD/*.dll ~/CTAN/asymptote-$VERSION/binaries/i386-win32/
+cp -a $BUILD/*.dll ~/CTAN/asymptote-$VERSION/binaries/$BINDIR/
 cp -a $HOME/dll/*.dll .
 make MSDOS=1 DESTDIR="$BUILD/" docdir="$BUILD/"
 test -f asy.list || make MSDOS=1 keywords DESTDIR="$BUILD/" docdir="$BUILD/"
@@ -50,9 +56,16 @@ ls -p1 $BUILD \
     | awk '{ if(index($0,"/")==length($0)) print "RMDir /r $INSTDIR\\" substr($0,0,length($0)-1); else print "Delete $INSTDIR\\" $0 }' \
 	> AsymptoteUninstallList.nsi
 
+if [ $MACHINE == i686 ]; then
+sed asymptote.nsi -e 's/$PROGRAMFILES64/$PROGRAMFILES/g' > asymptote32.nsi
+/cygdrive/c/Program\ Files\ \(x86\)/NSIS/makensis.exe asymptote32.nsi
+SUFFIX=-i386_32
+else
 /cygdrive/c/Program\ Files\ \(x86\)/NSIS/makensis.exe asymptote.nsi
-cp -a --no-preserve=mode asymptote-$VERSION-setup.exe $SHARED
-mv asymptote-$VERSION-setup.exe ~/
+SUFFIX=
+fi
+cp -a --no-preserve=mode asymptote-$VERSION-setup.exe $SHARED/asymptote-$VERSION-setup$SUFFIX.exe
+mv asymptote-$VERSION-setup.exe ~/asymptote-$VERSION-setup$SUFFIX.exe
 
 cd ~/
 rm -rf asymptote-${VERSION}TL || exit
@@ -67,12 +80,19 @@ rm -f doc/*.aux doc/*.log doc/*.dvi
 make MSDOS=1 DESTDIR="$BUILD/"
 make MSDOS=1 install-asy DESTDIR="$BUILD/"
 mv $BUILD/usr/local/bin/asy.exe $BUILD
-cp $BUILD/asy.exe ~/CTAN/asymptote-$VERSION/binaries/i386-win32/texlive
+cp $BUILD/asy.exe ~/CTAN/asymptote-$VERSION/binaries/$BINDIR/texlive
 cp -a configure.ac ~/CTAN/asymptote-$VERSION/
 cp -a $SHARED/asydoc/* ~/CTAN/asymptote-$VERSION/doc
-cd ~/CTAN/asymptote-$VERSION/binaries/i386-win32
-ln -sf ../../README .
+cd ~/CTAN/asymptote-$VERSION/binaries/$BINDIR
+cp -a ../../README .
 cd ~/CTAN
-cp -a ~/asymptote/build-scripts/README-binaries asymptote-$VERSION/binaries/i386-win32/texlive/README
+cp -a ~/asymptote/build-scripts/README-binaries asymptote-$VERSION/binaries/$BINDIR/texlive/README
+SHAREDBIN=$SHARED/CTAN/asymptote-$VERSION
+if [ $MACHINE == i686 ]; then
+mkdir -p $SHAREDBIN
+cp -a asymptote-$VERSION/binaries/$BINDIR $SHAREDBIN
+else
+cp -a $SHAREDBIN/i386-windows ~/CTAN/asymptote-$VERSION/binaries
+fi
 tar cfz asymptote-$VERSION-CTAN.tgz asymptote-$VERSION
 cp -a --no-preserve=mode asymptote-$VERSION-CTAN.tgz $SHARED

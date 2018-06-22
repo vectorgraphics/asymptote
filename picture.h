@@ -36,7 +36,7 @@ public:
   nodelist nodes;
   
   picture() : labels(false), lastnumber(0), lastnumber3(0), T(identity),
-              transparency(false) {}
+              transparency(false), billboard(0) {}
   
   // Destroy all of the owned picture objects.
   ~picture();
@@ -56,6 +56,7 @@ public:
   
   bool havelabels();
   bool have3D();
+  bool havepng();
 
   bbox bounds();
   bbox3 bounds3();
@@ -75,7 +76,8 @@ public:
     
   bool postprocess(const string& prename, const string& outname, 
                    const string& outputformat, double magnification,
-                   bool wait, bool view, bool pdftex, bool svgformat);
+                   bool wait, bool view, bool pdftex, bool epsformat,
+                   bool svg);
     
   // Ship the picture out to PostScript & TeX files.
   bool shipout(picture* preamble, const string& prefix,

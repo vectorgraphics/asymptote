@@ -37,7 +37,7 @@ extern uint32_t CLZ(uint32_t a);
 inline unsigned intbits() {
   static unsigned count=0;
   if(count > 0) return count;
-  while((1UL << count) < Int_MAX)
+  while((1ULL << count) < Int_MAX)
     ++count;
   ++count;
   return count;
@@ -412,7 +412,7 @@ Int NOT(Int a)
 
 Int CLZ(Int a) 
 {
-  if((unsignedInt) a > 0xFFFFFFFF)
+  if((unsigned long long) a > 0xFFFFFFFF)
     return CLZ((uint32_t) (a >> 32));
   else {
     int bits=intbits();
