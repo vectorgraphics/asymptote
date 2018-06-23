@@ -53,9 +53,7 @@ DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc keywords.cc \
         $(SYMBOLSH) $(SYMBOL_FILES:=.symbols.h)
 NAME = asy
 XNAME = x$(NAME)
-UIFILES = custMatTransform window1 setCustomAnchor bezierCurveEditor \
-	bezierPointEditor widg_addPolyOpt widg_addLabel labelTextEditor \
-	widg_addBezierInplace
+UIFILES = $(wildcard GUI/windows/*.ui)
 CLEAN = camp.output base/version.asy doc/version.texi \
         GUI/xasyVersion.py $(XNAME) doc/asy-latex.pdf $(SYMBOLSH)
 EXTRA = asy-mode.el asy-init.el asy.vim asy_filetype.vim asy-kate.sh \
@@ -119,7 +117,7 @@ asy:	version
 	  $(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) revision.o $(LIBS); \
 	fi
 
-version: $(GCLIB) $(FILES:=.o) $(UIFILES:=.py)
+version: $(GCLIB) $(FILES:=.o) $(UIFILES:.ui=.py)
 	if test ! -s revision.cc -o "$(revision)" != "$(last)"; then     \
 	  echo $(REVISION)\"$(revision)\"\; > revision.cc; \
 	fi
@@ -322,23 +320,23 @@ check-all: asy FORCE
 	$(MAKE) -C tests all
 
 .SUFFIXES: .c .cc .o .d .ui .py
-.cc.o:
+%.o: %.cc
 	$(CXX) $(OPTS) $(INCL) -o $@ -c $<
-.cc.d:
+%.d: %.cc
 	@echo Creating $@; \
 	rm -f $@; \
 	${CXX} $(MAKEDEPEND) $(INCL) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
 	sed 's,\($*\)\.o[ :]*,\1.o \1.pic.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
-.c.d:
+%.d: %.c
 	@echo Creating $@; \
 	rm -f $@; \
 	${CC} $(MAKEDEPEND) $(INCL) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
-.ui.py:
+%.py: %.ui
 	mkdir -p GUI/pyUIClass
-	pyuic5 -o GUI/pyUIClass/$@ $<
+	pyuic5 -o GUI/pyUIClass/$(notdir $@) $<
 
 # Compile for the shared library.  OpenGL must be disabled as it causes
 # crashes inside a shared library.
